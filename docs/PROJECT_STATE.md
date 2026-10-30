@@ -1,3 +1,35 @@
+## 2026-10-30 · agent/a2-m12-final — A2 module 12 „Reisimine ja transport” in the final shape
+
+- Base: `main` 0a7c4d3 (A2 module 10 #923 merged; module 11 still open), checked 2026-10-30. The 054 → 056 boundary was checked by
+  overlaying module 11's current file: 0 problems, no new line elsewhere. Recheck after module 11 merges. Content only; no production
+  data, no publishing, no deploy. Template v3 → v4 (as modules 6–10).
+- Done: `a2/module12.js` (a2-056…060) passes every final-shape gate under the A2 profile: **117 → 0 problems**
+  (`final-shape.mjs --course a2 --module 12`); `finalShapeBaselineA2.json` 1279 → 1130 (module 12's 117 lines, 29 V7 / V8 lines of
+  modules 13–20, course 39 → 36), new 0. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m12, no swap): 056 KIRJ L→W (bussiga, jalgsi, peatuses / peatusesse / peatusest, üks ots; main
+  `056_t_letter` `kiri` 50–70 words W04, plan W11, edit W10), 057 PROJ L→S (väljub Tallinnast, saabub Tartusse, hilineb, teiselt
+  platvormilt, the one-page trip plan; main `057_t_plan` S03), 058 LUGE R→W (Mis kell, Kust, Kui palju, Kas, kaks piletit; main
+  `058_t_reply` `vastus` 60–80 words W08, tagged level 4), 059 RÄÄK R→S (lihtminevik; main `059_t_tell` S07, tagged level 4).
+  **Corners:** 056 W1 (`056_p_card`), 057 L1 (`057_p_clips`, 8 announcements), 058 R1 (`058_p_phrases`, a cloze tagged R12), 059 S2
+  (`059_p_cards`, S05). **061 must not have an S2 corner.** S06 = `059_t_record` (home recording with the picture), S05 = `059_p_cards`.
+  Every teaching lesson: review naming the previous lesson and one of modules 8–10 (054/047, 056/049, 057/048, 058/043), an in-lesson
+  pair task, a home recording (45–60 s), two fluency tasks (S09+W06, S02+S10, S02+R15+S01, S08+S11). No tingiv kõneviis; the picture
+  prompts in `art/visuals/a2-module-12.js` had none (file untouched).
+- 060 (PROOV, title „Proovieksam 1: reisimine”): all four parts timed with `B.examPart` and the 80 % target (W 30 min, 20 points; R 45 min,
+  29; L 30 min, 25; S 15 min, 20); tags W1, W2a, W2b, R1–R5, L1–L4, S0, S1, S2. Writing + reading on Harjuta, listening + speaking on Kasuta.
+- Cast (April, a year before B1; not yet in `docs/COURSE_CAST.md`): Sofia's friend Kati comes from Helsinki by ferry on Friday 16 April
+  (arrives 18.00 after her plan changes); Saturday 17 April 9.15 train to Helgi in Tartu (11.20); Sunday 18 April the 16.00 Teekaaslane bus is
+  cancelled, the 18.00 bus arrives 20.30, Kati catches the 21.30 ferry by taxi. Bus driver Toivo Rand, cashier Urve, Eve Ross (Teekaaslane
+  customer service), guide Reet Kask (business card), Dmitri's aunt Nina in Valga, Anna's friend Tiiu in Viljandi, Viktor's friend Arvo.
+  Tom came to Estonia by bicycle from England (new fact). The old Liis of this module (trip to Valga) is gone; **no renamed character**.
+- Audio (TartuNLP, free): new `056_d_call`, `056_p_radio`, `056_t_voice`, `057_d_maret`, `057_p_clips`, `058_d_desk`, `058_p_order`,
+  `059_d_numbers`, `059_p_radio`, `060_t_l1`–`060_t_l4`; the 7 old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under heavy machine load (load average 400+): 390 files passed, 20 UI files
+  failed, 1 skipped (39 tests, timeouts). The 20 files run one at a time with a 180 s timeout: 19 passed, `studentWorksheetFlow` timed out and
+  passed alone (3/3). `admin/course` 16 files passed, 1 skipped. Language check (Vabamorf) of module 12: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: `V6-gap-L1` is unchanged in kind (module 5 → 10, closing pass); corner counts after this module: W1 2, L1 2, R1 2, S2 3 of 4–5.
+- Next safe step: when module 11 has merged, rerun `final-shape.mjs --course a2 --module 12`; then A2 module 13 (`a2/module13.js`, first
+  corner not S2).
 ## 2026-10-30 · agent/a2-m11-final — A2 module 11 „Ilm, aastaajad ja riided” in the final shape
 
 - Base: `main` checked 2026-10-30 (0a7c4d3: A2 modules 8 #921, 9 #922, 10 #923); the 049 → 051 boundary is rechecked (049's corner is L1, 051's W1).
