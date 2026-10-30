@@ -110,7 +110,7 @@ describe('JournalGrid', () => {
     // an automatic entry can be deleted too
     expect(screen.getAllByRole('button', { name: 'Kustuta' })).toHaveLength(2);
     fireEvent.keyDown(grid(), { key: 'z', ctrlKey: true });
-    await waitFor(() => expect(repository.updateEntry).toHaveBeenLastCalledWith('auto_invoice_i1', expect.objectContaining({ lines: [expect.objectContaining({ account: '1200', debitCents: 8000 }), expect.objectContaining({ account: '3060', creditCents: 8000 })] }), 'Tagasivõtmine (Ctrl+Z): müügitulu 3000'));
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenLastCalledWith('auto_invoice_i1', expect.objectContaining({ lines: [expect.objectContaining({ account: '1200', debitCents: 8000 }), expect.objectContaining({ account: '3060', creditCents: 8000 })] }), 'Tagasivõtmine (Ctrl+Z)'));
   });
 
   it('an automatic entry saves and takes a new date and document', async () => {
@@ -173,7 +173,7 @@ describe('JournalGrid', () => {
     await waitFor(() => expect(repository.replaceAccount).toHaveBeenCalledWith({ fromAccount: '3060', toAccount: '3000', entryIds: ['auto_invoice_i1'] }));
     expect(await screen.findByText(/asendati kontoga 3000 1 kandes/)).toBeInTheDocument();
     await act(async () => { fireEvent.keyDown(grid(), { key: 'z', metaKey: true }); });
-    await waitFor(() => expect(repository.replaceAccount).toHaveBeenLastCalledWith({ fromAccount: '3000', toAccount: '3060', targets: [{ entryId: 'auto_invoice_i1', lineIndexes: [1] }], reason: 'Tagasivõtmine (Ctrl+Z): müügitulu 3000' }));
+    await waitFor(() => expect(repository.replaceAccount).toHaveBeenLastCalledWith({ fromAccount: '3000', toAccount: '3060', targets: [{ entryId: 'auto_invoice_i1', lineIndexes: [1] }], reason: 'Tagasivõtmine (Ctrl+Z)' }));
   });
 
   it('filters by account, text, document and amount; a header click sorts', async () => {
