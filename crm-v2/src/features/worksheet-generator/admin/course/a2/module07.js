@@ -2,7 +2,7 @@
 // (docs/COURSE_FINAL_SHAPE_A2.md, row m7: PROB AVAS KUUL LUGU; gates V1–V16 of docs/COURSE_FINAL_SHAPE_B1.md §8).
 // One storyline, one year before the B1 course (docs/COURSE_CAST.md): late November, Sofia's first Estonian winter. Sofia
 // (27) rents a room from Malle Pärn (66) in Mustamäe, flatmate Grete (22). Department store Kaubahall: Anna (Jaan's old
-// acquaintance) works in the home goods department on the 4th floor, her colleague Liis at the till and the info desk.
+// acquaintance) works in the home goods department on the 4th floor, her colleague Siiri at the till and the info desk.
 // Uncle Viktor sells apples, eggs and honey at Nõmme market, Leida woollen socks and mittens; Markus is a regular of café
 // Pann; the second-hand shop „Teine Ring” (owner Mirjam, seller Kristo); Sofia's mother Helgi in Tartu, friend Kati abroad.
 //   031 PROB R→S  Malle's birthday present for 40 € (Grete broke Malle's blue teacup) — the adjective with the noun in the
@@ -126,7 +126,7 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpilane räägib õpetajale kolm korda; õpetaja on iga kord teine kuulaja (Grete, Malle, Anna) ja küsib ühe lisaküsimuse. Kolmas kord on kõige kiirem.'),
     ],
     transfer: [
-      B.text('031_t_sit', 'Kaubahalli neljandal korrusel', 'Kolmapäeval pärast keeletundi on Sofia Kaubahallis. Anna töötab seal kodukaupade osakonnas. Tema kolleeg Liis pakib kingitusi. Siniseid tasse on alles ainult üks. Anna ja Liis vaatavad koos kataloogi ja näitavad Sofiale teisi kingitusi. Vaata pilti. Raha on 40 eurot. Õhtul helistab Sofia Gretele ja nad otsustavad koos.'),
+      B.text('031_t_sit', 'Kaubahalli neljandal korrusel', 'Kolmapäeval pärast keeletundi on Sofia Kaubahallis. Anna töötab seal kodukaupade osakonnas. Tema kolleeg Siiri pakib kingitusi. Siniseid tasse on alles ainult üks. Anna ja Siiri vaatavad koos kataloogi ja näitavad Sofiale teisi kingitusi. Vaata pilti. Raha on 40 eurot. Õhtul helistab Sofia Gretele ja nad otsustavad koos.'),
       B.profiles('031_t_gifts', 'Kataloogi kingitused.', 'Loe kolme kauba kaarti. Kirjuta lünka sõna või arv.', [
         ['Teetassid „Meri”', ['Kaks sinist tassi koos alustassidega.', 'Hind: 18 € kaks tassi.', 'Sinine tass on poes alles ainult üks.', 'Rohelisi tasse on palju, hind on sama.', 'Tassi kõrvale sobib pakk head teed, 5 €.'], ['Kaks tassi maksavad [18|kaheksateist] eurot.', 'Siniseid tasse on alles ainult [üks|1].', 'Pakk head teed maksab [viis|5] eurot.']],
         ['Laualamp „Valgus”', ['Valge või must väike lamp.', 'Hind: 34 €.', 'Lamp on kerge ja hea lugemiseks õhtul.', 'Garantii on kaks aastat.', 'Lamp sobib hästi voodi kõrvale.'], ['Lamp on valge või [must].', 'Lamp maksab [34|kolmkümmend neli] eurot.', 'Lambiga on õhtul hea [lugeda].']],
@@ -142,7 +142,7 @@ export const LESSONS = withShapes({
         ['üks sinine tass ja tee', 'kaks rohelist tassi', 'valge lamp', 'kott', 'lilled'], 'Mis on Malle kingitus, mis see maksab ja miks see sobib?', [90, 120]), { main: true }),
         'Üks-ühele: õpetaja on Grete ja tahab alguses kõige kallimat kotti; õpilane põhjendab hinna ja Malle soovidega. Lõpus ütleb õpilane kokkuleppe ja summa.'),
       tag(B.letter('031_t_letter', 'Sõnum Gretele.', 'Kirjuta Gretele 40–50 sõna: mida sa ostsid, mis see maksis ja miks.', 'Tere, Grete!', 'Sofia', [40, 50]), { task: 'W08' }),
-      tag(B.speaking('031_t_record', 'Salvesta: kingitus pildil.', 'Vaata pilti ja salvesta kodus 45–60 sekundit: mida Anna ja Liis valivad?', ['Kus Anna ja Liis on?', 'Mida nad kataloogist vaatavad?', 'Mida sina Mallele ostad ja miks?', 'Mida sa kingid oma sõbrale sünnipäevaks?'], [45, 60], ['Pildil on …', 'Nad vaatavad …', 'Ma ostan Mallele …, sest …']), { task: 'S15' }),
+      tag(B.speaking('031_t_record', 'Salvesta: kingitus pildil.', 'Vaata pilti ja salvesta kodus 45–60 sekundit: mida Anna ja Siiri valivad?', ['Kus Anna ja Siiri on?', 'Mida nad kataloogist vaatavad?', 'Mida sina Mallele ostad ja miks?', 'Mida sa kingid oma sõbrale sünnipäevaks?'], [45, 60], ['Pildil on …', 'Nad vaatavad …', 'Ma ostan Mallele …, sest …']), { task: 'S15' }),
       B.rubric('031_t_rubric', 'Hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Poes küsib õpilane värvi, hinda ja teist võimalust.', 'Kokkulepe on tehtud ja kingitus maksab kuni 40 eurot.', 'Osastav on õige: sinist tassi, valget lampi, head teed.', 'Sõnumis on ost, hind ja põhjus (40–50 sõna).']),
       B.selfcheck('031_t_self', ['Ma ütlen, mida ma otsin: sinist tassi, sooja salli.', 'Ma küsin poes värvi, hinda ja teist võimalust.', 'Ma lepin sõbraga kokku, mis kingitus osta.', 'Ma kirjutan sõbrale oma ostust.'], 'Kingitus on ostetud'),
     ],
@@ -289,7 +289,7 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja on müüja ja ei anna kohe järele. Õpilane helistab, küsib ja lepib hinna kokku. Teine kõne on kohe pärast seda, kiiremini: õpetaja on teine müüja (saapad maksavad 45 €).'),
     ],
     transfer: [
-      B.text('032_t_sit', 'Kassas on järjekord', 'Laupäeva õhtul läheb Sofia Kaubahalli toidupoodi. Kassas töötab Liis, Anna kolleeg. Sofia ees seisab Markus, kohvik Panni püsiklient. Ta paneb letile kolm õuna ja kaks leiba. Vaata pilti. Malle jättis Sofiale häälsõnumi: mida osta ühisesse toidukorvi. Raha on köögis karbis.'),
+      B.text('032_t_sit', 'Kassas on järjekord', 'Laupäeva õhtul läheb Sofia Kaubahalli toidupoodi. Kassas töötab Siiri, Anna kolleeg. Sofia ees seisab Markus, kohvik Panni püsiklient. Ta paneb letile kolm õuna ja kaks leiba. Vaata pilti. Malle jättis Sofiale häälsõnumi: mida osta ühisesse toidukorvi. Raha on köögis karbis.'),
       tag(B.listening('032_t_malle', 'Malle häälsõnum.', 'Malle jättis Sofiale häälsõnumi. Kuula kaks korda ja tee ostunimekiri.', [
         'Malle: Tere, Sofia! Siin Malle.',
         'Malle: Palun osta kaks leiba ja kolm pakki piima.',
@@ -301,9 +301,9 @@ export const LESSONS = withShapes({
         'Malle: Kviitung pane palun karpi raha juurde. Aitäh!',
       ], ['Malle palub osta kaks [leiba].', 'Piima on vaja kolm [pakki].', 'Kollast juustu on vaja pool [kilo].', 'Kohvi ei osta Sofia, sest kohvi on [veel].', 'Kartuleid on vaja Malle homse [supi] jaoks.', 'Õunu ei osta Sofia, sest Viktor andis neid [turult].', 'Raha võib kulutada kuni [viiekümne|50] euroni.', 'Pärast poodi läheb kviitung köögis [karpi].']), { task: 'L07' }),
       tag(B.reading('032_t_receipt', 'Loe kviitungit.', 'Sofia vaatab kodus kviitungit. Kas kõik on õige? Vasta lühidalt.', 'Kaubahall, toidupood, kviitung',
-        'Kuupäev: 5.12.2026, kell 17.40.\n\nLeib, 2 tk, 1,30 € tükk: 2,60 €.\nPiim, 3 pakki, 1,00 € tükk: 3,00 €.\nJuust, pool kilo: 4,50 €.\nKartulid, 2 kg: 1,80 €.\nKohv, 1 pakk: 6,90 €.\n\nKokku: 18,80 €.\nMakstud sularahas: 20,00 €.\nTagasi: 1,20 €.\n\nTeid teenindas kassapidaja Liis. Aitäh ostu eest ja tulge jälle!\n\nKaupa saab tagastada 14 päeva jooksul. Tagastamiseks on vaja kviitungit. Kliendikaardiga saate järgmisel ostul viie protsendi soodustuse. Pood on avatud iga päev kella kaheksast kümneni. Kliendikaardi saate kassast tasuta ja see kehtib kõigis Kaubahalli poodides. Head päeva ja ilusat detsembrit!',
+        'Kuupäev: 5.12.2026, kell 17.40.\n\nLeib, 2 tk, 1,30 € tükk: 2,60 €.\nPiim, 3 pakki, 1,00 € tükk: 3,00 €.\nJuust, pool kilo: 4,50 €.\nKartulid, 2 kg: 1,80 €.\nKohv, 1 pakk: 6,90 €.\n\nKokku: 18,80 €.\nMakstud sularahas: 20,00 €.\nTagasi: 1,20 €.\n\nTeid teenindas kassapidaja Siiri. Aitäh ostu eest ja tulge jälle!\n\nKaupa saab tagastada 14 päeva jooksul. Tagastamiseks on vaja kviitungit. Kliendikaardiga saate järgmisel ostul viie protsendi soodustuse. Pood on avatud iga päev kella kaheksast kümneni. Kliendikaardi saate kassast tasuta ja see kehtib kõigis Kaubahalli poodides. Head päeva ja ilusat detsembrit!',
         [['Mis on kviitungil üleliigne?', 'kohv|kohvi pakk|üks pakk kohvi'], ['Kui palju maksavad ostud ilma kohvita?', '11,90 €|11,90 eurot|üksteist eurot üheksakümmend senti'], ['Kas Sofia jäi alla viiekümne euro?', 'jah|jah, ta maksis 18,80 €'], ['Kui palju raha Sofia tagasi sai?', '1,20 €|1,20 eurot|üks euro kakskümmend senti'], ['Kui palju raha peab poe kassa Sofiale veel tagasi andma?', '6,90 €|6,90 eurot|kuus eurot üheksakümmend senti'], ['Mitme päeva jooksul saab kohvi tagastada?', '14|neljateistkümne päeva jooksul|14 päeva jooksul'], ['Mida Sofia peab kohvi tagastamiseks kaasa võtma?', 'kviitungi|kviitung|kviitungi ja kohvi']]), { task: 'R08', level: 3 }),
-      teach(tag(B.speaking('032_t_picture', 'Eksaminurk: pilt ja küsimused.', 'Kirjelda pilti umbes üks minut. Siis vasta õpetaja küsimustele.', ['Kes on pildil ja kus nad on?', 'Mida Markus letile paneb?', 'Mida Liis teeb?', 'Kui palju võivad kolm õuna ja kaks leiba maksta?', 'Kus sina tavaliselt toitu ostad? Miks seal?', 'Kas sa maksad kaardiga või sularahas?'], [60, 120], ['Pildil on …', 'Markus paneb letile …', 'See maksab umbes … eurot.']), { task: 'S06', harno: 'S1' }),
+      teach(tag(B.speaking('032_t_picture', 'Eksaminurk: pilt ja küsimused.', 'Kirjelda pilti umbes üks minut. Siis vasta õpetaja küsimustele.', ['Kes on pildil ja kus nad on?', 'Mida Markus letile paneb?', 'Mida Siiri teeb?', 'Kui palju võivad kolm õuna ja kaks leiba maksta?', 'Kus sina tavaliselt toitu ostad? Miks seal?', 'Kas sa maksad kaardiga või sularahas?'], [60, 120], ['Pildil on …', 'Markus paneb letile …', 'See maksab umbes … eurot.']), { task: 'S06', harno: 'S1' }),
         'Üks-ühele: nagu Harno A2 rääkimise 1. osas. Õpilane kirjeldab pilti umbes minuti, õpetaja ei sega. Siis küsib õpetaja teemakaardi küsimused (toit, pood, raha). Kokku 6–7 minutit, hinda nagu eksamil.'),
       teach(tag(B.ideaCard('032_t_basket', 'Ühine toidukorv.', 'A on Sofia, B on Malle. Valige koos, mida 25 euro eest osta.',
         'Raha on 25 eurot. Nädalaks on vaja süüa kolmele. Hinnad: leib 1,30 €, piim 1 €, juust 4,50 €, kartulid 0,90 € kilo, kohv 6,90 €, kana 7 €, õunad 2 € kilo.',
@@ -584,12 +584,12 @@ export const LESSONS = withShapes({
       B.speaking('034_p_say', 'Garantii ja tagastamine.', 'Vasta küsimustele ja räägi oma kogemusest. Kasuta sõnu kuni, jooksul ja ilma.', ['Kas sa hoiad kviitungeid alles? Kus?', 'Mitme päeva jooksul saab sinu lemmikpoes kaupa tagastada?', 'Mida sa teed, kui uus asi läheb kohe katki?', 'Kas sa parandad asju ise või viid töökotta?', 'Mis asjal on sinu kodus kõige pikem garantii?'], [60, 120], ['Kaupa saab tagastada … jooksul.', 'Ilma kviitungita …', 'Garantii kehtib kuni …']),
     ],
     transfer: [
-      B.text('034_t_sit', 'Kaubahalli infoletis', 'Kell neli on Viktor ja Sofia Kaubahalli infoletis. Viktor hoiab käes katkist veekeetjat ja kviitungit. Infoletis töötab täna Liis. Ta kontrollib kviitungit ja näitab tagastuskasti. Vaata pilti. Õhtul saadab Kaubahall Sofiale e-kirja. Lõpuks kirjutad sa loo lõpu.'),
-      teach(tag(B.rolecards('034_t_desk', 'Infoletis.', 'A on Viktor, B on Liis. A tagastab katkise veekeetja kviitungiga.',
+      B.text('034_t_sit', 'Kaubahalli infoletis', 'Kell neli on Viktor ja Sofia Kaubahalli infoletis. Viktor hoiab käes katkist veekeetjat ja kviitungit. Infoletis töötab täna Siiri. Ta kontrollib kviitungit ja näitab tagastuskasti. Vaata pilti. Õhtul saadab Kaubahall Sofiale e-kirja. Lõpuks kirjutad sa loo lõpu.'),
+      teach(tag(B.rolecards('034_t_desk', 'Infoletis.', 'A on Viktor, B on Siiri. A tagastab katkise veekeetja kviitungiga.',
         'Sa oled Viktor. Veekeetja ei tööta: vesi ei lähe kuumaks. Sofia ostis selle kolmandal detsembril. Kviitung on olemas, karpi ei ole. Küsi võimalusi ja vali üks.',
-        'Sa oled Liis. Kontrolli kviitungit ja kuupäeva. Paku raha tagasi või uut veekeetjat. Uus veekeetja „Tugev” maksab 39 eurot.',
+        'Sa oled Siiri. Kontrolli kviitungit ja kuupäeva. Paku raha tagasi või uut veekeetjat. Uus veekeetja „Tugev” maksab 39 eurot.',
         ['Tere! See veekeetja on katki.', 'Me ostsime selle … päeva tagasi.', 'Kas me saame raha tagasi?'], ['Kas teil on kviitung?', 'Teil on kaks võimalust.', 'Hinnavahe maksate juurde.']), { task: 'S10' }),
-        'Üks-ühele: õpilane toob infoletti päris asja ja „kviitungi”. Õpetaja on Liis, küsib kuupäeva ja pakub kahte võimalust. Siis vahetage rollid: õpetaja on klient ja unustab kviitungi.'),
+        'Üks-ühele: õpilane toob infoletti päris asja ja „kviitungi”. Õpetaja on Siiri, küsib kuupäeva ja pakub kahte võimalust. Siis vahetage rollid: õpetaja on klient ja unustab kviitungi.'),
       B.insertion('034_t_mail', 'Kaubahalli e-kiri.', 'Õhtul tuleb Sofiale e-kiri. Pane lünka sobiv fraas, kaks fraasi jääb üle.', 'Teie veekeetja', [
         'Tere, Sofia!',
         '',
@@ -601,18 +601,18 @@ export const LESSONS = withShapes({
         '',
         'Kliendikaardiga saate järgmisel ostul [[viie protsendi soodustuse]]. Pakkumine kehtib [[kuni detsembri lõpuni]].',
         '',
-        'Kui teil on küsimusi, helistage meile iga päev kella kümnest kuueni. Vabandame ja soovime teile head teed! Kaubahalli klienditeenindus, Liis',
+        'Kui teil on küsimusi, helistage meile iga päev kella kümnest kuueni. Vabandame ja soovime teile head teed! Kaubahalli klienditeenindus, Siiri',
       ], ['kahe nädala pärast', 'ilma kviitungita']),
       B.examWriting('034_t_form', 'Tagastamise vorm.', 'Täida Kaubahalli tagastamise vorm Sofia ja veekeetja andmetega.', 'kusimustik', {
-        situation: 'Infoletis annab Liis Sofiale tagastamise vormi.',
+        situation: 'Infoletis annab Siiri Sofiale tagastamise vormi.',
         questions: ['Kliendi nimi:', 'Mis kaup see on?', 'Ostu kuupäev:', 'Hind:', 'Mis on katki?', 'Mida soovite: raha tagasi või uus kaup? Miks?'],
       }),
       tag(B.examWriting('034_t_story', 'Loo lõpp.', 'Kirjuta veekeetja loo lõpp 60–80 sõnaga: mis juhtus Kaubahallis ja kodus?', 'jutt', {
         situation: 'Pealkiri: „Malle saab jälle teed juua”.',
-        points: ['Kuidas Sofia ja Viktor infoletti läksid?', 'Mida Liis ütles ja pakkus?', 'Mida nad valisid ja kui palju maksid?', 'Mis juhtus õhtul kodus?'],
+        points: ['Kuidas Sofia ja Viktor infoletti läksid?', 'Mida Siiri ütles ja pakkus?', 'Mida nad valisid ja kui palju maksid?', 'Mis juhtus õhtul kodus?'],
         words: [60, 80],
       }), { main: true }),
-      tag(B.speaking('034_t_record', 'Salvesta: infoletis.', 'Vaata pilti ja salvesta kodus 45–60 sekundit: mis infoletis toimub?', ['Kus Viktor ja Liis on?', 'Mida Viktor käes hoiab?', 'Mida Liis kontrollib?', 'Mida on vaja, kui sa tahad kaupa tagastada?'], [45, 60], ['Pildil on …', 'Viktor hoiab käes …', 'Tagastamiseks on vaja …']), { task: 'S15' }),
+      tag(B.speaking('034_t_record', 'Salvesta: infoletis.', 'Vaata pilti ja salvesta kodus 45–60 sekundit: mis infoletis toimub?', ['Kus Viktor ja Siiri on?', 'Mida Viktor käes hoiab?', 'Mida Siiri kontrollib?', 'Mida on vaja, kui sa tahad kaupa tagastada?'], [45, 60], ['Pildil on …', 'Viktor hoiab käes …', 'Tagastamiseks on vaja …']), { task: 'S15' }),
       B.rubric('034_t_rubric', 'Mooduli lõpp: hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Infoletis ütleb õpilane, mis on katki ja millal see osteti, ning valib lahenduse.', 'Tagastamise vorm on täidetud õigete andmetega.', 'Loo lõpus on vastus kõigile neljale punktile (60–80 sõna).', 'Vormid on õiged: kviitungiga, kuni reedeni, kahe aasta garantii.']),
       B.selfcheck('034_t_self', ['Ma loen poe reegleid ja kviitungit.', 'Ma tagastan katkise asja kviitungiga.', 'Ma ütlen: kuni reedeni, kahe nädala jooksul, ilma kviitungita.', 'Ma kirjutan loo lõpu.'], 'Uus veekeetja köögis'),
     ],
@@ -642,7 +642,7 @@ export const LESSONS = withShapes({
       B.manymatch('035_d_match', 'Mida öelda poes?', 'Mida poes öelda? Ühendage olukord ja sobiv lause.', ['Sa otsid osakonda.', 'Särk on liiga väike.', 'Sa tahad proovida.', 'Kaup on katki.', 'Sa tahad teada hinda.'], ['Kus on riiete osakond?', 'Kas teil on suuremat?', 'Kus on proovikabiin?', 'Ma tahan raha tagasi.', 'Mis see maksab?'], 'full', 'g_use'),
       B.transformation('035_d_trans', 'Võrdle.', 'Kirjuta võrdlus sulgudes oleva sõnaga.', [
         ['jope 60 €, mantel 90 €', 'Jope on … (odav)', 'Jope on odavam kui mantel.'], ['kleit S, kleit M', 'M on … (suur)', 'M on suurem kui S.'], ['särk 35 €, T-särk 15 €', 'Särk on … (kallis)', 'Särk on kallim kui T-särk.'],
-        ['Liis 160 cm, Kati 172 cm', 'Kati on … (pikk)', 'Kati on pikem kui Liis.'], ['punane kott (ilus), must kott', 'Punane kott on … (ilus)', 'Punane kott on ilusam kui must kott.|Punane kott on ilusam kui must.'],
+        ['Siiri 160 cm, Kati 172 cm', 'Kati on … (pikk)', 'Kati on pikem kui Siiri.'], ['punane kott (ilus), must kott', 'Punane kott on … (ilus)', 'Punane kott on ilusam kui must kott.|Punane kott on ilusam kui must.'],
       ]),
       B.errorfix('035_d_fix', 'Paranda viga.', 'Kordamine: igas lauses on üks viga. Kirjutage lause õigesti.', [
         ['Ma otsin sinine kleit.', 'Ma otsin sinist kleiti.'], ['See maksab viis euro.', 'See maksab viis eurot.'], ['Must on odavam mis punane.', 'Must on odavam kui punane.'],
@@ -724,7 +724,7 @@ export const LESSONS = withShapes({
         points: ['Kes on Maie Lepp ja mida ta teeb?', 'Kus tema töökoht on?', 'Millal ta töötab?', 'Kuidas saab temaga ühendust?'],
         words: [25, 40], opening: 'Tere!', closing: '',
       }), { harno: 'W1' }),
-      tag(B.speaking('035_t_say', 'Rääkimine 1. Pilt ja küsimused.', 'Kirjeldage pilti umbes üks minut. Siis vastake küsimustele oma ostude kohta.', ['Kes on pildil ja kus nad on?', 'Mida Liis käes hoiab?', 'Kus te tavaliselt riideid ostate?', 'Mis oli teie viimane suur ost?', 'Kas te olete midagi poodi tagasi viinud?'], [60, 90]), { task: 'S06', harno: 'S1' }),
+      tag(B.speaking('035_t_say', 'Rääkimine 1. Pilt ja küsimused.', 'Kirjeldage pilti umbes üks minut. Siis vastake küsimustele oma ostude kohta.', ['Kes on pildil ja kus nad on?', 'Mida Siiri käes hoiab?', 'Kus te tavaliselt riideid ostate?', 'Mis oli teie viimane suur ost?', 'Kas te olete midagi poodi tagasi viinud?'], [60, 90]), { task: 'S06', harno: 'S1' }),
       tag(B.rolecards('035_t_roles', 'Rääkimine 2. Poes.', 'Üks on klient, teine müüja. Lahendage ostuprobleem.', 'Oled klient. Su uued saapad on liiga kitsad. Kviitung on olemas. Palu laiemaid või raha tagasi. Küsi hinda.', 'Oled müüja. Laiemad saapad on 10 eurot kallimad. Küsi kviitungit ja paku lahendust.', ['Saapad on liiga kitsad.', 'Kas teil on laiemaid?', 'Kas ma saan raha tagasi?'], ['Kas teil on kviitung?', 'Need on 10 eurot kallimad.', 'Kas soovite vahetada?']), { harno: 'S2' }),
       B.reading('035_t_reply', 'Lugemine. Poe vastus.', 'Lugege e-poe vastust ja vastake küsimustele.', 'Tere!',
         'Aitäh, et kirjutasite. Meil on väga kahju, et jope tasku on katki. Teil on kaks võimalust. Esiteks võite jope vahetada suurema vastu. Suurus L on laos olemas, see maksab sama palju. Teiseks võite jope tagastada ja saada raha tagasi. Tagastamine on tasuta. Pange jope karpi ja viige see lähimasse postkontorisse. Kviitungit ei ole vaja, sest teie tellimus on meie arvutis. Raha tuleb pangakontole viie päeva jooksul. Kui teil on küsimusi, helistage meile tööpäeviti kella üheksast viieni. Vabandame ja ootame teid jälle! E-pood Stiil',
