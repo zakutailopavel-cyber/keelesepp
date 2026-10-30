@@ -30,7 +30,7 @@ export const LESSONS = withShapes({
     discover: [
       B.review('071_d_review', [['Mida sa teed oma kahe nädala plaani järgi iga päev?', 'a2-069'], ['Kuidas sa kassas piletit küsid?', 'a2-058'], 'Kes sulle viimati külla tuli?']),
       B.text('071_d_goal', 'Moodul 15: suhted, külaskäik ja viisakus', 'Juuni. Kursus on läbi, aga Tom tahab rohkem eesti keelt rääkida. Täna sai ta telefoni sõnumi oma naabrilt. Selles moodulis lähed sa külla ja võtad külalisi vastu, palud viisakalt abi, ütled „jah” ja „ei” ning kirjutad lühikese sõnumi. Mooduli lõpus on kontroll: neli osa ja kindel aeg.'),
-      tag(B.listening('071_d_voice', 'Sandra kutse ja Tomi mure.', 'Tom kuulab naabri häälsõnumit ja helistab siis Sofiale. Kuula kaks korda. Kirjuta lünka 1–2 sõna või number.', [
+      tag(B.listening('071_d_voice', 'Sandra kutse ja Tomi mure.', 'Tom kuulab naabri sõnumit ja helistab Sofiale. Kuula kaks korda, kirjuta lünka 1–2 sõna.', [
         'Sandra: Tere, Tom! Siin Sandra Raud, sinu naaber korterist neli. Me kohtusime eile trepil.',
         'Sandra: Minu mees Ago ja mina kutsume sind laupäeval, kaheteistkümnendal juunil, meile külla. Tule kell viis. Ma teen kooki ja kohvi. Palun anna teada, kas sa saad tulla.',
         'Tom: Tere, Sofia! Mul on probleem. Naaber kutsus mind külla, aga ma ei ole kunagi Eesti kodus käinud.',
@@ -42,7 +42,7 @@ export const LESSONS = withShapes({
         'Tom: Ja kolmandaks: kell seitse pean ma minema, sest Dmitri ootab mind kohvikus Pann.',
         'Sofia: Ütle see kohe alguses. Ja kui kell on seitse, ütle: „Mul on aeg minna.”',
       ], ['Sandra elab korteris [neli|4].', 'Tom läheb külla [laupäeval].', 'Sandra kutsub Tomi kell [viis|5|17].', 'Sofia arvates on hea kingitus lilled või [šokolaad].', 'Tom ei joo [kohvi].', 'Tom võib kohvi asemel küsida [teed].', 'Kell seitse ootab Tomi [Dmitri].', 'Lahkudes ütleb ta: „Mul on [aeg] minna.”']), { task: 'L07' }),
-      teach(tag(B.speaking('071_d_try', 'Esimene katse.', 'Tom on Sandra ukse taga. Proovi paarilisega ilma abita: mida ütleb Tom, mida ütleb Sandra?', ['Mida Sandra ütleb, kui ta ukse avab?', 'Mida Tom lilledega teeb?', 'Mida Sandra pakub?', 'Mida Tom ütleb kohvi kohta?', 'Kuidas Tom lahkub?'], [60, 120]), { task: 'S02' }),
+      teach(tag(B.speaking('071_d_try', 'Esimene katse.', 'Tom on Sandra ukse taga. Proovi paarilisega ilma abita: mida nad ütlevad?', ['Mida Sandra ütleb, kui ta ukse avab?', 'Mida Tom lilledega teeb?', 'Mida Sandra pakub?', 'Mida Tom ütleb kohvi kohta?', 'Kuidas Tom lahkub?'], [60, 120]), { task: 'S02' }),
         'Üks-ühele: õpetaja on Sandra, õpilane on Tom. Ära paranda. Kirjuta üles, mida õpilane öelda ei osanud, ja kasuta seda märkamise juures.'),
       tag(B.vocab('071_d_vocab', 'Külaskäigu sõnad.', ['külla — в гости (куда)', 'külas — в гостях', 'kutse — приглашение', 'kingitus — подарок', 'külaline — гость', 'pakkuma — предлагать', 'tänama — благодарить', 'kaasa — с собой', 'tükk — кусок', 'võõrustaja — хозяин дома']), { topic: ['võõrustaja'] }),
       B.notice('071_d_notice', 'Märka: külas', [
@@ -53,7 +53,7 @@ export const LESSONS = withShapes({
         'Lahkudes: **Mul on aeg minna. Aitäh kutse eest! Oli väga tore.**',
         'Kuhu? Ma lähen **Sandrale külla**. Kus? Ma olen **Sandra juures külas**.',
       ], 'full'),
-      B.table('071_d_rule', 'Sõbrale ja võõrale.', 'Sandra ja Tom on veel „teie”. Tomi sõber Dmitri on „sina”. Kirjuta tabelisse mõlemad vormid.', 'Tegusõna, Dmitrile (sina), Sandrale (teie)', [
+      B.table('071_d_rule', 'Sõbrale ja võõrale.', 'Sandra on Tomile „teie”, Dmitri on „sina”. Kirjuta tabelisse mõlemad vormid.', 'Tegusõna, Dmitrile (sina), Sandrale (teie)', [
         'tulema | [tule] | [tulge]', 'võtma | [võta] | [võtke]', 'istuma | [istu] | [istuge]', 'sööma | [söö] | [sööge]', 'jooma | [joo] | [jooge]', 'andma | [anna] | [andke]', 'ootama | [oota] | [oodake]', 'vaatama | [vaata] | [vaadake]',
       ], 'g_notice'),
       B.categorize('071_d_sort', 'Millal seda öeldakse?', 'Tom teeb endale väikese nimekirja. Pane iga lause sinna, kus seda külaskäigul öeldakse.', [
@@ -63,12 +63,13 @@ export const LESSONS = withShapes({
       ], 'full', 'g_vocab'),
       teach(tag(B.speaking('071_d_432', 'Üks lugu kolm korda.', 'Räägi kolm korda oma viimasest külaskäigust: 2, siis 1,5 ja lõpuks 1 minut.', ['Kellele sa külla läksid?', 'Mida sa kaasa võtsid?', 'Mida sulle pakuti?', 'Millal sa lahkusid?'], [60, 120], ['Ma läksin … külla.', 'Ma võtsin kaasa …', 'Mulle pakuti …']), { task: 'S08', fluency: true }),
         'Üks-ühele: õpilane räägib õpetajale kolm korda sama lugu; õpetaja hoiab aega ja ei paranda.'),
+      B.writing('071_d_story', 'Minu külaskäik.', 'Kirjuta sama lugu üles: 5–6 lauset oma viimasest külaskäigust.', [5, 6], ['külla', 'kaasa', 'pakuti', 'aitäh'], 2),
     ],
     practice: [
       B.match('071_p_pairs', 'Pakkumine ja vastus.', 'Sandra pakub, Tom vastab. Ühenda Sandra lause ja Tomi vastus.', [
         ['Võtke palun istet!', 'Aitäh, kus ma võin istuda?'], ['Kas soovite kohvi?', 'Aitäh, ma ei joo kohvi.'], ['Kas tee sobib?', 'Jah, palun, teed ma joon.'], ['Võtke veel üks tükk!', 'Aitäh, rohkem ei jaksa.'], ['Kas kook maitseb?', 'Jah, see on väga maitsev!'], ['Kas te peate juba minema?', 'Jah, mul on aeg minna.'], ['Aitäh, et tulite!', 'Aitäh kutse eest!'], ['Tulge jälle!', 'Hea meelega, head aega!'],
       ], 'full', 'g_vocab'),
-      teach(tag(B.examListen('071_p_radio', 'Eksaminurk: kuidas külla minna?', 'Ülle räägib raadios Priit Rannaga külaskäikudest. Kuula kaks korda. Kas lause on õige või vale?', 'truefalse', [
+      teach(tag(B.examListen('071_p_radio', 'Eksaminurk: kuidas külla minna?', 'Ülle räägib raadios Priit Rannaga. Kuula kaks korda. Kas lause on õige?', 'truefalse', [
         'Ülle: Tere, kuulajad! Täna on stuudios kultuuriõpetaja Priit Rand. Priit, paljud uued eestimaalased küsivad: kuidas Eestis külla minnakse?',
         'Priit: Tere! Kõigepealt: ilma kutseta ei minda. Eestlane tahab teada, millal külaline tuleb. Tavaliselt lepitakse aeg kokku paar päeva ette.',
         'Ülle: Kas külla võib minna tühjade kätega?',
@@ -77,6 +78,8 @@ export const LESSONS = withShapes({
         'Priit: Siis võetakse kingad jalast. Paljudes kodudes antakse sussid. Välismaalastele on see mõnikord üllatus.',
         'Ülle: Mida teha, kui pakutakse midagi, mida sa ei söö?',
         'Priit: Ütle ausalt: aitäh, ma ei söö liha. Keegi ei ole pahane. Aga kui oled kooki proovinud, siis kiida seda natuke. Võõrustaja on selle ise teinud!',
+        'Ülle: Mis siis, kui külaline jääb hiljaks?',
+        'Priit: Viis või kümme minutit ei ole probleem. Kui jääd rohkem hiljaks, siis helista ja ütle, mis juhtus. Eestlane ootab ja ta tahab teada, mis kell sa tuled. Toit on ju laual ja kohv läheb külmaks. Vabanda ja kõik on jälle hästi.',
         'Ülle: Kas külalisele öeldakse „sina” või „teie”?',
         'Priit: Noored ütlevad kohe „sina”. Vanemale inimesele ütle alguses „teie”. Kui ta ise ütleb sulle „sina”, siis võid ka sina nii öelda. See on Eestis väike rõõm, kui keegi ütleb: „Ütle mulle sina!”',
         'Ülle: Kas eestlased räägivad külas palju?',
@@ -84,12 +87,12 @@ export const LESSONS = withShapes({
         'Ülle: Kui kaua külas ollakse?',
         'Priit: Kaks või kolm tundi. Kui võõrustaja hakkab tasse ära viima, on aeg minna. Järgmisel päeval võib saata lühikese sõnumi: aitäh, oli väga tore.',
       ], [
-        ['Eestis minnakse sageli külla ilma kutseta.', false], ['Aeg lepitakse tavaliselt kokku mõni päev ette.', true], ['Külaline peab tooma kalli kingituse.', false], ['Priit soovitab kinkida kolm või viis lille.', true],
-        ['Paljudes kodudes saab külaline sussid.', true], ['Kui sa liha ei söö, on võõrustaja pahane.', false], ['Külaskäik kestab tavaliselt terve õhtu ja öö.', false], ['Pärast külaskäiku võib saata tänusõnumi.', true], ['Vanemale inimesele öeldakse alguses „teie”.', true], ['Kui eestlane vaikib, on ta pahane.', false],
+        ['Eestis minnakse sageli külla ilma kutseta.', false], ['Aeg lepitakse tavaliselt kokku mõni päev ette.', true], ['Priit soovitab kinkida kolm või viis lille.', true],
+        ['Paljudes kodudes saab külaline sussid.', true], ['Kui sa liha ei söö, on võõrustaja pahane.', false], ['Pärast külaskäiku võib saata tänusõnumi.', true], ['Vanemale inimesele öeldakse alguses „teie”.', true], ['Kui eestlane vaikib, on ta pahane.', false],
       ]), { harno: 'L2' }),
         'Nagu Harno A2 kuulamise 2. osas: dialoog, õige või vale, kuuleb kaks korda; õpilane teeb ise, ilma abita, aeg umbes 9 minutit. Üks punkt lause eest.'),
-      tag(B.reading('071_p_tips', 'Sofia saadab Tomile nõu.', 'Sofia kirjutas Tomile kõik üles. Leia kirjast, mida Tom peab tegema, ja vasta paari sõnaga.', 'Tere, Tom! Nüüd kõik korraga',
-        'Ära muretse, Sandra ja Ago on kindlasti sõbralikud. Mine natuke hiljem kui kell viis, näiteks viis minutit. Eesti inimesed ei taha, et külaline tuleb liiga vara, sest siis ei ole nad veel valmis.\n\nOsta lilled või šokolaad. Kui sa ei tea, kas nad šokolaadi söövad, osta lilled. Kingitus anna kohe uksel ja ütle: „Need on teile.”\n\nEsikus võta kingad jalast, ka siis, kui Sandra ütleb, et pole vaja. Oota, kuni Sandra ütleb: „Võtke istet!”\n\nKõigepealt ütle, et pead kell seitse minema, nii ei ole Sandra pärast üllatunud. Laua ääres kiida kooki ja küsi nende kodu kohta. Inimestele meeldib rääkida oma lastest ja aiast. Kui sa ei saa millestki aru, ütle seda. Ära ütle ainult „jah, jah”, nagu Lucía!\n\nKui Sandra ütleb sulle „sina”, võid ka sina talle „sina” öelda. Enne seda ütle „teie”. Ja ära unusta tänada! Kallistan, Sofia',
+      tag(B.reading('071_p_tips', 'Sofia saadab Tomile nõu.', 'Sofia kirjutas Tomile kõik üles. Leia, mida Tom peab tegema, vasta paari sõnaga.', 'Tere, Tom! Nüüd kõik korraga',
+        'Ära muretse, Sandra ja Ago on kindlasti sõbralikud. Mine natuke hiljem kui kell viis, näiteks viis minutit. Külaline ei tule liiga vara, sest siis ei ole võõrustajad veel valmis.\n\nOsta lilled või šokolaad. Kui sa ei tea, kas nad šokolaadi söövad, osta lilled. Kingitus anna kohe uksel ja ütle: „Need on teile.”\n\nEsikus võta kingad jalast, ka siis, kui Sandra ütleb, et pole vaja. Oota, kuni Sandra ütleb: „Võtke istet!”\n\nKõigepealt ütle, et pead kell seitse minema, nii ei ole Sandra pärast üllatunud. Laua ääres kiida kooki ja küsi nende kodu kohta. Inimestele meeldib rääkida oma lastest ja aiast. Kui sa ei saa millestki aru, ütle seda. Ära ütle ainult „jah, jah”, nagu Lucía!\n\nKui Sandra ütleb sulle „sina”, võid ka sina talle „sina” öelda. Enne seda ütle „teie”. Ja ära unusta tänada! Kallistan, Sofia',
         [['Mis kell peab Tom kohal olema?', 'natuke pärast viit|viis minutit pärast viit|natuke hiljem kui kell viis'], ['Miks ei tohi liiga vara tulla?', 'nad ei ole veel valmis|võõrustajad ei ole valmis'], ['Mis kingitus on kindel valik?', 'lilled'], ['Millal annab Tom kingituse?', 'kohe uksel|uksel'], ['Kus võtab Tom kingad jalast?', 'esikus'], ['Millal ütleb Tom, et peab minema?', 'kõigepealt|kohe alguses'], ['Millest inimestele meeldib rääkida?', 'lastest ja aiast|oma lastest ja aiast'], ['Millal võib Tom öelda „sina”?', 'kui Sandra ütleb talle sina|kui Sandra ütleb sina']]), { task: 'R02' }),
       B.choice('071_p_form', 'Võta kooki või võtke kooki?', 'Tom ja Sandra räägivad. Vali igasse lausesse vorm, mis sobib.', [
         ['Sandra avab ukse: „Tere, Tom! ___ sisse!”', 'Tulge', 'Tulla', 'Tulen'], ['Tom: „Need lilled on ___.”', 'teile', 'teie', 'teid'], ['Sandra: „Kas te soovite ___ või kohvi?”', 'teed', 'tee', 'teega'], ['Ago: „Võtke ka üks tükk ___!”', 'kooki', 'kook', 'koogi'], ['Tom: „Ma ei söö ___, aga kook on väga hea.”', 'liha', 'liha ei', 'lihaga'],
@@ -102,9 +105,9 @@ export const LESSONS = withShapes({
       B.formtext('071_p_visit', 'Tomi päevik.', 'Õhtul kirjutab Tom, kuidas külaskäik läks. Pane sulgudes olev sõna vormi, mida lause vajab.', 'Minu esimene külaskäik', [
         'Täna läksin ma Sandrale [külla] (küla). Ma ostsin poest kolm [lille] (lill) ja [šokolaadi] (šokolaad).',
         '',
-        'Sandra ütles: „[Tulge] (tulema) sisse ja võtke [istet] (iste)!” Ta pakkus mulle [kohvi] (kohv), aga ma palusin [teed] (tee).',
+        'Sandra ütles: „[Tulge] (tulema) sisse ja võtke [istet] (iste)!” Ta pakkus mulle kohvi, aga ma palusin [teed] (tee).',
         '',
-        'Ago näitas mulle pilte oma [aiast] (aed). Kell seitse ütlesin ma: „Mul on [aeg] (aeg) minna.” Sandra ütles mulle lõpuks „[sina] (sina)”!',
+        'Ago näitas mulle pilte oma aiast. Kell seitse ütlesin ma: „Mul on [aeg] (aeg) minna.” Sandra ütles mulle lõpuks „[sina] (sina)”!',
       ], 'g_notice'),
       teach(tag(B.speaking('071_p_survey', 'Küsi kolmelt.', 'Küsi kolmelt inimeselt, kuidas nende kodumaal külla minnakse. Kuula, siis räägi teisele edasi.', ['Kas külla minnakse kutsega või ilma?', 'Mida külaline kaasa toob?', 'Kas kingad võetakse jalast?', 'Mida külalisele pakutakse?'], [60, 120], ['Meil minnakse …', 'Külaline toob …', 'Tema kodumaal …']), { task: 'S09', fluency: true }),
         'Üks-ühele: õpilane küsib õpetajalt kolm korda; õpetaja vastab iga kord teise maa inimesena. Siis ütleb õpilane, mis oli kõige huvitavam.'),
@@ -125,7 +128,7 @@ export const LESSONS = withShapes({
         ['A (külaline)', ['Ütle, kes sa oled.', 'Vabanda ja ütle, mis juhtus.', 'Ütle, millal sa jõuad.', 'Küsi, kas midagi on poest vaja.']],
         ['B (võõrustaja)', ['Ütle, et see ei ole probleem.', 'Küsi, kas külaline teab teed.', 'Palu tuua leiba.', 'Ütle, mis kell lõuna on.']], [60, 120]),
         'Üks-ühele: õpetaja on võõrustaja. Õpilane helistab, õpetaja küsib ka üht lisaküsimust.'),
-      tag(B.letter('071_t_card', 'Tänukaart maale.', 'Kirjuta kolleegi vanematele kaart, 30–40 sõna: aitäh, mis sulle meeldis ja üks soov. Kirjuta teie-vormis.', 'Tere, head võõrustajad!', 'Tervitades', [30, 40]), { task: 'W03' }),
+      tag(B.letter('071_t_card', 'Tänukaart maale.', 'Kirjuta kolleegi vanematele kaart, 30–40 sõna, teie-vormis: aitäh, mis meeldis, üks soov.', 'Tere, head võõrustajad!', 'Tervitades', [30, 40]), { task: 'W03' }),
       tag(B.speaking('071_t_record', 'Salvesta: külaline minu kodus.', 'Salvesta kodus 45–60 sekundit: kuidas sina oma külalist vastu võtad.', ['Kes sulle tihti külla tuleb?', 'Mida sa talle ütled uksel?', 'Mida sa pakud?', 'Mida te koos teete?', 'Mida sa ütled, kui külaline lahkub?'], [45, 60], ['Mulle tuleb tihti külla …', 'Ma ütlen: „Tule sisse!”', 'Ma pakun …']), { task: 'S15' }),
       B.rubric('071_t_rubric', 'Hindamine.', 'Õpetaja hindab külaskäiku: iga rida 0–2 punkti.', ['Külaskäigul on algus, pakkumine ja viisakas lõpp.', 'Võõrale kasutatakse teie-vormi: tulge, võtke, kas te soovite.', 'Keeldumine on viisakas: Aitäh, ma ei …', 'Tänukaardil on aitäh, üks detail ja soov.']),
       B.selfcheck('071_t_self', ['Ma saan kuuldust aru kutsest: kes, millal ja kuhu.', 'Ma ütlen: tule sisse, võtke istet, kas soovite teed?', 'Ma keeldun viisakalt ja lahkun viisakalt.', 'Ma räägin külas 2–3 minutit.'], 'Hea külaline'),
@@ -138,7 +141,7 @@ export const LESSONS = withShapes({
     discover: [
       B.review('072_d_review', [['Mida sa ütled külas, kui sa kohvi ei joo?', 'a2-071'], ['Mida sa ütled, kui helistad ja ülemust ei ole?', 'a2-062'], 'Keda sa viimati abi palusid?']),
       B.text('072_d_hook', 'Anna sõidab ära', 'Anna sõidab 18. juunil neljaks päevaks oma õe juurde Hiiumaale. Enne seda on tal palju küsida: naaber Viktor peab lilli kastma, Sofia peab laupäeval tööle tulema ja ülemus Eha peab vaba päeva lubama. Kuidas Anna neile räägib? Proovi kõigepealt ise.'),
-      tag(B.choice('072_d_test', 'Proovi ise: mis sobib?', 'Anna mõtleb, mida öelda. Sa ei tea veel reeglit. Vali lause, mis sinu arvates sobib kõige paremini.', [
+      tag(B.choice('072_d_test', 'Proovi ise: mis sobib?', 'Anna mõtleb, mida öelda. Reeglit sa veel ei tea. Vali lause, mis sobib.', [
         ['Anna räägib ülemus Ehaga, kellele ta ütleb „teie”.', 'Kas te saate mulle reedel vaba päeva anda?', 'Anna mulle reedel vaba päev!', 'Sa pead mulle vaba päeva andma.'],
         ['Anna räägib sõbranna Sofiaga.', 'Kas sa saad laupäeval minu asemel tööle tulla?', 'Tulge laupäeval tööle, proua!', 'Sa tuled laupäeval tööle.'],
         ['Anna on poes ja ei leia lillekastmise kannu.', 'Vabandust, kas te saate mind aidata?', 'Hei, otsi mulle kann!', 'Kann! Kus?'],
@@ -148,9 +151,12 @@ export const LESSONS = withShapes({
         ['Anna palub bussis võõral inimesel kotti eest ära võtta.', 'Palun võtke oma kott natuke eest.', 'Võta kott ära!', 'Miks su kott siin on?'],
         ['Anna helistab Hiiumaa bussifirmasse.', 'Tere! Ma soovin osta kaks piletit.', 'Andke kaks piletit!', 'Mul on kaks piletit.'],
       ], 'full', 'g_use'), { task: 'G13' }),
-      tag(B.reading('072_d_note', 'Anna kirjutab kolm sõnumit.', 'Loe Anna kolm sõnumit kolme minutiga läbi. Kellele ta ütleb „sina”, kellele „teie”? Vasta lühidalt.', 'Anna sõnumid',
-        'Ehale: Tere, Eha! Mul on üks palve. Mu õel on järgmisel nädalal juubel. Kas te saate mulle reedel, 18. juunil, vaba päeva anda? Laupäeval töötab minu asemel Sofia. Palun andke teada, kas see sobib. Tervitades, Anna\n\nSofiale: Tere, Sofia! Kuidas esimene nädal Kaubahallis läheb? Mul on sulle palve. Kas sa saad laupäeval minu asemel hommikuses vahetuses olla? Kell kaheksast kaheni. Ma aitan sind hea meelega hiljem, kui sul on vaja. Ära ütle kohe „jah”, mõtle enne! Kallistan!\n\nViktorile: Tere, Viktor! Vabandust, et ma kirjutan nii hilja. Ma olen neli päeva ära. Kas te saate mu lilli kasta? Võti on mu postkastis. Palun kastke lilli kaks korda: reedel ja pühapäeval. Suurt lille köögis ärge kastke, see ei taha palju vett. Kas ma võin teile Hiiumaalt midagi tuua? Suur aitäh! Anna',
-        [['Mis päeval tahab Anna vaba olla?', 'reedel|18. juunil'], ['Miks ta Hiiumaale sõidab?', 'õel on juubel|õe juubeli pärast'], ['Kellele ütleb Anna „sina”?', 'Sofiale'], ['Mis kell algab hommikune vahetus?', 'kell kaheksa|8'], ['Kus on Anna võti?', 'postkastis'], ['Mitu korda peab Viktor lilli kastma?', 'kaks korda|kaks'], ['Mis lille ei tohi kasta?', 'suurt lille köögis|suurt lille'], ['Mida Anna Viktorilt lõpuks küsib?', 'kas ta võib midagi tuua|kas ta võib talle Hiiumaalt midagi tuua']]), { task: 'R15', fluency: true }),
+      tag(B.reading('072_d_note', 'Anna kirjutab kolm sõnumit.', 'Loe Anna kolm sõnumit kolme minutiga läbi. Vasta igale küsimusele lühidalt.', 'Anna sõnumid',
+        'Ehale: Tere, Eha! Mul on üks palve. Mu õel on järgmisel nädalal juubel. Kas te saate mulle reedel, 18. juunil, vaba päeva anda? Laupäeval töötab minu asemel Sofia. Palun andke teada, kas see sobib. Tervitades, Anna\n\nSofiale: Tere, Sofia! Kuidas esimene nädal Kaubahallis läheb? Mul on sulle palve. Kas sa saad laupäeval minu asemel hommikuses vahetuses olla? Kell kaheksast kaheni. Ma aitan sind hea meelega hiljem, kui sul on vaja. Eha on nõus, kui sina oled nõus. Ära ütle kohe „jah”, mõtle enne! Kallistan!\n\nViktorile: Tere, Viktor! Vabandust, et ma kirjutan nii hilja. Ma olen neli päeva ära. Kas te saate mu lilli kasta? Võti on mu postkastis. Palun kastke lilli kaks korda: reedel ja pühapäeval. Suurt lille köögis ärge kastke, see ei taha palju vett. Kas ma võin teile Hiiumaalt midagi tuua? Suur aitäh! Anna',
+        [['Mis päeval palub Anna vaba päeva?', 'reedel|18. juunil'], ['Miks ta Hiiumaale sõidab?', 'õel on juubel|õe juubeli pärast'], ['Kellele ütleb Anna „sina”?', 'Sofiale'], ['Mis kell algab hommikune vahetus?', 'kell kaheksa|8'], ['Kus on Anna võti?', 'postkastis'], ['Mitu korda peab Viktor lilli kastma?', 'kaks korda|kaks'], ['Mis lille ei tohi kasta?', 'suurt lille köögis|suurt lille'], ['Mida Anna Viktorilt lõpuks küsib?', 'kas ta võib midagi tuua|kas ta võib talle Hiiumaalt midagi tuua']]), { task: 'R15', fluency: true }),
+      tag(B.reading('072_d_ferry', 'Kuidas Hiiumaale saada?', 'Anna vaatab sõiduplaani. Mis buss ja praam talle sobivad? Vasta numbri või kellaajaga.', 'Tallinn – Heltermaa – Kärdla',
+        'Buss 1: Tallinn 7.30, praam Rohukülast 9.45, Kärdla 11.20. Hind 17 eurot.\nBuss 2: Tallinn 12.15, praam Rohukülast 14.30, Kärdla 16.05. Hind 17 eurot.\nBuss 3: Tallinn 17.40, praam Rohukülast 20.00, Kärdla 21.30. Hind 19 eurot.\nTagasi esmaspäeval: Kärdla 8.00 ja 15.10.\nPilet tuleb osta ette, bussi juhilt piletit ei saa. Pileti saab osta internetist või bussijaamast. Laps kuni 7 aastat sõidab tasuta. Pensionär maksab pool hinda. Koer võib olla bussis ainult kastis. Rattaga sõit maksab 3 eurot rohkem. Kott peab olema bussi all, suur kott maksab 2 eurot. Rohukülas on sadamas kohvik, praam sõidab poolteist tundi. Tuulega võib praam hilineda, siis ootab buss. Kui sa ei saa sõita, anna teada 24 tundi ette ja saad raha tagasi. Lisainfo telefonil 646 1234.',
+        [['Mis kell läheb esimene buss?', '7.30'], ['Mis kell jõuab teine buss Kärdlasse?', '16.05'], ['Kui palju maksab õhtune buss?', '19 eurot|19'], ['Kust praam väljub?', 'Rohukülast'], ['Mis bussiga jõuab Anna enne lõunat?', 'esimesega|buss 1|1'], ['Kuidas Anna saab pileti?', 'ta ostab ette|ostab ette'], ['Kui palju maksab sõit rattaga 1. bussiga?', '20 eurot|20'], ['Mis kell läheb viimane buss esmaspäeval tagasi?', '15.10']]), { task: 'R08' }),
       B.notice('072_d_notice', 'Märka: kuidas paluda?', [
         'Sõbrale: **Palun ava** aken! **Kas sa saad** mind **aidata**?',
         'Võõrale: **Palun avage** aken! **Kas te saate** mind **aidata**?',
@@ -160,28 +166,28 @@ export const LESSONS = withShapes({
         'Vastus: **Hea meelega! Muidugi!** Või: **Kahjuks ei saa, sest …**',
       ], 'full'),
       B.table('072_d_rule', 'Leia reegel.', 'Vaata Anna sõnumeid. Täida tabel: kuidas ütleb Anna seda Sofiale ja kuidas Ehale?', 'Tegusõna, Sofiale, Ehale', [
-        'aitama | Kas sa saad mind [aidata]? | Kas te [saate] mind aidata?', 'tulema | Kas sa saad [tulla]? | Kas te saate [tulla]?', 'andma | Palun [anna] teada! | Palun [andke] teada!', 'kastma | Palun [kasta] lilli! | Palun [kastke] lilli!', 'ootama | Palun [oota] mind! | Palun [oodake] mind!', 'ütlema | Palun [ütle] mulle! | Palun [öelge] mulle!',
+        'aitama | Kas sa saad mind [aidata]? | Kas te [saate] mind aidata?', 'tulema | Kas sa saad [tulla]? | Kas te saate [tulla]?', 'andma | Palun [anna] teada! | Palun [andke] teada!', 'kastma | Palun [kasta] lilli! | Palun [kastke] lilli!', 'ootama | Palun [oota] mind! | Palun [oodake] mind!', 'ütlema | Palun [ütle] mulle! | Palun [öelge] mulle!', 'tooma | Palun [too] leib! | Palun [tooge] leib!', 'võtma | Palun [võta] post! | Palun [võtke] post!',
       ], 'g_notice'),
       tag(B.vocab('072_d_vocab', 'Palve sõnad.', ['palve — просьба', 'paluma — просить', 'kastma — поливать', 'luba — разрешение', 'tohtima — сметь, иметь право', 'kolleeg — коллега', 'postkast — почтовый ящик', 'aitama — помогать', 'naaber — сосед', 'võti — ключ']), { topic: ['kastma'] }),
       B.transformation('072_d_again', 'Proovi uuesti.', 'Nüüd tead reeglit. Sofia palub otse. Ütle sama viisakalt.', [
         ['Too mulle see kast!', 'Kas sa saad …?', 'Kas sa saad mulle selle kasti tuua?'], ['Oodake siin natuke!', 'Palun …', 'Palun oodake siin natuke!'], ['Ma istun siia.', 'Kas ma võin …?', 'Kas ma võin siia istuda?'], ['Kirjutage mulle homme!', 'Kas te saate …?', 'Kas te saate mulle homme kirjutada?'],
         ['Ma tahan kaks piletit!', 'Ma soovin …', 'Ma soovin kaks piletit.'], ['Aidake mind!', 'Kas te saate …?', 'Kas te saate mind aidata?'], ['Hoia ust lahti!', 'Palun …', 'Palun hoia ust lahti!'], ['Ma pildistan siin.', 'Kas ma tohin …?', 'Kas ma tohin siin pildistada?'],
       ]),
-      teach(tag(B.speaking('072_d_tell', 'Keda sa palud?', 'Kelle käest sa abi küsid? Räägi kaks korda, teisel korral kiiremini.', ['Keda sa kodus tihti palud?', 'Keda sa palud tööl?', 'Mis palve on sulle eesti keeles raske?', 'Kas sa ütled võõrale „teie” või „sina”?'], [60, 120], ['Kodus ma palun …', 'Tööl ma küsin: „Kas te saate …?”', 'Mulle on raske …']), { task: 'S11', fluency: true }),
+      teach(tag(B.speaking('072_d_tell', 'Keda sa palud?', 'Kelle käest sa abi küsid? Räägi kaks korda, teisel korral kiiremini.', ['Keda sa kodus tihti palud?', 'Keda sa palud tööl?', 'Mis palve on sulle eesti keeles raske?', 'Kas sa ütled võõrale „teie” või „sina”?', 'Kes sind viimati abi palus?'], [60, 120], ['Kodus ma palun …', 'Tööl ma küsin: „Kas te saate …?”', 'Mulle on raske …']), { task: 'S11', fluency: true }),
         'Üks-ühele: õpilane räägib õpetajale kaks korda, teisel korral kiiremini. Õpetaja küsib ainult: „Ja siis?”'),
     ],
     practice: [
       B.wordorder('072_p_order', 'Pane palve kokku.', 'Sofia harjutab tööle minnes. Pane sõnad lauseks õiges järjekorras.', ['Kas te saate mulle poe kaarti näidata?', 'Kas ma võin täna veidi varem minna?', 'Palun pange kaup riiulile.', 'Kas sa saad selle kasti lattu viia?', 'Palun helistage mulle pärast lõunat.', 'Ma soovin seda särki proovida.', 'Kas ma tohin siin oma jope jätta?', 'Palun andke mulle üks kott.'], 'half', 'g_vocab'),
-      teach(tag(B.adsmatch('072_p_signs', 'Eksaminurk: Kaubahalli sildid.', 'Sofia esimene nädal Kaubahallis. Loe silte ja teateid. Mis sobib inimesele? Kirjuta täht. Üks silt võib sobida kahele.', [
-        ['A. Peauks', 'Jalgrattad palun maja ette, poodi rattaga ei tohi. Rattaparkla on tasuta. Koertega palun poodi mitte tulla, neid võib oodata jätta ukse kõrval.'],
-        ['B. Kassa 3', 'Sellest kassast saab maksta ainult kaardiga. Sularaha saate maksta kassades 1 ja 2. Palun ärge unustage tšekki.'],
-        ['C. Riiete osakond', 'Proovikabiinid on teisel korrusel. Kabiini võib võtta korraga viis asja. Palun ärge sööge ega jooge kabiinis.'],
-        ['D. Infolaud', 'Kas te kaotasite midagi? Kas teie laps on kadunud? Palun küsige abi meie infolauast. Avatud iga päev kell 9–20.'],
-        ['E. Tagastamine', 'Kauba saab tagasi tuua 14 päeva jooksul. Palun võtke kaasa tšekk ja pakend. Toidu eest raha tagasi ei saa.'],
+      teach(tag(B.adsmatch('072_p_signs', 'Eksaminurk: Kaubahalli sildid.', 'Sofia esimene nädal Kaubahallis. Mis silt sobib inimesele? Kirjuta täht. Silt võib sobida kahele.', [
+        ['A. Peauks', 'Jalgrattad palun maja ette, poodi rattaga ei tohi. Rattaparkla on tasuta ja seal on ka kaamera. Koertega palun poodi mitte tulla. Koera võib jätta ukse kõrvale, seal on vesi ja vari.'],
+        ['B. Kassa 3', 'Sellest kassast saab maksta ainult kaardiga. Sularahaga saab maksta kassades 1 ja 2. Palun ärge unustage tšekki, ilma selleta ei saa kaupa tagasi tuua.'],
+        ['C. Riiete osakond', 'Proovikabiinid on teisel korrusel, lifti kõrval. Kabiini võib võtta korraga viis asja. Palun ärge sööge ega jooge kabiinis. Kui suurus ei sobi, küsige müüjalt.'],
+        ['D. Infolaud', 'Kas te kaotasite midagi? Kas teie laps on kadunud? Palun küsige abi meie infolauast. Avatud iga päev kell 9–20. Leitud asjad on meil kuu aega.'],
+        ['E. Tagastamine', 'Kauba saab tagasi tuua 14 päeva jooksul. Palun võtke kaasa tšekk ja pakend. Raha saate kohe kätte. Toidu eest raha tagasi ei saa.'],
         ['F. Lao uks', 'Ainult töötajatele! Võõrastel on ladu keelatud. Kui vajate abi, helistage kella. Keegi tuleb teie juurde kahe minuti jooksul.'],
       ], [
         ['Sa tahad oma jalgratta kuhugi panna.', 'A'], ['Sul ei ole sularaha, on ainult kaart.', 'B'], ['Sa tahad proovida kolme särki.', 'C'], ['Sinu laps ei ole enam sinu kõrval.', 'D'],
-        ['Sa ostsid lambi, aga see ei meeldi sulle.', 'E'], ['Sa tahad vaadata, mis on lao taga, aga sa ei ole töötaja.', 'F'], ['Sinu koer on kaasas.', 'A'], ['Sa unustasid kuhugi oma kindad.', 'D'], ['Sa tahad maksta sularahaga.', 'B'], ['Sa tahad saada raha tagasi kleidi eest.', 'E'],
+        ['Sa ostsid lambi, aga see ei meeldi sulle.', 'E'], ['Sa tahad vaadata, mis on lao taga, aga sa ei ole töötaja.', 'F'], ['Sinu koer on kaasas.', 'A'], ['Sa unustasid kuhugi oma kindad.', 'D'], 
       ]), { task: 'R07', harno: 'R3' }),
         'Nagu Harno A2 lugemise 3. osas: sildid ja teated. Õpilane loeb ise, ilma abita; aeg umbes 8 minutit. Üks punkt õige vastuse eest.'),
       tag(B.choice('072_p_phrases', 'Mida öelda Kaubahallis?', 'Sofia esimene nädal. Loe iga olukorda rahulikult ja vali kolmest lausest see, mis sobib.', [
@@ -192,9 +198,7 @@ export const LESSONS = withShapes({
         ['Kliendil on täna sünnipäev, ta ütleb seda ise. Mida Sofia ütleb?', 'Palju õnne!', 'Kahjuks ei saa.', 'Kohtumiseni!'],
         ['Kell on kaks, Sofia vahetus sai läbi ja kolleegid jäävad tööle. Mida ta ütleb?', 'Head aega, jõudu!', 'Tere hommikust!', 'Head uut aastat!'],
         ['Telefon heliseb, helistaja küsib Ehat. Eha ei ole kohal. Mida Sofia ütleb?', 'Kahjuks ei ole ta praegu siin.', 'Jah, ma olen Eha.', 'Ma ei taha rääkida.'],
-        ['Vana proua palub abi: tema kott on raske ja auto on kaugel. Sofial on aega. Mida ta vastab?', 'Hea meelega aitan!', 'Kas te olete haige?', 'See ei ole minu kott.'],
-        ['Klient ei kuulnud Sofia küsimust. Mida ta ütleb?', 'Vabandust, palun öelge veel kord.', 'Ma ei tule.', 'Palun, võtke istet.'],
-        ['Sofia läheb lõunale ja kolleeg sööb juba. Mida ta kolleegile ütleb?', 'Head isu!', 'Head ööd!', 'Tere tulemast!'],
+        ['Vana proua palub abi, sest kott on raske. Mida Sofia vastab?', 'Hea meelega aitan!', 'Kas te olete haige?', 'See ei ole minu kott.'],
       ], 'full', 'g_vocab'), { task: 'R12' }),
       B.formtext('072_p_chat', 'Viktor vastab Annale.', 'Viktor ja Anna kirjutavad. Pane sulgudes olev tegusõna vormi, mida lause vajab.', 'Lilled ja võti', [
         'Tere, Anna! Muidugi ma [saan] (saama) sinu lilli [kasta] (kastma). Aga ütle mulle palun „sina”, ma ei ole nii vana! Kas ma [võin] (võima) akna ka lahti teha?',
@@ -207,10 +211,10 @@ export const LESSONS = withShapes({
         ['Kas te saate mind aitama?', 'Kas te saate mind aidata?'], ['Kas ma võin siin istuma?', 'Kas ma võin siin istuda?'], ['Palun tule sisse, proua Eha!', 'Palun tulge sisse, proua Eha!'], ['Mina palun sinu abi kastis.', 'Ma palun sinult abi kastiga.|Ma palun sinu abi kastiga.'],
         ['Kas sa saad mulle võti andma?', 'Kas sa saad mulle võtme anda?'], ['Palun ütle mind, kus on ladu.', 'Palun ütle mulle, kus ladu on.|Palun ütle mulle, kus on ladu.'], ['Kas ma tohin võtan seda tooli?', 'Kas ma tohin seda tooli võtta?'], ['Ma küsin sind aidata.', 'Ma palun sind aidata.|Ma palun, et sa aitad.'],
       ]),
-      tag(B.reading('072_p_letter', 'Eha kiri töötajatele.', 'Eha saatis töötajatele kirja neljast asjast. Mis pealkiri sobib osale? Vasta ka teistele küsimustele paari sõnaga.', 'Head kolleegid!',
+      tag(B.reading('072_p_letter', 'Eha kiri töötajatele.', 'Eha saatis töötajatele kirja. Mis pealkiri sobib osale? Vasta ka teistele küsimustele.', 'Head kolleegid!',
         'Esimene osa. Järgmisel nädalal on meil väga kiire, sest kolmapäeval on jaanipäev ja poes on palju inimesi. Palun tulge tööle kümme minutit varem. Kas te saate lõuna ajal kordamööda süüa? Siis on kassas alati keegi.\n\nTeine osa. Anna on 18. juunist neli päeva puhkusel. Tema asemel töötab Sofia. Ta on meil uus, palun aidake teda. Kui ta küsib, siis vastake aeglaselt. Sofia, palun küsi kohe, kui sa millestki aru ei saa!\n\nKolmas osa. Klientidele öelge alati „teie”. Kui te ei tea vastust, siis ärge öelge „ei tea”. Öelge: „Hetk, palun, ma küsin kolleegilt.” Palun ärge rääkige kolleegidega telefonis, kui klient on teie ees.\n\nNeljas osa. 23. juunil on pood avatud kella kolmeni. Kas keegi saab sel päeval hommikul kella kaheksast töötada? Palun kirjutage mulle reedeks. Suur aitäh kõigile! Eha',
         [['Mis pealkiri sobib esimesele osale: „Kiire nädal” või „Uus kolleeg”?', 'Kiire nädal'], ['Mis pealkiri sobib teisele osale: „Klientidega” või „Uus kolleeg”?', 'Uus kolleeg'], ['Mis pealkiri sobib kolmandale osale: „Klientidega” või „Puhkus”?', 'Klientidega'], ['Mis pealkiri sobib neljandale osale: „Jaanipäeva aeg” või „Lõuna”?', 'Jaanipäeva aeg'], ['Kui palju varem peab tööle tulema?', 'kümme minutit|10 minutit'], ['Kes töötab Anna asemel?', 'Sofia'], ['Mida öelda, kui sa ei tea vastust?', 'Hetk, palun, ma küsin kolleegilt|ma küsin kolleegilt'], ['Mis kell läheb pood 23. juunil kinni?', 'kell kolm|kolm|15']]), { task: 'R09' }),
-      tag(B.listening('072_p_eha', 'Eha vastab.', 'Eha helistab Annale ja räägib ka Sofiaga. Kuula kaks korda ja kirjuta lünka 1–2 sõna või number.', [
+      tag(B.listening('072_p_eha', 'Eha vastab.', 'Eha helistab Annale ja Sofiale. Kuula kaks korda, kirjuta lünka 1–2 sõna.', [
         'Eha: Tere, Anna! Eha siin. Sain sinu sõnumi. Reede sobib, aga mul on ka sulle üks palve.',
         'Anna: Tere, Eha! Aitäh! Mis palve see on?',
         'Eha: Kas sa saad enne ärasõitu kõik lambid üle lugeda? Mul on neljapäevaks arvu vaja.',
@@ -222,12 +226,12 @@ export const LESSONS = withShapes({
         'Eha: Kassas on Tiit. Palun võtke kaasa oma töösärk, see on vajalik. Võti on minu laua sahtlis.',
         'Sofia: Selge. Aitäh!',
       ], ['Eha lubab Annale vaba päeva [reedel|reede].', 'Anna peab üle lugema [lambid].', 'Eha vajab arvu [neljapäevaks].', 'Anna tuleb varem tööle kell [seitse|7].', 'Laupäeval on kassas [Tiit].', 'Sofia peab kaasa võtma oma [töösärgi|töösärk].', 'Võti on Eha laua [sahtlis].']), { task: 'L04' }),
-      teach(tag(B.rolecards('072_p_neighbour', 'Viisakas naaber.', 'A kolib ja palub naabrilt abi. B on naaber. Siis vahetage. Üks palve saab vastuse „ei”.', 'Sa kolid. Palu naabrilt kolm asja: ukse lahti hoidmine, tool laenuks, abi raske kastiga.', 'Oled naaber ja sa ei tunne teda hästi. Kahele palvele vasta „jah”. Ühele vasta „ei” ja ütle põhjus.', ['Vabandust, kas te saate …?', 'Kas ma võin …?', 'Suur aitäh!'], ['Hea meelega!', 'Kahjuks ei saa, sest …', 'Pole tänu väärt.']), { task: 'S13', level: 3 }),
+      teach(tag(B.rolecards('072_p_neighbour', 'Viisakas naaber.', 'A kolib ja palub naabrilt abi. B on naaber ja ütleb ühele palvele „ei”.', 'Sa kolid. Palu naabrilt kolm asja: ukse lahti hoidmine, tool laenuks, abi raske kastiga.', 'Oled naaber ja sa ei tunne teda hästi. Kahele palvele vasta „jah”. Ühele vasta „ei” ja ütle põhjus.', ['Vabandust, kas te saate …?', 'Kas ma võin …?', 'Suur aitäh!'], ['Hea meelega!', 'Kahjuks ei saa, sest …', 'Pole tänu väärt.']), { task: 'S13', level: 3 }),
         'Üks-ühele: õpetaja on naaber ja keeldub ühe palve puhul. Õpilane jätkab viisakalt. Siis vahetage rollid.'),
     ],
     transfer: [
       B.text('072_t_sit', 'Vaata pilti', 'Vaata pilti: Anna ja Viktor on kortermaja koridoris. Anna palub Viktoril lilli kasta. Nüüd on sinu kord. Sa sõidad nädalaks ära. Kes aitab sind kodus, tööl ja õues?'),
-      teach(tag(B.ideaCard('072_t_who', 'Kes mida teeb?', 'Te sõidate koos nädalaks ära. Vaadake kaarti. Leppige kokku, keda te mida palute ja kuidas te seda ütlete.', 'Te olete naabrid ja sõidate koos nädalaks ära. Kodus ja tööl on vaja abi. Teie tuttavad on: naaber Viktor (pensionär), sõbranna Sofia, ülemus Eha, võõras noor naaber.',
+      teach(tag(B.ideaCard('072_t_who', 'Kes mida teeb?', 'Te sõidate koos nädalaks ära. Leppige kokku, keda te mida palute.', 'Te olete naabrid ja sõidate koos nädalaks ära. Kodus ja tööl on vaja abi. Teie tuttavad on: naaber Viktor (pensionär), sõbranna Sofia, ülemus Eha, võõras noor naaber.',
         ['lilled', 'kass', 'post', 'vaba päev', 'auto parkla', 'võti'], 'Keda te palute ja mida te talle ütlete?'), { level: 4, main: true }),
         'Üks-ühele: õpetaja on teine naaber. Õpilane teeb ettepanekuid, õpetaja vaidleb natuke vastu („Eha on ülemus, kuidas sa seda ütled?”). Lõpus ütleb õpilane kolm palvet täislausetega. Hinda: sina / teie, palve vorm, kas kokkulepe sündis.'),
       teach(B.phoneCards('072_t_call', 'Kõne korteriomanikule.', 'A elab üürikorteris ja pesumasin ei tööta. B on korteriomanik. Siis vahetage.',
@@ -235,8 +239,8 @@ export const LESSONS = withShapes({
         ['A (üürnik)', ['Ütle, kes sa oled.', 'Selgita probleemi.', 'Palu saata meister.', 'Küsi, millal ta tuleb.']],
         ['B (korteriomanik)', ['Küsi, mis juhtus.', 'Küsi, kas vesi on kinni pandud.', 'Paku üks aeg.', 'Palu võti jätta naabrile.']], [60, 120]),
         'Üks-ühele: õpetaja on korteriomanik ja räägib alguses kiiresti. Õpilane palub korrata ja küsib aega.'),
-      tag(B.writing('072_t_other', 'Sama palve teisele.', 'Sa kirjutasid sõbrale: „Palun kasta mu lilli ja võta post.” Nüüd palud sa sama võõralt naabrilt. Kirjuta 4–6 lauset teie-vormis.', [4, 6], ['palun', 'kas te saate', 'aitäh', 'võti'], 3), { task: 'W12' }),
-      tag(B.speaking('072_t_record', 'Salvesta: pilt ja minu palve.', 'Vaata pilti ja salvesta kodus 45–60 sekundit: kirjelda pilti ja ütle, mida sina oma naabrilt palud.', ['Kes on pildil ja kus nad on?', 'Mida Anna Viktorile ulatab?', 'Mida Anna palub?', 'Keda sina tavaliselt palud?', 'Mida sa talle ütled?'], [45, 60], ['Pildil on …', 'Anna palub, et …', 'Mina palun …']), { task: 'S06' }),
+      tag(B.writing('072_t_other', 'Sama palve teisele.', 'Sa palud võõralt naabrilt lillede kastmist ja posti. Kirjuta 9–11 lauset teie-vormis.', [9, 11], ['palun', 'kas te saate', 'aitäh', 'võti'], 3), { task: 'W12' }),
+      tag(B.speaking('072_t_record', 'Salvesta: pilt ja minu palve.', 'Vaata pilti ja salvesta kodus 45–60 sekundit: pilt ja sinu palve naabrile.', ['Kes on pildil ja kus nad on?', 'Mida Anna Viktorile ulatab?', 'Mida Anna palub?', 'Keda sina tavaliselt palud?', 'Mida sa talle ütled?'], [45, 60], ['Pildil on …', 'Anna palub, et …', 'Mina palun …']), { task: 'S06' }),
       B.rubric('072_t_rubric', 'Hindamine.', 'Õpetaja hindab palveid: iga rida 0–2 punkti.', ['Sina ja teie on õigesti valitud.', 'Palve vorm on õige: kas te saate + da-vorm, palun + käsk.', 'Kokkuleppes on kolm täpset palvet.', 'Salvestus on arusaadav ja kestab 45–60 sekundit.']),
       B.selfcheck('072_t_self', ['Ma loen sõnumist, kes mida palub.', 'Ma ütlen: Kas sa saad …? Kas te saate …? Kas ma võin …?', 'Ma palun sõbrale ja võõrale erinevalt.', 'Ma vastan: Hea meelega! Kahjuks ei saa, sest …'], 'Palve on öeldud'),
     ],
@@ -270,12 +274,12 @@ export const LESSONS = withShapes({
         '**sest** + terve lause: …, sest ma **töötan** õhtuni.',
       ], 'full'),
       B.categorize('073_d_sort', 'Jah, ei või ei tea?', 'Viktor kirjutab sõnumid paberile. Pane iga lause õigesse rühma.', [
-        ['jah', ['Sobib, olen kohal.', 'Tulen väga hea meelega.', 'Muidugi aitan!']],
-        ['ei', ['Kahjuks ma ei jõua.', 'Täna mul kahjuks ei sobi.', 'Mul on kahju, aga ma ei saa.']],
-        ['ei tea veel', ['Annan homme teada.', 'Võib-olla, kui ma jõuan.', 'Pean enne Kadrilt küsima.']],
+        ['jah', ['Sobib, olen kohal.', 'Tulen väga hea meelega.', 'Muidugi aitan!', 'Jah, see aeg on mulle hea.']],
+        ['ei', ['Kahjuks ma ei jõua.', 'Täna mul kahjuks ei sobi.', 'Mul on kahju, aga ma ei saa.', 'Sel nädalal ma tõesti ei saa.']],
+        ['ei tea veel', ['Annan homme teada.', 'Võib-olla, kui ma jõuan.', 'Pean enne Kadrilt küsima.', 'Veel ei tea, vaatan kalendrit.']],
       ], 'full', 'g_vocab'),
       tag(B.vocab('073_d_vocab', 'Vastamise sõnad.', ['nõus — согласен', 'vastus — ответ', 'kahjuks — к сожалению', 'vaba — свободный', 'sobima — подходить', 'jõudma — успевать', 'põhjus — причина', 'kokku saama — встречаться', 'äkki — может быть, вдруг', 'jaanipäev — Иванов день']), { topic: ['jaanipäev'] }),
-      tag(B.listening('073_d_call', 'Sofia helistab tagasi.', 'Viktor ja Sofia räägivad telefonis. Kuula kaks korda. Vasta igale küsimusele ühe või kahe sõnaga.', [
+      tag(B.listening('073_d_call', 'Sofia helistab tagasi.', 'Viktor ja Sofia räägivad telefonis. Kuula kaks korda, vasta 1–2 sõnaga.', [
         'Viktor: Tere, Sofia! Sain sinu sõnumi. Aitäh salati eest juba ette! Aga mul on sulle üks palve.',
         'Sofia: Tere, onu! Mis palve?',
         'Viktor: Kas sa saad teisipäeval juba tulla ja mind aidata? Maja on vaja korda teha.',
@@ -287,9 +291,10 @@ export const LESSONS = withShapes({
         'Viktor: Muidugi. Ütle talle: kell 17.30, jaama ees. Ära unusta oma salatit!',
       ], ['Mida Viktor Sofialt palub? [aidata|tulla aitama|maja korda teha]', 'Miks Sofia teisipäeval ei saa? [õhtune vahetus|tal on õhtune vahetus]', 'Kus on Viktor esmaspäeval? [linnas|rattapoes]', 'Mis kell Sofia kolmapäeval töö lõpetab? [kaks|2|14]', 'Mida peab kaasa võtma? [kummikud]', 'Mis kell võtab Viktor Tomi peale? [17.30|pool kuus]']), { task: 'L03' }),
       B.wordforms('073_d_forms', 'Kahjuks ei.', 'Viktori külalised ütlevad „ei”. Kirjuta tegusõna eitav vorm.', [
-        ['ma saan', 'täna: ma …', 'ma ei saa'], ['see sobib', 'täna: see …', 'see ei sobi'], ['ma jõuan', 'täna: ma …', 'ma ei jõua'], ['nad tulevad', 'täna: nad …', 'nad ei tule'], ['ma sain', 'eile: ma …', 'ma ei saanud'], ['see sobis', 'eile: see …', 'see ei sobinud'],
+        ['ma saan', 'täna: ma …', 'ma ei saa'], ['see sobib', 'täna: see …', 'see ei sobi'], ['ma jõuan', 'täna: ma …', 'ma ei jõua'], ['nad tulevad', 'täna: nad …', 'nad ei tule'], ['ma sain', 'eile: ma …', 'ma ei saanud'], ['see sobis', 'eile: see …', 'see ei sobinud'], ['me tuleme', 'täna: me …', 'me ei tule'], ['ma tahan', 'täna: ma …', 'ma ei taha'],
       ], 'half', 'g_notice'),
-      teach(tag(B.speaking('073_d_say', 'Jah, ei, võib-olla.', 'Õpetaja kutsub sind viis korda. Vasta kiiresti. Üks vastus on „jah”, kaks on „ei” koos põhjusega, üks on „ei tea veel”.', ['Kas tuled laupäeval kinno?', 'Kas aitad mul homme kasti tõsta?', 'Kas tuled minu sünnipäevale?', 'Kas sul on pühapäeval aega jalutada?', 'Kas sa saad mulle oma raamatut laenata?'], [60, 90], ['Hea meelega!', 'Kahjuks ma ei saa, sest …', 'Ma ei tea veel.']), { fluency: true }),
+      tag(B.writing('073_p_fast', 'Kaheksa minutit: minu „ei”.', 'Kirjuta 8 minutit järjest: millal on „ei” sulle raske? Ära peatu, ära paranda.', [8, 10], ['kahjuks', 'sest', 'raske', 'ütlen'], 2), { task: 'W06', fluency: true }),
+      teach(tag(B.speaking('073_d_say', 'Jah, ei, võib-olla.', 'Õpetaja kutsub sind viis korda. Vasta kiiresti: jah, ei koos põhjusega, ei tea veel.', ['Kas tuled laupäeval kinno?', 'Kas aitad mul homme kasti tõsta?', 'Kas tuled minu sünnipäevale?', 'Kas sul on pühapäeval aega jalutada?', 'Kas sa saad mulle oma raamatut laenata?'], [60, 90], ['Hea meelega!', 'Kahjuks ma ei saa, sest …', 'Ma ei tea veel.']), { fluency: true }),
         'Üks-ühele: õpetaja küsib kiiresti, õpilane vastab kohe. Korrake teises järjekorras.'),
     ],
     practice: [
@@ -298,22 +303,27 @@ export const LESSONS = withShapes({
       tag(B.truefalse('073_p_tf', 'Mida Viktor kirjutas?', 'Viktor saatis kõigile pika sõnumi. Loe seda ja otsusta: õige või vale?', [
         ['Pidu algab kell kuus õhtul.', true], ['Kadri toob joogid.', false], ['Lõke läheb põlema kell kümme.', true], ['Majas saavad kõik magada.', false], ['Telgi saab panna aeda.', true], ['Tagasi saab alles reedel.', false], ['Kaasa tuleb võtta soe jope.', true], ['Viktor teeb kogu söögi ise.', false],
       ], 'full', 'g_read'), { task: 'R06' }),
-      B.adsmatch('073_p_ads', 'Mida veel teha jaanipäeval?', 'Tom ei tea veel, kas ta saab Viktori juurde minna, ja vaatab linna kuulutusi. Mis sobib? Kirjuta täht.', [
+      B.adsmatch('073_p_ads', 'Mida veel teha jaanipäeval?', 'Tom ja sõbrad vaatavad linna kuulutusi. Mis kellelegi sobib? Kirjuta täht.', [
         ['A. Jaanituli Pirital', 'Kolmapäeval kell 19–24 muusika, tants ja suur lõke. Tasuta. Rongiga ei saa, buss nr 1 sõidab iga 15 minuti järel.'],
         ['B. Vabaõhumuuseum', 'Kolmapäeval kell 15–22 vanad mängud ja rahvatants. Pilet 12 eurot, lapsed tasuta. Oma toit on lubatud.'],
         ['C. Kohvik Pann', 'Neljapäeval kell 12–15 jaanipäeva lõuna. Salat ja kala 14 eurot. Palun broneeri laud ette.'],
       ], [
-        ['Tom ei taha raha kulutada.', 'A'], ['Sofia tahab näha, kuidas vanasti tantsiti.', 'B'], ['Jaan tahab kolmapäeval õhtul ainult muusikat kuulata.', 'A'], ['Olga tahab päeval lastega minna.', 'B'], ['Dmitri on neljapäeval vaba ja tahab süüa.', 'C'], ['Markus peab laua enne ära broneerima.', 'C'],
+        ['Tom ei taha raha kulutada.', 'A'], ['Sofia tahab näha, kuidas vanasti tantsiti.', 'B'], ['Jaan tahab kolmapäeval õhtul ainult muusikat kuulata.', 'A'], ['Olga tahab päeval lastega minna.', 'B'], ['Dmitri on neljapäeval vaba ja tahab süüa.', 'C'], ['Markus peab laua enne ära broneerima.', 'C'], ['Lucía tahab oma võileivad kaasa võtta.', 'B'], ['Tom tahab bussiga randa sõita.', 'A'],
       ], 'g_vocab'),
-      B.dictation('073_p_dict', 'Viktor loeb oma märkmed.', 'Viktor loeb oma märkmed telefonis ette. Kuula ja kirjuta iga lause täpselt üles.', ['Markus ei saa tulla, sest ta on Pärnus.', 'Sofia tuleb varasema rongiga.', 'Jaan ei tea veel, millal ta jõuab.', 'Olga lapsed on kahjuks haiged.', 'Dmitri tuleb neljapäeva hommikul.', 'Võtke kaasa kummikud ja soe jope.']),
-      tag(B.writing('073_p_join', 'Üks lause kahest.', 'Viktor kirjutab märkmed lühemalt. Ühenda kuus korda kaks lauset sõnaga sest või aga: Markus ei tule. Ta on Pärnus. Kirjuta nii ka oma elust.', [6, 8], ['sest', 'aga'], 2), { task: 'W09', level: 2 }),
-      tag(B.writing('073_p_fast', 'Kaheksa minutit: minu „ei”.', 'Kirjuta 8 minutit järjest: millal on „ei” sulle raske ja mida sa siis ütled. Ära peatu, ära paranda.', [8, 10], ['kahjuks', 'sest', 'raske', 'ütlen'], 2), { task: 'W06', fluency: true }),
-      teach(tag(B.rolecards('073_p_invite', 'Kutse ja keeldumine.', 'A kutsub kolm korda, B keeldub ja pakub teist aega. Leppige lõpuks kokku üks aeg. Siis vahetage.', 'Sa tahad minna: kinno reedel, ujuma laupäeval, jalutama pühapäeval. Kutsu sõpra. Küsi, millal tal aega on.', 'Reedel oled tööl. Laupäeval sõidad Tartusse. Pühapäeva hommikul oled vaba. Keeldu viisakalt ja ütle põhjus.', ['Kas sa tuled …?', 'Aga kas … sobib?', 'Hästi, siis pühapäeval!'], ['Kahjuks ma ei saa, sest …', 'Äkki …?', 'Sobib!']), { task: 'S12', level: 3 }),
+      tag(B.listening('073_p_times', 'Rongid ja ajad.', 'Tom kuulab jaama teadet. Kuula kaks korda ja kirjuta aeg või number.', [
+        'Teadustaja: Tähelepanu! Kolmapäeval, kahekümne kolmandal juunil, sõidavad rongid Aegviidusse teistmoodi.',
+        'Teadustaja: Hommikune rong väljub kell kaheksa kümme, teiselt platvormilt. Päevane rong väljub kell kolmteist viiskümmend.',
+        'Teadustaja: Pärastlõunane rong väljub kell kuusteist kakskümmend, kolmandalt platvormilt, ja jõuab Aegviidusse kell seitseteist viisteist.',
+        'Teadustaja: Viimane rong väljub kell kakskümmend üks null viis. Pilet Tallinnast Aegviidusse maksab viis eurot kakskümmend senti. Jalgratas sõidab tasuta.',
+      ], ['Hommikune rong väljub kell [8.10|kaheksa kümme].', 'Hommikune rong läheb platvormilt [kaks|2|teiselt].', 'Päevane rong väljub kell [13.50|kolmteist viiskümmend].', 'Pärastlõunane rong väljub kell [16.20|kuusteist kakskümmend].', 'See rong jõuab kohale kell [17.15|seitseteist viisteist].', 'Viimane rong väljub kell [21.05|kakskümmend üks null viis].', 'Pilet maksab [5,20|viis eurot kakskümmend senti|5.20] eurot.', 'Jalgratas sõidab [tasuta].']), { task: 'L10' }),
+      B.dictation('073_p_dict', 'Viktor loeb oma märkmed.', 'Viktor loeb oma märkmed telefonis ette. Kuula ja kirjuta iga lause täpselt üles.', ['Markus ei saa tulla, sest ta on Pärnus.', 'Sofia tuleb varasema rongiga.', 'Jaan ei tea veel, millal ta jõuab.', 'Olga lapsed on kahjuks haiged.', 'Dmitri tuleb neljapäeva hommikul.', 'Võtke kaasa kummikud ja soe jope.', 'Anna toob Hiiumaalt leiba.', 'Tom mängib õhtul kitarri.']),
+      tag(B.writing('073_p_join', 'Üks lause kahest.', 'Markus ei tule. Ta on Pärnus. Ühenda nii kuus korda kaks lauset: sest, aga.', [9, 10], ['sest', 'aga'], 2), { task: 'W09', level: 2 }),
+      teach(tag(B.rolecards('073_p_invite', 'Kutse ja keeldumine.', 'A kutsub kolm korda, B keeldub ja pakub teist aega. Leppige aeg kokku.', 'Sa tahad minna: kinno reedel, ujuma laupäeval, jalutama pühapäeval. Kutsu sõpra. Küsi, millal tal aega on.', 'Reedel oled tööl. Laupäeval sõidad Tartusse. Pühapäeva hommikul oled vaba. Keeldu viisakalt ja ütle põhjus.', ['Kas sa tuled …?', 'Aga kas … sobib?', 'Hästi, siis pühapäeval!'], ['Kahjuks ma ei saa, sest …', 'Äkki …?', 'Sobib!']), { task: 'S12', level: 3 }),
         'Üks-ühele: õpetaja kutsub, õpilane keeldub kaks korda ja pakub ise teist aega. Siis vahetage rollid.'),
     ],
     transfer: [
       B.text('073_t_sit', 'Nüüd vastad sina', 'Viktor kutsus ka sind jaanipäevale. Sa saad tulla alles õhtul, sest sul on tööl vahetus. Kõigepealt kuulad, mida Viktor külalistele ütleb. Siis lepid sõbraga kokku, kes mida toob, ja kirjutad Viktorile vastuse.'),
-      tag(B.examListen('073_t_list', 'Viktori plaan.', 'Viktor räägib telefonis Kadriga, kes mida toob. Kuula kaks korda ja ühenda inimene ja asi.', 'match', [
+      tag(B.examListen('073_t_list', 'Viktori plaan.', 'Viktor räägib Kadriga, kes mida toob. Kuula kaks korda, ühenda inimene ja asi.', 'match', [
         'Kadri: Tere, Viktor! Kadri siin. Kas sa tead juba, kes mida toob?',
         'Viktor: Tere, Kadri! Jah, kirjutan kohe. Sofia teeb kartulisalatit, ta ise pakkus seda.',
         'Kadri: Hea. Ja Anna? Ta teeb alati head kooki.',
@@ -327,7 +337,7 @@ export const LESSONS = withShapes({
       ], [
         ['Sofia', 'kartulisalat'], ['Anna', 'Hiiumaa leib'], ['Kadri', 'kook'], ['Jaan', 'joogid'], ['Tom', 'kitarr'], ['Dmitri', 'kala'],
       ]), { task: 'L09', level: 3 }),
-      teach(tag(B.ideaCard('073_t_agree', 'Mis meie toome?', 'Te lähete koos Viktori juurde. Leppige kokku, mida ja millal teha. Üks ettepanek saab vastuse „ei”.', 'Te lähete koos jaanipäevale. Viktor palus tuua midagi süüa. Üks teist saab tulla ainult õhtul.',
+      teach(tag(B.ideaCard('073_t_agree', 'Mis meie toome?', 'Te lähete koos Viktori juurde. Leppige kokku, mida ja millal te teete.', 'Te lähete koos jaanipäevale. Viktor palus tuua midagi süüa. Üks teist saab tulla ainult õhtul.',
         ['salat', 'kook', 'rong või buss', 'mis kell', 'kummikud', 'kingitus Viktorile'], 'Mida te toote ja mis kell te sõidate?'), { level: 3 }),
         'Üks-ühele: õpetaja on sõber ja keeldub vähemalt ühest ettepanekust põhjusega. Õpilane pakub teist võimalust.'),
       B.planning('073_t_plan', 'Enne kirjutamist.', 'Tee vastuse jaoks märkmed. Kirjuta iga küsimuse juurde paar sõna.', ['Mille eest sa täna ütled?', 'Kas sa tuled? Millal?', 'Miks sa ei saa varem tulla?', 'Mida sa kaasa võtad?', 'Mida sa Viktorilt küsid?']),
@@ -336,6 +346,7 @@ export const LESSONS = withShapes({
         points: ['Täna kutse eest.', 'Ütle, et sa tuled hiljem ja miks.', 'Paku, mida sa kaasa võtad.', 'Küsi, kuidas sa jaamast talu juurde saad.'],
         words: [50, 70], opening: 'Tere, Viktor!', closing: 'Kohtumiseni!',
       }), { level: 4, main: true }),
+      tag(B.letter('073_t_friend', 'Sama kutse, teine vastus.', 'Sinu sõber ei saa tulla. Kirjuta tema nimel Viktorile keeldumine, 40–60 sõna.', 'Tere, Viktor!', 'Tervitades', [40, 60]), { task: 'W07', level: 3 }),
       tag(B.speaking('073_t_record', 'Salvesta: üks kutse.', 'Salvesta kodus 45–60 sekundit: kes sind viimati kutsus ja mida sa vastasid.', ['Kes sind kutsus ja kuhu?', 'Kas sa said minna?', 'Mida sa vastasid?', 'Kas sa oled tihti nõus või keeldud?'], [45, 60], ['Mind kutsus …', 'Ma ütlesin: „…”', 'Tavaliselt ma …']), { task: 'S15' }),
       B.rubricW2('073_t_rubric'),
       B.selfcheck('073_t_self', ['Ma saan häälsõnumist aru, kes tuleb ja kes ei tule.', 'Ma ütlen: Hea meelega! Kahjuks ma ei saa, sest …', 'Ma pakun teist aega: Aga kas … sobib? Äkki …?', 'Ma kirjutan kutsele viisaka vastuse.'], 'Jah ja ei on selged'),
@@ -348,9 +359,12 @@ export const LESSONS = withShapes({
     discover: [
       B.review('074_d_review', [['Kes ei saanud Viktori juurde tulla ja miks?', 'a2-073'], ['Mida Liis Sofiale proovipäeval ütles?', 'a2-064'], 'Kellele sa täna juba sõnumi kirjutasid?']),
       B.text('074_d_hook', 'Tom läheb maale', 'Kolmapäev, 23. juuni. Tom istub rongis ja sõidab Viktori juurde. Tal on kaasas kitarr ja kolm lille. See on tema esimene jaanipäev Eestis. Mis võib juhtuda? Vaata pealkirja: „Vale jaam”. Ütle enne lugemist, mis juhtub.'),
-      tag(B.reading('074_d_story', 'Lugu sõnumites.', 'Enne lugemist arva: kus on Tom kell viis? Loe nüüd sõnumeid ja kontrolli, siis vasta lühidalt.', 'Vale jaam',
-        '16.42. Tom Viktorile: Tere, Viktor! Olen rongis. Kas ma tulen välja Aegviidus?\n\n16.45. Viktor Tomile: Jah! Kell 17.30 jaama ees, punane auto. Ära muretse.\n\n17.05. Tom Viktorile: Rong peatus ja kõik läksid välja. Ma läksin ka. Aga siin ei ole punast autot ja jaam on väike. Mis jaam see on? Sildil on „Kehra”. Vabandust!\n\n17.06. Viktor Tomile: Oi! Kehra ei ole Aegviidu. Järgmine rong tuleb kell 18.15. Oota jaamas!\n\n17.20. Tom Sofiale: Tere! Kas sa oled juba Viktori juures? Mul on probleem. Olen Kehras ja kõik on kinni. Üks vanamees räägib minuga, aga ma ei saa kõigest aru.\n\n17.22. Sofia Tomile: Mis ta ütleb? Palu tal aeglasemalt rääkida!\n\n17.40. Tom Sofiale: Ta ütles, et ta nimi on Arno ja et ta sõidab ise Aegviidu poole! Ta võtab mu autoga peale. Kas see on normaalne?\n\n17.41. Sofia Tomile: Maal on see normaalne. Mine! Kirjuta auto number mulle.\n\n18.30. Tom Viktorile: Olen kohal! Arno tõi mu otse sinu väravani. Tal on sinu rattapoe silt autos!\n\n18.31. Viktor Tomile: Arno? Minu vana sõber! Ta on sinu pärast tunni aega sõitnud. Tulge mõlemad sööma!\n\nÖösel oli lõke ja Tom mängis kitarri. Kõik laulsid. Hommikul kell kaheksa läks ta õue ja nägi rohus midagi väikest ja musta. See oli rahakott. Tom võttis selle üles ja vaatas sisse. Seal oli raha ja dokument. Kelle see on?',
+      tag(B.reading('074_d_story', 'Lugu sõnumites.', 'Enne lugemist arva: kus on Tom kell viis? Siis loe ja kontrolli.', 'Vale jaam',
+        '16.42. Tom Viktorile: Tere, Viktor! Olen rongis. Kas ma tulen välja Aegviidus?\n\n16.45. Viktor Tomile: Jah! Kell 17.30 jaama ees, punane auto. Ära muretse.\n\n17.05. Tom Viktorile: Rong peatus ja kõik läksid välja. Ma läksin ka. Aga siin ei ole punast autot. Sildil on „Kehra”.\n\n17.06. Viktor Tomile: Oi! Kehra ei ole Aegviidu. Järgmine rong tuleb kell 18.15. Oota jaamas!\n\n17.20. Tom Sofiale: Mul on probleem. Olen Kehras. Üks vanamees räägib minuga, aga ma ei saa aru.\n\n17.22. Sofia Tomile: Mis ta ütleb? Palu tal aeglasemalt rääkida!\n\n17.40. Tom Sofiale: Tema nimi on Arno ja ta sõidab Aegviidu poole! Ta võtab mu peale. Kas see on normaalne?\n\n17.41. Sofia Tomile: Maal on see normaalne. Mine! Kirjuta auto number mulle.\n\n18.30. Tom Viktorile: Olen kohal! Arno tõi mu otse sinu väravani. Tal on sinu rattapoe silt autos!\n\n18.31. Viktor Tomile: Arno? Minu vana sõber! Ta on sinu pärast tunni aega sõitnud. Tulge mõlemad sööma!\n\nÖösel oli lõke ja Tom mängis kitarri. Hommikul nägi ta rohus midagi väikest ja musta. See oli rahakott. Seal oli raha ja dokument. Kelle see on?',
         [['Mis kell Tom Viktorile esimest korda kirjutas?', '16.42'], ['Miks Tom Kehras rongist välja läks?', 'kõik läksid välja|teised läksid välja'], ['Mis värvi on Viktori auto?', 'punane'], ['Millal tuleb järgmine rong?', 'kell 18.15|18.15'], ['Mida Sofia soovitas, kui Tom aru ei saanud?', 'paluda aeglasemalt rääkida|palu aeglasemalt rääkida'], ['Kes viis Tomi Viktori juurde?', 'Arno|vanamees'], ['Kes on Arno Viktorile?', 'vana sõber|sõber'], ['Mida Tom hommikul rohust leidis?', 'rahakoti|rahakott']]), { task: 'R13' }),
+      tag(B.reading('074_d_arno', 'Arno lugu.', 'Loe Arno kiri kolme minutiga läbi. Vasta lühidalt: mida Tom ei teadnud?', 'Arno kiri naisele',
+        'Tere, Leida! Täna oli naljakas päev. Ma ootasin Kehras rongi, sest mu auto oli just poest tulnud. Jaamas istus üks noormees kitarriga. Ta vaatas telefoni ja oli väga mures. Ma küsisin, kuhu ta sõidab. Ta rääkis nii vaikselt, et ma ei saanud kohe aru. Lõpuks ütles ta: „Viktor, talu, jaanipäev.” Viktor? Ma tunnen ainult ühte Viktorit Kõrvemaal! Ta on mu vana sõber. Nii ma viisingi poisi otse tema väravani. Õhtul jäin ka ise sinna, sest lõke oli väga ilus. Noormees mängis kitarri ja kõik laulsid. Tule homme järele! Arno',
+        [['Kus Arno Tomi nägi?', 'Kehras|Kehra jaamas'], ['Mis Tomil kaasas oli?', 'kitarr'], ['Miks Arno kohe aru ei saanud?', 'Tom rääkis vaikselt|ta rääkis vaikselt'], ['Mis kolm sõna Tom ütles?', 'Viktor, talu, jaanipäev'], ['Kes on Arno Viktorile?', 'vana sõber'], ['Kus Arno õhtul oli?', 'Viktori juures|talus'], ['Mida Arno naiselt palub?', 'homme järele tulla|tulla järele'], ['Mida Tom ei teadnud?', 'et Arno tunneb Viktorit']]), { task: 'R14', fluency: true }),
       B.notice('074_d_notice', 'Märka: sõnumi plaan', [
         '1. **Pöördumine:** Tere, Viktor! / Tere, doktor Kask!',
         '2. **Eesmärk:** Aitäh kutse **eest**! Kutsun sind … Kahjuks ma ei saa …',
@@ -360,8 +374,6 @@ export const LESSONS = withShapes({
         'Aitäh + omastav + **eest**: aitäh **abi** eest, aitäh **toreda õhtu** eest.',
       ], 'full'),
       tag(B.vocab('074_d_vocab', 'Sõnumi sõnad.', ['sõnum — сообщение', 'rahakott — кошелёк', 'jaam — станция', 'leidma — находить', 'kaotama — терять', 'lõpp — конец', 'tervitama — приветствовать', 'lõke — костёр', 'rohi — трава', 'dokument — документ']), { topic: ['lõke'] }),
-      teach(tag(B.speaking('074_d_retell', 'Räägi Tomi lugu.', 'Räägi Tomi lugu paarilisele kaks korda, teisel korral lühemalt. Ära vaata teksti. Mis on sinu arvates rahakotis?', ['Kuhu Tom sõitis?', 'Mis jaamas ta välja läks?', 'Kes teda aitas?', 'Mida ta hommikul leidis?', 'Kelle rahakott see on?'], [60, 120], ['Kõigepealt …', 'Siis …', 'Lõpuks …']), { task: 'S07', fluency: true }),
-        'Üks-ühele: õpilane räägib õpetajale; teisel korral on aega poole vähem. Õpetaja ei sega. Lõpus arvab õpilane, kelle rahakott see on.'),
       tag(B.examListen('074_d_voice', 'Hommik Viktori talus.', 'Tom kuulab, mida inimesed hommikul ütlevad. Kuula kaks korda. Mida Tom peab tegema?', 'choice', [
         'Viktor: Tom, hommikust! Palun too kaevust vett. Ämber on maja taga, sauna kõrval.',
         'Kadri: Tom, kas sa saad lapsed üles äratada? Nad magavad telgis. Hommikusöök on kell üheksa.',
@@ -371,9 +383,19 @@ export const LESSONS = withShapes({
       ], [
         ['Kust Tom ämbri leiab?', 'maja tagant', 'köögist', 'autost'], ['Kus lapsed magavad?', 'telgis', 'saunas', 'majas'], ['Keda Sofia otsib?', 'Jaani', 'Viktorit', 'Arnot'], ['Kus peab Tom Arnot ootama?', 'värava juures', 'jaamas', 'sauna ees'], ['Kus on Tomi saabas?', 'aias', 'autos', 'rongis'],
       ]), { task: 'L06' }),
+      tag(B.transformation('074_d_reg', 'Viktorile või Arnole?', 'Tom ütleb Viktorile „sina”, Arnole „teie”. Kirjuta sama lause Arnole.', [
+        ['Aitäh sulle autosõidu eest!', 'Arnole: …', 'Aitäh teile autosõidu eest!'], ['Kas sa oled homme kodus?', 'Arnole: …', 'Kas te olete homme kodus?'], ['Palun anna mulle oma number!', 'Arnole: …', 'Palun andke mulle oma number!'], ['Tule laupäeval minu juurde!', 'Arnole: …', 'Tulge laupäeval minu juurde!'],
+        ['Mulle meeldib sinu auto.', 'Arnole: …', 'Mulle meeldib teie auto.'], ['Kuidas sul läheb?', 'Arnole: …', 'Kuidas teil läheb?'], ['Palun tervita oma naist!', 'Arnole: …', 'Palun tervitage oma naist!'], ['Ma ootan sinu sõnumit.', 'Arnole: …', 'Ma ootan teie sõnumit.'],
+      ]), { task: 'G14', level: 3 }),
+      tag(B.examWriting('074_d_quiz', 'Väike küsimustik: sinu sõnumid.', 'Vasta täislausega. Mida sa sõnumitega teed?', 'kusimustik', {
+        situation: 'Keelekooli leht küsib õpilastelt sõnumite kohta.',
+        questions: ['Kellele sa kõige rohkem kirjutad?', 'Mis keeles sa kirjutad?', 'Kuidas sinu sõnum algab?', 'Kuidas see lõpeb?', 'Millal sa viimati kedagi tänasid?', 'Miks on häälsõnum hea või halb?'],
+      }), { task: 'W01', level: 3 }),
+      teach(tag(B.speaking('074_d_retell', 'Räägi Tomi lugu.', 'Räägi Tomi lugu paarilisele kaks korda, teisel korral lühemalt. Ära vaata teksti.', ['Kuhu Tom sõitis?', 'Mis jaamas ta välja läks?', 'Kes teda aitas?', 'Mida ta hommikul leidis?', 'Kelle rahakott see on?'], [60, 120], ['Kõigepealt …', 'Siis …', 'Lõpuks …']), { task: 'S07', fluency: true }),
+        'Üks-ühele: õpilane räägib õpetajale; teisel korral on aega poole vähem. Õpetaja ei sega. Lõpus arvab õpilane, kelle rahakott see on.'),
     ],
     practice: [
-      tag(B.crossword('074_p_cross', 'Tomi päeva sõnad.', 'Tom kirjutab oma päevikusse. Loe vihjet ja kirjuta sõna.', [['Seal peatub rong', 'jaam'], ['Selles on raha ja dokument', 'rahakott'], ['See põleb jaanipäeva öösel', 'lõke'], ['Selle kirjutad telefonis', 'sõnum'], ['See on maa peal ja roheline', 'rohi'], ['Selle järgi leiad rahakotist inimese nime', 'dokument']]), {}),
+      tag(B.crossword('074_p_cross', 'Tomi päeva sõnad.', 'Tom kirjutab oma päevikusse. Loe vihjet ja kirjuta sõna.', [['Seal peatub rong', 'jaam'], ['Selles on raha ja dokument', 'rahakott'], ['See põleb jaanipäeva öösel', 'lõke'], ['Selle kirjutad telefonis', 'sõnum'], ['See on maa peal ja roheline', 'rohi'], ['Selle järgi leiad rahakotist inimese nime', 'dokument'], ['Sellega sõidab Tom maale', 'rong'], ['Sellel mängib Tom öösel', 'kitarr']]), {}),
       tag(B.bankText('074_p_mail', 'Tomi kiri emale.', 'Tom kirjutab emale Inglismaale. Pane lünka sobiv sõna. Kaks sõna jääb üle.', 'Tere, ema!', [
         'Aitäh sinu [[kirja]] eest! Mul läheb hästi. Eelmisel nädalal käisin ma naabrite juures [[külas]]. Täna olen ma maal, Viktori talus.',
         '',
@@ -385,10 +407,24 @@ export const LESSONS = withShapes({
         ['Aitäh sinu kutse.', 'Aitäh sinu kutse eest!|Aitäh kutse eest!'], ['Ma kutsun sind minu sünnipäevale.', 'Ma kutsun sind oma sünnipäevale.'], ['Palun anna teadma, kas sa tuled.', 'Palun anna teada, kas sa tuled.'], ['Ma ootan sinu vastus.', 'Ma ootan sinu vastust.'],
         ['Tere, doktor Kask! Kas sa saad mind aidata?', 'Tere, doktor Kask! Kas te saate mind aidata?'], ['Ma leidsin sinu rahakott.', 'Ma leidsin sinu rahakoti.'], ['Kas me saame kohtumine teisele päevale panna?', 'Kas me saame kohtumise teisele päevale panna?'], ['Tule meile pärast töö.', 'Tule meile pärast tööd.'],
       ]),
-      tag(B.reading('074_p_order', 'Segased sõnumid.', 'Sofia telefonis läksid Jaani ja Sofia sõnumid segamini. Kirjuta, mis järjekorras need on (1–4), ja vasta küsimustele.', 'Kes kaotas rahakoti?',
-        'A. Ma ei leia oma rahakotti! Seal on mu dokument ja pangakaart. Kas sa oled seda näinud?\n\nB. Tom leidis täna hommikul rohust musta rahakoti. Kas see on sinu oma?\n\nC. Jah, see on minu oma! Oi, kui hea. Kas ta saab selle täna kohvikusse tuua?\n\nD. Tere, Jaan! Ma ei ole seda näinud. Aga ma küsin kohe Tomi käest, ta oli hommikul õues.',
+      tag(B.reading('074_p_order', 'Segased sõnumid.', 'Sofia sõnumid läksid segamini. Mis järjekorras need on? Vasta küsimustele.', 'Kes kaotas rahakoti?',
+        'A. Ma ei leia oma rahakotti! Seal on mu dokument ja pangakaart. Ma otsisin juba autost ja kodust. Kas sa oled seda näinud?\n\nB. Tom leidis täna hommikul rohust musta rahakoti. Ta ei tea, kelle see on, sest ta ei vaadanud kõike. Kas see on sinu oma?\n\nC. Jah, see on minu oma! Oi, kui hea. Kas ta saab selle täna kohvikusse tuua? Ma ootan teda kella viieni.\n\nD. Tere, Jaan! Ma ei ole seda näinud. Aga ma küsin kohe Tomi käest, ta oli hommikul õues.',
         [['Mis on esimene sõnum?', 'A'], ['Mis on teine sõnum?', 'D'], ['Mis on kolmas sõnum?', 'B'], ['Mis on viimane sõnum?', 'C'], ['Kes kaotas rahakoti?', 'Jaan'], ['Mis on rahakotis?', 'dokument ja pangakaart|dokument ja kaart'], ['Kuhu Jaan rahakotti tahab?', 'kohvikusse'], ['Kes oli hommikul õues?', 'Tom']]), { task: 'R10' }),
-      B.dictation('074_p_dict', 'Sofia sõnum dikteerides.', 'Sofia ütleb oma sõnumi telefonile ette. Kuula ja kirjuta sõnum vihikusse lause haaval.', ['Tere, Jaan, Tom leidis sinu rahakoti.', 'Ta toob selle täna kohvikusse.', 'Kas sulle sobib kell neli?', 'Palun anna kohe teada.', 'Ära enam midagi kaota!', 'Kallistan, Sofia']),
+      tag(B.cloze('074_p_jaan', 'Jaani sõnum Tomile.', 'Jaan sai rahakoti tagasi. Vali igasse lünka üks sõna.', 'Tere, Tom!', [
+        'Suur aitäh rahakoti {*eest|pärast|kohta}! Ma olin väga mures, sest seal oli kogu minu raha. Kas sa {*tuled|tule|tulla} homme meie kohvikusse?',
+        '',
+        'Ma teen sulle hea lõuna, see on minu {*kingitus|kingitust|kingitusega}. Palun anna {*teada|teadma|tead}, mis kell sul sobib. Kui sa ei saa homme, siis {*äkki|kahjuks|aitäh} reedel?',
+        '',
+        'Võta kaasa ka oma {*kitarr|kitarri|kitarriga}, Mia tahab sinu mängu kuulata. Ta ei {*räägi|räägib|rääkima} muust. Ma ootan sinu {*vastust|vastus|vastusega}. Kallistan! Jaan',
+      ], 'g_vocab'), { task: 'R03' }),
+      tag(B.adsmatch('074_p_where', 'Kuhu Tom ja Jaan lähevad?', 'Sofia saatis kolm kuulutust. Mis kellelegi sobib? Kirjuta täht.', [
+        ['A. Kohvik Pann', 'Lõuna iga päev kell 12–15, supp ja salat 8 eurot. Reedel elav muusika, kitarri võib kaasa võtta. Lastele on väike mängunurk.'],
+        ['B. Pirita rand', 'Rannakohvik on avatud, kui ilm on ilus. Söök on lihtne, kala ja friikartulid. Bussiga number üks saab otse randa. Koerad on lubatud.'],
+        ['C. Raamatukohvik Sõna', 'Vaikne koht lugemiseks ja rääkimiseks. Muusikat ei ole. Kook ja kohv. Kolmapäeviti räägime eesti keeles, kõik on oodatud.'],
+      ], [
+        ['Jaan tahab reedel kuulata, kuidas Tom mängib.', 'A'], ['Mia tahab pärast sööki mängida.', 'A'], ['Bruno tahab ka kaasa tulla.', 'B'], ['Dmitri tahab vaikselt raamatut lugeda.', 'C'], ['Sofia tahab bussiga mere äärde.', 'B'], ['Lucía otsib eesti keele rääkimise õhtut.', 'C'],
+      ]), { task: 'R16' }),
+      B.dictation('074_p_dict', 'Sofia sõnum dikteerides.', 'Sofia ütleb oma sõnumi telefonile ette. Kuula ja kirjuta sõnum vihikusse lause haaval.', ['Tere, Jaan, Tom leidis sinu rahakoti.', 'Ta toob selle täna kohvikusse.', 'Kas sulle sobib kell neli?', 'Palun anna kohe teada.', 'Ära enam midagi kaota!', 'Kallistan, Sofia', 'Rahakott oli rohus maja taga.', 'Kõik on seal alles.']),
       teach(tag(B.examWriting('074_p_wallet', 'Eksaminurk: Tom leidis rahakoti.', 'Sa oled Tom. Kirjuta rahakoti omanikule sõnum, 40–60 sõna. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Sa leidsid Viktori talu aiast oma sõbra Jaani musta rahakoti. Täna õhtul oled sa Tallinnas.',
         points: ['Mida sa leidsid?', 'Kus see oli?', 'Kuhu ja millal sa selle tood?', 'Mida sa Jaanilt palud?'],
@@ -397,8 +433,8 @@ export const LESSONS = withShapes({
         'Nagu Harno A2 kirjutamise 2. osas (eksamil vähemalt 30 sõna): lühike sõnum, kõik punktid sees; õpilane kirjutab ise, ilma abita, aeg umbes 10 minutit. Hinda sisu ja keelt nagu eksamil.'),
     ],
     transfer: [
-      B.text('074_t_sit', 'Tom kirjutab tänu', 'Pärast jaanipäeva tahab Tom kõiki tänada. Ta kutsub Viktori ja Arno järgmisel laupäeval enda juurde õhtusöögile. Sina kirjutad Tomi sõnumi. Enne vaata Sofia sõnumit, mis on hea näide.'),
-      tag(B.bankText('074_t_model', 'Sofia sõnum Sandrale.', 'Sofia kohtus Sandraga ja tänab teda. Pane igasse lünka lause, mis sobib. Üks lause jääb üle.', 'Tere, Sandra!', [
+      B.text('074_t_sit', 'Tom kirjutab tänu', 'Pärast jaanipäeva tahab Tom kõiki tänada. Ta kutsub Viktori ja Arno laupäeval, 26. juunil, kell kuus enda juurde õhtusöögile. Sina kirjutad Tomi sõnumi. Enne vaata Sofia sõnumit, mis on hea näide.'),
+      tag(B.bankText('074_t_model', 'Sofia sõnum Sandrale.', 'Sofia tänab Sandrat. Pane igasse lünka lause, mis sobib. Üks jääb üle.', 'Tere, Sandra!', [
         '[[Aitäh toreda õhtu eest!]] Teie õunakook oli väga maitsev.',
         '',
         '[[Ma kutsun teid järgmisel reedel enda juurde.]] Ma elan Mustamäel, Sõpruse tee 3.',
@@ -407,10 +443,10 @@ export const LESSONS = withShapes({
         '',
         '[[Tervitades,]] Sofia',
       ], ['Ma ei tea, kas see on hea.']), { task: 'R05', level: 3 }),
-      teach(tag(B.speaking('074_t_tell', 'Kellele ja kuidas?', 'Räägi paarilisele, kellele sa eesti keeles kirjutad ja kuidas sõnum algab ja lõpeb. Võrrelge.', ['Kellele sa kõige rohkem kirjutad?', 'Kas sa ütled „sina” või „teie”?', 'Kuidas sa sõnumi lõpetad?', 'Kellele oli viimati raske kirjutada?'], [60, 90], ['Ma kirjutan tihti …', 'Sõnumi lõpus on …']), { task: 'S01', level: 3 }),
-        'Üks-ühele: õpetaja küsib ja räägib ka enda sõnumitest. Õpilane küsib vähemalt kaks küsimust vastu.'),
-      tag(B.letter('074_t_thanks', 'Tomi sõnum Viktorile.', 'Oled Tom. Kirjuta Viktorile 50–70 sõna: täna, ütle, mis sulle kõige rohkem meeldis, kutsu laupäeval kell kuus enda juurde ja palu vastust.', 'Tere, Viktor!', 'Tervitades', [50, 70]), { task: 'W04', level: 4, main: true }),
-      tag(B.writing('074_t_edit', 'Loe oma sõnum üle.', 'Vaata oma sõnum üle: kas pöördumine, eesmärk, info, palve ja lõpp on olemas? Paranda ja kirjuta puhtalt.', [4, 6], ['aitäh', 'eest', 'palun', 'teada'], 2, 'g_notice'), { task: 'W10' }),
+      teach(tag(B.rolecards('074_t_tell', 'Kellele ja kuidas?', 'A ja B võrdlevad oma sõnumeid. Mõlemad küsivad ja vastavad. Siis vahetage.', 'Sa kirjutad palju. Küsi: Kellele sa kirjutad? Kas sa ütled „sina” või „teie”? Kuidas sa lõpetad?', 'Sa kirjutad vähe ja helistad rohkem. Ütle miks. Küsi: Kellele oli viimati raske kirjutada? Miks?', ['Kellele sa …?', 'Kuidas sa …?', 'Mina kirjutan …'], ['Ma helistan, sest …', 'Sõnumi lõpus on …', 'Miks?']), { task: 'S01', level: 3 }),
+        'Üks-ühele: õpetaja räägib ka enda sõnumitest. Õpilane küsib vähemalt kaks küsimust vastu.'),
+      tag(B.letter('074_t_thanks', 'Tomi sõnum Viktorile.', 'Oled Tom. Kirjuta Viktorile 50–70 sõna: tänu, mis meeldis, kutse ja palve vastata.', 'Tere, Viktor!', 'Tervitades', [50, 70]), { task: 'W04', level: 4, main: true }),
+      tag(B.writing('074_t_edit', 'Loe oma sõnum üle.', 'Vaata üle: pöördumine, eesmärk, info, palve, lõpp. Paranda ja kirjuta puhtalt.', [6, 8], ['aitäh', 'eest', 'palun', 'teada'], 2, 'g_notice'), { task: 'W10' }),
       tag(B.speaking('074_t_record', 'Salvesta: häälsõnum sõbrale.', 'Salvesta kodus 45–60 sekundit häälsõnum sõbrale: sa muudad kohtumise aega ja ütled miks.', ['Kellele sa helistad?', 'Mis aeg oli kokku lepitud?', 'Miks see ei sobi?', 'Mis aeg sobib?', 'Kuidas sa lõpetad?'], [45, 60], ['Tere, siin …', 'Kahjuks ma ei saa …, sest …', 'Palun anna teada.']), { task: 'S15' }),
       B.rubricW2('074_t_rubric'),
       B.selfcheck('074_t_self', ['Ma loen lugu sõnumites ja saan aru, mis juhtus.', 'Ma ütlen: Aitäh … eest! Palun anna teada!', 'Ma valin sina või teie ja sobiva lõpu.', 'Ma kirjutan 50–70-sõnalise sõnumi.'], 'Sõnum on saadetud'),
@@ -430,14 +466,14 @@ export const LESSONS = withShapes({
         [['Mis kuupäeval oli õhtusöök?', '26. juunil|kahekümne kuuendal juunil'], ['Mida Tom tegi?', 'kartuleid ja kala|kala ja kartuleid'], ['Mida Sandra tõi?', 'koogi|kooki'], ['Miks Arno ei tulnud?', 'auto läks katki|tema auto läks katki'], ['Mida Viktor jõi?', 'teed'], ['Mis kell Viktor lahkus?', 'kell üheksa|üheksa|9|21']]),
       B.truefalse('075_d_tf', 'Kuidas õhtu läks?', 'Mõtle Tomi õhtusöögile. Kas see lause on õige või vale?', [['Sandra ja Tom ütlevad nüüd teineteisele „sina”.', true], ['Viktor tuli autoga.', false], ['Arno helistas ja keeldus viisakalt.', true], ['Retsept on eesti keeles.', false], ['Ago rääkis oma aiast.', true], ['Tom sai pärast sõnumi.', true]]),
       B.crossword('075_d_cross', 'Viisaka inimese sõnad.', 'Enne kontrolli: loe vihjet ja kirjuta sõna.', [['Selle annad külla minnes võõrustajale', 'kingitus'], ['Inimene, kes tuleb sulle koju', 'külaline'], ['Seda ütled, kui oled tänulik', 'aitäh'], ['Selle kirjutad telefonis', 'sõnum'], ['See sõna tuleb keeldumisel ette', 'kahjuks'], ['Seda ütled, kui sa ei saa tulla ja tahad põhjust öelda', 'sest']]),
-      B.wordforms('075_d_forms', 'Lihtne vorm.', 'Enne kontrolli: milline vorm sobib? Kirjuta see.', [['tee', 'Kas soovid …?', 'teed'], ['tulema', 'võõrale: … sisse!', 'tulge'], ['võtma', 'võõrale: … istet!', 'võtke'], ['tulema', 'Ma ei saa …', 'tulla'], ['töötama', 'Ma pean …', 'töötama'], ['abi', 'Aitäh … eest!', 'abi']]),
+      B.wordforms('075_d_forms', 'Lihtne vorm.', 'Kordamine: pane sõna lause jaoks õigesse vormi.', [['tee', 'Kas soovid …?', 'teed'], ['tulema', 'võõrale: … sisse!', 'tulge'], ['võtma', 'võõrale: … istet!', 'võtke'], ['tulema', 'Ma ei saa …', 'tulla'], ['töötama', 'Ma pean …', 'töötama'], ['abi', 'Aitäh … eest!', 'abi']]),
       B.manymatch('075_d_match', 'Mida öelda külas?', 'Kordamine: mida sa selles olukorras ütled? Ühenda olukord ja lause.', ['Külaline on ukse taga.', 'Sa oled täis ja kook on hea.', 'Sa tahad teada, kas siin võib istuda.', 'Sa pead minema.', 'Sa ei saa tulla.', 'Sa tahad, et võõras aitab.'], ['Tere tulemast!', 'Aitäh, rohkem ei jaksa.', 'Kas ma võin siin istuda?', 'Mul on aeg minna.', 'Kahjuks ma ei saa.', 'Kas te saate mind aidata?']),
-      B.transformation('075_d_trans', 'Ütle teisiti.', 'Enne kontrolli: ütle sama teiste sõnadega, algus on antud.', [['Tule sisse ja võta istet!', 'Teie: …', 'Tulge sisse ja võtke istet!'], ['Aita mul kasti tõsta!', 'Kas sa saad …?', 'Kas sa saad mul kasti tõsta aidata?|Kas sa saad aidata mul kasti tõsta?'], ['Ma ei saa. Mul on trenn.', 'sest', 'Ma ei saa, sest mul on trenn.'], ['Aitäh, et sa aitasid!', 'Aitäh … eest!', 'Aitäh abi eest!'], ['Ma võtan kooki.', 'eitus', 'Ma ei võta kooki.'], ['Kas sa tuled meile?', 'Teie: …', 'Kas te tulete meile?']]),
-      B.errorfix('075_d_fix', 'Vead kontrollis.', 'Enne kontrolli: need vead on tavalised. Kirjuta laused õigesti.', [['Kas soovid tee?', 'Kas soovid teed?'], ['Ma ei saa tulema.', 'Ma ei saa tulla.'], ['Aitäh kutsest!', 'Aitäh kutse eest!'], ['Mul on aega minna.', 'Mul on aeg minna.'], ['Kas te saate meid aitama?', 'Kas te saate meid aidata?'], ['Kas soovite kohv?', 'Kas soovite kohvi?']]),
-      B.gaps('075_d_gaps', 'Pane sõna lausesse.', 'Enne kontrolli: kirjuta lünka sulgudes olev sõna õiges vormis.', ['Tom läks laupäeval Sandrale [külla]. (küla)', 'Palun [oodake] siin, proua Raud! (ootama)', 'Sandra pakkus Tomile [kooki]. (kook)', 'Viktor ei saanud kaua [jääda]. (jääma)', 'Sofia tänas Annat [abi] eest. (abi)', 'Kas sa saad mind jaamas [oodata]? (ootama)']),
-      B.translation('075_d_tr', 'Vene keelest eesti keelde.', 'Enne kontrolli: kuidas sa seda eesti keeles ütled? Kirjuta vihikusse.', ['Заходите, садитесь!', 'Хотите чаю?', 'Вы можете мне помочь?', 'Спасибо за приглашение.', 'К сожалению, я не могу, потому что я работаю.', 'Мне пора идти.']),
+      B.transformation('075_d_trans', 'Ütle teisiti.', 'Kordamine: ütle Tomile sama mõte teisiti. Vihje on antud.', [['Tule sisse ja võta istet!', 'Teie: …', 'Tulge sisse ja võtke istet!'], ['Aita mul kasti tõsta!', 'Kas sa saad …?', 'Kas sa saad mul kasti tõsta aidata?|Kas sa saad aidata mul kasti tõsta?'], ['Ma ei saa. Mul on trenn.', 'sest', 'Ma ei saa, sest mul on trenn.'], ['Aitäh, et sa aitasid!', 'Aitäh … eest!', 'Aitäh abi eest!'], ['Ma võtan kooki.', 'eitus', 'Ma ei võta kooki.'], ['Kas sa tuled meile?', 'Teie: …', 'Kas te tulete meile?']]),
+      B.errorfix('075_d_fix', 'Vead kontrollis.', 'Nii eksivad paljud õppijad. Paranda iga lause enne kontrolli.', [['Kas soovid tee?', 'Kas soovid teed?'], ['Ma ei saa tulema.', 'Ma ei saa tulla.'], ['Aitäh kutsest!', 'Aitäh kutse eest!'], ['Mul on aega minna.', 'Mul on aeg minna.'], ['Kas te saate meid aitama?', 'Kas te saate meid aidata?'], ['Kas soovite kohv?', 'Kas soovite kohvi?']]),
+      B.gaps('075_d_gaps', 'Pane sõna lausesse.', 'Kordamine: Tomi lood. Pane lünka sulgudes olev sõna, muuda vormi.', ['Tom läks laupäeval Sandrale [külla]. (küla)', 'Palun [oodake] siin, proua Raud! (ootama)', 'Sandra pakkus Tomile [kooki]. (kook)', 'Viktor ei saanud kaua [jääda]. (jääma)', 'Sofia tänas Annat [abi] eest. (abi)', 'Kas sa saad mind jaamas [oodata]? (ootama)']),
+      B.translation('075_d_tr', 'Vene keelest eesti keelde.', 'Kordamine: kuidas Tom seda eesti keeles ütleb? Kirjuta vihikusse.', ['Заходите, садитесь!', 'Хотите чаю?', 'Вы можете мне помочь?', 'Спасибо за приглашение.', 'К сожалению, я не могу, потому что я работаю.', 'Мне пора идти.']),
       B.wordorder('075_d_order', 'Pane lause kokku.', 'Kordamine: pane Tomi õhtu sõnad lauseks õiges järjekorras.', ['Tom kutsus enda juurde neli külalist.', 'Sandra tõi kaasa suure koogi.', 'Arno ei saanud tulla, sest auto läks katki.', 'Kas ma võin retsepti saada?', 'Kell üheksa läks Viktor koju.', 'Sinu eesti keel on nüüd palju parem.']),
-      B.speaking('075_d_say', 'Soojendus: mina ja külalised.', 'Enne kontrolli räägime natuke. Vasta õpetajale täislausetega.', ['Kellele sa viimati külla läksid?', 'Mida sa külalisele pakud?', 'Kuidas sa viisakalt keeldud?', 'Keda sa viimati abi palusid?'], [60, 120]),
+      B.speaking('075_d_say', 'Soojendus: mina ja külalised.', 'Enne kontrolli harjutame rääkimist. Vasta õpetajale pikalt.', ['Kellele sa viimati külla läksid?', 'Mida sa külalisele pakud?', 'Kuidas sa viisakalt keeldud?', 'Keda sa viimati abi palusid?'], [60, 120]),
       B.writing('075_d_write', 'Soojendus: kirjutamine.', 'Kirjuta 6–7 lauset: kes sulle viimati külla tuli ja mida te tegite.', [6, 7], ['külla', 'pakkusin', 'aitäh', 'tegime'], 2),
     ],
     practice: [
@@ -493,12 +529,14 @@ export const LESSONS = withShapes({
         points: ['Kes on Marta ja kus ta töötab?', 'Kus kohvik asub?', 'Millal see on avatud?', 'Kuidas saab peo broneerida?'],
         words: [25, 40], opening: 'Tere!', closing: '',
       }), { task: 'W07', harno: 'W1' }),
-      B.planning('075_p_draft', 'Mustand.', 'Enne teise teksti kirjutamist tehke märkmed nelja küsimuse kohta.', ['Miks sa ei saa tulla?', 'Mida sa sõbrale soovid?', 'Mis aega sa pakud?', 'Kuidas sa lõpetad?']),
-      tag(B.examWriting('075_p_w2', 'Kirjutamine 2. Sõnum sõbrale.', 'Te ei saa sõbra sünnipäevale minna. Kirjutage talle sõnum, vähemalt 30 sõna.', 'teade', {
+      B.rubricW1('075_p_w1rubric', ['Kes on Marta ja kus ta töötab?', 'Kus kohvik asub?', 'Millal see on avatud?', 'Kuidas saab peo broneerida?']),
+      B.planning('075_p_draft', 'Mustand.', 'Mõelge enne sõnumit. Kirjutage iga küsimuse juurde paar sõna.', ['Miks sa ei saa tulla?', 'Mida sa sõbrale soovid?', 'Mis aega sa pakud?', 'Kuidas sa lõpetad?']),
+      tag(B.examWriting('075_p_w2', 'Kirjutamine 2. Sõnum sõbrale.', 'Te ei saa sõbra sünnipäevale minna. Kirjutage talle sõnum, 40–60 sõna.', 'teade', {
         situation: 'Sõber Kati kutsus teid laupäeval sünnipäevale. Teil on tööl vahetus kella kümneni.',
         points: ['Täna kutse eest.', 'Ütle, miks sa ei saa tulla.', 'Soovi midagi ilusat.', 'Paku teist aega.'],
-        words: [30, 50], opening: 'Tere, Kati!', closing: 'Kallistan!',
+        words: [40, 60], opening: 'Tere, Kati!', closing: 'Kallistan!',
       }), { harno: 'W2a' }),
+      B.rubricW2('075_p_w2rubric'),
     ],
     transfer: [
       B.text('075_t_situation', 'Kontroll: kuulamine ja rääkimine', 'See leht on kontrolli viimane osa: kuulamine ja rääkimine. Rääkimisosas on õpetaja teie partner. Eesmärk on igas osas vähemalt 80%.'),
@@ -561,7 +599,7 @@ export const LESSONS = withShapes({
         'Õpetaja: nagu Harno A2 rääkimise 1. osas. Kasuta 72. tunni pilti (Anna ja Viktor) või muud pilti külaskäigust. Õpilane kirjeldab pilti umbes minuti, õpetaja ei sega. Siis teemakaardi küsimused, kokku 6–7 minutit.'),
       teach(tag(B.rolecards('075_t_s2', 'Rääkimine 2. Külaskäik ja kutse.', 'Üks küsib kaardi järgi, teine vastab. Siis vahetage rollid. Rääkige 8–10 repliiki.', 'Sa tahad kutsuda sõpra enda juurde. Küsi: Kas sa oled laupäeval vaba? Mis sulle süüa meeldib? Mis kell sa saad tulla? Kas sa saad midagi kaasa võtta?', 'Sa ei saa laupäeval, sest sul on töö. Paku teist aega. Küsi ka: Kus sa elad? Mis buss sinna sõidab? Mida ma võin kaasa võtta?', ['Kas sa oled … vaba?', 'Mis sulle meeldib?', 'Kas sa saad …?'], ['Kahjuks ma ei saa, sest …', 'Aga kas … sobib?', 'Hea meelega!']), { task: 'S05', harno: 'S2' }),
         'Õpetaja: nagu Harno A2 rääkimise 2. osas: üks küsib, teine vastab, siis vahetage. Kokku 5–6 minutit. Hinda sisu, sõnavara, grammatikat ja sujuvust.'),
-      B.rubric('075_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti. Eesmärk on igas osas vähemalt 80%.', ['Visiitkaardi tekstis on kõik neli punkti.', 'Sõnumis on vastus neljale punktile (vähemalt 30 sõna).', 'Vormid on õiged: tulge, võtke, kas te saate, ma ei saa tulla.', 'Pildi kirjeldus on umbes minut, küsimused ja vastused on arusaadavad.']),
+      B.rubric('075_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti. Eesmärk on igas osas vähemalt 80%.', ['Visiitkaardi tekstis on kõik neli punkti.', 'Sõnumis on vastus neljale punktile (40–60 sõna).', 'Vormid on õiged: tulge, võtke, kas te saate, ma ei saa tulla.', 'Pildi kirjeldus on umbes minut, küsimused ja vastused on arusaadavad.']),
       B.selfcheck('075_t_self', ['Ma saan aru kutsetest, sõnumitest ja teadetest.', 'Ma räägin külas ja palun abi viisakalt.', 'Ma nõustun ja keeldun põhjusega.', 'Ma kirjutan lühikese sõnumi.'], 'Moodul 15 on läbitud'),
     ],
   },
