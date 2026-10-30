@@ -21,6 +21,11 @@
 - Known: the R4 corner is a `reading` with short answers (exam: 5 MC), as the B1 R2 corners; the R5 corner is the bank's e-mail
   (exam: a personal letter). Readiness notes left (not gates): 040 short tasks in Avasta and no vocab box.
 - Next safe step: A2 module 9 (`a2/module09.js`); 041 must not have an R4 corner (039's corner is R4).
+## 2026-10-30 · agent/a2-m07-rename — A2 module 7: the shop colleague is Siiri, not Liis
+
+- Owner: „давай переименуем”. Liis is Sofia's boss in the course cast; in A2 module 7 a shop colleague of Anna had the
+  same name. Renamed to Siiri (a name no course uses) in `a2/module07.js` and `art/visuals/a2-module-07.js`. No transcript changed.
+
 ## 2026-10-29 · agent/a2-m07-final — A2 module 7 „Pood, raha ja ostud” in the final shape
 
 - Base: `main` 144f8b2 (A2 modules 5 #918 and 6 #916 merged), checked 2026-10-29; the 029/030 → 031 and 034 → 036
