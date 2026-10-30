@@ -7,11 +7,11 @@ import { rowsOf } from '../../worksheet-studio/engine/layout.js';
 import { isFinalShapeTask } from '../../worksheet-studio/didactics/taskCatalogue.js';
 
 export const WORD_STRIP = 'wordstrip';
-// a task that uses at least `trigger` of the lesson's words gets a strip; a strip shows min–max words
-export const STRIP_WORDS = { trigger: 2, min: 3, max: 5 };
+// a strip shows min–max words: the words its task uses, filled up with the lesson's other words
+export const STRIP_WORDS = { min: 3, max: 4 };
 const MAX_STRIPS = 3;
-// a strip before task i and the next one before task j: at least 2 tasks stand between them
-const TASK_GAP = 2;
+// a strip before task i and the next one before task j: at least one task stands between them
+const TASK_GAP = 1;
 export const ALL_WORDS = Object.freeze([...A2_WORDS]);
 // the same image under two words (byte for byte, wordStrips.test.js): a sheet shows only one of them, or a strip would
 // show one picture twice. Drop a pair when its picture is redrawn.
@@ -25,8 +25,8 @@ export const withoutKeys = (value) => String(value || '')
   .replace(/\[[^\]]*\]/g, ' ')
   .replace(/\{[^}]*\}/g, ' ');
 
-// the tasks whose very job is the meaning or the writing of the words: a picture above them would solve them, so they
-// never get a strip and their words count as answers
+// the tasks whose very job is the meaning or the writing of the words: all their words count as answers, so a strip
+// above one of them never shows them
 const MEANING_TASKS = new Set(['match', 'manymatch', 'categorize', 'crossword', 'translation', 'dictation', 'picmatch', 'pictures', 'scenelabel', 'wordsearch', 'letterhunt', 'wordorder', 'clock']);
 // never read by the learner on the sheet
 const HIDDEN_KEYS = new Set(['teacher', 'explain', 'explanation', 'transcript', 'audio', 'img', 'src', 'alt', 'caption', 'kind', 'mode', 'genre', 'skill', 'stamp', 'lineWidth', 'aspect', 'columns', 'showBank', 'bubble', 'from']);
@@ -167,11 +167,13 @@ const keepsTogether = (before, task) => (INPUTS.has(before?.type) && COMPREHENSI
   || (before?.type === 'planning' && ['speaking', 'writing', 'guidedletter', 'examwriting', 'rolecards'].includes(task.type));
 
 // where a strip for the task at `index` can stand, or -1
-function stripPlace(blocks, index, rowStarts) {
+function stripPlace(blocks, index, rowStarts, phase) {
   let at = index;
   while (at > 0 && isLeadIn(blocks[at - 1])) at -= 1;
-  // never the first block of the sheet (it opens the situation), inside a row, or under a picture and its card
-  if (at === 0 || !rowStarts.has(blocks[at]?.id) || isArt(blocks[at - 1]) || blocks[at - 1]?.type === 'exampart') return -1;
+  // the sheet's first block only before a task, and not on Kasuta, which opens with its situation (quality.js)
+  if (at === 0 && (index !== 0 || phase === 'transfer')) return -1;
+  // never inside a row or under a picture and its card
+  if (!rowStarts.has(blocks[at]?.id) || isArt(blocks[at - 1]) || blocks[at - 1]?.type === 'exampart') return -1;
   if (at === index && keepsTogether(blocks[at - 1], blocks[index])) return -1;
   return at;
 }
@@ -190,30 +192,33 @@ export function stripBlock(entries, lessonId, phase, n) {
   };
 }
 
-// The strips of a teaching sheet: every word once, spread over the whole sheet, nothing that gives an answer away.
-export function withWordStrips(doc, lessonId, phase, words = ALL_WORDS) {
+// The strips of a teaching sheet (owner 2026-10-30: through the whole lesson): about one every two tasks, one in the first
+// third, every word once, nothing that gives an answer away. A word that is an answer anywhere on the sheet stays out;
+// only when a strip cannot reach three words otherwise it may take a word whose task is well above it (done already).
+// `moduleLessons`: the lessons of the same module, whose words may fill a strip when the lesson's own run out.
+export function withWordStrips(doc, lessonId, phase, words = ALL_WORDS, moduleLessons = []) {
   const blocks = doc?.blocks || [];
   if (!blocks.length || doc.meta?.assessment || doc.meta?.diagnostic || blocks.some((block) => block?.type === 'exampart' || block?.type === WORD_STRIP)) return doc;
   const lessonWords = words.filter((entry) => entry.lessonIds?.includes(lessonId));
-  if (lessonWords.length < STRIP_WORDS.min) return doc;
+  const moduleWords = words.filter((entry) => !lessonWords.includes(entry) && entry.lessonIds?.some((id) => moduleLessons.includes(id)));
+  const pool = [...lessonWords, ...moduleWords];
+  if (pool.length < STRIP_WORDS.min) return doc;
 
   const rowStarts = new Set(rowsOf(blocks).map((row) => row[0]?.id));
   const taskAt = blocks.map((block, index) => (isFinalShapeTask(block) ? index : -1)).filter((index) => index >= 0);
-  // a strip is in view of the task above it and of everything below it: a word that the learner must find there gets no picture
-  const stillAsked = (order) => answerWords(blocks.slice(order ? taskAt[order - 1] : 0), lessonWords);
+  const answers = answerWords(blocks, pool);
+  const clean = (list) => list.filter((entry) => !answers.has(entry.id));
   const candidates = taskAt.flatMap((index, order) => {
-    if (MEANING_TASKS.has(blocks[index].type)) return [];
-    const at = stripPlace(blocks, index, rowStarts);
+    const at = stripPlace(blocks, index, rowStarts, phase);
     if (at < 0) return [];
-    const asked = stillAsked(order);
-    const usable = lessonWords.filter((entry) => !asked.has(entry.id));
-    // what fills a strip of two up to three: the lesson's words in the tasks below it, then elsewhere on the sheet
+    const own = MEANING_TASKS.has(blocks[index].type) ? [] : wordsInText(visibleText(blocks[index]), clean(lessonWords));
     const around = [...blocks.slice(index + 1), ...blocks.slice(0, index)].filter(isFinalShapeTask).map(visibleText).join('\n');
-    return [{ at, order, words: wordsInText(visibleText(blocks[index]), usable), more: wordsInText(around, usable) }];
+    // the task right above and everything below are in view of the strip: a word asked there never comes in, even as a last resort
+    const askedNear = answerWords(blocks.slice(order ? taskAt[order - 1] : 0), pool);
+    const fill = [...wordsInText(around, clean(lessonWords)), ...clean(lessonWords), ...clean(moduleWords), ...lessonWords.filter((entry) => !askedNear.has(entry.id))];
+    return [{ at, order, own, fill }];
   });
 
-  // the sheet is cut into equal zones and each zone gets at most one strip: its task with the most new words
-  const zones = taskAt.length >= 6 ? MAX_STRIPS : taskAt.length >= 3 ? 2 : 1;
   const used = new Set();
   const take = (list, count) => {
     const taken = [];
@@ -223,25 +228,35 @@ export function withWordStrips(doc, lessonId, phase, words = ALL_WORDS) {
     }
     return taken;
   };
-  let picks = [];
+  // the sheet is cut into thirds, each gets a strip before its task with the most words of its own (the earliest of equals)
+  const zones = taskAt.length >= 6 ? MAX_STRIPS : taskAt.length >= 3 ? 2 : 1;
+  const fresh = (candidate) => new Set(candidate.own.map(pictureOf).filter((picture) => !used.has(picture))).size;
+  const fits = (candidate, picks) => picks.every((pick) => Math.abs(pick.order - candidate.order) >= TASK_GAP && pick.at !== candidate.at);
+  const picks = [];
   for (let zone = 0; zone < zones; zone += 1) {
     const from = Math.floor((zone * taskAt.length) / zones);
     const to = Math.floor(((zone + 1) * taskAt.length) / zones);
-    const free = (candidate) => new Set(candidate.words.map(pictureOf).filter((picture) => !used.has(picture))).size;
-    const best = candidates
-      .filter((candidate) => candidate.order >= from && candidate.order < to && free(candidate) >= STRIP_WORDS.trigger)
-      .filter((candidate) => !picks.length || candidate.order - picks[picks.length - 1].order >= TASK_GAP)
-      .reduce((top, candidate) => (!top || free(candidate) > free(top) ? candidate : top), null);
-    if (best) picks.push({ ...best, entries: take(best.words, STRIP_WORDS.max - 1) });
+    const best = candidates.filter((candidate) => candidate.order >= from && candidate.order < to && fits(candidate, picks))
+      .reduce((top, candidate) => (!top || fresh(candidate) > fresh(top) ? candidate : top), null);
+    if (best) picks.push({ ...best, entries: take(best.own, STRIP_WORDS.min) });
   }
-  // only now a strip of two is filled up, and a strip with room takes its task's last words, so no strip starves a later one
-  picks.forEach((pick) => { pick.entries.push(...take(pick.more, STRIP_WORDS.min - pick.entries.length)); });
-  picks = picks.filter((pick) => pick.entries.length >= STRIP_WORDS.min);
-  picks.forEach((pick) => { pick.entries.push(...take(pick.words, STRIP_WORDS.max - pick.entries.length)); });
-  if (!picks.length) return doc;
+  // a third with no place for a strip: the free place farthest from the others
+  while (picks.length < zones) {
+    const free = candidates.filter((candidate) => fits(candidate, picks));
+    if (!free.length) break;
+    const distance = (candidate) => Math.min(...picks.map((pick) => Math.abs(pick.order - candidate.order)), taskAt.length);
+    const best = free.reduce((top, candidate) => (!top || distance(candidate) > distance(top) ? candidate : top), null);
+    picks.push({ ...best, entries: take(best.own, STRIP_WORDS.min) });
+  }
+  picks.sort((a, b) => a.order - b.order);
+  // only now the strips are filled up, so that no strip starves a later one of its own words
+  picks.forEach((pick) => { pick.entries.push(...take(pick.fill, STRIP_WORDS.min - pick.entries.length)); });
+  const full = picks.filter((pick) => pick.entries.length >= STRIP_WORDS.min);
+  full.forEach((pick) => { pick.entries.push(...take(pick.own, STRIP_WORDS.max - pick.entries.length)); });
+  if (!full.length) return doc;
 
   const next = [...blocks];
-  picks.map((pick, i) => [pick, i + 1]).reverse().forEach(([pick, n]) => next.splice(pick.at, 0, stripBlock(pick.entries, lessonId, phase, n)));
+  full.map((pick, i) => [pick, i + 1]).reverse().forEach(([pick, n]) => next.splice(pick.at, 0, stripBlock(pick.entries, lessonId, phase, n)));
   return { ...doc, blocks: next };
 }
 

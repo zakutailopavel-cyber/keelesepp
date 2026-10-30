@@ -90,19 +90,20 @@ describe('withWordStrips', () => {
     expect(doc.blocks.filter((block) => block.type !== 'wordstrip').map((block) => block.id)).toEqual(FOOD.map((block) => block.id));
   });
 
-  it('shows each word once, spreads the strips, keeps two tasks between them, at most three', () => {
+  it('shows each word once, spreads the strips, one in the first third, a task between them, at most three', () => {
     const doc = build(FOOD);
     const all = strips(doc).flatMap(words);
     expect(new Set(all).size).toBe(all.length);
     expect(strips(doc)).toHaveLength(3);
     const taskIndex = (strip) => doc.blocks.slice(0, doc.blocks.indexOf(strip)).filter(isFinalShapeTask).length;
     const orders = strips(doc).map(taskIndex);
-    orders.slice(1).forEach((order, i) => expect(order - orders[i]).toBeGreaterThanOrEqual(2));
+    orders.slice(1).forEach((order, i) => expect(order - orders[i]).toBeGreaterThanOrEqual(1));
+    expect(orders[0]).toBeLessThan(3);
     expect(orders[orders.length - 1] - orders[0]).toBeGreaterThanOrEqual(4);
     strips(doc).forEach((strip) => { expect(strip.data.items.length).toBeGreaterThanOrEqual(STRIP_WORDS.min); expect(strip.data.items.length).toBeLessThanOrEqual(STRIP_WORDS.max); });
   });
 
-  it('never shows a word that is only an answer, or that is asked next to the strip or below it', () => {
+  it('keeps a word that is an answer anywhere on the sheet out', () => {
     const doc = build([
       gaps('g0', 'See on [tekst].'),
       gaps('g1', 'Ma ostan [kala] ja [supp].'),
@@ -114,6 +115,34 @@ describe('withWordStrips', () => {
     ['kala', 'supp', 'salat'].forEach((word) => expect(all).not.toContain(word));
   });
 
+  it('takes a word whose task is well above only when three words cannot be reached otherwise, never one asked next to the strip or below it', () => {
+    const few = ['kala', 'supp', 'salat', 'kohv', 'piim'].map((word) => ({ id: word, word, src: `/w/${word}.webp`, alt: word, lessonIds: ['x-1'] }));
+    const blocks = [
+      gaps('g1', 'Ma ostan [kala] ja [piim].'),
+      reading('r0', 'See on tekst.'),
+      gaps('g2', 'Mul on [supp].'),
+      reading('r1', 'Hea salat ja kohv.'),
+      gaps('g3', 'See on [tekst].'),
+    ];
+    const doc = withWordStrips(docOf(blocks), 'x-1', 'practice', few);
+    const last = strips(doc)[strips(doc).length - 1];
+    expect(words(last)).toEqual(expect.arrayContaining(['salat', 'kohv']));
+    expect(words(last).filter((word) => ['kala', 'piim'].includes(word))).toHaveLength(1);
+    expect(strips(doc).flatMap(words)).not.toContain('supp');
+  });
+
+  it('fills up with the words of the same module when the lesson runs out', () => {
+    const mixed = [
+      { id: 'kala', word: 'kala', src: '/w/a.webp', alt: 'a', lessonIds: ['x-1'] },
+      { id: 'supp', word: 'supp', src: '/w/b.webp', alt: 'b', lessonIds: ['x-2'] },
+      { id: 'kohv', word: 'kohv', src: '/w/c.webp', alt: 'c', lessonIds: ['x-2'] },
+      { id: 'piim', word: 'piim', src: '/w/d.webp', alt: 'd', lessonIds: ['y-9'] },
+    ];
+    const doc = withWordStrips(docOf([reading('r', 'Hea kala.')]), 'x-1', 'practice', mixed, ['x-1', 'x-2']);
+    expect(strips(doc).flatMap(words)).toEqual(['kala', 'supp', 'kohv']);
+    expect(withWordStrips(docOf([reading('r', 'Hea kala.')]), 'x-1', 'practice', mixed)).toEqual(docOf([reading('r', 'Hea kala.')]));
+  });
+
   it('never on exam or diagnostic sheets', () => {
     expect(build(FOOD, { assessment: true }).blocks).toHaveLength(FOOD.length);
     expect(build(FOOD, { diagnostic: true }).blocks).toHaveLength(FOOD.length);
@@ -121,35 +150,43 @@ describe('withWordStrips', () => {
     expect(build([header, ...FOOD]).blocks).toHaveLength(FOOD.length + 1);
   });
 
-  it('never splits a hint from its task, a picture from its card, a plan from its speech or a half-width row, and never opens the sheet', () => {
+  it('never splits a hint from its task, a picture from its card, a plan from its speech or a half-width row', () => {
+    const before = (doc, id) => doc.blocks[doc.blocks.findIndex((block) => block.id === id) - 1];
     const hint = { id: 'n', type: 'notice', width: 'half', span: 12, data: { title: 'Märka', lines: 'x' } };
     const task = reading('r', 'Kala ja supp ja salat ja kohv.');
     const withHint = build([gaps('g0', 'See on [tekst].'), hint, task]);
     expect(withHint.blocks.map((block) => block.id).join()).toMatch(/^g0,wordstrip_[^,]+,n,r$/);
 
     const art = [{ id: 'a', type: 'image', span: 8, data: { artId: 'pic' } }, { id: 'c', type: 'notice', span: 4, data: { artFor: 'pic', title: 'Vaata pilti' } }];
-    const afterArt = build([gaps('g0', 'See on [tekst].'), ...art, task]);
-    expect(strips(afterArt)).toHaveLength(0);
+    expect(before(build([gaps('g0', 'See on [tekst].'), ...art, task]), 'r').id).toBe('c');
+    expect(before(build([gaps('g0', 'See on [tekst].'), ...art, task]), 'c').id).toBe('a');
 
     const plan = { id: 'p', type: 'planning', width: 'full', data: { prompts: 'x' } };
-    expect(strips(build([gaps('g0', 'See on [tekst].'), plan, speaking('s', 'Kala, supp, salat, kohv?')]))).toHaveLength(0);
+    expect(before(build([gaps('g0', 'See on [tekst].'), plan, speaking('s', 'Kala, supp, salat, kohv?')]), 's').id).toBe('p');
 
     const half = { ...reading('h1', 'See on tekst.'), width: 'half', span: 6 };
     const halfTask = { ...reading('h2', 'Kala ja supp ja salat.'), width: 'half', span: 6 };
-    expect(strips(build([gaps('g0', 'See on [tekst].'), half, halfTask]))).toHaveLength(0);
-
-    expect(strips(build([task]))).toHaveLength(0);
+    expect(before(build([gaps('g0', 'See on [tekst].'), half, halfTask]), 'h2').id).toBe('h1');
   });
 
-  it('no strip for a meaning task, whose words it would solve', () => {
+  it('opens a sheet only before a task, and never a Kasuta sheet', () => {
+    const task = reading('r', 'Kala ja supp ja salat ja kohv.');
+    expect(build([task]).blocks.map((block) => block.type)).toEqual(['wordstrip', 'reading']);
+    expect(strips(withWordStrips(docOf([task]), 'x-1', 'transfer', WORDS))).toHaveLength(0);
+    expect(build([{ id: 'i', type: 'text', width: 'full', data: { text: 'Tere.' } }, task]).blocks.map((block) => block.type)).toEqual(['text', 'wordstrip', 'reading']);
+  });
+
+  it('a strip above a meaning task never shows that task\'s words', () => {
     const match = { id: 'm', type: 'match', width: 'full', data: { pairs: [{ left: 'kala', right: 'a' }, { left: 'supp', right: 'b' }, { left: 'salat', right: 'c' }] } };
-    expect(strips(build([gaps('g0', 'See on [tekst].'), match]))).toHaveLength(0);
+    const all = strips(build([gaps('g0', 'See on [tekst].'), match])).flatMap(words);
+    ['kala', 'supp', 'salat'].forEach((word) => expect(all).not.toContain(word));
   });
 
-  it('a task with two words is filled up from the sheet; with nothing to fill it gets no strip', () => {
-    const doc = build([gaps('g0', 'See on [tekst].'), reading('r', 'Kala ja supp.'), gaps('g1', 'See on [tekst].'), reading('r2', 'Hea salat.')]);
-    expect(words(strips(doc)[0])).toEqual(['kala', 'supp', 'salat']);
-    expect(strips(build([gaps('g0', 'See on [tekst].'), reading('r', 'Kala ja supp.')]))).toHaveLength(0);
+  it('a task with one word is filled up: first with the words of the tasks around it, then with the lesson\'s; too few words, no strip', () => {
+    const doc = build([reading('r', 'Hea kala.'), gaps('g1', 'Hea salat on [tekst].')]);
+    expect(words(strips(doc)[0])).toEqual(['kala', 'salat', 'supp']);
+    const two = WORDS.slice(0, 2);
+    expect(strips(withWordStrips(docOf([reading('r', 'Kala ja supp.')]), 'x-1', 'practice', two))).toHaveLength(0);
   });
 
   it('does not show one picture twice', () => {
@@ -160,6 +197,7 @@ describe('withWordStrips', () => {
 
   it('takes no time and is not a task', () => {
     const block = strips(build(FOOD))[0];
+    expect(block.data.items.length).toBeLessThanOrEqual(STRIP_WORDS.max);
     expect(blockMinutes(block)).toBe(0);
     expect(isFinalShapeTask(block)).toBe(false);
   });
@@ -178,8 +216,15 @@ describe('word pictures', () => {
 describe('the A2 sheets', () => {
   const sheets = COURSE_MODULES.filter((mod) => String(mod.MODULE.id).startsWith('a2')).flatMap((mod) => Object.entries(moduleSheets(mod)).flatMap(([id, phases]) => Object.entries(phases).map(([phase, doc]) => ({ id, phase, doc }))));
   const withStrips = sheets.filter(({ doc }) => strips(doc).length);
-  it('get strips', () => {
-    expect(withStrips.length).toBeGreaterThan(60);
+  const pictured = sheets.filter(({ id, doc }) => /^a2-0([0-4]\d|50)$/.test(id) && !doc.meta.assessment && !doc.blocks.some((block) => block.type === 'exampart'));
+  it('a2-001…050: every teaching sheet has 2–3 strips, the first in the first third', () => {
+    expect(pictured).toHaveLength(120);
+    for (const { id, phase, doc } of pictured) {
+      expect(strips(doc).length, `${id} ${phase}`).toBeGreaterThanOrEqual(2);
+      const tasks = doc.blocks.filter(isFinalShapeTask).length;
+      const first = doc.blocks.slice(0, doc.blocks.indexOf(strips(doc)[0])).filter(isFinalShapeTask).length;
+      expect(first, `${id} ${phase}`).toBeLessThanOrEqual(Math.ceil(tasks / 3));
+    }
   });
   it('keep every placement rule on the real content', () => {
     for (const { id, phase, doc } of withStrips) {
@@ -197,8 +242,8 @@ describe('the A2 sheets', () => {
         expect(strip.data.items.length, where).toBeGreaterThanOrEqual(3);
         strip.data.items.forEach((item) => expect(existsSync(`${globalThis.process.cwd()}/public${item.img.src}`), item.img.src).toBe(true));
         const at = doc.blocks.indexOf(strip);
-        expect(at, where).toBeGreaterThan(0);
-        expect(doc.blocks[at - 1].data?.artId || doc.blocks[at - 1].data?.artFor, where).toBeFalsy();
+        if (at === 0) expect(isFinalShapeTask(doc.blocks[1]), where).toBe(true);
+        else expect(doc.blocks[at - 1].data?.artId || doc.blocks[at - 1].data?.artFor, where).toBeFalsy();
         // nothing on the strip is asked by the task above it or anywhere below it
         const before = doc.blocks.slice(0, at).filter(isFinalShapeTask);
         const from = before.length ? doc.blocks.indexOf(before[before.length - 1]) : 0;
@@ -207,7 +252,7 @@ describe('the A2 sheets', () => {
         expect(wordsInText(asked.replace(/[A-ZÕÄÖÜŠŽ]/g, (c) => c.toLowerCase()), entries).map((entry) => entry.word), where).toEqual([]);
       });
       const orders = strips(doc).map((strip) => doc.blocks.slice(0, doc.blocks.indexOf(strip)).filter(isFinalShapeTask).length);
-      orders.slice(1).forEach((order, i) => expect(order - orders[i], where).toBeGreaterThanOrEqual(2));
+      orders.slice(1).forEach((order, i) => expect(order - orders[i], where).toBeGreaterThanOrEqual(1));
       expect(tasks.length, where).toBeGreaterThan(0);
     }
   });

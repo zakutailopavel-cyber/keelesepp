@@ -126,21 +126,25 @@ Both rules are automatic when a course sheet is built (`admin/course/registry.js
 3. a sheet with no such task keeps it after the opening text. A hint in front of the task stays with the task, a half-width
    row is never split, and an exam part header stays above the picture. Task blocks are never reordered.
 
-**Word strips** (`art/wordStrips.js`, block type `wordstrip`): a compact row of 3–5 square word pictures (`art/words/<level>.js`:
-`{ id, word, src, alt, lessonIds, forms? }`) with the word under each, full width, no number, no answers, 0 minutes.
+**Word strips** (`art/wordStrips.js`, block type `wordstrip`): a compact row of 3–4 square word pictures (`art/words/<level>.js`:
+`{ id, word, src, alt, lessonIds, forms? }`) with the word under each, full width, no frame, no number, no answers, 0 minutes.
 It is not in the block picker; a teacher can edit or delete it. `data.artFor: 'words'` keeps it out of the gates.
 
-- A strip stands directly before a task whose **visible** text uses at least 2 of the lesson's words (`lessonIds`); a strip of
-  two is filled up to three with the lesson's words used elsewhere on the sheet. Max 5 words.
+- Density: about one strip every two tasks. A sheet is cut into thirds (6+ tasks: 3 strips; 3–5 tasks: 2; fewer: 1), each third gets
+  one before its task with the most words of its own, so the first strip is in the first third. At least one task between strips.
+- Words: first those the task's **visible** text uses, then the lesson's words used on other tasks of the sheet, then the lesson's
+  other words, then the words of the same module (`moduleLessons`). A task with no word of its own can carry a strip, so a sheet
+  with at least 3 usable words is never without one.
 - Forms: stem + a closed list of Estonian endings, never a bare prefix (`kohv` does not hit `kohvik`). Irregular stems are in
   `STEMS` / `VERB_STEMS`, or the entry's own `forms`; homonyms need context (`NEEDS_CONTEXT`, `NOT_THIS_WORD`); a capital inside
   a sentence is a name.
 - A picture never gives an answer away: keys `[answer]`, `{*right|wrong}`, `[[sentence]]`, options, transcripts and teacher notes
-  do not count, and a word that is an answer in the task right above the strip or anywhere below it gets no picture. Meaning
-  tasks (match, crossword, translation, dictation, sort, picture tasks…) get no strip, and all their words count as answers.
-- Each word (and each picture: `SAME_PICTURE`) once a sheet; at least 2 tasks between strips; at most 3, one per equal zone of
-  the sheet; never on exam or diagnostic sheets (`assessment`, `diagnostic`, `exampart`), never as the first block, right under a
-  picture, between a hint and its task, between a plan and its speech, between a text and its comprehension task, or inside a row.
+  do not count as visible, and a word that is an answer anywhere on the sheet stays out. Only when a strip cannot reach three words
+  otherwise, it may take a word whose task is at least two tasks above it; never one asked in the task right above or below. All words of
+  a meaning task (match, crossword, translation, dictation, sort, picture tasks…) count as answers.
+- Each word (and each picture: `SAME_PICTURE`) once a sheet; never on exam or diagnostic sheets (`assessment`, `diagnostic`,
+  `exampart`), as the first block of a Kasuta sheet or before a sheet's opening text, right under a picture, between a hint and its task, between a
+  plan and its speech, between a text and its comprehension task, or inside a row.
 - Deterministic ids `wordstrip_<lessonId>_<phase>_<n>`. On a page the strip stays with the task below it; in the teacher's
   step mode it appears together with that task.
 

@@ -224,7 +224,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
     blocks: withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN),
-  }, lessonId, phase), lessonId, phase);
+  }, lessonId, phase), lessonId, phase, undefined, Object.keys(mod.LESSONS));
 }
 
 // every sheet a module produces: { [lessonId]: { [phase]: doc } }
