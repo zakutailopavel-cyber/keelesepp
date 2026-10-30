@@ -457,14 +457,14 @@ footer a:hover{color:var(--amber)}
         <li><a href="#arvustused">Arvustused</a></li>
         <li><a href="#kkk">KKK</a></li>
         <li><a href="#kontakt">Kontakt</a></li>
-        <li class="nav-mob"><a href="https://crm.epkoolitus.ee/registreeru">Registreeru →</a></li>
+        <li class="nav-mob"><a href="https://crm.epkoolitus.ee/registreeru">Loo konto →</a></li>
         <li class="nav-mob"><a href="https://crm.epkoolitus.ee/login">Logi sisse →</a></li>
       </ul>
     </nav>
     <div class="nav-c">
       <nav class="lang-sw" aria-label="Keel"><a href="/" lang="et" aria-current="page">ET</a><a href="/ru/" lang="ru" hreflang="ru">RU</a></nav>
       <a class="btn btn-g" href="https://crm.epkoolitus.ee/login">Logi sisse</a>
-      <a class="btn btn-p" href="https://crm.epkoolitus.ee/registreeru">Registreeru</a>
+      <a class="btn btn-p" href="https://crm.epkoolitus.ee/registreeru">Loo konto</a>
       <button class="nav-t" aria-label="Ava menüü" aria-expanded="false" onclick="toggleNav(this)">☰</button>
     </div>
   </div>
@@ -878,7 +878,7 @@ footer a:hover{color:var(--amber)}
       </ul>
     </div>
 
-    <div class="reg-form">
+    <form class="reg-form" id="registration-form">
       <div class="field">
         <label for="f-name">Ees- ja perekonnanimi *</label>
         <input type="text" id="f-name" name="name" required autocomplete="name" placeholder="Eesnimi Perekonnanimi">
@@ -918,11 +918,11 @@ footer a:hover{color:var(--amber)}
         <textarea id="f-msg" name="message" rows="3" placeholder="Mida soovid saavutada? Kas valmistud eksamiks?"></textarea>
       </div>
       <div class="hp" aria-hidden="true"><label for="f-website">Veebileht</label><input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off"></div>
-      <button class="btn btn-a" type="button" id="f-send" onclick="submitForm()">Saada registreerumine</button>
+      <button class="btn btn-a" type="submit" id="f-send">Saada registreerumine</button>
       <div class="form-ok" id="formOk" role="status">✓ Saadetud! Võtame sinuga ühendust ühe tööpäeva jooksul.</div>
       <div class="form-err" id="formErr" role="alert"></div>
       <p class="form-note">Saates nõustud <a href="/privaatsus/">privaatsuspoliitikaga</a> ja <a href="/tingimused/">kasutustingimustega</a>.</p>
-    </div>
+    </form>
   </div>
 </section>
 
@@ -1027,7 +1027,8 @@ var FORM_TEXT={
   failed:'Saatmine ebaõnnestus. Proovi uuesti või kirjuta meile otse: ',
   tooMany:'Liiga palju päringuid. Proovi tunni aja pärast või kirjuta meile otse: '
 };
-function submitForm(){
+function submitForm(event){
+  if(event){event.preventDefault();}
   var v=function(id){return (document.getElementById(id).value||'').trim();};
   var ok=document.getElementById('formOk'), err=document.getElementById('formErr'), btn=document.getElementById('f-send');
   ok.style.display='none'; err.style.display='none';
@@ -1054,6 +1055,7 @@ function submitForm(){
     err.style.display='block';
   }
 }
+document.getElementById('registration-form').addEventListener('submit',submitForm);
 
 /* Smooth scroll for Safari */
 document.querySelectorAll('a[href^="#"]').forEach(function(a){
