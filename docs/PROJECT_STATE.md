@@ -1,3 +1,36 @@
+## 2026-10-30 · agent/a2-m13-final — A2 module 13 „Töö ja amet” in the final shape
+
+- Base: `main` d776bfc (A2 modules 11 #930 and 12 #927 merged), checked 2026-10-30; the 059 → 061 boundary was checked. Content only; no
+  production data, no publishing, no deploy. Template v3 → v4 (as modules 6–12).
+- Done: `a2/module13.js` (a2-061…065) passes every final-shape gate under the A2 profile: **baseline 104 → 0 problems**
+  (`final-shape.mjs --course a2 --module 13`); `finalShapeBaselineA2.json` 1000 → 870 (module 13's 104 lines, 18 V7 / V8 lines of modules
+  14–20, course 29 → 21), new 0. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m13, no swap): 061 AVAS R→S (try first → rule → try again; töötan müüjana, töötan poes, vastutan … eest;
+  main `061_t_stand` S01, tagged level 4), 062 LUGU R→W (the interview, a cliffhanger; pean + ma-vorm, oskan / saan / tahan + da-vorm;
+  main `062_t_end` `jutt` 60–80 words W05), 063 PROB L→S (two offers; kella kaheksast viieni, E–R, vahetus, palk, kogemus; main
+  `063_t_decide` S03), 064 KUUL L→W (the trial day; alusta, too, vii, ära unusta; main `064_t_letter` `kiri` 50–70 words W04), 065 EKS.
+  **Corners:** 061 R3 (`061_p_signs`), 062 W1 (`062_p_card`), 063 L4 (`063_p_talk`), 064 L3 (`064_d_liis`). **066 must not have an L3 corner.**
+  S06 = `062_t_record` (home recording with the picture), S05 = `063_p_cards`. Every teaching lesson: review naming the previous lesson and
+  one of modules 10–11 (059/047, 061/054, 062/053, 063/051), an in-lesson pair task, a home recording (45–60 s), two fluency tasks
+  (S02+S10, S07+S02, S13+S08, S09+W06). No tingiv kõneviis; the picture prompts in `art/visuals/a2-module-13.js` had none (file untouched).
+- 065 (EKS, „Kontroll 13 — töö ja amet”): every part timed with `B.examPart` and the 80 % target (R 40 min, 31; W 30 min, 20; L 30 min, 25;
+  S 15 min, 20); tags R1–R5, W1, W2a, L1–L4, S0, S1, S2. Reading + writing on Harjuta, listening + speaking on Kasuta.
+- Cast (May, a year before B1; not yet in `docs/COURSE_CAST.md`, content agents may not edit it): **Liis stays what she is in B1: head of Tuul
+  Logistika and Sofia's boss. No rename.** The old teacher / official Liis, her son Oskar, Olga, Urmas, Merle, Taras, Peeter and Kaja of this module are
+  gone; the picture of 062 (Liis and Markus in the warehouse) now fits. New facts that later modules must keep: Sofia worked two years in a Tartu bookshop
+  before; job fair at the culture house Sild, Saturday 8 May; Liis's surname **Laan**, firm at Peterburi tee 18, bus 6, 28 staff; interview Tuesday 11 May;
+  offers on Friday 14 May: Tuul Logistika office, Mon–Fri 8.30–17, 1250 €, 3 months' trial, **from 1 September**; Kaubahall through Anna (boss Eha,
+  colleague Mirjam), two shifts, 950 €, **June–August**; Sofia's day lessons (Tue, Fri) become Ene's evening course (Mon, Wed 18–20) in autumn; trial day
+  Friday 28 May; contract Monday 31 May; client Lepik (Pärnu), courier, Rein and Markus in the warehouse; rent 250 €; radio career adviser Piret Vaher
+  (as in B1 module 9); Viktor's neighbour boy Henri learns bike repair. So Sofia is **not yet in the office in June–August** (modules 14–20 may say she works at
+  Kaubahall in summer).
+- Audio (TartuNLP, free): new `061_d_radio`, `061_p_ene`, `062_d_markus`, `063_d_calls`, `063_p_talk`, `064_d_liis`, `064_d_times`, `064_p_clips`,
+  `064_t_voice`, `065_t_l1`–`065_t_l4`; the 10 old recordings removed (mp3 + manifest).
+- Checks after the merge: see the PR for the exact eslint and vitest results. Language check (Vabamorf) of module 13: 1 unknown lower-case word, `kusimustik`
+  (genre value).
+- Known: `V6-gap-L1` is unchanged in kind (module 5 → 10, closing pass); corner counts after this module: R3 3, W1 4, L4 2, L3 2 of 4.
+- Next safe step: A2 module 14 (`a2/module14.js`, its first corner not L3); rerun `final-shape.mjs --course a2 --module 14` against this file.
+
 ## 2026-10-30 · agent/a2-m12-final — A2 module 12 „Reisimine ja transport” in the final shape
 
 - Base: `main` 0a7c4d3 (A2 module 10 #923 merged; module 11 still open), checked 2026-10-30. The 054 → 056 boundary was checked by

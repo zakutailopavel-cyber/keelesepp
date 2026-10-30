@@ -301,7 +301,7 @@ export const LESSONS = withShapes({
       ], 'full', 'g_notice'),
       B.errorfix('063_p_fix', 'Leia vead Sofia kirjas.', 'Sofia kirjutas Ehale esimese mustandi. Igas lauses on üks viga. Kirjuta lause õigesti.', [
         ['Ma töötan kella kaheksa kuni kaks.', 'Ma töötan kella kaheksast kaheni.'], ['Kaubahallis töötan esmaspäev reedeni.', 'Kaubahallis töötan esmaspäevast reedeni.'], ['Mul ei ole see kogemus.', 'Mul ei ole seda kogemust.'], ['Minu palk on 950 euro kuus.', 'Minu palk on 950 eurot kuus.'],
-        ['Ma kandideerin selle töö peale.', 'Ma kandideerin sellele tööle.'], ['Ma ootan teie vastus.', 'Ma ootan teie vastust.'], ['Kas tööaeg on kaheksa tund?', 'Kas tööaeg on kaheksa tundi?'], ['Õhtune vahetus lõpeb kaheksa.', 'Õhtune vahetus lõpeb kell kaheksa.'],
+        ['Ma kandideerin selle töö peale.', 'Ma kandideerin sellele tööle.'], ['Ma ootan homme teie kõne.', 'Ma ootan homme teie kõnet.'], ['Kas tööaeg on kaheksa tund?', 'Kas tööaeg on kaheksa tundi?'], ['Õhtune vahetus lõpeb kaheksa.', 'Õhtune vahetus lõpeb kell kaheksa.'],
       ]),
       B.translation('063_p_tr', 'Vene keelest eesti keelde.', 'Sofia sõbrannad küsivad vene keeles, mis töö see on. Kirjuta iga mõte eesti keeles.', ['Рабочий день с девяти до пяти.', 'Для этой работы нужен опыт.', 'Я работаю в две смены.', 'Какая зарплата в месяц?', 'Срок подачи заявки — конец мая.', 'Мне больше подходит утренняя смена.', 'Хозяин ищет нового работника.', 'В субботу я не должна работать.'], 'half', 'g_vocab'),
       tag(B.bankText('063_p_note', 'Anna kiri Sofiale.', 'Anna selgitab, milline on töö Kaubahallis. Pane lünka sõna kastist, kaks sõna jääb üle.', 'Tere, Sofia!', [
