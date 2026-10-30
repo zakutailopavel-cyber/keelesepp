@@ -122,6 +122,22 @@ describe('JournalGrid', () => {
     await waitFor(() => expect(repository.updateEntry).toHaveBeenLastCalledWith('auto_invoice_i1', expect.objectContaining({ lines: [expect.objectContaining({ account: '1200', debitCents: 8000 }), expect.objectContaining({ account: '3060', creditCents: 8000 })] }), 'Tagasivõtmine (Ctrl+Z): müügitulu 3000'));
   });
 
+  it('an automatic entry can be given its reason right beside its save button', async () => {
+    const repository = repo();
+    await open(repository);
+    typeInto(2, 0, '3000');
+    fireEvent.mouseDown(cell(4, 3));
+    fireEvent.keyDown(screen.getByLabelText('Kirjeldus (muuda)'), { key: 'Escape' });
+    const box = await screen.findByLabelText('Paranduse põhjus (see kanne)');
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(document.activeElement).toBe(box));
+    expect(repository.updateEntry).not.toHaveBeenCalled();
+    fireEvent.change(box, { target: { value: 'müügitulu 3000' } });
+    expect(screen.getByLabelText('Paranduse põhjus (see kanne)')).toHaveValue('müügitulu 3000');
+    fireEvent.keyDown(box, { key: 'Enter' });
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('auto_invoice_i1', expect.anything(), 'müügitulu 3000'));
+  });
+
   it('a manual entry changes its date and document in place; lines are inserted and deleted with the keyboard and the row control', async () => {
     const repository = repo();
     await open(repository);

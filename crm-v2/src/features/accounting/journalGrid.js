@@ -103,7 +103,7 @@ export function workingProblem(working, { origin = 'manual', accounts = [], reas
   else if (!/^\d{4}-\d{2}-\d{2}$/.test(String(working.date || ''))) result.problem = 'Kande kuupäev on vigane.';
   else if (origin === 'manual' && originalDate && working.date.slice(0, 4) !== originalDate.slice(0, 4)) result.problem = 'Aastat ei saa muuta (kande number on aasta kaupa).';
   else if (lockedThrough && working.date <= lockedThrough) result.problem = `Periood on suletud kuni ${dmy(lockedThrough)}.`;
-  else if (origin !== 'manual' && !String(reason || '').trim()) result.problem = 'Automaatkande parandusel on põhjus kohustuslik: täida „Paranduse põhjus” tabeli kohal.';
+  else if (origin !== 'manual' && !String(reason || '').trim()) result.problem = 'Automaatkande parandusel on põhjus kohustuslik: kirjuta see siia kõrvale.';
   return result;
 }
 
