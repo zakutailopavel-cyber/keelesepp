@@ -55,7 +55,7 @@ export default [
     alt: "Jaan tutvustab Annale laupäevase töötoa piletit.",
     caption: "Pilt 1. Laupäevase töötoa valimine.",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida Jaan Annale näitab?", "Mida Anna võrdleb?", "Mis üritusele sa tahaksid minna?"],
+    prompts: ["Mida Jaan Annale näitab?", "Mida Anna võrdleb?", "Mis üritusele sa tahad minna?"],
   },
   {
     id: "a2-050-kasuta-1",
