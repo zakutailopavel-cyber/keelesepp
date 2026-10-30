@@ -411,8 +411,8 @@ export const LESSONS = withShapes({
         'Kui sõna ei tule: **Kuidas ma ütlen …?** **Nii, ja edasi …** Ära jää vait.',
         'Uus sõna: märksõna — ключевое слово',
       ], 'full'),
-      B.table('094_d_rule', 'Millest sa räägid?', 'Maret paneb tahvlile tabeli. Kirjuta iga sõna kaks vormi.', 'Teema, Ma räägin oma …, Ma räägin sellest …', [
-        'töö | [tööst] | [tööst]', 'pere | [perest] | [perest]', 'kodu | [kodust] | [kodust]', 'reis | [reisist] | [reisist]', 'sõber | [sõbrast] | [sõbrast]', 'linn | [linnast] | [linnast]', 'õpetaja | [õpetajast] | [õpetajast]', 'vaba aeg | [vabast ajast] | [vabast ajast]',
+      B.table('094_d_rule', 'Mida? Millest?', 'Maret paneb tahvlile tabeli. Kirjuta iga sõna kaks vormi.', 'Sõna, Ma armastan oma …, Ma räägin oma …', [
+        'töö | [tööd] | [tööst]', 'pere | [peret] | [perest]', 'kodu | [kodu] | [kodust]', 'reis | [reisi] | [reisist]', 'sõber | [sõpra] | [sõbrast]', 'linn | [linna] | [linnast]', 'õpetaja | [õpetajat] | [õpetajast]', 'vaba aeg | [vaba aega] | [vabast ajast]',
       ], 'g_notice'),
       tag(B.vocab('094_d_vocab', 'Kõne sõnad.', ['kõne — речь', 'teema — тема', 'kokkuvõtteks — в заключение', 'teiseks — во-вторых', 'kolmandaks — в-третьих', 'näiteks — например', 'tähtis — важный', 'peegel — зеркало', 'julgema — осмеливаться', 'küsimus — вопрос']), { topic: ['kokkuvõtteks'] }),
       B.manymatch('094_d_parts', 'Kus see kõnes on?', 'Olga pani laused segamini. Ühenda lause ja kõne koht.', ['Tere õhtust! Minu nimi on Olga.', 'Täna räägin ma oma tööst.', 'Kõigepealt räägin, miks ma tulin.', 'Teiseks räägin, mis on raske.', 'Näiteks kardan ma numbreid.', 'Kokkuvõtteks: ma ei karda enam.', 'Aitäh kuulamast!', 'Kas teil on küsimusi?'], ['tervitus ja nimi', 'teema', 'esimene punkt', 'teine punkt', 'näide', 'kokkuvõte', 'tänu', 'küsimuste aeg'], 'full', 'g_vocab'),
