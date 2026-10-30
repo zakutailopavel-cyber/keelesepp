@@ -1,3 +1,33 @@
+## 2026-10-30 · agent/a2-m10-final — A2 module 10 „Vaba aeg ja meelelahutus” in the final shape
+
+- Base: `main` db88120 (A2 modules 8 #921 and 9 #922 merged), checked 2026-10-30; the 044 → 046 boundary was checked. Content
+  only; no production data, no publishing, no deploy. Template v3 → v4 (as modules 6–9).
+- Done: `a2/module10.js` (a2-046…050) passes every final-shape gate under the A2 profile: **113 → 0 problems**
+  (`final-shape.mjs --course a2 --module 10`); `finalShapeBaselineA2.json` 1409 → 1279 (module 10's 106 lines, 21 V7 / V8
+  lines of modules 11–17, course 42 → 39). One line added on purpose, agreed with the coordinator: **`V6-gap-L1`** (L1: module
+  5 → 10). It leaves when module 8's exam gets its L1 tag (closing pass). `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, A2 §4 row m10, no swap): 046 LUGE R→S (hobbies, käin ujumas, mängin malet, lugemine; main `046_t_choose`
+  S12), 047 RÄÄK L→S (mulle meeldib / meeldivad, ei meeldi, eriti, üldse; main `047_t_sunday` S03), 048 KIRJ L→W (invitations,
+  kuhu-forms, sest, aga; main `048_t_letter` `kiri` 50–70 words W04 with plan W11 and edit W10), 049 PROJ R→W (posters, kella
+  kümnest kaheni, the guide „Uue õpilase vaba aja juht”; main `049_t_guide` `jutt` 60–80 words W05).
+  **Corners:** 046 R2 (`046_p_ads`), 047 L2 (`047_p_radio`), 048 R1 (`048_p_phrases`, set phrases in 8 short dialogues, a cloze tagged
+  R12 — the first R1 corner), 049 L1 (`049_d_clips`, 8 announcements — the first L1 corner). **051 must not open with an L1 corner.**
+  050 tags R1–R5, L1–L4, W1, W2a, W2b, S0, S1, S2, every part timed (`B.examPart`). S06 = `046_t_record`, S05 = `046_t_ask`. Every
+  teaching lesson: review naming the previous lesson and one of modules 6–8 (044/036, 046/028, 047/032, 048/037), an in-lesson pair task,
+  a home recording (45–60 s), two fluency tasks (S09+S08, S11+S07, S02+W06, S04+speed reading R15). No tingiv kõneviis (also the 049
+  picture prompt in `art/visuals/a2-module-10.js`).
+- Cast (January – February, a year before B1; not yet in `docs/COURSE_CAST.md`, content agents may not edit it): culture house Sild
+  (Sõpruse puiestee 40) — administrator Lea Tamm, leaders Ilmar Lepp (chess, Viktor's club), Sten (dance), Tamara Vaher (knitting),
+  Ella (choir), Joel (Saturday wood workshop); open weekend 20–21 February; Sofia and Anna choose the dance club; Jaan's herb box on
+  the Pann veranda; the choir concert 6 and 7 February; cinema Täht. The old Liis of this module is gone.
+- Audio (TartuNLP, free): new `046_p_grete`, `047_d_chat`, `047_p_radio`, `047_t_kadri`, `048_d_voice`, `048_p_trip`, `049_d_clips`,
+  `049_d_who`, `049_p_desk`, `050_t_l1`–`050_t_l4`; the 7 old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean; `npx vitest run` 406 files passed, 4 UI files failed under machine load
+  (11 tests: studentWorksheetFlow, LiveRoom, VocabularyPage, WorksheetStudioPage) and pass when run alone (27/27, 23/23), 1 skipped. Language
+  check (Vabamorf) of module 10: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: L1 corner count 1 of 4; one readiness note left (not a gate): 050 Harjuta „live” 11 min (12).
+- Next safe step: add the L1 tag in module 8's exam (removes `V6-gap-L1`), then A2 module 11 (`a2/module11.js`); its first corner must not be L1.
+
 ## 2026-10-30 · agent/a2-m09-final — A2 module 9 „Tervis ja kehahooldus” in the final shape
 
 - Base: `main` 48a7d48 (A2 modules 7 #919, #920 and 8 #921 merged), checked 2026-10-30; the 039 → 041 boundary was checked
