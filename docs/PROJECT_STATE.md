@@ -5381,3 +5381,14 @@ required corners — see below why module 18 cannot close it).
 - Doc: `docs/KIDS_GROUPS_PROGRAM.md`.
 - Checks: kids.test.js (108 sheets valid, keys, pictures, colour keys), kidsCurriculum.test.js, libraryModel test; full verify below.
 - After merge: create the 36 records (create-only) and publish the 108 sheets.
+
+### 2026-10-29 — A2 textbook word illustrations, modules 1–10 (agent/art-a2-words-01-10)
+
+- Main checked: `822c0d81dc323b236b8455bd8e8a8c57e86a9e4a` (`origin/main`).
+- Goal: add the drawable core A2 vocabulary for modules 1–10 as reusable, accessible 1:1 textbook illustrations.
+- Complete: 156 unique WebP word illustrations, 800×800, each ≤60 KB, plus a registry with 156 entries and aggregated lesson IDs for repeated vocabulary. Files: `crm-v2/public/textbook-art/words/a2/*.webp`, `crm-v2/src/features/worksheet-generator/art/words/a2.js`, and `crm-v2/src/features/worksheet-generator/art/words.test.js`.
+- Checks: `npx vitest run src/features/worksheet-generator` — 63 files passed, 1 skipped; 958 tests passed, 5 skipped. `sips` verified all images are 800×800; size scan found no files above 60 KB; `git diff --check` passed.
+- No paid image API or production service used. The owner approved the initial A2 word illustration (`õpetaja`) before this word batch continued. Review limitations: some generated illustrations may use colors beyond the fixed art palette and should receive visual review before use in published worksheets.
+- PR: #883 (draft). Other art PR: cast portraits #569 (draft).
+- Not done: labeled scene set (modules 1–10), situation illustrations, and later-level word images. The first scene preview must be approved before generating the rest of that category; first situation preview likewise. Keep the user's limit of at most 2–3 open batch PRs and do not merge any PR.
+- Next safe step: push this branch and open its draft PR; then generate and show the first M1 scene preview for approval.
