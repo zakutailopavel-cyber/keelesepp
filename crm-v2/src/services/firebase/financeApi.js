@@ -251,6 +251,10 @@ export const financeApi = {
   creditInvoiceTokens(invoiceId) {
     return post("/invoices/tokens/credit", { invoiceId });
   },
+  // an administrator extends an expired lesson package, with a reason (audit); `until` empty = 14 days from today
+  extendStudentPackage(studentPackageId, { reason, until = "" }) {
+    return post("/student-packages/extend", { studentPackageId, reason, until, requestId: financeRequestId("package_extend") });
+  },
   recordPayment(invoiceId, payment) {
     return post("/payments", {
       invoiceId,

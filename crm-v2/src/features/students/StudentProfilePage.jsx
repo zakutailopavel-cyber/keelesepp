@@ -265,7 +265,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         {activeTab === 'finance' && canViewFinance ? <>
           <BillingSettingsCard student={student} plan={state.plan} canEdit={canAssignTeacher}
             onSave={async (values) => { const plan = await planApi.save(student, values, currentUser, state.plan); setState((current) => ({ ...current, plan })); }} />
-          <LessonTokensCard student={student} {...(tokensApi ? { service: tokensApi } : {})} />
+          <LessonTokensCard student={student} canExtend={canAssignTeacher} {...(tokensApi ? { service: tokensApi } : {})} />
           <StudentFinancePanel student={student} invoices={state.invoices} />
         </> : null}
       </div>

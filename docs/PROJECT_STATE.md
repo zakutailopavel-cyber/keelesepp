@@ -1,3 +1,15 @@
+## 2026-10-30 · agent/tokens-subject-expiry — lesson packages per subject, unused lessons expire
+
+- Base: `main` 0a7c4d3, checked 2026-10-30. Owner: „вести отдельный пакет на каждый предмет”, „неиспользованные уроки сгорают через 14 дней”. Contract: `docs/LESSON_TOKENS.md`.
+- Done: a package belongs to one subject, a lesson takes only its subject's packages (FIFO, then the shared pool „ilma aineta”), debt per subject; the package invoice names a subject on a card with several (its price); views split by subject. Expiry derived on reading and at consumption (`lesson-tokens-core.js` `TOKEN_EXPIRY_DAYS`, `tokenExpiryStart`), an administrator's extension with an audit (`financeApi /student-packages/extend`).
+- **Owner to confirm:** „14 дней” is read as 14 days **without use**; the start is one function. Before the first lesson it counts from „Lisa tunnid”, not the payment date (a late press would make a package born expired).
+- Data: no migration, no scheduled job. New package fields `activatedOn`, `lastLessonDate`, `extendedUntil`; invoice `subject`; owed state `subject`; ledger entry `expiry_extension`. Historical invoices untouched. Production read-only 2026-10-30: **0 packages, 0 owed states, 0 package plans**, 8 cards with several subjects; so no card is affected today.
+- Files: `functions/lesson-tokens-core.js`, `index.js`, `manual-invoice-api.js`; `crm-v2/src/services/firebase/lessonTokens.js`, `financeApi.js`, `manualInvoiceApi.js`; `LessonTokensCard.jsx`, `TokenInvoiceDialog.jsx`, `FinanceMonthPage.jsx`, `StudentProfilePage.jsx`; tests.
+- Checks: `npx eslint --quiet src` clean; `node --test` in `functions/` 429/429; emulator `finance-emulator` + `security-finance-emulator` 49/49 (JDK 21); `npx vitest run` 403 files passed, 7 UI files failed in the full run under machine load (17 tests, none about packages) and pass when run alone serially (54/54); `lessonTokens.test.jsx` 15/15. E2E `lesson-tokens.spec.cjs` not run. Not opened in a browser.
+- Limits: a subject with no package on the card is `not_applicable` (takes and owes nothing). Catalogue packages have no subject field. Aliases of directions added in Seaded are unknown to the server.
+- Deploy needs: functions (`financeApi`, `manualInvoiceApi`, `syncLessonTokens`) and hosting; no rules or indexes. **Set `TOKEN_EXPIRY_FROM` (server and CRM) to the deployment day.**
+- Next safe step: the owner confirms the 14-day rule, then merge and deploy.
+
 ## 2026-10-30 · agent/a2-m10-final — A2 module 10 „Vaba aeg ja meelelahutus” in the final shape
 
 - Base: `main` db88120 (A2 modules 8 #921 and 9 #922 merged), checked 2026-10-30; the 044 → 046 boundary was checked. Content

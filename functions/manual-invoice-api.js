@@ -8,7 +8,7 @@ const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('
 const { invoiceCancellationError, wasSent } = require('./invoice-cancellation-core');
 const { subjectName } = require('./student-enrollments-core');
 const { sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth } = require('./combined-invoice-core');
-const { tokenInvoiceInput, tokenInvoiceLines } = require('./lesson-tokens-core');
+const { tokenInvoiceInput, tokenInvoiceLines, tokenInvoiceSubject } = require('./lesson-tokens-core');
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
@@ -442,8 +442,13 @@ async function createTokenInvoice({ actor, values, requestId }) {
     if (!studentSnap.exists) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
     const student = studentSnap.data();
+    // one package per subject (owner 2026-10-30): that subject's price, its name on the invoice and on the package
     let priced;
-    try { priced = tokenInvoiceLines({ lessons: input.lessons, plan: planSnap.exists ? planSnap.data() : {}, subject: String(student.subject || '').trim() }); } catch (error) { throw httpError(error.status || 400, error.message); }
+    let subject;
+    try {
+      subject = tokenInvoiceSubject(input.subject, student);
+      priced = tokenInvoiceLines({ lessons: input.lessons, plan: planForSubject(planSnap.exists ? planSnap.data() : {}, subject), subject });
+    } catch (error) { throw httpError(error.status || 400, error.message); }
     const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
     const base = manualInvoiceRecord({
       input: { studentId: input.studentId, description: priced.description, amountCents: priced.amountCents, amount: priced.amountCents / 100, due: input.due, note: input.note },
@@ -452,6 +457,7 @@ async function createTokenInvoice({ actor, values, requestId }) {
     const invoice = {
       ...base,
       lines: priced.lines,
+      ...(subject ? { subject } : {}),
       billingMode: 'lesson_tokens_v1',
       pricingMode: 'plan',
       lessonCount: input.lessons,
