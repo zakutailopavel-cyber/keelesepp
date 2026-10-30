@@ -20,7 +20,7 @@
 //   039 LUGE R→S  the phone shop and customer service — Mis küsimuses te helistate?, Palun oodake, Ma ühendan …,
 //                 Palun korrake, tähthaaval; corner R4 (a ~180-word text about the new SIM card); main: the call to
 //                 customer service (S04).
-//   040 EKS       the module check; its exam-form tasks carry their Harno A2 ids (R1, R4, R5, L3, W2a, W2b).
+//   040 EKS       the module check; its exam-form tasks carry their Harno A2 ids (R1, R4, R5, L3, W2a, W2b, S1).
 // Every teaching lesson: „Mäletad?” naming the previous lesson and one of modules 4–6, an in-lesson pair task, a home
 // recording in Kasuta, two fluency tasks, one exam corner. No tingiv kõneviis (A2). The v3 file is in archive/v3/a2/module08.js.
 import { B, tag, teach, withShapes } from '../blocks.js';
@@ -716,7 +716,7 @@ export const LESSONS = withShapes({
       ], ['Helistaja nimi on [Kati].', 'Aeg on [kolmapäeval] kell pool kaksteist.', 'Kabineti number on [seitse|7].', 'Kaasa on vaja [ID-kaart|ID-kaarti].', 'Tuleb tulla [kümme|10] minutit varem.']),
       B.planning('040_t_plan', 'Enne kõnet.', 'Kirjuta märksõnad: mida sa internetifirmale ütled.', ['Kes sa oled ja kus sa elad?', 'Mis on vaja (uus internet)?', 'Millal tehnik võib tulla?'], 2),
       B.rolecards('040_t_roles', 'Rääkimine 1. Telefonikõne.', 'Helista internetifirmasse. Paariline on teenindaja.', 'Oled klient. Sa kolisid. Sul on vaja internetti uude korterisse. Ütle aadress tähthaaval. Sa oled kodus ainult õhtul või laupäeval.', 'Oled teenindaja. Küsi, mis küsimuses klient helistab. Küsi nime ja aadressi. Tehnik saab tulla neljapäeval kell 18 või laupäeval kell 10.', ['Ma helistan, sest…', 'Kas on võimalik…?', 'Palun korrake!'], ['Mis küsimuses te helistate?', 'Palun oodake.', 'Kas … sobib?']),
-      tag(B.speaking('040_t_say', 'Rääkimine 1. Pilt ja küsimused.', 'Kirjeldage teeninduse pilti. Siis vastake õpetaja kahele küsimusele.', ['Kes on pildil ja kus nad on?', 'Mis asjad on teeninduslaual?', 'Kuhu sa viimati helistasid ja miks?', 'Mis vormi sa viimati täitsid ja kus?'], [60, 90]), { task: 'S06' }),
+      tag(B.speaking('040_t_say', 'Rääkimine 1. Pilt ja küsimused.', 'Kirjeldage teeninduse pilti. Siis vastake õpetaja kahele küsimusele.', ['Kes on pildil ja kus nad on?', 'Mis asjad on teeninduslaual?', 'Kuhu sa viimati helistasid ja miks?', 'Mis vormi sa viimati täitsid ja kus?'], [60, 90]), { task: 'S06', harno: 'S1' }),
       tag(B.examWriting('040_t_write', 'Kirjutamine 3. Kirjeldus.', 'Kirjutage teemal „Minu asjaajamise päev” 40–60 sõna. Vastake kolmele küsimusele.', 'jutt', {
         situation: 'Teema: „Minu asjaajamise päev”.',
         points: ['Kuhu sa läksid või helistasid?', 'Mida sa pidid seal tegema?', 'Mis oli lihtne ja mis raske?'],
