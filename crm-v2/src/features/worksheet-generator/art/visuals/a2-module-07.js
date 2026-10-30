@@ -13,7 +13,7 @@ export default [
     alt: "Anna ja Liis valivad poe kataloogist sobivat kaupa.",
     caption: "Pilt 1. Kauba valimine kataloogist.",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida Anna ja Liis vaatavad?", "Mis kaubad on kataloogis?", "Mida sina uude koju ostaksid?"],
+    prompts: ["Mida Anna ja Liis vaatavad?", "Mis kaubad on kataloogis?", "Mida sina uude koju ostad?"],
   },
   {
     id: "a2-032-kasuta-1",

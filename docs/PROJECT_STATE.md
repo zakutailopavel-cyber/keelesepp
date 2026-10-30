@@ -1,8 +1,7 @@
 ## 2026-10-30 · agent/a2-m08-final — A2 module 8 „Teenused ja asjaajamine” in the final shape
 
-- Base: `main` 144f8b2 (A2 modules 5 #918 and 6 #916 merged), checked 2026-10-30. Module 7 (#919) was not on `main` yet: the
-  034 → 036 boundary and V6 were checked with `origin/agent/a2-m07-final` in a temporary copy (clean; 034's corner is W1, so 036
-  has R5). Recheck after #919 lands. Content only; no production data, no publishing, no deploy.
+- Base: `main` e8a9213 (A2 modules 5 #918, 6 #916 and 7 #919 merged), checked 2026-10-30; the 034 → 036 boundary is rechecked on it
+  (034's corner is W1, so 036 has R5). Content only; no production data, no publishing, no deploy.
 - Done: `a2/module08.js` (a2-036…040) passes every final-shape gate under the A2 profile: **85 → 0 problems** on this `main` (88
   before modules 5–6; `final-shape.mjs --course a2 --module 8`). `finalShapeBaselineA2.json` only shrank (module 8's 85 lines,
   module 9 −2, module 13 −1, module 20 −1, course −1). Quality gate clean, `qualityBaseline.json` unchanged.
@@ -19,8 +18,36 @@
   gaps, because module 9 now reuses enough of module 8's words (the test's own comment asks for this).
 - Known: the R4 corner is a `reading` with short answers (exam: 5 MC), as the B1 R2 corners; the R5 corner is the bank's e-mail
   (exam: a personal letter). Readiness notes left (not gates): 040 short tasks in Avasta and no vocab box.
-- Next safe step: after #919 lands, rerun `final-shape.mjs --course a2 --module 8`; A2 module 9 must not open with an R4 corner in
-  041 (039's corner is R4).
+- Next safe step: A2 module 9 (`a2/module09.js`); 041 must not have an R4 corner (039's corner is R4).
+## 2026-10-29 · agent/a2-m07-final — A2 module 7 „Pood, raha ja ostud” in the final shape
+
+- Base: `main` 144f8b2 (A2 modules 5 #918 and 6 #916 merged), checked 2026-10-29; the 029/030 → 031 and 034 → 036
+  boundaries were checked against them. Content only; no production data, no publishing, no deploy.
+- Done: `a2/module07.js` (a2-031…035) passes every final-shape gate under the A2 profile: **80 → 0 problems**
+  (`final-shape.mjs --course a2 --module 7`); `finalShapeBaselineA2.json` only shrank (1706 → 1619: module 7's 80 lines, four
+  V7 lines of modules 8, 11, 19 and one course line); new 0. Quality gate clean, `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, A2 §4 row m7, no swap): 031 PROB R→S (Malle's birthday present for 40 €: first try on the phone
+  S04, adjective + noun in the partitive, second try in the shop S05; main `031_t_agree` idea card S03), 032 AVAS L→S
+  (numbers in cases: try first `032_d_try` → rule → try again `032_d_again`; main `032_t_basket` S12, food basket for 25 €),
+  033 KUUL L→W (second-hand shop Teine Ring, comparative; main `033_t_letter` `kiri` 50–70 words W04 with plan W11 and edit
+  W10), 034 LUGU R→W (the broken kettle and the lost receipt; main `034_t_story` `jutt` 60–80 words W05).
+  **Corners:** 031 R2 (`031_p_shops`, sentences ↔ three shop texts, 8 min), 032 S1 (`032_t_picture`, the till picture +
+  topic questions, S06, 10 min), 033 L3 (`033_p_radio`, Teine Ring's owner on the radio, 8 short answers, 8 min), 034 W1
+  (`034_p_card`, a text from a repairer's business card, 8 min). **036 must not open with a W1 corner.** 035 tags R1, R2,
+  L3, W1, W2a, S1, S2 (R5 left untagged: introduced in module 9). S06 = the S1 corner, S05 = `031_t_shop`. Every
+  teaching lesson: review naming the previous lesson and one of modules 3–5 (029/016, 031/022, 032/013, 033/011), an
+  in-lesson pair task, a home recording (45–60 s), two fluency tasks (S08+S11, S02+S04, S09+S13, S07+W06). No tingiv
+  kõneviis (the 031 picture prompt in `art/visuals/a2-module-07.js` and 035's „Kas ma saaksin …?” changed).
+- Cast: in A2 Liis is Anna's colleague at Kaubahall (till, info desk) — the module 7 pictures show her; Mirjam owns Teine
+  Ring, Kristo sells there; repairer Raivo Kask („Kiir”). Vocab topic words: soodustus, kviitung, tagastama.
+- Audio (TartuNLP, free): rebuilt `032_d_listen`, `034_d_listen`; new `033_d_fit`, `033_p_radio` (156 s, longer than
+  Harno's 1–1.5 min so the corner reaches 8 min), `034_p_clips`; removed `031_d_listen`, `031_t_msg`, `034_t_desk` (mp3 +
+  manifest). `031_p_announce` moved to Avasta, `032_p_till`, `033_d_listen` became `examlisten`, transcripts unchanged.
+- Checks after the merge: `npx eslint --quiet src` clean; `npx vitest run` 405 files passed, 5 UI files failed under machine
+  load (~200: studentWorksheetFlow, LibraryPage, LiveRoom, VocabularyPage, WorksheetStudioPage) and pass when run alone.
+  Language check (Vabamorf) of module 7: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: readiness notes left (not gates): 031 Harjuta „live” 10 min (12), 035 four short tasks and no vocab box.
+- Next safe step: A2 module 8 (`a2/module08.js`, row m8 PROJ KIRJ RÄÄK LUGE); its first corner must not be W1.
 
 ## 2026-10-29 · agent/a2-m06-final — A2 module 6 „Söök, jook ja kohvik” in the final shape
 
