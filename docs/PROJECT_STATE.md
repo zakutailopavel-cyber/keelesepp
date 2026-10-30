@@ -41,6 +41,10 @@
 - Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average 100+): 409 files passed, 4 UI files failed with 12 tests (timeouts: studentWorksheetFlow, VocabularyPage, WorksheetStudioPage, CourseProductionPage), 1 skipped; run alone with a 180 s timeout all four pass (3/3, 8/8, 23/23, 2/2). Language check (Vabamorf) of module 14: 1 unknown lower-case word, `kusimustik` (genre value).
 - Known: corner counts after this module: S2, R4, L4 and W1 each rise by one, still under the course minimums (closing pass of later modules).
 - Next safe step: when module 13 has merged, rerun `final-shape.mjs --course a2 --module 14`; then A2 module 15 (`a2/module15.js`, first corner not W1).
+## 2026-10-30 Päevaraamat: põhjuse väli automaatkande juures (`agent/journal-reason-inline`)
+
+Raamatupidaja vajutas automaatkande juures „Salvesta”, kuid muudatus jäi salvestamata: põhjuse väli oli tabeli kohal, ekraanilt väljas. Nüüd on väli kande enda real, „Salvesta” viib kursori sinna, Enter salvestab. Väärtus on sama, mis ülemisel väljal (kehtib seansi lõpuni). Muudetud: `features/accounting/JournalGrid.jsx`, `journalGrid.js`, `accounting.css`, `JournalGrid.test.jsx`. Server ja andmed muutumata, deploy Verceli kaudu. Järgmine samm: raamatupidaja parandab kande 2026-0030 uuesti.
+
 ## 2026-10-30 · agent/a2-m13-final — A2 module 13 „Töö ja amet” in the final shape
 
 - Base: `main` a58d8c4 (A2 modules 11 #930 and 12 #927 merged), checked 2026-10-30; the 059 → 061 boundary was checked. Content only; no
