@@ -522,6 +522,7 @@ export const LESSONS = withShapes({
     discover: [
       B.text('005_d_situation', 'Kordame', 'Enne kontrolli kordame mooduli tähtsamat: tutvumine, viisakad väljendid, olema ja olevik, kuupäevad ja ankeet.'),
       B.notice('005_d_notice', 'Mooduli kokkuvõte', ['Tutvumine: **Minu nimi on… Ma olen pärit …-st. Ma elan …-s.**', 'Viisakus: **palun, aitäh, vabandust, palun korrake**', 'Olevik: **ma elan / ei ela**, ta **töötab** / **ei tööta**', 'Sina ↔ teie: **kust sa pärit oled?** ↔ **kust te pärit olete?**', 'Kuupäev: **Ma olen sündinud 12. mail.**']),
+      B.vocab('005_d_vocab', 'Mooduli põhisõnad.', ['ankeet — questionnaire', 'pärit olema — to be from', 'elukoht — place of residence', 'sünniaeg — date of birth', 'perekonnanimi — surname', 'kordama — repeat', 'tutvuma — get acquainted', 'õpetaja — teacher', 'kursus — course', 'vastama — answer']),
       B.reading('005_d_read', 'Loe: Kooriseltsi uus liige.', 'Loe teksti ja vasta küsimustele.', 'Viktor laulab kooris',
         'Viktor on 63 aastat vana. Ta on pärit Narvast, aga elab Tallinnas juba kakskümmend aastat. Ta on pensionär. Viktor räägib vene ja eesti keelt, soome keelt ta ei räägi. Kaks kuud tagasi nägi ta kuulutust: kooriselts otsib uusi lauljaid. Viktor kirjutas seltsile sõnumi ja läks esimesse proovi. Seal tutvus ta Mareti ja Ljubaga. Maret on üliõpilane, Ljuba õpib eesti keelt. Nüüd laulavad nad koos igal kolmapäeval. Viktor ütleb: „Kooris ma õpin eesti keelt kõige paremini, sest me laulame ja räägime palju.”',
         [['Kus Viktor elab?', 'Tallinnas'], ['Mis keelt Viktor ei räägi?', 'soome keelt|soome'], ['Kuidas Viktor kooriseltsi leidis?', 'nägi kuulutust|kuulutusest'], ['Kellega ta proovis tutvus?', 'Mareti ja Ljubaga|Maret ja Ljuba'], ['Millal nad laulavad?', 'igal kolmapäeval|kolmapäeval']]),
@@ -587,7 +588,7 @@ export const LESSONS = withShapes({
       ]),
       B.wordorder('005_p_order', 'Keel. Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Minu tütar käib lasteaias.', 'Ma olen sündinud kolmandal märtsil.', 'Kas te saate mulle helistada?', 'Proovid on kolmapäeviti Raatuse koolis.']),
       B.errorfix('005_p_fix', 'Keel. Paranda viga.', 'Kirjuta lause õigesti.', [
-        ['Ma ei töötan.', 'Ma ei tööta.'], ['Ta on pärit Narva.', 'Ta on pärit Narvast.'], ['Kust te pärit oled?', 'Kust te pärit olete?'], ['Me elab Tartus.', 'Me elame Tartus.'],
+        ['Ma ei töötan.', 'Ma ei tööta.'], ['Ta on pärit Narva.', 'Ta on pärit Narvast.'], ['Te räägib eesti keelt.', 'Te räägite eesti keelt.'], ['Me elab Tartus.', 'Me elame Tartus.'],
       ]),
       B.writing('005_p_write', 'Kirjutamine. Sõnum.', 'Kirjuta kooriseltsile 4–6 lauset: kes sa oled ja miks tahad laulda.', [4, 6], ['olen', 'elan', 'tahan'], 2),
       B.transformation('005_p_reply', 'Keel. Reageeri olukorrale.', 'Kirjuta eesti keeles üks sobiv lause.', [
