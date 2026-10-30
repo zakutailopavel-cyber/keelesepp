@@ -2,8 +2,8 @@
 // (docs/COURSE_FINAL_SHAPE_A2.md, row m9 = m1: LUGU KUUL AVAS PROB; gates V1–V16 of docs/COURSE_FINAL_SHAPE_B1.md §8).
 // One storyline, one year before the B1 course (docs/COURSE_CAST.md): the last week before Christmas. Sofia's job interview
 // is behind her and she wants to go home to Tartu on Thursday (Helgi asked in module 7). Sunday's walk in Kadriorg ends
-// badly for Markus, on Monday Sofia wakes up with a fever. Minor characters: nurse Liis Saar (pereõde, a separate person
-// from Sofia's later boss Liis; the pictures of this module show her), Dr Mari Rebane and registrar Merike (module 8) at Mustamäe
+// badly for Markus, on Monday Sofia wakes up with a fever. Minor characters: nurse Epp Saar (pereõde, a separate person
+// from Sofia's later boss Epp; the pictures of this module show her), Dr Mari Rebane and registrar Merike (module 8) at Mustamäe
 // perearstikeskus, pharmacist Kaja (apteek „Pärn”).
 //   041 LUGU R→W  a walk in the park: the story, the body and how one feels (mul valutab pea, mul valutavad jalad, mul on
 //                 palavik, ma olen haige); corner R5 (Helgi's letter with option gaps); main: the story goes on, 60–80 words (W05).
@@ -184,7 +184,7 @@ export const LESSONS = withShapes({
         'Sofia: Ei, köha mul ei ole. Aga mul on nohu ja ma olen väga väsinud.',
         'Merike: Millal see algas?',
         'Sofia: Täna hommikul.',
-        'Merike: Doktor Rebasel täna vaba aega ei ole. Aga homme kell kümme on pereõde Liis Saar vaba. Kas see aeg sobib?',
+        'Merike: Doktor Rebasel täna vaba aega ei ole. Aga homme kell kümme on pereõde Epp Saar vaba. Kas see aeg sobib?',
         'Sofia: Jah, sobib. Kuhu ma pean tulema?',
         'Merike: Kabinet number seitse, esimesel korrusel. Võtke kaasa ID-kaart.',
         'Sofia: Ma ei ole kindel, kas ma homme saan bussiga sõita.',
@@ -309,17 +309,17 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpilane seletab õpetajale kaks korda; õpetaja on esimesel korral Kati, teisel korral Tom. Teine kord on lühem ja sujuvam. Õpetaja kuulab kellel-vorme (Mial, Viktoril).'),
     ],
     transfer: [
-      B.text('042_t_sit', 'Pereõe juures', 'Teisipäeval kell kümme on Sofia perearstikeskuses. Pereõde Liis Saar küsib sümptomite kaardi järgi: mis valutab, kui kõrge palavik on, mida on vaja. Vaata pilti. Sofial on kurk haige ja ta räägib vaikselt. Õhtul kirjutab ta sõbrale Katile, kuidas tal läheb.'),
-      tag(B.listening('042_t_voice', 'Liisi häälsõnum.', 'Pärast vastuvõttu jättis pereõde Sofiale sõnumi. Kuula kaks korda ja kirjuta märkmed.', [
-        'Liis: Tere, Sofia! Siin Liis Saar, Mustamäe perearstikeskusest.',
-        'Liis: Vaatasin teie analüüsi. See on hea uudis: gripp see ei ole, see on tavaline külmetus.',
-        'Liis: Palavikurohtu võib võtta kolm korda päevas. Tablett kuue tunni järel.',
-        'Liis: Kurgule ostke apteegist pastille. Võtke neid kuni neli korda päevas.',
-        'Liis: Kaks päeva olge kodus ja rääkige vähe, kurk vajab puhkust.',
-        'Liis: Neljapäeval võite Tartusse sõita, aga ainult siis, kui palavikku enam ei ole.',
-        'Liis: Bussis või rongis kandke sooja salli.',
-        'Liis: Kui palavik on esmaspäeval veel alles, helistage doktor Rebasele.',
-        'Liis: Haiguslehte teil vaja ei ole, sest te õpite. Kool saab tõendi, kui küsib.',
+      B.text('042_t_sit', 'Pereõe juures', 'Teisipäeval kell kümme on Sofia perearstikeskuses. Pereõde Epp Saar küsib sümptomite kaardi järgi: mis valutab, kui kõrge palavik on, mida on vaja. Vaata pilti. Sofial on kurk haige ja ta räägib vaikselt. Õhtul kirjutab ta sõbrale Katile, kuidas tal läheb.'),
+      tag(B.listening('042_t_voice', 'Epu häälsõnum.', 'Pärast vastuvõttu jättis pereõde Sofiale sõnumi. Kuula kaks korda ja kirjuta märkmed.', [
+        'Epp: Tere, Sofia! Siin Epp Saar, Mustamäe perearstikeskusest.',
+        'Epp: Vaatasin teie analüüsi. See on hea uudis: gripp see ei ole, see on tavaline külmetus.',
+        'Epp: Palavikurohtu võib võtta kolm korda päevas. Tablett kuue tunni järel.',
+        'Epp: Kurgule ostke apteegist pastille. Võtke neid kuni neli korda päevas.',
+        'Epp: Kaks päeva olge kodus ja rääkige vähe, kurk vajab puhkust.',
+        'Epp: Neljapäeval võite Tartusse sõita, aga ainult siis, kui palavikku enam ei ole.',
+        'Epp: Bussis või rongis kandke sooja salli.',
+        'Epp: Kui palavik on esmaspäeval veel alles, helistage doktor Rebasele.',
+        'Epp: Haiguslehte teil vaja ei ole, sest te õpite. Kool saab tõendi, kui küsib.',
       ], ['Haigus on tavaline [külmetus].', 'Palavikurohtu võib võtta [kolm|3] korda päevas.', 'Tablett tuleb võtta iga [kuue|6] tunni järel.', 'Kurgu jaoks tuleb osta [pastille].', 'Kaks päeva peab Sofia olema [kodus].', 'Neljapäeval võib Sofia sõita, kui ei ole [palavikku].', 'Kui palavik on esmaspäeval alles, tuleb helistada [Rebasele|doktor Rebasele].', 'Sofial ei ole vaja [haiguslehte].']), { task: 'L07' }),
       B.profiles('042_t_cards', 'Patsientide kaardid.', 'Pereõe laual on kolm kaarti. Kirjuta lünka sõna, mis vastab kaardile.', [
         ['Sofia, 27', ['Valutab kurk ja pea.', 'Palavik 38,4 kraadi.', 'Köha ei ole, nohu on.', 'Vaja palju puhata ja juua.', 'Järgmine kõne esmaspäeval.'], ['Sofial valutab [kurk] ja pea.', 'Köha tal [ei ole].', 'Tal on vaja palju [puhata].']],
@@ -447,9 +447,9 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja on Eha ja on mures, aga sõbralik. Õpilane on Anna ja ütleb, mida arst soovitas. Teine kõne on kohe pärast seda, kiiremini ja ilma märkmeteta.'),
     ],
     transfer: [
-      B.text('043_t_sit', 'Pereõe kabinetis', 'Järgmisel esmaspäeval läheb Anna kontrollile. Doktor Rebane on hõivatud, teda võtab vastu pereõde Liis Saar. Liis kuulab Anna hingamist ja Anna näitab käega, kus valutab. Vaata pilti. Enne seda saab Anna perearstikeskusest kirja.'),
+      B.text('043_t_sit', 'Pereõe kabinetis', 'Järgmisel esmaspäeval läheb Anna kontrollile. Doktor Rebane on hõivatud, teda võtab vastu pereõde Epp Saar. Epp kuulab Anna hingamist ja Anna näitab käega, kus valutab. Vaata pilti. Enne seda saab Anna perearstikeskusest kirja.'),
       tag(B.insertion('043_t_letter', 'Kiri perearstikeskusest.', 'Anna saab kirja. Pane lünka sobiv lause, üks lause jääb üle.', 'Teie kontrollivisiit', [
-        'Tere, Anna! Teie kontrollivisiit on esmaspäeval kell kümme, kabinetis seitse. [[Teid võtab vastu pereõde Liis Saar, sest doktor Rebane on sel päeval hõivatud.]] Palun tulge viis minutit varem.',
+        'Tere, Anna! Teie kontrollivisiit on esmaspäeval kell kümme, kabinetis seitse. [[Teid võtab vastu pereõde Epp Saar, sest doktor Rebane on sel päeval hõivatud.]] Palun tulge viis minutit varem.',
         '',
         'Võtke kaasa ID-kaart ja märkmed. [[Kirjutage üles, millal selg valutab ja mida te teete.]] Õde küsib ka, kas te võtsite tablette kaks korda päevas.',
         '',
@@ -583,8 +583,8 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja küsib ja küsib täpsustusi. Õpilane kasutab arvu ja osastavat (kaks tabletti, kolm korda). Õpetaja kordab õiget vormi ainult siis, kui tähendus kaob.'),
     ],
     transfer: [
-      B.text('044_t_sit', 'Teine katse', 'Kolmapäeva pärastlõunal on Sofia palju tugevam. Ta läheb koos Viktoriga perearstikeskusesse. Pereõde Liis Saar näitab Viktorile vastuvõtukaarti ja ravimikarpi. Viktor võrdleb kaarti oma telefoni kalendriga. Vaata pilti. Nüüd oskab Sofia kõike öelda.'),
-      tag(B.reading('044_t_plan', 'Liisi ravimikava.', 'Liis kirjutas Viktorile kava. Kas Viktor teeb nii õigesti? Vasta ja põhjenda lühidalt.', 'Ravimikava: Viktor',
+      B.text('044_t_sit', 'Teine katse', 'Kolmapäeva pärastlõunal on Sofia palju tugevam. Ta läheb koos Viktoriga perearstikeskusesse. Pereõde Epp Saar näitab Viktorile vastuvõtukaarti ja ravimikarpi. Viktor võrdleb kaarti oma telefoni kalendriga. Vaata pilti. Nüüd oskab Sofia kõike öelda.'),
+      tag(B.reading('044_t_plan', 'Epu ravimikava.', 'Epp kirjutas Viktorile kava. Kas Viktor teeb nii õigesti? Vasta ja põhjenda lühidalt.', 'Ravimikava: Viktor',
         'Tabletid: kaks tabletti kolm korda päevas, alati pärast sööki. Võtke neid hommikul, lõunal ja õhtul. Tablettide vahel peab olema vähemalt kuus tundi. Kui te unustate tableti, ärge võtke järgmisel korral kahte korda rohkem.\n\nKreem: pange kreemi põlvele kaks korda päevas, hommikul ja õhtul. Pärast peske käsi.\n\nPuhkus: ärge seiske turul terve päeva. Istuge iga tunni järel kümme minutit. Kõndige iga päev veerand tundi, see on põlvele hea.\n\nKõik kokku viis päeva. Kui põlv ei ole viie päeva pärast parem, tulge tagasi. Uus aeg on neljapäeval, 31. detsembril, kell üksteist, kabinetis kaksteist. Kui see aeg ei sobi, helistage numbril 622 1500. Kui kõht valutab, võtke tablett koos söögiga ja rääkige sellest apteekrile.',
         [['Viktor sõi kell üksteist. Kas ta võib kell kaks jälle tablette võtta?', 'ei|ei, peab olema kuus tundi'], ['Hommikul unustas ta tabletid. Mitu tabletti ta võtab lõunal?', 'kaks|kaks tabletti'], ['Kas Viktor võib terve päeva turul seista?', 'ei|ei, ta peab iga tunni järel istuma'], ['Mitu korda päevas paneb ta kreemi?', 'kaks|kaks korda'], ['Mis päevani ta tablette võtab, kui ta alustab kolmapäeval?', 'pühapäevani'], ['Kui kõht valutab, kas ta jätab tabletid ära?', 'ei|ei, võtab koos söögiga'], ['Kuhu Viktor peab uuel ajal minema?', 'kabinetti kaksteist|kabinetti 12']]), { task: 'R08', level: 3 }),
       teach(tag(B.phoneCards('044_t_call', 'Helista perearstikeskusesse.', 'A on Sofia, B on registraator Merike. Sofia muudab Viktori aega ja küsib täpsustusi.',
@@ -600,7 +600,7 @@ export const LESSONS = withShapes({
         situation: 'Viktor palub: „Kirjuta mulle lihtne kava. Infolehe tähed on nii väikesed.”',
         questions: ['Mitu tabletti korraga ja mitu korda päevas?', 'Millal ta tablette võtab? Enne või pärast sööki?', 'Kui tihti ta kreemi paneb?', 'Mida ta turul peab tegema?', 'Mida ta ei tohi teha?', 'Kui kaua ta rohtu võtab?', 'Mis on uus aeg ja mis kabinetis?', 'Kuhu helistada, kui midagi on valesti?'],
       }), { task: 'W01' }),
-      tag(B.speaking('044_t_record', 'Salvesta: vastuvõtukaart.', 'Vaata pilti ja salvesta kodus 45–60 sekundit: mida Liis näitab ja mida Viktor peab tegema?', ['Kus Liis ja Viktor on?', 'Mida Liis käes hoiab?', 'Mida Viktor võrdleb?', 'Kuidas ta peab ravimit võtma?'], [45, 60], ['Pildil on …', 'Viktor võrdleb …', 'Ta peab võtma … tabletti.']), { task: 'S15' }),
+      tag(B.speaking('044_t_record', 'Salvesta: vastuvõtukaart.', 'Vaata pilti ja salvesta kodus 45–60 sekundit: mida Epp näitab ja mida Viktor peab tegema?', ['Kus Epp ja Viktor on?', 'Mida Epp käes hoiab?', 'Mida Viktor võrdleb?', 'Kuidas ta peab ravimit võtma?'], [45, 60], ['Pildil on …', 'Viktor võrdleb …', 'Ta peab võtma … tabletti.']), { task: 'S15' }),
       B.rubric('044_t_rubric', 'Mooduli lõpp: hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Kõnes ütleb õpilane probleemi, küsib uut aega ja kordab kuupäeva, kella ja kabineti.', 'Ravimikava küsimused on õigesti täidetud.', 'Vormid on õiged: kaks tabletti, kolm korda päevas, pärast sööki, kabinetis.', 'Õpilane leiab infolehest vastuse ja saab ka keerulisemast lausest aru.']),
       B.selfcheck('044_t_self', ['Ma saan aru, mitu tabletti ja mitu korda päevas.', 'Ma loen vastuvõtukaarti ja infolehte.', 'Ma helistan ja muudan vastuvõtuaega.', 'Ma ütlen teisele, kuidas ravimit võtta.'], 'Viktor saab terveks'),
     ],
