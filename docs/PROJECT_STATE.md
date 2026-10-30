@@ -1,3 +1,35 @@
+## 2026-10-30 · agent/a2-m09-final — A2 module 9 „Tervis ja kehahooldus” in the final shape
+
+- Base: `main` 48a7d48 (A2 modules 7 #919, #920 and 8 #921 merged), checked 2026-10-30; the 039 → 041 boundary was checked
+  against module 8. Content only; no production data, no publishing, no deploy. No gate, UI or other module changed.
+- Done: `a2/module09.js` (a2-041…045), now template v4, passes every final-shape gate under the A2 profile: **112 → 0 problems**
+  (`final-shape.mjs --course a2 --module 9`); `finalShapeBaselineA2.json` only shrank (1533 → 1409), new 0. Quality gate clean,
+  readiness 0 notes, `qualityBaseline.json` unchanged. The file was the first A2 module still in v3; v3's fixed tasks (cloze
+  and formtext on every Harjuta) cannot pass V3/V4, so the module moved to v4 like modules 1–8.
+- Shape (`withShapes`, A2 §4 row m9, no swap): 041 LUGU R→W (Kadriorg walk, mul valutab / valutavad; main `041_t_story` `jutt`
+  60–80 words W05), 042 KUUL L→W (Sofia ill, kellel-vorm, ei ole palavikku, mul on vaja; main `042_t_letter` `kiri` 50–70 words
+  W04, edit W10), 043 AVAS L→S (Anna's back, teie-imperative, try first `043_d_try` → rule → try again `043_d_again`; main
+  `043_t_visit` S10), 044 PROB R→S (Viktor's knee, kaks tabletti, kolm korda päevas; first try `044_d_try`; main `044_t_call`
+  S04). **Corners:** 041 R5 (`041_p_letter`, 8 min; the letter is longer than Harno's 100 words to reach 8 min), 042 L4
+  (`042_p_family`, 151 s, 8 pairs), 043 S1 (`043_t_picture`, S06), 044 R3 (`044_p_signs`). **046 must not have an R3 corner.**
+  S05 = `041_t_bench`. Every teaching lesson: review naming the previous lesson and one of modules 5–7 (039/034, 041/033,
+  042/032, 043/027), an in-lesson pair task, a home recording (45–60 s), two fluency tasks (S07+W06, S09+S13, S08+S04, S02+S12).
+  No tingiv kõneviis (the picture prompts in `art/visuals/a2-module-09.js` had none; file untouched).
+- 045 (EKS): timed with `B.examPart` (R 40 min, 31 points; W 30 min, 20; L 30 min, 20; S 15 min, 20); tags R1, R2, R3, R4, R5, W1,
+  W2b, L2, L3, L4, S0, S1, S2. Reading and writing on Harjuta, listening and speaking on Kasuta (recognition share).
+- Cast: nurse **Liis Saar** (pereõde, full name = separate person from Sofia's later boss Liis; this module's pictures name
+  Liis), Dr Mari Rebane, pharmacist Kaja, Anna's colleague Siiri and boss Eha at Kaubahall. Timeline: Sunday walk → Thursday
+  24 December Sofia goes to Tartu; no appointment falls on 25 December; Viktor's new time is Thursday 31 December.
+- Audio (TartuNLP, free): new `041_d_morning`, `041_p_numbers`, `042_d_call`, `042_d_radio`, `042_p_family`, `042_t_voice`,
+  `043_d_visit`, `043_p_wait`, `044_d_clips`, `045_t_l2`, `045_t_l3`, `045_t_l4`; the nine old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean; `npx vitest run` 408 files passed, 2 UI files failed under load
+  (studentWorksheetFlow, WorksheetStudioPage) and pass when run alone (26/26). Language check (Vabamorf) of module 9: 1 unknown
+  lower-case word, `kusimustik` (genre value). `methodGaps.test.js` unchanged: its list stays empty (m8 → m9 52 %, m9 → m10 35 %).
+- Known: **L1 is not tagged in 045:** its last practice is module 5 (025), so a tag in module 9 or later adds `V6-gap-L1`; closing
+  that needs an L1 tag in module 6, 7 or 8 (e.g. `034_p_clips`) or a decision on the rule. Liis Saar's name: if the owner wants
+  no second Liis (see #920), rename her in `a2/module09.js` and `art/visuals/a2-module-09.js` together.
+- Next safe step: A2 module 10 (`a2/module10.js`, row m10 = m2: LUGE RÄÄK KIRJ PROJ); its first corner must not be R3.
+
 ## 2026-10-30 · agent/a2-m08-final — A2 module 8 „Teenused ja asjaajamine” in the final shape
 
 - Base: `main` e8a9213 (A2 modules 5 #918, 6 #916 and 7 #919 merged), checked 2026-10-30; the 034 → 036 boundary is rechecked on it
