@@ -108,6 +108,54 @@ function customerOf(record = {}, invoice = {}) {
 const withPartner = (lines, accounts, partner) => (partner ? lines.map((l) => (accounts.includes(l.account) ? { ...l, partner } : l)) : lines);
 const CUSTOMER_LINES = [POSTING_ACCOUNTS.receivables, POSTING_ACCOUNTS.prepayments];
 
+// ---- „Ei kuulu raamatupidamisse” (the accountant, confirmed by the owner 2026-10-30; docs/ACCOUNTING.md) ----
+// An invoice with accountingExcluded: true stays in Finantsid but is outside the company's books: no automatic entry is
+// made for it, for its credit notes, for its payments (and their voids) or for the payer credit of an overpayment. The
+// money of such a client went to another account, so the invoice's own 1200 / 3000 and 1010 / 1200 must not be booked.
+const autoEntryId = (sourceKey) => `auto_${String(sourceKey).replace(/[^A-Za-z0-9_-]/g, "_")}`;
+const isVoidedPayment = (payment) => payment.status === "voided" || payment.status === "void";
+// the money came through the company's bank: a bank import line, the 2026-10-15 LHV run (requestId lhv-<archive code>)
+// or LinkPay. Such a payment IS in the statement, so its invoice cannot leave the books while the payment is active.
+const isBankLinkedPayment = (payment) => Boolean(payment.bankTransactionId) || /^lhv-/.test(String(payment.requestId || "")) || payment.method === "linkpay";
+
+// what leaves the books with an invoice (source keys of automaticEntries) and what stands in the way
+function exclusionScope(invoice, { payments = [], creditNotes = [], payerCredits = [] } = {}) {
+  const ownPayments = payments.filter((payment) => payment.invoiceId === invoice.id);
+  const paymentIds = new Set(ownPayments.map((payment) => payment.id));
+  const ownCredits = payerCredits.filter((credit) => credit.sourcePaymentId && paymentIds.has(credit.sourcePaymentId));
+  const ownCreditIds = new Set(ownCredits.map((credit) => credit.id));
+  const sourceKeys = [
+    `invoice:${invoice.id}`, `invoice-cancel:${invoice.id}`,
+    ...creditNotes.filter((note) => note.invoiceId === invoice.id).map((note) => `credit-note:${note.id}`),
+    ...ownPayments.flatMap((payment) => [`payment:${payment.id}`, `payment-void:${payment.id}`]),
+    ...ownCredits.map((credit) => `credit:${credit.id}`),
+  ];
+  const conflicts = [];
+  ownPayments.filter((payment) => !isVoidedPayment(payment)).forEach((payment) => {
+    const label = String(payment.reference || payment.id);
+    if (isBankLinkedPayment(payment)) conflicts.push(`Makse ${label} on tulnud ettevõtte pangakontole (pangarida või LinkPay). Tühista enne makse.`);
+    else if (payment.sourceCreditId && !ownCreditIds.has(payment.sourceCreditId)) conflicts.push(`Makse ${label} on tasutud ettemaksust, see ettemaks jääks raamatupidamisse. Tühista enne makse.`);
+  });
+  ownCredits.forEach((credit) => {
+    if (cents(credit, "availableAmount") < cents(credit, "originalAmount")) conflicts.push(`Selle arve enammaksest tehtud ettemaks ${credit.id} on juba kasutatud või tagastatud. Võta see enne tagasi.`);
+  });
+  return { sourceKeys, conflicts };
+}
+
+// the source keys of every excluded invoice: automaticEntries skips them on every sync
+function excludedSourceKeys({ invoices = [], ...rest } = {}) {
+  return new Set(invoices.filter((invoice) => invoice.accountingExcluded === true).flatMap((invoice) => exclusionScope(invoice, rest).sourceKeys));
+}
+
+// a bank payment that arrived on an invoice after it was excluded: the money is in the statement but outside the books.
+// The sync reports it (it cannot refuse a LinkPay webhook or an import); a person decides.
+function exclusionBookConflicts({ invoices = [], payments = [] } = {}) {
+  const excluded = new Map(invoices.filter((invoice) => invoice.accountingExcluded === true).map((invoice) => [invoice.id, invoice]));
+  return payments
+    .filter((payment) => excluded.has(payment.invoiceId) && !isVoidedPayment(payment) && isBankLinkedPayment(payment))
+    .map((payment) => ({ invoiceId: payment.invoiceId, invoiceNum: String(excluded.get(payment.invoiceId).num || payment.invoiceId), paymentId: payment.id, amountCents: cents(payment) }));
+}
+
 const paymentAccount = (method) => (method === "cash" ? POSTING_ACCOUNTS.cash : method === "credit" ? POSTING_ACCOUNTS.prepayments : POSTING_ACCOUNTS.bank);
 const methodLabel = { bank: "pangaülekanne", cash: "sularaha", credit: "ettemaksu arvelt", card: "kaardimakse", other: "muu" };
 
@@ -115,8 +163,10 @@ const methodLabel = { bank: "pangaülekanne", cash: "sularaha", credit: "ettemak
 // balances; a later reversal of such a document is still booked on its own date.
 function automaticEntries({ invoices = [], creditNotes = [], payments = [], payerCredits = [], refunds = [], expenses = [], bankTransactions = [] } = {}, { startDate = ACCOUNTING_START_DATE } = {}) {
   const out = [];
+  const excluded = excludedSourceKeys({ invoices, payments, creditNotes, payerCredits });
   const add = (entry) => {
     if (!entry.date || entry.date < startDate) return;
+    if (excluded.has(entry.sourceKey)) return;
     const lines = entry.lines.filter((l) => l.debitCents || l.creditCents);
     if (!lines.length) return;
     out.push({ ...entry, lines, origin: "auto" });
@@ -377,6 +427,12 @@ function assertStornoUndoable(storno, original) {
   if (original.deleted) throw accountingError(`Algne kanne ${original.number || ""} on kustutatud.`, 409);
 }
 
+// marking an invoice: refused when it is already marked or when its money is in the company's bank
+function assertExcludable(invoice, scope) {
+  if (invoice.accountingExcluded === true) throw accountingError("Arve on juba raamatupidamisest väljas.", 409);
+  if (scope.conflicts.length) throw accountingError(scope.conflicts.join(" "), 409);
+}
+
 function assertDeletable(entry) {
   assertCorrectable(entry);
   if (entry.origin !== "manual") throw accountingError("Kustutada saab ainult käsitsi kannet. Automaatkannet parandatakse ridade muutmisega või dokumendi kaudu.", 409);
@@ -438,6 +494,11 @@ module.exports = {
   chunked,
   replaceAccountValues,
   assertDeletable,
+  assertExcludable,
+  autoEntryId,
+  exclusionBookConflicts,
+  exclusionScope,
+  excludedSourceKeys,
   assertStornoUndoable,
   correctedEntry,
   isLocked,

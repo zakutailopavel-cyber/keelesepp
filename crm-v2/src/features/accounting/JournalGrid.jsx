@@ -410,7 +410,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
               {td(head, 0, entry.label, { title: `CRM kanne ${entry.number}` })}
               {td(head, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin === 'manual' })}
               {td(head, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin === 'manual' })}
-              {td(head, COL.text, <>{entry.deleted ? <span className="accounting-tag">kustutatud</span> : null}{entry.corrected ? <span className="accounting-tag">parandatud</span> : null}<span className="accounting-cell__description">{w ? w.description : entry.description}</span></>, { editable })}
+              {td(head, COL.text, <>{entry.deleted ? <span className="accounting-tag">{entry.excluded ? 'ei kuulu raamatupidamisse' : 'kustutatud'}</span> : null}{entry.corrected ? <span className="accounting-tag">parandatud</span> : null}<span className="accounting-cell__description">{w ? w.description : entry.description}</span></>, { editable })}
               <td colSpan="3" className={`${cellClass(head, COL.partner, 'accounting-grid__actions')}${active?.row === head && active?.col > COL.partner ? ' is-active' : ''}`} data-cell={`${head}-${COL.partner}`} ref={(node) => { [COL.partner, COL.debit, COL.credit].forEach((c) => { cellRefs.current[`${head}-${c}`] = node; }); }} onMouseDown={(event) => onCellMouseDown(event, { row: head, col: COL.partner })}>
                 {entry.reversedByNumber ? <span>tühistatud: {entry.reversedByNumber}</span> : null}
                 {can.locked && !entry.deleted ? <span title={`Periood suletud kuni ${dmy(lockedThrough)} — paranda uue kandega (storno või parandav kanne)`}><Lock size={12} /></span> : null}

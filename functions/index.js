@@ -434,6 +434,19 @@ async function requireAdminUser(req) {
   return actor;
 }
 
+// the administrator or the bookkeeper (role finance is not a staff role, so requireStaffUser would refuse it)
+async function requireAccountingUser(req) {
+  const decoded = await requireFirebaseUser(req);
+  const snap = await db.collection("users").doc(decoded.uid).get();
+  const profile = snap.exists ? snap.data() : {};
+  if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+  const roles = collectTrustedRoles(profile, decoded);
+  if (!isSuperAdmin(decoded) && !roles.has("admin") && !roles.has("finance")) {
+    throw httpError(403, "Administrator or bookkeeper access required");
+  }
+  return { decoded, profile, roles };
+}
+
 function actorSnapshot(actor) {
   return {
     uid: actor.decoded.uid,
@@ -9021,7 +9034,7 @@ async function syncAccountingEntries({ actor }) {
     const chunk = missing.slice(i, i + 150);
     const nowIso = new Date().toISOString();
     created += await db.runTransaction(async transaction => {
-      const refs = chunk.map(entry => db.collection("accountingEntries").doc(`auto_${entry.sourceKey.replace(/[^A-Za-z0-9_-]/g, "_")}`));
+      const refs = chunk.map(entry => db.collection("accountingEntries").doc(accountingCore.autoEntryId(entry.sourceKey)));
       const current = await Promise.all(refs.map(ref => transaction.get(ref)));
       const fresh = chunk.map((entry, index) => ({ ref: refs[index], entry })).filter((item, index) => !current[index].exists);
       if (!fresh.length) return 0;
@@ -9032,7 +9045,7 @@ async function syncAccountingEntries({ actor }) {
   if (created) {
     await db.collection("financialAudit").add({ entityType: "accounting", action: "accounting.synced", createdEntries: created, createdAt: new Date().toISOString(), createdBy: actorData });
   }
-  return { created, total: desired.length };
+  return { created, total: desired.length, exclusionConflicts: accountingCore.exclusionBookConflicts(sources) };
 }
 
 // the supplier cards named as partners on the lines of an entry (accounting-core validateEntry checks they exist)
@@ -9383,6 +9396,91 @@ async function undoAccountingStorno({ actor, entryId, reason, requestId }) {
     });
     transaction.create(auditRef, { entityType: "accountingEntry", entityId: ref.id, action: "accounting.entry.storno-undone", number: storno.number, originalId: original.id, originalNumber: original.number, reason: cleanReason, before, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
     return { entry: { ...storno, ...patch }, original: { id: original.id, number: original.number } };
+  });
+}
+
+// „Ei kuulu raamatupidamisse” (docs/ACCOUNTING.md): the mark on an invoice, and its entries become tombstones (`deleted`,
+// history action `excluded`, number never reused, „Näita kustutatud” shows them). Refused in a locked period. The invoice
+// keeps its money fields and the student's balance does not change. automaticEntries then skips the invoice on every sync.
+async function excludeInvoiceFromAccounting({ actor, invoiceId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanReason = cleanText(reason, 300);
+  if (!cleanReason) throw httpError(400, "Põhjus on kohustuslik.");
+  const invoiceRef = db.collection("invoices").doc(String(invoiceId || "").trim() || "-");
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, invoiceSnap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(invoiceRef), readAccountingLock(transaction)]);
+    if (auditSnap.exists) return { invoiceId: invoiceRef.id, ...auditSnap.data().result, idempotent: true };
+    if (!invoiceSnap.exists) throw httpError(404, "Arvet ei leitud.");
+    const invoice = { id: invoiceSnap.id, ...invoiceSnap.data() };
+    const [paymentSnap, noteSnap] = await Promise.all([
+      transaction.get(db.collection("payments").where("invoiceId", "==", invoice.id)),
+      transaction.get(db.collection("creditNotes").where("invoiceId", "==", invoice.id)),
+    ]);
+    const withId = doc => ({ id: doc.id, ...doc.data() });
+    const payments = paymentSnap.docs.map(withId);
+    const creditNotes = noteSnap.docs.map(withId);
+    const payerCredits = [];
+    for (const part of accountingCore.chunked(payments.map(payment => payment.id), 30)) {
+      const creditSnap = await transaction.get(db.collection("payerCredits").where("sourcePaymentId", "in", part));
+      payerCredits.push(...creditSnap.docs.map(withId));
+    }
+    const scope = accountingCore.exclusionScope(invoice, { payments, creditNotes, payerCredits });
+    try {
+      accountingCore.assertExcludable(invoice, scope);
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    const entrySnaps = await Promise.all(scope.sourceKeys.map(key => transaction.get(accountingEntryRef(accountingCore.autoEntryId(key)))));
+    const entries = entrySnaps.filter(snap => snap.exists && !snap.get("deleted")).map(withId);
+    await assertAccountingDatesOpen(transaction, [invoice.date, ...entries.map(entry => entry.date)], lockedThrough);
+    entries.forEach(entry => transaction.update(accountingEntryRef(entry.id), {
+      deleted: true, deletedAt: nowIso, deletedBy: actorData, deleteReason: cleanReason, excludedInvoiceId: invoice.id,
+      history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action: "excluded", reason: cleanReason, before: accountingCore.snapshotOf(entry), nowIso, actorData })],
+      updatedAt: nowIso, updatedBy: actorData,
+    }));
+    transaction.update(invoiceRef, { accountingExcluded: true, accountingExcludedReason: cleanReason, accountingExcludedAt: nowIso, accountingExcludedBy: actorData });
+    // a corrected invoice and its replacement are two documents: the other one stays as it is, so say so
+    const relatedInvoices = [
+      invoice.correctedBy?.invoiceId ? { id: invoice.correctedBy.invoiceId, num: invoice.correctedBy.invoiceNum || "" } : null,
+      invoice.correctionOf ? { id: String(invoice.correctionOf.invoiceId || invoice.correctionOf), num: invoice.correctionOf.invoiceNum || "" } : null,
+    ].filter(Boolean);
+    const result = { excluded: true, entries: entries.map(entry => ({ id: entry.id, number: entry.number })), relatedInvoices };
+    transaction.create(auditRef, { entityType: "invoice", entityId: invoice.id, action: "invoice.accounting_excluded", invoiceNum: invoice.num || "", studentId: invoice.studentId || "", reason: cleanReason, result, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { invoiceId: invoice.id, ...result };
+  });
+}
+
+// the mark removed: the tombstones made by it are live again (same number, history action `included`); documents that
+// have no entry yet get one from the next sync
+async function includeInvoiceInAccounting({ actor, invoiceId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanReason = cleanText(reason, 300);
+  if (!cleanReason) throw httpError(400, "Põhjus on kohustuslik.");
+  const invoiceRef = db.collection("invoices").doc(String(invoiceId || "").trim() || "-");
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, invoiceSnap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(invoiceRef), readAccountingLock(transaction)]);
+    if (auditSnap.exists) return { invoiceId: invoiceRef.id, ...auditSnap.data().result, idempotent: true };
+    if (!invoiceSnap.exists) throw httpError(404, "Arvet ei leitud.");
+    const invoice = { id: invoiceSnap.id, ...invoiceSnap.data() };
+    if (invoice.accountingExcluded !== true) throw httpError(409, "Arve ei ole raamatupidamisest väljas.");
+    const entrySnap = await transaction.get(db.collection("accountingEntries").where("excludedInvoiceId", "==", invoice.id));
+    const entries = entrySnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    await assertAccountingDatesOpen(transaction, [invoice.date, ...entries.map(entry => entry.date)], lockedThrough);
+    entries.forEach(entry => transaction.update(accountingEntryRef(entry.id), {
+      deleted: FieldValue.delete(), deletedAt: FieldValue.delete(), deletedBy: FieldValue.delete(), deleteReason: FieldValue.delete(), excludedInvoiceId: FieldValue.delete(),
+      history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action: "included", reason: cleanReason, after: accountingCore.snapshotOf(entry), nowIso, actorData })],
+      updatedAt: nowIso, updatedBy: actorData,
+    }));
+    transaction.update(invoiceRef, { accountingExcluded: FieldValue.delete(), accountingExcludedReason: FieldValue.delete(), accountingExcludedAt: FieldValue.delete(), accountingExcludedBy: FieldValue.delete() });
+    const result = { excluded: false, entries: entries.map(entry => ({ id: entry.id, number: entry.number })) };
+    transaction.create(auditRef, { entityType: "invoice", entityId: invoice.id, action: "invoice.accounting_included", invoiceNum: invoice.num || "", studentId: invoice.studentId || "", reason: cleanReason, previousReason: invoice.accountingExcludedReason || "", result, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { invoiceId: invoice.id, ...result };
   });
 }
 
@@ -10044,6 +10142,12 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
         lessonId: req.body?.lessonId,
         requestId: req.body?.requestId,
       });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/invoices/exclude" || req.path === "/accounting/invoices/include") {
+      const service = req.path.endsWith("/exclude") ? excludeInvoiceFromAccounting : includeInvoiceInAccounting;
+      const result = await service({ actor: await requireAccountingUser(req), invoiceId: req.body?.invoiceId, reason: req.body?.reason, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }

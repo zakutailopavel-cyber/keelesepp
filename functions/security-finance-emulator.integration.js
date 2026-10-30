@@ -95,6 +95,9 @@ test("a teacher cannot create an invoice directly or redirect one; the administr
   assert.equal(description.status, 403, JSON.stringify(description.body));
   const read = await documentRequest(teacher, "GET", "invoices/sec-admin-invoice");
   assert.equal(read.status, 403, JSON.stringify(read.body));
+  // „Ei kuulu raamatupidamisse” goes through financeApi only (audit, lock, tombstones): no direct write, even by an admin
+  const directMark = await documentRequest(await adminToken(), "PATCH", "invoices/sec-admin-invoice?updateMask.fieldPaths=accountingExcluded", { fields: { accountingExcluded: { booleanValue: true } } });
+  assert.equal(directMark.status, 403, "the bookkeeping mark is not a direct write");
   const adminDescription = await documentRequest(await adminToken(), "PATCH", "invoices/sec-admin-invoice?updateMask.fieldPaths=desc", { fields: { desc: str("Täpsustatud selgitus") } });
   assert.equal(adminDescription.status, 200, JSON.stringify(adminDescription.body));
 });

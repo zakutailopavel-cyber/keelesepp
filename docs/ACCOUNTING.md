@@ -162,7 +162,7 @@ lock, D = K per entry, immutable entry numbers, no client writes.
   the moved lines (`targets`).
 - **Deleting** stays as before: only a manual entry („Kustuta”, with a reason, a tombstone). An automatic entry shows
   „ei kustutata” with a tooltip: fix its lines in the grid or fix the source document (credit the invoice, „Muuda” or
-  „Tühista” on Ostuarved).
+  „Tühista” on Ostuarved, or the invoice's „Ei kuulu raamatupidamisse” mark, see that section).
 - **Read-only** for a user without the admin role, on a phone (≤ 760 px) and for entries in a locked period or
   stornos / deleted entries: cells can be selected and copied, not edited.
 
@@ -279,6 +279,39 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
   document exists; the finance month close prevents such documents). An override of a purchase entry's amounts in the
   päevaraamat does not change the purchase invoice — correct amounts on the Ostuarved page.
 
+## Ei kuulu raamatupidamisse (the accountant, confirmed by the owner 2026-10-30)
+
+„Clients who pay to the owner's sole-proprietor (FIE) account” and single invoices must leave the company's books. An
+automatic entry cannot be deleted and a rebuild would re-create it, so the mark is on the source document.
+
+- **Who, where:** administrator or bookkeeper (`requireAccountingUser`). Finantsid → Kuu arveldus → the book icon by the
+  invoice number; the row then shows „Ei kuulu raamatupidamisse”. `POST /accounting/invoices/exclude` and `/include`
+  `{ invoiceId, reason, requestId }`, reason required, repeat with the same requestId changes nothing. Not writable from the
+  client even by an admin (`changesInvoiceFinancialSource` in firestore.rules).
+- **The mark on the invoice:** `accountingExcluded: true`, `accountingExcludedReason`, `accountingExcludedAt`,
+  `accountingExcludedBy`. The invoice's money, status and PDF and the student's balance do not change. The invoice document
+  is readable by its owner (`ownsInvoice`), like `cancellationReason`, so the reason is written neutrally; the UI does not
+  show it to the student or the parent.
+- **Scope** (`accounting-core exclusionScope`): the entries `invoice:`, `invoice-cancel:`, `credit-note:`, `payment:`,
+  `payment-void:` and the `credit:` of an overpayment of that invoice. `automaticEntries` skips them on every sync, also
+  for documents added later. Only automatic entries: a manual entry the accountant typed for the same client is hers to
+  correct.
+- **Existing entries become tombstones:** `deleted`, `deletedAt`, `deletedBy`, `deleteReason`, `excludedInvoiceId`,
+  history action `excluded` with the content in `before`; the number is never reused; „Näita kustutatud” shows them with the
+  tag „ei kuulu raamatupidamisse”. `financialAudit/<requestId>` „invoice.accounting_excluded”.
+- **Undo:** „Taasta raamatupidamisse” removes the mark; the tombstones made by it are live again with the same numbers
+  (history action `included`, audit „invoice.accounting_included”); documents without an entry get one from the next sync.
+- **Refused (409):** a date in a locked period or a closed month (the invoice date and every entry date), both ways; an
+  active payment that came through the company's bank (`bankTransactionId`, requestId `lhv-…`, LinkPay), because that money
+  is in the statement; a payment made from a prepayment that would stay in the books; an overpayment credit of the invoice
+  already spent. Cancel those first.
+- **A bank payment arriving later** on a marked invoice is not booked; the sync returns it in `exclusionConflicts` and
+  Raamatupidamine shows a warning. A person cancels the payment or removes the mark.
+- **Corrections:** „Paranda summa või maksja” copies the mark to the new invoice. When the mark is set on one invoice of a
+  corrected pair, the other stays as it is and the result names it (`relatedInvoices`).
+- **Not changed:** INF 3 (`inf3-core.js`) still counts these payments. Whether a payment made to the FIE belongs in the
+  company's INF 3 is the accountant's decision; see PROJECT_STATE.
+
 ## Sisemine märkus (invoice internal note, team 2026-10-29)
 
 „Создать внутреннюю заметку к выставляемым счетам”: the administrator or the bookkeeper writes what exactly an invoice
@@ -304,7 +337,7 @@ was for. Staff only — never printed (PDF), never e-mailed, never shown to the 
   `supplierPayment`), `documentRef`, `sourceKey`, `origin` (`auto` | `manual` | `reversal` | `opening`),
   `lines[{ account, debitCents, creditCents, note, partner? { type: supplier | customer, id, name } }]`, `totalCents`, `reversalOf` / `reversedBy`, `reason`,
   `createdAt`, `createdBy`; corrections: `history[]`, `override`, `original`, `deleted`, `deletedAt`, `deletedBy`,
-  `deleteReason`, `updatedAt`, `updatedBy`; purchase entries: `purchaseInvoiceId`.
+  `deleteReason`, `excludedInvoiceId`, `updatedAt`, `updatedBy`; purchase entries: `purchaseInvoiceId`.
 - `accountingSettings/lock`: `{ lockedThrough, reason, updatedAt, updatedBy }`.
 - `suppliers/{id}`: `name`, `regCode`, `vatNumber`, `address`, `email`, `iban`, `defaultAccount`, `active`; imported ones also `importId` (id `<requestId>_<row>`).
 - `purchaseInvoices/{id}`: `supplierId`, `supplierName`, `supplierRegCode`, `documentNumber`, `date`, `dueDate`,
@@ -312,6 +345,7 @@ was for. Staff only — never printed (PDF), never e-mailed, never shown to the 
   `paidCents`, `payments[{ id, date, amountCents, method, reference, entryId, entryNumber }]`, `removedPayments[]`,
   `status` (`unpaid` | `paid` | `voided`), `documents[]`, `entryId`, `entryNumber`.
 - `meta/accountingCounter_<year>.next`: the next number of a year.
+- financeApi (admin and finance): `/accounting/invoices/exclude`, `/accounting/invoices/include`.
 - financeApi (admin only): `/invoices/credit-full`, `/invoices/correct` (documents above), `/accounting/sync`,
   `/accounting/entries`, `/accounting/entries/reverse`, `/accounting/entries/update`, `/accounting/entries/delete`,
   `/accounting/entries/replace-account`,
