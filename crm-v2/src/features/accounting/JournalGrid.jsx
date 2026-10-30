@@ -425,7 +425,8 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
             {lineRows}
             <tr className="accounting-grid__subtotal"><td colSpan="5">{w ? <span className={red ? 'is-off' : 'accounting-grid__pending'} role={red ? 'alert' : undefined}>
               {serverErrors[entry.id] || check.problem || 'Muudetud — salvestub, kui liigud teise kandesse.'}{check.difference ? ` (D − K = ${amount(check.difference)})` : ''}
-              {' '}<button type="button" className="link-button" onClick={() => save(entry.id)}>Salvesta</button>
+              {entry.origin !== 'manual' ? <>{' '}<input className="accounting-grid__reason" aria-label="Paranduse põhjus (see kanne)" placeholder="paranduse põhjus" value={reason} onChange={(event) => setReason(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') save(entry.id); }} /></> : null}
+              {' '}<button type="button" className="link-button" onClick={(event) => { const box = event.currentTarget.parentElement.querySelector('input'); save(entry.id).then((saved) => { if (saved === false) box?.focus(); }); }}>Salvesta</button>
               <button type="button" className="link-button" onClick={() => drop(entry.id)}>Tühista (Esc)</button>
             </span> : null}</td><td className="num">{amount(sumD)}</td><td className="num">{amount(sumK)}</td></tr>
             {historyOpen ? entry.history.map((h, i) => <tr key={`h${i}`} className="accounting-grid__history"><td colSpan="7">
