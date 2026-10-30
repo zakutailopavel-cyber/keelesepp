@@ -26,7 +26,7 @@
   Kaubahall in summer).
 - Audio (TartuNLP, free): new `061_d_radio`, `061_p_ene`, `062_d_markus`, `063_d_calls`, `063_p_talk`, `064_d_liis`, `064_d_times`, `064_p_clips`,
   `064_t_voice`, `065_t_l1`–`065_t_l4`; the 10 old recordings removed (mp3 + manifest).
-- Checks after the merge: see the PR for the exact eslint and vitest results. Language check (Vabamorf) of module 13: 1 unknown lower-case word, `kusimustik`
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average ~100): 408 files passed, 5 UI files failed, 1 skipped (14 tests of 2889; 2868 passed, 7 skipped). The 5 files run one at a time with a 180 s test timeout all pass: `studentWorksheetFlow` 3/3, `VocabularyPage` 8/8, `CourseProductionPage` 2/2, `LessonWorksheetStudioPage` 6/6, `WorksheetStudioPage` 23/23. `final-shape.mjs --course a2`: 869 problems, new 0. Language check (Vabamorf) of module 13: 1 unknown lower-case word, `kusimustik`
   (genre value).
 - Known: `V6-gap-L1` is unchanged in kind (module 5 → 10, closing pass); corner counts after this module: R3 3, W1 4, L4 2, L3 2 of 4.
 - Next safe step: A2 module 14 (`a2/module14.js`, its first corner not L3); rerun `final-shape.mjs --course a2 --module 14` against this file.
