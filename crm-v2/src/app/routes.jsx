@@ -109,10 +109,6 @@ export default function AppRoutes() {
             <Route path="library/worksheets/book" element={staffPage(<BookPage />)} />
             <Route path="library/worksheets/live/:assignmentId" element={staffPage(<LiveWorksheetPage />)} />
             <Route path="library/worksheet-generator" element={generatorPage(<GeneratorCoveragePage />)} />
-            <Route path="library/worksheet-generator/avasta-module-1" element={generatorPage(<AvastaUpgradePage />)} />
-            <Route path="library/worksheet-generator/module-1-three-phase" element={generatorPage(<Module1ThreePhasePage />)} />
-            <Route path="library/worksheet-generator/course" element={generatorPage(<CourseProductionPage />)} />
-            <Route path="library/worksheet-generator/health" element={generatorPage(<CourseHealthPage />)} />
             <Route path="library/lessons/:lessonId/worksheets" element={generatorPage(<LessonWorksheetSet />)} />
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
             <Route path="library/worksheets/:lessonId" element={generatorPage(<WorksheetStudioPage />)} />
@@ -127,6 +123,11 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
             {/* administrator watching a lesson going on now (receive-only; both sides see it) */}
             <Route path="live-classroom/vaatle/:invitationId" element={staffPage(<LiveObserverPage />)} />
+            {/* course production and maintenance: the links are in the administrator's Õppevara menu */}
+            <Route path="library/worksheet-generator/avasta-module-1" element={generatorPage(<AvastaUpgradePage />)} />
+            <Route path="library/worksheet-generator/module-1-three-phase" element={generatorPage(<Module1ThreePhasePage />)} />
+            <Route path="library/worksheet-generator/course" element={generatorPage(<CourseProductionPage />)} />
+            <Route path="library/worksheet-generator/health" element={generatorPage(<CourseHealthPage />)} />
             <Route path="teachers" element={staffPage(<TeachersPage />)} />
             <Route path="accounts" element={staffPage(<AccountsPage />)} />
             <Route path="teachers/:teacherId" element={staffPage(<TeacherProfilePage />)} />
@@ -138,8 +139,12 @@ export default function AppRoutes() {
             <Route path="ai/connect" element={staffPage(<AiConnectPage />)} />
           </Route>
           <Route path="settings" element={<SettingsPage />} />
-          <Route path="homework" element={<HomeworkPage />} />
-          <Route path="messages" element={<MessagesPage />} />
+          <Route element={<ProtectedRoute roles={ACCESS.HOMEWORK} />}>
+            <Route path="homework" element={<HomeworkPage />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={ACCESS.MESSAGES} />}>
+            <Route path="messages" element={<MessagesPage />} />
+          </Route>
           <Route element={<ProtectedRoute roles={ACCESS.PARENT} />}>
             <Route path="parent" element={<ParentDashboardPage />} />
           </Route>
