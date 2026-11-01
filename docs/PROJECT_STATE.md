@@ -7,6 +7,17 @@
 - Checks: see the PR. Not opened in a browser.
 - Next safe step: the owner decides whether to clean the old „Sinu lause: <number>” cards in production.
 
+## 2026-11-01 · agent/role-views — student and parent views: absences and invoices for parents, no school inboxes, roles in words
+
+- Base: `main` b13d41e, checked 2026-11-01. Redoes what is still missing and correct from draft #515 (2026-10-11). UI only: no rules, functions or data; no deploy, no merge, no production access.
+- Minu pere (`ParentDashboardPage.jsx`): „Viimased tunnid” shows absences; card „Arved” lists the last 6 invoices (Tasutud / Tasumata / Tähtaeg möödas), without cancelled and credited ones. It comes next to „Tasumata arved” (`OpenInvoicesCard`), which appears only with card payments and has „Maksa arve”.
+- Corrected from #515: there the two absence labels were swapped; here `Puudus_eta` = „Puudus (ei teatanud)”, `Puudus_p` = „Puudus (teatas ette)”, as in the calendar. Credited invoices are not shown as „Tasutud”. The promise „saadetud e-postile” is left out.
+- Minu õpingud (`StudentDashboardPage.jsx`): a card with another person's parent link hides „Arved” and „Tasumata arved”. Display only: the rules still let the student read those invoices. The empty state no longer asks for the account UID, which a student no longer sees.
+- Kodutööd (`HomeworkPage.jsx`): after „Tehtud” without an answer a notice offers „Võta tagasi ja lisa vastus” (`setStatus('Ootel')`, already allowed); a parent reads „Laste kodutööd”, „Laste esitused”.
+- Sõnumid (`MessagesPage.jsx`): students and parents get the title „Sõnumid”, no Facebook / Instagram filter or numbers, a helpful empty state.
+- Seaded and menu: `roleLabels` in `utils/roles.js`; Firebase row, support row and account UID only for staff. Texts: „1 tund”, „1 sõnum”, „1 arve”, lead arrival as a Tallinn date (`LeadsPage.jsx`).
+- Checks: see the PR.
+- Next safe step: the owner reviews and merges the PR; it needs hosting only.
 ## 2026-11-01 · agent/a2-m20-final-2 — A2 module 20 „A2 eksam ja iseseisev keelekasutus” in the final shape (last A2 module)
 
 - Base: `main` b13d41e, checked 2026-11-01. Content only; no production data, no publishing, no deploy. Paid services: none (TartuNLP is free).
