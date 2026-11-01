@@ -9,7 +9,7 @@ import StudentParentsCard from './StudentParentsCard.jsx';
 import { useStudyDirections } from './useStudyDirections.js';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { parentCardIds } from '../parents/parentModel.js';
-import { AuthContext } from '../../app/AuthContext.jsx';
+import { AuthContext, usePreviewNavigation } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
@@ -74,6 +74,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
+  const previewNavigation = usePreviewNavigation();
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
   const [merging, setMerging] = useState(false);
@@ -163,9 +164,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
         <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link>{auth?.startPreview && !auth?.preview ? <Button variant="secondary" onClick={() => {
           // the student's own cabinet, read only: what he sees is what the teacher sees (owner 2026-10-27)
-          auth.startPreview({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' });
-          window.history.pushState({}, '', '/student');
-          window.dispatchEvent(new window.Event('popstate'));
+          previewNavigation.open({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' }, '/student');
         }}><Eye size={17} /> Vaata õpilase silmadega</Button> : null}<Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setTracksOpen(true)}><Layers size={17} /> Õppesuunad</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
         {canAssignTeacher && tracksOpen ? <EnrollmentManager student={student} directions={directions} teachers={teacherChoices(staffTeachers, [student.teacher])} service={studentApi}
           onClose={() => { setTracksOpen(false); if (searchParams.get('enrollments')) setSearchParams((current) => { current.delete('enrollments'); return current; }, { replace: true }); }}
