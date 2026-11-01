@@ -1,3 +1,13 @@
+## 2026-11-01 · agent/csp-report-only — CRM host sends a report-only Content-Security-Policy
+
+- Base: `main` ee2eac1, checked 2026-11-01. `crm-v2/vercel.json` only, plus a test. No deploy, no production writes. Nothing can be blocked: no enforcing `Content-Security-Policy` header is sent, and `hostingHeaders.test.js` guards that.
+- Policy built from the code and the live bundle: `script-src` self + `apis.google.com` (Google sign-in); `style-src` self + inline + Google Fonts; `font-src` self + `fonts.gstatic.com`; `img-src` / `media-src` self, data, blob, Firebase Storage (images also Openverse); `connect-src` self, data, blob, Firebase Auth / Firestore / Storage, `us-central1-keelesepp-5136b.cloudfunctions.net`, Openverse, MyMemory; `frame-src` self, blob, `keelesepp-5136b.firebaseapp.com`, Firebase Storage; `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`.
+- Reading violations: no reporting endpoint exists and none was added, so violations appear only in the visitor's own browser. DevTools → Console, with the „Info” level on, shows „…violates the following Content Security Policy directive… The policy is report-only”.
+- Checks: `hostingHeaders.test.js` 3/3, eslint on it clean. The live bundle served through a local read-only proxy with this header: `/login` and `/ajad` show 0 violations. A deliberate image from outside the policy still loaded and was reported with disposition `report`.
+- Not checked: signed-in pages, Google sign-in popup, Live Classroom, file previews. Teacher-entered image URLs on other hosts will show as `img-src` violations; expected, and the reason to read before enforcing.
+- Deploy: CRM hosting, on merge.
+- Next safe step: after merge, the owner opens the main signed-in pages with the console open; enforcing is a later decision.
+
 ## 2026-11-01 · agent/role-views — student and parent views: absences and invoices for parents, no school inboxes, roles in words
 
 - Base: `main` b13d41e, checked 2026-11-01. Redoes what is still missing and correct from draft #515 (2026-10-11). UI only: no rules, functions or data; no deploy, no merge, no production access.
