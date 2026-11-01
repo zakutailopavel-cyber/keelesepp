@@ -7,6 +7,11 @@
 - Checks: read against okmv by section; Estonian topic names run through `tools/course-audit/language.py`, the unknown words are terms and names; exam and tasemetöö dates read in Riigi Teataja 122052026003. Not compared with any real school's current ainekava for mathematics.
 - Limits: `en/b1` lacks past perfect, third conditional and question tags, which the official B1 grammar has; there is no English A1 or B2 course. `NATIVE_ESTONIAN_9_12_PLAN.md` still says 250 words for the grade 9 essay in one place.
 - Next safe step: the owner reads the plans and answers their open questions; lessons are built only after that.
+## 2026-11-01 · agent/strict-quotes — strict answers forgive the opening quote style too
+
+- Checked `origin/main` `d1a64aa`. Found while making a personal sheet on direct speech: `strictNorm` turned a typed " into the closing ”, so `"Tere"` did not match `„Tere”` and a right answer scored wrong in the mother-tongue courses (`data.strict`).
+- Changed: `worksheet-studio/engine/schema.js` `strictNorm` now maps all quote styles to one character; commas, capitals, letters and missing quotes stay strict. Test in `didactics/nativeLevels.test.js`.
+- Next safe step: owner merges the PR; hosting ships with the merge, no data or rules change.
 
 ## 2026-11-01 · agent/suuline-osa-2 — „Suuline osa” doubled to ten lessons a level
 
