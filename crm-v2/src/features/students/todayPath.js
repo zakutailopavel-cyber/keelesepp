@@ -21,15 +21,18 @@ export function todayPath({ words = [], homework = [], submissions = [], assignm
     {
       key: 'work', label: 'Tee ülesanded', to: '/homework', done: workToday || (!openTasks && homework.length + assignments.length > 0),
       detail: workToday ? 'Tehtud täna' : openTasks ? `${openTasks} ootab` : 'Uusi ülesandeid ei ole',
+      // idle: nothing to do for this step today; the home page does not list a step that cannot be done
+      idle: !workToday && !openTasks,
     },
     // „Päeva 5 minutit” (dailyReview.js): one tap starts about ten cards; done after five reviewed today
     {
       key: 'words', label: daily.count >= 2 ? 'Päeva 5 minutit' : 'Korda sõnu', to: daily.count >= 2 ? '/student/sonavara?paev=1' : '/student/sonavara', done: daily.done || (reviewed > 0 && daily.count < 2),
       detail: daily.done ? `${reviewed} sõna korratud` : daily.count >= 2 ? `${daily.count} kaarti${daily.forgotten ? ` · ${daily.forgotten} ununeb` : ''}` : reviewed ? `${reviewed} sõna korratud` : due ? `${due} sõna ootab` : own.length ? 'Kõik sõnad korratud' : 'Õpi tunni sõnu',
+      idle: !daily.count && !reviewed,
     },
   ];
   if (mistakes) {
-    steps.push({ key: 'mistakes', label: 'Minu vead', to: '/student/vead', done: mistakesDoneToday, detail: mistakesDoneToday ? 'Harjutatud täna' : `${mistakes} lauset tundidest` });
+    steps.push({ key: 'mistakes', label: 'Minu vead', to: '/student/vead', done: mistakesDoneToday, detail: mistakesDoneToday ? 'Harjutatud täna' : `${mistakes} ${mistakes === 1 ? 'lause' : 'lauset'} tundidest` });
   }
   // no friend chosen yet (and not switched off): the step to the picker
   if (offerPet && !pet?.kind && !pet?.optedOut) {

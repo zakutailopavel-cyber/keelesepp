@@ -44,7 +44,8 @@ describe('pet life', () => {
       words: [{ word: 'koer', translation: 'собака', box: 1 }],
     });
     expect(lines.map((l) => l.key)).toEqual(['missed', 'morning', 'lesson', 'said', 'word', 'season']);
-    expect(lines[0].text).toBe('Ma igatsesin sind! Sind polnud 4 päeva.');
+    expect(lines[0].text).toBe('Tore, et sa tagasi oled!');
+    expect(lines[0].text).not.toMatch(/4/);
     expect(lines[2].text).toBe('Järgmine tund on homme kell 10:00. Mari ootab sind!');
     expect(lines[3].text).toContain('„ma läksin poodi”');
     expect(lines[4].hint).toBe('Помнишь слово «koer»? Это «собака».');

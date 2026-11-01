@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import WordPractice from '../vocabulary/WordPractice.jsx';
 import PetGames from './PetGames.jsx';
-import { FEED_WORDS, LOW_NEED, feedingWords, fixRounds, gameRounds } from './petCare.js';
+import { FEED_WORDS, feedingWords, fixRounds, gameRounds } from './petCare.js';
 
 const NEEDS = [
-  { key: 'food', label: 'Kõht', ru: 'Сытость: повтор слов', Icon: Utensils },
-  { key: 'energy', label: 'Energia', ru: 'Энергия: домашние задания', Icon: Moon },
-  { key: 'joy', label: 'Rõõm', ru: 'Радость: урок, игра со словами, «Paranda» или игры по темам', Icon: Gamepad2 },
+  { key: 'food', label: 'Kõht', Icon: Utensils },
+  { key: 'energy', label: 'Energia', Icon: Moon },
+  { key: 'joy', label: 'Rõõm', Icon: Gamepad2 },
 ];
 
 /** Word game: GAME_ROUNDS questions „word → translation”, nothing is written to the word list. */
@@ -88,8 +88,8 @@ export default function PetCare({ needs, words, wordsService, readOnly = false, 
   return (
     <div className="pet-care">
       <div className="pet-needs">
-        {NEEDS.map(({ key, label, ru, Icon }) => (
-          <div key={key} className={`pet-need ${needs[key] < LOW_NEED ? 'is-low' : ''}`} title={ru}>
+        {NEEDS.map(({ key, label, Icon }) => (
+          <div key={key} className="pet-need">
             <span><Icon size={14} aria-hidden="true" /> {label}</span>
             <div className="pet-need__bar" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={needs[key]}><i style={{ width: `${needs[key]}%` }} /></div>
           </div>
@@ -101,13 +101,13 @@ export default function PetCare({ needs, words, wordsService, readOnly = false, 
           : mode === 'fix' ? <PetFixGame stats={stats} onDone={onPlayed} onClose={close} />
           : mode === 'topics' ? <PetGames topics={topics} kind={kind} onDone={onPlayed} onClose={close} />
           : <div className="pet-care__actions">
-            <button type="button" className="pet-btn" disabled={!needs.dueWords} onClick={() => { setFeed(feedingWords(words)); setMode('feed'); }} title={needs.dueWords ? '' : 'Kõik sõnad on korratud'}>
+            <button type="button" className="pet-btn" disabled={!needs.dueWords} onClick={() => { setFeed(feedingWords(words)); setMode('feed'); }}>
               <Utensils size={14} aria-hidden="true" /> Toida ({Math.min(FEED_WORDS, needs.dueWords)} sõna)
             </button>
             {needs.openHomework ? <Link className="pet-btn" to="/homework"><Moon size={14} aria-hidden="true" /> Kodutöö ({needs.openHomework})</Link> : null}
             {needs.canWordGame ?? needs.canPlay ? <button type="button" className="pet-btn" onClick={() => setMode('play')}><Gamepad2 size={14} aria-hidden="true" /> Mängi</button> : null}
-            {topics.length ? <button type="button" className="pet-btn" onClick={() => setMode('topics')} title="Mängud sinu töölehtede teemadel"><Puzzle size={14} aria-hidden="true" /> Teemamängud</button> : null}
-            {canFix ? <button type="button" className="pet-btn" onClick={() => setMode('fix')} title="Sinu enda laused tunnist"><SpellCheck size={14} aria-hidden="true" /> Paranda</button> : null}
+            {topics.length ? <button type="button" className="pet-btn" onClick={() => setMode('topics')}><Puzzle size={14} aria-hidden="true" /> Teemamängud</button> : null}
+            {canFix ? <button type="button" className="pet-btn" onClick={() => setMode('fix')}><SpellCheck size={14} aria-hidden="true" /> Paranda</button> : null}
           </div>}
       </>}
     </div>

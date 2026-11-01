@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import PetCompanion from './PetCompanion.jsx';
-import { celebrationHint, companionHint } from './companionModel.js';
+import { celebrationHint, companionHere, companionHint, mayAutoSpeak } from './companionModel.js';
 import { petCelebrate, petQuiet } from './petEvents.js';
 
 const at = (h, m) => { const d = new Date(2026, 8, 29, h, m, 0); return d.getTime(); };
@@ -21,7 +21,7 @@ describe('companion hints', () => {
   });
 });
 
-function renderCompanion({ roles = ['student'], preview = null, invite, pet = { kind: 'rebane', name: 'Rebu' }, path = '/student' } = {}) {
+function renderCompanion({ roles = ['student'], preview = null, invite, pet = { kind: 'rebane', name: 'Rebu' }, path = '/student/kursus' } = {}) {
   // like Firestore, a new subscription (the effect re-subscribes when the pet loads) gets the current list again
   let current = invite ? [invite] : [];
   let listener = () => {};
@@ -54,7 +54,7 @@ describe('PetCompanion', () => {
   it('gives a first-visit tour, then walks and talks when pressed', async () => {
     renderCompanion();
     expect(await screen.findByRole('dialog', { name: 'Tutvustus' })).toBeInTheDocument();
-    expect(screen.getByText('Siin on „Minu õpingud”: sinu tunnid, ülesanded ja mina.')).toBeInTheDocument();
+    expect(screen.getByText('Siin on „Täna”: mida täna teha, sinu tund ja mina.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Edasi/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Selge!' }));
     expect(screen.queryByRole('dialog', { name: 'Tutvustus' })).toBeNull();
@@ -115,15 +115,82 @@ describe('PetCompanion', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Tubli! Tööleht on esitatud ja 1 tunni eesmärk. +20 mulle!');
   });
 
-  it('gives a one-time hint on Kodutööd and keeps still in the lesson room', async () => {
+  it('gives a one-time hint on Kodutööd and is not there at all in the lesson room', async () => {
     window.localStorage.setItem('ks-pet-tour-u1', '1');
     const hw = renderCompanion({ path: '/homework' });
     expect(await screen.findByRole('status')).toHaveTextContent('Vajuta töölehele');
     fireEvent.click(screen.getByRole('button', { name: 'Selge' }));
     expect(window.localStorage.getItem('ks-pet-page-u1-/homework')).toBe('1');
     hw.unmount();
-    renderCompanion({ path: '/live-classroom', invite: { id: 'inv-9', status: 'pending', teacherName: 'Kati', expiresAt: new Date(at(12, 5)).toISOString() } });
-    expect(await screen.findByRole('status')).toHaveTextContent('Käivita video ja mikrofon');
+    window.sessionStorage.clear();
+    const { container, services } = renderCompanion({ path: '/live-classroom', invite: { id: 'inv-9', status: 'pending', teacherName: 'Kati', expiresAt: new Date(at(12, 5)).toISOString() } });
+    await waitFor(() => expect(services.pets.get).toHaveBeenCalled());
+    await act(async () => { await Promise.resolve(); });
+    expect(container.querySelector('.pet-walker')).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+});
+
+describe('quiet companion (owner 2026-11-01)', () => {
+  beforeEach(() => {
+    const store = new Map();
+    Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) } });
+    window.sessionStorage.clear();
+    window.localStorage.setItem('ks-pet-tour-u1', '1');
+  });
+
+  it('is not on the pages that show the pet, but the one-time tour can still run there', async () => {
+    expect(companionHere('/student')).toBe(false);
+    expect(companionHere('/student/lemmik')).toBe(false);
+    expect(companionHere('/live-classroom')).toBe(false);
+    expect(companionHere('/student/kursus')).toBe(true);
+    expect(companionHere('/student/areng')).toBe(true);
+    const home = renderCompanion({ path: '/student' });
+    await waitFor(() => expect(home.services.pets.get).toHaveBeenCalled());
+    await act(async () => { await Promise.resolve(); });
+    expect(home.container.querySelector('.pet-walker')).toBeNull();
+    // nothing is read for it while the home page shows the pet
+    expect(home.services.students.listSelf).not.toHaveBeenCalled();
+    expect(home.services.invitationsService.subscribeIncoming).not.toHaveBeenCalled();
+    home.unmount();
+    window.localStorage.removeItem('ks-pet-tour-u1');
+    renderCompanion({ path: '/student' });
+    expect(await screen.findByRole('dialog', { name: 'Tutvustus' })).toBeInTheDocument();
+  });
+
+  it('says at most one thing by itself in a session; something new and a tap are the exceptions', () => {
+    expect(mayAutoSpeak({ spokenKey: '', key: 'life' })).toBe(true);
+    expect(mayAutoSpeak({ spokenKey: 'life', key: 'life' })).toBe(true);
+    expect(mayAutoSpeak({ spokenKey: 'page-/homework', key: 'life' })).toBe(false);
+    expect(mayAutoSpeak({ spokenKey: 'life', key: 'page-/homework' })).toBe(false);
+  });
+
+  it('a page hint already used the session: the next page stays silent until pressed', async () => {
+    window.sessionStorage.setItem('ks-pet-spoke-u1', 'life');
+    const { container } = renderCompanion({ path: '/homework' });
+    await waitFor(() => expect(container.querySelector('.pet-walker')).not.toBeNull());
+    expect(screen.queryByRole('status')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /vajuta, et saada abi/ }));
+    expect(screen.getByRole('status')).toBeInTheDocument();
+  });
+
+  it('an invitation still speaks after the session has used its one line', async () => {
+    window.sessionStorage.setItem('ks-pet-spoke-u1', 'life');
+    renderCompanion({ invite: { id: 'inv-1', status: 'pending', teacherName: 'Kati', expiresAt: new Date(at(12, 5)).toISOString() } });
+    expect(await screen.findByRole('status')).toHaveTextContent('Kati kutsub sind tundi');
+  });
+
+  it('stays out while a game or a sheet is open, and obeys the opt-out', async () => {
+    const open = renderCompanion();
+    await waitFor(() => expect(open.container.querySelector('.pet-walker')).not.toBeNull());
+    act(() => petQuiet(true));
+    expect(open.container.querySelector('.pet-walker')).toBeNull();
+    act(() => petQuiet(false));
+    open.unmount();
+    const off = renderCompanion({ pet: { kind: 'rebane', name: 'Rebu', optedOut: true } });
+    await waitFor(() => expect(off.services.pets.get).toHaveBeenCalled());
+    await act(async () => { await Promise.resolve(); });
+    expect(off.container.querySelector('.pet-walker')).toBeNull();
   });
 });
 

@@ -52,6 +52,8 @@ const LeadsPage = lazy(() => import('../features/leads/LeadsPage.jsx'));
 const TeacherProfilePage = lazy(() => import('../features/teachers/TeacherProfilePage.jsx'));
 const AnnouncementsAdminPage = lazy(() => import('../features/announcements/AnnouncementsAdminPage.jsx'));
 const CampaignsPage = lazy(() => import('../features/campaigns/CampaignsPage.jsx'));
+// „Minu areng”: the course and all results load only when the student opens them, not with his home page
+const StudentProgressPage = lazy(() => import('../features/students/StudentProgressPage.jsx'));
 const LiveObserverPage = lazy(() => import('../features/live-classroom/LiveObserverPage.jsx'));
 // the pages of every role: each role downloads its own page, not all of them on the first load
 const HomeworkPage = lazy(() => import('../features/homework/HomeworkPage.jsx'));
@@ -152,6 +154,7 @@ export default function AppRoutes() {
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.STUDENT} />}>
             <Route path="student" element={staffPage(<StudentDashboardPage />)} />
+            <Route path="student/areng" element={staffPage(<StudentProgressPage />)} />
             <Route path="student/sonavara" element={staffPage(<VocabularyPage />)} />
             <Route path="student/lemmik" element={staffPage(<PetPage />)} />
             <Route path="student/vead" element={staffPage(<MistakesPage />)} />

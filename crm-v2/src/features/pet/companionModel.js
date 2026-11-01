@@ -72,12 +72,12 @@ export function companionHint({ now = Date.now(), invitation = null, todayLesson
 export const TOUR_STEPS = [
   // phones: the menu is closed, so the tour points at the menu button instead of the items
   { target: '[data-tour="menu"]', text: 'Menüü on siin: tunnid, kodutööd, tund õpetajaga ja sõnumid.', hint: 'Меню здесь: уроки, домашки, урок с учителем и сообщения.' },
-  { target: '[data-tour="nav-/student"]', text: 'Siin on „Minu õpingud”: sinu tunnid, ülesanded ja mina.', hint: 'Здесь «Minu õpingud»: твои уроки, задания и я.' },
+  { target: '[data-tour="nav-/student"]', text: 'Siin on „Täna”: mida täna teha, sinu tund ja mina.', hint: 'Здесь «Täna»: что сделать сегодня, твой урок и я.' },
   { target: '[data-tour="nav-/homework"]', text: '„Ülesanded”: interaktiivsed tööd õpetajalt.', hint: '«Ülesanded»: интерактивные задания от учителя.' },
   { target: '[data-tour="nav-/student/vead"]', text: '„Minu vead”: laused tunnist, mida harjutame, kuni need tulevad õigesti.', hint: '«Minu vead»: фразы с урока, которые тренируем, пока не получится.' },
   { target: '[data-tour="nav-/student/lemmik"]', text: 'Siin elan mina! Kui õpetaja kutsub tundi, annan märku igal lehel.', hint: 'Здесь живу я! Когда учитель позовёт на урок, я дам знать на любой странице.' },
   { target: '[data-tour="nav-/messages"]', text: '„Suhtlus”: kirjuta õpetajale, kui midagi on segane.', hint: '«Suhtlus»: напиши учителю, если что-то непонятно.' },
-  { target: '[data-tour="pet"]', text: 'Ja mina olen alati siin. Vajuta mulle, kui vajad abi!', hint: 'А я всегда здесь. Нажми на меня, если нужна помощь!' },
+  { target: '[data-tour="pet"]', text: 'Ja siin olen mina. Iga päev on mul sulle üks väike palve.', hint: 'А вот и я. Каждый день у меня к тебе одна маленькая просьба.' },
 ];
 
 // One-time hints when the student first opens a page (the key is remembered per page).
@@ -95,3 +95,10 @@ export function celebrationHint({ xp = 15, goals = 0, lang = 'et' }) {
     hint: `Молодец! Лист сдан${goals ? ` и выполнено целей: ${goals}` : ''}. +${xp} мне!`,
   };
 }
+
+// The pet is on these pages itself (PetLoop), and a lesson has its own (RoomPet): no second one walking around.
+export const companionHere = (pathname = '') => !(pathname === '/student' || pathname === '/student/' || pathname.startsWith('/student/lemmik') || pathname.startsWith('/live-classroom'));
+
+// Quiet (owner 2026-11-01): by itself the pet says at most one thing a session. Something new is the exception (a lesson
+// invitation, a lesson about to start, a celebration: those do not pass through here), and a tap always answers.
+export const mayAutoSpeak = ({ spokenKey = '', key = '' } = {}) => !spokenKey || spokenKey === key;

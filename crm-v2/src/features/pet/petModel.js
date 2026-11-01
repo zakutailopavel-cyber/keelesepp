@@ -42,6 +42,22 @@ export function learningStreak(activityTimes = [], now = Date.now()) {
   return streak;
 }
 
+// The longest run of learning days ever (two days or more): what the streak's XP counts, so that a missed day never
+// takes growth away (owner 2026-11-01: losing a streak is not punished).
+export function bestLearningStreak(activityTimes = [], now = Date.now()) {
+  const days = [...new Set(activityTimes.filter((t) => t && t <= now).map(dayKey))].sort();
+  let best = 0;
+  let run = 0;
+  let previous = 0;
+  days.forEach((day) => {
+    const at = new Date(`${day}T12:00:00`).getTime();
+    run = previous && Math.round((at - previous) / DAY) === 1 ? run + 1 : 1;
+    previous = at;
+    best = Math.max(best, run);
+  });
+  return best;
+}
+
 export function petProgress({ lessons = [], submissions = [], homework = [], words = [], speech = [], now = Date.now() }) {
   // only lessons the student actually attended feed the pet (absences 'Puudus_*' and cancellations do not)
   const held = lessons.filter((l) => isAttended(l) && time(l.date) && time(l.date) <= now);
@@ -55,8 +71,9 @@ export function petProgress({ lessons = [], submissions = [], homework = [], wor
     ...homeworkDone.map((h) => time(h.submittedAt || h.updatedAt)), ...words.map((w) => time(w.reviewedAt)),
   ];
   const streak = learningStreak(activity, now);
+  const bestStreak = bestLearningStreak(activity, now);
   const xp = held.length * XP.lesson + done.length * XP.submission + goals * XP.goal
-    + homeworkDone.length * XP.homework + learnedWords * XP.word + Math.min(STREAK_XP_CAP, streak * XP.streakDay)
+    + homeworkDone.length * XP.homework + learnedWords * XP.word + Math.min(STREAK_XP_CAP, (bestStreak >= 2 ? bestStreak : streak) * XP.streakDay)
     + speech.reduce((sum, stat) => sum + speechXp(stat), 0);
   const stage = xp >= STAGE_AT[2] ? 3 : xp >= STAGE_AT[1] ? 2 : 1;
   const from = STAGE_AT[stage - 1];
@@ -71,7 +88,7 @@ export function petProgress({ lessons = [], submissions = [], homework = [], wor
   else if (!last || now - last > 14 * DAY) mood = xp ? 'sleep' : 'calm';
   return {
     xp, stage, mood, goals, lessons: held.length, submissions: done.length,
-    homework: homeworkDone.length, learnedWords, streak, stars: Math.floor(xp / 5), speechLessons: speech.length,
+    homework: homeworkDone.length, learnedWords, streak, bestStreak, lastActivity: last, stars: Math.floor(xp / 5), speechLessons: speech.length,
     stageXp: xp - from, stageSize: to ? to - from : null,
     nextItem: stage === 1 ? 'sall' : stage === 2 ? 'lõpetaja müts' : null,
   };

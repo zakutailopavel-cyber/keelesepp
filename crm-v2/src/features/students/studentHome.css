@@ -1,0 +1,59 @@
+/* The student's home (owner 2026-11-01): one clear first screen on a phone. */
+.sh { display: grid; gap: 14px; max-width: 980px; }
+.sh-hello { margin: 0; font-size: 1.35rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sh-hero { display: grid; gap: 14px; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); align-items: start; }
+.sh-main { display: grid; gap: 10px; align-content: start; min-width: 0; }
+
+.sh-pet { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--border, #e4ece8); border-radius: 16px; background: #fff; color: inherit; text-decoration: none; }
+.sh-pet:hover { box-shadow: 0 8px 22px rgba(16, 35, 57, .08); }
+.sh-pet strong { display: block; font-size: 1.02rem; }
+.sh-pet small { color: var(--muted); }
+
+.sh-step { display: grid; gap: 4px; padding: 16px 18px; border-radius: 16px; background: #0f5f4c; color: #fff; }
+.sh-step small { opacity: .82; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.sh-step strong { font-size: 1.2rem; line-height: 1.25; overflow-wrap: anywhere; }
+.sh-step span { font-size: .9rem; opacity: .92; }
+.sh-step a { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 8px; padding: 0 20px; border-radius: 12px; background: #fff; color: #0f5f4c; font-weight: 800; text-decoration: none; }
+.sh-step a:focus-visible { outline: 3px solid #f5c26b; outline-offset: 2px; }
+.sh-step.is-done { background: #eaf6f1; color: #123f33; }
+.sh-step.is-done a { background: #0f5f4c; color: #fff; }
+
+.sh-lesson { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 10px; min-height: 44px; padding: 0 2px; font-size: .88rem; }
+.sh-lesson > span { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.sh-lesson svg { flex: none; color: var(--muted); }
+.sh-lesson .form-hint { flex-basis: 100%; margin: 0; }
+.sh-lesson .link-button, .sh-link { min-height: 44px; }
+
+.sh-today { padding: 12px 14px; border: 1px solid var(--border, #e4ece8); border-radius: 16px; background: #fff; }
+.sh-today__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.sh-today__head h2 { margin: 0; font-size: .95rem; }
+.sh-streak { display: inline-flex; align-items: center; gap: 5px; color: #c4320a; font-size: .84rem; font-weight: 700; white-space: nowrap; }
+.sh-today ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.sh-today li a { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 44px; color: inherit; text-decoration: none; }
+.sh-today li + li a { border-top: 1px solid #eef3f1; }
+.sh-today li i { display: grid; place-items: center; width: 22px; height: 22px; border: 2px solid #c7d6d0; border-radius: 50%; color: #fff; }
+.sh-today li.is-done i { border-color: #1f8a6d; background: #1f8a6d; }
+.sh-today li.is-done b { color: var(--muted); font-weight: 500; text-decoration: line-through; }
+.sh-today li b { font-weight: 600; font-size: .95rem; }
+.sh-today li small { color: var(--muted); font-size: .8rem; text-align: right; }
+
+.sh-notes { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.sh-notes li > a, .sh-notes li > div { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 2px; color: inherit; font-size: .92rem; text-decoration: none; }
+.sh-notes li > a { color: #0f5f4c; font-weight: 600; }
+.sh-notes svg { flex: none; }
+.sh-notes .link-button { margin-left: auto; }
+.sh-link { display: inline-flex; align-items: center; gap: 4px; color: #0f5f4c; font-weight: 700; text-decoration: none; }
+
+@media (max-width: 760px) {
+  .sh-hero { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .page-content.sh-page { padding-top: 12px; }
+  .sh { gap: 10px; }
+  .sh-step a { width: 100%; justify-content: center; }
+  .sh-today li small { max-width: 44vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* plain text buttons of this page */
+.sh .link-button { padding: 0 2px; border: 0; background: none; color: #0f5f4c; font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+/* a line on the home page leads to one card on „Minu areng”; the sticky top bar must not cover it */
+#tulemused, #sobivad-ajad, #teated { scroll-margin-top: 84px; }

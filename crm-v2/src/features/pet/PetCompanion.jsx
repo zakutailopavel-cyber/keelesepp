@@ -7,7 +7,7 @@ import { INVITATION_STATUS, newestInvitation, normalizeInvitation } from '../liv
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { petSvg } from './petArt.js';
-import { PAGE_HINTS, TOUR_STEPS, celebrationHint, companionHint } from './companionModel.js';
+import { PAGE_HINTS, TOUR_STEPS, celebrationHint, companionHere, companionHint, mayAutoSpeak } from './companionModel.js';
 import { REACTIONS, dayPart, lifeLines, nextLesson, season, seasonalWear } from './petLife.js';
 import { PET_CELEBRATE_EVENT, PET_EVENT, PET_QUIET_EVENT, PET_REACT_EVENT } from './petEvents.js';
 import './pet.css';
@@ -18,6 +18,11 @@ const store = {
   get: (key) => { try { return window.localStorage.getItem(key); } catch { return null; } },
   set: (key, value) => { try { window.localStorage.setItem(key, value); } catch { /* private mode */ } },
 };
+const session = {
+  get: (key) => { try { return window.sessionStorage.getItem(key) || ''; } catch { return ''; } },
+  set: (key, value) => { try { window.sessionStorage.setItem(key, value); } catch { /* private mode */ } },
+};
+const isPhone = () => typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 640px)').matches;
 const reducedMotion = () => typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function PetFigure({ kind, mood, stage = 1, wearing = {}, figureRef = null }) {
@@ -92,8 +97,9 @@ function PetTour({ pet, onDone }) {
   );
 }
 
-// The student's pet walks along the bottom of every page, reacts to lesson invitations, reminds about lessons
-// and homework, and gives a short tour on the first visit. Students only; never in staff preview.
+// The student's pet walks along the bottom of the pages that do not show it already, reacts to lesson invitations and
+// gives a short tour once. By itself it says at most one thing a session, unless something new happened. Students
+// only; never in staff preview.
 export default function PetCompanion({
   pets = petsService, invitationsService = liveLessonInvitationsService, students = studentsService,
   schedule = scheduleService, homework = homeworkService, wordsService = studentWordsService, now: nowProp,
@@ -138,6 +144,9 @@ export default function PetCompanion({
   const figureRef = useRef(null);
   const pettingTimer = useRef(0);
   const [lastSeenAt] = useState(() => Number(store.get(`ks-pet-seen-${uid}`)) || 0);
+  // the one thing it may say by itself this session
+  const spokenKey = session.get(`ks-pet-spoke-${uid}`);
+  const here = companionHere(location.pathname);
 
   // pet (and changes made on "Minu õpingud")
   useEffect(() => {
@@ -179,13 +188,13 @@ export default function PetCompanion({
 
   // lesson invitations
   useEffect(() => {
-    if (!isStudent || !pet?.kind || pet?.optedOut) return undefined;
+    if (!isStudent || !here || !pet?.kind || pet?.optedOut) return undefined;
     try { return invitationsService.subscribeIncoming(uid, setInvites, () => {}); } catch { return undefined; }
   }, [invitationsService, isStudent, pet, uid]);
 
-  // today's lessons and homework, once per visit
+  // today's lessons and homework, once per visit (not read at all while the home page shows the pet itself)
   useEffect(() => {
-    if (!isStudent || !pet?.kind || pet?.optedOut) return undefined;
+    if (!isStudent || !here || !pet?.kind || pet?.optedOut) return undefined;
     let alive = true;
     (async () => {
       const mine = await students.listSelf(uid);
@@ -209,7 +218,7 @@ export default function PetCompanion({
       if (alive) setInfo({ loaded: true, upcoming, words, speech, lessons, dueToday: open.filter((d) => d === today).length, overdue: open.filter((d) => d < today).length, lang: /inglise|english/i.test(mine[0]?.subject || '') ? 'en' : 'et' });
     })().catch(() => {});
     return () => { alive = false; };
-  }, [homework, isStudent, pet, pets, schedule, students, uid, wordsService]);
+  }, [here, homework, isStudent, pet, pets, schedule, students, uid, wordsService]);
 
   // the last visit, for „I missed you”
   useEffect(() => { if (isStudent) store.set(`ks-pet-seen-${uid}`, String(Date.now())); }, [isStudent, uid]);
@@ -243,13 +252,15 @@ export default function PetCompanion({
   const pagePath = Object.keys(PAGE_HINTS).find((path) => location.pathname.startsWith(path));
   const touring = active && !hidden && !tourDone && !inRoom;
   const cheer = celebration ? { ...celebrationHint({ ...celebration, lang: info.lang }), key: 'celebrate' } : null;
-  const pageHint = pagePath && !seenPages.has(pagePath) && tourDone ? { ...PAGE_HINTS[pagePath], key: `page-${pagePath}`, page: pagePath } : null;
+  const pageHint = pagePath && !seenPages.has(pagePath) && tourDone && !inRoom && mayAutoSpeak({ spokenKey, key: `page-${pagePath}` }) ? { ...PAGE_HINTS[pagePath], key: `page-${pagePath}`, page: pagePath } : null;
   // in the lesson room the pet stays put and only says the one page hint
   const urgent = !inRoom && hint.urgent && !closedKeys.has(hint.key) ? hint : null;
   const bubble = dragging ? null : openHint || cheer || urgent || pageHint || chatter;
   const atInvitation = Boolean(invitation && bubble?.urgent) && !dragging && !y;
   const shownX = atInvitation ? Math.max(0, laneW - (window.innerWidth > 640 ? 470 : 0)) : x;
   const talking = Boolean(bubble);
+  const pageHintKey = pageHint?.key || '';
+  useEffect(() => { if (pageHintKey && here && !quiet) session.set(`ks-pet-spoke-${uid}`, pageHintKey); }, [here, pageHintKey, quiet, uid]);
   const closeBubble = () => {
     if (bubble?.celebrate || bubble?.key === 'celebrate') setCelebration(null);
     if (bubble?.page) { store.set(`ks-pet-page-${uid}-${bubble.page}`, '1'); setSeenPages((p) => new Set(p).add(bubble.page)); }
@@ -266,13 +277,13 @@ export default function PetCompanion({
   }, [chatter]);
 
   // once a day the pet says something personal by itself (missed you, good morning, the next lesson …)
-  const ready = active && !hidden && !touring && !inRoom && personal.length > 0;
+  const ready = active && !hidden && !touring && here && !quiet && personal.length > 0 && mayAutoSpeak({ spokenKey, key: 'life' });
   useEffect(() => {
     if (!ready) return undefined;
     const key = `ks-pet-said-${uid}`;
     const today = toIsoDate();
     if (store.get(key) === today) return undefined;
-    const t = window.setTimeout(() => { store.set(key, today); setChatter({ ...personal[0], key: `life-${personal[0].key}`, ttl: 9000 }); }, 3000);
+    const t = window.setTimeout(() => { store.set(key, today); session.set(`ks-pet-spoke-${uid}`, 'life'); setChatter({ ...personal[0], key: `life-${personal[0].key}`, ttl: 9000 }); }, 3000);
     return () => window.clearTimeout(t);
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -343,9 +354,11 @@ export default function PetCompanion({
   if (!isStudent || !active || quiet) return null;
 
   const remember = (flags) => Promise.resolve().then(() => pets.update({ uid, current: pet, ...flags })).then((next) => setPet(next)).catch(() => {});
+  const finishTour = () => { store.set(`ks-pet-tour-${uid}`, '1'); setLocalTourDone(true); remember({ tourDoneAt: new Date().toISOString() }); };
+  // home and the pet's page show the pet itself; only the one-time tour may run there
+  if (!here) return touring ? <PetTour pet={pet} onDone={finishTour} /> : null;
   const hide = () => { store.set(`ks-pet-hidden-${uid}`, '1'); setLocalHidden(true); closeBubble(); remember({ hidden: true }); };
   const show = () => { store.set(`ks-pet-hidden-${uid}`, '0'); setLocalHidden(false); remember({ hidden: false }); };
-  const finishTour = () => { store.set(`ks-pet-tour-${uid}`, '1'); setLocalTourDone(true); remember({ tourDoneAt: new Date().toISOString() }); };
   const talk = () => {
     if (justDragged.current) { justDragged.current = false; return; }
     if (asleep) { setAsleep(false); setWaking(true); window.setTimeout(() => setWaking(false), 1300); }
@@ -361,6 +374,8 @@ export default function PetCompanion({
   // drag: press and move to pick the pet up; let go and it falls back down onto the bottom lane
   const onPointerDown = (event) => {
     if (event.button !== undefined && event.button !== 0) return;
+    // on a phone it stands at the end of the page: nothing to drag, and a touch here may be a scroll
+    if (isPhone()) return;
     // no text selection or native image drag while the pet is held
     if (event.pointerType === 'mouse') event.preventDefault();
     drag.current = { sx: event.clientX, sy: event.clientY, x0: shownX, y0: y, moved: false };
