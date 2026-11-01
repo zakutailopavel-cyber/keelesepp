@@ -1,3 +1,33 @@
+## 2026-11-01 · agent/csp-report-only — CRM host sends a report-only Content-Security-Policy
+
+- Base: `main` ee2eac1, checked 2026-11-01. `crm-v2/vercel.json` only, plus a test. No deploy, no production writes. Nothing can be blocked: no enforcing `Content-Security-Policy` header is sent, and `hostingHeaders.test.js` guards that.
+- Policy built from the code and the live bundle: `script-src` self + `apis.google.com` (Google sign-in); `style-src` self + inline + Google Fonts; `font-src` self + `fonts.gstatic.com`; `img-src` / `media-src` self, data, blob, Firebase Storage (images also Openverse); `connect-src` self, data, blob, Firebase Auth / Firestore / Storage, `us-central1-keelesepp-5136b.cloudfunctions.net`, Openverse, MyMemory; `frame-src` self, blob, `keelesepp-5136b.firebaseapp.com`, Firebase Storage; `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`.
+- Reading violations: no reporting endpoint exists and none was added, so violations appear only in the visitor's own browser. DevTools → Console, with the „Info” level on, shows „…violates the following Content Security Policy directive… The policy is report-only”.
+- Checks: `hostingHeaders.test.js` 3/3, eslint on it clean. The live bundle served through a local read-only proxy with this header: `/login` and `/ajad` show 0 violations. A deliberate image from outside the policy still loaded and was reported with disposition `report`.
+- Not checked: signed-in pages, Google sign-in popup, Live Classroom, file previews. Teacher-entered image URLs on other hosts will show as `img-src` violations; expected, and the reason to read before enforcing.
+- Deploy: CRM hosting, on merge.
+- Next safe step: after merge, the owner opens the main signed-in pages with the console open; enforcing is a later decision.
+## 2026-11-01 · agent/deps-crm — crm-v2 production audit clean: grpc-js override, re2js in the lock, firebase unchanged
+
+- Base: `main` ee2eac1, checked 2026-11-01. Dependencies only; no source change, no deploy, no production access.
+- Finding: **no `firebase` version clears the audit.** Every release from 12.12.0 to 13.1.0 (latest) was installed in a temp folder and audited: all pin `@grpc/grpc-js ~1.9.0` and report 4 high. So `firebase` stays at 12.17.0 and no major upgrade is needed.
+- Changed: `crm-v2/package.json` `overrides: { "@grpc/grpc-js": "1.13.7" }` (1.13.6 is the first fixed release of that line; 1.13.7 is the newest). Lock: `@grpc/grpc-js` 1.9.16 → 1.13.7, `re2js` 2.8.6 → 2.9.1 (allowed by firestore's `^2.8.3`), new `@js-sdsl/ordered-map` 4.4.2.
+- `npm audit --omit=dev`: before 5 high, after 0. Dev tools (eslint, vite, vitest chain) still show 7 high and 8 moderate with `npm audit`; they do not ship.
+- Reach: neither package was reachable. `@grpc/grpc-js` is only in firestore's Node build and is not in the browser bundle (0 chunks mention it); its advisories concern gRPC servers. `re2js` is in the `firebase` chunk, but the advisory needs the Pipelines regex API with lookbehinds, which `src/` does not use.
+- Checks on Node 22 after a clean `npm ci`: `npx vitest run --maxWorkers=3 --testTimeout=60000` 415 files passed, 1 skipped; 2935 tests passed, 7 skipped. `npx eslint src` 0 errors, 17 warnings. `npx vite build` OK. Node build of the Firestore client against the emulator (demo project) answers over gRPC 1.13.7.
+- Bundle (raw / gzip bytes): `main` 1,236,191 / 388,563 → 1,236,191 / 388,557; `firebase` 593,574 / 175,434 → 598,507 / 177,798 (re2js); all JS 22,568,246 / 6,424,289 → 22,573,179 / 6,426,806. Other chunks are the same size; hashes change because they import the renamed `firebase` chunk.
+- Known: the override must be dropped when firestore moves off `~1.9.0`; Dependabot will not do that. Not opened in a browser against production.
+- Deploy: CRM hosting only, on merge. No functions, no rules.
+- Next safe step: the owner reviews and merges the PR.
+## 2026-11-01 · agent/security-ci — Dependabot, security workflow, actions pinned; history scanned for secrets
+
+- Base: `main` ee2eac1, checked 2026-11-01. CI config only; no app code, no deploy, no production access.
+- New `.github/dependabot.yml`: npm for `crm-v2` and `functions`, GitHub Actions; weekly on Monday, minor and patch grouped, at most 2 open per folder, 7-day cooldown. Needs no token.
+- New `.github/workflows/security.yml`, on every PR, on `main` when `.github` or a lock file changes, weekly, and by hand: `npm audit --omit=dev --audit-level=critical` is **reporting only, it never fails** (warning plus run summary); gitleaks scans the PR's commits with redacted values, a finding makes the job red; zizmor audits `.github`, high severity makes the job red. No branch protection exists, so red does not block a merge. gitleaks 8.30.1 and zizmor 1.31.1 are release binaries with a pinned SHA-256; Dependabot does not update those.
+- New `.gitleaks.toml`: default rules, allows only `generic-api-key` in `functions/language-api.test.js` (a made-up fixture).
+- Existing three workflows: every action pinned to a commit SHA in the same major, `persist-credentials: false` on every checkout. zizmor before: 10 high (`unpinned-uses`), 4 medium (`artipacked`). After, online mode: no findings.
+- gitleaks over the full history (all refs, 2841 commits): 58 findings, **no live secret found**. 55 are the Firebase web API key, which is public by design and matches the live CRM bundle (hash compared, value not printed). 1 is the same config with two characters different, `haldus.html` da647dee62, removed by d68a5e8; not tested against Google. 2 are the Ekilex test fixture. **The repository is public**, so the web key is readable there and in the bundle; its restrictions in Google Cloud Console were not checked. Values were never printed or stored; the raw report was deleted.
+- Next safe step: the owner reviews and merges, then checks the Firebase web key's restrictions in Google Cloud Console.
 ## 2026-11-01 · agent/progress-truth — one number for speaking, the course „Minu areng” names is the one that opens, one pet for every viewer
 
 - Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no rules or functions change.
@@ -65,6 +95,14 @@
 - Checks: `npx eslint --quiet src` clean; vitest result in the PR. `vite build` output contains the icons and the links. Not opened on the live site.
 - `MessagesPage` staff heading „Kommunikatsioon” → „Suhtlus”, as in the menu. Open: raw „Inglise Keel” can still show where a screen prints the stored subject. „1 gruppi” was not found in the code. `type="month"` inputs were left alone (Chromium shows the month in words).
 - Next safe step: the owner decides whether „Live Classroom” and the two meanings of „Ülesanded” stay.
+## 2026-11-01 · agent/route-access — routes.jsx and accessPolicy.js agree
+
+- Base: `main` ee2eac1, checked 2026-11-01. Client-side routing only; Firestore rules and functions unchanged, so this is not a data boundary.
+- `routes.jsx`: `/homework` and `/messages` behind `ACCESS.HOMEWORK` and `ACCESS.MESSAGES` (finance-only accounts now reach /forbidden). `/library/worksheet-generator/{avasta-module-1,module-1-three-phase,course,health}` moved from the STAFF group to ADMIN; each page already refused a non-admin itself. Admin, parent and student access unchanged.
+- `accessPolicy.js` new entries: `/library/raamatukogu` and `/library/worksheet-generator` STAFF (`LessonWorksheetSet` links coverage to teachers), `module-1-three-phase`, `health`, `/finance/ostuarved`, `/ai/connect` ADMIN. `landingPath` now sends someone without access to these to `/` after sign-in, not to the forbidden page.
+- New `app/routeAccess.test.jsx` walks the route tree and compares it with the policy in both directions; a new route without an entry fails it.
+- Checks: `npx eslint --quiet src` clean; vitest result in the PR. Not opened in a browser or on the live site.
+- Next safe step: the owner confirms that the finance role needs neither Kodutööd nor Suhtlus.
 
 ## 2026-11-01 · agent/a2-m20-final-2 — A2 module 20 „A2 eksam ja iseseisev keelekasutus” in the final shape (last A2 module)
 
