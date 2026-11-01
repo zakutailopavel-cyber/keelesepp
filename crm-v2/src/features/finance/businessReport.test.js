@@ -46,11 +46,14 @@ describe('business report („Ärinäitajad”)', () => {
     // September: s1 4 Mondays, s2 5 Tuesdays, all unmarked (held)
     expect(report.before).toMatchObject({ tookPlace: 9, earnedCents: 4 * 2500 + 5 * 2000, students: 2 });
     expect(report.newStudents).toEqual(['Eva', 'Uku']);
-    expect(report.lostStudents).toEqual(['Ott']);
+    // Ott's card is active and nothing is planned: not „left”
+    expect(report.lostStudents).toEqual([]);
+    expect(report.quietStudents).toEqual(['Ott']);
     expect(report.unpriced).toEqual(['Eva']);
     expect(report.byTeacher.map((row) => [row.name, row.tookPlace, row.earnedCents])).toEqual([['Anna', 2, 5000], ['Maria', 2, 3000]]);
     expect(report.bySubject.map((row) => row.name)).toEqual(['Eesti keel', 'Matemaatika']);
-    expect(report.change.earned).toBe(Math.round(((8000 - 20000) / 20000) * 100));
+    // the month is still running: a percentage against a whole month says nothing
+    expect(report.change).toEqual({ tookPlace: null, earned: null, students: null });
   });
 
   it('a longer period starts months back and compares with as many months before', () => {
@@ -118,5 +121,52 @@ describe('the school economy (profit, owner, break-even, next month)', () => {
     expect(report.kinds.individual).toEqual({ lessons: 5, earnedCents: 10000 });
     expect(report.studentRows.map((row) => [row.name, row.tookPlace, row.lastLesson, row.planned])).toEqual([['Mia', 3, '2026-10-19', true], ['Ott', 2, '2026-10-13', true]]);
     expect(report.nothingAhead).toEqual([]);
+  });
+});
+
+describe('today and the first day of a month (live walkthrough 2026-11-01)', () => {
+  const people = [{ id: 'a', name: 'Ann', active: true, teacher: 'Anna' }, { id: 'b', name: 'Ben', active: true, teacher: 'Anna' }, { id: 'c', name: 'Cat', active: false, teacher: 'Anna' }, { id: 'd', name: 'Dan', active: true, teacher: 'Anna', planningPausedUntil: '2027-01-01' }];
+  const prices = people.map((person) => ({ studentId: person.id, lessonPriceCents: 2000, lessonMinutes: 60 }));
+  const calendar = [
+    { id: 'wa', studentId: 'a', teacher: 'Anna', recurring: true, day: 'Sun', startDate: '2026-10-01', duration: 60 },
+    { id: 'wb', studentId: 'b', teacher: 'Anna', recurring: true, day: 'Sun', startDate: '2026-10-01', duration: 60 },
+    // both had October only: Cat's card is archived, Dan's is paused
+    { id: 'wc', studentId: 'c', teacher: 'Anna', recurring: true, day: 'Mon', startDate: '2026-10-01', endDate: '2026-10-31', duration: 60 },
+    { id: 'wd', studentId: 'd', teacher: 'Anna', recurring: true, day: 'Tue', startDate: '2026-10-01', endDate: '2026-10-31', duration: 60 },
+    { id: 'we', studentId: 'b', teacher: 'Anna', date: '2026-10-05', duration: 60 },
+  ];
+  const marks = [{ id: 'm1', scheduleId: 'wa', studentId: 'a', date: '2026-11-01', status: 'Toimunud' }];
+  const report = businessReport({ current: '2026-11', months: 1, today: '2026-11-01', students: people, plans: prices, schedule: calendar, lessons: marks });
+
+  it('a lesson of today already marked counts as held, one not marked stays planned', () => {
+    expect(report.now.held).toBe(1);
+    expect(report.now.tookPlace).toBe(1);
+    expect(report.now.students).toBe(1);
+    expect(report.now.earnedCents).toBe(2000);
+    const today = lessonFacts({ from: '2026-11-01', to: '2026-11-01', today: '2026-11-01', students: people, plans: prices, schedule: calendar, lessons: marks });
+    expect(today.map((fact) => `${fact.studentId}:${fact.state}`).sort()).toEqual(['a:held', 'b:planned']);
+  });
+
+  it('no percentage while the month runs; the students still ahead in the calendar are said', () => {
+    expect(report.change.students).toBeNull();
+    expect(report.plannedStudents).toBe(1); // Ben; Ann already has a held lesson
+  });
+
+  it('„Lahkunud” is an archived card; an active one without lessons is the same list as home; a paused card is neither', () => {
+    expect(report.lostStudents).toEqual(['Cat']);
+    expect(report.quietStudents).toEqual([]);
+    const noPause = people.map((person) => ({ ...person, planningPausedUntil: '' }));
+    const again = businessReport({ current: '2026-11', months: 1, today: '2026-11-01', students: noPause, plans: prices, schedule: calendar, lessons: marks });
+    expect(again.quietStudents).toEqual(['Dan']);
+  });
+
+  it('a finished month is compared in percent again', () => {
+    const past = businessReport({ current: '2026-10', months: 1, today: '2026-11-01', students: people, plans: prices, schedule: [...calendar, { id: 'sep', studentId: 'a', teacher: 'Anna', date: '2026-09-07', duration: 60 }], lessons: marks });
+    expect(past.change.tookPlace).not.toBeNull();
+  });
+
+  it('a lesson cancelled in the journal only is not „held”', () => {
+    const facts = lessonFacts({ from: '2026-10-01', to: '2026-10-31', today: '2026-11-01', students: people, plans: prices, schedule: [], lessons: [{ id: 'x', studentId: 'a', date: '2026-10-02', status: 'Tühistatud' }] });
+    expect(facts.map((fact) => fact.state)).toEqual(['cancelled']);
   });
 });
