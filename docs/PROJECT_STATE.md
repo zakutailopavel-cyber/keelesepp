@@ -1,3 +1,14 @@
+## 2026-11-01 · agent/progress-truth — one number for speaking, the course „Minu areng” names is the one that opens, one pet for every viewer
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no rules or functions change.
+- Speaking: `speakingFromStats` moved to `students/autoSkills.js` and is the one formula: the share said in the lesson language, from `petLessonStats`, the newer lesson counting more. „Areng” (`AutoSkillsCard.jsx`) and „Minu areng” both read it. Pedagogical contract changed: the teacher's percentage no longer mixes in error-free sentences, which only recordings hold and a student may not read; that figure stays beside the number. A lesson with a recording and no stats still shows from its recording.
+- `levelProgress`: Sõnavara is not „Valmis” while the card has word cards and none learned (`state: 'close'`, `note`); `allReady` follows `state`. New `coursePath`, `courseKeyFor`; a school grade is no longer read as a language level.
+- `self-study/selfStudyModel.js`: new `courseChoice` (the way from level to target, a course named by the card's level, a course he has work in; children's courses not offered above grade 3 when nothing matches) and `heldCourseLessons`, shared with „Minu areng”. `StudentCoursePage.jsx` opens that course and counts held lessons as done.
+- Pet: `PetOverview.jsx` loads homework, submissions and lesson stats itself, and applies food and energy to the mood; `PetCard.jsx` read-only preview reads lesson stats by the card.
+- Rule change needed, not made: `match /petLessonStats` lets only staff and the student read, so a parent's pet misses speech XP. Proposed: add `|| ownsStudent(resource.data.studentId)`. Exposes the learner's corrected sentences (`practice`) to the parent: the owner decides. Teachers read only their own lessons (`lessons` rules), so on a card with two subjects the pet is smaller for the teacher. `playedAt` is private, so „sad from no play” shows only on the student's page.
+- Checks: see the PR. Not compared with production numbers, not opened in a browser.
+- Next safe step: the owner decides on the `petLessonStats` rule for parents.
+
 ## 2026-11-01 · agent/monthly-lessons-left — lessons left on monthly invoices; unworked lessons come off the next one
 
 - Owner 2026-11-01: the client pays by the 10th, a held lesson is minus one, unworked lessons come off next month's invoice, the admin sees how many are left. This is the monthly flow, not Tunnipakett: production has 0 `studentPackages`, and the 14-day burn of #928 does not fit this rule.

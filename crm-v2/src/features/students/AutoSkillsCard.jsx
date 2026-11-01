@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FilePlus2 } from 'lucide-react';
 import { Button, Card, EmptyState } from '../../components/ui/index.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
+import { petsService } from '../../services/firebase/index.js';
 import { personalWorksheet } from './personalWorksheet.js';
 import { AUTO_SKILLS, autoSkills } from './autoSkills.js';
 import { groupRecordings } from '../lesson-recording/lessonTimeline.js';
@@ -11,20 +12,21 @@ const clamp = (n) => Math.max(0, Math.min(100, Number(n) || 0));
 
 // „Areng”: skills computed from the learner's worksheets and recorded lessons (autoSkills.js), with the teacher's
 // own grades from checked works next to them.
-export default function AutoSkillsCard({ student, user, isAdmin = false, homeworkApi, recordingApi, wordsApi = studentWordsService }) {
+export default function AutoSkillsCard({ student, user, isAdmin = false, homeworkApi, recordingApi, statsApi = petsService, wordsApi = studentWordsService }) {
   const navigate = useNavigate();
   const [making, setMaking] = useState(false);
   const [makeError, setMakeError] = useState('');
-  const [data, setData] = useState({ loading: true, assignments: [], recordings: [] });
+  const [data, setData] = useState({ loading: true, assignments: [], recordings: [], stats: [] });
   useEffect(() => {
     let alive = true;
     Promise.all([
       Promise.resolve().then(() => homeworkApi?.listWorksheetAssignmentsByStudentIds?.([student.id]) || []).catch(() => []),
       Promise.resolve().then(() => recordingApi?.listForStudent?.({ studentId: student.id, user, isAdmin }) || []).catch(() => []),
-    ]).then(([assignments, recordings]) => { if (alive) setData({ loading: false, assignments, recordings }); });
+      Promise.resolve().then(() => statsApi?.lessonStatsForStudents?.([student.id]) || []).catch(() => []),
+    ]).then(([assignments, recordings, stats]) => { if (alive) setData({ loading: false, assignments, recordings, stats }); });
     return () => { alive = false; };
-  }, [homeworkApi, isAdmin, recordingApi, student.id, user]);
-  const rows = useMemo(() => autoSkills({ assignments: data.assignments, recordings: groupRecordings(data.recordings) }), [data]);
+  }, [homeworkApi, isAdmin, recordingApi, statsApi, student.id, user]);
+  const rows = useMemo(() => autoSkills({ assignments: data.assignments, recordings: groupRecordings(data.recordings), stats: data.stats }), [data]);
   // „Tee isiklik tööleht”: his errors from lessons, his due words and his weaker productive skill (personalWorksheet.js)
   const makeSheet = async () => {
     setMaking(true); setMakeError('');
