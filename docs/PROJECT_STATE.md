@@ -1,3 +1,9 @@
+## 2026-11-02 · agent/next-step-order — home's next step follows the task list's order
+
+- Found on the live site in a read-only student preview: a batch of sheets without deadlines put „Kontroll 17” first on home, while „Ülesanded” starts from the first lesson. `nextStep.js` `openWork` now uses `groupTasks`.
+- Live checks 2026-11-02 after #981: first load 324 kB gzip of scripts (was 674 kB on the same measure before #973), assets immutable, audio a day, HTML revalidated, student home at 375 px has no sideways scroll and 935 px of height, no console errors.
+- Next safe step: try a sheet and the keyboard on a real phone.
+
 ## 2026-11-02 · agent/sheets-mobile — a sheet on a phone is one readable column, not an A4 page at zoom 0.3
 
 - Base: `main` 54d03a1, checked 2026-11-02. Student's player and block renderers only; no rules, functions, production writes, deploy or merge. Content zone untouched: no block's data was the bug. Contract and per-block notes: `docs/WORKSHEET_PHONE_VIEW.md`.
