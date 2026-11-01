@@ -1,10 +1,12 @@
-import { arrayRemove, arrayUnion, collection, doc, getDocs, writeBatch } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, doc, documentId, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { enrollmentKey, studentPersonKey } from './students.js';
 
 function clean(value) {
   return String(value || '').trim();
 }
+
+const isPayerAccount = (parent) => parent.active && (parent.role === 'parent' || parent.parentRole === true || parent.roles?.includes('parent') || parent.selfPayer === true);
 
 export function splitChildNames(value) {
   const unique = new Map();
@@ -90,8 +92,18 @@ export const parentsService = {
     return snapshot.docs
       .map((item) => normalizeParent(item.id, item.data()))
       // payers: parents, and learners who pay for themselves (a parent account turned into the learner's own)
-      .filter((parent) => parent.active && (parent.role === 'parent' || parent.parentRole === true || parent.roles?.includes('parent') || parent.selfPayer === true))
+      .filter(isPayerAccount)
       .sort((left, right) => (left.displayName || left.email).localeCompare(right.displayName || right.email, 'et', { sensitivity: 'base' }));
+  },
+
+  // the linked parents of one card, without reading every account
+  async listByIds(ids = []) {
+    const unique = [...new Set(ids.filter(Boolean))];
+    if (!unique.length) return [];
+    const { db } = requireFirebaseClient();
+    const chunks = Array.from({ length: Math.ceil(unique.length / 10) }, (_, index) => unique.slice(index * 10, index * 10 + 10));
+    const snapshots = await Promise.all(chunks.map((chunk) => getDocs(query(collection(db, 'users'), where(documentId(), 'in', chunk)))));
+    return snapshots.flatMap((snapshot) => snapshot.docs).map((item) => normalizeParent(item.id, item.data())).filter(isPayerAccount);
   },
 
   async updateCrm(parent, patch, user) {

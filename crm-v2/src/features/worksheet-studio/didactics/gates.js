@@ -170,7 +170,8 @@ export function moduleGates(sheets = {}) {
   [...seen.entries()].filter(([, where]) => new Set(where).size > 1).forEach(([sentence, where]) => out.push({ gate: 'unique', code: 'repeated-sentence', level: 'warning', text: `sama lause mitmel lehel (${[...new Set(where)].join(', ')}): „${sentence.slice(0, 60)}”`, lessonId: '*', phase: '*' }));
 
   // vocabulary: every lesson has its words, and each comes back on at least two other sheets of the module
-  const docs = Object.entries(sheets).flatMap(([lessonId, phases]) => Object.entries(phases).map(([phase, doc]) => ({ lessonId, phase, doc })));
+  // each sheet's text once: it is compared with every word of every lesson (a module's check took seconds without this)
+  const docs = Object.entries(sheets).flatMap(([lessonId, phases]) => Object.entries(phases).map(([phase, doc]) => ({ lessonId, phase, doc, text: norm(textOf((doc.blocks || []).filter((b) => b.type !== 'vocab' && b.type !== 'wordstrip').map((b) => b.data))) })));
   for (const lessonId of Object.keys(sheets)) {
     const entries = docs.filter((x) => x.lessonId === lessonId).flatMap(({ doc }) => (doc.blocks || []).filter((b) => b.type === 'vocab').flatMap((b) => list(b.data?.words)));
     // a diagnostic check (meta.diagnostic) measures forms; it has no words of its own to teach and recycle
@@ -178,10 +179,7 @@ export function moduleGates(sheets = {}) {
     if (!entries.length) { out.push({ gate: 'vocab', code: 'no-vocabulary', level: 'warning', text: 'tunnil pole sõnavaraplokki (tunni põhisõnad)', lessonId, phase: '*' }); continue; }
     const weak = entries.map(vocabHead).filter(Boolean).filter((head) => {
       const stems = head.split(' ').map(stemOf);
-      const sheetsWith = docs.filter(({ doc }) => {
-        const text = norm(textOf((doc.blocks || []).filter((b) => b.type !== 'vocab' && b.type !== 'wordstrip').map((b) => b.data)));
-        return stems.every((stem) => text.includes(stem));
-      }).length;
+      const sheetsWith = docs.filter(({ text }) => stems.every((stem) => text.includes(stem))).length;
       return sheetsWith < 3;
     });
     if (weak.length > entries.length / 3) out.push({ gate: 'vocab', code: 'vocabulary-not-recycled', level: 'warning', text: `${weak.length}/${entries.length} tunni sõna esineb mooduli lehtedel alla 3 korra: ${weak.slice(0, 5).join(', ')}`, lessonId, phase: '*' });

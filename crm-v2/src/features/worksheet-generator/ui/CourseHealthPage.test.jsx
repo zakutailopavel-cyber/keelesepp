@@ -32,6 +32,17 @@ describe('CourseHealthPage', () => {
     expect(screen.getByText(second)).toBeInTheDocument();
   });
 
+  it('downloads only the chosen course', async () => {
+    const loader = await import('../admin/course/courseLoaders.js');
+    const spy = vi.spyOn(loader.COURSE_LOADERS, 'a2');
+    const other = vi.spyOn(loader.COURSE_LOADERS, 'c1');
+    render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'a', roles: ['admin'] } }}><CourseHealthPage repository={{ list: vi.fn() }} textbookSheets={[]} /></AuthContext.Provider></MemoryRouter>);
+    expect(screen.getByText('Laen kursust…')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Laen kursust…')).not.toBeInTheDocument(), { timeout: 30000 });
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(other).not.toHaveBeenCalled();
+  }, 60000);
+
   it('is for admins only', () => {
     renderPage({ list: vi.fn() }, ['teacher']);
     expect(screen.getByText('Puudub ligipääs')).toBeInTheDocument();

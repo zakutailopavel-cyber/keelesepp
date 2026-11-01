@@ -1,25 +1,40 @@
-import { act, render } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { vi } from 'vitest';
 import NotificationCenter from './NotificationCenter.jsx';
 
-const overdueTask = { id: 't1', title: 'Helista vanemale', status: 'open', dueDate: '2020-01-01', assignedToUid: 'u1' };
+const admin = { uid: 'bell-admin', roles: ['admin'] };
+const task = { id: 't1', title: 'Helista', status: 'open', assigneeUid: 'bell-admin', due: '2026-01-01' };
+const invoice = (id) => ({ id, status: 'Saadetud', due: '2020-01-01', amountCents: 1000, total: 10, balanceCents: 1000 });
 
-describe('NotificationCenter bell', () => {
-  it('shows no number until the slow sources have arrived', async () => {
+function repositories(overrides = {}) {
+  return {
+    students: { list: vi.fn(async () => ({ items: [] })) },
+    messages: { list: vi.fn(async () => []), listUnread: vi.fn(async () => []), listByStudentIds: vi.fn(async () => []) },
+    homework: { listSubmissionsByStudentIds: vi.fn(async () => []) },
+    invoices: { list: vi.fn(async () => [invoice('i1'), invoice('i2')]) },
+    tasks: { subscribe: (onData) => { onData([task]); return () => {}; } },
+    ...overrides,
+  };
+}
+
+describe('NotificationCenter', () => {
+  it('shows no count until the sources have come, so the bell does not jump from a small number to the real one', async () => {
     let finish;
-    const repositories = {
-      tasks: { subscribe: (next) => { next([overdueTask]); return () => {}; } },
-      students: { list: () => new Promise((resolve) => { finish = resolve; }) },
-      messages: { list: vi.fn().mockResolvedValue([]) },
-      homework: { listSubmissionsByStudentIds: vi.fn().mockResolvedValue([]) },
-      invoices: { list: vi.fn().mockResolvedValue([]) },
-    };
-    globalThis.localStorage?.clear?.();
-    const { container } = render(<MemoryRouter><NotificationCenter user={{ uid: 'u1', roles: ['admin'] }} repositories={repositories} /></MemoryRouter>);
-    expect(container.querySelector('.nc-count')).toBeNull();
-    expect(container.querySelector('.nc-dot')).toBeNull();
+    const repos = repositories({ students: { list: vi.fn(() => new Promise((resolve) => { finish = resolve; })) } });
+    render(<MemoryRouter><NotificationCenter user={admin} repositories={repos} /></MemoryRouter>);
+    expect(screen.getByRole('button', { name: /^Teavitused/ }).querySelector('.nc-count')).toBeNull();
+    expect(screen.getByRole('button', { name: /^Teavitused/ }).querySelector('.nc-dot')).toBeNull();
     await act(async () => { finish({ items: [] }); });
-    expect(container.querySelector('.nc-count, .nc-dot')).not.toBeNull();
+    expect(await screen.findByRole('button', { name: /uut$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /uut$/ }).querySelector('.nc-count')).not.toBeNull();
+  });
+
+  it('asks an administrator only for the unread messages', async () => {
+    const repos = repositories();
+    render(<MemoryRouter><NotificationCenter user={admin} repositories={repos} /></MemoryRouter>);
+    await screen.findByRole('button', { name: /uut$/ });
+    expect(repos.messages.listUnread).toHaveBeenCalledTimes(1);
+    expect(repos.messages.list).not.toHaveBeenCalled();
   });
 });
