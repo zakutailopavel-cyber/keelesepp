@@ -1,3 +1,14 @@
+## 2026-11-01 · agent/student-home — the student's home: one clear page, „Minu areng” on its own page
+
+- Base: `main` checked 2026-11-01 (see the PR for the merge commit). UI and page structure only: no rules, functions, data or production access; no deploy, no merge.
+- Owner 2026-11-01: students call the cabinet overloaded. `/student` now has on a phone's first screen a one-line greeting, the pet tile, ONE „Järgmine samm” card with one button (`features/students/nextStep.js`: lesson within 30 min or going on → overdue homework → open homework → due words → done) and one line for the next lesson with „Ei saa tulla?”. Under it the day's checklist (at most 3, streak shown only when above 0), one line each only when there is news (new teacher feedback; open announcement; unpaid invoice, adults only; availability question only when an open announcement of type „Sobivad ajad” asks), and the link „Minu areng”.
+- Moved, not deleted, to the new lazy route `/student/areng` (`StudentProgressPage.jsx`, `accessPolicy.js`, `routes.jsx`): MyProgressCard, WordGrowthCard, MonthStepsCard, LessonSummariesCard, Viimased tulemused (`#tulemused`), AvailabilityCard (`#sobivad-ajad`), LearnerAnnouncementsCard (`#teated`). OpenInvoicesCard opens from „Maksa” on the invoice line.
+- Menu (`navigation.js`, pure student only): Täna, Ülesanded, Kursus, Sõnad, Suhtlus; group „Veel”: Tahvel, Minu vead, Minu areng, Lemmik. No route renamed. Parents' and staff menus unchanged.
+- Loads less on first paint: no course catalogue and no lesson stats on home; invoices not read for a child's card; announcements asked after the page is drawn, and the invoice `config` only when something is unpaid.
+- Fixed on the way: the invoice line counted paid invoices as „tasumata”; „1 lauset tundidest”; next lesson could be one already over today (now `petLife.nextLesson`).
+- Browser memory only: `ks-feedback-seen-<uid>` (opening „Minu areng” counts as having seen the feedback; on a new device feedback of the last 14 days counts as new).
+- Known: an open announcement normally stops the learner at the gate first, so the announcement and availability lines appear only when the gate timed out or the school publishes during a session. The pet tile is a placeholder for the pet loop (agent/pet-loop).
+- Next safe step: the owner reviews and merges the PR; it needs hosting only.
 ## 2026-11-01 · agent/role-views — student and parent views: absences and invoices for parents, no school inboxes, roles in words
 
 - Base: `main` b13d41e, checked 2026-11-01. Redoes what is still missing and correct from draft #515 (2026-10-11). UI only: no rules, functions or data; no deploy, no merge, no production access.

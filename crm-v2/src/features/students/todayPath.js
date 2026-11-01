@@ -29,7 +29,7 @@ export function todayPath({ words = [], homework = [], submissions = [], assignm
     },
   ];
   if (mistakes) {
-    steps.push({ key: 'mistakes', label: 'Minu vead', to: '/student/vead', done: mistakesDoneToday, detail: mistakesDoneToday ? 'Harjutatud täna' : `${mistakes} lauset tundidest` });
+    steps.push({ key: 'mistakes', label: 'Minu vead', to: '/student/vead', done: mistakesDoneToday, detail: mistakesDoneToday ? 'Harjutatud täna' : `${mistakes} ${mistakes === 1 ? 'lause' : 'lauset'} tundidest` });
   }
   // no friend chosen yet (and not switched off): the step to the picker
   if (offerPet && !pet?.kind && !pet?.optedOut) {
