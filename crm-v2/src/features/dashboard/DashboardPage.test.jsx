@@ -41,6 +41,7 @@ describe('DashboardPage role scoping', () => {
     await waitFor(() => expect(dataRepositories.students.list).toHaveBeenCalledWith(expect.objectContaining({ scopeTeacherUid: 'teacher-1' })));
     expect(dataRepositories.schedule.list).toHaveBeenCalledWith({ teacherUid: 'teacher-1' });
     expect(dataRepositories.homework.listByStudentIds).toHaveBeenCalledWith(['student-1']);
+    expect(dataRepositories.students.list).toHaveBeenCalledWith(expect.objectContaining({ status: 'active' }));
     expect(dataRepositories.homework.list).not.toHaveBeenCalled();
     expect(dataRepositories.invoices.list).not.toHaveBeenCalled();
     expect(screen.queryByText('Laekumata')).not.toBeInTheDocument();
@@ -63,6 +64,17 @@ describe('DashboardPage role scoping', () => {
     expect(screen.getByRole('link', { name: /tähtaja ületanud arvet/i })).toHaveAttribute('href', '/finance?status=overdue');
     expect(screen.queryByRole('link', { name: /Ava tänane kalender/i })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Finantsid.*Arved, maksed ja kontroll/i })).toHaveAttribute('href', '/finance');
+  });
+
+  it('counts „Kodutööd pooleli” and the works waiting for review like the Kodutööd page: active students only', async () => {
+    const dataRepositories = repositories();
+    dataRepositories.students.list.mockImplementation(async ({ status }) => ({ items: [{ id: 's1', name: 'Mari', active: true }, ...(status === 'active' ? [] : [{ id: 'archived', name: 'Vana', active: false }])] }));
+    dataRepositories.homework.list.mockResolvedValue([{ id: 'h1', studentId: 's1', status: 'Ootel' }, { id: 'h2', studentId: 'archived', status: 'Ootel' }]);
+    dataRepositories.homework.listSubmissionsByStudentIds = vi.fn().mockResolvedValue([{ id: 'w1', reviewStatus: 'pending' }, { id: 'w2', reviewStatus: 'pending' }, { id: 'w3', reviewStatus: 'reviewed' }]);
+    renderDashboard({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, dataRepositories);
+    expect(await screen.findByRole('link', { name: /2 tööd ootavad kontrolli/ })).toHaveAttribute('href', '/homework');
+    expect(dataRepositories.homework.listSubmissionsByStudentIds).toHaveBeenCalledWith(['s1']);
+    expect(screen.getByText('Kodutööd pooleli').closest('article')).toHaveTextContent('1');
   });
 
   it('counts like the pages do: people in Õpilased, weekly lessons of today, homework of known students', async () => {

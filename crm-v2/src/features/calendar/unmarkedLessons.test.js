@@ -1,8 +1,8 @@
-import { unmarkedLessons } from './unmarkedLessons.js';
+import { olderUnmarked, unmarkedLessons } from './unmarkedLessons.js';
 
 describe('Märkimata tunnid (owner 2026-10-23)', () => {
   const today = '2026-10-23';
-  it('finds past lessons of the last two weeks without a journal record, weekly series included', () => {
+  it('finds past lessons of the last year without a journal record, weekly series included', () => {
     const schedule = [
       { id: 'one', studentId: 's1', studentName: 'Mia', date: '2026-10-20', time: '10:00', status: 'Planeeritud', recurring: false },
       { id: 'done', studentId: 's2', date: '2026-10-21', time: '11:00', status: 'Toimunud', recurring: false },
@@ -13,7 +13,19 @@ describe('Märkimata tunnid (owner 2026-10-23)', () => {
     ];
     const lessons = [{ scheduleId: 'week', occurrenceDate: '2026-10-15', date: '2026-10-15', studentId: 's4' }];
     const result = unmarkedLessons({ schedule, lessons, today });
-    expect(result.map((item) => `${item.id}:${item.occurrenceDate}`)).toEqual(['week:2026-10-22', 'one:2026-10-20']);
+    // 15 October is in the journal; the lesson of 1 September is older than two weeks and still counted
+    expect(result.map((item) => `${item.id}:${item.occurrenceDate}`)).toEqual(['week:2026-10-22', 'one:2026-10-20', 'old:2026-09-01']);
+    expect(olderUnmarked(result, today)).toBe(1);
+  });
+
+  it('a whole year of a big calendar stays fast enough for the home page', () => {
+    const schedule = [
+      ...Array.from({ length: 500 }, (_, index) => ({ id: `w${index}`, studentId: `s${index}`, recurring: true, day: 'Mon', startDate: '2025-01-06', time: '10:00', status: 'Planeeritud' })),
+      ...Array.from({ length: 3000 }, (_, index) => ({ id: `o${index}`, studentId: `o${index}`, date: '2026-05-05', time: '10:00', status: 'Planeeritud', recurring: false })),
+    ];
+    const started = Date.now();
+    expect(unmarkedLessons({ schedule, lessons: [], today }).length).toBeGreaterThan(3000);
+    expect(Date.now() - started).toBeLessThan(5000);
   });
 
   it('a teacher sees only his own lessons; a student\'s lesson marked by hand on that day counts', () => {
