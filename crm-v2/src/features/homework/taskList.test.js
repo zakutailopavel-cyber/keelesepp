@@ -86,7 +86,7 @@ describe('mergeTasks: one row per task, whatever collection it lives in', () => 
   });
 });
 
-describe('groupTasks: Tee nüüd / Tehtud, ootab õpetajat / Õpetaja vaatas üle', () => {
+describe('groupTasks: Tee nüüd / Tehtud / Õpetaja vaatas üle', () => {
   it('what is late comes first, then the nearest deadline, no deadline last', () => {
     const tasks = mergeTasks({ homework: [work('none'), work('soon', { due: '2026-11-12' }), work('late2', { due: '2026-11-09' }), work('late1', { due: '2026-11-01' })] });
     expect(groupTasks(tasks).todo.map((task) => task.homework.id)).toEqual(['late1', 'late2', 'soon', 'none']);
