@@ -86,7 +86,7 @@ describe('StudentDashboardPage', () => {
     });
     data.homeworkRepository.listSubmissionsByStudentIds.mockResolvedValue([{ id: 'x', submissionKind: 'worksheet', studentId: 'student-1', title: 'Minu pere', reviewStatus: 'reviewed', teacherGrade: 5, teacherFeedback: 'Väga tubli!', reviewedAt: now }]);
     renderPage(data);
-    expect(await screen.findByRole('link', { name: /Õpetaja vaatas üle: Minu pere/ })).toHaveAttribute('href', '/student/areng#tulemused');
+    expect(await screen.findByRole('link', { name: /Õpetaja vaatas üle: Minu pere/ })).toHaveAttribute('href', '/homework#vaadatud');
     expect(await screen.findByRole('link', { name: /Uus teade: Vaheaeg/ })).toHaveAttribute('href', '/student/areng#teated');
     expect(screen.queryByText('Väga tubli!')).not.toBeInTheDocument();
   });

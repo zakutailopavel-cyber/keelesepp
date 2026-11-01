@@ -7,6 +7,7 @@ import { homeworkService, lessonsService, libraryService, lessonWorksheetsServic
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { publishedWorksheetDoc } from '../library/libraryModel.js';
 import { courseNameForLevel } from '../curriculum/courseNames.js';
+import { PHASES } from '../homework/taskList.js';
 import WorksheetPlayer from '../homework/WorksheetPlayer.jsx';
 import { courseChoice, heldCourseLessons, lessonProgress, nextLesson, progressMap } from './selfStudyModel.js';
 import './selfStudy.css';
@@ -55,7 +56,7 @@ export default function StudentCoursePage({ repository = api }) {
 
   if (state.loading) return <LoadingState label="Laen kursust…" />;
   if (state.error) return <ErrorState message={state.error.message || String(state.error)} onRetry={state.reload} />;
-  if (!student || !shown) return <div className="page-content"><EmptyState title="Kursust veel ei ole" description="Kui sinu kaart on seotud ja tase määratud, ilmub kursus siia." /></div>;
+  if (!student || !shown) return <div className="page-content"><EmptyState title="Kursust veel ei ole" description="Kui õpetaja määrab sinu taseme, ilmub kursus siia." /></div>;
   const selfStudy = Boolean(student.isSelfStudent);
 
   const open = async (lesson, phase) => {
@@ -73,7 +74,8 @@ export default function StudentCoursePage({ repository = api }) {
   };
 
   return <div className="page-content course-page">
-    <PageHeader eyebrow="Minu kursus" title={courseNameForLevel(shown.key) || `Kursus · ${shown.label}`} description={selfStudy ? 'Mine tund tunni haaval: Avasta, Harjuta, Kasuta. Iga päev ka „Päeva 5 minutit”.' : 'Sinu kursuse kaart ja edenemine. Töölehti teed koos õpetajaga tunnis.'} />
+    <PageHeader eyebrow="Minu kursus" title={courseNameForLevel(shown.key) || `Kursus · ${shown.label}`} description={selfStudy ? 'Siin on kogu kursus. Mine tund tunni haaval.' : <>Siit näed kogu kursust ja seda, mis on juba tehtud. Siin pole vaja midagi ära teha: tunnid teed koos õpetajaga.<span lang="ru"> · Карта курса, делать здесь ничего не нужно.</span></>} />
+    <p className="course-steps">Igas tunnis on kolm sammu: {['discover', 'practice', 'transfer'].map((key, index) => <span key={key}>{index + 1}. <strong>{PHASES[key].label}</strong>: {PHASES[key].purpose}{index < 2 ? '; ' : '.'}</span>)}</p>
     {levels.length > 1 ? <div className="course-levels" role="group" aria-label="Tase">{levels.map((entry) => <button type="button" key={entry.key} className={entry.key === shown.key ? 'is-active' : ''} aria-pressed={entry.key === shown.key} onClick={() => setLevel(entry.key)}>{entry.label}</button>)}</div> : null}
     {error ? <p className="form-error" role="alert">{error}</p> : null}
     {next ? <Card className="course-next"><span className="eyebrow">Järgmine tund</span><h2>{next.number ? `${next.number}. ` : ''}{next.title}</h2>

@@ -90,7 +90,7 @@ export function gameRounds(words = [], random = Math.random) {
 const PHRASES = {
   et: {
     food: 'Mul on kõht tühi. Kordame kolm sõna?',
-    energy: 'Olen väsinud. Teeme kodutöö ära?',
+    energy: 'Olen väsinud. Teeme ülesande ära?',
     joy: 'Mul on igav. Mängime sõnamängu?',
   },
   ru: {

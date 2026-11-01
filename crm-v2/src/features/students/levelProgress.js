@@ -20,7 +20,7 @@ const ACTIONS = {
 };
 const FIRST = {
   Grammatika: 'üks Harjuta-leht', Sõnavara: 'üks sõnavara ülesanne', Lugemine: 'üks lugemisülesanne',
-  Kuulamine: 'üks etteütlus', Kirjutamine: 'üks kirjutamisülesanne', Rääkimine: 'üks Live Classroomi tund',
+  Kuulamine: 'üks etteütlus', Kirjutamine: 'üks kirjutamisülesanne', Rääkimine: 'üks tund õpetajaga',
 };
 
 // the teacher's grades on the card („lugemine: 72”) by skill name
@@ -87,5 +87,5 @@ export function levelProgress({ level, target, computed = [], skillMap = {}, cou
 }
 
 function unknownRu(skill) {
-  return { Grammatika: 'один лист «Harjuta»', Sõnavara: 'одно задание на слова', Lugemine: 'одно задание на чтение', Kuulamine: 'один диктант', Kirjutamine: 'одно письменное задание', Rääkimine: 'один урок в Live Classroom' }[skill];
+  return { Grammatika: 'один лист «Harjuta»', Sõnavara: 'одно задание на слова', Lugemine: 'одно задание на чтение', Kuulamine: 'один диктант', Kirjutamine: 'одно письменное задание', Rääkimine: 'один урок с учителем' }[skill];
 }

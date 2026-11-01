@@ -38,7 +38,7 @@ export default function PetPage({
   const { students, homework, submissions, schedule, lessons } = state.data;
   const lessonToday = occurrencesForDates(schedule, nextDates).find((lesson) => lesson.occurrenceDate === today)?.time || '';
   return <div className="page-content">
-    <PageHeader title="Minu lemmik" />
+    <PageHeader title="Minu lemmik" description={<>Sinu õppesõber kasvab siis, kui sa õpid. Mängida võid siis, kui tahad.<span lang="ru"> · Твой друг растёт, когда ты учишься.</span></>} />
     {students.length
       ? <PetCard user={user} studentId={students[0].id} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} words={words}
         pendingHomework={homework.filter(isHomeworkOpen).length} lessonToday={lessonToday} subject={students[0].subject || ''}

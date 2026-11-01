@@ -110,7 +110,7 @@ export default function VocabularyPage({
 
   return (
     <div className="page-content vocabulary-page">
-      <PageHeader eyebrow="Minu õpingud" title="Sõnavara" description="Iga päev natuke: korda oma sõnu, siis tundide sõnu." />
+      <PageHeader title="Sõnad" description={<>Siin õpid sõnu kaartidega: oma sõnu ja tundide sõnu.<span lang="ru"> · Учим слова по карточкам.</span></>} />
       {notice ? <p className="vw-notice" role="status">{notice}</p> : null}
       {open ? (
         <Card>

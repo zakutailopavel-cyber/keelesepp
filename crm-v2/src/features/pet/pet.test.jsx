@@ -79,7 +79,7 @@ describe('PetCard', () => {
     fireEvent.change(screen.getByLabelText('Nimi'), { target: { value: 'Tark' } });
     fireEvent.click(screen.getByRole('button', { name: 'Vali Kakk' }));
     await waitFor(() => expect(repository.save).toHaveBeenCalledWith({ uid: 'u1', current: null, kind: 'kakk', name: 'Tark' }));
-    expect(await screen.findByText('Sul on üks kodutöö. Teeme ära?')).toBeInTheDocument();
+    expect(await screen.findByText('Sul on üks ülesanne. Teeme ära?')).toBeInTheDocument();
     expect(screen.getByText('Tark')).toBeInTheDocument();
     expect(container.querySelector('svg.pet')).not.toBeNull();
     expect(screen.getByText('0 tundi')).toBeInTheDocument();

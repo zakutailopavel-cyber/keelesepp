@@ -29,15 +29,15 @@ export const navigation = [
 // his mistakes, his progress and the pet under a quieter group. The lesson invitation pops up on every page, so the
 // lesson room needs no menu item. Parents and staff keep the menu above.
 export const studentNavigation = [
-  { to: '/student', label: 'Täna', icon: GraduationCap, roles: ACCESS.STUDENT, end: true },
-  { to: '/homework', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.STUDENT },
-  { to: '/student/kursus', label: 'Kursus', icon: BookOpenCheck, roles: ACCESS.STUDENT },
-  { to: '/student/sonavara', label: 'Sõnad', icon: Languages, roles: ACCESS.STUDENT },
-  { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.STUDENT },
-  { to: '/board', label: 'Tahvel', icon: PenLine, roles: ACCESS.STUDENT, group: 'Veel' },
-  { to: '/student/vead', label: 'Minu vead', icon: SpellCheck, roles: ACCESS.STUDENT, group: 'Veel' },
-  { to: '/student/areng', label: 'Minu areng', icon: TrendingUp, roles: ACCESS.STUDENT, group: 'Veel' },
-  { to: '/student/lemmik', label: 'Lemmik', icon: PawPrint, roles: ACCESS.STUDENT, group: 'Veel' },
+  { to: '/student', label: 'Täna', icon: GraduationCap, roles: ACCESS.STUDENT, end: true, hint: 'mida täna teha' },
+  { to: '/homework', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.STUDENT, hint: 'mida õpetaja andis' },
+  { to: '/student/kursus', label: 'Kursus', icon: BookOpenCheck, roles: ACCESS.STUDENT, hint: 'kogu kursuse kaart' },
+  { to: '/student/sonavara', label: 'Sõnad', icon: Languages, roles: ACCESS.STUDENT, hint: 'õpi sõnu kaartidega' },
+  { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.STUDENT, hint: 'kirjuta õpetajale' },
+  { to: '/board', label: 'Tahvel', icon: PenLine, roles: ACCESS.STUDENT, group: 'Veel', hint: 'tundide lehed, joonista ise' },
+  { to: '/student/vead', label: 'Minu vead', icon: SpellCheck, roles: ACCESS.STUDENT, group: 'Veel', hint: 'harjuta oma lauseid' },
+  { to: '/student/areng', label: 'Minu areng', icon: TrendingUp, roles: ACCESS.STUDENT, group: 'Veel', hint: 'vaata, kuidas läheb' },
+  { to: '/student/lemmik', label: 'Lemmik', icon: PawPrint, roles: ACCESS.STUDENT, group: 'Veel', hint: 'sinu õppesõber' },
 ];
 
 // a pure student account (not also staff or a parent) gets the short menu

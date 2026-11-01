@@ -25,7 +25,7 @@ export default function PetWardrobe({ pet, progress, onChange, onClose }) {
         <span className="pet-stat"><Star size={14} aria-hidden="true" /> {left} tähte</span>
         {onClose ? <button type="button" className="pet-home__edit" onClick={onClose}>Valmis</button> : null}
       </div>
-      <p className="pet-wardrobe__hint">Tähti tuleb juurde iga tunni, töö, kodutöö ja õpitud sõnaga.</p>
+      <p className="pet-wardrobe__hint">Tähti tuleb juurde iga tunni, ülesande ja õpitud sõnaga.</p>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {Object.entries(SLOTS).map(([slot, label]) => (
         <div key={slot} className="pet-wardrobe__slot">

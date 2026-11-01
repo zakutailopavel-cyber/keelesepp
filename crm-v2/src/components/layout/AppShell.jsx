@@ -77,11 +77,11 @@ export default function AppShell({ approvals = accountApprovalsService, messages
           <IconButton className="mobile-only sidebar-close" label="Sulge menüü" onClick={() => setMenuOpen(false)}><X size={20} /></IconButton>
         </div>
         <nav aria-label="Põhinavigatsioon">
-          {visibleNavigation.map(({ to, label, icon: Icon, end, group }, index) => (
+          {visibleNavigation.map(({ to, label, icon: Icon, end, group, hint }, index) => (
             <Fragment key={to}>
               {group && group !== visibleNavigation[index - 1]?.group ? <span className="nav-group">{group}</span> : null}
               <NavLink to={to} end={end} data-tour={`nav-${to}`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-                <Icon size={19} /><span>{label}</span>{badges[to] ? <b className="nav-count" aria-label={to === "/messages" ? `${badges[to]} lugemata` : `${badges[to]} ootel`}>{badges[to]}</b> : null}
+                <Icon size={19} /><span>{label}{hint ? <small className="nav-hint">{hint}</small> : null}</span>{badges[to] ? <b className="nav-count" aria-label={to === "/messages" ? `${badges[to]} lugemata` : `${badges[to]} ootel`}>{badges[to]}</b> : null}
               </NavLink>
             </Fragment>
           ))}

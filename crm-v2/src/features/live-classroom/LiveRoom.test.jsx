@@ -246,7 +246,7 @@ describe('LiveRoom: the student’s pet', () => {
     expect(await screen.findByText('Uus sõna: kass!')).toBeInTheDocument();
     expect(screen.getByText('Новое слово: kass — кошка')).toBeInTheDocument();
     act(() => pushHomework([{ id: 'h1', task: 'Korda sõnu' }]));
-    expect(await screen.findByText('Õpetaja andis kodutöö. Teeme koos!')).toBeInTheDocument();
+    expect(await screen.findByText('Õpetaja andis ülesande. Teeme koos!')).toBeInTheDocument();
     expect(homeworkService.subscribeForLesson).toHaveBeenCalledWith({ studentId: 's-1', invitationId: 'inv-1' }, expect.any(Function), expect.any(Function));
   });
 
