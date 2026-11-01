@@ -112,8 +112,8 @@ export default function StudentDashboardPage({
   const reviewedToday = readDone(user?.uid).errors?.date === today || user?.profile?.practice?.errorsDate === today;
   const pathDone = useMemo(() => {
     if (!state.data) return false;
-    const day = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, assignments: state.data.sheets, mistakesDoneToday: reviewedToday, today });
-    return day.total > 0 && day.done === day.total;
+    const steps = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, assignments: state.data.sheets, mistakesDoneToday: reviewedToday, today }).steps.filter((item) => !item.idle);
+    return steps.length > 0 && steps.every((item) => item.done);
   }, [state.data, words, today, reviewedToday]);
   useEffect(() => {
     if (!pathDone || preview) return;
@@ -146,7 +146,7 @@ export default function StudentDashboardPage({
   const cancelRequest = async () => { try { await changeRequests.cancel(nextRequest.id); } finally { state.reload(); } };
 
   const step = nextStep({ occurrences, homework, assignments, words, today });
-  const path = todayPath({ words, homework, submissions, assignments, mistakesDoneToday: reviewedToday, today });
+  const daySteps = todayPath({ words, homework, submissions, assignments, mistakesDoneToday: reviewedToday, today }).steps.filter((item) => !item.idle).slice(0, 3);
   const progress = petProgress({ lessons, submissions, homework, words });
   const { streak } = progress;
   const showPet = !preview && !pet?.optedOut;
@@ -187,18 +187,18 @@ export default function StudentDashboardPage({
       busy={occurrences.slice(0, 6).map((item) => ({ date: item.occurrenceDate, time: item.time, duration: item.duration }))} requests={changeRequests}
       onClose={() => setRescheduling(false)} onSent={() => { setRescheduling(false); state.reload(); }} /> : null}
 
-    <section className="sh-today" aria-label="Täna">
+    {daySteps.length ? <section className="sh-today" aria-label="Täna">
       <header className="sh-today__head">
-        <h2>Täna {path.done}/{path.total}</h2>
+        <h2>Täna {daySteps.filter((item) => item.done).length}/{daySteps.length}</h2>
         {streak ? <span className="sh-streak" title="Õppimise päevi järjest"><Flame size={15} aria-hidden="true" /> {streak} {streak === 1 ? 'päev' : 'päeva'} järjest</span> : null}
       </header>
-      <ul>{path.steps.slice(0, 3).map((item) => (
+      <ul>{daySteps.map((item) => (
         <li key={item.key} className={item.done ? 'is-done' : ''}><Link to={item.to}>
           <i>{item.done ? <Check size={14} aria-hidden="true" /> : null}</i>
           <b>{item.label}</b><small>{item.detail}</small>
         </Link></li>
       ))}</ul>
-    </section>
+    </section> : null}
 
     {notes.length ? <ul className="sh-notes" aria-label="Sulle on uudiseid">{notes.map((note) => {
       if (note.key === 'invoice') return <InvoiceNote key={note.key} note={note} invoices={unpaid} readOnly={Boolean(preview)} {...(paymentsApi ? { api: paymentsApi } : {})} />;

@@ -9,6 +9,24 @@
 - Browser memory only: `ks-feedback-seen-<uid>` (opening „Minu areng” counts as having seen the feedback; on a new device feedback of the last 14 days counts as new).
 - Known: an open announcement normally stops the learner at the gate first, so the announcement and availability lines appear only when the gate timed out or the school publishes during a session. The pet tile is a placeholder for the pet loop (agent/pet-loop).
 - Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/home-counts — home counts active students' homework, shows works to review, unmarked lessons no longer fall off
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy.
+- `dashboard/DashboardPage.jsx`: students load with `status: 'active'`, like Kodutööd, so „Kodutööd pooleli” matches that page. New row in „Vajab tegutsemist”: „N tööd ootavad kontrolli”, the page's own count (`reviewStatus !== 'reviewed'`), one extra read through `listSubmissionsByStudentIds`; a failed read hides the row and nothing else.
+- `calendar/unmarkedLessons.js`: scan is 365 days, was 14; new `olderUnmarked`. `UnmarkedLessonsCard.jsx` says „Viimase aasta tunnid, neist N vanemad kui 2 nädalat”. A year over 500 weekly series and 3000 one-off lessons took 91 ms in a test.
+- Checks: see the PR. The home page was not opened in a browser.
+- Known limits: older than a year still is not counted, and the card says so; group lessons are still left out, as before. The number on the live site may jump: the 22 older lessons of the report were not checked against production, and a long series nobody marked counts in full.
+- Next safe step: the owner looks at the count after the deploy and says whether a year is the right window.
+## 2026-11-01 · agent/finance-truth — Ärinäitajad count today's marked lessons, „Lahkunud” means archived, Õpetajate võrdlus reads the calendar, unpaid sums say their period
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no change in how money is calculated.
+- `finance/businessReport.js`, `financeDashboard.js`: a lesson of today marked „Toimunud” or „Puudus_eta” is held, not planned (also journal-only ones). While the period runs `change` is null and the card says the previous period's number: no more −100% on the first of a month. New `plannedStudents`. A journal-only lesson with status „Tühistatud” is `cancelled`; it was `held`.
+- Public meaning changed: `lostStudents` („Lahkunud”) are archived cards only. New `quietStudents` („Ilma tulevase tunnita”) are active cards with no lesson now or ahead, by `calendar/unplannedStudents.js`, the same rule as home. A paused card is in neither list.
+- `teachers/teacherReport.js`, `TeacherReportCard.jsx`, `TeachersPage.jsx`: „Tunde” comes from `lessonFacts` (calendar + groups + journal), unmarked past lessons counted and named, a group lesson once. It read only the journal, so a teacher who does not mark showed 0. Field `unmarked` added to the row.
+- Unpaid labels only: home „kõik kuud”, Finantsid „selle kuu arved”, Lapsevanemad „kõik kuud · seotud laste arved”.
+- Finding, not changed (owner: no change in money logic): home and Lapsevanemad use `invoiceBalanceCents`, which does not skip cancelled, credited or hand-paid „Makstud” invoices without payment fields; Finantsid uses `financeRowState`, which does. Lapsevanemad adds up per parent, so an invoice of a child with two parent accounts counts twice, and an invoice of a card with no parent account does not count. So the sums can differ even over the same period.
+- Checks: see the PR. Numbers on the live site not compared (35 „Lahkunud”, 0 „Tunde”): no production read.
+- Next safe step: the owner decides whether home and Lapsevanemad should use `financeRowState`.
 ## 2026-11-01 · agent/preview-fix — staff preview opens and closes without „Ligipääs puudub”
 
 - Checked `origin/main` 54fab88. From a live-site walkthrough. No production writes, no deploy.
