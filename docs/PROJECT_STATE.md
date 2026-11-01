@@ -1,3 +1,12 @@
+## 2026-11-01 · agent/book-b2-m10 — B2 module 10: friendship and love vocabulary, forum, parallel stories, synonym swap
+
+- Owner: „улучшаем б1 и б2 модули” (topics and task types only from „Minu eesti keel”, all texts own). Checked `origin/main` 64248e4.
+- Changed: `admin/course/b2/module10.js`, `b2/lessonGoals.js` (046–049). 046: Gert's recommendation formtext → Eda's two parallel stories + line pairing + word box. 047: new feeling nouns, noticing a friend's trouble. 048: the neighbour-dispute article → forum post with three replies of different tone, learner's own reply; the story retold as Rasmus. 049: word order → synonym swap (G14). 050: the words return in the warm-up sheet and the R4 text. No transcript, image, id or lesson count changed.
+- New facts, not yet in `docs/COURSE_CAST.md` (outside this task's files): Valdur's late wife Maimu (radio newsreader, died six years ago), Kai Lill's childhood friend Silvi (Haapsalu, moved to Finland), forum users Marika, Liina, Leida, Piret.
+- Checks: `final-shape --course b2 --module 10` 0 → 0; baseline and strict quality baseline unchanged; eslint clean; vitest worksheet-generator + pet 1070 passed, 7 skipped (one earlier run under load had 1 failure that did not repeat in two re-runs); language check 1 unknown lower-case word, the technical value `kusimustik`.
+- Limit: 049 lost its word-order drill, so -ki / -gi returns there only in the notice, the reading and the letter rubric.
+- Next safe step: the owner reviews the PR; after merge add the new names to `docs/COURSE_CAST.md`.
+
 ## 2026-11-01 · agent/school-plans-site — grade plans in Õppevara: a Matemaatika tab, grades in order, one record per topic
 
 - Owner: „просто внеси на сайт все предметы и темы”.
