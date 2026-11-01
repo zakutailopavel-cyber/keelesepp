@@ -78,7 +78,7 @@ describe('BillingSettingsCard', () => {
     expect(screen.queryByRole('radio', { name: /Varasem kokkulepe/ })).toBeNull();
     expect(screen.getByLabelText('Soodustuse põhjus')).toHaveValue('Mitu kursust');
     expect(screen.getByLabelText('Soodustuse põhjus')).toBeDisabled();
-    expect(screen.getByText(/muudetud 2026-10-29 · Admin/)).toBeInTheDocument();
+    expect(screen.getByText(/muudetud 29\.10\.2026 · Admin/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Salvesta/ })).toBeNull();
   });
 

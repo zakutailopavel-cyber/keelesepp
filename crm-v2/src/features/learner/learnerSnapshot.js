@@ -96,7 +96,7 @@ export function learnerSnapshot({ words = [], assignments = [], homework = [], l
   const signals = [];
   if (!last || now - last.at > 7 * DAY) signals.push({ tone: 'warning', text: last ? `Pole iseseisvalt õppinud ${agoLabel(last.at, now)}.` : 'Pole veel iseseisvalt õppinud.' });
   if (forgotten.length) signals.push({ tone: 'warning', text: `${forgotten.length} sõna ununeb — alusta tundi nende kordamisega.` });
-  if (overdue.length) signals.push({ tone: 'warning', text: `${overdue.length} kodutööd on tähtajast üle.` });
+  if (overdue.length) signals.push({ tone: 'warning', text: overdue.length === 1 ? '1 kodutöö on tähtajast üle.' : `${overdue.length} kodutööd on tähtajast üle.` });
   const weak = sheets.filter((sheet) => sheet.score !== null && sheet.score < 70);
   if (weak.length) signals.push({ tone: 'warning', text: `Tööleht „${weak[0].title}”: ${weak[0].score}% — vaata vead üle.` });
   if (!signals.length && last) signals.push({ tone: 'success', text: 'Õpib järjepidevalt — võib minna uue teemaga edasi.' });

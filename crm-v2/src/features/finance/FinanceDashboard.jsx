@@ -149,7 +149,7 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
         {past ? null : <div className="fd-kpi"><span>{period === 1 ? 'Kuu kokku' : `Kokku · ${periodName(period)}`}</span><strong>{money(s.totalCents)}</strong><small>toimunud + kalendris</small></div>}
         <div className="fd-kpi"><span>{period === 1 ? `Eelmine kuu · ${monthName(shiftMonth(s.from, -1), 'long')}` : `Eelmine periood · ${monthName(shiftMonth(s.from, -period))} – ${monthName(shiftMonth(s.from, -1))}`}</span><strong>{s.beforeComplete ? money(s.beforeCents) : '—'}</strong>
           {s.changePercent !== null ? <small className={s.changePercent >= 0 ? 'is-up' : 'is-down'}>{s.changePercent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />} {s.changePercent > 0 ? '+' : ''}{s.changePercent}% {period === 1 ? 'see kuu' : 'see periood'}{past ? '' : ' (kalendriga)'}</small> : <small>võrrelda pole</small>}</div>
-        {past ? null : <div className="fd-kpi fd-kpi--forecast"><span>Prognoos · järgmised {period === 1 ? 'kuu' : `${s.aheadMonths} kuud`}</span><strong>{money(s.aheadCents)}</strong><small>{s.aheadLessons} tundi kalendris</small></div>}
+        {past ? null : <div className="fd-kpi fd-kpi--forecast"><span>Prognoos · {period === 1 ? 'järgmine kuu' : `järgmised ${s.aheadMonths} kuud`}</span><strong>{money(s.aheadCents)}</strong><small>{s.aheadLessons} tundi kalendris</small></div>}
         <div className="fd-kpi"><span>{period === 1 ? 'Keskmine tund' : 'Keskmiselt kuus'}</span><strong>{money(period === 1 ? s.averageLessonCents : s.averageMonthCents)}</strong><small>{period === 1 ? 'tulu ühe õpilase tunni kohta' : `${periodName(period)} kokku ${money(s.totalCents)}`}</small></div>
       </div>
       <div className="fd-chart-card">

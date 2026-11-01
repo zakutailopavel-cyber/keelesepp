@@ -1,4 +1,5 @@
 import { publishedWorksheetDoc } from '../library/libraryModel.js';
+import { displayDate } from '../finance/finance.js';
 
 // What a teacher can put on the lesson board as a clickable worksheet: the student's own open worksheets (homework
 // and personal sheets), the published Avasta / Harjuta / Kasuta sheets of the curriculum and older lesson sheets.
@@ -23,7 +24,7 @@ export function studentSheetChoices(assignments = [], roomKey = '') {
       kind: 'assignment',
       assignmentId: item.id,
       title: item.title || 'Tööleht',
-      detail: item.source === 'student_private_worksheet' ? 'Isiklik tööleht' : `Kodutöö${item.dueDate ? ` · tähtaeg ${item.dueDate}` : ''}`,
+      detail: item.source === 'student_private_worksheet' ? 'Isiklik tööleht' : `Kodutöö${item.dueDate ? ` · tähtaeg ${displayDate(item.dueDate)}` : ''}`,
       level: item.level || '',
       search: norm(`${item.title} ${item.level} ${item.topic}`),
     }));

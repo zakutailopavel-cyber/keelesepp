@@ -21,7 +21,7 @@ describe('GroupContactsPanel', () => {
     fireEvent.change(within(panel).getByLabelText('Grupp'), { target: { value: 'g1' } });
     fireEvent.click(within(panel).getByRole('button', { name: 'Lisa 1 valitut gruppi' }));
     await waitFor(() => expect(onAddToGroup).toHaveBeenCalledWith(expect.objectContaining({ id: 'g1' }), expect.objectContaining({ id: 's1' })));
-    expect(await within(panel).findByText(/1 õpilast lisati gruppi/)).toBeInTheDocument();
+    expect(await within(panel).findByText(/1 õpilane lisati gruppi/)).toBeInTheDocument();
   });
 
   it('hands the selected families to a colleague: one task each, the card marked „Võtta ühendust”', async () => {

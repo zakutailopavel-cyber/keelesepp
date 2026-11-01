@@ -38,7 +38,7 @@ export default function SheetBuilderCard({ service = sheetBuilderKeysService }) 
   return <Card>
     <div className="settings-icon"><Bot /></div>
     <h2>KeeleSepp AI töölehed</h2>
-    <p className="settings-copy">KeeleSepp AI (meie GPT ChatGPT-s) koostab töölehti meie konstruktoriga ja salvestab need tunni mustandiks märkega „KeeleSepp AI”. Õpilased ei näe midagi enne, kui vajutad konstruktoris „Avalda”. Seadistus: docs/GPT_SHEET_BUILDER.md.</p>
+    <p className="settings-copy">KeeleSepp AI (meie GPT ChatGPT-s) koostab töölehti meie konstruktoriga ja salvestab need tunni mustandiks märkega „KeeleSepp AI”. Õpilased ei näe midagi enne, kui vajutad konstruktoris „Avalda”.</p>
     <div className="integration-row"><div><strong>Schema URL (Actions → Import from URL)</strong><span className="mono">{SHEET_BUILDER_URL}/openapi.json</span></div><Button variant="secondary" onClick={() => copy(`${SHEET_BUILDER_URL}/openapi.json`, 'url')}><Copy size={15} /> {copied === 'url' ? 'Kopeeritud' : 'Kopeeri'}</Button></div>
     {fresh ? <div className="integration-row" role="status"><div><strong>Uus võti „{fresh.label}” — kopeeri see kohe, teist korda seda ei näidata</strong><span className="mono">{fresh.key}</span><span>GPT-s: Authentication → API Key → Bearer.</span></div><Button onClick={() => copy(fresh.key, 'key')}><Copy size={15} /> {copied === 'key' ? 'Kopeeritud' : 'Kopeeri võti'}</Button></div> : null}
     <div className="settings-profile-form">
