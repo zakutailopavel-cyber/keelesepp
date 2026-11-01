@@ -32,7 +32,10 @@ export const fullerTemplate = (meta) => ['v3', 'v4'].includes(meta?.template);
 // (5–9 blocks, task variety, use at the end, neighbours differ, the module's balance) do not apply; the constructor's
 // errors, the level norms and the keys still do, and every task must be scored by the player.
 export const isDiagnostic = (doc) => Boolean(doc?.meta?.diagnostic);
-const lessonDiagnostic = (phases) => Object.values(phases || {}).some(isDiagnostic);
+// a speaking lesson (meta.oral, suuline.js): the same scheme on five claims on purpose, one sheet of speaking tasks plus a
+// written homework. The lesson-shape rules do not apply either; the constructor's errors and the level norms still do.
+export const isOral = (doc) => Boolean(doc?.meta?.oral);
+const lessonDiagnostic = (phases) => Object.values(phases || {}).some((doc) => isDiagnostic(doc) || isOral(doc));
 const overlap = (a, b) => { const A = typeSet(a); const Bs = typeSet(b); const inter = [...A].filter((t) => Bs.has(t)).length; return inter / Math.max(1, new Set([...A, ...Bs]).size); };
 
 // one sheet: [{ code, text }]
@@ -50,6 +53,10 @@ export function sheetProblems(doc) {
     const open = (doc.blocks || []).filter((b) => BLOCKS[b.type]?.task && (!BLOCKS[b.type]?.score || OPEN_TASKS.includes(b.type)));
     if (open.length) out.push({ code: 'diagnostic-open', text: `kontroll: ülesanne, mida ei kontrollita automaatselt (${open.map((b) => b.id).join(', ')})` });
     if (!tasks(doc).length) out.push({ code: 'diagnostic-empty', text: 'kontroll: lehel pole ülesandeid' });
+    return out;
+  }
+  if (isOral(doc)) {
+    if (!(doc.blocks || []).some((b) => b.type === 'speaking')) out.push({ code: 'oral-empty', text: 'suuline tund: lehel pole rääkimisülesandeid' });
     return out;
   }
   // a word strip is added to the sheet (art/wordStrips.js), it is not a block of the lesson's shape

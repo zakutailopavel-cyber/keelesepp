@@ -1,3 +1,10 @@
+## 2026-11-01 · agent/suuline-osa — „Suuline osa” for A2, B1, B2
+
+- Asked (owner 2026-11-01): lessons like Dominik's personal C1 sheet (claim → explanation → example → conclusion, all spoken, homework written) in a separate block „Suuline osa”.
+- Built: `admin/course/suuline.js`, `a2/suuline.js` (`a2-s01…05`), `b1/suuline.js` (`a2b1-s01…05`), `b2/suuline.js` (`b1b2-s01…05`), registered in `registry.js`. Harjuta sheet only. Lesson flag `oral: true` → `meta.oral` + `meta.shortSheet`; `quality.js` skips the lesson-shape rules (`oral-empty` instead). Docs: B1_B2_COURSE_PRODUCTION.md §6.
+- Also: rebuilt audio of `a2-005:005_t_listen`, its transcript changed in #943 and left CI on main red.
+- Next safe step: create `curriculumLessons` docs and publish the sheets after merge; the owner reviews them in Õppevara.
+
 ## 2026-10-30 · agent/journal-edit-free — automatic entries: full correction, delete and restore
 
 - The accountant: she can't correct or delete the entries the system made. Audit: her manual entries were fine; automatic ones had no „Kustuta”, a fixed date and document and a required reason.
