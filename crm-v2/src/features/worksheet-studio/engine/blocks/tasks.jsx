@@ -112,6 +112,11 @@ export const choice = {
   ),
   // the right answers as words (live lesson „Näita vastuseid”, the teacher's error list); several right ones joined by +
   answers: (data) => (data.questions || []).map((q, qi) => ({ key: `${qi}`, accept: [opts(q.options).filter((x) => x.correct).map((x) => x.text).join(' + ')] })).filter((a) => a.accept[0]),
+  // the stored answer is the option's number (several: „0,2”): what the learner picked, in words
+  answerText: (data, key, value) => {
+    const o = opts(data.questions?.[Number(key)]?.options);
+    return String(value ?? '').split(',').map((v) => (v.trim() === '' ? undefined : o[Number(v)]?.text)).filter(Boolean).join(' + ');
+  },
   score: (data, get) => (data.questions || []).map((q, qi) => {
     const o = opts(q.options);
     const correct = o.map((x, i) => (x.correct ? i : -1)).filter((i) => i >= 0);
@@ -153,6 +158,7 @@ export const truefalse = {
     </div>
   ),
   answers: (data) => (data.statements || []).map((s, i) => ({ key: `${i}`, accept: [s.answer === 'true' ? 'Õige' : 'Vale'] })),
+  answerText: (data, key, value) => ({ true: 'Õige', false: 'Vale' })[value] || '',
   score: (data, get) => (data.statements || []).map((s, i) => ({ key: `${i}`, ok: get(`${i}`) === s.answer })),
   example: (data) => (data.statements?.[0] ? { 0: data.statements[0].answer } : {}),
   Editor: ({ data, set }) => (
@@ -204,6 +210,16 @@ export const match = {
     const pairs = data.pairs || [];
     const right = rotate(pairs.map((p, i) => ({ i })));
     return right.map((r, k) => ({ key: `r${k}`, accept: [`${r.i + 1}`] }));
+  },
+  // the answers are question numbers (older sheets: letters): both sides of the error list in words
+  answerText: (data, key, value) => {
+    const pairs = data.pairs || [];
+    return /^r\d+$/.test(key) ? pairs[Number(value) - 1]?.left || '' : rotate(pairs.map((p) => p.right))[String(value).charCodeAt(0) - 65] || '';
+  },
+  expectedText: (data, key) => {
+    const pairs = data.pairs || [];
+    if (/^r\d+$/.test(key)) return pairs[rotate(pairs.map((p, i) => i))[Number(key.slice(1))]]?.left || '';
+    return pairs[Number(key)]?.right || '';
   },
   score: (data, get) => {
     const pairs = data.pairs || [];

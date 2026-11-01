@@ -1,3 +1,12 @@
+## 2026-11-01 · agent/sheet-error-text — the error list and review cards show the chosen option's text, not its number
+
+- Checked `origin/main` 33e6861. From a live-site walkthrough. No production reads or writes, no deploy.
+- Cause: a task with options stores the option's number, and `errorText.js` printed it. Grading is not affected: `choice.score` compares stored number with right number (a test added in `registry.scoring.test.js`).
+- Changed: an optional block contract `answerText(data, key, value)` (and `expectedText(data, key)` for `match`) on `choice`, `truefalse`, `match`, `cloze`, `insertion`, `examlisten`, `categorize`; `givenAnswer()` in `engine/errorText.js`, read by `describeAutoErrors` („õpilane valis „…””) and `errorCards.js`. Conversion happens at display, so errors already stored read correctly.
+- Same bug found in `errorCards.js`: a wrong sentence choice made a review card „Sinu lause: 1”. New cards are right. Cards already in `studentWords` keep the number: fixing them is a production write and was not done.
+- Checks: see the PR. Not opened in a browser.
+- Next safe step: the owner decides whether to clean the old „Sinu lause: <number>” cards in production.
+
 ## 2026-11-01 · agent/a2-m20-final-2 — A2 module 20 „A2 eksam ja iseseisev keelekasutus” in the final shape (last A2 module)
 
 - Base: `main` b13d41e, checked 2026-11-01. Content only; no production data, no publishing, no deploy. Paid services: none (TartuNLP is free).

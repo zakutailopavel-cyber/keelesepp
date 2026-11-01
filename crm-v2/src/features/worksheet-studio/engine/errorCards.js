@@ -3,7 +3,7 @@
 // („Minu vead”, „Päeva 5 minutit”): word = the right sentence, translation = „Sinu lause: …” with what he wrote.
 // Only answers that make a whole sentence: a gap in a sentence (the sentence is rebuilt), or a task whose right answer
 // is itself a sentence (rewrite, correct, translate). Empty answers and single-word tasks make no card.
-import { expectedAnswer } from './errorText.js';
+import { expectedAnswer, givenAnswer } from './errorText.js';
 
 export const SENTENCE_PREFIX = 'Sinu lause:';
 export const MAX_SHEET_CARDS = 5;
@@ -32,13 +32,14 @@ export function errorCards(worksheetDoc, errorLog = [], max = MAX_SHEET_CARDS) {
   const cards = [];
   for (const entry of errorLog || []) {
     if (cards.length >= max) break;
-    const given = clean(entry?.answer);
-    if (!given) continue;
     const raw = String(entry?.key || '');
     const split = raw.indexOf(':');
     const block = blocks.find((item) => item.id === (split > 0 ? raw.slice(0, split) : raw));
     const sub = split > 0 ? raw.slice(split + 1) : '';
     if (!block) continue;
+    // a task with options stores the option's number: the card shows what he chose, never „Sinu lause: 1”
+    const given = clean(givenAnswer(block, sub, entry?.answer));
+    if (!given) continue;
     let pair = null;
     const [row, gap] = sub.split('.').map(Number);
     if (sub.includes('.') && Number.isInteger(row) && Number.isInteger(gap)) pair = gapSentence(block, row, gap, given);
