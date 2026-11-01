@@ -17,8 +17,8 @@ describe('methodology across a course (docs/METHODOLOGY_STANDARD.md §2)', () =>
     ]);
     // a2-module-09 left the list with A2 module 8 in the final shape (its words come back in module 9)
     expect(gaps.filter((g) => g.code === 'recycling').map((g) => g.module)).toEqual([]);
-    // A2 and C1 have no vocabulary blocks at all
-    expect([...new Set(gaps.filter((g) => g.code === 'no-vocabulary').map((g) => g.module.split('-module')[0]))]).toEqual(['a2', 'est-c1']);
+    // C1 has no vocabulary blocks at all; A2 left the list with module 20 in the final shape
+    expect([...new Set(gaps.filter((g) => g.code === 'no-vocabulary').map((g) => g.module.split('-module')[0]))]).toEqual(['est-c1']);
   });
 
   it('every course trains every Harno exam format at least once', () => {
