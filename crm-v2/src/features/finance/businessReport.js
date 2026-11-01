@@ -7,8 +7,11 @@ import { groupCalendarEvents, occurrencesForDates } from '../calendar/calendarVi
 import { itemSubject } from '../students/subjects.js';
 import { lessonPriceCents } from './financeDashboard.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
+import { unplannedStudents } from '../calendar/unplannedStudents.js';
 
-// one row per student and lesson: { date, studentId, teacher, subject, state, cents }
+// today's lesson already marked is a fact, not a plan (the first of a month showed 0 lessons and 0 students)
+const MARKED_TODAY = new Set(['Toimunud', 'Puudus_eta']);
+// one row per student and lesson: { date, studentId, teacher, teacherUid, subject, state, cents }
 // state: held | unmarked | covered | absentNotified | absentCharged | absentFree | cancelled | planned
 export function lessonFacts({ from, to, today, students = [], plans = [], schedule = [], groups = [], lessons = [] } = {}) {
   const studentById = new Map(students.map((student) => [student.id, student]));
@@ -33,10 +36,10 @@ export function lessonFacts({ from, to, today, students = [], plans = [], schedu
       if (record) seen.add(record.id || `${studentId}@${item.occurrenceDate}`);
       const status = record?.status || item.status || 'Planeeritud';
       const cents = lessonPriceCents(item, student, plan);
-      const base = { occurrence: `${item.id}:${item.occurrenceDate}`, minutes: Number(item.duration) || 60, date: item.occurrenceDate, studentId, studentName: student.name || item.studentName || '', teacher: item.teacher || student.teacher || '', subject: itemSubject(item, student) || 'Eesti keel', group: Boolean(item.isGroup), cents, priced: cents > 0 };
+      const base = { occurrence: `${item.id}:${item.occurrenceDate}`, minutes: Number(item.duration) || 60, date: item.occurrenceDate, studentId, studentName: student.name || item.studentName || '', teacher: item.teacher || student.teacher || '', teacherUid: item.teacherUid || '', subject: itemSubject(item, student) || 'Eesti keel', group: Boolean(item.isGroup), cents, priced: cents > 0 };
       let state;
       if (status === 'Tühistatud') state = 'cancelled';
-      else if (item.occurrenceDate >= today) state = status === 'Puudus_p' ? 'absentNotified' : 'planned';
+      else if (item.occurrenceDate >= today && !(item.occurrenceDate === today && MARKED_TODAY.has(status))) state = status === 'Puudus_p' ? 'absentNotified' : 'planned';
       else if (status === 'Puudus_p') state = 'absentNotified';
       else if (status === 'Puudus_eta') state = plan?.chargeNoShow !== false && !record?.billingWaived ? 'absentCharged' : 'absentFree';
       else if (status === 'Toimunud') state = record?.billingStatus === 'school_covered' ? 'covered' : 'held';
@@ -48,18 +51,18 @@ export function lessonFacts({ from, to, today, students = [], plans = [], schedu
   schedule.filter((event) => !event.recurring && event.status === 'Tühistatud' && event.date >= from && event.date <= to && studentById.has(event.studentId))
     .forEach((event) => out.push({ occurrence: event.id, minutes: Number(event.duration) || 60, date: event.date, studentId: event.studentId, studentName: studentById.get(event.studentId).name || '', teacher: event.teacher || '', subject: itemSubject(event, studentById.get(event.studentId)) || 'Eesti keel', group: false, cents: 0, priced: true, state: 'cancelled' }));
   // journal lessons not in the calendar
-  lessons.filter((lesson) => lesson.date >= from && lesson.date <= to && lesson.date < today && !seen.has(lesson.id || `${lesson.studentId}@${lesson.date}`) && studentById.has(lesson.studentId)).forEach((lesson) => {
+  lessons.filter((lesson) => lesson.date >= from && lesson.date <= to && (lesson.date < today || (lesson.date === today && MARKED_TODAY.has(lesson.status))) && !seen.has(lesson.id || `${lesson.studentId}@${lesson.date}`) && studentById.has(lesson.studentId)).forEach((lesson) => {
     const student = studentById.get(lesson.studentId);
     const cents = lessonPriceCents(lesson, student, planById.get(lesson.studentId));
-    const state = lesson.status === 'Puudus_p' ? 'absentNotified' : lesson.status === 'Puudus_eta' ? 'absentCharged' : lesson.billingStatus === 'school_covered' ? 'covered' : 'held';
-    out.push({ occurrence: lesson.id || `${lesson.studentId}@${lesson.date}`, minutes: Number(lesson.duration) || 60, date: lesson.date, studentId: lesson.studentId, studentName: student.name || '', teacher: lesson.teacher || student.teacher || '', subject: itemSubject(lesson, student) || 'Eesti keel', group: false, cents, priced: cents > 0, state });
+    const state = lesson.status === 'Tühistatud' ? 'cancelled' : lesson.status === 'Puudus_p' ? 'absentNotified' : lesson.status === 'Puudus_eta' ? 'absentCharged' : lesson.billingStatus === 'school_covered' ? 'covered' : 'held';
+    out.push({ occurrence: lesson.id || `${lesson.studentId}@${lesson.date}`, minutes: Number(lesson.duration) || 60, date: lesson.date, studentId: lesson.studentId, studentName: student.name || '', teacher: lesson.teacher || student.teacher || '', teacherUid: lesson.teacherUid || '', subject: itemSubject(lesson, student) || 'Eesti keel', group: false, cents, priced: cents > 0, state });
   });
   return out;
 }
 
 const PAID = new Set(['held', 'unmarked', 'absentCharged']); // what the period earns
-const TOOK_PLACE = new Set(['held', 'unmarked', 'covered']);
-const MISSED = new Set(['absentNotified', 'absentCharged', 'absentFree', 'cancelled']);
+export const TOOK_PLACE = new Set(['held', 'unmarked', 'covered']);
+export const MISSED = new Set(['absentNotified', 'absentCharged', 'absentFree', 'cancelled']);
 
 function sums(facts) {
   const count = (state) => facts.filter((fact) => fact.state === state).length;
@@ -122,7 +125,9 @@ const change = (now, before) => (before ? Math.round(((now - before) / before) *
 
 /**
  * The business report of a period of `months` months ending with `current` (this month or a chosen past one), compared with the months before.
- * → { from, to, now: sums, before: sums, change: { tookPlace, earned, students }, newStudents, lostStudents,
+ * While the period runs `change` is null: a few days against a whole month is no comparison (−100% on the first of a month).
+ * lostStudents have an archived card; quietStudents an active one, with no lesson now or ahead (home's „ilma tulevase tunnita”).
+ * → { from, to, now: sums, before: sums, change: { tookPlace, earned, students }, plannedStudents, newStudents, lostStudents, quietStudents,
  *     unpriced, byTeacher (+ hours, rateCents, payCents, schoolCents), pay: { payCents, schoolCents, unrated }, bySubject }
  */
 export function businessReport({ current, months = 1, today, students = [], plans = [], schedule = [], groups = [], lessons = [], teachers = [], settings = {} } = {}) {
@@ -143,6 +148,11 @@ export function businessReport({ current, months = 1, today, students = [], plan
   const beforeStudents = came(previous);
   const ahead = new Set(facts.filter((fact) => fact.state === 'planned').map((fact) => fact.studentId));
   const nameOf = (id) => students.find((student) => student.id === id)?.name || 'Õpilane';
+  const isArchived = (id) => students.find((student) => student.id === id)?.active === false;
+  const gone = [...beforeStudents].filter((id) => !nowStudents.has(id) && !ahead.has(id));
+  const nothingPlanned = new Set(unplannedStudents({ students, events: [...schedule, ...groupCalendarEvents(groups)], today }).map(({ student }) => student.id));
+  const running = String(today || '') <= to;
+  const paying = new Set(facts.filter((fact) => TOOK_PLACE.has(fact.state) || fact.state === 'absentCharged').map((fact) => fact.studentId));
   const teacherOf = teacherNames([...facts.map((fact) => fact.teacher), ...teachers.map((teacher) => teacher.name)]);
   const rates = new Map(teachers.filter((teacher) => Number(teacher.workHourlyRateCents) > 0).map((teacher) => [teacherOf(teacher.name), Number(teacher.workHourlyRateCents)]));
   const byTeacherFacts = facts.map((fact) => ({ ...fact, teacher: teacherOf(fact.teacher) }));
@@ -151,9 +161,11 @@ export function businessReport({ current, months = 1, today, students = [], plan
   const unpriced = [...new Set(facts.filter((fact) => !fact.priced && fact.state !== 'cancelled').map((fact) => fact.studentId))];
   return {
     from, to, now, before,
-    change: { tookPlace: change(now.tookPlace, before.tookPlace), earned: change(now.earnedCents, before.earnedCents), students: change(now.students, before.students) },
+    change: running ? { tookPlace: null, earned: null, students: null } : { tookPlace: change(now.tookPlace, before.tookPlace), earned: change(now.earnedCents, before.earnedCents), students: change(now.students, before.students) },
+    plannedStudents: [...ahead].filter((id) => !paying.has(id)).length,
     newStudents: [...nowStudents].filter((id) => !everBefore.has(id)).map(nameOf).sort((a, b) => a.localeCompare(b, 'et')),
-    lostStudents: [...beforeStudents].filter((id) => !nowStudents.has(id) && !ahead.has(id)).map(nameOf).sort((a, b) => a.localeCompare(b, 'et')),
+    lostStudents: gone.filter(isArchived).map(nameOf).sort((a, b) => a.localeCompare(b, 'et')),
+    quietStudents: gone.filter((id) => !isArchived(id) && nothingPlanned.has(id)).map(nameOf).sort((a, b) => a.localeCompare(b, 'et')),
     unpriced: unpriced.map(nameOf).sort((a, b) => a.localeCompare(b, 'et')),
     byTeacher,
     pay: { payCents, schoolCents: now.earnedCents - payCents, unrated: byTeacher.filter((row) => !row.rateCents && row.tookPlace).map((row) => row.name) },

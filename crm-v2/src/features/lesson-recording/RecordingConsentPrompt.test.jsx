@@ -17,6 +17,14 @@ describe('RecordingConsentPrompt', () => {
     expect(consentQuestionFor(cards, 'parent').map((card) => card.id)).toEqual(['a', 'd', 'e']);
   });
 
+  it('says „õpilane ütles” to a parent and „sa ütlesid” to the student', () => {
+    const { unmount } = render(<RecordingConsentPrompt students={[{ id: 'st-1', name: 'Mari' }]} user={user} role="parent" service={{}} />);
+    expect(screen.getByText(/mida õpilane ütles ja/)).toBeInTheDocument();
+    unmount();
+    render(<RecordingConsentPrompt students={[{ id: 'st-1', name: 'Mari' }]} user={user} service={{}} />);
+    expect(screen.getByText(/mida sa ütlesid ja/)).toBeInTheDocument();
+  });
+
   it('stores the student\'s own answer once and closes', async () => {
     const service = { answerConsent: vi.fn().mockResolvedValue({ recordingConsent: true }) };
     render(<RecordingConsentPrompt students={[{ id: 'st-1', name: 'Mari' }]} user={user} service={service} />);

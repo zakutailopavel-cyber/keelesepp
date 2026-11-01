@@ -55,6 +55,7 @@ describe('DashboardPage role scoping', () => {
     renderDashboard({ uid: 'finance-1', displayName: 'Finants', roles: ['finance'] }, dataRepositories);
 
     expect(await screen.findByText('Laekumata')).toBeInTheDocument();
+    expect(screen.getByText(/^kõik kuud · 1 tähtaja ületanud/)).toBeInTheDocument();
     expect(dataRepositories.invoices.list).toHaveBeenCalledTimes(1);
     expect(dataRepositories.students.list).not.toHaveBeenCalled();
     expect(dataRepositories.schedule.list).not.toHaveBeenCalled();

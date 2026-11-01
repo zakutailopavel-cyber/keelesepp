@@ -118,7 +118,7 @@ export default function DashboardPage({
       { label: 'Kodutööd pooleli', value: data.openHomework.length, meta: 'ootab tegemist', icon: CircleAlert, tone: 'purple' },
     ] : []),
     ...(data.canViewFinance ? [
-      { label: 'Laekumata', value: money(data.balance), meta: `${data.overdue.length} tähtaja ületanud`, icon: ReceiptText, tone: 'amber' },
+      { label: 'Laekumata', value: money(data.balance), meta: `kõik kuud · ${data.overdue.length} tähtaja ületanud`, icon: ReceiptText, tone: 'amber' },
     ] : []),
   ];
   const quickActions = [

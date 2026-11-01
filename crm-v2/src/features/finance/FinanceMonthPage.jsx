@@ -353,7 +353,7 @@ export default function FinanceMonthPage({
         {[
           ['invoices', <ReceiptText size={18} />, 'Arveid', summary.count, `${money(summary.amountCents)} kokku`],
           ['paid', <CheckCircle2 size={18} />, 'Laekunud', money(summary.paidCents), `${summary.byStatus.paid} täielikult makstud`],
-          ['unpaid', <Clock3 size={18} />, 'Laekumata', money(summary.balanceCents), `${summary.byStatus.overdue} üle tähtaja`],
+          ['unpaid', <Clock3 size={18} />, 'Laekumata', money(summary.balanceCents), `selle kuu arved · ${summary.byStatus.overdue} üle tähtaja`],
           ['credits', <WalletCards size={18} />, 'Ette makstud', money(creditTotal), 'kantakse järgmisele arvele'],
           ...(canManage ? [['prepare', <FilePlus2 size={18} />, 'Koosta arved', '', 'Kuuarvete ettevalmistus'], ['check', <ShieldCheck size={18} />, 'Kontroll', '', 'Arved ja maksed, pank']] : []),
         ].map(([view, icon, label, value, caption], index) => <button key={view} ref={(node) => { tabRefs.current[index] = node; }} id={`finance-tab-${view}`} type="button" role="tab" aria-selected={activeView === view} aria-controls="finance-view-panel" tabIndex={activeView === view ? 0 : -1} className={`finance-month-metric ${['prepare', 'check'].includes(view) ? 'finance-month-metric--prepare' : ''}`} onClick={() => selectView(view)} onKeyDown={(event) => moveTab(event, index)}><span>{icon}{label}</span>{value !== '' ? <strong>{value}</strong> : null}<small>{caption}</small></button>)}
