@@ -1,6 +1,6 @@
 // „Järgmine samm” on the student's home: exactly one thing to do, one button. Priority (owner 2026-11-01): a lesson
 // starting soon → overdue homework → open homework → due word review → nothing left. Pure: the page passes what it knows.
-import { TASK_STATE, mergeTasks, taskCount } from '../homework/taskList.js';
+import { groupTasks, mergeTasks, taskCount } from '../homework/taskList.js';
 import { dailyPlan } from '../vocabulary/dailyReview.js';
 
 export const SOON_MINUTES = 30;
@@ -21,7 +21,7 @@ export function lessonNow(occurrences = [], now = Date.now()) {
 
 // open work given by the teacher, the very list of „Ülesanded” (homework/taskList.js), so home and that page never disagree
 export function openWork({ homework = [], assignments = [] } = {}) {
-  return mergeTasks({ homework, assignments }).filter((task) => task.state === TASK_STATE.TODO).map((task) => ({ id: task.key, title: task.title, due: task.due }));
+  return groupTasks(mergeTasks({ homework, assignments })).todo.map((task) => ({ id: task.key, title: task.title, due: task.due }));
 }
 
 const dayLabel = (iso) => {
@@ -45,7 +45,7 @@ export function nextStep({ occurrences = [], homework = [], assignments = [], wo
     return { key: 'overdue', title: short(overdue[0].title), detail: `Tähtaeg oli ${dayLabel(overdue[0].due)}${more}`, button: 'Tee ära', to: '/homework' };
   }
   if (work.length) {
-    const first = [...work].sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'))[0];
+    const first = work[0]; // the order of „Tee nüüd”: without deadlines the oldest lesson first, not the last one given
     const more = work.length > 1 ? `kokku ${taskCount(work.length)}` : '';
     const detail = [first.due ? `Tähtaeg ${dayLabel(first.due)}` : '', more].filter(Boolean).join(' · ') || 'Õpetaja andis selle sulle';
     return { key: 'homework', title: short(first.title), detail, button: 'Tee ära', to: '/homework' };
