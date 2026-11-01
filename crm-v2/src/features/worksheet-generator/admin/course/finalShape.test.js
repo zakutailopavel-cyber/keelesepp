@@ -3,7 +3,7 @@ import { COURSE_MODULES, moduleSheets } from './registry.js';
 import { finalShapeKey, finalShapeProblems, lessonsFromModules } from '../../../worksheet-studio/didactics/finalShape.js';
 
 // Each course against its final shape (docs/COURSE_FINAL_SHAPE_B1.md §8, gates V1–V16; the B1→B2 course with the B2
-// profile, docs/COURSE_FINAL_SHAPE_B2.md). The problems a course has today are listed in its baseline file (shown, not
+// profile, docs/COURSE_FINAL_SHAPE_B2.md; the B2→C1 course, docs/COURSE_FINAL_SHAPE_C1.md). The problems a course has today are listed in its baseline file (shown, not
 // blocking); a NEW problem fails, and a fixed one must leave the baseline. After fixing content (or when a rule changes)
 // rewrite the baselines:
 //   UPDATE_FINAL_SHAPE_BASELINE=1 npx vitest run src/features/worksheet-generator/admin/course/finalShape.test.js
@@ -17,11 +17,13 @@ const COURSES = [
   { course: 'b1', file: `${DIR}/finalShapeBaseline.json`, forms: ['A1', 'A2', 'B1'] },
   { course: 'b2', file: `${DIR}/finalShapeBaselineB2.json`, forms: ['A1', 'A2', 'B1', 'B2'] },
   { course: 'a2', file: `${DIR}/finalShapeBaselineA2.json`, forms: ['A1', 'A2'] },
+  // no modules yet (docs/COURSE_FINAL_SHAPE_C1.md §8): no groups until the first module is registered
+  { course: 'b2c1', file: `${DIR}/finalShapeBaselineB2C1.json`, forms: ['A1', 'A2', 'B1', 'B2', 'C1'] },
 ].map((c) => {
   const modules = COURSE_MODULES.filter((mod) => mod.MODULE.course === c.course && !mod.MODULE.supplement);
   const problems = finalShapeProblems(lessonsFromModules(modules, moduleSheets), { forms: formsOf(c.forms), profile: c.course });
   const baseline = fs.existsSync(c.file) ? JSON.parse(fs.readFileSync(c.file, 'utf8')) : {};
-  return { ...c, problems, baseline, groups: [...modules.map((mod) => mod.MODULE.id), 'course'] };
+  return { ...c, problems, baseline, groups: modules.length ? [...modules.map((mod) => mod.MODULE.id), 'course'] : [] };
 });
 
 function split({ problems, baseline }, group) {

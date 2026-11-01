@@ -11,12 +11,14 @@ import { expectedAnswer } from './errorText.js';
 const isTask = (block) => Boolean(BLOCKS[block?.type]?.task);
 const filled = (value) => value !== undefined && value !== null && String(value).trim() !== '' && !(Array.isArray(value) && !value.length);
 
-// what the learner sees: in step mode only the opened tasks (texts, pictures and other non-task blocks stay)
+// what the learner sees: in step mode only the opened tasks (texts, pictures and other non-task blocks stay); a word
+// strip belongs to the task below it and comes with that task
 export function stepView(doc, liveStep) {
   if (!doc || !liveStep?.on) return { doc, hidden: 0 };
   const open = new Set(liveStep.open || []);
-  const blocks = doc.blocks.filter((block) => !isTask(block) || open.has(block.id));
-  return { doc: { ...doc, blocks }, hidden: doc.blocks.length - blocks.length };
+  const taskAfter = (index) => doc.blocks.slice(index + 1).find(isTask);
+  const blocks = doc.blocks.filter((block, index) => (block.type === 'wordstrip' ? open.has(taskAfter(index)?.id) : !isTask(block) || open.has(block.id)));
+  return { doc: { ...doc, blocks }, hidden: doc.blocks.filter((block) => isTask(block) && !open.has(block.id)).length };
 }
 
 // how many tasks the learner sees in step mode: { open, total }

@@ -20,6 +20,8 @@ describe('pet games on the real course', () => {
     const poor = [];
     const totals = Object.fromEntries(GAMES.map((g) => [g.key, 0]));
     for (const lesson of lessons) {
+      // a speaking lesson (suuline.js) has no words or forms a game could be built from
+      if (Object.values(lesson.phases).some((doc) => doc.meta?.oral)) continue;
       const records = Object.entries(lesson.phases).map(([phase, doc]) => ({ id: phase, worksheetDoc: doc }));
       const [topic] = learnerTopics(courseTopics([{ date: '2026-10-01', topicLessonId: lesson.id, topic: lesson.id }], { [lesson.id]: records }));
       const games = topic?.games || [];

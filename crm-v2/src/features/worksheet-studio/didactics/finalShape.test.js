@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { canDoSkills, editDistance, finalShapeProblems, mainTask, normInstruction, strandOf } from './finalShape.js';
-import { defaultTaskId, taskIdOf, taskLevelOf, TASK_CATALOGUE } from './taskCatalogue.js';
+import { PROFILES, canDoSkills, editDistance, finalShapeProblems, mainTask, normInstruction, strandOf } from './finalShape.js';
+import { HARNO_FORMATS_C1, defaultTaskId, isHarnoFormat, taskIdOf, taskLevelOf, TASK_CATALOGUE } from './taskCatalogue.js';
 
 // Small hand-made lessons for each rule of docs/COURSE_FINAL_SHAPE_B1.md §8. A block is { id, type, goal, data, tag };
 // `t(id, task, more)` makes a task of that catalogue id (the block type does not matter once the tag is there).
@@ -17,8 +17,8 @@ const lesson = (num, { module = Math.ceil(num / 5), assessment = false, archetyp
 const checks = (problems, prefix) => problems.filter((x) => x.check.startsWith(prefix));
 
 describe('task catalogue', () => {
-  it('has the 63 types of §3 and the 8 B2 types with a skill, a level 1–4 and per-module bounds', () => {
-    expect(Object.keys(TASK_CATALOGUE)).toHaveLength(71);
+  it('has the 63 types of §3, the 8 B2 types and the 12 C1 types with a skill, a level 1–4 and per-module bounds', () => {
+    expect(Object.keys(TASK_CATALOGUE)).toHaveLength(83);
     Object.entries(TASK_CATALOGUE).forEach(([id, x]) => {
       expect('RLWSG').toContain(id[0]);
       expect([1, 2, 3, 4]).toContain(x.level);
@@ -282,5 +282,49 @@ describe('the A2 profile (COURSE_FINAL_SHAPE_A2.md)', () => {
     const problems = finalShapeProblems([a2(6, { tr: [t('w', 'W05', { harno: 'W2b' })] })], { profile: 'a2' });
     expect(problems.find((x) => x.check === 'V6-total-W2').text).toMatch(/^W2: harjutatud 1 korda/);
     expect(problems.some((x) => x.check === 'V6-total-R5')).toBe(true);
+  });
+});
+
+describe('the B2→C1 profile (COURSE_FINAL_SHAPE_C1.md)', () => {
+  const c1 = (num, more = {}) => ({ ...lesson(num, more), moduleId: `b2c1-module-${String(more.module || Math.ceil(num / 5)).padStart(2, '0')}` });
+  it('asks for the C1 speaking types instead of the B1, B2 and topic-question minimums', () => {
+    const problems = finalShapeProblems([6, 7, 8, 9].map((n) => c1(n)), { profile: 'b2c1' });
+    expect(checks(problems, 'V3-min-S18')).toHaveLength(1);
+    expect(checks(problems, 'V3-min-S19')).toHaveLength(1);
+    ['V3-min-S02', 'V3-min-S03', 'V3-min-S04', 'V3-min-S16', 'V3-min-S17'].forEach((c) => expect(checks(problems, c)).toHaveLength(0));
+  });
+  it('counts the ten C1 families (W2a / W2b → W2) and not the formats of the other exams', () => {
+    const problems = finalShapeProblems([c1(6, { tr: [t('w', 'W17', { harno: 'W2a' })] })], { profile: 'b2c1' });
+    expect(problems.find((x) => x.check === 'V6-total-W2').text).toMatch(/^W2: harjutatud 1 korda \(vähemalt 11\)/);
+    expect(checks(problems, 'V6-variant-W2a')[0].text).toMatch(/1 korda/);
+    expect(checks(problems, 'V6-variant-W2b')[0].text).toMatch(/0 korda/);
+    ['R1', 'R2', 'R3', 'L1', 'L2', 'L3', 'W1', 'S1', 'S2'].forEach((f) => expect(checks(problems, `V6-total-${f}`)).toHaveLength(1));
+    ['L4', 'R4', 'R5', 'S1a'].forEach((f) => expect(checks(problems, `V6-total-${f}`)).toHaveLength(0));
+  });
+  it('wants the exam corner and the timed parts from module 2 and allows tingiv kõneviis from the start', () => {
+    const say = { id: 's', type: 'speaking', goal: 'g_use', data: { instruction: 'Mida sa teeksid?' }, tag: { task: 'S19' } };
+    const problems = finalShapeProblems([c1(6, { module: 2, tr: [say] }), c1(10, { module: 2, assessment: true, archetype: 'EKS', lead: null, tr: [t('x', 'W16', { harno: 'W1' })] })], { profile: 'b2c1' });
+    expect(checks(problems, 'V12-corner')).toHaveLength(1);
+    expect(checks(problems, 'V16-conditional')).toHaveLength(0);
+    expect(checks(problems, 'V6-timing')).toHaveLength(1);
+  });
+  it('needs all four parts in the mocks 060, 080, 089, 090 and counts practice up to 089', () => {
+    const mock = c1(60, { module: 12, assessment: true, archetype: 'PROOV', lead: null, tr: [t('x', 'W16', { harno: 'W1' })] });
+    expect(checks(finalShapeProblems([mock], { profile: 'b2c1' }), 'V6-mock')[0].text).toMatch(/Kuulamine|Lugemine|Rääkimine/);
+    const last = c1(90, { module: 18, assessment: true, archetype: 'PROOV', lead: null, tr: [t('x', 'W16', { harno: 'W1' })] });
+    expect(finalShapeProblems([last], { profile: 'b2c1' }).find((x) => x.check === 'V6-total-W1').text).toMatch(/harjutatud 0 korda/);
+  });
+  it('has an entry for every C1 format in the intro schedule, all of them met by module 6', () => {
+    const { intro, practice, family } = PROFILES.b2c1;
+    expect(Object.keys(intro).sort()).toEqual(Object.keys(HARNO_FORMATS_C1).filter((f) => f !== 'S0').sort());
+    expect(Math.max(...Object.values(intro))).toBe(6);
+    expect([...new Set(Object.keys(intro).map(family))].sort()).toEqual(Object.keys(practice).sort());
+    Object.keys(HARNO_FORMATS_C1).forEach((f) => expect(isHarnoFormat(f)).toBe(true));
+  });
+  it('points every new catalogue type at a real C1 format', () => {
+    ['R17', 'R18', 'R19', 'L11', 'L12', 'L13', 'W16', 'W17', 'W18', 'S18', 'S19', 'G14'].forEach((id) => {
+      expect(TASK_CATALOGUE[id].exam.length).toBeGreaterThan(0);
+      TASK_CATALOGUE[id].exam.forEach((f) => expect(HARNO_FORMATS_C1[f]).toBeTruthy());
+    });
   });
 });

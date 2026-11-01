@@ -1,5 +1,5 @@
 import { isInLesson } from './inLesson.js';
-import { text, notice, tip, image, vocab } from './blocks/content.jsx';
+import { text, notice, tip, image, vocab, wordstrip } from './blocks/content.jsx';
 import { taskBlocks } from './blocks/tasks.jsx';
 import { productiveBlocks } from './blocks/productive.jsx';
 import { extraBlocks } from './blocks/extra.jsx';
@@ -13,7 +13,7 @@ import { kidsBlocks } from './blocks/kids.jsx';
 import { newId } from './schema.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
-export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks };
+export const BLOCKS = { text, notice, tip, image, vocab, wordstrip, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks };
 
 export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Lastele', 'Kujundus'];
 
@@ -25,9 +25,9 @@ export const isPaletteKey = (key) => {
   return Boolean(def && (!variant || def.variants?.some((v) => v.variant === variant)));
 };
 
-// What the palette shows: every block, a block with variants as one entry per variant.
+// What the palette shows: every block a teacher adds by hand (not `hidden`), a block with variants as one entry per variant.
 export function paletteEntries() {
-  return Object.values(BLOCKS).flatMap((def) => (def.variants?.length
+  return Object.values(BLOCKS).filter((def) => !def.hidden).flatMap((def) => (def.variants?.length
     ? def.variants.map((v) => ({ key: `${def.type}:${v.variant}`, label: v.label, hint: v.hint, icon: v.icon || def.icon, group: def.group, task: def.task }))
     : [{ key: def.type, label: def.label, icon: def.icon, group: def.group, task: def.task }]));
 }

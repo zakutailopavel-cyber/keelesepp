@@ -30,7 +30,7 @@ const ITEMS = {
 // the learner writes a whole sentence
 const SENTENCE_WRITING = ['errorfix', 'transformation', 'translation', 'dictation'];
 // speaking / writing / reflection: they matter, but they cannot stand in for the exercises
-const OPEN = new Set(['speaking', 'writing', 'guidedletter', 'rolecards', 'planning', 'selfcheck', 'rubric', 'examwriting', 'speakcard', 'examrubric', 'exampart', 'phrasebank', 'vocab', 'text', 'tip', 'notice', 'image', 'heading']);
+const OPEN = new Set(['speaking', 'writing', 'guidedletter', 'rolecards', 'planning', 'selfcheck', 'rubric', 'examwriting', 'speakcard', 'examrubric', 'exampart', 'phrasebank', 'vocab', 'text', 'tip', 'notice', 'image', 'wordstrip', 'heading']);
 
 const band = (level) => {
   const native = nativeStage(level);

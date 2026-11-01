@@ -41,13 +41,13 @@ describe('the working copy of an entry', () => {
     expect(setCell(w, -1, 1, '15.02.2026').date).toBe('2026-02-15');
   });
 
-  it('D ≠ K blocks saving and gives the difference; an automatic entry needs the reason', () => {
+  it('D ≠ K blocks saving and gives the difference; the reason of an automatic entry is optional', () => {
     const w = setCell(toWorking(entry.source), 0, 5, '90');
     const off = workingProblem(w, { origin: 'auto', accounts, reason: 'x' });
     expect(off.difference).toBe(1000);
     expect(off.problem).toMatch(/vahe 10,00/);
     const ok = setCell(w, 1, 6, '90,00');
-    expect(workingProblem(ok, { origin: 'auto', accounts, reason: '' }).problem).toMatch(/põhjus/);
+    expect(workingProblem(ok, { origin: 'auto', accounts, reason: '' }).problem).toBe('');
     expect(workingProblem(ok, { origin: 'auto', accounts, reason: 'parandus' }).problem).toBe('');
     expect(workingValues(ok).lines).toEqual([{ account: '1200', debitCents: 9000, creditCents: 0, note: '' }, { account: '3060', debitCents: 0, creditCents: 9000, note: '' }]);
     expect(workingProblem(setCell(ok, 1, 0, '9000'), { origin: 'auto', accounts, reason: 'x' }).problem).toMatch(/9000/);

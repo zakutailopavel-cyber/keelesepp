@@ -11,6 +11,7 @@ describe('course names by the target level (owner 2026-10-29)', () => {
     expect(courseNameForCurriculum('est-a2-b1-roadmap-v1')).toBe('Eesti keel B1');
     expect(courseNameForCurriculum('est-b1-b2-roadmap-v1')).toBe('Eesti keel B2');
     expect(courseNameForCurriculum('est-c1-curriculum-240-v1')).toBe('C1 süvakursus');
+    expect(courseNameForCurriculum('est-b2-c1-roadmap-v1')).toBe('Eesti keel C1');
   });
 
   it('shows an old saved badge under the new name and leaves a hand-typed badge alone', () => {
@@ -25,6 +26,9 @@ describe('course names by the target level (owner 2026-10-29)', () => {
 
   it('prints the new name on every generated course sheet', () => {
     expect(COURSES.b1.label).toBe('Eesti keel B1 · A2 tasemelt · Harno B1 eksamini');
+    expect(COURSES.b2c1.label).toBe('Eesti keel C1 · B2 tasemelt · Harno C1 eksamini');
+    expect(COURSES.b2c1.badge).toBe('KeeleSepp · Eesti keel C1');
+    expect(COURSES.c1.name).toBe('C1 süvakursus');
     const first = (course) => COURSE_MODULES.find((m) => m.MODULE.course === course && !m.MODULE.supplement);
     for (const [course, badge] of [['a2', 'KeeleSepp · Eesti keel A2 · moodul 1'], ['b1', 'KeeleSepp · Eesti keel B1 · moodul 1'], ['b2', 'KeeleSepp · Eesti keel B2 · moodul 1'], ['c1', 'KeeleSepp · C1 süvakursus · moodul 1']]) {
       const mod = first(course);
