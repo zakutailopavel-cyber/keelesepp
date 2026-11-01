@@ -726,6 +726,10 @@ service cloud.firestore {
 
     function changesInvoiceFinancialSource() {
       return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'accountingExcluded',
+        'accountingExcludedReason',
+        'accountingExcludedAt',
+        'accountingExcludedBy',
         'amount',
         'amountCents',
         'lessonCount',

@@ -137,3 +137,11 @@ test('old invoices without billingMode and with lesson links are credited in ful
   assert.equal(partlyNote.amountCents, 4000);
   assert.deepEqual(partlyNote.lessonIds, ['h2']);
 });
+
+test('a replacement of an invoice outside the books stays outside the books (docs/ACCOUNTING.md)', () => {
+  const excluded = { id: 'x1', num: 'KS-1', date: '2026-07-01', status: 'Makstud', amountCents: 5000, amount: 50, studentId: 's', payerName: 'Ema', accountingExcluded: true, accountingExcludedReason: 'Raha teisel kontol', accountingExcludedAt: '2026-10-30T10:00:00.000Z', accountingExcludedBy: { uid: 'a' } };
+  const input = core.correctionInput(excluded, { amountCents: 4000, reason: 'Vale summa' });
+  const record = core.correctedInvoiceRecord({ invoice: excluded, invoiceId: 'x1', input, invoiceNum: 'KS-2', todayIso: '2026-10-30', nowIso: 'now', creditNoteId: 'cn', creditNoteNum: 'KN', actor: {}, requestId: 'r', signature: 's' });
+  assert.equal(record.accountingExcluded, true);
+  assert.equal(record.accountingExcludedReason, 'Raha teisel kontol');
+});

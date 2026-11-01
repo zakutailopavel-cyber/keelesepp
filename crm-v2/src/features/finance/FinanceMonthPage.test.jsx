@@ -268,4 +268,37 @@ describe('FinanceMonthPage', () => {
     await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta tähtaeg' })); });
     expect(value.financeRepository.correctInvoiceDueDate).toHaveBeenCalledWith('old-1', '2031-10-20', 'Kokkulepitud uus maksetähtaeg');
   });
+
+  it('„Ei kuulu raamatupidamisse”: needs a reason, goes through the server, shows the mark and can be undone', async () => {
+    const value = props();
+    const invoice = { id: 'i1', planMonth: '2031-10', studentName: 'Mari Maasikas', num: 'AR-31', amountCents: 10000, paidCents: 0, due: '2031-10-10' };
+    value.invoiceRepository.list.mockResolvedValue([invoice]);
+    value.financeRepository.excludeInvoiceFromAccounting = vi.fn().mockResolvedValue({ entries: [{ id: 'e1', number: '2031-0001' }], relatedInvoices: [{ id: 'i2', num: 'AR-32' }] });
+    value.financeRepository.includeInvoiceInAccounting = vi.fn().mockResolvedValue({ entries: [{ id: 'e1', number: '2031-0001' }] });
+    renderPage(value);
+    fireEvent.click(await screen.findByRole('button', { name: 'Märgi arve AR-31: ei kuulu raamatupidamisse' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Ei kuulu raamatupidamisse · AR-31' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Märgi' }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Põhjus on kohustuslik.');
+    expect(value.financeRepository.excludeInvoiceFromAccounting).not.toHaveBeenCalled();
+    fireEvent.change(within(dialog).getByLabelText('Põhjus'), { target: { value: ' Raha teisel kontol ' } });
+    value.invoiceRepository.list.mockResolvedValue([{ ...invoice, accountingExcluded: true, accountingExcludedReason: 'Raha teisel kontol' }]);
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Märgi' }));
+    await waitFor(() => expect(value.financeRepository.excludeInvoiceFromAccounting).toHaveBeenCalledWith('i1', 'Raha teisel kontol'));
+    expect(await screen.findByText(/AR-31: ei kuulu raamatupidamisse, 1 kannet.*Seotud arve AR-32/)).toBeInTheDocument();
+    expect(await screen.findByText('Ei kuulu raamatupidamisse')).toBeInTheDocument();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Taasta arve AR-31 raamatupidamisse' }));
+    const undo = await screen.findByRole('dialog', { name: 'Taasta raamatupidamisse · AR-31' });
+    fireEvent.change(within(undo).getByLabelText('Põhjus'), { target: { value: 'Eksitus' } });
+    fireEvent.click(within(undo).getByRole('button', { name: 'Taasta' }));
+    await waitFor(() => expect(value.financeRepository.includeInvoiceInAccounting).toHaveBeenCalledWith('i1', 'Eksitus'));
+  });
+
+  it('the mark is not offered to a teacher', async () => {
+    const value = props();
+    render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 't1', roles: ['teacher'] } }}><FinanceMonthPage {...value} /></AuthContext.Provider></MemoryRouter>);
+    expect(await screen.findByRole('table', { name: 'Arved 2031-10' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /ei kuulu raamatupidamisse/ })).not.toBeInTheDocument();
+  });
 });
