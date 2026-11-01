@@ -5,6 +5,7 @@ import { Button, Card, EmptyState, LoadingState } from '../../components/ui/inde
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { lessonsService, studentAvailabilityService, studentsService, websiteLeadsService } from '../../services/firebase/index.js';
 import { ajadMessage, contactsText, studentsWithoutTimes } from './noTimes.js';
+import { displayDate } from '../finance/finance.js';
 
 /** Õpilased → „Ilma ajata”: who still needs to mark „Sobivad ajad”, with the parent's contacts and the /ajad link. */
 export default function NoTimesPanel({ teacherUid = '', repositories = {}, origin = globalThis.location?.origin || 'https://crm.epkoolitus.ee', onClose }) {
@@ -33,7 +34,7 @@ export default function NoTimesPanel({ teacherUid = '', repositories = {}, origi
       </div>
       {state.loading ? <LoadingState label="Otsin õpilasi ilma ajata…" /> : rows.length ? <div className="group-contacts__list">{rows.map((row) => (
         <div className="no-times__row" key={row.id}>
-          <span className="group-contacts__who"><strong><Link to={`/students/${row.id}`}>{row.name}</Link></strong><small>{[row.teacher, row.level, row.lastLesson ? `viimane tund ${row.lastLesson}` : 'tunde pole olnud'].filter(Boolean).join(' · ')}</small></span>
+          <span className="group-contacts__who"><strong><Link to={`/students/${row.id}`}>{row.name}</Link></strong><small>{[row.teacher, row.level, row.lastLesson ? `viimane tund ${displayDate(row.lastLesson)}` : 'tunde pole olnud'].filter(Boolean).join(' · ')}</small></span>
           <span className="group-contacts__contact">{row.parentName ? <small>Vanem: {row.parentName}</small> : null}{row.phone ? <a href={`tel:${row.phone.replace(/\s/g, '')}`}><Phone size={13} /> {row.phone}</a> : null}{row.email ? <a href={`mailto:${row.email}`}>{row.email}</a> : null}{!row.phone && !row.email ? <small>kontakt puudub</small> : null}</span>
         </div>
       ))}</div> : <EmptyState title="Kõigil on ajad olemas" description="Planeerija saab kõik õpilased paigutada." />}

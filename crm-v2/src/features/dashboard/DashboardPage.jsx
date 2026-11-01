@@ -189,7 +189,7 @@ export default function DashboardPage({
             ) : null}
             {data.canViewLearning ? (
               <>
-                <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.openHomework.length} kodutööd pooleli</strong><small>Kontrolli tähtaegu ja esitusi</small></div><b>→</b></Link>
+                <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.openHomework.length} {data.openHomework.length === 1 ? 'kodutöö' : 'kodutööd'} pooleli</strong><small>Kontrolli tähtaegu ja esitusi</small></div><b>→</b></Link>
                 {data.pendingReviews ? <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.pendingReviews} {data.pendingReviews === 1 ? 'töö ootab' : 'tööd ootavad'} kontrolli</strong><small>Esitatud tööd, mida õpetaja pole veel üle vaadanud</small></div><b>→</b></Link> : null}
                 {data.unplanned.length ? <Link to="/calendar?unplanned=1"><span className="attention-dot attention-dot--amber" /><div><strong>{data.unplanned.length} õpilast ilma tulevase tunnita</strong><small>Lisa neile tund või märgi paus</small></div><b>→</b></Link> : null}
                 <Link to="/students"><span className="attention-dot attention-dot--green" /><div><strong>{data.activePeople.length} aktiivset õpilast</strong><small>Vaata profiile ja edenemist</small></div><b>→</b></Link>

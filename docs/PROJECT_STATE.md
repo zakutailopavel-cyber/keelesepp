@@ -18,6 +18,15 @@
 - After the deploy: `curl -I` an `/assets/main-*.js` (immutable), `/` (`max-age=0`), `/assets/nope.js` (404), an `/audio/...mp3` (`max-age=86400`).
 - Next safe step: owner reviews and merges the PR, then the same four curl checks and the same pages are timed on the live site.
 
+## 2026-11-01 · agent/csp-report-only — CRM host sends a report-only Content-Security-Policy
+
+- Base: `main` ee2eac1, checked 2026-11-01. `crm-v2/vercel.json` only, plus a test. No deploy, no production writes. Nothing can be blocked: no enforcing `Content-Security-Policy` header is sent, and `hostingHeaders.test.js` guards that.
+- Policy built from the code and the live bundle: `script-src` self + `apis.google.com` (Google sign-in); `style-src` self + inline + Google Fonts; `font-src` self + `fonts.gstatic.com`; `img-src` / `media-src` self, data, blob, Firebase Storage (images also Openverse); `connect-src` self, data, blob, Firebase Auth / Firestore / Storage, `us-central1-keelesepp-5136b.cloudfunctions.net`, Openverse, MyMemory; `frame-src` self, blob, `keelesepp-5136b.firebaseapp.com`, Firebase Storage; `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`.
+- Reading violations: no reporting endpoint exists and none was added, so violations appear only in the visitor's own browser. DevTools → Console, with the „Info” level on, shows „…violates the following Content Security Policy directive… The policy is report-only”.
+- Checks: `hostingHeaders.test.js` 3/3, eslint on it clean. The live bundle served through a local read-only proxy with this header: `/login` and `/ajad` show 0 violations. A deliberate image from outside the policy still loaded and was reported with disposition `report`.
+- Not checked: signed-in pages, Google sign-in popup, Live Classroom, file previews. Teacher-entered image URLs on other hosts will show as `img-src` violations; expected, and the reason to read before enforcing.
+- Deploy: CRM hosting, on merge.
+- Next safe step: after merge, the owner opens the main signed-in pages with the console open; enforcing is a later decision.
 ## 2026-11-01 · agent/deps-crm — crm-v2 production audit clean: grpc-js override, re2js in the lock, firebase unchanged
 
 - Base: `main` ee2eac1, checked 2026-11-01. Dependencies only; no source change, no deploy, no production access.
@@ -95,6 +104,17 @@
 - Seaded and menu: `roleLabels` in `utils/roles.js`; Firebase row, support row and account UID only for staff. Texts: „1 tund”, „1 sõnum”, „1 arve”, lead arrival as a Tallinn date (`LeadsPage.jsx`).
 - Checks: see the PR.
 - Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/ui-wording — readable dates, technical text gone, plurals, bell, tab icon
+
+- Base: `main` ee2eac1, checked 2026-11-01. UI text only; no data, rules, functions or deploy. Text changes in `DashboardPage`, `FinanceDashboard`, `StudentLessonsPanel` leave their numbers to the other agent's branches.
+- Dates through `finance/finance.js` `displayDate`: `StudentLessonsPanel` (rows, notice, unmarked list, a day named once), `HomeworkPage` and `LessonSummariesCard` „Tähtaeg”, `LessonHomeworkPanel`, `LessonDetailModal`, `roomWorksheetChoices`, `NoTimesPanel`, `BillingSettingsCard`. Aria labels of the lesson rows keep the ISO date.
+- Seaded → Tehniline: the teacher-scope migration panel (enforced since 2026-08-05) opens only with `/settings?tab=tehniline&migratsioon=1`; handlers and server endpoints stay. Seaded → Kool: `docs/GPT_SHEET_BUILDER.md` removed from the text. „CRM v1” removed from Ülesanded and `MaterialEditor`.
+- `MonthStepsCard` prop `ruHint` (default on): off on the teacher's `LearnerSnapshotCard`. Students and parents keep the Russian line, the same pattern as `MyProgressCard`.
+- Plurals: kodutöö on the home page and learner snapshot, „1 möödunud tund”, „1 õpilane lisati gruppi”, „Prognoos · järgmine kuu”. Õppevara's curated section is now „Grammatikateemad · N teemat”. `NotificationCenter` shows no number until its sources have loaded.
+- `crm-v2/public`: copies of the root `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png` (the EP koolitus website icon); links in `crm-v2/index.html`. `StudentsPage` shows subjects through `subjectName`.
+- Checks: `npx eslint --quiet src` clean; vitest result in the PR. `vite build` output contains the icons and the links. Not opened on the live site.
+- `MessagesPage` staff heading „Kommunikatsioon” → „Suhtlus”, as in the menu. Open: raw „Inglise Keel” can still show where a screen prints the stored subject. „1 gruppi” was not found in the code. `type="month"` inputs were left alone (Chromium shows the month in words).
+- Next safe step: the owner decides whether „Live Classroom” and the two meanings of „Ülesanded” stay.
 ## 2026-11-01 · agent/route-access — routes.jsx and accessPolicy.js agree
 
 - Base: `main` ee2eac1, checked 2026-11-01. Client-side routing only; Firestore rules and functions unchanged, so this is not a data boundary.

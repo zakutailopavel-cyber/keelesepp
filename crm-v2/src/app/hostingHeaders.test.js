@@ -29,6 +29,20 @@ describe('CRM v2 hosting headers', () => {
     for (const path of ['/assets/main-abc.js', '/audio/a2-001/x.mp3', '/textbook-art/a.png']) expect(appPaths.test(path)).toBe(false);
   });
 
+  // Report-only until the violations have been read on the live site: it must not be able to block anything yet.
+  it('sends the content security policy as report-only, with no enforcing header', () => {
+    const config = JSON.parse(readFileSync(resolve(process.cwd(), 'vercel.json'), 'utf8'));
+    const headers = config.headers.flatMap((h) => h.headers);
+    expect(headers.some((h) => h.key.toLowerCase() === 'content-security-policy')).toBe(false);
+    const policy = headers.find((h) => h.key === 'Content-Security-Policy-Report-Only').value;
+    expect(policy).toContain("default-src 'self'");
+    expect(policy).toContain('https://us-central1-keelesepp-5136b.cloudfunctions.net');
+    expect(policy).toContain('https://firestore.googleapis.com');
+    expect(policy).toContain('https://fonts.gstatic.com');
+    expect(policy).toContain("frame-ancestors 'none'");
+    expect(policy).not.toContain('unsafe-eval');
+  });
+
   // When crm.epkoolitus.ee points at v2, old v1 bookmarks and registration links must keep working on www.
   it('sends the public pages to the website and old v1 addresses into this CRM (v1 retired 2026-10-19)', () => {
     const config = JSON.parse(readFileSync(resolve(process.cwd(), 'vercel.json'), 'utf8'));
