@@ -7,6 +7,32 @@
 - Existing three workflows: every action pinned to a commit SHA in the same major, `persist-credentials: false` on every checkout. zizmor before: 10 high (`unpinned-uses`), 4 medium (`artipacked`). After, online mode: no findings.
 - gitleaks over the full history (all refs, 2841 commits): 58 findings, **no live secret found**. 55 are the Firebase web API key, which is public by design and matches the live CRM bundle (hash compared, value not printed). 1 is the same config with two characters different, `haldus.html` da647dee62, removed by d68a5e8; not tested against Google. 2 are the Ekilex test fixture. **The repository is public**, so the web key is readable there and in the bundle; its restrictions in Google Cloud Console were not checked. Values were never printed or stored; the raw report was deleted.
 - Next safe step: the owner reviews and merges, then checks the Firebase web key's restrictions in Google Cloud Console.
+## 2026-11-01 · agent/progress-truth — one number for speaking, the course „Minu areng” names is the one that opens, one pet for every viewer
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no rules or functions change.
+- Speaking: `speakingFromStats` moved to `students/autoSkills.js` and is the one formula: the share said in the lesson language, from `petLessonStats`, the newer lesson counting more. „Areng” (`AutoSkillsCard.jsx`) and „Minu areng” both read it. Pedagogical contract changed: the teacher's percentage no longer mixes in error-free sentences, which only recordings hold and a student may not read; that figure stays beside the number. A lesson with a recording and no stats still shows from its recording.
+- `levelProgress`: Sõnavara is not „Valmis” while the card has word cards and none learned (`state: 'close'`, `note`); `allReady` follows `state`. New `coursePath`, `courseKeyFor`; a school grade is no longer read as a language level.
+- `self-study/selfStudyModel.js`: new `courseChoice` (the way from level to target, a course named by the card's level, a course he has work in; children's courses not offered above grade 3 when nothing matches) and `heldCourseLessons`, shared with „Minu areng”. `StudentCoursePage.jsx` opens that course and counts held lessons as done.
+- Pet: `PetOverview.jsx` loads homework, submissions and lesson stats itself, and applies food and energy to the mood; `PetCard.jsx` read-only preview reads lesson stats by the card.
+- Rule change needed, not made: `match /petLessonStats` lets only staff and the student read, so a parent's pet misses speech XP. Proposed: add `|| ownsStudent(resource.data.studentId)`. Exposes the learner's corrected sentences (`practice`) to the parent: the owner decides. Teachers read only their own lessons (`lessons` rules), so on a card with two subjects the pet is smaller for the teacher. `playedAt` is private, so „sad from no play” shows only on the student's page.
+- Checks: see the PR. Not compared with production numbers, not opened in a browser.
+- Next safe step: the owner decides on the `petLessonStats` rule for parents.
+## 2026-11-01 · agent/sheet-error-text — the error list and review cards show the chosen option's text, not its number
+
+- Checked `origin/main` 33e6861. From a live-site walkthrough. No production reads or writes, no deploy.
+- Cause: a task with options stores the option's number, and `errorText.js` printed it. Grading is not affected: `choice.score` compares stored number with right number (a test added in `registry.scoring.test.js`).
+- Changed: an optional block contract `answerText(data, key, value)` (and `expectedText(data, key)` for `match`) on `choice`, `truefalse`, `match`, `cloze`, `insertion`, `examlisten`, `categorize`; `givenAnswer()` in `engine/errorText.js`, read by `describeAutoErrors` („õpilane valis „…””) and `errorCards.js`. Conversion happens at display, so errors already stored read correctly.
+- Same bug found in `errorCards.js`: a wrong sentence choice made a review card „Sinu lause: 1”. New cards are right. Cards already in `studentWords` keep the number: fixing them is a production write and was not done.
+- Checks: see the PR. Not opened in a browser.
+- Next safe step: the owner decides whether to clean the old „Sinu lause: <number>” cards in production.
+## 2026-11-01 · agent/home-counts — home counts active students' homework, shows works to review, unmarked lessons no longer fall off
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy.
+- `dashboard/DashboardPage.jsx`: students load with `status: 'active'`, like Kodutööd, so „Kodutööd pooleli” matches that page. New row in „Vajab tegutsemist”: „N tööd ootavad kontrolli”, the page's own count (`reviewStatus !== 'reviewed'`), one extra read through `listSubmissionsByStudentIds`; a failed read hides the row and nothing else.
+- `calendar/unmarkedLessons.js`: scan is 365 days, was 14; new `olderUnmarked`. `UnmarkedLessonsCard.jsx` says „Viimase aasta tunnid, neist N vanemad kui 2 nädalat”. A year over 500 weekly series and 3000 one-off lessons took 91 ms in a test.
+- Checks: see the PR. The home page was not opened in a browser.
+- Known limits: older than a year still is not counted, and the card says so; group lessons are still left out, as before. The number on the live site may jump: the 22 older lessons of the report were not checked against production, and a long series nobody marked counts in full.
+- Next safe step: the owner looks at the count after the deploy and says whether a year is the right window.
 ## 2026-11-01 · agent/finance-truth — Ärinäitajad count today's marked lessons, „Lahkunud” means archived, Õpetajate võrdlus reads the calendar, unpaid sums say their period
 
 - Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no change in how money is calculated.
