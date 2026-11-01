@@ -38,6 +38,16 @@ describe('Minu kursus (owner 2026-10-23)', () => {
   });
 });
 
+describe('Minu kursus opens the course „Minu areng” talks about (walkthrough 2026-11-01)', () => {
+  it('counts a lesson held with the teacher as done and goes on after it', async () => {
+    const repository = { ...repo({ id: 's3', name: 'Mia', level: 'B2' }), lessons: vi.fn().mockResolvedValue([{ topicLessonId: 'b1b2-001', status: 'Toimunud' }]) };
+    renderPage(repository);
+    expect(await screen.findByRole('heading', { name: '2. Pere' })).toBeInTheDocument();
+    expect(repository.lessons).toHaveBeenCalledWith(['s3']);
+    expect(screen.getByText('1/2 tundi tehtud')).toBeInTheDocument();
+  });
+});
+
 describe('courseLessons', () => {
   it('keeps only the course lessons when the library has them, so old personal lessons stay out', () => {
     const lessons = [{ id: 'b1b2-001', roadmapManaged: true }, { id: 'old', title: 'Konstantin' }];

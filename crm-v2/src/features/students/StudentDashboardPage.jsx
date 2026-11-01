@@ -8,12 +8,13 @@ import { homeworkService, invoicesService, lessonChangeRequestsService, lessonsS
 import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
 import RescheduleDialog from './RescheduleDialog.jsx';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
-import { lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
+import { heldCourseLessons, lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
 import { readDone } from '../self-study/reviewStore.js';
 import { autoSkills } from './autoSkills.js';
 import { levelProgress, speakingFromStats } from './levelProgress.js';
 import MyProgressCard from './MyProgressCard.jsx';
 import WordGrowthCard from '../vocabulary/WordGrowthCard.jsx';
+import { wordGrowth } from '../vocabulary/wordGrowth.js';
 import MonthStepsCard from '../learner/MonthStepsCard.jsx';
 import { petProgress } from '../pet/petModel.js';
 import { todayPath } from './todayPath.js';
@@ -45,7 +46,7 @@ function dateLabel(value) {
 import SubjectSwitcher from './SubjectSwitcher.jsx';
 import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
 import LearnerAnnouncementsCard from '../announcements/LearnerAnnouncementsCard.jsx';
-import { itemSubject, onlySubject, subjectsOf } from './subjects.js';
+import { itemSubject, mainSubject, onlySubject, subjectsOf } from './subjects.js';
 
 export default function StudentDashboardPage({
   studentRepository = studentsService,
@@ -140,14 +141,14 @@ export default function StudentDashboardPage({
     const catalog = buildTopicCatalog(curriculum);
     const map = progressMap(allSheets);
     // a course lesson held with the teacher (Live Classroom, the calendar topic) counts as done like its three sheets
-    const held = new Set(lessons.filter((lesson) => lesson.topicLessonId && (!lesson.status || lesson.status === 'Toimunud')).map((lesson) => lesson.topicLessonId));
+    const held = heldCourseLessons(lessons);
     const courseByLevel = Object.fromEntries(catalog.levels.map((entry) => {
       const list = entry.modules.flatMap((module) => module.lessons);
       const next = nextCourseLesson(list.filter((lesson) => !held.has(lesson.id)), map);
       return [entry.key, { done: list.filter((lesson) => held.has(lesson.id) || lessonProgress(lesson.id, map).done === 3).length, total: list.length, next: next ? `${next.number ? `${next.number}. ` : ''}${next.title}` : null }];
     }));
     const computed = [...autoSkills({ assignments: allSheets }), ...[speakingFromStats(stats)].filter(Boolean)];
-    return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel });
+    return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel, subject: mainSubject(student), wordCounts: wordGrowth(words) });
   })();
   const path = todayPath({ words, homework, submissions, pet: state.data.pet, assignments: (state.data.progressData?.[1] || []), mistakesDoneToday: reviewedToday, offerPet: !preview, today });
   const streak = petProgress({ lessons, submissions, homework, words }).streak;

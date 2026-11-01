@@ -3,18 +3,19 @@ import { useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, libraryService, lessonWorksheetsService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService, lessonsService, libraryService, lessonWorksheetsService, studentsService } from '../../services/firebase/index.js';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { publishedWorksheetDoc } from '../library/libraryModel.js';
 import { courseNameForLevel } from '../curriculum/courseNames.js';
 import WorksheetPlayer from '../homework/WorksheetPlayer.jsx';
-import { PHASES, lessonProgress, nextLesson, progressMap } from './selfStudyModel.js';
+import { courseChoice, heldCourseLessons, lessonProgress, nextLesson, progressMap } from './selfStudyModel.js';
 import './selfStudy.css';
 
 const api = {
   students: (uid) => studentsService.listSelf(uid),
   curriculum: () => libraryService.listCurriculum(),
   assignments: (ids) => homeworkService.listWorksheetAssignmentsByStudentIds(ids),
+  lessons: async (ids) => (await Promise.all(ids.map((id) => lessonsService.listByStudent(id)))).flat(),
   sheets: (lessonId) => lessonWorksheetsService.list(lessonId),
   start: (input) => homeworkService.createSelfStudy(input),
 };
@@ -31,8 +32,9 @@ export default function StudentCoursePage({ repository = api }) {
   const { user } = useAuth();
   const state = useAsyncData(async () => {
     const students = await repository.students(user.uid);
-    const [curriculum, assignments] = await Promise.all([repository.curriculum().catch(() => []), repository.assignments(students.map((s) => s.id)).catch(() => [])]);
-    return { students, catalog: buildTopicCatalog(courseLessons(curriculum?.curriculumLessons || curriculum || [])), assignments };
+    const ids = students.map((s) => s.id);
+    const [curriculum, assignments, lessons] = await Promise.all([repository.curriculum().catch(() => []), repository.assignments(ids).catch(() => []), Promise.resolve().then(() => repository.lessons?.(ids) || []).catch(() => [])]);
+    return { students, catalog: buildTopicCatalog(courseLessons(curriculum?.curriculumLessons || curriculum || [])), assignments, lessons };
   }, [repository, user.uid]);
   const [level, setLevel] = useState('');
   const [openModule, setOpenModule] = useState('');
@@ -40,11 +42,16 @@ export default function StudentCoursePage({ repository = api }) {
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const student = state.data?.students.find((s) => s.isSelfStudent) || state.data?.students[0] || null;
-  const levels = state.data?.catalog.levels || [];
-  const shown = levels.find((entry) => entry.key === (level || student?.level)) || levels.find((entry) => entry.label === student?.level) || levels[0];
   const map = useMemo(() => progressMap(state.data?.assignments || []), [state.data]);
+  // the same count as „Minu areng”: a lesson held with the teacher is done
+  const held = useMemo(() => heldCourseLessons(state.data?.lessons || []), [state.data]);
+  const { offered: levels, current } = useMemo(() => {
+    const touched = new Set([...held, ...(state.data?.assignments || []).map((item) => item.lessonId).filter(Boolean)]);
+    return courseChoice(student, state.data?.catalog.levels || [], touched);
+  }, [state.data, student, held]);
+  const shown = levels.find((entry) => entry.key === level) || current;
   const lessons = useMemo(() => (shown?.modules || []).flatMap((module) => module.lessons), [shown]);
-  const next = nextLesson(lessons, map);
+  const next = nextLesson(lessons.filter((lesson) => !held.has(lesson.id)), map);
 
   if (state.loading) return <LoadingState label="Laen kursust…" />;
   if (state.error) return <ErrorState message={state.error.message || String(state.error)} onRetry={state.reload} />;
@@ -73,7 +80,7 @@ export default function StudentCoursePage({ repository = api }) {
       {selfStudy ? <Button onClick={() => { const p = lessonProgress(next.id, map).phases.find((ph) => ph.status !== 'done'); open(next, p?.key || 'discover'); }} loading={Boolean(busy)}><PlayCircle size={16} /> {lessonProgress(next.id, map).done ? 'Jätka' : 'Alusta'}</Button> : <p className="form-hint">Seda tundi teed koos õpetajaga.</p>}
     </Card> : <Card className="course-next"><h2>Taseme kõik tunnid on tehtud!</h2></Card>}
     {shown.modules.map((module) => {
-      const done = module.lessons.filter((lesson) => lessonProgress(lesson.id, map).done === 3).length;
+      const done = module.lessons.filter((lesson) => held.has(lesson.id) || lessonProgress(lesson.id, map).done === 3).length;
       const expanded = openModule === module.key || (!openModule && module.lessons.some((lesson) => lesson.id === next?.id));
       return <Card key={module.key} className="course-module">
         <button type="button" className="course-module__head" aria-expanded={expanded} onClick={() => setOpenModule(expanded ? '-' : module.key)}>

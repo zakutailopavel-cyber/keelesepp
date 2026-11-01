@@ -1,8 +1,10 @@
 // „Areng” without manual grading (owner, 2026-10-10): every skill is computed from what the CRM already has.
 //   worksheets — every checked field of a submitted worksheet counts for the skill its task trains (gaps → Grammatika,
 //                reading → Lugemine…), the newer the work the more it counts (half weight after HALF_LIFE_DAYS)
-//   lessons    — „Rääkimine” from recorded Live Classroom lessons: how much of what the learner said was in the
-//                lesson language, and how many of his sentences had no error (analysis made on the school Mac)
+//   lessons    — „Rääkimine” from recorded Live Classroom lessons: how much of what the learner said was in the lesson
+//                language, the newer the lesson the more it counts. One number and one source, petLessonStats, for the
+//                teacher's „Areng” and the student's „Minu areng”: the student may read only those stats, not the
+//                recordings. Sentences without an error come from the recordings and stay beside it for the teacher.
 // The teacher's own grades (students.skillMap) stay next to it; nothing here is written anywhere.
 import { scoreDocument } from '../worksheet-studio/engine/registry.js';
 
@@ -71,25 +73,37 @@ export function speakingOf(recording) {
   };
 }
 
-export function autoSkills({ assignments = [], recordings = [], now = Date.now() } = {}) {
+const SPOKE_ENOUGH = 20; // words: below this a lesson says nothing about speaking
+const lessonCount = (n) => `${n} ${n === 1 ? 'tund' : 'tundi'}`;
+const SPEAKING_BASIS = 'tunnikeeles räägitud osa';
+
+// petLessonStats → the „Rääkimine” row, or null
+export function speakingFromStats(stats = [], now = Date.now()) {
+  const list = stats.filter((s) => Number(s?.studentWords) >= SPOKE_ENOUGH && Number.isFinite(Number(s?.share)));
+  if (!list.length) return null;
+  let sum = 0; let weight = 0;
+  for (const s of list) { const w = weightAt(time(s.date), now); sum += w * Number(s.share); weight += w; }
+  return { skill: 'Rääkimine', pct: Math.round(sum / weight), basis: `${lessonCount(list.length)} · ${SPEAKING_BASIS}` };
+}
+
+export function autoSkills({ assignments = [], recordings = [], stats = [], now = Date.now() } = {}) {
   const acc = worksheetEvidence(assignments, now);
   const rows = AUTO_SKILLS.flatMap((skill) => {
     const s = acc[skill];
     if (skill === 'Rääkimine') {
-      let sum = 0; let weight = 0; let lessons = 0; let share = 0; let accuracy = 0; let accN = 0;
+      let sum = 0; let weight = 0; let lessons = 0; let accuracy = 0; let accN = 0;
       for (const r of recordings) {
         if (r.status !== 'done') continue;
         const sp = speakingOf(r);
         if (!sp) continue;
         const w = weightAt(time(r.endedAt || r.startedAt), now);
-        const value = sp.accuracy === null ? sp.share : (sp.share + sp.accuracy) / 2;
-        sum += w * value; weight += w; lessons += 1; share += sp.share;
+        sum += w * sp.share; weight += w; lessons += 1;
         if (sp.accuracy !== null) { accuracy += sp.accuracy; accN += 1; }
       }
-      if (!lessons) return [];
-      const basis = [`${lessons} ${lessons === 1 ? 'tund' : 'tundi'}`, `eesti keeles ${Math.round(share / lessons)}%`];
-      if (accN) basis.push(`vigadeta lauseid ${Math.round(accuracy / accN)}%`);
-      return [{ skill, pct: Math.round(sum / weight), basis: basis.join(' · ') }];
+      // a recorded lesson without stats yet (not through the school Mac's newer step) still shows from its recording
+      const row = speakingFromStats(stats, now) || (lessons ? { skill, pct: Math.round(sum / weight), basis: `${lessonCount(lessons)} · ${SPEAKING_BASIS}` } : null);
+      if (!row) return [];
+      return [accN ? { ...row, basis: `${row.basis} · vigadeta lauseid ${Math.round(accuracy / accN)}%` } : row];
     }
     if (!s?.total) return [];
     return [{ skill, pct: Math.round((s.ok / s.total) * 100), basis: `${s.works.size} ${s.works.size === 1 ? 'tööleht' : 'töölehte'} · ${s.items} vastust` }];
