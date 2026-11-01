@@ -1,3 +1,12 @@
+## 2026-11-01 · agent/book-b1-m07 — B1 module 7: sport, lifestyle and wellbeing words from the textbook themes
+
+- Checked `origin/main` `64248e4`. Owner: improve B1 and B2 modules with the topics of „Minu eesti keel” (topics, single words and task types only; all texts ours).
+- Changed: `admin/course/b1/module07.js`, `b1/lessonGoals.js` (033, 034). 033: enesetunne, meeleolu, muretsema, pöörduma, hakkama saama, alla andma, abi otsima (box, diary, new phrase bank `033_t_phrases`, reply). 034: sport and lifestyle words (box + tip `034_p_words`), statements on a long text `034_p_sport` (R14) replaces Liis's `034_p_liis`, personal-question set with reasons `034_d_survey`, versus cards in `034_t_new` (now S17, was S01). 035: the words reused in the quiz, R1, R2, R3a, W1a, S1a. No transcript, image, lesson id or title changed.
+- New minor facts (not in `COURSE_CAST.md`, outside the allowed files): Sofia swims since school, Anna is learning; Liis runs and takes the stairs; Rein goes to the gym; Viktor learns chess from Arvo during the knee weeks.
+- Checks: final shape module 7 0 → 0, baselines unchanged; `eslint --quiet src` clean; `vitest run src/features/worksheet-generator src/features/pet` 1070 passed, 7 skipped; language check 3 lower-case unknowns, all old (`-ge`, `-ke` endings, the value `kusimustik`).
+- Limits: lessons 031 and 032 not touched; S17 and R14 are catalogue ids first made for B2, the B1 gates accept them. The textbook photos were not opened.
+- Next safe step: the owner merges the PR; publishing the changed sheets stays his decision.
+
 ## 2026-11-01 · agent/school-plans-site — grade plans in Õppevara: a Matemaatika tab, grades in order, one record per topic
 
 - Owner: „просто внеси на сайт все предметы и темы”.
