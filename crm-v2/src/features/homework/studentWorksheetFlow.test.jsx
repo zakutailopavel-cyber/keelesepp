@@ -94,9 +94,9 @@ describe('student flow: every answerable block in the real homework screens', ()
     // everything the sheet asks for is answered (a wrong answer is an answer too)
     expect(progress.answered).toBe(progress.total);
 
-    // the student opens the sheet from „Määratud töölehed”
+    // the student opens the sheet from „Ülesanded”
     const view = page(student, db);
-    fireEvent.click(await screen.findByRole('button', { name: /Kõik ülesanded/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Alusta' }));
     expect(await screen.findByText(`0/${progress.total} vastust`)).toBeInTheDocument();
     answerInPlayer(blocks, scripts);
     expect(screen.getByText(new RegExp(`^${progress.answered}/${progress.total} vastust`))).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe('student flow: every answerable block in the real homework screens', ()
     // closes and reopens: the saved answers are back on the sheet
     fireEvent.click(screen.getByText('Sulge', { selector: 'button.button--secondary' }));
     await waitFor(() => expect(document.querySelector('.ws-doc-player')).toBeNull());
-    fireEvent.click(await screen.findByRole('button', { name: /Kõik ülesanded/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Jätka' }));
     expect(await screen.findByText(new RegExp(`^${progress.answered}/${progress.total} vastust`))).toBeInTheDocument();
     blocks.filter((b) => !CASES[b.type].drive).forEach((b) => {
       const typed = fields(cardOf(b.id)()).map((f) => f.value);

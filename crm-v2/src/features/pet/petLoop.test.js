@@ -67,14 +67,14 @@ describe('the one request', () => {
 describe('the reward in sight', () => {
   it('says what is left in plain learning', () => {
     expect(leftInWork(4)).toBe('veel 2 õpitud sõna');
-    expect(leftInWork(10)).toBe('veel 1 tund või kodutöö');
-    expect(leftInWork(25)).toBe('veel 3 tundi või kodutööd');
+    expect(leftInWork(10)).toBe('veel 1 tund või ülesanne');
+    expect(leftInWork(25)).toBe('veel 3 tundi või ülesannet');
   });
 
   it('is the cheapest item not yet his', () => {
     const reward = nextReward({ progress: petProgress({ lessons: [], now: NOW }), pet: {} });
     expect(reward).toMatchObject({ kind: 'item', ready: false, name: 'Taevas' });
-    expect(reward.text).toBe('veel 3 tundi või kodutööd → Taevas');
+    expect(reward.text).toBe('veel 3 tundi või ülesannet → Taevas');
   });
 
   it('counts stars already spent and what he owns', () => {

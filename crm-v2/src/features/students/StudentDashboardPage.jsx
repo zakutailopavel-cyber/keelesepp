@@ -204,6 +204,6 @@ export default function StudentDashboardPage({
       return <li key={note.key}><Link to={note.to}><Icon size={17} aria-hidden="true" /> {note.text} <ChevronRight size={15} aria-hidden="true" /></Link></li>;
     })}</ul> : null}
 
-    <div><Link className="sh-link" to="/student/areng">Minu areng <ChevronRight size={15} aria-hidden="true" /></Link></div>
+    <div><Link className="sh-link" to="/student/areng">Minu areng <small>· vaata, kuidas läheb</small> <ChevronRight size={15} aria-hidden="true" /></Link></div>
   </div></div>;
 }

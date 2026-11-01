@@ -34,15 +34,15 @@ export function companionHint({ now = Date.now(), invitation = null, todayLesson
   }
   if (overdue) {
     return {
-      key: `overdue-${overdue}`, urgent: false, action: { label: 'Kodutööd', to: '/homework' },
-      text: en ? `${overdue} homework ${overdue === 1 ? 'task is' : 'tasks are'} late. Shall we do it now?` : `${overdue} kodutöö${overdue === 1 ? '' : 'd'} hilinevad. Teeme kohe?`,
+      key: `overdue-${overdue}`, urgent: false, action: { label: 'Ülesanded', to: '/homework' },
+      text: en ? `${overdue} homework ${overdue === 1 ? 'task is' : 'tasks are'} late. Shall we do it now?` : `${overdue} ${overdue === 1 ? 'ülesanne' : 'ülesannet'} hilineb. Teeme kohe?`,
       hint: `Просрочено заданий: ${overdue}. Сделаем сейчас?`,
     };
   }
   if (dueToday) {
     return {
-      key: `due-${dueToday}`, urgent: false, action: { label: 'Kodutööd', to: '/homework' },
-      text: en ? 'Some homework is due today.' : 'Täna on kodutöö tähtaeg.',
+      key: `due-${dueToday}`, urgent: false, action: { label: 'Ülesanded', to: '/homework' },
+      text: en ? 'Some homework is due today.' : 'Täna on ülesande tähtaeg.',
       hint: 'Сегодня срок сдачи домашнего задания.',
     };
   }
@@ -71,9 +71,9 @@ export function companionHint({ now = Date.now(), invitation = null, todayLesson
 // First-visit tour for students: only steps whose target is on the page are shown.
 export const TOUR_STEPS = [
   // phones: the menu is closed, so the tour points at the menu button instead of the items
-  { target: '[data-tour="menu"]', text: 'Menüü on siin: tunnid, kodutööd, tund õpetajaga ja sõnumid.', hint: 'Меню здесь: уроки, домашки, урок с учителем и сообщения.' },
+  { target: '[data-tour="menu"]', text: 'Menüü on siin: tunnid, ülesanded, tund õpetajaga ja sõnumid.', hint: 'Меню здесь: уроки, домашки, урок с учителем и сообщения.' },
   { target: '[data-tour="nav-/student"]', text: 'Siin on „Täna”: mida täna teha, sinu tund ja mina.', hint: 'Здесь «Täna»: что сделать сегодня, твой урок и я.' },
-  { target: '[data-tour="nav-/homework"]', text: '„Ülesanded”: interaktiivsed tööd õpetajalt.', hint: '«Ülesanded»: интерактивные задания от учителя.' },
+  { target: '[data-tour="nav-/homework"]', text: '„Ülesanded”: kõik, mida õpetaja sulle andis.', hint: '«Ülesanded»: всё, что задал учитель.' },
   { target: '[data-tour="nav-/student/vead"]', text: '„Minu vead”: laused tunnist, mida harjutame, kuni need tulevad õigesti.', hint: '«Minu vead»: фразы с урока, которые тренируем, пока не получится.' },
   { target: '[data-tour="nav-/student/lemmik"]', text: 'Siin elan mina! Kui õpetaja kutsub tundi, annan märku igal lehel.', hint: 'Здесь живу я! Когда учитель позовёт на урок, я дам знать на любой странице.' },
   { target: '[data-tour="nav-/messages"]', text: '„Suhtlus”: kirjuta õpetajale, kui midagi on segane.', hint: '«Suhtlus»: напиши учителю, если что-то непонятно.' },
@@ -82,7 +82,7 @@ export const TOUR_STEPS = [
 
 // One-time hints when the student first opens a page (the key is remembered per page).
 export const PAGE_HINTS = {
-  '/homework': { text: 'Vajuta töölehele, et seda täita. Vastused salvestuvad ise.', hint: 'Нажми на лист, чтобы его заполнить. Ответы сохраняются сами.' },
+  '/homework': { text: 'Vajuta „Alusta”, et ülesannet teha. Vastused salvestuvad ise.', hint: 'Нажми «Alusta», чтобы сделать задание. Ответы сохраняются сами.' },
   '/live-classroom': { text: 'Kui tund algab, vajuta „Käivita video ja mikrofon”. Mina olen vaikselt.', hint: 'Когда урок начнётся, нажми «Käivita video ja mikrofon». Я буду тихо.' },
 };
 

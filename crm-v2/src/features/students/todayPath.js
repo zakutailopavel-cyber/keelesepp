@@ -1,7 +1,7 @@
 // „Täna” (owner 2026-10-12): a student has exactly four things to do — interactive tasks, words, my mistakes and the
 // pet. Each step is done by what the student really did today (work submitted or a task marked done, a word reviewed,
 // the mistakes drill, a pet game); the streak is the pet's learning streak.
-import { isHomeworkOpen } from '../homework/homeworkStatus.js';
+import { TASK_STATE, mergeTasks } from '../homework/taskList.js';
 import { isDue } from '../vocabulary/wordsModel.js';
 import { dailyPlan } from '../vocabulary/dailyReview.js';
 
@@ -14,7 +14,7 @@ export function todayPath({ words = [], homework = [], submissions = [], assignm
   const due = own.filter((word) => isDue(word, now)).length;
   const reviewed = own.filter((word) => dayOf(word.reviewedAt) === today).length;
   const daily = dailyPlan(words, { now, today });
-  const openTasks = homework.filter(isHomeworkOpen).length + assignments.filter((item) => item.status !== 'done' && !item.completedAt).length;
+  const openTasks = mergeTasks({ homework, assignments }).filter((task) => task.state === TASK_STATE.TODO).length;
   const workToday = submissions.some((item) => dayOf(item.completedAt) === today)
     || homework.some((item) => item.status === 'Tehtud' && dayOf(item.doneAt || item.submittedAt || item.updatedAt) === today);
   const steps = [

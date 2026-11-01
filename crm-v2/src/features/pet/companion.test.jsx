@@ -14,8 +14,8 @@ describe('companion hints', () => {
     const base = { now: at(16, 50), petName: 'Okas', todayLessons: [{ time: '17:00' }], overdue: 2, dueToday: 1 };
     expect(companionHint({ ...base, invitation: { id: 'i1', teacherName: 'Kati' } })).toMatchObject({ urgent: true, text: 'Kati kutsub sind tundi! Vajuta „Liitu tunniga”.' });
     expect(companionHint(base)).toMatchObject({ urgent: true, text: 'Tund algab 10 minuti pärast. Kutse ilmub siia.', action: { to: '/live-classroom' } });
-    expect(companionHint({ ...base, now: at(12, 0) })).toMatchObject({ urgent: false, text: '2 kodutööd hilinevad. Teeme kohe?', action: { to: '/homework' } });
-    expect(companionHint({ ...base, now: at(12, 0), overdue: 0 }).text).toBe('Täna on kodutöö tähtaeg.');
+    expect(companionHint({ ...base, now: at(12, 0) })).toMatchObject({ urgent: false, text: '2 ülesannet hilineb. Teeme kohe?', action: { to: '/homework' } });
+    expect(companionHint({ ...base, now: at(12, 0), overdue: 0 }).text).toBe('Täna on ülesande tähtaeg.');
     expect(companionHint({ now: at(12, 0), petName: 'Okas', tipIndex: 0 }).text).toBe('Tere! Mina olen Okas. Vajuta mulle, kui vajad abi.');
     expect(companionHint({ now: at(12, 0), petName: 'Okas', tipIndex: 0, lang: 'en' }).text).toBe("Hi! I'm Okas. Press me when you need help.");
   });
@@ -115,10 +115,10 @@ describe('PetCompanion', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Tubli! Tööleht on esitatud ja 1 tunni eesmärk. +20 mulle!');
   });
 
-  it('gives a one-time hint on Kodutööd and is not there at all in the lesson room', async () => {
+  it('gives a one-time hint on Ülesanded and is not there at all in the lesson room', async () => {
     window.localStorage.setItem('ks-pet-tour-u1', '1');
     const hw = renderCompanion({ path: '/homework' });
-    expect(await screen.findByRole('status')).toHaveTextContent('Vajuta töölehele');
+    expect(await screen.findByRole('status')).toHaveTextContent('Vajuta „Alusta”');
     fireEvent.click(screen.getByRole('button', { name: 'Selge' }));
     expect(window.localStorage.getItem('ks-pet-page-u1-/homework')).toBe('1');
     hw.unmount();

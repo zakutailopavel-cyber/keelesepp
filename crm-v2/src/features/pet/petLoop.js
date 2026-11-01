@@ -41,7 +41,7 @@ const LINES = {
   gameLow: { et: () => 'Mul on igav. Mängime sinu sõnadega?', en: () => "I'm bored. Shall we play with your words?", ru: () => 'Мне скучно. Поиграем с твоими словами?' },
   game: { et: () => 'Mängime sinu sõnadega?', en: () => 'Shall we play with your words?', ru: () => 'Поиграем с твоими словами?' },
   topic: { et: (t) => `Mängime teemal „${t}”?`, en: (t) => `Shall we play with the topic "${t}"?`, ru: (t) => `Поиграем на тему «${t}»?` },
-  homework: { et: () => 'Olen väsinud. Teeme kodutöö ära?', en: () => "I'm tired. Shall we do the homework?", ru: () => 'Я устал(а). Сделаем домашку?' },
+  homework: { et: () => 'Olen väsinud. Teeme ülesande ära?', en: () => "I'm tired. Shall we do the homework?", ru: () => 'Я устал(а). Сделаем домашку?' },
 };
 const say = (line, lang, arg) => ({ text: LINES[line][lang](arg), hint: LINES[line].ru(arg), lang });
 
@@ -61,7 +61,7 @@ export function petRequest({ needs, words = [], stats = [], topics = [], lang = 
   else if (needs.canWordGame ?? needs.canPlay) options.push({ need: 'joy', value: needs.joy, kind: 'game', button: 'Mängime', ...say(needs.joy < LOW_NEED && !gentle ? 'gameLow' : 'game', lang) });
   else if (topics.length) options.push({ need: 'joy', value: needs.joy, kind: 'topic', button: 'Mängime', ...say('topic', lang, short(topics[0].title, 30)) });
   if (options.length) return options.sort((a, b) => a.value - b.value)[0];
-  if (needs.openHomework > 0) return { need: 'energy', value: needs.energy, kind: 'homework', button: 'Ava kodutöö', to: '/homework', ...say('homework', lang) };
+  if (needs.openHomework > 0) return { need: 'energy', value: needs.energy, kind: 'homework', button: 'Ava ülesanded', to: '/homework', ...say('homework', lang) };
   return null;
 }
 
@@ -89,7 +89,7 @@ export const welcomeLine = (lang = 'et') => ({ text: WELCOME[lang] || WELCOME.et
 export function leftInWork(xp) {
   if (xp <= 8) { const n = Math.ceil(xp / 2); return `veel ${n} õpitud sõna`; }
   const n = Math.ceil(xp / 10);
-  return n === 1 ? 'veel 1 tund või kodutöö' : `veel ${n} tundi või kodutööd`;
+  return n === 1 ? 'veel 1 tund või ülesanne' : `veel ${n} tundi või ülesannet`;
 }
 
 // The nearest thing to get: the cheapest item not yet his (bought with earned stars) or the next art stage.

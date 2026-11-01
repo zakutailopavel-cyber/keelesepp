@@ -28,7 +28,7 @@ describe('nextStep priority', () => {
       { id: 'c', task: 'Vanem, aga tehtud', due: '2026-10-01', status: 'Tehtud' },
     ] });
     expect(step).toMatchObject({ key: 'overdue', title: 'Vana töö', to: '/homework' });
-    expect(step.detail).toMatch(/^Tähtaeg oli .* kokku 2 tööd$/);
+    expect(step.detail).toMatch(/^Tähtaeg oli .* kokku 2 ülesannet$/);
   });
 
   it('open homework comes before words; an assigned sheet counts, a sheet opened from the course does not', () => {
@@ -49,7 +49,8 @@ describe('nextStep priority', () => {
 describe('openWork', () => {
   it('a homework carrying its sheet is one task, not two', () => {
     const list = openWork({ homework: [{ id: 'h', task: 'Täida leht', status: 'Ootel', worksheetAssignmentId: 's' }], assignments: [{ id: 's', title: 'Leht', status: 'new' }] });
-    expect(list.map((item) => item.id)).toEqual(['h']);
+    expect(list).toHaveLength(1);
+    expect(list[0].title).toBe('Leht');
   });
 });
 

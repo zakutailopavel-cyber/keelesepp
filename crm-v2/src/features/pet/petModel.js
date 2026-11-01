@@ -98,7 +98,7 @@ const PHRASES = {
   et: {
     greet: (name) => `Tere! Mina olen ${name}.`,
     lessonToday: (t) => `Täna kell ${t} on tund. Kas oled valmis?`,
-    homework: (n) => (n === 1 ? 'Sul on üks kodutöö. Teeme ära?' : `Sul on ${n} kodutööd. Teeme ära?`),
+    homework: (n) => (n === 1 ? 'Sul on üks ülesanne. Teeme ära?' : `Sul on ${n} ülesannet. Teeme ära?`),
     proud: 'Sa täitsid tunni eesmärgi! Olen sinu üle uhke.',
     sleep: 'Oi, ma magasin. Hea, et sa tagasi oled!',
     fine: 'Kõik on tehtud. Tubli!',
