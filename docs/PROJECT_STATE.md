@@ -8,6 +8,14 @@
 - Finding, not changed (owner: no change in money logic): home and Lapsevanemad use `invoiceBalanceCents`, which does not skip cancelled, credited or hand-paid „Makstud” invoices without payment fields; Finantsid uses `financeRowState`, which does. Lapsevanemad adds up per parent, so an invoice of a child with two parent accounts counts twice, and an invoice of a card with no parent account does not count. So the sums can differ even over the same period.
 - Checks: see the PR. Numbers on the live site not compared (35 „Lahkunud”, 0 „Tunde”): no production read.
 - Next safe step: the owner decides whether home and Lapsevanemad should use `financeRowState`.
+## 2026-11-01 · agent/preview-fix — staff preview opens and closes without „Ligipääs puudub”
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production writes, no deploy.
+- Cause, reproduced in a test: `BrowserRouter` moves in a React transition, `startPreview` / `stopPreview` do not, so the role changed first and `ProtectedRoute` sent the viewer to `/forbidden`.
+- Changed: `usePreviewNavigation()` in `app/AuthContext.jsx` commits role and address in one transition; closing returns to the page the preview was opened from (`preview.returnTo`, else `/settings`). Used by `AppShell.jsx`, `students/StudentProfilePage.jsx`, `settings/SettingsPage.jsx`. `Modal`'s X carries `data-preview-allowed`, the only button the read-only surface lets through. The parent's preview no longer asks the recording-consent question, as the student's already did. Wording „õpilane ütles” in `RecordingConsentPrompt.jsx`.
+- Checks: `npx eslint --quiet src` clean; vitest on `src/app src/components src/features/parents src/features/settings src/features/lesson-recording src/features/students`: 62 files, 255 tests passed. Not opened in a browser.
+- Known limits: inside a preview every other button stays blocked, also harmless ones such as tabs. `/student/kursus` reads the card by the viewer's uid, so a preview of a student without an account shows „Kursust veel ei ole”.
+- Next safe step: the owner opens a preview from a student's card in production after the deploy.
 
 ## 2026-11-01 · agent/role-views — student and parent views: absences and invoices for parents, no school inboxes, roles in words
 
