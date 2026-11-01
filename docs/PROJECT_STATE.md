@@ -3,7 +3,8 @@
 - Owner: „просто внеси на сайт все предметы и темы”.
 - Code: `features/library/libraryModel.js`: tab „Matemaatika” (`ma`), school grades sort by number. `tools/school-plans/build-records.mjs`: `docs/CURRICULUM_*_1_12.md` → 1069 `curriculumLessons` records `plan-<ek|ma|en>-<grade>[-stream]-NNN`.
 - Data contract: levels „N. klass emakeel”, „N. klass matemaatika” (10–12: „… kitsas” / „… lai”), „English N. klass”; `schoolPlanTopic: true`, `roadmapManaged: false`, so the students' course map and the sheet generator skip them. Grade 9 emakeel modules start at 07, after the six exam modules. Ids go by position: creation must stay create-only.
-- Next safe step: after merge, create the records (create-only) and check Õppevara; lessons and sheets only on the owner's word.
+- Done 2026-11-01 (owner's request): 1069 records created, create-only (dry run 1069 new; apply 0 failed; re-run 1069 existing). Õppevara in the browser: Emakeel 366 (336 + the 30 of ek9), Inglise keel 452 (352 + 100), Matemaatika 381; grades in order; one topic opened without error. The card labels a topic „Tunnikava”. Students' view not opened with a student account: `courseLessons` filters by `roadmapManaged`.
+- Next safe step: lessons and sheets only on the owner's word.
 
 ## 2026-11-01 · agent/curricula-decisions — owner's decisions on the grade plans
 
