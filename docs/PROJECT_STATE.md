@@ -7,6 +7,14 @@
 - Existing three workflows: every action pinned to a commit SHA in the same major, `persist-credentials: false` on every checkout. zizmor before: 10 high (`unpinned-uses`), 4 medium (`artipacked`). After, online mode: no findings.
 - gitleaks over the full history (all refs, 2841 commits): 58 findings, **no live secret found**. 55 are the Firebase web API key, which is public by design and matches the live CRM bundle (hash compared, value not printed). 1 is the same config with two characters different, `haldus.html` da647dee62, removed by d68a5e8; not tested against Google. 2 are the Ekilex test fixture. **The repository is public**, so the web key is readable there and in the bundle; its restrictions in Google Cloud Console were not checked. Values were never printed or stored; the raw report was deleted.
 - Next safe step: the owner reviews and merges, then checks the Firebase web key's restrictions in Google Cloud Console.
+## 2026-11-01 · agent/preview-fix — staff preview opens and closes without „Ligipääs puudub”
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production writes, no deploy.
+- Cause, reproduced in a test: `BrowserRouter` moves in a React transition, `startPreview` / `stopPreview` do not, so the role changed first and `ProtectedRoute` sent the viewer to `/forbidden`.
+- Changed: `usePreviewNavigation()` in `app/AuthContext.jsx` commits role and address in one transition; closing returns to the page the preview was opened from (`preview.returnTo`, else `/settings`). Used by `AppShell.jsx`, `students/StudentProfilePage.jsx`, `settings/SettingsPage.jsx`. `Modal`'s X carries `data-preview-allowed`, the only button the read-only surface lets through. The parent's preview no longer asks the recording-consent question, as the student's already did. Wording „õpilane ütles” in `RecordingConsentPrompt.jsx`.
+- Checks: `npx eslint --quiet src` clean; vitest on `src/app src/components src/features/parents src/features/settings src/features/lesson-recording src/features/students`: 62 files, 255 tests passed. Not opened in a browser.
+- Known limits: inside a preview every other button stays blocked, also harmless ones such as tabs. `/student/kursus` reads the card by the viewer's uid, so a preview of a student without an account shows „Kursust veel ei ole”.
+- Next safe step: the owner opens a preview from a student's card in production after the deploy.
 
 ## 2026-11-01 · agent/role-views — student and parent views: absences and invoices for parents, no school inboxes, roles in words
 

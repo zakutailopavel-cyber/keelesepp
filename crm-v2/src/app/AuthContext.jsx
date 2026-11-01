@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, startTransition, useContext, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/firebase/auth.js';
 import { isFirebaseConfigured } from '../services/firebase/client.js';
 
@@ -87,6 +88,27 @@ export function useAuth() {
 }
 
 export { AuthContext };
+
+// Opening or closing a preview changes the role AND the address. The router moves in a transition and a plain state
+// change does not, so done apart the role changes first: on /students/:id a „student” is refused, on /student an admin
+// is, and ProtectedRoute sends the viewer to /forbidden (site walkthrough 2026-11-01). One transition commits both
+// together. Closing goes back to the page the preview was opened from.
+export function usePreviewNavigation() {
+  const auth = useContext(AuthContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+  return {
+    open: (target, path) => startTransition(() => {
+      auth.startPreview({ ...target, returnTo: `${location.pathname}${location.search}` });
+      navigate(path);
+    }),
+    close: () => startTransition(() => {
+      const back = auth.preview?.returnTo || '/settings';
+      auth.stopPreview();
+      navigate(back);
+    }),
+  };
+}
 
 // the signed-in user when there is an AuthProvider, otherwise null (a page rendered alone, e.g. in a test)
 export function useOptionalAuth() {
