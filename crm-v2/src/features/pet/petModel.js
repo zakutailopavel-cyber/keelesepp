@@ -42,7 +42,8 @@ export function learningStreak(activityTimes = [], now = Date.now()) {
   return streak;
 }
 
-// The longest run of learning days ever: what the streak's XP counts, so that a missed day never takes growth away.
+// The longest run of learning days ever (two days or more): what the streak's XP counts, so that a missed day never
+// takes growth away (owner 2026-11-01: losing a streak is not punished).
 export function bestLearningStreak(activityTimes = [], now = Date.now()) {
   const days = [...new Set(activityTimes.filter((t) => t && t <= now).map(dayKey))].sort();
   let best = 0;
@@ -72,7 +73,7 @@ export function petProgress({ lessons = [], submissions = [], homework = [], wor
   const streak = learningStreak(activity, now);
   const bestStreak = bestLearningStreak(activity, now);
   const xp = held.length * XP.lesson + done.length * XP.submission + goals * XP.goal
-    + homeworkDone.length * XP.homework + learnedWords * XP.word + Math.min(STREAK_XP_CAP, bestStreak * XP.streakDay)
+    + homeworkDone.length * XP.homework + learnedWords * XP.word + Math.min(STREAK_XP_CAP, (bestStreak >= 2 ? bestStreak : streak) * XP.streakDay)
     + speech.reduce((sum, stat) => sum + speechXp(stat), 0);
   const stage = xp >= STAGE_AT[2] ? 3 : xp >= STAGE_AT[1] ? 2 : 1;
   const from = STAGE_AT[stage - 1];

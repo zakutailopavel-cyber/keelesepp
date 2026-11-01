@@ -22,7 +22,7 @@ describe('pet model', () => {
   });
 
   it('grows from lessons, submitted work and reached goals only', () => {
-    const lessons = Array.from({ length: 6 }, (_, i) => ({ date: day(10 + i).slice(0, 10), status: 'Toimunud' }));
+    const lessons = Array.from({ length: 6 }, (_, i) => ({ date: day(10 + i * 2).slice(0, 10), status: 'Toimunud' }));
     const p = petProgress({ lessons: [...lessons, { date: day(1).slice(0, 10), status: 'Tühistatud' }], submissions: [done(20, { g1: { ok: 2, total: 2 }, g2: { ok: 1, total: 3 } }), done(30)], now: NOW });
     expect(p.xp).toBe(6 * 10 + 2 * 15 + 1 * 5);
     expect(p.stage).toBe(1);
@@ -82,7 +82,8 @@ describe('PetCard', () => {
     expect(await screen.findByText('Sul on üks kodutöö. Teeme ära?')).toBeInTheDocument();
     expect(screen.getByText('Tark')).toBeInTheDocument();
     expect(container.querySelector('svg.pet')).not.toBeNull();
-    expect(screen.getByText('0 tundi · 0 tööd · 0 eesmärki')).toBeInTheDocument();
+    expect(screen.getByText('0 tundi')).toBeInTheDocument();
+    expect(screen.queryByText(/päeva järjest/)).not.toBeInTheDocument();
   });
 
   it('shows nothing in staff preview when the student has no pet yet', async () => {
@@ -102,7 +103,7 @@ describe('PetCard', () => {
 });
 
 describe('pet outfits', () => {
-  const lessons = Array.from({ length: 3 }, (_, i) => ({ date: day(10 + i).slice(0, 10), status: 'Toimunud' }));
+  const lessons = Array.from({ length: 3 }, (_, i) => ({ date: day(10 + i * 2).slice(0, 10), status: 'Toimunud' }));
 
   it('buys with earned stars, puts it on, and keeps the public copy in step', async () => {
     const repository = {
@@ -112,7 +113,7 @@ describe('pet outfits', () => {
     };
     const { container } = render(<PetCard user={{ uid: 'u1' }} studentId="s1" repository={repository} lessons={lessons} />);
     await waitFor(() => expect(repository.publish).toHaveBeenCalledWith({ uid: 'u1', studentId: 's1', pet: { kind: 'siil', name: 'Okas' } }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Riidekapp' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'Riidekapp' }));
     const wardrobe = screen.getByRole('region', { name: 'Riidekapp' });
     expect(within(wardrobe).getByText('6 tähte')).toBeInTheDocument();
     expect(within(wardrobe).getByRole('button', { name: 'Osta Kroon (40 tähte)' })).toBeDisabled();

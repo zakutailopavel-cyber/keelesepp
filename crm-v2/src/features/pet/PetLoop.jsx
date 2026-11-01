@@ -23,7 +23,7 @@ import './pet.css';
 const NEED_LABEL = { food: 'Kõht', joy: 'Rõõm', energy: 'Energia' };
 const NEED_ICON = { food: Utensils, joy: Gamepad2 };
 
-// Art only in `home`; on the pet's own page the room around it is drawn by PetCard, which passes `mood` down through `onMood`.
+// Art only in `home`; on the pet's own page PetCard draws the room around it and takes the mood through `onMood`.
 function Figure({ pet, mood, stage, jump }) {
   const { bg: _bg, ...worn } = pet.wearing || {};
   return <div className={`pl__art ${jump ? 'is-glad' : ''}`} dangerouslySetInnerHTML={{ __html: petSvg(pet.kind, mood, stage, seasonalWear(worn)) }} />;
@@ -35,7 +35,7 @@ function Figure({ pet, mood, stage, jump }) {
  * The reward is always in sight. The parent page stays complete when this renders nothing (`pet.optedOut`).
  */
 export default function PetLoop({
-  user, studentId = '', pet: initialPet, variant = 'home', readOnly = false, lessons = [], submissions = [], homework = [], assignments, words = [], subject = '',
+  user, studentId = '', pet: initialPet, variant = 'home', readOnly = false, lessons = [], submissions = [], homework = [], assignments, words = [], subject = '', pendingHomework = 0, lessonToday = '', material,
   repository = petsService, wordsService = studentWordsService, assignmentsService = homeworkService, courseSheets = lessonWorksheetsService,
   onPetChange, onMood, now: nowProp,
 }) {
@@ -49,7 +49,8 @@ export default function PetLoop({
 
   // a topic game is the last choice: its sheets load only when words and own sentences cannot be used
   const hasWords = useMemo(() => words.length > 0, [words]);
-  const { speech, topics } = usePetMaterial({ uid, studentId, readOnly, lessons, assignments, wantTopics: !hasWords, repository, assignmentsService, courseSheets });
+  const own = usePetMaterial({ uid, studentId, readOnly, lessons, assignments, wantTopics: !hasWords, off: Boolean(material), repository, assignmentsService, courseSheets });
+  const { speech, topics } = material || own;
 
   const [mode, setMode] = useState('');        // '' | the kind being played
   const [justDone, setJustDone] = useState(null); // { kind, right, total }: the moment after playing
@@ -118,7 +119,7 @@ export default function PetLoop({
   else if (done) line = thanksLine('', lang);
   else if (request) line = back ? { ...request, text: `${welcomeLine(lang).text} ${request.text}`, hint: `${welcomeLine(lang).hint} ${request.hint}` } : request;
   else if (back) line = welcomeLine(lang);
-  else line = petGreeting({ petName: pet.name, progress: { ...progress, mood: 'calm' }, subject });
+  else line = petGreeting({ petName: pet.name, progress: { ...progress, mood: 'calm' }, pendingHomework, lessonToday, subject, lastSpeech: speech[0] || null, now });
 
   const NeedIcon = NEED_ICON[request?.need];
   const needValue = request ? needs[request.need] : 0;
