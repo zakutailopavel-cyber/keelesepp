@@ -78,6 +78,7 @@ describe('FinanceMonthPage', () => {
     expect(await screen.findByRole('table', { name: 'Arved 2031-10' })).toBeInTheDocument();
     const unpaid = screen.getByRole('tab', { name: /Laekumata/ });
     expect(unpaid).toHaveAttribute('aria-selected', 'true');
+    expect(unpaid).toHaveTextContent('selle kuu arved');
     expect(screen.getByLabelText('Olek')).toHaveValue('overdue');
     fireEvent.keyDown(unpaid, { key: 'ArrowRight' });
     expect(screen.getByRole('tab', { name: /Ette makstud/ })).toHaveFocus();
