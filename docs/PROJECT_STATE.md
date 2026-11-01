@@ -26,7 +26,7 @@
 - Next safe step: review and merge this PR; publishing module 20 is the owner's decision.
 ## 2026-11-01 · agent/phone-layout — page header buttons wrap, narrow modals and student cards, Kodutööd tasks first
 
-- Base: `main` 54fab88, checked 2026-11-01. A live-site walkthrough found these. CSS plus one list limit; no data, rules, functions or deploy.
+- Base: `main` ee2eac1, checked 2026-11-01. A live-site walkthrough found these. CSS plus one list limit; no data, rules, functions or deploy.
 - `styles/index.css`: `.page-header__actions` wraps (Raamatupidamine at 1440 px scrolled sideways). `.modal-backdrop` and `.material-preview` have a `minmax(0,1fr)` track, because an auto track grew to the sheet inside and took `.modal`'s `100%` with it. `.students-mobile-list` the same, and the card's buttons wrap. `.submission-card{order:-1}` removed under 1050 px.
 - `features/homework/HomeworkPage.jsx`: `SubmissionList` shows 10, „Näita veel (N)” adds 20. Quick confirm and „next to review” still work over the whole list.
 - Checks: `npx eslint --quiet src` clean; `npx vitest run --maxWorkers=3 src/styles src/features/homework src/features/library src/features/students src/features/accounting` 55 files, 326 tests passed. Layout measured in a browser on a local Vite page with fake repositories (not committed), not with real data and without the real sidebar and topbar. Before → after: Raamatupidamine 1440 px scrollWidth 1514 → 1440; Õpilased 375 px card right 404 → 327, list right 339; preview modal 375 px width 1040 → 355, close × right 1081 → 348; Kodutööd 375 px with 54 submissions, tasks top 9802 → 478, page 10835 → 3479 px.
