@@ -7,6 +7,16 @@
 - Existing three workflows: every action pinned to a commit SHA in the same major, `persist-credentials: false` on every checkout. zizmor before: 10 high (`unpinned-uses`), 4 medium (`artipacked`). After, online mode: no findings.
 - gitleaks over the full history (all refs, 2841 commits): 58 findings, **no live secret found**. 55 are the Firebase web API key, which is public by design and matches the live CRM bundle (hash compared, value not printed). 1 is the same config with two characters different, `haldus.html` da647dee62, removed by d68a5e8; not tested against Google. 2 are the Ekilex test fixture. **The repository is public**, so the web key is readable there and in the bundle; its restrictions in Google Cloud Console were not checked. Values were never printed or stored; the raw report was deleted.
 - Next safe step: the owner reviews and merges, then checks the Firebase web key's restrictions in Google Cloud Console.
+## 2026-11-01 · agent/finance-truth — Ärinäitajad count today's marked lessons, „Lahkunud” means archived, Õpetajate võrdlus reads the calendar, unpaid sums say their period
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no change in how money is calculated.
+- `finance/businessReport.js`, `financeDashboard.js`: a lesson of today marked „Toimunud” or „Puudus_eta” is held, not planned (also journal-only ones). While the period runs `change` is null and the card says the previous period's number: no more −100% on the first of a month. New `plannedStudents`. A journal-only lesson with status „Tühistatud” is `cancelled`; it was `held`.
+- Public meaning changed: `lostStudents` („Lahkunud”) are archived cards only. New `quietStudents` („Ilma tulevase tunnita”) are active cards with no lesson now or ahead, by `calendar/unplannedStudents.js`, the same rule as home. A paused card is in neither list.
+- `teachers/teacherReport.js`, `TeacherReportCard.jsx`, `TeachersPage.jsx`: „Tunde” comes from `lessonFacts` (calendar + groups + journal), unmarked past lessons counted and named, a group lesson once. It read only the journal, so a teacher who does not mark showed 0. Field `unmarked` added to the row.
+- Unpaid labels only: home „kõik kuud”, Finantsid „selle kuu arved”, Lapsevanemad „kõik kuud · seotud laste arved”.
+- Finding, not changed (owner: no change in money logic): home and Lapsevanemad use `invoiceBalanceCents`, which does not skip cancelled, credited or hand-paid „Makstud” invoices without payment fields; Finantsid uses `financeRowState`, which does. Lapsevanemad adds up per parent, so an invoice of a child with two parent accounts counts twice, and an invoice of a card with no parent account does not count. So the sums can differ even over the same period.
+- Checks: see the PR. Numbers on the live site not compared (35 „Lahkunud”, 0 „Tunde”): no production read.
+- Next safe step: the owner decides whether home and Lapsevanemad should use `financeRowState`.
 ## 2026-11-01 · agent/preview-fix — staff preview opens and closes without „Ligipääs puudub”
 
 - Checked `origin/main` 54fab88. From a live-site walkthrough. No production writes, no deploy.

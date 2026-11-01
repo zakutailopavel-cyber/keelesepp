@@ -120,7 +120,7 @@ export default function BusinessReport({ report, settings = null, teachers = [],
     <div className="br-grid">
       <div className="br-card"><span>Toimunud tunde</span><strong>{now.tookPlace}</strong><small>{delta(change.tookPlace) || `eelmisel perioodil ${before.tookPlace}`}</small></div>
       <div className="br-card"><span>Kohalolek</span><strong>{now.attendance === null ? '—' : `${now.attendance}%`}</strong><small>{before.attendance === null ? 'tundidest, mis pidid toimuma' : `eelmisel perioodil ${before.attendance}%`}</small></div>
-      <div className="br-card"><span>Aktiivseid õpilasi</span><strong>{now.students}</strong><small>{delta(change.students) || `eelmisel perioodil ${before.students}`}</small></div>
+      <div className="br-card"><span>Aktiivseid õpilasi</span><strong>{now.students}</strong><small>{delta(change.students) || `${report.plannedStudents ? `+ ${report.plannedStudents} kalendris · ` : ''}eelmisel perioodil ${before.students}`}</small></div>
       <div className="br-card"><span>Keskmine tunnihind</span><strong>{money(now.perLessonCents)}</strong><small>tulu tasulise tunni kohta</small></div>
       <div className="br-card"><span>Tulu õpilase kohta</span><strong>{money(now.perStudentCents)}</strong><small>{before.perStudentCents ? `eelmisel perioodil ${money(before.perStudentCents)}` : 'perioodi kohta'}</small></div>
       <div className="br-card"><span>Õpetajate tasu</span><strong>{money(report.pay.payCents)}</strong><small>tunnitasu järgi</small></div>
@@ -140,7 +140,8 @@ export default function BusinessReport({ report, settings = null, teachers = [],
     </ul>
     <div className="br-people">
       <p><b>Uued õpilased ({report.newStudents.length}):</b> {report.newStudents.length ? names(report.newStudents) : 'pole'}</p>
-      <p className={report.lostStudents.length ? 'is-warn' : ''}><b>Lahkunud ({report.lostStudents.length}):</b> {report.lostStudents.length ? `${names(report.lostStudents)} — eelmisel perioodil käisid, nüüd tunde pole ega ole kalendris` : 'pole'}</p>
+      <p className={report.lostStudents.length ? 'is-warn' : ''}><b>Lahkunud ({report.lostStudents.length}):</b> {report.lostStudents.length ? `${names(report.lostStudents)} — kaart arhiveeritud, eelmisel perioodil käisid` : 'pole'}</p>
+      {report.quietStudents?.length ? <p className="is-warn"><b>Ilma tulevase tunnita ({report.quietStudents.length}):</b> {names(report.quietStudents)} — kaart on aktiivne, eelmisel perioodil käisid, nüüd tunde pole ega ole kalendris</p> : null}
       {report.nothingAhead?.length ? <p className="is-warn"><b>Kalendris edasi tunde pole ({report.nothingAhead.length}):</b> {names(report.nothingAhead, 12)} — selle ja järgmise kuu kalendris pole ühtegi tundi</p> : null}
       {report.unpriced.length ? <p className="is-warn"><b>Ilma hinnata ({report.unpriced.length}):</b> {names(report.unpriced)} — nende tunnid ei lähe tulusse</p> : null}
     </div>
