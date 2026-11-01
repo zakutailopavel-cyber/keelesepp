@@ -48,6 +48,18 @@ function renderPage(user, data) {
   render(<MemoryRouter><AuthContext.Provider value={{ user }}><HomeworkPage {...data} /></AuthContext.Provider></MemoryRouter>);
 }
 
+describe('HomeworkPage: a long list of submissions', () => {
+  it('shows the first ten and the rest on request', async () => {
+    const many = Array.from({ length: 12 }, (_, index) => ({ ...completedWork, id: `worksheet-${index}`, title: `Tööleht ${index + 1}` }));
+    renderPage({ uid: 'teacher-1', displayName: 'Õpetaja', roles: ['admin'] }, repositories(many));
+    expect(await screen.findByText('Tööleht 10')).toBeInTheDocument();
+    expect(screen.queryByText('Tööleht 11')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Näita veel (2)' }));
+    expect(screen.getByText('Tööleht 12')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Näita veel/ })).not.toBeInTheDocument();
+  });
+});
+
 describe('HomeworkPage: finishing and closing tasks', () => {
   const today = new Date().toISOString().slice(0, 10);
   it('the student marks a task done with an answer; the teacher sees it', async () => {

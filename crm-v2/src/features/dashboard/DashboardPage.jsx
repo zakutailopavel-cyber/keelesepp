@@ -36,6 +36,7 @@ async function loadDashboardData(user, repositories) {
 
   const studentsPromise = canViewLearning
     ? repositories.students.list({
+      status: 'active', // like „Kodutööd”: an archived student's open homework is not work to chase
       pageSize: 500,
       exhaustive: true,
       ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}),
@@ -54,12 +55,17 @@ async function loadDashboardData(user, repositories) {
   const groupsPromise = canViewLearning && repositories.groups?.list
     ? repositories.groups.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName } : {}).catch(() => [])
     : Promise.resolve([]);
-  const [studentsResult, schedule, invoices, homework, groups] = await Promise.all([
+  // „Ootab kontrolli”, counted like the Kodutööd page; a failed read must not take the home page down
+  const submissionsPromise = canViewLearning && repositories.homework.listSubmissionsByStudentIds
+    ? studentsPromise.then(({ items }) => repositories.homework.listSubmissionsByStudentIds(items.map((item) => item.id))).catch(() => [])
+    : Promise.resolve([]);
+  const [studentsResult, schedule, invoices, homework, groups, submissions] = await Promise.all([
     studentsPromise,
     schedulePromise,
     invoicesPromise,
     homeworkPromise,
     groupsPromise,
+    submissionsPromise,
   ]);
   // same counting as the pages the tiles open: people (not card records) in „Õpilased”, weekly lessons expanded like
   // the calendar does, homework of the students in scope like „Kodutööd”
@@ -86,6 +92,7 @@ async function loadDashboardData(user, repositories) {
     allTeachers: !teacherOnly,
     overdue,
     openHomework,
+    pendingReviews: submissions.filter((item) => item.reviewStatus !== 'reviewed').length,
     balance: invoices.reduce((sum, item) => sum + invoiceBalanceCents(item), 0),
     canViewLearning,
     canViewFinance,
@@ -111,7 +118,7 @@ export default function DashboardPage({
       { label: 'Kodutööd pooleli', value: data.openHomework.length, meta: 'ootab tegemist', icon: CircleAlert, tone: 'purple' },
     ] : []),
     ...(data.canViewFinance ? [
-      { label: 'Laekumata', value: money(data.balance), meta: `${data.overdue.length} tähtaja ületanud`, icon: ReceiptText, tone: 'amber' },
+      { label: 'Laekumata', value: money(data.balance), meta: `kõik kuud · ${data.overdue.length} tähtaja ületanud`, icon: ReceiptText, tone: 'amber' },
     ] : []),
   ];
   const quickActions = [
@@ -183,6 +190,7 @@ export default function DashboardPage({
             {data.canViewLearning ? (
               <>
                 <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.openHomework.length} {data.openHomework.length === 1 ? 'kodutöö' : 'kodutööd'} pooleli</strong><small>Kontrolli tähtaegu ja esitusi</small></div><b>→</b></Link>
+                {data.pendingReviews ? <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.pendingReviews} {data.pendingReviews === 1 ? 'töö ootab' : 'tööd ootavad'} kontrolli</strong><small>Esitatud tööd, mida õpetaja pole veel üle vaadanud</small></div><b>→</b></Link> : null}
                 {data.unplanned.length ? <Link to="/calendar?unplanned=1"><span className="attention-dot attention-dot--amber" /><div><strong>{data.unplanned.length} õpilast ilma tulevase tunnita</strong><small>Lisa neile tund või märgi paus</small></div><b>→</b></Link> : null}
                 <Link to="/students"><span className="attention-dot attention-dot--green" /><div><strong>{data.activePeople.length} aktiivset õpilast</strong><small>Vaata profiile ja edenemist</small></div><b>→</b></Link>
               </>

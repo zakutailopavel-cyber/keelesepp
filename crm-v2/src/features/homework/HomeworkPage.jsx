@@ -42,9 +42,13 @@ function AnswerForm({ busy, onSend, onCancel }) {
   </form>;
 }
 
+// a school has dozens of submissions: the first ones show, the rest on request, so the page stays short on a phone
+const SUBMISSIONS_SHOWN = 10;
+
 function SubmissionList({ items, staff, onOpen, onConfirm, confirming = '' }) {
+  const [shown, setShown] = useState(SUBMISSIONS_SHOWN);
   if (!items.length) return <EmptyState title={staff ? 'Kontrollitavaid töid ei leitud' : 'Esitatud töid ei ole'} description={staff ? 'Uued õpilaste esitused ilmuvad siia automaatselt.' : 'Pärast töö esitamist näed siin tulemust ja õpetaja tagasisidet.'} />;
-  return <div className="submission-list">{items.map((item) => {
+  return <div className="submission-list">{items.slice(0, shown).map((item) => {
     const reviewed = item.reviewStatus === 'reviewed';
     // an auto-checked work waiting for review can be confirmed with the suggested grade without opening it
     // only a good result is confirmed without opening the work; a low grade needs a look and a comment
@@ -62,7 +66,7 @@ function SubmissionList({ items, staff, onOpen, onConfirm, confirming = '' }) {
     return <div className="submission-item" key={key}>{row}
       <Button variant="secondary" className="submission-confirm" loading={confirming === key} disabled={Boolean(confirming)} aria-label={`Kinnita hinne ${grade} — ${item.studentName || 'Õpilane'}`} title={quickFeedback(item.percentage)} onClick={() => onConfirm(item, grade)}>Kinnita {grade}</Button>
     </div>;
-  })}</div>;
+  })}{items.length > shown ? <div className="load-more"><Button variant="secondary" onClick={() => setShown(shown + 20)}>Näita veel ({items.length - shown})</Button></div> : null}</div>;
 }
 
 export default function HomeworkPage({ repository = homeworkService, studentRepository = studentsService, interactiveRepository = interactiveAssignmentsService, quickDelayMs = 5000 }) {

@@ -25,6 +25,14 @@ describe('the result counts only what was really answered and graded (owner 2026
   });
 });
 
+describe('a choice is graded on the stored option number; the error list only shows it in words', () => {
+  it('the right option counts as right, whichever number it has', () => {
+    const doc = { blocks: [{ id: 'c', type: 'choice', data: { questions: [{ q: 'a', options: 'teen\n*tegema' }, { q: 'b', options: '*on\nei' }] } }] };
+    expect(checkDocument(doc, { 'c:0': 1, 'c:1': 0 }).results).toEqual({ 'c:0': 'ok', 'c:1': 'ok' });
+    expect(checkDocument(doc, { 'c:0': 0, 'c:1': 1 }).results).toEqual({ 'c:0': 'bad', 'c:1': 'bad' });
+  });
+});
+
 describe('reading checks understanding, not the ending (owner 2026-10-27)', () => {
   it('accepts a full sentence with the right words in another form; a wrong answer stays wrong', async () => {
     const { sameMeaningWords } = await import('./blocks/extra.jsx');
