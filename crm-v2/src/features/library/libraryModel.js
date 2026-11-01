@@ -202,7 +202,13 @@ function contentFields(source) {
 }
 
 export const LEVEL_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-const levelRank = (level) => { const i = LEVEL_ORDER.indexOf(String(level || '').toUpperCase()); return i === -1 ? 99 : i; };
+const levelRank = (level) => {
+  const i = LEVEL_ORDER.indexOf(String(level || '').toUpperCase());
+  if (i !== -1) return i;
+  // school grades (docs/CURRICULUM_*_1_12.md) in grade order: „2. klass emakeel” before „10. klass emakeel”, „English 5. klass”
+  const grade = String(level || '').match(/^(?:English )?(\d+)\. klass/)?.[1];
+  return grade ? 100 + Number(grade) : 99;
+};
 
 function snippetFor(item, tokens) {
   for (const [label, text] of item.contentFields || []) {
@@ -262,6 +268,7 @@ export const SUBJECTS = [
   { key: 'et', label: 'Eesti keel' },
   { key: 'ek', label: 'Emakeel' },
   { key: 'en', label: 'Inglise keel' },
+  { key: 'ma', label: 'Matemaatika' },
   // the Sunday children's groups (curriculum/kidsCurriculum.js): „Eelkool 5–6 a”, „2.–3. klass 8–9 a” …
   { key: 'kids', label: 'Lastele' },
 ];
@@ -270,6 +277,7 @@ export function subjectOfLevel(level = '') {
   if (!value || value === '—') return '';
   if (value.startsWith('english') || value.startsWith('en ')) return 'en';
   if (/\d[–-]\d a$/.test(value)) return 'kids';
+  if (value.includes('matemaatika')) return 'ma';
   if (value.includes('emakeel') || value.includes('klass')) return 'ek';
   return 'et';
 }
@@ -288,7 +296,7 @@ export function levelFacets(items) {
     const course = courseForLevel(key);
     return { key, label: key === '—' ? 'Tasemeta' : (key === 'C1' ? course.name : key), count, ...(course ? { title: [course.name, course.subtitle].filter(Boolean).join(' · ') } : {}) };
   })
-    .sort((a, b) => levelRank(a.key) - levelRank(b.key) || a.label.localeCompare(b.label, 'et'));
+    .sort((a, b) => levelRank(a.key) - levelRank(b.key) || a.label.localeCompare(b.label, 'et', { numeric: true }));
 }
 
 export function moduleLabel(key, item) {
