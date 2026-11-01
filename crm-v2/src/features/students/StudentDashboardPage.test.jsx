@@ -63,16 +63,19 @@ describe('StudentDashboardPage', () => {
     unmount();
     const child = repositories([{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', linkedParentIds: ['parent-1'] }]);
     renderPage(child);
-    await screen.findByRole('region', { name: 'Täna' });
+    await screen.findByRole('region', { name: 'Järgmine samm' });
     expect(screen.queryByText(/Tasumata/)).not.toBeInTheDocument();
     expect(child.invoiceRepository.listByStudent).not.toHaveBeenCalled();
   });
 
-  it('shows no empty blocks: without news there are no lines', async () => {
+  it('shows no empty blocks: without news there are no lines, and a day with nothing to do has no checklist', async () => {
     const data = repositories(undefined, { invoiceRepository: { listByStudent: vi.fn().mockResolvedValue([]) } });
+    data.homeworkRepository.listByStudentIds.mockResolvedValue([]);
     renderPage(data);
-    await screen.findByRole('region', { name: 'Täna' });
+    await screen.findByRole('region', { name: 'Järgmine samm' });
     expect(screen.queryByRole('list', { name: 'Sulle on uudiseid' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Täna' })).not.toBeInTheDocument();
+    expect(screen.getByText('Praegu on kõik tehtud')).toBeInTheDocument();
   });
 
   it('new teacher feedback and an open announcement get one line each; the teacher\'s text is not repeated or made up', async () => {
