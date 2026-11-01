@@ -84,6 +84,17 @@
 - Seaded and menu: `roleLabels` in `utils/roles.js`; Firebase row, support row and account UID only for staff. Texts: „1 tund”, „1 sõnum”, „1 arve”, lead arrival as a Tallinn date (`LeadsPage.jsx`).
 - Checks: see the PR.
 - Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/ui-wording — readable dates, technical text gone, plurals, bell, tab icon
+
+- Base: `main` ee2eac1, checked 2026-11-01. UI text only; no data, rules, functions or deploy. Text changes in `DashboardPage`, `FinanceDashboard`, `StudentLessonsPanel` leave their numbers to the other agent's branches.
+- Dates through `finance/finance.js` `displayDate`: `StudentLessonsPanel` (rows, notice, unmarked list, a day named once), `HomeworkPage` and `LessonSummariesCard` „Tähtaeg”, `LessonHomeworkPanel`, `LessonDetailModal`, `roomWorksheetChoices`, `NoTimesPanel`, `BillingSettingsCard`. Aria labels of the lesson rows keep the ISO date.
+- Seaded → Tehniline: the teacher-scope migration panel (enforced since 2026-08-05) opens only with `/settings?tab=tehniline&migratsioon=1`; handlers and server endpoints stay. Seaded → Kool: `docs/GPT_SHEET_BUILDER.md` removed from the text. „CRM v1” removed from Ülesanded and `MaterialEditor`.
+- `MonthStepsCard` prop `ruHint` (default on): off on the teacher's `LearnerSnapshotCard`. Students and parents keep the Russian line, the same pattern as `MyProgressCard`.
+- Plurals: kodutöö on the home page and learner snapshot, „1 möödunud tund”, „1 õpilane lisati gruppi”, „Prognoos · järgmine kuu”. Õppevara's curated section is now „Grammatikateemad · N teemat”. `NotificationCenter` shows no number until its sources have loaded.
+- `crm-v2/public`: copies of the root `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png` (the EP koolitus website icon); links in `crm-v2/index.html`. `StudentsPage` shows subjects through `subjectName`.
+- Checks: `npx eslint --quiet src` clean; vitest result in the PR. `vite build` output contains the icons and the links. Not opened on the live site.
+- `MessagesPage` staff heading „Kommunikatsioon” → „Suhtlus”, as in the menu. Open: raw „Inglise Keel” can still show where a screen prints the stored subject. „1 gruppi” was not found in the code. `type="month"` inputs were left alone (Chromium shows the month in words).
+- Next safe step: the owner decides whether „Live Classroom” and the two meanings of „Ülesanded” stay.
 ## 2026-11-01 · agent/route-access — routes.jsx and accessPolicy.js agree
 
 - Base: `main` ee2eac1, checked 2026-11-01. Client-side routing only; Firestore rules and functions unchanged, so this is not a data boundary.

@@ -513,7 +513,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
             // „Grammatika” looks like a module section (owner 2026-10-21: the first version was a ragged list): one row a
             // topic with its lesson, the Õpik sheet and the same actions column as the lessons below
             <div className="lib2-section lib2-grammar">
-              <h3><span>{level}</span>Grammatika<small>{grammar.length} teemat</small></h3>
+              <h3><span>{level}</span>Grammatikateemad<small>{grammar.length} {grammar.length === 1 ? 'teema' : 'teemat'}</small></h3>
               <ul className="lib2-list">{grammar.flatMap(({ topic, lessons }, index) => lessons.map((item, li) => {
                 const opik = item.phases?.find((phase) => phase.id === 'opik' && phase.state === 'published');
                 return (

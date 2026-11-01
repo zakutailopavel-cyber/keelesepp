@@ -111,14 +111,14 @@ export default function MessagesPage({ repository = messagesService, studentRepo
   return <div className="page-content messages-page">
     <PageHeader
       eyebrow="Suhtlus"
-      title={staff ? 'Kommunikatsioon' : 'Sõnumid'}
+      title={staff ? 'Suhtlus' : 'Sõnumid'}
       description={staff ? 'KeeleSepa sisemised vestlused, Facebook ja Instagram ühes töövoos.' : 'Kirjuta õpetajale, vastus tuleb siia.'}
       actions={totalUnread || admin ? <>{totalUnread ? <Badge tone="info">{totalUnread} lugemata</Badge> : null}{admin ? <Link className="button button--secondary" to="/messages/teated"><Megaphone size={16} /> Teated</Link> : null}</> : null}
       compact
     />
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
 
-    <section className="message-metric-grid" aria-label="Kommunikatsiooni ülevaade">
+    <section className="message-metric-grid" aria-label="Suhtluse ülevaade">
       <Card className="message-metric">
         <span>Vestlused</span>
         <strong>{allConversations.length}</strong>

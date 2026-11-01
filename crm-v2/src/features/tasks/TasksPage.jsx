@@ -168,7 +168,7 @@ export default function TasksPage({ service = tasksService, staffRepository = te
 
   return (
     <div className="page-content tk-page">
-      <PageHeader eyebrow="Meeskond" title="Ülesanded" description="Meeskonna ülesanded, tähtajad ja arutelu. Samad ülesanded on näha ka CRM v1-s." />
+      <PageHeader eyebrow="Meeskond" title="Ülesanded" description="Meeskonna ülesanded, tähtajad ja arutelu." />
 
       <Card className="tk-add">
         <form className="tk-add__form" onSubmit={add}>

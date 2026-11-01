@@ -6,6 +6,7 @@ import { homeworkService as defaultHomework } from '../../services/firebase/home
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import './vocabulary.css';
+import { displayDate } from '../finance/finance.js';
 
 const when = (iso) => {
   const date = new Date(iso || '');
@@ -41,7 +42,7 @@ function SummaryDetails({ summary, words, homeworkService, boardLink }) {
       <h4>Uued sõnad ({lessonWords.length})</h4>
       {lessonWords.length ? <ul className="vw-list">{lessonWords.map((item) => <li key={item.id}><span><strong>{item.word}</strong>{item.translation ? <> — {item.translation}</> : null}{item.forms ? <small className="vw-forms">{item.forms}</small> : null}</span></li>)}</ul> : <p className="vw-muted">Selles tunnis sõnu ei lisatud.</p>}
       <h4>Kodutöö</h4>
-      {homework === null ? <p className="vw-muted">Laen…</p> : homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span><strong>{item.task}</strong><small>{item.due ? `Tähtaeg ${item.due}` : 'Tähtajata'}</small></span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud.</p>}
+      {homework === null ? <p className="vw-muted">Laen…</p> : homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span><strong>{item.task}</strong><small>{item.due ? `Tähtaeg ${displayDate(item.due)}` : 'Tähtajata'}</small></span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud.</p>}
     </div>
   );
 }
