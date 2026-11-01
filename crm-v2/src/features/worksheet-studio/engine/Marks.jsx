@@ -7,7 +7,7 @@ import { openFloatingEditor } from './floatingEditor.js';
 // The free layer over a block card: arrows, callouts, free text, stickers and rings (marksModel.js). In edit mode a
 // mark is dragged to move, its handle resizes it (an arrow has a handle at each end), double-click edits its text,
 // Delete removes it; the small bar above the selected mark changes the colour or the sticker.
-export default function MarksLayer({ block, editable = false, onChange }) {
+export default function MarksLayer({ block, editable = false, onChange, flow = false }) {
   const layer = useRef(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [selected, setSelected] = useState(null);
@@ -27,6 +27,12 @@ export default function MarksLayer({ block, editable = false, onChange }) {
   }, [hasMarks]);
 
   if (!hasMarks) return null;
+  // the column has no fixed place for an arrow or a ring (they point at spots of the A4 card): what is written on a mark
+  // stays readable under the task
+  if (flow) {
+    const written = marks.filter((m) => m.text || m.emoji);
+    return written.length ? <ul className="ws-marks-flow">{written.map((m) => <li key={m.id} className={`is-${m.kind}`}>{m.text || m.emoji}</li>)}</ul> : null;
+  }
   const save = (next) => onChange?.(next);
   const pct = (e) => {
     const r = layer.current.getBoundingClientRect();

@@ -182,9 +182,10 @@ export const table = {
           <tr key={ri}>{heads.map((_, ci) => {
             const c = r[ci] || '';
             const key = `${ri}.${ci}`;
-            if (WHOLE_CELL.test(c) || c === '') return <td key={ci}>{input(key, '100%')}</td>;
-            if (!c.includes('[')) return <td key={ci}><Md text={c} /></td>;
-            return <td key={ci}>{cellParts(c).map((p, pi) => (p.text !== undefined ? <Md key={pi} text={p.text} /> : <span key={pi}>{input(`${key}.${p.gap}`, `${Math.max(5, p.accept.split('/')[0].length + 2)}ch`)}</span>))}</td>;
+            // data-label: the column's name, shown above the cell when a phone stacks the table
+            if (WHOLE_CELL.test(c) || c === '') return <td key={ci} data-label={heads[ci]}>{input(key, '100%')}</td>;
+            if (!c.includes('[')) return <td key={ci} data-label={heads[ci]}><Md text={c} /></td>;
+            return <td key={ci} data-label={heads[ci]}>{cellParts(c).map((p, pi) => (p.text !== undefined ? <Md key={pi} text={p.text} /> : <span key={pi}>{input(`${key}.${p.gap}`, `${Math.max(5, p.accept.split('/')[0].length + 2)}ch`)}</span>))}</td>;
           })}</tr>
         ))}</tbody>
       </table>
@@ -270,6 +271,19 @@ export const categorize = {
 };
 
 // ---------- word order ----------
+// the phone's tap alternative to typing a whole sentence: a tapped word goes to the end of the answer, a used word
+// tapped again leaves it; the answer stays the same plain sentence, still free to edit
+function TapWords({ words, value, onChange }) {
+  const written = String(value || '').split(/\s+/).filter(Boolean);
+  const left = [...written];
+  const used = words.map((w) => { const at = left.indexOf(w); if (at < 0) return false; left.splice(at, 1); return true; });
+  const toggle = (w, on) => {
+    if (!on) { onChange([...written, w].join(' ')); return; }
+    const at = written.lastIndexOf(w);
+    onChange(written.filter((_, n) => n !== at).join(' '));
+  };
+  return words.map((w, k) => <button type="button" key={k} className={`ws-chip ${used[k] ? 'is-used' : ''}`} aria-pressed={used[k]} onClick={() => toggle(w, used[k])}>{w}</button>);
+}
 const scramble = (sentence) => {
   const w = String(sentence || '').replace(/[.!?]$/, '').split(/\s+/).filter(Boolean);
   // deterministic shuffle so print and screen match: rotate by half, then reverse pairs
@@ -283,7 +297,7 @@ export const wordorder = {
     <ol className="ws-order" start={(ctx.start || 0) + 1}>
       {String(data.sentences || '').split('\n').filter((l) => l.trim()).map((s, i) => (
         <li key={i}>
-          <div className="ws-chips" data-edit={`sentences#${i}`} title="Topeltklõps: muuda õiget lauset">{scramble(s).map((w, k) => <span key={k} className="ws-chip">{w}</span>)}</div>
+          <div className="ws-chips" data-edit={`sentences#${i}`} title="Topeltklõps: muuda õiget lauset">{ctx.flow && ctx.interactive ? <TapWords words={scramble(s)} value={ctx.get(`${i}`)} onChange={(v) => ctx.set(`${i}`, v)} /> : scramble(s).map((w, k) => <span key={k} className="ws-chip">{w}</span>)}</div>
           <Line interactive={ctx.interactive} value={ctx.get(`${i}`)} onChange={(v) => ctx.set(`${i}`, v)} state={ctx.state(`${i}`)} width="100%" label={`Lause ${i + 1}`} />
         </li>
       ))}

@@ -76,6 +76,8 @@ temporary picker state, so saving creates a new worksheet version on the origina
 document. The displayed document name can be edited explicitly or derived automatically from the selected lesson or
 destination topic; renaming does not rewrite immutable published worksheet-version history.
 
+The student's phone and tablet draw the same document as one column (`Sheet` prop `flow`, `docs/WORKSHEET_PHONE_VIEW.md`); A4 stays for print, the constructor and the teacher's marking.
+
 CRM v2 Worksheet Studio keeps the current author document in `curriculumLessons.worksheetDoc`, its lifecycle in
 `worksheetDocStatus`, and the last assignable snapshot in `publishedWorksheetDoc`. Every save creates an immutable
 `worksheetVersions/{lessonId}_studio_v{n}` record. A client must submit the `worksheetDocUpdatedAt` it loaded; a
