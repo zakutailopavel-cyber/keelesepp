@@ -62,7 +62,7 @@ function TaskCard({ task, today, canAct, isNew, subjectTag, busy, actions }) {
 
   let primary = null;
   if (todo) {
-    if (task.kind === 'sheet') primary = <Button onClick={() => actions.playSheet(task.sheet)}><PlayCircle size={16} /> {!canAct ? 'Vaata' : task.started ? 'Jätka' : 'Alusta'}</Button>;
+    if (task.kind === 'sheet') primary = <Button data-preview-allowed onClick={() => actions.playSheet(task.sheet)}><PlayCircle size={16} /> {!canAct ? 'Vaata' : task.started ? 'Jätka' : 'Alusta'}</Button>;
     else if (canAct && task.kind === 'exercise') primary = <Button loading={busy === homework.id} onClick={() => actions.playExercise(homework)}><PlayCircle size={16} /> Alusta</Button>;
     else if (canAct && task.kind === 'interactive') primary = <Button onClick={() => actions.playInteractive(task.interactive.id)}><PlayCircle size={16} /> Alusta</Button>;
     else if (canAct && task.kind === 'voice' && !answering) primary = <Button onClick={() => actions.setAnswering(homework.id)}><Mic size={16} /> Salvesta vastus</Button>;
@@ -70,7 +70,7 @@ function TaskCard({ task, today, canAct, isNew, subjectTag, busy, actions }) {
   } else if (task.kind === 'interactive') {
     primary = canAct ? <Button variant="secondary" onClick={() => actions.playInteractive(task.interactive.id)}>{task.state === TASK_STATE.REVIEWED ? 'Vaata tagasisidet' : 'Vaata'}</Button> : null;
   } else if (task.submission) {
-    primary = <Button variant="secondary" onClick={() => actions.review(task.submission)}>{task.state === TASK_STATE.REVIEWED ? 'Vaata tagasisidet' : 'Vaata'}</Button>;
+    primary = <Button variant="secondary" data-preview-allowed onClick={() => actions.review(task.submission)}>{task.state === TASK_STATE.REVIEWED ? 'Vaata tagasisidet' : 'Vaata'}</Button>;
   }
 
   return <article className={`lt-card ${late ? 'is-late' : ''}`}>
@@ -92,7 +92,7 @@ function TaskCard({ task, today, canAct, isNew, subjectTag, busy, actions }) {
       {/* quiet ways on: the action stays one */}
       <div className="lt-links">
         {homework?.boardPageId ? <Link to={`/board?page=${homework.boardPageId}`}>Ava tahvlileht „{homework.boardPageTitle || 'Tahvlileht'}”</Link> : null}
-        {canPreviewMaterial(homework) ? <button type="button" className="lt-link" disabled={busy === `material-${homework.id}`} aria-label={`Vaata materjali: ${task.title}`} onClick={() => actions.previewMaterial(homework)}>Vaata materjali</button> : null}
+        {canPreviewMaterial(homework) ? <button type="button" className="lt-link" data-preview-allowed disabled={busy === `material-${homework.id}`} aria-label={`Vaata materjali: ${task.title}`} onClick={() => actions.previewMaterial(homework)}>Vaata materjali</button> : null}
         {canAct && todo && task.kind === 'homework' && !answering ? <button type="button" className="lt-link" onClick={() => actions.setAnswering(homework.id)}><Paperclip size={13} aria-hidden="true" /> Lisa vastus</button> : null}
         {canAct && task.state === TASK_STATE.WAITING && (task.kind === 'homework' || task.kind === 'voice') ? <button type="button" className="lt-link" onClick={() => actions.reopen(homework)}>Võta tagasi</button> : null}
       </div>
@@ -110,7 +110,7 @@ function TaskGroup({ id, title, ru, tasks, children, renderTask, showAll = false
   return <section className="lt-group" id={id} aria-labelledby={`${id}-title`}>
     <h2 id={`${id}-title`}>{title}<span className="lt-ru" lang="ru"> · {ru}</span>{tasks.length ? <span className="lt-count">{tasks.length}</span> : null}</h2>
     {tasks.length ? <div className="lt-list">{shown.map(renderTask)}</div> : children}
-    {tasks.length > shown.length ? <button type="button" className="lt-more" onClick={() => setMore(true)}>Näita veel ({tasks.length - shown.length}) <ChevronRight size={15} aria-hidden="true" /></button> : null}
+    {tasks.length > shown.length ? <button type="button" className="lt-more" data-preview-allowed onClick={() => setMore(true)}>Näita veel ({tasks.length - shown.length}) <ChevronRight size={15} aria-hidden="true" /></button> : null}
   </section>;
 }
 

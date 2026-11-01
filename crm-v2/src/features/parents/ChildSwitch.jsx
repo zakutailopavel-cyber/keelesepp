@@ -9,7 +9,7 @@ export default function ChildSwitch({ people = [], value = '', onChange, marks =
   return <div className="child-switch" role="tablist" aria-label={label}>
     {people.map((person) => {
       const key = childKeyOf(person);
-      return <button key={key} type="button" role="tab" aria-selected={value === key} className={value === key ? 'is-active' : ''} onClick={() => onChange(key)}>
+      return <button key={key} type="button" role="tab" data-preview-allowed aria-selected={value === key} className={value === key ? 'is-active' : ''} onClick={() => onChange(key)}>
         <strong>{String(person.name || '').trim().split(/\s+/)[0] || 'Laps'}</strong>
         {marks[key] ? <small>{marks[key]}</small> : null}
       </button>;
