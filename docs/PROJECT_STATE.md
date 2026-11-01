@@ -1,3 +1,23 @@
+## 2026-11-01 · agent/speed — pages load on demand, one course at a time, cache headers, fewer repeated reads
+
+- Base: `main` cb2c9b1, checked 2026-11-01. No deploy, no production access, no rules, indexes or functions changed.
+- First load (JS, gzip): 660 kB → 319 kB for every role (`main` chunk 391 → 49 kB). Kursuste tervis: 4586 kB → 1195 kB (A2), 1435 kB (B2). CSS unchanged on purpose, byte-identical `main-E1qftxn5.css`.
+- Changed:
+  - `app/routes.jsx`, `app/HomePage.jsx`: every role's page is `lazy()`. `AppShell`: bell and pet lazy, pet only for students. `StudentProfilePage`: works tab lazy.
+  - `app/eagerStyles.js`: the stylesheets of the former eager pages stay in the first CSS in the old order, because pages style each other's classes.
+  - Course code: `admin/course/courseSheet.js` (COURSES, PHASES, buildCourseSheet, moduleSheets) and `courseModules.<a2|b1|b2|c1|ek9|en>.js` (the module lists). `registry.js` still exports everything; `courseLoaders.js` loads one course. **A new module is now one import and one list place in `courseModules.<course>.js`, not in `registry.js`.**
+  - `didactics/gates.js moduleGates`: each sheet's text is computed once; output compared with the old code on all 93 modules, identical. `readiness.js`: optional already-built sheets.
+  - `services/firebase/shareInFlight.js`: identical reads running at the same moment share one read, nothing is kept afterwards. Used by `invoices.list`, `lessons.listForCalendar`, exhaustive `students.list`, `homework.listSubmissionsByStudentIds`.
+  - Bell: admin reads `messages.listUnread()` (`read == false`, the query of the Suhtlus badge) instead of all messages; no count until the sources came. A message without any `read` field no longer appears in the bell (the badge never counted it).
+  - `StudentParentsCard`: linked parents by id (`parents.listByIds`), all `users` only when the search opens. `FinanceMonthPage`: token reads no longer repeat when the notes arrive.
+  - `vercel.json`: `/assets/*` a year immutable; `/audio`, `/textbook-art` a day; these three no longer fall back to index.html (a missing file is 404). HTML keeps Vercel's default `max-age=0, must-revalidate`.
+  - `scripts/bundle-size-report.mjs` + CI step: warning only, budget 340 KB JS and 80 KB CSS (1024 bytes).
+- Checks (on the merged branch): `npx eslint --quiet src` exit 0; `npx vitest run --maxWorkers=3 --testTimeout=60000` 420 files passed, 1 skipped, 2950 tests passed, 7 skipped; `vite build` OK. Before the final merge with main: the login page rendered on a local build with a fake Firebase config and all 77 lazy chunks imported without an error.
+- Not measured: seconds on the live site (needs the deploy). Logged-in pages were not opened in a browser, only through tests.
+- Known limits: first CSS not split; `services/firebase/index.js` still brings the sheet engine (50 kB) to pages that import it; Kursuse tootmine still loads all courses; Dashboard reads not touched (#962, #963 are on that file). `interactiveLessonApi` unchanged.
+- After the deploy: `curl -I` an `/assets/main-*.js` (immutable), `/` (`max-age=0`), `/assets/nope.js` (404), an `/audio/...mp3` (`max-age=86400`).
+- Next safe step: owner reviews and merges the PR, then the same four curl checks and the same pages are timed on the live site.
+
 ## 2026-11-01 · agent/preview-fix — staff preview opens and closes without „Ligipääs puudub”
 
 - Checked `origin/main` 54fab88. From a live-site walkthrough. No production writes, no deploy.
