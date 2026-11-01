@@ -5,21 +5,6 @@ import { LoadingState } from '../components/ui/index.js';
 import AppShell from '../components/layout/AppShell.jsx';
 import ForbiddenPage from '../features/auth/ForbiddenPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
-import HomeworkPage from '../features/homework/HomeworkPage.jsx';
-import WhatsNewPage from '../features/guide/WhatsNew.jsx';
-import GuestLessonPage from '../features/live-classroom/GuestLessonPage.jsx';
-import PayInvoicePage from '../features/payments/PayInvoicePage.jsx';
-import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
-import PetPage from '../features/pet/PetPage.jsx';
-import MistakesPage from '../features/self-study/MistakesPage.jsx';
-import MessagesPage from '../features/messages/MessagesPage.jsx';
-import ParentDashboardPage from '../features/parents/ParentDashboardPage.jsx';
-import StudentDashboardPage from '../features/students/StudentDashboardPage.jsx';
-import VocabularyPage from '../features/vocabulary/VocabularyPage.jsx';
-import SettingsPage from '../features/settings/SettingsPage.jsx';
-import BoardPage from '../features/board/BoardPage.jsx';
-import StudentCoursePage from '../features/self-study/StudentCoursePage.jsx';
-import TeacherGuidePage from '../features/guide/TeacherGuidePage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import HomePage from './HomePage.jsx';
 import { ACCESS } from './accessPolicy.js';
@@ -68,6 +53,22 @@ const TeacherProfilePage = lazy(() => import('../features/teachers/TeacherProfil
 const AnnouncementsAdminPage = lazy(() => import('../features/announcements/AnnouncementsAdminPage.jsx'));
 const CampaignsPage = lazy(() => import('../features/campaigns/CampaignsPage.jsx'));
 const LiveObserverPage = lazy(() => import('../features/live-classroom/LiveObserverPage.jsx'));
+// the pages of every role: each role downloads its own page, not all of them on the first load
+const HomeworkPage = lazy(() => import('../features/homework/HomeworkPage.jsx'));
+const WhatsNewPage = lazy(() => import('../features/guide/WhatsNew.jsx'));
+const GuestLessonPage = lazy(() => import('../features/live-classroom/GuestLessonPage.jsx'));
+const PayInvoicePage = lazy(() => import('../features/payments/PayInvoicePage.jsx'));
+const LiveClassroomPage = lazy(() => import('../features/live-classroom/LiveClassroomPage.jsx'));
+const PetPage = lazy(() => import('../features/pet/PetPage.jsx'));
+const MistakesPage = lazy(() => import('../features/self-study/MistakesPage.jsx'));
+const MessagesPage = lazy(() => import('../features/messages/MessagesPage.jsx'));
+const ParentDashboardPage = lazy(() => import('../features/parents/ParentDashboardPage.jsx'));
+const StudentDashboardPage = lazy(() => import('../features/students/StudentDashboardPage.jsx'));
+const VocabularyPage = lazy(() => import('../features/vocabulary/VocabularyPage.jsx'));
+const SettingsPage = lazy(() => import('../features/settings/SettingsPage.jsx'));
+const BoardPage = lazy(() => import('../features/board/BoardPage.jsx'));
+const StudentCoursePage = lazy(() => import('../features/self-study/StudentCoursePage.jsx'));
+const TeacherGuidePage = lazy(() => import('../features/guide/TeacherGuidePage.jsx'));
 const staffPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen…" />}>{element}</Suspense></PageErrorBoundary>;
 const generatorPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense></PageErrorBoundary>;
 
@@ -79,9 +80,9 @@ export default function AppRoutes() {
       <Route path="/register" element={<Navigate to="/registreeru" replace />} />
       <Route path="/forbidden" element={<ForbiddenPage />} />
       {/* the lesson link for a student without a login (functions/live-guest.js) — no account, one lesson only */}
-      <Route path="/tund/:token" element={<GuestLessonPage />} />
+      <Route path="/tund/:token" element={staffPage(<GuestLessonPage />)} />
       {/* LHV LinkPay: public pay link from the invoice PDF / e-mail and the bank's return page */}
-      <Route path="/maksa/:invoiceId" element={<PayInvoicePage />} />
+      <Route path="/maksa/:invoiceId" element={staffPage(<PayInvoicePage />)} />
       {/* „Sobivad ajad”: a public page the school sends to a learner to mark every hour that really suits a lesson */}
       <Route path="/ajad" element={<Suspense fallback={null}><AvailabilityPollPage /></Suspense>} />
       {/* parents' INF 3 form (docs/INF3.md): no login, a one-time link from the school */}
@@ -93,8 +94,8 @@ export default function AppRoutes() {
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}
           <Route index element={<HomePage />} />
           <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>
-            <Route path="guide" element={<TeacherGuidePage />} />
-            <Route path="uuendused" element={<WhatsNewPage />} />
+            <Route path="guide" element={staffPage(<TeacherGuidePage />)} />
+            <Route path="uuendused" element={staffPage(<WhatsNewPage />)} />
             <Route path="students" element={staffPage(<StudentsPage />)} />
             <Route path="students/:studentId" element={staffPage(<StudentProfilePage />)} />
             <Route path="students/:studentId/worksheets/:lessonId" element={generatorPage(<StudentWorksheetStudioPage />)} />
@@ -116,11 +117,11 @@ export default function AppRoutes() {
             <Route path="library/worksheets/:lessonId" element={generatorPage(<WorksheetStudioPage />)} />
             <Route path="parents" element={staffPage(<ParentsPage />)} />
             <Route path="kassa" element={staffPage(<CashPage />)} />
-            <Route path="board/:studentId" element={<BoardPage />} />
+            <Route path="board/:studentId" element={staffPage(<BoardPage />)} />
             <Route path="leads" element={staffPage(<LeadsPage />)} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.LIVE_CLASSROOM} />}>
-            <Route path="live-classroom" element={<LiveClassroomPage />} />
+            <Route path="live-classroom" element={staffPage(<LiveClassroomPage />)} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
             {/* administrator watching a lesson going on now (receive-only; both sides see it) */}
@@ -135,23 +136,23 @@ export default function AppRoutes() {
             {/* the ChatGPT plugin „KeeleSepp AI” asks the administrator for access (OAuth, functions/keelesepp-ai-mcp.js) */}
             <Route path="ai/connect" element={staffPage(<AiConnectPage />)} />
           </Route>
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="homework" element={<HomeworkPage />} />
-          <Route path="messages" element={<MessagesPage />} />
+          <Route path="settings" element={staffPage(<SettingsPage />)} />
+          <Route path="homework" element={staffPage(<HomeworkPage />)} />
+          <Route path="messages" element={staffPage(<MessagesPage />)} />
           <Route element={<ProtectedRoute roles={ACCESS.PARENT} />}>
-            <Route path="parent" element={<ParentDashboardPage />} />
+            <Route path="parent" element={staffPage(<ParentDashboardPage />)} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.BOARD} />}>
-            <Route path="board" element={<BoardPage />} />
+            <Route path="board" element={staffPage(<BoardPage />)} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.STUDENT} />}>
-            <Route path="student" element={<StudentDashboardPage />} />
-            <Route path="student/sonavara" element={<VocabularyPage />} />
-            <Route path="student/lemmik" element={<PetPage />} />
-            <Route path="student/vead" element={<MistakesPage />} />
+            <Route path="student" element={staffPage(<StudentDashboardPage />)} />
+            <Route path="student/sonavara" element={staffPage(<VocabularyPage />)} />
+            <Route path="student/lemmik" element={staffPage(<PetPage />)} />
+            <Route path="student/vead" element={staffPage(<MistakesPage />)} />
             {/* „Kordamine” became „Minu vead” (+ words in Sõnad), owner 2026-10-12 */}
             {/* „Minu kursus” (owner 2026-10-23): the course map; self-study cards open the sheets themselves */}
-            <Route path="student/kursus" element={<StudentCoursePage />} />
+            <Route path="student/kursus" element={staffPage(<StudentCoursePage />)} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.FINANCE} />}>
             <Route path="finance" element={staffPage(<FinanceMonthPage />)} />

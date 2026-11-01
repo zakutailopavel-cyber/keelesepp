@@ -1,7 +1,7 @@
 import { isPlaceholderEmail } from '../../utils/placeholderEmail.js';
 import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Eye, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
 import '../board/board.css';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useContext, useEffect, useState } from 'react';
 import MergeCardsModal from './MergeCardsModal.jsx';
 import EnrollmentManager from './EnrollmentManager.jsx';
 import StudentDirectionsCard from './StudentDirectionsCard.jsx';
@@ -25,7 +25,6 @@ import StudentLessonsPanel from './StudentLessonsPanel.jsx';
 import SubjectSwitcher from './SubjectSwitcher.jsx';
 import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
 import { onlySubject, subjectName, subjectsOf, teacherTracks } from './subjects.js';
-import StudentWorksPanel from './StudentWorksPanel.jsx';
 import { homeworkService } from '../../services/firebase/homework.js';
 import BillingSettingsCard from './BillingSettingsCard.jsx';
 import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
@@ -67,6 +66,9 @@ const PROFILE_TABS = [
   { id: 'assessment', label: 'Esmane hindamine' },
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
+
+// the works tab opens the sheet viewer: downloaded when the tab is opened, not with every card
+const StudentWorksPanel = lazy(() => import('./StudentWorksPanel.jsx'));
 
 export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
   const { studentId } = useParams();
@@ -241,7 +243,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
             {studentAccess(student) === 'none' ? <p className="action-error" role="alert">Selle kaardiga pole seotud ühtegi kontot: õpilane ei näe siia määratud töid. Seo õpilase konto (Muuda → konto) või kontrolli, kas tal on teine sama nimega kaart.</p> : null}
             {/* „Õpilase tegevused” (owner 2026-10-27): everything the student did, so nothing stays unknown to the teacher */}
             <ActivityFeedCard studentId={student.id} {...(learnerRepository ? { repository: learnerRepository } : {})} />
-            <StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} keep={keepWork} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} />
+            <Suspense fallback={<LoadingState label="Laen töid…" />}><StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} keep={keepWork} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} /></Suspense>
           </div>
         ) : null}
 

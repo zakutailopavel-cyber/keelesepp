@@ -1,7 +1,7 @@
 import { Search, UserRound, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { studentsService } from '../../services/firebase/index.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { ROLES } from '../../utils/roles.js';
 import './globalStudentSearch.css';
 

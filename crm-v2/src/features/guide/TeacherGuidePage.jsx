@@ -1,4 +1,5 @@
 import { CheckCircle2, Circle, ExternalLink, PlayCircle, Search } from 'lucide-react';
+import { GUIDE_SEEN_KEY } from './guideKeys.js';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -7,7 +8,7 @@ import { FIRST_STEPS, GUIDE_VIDEOS, searchGuide, visibleGuide } from './guideCon
 import './guide.css';
 
 // per-browser conveniences only (a remembered checklist and „guide seen”); the page works without storage
-export const GUIDE_SEEN_KEY = 'keelesepp.guideSeen';
+export { GUIDE_SEEN_KEY };
 const STEPS_KEY = 'keelesepp.guideSteps';
 const read = (key, fallback) => { try { return JSON.parse(globalThis.localStorage?.getItem(key) ?? 'null') ?? fallback; } catch { return fallback; } };
 const write = (key, value) => { try { globalThis.localStorage?.setItem(key, JSON.stringify(value)); } catch { /* storage blocked */ } };

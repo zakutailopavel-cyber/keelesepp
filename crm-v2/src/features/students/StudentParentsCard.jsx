@@ -20,14 +20,25 @@ export default function StudentParentsCard({ student, user, service = parentsSer
   const [ask, setAsk] = useState('');
   const [error, setError] = useState('');
 
+  const linkedIds = parentIdsOf(student);
+  const linkedKey = linkedIds.join('|');
+  // the card names its linked parents; every account is read only when the search for a parent is opened
+  const [linkedAccounts, setLinkedAccounts] = useState(null);
+  const readAll = mode === 'link' || !service.listByIds;
   useEffect(() => {
+    if (!readAll || parents) return undefined;
     let alive = true;
     Promise.resolve(service.list()).then((items) => { if (alive) setParents(items || []); }).catch(() => { if (alive) setParents([]); });
     return () => { alive = false; };
-  }, [service]);
+  }, [service, readAll, parents]);
+  useEffect(() => {
+    if (!service.listByIds) return undefined;
+    let alive = true;
+    Promise.resolve(service.listByIds(linkedKey ? linkedKey.split('|') : [])).then((items) => { if (alive) setLinkedAccounts(items || []); }).catch(() => { if (alive) setLinkedAccounts([]); });
+    return () => { alive = false; };
+  }, [service, linkedKey]);
 
-  const linkedIds = parentIdsOf(student);
-  const byId = new Map((parents || []).map((parent) => [parent.id, parent]));
+  const byId = new Map([...(linkedAccounts || []), ...(parents || [])].map((parent) => [parent.id, parent]));
   const linked = linkedIds.map((id) => byId.get(id) || { id, displayName: '', email: '' });
   const linkedMails = new Set(linked.map((parent) => norm(parent.email)).filter(Boolean));
   const contacts = parentContactsOf(student).filter((item) => !item.email || !linkedMails.has(item.email));
@@ -54,7 +65,7 @@ export default function StudentParentsCard({ student, user, service = parentsSer
         {linked.map((parent) => {
           const key = `unlink:${parent.id}`;
           return <li key={parent.id}>
-            <div><strong>{parent.displayName || parent.email || (parents ? 'Konto (nimi puudub)' : 'Laen…')}</strong><small>{[parent.email, parent.phone].filter(Boolean).join(' · ') || 'konto'}</small></div>
+            <div><strong>{parent.displayName || parent.email || (parents || linkedAccounts ? 'Konto (nimi puudub)' : 'Laen…')}</strong><small>{[parent.email, parent.phone].filter(Boolean).join(' · ') || 'konto'}</small></div>
             <div className="student-parents__actions">
               <Link className="button button--secondary" to={`/parents?parent=${encodeURIComponent(parent.id)}`}>Ava kaart</Link>
               {ask === key ? <Button variant="danger" loading={busy === key} onClick={() => unlink(parent.id)}>Kinnita eemaldamine</Button> : <Button variant="secondary" disabled={Boolean(busy)} onClick={() => setAsk(key)}>Eemalda seos</Button>}

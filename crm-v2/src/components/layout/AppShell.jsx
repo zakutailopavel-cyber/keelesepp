@@ -1,5 +1,5 @@
 import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { navigationFor, settingsNavigation } from '../../app/navigation.js';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -7,8 +7,6 @@ import { hasAnyRole, roleLabels } from '../../utils/roles.js';
 import GlobalStudentSearch from './GlobalStudentSearch.jsx';
 import IconButton from '../ui/IconButton.jsx';
 import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
-import NotificationCenter from './NotificationCenter.jsx';
-import PetCompanion from '../../features/pet/PetCompanion.jsx';
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { messagesService } from '../../services/firebase/messages.js';
 import { clearTestSession, testSessionName } from '../../services/firebase/auth.js';
@@ -19,6 +17,11 @@ import { isLearnerAccount } from '../../features/announcements/announcementModel
 import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import './appShell.css';
 import StudentContextMenu from '../StudentContextMenu.jsx';
+
+// students only (it renders nothing for anyone else), so nobody else downloads it
+// staff only
+const NotificationCenter = lazy(() => import('./NotificationCenter.jsx'));
+const PetCompanion = lazy(() => import('../../features/pet/PetCompanion.jsx'));
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
@@ -101,10 +104,10 @@ export default function AppShell({ approvals = accountApprovalsService, messages
         <header className="topbar">
           <IconButton className="mobile-only" data-tour="menu" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
           {canSearchStudents ? <GlobalStudentSearch user={user} /> : null}
-          {showNotifications ? <div className="topbar-actions"><NotificationCenter user={user} /></div> : null}
+          {showNotifications ? <div className="topbar-actions"><Suspense fallback={null}><NotificationCenter user={user} /></Suspense></div> : null}
         </header>
         <div className={preview?.readOnly ? 'preview-surface preview-surface--readonly' : 'preview-surface'} onClickCapture={blockPreviewButtons} onSubmitCapture={(event) => { if (preview?.readOnly) { event.preventDefault(); event.stopPropagation(); } }}><Outlet /></div>
-        <PetCompanion />
+        {user.roles?.includes('student') && !preview ? <Suspense fallback={null}><PetCompanion /></Suspense> : null}
       </main>
     </div>
     </MissingDataGate>
