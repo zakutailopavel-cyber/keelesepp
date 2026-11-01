@@ -179,7 +179,7 @@ export default function MonthlyInvoicePanel({
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {calendar.loading ? <LoadingState label="Loen tunniplaani…" /> : !visible.length ? <EmptyState title={search ? 'Õpilast ei leitud' : 'Selle kuu kohta arveid ei ole'} description={search ? 'Proovi teist nime või e-posti aadressi.' : 'Õpilastel pole arveldusseadeid ega planeeritud tunde.'} action={<CalendarRange size={28} />} /> : (
         <div className="monthly-invoices__table" role="table" aria-label={`Kuuarved ${month}`}>
-          <div className="monthly-invoices__head" role="row"><span /><span>Õpilane</span><span>Tunde</span><span>Tasaarveldus</span><span>Summa</span><span>Tähtaeg</span><span>Olek</span></div>
+          <div className="monthly-invoices__head" role="row"><span /><span>Õpilane</span><span>Tunde</span><span>Tasaarveldus</span><span>Alles</span><span>Summa</span><span>Tähtaeg</span><span>Olek</span></div>
           {visible.map((row) => {
             const status = STATUS[row.status];
             const noShows = row.correction.noShows || [];
@@ -190,6 +190,7 @@ export default function MonthlyInvoicePanel({
                   <span><strong>{row.student.name}</strong><small>{row.subjectParts?.length ? `${row.subjectParts.map((part) => `${part.subject} ${num(part.plannedUnits + part.correction.units)} × ${part.priceCents ? money(part.priceCents) : 'hind puudub'}`).join(' · ')} · ` : row.student.subject ? `${row.student.subject} · ` : ''}{row.mode === 'advance' ? 'Kuu ette' : row.mode === 'actual' ? 'Toimunud tunnid' : 'Jooksev kuu'} · {row.priceCents ? `${money(row.priceCents)} / ${row.plan?.lessonMinutes || 60} min` : 'hind määramata'}{row.payerEmail ? '' : ' · e-post puudub'}</small></span>
                   <span>{row.lessonCount}{row.plan && row.plannedUnits !== row.lessonCount ? <small>{num(row.plannedUnits)} ühikut</small> : null}</span>
                   <span>{row.correction.units ? <button type="button" className="linklike" aria-expanded={open === row.student.id} onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>{row.correction.units > 0 ? '+' : ''}{num(row.correction.units)}</button> : noShows.length ? <button type="button" className="linklike" onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>0</button> : '—'}</span>
+                  <span title="Arvetega makstud tunnid miinus peetud tunnid">{row.lessonsLeft === null ? '—' : num(row.lessonsLeft)}{row.correction.unmarked ? <small>{num(row.correction.unmarked)} märkimata</small> : null}</span>
                   <span><strong>{row.existing ? money(row.existing.amountCents) : row.priceCents ? money(row.totalCents) : '—'}</strong></span>
                   <span>{dateLabel(row.existing?.due || row.due)}</span>
                   <span><Badge tone={status.tone}>{row.existing ? `${status.label} ${row.existing.num || ''}${row.existing.partOfCombined ? ' (ühisarve)' : ''}` : status.label}</Badge></span>
