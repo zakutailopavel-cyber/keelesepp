@@ -72,7 +72,7 @@ export function companionHint({ now = Date.now(), invitation = null, todayLesson
 export const TOUR_STEPS = [
   // phones: the menu is closed, so the tour points at the menu button instead of the items
   { target: '[data-tour="menu"]', text: 'Menüü on siin: tunnid, kodutööd, tund õpetajaga ja sõnumid.', hint: 'Меню здесь: уроки, домашки, урок с учителем и сообщения.' },
-  { target: '[data-tour="nav-/student"]', text: 'Siin on „Minu õpingud”: sinu tunnid, ülesanded ja mina.', hint: 'Здесь «Minu õpingud»: твои уроки, задания и я.' },
+  { target: '[data-tour="nav-/student"]', text: 'Siin on „Täna”: mida täna teha, sinu tund ja mina.', hint: 'Здесь «Täna»: что сделать сегодня, твой урок и я.' },
   { target: '[data-tour="nav-/homework"]', text: '„Ülesanded”: interaktiivsed tööd õpetajalt.', hint: '«Ülesanded»: интерактивные задания от учителя.' },
   { target: '[data-tour="nav-/student/vead"]', text: '„Minu vead”: laused tunnist, mida harjutame, kuni need tulevad õigesti.', hint: '«Minu vead»: фразы с урока, которые тренируем, пока не получится.' },
   { target: '[data-tour="nav-/student/lemmik"]', text: 'Siin elan mina! Kui õpetaja kutsub tundi, annan märku igal lehel.', hint: 'Здесь живу я! Когда учитель позовёт на урок, я дам знать на любой странице.' },

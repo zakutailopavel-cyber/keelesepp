@@ -55,6 +55,7 @@ export const ROUTE_ACCESS = Object.freeze({
   '/leads': ACCESS.LEADS,
   '/parent': ACCESS.PARENT,
   '/student': ACCESS.STUDENT,
+  '/student/areng': ACCESS.STUDENT,
   '/student/sonavara': ACCESS.STUDENT,
   '/student/lemmik': ACCESS.STUDENT,
   '/student/kursus': ACCESS.STUDENT,

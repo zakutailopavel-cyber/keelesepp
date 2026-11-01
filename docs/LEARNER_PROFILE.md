@@ -22,6 +22,12 @@ Shown in Live Classroom → Tööruum → „Õpilane” (opens first when a stu
 board page „Kordamine DD.MM” with the forgotten words on a note) and on the student card → „Ülevaade”.
 Each source loads on its own; one the user may not read (another teacher's journal) is left out with a note.
 
+## Where the student sees it
+
+Since agent/student-home (owner 2026-11-01): the home page `/student` shows only today (`features/students/nextStep.js`: one next
+step, the next lesson, at most three checks, a line only when there is news). „Minu areng”, „Minu sõnad ja vead”, „Kuu sammud”, „Tunni
+kokkuvõtted”, „Viimased tulemused”, „Millal sulle tund sobib?” and „Teated” moved whole to `/student/areng` (`StudentProgressPage.jsx`).
+
 ## Known gaps
 
 - „Kordamine” (self-study/reviewStore.js) keeps its results in the browser only: invisible here.
