@@ -1,3 +1,16 @@
+## 2026-11-01 · agent/pet-loop — the pet: a short daily loop tied to learning (stacked on agent/student-home)
+
+- Base: `agent/student-home` merged with `main` (see the PR). UI and pure logic: no rules, functions or production access; no deploy, no merge.
+- Owner 2026-11-01: the tamagotchi was meant to be a strength and is not. Measured before: 36 of 72 accounts made a pet, all needs and XP passive, the pet only on its own page.
+- Loop (`features/pet/petLoop.js` pure, `PetLoop.jsx`): on home's first screen art, one bubble (language being learned + Russian hint), ONE request from the lowest need that can be met here (`petRequest`), one tap plays on the same page (3 cards through `WordPractice`, „Paranda” with his own sentences, word game, or a topic game started directly by `PetGames quick`). The need rises at once, the mood changes, a line of thanks, then `dailySurprise`, a line true about his own data, chosen by date, absent when there is nothing to say. Done today (`pet.playedAt` today, on any device, or 3 words repeated anywhere) means no more asking today. Homework is requested only when nothing else can be done, because it cannot be done in a minute on this page and „Järgmine samm” already points to it.
+- Growth: `nextReward` shows the nearest of the cheapest item or the next art stage, with what is left in plain learning („veel 2 õpitud sõna → Nokamüts”); a reached item takes one tap („Pane selga”, spends earned stars). Levels `petLevel`: 10 XP each, so one lesson a week moves one level a week. One-time news through `growthNews` (browser only).
+- **Changes in the numbers:** `petProgress` counts the streak's XP from the longest run ever (2 days or more), not the current run, so losing a streak no longer lowers XP, stars or stage. Existing learners with a past run gain up to 30 XP, nobody loses. XP still comes only from real learning. New outputs `bestStreak`, `lastActivity`.
+- Warm: `careMood` no longer returns `sad` for a low need (no tears, also on the parent's and teacher's views), no count of days away (`petLife`), a glad welcome after 3 days, gentle wording right after it, streak hidden at 0.
+- Companion (`PetCompanion.jsx`, `companionModel.js`): not on `/student`, `/student/lemmik`, `/live-classroom` (and reads nothing there); by itself at most one line a session (`mayAutoSpeak`, sessionStorage), invitation, lesson soon and celebration excepted; on phones it stands in the page flow at the end of the page, so it covers nothing; no dragging on phones; tour once.
+- Pet page (`PetCard.jsx`): room, the one request, one line of numbers, tabs „Mängud” and „Riidekapp”. No Russian explanations as tooltips.
+- Data: only `users.pet.playedAt` (existing field, now also set after a feeding) and the outfit fields; `firestore.rules` not changed. Browser keys: `ks-pet-growth-<uid>`, `ks-pet-loop-seen-<uid>`, session `ks-pet-spoke-<uid>`.
+- Rule change that would help, not made: nothing is required. A stored `pet.seenLevel` would keep the reveal one-time across devices.
+- Next safe step: the owner reviews #974, then this PR; hosting only.
 ## 2026-11-01 · agent/student-home — the student's home: one clear page, „Minu areng” on its own page
 
 - Base: `main` checked 2026-11-01 (see the PR for the merge commit). UI and page structure only: no rules, functions, data or production access; no deploy, no merge.

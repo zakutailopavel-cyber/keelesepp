@@ -148,7 +148,7 @@ export default function StudentDashboardPage({
 
   const step = nextStep({ occurrences, homework, assignments, words, today });
   const daySteps = todayPath({ words, homework, submissions, assignments, mistakesDoneToday: reviewedToday, today }).steps.filter((item) => !item.idle).slice(0, 3);
-  const progress = petProgress({ lessons, submissions, homework, words });
+  const progress = petProgress({ lessons: state.data.lessons, submissions, homework: state.data.homework, words });
   const { streak } = progress;
   const offerPet = !preview && !pet?.optedOut && !pet?.kind;
   const unpaid = invoices.filter((invoice) => invoice.status !== 'Tühistatud' && invoiceBalanceCents(invoice) > 0);
@@ -161,7 +161,7 @@ export default function StudentDashboardPage({
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Minu õppeained" />
 
     <div className="sh-hero">
-      {pet?.kind && !pet.optedOut ? <PetLoop user={user} studentId={students[0].id} pet={pet} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} assignments={assignments} words={words} subject={chosen || students[0].subject || ''}
+      {pet?.kind && !pet.optedOut ? <PetLoop user={user} studentId={students[0].id} pet={pet} readOnly={Boolean(preview)} lessons={state.data.lessons} submissions={submissions} homework={state.data.homework} assignments={sheets} words={words} subject={chosen || students[0].subject || ''}
         repository={petRepository} {...(wordsService ? { wordsService } : {})} /> : null}
       {offerPet ? <Link className="sh-pet" to="/student/lemmik"><i style={{ display: 'grid', placeItems: 'center' }}><PawPrint size={40} aria-hidden="true" /></i><span><strong>Vali endale sõber</strong><small>Õppesõber kasvab koos sinuga</small></span></Link> : null}
       <div className="sh-main">

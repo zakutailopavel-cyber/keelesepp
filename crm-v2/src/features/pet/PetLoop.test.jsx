@@ -26,6 +26,7 @@ describe('PetLoop', () => {
   beforeEach(() => { window.localStorage.clear?.(); });
 
   it('one bubble, one button; one tap plays on the page; the pet is thankful and does not ask again today', async () => {
+    window.localStorage.setItem('ks-pet-loop-seen-u1', String(Date.now() - 3600000));
     const repo = repository();
     const quiet = [];
     window.addEventListener(PET_QUIET_EVENT, (event) => quiet.push(event.detail));
@@ -55,7 +56,8 @@ describe('PetLoop', () => {
   it('after days away it is glad, without counting them or shaming', () => {
     window.localStorage.setItem('ks-pet-loop-seen-u1', String(Date.now() - 20 * 86400000));
     const { container } = render(<Page start={pet} words={[word('a'), word('b'), word('c')].map((w) => ({ ...w, reviewedAt: ago(20) }))} repository={repository()} lessons={[]} />);
-    expect(screen.getByText(/^Tore, et sa tagasi oled!/)).toBeInTheDocument();
+    expect(screen.getByText(/^Tore, et sa tagasi oled! Kas mäletad sõna/)).toBeInTheDocument();
+    expect(screen.queryByText(/kõht tühi/)).toBeNull();
     expect(container.querySelector('svg.pet.m-happy')).not.toBeNull();
     expect(container.querySelector('svg.pet.m-sad')).toBeNull();
     expect(container.textContent).not.toMatch(/20|päeva/);
@@ -93,5 +95,15 @@ describe('PetLoop', () => {
     unmount();
     const { container } = render(<Page start={{ ...pet, optedOut: true }} words={[]} repository={repository()} />);
     expect(container.textContent).toBe('');
+  });
+});
+
+describe('PetGames quick start', () => {
+  it('opens the game at once, without the menu', async () => {
+    const { default: PetGames } = await import('./PetGames.jsx');
+    const topic = { id: 't', title: 'Minu pere', games: ['truth', 'pairs'], items: { pairs: [{ left: 'a', right: 'b' }, { left: 'c', right: 'd' }, { left: 'e', right: 'f' }], truth: [] } };
+    render(<PetGames quick topics={[topic]} kind="siil" onClose={() => {}} />);
+    expect(screen.getByLabelText('Paarid')).toBeInTheDocument();
+    expect(screen.queryByText('Mängime sinu teemadega!')).toBeNull();
   });
 });

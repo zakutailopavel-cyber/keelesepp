@@ -47,17 +47,18 @@ const say = (line, lang, arg) => ({ text: LINES[line][lang](arg), hint: LINES[li
 
 // ONE request, from the lowest need that can be met here and now. Homework cannot be done in a minute on this page, so
 // it is asked for only when nothing else can be done (the home page's „Järgmine samm” already points to it).
-export function petRequest({ needs, words = [], stats = [], topics = [], lang = 'et', now = Date.now() }) {
+// `gentle`: right after a welcome back the pet does not start with its complaints.
+export function petRequest({ needs, words = [], stats = [], topics = [], lang = 'et', gentle = false, now = Date.now() }) {
   if (!needs) return null;
   const options = [];
   if (needs.dueWords > 0) {
     const cards = requestWords(words, now);
     const named = cards.find((word) => !isSentence(word))?.word || '';
-    options.push({ need: 'food', value: needs.food, kind: 'feed', button: `Kordame ${Math.min(FEED_WORDS, cards.length)} ${cards.length === 1 ? 'sõna' : 'sõna'}`, ...say(needs.food < LOW_NEED ? 'foodLow' : 'food', lang, short(named, 30)) });
+    options.push({ need: 'food', value: needs.food, kind: 'feed', button: `Kordame ${Math.min(FEED_WORDS, cards.length)} sõna`, ...say(needs.food < LOW_NEED && !gentle ? 'foodLow' : 'food', lang, short(named, 30)) });
   }
   const said = stats.flatMap((stat) => stat.practice || []).find((pair) => pair.said && pair.corrected);
   if (said && fixRounds(stats).length) options.push({ need: 'joy', value: needs.joy, kind: 'fix', button: 'Parandame', ...say('fix', lang, short(said.said)) });
-  else if (needs.canWordGame ?? needs.canPlay) options.push({ need: 'joy', value: needs.joy, kind: 'game', button: 'Mängime', ...say(needs.joy < LOW_NEED ? 'gameLow' : 'game', lang) });
+  else if (needs.canWordGame ?? needs.canPlay) options.push({ need: 'joy', value: needs.joy, kind: 'game', button: 'Mängime', ...say(needs.joy < LOW_NEED && !gentle ? 'gameLow' : 'game', lang) });
   else if (topics.length) options.push({ need: 'joy', value: needs.joy, kind: 'topic', button: 'Mängime', ...say('topic', lang, short(topics[0].title, 30)) });
   if (options.length) return options.sort((a, b) => a.value - b.value)[0];
   if (needs.openHomework > 0) return { need: 'energy', value: needs.energy, kind: 'homework', button: 'Ava kodutöö', to: '/homework', ...say('homework', lang) };

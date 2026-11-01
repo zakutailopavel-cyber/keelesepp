@@ -53,8 +53,9 @@ export default function PetLoop({
   const { speech, topics } = material || own;
 
   const [mode, setMode] = useState('');        // '' | the kind being played
-  const [justDone, setJustDone] = useState(null); // { kind, right, total }: the moment after playing
+  const [justDone, setJustDone] = useState(null); // { kind, right }: the moment after playing
   const [cards, setCards] = useState([]);
+  const [playLine, setPlayLine] = useState(null); // what the pet asked stays while it is being done, though the words change
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const playing = Boolean(mode);
@@ -66,10 +67,10 @@ export default function PetLoop({
 
   const progress = petProgress({ lessons, submissions, homework, words, speech, now });
   const needs = petNeeds({ words, homework, submissions, lessons, playedAt: pet?.playedAt, canFix: speech.some((s) => s.practice?.length), now });
-  const request = petRequest({ needs, words, stats: speech, topics, lang, now });
+  const back = isBackAfterAbsence({ lastSeenAt, lastActivity: progress.lastActivity, now });
+  const request = petRequest({ needs, words, stats: speech, topics, lang, gentle: back, now });
   const done = requestDoneToday({ pet, words, today }) || Boolean(justDone);
   const reward = nextReward({ progress, pet });
-  const back = isBackAfterAbsence({ lastSeenAt, lastActivity: progress.lastActivity, now });
 
   // one-time news: remembered at once, shown for this visit
   const newsRef = useRef(undefined);
@@ -85,15 +86,16 @@ export default function PetLoop({
   const mood = justDone || done || back || news ? (progress.mood === 'proud' ? 'proud' : 'happy') : progress.mood === 'proud' ? 'proud' : 'calm';
   useEffect(() => { onMood?.(mood); }, [mood, onMood]);
 
-  const finish = async (kind, right = null, total = null) => {
+  const finish = async (kind, right = null) => {
     setMode('');
-    setJustDone({ kind, right, total });
+    setJustDone({ kind, right });
     if (readOnly) return;
     const playedAt = new Date().toISOString();
     const saved = await Promise.resolve().then(() => repository.update({ uid, current: pet, playedAt })).catch(() => null);
     setPet(saved || { ...pet, playedAt });
   };
   const start = () => {
+    setPlayLine(line);
     if (request.kind === 'feed') setCards(requestWords(words, now));
     setJustDone(null);
     setMode(request.kind);
@@ -121,6 +123,7 @@ export default function PetLoop({
   else if (back) line = welcomeLine(lang);
   else line = petGreeting({ petName: pet.name, progress: { ...progress, mood: 'calm' }, pendingHomework, lessonToday, subject, lastSpeech: speech[0] || null, now });
 
+  if (playing && playLine) line = playLine;
   const NeedIcon = NEED_ICON[request?.need];
   const needValue = request ? needs[request.need] : 0;
   const shownNeed = justDone?.kind === 'feed' ? 'food' : justDone ? 'joy' : request?.need;
@@ -133,18 +136,18 @@ export default function PetLoop({
         <div className="pl__head"><strong>{pet.name}</strong><span>{petLevel(progress.xp)}. tase</span>{variant === 'home' ? <Link to="/student/lemmik">Vaata lähemalt</Link> : null}</div>
         {news && !playing ? <p className="pl__news" role="status"><Sparkles size={15} aria-hidden="true" /> <span>{news.text} <small lang="ru">{news.hint}</small></span></p> : null}
         <div className="pet-bubble pl__bubble" lang={line.lang}><p>{line.text}</p><small lang="ru">{line.hint}</small>
-          {justDone?.total ? <small className="pl__score" role="status">Õigeid vastuseid: {justDone.right} / {justDone.total}</small> : null}
+          {justDone?.right != null ? <small className="pl__score" role="status">Õigeid vastuseid: {justDone.right}</small> : null}
         </div>
         {canAsk && !playing ? (request.to
           ? <Link className="pl__do" to={request.to}>{request.button}</Link>
           : <button type="button" className="pl__do" onClick={start}>{NeedIcon ? <NeedIcon size={16} aria-hidden="true" /> : null} {request.button}</button>) : null}
-        {!playing && (canAsk || justDone) && shownNeed ? <div className="pl__need"><span>{NEED_LABEL[shownNeed]}</span><div className="pet-need__bar" role="meter" aria-label={NEED_LABEL[shownNeed]} aria-valuemin={0} aria-valuemax={100} aria-valuenow={justDone ? 100 : needValue}><i style={{ width: `${justDone ? 100 : needValue}%` }} /></div></div> : null}
+        {variant === 'home' && !playing && (canAsk || justDone) && shownNeed ? <div className="pl__need"><span>{NEED_LABEL[shownNeed]}</span><div className="pet-need__bar" role="meter" aria-label={NEED_LABEL[shownNeed]} aria-valuemin={0} aria-valuemax={100} aria-valuenow={justDone ? 100 : needValue}><i style={{ width: `${justDone ? 100 : needValue}%` }} /></div></div> : null}
       </div>
       {playing ? <div className="pl__play">
         {mode === 'feed' ? <WordPractice words={cards} service={wordsService} onFinished={() => finish('feed')} onClose={() => setMode('')} />
-          : mode === 'fix' ? <PetFixGame stats={speech} onDone={(right) => finish('fix', right, null)} onClose={() => setMode('')} />
-          : mode === 'game' ? <PetGame words={words} onDone={(right) => finish('game', right, null)} onClose={() => setMode('')} />
-          : <PetGames quick topics={topics} kind={pet.kind} onDone={(right) => finish('topic', right, null)} onClose={() => setMode('')} />}
+          : mode === 'fix' ? <PetFixGame stats={speech} onDone={(right) => finish('fix', right)} onClose={() => setMode('')} />
+          : mode === 'game' ? <PetGame words={words} onDone={(right) => finish('game', right)} onClose={() => setMode('')} />
+          : <PetGames quick topics={topics} kind={pet.kind} onDone={(right) => finish('topic', right)} onClose={() => setMode('')} />}
       </div> : null}
       {!playing && done && surprise ? <p className="pl__surprise" lang={surprise.lang}><Sparkles size={15} aria-hidden="true" /> <span>{surprise.text} <small lang="ru">{surprise.hint}</small></span></p> : null}
       {!playing && reward ? <div className={`pl__reward ${reward.ready ? 'is-ready' : ''}`}>
