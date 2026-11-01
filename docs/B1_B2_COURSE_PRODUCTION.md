@@ -103,6 +103,8 @@ Leht avaldatakse ainult siis, kui:
 
 ### Lisaharjutused (supplement)
 
+**Suuline osa** (owner 2026-11-01): `admin/course/suuline.js` + `a2/`, `b1/`, `b2/suuline.js`, a supplement of five 45-minute speaking lessons per level (`a2-s01…05`, `a2b1-s01…05`, `b1b2-s01…05`), lesson flag `oral: true` (`meta.oral`). Scheme väide → selgitus → näide → järeldus, five claims with fading support, the teacher's counter-question in `data.teacher`, written homework as the last block. `quality.js` skips the lesson-shape rules for it.
+
 Kui õpetaja vajab ühe grammatikateema kohta lisa-kodutööd, mida kursuse tunnid vormiharjutusena ei paku, tuleb see
 eraldi failina `admin/course/<kursus>/<teema>.js`, `MODULE.supplement: true` (näidis: `b2/kaanded.js`, B2 „Käänete
 kordamine”, tunnid `b1b2-k01…k03`, ainult Harjuta). Lisaharjutus ei ole õpitee moodul:
