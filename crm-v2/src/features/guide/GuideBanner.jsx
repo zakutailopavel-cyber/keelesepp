@@ -1,7 +1,7 @@
 import { Compass } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GUIDE_SEEN_KEY } from './TeacherGuidePage.jsx';
+import { GUIDE_SEEN_KEY } from './guideKeys.js';
 import './guide.css';
 
 const seen = () => { try { return globalThis.localStorage?.getItem(GUIDE_SEEN_KEY) === 'true'; } catch { return false; } };

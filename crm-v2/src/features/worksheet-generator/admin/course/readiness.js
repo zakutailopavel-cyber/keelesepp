@@ -1,7 +1,7 @@
 // „Kursuse valmidus”: how much of the course passes every quality gate (worksheet-studio/didactics/gates.js).
 // Computed from the sheets in code (admin/course/*); a sheet edited by hand in the CRM is checked in its constructor.
 import { moduleGates, sheetGates } from '../../../worksheet-studio/didactics/gates.js';
-import { moduleSheets } from './registry.js';
+import { moduleSheets } from './courseSheet.js';
 import { moduleProblems as structureProblems } from './quality.js';
 
 export function lessonReport(phases = {}, moduleProblems = [], lessonId = '') {
@@ -11,8 +11,7 @@ export function lessonReport(phases = {}, moduleProblems = [], lessonId = '') {
   return { sheets, module: lessonModule, count, ready: count === 0 };
 }
 
-export function moduleReport(mod) {
-  const sheets = moduleSheets(mod);
+export function moduleReport(mod, sheets = moduleSheets(mod)) {
   // structure (quality.js: constructor errors, level norms, 6–18 blocks, 40–55 min, variety, phase jobs) is a gate too
   const structure = structureProblems(sheets).map((p) => ({ gate: 'structure', level: 'error', ...p }));
   const moduleProblems = [...moduleGates(sheets), ...structure.filter((p) => p.phase === '*' || p.lessonId === '*')];
@@ -27,8 +26,9 @@ export function moduleReport(mod) {
   return { id: mod.MODULE.id, course: mod.MODULE.course, title: mod.MODULE.title, lessons, total: values.length, ready: values.filter((l) => l.ready).length, gates };
 }
 
-export function courseReadiness(modules = []) {
-  const reports = modules.map(moduleReport);
+// sheetsOf: a page that has already built the sheets passes them instead of building them a second time
+export function courseReadiness(modules = [], sheetsOf = moduleSheets) {
+  const reports = modules.map((mod) => moduleReport(mod, sheetsOf(mod)));
   const byCourse = {};
   reports.forEach((r) => {
     const c = byCourse[r.course] || { course: r.course, total: 0, ready: 0, gates: {}, modules: [] };

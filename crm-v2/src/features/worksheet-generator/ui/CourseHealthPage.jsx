@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../app/AuthContext.jsx';
-import { Button, Card, ErrorState, PageHeader } from '../../../components/ui/index.js';
+import { Button, Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
 import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import { ROLES } from '../../../utils/roles.js';
-import { COURSE_MODULES, COURSES, moduleNumber, moduleSheets } from '../admin/course/registry.js';
+import { COURSES, moduleNumber, moduleSheets } from '../admin/course/courseSheet.js';
+import { LOADABLE_COURSES, loadCourseModules } from '../admin/course/courseLoaders.js';
 import { courseReadiness, GATE_LABEL } from '../admin/course/readiness.js';
 import { TEXTBOOK_SHEETS } from '../admin/course/textbook/index.js';
 import { HEALTH_STATE, healthCounts, lessonHealth } from '../admin/course/health.js';
@@ -17,24 +18,34 @@ const TONE = { ok: { background: '#e7f5f1', color: '#0b5c4d', borderColor: '#9fd
 const chip = (tone) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 9px', borderRadius: 999, border: '1px solid', fontSize: '.8rem', fontWeight: 700, textDecoration: 'none', ...TONE[tone] });
 const CONCURRENCY = 6;
 
-export default function CourseHealthPage({ repository = lessonWorksheetsService, modules = COURSE_MODULES, textbookSheets = TEXTBOOK_SHEETS }) {
+// `modules` (tests) replaces loading: the page otherwise downloads only the chosen course.
+export default function CourseHealthPage({ repository = lessonWorksheetsService, modules, textbookSheets = TEXTBOOK_SHEETS }) {
   const { user } = useAuth();
   const isAdmin = user?.roles?.includes(ROLES.ADMIN);
-  const courses = useMemo(() => [...new Set(modules.map((m) => m.MODULE.course))].filter((key) => COURSES[key]), [modules]);
+  const courses = useMemo(() => (modules ? [...new Set(modules.map((m) => m.MODULE.course))] : LOADABLE_COURSES).filter((key) => COURSES[key]), [modules]);
   const [course, setCourse] = useState(courses[0] || '');
   const [onlyProblems, setOnlyProblems] = useState(true);
   const [check, setCheck] = useState({ course: '', running: false, done: 0, total: 0, records: {}, errors: {} });
-  const courseModules = useMemo(() => modules.filter((m) => m.MODULE.course === course), [modules, course]);
+  const [loaded, setLoaded] = useState({});
+  const [loadError, setLoadError] = useState(null);
+  useEffect(() => {
+    if (modules || !isAdmin || !course || loaded[course]) return undefined;
+    let live = true;
+    loadCourseModules(course).then((list) => { if (live) setLoaded((all) => ({ ...all, [course]: list })); }, (cause) => { if (live) setLoadError(cause); });
+    return () => { live = false; };
+  }, [modules, isAdmin, course, loaded]);
+  const courseModules = useMemo(() => (modules ? modules.filter((m) => m.MODULE.course === course) : loaded[course] || null), [modules, loaded, course]);
   // the code side: every lesson's sheets (+ its Õpik sheet) and the quality gates (computed only for the chosen course)
-  const code = useMemo(() => courseModules.map((mod) => ({
+  const built = useMemo(() => new Map((courseModules || []).map((mod) => [mod, moduleSheets(mod)])), [courseModules]);
+  const code = useMemo(() => (courseModules || []).map((mod) => ({
     mod,
-    lessons: Object.entries(moduleSheets(mod)).map(([lessonId, phases]) => ({
+    lessons: Object.entries(built.get(mod)).map(([lessonId, phases]) => ({
       lessonId,
       title: mod.LESSONS[lessonId]?.title || lessonId,
       sheets: { ...phases, ...Object.fromEntries(textbookSheets.filter((t) => t.lessonId === lessonId).map((t) => ['opik', t.doc])) },
     })),
-  })), [courseModules, textbookSheets]);
-  const readiness = useMemo(() => courseReadiness(courseModules)[course], [courseModules, course]);
+  })), [courseModules, built, textbookSheets]);
+  const readiness = useMemo(() => (courseModules ? courseReadiness(courseModules, (mod) => built.get(mod))[course] : null), [courseModules, built, course]);
   const allLessons = code.flatMap((m) => m.lessons);
 
   if (!isAdmin) return <ErrorState title="Puudub ligipääs" message="Seda vaadet saab kasutada ainult administraator." />;
@@ -85,6 +96,7 @@ export default function CourseHealthPage({ repository = lessonWorksheetsService,
         ) : <p className="form-hint" style={{ marginTop: 12 }}>„Kontrolli Õppevaraga” loeb iga tunni lehed andmebaasist ja võrdleb neid koodiga.</p>}
         <label style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 12 }}><input type="checkbox" checked={onlyProblems} onChange={(e) => setOnlyProblems(e.target.checked)} /> Näita ainult probleemidega tunde</label>
       </Card>
+      {loadError ? <ErrorState message={loadError.message} /> : !courseModules ? <LoadingState label="Laen kursust…" /> : null}
       {code.map(({ mod, lessons }) => {
         const rows = lessons.map((lesson) => {
           const sheets = checked ? health.find((h) => h.lessonId === lesson.lessonId)?.sheets || [] : [];

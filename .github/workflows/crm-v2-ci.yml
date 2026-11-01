@@ -50,3 +50,7 @@ jobs:
 
       - name: Build application
         run: npm run build
+
+      - name: Report bundle size (warning only)
+        continue-on-error: true
+        run: node scripts/bundle-size-report.mjs
