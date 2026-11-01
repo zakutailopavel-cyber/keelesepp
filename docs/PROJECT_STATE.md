@@ -24,6 +24,15 @@
 - Checks: `npx eslint --quiet src` clean. `npx vitest run src/features/worksheet-generator src/features/pet`: 71 files passed, 1 skipped; 1070 tests passed, 7 skipped. `src/features/worksheet-studio`: 380 tests passed. Language check (Vabamorf) of module 20: 0 unknown lower-case words. Final-shape: module 20 0, module 19 0, course 3 (in the baseline 3, new 0). The whole `npx vitest run` was not run. The listening audio was not listened to by a person.
 - Known: the sheets in Õppevara do not change until published. `a2-module-02 V14-topic` and `a2-026 transfer V2` are other modules' old baseline lines.
 - Next safe step: review and merge this PR; publishing module 20 is the owner's decision.
+## 2026-11-01 · agent/phone-layout — page header buttons wrap, narrow modals and student cards, Kodutööd tasks first
+
+- Base: `main` 54fab88, checked 2026-11-01. A live-site walkthrough found these. CSS plus one list limit; no data, rules, functions or deploy.
+- `styles/index.css`: `.page-header__actions` wraps (Raamatupidamine at 1440 px scrolled sideways). `.modal-backdrop` and `.material-preview` have a `minmax(0,1fr)` track, because an auto track grew to the sheet inside and took `.modal`'s `100%` with it. `.students-mobile-list` the same, and the card's buttons wrap. `.submission-card{order:-1}` removed under 1050 px.
+- `features/homework/HomeworkPage.jsx`: `SubmissionList` shows 10, „Näita veel (N)” adds 20. Quick confirm and „next to review” still work over the whole list.
+- Checks: `npx eslint --quiet src` clean; `npx vitest run --maxWorkers=3 src/styles src/features/homework src/features/library src/features/students src/features/accounting` 55 files, 326 tests passed. Layout measured in a browser on a local Vite page with fake repositories (not committed), not with real data and without the real sidebar and topbar. Before → after: Raamatupidamine 1440 px scrollWidth 1514 → 1440; Õpilased 375 px card right 404 → 327, list right 339; preview modal 375 px width 1040 → 355, close × right 1081 → 348; Kodutööd 375 px with 54 submissions, tasks top 9802 → 478, page 10835 → 3479 px.
+- Known limit: on a phone a worksheet in the preview stops at zoom 0.3 (`useFitScale`), so it is small and scrolls a little sideways inside its box. The task list itself has no limit.
+- Next safe step: open these four screens on a real phone after the next hosting deploy.
+
 ## 2026-11-01 · agent/monthly-lessons-left — lessons left on monthly invoices; unworked lessons come off the next one
 
 - Owner 2026-11-01: the client pays by the 10th, a held lesson is minus one, unworked lessons come off next month's invoice, the admin sees how many are left. This is the monthly flow, not Tunnipakett: production has 0 `studentPackages`, and the 14-day burn of #928 does not fit this rule.
