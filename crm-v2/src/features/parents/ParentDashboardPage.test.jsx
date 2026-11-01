@@ -47,6 +47,19 @@ describe('ParentDashboardPage', () => {
     expect(screen.getAllByText('Toimus')).toHaveLength(2);
   });
 
+  it('an administrator\'s preview does not ask the parent\'s recording question', async () => {
+    const studentRepository = { listOwned: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mia', linkedParentId: 'parent-1' }]) };
+    const empty = { listByStudentIds: vi.fn().mockResolvedValue([]), listByStudent: vi.fn().mockResolvedValue([]) };
+    const user = { uid: 'parent-1', displayName: 'Ema', roles: ['parent'] };
+    const page = (auth) => <MemoryRouter><AuthContext.Provider value={auth}><ParentDashboardPage studentRepository={studentRepository} homeworkRepository={empty} scheduleRepository={empty} invoiceRepository={empty} lessonRepository={empty} /></AuthContext.Provider></MemoryRouter>;
+    const own = render(page({ user }));
+    expect(await screen.findByRole('dialog', { name: /Tunni salvestamine/ })).toBeInTheDocument();
+    own.unmount();
+    render(page({ user, preview: { readOnly: true } }));
+    expect(await screen.findByRole('heading', { name: 'Minu õpilased' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: /Tunni salvestamine/ })).toBeNull();
+  });
+
   it('one child with two subjects: one card, a subject switcher, each subject with its own lessons and homework', async () => {
     const today = toIsoDate();
     const studentRepository = { listOwned: vi.fn().mockResolvedValue([{ id: 's1', name: 'Stefania', subject: 'Eesti keel', teacher: 'Pavel', enrollments: [

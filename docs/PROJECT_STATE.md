@@ -1,3 +1,12 @@
+## 2026-11-01 · agent/preview-fix — staff preview opens and closes without „Ligipääs puudub”
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production writes, no deploy.
+- Cause, reproduced in a test: `BrowserRouter` moves in a React transition, `startPreview` / `stopPreview` do not, so the role changed first and `ProtectedRoute` sent the viewer to `/forbidden`.
+- Changed: `usePreviewNavigation()` in `app/AuthContext.jsx` commits role and address in one transition; closing returns to the page the preview was opened from (`preview.returnTo`, else `/settings`). Used by `AppShell.jsx`, `students/StudentProfilePage.jsx`, `settings/SettingsPage.jsx`. `Modal`'s X carries `data-preview-allowed`, the only button the read-only surface lets through. The parent's preview no longer asks the recording-consent question, as the student's already did. Wording „õpilane ütles” in `RecordingConsentPrompt.jsx`.
+- Checks: `npx eslint --quiet src` clean; vitest on `src/app src/components src/features/parents src/features/settings src/features/lesson-recording src/features/students`: 62 files, 253 tests passed (before the one-line lint fix of the new test, which was re-run alone: 2 passed). Not opened in a browser.
+- Known limits: inside a preview every other button stays blocked, also harmless ones such as tabs. `/student/kursus` reads the card by the viewer's uid, so a preview of a student without an account shows „Kursust veel ei ole”.
+- Next safe step: the owner opens a preview from a student's card in production after the deploy.
+
 ## 2026-11-01 · agent/monthly-lessons-left — lessons left on monthly invoices; unworked lessons come off the next one
 
 - Owner 2026-11-01: the client pays by the 10th, a held lesson is minus one, unworked lessons come off next month's invoice, the admin sees how many are left. This is the monthly flow, not Tunnipakett: production has 0 `studentPackages`, and the 14-day burn of #928 does not fit this rule.

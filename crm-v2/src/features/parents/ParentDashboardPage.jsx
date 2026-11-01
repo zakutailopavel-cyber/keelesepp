@@ -35,7 +35,7 @@ function money(cents) {
 }
 
 export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, petRepository, tokensApi, announcementService }) {
-  const { user } = useAuth();
+  const { user, preview } = useAuth();
   const [rescheduling, setRescheduling] = useState(null);
   // one child with several subjects (owner 2026-10-20): the lessons and homework of one subject, or all
   const [subject, setSubject] = useState('');
@@ -73,7 +73,8 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu pere" title={`Tere, ${user.displayName || 'lapsevanem'}!`} description="Laste õppetöö, tunnid ja arved ühes turvalises vaates." />
-    <RecordingConsentPrompt students={studentRecords} user={user} role="parent" {...(consentService ? { service: consentService } : {})} />
+    {/* the parent's own question: an administrator's preview cannot answer it (as in the student's view) */}
+    {!preview ? <RecordingConsentPrompt students={studentRecords} user={user} role="parent" {...(consentService ? { service: consentService } : {})} /> : null}
     <PeopleOverview label="Pere kokkuvõte" eyebrow="Pere töölaud" title="Kõik oluline ühe pilguga" description="Laste tunnid, ülesanded ja arved on turvaliselt koos." metrics={[
       { icon: UsersRound, label: 'Õpilasi', value: students.length, hint: 'kontoga seotud' },
       { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '21 päeva jooksul' },
