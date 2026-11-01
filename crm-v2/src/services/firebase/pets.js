@@ -56,7 +56,7 @@ export const petsService = {
     const snapshots = await Promise.all(ids.map((id) => getDocs(query(collection(db, 'petProfiles'), where('studentId', '==', id)))));
     return snapshots.flatMap((snapshot) => snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))).filter((pet) => PET_KINDS.includes(pet.kind));
   },
-  // tourDoneAt (ISO string), hidden (bool), optedOut (bool), playedAt (ISO string, the last word game)
+  // tourDoneAt (ISO string), hidden (bool), optedOut (bool), playedAt (ISO string, the last time the day's request or a game was done)
   // the simple numbers of the learner's recorded lessons and his own corrected sentences (written by the school Mac)
   async lessonStats(uid) {
     if (!uid) return [];

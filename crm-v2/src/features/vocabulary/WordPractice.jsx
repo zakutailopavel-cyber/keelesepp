@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { formQuestion, practiceOrder, sameForm } from './wordsModel.js';
 import './vocabulary.css';
 
 /** Flashcards over the words that are due: word → „Näita” → translation and example → „Teadsin” / „Ei teadnud”. */
-export default function WordPractice({ words, service = studentWordsService, onClose }) {
+export default function WordPractice({ words, service = studentWordsService, onClose, onFinished }) {
   // the deck is fixed when practice starts, so answers do not reshuffle it
   const [deck] = useState(() => practiceOrder(words));
   const [index, setIndex] = useState(0);
@@ -16,6 +16,10 @@ export default function WordPractice({ words, service = studentWordsService, onC
   const question = card ? formQuestion(card) : null;
   const [typed, setTyped] = useState('');
   const [checked, setChecked] = useState(null);
+
+  // the deck is through: the pet's request ends here, with the last card
+  const finished = deck.length > 0 && !card;
+  useEffect(() => { if (finished) onFinished?.(score); }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const answer = async (knew) => {
     setError('');

@@ -60,7 +60,7 @@ export default function PetOverview({ studentIds = [], lessons = [], homework, s
               <strong>{pet.name}{names[pet.studentId] ? ` · ${names[pet.studentId]}` : ''}</strong>
               <span>{STAGES[progress.stage]} · {MOODS[mood].label}</span>
               <div className="pet-stats">
-                <span className={progress.streak ? 'pet-stat is-hot' : 'pet-stat'}><Flame size={14} aria-hidden="true" /> {count(progress.streak, 'päev', 'päeva')} järjest</span>
+                {progress.streak ? <span className="pet-stat is-hot"><Flame size={14} aria-hidden="true" /> {count(progress.streak, 'päev', 'päeva')} järjest</span> : null}
                 <span className="pet-stat"><Star size={14} aria-hidden="true" /> {progress.stars} tähte</span>
                 <span className="pet-stat">{count(progress.learnedWords, 'õpitud sõna', 'õpitud sõna')}</span>
               </div>

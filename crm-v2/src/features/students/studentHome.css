@@ -1,12 +1,11 @@
 /* The student's home (owner 2026-11-01): one clear first screen on a phone. */
 .sh { display: grid; gap: 14px; max-width: 980px; }
 .sh-hello { margin: 0; font-size: 1.35rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sh-hero { display: grid; gap: 14px; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); align-items: stretch; }
+.sh-hero { display: grid; gap: 14px; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); align-items: start; }
 .sh-main { display: grid; gap: 10px; align-content: start; min-width: 0; }
 
 .sh-pet { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--border, #e4ece8); border-radius: 16px; background: #fff; color: inherit; text-decoration: none; }
 .sh-pet:hover { box-shadow: 0 8px 22px rgba(16, 35, 57, .08); }
-.sh-pet .pet-art { width: 84px; height: 84px; }
 .sh-pet strong { display: block; font-size: 1.02rem; }
 .sh-pet small { color: var(--muted); }
 

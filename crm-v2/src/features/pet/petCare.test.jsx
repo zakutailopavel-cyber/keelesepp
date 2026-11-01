@@ -40,10 +40,10 @@ describe('pet care model', () => {
     expect(petNeeds({ words, playedAt: daysAgo(1), now: NOW }).joy).toBe(50);
   });
 
-  it('a low need makes the pet sad, but proud and asleep win', () => {
+  it('a low need only quiets the pet, no tears; proud and asleep win', () => {
     expect(lowestNeed({ food: 10, energy: 5, joy: 90 })).toBe('energy');
     expect(lowestNeed({ food: 30, energy: 25, joy: 90 })).toBe('');
-    expect(careMood('happy', { food: 10, energy: 100, joy: 100 })).toBe('sad');
+    expect(careMood('happy', { food: 10, energy: 100, joy: 100 })).toBe('calm');
     expect(careMood('proud', { food: 0, energy: 0, joy: 0 })).toBe('proud');
     expect(careMood('sleep', { food: 0, energy: 0, joy: 0 })).toBe('sleep');
   });
@@ -67,8 +67,8 @@ describe('PetCard care', () => {
     const repository = { get: vi.fn().mockResolvedValue({ kind: 'siil', name: 'Okas' }), update: vi.fn(async ({ current, ...flags }) => ({ ...current, ...flags })) };
     const wordsService = { review: vi.fn().mockResolvedValue({}) };
     const { container } = render(<MemoryRouter><PetCard user={{ uid: 'u1' }} repository={repository} words={words} wordsService={wordsService} lessons={[{ date: new Date().toISOString().slice(0, 10) }]} /></MemoryRouter>);
-    expect(await screen.findByText('Mul on kõht tühi. Kordame kolm sõna?')).toBeInTheDocument();
-    expect(container.querySelector('svg.pet.m-sad')).not.toBeNull();
+    expect(await screen.findByText(/Mul on kõht tühi\. Kas mäletad sõna/)).toBeInTheDocument();
+    expect(container.querySelector('svg.pet.m-sad')).toBeNull();
     expect(screen.getByRole('meter', { name: 'Kõht' })).toHaveAttribute('aria-valuenow', '0');
     fireEvent.click(screen.getByRole('button', { name: /Toida \(3 sõna\)/ }));
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
@@ -81,9 +81,9 @@ describe('PetCard care', () => {
     const words = [word('a', { dueAt: '2099-01-01' }), word('b', { dueAt: '2099-01-01' }), word('c', { dueAt: '2099-01-01' })];
     const repository = { get: vi.fn().mockResolvedValue({ kind: 'kakk', name: 'Tark' }), update: vi.fn(async ({ current, ...flags }) => ({ ...current, ...flags })) };
     render(<MemoryRouter><PetCard user={{ uid: 'u1' }} repository={repository} words={words} /></MemoryRouter>);
-    expect(await screen.findByText('Mul on igav. Mängime sõnamängu?')).toBeInTheDocument();
+    expect(await screen.findByText('Mul on igav. Mängime sinu sõnadega?')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Toida/ })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: /Mängi/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Mängi$/ }));
     for (let i = 0; i < 3; i += 1) {
       const options = screen.getByRole('group', { name: 'Vastused' }).querySelectorAll('button');
       fireEvent.click(options[0]);

@@ -223,14 +223,17 @@ function GuessGame({ rounds, kind, onEnd }) {
 }
 
 /** Topic games: choose one of the learner's topics and a game; `onDone(score)` when a game is finished. */
-export default function PetGames({ topics = [], kind = 'siil', onDone, onClose }) {
+// `quick`: the pet's daily request: no menu, the first topic's shortest game starts at once
+const QUICK_ORDER = ['pairs', 'truth', 'catch', 'guess', 'order', 'sort'];
+const roundsOf = (topic, key) => (key === 'sort' ? sortRound(topic) : gameRounds(topic, key));
+export default function PetGames({ topics = [], kind = 'siil', quick = false, onDone, onClose }) {
   const [topicId, setTopicId] = useState(topics[0]?.id || '');
-  const [game, setGame] = useState('');
-  const [rounds, setRounds] = useState([]);
+  const [game, setGame] = useState(() => (quick ? QUICK_ORDER.find((key) => topics[0]?.games?.includes(key)) || '' : ''));
+  const [rounds, setRounds] = useState(() => (game && topics[0] ? roundsOf(topics[0], game) : []));
   const [result, setResult] = useState(null);
   const [run, setRun] = useState(0);
   const topic = topics.find((t) => t.id === topicId) || topics[0];
-  const start = (key) => { setGame(key); setRounds(key === 'sort' ? sortRound(topic) : gameRounds(topic, key)); setResult(null); setRun((n) => n + 1); };
+  const start = (key) => { setGame(key); setRounds(roundsOf(topic, key)); setResult(null); setRun((n) => n + 1); };
   const end = (score, moves = 0) => { const total = game === 'pairs' ? rounds.length / 2 : game === 'sort' ? rounds.words.length : rounds.length; setResult({ right: score, total, moves }); onDone?.(score); };
 
   if (!topic) return <div className="vw-practice"><p>Teemamängude jaoks pole veel töölehti. Kui õpetaja annab töölehe, saame mängida!</p><button type="button" className="vw-btn" onClick={onClose}>Sulge</button></div>;
@@ -239,7 +242,7 @@ export default function PetGames({ topics = [], kind = 'siil', onDone, onClose }
     const props = { rounds, kind, onEnd: end };
     return (
       <div className="vw-practice pet-games">
-        <div className="pg-head"><b>{GAMES.find((g) => g.key === game).label}</b><small>{topic.title}</small><button type="button" className="pet-link" onClick={() => setGame('')}>Tagasi</button></div>
+        <div className="pg-head"><b>{GAMES.find((g) => g.key === game).label}</b><small>{topic.title}</small><button type="button" className="pet-link" onClick={() => (quick ? onClose?.() : setGame(''))}>Tagasi</button></div>
         {game === 'catch' ? <CatchGame key={run} {...props} /> : game === 'pairs' ? <PairsGame key={run} cards={rounds} onEnd={end} /> : game === 'order' ? <OrderGame key={run} {...props} />
           : game === 'sort' ? <SortGame key={run} round={rounds} kind={kind} onEnd={end} /> : game === 'guess' ? <GuessGame key={run} {...props} /> : <TruthGame key={run} {...props} />}
       </div>

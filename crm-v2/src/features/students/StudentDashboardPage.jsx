@@ -9,7 +9,7 @@ import { announcementsService } from '../../services/firebase/announcements.js';
 import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
 import RescheduleDialog from './RescheduleDialog.jsx';
 import { readDone } from '../self-study/reviewStore.js';
-import { PetArt } from '../pet/PetCard.jsx';
+import PetLoop from '../pet/PetLoop.jsx';
 import { petProgress } from '../pet/petModel.js';
 import { nextLesson as firstLessonAhead } from '../pet/petLife.js';
 import { todayPath } from './todayPath.js';
@@ -83,7 +83,8 @@ export default function StudentDashboardPage({
     // a child's invoices are the business of the parent linked to the card: not even read for this page
     const ownInvoiceCards = students.filter((student) => !parentCardIds(student).some((id) => id !== user.uid)).map((student) => student.id);
     const [pet, sheets, homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
-      preview ? null : Promise.resolve().then(() => petRepository.get?.(user.uid)).catch(() => null),
+      // staff in a preview see the same pet read-only, if the rules let them read it
+      Promise.resolve().then(() => petRepository.get?.(user.uid)).catch(() => null),
       Promise.resolve().then(() => homeworkRepository.listWorksheetAssignmentsByStudentIds?.(studentIds) || []).catch(() => []),
       homeworkRepository.listByStudentIds(studentIds),
       homeworkRepository.listSubmissionsByStudentIds(studentIds),
@@ -139,7 +140,6 @@ export default function StudentDashboardPage({
   const studentOf = (item) => studentMap.get(item.studentId) || null;
   const homework = onlySubject(state.data.homework, chosen, studentOf);
   const assignments = onlySubject(sheets, chosen, studentOf);
-  const lessons = onlySubject(state.data.lessons, chosen, studentOf);
   const occurrences = onlySubject(occurrencesForDates(state.data.schedule, nextDates), chosen, studentOf);
   const lessonAhead = firstLessonAhead(occurrences);
   const nextRequest = requestFor(state.data.requests, lessonAhead);
@@ -147,9 +147,9 @@ export default function StudentDashboardPage({
 
   const step = nextStep({ occurrences, homework, assignments, words, today });
   const daySteps = todayPath({ words, homework, submissions, assignments, mistakesDoneToday: reviewedToday, today }).steps.filter((item) => !item.idle).slice(0, 3);
-  const progress = petProgress({ lessons, submissions, homework, words });
+  const progress = petProgress({ lessons: state.data.lessons, submissions, homework: state.data.homework, words });
   const { streak } = progress;
-  const showPet = !preview && !pet?.optedOut;
+  const offerPet = !preview && !pet?.optedOut && !pet?.kind;
   const unpaid = invoices.filter((invoice) => invoice.status !== 'Tühistatud' && invoiceBalanceCents(invoice) > 0);
   const unpaidCents = unpaid.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
   const notes = homeNotes({ feedback: newFeedback(submissions, feedbackSeenAt(user.uid)), announcements: preview ? [] : pendingNotes, unpaidCents, money });
@@ -160,11 +160,9 @@ export default function StudentDashboardPage({
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Minu õppeained" />
 
     <div className="sh-hero">
-      {showPet ? <Link className="sh-pet" to="/student/lemmik" data-tour="pet-tile">
-        {pet?.kind
-          ? <><PetArt kind={pet.kind} mood={progress.mood} stage={progress.stage} wearing={(({ bg: _bg, ...rest }) => rest)(pet.wearing || {})} /><span><strong>{pet.name}</strong><small>Vaata, kuidas tal läheb</small></span></>
-          : <><i style={{ display: 'grid', placeItems: 'center' }}><PawPrint size={40} aria-hidden="true" /></i><span><strong>Vali endale sõber</strong><small>Õppesõber kasvab koos sinuga</small></span></>}
-      </Link> : null}
+      {pet?.kind && !pet.optedOut ? <PetLoop user={user} studentId={students[0].id} pet={pet} readOnly={Boolean(preview)} lessons={state.data.lessons} submissions={submissions} homework={state.data.homework} assignments={sheets} words={words} subject={chosen || students[0].subject || ''}
+        repository={petRepository} {...(wordsService ? { wordsService } : {})} /> : null}
+      {offerPet ? <Link className="sh-pet" to="/student/lemmik"><i style={{ display: 'grid', placeItems: 'center' }}><PawPrint size={40} aria-hidden="true" /></i><span><strong>Vali endale sõber</strong><small>Õppesõber kasvab koos sinuga</small></span></Link> : null}
       <div className="sh-main">
         <section className={`sh-step ${step.key === 'done' ? 'is-done' : ''}`} aria-label="Järgmine samm">
           <small>Järgmine samm</small>
