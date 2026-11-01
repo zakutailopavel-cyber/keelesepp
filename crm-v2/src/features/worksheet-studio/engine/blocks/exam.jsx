@@ -65,6 +65,7 @@ export const cloze = {
     );
   },
   answers: (data) => clozeGaps(data.passage).map((opts, gi) => ({ key: `${gi}`, accept: opts.filter((o) => o.correct).map((o) => o.text) })),
+  answerText: (data, key, value) => chosenOption(clozeGaps(data.passage)[Number(key)] || [], value)?.text || '',
   score: (data, get) => clozeGaps(data.passage).map((opts, gi) => ({ key: `${gi}`, ok: get(`${gi}`) !== undefined && get(`${gi}`) !== '' && opts.find((o) => o.oi === Number(get(`${gi}`)))?.correct === true })),
   Editor: ({ data, set }) => (
     <>
@@ -171,6 +172,7 @@ export const insertion = {
     );
   },
   answers: (data) => sentenceList(data).gapsList.map((text, gi) => ({ key: `${gi}`, accept: [text] })),
+  answerText: (data, key, value) => chosenOption(sentenceList(data).options, value)?.text || '',
   score: (data, get) => sentenceList(data).gapsList.map((_, gi) => ({ key: `${gi}`, ok: get(`${gi}`) !== undefined && get(`${gi}`) !== '' && Number(get(`${gi}`)) === gi })),
   Editor: ({ data, set }) => (
     <>

@@ -34,7 +34,7 @@ export default function MyProgressCard({ progress }) {
           <div key={s.skill} className={`is-${s.state}`} title={s.basis || ''}>
             <span>{s.skill}</span>
             <i><b style={{ width: `${s.pct ?? 0}%` }} /><em style={{ left: `${READY}%` }} aria-hidden="true" /></i>
-            <small>{s.pct === null ? STATE.unknown : `${s.pct}% · ${STATE[s.state]}`}</small>
+            <small>{s.pct === null ? STATE.unknown : `${s.pct}% · ${s.note || STATE[s.state]}`}</small>
           </div>
         ))}
       </div>
