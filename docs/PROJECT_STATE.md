@@ -1,3 +1,13 @@
+## 2026-11-01 · agent/security-ci — Dependabot, security workflow, actions pinned; history scanned for secrets
+
+- Base: `main` ee2eac1, checked 2026-11-01. CI config only; no app code, no deploy, no production access.
+- New `.github/dependabot.yml`: npm for `crm-v2` and `functions`, GitHub Actions; weekly on Monday, minor and patch grouped, at most 2 open per folder, 7-day cooldown. Needs no token.
+- New `.github/workflows/security.yml`, on every PR, on `main` when `.github` or a lock file changes, weekly, and by hand: `npm audit --omit=dev --audit-level=critical` is **reporting only, it never fails** (warning plus run summary); gitleaks scans the PR's commits with redacted values, a finding makes the job red; zizmor audits `.github`, high severity makes the job red. No branch protection exists, so red does not block a merge. gitleaks 8.30.1 and zizmor 1.31.1 are release binaries with a pinned SHA-256; Dependabot does not update those.
+- New `.gitleaks.toml`: default rules, allows only `generic-api-key` in `functions/language-api.test.js` (a made-up fixture).
+- Existing three workflows: every action pinned to a commit SHA in the same major, `persist-credentials: false` on every checkout. zizmor before: 10 high (`unpinned-uses`), 4 medium (`artipacked`). After, online mode: no findings.
+- gitleaks over the full history (all refs, 2841 commits): 58 findings, **no live secret found**. 55 are the Firebase web API key, which is public by design and matches the live CRM bundle (hash compared, value not printed). 1 is the same config with two characters different, `haldus.html` da647dee62, removed by d68a5e8; not tested against Google. 2 are the Ekilex test fixture. **The repository is public**, so the web key is readable there and in the bundle; its restrictions in Google Cloud Console were not checked. Values were never printed or stored; the raw report was deleted.
+- Next safe step: the owner reviews and merges, then checks the Firebase web key's restrictions in Google Cloud Console.
+
 ## 2026-11-01 · agent/role-views — student and parent views: absences and invoices for parents, no school inboxes, roles in words
 
 - Base: `main` b13d41e, checked 2026-11-01. Redoes what is still missing and correct from draft #515 (2026-10-11). UI only: no rules, functions or data; no deploy, no merge, no production access.
