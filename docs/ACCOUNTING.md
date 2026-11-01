@@ -4,6 +4,10 @@ Owner 2026-10-22: full bookkeeping on the site, from **2026-01-01**. E&P Koolitu
 registered**. The chart of accounts is the owner's **Merit Aktiva** chart, so the books can be moved to or checked against
 the accountant's Merit. INF 3 is a separate document (`docs/INF3.md`, next PR).
 
+## Two bookkeepings (owner 2026-11-01)
+
+Raamatupidamine is the accountant's own books, separate from the CRM's finance. Only invoices paid by invoice belong in it; anything else is kept out with the mark „Ei kuulu raamatupidamisse”. The CRM's money, PDFs and balances do not change. Changes she needs here may be made and shipped without a separate owner OK.
+
 ## Law (Raamatupidamise seadus, checked 2026-10-22 on riigiteataja.ee)
 
 | § | Requirement | How the CRM meets it |
