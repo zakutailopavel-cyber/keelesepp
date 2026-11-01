@@ -1,3 +1,9 @@
+## 2026-11-01 · agent/strict-quotes — strict answers forgive the opening quote style too
+
+- Checked `origin/main` `d1a64aa`. Found while making a personal sheet on direct speech: `strictNorm` turned a typed " into the closing ”, so `"Tere"` did not match `„Tere”` and a right answer scored wrong in the mother-tongue courses (`data.strict`).
+- Changed: `worksheet-studio/engine/schema.js` `strictNorm` now maps all quote styles to one character; commas, capitals, letters and missing quotes stay strict. Test in `didactics/nativeLevels.test.js`.
+- Next safe step: owner merges the PR; hosting ships with the merge, no data or rules change.
+
 ## 2026-11-01 · agent/suuline-osa-2 — „Suuline osa” doubled to ten lessons a level
 
 - Asked (owner 2026-11-01): „побольше таких заданий”. Added `a2-s06…10`, `a2b1-s06…10`, `b1b2-s06…10` in the same files and shape.

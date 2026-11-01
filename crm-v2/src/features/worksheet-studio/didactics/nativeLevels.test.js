@@ -34,6 +34,10 @@ describe('strict spelling scoring', () => {
     expect(strictNorm('Ta ütles, et tuleb.')).not.toBe(strictNorm('Ta ütles et tuleb.'));
     expect(strictNorm('Tartu')).not.toBe(strictNorm('tartu'));
     expect(strictNorm('Ta  ütles: „Tere.”')).toBe(strictNorm('Ta ütles: „Tere.“'));
+    expect(strictNorm('Ta ütles: "Tere."')).toBe(strictNorm('Ta ütles: „Tere.”'));
+    expect(strictNorm('Ta ütles: «Tere.»')).toBe(strictNorm('Ta ütles: „Tere.”'));
+    expect(strictNorm('Ta ütles: Tere.')).not.toBe(strictNorm('Ta ütles: „Tere.”'));
+    expect(strictNorm('"Tere," ütles ta.')).not.toBe(strictNorm('„Tere”, ütles ta.'));
   });
 
   it('scores an error-fix row strictly when the block says so', () => {
