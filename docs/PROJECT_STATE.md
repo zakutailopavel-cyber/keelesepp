@@ -1,3 +1,8 @@
+## 2026-11-01 · agent/suuline-osa-2 — „Suuline osa” doubled to ten lessons a level
+
+- Asked (owner 2026-11-01): „побольше таких заданий”. Added `a2-s06…10`, `a2b1-s06…10`, `b1b2-s06…10` in the same files and shape.
+- Next safe step: create `curriculumLessons` docs and publish the new sheets after merge; the owner reviews them in Õppevara.
+
 ## 2026-11-01 · agent/suuline-osa — „Suuline osa” for A2, B1, B2
 
 - Asked (owner 2026-11-01): lessons like Dominik's personal C1 sheet (claim → explanation → example → conclusion, all spoken, homework written) in a separate block „Suuline osa”.
