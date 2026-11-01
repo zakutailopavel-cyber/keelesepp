@@ -140,7 +140,6 @@ export default function StudentDashboardPage({
   const studentOf = (item) => studentMap.get(item.studentId) || null;
   const homework = onlySubject(state.data.homework, chosen, studentOf);
   const assignments = onlySubject(sheets, chosen, studentOf);
-  const lessons = onlySubject(state.data.lessons, chosen, studentOf);
   const occurrences = onlySubject(occurrencesForDates(state.data.schedule, nextDates), chosen, studentOf);
   const lessonAhead = firstLessonAhead(occurrences);
   const nextRequest = requestFor(state.data.requests, lessonAhead);
