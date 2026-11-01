@@ -116,7 +116,7 @@ function TaskGroup({ id, title, ru, tasks, children, renderTask, showAll = false
 
 /**
  * „Ülesanded” for a student and a family (owner 2026-11-01): one list, whatever collection a task lives in. Tee nüüd →
- * Tehtud, ootab õpetajat → Õpetaja vaatas üle. A parent reads the same list, per child, and answers nothing.
+ * Tehtud → Õpetaja vaatas üle (plain homework has no review step, so „Tehtud” does not promise one). A parent reads the same list, per child, and answers nothing.
  */
 export default function LearnerTasksPage({ repository = homeworkService, studentRepository = studentsService, interactiveRepository = interactiveAssignmentsService }) {
   const { user, preview } = useAuth();
@@ -246,7 +246,7 @@ export default function LearnerTasksPage({ repository = homeworkService, student
       <TaskGroup id="tee-nuud" title={studentRole ? 'Tee nüüd' : 'Vaja teha'} ru={studentRole ? 'сделать сейчас' : 'нужно сделать'} tasks={groups.todo} renderTask={renderTask} showAll>
         <p className="lt-clear"><CheckCircle2 size={17} aria-hidden="true" /> {studentRole ? 'Kõik on tehtud. Tubli!' : 'Kõik on tehtud.'}<span className="lt-ru" lang="ru"> · всё сделано</span></p>
       </TaskGroup>
-      {groups.waiting.length ? <TaskGroup id="ootab" title="Tehtud, ootab õpetajat" ru="сделано, ждёт учителя" tasks={groups.waiting} renderTask={renderTask} /> : null}
+      {groups.waiting.length ? <TaskGroup id="ootab" title="Tehtud" ru="сделано" tasks={groups.waiting} renderTask={renderTask} /> : null}
       {groups.reviewed.length ? <TaskGroup id="vaadatud" title="Õpetaja vaatas üle" ru="учитель проверил" tasks={groups.reviewed} renderTask={renderTask} /> : null}
     </>}
 

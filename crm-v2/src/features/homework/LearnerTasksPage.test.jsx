@@ -44,7 +44,7 @@ describe('„Ülesanded”: one list for the child', () => {
     renderPage(asStudent, data);
     const todo = (await screen.findByRole('heading', { name: /Tee nüüd/ })).closest('section');
     expect(within(todo).getAllByRole('article').map((card) => within(card).getByRole('heading').textContent)).toEqual(['Õpi luuletus', 'Minu päev']);
-    const waiting = screen.getByRole('heading', { name: /Tehtud, ootab õpetajat/ }).closest('section');
+    const waiting = screen.getByRole('heading', { name: /^Tehtud/ }).closest('section');
     expect(within(waiting).getByText('Kirjuta kolm lauset')).toBeInTheDocument();
     const reviewed = screen.getByRole('heading', { name: /Õpetaja vaatas üle/ }).closest('section');
     expect(within(reviewed).getByText('Vana tund')).toBeInTheDocument();

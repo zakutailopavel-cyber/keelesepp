@@ -1,3 +1,4 @@
+import { toIsoDate } from '../calendar/calendarView.js';
 // „Täna” (owner 2026-10-12): a student has exactly four things to do — interactive tasks, words, my mistakes and the
 // pet. Each step is done by what the student really did today (work submitted or a task marked done, a word reviewed,
 // the mistakes drill, a pet game); the streak is the pet's learning streak.
@@ -5,7 +6,8 @@ import { TASK_STATE, mergeTasks } from '../homework/taskList.js';
 import { isDue } from '../vocabulary/wordsModel.js';
 import { dailyPlan } from '../vocabulary/dailyReview.js';
 
-const dayOf = (value) => String(value || '').slice(0, 10);
+// a time from the server is UTC: the learner's own day (between midnight and 02:00 the UTC date is still yesterday)
+const dayOf = (value) => { const s = String(value || ''); if (s.length <= 10) return s; const d = new Date(s); return Number.isNaN(d.getTime()) ? s.slice(0, 10) : toIsoDate(d); };
 const ERROR_PREFIX = 'Sinu lause:';
 
 export function todayPath({ words = [], homework = [], submissions = [], assignments = [], pet = null, offerPet = false, mistakesDoneToday = false, today, now = Date.now() }) {
