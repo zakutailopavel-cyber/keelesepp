@@ -22,6 +22,11 @@ describe('sheet errors become sentence cards (owner 2026-10-23)', () => {
     ])).toEqual([{ word: 'I was happy yesterday.', translation: 'Sinu lause: I am happy yesterday.' }]);
   });
 
+  it('a wrong option of a sentence choice is a card with the sentence he chose, never its number', () => {
+    const sheet = { blocks: [{ id: 'c', type: 'choice', data: { questions: [{ q: 'Mis kell?', options: '*Ma ärkan kell seitse.\nMa ärkan kell kolm.' }] } }] };
+    expect(errorCards(sheet, [{ key: 'c:0', answer: '1' }])).toEqual([{ word: 'Ma ärkan kell seitse.', translation: 'Sinu lause: Ma ärkan kell kolm.' }]);
+  });
+
   it('at most five cards per sheet, no doubles', () => {
     const many = Array.from({ length: 8 }, () => ({ key: 'g:0.0', answer: 'elab' }));
     expect(errorCards(doc, many)).toHaveLength(1);
