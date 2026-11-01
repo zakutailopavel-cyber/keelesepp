@@ -9,7 +9,7 @@ const props = () => ({
   plans: [{ studentId: 's1', lessonPriceCents: 2500, lessonMinutes: 60, billingMode: 'current' }],
   lessons: [{ id: 'l3', studentId: 's1', date: '2031-09-17', status: 'Puudus_eta', duration: 60 }],
   invoices: [{ studentId: 's1', planMonth: '2031-09', plannedUnits: 1, status: 'Ootel' }],
-  scheduleRepository: { list: vi.fn().mockResolvedValue([{ id: 'e1', studentId: 's1', recurring: true, day: 'Wed', startDate: '2031-09-03', duration: 60 }, { id: 'e2', studentId: 's2', recurring: true, day: 'Wed', startDate: '2031-09-03', duration: 60 }]) },
+  scheduleRepository: { list: vi.fn().mockResolvedValue([{ id: 'e1', studentId: 's1', recurring: true, day: 'Wed', startDate: '2031-10-01', duration: 60 }, { id: 'e2', studentId: 's2', recurring: true, day: 'Wed', startDate: '2031-10-01', duration: 60 }]) },
   groupRepository: { list: vi.fn().mockResolvedValue([]) },
   invoiceApi: { createMonthly: vi.fn().mockResolvedValue({ invoice: { id: 'inv1' } }) },
   deliveryApi: { send: vi.fn().mockResolvedValue({}) },
