@@ -54,7 +54,7 @@ describe('PetCompanion', () => {
   it('gives a first-visit tour, then walks and talks when pressed', async () => {
     renderCompanion();
     expect(await screen.findByRole('dialog', { name: 'Tutvustus' })).toBeInTheDocument();
-    expect(screen.getByText('Siin on „Minu õpingud”: sinu tunnid, ülesanded ja mina.')).toBeInTheDocument();
+    expect(screen.getByText('Siin on „Täna”: mida täna teha, sinu tund ja mina.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Edasi/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Selge!' }));
     expect(screen.queryByRole('dialog', { name: 'Tutvustus' })).toBeNull();
