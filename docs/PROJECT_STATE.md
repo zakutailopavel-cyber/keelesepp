@@ -10,6 +10,16 @@
 - Known: the override must be dropped when firestore moves off `~1.9.0`; Dependabot will not do that. Not opened in a browser against production.
 - Deploy: CRM hosting only, on merge. No functions, no rules.
 - Next safe step: the owner reviews and merges the PR.
+## 2026-11-01 · agent/finance-truth — Ärinäitajad count today's marked lessons, „Lahkunud” means archived, Õpetajate võrdlus reads the calendar, unpaid sums say their period
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no change in how money is calculated.
+- `finance/businessReport.js`, `financeDashboard.js`: a lesson of today marked „Toimunud” or „Puudus_eta” is held, not planned (also journal-only ones). While the period runs `change` is null and the card says the previous period's number: no more −100% on the first of a month. New `plannedStudents`. A journal-only lesson with status „Tühistatud” is `cancelled`; it was `held`.
+- Public meaning changed: `lostStudents` („Lahkunud”) are archived cards only. New `quietStudents` („Ilma tulevase tunnita”) are active cards with no lesson now or ahead, by `calendar/unplannedStudents.js`, the same rule as home. A paused card is in neither list.
+- `teachers/teacherReport.js`, `TeacherReportCard.jsx`, `TeachersPage.jsx`: „Tunde” comes from `lessonFacts` (calendar + groups + journal), unmarked past lessons counted and named, a group lesson once. It read only the journal, so a teacher who does not mark showed 0. Field `unmarked` added to the row.
+- Unpaid labels only: home „kõik kuud”, Finantsid „selle kuu arved”, Lapsevanemad „kõik kuud · seotud laste arved”.
+- Finding, not changed (owner: no change in money logic): home and Lapsevanemad use `invoiceBalanceCents`, which does not skip cancelled, credited or hand-paid „Makstud” invoices without payment fields; Finantsid uses `financeRowState`, which does. Lapsevanemad adds up per parent, so an invoice of a child with two parent accounts counts twice, and an invoice of a card with no parent account does not count. So the sums can differ even over the same period.
+- Checks: see the PR. Numbers on the live site not compared (35 „Lahkunud”, 0 „Tunde”): no production read.
+- Next safe step: the owner decides whether home and Lapsevanemad should use `financeRowState`.
 ## 2026-11-01 · agent/preview-fix — staff preview opens and closes without „Ligipääs puudub”
 
 - Checked `origin/main` 54fab88. From a live-site walkthrough. No production writes, no deploy.
