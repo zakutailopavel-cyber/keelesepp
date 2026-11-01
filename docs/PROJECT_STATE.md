@@ -1,3 +1,9 @@
+## 2026-11-01 · agent/curricula-decisions — owner's decisions on the grade plans
+
+- Checked `origin/main`. Owner: English grades 1–2 stay, marked optional; no school programme or textbook is asked from pupils at enrolment, the teacher learns the current topic in lessons; English B2 left to our recommendation: build it after closing the B1 gaps (past perfect, third conditional, question tags).
+- Changed: `docs/CURRICULUM_INGLISE_1_12.md`, `docs/CURRICULUM_EMAKEEL_1_12.md`, `docs/CURRICULUM_MATEMAATIKA_1_12.md`. Text only; nothing was built.
+- Next safe step: B1 gaps and the B2 course start only on the owner's word; he stopped module work on 2026-11-01.
+
 ## 2026-11-01 · agent/curricula-school — yearly topic plans by school grade: mother-tongue Estonian, mathematics, English
 
 - Checked `origin/main` `d1a64aa`. Asked (owner 2026-11-01): full study plans for Estonian as a mother tongue for each grade, English and mathematics; topics only, no lessons.
