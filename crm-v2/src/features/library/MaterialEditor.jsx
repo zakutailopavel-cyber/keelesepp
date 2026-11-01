@@ -153,7 +153,7 @@ function WorksheetLink({ item, onOpenWorksheet, onPreview }) {
   const legacyBlocks = item.source?.worksheetData?.blocks?.length || 0;
   const status = studioBlocks
     ? `Konstruktoris tehtud tööleht · ${studioBlocks} ${studioBlocks === 1 ? 'plokk' : 'plokki'}`
-    : legacyBlocks ? 'Vana tööleht (CRM v1) · avaneb konstruktoris uues kujunduses' : 'Sellel materjalil pole veel töölehte.';
+    : legacyBlocks ? 'Vana tööleht · avaneb konstruktoris uues kujunduses' : 'Sellel materjalil pole veel töölehte.';
   return (
     <section className="material-worksheet-link" aria-label="Tööleht">
       <div><strong>Tööleht</strong><span>{status}</span></div>

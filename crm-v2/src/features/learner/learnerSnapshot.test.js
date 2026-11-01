@@ -32,7 +32,7 @@ describe('learner snapshot (owner 2026-10-23)', () => {
     expect(snap.signals.map((signal) => signal.text)).toEqual([
       'Pole iseseisvalt õppinud 9 päeva tagasi.',
       '1 sõna ununeb — alusta tundi nende kordamisega.',
-      '1 kodutööd on tähtajast üle.',
+      '1 kodutöö on tähtajast üle.',
       'Tööleht „Harjuta”: 50% — vaata vead üle.',
     ]);
     expect(snap.words.forgotten).toEqual([{ id: 'w1', word: 'eelarve', translation: 'бюджет' }]);

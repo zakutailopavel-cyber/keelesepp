@@ -25,7 +25,7 @@ function EnrollmentStack({ student, compact = false }) {
   if (!enrollments.length) return <span className="student-enrollment-empty">Õppesuunad puuduvad</span>;
   return <div className={compact ? 'student-enrollments student-enrollments--compact' : 'student-enrollments'}>
     {enrollments.map((enrollment) => <div className="student-enrollment-row" key={enrollment.id}>
-      <strong>{enrollment.subject || 'Õppeaine puudub'}</strong>
+      <strong>{subjectName(enrollment.subject) || 'Õppeaine puudub'}</strong>
       <span>{[enrollment.level && enrollment.targetLevel ? `${enrollment.level} → ${enrollment.targetLevel}` : enrollment.level, enrollment.teacher].filter(Boolean).join(' · ') || 'Andmed puuduvad'}</span>
     </div>)}
   </div>;
@@ -34,6 +34,7 @@ function EnrollmentStack({ student, compact = false }) {
 
 import NoTimesPanel from './NoTimesPanel.jsx';
 import './noTimes.css';
+import { subjectName } from './subjects.js';
 
 export default function StudentsPage({ service = studentsService, mergeService, teacherApi, actor, presenceApi = presenceService, missingDataApi, noTimesApi }) {
   const auth = useContext(AuthContext);

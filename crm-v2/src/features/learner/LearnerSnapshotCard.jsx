@@ -58,7 +58,7 @@ export default function LearnerSnapshotCard({ studentId, studentName = '', repos
     <dl className="ls-facts">
       {seen ? <div><dt>Viimati sees</dt><dd>{seen.label}</dd></div> : null}
       <div><dt>Viimati õppis ise</dt><dd>{lastActivity ? `${lastActivity.label} · ${lastActivity.kind}` : 'veel mitte'}</dd></div>
-      <div><dt>7 päevaga</dt><dd>{week.words} sõna · {week.sheets} töölehte · {week.homework} kodutööd</dd></div>
+      <div><dt>7 päevaga</dt><dd>{week.words} sõna · {week.sheets} töölehte · {week.homework} {week.homework === 1 ? 'kodutöö' : 'kodutööd'}</dd></div>
       {errorsReview ? <div><dt>Minu vead</dt><dd>{errorsReview.label}{errorsReview.pct !== null ? ` · ${errorsReview.pct}%` : ''} · {errorsReview.days30} päeva 30 päevaga</dd></div> : null}
       {lastLesson ? <div><dt>Eelmine tund</dt><dd>{dateLabel(lastLesson.date)}{lastLesson.topic ? ` · ${lastLesson.topic}` : ''}{lastLesson.notes ? <small>{lastLesson.notes}</small> : null}</dd></div> : null}
     </dl>
@@ -81,7 +81,7 @@ export default function LearnerSnapshotCard({ studentId, studentName = '', repos
       </li>)}</ul>
     </div> : null}
 
-    <MonthStepsCard compact assignments={state.data.assignments} />
+    <MonthStepsCard compact ruHint={false} assignments={state.data.assignments} />
 
     {homework.open ? <div className="ls-block">
       <h4><CalendarClock size={15} aria-hidden="true" /> Kodutööd <small>{homework.open} avatud</small></h4>

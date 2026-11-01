@@ -32,7 +32,7 @@ describe('worksheets for the lesson board', () => {
       { id: 'y', title: 'Valmis', status: 'done', worksheetDoc: doc },
       { id: 'z', title: 'Juba tunnis', status: 'new', worksheetDoc: doc, liveRoomKey: 'room-1' },
     ], 'room-1');
-    expect(own.map((choice) => [choice.assignmentId, choice.detail])).toEqual([['x', 'Kodutöö · tähtaeg 2026-10-12']]);
+    expect(own.map((choice) => [choice.assignmentId, choice.detail])).toEqual([['x', 'Kodutöö · tähtaeg 12.10.2026']]);
     expect(prepRoomKey('s1')).toBe('prep_s1');
   });
 
