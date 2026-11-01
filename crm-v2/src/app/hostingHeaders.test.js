@@ -13,6 +13,22 @@ describe('CRM v2 hosting headers', () => {
     expect(policy).toContain('display-capture=(self)');
   });
 
+  // Hashed files never change, so they are kept for a year; audio and pictures keep their names when redone, so a day.
+  // The pages must always be asked for again, or a browser would keep an old build. A missing file must not be answered
+  // with the app's HTML: under a year-long header that HTML would stay at the address.
+  it('caches files by their kind and never the HTML', () => {
+    const config = JSON.parse(readFileSync(resolve(process.cwd(), 'vercel.json'), 'utf8'));
+    const cacheRules = config.headers.filter((rule) => rule.headers.some((h) => h.key === 'Cache-Control'));
+    const cacheOf = (source) => cacheRules.find((rule) => rule.source === source)?.headers.find((h) => h.key === 'Cache-Control').value;
+    expect(cacheOf('/assets/(.*)')).toContain('immutable');
+    expect(cacheOf('/(audio|textbook-art)/(.*)')).not.toContain('immutable');
+    expect(cacheRules.map((rule) => rule.source)).toEqual(['/assets/(.*)', '/(audio|textbook-art)/(.*)']);
+    const app = config.rewrites.find((rule) => rule.destination === '/index.html');
+    const appPaths = new RegExp(`^${app.source}$`);
+    for (const path of ['/', '/student', '/library/worksheet-generator/health', '/finance/seaded']) expect(appPaths.test(path)).toBe(true);
+    for (const path of ['/assets/main-abc.js', '/audio/a2-001/x.mp3', '/textbook-art/a.png']) expect(appPaths.test(path)).toBe(false);
+  });
+
   // Report-only until the violations have been read on the live site: it must not be able to block anything yet.
   it('sends the content security policy as report-only, with no enforcing header', () => {
     const config = JSON.parse(readFileSync(resolve(process.cwd(), 'vercel.json'), 'utf8'));

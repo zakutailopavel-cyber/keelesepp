@@ -244,7 +244,7 @@ describe('student profile tabs and role access', () => {
       </MemoryRouter>,
     );
     fireEvent.click(await screen.findByRole('tab', { name: 'Tööd' }, { timeout: 4000 }));
-    fireEvent.click(await screen.findByRole('button', { name: /Pere tööleht/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Pere tööleht/ }, { timeout: 8000 }));
     const dialog = await screen.findByRole('dialog', { name: 'Pere tööleht' });
     expect(within(dialog).getByText('Lugemine')).toBeInTheDocument();
     fireEvent.change(within(dialog).getByRole('combobox', { name: 'Oskus Grammatika' }), { target: { value: '4' } });

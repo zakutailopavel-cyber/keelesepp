@@ -1,11 +1,14 @@
+import { lazy, Suspense } from 'react';
 import { Navigate } from 'react-router-dom';
-import DashboardPage from '../features/dashboard/DashboardPage.jsx';
+import { LoadingState } from '../components/ui/index.js';
 import { useAuth } from './AuthContext.jsx';
 import { hasAnyRole, ROLES } from '../utils/roles.js';
 
+const DashboardPage = lazy(() => import('../features/dashboard/DashboardPage.jsx'));
+
 export default function HomePage() {
   const { user } = useAuth();
-  if (hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER, ROLES.FINANCE])) return <DashboardPage />;
+  if (hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER, ROLES.FINANCE])) return <Suspense fallback={<LoadingState label="Koostan töölauda…" />}><DashboardPage /></Suspense>;
   if (hasAnyRole(user.roles, [ROLES.PARENT])) return <Navigate to="/parent" replace />;
   return <Navigate to="/student" replace />;
 }

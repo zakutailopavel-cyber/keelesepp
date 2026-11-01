@@ -1,6 +1,7 @@
 import { limit, addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, runTransaction, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
+import { shareInFlight } from './shareInFlight.js';
 import { studentsService } from './students.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
 import { paperMeasured, paperWorkPayload } from '../../features/homework/paperWork.js';
@@ -168,7 +169,10 @@ export const homeworkService = {
     const snapshots = await Promise.all(chunksForRules(studentIds).map((ids) => getDocs(query(collection(db, 'homework'), where('studentId', 'in', ids)))));
     return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => ({ id: item.id, status: 'Ootel', ...item.data() }))).sort((a, b) => String(a.due || '9999').localeCompare(String(b.due || '9999')));
   },
-  async listSubmissionsByStudentIds(studentIds = []) {
+  listSubmissionsByStudentIds(studentIds = []) {
+    return shareInFlight(`submissions:${studentIds.join(',')}`, () => homeworkService.readSubmissionsByStudentIds(studentIds));
+  },
+  async readSubmissionsByStudentIds(studentIds = []) {
     if (!studentIds.length) return [];
     const { db } = requireFirebaseClient();
     const [worksheets, exercises] = await Promise.all([
