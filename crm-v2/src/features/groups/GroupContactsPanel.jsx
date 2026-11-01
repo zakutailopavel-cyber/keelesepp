@@ -78,7 +78,7 @@ export default function GroupContactsPanel({ groups = [], user, saving = '', onA
     if (!group) return;
     const cards = picked.map((id) => state.data.cards.find((student) => student.id === id)).filter(Boolean);
     for (const student of cards) await onAddToGroup(group, student);
-    setMessage(`${cards.length} õpilast lisati gruppi „${group.name}”.`);
+    setMessage(`${cards.length} ${cards.length === 1 ? 'õpilane' : 'õpilast'} lisati gruppi „${group.name}”.`);
     setPicked([]);
   };
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { homeworkService } from '../../services/firebase/homework.js';
 import '../vocabulary/vocabulary.css';
 import { localDate } from '../../utils/localDate.js';
+import { displayDate } from '../finance/finance.js';
 
 const QUICK = ['Korda tunni sõnu („Minu sõnad” → „Harjuta”)', 'Lõpeta tööleht', 'Vaata tahvlileht üle ja kirjuta 5 lauset'];
 
@@ -69,7 +70,7 @@ export default function LessonHomeworkPanel({ invitation, user, boardPage = null
       </form>
       {error ? <p className="vw-error" role="alert">{error}</p> : null}
       <h3 className="vw-heading">Selles tunnis antud ({given.length})</h3>
-      {given.length ? <ul className="vw-list">{given.map((item) => <li key={item.id}><span><strong>{item.task}</strong><small>{[item.due ? `Tähtaeg ${item.due}` : 'Tähtajata', item.boardPageTitle ? `Tahvlileht „${item.boardPageTitle}”` : '', item.worksheetTitle ? `Tööleht „${item.worksheetTitle}”` : ''].filter(Boolean).join(' · ')}</small></span></li>)}</ul>
+      {given.length ? <ul className="vw-list">{given.map((item) => <li key={item.id}><span><strong>{item.task}</strong><small>{[item.due ? `Tähtaeg ${displayDate(item.due)}` : 'Tähtajata', item.boardPageTitle ? `Tahvlileht „${item.boardPageTitle}”` : '', item.worksheetTitle ? `Tööleht „${item.worksheetTitle}”` : ''].filter(Boolean).join(' · ')}</small></span></li>)}</ul>
         : <p className="vw-muted">Õpilane näeb kodutööd kohe oma töölaual ja lehel „Kodutööd”.</p>}
     </div>
   );
