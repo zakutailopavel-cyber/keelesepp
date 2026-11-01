@@ -40,7 +40,20 @@ export const studentNavigation = [
   { to: '/student/lemmik', label: 'Lemmik', icon: PawPrint, roles: ACCESS.STUDENT, group: 'Veel', hint: 'sinu õppesõber' },
 ];
 
-// a pure student account (not also staff or a parent) gets the short menu
-export const navigationFor = (roles = []) => (roles.includes('student') && !roles.some((role) => ['admin', 'teacher', 'finance', 'parent'].includes(role)) ? studentNavigation : navigation);
+// A parent's menu (owner 2026-11-01): the same pages, the word a parent understands. „Ülesanded” is „Kodutööd” for staff only.
+export const parentNavigation = [
+  { to: '/parent', label: 'Minu pere', icon: HeartHandshake, roles: ACCESS.PARENT, hint: 'kuidas lapsel läheb' },
+  { to: '/homework', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.PARENT, hint: 'mida õpetaja andis' },
+  { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.PARENT, hint: 'kirjuta õpetajale' },
+  { to: '/board', label: 'Tahvel', icon: PenLine, roles: ACCESS.PARENT, hint: 'lapse tahvlilehed' },
+];
+
+const OTHER_ROLES = ['admin', 'teacher', 'finance'];
+// a pure student account (not also staff or a parent) gets the short menu; a pure parent his own
+export const navigationFor = (roles = []) => {
+  if (roles.some((role) => OTHER_ROLES.includes(role))) return navigation;
+  if (roles.includes('student')) return roles.includes('parent') ? navigation : studentNavigation;
+  return roles.includes('parent') ? parentNavigation : navigation;
+};
 
 export const settingsNavigation = { to: '/settings', label: 'Seaded', icon: Settings, roles: ACCESS.ALL_AUTHENTICATED };
