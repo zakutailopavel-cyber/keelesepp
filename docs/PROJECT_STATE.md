@@ -13,6 +13,12 @@
 - Checks: `npx eslint --quiet src` clean. `npx vitest run src/features/worksheet-generator src/features/pet`: 71 files passed, 1 skipped; 1070 tests passed, 7 skipped. `src/features/worksheet-studio`: 380 tests passed. Language check (Vabamorf) of module 20: 0 unknown lower-case words. Final-shape: module 20 0, module 19 0, course 3 (in the baseline 3, new 0). The whole `npx vitest run` was not run. The listening audio was not listened to by a person.
 - Known: the sheets in Õppevara do not change until published. `a2-module-02 V14-topic` and `a2-026 transfer V2` are other modules' old baseline lines.
 - Next safe step: review and merge this PR; publishing module 20 is the owner's decision.
+## 2026-11-01 · agent/monthly-lessons-left — lessons left on monthly invoices; unworked lessons come off the next one
+
+- Owner 2026-11-01: the client pays by the 10th, a held lesson is minus one, unworked lessons come off next month's invoice, the admin sees how many are left. This is the monthly flow, not Tunnipakett: production has 0 `studentPackages`, and the 14-day burn of #928 does not fit this rule.
+- Changed: `finance/monthlyBilling.js` `lessonBalance` replaces the one-month comparison (paid from the first monthly invoice through last month, against lessons held). Fixed: credit lost after a month without an invoice; a late-marked lesson after billing never reconciled; a lesson not yet marked or still to come in the month being closed no longer makes it free. `advance` is due on the 10th, was the last day of the month before. New column „Alles” in Kuuarved, `students/LessonBalanceCard.jsx` on the card's Finantsid.
+- Known limit: of 108 invoices only one has `planMonth`; older ones record no lesson count, so the balance starts at the card's first monthly invoice and October's leftovers are unknown to the system. The parent and student views do not show the balance. `correction.note` still names last month only.
+- Next safe step: the owner decides how to enter October's leftovers for the first November invoices.
 
 ## 2026-11-01 · accounting: two bookkeepings, #926 and #925 shipped, 8 invoices marked
 

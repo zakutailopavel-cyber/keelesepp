@@ -9,7 +9,7 @@
 .monthly-invoices__search .field { width: min(390px, 100%); }
 .monthly-invoices__search > span { padding-bottom: 11px; color: var(--text-muted, #667085); font-size: .8rem; white-space: nowrap; }
 .monthly-invoices__table { overflow-x: auto; }
-.monthly-invoices__head, .monthly-invoices__row { display: grid; grid-template-columns: 32px minmax(200px, 2fr) 70px 110px 110px 110px minmax(140px, 1fr); gap: 12px; align-items: center; min-width: 820px; padding: 12px 8px; }
+.monthly-invoices__head, .monthly-invoices__row { display: grid; grid-template-columns: 32px minmax(200px, 2fr) 70px 110px 60px 110px 110px minmax(140px, 1fr); gap: 12px; align-items: center; min-width: 820px; padding: 12px 8px; }
 .monthly-invoices__head { color: var(--text-muted, #667085); font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border-color, #e5e7eb); }
 .monthly-invoices__group { border-bottom: 1px solid var(--border-color, #eaecf0); }
 .monthly-invoices__row small { display: block; color: var(--text-muted, #667085); font-size: .8rem; }

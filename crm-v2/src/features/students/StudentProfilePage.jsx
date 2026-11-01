@@ -31,6 +31,7 @@ import BillingSettingsCard from './BillingSettingsCard.jsx';
 import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import StudentForm from './StudentForm.jsx';
 import StudentAccountCard from './StudentAccountCard.jsx';
+import LessonBalanceCard from './LessonBalanceCard.jsx';
 import LessonTokensCard from './LessonTokensCard.jsx';
 import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
@@ -265,6 +266,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         {activeTab === 'finance' && canViewFinance ? <>
           <BillingSettingsCard student={student} plan={state.plan} canEdit={canAssignTeacher}
             onSave={async (values) => { const plan = await planApi.save(student, values, currentUser, state.plan); setState((current) => ({ ...current, plan })); }} />
+          <LessonBalanceCard student={student} plan={state.plan} invoices={state.invoices} lessons={state.lessons} />
           <LessonTokensCard student={student} {...(tokensApi ? { service: tokensApi } : {})} />
           <StudentFinancePanel student={student} invoices={state.invoices} />
         </> : null}
