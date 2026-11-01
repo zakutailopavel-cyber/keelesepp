@@ -1,3 +1,11 @@
+## 2026-11-01 · accounting: two bookkeepings, #926 and #925 shipped, 8 invoices marked
+
+- Owner 2026-11-01: the accountant's books are separate from the CRM's finance and hold only invoices paid by invoice; anything she needs may be changed and shipped. Recorded in `docs/ACCOUNTING.md`.
+- Shipped: `firestore:rules`, `functions:financeApi`, hosting with the merges of #926 and #925.
+- Production: mark „Ei kuulu raamatupidamisse” set on KS-2026-004, 031, 063, 066, 076, 080, 087, 098 by an admin SDK script using `accounting-core` (same fields, tombstones and `financialAudit`, ids `exclude-20261101-*`). 12 entries tombstoned; 9 more had been deleted by the accountant on 2026-10-31. No live entry remains on these invoices. Invoice money, PDFs and balances unchanged.
+- Not done: 4 unpaid „Ootel” invoices still have entries, and the „mixed” and „unknown” cases of the 2026-10-30 report are untouched; an automatic rule „only paid invoices” is not built. The TSD tab and the mark were not opened in the browser after deploy.
+- Next safe step: the accountant says whether unpaid invoices should leave the books automatically.
+
 ## 2026-10-30 · agent/accounting-tsd — Raamatupidamine: tab „TSD” (the accountant's „табель по зарплате”, owner's request)
 
 - Base: `main` 0a7c4d3, checked 2026-10-30. No deploy, no merge, no production writes (read-only admin SDK reads: `workSessions`,
