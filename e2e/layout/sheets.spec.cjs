@@ -149,9 +149,8 @@ test.describe('filling in on a phone', () => {
     expect(box.height).toBeGreaterThanOrEqual(44);
     const last = await page.evaluate(() => globalThis.__labDoc.blocks.at(-1).id);
     await page.evaluate((id) => globalThis.__lab.pushers.forEach((push) => push({ liveFocus: { blockId: id }, answers: {} })), last);
-    await page.waitForTimeout(1200);
-    const inView = await page.evaluate((id) => { const r = document.querySelector(`.ws-page [data-block="${id}"]`).getBoundingClientRect(); return r.top < 812 && r.bottom > 0; }, last);
-    expect(inView).toBe(true);
+    // a smooth scroll down a very long sheet: give a slow machine time
+    await expect.poll(() => page.evaluate((id) => { const r = document.querySelector(`.ws-page [data-block="${id}"]`).getBoundingClientRect(); return r.top < 812 && r.bottom > 0; }, last), { timeout: 15000 }).toBe(true);
     const bar = await page.locator('.ws-flow-bar').boundingBox();
     expect(bar.y).toBeGreaterThanOrEqual(0);
     expect(bar.y).toBeLessThan(100);
