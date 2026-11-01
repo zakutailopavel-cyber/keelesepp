@@ -9,6 +9,14 @@
 - Browser memory only: `ks-feedback-seen-<uid>` (opening „Minu areng” counts as having seen the feedback; on a new device feedback of the last 14 days counts as new).
 - Known: an open announcement normally stops the learner at the gate first, so the announcement and availability lines appear only when the gate timed out or the school publishes during a session. The pet tile is a placeholder for the pet loop (agent/pet-loop).
 - Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/sheet-error-text — the error list and review cards show the chosen option's text, not its number
+
+- Checked `origin/main` 33e6861. From a live-site walkthrough. No production reads or writes, no deploy.
+- Cause: a task with options stores the option's number, and `errorText.js` printed it. Grading is not affected: `choice.score` compares stored number with right number (a test added in `registry.scoring.test.js`).
+- Changed: an optional block contract `answerText(data, key, value)` (and `expectedText(data, key)` for `match`) on `choice`, `truefalse`, `match`, `cloze`, `insertion`, `examlisten`, `categorize`; `givenAnswer()` in `engine/errorText.js`, read by `describeAutoErrors` („õpilane valis „…””) and `errorCards.js`. Conversion happens at display, so errors already stored read correctly.
+- Same bug found in `errorCards.js`: a wrong sentence choice made a review card „Sinu lause: 1”. New cards are right. Cards already in `studentWords` keep the number: fixing them is a production write and was not done.
+- Checks: see the PR. Not opened in a browser.
+- Next safe step: the owner decides whether to clean the old „Sinu lause: <number>” cards in production.
 ## 2026-11-01 · agent/home-counts — home counts active students' homework, shows works to review, unmarked lessons no longer fall off
 
 - Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy.

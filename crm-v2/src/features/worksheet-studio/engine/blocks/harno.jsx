@@ -121,6 +121,8 @@ export const examlisten = {
     );
   },
   answers: (data) => listenInner(data).answers(data),
+  answerText: (data, key, value) => listenInner(data).answerText?.(data, key, value) || '',
+  expectedText: (data, key) => listenInner(data).expectedText?.(data, key) || '',
   score: (data, get, block) => listenInner(data).score(data, get, block),
   example: (data) => listenInner(data).example?.(data) || {},
   Editor: ({ data, set }) => {
