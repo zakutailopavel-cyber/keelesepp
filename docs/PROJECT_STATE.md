@@ -75,6 +75,15 @@
 - Seaded and menu: `roleLabels` in `utils/roles.js`; Firebase row, support row and account UID only for staff. Texts: „1 tund”, „1 sõnum”, „1 arve”, lead arrival as a Tallinn date (`LeadsPage.jsx`).
 - Checks: see the PR.
 - Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/route-access — routes.jsx and accessPolicy.js agree
+
+- Base: `main` ee2eac1, checked 2026-11-01. Client-side routing only; Firestore rules and functions unchanged, so this is not a data boundary.
+- `routes.jsx`: `/homework` and `/messages` behind `ACCESS.HOMEWORK` and `ACCESS.MESSAGES` (finance-only accounts now reach /forbidden). `/library/worksheet-generator/{avasta-module-1,module-1-three-phase,course,health}` moved from the STAFF group to ADMIN; each page already refused a non-admin itself. Admin, parent and student access unchanged.
+- `accessPolicy.js` new entries: `/library/raamatukogu` and `/library/worksheet-generator` STAFF (`LessonWorksheetSet` links coverage to teachers), `module-1-three-phase`, `health`, `/finance/ostuarved`, `/ai/connect` ADMIN. `landingPath` now sends someone without access to these to `/` after sign-in, not to the forbidden page.
+- New `app/routeAccess.test.jsx` walks the route tree and compares it with the policy in both directions; a new route without an entry fails it.
+- Checks: `npx eslint --quiet src` clean; vitest result in the PR. Not opened in a browser or on the live site.
+- Next safe step: the owner confirms that the finance role needs neither Kodutööd nor Suhtlus.
+
 ## 2026-11-01 · agent/a2-m20-final-2 — A2 module 20 „A2 eksam ja iseseisev keelekasutus” in the final shape (last A2 module)
 
 - Base: `main` b13d41e, checked 2026-11-01. Content only; no production data, no publishing, no deploy. Paid services: none (TartuNLP is free).
