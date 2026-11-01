@@ -6,6 +6,14 @@
 - Checks: final shape module 7 0 → 0, baselines unchanged; `eslint --quiet src` clean; `vitest run src/features/worksheet-generator src/features/pet` 1070 passed, 7 skipped; language check 3 lower-case unknowns, all old (`-ge`, `-ke` endings, the value `kusimustik`).
 - Limits: lessons 031 and 032 not touched; S17 and R14 are catalogue ids first made for B2, the B1 gates accept them. The textbook photos were not opened.
 - Next safe step: the owner merges the PR; publishing the changed sheets stays his decision.
+## 2026-11-01 · agent/book-b1-m02 — B1 module 2: love and friendship vocabulary and tasks from the textbook themes
+
+- Checked `origin/main` `64248e4`. Owner: „улучшаем б1 и б2 модули”; themes from „Minu eesti keel” pp. 28–46 only, all texts written here, no book text used.
+- Changed: `b1/module02.js`, `b1/lessonGoals.js` (006–009). 006 quarrel in the story, retelling as Helgi from a given first sentence, Oskar's grandparents' love story; 007 usaldama, austama, hoolima, toetama, klapp; 008 forum post with three replies (`008_p_forum`, replaces `008_p_stories`), the learner's reply (`008_p_reply`), noticing a friend's trouble (`008_p_friend`, replaces `008_p_found`); 009 Viktor's letter (`009_p_viktor`, replaces Liis's blog `009_p_blog`); 010 the cousins make up, words in the quiz, sort, error rows, R1. No listening transcript, image, lesson id or title changed.
+- New story facts, for `COURSE_CAST.md` (not in this PR's allowed files): in summer 1989 Maie fell for Sofia's father first and had two dates with him; he and Helgi married a year later; the cousins quarrelled by phone one Christmas Eve; they make up at the party. Forum names Epp, Raino, Tõnis, Salme, Marek; Anna's sister's fiancé Madis.
+- Checks: final shape module 2: 0 before, 0 after; baselines unchanged; `eslint --quiet src` clean; `vitest run src/features/worksheet-generator src/features/pet` 71 files passed, 1 skipped, 1070 tests passed, 7 skipped; `language.py`: 0 unknown except the genre value `kusimustik`.
+- Limits: „Millega ma sind aidata saaksin?” is a conditional before module 13, used as a fixed phrase on the owner's list; the V16 regex does not flag it. Vocabulary share is at the V14 limit: one more unknown box word in this module fails it.
+- Next safe step: owner reviews the PR; after merge, publish the module's sheets from Õppevara.
 
 ## 2026-11-01 · agent/school-plans-site — grade plans in Õppevara: a Matemaatika tab, grades in order, one record per topic
 
