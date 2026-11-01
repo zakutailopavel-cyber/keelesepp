@@ -16,6 +16,20 @@ describe('finance dashboard: lesson revenue (not the bookkeeping)', () => {
     expect(smoothPath([[0, 10], [10, 0], [20, 10]])).toMatch(/^M0,10 C/);
   });
 
+  it('a lesson of today already marked is held, not planned; a notified absence neither; unmarked stays planned', () => {
+    const today = '2026-10-05'; // a Monday: Mia's weekly lesson
+    const row = (lessons) => lessonRevenue({ months: ['2026-10'], today, students, plans, schedule, lessons })[0];
+    const unmarked = row([]);
+    expect(unmarked.unmarkedLessons).toBe(0);
+    const heldCentsBefore = unmarked.heldCents;
+    const marked = row([{ id: 'h', scheduleId: 'w1', studentId: 's1', date: today, status: 'Toimunud' }]);
+    expect(marked.heldCents).toBe(heldCentsBefore + 2500);
+    expect(marked.plannedLessons).toBe(unmarked.plannedLessons - 1);
+    const notified = row([{ id: 'n', scheduleId: 'w1', studentId: 's1', date: today, status: 'Puudus_p' }]);
+    expect(notified.heldCents).toBe(heldCentsBefore);
+    expect(notified.plannedLessons).toBe(unmarked.plannedLessons - 1);
+  });
+
   it('a lesson is priced by its length and the subject’s own price', () => {
     expect(lessonPriceCents({ duration: 90 }, students[0], plans[0])).toBe(3750);
     expect(lessonPriceCents({ duration: 45, subject: 'Matemaatika' }, { ...students[0], subjects: ['Eesti keel', 'Matemaatika'] }, plans[0])).toBe(3000);

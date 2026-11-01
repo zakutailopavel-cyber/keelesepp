@@ -1,6 +1,6 @@
 ## 2026-11-01 · agent/speed — pages load on demand, one course at a time, cache headers, fewer repeated reads
 
-- Base: `main` cb2c9b1, checked 2026-11-01. No deploy, no production access, no rules, indexes or functions changed.
+- Base: `main` eb19941, checked 2026-11-01. No deploy, no production access, no rules, indexes or functions changed.
 - First load (JS, gzip): 660 kB → 319 kB for every role (`main` chunk 391 → 49 kB). Kursuste tervis: 4586 kB → 1195 kB (A2), 1435 kB (B2). CSS unchanged on purpose, byte-identical `main-E1qftxn5.css`.
 - Changed:
   - `app/routes.jsx`, `app/HomePage.jsx`: every role's page is `lazy()`. `AppShell`: bell and pet lazy, pet only for students. `StudentProfilePage`: works tab lazy.
@@ -18,6 +18,16 @@
 - After the deploy: `curl -I` an `/assets/main-*.js` (immutable), `/` (`max-age=0`), `/assets/nope.js` (404), an `/audio/...mp3` (`max-age=86400`).
 - Next safe step: owner reviews and merges the PR, then the same four curl checks and the same pages are timed on the live site.
 
+## 2026-11-01 · agent/finance-truth — Ärinäitajad count today's marked lessons, „Lahkunud” means archived, Õpetajate võrdlus reads the calendar, unpaid sums say their period
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no change in how money is calculated.
+- `finance/businessReport.js`, `financeDashboard.js`: a lesson of today marked „Toimunud” or „Puudus_eta” is held, not planned (also journal-only ones). While the period runs `change` is null and the card says the previous period's number: no more −100% on the first of a month. New `plannedStudents`. A journal-only lesson with status „Tühistatud” is `cancelled`; it was `held`.
+- Public meaning changed: `lostStudents` („Lahkunud”) are archived cards only. New `quietStudents` („Ilma tulevase tunnita”) are active cards with no lesson now or ahead, by `calendar/unplannedStudents.js`, the same rule as home. A paused card is in neither list.
+- `teachers/teacherReport.js`, `TeacherReportCard.jsx`, `TeachersPage.jsx`: „Tunde” comes from `lessonFacts` (calendar + groups + journal), unmarked past lessons counted and named, a group lesson once. It read only the journal, so a teacher who does not mark showed 0. Field `unmarked` added to the row.
+- Unpaid labels only: home „kõik kuud”, Finantsid „selle kuu arved”, Lapsevanemad „kõik kuud · seotud laste arved”.
+- Finding, not changed (owner: no change in money logic): home and Lapsevanemad use `invoiceBalanceCents`, which does not skip cancelled, credited or hand-paid „Makstud” invoices without payment fields; Finantsid uses `financeRowState`, which does. Lapsevanemad adds up per parent, so an invoice of a child with two parent accounts counts twice, and an invoice of a card with no parent account does not count. So the sums can differ even over the same period.
+- Checks: see the PR. Numbers on the live site not compared (35 „Lahkunud”, 0 „Tunde”): no production read.
+- Next safe step: the owner decides whether home and Lapsevanemad should use `financeRowState`.
 ## 2026-11-01 · agent/preview-fix — staff preview opens and closes without „Ligipääs puudub”
 
 - Checked `origin/main` 54fab88. From a live-site walkthrough. No production writes, no deploy.
