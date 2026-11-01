@@ -5,7 +5,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, Input, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
-import { hasAnyRole, ROLES } from '../../utils/roles.js';
+import { hasAnyRole, ROLES, roleLabels } from '../../utils/roles.js';
 import { teacherScopeMigrationApi } from '../../services/firebase/teacherScopeMigrationApi.js';
 import { parentsService } from '../../services/firebase/parents.js';
 import { authService } from '../../services/firebase/auth.js';
@@ -175,11 +175,14 @@ export default function SettingsPage({ parentRepository = parentsService, studen
 
   return <div className="page-content">
     <PageHeader eyebrow="Konto" title="Seaded" description="Sinu kontaktandmed, ligipääs ja konto turvalisus." />
-    <PeopleOverview label="Konto kokkuvõte" eyebrow="Turvaline konto" title={user.displayName || 'Minu seaded'} description="Profiil, rollid, ühendused ja tugivahendid ühes kontrollitud vaates." metrics={[
+    <PeopleOverview label="Konto kokkuvõte" eyebrow="Turvaline konto" title={user.displayName || 'Minu seaded'} description={isStaff ? 'Profiil, rollid, ühendused ja tugivahendid ühes kontrollitud vaates.' : 'Sinu andmed, roll ja konto turvalisus.'} metrics={[
       { icon: UserRound, label: 'Profiil', value: form.displayName ? 'Valmis' : 'Puudulik', hint: form.phone ? 'telefon lisatud' : 'telefon puudub' },
-      { icon: ShieldCheck, label: 'Rollid', value: user.roles.length, hint: user.roles.join(', ') },
-      { icon: Database, label: 'Firebase', value: configured ? 'Ühendatud' : 'Puudub', hint: 'andmed ja autentimine' },
-      { icon: Eye, label: 'Tugivaade', value: isAdmin ? 'Saadaval' : 'Piiratud', hint: isAdmin ? 'administraatorile' : 'vastavalt rollile' },
+      { icon: ShieldCheck, label: 'Rollid', value: user.roles.length, hint: roleLabels(user.roles) },
+      // the database connection and the support view mean nothing to a student or a parent
+      ...(isStaff ? [
+        { icon: Database, label: 'Firebase', value: configured ? 'Ühendatud' : 'Puudub', hint: 'andmed ja autentimine' },
+        { icon: Eye, label: 'Tugivaade', value: isAdmin ? 'Saadaval' : 'Piiratud', hint: isAdmin ? 'administraatorile' : 'vastavalt rollile' },
+      ] : []),
     ]} />
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
@@ -187,8 +190,8 @@ export default function SettingsPage({ parentRepository = parentsService, studen
     {tab === 'konto' ? <section className="settings-grid">
       <Card className="settings-profile-card"><div className="settings-icon"><UserRound /></div><h2>Minu andmed</h2><form className="settings-profile-form" onSubmit={save}><Input id="settings-name" label="Nimi" autoComplete="name" required maxLength="160" value={form.displayName} onChange={(event) => setForm({ ...form, displayName: event.target.value })} /><Input id="settings-phone" label="Telefon" type="tel" autoComplete="tel" maxLength="40" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /><Input id="settings-email" label="E-post" type="email" value={user.email} disabled /><p className="form-hint">E-posti või rolli muutmiseks pöördu administraatori poole.</p><Button type="submit" loading={saving}><Save size={17} /> Salvesta andmed</Button></form></Card>
       {hasAnyRole(user.roles, [ROLES.STUDENT]) && !preview ? <PetSettingsCard user={user} /> : null}
-      <Card><div className="settings-icon"><ShieldCheck /></div><h2>Ligipääs</h2><div className="detail-list"><div><dt>Kasutaja</dt><dd>{user.displayName}</dd></div><div><dt>E-post</dt><dd>{user.email}</dd></div><div><dt>Rollid</dt><dd>{user.roles.join(', ')}</dd></div><div><dt>Konto UID</dt><dd className="mono">{user.uid}</dd></div></div></Card>
-      <Card><div className="settings-icon"><KeyRound /></div><h2>Turvalisus</h2><p className="settings-copy">Parooli ei kuvata ega muudeta CRM-is otse. Firebase saadab turvalise taastamislingi ainult sinu praeguse konto e-posti aadressile.</p><Button variant="secondary" loading={resetting} onClick={resetPassword}>Saada parooli taastamise link</Button></Card>
+      <Card><div className="settings-icon"><ShieldCheck /></div><h2>Ligipääs</h2><div className="detail-list"><div><dt>Kasutaja</dt><dd>{user.displayName}</dd></div><div><dt>E-post</dt><dd>{user.email}</dd></div><div><dt>Rollid</dt><dd>{roleLabels(user.roles)}</dd></div>{isStaff ? <div><dt>Konto UID</dt><dd className="mono">{user.uid}</dd></div> : null}</div></Card>
+      <Card><div className="settings-icon"><KeyRound /></div><h2>Turvalisus</h2><p className="settings-copy">Parooli ei kuvata ega muudeta siin otse. Saadame turvalise taastamislingi ainult sinu konto e-posti aadressile.</p><Button variant="secondary" loading={resetting} onClick={resetPassword}>Saada parooli taastamise link</Button></Card>
     </section> : null}
     {tab === 'too' ? <section className="settings-grid">
       {isStaff ? <Card><div className="settings-icon"><Compass /></div><h2>Juhend</h2><p className="settings-copy">Süsteemi tutvustus õpetajale: esimesed sammud ja kõik KeeleSepa võimalused ühes kohas · Все возможности системы для учителя.</p><Link className="button button--secondary" to="/guide"><Compass size={17} /> Ava juhend</Link></Card> : null}
