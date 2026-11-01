@@ -6,6 +6,29 @@
 - Checks: `final-shape --course b2 --module 10` 0 → 0; baseline and strict quality baseline unchanged; eslint clean; vitest worksheet-generator + pet 1070 passed, 7 skipped (one earlier run under load had 1 failure that did not repeat in two re-runs); language check 1 unknown lower-case word, the technical value `kusimustik`.
 - Limit: 049 lost its word-order drill, so -ki / -gi returns there only in the notice, the reading and the letter rubric.
 - Next safe step: the owner reviews the PR; after merge add the new names to `docs/COURSE_CAST.md`.
+## 2026-11-01 · agent/book-b2-m09 — B2 module 9: lifestyle, sport-type and wellbeing words, four new task types
+
+- Base: `main` 64248e4. Own texts and tasks on themes from the owner's textbook pages; nothing copied. No audio, images, lesson ids or titles changed.
+- `b2/module09.js`: 041 info text + word box + retell (S07), versus cards rämpstoit / tervislik toit (S03, was S13), `041_p_verbs` removed; 043 `043_d_notsaid` (statements the notes do not make) replaces `043_d_map`, `043_p_swap` synonym swap (G14), wellbeing words in the R2b text and box; words reused in 042, 044, 045. `b2/lessonGoals.js`: g_vocab of 041, 042, 043.
+- Checks: final shape module 9 0 → 0, baselines unchanged, language check 0 unknown lower-case words.
+- Limit: sõltuvusained only in the 041 info text and a gloss, not reused later. Sheets not published.
+- Next safe step: owner reviews the PR; after merge publish module 9 sheets.
+## 2026-11-01 · agent/book-b1-m07 — B1 module 7: sport, lifestyle and wellbeing words from the textbook themes
+
+- Checked `origin/main` `64248e4`. Owner: improve B1 and B2 modules with the topics of „Minu eesti keel” (topics, single words and task types only; all texts ours).
+- Changed: `admin/course/b1/module07.js`, `b1/lessonGoals.js` (033, 034). 033: enesetunne, meeleolu, muretsema, pöörduma, hakkama saama, alla andma, abi otsima (box, diary, new phrase bank `033_t_phrases`, reply). 034: sport and lifestyle words (box + tip `034_p_words`), statements on a long text `034_p_sport` (R14) replaces Liis's `034_p_liis`, personal-question set with reasons `034_d_survey`, versus cards in `034_t_new` (now S17, was S01). 035: the words reused in the quiz, R1, R2, R3a, W1a, S1a. No transcript, image, lesson id or title changed.
+- New minor facts (not in `COURSE_CAST.md`, outside the allowed files): Sofia swims since school, Anna is learning; Liis runs and takes the stairs; Rein goes to the gym; Viktor learns chess from Arvo during the knee weeks.
+- Checks: final shape module 7 0 → 0, baselines unchanged; `eslint --quiet src` clean; `vitest run src/features/worksheet-generator src/features/pet` 1070 passed, 7 skipped; language check 3 lower-case unknowns, all old (`-ge`, `-ke` endings, the value `kusimustik`).
+- Limits: lessons 031 and 032 not touched; S17 and R14 are catalogue ids first made for B2, the B1 gates accept them. The textbook photos were not opened.
+- Next safe step: the owner merges the PR; publishing the changed sheets stays his decision.
+## 2026-11-01 · agent/book-b1-m02 — B1 module 2: love and friendship vocabulary and tasks from the textbook themes
+
+- Checked `origin/main` `64248e4`. Owner: „улучшаем б1 и б2 модули”; themes from „Minu eesti keel” pp. 28–46 only, all texts written here, no book text used.
+- Changed: `b1/module02.js`, `b1/lessonGoals.js` (006–009). 006 quarrel in the story, retelling as Helgi from a given first sentence, Oskar's grandparents' love story; 007 usaldama, austama, hoolima, toetama, klapp; 008 forum post with three replies (`008_p_forum`, replaces `008_p_stories`), the learner's reply (`008_p_reply`), noticing a friend's trouble (`008_p_friend`, replaces `008_p_found`); 009 Viktor's letter (`009_p_viktor`, replaces Liis's blog `009_p_blog`); 010 the cousins make up, words in the quiz, sort, error rows, R1. No listening transcript, image, lesson id or title changed.
+- New story facts, for `COURSE_CAST.md` (not in this PR's allowed files): in summer 1989 Maie fell for Sofia's father first and had two dates with him; he and Helgi married a year later; the cousins quarrelled by phone one Christmas Eve; they make up at the party. Forum names Epp, Raino, Tõnis, Salme, Marek; Anna's sister's fiancé Madis.
+- Checks: final shape module 2: 0 before, 0 after; baselines unchanged; `eslint --quiet src` clean; `vitest run src/features/worksheet-generator src/features/pet` 71 files passed, 1 skipped, 1070 tests passed, 7 skipped; `language.py`: 0 unknown except the genre value `kusimustik`.
+- Limits: „Millega ma sind aidata saaksin?” is a conditional before module 13, used as a fixed phrase on the owner's list; the V16 regex does not flag it. Vocabulary share is at the V14 limit: one more unknown box word in this module fails it.
+- Next safe step: owner reviews the PR; after merge, publish the module's sheets from Õppevara.
 
 ## 2026-11-01 · agent/school-plans-site — grade plans in Õppevara: a Matemaatika tab, grades in order, one record per topic
 
