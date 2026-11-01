@@ -251,6 +251,8 @@ export const categorize = {
     const all = groups.flatMap((g) => groupItems(g).map((w) => ({ w, name: g.name }))).sort((a, b) => a.w.localeCompare(b.w, 'et'));
     return all.map((x, i) => ({ key: `w${i}`, accept: [`${x.w} → ${x.name}`] }));
   },
+  // the stored answer is the group's number
+  answerText: (data, key, value) => (data.groups || [])[Number(value)]?.name || '',
   score: (data, get) => {
     const groups = data.groups || [];
     const all = groups.flatMap((g, gi) => groupItems(g).map((w) => ({ w, gi }))).sort((a, b) => a.w.localeCompare(b.w, 'et'));

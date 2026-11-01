@@ -77,10 +77,12 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
   const [speech, setSpeech] = useState([]);
   useEffect(() => {
     let alive = true;
-    if (readOnly || typeof repository.lessonStats !== 'function' || !user?.uid) return undefined;
-    Promise.resolve().then(() => repository.lessonStats(user.uid)).then((list) => { if (alive) setSpeech(list || []); }).catch(() => {});
+    // staff in a read-only preview read them by the card: the same pet the student sees
+    const load = readOnly ? (studentId ? () => repository.lessonStatsForStudents?.([studentId]) : null) : (user?.uid && repository.lessonStats ? () => repository.lessonStats(user.uid) : null);
+    if (!load) return undefined;
+    Promise.resolve().then(load).then((list) => { if (alive) setSpeech(list || []); }).catch(() => {});
     return () => { alive = false; };
-  }, [repository, readOnly, user?.uid]);
+  }, [repository, readOnly, studentId, user?.uid]);
   // the worksheets the teacher gave: their tasks become the pet's topic games (petGames.js)
   const [topics, setTopics] = useState([]);
   const lessonKey = lessons.map((l) => `${l.topicLessonId || ''}:${l.status || ''}`).join('|');

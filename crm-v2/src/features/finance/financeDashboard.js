@@ -47,6 +47,8 @@ export function smoothPath(points) {
 // held and planned, at each student's price; the accountant does the books herself) ----------
 
 const NOT_HELD = new Set(['Tühistatud', 'Puudus_p']);
+// a lesson of today already marked is held, not planned
+const MARKED_TODAY = new Set(['Toimunud', 'Puudus_eta']);
 
 // a lesson's price for a student: the subject's own price when it has one, the length in the plan's units
 export function lessonPriceCents(item, student, plan) {
@@ -59,8 +61,8 @@ export function lessonPriceCents(item, student, plan) {
   return Math.round(((Number(item.duration) || minutes) / minutes) * price);
 }
 
-// month by month: held lessons (past dates — marked „Toimunud” or a charged no-show, or still unmarked and not
-// cancelled) and planned lessons (from today on), each at its student's price; journal lessons that are not in the
+// month by month: held lessons (past dates and today's already marked — marked „Toimunud” or a charged no-show, or a
+// past one still unmarked and not cancelled) and planned lessons (from today on), each at its student's price; journal lessons that are not in the
 // calendar count as held
 export function lessonRevenue({ months = [], today, students = [], plans = [], schedule = [], groups = [], lessons = [] } = {}) {
   const studentById = new Map(students.map((student) => [student.id, student]));
@@ -87,7 +89,7 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
         const cents = lessonPriceCents(item, student, plan);
         if (!cents) { row.noPrice += 1; return; }
         const status = record?.status || item.status || 'Planeeritud';
-        if (item.occurrenceDate >= today) {
+        if (item.occurrenceDate >= today && !(item.occurrenceDate === today && MARKED_TODAY.has(status))) {
           if (!NOT_HELD.has(status)) { row.plannedCents += cents; row.plannedLessons += 1; }
           return;
         }
@@ -96,7 +98,7 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
       });
     });
     // a lesson written in the journal only (not in the calendar)
-    lessons.filter((lesson) => String(lesson.date || '').startsWith(`${month}-`) && lesson.date < today && !seen.has(lesson.id || `${lesson.studentId}@${lesson.date}`))
+    lessons.filter((lesson) => String(lesson.date || '').startsWith(`${month}-`) && (lesson.date < today || (lesson.date === today && MARKED_TODAY.has(lesson.status))) && !seen.has(lesson.id || `${lesson.studentId}@${lesson.date}`))
       .forEach((lesson) => {
         const student = studentById.get(lesson.studentId);
         const plan = planById.get(lesson.studentId);
