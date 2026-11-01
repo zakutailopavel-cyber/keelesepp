@@ -183,6 +183,22 @@ describe('ParentsPage', () => {
     expect([...document.querySelectorAll('.parent-card h2')].map((h) => h.textContent)).toEqual(['Teine Vanem']);
   });
 
+  it('a card matched only by the parent\'s e-mail is a suggestion with a way to link it, not an added child', async () => {
+    const data = repositories();
+    const karl = { id: 'student-3', name: 'Karl', parentEmail: 'TEINE@example.com', level: 'A2', subject: 'Eesti keel', teacher: 'Õpetaja', active: true };
+    data.studentRepository.list.mockResolvedValue({ items: [...students, karl] });
+    renderPage({ uid: 'admin-1', displayName: 'Admin', roles: ['admin'] }, data);
+    const card = (await screen.findByRole('heading', { name: 'Teine Vanem' })).closest('.parent-card');
+    expect(within(card).getByText('Sidumata')).toBeInTheDocument();
+    expect(card).toHaveTextContent('Lapsevanem ei näe neid enne sidumist');
+    expect(document.querySelector('.parent-review-queue')).toHaveTextContent('Sidumata, sobib e-posti järgi: Karl');
+    fireEvent.click(within(card).getByRole('button', { name: /Lisa laps/ }));
+    const row = within(screen.getByRole('dialog', { name: /Lisa laps: Teine Vanem/ })).getByText('Karl').closest('section');
+    expect(within(row).queryByText('Lisatud')).not.toBeInTheDocument();
+    fireEvent.click(within(row).getByRole('button', { name: 'Lisa' }));
+    await waitFor(() => expect(data.repository.linkStudent).toHaveBeenCalledWith(parents[1], expect.objectContaining({ id: 'student-3' }), expect.anything(), expect.anything()));
+  });
+
   it('a card with no parent account: the page says so instead of an empty list', async () => {
     const data = repositories();
     render(<MemoryRouter initialEntries={['/parents?student=student-2']}><AuthContext.Provider value={{ user: { uid: 'a', roles: ['admin'] } }}><ParentsPage {...data} /></AuthContext.Provider></MemoryRouter>);

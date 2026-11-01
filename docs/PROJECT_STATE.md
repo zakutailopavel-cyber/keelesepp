@@ -1,3 +1,17 @@
+## 2026-11-01 · agent/registration-fixes — registration: the administrator assigns the teacher, a parent gives the child's name, e-mail matches are suggestions
+
+- Base: `main` b13d41e, checked 2026-11-01. Redoes what is still missing and correct from draft #514 (2026-10-11); no deploy, no merge, no production access.
+- Owner's decision: the registering person chooses no teacher; the administrator assigns one on approval.
+- Registration (`LoginPage.jsx`, `auth.js`): no teacher field, a parent's child name is required (form, Google, service), `preferredTeacher` is no longer written.
+- Approval („Uued kontod”, `POST /accounts/approval`): select „Õpetaja (uuele õpilase kaardile)” (active teachers and admins, as the other pickers); new body field `teacherUid`, server checks it and writes `users.assignedTeacher` / `assignedTeacherUid`. A created card takes only that teacher; without one it is unassigned and the notice says so. The old default „Pavel” and the self-editable `preferredTeacher` are no longer used. The notice counts a created card once.
+- Linking (`account-bootstrap-core.js`): new reviews `parent_email_without_child_name`, `parent_email_other_child_name` (no duplicate next to a card with the parent's e-mail; a sibling named in the same registration does not count). A review the administrator decided stays decided on later sign-ins and its child name gets no new card (`reviewAlreadyDecided`, `decidedReviewChildNames`); this also stops „Jäta vahele” reviews coming back. Not in #514.
+- „Lapsevanemad” (`parentModel.js`, `ParentsPage.jsx`): a child is linked only with the account's uid on the card (or a self-payer's own card); e-mail and name matches are `suggestedChildren` with „Lisa laps”.
+- Dropped from #514: `haldus.html` (v1 removed 2026-10-19), `VITE_STAFF_OPERATIONS_API_URL` on sign-in (already in `main`).
+- Checks: see the PR. Emulator scenarios added to `functions/account-link-review-emulator.integration.js`; on this machine they need `JAVA_HOME=/opt/homebrew/opt/openjdk@21`.
+- Deploy (owner's approval): `functions:staffOperationsApi` before or with hosting; no rules. Until the function is live a chosen teacher is ignored and new parent cards get the old default „Pavel”.
+- Known: legacy accounts keep `preferredTeacher` (shown as „Soovitud õpetaja”, not used); after deploy an approved parent with no child name and an unlinked card with their e-mail gets a review at the next sign-in. `preferredTeacher` stays allowed in `firestore.rules`, unused.
+- Next safe step: the owner reviews the PR, merges it and deploys `functions:staffOperationsApi`.
+
 ## 2026-11-01 · accounting: two bookkeepings, #926 and #925 shipped, 8 invoices marked
 
 - Owner 2026-11-01: the accountant's books are separate from the CRM's finance and hold only invoices paid by invoice; anything she needs may be changed and shipped. Recorded in `docs/ACCOUNTING.md`.

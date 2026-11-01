@@ -3,6 +3,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  accountCardTeacher,
+  decidedReviewChildNames,
+  reviewAlreadyDecided,
   planParentChildBootstrap,
   planStudentAccountBootstrap,
 } = require("./account-bootstrap-core");
@@ -181,4 +184,73 @@ test("a second parent kept as a contact on the card is linked by e-mail at regis
     students: [{ id: "maksim", name: "Maksim Smirnov", parentEmail: "mum@example.com", linkedParentIds: ["mum-1"], parentContacts: [{ name: "Isa", email: "Dad@Example.com" }] }],
   });
   assert.deepEqual(result.map(item => [item.status, item.studentId]), [["link", "maksim"]]);
+});
+
+test("parent without a child name gets a review of the cards that carry the parent's e-mail", () => {
+  const result = planParentChildBootstrap({
+    uid: "parent-1",
+    email: "olga@example.com",
+    childNames: [],
+    students: [
+      { id: "mark", name: "Mark Ivanov", parentEmail: "OLGA@example.com" },
+      { id: "sofia", name: "Sofia Ivanova", parentEmail: "olga@example.com" },
+      { id: "linked", name: "Juba seotud", parentEmail: "olga@example.com", linkedParentIds: ["parent-1"] },
+      { id: "other", name: "Karl", parentEmail: "liis@example.com" },
+    ],
+  });
+  assert.equal(result.length, 1);
+  assert.equal(result[0].reason, "parent_email_without_child_name");
+  assert.deepEqual(result[0].candidates.map(item => item.id), ["mark", "sofia"]);
+  assert.deepEqual(planParentChildBootstrap({ uid: "parent-2", email: "new@example.com", childNames: [], students: [] }), []);
+});
+
+test("a new child name makes no duplicate next to an unlinked card with the parent's e-mail", () => {
+  const students = [{ id: "mark", name: "Mark Ivanov", parentEmail: "olga@example.com" }];
+  const result = planParentChildBootstrap({ uid: "parent-1", email: "olga@example.com", emailVerified: true, childNames: ["Markus"], students });
+  assert.equal(result[0].status, "review");
+  assert.equal(result[0].reason, "parent_email_other_child_name");
+  const fresh = planParentChildBootstrap({ uid: "parent-1", email: "olga@example.com", emailVerified: true, childNames: ["Lena"], students: [] });
+  assert.equal(fresh[0].status, "create");
+});
+
+test("two children in one registration: a sibling's card does not stop the new child", () => {
+  const result = planParentChildBootstrap({
+    uid: "parent-1",
+    email: "olga@example.com",
+    emailVerified: true,
+    childNames: ["Mark Ivanov", "Sofia"],
+    students: [{ id: "mark", name: "Mark Ivanov", parentEmail: "olga@example.com" }],
+  });
+  assert.deepEqual(result.map(plan => plan.status), ["link", "create"]);
+});
+
+test("after the administrator decided, the next sign-in neither repeats the question nor makes a duplicate", () => {
+  const decided = decidedReviewChildNames([
+    { childName: "Markus", relationship: "parent", status: "resolved", resolvedBy: { uid: "admin" } },
+    { childName: "Lena", relationship: "parent", status: "resolved", resolution: "bootstrap_exact_match" },
+    { childName: "Kati", relationship: "parent", status: "pending" },
+  ]);
+  assert.deepEqual(decided, ["Markus"]);
+  const students = [{ id: "mark", name: "Mark Ivanov", parentEmail: "olga@example.com", linkedParentIds: ["parent-1"] }];
+  assert.deepEqual(planParentChildBootstrap({ uid: "parent-1", email: "olga@example.com", emailVerified: true, childNames: ["Markus"], students, decidedChildNames: decided }), []);
+  // an exact card is still linked even if an older review on that name was decided
+  const exact = planParentChildBootstrap({ uid: "parent-1", email: "olga@example.com", emailVerified: true, childNames: ["Lena"], students: [{ id: "lena", name: "Lena", parentEmail: "olga@example.com" }], decidedChildNames: ["Lena"] });
+  assert.equal(exact[0].status, "link");
+});
+
+test("a decided review stays decided", () => {
+  const by = { uid: "admin" };
+  const plan = { reason: "parent_email_other_child_name", candidates: [{ id: "a" }] };
+  assert.equal(reviewAlreadyDecided(null, plan), false);
+  assert.equal(reviewAlreadyDecided({ status: "pending" }, plan), false);
+  assert.equal(reviewAlreadyDecided({ status: "resolved", resolution: "bootstrap_exact_match" }, plan), false);
+  assert.equal(reviewAlreadyDecided({ status: "dismissed", resolvedBy: by, candidateStudentIds: ["a"] }, plan), true);
+  assert.equal(reviewAlreadyDecided({ status: "dismissed", resolvedBy: by, candidateStudentIds: [] }, plan), false, "a new card is a new question");
+  assert.equal(reviewAlreadyDecided({ status: "resolved", resolvedBy: by }, plan), true);
+  assert.equal(reviewAlreadyDecided({ status: "resolved", resolvedBy: by }, { reason: "parent_email_without_child_name", candidates: [{ id: "b" }] }), false, "the other child's card is still open");
+});
+
+test("a card gets only the teacher the administrator assigned", () => {
+  assert.deepEqual(accountCardTeacher({ preferredTeacher: "Pavel", teacher: "Jelena" }), { name: "", uid: "" });
+  assert.deepEqual(accountCardTeacher({ assignedTeacherUid: "t1", assignedTeacher: "Mari Tamm", preferredTeacher: "Pavel" }), { name: "Mari Tamm", uid: "t1" });
 });

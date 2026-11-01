@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Check, UserRoundCheck, UserRoundX, X } from 'lucide-react';
-import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
+import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountApprovalsService } from '../../services/firebase/index.js';
 import { APPROVAL_RESPONSE_LOST_MESSAGE } from '../../services/firebase/accountApprovals.js';
@@ -10,12 +10,14 @@ import './accounts.css';
 const ROLE = { parent: 'Lapsevanem', student: 'Õpilane' };
 const TABS = [['pending', 'Ootel'], ['rejected', 'Keeldutud']];
 
-function linkedText(result) {
+function linkedText(result, teacherUid = '') {
   if (result.responseLost) return APPROVAL_RESPONSE_LOST_MESSAGE;
-  const linked = (result.linkedStudentIds?.length || 0) + (result.createdStudentIds?.length || 0);
+  // a created card is also in linkedStudentIds: count each card once
+  const linked = new Set([...(result.linkedStudentIds || []), ...(result.createdStudentIds || [])]).size;
   const parts = ['Konto kinnitatud.'];
   if (result.reviewCount) parts.push('Sarnane õpilase kaart on juba olemas — vali allpool „Vajab otsust”, kas siduda või luua uus kaart.');
   else parts.push(linked ? `Seotud õpilase kaarte: ${linked}.` : 'Õpilase kaarti automaatselt ei leitud — seo see vajadusel õpilase kaardil.');
+  if (result.createdStudentIds?.length && !teacherUid) parts.push('Uuel kaardil pole õpetajat: määra see õpilase kaardil.');
   if (result.mailed) parts.push('Inimesele saadeti e-kiri.');
   else if (result.mailPending) parts.push('E-kirja saatmine ei ole veel kinnitatud.');
   return parts.join(' ');
@@ -29,6 +31,9 @@ export default function AccountsPage({ service = accountApprovalsService }) {
   const [error, setError] = useState('');
   const state = useAsyncData(() => service.list(tab), [service, tab]);
   const reviewsState = useAsyncData(() => (service.listReviews ? service.listReviews() : Promise.resolve([])), [service]);
+  const teachersState = useAsyncData(() => (service.listTeachers ? service.listTeachers() : Promise.resolve([])), [service]);
+  const [teacherFor, setTeacherFor] = useState({});
+  const teacherOf = (account) => teacherFor[account.id] ?? account.assignedTeacherUid ?? '';
 
   const decide = async (account, decision) => {
     let reason = '';
@@ -38,8 +43,9 @@ export default function AccountsPage({ service = accountApprovalsService }) {
     }
     setBusy(account.id); setError(''); setNotice('');
     try {
-      const result = await service.decide({ uid: account.id, decision, reason });
-      setNotice(decision === 'approve' ? linkedText(result) : `Konto „${account.displayName}” on keeldutud.`);
+      const teacherUid = decision === 'approve' ? teacherOf(account) : '';
+      const result = await service.decide({ uid: account.id, decision, reason, ...(teacherUid ? { teacherUid } : {}) });
+      setNotice(decision === 'approve' ? linkedText(result, teacherUid) : `Konto „${account.displayName}” on keeldutud.`);
       state.reload();
       reviewsState.reload();
     } catch (caught) {
@@ -68,10 +74,15 @@ export default function AccountsPage({ service = accountApprovalsService }) {
                 <span>{account.email}</span>
                 <dl>
                   {account.role === 'parent' ? <><dt>Laps</dt><dd>{account.childName || '—'}</dd></> : null}
-                  {account.preferredTeacher ? <><dt>Õpetaja</dt><dd>{account.preferredTeacher}</dd></> : null}
+                  {account.preferredTeacher ? <><dt>Soovitud õpetaja</dt><dd>{account.preferredTeacher}</dd></> : null}
                   <dt>Registreerus</dt><dd>{account.createdAt || '—'}</dd>
                   {account.approvalReason ? <><dt>Põhjus</dt><dd>{account.approvalReason}</dd></> : null}
                 </dl>
+                {/* the administrator assigns the teacher; it goes on a card that approval creates */}
+                <Select label="Õpetaja (uuele õpilase kaardile)" value={teacherOf(account)} disabled={Boolean(busy)} onChange={(event) => setTeacherFor((current) => ({ ...current, [account.id]: event.target.value }))}>
+                  <option value="">Määramata</option>
+                  {(teachersState.data || []).map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.name}</option>)}
+                </Select>
               </div>
               <div className="account-row__actions">
                 <Button loading={busy === account.id} disabled={Boolean(busy)} onClick={() => decide(account, 'approve')}>{tab === 'rejected' ? <UserRoundCheck size={16} /> : <Check size={16} />} {tab === 'rejected' ? 'Kinnita siiski' : 'Kinnita'}</Button>

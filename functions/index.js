@@ -120,6 +120,9 @@ const {
 const { collectTrustedRoles, isDisabledProfile } = require("./auth-core");
 const { originAllowed } = require("./cors-origin-core");
 const {
+  accountCardTeacher,
+  decidedReviewChildNames,
+  reviewAlreadyDecided,
   normalizeEmail: normalizeAccountEmail,
   normalizeName: normalizeAccountName,
   planParentChildBootstrap,
@@ -6892,11 +6895,6 @@ function accountChildNames(value) {
   return [...new Set(String(value || "").split(/[,\n;|]+/).map(name => name.trim()).filter(Boolean))];
 }
 
-function accountTeacherDirectoryKey(value) {
-  const first = String(value || "").trim().toLowerCase().split(/\s+/)[0] || "";
-  return ({ jelena: "elena", elena: "elena", elizaveta: "yelyzaveta", yelyzaveta: "yelyzaveta", angelina: "anhelina", anhelina: "anhelina" })[first] || first;
-}
-
 // A new student card for a self-registered account: the student's own card ("student") or a child card of a
 // parent ("parent"). Used by the automatic bootstrap and by the administrator's „Loo uus kaart” on a link review.
 function bootstrapStudentCardData({
@@ -6956,6 +6954,8 @@ const LINK_REVIEW_REASONS = {
   parent_child_name_variant: "Lapse nimi sarnaneb olemasoleva kaardiga",
   parent_email_not_verified: "Lapse kaart on olemas, kuid vanema e-post ei ole kinnitatud",
   parent_email_and_name_multiple_students: "Mitu sobivat lapse kaarti",
+  parent_email_without_child_name: "Lapse nime ei sisestatud, kuid vanema e-postiga on lapse kaart",
+  parent_email_other_child_name: "Vanema e-postiga on teise nimega lapse kaart",
   email_on_child_card: "Sama e-post on lapse kaardil: kas see on lapsevanema konto? Siis seo lapsevanemana",
   possible_existing_card: "Sarnane kaart on juba olemas (ka mitteaktiivne): kas see on sama inimene?",
 };
@@ -6998,10 +6998,7 @@ async function createStudentForLinkReview({ actor, reviewId }) {
   const relationship = review.relationship === "parent" ? "parent" : "student";
   let authUser;
   try { authUser = await admin.auth().getUser(uid); } catch (error) { throw httpError(404, "Firebase account not found"); }
-  const [profileSnap, directorySnap] = await Promise.all([
-    db.collection("users").doc(uid).get(),
-    db.collection("securityConfig").doc("teacherDirectoryV1").get(),
-  ]);
+  const profileSnap = await db.collection("users").doc(uid).get();
   const profile = profileSnap.exists ? profileSnap.data() : {};
   const roles = collectTrustedRoles(profile, { uid });
   const isParent = roles.has("parent");
@@ -7009,8 +7006,7 @@ async function createStudentForLinkReview({ actor, reviewId }) {
   const displayName = cleanText(profile.displayName || authUser.displayName || email || "Õpilane", 180);
   const childName = cleanText(review.childName, 180);
   if (relationship === "parent" && !childName) throw httpError(400, "Child name missing");
-  const preferredTeacher = cleanText(profile.preferredTeacher || profile.teacher || (isParent ? "Pavel" : ""), 180);
-  const teacherUid = String(directorySnap.data()?.teachers?.[accountTeacherDirectoryKey(preferredTeacher)] || "");
+  const { name: preferredTeacher, uid: teacherUid } = accountCardTeacher(profile);
   const studentId = relationship === "student"
     ? `self_${uid}`
     : `parent_${uid}_${accountBootstrapKey(childName).slice(0, 12)}`;
@@ -7065,16 +7061,16 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   const emailVerified = decoded.email_verified === true;
   const displayName = cleanText(profile.displayName || decoded.name || email || "Õpilane", 180);
   const childNames = accountChildNames(profile.childName);
-  const [studentSnap, directorySnap] = await Promise.all([
+  const [studentSnap, accountReviewSnap] = await Promise.all([
     db.collection("students").get(),
-    db.collection("securityConfig").doc("teacherDirectoryV1").get(),
+    db.collection("accountLinkReviews").where("uid", "==", uid).get(),
   ]);
   const students = studentSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  const preferredTeacher = cleanText(profile.preferredTeacher || profile.teacher || (isParent ? "Pavel" : ""), 180);
-  const teacherUid = String(directorySnap.data()?.teachers?.[accountTeacherDirectoryKey(preferredTeacher)] || "");
+  const existingReviews = new Map(accountReviewSnap.docs.map(doc => [doc.id, doc.data()]));
+  const { name: preferredTeacher, uid: teacherUid } = accountCardTeacher(profile);
   const plans = [];
   if (shouldBootstrapStudent) plans.push({ relationship: "student", ...planStudentAccountBootstrap({ uid, email, emailVerified, displayName, students }) });
-  if (isParent) planParentChildBootstrap({ uid, email, emailVerified, childNames, students }).forEach(plan => plans.push({ relationship: "parent", ...plan }));
+  if (isParent) planParentChildBootstrap({ uid, email, emailVerified, childNames, students, decidedChildNames: decidedReviewChildNames([...existingReviews.values()]) }).forEach(plan => plans.push({ relationship: "parent", ...plan }));
 
   const fingerprint = accountBootstrapKey(uid, [...roles].sort().join(","), childNames.map(name => name.toLowerCase()).sort().join("|"), email, includeSelfStudent ? "self" : "family");
   const auditRef = db.collection("activityLog").doc(`account-bootstrap-${fingerprint}`);
@@ -7087,6 +7083,7 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   plans.forEach(plan => {
     if (plan.status === "review") {
       const reviewId = accountBootstrapKey(uid, plan.relationship, plan.childName || "", plan.reason);
+      if (reviewAlreadyDecided(existingReviews.get(reviewId), plan)) return;
       reviews.push({ id: reviewId, relationship: plan.relationship, reason: plan.reason, childName: plan.childName || "", candidates: plan.candidates || [] });
       batch.set(db.collection("accountLinkReviews").doc(reviewId), {
         uid,
@@ -8616,7 +8613,7 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
     // Administrator approves or rejects a self-registered account. Approval links the student card(s) at once
     // and tells the person by e-mail; until then the account has no access (rules + isDisabledProfile).
     if (req.path === "/accounts/approval") {
-      const { approvalUpdate, composeApprovedEmail } = require("./account-approval-core");
+      const { approvalUpdate, assignedTeacherFields, composeApprovedEmail } = require("./account-approval-core");
       const targetUid = cleanText(req.body?.uid, 180);
       if (!targetUid) throw httpError(400, "Account uid required");
       const profileRef = db.collection("users").doc(targetUid);
@@ -8627,6 +8624,13 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       try {
         update = approvalUpdate({ decision: req.body?.decision, actor: actorSnapshot(actor), nowIso, reason: req.body?.reason });
       } catch (error) { throw httpError(400, error.message); }
+      const assignedTeacherUid = update.approvalStatus === "approved" ? cleanText(req.body?.teacherUid, 180) : "";
+      if (assignedTeacherUid) {
+        const teacherSnap = await db.collection("users").doc(assignedTeacherUid).get();
+        try {
+          Object.assign(update, assignedTeacherFields(assignedTeacherUid, teacherSnap.exists ? teacherSnap.data() : null));
+        } catch (error) { throw httpError(400, error.message); }
+      }
       await profileRef.update(update);
       const profile = { ...profileSnap.data(), ...update };
       let linked = null;

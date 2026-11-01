@@ -86,3 +86,72 @@ test('a student linked as a parent keeps both roles as signed claims', async () 
   const claims = (await admin.auth().getUser(olena.uid)).customClaims || {};
   assert.deepEqual([...claims.roles].sort(), ['parent', 'student']);
 });
+
+// owner: the registering person chooses no teacher, the administrator assigns one on approval
+test('approval: the teacher the administrator assigned goes on the new card; nobody else can be assigned', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const db = admin.firestore();
+  const owner = await signUp('approve-admin');
+  await db.doc(`users/${owner.uid}`).set({ role: 'admin', roles: ['admin'] });
+  const teacher = await signUp('approve-teacher');
+  await db.doc(`users/${teacher.uid}`).set({ role: 'teacher', displayName: 'Jaan Kask' });
+  const closed = await signUp('approve-closed');
+  await db.doc(`users/${closed.uid}`).set({ role: 'teacher', displayName: 'Kinni Kask', disabled: true });
+  const parent = await signUp('approve-parent');
+  const childName = `Lena${parent.uid.slice(0, 6)}`;
+  await db.doc(`users/${parent.uid}`).set({ role: 'parent', displayName: 'Mari Ema', email: parent.email, childName, preferredTeacher: 'Pavel', approvalStatus: 'pending' });
+
+  const refused = await api(owner, '/accounts/approval', { uid: parent.uid, decision: 'approve', teacherUid: closed.uid });
+  assert.equal(refused.status, 400, JSON.stringify(refused.body));
+  assert.equal((await db.doc(`users/${parent.uid}`).get()).data().approvalStatus, 'pending', 'a refused teacher changes nothing');
+
+  const approved = await api(owner, '/accounts/approval', { uid: parent.uid, decision: 'approve', teacherUid: teacher.uid });
+  assert.equal(approved.status, 200, JSON.stringify(approved.body));
+  assert.equal(approved.body.createdStudentIds.length, 1);
+  const card = (await db.doc(`students/${approved.body.createdStudentIds[0]}`).get()).data();
+  assert.equal(card.teacher, 'Jaan Kask');
+  assert.equal(card.teacherUid, teacher.uid);
+  assert.equal(card.parentUid, parent.uid);
+  const profile = (await db.doc(`users/${parent.uid}`).get()).data();
+  assert.equal(profile.assignedTeacherUid, teacher.uid);
+
+  // without an assignment the card stays unassigned: the old default „Pavel” and the person's own wish are not used
+  const other = await signUp('approve-other');
+  const otherChild = `Kati${other.uid.slice(0, 6)}`;
+  await db.doc(`users/${other.uid}`).set({ role: 'parent', displayName: 'Teine Ema', email: other.email, childName: otherChild, preferredTeacher: 'Pavel', approvalStatus: 'pending' });
+  const plain = await api(owner, '/accounts/approval', { uid: other.uid, decision: 'approve' });
+  assert.equal(plain.status, 200, JSON.stringify(plain.body));
+  const plainCard = (await db.doc(`students/${plain.body.createdStudentIds[0]}`).get()).data();
+  assert.equal(plainCard.teacher, '');
+  assert.equal(plainCard.teacherUid, '');
+});
+
+test('a parent whose e-mail is on a card with another name: reviewed once, no duplicate after the decision', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const db = admin.firestore();
+  const owner = await signUp('dup-admin');
+  await db.doc(`users/${owner.uid}`).set({ role: 'admin', roles: ['admin'] });
+  const parent = await signUp('dup-parent');
+  const cardId = `dup-card-${parent.uid}`;
+  await db.doc(`students/${cardId}`).set({ name: 'Mark Ivanov', parentEmail: parent.email, active: true });
+  await db.doc(`users/${parent.uid}`).set({ role: 'parent', displayName: 'Olga', email: parent.email, childName: 'Markus', approvalStatus: 'pending' });
+  const ownCards = async () => (await db.collection('students').where('parentUid', '==', parent.uid).get()).docs.map((doc) => doc.id);
+
+  const approved = await api(owner, '/accounts/approval', { uid: parent.uid, decision: 'approve' });
+  assert.equal(approved.status, 200, JSON.stringify(approved.body));
+  assert.deepEqual(approved.body.createdStudentIds, [], 'no card next to the one with the same e-mail');
+  assert.equal(approved.body.reviewCount, 1);
+  const listed = (await api(owner, '/accounts/reviews')).body.reviews.find((item) => item.uid === parent.uid);
+  assert.equal(listed.reason, 'parent_email_other_child_name');
+  assert.equal(listed.reasonText, 'Vanema e-postiga on teise nimega lapse kaart');
+
+  const linked = await api(owner, '/accounts/link', { uid: parent.uid, studentId: cardId, relationship: 'parent', requestId: `dup-${parent.uid}` });
+  assert.ok(linked.status >= 200 && linked.status < 300, JSON.stringify(linked.body));
+  assert.equal((await db.doc(`accountLinkReviews/${listed.id}`).get()).data().status, 'resolved');
+
+  // the next sign-in runs the linking again
+  const again = await api(owner, '/accounts/bootstrap-admin', { uid: parent.uid });
+  assert.equal(again.status < 300, true, JSON.stringify(again.body));
+  assert.deepEqual(await ownCards(), [cardId], 'no duplicate card „Markus”');
+  assert.equal((await db.doc(`accountLinkReviews/${listed.id}`).get()).data().status, 'resolved', 'the question is not asked again');
+});

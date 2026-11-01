@@ -36,13 +36,12 @@ export const TERMS_VERSION = '2025-08-10';
 export const TEST_SESSION_KEY = 'keelesepp.testStudentSession';
 export function testSessionName() { try { return globalThis.sessionStorage?.getItem(TEST_SESSION_KEY) || ''; } catch { return ''; } }
 export function clearTestSession() { try { globalThis.sessionStorage?.removeItem(TEST_SESSION_KEY); } catch { /* storage blocked */ } }
-export const REGISTRATION_TEACHERS = ['Pavel', 'Jelena', 'Elizaveta', 'Angelina'];
 export const SELF_ROLES = ['parent', 'student'];
 const STAFF_OPERATIONS_URL = String(import.meta.env.VITE_STAFF_OPERATIONS_API_URL || 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi').replace(/\/$/, '');
 
 export class ProfileMissingError extends Error {
   constructor() {
-    super('Selle Google’i kontoga pole veel KeeleSeppi kontot. Vali roll ja nõustu tingimustega, et konto luua.');
+    super('Selle Google’i kontoga pole veel KeeleSeppi kontot. Vali roll, lapsevanemal kirjuta lapse nimi ja nõustu tingimustega, et konto luua.');
     this.name = 'ProfileMissingError';
     this.code = 'auth/profile-missing';
   }
@@ -60,12 +59,15 @@ export function registrationProfile(values = {}, now = new Date()) {
   if (!email) throw new Error('E-post on kohustuslik.');
   if (!values.acceptedTerms) throw new Error('Konto loomiseks nõustu kasutustingimustega.');
   const isParent = role === 'parent';
+  const childName = isParent ? String(values.childName || '').trim().slice(0, 300) : '';
+  // without the child's name the administrator cannot tell which card is meant and the parent would see an empty page
+  if (isParent && !childName) throw new Error('Kirjuta lapse nimi (mitu last komaga).');
+  // no teacher here: the administrator assigns one on approval („Uued kontod”)
   return {
     role,
     displayName,
     email,
-    childName: isParent ? String(values.childName || '').trim().slice(0, 300) : '',
-    preferredTeacher: isParent ? (REGISTRATION_TEACHERS.includes(values.preferredTeacher) ? values.preferredTeacher : 'Pavel') : '',
+    childName,
     createdAt: localDate(now),
     termsAcceptedAt: now.toISOString(),
     termsVersion: TERMS_VERSION,
@@ -180,7 +182,7 @@ export const authService = {
       throw accountAccessError(error);
     }
   },
-  // `registration` ({ role, acceptedTerms, childName, preferredTeacher }) creates the profile for a new Google account;
+  // `registration` ({ role, acceptedTerms, childName }) creates the profile for a new Google account;
   // without it a Google account that has no profile is signed out with ProfileMissingError.
   async signInWithGoogle(registration = null) {
     const { auth, db } = requireFirebaseClient();
