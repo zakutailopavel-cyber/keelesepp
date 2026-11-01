@@ -9,6 +9,18 @@
 - Browser memory only: `ks-feedback-seen-<uid>` (opening „Minu areng” counts as having seen the feedback; on a new device feedback of the last 14 days counts as new).
 - Known: an open announcement normally stops the learner at the gate first, so the announcement and availability lines appear only when the gate timed out or the school publishes during a session. The pet tile is a placeholder for the pet loop (agent/pet-loop).
 - Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/deps-crm — crm-v2 production audit clean: grpc-js override, re2js in the lock, firebase unchanged
+
+- Base: `main` ee2eac1, checked 2026-11-01. Dependencies only; no source change, no deploy, no production access.
+- Finding: **no `firebase` version clears the audit.** Every release from 12.12.0 to 13.1.0 (latest) was installed in a temp folder and audited: all pin `@grpc/grpc-js ~1.9.0` and report 4 high. So `firebase` stays at 12.17.0 and no major upgrade is needed.
+- Changed: `crm-v2/package.json` `overrides: { "@grpc/grpc-js": "1.13.7" }` (1.13.6 is the first fixed release of that line; 1.13.7 is the newest). Lock: `@grpc/grpc-js` 1.9.16 → 1.13.7, `re2js` 2.8.6 → 2.9.1 (allowed by firestore's `^2.8.3`), new `@js-sdsl/ordered-map` 4.4.2.
+- `npm audit --omit=dev`: before 5 high, after 0. Dev tools (eslint, vite, vitest chain) still show 7 high and 8 moderate with `npm audit`; they do not ship.
+- Reach: neither package was reachable. `@grpc/grpc-js` is only in firestore's Node build and is not in the browser bundle (0 chunks mention it); its advisories concern gRPC servers. `re2js` is in the `firebase` chunk, but the advisory needs the Pipelines regex API with lookbehinds, which `src/` does not use.
+- Checks on Node 22 after a clean `npm ci`: `npx vitest run --maxWorkers=3 --testTimeout=60000` 415 files passed, 1 skipped; 2935 tests passed, 7 skipped. `npx eslint src` 0 errors, 17 warnings. `npx vite build` OK. Node build of the Firestore client against the emulator (demo project) answers over gRPC 1.13.7.
+- Bundle (raw / gzip bytes): `main` 1,236,191 / 388,563 → 1,236,191 / 388,557; `firebase` 593,574 / 175,434 → 598,507 / 177,798 (re2js); all JS 22,568,246 / 6,424,289 → 22,573,179 / 6,426,806. Other chunks are the same size; hashes change because they import the renamed `firebase` chunk.
+- Known: the override must be dropped when firestore moves off `~1.9.0`; Dependabot will not do that. Not opened in a browser against production.
+- Deploy: CRM hosting only, on merge. No functions, no rules.
+- Next safe step: the owner reviews and merges the PR.
 ## 2026-11-01 · agent/security-ci — Dependabot, security workflow, actions pinned; history scanned for secrets
 
 - Base: `main` ee2eac1, checked 2026-11-01. CI config only; no app code, no deploy, no production access.
@@ -74,6 +86,15 @@
 - Seaded and menu: `roleLabels` in `utils/roles.js`; Firebase row, support row and account UID only for staff. Texts: „1 tund”, „1 sõnum”, „1 arve”, lead arrival as a Tallinn date (`LeadsPage.jsx`).
 - Checks: see the PR.
 - Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/route-access — routes.jsx and accessPolicy.js agree
+
+- Base: `main` ee2eac1, checked 2026-11-01. Client-side routing only; Firestore rules and functions unchanged, so this is not a data boundary.
+- `routes.jsx`: `/homework` and `/messages` behind `ACCESS.HOMEWORK` and `ACCESS.MESSAGES` (finance-only accounts now reach /forbidden). `/library/worksheet-generator/{avasta-module-1,module-1-three-phase,course,health}` moved from the STAFF group to ADMIN; each page already refused a non-admin itself. Admin, parent and student access unchanged.
+- `accessPolicy.js` new entries: `/library/raamatukogu` and `/library/worksheet-generator` STAFF (`LessonWorksheetSet` links coverage to teachers), `module-1-three-phase`, `health`, `/finance/ostuarved`, `/ai/connect` ADMIN. `landingPath` now sends someone without access to these to `/` after sign-in, not to the forbidden page.
+- New `app/routeAccess.test.jsx` walks the route tree and compares it with the policy in both directions; a new route without an entry fails it.
+- Checks: `npx eslint --quiet src` clean; vitest result in the PR. Not opened in a browser or on the live site.
+- Next safe step: the owner confirms that the finance role needs neither Kodutööd nor Suhtlus.
+
 ## 2026-11-01 · agent/a2-m20-final-2 — A2 module 20 „A2 eksam ja iseseisev keelekasutus” in the final shape (last A2 module)
 
 - Base: `main` b13d41e, checked 2026-11-01. Content only; no production data, no publishing, no deploy. Paid services: none (TartuNLP is free).
