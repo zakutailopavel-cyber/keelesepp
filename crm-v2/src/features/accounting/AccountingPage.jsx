@@ -83,6 +83,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const [journalSort, setJournalSort] = useState({ key: 'code', dir: 'asc' });
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
+  const [exclusionWarning, setExclusionWarning] = useState('');
   const [error, setError] = useState('');
   const [dialog, setDialog] = useState(null);
   const [form, setForm] = useState({});
@@ -130,7 +131,14 @@ export default function AccountingPage({ repository = accountingService, canEdit
       return false;
     } finally { setBusy(''); }
   };
-  const sync = (silent = false) => run('sync', () => repository.sync(), silent ? null : (result) => (result.created ? `Lisati ${result.created} automaatkannet.` : 'Kõik dokumendid on juba kirjendatud.'));
+  const sync = (silent = false) => run('sync', async () => {
+    const result = await repository.sync();
+    // a bank payment on an invoice outside the books: the money is in the statement, a person decides (docs/ACCOUNTING.md)
+    const conflicts = result?.exclusionConflicts || [];
+    if (conflicts.length) setExclusionWarning(`Pangamakse arvel, mis ei kuulu raamatupidamisse: ${[...new Set(conflicts.map((c) => c.invoiceNum))].join(', ')}. Raha on väljavõttes, kandeid ei tehta — tühista makse või taasta arve Finantsides.`);
+    else setExclusionWarning('');
+    return result;
+  }, silent ? null : (result) => (result.created ? `Lisati ${result.created} automaatkannet.` : 'Kõik dokumendid on juba kirjendatud.'));
   // the registers are always up to date when the page opens: missing automatic entries are created once
   useEffect(() => {
     if (!state.data || synced.current) return;
@@ -246,6 +254,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
         {!readOnly ? <Button onClick={openEntry}><FilePlus2 size={17} /> Lisa kanne</Button> : null}
       </>} />
     {notice ? <div className="success-notice" role="status">{notice}<button aria-label="Sulge teade" onClick={() => setNotice('')}>×</button></div> : null}
+    {exclusionWarning ? <div className="form-error" role="alert">{exclusionWarning}</div> : null}
     {error && !dialog && !draft ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
     {!trial.balanced ? <div className="expense-error" role="alert">Käibeandmik ei ole tasakaalus — kontrolli kandeid.</div> : null}
 

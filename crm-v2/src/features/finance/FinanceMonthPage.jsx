@@ -51,6 +51,7 @@ import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
 import PaymentCheckPanel from './PaymentCheckPanel.jsx';
 import DocumentPreviewModal from './DocumentPreviewModal.jsx';
 import InvoiceNoteDialog, { InvoiceNoteButton } from './InvoiceNoteDialog.jsx';
+import InvoiceAccountingDialog, { InvoiceAccountingButton } from './InvoiceAccountingDialog.jsx';
 import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { lessonTokensService, owedCredits, tokenInvoiceUsage } from '../../services/firebase/lessonTokens.js';
@@ -209,6 +210,18 @@ export default function FinanceMonthPage({
     announce(text ? `Sisemine märkus salvestati (${invoice.num || invoice.number || ''}).` : 'Sisemine märkus eemaldati.');
   };
   const noteText = (invoice) => notes.get(invoice.id)?.text || '';
+  // „Ei kuulu raamatupidamisse”: the mark and the entries are changed by the server (docs/ACCOUNTING.md)
+  const [accountingInvoice, setAccountingInvoice] = useState(null);
+  const saveAccountingMark = async (invoice, reason) => {
+    const num = invoice.num || invoice.number || '';
+    const excluded = invoice.accountingExcluded === true;
+    const result = await (excluded ? financeRepository.includeInvoiceInAccounting(invoice.id, reason) : financeRepository.excludeInvoiceFromAccounting(invoice.id, reason));
+    setAccountingInvoice(null);
+    const count = result?.entries?.length || 0;
+    const related = (result?.relatedInvoices || []).map((item) => item.num || item.id).join(', ');
+    announce(`${num}: ${excluded ? `taastatud raamatupidamisse, ${count} kannet kehtib taas` : `ei kuulu raamatupidamisse, ${count} kannet märgiti kustutatuks`}.${related ? ` Seotud arve ${related} jäi muutmata — vaata see üle.` : ''}`);
+    await state.reload();
+  };
   // a note written in „Lisa arve” / „Tunnipakett” is saved right after the invoice; the invoice stands even if it fails
   const rememberNote = (invoice, { note } = {}) => { if (invoice?.id && note) setNotes((current) => new Map(current).set(invoice.id, note)); };
   const noteWarning = ({ noteError } = {}) => (noteError ? ` Sisemist märkust ei saanud salvestada (${noteError}) — lisa see arvete nimekirjas märkuse ikoonist.` : '');
@@ -362,8 +375,8 @@ export default function FinanceMonthPage({
         {!rows.length ? <EmptyState title={activeView === 'paid' ? 'Laekunud makseid ei ole' : activeView === 'unpaid' ? 'Selle kuu võlgnevusi ei ole' : 'Selle kuu arveid ei ole'} description={activeView === 'invoices' ? 'Koosta arved eraldi vaates või vali teine kuu.' : 'Vali teine kuu või muuda filtrit.'} /> : <div className="finance-month-table" role="table" aria-label={`Arved ${month}`}>
           <div className="finance-month-table__head" role="row"><span>Õpilane</span><span>Arve</span><span>Tähtaeg</span><span>Summa</span><span>Jääk</span><span>Olek</span><span>Tegevused</span></div>
           {rows.map((invoice) => { const row = financeRowState(invoice); const [label, tone] = STATUS[row.status]; return <div className="finance-month-table__row" role="row" key={invoice.id}>
-            <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{[invoice.subject, invoice.payerEmail].filter(Boolean).join(' · ')}</small>{invoice.billingMode === 'lesson_tokens_v1' ? <small className="finance-tokens">{tokenInvoiceUsage(invoice, tokenUsage.packages[invoice.id], { owed: tokenUsage.owed[invoice.studentId] || 0, showOwed: newestTokenInvoice.has(invoice.id) })}</small> : null}{noteText(invoice) ? <small className="finance-note-line" title={noteText(invoice)}>Märkus: {noteText(invoice)}</small> : null}</span>
-            <span><span className="finance-month-table__num">{invoice.num || invoice.number || invoice.invoiceNumber || '—'}{canNote ? <InvoiceNoteButton invoice={invoice} note={notes.get(invoice.id)} onOpen={(item) => { setError(''); setNoteInvoice(item); }} /> : null}</span></span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span className="finance-month-table__state"><Badge tone={tone}>{label}</Badge>{(() => { const mail = invoiceEmailLine(invoice); return <small className={`finance-mail finance-mail--${mail.tone}`} title={mail.title || undefined}>✉ {mail.text}</small>; })()}</span>
+            <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{[invoice.subject, invoice.payerEmail].filter(Boolean).join(' · ')}</small>{invoice.billingMode === 'lesson_tokens_v1' ? <small className="finance-tokens">{tokenInvoiceUsage(invoice, tokenUsage.packages[invoice.id], { owed: tokenUsage.owed[invoice.studentId] || 0, showOwed: newestTokenInvoice.has(invoice.id) })}</small> : null}{noteText(invoice) ? <small className="finance-note-line" title={noteText(invoice)}>Märkus: {noteText(invoice)}</small> : null}{canNote && invoice.accountingExcluded === true ? <small className="finance-note-line" title={invoice.accountingExcludedReason || ''}>Ei kuulu raamatupidamisse</small> : null}</span>
+            <span><span className="finance-month-table__num">{invoice.num || invoice.number || invoice.invoiceNumber || '—'}{canNote ? <InvoiceNoteButton invoice={invoice} note={notes.get(invoice.id)} onOpen={(item) => { setError(''); setNoteInvoice(item); }} /> : null}{canNote ? <InvoiceAccountingButton invoice={invoice} onOpen={setAccountingInvoice} /> : null}</span></span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span className="finance-month-table__state"><Badge tone={tone}>{label}</Badge>{(() => { const mail = invoiceEmailLine(invoice); return <small className={`finance-mail finance-mail--${mail.tone}`} title={mail.title || undefined}>✉ {mail.text}</small>; })()}</span>
             <span className="finance-month-table__actions">{canManage && invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus !== 'credited' && !row.balanceCents && row.status !== 'cancelled' ? <Button loading={actionBusy === `tokens-${invoice.id}`} onClick={() => creditTokens(invoice)}>Lisa tunnid ({invoice.tokenCredits})</Button> : null}{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.balanceCents > 0 && row.status !== 'cancelled' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
           </div>; })}
         </div>}
@@ -373,6 +386,7 @@ export default function FinanceMonthPage({
       <PaymentDialog key={paymentInvoice?.id ? `pay-${paymentInvoice.id}` : 'pay-closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); } }} onSubmit={recordPayment} />
       <CancelInvoiceDialog key={cancelInvoice?.id ? `cancel-${cancelInvoice.id}` : 'cancel-closed'} invoice={cancelInvoice} busy={cancelBusy} error={cancelInvoice ? error : ''} onClose={() => { if (!cancelBusy) { setCancelInvoice(null); setError(''); } }} onSubmit={confirmCancellation} />
       {noteInvoice ? <InvoiceNoteDialog key={`note-${noteInvoice.id}`} invoice={noteInvoice} note={notes.get(noteInvoice.id)} onClose={() => setNoteInvoice(null)} onSave={saveNote} /> : null}
+      {accountingInvoice ? <InvoiceAccountingDialog key={`accounting-${accountingInvoice.id}`} invoice={accountingInvoice} onClose={() => setAccountingInvoice(null)} onSave={saveAccountingMark} /> : null}
       <DocumentPreviewModal document={documentPreview} printable onClose={() => setDocumentPreview(null)} />
     </div>
   );

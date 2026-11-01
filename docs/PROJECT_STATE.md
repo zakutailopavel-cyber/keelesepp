@@ -1,3 +1,30 @@
+## 2026-11-01 · agent/accounting-exclude — brought up to main, restore respects the mark
+
+- Owner 2026-11-01: the accountant's books are separate from the CRM's finance and hold only invoices paid by invoice; anything she needs may be changed and shipped.
+- Merged main (automatic entries got „Kustuta” and „Taasta” in 2026-10-30). New: „Taasta” is refused and hidden on an entry removed by the invoice mark, because the sync would skip it while the journal showed it live; the mark is removed on the invoice.
+- Next safe step: deploy rules and `functions:financeApi`, then apply the mark to KS-2026-004 and the 7 invoices of the 2026-10-30 report.
+
+## 2026-10-30 · agent/accounting-exclude — „Ei kuulu raamatupidamisse”: an invoice can leave the company's books
+
+- Base: `main` 0a7c4d3, checked 2026-10-30. The accountant's request, confirmed by the owner: remove from the books one invoice
+  (KS-2026-004, entry 2026-0012) and the clients who pay to the owner's FIE account („те, чьих оплат нет в выписке”).
+- Done: the mark on an invoice (`accountingExcluded`, reason, who, when; admin and finance; Finantsid row and financeApi
+  `/accounting/invoices/exclude` and `/include` with `financialAudit`). `automaticEntries` skips the invoice, its payments, voids,
+  credit notes and overpayment credit on every sync; existing entries become tombstones (history `excluded`, numbers kept,
+  „Näita kustutatud”); undo brings them back (`included`). Refused in a locked period or closed month and when the money came
+  through the company's bank. Invoices and student balances unchanged. Full contract: `docs/ACCOUNTING.md` „Ei kuulu
+  raamatupidamisse”.
+- Changed: `functions/accounting-core.js`, `functions/index.js`, `firestore.rules` (the mark is not a client write),
+  `crm-v2/.../finance/FinanceMonthPage.jsx`, new `InvoiceAccountingDialog.jsx`, `accounting/AccountingPage.jsx`, `JournalGrid.jsx`,
+  `accountingReports.js`, `services/firebase/financeApi.js`, tests, `docs/ACCOUNTING.md`.
+- Report (read only, nothing applied, not in git, has client data): `/Users/pavel/.keelesepp-helpers/fie-report.md`. Compared
+  against the LHV statement 01.01–24.10.2026; only 7 advance rows are in `bankTransactions` and no payment has
+  `bankTransactionId`, so CRM fields alone cannot answer this.
+- Checks: see the PR. The emulator test needs Java 21 (this machine has Java 8), so it runs in CI only.
+- Known limits: INF 3 still counts the payments of marked invoices (the accountant decides). Manual entries for the same clients are
+  not touched. The reason is readable by the invoice's owner through the document, like `cancellationReason`: write it neutrally.
+- Unfinished: the mark is not applied to anything in production; needs deploy and the owner's confirmation of the list.
+- Next safe step: the owner checks the report; after merge and deploy, mark KS-2026-004 in Finantsid.
 ## 2026-11-01 · agent/book-minu-eesti-keel — B1 and B2 modules improved from the themes of „Minu eesti keel”
 
 - Merged #954 (B1 m2), #951 (B1 m7), #953 (B2 m9), #952 (B2 m10). Published: B1 30 sheets (24 changed), B2 30 sheets (29 changed), `manualEditsOverwritten: 0`, re-check all „same”.

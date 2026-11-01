@@ -3861,6 +3861,94 @@ test("bookkeeping: documents become numbered entries once, manual entries balanc
   assert.equal(secondOpening.status, 409, JSON.stringify(secondOpening.body));
 });
 
+test("„Ei kuulu raamatupidamisse”: entries become tombstones, a sync never brings them back, the mark is undoable (2026-10-30)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const exclFinanceToken = await createUserToken("exclude-finance@example.com");
+  const exclTeacherToken = await createUserToken("exclude-teacher@example.com");
+  await db.collection("users").doc(tokenUid(exclFinanceToken)).set({ role: "finance", displayName: "Excl Finance", email: "exclude-finance@example.com" });
+  await db.collection("users").doc(tokenUid(exclTeacherToken)).set({ role: "teacher", displayName: "Excl Teacher", email: "exclude-teacher@example.com" });
+  const exclInvoiceRef = db.collection("invoices").doc("excl-invoice-1");
+  await exclInvoiceRef.set({ num: "KS-2029-951", date: "2029-03-05", amountCents: 6000, amount: 60, status: "Makstud", paidAt: "2029-03-06", balanceDueCents: 0, studentId: "excl-student", studentName: "Välja Õpilane" });
+  await db.collection("payments").doc("excl-payment-1").set({ invoiceId: "excl-invoice-1", invoiceNum: "KS-2029-951", paidAt: "2029-03-06", amountCents: 6000, amount: 60, method: "bank", status: "active" });
+  await db.collection("creditNotes").doc("excl-note-1").set({ invoiceId: "excl-invoice-1", num: "KR-951", date: "2029-03-07", amountCents: 500, amount: 5 });
+  await db.collection("invoices").doc("excl-bank-invoice").set({ num: "KS-2029-952", date: "2029-03-05", amountCents: 100, amount: 1, status: "Makstud", studentName: "Panga Õpilane" });
+  await db.collection("payments").doc("excl-bank-payment").set({ invoiceId: "excl-bank-invoice", paidAt: "2029-03-06", amountCents: 100, amount: 1, method: "bank", status: "active", bankTransactionId: "excl-tx" });
+  assert.equal((await financeRequest(adminToken, "/accounting/sync", {})).status, 200);
+  const exclEntries = ["auto_invoice_excl-invoice-1", "auto_payment_excl-payment-1", "auto_credit-note_excl-note-1"];
+  const exclEntryRef = (id) => db.collection("accountingEntries").doc(id);
+  const numbersBefore = await Promise.all(exclEntries.map(async (id) => (await exclEntryRef(id).get()).data().number));
+
+  // who: a teacher is refused, the bookkeeper may; a reason is required; a bank-linked payment refuses
+  const exclByTeacher = await financeRequest(exclTeacherToken, "/accounting/invoices/exclude", { invoiceId: "excl-invoice-1", reason: "x", requestId: "excl_req_teacher" });
+  assert.equal(exclByTeacher.status, 403);
+  const exclNoReason = await financeRequest(adminToken, "/accounting/invoices/exclude", { invoiceId: "excl-invoice-1", reason: " ", requestId: "excl_req_noreason" });
+  assert.equal(exclNoReason.status, 400);
+  const exclBank = await financeRequest(adminToken, "/accounting/invoices/exclude", { invoiceId: "excl-bank-invoice", reason: "FIE", requestId: "excl_req_bank" });
+  assert.equal(exclBank.status, 409);
+  assert.match(exclBank.body.error || JSON.stringify(exclBank.body), /pangakontole/);
+
+  // a locked period refuses, the invoice and its entries stay as they were
+  await db.collection("accountingSettings").doc("lock").set({ lockedThrough: "2029-03-31" });
+  const exclLocked = await financeRequest(adminToken, "/accounting/invoices/exclude", { invoiceId: "excl-invoice-1", reason: "Raha FIE kontol", requestId: "excl_req_locked" });
+  assert.equal(exclLocked.status, 409);
+  assert.equal((await exclInvoiceRef.get()).data().accountingExcluded, undefined);
+  await db.collection("accountingSettings").doc("lock").delete();
+
+  const exclMarked = await financeRequest(exclFinanceToken, "/accounting/invoices/exclude", { invoiceId: "excl-invoice-1", reason: "Raha FIE kontol", requestId: "excl_req_mark" });
+  assert.equal(exclMarked.status, 201, JSON.stringify(exclMarked.body));
+  assert.equal(exclMarked.body.entries.length, 3);
+  const exclRepeat = await financeRequest(exclFinanceToken, "/accounting/invoices/exclude", { invoiceId: "excl-invoice-1", reason: "Raha FIE kontol", requestId: "excl_req_mark" });
+  assert.equal(exclRepeat.status, 200);
+  assert.equal(exclRepeat.body.idempotent, true);
+  const exclTwice = await financeRequest(adminToken, "/accounting/invoices/exclude", { invoiceId: "excl-invoice-1", reason: "Raha FIE kontol", requestId: "excl_req_mark2" });
+  assert.equal(exclTwice.status, 409);
+
+  // the invoice's money did not change; the mark says who and why; entries are tombstones with their numbers and history
+  const exclInvoice = (await exclInvoiceRef.get()).data();
+  assert.equal(exclInvoice.accountingExcluded, true);
+  assert.equal(exclInvoice.accountingExcludedReason, "Raha FIE kontol");
+  assert.equal(exclInvoice.accountingExcludedBy.email, "exclude-finance@example.com");
+  assert.equal(exclInvoice.balanceDueCents, 0);
+  assert.equal(exclInvoice.status, "Makstud");
+  for (const [index, id] of exclEntries.entries()) {
+    const entry = (await exclEntryRef(id).get()).data();
+    assert.equal(entry.deleted, true);
+    assert.equal(entry.number, numbersBefore[index]);
+    assert.equal(entry.excludedInvoiceId, "excl-invoice-1");
+    assert.equal(entry.history.at(-1).action, "excluded");
+    assert.ok(entry.history.at(-1).before.lines.length >= 2);
+  }
+  assert.equal((await db.collection("financialAudit").doc("excl_req_mark").get()).data().action, "invoice.accounting_excluded");
+
+  // a sync neither brings them back nor books a new payment on the invoice
+  await db.collection("payments").doc("excl-payment-2").set({ invoiceId: "excl-invoice-1", paidAt: "2029-03-08", amountCents: 100, amount: 1, method: "bank", status: "active" });
+  const exclSync = await financeRequest(adminToken, "/accounting/sync", {});
+  assert.equal(exclSync.status, 200);
+  assert.equal((await exclEntryRef("auto_invoice_excl-invoice-1").get()).data().deleted, true);
+  assert.equal((await exclEntryRef("auto_payment_excl-payment-2").get()).exists, false);
+
+  // undo: a locked period refuses, then the entries are live again with the same numbers, the missing one comes from a sync
+  await db.collection("accountingSettings").doc("lock").set({ lockedThrough: "2029-03-31" });
+  const exclUndoLocked = await financeRequest(adminToken, "/accounting/invoices/include", { invoiceId: "excl-invoice-1", reason: "Eksitus", requestId: "excl_req_undo_locked" });
+  assert.equal(exclUndoLocked.status, 409);
+  await db.collection("accountingSettings").doc("lock").delete();
+  const exclUndo = await financeRequest(adminToken, "/accounting/invoices/include", { invoiceId: "excl-invoice-1", reason: "Eksitus", requestId: "excl_req_undo" });
+  assert.equal(exclUndo.status, 201, JSON.stringify(exclUndo.body));
+  for (const [index, id] of exclEntries.entries()) {
+    const entry = (await exclEntryRef(id).get()).data();
+    assert.equal(entry.deleted, undefined);
+    assert.equal(entry.excludedInvoiceId, undefined);
+    assert.equal(entry.number, numbersBefore[index]);
+    assert.deepEqual(entry.history.slice(-2).map((item) => item.action), ["excluded", "included"]);
+  }
+  assert.equal((await exclInvoiceRef.get()).data().accountingExcluded, undefined);
+  await financeRequest(adminToken, "/accounting/sync", {});
+  assert.equal((await exclEntryRef("auto_payment_excl-payment-2").get()).exists, true);
+});
+
 test("INF 3: personal codes are admin-only, a parent's link fills them, the report builds the e-MTA XML (owner 2026-10-22)", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
