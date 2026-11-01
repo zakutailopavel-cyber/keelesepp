@@ -1,0 +1,44 @@
+/* „Minu pere” (owner 2026-11-01): the first screen answers „Как дела у ребёнка?” on a phone; everything else one tap away */
+.pd-page { max-width: 760px; }
+.pd-hello { margin: 0 0 2px; font-size: 1.35rem; line-height: 1.2; overflow-wrap: anywhere; }
+.pd-sub { margin: 0 0 14px; color: var(--muted, #52635c); font-size: .92rem; }
+.pd-ru { color: var(--muted, #52635c); font-weight: 400; }
+.pd-card { display: grid; gap: 0; margin: 0 0 14px; border: 1px solid var(--border, #e4ece8); border-radius: 16px; background: #fff; overflow: hidden; }
+.pd-card__head { padding: 14px 16px 10px; }
+.pd-card__head h2 { margin: 0; font-size: 1.1rem; line-height: 1.25; }
+.pd-card__head p { margin: 2px 0 0; color: var(--muted, #52635c); font-size: .84rem; line-height: 1.35; }
+.pd-row { display: grid; gap: 3px; padding: 12px 16px; border-top: 1px solid #eef3f1; }
+.pd-row > small { color: var(--muted, #52635c); font-size: .76rem; font-weight: 700; letter-spacing: .02em; }
+.pd-row > small .pd-ru { font-weight: 400; }
+.pd-row strong { font-size: 1rem; line-height: 1.3; overflow-wrap: anywhere; }
+.pd-row p { margin: 0; font-size: .88rem; line-height: 1.4; color: #2c3e37; overflow-wrap: anywhere; }
+.pd-row .pd-muted { color: var(--muted, #52635c); font-size: .84rem; }
+.pd-late { color: #a8501a; font-weight: 700; }
+.pd-ok { display: inline-flex; align-items: center; gap: 5px; color: #0f5f4c; }
+.pd-tasks { display: grid; gap: 2px; margin: 4px 0 0; padding: 0; list-style: none; font-size: .88rem; line-height: 1.35; }
+.pd-tasks li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 10px; }
+.pd-tasks small { color: var(--muted, #52635c); }
+.pd-quote { padding: 8px 10px; border-radius: 10px; background: #f4f8f6; white-space: pre-line; }
+.pd-linkbtn { justify-self: start; min-height: 44px; padding: 0; border: 0; background: none; color: #0f5f4c; font: inherit; font-size: .88rem; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.pd-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; justify-self: start; min-height: 44px; margin-top: 6px; padding: 0 20px; border-radius: 12px; background: #0f5f4c; color: #fff; font-weight: 700; text-decoration: none; }
+.pd-action:focus-visible { outline: 3px solid #f5c26b; outline-offset: 2px; }
+.pd-money { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 12px; margin: 0 0 14px; padding: 8px 16px; border: 1px solid #f0dcc2; border-radius: 14px; background: #fff9f1; }
+.pd-money strong { display: block; font-size: 1rem; }
+.pd-money small { color: var(--muted, #52635c); font-size: .8rem; }
+.pd-sections { display: grid; gap: 8px; }
+.pd-section { border: 1px solid var(--border, #e4ece8); border-radius: 14px; background: #fff; scroll-margin-top: 84px; }
+.pd-section__head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; min-height: 56px; padding: 8px 16px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.pd-section__head strong { display: block; font-size: .98rem; }
+.pd-section__head small { display: block; color: var(--muted, #52635c); font-size: .8rem; line-height: 1.3; }
+.pd-section__head svg { color: var(--muted, #52635c); transition: transform .15s; }
+.pd-section__head[aria-expanded="true"] svg { transform: rotate(90deg); }
+.pd-section__body { display: grid; gap: 14px; padding: 2px 12px 14px; }
+.pd-section__body .card { box-shadow: none; }
+.pd-section__body h3 { margin: 4px 4px 0; font-size: .92rem; }
+.pd-section__body .parent-home-grid, .pd-section__body > * { min-width: 0; }
+.pd-link-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 56px; padding: 8px 16px; border: 1px solid var(--border, #e4ece8); border-radius: 14px; background: #fff; color: inherit; text-decoration: none; }
+.pd-link-row strong { display: block; font-size: .98rem; }
+.pd-link-row small { color: var(--muted, #52635c); font-size: .8rem; }
+@media (max-width: 640px) {
+  .pd-action { width: 100%; }
+}

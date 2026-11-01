@@ -73,7 +73,7 @@ export default function LessonSummariesCard({
           </button>
           {isOpen ? <SummaryDetails summary={summary} words={words} homeworkService={homeworkService} boardLink={boardLink} /> : null}
         </article>;
-      })}</div> : <EmptyState title="Kokkuvõtteid veel ei ole" description="Pärast Live Classroomi tundi ilmub siia, mida tunnis tehti." />}
+      })}</div> : <EmptyState title="Kokkuvõtteid veel ei ole" description="Pärast tundi ilmub siia, mida tunnis tehti." />}
     </Card>
   );
 }
