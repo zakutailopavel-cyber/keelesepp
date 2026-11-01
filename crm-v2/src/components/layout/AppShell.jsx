@@ -1,8 +1,8 @@
 import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import { navigationFor, settingsNavigation } from '../../app/navigation.js';
-import { useAuth } from '../../app/AuthContext.jsx';
+import { useAuth, usePreviewNavigation } from '../../app/AuthContext.jsx';
 import { hasAnyRole, roleLabels } from '../../utils/roles.js';
 import GlobalStudentSearch from './GlobalStudentSearch.jsx';
 import IconButton from '../ui/IconButton.jsx';
@@ -26,8 +26,8 @@ function initials(name) {
 
 export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, announcements, missingData }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const { user, signOut, preview, stopPreview } = useAuth();
+  const { user, signOut, preview } = useAuth();
+  const previewNavigation = usePreviewNavigation();
   const visibleNavigation = useMemo(() => navigationFor(user.roles).filter((item) => hasAnyRole(user.roles, item.roles)), [user.roles]);
   const showSettings = hasAnyRole(user.roles, settingsNavigation.roles);
   const canSearchStudents = hasAnyRole(user.roles, ['admin', 'teacher']);
@@ -47,9 +47,10 @@ export default function AppShell({ approvals = accountApprovalsService, messages
     try { return messages.subscribeUnreadCount({ uid: user.uid, all: isAdmin }, setUnreadMessages, () => setUnreadMessages(0)); } catch { return undefined; }
   }, [messages, isStaff, isAdmin, user.uid]);
   const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0 };
-  const exitPreview = () => { stopPreview(); navigate('/settings'); };
   const blockPreviewButtons = (event) => {
     if (!preview?.readOnly) return;
+    // only closing a dialog is let through: it changes nothing, and a dialog that cannot be closed covers the page
+    if (event.target.closest('[data-preview-allowed]')) return;
     if (event.target.closest('button, [role="button"]')) {
       event.preventDefault();
       event.stopPropagation();
@@ -97,7 +98,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
         <GuideBanner user={user} preview={preview} />
         <WhatsNewDialog user={user} preview={preview} />
         {testSessionName() && !preview ? <div className="preview-banner" role="status"><span><strong>Testõpilase seanss: {testSessionName()}</strong><small>Sa oled sisse logitud testõpilasena · administraatoriks naasmiseks logi uuesti sisse</small></span><button onClick={() => { clearTestSession(); signOut(); }}>Lõpeta testseanss</button></div> : null}
-        {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={exitPreview}>Lõpeta vaade</button></div> : null}
+        {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={previewNavigation.close}>Lõpeta vaade</button></div> : null}
         <header className="topbar">
           <IconButton className="mobile-only" data-tour="menu" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
           {canSearchStudents ? <GlobalStudentSearch user={user} /> : null}

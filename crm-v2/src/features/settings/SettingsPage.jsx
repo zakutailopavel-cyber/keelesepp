@@ -1,7 +1,7 @@
 import { CalendarClock, CheckCircle2, Compass, Database, Eye, KeyRound, Save, ShieldAlert, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../app/AuthContext.jsx';
+import { useAuth, usePreviewNavigation } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, Input, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -28,7 +28,8 @@ function initialProfile(user) {
 }
 
 export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService, googleCalendarRepository, directionsRepository, missingDataRepository, learnerEmailsRepository, sheetBuilderRepository }) {
-  const { user, preview, configured, updateProfile, sendPasswordReset, startPreview } = useAuth();
+  const { user, preview, configured, updateProfile, sendPasswordReset } = useAuth();
+  const previewNavigation = usePreviewNavigation();
   const [form, setForm] = useState(() => initialProfile(user));
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -82,16 +83,12 @@ export default function SettingsPage({ parentRepository = parentsService, studen
     if (supportType === 'parent') {
       const parent = supportData.parents.find((item) => item.id === supportTarget);
       if (!parent) return;
-      startPreview({ user: { uid: parent.id, email: parent.email || '', displayName: parent.displayName || parent.email || 'Lapsevanem', profile: parent, roles: [ROLES.PARENT] }, label: parent.displayName || parent.email || 'Lapsevanem' });
-      window.history.pushState({}, '', '/parent');
-      window.dispatchEvent(new window.Event('popstate'));
+      previewNavigation.open({ user: { uid: parent.id, email: parent.email || '', displayName: parent.displayName || parent.email || 'Lapsevanem', profile: parent, roles: [ROLES.PARENT] }, label: parent.displayName || parent.email || 'Lapsevanem' }, '/parent');
       return;
     }
     const student = supportData.students.find((item) => item.id === supportTarget);
     if (!student) return;
-    startPreview({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' });
-    window.history.pushState({}, '', '/student');
-    window.dispatchEvent(new window.Event('popstate'));
+    previewNavigation.open({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' }, '/student');
   };
 
   const save = async (event) => {

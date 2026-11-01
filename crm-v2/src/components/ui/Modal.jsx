@@ -37,7 +37,7 @@ export default function Modal({ open, title, children, footer, onClose, classNam
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div ref={modalRef} className={`modal ${className}`} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-        <div className="modal__header"><h2 id={titleId}>{title}</h2><IconButton label="Sulge" onClick={onClose}><X size={20} /></IconButton></div>
+        <div className="modal__header"><h2 id={titleId}>{title}</h2><IconButton label="Sulge" data-preview-allowed onClick={onClose}><X size={20} /></IconButton></div>
         <div className="modal__body">{children}</div>
         {footer ? <div className="modal__footer">{footer}</div> : null}
       </div>
