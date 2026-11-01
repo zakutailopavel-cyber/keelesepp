@@ -22,17 +22,14 @@ const repositories = (list = students) => ({
 const renderPage = (data) => render(<MemoryRouter initialEntries={['/student/areng']}><AuthContext.Provider value={{ user: { uid: 'user-1', displayName: 'Mari', roles: ['student'] } }}><StudentProgressPage {...data} /></AuthContext.Provider></MemoryRouter>);
 
 describe('StudentProgressPage', () => {
-  it('holds what moved from the home page and counts the results as seen', async () => {
-    window.localStorage.removeItem('ks-feedback-seen-user-1');
-    const data = repositories();
+  it('holds what moved from the home page; the feedback lives on „Ülesanded”', async () => {
+        const data = repositories();
     renderPage(data);
     const growth = await screen.findByRole('region', { name: 'Minu areng' });
     expect(within(growth).getByText('Rääkimine')).toBeInTheDocument();
-    expect(screen.getByText('Viimased tulemused')).toBeInTheDocument();
-    expect(screen.getByText('Väga tubli!')).toBeInTheDocument();
-    expect(screen.getByText('Hinne 5')).toBeInTheDocument();
+    expect(screen.queryByText('Viimased tulemused')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Õpetaja tagasiside/ })).toHaveAttribute('href', '/homework#vaadatud');
     expect(data.catalogRepository.listCurriculum).toHaveBeenCalled();
-    expect(Number(window.localStorage.getItem('ks-feedback-seen-user-1'))).toBeGreaterThan(0);
   });
 
   it('an unlinked account gets the same safe message', async () => {

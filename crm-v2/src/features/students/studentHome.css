@@ -43,6 +43,7 @@
 .sh-notes svg { flex: none; }
 .sh-notes .link-button { margin-left: auto; }
 .sh-link { display: inline-flex; align-items: center; gap: 4px; color: #0f5f4c; font-weight: 700; text-decoration: none; }
+.sh-link small { color: var(--muted); font-weight: 400; }
 
 @media (max-width: 760px) {
   .sh-hero { grid-template-columns: minmax(0, 1fr); gap: 10px; }
@@ -56,4 +57,4 @@
 .sh .link-button { padding: 0 2px; border: 0; background: none; color: #0f5f4c; font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
 /* a line on the home page leads to one card on „Minu areng”; the sticky top bar must not cover it */
-#tulemused, #sobivad-ajad, #teated { scroll-margin-top: 84px; }
+#sobivad-ajad, #teated { scroll-margin-top: 84px; }

@@ -1,6 +1,6 @@
 // „Järgmine samm” on the student's home: exactly one thing to do, one button. Priority (owner 2026-11-01): a lesson
 // starting soon → overdue homework → open homework → due word review → nothing left. Pure: the page passes what it knows.
-import { isHomeworkOpen } from '../homework/homeworkStatus.js';
+import { TASK_STATE, mergeTasks, taskCount } from '../homework/taskList.js';
 import { dailyPlan } from '../vocabulary/dailyReview.js';
 
 export const SOON_MINUTES = 30;
@@ -19,15 +19,9 @@ export function lessonNow(occurrences = [], now = Date.now()) {
     .sort((a, b) => a.start - b.start)[0]?.lesson || null;
 }
 
-// open work given by the teacher: homework and assigned sheets, one row per task (a homework can carry its sheet's
-// deadline: then the sheet is not counted again). A sheet the learner opened himself from the course is not homework.
+// open work given by the teacher, the very list of „Ülesanded” (homework/taskList.js), so home and that page never disagree
 export function openWork({ homework = [], assignments = [] } = {}) {
-  const tasks = homework.filter(isHomeworkOpen).map((item) => ({ id: item.id, title: item.task || item.worksheetTitle || 'Kodutöö', due: clean(item.due).slice(0, 10) }));
-  const linked = new Set(homework.map((item) => item.worksheetAssignmentId).filter(Boolean));
-  const sheets = assignments
-    .filter((item) => item.status !== 'done' && !item.completedAt && item.source !== 'self_study' && !linked.has(item.id))
-    .map((item) => ({ id: item.id, title: item.title || 'Tööleht', due: clean(item.dueDate).slice(0, 10) }));
-  return [...tasks, ...sheets];
+  return mergeTasks({ homework, assignments }).filter((task) => task.state === TASK_STATE.TODO).map((task) => ({ id: task.key, title: task.title, due: task.due }));
 }
 
 const dayLabel = (iso) => {
@@ -47,12 +41,12 @@ export function nextStep({ occurrences = [], homework = [], assignments = [], wo
   const work = openWork({ homework, assignments });
   const overdue = work.filter((task) => task.due && task.due < today).sort((a, b) => a.due.localeCompare(b.due));
   if (overdue.length) {
-    const more = work.length > 1 ? ` · kokku ${work.length} tööd` : '';
+    const more = work.length > 1 ? ` · kokku ${taskCount(work.length)}` : '';
     return { key: 'overdue', title: short(overdue[0].title), detail: `Tähtaeg oli ${dayLabel(overdue[0].due)}${more}`, button: 'Tee ära', to: '/homework' };
   }
   if (work.length) {
     const first = [...work].sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999'))[0];
-    const more = work.length > 1 ? `kokku ${work.length} tööd` : '';
+    const more = work.length > 1 ? `kokku ${taskCount(work.length)}` : '';
     const detail = [first.due ? `Tähtaeg ${dayLabel(first.due)}` : '', more].filter(Boolean).join(' · ') || 'Õpetaja andis selle sulle';
     return { key: 'homework', title: short(first.title), detail, button: 'Tee ära', to: '/homework' };
   }
@@ -64,7 +58,7 @@ export function nextStep({ occurrences = [], homework = [], assignments = [], wo
   return { key: 'done', title: 'Praegu on kõik tehtud', detail: 'Tubli! Kui tahad, vaata, mis kursusel edasi tuleb.', button: 'Ava kursus', to: '/student/kursus' };
 }
 
-// When the learner last saw his results („Minu areng” opened). Browser only: on a new device feedback of the last
+// When the learner last saw his results („Ülesanded” opened). Browser only: on a new device feedback of the last
 // FEEDBACK_DAYS counts as new again, and nothing else depends on it.
 export const FEEDBACK_DAYS = 14;
 const seenKey = (uid) => `ks-feedback-seen-${uid}`;
@@ -81,7 +75,7 @@ export function newFeedback(submissions = [], seenAt = 0, now = Date.now()) {
 export function homeNotes({ feedback = [], announcements = [], unpaidCents = 0, money = (cents) => String(cents) } = {}) {
   const notes = [];
   if (feedback.length) {
-    notes.push({ key: 'feedback', text: feedback.length === 1 ? `Õpetaja vaatas üle: ${short(feedback[0].title, 44)}` : `Õpetaja vaatas üle ${feedback.length} tööd`, to: '/student/areng#tulemused' });
+    notes.push({ key: 'feedback', text: feedback.length === 1 ? `Õpetaja vaatas üle: ${short(feedback[0].title, 44)}` : `Õpetaja vaatas üle ${taskCount(feedback.length)}`, to: '/homework#vaadatud' });
   }
   const asked = announcements.filter((item) => item.announcement?.responseType === 'availability');
   const unread = announcements.filter((item) => item.announcement?.responseType !== 'availability');

@@ -70,21 +70,23 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
     <Modal open title={current.title || 'Esitatud töö'} onClose={onClose} className="modal--review" footer={staff ? <>{error ? <span className="form-error review-error" role="alert">{error}</span> : null}<Button variant="secondary" onClick={onClose}>Sulge</Button>{onSavedNext ? <Button variant="secondary" disabled={saving} onClick={() => save(true)}>Saada ja järgmine</Button> : null}<Button loading={saving} onClick={() => save()}><MessageSquare size={17} /> Saada tagasiside</Button></> : <Button variant="secondary" onClick={onClose}>Sulge</Button>}>
       <div className="review-layout">
         <div className="review-layout__work">
+          {/* a learner came for the teacher's words: they stand first, also on a phone */}
+          {!staff && current.reviewStatus === 'reviewed' ? <section className="returned-feedback"><div><MessageSquare size={20} /><strong>Õpetaja tagasiside</strong>{current.teacherGrade ? <Badge tone="success">Hinne {current.teacherGrade}</Badge> : null}</div><p>{current.teacherFeedback || 'Õpetaja jättis tööle hinde ilma kommentaarita.'}</p><small>{current.reviewedByName ? `${current.reviewedByName} · ` : ''}{formatDate(current.reviewedAt)}</small></section> : null}
           {paper ? <PaperParts data={current.source} /> : worksheetDoc?.blocks?.length
             ? <DocWorksheetSubmissionPreview worksheetDoc={worksheetDoc} answers={current.answers || {}} annotations={current.annotations || []} editable={staff} answerKey={staff} onAnnotationsChange={saveAnnotations} />
             : <>
-              {current.submissionKind === 'worksheet' ? <section><h3>Tööleht vastustega</h3><VisualWorksheetSubmissionPreview files={current.source?.files || []} answers={current.answers || {}} /></section> : null}
-              <section><h3>Õpilase vastused</h3><AnswerList answers={current.answers} /></section>
+              {current.submissionKind === 'worksheet' ? <section><h3>{staff ? 'Tööleht vastustega' : 'Vastused'}</h3><VisualWorksheetSubmissionPreview files={current.source?.files || []} answers={current.answers || {}} /></section> : null}
+              <section><h3>{staff ? 'Õpilase vastused' : 'Vastused'}</h3><AnswerList answers={current.answers} /></section>
             </>}
           <TextAnnotationEditor fields={submissionWritingFields(current)} annotations={current.annotations || []} editable={staff} onChange={saveAnnotations} />
         </div>
         <aside className="review-layout__side">
-          <div className="submission-review__hero"><div><span className="eyebrow">{paper ? 'Paberil töö' : current.submissionKind === 'worksheet' ? 'Tööleht' : 'Interaktiivne harjutus'}</span><strong>{current.studentName}</strong><small>{paper ? 'Tehtud' : 'Esitatud'} {formatDate(current.completedAt)}</small></div><div>{current.percentage != null ? <b>{current.percentage}%</b> : <ClipboardCheck size={28} />}{current.score?.total ? <small>{current.score.correct}/{current.score.total} {paper ? 'punkti' : 'õiget'}</small> : null}</div></div>
+          <div className="submission-review__hero"><div><span className="eyebrow">{!staff ? 'Ülesanne' : paper ? 'Paberil töö' : current.submissionKind === 'worksheet' ? 'Tööleht' : 'Interaktiivne harjutus'}</span><strong>{current.studentName}</strong><small>{paper || !staff ? 'Tehtud' : 'Esitatud'} {formatDate(current.completedAt)}</small></div><div>{current.percentage != null ? <b>{current.percentage}%</b> : <ClipboardCheck size={28} />}{current.score?.total ? <small>{current.score.correct}/{current.score.total} {paper ? 'punkti' : 'õiget'}</small> : null}</div></div>
           {staff ? <LearnerTextAnalysis texts={learnerTexts({ worksheetDoc, answers: current.answers || {}, fields: submissionWritingFields(current) })} level={worksheetDoc?.meta?.level || 'A2'} onFeedback={(lines) => setReview((r) => ({ ...r, teacherFeedback: lines.reduce((text, line) => addLine(text, line), r.teacherFeedback || '') }))} /> : null}
-          {current.selfAssessment ? <section className="submission-self"><strong>Õpilase enesehinnang</strong><p>{current.selfAssessment.difficulty ? `Raskus: ${current.selfAssessment.difficulty}. ` : ''}{current.selfAssessment.comment || 'Kommentaari ei lisatud.'}</p></section> : null}
+          {current.selfAssessment ? <section className="submission-self"><strong>{staff ? 'Õpilase enesehinnang' : 'Enesehinnang'}</strong><p>{current.selfAssessment.difficulty ? `Raskus: ${current.selfAssessment.difficulty}. ` : ''}{current.selfAssessment.comment || 'Kommentaari ei lisatud.'}</p></section> : null}
           {Array.isArray(current.errorLog) && current.errorLog.length ? (
             <section>
-              <h3>Automaatselt tuvastatud vead ({current.errorLog.length})</h3>
+              <h3>{staff ? 'Automaatselt tuvastatud vead' : 'Vead'} ({current.errorLog.length})</h3>
               {worksheetDoc?.blocks?.length
                 ? <ul className="auto-errors">{describeAutoErrors(worksheetDoc, current.errorLog).map((item, index) => <li key={index}><strong>{item.task}{item.where ? ` — ${item.where}` : ''}</strong><span><s>{item.answer || 'vastus puudub'}</s>{item.expected ? <> → <b>{item.expected}</b></> : null}</span></li>)}</ul>
                 : <div className="submission-errors">{current.errorLog.map((item, index) => <p key={index}>{readableValue(item)}</p>)}</div>}
@@ -115,9 +117,7 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
               <label className="textarea-field"><span>Kommentaar õpilasele</span><textarea aria-label="Kommentaar õpilasele" rows="5" value={review.teacherFeedback} onChange={(event) => setReview({ ...review, teacherFeedback: event.target.value })} placeholder="Mis läks hästi ja mida järgmisel korral parandada?" /></label>
               <div className="review-templates" role="group" aria-label="Valmis laused">{feedbackTemplates(current).map((line) => <button type="button" key={line} className="review-template" onClick={() => setReview((value) => ({ ...value, teacherFeedback: addLine(value.teacherFeedback, line) }))}>{line}</button>)}</div>
             </>
-          ) : current.reviewStatus === 'reviewed' ? (
-            <section className="returned-feedback"><div><MessageSquare size={20} /><strong>Õpetaja tagasiside</strong>{current.teacherGrade ? <Badge tone="success">Hinne {current.teacherGrade}</Badge> : null}</div><p>{current.teacherFeedback || 'Õpetaja jättis tööle hinde ilma kommentaarita.'}</p><small>{current.reviewedByName ? `${current.reviewedByName} · ` : ''}{formatDate(current.reviewedAt)}</small></section>
-          ) : <section className="submission-waiting"><Clock3 size={20} /><p>Õpetaja ei ole tööle veel tagasisidet saatnud.</p></section>}
+          ) : current.reviewStatus === 'reviewed' ? null : <section className="submission-waiting"><Clock3 size={20} /><p>Õpetaja ei ole tööle veel tagasisidet saatnud.</p></section>}
           {current.reviewStatus === 'reviewed' && staff ? <p className="form-hint"><CheckCircle2 size={14} /> Kontrollitud {formatDate(current.reviewedAt)}{current.reviewedByName ? ` · ${current.reviewedByName}` : ''}</p> : null}
         </aside>
       </div>
