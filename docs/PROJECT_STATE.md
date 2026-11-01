@@ -1,3 +1,12 @@
+## 2026-11-01 · agent/curricula-school — yearly topic plans by school grade: mother-tongue Estonian, mathematics, English
+
+- Checked `origin/main` `d1a64aa`. Asked (owner 2026-11-01): full study plans for Estonian as a mother tongue for each grade, English and mathematics; topics only, no lessons.
+- Built: `docs/CURRICULUM_EMAKEEL_1_12.md`, `docs/CURRICULUM_MATEMAATIKA_1_12.md`, `docs/CURRICULUM_INGLISE_1_12.md`. Each opens with a Russian note on what is official and what is our decision. No code, data or rules changed.
+- Main source: the 2024 per-grade pages of Õppekava materjalide veeb (https://projektid.edu.ee/site/okmv), recommended, not binding; PRÕK and GRÕK bind only the stage outcomes. The site's Confluence REST API (`/rest/api/content/<id>`) reads it; Firecrawl cannot.
+- Our decision: placement of gymnasium courses in grades 10–12 (all three subjects), kirjandus 5–9 per grade, the whole grade split of English (okmv divides English by level and stage only).
+- Checks: read against okmv by section; Estonian topic names run through `tools/course-audit/language.py`, the unknown words are terms and names; exam and tasemetöö dates read in Riigi Teataja 122052026003. Not compared with any real school's current ainekava for mathematics.
+- Limits: `en/b1` lacks past perfect, third conditional and question tags, which the official B1 grammar has; there is no English A1 or B2 course. `NATIVE_ESTONIAN_9_12_PLAN.md` still says 250 words for the grade 9 essay in one place.
+- Next safe step: the owner reads the plans and answers their open questions; lessons are built only after that.
 ## 2026-11-01 · agent/strict-quotes — strict answers forgive the opening quote style too
 
 - Checked `origin/main` `d1a64aa`. Found while making a personal sheet on direct speech: `strictNorm` turned a typed " into the closing ”, so `"Tere"` did not match `„Tere”` and a right answer scored wrong in the mother-tongue courses (`data.strict`).
