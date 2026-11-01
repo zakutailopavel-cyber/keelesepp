@@ -9,16 +9,17 @@ import LearnerAnnouncementsCard from '../announcements/LearnerAnnouncementsCard.
 import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import MonthStepsCard from '../learner/MonthStepsCard.jsx';
-import { lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
+import { heldCourseLessons, lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
 import WordGrowthCard from '../vocabulary/WordGrowthCard.jsx';
+import { wordGrowth } from '../vocabulary/wordGrowth.js';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
 import { autoSkills } from './autoSkills.js';
 import { levelProgress, speakingFromStats } from './levelProgress.js';
 import MyProgressCard from './MyProgressCard.jsx';
 import { markFeedbackSeen } from './nextStep.js';
 import './studentHome.css';
-import { onlySubject, subjectsOf } from './subjects.js';
+import { mainSubject, onlySubject, subjectsOf } from './subjects.js';
 import SubjectSwitcher from './SubjectSwitcher.jsx';
 
 /**
@@ -79,14 +80,14 @@ export default function StudentProgressPage({
     const catalog = buildTopicCatalog(curriculum);
     const map = progressMap(sheets);
     // a course lesson held with the teacher (Live Classroom, the calendar topic) counts as done like its three sheets
-    const held = new Set(lessons.filter((lesson) => lesson.topicLessonId && (!lesson.status || lesson.status === 'Toimunud')).map((lesson) => lesson.topicLessonId));
+    const held = heldCourseLessons(lessons);
     const courseByLevel = Object.fromEntries(catalog.levels.map((entry) => {
       const list = entry.modules.flatMap((module) => module.lessons);
       const next = nextCourseLesson(list.filter((lesson) => !held.has(lesson.id)), map);
       return [entry.key, { done: list.filter((lesson) => held.has(lesson.id) || lessonProgress(lesson.id, map).done === 3).length, total: list.length, next: next ? `${next.number ? `${next.number}. ` : ''}${next.title}` : null }];
     }));
     const computed = [...autoSkills({ assignments: sheets }), ...[speakingFromStats(stats)].filter(Boolean)];
-    return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel });
+    return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel, subject: mainSubject(student), wordCounts: wordGrowth(words) });
   })();
 
   return <div className="page-content">

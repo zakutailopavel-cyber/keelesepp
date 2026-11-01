@@ -150,6 +150,27 @@ describe('PetOverview (teacher, parent)', () => {
     expect(container.innerHTML).toContain('#f5b301');
   });
 
+  it('grows from the same data as the student\'s own page: homework, submitted work and lesson stats too', async () => {
+    const lessons = [{ studentId: 's1', date: '2026-01-05', status: 'Toimunud' }];
+    const homework = [{ studentId: 's1', status: 'Tehtud' }];
+    const submissions = [{ studentId: 's1', status: 'done', completedAt: '2026-01-06T10:00:00Z' }];
+    const speech = [{ studentId: 's1', studentWords: 100, share: 80 }];
+    const repository = { listForStudents: vi.fn().mockResolvedValue([{ id: 'u1', studentId: 's1', kind: 'rebane', name: 'Rebu' }]), lessonStatsForStudents: vi.fn().mockResolvedValue(speech) };
+    const workRepository = { listByStudentIds: vi.fn().mockResolvedValue(homework), listSubmissionsByStudentIds: vi.fn().mockResolvedValue(submissions) };
+    render(<PetOverview studentIds={['s1']} lessons={lessons} repository={repository} workRepository={workRepository} wordsService={{ subscribeForStudent: () => () => {} }} />);
+    const expected = petProgress({ lessons, homework, submissions, words: [], speech }).stars;
+    expect(expected).toBeGreaterThan(petProgress({ lessons }).stars);
+    expect(await screen.findByText(`${expected} tähte`)).toBeInTheDocument();
+    expect(repository.lessonStatsForStudents).toHaveBeenCalledWith(['s1']);
+  });
+
+  it('a parent has no lesson stats: the pet still shows from the rest', async () => {
+    const repository = { listForStudents: vi.fn().mockResolvedValue([{ id: 'u1', studentId: 's1', kind: 'rebane', name: 'Rebu' }]), lessonStatsForStudents: vi.fn().mockRejectedValue(new Error('permission-denied')) };
+    const workRepository = { listSubmissionsByStudentIds: vi.fn().mockResolvedValue([]) };
+    render(<PetOverview studentIds={['s1']} lessons={[]} homework={[{ studentId: 's1', status: 'Tehtud' }]} repository={repository} workRepository={workRepository} wordsService={{ subscribeForStudent: () => () => {} }} />);
+    expect(await screen.findByText(`${petProgress({ homework: [{ status: 'Tehtud' }] }).stars} tähte`)).toBeInTheDocument();
+  });
+
   it('shows nothing without a pet', async () => {
     const repository = { listForStudents: vi.fn().mockResolvedValue([]) };
     const { container } = render(<PetOverview studentIds={['s1']} repository={repository} wordsService={{ subscribeForStudent: () => () => {} }} />);
