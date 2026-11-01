@@ -28,6 +28,11 @@ const repo = (overrides = {}) => ({
 });
 
 describe('AccountingPage', () => {
+  it('has a TSD tab among the registers', async () => {
+    render(<MemoryRouter><AccountingPage repository={repo()} canEdit /></MemoryRouter>);
+    expect(await screen.findByRole('button', { name: 'TSD' })).toBeTruthy();
+  });
+
   it('shows the päevaraamat and brings the automatic entries up to date when it opens', async () => {
     const repository = repo();
     render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);

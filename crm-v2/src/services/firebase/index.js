@@ -35,6 +35,7 @@ export { parentsService } from './parents.js';
 export { scheduleService } from './schedule.js';
 export { studentsService } from './students.js';
 export { teachersService } from './teachers.js';
+export { tsdService } from './tsd.js';
 export { workTimeService } from './workTime.js';
 export { accountApprovalsService } from './accountApprovals.js';
 export { googleCalendarService } from './googleCalendar.js';

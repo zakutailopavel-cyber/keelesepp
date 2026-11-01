@@ -168,6 +168,48 @@ export function suppliersWorkbook(suppliers, { company }) {
   return workbook([{ name: 'Tarnijad', columns: [170, 80, 90, 220, 150, 160, 70, 50], rows: out }]);
 }
 
+// TSD of one month (tsd/TsdPanel.jsx): the main page with its codes 110–119 and Lisa 1 part Ia with the form's column
+// codes, for the accountant to check and enter in e-MTA. It holds personal ID codes: only a finance user can make it.
+export function tsdWorkbook(report, { company, month, monthLabel, sourceLabel, due, rateRows = [], printedAt = new Date() }) {
+  const line = (code, label, cents) => row([gText(code), gText(label), gNum(cents)]);
+  const main = [
+    row([text('Vorm TSD', 'title')]),
+    row([text('Maksukohustuslane (103, 104)'), text(`${company.name}, ${company.regCode}`)]),
+    row([text('Aasta, kuu (108, 109)'), text(`${month} (${monthLabel})`)]),
+    row([text('Väljamaksed'), text(`töö kuu: ${sourceLabel}`)]),
+    row([text('Esitada ja tasuda'), text(dmy(due))]),
+    row([gText('Kood', 'gHead'), gText('Nimetus', 'gHead'), gText('Summa', 'gHeadNum')]),
+    line('110', 'Kinnipeetud tulumaks', report.form[110]),
+    line('115', 'Sotsiaalmaks', report.form[115]),
+    line('116', 'Töötuskindlustusmakse', report.form[116]),
+    line('117', 'Kohustusliku kogumispensioni makse', report.form[117]),
+    line('118', 'Maksukohustus kokku', report.form[118]),
+    row([text('Kood 114 (erijuhtude tulumaks, lisad 3–8) ei ole CRM-is arvutatud.')]),
+    row([text('Arvutus CRM-ist, raamatupidaja kontrollib enne esitamist.')]),
+    row([text(`Koostatud ${stamp(printedAt)}`)]),
+  ];
+  const heads = [['Isikukood', '1000'], ['Ees- ja perekonnanimi', '1010'], ['Liik', '1020'], ['Summa', '1030'], ['MVT liik', '1150'], ['MVT summa', '1160'], ['SM väljamakse', '1060'], ['KuuM suurendus', '1090'], ['Sotsiaalmaks', '1100'], ['Kogumispension', '1110'], ['TK väljamakse', '1120'], ['TK töötaja', '1130'], ['TK tööandja', '1140'], ['Tulumaks', '1170'], ['Neto', '']];
+  const lisa = [
+    row([text(`Lisa 1, osa Ia: ${monthLabel}`, 'title')]),
+    row(heads.map(([label]) => gText(label, 'gHead'))),
+    row(heads.map(([, code]) => gText(code, 'gHead'))),
+  ];
+  report.people.forEach(({ payee, lines }) => lines.filter((l) => l.calculated).forEach((l) => lisa.push(row([gText(payee.idCode || ''), gText(payee.name), gText(l.code), gNum(l.grossCents), gText(l.exemptionKind), gNum(l.exemptionCents), gNum(l.socialBaseCents), gNum(l.minimumIncreaseCents), gNum(l.socialCents), gNum(l.pensionCents), gNum(l.unemploymentBaseCents), gNum(l.unemploymentEmployeeCents), gNum(l.unemploymentEmployerCents), gNum(l.incomeTaxCents), gNum(l.netCents)]))));
+  const t = report.totals;
+  lisa.push(row([gText('Kokku', 'gBold', 2), gNum(t.grossCents, 'gTotal'), gText('', 'gBold'), gNum(t.exemptionCents, 'gTotal'), gNum(t.socialBaseCents, 'gTotal'), gNum(t.minimumIncreaseCents, 'gTotal'), gNum(t.socialCents, 'gTotal'), gNum(t.pensionCents, 'gTotal'), gNum(t.unemploymentBaseCents, 'gTotal'), gNum(t.unemploymentEmployeeCents, 'gTotal'), gNum(t.unemploymentEmployerCents, 'gTotal'), gNum(t.incomeTaxCents, 'gTotal'), gNum(t.netCents, 'gTotal')]));
+  const open = report.people.filter((person) => person.warnings.length);
+  if (open.length) {
+    lisa.push(row([text('Kontrollida:', 'bold')]));
+    open.forEach((person) => lisa.push(row([text(`${person.payee.name}: ${person.warnings.join('; ')}`)])));
+  }
+  const rates = [row([text('Määrad', 'title')]), ...rateRows.map(([label, value]) => row([gText(label), gText(value)]))];
+  return workbook([
+    { name: 'TSD', columns: [190, 290, 90], rows: main },
+    { name: 'Lisa 1', columns: [85, 170, 40, ...Array(12).fill(78)], rows: lisa },
+    { name: 'Määrad', columns: [290, 90], rows: rates },
+  ]);
+}
+
 export function downloadWorkbook(xml, fileName) {
   const blob = new globalThis.Blob([xml], { type: 'application/vnd.ms-excel' });
   const url = URL.createObjectURL(blob);
