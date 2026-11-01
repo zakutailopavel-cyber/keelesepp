@@ -88,7 +88,9 @@ describe('next step follows the order of the task list', () => {
     const at = '2026-11-01T18:40:00.000Z';
     const sheet = (lessonId, phase, title) => ({ id: `${lessonId}-${phase}`, studentId: 's', lessonId, phase, lessonTitle: title, status: 'new', assignedAt: at, source: 'learning_library', worksheetDoc: { blocks: [{ id: 'b' }] } });
     const assignments = [sheet('b1b2-085', 'discover', 'Kontroll 17'), sheet('b1b2-034', 'practice', 'Ettepanek · Harjuta'), sheet('b1b2-034', 'discover', 'Ettepanek · Avasta')];
-    expect(nextStep({ assignments, today: '2026-11-02', now: Date.parse('2026-11-02T10:00:00Z') }).title).toContain('Ettepanek · Avasta');
+    expect(nextStep({ assignments, today: '2026-11-02', now: Date.parse('2026-11-02T10:00:00Z') }).title).toBe('Ettepanek');
+    expect(openWork({ assignments }).map((task) => task.id.includes('b1b2-085'))).toEqual([false, false, true]);
+    expect(openWork({ assignments })[0].title).toContain('Avasta');
   });
 });
 
