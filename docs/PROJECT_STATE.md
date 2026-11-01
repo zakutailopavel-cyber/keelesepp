@@ -1,3 +1,11 @@
+## 2026-11-01 · agent/book-b2-m09 — B2 module 9: lifestyle, sport-type and wellbeing words, four new task types
+
+- Base: `main` 64248e4. Own texts and tasks on themes from the owner's textbook pages; nothing copied. No audio, images, lesson ids or titles changed.
+- `b2/module09.js`: 041 info text + word box + retell (S07), versus cards rämpstoit / tervislik toit (S03, was S13), `041_p_verbs` removed; 043 `043_d_notsaid` (statements the notes do not make) replaces `043_d_map`, `043_p_swap` synonym swap (G14), wellbeing words in the R2b text and box; words reused in 042, 044, 045. `b2/lessonGoals.js`: g_vocab of 041, 042, 043.
+- Checks: final shape module 9 0 → 0, baselines unchanged, language check 0 unknown lower-case words.
+- Limit: sõltuvusained only in the 041 info text and a gloss, not reused later. Sheets not published.
+- Next safe step: owner reviews the PR; after merge publish module 9 sheets.
+
 ## 2026-11-01 · agent/school-plans-site — grade plans in Õppevara: a Matemaatika tab, grades in order, one record per topic
 
 - Owner: „просто внеси на сайт все предметы и темы”.
