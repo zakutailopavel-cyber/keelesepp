@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Headphones } from 'lucide-react';
 import { AudioBar, Line, Md, Photo } from '../ui.jsx';
 import { Area, ImagePick, Num, Rows, Select, Text } from '../../editor/fields.jsx';
-import { choice, match, truefalse } from './tasks.jsx';
+import { choice, match, plainText, truefalse } from './tasks.jsx';
 import { AudioPick } from './extra.jsx';
 import { Recorder } from './productive.jsx';
 import { EXAM_PART_DEFAULTS as EXAM_PARTS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES } from './harnoScales.js';
@@ -65,7 +65,7 @@ export const adsmatch = {
                 <span className="ws-ads-text"><Md text={s.text} /></span>
                 {ctx.interactive ? (
                   <select className={`ws-sel ${state ? 'is-' + state : ''}`} value={ctx.get(key) ?? ''} onChange={(e) => ctx.set(key, e.target.value)} aria-label={`Olukord ${i + 1}`}>
-                    <option value="">–</option>{letters.map((l) => <option key={l} value={l}>{l}</option>)}
+                    <option value="">–</option>{letters.map((l, n) => <option key={l} value={l} label={ctx.flow ? `${l}. ${plainText(ads[n].title || ads[n].text)}` : undefined}>{l}</option>)}
                   </select>
                 ) : <span className={`ws-letterbox ${state ? 'is-' + state : ''}`}>{ctx.get(key) || ''}</span>}
               </li>

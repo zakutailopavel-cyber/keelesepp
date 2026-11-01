@@ -16,6 +16,7 @@ import { courseBadge } from '../../curriculum/courseNames.js';
 const RichInlineEditor = lazy(() => import('./RichInlineEditor.jsx'));
 import { themeClass, themedTone } from './look.js';
 import { SPLITTABLE, canSplit, itemCount, packPages, shiftKey, sliceBlock } from './pageSplit.js';
+import { focusNextField } from '../sheetFlow.js';
 
 // texts that may carry formatting (bold, colour, highlight) — they are rendered with <Md>
 const RICH_FIELDS = new Set(['instruction', 'text', 'passage']);
@@ -23,6 +24,7 @@ import { BookOpen, CheckCircle2, Clock3, Headphones, Lightbulb, MessageCircle, P
 
 // Renders a worksheet document as real A4 pages (270 mm design canvas, zoomed to A4 when printed).
 // The same component serves the editor (mode "edit"), the student (mode "interactive") and print ("print").
+// `flow` (the student's phone or tablet, ../sheetFlow.js): the same blocks and answers in one column, without pages.
 
 const PAGE_H_MM = 381.86;
 const PAD_TOP = 11, PAD_BOTTOM = 9, FOOTER = 12, GAP = 4, RUNHEAD = 12;
@@ -50,7 +52,7 @@ const Footer = ({ meta, page, pages, bookPage }) => (
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, barSide = 'right', onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false, part = null }) {
+function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, barSide = 'right', onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false, part = null, flow = false }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = themedTone(theme, block.tone || 'white', TONES[block.tone] || TONES.white);
@@ -82,10 +84,10 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
   } : base;
   return (
     <section
-      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''} ${dragging ? 'is-dragging' : ''} ${part ? (continued ? 'is-part-cont' : 'is-part-first') : ''} ${part && SPLITTABLE[block.type]?.stacked ? 'is-part-stack' : ''} ${look.head ? `head-${look.head}` : ''} ${look.num ? `num-${look.num}` : ''} ${extraClass}`}
-      data-cols={opts.cols > 1 ? opts.cols : undefined}
-      data-size={opts.size || undefined}
-      style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}), '--ws-badge': accent || tone.badge }}
+      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm && !flow ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore && !flow ? 'joined-before' : ''} ${joinedAbove && !flow ? 'joined-above' : ''} ${joinedAfter && !flow ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''} ${dragging ? 'is-dragging' : ''} ${part ? (continued ? 'is-part-cont' : 'is-part-first') : ''} ${part && SPLITTABLE[block.type]?.stacked ? 'is-part-stack' : ''} ${look.head ? `head-${look.head}` : ''} ${look.num ? `num-${look.num}` : ''} ${extraClass}`}
+      data-cols={opts.cols > 1 && !flow ? opts.cols : undefined}
+      data-size={flow ? undefined : opts.size || undefined}
+      style={{ ...(plain ? {} : { background: tone.card }), ...(flow ? {} : { gridColumn: `span ${spanOf(block)}` }), ...(block.minHeightMm && !flow ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}), '--ws-badge': accent || tone.badge }}
       data-block={block.id}
       onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : onPick ? () => onPick(block.id) : undefined}
       ref={dndRef}
@@ -107,7 +109,7 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
       {/* body fills the rest of a block made taller than its content (see .is-tall in sheet.css) */}
       <div className="ws-body"><def.View data={d} ctx={blockCtx} id={block.id} /></div>
       {note ? <div className="ws-card-note">{note}</div> : null}
-      <MarksLayer block={block} editable={mode === 'edit' && Boolean(onMarks)} onChange={(next) => onMarks?.(block.id, next.marks)} />
+      <MarksLayer block={block} flow={flow} editable={mode === 'edit' && Boolean(onMarks)} onChange={(next) => onMarks?.(block.id, next.marks)} />
       {addLabel ? <button type="button" className="ws-add" onClick={(e) => { e.stopPropagation(); onAddItem(block.id); }}>+ {addLabel}</button> : null}
       {active && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
       {active && toolbar ? <div className={`ws-toolbar is-${barSide}`} role="toolbar" aria-label="Ploki tööriistad" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>{toolbar}</div> : null}
@@ -207,7 +209,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockClasses = null }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockClasses = null, flow = false }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
@@ -216,6 +218,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   const showAnswers = mode === 'interactive' || mode === 'review';
   const ctx = (id) => ({
     interactive,
+    flow,
     review: mode === 'review',
     // answers are only shown to the learner (and in teacher review); print and edit stay blank
     get: (k) => (showAnswers ? answers[`${id}:${k}`] : undefined),
@@ -266,7 +269,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   const [tallPages, setTallPages] = useState([]);
   useLayoutEffect(() => {
     const el = measureRef.current;
-    if (!el) return;
+    if (!el) return undefined;
     const run = () => {
       const mm = el.offsetWidth / 270;
       // cannot measure (hidden tab, test DOM): show everything on one page instead of dropping rows
@@ -305,7 +308,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     const ro = new ResizeObserver(run);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [rows, doc.meta, mode]);
+  }, [rows, doc.meta, mode, flow]);
 
   useLayoutEffect(() => { onPageCount?.(pages.length); }, [pages.length, onPageCount]);
 
@@ -380,9 +383,21 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key, measuring = false, part = null) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} part={part} />; })}
+      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} flow={flow} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} part={part} />; })}
     </div>
   );
+
+  // the column: every block in its order on one long page; nothing to measure, nothing to split
+  if (flow) {
+    return (
+      <div ref={rootRef} className={`ws-root is-flow mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onKeyDown={mode === 'interactive' ? focusNextField : undefined}>
+        <div className="ws-page">
+          <Header meta={doc.meta} />
+          <div className="ws-flow">{rows.map((row, i) => rowView(row, i))}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>

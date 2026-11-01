@@ -1,3 +1,13 @@
+## 2026-11-02 · agent/sheets-mobile — a sheet on a phone is one readable column, not an A4 page at zoom 0.3
+
+- Base: `main` 54d03a1, checked 2026-11-02. Student's player and block renderers only; no rules, functions, production writes, deploy or merge. Content zone untouched: no block's data was the bug. Contract and per-block notes: `docs/WORKSHEET_PHONE_VIEW.md`.
+- Before: at 375 px the homework player zoomed the A4 page to 0.3 (text 4–5 px, targets 6–9 px, fields under 7 px); the Live Classroom reading page overflowed sideways by 420 px on a wide table; fields on scanned pages were 11 px high.
+- Done: `Sheet` takes `flow` (`worksheet-studio/sheetFlow.js`, `engine/sheetFlow.css`): one column at ≤ 1023 px or on a touch screen ≤ 1366 px, A4 otherwise and always in print (`beforeprint`). Sticky „3/8” with a save state (a failed autosave now shows and retries every 5 s, on desktop too), buttons in reach, keyboard handling through the visual viewport. Tap alternatives for word bank and word order. Tables, matching, exam rubric stacked. Scanned-page fields become a numbered list (`VisualWorksheetList`). Live Classroom: phone reading page uses the same column, also a phone on its side; tablet keeps the board by default and gets „Lugemisvaade”.
+- No schema, answer keys or scoring changed. `gradingPin.test.js` pins marks, score and progress of real sheets (A2, B1, B2, C1, template v3) to `main`.
+- Files: `Sheet.jsx`, `Marks.jsx`, `ui.jsx`, `blocks/{tasks,exam,extra,harno,kids,picture,chart}.jsx`, `DocWorksheetPlayer.jsx`, `WorksheetPlayer.jsx`, `StudentBoard.jsx`, `board.css`, `sheet.css` (the old narrow block moved out), new layout check in `e2e/layout/` with `crm-v2/sheet-lab.html` (dev only, not in the build), CI job `sheet-layout`.
+- Checks: see the PR for exact numbers. All 1498 course sheets (14651 blocks) measured once at 375 px: 0 problems. A4 pages pixel-compared to `main` on desktop and in print emulation (one flaky print page per few runs, also main against main).
+- Risks and limits: Chromium only; no real iPhone, Android, iPad or WebKit run, the on-screen keyboard was tested by arithmetic and fake viewport, not by a real keyboard. A teacher's text marks are found again by quoted text, field marks by field order (unchanged).
+- Next safe step: the owner reviews the PR and opens a sheet on a real phone before merging; it needs hosting only.
 ## 2026-11-01 · agent/speed — pages load on demand, one course at a time, cache headers, fewer repeated reads
 
 - Base: `main` eb19941, checked 2026-11-01. No deploy, no production access, no rules, indexes or functions changed.
