@@ -21,6 +21,7 @@ import { petReact } from '../pet/petEvents.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from './studentFinance.js';
 import OpenInvoicesCard from '../payments/OpenInvoicesCard.jsx';
+import { parentCardIds } from '../parents/parentModel.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
@@ -151,7 +152,10 @@ export default function StudentDashboardPage({
   const path = todayPath({ words, homework, submissions, pet: state.data.pet, assignments: (state.data.progressData?.[1] || []), mistakesDoneToday: reviewedToday, offerPet: !preview, today });
   const streak = petProgress({ lessons, submissions, homework, words }).streak;
   const STEP_ICON = { words: Languages, work: BookOpen, mistakes: SpellCheck, pet: Gamepad2 };
-  const balance = invoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
+  // a child's invoices are the business of the parent linked to the card („Minu pere”); an adult learner pays and sees them here
+  const childCards = new Set(students.filter((student) => parentCardIds(student).some((id) => id !== user.uid)).map((student) => student.id));
+  const ownInvoices = invoices.filter((invoice) => !childCards.has(invoice.studentId));
+  const balance = ownInvoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Alusta ülevalt: plokis „Täna” on kõik, mida täna teha. Iga töö kontrollitakse kohe." />
@@ -185,7 +189,7 @@ export default function StudentDashboardPage({
         })}
         {balance > 0 ? <div className="student-today__card is-todo">
           <i><WalletCards size={22} /></i>
-          <span><small>Arved</small><strong>{money(balance)}</strong><em>{invoices.length} arvet · tasumata</em></span>
+          <span><small>Arved</small><strong>{money(balance)}</strong><em>{ownInvoices.length} {ownInvoices.length === 1 ? 'arve' : 'arvet'} · tasumata</em></span>
         </div> : null}
       </div>
       {nextLesson && !preview ? <div className="student-path__reschedule">
@@ -198,8 +202,8 @@ export default function StudentDashboardPage({
     {rescheduling && nextLesson ? <RescheduleDialog lesson={nextLesson} student={studentMap.get(nextLesson.studentId) || students[0]} user={user} role="student"
       busy={upcoming.map((item) => ({ date: item.occurrenceDate, time: item.time, duration: item.duration }))} requests={changeRequests}
       onClose={() => setRescheduling(false)} onSent={() => { setRescheduling(false); state.reload(); }} /> : null}
-    {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
-      <OpenInvoicesCard invoices={invoices} readOnly={Boolean(preview)} />
+    {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril siduda õpilase kaart sinu kontoga. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
+      <OpenInvoicesCard invoices={ownInvoices} readOnly={Boolean(preview)} />
 
       {/* „Teated”: the school's announcements already answered, to read again (owner 2026-10-24) */}
       {!preview ? <LearnerAnnouncementsCard user={user} {...(announcementService ? { service: announcementService } : {})} /> : null}
