@@ -85,6 +85,7 @@ describe('library search and table of contents', () => {
 
   it('facets count what is left after the other filters and sorts by last change', () => {
     expect(levelFacets(items).map((f) => [f.key, f.count])).toEqual([['A2', 1], ['B1', 3]]);
+    expect(levelFacets(['10. klass emakeel', '2. klass emakeel', '1. klass emakeel'].map((level) => ({ level }))).map((f) => f.key)).toEqual(['1. klass emakeel', '2. klass emakeel', '10. klass emakeel']);
     expect(moduleFacets(searchLibrary(items, { level: 'B1' }).map((r) => r.item)).map((f) => f.label)).toEqual(['Igapäevaelu', 'Toit ja teenindus']);
     expect(sortLibrary(searchLibrary(items, { level: 'B1' }), 'recent')[0].item.sourceId).toBe('b1-1');
   });
@@ -130,6 +131,7 @@ describe('subjects', () => {
     const { subjectOfLevel, subjectFacets } = await import('./libraryModel.js');
     expect(['A2', 'B1', 'C1', '9. klass emakeel', 'English A2', '—', ''].map(subjectOfLevel)).toEqual(['et', 'et', 'et', 'ek', 'en', '', '']);
     expect(['Eelkool 5–6 a', 'Kooliks valmis 6–7 a', '2.–3. klass 8–9 a'].map(subjectOfLevel)).toEqual(['kids', 'kids', 'kids']);
+    expect(['5. klass matemaatika', '10. klass matemaatika lai', 'English 5. klass', '5. klass emakeel'].map(subjectOfLevel)).toEqual(['ma', 'ma', 'en', 'ek']);
     expect(subjectFacets([{ level: 'A2' }, { level: 'B2' }, { level: 'English B1' }]).map((f) => [f.key, f.count])).toEqual([['et', 2], ['en', 1]]);
   });
 });

@@ -1,3 +1,10 @@
+## 2026-11-01 · agent/school-plans-site — grade plans in Õppevara: a Matemaatika tab, grades in order, one record per topic
+
+- Owner: „просто внеси на сайт все предметы и темы”.
+- Code: `features/library/libraryModel.js`: tab „Matemaatika” (`ma`), school grades sort by number. `tools/school-plans/build-records.mjs`: `docs/CURRICULUM_*_1_12.md` → 1069 `curriculumLessons` records `plan-<ek|ma|en>-<grade>[-stream]-NNN`.
+- Data contract: levels „N. klass emakeel”, „N. klass matemaatika” (10–12: „… kitsas” / „… lai”), „English N. klass”; `schoolPlanTopic: true`, `roadmapManaged: false`, so the students' course map and the sheet generator skip them. Grade 9 emakeel modules start at 07, after the six exam modules. Ids go by position: creation must stay create-only.
+- Next safe step: after merge, create the records (create-only) and check Õppevara; lessons and sheets only on the owner's word.
+
 ## 2026-11-01 · agent/curricula-decisions — owner's decisions on the grade plans
 
 - Checked `origin/main`. Owner: English grades 1–2 stay, marked optional; no school programme or textbook is asked from pupils at enrolment, the teacher learns the current topic in lessons; English B2 left to our recommendation: build it after closing the B1 gaps (past perfect, third conditional, question tags).
