@@ -1,0 +1,10 @@
+# gitleaks settings for .github/workflows/security.yml.
+title = "KeeleSepp"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Test fixture: a made-up Ekilex key in the language API test, not a real credential"
+targetRules = ["generic-api-key"]
+paths = ['''^functions/language-api\.test\.js$''']
