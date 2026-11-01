@@ -1,3 +1,9 @@
+## 2026-11-01 · agent/accounting-exclude — brought up to main, restore respects the mark
+
+- Owner 2026-11-01: the accountant's books are separate from the CRM's finance and hold only invoices paid by invoice; anything she needs may be changed and shipped.
+- Merged main (automatic entries got „Kustuta” and „Taasta” in 2026-10-30). New: „Taasta” is refused and hidden on an entry removed by the invoice mark, because the sync would skip it while the journal showed it live; the mark is removed on the invoice.
+- Next safe step: deploy rules and `functions:financeApi`, then apply the mark to KS-2026-004 and the 7 invoices of the 2026-10-30 report.
+
 ## 2026-10-30 · agent/accounting-exclude — „Ei kuulu raamatupidamisse”: an invoice can leave the company's books
 
 - Base: `main` 0a7c4d3, checked 2026-10-30. The accountant's request, confirmed by the owner: remove from the books one invoice
@@ -19,6 +25,292 @@
   not touched. The reason is readable by the invoice's owner through the document, like `cancellationReason`: write it neutrally.
 - Unfinished: the mark is not applied to anything in production; needs deploy and the owner's confirmation of the list.
 - Next safe step: the owner checks the report; after merge and deploy, mark KS-2026-004 in Finantsid.
+## 2026-11-01 · agent/book-minu-eesti-keel — B1 and B2 modules improved from the themes of „Minu eesti keel”
+
+- Merged #954 (B1 m2), #951 (B1 m7), #953 (B2 m9), #952 (B2 m10). Published: B1 30 sheets (24 changed), B2 30 sheets (29 changed), `manualEditsOverwritten: 0`, re-check all „same”.
+- For the owner to confirm: Maie dated Sofia's father first (B1 m2). New cast facts are in the module entries below, not yet in `docs/COURSE_CAST.md`.
+- Next safe step: the rest of the book's pages and other B1 and B2 modules when the owner sends them.
+
+## 2026-11-01 · agent/book-b2-m10 — B2 module 10: friendship and love vocabulary, forum, parallel stories, synonym swap
+
+- Owner: „улучшаем б1 и б2 модули” (topics and task types only from „Minu eesti keel”, all texts own). Checked `origin/main` 64248e4.
+- Changed: `admin/course/b2/module10.js`, `b2/lessonGoals.js` (046–049). 046: Gert's recommendation formtext → Eda's two parallel stories + line pairing + word box. 047: new feeling nouns, noticing a friend's trouble. 048: the neighbour-dispute article → forum post with three replies of different tone, learner's own reply; the story retold as Rasmus. 049: word order → synonym swap (G14). 050: the words return in the warm-up sheet and the R4 text. No transcript, image, id or lesson count changed.
+- New facts, not yet in `docs/COURSE_CAST.md` (outside this task's files): Valdur's late wife Maimu (radio newsreader, died six years ago), Kai Lill's childhood friend Silvi (Haapsalu, moved to Finland), forum users Marika, Liina, Leida, Piret.
+- Checks: `final-shape --course b2 --module 10` 0 → 0; baseline and strict quality baseline unchanged; eslint clean; vitest worksheet-generator + pet 1070 passed, 7 skipped (one earlier run under load had 1 failure that did not repeat in two re-runs); language check 1 unknown lower-case word, the technical value `kusimustik`.
+- Limit: 049 lost its word-order drill, so -ki / -gi returns there only in the notice, the reading and the letter rubric.
+- Next safe step: the owner reviews the PR; after merge add the new names to `docs/COURSE_CAST.md`.
+## 2026-11-01 · agent/book-b2-m09 — B2 module 9: lifestyle, sport-type and wellbeing words, four new task types
+
+- Base: `main` 64248e4. Own texts and tasks on themes from the owner's textbook pages; nothing copied. No audio, images, lesson ids or titles changed.
+- `b2/module09.js`: 041 info text + word box + retell (S07), versus cards rämpstoit / tervislik toit (S03, was S13), `041_p_verbs` removed; 043 `043_d_notsaid` (statements the notes do not make) replaces `043_d_map`, `043_p_swap` synonym swap (G14), wellbeing words in the R2b text and box; words reused in 042, 044, 045. `b2/lessonGoals.js`: g_vocab of 041, 042, 043.
+- Checks: final shape module 9 0 → 0, baselines unchanged, language check 0 unknown lower-case words.
+- Limit: sõltuvusained only in the 041 info text and a gloss, not reused later. Sheets not published.
+- Next safe step: owner reviews the PR; after merge publish module 9 sheets.
+## 2026-11-01 · agent/book-b1-m07 — B1 module 7: sport, lifestyle and wellbeing words from the textbook themes
+
+- Checked `origin/main` `64248e4`. Owner: improve B1 and B2 modules with the topics of „Minu eesti keel” (topics, single words and task types only; all texts ours).
+- Changed: `admin/course/b1/module07.js`, `b1/lessonGoals.js` (033, 034). 033: enesetunne, meeleolu, muretsema, pöörduma, hakkama saama, alla andma, abi otsima (box, diary, new phrase bank `033_t_phrases`, reply). 034: sport and lifestyle words (box + tip `034_p_words`), statements on a long text `034_p_sport` (R14) replaces Liis's `034_p_liis`, personal-question set with reasons `034_d_survey`, versus cards in `034_t_new` (now S17, was S01). 035: the words reused in the quiz, R1, R2, R3a, W1a, S1a. No transcript, image, lesson id or title changed.
+- New minor facts (not in `COURSE_CAST.md`, outside the allowed files): Sofia swims since school, Anna is learning; Liis runs and takes the stairs; Rein goes to the gym; Viktor learns chess from Arvo during the knee weeks.
+- Checks: final shape module 7 0 → 0, baselines unchanged; `eslint --quiet src` clean; `vitest run src/features/worksheet-generator src/features/pet` 1070 passed, 7 skipped; language check 3 lower-case unknowns, all old (`-ge`, `-ke` endings, the value `kusimustik`).
+- Limits: lessons 031 and 032 not touched; S17 and R14 are catalogue ids first made for B2, the B1 gates accept them. The textbook photos were not opened.
+- Next safe step: the owner merges the PR; publishing the changed sheets stays his decision.
+## 2026-11-01 · agent/book-b1-m02 — B1 module 2: love and friendship vocabulary and tasks from the textbook themes
+
+- Checked `origin/main` `64248e4`. Owner: „улучшаем б1 и б2 модули”; themes from „Minu eesti keel” pp. 28–46 only, all texts written here, no book text used.
+- Changed: `b1/module02.js`, `b1/lessonGoals.js` (006–009). 006 quarrel in the story, retelling as Helgi from a given first sentence, Oskar's grandparents' love story; 007 usaldama, austama, hoolima, toetama, klapp; 008 forum post with three replies (`008_p_forum`, replaces `008_p_stories`), the learner's reply (`008_p_reply`), noticing a friend's trouble (`008_p_friend`, replaces `008_p_found`); 009 Viktor's letter (`009_p_viktor`, replaces Liis's blog `009_p_blog`); 010 the cousins make up, words in the quiz, sort, error rows, R1. No listening transcript, image, lesson id or title changed.
+- New story facts, for `COURSE_CAST.md` (not in this PR's allowed files): in summer 1989 Maie fell for Sofia's father first and had two dates with him; he and Helgi married a year later; the cousins quarrelled by phone one Christmas Eve; they make up at the party. Forum names Epp, Raino, Tõnis, Salme, Marek; Anna's sister's fiancé Madis.
+- Checks: final shape module 2: 0 before, 0 after; baselines unchanged; `eslint --quiet src` clean; `vitest run src/features/worksheet-generator src/features/pet` 71 files passed, 1 skipped, 1070 tests passed, 7 skipped; `language.py`: 0 unknown except the genre value `kusimustik`.
+- Limits: „Millega ma sind aidata saaksin?” is a conditional before module 13, used as a fixed phrase on the owner's list; the V16 regex does not flag it. Vocabulary share is at the V14 limit: one more unknown box word in this module fails it.
+- Next safe step: owner reviews the PR; after merge, publish the module's sheets from Õppevara.
+
+## 2026-11-01 · agent/school-plans-site — grade plans in Õppevara: a Matemaatika tab, grades in order, one record per topic
+
+- Owner: „просто внеси на сайт все предметы и темы”.
+- Code: `features/library/libraryModel.js`: tab „Matemaatika” (`ma`), school grades sort by number. `tools/school-plans/build-records.mjs`: `docs/CURRICULUM_*_1_12.md` → 1069 `curriculumLessons` records `plan-<ek|ma|en>-<grade>[-stream]-NNN`.
+- Data contract: levels „N. klass emakeel”, „N. klass matemaatika” (10–12: „… kitsas” / „… lai”), „English N. klass”; `schoolPlanTopic: true`, `roadmapManaged: false`, so the students' course map and the sheet generator skip them. Grade 9 emakeel modules start at 07, after the six exam modules. Ids go by position: creation must stay create-only.
+- Done 2026-11-01 (owner's request): 1069 records created, create-only (dry run 1069 new; apply 0 failed; re-run 1069 existing). Õppevara in the browser: Emakeel 366 (336 + the 30 of ek9), Inglise keel 452 (352 + 100), Matemaatika 381; grades in order; one topic opened without error. The card labels a topic „Tunnikava”. Students' view not opened with a student account: `courseLessons` filters by `roadmapManaged`.
+- Next safe step: lessons and sheets only on the owner's word.
+
+## 2026-11-01 · agent/curricula-decisions — owner's decisions on the grade plans
+
+- Checked `origin/main`. Owner: English grades 1–2 stay, marked optional; no school programme or textbook is asked from pupils at enrolment, the teacher learns the current topic in lessons; English B2 left to our recommendation: build it after closing the B1 gaps (past perfect, third conditional, question tags).
+- Changed: `docs/CURRICULUM_INGLISE_1_12.md`, `docs/CURRICULUM_EMAKEEL_1_12.md`, `docs/CURRICULUM_MATEMAATIKA_1_12.md`. Text only; nothing was built.
+- Next safe step: B1 gaps and the B2 course start only on the owner's word; he stopped module work on 2026-11-01.
+
+## 2026-11-01 · agent/curricula-school — yearly topic plans by school grade: mother-tongue Estonian, mathematics, English
+
+- Checked `origin/main` `d1a64aa`. Asked (owner 2026-11-01): full study plans for Estonian as a mother tongue for each grade, English and mathematics; topics only, no lessons.
+- Built: `docs/CURRICULUM_EMAKEEL_1_12.md`, `docs/CURRICULUM_MATEMAATIKA_1_12.md`, `docs/CURRICULUM_INGLISE_1_12.md`. Each opens with a Russian note on what is official and what is our decision. No code, data or rules changed.
+- Main source: the 2024 per-grade pages of Õppekava materjalide veeb (https://projektid.edu.ee/site/okmv), recommended, not binding; PRÕK and GRÕK bind only the stage outcomes. The site's Confluence REST API (`/rest/api/content/<id>`) reads it; Firecrawl cannot.
+- Our decision: placement of gymnasium courses in grades 10–12 (all three subjects), kirjandus 5–9 per grade, the whole grade split of English (okmv divides English by level and stage only).
+- Checks: read against okmv by section; Estonian topic names run through `tools/course-audit/language.py`, the unknown words are terms and names; exam and tasemetöö dates read in Riigi Teataja 122052026003. Not compared with any real school's current ainekava for mathematics.
+- Limits: `en/b1` lacks past perfect, third conditional and question tags, which the official B1 grammar has; there is no English A1 or B2 course. `NATIVE_ESTONIAN_9_12_PLAN.md` still says 250 words for the grade 9 essay in one place.
+- Next safe step: the owner reads the plans and answers their open questions; lessons are built only after that.
+## 2026-11-01 · agent/strict-quotes — strict answers forgive the opening quote style too
+
+- Checked `origin/main` `d1a64aa`. Found while making a personal sheet on direct speech: `strictNorm` turned a typed " into the closing ”, so `"Tere"` did not match `„Tere”` and a right answer scored wrong in the mother-tongue courses (`data.strict`).
+- Changed: `worksheet-studio/engine/schema.js` `strictNorm` now maps all quote styles to one character; commas, capitals, letters and missing quotes stay strict. Test in `didactics/nativeLevels.test.js`.
+- Next safe step: owner merges the PR; hosting ships with the merge, no data or rules change.
+
+## 2026-11-01 · agent/suuline-osa-2 — „Suuline osa” doubled to ten lessons a level
+
+- Asked (owner 2026-11-01): „побольше таких заданий”. Added `a2-s06…10`, `a2b1-s06…10`, `b1b2-s06…10` in the same files and shape.
+- Next safe step: create `curriculumLessons` docs and publish the new sheets after merge; the owner reviews them in Õppevara.
+
+## 2026-11-01 · agent/suuline-osa — „Suuline osa” for A2, B1, B2
+
+- Asked (owner 2026-11-01): lessons like Dominik's personal C1 sheet (claim → explanation → example → conclusion, all spoken, homework written) in a separate block „Suuline osa”.
+- Built: `admin/course/suuline.js`, `a2/suuline.js` (`a2-s01…05`), `b1/suuline.js` (`a2b1-s01…05`), `b2/suuline.js` (`b1b2-s01…05`), registered in `registry.js`. Harjuta sheet only. Lesson flag `oral: true` → `meta.oral` + `meta.shortSheet`; `quality.js` skips the lesson-shape rules (`oral-empty` instead). Docs: B1_B2_COURSE_PRODUCTION.md §6.
+- Also: rebuilt audio of `a2-005:005_t_listen`, its transcript changed in #943 and left CI on main red.
+- Next safe step: create `curriculumLessons` docs and publish the sheets after merge; the owner reviews them in Õppevara.
+
+## 2026-10-30 · agent/journal-edit-free — automatic entries: full correction, delete and restore
+
+- The accountant: she can't correct or delete the entries the system made. Audit: her manual entries were fine; automatic ones had no „Kustuta”, a fixed date and document and a required reason.
+- `accounting-core.js`, `index.js` (`/accounting/entries/restore`), `JournalGrid`, `journalGrid`, `accountingReports`, `AccountingPage`: an automatic entry now edits date, document, lines and text; no reason is asked for a correction, delete or „Asenda konto” (owner; history keeps who, when, before, after); „Kustuta” makes a tombstone the sync does not recreate; „Taasta” under „Näita kustutatud”. The opening entry keeps its limits, a closed period still blocks everything. The source document in the CRM does not change.
+- Deploy: `functions:financeApi`, then the site. Next: the owner asks the accountant whether a prepaid service should be one entry D 2500 / K 3000 (today: D 1200 / K 3000 and D 2500 / K 1200).
+
+## 2026-10-30 · agent/textbook-a2-pilot — A2 moodul 1 õpikupeatüki piloot
+
+- **Base:** `ee6fa79c`. Ainult õppesisu; tootmises ei avaldatud ega muudetud CRM-i andmeid.
+- **Tehtud:** Moodul 1 avaneb nüüd peatükina „Uus algus Tallinnas”. Algus ütleb õppijale selgelt, mida ta neljas päris olukorras oskama hakkab; lõpp on sama loo loomulik jätk — Keelekool Sõna esimene õhtu, mitte eraldi kooriseltsi ülesannete plokk. Uus korduskasutatav peatüki brief: `docs/A2_MODULE_01_TEXTBOOK_PILOT.md`.
+- **Visuaal:** kasutatakse olemasolevaid musta kontuuriga, valge ja laimirohelise aktsendiga illustratsioone. Igal pildil on õppimisülesanne ja rääkimisküsimused.
+- **Järgmine turvaline samm:** omaniku ülevaatus renderdatud mustandist; alles siis sama peatüki struktuur moodulitele 2–20. Enne heakskiitu ei merge'i ega avalda.
+
+## 2026-10-30 · agent/a2-m19-final — A2 module 19 „A2 kirjutamine ja rääkimine” in the final shape
+
+- Base: `main` 64fecee (A2 modules 15–18 merged), checked 2026-10-30. Module 20 is done in parallel on its own branch: recheck V1, V2, V7, V8 when it merges. Content only; no production data, no publishing, no deploy. Template v3 → v4 (as modules 6–18).
+- Done: `a2/module19.js` (a2-091…095) passes every final-shape gate under the A2 profile: **127 → 0 problems** (`final-shape.mjs --course a2 --module 19`); `finalShapeBaselineA2.json` shrinks by 121 lines, none added. Quality gate clean, `qualityBaseline.json` and `methodGaps.test.js` unchanged. canDo / goals of 091–095 rewritten in `a2/lessonGoals.js`.
+- Shape (`withShapes`, A2 §4 row m19 = m3, no swap): 091 KUUL L→W (a voice message becomes an invitation; reedel / reedeks, Kas sa saad + da-vorm; main `091_t_invite` `kutse` 40–70 words W03), 092 PROB L→S (first try, call, language, second try; Kas teil on kooki? / Siis võtan koogi, on otsas, hoopis; main `092_t_call` S10), 093 LUGU R→W (Natalja's first lesson, cliffhanger: a stranger's textbook; kõigepealt, seepärast, lõpuks; main `093_t_story` `jutt` 60–80 words W05, plan W11, edit W10), 094 AVAS R→S (try first → the plan of a talk → try again; Täna räägin ma oma tööst, teiseks, näiteks, kokkuvõtteks; main `094_t_talk` S02, 1.5–2 min). The old topics moved: the service dialogue from 094 to 092, the description from 092 to 093, the monologue from 093 to 094; titles of 092–094 changed with them.
+  **Corners:** 091 L2 (`091_p_radio`), 092 R1 (`092_p_r1`), 093 W2b (`093_p_w2b`), 094 R1 (`094_p_r1`). **096 must not have an R-family corner.** The corners still short are only **R4 3 of 4** (R1 and L2 are closed); `V6-gap-L1` is old and no later module changes it. S05 = `092_p_cards`, S06 = `092_t_record` (home recording with the picture). Every teaching lesson: review naming the previous lesson and one of modules 15–17 (089/082, 091/074, 092/077, 093/078), an in-lesson pair task, a home recording (45–60 s), two fluency tasks (S09+S15, S11+S04, R15+S07, S08+S01). No tingiv kõneviis.
+- 095 (EKS, „Kontroll 19 — kirjutamine ja rääkimine”): every part timed with `B.examPart` and the 80 % target (R 40 min, 31 points; W 30 min, 20; L 30 min, 25; S 15 min, 20); tags R1–R5, W1, W2b, L1–L4, S0, S1, S2. Reading + writing on Harjuta, listening + speaking on Kasuta. Goals are g_read, g_notice, g_use.
+- Cast (November, a year before B1; not yet in `docs/COURSE_CAST.md`): **Keelekooli õhtu**, Friday 19 November at 18–20, planned for café Pann (40 places); on Sunday night 7 November a water pipe bursts in Pann's kitchen, Pann is closed until Monday 22 November, so the evening moves to the school's big room 305 (third floor). Cakes from **pagariäri Mesi** (Piret Sepp, Pikk tänav 7, tel 610 2030; kohupiimakook 20 €, šokolaadikook 24 €); Mesi's car breaks on 12 November, Tom fetches the cakes. **Natalja Orlova** (from Narva, in Tallinn since August, works in a shop, Olga's friend) sat in a German lesson in room 305 on 8 November and took a stranger's textbook home; its owner is **Hannes** (about 50, bus driver, daughter in Berlin), who comes to the evening and to the January course. Olga 41, in Estonia 8 years, daughter 5. Lucía's sister goes back to Spain on 14 November. Tom: 2 years in Tallinn, favourite word „jäääär”. Liis stays Liis Laan, Sofia's boss: **no rename**; the old module's other Liis characters were written out. Module 14's Mon + Thu conflict is untouched: this module uses Mondays and Wednesdays at 18–20.
+- Pictures: module 19 has no art (`art/visuals/a2-module-19.js` does not exist, `art/textbookArt.js` is out of scope). `092_t_record` shows the picture of a2-028 (Anna orders from Jaan), `095_t_s1` the picture of a2-068 (Sofia and Aune) through `data.img`.
+- Audio (TartuNLP, free): new `091_d_ene`, `091_d_clips`, `091_p_radio`, `091_t_answers`, `092_d_jaan`, `092_p_piret`, `093_d_voice`, `093_p_call`, `094_p_tom`, `095_t_l1`–`095_t_l4`; the 6 old recordings removed (mp3 + manifest). Aune has no voice here: her name is unknown to the audio planner, so Ene and Olga report what she said.
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average ~100): 411 files passed, 2 UI files failed, 1 skipped (6 tests of 2890; 2877 passed, 7 skipped). The 2 files run one at a time with a 180 s test timeout all pass: `studentWorksheetFlow` 3/3, `WorksheetStudioPage` 23/23. Course tests (`admin/course/`): 517 passed, 7 skipped. Language check (Vabamorf) of module 19: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: the sheets in Õppevara do not change until published. The R1 corners are dialogue clozes of about 240 words with 7–8 gaps because the corner needs 8 minutes (Harno: 6 items). `092_p_r1` and `094_p_r1` are tagged R12 and R03 for the catalogue caps.
+- Next safe step: A2 module 20 (`a2/module20.js`): 096 corner not R-family, 098 corner R4; then rerun `final-shape.mjs --course a2 --module 19` for V7 / V8.
+
+## 2026-10-30 · agent/a2-m18-final — A2 module 18 „Teated, juhised ja infost arusaamine” in the final shape
+
+- Base: `main` 4aff841 (A2 modules up to 14 merged; 15 #933 and 16 #934 still open, 17 being rewritten on `agent/a2-m17-final`), checked 2026-10-30. Content only; no production data, no publishing, no deploy. Template v3 → v4. Checked with modules 15 and 16 from their branches laid over: 0 problems in module 18 too (that overlay found one V7 and one V8 clash, fixed). **The 084 → 086 boundary is not checked yet:** 084 is being rewritten. Recheck V1, V2, V12 after module 17 merges; if 084's corner is R3, change 086's.
+- Done: `a2/module18.js` (a2-086…090) passes every final-shape gate under the A2 profile: **124 → 0 problems** (`final-shape.mjs --course a2 --module 18`); `finalShapeBaselineA2.json`: module 18 124 → 0, modules 19 and 20 shrink, the `course` entry grows from 14 to 23 lines, all V6 gap lines and counts: with modules 15 and 16 still open, module 18's exam makes a long gap from module 14. They go when #933 and #934 merge; regenerate the baseline then. Quality gate clean, `qualityBaseline.json` and `methodGaps.test.js` unchanged. canDo / goals of 086–090 rewritten in `a2/lessonGoals.js`.
+- Shape (`withShapes`, A2 §4 row m18 = m2, no swap): 086 LUGE R→W (teated, palume + da; main `086_t_ad` kuulutus 40–60 words W02), 087 RÄÄK R→S (tabloo, hilineb / väljub / saabub, kolmandalt perroonilt; main `087_t_plan` S03), 088 KIRJ L→W (esmalt, seejärel, lõpuks, teie-käsk; main `088_t_steps` 60–80 words W05, plan W11, edit W10), 089 PROJ L→S (facts from a call, ordinals in -l; product: info card for new learners; main `089_t_show` S02). **Corners:** 086 R3 (`086_p_signs`), 087 R2 (`087_p_news`), 088 L3 (`088_p_voice`), 089 R5 (`089_p_r5`). **091 must not have an R5 corner.** S05 = `087_p_cards`, S06 = `087_t_record` (home recording with the picture). Every teaching lesson: review naming the previous lesson and one of modules 14–16 (084/077, 086/072, 087/069, 088/067), an in-lesson pair task, a home recording (45–60 s), two fluency tasks.
+- 090 (EKS, title kept): all four parts timed with `B.examPart` and the 80 % target (R 40 min, 32 points; W 30 min, 20; L 30 min, 25; S 15 min, 20); tags R1–R5, L1–L4, W1, W2a, S0, S1, S2. Reading + writing on Harjuta, listening + speaking on Kasuta.
+- Cast (October, a year before B1; not yet in `docs/COURSE_CAST.md`): Tom lives at Kase 7 (Sandra and Ago Raud in flat 4, Arno in flat 9, Sandra's cat Nurr, Tom's flat 12); Tom's sister Emma in London, his mother's birthday (flight Friday 29 October). Sofia at Tuul Logistika, boss Liis Laan; a new colleague on Monday 1 November. Autumn course at Keelekool Sõna: Mondays and Wednesdays at 18–20 as the task for this module set (module 14 disagrees and was left alone), Pärnu mnt 10 (module 2), Ene tel 5566 1122 and Aune tel 5533 2211 (module 14), new learner Natalja Orlova (group starts Monday 8 November), courier Marko on the radio. **Liis as someone else is gone:** the module's other Liis characters (flat 8, a friend in London, the clinic caller Liis Tamm, the yoga teacher, a colleague) were written out and replaced by existing cast or by Kati Mägi (yoga card, exam W1). Liis now appears only as Sofia's boss. No new name for the audio planner to learn.
+- No tingiv kõneviis: the old „Kas te saaksite korrata?” is now „Kas te saate korrata?”.
+- Pictures: module 18 has no art (`art/visuals/a2-module-18.js` does not exist and `art/textbookArt.js` is out of scope). `087_t_record` and `090_t_s1` show the picture of lesson a2-022 through `data.img` (`/textbook-art/a2/a2-022/a2-022-kasuta-1.webp`, Viktor and Anna at the station). If module 18 gets its own art, replace it there.
+- Audio (TartuNLP, free): new `086_d_voice`, `087_d_clips`, `088_d_call`, `088_d_radio`, `088_p_voice`, `089_d_call`, `089_d_numbers`, `089_d_radio`, `090_t_l1`–`090_t_l4`; changed `089_t_msgs`; the 7 old recordings removed (mp3 + manifest).
+- Checks: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average 37): 407 files passed, 6 UI files failed with 13 tests (timeouts: studentWorksheetFlow, LiveRoom, VocabularyPage, CourseProductionPage, LessonWorksheetStudioPage, WorksheetStudioPage), 2870 tests passed, 7 skipped; run alone with a 180 s timeout all six pass (3/3, 16/16, 8/8, 2/2, 6/6, 23/23). Language check (Vabamorf) of module 18: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: the corners' minimum minutes force long inputs at A2: `088_p_voice` is about 280 words (Harno: 1–1.5 min) and `089_p_r5` about 200 words with 11 gaps (Harno: ≈ 100 words, 8 gaps).
+- Next safe step: when modules 15, 16 and 17 have merged, regenerate the baseline and rerun `final-shape.mjs --course a2 --module 18`; then A2 module 19 (`a2/module19.js`, first corner not R5).
+## 2026-10-30 · agent/a2-m17-final — A2 module 17 „Plaanid, kokkulepped ja tulevik” in the final shape
+
+- Base: `main` 4aff841, checked 2026-10-30; A2 modules 15 #933 and 16 #934 still open. Both boundaries were checked by overlaying those branches: module 17 and module 16 show 0 problems. Recheck after they merge. Content only; no production data, no publishing, no deploy. Template v3 → v4 (as modules 6–16).
+- Done: `a2/module17.js` (a2-081…085) passes every final-shape gate under the A2 profile: **123 → 0 problems** (`final-shape.mjs --course a2 --module 17`); `finalShapeBaselineA2.json` 749 → 617 lines. It gains two course lines on this base only, `V6-gap-S1` and `V6-gap-S2`: modules 15–16 on `main` have no S1 / S2 tags yet. They are gone in the overlay, so regenerate the baseline after #933 and #934 merge. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m17 = m1, no swap): 081 LUGU R→W (homme lähen, järgmisel nädalal, kuu pärast, varsti; kavatsen + da; main `081_t_week` `jutt` 60–80 words W05, edit W10), 082 KUUL L→W (kokkuleppe sammud, Kas … sobib?, Kahjuks ei saa, Aga kas …?, Äkki …?, mulle sobib; main `082_t_reply` `vastus` 40–70 words W08, plan W11), 083 AVAS R→S (kui + olevik, siis …; try first → rule → try again; main `083_t_plan` S03), 084 PROB L→S (the plan breaks; kella üheksa asemel, jääb ära, kinnitus; first try `084_d_first`, second try `084_t_call`; main S10). canDo / goals of 081–085 rewritten in `a2/lessonGoals.js`.
+  **Corners:** 081 S1 (`081_t_pic`, S06, in Kasuta because that sheet has the picture), 082 L3 (`082_p_ene`), 083 R5 (`083_p_maret`), 084 L4 (`084_p_match`, 8 pairs). **086 must not have an L-family corner.** S06 = `081_t_pic`, S05 = `081_p_cal`. Every teaching lesson: review naming the previous lesson and one of modules 13–15 (079/067, 081/072, 082/063, 083/074), an in-lesson pair task, a home recording (45–60 s), two fluency tasks (S07+S02, S09+S13, R15+S11, S08+S02). No tingiv kõneviis: the old „Aga kuidas oleks …?” is now „Aga kas … sobib?”, „Äkki …?”.
+- 085 (EKS, „Kontroll 17 — plaanid ja kokkulepped”): every part timed with `B.examPart` and the 80 % target (R 40 min, 31 points; W 30 min, 20; L 30 min, 25; S 15 min, 20); tags R1–R5, W1, W2a, L1–L4, S0, S1, S2. Reading + writing on Harjuta, listening + speaking on Kasuta. Goals are g_read, g_notice, g_use.
+- Cast (October, a year before B1; not yet in `docs/COURSE_CAST.md`): the autumn course at Keelekool Sõna meets on **Mondays and Wednesdays at 18–20** (as module 13; module 14 says Mon + Thu at 19 and was left unchanged, as instructed); test on Wednesday 6 October. Sofia's week from Sunday 3 October: Tuesday ujula Kalev with Anna at 18.30, Thursday 7 October client Lepik at 10, evening Viktor (her bike). Helgi comes on Friday 8 October (train 15.35 → Tallinn 18.00, Viktor fetches her by car) until Sunday, with neighbour Tiiu's old cat Miisu (Tiiu in hospital a week); dinner at Jaan's on Saturday 9 October at 17 (first 16; Oskar's football), Muki cannot have the cat. Lucía's mother Maria visits in October. Autumn trip to **Haapsalu, Saturday 16 October**, 15 €, 28 people with children; bus firm Lääne Buss (Toomas; driver Kalev): on Thursday 14 October the 50-seat bus breaks, a 30-seat bus leaves at 11 instead of 9; lunch at 14 in kohvik Mere ääres, railway museum at 16, back at 18 → Tallinn about 20. Liis stays Liis Laan, Sofia's boss: **no rename**; the old „Liis's week” block of 082 is gone. `art/visuals/a2-module-17.js` untouched: the pictures fit and their prompts have no tingiv kõneviis.
+- Audio (TartuNLP, free): new `081_d_anna`, `081_p_numbers`, `081_t_voice`, `082_d_helgi`, `082_d_radio`, `082_p_ene`, `082_t_voice`, `083_p_forecast`, `084_d_clips`, `084_p_match`, `085_t_l1`–`085_t_l4`; the 6 old recordings removed (mp3 + manifest). Every speaker name is known to the audio planner (Aune has no voice here).
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average ~40): 408 files passed, 5 UI files failed, 1 skipped (10 tests of 2890; 2873 passed, 7 skipped). The 5 files run one at a time with a 180 s test timeout all pass: `studentWorksheetFlow` 3/3, `LiveRoom` 16/16, `VocabularyPage` 8/8, `CourseProductionPage` 2/2, `WorksheetStudioPage` 23/23. Language check (Vabamorf) of module 17: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: the sheets in Õppevara do not change until published. `V6-gap-L1` (5 modules) is the gap between the L1 tags of modules 5 and 10, so no later module changes it; it stays in the baseline and did not grow. After this module the corners still short are (with modules 15–16) R1 2, R2 3, R4 3, R5 3, L2 3, L3 3 of 4.
+- Next safe step: A2 module 18 (`a2/module18.js`, first corner not L-family).
+## 2026-10-30 · agent/a2-m16-final — A2 module 16 „Minevik ja kogemused” in the final shape
+
+- Base: `main` 435b6be (A2 modules 13 #932 and 14 #931 merged), checked 2026-10-30. The 074 → 076 boundary was checked by overlaying module 15's current working file (not yet pushed): 0 problems, recycling from module 15 = 77 %. Recheck after module 15 merges. Content only; no production data, no publishing, no deploy. Template v3 → v4 (as modules 6–14).
+- Done: `a2/module16.js` (a2-076…080) passes every final-shape gate under the A2 profile: **120 → 0 problems** (`final-shape.mjs --course a2 --module 16`); `finalShapeBaselineA2.json` 729 → 601 lines (course lines 14 → 12), new 0. Quality gate clean, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m16 = m8, no swap): 076 PROJ L→S (olin, tulin, läksin, tegin, sain, nägin; ei + nud; main `076_t_plan` S03), 077 KIRJ L→W (kõigepealt, siis, pärast seda, äkki, õnneks, lõpuks; main `077_t_story` `jutt` 60–80 words W05, plan W11 in Harjuta, edit W10), 078 RÄÄK R→S (a story in the past; main `078_t_tell` S02), 079 LUGE R→W (olen käinud / ei ole käinud, Kas sa oled kunagi …?, against the simple past; main `079_t_reply` `vastus` 50–70 words W08). canDo / goals of 076–080 rewritten in `a2/lessonGoals.js`.
+  **Corners:** 076 L1 (`076_p_clips`, 8 notices), 077 S1 (`077_t_pic`, S06, in Kasuta because that sheet has the picture), 078 W2a (`078_p_note`), 079 R2 (`079_p_ads`). **081 must not have an R2 corner.** S06 = `077_t_pic`, S05 = `078_p_cards`. Every teaching lesson: review naming the previous lesson and one of modules 12–14 (074/066, 076/064, 077/069, 078/059), an in-lesson pair task, a home recording (45–60 s), two fluency tasks (S02+S01, R15+S07, S09+S11, S08+S13). No tingiv kõneviis.
+- 080 (PROOV, retitled „Proovieksam 2: minevik ja kogemused”; the shape of 060): all four parts timed with `B.examPart` and the 80 % target (W 30 min, 20; R 45 min, 29; L 30 min, 25; S 15 min, 20); tags W1, W2a, W2b, R1–R5, L1–L4, S0, S1, S2. Writing + reading on Harjuta, listening + speaking on Kasuta. Goals are g_read, g_notice, g_use.
+- Cast (September, a year before B1; not yet in `docs/COURSE_CAST.md`): autumn course starts Monday 6 September; **Lugude õhtu** in café Pann, Friday 24 September at 18, 40 guests; rehearsals Monday 13 and 20 September. Sofia's bad Tuesday 7 September (bus 6, rain, blue folder left on the bus, late for Liis's meeting with client Lepik). Lost property office: Helju Tamm, Masina 12, tel 640 3322. Sofia's Tartu bookshop story: Ants Ilves and Leida (a letter of 1965). New student Sergei. Tom's neighbour Arvo took him fishing. Liis stays Liis Laan, Sofia's boss: **no rename**; the old teacher / official Liis is not in this module. `art/visuals/a2-module-16.js` untouched: the pictures fit and their prompts have no tingiv kõneviis. Module 14 gives the autumn course as Mon + Thu at 19, module 13 as Mon + Wed at 18–20: this module names only Mondays, so the conflict stays open.
+- Audio (TartuNLP, free): new `076_d_maret`, `076_p_clips`, `076_t_voice`, `077_d_radio`, `077_p_numbers`, `077_t_voice`, `078_p_rehearsal`, `079_d_game`, `079_p_match`, `080_t_l1`–`080_t_l4`; the 7 old recordings removed (mp3 + manifest). Aune has no voice here: her name is unknown to the audio planner, so Maret reports what she said.
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average ~226): 407 files passed, 6 UI files failed, 1 skipped (12 tests of 2889; 2870 passed, 7 skipped). The 6 files run one at a time with a 180 s test timeout all pass: `studentWorksheetFlow` 3/3, `LiveRoom` 16/16, `WorksheetStudioPage` 23/23, `CourseProductionPage` 2/2, `LessonGeneratorBar.art` 3/3, `LessonWorksheetStudioPage` 6/6. Language check (Vabamorf) of module 16: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: the sheets in Õppevara do not change until published. V6 course lines not closed by this module stay in the baseline.
+- Next safe step: when module 15 has merged, rerun `final-shape.mjs --course a2 --module 16`; then A2 module 17 (`a2/module17.js`, first corner not R2).
+## 2026-10-30 · agent/a2-m15-final — A2 module 15 „Suhted, külaskäik ja viisakus” in the final shape
+
+- Base: `main` 435b6be (A2 modules 13 #932 and 14 #931 merged), checked 2026-10-30; the 069 → 071 boundary is checked on this base (V1, V2, V5, V12: 0 lines for 069–075). Module 16 is being done in parallel: recheck V1 / V2 / V5 / V12 at 074 → 076 when it merges. Content only; no production data, no publishing, no deploy. Template v3 → v4 (as modules 6–14).
+- Done: `a2/module15.js` (a2-071…075) passes every final-shape gate under the A2 profile: **module problems 0** (`final-shape.mjs --course a2 --module 15`), its lines are gone from `finalShapeBaselineA2.json` (749 → 613 lines, this includes module 15's own, V7 / V8 lines of later modules and course lines; none added). Quality gate clean, `qualityBaseline.json` and `methodGaps.test.js` unchanged. canDo / goals of 071–075 rewritten in `a2/lessonGoals.js`.
+- Shape (`withShapes`, A2 §4 row m15 = m7, no swap): 071 PROB L→S (first try, language, second try; tule / tulge, osastav in offers, külla / külas; main `071_t_visit` S10, level 4), 072 AVAS R→S (try first → rule → try again; palun + käsk, Kas sa saad / Kas te saate + da-vorm, Kas ma võin / tohin; main `072_t_who` S03), 073 KUUL L→W (Hea meelega!, Kahjuks ma ei saa, sest …, Aga kas … sobib?, Äkki …?; main `073_t_reply` `vastus` 50–70 words W08), 074 LUGU R→W (Tom's journey told in messages, cliffhanger: the wallet; Aitäh … eest!, the message plan; main `074_t_thanks` 50–70 words W04, edit W10).
+  **Corners:** 071 L2 (`071_p_radio`), 072 R3 (`072_p_signs`), 073 L1 (`073_d_msgs`), 074 W2a (`074_p_wallet`). **The next teaching lesson (076) must not have a W2 corner.** S06 = `072_t_record` (home recording with the picture), S05 = `071_p_cards`. Every teaching lesson: review naming the previous lesson and one of modules 11–13 (069/058, 071/062, 072/059, 073/064), an in-lesson pair task, a home recording (45–60 s), two fluency tasks (S08+S09, R15+S11, S02+W06, S07+R14).
+- 075 (EKS, title kept): all four parts timed with `B.examPart` and the 80 % target (R 40 min, 31 points; W 30 min, 20; L 30 min, 25; S 15 min, 20); tags R1–R5, W1, W2a, L1–L4, S0, S1, S2. Reading + writing on Harjuta, listening + speaking on Kasuta. S1 has no picture of its own: the teacher shows 072's picture or another visit picture (teacher note on the task).
+- No tingiv kõneviis anywhere in the module: the old „Kas te saaksite …?”, „Tahaksin …”, „Sooviksin …”, „Kuidas oleks …?” are now „Kas te saate …?”, „Ma soovin …”, „Aga kas … sobib?”, „Äkki …?”. The prompts in `art/visuals/a2-module-15.js` had none (file untouched).
+- Cast (June 2027, after module 14; not yet in `docs/COURSE_CAST.md`): **Liis renamed:** the old module's teacher / friend Liis is gone; the new character in her place is **Sandra Raud** (Tom's neighbour, flat 4; husband Ago; in `FEMALE`, no course used the name). Liis appears only as Sofia's boss (one review question). Anna sells at Kaubahall (boss Eha, cashier Tiit), goes to her sister on Hiiumaa 18–21 June; Viktor is her neighbour and says „sina” from now on. Viktor's jaanipäev at the farm Wednesday 23 June (Aegviidu station 17.30). Tom gets off at Kehra; **Arno** (Viktor's old friend, wife Leida) drives him; Jaan's wallet found in the grass. Tom's dinner Saturday 26 June. Radio guest Priit Rand.
+- Audio (TartuNLP, free): new `071_d_voice`, `071_p_radio`, `072_p_eha`, `073_d_msgs`, `073_d_call`, `073_p_times`, `073_t_list`, `074_d_voice`, `075_t_l1`–`075_t_l4`; the 5 old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average 245): 407 files passed, 6 UI files failed with 13 tests, 1 skipped (timeouts: studentWorksheetFlow, VocabularyPage, CourseProductionPage, LessonGeneratorBar.art, LessonWorksheetStudioPage, WorksheetStudioPage); run alone with a 180 s timeout all six pass (45/45). Language check (Vabamorf) of module 15: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: a few catalogue tags are the nearest free id, not an exact match, because a module may use each id once: `073_t_friend` W07 (a letter), `074_p_where` R16 (ads), `072_p_neighbour` S13, `074_t_tell` S01. The V6 course lines stay (corners still below the course minimums, `V6-gap-L1`; closing pass of later modules). Sheets in Õppevara do not change until published.
+- Next safe step: when module 16 has merged, rerun `final-shape.mjs --course a2 --module 15` and `--rule V12`; then A2 module 17 (first corner per what module 16 leaves).
+
+## 2026-10-30 · agent/a2-m14-final — A2 module 14 „Õppimine, kool ja keel” in the final shape
+
+- Base: `main` a58d8c4 (A2 modules 11 #930 and 12 #927 merged; module 13 still open), checked 2026-10-30. The 064 → 066 boundary was checked by
+  overlaying module 13's current working file: 0 problems (the overlay found `V2` at Harjuta, so 066 Harjuta now opens with G04). Recheck after
+  module 13 merges. Content only; no production data, no publishing, no deploy. Template v3 → v4 (as modules 6–12).
+- Done: `a2/module14.js` (a2-066…070) passes every final-shape gate under the A2 profile: **125 → 0 problems**
+  (`final-shape.mjs --course a2 --module 14`); `finalShapeBaselineA2.json` 1000 → 858 lines (module 14's 123, 18 V7 / V8 lines of modules 15–20 and course
+  lines 29 → 21), new 0. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m14 = m6, no swap): 066 RÄÄK R→S (kursusel / kursusele / kursuselt, tunnis / tundi / tunnist, esmaspäeviti, kaks korda nädalas;
+  main `066_t_tell` S02), 067 LUGE R→W (korda / korrake, rääkige aeglasemalt, Mida see sõna tähendab?, Kas te saate …?; main `067_t_reply` `vastus` 50–70
+  words W08, tagged level 4), 068 PROJ L→S (tahan / proovin + da, hakkan / pean + ma, the study card; main `068_t_plan` S03), 069 KIRJ L→W (the two-week plan,
+  iga päev, kaks korda nädalas, ajasõna ees; main `069_t_mainplan` `jutt` 60–80 words W05, plan W11, edit W10). canDo / goals of 066–070 rewritten in `a2/lessonGoals.js`.
+  **Corners:** 066 S2 (`066_p_cards`, S05), 067 R4 (`067_p_maret`), 068 L4 (`068_p_talk`, 8 pairs), 069 W1 (`069_p_card`, Aune's business card). **071 must not have a
+  W1 corner.** S06 = `068_t_record` (home recording with the picture), S05 = `066_p_cards`. Every teaching lesson: review naming the previous lesson and one of
+  modules 11–12 (064/056, 066/058, 067/057, 068/051), an in-lesson pair task, a home recording (45–60 s: the didactic check wants ≥ 45 s at A2), two fluency tasks
+  (S09+S11, S08+W06, S02+S01, R15+S07). No tingiv kõneviis: the old „Kas te saaksite …?” is now „Kas te saate …?”.
+- 070 (EKS, title kept): all four parts timed with `B.examPart` and the 80 % target (R 40 min, 31 points; W 30 min, 20; L 30 min, 25; S 15 min, 20); tags R1–R5, L1–L4,
+  W1, W2b, S0, S1, S2. Reading + writing on Harjuta, listening + speaking on Kasuta.
+- Cast (May, a year before B1; not yet in `docs/COURSE_CAST.md`): spring course at Keelekool Sõna ends Friday 28 May, last test Friday 21 May; summer courses from 7 June
+  (morning Maret, evening and online Kadi, speaking club Thursdays at 17 in Pann, administrator Ene). Students Sofia, Tom, Lucía, Dmitri, Olga. Maret learns Italian
+  (daughter in Milan). Two-week plan 31 May – 13 June. **Liis renamed:** the old module's teacher Liis (also in both pictures) is now **Aune** (Aune Kuusk, new teacher at
+  Keelekool Sõna; no course used the name; Aune, Aunele, Aunelt, Aune kaart). Changed in `a2/module14.js` and `art/visuals/a2-module-14.js` (cast, scene, alt, prompts);
+  the pictures themselves are not redrawn. Aune is not in `tools/listening-audio/plan.mjs`' `FEMALE` (a tool file, out of scope), so her voice depends on the transcript's hash:
+  `068_d_aune` and `070_t_l2` are worded so that she gets a female voice. If either transcript changes, check the voice or add the name to `FEMALE`.
+- Audio (TartuNLP, free): new `066_p_maret`, `067_d_call`, `067_p_clips`, `068_d_aune`, `068_p_talk`, `068_t_voice`, `069_d_radio`, `069_p_numbers`, `069_t_voice`, `070_t_l1`–`070_t_l4`;
+  the 6 old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average 100+): 409 files passed, 4 UI files failed with 12 tests (timeouts: studentWorksheetFlow, VocabularyPage, WorksheetStudioPage, CourseProductionPage), 1 skipped; run alone with a 180 s timeout all four pass (3/3, 8/8, 23/23, 2/2). Language check (Vabamorf) of module 14: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: corner counts after this module: S2, R4, L4 and W1 each rise by one, still under the course minimums (closing pass of later modules).
+- Next safe step: when module 13 has merged, rerun `final-shape.mjs --course a2 --module 14`; then A2 module 15 (`a2/module15.js`, first corner not W1).
+## 2026-10-30 Päevaraamat: põhjuse väli automaatkande juures (`agent/journal-reason-inline`)
+
+Raamatupidaja vajutas automaatkande juures „Salvesta”, kuid muudatus jäi salvestamata: põhjuse väli oli tabeli kohal, ekraanilt väljas. Nüüd on väli kande enda real, „Salvesta” viib kursori sinna, Enter salvestab. Väärtus on sama, mis ülemisel väljal (kehtib seansi lõpuni). Muudetud: `features/accounting/JournalGrid.jsx`, `journalGrid.js`, `accounting.css`, `JournalGrid.test.jsx`. Server ja andmed muutumata, deploy Verceli kaudu. Järgmine samm: raamatupidaja parandab kande 2026-0030 uuesti.
+
+## 2026-10-30 · agent/a2-m13-final — A2 module 13 „Töö ja amet” in the final shape
+
+- Base: `main` a58d8c4 (A2 modules 11 #930 and 12 #927 merged), checked 2026-10-30; the 059 → 061 boundary was checked. Content only; no
+  production data, no publishing, no deploy. Template v3 → v4 (as modules 6–12).
+- Done: `a2/module13.js` (a2-061…065) passes every final-shape gate under the A2 profile: **baseline 104 → 0 problems**
+  (`final-shape.mjs --course a2 --module 13`); `finalShapeBaselineA2.json` 1000 → 869 (module 13's 104 lines, 19 V7 / V8 lines of modules
+  14–20, course 29 → 21), new 0. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m13, no swap): 061 AVAS R→S (try first → rule → try again; töötan müüjana, töötan poes, vastutan … eest;
+  main `061_t_stand` S01, tagged level 4), 062 LUGU R→W (the interview, a cliffhanger; pean + ma-vorm, oskan / saan / tahan + da-vorm;
+  main `062_t_end` `jutt` 60–80 words W05), 063 PROB L→S (two offers; kella kaheksast viieni, E–R, vahetus, palk, kogemus; main
+  `063_t_decide` S03), 064 KUUL L→W (the trial day; alusta, too, vii, ära unusta; main `064_t_letter` `kiri` 50–70 words W04), 065 EKS.
+  **Corners:** 061 R3 (`061_p_signs`), 062 W1 (`062_p_card`), 063 L4 (`063_p_talk`), 064 L3 (`064_d_liis`). **066 must not have an L3 corner.**
+  S06 = `062_t_record` (home recording with the picture), S05 = `063_p_cards`. Every teaching lesson: review naming the previous lesson and
+  one of modules 10–11 (059/047, 061/054, 062/053, 063/051), an in-lesson pair task, a home recording (45–60 s), two fluency tasks
+  (S02+S10, S07+S02, S13+S08, S09+W06). No tingiv kõneviis; the picture prompts in `art/visuals/a2-module-13.js` had none (file untouched).
+- 065 (EKS, „Kontroll 13 — töö ja amet”): every part timed with `B.examPart` and the 80 % target (R 40 min, 31; W 30 min, 20; L 30 min, 25;
+  S 15 min, 20); tags R1–R5, W1, W2a, L1–L4, S0, S1, S2. Reading + writing on Harjuta, listening + speaking on Kasuta.
+- Cast (May, a year before B1; not yet in `docs/COURSE_CAST.md`, content agents may not edit it): **Liis stays what she is in B1: head of Tuul
+  Logistika and Sofia's boss. No rename.** The old teacher / official Liis, her son Oskar, Olga, Urmas, Merle, Taras, Peeter and Kaja of this module are
+  gone; the picture of 062 (Liis and Markus in the warehouse) now fits. New facts that later modules must keep: Sofia worked two years in a Tartu bookshop
+  before; job fair at the culture house Sild, Saturday 8 May; Liis's surname **Laan**, firm at Peterburi tee 18, bus 6, 28 staff; interview Tuesday 11 May;
+  offers on Friday 14 May: Tuul Logistika office, Mon–Fri 8.30–17, 1250 €, 3 months' trial, **from 1 September**; Kaubahall through Anna (boss Eha,
+  colleague Mirjam), two shifts, 950 €, **June–August**; Sofia's day lessons (Tue, Fri) become Ene's evening course (Mon, Wed 18–20) in autumn; trial day
+  Friday 28 May; contract Monday 31 May; client Lepik (Pärnu), courier, Rein and Markus in the warehouse; rent 250 €; radio career adviser Piret Vaher
+  (as in B1 module 9); Viktor's neighbour boy Henri learns bike repair. So Sofia is **not yet in the office in June–August** (modules 14–20 may say she works at
+  Kaubahall in summer).
+- Audio (TartuNLP, free): new `061_d_radio`, `061_p_ene`, `062_d_markus`, `063_d_calls`, `063_p_talk`, `064_d_liis`, `064_d_times`, `064_p_clips`,
+  `064_t_voice`, `065_t_l1`–`065_t_l4`; the 10 old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average ~100): 408 files passed, 5 UI files failed, 1 skipped (14 tests of 2889; 2868 passed, 7 skipped). The 5 files run one at a time with a 180 s test timeout all pass: `studentWorksheetFlow` 3/3, `VocabularyPage` 8/8, `CourseProductionPage` 2/2, `LessonWorksheetStudioPage` 6/6, `WorksheetStudioPage` 23/23. `final-shape.mjs --course a2`: 869 problems, new 0. Language check (Vabamorf) of module 13: 1 unknown lower-case word, `kusimustik`
+  (genre value).
+- Known: `V6-gap-L1` is unchanged in kind (module 5 → 10, closing pass); corner counts after this module: R3 3, W1 4, L4 2, L3 2 of 4.
+- Next safe step: A2 module 14 (`a2/module14.js`, its first corner not L3); rerun `final-shape.mjs --course a2 --module 14` against this file.
+
+## 2026-10-30 · agent/worksheet-art-throughout — pictures through the whole worksheet (word strips, scene next to its task)
+
+- Base: `main` 0a7c4d3 (A2 modules up to 10 #923), checked 2026-10-30, with Codex's #883 (156 A2 word pictures) merged in: this PR includes #883. No production data, no publishing, no deploy, no module file touched.
+- Owner: „посмотри на них и добавь куда надо”, „иллюстрации должны быть не только в начале листа, а эргономично дополнять рабочие листы на протяжении всего урока”.
+- Done: new non-task block `wordstrip` (`engine/blocks/content.jsx`, `hidden` from the picker and the connector catalogue; 3–5 square pictures with words, 0 minutes, `data.artFor: 'words'`, in `NON_TASK_TYPES`, depth `OPEN`; `gates.js` and `quality.js` ignore it). `art/wordStrips.js` `withWordStrips` places strips at build time in `admin/course/registry.js`; `art/textbookArt.js` `scenePlace` moves the scene picture + „Vaata pilti” card before the first speaking or writing task, honours the brief's new optional `place`. `pageSplit.js` `keepWithNext`: a strip goes to the next page with its task. `liveLesson.js` `stepView`: a strip comes with its task. `functions/generated/sheet-kit.cjs` rebuilt (`npm run build:sheet-kit`, required by `sheetKit.test.js`). Contract: `docs/TEXTBOOK_ART_BIBLE.md` §10, a pointer in `docs/LESSON_SCENE_STANDARD.md`.
+- Result a2-001…050 (150 sheets, 120 teaching, 30 exam), after the coordinator's review (too sparse at first): every teaching sheet has strips: 315 strips, 2.63 per sheet (45 sheets with 2, 75 with 3), 3 words each, 153 of 156 words used, none on exam sheets. Filler words need not be in the task below. The 50 lesson scene pictures: 12 moved down, 38 stay at the top, mostly because the opening text says „Vaata pilti”.
+- Checks on the final code: `npx eslint --quiet src` clean; `npx vitest run` 412 files passed, 1 skipped, 1 failed: `WorksheetStudioPage` (1 test, 20 s timeout); run alone the file passes 23/23. `finalShape`, `course`, `quality` green; no baseline file changed; minutes equal with and without strips (test).
+- Design check: local preview, PNGs in `~/.keelesepp-helpers/art-preview/` (not in the repo). Desktop, phone and print checked; the strip has no frame on any width (the classic theme's page frame, an inset shadow, showed through on a phone: fixed in `sheet.css`). a2-022 practice, 5 pages: strips on pages 1, 2, 4. Print sample of 12 sheets: 4 gain one page (a2-022 practice, a2-041 practice, a2-043 discover, a2-001 transfer), 8 unchanged; tiles reduced to 21 mm to keep that down.
+- Known: **sheets in Õppevara do not change until published again**; „Kursuste tervis” shows them as differing from code. A scene picture can land one page before its task on paper (only strips keep with their task). A strip word may be an answer two or more tasks above it, only when three words cannot be reached otherwise. Pictures to redraw: `pikk` = `luhike` and `peatus` = `bussipeatus` are the same file (`SAME_PICTURE`, a sheet shows one of each pair); weak: `ema` (same age as daughter), `vanem`, `köha`, `teenus`, `liha` (lime steak).
+- Next safe step: the owner looks at the PR and the PNGs; after the merge publish the A2 sheets on „Kursuse tootmine” lesson by lesson.
+## 2026-10-30 · agent/a2-m12-final — A2 module 12 „Reisimine ja transport” in the final shape
+
+- Base: `main` 0a7c4d3 (A2 module 10 #923 merged; module 11 still open), checked 2026-10-30. The 054 → 056 boundary was checked by
+  overlaying module 11's current file: 0 problems, no new line elsewhere. Recheck after module 11 merges. Content only; no production
+  data, no publishing, no deploy. Template v3 → v4 (as modules 6–10).
+- Done: `a2/module12.js` (a2-056…060) passes every final-shape gate under the A2 profile: **117 → 0 problems**
+  (`final-shape.mjs --course a2 --module 12`); `finalShapeBaselineA2.json` 1279 → 1130 (module 12's 117 lines, 29 V7 / V8 lines of
+  modules 13–20, course 39 → 36), new 0. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m12, no swap): 056 KIRJ L→W (bussiga, jalgsi, peatuses / peatusesse / peatusest, üks ots; main
+  `056_t_letter` `kiri` 50–70 words W04, plan W11, edit W10), 057 PROJ L→S (väljub Tallinnast, saabub Tartusse, hilineb, teiselt
+  platvormilt, the one-page trip plan; main `057_t_plan` S03), 058 LUGE R→W (Mis kell, Kust, Kui palju, Kas, kaks piletit; main
+  `058_t_reply` `vastus` 60–80 words W08, tagged level 4), 059 RÄÄK R→S (lihtminevik; main `059_t_tell` S07, tagged level 4).
+  **Corners:** 056 W1 (`056_p_card`), 057 L1 (`057_p_clips`, 8 announcements), 058 R1 (`058_p_phrases`, a cloze tagged R12), 059 S2
+  (`059_p_cards`, S05). **061 must not have an S2 corner.** S06 = `059_t_record` (home recording with the picture), S05 = `059_p_cards`.
+  Every teaching lesson: review naming the previous lesson and one of modules 8–10 (054/047, 056/049, 057/048, 058/043), an in-lesson
+  pair task, a home recording (45–60 s), two fluency tasks (S09+W06, S02+S10, S02+R15+S01, S08+S11). No tingiv kõneviis; the picture
+  prompts in `art/visuals/a2-module-12.js` had none (file untouched).
+- 060 (PROOV, title „Proovieksam 1: reisimine”): all four parts timed with `B.examPart` and the 80 % target (W 30 min, 20 points; R 45 min,
+  29; L 30 min, 25; S 15 min, 20); tags W1, W2a, W2b, R1–R5, L1–L4, S0, S1, S2. Writing + reading on Harjuta, listening + speaking on Kasuta.
+- Cast (April, a year before B1; not yet in `docs/COURSE_CAST.md`): Sofia's friend Kati comes from Helsinki by ferry on Friday 16 April
+  (arrives 18.00 after her plan changes); Saturday 17 April 9.15 train to Helgi in Tartu (11.20); Sunday 18 April the 16.00 Teekaaslane bus is
+  cancelled, the 18.00 bus arrives 20.30, Kati catches the 21.30 ferry by taxi. Bus driver Toivo Rand, cashier Urve, Eve Ross (Teekaaslane
+  customer service), guide Reet Kask (business card), Dmitri's aunt Nina in Valga, Anna's friend Tiiu in Viljandi, Viktor's friend Arvo.
+  Tom came to Estonia by bicycle from England (new fact). The old Liis of this module (trip to Valga) is gone; **no renamed character**.
+- Audio (TartuNLP, free): new `056_d_call`, `056_p_radio`, `056_t_voice`, `057_d_maret`, `057_p_clips`, `058_d_desk`, `058_p_order`,
+  `059_d_numbers`, `059_p_radio`, `060_t_l1`–`060_t_l4`; the 7 old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under heavy machine load (load average 400+): 390 files passed, 20 UI files
+  failed, 1 skipped (39 tests, timeouts). The 20 files run one at a time with a 180 s timeout: 19 passed, `studentWorksheetFlow` timed out and
+  passed alone (3/3). `admin/course` 16 files passed, 1 skipped. Language check (Vabamorf) of module 12: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: `V6-gap-L1` is unchanged in kind (module 5 → 10, closing pass); corner counts after this module: W1 2, L1 2, R1 2, S2 3 of 4–5.
+- Next safe step: when module 11 has merged, rerun `final-shape.mjs --course a2 --module 12`; then A2 module 13 (`a2/module13.js`, first
+  corner not S2).
+## 2026-10-30 · agent/a2-m11-final — A2 module 11 „Ilm, aastaajad ja riided” in the final shape
+
+- Base: `main` checked 2026-10-30 (0a7c4d3: A2 modules 8 #921, 9 #922, 10 #923); the 049 → 051 boundary is rechecked (049's corner is L1, 051's W1).
+  Content only; no production data, no publishing, no deploy.
+- Done: `a2/module11.js` (a2-051…055, moved from template v3 to v4) passes every final-shape gate under the A2 profile: **126 → 0 problems**
+  (`final-shape.mjs --course a2 --module 11`). Quality gate clean. Storyline: March, Keelekool Sõna's spring outing on Saturday 13 March
+  (Viktor's farm or Pärnu; Lucía from Valencia fears the cold); radio weatherman Ragnar Vaher (host Ülle); new classmate Eeva (from Finland).
+- Cast: „Liis” as a listener (picture of 053) and other non-boss uses are gone: renamed Eeva in the module and `art/visuals/a2-module-11.js`. Mia's
+  mother is Kadri again (the old file had „Oksana”).
+- Shape (`withShapes`, A2 §4 row m11 = m3, no swap): 051 KUUL L→W (corner W1 `051_t_card`, main `051_t_letter` W04, 50–70 words), 052 PROB L→S (corner
+  S2 `052_p_cards` S05, main `052_t_decide` S03, call S04), 053 LUGU R→W (corner R4 `053_p_ragnar`, main `053_t_end` W05, 60–80 words), 054 AVAS R→S (corner
+  S1 `054_t_picture` S06, main `054_t_call` S04). 055 tags R1–R5, L1–L4, W1, W2a, S0, S1, S2, every part timed. **056 must not have an S1 corner.**
+  Every teaching lesson: review naming the previous lesson and one of modules 7–9, a pair task, a home recording (45–60 s), two fluency tasks.
+  No tingiv kõneviis. Goals of 051–055 in `a2/lessonGoals.js`.
+- Audio (TartuNLP, free): 13 recordings new (051_d_radio, 051_d_class, 051_p_clips, 051_t_voice, 052_d_call, 053_d_forecast, 053_p_map, 054_d_family,
+  054_p_morning, 055_t_l1–l4); the old ones of 051–055 removed (mp3 + manifest).
+- Checks on `main` 0a7c4d3: `final-shape.mjs --course a2 --module 11` 0 (course 1152, new 0); baseline only shrank (129 lines), `qualityBaseline.json` unchanged;
+  `npx eslint --quiet src` clean; `npx vitest run` 407 files passed, 3 UI files timed out at load ~40 (studentWorksheetFlow, LiveRoom, WorksheetStudioPage), all pass alone
+  (WorksheetStudioPage 23/23, the other two 19/19). Language check (Vabamorf) of module 11: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: readiness notes left (not gates): 051 and 055 Harjuta „live” ≈ 12 min. R4 corner is a `reading` with short answers (exam: 5 MC), as 039.
+- Next safe step: A2 module 12 (`a2/module12.js`); its first corner must not be S1.
 ## 2026-10-30 · agent/c1-course-foundation — course „Eesti keel C1” (B2 → Harno C1): foundation, no lessons
 
 - Base: `main` 0a7c4d3, checked 2026-10-30. No content, no production data, no publishing, no deploy. Paid or external: only reading harno.ee.
@@ -5442,3 +5734,21 @@ required corners — see below why module 18 cannot close it).
 - Doc: `docs/KIDS_GROUPS_PROGRAM.md`.
 - Checks: kids.test.js (108 sheets valid, keys, pictures, colour keys), kidsCurriculum.test.js, libraryModel test; full verify below.
 - After merge: create the 36 records (create-only) and publish the 108 sheets.
+
+### 2026-10-29 — A2 textbook word illustrations, modules 1–10 (agent/art-a2-words-01-10)
+
+- Main checked: `822c0d81dc323b236b8455bd8e8a8c57e86a9e4a` (`origin/main`).
+- Goal: add the drawable core A2 vocabulary for modules 1–10 as reusable, accessible 1:1 textbook illustrations.
+- Complete: 156 unique WebP word illustrations, 800×800, each ≤60 KB, plus a registry with 156 entries and aggregated lesson IDs for repeated vocabulary. Files: `crm-v2/public/textbook-art/words/a2/*.webp`, `crm-v2/src/features/worksheet-generator/art/words/a2.js`, and `crm-v2/src/features/worksheet-generator/art/words.test.js`.
+- Checks: `npx vitest run src/features/worksheet-generator` — 63 files passed, 1 skipped; 958 tests passed, 5 skipped. `sips` verified all images are 800×800; size scan found no files above 60 KB; `git diff --check` passed.
+- No paid image API or production service used. The owner approved the initial A2 word illustration (`õpetaja`) before this word batch continued. Review limitations: some generated illustrations may use colors beyond the fixed art palette and should receive visual review before use in published worksheets.
+- PR: #883 (draft). Other art PR: cast portraits #569 (draft).
+- Not done: labeled scene set (modules 1–10), situation illustrations, and later-level word images. The first scene preview must be approved before generating the rest of that category; first situation preview likewise. Keep the user's limit of at most 2–3 open batch PRs and do not merge any PR.
+- Next safe step: push this branch and open its draft PR; then generate and show the first M1 scene preview for approval.
+## 2026-10-30 · agent/textbook-a2-pilot — A2 module 1 learner-facing pilot, not published
+
+- Base: `main` ee6fa79c, checked 2026-10-30. Content only; no production data, publishing, deploy or merge.
+- Done: refined `a2/module01.js` as the first textbook-pilot correction. Lesson 001 ends with a short supported personal learner card (4–5 sentences and one reason) instead of a generic 6–9-sentence composition. Assessment lesson 005 is now named `Kontroll 1 — minu esimene õhtu keelekoolis`; two Russian-to-Estonian translation blocks and a crossword were replaced by Estonian-only functional-response tasks: repeat a name/phone number, respond to an introduction, thank for help, introduce oneself, and ask for clarification. This keeps the assessment aligned to the actual communicative target and usable for non-Russian-speaking learners.
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator/admin/course/a2/module01.test.js src/features/worksheet-generator/admin/course/course.test.js src/features/worksheet-generator/admin/course/finalShape.test.js` — 389 passed, 5 skipped. `git diff --check` clean.
+- Known: this is only the content-source pilot; existing published CRM sheets are unchanged until an owner-approved publication. A module-opener page and the remaining four lesson bundles still need a separate accepted content specification.
+- Next safe step: show the draft diff and learner-facing sample to the owner; after approval, build the A2 module-01 opener and revise the remaining lesson bundles on this branch.

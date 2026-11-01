@@ -44,6 +44,11 @@ The current scene is a primary teaching surface below the task prompt. It should
 
 Vocabulary icons may be small supporting illustrations, but they do not replace the main scene.
 
+## Worksheet placement
+
+On a worksheet the scene stands where it is used (normally before the first speaking or writing task), and small word strips
+support tasks further down the sheet. Rules: `docs/TEXTBOOK_ART_BIBLE.md` §10.
+
 ## Generation guidance
 
 When generating a new scene, specify the pedagogical situation first, then characters/actions/emotions, then environmental clues, and finally the KeeleSepp visual treatment. Do not ask the image model to render UI chrome or lesson text into the scene itself.

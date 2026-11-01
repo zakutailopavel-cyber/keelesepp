@@ -21,6 +21,17 @@ describe('a supplement (extra homework sheets, MODULE.supplement)', () => {
   });
 });
 
+describe('a speaking lesson (meta.oral: five claims on the same scheme, suuline.js)', () => {
+  const oral = (blocks) => ({ meta: { level: 'A2', phase: 'practice', design: 'v2', oral: true, shortSheet: true }, blocks });
+  it('keeps out of the lesson-shape rules but must hold speaking tasks', () => {
+    const talk = { id: 's', type: 'speaking', data: { title: 'Räägi.', instruction: 'Räägi.', questions: '', minSec: 45, maxSec: 120 } };
+    const codes = (doc) => sheetProblems(doc).map((p) => p.code);
+    expect(codes(oral([talk]))).not.toContain('variety');
+    expect(codes(oral([talk]))).not.toContain('length');
+    expect(codes(oral([{ id: 'w', type: 'writing', data: { title: 'Kirjuta.', instruction: 'Kirjuta.' } }]))).toContain('oral-empty');
+  });
+});
+
 describe('a diagnostic check (meta.diagnostic: closed scored tasks, parallel versions)', () => {
   const choice = (id) => ({ id, type: 'choice', data: { questions: [{ q: 'Kus sa oled?', options: '*kodus\nkoju' }] } });
   const check = (blocks) => ({ meta: { level: 'A2', phase: 'practice', template: 'v4', design: 'v2', diagnostic: true, shortSheet: true }, blocks });

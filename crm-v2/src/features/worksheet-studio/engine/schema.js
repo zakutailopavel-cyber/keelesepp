@@ -58,7 +58,7 @@ export const norm = (s) =>
 // of the task, so only spaces and the quote style („…” / "…") are forgiven
 export const strictNorm = (s) =>
   String(s ?? '')
-    .replace(/[“”"«»]/g, '”').replace(/„/g, '„')
+    .replace(/[„“”‟"«»]/g, '"')
     .replace(/\s+([.,!?;:])/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();

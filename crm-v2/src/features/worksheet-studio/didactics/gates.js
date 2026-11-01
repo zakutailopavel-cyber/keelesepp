@@ -179,7 +179,7 @@ export function moduleGates(sheets = {}) {
     const weak = entries.map(vocabHead).filter(Boolean).filter((head) => {
       const stems = head.split(' ').map(stemOf);
       const sheetsWith = docs.filter(({ doc }) => {
-        const text = norm(textOf((doc.blocks || []).filter((b) => b.type !== 'vocab').map((b) => b.data)));
+        const text = norm(textOf((doc.blocks || []).filter((b) => b.type !== 'vocab' && b.type !== 'wordstrip').map((b) => b.data)));
         return stems.every((stem) => text.includes(stem));
       }).length;
       return sheetsWith < 3;

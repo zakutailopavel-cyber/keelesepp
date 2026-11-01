@@ -3,6 +3,7 @@
 // and publishes them lesson by lesson. Avasta sheets that are already published are not part of these files unless a
 // module says so.
 import { withLessonArt } from '../../art/textbookArt.js';
+import { withWordStrips } from '../../art/wordStrips.js';
 import { withListeningAudio } from './listeningAudio.js';
 import { nativeStage } from '../../../worksheet-studio/didactics/levels.js';
 import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
@@ -67,6 +68,9 @@ import * as b2m17 from './b2/module17.js';
 import * as b2m18 from './b2/module18.js';
 import * as b2kaanded from './b2/kaanded.js';
 import * as a2lihtminevik from './a2/lihtminevik.js';
+import * as a2suuline from './a2/suuline.js';
+import * as b1suuline from './b1/suuline.js';
+import * as b2suuline from './b2/suuline.js';
 import * as a2kohakaanded from './a2/kohakaanded.js';
 import * as c1m01 from './c1/module01.js';
 import * as c1m02 from './c1/module02.js';
@@ -101,7 +105,7 @@ import * as ena2m09 from './en/a2/module09.js';
 import * as ena2m10 from './en/a2/module10.js';
 import { COURSE_NAMES, ENGLISH_COURSE_NAME } from '../../../curriculum/courseNames.js';
 
-export const COURSE_MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, a2lihtminevik, a2kohakaanded, b1m01, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, b2kaanded, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10, ek9m01, ena2m01, ena2m02, enb1m01, enb1m02, enb1m03, enb1m04, enb1m05, enb1m06, enb1m07, enb1m08, enb1m09, enb1m10, ena2m03, ena2m04, ena2m05, ena2m06, ena2m07, ena2m08, ena2m09, ena2m10];
+export const COURSE_MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, a2lihtminevik, a2kohakaanded, a2suuline, b1m01, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b1suuline, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, b2kaanded, b2suuline, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10, ek9m01, ena2m01, ena2m02, enb1m01, enb1m02, enb1m03, enb1m04, enb1m05, enb1m06, enb1m07, enb1m08, enb1m09, enb1m10, ena2m03, ena2m04, ena2m05, ena2m06, ena2m07, ena2m08, ena2m09, ena2m10];
 
 // display names by the target level (curriculum/courseNames.js, owner 2026-10-29): `label` = name · subtitle (admin
 // pages show the part before „ ·”), `badge` is printed on every course sheet as „KeeleSepp · Eesti keel B1 · moodul N”
@@ -180,13 +184,14 @@ function withExplanations(blocks, explain) {
   return blocks.map((b) => (explain[b.id] ? { ...b, data: { ...b.data, explain: explain[b.id].join('\n') } } : b));
 }
 
-// the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet after the opening text;
+// the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet where the sheet uses it, and
+// word strips (art/words) stand before the tasks that use those words;
 // listening blocks get their recorded audio (listeningAudio.json, tools/listening-audio)
 export function buildCourseSheet(mod, lessonId, phase) {
   const lesson = mod.LESSONS[lessonId];
   if (!lesson?.[phase]) throw new Error(`${lessonId}: etappi ${phase} ei ole.`);
   const course = COURSES[mod.MODULE.course];
-  return withLessonArt({
+  return withWordStrips(withLessonArt({
     schema: 'keelesepp.worksheet/2',
     id: `ws_${lessonId}_${phase}`,
     meta: {
@@ -205,6 +210,8 @@ export function buildCourseSheet(mod, lessonId, phase) {
       // a diagnostic check (`diagnostic: true`, a2/kohakaanded.js): closed scored tasks, a baseline and a parallel re-test;
       // quality.js skips the lesson-shape rules for it
       ...(lesson.diagnostic ? { diagnostic: true, shortSheet: true } : {}),
+      // a speaking lesson (`oral: true`, suuline.js): one sheet, five claims on the same scheme; quality.js skips the lesson-shape rules
+      ...(lesson.oral ? { oral: true, shortSheet: true } : {}),
       // a check lesson (Kontroll): its Kasuta sheet is the exam's writing and speaking part (gates.js / depth.js)
       ...(lesson.assessment ? { assessment: true } : {}),
       // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): its own variety and depth norms
@@ -224,7 +231,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
     blocks: withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN),
-  }, lessonId, phase);
+  }, lessonId, phase), lessonId, phase, undefined, Object.keys(mod.LESSONS));
 }
 
 // every sheet a module produces: { [lessonId]: { [phase]: doc } }

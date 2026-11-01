@@ -52,6 +52,12 @@ committed.
 | 39–41 (15 -I- verbs, minema, ex. 8, 10) | a2b1-023 I-lihtminevik ja sagedased erandid | done (draft in code) |
 | 42–43 (Lõks: igatsema, võtma, paluma, harjuma; ex. 11–16) | b1b2-018 Tegusõna rektsioon | done (draft in code) |
 
+### „Minu eesti keel” — Inga Mangus, Merge Simmul
+
+- Owner's photos 2026-10-31: pp. 28–46 (health, sport, wellbeing, love, friendship), in `~/Documents/ep koolitus/õpikud-fotod/Minu eesti keel/`.
+- Used 2026-11-01 as a source of topics, single words and task types only, with our own texts: B1 modules 2 and 7, B2 modules 9 and 10 (#951–#954). The pages also hold third-party press, song and book texts. No Õpik sheets from this book.
+- Whether the publisher's permission recorded for „Minu Eesti” covers this book is not recorded.
+
 ### Grammar book (Russian explanations, 276 pp.) — Inga Mangus, Merge Simmul
 
 The map below comes from the table of contents (owner's photos 2026-10-21). „—” means the course has no lesson for the
