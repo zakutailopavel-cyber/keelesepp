@@ -11,7 +11,7 @@ import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
 import RescheduleDialog from '../students/RescheduleDialog.jsx';
 import { groupStudentPeople } from '../../services/firebase/students.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
-import { invoiceBalanceCents } from '../students/studentFinance.js';
+import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
 import OpenInvoicesCard from '../payments/OpenInvoicesCard.jsx';
 import { INDIVIDUAL_TOPIC } from '../calendar/lessonTopic.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
@@ -29,6 +29,14 @@ import { itemSubject, onlySubject, subjectsOf } from '../students/subjects.js';
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
 }
+
+// the same meanings as in the calendar (LessonPanel): Puudus_eta = did not tell, Puudus_p = told in advance
+const LESSON_MARK = {
+  Toimunud: ['Toimus', 'success'],
+  Puudus_p: ['Puudus (teatas ette)', 'neutral'],
+  Puudus_eta: ['Puudus (ei teatanud)', 'danger'],
+};
+const NOT_AN_INVOICE_ANY_MORE = ['Tühistatud', 'cancelled', 'voided', 'Krediteeritud', 'credited'];
 
 function money(cents) {
   return (Number(cents || 0) / 100).toLocaleString('et-EE', { style: 'currency', currency: 'EUR' });
@@ -68,8 +76,11 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
   const upcoming = shown(occurrencesForDates(schedule, nextDates)).slice(0, 6);
   const pendingHomework = shown(homework).filter(isHomeworkOpen);
   const balance = invoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
-  // what was done in the last lessons: topic from Õppevara (level · theme · lesson) and the teacher's note
-  const doneLessons = shown(lessons).filter((lesson) => !lesson.status || lesson.status === 'Toimunud').sort((a, b) => `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`)).slice(0, 6);
+  // what was done in the last lessons: topic from Õppevara (level · theme · lesson) and the teacher's note;
+  // absences too: the family should see a missed lesson, not only the held ones
+  const doneLessons = shown(lessons).filter((lesson) => !lesson.status || LESSON_MARK[lesson.status]).sort((a, b) => `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`)).slice(0, 6);
+  const familyInvoices = invoices.filter((invoice) => !NOT_AN_INVOICE_ANY_MORE.includes(invoice.status) && !invoice.credited)
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 6);
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu pere" title={`Tere, ${user.displayName || 'lapsevanem'}!`} description="Laste õppetöö, tunnid ja arved ühes turvalises vaates." />
@@ -78,13 +89,19 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
       { icon: UsersRound, label: 'Õpilasi', value: students.length, hint: 'kontoga seotud' },
       { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '21 päeva jooksul' },
       { icon: BookOpen, label: 'Pooleli ülesanded', value: pendingHomework.length, hint: 'ootab tegemist' },
-      { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
+      { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} ${invoices.length === 1 ? 'arve' : 'arvet'}` },
     ]} />
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Näita õppeainet" />
     {!students.length ? <Card><EmptyState title="Õpilase kaarti ei ole kontoga seotud" description="Palu administraatoril siduda lapse olemasolev õpilase kaart sinu kontoga." /></Card> : <div className="parent-home-grid">
       <OpenInvoicesCard invoices={invoices} />
       <Card><div className="section-heading"><div><span className="eyebrow">Pere</span><h2>Minu õpilased</h2></div></div><div className="parent-home-students">{students.map((student) => <article className="parent-child-card" key={student.personKey || student.id}><div className="parent-child-card__head"><div className="student-mini-avatar">{student.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</div><div><strong>{student.name}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}</small></div></div><div className="parent-child-enrollments">{(student.enrollments || []).filter((enrollment) => !subject || itemSubject({ subject: enrollment.subject }) === subject).map((enrollment) => <div key={enrollment.id}><strong>{enrollment.subject || 'Õppeaine puudub'}</strong><span>{enrollment.level || 'tase puudub'}{enrollment.targetLevel ? ` → ${enrollment.targetLevel}` : ''}</span><small>{enrollment.teacher || 'õpetaja määramata'}</small></div>)}</div></article>)}</div></Card>
-      <Card><div className="section-heading"><div><span className="eyebrow">Õppetöö</span><h2>Mida tunnis tehti</h2></div></div>{doneLessons.length ? <div className="simple-list parent-home-done">{doneLessons.map((lesson) => <div key={lesson.id}><div><strong>{lesson.topic || INDIVIDUAL_TOPIC}</strong><span>{[new Date(`${lesson.date}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'short' }), subjectTag(lesson), studentMap.get(lesson.studentId)?.name || lesson.studentName, [lesson.topicLevel, lesson.topicModule].filter(Boolean).join(' · ')].filter(Boolean).join(' · ')}</span>{lesson.billingStatus === 'school_covered' ? <Badge tone="success">Tasuta (kooli kulul)</Badge> : null}{lesson.notes ? <small className="parent-home-note">{lesson.notes}</small> : null}</div><Badge tone="success">Toimus</Badge></div>)}</div> : <EmptyState title="Läbitud tunde veel ei ole" />}</Card>
+      <Card><div className="section-heading"><div><span className="eyebrow">Õppetöö</span><h2>Viimased tunnid</h2></div></div>{doneLessons.length ? <div className="simple-list parent-home-done">{doneLessons.map((lesson) => <div key={lesson.id}><div><strong>{lesson.topic || (lesson.status && lesson.status !== 'Toimunud' ? 'Tund jäi vahele' : INDIVIDUAL_TOPIC)}</strong><span>{[new Date(`${lesson.date}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'short' }), subjectTag(lesson), studentMap.get(lesson.studentId)?.name || lesson.studentName, [lesson.topicLevel, lesson.topicModule].filter(Boolean).join(' · ')].filter(Boolean).join(' · ')}</span>{lesson.billingStatus === 'school_covered' ? <Badge tone="success">Tasuta (kooli kulul)</Badge> : null}{lesson.notes ? <small className="parent-home-note">{lesson.notes}</small> : null}</div><Badge tone={(LESSON_MARK[lesson.status] || LESSON_MARK.Toimunud)[1]}>{(LESSON_MARK[lesson.status] || LESSON_MARK.Toimunud)[0]}</Badge></div>)}</div> : <EmptyState title="Läbitud tunde veel ei ole" />}</Card>
+      {/* all recent invoices with their state; „Tasumata arved” above appears only with card payments and pays them */}
+      <Card><div className="section-heading"><div><span className="eyebrow">Arved</span><h2>Arved</h2></div></div>{familyInvoices.length ? <div className="simple-list parent-home-invoices">{familyInvoices.map((invoice) => {
+        const open = invoiceBalanceCents(invoice);
+        const overdue = isInvoiceOverdue(invoice);
+        return <div key={invoice.id}><div><strong>{invoice.num ? `Arve ${invoice.num}` : 'Arve'} · {money(invoice.amountCents ?? Math.round(Number(invoice.amount || 0) * 100))}</strong><span>{[studentMap.get(invoice.studentId)?.name || invoice.studentName, invoice.desc, invoice.due ? `maksetähtaeg ${new Date(`${String(invoice.due).slice(0, 10)}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''].filter(Boolean).join(' · ')}</span>{open ? <small className="parent-home-note">Tasumata {money(open)}</small> : null}</div><Badge tone={!open ? 'success' : overdue ? 'danger' : 'info'}>{!open ? 'Tasutud' : overdue ? 'Tähtaeg möödas' : 'Tasumata'}</Badge></div>;
+      })}</div> : <EmptyState title="Arveid ei ole" />}</Card>
       <PetOverview studentIds={studentRecords.map((student) => student.id)} lessons={lessons} homework={homework} names={Object.fromEntries(studentRecords.map((student) => [student.id, student.name]))} {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} />
       {/* „Teated”: the school's announcements already answered, to read again (owner 2026-10-24) */}
       <LearnerAnnouncementsCard user={user} {...(announcementService ? { service: announcementService } : {})} />

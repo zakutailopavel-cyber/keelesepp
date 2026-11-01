@@ -26,6 +26,17 @@ function renderPage(data) {
 }
 
 describe('StudentDashboardPage', () => {
+  it('a child with a parent linked to the card does not see the family\'s invoices; an adult learner does', async () => {
+    const adult = repositories();
+    const { unmount } = render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'user-1', displayName: 'Mari', roles: ['student'] } }}><StudentDashboardPage {...adult} /></AuthContext.Provider></MemoryRouter>);
+    expect(await screen.findByText(/1 arve · tasumata/)).toBeInTheDocument();
+    unmount();
+    const child = repositories([{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', linkedParentIds: ['parent-1'] }]);
+    renderPage(child);
+    expect(await screen.findByRole('region', { name: 'Täna' })).toBeInTheDocument();
+    expect(screen.queryByText(/tasumata/)).not.toBeInTheDocument();
+  });
+
   it('summarizes only explicitly self-owned learning data', async () => {
     const data = repositories();
     renderPage(data);

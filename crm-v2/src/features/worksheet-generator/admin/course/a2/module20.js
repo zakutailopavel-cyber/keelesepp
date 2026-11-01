@@ -1,619 +1,676 @@
-// A2 course (A1 → A2 roadmap), module 20 „A2 eksam ja iseseisev keelekasutus” (a2-096…100), stage A2.
-// The whole module, all three phases: exam strategies (096), two full Harno A2 mocks with new content (097, 099),
-// error correction of the weakest skill between them (098) and the final A2 check with self-assessment and an
-// A2 → B1 plan (100). Harno A2: 80 points, 20 per skill, pass 60 % (48 p) with no skill at 0; KeeleSepp aims at 70 %.
-// The mocks follow the exam's task formats (docs/HARNO_LEVEL_REQUIREMENTS.md) with original texts only.
-// Reading and listening are on Harjuta, writing and speaking on Kasuta; listening texts are read twice by the teacher.
-import { B } from '../blocks.js';
+// A2 course (A1 → A2 roadmap), module 20 „A2 eksam ja iseseisev keelekasutus” (a2-096…100), level A2, in the final shape
+// (docs/COURSE_FINAL_SHAPE_A2.md, row m20: 096 RÄÄK L→S, 098 KIRJ R→W; 097, 099 and 100 are exam lessons; gates V1–V16 of
+// docs/COURSE_FINAL_SHAPE_B1.md §8). One storyline, the last three weeks before the Harno A2 exam on Saturday 11 December at Kase kool. The autumn course at
+// Keelekool Sõna meets on Mondays and Wednesdays at 18–20 (Maret, Aune, administrator Ene; Tom, Lucía, Dmitri, Olga, Sofia). Sofia works at Tuul Logistika
+// (boss Liis Laan, colleagues Anna and Markus).
+//   096 RÄÄK L→S  Monday 22 Nov. What the exam is and what each learner fears: Palun korrake!, Ma ei saanud aru, raskem kui, pean + ma / tahan + da; corner L2 (Ülle's
+//                 radio talk with Maret, true / false); S05 = `096_p_cards`; main: the pair agrees how they practise (S12); home recording: the picture (S06).
+//   097 EKS       Wednesday 24 Nov. Kontroll 20, every part timed (B.examPart): R1–R5, W1, W2a, W2b, L1–L4, S0, S1, S2; it shows each learner's weak part for 098.
+//   098 KIRJ R→W  Monday 29 Nov. Tom's writing after Kontroll 20: Maret's feedback, Lucía's model text, three repeating errors, plan, draft, edit;
+//                 corner R4 (a school-paper article about Aune's Friday hour, `098_p_aune`); main: a description of 60–80 words (W05), planned (W11) and edited (W10).
+//   099 PROOV     Wednesday 1 Dec. Proovieksam 3, all four parts timed (Harno minutes), with the §6.5-style check against 80 %.
+//   100 PROOV     Monday 6 Dec. Lõpphindamine (Proovieksam 4), all four parts, the A2 profile and the plan towards B1. Not counted as practice (V6 counts up to 099).
+// Reading + writing on Harjuta, listening + speaking on Kasuta in every exam lesson. Mocks use original texts only. No tingiv kõneviis anywhere (B1 grammar).
+// The module has no art of its own: the speaking parts show pictures of earlier lessons through `data.img`.
+import { B, tag, teach, withShapes } from '../blocks.js';
 
-export const MODULE = { id: 'a2-module-20', course: 'a2', title: 'A2 eksam ja iseseisev keelekasutus', level: 'A2', design: 'v2', template: 'v3' };
+export const MODULE = { id: 'a2-module-20', course: 'a2', title: 'A2 eksam ja iseseisev keelekasutus', level: 'A2', design: 'v2', template: 'v4' };
 
-const TR = (id, rows) => B.translation(id, 'Tõlgi.', 'Kirjuta eesti keeles.', rows);
-const D = (id, rows) => B.dictation(id, 'Etteütlus.', 'Kuula ja kirjuta laused.', rows);
-const POINTS = 'Punktid: õiged vastused : kõik vastused × 20.';
+const picture = (block, lesson) => ({ ...block, data: { ...block.data, img: `/textbook-art/a2/${lesson}/${lesson}-kasuta-1.webp` } });
+const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
+// the fixed wording of the Harno formats in the exam lessons (§8 V7 lets exam lessons repeat it)
+const R1 = (id, items) => tag(B.choice(id, 'Lugemine 1. Viisakad väljendid.', 'Lugege olukorda. Valige sobiv vastus.', items, 'full', 'g_read'), { harno: 'R1' });
+const R2 = (id, texts, items) => tag(B.adsmatch(id, 'Lugemine 2. Kolm teksti.', 'Lugege kolme teksti. Mis tekstis on see info? Kirjutage täht.', texts, items), { harno: 'R2' });
+const R3 = (id, signs, meanings) => tag(B.manymatch(id, 'Lugemine 3. Sildid ja teated.', 'Lugege silte. Ühendage iga silt selle tähendusega.', signs, meanings, 'full', 'g_read'), { harno: 'R3' });
+const R4 = (id, items) => tag(B.choice(id, 'Lugemine 4. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks vastus.', items, 'full', 'g_read'), { harno: 'R4' });
+const R5 = (id, opening, passage) => tag(B.cloze(id, 'Lugemine 5. Kiri.', 'Lugege kirja. Valige igasse lünka üks sõna.', opening, passage, 'g_read'), { harno: 'R5' });
+const L1 = (id, clips, items) => tag(B.examListen(id, 'Kuulamine 1. Lühikesed teated.', 'Kuulake seitset lühikest teadet. Iga teade kõlab kaks korda. Valige õige vastus.', 'choice', clips, items), { task: 'L01', harno: 'L1' });
+const L2 = (id, transcript, items) => tag(B.examListen(id, 'Kuulamine 2. Raadiosaade.', 'Kuulake raadiovestlust kaks korda. Märkige iga lause kohta, kas see on õige või vale.', 'truefalse', transcript, items), { harno: 'L2' });
+const L3 = (id, transcript, sentences) => tag(B.listening(id, 'Kuulamine 3. Teade.', 'Kuulake teadet kaks korda. Vastake ühe-kahe sõnaga.', transcript, sentences), { task: 'L03', harno: 'L3' });
+const L4 = (id, transcript, pairs) => tag(B.examListen(id, 'Kuulamine 4. Vestlus.', 'Kuulake vestlust kaks korda ja ühendage inimene ja tegevus.', 'match', transcript, pairs), { harno: 'L4' });
+const W1 = (id, card, points) => tag(B.examWriting(id, 'Kirjutamine 1. Visiitkaart.', 'Kirjutage visiitkaardi järgi tekst vähemalt 25 sõnaga. Vastake neljale küsimusele.', 'teade', { situation: `Visiitkaart: ${card}`, points, words: [25, 40] }), { harno: 'W1' });
+const W2A = (id, situation, points) => tag(B.examWriting(id, 'Kirjutamine 2, teema A. Sõnum.', 'Kirjutage sõbrale sõnum vähemalt 30 sõnaga. Vastake kõigile küsimustele.', 'teade', { situation, points, words: [30, 50], opening: 'Tere!' }), { task: 'W08', harno: 'W2a' });
+const W2B = (id, topic, points) => tag(B.examWriting(id, 'Kirjutamine 2, teema B. Kirjeldus.', `Kirjutage teemal „${topic}” vähemalt 30 sõna. Vastake kõigile küsimustele.`, 'jutt', { situation: `Teema: „${topic}”.`, points, words: [30, 50] }), { harno: 'W2b' });
+const S0 = (id, questions) => teach(tag(B.speaking(id, 'Rääkimine. Tutvumine.', 'Eksamineerija küsib kaks-kolm küsimust. Vastake lühidalt.', questions, [45, 60]), { task: 'S01', harno: 'S0' }), 'Õpetaja on eksamineerija. Umbes üks minut, hinne ei sõltu sellest osast.');
+const S1 = (id, questions, lesson) => picture(teach(tag(B.speaking(id, 'Rääkimine 1. Pilt ja küsimused.', 'Kirjeldage pilti. Siis vastake eksamineerija küsimustele.', questions, [60, 120]), { task: 'S06', harno: 'S1' }), 'Üks-ühele: õpilane kirjeldab pilti umbes minut, õpetaja küsib siis teemaküsimused. Hinda rubriigi järgi.'), lesson);
+const S2 = (id, topic, situation, roleA, roleB) => teach(tag(B.phoneCards(id, `Rääkimine 2. Ideekaart „${topic}”.`, 'A küsib ideekaardi järgi, B vastab oma kaardi järgi. Siis vahetage.', situation, ['A (küsimused)', roleA], ['B (vastused)', roleB], [90, 120]), { task: 'S05', harno: 'S2' }), 'Üks-ühele: õpilane küsib ja õpetaja vastab kaardi järgi, siis vahetage ja õpetaja küsib.');
 
-export const LESSONS = {
+export const LESSONS = withShapes({
   'a2-096': {
-    title: 'A2 osaoskuste strateegiad',
-    canDo: 'Ma valin igale A2 eksami osale ühe strateegia ja kontrollin sellega oma vastust neljas minijaamas.',
-    template: 'v3',
+    title: 'Kolm nädalat eksamini',
+    canDo: 'Ma saan kuuldud eksamisaatest aru, räägin, mis on mulle raske, ja lepin paarilisega kokku, kuidas me eksamiks harjutame.',
     discover: [
-      B.text('096_d_situation', 'Kuu aega eksamini', 'Markus teeb kuu aja pärast A2 eksami. Ta on natuke närvis. Ta küsib nõu Sofialt. Sofia tegi eksami eelmisel aastal. Mida sina juba eksamist tead?'),
-      B.truefalse('096_d_guess', 'Mida sa arvad?', 'Enne lugemist: kas lause on õige või vale?', [
-        ['A2 eksamil on neli osa.', true],
-        ['Kuulamisteksti kuuleb ainult üks kord.', false],
-        ['Kirjutamises on kaks ülesannet.', true],
-        ['Iga osa eest saab kuni 20 punkti.', true],
-        ['Rääkimise osa teeb iga inimene üksi.', false], ['Lugemises tuleb iga sõna tõlkida.', false], ['Eksamil on ka kirjutamise osa.', true], ['Rääkimises võib paluda korrata.', true]], 'full'),
-      B.reading('096_d_read', 'Loe: Sofia nõuanded.', 'Loe Sofia kirja ja vasta küsimustele.', 'Sofia kiri Markusele',
-        'Tere, Markus! Eksam ei ole nii hirmus, kui sa arvad. Seal on neli osa: kirjutamine, kuulamine, lugemine ja rääkimine. Iga osa eest saab kuni 20 punkti. Lugemises loe kõigepealt küsimust. Siis otsi tekstist märksõna. Ära tõlgi iga sõna! Kuulamises kuuled iga teksti kaks korda. Esimesel korral kirjuta lühidalt, teisel korral kontrolli. Kirjutamises on kaks ülesannet. Vasta kõigile küsimustele, mis on juhises. Kirjuta vähemalt 25 või 30 sõna. Lõpus loe oma tekst veel kord läbi. Rääkimises on sul paariline. Kui sa ei saa aru, palu julgelt korrata. Mina kaotasin kõige rohkem punkte kirjutamises. Mul sai seal aeg otsa. Nüüd ma tean: vaata kella! Edu sulle! Sofia',
-        [['Mitu osa on eksamil?', 'neli|4|neli osa'], ['Mida peab lugemises kõigepealt tegema?', 'lugema küsimust|loe küsimust|lugema kõigepealt küsimust'], ['Mitu korda kuuleb kuulamisteksti?', 'kaks korda|kaks|2'], ['Mida tuleb kuulamises teisel korral teha?', 'kontrollida|kontrolli|kontrollida vastuseid'], ['Mida teha rääkimises, kui sa ei saa aru?', 'paluda korrata|palu korrata|küsida uuesti'], ['Miks kaotas Sofia kirjutamises punkte?', 'aeg sai otsa|tal sai aeg otsa|sest aeg sai otsa'], ['Mis osad on eksamil?', 'kirjutamine, kuulamine, lugemine ja rääkimine|kirjutamine, kuulamine, lugemine, rääkimine'], ['Mida tuleb kirjutamise lõpus teha?', 'loe tekst läbi|lugeda tekst läbi|tekst veel kord läbi lugeda']]),
-      B.notice('096_d_notice', 'Märka juhise tegusõnu.', ['**Loe** kõigepealt küsimust.', '**Otsi** tekstist märksõna.', '**Ära tõlgi** iga sõna!', 'Teisel korral **kontrolli**.', 'Kui ei saa aru, ütle: „Palun **korrake**!”', 'käsk: **loe, otsi, kontrolli** · keeld: **ära** + sama vorm'], 'full'),
-      B.listening('096_d_listen', 'Kuula: Markuse häälsõnum.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere, Sofia! Siin Markus. Aitäh sinu kirja eest!',
-        'Ma lugesin seda bussis kaks korda.',
-        'Minu jaoks on kõige raskem kuulamine. Inimesed räägivad nii kiiresti.',
-        'Nüüd kuulan ma iga päev raadiot, umbes kümme minutit.',
-        'Lugemine on kergem. Seal on mul rohkem aega.',
-        'Kas sa saad laupäeval minuga harjutada? Näiteks kell kaks raamatukogus?',
-        'Ma võtan kaasa vanad eksamiülesanded. Helista mulle!',
-      ], ['Markus luges kirja [bussis].', 'Markusele on kõige raskem [kuulamine].', 'Iga päev kuulab ta [raadiot].', 'Ta kuulab umbes [kümme minutit|10 minutit].', 'Ta tahab harjutada [laupäeval].', 'Nad kohtuvad [raamatukogus].', 'Lugemises on Markusel rohkem [aega].', 'Markus võtab kaasa vanad [eksamiülesanded].']),
-      B.gaps('096_d_gaps', 'Anna nõu.', 'Kirjuta lünka sobiv käsk. Pangas on lisasõnu.', [
-        '[Loe] kõigepealt küsimust.', '[Otsi] tekstist märksõna.', '[Ära tõlgi] iga sõna.', 'Teisel korral [kontrolli] vastust.', 'Kui sa ei saa aru, [küsi] uuesti.', 'Kirjutamise ajal [vaata] kella!', 'Kuulamises [kirjuta] lühidalt 1–2 sõna.', 'Rääkimises [palu] julgelt korrata.',
-      ], ['loe', 'loeb', 'otsi', 'ära tõlgi', 'ära tõlgib', 'kontrolli', 'küsi', 'vaata', 'kirjuta', 'palu']),
-      D('096_d_dict', ['Loe kõigepealt küsimust.', 'Otsi tekstist märksõna.', 'Kuulamistekst on kaks korda.', 'Kirjuta vähemalt kolmkümmend sõna.', 'Lõpus loe tekst läbi.', 'Palun korrake!', 'Vaata kella!', 'Edu eksamil!']),
-      B.speaking('096_d_say', 'Mis on sinu jaoks raske?', 'Räägi paarilisele umbes 1 minut.', ['Milline osa on sinu jaoks kõige raskem?', 'Miks?', 'Mis sind aitab?', 'Mida sa eksamipäeval kindlasti teed?', 'Kuidas sa enne eksamit puhkad?'], [60, 90], ['Minu jaoks on kõige raskem…, sest…', 'Mind aitab, kui ma…']),
-      B.writing('096_d_write', 'Minu eksamiplaan.', 'Kirjuta 7–9 lauset: mis on raske, mida harjutad, millal.', [7, 9], ['raske', 'harjutan', 'iga päev'], 2),
+      B.review('096_d_review', [['Mida sa ütled teenindajale, kui sa ei saanud temast aru?', 'a2-094'], ['Mida sa teed, kui tablool on kirjas, et sinu rong hilineb?', 'a2-087'], 'Mis on sinu jaoks eesti keeles praegu kõige raskem?']),
+      B.text('096_d_situation', 'Eksam tuleb!', 'Esmaspäev, 22. november, Keelekool Sõna. Tund algab kell kuus. Maret kirjutab tahvlile: „Harno A2 eksam: laupäeval, 11. detsembril.” Klassis läheb vaikseks. Tom vaatab Lucíat, Lucía vaatab Dmitrit. Maret naerab ja ütleb: „Kolm nädalat on palju aega. Aga kõigepealt rääkige: mida te kardate?”'),
+      teach(tag(B.examListen('096_d_voices', 'Mida nad kardavad?', 'Viis õppijat räägib oma murest. Kuula kaks korda ja vali igaühe kohta õige vastus.', 'choice', [
+        'Tom: Mina ei karda lugemist ega kuulamist. Minu mure on kirjutamine. Ma teen sõnades palju vigu ja parandan neid kaua. Viimati ei jõudnud ma teist ülesannet lõpetada.',
+        'Lucía: Minu jaoks on kuulamine kõige raskem. Eestlased räägivad raadios väga kiiresti. Kui ma ühte sõna ei tea, siis mõtlen ma sellele ja järgmine lause on juba läbi.',
+        'Dmitri: Ma oskan päris palju, aga rääkides olen ma närvis. Eksamil istub laua taga võõras inimene. Kui ta mind vaatab, siis unustan ma kõik sõnad.',
+        'Olga: Mulle meeldib lugeda, aga lugemises saab aeg otsa. Eelmisel korral lugesin ma iga sõna. Viimased kaks ülesannet jäid mul tegemata.',
+        'Sofia: Mina kardan, et jään hiljaks. Eksam algab laupäeval kell üheksa ja buss sõidab nädalavahetusel harva. Seepärast tuleb Viktor mulle autoga järele.',
+      ], [
+        ['Mis on Tomi mure?', 'kirjutamine', 'kuulamine', 'lugemine'],
+        ['Mis juhtub, kui Lucía ühte sõna ei tea?', 'ta ei kuule järgmist lauset', 'ta küsib õpetajalt', 'ta paneb raadio kinni'],
+        ['Millal unustab Dmitri sõnad?', 'kui võõras inimene teda vaatab', 'kui ta kirjutab', 'kui ta on väsinud'],
+        ['Miks jäid Olgal ülesanded tegemata?', 'ta luges iga sõna', 'ta jäi hiljaks', 'ta oli haige'],
+        ['Kuidas Sofia eksamile tuleb?', 'Viktori autoga', 'bussiga', 'jala'],
+      ]), { task: 'L01' }), 'Mängi kaks korda. Pärast küsi: kelle mure on ka sinu mure?'),
+      tag(B.reading('096_d_letter', 'Sofia kiri Tomile.', 'Vaata pealkirja ja arva, mida Sofia soovitab. Siis loe kirja ja vasta.', 'Viis nõuannet', [
+        'Tere, Tom! Sa küsisid, kuidas ma eksamiks õpin. Ma küsisin Liisilt ja Maretilt nõu ja nüüd on mul viis reeglit.',
+        'Lugemises loen ma kõigepealt küsimust. Siis otsin tekstist ainult märksõna. Ma ei tõlgi iga sõna. Kuulamises kuulan ma esimesel korral rahulikult ja kirjutan väga lühidalt. Teisel korral kontrollin. Kirjutamises vaatan ma kella. Ma kirjutan kõigist punktidest ja lõpus loen teksti veel kord läbi.',
+        'Rääkimises ma ei karda vigu. Kui ma ei saa aru, siis palun ma korrata. Kui mul ei tule sõna meelde, siis ütlen ma „üks hetk” ja mõtlen rahulikult edasi. Ja viimane reegel: ma magan enne eksamit hästi. Mina kaotasin kontrollis kõige rohkem punkte kirjutamises, sest aeg sai otsa. Nüüd ma tean: vaata kella! Sofia',
+      ].join('\n\n'), [
+        ['Kellelt Sofia nõu küsis?', 'Liisilt ja Maretilt|Maretilt ja Liisilt'], ['Mida teeb Sofia lugemises kõigepealt?', 'loeb küsimust|ta loeb küsimust'], ['Mida ta tekstist otsib?', 'märksõna|ainult märksõna'], ['Mida ta teeb kuulamises teisel korral?', 'kontrollib|ta kontrollib'],
+        ['Mida ta teeb kirjutamise lõpus?', 'loeb teksti läbi|loeb teksti veel kord läbi'], ['Mida ta teeb, kui ta ei saa aru?', 'palub korrata'], ['Miks kaotas Sofia kirjutamises punkte?', 'aeg sai otsa|sest aeg sai otsa'], ['Mida Sofia ütleb, kui sõna ei tule meelde?', 'üks hetk'], ['Mis on viimane reegel?', 'magada hästi|ta magab enne eksamit hästi'],
+      ]), { task: 'R13' }),
+      B.match('096_d_say', 'Mida see lause teeb?', 'Õppijad harjutavad eksami lauseid. Ühenda iga lause ja see, mida inimene sellega teeb.', [
+        ['Palun korrake!', 'Ta palub öelda sama veel kord.'], ['Ma ei saanud aru.', 'Ta ütleb, et jutt ei olnud selge.'], ['Kuidas seda eesti keeles öeldakse?', 'Ta otsib ühte sõna.'], ['Kas te mõtlete, et …?', 'Ta kontrollib, kas sai õigesti aru.'],
+        ['Üks hetk, palun.', 'Ta tahab veidi mõelda.'], ['Rääkige palun aeglasemalt!', 'Ta palub rääkida mitte nii kiiresti.'], ['Minu arvates on see raske.', 'Ta ütleb oma mõtte.'],
+      ], 'full', 'g_vocab'),
+      B.notice('096_d_notice', 'Märka: nii saad vestluses edasi.', [
+        '**Kui sa ei saa aru:** Palun **korrake**! · **Rääkige** palun aeglasemalt! · Ma ei **saanud** aru.',
+        '**Kui sõna ei tule:** Üks hetk, palun. · Kuidas seda eesti keeles **öeldakse**?',
+        '**Võrdlus:** kuulamine on **raskem kui** lugemine · kirjutamine on **kergem kui** rääkimine',
+        '**Mida ma pean? Mida ma tahan?** ma **pean** + ma-vorm: pean **harjutama** · ma **tahan** + da-vorm: tahan **harjutada**',
+        'Uued sõnad: mure — забота · hetk — миг · närvis — нервничает · punkt — балл · paariline — партнёр · sõnaraamat — словарь · ideekaart — карточка с идеями · tulemus — результат · ülesanne — задание',
+      ], 'full'),
+      B.table('096_d_rule', 'Leia reegel.', 'Vaata õppijate lauseid. Kirjuta tabelisse, mis vormi tegusõna on: ma-vorm või da-vorm.', 'Õppija lause, Tegusõna, Vorm', [
+        'Ma pean rohkem kirjutama. | kirjutama | [ma-vorm]', 'Ma tahan raadiot kuulata. | kuulata | [da-vorm]', 'Ma hakkan iga päev lugema. | lugema | [ma-vorm]', 'Ma võin sinuga harjutada. | harjutada | [da-vorm]', 'Mul on vaja rääkida. | rääkida | [da-vorm]', 'Me läheme raamatukokku õppima. | õppima | [ma-vorm]',
+      ], 'g_notice'),
+      B.categorize('096_d_sort', 'Mis osa see on?', 'Tom paneb eksami sõnad korda. Pane iga sõna selle osa juurde, kus sa seda kõige rohkem vajad.', [
+        ['kirjutamine', ['visiitkaart', 'sõnade arv', 'kutse']], ['kuulamine', ['raadiosaade', 'kaks korda', 'lühivastus']], ['lugemine', ['silt', 'kuulutus', 'lünk']], ['rääkimine', ['pilt', 'ideekaart', 'paariline']],
+      ], 'full', 'g_vocab'),
+      teach(tag(B.speaking('096_d_poll', 'Küsi paariliselt.', 'Küsi paariliselt kõiki küsimusi. Siis ütle klassile lühidalt, mida ta kardab ja miks.', [
+        'Mis osa on sinu jaoks kõige raskem?', 'Mis osa on kõige kergem?', 'Mis on raskem, kuulamine või lugemine?', 'Mida sa tegid viimase kontrolltöö ajal, kui aeg sai otsa?', 'Mida sa kardad kõige rohkem?',
+      ], [60, 120], ['Minu jaoks on … raskem kui …, sest …', 'Ta kardab, et …', 'Üks hetk, palun.']), { task: 'S09', fluency: true }),
+        'Üks-ühele: õpetaja vastab samadele küsimustele. Õpilane teeb märkmed ja räägib õpetaja vastused lõpuks ümber. Ära paranda.'),
+      teach(tag(B.speaking('096_d_opinion', 'Mis on sinu arvates parem?', 'Ütle oma mõte ja põhjendus. Pärast küsi, mida õpetaja arvab.', [
+        'Kas on parem õppida iga päev natuke või üks kord palju?', 'Kas on parem harjutada üksi või koos?', 'Kas parem on kuulata raadiot või vaadata filmi?', 'Kas enne eksamit tuleb õppida või puhata?',
+      ], [60, 120], ['Minu arvates on parem …, sest …', 'Mina arvan teisiti: …', 'Mis sina arvad?']), { task: 'S11' }),
+        'Üks-ühele: õpetaja vaidleb natuke vastu, et õpilane peab põhjendama. Paranda ainult siis, kui mõte jääb segaseks.'),
     ],
     practice: [
-      B.tip('096_p_how', 'Neli minijaama', 'Igas jaamas: loe ülesannet → vali strateegia → kontrolli vastust. Igas jaamas on umbes 10 minutit.', 'full'),
-      B.reading('096_p_read', 'Jaam 1. Loe kuulutust.', 'Leia märksõna ja vasta lühidalt.', 'Kuulutus trepikojas',
-        'Head elanikud! Esmaspäeval, 14. novembril, ei ole majas sooja vett. Torumehed parandavad keldris vanu torusid. Töö algab kell kaheksa hommikul. Töö lõpeb kell neli pärastlõunal. Palun ärge pange sel ajal pesumasinat tööle. Külma vett saab kasutada nagu tavaliselt. Keldri uks on sel päeval lahti. Palun ärge jätke keldrisse jalgrattaid ega kaste. Kui teil on küsimusi, helistage majahaldurile. Tema number on 5566 7788. Majahaldur vastab tööpäeviti kella üheksast viieni. Õhtul ja nädalavahetusel võib kirjutada e-kirja. Kui keldris on vesi põrandal, helistage kohe. Vabandame ebamugavuse pärast! Majaühistu',
-        [['Mis päeval ei ole sooja vett?', 'esmaspäeval|14. novembril'], ['Kus torumehed töötavad?', 'keldris'], ['Mis kell töö lõpeb?', 'kell neli|kell 16|neli pärastlõunal'], ['Mida ei tohi sel ajal teha?', 'pesumasinat tööle panna|pesumasinat kasutada|pesu pesta'], ['Kellele saab helistada?', 'majahaldurile'], ['Mis kell töö algab?', 'kell kaheksa|kaheksa hommikul|8'], ['Mis on majahalduri telefoninumber?', '5566 7788|55667788'], ['Mida teha, kui keldris on vesi põrandal?', 'helistada kohe|helista kohe|kohe helistada']]),
-      B.listening('096_p_listen', 'Jaam 2. Kuula teadet.', 'Õpetaja loeb teate kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere, head kuulajad! Linna raamatukogus on uus kursus.',
-        'Kursus on kõigile, kes õpivad eesti keelt.',
-        'Tunnid on teisipäeviti kell kuus õhtul.',
-        'Kursus algab kolmandal detsembril ja kestab kaks kuud.',
-        'Kursus on tasuta, aga registreerida tuleb ette.',
-        'Registreerida saab raamatukogu kodulehel või telefoni teel.',
-        'Kaasa võtke vihik ja pastakas. Raamatud saate raamatukogust.',
-        'Tunnid on teisel korrusel, saalis number viis.',
-      ], ['Kursus on [raamatukogus|linna raamatukogus].', 'Tunnid on [teisipäeviti|teisipäeval].', 'Tund algab kell [kuus|6|18].', 'Kursus kestab [kaks kuud|2 kuud].', 'Kursus maksab: [tasuta|ei maksa midagi].', 'Kaasa tuleb võtta vihik ja [pastakas|pastaka].', 'Saal on [teisel|2.] korrusel.', 'Raamatud saab [raamatukogust].']),
-      B.choice('096_p_strat', 'Jaam 1. Lugemine: mis aitab?', 'Vali parim strateegia.', [
-        ['Küsimus: „Mis kell pood suletakse?” Mida otsid tekstist?', 'kellaaega', 'poe nime', 'hinda'],
-        ['Tekstis on palju uusi sõnu. Mida teed?', 'Otsin ainult vajalikku infot.', 'Tõlgin iga sõna.', 'Jätan ülesande vahele.'],
-        ['Sa ei tea vastust ja aega on vähe. Mida teed?', 'Valin kõige loogilisema vastuse.', 'Jätan vastuse tühjaks.', 'Kirjutan kaks vastust.'],
-        ['Ülesandes on kolm sõnumit ja kuus küsimust. Mida teed kõigepealt?', 'Loen küsimused läbi.', 'Õpin sõnumid pähe.', 'Kirjutan sõnumid ümber.'],
-        ['Juhis ütleb: „Vasta 1–2 sõnaga.” Mis on hea vastus?', 'kell kuus', 'Ta tuleb koju kell kuus õhtul.', 'Ma arvan, et kuus.'], ['Kuulamises ei saanud sa esimesel korral aru. Mida teed?', 'Kuulan teisel korral hoolega.', 'Jätan ülesande vahele.', 'Lahkun ruumist.'], ['Kirjutamises on juhises neli punkti. Mida teed?', 'Vastan kõigile neljale punktile.', 'Vastan ainult ühele.', 'Kirjutan ainult nime.'], ['Rääkimises paariline räägib kiiresti. Mida ütled?', 'Palun korrake aeglasemalt!', 'Ma ei räägi.', 'Head aega!']]),
-      B.cloze('096_p_cloze', 'Markuse kiri Sofiale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Sofia!', [
-        'Aitäh sinu {*kirja|kiri|kirjas} eest! Nüüd ma tean, mida eksamil teha.',
-        '',
-        'Lugemises loen kõigepealt {*küsimust|küsimus|küsimusega}. Kuulamises {*kuulen|kuulsin|kuulama} iga teksti kaks korda.',
-        '',
-        'Kirjutamises vaatan {*kella|kell|kellale}, sest ma ei taha, et aeg {*otsa|otsas|otsast} saab. Rääkimises palun {*korrata|korrake|kordama}, kui ma aru ei saa.',
-        '',
-        'Kas me saame laupäeval {*raamatukogus|raamatukokku|raamatukogust} kokku? Ma võtan {*kaasa|kaasas|kaasast} vanad ülesanded. Markus',
-      ], 'g_vocab'),
-      B.formtext('096_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev sõna õiges vormis.', 'Minu eksamiplaan', [
-        'Kuu aja pärast [teen] (tegema) ma A2 eksami. Minu jaoks on kõige [raskem] (raske) kuulamine.',
-        '',
-        'Seepärast [kuulan] (kuulama) ma iga päev raadiot. Laupäeviti [harjutame] (harjutama) sõbraga [raamatukogus] (raamatukogu).',
-        '',
-        'Eksamil [loen] (lugema) ma kõigepealt küsimust ja [otsin] (otsima) tekstist märksõna.',
-        '',
-        'Kirjutamise lõpus [kontrollin] (kontrollima) oma teksti.',
-      ], 'g_notice'),
-      B.errorfix('096_p_fix', 'Jaam 3. Paranda sõnum.', 'Kirjuta lause õigesti.', [
-        ['Ma pean minna arsti juurde.', 'Ma pean minema arsti juurde.'], ['Eile ma lähen kinno.', 'Eile ma läksin kinno.|Eile läksin ma kinno.'], ['Mina ei ole aega.', 'Mul ei ole aega.'], ['Ma ei tulin tööle.', 'Ma ei tulnud tööle.'], ['Kohtume bussipeatus juures.', 'Kohtume bussipeatuse juures.'], ['Ma helistan sulle õhtu.', 'Ma helistan sulle õhtul.'], ['Ma ootan sind kell viis kohvik ees.', 'Ma ootan sind kell viis kohviku ees.'], ['Me läheme koos kino.', 'Me läheme koos kinno.'],
+      B.listening('096_p_ene', 'Ene helistab Tomile.', 'Ene räägib Tomile, kuidas eksamile registreerida. Kuula kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Ene: Tere, Tom! Siin Ene Keelekoolist Sõna. Helistan eksami pärast. Sa pead end sel nädalal registreerima. Viimane päev on reede, 26. november.',
+        'Tom: Tere, Ene! Mida ma pean selleks tegema?',
+        'Ene: Mine kodulehele ja täida ankeet. Sinna tuleb kirjutada sinu nimi, isikukood ja e-post. Eksam on Kase koolis, teisel korrusel, ruumis kaksteist.',
+        'Tom: Kase kool on minu lähedal! Mis kell ma pean kohal olema?',
+        'Ene: Eksam algab kell üheksa, aga tule kaheksa kolmkümmend. Võta kaasa dokument ja kaks pastakat.',
+        'Tom: Selge. Aitäh, Ene! Kas ma võin ka vett kaasa võtta?',
+        'Ene: Võid küll. Aga telefon peab olema kotis. Head õppimist!',
+      ], ['Viimane registreerimise päev on [reede|26. november].', 'Kodulehel tuleb täita [ankeet].', 'Eksam on [Kase koolis].', 'Eksami ruum on number [kaksteist|12].', 'Tom peab kohal olema kell [kaheksa kolmkümmend|8.30|pool üheksa].', 'Kaasa tuleb võtta dokument ja kaks [pastakat].', 'Telefon peab olema [kotis].']),
+      B.choice('096_p_what', 'Mida ütled eksamil?', 'Sa oled eksamiruumis. Vali iga olukorra jaoks lause, mis sind aitab.', [
+        ['Eksamineerija räägib väga kiiresti.', 'Rääkige palun aeglasemalt!', 'Ma ei taha rääkida.', 'Head aega!'],
+        ['Sa ei kuulnud küsimust hästi.', 'Palun korrake küsimust!', 'See on väga kallis.', 'Mul on kõik korras.'],
+        ['Sa ei tea sõna ja tahad veidi mõelda.', 'Üks hetk, palun.', 'Ole lahke.', 'Pole tänu väärt.'],
+        ['Paariline ütleb midagi ja sa ei ole kindel, kas said õigesti aru.', 'Kas sa mõtled, et lähed esmaspäeval?', 'Ära küsi rohkem.', 'Kahjuks ma lõpetan.'],
+        ['Sa tahad teada ühe asja eestikeelset nime.', 'Kuidas seda eesti keeles öeldakse?', 'Kes see on?', 'Kui palju see maksab?'],
+        ['Sa lõpetasid ja tahad lehe ära anda.', 'Ma olen valmis.', 'Tere hommikust!', 'Ma ei saanud aru.'],
+      ], 'full', 'g_notice'),
+      teach(tag(B.examListen('096_p_radio', 'Eksaminurk: raadio.', 'Ülle räägib raadios Maretiga eksamist. Kuula kaks korda ja märgi, kas lause on õige või vale.', 'truefalse', [
+        'Ülle: Tere, head kuulajad! Stuudios on täna õpetaja Maret Keelekoolist Sõna. Detsembris teevad paljud inimesed A2 eksami. Maret, mis seal ees ootab?',
+        'Maret: Tere! Eksamil on neli osa: kirjutamine, kuulamine, lugemine ja rääkimine. Iga osa eest saab kuni kakskümmend punkti, kokku kaheksakümmend.',
+        'Ülle: Kui palju punkte on vaja?',
+        'Maret: Eksam on tehtud, kui sul on vähemalt nelikümmend kaheksa punkti. See on kuuskümmend protsenti. Aga ükski osa ei tohi olla null punkti. Meie koolis on eesmärk suurem: kaheksakümmend protsenti igas osas.',
+        'Ülle: Mis osa on kõige pikem?',
+        'Maret: Lugemine. Selleks on aega viiskümmend minutit. Kirjutamiseks ja kuulamiseks on kummalgi kolmkümmend minutit. Rääkimine kestab umbes viisteist minutit.',
+        'Ülle: Kas kuulamise teksti kuuleb ainult üks kord?',
+        'Maret: Ei, iga teksti kuuled kaks korda. Esimesel korral kuula rahulikult ja tee väike märge. Teisel korral kontrolli. Ära jää ühe sõna juurde, see on kõige sagedasem viga.',
+        'Ülle: Ja rääkimine? Paljud kardavad seda kõige rohkem.',
+        'Maret: Jah. Aga sa ei ole seal üksi. Kõigepealt tutvud, siis kirjeldad pilti ja lõpuks küsid ideekaardi järgi. Kui sa ei saa aru, siis võid rahulikult öelda: „Palun korrake!” Selle eest ei võeta punkte ära.',
+        'Ülle: Kas sõnaraamatu võib kaasa võtta?',
+        'Maret: Ei, sõnaraamatut ega telefoni ei tohi kasutada. Kaasa tuleb võtta dokument ja pastakas.',
+        'Ülle: Mida te viimasel nädalal soovitate?',
+        'Maret: Ärge õppige öösel uusi sõnu! Harjutage iga päev natuke, rääkige kellegagi ja magage enne eksamit hästi. Ja tulge varem kohale, siis ei pea te bussi pärast muretsema. Eksami hommikul sööge korralikult, sest see päev on pikk.',
+        'Ülle: Kas tulemused tulevad kiiresti?',
+        'Maret: Ei, tulemused tulevad umbes kuu aja pärast. Oodata on raske, aga vahepeal võib juba järgmist kursust vaadata.',
+        'Ülle: Aitäh, Maret! Edu kõigile!',
+      ], [
+        ['Eksamil on kokku kaheksakümmend punkti.', true], ['Eksam on tehtud ka siis, kui üks osa on null punkti.', false], ['Keelekooli eesmärk on suurem kui eksami nõue.', true], ['Kirjutamine on eksami kõige pikem osa.', false],
+        ['Iga kuulamise teksti kuuleb kaks korda.', true], ['Kui sa palud korrata, siis saad vähem punkte.', false], ['Rääkimises tuleb ka ideekaardi järgi küsida.', true], ['Telefoni võib eksamil kasutada.', false],
+      ]), { harno: 'L2' }), 'Nagu Harno A2 kuulamise 2. osas: raadiovestlus, õige või vale, tekst kõlab kaks korda. Eksamil on 6 lauset. Aeg umbes 8 minutit. Üks punkt lause eest.'),
+      B.vocab('096_p_vocab', 'Eksami sõnad.', ['eksam — экзамен', 'osa — часть', 'tulemus — результат', 'ülesanne — задание', 'viga — ошибка', 'dokument — документ', 'harjutama — упражняться', 'kordama — повторять']),
+      B.adsmatch('096_p_offers', 'Kus saab harjutada?', 'Keelekooli seinal on kolm kuulutust. Kuhu see õppija läheb? Kirjuta täht.', [
+        ['Rääkimisklubi', 'Neljapäeviti kell 17 kohvikus Pann. Õpetaja Kadi aitab kirjeldada pilte ja küsida ideekaardi järgi. Tasuta, tule ilma registreerimata.'],
+        ['Kirjutamise tund', 'Reedeti kell 16 keelekoolis, ruumis 3. Aune loeb sinu teksti ja parandab vead. Too oma tekst kaasa. Üks tund maksab 10 eurot.'],
+        ['Kuulamise nurk', 'Raamatukogus on iga päev kella 10–18 kõrvaklapid ja vanad eksamitekstid. Võid olla seal nii kaua, kui tahad. Raamatukogu kaart on vajalik.'],
+      ], [['Dmitri tahab pilti kirjeldada ja ei taha maksta.', 'A'], ['Tom tahab oma teksti õpetajale näidata.', 'B'], ['Lucía saab kuulata ainult hommikul.', 'C'], ['Dmitri ei taha enne ennast kirja panna.', 'A'], ['Tom on valmis maksma kümme eurot.', 'B'], ['Lucía vajab kõrvaklappe.', 'C']]),
+      B.transformation('096_p_polite', 'Ütle viisakamalt.', 'Tomi laused on eksami jaoks liiga järsud. Kirjuta iga lause antud alguse järgi viisakalt.', [
+        ['Korda!', 'Palun …', 'Palun korrake!'], ['Räägi aeglasemalt!', 'Palun …', 'Palun rääkige aeglasemalt!|Rääkige palun aeglasemalt!'], ['Oota!', 'Üks …', 'Üks hetk, palun.'], ['Mis see sõna on?', 'Kuidas …', 'Kuidas seda sõna eesti keeles öeldakse?|Kuidas seda eesti keeles öeldakse?'],
+        ['Kirjutamine on raske. Lugemine on kerge.', 'Kirjutamine on …', 'Kirjutamine on raskem kui lugemine.'], ['Ma pean harjutama.', 'Ma tahan …', 'Ma tahan harjutada.'],
       ]),
-      TR('096_p_tr', ['Курс в библиотеке.', 'Я иду в библиотеку.', 'Урок начинается в шесть.', 'Курс длится до восьми.', 'Я пойду с другом.', 'Мне нужно взять с собой тетрадь.', 'Встретимся у автобусной остановки.', 'Прочитай сначала вопрос.']),
-      B.speaking('096_p_say', 'Jaam 4. Tutvumine.', 'Vasta paarilise küsimustele, nagu eksami alguses.', ['Kus sa praegu elad?', 'Kellega sa koos elad?', 'Mida sa vabal ajal teed?', 'Miks sa eksamit teed?', 'Kui kaua sa eesti keelt õpid?'], [45, 75], ['Ma elan…', 'Vabal ajal ma…', 'Ma teen eksamit, sest…']),
+      B.wordorder('096_p_order', 'Pane lause kokku.', 'Lucía kirjutas oma märkmed kiiresti. Pane iga lause sõnad õigesse järjekorda.', ['Palun rääkige natuke aeglasemalt.', 'Minu jaoks on kuulamine raskem kui lugemine.', 'Iga päev tahan ma raadiot kuulata.', 'Kas me saame neljapäeval koos harjutada?', 'Ma pean eksamiks rohkem kirjutama.', 'Laupäeval algab eksam kell üheksa.']),
+      teach(B.rolecards('096_p_cards', 'Ideekaart „Eksam”.', 'A küsib märksõnade järgi, B vastab ja ütleb ühe detaili. Siis vahetage rollid.',
+        'Küsi viis küsimust: raske osa, harjutamine, aeg, koht, abi.', 'Vasta igale küsimusele kahe lausega. Kui sa ei saa aru, palu korrata.',
+        ['Mis osa on sulle kõige raskem?', 'Kuidas sa seda harjutad?', 'Kes sind aitab?'], ['Minu jaoks on … raskem kui …', 'Ma harjutan … iga päev.', 'Palun korrake!']),
+        'Üks-ühele: õpetaja vastab, kui õpilane küsib, ja ütleb ühe lause meelega kiiresti, et õpilane palub korrata.'),
+      teach(tag(B.speaking('096_p_432', 'Räägi kolm korda.', 'Räägi paarilisele oma eksamist: esimesel korral kaks minutit, siis 1,5 minutit, lõpuks üks minut.', [
+        'Mis on eksamil sinu jaoks raske?', 'Mis on kerge?', 'Mida sa viimaseks nädalaks plaanid?', 'Mida sa eksamipäeva hommikul teed?',
+      ], [60, 120], ['Minu jaoks on …', 'Kõigepealt ma …', 'Ma pean …']), { task: 'S08', fluency: true }),
+        'Üks-ühele: õpilane räägib õpetajale kolm korda sama juttu, iga kord kiiremini. Õpetaja hoiab aega ega paranda.'),
     ],
     transfer: [
-      B.text('096_t_situation', 'Proovijaam: Viktor', 'Viktor teeb kursusel proovijaama. Tal on 30 minutit kirjutamiseks ja 15 minutit rääkimiseks. Sina oled Viktor. Kasuta strateegiaid, mida täna õppisid.'),
-      B.notice('096_t_card', 'Visiitkaart', ['Mari Saar — juuksur', 'Ilusalong „Kaunis”, Pikk 7, Rakvere', 'Avatud: T–L kell 10–18', 'Aeg: 5123 4567 või mari@kaunis.ee'], 'full', 'g_read'),
-      B.errorfix('096_t_fix', 'Kontrolli Viktori mustandit.', 'Paranda viga.', [
-        ['Mari töötab ilusalong.', 'Mari töötab ilusalongis.'], ['Salong on avatud kell kümme kuni kuus.', 'Salong on avatud kella kümnest kuueni.'], ['Sa pead helistama või kirjutada.', 'Sa pead helistama või kirjutama.'], ['Mina meeldib see juuksur.', 'Mulle meeldib see juuksur.'], ['Eile ma ei käisin seal.', 'Eile ma ei käinud seal.'], ['Ma tahan minna juuksurile.', 'Ma tahan minna juuksuri juurde.'], ['Kontsert algab laupäev kell seitse.', 'Kontsert algab laupäeval kell seitse.'], ['Kohtume kontserdimaja ees kell pool seitsme.', 'Kohtume kontserdimaja ees kell pool seitse.']]),
-      B.letter('096_t_info', 'Kirjutamine 1. Soovita juuksurit.', 'Sõbranna otsib juuksurit. Kirjuta: kes, kus, millal, kuidas ühendust võtta.', 'Tere, Liis!', 'Kallistan!', [40, 60]),
-      B.letter('096_t_invite', 'Kirjutamine 2. Kutse.', 'Kutsu sõber laupäeval kontserdile. Kirjuta: kuhu, millal, kus kohtute, mida kaasa võtta.', 'Tere, Jaan!', 'Kirjuta, kas tuled!', [40, 60]),
-      B.speaking('096_t_pic', 'Rääkimine 1. Kirjelda pilti.', 'Õpetaja annab pildi: pere pargis. Räägi umbes 1 minut.', ['Kes on pildil?', 'Kus nad on?', 'Mida nad teevad?', 'Mis aastaaeg see on?'], [60, 90], ['Pildil on…', 'Vasakul…, paremal…', 'Ma arvan, et…']),
-      B.rolecards('096_t_idea', 'Rääkimine 2. Ideekaart „Toit”.', 'A küsib märksõnade järgi, B vastab. Siis vahetage.',
-        'Küsi 5 küsimust: lemmiktoit, kus sööd, kes teeb süüa, kohvik, eilne õhtusöök.', 'Vasta 2–3 lausega. Kui ei saa aru, palu korrata.',
-        ['Mis on sinu lemmiktoit?', 'Kes teie peres süüa teeb?', 'Mida sa eile õhtul sõid?'], ['Minu lemmiktoit on…', 'Vabandust, palun korrake!', 'Eile ma sõin…']),
-      B.rubric('096_t_rubric', 'Kontrolli oma tööd.', 'Märgi, mis on tehtud.', ['Kirjutamine 1: kõik neli punkti — kes, kus, millal, kontakt.', 'Kirjutamine 2: vähemalt 40 sõna, kõik punktid on vastatud.', 'Lugesin teksti lõpus läbi ja parandasin vead.', 'Rääkimises palusin vajadusel korrata.']),
-      B.selfcheck('096_t_self', ['Ma oskan juhise tegusõnu ja valin igale osale strateegia.', 'Ma oskan leida visiitkaardilt vajaliku info.', 'Ma oskan kontrollida vormi: kus, kuhu, kust, pean + ma-vorm.', 'Ma oskan kirjutada 40–60 sõna ja kutse 40–60 sõnaga.', 'Ma oskan kirjeldada pilti ja küsida ideekaardi järgi.'], 'Strateegia on olemas'),
+      B.text('096_t_situation', 'Kolm nädalat koos', 'Tom ja Lucía otsustavad koos harjutada, sest Tomile on raske kirjutamine ja Lucíale kuulamine. Neil on vaba aega esmaspäeval enne tundi, neljapäeva õhtul ja laupäeva hommikul. Sina ja sinu paariline teete sama: te lepite kokku, kuidas ja millal järgmised kolm nädalat harjutate.'),
+      teach(tag(B.ideaCard('096_t_agree', 'Meie eksamiplaan.', 'Rääkige, mis on kummalegi raske. Leppige kokku kaks asja, mida te koos teete: mida, millal, kus. Lõpus öelge oma plaan õpetajale.',
+        'Eksamini on kolm nädalat. Teil on kummalgi üks nõrk osa ja vähe vaba aega.', ['rääkimisklubi neljapäeval', 'kirjutamise tund reedel', 'kuulamise nurk raamatukogus', 'raadio bussis', 'tekstid üksteisele parandada', 'telefonikõne eesti keeles'], 'Mis kaks asja te valite, millal ja miks?', [180, 300]), { task: 'S12', main: true }),
+        'Üks-ühele: õpetaja on paariline ja tal on oma nõrk osa. Ta ei nõustu kohe, et õpilane peab põhjendama. Lõpus peab olema kokkulepe.'),
+      B.phrasebank('096_t_phrases', [['Mis on raske?', ['Minu jaoks on … raskem kui …', 'Mul on vaja rohkem …']], ['Ettepanek', ['Kas me võime koos …?', 'Äkki läheme … ?', 'Kas … sobib sulle?']], ['Kokkulepe', ['Hea, lepime nii kokku.', 'Kahjuks ma ei saa, aga …', 'Siis kohtume …']]]),
+      teach(tag(B.examWriting('096_t_note', 'Sõnum pärast tundi.', 'Kirjuta paarilisele sõnum 40–60 sõnaga: mida te kokku leppisite.', 'teade', {
+        situation: 'Sa tahad, et teie plaan ei ununeks. Kirjuta talle kõik üles.',
+        points: ['Mida te harjutate?', 'Millal ja kus te kohtute?', 'Mida kumbki kaasa võtab?', 'Mida sa kuni selle ajani üksi teed?'],
+        words: [40, 60], opening: 'Tere!',
+      }), { task: 'W02' }), 'Üks-ühele: õpilane kirjutab sõnumi õpetajale, sest õpetaja oli tema paariline.'),
+      teach(tag(B.letter('096_t_reply', 'Vastus Lucíalt.', 'Lucía kirjutab: „Ma ei saa neljapäeval tulla.” Vasta talle 40–60 sõnaga ja paku uus aeg.', 'Tere, Lucía!', 'Kohtumiseni!', [40, 60]), { task: 'W04' }), 'Õpilane kirjutab üksi. Õpetaja kontrollib, kas uus aeg ja koht on kirjas.'),
+      tag(B.letter('096_t_maret', 'Kiri Maretile.', 'Kirjuta Maretile sama plaan teie-vormis, 40–60 sõna. Küsi ka üks küsimus eksami kohta.', 'Tere, Maret!', 'Lugupidamisega', [40, 60]), { task: 'W12' }),
+      picture(tag(B.speaking('096_t_record', 'Salvesta: pilt ja sinu plaan.', 'Salvesta kodus 45–60 sekundit. Kirjelda pilti ja räägi siis, kuidas sina eksamiks õpid.', ['Kes on pildil ja kus nad on?', 'Mida Sofia teeb?', 'Mis on laual?', 'Mis on sinu plaan järgmiseks nädalaks?', 'Mis aitab sind kõige rohkem?'], [45, 60], ['Pildil on …', 'Laual on …', 'Ma pean …', 'Ma tahan …']), { task: 'S06' }), 'a2-068'),
+      B.rubricSpeaking('096_t_rubric', 'Hindamine: meie eksamiplaan (20 punkti).'),
+      B.selfcheck('096_t_self', ['Ma saan kuuldud saatest aru, kuidas eksam käib.', 'Ma ütlen, mis on mulle raske ja miks.', 'Ma palun korrata ja küsin, kui ma ei saa aru.', 'Ma lepin kokku, kuidas me harjutame.'], 'Plaan on olemas'),
     ],
   },
 
   'a2-097': {
-    title: 'A2 proovieksam 1',
+    title: 'Kontroll 20: kus ma praegu olen?',
     assessment: true,
-    canDo: 'Ma teen A2 proovieksami neli osa etteantud aja jooksul ja kirjutan üles oma punktid iga osaoskuse kohta.',
+    canDo: 'Ma teen eksami neli osa etteantud aja jooksul ja saan teada, mis osa on minu jaoks kõige nõrgem (eesmärk on vähemalt 80% igas osas).',
     discover: [
-      B.text('097_d_situation', 'Proovieksami hommik', 'Täna teeb Jaan proovieksami. Ta tuleb kooli kell üheksa. Mida ta peab teadma? Mida ta peab kaasa võtma?'),
-      B.truefalse('097_d_guess', 'Mida sa arvad?', 'Enne lugemist: kas lause on õige või vale?', [
-        ['Eksamile tuleb võtta kaasa isikut tõendav dokument.', true],
-        ['Lugemise osa kestab 30 minutit.', false],
-        ['Kokku saab eksamil 80 punkti.', true],
-        ['Eksam on sooritatud, kui tulemus on vähemalt 60 %.', true],
-        ['Kui ühes osas on 0 punkti, on eksam ikkagi sooritatud.', false],
+      B.text('097_d_intro', 'Kontroll 20 Harno A2 vormis', 'Kolmapäev, 24. november. Täna on kontroll: neli osa nagu eksamil, igal osal on oma aeg. See leht on soojendus: loe, kuidas eksamipäev käib, ja korda juhiseid. Kontroll näitab, mis osa on sinu jaoks kõige nõrgem. Esmaspäeval töötame just sellega.'),
+      B.truefalse('097_d_guess', 'Mida sa juba tead?', 'Sa kuulasid Mareti saadet raadiost. Kas need asjad on nii? Otsusta enne, kui hakkad lugema.', [
+        ['Eksamile tuleb võtta kaasa isikut tõendav dokument.', true], ['Lugemise jaoks on ainult pool tundi.', false], ['Sooritamiseks on vaja vähemalt 60 % punktidest.', true], ['Kirjutamises tuleb valida teine ülesanne kahest teemast.', true], ['Eksamil saab ise otsustada, mis osa jääb tegemata.', false],
       ], 'full'),
-      B.vocab('097_d_vocab', 'Eksamipäeva sõnad', ['isikutunnistus — удостоверение личности', 'pass — паспорт', 'paus — перерыв', 'kestma — длиться', 'sooritama — сдать (экзамен)', 'tulemus — результат', 'protsent — процент', 'paaris — в паре', 'väsinud — уставший', 'rahul — доволен']),
-      B.reading('097_d_read', 'Loe: Jaani eksamipäev.', 'Loe tekst ja vasta küsimustele.', 'Jaani eksamipäev',
-        'Jaan ärkas kell seitse. Ta sõi hommikust ja jõi tassi teed. Kotti pani ta isikutunnistuse, kaks pastakat ja veepudeli. Telefoni jättis ta koju. Kell üheksa algas kirjutamine. Jaanil oli aega 30 minutit. Esimeses ülesandes kirjutas ta visiitkaardi põhjal ühest arstist. Teises ülesandes kirjutas ta kutse sõbrale. Siis tuli kuulamine. Iga teksti kuulis ta kaks korda. Pärast väikest pausi oli lugemine. See kestis 50 minutit ja oli kõige pikem osa. Kõige raskem oli Jaanile kiri lünkadega. Ta ei olnud kindel, kas õige on „tulla” või „tulema”. Pärastlõunal oli rääkimine. Jaan rääkis paarilisega pildist. Siis küsis ta ideekaardi järgi küsimusi. Õhtul oli ta väsinud, aga rahul. Ta teab nüüd, mida veel harjutada.',
-        [['Mida Jaan kotti pani?', 'isikutunnistuse, pastakad ja veepudeli|isikutunnistuse|dokumendi, pastakad ja vee'], ['Kus oli Jaani telefon?', 'kodus|ta jättis selle koju'], ['Mis osa oli kõige pikem?', 'lugemine'], ['Mis oli Jaanile kõige raskem?', 'kiri lünkadega|lünkadega kiri'], ['Mida Jaan rääkimises tegi?', 'rääkis pildist ja küsis küsimusi|rääkis pildist|küsis ideekaardi järgi'], ['Miks oli Jaan õhtul rahul?', 'ta teab, mida harjutada|ta teab nüüd, mida veel harjutada|ta tegi eksami ära']]),
-      B.notice('097_d_notice', 'Eksami ajad ja punktid', ['Kirjutamine — **30 min**, 2 ülesannet, **20 p**', 'Kuulamine — **30 min**, 4 ülesannet, **20 p**', 'Lugemine — **50 min**, 5 ülesannet, **20 p**', 'Rääkimine — umbes **15 min** paaris, 2 ülesannet, **20 p**', 'Kokku **80 p**. Sooritatud: vähemalt **48 p (60 %)** ja ükski osa ei ole **0 p**.'], 'full'),
-      B.diagram('097_d_line', 'timeline', { title: 'Jaani eksamipäev.', instruction: 'Kirjuta puuduv osa.', nodes: '9.00 | [Kirjutamine] — 30 minutit\n9.30 | [Kuulamine] — 30 minutit\n10.15 | [Lugemine] — 50 minutit\n14.00 | [Rääkimine] — paaris' }, 'full'),
-      B.gaps('097_d_points', 'Arvuta punktid.', 'Kirjuta number sõnade või numbriga.', [
-        'Eksamil on kokku [80|kaheksakümmend] punkti.', 'Iga osa eest saab kuni [20|kakskümmend] punkti.', '60 % 80 punktist on [48|nelikümmend kaheksa] punkti.', 'Markusel on 50 punkti, aga kuulamises 0. Eksam [ei ole] sooritatud.', 'Sofial on 52 punkti, igas osas üle 10. Eksam [on] sooritatud.', 'Lugemise osa kestab [50|viiskümmend] minutit.',
+      B.vocab('097_d_vocab', 'Eksamipäeva sõnad.', ['pass — паспорт', 'kestma — длиться', 'pastakas — ручка', 'protsent — процент', 'rahul — доволен', 'tööl — на работе']),
+      B.reading('097_d_read', 'Ene kiri õppijatele.', 'Ene kirjutab, kuidas eksamipäev käib. Loe kirja ja kirjuta vastused lühidalt.', 'Head õppijad!', [
+        'Eksamipäeval tulge Kase kooli kella poole üheksaks. Võtke kaasa isikutunnistus või pass, kaks pastakat ja veepudel. Telefon peab olema kotis ja kinni. Sõnaraamatut ei tohi kasutada.',
+        'Kell üheksa algab kirjutamine. Selleks on 30 minutit. Esimeses ülesandes kirjutate visiitkaardi põhjal, teises valite ühe teema kahest. Siis tuleb kuulamine, mis kestab samuti 30 minutit. Iga teksti kuulete kaks korda. Pärast väikest pausi on lugemine. See kestab 50 minutit ja on kõige pikem osa.',
+        'Rääkimine on pärast lõunat. Te räägite paarilisega umbes 15 minutit: kõigepealt tutvumine, siis pilt ja lõpuks ideekaart. Õhtul olete väsinud, aga rahul. Edu teile! Ene',
+      ].join('\n\n'), [
+        ['Mis kell tuleb kohal olla?', 'poole üheksaks|kella poole üheksaks|8.30'], ['Kus peab telefon olema?', 'kotis|kotis ja kinni'], ['Mis osa on esimene?', 'kirjutamine'], ['Mis osa on kõige pikem?', 'lugemine'], ['Mitu teemat on teises kirjutamisülesandes?', 'kaks|2'], ['Millal on rääkimine?', 'pärast lõunat'],
       ]),
-      B.match('097_d_match', 'Juhis ja tegevus.', 'Ühenda juhis ja see, mida sa teed.', [['Ühenda.', 'Panen kokku kaks osa.'], ['Vali õige vastus.', 'Märgin ühe kolmest.'], ['Kirjuta 1–2 sõna.', 'Kirjutan väga lühidalt.'], ['Kirjuta vähemalt 30 sõna.', 'Kirjutan lühikese teksti.'], ['Märgi, kas lause on õige.', 'Kirjutan Õ või V.'], ['Kirjelda pilti.', 'Räägin, mida pildil näen.']], 'full', 'g_vocab'),
-      TR('097_d_tr', ['Повторите, пожалуйста.', 'Я не понял вопрос.', 'Сколько у меня времени?', 'Где мне писать ответ?', 'Я закончил.', 'Можно мне воды?', 'Я взял с собой паспорт.', 'Экзамен начинается в девять.']),
-      B.choice('097_d_choice', 'Mida võtad kaasa?', 'Vali õige vastus.', [
-        ['Mida on eksamil kindlasti vaja?', 'isikutunnistust või passi', 'sõnaraamatut', 'telefoni'],
-        ['Millega kirjutad eksamil?', 'pastakaga', 'telefoniga', 'arvutiga'],
-        ['Kus on sinu telefon eksami ajal?', 'kotis või kodus', 'laual', 'käes'],
-        ['Mis osa on kõige pikem?', 'lugemine', 'kirjutamine', 'rääkimine'],
-        ['Kellega teed rääkimise osa?', 'paarilisega', 'üksi', 'sõbraga telefonis'],
-        ['Mitu korda kuuled kuulamisteksti?', 'kaks korda', 'üks kord', 'kolm korda'],
+      B.notice('097_d_notice', 'Eksami ajad ja punktid', ['Kirjutamine — **30 min**, 2 ülesannet, **20 p**', 'Kuulamine — **30 min**, 4 ülesannet, **20 p**', 'Lugemine — **50 min**, 5 ülesannet, **20 p**', 'Rääkimine — umbes **15 min**, 2 ülesannet, **20 p**', 'Kokku **80 p**. Sooritatud: vähemalt **48 p (60 %)** ja ükski osa ei ole **0 p**. KeeleSepa eesmärk: **80 %** igas osas.', 'Uued sõnad: isikutunnistus — удостоверение личности · paus — перерыв · väsinud — уставший'], 'full'),
+      B.diagram('097_d_line', 'timeline', { title: 'Eksamipäev.', instruction: 'Ene kirja järgi on päeval kindel järjekord. Kirjuta iga kellaaja juurde puuduv osa.', nodes: '9.00 | [Kirjutamine] — 30 minutit\n9.30 | [Kuulamine] — 30 minutit\n10.15 | [Lugemine] — 50 minutit\n13.00 | [Rääkimine] — paaris' }, 'full'),
+      B.gaps('097_d_points', 'Arvuta punktid.', 'Olga arvutab, kas tulemusest piisab. Kirjuta lünka number või sõna.', [
+        'Eksamil on kokku [80|kaheksakümmend] punkti.', 'Iga osa eest saab kuni [20|kakskümmend] punkti.', 'Kuuskümmend protsenti kaheksakümnest on [48|nelikümmend kaheksa] punkti.', 'Dmitril on 50 punkti, aga kuulamises 0. Eksam [ei ole] sooritatud.', 'Sofial on 52 punkti, igas osas üle 10. Eksam [on] sooritatud.', 'Lugemise jaoks on aega [50|viiskümmend] minutit.',
       ]),
-      B.table('097_d_plan', 'Minu eksamipäeva plaan.', 'Kirjuta oma plaan.', 'Mis, Minu vastus', ['Mis kell ma ärkan? | ', 'Mida ma hommikul söön? | ', 'Mida ma kotti panen? | ', 'Kuidas ma kooli sõidan? | ', 'Mida ma pärast eksamit teen? | ']),
+      B.match('097_d_match', 'Juhis ja tegevus.', 'Mida eksami juhis sinult tahab? Ühenda juhis ja see, mida sa teed.', [['Ühendage.', 'Panen kokku kaks osa.'], ['Valige õige vastus.', 'Märgin ühe kolmest.'], ['Vastake ühe-kahe sõnaga.', 'Kirjutan väga lühidalt.'], ['Kirjutage vähemalt 30 sõna.', 'Kirjutan lühikese teksti.'], ['Märkige, kas lause on õige.', 'Otsustan, kas see on nii.'], ['Kirjeldage pilti.', 'Räägin, mida pildil näen.']], 'full', 'g_vocab'),
+      B.choice('097_d_choice', 'Mis on eksamil lubatud?', 'Tom kontrollib oma kotti ja plaani. Mõtle eksamile ja vali iga küsimuse kohta õige vastus.', [
+        ['Mida on eksamil kindlasti vaja?', 'dokumenti', 'sõnaraamatut', 'arvutit'], ['Millega kirjutad eksamil?', 'pastakaga', 'telefoniga', 'arvutiga'], ['Kus on telefon eksami ajal?', 'kotis', 'laual', 'käes'], ['Mitu korda kuuled iga teksti?', 'kaks korda', 'üks kord', 'kolm korda'], ['Mitu protsenti on vaja KeeleSepa eesmärgiks?', '80 %', '60 %', '100 %'],
+      ]),
+      B.wordorder('097_d_order', 'Eksami küsimused.', 'Sõnad läksid ideekaardi küsimustes sassi. Pane iga küsimus kokku.', ['Kas sa teed iga päev sporti?', 'Mitu tundi sa öösel magad?', 'Mida sa teed, kui oled haige?', 'Kuhu sa eelmisel suvel sõitsid?', 'Mis sulle reisil kõige rohkem meeldis?']),
+      B.rolecards('097_d_call', 'Helista keelekooli.', 'A helistab keelekooli, B on Ene. Siis vahetage.',
+        'Küsi: mis päeval on eksam, mis kell, kus, mida kaasa võtta.', 'Vasta: laupäeval, 11. detsembril, kell 9, Kase koolis, dokument ja pastakas.',
+        ['Millal on eksam?', 'Kus see toimub?', 'Mida ma pean kaasa võtma?'], ['Eksam on …', 'See on …', 'Võtke kaasa …']),
       B.writing('097_d_write', 'Minu eksamipäev.', 'Kirjuta 5–7 lauset: mida võtad kaasa, mis kell tuled, mida teed pärast.', [5, 7], ['kaasa', 'kell', 'pärast'], 2),
-      B.speaking('097_d_say', 'Kuidas sa end tunned?', 'Räägi paarilisele umbes 1 minut.', ['Kuidas sa end enne eksamit tunned?', 'Mida sa eksami hommikul teed?', 'Milline osa on sulle kõige kergem?'], [60, 90], ['Ma olen natuke närvis, sest…', 'Hommikul ma…', 'Kõige kergem on…']),
-      B.rolecards('097_d_call', 'Eksamile registreerimine.', 'A helistab keelekooli, B vastab. Siis vahetage.',
-        'Küsi: millal on proovieksam, mis kell, kus, mida kaasa võtta.', 'Vasta: laupäeval kell 9, ruum 12, isikutunnistus ja pastakas.',
-        ['Millal on proovieksam?', 'Kus see toimub?', 'Mida ma pean kaasa võtma?'], ['Proovieksam on…', 'Ruum on…', 'Võtke kaasa…']),
+      teach(B.speaking('097_d_warm', 'Enne kontrolli.', 'Õpetaja küsib nagu eksamil. Vasta igale küsimusele kaks-kolm lauset.', ['Kuidas sa ennast täna tunned?', 'Mis osa on sinu jaoks kõige kergem?', 'Mida sa oled sel nädalal harjutanud?'], [60, 90]),
+        'Õpetaja küsib nagu eksamineerija. Ära paranda, pane tähele ainult sõnajärge.'),
     ],
     practice: [
-      B.tip('097_p_how', 'Lugemine ja kuulamine (eksami vormis)', `Tee see osa nagu eksamil: lugemine 50 minutit, kuulamine 30 minutit. Ära kasuta sõnaraamatut. Kuulamistekstid loeb õpetaja kaks korda. ${POINTS}`, 'full'),
-      // reading 1: everyday phrases and politeness (6 items, 3 options)
-      B.choice('097_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
-        ['Sõbral on sünnipäev. Mida ütled?', 'Palju õnne!', 'Head paranemist!', 'Jõudu tööle!'],
-        ['Kolleeg läheb puhkusele. Mida ütled?', 'Head puhkust!', 'Head isu!', 'Tere tulemast!'],
-        ['Sa astud bussis kogemata võõrale jalale. Mida ütled?', 'Vabandust!', 'Pole tänu väärt!', 'Terviseks!'],
-        ['Keegi ütleb sulle „Aitäh!”. Mida vastad?', 'Pole tänu väärt.', 'Vabandust, ma ei tea.', 'Head aega!'],
-        ['Sa helistad ja vastab võõras inimene. Mida ütled?', 'Vabandust, valisin vale numbri.', 'Tere, kuidas läheb?', 'Ma helistan homme jälle.'],
-        ['Naaber aitas sul kotte tassida. Mida ütled?', 'Suur aitäh abi eest!', 'Palun, võta veel!', 'Pole viga, juhtub!'],
+      PART('097_p_wpart', 'W', { minutes: 30, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Kirjutage kõigist punktidest. Teises ülesandes valige üks kahest teemast. Eesmärk on vähemalt 16 punkti (80 %).' }),
+      W1('097_p_w1', 'Mari Saar, juuksur · Ilusalong Kaunis, Pikk 7, Rakvere · T–L 10–18 · tel 5123 4567 · mari@kaunis.ee', ['Kes on Mari Saar?', 'Kus ta töötab?', 'Millal ta tööl on?', 'Kuidas saab aega kinni panna?']),
+      B.rubricW1('097_p_rw1', ['kes ta on', 'kus ta töötab', 'millal ta tööl on', 'kuidas aega kinni panna']),
+      W2A('097_p_w2a', 'Sa leidsid bussist oma naabri telefoni. Kirjuta talle.', ['Kus sa telefoni leidsid?', 'Milline see telefon on?', 'Kuidas naaber selle kätte saab?']),
+      W2B('097_p_w2b', 'Minu lemmikkoht', ['Mis koht see on?', 'Kus see asub?', 'Miks sulle seal meeldib?']),
+      B.rubricW2('097_p_rw2'),
+      PART('097_p_rpart', 'R', { minutes: 50, points: 29, tasks: 5, note: 'Viis ülesannet nagu eksamil. Lugege iga ülesande juhist hoolikalt. Eksamil on selle osa eest 20 punkti, õpetaja arvutab tulemuse ümber. Eesmärk on vähemalt 24 punkti (80 %).' }),
+      R1('097_p_r1', [
+        ['Sõbral on sünnipäev. Mida ütled?', 'Palju õnne!', 'Head paranemist!', 'Jõudu tööle!'], ['Kolleeg läheb puhkusele. Mida ütled?', 'Head puhkust!', 'Head isu!', 'Tere tulemast!'], ['Sa astud bussis kogemata võõrale jalale. Mida ütled?', 'Vabandust!', 'Pole tänu väärt!', 'Terviseks!'],
+        ['Keegi ütleb sulle „Aitäh!”. Mida vastad?', 'Pole tänu väärt.', 'Vabandust, ma ei tea.', 'Head aega!'], ['Sa helistad ja vastab võõras inimene. Mida ütled?', 'Vabandust, valisin vale numbri.', 'Tere, kuidas läheb?', 'Ma helistan homme jälle.'], ['Naaber aitas sul kotte tassida. Mida ütled?', 'Suur aitäh abi eest!', 'Palun, võta veel!', 'Head isu!'],
       ]),
-      // reading 2: three short texts (~55 words each), answers by letter
-      B.reading('097_p_three', 'Lugemine 2. Kolm teksti.', 'Loe tekste. Vasta tähega (A, B, C) ja lühidalt.', 'Kuulutus, teade, sõnum',
-        'A. Müüa laste jalgratas. Ratas on punane ja peaaegu uus. Poeg sõitis sellega ainult ühe suve. Nüüd on ta pikemaks kasvanud. Ratas sobib 5–8-aastasele lapsele. Kaasa anname ka kiivri. Hind on 40 eurot. Ratast saab vaadata õhtuti pärast kella kuut. Asume Tallinnas, Lasnamäel. Helista: 5512 3344. Olga\n\nB. Tähelepanu, ujula külastajad! Alates 1. märtsist muutuvad lahtiolekuajad. Esmaspäevast reedeni oleme avatud kella seitsmest kümneni. Laupäeval ja pühapäeval oleme avatud kella üheksast kaheksani. Pühapäeva hommikul on peredele sooduspilet. Ujulasse tuleb võtta ujumismüts. Mütsi saab osta ka kassast.\n\nC. Tere, Markus! Kas sa saad mind laupäeval kolimisel aidata? Minu uus korter on Kalamajas, kolmandal korrusel. Lifti majas ei ole. Auto on mul olemas, aga kapp ja diivan on väga rasked. Alustame kell kümme. Pärast teen kõigile pitsat. Palun anna täna õhtul teada! Andrei',
-        [['Kes vajab abi?', 'C|Andrei'], ['Kust saab osta mütsi?', 'B|kassast|ujula kassast'], ['Kellele sobib ratas?', 'A|5–8-aastasele lapsele|lapsele'], ['Millal on ujula nädalavahetusel avatud?', 'B|kella üheksast kaheksani|9–20'], ['Miks on Andreil abi vaja?', 'C|kapp ja diivan on rasked|lifti ei ole'], ['Mis kell saab ratast vaadata?', 'A|pärast kella kuut|õhtuti pärast kuut']]),
-      // reading 3: notices matched to information (5 items, 2 extra signs)
+      R2('097_p_r2', [
+        ['Laste jalgratas', 'Müüa laste jalgratas. Ratas on punane ja peaaegu uus. Poeg sõitis sellega ainult ühe suve, nüüd on ta pikemaks kasvanud. Ratas sobib 5–8-aastasele lapsele. Kaasa anname ka kiivri. Hind on 40 eurot. Ratast saab vaadata õhtuti pärast kella kuut. Asume Lasnamäel. Helista: 5512 3344. Katrin'],
+        ['Ujula uued ajad', 'Tähelepanu, ujula külastajad! Alates 1. märtsist muutuvad lahtiolekuajad. Esmaspäevast reedeni oleme avatud kella seitsmest kümneni. Laupäeval ja pühapäeval oleme avatud kella üheksast kaheksani. Pühapäeva hommikul on peredele odavam pilet. Ujulasse tuleb võtta ujumismüts. Mütsi saab osta ka kassast.'],
+        ['Abi kolimisel', 'Tere, Markus! Kas sa saad mind laupäeval kolimisel aidata? Minu uus korter on Kalamajas, kolmandal korrusel. Lifti majas ei ole. Auto on mul olemas, aga kapp ja diivan on väga rasked. Alustame kell kümme. Pärast teen kõigile pitsat. Palun anna täna õhtul teada! Andrei'],
+      ], [['Selle asjaga saab tasuta ka kiivri.', 'A'], ['Siia ei saa tulla ilma mütsita.', 'B'], ['See inimene pakub abilistele süüa.', 'C'], ['Pühapäeva hommikul maksab pere siin vähem.', 'B'], ['Selles majas tuleb trepist minna.', 'C'], ['Seda saab vaadata ainult õhtul.', 'A']]),
       B.notice('097_p_signlist', 'Lugemine 3. Sildid', ['A — Apteek: retseptiravimid ainult apteekrilt', 'B — Ujumine keelatud! Vesi on sügav', 'C — Pakiautomaat: võta pakk 7 päeva jooksul', 'D — Postkontor: E–R 9–18, L 10–14', 'E — Parkimine ainult elanikele', 'F — Lasteaed: palun sulge värav!', 'G — Kohvik remondi tõttu suletud'], 'full', 'g_read'),
-      B.table('097_p_signs', 'Lugemine 3. Kus see silt on?', 'Kirjuta iga info juurde sildi täht. Kaks silti jääb üle.', 'Info, Silt', [
+      tag(B.table('097_p_r3', 'Lugemine 3. Kus see silt on?', 'Kirjutage iga info juurde sildi täht. Kaks silti jääb üle.', 'Info, Silt', [
         'Sa tahad laupäeval kirja saata. | [D]', 'Sinu pakk ootab sind üks nädal. | [C]', 'Siin ei tohi vette minna. | [B]', 'Siin ei saa praegu kohvi juua. | [G]', 'Lapsed ei tohi üksi tänavale joosta. | [F]',
-      ], 'g_read'),
-      // reading 4: a ~150-word text, 5 questions with 3 options
-      B.reading('097_p_text', 'Lugemine 4. Anna uus hobi.', 'Loe tekst. Siis vasta kahele küsimusele lühidalt.', 'Anna uus hobi',
-        'Anna töötab raamatupidajana. Ta istub terve päeva arvuti taga. Eelmisel aastal hakkas tal selg valutama. Arst ütles, et Anna peab rohkem liikuma. Alguses ei teadnud Anna, mida teha. Jooksmine tundus talle igav ja jõusaal liiga kallis. Siis nägi ta raamatukogus kuulutust. Kepikõnni rühm otsis uusi liikmeid. Rühm kohtub kaks korda nädalas Pirita metsas. Osalemine on tasuta ja kepid saab alguses laenata. Anna läks esimest korda vihmase ilmaga. Rühmas oli kaheksa inimest, enamik neist pensionärid. Kõik olid väga sõbralikud. Juhendaja näitas, kuidas keppe õigesti hoida. Nüüd käib Anna rühmas juba pool aastat. Selg enam ei valuta. Tal on palju uusi tuttavaid. Laupäeviti joovad nad pärast kõndi koos teed. Järgmisel kuul plaanib rühm matka Lahemaale.',
-        [['Kus rühm kohtub?', 'Pirita metsas|metsas'], ['Kui kaua käib Anna juba rühmas?', 'pool aastat|kuus kuud']]),
-      B.choice('097_p_textmc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti uuesti. Vali üks vastus.', [
-        ['Miks pidi Anna rohkem liikuma?', 'Tal valutas selg.', 'Ta tahtis kaalust alla võtta.', 'Ta sai uue töö.'],
-        ['Miks ei läinud Anna jõusaali?', 'See oli liiga kallis.', 'See oli liiga kaugel.', 'Seal oli liiga palju inimesi.'],
-        ['Kust sai Anna rühmast teada?', 'raamatukogu kuulutusest', 'arstilt', 'kolleegilt'],
-        ['Mis on rühmas alguses tasuta?', 'osalemine ja kepid', 'ainult tee', 'matk Lahemaale'],
-        ['Mida teeb rühm laupäeviti pärast kõndi?', 'joob koos teed', 'läheb matkale', 'käib jõusaalis'],
+      ], 'g_read'), { task: 'R07', harno: 'R3' }),
+      B.reading('097_p_text', 'Lugemine 4. Tekst.', 'Lugege ajakirja lugu ühe naise uuest hobist. Küsimused tulevad pärast teksti.', 'Merle uus hobi', [
+        'Merle töötab raamatupidajana. Ta istub terve päeva arvuti taga. Eelmisel aastal hakkas tal selg valutama. Arst ütles, et Merle peab rohkem liikuma. Alguses ei teadnud ta, mida teha. Jooksmine tundus talle igav ja spordiklubi liiga kallis. Õhtuti oli ta ka väsinud ja tahtis ainult diivanil istuda.',
+        'Siis nägi ta raamatukogus kuulutust. Üks kõndimise rühm otsis uusi liikmeid. Rühm kohtub kaks korda nädalas Pirita metsas. Osalemine on tasuta ja kepid saab alguses laenata. Merle läks esimest korda vihmase ilmaga. Rühmas oli kaheksa inimest, enamik neist pensionärid. Kõik olid väga sõbralikud. Üks vanem naine näitas Merlele, kuidas keppe õigesti hoida.',
+        'Nüüd käib Merle rühmas juba pool aastat. Selg enam ei valuta. Tal on palju uusi tuttavaid. Laupäeviti joovad nad pärast kõndi koos teed. Järgmisel kuul plaanib rühm matka Lahemaale.',
+      ].join('\n\n'), []),
+      R4('097_p_r4', [
+        ['Miks pidi Merle rohkem liikuma?', 'Tal valutas selg.', 'Ta tahtis uut hobi.', 'Ta sai uue töö.'], ['Miks ei läinud Merle spordiklubisse?', 'See oli liiga kallis.', 'See oli liiga kaugel.', 'Seal oli liiga palju inimesi.'], ['Kust sai Merle rühmast teada?', 'raamatukogu kuulutusest', 'arstilt', 'kolleegilt'],
+        ['Mis on rühmas alguses tasuta?', 'osalemine ja kepid', 'ainult tee', 'matk Lahemaale'], ['Mida teeb rühm laupäeviti pärast kõndi?', 'joob koos teed', 'läheb matkale', 'käib ujumas'],
       ]),
-      // reading 5: a personal letter (~100 words), 8 gaps with 3 options
-      B.cloze('097_p_cloze', 'Lugemine 5. Kiri sõbrannale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Sofia!', [
+      R5('097_p_r5', 'Tere, Sofia!', [
         'Aitäh sinu kirja eest! Mul läheb hästi. Eelmisel nädalal {*kolisime|kolime|kolima} uude korterisse. Korter on {*kesklinnas|kesklinna|kesklinnast}, bussipeatuse lähedal. Nüüd ma ei pea enam autoga {*sõitma|sõita|sõidan}. Tööle lähen jalgsi, see võtab ainult kümme minutit. Meil on kaks tuba ja suur köök. {*Köögis|Kööki|Köögist} on aken parki. Lapsed on väga rahul, sest kool on {*maja|majas|majast} kõrval.',
         '',
         'Kas sa {*tahad|tahta|tahtma} meile külla tulla? Sa võid {*tulla|tulema|tuled} näiteks järgmisel laupäeval. Ma teen {*sulle|sinu|sind} oma kuulsat õunakooki.',
         '',
-        'Kallistan, Anna',
+        'Kallistan, Merilin',
       ]),
-      // listening: an announcement (monologue), answers of 1–2 words
-      B.listening('097_p_listen', 'Kuulamine 1. Teade jaamas.', 'Õpetaja loeb teate kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Head reisijad! Tallinnast Tartusse sõitev rong väljub täna hiljem.',
-        'Rong ei välju kell kümme, vaid kell kümme kolmkümmend.',
-        'Põhjus on tehniline rike.',
-        'Rong väljub teiselt platvormilt.',
-        'Rongis on avatud kohvik. Kohvik on kolmandas vagunis.',
-        'Pileti saab osta rongist, kaardiga või sularahas.',
-        'Pensionäridele ja õpilastele on pilet poole odavam.',
-        'Jalgratta võib panna esimesse vagunisse.',
-        'Vabandame hilinemise pärast ja soovime head reisi!',
-      ], ['Rong sõidab Tallinnast [Tartusse].', 'Rong väljub kell [kümme kolmkümmend|10.30|pool üksteist].', 'Hilinemise põhjus on tehniline [rike].', 'Rong väljub [teiselt|2.] platvormilt.', 'Kohvik on [kolmandas|3.] vagunis.', 'Pensionäridele on pilet poole [odavam].', 'Jalgratta saab panna [esimesse|1.] vagunisse.']),
-      // listening: a dialogue on personal life, answers of 1–2 words
-      B.listening('097_p_listen2', 'Kuulamine 2. Laupäeva plaan.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
-        '— Tere, Markus! Kas sul on laupäeval aega?', '— Tere, Liis! Hommikul mitte, siis on mul trenn. Mis sa plaanid?',
-        '— Ma tahan minna loomaaeda. Tütar tahab näha uusi tiigreid.', '— Tore mõte! Mis kell te lähete?',
-        '— Me tahtsime minna kell üksteist. Aga sinu trenn…', '— Trenn lõpeb kell kaksteist. Kas kell üks sobib?',
-        '— Sobib küll. Kus me kohtume?', '— Loomaaia värava juures. Ma tulen bussiga.',
-        '— Hea. Ma võtan kaasa võileivad ja mahla.', '— Siis mina ostan piletid. Täiskasvanu pilet maksab kaksteist eurot.',
-        '— Aga lapse pilet?', '— Lapse pilet maksab kuus eurot.',
-        '— Hästi. Ja kui sajab vihma?', '— Siis läheme hoopis muuseumi. Näeme laupäeval!',
-      ], ['Laupäeva hommikul on Markusel [trenn].', 'Liisi tütar tahab näha [tiigreid|uusi tiigreid].', 'Nad kohtuvad kell [üks|1|13].', 'Nad kohtuvad loomaaia [värava] juures.', 'Liis võtab kaasa võileivad ja [mahla].', 'Lapse pilet maksab [kuus eurot|6 eurot|kuus].', 'Kui sajab vihma, lähevad nad [muuseumi].']),
-      B.gaps('097_p_forms', 'Keeleosa. Vali õige vorm.', 'Vali pangast. Pangas on lisavorme.', [
-        'Ma pean homme varakult [tõusma].', 'Kas sa saad mulle õhtul [helistada]?', 'Eile me [käisime] loomaaias.', 'Ma ootan sind [kino] ees.', 'Lapsed [ei läinud] eile kooli.', 'Suvel sõidame [maale].',
-      ], ['tõusma', 'tõusta', 'helistada', 'helistama', 'käisime', 'käime', 'kino', 'kinos', 'ei läinud', 'ei läksid', 'maale', 'maal']),
-      B.errorfix('097_p_fix', 'Keeleosa. Paranda viga.', 'Kirjuta lause õigesti.', [
-        ['Eile ma ei käisin trennis.', 'Eile ma ei käinud trennis.'], ['Mul on kaks lapsed.', 'Mul on kaks last.'], ['Ma elan Tartu.', 'Ma elan Tartus.'], ['Ta läheb arstile juurde.', 'Ta läheb arsti juurde.'], ['Ma oskan rääkida eesti keel.', 'Ma oskan rääkida eesti keelt.'], ['Ma tahan minema koju.', 'Ma tahan minna koju.'],
-      ]),
-      D('097_p_dict', ['Rong väljub teiselt platvormilt.', 'Kohvik on kolmandas vagunis.', 'Pilet on poole odavam.', 'Kohtume loomaaia värava juures.', 'Lapse pilet maksab kuus eurot.', 'Kui sajab vihma, läheme muuseumi.']),
-      B.speaking('097_p_retell', 'Räägi kuuldust.', 'Räägi paarilisele Liisi ja Markuse plaanist.', ['Kuhu nad lähevad?', 'Miks mitte hommikul?', 'Kus ja mis kell nad kohtuvad?', 'Mis saab, kui sajab vihma?'], [60, 90], ['Nad lähevad…, sest…', 'Nad kohtuvad…', 'Kui sajab vihma, siis…']),
     ],
     transfer: [
-      B.text('097_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'Nüüd teed proovieksami teise poole. Kirjutamiseks on 30 minutit, sõnaraamatut ei kasuta. Rääkimine on paaris ja kestab umbes 15 minutit.'),
-      B.notice('097_t_card', 'Visiitkaart', ['Dr Kristi Kask — hambaarst', 'Hambakliinik „Naeratus”, Vabaduse 12, Pärnu', 'Vastuvõtt: E, K, R kell 8–16', 'Registreerimine: 444 5566, info@naeratus.ee'], 'full', 'g_read'),
-      B.table('097_t_form', 'Täida eksami registreerimise ankeet.', 'Kirjuta oma andmed.', 'Andmed, Sinu vastus', ['Ees- ja perekonnanimi | ', 'Sünniaeg | ', 'Elukoht | ', 'E-post | ', 'Kus sa eesti keelt õppisid? | ']),
-      // writing 1: information transfer from the card, at least 25 words
-      B.letter('097_t_info', 'Kirjutamine 1. Soovita hambaarsti.', 'Kolleegil valutab hammas. Kirjuta: kes, kus, millal, kuidas ühendust võtta.', 'Tere, Siim!', 'Kõike head!', [25, 40]),
-      // writing 2: one of two options, at least 30 words
-      B.letter('097_t_found', 'Kirjutamine 2 (valik A). Leitud telefon.', 'Leidsid bussist naabri telefoni. Kirjuta: kus, milline see on, kuidas kätte saab.', 'Tere, Jaan!', 'Sinu naaber Anna', [30, 50]),
-      B.writing('097_t_place', 'Kirjutamine 2 (valik B). Minu lemmikkoht.', 'Kirjuta 4–6 lauset: mis koht, kus see on, miks sulle meeldib.', [4, 6], ['sest', 'seal', 'tihti'], 2),
-      B.wordorder('097_t_order', 'Ideekaardi küsimused.', 'Pane küsimus kokku.', ['Kas sa teed iga päev sporti?', 'Mitu tundi sa öösel magad?', 'Mida sa teed, kui oled haige?', 'Kuhu sa eelmisel suvel sõitsid?', 'Kellega sa koos reisid?', 'Mis sulle reisil kõige rohkem meeldis?']),
-      B.speaking('097_t_intro', 'Rääkimine. Tutvumine.', 'Vasta õpetaja küsimustele, nagu eksami alguses.', ['Mis su nimi on?', 'Kus sa elad ja kellega?', 'Mida sa teed tööl või koolis?', 'Mida sa eelmisel nädalavahetusel tegid?'], [45, 60]),
-      B.speaking('097_t_pic', 'Rääkimine 1. Kirjelda pilti.', 'Õpetaja annab kummalegi pildi turust. Kirjelda umbes 1 minut.', ['Kes on pildil?', 'Mida inimesed ostavad?', 'Mis aastaaeg see on?', 'Kas sulle meeldib turul käia?'], [60, 90], ['Pildil on…', 'Vasakul / paremal…', 'Ma arvan, et…']),
-      B.speaking('097_t_topic', 'Rääkimine 1. Küsimused „Ostlemine”.', 'Vasta õpetaja küsimustele 2–3 lausega.', ['Kus sa tavaliselt toitu ostad?', 'Mida sa eile ostsid?', 'Kas sa ostad ka internetist?', 'Kumb on parem, turg või pood?'], [45, 90]),
-      B.rolecards('097_t_s1', 'Rääkimine 2. Ideekaart „Tervis”.', 'A küsib kaardi järgi, B vastab. Siis vahetage.',
-        'Küsi 5 küsimust: sport, uni, arst, tervislik toit, kui oled haige.', 'Vasta igale küsimusele 2–3 lausega. Ütle ka üks detail.',
-        ['Kas sa teed sporti?', 'Mitu tundi sa magad?', 'Mida sa teed, kui oled haige?'], ['Ma käin… kaks korda nädalas.', 'Tavaliselt ma magan…', 'Kui ma olen haige, siis…']),
-      B.rolecards('097_t_s2', 'Rääkimine 2. Ideekaart „Reisimine”.', 'Nüüd küsib B ja A vastab.',
-        'Vasta igale küsimusele 2–3 lausega.', 'Küsi 5 küsimust: kuhu, kellega, millega, kus elasid, mis meeldis.',
-        ['Eelmisel suvel ma sõitsin…', 'Me elasime…', 'Kõige rohkem meeldis mulle…'], ['Kuhu sa eelmisel suvel sõitsid?', 'Kellega sa sõitsid?', 'Mis sulle meeldis?']),
-      B.rubric('097_t_profile', 'Minu proovieksami profiil.', 'Kirjuta punktid. Kirjutamist ja rääkimist hindab õpetaja.', ['Lugemine: … / 20 p', 'Kuulamine: … / 20 p', 'Kirjutamine: … / 20 p', 'Rääkimine: … / 20 p', 'Kokku: … / 80 p. Kas vähemalt 48 p ja ükski osa pole 0?', 'Minu 3 kõige sagedasemat viga: …']),
-      B.selfcheck('097_t_self', ['Ma oskan mõista eksami juhiseid ilma sõnaraamatuta.', 'Ma oskan kirjutada visiitkaardi põhjal 25–40 sõna.', 'Ma oskan valida õige vormi: kus, kuhu, ma- või da-vorm.', 'Ma oskan kirjeldada pilti ja küsida ideekaardi järgi.', 'Ma oskan nimetada oma nelja osa punkte.'], 'Proovieksam 1 on tehtud'),
+      B.text('097_t_intro', 'Kuulamine ja rääkimine', 'Kõigepealt on kuulamine, siis rääkimine. Vaata pilti rääkimisosas: Sofia ja õpetaja Aune valivad, kuidas õppida. Rääkimisosas on õpetaja sinu partner.'),
+      PART('097_t_lpart', 'L', { minutes: 30, points: 25, tasks: 4, note: 'Iga teksti kuulete kaks korda. Enne iga ülesannet on aega küsimusi lugeda. Eksamil on selle osa eest 20 punkti, õpetaja arvutab tulemuse ümber. Eesmärk on vähemalt 20 punkti (80 %).' }),
+      L1('097_t_l1', [
+        'Head reisijad! Rong Tartusse ei välju täna kell kümme, vaid kell kümme kolmkümmend. Põhjus on tehniline rike. Palun oodake teisel perroonil. Vabandame hilinemise pärast ja soovime head reisi!',
+        'Head kliendid! Meie kauplus suletakse kümne minuti pärast. Palun minge nüüd kassasse. Homme oleme avatud kella kaheksast. Kala ja liha on homme kümme protsenti odavam. Aitäh ja head õhtut!',
+        'Spordiklubi teatab: jooga ei ole täna kell kuus, vaid kell seitse, sest uus treener Kati jõuab hiljem. Tund on teisel korrusel, ruumis kolm. Võtke kaasa oma matt ja veepudel.',
+        'Apteek Tervis teatab: sel pühapäeval oleme avatud kella kümnest kolmeni. Esmaspäevast on jälle tavalised ajad. Retsepti saab ka telefoni teel uuendada. Täname, et te meie juures käite!',
+        'Ja nüüd ilm. Täna on päikeseline ilm ja sooja on kuni kaksteist kraadi. Õhtul tuleb vihma ja tuul läheb tugevamaks. Homme on jälle kuiv, aga jahedam, ainult kaheksa kraadi.',
+        'Tähelepanu! Buss number kaheksa sõidab täna teist teed, sest Tartu maanteel on remont. Peatus Kivi ei tööta. Palun minge järgmisse peatusesse, see on kaks minutit jalgsi.',
+        'Head külalised! Kontsert algab kümne minuti pärast, kell seitse. Palun lülitage telefonid välja ja võtke oma kohad sisse. Vaheajal saab teisel korrusel kohvi ja kooki osta.',
+      ], [
+        ['Mis kell rong väljub?', 'kell 10.30', 'kell 10', 'kell 11'], ['Mis tuleb inimestel nüüd teha?', 'minna kassasse', 'osta kala', 'tulla homme'], ['Mis kell on täna jooga?', 'kell 7', 'kell 6', 'kell 3'], ['Mis kellani on apteek pühapäeval avatud?', 'kella kolmeni', 'kella kümneni', 'kella kuueni'],
+        ['Mis tuleb õhtul?', 'vihm', 'päike', 'lumi'], ['Miks sõidab buss teist teed?', 'teel on remont', 'buss on katki', 'peatus on uus'], ['Mida tuleb enne kontserti teha?', 'lülitada telefon välja', 'osta kohvi', 'minna teisele korrusele'],
+      ]),
+      L2('097_t_l2', [
+        'Ülle: Tere, kuulajad! Täna on stuudios Viktor, kes parandab jalgrattaid. Viktor, kus teie töökoda on?',
+        'Viktor: Tere! Töökoda on Mustamäel, ühes vanas hoovis. Tulete Sõpruse peatuses bussist maha ja näete rohelist ust. Esmaspäeval on kinni, teistel päevadel olen ma seal.',
+        'Ülle: Te olete pensionär. Miks te ikka töötate?',
+        'Viktor: Sest mulle meeldib! Ma ei taha kodus istuda. Lapsed toovad mulle oma rattaid ja räägivad, kuhu nad sõitsid. Täiskasvanutele ei meeldi nii väga rääkida, nemad vaatavad ainult kella.',
+        'Ülle: Mis rattaga kõige rohkem juhtub?',
+        'Viktor: Kett! Kett läheb katki või kukub maha. Sügisel on ka kumm tihti tühi. Väikese asja parandan ma kohe ära, see võtab kümme minutit. Suure töö jaoks on vaja kaks päeva.',
+        'Ülle: Kas see on kallis?',
+        'Viktor: Ei ole. Lastelt ma raha ei võta, kui töö on väike. Täiskasvanu maksab viis või kümme eurot.',
+        'Ülle: Kas te sõidate ise ka rattaga?',
+        'Viktor: Muidugi. Suvel sõidan ma Tallinnast oma tallu, see on umbes viiskümmend kilomeetrit. Minu õde Helgi ütleb, et see on hull mõte, aga mina olen väga rahul.',
+      ], [
+        ['Viktori töökoda on Mustamäel.', true], ['Töökoda on esmaspäeval lahti.', false], ['Viktorile meeldib lastega rääkida.', true], ['Viktor parandab väikese töö kahe päevaga.', false], ['Lapsed ei pea väikese töö eest maksma.', true], ['Viktor ei sõida ise enam rattaga.', false],
+      ]),
+      L3('097_t_l3', [
+        'Teadustaja: Tere, head kuulajad! Linna raamatukogus algab uus kursus. Kursus on kõigile, kes õpivad eesti keelt ja tahavad rohkem rääkida. Tunnid on teisipäeviti kell kuus õhtul, teisel korrusel, saalis number viis.',
+        'Teadustaja: Kursus algab kolmandal detsembril ja kestab kaks kuud. Kursus on tasuta, aga registreerida tuleb ette, sest kohti on ainult viisteist. Registreerida saab raamatukogu kodulehel või telefoni teel.',
+        'Teadustaja: Tundides räägime igapäevastest asjadest: poest, arstist, tööst ja vabast ajast. Õpik ei ole vajalik, sest raamatud saate raamatukogust. Kaasa võtke ainult vihik ja pastakas. Õpetaja on Kadi, kes on selles töös juba kümme aastat olnud. Tulge ja tooge ka oma sõber kaasa!',
+      ], ['Tunnid on [teisipäeviti|teisipäeval].', 'Kursus kestab [kaks kuud|2 kuud].', 'Kursusel on [viisteist|15] kohta.', 'Raamatud saab [raamatukogust].', 'Kaasa tuleb võtta vihik ja [pastakas|pastaka].', 'Õpetaja nimi on [Kadi].']),
+      L4('097_t_l4', [
+        'Tom: Lucía, kuidas sa eksamiks valmistud? Ma kuulsin, et kõik teevad midagi uut.',
+        'Lucía: Jah! Mina kuulan iga päev raadiot, juba kümme minutit hommikul. Olga loeb nüüd igal õhtul uudiseid. Ta loeb ainult pealkirja ja esimest lauset, sest nii läheb kiiremini.',
+        'Tom: Tubli! Ja Dmitri? Ta on ju rääkimise pärast nii närvis.',
+        'Lucía: Dmitri käib neljapäeviti rääkimisklubis kohvikus Pann. Viimati kirjeldas ta seal pilti ja keegi ei naernud. Ta oli väga rõõmus.',
+        'Tom: See on hea. Sofia ütles, et ta kirjutab nüüd tööl ainult eesti keeles.',
+        'Lucía: Tõesti? Ta kirjutab oma ülemusele Liisile kirju eesti keeles. Liis parandab ühe vea päevas ja saadab tagasi. Väga tore ülemus.',
+        'Tom: Ja mina teen seda: kirjutan iga õhtu viis lauset oma päevast. Aga ma ei tea, kes neid parandab.',
+        'Lucía: Küsi Aunelt! Aune loeb reedeti keelekoolis õppijate tekste. See tund on reedel kell neli.',
+        'Tom: Hea mõte. Kas sa kuulsid, et Ene tegi ka midagi?',
+        'Lucía: Ene pani seinale suure kalendri. Seal on iga päeva juures üks väike ülesanne. Täna on: küsi võõralt, kui palju kell on.',
+        'Tom: Naljakas! Aga Maret? Kas tal on ka uus plaan?',
+        'Lucía: Maret ütleb, et plaani pole vaja, vaid und. Ta ütles, et enne eksamit tuleb vara magama minna. Ta ise läheb sel nädalal metsa jalutama, et rahulik olla.',
+      ], [['Olga', 'loeb õhtuti uudiseid.'], ['Dmitri', 'käib rääkimisklubis.'], ['Sofia', 'kirjutab ülemusele eesti keeles.'], ['Aune', 'loeb reedeti õppijate tekste.'], ['Ene', 'pani seinale suure kalendri.'], ['Maret', 'läheb metsa jalutama.']]),
+      PART('097_t_spart', 'S', { minutes: 15, points: 20, tasks: 2, note: 'Rääkimine on paaris või õpetajaga: kõigepealt tutvumine, siis pilt ja küsimused, lõpuks ideekaart. Eesmärk on vähemalt 16 punkti (80 %).' }),
+      S0('097_t_s0', ['Kuidas teie nimi on?', 'Kus te elate ja kellega?', 'Mida te vabal ajal teete?']),
+      S1('097_t_s1', ['Kes on pildil ja mida nad teevad?', 'Mis asjad on laual?', 'Kus sina eesti keelt õpid?', 'Mis aitab sul kõige rohkem õppida?', 'Mida sa eile eesti keeles tegid?'], 'a2-070'),
+      S2('097_t_s2', 'Tervis', 'Õhtu pärast tööd. A tahab teada, kuidas B oma tervise eest hoolitseb.', ['Kas sa teed sporti?', 'Mitu tundi sa magad?', 'Millal sa viimati arsti juures käisid?', 'Mida sa sööd hommikul?', 'Mida sa teed, kui oled haige?'], ['Ujumine kaks korda nädalas', 'Seitse tundi', 'Eelmisel kuul', 'Putru ja kohvi', 'Jään koju ja joon teed']),
+      B.rubricSpeaking('097_t_rs'),
+      B.selfcheck('097_t_self', ['Ma teen eksami osad etteantud aja jooksul.', 'Ma tean, mis osa on minu jaoks kõige kergem.', 'Ma tean, mis osa on minu jaoks kõige nõrgem.', 'Ma tean, mida ma esmaspäevaks parandan.'], 'Kontroll 20 on tehtud'),
     ],
   },
 
   'a2-098': {
-    title: 'Veaparandus ja nõrk osaoskus',
-    canDo: 'Ma parandan oma proovieksami kolm korduvat viga ja teen nõrga osa ülesande uue sisuga kahe kriteeriumi järgi paremini.',
-    template: 'v3',
+    title: 'Tomi teine katse',
+    canDo: 'Ma loen näidisteksti, leian oma korduvad vead ja kirjutan plaani järgi 60–80 sõnaga kirjelduse, mille ma ise üle kontrollin.',
     discover: [
-      B.text('098_d_situation', 'Anna tulemused', 'Anna sai proovieksami tulemused. Lugemine 17, kuulamine 15, kirjutamine 9 ja rääkimine 14 punkti. Mis on Anna nõrk osa? Mida ta peab tegema?'),
-      B.reading('098_d_read', 'Loe: õpetaja tagasiside.', 'Loe õpetaja kirja ja vasta küsimustele.', 'Kiri Annale',
-        'Tere, Anna! Sinu lugemine ja kuulamine on head. Kirjutamises said 9 punkti 20-st. Sinu tekstides on hea sisu, aga kolm viga kordub. Esiteks: pärast sõna „pean” kirjutad sa „minna”. Õige on „pean minema”. Pärast „tahan”, „võin” ja „saan” on aga „minna”. Teiseks: minevikus kirjutad sa „ei läksin”. Eituses on alati nud-vorm: „ma ei läinud”. Kolmandaks: sa kirjutad „ma lähen kodus”. Küsimus „kuhu?” – vastus „koju”. Küsimus „kus?” – vastus „kodus”. Teine probleem on aeg. Teises ülesandes kirjutasid ainult 22 sõna. Vaja on vähemalt 30. Soovitan nii: kirjuta kõigepealt märksõnad, siis tekst. Lõpus loe sõnad kokku. Proovime järgmisel nädalal uuesti! Õpetaja Liis',
-        [['Mitu punkti sai Anna kirjutamises?', '9|üheksa|9 punkti'], ['Mis on Anna tekstides hea?', 'sisu|hea sisu'], ['Kuidas on õige: „pean minna” või „pean minema”?', 'pean minema'], ['Mis vorm on mineviku eituses?', 'nud-vorm|ei läinud'], ['Miks kaotas Anna teises ülesandes punkte?', 'tekst oli liiga lühike|ainult 22 sõna|vähem kui 30 sõna'], ['Mida peab Anna tegema enne teksti?', 'kirjutama märksõnad|märksõnad'], ['Mitu sõna kirjutas Anna teises ülesandes?', '22|kakskümmend kaks'], ['Mida peab Anna lõpus tegema?', 'lugema sõnad kokku|sõnad kokku lugema']]),
-      B.notice('098_d_notice', 'Märka kolme viga.', ['**pean** + ma-vorm: pean **minema**, pean **tegema**', '**tahan / võin / saan** + da-vorm: tahan **minna**, võin **teha**', 'eitus minevikus: ma **ei läinud**, ma **ei teinud**', '**kuhu?** koju, poodi · **kus?** kodus, poes'], 'full'),
-      B.listening('098_d_listen', 'Kuula: Anna plaan.', 'Õpetaja loeb Anna sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere, Liis! Aitäh tagasiside eest!',
-        'Ma olin natuke kurb, aga nüüd tean, mida teha.',
-        'Iga päev kirjutan ma viis lauset oma päevast.',
-        'Laused kontrollib minu mees. Ta on eestlane.',
-        'Ma tegin ka väikese kaardi. Seal on kolm reeglit.',
-        'Kaart on mul rahakotis. Bussis ma vaatan seda.',
-        'Järgmisel nädalal kirjutan proovikirja uuesti. Siis loen sõnad kokku!',
-      ], ['Alguses oli Anna natuke [kurb].', 'Iga päev kirjutab Anna [viis|5] lauset.', 'Laused kontrollib Anna [mees].', 'Kaardil on kolm [reeglit].', 'Kaart on Anna [rahakotis].', 'Järgmisel nädalal kirjutab ta proovikirja [uuesti].', 'Kaarti vaatab Anna [bussis].', 'Anna mees on [eestlane].']),
-      B.gaps('098_d_gaps', 'Õige vorm Anna lausetes.', 'Vali pangast. Pangas on lisavorme.', [
-        'Ma pean homme tööle [minema].', 'Ma tahan õhtul kinno [minna].', 'Eile ma [ei läinud] trenni.', 'Pärast tööd lähen ma [koju].', 'Laupäeval olen ma terve päeva [kodus].', 'Eile ma [ei teinud] kodutööd.', 'Homme ma [pean] varem tõusma.', 'Õhtul ma [tahan] puhata.',
-      ], ['minema', 'minna', 'ei läinud', 'ei läksin', 'koju', 'kodus', 'ei teinud', 'ei tegin', 'pean', 'tahan']),
-      B.wordforms('098_d_forms', 'Anna parandab.', 'Kirjuta tegusõna õiges vormis.', [
-        ['minema', 'Ma pean …', 'minema'], ['minema', 'Ma tahan …', 'minna'], ['minema', 'Eile ma ei …', 'läinud'], ['tegema', 'Ma võin …', 'teha'], ['tegema', 'Eile ma ei …', 'teinud'], ['olema', 'Eile ma ei … kodus.', 'olnud'], ['tulema', 'Kas sa saad …?', 'tulla'], ['tõusma', 'Ma pean vara …', 'tõusma']]),
-      B.errorfix('098_d_fix', 'Leia Anna kirjast viga.', 'Kirjuta lause õigesti.', [['Ma pean minna poodi.', 'Ma pean minema poodi.'], ['Eile ma ei läksin trenni.', 'Eile ma ei läinud trenni.'], ['Õhtul ma lähen kodus.', 'Õhtul ma lähen koju.'], ['Ma tahan minema kinno.', 'Ma tahan minna kinno.'], ['Ma ei tegin süüa.', 'Ma ei teinud süüa.'], ['Laupäeval olen ma koju.', 'Laupäeval olen ma kodus.'], ['Ma pean minna panka.', 'Ma pean minema panka.'], ['Ma tahan minema puhkusele.', 'Ma tahan minna puhkusele.']]),
-      B.speaking('098_d_say', 'Minu nõrk osa.', 'Räägi paarilisele umbes 1 minut.', ['Mis on sinu proovieksami nõrgim osa?', 'Mis viga sul kordub?', 'Mida sa teed nüüd teisiti?', 'Kuidas sa oma viga meeles pead?'], [60, 90], ['Minu nõrgim osa on…', 'Mul kordub viga…', 'Nüüd ma…']),
-      B.writing('098_d_write', 'Minu tulemused.', 'Kirjuta 8–10 lauset: mis osa on tugev, mis nõrk, mida teed.', [8, 10], ['tugev', 'nõrk', 'pean'], 2),
+      B.review('098_d_review', [['Kuidas sa ütled, et kuulamine on raskem kui lugemine?', 'a2-096'], ['Mida sa kirjutad kuulutusse, kui sa müüd jalgratast?', 'a2-086'], 'Mis osa läks sul viimases kontrollis kõige paremini?']),
+      B.text('098_d_situation', 'Tomi punktid', 'Esmaspäev, 29. november. Maret annab tagasi Kontroll 20 tööd. Tomil on lugemises ja kuulamises head punktid, aga kirjutamises ainult 9 punkti 20-st. Tom on pettunud. Maret saatis talle ka kirja. Mida Tom nüüd tegema peab?'),
+      tag(B.reading('098_d_letter', 'Mareti kiri Tomile.', 'Loe kirja ja vasta lühidalt: mis on Tomi vead ja mida ta teeb?', 'Tere, Tom!', [
+        'Sinu lugemine ja kuulamine on head. Kirjutamises said sa 9 punkti 20-st. Sinu tekstides on hea sisu, aga kolm viga kordub.',
+        'Esiteks: pärast sõna „pean” kirjutad sa „minna”. Õige on „pean minema”. Pärast „tahan”, „võin” ja „saan” on aga „minna”. Teiseks: minevikus kirjutad sa „ei läksin”. Eituses on alati nud-vorm: „ma ei läinud”. Kolmandaks: sa kirjutad „ma lähen kodus”. Küsimus „kuhu?” – vastus „koju”. Küsimus „kus?” – vastus „kodus”.',
+        'Teine probleem on aeg. Teises ülesandes kirjutasid sa ainult 22 sõna, aga vaja on vähemalt 30. Soovitan nii: kirjuta kõigepealt märksõnad, siis tekst. Lõpus loe sõnad kokku. Vaata ka Lucía teksti, see on hea näide. Proovime kolmapäeval uuesti! Maret',
+      ].join('\n\n'), [
+        ['Mitu punkti sai Tom kirjutamises?', '9|üheksa|9 punkti'], ['Mis on Tomi tekstides hea?', 'sisu|hea sisu'], ['Mis tuleb pärast sõna „pean”?', 'ma-vorm|minema|pean minema'], ['Mis vorm on mineviku eituses?', 'nud-vorm|ei läinud'],
+        ['Miks kaotas Tom teises ülesandes punkte?', 'tekst oli liiga lühike|ainult 22 sõna|vähem kui 30 sõna'], ['Mida peab Tom tegema enne teksti?', 'kirjutama märksõnad|märksõnad'], ['Mida peab Tom tegema lõpus?', 'lugema sõnad kokku|sõnad kokku lugema'], ['Kelle tekst on hea näide?', 'Lucía|Lucía tekst'],
+      ]), { task: 'R14' }),
+      B.insertion('098_d_model', 'Lucía näidistekst.', 'Lucía tekstist on neli lauset ära võetud. Pane need õigesse kohta. Üks jääb üle.', 'Minu pühapäev', [
+        '[[Eelmisel pühapäeval olin ma terve päeva Tallinnas.]] Ema Maria helistas mulle hommikul Hispaaniast. Me rääkisime kaua, sest ta tuli oktoobris siia ja tahab kevadel jälle tulla.',
+        '',
+        '[[Kõigepealt läksin ma raamatukokku.]] Seal kuulasin ma kõrvaklappidega vanu eksamitekste. Kuulamine on mulle raskem kui lugemine, seepärast pean ma palju harjutama.',
+        '',
+        '[[Pärast seda kohtusin ma kohvikus Olgaga.]] Me jõime kohvi ja rääkisime eesti keeles. Ma ei läinud koju enne kella kuut.',
+        '',
+        '[[See päev meeldis mulle, sest ma olin väga tubli.]] Õhtul tegin ma kodus süüa ja läksin vara magama.',
+      ], ['Homme lähen ma tööle bussiga.'], 'g_read'),
+      B.notice('098_d_notice', 'Märka: hea tekst ja kolm viga.', [
+        '**Plaan:** algus (kus? millal?) → **kõigepealt** … → **pärast seda** … → lõpp (**mulle meeldis**, sest …)',
+        '**pean** + ma-vorm: pean **minema**, pean **harjutama** · **tahan / võin / saan** + da-vorm: tahan **minna**, võin **teha**',
+        '**Eitus minevikus:** ma **ei läinud**, ma **ei teinud**, ma **ei olnud** (mitte: ei läksin)',
+        '**kuhu?** koju, poodi, raamatukokku · **kus?** kodus, poes, raamatukogus',
+        '**Pärast ajasõna on tegusõna teine:** Kõigepealt **läksin** ma … · Eile **olin** ma …',
+      ], 'full'),
+      B.wordforms('098_d_forms', 'Tom parandab.', 'Tom kordab kolme viga. Kirjuta igasse ritta tegusõna või kohasõna õiges vormis.', [
+        ['minema', 'Homme pean ma panka …', 'minema'], ['minema', 'Laupäeval tahan ma randa …', 'minna'], ['minema', 'Eile ma ei … trenni.', 'läinud'], ['tegema', 'Eile ma ei … kodutööd.', 'teinud'], ['kodu', 'Õhtul lähen ma …', 'koju'], ['kodu', 'Pühapäeval olen ma terve päeva …', 'kodus'], ['tulema', 'Kas sa saad meile …?', 'tulla'], ['tõusma', 'Homme pean ma vara …', 'tõusma'],
+      ]),
+      tag(B.gaps('098_d_bank', 'Lucía väikesed sõnad.', 'Lucía laused on seotud. Vali pangast sobiv sõna. Pangas on üks lisasõna.', [
+        'Eile olin ma väsinud, [sest] ma töötasin kaua.', 'Ma tahtsin kinno minna, [aga] mul ei olnud aega.', 'Kuulamine on raske, [seepärast] kuulan ma iga päev raadiot.', '[Kõigepealt] sõime me hommikust, siis läksime linna.', 'Pärast seda istusime me kohvikus ja [lõpuks] läksime koju.',
+      ], ['sest', 'aga', 'seepärast', 'kõigepealt', 'lõpuks', 'või'], 'full', 'g_vocab'), { task: 'G08' }),
+      tag(B.reading('098_d_first', 'Tomi esimene tekst.', 'Tom kirjutas kontrollis selle teksti. Loe kiiresti ja leia vastused.', 'Minu nädalavahetus', [
+        'Eelmisel nädalavahetusel ma ei läksin kuhugi. Laupäeval ma olin kodus ja pesin pesu. Siis ma lähen poodi, sest mul ei olnud piima. Pühapäeval tuli minu naaber Lembit. Me jõime kohvi ja rääkisime tema kassist. Õhtul pean ma õppima, aga ma olin väsinud. Ma tahtsin kirjutada Lucíale, aga ma ei tegin seda. Ma vaatasin filmi ja läksin kodus magama. Hommikul ma ei tahan tõusta, sest ilm oli külm ja vihma sadas. Ma jõin kohvi ja läksin tööle bussiga. Buss oli täis ja ma pidin kogu aeg seisma.',
+      ], [
+        ['Kus oli Tom laupäeval?', 'kodus'], ['Miks Tom poodi läks?', 'tal ei olnud piima|piima pärast'], ['Kes tuli pühapäeval?', 'Lembit|naaber Lembit'], ['Mis Tom Lembitiga jõi?', 'kohvi'], ['Mida Tom õhtul vaatas?', 'filmi'], ['Kellele Tom kirjutada tahtis?', 'Lucíale'], ['Kuidas Tom tööle läks?', 'bussiga'], ['Kuidas ilm hommikul oli?', 'külm|külm ja vihmane|sadas vihma'],
+      ]), { task: 'R15', fluency: true }),
+      tag(B.writing('098_d_tomweek', 'Tomi tekst korda.', 'Kirjuta Tomi tekst parandatult ümber. Kasuta vähemalt kahte seotud sõna.', [4, 6], ['kõigepealt', 'sest'], 1), { task: 'W06' }),
+      teach(tag(B.speaking('098_d_talk', 'Sinu tulemus.', 'Räägi paarilisele oma Kontroll 20 tulemusest. Siis küsi tema tulemuse kohta.', [
+        'Mis osa läks sul kõige paremini?', 'Mis osa oli kõige nõrgem?', 'Mis viga sul kordub?', 'Mida sa nüüd teisiti teed?', 'Kes saab sind aidata?',
+      ], [60, 120], ['Minu nõrgim osa on …', 'Mul kordub viga …', 'Nüüd ma …']), { task: 'S02', fluency: true }),
+        'Üks-ühele: õpilane räägib oma tööst, õpetaja küsib lõpus ainult „Mida sa nüüd teed?”. Ära paranda.'),
     ],
     practice: [
-      B.cloze('098_p_cloze', 'Anna kiri õpetajale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Liis!', [
-        'Aitäh {*tagasiside|tagasisidet|tagasisidest} eest! Eile ma {*ei läinud|ei läksin|ei lähe} trenni, sest pidin kodus {*õppima|õppida|õpin}.',
-        '',
-        'Ma kirjutasin kirja uuesti. Nüüd tahan ma selle sulle {*saata|saatma|saadan}. Seekord kirjutasin {*kõigepealt|lõpuks|eile} märksõnad.',
-        '',
-        'Lõpus lugesin sõnad {*kokku|kokkuga|koos}. Tekstis on nüüd {*rohkem|rohkesti|rohke} kui 40 sõna.',
-        '',
-        'Homme pärast tööd lähen ma {*koju|kodus|kodust} ja harjutan veel. Anna',
-      ], 'g_vocab'),
-      B.formtext('098_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev tegusõna või sõna õiges vormis.', 'Oksana nädal', [
-        'Eile ma [ei läinud] (minema, eitus) tööle, sest olin haige.',
-        '',
-        'Esmaspäeval pean ma arsti juurde [minema] (minna). Hommikul ei tohi ma [süüa] (sööma).',
-        '',
-        'Pärast arsti tahan ma [koju] (kodu) minna ja [puhata] (puhkama).',
-        '',
-        'Kas sa [saad] (saama) mind autoga [viia] (viima)? Eile ma ka [ei teinud] (tegema, eitus) süüa.',
-      ], 'g_notice'),
-      B.choice('098_p_where', 'Kus, kuhu või kust?', 'Vali lausesse õige vorm.', [
-        ['Pärast tööd lähen ma …', 'koju', 'kodus', 'kodust'],
-        ['Laupäeval olen ma terve päeva …', 'kodus', 'koju', 'kodust'],
-        ['Lapsed mängivad …', 'õues', 'õue', 'õuest'],
-        ['Ma panen piima …', 'külmkappi', 'külmkapis', 'külmkapist'],
-        ['Võti on …', 'laual', 'lauale', 'laualt'],
-        ['Ma tulen just …', 'poest', 'poodi', 'poes'], ['Ma lähen nüüd …', 'tööle', 'tööl', 'töölt'], ['Ta tuli just …', 'trennist', 'trenni', 'trennis']], 'full', 'g_notice'),
-      B.wordforms('098_p_inf', 'pean või tahan?', 'Kirjuta tegusõna õiges vormis.', [
-        ['minema', 'Ma pean …', 'minema'], ['minema', 'Ma tahan …', 'minna'], ['tegema', 'Sa võid … pausi.', 'teha'], ['ostma', 'Ma pean leiba …', 'ostma'], ['ostma', 'Kas sa saad leiba …?', 'osta'], ['lugema', 'Mulle meeldib …', 'lugeda'], ['õppima', 'Ma pean rohkem …', 'õppima'], ['kirjutama', 'Ma pean rohkem …', 'kirjutama']]),
-      B.gaps('098_p_past', 'Eile või täna?', 'Vali pangast. Pangas on lisavorme.', [
-        'Eile ma [ei läinud] tööle, sest olin haige.', 'Täna ma [ei lähe] tööle.', 'Eelmisel nädalal me [käisime] teatris.', 'Eile ta [ei teinud] süüa.', 'Kas sa [nägid] eile Liisi?', 'Ei, ma [ei näinud] teda.', 'Eile me [ei olnud] kodus.', 'Täna ma [olen] terve päeva kodus.',
-      ], ['ei läinud', 'ei lähe', 'ei läksin', 'käisime', 'käime', 'ei teinud', 'ei tegi', 'nägid', 'näed', 'ei näinud', 'ei olnud', 'olen']),
-      B.transformation('098_p_trans', 'Ütle minevikus.', 'Kirjuta lause eilse päeva kohta.', [
-        ['Ma lähen poodi.', 'Eile…', 'Eile ma läksin poodi.|Eile läksin ma poodi.'], ['Ma ei lähe trenni.', 'Eile…', 'Eile ma ei läinud trenni.'], ['Me teeme süüa.', 'Eile…', 'Eile me tegime süüa.|Eile tegime me süüa.'], ['Ta ei tule tööle.', 'Eile…', 'Eile ta ei tulnud tööle.'], ['Ma olen kodus.', 'Eile…', 'Eile ma olin kodus.|Eile olin ma kodus.'], ['Ma ei tee kodutööd.', 'Eile…', 'Eile ma ei teinud kodutööd.'], ['Me läheme kinno.', 'Eile…', 'Eile me läksime kinno.|Eile läksime me kinno.'], ['Ta ei ole tööl.', 'Eile…', 'Eile ta ei olnud tööl.']]),
-      TR('098_p_tr', ['Мне нужно завтра идти к врачу.', 'Я хочу пойти в кино.', 'Вчера я не был дома.', 'Ты можешь мне помочь?', 'Я иду домой.', 'Мне нужно больше писать.', 'Вчера я не ходил на работу.', 'Я хочу пойти домой.']),
-      D('098_p_dict', ['Ma pean homme panka minema.', 'Eile ma ei teinud süüa.', 'Kas sa võid mulle helistada?', 'Lapsed mängivad õues.', 'Ma tulen just poest.', 'Võti on laual.', 'Ma pean homme varem tõusma.', 'Ma ei läinud eile tööle.']),
-      B.speaking('098_p_say', 'Räägi, mida parandasid.', 'Räägi paarilisele 1 minut: mis viga oli, mis on õige.', ['Mis viga sul oli?', 'Mis on õige vorm?', 'Kuidas sa seda meeles pead?', 'Mida sa nüüd teisiti teed?'], [45, 75], ['Mul oli viga…', 'Õige on…', 'Ma mäletan, sest…']),
+      B.categorize('098_p_where', 'Kuhu, kus või kust?', 'Tomi kolmas viga. Pane iga sõna selle küsimuse alla, millele ta vastab.', [
+        ['kuhu?', ['koju', 'poodi', 'tööle', 'raamatukokku']], ['kus?', ['kodus', 'poes', 'tööl', 'raamatukogus']], ['kust?', ['kodust', 'poest', 'töölt', 'raamatukogust']],
+      ], 'full', 'g_notice'),
+      teach(tag(B.reading('098_p_aune', 'Eksaminurk: reede kell neli.', 'Keelekooli lehes on lugu Aunest. Loe ilma abita ja vasta igale küsimusele paari sõnaga.', 'Reede kell neli', [
+        'Igal reedel kell neli on keelekooli ruumis 3 väga vaikne. Seal istub õpetaja Aune ja tema ees on palju paberit. Aune alustas selle tunniga sel sügisel. Enne töötas ta üheksa aastat ajalehes ja luges iga päev teiste inimeste tekste.',
+        'Õppijad toovad oma teksti kaasa. Aune ei paranda kohe kõiki vigu. Kõigepealt loeb ta teksti läbi ja ütleb, mis on hea. Siis märgib ta ainult kolm viga. „Kui ma parandan kakskümmend viga, siis ei mäleta inimene ühtegi,” ütleb Aune. Õppija kirjutab need laused ise uuesti. Alles siis saab ta järgmise ülesande.',
+        'Alguses tuli tundi ainult kaks inimest. Nüüd on neid kaheksa, rohkem tuppa ei mahu. Üks tund maksab kümme eurot, aga kes toob sõbra, saab järgmise tunni tasuta. Eriti palju on õppijaid enne eksamit.',
+        'Aune annab ka ühe lihtsa nõu: kirjuta iga päev viis lauset ja ära viska neid ära. Kuu aja pärast loe esimesi lauseid uuesti. Siis näed ise, kui palju sa oled õppinud.',
+      ].join('\n\n'), [
+        ['Mis tööd tegi Aune enne keelekooli?', 'töötas ajalehes|ajalehes'], ['Mida teeb Aune tekstiga kõigepealt?', 'loeb läbi|loeb teksti läbi'], ['Mitu viga ta märgib?', 'kolm|3|kolm viga'], ['Kes kirjutab need laused uuesti?', 'õppija|õppija ise'],
+        ['Mitu inimest praegu tunnis käib?', 'kaheksa|8'], ['Mida saab õppija, kes toob sõbra?', 'järgmise tunni tasuta|tasuta tunni'], ['Millal tuleb vanu lauseid uuesti lugeda?', 'kuu aja pärast'],
+      ]), { task: 'R02', harno: 'R4' }),
+        'Nagu Harno A2 lugemise 4. osas: üks tekst ja küsimused. Eksamil on tekst umbes 150 sõna, küsimusi on 5 ja igal küsimusel kolm valikut. Õpilane loeb ise, ilma abita; aeg umbes 8 minutit. Üks punkt küsimuse eest.'),
+      B.vocab('098_p_vocab', 'Teksti sõnad.', ['tekst — текст', 'lause — предложение', 'plaan — план', 'tähtis — важный', 'lõpuks — наконец', 'kontrollima — проверять', 'parandama — исправлять', 'vorm — форма']),
+      tag(B.transformation('098_p_join', 'Kaks lauset üheks.', 'Tomi laused on väga lühikesed. Ühenda kaks lauset üheks antud sõnaga.', [
+        ['Ma jäin koju. Ma olin haige.', 'sest', 'Ma jäin koju, sest ma olin haige.'], ['Ma tahtsin ujuma minna. Ujula oli kinni.', 'aga', 'Ma tahtsin ujuma minna, aga ujula oli kinni.'], ['Kirjutamine on raske. Ma kirjutan iga päev.', 'seepärast', 'Kirjutamine on raske, seepärast kirjutan ma iga päev.|Kirjutamine on raske, seepärast ma kirjutan iga päev.'],
+        ['Me sõime. Me läksime parki.', 'kõigepealt … siis', 'Kõigepealt me sõime, siis läksime parki.|Kõigepealt sõime me, siis läksime parki.'], ['Ma lugesin teksti. Ma parandasin vead.', 'pärast seda', 'Ma lugesin teksti, pärast seda parandasin vead.'], ['Ma olin väsinud. Päev oli tore.', 'aga', 'Ma olin väsinud, aga päev oli tore.'],
+      ], 'full', 'g_vocab'), { task: 'W09' }),
+      B.errorfix('098_d_fix', 'Tomi vanad laused.', 'Need laused on Tomi kontrolltööst. Kirjuta iga lause veata.', [
+        ['Ma pean minna poodi leiba ostma.', 'Ma pean minema poodi leiba ostma.'], ['Eelmisel nädalal ma ei läksin kinno.', 'Eelmisel nädalal ma ei läinud kinno.'], ['Pärast tööd ma lähen kodus.', 'Pärast tööd ma lähen koju.'], ['Ma tahan minema sõbra juurde.', 'Ma tahan minna sõbra juurde.'],
+        ['Ma ei tegin eile süüa.', 'Ma ei teinud eile süüa.'], ['Eile hommikul ma lähen kohvikusse.', 'Eile hommikul ma läksin kohvikusse.|Eile hommikul läksin ma kohvikusse.'],
+      ]),
+      tag(B.listening('098_p_voice', 'Mareti häälsõnum.', 'Maret jättis Tomile sõnumi. Kuula kaks korda ja kirjuta lünka üks-kaks sõna.', [
+        'Maret: Tere, Tom! Siin Maret. Lugesin sinu uut teksti ja see on palju parem. Sa kirjutasid juba nelikümmend kaks sõna. Kolm vana viga on alles ainult ühes kohas: sa kirjutasid „ma lähen kodus”. Palun paranda see ära.',
+        'Maret: Kolmapäeval on proovieksam. Tule veidi varem, kell viis ja nelikümmend. Võta kaasa kaks pastakat ja oma väike nimekiri. Sõnaraamatut pole vaja, seda ei tohi kasutada.',
+        'Maret: Reedel saad sa Aune juures veel ühe teksti läbi vaadata. Tema tund on kell neli, ruumis kolm. Too see tekst paberil, Aune ei loe telefonist. Ja Tom, ära muretse! Sa oled palju õppinud. Kohtume kolmapäeval!',
+      ], ['Tomi uues tekstis on [nelikümmend kaks|42] sõna.', 'Viga on sõnas [kodus].', 'Kolmapäeval on [proovieksam].', 'Tom peab tulema kell [viis nelikümmend|17.40].', 'Kaasa tuleb võtta kaks [pastakat].', 'Aune tund on reedel kell [neli|4|16].', 'Aune tund on ruumis [kolm|3].', 'Teksti tuleb tuua [paberil].']), { task: 'L07' }),
+      teach(tag(B.speaking('098_p_retell', 'Jutusta: mis Tomiga juhtus.', 'Jutusta paarilisele ühe minutiga Tomi lugu. Siis jutusta sama lugu veel kord kiiremini.', [
+        'Mitu punkti Tom sai?', 'Mis vead tal korduvad?', 'Mida soovitas Maret?', 'Kes teda aitab?',
+      ], [60, 90], ['Tom sai …', 'Tal kordub …', 'Maret soovitas …', 'Lucía …']), { task: 'S07', fluency: true }),
+        'Üks-ühele: õpilane jutustab õpetajale kaks korda, õpetaja hoiab aega ega paranda.'),
+      teach(tag(B.rolecards('098_p_rank', 'Mis aitab kõige rohkem?', 'A ja B panevad nõuanded järjekorda ja lepivad kokku, mis on kõige tähtsam.',
+        'Sinu arvates on kõige tähtsam kirjutada kõigepealt märksõnad. Põhjenda.', 'Sinu arvates on kõige tähtsam lugeda lõpus tekst üle. Põhjenda.',
+        ['Kõige rohkem aitab …, sest …', 'Mina panen teisele kohale …'], ['Mina arvan teisiti: …', 'Lepime kokku, et …']), { task: 'S03' }),
+        'Üks-ühele: õpetaja paneb nõuanded teise järjekorda. Õpilane põhjendab ja te lepite kokku ühe järjekorra.'),
+      tag(B.planning('098_p_plan', 'Minu plaan: „Üks tore päev sel sügisel”.', 'Kirjuta iga küsimuse juurde märksõnad. Täislauseid pole vaja.', ['Kus ja millal see oli? Kellega sa olid?', 'Mida sa kõigepealt tegid?', 'Mida sa pärast seda tegid?', 'Mis sulle kõige rohkem meeldis ja miks?'], 2), { task: 'W11' }),
     ],
     transfer: [
-      B.text('098_t_situation', 'Oksana teine katse', 'Oksana nõrgim osa oli kuulamine: 8 punkti 20-st. Ta valis kaks kriteeriumi: vastan 1–2 sõnaga ja kirjutan numbrid õigesti. Täna proovib ta uuesti. Tee koos Oksanaga. Siis vali oma nõrk osa.'),
-      B.listening('098_t_listen', 'Kuulamine. Sõnum perearstilt.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Siin on Tartu perearstikeskus. Helistan Oksana Bondarile.',
-        'Teie aeg perearsti juurde muutub. Arst on reedel koolitusel.',
-        'Teie uus aeg on esmaspäeval, kaheksandal mail, kell kaksteist viisteist.',
-        'Palun tulge kümme minutit varem ja võtke kaasa isikutunnistus.',
-        'Vereanalüüs tuleb teha enne visiiti, kolmandal korrusel.',
-        'Enne analüüsi ei tohi hommikul süüa. Vett võib juua.',
-        'Kui uus aeg ei sobi, helistage numbril 734 1122.',
-        'Aitäh ja head päeva!',
-      ], ['Reedel on arst [koolitusel].', 'Uus aeg on [esmaspäeval].', 'Kuupäev on [kaheksas mai|8. mai|8. mail].', 'Uus aeg on kell [kaksteist viisteist|12.15|veerand üks].', 'Analüüs on [kolmandal|3.] korrusel.', 'Enne analüüsi võib juua [vett].', 'Keskus helistab [Oksanale|Oksana Bondarile].', 'Kaasa tuleb võtta [isikutunnistus].']),
-      B.reading('098_t_read', 'Kui sinu nõrk osa on lugemine.', 'Leia märksõna ja vasta lühidalt.', 'Teade kooli kodulehel',
-        'Head lapsevanemad! Neljapäeval, 12. oktoobril, on koolis sügispidu. Pidu algab kell viis õhtul aulas. Lapsed esitavad laule ja tantse. Esimesena laulab teine klass. Pärast kontserti on söökla avatud. Seal saab osta kooki ja teed. Koogid teevad lapsed ise koos õpetajatega. Raha läheb klassi ekskursiooni jaoks. Palun tulge õigel ajal, sest uksed suletakse kell viis. Parkida saab kooli taga. Kui teil on küsimusi, kirjutage klassijuhatajale. Väikesed vennad ja õed on ka oodatud. Pärast pidu aitavad vanemad saali koristada. Pidu lõpeb umbes kell seitse. Ootame kõiki!',
-        [['Mis päeval on pidu?', 'neljapäeval|12. oktoobril'], ['Kus pidu on?', 'aulas|koolis'], ['Mida saab söögalas osta?', 'kooki ja teed|kooki'], ['Mille jaoks raha kogutakse?', 'ekskursiooni jaoks|klassi ekskursiooniks'], ['Kus saab parkida?', 'kooli taga'], ['Mis kell pidu algab?', 'kell viis|viis õhtul|17'], ['Kes laulab esimesena?', 'teine klass'], ['Mida teevad vanemad pärast pidu?', 'koristavad saali|aitavad saali koristada']]),
-      B.errorfix('098_t_fix', 'Paranda Oksana sõnum perele.', 'Kirjuta lause õigesti.', [
-        ['Ma pean minna arsti juurde esmaspäev.', 'Ma pean minema arsti juurde esmaspäeval.'], ['Ma ei tohi süüa hommik.', 'Ma ei tohi hommikul süüa.'], ['Reedel ma ei läksin arsti juurde.', 'Reedel ma ei läinud arsti juurde.'], ['Analüüs on kolmas korrusel.', 'Analüüs on kolmandal korrusel.'], ['Kas sa saad mind viima?', 'Kas sa saad mind viia?'], ['Ma võin tulema kell kaks.', 'Ma võin tulla kell kaks.'], ['Pärast arsti lähen ma kodus.', 'Pärast arsti lähen ma koju.'], ['Eile ma ei söönud hommik.', 'Eile ma ei söönud hommikul.']]),
-      B.rolecards('098_t_call', 'Helista ja muuda aega.', 'A on patsient, B registratuur. Siis vahetage.',
-        'Sa ei saa esmaspäeval tulla. Küsi uut aega. Ütle, miks.', 'Paku kaks uut aega. Ütle, mida kaasa võtta.',
-        ['Kahjuks ma ei saa esmaspäeval tulla, sest…', 'Kas teil on aega …?', 'Mida ma pean kaasa võtma?'], ['Kas teisipäev kell … sobib?', 'Võtke kaasa…', 'Palun tulge … varem.']),
-      B.letter('098_t_letter', 'Kui sinu nõrk osa on kirjutamine (2).', 'Naabri pakk on sinu juures. Kirjuta: kus pakk on, millal ta saab tulla.', 'Tere, naaber!', 'Sinu naaber', [40, 60]),
-      B.speaking('098_t_pic', 'Kui sinu nõrk osa on rääkimine.', 'Kirjelda pilti „Perearsti ooteruum” umbes 1 minut.', ['Kes on pildil?', 'Mida nad teevad?', 'Kuidas nad end tunnevad?', 'Millal sina viimati arsti juures käisid?'], [60, 90], ['Pildil on…', 'Üks mees…', 'Ma arvan, et…']),
-      B.rubric('098_t_rubric', 'Kas ma paranesin?', 'Märgi ja kirjuta.', ['Kriteerium 1 on täidetud: …', 'Kriteerium 2 on täidetud: …', 'Täna tegin selle osa paremini kui proovieksamil.', 'Järgmisel nädalal harjutan: …']),
-      B.selfcheck('098_t_self', ['Ma oskan nimetada oma vea ja nõrga osa.', 'Ma oskan leida kuulamisest ja lugemisest aja, koha ja numbri.', 'Ma oskan parandada kolm viga: pean + ma, tahan + da, ei + nud.', 'Ma oskan teha nõrga osa ülesande uuesti kahe kriteeriumi järgi.'], 'Nõrk osa on tugevam'),
+      B.text('098_t_situation', 'Sinu teine katse', 'Kolmapäeval on proovieksam. Täna kirjutab iga õppija oma teise katse. Maret loeb tööd läbi ja ütleb Tomile: „Sinu vead on väiksemad, kui sa arvad.” Nüüd on sinu kord. Teema on „Üks tore päev sel sügisel”. Sul on plaan juba olemas.'),
+      tag(B.examWriting('098_t_text', 'Üks tore päev sel sügisel.', 'Kirjuta oma plaani järgi 60–80 sõnaga kirjeldus. Kasuta vähemalt kolme seotud sõna, näiteks kõigepealt, seepärast, aga.', 'jutt', {
+        situation: 'Teema: „Üks tore päev sel sügisel”. Teksti loeb sinu õpetaja.',
+        points: ['Kus ja millal see oli? Kellega sa olid?', 'Mida sa kõigepealt tegid?', 'Mida sa pärast seda tegid?', 'Mis sulle kõige rohkem meeldis ja miks?'],
+        words: [60, 80],
+      }), { main: true }),
+      tag(B.writing('098_t_edit', 'Loe oma tekst üle.', 'Kontrolli rubriigi järgi kolme viga ja sõnade arvu. Kirjuta tekst puhtalt ümber.', [6, 8], ['kõigepealt', 'sest', 'pärast'], 2), { task: 'W10' }),
+      teach(tag(B.examWriting('098_t_invite', 'Kutse pärast eksamit.', 'Kirjuta kursuse inimestele 30–50 sõnaga kutse: pärast eksamit lähevad kõik sööma.', 'kutse', {
+        situation: 'Laupäeval, 11. detsembril, on eksam läbi. Sina korraldad väikese lõuna.',
+        points: ['Kus ja mis kell te kohtute?', 'Mida te seal teete?', 'Kuidas saab sulle vastata?'],
+        words: [30, 50], opening: 'Head sõbrad!', closing: 'Ootan teid!',
+      }), { task: 'W03' }), 'Õpilane kirjutab üksi. Õpetaja loeb kutse ja vastab sellele suuliselt.'),
+      teach(tag(B.rolecards('098_t_swap', 'Paariline loeb.', 'Vaheta tekstid. A ütleb, mis oli hea ja mida parandada. B küsib. Siis vahetage.',
+        'Loe B teksti. Ütle üks hea asi ja üks parandus.', 'Küsi, kas kõik neli punkti on olemas ja mida sa võid veel parandada.',
+        ['Mulle meeldis, et …', 'Siin peab olema …', 'Ma soovitan …'], ['Kas kõik punktid on olemas?', 'Kas sa leidsid mõne vea?', 'Mida ma veel parandan?']), { task: 'S13' }),
+        'Üks-ühele: õpetaja loeb õpilase teksti ja õpilane õpetaja lühikest näiteteksti. Õpilane ütleb üks hea asi ja üks parandus.'),
+      tag(B.speaking('098_t_record', 'Salvesta: minu tore päev.', 'Salvesta kodus 45–60 sekundit. Jutusta oma päevast ilma paberit lugemata.', ['Kus ja millal see oli?', 'Mida sa kõigepealt tegid?', 'Mis siis juhtus?', 'Miks see päev oli tore?'], [45, 60], ['Sel sügisel …', 'Kõigepealt …', 'Pärast seda …', 'Mulle meeldis, sest …']), { task: 'S15' }),
+      B.rubricW2('098_t_rubric'),
+      B.selfcheck('098_t_self', ['Ma loen näidisteksti ja leian selle plaani.', 'Ma tean oma kolme korduvat viga.', 'Ma seon lauseid: kõigepealt, seepärast, aga.', 'Ma kirjutan kirjelduse 60–80 sõnaga ja loen selle üle.'], 'Teine katse on tehtud'),
     ],
   },
 
   'a2-099': {
-    title: 'A2 proovieksam 2',
+    title: 'Proovieksam 3: kõik neli osa',
     assessment: true,
-    canDo: 'Ma teen teise A2 proovieksami uue sisuga, võrdlen punkte esimesega ja nimetan oma järgmise sammu.',
+    canDo: 'Ma teen proovieksami kõik neli osa õigel ajal, võrdlen punkte Kontroll 20 tulemusega ja nimetan oma järgmise sammu (eesmärk on vähemalt 80% igas osas).',
     discover: [
-      B.text('099_d_situation', 'Viktori kaks proovieksamit', 'Viktor tegi kuu aega tagasi esimese proovieksami. Täna teeb ta teise. Kas ta on nüüd parem? Mida ta tegi teisiti?'),
-      B.notice('099_d_table', 'Viktori punktid', ['Proovieksam 1: lugemine 14, kuulamine 9, kirjutamine 12, rääkimine 13 = **48 p**', 'Proovieksam 2: lugemine 16, kuulamine 14, kirjutamine 13, rääkimine 15 = **58 p**'], 'full', 'g_read'),
-      B.truefalse('099_d_tf', 'Õige või vale?', 'Vaata Viktori punkte. Kas lause on õige?', [
-        ['Teisel korral sai Viktor rohkem punkte.', true],
-        ['Kõige rohkem paranes kuulamine.', true],
-        ['Esimesel korral oli tulemus alla 60 %.', false],
-        ['Kirjutamine paranes ainult ühe punkti.', true],
-        ['Rääkimine läks teisel korral halvemini.', false],
+      B.text('099_d_situation', 'Olga kaks tööd', 'Kolmapäev, 1. detsember. Täna on kolmas proovieksam Harno A2 vormis. Eksamini on kümme päeva. Olga tegi eelmisel nädalal Kontroll 20 ja kuulamine läks halvasti. Nädal aega harjutas ta iga päev. Kas ta on nüüd parem? See leht on soojendus enne proovieksamit.'),
+      B.notice('099_d_table', 'Olga punktid (igas osas kuni 20)', ['Kontroll 20: lugemine 14, kuulamine 9, kirjutamine 12, rääkimine 13 = **48 p**', 'Harjutustöö pühapäeval: lugemine 16, kuulamine 14, kirjutamine 13, rääkimine 15 = **58 p**'], 'full', 'g_read'),
+      B.truefalse('099_d_tf', 'Mida punktid näitavad?', 'Vaata Olga kahe töö punkte. Kas see, mida Tom ütleb, on nii?', [
+        ['Teisel korral sai Olga rohkem punkte.', true], ['Kõige rohkem paranes kuulamine.', true], ['Esimesel korral oli tulemus alla 60 %.', false], ['Kirjutamine paranes ainult ühe punkti.', true], ['Rääkimine läks teisel korral halvemini.', false],
       ], 'full'),
-      B.reading('099_d_read', 'Loe: kuidas Viktor harjutas.', 'Loe tekst ja vasta küsimustele.', 'Viktori kuu',
-        'Pärast esimest proovieksamit oli Viktor pettunud. Kuulamises sai ta ainult üheksa punkti. Õpetaja ütles, et Viktor kirjutab liiga pikki vastuseid. Siis ei jõua ta järgmist küsimust kuulata. Viktor tegi plaani. Iga päev kuulas ta kümme minutit raadiot. Bussis kuulas ta telefonist eestikeelseid saateid. Ta harjutas vastama ühe või kahe sõnaga. Nädalavahetusel vaatas ta lastega eesti multifilme. Kirjutamises oli tal teine probleem. Ta unustas lõpus teksti kontrollida. Nüüd on tal paberil väike nimekiri: tegusõna, käänded, sõnade arv. Teisel proovieksamil oli kuulamine palju kergem. Viktor sai neliteist punkti. See on viis punkti rohkem kui esimesel korral. Kirjutamine paranes vähem, ainult ühe punkti. Viktor teab, et peab veel harjutama.',
-        [['Miks oli Viktor pettunud?', 'kuulamises oli ainult 9 punkti|ta sai kuulamises vähe punkte'], ['Mis oli Viktori viga kuulamises?', 'ta kirjutas liiga pikki vastuseid|liiga pikad vastused'], ['Kus Viktor saateid kuulas?', 'bussis'], ['Mis on Viktori nimekirjas?', 'tegusõna, käänded, sõnade arv'], ['Mitu punkti rohkem sai Viktor kuulamises?', 'viis|5|viis punkti'], ['Miks peab Viktor veel harjutama?', 'kirjutamine paranes vähe|kirjutamine paranes ainult ühe punkti']]),
-      B.notice('099_d_notice', 'Märka võrdlust.', ['Kuulamine oli **kergem kui** enne.', 'Viktor sai **rohkem** punkte **kui** esimesel korral.', 'Kirjutamine paranes **vähem**.', 'Teine tulemus on **parem**.', 'hea → **parem** · palju → **rohkem** · vähe → **vähem** · kerge → **kergem**'], 'full'),
-      B.wordforms('099_d_forms', 'Kirjuta keskvõrre.', 'Kirjuta sõna võrdluse vormis.', [
+      B.reading('099_d_read', 'Kuidas Olga harjutas.', 'Loe, mida Olga sel nädalal tegi. Vasta igale küsimusele lühidalt.', 'Olga nädal', [
+        'Pärast kontrolli oli Olga pettunud. Kuulamises sai ta ainult üheksa punkti. Maret ütles, et Olga kirjutab liiga pikki vastuseid. Siis ei jõua ta järgmist küsimust kuulata. Olga tegi plaani. Iga päev kuulas ta kümme minutit raadiot. Bussis kuulas ta telefonist eestikeelseid saateid. Ta harjutas vastama ühe või kahe sõnaga.',
+        'Kirjutamises oli tal teine probleem. Ta unustas lõpus teksti kontrollida. Nüüd on tal paberil väike nimekiri: tegusõna, käänded, sõnade arv. Pühapäeval oli kuulamine palju kergem. Olga sai neliteist punkti. See on viis punkti rohkem kui esimesel korral. Kirjutamine paranes vähem, ainult ühe punkti. Olga teab, et peab veel harjutama.',
+      ].join('\n\n'), [
+        ['Miks oli Olga pettunud?', 'kuulamises oli ainult 9 punkti|ta sai kuulamises vähe punkte'], ['Mis oli Olga viga kuulamises?', 'ta kirjutas liiga pikki vastuseid|liiga pikad vastused'], ['Kus Olga saateid kuulas?', 'bussis'], ['Mis on Olga nimekirjas?', 'tegusõna, käänded, sõnade arv'], ['Mitu punkti rohkem sai Olga kuulamises?', 'viis|5|viis punkti'], ['Miks peab Olga veel harjutama?', 'kirjutamine paranes vähe|kirjutamine paranes ainult ühe punkti'],
+      ]),
+      B.notice('099_d_notice', 'Märka võrdlust.', ['Kuulamine oli **kergem kui** enne.', 'Olga sai **rohkem** punkte **kui** esimesel korral.', 'Kirjutamine paranes **vähem**.', 'Teine tulemus on **parem**.', 'hea → **parem** · palju → **rohkem** · vähe → **vähem** · kerge → **kergem**'], 'full'),
+      B.wordforms('099_d_forms', 'Kirjuta võrdlus.', 'Olga võrdleb oma kahte tööd. Kirjuta iga sõna võrdluse vormis.', [
         ['kerge', '… kui enne', 'kergem'], ['raske', '… kui lugemine', 'raskem'], ['hea', '… tulemus', 'parem'], ['palju', '… punkte', 'rohkem'], ['vähe', '… vigu', 'vähem'], ['kiire', '… kui varem', 'kiirem'], ['pikk', '… tekst', 'pikem'],
       ]),
-      B.gaps('099_d_gaps', 'Võrdle tulemusi.', 'Vali pangast. Pangas on lisasõnu.', [
-        'Teine tulemus on [parem] kui esimene.', 'Kuulamises sai Viktor viis punkti [rohkem].', 'Nüüd teeb ta [vähem] vigu.', 'Lugemine oli [kergem] kui kuulamine.', 'Kirjutamine on Viktorile [raskem] kui rääkimine.',
+      B.gaps('099_d_gaps', 'Võrdle tulemusi.', 'Tom kirjutab Olgale tulemuste kohta. Vali pangast sobiv sõna. Pangas on lisasõnu.', [
+        'Teine tulemus on [parem] kui esimene.', 'Kuulamises sai Olga viis punkti [rohkem].', 'Nüüd teeb ta [vähem] vigu.', 'Lugemine oli [kergem] kui kuulamine.', 'Kirjutamine on Olgale [raskem] kui rääkimine.',
       ], ['parem', 'hea', 'rohkem', 'palju', 'vähem', 'kergem', 'raskem']),
-      B.listening('099_d_listen', 'Kuula: Viktor helistab Sofiale.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
-        '— Tere, Sofia! Mul on hea uudis.', '— Tere, Viktor! Räägi!',
-        '— Ma tegin teise proovieksami. Sain viiskümmend kaheksa punkti.', '— Tubli! See on palju parem kui esimesel korral.',
-        '— Jah, kuulamine oli palju kergem. Raadio aitas.', '— Ja kirjutamine?',
-        '— Kirjutamine on ikka raske. Ma unustan käänded.', '— Kirjuta igal õhtul paar lauset. Ma võin neid kontrollida.',
-        '— Aitäh! Ma saadan sulle laupäeval esimese teksti.', '— Hästi. Ja pühapäeval läheme koos kohvikusse harjutama.',
-      ], ['Viktor sai [viiskümmend kaheksa|58] punkti.', 'Kuulamist aitas [raadio].', 'Kirjutamises unustab Viktor [käänded|käändeid].', 'Sofia soovitab kirjutada igal [õhtul].', 'Viktor saadab teksti [laupäeval].', 'Pühapäeval lähevad nad [kohvikusse].']),
-      B.match('099_d_match', 'Probleem ja lahendus.', 'Ühenda probleem ja lahendus.', [['Vastused on liiga pikad.', 'Kirjutan 1–2 sõna.'], ['Unustan teksti kontrollida.', 'Kasutan nimekirja.'], ['Ma ei saa kõnest aru.', 'Kuulan iga päev raadiot.'], ['Aeg saab otsa.', 'Vaatan kella.'], ['Tekstis on palju uusi sõnu.', 'Otsin ainult märksõnu.'], ['Ma ei tea, mida paarilisele öelda.', 'Küsin ideekaardi järgi.']], 'full', 'g_read'),
-      B.choice('099_d_choice', 'Mis on õige?', 'Vali õige lause.', [
-        ['Viktor räägib tulemusest.', 'Nüüd on mul rohkem punkte.', 'Nüüd on mul rohkemad punkte.', 'Nüüd on mul palju punktid.'],
-        ['Kuulamine paranes.', 'Kuulamine on nüüd kergem.', 'Kuulamine on nüüd kergemad.', 'Kuulamine on nüüd rohkem kerge.'],
-        ['Kirjutamine on raske.', 'Kirjutamine on raskem kui lugemine.', 'Kirjutamine on raskem nagu lugemine.', 'Kirjutamine on raske kui lugemine.'],
-        ['Vigu on vähem.', 'Ma teen vähem vigu.', 'Ma teen vähem vead.', 'Ma teen vähe vigade.'],
-        ['Tulemus on hea.', 'Teine tulemus on parem.', 'Teine tulemus on paremam.', 'Teine tulemus on rohkem hea.'],
+      B.match('099_d_match', 'Probleem ja lahendus.', 'Õppijatel on viimasel nädalal mured. Ühenda iga mure ja selle lahendus.', [['Vastused on liiga pikad.', 'Kirjutan 1–2 sõna.'], ['Unustan teksti kontrollida.', 'Kasutan nimekirja.'], ['Ma ei saa kõnest aru.', 'Kuulan iga päev raadiot.'], ['Aeg saab otsa.', 'Vaatan kella.'], ['Tekstis on palju uusi sõnu.', 'Otsin ainult märksõnu.'], ['Ma ei tea, mida paarilisele öelda.', 'Küsin ideekaardi järgi.']], 'full', 'g_read'),
+      B.choice('099_d_choice', 'Mis lause on õige?', 'Olga räägib oma tulemusest. Igas reas on üks õige lause. Vali see.', [
+        ['Olga räägib punktidest.', 'Nüüd on mul rohkem punkte.', 'Nüüd on mul rohkemad punkte.', 'Nüüd on mul palju punktid.'], ['Kuulamine paranes.', 'Kuulamine on nüüd kergem.', 'Kuulamine on nüüd kergemad.', 'Kuulamine on nüüd rohkem kerge.'],
+        ['Kirjutamine on raske.', 'Kirjutamine on raskem kui lugemine.', 'Kirjutamine on raskem nagu lugemine.', 'Kirjutamine on raske kui lugemine.'], ['Vigu on vähem.', 'Ma teen vähem vigu.', 'Ma teen vähem vead.', 'Ma teen vähe vigade.'], ['Tulemus on hea.', 'Teine tulemus on parem.', 'Teine tulemus on parim.', 'Teine tulemus on rohkem hea.'],
       ], 'full', 'g_notice'),
-      TR('099_d_tr', ['Во второй раз было легче.', 'Я получил на пять баллов больше.', 'Моё письмо стало лучше.', 'Я делаю меньше ошибок.', 'Мне нужно ещё тренироваться.', 'Аудирование сложнее, чем чтение.', 'Каждый день я слушаю радио.', 'Мой результат лучше, чем в первый раз.']),
-      B.table('099_d_count', 'Arvuta muutus.', 'Kirjuta, mitu punkti rohkem Viktor sai.', 'Osa, Proovieksam 1, Proovieksam 2, Muutus', ['Lugemine | 14 | 16 | [+2|2|kaks]', 'Kuulamine | 9 | 14 | [+5|5|viis]', 'Kirjutamine | 12 | 13 | [+1|1|üks]', 'Rääkimine | 13 | 15 | [+2|2|kaks]', 'Kokku | 48 | 58 | [+10|10|kümme]'], 'g_notice'),
-      B.writing('099_d_write', 'Minu kuu.', 'Kirjuta 5–7 lauset: mida sa pärast esimest proovieksamit harjutasid?', [5, 7], ['iga päev', 'rohkem', 'parem'], 2),
-      B.speaking('099_d_say', 'Võrdle.', 'Võrdle paarilisele oma lugemist ja kuulamist umbes 1 minut.', ['Kumb on sulle kergem?', 'Miks?', 'Mida sa teed, et teine osa oleks parem?'], [60, 90], ['… on kergem kui…, sest…', 'Ma teen nüüd rohkem…']),
-      B.rolecards('099_d_cards', 'Viktor ja Sofia.', 'A on Viktor, B on Sofia. Rääkige tulemustest. Siis vahetage.',
-        'Räägi oma kahest tulemusest. Ütle, mis paranes ja miks.', 'Küsi 4 küsimust: punktid, mis paranes, mis on raske, mida edasi teha.',
-        ['Teisel korral sain…', '… oli kergem kui enne.', 'Kirjutamine on veel raske, sest…'], ['Mitu punkti sa said?', 'Mis paranes kõige rohkem?', 'Mida sa nüüd teed?']),
+      B.table('099_d_count', 'Arvuta muutus.', 'Kui palju Olga kahe töö vahel paranes? Kirjuta muutus tabelisse.', 'Osa, Kontroll 20, Pühapäev, Muutus', ['Lugemine | 14 | 16 | [+2|2|kaks]', 'Kuulamine | 9 | 14 | [+5|5|viis]', 'Kirjutamine | 12 | 13 | [+1|1|üks]', 'Rääkimine | 13 | 15 | [+2|2|kaks]', 'Kokku | 48 | 58 | [+10|10|kümme]'], 'g_notice'),
+      B.rolecards('099_d_cards', 'Olga ja Tom.', 'A on Olga, B on Tom. Rääkige tulemustest. Siis vahetage.',
+        'Räägi oma kahest tulemusest. Ütle, mis paranes ja miks.', 'Küsi neli küsimust: punktid, mis paranes, mis on raske, mida edasi teha.',
+        ['Teisel korral sain …', '… oli kergem kui enne.', 'Kirjutamine on veel raske, sest …'], ['Mitu punkti sa said?', 'Mis paranes kõige rohkem?', 'Mida sa nüüd teed?']),
+      B.writing('099_d_write', 'Minu nädal.', 'Kirjuta 5–7 lauset: mida sa pärast kontrolli harjutasid?', [5, 7], ['iga päev', 'rohkem', 'parem'], 2),
+      B.translation('099_d_tr', 'Olga mõtted.', 'Olga mõtleb vene keeles. Ütle sama eesti keeles.', ['Во второй раз было легче.', 'Я получила на пять баллов больше.', 'Я делаю меньше ошибок.', 'Мне нужно ещё тренироваться.', 'Аудирование сложнее, чем чтение.', 'Каждый день я слушаю радио.']),
+      teach(B.speaking('099_d_warm', 'Võrdle oma osi.', 'Võrdle enne eksamit õpetajale oma lugemist ja kuulamist. Räägi umbes üks minut.', ['Kumb on sulle kergem?', 'Miks?', 'Mida sa sel nädalal rohkem harjutasid?'], [60, 90], ['… on kergem kui …, sest …', 'Ma tegin rohkem …']),
+        'Õpetaja küsib nagu eksamineerija. Ära paranda, pane tähele ainult võrdlust.'),
     ],
     practice: [
-      B.tip('099_p_how', 'Kuulamine ja lugemine (eksami vormis)', `Nüüd on järjekord nagu eksamil: kõigepealt kuulamine (30 min), siis lugemine (50 min). Õpetaja loeb iga teksti kaks korda. ${POINTS}`, 'full'),
-      // listening 1: short announcements, answers of 1–2 words
-      B.listening('099_p_listen', 'Kuulamine 1. Lühikesed teated.', 'Õpetaja loeb kuus teadet kaks korda. Kirjuta lünka 1–2 sõna.', [
-        '1. Tähelepanu! Kauplus suletakse kümne minuti pärast. Palun minge kassasse.',
-        '2. Täna on päikeseline ilm. Õhtul tuleb vihma. Sooja on kuni kaksteist kraadi.',
-        '3. Buss number kaheksa sõidab täna teist teed, sest Tartu maanteel on remont.',
-        '4. Spordiklubi teatab: jooga ei ole kell kuus, vaid kell seitse.',
-        '5. Apteek „Tervis” on pühapäeval avatud kella kümnest kolmeni.',
-        '6. Kontsert algab kell seitse. Palun lülitage telefonid välja.',
-      ], ['Kauplus suletakse [kümne minuti] pärast.', 'Õhtul tuleb [vihma].', 'Sooja on kuni [kaksteist|12] kraadi.', 'Buss sõidab teist teed, sest teel on [remont].', 'Jooga on kell [seitse|7|19].', 'Pühapäeval on apteek avatud kella [kolmeni|15-ni].', 'Kontserdi ajal tuleb [telefon|telefonid] välja lülitada.']),
-      // listening 2: a dialogue on personal life, gaps and true/false
-      B.listening('099_p_listen2', 'Kuulamine 2. Puhkus Saaremaal.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
-        '— Tere, Jaan! Kuidas puhkus läks?', '— Tere, Sofia! Väga hästi. Olime perega nädal aega Saaremaal.',
-        '— Tore! Kuidas te sinna sõitsite?', '— Autoga ja siis praamiga. Praam sõitis ainult pool tundi.',
-        '— Kus te elasite?', '— Me üürisime väikese maja mere ääres. Seal oli ka saun.',
-        '— Kas ilm oli hea?', '— Esimesed kolm päeva sadas vihma. Siis tuli päike välja.',
-        '— Mida te vihmaga tegite?', '— Käisime Kuressaare lossis muuseumis. Lastele meeldis väga.',
-        '— Kas te ujuda ka saite?', '— Jah, aga vesi oli külm, ainult seitseteist kraadi. Ujusin ainult mina.',
-        '— Kas lähete järgmisel aastal jälle?', '— Ei, järgmisel suvel tahame minna Hiiumaale.',
-      ], ['Jaan oli Saaremaal [nädal|nädal aega|seitse päeva].', 'Praam sõitis [pool tundi|30 minutit].', 'Maja juures oli [saun].', 'Vihma sadas [kolm|3] päeva.', 'Vihmaga käisid nad [lossis|muuseumis].', 'Vesi oli [seitseteist|17] kraadi.']),
-      B.truefalse('099_p_tf', 'Kuulamine 2. Õige või vale?', 'Kuula vestlust teist korda. Märgi õige või vale.', [
-        ['Sofia küsib, kuidas puhkus läks.', true], ['Jaan sõitis Saaremaale bussiga.', false], ['Pere elas hotellis.', false], ['Lastele meeldis muuseum.', true], ['Kogu pere käis meres ujumas.', false], ['Järgmisel suvel lähevad nad Hiiumaale.', true],
-      ], 'full'),
-      // reading 1: everyday phrases and politeness
-      B.choice('099_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
-        ['Sõber kolis uude korterisse. Mida ütled?', 'Palju õnne uue kodu puhul!', 'Head reisi!', 'Jõudu tööle!'],
-        ['Sa tuled hommikul tööle. Mida ütled kolleegidele?', 'Tere hommikust!', 'Head õhtut!', 'Head ööd!'],
-        ['Kolleeg on haige. Mida kirjutad?', 'Saa ruttu terveks!', 'Head isu!', 'Edu eksamil!'],
-        ['Sa tahad poes abi küsida. Kuidas alustad?', 'Vabandage, kas te saaksite aidata?', 'Kuule, anna see siia!', 'Aitäh, kõik on korras.'],
-        ['Sõber ütleb: „Ma sain uue töö!” Mida vastad?', 'Tubli! Palju õnne!', 'Kahju küll!', 'Pole viga!'],
-        ['Sa lahkud külast. Mida ütled võõrustajale?', 'Aitäh, oli väga tore!', 'Tere tulemast!', 'Head isu!'],
+      PART('099_p_wpart', 'W', { minutes: 30, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Kirjutage kõigist punktidest. Teises ülesandes valige üks kahest teemast. Proovieksami eesmärk on vähemalt 16 punkti (80 %).' }),
+      W1('099_p_w1', 'Peeter Lepp, automehaanik · Töökoda Kiire Ratas, Tööstuse 3, Viljandi · E–R 8–17, L 9–13 · tel 5678 1234 · info@kiireratas.ee', ['Kes on Peeter Lepp?', 'Kus ta töötab?', 'Millal töökoda avatud on?', 'Kuidas saab temaga ühendust võtta?']),
+      B.rubricW1('099_p_rw1', ['kes ta on', 'kus ta töötab', 'millal töökoda avatud on', 'kuidas ühendust võtta']),
+      W2A('099_p_w2a', 'Sa tahad pühapäeval minna sõbraga jõuluturule. Kirjuta talle.', ['Kuhu ja mis päeval te lähete?', 'Mis kell ja kus te kohtute?', 'Mida sa seal teha tahad?']),
+      W2B('099_p_w2b', 'Minu eelmine suvi', ['Kus sa olid ja kellega?', 'Mida sa seal tegid?', 'Mis sulle kõige rohkem meeldis ja miks?']),
+      B.rubricW2('099_p_rw2'),
+      PART('099_p_rpart', 'R', { minutes: 50, points: 29, tasks: 5, note: 'Viis ülesannet nagu eksamil. Lugege iga ülesande juhist hoolikalt. Eksamil on selle osa eest 20 punkti, õpetaja arvutab tulemuse ümber. Proovieksami eesmärk on vähemalt 24 punkti (80 %).' }),
+      R1('099_p_r1', [
+        ['Sõber kolis uude korterisse. Mida ütled?', 'Palju õnne uue kodu puhul!', 'Head reisi!', 'Jõudu tööle!'], ['Sa tuled hommikul tööle. Mida ütled kolleegidele?', 'Tere hommikust!', 'Head õhtut!', 'Head ööd!'], ['Kolleeg on haige. Mida kirjutad talle?', 'Saa ruttu terveks!', 'Head isu!', 'Edu eksamil!'],
+        ['Sa tahad poes abi küsida. Kuidas alustad?', 'Vabandage, kas te saate mind aidata?', 'Kuule, anna see siia!', 'Aitäh, kõik on korras.'], ['Sõber ütleb: „Ma sain uue töö!” Mida vastad?', 'Tubli! Palju õnne!', 'Kahju küll!', 'Pole viga!'], ['Sa olid õhtul sõbra juures ja lähed nüüd koju. Mida ütled talle?', 'Aitäh, oli väga tore!', 'Tere tulemast!', 'Head isu!'],
       ]),
-      // reading 2: three short ads, answers by letter
-      B.reading('099_p_ads', 'Lugemine 2. Kolm kuulutust.', 'Loe kuulutusi. Vasta tähega (A, B, C) ja lühidalt.', 'Kuulutused',
-        'A. Otsime kohvikusse abikokka. Töö on hommikuti kella seitsmest kolmeni. Nädalavahetusel on vaba. Eesti keel peab olema suhtlustasemel. Kogemus ei ole vajalik, õpetame ise. Kirjuta: tööd@kohvikmaasikas.ee\n\nB. Müüa korralik diivan. Värv on hall, pikkus kaks meetrit. Diivanist saab teha voodi. Hind 120 eurot. Pead ise ära viima, kolmandalt korruselt. Lifti ei ole. Helista õhtuti: 5345 1122.\n\nC. Kaotasin pühapäeval Raekoja platsil musta rahakoti. Rahakotis on pangakaart ja pere foto. Raha seal palju ei ole. Leidjale annan 30 eurot. Palun helista: 5678 9900. Sofia',
-        [['Kus saab tööd ilma kogemuseta?', 'A|kohvikus'], ['Mida Sofia kaotas?', 'C|rahakoti|musta rahakoti'], ['Mis värvi on diivan?', 'B|hall'], ['Millal ei pea kohvikus töötama?', 'A|nädalavahetusel'], ['Mida saab diivanist teha?', 'B|voodi'], ['Kui palju raha saab leidja?', 'C|30 eurot|kolmkümmend eurot']]),
-      // reading 3: signs matched to their meaning
-      B.match('099_p_signs', 'Lugemine 3. Mida silt tähendab?', 'Ühenda silt ja selle tähendus.', [
-        ['Ainult sularaha', 'Kaardiga siin maksta ei saa.'], ['Märg põrand!', 'Siin tuleb ettevaatlikult käia.'], ['Koertega sisenemine keelatud', 'Koeraga siia minna ei tohi.'], ['Avatud 24 h', 'Siia saab minna ka öösel.'], ['Hoida külmkapis', 'Toode peab olema külmas.'], ['Mitte segada!', 'Palun ära koputa ega tule sisse.'],
-      ], 'full', 'g_read'),
-      // reading 4: a ~140-word text, 5 questions with 3 options
-      B.reading('099_p_text', 'Lugemine 4. Aleksei uus töö.', 'Loe tekst. Siis vasta kahele küsimusele lühidalt.', 'Aleksei uus töö',
-        'Aleksei elas kümme aastat Narvas ja töötas tehases. Eelmisel kevadel sai ta uue töö Tallinnas. Nüüd on ta bussijuht. Alguses oli see raske. Ta pidi õppima linna tänavaid ja peatuste nimesid. Paljud reisijad küsivad temalt eesti keeles teed. Aleksei ei saanud alguses kõigest aru, sest inimesed rääkisid kiiresti. Siis hakkas ta keelekursusel käima. Kursus on kaks korda nädalas õhtuti. Nüüd räägib Aleksei reisijatega julgelt. Kõige raskemad on telefonikõned dispetšeriga, sest liinil on müra. Aleksei naine ja poeg kolisid Tallinnasse alles sügisel. Poeg läks uude kooli ja leidis kiiresti sõpru. Pere elab Mustamäel kahetoalises korteris. Nädalavahetusel sõidavad nad tihti Narva. Seal elavad Aleksei vanemad. Aleksei plaanib järgmisel aastal teha B1 eksami.',
-        [['Kus pere praegu elab?', 'Mustamäel|Tallinnas'], ['Mis eksami tahab Aleksei teha?', 'B1|B1 eksami']]),
-      B.choice('099_p_textmc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti uuesti. Vali üks vastus.', [
-        ['Mis tööd tegi Aleksei Narvas?', 'Ta töötas tehases.', 'Ta oli bussijuht.', 'Ta oli õpetaja.'],
-        ['Miks oli alguses raske reisijatest aru saada?', 'Nad rääkisid kiiresti.', 'Nad rääkisid ainult vene keelt.', 'Buss oli liiga täis.'],
-        ['Mis on Alekseile praegu kõige raskem?', 'telefonikõned dispetšeriga', 'linna tänavad', 'peatuste nimed'],
-        ['Millal kolis pere Tallinnasse?', 'sügisel', 'eelmisel kevadel', 'kümme aastat tagasi'],
-        ['Miks sõidab pere tihti Narva?', 'Seal elavad Aleksei vanemad.', 'Seal on Aleksei töö.', 'Poeg käib seal koolis.'],
+      R2('099_p_r2', [
+        ['Otsime abikokka', 'Otsime kohvikusse abikokka. Töö on hommikuti kella seitsmest kolmeni, nädalavahetusel on vaba. Eesti keel peab olema suhtlustasemel. Kogemus ei ole vajalik, õpetame ise. Töö algab jaanuaris. Lõuna on tasuta ja kohvi saad nii palju, kui tahad. Kirjuta: tood@kohvikmaasikas.ee'],
+        ['Müüa diivan', 'Müüa korralik diivan. Värv on hall, pikkus kaks meetrit. Diivanist saab teha ka voodi, nii et külaline saab sellel magada. Hind on 120 eurot. Pead ise ära viima, kolmandalt korruselt, lifti majas ei ole. Maksta saab ainult sularahas. Helista õhtuti: 5345 1122.'],
+        ['Kadunud rahakott', 'Kaotasin pühapäeval Raekoja platsil musta rahakoti. Rahakotis on pangakaart ja pere foto. Raha seal palju ei ole, aga foto on mulle väga tähtis. Leidjale annan 30 eurot. Palun helista või kirjuta mulle igal ajal. Tel 5678 9900. Aitäh! Piret'],
+      ], [['Kes seda tööd varem teinud ei ole, võib ka kirjutada.', 'A'], ['Seda asja tuleb ise trepist alla tassida.', 'B'], ['Selle inimese jaoks on kõige tähtsam üks pilt.', 'C'], ['Sellel saab ka külaline magada.', 'B'], ['Nädalavahetusel ei pea tööle tulema.', 'A'], ['Kes selle asja üles leiab, saab raha.', 'C']]),
+      R3('099_p_r3', ['Ainult sularaha', 'Märg põrand!', 'Koertega sisenemine keelatud', 'Avatud 24 h', 'Hoida külmkapis'], ['Kaardiga siin maksta ei saa.', 'Siin tuleb ettevaatlikult käia.', 'Koeraga siia minna ei tohi.', 'Siia saab minna ka öösel.', 'Toode peab olema külmas.']),
+      B.reading('099_p_text', 'Lugemine 4. Lugu.', 'Lugege lehe lugu ühe mehe uuest tööst. Küsimused on järgmises ülesandes.', 'Aleksei uus töö', [
+        'Aleksei elas kümme aastat Narvas ja töötas tehases. Eelmisel kevadel sai ta uue töö Tallinnas. Nüüd on ta bussijuht. Alguses oli see raske. Ta pidi õppima linna tänavaid ja peatuste nimesid. Paljud reisijad küsivad temalt eesti keeles teed. Aleksei ei saanud alguses kõigest aru, sest inimesed rääkisid kiiresti.',
+        'Siis hakkas ta keelekursusel käima. Kursus on kaks korda nädalas õhtuti. Nüüd räägib Aleksei reisijatega julgelt. Kõige raskemad on telefonikõned, sest liinil on müra.',
+        'Aleksei naine ja poeg kolisid Tallinnasse alles sügisel. Poeg läks uude kooli ja leidis kiiresti sõpru. Pere elab Mustamäel kahetoalises korteris. Nädalavahetusel sõidavad nad tihti Narva. Seal elavad Aleksei vanemad. Aleksei plaanib järgmisel aastal teha B1 eksami, sest ta tahab tööl edasi jõuda.',
+      ].join('\n\n'), []),
+      R4('099_p_r4', [
+        ['Mis tööd tegi Aleksei Narvas?', 'Ta töötas tehases.', 'Ta oli bussijuht.', 'Ta oli õpetaja.'], ['Miks oli alguses raske reisijatest aru saada?', 'Nad rääkisid kiiresti.', 'Nad rääkisid ainult vene keelt.', 'Buss oli liiga täis.'], ['Mis on Alekseile praegu kõige raskem?', 'telefonikõned', 'linna tänavad', 'peatuste nimed'],
+        ['Millal kolis pere Tallinnasse?', 'sügisel', 'eelmisel kevadel', 'kümme aastat tagasi'], ['Miks sõidab pere tihti Narva?', 'Seal elavad Aleksei vanemad.', 'Seal on Aleksei töö.', 'Poeg käib seal koolis.'],
       ]),
-      // reading 5: a personal letter, 8 gaps with 3 options
-      B.cloze('099_p_cloze', 'Lugemine 5. Kiri sõbrannale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Kadri!', [
+      R5('099_p_r5', 'Tere, Kaja!', [
         'Kuidas sul läheb? Mul on suur uudis: ma {*leidsin|leian|leidma} uue töö! Alates märtsist töötan ma {*raamatukogus|raamatukokku|raamatukogust}. Töö algab kell üheksa ja lõpeb kell viis. Ma ei {*pea|pean|pidin} enam nii vara tõusma. Eile käisin ma oma uute {*kolleegidega|kolleegid|kolleegide} tutvumas. Kõik olid väga sõbralikud.',
         '',
         'Laupäeval tahan ma seda {*tähistada|tähistama|tähistan} väikese peoga. Kas sa {*saad|saada|saame} tulla? Pidu algab kell seitse minu {*juures|juurde|juurest}. Palun võta kaasa {*oma|omad|omaga} kitarr!',
         '',
-        'Ootan sinu vastust! Liis',
+        'Ootan sinu vastust! Piret',
       ]),
-      B.transformation('099_p_trans', 'Keeleosa. Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
-        ['Ma ei saa homme tulla.', 'eile', 'Ma ei saanud eile tulla.|Eile ma ei saanud tulla.'], ['Ma lähen tööle.', 'pean', 'Ma pean tööle minema.|Ma pean minema tööle.'], ['Pood on avatud 9–18.', 'alates … kuni', 'Pood on avatud alates kella üheksast kuni kella kuueni.'], ['Lugemine on kerge. Kuulamine on raske.', 'kergem kui', 'Lugemine on kergem kui kuulamine.'], ['Me käime ujumas.', 'eelmisel suvel', 'Eelmisel suvel me käisime ujumas.|Eelmisel suvel käisime me ujumas.'],
-      ]),
-      B.errorfix('099_p_fix', 'Keeleosa. Paranda viga.', 'Kirjuta lause õigesti.', [
-        ['Ma kaotasin minu rahakott.', 'Ma kaotasin oma rahakoti.'], ['Diivan on suurem minu voodi.', 'Diivan on suurem kui minu voodi.|Diivan on minu voodist suurem.'], ['Me sõitsime Saaremaa praamiga.', 'Me sõitsime Saaremaale praamiga.'], ['Ta ei saanud aru, sest inimesed räägisid kiiresti.', 'Ta ei saanud aru, sest inimesed rääkisid kiiresti.'], ['Ma tahan töötada kohvikus kokk.', 'Ma tahan töötada kohvikus kokana.'], ['Eile ma ei ujusin.', 'Eile ma ei ujunud.'], ['Ma tulen sinu pidu laupäeval.', 'Ma tulen sinu peole laupäeval.'], ['Pakk on minu juurde.', 'Pakk on minu juures.'],
-      ]),
-      B.wordforms('099_p_forms', 'Keeleosa. Kirjuta õige vorm.', 'Kirjuta sõna lünka sobivas vormis.', [
-        ['hea', 'See töö on … kui vana.', 'parem'], ['kolleeg', 'Ma käisin … tutvumas.', 'kolleegidega'], ['raamatukogu', 'Ma töötan …', 'raamatukogus'], ['Hiiumaa', 'Järgmisel suvel sõidame …', 'Hiiumaale'], ['leidma', 'Eile ma … rahakoti.', 'leidsin'], ['ujuma', 'Vesi oli külm, ma ei …', 'ujunud'],
-      ]),
-      B.speaking('099_p_retell', 'Räägi kuuldust.', 'Räägi paarilisele Jaani puhkusest.', ['Kus Jaan oli ja kui kaua?', 'Kuidas nad sinna sõitsid?', 'Mida nad vihmaga tegid?', 'Kuhu nad järgmisel suvel lähevad?'], [60, 90], ['Jaan oli…', 'Nad sõitsid…', 'Järgmisel suvel…']),
     ],
     transfer: [
-      B.text('099_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'Proovieksami teine pool. Kirjuta 30 minutit ilma sõnaraamatuta. Siis räägi paarilisega. Lõpus võrdle tulemust esimese proovieksamiga.'),
-      B.notice('099_t_card', 'Visiitkaart', ['Peeter Lepp — automehaanik', 'Töökoda „Kiire Ratas”, Tööstuse 3, Viljandi', 'Avatud: E–R kell 8–17, L kell 9–13', 'Tel 5678 1234, www.kiireratas.ee'], 'full', 'g_read'),
-      B.table('099_t_compare', 'Võrdle tulemusi.', 'Kirjuta mõlema proovieksami punktid.', 'Osa, Proovieksam 1, Proovieksam 2, Muutus', ['Lugemine | | | ', 'Kuulamine | | | ', 'Kirjutamine | | | ', 'Rääkimine | | | ', 'Kokku (… / 80) | | | ']),
-      B.planning('099_t_plan', 'Enne kirjutamist.', 'Kirjuta märksõnad. Mõtle oma vigadele.', ['Kes, kus, millal, kontakt?', 'Kirjutamine 2: kus, millal, mida kaasa võtta?', 'Minu kolm viga, mida kontrollin:', 'Mitu sõna ma kirjutan?']),
-      B.letter('099_t_info', 'Kirjutamine 1. Soovita automehaanikut.', 'Naabri auto ei käivitu. Kirjuta: kes, kus, millal, kuidas ühendust võtta.', 'Tere, Sofia!', 'Head päeva!', [25, 40]),
-      B.letter('099_t_invite', 'Kirjutamine 2 (valik A). Kutse piknikule.', 'Kutsu kolleegid piknikule. Kirjuta: kus, millal, mida kaasa võtta.', 'Head kolleegid!', 'Ootan teid! Markus', [30, 50]),
-      B.writing('099_t_summer', 'Kirjutamine 2 (valik B). Minu eelmine suvi.', 'Kirjuta 4–6 lauset: kus olid, mida tegid, mis meeldis kõige rohkem.', [4, 6], ['eelmisel', 'sest', 'kõige'], 2),
-      B.speaking('099_t_pics', 'Rääkimine 1. Võrdle pilte.', 'Sinul on pilt „Pere kodus”, paarilisel „Pere looduses”. Kirjelda ja võrdle.', ['Kes on pildil ja mida nad teevad?', 'Mis on piltidel sarnast?', 'Mis on erinevat?', 'Kumb päev meeldib sulle rohkem? Miks?'], [60, 90], ['Minu pildil…', 'Sinu pildil aga…', 'Mulle meeldib rohkem…, sest…']),
-      B.rolecards('099_t_s1', 'Rääkimine 2. Ideekaart „Töö”.', 'A küsib kaardi järgi, B vastab. Siis vahetage.',
-        'Küsi 5 küsimust: amet, tööaeg, kolleegid, tee tööle, unistuste töö.', 'Vasta igale küsimusele 2–3 lausega.',
-        ['Mis tööd sa teed?', 'Kuidas sa tööle sõidad?', 'Mis on sinu unistuste töö?'], ['Ma töötan…', 'Ma sõidan…, see võtab…', 'Ma tahaksin…']),
-      B.rolecards('099_t_s2', 'Rääkimine 2. Ideekaart „Kodu”.', 'Nüüd küsib B ja A vastab.',
-        'Vasta igale küsimusele 2–3 lausega.', 'Küsi 5 küsimust: korter või maja, toad, naabrid, mis meeldib, mida muudaksid.',
-        ['Ma elan…', 'Meil on… tuba.', 'Mulle meeldib, et…'], ['Kas sa elad korteris või majas?', 'Mitu tuba teil on?', 'Millised on su naabrid?']),
-      B.speaking('099_t_result', 'Räägi oma tulemusest.', 'Räägi paarilisele: mis läks paremini, mis halvemini ja miks.', ['Mis osa paranes kõige rohkem?', 'Mis on veel raske?', 'Mis on sinu järgmine samm?'], [45, 90], ['… läks paremini kui esimesel korral.', '… on endiselt raskem, sest…', 'Järgmiseks ma…']),
-      B.rubric('099_t_rubric', 'Hindamine.', 'Kirjuta punktid ja märgi.', ['Kirjutamine: … / 20 p (õpetaja hindab)', 'Rääkimine: … / 20 p (õpetaja hindab)', 'Kokku: … / 80 p. Esimesel korral: … / 80 p.', 'Vähemalt 48 p ja ükski osa ei ole 0 p.', 'Minu järgmine samm: …']),
-      B.selfcheck('099_t_self', ['Ma oskan mõista uute teemade tekste ilma sõnaraamatuta.', 'Ma oskan teha lugemise ja kuulamise õigel ajal.', 'Ma oskan võrrelda: parem, rohkem, vähem kui.', 'Ma oskan kirjutada ja rääkida eksami vormis.', 'Ma oskan nimetada oma järgmise sammu.'], 'Proovieksam 2 on tehtud'),
+      B.text('099_t_intro', 'Proovieksam: kuulamine ja rääkimine', 'Nüüd on järjekorras kuulamine ja siis rääkimine. Pildil rääkimisosas on Anna ja Sofia, kes võrdlevad järgmise nädala plaane. Lõpus võrdled oma punkte Kontroll 20 tulemusega.'),
+      PART('099_t_lpart', 'L', { minutes: 30, points: 25, tasks: 4, note: 'Iga teksti kuulete kaks korda. Enne iga ülesannet on aega küsimusi lugeda. Eksamil on selle osa eest 20 punkti, õpetaja arvutab tulemuse ümber. Proovieksami eesmärk on vähemalt 20 punkti (80 %).' }),
+      L1('099_t_l1', [
+        'Tähelepanu! Täna õhtul kell kuus on majas vee väljalülitamine. Vett ei ole kella kaheksani. Palun võtke vett varem kõrvale. Kui on küsimusi, helistage majahaldurile. Täname mõistva suhtumise eest!',
+        'Lõunasöögi aeg on täna muutunud. Söökla on avatud kella kaheteistkümnest kuni kella kaheni. Supp maksab kaks eurot ja praad neli eurot. Kohvi saab tasuta, kui sul on oma tass kaasas.',
+        'Raadiokuulajad, tähelepanu! Täna öösel tuleb palju lund. Tallinnas võib olla kümme sentimeetrit lund. Autojuhid, sõitke aeglaselt! Homme hommikul minge tööle bussiga või tulge varem välja.',
+        'Lugupeetud külastajad! Muuseum suletakse poole tunni pärast, kell viis. Pileteid enam ei müüda. Muuseumi pood on avatud veel kümme minutit pärast muuseumi. Täname külastamast ja tulge jälle!',
+        'Tere! Siin kooli direktor. Homme, reedel, tunde ei ole, sest koolimajas on remont. Lapsed saavad kodutööd e-kooli. Esmaspäeval algab kool tavalisel ajal, kell kaheksa. Head nädalavahetust!',
+        'Hea klient! Teie pakk on jõudnud pakiautomaati Kaubamaja juures. Teie kood on neli-kaks-seitse-üks. Pakk ootab teid viis päeva. Pärast seda läheb pakk tagasi saatjale. Aitäh, et meid kasutasite!',
+        'Ja nüüd sport. Täna õhtul mängis Tallinna meeskond Tartuga ja võitis kolm üks. Kolm väravat lõi noor mängija Martin Kask. Järgmine mäng on pühapäeval kell neli Tartus.',
+      ], [
+        ['Mis kellani vett ei ole?', 'kella kaheksani', 'kella kuueni', 'kella viieni'], ['Mis maksab neli eurot?', 'praad', 'supp', 'kohv'], ['Mis tuleb täna öösel?', 'lumi', 'vihm', 'tuul'], ['Mis kell muuseum suletakse?', 'kell viis', 'kell neli', 'kell kuus'],
+        ['Miks reedel tunde ei ole?', 'majas on remont', 'õpetaja on haige', 'on püha'], ['Mitu päeva pakk ootab?', 'viis', 'neli', 'seitse'], ['Kes võitis mängu?', 'Tallinn', 'Tartu', 'keegi ei võitnud'],
+      ]),
+      L2('099_t_l2', [
+        'Ülle: Tere, kuulajad! Täna räägime puhkusest. Stuudios on kokk Jaan Mets. Jaan, te olite suvel perega Saaremaal?',
+        'Jaan: Tere! Jah, olime nädal aega. Sõitsime autoga ja siis praamiga. Praam sõitis ainult pool tundi. Lapsed tahtsid kogu aeg laevast merd vaadata.',
+        'Ülle: Kus te elasite?',
+        'Jaan: Me üürisime väikese maja mere ääres. Seal oli ka saun. Muki, meie koer, oli väga rahul, sest ta sai kogu aeg väljas joosta.',
+        'Ülle: Kas ilm oli hea?',
+        'Jaan: Esimesed kolm päeva sadas vihma. Siis tuli päike välja. Vihmaga käisime Kuressaare lossis muuseumis. Lastele meeldis väga, eriti Oskarile.',
+        'Ülle: Te olete kokk. Kas te tegite puhkusel ka süüa?',
+        'Jaan: Muidugi! Kadri ütles, et ma ei tohi puhkusel köögis olla, aga ma ei saa teisiti. Tegin igal õhtul kala. Kala ostsin otse kaluritelt.',
+        'Ülle: Kas te saite ka ujuda?',
+        'Jaan: Jah, aga vesi oli külm, ainult seitseteist kraadi. Ujusin ainult mina. Teised vaatasid mind kaldalt ja naersid.',
+        'Ülle: Kas lähete järgmisel aastal jälle?',
+        'Jaan: Ei, järgmisel suvel tahame minna Hiiumaale. Seal on rahulik ja ma pole seal kunagi käinud.',
+      ], [
+        ['Jaan sõitis Saaremaale bussiga.', false], ['Pere elas väikeses majas mere ääres.', true], ['Esimestel päevadel oli ilm väga ilus.', false], ['Lastele meeldis loss.', true], ['Jaan ostis kala kaluritelt.', true], ['Kogu pere käis meres ujumas.', false],
+      ]),
+      L3('099_t_l3', [
+        'Teadustaja: Tere! Siin on spordiklubi Energia. Kuulake meie uudiseid. Alates esmaspäevast on klubi avatud juba kell kuus hommikul, sest paljud inimesed tahavad enne tööd trenni teha.',
+        'Teadustaja: Meil on uus treener Kati. Tema juhib joogat teisipäeval ja neljapäeval. Tund kestab ühe tunni ja algab kell seitse õhtul. Esimene tund on tasuta. Võtke kaasa oma matt ja veepudel.',
+        'Teadustaja: Hinnad muutuvad ka. Kuu pilet maksab nüüd kolmkümmend viis eurot. Õpilastele ja pensionäridele on pilet kakskümmend eurot. Pileti saab osta kassast või internetist.',
+        'Teadustaja: Parkida saab maja taga, see on tasuta. Jalgrattad pange palun ukse kõrvale. Kui teil on küsimusi, küsige kassast. Tulge trenni, kohtume Energias!',
+      ], ['Klubi on hommikul avatud kell [kuus|6].', 'Uue treeneri nimi on [Kati].', 'Jooga on teisipäeval ja [neljapäeval].', 'Esimene tund maksab: [tasuta|mitte midagi].', 'Kuu pilet maksab [kolmkümmend viis|35] eurot.', 'Parkida saab maja [taga].']),
+      L4('099_t_l4', [
+        'Sofia: Jaan, ema küsis, kes mida jõuludeks teeb. Ta tuleb meile kahekümne neljandal. Kas sul on plaan?',
+        'Jaan: Muidugi! Mina teen praadi ja kartuleid. Seda ma oskan. Aga köögis on vaja abi. Kadri teeb piparkoogid. Ta tegi neid juba eelmisel aastal lastega ja need olid väga head.',
+        'Sofia: Tore. Aga kuusk? Eelmisel aastal oli meil väike ja kõver kuusk.',
+        'Jaan: Viktor toob kuuse oma metsast. Ta lubas, et see on seekord suur ja sirge. Ta tuleb autoga juba reedel.',
+        'Sofia: Väga hea. Ma ostan siis kingitused lastele. Mia tahab uusi värve ja Oskar palli. Ma lähen pühapäeval turule.',
+        'Jaan: Hea. Ja Mia lubas juba, et joonistab kõigile kaardi. Ta teeb seda iga päev pärast lasteaeda.',
+        'Sofia: Kui armas! Ja Oskar? Ta ei taha ju kunagi midagi teha.',
+        'Jaan: Oskar õpib koolis uue laulu ja laulab seda laua ääres. Ta on väga närvis, aga ma ütlesin, et me kõik laulame temaga koos.',
+        'Sofia: Ja ema? Ta tahab kindlasti ka midagi teha.',
+        'Jaan: Muidugi. Ema küpsetab oma pannkoogid jõuluhommikuks. Seda ta ei anna kellelegi teisele.',
+        'Sofia: Selge. Siis on kõik korras. Ma helistan talle õhtul ja räägin.',
+      ], [['Kadri', 'teeb piparkoogid.'], ['Viktor', 'toob metsast kuuse.'], ['Sofia', 'ostab lastele kingitused.'], ['Mia', 'joonistab kõigile kaardi.'], ['Oskar', 'laulab uue laulu.'], ['Helgi', 'küpsetab pannkoogid.']]),
+      PART('099_t_spart', 'S', { minutes: 15, points: 20, tasks: 2, note: 'Rääkimine on paaris või õpetajaga: kõigepealt tutvumine, siis pilt ja küsimused, lõpuks ideekaart. Proovieksami eesmärk on vähemalt 16 punkti (80 %).' }),
+      S0('099_t_s0', ['Mis on teie nimi ja kust te pärit olete?', 'Mis tööd te teete?', 'Kui kaua te eesti keelt õpite?']),
+      S1('099_t_s1', ['Kes on pildil ja mida nad teevad?', 'Mis on seinal?', 'Mis on sinu plaan järgmiseks nädalaks?', 'Mida sa tavaliselt laupäeval teed?', 'Kumb sulle rohkem meeldib, tööpäev või vaba päev? Miks?'], 'a2-085'),
+      S2('099_t_s2', 'Kodu', 'Õhtu pärast tööd. A läheb esimest korda B-le külla ja küsib tema kodu kohta.', ['Kas sa elad korteris või majas?', 'Mitu tuba teil on?', 'Millised on su naabrid?', 'Mis sulle kodus kõige rohkem meeldib?', 'Kuidas sa siit tööle saad?'], ['Korteris, neljandal korrusel', 'Kolm tuba ja köök', 'Vanad ja sõbralikud', 'Suur aken parki', 'Bussiga, kakskümmend minutit']),
+      B.rubricSpeaking('099_t_rs'),
+      B.table('099_t_compare', 'Võrdle punkte.', 'Kirjuta oma Kontroll 20 ja Proovieksam 3 punktid. Märgi, kus sa oled juba 80 % juures.', 'Osa, Kontroll 20, Proovieksam 3, Muutus', ['Lugemine | | | ', 'Kuulamine | | | ', 'Kirjutamine | | | ', 'Rääkimine | | | ']),
+      B.selfcheck('099_t_self', ['Ma teen kõik neli osa õigel ajal.', 'Ma võrdlen punkte: parem, rohkem, vähem kui.', 'Ma tean, mis osas ma olen juba 80 % juures.', 'Ma tean oma järgmist sammu enne eksamit.'], 'Proovieksam 3 on tehtud'),
     ],
   },
 
   'a2-100': {
-    title: 'Kontroll 20 — A2 lõpphindamine',
+    title: 'Lõpphindamine: A2 on käes',
     assessment: true,
-    canDo: 'Ma lahendan A2 lõpphindamise neli osa iseseisvalt, hindan oma oskusi „Ma oskan…” lausetega ja koostan oma A2 → B1 plaani.',
+    canDo: 'Ma lahendan lõpphindamise neli osa iseseisvalt, hindan oma oskusi „Ma oskan…” lausetega ja koostan oma plaani B1 poole (eesmärk on vähemalt 80% igas osas).',
     discover: [
-      B.text('100_d_situation', 'Kursuse viimane tund', 'Oksana alustas A2 kursust aasta tagasi. Siis oskas ta ainult ennast tutvustada. Nüüd ajab ta eesti keeles asju poes, arsti juures ja tööl. Järgmisena tahab ta õppida B1 tasemel. Ja sina?'),
-      B.truefalse('100_d_tf', 'Õige või vale?', 'Loe sissejuhatust. Kas lause on õige?', [
-        ['Oksana alustas kursust kuu aega tagasi.', false],
-        ['Kursuse alguses oskas Oksana ennast tutvustada.', true],
-        ['Nüüd räägib Oksana arsti juures eesti keelt.', true],
-        ['Oksana ei taha enam eesti keelt õppida.', false],
-        ['Oksana järgmine eesmärk on B1.', true],
+      B.text('100_d_situation', 'Kursuse viimane tund', 'Esmaspäev, 6. detsember. Kursuse viimane tund. Laupäeval on eksam. Olga alustas A2 kursust aasta tagasi. Siis oskas ta ainult ennast tutvustada. Nüüd ajab ta eesti keeles asju poes, arsti juures ja tööl. Täna teed sina viimase proovi, Lõpphindamise. See leht on soojendus.'),
+      B.truefalse('100_d_tf', 'Mis on sellest aastast meeles?', 'Mõtle Olga loole ja ütle, kas see, mida Lucía räägib, on nii.', [
+        ['Olga alustas kursust kuu aega tagasi.', false], ['Kursuse alguses oskas Olga ennast tutvustada.', true], ['Nüüd räägib Olga arsti juures eesti keelt.', true], ['Olga ei taha enam eesti keelt õppida.', false], ['Olga järgmine eesmärk on B1.', true],
       ], 'full'),
-      B.reading('100_d_read', 'Loe: Oksana A2 teekond.', 'Loe tekst ja vasta küsimustele.', 'Oksana aasta',
-        'Aasta tagasi tuli Oksana esimesse eesti keele tundi. Ta oskas öelda ainult oma nime ja vanust. Poes näitas ta näpuga. Arsti juurde läks ta koos tütrega, sest tütar rääkis eesti keelt. Kursusel õppis ta kõigepealt rääkima endast ja oma perest. Siis tulid pood, linn, tervis ja töö. Kõige raskem oli Oksanale minevik. „Läksin, tulin, tegin” – need vormid tundusid võimatud. Ta kirjutas iga päev kolm lauset oma päevast. Pool aastat hiljem märkas ta, et vormid tulevad ise. Nüüd helistab Oksana ise perearstile ja paneb aja kinni. Tööl räägib ta kolleegidega lõunal eesti keeles. Proovieksamil sai ta 61 punkti 80-st. Kõige parem oli lugemine, kõige nõrgem kuulamine. Järgmisel aastal tahab Oksana teha B1 eksami. Tema plaan on lihtne: iga päev kümme minutit raadiot ja kord nädalas vestlusklubi raamatukogus.',
-        [['Mida oskas Oksana aasta tagasi öelda?', 'oma nime ja vanust|nime ja vanust'], ['Miks läks Oksana arsti juurde koos tütrega?', 'tütar rääkis eesti keelt|ta ei osanud ise eesti keelt'], ['Mis oli Oksanale kõige raskem?', 'minevik|mineviku vormid'], ['Kuidas Oksana minevikku harjutas?', 'kirjutas iga päev kolm lauset|kirjutas iga päev oma päevast'], ['Kas Oksana sooritaks eksami 61 punktiga? Miks?', 'jah, sest see on üle 48 punkti|jah, üle 60 %|jah'], ['Mida Oksana B1 jaoks teeb?', 'kuulab raadiot ja käib vestlusklubis|iga päev raadio, kord nädalas vestlusklubi']]),
+      B.reading('100_d_read', 'Olga A2 teekond.', 'Olga kirjutas kursuse lehele oma loo. Loe seda ja vasta igale küsimusele lühidalt.', 'Olga aasta', [
+        'Aasta tagasi tulin ma esimesse eesti keele tundi. Ma oskasin öelda ainult oma nime ja vanust. Poes näitasin ma näpuga. Arsti juurde läksin ma koos naabriga, sest naaber rääkis eesti keelt. Kursusel õppisin ma kõigepealt rääkima endast ja oma perest. Siis tulid pood, linn, tervis ja töö.',
+        'Kõige raskem oli minevik. „Läksin, tulin, tegin” – need vormid tundusid võimatud. Ma kirjutasin iga päev kolm lauset oma päevast. Pool aastat hiljem märkasin ma, et vormid tulevad ise. Nüüd helistan ma ise perearstile ja panen aja kinni. Tööl räägin ma kolleegidega lõunal eesti keeles.',
+        'Kuulamine on mul veel kõige nõrgem. Järgmisel aastal tahan ma teha B1 eksami. Minu plaan on lihtne: iga päev kümme minutit raadiot ja kord nädalas rääkimisklubi.',
+      ].join('\n\n'), [
+        ['Mida oskas Olga aasta tagasi öelda?', 'oma nime ja vanust|nime ja vanust'], ['Miks läks Olga arsti juurde koos naabriga?', 'naaber rääkis eesti keelt|ta ei osanud ise eesti keelt'], ['Mis oli Olgale kõige raskem?', 'minevik|mineviku vormid'], ['Kuidas Olga minevikku harjutas?', 'kirjutas iga päev kolm lauset|kirjutas iga päev oma päevast'], ['Mis on Olgal praegu kõige nõrgem?', 'kuulamine'], ['Mida Olga B1 jaoks teeb?', 'kuulab raadiot ja käib rääkimisklubis|iga päev raadio, kord nädalas rääkimisklubi'],
+      ]),
       B.notice('100_d_notice', 'Märka: kuidas ennast hinnata.', ['**Ma oskan** perearstile helistada.', '**Ma oskan juba** kolleegidega rääkida.', '**Ma veel ei oska** kiiret kõnet hästi kuulata.', '**Mul on vaja** rohkem kuulamist harjutada.', '**Järgmisena tahan** teha B1 eksami.', 'oskan + **da**-vorm: oskan **rääkida**, oskan **kirjutada**'], 'full'),
-      B.categorize('100_d_cat', 'Mis osaoskus?', 'Pane iga „Ma oskan…” lause õige osa alla.', [
-        ['Lugemine', ['loen kuulutust', 'leian sildilt lahtiolekuaja']],
-        ['Kuulamine', ['saan aru teatest jaamas', 'kirjutan telefonist kuuldud kellaaja']],
-        ['Kirjutamine', ['kirjutan kutse', 'täidan ankeedi']],
-        ['Rääkimine', ['kirjeldan pilti', 'panen telefonis aja kinni']],
+      B.categorize('100_d_cat', 'Mis osaoskus?', 'Pane iga „Ma oskan…” lause selle osa alla, kuhu see kuulub.', [
+        ['Lugemine', ['loen kuulutust', 'leian sildilt lahtiolekuaja']], ['Kuulamine', ['saan aru teatest jaamas', 'kirjutan telefonist kuuldud kellaaja']], ['Kirjutamine', ['kirjutan kutse', 'täidan ankeedi']], ['Rääkimine', ['kirjeldan pilti', 'panen telefonis aja kinni']],
       ], 'full', 'g_vocab'),
-      B.wordforms('100_d_da', 'Ma oskan + da-vorm.', 'Kirjuta tegusõna da-vormis.', [
+      B.wordforms('100_d_da', 'Ma oskan + da-vorm.', 'Mida sa oskad? Kirjuta iga tegusõna da-vormis.', [
         ['rääkima', 'Ma oskan …', 'rääkida'], ['kirjutama', 'Ma oskan …', 'kirjutada'], ['lugema', 'Ma oskan …', 'lugeda'], ['helistama', 'Ma oskan arstile …', 'helistada'], ['kuulama', 'Ma oskan raadiot …', 'kuulata'], ['täitma', 'Ma oskan ankeeti …', 'täita'],
       ]),
-      B.gaps('100_d_gaps', 'Oksana lausetes.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
-        'Aasta tagasi [tuli] (tulema) Oksana esimesse tundi.', 'Ta [ei osanud] (oskama, eitus) palju öelda.', 'Nüüd helistab ta ise [perearstile] (perearst).', 'Lõunal räägib ta [kolleegidega] (kolleegid).', 'Kuulamine on talle [raskem] (raske) kui lugemine.', 'Kord nädalas läheb ta [raamatukokku] (raamatukogu).',
+      B.gaps('100_d_gaps', 'Olga lausetes.', 'Olga loos on sõnad puudu. Kirjuta sulgudes olev sõna lausesse õiges vormis.', [
+        'Aasta tagasi [tuli] (tulema) Olga esimesse tundi.', 'Ta [ei osanud] (oskama, eitus) palju öelda.', 'Nüüd helistab ta ise [perearstile] (perearst).', 'Lõunal räägib ta [kolleegidega] (kolleegid).', 'Kuulamine on talle [raskem] (raske) kui lugemine.', 'Kord nädalas läheb ta [rääkimisklubisse] (rääkimisklubi).',
       ]),
-      B.errorfix('100_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
-        ['Ma oskan rääkima eesti keelt.', 'Ma oskan rääkida eesti keelt.'], ['Aasta tagasi ma ei oskasin midagi.', 'Aasta tagasi ma ei osanud midagi.'], ['Ma helistan perearst.', 'Ma helistan perearstile.'], ['Kuulamine on raskem lugemine.', 'Kuulamine on raskem kui lugemine.'], ['Ma lähen vestlusklubis.', 'Ma lähen vestlusklubisse.'], ['Mina meeldib eesti keel.', 'Mulle meeldib eesti keel.'], ['Ma räägin kolleegid eesti keeles.', 'Ma räägin kolleegidega eesti keeles.'], ['Ma tahan teha B1 eksam.', 'Ma tahan teha B1 eksami.'],
+      B.transformation('100_d_trans', 'Siis ja nüüd.', 'Mis on aastaga muutunud? Kirjuta lause antud sõnaga.', [
+        ['Ma ei oska helistada.', 'nüüd', 'Nüüd ma oskan helistada.|Nüüd oskan ma helistada.'], ['Ma oskan ainult nime öelda.', 'aasta tagasi', 'Aasta tagasi ma oskasin ainult nime öelda.|Aasta tagasi oskasin ma ainult nime öelda.'], ['Kuulamine on raske. Lugemine on kerge.', 'raskem kui', 'Kuulamine on raskem kui lugemine.'], ['Ma kuulan raadiot.', 'pean', 'Ma pean raadiot kuulama.'], ['Ma lähen rääkimisklubisse.', 'tahan', 'Ma tahan rääkimisklubisse minna.|Ma tahan minna rääkimisklubisse.'],
       ]),
-      B.listening('100_d_listen', 'Kuula: õpetaja soovitused.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Head õppijad! A2 on käes või peaaegu käes. Mis edasi?',
-        'Kuulake iga päev vähemalt kümme minutit eesti raadiot.',
-        'Lugege lihtsaid uudiseid. Neid on internetis palju.',
-        'Kirjutage nädalas üks lühike kiri või sõnum, näiteks sõbrale.',
-        'Rääkige eesti keelt ka poes ja tööl, isegi kui teete vigu.',
-        'Raamatukogus on igal neljapäeval vestlusklubi. See on tasuta.',
-        'B1 kursus algab veebruaris. Registreerida saab jaanuaris.',
-      ], ['Raadiot tuleb kuulata iga päev [kümme minutit|10 minutit].', 'Internetis saab lugeda lihtsaid [uudiseid].', 'Nädalas tuleb kirjutada üks [kiri|sõnum].', 'Vestlusklubi on igal [neljapäeval].', 'Vestlusklubi on [tasuta].', 'B1 kursus algab [veebruaris].']),
-      D('100_d_dict', ['Ma oskan perearstile helistada.', 'Ma saan aru lühikestest teadetest.', 'Kirjutamine on mulle veel raske.', 'Ma tahan teha B1 eksami.', 'Iga päev kuulan ma raadiot.', 'Kord nädalas käin vestlusklubis.', 'Ma loen lihtsaid uudiseid.', 'Ma ei karda enam rääkida.']),
-      B.transformation('100_d_trans', 'Siis ja nüüd.', 'Kirjuta lause antud sõnaga.', [
-        ['Ma ei oska helistada.', 'nüüd', 'Nüüd ma oskan helistada.|Nüüd oskan ma helistada.'], ['Ma oskan ainult nime öelda.', 'aasta tagasi', 'Aasta tagasi ma oskasin ainult nime öelda.|Aasta tagasi oskasin ma ainult nime öelda.'], ['Kuulamine on raske. Lugemine on kerge.', 'raskem kui', 'Kuulamine on raskem kui lugemine.'], ['Ma kuulan raadiot.', 'pean', 'Ma pean raadiot kuulama.'], ['Ma lähen vestlusklubisse.', 'tahan', 'Ma tahan vestlusklubisse minna.|Ma tahan minna vestlusklubisse.'],
-      ]),
+      B.dictation('100_d_dict', 'Viimane etteütlus.', 'Õpetaja loeb kuus lauset sellest, mida õppija oskab. Kirjuta iga lause üles.', ['Ma oskan perearstile helistada.', 'Ma saan aru lühikestest teadetest.', 'Kirjutamine on mulle veel raske.', 'Ma tahan teha B1 eksami.', 'Kord nädalas käin ma rääkimisklubis.', 'Ma ei karda enam rääkida.'], 6),
       B.writing('100_d_write', 'Minu A2 aasta.', 'Kirjuta 5–7 lauset: mida oskasid alguses, mida oskad nüüd, mis on veel raske.', [5, 7], ['alguses', 'nüüd', 'oskan', 'veel'], 3),
-      B.speaking('100_d_say', 'Mida sa nüüd oskad?', 'Räägi paarilisele 1–2 minutit.', ['Mida sa kursuse alguses oskasid?', 'Mida sa nüüd eesti keeles teed?', 'Mis on veel raske?', 'Mida sa järgmisena tahad õppida?'], [60, 120], ['Alguses ma oskasin ainult…', 'Nüüd ma oskan…', 'Mul on vaja rohkem…']),
+      B.rolecards('100_d_cards', 'Mida sa nüüd oskad?', 'A küsib, mida B aasta jooksul õppis, B vastab. Siis vahetage.',
+        'Küsi neli küsimust: mis oli raske, mis on nüüd kerge, kus sa eesti keelt räägid, mis on järgmine samm.', 'Vasta igale küsimusele kahe lausega.',
+        ['Mis oli sulle kõige raskem?', 'Kus sa nüüd eesti keelt räägid?', 'Mis on sinu järgmine samm?'], ['Alguses oli raske …', 'Nüüd ma räägin …', 'Järgmisena tahan …']),
+      teach(B.speaking('100_d_warm', 'Kuidas aasta läks?', 'Räägi õpetajale umbes kaks minutit, kuidas sinu aasta läks.', ['Mida sa kursuse alguses oskasid?', 'Mida sa nüüd eesti keeles teed?', 'Mis on veel raske?', 'Mida sa järgmisena tahad õppida?'], [60, 120], ['Alguses ma oskasin ainult …', 'Nüüd ma oskan …', 'Mul on vaja rohkem …']),
+        'Õpetaja kuulab ega paranda. See on soojendus ja väike tagasivaade.'),
     ],
     practice: [
-      B.tip('100_p_how', 'Lõpphindamine. Osa A ja B', `Osa B on lugemine ja kuulamine, osa A on keel. Tee kõik ilma abita. Kuulamistekstid loeb õpetaja kaks korda. ${POINTS} Eesmärk on vähemalt 70 %.`, 'full'),
-      // reading 1: everyday phrases and politeness
-      B.choice('100_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
-        ['Kolleeg läheb homme eksamile. Mida ütled?', 'Edu!', 'Terviseks!', 'Head isu!'],
-        ['Sa kohtad õhtul naabrit. Mida ütled?', 'Tere õhtust!', 'Tere hommikust!', 'Head ööd!'],
-        ['Sõber aevastab. Mida ütled?', 'Terviseks!', 'Edu!', 'Palju õnne!'],
-        ['Sa ei saanud telefonis nimest aru. Mida ütled?', 'Vabandust, kas te saaksite nime korrata?', 'Aitäh, kõik on selge.', 'Head aega!'],
-        ['Sõber kutsub sind kinno, aga sul pole aega. Mida ütled?', 'Aitäh, aga täna ma kahjuks ei saa.', 'Jah, tulen hea meelega!', 'Pole tänu väärt.'],
-        ['Reede õhtul lahkud töölt. Mida ütled kolleegidele?', 'Head nädalavahetust!', 'Head uut aastat!', 'Tere tulemast!'],
+      PART('100_p_wpart', 'W', { minutes: 30, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Kirjutage kõigist punktidest. Teises ülesandes valige üks kahest teemast. Lõpphindamise eesmärk on vähemalt 16 punkti (80 %).' }),
+      W1('100_p_w1', 'Keelekool Samm-sammult · Kooli 4, Pärnu, bussijaama lähedal · B1 kursus T ja N 18–20, algus 1. veebruaril · tel 5600 7700 · info@sammsammult.ee', ['Mis kool see on ja mis kursus seal on?', 'Kus kool asub?', 'Millal kursus toimub?', 'Kuidas saab registreerida?']),
+      B.rubricW1('100_p_rw1', ['mis kool ja kursus', 'kus kool asub', 'millal kursus toimub', 'kuidas registreerida']),
+      W2A('100_p_w2a', 'Sinu sõber kolib teise linna. Sina korraldad talle väikese peo. Kirjuta teisele sõbrale.', ['Miks sa peo teed?', 'Kus ja millal pidu on?', 'Mida tuleb kaasa võtta?']),
+      W2B('100_p_w2b', 'Minu eesti keele aasta', ['Mida sa aasta alguses oskasid?', 'Mida sa nüüd oskad?', 'Mis on sinu jaoks veel raske?']),
+      B.rubricW2('100_p_rw2'),
+      PART('100_p_rpart', 'R', { minutes: 50, points: 29, tasks: 5, note: 'Viis ülesannet nagu eksamil. Tehke kõik ilma abita. Eksamil on selle osa eest 20 punkti, õpetaja arvutab tulemuse ümber. Lõpphindamise eesmärk on vähemalt 24 punkti (80 %).' }),
+      R1('100_p_r1', [
+        ['Kolleeg läheb homme eksamile. Mida ütled?', 'Edu!', 'Terviseks!', 'Head isu!'], ['Sa kohtad õhtul naabrit. Mida ütled?', 'Tere õhtust!', 'Tere hommikust!', 'Head ööd!'], ['Sõber aevastab. Mida ütled?', 'Terviseks!', 'Edu!', 'Palju õnne!'],
+        ['Sa ei saanud telefonis nimest aru. Mida ütled?', 'Vabandust, palun korrake nime!', 'Aitäh, kõik on selge.', 'Head aega!'], ['Sõber kutsub sind kinno, aga sul pole aega. Mida ütled?', 'Aitäh, aga täna ma kahjuks ei saa.', 'Jah, tulen hea meelega!', 'Pole tänu väärt.'], ['Reede õhtul lahkud töölt. Mida ütled kolleegidele?', 'Head nädalavahetust!', 'Head uut aastat!', 'Tere tulemast!'],
       ]),
-      // reading 2: three short texts, answers by letter
-      B.reading('100_p_three', 'Lugemine 2. Kolm teksti.', 'Loe tekste. Vasta tähega (A, B, C) ja lühidalt.', 'Kuulutus, teade, sõnum',
-        'A. Kadunud kass! Meie hall kass Miisu kadus pühapäeva õhtul Kuuse tänaval. Tal on valge saba ja punane kaelarihm. Miisu on sõbralik, aga kardab koeri. Kui sa nägid teda, palun helista: 5233 4455. Leidjale anname 50 eurot. Aitäh! Perekond Tamm\n\nB. Linnaraamatukogu teatab: suvel muutuvad lahtiolekuajad. Juunis, juulis ja augustis oleme avatud E–R kella kümnest kuueni. Laupäeval ja pühapäeval on raamatukogu suletud. Raamatuid saab tagastada ka maja ees olevasse kasti. Lastele on suvel lugemisvõistlus.\n\nC. Tere, Anna! Tänan, et sa eile lapsi hoidsid. Nad räägivad ainult sinust! Kahjuks unustas Eliise sinu juurde oma mütsi. Kas ma võin homme pärast tööd selle ära tuua? Ma saan tulla umbes kella kuue paiku. Kui see ei sobi, kirjuta mulle. Liis',
-        [['Kes otsib oma looma?', 'A|perekond Tamm'], ['Kes tahab midagi ära tuua?', 'C|Liis'], ['Kuhu saab suvel raamatuid tagastada?', 'B|kasti|maja ees olevasse kasti'], ['Mis värvi on kassi kaelarihm?', 'A|punane'], ['Millal on raamatukogu suvel suletud?', 'B|laupäeval ja pühapäeval|nädalavahetusel'], ['Mida Eliise unustas?', 'C|mütsi|oma mütsi']]),
-      // reading 3: notices matched to situations (5 items, 2 extra)
-      B.notice('100_p_signlist', 'Lugemine 3. Kuulutused', ['A — Juuksur: aeg ainult internetis', 'B — Tasuta parkimine 2 tundi', 'C — Pood: E–P 8–22', 'D — Rattaparandus: valmib 1 päevaga', 'E — Ujula suletud 1.–15. juulini', 'F — Pagariäri: värske sai iga päev kell 7', 'G — Kirjad ja pakid: kontor 2. korrusel'], 'full', 'g_read'),
-      B.table('100_p_signs', 'Lugemine 3. Kuhu sa lähed?', 'Kirjuta iga olukorra juurde kuulutuse täht. Kaks jääb üle.', 'Olukord, Kuulutus', [
-        'Sa tahad hommikul sooja saia. | [F]', 'Sa tahad pühapäeva õhtul piima osta. | [C]', 'Sinu jalgratas on katki. | [D]', 'Sa tahad juukseid lõigata. | [A]', 'Juuli alguses ei saa siin ujuda. | [E]',
-      ], 'g_read'),
-      // reading 4: a ~145-word text, 5 questions with 3 options
-      B.reading('100_p_text', 'Lugemine 4. Jaani peenar.', 'Loe tekst. Siis vasta kahele küsimusele lühidalt.', 'Jaani peenar',
-        'Jaan elab Tallinnas kortermajas. Tal ei ole oma aeda, aga ta armastab köögivilju kasvatada. Eelmisel kevadel kuulis ta raadiost, et linnas on uus ühine aed. Seal saab iga inimene rentida väikese peenra. Rent maksab kakskümmend eurot aastas. Jaan läks kohe vaatama. Aed asub jõe ääres, bussipeatusest viie minuti kaugusel. Jaan istutas kartulit, porgandit ja tilli. Vett saab võtta suurest tünnist. Aias on ka väike maja, kus on tööriistad. Iga kuu esimesel laupäeval teevad kõik koos talgud. Pärast talguid süüakse koos suppi. Jaani naaber aias on vanem proua Maie. Ta õpetas Jaanile palju. Sügisel oli saak hea. Jaan andis porgandeid ka oma kolleegidele. Järgmisel aastal tahab ta kasvatada ka maasikaid.',
-        [['Kus aed asub?', 'jõe ääres'], ['Mida Jaan istutas?', 'kartulit, porgandit ja tilli|kartulit ja porgandit']]),
-      B.choice('100_p_textmc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti uuesti. Vali üks vastus.', [
-        ['Miks rendib Jaan peenra?', 'Tal ei ole oma aeda.', 'Ta tahab tööd leida.', 'Tal on vaja raha.'],
-        ['Kui palju maksab peenar?', '20 eurot aastas', '20 eurot kuus', 'see on tasuta'],
-        ['Mida teevad inimesed iga kuu esimesel laupäeval?', 'teevad koos talgud', 'müüvad köögivilju', 'käivad jões ujumas'],
-        ['Kes on Maie?', 'Jaani naaber aias', 'Jaani kolleeg', 'aia juht'],
-        ['Mida tahab Jaan järgmisel aastal kasvatada?', 'maasikaid', 'kartulit', 'tilli'],
+      R2('100_p_r2', [
+        ['Kadunud kass', 'Kadunud kass! Meie hall kass Kiki kadus pühapäeva õhtul Kuuse tänaval. Tal on valge saba ja punane kaelarihm. Kiki on sõbralik, aga kardab koeri. Kui sa nägid teda, palun helista: 5233 4455. Leidjale anname 50 eurot. Lapsed on väga kurvad ja ootavad teda koju. Aitäh! Perekond Tamm'],
+        ['Raamatukogu suvel', 'Linnaraamatukogu teatab: suvel muutuvad lahtiolekuajad. Juunis, juulis ja augustis oleme avatud esmaspäevast reedeni kella kümnest kuueni. Laupäeval ja pühapäeval on raamatukogu suletud. Raamatuid saab tagastada ka maja ees olevasse kasti. Lastele on suvel lugemisvõistlus ja võitja saab raamatu.'],
+        ['Unustatud müts', 'Tere, Anna! Tänan, et sa eile lapsi hoidsid. Nad räägivad ainult sinust! Kahjuks unustas Eliise sinu juurde oma mütsi. Kas ma võin homme pärast tööd selle ära tuua? Ma saan tulla umbes kella kuue paiku. Kui see ei sobi, kirjuta mulle. Toon sulle kooki ka. Kaja'],
+      ], [['Selle teksti kirjutaja otsib oma looma.', 'A'], ['See inimene tahab midagi ära tuua.', 'C'], ['Siia saab raamatu tuua ka siis, kui uks on kinni.', 'B'], ['Selles tekstis on kirjas looma kaelarihma värv.', 'A'], ['Nädalavahetusel ei saa siia sisse.', 'B'], ['Selle kirja kirjutaja tänab abi eest.', 'C']]),
+      tag(B.match('100_p_r3', 'Lugemine 3. Sildid ja teated.', 'Lugege silte. Ühendage iga silt selle tähendusega.', [
+        ['Juuksur: aeg ainult internetis', 'Sa pead enne arvuti taga aja kinni panema.'], ['Pood: E–P 8–22', 'Sa saad pühapäeva õhtul piima osta.'], ['Rattaparandus: valmib 1 päevaga', 'Sinu jalgratas on homme korras.'], ['Ujula suletud 1.–15. juulini', 'Juuli alguses ei saa siin ujuda.'], ['Pagariäri: värske sai iga päev kell 7', 'Hommikul saad siit sooja saia.'],
+      ], 'full', 'g_read'), { task: 'R07', harno: 'R3' }),
+      B.reading('100_p_text', 'Lugemine 4. Jaani peenar.', 'Lugege ajakirjast lugu ühest linnamehest ja tema aiast. Küsimused on järgmises ülesandes.', 'Jaani peenar', [
+        'Jaan elab Tallinnas vanas puumajas. Tal ei ole oma aeda, aga ta armastab köögivilju kasvatada. Eelmisel kevadel kuulis ta raadiost, et linnas on uus ühine aed. Seal saab iga inimene rentida väikese peenra. Rent maksab kakskümmend eurot aastas. Jaan läks kohe vaatama, sest ta tahtis oma lastele näidata, kuidas toit kasvab.',
+        'Aed asub jõe ääres, bussipeatusest viie minuti kaugusel. Jaan istutas kartulit, porgandit ja tilli. Vett saab võtta suurest tünnist. Aias on ka väike maja, kus on tööriistad. Iga kuu esimesel laupäeval teevad kõik koos aias tööd. Pärast seda süüakse koos suppi.',
+        'Jaani naaber aias on vanem proua Leida. Ta õpetas Jaanile palju. Sügisel oli saak hea. Jaan andis porgandeid ka oma kolleegidele ja kohvikus tehti neist hea supp. Järgmisel aastal tahab ta kasvatada ka maasikaid.',
+      ].join('\n\n'), []),
+      R4('100_p_r4', [
+        ['Miks rendib Jaan peenra?', 'Tal ei ole oma aeda.', 'Ta tahab tööd leida.', 'Tal on vaja raha.'], ['Kui palju maksab peenar?', '20 eurot aastas', '20 eurot kuus', 'see on tasuta'], ['Mida teevad inimesed iga kuu esimesel laupäeval?', 'teevad koos aias tööd', 'müüvad köögivilju', 'käivad jões ujumas'],
+        ['Kes on Leida?', 'Jaani naaber aias', 'Jaani kolleeg', 'aia juht'], ['Mida tahab Jaan järgmisel aastal kasvatada?', 'maasikaid', 'kartulit', 'tilli'],
       ]),
-      // reading 5: a personal letter, 8 gaps with 3 options
-      B.cloze('100_p_cloze', 'Lugemine 5. Kiri sõbrale.', 'Vali igasse lünka sobiv sõna.', 'Kallis Markus!', [
-        'Aitäh, et sa eile mind {*aitasid|aitad|aitama}! Üksi oleks kolimine olnud väga raske. Uus korter on {*suurem|suur|suurim} kui vana. Mul on nüüd ka rõdu. Hommikul joon ma {*rõdul|rõdule|rõdult} kohvi. Lähim pood on {*maja|majas|majja} kõrval. Täna {*ei läinud|ei läksin|ei minema} ma tööle, sest pakkisin kaste lahti.',
+      R5('100_p_r5', 'Kallis Markus!', [
+        'Aitäh, et sa eile mind {*aitasid|aitad|aitama}! Üksi oli kolimine väga raske. Uus korter on {*suurem|suur|suurim} kui vana. Mul on nüüd ka rõdu. Hommikul joon ma {*rõdul|rõdule|rõdult} kohvi. Lähim pood on {*maja|majas|majja} kõrval. Täna {*ei läinud|ei läksin|ei minema} ma tööle, sest pakkisin kaste lahti.',
         '',
-        'Järgmisel laupäeval teen väikese peo. Kas sa {*tahaksid|tahtma|tahta} tulla? Pidu algab kell kuus. Sa võid {*kaasa võtta|kaasa võtma|kaasa võtad} ka oma naise. Kirjuta, kas sa {*saad|saada|saame} tulla!',
+        'Järgmisel laupäeval teen väikese peo. Kas sa {*tahad|tahtma|tahta} tulla? Pidu algab kell kuus. Sa võid {*kaasa võtta|kaasa võtma|kaasa võtad} ka oma õe. Kirjuta, kas sa {*saad|saada|saame} tulla!',
         '',
         'Sinu sõber Andrei',
       ]),
-      // listening: an announcement and a phone call, answers of 1–2 words
-      B.listening('100_p_listen', 'Kuulamine 1. Spordiklubi teade.', 'Õpetaja loeb teate kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Siin on spordiklubi „Energia”. Kuulake meie uudiseid.',
-        'Alates esmaspäevast on klubi avatud juba kell kuus hommikul.',
-        'Uus treener Kati juhib joogat teisipäeval ja neljapäeval.',
-        'Tund kestab üks tund ja algab kell seitse õhtul.',
-        'Võtke kaasa oma matt ja veepudel.',
-        'Kuu pilet maksab nüüd kolmkümmend viis eurot.',
-        'Õpilastele ja pensionäridele on pilet kakskümmend eurot.',
-        'Parkida saab maja taga, see on tasuta.',
-      ], ['Klubi on avatud kell [kuus|6] hommikul.', 'Jooga treener on [Kati].', 'Jooga on teisipäeval ja [neljapäeval].', 'Kaasa tuleb võtta matt ja [veepudel|vesi].', 'Kuu pilet maksab [kolmkümmend viis|35] eurot.', 'Parkida saab maja [taga].']),
-      B.listening('100_p_listen2', 'Kuulamine 2. Ema sünnipäev.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
-        '— Tere, ema! Kuidas läheb?', '— Tere, Anna! Hästi. Kas sa tuled laupäeval minu sünnipäevale?',
-        '— Muidugi tulen! Mis kell?', '— Tule kell kolm. Tädi Malle tuleb ka.',
-        '— Mida ma kaasa võtan? Kas teen salatit?', '— Ei, salati teen ise. Palun too kook.',
-        '— Hea. Kas šokolaadikook või õunakook?', '— Isa armastab õunakooki. Too see.',
-        '— Selge. Ma tulen rongiga, sest auto on remondis.', '— Siis isa tuleb sulle jaama vastu.',
-        '— Aitäh! Rong jõuab kohale veerand kolm.', '— Väga hea. Ootame sind!',
-      ], ['Ema sünnipäev on [laupäeval].', 'Anna peab tulema kell [kolm|3|15].', 'Salati teeb [ema].', 'Anna toob [õunakoogi|õunakooki|kooki].', 'Anna sõidab [rongiga].', 'Jaama tuleb vastu [isa].']),
-      // part A: language, one task per lesson goal of the module (forms, places, errors)
-      B.gaps('100_p_forms', 'Osa A. Kirjuta õige vorm.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
-        'Kas sa saad mind homme [aidata] (aitama)?', 'Me [ei olnud] (olema, eitus) eile kodus.', 'Täna on ilm [soojem] (soe) kui eile.', 'Ma panen võtme [lauale] (laud).', 'Ta tuli just [poest] (pood).', 'Mul on kaks [venda] (vend).',
-      ]),
-      B.wordforms('100_p_where', 'Osa A. Kuhu, kus, kust?', 'Kirjuta sõna õiges vormis.', [
-        ['kool', 'kuhu?', 'kooli'], ['töö', 'kus?', 'tööl'], ['arst', 'kelle juurde?', 'arsti juurde'], ['turg', 'kust?', 'turult'], ['Tallinn', 'kuhu?', 'Tallinnasse|Tallinna'], ['saun', 'kus?', 'saunas'],
-      ]),
-      B.errorfix('100_p_fix', 'Osa A. Paranda viga.', 'Kirjuta lause õigesti.', [
-        ['Ma lähen poes.', 'Ma lähen poodi.'], ['Eile ma ei tulin.', 'Eile ma ei tulnud.'], ['Ta on suurem minu.', 'Ta on suurem kui mina.|Ta on minust suurem.'], ['Ma tahan õppima eesti keelt.', 'Ma tahan õppida eesti keelt.'], ['Mul on palju sõbrad.', 'Mul on palju sõpru.'], ['Mina meeldib jalgpall.', 'Mulle meeldib jalgpall.'], ['Ma sõidan rongis Tartusse.', 'Ma sõidan rongiga Tartusse.'], ['Ema palus tuua õunakook.', 'Ema palus tuua õunakoogi.'],
-      ]),
-      TR('100_p_tr', ['Я иду в школу.', 'Вчера меня не было дома.', 'Ты можешь мне помочь?', 'Сегодня теплее, чем вчера.', 'У меня два брата.']),
-      B.speaking('100_p_retell', 'Räägi kuuldust.', 'Räägi paarilisele Anna ema sünnipäevast.', ['Millal ja mis kell on sünnipäev?', 'Mida Anna kaasa võtab?', 'Kuidas Anna sinna sõidab?', 'Kes ta jaamas vastu võtab?'], [60, 90], ['Sünnipäev on…', 'Anna toob…', 'Ta sõidab…, sest…']),
     ],
     transfer: [
-      B.listening('100_t_message', 'Osa C. Jelena häälsõnum.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Siin Jelena. Mul on suur uudis: ma kolin Pärnusse!',
-        'Mu mees sai seal uue töö. Me kolime juba märtsis.',
-        'Ma otsin Pärnus ka tööd, võib-olla raamatukogus.',
-        'Ja ma tahan seal B1 kursusel käia. Kas sa tead mõnda head kooli?',
-        'Laupäeval teen väikese lahkumispeo. Kas sa aitad mul seda korraldada?',
-        'Helista mulle õhtul pärast kuut!',
-      ], ['Jelena kolib [Pärnusse].', 'Nad kolivad [märtsis].', 'Jelena tahab töötada [raamatukogus].', 'Ta tahab käia [B1] kursusel.', 'Lahkumispidu on [laupäeval].', 'Helistada tuleb pärast kella [kuut|6|18].']),
-      B.notice('100_t_card', 'Visiitkaart', ['Keelekool „Samm-sammult”', 'Kooli 4, Pärnu (bussijaama lähedal)', 'B1 kursus: T ja N kell 18–20, algus 1. veebruaril', 'Info ja registreerimine: 5600 7700, info@sammsammult.ee'], 'full', 'g_read'),
-      B.table('100_t_form', 'Täida kursuse registreerimisvorm.', 'Kirjuta oma andmed, nagu registreeruksid ise.', 'Andmed, Sinu vastus', ['Ees- ja perekonnanimi | ', 'Telefon või e-post | ', 'Minu tase praegu | ', 'Millal sul on aega õppida? | ', 'Miks sa tahad B1 kursusele tulla? | ']),
-      B.letter('100_t_info', 'Kirjutamine 1. Soovita kursust.', 'Kirjuta Jelenale: mis kursus, kus, millal, kuidas registreerida.', 'Tere, Jelena!', 'Edu Pärnus!', [25, 40]),
-      B.letter('100_t_invite', 'Kirjutamine 2. Kutse lahkumispeole.', 'Kutsu sõbrad Jelena lahkumispeole. Kirjuta: kus, millal, mida kaasa võtta, miks.', 'Head sõbrad!', 'Ootan teid!', [30, 50]),
-      B.speaking('100_t_pic', 'Rääkimine 1. Kirjelda pilti.', 'Õpetaja annab pildi „Kolimine”. Kirjelda umbes 1 minut ja vasta küsimustele.', ['Kes on pildil?', 'Mida nad teevad?', 'Mis on kastides?', 'Kas sina oled palju kolinud?'], [60, 90], ['Pildil on…', 'Nad tassivad…', 'Ma arvan, et…']),
-      B.rolecards('100_t_idea', 'Rääkimine 2. Ideekaart „Uus linn”.', 'A on Jelena ja küsib, B vastab. Siis vahetage.',
-        'Küsi 5 küsimust: korter, töö, kool lapsele, keelekursus, vaba aeg uues linnas.', 'Vasta igale küsimusele 2–3 lausega ja anna üks soovitus.',
-        ['Kus on hea korter leida?', 'Kus ma saan eesti keelt õppida?', 'Mida Pärnus vabal ajal teha?'], ['Ma soovitan…, sest…', 'Seal on…', 'Sa võid…']),
-      B.transformation('100_t_advice', 'Anna Jelenale nõu.', 'Kirjuta lause käskiva vormiga.', [
-        ['Sa pead registreeruma jaanuaris.', 'käsk', 'Registreeru jaanuaris!'], ['Sa pead helistama koolile.', 'käsk', 'Helista koolile!'], ['Sa võiksid raadiot kuulata.', 'käsk', 'Kuula raadiot!'], ['Sa ei pea kartma.', 'keeld', 'Ära karda!'], ['Sa ei pea kõike tõlkima.', 'keeld', 'Ära tõlgi kõike!'],
+      B.text('100_t_intro', 'Lõpphindamine: kuulamine ja rääkimine', 'Viimased kaks osa. Pildil rääkimisosas on Sofia oma vabal päeval linnas, kaart käes. Pärast rääkimist kirjutad oma plaani B1 poole.'),
+      PART('100_t_lpart', 'L', { minutes: 30, points: 25, tasks: 4, note: 'Iga teksti kuulete kaks korda. Enne iga ülesannet on aega küsimusi lugeda. Eksamil on selle osa eest 20 punkti, õpetaja arvutab tulemuse ümber. Lõpphindamise eesmärk on vähemalt 20 punkti (80 %).' }),
+      L1('100_t_l1', [
+        'Tähelepanu, reisijad! Lennuk Riiast hilineb nelikümmend minutit. Uus saabumise aeg on kell kaheksateist kakskümmend. Palun oodake teisel korrusel kohvikus. Vabandame ebamugavuse pärast ja täname teid!',
+        'Head kliendid! Täna on meie poes suur soodustus. Kõik talvejoped on poole odavamad. Pakkumine kehtib ainult täna kella üheksani õhtul. Jopesid leiate teiselt korruselt, trepist üles ja vasakule.',
+        'Tere, siin hambakliinik Naeratus. Teie aeg on homme kell üksteist, doktor Rebase juures. Palun tulge viisteist minutit varem. Kui te ei saa tulla, helistage meile täna kella viieni.',
+        'Tähelepanu! Kalamaja pargis on laupäeval suur jõulupidu. Pidu algab kell kolm ja on lastele tasuta. Lapsed saavad seal piparkooke teha. Kuuse juurde tuleb ka jõuluvana. Riietuge soojalt!',
+        'Ilmateade homseks. Hommikul on külm, kuni kümme kraadi alla nulli. Päeval paistab päike. Õhtul hakkab sadama lund. Autojuhid, olge õhtul teel ettevaatlikud. Tuul on nõrk.',
+        'Lapsevanemad, tähelepanu! Kooli jõulukontsert ei ole kolmapäeval, vaid neljapäeval. Kontsert algab kell kuus, aulas. Enne kontserti saab klassis kingitusi teha. Pärast kontserti on kohvilaud. Kooki toovad vanemad ise.',
+        'Hea raamatukogu lugeja! Teie raamat tuleb tagasi tuua reedeks. Kui te ei jõua, võite selle aega pikendada internetis või telefoni teel. Hilinemise eest maksate kümme senti päevas. Aitäh!',
+      ], [
+        ['Mis kell jõuab lennuk Riiast kohale?', 'kell 18.20', 'kell 18.40', 'kell 17.40'], ['Mis on täna poole odavam?', 'talvejoped', 'kingad', 'mütsid'], ['Mis kell on aeg hambaarsti juures?', 'kell 11', 'kell 5', 'kell 15'], ['Mida saavad lapsed peol teha?', 'piparkooke', 'lumememme', 'jõulukaarte'],
+        ['Mis õhtul juhtub?', 'hakkab sadama lund', 'paistab päike', 'on tugev tuul'], ['Mis päeval on kontsert?', 'neljapäeval', 'kolmapäeval', 'reedel'], ['Mis päevaks tuleb raamat tagasi tuua?', 'reedeks', 'esmaspäevaks', 'homseks'],
       ]),
-      B.writing('100_t_plan', 'Minu A2 → B1 plaan.', 'Kirjuta 5–7 lauset: tugev osa, nõrk osa, mida teed iga päev ja iga nädal.', [5, 7], ['iga päev', 'kord nädalas', 'tahan', 'pean'], 3),
-      B.speaking('100_t_self', 'Räägi oma plaanist.', 'Räägi paarilisele oma A2 → B1 plaanist umbes 1 minut.', ['Mis osa on sinu tugev osa?', 'Mida sa harjutad kõige rohkem?', 'Millal sa tahad teha B1 eksami?'], [60, 90], ['Minu tugev osa on…', 'Ma pean rohkem…', 'Ma tahan…']),
-      B.rubric('100_t_teacher', 'Osa C. Õpetaja hindab.', 'Iga kriteerium 0–2 punkti.', ['Ülesande täitmine: kõik punktid on vastatud (0–2 p).', 'Keel: vormid ja sõnajärg on arusaadavad (0–2 p).', 'Seotus ja suhtlus: laused on seotud, vestlus jätkub (0–2 p).']),
-      B.rubric('100_t_profile', 'Minu A2 profiil.', 'Kirjuta kõigi nelja osa punktid.', ['Lugemine: … / 20 p', 'Kuulamine: … / 20 p', 'Kirjutamine: … / 20 p', 'Rääkimine: … / 20 p', 'Kokku: … / 80 p. Harno: vähemalt 48 p ja ükski osa pole 0. KeeleSepp: 56 p (70 %).']),
-      B.selfcheck('100_t_self_check', ['Ma oskan kasutada A2 põhisõnavara ilma sõnaraamatuta.', 'Ma oskan saada lugemises ja kuulamises vähemalt 70 % õigeid vastuseid.', 'Ma oskan kasutada kus-, kuhu-, kust-vorme, ma- ja da-vormi ning minevikku.', 'Ma oskan kirjutada ja rääkida uues olukorras.', 'Ma oskan nimetada oma tugeva ja nõrga osa ning plaani B1 jaoks.'], 'A2 on käes — edasi B1 poole!'),
+      L2('100_t_l2', [
+        'Ülle: Tere, kuulajad! Paljud õppijad teevad sel laupäeval A2 eksami. Stuudios on õpetaja Maret ja tema õppija Sofia. Maret, mis saab pärast eksamit?',
+        'Maret: Tere! Kõigepealt puhake! Tulemused tulevad umbes kuu aja pärast. Aga ärge lõpetage eesti keelt. Kui keel seisab, siis see kaob.',
+        'Ülle: Sofia, mis teie plaan on?',
+        'Sofia: Tere! Ma tahan järgmisel sügisel B1 kursusele minna. Enne seda kuulan ma iga päev raadiot, kas või kümme minutit. Lugeda tahan ma lihtsaid uudiseid. Neid on internetis palju.',
+        'Ülle: Kas A2 on teile juba elus aidanud?',
+        'Sofia: Väga palju! Kevadel ma kartsin telefoni. Nüüd helistan ma klientidele ise. Mu ülemus Liis ütleb, et ma räägin juba julgelt, kuigi ma teen vigu.',
+        'Ülle: Maret, kas vigadega rääkimine on hea?',
+        'Maret: Parem kui vaikida! Inimene saab aru ka siis, kui lõpp on vale. Rääkige poes ja tööl, isegi kui teete vigu. Raamatukogus on igal neljapäeval vestlusklubi. See on tasuta.',
+        'Ülle: Kui suur vahe on A2 ja B1 vahel?',
+        'Maret: Päris suur. B1 jaoks tuleb õppida umbes aasta. Aga kui sa teed iga päev natuke, siis see õnnestub. Meie järgmine kursus algab veebruaris ja registreerida saab jaanuaris.',
+        'Ülle: Aitäh teile! Edu laupäevaks!',
+      ], [
+        ['Eksami tulemused tulevad järgmisel päeval.', false], ['Sofia tahab järgmisel sügisel B1 kursusele minna.', true], ['Sofia kardab endiselt telefoniga rääkida.', false], ['Liisi arvates räägib Sofia juba julgelt.', true], ['Vestlusklubi eest tuleb raamatukogus maksta.', false], ['Järgmine kursus algab veebruaris.', true],
+      ]),
+      L3('100_t_l3', [
+        'Ene: Head õppijad! Siin Ene. Täna oli viimane tund, seega räägin mõned tähtsad asjad veel kord ära. Eksam on laupäeval, üheteistkümnendal detsembril, Kase koolis. Olge kohal kell kaheksa kolmkümmend. Bussiga saab sinna numbriga seitseteist, peatus on Kase.',
+        'Ene: Võtke kaasa isikutunnistus või pass. Ilma dokumendita te eksamile ei saa. Söök on teie enda asi, aga koolis on kohvik, mis on laupäeval lahti kella kaheni. Rääkimine algab pärast lõunat, kell üks.',
+        'Ene: Pärast eksamit on meil väike pidu. Pidu on keelekoolis kell viis. Maret toob koogi ja Aune teeb kohvi. Tooge kaasa üks laul oma kodumaalt! Tulemused saate kirja teel, jaanuaris.',
+        'Ene: Ja veel: B1 kursuse info on kodulehel. Kui teil on küsimusi, helistage mulle kuni reedeni. Edu teile!',
+      ], ['Eksam toimub [Kase koolis].', 'Buss on number [seitseteist|17].', 'Dokument on [isikutunnistus|pass].', 'Rääkimine algab kell [üks|1|13].', 'Pidu algab kell [viis|5|17].', 'Tulemused tulevad [jaanuaris].']),
+      L4('100_t_l4', [
+        'Sofia: Tom, mis sa pärast eksamit teed? Ma olen nii väsinud, et tahan ainult magada.',
+        'Tom: Mina sõidan pühapäeval Londonisse. Emma ootab mind jõuludeks. Ja sina?',
+        'Sofia: Mina lähen Tartusse ema juurde. Aga enne tuleb Viktor mulle järele ja viib mind eksamile. Pärast eksamit ta parandab Dmitri ratta, see on juba mitu nädalat tema töökojas.',
+        'Tom: Dmitri rääkis, et ta sai sadamas uue koha. Jaanuarist töötab ta seal kontoris. Ta ütles, et kontoris on vaja palju eesti keelt.',
+        'Sofia: Väga tore! Aga Lucía? Tal on ju raske, sest ta on nii kaugel oma perest.',
+        'Tom: Lucía sõidab kaheks nädalaks Hispaaniasse. Tema ema Maria ootab teda. Ta tuleb tagasi ja läheb siis kohe vestlusklubisse.',
+        'Sofia: Olga rääkis, et ta sõidab jõuludeks lastega Narva oma õe juurde.',
+        'Tom: Tõesti? Lapsed on kindlasti väga rõõmsad. Kas ta jääb sinna kauaks?',
+        'Sofia: Ei, ainult üheks nädalaks. Ta ütles, et räägib seal õega ainult eesti keeles. Naljakas! Aga Maret? Ta on ju terve aasta meiega töötanud.',
+        'Tom: Maret läheb nädalaks Lapimaale. Ta ütles, et seal ei räägi keegi eesti keelt ja ta saab puhata.',
+        'Sofia: Ja Ene peab vist ikka tööl olema. Ta kirjutab juba uue kursuse nimekirja.',
+        'Tom: Jah, Ene ei puhka kunagi. Hästi, näeme laupäeval! Ära hiljaks jää!',
+      ], [['Tom', 'sõidab Londonisse.'], ['Dmitri', 'hakkab sadama kontoris tööle.'], ['Lucía', 'sõidab Hispaaniasse.'], ['Olga', 'sõidab lastega Narva.'], ['Maret', 'läheb Lapimaale.'], ['Ene', 'kirjutab uue kursuse nimekirja.']]),
+      PART('100_t_spart', 'S', { minutes: 15, points: 20, tasks: 2, note: 'Rääkimine on paaris või õpetajaga: kõigepealt tutvumine, siis pilt ja küsimused, lõpuks ideekaart. Lõpphindamise eesmärk on vähemalt 16 punkti (80 %).' }),
+      S0('100_t_s0', ['Kes te olete ja kust te tulete?', 'Kellega te koos elate?', 'Miks te eesti keelt õpite?']),
+      S1('100_t_s1', ['Kes on pildil ja kus ta on?', 'Mida ta vaatab ja mida ta teha tahab?', 'Mida sina oma vabal päeval teed?', 'Mis sinu linnas sulle kõige rohkem meeldib?', 'Kuhu sa järgmisena minna tahad?'], 'a2-021'),
+      S2('100_t_s2', 'Uus linn', 'Sõber kolib sinu linna. A on sõber ja küsib, B teab linna hästi. Siis vahetage.', ['Kus on hea korterit leida?', 'Kuidas siin tööle saab?', 'Kus lapsed koolis käivad?', 'Kus ma saan eesti keelt õppida?', 'Mida siin vabal ajal teha?'], ['Kesklinnas, aga seal on kallis', 'Bussiga, pilet on odav', 'Kase koolis, see on hea', 'Keelekoolis, õhtuti', 'Mere ääres jalutada']),
+      B.rubricSpeaking('100_t_rs'),
+      B.rubric('100_t_profile', 'Minu A2 profiil.', 'Kirjuta kõigi nelja osa tulemused protsentides. Õpetaja arvutab need 20 punkti skaalale.', ['Lugemine: … / 20 p', 'Kuulamine: … / 20 p', 'Kirjutamine: … / 20 p', 'Rääkimine: … / 20 p', 'Kokku: … / 80 p. Harno nõue: vähemalt 48 p ja ükski osa pole 0. KeeleSepa eesmärk: 80 % igas osas (16 p).', 'Kui mõni osa on alla 80 %, teen enne laupäeva selle osa ülesanded veel kord.']),
+      tag(B.writing('100_t_plan', 'Minu plaan B1 poole.', 'Kirjuta 5–7 lauset: mis osa on sul tugev, mis nõrk, mida teed iga päev ja iga nädal.', [5, 7], ['iga päev', 'kord nädalas', 'tahan', 'pean'], 3), { task: 'W11' }),
+      B.selfcheck('100_t_self', ['Ma kasutan A2 põhisõnavara ilma sõnaraamatuta.', 'Ma saan lugemises ja kuulamises vähemalt 80 % õigeid vastuseid.', 'Ma kasutan kus-, kuhu-, kust-vorme, ma- ja da-vormi ning minevikku.', 'Ma kirjutan ja räägin uues olukorras.', 'Ma nimetan oma tugeva ja nõrga osa ning plaani B1 jaoks.'], 'A2 on käes — edasi B1 poole!'),
     ],
   },
-};
+}, {
+  'a2-096': 'RÄÄK L→S', 'a2-097': 'EKS', 'a2-098': 'KIRJ R→W', 'a2-099': 'PROOV', 'a2-100': 'PROOV',
+});
