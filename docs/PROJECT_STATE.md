@@ -1,3 +1,9 @@
+## 2026-11-01 · agent/book-minu-eesti-keel — B1 and B2 modules improved from the themes of „Minu eesti keel”
+
+- Merged #954 (B1 m2), #951 (B1 m7), #953 (B2 m9), #952 (B2 m10). Published: B1 30 sheets (24 changed), B2 30 sheets (29 changed), `manualEditsOverwritten: 0`, re-check all „same”.
+- For the owner to confirm: Maie dated Sofia's father first (B1 m2). New cast facts are in the module entries below, not yet in `docs/COURSE_CAST.md`.
+- Next safe step: the rest of the book's pages and other B1 and B2 modules when the owner sends them.
+
 ## 2026-11-01 · agent/book-b2-m10 — B2 module 10: friendship and love vocabulary, forum, parallel stories, synonym swap
 
 - Owner: „улучшаем б1 и б2 модули” (topics and task types only from „Minu eesti keel”, all texts own). Checked `origin/main` 64248e4.
