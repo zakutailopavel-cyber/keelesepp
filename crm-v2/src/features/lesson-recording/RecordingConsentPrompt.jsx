@@ -34,7 +34,7 @@ export default function RecordingConsentPrompt({ students = [], user, role = 'st
   </>}>
     <div className="consent-prompt">
       <p><strong>{name ? `${name}: ` : ''}kas KeeleSepp võib veebitunde salvestada?</strong></p>
-      <p>Tunni heli muudetakse tekstiks, et õpetaja näeks pärast tundi, mida {name ? 'õpilane' : 'sa'} ütlesid ja mis vajab harjutamist.
+      <p>Tunni heli muudetakse tekstiks, et õpetaja näeks pärast tundi, mida {name ? 'õpilane ütles' : 'sa ütlesid'} ja mis vajab harjutamist.
         Salvestist näevad ainult õpetaja, {name ? 'õpilane' : 'sina'} ja kooli administraator. Heli kustutatakse 60 päeva pärast, tekst jääb õppeajalukku.
         Salvestamise ajal on tunniruumis näha „Tundi salvestatakse”.</p>
       <p lang="ru">{name ? `${name}: ` : ''}можно ли записывать онлайн-уроки? Звук урока превращается в текст, чтобы учитель после урока видел, что {name ? 'ученик говорил' : 'ты говорил(а)'} и что нужно потренировать.
