@@ -1,4 +1,4 @@
-## 2026-11-03 · agent/av-b1-module-03 — B1 module 3 (a2b1-011…015): academic value round 1
+## 2026-11-03 · agent/av-b1-module-03 (PR #1007) — B1 module 3 (a2b1-011…015): academic value round 1
 
 - Base: `main` dd48b88 (after #1002), checked 2026-11-03. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row: maja ja kodu (+ ümbruskond, kohad).
 - 011: topic opener `011_d_open` „Teema avaleht: kuidas Eesti elab” (census 2021: flat 67,9 % / house 29,3 %, Estonians 36 % vs Russians 8 % in houses, 71,9 % own / 18,3 % rent, average building 1965 / flat 1972, a quarter of dwellings without permanent residents; Tallinn's 8 districts, Lasnamäe ≈ 115 000 on 1.1.2026; 4 „Mõtle kaasa” questions incl. home country); `011_d_pic` one-minute picture talk + opinion (was 3 listeners); `011_p_radio` tagged `voice: 'interview'`.
