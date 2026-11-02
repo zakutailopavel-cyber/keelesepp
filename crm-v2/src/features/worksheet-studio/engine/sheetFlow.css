@@ -131,6 +131,9 @@
   .ws-narrow .ws-root .ws-examrubric td { display: flex; flex-wrap: wrap; gap: 6px; white-space: normal; }
   .ws-narrow .ws-root .ws-pt { width: 44px; height: 44px; margin: 0; font-size: 16px; }
   .ws-narrow .ws-root .ws-examrubric-total { text-align: left; }
+  /* the exam part's facts wrap on a phone: no dividers that would start a line */
+  .ws-narrow .ws-root.theme-klassika .ws-exampart-facts { gap: 2px 14px; }
+  .ws-narrow .ws-root.theme-klassika .ws-exampart-facts span { padding: 0; border-left: 0; }
 
   /* ---- pictures: they fit; several side by side only as far as they stay big ---- */
   .ws-narrow .ws-root :is(.ws-pics, .ws-clocks) { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; gap: 10px; }
