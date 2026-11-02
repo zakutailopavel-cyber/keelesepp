@@ -8,17 +8,6 @@
   "a2b1-028|*|av-know",
   "a2b1-029|*|av-know"
  ],
- "a2b1-module-07": [
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "*|*|av-retell",
-  "a2b1-031|*|av-know",
-  "a2b1-032|*|av-know",
-  "a2b1-032|*|av-voice",
-  "a2b1-033|*|av-know",
-  "a2b1-034|*|av-know"
- ],
  "a2b1-module-08": [
   "*|*|av-opener",
   "*|*|av-record",
@@ -134,7 +123,6 @@
   "a2b1-088|*|av-voice"
  ],
  "course:b1": [
-  "*|*|av-genres",
   "*|*|av-genres"
  ],
  "b1b2-module-01": [
