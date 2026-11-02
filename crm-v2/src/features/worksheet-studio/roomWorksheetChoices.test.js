@@ -1,4 +1,4 @@
-import { curriculumSheetChoices, filterChoices, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
+import { curriculumSheetChoices, filterChoices, findLessonRows, lessonRows, moduleGroups, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
 
 const doc = { blocks: [{ id: 'b', type: 'text' }], meta: { title: 'Vana leht' } };
 
@@ -61,4 +61,24 @@ describe('worksheets for the lesson board', () => {
     expect(onBoard.choices.map((choice) => choice.phase)).toEqual(['practice', 'transfer']);
     expect(nextLessonSuggestion({ curriculum: [] })).toBeNull();
   });
+  it('gives one row per lesson, finds lessons by what they are about, and groups them by module', () => {
+    const phases = { discover: { title: 'Arutelu', publishedVersion: 1 }, practice: { title: 'Arutelu', publishedVersion: 1 }, transfer: { title: 'Arutelu', publishedVersion: 1 } };
+    const rows = lessonRows(curriculumSheetChoices([
+      { id: 'c22', title: 'Põhjus → näide → järeldus', level: 'B2', roadmapModuleTitle: '3. Arutlemine', roadmapLessonNumber: 22, goal: 'Õpilane põhjendab arvamust', worksheetPhases: phases },
+      { id: 'c23', title: 'Kui ma oleksin', level: 'B2', roadmapModuleTitle: '3. Arutlemine', roadmapLessonNumber: 23, topic: 'Tingiv kõneviis', worksheetPhases: { discover: { publishedVersion: 1 } } },
+      { id: 'c30', title: 'Tingiv kõneviis kirjas', level: 'B2', roadmapModuleTitle: '4. Kirjad', roadmapLessonNumber: 30, worksheetPhases: { discover: { publishedVersion: 1 } } },
+      { id: 'b5', title: 'Pere', level: 'B1', roadmapModuleTitle: '1. Mina', roadmapLessonNumber: 5, worksheetPhases: { discover: { publishedVersion: 1 } } },
+    ]));
+    expect(rows.map((row) => [row.lessonId, row.choices.map((choice) => choice.phaseLabel)])).toEqual([
+      ['b5', ['Avasta']], ['c22', ['Avasta', 'Harjuta', 'Kasuta']], ['c23', ['Avasta']], ['c30', ['Avasta']],
+    ]);
+    // a match in the title comes before a match only in the topic or goal
+    expect(findLessonRows(rows, { query: 'tingiv' }).map((row) => row.lessonId)).toEqual(['c30', 'c23']);
+    expect(findLessonRows(rows, { query: 'pohjendab' }).map((row) => row.lessonId)).toEqual(['c22']);
+    expect(findLessonRows(rows, { query: '22' }).map((row) => row.lessonId)).toEqual(['c22']);
+    expect(findLessonRows(rows, { level: 'B1' }).map((row) => row.lessonId)).toEqual(['b5']);
+    expect(moduleGroups(findLessonRows(rows, { level: 'B2' })).map((group) => [group.title, group.rows.length])).toEqual([['3. Arutlemine', 2], ['4. Kirjad', 1]]);
+    expect(moduleGroups(rows, { withLevel: true })[0].title).toBe('B1 · 1. Mina');
+  });
 });
+

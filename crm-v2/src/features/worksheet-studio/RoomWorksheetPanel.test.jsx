@@ -42,7 +42,17 @@ describe('RoomWorksheetPanel', () => {
     render(<MemoryRouter><RoomWorksheetPanel invitation={invitation} role="teacher" user={user} homework={homework} library={library} lessonWorksheets={lessonWorksheets} /></MemoryRouter>);
     expect(homework.subscribeRoomWorksheets).toHaveBeenCalledWith({ studentId: 'st-1', roomKey: 'inv-1' }, expect.any(Function), expect.any(Function));
     expect(homework.adoptPreparedWorksheets).toHaveBeenCalledWith({ studentId: 'st-1', fromKey: 'prep_st-1', toKey: 'inv-1' });
-    expect(await screen.findByRole('button', { name: 'Lisa tahvlile: Avasta: peab, võib ja saab' })).toBeInTheDocument();
+    // the level of the student's next lesson (A2 here) is shown first; the other levels are one click away
+    expect(await screen.findByRole('button', { name: 'Lisa tahvlile: Minu päev' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Lisa tahvlile: Avasta: peab, võib ja saab' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'B1' }));
+    expect(screen.getByRole('button', { name: 'Lisa tahvlile: Avasta: peab, võib ja saab' })).toHaveTextContent('Avasta');
+    expect(screen.getByText('Aeg ja plaanid')).toBeInTheDocument();
+    // a search in one level points to matches on the others
+    fireEvent.change(screen.getByLabelText('Otsi töölehte'), { target: { value: 'minu' } });
+    fireEvent.click(screen.getByRole('button', { name: /Teistel tasemetel 1 tund/ }));
+    expect(screen.getByRole('button', { name: 'Lisa tahvlile: Minu päev' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'B1' }));
     expect(screen.queryByRole('button', { name: /Harjuta/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Pilt/ })).toBeNull();
     fireEvent.change(screen.getByLabelText('Otsi töölehte'), { target: { value: 'peab' } });

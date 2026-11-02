@@ -30,13 +30,26 @@ export function studentSheetChoices(assignments = [], roomKey = '') {
     }));
 }
 
+// what a teacher may remember of a lesson besides its title: the topic, the grammar, the goal, the module's goal
+const aboutText = (lesson) => [lesson.topic, lesson.goal, lesson.roadmapModuleGoal, lesson.description]
+  .map((value) => (typeof value === 'string' ? value : '')).join(' ').slice(0, 800);
+
+// one line that reminds the teacher what the lesson teaches: the „Что учить:” line of the description (the words and
+// forms), else the goal
+export function lessonHint(lesson = {}) {
+  const description = typeof lesson.description === 'string' ? lesson.description : '';
+  const learn = description.split('\n').find((line) => /^\s*(Что учить|Mida õppida)\s*:/i.test(line));
+  const text = (learn ? learn.replace(/^\s*[^:]+:\s*/, '') : typeof lesson.goal === 'string' ? lesson.goal : '').trim();
+  return text.length > 110 ? `${text.slice(0, 107).trimEnd()}…` : text;
+}
+
 export function curriculumSheetChoices(lessons = []) {
   const choices = [];
   for (const lesson of lessons) {
     if (!lesson || lesson.__placeholder) continue;
     const module = lesson.roadmapModuleTitle || '';
     const number = Number(lesson.roadmapLessonNumber) || Number(lesson.order) || 0;
-    const base = { level: lesson.level || '', module, lessonId: lesson.id, lessonTitle: lesson.title || '', number, subject: lesson.subject || '', topic: lesson.topic || '' };
+    const base = { level: lesson.level || '', module, lessonId: lesson.id, lessonTitle: lesson.title || '', number, subject: lesson.subject || '', topic: lesson.topic || '', about: norm(aboutText(lesson)), hint: lessonHint(lesson) };
     let hasPhase = false;
     for (const phase of PHASES) {
       const summary = lesson.worksheetPhases?.[phase.id];
@@ -62,6 +75,53 @@ export function curriculumSheetChoices(lessons = []) {
 export function filterChoices(choices = [], { query = '', level = '' } = {}) {
   const tokens = norm(query).split(/\s+/).filter(Boolean);
   return choices.filter((choice) => (!level || choice.level === level) && tokens.every((token) => choice.search.includes(token)));
+}
+
+// One row per lesson with its sheets (Avasta, Harjuta, Kasuta, Õpik): a teacher looks for a lesson, not for three
+// sheets with the same title (owner 2026-11-02: „учитель не помнит всех тем и названий уроков”).
+export function lessonRows(choices = []) {
+  const rows = new Map();
+  for (const choice of choices) {
+    const row = rows.get(choice.lessonId) || { lessonId: choice.lessonId, level: choice.level, module: choice.module, number: choice.number, lessonTitle: choice.lessonTitle || choice.title, hint: choice.hint || '', about: choice.about || '', search: '', choices: [] };
+    row.choices.push(choice);
+    row.search = `${row.search} ${choice.search} ${choice.number || ''}`;
+    rows.set(choice.lessonId, row);
+  }
+  return [...rows.values()];
+}
+
+// The search finds a lesson by its number, title, module or sheet titles first, then by what it is about (topic,
+// grammar, goal), so „tingiv” or „kiri” finds lessons whose title does not say it.
+export function findLessonRows(rows = [], { query = '', level = '' } = {}) {
+  const tokens = norm(query).split(/\s+/).filter(Boolean);
+  const inLevel = rows.filter((row) => !level || row.level === level);
+  if (!tokens.length) return inLevel;
+  const byName = [];
+  const byContent = [];
+  for (const row of inLevel) {
+    if (tokens.every((token) => row.search.includes(token))) byName.push(row);
+    else if (tokens.every((token) => row.search.includes(token) || row.about.includes(token))) byContent.push(row);
+  }
+  return [...byName, ...byContent];
+}
+
+// Lessons by module, in course order; with all levels shown a module is named with its level
+export function moduleGroups(rows = [], { withLevel = false } = {}) {
+  const groups = new Map();
+  for (const row of rows) {
+    const key = `${row.level}|${row.module}`;
+    const group = groups.get(key) || { key, level: row.level, title: `${withLevel && row.level ? `${row.level} · ` : ''}${row.module || 'Muud tunnid'}`, rows: [] };
+    group.rows.push(row);
+    groups.set(key, group);
+  }
+  // „tunnid 21–25” tells where the module is in the course
+  return [...groups.values()].map((group) => {
+    const numbers = group.rows.map((row) => row.number).filter(Boolean);
+    const first = Math.min(...numbers);
+    const last = Math.max(...numbers);
+    const range = !numbers.length ? '' : first === last ? `tund ${first}` : `tunnid ${first}–${last}`;
+    return { ...group, range };
+  });
 }
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];

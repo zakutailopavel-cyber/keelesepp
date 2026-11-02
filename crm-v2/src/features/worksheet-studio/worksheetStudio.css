@@ -347,6 +347,15 @@ textarea.ed-input { resize: vertical; }
 .room-sheet-picker__next{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid #b7e1cd;border-radius:12px;background:#ecfdf3}
 .room-sheet-picker__next span{display:grid;gap:2px;min-width:0}
 .room-sheet-picker__next small{color:#475467;font-size:.75rem}
+/* one row per lesson: title on top, its sheets (Avasta · Harjuta · Kasuta) as buttons under it */
+.room-sheet-picker__list li.room-sheet-picker__lesson{display:grid;justify-content:stretch;gap:6px}
+.room-sheet-picker__list .room-sheet-picker__phases{display:flex;flex-wrap:wrap;gap:6px}
+.room-sheet-picker__tag{margin-left:6px;padding:1px 7px;border-radius:999px;background:#ecfdf3;color:#067647;font-size:.7rem;font-style:normal;font-weight:700;vertical-align:middle}
+.room-sheet-picker__modules{position:relative;display:grid;gap:4px;max-height:52vh;overflow:auto}
+.room-sheet-picker__modules .room-sheet-picker__list{max-height:none;overflow:visible;padding:0 2px 4px 10px}
+.room-sheet-picker__modules summary{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 6px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.88rem;color:#101828}
+.room-sheet-picker__modules summary:hover{background:#f2f4f7}
+.room-sheet-picker__modules summary small{flex-shrink:0;color:#667085;font-weight:500;font-size:.75rem}
 .st-imgsearch-kinds { display: flex; gap: 4px; flex-wrap: wrap; }
 .st-imgsearch-kinds button { border: 1px solid #d0d5dd; background: #fff; border-radius: 999px; padding: 2px 10px; font-size: .78rem; cursor: pointer; }
 .st-imgsearch-kinds button.is-active { background: #0b5c4d; border-color: #0b5c4d; color: #fff; }
@@ -703,3 +712,5 @@ textarea.ed-input { resize: vertical; }
 
 /* „Ei hinnata”: a task done in the lesson does not count in the result (owner 2026-10-27) */
 .ed-check { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .85rem; font-weight: 600; }
+.room-sheet-picker__list li small.room-sheet-picker__hint{color:#475467}
+.room-sheet-picker__more{border:0;background:none;padding:6px 0;color:#0b5c4d;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:underline}
