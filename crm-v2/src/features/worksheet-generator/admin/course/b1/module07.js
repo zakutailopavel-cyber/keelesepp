@@ -25,6 +25,12 @@
 //                 the newsletter story (main) and its rewrite with the rubric.
 //   035 EKS       module exam in Harno A2 form with B1 tasks (R1, R2, R3a, L1, L3a, L4, W1a, W2a, S0, S1a, S2), timed
 //                 parts, target 80 % in every part; Sofia's letter to Helgi closes the story (the weekend in Võrumaa).
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md; topic „tervis”, secondary „teenused”): topic opener 031_d_open
+// (family doctor, Tervisekassa health insurance, referrals, 1220, 112, where to turn); „Kas teadsid?” 031_p_know (sick
+// leave and care leave), 033_t_know (sleep, TAI 2025), 034_d_know (WHO: 150 min of movement a week); popsci 032_d_antibio
+// (antibiotics and resistance, Ravimiamet / Terviseamet); fiction 033_p_story „Lambad” (own short story with imperatives);
+// examiner set 035_d_warm; one retelling left (033_d_432), record-at-home 2 (032_t_rec, 034_t_rec); Kasuta chain only in
+// 031 and 032. Facts and sources: the PR of agent/av-b1-module-07.
 // B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): the translative of change (saav kääne) — first look in
 // 031 (olen haige → jäin haigeks), in focus in 032 (jääma / minema / muutuma / saama + -ks, comparatives), used again in
 // 034 (uni läks paremaks, sain kohvisõbrast teesõbraks); the imperative (sina / teie, ära / ärge) in 033. Cast facts
@@ -34,6 +40,8 @@
 // Earlier versions: archive/v3/b1/module07.js, archive/v1/b1/module07.js.
 import { B, tag, teach, withShapes } from '../blocks.js';
 
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
+
 export const MODULE = { id: 'a2b1-module-07', course: 'b1', title: 'Tervis ja enesetunne', level: 'B1-', design: 'v2', template: 'v4' };
 
 export const LESSONS = withShapes({
@@ -42,6 +50,17 @@ export const LESSONS = withShapes({
     canDo: 'Ma kirjutan haigeks jäänud kolleegile 80–100-sõnalise kirja: mis tööl juhtus, mida ma tema eest tegin ja mida ma soovitan.',
     discover: [
       B.review('031_d_review', [['Mida pakkus Kiire Kõht alguses ja mida Sofia lõpuks firmalt sai?', 'a2b1-030'], ['Millised on viisaka kaebuse neli sammu? Too igaühe kohta näide.', 'a2b1-029'], ['Kes aitasid Sofial kolida ja mis jäi vanasse korterisse maha?', 'a2b1-012'], 'Kuidas sa end täna tunned?']),
+      B.topicOpener('031_d_open', 'Teema avaleht: kuidas Eestis arsti juurde saab?', [
+        'Eesti tervishoius on kõige tähtsam inimene perearst. Perearsti nimistusse saavad end kirja panna Eesti kodanikud ja inimesed, kes elavad Eestis elamisloa või elamisõiguse alusel. Perearsti võib ka vahetada: selleks tuleb uuele perearstile kirjutada avaldus. Kui uue arsti nimistu on täis, võib ta keelduda. Perearst või pereõde on tavaliselt esimene, kelle poole haigusega pöördutakse. Perearsti vastuvõtt on ravikindlustusega inimesele tasuta, koduvisiit võib maksta kuni viis eurot.',
+        'Ravikindlustust korraldab Tervisekassa. Raha tuleb sotsiaalmaksust, mida tööandja maksab töötaja palgalt. Sotsiaalmaks on 33 % ja sellest 13 % läheb ravikindlustusse. Kindlustatud on töötajad, kelle eest makstakse sotsiaalmaksu, aga ka näiteks lapsed ja pensionärid. Oma kindlustust saab kontrollida terviseportaalis või portaalis eesti.ee.',
+        'Eriarsti juurde on tavaliselt vaja perearsti saatekirja. Digisaatekiri kehtib vaikimisi kuus kuud. Ilma saatekirjata võib minna silmaarsti, günekoloogi, psühhiaatri ning naha- ja suguhaiguste arsti juurde. Kui sa ei tea, kuhu oma murega pöörduda, helista perearsti nõuandeliinile 1220: seal annavad perearstid ja pereõed ööpäev läbi nõu eesti ja vene keeles. Kui kellegi elu on ohus, helista kohe hädaabinumbrile 112.',
+        'Alati ei ole vaja kohe arsti juurde minna. Kergema mure korral, näiteks nohu, köha või kurguvalu puhul, piisab sageli kodusest ravist ja apteekri nõust. Kui haigustunnused nädalaga ei kao või lähevad hullemaks, võta ühendust oma perearstikeskusega. Erakorralise meditsiini osakonda ehk EMOsse mine siis, kui seisund võib olla eluohtlik või jätta tervisele püsiva kahju.',
+      ], 'Terviseportaal, „Perearstiabi” ja „Kuhu oma tervisemurega pöörduda”; Tervisekassa, „Ravikindlustus”; Maksu- ja Tolliamet, „Sotsiaalmaks”; Rahandusministeerium, „Tegevuspõhise eelarvestamise käsiraamat: maksutulud”', [
+        'Kas sul on Eestis perearst? Kuidas sa ta leidsid?',
+        'Kuidas saab arsti juurde sinu kodumaal ja mis on Eestis teisiti?',
+        'Kas sinu meelest peaks arsti juures käimine olema kõigile tasuta? Miks?',
+        'Kas sa helistaksid pigem nõuandeliinile või läheksid kohe arsti juurde? Miks?',
+      ]),
       B.text('031_d_goal', 'Moodul 7: tervis ja enesetunne', 'Novembris jääb Sofia kontoris üks inimene teise järel haigeks. Selles moodulis räägid sümptomitest, arsti juures käimisest, apteegist, nõuannetest ja headest harjumustest. Mooduli lõpus kirjutad kontori infolehte loo sellest, kuidas sinu harjumused kuu ajaga muutusid. Täna kuulad, mis juhtus Annaga, ja kirjutad lõpuks haigele kolleegile kirja.'),
       B.listening('031_d_office', 'Esmaspäev kontoris.', 'Kuula Sofia ja Anna vestlust kaks korda. Kirjuta igasse lünka üks sõna.', [
         'Sofia: Anna, sa oled täna nii vaikne. Kas kõik on korras?',
@@ -115,10 +134,10 @@ export const LESSONS = withShapes({
         'kahvatu | [kahvatu] | muutus [kahvatuks]',
         'nõrk | [nõrga] | jäi [nõrgaks]',
       ], 'g_notice'),
-      teach(tag(B.speaking('031_d_picture', 'Anna kontoris.', 'Kirjelda pilti kolmele kuulajale järjest, igaühele umbes minut. Lisa iga kord üks uus sümptom või muutus.', ['Kus Anna on ja mida ta teeb?', 'Mis tal valutab ja mis tal on?', 'Kuidas ta end tunneb ja mis on muutunud?', 'Mida Anna peaks praegu tegema?', 'Mida sina teed, kui jääd tööl haigeks?'], [70, 120], ['Annal valutab…', 'Ta jäi…ks', 'Tema nina läks…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti õpetajale kolm korda järjest, iga kord üks minut; õpetaja on iga kord uus kuulaja ja küsib „Mis veel muutus?”.'),
-      teach(tag(B.speaking('031_d_opinion', 'Kas tulla nohuga tööle?', 'Vasta küsimustele kolmele kuulajale järjest. Too iga kord uus näide oma elust.', ['Kas sina lähed nohuga tööle? Miks?', 'Millal peab kindlasti koju jääma?', 'Kas kodus saab haigena töötada?', 'Kuidas on sellega sinu kodumaal?', 'Mida peaks ülemus haigele töötajale ütlema?'], [70, 150], ['Minu arvates…, sest…', 'Kui palavik on kõrge, …', 'Näiteks eelmisel talvel…']), { task: 'S11', fluency: true }),
-        'Üks-ühele: õpilane räägib kolm korda (2 min, 90 s, 1 min); õpetaja on iga kord uus kuulaja ja ütleb vahel vastupidise arvamuse („Nohuga võib ju tööle tulla!”).'),
+      teach(tag(B.speaking('031_d_picture', 'Anna kontoris.', 'Kirjelda pilti paarilisele umbes üks minut. Siis küsib paariline „Mis veel muutus?” ja sina lisad kaks uut sümptomit või muutust.', ['Kus Anna on ja mida ta teeb?', 'Mis tal valutab ja mis tal on?', 'Kuidas ta end tunneb ja mis on muutunud?', 'Mida Anna peaks praegu tegema?', 'Mida sina teed, kui jääd tööl haigeks?'], [70, 120], ['Annal valutab…', 'Ta jäi…ks', 'Tema nina läks…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti õpetajale umbes minut; õpetaja küsib „Mis veel muutus?” ja õpilane lisab kaks muutust (jäi …ks, läks …ks).'),
+      teach(tag(B.speaking('031_d_opinion', 'Kas tulla nohuga tööle?', 'Arutage paarilisega. Ütle oma arvamus, too näide oma elust ja küsi, mida paariline arvab.', ['Kas sina lähed nohuga tööle? Miks?', 'Millal peab kindlasti koju jääma?', 'Kas kodus saab haigena töötada?', 'Kuidas on sellega sinu kodumaal?', 'Mida peaks ülemus haigele töötajale ütlema?'], [70, 150], ['Minu arvates…, sest…', 'Kui palavik on kõrge, …', 'Näiteks eelmisel talvel…']), { task: 'S11', fluency: true }),
+        'Üks-ühele: õpilane vastab ja põhjendab; õpetaja ütleb vahel vastupidise arvamuse („Nohuga võib ju tööle tulla!”) ja räägib neljanda küsimuse juures, kuidas haiguslehega Eestis on, õpilane võrdleb oma kodumaaga.'),
     ],
     practice: [
       B.match('031_p_pairs', 'Mis käib kokku?', 'Ühenda lause algus ja lõpp, nii et tekiks haige inimese tavaline tegevus.', [
@@ -189,6 +208,10 @@ export const LESSONS = withShapes({
         ['Seda mõõdetakse termomeetriga.', 'palavik'], ['Kui see on haige, on raske neelata.', 'kurk'], ['Nina on kinni ja tuleb sageli nuusata.', 'nohu'], ['Koht, kus müüakse ravimeid.', 'apteek'], ['Vastand sõnale „haige”.', 'terve'],
         ['Sellega me kuuleme.', 'kõrv'], ['Sellega me haistame lõhnu.', 'nina'], ['Haigus, mis algab äkki ja kõrge palavikuga.', 'gripp'], ['Kuum jook, mida haige joob meega.', 'tee'], ['See tuleb kurgust ja ei lase öösel magada.', 'köha'],
       ], 'half', 'g_vocab'),
+      B.know('031_p_know', [
+        'Kui töötaja jääb haigeks, avab arst talle töövõimetuslehe ehk haiguslehe. Haigushüvitis on 70 % töötaja keskmisest palgast. Tööandja maksab hüvitist haiguse 4.–8. päeval ja Tervisekassa alates 9. päevast; esimese kolme päeva eest hüvitist ei maksta. Reede õhtul, nädalavahetusel ja riigipühadel kell 8–22 saab haiguslehe avada ka perearsti nõuandeliini 1220 kaudu.',
+        'Kui haigeks jääb alla 12-aastane laps, võib vanem jääda tema juurde koju hoolduslehega. Hooldushüvitis on 80 % ja Tervisekassa maksab seda juba esimesest päevast.',
+      ], 'Terviseportaal, „Hüvitiste võrdlus” ja „Perearstiabi”', 'Kas teadsid? Haigusleht ja hooldusleht'),
       B.examWriting('031_p_note', 'Sõnum ülemusele.', 'Anna on haige. Kirjuta tema nimel Liisile sõnum 40–60 sõnaga ja käsitle kõiki nelja punkti.', 'teade', {
         situation: 'Teisipäeva hommikul on Annal palavik 38,9. Ta ei saa tööle tulla.',
         points: ['mis juhtus ja kuidas sa end tunned', 'kui kauaks sa koju jääd', 'mis töö jäi pooleli ja kes saab aidata', 'kuidas sinuga ühendust saab'],
@@ -226,8 +249,8 @@ export const LESSONS = withShapes({
         'Oled Anna. Tunned end natuke paremini, palavik on 37,8. Koosolek on neljapäeval kell 10 väikeses koosolekuruumis. Kokkuvõttes peab olema kolm asja: müük, kulud ja järgmise kuu plaan. Kulleri number on sinu laual kollasel paberil. Raamatut tahaksid väga, kõige parem oleks krimilugu.',
         ['Kuidas sa end täna tunned?', 'Kas ma sain õigesti aru, et…?', 'Kas ma saan veel midagi teha?'], ['Tänan, juba natuke paremini.', 'Jah, täpselt nii.', 'Oleks väga tore, kui…']),
       'Üks-ühele: õpetaja on Anna ja vastab ainult sellele, mida õpilane küsib; kahte asja (koosolekuruum, kulleri number) ütleb õpetaja alles siis, kui õpilane täpsustab. Siis vahetage rollid.'),
-      teach(tag(B.speaking('031_t_rec', 'Kodus: häälsõnum juhile.', 'Sa oled haige. Salvesta juhile häälsõnum (umbes 1 minut): mis sul on, kui kaua oled kodus ja kes teeb sinu töö.', ['Mis sul on?', 'Kas sa käisid arsti juures?', 'Kui kaua sa oled kodus?', 'Mis töö on pooleli?', 'Kes saab sind aidata?'], [60, 120], ['Tere! Ma olen haige: mul on…', 'Arst ütles, et…', 'Minu töö võib teha…']), { task: 'S15', level: 3 }),
-        'Kodune häälsõnum. Tunnis on õpetaja juht ja küsib kaks täpsustavat küsimust.'),
+      teach(tag(B.speaking('031_t_rec', 'Teata juhile, et oled haige.', 'Sa oled haige. Helista juhile ja räägi umbes üks minut: mis sul on, kui kaua oled kodus ja kes teeb sinu töö.', ['Mis sul on?', 'Kas sa käisid arsti juures?', 'Kui kaua sa oled kodus?', 'Mis töö on pooleli?', 'Kes saab sind aidata?'], [60, 120], ['Tere! Ma olen haige: mul on…', 'Arst ütles, et…', 'Minu töö võib teha…']), { task: 'S15', level: 3 }),
+        'Tunnis: õpetaja on juht, võtab kõne vastu ja küsib kaks täpsustavat küsimust („Kas sa käisid arsti juures?”, „Kes saab kliendile vastata?”).'),
       teach(B.ideaCard('031_t_share', 'Kes teeb Anna töö?', 'Sofia ja Liis jagavad Anna tööd. Arutage ideekaarti ja leppige kokku, kes mida ja millal teeb.', 'Anna on reedeni haige. Markus köhib juba teist nädalat ja tal on endal palju tööd. Sofial on neljapäeval koolitus kella 9–11.', ['kliendi koosolek neljapäeval kell 10', 'kuu aruande kokkuvõte reedeks', 'kõne kullerfirmale', 'Anna lille kastmine', 'raamat ja sidrunid Annale', 'koosoleku edasilükkamine'], 'Kes teeb mida ja millal? Kas mõni asi võib oodata?'),
         'Üks-ühele: õpetaja on Liis ja tahab alguses, et Sofia teeks kõike üksi; õpilane põhjendab (koolitus, Markus on haige) ja pakub kompromissi. Lõpus ütleb õpilane kokkulepe ühe lausega.'),
       tag(B.examWriting('031_t_letter', 'Kiri Annale.', 'Kirjuta reede õhtul Annale kiri 90–110 sõnaga. Kirjuta igast viiest punktist vähemalt üks-kaks lauset.', 'kiri', {
@@ -319,6 +342,26 @@ export const LESSONS = withShapes({
         ['Arsti arvates võib Markus kodus arvutiga töötada.', false],
         ['Esmaspäeval peab Markus uuesti arsti juurde minema.', true],
       ]),
+      tag(B.reading('032_d_antibio', 'Populaarteadus: antibiootikumid.', 'Miks ei kirjuta arst igale haigele antibiootikumi? Loe teksti ja vasta küsimustele lühidalt, 1–4 sõnaga.', 'Miks antibiootikum gripi vastu ei aita?', [
+        'Talvel küsivad paljud haiged arstilt antibiootikumi. Aga antibiootikum ei ole ravim kõige vastu. Antibiootikumid ravivad haigusi, mida tekitavad bakterid, näiteks kopsupõletikku või põiepõletikku. Gripp ja tavaline külmetus on aga viirushaigused ning viiruste vastu antibiootikumid ei toimi.',
+        '',
+        'Miks see on tähtis? Bakterid võivad muutuda antibiootikumide suhtes vastupidavaks. Siis ravim enam ei aita ja tavalisest põletikust võib saada ohtlik haigus. Seda nimetatakse antibiootikumiresistentsuseks. Maailma Terviseorganisatsioon peab seda üheks suurimaks ohuks inimeste tervisele kogu maailmas.',
+        '',
+        'Resistentsus tekib peamiselt siis, kui antibiootikume kasutatakse valesti või liiga palju, näiteks viirushaiguse korral. Ohtlik on ka ravi katkestamine: kui inimene lõpetab ravi liiga vara, võivad osa baktereid ellu jääda ja muutuda vastupidavaks.',
+        '',
+        'Mida saab igaüks teha? Võta antibiootikume ainult siis, kui arst need välja kirjutab, ja täpselt nii, nagu arst ütles, ka siis, kui tunned end juba paremini. Ära anna oma antibiootikume teistele ega võta omal algatusel neid, mis jäid alles eelmisest ravist. Üle jäänud ravimid on ravimijäätmed: vii need kogumiskohta.',
+        '',
+        'Allikas: Ravimiamet, „Antibiootikumid ja antimikroobne resistentsus (AMR)”; Terviseamet, „Antimikroobne resistentsus”.',
+      ], [
+        ['Milliseid haigusi antibiootikumid ravivad?', 'bakterite tekitatud haigusi|bakteriaalseid haigusi|kopsupõletikku ja põiepõletikku'],
+        ['Mis haigused on gripp ja külmetus?', 'viirushaigused'],
+        ['Mis juhtub, kui bakterid muutuvad vastupidavaks?', 'ravim ei aita|ravim enam ei aita'],
+        ['Kuidas nimetatakse seda nähtust?', 'antibiootikumiresistentsus|resistentsus'],
+        ['Millal tekib resistentsus kõige sagedamini?', 'valesti või liiga palju kasutades|kui kasutatakse valesti või liiga palju'],
+        ['Kes peab antibiootikumi välja kirjutama?', 'arst'],
+        ['Kuhu viia üle jäänud ravimid?', 'kogumiskohta'],
+        ['Kas sinu kodumaal saab antibiootikume osta ilma retseptita? Mis sa sellest arvad?', ''],
+      ]), { task: 'R19', voice: 'popsci' }),
       teach(tag(B.speaking('032_d_retell', 'Markuse lugu kahele kuulajale.', 'Jutusta Markuse kahe nädala lugu kahele kuulajale. Esimesel korral on aega kaks minutit, teisel ainult üks.', ['Kuidas ja millal haigus algas?', 'Kuidas köha ja hääl muutusid?', 'Mis läks esmaspäeval hullemaks?', 'Mida arst ütles ja mida ta keelas?', 'Mida sina teed, kui sul on samasugune köha?'], [90, 150], ['Köha muutus tugevamaks.', 'Hääl jäi kähedaks.', 'Arst ütles, et…']), { task: 'S07', fluency: true }),
         'Üks-ühele: õpilane jutustab õpetajale kaks korda, õpetaja hoiab aega (2 min, siis 1 min). Teisel korral peab lugu tulema sujuvamalt, aga kõik muutused (jäi, läks, muutus) peavad alles jääma.'),
       teach(tag(B.speaking('032_d_talk', 'Arsti juures ja apteegis.', 'Vasta küsimustele kahele kuulajale järjest. Teisel korral räägi kiiremini ja lisa üks uus näide.', ['Millal sa viimati haigeks jäid? Kuidas haigus muutus?', 'Kas sa lähed kohe arsti juurde või ootad? Miks?', 'Mida sa teed, kui köha ei lähe üle?', 'Kas apteegis on lihtne nõu küsida? Miks?', 'Kuidas saab arsti juurde aja sinu kodumaal ja kuidas Eestis?'], [90, 150], ['Kõigepealt…, siis läks…', 'Mul jäi…', 'Eestis…, aga minu kodumaal…']), { fluency: true }),
@@ -344,7 +387,7 @@ export const LESSONS = withShapes({
       ], 'full'),
       teach(tag(B.adsmatch('032_p_ads', 'Eksaminurk: kuhu pöörduda? (Harno B1 lugemine 1)', 'Kuhu peaks iga inimene pöörduma? Kirjuta olukorra juurde sobiva teate täht; üks teade võib sobida mitmele.', [
         ['Kalamaja perearstikeskus', 'Vastuvõtt E–R kell 8–18, aja saab broneerida telefonil 640 2211 või portaalis. Ägeda haigusega patsiendid võtame vastu samal päeval kella 8–10, kui helistate enne kella üheksat. Gripivaktsiin tööpäeviti ilma ajata. Õhtuti ja nädalavahetusel on keskus suletud.'],
-        ['Perearsti nõuandeliin 1220', 'Tasuta nõu ööpäev läbi, ka nädalavahetusel ja pühadel. Õde küsib sümptomite kohta ja ütleb, kas peate minema arsti juurde või piisab kodusest ravist. Vastame eesti, vene ja inglise keeles.'],
+        ['Perearsti nõuandeliin 1220', 'Nõu ööpäev läbi, ka nädalavahetusel ja pühadel. Perearst või pereõde küsib sümptomite kohta ja ütleb, kas peate minema arsti juurde või piisab kodusest ravist. Vastame eesti ja vene keeles, iga päev mõnel tunnil ka inglise keeles.'],
         ['Mustamäe traumapunkt', 'Kukkumised, nikastused, väiksemad haavad ja põletused. Avatud iga päev kell 8–22, aega ei pea kinni panema. Võtke kaasa isikut tõendav dokument. Lapsed tulevad koos vanemaga.'],
         ['Erakorralise meditsiini osakond', 'Ainult eluohtlikud olukorrad: tugev valu rinnus, väga raske hingamine, teadvusekaotus. Avatud ööpäev läbi. Kiirabi kutsumiseks helistage numbril 112.'],
         ['Kalamaja apteek', 'Retsepti- ja käsimüügiravimid, apteekri nõu tasuta. Avatud iga päev kell 9–21. E-retsepti saate välja osta ka teise inimese eest, kui teate tema isikukoodi. Lastele mõeldud ravimite kohta küsige nõu apteekrilt.'],
@@ -617,6 +660,31 @@ export const LESSONS = withShapes({
         '',
         'Kui põlv läheb pärast harjutusi paksuks või valu muutub tugevamaks, [[lõpetage]] harjutused ja [[helistage]] meile. Telefon: 640 3300.',
       ], ['võtke', 'Ära']), { task: 'R04' }),
+      tag(B.reading('033_p_story', 'Ilukirjandus: lühijutt.', 'Loe lühijuttu (kirjutatud selle õpiku jaoks). Vasta küsimustele lühidalt; viimasele küsimusele vasta oma arvamuse põhjal.', 'Lambad', [
+        'Elmar oli seitsekümmend kaks aastat vana ja ta ei saanud magada. Iga õhtu kell kümme pani ta tule kustu, sulges silmad ja hakkas lambaid lugema. Üks lammas, kaks lammast, kolm lammast… Sajanda lamba juures olid silmad ikka lahti. Kahesajanda lamba juures tõusis ta üles ja läks kööki teed keetma.',
+        '',
+        '„Vanaisa, sa näed väsinud välja,” ütles lapselaps Kerli ühel pühapäeval. „Mida sa öösiti teed?”',
+        '„Loen lambaid,” vastas Elmar. „Aga lambad ei aita.”',
+        'Kerli mõtles natuke. „Võib-olla on sul liiga palju lambaid. Proovi teisiti: ära loe midagi. Pane raadio teise tuppa ja mine iga päev õue jalutama.”',
+        '„Jalutama? Novembris? Pimedas?”',
+        '„Just nimelt. Ja ära joo õhtul kohvi.”',
+        '',
+        'Elmar oli pahane, aga ta proovis. Esimesel päeval jalutas ta ainult kümme minutit, sest tuul oli külm. Teisel päeval kõndis ta poeni ja tagasi. Kolmandal päeval kohtas ta pargis naabrit, kellega ta ei olnud kümme aastat rääkinud, ja nad jalutasid koos terve tunni.',
+        '',
+        'Sel õhtul pani Elmar tule kustu ja hakkas harjumusest jälle lugema: üks lammas, kaks lammast… Kolmandat lammast ta enam ei näinud. Hommikul ärkas ta kell seitse ja tundis, et on üle pika aja tõesti välja puhanud.',
+        '',
+        'Pühapäeval küsis Kerli: „Noh, kuidas lambad elavad?”',
+        '„Ma ei tea,” naeris Elmar. „Nad ei ole mind enam külastanud.”',
+      ], [
+        ['Mida tegi Elmar igal õhtul, et uinuda?', 'luges lambaid|loendas lambaid'],
+        ['Mida ta tegi, kui ka kahesajas lammas ei aidanud?', 'tõusis üles ja läks kööki teed keetma|keetis teed'],
+        ['Mida soovitas Kerli? Nimeta kaks asja.', 'mitte midagi lugeda, raadio teise tuppa, iga päev õue jalutama, õhtul mitte kohvi juua'],
+        ['Kuidas muutusid Elmari jalutuskäigud?', 'need läksid iga päevaga pikemaks|esimesel päeval kümme minutit, kolmandal tund'],
+        ['Kellega kohtus Elmar kolmandal päeval?', 'naabriga'],
+        ['Mis juhtus sel õhtul, kui ta jälle lambaid luges?', 'ta jäi kohe magama|ta uinus enne kolmandat lammast'],
+        ['Leia jutust neli käsku või keeldu sina-vormis.', 'proovi, ära loe, pane, mine, ära joo'],
+        ['Mis sinu arvates Elmarit tegelikult aitas? Miks?', ''],
+      ]), { task: 'R15', voice: 'fiction' }),
       teach(tag(B.rolecards('033_p_problem', 'Probleem apteegis.', 'A on Viktor, B on apteeker. Lahendage probleem nii, et Viktor saab täna põlve jaoks ravimi.',
         'Oled Viktor. Kukkusid laupäeval jalgrattalt. Arst ütles, et kirjutas sulle e-retsepti põlvegeelile. Apteeker ütleb, et süsteemis retsepti ei ole. Põlv valutab ja sa ei saa homme uuesti tulla. Seleta viisakalt probleemi ja palu lahendust.',
         'Oled apteeker Piret. Süsteemis ei ole Viktori nimel retsepti. Paku lahendusi: helistada traumapunkti; sama geel on olemas ka ilma retseptita, aga see maksab 9 eurot; homseks saab tellida odavama. Anna nõu ka teie-vormis: „Pange geeli kolm korda päevas.”',
@@ -650,10 +718,13 @@ export const LESSONS = withShapes({
         ['Kelle poole soovitab Anna pöörduda, kui uni ei lähe paremaks?', 'doktor Kase|perearsti|arsti'],
         ['Mida peaks Markus kõigepealt muutma? Põhjenda päeviku põhjal.', ''],
       ]), { task: 'R08', level: 3 }),
+      B.know('033_t_know', [
+        'Tervise Arengu Instituudi soovituse järgi vajab täiskasvanu 6,5–11 tundi und ööpäevas, enamikule inimestele sobib 7–9 tundi. Unevajadus on igal inimesel natuke erinev: kui palju und sulle sobib, näitab kõige paremini sinu enesetunne. Inimesed arvavad sageli, et nad magavad rohkem, kui nad tegelikult magavad.',
+      ], 'Tervise Arengu Instituut, „Rahvastiku tervise aastaraamat 2025”, ptk 4.5 „Uni”', 'Kas teadsid? Kui palju und on vaja?'),
       B.phrasebank('033_t_phrases', [['Kui sõbral on raske', ['Kuidas su enesetunne täna on?', 'Mis tõstab sinu meeleolu?', 'Ära anna alla!', 'Sa saad sellega hakkama.', 'Kui sa üksi hakkama ei saa, otsi abi.', 'Pöördu perearsti poole.']]]),
-      teach(tag(B.speaking('033_t_explain', 'Seleta Markusele.', 'Seleta Markusele kaks korda, mida tema unepäevik näitab. Teisel korral räägi lühemalt, aga ära jäta midagi tähtsat välja.', ['Mis päevadel magasid hästi ja miks?', 'Mis päevadel magasid halvasti ja mis oli põhjus?', 'Mida kohv ja telefon sinu unega teevad?', 'Kuidas uni sinu enesetunnet ja meeleolu muudab?', 'Mida sa peaksid esimesena muutma?', 'Mida ütleks sulle doktor Kask teie-vormis?'], [90, 150], ['Vaata, kolmapäeval…', 'Kui sa jood…, siis…', 'Pane telefon…!']), { task: 'S13', fluency: true }),
+      teach(tag(B.speaking('033_t_explain', 'Seleta Markusele.', 'Seleta Markusele kaks korda, mida tema unepäevik näitab. Teisel korral räägi lühemalt, aga ära jäta midagi tähtsat välja.', ['Mis päevadel magasid hästi ja miks?', 'Mis päevadel magasid halvasti ja mis oli põhjus?', 'Mida kohv ja ekraan sinu unega teevad?', 'Kuidas uni sinu enesetunnet ja meeleolu muudab?', 'Mida sa peaksid esimesena muutma?', 'Mida ütleks sulle doktor Kask teie-vormis?'], [90, 150], ['Vaata, kolmapäeval…', 'Kui sa jood…, siis…', 'Ära vaata õhtul…!']), { task: 'S13', fluency: true }),
         'Üks-ühele: õpilane on Anna ja seletab õpetajale (Markus) päevikut kaks korda: esimesel korral 2 minutit, teisel 1 minut. Õpetaja küsib vahele: „Aga ilma kohvita ma ju magan tööl!”'),
-      teach(tag(B.ideaCard('033_t_plan', 'Uneplaan kaheks nädalaks.', 'Anna ja Markus lepivad kokku kahe nädala uneplaani. Arutage ideid ja leppige kokku viis reeglit — sõnastage need käskudena.', 'Markus magab öösel ainult viis-kuus tundi ja on päeval väsinud. Tal on kaks nädalat aega, et uni paremaks muuta. Ta armastab kohvi ja oma telefoni.', ['telefon kell 22 kööki', 'viimane kohv kell 14', 'õhtune jalutuskäik', 'samal ajal voodisse ka nädalavahetusel', 'raamat telefoni asemel', 'rahulik ja pime magamistuba', 'kolme nädala pärast doktor Kase poole pöörduda'], 'Millised viis reeglit Markus kahe nädala jooksul täidab? Kuidas te seda kontrollite?'), { main: true }),
+      teach(tag(B.ideaCard('033_t_plan', 'Uneplaan kaheks nädalaks.', 'Anna ja Markus lepivad kokku kahe nädala uneplaani. Arutage ideid ja leppige kokku viis reeglit — sõnastage need käskudena.', 'Markus magab öösel ainult viis-kuus tundi ja on päeval väsinud. Tal on kaks nädalat aega, et uni paremaks muuta. Ta armastab kohvi ja oma mobiili.', ['mobiil kell 22 kööki', 'viimane kohv kell 14', 'õhtune jalutuskäik', 'samal ajal voodisse ka nädalavahetusel', 'raamat mobiili asemel', 'rahulik ja pime magamistuba', 'kolme nädala pärast doktor Kase poole pöörduda'], 'Millised viis reeglit Markus kahe nädala jooksul täidab? Kuidas te seda kontrollite?'), { main: true }),
         'Üks-ühele: õpetaja on Markus ja on kahe reegliga alguses vastu („Ilma telefonita ma ei saa uinuda”); õpilane põhjendab päeviku põhjal ja pakub kompromissi. Lõpus ütleb õpilane viis reeglit käskudena: „Pane…”, „Ära…”.'),
       B.examWriting('033_t_reply', 'Vastus Markusele.', 'Markus kirjutas sulle õhtul kell 23. Vasta talle 80–100 sõnaga: anna nõu käskiva kõneviisiga ja põhjenda.', 'vastus', {
         situation: 'Markus kirjutab: „Ma ei saa jälle magada ja meeleolu on väga madal. Tööga ma enam hakkama ei saa. Mida ma pean tegema? Kas peaksin unerohtu võtma?”',
@@ -753,6 +824,9 @@ export const LESSONS = withShapes({
         ['Mida soovitab arst une jaoks?', 'minna iga päev samal ajal magama', 'magada nädalavahetusel kauem', 'juua õhtul sooja piima'],
         ['Miks ei õnnestunud arstil endal head unerežiimi pidada?', 'jalgpalli pärast', 'töö pärast', 'laste pärast'],
       ], 'g_vocab'),
+      B.know('034_d_know', [
+        'Maailma Terviseorganisatsiooni (WHO) soovituse järgi peaks täiskasvanu liikuma nädalas vähemalt 150 minutit mõõduka koormusega, näiteks kiiresti kõndides. See teeb umbes pool tundi viiel päeval nädalas. 2022. aastal ei liikunud piisavalt 31 % maailma täiskasvanutest, umbes 1,8 miljardit inimest.',
+      ], 'Maailma Terviseorganisatsioon (WHO), faktileht kehalise aktiivsuse kohta', 'Kas teadsid? Kui palju peaks liikuma?'),
       teach(tag(B.speaking('034_d_survey', 'Kolm inimest, kolm harjumust.', 'Tee väike küsitlus: vali kaheksast küsimusest viis ja küsi neid kolmelt inimeselt. Iga vastus vajab põhjust. Lõpuks võrdle inimeste harjumusi.', ['Millega sa oma tervise heaks tegeled? Miks just sellega?', 'Kas sa käid pigem ujumas, jõusaalis või jalgsi? Miks?', 'Kas sa oled tugitoolisportlane või tervisesportlane? Miks sa nii arvad?', 'Kas sa oled kunagi dieeti pidanud? Miks ja kuidas see läks?', 'Millest sa oled valmis loobuma: liftist, snäkist või õhtusest telefonist? Miks?', 'Mis tõstab sinu meeleolu, kui enesetunne on halb? Miks see aitab?', 'Kui sa üksi hakkama ei saa, kelle poole sa pöördud? Miks tema poole?', 'Mis on sinu halvim harjumus ja kas sa tahad selle detsembris muuta? Miks?'], [70, 120], ['Mida sa…? Miks?', 'Mina…, sest…', 'Kaks inimest…, aga kolmas…']), { task: 'S09', fluency: true }),
         'Üks-ühele: õpilane valib viis küsimust ja küsib neid õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (Jaan, Liis, Markus) ja jätab vahel põhjuse ütlemata, siis õpilane küsib „Miks?”. Lõpus võrdleb õpilane kolme vastust.'),
     ],
@@ -932,7 +1006,16 @@ export const LESSONS = withShapes({
         ['Minu naaber tegeleb juba mitu aastat jooga.', 'Minu naaber tegeleb juba mitu aastat joogaga.'],
       ]),
       B.writing('035_d_write', 'Minu tervisenädal.', 'Kirjuta 8–10 lauset: kuidas sa end sel nädalal tundsid, mis muutus ja mida sa oma tervise heaks tegid.', [8, 10], ['enesetunne', 'läks paremaks', 'meeleolu', 'harjumus'], 3),
-      teach(B.speaking('035_d_warm', 'Enne eksamit: soojendus.', 'Vasta küsimustele lühidalt, nagu eksami alguses tutvumisvestluses.', ['Kuidas sa end täna tunned?', 'Mida sa teed, kui jääd haigeks?', 'Kas sa käid sageli arsti juures? Miks?', 'Mida sa teed, et vormis olla?'], [70, 120]),
+      // own instruction: B.examiner's fixed wording repeats other modules' examiner sets (final shape V7)
+      teach(withInstruction(B.examiner('035_d_warm', 'tervis ja arstiabi', [
+        'Kuidas sa oma tervise eest hoolitsed?',
+        'Mida sa teed, kui jääd haigeks: lähed arsti juurde, helistad nõuandeliinile või ravid end ise? Miks?',
+        'Kas sinu meelest on Eestis lihtne arsti juurde saada? Miks?',
+        'Mille poolest erineb arstiabi Eestis ja sinu kodumaal?',
+        'Kas töötaja peaks saama haigushüvitist juba esimesest haiguspäevast? Põhjenda.',
+        'Kas inimene peaks ise oma tervise eest vastutama või on see riigi ülesanne? Miks?',
+        'Milline harjumus on sinu arvates tervisele kõige kasulikum? Miks?',
+      ]), 'Soojendus nagu suulise eksami alguses: eksamineerija küsib tervisest ja arstiabist. Vasta igale küsimusele 2–4 lausega ja too põhjus või näide oma elust.'),
         'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt samad küsimused.'),
     ],
     practice: [
