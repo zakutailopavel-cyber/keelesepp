@@ -14,6 +14,11 @@
 //   005 EKS  module check in Harno A2 form, compared with 001; leads into module 2 (family).
 // Rotation (§4.1): 002–004 = three archetypes, three lead pairs; 002 is not LUGU (module 2 opens with LUGU R→W), 004 is
 // not LUGU either (006 follows it).
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE.md §13), 2026-11-02: topic
+// „igapäevaelu” (+ isikuandmed, keel). 002 opens the module with real facts (time use, working time, languages in Estonia),
+// a forum text and Tallinn's public transport; 003's radio news has real data (TAI, Statistikaamet) and the employer's
+// sports allowance; 004 adds an interview with an adult learner, an article on where to learn Estonian, the examiner set
+// and a home monologue instead of the invitation letter. Every number in a non-cast text names its source.
 import { B, tag, teach, why, withShapes } from '../blocks.js';
 
 export const MODULE = { id: 'a2b1-module-01', course: 'b1', title: 'A2 lähtepunkt ja igapäevaelu', level: 'A2+', design: 'v2', template: 'v4' };
@@ -54,8 +59,8 @@ export const LESSONS = withShapes({
         ['Sa helistasid ja vale inimene võttis vastu.', 'Vabandust, ma valisin vale numbri.', 'Tere, ma olen kohe kohal.', 'Aitäh, kohtume homme jälle.'],
       ]),
       B.reading('001_d_morning', 'Lugemine 3. Anna hommik.', 'Loe Anna hommikust ja vasta küsimustele 1–5 sõnaga.', 'Anna hommik',
-        'Anna elab Saue linnas ja töötab Tallinnas. Tööpäeval ärkab ta kell kuus, sest buss läheb kell seitse. Kõigepealt viib ta koera Bruno õue. Siis joob ta klaasi vett ja sööb putru. Kohvi ta hommikul ei joo, sest kohv teeb ta närviliseks.\n\nKell pool seitse paneb Anna mantli selga ja võtab koti. Bussis loeb ta raamatut või kuulab eesti keele podcasti. Ta tahab rääkida paremini, sest tema kontoris on palju kliente.\n\nKontoris on Anna tavaliselt kell kaheksa. Ta jõuab enne teisi ja teeb rahulikult päeva plaani. Eelmisel nädalal oli aga teisiti. Bussijuht oli haige ja buss ei tulnud. Anna ootas peatuses pool tundi. Lõpuks helistas ta kolleeg Markusele, kes elab samas linnas. Markus tuli autoga ja nad jõudsid tööle koos.\n\nNüüd on Annal telefonis bussi äpp. Kui buss hilineb, saab ta kohe teada. Siis kirjutab ta Markusele või võtab takso. Hiljaks jääda ta enam ei taha, sest hommikul on tal kontoris kõige rohkem tööd.',
-        [['Kus Anna töötab?', 'Tallinnas'], ['Mis kell Anna tööpäeval ärkab?', 'kell kuus|kell 6|kuuelt'], ['Mida Anna kõigepealt teeb?', 'viib koera õue|viib Bruno õue'], ['Miks Anna hommikul kohvi ei joo?', 'kohv teeb ta närviliseks|see teeb närviliseks'], ['Mida Anna bussis teeb?', 'loeb raamatut|kuulab podcasti|loeb või kuulab podcasti'], ['Mis juhtus eelmisel nädalal?', 'buss ei tulnud|bussijuht oli haige'], ['Kuidas Anna siis tööle jõudis?', 'Markuse autoga|Markusega autoga|Markus tõi ta autoga']]),
+        'Anna elab Saue linnas ja töötab Tallinnas. Tööpäeval ärkab ta kell kuus, sest buss läheb kell seitse. Kõigepealt viib ta koera Bruno õue. Siis joob ta klaasi vett ja sööb putru. Kohvi ta hommikul ei joo, sest kohv teeb ta närviliseks.\n\nKell pool seitse paneb Anna mantli selga ja võtab koti. Bussis loeb ta raamatut või kuulab eesti keele taskuhäälingut. Ta tahab rääkida paremini, sest tema kontoris on palju kliente.\n\nKontoris on Anna tavaliselt kell kaheksa. Ta jõuab enne teisi ja teeb rahulikult päeva plaani. Eelmisel nädalal oli aga teisiti. Bussijuht oli haige ja buss ei tulnud. Anna ootas peatuses pool tundi. Lõpuks helistas ta kolleeg Markusele, kes elab samas linnas. Markus tuli autoga ja nad jõudsid tööle koos.\n\nNüüd on Annal telefonis bussi äpp. Kui buss hilineb, saab ta kohe teada. Siis kirjutab ta Markusele või võtab takso. Hiljaks jääda ta enam ei taha, sest hommikul on tal kontoris kõige rohkem tööd.',
+        [['Kus Anna töötab?', 'Tallinnas'], ['Mis kell Anna tööpäeval ärkab?', 'kell kuus|kell 6|kuuelt'], ['Mida Anna kõigepealt teeb?', 'viib koera õue|viib Bruno õue'], ['Miks Anna hommikul kohvi ei joo?', 'kohv teeb ta närviliseks|see teeb närviliseks'], ['Mida Anna bussis teeb?', 'loeb raamatut|kuulab taskuhäälingut|loeb või kuulab taskuhäälingut|loeb raamatut või kuulab taskuhäälingut'], ['Mis juhtus eelmisel nädalal?', 'buss ei tulnud|bussijuht oli haige'], ['Kuidas Anna siis tööle jõudis?', 'Markuse autoga|Markusega autoga|Markus tõi ta autoga']]),
       tag(B.adsmatch('001_d_ads', 'Lugemine 4 (B1 proov). Kuulutused.', 'Millist kuulutust (A–F) vajab iga inimene? Kirjuta täht. Üks kuulutus võib sobida mitmele.', [
         ['Keelekohvik „Räägime!”', 'Igal kolmapäeval kell 18 raamatukogu kohvikus. Räägime eesti keeles igapäevastel teemadel: töö, pere, toit ja reisid. Tasuta, registreeruda pole vaja.'],
         ['Jooga algajatele', 'Esmaspäeviti ja neljapäeviti kell 7.30 enne tööd. Rahulik tund, sobib igas vanuses inimestele. Kuu pilet 40 eurot.'],
@@ -225,7 +230,21 @@ export const LESSONS = withShapes({
     canDo: 'Ma kirjutan sõbrale 70–90-sõnalise kirja sellest, mis eile juhtus, ja oma plaanist homseks.',
     discover: [
       B.review('002_d_review', [['Millise testi osaga said sa kõige paremini hakkama?', 'a2b1-001'], ['Kuhu sa eelmisel nädalavahetusel sõitsid ja millega?', 'a2-059'], 'Mis kell sa tavaliselt ärkad?']),
-      B.text('002_d_goal', 'Moodul 1: minu igapäevaelu', 'Selles moodulis kordad A2 põhivorme, mida B1 vajab: lihtminevikku, osastavat, ma- ja da-vormi, kohavorme ja viisakat palvet. Mooduli lõpus on kontroll. Täna proovid kõigepealt ise, siis loed Anna päevikut ja kirjutad lõpuks sõbrale kirja.'),
+      // the module's topic opener (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2): real facts, checked 2026-11-02 against
+      // stat.ee (ajakasutus 2019–2021, „Kuhu panevad Eesti inimesed oma vaba aja?”, rahvaloendus 2021) and eesti.ee
+      // („Töötaja puhkus”); it replaces the short module goal text, the goal is its last paragraph
+      B.topicOpener('002_d_open', 'Moodul 1. Igapäevaelu Eestis: aeg, töö ja keel', [
+        'Kõigil on ööpäevas 24 tundi. Aga kuidas inimesed seda aega kasutavad? Statistikaamet uurib seda iga kümne aasta tagant. Viimane ajakasutuse uuring oli aastatel 2019–2021.',
+        'Uuringu järgi kulub Eesti inimestel magamisele keskmiselt peaaegu üheksa tundi ööpäevas. Selles arvus on kõik päevad, ka nädalavahetused ja puhkused, ning kõik inimesed alates kümnendast eluaastast. Vaba aega on keskmiselt 5 tundi ja 44 minutit päevas. Kõige rohkem vaatavad inimesed vabal ajal telerit ja videoid, umbes kaks tundi päevas. Teisel kohal on sport: trenni tehakse keskmiselt 40 minutit päevas. Raamatuid ja ajalehti loetakse natuke üle poole tunni. Pühapäeval on inimestel vaba aega üle poolteise tunni rohkem kui tööpäeval. Naistel on vaba aega päevas 23 minutit vähem kui meestel. Võrreldes kahekümne aasta taguse ajaga on vaba aega päevas kolmveerand tundi rohkem.',
+        'Eesti seaduse järgi on tavaline tööpäev 8 tundi ja töönädal 40 tundi. Puhkust on igal töötajal aastas vähemalt 28 kalendripäeva.',
+        'Eestis räägitakse ka palju keeli. 2021. aasta rahvaloenduse andmetel on Eesti elanikel 243 eri emakeelt. Eesti keelt oskab 84 % elanikest: 67 % emakeelena ja 17 % võõrkeelena. Kõige rohkem oskavad inimesed võõrkeelena inglise keelt, teisel kohal on vene keel. Kümme aastat varem oli esimene vene keel. Eesti keel on võõrkeelena kolmandal kohal.',
+        'Selles moodulis räägid oma päevast, harjumustest ja nädalast. Kordad ka A2 vorme, mida B1 vajab: lihtminevikku, osastavat, ma- ja da-vormi, kohavorme ja viisakat palvet. Mooduli lõpus on kontroll.',
+      ], 'Statistikaamet (ajakasutuse uuring 2019–2021, rahvaloendus 2021); Eesti.ee (tööaeg ja puhkus)', [
+        'Mis sind nendes arvudes kõige rohkem üllatas? Miks?',
+        'Kas sul on päevas rohkem või vähem vaba aega kui Eesti keskmisel inimesel?',
+        'Kui pikk on tööpäev ja puhkus sinu kodumaal? Kas see on parem kui Eestis?',
+        'Mis on sinu arvates täiskasvanuna keele õppimisel kõige raskem: aeg, julgus või grammatika?',
+      ]),
       B.writing('002_d_try', 'Proovi kõigepealt ise.', 'Kirjuta ilma abita 10–12 lauset: mida sa eile hommikust õhtuni tegid?', [10, 12], ['eile', 'hommikul', 'siis', 'õhtul'], 2),
       B.vocab('002_d_vocab', 'Tunni sõnad.', ['magama jääma — проспать', 'hiljaks jääma — опоздать', 'maha jääma — не успеть (на автобус)', 'kiirustama — спешить', 'unustama — забыть', 'õnneks — к счастью', 'kahjuks — к сожалению', 'äkki — вдруг', 'lõpuks — наконец', 'kohale jõudma — добраться', 'märkama — заметить', 'vabandama — извиняться']),
       B.reading('002_d_diary', 'Anna päevik.', 'Loe Anna päevikut. Vasta küsimustele oma sõnadega.', 'Halb neljapäev',
@@ -283,6 +302,12 @@ export const LESSONS = withShapes({
         'Liis: Kell üheksa algas koosolek. Anna jäi natuke hiljaks, aga see ei olnud tema süü.',
         'Liis: Kell kümme jõin lõpuks esimese tassi kohvi. Siis tundsin, et päev on alanud.',
       ], [['kell 6.00', 'jooksis pargis'], ['kell 6.30', 'tegi putru'], ['kell 7.00', 'viis poja lasteaeda'], ['kell 7.30', 'tankis autot'], ['kell 8.00', 'luges kirju'], ['kell 8.30', 'helistas kliendile'], ['kell 9.00', 'oli koosolekul'], ['kell 10.00', 'jõi kohvi']]),
+      // a text from outside the cast (§13.3): three forum posts in the past tense, opinions and tips, no invented numbers
+      tag(B.reading('002_p_forum', 'Foorum: kui ma hiljaks jäin.', 'Loe kolme foorumipostitust. Vasta küsimustele lühidalt.', 'Kas sina oled kunagi hiljaks jäänud?',
+        'Merike_Pärnust: Eelmisel talvel jäin esimest korda elus tööle hiljaks. Öösel sadas palju lund ja hommikul ei tulnud buss üldse. Ma kõndisin jala kolm kilomeetrit ja jõudsin kontorisse alles kell kümme. Ülemus naeris ja pakkus mulle kohvi.\n\nIgor_T: Mina jäin kord magama päeval, kui mul oli autokooli eksam. Kui ma ärkasin, helistasin kohe autokooli ja küsisin uut aega. Õnneks sain uue aja juba järgmisel nädalal ja eksam läks hästi.\n\nTiina_72: Minu nõuanne: valmista kõik õhtul ette. Ma panen riided tooli peale ja koti ukse juurde. Enne kui kodust välja lähen, vaatan telefonist bussi aega. Kui ma näen, et jään hiljaks, kirjutan kohe ülemusele või kolleegile. Siis ei pea keegi mind ootama ja muretsema. Minu arvates on hilinemine väike asi, aga vaikimine on suur viga.',
+        [['Miks Merike tööle hiljaks jäi?', 'buss ei tulnud|bussi ei tulnud|sadas palju lund'], ['Kuidas Merike kontorisse jõudis?', 'jala|kõndis jala|kõndis'], ['Mida ülemus tegi?', 'naeris ja pakkus kohvi|pakkus kohvi|naeris'],
+          ['Millal Igor magama jäi?', 'eksami päeval|autokooli eksami päeval|kui tal oli eksam'], ['Mida Igor kohe pärast ärkamist tegi?', 'helistas autokooli|helistas|küsis uut aega'], ['Mida Tiina õhtul ette valmistab?', 'riided ja koti|riided|koti'],
+          ['Mis on Tiina arvates suur viga?', 'vaikimine|vaikida|kui ei kirjuta']]), { voice: 'forum', task: 'R15' }),
       B.dictation('002_p_dict', 'Etteütlus: Anna neljapäev.', 'Õpetaja loeb Anna loost kaheksa lauset. Kirjuta need üles.', [
         'Neljapäeva hommikul jäi Anna magama.', 'Tema telefon oli öösel tühjaks läinud.', 'Bussipeatuses nägi ta, kuidas buss minema sõitis.', 'Järgmine buss tuli kahekümne minuti pärast.',
         'Koosolek oli juba alanud, kui Anna kohale jõudis.', 'Anna vabandas ja istus vaikselt laua taha.', 'Markus andis talle oma vana sülearvuti.', 'Õhtul pani Anna kaks äratust.',
@@ -312,12 +337,14 @@ export const LESSONS = withShapes({
         'Ja veel üks asi: reedel ei ole meil koosolekut, nii et sa võid tulla tööle hiljem, kella kümneks. Puhka natuke! Ja ära unusta, et laupäeval on Markuse sünnipäev. Ta kutsus kõiki kohvikusse.',
         'Aitäh ja kohtumiseni homme!',
       ], ['Klient tuleb kell [pool üksteist|10.30].', 'Kohtumine on teisel [korrusel].', 'Anna peab tooma oma [arvuti].', 'Leping on [sinises] kaustas.', 'Markus ostab [küpsiseid].', 'Anna tutvustab uut [plaani].', 'Kui buss hilineb, peab Anna Liisile [helistama].', 'Kohtumine kestab umbes [tund|ühe tunni].']), { task: 'L07', level: 3 }),
+      // checked 2026-11-02: tallinn.ee „Public Transport” and visittallinn.ee „Tallinna ühistransport” (29.05.2026)
+      B.know('002_t_know', 'Tallinnas sõidavad linna elanikud bussi, trammi ja trolliga tasuta. Elanik on see, kelle elukoht on rahvastikuregistris Tallinn. Iga sõidu alguses paneb ta oma isikustatud ühiskaardi kaardilugeja vastu. Teised saavad maksta otse sõidukis kontaktivaba pangakaardiga: tunnipilet maksab 2 eurot. Linnaliinid sõidavad tavaliselt kella viiest hommikul kuni keskööni.', 'Tallinna linn, „Ühistransport”; Visit Tallinn, „Tallinna ühistransport” (2026)'),
       teach(tag(B.rolecards('002_t_bus', 'Kõne bussifirmale.', 'A on Anna ja helistab bussifirma infotelefonile. B on teenindaja. Leidke lahendus.',
         'Eile pidi buss number 17 tulema Saue peatusesse kell 7.30, aga tuli alles 7.40. Sa jäid koosolekule hiljaks. Räägi, mis juhtus, ja küsi, mida firma teeb.',
         'Sa töötad bussifirma infotelefonil. Küsi kuupäeva, kellaaega ja peatust. Vabanda ja paku lahendust: rakenduse teavitus või tagasiside vorm.',
         ['Eile hommikul…', 'Buss ei tulnud…', 'Mida te saate teha?'], ['Mis kell see juhtus?', 'Vabandame, eile oli…', 'Ma soovitan…']), { task: 'S10' }), 'Üks-ühele: õpetaja on teenindaja ja küsib täpsustavaid küsimusi; õpilane räägib lihtminevikus, mis juhtus. Lõpus lepivad nad lahenduse kokku.'),
       teach(tag(B.speaking('002_t_tips', 'Kuidas hommik õnnestub?', 'Räägi 1–2 minutit: mida sina teed, et hommik läheks hästi? Too oma elust näide.', [
-        'Mida sa teed õhtul, et hommikul ei peaks kiirustama?', 'Kas sa oled kunagi magama jäänud? Mis siis juhtus?', 'Mis on sinu arvates parem: buss või oma auto? Miks?', 'Mida sa soovitad Annale?', 'Mida sa homme hommikul teisiti teed?',
+        'Mida sa teed õhtul, et hommikul ei peaks kiirustama?', 'Kas sa oled kunagi magama jäänud? Mis siis juhtus?', 'Mis on sinu arvates parem: buss või oma auto? Miks?', 'Kas ühistransport on Eestis parem või halvem kui sinu kodumaal?', 'Mida sa soovitad Annale?', 'Mida sa homme hommikul teisiti teed?',
       ], [60, 120], ['Minu arvates…', 'Näiteks eelmisel kuul…', 'Ma soovitan…']), { task: 'S11', fluency: true }), 'Üks-ühele: õpilane räägib õpetajale; õpetaja küsib iga vastuse järel „Miks?”.'),
       B.planning('002_t_plan', 'Kirja plaan.', 'Enne kirja kirjuta igale reale märksõnad.', ['Tervitus ja üks lause sõbrale', 'Mis juhtus eile hommikul?', 'Mis juhtus tööl?', 'Kes sind aitas ja kuidas?', 'Mis on homme ja mida sa teed teisiti?', 'Küsimus sõbrale ja lõpp'], 2),
       tag(B.examWriting('002_t_letter', 'Kiri sõbrannale.', 'Kirjuta sõbrannale Katile 70–90 sõna. Kirjuta kõigist neljast punktist.', 'kiri', {
@@ -333,24 +360,24 @@ export const LESSONS = withShapes({
     canDo: 'Ma küsitlen kolleegi tema harjumuste kohta ja lepin rühmaga kokku kolm uut harjumust.',
     discover: [
       B.review('003_d_review', [['Mis juhtus Annaga neljapäeva hommikul?', 'a2b1-002'], ['Mida sa hommikul sööd ja jood?', 'a2-026'], ['Mida sa pead täna veel tegema?', 'a2-062']]),
-      B.text('003_d_hook', 'Kontori tervisenädal', 'Liis kuulutas välja kontori tervisenädala. Enne seda tahab ta teada, millised harjumused meeskonnal on. Anna küsitleb kolleege. Täna kuulad raadiouuringut, loed Markuse blogi ja lepid lõpuks kokku kolm uut harjumust.'),
+      B.text('003_d_hook', 'Kontori tervisenädal', 'Liis kuulutas välja kontori tervisenädala. Enne seda tahab ta teada, millised harjumused meeskonnal on. Anna küsitleb kolleege. Täna kuulad raadiouudist, loed Markuse blogi ja lepid lõpuks kokku kolm uut harjumust.'),
       B.vocab('003_d_vocab', 'Tunni sõnad.', ['harjumus — привычка', 'tervislik — здоровый', 'magus — сладкий', 'trepp — лестница', 'liikuma — двигаться', 'loobuma — отказываться', 'piisavalt — достаточно', 'vähem — меньше', 'rohkem — больше', 'uuring — исследование', 'proovima — пробовать', 'harjuma — привыкать']),
-      B.listening('003_d_radio', 'Raadiouuring.', 'Kuula raadiouudist eestlaste harjumustest. Kirjuta lünka üks sõna või number.', [
-        'Uudistetoimetaja: Tere hommikust! Uus uuring näitab, millised on eestlaste igapäevased harjumused.',
-        'Uudistetoimetaja: Uuringus osales tuhat inimest vanuses kaheksateist kuni seitsekümmend.',
-        'Uudistetoimetaja: Peaaegu kõik joovad hommikul kohvi. Ainult iga kümnes inimene eelistab teed.',
-        'Uudistetoimetaja: Hommikust sööb kuus inimest kümnest. Kõige populaarsem on puder, teisel kohal võileib.',
-        'Uudistetoimetaja: Pooled vastajad liiguvad päevas vähem kui pool tundi. Paljud ütlevad, et neil ei ole aega.',
-        'Uudistetoimetaja: Noored magavad keskmiselt seitse tundi, vanemad inimesed natuke rohkem.',
-        'Uudistetoimetaja: Iga kolmas vastaja vaatab enne magamist telefoni üle tunni.',
-        'Uudistetoimetaja: Uue aasta eesmärgina tahavad inimesed kõige sagedamini rohkem liikuda ja vähem magusat süüa.',
-        'Uudistetoimetaja: Arstid soovitavad alustada väikestest sammudest, näiteks käia trepist ja juua rohkem vett.',
-        'Uudistetoimetaja: Perearst Kask ütles meie saates, et uus harjumus vajab umbes kaks kuud.',
-        'Uudistetoimetaja: Tema sõnul on lihtsam muuta üht asja korraga. Kui inimene tahab kõike kohe muuta, loobub ta tihti juba teisel nädalal.',
-        'Uudistetoimetaja: Hea abi on sõber või kolleeg, kellega koos proovida. Siis on raskem loobuda.',
-        'Uudistetoimetaja: Uuringu teeb igal aastal Tartu ülikool. Järgmised tulemused tulevad aasta pärast.',
+      // real data instead of the invented survey (§13.6), checked 2026-11-02: tai.ee „4.2. Liikumine” (TKU 2024, national
+      // recommendations 2025), tai.ee „Igapäevaseid suitsetajaid on Eestis järjest vähem” (TKU 2024), stat.ee
+      // „Kuhu panevad Eesti inimesed oma vaba aja?” (ajakasutus 2019–2021); new id: the questions are new
+      tag(B.listening('003_d_news', 'Raadiouudis: kui palju me liigume?', 'Kuula raadiouudist Eesti inimeste liikumisest. Kirjuta lünka üks sõna või number. Allikas: Tervise Arengu Instituut (tervisekäitumise uuring 2024), Statistikaamet (ajakasutuse uuring 2019–2021).', [
+        'Uudistetoimetaja: Tere hommikust! Täna räägime sellest, kui palju Eesti inimesed liiguvad.',
+        'Uudistetoimetaja: Tervise Arengu Instituut küsitleb iga kahe aasta tagant tuhandeid inimesi vanuses kuusteist kuni kuuskümmend neli. Viimased andmed on aastast kaks tuhat kakskümmend neli.',
+        'Uudistetoimetaja: Eesti liikumissoovituste järgi peaks täiskasvanu liikuma iga päev vähemalt pool tundi. Nädalas peaks olema kaks ja pool kuni viis tundi mõõdukat liikumist.',
+        'Uudistetoimetaja: Regulaarselt, see tähendab vähemalt neli korda nädalas, teeb sporti iga viies mees ja iga kuues naine.',
+        'Uudistetoimetaja: Vähemalt kord nädalas liigub nii peaaegu kuus inimest kümnest.',
+        'Uudistetoimetaja: Iga kolmas inimene kõnnib või sõidab rattaga tööle ja koju vähem kui veerand tundi päevas. Kümme aastat tagasi oli selliseid inimesi vähem.',
+        'Uudistetoimetaja: Hea uudis on see, et suitsetajaid on järjest vähem. Iga päev suitsetab umbes kolmteist protsenti inimestest. Kümme aastat tagasi oli neid kaks korda rohkem.',
+        'Uudistetoimetaja: Ka Statistikaamet uuris, kuidas inimesed oma aega kasutavad. Trenni tehakse keskmiselt nelikümmend minutit päevas.',
+        'Uudistetoimetaja: Vabal ajal võtab kõige rohkem aega aga teler ja video, umbes kaks tundi päevas.',
+        'Uudistetoimetaja: Mida siis teha? Spetsialistid ütlevad, et iga liikumine on tähtis. Käi trepist, jaluta lõuna ajal ja istu vähem.',
         'Uudistetoimetaja: Homme räägime saates sellest, kuidas lapsed hommikul kooli lähevad. Kirjutage meile oma kogemusest!',
-      ], ['Uuringus osales [tuhat|1000] inimest.', 'Teed eelistab iga [kümnes] inimene.', 'Kõige populaarsem hommikusöök on [puder].', 'Pooled liiguvad päevas vähem kui pool [tundi].', 'Noored magavad keskmiselt [seitse|7] tundi.', 'Iga kolmas vaatab enne magamist [telefoni].', 'Inimesed tahavad süüa vähem [magusat].', 'Arstid soovitavad juua rohkem [vett].']),
+      ], ['Uuring toimub iga [kahe|2] aasta tagant.', 'Täiskasvanu peaks liikuma iga päev vähemalt pool [tundi].', 'Nädalas peaks liikuma kaks ja pool kuni [viis|5] tundi.', 'Vähemalt neli korda nädalas teeb sporti iga viies [mees].', 'Iga kolmas kõnnib või sõidab [rattaga] tööle vähem kui veerand tundi.', 'Suitsetajaid on nüüd [vähem|järjest vähem] kui kümme aastat tagasi.', 'Trenni tehakse keskmiselt [nelikümmend|40] minutit päevas.', 'Vabal ajal võtab kõige rohkem aega [teler|teler ja video].']), { voice: 'news' }),
       tag(B.reading('003_d_blog', 'Markuse blogi.', 'Vaata pealkirja ja ennusta, millest Markus kirjutab. Siis loe ja vasta.', 'Minu nädal ilma suhkruta',
         'Ma armastan magusat. Igal õhtul sõin šokolaadi ja tööl jõin kohvi kolme lusika suhkruga. Eelmisel kuul ütles arst, et pean vähem suhkrut sööma. Siis otsustasin proovida üht nädalat ilma suhkruta.\n\nEsimene päev oli raske. Kohv ilma suhkruta ei maitsenud mulle üldse. Õhtul tahtsin väga kooki süüa, aga sõin hoopis õuna. Teisel päeval jõin kohvi asemel teed ja võtsin tööle kaasa banaani. Kolmandal päeval märkasin, et mul on hommikul rohkem energiat.\n\nKõige raskem oli reedel. Anna tõi tööle kooki, sest tal oli sünnipäev. Ma ei söönud kooki, aga jõin temaga koos tassi teed. Anna ütles, et ta on minu üle uhke. Liis tahtis teada, kuidas see õnnestus.\n\nNüüd joon kohvi ilma suhkruta ja see maitseb mulle juba. Šokolaadi söön ainult pühapäeval. Ma ei taha magusast täiesti loobuda, aga tahan seda vähem süüa. Järgmiseks proovin hakata trepist käima. Meie kontor on viiendal korrusel, nii et see ei ole lihtne. Kui teil on häid nõuandeid, kirjutage mulle!',
         [['Mida Markus enne igal õhtul sõi?', 'šokolaadi'], ['Miks Markus otsustas suhkrust loobuda?', 'arst ütles|arst ütles, et peab vähem suhkrut sööma'], ['Mida Markus esimesel õhtul koogi asemel sõi?', 'õuna'], ['Mida Markus kolmandal päeval märkas?', 'tal on rohkem energiat'], ['Miks Anna kooki tõi?', 'tal oli sünnipäev'], ['Mida Markus järgmiseks proovib?', 'trepist käia|hakata trepist käima'], ['Miks ei ole trepist käimine Markusele lihtne?', 'kontor on viiendal korrusel|viiendal korrusel']]), { task: 'R13' }),
@@ -431,11 +458,13 @@ export const LESSONS = withShapes({
         'Millest sa tahaksid loobuda? |  | ', 'Mida sa pead rohkem tegema? |  | ', 'Mida sulle meeldib nädalavahetusel teha? |  | ', 'Mida sa hakkad homsest tegema? |  | ',
       ], 'g_use'), { task: 'S09', level: 3 }), 'Üks-ühele: õpilane küsitleb õpetajat ja õpetaja õpilast; lõpus räägib õpilane õpetaja kolmest vastusest kolmandas isikus (Ta joob…, ta peab…).'),
       teach(B.speaking('003_p_topic', 'Sinu päev ja tervis.', 'Vasta küsimustele. Ütle igale vastusele üks põhjus või näide.', [
-        'Mida sa pead oma päevas rohkem tegema?', 'Millest sa ei taha loobuda? Miks?', 'Mida sulle meeldib pärast tööd teha?', 'Kas sa jood rohkem kohvi, teed või vett?', 'Mida sa hakkad homsest teisiti tegema?',
+        'Mida sa pead oma päevas rohkem tegema?', 'Millest sa ei taha loobuda? Miks?', 'Mida sulle meeldib pärast tööd teha?', 'Kas sa jood rohkem kohvi, teed või vett?', 'Kas inimesed liiguvad sinu kodumaal rohkem või vähem kui Eestis? Miks sa nii arvad?', 'Mida sa hakkad homsest teisiti tegema?',
       ], [60, 120], ['Ma pean…', 'Ma ei taha…, sest…', 'Mulle meeldib…']), 'Üks-ühele: õpetaja küsib ja küsib iga vastuse järel „Miks?”; siis küsib õpilane õpetajalt samad küsimused.'),
     ],
     transfer: [
       B.text('003_t_sit', 'Tervisenädala otsus', 'Anna küsitlus on valmis. Liis palub meeskonnal valida järgmiseks nädalaks kolm uut harjumust, mida kõik proovivad. Markus kirjutas rühmavestlusse: „Trepp on minu jaoks liiga palju. Kas me peame kõike tegema?”'),
+      // checked 2026-11-02: emta.ee „Tervise- ja spordikulud” (Erisoodustused)
+      B.know('003_t_know', 'Eestis võib tööandja maksta töötaja spordi ja tervise eest ilma maksudeta kuni 400 eurot aastas. Näiteks võib ta maksta jõusaali, ujula või spordiklubi pileti eest. See summa on iga töötaja kohta. Kui inimesel on kaks tööandjat, võib kumbki maksta kuni 400 eurot.', 'Maksu- ja Tolliamet, „Tervise- ja spordikulud” (2026)'),
       tag(B.profiles('003_t_cards', 'Neli kolleegi.', 'Loe Anna küsitluse kaarte ja täienda laused.', [
         ['Anna', ['joob hommikul vett', 'käib koeraga kaks korda päevas jalutamas', 'vaatab õhtul telefoni', 'tahab varem magama minna'], ['Anna joob hommikul [vett].', 'Ta käib koeraga [jalutamas].', 'Õhtul vaatab ta [telefoni].', 'Ta tahab varem magama [minna].']],
         ['Markus', ['joob kaks tassi kohvi', 'ujub kaks korda nädalas', 'magab liiga vähe', 'tahab lõunal jalutada'], ['Markus joob kaks tassi [kohvi].', 'Ta käib kaks korda nädalas [ujumas].', 'Ta peab rohkem [magama].', 'Ta tahab lõuna ajal [jalutada].']],
@@ -443,10 +472,10 @@ export const LESSONS = withShapes({
         ['Sofia', ['joob teed', 'liigub vähe', 'armastab metsas jalutada', 'tahab loobuda telefonist enne magamist'], ['Sofia joob hommikul [teed].', 'Ta liigub [vähe].', 'Talle meeldib metsas [jalutada].', 'Ta tahab loobuda [telefonist].']],
       ], '2', 'g_read'), { task: 'R11' }),
       teach(tag(B.ideaCard('003_t_agree', 'Leppige kokku kolm harjumust.', 'Arutage kaarte ja Liisi kava. Leppige kokku kolm harjumust, mis sobivad kõigile neljale.', 'Kontori tervisenädal algab esmaspäeval. Kõik neli peavad nädala jooksul samu harjumusi proovima.',
-        ['trepp lifti asemel', 'vesi kohvi asemel', 'lõunajalutuskäik', 'puuvili magusa asemel', 'telefonita koosolek', 'varem magama'], 'Millised kolm harjumust meeskond valib ja miks need sobivad kõigile?'), { main: true }),
+        ['trepp lifti asemel', 'vesi kohvi asemel', 'lõunajalutuskäik', 'puuvili magusa asemel', 'koosolek jalutades', 'varem magama'], 'Millised kolm harjumust meeskond valib ja miks need sobivad kõigile?'), { main: true }),
       'Üks-ühele: õpetaja on Markus, kes ei taha trepist käia; õpilane põhjendab ja pakub kompromissi. Lõpus lepivad nad kokku kolm harjumust.'),
       teach(tag(B.speaking('003_t_photo', 'Pilt kontorist.', 'Vaata pilti Anna küsitlusest. Kirjelda pilti ja võrdle seda oma töö või kooliga.', [
-        'Kes on pildil ja mida nad teevad?', 'Mida Anna sinu arvates küsib?', 'Kas sinu töökohas on samasuguseid harjumusi?', 'Mida sinu kolleegid või kursusekaaslased tavaliselt joovad ja söövad?', 'Millise harjumuse sa ise valid ja miks?',
+        'Kes on pildil ja mida nad teevad?', 'Mida Anna sinu arvates küsib?', 'Kas sinu töökohas on samasuguseid harjumusi?', 'Kas tööandja peaks maksma töötajate spordi eest? Mis sa arvad?', 'Mida sinu kolleegid või kursusekaaslased tavaliselt joovad ja söövad?', 'Millise harjumuse sa ise valid ja miks?',
       ], [60, 120], ['Pildil on…', 'Minu töökohas…', 'Ma valin…, sest…']), { task: 'S06', fluency: true }), 'Üks-ühele: õpilane kirjeldab pilti õpetajale ilma pausideta; õpetaja küsib kaks lisaküsimust.'),
       tag(B.examWriting('003_t_note', 'Teade meeskonnale.', 'Kirjuta kolleegidele umbes 50 sõna. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Liis palus sul kirjutada meeskonnale, mida te kokku leppisite.', points: ['millised kolm harjumust te valisite', 'millal nädal algab', 'mida igaüks peab kaasa võtma', 'kus te kokku saate'], words: [40, 60], opening: 'Head kolleegid!',
@@ -540,12 +569,44 @@ export const LESSONS = withShapes({
       tag(B.examWriting('004_p_form', 'Uue rühma ankeet.', 'Täida keelekooli ankeet. Vasta igale küsimusele lühidalt, küsimustele „Miks?” ühe lausega.', 'kusimustik', {
         situation: 'Sofia läheb uude rühma. Keelekool palub täita ankeedi.', questions: ['Ees- ja perekonnanimi:', 'Kus te elate?', 'Kus te töötate?', 'Mis päeval ja mis kell teile tund sobib?', 'Miks te vahetate rühma?', 'Kas te tahaksite õppida koolimajas või internetis? Miks?', 'Mida te tahaksite kursusel kõige rohkem harjutada?', 'Kust te meie koolist kuulsite?'],
       }), { level: 3 }),
-      teach(B.speaking('004_p_week', 'Sinu nädal.', 'Vasta küsimustele oma nädala kohta. Kasuta kus-, kuhu- ja kust-vorme.', [
-        'Kus sa esmaspäeval oled ja mida teed?', 'Kuhu sa lähed pärast tööd või kooli?', 'Kust sa tuled kõige hiljem koju?', 'Mis päev on sinu nädalas kõige kiirem?', 'Mida sa muudaksid oma nädalas?',
-      ], [60, 120], ['Esmaspäeval olen…', 'Pärast tööd lähen…', 'Ma muudaksin…']), 'Üks-ühele: õpetaja küsib ja õpilane vastab; siis küsib õpilane õpetaja nädala kohta ja võrdleb.'),
+      // a voice from outside the cast (§13.3): a radio interview with an adult learner — kus/kuhu/kust and the conditional
+      // in use; an invented person telling her own experience, no numbers presented as facts
+      tag(B.examListen('004_p_olga', 'Raadiointervjuu: õpin eesti keelt pärast tööd.', 'Kuula raadiointervjuud täiskasvanud keeleõppijaga. Vali õige vastus.', 'choice', [
+        'Saatejuht: Tere! Täna on stuudios Olga, kes elab Narvas ja õpib eesti keelt juba teist aastat. Tere, Olga!',
+        'Olga: Tere! Aitäh kutsumast.',
+        'Saatejuht: Olga, kus te töötate ja millal te õpite?',
+        'Olga: Ma töötan apteegis. Tööpäev lõpeb kell viis ja siis lähen otse keelemajja. Kursus on kaks korda nädalas, teisipäeval ja neljapäeval.',
+        'Saatejuht: Kas see ei ole raske?',
+        'Olga: Alguses oli. Ma tulin töölt väga väsinuna ja tahtsin kohe koju minna. Nüüd on see harjumus.',
+        'Saatejuht: Kus te veel eesti keelt kuulete?',
+        'Olga: Hommikul kuulan bussis raadiot. Laupäeviti käin keelekohvikus raamatukogus. Seal räägime kõik ainult eesti keeles.',
+        'Saatejuht: Mis on teie jaoks kõige raskem?',
+        'Olga: Rääkida. Ma saan aru peaaegu kõigest, aga kui pean ise vastama, siis kardan vigu.',
+        'Saatejuht: Mida te teeksite teisiti, kui saaksite uuesti alustada?',
+        'Olga: Ma räägiksin rohkem. Ma läheksin varem keelekohvikusse ja küsiksin poes eesti keeles, mitte vene keeles.',
+        'Saatejuht: Mis on teie järgmine eesmärk?',
+        'Olga: Järgmisel aastal tahan teha B1 eksami. Siis saaksin minna tööle haiglasse, sest seal on vaja head eesti keelt.',
+        'Saatejuht: Edu, Olga! Aitäh!',
+      ], [
+        ['Kus Olga töötab?', 'apteegis', 'haiglas', 'raamatukogus'], ['Kuhu Olga pärast tööd läheb?', 'keelemajja', 'koju', 'keelekohvikusse'],
+        ['Mitu korda nädalas on Olgal kursus?', 'kaks korda', 'üks kord', 'kolm korda'], ['Kus Olga hommikul eesti keelt kuuleb?', 'bussis raadiost', 'tööl klientidelt', 'kodus telerist'],
+        ['Kus on keelekohvik?', 'raamatukogus', 'keelemajas', 'apteegis'], ['Mis on Olgale kõige raskem?', 'rääkida', 'aru saada', 'kirjutada'],
+        ['Mida teeks Olga teisiti?', 'räägiks rohkem', 'õpiks ainult üksi', 'käiks vähem kursusel'], ['Mida tahab Olga järgmisel aastal teha?', 'teha B1 eksami', 'kolida Tallinna', 'avada oma apteegi'],
+      ]), { voice: 'interview' }),
+      // the examiner's question set on the module's Harno topic (§13.7); keeps the id of the week questions it grew from
+      teach(B.examiner('004_p_week', 'Igapäevaelu ja keeleõpe', [
+        'Milline päev on sinu nädalas kõige kiirem ja miks?',
+        'Kuhu sa lähed pärast tööd või kooli ja kust sa tuled kõige hiljem koju?',
+        'Kui palju vaba aega sul nädalas on ja mida sa sel ajal teed?',
+        'Kas tööpäev peaks sinu arvates olema lühem kui kaheksa tundi? Miks?',
+        'Kas eesti keelt on parem õppida kursusel või iseseisvalt internetis? Põhjenda.',
+        'Kus sa väljaspool tundi eesti keelt kuuled ja räägid?',
+        'Kuidas õpitakse võõrkeeli sinu kodumaal? Mis on seal teisiti kui Eestis?',
+        'Mida sa muudaksid oma nädalas, et rohkem eesti keelt kuulda ja rääkida?',
+      ]), 'Üks-ühele: õpetaja on eksamineerija ja küsib; õpilane vastab igale küsimusele 2–4 lausega ja põhjendab. Õpetaja märgib kus-, kuhu- ja kust-vormid ning tingiva kõneviisi.'),
     ],
     transfer: [
-      B.text('004_t_sit', 'Lahendus tuleb', 'Maret saatis Sofiale kirja, kus on kaks võimalust. Nüüd peab Sofia valima, leppima Annaga kokku uue nädalaplaani ja helistama keelekooli administraatorile.'),
+      B.text('004_t_sit', 'Lahendus tuleb', 'Maret saatis Sofiale kirja, kus on kaks võimalust. Sofia loeb ka artiklit, kus ja kuidas saab Eestis veel eesti keelt õppida. Nüüd peab Sofia valima, leppima Annaga kokku uue nädalaplaani ja helistama keelekooli administraatorile.'),
       teach(tag(B.bankText('004_t_mail', 'Mareti kiri.', 'Loe Mareti kirja Sofiale. Pane igasse lünka sobiv lause. Kaks lauset ei sobi.', 'Uus aeg', [
         'Tere, Sofia!',
         '',
@@ -559,6 +620,9 @@ export const LESSONS = withShapes({
         '',
         'Kui teil on küsimusi, kirjutage mulle. [[Ootan teid igal juhul tundi!]] Parimate soovidega, Maret',
       ], ['Kahjuks on kõik rühmad täis.', 'Palun tulge homme kell seitse kooli.']), { level: 3 }), 'Üks-ühele: õpilane täidab lüngad üksi; siis küsib õpetaja, kumb võimalus Sofiale paremini sobib ja miks.'),
+      // a text from outside the cast (§13.3), checked 2026-11-02: integratsioon.ee „Ülevaade õppevõimalustest”, „Eesti keele
+      // maja”; hm.ee „Riigikeele oskus ja tasemeeksamid” (updated 05.10.2026)
+      tag(B.text('004_t_learn', 'Kus saab eesti keelt õppida?', 'Eestis õpib eesti keelt palju täiskasvanuid. Paljud käivad päeval tööl ja õpivad õhtul või nädalavahetusel. Võimalusi on mitu ja osa neist on tasuta.\n\nIntegratsiooni Sihtasutus pakub Eestis elavatele täiskasvanutele tasuta eesti keele kursusi. Kursustel saab jõuda tasemele A1, A2 või B1. Sihtasutusel on kaks eesti keele maja: üks on Tallinnas, teine Narvas. Keelemajas saab ka nõu, milline kursus või õppimise viis sobib just sulle.\n\nKes tahab õppida kodus, võib minna internetti. Riik on teinud täiskasvanutele tasuta e-kursused: „Keeleklikk” viib tasemele A2, „Keeletee” tasemele B1 ja „Keelelend” tasemele B2.\n\nOma keeleoskust saab kontrollida Haridus- ja Noorteameti tasemeeksamil. Eksamid toimuvad neli korda aastas tasemetel A2, B1, B2 ja C1. Registreeruda saab terve aasta. Eksam on sooritatud, kui inimene saab vähemalt 60 protsenti punktidest. Kes eksami sooritab, võib riigilt keelekursuse raha tagasi küsida, kuni kindla summani.\n\nAllikas: Integratsiooni Sihtasutus; Haridus- ja Teadusministeerium (2026).'), { voice: 'article' }),
       teach(tag(B.ideaCard('004_t_plan', 'Uus nädalaplaan.', 'Sofia ja Anna leiavad koos uue nädala. Leppige kokku, millal on tund, ujumine ja jõusaal.', 'Sofial on vaja kursust kaks korda nädalas. Anna tahab käia ujumas vähemalt kord nädalas.',
         ['esmaspäeval tund internetis', 'neljapäeval tund klassis', 'laupäeva hommikul ujula', 'teisipäeval jõusaal pärast tööd', 'kolmapäeval jooga pargis', 'reedel puhkus'], 'Milline on Sofia ja Anna uus nädalaplaan ja miks?'), { task: 'S12' }),
       'Üks-ühele: õpetaja on Anna, kes tahab väga neljapäeval ujumas käia; õpilane on Sofia ja pakub tingivas kõneviisis lahendusi. Lõpus on kokkulepe.'),
@@ -569,7 +633,11 @@ export const LESSONS = withShapes({
       teach(tag(B.speaking('004_t_group', 'Uus rühm.', 'Esimeses tunnis esitlevad kõik end uuele rühmale. Räägi endast umbes 1,5 minutit.', [
         'Kes sa oled ja kus sa elad?', 'Kus sa töötad ja kuidas sa tööle sõidad?', 'Miks sa tulid sellesse rühma?', 'Mida sa tavaliselt nädalavahetusel teed?', 'Mida sa sooviksid sellelt kursuselt?',
       ], [60, 120], ['Mina olen…', 'Ma tulin sellesse rühma, sest…', 'Ma sooviksin…']), { task: 'S01', fluency: true }), 'Üks-ühele: õpilane tutvustab end õpetajale nagu uuele rühmale, kaks korda järjest; teisel korral ilma märkmeteta.'),
-      tag(B.letter('004_t_invite', 'Kutse Annale.', 'Kirjuta Annale kutse laupäeva hommikuks: kuhu, mis kell, kust kohtute ja mis pärast.', 'Tere, Anna!', 'Kohtumiseni laupäeval!', [50, 70]), { task: 'W03' }),
+      // the learner's own week after the article (§13.3: the wider topic, not only Sofia's week); the home monologue
+      // (finalShape S15, V16) instead of the invitation letter, so Kasuta is not „call → letter” again (§13.4)
+      tag(B.speaking('004_t_myweek', 'Kodus: minu eesti keele nädal.', 'Salvesta kodus umbes 1,5 minutit. Räägi, kus, millal ja kuidas sa järgmisel nädalal eesti keelt õpid ja harjutad. Kasuta artikli infot.', [
+        'Mis päeval ja kus sa õpid?', 'Kas sa õpid kursusel, internetis või üksi? Miks?', 'Kuhu sa lähed eesti keelt rääkima?', 'Mis artiklist sobiks sulle kõige paremini ja miks?', 'Mida sa tahaksid järgmise kuu lõpuks osata?',
+      ], [60, 90], ['Esmaspäeval õpin…', 'Ma tahaksin…', 'Mulle sobiks…, sest…']), { task: 'S15' }),
       B.rubricSpeaking('004_t_rubric'),
     ],
   },
