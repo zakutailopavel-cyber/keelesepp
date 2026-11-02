@@ -1,3 +1,14 @@
+## 2026-11-03 · agent/av-b1-module-01 (PR #1005) — B1 module 1 (a2b1-001…005): academic value round 1
+
+- Base: `main` dd48b88 (after #1002), checked 2026-11-02. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row: igapäevaelu (+ isikuandmed, keel).
+- 002: topic opener `002_d_open` (replaces the short goal text; Statistikaamet time use 2019–2021, working time and leave from eesti.ee, census 2021 languages; 4 „Mõtle kaasa” questions incl. home country); forum text `002_p_forum` (voice forum, R15); „Kas teadsid?” `002_t_know` (Tallinn's public transport); a home-country question in `002_t_tips`.
+- 003: the invented radio survey `003_d_radio` is replaced by `003_d_news` (voice news, real TAI TKU 2024 / Statistikaamet data, source in the instruction; new id, new audio); „Kas teadsid?” `003_t_know` (employer's tax-free sports allowance, EMTA); opinion questions in `003_p_topic`, `003_t_photo`; `003_t_agree` option „telefonita koosolek” → „koosolek jalutades” (the av-kasuta gate read „telefon” as a phone call).
+- 004: interview `004_p_olga` (voice interview, new audio); `004_p_week` became the examiner set (`B.examiner`, same id); article `004_t_learn` (voice article; Integratsiooni Sihtasutus, HTM); home monologue `004_t_myweek` (S15) instead of the invitation letter `004_t_invite` (removed). 001: „podcasti” → „taskuhäälingut” (EKI). 005 unchanged.
+- Files: `b1/module01.js`, `academicValueBaseline.json` (module 1 removed), `listeningAudio.json` + `public/audio/a2b1-003/003_d_news.mp3`, `public/audio/a2b1-004/004_p_olga.mp3` (TartuNLP TTS, free), `003_d_radio.mp3` deleted, `tools/course-audit/language-allow.txt` (ksin, ksid, sisenemistesti, pilates, mas-vorm, kusimustik).
+- Checks: `ACADEMIC_REPORT=a2b1-module-01` PASS; course report 5/5 READY (minutes 40–51); language check 0 unknown lower-case; `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 134 files passed, 1526 tests.
+- Limits: facts checked on the web 2026-11-02 (sources in the PR); the forum and the interview are invented people, no numbers. Not published; nothing in production touched. `language.py` reads the examWriting `genre` key (kusimustik) — worth adding to its SKIP_KEYS.
+- Next safe step: review and merge the PR, then B1 module 2 (`agent/av-b1-module-02`).
+
 ## 2026-11-03 · agent/av-b1-module-02 (PR #1004) — B1 module 2 „Mina, pere ja suhted”: academic value round 1
 
 - Base: `main` dd48b88, checked 2026-11-03. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; theme „families in Estonia” (§13.1).
