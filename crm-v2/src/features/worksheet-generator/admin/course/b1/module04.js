@@ -27,6 +27,11 @@
 // Exam formats introduced here (§6.3): W1b note (017 Harjuta) and S2 phone role play (019 Kasuta).
 // B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): peab / võib / saab / ei tohi (017); particle verbs —
 // ühendverbid (018, again in 019). Earlier versions: archive/v3/b1/module04.js, archive/v1/b1/module04.js.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, topic map: vaba aeg ja meelelahutus + igapäevaelu): topic
+// opener 016_d_open (sport 2025, RMK, folk calendar, public holidays; the module goal is its last paragraph), popsci
+// 016_p_calendar (rahvakalender: jüripäevast mihklipäevani), examiner set 016_t_free; article 017_p_nature (igaüheõigus:
+// peab / võib / ei tohi in real rules); „Kas teadsid?” 018_p_know (rest time in the employment law) and 019_p_know
+// (digiregistratuur); home monologue 019_t_time (punctuality, Estonia vs home country) instead of the voicemail recording.
 import { B, tag, teach, why, withShapes } from '../blocks.js';
 
 export const MODULE = { id: 'a2b1-module-04', course: 'b1', title: 'Aeg, plaanid ja kohustused', level: 'A2+', design: 'v2', template: 'v4' };
@@ -51,7 +56,18 @@ export const LESSONS = withShapes({
     canDo: 'Ma räägin laagri päevakavast vähemalt kuue ajamäärusega ja lepin paarilisega kokku laupäeva kava.',
     discover: [
       B.review('016_d_review', [['Kuidas jõuab külaline bussipeatusest sinu koju? Ütle neli sammu.', 'a2b1-014'], ['Mis kell algas Helgi üllatuspidu ja millal jõudis Helgi talusse?', 'a2b1-009'], 'Mis kell sa täna üles tõusid ja mida tegid kõigepealt?']),
-      B.text('016_d_goal', 'Moodul 4: aeg ja plaanid', 'Detsembri esimene nädal on Jaani perel ja Sofial väga kiire. Nädalavahetusel on Kase kooli talvelaager ja Sofia on seal koos Annaga vabatahtlik. Samal ajal on firma laos inventuur, Anna sõidab õe pulma ja hambaarst muudab Sofia aega. Mooduli lõpus helistad, muudad kokkulepitud aega ja teed perega uue plaani. Täna proovid kõigepealt ise, siis leiad reegli ja lepid lõpuks kokku laagri päevakava.'),
+      B.topicOpener('016_d_open', 'Teema avaleht: vaba aeg Eestis', [
+        'Mida teevad inimesed Eestis pärast tööd ja nädalavahetusel? Paljud käivad trennis, laulavad kooris, tantsivad või õpivad pilli mängima. Teised lähevad kinno, teatrisse, kontserdile või raamatukokku. Lapsed lähevad pärast kooli huviringi: muusikakooli, kunstiringi, jalgpalli- või ujumistrenni. Eesti vanasõna ütleb: „Enne töö, siis lõbu.” Aga vaba aeg on sama tähtis kui töö.',
+        'Statistikaameti andmetel oli 2025. aastal Eestis üle 2500 spordiklubi ja umbes 255 000 spordialade harrastajat. Rohkem kui pooled neist olid noored, 19-aastased või nooremad. Noorte seas on kõige populaarsemad alad jalgpall ja ujumine. Eesti eesmärk on, et aastaks 2030 liigub ja teeb sporti vähemalt kaks kolmandikku elanikest.',
+        'Paljud veedavad vaba aega looduses. Metsas ja rabas võib liikuda jalgsi, rattaga või suuskadega ning korjata marju ja seeni. Riigimetsa Majandamise Keskus (RMK) hoiab korras matkaradu, lõkkekohti ja telkimisalasid. RMK matkatee Oandu–Aegviidu–Ikla on 370 kilomeetrit pikk: see algab Lahemaal ja lõpeb Läti piiri ääres.',
+        'Vanasti elasid inimesed rahvakalendri järgi. Jüripäeval, 23. aprillil, algasid kevadtööd ja loomad lasti karjamaale. Mihklipäeval, 29. septembril, lõppes soe suveaeg. Jaanipäeva, 24. juunit, peetakse tänapäevalgi: süüdatakse jaanituli ja ollakse koos looduses. Võidupüha (23. juuni) ja jaanipäev on riigipühad, need on puhkepäevad.',
+        'Selles moodulis räägid ajast, plaanidest ja kohustustest: mis kell, kui kaua, mida peab, mida võib ja mida ei tohi. Mooduli lõpus helistad, muudad kokkulepitud aega ja teed uue nädalavahetuse plaani.',
+      ], 'Statistikaamet, „Sport” (andmed 2025); RMK, „Oandu–Aegviidu–Ikla 370 km”; Eesti.ee, „Liikumine looduses ja igaüheõigus”; Eesti Kirjandusmuuseum, rahvakalendri andmebaas BERTA; pühade ja tähtpäevade seadus (Riigi Teataja)', [
+        'Mida sina teed vabal ajal kõige meelsamini?',
+        'Miks on spordiklubides sinu arvates nii palju noori?',
+        'Kas sinu kodumaal veedavad inimesed vaba aega rohkem looduses või linnas?',
+        'Milline Eesti tähtpäev meeldib sulle kõige rohkem ja miks?',
+      ]),
       B.choice('016_d_try', 'Proovi kõigepealt ise.', 'Vali igasse lausesse sobiv ajasõna või vorm. Reeglit pole veel vaja — arva julgelt.', [
         ['Laager algab laupäeval kell … (8.30).', 'pool üheksa', 'pool kaheksa', 'kolmveerand üheksa'],
         ['Buss väljub kooli eest kell … (7.45).', 'kolmveerand kaheksa', 'veerand kaheksa', 'kolmveerand seitse'],
@@ -131,10 +147,10 @@ export const LESSONS = withShapes({
         ['Kõigepealt on matk. Siis joome kuuma teed.', 'pärast', 'Pärast matka joome kuuma teed.'],
         ['Vaba aeg: 16.00–18.00', 'kestab', 'Vaba aeg kestab kaks tundi.'],
       ]),
-      teach(tag(B.speaking('016_d_432', 'Minu päev kolm korda.', 'Räägi oma tavalisest päevast kolm korda, iga kord uuele kuulajale: 2 minutit, 90 sekundit, 1 minut.', [
-        'Mis kell sa ärkad ja mida teed kõigepealt?', 'Kellast kellani sa töötad või õpid?', 'Mida sa teed enne lõunat ja pärast lõunat?', 'Kui kaua kestab sinu tee tööle või kooli?', 'Mida sa teed õhtul enne magamaminekut?',
-      ], [60, 120], ['Kõigepealt…', 'Kella üheksast kella viieni…', 'Pärast tööd…, enne magamaminekut…']), { task: 'S08', fluency: true }),
-      'Üks-ühele: õpilane räägib sama päeva õpetajale kolm korda, õpetaja hoiab aega (2 min, 90 s, 1 min) ega katkesta. Pärast kolmandat korda ütleb õpetaja, mitu ajasõna tuli õigesti (kellast kellani, enne, pärast).'),
+      teach(tag(B.speaking('016_d_432', 'Tööpäev ja vaba päev.', 'Räägi paarilisele oma tavalisest tööpäevast ja vabast päevast. Paariline küsib ja võrdleb: mis on teie päevades sama, mis on teisiti?', [
+        'Mis kell sa ärkad tööpäeval ja mis kell vabal päeval?', 'Kellast kellani sa töötad või õpid?', 'Mida sa teed pärast tööd ja enne magamaminekut?', 'Kui palju vaba aega sul päevas on?', 'Mida sa teed vabal päeval kõigepealt?', 'Kas sinu kodumaal on inimestel rohkem või vähem vaba aega kui Eestis? Miks sa nii arvad?',
+      ], [60, 120], ['Kõigepealt…', 'Kella üheksast kella viieni…', 'Pärast tööd…, enne magamaminekut…']), { task: 'S08' }),
+      'Üks-ühele: õpilane räägib oma päevadest, õpetaja küsib vahele („Kellast kellani?”, „Aga pärast seda?”) ja räägib siis oma päevast; õpilane võrdleb kahe lausega. Lõpus ütleb õpetaja, mitu ajasõna tuli õigesti (kellast kellani, enne, pärast).'),
     ],
     practice: [
       tag(B.gaps('016_p_case', 'Enne, pärast, kuni, alates.', 'Kirjuta sulgudes olev sõna sobivas vormis. Mõtle, mida nõuab enne, pärast, kuni või alates.', [
@@ -160,27 +176,26 @@ export const LESSONS = withShapes({
         '',
         '{*Enne|Pärast|Kuni} magamaminekut lugesin veel raamatut. Kell üheksa kustutas Anna tule. Jäin kohe magama.',
       ]),
-      tag(B.reading('016_p_info', 'Kaie infoleht vanematele.', 'Loe infolehte. Leia igale lõigule pealkiri ja vasta kahele küsimusele.', 'Talvelaager: info vanematele', [
-        'Pealkirjad: A. Mida kaasa võtta · B. Kuidas lapsega ühendust pidada · C. Kui laps jääb haigeks · D. Söök laagris · E. Pühapäeva kontsert',
+      tag(B.reading('016_p_calendar', 'Rahvakalender: aeg enne kella.', 'Loe populaarteaduslikku teksti. Vasta küsimustele lühidalt, kasuta ajasõnu (enne, pärast, …st …ni).', 'Kui kalendris olid tööd ja pühad', [
+        'Vanasti ei olnud talus kella ega paberkalendrit. Inimesed teadsid aega rahvakalendri järgi. Rahvakalendri tähtpäevad ütlesid, millal algavad tööd ja millal on aeg puhata.',
         '',
-        '1. Laagris süüakse neli korda päevas. Hommikusöök ja lõuna tulevad kooli köögist, õhtusöögi teeb Jaan ja toit on kodune. Kui lapsel on allergia, kirjutage sellest Kaiele kolmapäevaks.',
+        'Kevad algas jüripäeval, 23. aprillil. Sel päeval lasti loomad esimest korda karjamaale ja algasid kevadtööd. Veel 19. sajandil palgati teenijaid ja karjaseid sageli jüripäevast mihklipäevani. Mihklipäeval, 29. septembril, lõppes valge ja soe suveaeg. Siis lõppes ka karjaste töö.',
         '',
-        '2. Lapsel peavad olema soojad riided, talvesaapad, magamiskott ja hambahari. Telefoni ei ole vaja. Väikese mänguasja võib kaasa võtta.',
+        'Talvel oli rohkem vaba aega. Jõuludest vastlapäevani oli talvine lõbus aeg. Vastlapäev on veebruaris või märtsis, seitse nädalat enne lihavõtteid. Sel päeval lasti mäest liugu. Kelle liug oli kõige pikem, sellel pidid suvel kasvama pikad linad. Vastlapäeval söödi hernesuppi ja seajalgu, tänapäeval ka vastlakukleid.',
         '',
-        '3. Laagri telefon on avatud kella kaheksast hommikul kella üheksani õhtul. Pärast öörahu helistage ainult siis, kui asi on väga tähtis.',
+        'Liugu lastakse vastlapäeval ka tänapäeval. Lapsed lähevad mäele koos lasteaia või kooliga, täiskasvanud koos pere ja sõpradega. Näiteks Tartus on vastlapäeval Toomemäe nõlvadel palju rahvast.',
         '',
-        '4. Kui lapsel tõuseb palavik, helistame vanematele kohe. Laagri lähedal on tervisekeskus, mis on laupäeval avatud kella kümnest kella kaheni.',
-        '',
-        '5. Pühapäeval kell kaksteist esinevad lapsed vanematele. Kontsert kestab umbes tund aega. Pärast kontserti on kohv ja kook.',
+        'Allikas: Eesti Kirjandusmuuseum, rahvakalendri andmebaas BERTA: „Jüripäev”, „Mihklipäev”, „Vastlapäev”.',
       ], [
-        ['Milline pealkiri sobib esimesele lõigule?', 'D'],
-        ['Milline pealkiri sobib teisele lõigule?', 'A'],
-        ['Milline pealkiri sobib kolmandale lõigule?', 'B'],
-        ['Milline pealkiri sobib neljandale lõigule?', 'C'],
-        ['Milline pealkiri sobib viiendale lõigule?', 'E'],
-        ['Mis kellani võib vanem õhtul laagrisse helistada?', 'kella üheksani|üheksani|21-ni'],
-        ['Kui kaua on perearstikeskus laupäeval avatud?', 'neli tundi|kella kümnest kella kaheni'],
-      ]), { task: 'R09' }),
+        ['Mille järgi teadsid inimesed vanasti aega?', 'rahvakalendri järgi|rahvakalendri|tähtpäevade järgi'],
+        ['Mis kuupäeval on jüripäev?', '23. aprillil|23. aprill|kahekümne kolmandal aprillil'],
+        ['Mida tehti jüripäeval loomadega?', 'lasti karjamaale|loomad lasti karjamaale|lasti esimest korda karjamaale'],
+        ['Mis ajast mis ajani palgati teenijaid ja karjaseid?', 'jüripäevast mihklipäevani'],
+        ['Mis lõppes mihklipäeval?', 'suveaeg|valge ja soe suveaeg|karjaste töö'],
+        ['Mis ajast mis ajani oli talvine lõbus aeg?', 'jõuludest vastlapäevani'],
+        ['Mitu nädalat enne lihavõtteid on vastlapäev?', 'seitse nädalat|seitse|7'],
+        ['Mida tähendas vanasti pikk liug?', 'pikki linu|pikad linad|suvel kasvavad pikad linad'],
+      ]), { task: 'R19', voice: 'popsci' }),
       B.examListen('016_p_sunday', 'Pühapäeva kava.', 'Sofia ja Anna muudavad jutu ajal mitu aega. Ühenda tegevus ja lõplik kellaaeg.', 'match', [
         'Sofia: Anna, teeme pühapäeva kava ka valmis. Äratus on kell kaheksa, eks?',
         'Anna: Pühapäeval võiksid lapsed kauem magada. Teeme äratuse pool üheksa.',
@@ -216,7 +231,7 @@ export const LESSONS = withShapes({
       'Üks-ühele: õpetaja mängib järjest kolme eri lapsevanemat (rahulik, mures, kiirustav). Õpilane tutvustab end kolm korda; iga kord peab jutt tulema sujuvamalt ja kiiremini.'),
     ],
     transfer: [
-      B.text('016_t_sit', 'Laupäeva kava', 'Kaie saatis vabatahtlike kaardid. Iga vabatahtlik saab laupäeval aidata ainult teatud ajal. Täna teete Annaga lõpliku päevakava, arutate seda ja vastate mures lapsevanemale.'),
+      B.text('016_t_sit', 'Laupäeva kava', 'Detsembri esimene nädal on Jaani perel ja Sofial väga kiire: nädalavahetusel on Kase kooli talvelaager, firma laos on inventuur ja Anna sõidab õe pulma. Kaie saatis vabatahtlike kaardid. Iga vabatahtlik saab laupäeval aidata ainult teatud ajal. Täna teete Annaga lõpliku päevakava, arutate seda ja vastate mures lapsevanemale.'),
       B.profiles('016_t_cards', 'Vabatahtlike kaardid.', 'Loe nelja vabatahtliku kaarti. Täienda laused: millal ja mida igaüks teha saab?', [
         ['Markus', ['tuleb laagrisse kell 10, lahkub kell 15', 'oskab hästi laulda ja kitarri mängida', 'õhtul ei saa jääda, sest on sõbra sünnipäeval', 'on lastega rahulik ja lõbus', 'tahab juhendada laulmise töötuba'],
           ['Markus on laagris kella kümnest kella [kolmeni].', 'Ta lahkub pärast [lõunat].', 'Markus juhendab [laulmise] töötuba.', 'Õhtul on ta sõbra [sünnipäeval].', 'Laulu ajal mängib ta [kitarri].', 'Lastega on Markus rahulik ja [lõbus].']],
@@ -237,10 +252,16 @@ export const LESSONS = withShapes({
         'Sinu tütar on seitsmeaastane ja väsib kiiresti. Sinu meelest on matk liiga pikk ja päev liiga täis. Küsi aegade kohta ja palu muudatust.',
         ['Matk kestab…', 'Pärast lõunat on…', 'Võiksime teha nii: …'], ['Kui kaua … kestab?', 'Kas matk on ohutu?', 'Mis kell lapsed magama lähevad?']), { task: 'S10' }),
       'Üks-ühele: õpetaja on mures isa või ema ja nõuab muudatust; õpilane selgitab kava ja leiab lahenduse. Teises ringis on õpetaja Sofia ja õpilane lapsevanem.'),
-      teach(tag(B.speaking('016_t_free', 'Kas vaba aeg on raisatud aeg?', 'Kas lastelaagris peab iga tund olema plaanitud? Ütle oma arvamus ja kaks põhjust.', [
-        'Kas lapsed vajavad laagris vaba aega? Miks?', 'Kas laagris võib olla lärmakas või peab olema vaikne?', 'Mis kell peaks väike laps magama minema?', 'Kui kaua võiks kesta üks töötuba?', 'Milline oli sinu lapsepõlve kõige toredam suvi või laager?', 'Mis on sinu meelest hea päevakava saladus?',
-      ], [60, 120], ['Minu meelest…, sest…', 'Teisest küljest…', 'Kui ma olin laps, siis…']), { task: 'S11' }),
-      'Üks-ühele: õpetaja ütleb vastupidise arvamuse („Laagris peab iga minut olema tegevus”) ja õpilane põhjendab oma seisukohta kahe põhjusega.'),
+      teach(tag(B.examiner('016_t_free', 'vaba aeg ja meelelahutus', [
+        'Mida sa vabal ajal kõige meelsamini teed?',
+        'Kas sul on mõni hobi või trenn? Kui tihti ja kus sa seal käid?',
+        'Kas lastel peaks olema rohkem huviringe või rohkem vaba aega? Põhjenda.',
+        'Kas sinu arvates on Eestis hea vaba aega veeta? Miks?',
+        'Mille poolest erineb vaba aja veetmine Eestis ja sinu kodumaal?',
+        'Milline Eesti tähtpäev on sinu jaoks kõige toredam ja miks?',
+        'Kas sport on sinu elus tähtis? Miks?',
+      ]), { task: 'S11' }),
+      'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab igale küsimusele 2–4 lausega ja põhjendab. Õpetaja küsib vahel lisaks „Miks?” või ütleb vastupidise arvamuse.'),
       B.rubricSpeaking('016_t_rubric', 'Hindamine: kokkulepe ja kava (20 punkti).'),
       B.selfcheck('016_t_self', ['Ma ütlen kellaaja: veerand, pool, kolmveerand.', 'Ma kasutan kellast kellani, enne ja pärast.', 'Ma loen laagri kava ja leian sealt ajad.', 'Ma lepin teisega kokku päevakava.'], 'Aeg ja kava'),
     ],
@@ -317,10 +338,10 @@ export const LESSONS = withShapes({
         'Kes on pildil ja kus nad on?', 'Mida Markus kannab ja miks?', 'Mida laos peab tegema?', 'Mida seal ei tohi teha?', 'Mis võib laos olla ohtlik?',
       ], [60, 90], ['Pildil on…', 'Markus peab kandma…', 'Siin ei tohi…'], 'g_vocab'), { task: 'S06', fluency: true }),
       'Üks-ühele: õpilane kirjeldab pilti õpetajale kolm korda, iga kord üks minut; õpetaja esitab vahepeal ühe uue küsimuse („Kas laos võib süüa?”).'),
-      teach(tag(B.speaking('017_d_rules', 'Reeglid minu elus.', 'Vasta samadele küsimustele kolm korda eri kuulajale. Iga korraga lisa vastusesse uus detail.', [
-        'Mida peab sinu töökohas või koolis kindlasti tegema?', 'Mida seal ei tohi teha?', 'Mida sinu kodus võib teha ainult teatud ajal?', 'Millist reeglit sa ei pea täitma, aga täidad ikka?', 'Milline reegel on sinu meelest kõige tähtsam ja miks?',
-      ], [60, 120], ['Meie kontoris peab…', 'Kodus ei tohi…', 'Ma ei pea…, aga…']), { fluency: true }),
-      'Üks-ühele: õpilane vastab õpetajale kolm korda; õpetaja on iga kord uus kuulaja (kolleeg, naaber, sõber) ja küsib ühe lisaküsimuse „Kas võib…?”.'),
+      teach(tag(B.speaking('017_d_rules', 'Reeglid minu elus.', 'Vasta paarilise küsimustele, siis küsi temalt samad küsimused. Võrdle: millised reeglid on Eestis teistsugused kui sinu kodumaal?', [
+        'Mida peab sinu töökohas või koolis kindlasti tegema?', 'Mida seal ei tohi teha?', 'Mida sinu kodus võib teha ainult teatud ajal?', 'Milline reegel on Eestis teistsugune kui sinu kodumaal?', 'Milline reegel on sinu meelest kõige tähtsam ja miks?',
+      ], [60, 120], ['Meie kontoris peab…', 'Minu kodumaal võib…, aga Eestis ei tohi…', 'Ma ei pea…, aga…']), { fluency: true }),
+      'Üks-ühele: õpilane vastab õpetajale, siis küsib õpetajalt samad küsimused; õpetaja räägib ühest reeglist, mis tema arvates on Eestis teistsugune, ja õpilane ütleb, kas ta on nõus.'),
     ],
     practice: [
       B.examListen('017_p_radio', 'Raadio: telefonid koolis.', 'Kuula raadiointervjuud kooli uuest reeglist. Kas väide on õige või vale?', 'truefalse', [
@@ -376,6 +397,26 @@ export const LESSONS = withShapes({
         'Hobuseid ei tohi toita, aga neid võib [paitada].',
         'Kui laps ei saa tulla, tuleb helistada teisipäeva [õhtuks].',
       ]),
+      tag(B.reading('017_p_nature', 'Mida looduses tohib teha?', 'Loe artiklit. Vasta küsimustele lühidalt. Viimasele küsimusele vasta oma arvamusega.', 'Igaüheõigus: mets on kõigile', [
+        'Eestis on palju metsa, rabasid ja randu ning loodust võib nautida igaüks. Seda nimetatakse igaüheõiguseks. Looduses võib liikuda jalgsi, jalgrattaga, suuskadega, paadiga või hobusega. Võib korjata marju, seeni ja lilli, kui need ei ole looduskaitse all.',
+        '',
+        'Ka eramaal võib liikuda, kui maa ei ole piiratud ega tähistatud ja omanik seda ei keela. Seal võib ka telkida, aga ainult üks ööpäev. Telk peab olema elumajast nii kaugel, et maja elanikud seda ei näe ega kuule.',
+        '',
+        'Mõned asjad on keelatud. Ilma maaomaniku loata ei tohi teha lõket ega telkida kauem kui üks ööpäev. Kellegi koduõuele ja põllule, kus kasvab vili, minna ei tohi. Puid ei tohi vigastada, loodust ei tohi reostada ja lindude pesi ei tohi lõhkuda.',
+        '',
+        'Avalikus järves või jões võib ilma loata kalastada ühe lihtsa õngega. Kui tahad püüda kala muul viisil, on vaja luba.',
+        '',
+        'Allikas: Eesti.ee ja Kliimaministeerium, „Liikumine looduses ja igaüheõigus” (2024).',
+      ], [
+        ['Kuidas võib looduses liikuda? Nimeta kaks viisi.', 'jalgsi ja jalgrattaga|jalgsi|jalgrattaga|suuskadega|paadiga|hobusega'],
+        ['Mida võib looduses korjata?', 'marju, seeni ja lilli|marju ja seeni|marju|seeni'],
+        ['Millal võib eramaal liikuda?', 'kui maa ei ole piiratud ega tähistatud|kui omanik ei keela|kui maa ei ole tähistatud'],
+        ['Kui kaua võib eramaal telkida?', 'üks ööpäev|ühe ööpäeva|kuni üks ööpäev'],
+        ['Mida on vaja, et teha lõket?', 'maaomaniku luba|omaniku luba|luba'],
+        ['Kuhu ei tohi minna?', 'koduõuele ja põllule|kellegi koduõuele|põllule'],
+        ['Millega võib ilma loata kalastada?', 'ühe lihtsa õngega|õngega'],
+        ['Kas sinu kodumaal on looduses samad reeglid? Mis on teisiti?', ''],
+      ]), { task: 'R15', voice: 'article' }),
       B.gaps('017_p_forms', 'Ma- või da-vorm?', 'Kirjuta tegusõna sobivas vormis. Peab ja hakkab tahavad ma-vormi, võib ja tohib da-vormi.', [
         'Lapsed peavad bussis turvavöö kinni [panema] (paneb).',
         'Jõulutalus ei tohi hobustele süüa [anda] (annab).',
@@ -531,7 +572,7 @@ export const LESSONS = withShapes({
         '',
         'Helista mulle õhtul, siis lepime kõik [[kokku]]. Ära muretse, mehaanik lubas auto reedeks [[korda]] teha. Sinu onu Viktor',
       ], ['maha', 'välja']), { task: 'R04' }),
-      B.reading('018_p_article', 'Ajakiri: kuidas jõuda kõike?', 'Loe ajakirja artiklit. Vasta küsimustele oma sõnadega, mitte terve lausega tekstist.', 'Kolm tulpa ja üks „ei”', [
+      tag(B.reading('018_p_article', 'Ajakiri: kuidas jõuda kõike?', 'Loe ajakirja artiklit. Vasta küsimustele oma sõnadega, mitte terve lausega tekstist.', 'Kolm tulpa ja üks „ei”', [
         'Paljudel inimestel on sama mure: päevas on liiga vähe tunde. Töö, pere, trenn ja arved — kõik tahab tähelepanu. Koolitaja Katrin Sild soovitab lihtsat nippi.',
         '',
         'Kirjuta hommikul kõik oma tööd paberile. Siis tee kolm tulpa. Esimesse tulpa lähevad asjad, mis on tõesti kiired: neil on täna tähtaeg. Teise tulpa lähevad asjad, mis on tähtsad, aga võivad oodata. Kolmandasse tulpa jäävad asjad, mida pole üldse vaja teha.',
@@ -552,7 +593,11 @@ export const LESSONS = withShapes({
         ['Kuidas võib kolleegile viisakalt ei öelda?', 'kahjuks täna ei saa, aga homme aitan|kahjuks ei saa, aga homme aitan'],
         ['Miks peaks ka puhkuse kalendrisse kirjutama?', 'siis see ei jää kergesti ära|siis see ei jää ära'],
         ['Milline nõuanne sobib sulle kõige rohkem ja miks?', ''],
-      ]),
+      ]), { voice: 'article' }),
+      B.know('018_p_know', [
+        'Puhkamine ei ole ainult hea nõuanne, see on ka seaduses kirjas. Eesti töölepingu seaduse järgi peab töötaja saama iga 24 tunni jooksul puhata vähemalt 11 tundi järjest.',
+        'Kui tööpäev on pikem kui 6 tundi, on töötajal õigus vähemalt 30-minutilisele vaheajale. Tavaliselt seda vaheaega tööaja hulka ei arvestata. Nädalas peab töötaja saama puhata vähemalt 48 tundi järjest, summeeritud tööaja korral 36 tundi.',
+      ], 'Tööelu portaal, „Puhkeaeg”; töölepingu seadus', 'Kas teadsid? Puhkeaeg on seaduses'),
       B.errorfix('018_p_fix', 'Paranda viga: osake ja vorm.', 'Igas lauses on üks viga ühendverbiga. Kirjuta lause õigesti.', [
         ['Ma pean lepingu läbi loema.', 'Ma pean lepingu läbi lugema.'],
         ['Trenn jäi maha, sest ma olin väsinud.', 'Trenn jäi ära, sest ma olin väsinud.'],
@@ -600,7 +645,7 @@ export const LESSONS = withShapes({
         points: ['mis oli kõige kiirem töö ja kas sa jõudsid selle ära teha', 'mis jäi ära või mida lükkasid edasi', 'mis läks hästi ja mis halvasti', 'kuidas sa end reede õhtul tundsid'],
         words: [80, 100],
       }), { main: true }),
-      teach(tag(B.speaking('018_t_rec', 'Kodus: kes teeb kodutööd?', 'Kas kodused kohustused peavad olema jagatud võrdselt? Ütle oma arvamus ja kaks põhjust. Räägi 1–2 minutit ja salvesta.', ['Mida sa kodus pead tegema?', 'Kes teeb teie kodus kõige rohkem?', 'Kas see on õiglane?', 'Kuidas võiks töid jagada?', 'Mida lapsed peavad kodus tegema?'], [60, 120], ['Minu arvates…', 'Esiteks…, teiseks…', 'Seepärast…']), { task: 'S15', level: 3 }),
+      teach(tag(B.speaking('018_t_rec', 'Kodus: kes teeb kodutööd?', 'Kas kodused kohustused peavad olema jagatud võrdselt? Ütle oma arvamus ja kaks põhjust. Räägi 1–2 minutit ja salvesta.', ['Mida sa kodus pead tegema?', 'Kes teeb teie kodus kõige rohkem?', 'Kas see on õiglane?', 'Kuidas võiks töid jagada?', 'Kuidas jagatakse kodutöid sinu kodumaal? Kas Eestis on teisiti?'], [60, 120], ['Minu arvates…', 'Esiteks…, teiseks…', 'Seepärast…']), { task: 'S15', level: 3 }),
         'Kodune monoloog. Tunnis on õpetaja teisel arvamusel ja õpilane põhjendab.'),
       tag(B.writing('018_t_final', 'Loo teine versioon.', 'Kontrolli oma lugu hindamisjuhendiga ja sündmuste järjekorda. Paranda osakesed ja vormid ning kirjuta lugu puhtalt.', [9, 11], ['ära', 'läbi', 'edasi', 'valmis'], 2), { task: 'W10' }),
       B.rubricW2('018_t_rubric', 'Hindamine: lugu (12 punkti).'),
@@ -729,6 +774,10 @@ export const LESSONS = withShapes({
         ['Pärast uut reeglit jääb tühjaks poole vähem aegu.', 'õige'],
         ['Reelika töötab kliinikus juba kümme aastat.', 'ei selgu'],
       ]), { task: 'R06' }),
+      B.know('019_p_know', [
+        'Arsti juurde saab Eestis aega broneerida, muuta ja tühistada ka internetis, üleriigilises digiregistratuuris. Selle leiab terviseportaalist (terviseportaal.ee). Digiregistratuur töötab ööpäev läbi, sisse saab ID-kaardi, Mobiil-ID või Smart-ID-ga.',
+        'Kui aeg ei sobi, tühista see kohe: siis saab selle aja keegi teine.',
+      ], 'Tervisekassa, „Digiregistratuur”; terviseportaal.ee', 'Kas teadsid? Arsti aega saab muuta ka internetis'),
       tag(B.transformation('019_p_join', 'Keeldu ja põhjenda.', 'Ühenda kaks lauset üheks: kasuta antud sõna ja pane koma õigesse kohta.', [
         ['Kahjuks ma ei saa tulla. Mul on koosolek.', 'sest', 'Kahjuks ma ei saa tulla, sest mul on koosolek.'],
         ['Hambaarst on haige. Aeg jääb ära.', 'kuna', 'Kuna hambaarst on haige, jääb aeg ära.'],
@@ -787,8 +836,10 @@ export const LESSONS = withShapes({
         ['Helistaja (Sofia)', ['Ütle, kes sa oled ja miks helistad.', 'Küsi, mis kell pühapäeval buss Kõrvemaale läheb.', 'Küsi, kas viiele inimesele on kohti ja kas on lapse turvatool.', 'Küsi, mis kell buss tagasi tuleb.', 'Küsi pileti hinda ja kas aega saab hiljem ümber teha.']],
         ['Kõrve Reisid, klienditeenindaja', ['Pühapäeval on lisabuss kell 10.30, tavaline buss kell 12.00.', 'Kohti on veel seitse, turvatool on ainult üks.', 'Tagasi sõidavad bussid kell 13.15 ja 17.00.', 'Pilet maksab neli eurot, laps sõidab tasuta.', 'Aega saab muuta kuni kaks tundi enne sõitu.']]), { harno: 'S2', main: true }),
       'Üks-ühele: õpetaja on klienditeenindaja ja vastab kaardi järgi; õpilane küsib kõik viis asja ja kirjutab vastused üles. Siis vahetage. Hinda nagu Harno B1 rääkimise 2. ülesannet: kas kõik kaardi küsimused said küsitud ja vastused kirja.'),
-      teach(tag(B.speaking('019_t_rec', 'Kodus: häälsõnum sõbrale.', 'Kohtumine ei sobi. Salvesta sõbrale häälsõnum (umbes 1 minut): mis juhtus, paku uus aeg ja küsi, kas see sobib.', ['Miks kokkulepitud aeg ei sobi?', 'Millal sa saad?', 'Kus te kohtute?', 'Mida sa palud sõbral teha?'], [60, 120], ['Tere! Kahjuks ma ei saa…', 'Kas … sobib?', 'Anna teada, palun!']), { task: 'S15', level: 3 }),
-        'Kodune häälsõnum. Tunnis vastab õpetaja sõbra rollis ja pakub kolmanda aja.'),
+      teach(tag(B.speaking('019_t_time', 'Kodus: täpsus ja hilinemine.', 'Räägi 1–2 minutit: kui tähtis on olla õigel ajal? Ütle oma arvamus, too näide ja võrdle Eestit oma kodumaaga.', [
+        'Kui palju võib sinu arvates hiljaks jääda sõbra sünnipäevale? Aga arsti juurde?', 'Kas sinu kodumaal on hilinemine ebaviisakas? Aga Eestis?', 'Kuidas sa teatad, kui jääd hiljaks?', 'Kas kliinik peaks võtma raha, kui patsient ei tule ega helista? Miks?', 'Mis on parem, kui pead aega muutma: helistada või kirjutada?',
+      ], [60, 120], ['Minu arvates…, sest…', 'Minu kodumaal…, aga Eestis…', 'Näiteks kord…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis ütleb õpetaja vastupidise arvamuse („Viis minutit hilinemist ei ole probleem”) ja õpilane põhjendab oma seisukohta.'),
       teach(tag(B.rolecards('019_t_family', 'Pere nõupidamine (kaks korda).', 'Leppige kokku pühapäeva plaan: kes, kuhu, mis kell ja millega. Siis korrake kiiremini.',
         'Sa oled Sofia. Sa tead bussiaegu (minek 10.30, tagasi 13.15). Sinu ettepanek: kõik sõidavad bussiga, Mia tuleb kaasa, Helgi tuleb jaamast taksoga. Põhjenda.',
         'Sa oled Jaan. Sa muretsed Oskari turniiri pärast (kell 15). Sinu ettepanek: Mia jääb Helgiga koju, sina sõidad Oskariga otse laagrist staadionile. Põhjenda ja leidke kompromiss.',

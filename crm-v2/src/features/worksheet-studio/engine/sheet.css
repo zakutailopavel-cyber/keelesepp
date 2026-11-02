@@ -81,7 +81,7 @@
 .ws-figure figcaption { font-size: 10.5pt; color: var(--ks-muted); text-align: center; margin-top: 1.2mm; }
 .ws-vocab h4 { margin: 0 0 2mm; font: 900 14pt var(--font-head); color: var(--ks-navy); }
 .ws-vocab-cols { column-gap: 8mm; font-size: 12pt; }
-.ws-vocab-cols div { break-inside: avoid; padding: .5mm 0; }
+.ws-vocab-cols div { break-inside: avoid; padding: .5mm 0; overflow-wrap: anywhere; }
 
 /* gaps */
 .ws-bank { background: rgba(255,255,255,.7); border-radius: 3.5mm; padding: 2mm 4mm; display: flex; flex-wrap: wrap; justify-content: center; gap: 1.2mm 5mm; margin-bottom: 2.5mm; }
@@ -837,3 +837,147 @@ button.ws-pt { cursor: pointer; }
 
 /* a pair task done in the lesson with the teacher (engine/inLesson.js) */
 .ws-inlesson{display:inline-block;margin:4px 0 0;padding:2px 9px;border-radius:999px;background:#eef6ff;color:#1d4f91;font-size:.78em;font-weight:600}
+
+/* ===== Textbook page system (owner 2026-11-02: „every worksheet is a lesson … the blocks beautiful like a textbook
+   page”). One set of rules for every block in the house theme Klassika (the default; the book draws every sheet in it).
+   docs/TEXTBOOK_VISUAL_STYLE.md §2 and docs/TEXTBOOK_ART_BIBLE.md §2: navy ink, white paper, light rules, ONE lime
+   accent. Presentation only: sizes stay close to the old ones so pagination barely moves; the phone column
+   (sheetFlow.css, loaded after this file) keeps its own sizes and touch targets; print is the same A4 page.
+   Rhythm: 4 mm between blocks (.ws-flow), 3 mm under a task head, 2–2.5 mm between the parts of a block, 1 mm radius
+   on every inner box (the cards themselves are square). The card carries data-type (its block type) for these rules. ===== */
+.ws-root.theme-klassika {
+  --tb-ink: #1d2b4a; --tb-lime: #c9f03d; --tb-lime-soft: #f4fbdc; --tb-line: #8b97a8;
+  --tb-rule: #c9cfd8; --tb-rule-soft: #e3e7ec; --tb-paper: #f8f8f5; --tb-muted: #4f5a6e; --tb-r: 1mm;
+}
+
+/* task head: a lime square number, the title in small caps, the instruction a quieter italic line under it */
+.ws-root.theme-klassika .ws-num { background: var(--tb-lime) !important; color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-card.num-outline .ws-num { background: transparent !important; border: .6mm solid var(--tb-ink); }
+.ws-root.theme-klassika .ws-ch { margin-bottom: 3mm; }
+.ws-root.theme-klassika .ws-ch p { color: var(--tb-muted); }
+.ws-root.theme-klassika .ws-ch p.ws-inlesson { font-style: normal; }
+.ws-root.theme-klassika .ws-hint { font-style: italic; color: var(--tb-muted); }
+
+/* information blocks carry their own box: no second frame around them */
+.ws-root.theme-klassika .ws-card:is([data-type='notice'], [data-type='tip'], [data-type='image']):not([class*='frame-']) { border: 0; padding: 0; background: transparent !important; }
+
+/* „Märka!”: the one filled box of the page, pale lime with a lime edge */
+.ws-root.theme-klassika .ws-notice { background: var(--tb-lime-soft); border-left: 1.6mm solid var(--tb-lime); border-radius: 0; padding: 3mm 4mm 3mm 3.6mm; }
+.ws-root.theme-klassika .ws-notice b { font: 600 11.5pt/1.2 var(--font-head); text-transform: uppercase; letter-spacing: .6pt; color: var(--tb-ink); margin-bottom: 2mm; }
+/* „Vihje”: a lime rule only, lighter than „Märka!” */
+.ws-root.theme-klassika .ws-tip { background: transparent; border-left: 1mm solid var(--tb-lime); border-radius: 0; padding: 1.2mm 0 1.2mm 3mm; }
+.ws-root.theme-klassika .ws-tip > svg { flex: none; }
+.ws-root.theme-klassika .ws-tip > svg circle { fill: var(--tb-ink); }
+.ws-root.theme-klassika .ws-tip > svg path { stroke: var(--tb-lime); }
+.ws-root.theme-klassika .ws-notice b svg circle { fill: var(--tb-lime); stroke: var(--tb-ink); stroke-width: 1.4; }
+.ws-root.theme-klassika .ws-notice b svg rect { fill: var(--tb-ink); }
+.ws-root.theme-klassika .ws-tip b { font-family: var(--font-head); font-weight: 600; }
+
+/* text: a section heading with a short lime bar, paragraphs at a readable measure */
+.ws-root.theme-klassika .ws-textblock h4 { font: 600 13pt/1.2 var(--font-head); text-transform: uppercase; letter-spacing: .6pt; color: var(--tb-ink); margin: 0 0 2mm; }
+.ws-root.theme-klassika .ws-textblock h4::after { content: ''; display: block; width: 14mm; height: .9mm; margin-top: 1.2mm; background: var(--tb-lime); }
+.ws-root.theme-klassika .ws-textblock p { max-width: 80ch; margin: 0 0 2.2mm; }
+.ws-root.theme-klassika .ws-textblock p:last-child { margin-bottom: 0; }
+
+/* reading text: warm paper panel, a title with a lime rule, open paragraph spacing */
+.ws-root.theme-klassika .ws-passage { background: var(--tb-paper); border: .3mm solid var(--tb-rule); border-radius: var(--tb-r); line-height: 1.5; }
+.ws-root.theme-klassika .ws-passage h4 { font: 600 13pt/1.25 var(--font-head); color: var(--tb-ink); margin: 0 0 2.4mm; padding-bottom: 1mm; border-bottom: .8mm solid var(--tb-lime); display: inline-block; }
+.ws-root.theme-klassika .ws-passage p { margin: 0 0 2.4mm; }
+.ws-root.theme-klassika .ws-passage p:last-child { margin-bottom: 0; }
+.ws-root.theme-klassika :is(.ws-rq, .ws-gaps, .ws-choice, .ws-order, .ws-fix, .ws-translation, .ws-insertion-options, .ws-ads-sit) > li::marker, .ws-root.theme-klassika :is(.ws-match, .ws-many) ol > li::marker { font-family: var(--font-head); font-weight: 700; color: var(--tb-ink); }
+
+/* word bank: a pale lime tray with each word a tidy chip */
+.ws-root.theme-klassika .ws-bank { background: var(--tb-lime-soft); border: 0; border-radius: var(--tb-r); gap: 1.6mm 2mm; justify-content: flex-start; }
+.ws-root.theme-klassika .ws-bank-w { background: #fff; border: .3mm solid var(--tb-rule); border-radius: var(--tb-r); padding: .5mm 2.4mm; color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-bank-w.sel { background: var(--tb-ink); border-color: var(--tb-ink); color: #fff; }
+.ws-root.theme-klassika .ws-chip { border-color: var(--tb-rule); border-radius: var(--tb-r); }
+
+/* answer space: printable lines a pen can follow */
+.ws-root.theme-klassika .ws-line { border-bottom-color: var(--tb-line); }
+.ws-root.theme-klassika span.ws-letterbox { border-bottom: .35mm solid var(--tb-line); }
+.ws-root.theme-klassika .ws-sel { border-color: var(--tb-line); border-radius: var(--tb-r); }
+.ws-root.theme-klassika .ws-cloze-sel { border-bottom-color: var(--tb-line); }
+
+/* tables: a navy rule under the head, light rules between rows */
+.ws-root.theme-klassika .ws-table { background: transparent; border-radius: 0; border-bottom: .35mm solid var(--tb-ink); }
+.ws-root.theme-klassika .ws-table th { background: transparent; border-bottom: .5mm solid var(--tb-ink); font: 600 10.5pt/1.2 var(--font-head); text-transform: uppercase; letter-spacing: .5pt; color: var(--tb-ink); vertical-align: bottom; }
+.ws-root.theme-klassika .ws-table td { border-top: .25mm solid var(--tb-rule-soft); }
+.ws-root.theme-klassika .ws-table tbody tr:first-child td { border-top: 0; }
+
+/* true / false: the column heads in the head font, light rules between statements */
+.ws-root.theme-klassika .ws-tf-head b { font-family: var(--font-head); font-weight: 700; }
+.ws-root.theme-klassika .ws-tf-row { border-bottom-color: var(--tb-rule-soft); }
+
+/* dialogue: two speakers, two bubble colours, names in the head font */
+.ws-root.theme-klassika .ws-who { font-family: var(--font-head); font-weight: 700; text-transform: uppercase; letter-spacing: .4pt; font-size: 10pt; }
+.ws-root.theme-klassika .ws-sayb { border: .3mm solid var(--tb-rule); border-radius: 3mm; background: #fff; }
+.ws-root.theme-klassika .ws-say.b .ws-sayb { background: var(--tb-lime-soft); border-color: #d6ea9a; }
+
+/* audio: navy disc, lime glyph */
+.ws-root.theme-klassika .ws-audio { border-color: var(--tb-rule); box-shadow: none; }
+.ws-root.theme-klassika .ws-audio-ico { background: var(--tb-ink); color: var(--tb-lime); }
+.ws-root.theme-klassika .ws-audio.is-print svg { color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-audio b { font-family: var(--font-head); }
+
+/* speaking and writing: the task as a framed card with a checklist; ruled lines under it */
+.ws-root.theme-klassika :is(.ws-speak, .ws-taskcard) .ws-bullets { list-style: none; padding-left: 0; }
+.ws-root.theme-klassika :is(.ws-speak, .ws-taskcard) .ws-bullets li { position: relative; padding-left: 6.5mm; }
+.ws-root.theme-klassika :is(.ws-speak, .ws-taskcard) .ws-bullets li::before { content: ''; position: absolute; left: .4mm; top: 1.75mm; width: 3.2mm; height: 3.2mm; border: .35mm solid var(--tb-ink); background: #fff; }
+.ws-root.theme-klassika .ws-taskcard { border: .35mm solid var(--tb-ink); border-left: 1.6mm solid var(--tb-lime); border-radius: 0; background: #fff; }
+.ws-root.theme-klassika .ws-taskcard-kind { display: inline-block; background: var(--tb-ink); color: #fff; padding: .6mm 2.2mm .4mm; letter-spacing: .8pt; font-family: var(--font-head); font-weight: 600; }
+.ws-root.theme-klassika .ws-speakcard-sit { font-family: var(--font-head); color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-ruled { background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 6.9mm, #a3adbb 6.9mm, #a3adbb 7.4mm); }
+.ws-root.theme-klassika :is(.ws-planning, .ws-guidedletter) textarea { background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 7mm, #a3adbb 7mm, #a3adbb 7.25mm); }
+.ws-root.theme-klassika .ws-pill { border-color: var(--tb-rule); }
+
+/* role cards, phrase bank, planning, rubrics: a navy frame, light rules inside, labels in the head font */
+.ws-root.theme-klassika .ws-rolecards section { border: .3mm solid var(--tb-ink); border-top: 1.6mm solid var(--tb-lime); border-radius: 0; }
+.ws-root.theme-klassika .ws-rolecards section > b { color: var(--tb-ink); font: 600 11.5pt/1.2 var(--font-head); text-transform: uppercase; letter-spacing: .5pt; }
+.ws-root.theme-klassika .ws-rolecards section > span { border-top-color: var(--tb-rule-soft); }
+.ws-root.theme-klassika :is(.ws-phrasebank, .ws-planning, .ws-rubric) { border: .3mm solid var(--tb-ink); }
+.ws-root.theme-klassika :is(.ws-phrasebank section, .ws-planning label, .ws-rubric label) { border: 0; border-bottom: .25mm solid var(--tb-rule-soft); border-right: .25mm solid var(--tb-rule-soft); }
+.ws-root.theme-klassika .ws-phrasebank section b { font-family: var(--font-head); font-weight: 600; color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-examrubric :is(th, td) { border-color: var(--tb-rule); }
+.ws-root.theme-klassika .ws-pt { border-color: var(--tb-line); }
+.ws-root.theme-klassika .ws-pt.on { background: var(--tb-ink); border-color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-self input { accent-color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-stamp { background: var(--tb-lime-soft); }
+
+/* vocabulary: a word box with a lime-ruled heading and dotted lines between the entries */
+.ws-root.theme-klassika .ws-vocab h4 { font: 600 12pt/1.2 var(--font-head); text-transform: uppercase; letter-spacing: .6pt; color: var(--tb-ink); display: inline-block; padding-bottom: 1mm; border-bottom: .8mm solid var(--tb-lime); margin-bottom: 2.4mm; }
+.ws-root.theme-klassika .ws-vocab-cols div { border-bottom: .25mm dotted var(--tb-rule); }
+
+/* pictures: a thin light frame, the caption small and quiet under it */
+.ws-root.theme-klassika .ws-photo { border-radius: var(--tb-r); }
+.ws-root.theme-klassika .ws-figure .ws-photo { border: .3mm solid var(--tb-rule); background: #fff; }
+.ws-root.theme-klassika :is(.ws-figure figcaption, .ws-cap) { font-style: italic; color: var(--tb-muted); }
+.ws-root.theme-klassika .ws-figure figcaption { text-align: left; font-size: 10pt; margin-top: 1.6mm; padding-left: 2.4mm; border-left: .8mm solid var(--tb-lime); }
+.ws-root.theme-klassika .ws-wordstrip .ws-photo { border-color: var(--tb-rule-soft); }
+.ws-root.theme-klassika .ws-wordstrip span { font-weight: 600; color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-pic-letter, .ws-root.theme-klassika .ws-picrow::before { background: var(--tb-lime); color: var(--tb-ink); border-radius: 0; }
+.ws-root.theme-klassika :is(.ws-profile, .ws-picrow, .ws-idea, .ws-count) { border-radius: var(--tb-r); border-color: var(--tb-rule); }
+.ws-root.theme-klassika .ws-profile-name { font-family: var(--font-head); }
+.ws-root.theme-klassika .ws-cat-g { background: #fff; border: .3mm dashed var(--tb-line); border-radius: var(--tb-r); }
+.ws-root.theme-klassika .ws-cat-g b { font: 600 11pt/1.2 var(--font-head); text-transform: uppercase; letter-spacing: .5pt; padding-bottom: .8mm; border-bottom: .8mm solid var(--tb-lime); display: inline-block; }
+
+/* exam papers: ads as lettered cards, the exam part as the section head of a real paper */
+.ws-root.theme-klassika .ws-ad { border-color: var(--tb-rule); border-radius: var(--tb-r); background: #fff; }
+.ws-root.theme-klassika .ws-ad h4 { font-family: var(--font-head); font-weight: 700; }
+.ws-root.theme-klassika .ws-ad-letter { color: var(--tb-ink); background: var(--tb-lime); width: 5.2mm; height: 5.2mm; display: grid; place-items: center; font-size: 10.5pt; left: 2mm; top: 2.2mm; }
+.ws-root.theme-klassika .ws-exampart { gap: 2mm; }
+.ws-root.theme-klassika .ws-exampart h4 { font: 700 15pt/1.15 var(--font-head); text-transform: uppercase; letter-spacing: 1pt; color: var(--tb-ink); justify-self: start; padding: 1mm 3mm .6mm; background: var(--tb-lime); }
+.ws-root.theme-klassika .ws-exampart-facts { gap: 1mm 0; border-top: .25mm solid var(--tb-rule); border-bottom: .25mm solid var(--tb-rule); padding: 1.4mm 0; }
+.ws-root.theme-klassika .ws-exampart-facts span { padding: 0 4mm; border-left: .25mm solid var(--tb-rule); }
+.ws-root.theme-klassika .ws-exampart-facts span:first-child { padding-left: 0; border-left: 0; }
+.ws-root.theme-klassika .ws-exampart-facts b { font-family: var(--font-head); color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-exampart .ws-recbtn { background: var(--tb-ink); }
+
+/* schemes, charts, crossword: navy lines, the lime only where the eye should go */
+.ws-root.theme-klassika :is(.ws-dg2-num, .ws-dg-step) { background: var(--tb-lime); color: var(--tb-ink); }
+.ws-root.theme-klassika .ws-chart-title { font-family: var(--font-head); text-transform: uppercase; letter-spacing: .5pt; }
+.ws-root.theme-klassika .ws-chart-source { font-style: italic; }
+.ws-root.theme-klassika .ws-cw-clues h4 { font-family: var(--font-head); text-transform: uppercase; letter-spacing: .5pt; color: var(--tb-ink); }
+
+/* focus: every control shows where the keyboard is (in every theme) */
+.ws-root :is(.ws-opt, .ws-tfbox, .ws-bank-w, .ws-chip, .ws-recbtn, .ws-pt, .ws-circ, .ws-cat-g):focus-visible { outline: .6mm solid var(--ks-navy); outline-offset: .4mm; }
+.ws-root.theme-klassika .ws-line:focus { border-bottom-color: var(--tb-ink); background: var(--tb-lime-soft); }

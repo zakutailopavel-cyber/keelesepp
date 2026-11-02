@@ -95,6 +95,7 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
       data-size={flow ? undefined : opts.size || undefined}
       style={{ ...(plain ? {} : { background: tone.card }), ...(flow ? {} : { gridColumn: `span ${spanOf(block)}` }), ...(block.minHeightMm && !flow ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}), '--ws-badge': accent || tone.badge }}
       data-block={block.id}
+      data-type={block.type}
       data-entity={entity ? 'block' : undefined}
       data-block-id={entity ? block.id : undefined}
       onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : onPick ? () => onPick(block.id) : undefined}
