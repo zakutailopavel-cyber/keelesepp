@@ -2,6 +2,7 @@
 # B1 module 1: the conditional endings bolded inside words in the notice (tule**ksin**, saa**ksid**)
 # B1 module 3: the adjective suffixes named in the grammar notes (-ne, -line, -lik, -tu, eba-)
 # B1 module 9: the ma-infinitive case endings in the phrase tips (… -mas, … -mast)
+# B1 module 7: the imperative endings named in the grammar notice (teie-käsk -ge / -ke: pange, võtke)
 # Correct words the Vabamorf speller does not know (checked by hand). One per line.
 # compounds
 # correct but rare
@@ -14,9 +15,11 @@ broneerimis
 digivaba
 diktoglossi
 eba
+ge
 gi
 hedoonilise
 hotelliketid
+ke
 kergendunud
 ki
 koolipäeviti
