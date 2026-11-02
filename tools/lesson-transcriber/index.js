@@ -7,8 +7,8 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
-const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
+const { learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, judgeCorrection, teacherRecasts, errorTopics, withFocus, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { isEnglishNoise, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
 const env = (k, d) => process.env[k] || d;
@@ -72,7 +72,7 @@ async function transcribeSegment(seg, lessonLang, dir) {
     // -ojf: token probabilities, so words whisper was unsure of are marked in the transcript
     await run(WHISPER, ['-m', modelFor(lang), '-l', lang, '-t', THREADS, '-f', piece, '-ojf', '-of', piece, '-np', '-mc', '0', '-sns'], { maxBuffer: 64 * 1024 * 1024 });
     const json = JSON.parse(fs.readFileSync(`${piece}.json`, 'utf8'));
-    lines.push(...parseWhisperJson(json, { speaker: seg.track, offsetMs: (seg.startMs || 0) + chunk.startMs }).map((line) => ({ ...line, lang })));
+    lines.push(...parseWhisperJson(json, { speaker: seg.track, offsetMs: (seg.startMs || 0) + chunk.startMs }).filter((line) => !isEnglishNoise(line.text, lang)).map((line) => ({ ...line, lang })));
     progress();
   }
   return lines;
@@ -198,12 +198,16 @@ async function liveWork() {
 const OLLAMA = env('OLLAMA_URL', 'http://127.0.0.1:11434');
 const GEC_MODEL = env('GEC_MODEL', 'llammas-gec');
 const SUMMARY_MODEL = env('SUMMARY_MODEL', 'gemma3:12b');
+// Ollama answers 500 now and then while it swaps models in memory (GEC ↔ gemma3, 2026-10-11): tried again twice
 async function ollama(body, timeoutMs = 10 * 60 * 1000) {
-  const res = await fetch(`${OLLAMA}/api/generate`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stream: false, ...body }), signal: AbortSignal.timeout(timeoutMs),
-  });
-  if (!res.ok) throw new Error(`Ollama ${res.status}`);
-  return (await res.json()).response || '';
+  for (let attempt = 0; ; attempt += 1) {
+    const res = await fetch(`${OLLAMA}/api/generate`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stream: false, ...body }), signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (res.ok) return (await res.json()).response || '';
+    if (res.status < 500 || attempt >= 2) throw new Error(`Ollama ${res.status}`);
+    await new Promise((resolve) => setTimeout(resolve, (attempt + 1) * 20000));
+  }
 }
 async function ollamaModels() {
   try {
@@ -260,13 +264,17 @@ async function analyzeNext() {
   await beat();
   const started = Date.now();
   try {
-    const errors = [];
-    const sentences = learnerSentences(transcript, rec.language || 'et', (await loadDidactics().catch(() => null))?.forms || null);
+    // the teacher's recasts first (the most reliable errors); their sentences are not sent to the GEC model
+    const forms = (await loadDidactics().catch(() => null))?.forms || null;
+    const errors = teacherRecasts(transcript, rec.language || 'et', forms);
+    const recast = new Set(errors.map((e) => e.said));
+    const sentences = learnerSentences(transcript, rec.language || 'et', forms).filter((s) => !recast.has(s.text));
     if (hasGec) {
       for (const [i, s] of sentences.entries()) {
         if (i % 8 === 0) { current = { ...current, detail: `vead ${i}/${sentences.length}` }; await beat(); }
         const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(s.text), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
-        if (isCorrection(s.text, corrected)) errors.push({ startMs: s.startMs, said: s.text, corrected, ...(s.unsure ? { unsure: true } : {}) });
+        const judged = judgeCorrection(s.text, corrected);
+        if (judged) errors.push({ startMs: s.startMs, said: s.text, corrected, kind: judged.kind, ...(s.unsure ? { unsure: true } : {}) });
         progress();
       }
     }
@@ -274,7 +282,7 @@ async function analyzeNext() {
     if (hasSummary) {
       current = { ...current, detail: 'kokkuvõte' };
       await beat();
-      summary = parseSummary(await ollama({ model: SUMMARY_MODEL, prompt: summaryPrompt(transcript), format: 'json', options: { temperature: 0.2, num_ctx: 32768 } }));
+      summary = withFocus(parseSummary(await ollama({ model: SUMMARY_MODEL, prompt: summaryPrompt(transcript, errorTopics(errors)), format: 'json', options: { temperature: 0.2, num_ctx: 32768 } })), errorTopics(errors));
       progress();
     }
     // the whole lesson's analysis goes on its first part; the other parts only point to it
@@ -282,8 +290,9 @@ async function analyzeNext() {
     const [first, ...rest] = parts;
     await first.ref.update({ analysis: {
       version: ANALYSIS_VERSION, parts: parts.map((p) => p.id), errors, ...(summary ? { summary } : {}),
+      focus: errorTopics(errors).map(({ key, topic, count, teacher, examples }) => ({ key, topic, count, teacher, examples })),
       // what the CRM's „Rääkimine” counts: the sentences that were checked and the learner's (Estonian) words
-      checked: hasGec ? sentences.length : 0, speech: learnerSpeech(transcript, rec.language || 'et'),
+      checked: (hasGec ? sentences.length : 0) + recast.size, speech: learnerSpeech(transcript, rec.language || 'et'),
       models: { ...(hasGec ? { gec: GEC_MODEL } : {}), ...(hasSummary ? { summary: SUMMARY_MODEL } : {}) },
       analyzedAt, petStatsAt: analyzedAt, seconds: Math.round((Date.now() - started) / 1000),
     } });
@@ -292,7 +301,9 @@ async function analyzeNext() {
     log('analyzed', first.id, `${parts.length} part(s)`, `${errors.length} errors`, summary ? 'summary' : 'no summary');
   } catch (err) {
     // saved so a broken recording is not tried again every minute; a new ANALYSIS_VERSION retries all
-    await rec.ref.update({ analysis: { version: ANALYSIS_VERSION, error: String(err.message || err).slice(0, 300), analyzedAt: new Date().toISOString() } });
+    // a passing failure (Ollama busy, a timeout) is tried again on a later tick, at most three times
+    const attempts = (rec.analysis?.version === ANALYSIS_VERSION ? Number(rec.analysis.attempts) || 0 : 0) + 1;
+    await rec.ref.update({ analysis: { version: ANALYSIS_VERSION, error: String(err.message || err).slice(0, 300), attempts, analyzedAt: new Date().toISOString() } });
     log('analysis failed', rec.id, err.message);
   } finally {
     current = { state: 'idle', recordingId: '' };

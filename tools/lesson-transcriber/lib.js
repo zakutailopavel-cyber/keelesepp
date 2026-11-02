@@ -4,7 +4,7 @@
 // Lines whisper tends to invent on silence or music; dropped before they reach the teacher.
 const JUNK = [
   /^\s*[[(].*[\])]\s*$/, // [MUSIC], (inaudible)
-  /subtitles? (by|made)/i, /субтитры/i, /redaktor subtiitrite/i, /tõlkis/i,
+  /subtitles? (by|made)/i, /субтитр/i, /корректор\s+\p{Lu}\./iu, /redaktor subtiitrite/i, /tõlkis/i,
   /^\s*(thank you|thanks for watching)\.?\s*$/i, /продолжение следует/i,
   /^[^\p{L}\p{N}]*$/u, // only punctuation („.”, „…”)
 ];
@@ -29,6 +29,19 @@ function collapseRepeats(text) {
     if (!skipped) { out.push(words[i]); i += 1; }
   }
   return out.join(' ');
+}
+
+// whisper invents short English sentences on unclear speech („I'm going to talk to you”, „I just love it”) and the
+// line is tagged with the lesson language; in an Estonian line a sentence of only English words is noise (owner
+// 2026-10-11, Monika's lesson)
+const ENGLISH = new Set(['i', "i'm", 'im', 'you', 'your', 'we', "we'll", 'it', "it's", 'is', 'are', 'a', 'an', 'the', 'to', 'of', 'and', 'but',
+  'yeah', 'yes', 'oh', 'well', 'just', 'love', 'going', 'talk', 'moment', 'so', 'okay', 'ok', 'what', 'this', 'that', 'do', "don't",
+  'know', 'thank', 'thanks', 'please', 'let', "let's", 'go', 'all', 'right', 'good', 'very', 'much', 'me', 'my', 'here', 'there', 'now']);
+function isEnglishNoise(text, lang = 'et') {
+  if (lang !== 'et') return false;
+  const list = String(text || '').toLowerCase().split(/\s+/).map((w) => w.replace(/^[^a-z']+|[^a-z']+$/g, '')).filter(Boolean);
+  if (!list.length || /[õäöüšž]/i.test(text) || list.some((w) => !/^[a-z']+$/.test(w))) return false;
+  return list.filter((w) => ENGLISH.has(w)).length / list.length >= 0.5;
 }
 
 function cleanText(text) {
@@ -172,4 +185,4 @@ function heartbeat({ host, state = 'idle', recordingId = '', recordingIds = null
 }
 
 module.exports = {
-  tokenWords, UNSURE_P, collapseRepeats, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage, isStaleTranscribing, pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };
+  isEnglishNoise, tokenWords, UNSURE_P, collapseRepeats, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage, isStaleTranscribing, pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };
