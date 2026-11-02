@@ -393,19 +393,19 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     const meta = LIBRARY_TYPES[item.type] || LIBRARY_TYPES.material;
     const fav = favorites.has(item.key);
     return (
-      <li className="lib2-row" key={item.key}>
-        <button type="button" className={`lib2-star ${fav ? 'is-on' : ''}`} aria-pressed={fav} aria-label={fav ? `Eemalda lemmikutest: ${item.title}` : `Lisa lemmikutesse: ${item.title}`} onClick={() => toggleFavorite(item)}><Star size={17} /></button>
+      <li className="lib2-row" key={item.key} data-entity="library-item" data-lesson-id={item.sourceId || item.id || undefined} data-entity-title={item.title}>
+        <button type="button" data-entity-action="favorite" className={`lib2-star ${fav ? 'is-on' : ''}`} aria-pressed={fav} aria-label={fav ? `Eemalda lemmikutest: ${item.title}` : `Lisa lemmikutesse: ${item.title}`} onClick={() => toggleFavorite(item)}><Star size={17} /></button>
         <i className={`lib2-icon tone-${meta.tone}`} aria-hidden="true"><Icon size={18} /></i>
-        <button type="button" className="lib2-main" onClick={() => setSelected(item)}>
+        <button type="button" className="lib2-main" data-entity-action="details" onClick={() => setSelected(item)}>
           <strong>{item.lessonNumber && item.kind !== 'exercise' ? <span className="lib2-num">{item.lessonNumber}.</span> : null}{item.title}</strong>
           <small>{[meta.label, item.level || item.ageGroup, sort !== 'toc' ? item.moduleTitle : '', item.languageFocus].filter(Boolean).join(' · ')}</small>
           {snippet ? <em className="lib2-snippet"><b>{snippet.label}:</b> {snippet.text}</em> : null}
         </button>
         <span className="lib2-meta">{item.fileCount ? <span title={`${item.fileCount} faili`}><Paperclip size={14} />{item.fileCount}</span> : null}{shortDate(item.updatedAt) ? <time dateTime={item.updatedAt}>{shortDate(item.updatedAt)}</time> : null}</span>
         <span className="lib2-actions">
-          <button type="button" className="lib2-act" aria-label={`Vaata: ${item.title}`} title="Vaata" onClick={() => open(item)}><Eye size={16} /></button>
-          <button type="button" className="lib2-act" aria-label={`Muuda: ${item.title}`} title="Muuda" onClick={() => edit(item)}><FilePenLine size={16} /></button>
-          <button type="button" className="lib2-act lib2-act--assign" title="Määra õpilastele" onClick={() => setAssigning(item)}><Send size={15} /> Määra</button>
+          <button type="button" className="lib2-act" data-entity-action="view" aria-label={`Vaata: ${item.title}`} title="Vaata" onClick={() => open(item)}><Eye size={16} /></button>
+          <button type="button" className="lib2-act" data-entity-action="edit" aria-label={`Muuda: ${item.title}`} title="Muuda" onClick={() => edit(item)}><FilePenLine size={16} /></button>
+          <button type="button" className="lib2-act lib2-act--assign" data-entity-action="assign" title="Määra õpilastele" onClick={() => setAssigning(item)}><Send size={15} /> Määra</button>
         </span>
       </li>
     );
@@ -517,17 +517,17 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
               <ul className="lib2-list">{grammar.flatMap(({ topic, lessons }, index) => lessons.map((item, li) => {
                 const opik = item.phases?.find((phase) => phase.id === 'opik' && phase.state === 'published');
                 return (
-                  <li className="lib2-row lib2-grammar-row" key={`${topic}-${item.key}`}>
+                  <li className="lib2-row lib2-grammar-row" key={`${topic}-${item.key}`} data-entity="library-item" data-lesson-id={item.sourceId || item.id || undefined} data-entity-title={`${topic} · ${item.title}`}>
                     <span className="lib2-grammar-num" aria-hidden="true">{li === 0 ? `${index + 1}.` : ''}</span>
                     <i className="lib2-icon tone-grammar" aria-hidden="true"><BookOpen size={18} /></i>
-                    <button type="button" className="lib2-main" onClick={() => setSelected(item)}>
+                    <button type="button" className="lib2-main" data-entity-action="details" onClick={() => setSelected(item)}>
                       <strong>{topic}</strong>
                       <small>{[`Tund ${item.lessonNumber || item.sourceId.replace(/^est-/, '')}`, item.title, item.moduleTitle].filter(Boolean).join(' · ')}</small>
                     </button>
-                    <span className="lib2-meta">{opik ? <button type="button" className="lib2-phase is-published" onClick={() => openPhase(item, 'opik')} title="Õpiku reegel ja harjutused">Õpik</button> : null}</span>
+                    <span className="lib2-meta">{opik ? <button type="button" className="lib2-phase is-published" data-entity-action="opik" onClick={() => openPhase(item, 'opik')} title="Õpiku reegel ja harjutused">Õpik</button> : null}</span>
                     <span className="lib2-actions">
-                      <button type="button" className="lib2-act" aria-label={`Vaata: ${item.title}`} title="Vaata" onClick={() => open(item)}><Eye size={16} /></button>
-                      <button type="button" className="lib2-act lib2-act--assign" title="Määra õpilastele" onClick={() => setAssigning(item)}><Send size={15} /> Määra</button>
+                      <button type="button" className="lib2-act" data-entity-action="view" aria-label={`Vaata: ${item.title}`} title="Vaata" onClick={() => open(item)}><Eye size={16} /></button>
+                      <button type="button" className="lib2-act lib2-act--assign" data-entity-action="assign" title="Määra õpilastele" onClick={() => setAssigning(item)}><Send size={15} /> Määra</button>
                     </span>
                   </li>
                 );

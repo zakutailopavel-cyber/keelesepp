@@ -221,7 +221,7 @@ export default function TimeGrid({ tones = null, columns, allowColumnChange = tr
                       // a lesson in a crowded slot moves like any other (owner 2026-10-27: „если на одно время больше 1
                       // ученика, перетаскивание не работает”); a plain click still opens it
                       return (
-                        <button key={item.occurrenceId} type="button" role="listitem" data-student-id={item.isGroup ? undefined : item.studentId || undefined} className={`tg-cluster-item tone-${toneOf(item)} is-${status} ${item.blockClass || ''} ${item.online ? 'is-online' : 'is-onsite'} ${movable ? 'is-movable' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`} onPointerDown={(event) => startDrag(event, item, column, 'move')} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.subject ? ` · ${item.subject}` : ''}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`} aria-label={`${item.time} ${item.studentName || 'Õpilane'}${item.online ? ', veebitund' : ''}`} onClick={(event) => { event.stopPropagation(); if (!movable || event.detail === 0) onOpen(item); }}>
+                        <button key={item.occurrenceId} type="button" role="listitem" data-entity="lesson" data-entity-action="open" data-schedule-id={item.id} data-date={item.occurrenceDate} data-entity-title={`${item.time} · ${item.studentName || 'Tund'}`} data-student-id={item.isGroup ? undefined : item.studentId || undefined} className={`tg-cluster-item tone-${toneOf(item)} is-${status} ${item.blockClass || ''} ${item.online ? 'is-online' : 'is-onsite'} ${movable ? 'is-movable' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`} onPointerDown={(event) => startDrag(event, item, column, 'move')} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.subject ? ` · ${item.subject}` : ''}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`} aria-label={`${item.time} ${item.studentName || 'Õpilane'}${item.online ? ', veebitund' : ''}`} onClick={(event) => { event.stopPropagation(); if (!movable || event.detail === 0) onOpen(item); }}>
                           <span>{item.online ? <Video className="tg-online-icon" size={11} aria-hidden="true" /> : null}{item.time}</span><strong><SubjectTag subject={item.subject} />{item.studentName || 'Õpilane'}{item.adminNote ? <StickyNote className="tg-note" size={11} aria-label="Admini märkus" /> : null}</strong>{status === 'done' ? <Check size={11} /> : status === 'absent' ? <X size={11} /> : null}
                           <Ribbon item={item} today={column.today} />
                         </button>
@@ -235,6 +235,10 @@ export default function TimeGrid({ tones = null, columns, allowColumnChange = tr
                   return (
                     <div
                       key={item.occurrenceId}
+                      data-entity="lesson"
+                      data-schedule-id={item.id}
+                      data-date={item.occurrenceDate}
+                      data-entity-title={`${item.time} · ${item.studentName || 'Tund'}`}
                       data-student-id={item.isGroup ? undefined : item.studentId || undefined}
                       className={`tg-block tone-${toneOf(item)} is-${status} ${item.blockClass || ''} ${item.isGroup ? 'is-group' : ''} ${item.online ? 'is-online' : 'is-onsite'} ${movable ? 'is-movable' : ''} ${blockHeight < 40 ? 'is-short' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`}
                       style={{ top: top * PX_PER_MIN, height: Math.max(22, blockHeight * PX_PER_MIN - 2), left: `calc(${(lane / lanes) * 100}% + 2px)`, width: `calc(${100 / lanes}% - 4px)` }}
@@ -244,6 +248,7 @@ export default function TimeGrid({ tones = null, columns, allowColumnChange = tr
                       <button
                         type="button"
                         className="tg-open"
+                        data-entity-action="open"
                         aria-label={`${item.time} ${item.studentName || 'Tund'}${item.isGroup ? ' (grupp)' : ''}${item.online ? ', veebitund' : ''}${status === 'planned' ? '' : `, ${LESSON_STATE_LABELS[status].toLowerCase()}`}`}
                         onClick={(event) => { event.stopPropagation(); if (!movable || event.detail === 0) onOpen(item); }}
                       >
@@ -252,7 +257,7 @@ export default function TimeGrid({ tones = null, columns, allowColumnChange = tr
                         {item.recordTopic ? <small className="tg-topic">{item.recordTopic}</small> : showTeacher && manyTeachers ? <small>{item.teacher}</small> : null}
                       </button>
                       {onQuickDone && status === 'planned' && !item.isGroup && item.occurrenceDate <= column.today ? (
-                        <button type="button" className="tg-quick" aria-label={`Märgi toimunuks: ${item.studentName || 'Õpilane'}`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onQuickDone(item); }}><Check size={14} /></button>
+                        <button type="button" className="tg-quick" data-entity-action="done" aria-label={`Märgi toimunuks: ${item.studentName || 'Õpilane'}`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onQuickDone(item); }}><Check size={14} /></button>
                       ) : null}
                       <Ribbon item={item} today={column.today} />
                       {movable ? <span className="tg-resize" aria-hidden="true" onPointerDown={(event) => startDrag(event, item, column, 'resize')} /> : null}

@@ -11,7 +11,7 @@ import '../features/availability-poll/availabilityPoll.css';
 import '../features/announcements/announcements.css';
 import '../features/missing-data/missingData.css';
 import '../components/layout/appShell.css';
-import '../components/studentContextMenu.css';
+import '../components/entityContextMenu.css';
 import '../components/peopleOverview.css';
 import '../features/worksheet-studio/engine/sheet.css';
 import '../features/worksheet-studio/worksheetStudio.css';

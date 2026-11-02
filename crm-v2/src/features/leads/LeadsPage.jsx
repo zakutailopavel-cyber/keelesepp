@@ -41,7 +41,7 @@ export default function LeadsPage({ service = websiteLeadsService, studentReposi
       {[['open', 'Aktiivsed'], ['new', 'Uued'], ['contacted', 'Ühendust võetud'], ['converted', 'Õppijad'], ['all', 'Kõik']].map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={filter === id} className={filter === id ? 'is-active' : ''} onClick={() => setFilter(id)}>{label}</button>)}
     </div>
     {state.loading ? <LoadingState label="Laen päringuid…" /> : state.error ? <ErrorState message={state.error.message} onRetry={state.reload} /> : !leads.length ? <Card><EmptyState title="Selles vaates päringuid pole" description="Uued veebivormi ja tasemetesti päringud ilmuvad siia automaatselt." /></Card> : <div className="leads-list">
-      {leads.map(lead => <Card key={lead.id} className="lead-row">
+      {leads.map(lead => <Card key={lead.id} className="lead-row" data-entity="lead" data-lead-id={lead.id} data-email={lead.email || undefined} data-phone={lead.phone || undefined} data-entity-title={lead.name || undefined}>
         <div className="lead-row__main">
           <div className="lead-row__head"><strong>{lead.name}</strong><Badge>{STATUS[lead.status] || lead.status}</Badge><Badge>{lead.source === 'level-test' ? 'Tasemetest' : lead.source === 'availability' ? 'Sobivad ajad' : 'Veebivorm'}</Badge></div>
           <div className="lead-row__contact">{lead.email ? <a href={`mailto:${lead.email}`}>{lead.email}</a> : null}{lead.phone ? <a href={`tel:${lead.phone}`}>{lead.phone}</a> : null}</div>
@@ -56,8 +56,8 @@ export default function LeadsPage({ service = websiteLeadsService, studentReposi
           })() : null}
         </div>
         <div className="lead-row__actions">
-          {lead.status === 'new' ? <Button loading={busy === lead.id} onClick={() => changeStatus(lead, 'contacted')}>Märgi kontakteerituks</Button> : null}
-          {!['converted', 'closed'].includes(lead.status) ? <Button variant="secondary" disabled={Boolean(busy)} onClick={() => changeStatus(lead, 'converted')}>Õppijaks</Button> : null}
+          {lead.status === 'new' ? <Button loading={busy === lead.id} data-entity-action="contacted" onClick={() => changeStatus(lead, 'contacted')}>Märgi kontakteerituks</Button> : null}
+          {!['converted', 'closed'].includes(lead.status) ? <Button variant="secondary" disabled={Boolean(busy)} data-entity-action="convert" onClick={() => changeStatus(lead, 'converted')}>Õppijaks</Button> : null}
         </div>
       </Card>)}
     </div>}
