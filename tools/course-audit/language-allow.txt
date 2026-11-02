@@ -22,11 +22,15 @@ kuulamis
 liikumis
 nägemis
 ksi
+# B1 module 1: the conditional endings bolded inside words in the notice (tule**ksin**, saa**ksid**)
+ksin
+ksid
 lõputest
 lõpptest
 nõbul
 nõbule
 sisenemistestiga
+sisenemistesti
 # B1 module 3: the adjective suffixes named in the grammar notes (-ne, -line, -lik, -tu, eba-)
 eba
 lik
@@ -44,5 +48,8 @@ vahetestist
 # the clitic written as „-ki / -gi” in grammar notes and instructions (EKI ÕS: liide -ki, -gi)
 ki
 gi
-# the examWriting genre key „kusimustik” (an internal value read by language.py, not shown to the learner)
+# B1 module 1 (checked in EKI Sõnaveeb 2026): pilates; the grammar term „mas-vorm” next to ma-vorm and da-vorm
+pilates
+mas-vorm
+# the examWriting genre key „kusimustik” (data, not shown to learners; language.py reads the field „genre”)
 kusimustik
