@@ -1,3 +1,6 @@
+## 2026-11-02 · agent/c1-open-decisions — C1: no moving between the two C1 courses; L3 scored as in the Harno exam
+
+- `docs/COURSE_FINAL_SHAPE_C1.md` §10 and §2: owner's last two answers. Nothing is open for the owner. Before module 6 (first L3), read the Harno C1 consultation booklet in full and set L3's scale from it.
 ## 2026-11-02 · agent/entity-context-menu — right-click menu on everything, by role
 
 - Base: `main` 5a491d7 (after #997), checked 2026-11-02. Owner 2026-11-02: right-click everywhere to edit within the rights of teacher, admin and accountant; in the Õpik a task or sheet opens for editing from a right-click.
