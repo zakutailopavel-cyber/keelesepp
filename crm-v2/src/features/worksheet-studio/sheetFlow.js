@@ -13,28 +13,29 @@ export const FLOW_QUERY = '(max-width: 1023px), (pointer: coarse) and (max-width
 // drawings false, because those lie on the A4 page); null: the screen decides.
 export const SheetFlowContext = createContext(null);
 
-const screenMatches = () => Boolean(globalThis.matchMedia?.(FLOW_QUERY)?.matches);
+const screenMatches = (query = FLOW_QUERY) => Boolean(globalThis.matchMedia?.(query)?.matches);
 
-export function useScreenFlow(enabled = true) {
-  const [narrow, setNarrow] = useState(screenMatches);
+// `query`: a host with its own width limit (the textbook: phones only, a tablet keeps the A4 book)
+export function useScreenFlow(enabled = true, query = FLOW_QUERY) {
+  const [narrow, setNarrow] = useState(() => screenMatches(query));
   // printing from a phone still gives A4 pages: the page is redrawn before the browser takes it
   const [printing, setPrinting] = useState(false);
   useEffect(() => {
     if (!enabled) return undefined;
-    const query = globalThis.matchMedia?.(FLOW_QUERY);
-    const change = () => setNarrow(Boolean(query?.matches));
+    const media = globalThis.matchMedia?.(query);
+    const change = () => setNarrow(Boolean(media?.matches));
     change();
-    query?.addEventListener?.('change', change);
+    media?.addEventListener?.('change', change);
     const before = () => flushSync(() => setPrinting(true));
     const after = () => setPrinting(false);
     globalThis.addEventListener?.('beforeprint', before);
     globalThis.addEventListener?.('afterprint', after);
     return () => {
-      query?.removeEventListener?.('change', change);
+      media?.removeEventListener?.('change', change);
       globalThis.removeEventListener?.('beforeprint', before);
       globalThis.removeEventListener?.('afterprint', after);
     };
-  }, [enabled]);
+  }, [enabled, query]);
   return enabled && narrow && !printing;
 }
 

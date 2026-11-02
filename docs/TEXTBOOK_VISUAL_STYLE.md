@@ -179,6 +179,14 @@ The existing book assembler should gradually gain:
 
 The underlying worksheet documents remain authoritative.
 
+Done (2026-11-02, `agent/textbook-book-structure`): 1, 4, 8, 9 and part of 5 — one course per book; cover with
+„A2 → B1”; contents by module; per module an opener (goal, lessons with „Ma …” goals, key words), lesson heads over the
+first sheet of each lesson, the 4th sheet „Õpik”, a word page „Sõnad” and a review page „Korda” (goal checklist,
+language focus, word self-check). Built only from existing data (`bookProgram.js` `assembleTextbook`,
+`BookPages.jsx`, words from `vocabulary/lessonWords`, goals from the course `lessonGoals.js`). All sheets are drawn in
+the house theme „Klassika” with the lime accent; every page carries the book running head and footer. Kontroll and
+Projekt pages wait for their content.
+
 ## 8. Visual QA gate
 
 Before a module is accepted into a textbook:
