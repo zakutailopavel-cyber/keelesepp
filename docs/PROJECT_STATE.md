@@ -6,6 +6,12 @@
 - Checks: `./run.sh tests/homework.spec.cjs tests/roles.spec.cjs` 6 passed; with `homework-phone` first, homework and roles pass too; eslint (crm-v2 config, node globals) clean on the three files.
 - Known: the full run (`./run.sh`) has 10 other failures, out of scope here and not diagnosed one by one: the admin scenarios time out on a click, most likely under the same „what's new” notice (combined-invoice, invite, lesson-tokens, parent-edit, parent-invite, payment-check, registration ×2, rooms), and `homework-phone` looks for `.assigned-worksheet-list`, which the new Ülesanded page no longer has.
 - Next safe step: the same fix for the admin scenarios (close „Selge” after the admin's login) and the new task list selector in `homework-phone.spec.cjs`.
+## 2026-11-02 · agent/learner-goal-voice — the learner reads the sheet's goals in their own voice
+
+- Base: `main` after #988, checked 2026-11-02.
+- After checking a sheet the learner saw „Tulemus tunni eesmärkide kaupa” with goals written for the teacher („Õpilane mõistab …”). `GoalEvidence` with `learner` (only in `DocWorksheetPlayer`) shows them as „Ma mõistan …”: `learnerGoalText` in `worksheet-studio/engine/goals.js` turns the present tense's -b into -n, „on” into „olen”, keeps „ei”, and leaves other forms (past tense, plural subject) as written. Teacher views are unchanged; no content was edited.
+- Checks: `npx vitest run src/features/worksheet-studio` 67 files, 449 passed; eslint clean.
+- Next safe step: none needed; content agents may still write goals as „Ma oskan …”.
 ## 2026-11-02 · agent/lesson-sheet-finder — lesson board: find a lesson's sheets without remembering its title
 
 - Base: `main` after #987, checked 2026-11-02. Owner: a teacher does not remember all topics and lesson titles.
