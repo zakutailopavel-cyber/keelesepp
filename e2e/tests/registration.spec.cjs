@@ -28,18 +28,14 @@ async function approve(page, name) {
   await expect(page.locator('.account-row', { hasText: name })).toHaveCount(0);
 }
 
-async function logout(page) {
-  await page.context().clearCookies();
-  await page.evaluate(() => { indexedDB.deleteDatabase('firebaseLocalStorageDb'); localStorage.clear(); sessionStorage.clear(); });
-}
-
 test('a new student registers, the admin approves, the student gets her own card on first login', async ({ browser }) => {
   const studentPage = await (await browser.newContext()).newPage();
   const adminPage = await (await browser.newContext()).newPage();
   const problems = [...await guard(studentPage), ...await guard(adminPage)];
   await register(studentPage, { role: 'student', name: 'Uus Õpilane', email: 'uus.opilane@e2e.test' });
   await approve(adminPage, 'Uus Õpilane');
-  await login(studentPage, { email: 'uus.opilane@e2e.test' });
+  // a new learner: her new card has no class, language or times, so she fills „Puuduvad andmed” at the door
+  await login(studentPage, { email: 'uus.opilane@e2e.test' }, { fillMissingData: true });
   // her new card asks the one-time recording consent; the answer is stored with her own uid (rules)
   await studentPage.getByRole('button', { name: /Nõustun/ }).click();
   await expect(studentPage.getByRole('button', { name: /Nõustun/ })).toHaveCount(0);
@@ -61,7 +57,7 @@ test('a mother whose e-mail is on her child\'s card is not linked as the child: 
   const mother = await adminSdk().auth().getUserByEmail('mari.ema@e2e.test');
   await adminSdk().auth().updateUser(mother.uid, { emailVerified: true });
   await approve(adminPage, 'Mari Ema');
-  await login(motherPage, { email: 'mari.ema@e2e.test' });
+  await login(motherPage, { email: 'mari.ema@e2e.test' }, { fillMissingData: true });
   const kristi = (await adminSdk().firestore().doc('students/e2e-card-kristi').get()).data();
   expect(kristi.studentUid || '').toBe('');
   await adminPage.goto('/accounts');

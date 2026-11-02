@@ -3,7 +3,7 @@
 const path = require('path');
 const { test } = require('@playwright/test');
 const admin = require(path.join(__dirname, '../../functions/node_modules/firebase-admin'));
-const { guard, login, expect } = require('./helpers.cjs');
+const { guard, login, expect, completeCardData } = require('./helpers.cjs');
 const { PROJECT, PEOPLE, CARDS } = require('../fixtures.cjs');
 
 function adminSdk() { if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT }); return admin; }
@@ -21,6 +21,8 @@ test('the admin edits a parent; the account, the child card and the next login f
   const problems = [...await guard(adminPage), ...await guard(parentPage)];
   const db = adminSdk().firestore();
   await db.doc(`students/${CARDS.kaarel.id}`).set({ parentName: PEOPLE.parent.name, parentEmail: PEOPLE.parent.email }, { merge: true });
+  // Kaarel's card is complete: the parent's next login reaches the CRM, not „Puuduvad andmed”
+  await completeCardData(CARDS.kaarel);
 
   await login(adminPage, 'admin');
   await adminPage.goto('/parents');

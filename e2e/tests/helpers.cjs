@@ -14,7 +14,34 @@ async function guard(page) {
   return problems;
 }
 
-async function login(page, who) {
+const STAFF = ['admin', 'teacher'];
+const whatsNewKey = (uid) => `keelesepp.whatsNew.seen.${uid}`;
+
+// Staff see the „what's new” notice once per browser after signing in (WhatsNewDialog); it covers the page until
+// „Selge”, so a staff login reads it and closes it, as a person would.
+async function closeWhatsNew(page) {
+  const notice = page.getByRole('dialog').filter({ has: page.getByRole('button', { name: 'Selge' }) });
+  await expect(notice).toBeVisible();
+  await notice.getByRole('button', { name: 'Selge' }).click();
+  await expect(notice).toHaveCount(0);
+}
+
+// A student or parent whose card lacks what the school asks for meets „Puuduvad andmed” instead of the CRM. Fill it
+// as a learner would: the first class option (or „Täiskasvanu”), Estonian, weekday evenings.
+async function fillMissingData(page) {
+  const gate = page.getByRole('dialog', { name: /puuduvad andmed/ });
+  await expect(gate).toBeVisible();
+  const grade = gate.getByRole('combobox');
+  if (await grade.count()) await grade.first().selectOption({ index: 1 });
+  for (const radio of await gate.getByRole('radio', { name: 'Eesti keel' }).all()) await radio.check();
+  for (const button of await gate.getByRole('button', { name: /Tööpäeva õhtud/ }).all()) await button.click();
+  await gate.getByRole('button', { name: /Salvesta/ }).first().click();
+  await expect(gate).toHaveCount(0);
+}
+
+// options.fillMissingData: the person is new and fills „Puuduvad andmed” at the door; otherwise that form means the
+// scenario forgot completeCardData() for its cards, and the login fails saying so.
+async function login(page, who, options = {}) {
   const person = typeof who === 'string' ? PEOPLE[who] : who;
   await page.goto('/login');
   // the saved session is restored asynchronously: wait until the page settles on the login form or the app
@@ -29,12 +56,22 @@ async function login(page, who) {
     await page.goto('/login');
     await expect(form).toBeVisible();
   }
+  // the notice is due when this browser has not closed it for this staff member yet
+  const noticeDue = STAFF.includes(person.role) && !(await page.evaluate((key) => { try { return localStorage.getItem(key); } catch { return null; } }, whatsNewKey(person.uid)));
   await page.getByLabel('E-post').fill(person.email);
   await page.getByLabel('Parool').fill(PASSWORD);
   await page.getByRole('button', { name: 'Logi sisse' }).click();
   await expect(page).not.toHaveURL(/\/login/);
   // the app settles (home redirect, profile, first data) before the scenario goes on
-  await expect(page.getByRole('navigation').first()).toBeVisible();
+  const nav = page.getByRole('navigation').first();
+  const gate = page.getByRole('dialog', { name: /puuduvad andmed/ });
+  await expect(nav.or(gate)).toBeVisible();
+  if (await gate.isVisible().catch(() => false)) {
+    if (!options.fillMissingData) throw new Error(`${person.email} met „Puuduvad andmed”: call completeCardData() for the cards, or log in with { fillMissingData: true }`);
+    await fillMissingData(page);
+  }
+  await expect(nav).toBeVisible();
+  if (noticeDue) await closeWhatsNew(page);
   await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   return person;
 }
@@ -56,4 +93,4 @@ async function completeCardData(...cards) {
   }
 }
 
-module.exports = { guard, login, expect, completeCardData };
+module.exports = { guard, login, expect, completeCardData, closeWhatsNew, fillMissingData };

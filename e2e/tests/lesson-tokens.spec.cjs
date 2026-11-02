@@ -3,7 +3,7 @@
 const path = require('path');
 const { test } = require('@playwright/test');
 const admin = require(path.join(__dirname, '../../functions/node_modules/firebase-admin'));
-const { guard, login, expect } = require('./helpers.cjs');
+const { guard, login, expect, completeCardData } = require('./helpers.cjs');
 const { PROJECT, CARDS, PEOPLE } = require('../fixtures.cjs');
 
 function adminSdk() { if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT }); return admin; }
@@ -21,6 +21,8 @@ test('a package invoice → payment → „Lisa tunnid” → a held lesson take
   const parentPage = await (await browser.newContext()).newPage();
   const problems = [...await guard(adminPage), ...await guard(parentPage)];
   const db = adminSdk().firestore();
+  // Kaarel's card is complete: his parent reaches the family page, not „Puuduvad andmed”
+  await completeCardData(CARDS.kaarel);
   await db.doc(`studentRevenuePlans/${KAAREL}`).set({ studentId: KAAREL, studentName: 'Kaarel Laps', lessonPriceCents: 2000, lessonMinutes: 60, weeklyLessons: 2, billingMode: 'package', currency: 'EUR', active: true, updatedAt: new Date().toISOString(), updatedByUid: 'seed' });
 
   await login(adminPage, 'admin');
@@ -57,6 +59,8 @@ test('a package invoice → payment → „Lisa tunnid” → a held lesson take
 
   await login(parentPage, 'parent');
   await parentPage.goto('/parent');
+  // the family page keeps lessons under „Tunnid”: the parent opens it to see the package
+  await parentPage.locator('#tunnid').getByRole('button', { name: /Tunnid/ }).click();
   await expect(parentPage.getByText('Tunnipakett · Kaarel Laps')).toBeVisible();
   await expect(parentPage.getByText('8 tundi alles')).toBeVisible();
   await expect(parentPage.getByText('Paketist alles 8 tundi')).toBeVisible();

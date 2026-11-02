@@ -1,3 +1,12 @@
+## 2026-11-02 · agent/e2e-admin-scenarios — all 18 browser scenarios pass on the emulators
+
+- Base: `agent/e2e-homework-roles` (#992, not merged yet) with `main` 8882d68 merged in, checked 2026-11-02. Tests and docs only; no app code, no deploy, no production access.
+- Causes (checked per spec from the failure trace, all tests outdated, no app bug): the staff „what's new” notice covered the first admin click in combined-invoice, invite, lesson-tokens, parent-edit, parent-invite, payment-check, registration ×2 and rooms. Behind it: the parent or child of invite, lesson-tokens, parent-edit and parent-invite met „Puuduvad andmed”; the new learners of registration met it too; invite's „Saada kutse” now opens the parent invite (team 2026-10-29), the child's own login is „Õpilasele oma konto”; the parent's package line is inside the closed „Tunnid” section; homework-phone looked for the old `.assigned-worksheet-list`.
+- Done: `e2e/tests/helpers.cjs` `login()` closes the notice with „Selge” for a teacher or admin (expected when this browser has not closed it yet), waits for the menu or „Puuduvad andmed”, fills that form only with `{ fillMissingData: true }` (`fillMissingData()`), otherwise fails saying to call `completeCardData()`. Specs: `completeCardData` for Kaarel / Toomas (invite, lesson-tokens, parent-edit, parent-invite; parent-invite also removes Toomas's times), `fillMissingData` for the new learners (registration ×2, homework-phone, which now also checks the saved language and times), „Õpilasele oma konto” in invite, the parent opens „Tunnid” in lesson-tokens, homework-phone opens the sheet from the „Tee nüüd” card („Alusta”, after a reload „Jätka”); the notice code in homework / homework-phone moved to the helper; unused `logout` removed from registration. `docs/E2E_SCENARIOS.md`.
+- Checks: full `./run.sh` 18 passed, 0 failed (1.7 min); eslint (crm-v2 config, node/browser globals) clean on the changed specs.
+- Known: the parent sees the package balance only after opening „Tunnid”; whether it belongs on the first screen is a product question, not changed here.
+- Next safe step: merge #992, then this PR; run `./run.sh` after UI changes to login, menus or the family page.
+
 ## 2026-11-02 · agent/lead-throttle-ip — website lead form: the hourly limit can no longer be bypassed with a forged header
 
 - Base: `main` fd4babf (after #988), checked 2026-11-02. Follows the finding noted in the dependency entry: the `websiteLeadApi` throttle used the first `X-Forwarded-For` value, which the visitor writes himself.

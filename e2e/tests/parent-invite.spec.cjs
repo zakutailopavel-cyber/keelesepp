@@ -3,7 +3,7 @@
 const path = require('path');
 const { test } = require('@playwright/test');
 const admin = require(path.join(__dirname, '../../functions/node_modules/firebase-admin'));
-const { guard, login, expect } = require('./helpers.cjs');
+const { guard, login, expect, completeCardData } = require('./helpers.cjs');
 const { PROJECT, PASSWORD, PEOPLE } = require('../fixtures.cjs');
 
 function adminSdk() { if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT }); return admin; }
@@ -14,6 +14,8 @@ test('the admin creates a parent login for a child; the parent sets a password a
   const db = adminSdk().firestore();
   const { id, ...card } = CARD;
   await db.doc(`students/${id}`).set(card);
+  // Toomas's card is complete: the new parent's first login reaches the child, not „Puuduvad andmed”
+  await completeCardData(CARD);
   const adminPage = await (await browser.newContext()).newPage();
   const parentPage = await (await browser.newContext()).newPage();
   const problems = [...await guard(adminPage), ...await guard(parentPage)];
@@ -54,5 +56,6 @@ test('the admin creates a parent login for a child; the parent sets a password a
     const user = await adminSdk().auth().getUserByEmail(EMAIL).catch(() => null);
     if (user) { await adminSdk().auth().deleteUser(user.uid); await db.doc(`users/${user.uid}`).delete(); }
     await db.doc(`students/${id}`).delete();
+    await db.doc(`studentAvailability/${id}`).delete();
   }
 });

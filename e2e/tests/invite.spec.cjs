@@ -3,7 +3,7 @@
 const path = require('path');
 const { test } = require('@playwright/test');
 const admin = require(path.join(__dirname, '../../functions/node_modules/firebase-admin'));
-const { guard, login, expect } = require('./helpers.cjs');
+const { guard, login, expect, completeCardData } = require('./helpers.cjs');
 const { PROJECT, PASSWORD, CARDS, PEOPLE } = require('../fixtures.cjs');
 
 function adminSdk() { if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT }); return admin; }
@@ -13,12 +13,16 @@ test('the admin invites a child who used the parent login; he sets a password an
   const adminPage = await (await browser.newContext()).newPage();
   const kaarelPage = await (await browser.newContext()).newPage();
   const problems = [...await guard(adminPage), ...await guard(kaarelPage)];
+  // Kaarel's card is complete: his first own login goes to his studies, not to „Puuduvad andmed”
+  await completeCardData(CARDS.kaarel);
 
   await login(adminPage, 'admin');
   await adminPage.goto(`/students/${CARDS.kaarel.id}`);
   const card = adminPage.locator('.student-account-card');
   await expect(card).toContainText('lapsevanema kontoga');
-  await card.getByRole('button', { name: /Saada kutse/ }).click();
+  // „Saada kutse” now goes to the parent's e-mail (team 2026-10-29); the child's own login is „Õpilasele oma konto”
+  await expect(card).toContainText(`Kutse läheb lapsevanema e-postile (${PEOPLE.parent.email})`);
+  await card.getByRole('button', { name: 'Õpilasele oma konto' }).click();
   // the parent's e-mail is never offered as the child's login
   await expect(card.getByLabel('Õpilase e-post')).toHaveValue('');
   await card.getByLabel('Õpilase e-post').fill(PEOPLE.parent.email);

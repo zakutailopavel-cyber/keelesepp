@@ -20,11 +20,6 @@ test('teacher assigns a sheet → student answers and hands in → teacher sees 
 
   await login(teacher, 'teacher');
   await teacher.goto('/library/lessons/e2e-001/worksheets/discover');
-  // staff see the „what's new” notice once after signing in: read it and close it, as a teacher would
-  const notice = teacher.getByRole('dialog').filter({ has: teacher.getByRole('button', { name: 'Selge' }) });
-  await expect(notice).toBeVisible();
-  await notice.getByRole('button', { name: 'Selge' }).click();
-  await expect(notice).toHaveCount(0);
   await teacher.getByRole('link', { name: 'Määra õpilastele' }).click();
   const dialog = teacher.getByRole('dialog');
   await expect(dialog).toBeVisible();
