@@ -1,3 +1,7 @@
+## 2026-11-02 · agent/lead-xff-shape-log — temporary: log the shape of X-Forwarded-For on websiteLeadApi
+
+- Owner approved a deploy to check the header (2026-11-02). Logs `websiteLead xff shape` with each entry cut to its first half (IPv4 `a.b.x.x`), plus `req.ip`, on every POST. Used to decide #989 (which entry the hourly limit can trust). Remove with #989.
+- Deploy: `firebase deploy --only functions:websiteLeadApi`.
 ## 2026-11-02 · agent/e2e-homework-roles — browser scenarios `homework` and `roles` pass again
 
 - Base: `main` fd4babf (after #988), checked 2026-11-02. Tests and docs only; no app code, no deploy, no production access.
