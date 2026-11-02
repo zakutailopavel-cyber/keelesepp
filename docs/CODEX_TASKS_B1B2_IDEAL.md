@@ -4,6 +4,10 @@ Owner's goal (2026-10-14): an ideal curriculum whose worksheets guarantee Harno 
 the reference module exist; this file is the whole contract for producing the remaining B1→B2 modules. Read it fully
 before every module. If anything here conflicts with older docs, this file wins for this work.
 
+**Since 2026-11-02 every B1 and B2 module is rewritten for academic value** (topic opener, non-cast texts, opinion talk,
+sourced facts, examiner set): `docs/COURSE_DESIGN_COMMUNICATIVE.md` §13 and the work order `docs/ACADEMIC_VALUE_ROUND1.md`,
+which wins over this file where they differ.
+
 ## 0. Before each module
 
 1. Fresh `main`; open PRs (`gh pr list`). Never touch a module someone else has an open PR for.
