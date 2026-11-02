@@ -1,3 +1,10 @@
+## 2026-11-02 · agent/calendar-note-follows-move — the administrator's note stays with a lesson moved to another day
+
+- Base: `main` after #990, checked 2026-11-02. Bug from Oleksiy (chat, 2026-11-02): moving a lesson to another day lost its „Admini märkus”.
+- Cause: `lessonNotes` ids are `{scheduleId}` (series) or `{scheduleId}_{date}`. A moved one-off keeps its id and changes its date; a series lesson moved alone becomes a new one-off; a series moved from a date on becomes a new series. The notes stayed under the old keys.
+- Fix in `notesFor` (`services/firebase/lessonNotes.js`), read side only, no data written: a one-off lesson takes its newest dated note of any date; a moved series lesson takes the note of `movedFromSeriesId`/`movedFromDate` and that series' note (its own note first); a continued series takes the note of `continuesSeriesId`. Notes lost earlier come back on their own. Substitution („Asendab”) uses the same move fields, so it is covered.
+- Checks: new `lessonNotes.test.js`; `npx vitest run src/services/firebase/lessonNotes.test.js src/features/calendar` 28 files, 206 passed; eslint clean.
+- Next safe step: Oleksiy moves a lesson with a note and confirms the note is there.
 ## 2026-11-02 · agent/learner-goal-voice — the learner reads the sheet's goals in their own voice
 
 - Base: `main` after #988, checked 2026-11-02.
