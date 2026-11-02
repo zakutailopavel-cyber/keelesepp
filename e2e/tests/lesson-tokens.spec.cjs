@@ -15,7 +15,7 @@ test.afterAll(async () => {
   await Promise.all([drop('invoices', 'studentId'), drop('studentPackages', 'studentId'), drop('packageLedger', 'studentId'), drop('lessons', 'studentId'), drop('payments', 'studentId'), db.doc(`studentRevenuePlans/${KAAREL}`).delete()]);
 });
 
-test('a package invoice → payment → „Lisa tunnid” → a held lesson takes one → card and parent see the balance', async ({ browser }) => {
+test('a package invoice → payment → „Lisa tunnid” → a held lesson takes one → the card shows the balance, the parent does not', async ({ browser }) => {
   test.setTimeout(150_000);
   const adminPage = await (await browser.newContext()).newPage();
   const parentPage = await (await browser.newContext()).newPage();
@@ -59,10 +59,10 @@ test('a package invoice → payment → „Lisa tunnid” → a held lesson take
 
   await login(parentPage, 'parent');
   await parentPage.goto('/parent');
-  // the family page keeps lessons under „Tunnid”: the parent opens it to see the package
+  // the balance is for the administrator and the accountant only (owner 2026-11-02): the parent's „Tunnid” has no package
   await parentPage.locator('#tunnid').getByRole('button', { name: /Tunnid/ }).click();
-  await expect(parentPage.getByText('Tunnipakett · Kaarel Laps')).toBeVisible();
-  await expect(parentPage.getByText('8 tundi alles')).toBeVisible();
-  await expect(parentPage.getByText('Paketist alles 8 tundi')).toBeVisible();
+  await expect(parentPage.getByText(/Järgmised tunnid/)).toBeVisible();
+  await expect(parentPage.getByText(/Tunnipakett/)).toHaveCount(0);
+  await expect(parentPage.getByText(/tundi alles|Paketist alles/)).toHaveCount(0);
   expect(problems).toEqual([]);
 });

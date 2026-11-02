@@ -1,3 +1,9 @@
+## 2026-11-02 · agent/parent-no-lesson-balance — parents do not see the lesson balance
+
+- Owner 2026-11-02: how many paid lessons are left is for the administrator and the accountant only. The parent page („Minu pere” → „Tunnid”) no longer shows the „Tunnipakett” card („Paketist alles N tundi”). On the student card it stays in the finance tab (`canViewFinance`). The student cabinet never showed it.
+- Files: `crm-v2/src/features/parents/ParentDashboardPage.jsx` (card and `tokensApi` prop removed), `e2e/tests/lesson-tokens.spec.cjs` (now checks the parent does not see it).
+- Checks: `npx vitest run src/features/parents src/features/finance/lessonTokens.test.jsx` 6 files, 42 passed; `e2e/run.sh tests/lesson-tokens.spec.cjs` 1 passed; eslint clean.
+- Known: `LessonTokensCard`'s `compact` mode is now unused in the app (kept, with its test). Firestore rules still let a parent read their child's `studentPackages`; this is a UI change only.
 ## 2026-11-02 · agent/e2e-admin-scenarios — all 18 browser scenarios pass on the emulators
 
 - Base: `agent/e2e-homework-roles` (#992, not merged yet) with `main` 8882d68 merged in, checked 2026-11-02. Tests and docs only; no app code, no deploy, no production access.
