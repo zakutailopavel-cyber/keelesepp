@@ -1,4 +1,4 @@
-## 2026-11-02 · agent/academic-value-gates — B1 / B2: academic-value standard, topic map and gates (no content rewritten)
+## 2026-11-02 · agent/academic-value-gates (PR #1002) — B1 / B2: academic-value standard, topic map and gates (no content rewritten)
 
 - Base: `main` be59926, checked 2026-11-02. Owner 2026-11-02: raise the modules' academic value; every sheet a real lesson; the textbook must open the exam topics wider than one cast episode (approved: change the module plan and the „one storyline” rule).
 - Standard: `docs/COURSE_DESIGN_COMMUNICATIVE.md` §13 (§12 storyline rule amended): topic map of both courses (every Harno topic + B1 media / society / culture / history), module topic opener, per-lesson non-cast text + opinion talk + „Kas teadsid?”, variety caps, B2 500–600-word article, B1 popsci / fiction, sourced facts, examiner question set. Work order and per-module contract: new `docs/ACADEMIC_VALUE_ROUND1.md`.
