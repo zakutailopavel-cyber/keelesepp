@@ -21,13 +21,22 @@ function approvalUpdate({ decision, actor, nowIso, reason = "" }) {
   return status === "rejected" ? { ...base, approvalReason: String(reason || "").trim().slice(0, 300) } : base;
 }
 
+// The teacher the administrator assigned on approval, for the account's profile. Admins count: the owner is an admin who
+// teaches. Written by the server only (the rules do not let the account's owner write these fields).
+function assignedTeacherFields(uid, teacher) {
+  const roles = [teacher?.role, ...(Array.isArray(teacher?.roles) ? teacher.roles : [])];
+  if (!teacher || teacher.disabled === true || !roles.some(role => role === "teacher" || role === "admin")) {
+    throw Object.assign(new Error("Valitud õpetajat ei leitud."), { status: 400 });
+  }
+  return { assignedTeacherUid: uid, assignedTeacher: String(teacher.displayName || teacher.name || teacher.email || "").trim().slice(0, 180) };
+}
+
 function composePendingAccountEmail(profile = {}, { to = "info@epkoolitus.ee" } = {}) {
   const rows = [
     ["Nimi", profile.displayName],
     ["E-post", profile.email],
     ["Roll", ROLE_LABEL[profile.role] || profile.role],
     ["Lapse nimi", profile.childName || "—"],
-    ["Soovitud õpetaja", profile.preferredTeacher || "—"],
   ];
   const subject = `Uus konto ootab kinnitamist: ${profile.displayName || profile.email}`;
   const text = `${rows.map(([k, v]) => `${k}: ${v || "—"}`).join("\n")}\n\nKinnita või keeldu: ${CRM_URL}/accounts`;
@@ -53,4 +62,4 @@ function composeApprovedEmail(profile = {}) {
   return { to: profile.email, subject, text, html };
 }
 
-module.exports = { APPROVAL_STATUSES, approvalDecision, approvalUpdate, composePendingAccountEmail, composeApprovedEmail };
+module.exports = { APPROVAL_STATUSES, approvalDecision, assignedTeacherFields, approvalUpdate, composePendingAccountEmail, composeApprovedEmail };

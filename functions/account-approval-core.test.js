@@ -1,7 +1,7 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { approvalUpdate, composePendingAccountEmail, composeApprovedEmail } = require("./account-approval-core");
+const { approvalUpdate, assignedTeacherFields, composePendingAccountEmail, composeApprovedEmail } = require("./account-approval-core");
 
 const actor = { uid: "admin1", email: "a@example.ee", name: "Admin" };
 
@@ -29,4 +29,16 @@ test("the approved person gets an Estonian and Russian e-mail", () => {
   assert.equal(mail.to, "m@example.ee");
   assert.match(mail.text, /konto on kinnitatud/);
   assert.match(mail.text, /аккаунт подтверждён/);
+});
+
+test("the administrator assigns an active teacher or an admin who teaches, nobody else", () => {
+  assert.deepEqual(assignedTeacherFields("t1", { role: "teacher", displayName: " Mari Tamm " }), { assignedTeacherUid: "t1", assignedTeacher: "Mari Tamm" });
+  assert.deepEqual(assignedTeacherFields("a1", { role: "admin", email: "o@example.ee" }), { assignedTeacherUid: "a1", assignedTeacher: "o@example.ee" });
+  for (const teacher of [null, { role: "parent" }, { role: "student" }, { role: "teacher", disabled: true }]) {
+    assert.throws(() => assignedTeacherFields("x", teacher), /õpetajat ei leitud/);
+  }
+});
+
+test("the e-mail to the administrator asks about no teacher", () => {
+  assert.doesNotMatch(composePendingAccountEmail({ displayName: "Mari", email: "m@example.ee", role: "parent", childName: "Kati", preferredTeacher: "Pavel" }).text, /õpetaja/i);
 });

@@ -4,11 +4,18 @@ import { groupStudentPeople } from '../../services/firebase/students.js';
 
 const normalize = (value) => String(value || '').trim().toLocaleLowerCase('et');
 
-export function parentMatchesStudent(parent, student) {
+// A real link: the account's uid is on the card. Only this opens the child in the parent's „Minu pere” (listOwned).
+export function parentLinkedToStudent(parent, student) {
   // every linked parent account counts (several parents per child, owner 2026-10-24)
   if (parentCardIds(student).includes(parent.id)) return true;
   // a learner who pays for themselves: their own card
-  if (parent.selfPayer && (student.linkedUserId === parent.id || student.studentUid === parent.id || (student.linkedUserIds || []).includes(parent.id))) return true;
+  return Boolean(parent.selfPayer && (student.linkedUserId === parent.id || student.studentUid === parent.id || (student.linkedUserIds || []).includes(parent.id)));
+}
+
+// A real link or a possible one (the same e-mail, or the child and parent names of the registration): a possible one is
+// only a suggestion to link, it gives the parent no access.
+export function parentMatchesStudent(parent, student) {
+  if (parentLinkedToStudent(parent, student)) return true;
   const parentEmail = normalize(parent.email);
   const studentParentEmail = normalize(student.parentEmail || student.contactEmail || student.guardianEmail);
   if (parentEmail && studentParentEmail && parentEmail === studentParentEmail) return true;
@@ -28,15 +35,17 @@ export function invoiceMatchesParent(invoice, parent, children = []) {
 
 export function buildParentRows(parents = [], students = [], invoices = []) {
   return parents.map((parent) => {
-    const childRecords = students.filter((student) => student.active !== false && !student.convertedToParent && parentMatchesStudent(parent, student));
-    const children = groupStudentPeople(childRecords);
+    const activeStudents = students.filter((student) => student.active !== false && !student.convertedToParent);
+    const children = groupStudentPeople(activeStudents.filter((student) => parentLinkedToStudent(parent, student)));
+    const suggestedChildren = groupStudentPeople(activeStudents.filter((student) => !parentLinkedToStudent(parent, student) && parentMatchesStudent(parent, student)));
     const requestedNames = splitChildNames(parent.childName);
     const linkedNames = new Set(children.map((student) => normalize(student.name)));
     const missingNames = requestedNames.filter((name) => !linkedNames.has(normalize(name)));
-    const parentInvoices = invoices.filter((invoice) => invoiceMatchesParent(invoice, parent, children));
+    const parentInvoices = invoices.filter((invoice) => invoiceMatchesParent(invoice, parent, [...children, ...suggestedChildren]));
     return {
       parent,
       children,
+      suggestedChildren,
       requestedNames,
       missingNames,
       needsReview: Boolean(requestedNames.length && (parent.parentReviewStatus !== 'checked' || parent.parentReviewKey !== parentReviewKey(parent.childName))),
@@ -51,7 +60,7 @@ export function filterParentRows(rows, { query = '', status = 'all' } = {}) {
   return rows.filter((row) => {
     if (status === 'cash') { if (row.parent.payerMethod !== 'cash') return false; } else if (status !== 'all' && row.parent.parentContactStatus !== status) return false;
     if (!needle) return true;
-    return [row.parent.displayName, row.parent.email, row.parent.phone, row.parent.parentContactOwner, row.parent.parentContactNotes, ...row.requestedNames, ...row.children.map((child) => `${child.name} ${child.teacher} ${child.subject}`)]
+    return [row.parent.displayName, row.parent.email, row.parent.phone, row.parent.parentContactOwner, row.parent.parentContactNotes, ...row.requestedNames, ...[...row.children, ...(row.suggestedChildren || [])].map((child) => `${child.name} ${child.teacher} ${child.subject}`)]
       .some((value) => normalize(value).includes(needle));
   });
 }

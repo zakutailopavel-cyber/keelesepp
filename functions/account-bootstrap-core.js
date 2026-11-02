@@ -147,14 +147,28 @@ function planStudentAccountBootstrap({ uid, email, emailVerified = false, displa
   };
 }
 
-function planParentChildBootstrap({ uid, email, emailVerified = false, childNames = [], students = [] } = {}) {
+// `decidedChildNames`: child names whose review the administrator already decided (see decidedReviewChildNames). Such a
+// name gets no new card and no new review: linking „Mark Ivanov” for the typed „Markus” must not make a card „Markus” at
+// the next sign-in, when the linked card no longer counts as a possible match.
+function planParentChildBootstrap({ uid, email, emailVerified = false, childNames = [], students = [], decidedChildNames = [] } = {}) {
   const cleanUid = String(uid || "").trim();
   const cleanEmail = normalizeEmail(email);
   const available = activeStudents(students);
   const plans = [];
-  unique(childNames.map(name => String(name || "").trim())).forEach(childName => {
+  const names = unique(childNames.map(name => String(name || "").trim())).filter(name => normalizeName(name));
+  const requestedKeys = names.map(normalizeName);
+  const decidedKeys = decidedChildNames.map(normalizeName);
+  // Cards with this parent's e-mail that are not linked to the account: never linked or duplicated automatically,
+  // the administrator decides in „Uued kontod” → „Vajab otsust”.
+  const emailOnlyCards = cleanEmail
+    ? available.filter(student => parentEmails(student).includes(cleanEmail) && !studentParentIds(student).includes(cleanUid))
+    : [];
+  if (!names.length) {
+    if (emailOnlyCards.length) plans.push({ childName: "", status: "review", reason: "parent_email_without_child_name", candidates: emailOnlyCards.map(candidateSummary) });
+    return plans;
+  }
+  names.forEach(childName => {
     const nameKey = normalizeName(childName);
-    if (!nameKey) return;
     const linkedByParent = available.filter(student =>
       studentParentIds(student).includes(cleanUid) && normalizeName(student.name) === nameKey
     );
@@ -196,12 +210,48 @@ function planParentChildBootstrap({ uid, email, emailVerified = false, childName
       plans.push({ childName, status: "review", reason: "possible_existing_card", candidates: inactive.map(candidateSummary) });
       return;
     }
+    if (decidedKeys.includes(nameKey)) return;
+    // a sibling typed in the same registration has its own plan and is no reason to stop this child
+    const otherEmailCards = emailOnlyCards.filter(student => !requestedKeys.includes(normalizeName(student.name)));
+    if (otherEmailCards.length) {
+      plans.push({ childName, status: "review", reason: "parent_email_other_child_name", candidates: otherEmailCards.map(candidateSummary) });
+      return;
+    }
     plans.push({ childName, status: "create", source: "no_exact_match", student: { name: childName, parentEmail: cleanEmail } });
   });
   return plans;
 }
 
+// Reviews come back on every sign-in. One the administrator decided (resolvedBy) stays decided: „Jäta vahele” is not asked
+// again unless a new card appears. The one exception is a parent without a child's name: linking one card leaves
+// the other cards with the parent's e-mail still undecided.
+function reviewAlreadyDecided(existing, plan = {}) {
+  if (!existing?.resolvedBy) return false;
+  if (existing.status === "dismissed") {
+    const known = existing.candidateStudentIds || [];
+    return (plan.candidates || []).every(candidate => known.includes(candidate.id));
+  }
+  return existing.status === "resolved" && plan.reason !== "parent_email_without_child_name";
+}
+
+function decidedReviewChildNames(reviews = []) {
+  return unique(reviews
+    .filter(review => review?.resolvedBy && ["dismissed", "resolved"].includes(review.status) && review.relationship === "parent")
+    .map(review => review.childName));
+}
+
+// Teacher of a card created while linking an account: only the one the administrator assigned on approval. The registering
+// person chooses no teacher (owner's decision), and `preferredTeacher` of older accounts is the person's own field.
+// Without an assignment the new card stays unassigned for the administrator.
+function accountCardTeacher(profile = {}) {
+  const uid = String(profile.assignedTeacherUid || "").trim();
+  return uid ? { name: String(profile.assignedTeacher || "").trim(), uid } : { name: "", uid: "" };
+}
+
 module.exports = {
+  accountCardTeacher,
+  decidedReviewChildNames,
+  reviewAlreadyDecided,
   looksLikeChildCard,
   namesOverlap,
   possibleExistingCards,
