@@ -63,7 +63,7 @@ repetition of the data. T2: both points developed, the addressee kept, what matt
 language together: genre, pragmatic skill, fluency; the talk is judged on answering questions; the discussion on turn-taking.
 
 **Not clear in the source:** the page gives the L3 answer a scale of 0–5, but 7 + 10 + the task's 10 items is exactly the stated
-27 points. [INF] Until the owner or a Harno booklet settles it, we score L3 as 10 items of 1 point. The consultation booklet
+27 points. [INF] The owner decided (2026-11-02) that L3 is scored exactly as in the exam (§10); until the Harno booklet is read, we score L3 as 10 items of 1 point. The consultation booklet
 (`Konsultatsioonivihik_C1_2023.pdf`) was only sampled for the word cap and the card topics, not read in full; read it and the
 performance samples before writing module 2.
 
@@ -253,7 +253,10 @@ Decided 2026-11-02:
   lengths and timing (≈ 215 min), and its pages look like the Harno C1 exam paper: the same order of parts, instructions,
   answer spaces and point totals, taken from Harno's published C1 sample tests and specification. Nothing is shortened.
 
-Still open:
+- **No moving between the two C1 courses** (owner 2026-11-02: „не может переходить”). A learner in `b2c1` stays in it; the
+  süvakursus is a separate course, chosen on its own.
+- **L3 is scored exactly as in the Harno exam** (owner 2026-11-02). The scale is the one in Harno's own C1 materials. Before the
+  first module with L3 (module 6) is written, read `Konsultatsioonivihik_C1_2023.pdf` and the performance samples in full, and
+  replace the provisional 10 × 1 point of §2 with the scale they give, so the mocks' point totals match the exam.
 
-1. L3 scoring (§2).
-2. Whether a learner may move between the two C1 courses; they share topics but no sentences.
+Nothing is open for the owner now.

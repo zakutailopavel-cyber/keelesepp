@@ -1,3 +1,6 @@
+## 2026-11-02 · agent/c1-open-decisions — C1: no moving between the two C1 courses; L3 scored as in the Harno exam
+
+- `docs/COURSE_FINAL_SHAPE_C1.md` §10 and §2: owner's last two answers. Nothing is open for the owner. Before module 6 (first L3), read the Harno C1 consultation booklet in full and set L3's scale from it.
 ## 2026-11-02 · agent/textbook-book-structure (PR #1000) — Õpik reads as one textbook per course
 
 - Base: `main` 5a491d7 (after #997), checked 2026-11-02. Owner 2026-11-02: when Õpik opens it must look like one textbook with themes, texts, words and revision, not a pile of sheets. UI/engine only, no content written.
