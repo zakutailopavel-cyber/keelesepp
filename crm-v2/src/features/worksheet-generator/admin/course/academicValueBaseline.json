@@ -1,24 +1,4 @@
 {
- "a2b1-module-01": [
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "a2b1-002|*|av-know",
-  "a2b1-002|*|av-voice",
-  "a2b1-003|*|av-know",
-  "a2b1-003|discover|av-fact",
-  "a2b1-004|*|av-know"
- ],
- "a2b1-module-02": [
-  "*|*|av-examiner",
-  "*|*|av-opener",
-  "*|*|av-retell",
-  "a2b1-006|*|av-know",
-  "a2b1-006|*|av-voice",
-  "a2b1-007|*|av-know",
-  "a2b1-008|*|av-know",
-  "a2b1-009|*|av-know",
-  "a2b1-009|*|av-voice"
- ],
  "a2b1-module-03": [
   "*|*|av-opener",
   "*|*|av-retell",
