@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import './app/eagerStyles.js';
 import App from './App.jsx';
 import { AuthProvider } from './app/AuthContext.jsx';
 import './styles/index.css';

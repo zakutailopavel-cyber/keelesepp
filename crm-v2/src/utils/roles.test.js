@@ -1,4 +1,4 @@
-import { hasAnyRole, normalizeRoles } from './roles.js';
+import { hasAnyRole, normalizeRoles, roleLabels } from './roles.js';
 
 describe('role access helpers', () => {
   it('normalizes profile and token roles without duplicates', () => {
@@ -16,5 +16,12 @@ describe('role access helpers', () => {
   it('requires at least one allowed role', () => {
     expect(hasAnyRole(['teacher'], ['admin', 'teacher'])).toBe(true);
     expect(hasAnyRole(['student'], ['admin', 'teacher'])).toBe(false);
+  });
+});
+
+describe('roleLabels', () => {
+  it('shows roles as words and keeps an unknown role as it is', () => {
+    expect(roleLabels(['parent', 'teacher', 'other'])).toBe('Lapsevanem, Õpetaja, other');
+    expect(roleLabels([])).toBe('');
   });
 });

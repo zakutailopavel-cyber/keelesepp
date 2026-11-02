@@ -1,4 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
+import { Modal } from '../ui/index.js';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import AppShell from './AppShell.jsx';
@@ -39,5 +41,19 @@ describe('application shell', () => {
     expect(screen.getByLabelText('2 ootel')).toHaveTextContent('2');
     expect(screen.getByLabelText('5 lugemata')).toHaveTextContent('5');
     expect(messages.subscribeUnreadCount.mock.calls[0][0]).toMatchObject({ uid: 'a1', all: true });
+  });
+
+  it('in a read-only preview a dialog can be closed, every other button stays blocked', () => {
+    const answer = vi.fn();
+    function Page() {
+      const [open, setOpen] = useState(true);
+      return open ? <Modal open title="Tunni salvestamine" onClose={() => setOpen(false)} footer={<button onClick={answer}>Nõustun</button>}>tekst</Modal> : <p>Dialoog suletud</p>;
+    }
+    const auth = { user: { uid: 'p1', displayName: 'Vanem', roles: ['parent'] }, preview: { readOnly: true }, signOut: vi.fn(), stopPreview: vi.fn() };
+    render(<AuthContext.Provider value={auth}><MemoryRouter initialEntries={['/parent']}><Routes><Route path="*" element={<AppShell />}><Route path="*" element={<Page />} /></Route></Routes></MemoryRouter></AuthContext.Provider>);
+    fireEvent.click(screen.getByRole('button', { name: 'Nõustun' }));
+    expect(answer).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Sulge' }));
+    expect(screen.getByText('Dialoog suletud')).toBeInTheDocument();
   });
 });

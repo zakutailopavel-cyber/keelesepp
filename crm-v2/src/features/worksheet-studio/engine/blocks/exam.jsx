@@ -4,7 +4,7 @@ import { Line, Md } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
 import { norm } from '../schema.js';
 import { Area, Text } from '../../editor/fields.jsx';
-import { seededShuffle } from './tasks.jsx';
+import { plainText, seededShuffle } from './tasks.jsx';
 
 // Exam-format tasks (owner 2026-10-12: B1 course after Harno). „Valiklünktekst”: a text with numbered gaps, each with
 // 3–4 options — Harno B1 reading task 3 (10 gaps, 3 options), B2 (4 options). Written as
@@ -65,6 +65,7 @@ export const cloze = {
     );
   },
   answers: (data) => clozeGaps(data.passage).map((opts, gi) => ({ key: `${gi}`, accept: opts.filter((o) => o.correct).map((o) => o.text) })),
+  answerText: (data, key, value) => chosenOption(clozeGaps(data.passage)[Number(key)] || [], value)?.text || '',
   score: (data, get) => clozeGaps(data.passage).map((opts, gi) => ({ key: `${gi}`, ok: get(`${gi}`) !== undefined && get(`${gi}`) !== '' && opts.find((o) => o.oi === Number(get(`${gi}`)))?.correct === true })),
   Editor: ({ data, set }) => (
     <>
@@ -158,7 +159,7 @@ export const insertion = {
               return ctx.interactive ? (
                 <select key={k} className={`ws-cloze-sel ${state ? 'is-' + state : ''}`} value={value ?? ''} onChange={(e) => ctx.set(key, e.target.value === '' ? '' : Number(e.target.value))} aria-label={`Lünk ${n + 1}`}>
                   <option value="">({n + 1})</option>
-                  {shown.map((o, li) => <option key={o.oi} value={o.oi}>{LETTERS_UP[li]}</option>)}
+                  {shown.map((o, li) => <option key={o.oi} value={o.oi} label={ctx.flow ? `${LETTERS_UP[li]}. ${plainText(o.text)}` : undefined}>{LETTERS_UP[li]}</option>)}
                 </select>
               ) : <span key={k} className={`ws-cloze-gap ${value !== undefined && value !== '' && state ? 'is-' + state : ''}`}>({n + 1}) {value !== undefined && value !== '' ? <b>{letter(Number(value))}</b> : '____'}</span>;
             })}</p>
@@ -171,6 +172,7 @@ export const insertion = {
     );
   },
   answers: (data) => sentenceList(data).gapsList.map((text, gi) => ({ key: `${gi}`, accept: [text] })),
+  answerText: (data, key, value) => chosenOption(sentenceList(data).options, value)?.text || '',
   score: (data, get) => sentenceList(data).gapsList.map((_, gi) => ({ key: `${gi}`, ok: get(`${gi}`) !== undefined && get(`${gi}`) !== '' && Number(get(`${gi}`)) === gi })),
   Editor: ({ data, set }) => (
     <>

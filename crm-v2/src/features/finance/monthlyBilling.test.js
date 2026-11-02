@@ -1,4 +1,4 @@
-import { combinedMonthlyPayload, invoiceItems, currentMonth, isChargeable, defaultBillingMonth, defaultDue, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
+import { studentLessonBalances, combinedMonthlyPayload, invoiceItems, currentMonth, isChargeable, defaultBillingMonth, defaultDue, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
 
 const students = [
   { id: 's1', name: 'Mari', active: true, parentEmail: 'mari@example.com' },
@@ -26,7 +26,7 @@ describe('monthly billing', () => {
     expect(mari.due).toBe('2031-10-10');
     const jaan = rows.find((row) => row.student.id === 's2');
     expect(jaan.plannedUnits).toBe(7.5); // 5 × 90 min on a 60 min price
-    expect(jaan.due).toBe('2031-09-30');
+    expect(jaan.due).toBe('2031-10-10');
     expect(rows.some((row) => row.student.id === 's3')).toBe(false);
   });
 
@@ -75,7 +75,7 @@ describe('monthly billing', () => {
     // the invoice lists open on this month even after the 10th (only preparing moves to the next one)
     expect(currentMonth(new Date(2031, 9, 20))).toBe('2031-10');
     expect(shiftMonth('2031-01', -1)).toBe('2030-12');
-    expect(defaultDue('2031-03', 'advance')).toBe('2031-02-28');
+    expect(defaultDue('2031-03', 'advance')).toBe('2031-03-10');
   });
 });
 
@@ -122,6 +122,7 @@ describe('one card, two subjects (owner 2026-10-20)', () => {
       ...['01', '08', '15', '22', '29'].map((day) => ({ id: `e${day}`, studentId: 'st', date: `2031-10-${day}`, status: 'Toimunud', duration: 60, subject: 'Eesti keel' })),
       ...['02', '09', '16'].map((day) => ({ id: `m${day}`, studentId: 'st', date: `2031-10-${day}`, status: 'Toimunud', duration: 45, teacherUid: 'y1' })),
       { id: 'm23', studentId: 'st', date: '2031-10-23', status: 'Puudus_p', duration: 45, subject: 'Matemaatika' },
+      { id: 'm30', studentId: 'st', date: '2031-10-30', status: 'Puudus_p', duration: 45, subject: 'Matemaatika' },
     ];
     const [row] = monthlyBillingRows({ month: '2031-11', students: [stefania], plans: [plan], schedule: lessons, groups: [], lessons: held, invoices: [invoice] });
     expect(row.subjectParts.find((part) => part.subject === 'Eesti keel').correction.units).toBe(0);
@@ -130,5 +131,58 @@ describe('one card, two subjects (owner 2026-10-20)', () => {
   it('a subject without its own price is billed at the price of the card', () => {
     const [row] = monthlyBillingRows({ month: '2031-10', students: [stefania], plans: [{ ...plan, subjectPrices: {} }], schedule: lessons, groups: [], lessons: [], invoices: [] });
     expect(row.subjectParts.map((part) => part.priceCents)).toEqual([2000, 2000]);
+  });
+});
+
+describe('lessons left (owner 2026-11-01)', () => {
+  const student = { id: 'b', name: 'Mari', active: true, parentEmail: 'mari@example.com' };
+  const plan = { studentId: 'b', lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'current', chargeNoShow: true };
+  const held = (date) => ({ id: date, studentId: 'b', date, status: 'Toimunud', duration: 60 });
+  const row = (month, values) => monthlyBillingRows({ month, students: [student], plans: [plan], schedule: [], groups: [], lessons: [], invoices: [], ...values })[0];
+  const october = { studentId: 'b', planMonth: '2031-10', plannedUnits: 4, status: 'Makstud' };
+
+  it('a held lesson takes one; the unworked ones come off the next invoice', () => {
+    const lessons = [held('2031-10-01'), held('2031-10-08')];
+    const schedule = [{ id: 'n', studentId: 'b', recurring: true, day: 'Wed', startDate: '2031-11-01', duration: 60 }];
+    const next = row('2031-11', { lessons, invoices: [october], schedule });
+    expect(next.correction.units).toBe(-2);
+    expect(next.plannedUnits).toBe(4);
+    expect(next.totalCents).toBe(2 * 2000);
+    expect(row('2031-10', { lessons, invoices: [october] }).lessonsLeft).toBe(2);
+    expect(studentLessonBalances({ student, plan, invoices: [october], lessons, month: '2031-10' })).toEqual([expect.objectContaining({ subject: '', paid: 4, used: 2, left: 2 })]);
+  });
+
+  it('a month without an invoice keeps the balance', () => {
+    const schedule = [{ id: 'd', studentId: 'b', recurring: true, day: 'Wed', startDate: '2031-12-01', duration: 60 }];
+    const december = row('2031-12', { lessons: [held('2031-10-01')], invoices: [october], schedule });
+    expect(december.correction.units).toBe(-3);
+  });
+
+  it('lessons the correction covered are not paid twice and not lost', () => {
+    const invoices = [october, { studentId: 'b', planMonth: '2031-11', plannedUnits: 4, correctionUnits: -2, status: 'Makstud' }];
+    const lessons = ['2031-10-01', '2031-10-08', '2031-11-05', '2031-11-12', '2031-11-19'].map(held);
+    expect(row('2031-12', { lessons, invoices }).correction.units).toBe(-1);
+  });
+
+  it('a correction on the first monthly invoice spends lessons paid before it', () => {
+    const invoices = [{ ...october, correctionUnits: -1 }];
+    const lessons = ['2031-10-01', '2031-10-08', '2031-10-15', '2031-10-22'].map(held);
+    expect(row('2031-11', { lessons, invoices }).correction.units).toBe(0);
+  });
+
+  it('an unmarked lesson is neither taken off nor charged, and is reported', () => {
+    const schedule = [{ id: 'w', studentId: 'b', recurring: true, day: 'Wed', startDate: '2031-10-01', endDate: '2031-10-31', duration: 60 }];
+    const invoices = [{ studentId: 'b', planMonth: '2031-10', plannedUnits: 5, status: 'Makstud' }];
+    const some = row('2031-11', { lessons: [held('2031-10-01')], invoices, schedule });
+    expect(some.correction.units).toBe(0);
+    expect(some.correction.unmarked).toBe(4);
+    const few = row('2031-11', { lessons: [held('2031-10-01')], invoices: [{ ...invoices[0], plannedUnits: 1 }], schedule });
+    expect(few.correction.units).toBe(0);
+  });
+
+  it('a held lesson beyond the paid ones is charged; a cancelled or credited invoice paid nothing', () => {
+    expect(row('2031-11', { lessons: ['2031-10-01', '2031-10-08', '2031-10-15', '2031-10-22', '2031-10-29'].map(held), invoices: [october] }).correction.units).toBe(1);
+    expect(row('2031-11', { lessons: [held('2031-10-01')], invoices: [{ ...october, status: 'Krediteeritud' }] }).correction.units).toBe(0);
+    expect(row('2031-11', { lessons: [held('2031-10-01')], invoices: [{ ...october, status: 'Tühistatud' }] }).lessonsLeft).toBe(null);
   });
 });

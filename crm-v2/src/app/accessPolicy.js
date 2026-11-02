@@ -26,8 +26,12 @@ export const ROUTE_ACCESS = Object.freeze({
   '/calendar': ACCESS.STAFF,
   '/groups': ACCESS.STAFF,
   '/library': ACCESS.STAFF,
+  '/library/raamatukogu': ACCESS.STAFF,
+  '/library/worksheet-generator': ACCESS.STAFF,
   '/library/worksheet-generator/avasta-module-1': ACCESS.ADMIN,
+  '/library/worksheet-generator/module-1-three-phase': ACCESS.ADMIN,
   '/library/worksheet-generator/course': ACCESS.ADMIN,
+  '/library/worksheet-generator/health': ACCESS.ADMIN,
   '/library/worksheets/convert': ACCESS.STAFF,
   '/library/worksheets/book': ACCESS.STAFF,
   '/library/worksheets/live/:assignmentId': ACCESS.STAFF,
@@ -51,6 +55,7 @@ export const ROUTE_ACCESS = Object.freeze({
   '/leads': ACCESS.LEADS,
   '/parent': ACCESS.PARENT,
   '/student': ACCESS.STUDENT,
+  '/student/areng': ACCESS.STUDENT,
   '/student/sonavara': ACCESS.STUDENT,
   '/student/lemmik': ACCESS.STUDENT,
   '/student/kursus': ACCESS.STUDENT,
@@ -61,7 +66,9 @@ export const ROUTE_ACCESS = Object.freeze({
   '/finance/payroll': ACCESS.ADMIN,
   '/finance/expenses': ACCESS.ADMIN,
   '/finance/raamatupidamine': ACCESS.ADMIN,
+  '/finance/ostuarved': ACCESS.ADMIN,
   '/finance/inf3': ACCESS.ADMIN,
+  '/ai/connect': ACCESS.ADMIN,
 });
 
 export function rolesForRoute(path) {

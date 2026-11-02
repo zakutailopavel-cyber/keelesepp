@@ -240,8 +240,9 @@ export default function FinanceMonthPage({
   // lesson tokens: the package of each credited token invoice of the month (bought / held / left) and the lessons each of
   // those students owes (held after the packages were used up), shown on the student's newest token invoice
   const [tokenUsage, setTokenUsage] = useState({ packages: {}, owed: {} });
+  // from the invoices, not monthInvoices: the notes arriving a moment later must not repeat these reads
+  const tokenInvoices = useMemo(() => filterFinanceRows(invoices, { month }).filter((invoice) => invoice.status !== 'Tühistatud' && invoice.billingMode === 'lesson_tokens_v1'), [invoices, month]);
   useEffect(() => {
-    const tokenInvoices = monthInvoices.filter((invoice) => invoice.billingMode === 'lesson_tokens_v1');
     if (!tokenInvoices.length || !tokensRepository?.packagesForInvoices) return undefined;
     let alive = true;
     const studentIds = [...new Set(tokenInvoices.map((invoice) => invoice.studentId).filter(Boolean))];
@@ -250,7 +251,7 @@ export default function FinanceMonthPage({
       Promise.all(studentIds.map((id) => (tokensRepository.owedByStudent ? tokensRepository.owedByStudent(id) : Promise.resolve([])).then((owed) => [id, owedCredits(owed)]).catch(() => [id, 0]))),
     ]).then(([packages, owed]) => { if (alive) setTokenUsage({ packages, owed: Object.fromEntries(owed) }); });
     return () => { alive = false; };
-  }, [monthInvoices, tokensRepository]);
+  }, [tokenInvoices, tokensRepository]);
   const newestTokenInvoice = useMemo(() => {
     const newest = {};
     monthInvoices.filter((invoice) => invoice.billingMode === 'lesson_tokens_v1').forEach((invoice) => {
@@ -353,7 +354,7 @@ export default function FinanceMonthPage({
         {[
           ['invoices', <ReceiptText size={18} />, 'Arveid', summary.count, `${money(summary.amountCents)} kokku`],
           ['paid', <CheckCircle2 size={18} />, 'Laekunud', money(summary.paidCents), `${summary.byStatus.paid} täielikult makstud`],
-          ['unpaid', <Clock3 size={18} />, 'Laekumata', money(summary.balanceCents), `${summary.byStatus.overdue} üle tähtaja`],
+          ['unpaid', <Clock3 size={18} />, 'Laekumata', money(summary.balanceCents), `selle kuu arved · ${summary.byStatus.overdue} üle tähtaja`],
           ['credits', <WalletCards size={18} />, 'Ette makstud', money(creditTotal), 'kantakse järgmisele arvele'],
           ...(canManage ? [['prepare', <FilePlus2 size={18} />, 'Koosta arved', '', 'Kuuarvete ettevalmistus'], ['check', <ShieldCheck size={18} />, 'Kontroll', '', 'Arved ja maksed, pank']] : []),
         ].map(([view, icon, label, value, caption], index) => <button key={view} ref={(node) => { tabRefs.current[index] = node; }} id={`finance-tab-${view}`} type="button" role="tab" aria-selected={activeView === view} aria-controls="finance-view-panel" tabIndex={activeView === view ? 0 : -1} className={`finance-month-metric ${['prepare', 'check'].includes(view) ? 'finance-month-metric--prepare' : ''}`} onClick={() => selectView(view)} onKeyDown={(event) => moveTab(event, index)}><span>{icon}{label}</span>{value !== '' ? <strong>{value}</strong> : null}<small>{caption}</small></button>)}

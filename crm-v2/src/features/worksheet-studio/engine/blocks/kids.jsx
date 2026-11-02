@@ -104,6 +104,9 @@ const INK_MAX = 15000;
 const parseInk = (value) => String(value || '').split('|').filter(Boolean).map((stroke) => stroke.split(' ').map((p) => p.split(',').map(Number)).filter((p) => p.length === 2 && p.every(Number.isFinite)));
 const inkPath = (stroke) => stroke.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y}`).join(' ');
 
+// a phone is too narrow for the whole 1000-unit line: it shows a window of it at a size a finger can write in, with a
+// button to the next part. The ink keeps the coordinates of the whole line, so it is the same on A4.
+const FLOW_WINDOW = 360;
 function TraceRow({ row, index, ctx }) {
   const text = String(row.text || '').trim() || 'A';
   const repeat = Math.max(1, Math.min(12, Number(row.repeat) || 4));
@@ -111,12 +114,16 @@ function TraceRow({ row, index, ctx }) {
   const step = Math.max(text.length * size * 0.68 + 34, 86);
   const copies = Math.max(1, Math.min(repeat, Math.floor((1000 - 20) / step)));
   const [live, setLive] = useState(null);
+  const [from, setFrom] = useState(0);
   const svg = useRef(null);
   const key = `ink${index}`;
   const ink = parseInk(ctx.get(key));
+  const span = ctx.flow ? FLOW_WINDOW : 1000;
+  const end = Math.min(1000, 14 + copies * step + 20);
+  const more = ctx.flow && end > FLOW_WINDOW;
   const point = (e) => {
     const box = svg.current.getBoundingClientRect();
-    return [Math.round(((e.clientX - box.left) / box.width) * 1000), Math.round(((e.clientY - box.top) / box.height) * 120)];
+    return [Math.round(from + ((e.clientX - box.left) / box.width) * span), Math.round(((e.clientY - box.top) / box.height) * 120)];
   };
   const down = (e) => { if (!ctx.interactive) return; e.preventDefault(); e.currentTarget.setPointerCapture?.(e.pointerId); setLive([point(e)]); };
   const move = (e) => { if (live) setLive((l) => [...l, point(e)]); };
@@ -129,8 +136,8 @@ function TraceRow({ row, index, ctx }) {
   };
   return (
     <div className="ws-trace-row">
-      <svg ref={svg} viewBox="0 0 1000 120" className={`ws-trace${ctx.interactive ? ' is-live' : ''}`} role="img" aria-label={`Kirjuta järele: ${text}`}
-        onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up}>
+      <svg ref={svg} viewBox={`${from} 0 ${span} 120`} className={`ws-trace${ctx.interactive ? ' is-live' : ''}`} role="img" aria-label={`Kirjuta järele: ${text}`}
+        onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up} onPointerCancel={up}>
         <line x1="0" x2="1000" y1="22" y2="22" className="ws-trace-guide" />
         <line x1="0" x2="1000" y1="52" y2="52" className="ws-trace-guide ws-trace-guide--mid" />
         <line x1="0" x2="1000" y1="88" y2="88" className="ws-trace-guide ws-trace-guide--base" />
@@ -141,6 +148,7 @@ function TraceRow({ row, index, ctx }) {
         {ink.map((stroke, k) => <path key={k} d={inkPath(stroke)} className="ws-trace-ink" />)}
         {live ? <path d={inkPath(live)} className="ws-trace-ink" /> : null}
       </svg>
+      {more ? <div className="ws-trace-nav"><button type="button" disabled={!from} onClick={() => setFrom(Math.max(0, from - FLOW_WINDOW))}>← Tagasi</button><button type="button" disabled={from + FLOW_WINDOW >= end} onClick={() => setFrom(from + FLOW_WINDOW)}>Edasi →</button></div> : null}
       {ctx.interactive && ink.length ? <button type="button" className="ws-trace-clear" onClick={() => ctx.set(key, '')}>Kustuta rida {index + 1}</button> : null}
     </div>
   );

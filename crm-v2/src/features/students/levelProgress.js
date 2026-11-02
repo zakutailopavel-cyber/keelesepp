@@ -4,9 +4,11 @@
 // teacher's grades on the card where the computed value is missing, and the course of the next level (held with the teacher).
 import { AUTO_SKILLS } from './autoSkills.js';
 
+export { speakingFromStats } from './autoSkills.js';
+
 export const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 export const READY = 70; // a skill counts as ready for the next level from here
-const norm = (value) => String(value || '').toUpperCase().replace(/[^ABC12]/g, '').slice(0, 2);
+const norm = (value) => { const level = String(value || '').toUpperCase().replace(/[^ABC12]/g, '').slice(0, 2); return LEVELS.includes(level) ? level : ''; };
 
 const ACTIONS = {
   Grammatika: { et: 'Harjuta iga päev „Minu vead”: sinu enda laused tundidest.', ru: 'Каждый день тренируй «Minu vead»: твои предложения с уроков.', to: '/student/vead' },
@@ -18,7 +20,7 @@ const ACTIONS = {
 };
 const FIRST = {
   Grammatika: 'üks Harjuta-leht', Sõnavara: 'üks sõnavara ülesanne', Lugemine: 'üks lugemisülesanne',
-  Kuulamine: 'üks etteütlus', Kirjutamine: 'üks kirjutamisülesanne', Rääkimine: 'üks Live Classroomi tund',
+  Kuulamine: 'üks etteütlus', Kirjutamine: 'üks kirjutamisülesanne', Rääkimine: 'üks tund õpetajaga',
 };
 
 // the teacher's grades on the card („lugemine: 72”) by skill name
@@ -31,21 +33,23 @@ function teacherSkills(skillMap = {}) {
   return out;
 }
 
-// speaking from the lesson stats the student can read: the share of Estonian in what he said
-export function speakingFromStats(stats = []) {
-  const list = stats.filter((s) => Number(s?.studentWords) >= 20 && Number.isFinite(Number(s?.share)));
-  if (!list.length) return null;
-  return { skill: 'Rääkimine', pct: Math.round(list.reduce((n, s) => n + Number(s.share), 0) / list.length), basis: `${list.length} ${list.length === 1 ? 'tund' : 'tundi'}` };
-}
-
-export function levelProgress({ level, target, computed = [], skillMap = {}, courseByLevel = {} }) {
+// where a card stands: the way from its level to its target and the course he works on now, the next level's (courses
+// are named by the level they lead to: from A2 he takes „Eesti keel B1”). One rule for „Minu areng” and „Minu kursus”.
+export function coursePath(level, target) {
   const from = norm(level) || 'A1';
   const to = norm(target) || LEVELS[Math.min(LEVELS.length - 1, LEVELS.indexOf(from) + 1)];
-  const a = Math.max(0, LEVELS.indexOf(from));
+  const a = LEVELS.indexOf(from);
   const b = Math.max(a, LEVELS.indexOf(to));
   const reached = a >= b;
-  const step = reached ? from : LEVELS[a + 1]; // the course he works on now: the next level's
-  const course = courseByLevel[step] || { done: 0, total: 0, next: null };
+  return { from, to, a, b, reached, step: reached ? from : LEVELS[a + 1], levels: LEVELS.slice(a, b + 1), known: Boolean(norm(level)) };
+}
+
+// the same catalogue key for a card learning English: „English B1”
+export const courseKeyFor = (step, subject = '') => (/inglise|english/i.test(subject) ? `English ${step}` : step);
+
+export function levelProgress({ level, target, computed = [], skillMap = {}, courseByLevel = {}, subject = '', wordCounts = null }) {
+  const { from, to, a, b, reached, step } = coursePath(level, target);
+  const course = courseByLevel[courseKeyFor(step, subject)] || { done: 0, total: 0, next: null };
   const coursePct = course.total ? Math.round((course.done / course.total) * 100) : 0;
 
   const byComputed = Object.fromEntries(computed.map((row) => [row.skill, row]));
@@ -53,7 +57,10 @@ export function levelProgress({ level, target, computed = [], skillMap = {}, cou
   const skills = AUTO_SKILLS.map((skill) => {
     const pct = byComputed[skill]?.pct ?? byTeacher[skill] ?? null;
     const state = pct === null ? 'unknown' : pct >= READY ? 'ready' : pct >= 50 ? 'close' : 'weak';
-    return { skill, pct, state, basis: byComputed[skill]?.basis || (byTeacher[skill] !== undefined ? 'õpetaja hinnang' : '') };
+    const basis = byComputed[skill]?.basis || (byTeacher[skill] !== undefined ? 'õpetaja hinnang' : '');
+    // sheet tasks can be all right while none of his word cards is learned yet: not „Valmis” beside „0 sõna selgeks õpitud”
+    if (skill === 'Sõnavara' && state === 'ready' && wordCounts?.words > 0 && !wordCounts.learned) return { skill, pct, state: 'close', note: 'sõnad veel õppimata', basis };
+    return { skill, pct, state, basis };
   });
   const known = skills.filter((s) => s.pct !== null);
   const skillsAvg = known.length ? Math.round(known.reduce((n, s) => n + s.pct, 0) / known.length) : 0;
@@ -66,7 +73,7 @@ export function levelProgress({ level, target, computed = [], skillMap = {}, cou
   }));
 
   const hints = [];
-  const allReady = known.length >= 4 && known.every((s) => s.pct >= READY);
+  const allReady = known.length >= 4 && known.every((s) => s.state === 'ready');
   if (!reached && readiness >= 80 && allReady) {
     hints.push({ key: 'test', et: `Oled valmis tasemeks ${step}! Küsi õpetajalt tasemetesti.`, ru: `Ты готов к уровню ${step}! Попроси учителя о тесте уровня.`, to: '/messages' });
   }
@@ -80,5 +87,5 @@ export function levelProgress({ level, target, computed = [], skillMap = {}, cou
 }
 
 function unknownRu(skill) {
-  return { Grammatika: 'один лист «Harjuta»', Sõnavara: 'одно задание на слова', Lugemine: 'одно задание на чтение', Kuulamine: 'один диктант', Kirjutamine: 'одно письменное задание', Rääkimine: 'один урок в Live Classroom' }[skill];
+  return { Grammatika: 'один лист «Harjuta»', Sõnavara: 'одно задание на слова', Lugemine: 'одно задание на чтение', Kuulamine: 'один диктант', Kirjutamine: 'одно письменное задание', Rääkimine: 'один урок с учителем' }[skill];
 }

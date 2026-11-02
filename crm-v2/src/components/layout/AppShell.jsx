@@ -1,14 +1,12 @@
 import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
 import { navigationFor, settingsNavigation } from '../../app/navigation.js';
-import { useAuth } from '../../app/AuthContext.jsx';
-import { hasAnyRole } from '../../utils/roles.js';
+import { useAuth, usePreviewNavigation } from '../../app/AuthContext.jsx';
+import { hasAnyRole, roleLabels } from '../../utils/roles.js';
 import GlobalStudentSearch from './GlobalStudentSearch.jsx';
 import IconButton from '../ui/IconButton.jsx';
 import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
-import NotificationCenter from './NotificationCenter.jsx';
-import PetCompanion from '../../features/pet/PetCompanion.jsx';
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { messagesService } from '../../services/firebase/messages.js';
 import { clearTestSession, testSessionName } from '../../services/firebase/auth.js';
@@ -20,14 +18,19 @@ import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import './appShell.css';
 import StudentContextMenu from '../StudentContextMenu.jsx';
 
+// students only (it renders nothing for anyone else), so nobody else downloads it
+// staff only
+const NotificationCenter = lazy(() => import('./NotificationCenter.jsx'));
+const PetCompanion = lazy(() => import('../../features/pet/PetCompanion.jsx'));
+
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
 export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, announcements, missingData }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const { user, signOut, preview, stopPreview } = useAuth();
+  const { user, signOut, preview } = useAuth();
+  const previewNavigation = usePreviewNavigation();
   const visibleNavigation = useMemo(() => navigationFor(user.roles).filter((item) => hasAnyRole(user.roles, item.roles)), [user.roles]);
   const showSettings = hasAnyRole(user.roles, settingsNavigation.roles);
   const canSearchStudents = hasAnyRole(user.roles, ['admin', 'teacher']);
@@ -47,9 +50,10 @@ export default function AppShell({ approvals = accountApprovalsService, messages
     try { return messages.subscribeUnreadCount({ uid: user.uid, all: isAdmin }, setUnreadMessages, () => setUnreadMessages(0)); } catch { return undefined; }
   }, [messages, isStaff, isAdmin, user.uid]);
   const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0 };
-  const exitPreview = () => { stopPreview(); navigate('/settings'); };
   const blockPreviewButtons = (event) => {
     if (!preview?.readOnly) return;
+    // only closing a dialog is let through: it changes nothing, and a dialog that cannot be closed covers the page
+    if (event.target.closest('[data-preview-allowed]')) return;
     if (event.target.closest('button, [role="button"]')) {
       event.preventDefault();
       event.stopPropagation();
@@ -73,11 +77,11 @@ export default function AppShell({ approvals = accountApprovalsService, messages
           <IconButton className="mobile-only sidebar-close" label="Sulge menüü" onClick={() => setMenuOpen(false)}><X size={20} /></IconButton>
         </div>
         <nav aria-label="Põhinavigatsioon">
-          {visibleNavigation.map(({ to, label, icon: Icon, end, group }, index) => (
+          {visibleNavigation.map(({ to, label, icon: Icon, end, group, hint }, index) => (
             <Fragment key={to}>
               {group && group !== visibleNavigation[index - 1]?.group ? <span className="nav-group">{group}</span> : null}
               <NavLink to={to} end={end} data-tour={`nav-${to}`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-                <Icon size={19} /><span>{label}</span>{badges[to] ? <b className="nav-count" aria-label={to === "/messages" ? `${badges[to]} lugemata` : `${badges[to]} ootel`}>{badges[to]}</b> : null}
+                <Icon size={19} /><span>{label}{hint ? <small className="nav-hint">{hint}</small> : null}</span>{badges[to] ? <b className="nav-count" aria-label={to === "/messages" ? `${badges[to]} lugemata` : `${badges[to]} ootel`}>{badges[to]}</b> : null}
               </NavLink>
             </Fragment>
           ))}
@@ -86,7 +90,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
           {showSettings ? <NavLink to={settingsNavigation.to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}><settingsNavigation.icon size={19} /><span>{settingsNavigation.label}</span></NavLink> : null}
           <div className="profile-chip">
             <div className="avatar">{initials(user.displayName)}</div>
-            <div className="profile-chip__text"><strong>{user.displayName}</strong><span>{user.roles.join(', ') || 'kasutaja'}</span></div>
+            <div className="profile-chip__text"><strong>{user.displayName}</strong><span>{roleLabels(user.roles) || 'kasutaja'}</span></div>
             <IconButton label="Logi välja" className="profile-chip__logout" onClick={signOut}><LogOut size={17} /></IconButton>
           </div>
         </div>
@@ -97,14 +101,14 @@ export default function AppShell({ approvals = accountApprovalsService, messages
         <GuideBanner user={user} preview={preview} />
         <WhatsNewDialog user={user} preview={preview} />
         {testSessionName() && !preview ? <div className="preview-banner" role="status"><span><strong>Testõpilase seanss: {testSessionName()}</strong><small>Sa oled sisse logitud testõpilasena · administraatoriks naasmiseks logi uuesti sisse</small></span><button onClick={() => { clearTestSession(); signOut(); }}>Lõpeta testseanss</button></div> : null}
-        {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={exitPreview}>Lõpeta vaade</button></div> : null}
+        {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={previewNavigation.close}>Lõpeta vaade</button></div> : null}
         <header className="topbar">
           <IconButton className="mobile-only" data-tour="menu" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
           {canSearchStudents ? <GlobalStudentSearch user={user} /> : null}
-          {showNotifications ? <div className="topbar-actions"><NotificationCenter user={user} /></div> : null}
+          {showNotifications ? <div className="topbar-actions"><Suspense fallback={null}><NotificationCenter user={user} /></Suspense></div> : null}
         </header>
         <div className={preview?.readOnly ? 'preview-surface preview-surface--readonly' : 'preview-surface'} onClickCapture={blockPreviewButtons} onSubmitCapture={(event) => { if (preview?.readOnly) { event.preventDefault(); event.stopPropagation(); } }}><Outlet /></div>
-        <PetCompanion />
+        {user.roles?.includes('student') && !preview ? <Suspense fallback={null}><PetCompanion /></Suspense> : null}
       </main>
     </div>
     </MissingDataGate>

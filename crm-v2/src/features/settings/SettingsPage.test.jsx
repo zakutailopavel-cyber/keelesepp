@@ -11,7 +11,10 @@ describe('SettingsPage', () => {
     render(<MemoryRouter><AuthContext.Provider value={{ user, configured: true, updateProfile, sendPasswordReset }}><SettingsPage /></AuthContext.Provider></MemoryRouter>);
     expect(screen.queryByRole('tablist')).toBeNull();
 
-    expect(screen.getByRole('region', { name: 'Konto kokkuvõte' })).toHaveTextContent('FirebaseÜhendatud');
+    // a student sees the role in words, no database status or account UID
+    expect(screen.getByRole('region', { name: 'Konto kokkuvõte' })).toHaveTextContent('Õpilane');
+    expect(screen.getByRole('region', { name: 'Konto kokkuvõte' })).not.toHaveTextContent('Firebase');
+    expect(screen.queryByText('Konto UID')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Nimi'), { target: { value: ' Mari Tamm ' } });
     fireEvent.change(screen.getByLabelText('Telefon'), { target: { value: '556' } });
     fireEvent.click(screen.getByRole('button', { name: /Salvesta andmed/ }));
@@ -40,6 +43,16 @@ describe('SettingsPage', () => {
     render(<MemoryRouter><AuthContext.Provider value={{ user: student, configured: true, preview: true }}><SettingsPage /></AuthContext.Provider></MemoryRouter>);
     expect(screen.queryByRole('heading', { name: 'Google Calendar' })).toBeNull();
     expect(screen.queryByRole('link', { name: /Ava juhend/ })).toBeNull();
+  });
+
+  it('keeps the finished teacher-scope migration out of the technical tab unless asked for by address', () => {
+    const admin = { uid: 'admin-1', displayName: 'Admin', email: 'admin@example.com', roles: ['admin'], profile: {} };
+    const open = (path) => render(<MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ user: admin, configured: true, preview: true }}><SettingsPage /></AuthContext.Provider></MemoryRouter>);
+    const { unmount } = open('/settings?tab=tehniline');
+    expect(screen.queryByText(/Teacher-scope/)).not.toBeInTheDocument();
+    unmount();
+    open('/settings?tab=tehniline&migratsioon=1');
+    expect(screen.getByText(/Teacher-scope/)).toBeInTheDocument();
   });
 
   it('gives an admin the school and technical tabs, opened from the address', () => {

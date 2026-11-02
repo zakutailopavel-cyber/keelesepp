@@ -2,6 +2,7 @@
 // goals of the lessons a student worked on in the last 30 days, each with how well it is mastered — from the auto-check
 // per goal of his submitted sheets (score.perGoal). No invented targets: only the course's own steps.
 import { goalEntries } from '../worksheet-studio/engine/goals.js';
+import { isTeacherGoal } from '../homework/taskList.js';
 
 const DAY = 86400000;
 export const MASTERED = 80;
@@ -21,8 +22,11 @@ export function monthSteps(assignments = [], { now = Date.now(), days = 30 } = {
     .forEach((item) => {
       const lesson = clean(item.lessonTitle || item.worksheetDoc.meta.title || item.title) || 'Tund';
       const perGoal = item.status === 'done' ? item.score?.perGoal || {} : {};
+      // shown to the learner and the family: a goal written for the teacher („Õpilane mõistab …”) reads as the lesson's
+      // own promise („Ma oskan …”, meta.canDo), its results counted there; with no promise it is left out
+      const canDo = clean(item.worksheetDoc.meta.canDo);
       goalEntries(item.worksheetDoc.meta.goals).forEach(([id, label]) => {
-        const text = clean(label);
+        const text = isTeacherGoal(label) ? (isTeacherGoal(canDo) ? '' : canDo) : clean(label);
         if (!text) return;
         const key = `${lesson}|${text}`;
         const step = steps.get(key) || { key, lesson, goal: text, ok: 0, total: 0 };

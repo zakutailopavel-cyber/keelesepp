@@ -68,7 +68,7 @@ export function lifeLines({ now = Date.now(), lastSeenAt = 0, lesson = null, spe
   const add = (key, et, enText, ru) => out.push({ key, text: en ? enText : et, hint: ru });
 
   const away = lastSeenAt ? Math.floor((now - lastSeenAt) / DAY) : 0;
-  if (away >= 3) add('missed', `Ma igatsesin sind! Sind polnud ${away} päeva.`, `I missed you! You were away for ${away} days.`, `Я скучал(а)! Тебя не было ${away} дн.`);
+  if (away >= 3) add('missed', 'Tore, et sa tagasi oled!', "I'm so glad you're back!", 'Как здорово, что ты вернулся(ась)!');
 
   const part = dayPart(now);
   if (part === 'morning') add('morning', 'Tere hommikust! Mis plaanid täna on?', 'Good morning! What are your plans today?', 'Доброе утро! Какие планы на сегодня?');

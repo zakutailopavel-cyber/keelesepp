@@ -1,7 +1,7 @@
 import { isPlaceholderEmail } from '../../utils/placeholderEmail.js';
 import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Eye, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
 import '../board/board.css';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useContext, useEffect, useState } from 'react';
 import MergeCardsModal from './MergeCardsModal.jsx';
 import EnrollmentManager from './EnrollmentManager.jsx';
 import StudentDirectionsCard from './StudentDirectionsCard.jsx';
@@ -9,7 +9,7 @@ import StudentParentsCard from './StudentParentsCard.jsx';
 import { useStudyDirections } from './useStudyDirections.js';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { parentCardIds } from '../parents/parentModel.js';
-import { AuthContext } from '../../app/AuthContext.jsx';
+import { AuthContext, usePreviewNavigation } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
@@ -25,12 +25,12 @@ import StudentLessonsPanel from './StudentLessonsPanel.jsx';
 import SubjectSwitcher from './SubjectSwitcher.jsx';
 import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
 import { onlySubject, subjectName, subjectsOf, teacherTracks } from './subjects.js';
-import StudentWorksPanel from './StudentWorksPanel.jsx';
 import { homeworkService } from '../../services/firebase/homework.js';
 import BillingSettingsCard from './BillingSettingsCard.jsx';
 import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import StudentForm from './StudentForm.jsx';
 import StudentAccountCard from './StudentAccountCard.jsx';
+import LessonBalanceCard from './LessonBalanceCard.jsx';
 import LessonTokensCard from './LessonTokensCard.jsx';
 import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
@@ -67,10 +67,14 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
+// the works tab opens the sheet viewer: downloaded when the tab is opened, not with every card
+const StudentWorksPanel = lazy(() => import('./StudentWorksPanel.jsx'));
+
 export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
+  const previewNavigation = usePreviewNavigation();
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
   const [merging, setMerging] = useState(false);
@@ -160,9 +164,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
         <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link>{auth?.startPreview && !auth?.preview ? <Button variant="secondary" onClick={() => {
           // the student's own cabinet, read only: what he sees is what the teacher sees (owner 2026-10-27)
-          auth.startPreview({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' });
-          window.history.pushState({}, '', '/student');
-          window.dispatchEvent(new window.Event('popstate'));
+          previewNavigation.open({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' }, '/student');
         }}><Eye size={17} /> Vaata õpilase silmadega</Button> : null}<Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setTracksOpen(true)}><Layers size={17} /> Õppesuunad</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
         {canAssignTeacher && tracksOpen ? <EnrollmentManager student={student} directions={directions} teachers={teacherChoices(staffTeachers, [student.teacher])} service={studentApi}
           onClose={() => { setTracksOpen(false); if (searchParams.get('enrollments')) setSearchParams((current) => { current.delete('enrollments'); return current; }, { replace: true }); }}
@@ -240,7 +242,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
             {studentAccess(student) === 'none' ? <p className="action-error" role="alert">Selle kaardiga pole seotud ühtegi kontot: õpilane ei näe siia määratud töid. Seo õpilase konto (Muuda → konto) või kontrolli, kas tal on teine sama nimega kaart.</p> : null}
             {/* „Õpilase tegevused” (owner 2026-10-27): everything the student did, so nothing stays unknown to the teacher */}
             <ActivityFeedCard studentId={student.id} {...(learnerRepository ? { repository: learnerRepository } : {})} />
-            <StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} keep={keepWork} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} />
+            <Suspense fallback={<LoadingState label="Laen töid…" />}><StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} keep={keepWork} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} /></Suspense>
           </div>
         ) : null}
 
@@ -265,6 +267,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         {activeTab === 'finance' && canViewFinance ? <>
           <BillingSettingsCard student={student} plan={state.plan} canEdit={canAssignTeacher}
             onSave={async (values) => { const plan = await planApi.save(student, values, currentUser, state.plan); setState((current) => ({ ...current, plan })); }} />
+          <LessonBalanceCard student={student} plan={state.plan} invoices={state.invoices} lessons={state.lessons} />
           <LessonTokensCard student={student} {...(tokensApi ? { service: tokensApi } : {})} />
           <StudentFinancePanel student={student} invoices={state.invoices} />
         </> : null}

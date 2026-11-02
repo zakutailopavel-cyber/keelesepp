@@ -6,6 +6,7 @@ import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
   BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, fitRect, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds, viewRect } from './boardModel.js';
 import { EMPTY_REMOTE, createThrottle, cursorMessage, draftMessage, dropStale, moveMessage, reduceRemote, remoteOnPage, typingMessage, viewMessage } from './liveDrafts.js';
+import { SheetFlowContext } from '../worksheet-studio/sheetFlow.js';
 import './board.css';
 
 const TOOLS = [
@@ -35,16 +36,18 @@ const HISTORY_LIMIT = 50;
  * and inserts materials through `controllerRef`, and gets the history state through `onHistoryChange`.
  */
 // a phone (or a narrow window): a worksheet page is read as a one-column page with the finger's own scrolling
-const NARROW = '(max-width: 700px)';
-function useNarrowScreen() {
-  const [narrow, setNarrow] = useState(() => Boolean(globalThis.matchMedia?.(NARROW).matches));
+// (also a phone held sideways: a low window); a tablet keeps the board with the teacher's drawings and can switch
+const NARROW = '(max-width: 700px), (max-height: 500px)';
+const TABLET = '(pointer: coarse) and (max-width: 1366px)';
+function useNarrowScreen(media = NARROW) {
+  const [narrow, setNarrow] = useState(() => Boolean(globalThis.matchMedia?.(media).matches));
   useEffect(() => {
-    const query = globalThis.matchMedia?.(NARROW);
+    const query = globalThis.matchMedia?.(media);
     if (!query) return undefined;
     const change = () => setNarrow(query.matches);
     query.addEventListener?.('change', change);
     return () => query.removeEventListener?.('change', change);
-  }, []);
+  }, [media]);
   return narrow;
 }
 
@@ -168,8 +171,10 @@ export default function StudentBoard({
   // on a phone the worksheet is read as a one-column page (owner 2026-10-20: the A4 sheet shrunk to a third could not be
   // read or moved); „Tahvlivaade” brings back the board with the teacher's drawings
   const narrow = useNarrowScreen();
-  const [boardView, setBoardView] = useState(false);
-  const reading = onWorksheet && narrow && !boardView;
+  const tablet = useNarrowScreen(TABLET);
+  const [viewChoice, setViewChoice] = useState('');
+  const boardView = viewChoice === 'board';
+  const reading = onWorksheet && (viewChoice === 'reading' || (narrow && !boardView));
   // the student who follows the teacher onto a worksheet page fills it in: one finger moves the sheet and taps the
   // answer fields instead of drawing over them (a pen left on from the board page did that on tablets)
   useEffect(() => { if (onWorksheet && !staff) setTool('fill'); }, [pageId, onWorksheet, staff]);
@@ -853,12 +858,12 @@ export default function StudentBoard({
   };
   const scrollbar = onWorksheet ? scrollbarFor(view, bounds, stageHeight) : null;
   const readingStage = <div ref={stageRef} className="sb-stage has-worksheet is-reading">
-    <div className="sb-reading ws-narrow" data-testid="worksheet-reading">{activeSheet?.content}</div>
-    <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(true)}>Tahvlivaade{elements.length ? ' · õpetaja märkmed' : ''}</button>
+    <div className="sb-reading ws-narrow" data-testid="worksheet-reading"><SheetFlowContext.Provider value>{activeSheet?.content}</SheetFlowContext.Provider></div>
+    <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('board')}>Tahvlivaade{elements.length ? ' · õpetaja märkmed' : ''}</button>
   </div>;
   const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onPointerDownCapture={(event) => { if (!mediaDown(event)) navDown(event); }} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
-    {onWorksheet && narrow ? <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(false)}>Lugemisvaade</button> : null}
+    {onWorksheet && (narrow || tablet) ? <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('reading')}>Lugemisvaade</button> : null}
     {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling || overMedia ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs>

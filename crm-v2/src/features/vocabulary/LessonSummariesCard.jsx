@@ -6,6 +6,7 @@ import { homeworkService as defaultHomework } from '../../services/firebase/home
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import './vocabulary.css';
+import { displayDate } from '../finance/finance.js';
 
 const when = (iso) => {
   const date = new Date(iso || '');
@@ -40,8 +41,8 @@ function SummaryDetails({ summary, words, homeworkService, boardLink }) {
       {summary.pages.length ? <><h4>Tahvli lehed</h4><ul className="vw-links">{summary.pages.map((page) => <li key={page.id}><Link to={boardLink(summary, page)}>{page.title || 'Leht'}</Link></li>)}</ul></> : null}
       <h4>Uued sõnad ({lessonWords.length})</h4>
       {lessonWords.length ? <ul className="vw-list">{lessonWords.map((item) => <li key={item.id}><span><strong>{item.word}</strong>{item.translation ? <> — {item.translation}</> : null}{item.forms ? <small className="vw-forms">{item.forms}</small> : null}</span></li>)}</ul> : <p className="vw-muted">Selles tunnis sõnu ei lisatud.</p>}
-      <h4>Kodutöö</h4>
-      {homework === null ? <p className="vw-muted">Laen…</p> : homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span><strong>{item.task}</strong><small>{item.due ? `Tähtaeg ${item.due}` : 'Tähtajata'}</small></span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud.</p>}
+      <h4>Ülesanded</h4>
+      {homework === null ? <p className="vw-muted">Laen…</p> : homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span><strong>{item.task}</strong><small>{item.due ? `Tähtaeg ${displayDate(item.due)}` : 'Tähtajata'}</small></span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud.</p>}
     </div>
   );
 }
@@ -72,7 +73,7 @@ export default function LessonSummariesCard({
           </button>
           {isOpen ? <SummaryDetails summary={summary} words={words} homeworkService={homeworkService} boardLink={boardLink} /> : null}
         </article>;
-      })}</div> : <EmptyState title="Kokkuvõtteid veel ei ole" description="Pärast Live Classroomi tundi ilmub siia, mida tunnis tehti." />}
+      })}</div> : <EmptyState title="Kokkuvõtteid veel ei ole" description="Pärast tundi ilmub siia, mida tunnis tehti." />}
     </Card>
   );
 }

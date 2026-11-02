@@ -10,9 +10,11 @@ import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';
 import { BOARD_SHEET_SCALE, useFitScale } from './useFitScale.js';
+import { SheetFlowContext, useFlowKeyboard, useScreenFlow } from './sheetFlow.js';
 import { petCelebrate, petQuiet } from '../pet/petEvents.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
+import './engine/sheetFlow.css';
 import SheetAnnotations from './SheetAnnotations.jsx';
 import { useWordLookup } from './WordLookup.jsx';
 import { rightAnswers, shownResults, stepView } from './engine/liveLesson.js';
@@ -45,11 +47,26 @@ async function persistRecordings({ doc, answers, assignment, repository }) {
   return next;
 }
 
+// The one thin line that stays on top of the column: how far she is and whether her work is safe.
+export function FlowBar({ answered, total, state = 'idle', time = '', saved = false }) {
+  const offline = globalThis.navigator?.onLine === false;
+  const text = state === 'failed' ? (offline ? 'Võrku pole · salvestan, kui võrk tuleb' : 'Ei salvestunud · proovin uuesti') : state === 'saving' ? 'Salvestan…' : saved || state === 'saved' ? `Salvestatud${time ? ` ${time}` : ''}` : '';
+  return (
+    <div className="ws-flow-bar">
+      <b aria-label={`Vastatud ${answered}, kokku ${total}`}>{answered}/{total}</b>
+      <span className="ws-flow-track" aria-hidden="true"><i style={{ width: `${total ? Math.round((answered / total) * 100) : 0}%` }} /></span>
+      <span className={`ws-flow-save is-${state}`} role={state === 'failed' ? 'alert' : undefined}>{text}</span>
+    </div>
+  );
+}
+
 // Student player for a structured worksheet (assignment.worksheetDoc): the same sheet, the same design,
 // the answers kept on the assignment. Teachers open it read-only and see the marks and the per-goal result.
 
 const AUTOSAVE_EVERY_MS = 600;
 const AUTOSAVE_MIN_DELAY_MS = 150;
+// a save that failed is tried again by itself while the sheet is open
+const AUTOSAVE_RETRY_MS = 5000;
 
 export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false, board = false, wordService }) {
   const authUser = useContext(AuthContext)?.user || null;
@@ -68,7 +85,13 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const [assessmentSaved, setAssessmentSaved] = useState(Boolean(assignment.selfAssessment));
   const canvasRef = useRef(null);
   const [fitRef, fitted] = useFitScale();
+  // the column of a phone or tablet instead of a shrunken A4 page (sheetFlow.js). On the board the host decides: the
+  // teacher's drawings lie on the A4 page, the reading page on a phone is the column.
+  const hostFlow = useContext(SheetFlowContext);
+  const screenFlow = useScreenFlow(!board && hostFlow === null);
+  const flow = hostFlow ?? (board ? false : screenFlow);
   const scale = board ? BOARD_SHEET_SCALE : fitted;
+  const zoomStyle = flow ? undefined : { zoom: scale };
   const setCanvas = useCallback((node) => { canvasRef.current = node; fitRef(node); }, [fitRef]);
 
   const review = submitted || readOnly;
@@ -83,11 +106,15 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const [liveStep, setLiveStep] = useState(assignment.liveStep || null);
   const [liveShown, setLiveShown] = useState(assignment.liveShown || []);
   const [autosaved, setAutosaved] = useState('');
+  // what the student is told about her work: saving, saved, or not saved (the autosave used to fail silently)
+  const [saveState, setSaveState] = useState('idle');
+  const [retry, setRetry] = useState(0);
+  useFlowKeyboard(flow && !review);
   const edited = useRef(false);
 
   // double-click a word: forms + translation, and the word goes into the learner's own word list
   const words = useWordLookup({ studentId: assignment.studentId, enabled: !readOnly, ...(wordService ? { service: wordService } : {}) });
-  const setAnswer = (key, value) => { edited.current = true; setAnswers((a) => ({ ...a, [key]: value })); setDraftSaved(false); };
+  const setAnswer = (key, value) => { edited.current = true; setAnswers((a) => ({ ...a, [key]: value })); setDraftSaved(false); setSaveState('saving'); };
 
   // the cabinet pet stays silent while a worksheet is open; it celebrates after the student is back
   useEffect(() => {
@@ -101,19 +128,22 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const lastAutosave = useRef(0);
   // set while Esita runs: an autosave timer firing then would write status 'in_progress' over the submitted work
   const submitting = useRef(false);
+  const lastSaveRun = useRef(0);
+  const retryTimer = useRef(null);
   useEffect(() => {
     if (review || !edited.current) return undefined;
     const wait = Math.max(AUTOSAVE_MIN_DELAY_MS, AUTOSAVE_EVERY_MS - (Date.now() - lastAutosave.current));
+    const run = (lastSaveRun.current += 1);
     const timer = setTimeout(() => {
       if (submitting.current) return;
       lastAutosave.current = Date.now();
       const clean = Object.fromEntries(Object.entries(answers).filter(([k, v]) => !k.endsWith(':error') && !(typeof v === 'string' && v.startsWith('blob:'))));
       repository.saveWorksheetDraft({ assignmentId: assignment.id, answers: clean })
-        .then(() => setAutosaved(new Date().toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })))
-        .catch(() => setAutosaved(''));
+        .then(() => { setAutosaved(new Date().toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })); setSaveState((state) => (lastSaveRun.current === run ? 'saved' : state)); })
+        .catch(() => { setAutosaved(''); if (lastSaveRun.current === run) { setSaveState('failed'); retryTimer.current = setTimeout(() => setRetry((n) => n + 1), AUTOSAVE_RETRY_MS); } });
     }, wait);
-    return () => clearTimeout(timer);
-  }, [answers, review, repository, assignment.id]);
+    return () => { clearTimeout(timer); clearTimeout(retryTimer.current); };
+  }, [answers, review, repository, assignment.id, retry]);
 
   // Live lesson: follow the task the teacher points at.
   useEffect(() => {
@@ -133,9 +163,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     if (!focusId) return;
     const el = canvasRef.current?.querySelector(`.ws-page [data-block="${focusId}"]`);
     // on the board the board moves to the task (scrolling would shift the sheet inside it, see StudentBoard)
-    if (el && board) el.dispatchEvent(new globalThis.CustomEvent('ws-reveal', { bubbles: true }));
+    if (el && board && !flow) el.dispatchEvent(new globalThis.CustomEvent('ws-reveal', { bubbles: true }));
     else if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [focusId, board]);
+  }, [focusId, board, flow]);
 
   const stepped = useMemo(() => (review ? { doc, hidden: 0 } : stepView(doc, liveStep)), [doc, liveStep, review]);
   const shownMarks = useMemo(() => (review ? {} : shownResults(doc, answers, liveShown)), [doc, answers, liveShown, review]);
@@ -152,7 +182,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     try {
       const stored = await persistRecordings({ doc, answers, assignment, repository });
       await repository.saveWorksheetDraft({ assignmentId: assignment.id, answers: stored });
-      setAnswers(stored); setDraftSaved(true); onSubmitted?.();
+      setAnswers(stored); setDraftSaved(true); setSaveState('saved'); onSubmitted?.();
     } catch (saveError) { setError(saveError.message || 'Töölehe salvestamine ebaõnnestus.'); }
     finally { setSavingDraft(false); }
   };
@@ -186,8 +216,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   };
 
   const footer = !review
-    ? <><span className="worksheet-progress">{progress.answered}/{progress.total} vastust{draftSaved ? ' · Salvestatud' : autosaved ? ` · automaatselt salvestatud ${autosaved}` : ''}</span><Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button>{onClose ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null}<Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
+    ? <>{flow ? null : <span className="worksheet-progress">{progress.answered}/{progress.total} vastust{saveState === 'failed' ? ' · ei salvestunud, proovin uuesti' : draftSaved ? ' · Salvestatud' : autosaved ? ` · automaatselt salvestatud ${autosaved}` : ''}</span>}<Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button>{onClose && !flow ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null}<Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
     : onClose ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null;
+  const flowBar = flow && !review ? <FlowBar answered={progress.answered} total={progress.total} state={saveState} time={autosaved} saved={draftSaved} /> : null;
 
   // whose screen: a student's sheet carries his name as a faint watermark and on copied text (staff see none)
   const mark = markLabel(useContext(AuthContext)?.user);
@@ -200,7 +231,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   };
   const markLine = mark ? <p className="ws-mark-line">© {OWNER} · ainult isiklikuks õppimiseks · {mark.split(' · ©')[0]}</p> : null;
   const body = (
-    <article className={`worksheet-player ws-studio ws-doc-player ${inline ? 'is-inline' : ''} ${mark ? 'is-marked' : ''}`} style={watermarkStyle(mark)} onCopy={onCopy}>
+    <article className={`worksheet-player ws-studio ws-doc-player ${inline ? 'is-inline' : ''} ${mark ? 'is-marked' : ''} ${flow ? 'ws-narrow' : ''}`} style={watermarkStyle(mark)} onCopy={onCopy}>
+      {flowBar}
       <header><div><span className="eyebrow">{assignment.subject || 'Õppetöö'} · {assignment.level || doc.meta?.level || 'Tööleht'}</span><p>{assignment.topic || assignment.note || doc.meta?.canDo || 'Õpetaja määratud tööleht'}</p></div>{submitted ? <Badge tone="success">Esitatud</Badge> : readOnly ? <Badge tone="neutral">Ainult vaatamiseks</Badge> : <Badge tone="info">Täitmisel</Badge>}</header>
       {assignment.note ? <div className="worksheet-note"><strong>Õpetaja märkus</strong><p>{assignment.note}</p></div> : null}
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
@@ -209,8 +241,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {stepped.hidden > 0 ? <div className="ws-live-wait" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
-        <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
+        <div className="st-zoom" style={zoomStyle}>
+          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
         </SheetAnnotations>
       </div>
@@ -222,13 +254,14 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   );
   // on the board: the sheet first and nothing above it, so it lies exactly like the teacher's copy; the rest below
   if (board) {
-    const sheetFirst = <article className={`worksheet-player ws-studio ws-doc-player is-inline is-board ${mark ? 'is-marked' : ''}`} style={watermarkStyle(mark)} onCopy={onCopy}>
+    const sheetFirst = <article className={`worksheet-player ws-studio ws-doc-player is-inline is-board ${mark ? 'is-marked' : ''} ${flow ? 'ws-narrow' : ''}`} style={watermarkStyle(mark)} onCopy={onCopy}>
+      {flowBar}
       {/* over the sheet, not above it (the sheet lies exactly like the teacher's copy): the student sees why tasks are missing */}
       {stepped.hidden > 0 ? <div className="ws-live-wait is-over" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
-        <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
+        <div className="st-zoom" style={zoomStyle}>
+          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
         </SheetAnnotations>
       </div>
@@ -242,7 +275,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   }
   // inline: inside the Live Classroom room, next to video and board (no dialog)
   if (inline) return <section className="ws-inline-player" aria-label={assignment.title}><h3>{assignment.title}</h3>{body}{footer ? <div className="ws-inline-footer">{footer}</div> : null}</section>;
-  return <Modal open title={assignment.title} onClose={onClose} className="modal--worksheet modal--worksheet-doc" footer={footer}>{body}</Modal>;
+  return <Modal open title={assignment.title} onClose={onClose} className={`modal--worksheet modal--worksheet-doc ${flow ? 'modal--sheet-flow' : ''}`} footer={footer}>{body}</Modal>;
 }
 
 // Teacher review inside the homework submission dialog: the sheet with the learner's answers and marks.

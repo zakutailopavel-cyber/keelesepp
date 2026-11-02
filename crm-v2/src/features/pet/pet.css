@@ -246,3 +246,55 @@
 .pet-react.is-streak i { left: 38%; font-size: 26px; animation-duration: 1.6s; }
 @keyframes pet-react-float { from { opacity: 0; transform: translateY(8px) scale(.6); } 30% { opacity: 1; transform: translateY(0) scale(1.1); } to { opacity: 0; transform: translateY(-22px) scale(.9); } }
 @media (prefers-reduced-motion: reduce) { .pet-walker[class*="react-"] .pet-figure, .pet-react i { animation: none !important; } }
+
+/* The daily loop (PetLoop.jsx): the pet on the student's home and on its own page */
+.pl { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 8px 12px; align-items: start; padding: 12px 14px; border: 1px solid var(--border, #e4ece8); border-radius: 16px; background: linear-gradient(135deg, #edf5fd 0%, #fffdf8 60%, #fff7e4 100%); }
+.pl--page { grid-template-columns: minmax(0, 1fr); padding: 0; border: 0; background: none; }
+.pl__art { width: 92px; }
+.pl__art svg { display: block; width: 100%; height: auto; }
+.pl__art.is-glad { animation: pl-glad .7s ease-out 2; transform-origin: 50% 100%; }
+@keyframes pl-glad { 0%,100% { transform: translateY(0) scale(1); } 40% { transform: translateY(-12px) scale(1.06); } }
+.pl__talk { display: grid; gap: 7px; min-width: 0; }
+.pl__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: .86rem; }
+.pl__head strong { font-size: 1rem; }
+.pl__head span { color: var(--muted); }
+.pl__head a { margin-left: auto; color: #0f5f4c; font-weight: 600; }
+.pl__bubble { padding: 8px 11px; border-radius: 12px; }
+.pl__bubble p { margin: 0; font-size: .95rem; font-weight: 600; line-height: 1.3; font-family: inherit; }
+.pl__bubble small { display: block; margin-top: 2px; color: #5c6875; font-size: .76rem; line-height: 1.25; }
+.pl__bubble .pl__score { color: #0f5f4c; font-weight: 700; }
+.pl__do { display: inline-flex; justify-self: start; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 18px; border: 0; border-radius: 12px; background: #e0823d; color: #fff; font: inherit; font-weight: 800; text-decoration: none; cursor: pointer; }
+.pl__do:hover { background: #cb6f2c; }
+.pl__do:focus-visible { outline: 3px solid #0f5f4c; outline-offset: 2px; }
+.pl__need { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; color: var(--muted); font-size: .78rem; }
+.pl__need .pet-need__bar i { transition: width .9s ease-out; }
+.pl__play { grid-column: 1 / -1; min-width: 0; }
+.pl__news, .pl__surprise { grid-column: 1 / -1; display: flex; gap: 6px; align-items: flex-start; margin: 0; font-size: .86rem; line-height: 1.3; }
+.pl__news { padding: 6px 10px; border-radius: 10px; background: #fff1d6; font-weight: 700; }
+.pl__news small, .pl__surprise small { display: block; color: #5c6875; font-size: .75rem; font-weight: 400; }
+.pl__news svg, .pl__surprise svg { flex: none; margin-top: 2px; color: #c77700; }
+.pl__reward { grid-column: 1 / -1; display: grid; gap: 4px; font-size: .84rem; color: #33424f; }
+.pl__reward-text { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.pl__reward.is-ready { font-weight: 700; }
+.pl__reward .link-button { min-height: 36px; padding: 0 2px; border: 0; background: none; color: #0f5f4c; font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; white-space: nowrap; }
+.pl__reward .pet-xp__bar i { background: #e0823d; }
+@media (prefers-reduced-motion: reduce) { .pl__art.is-glad { animation: none; } .pl__need .pet-need__bar i { transition: none; } }
+
+/* The pet's page: room, the one request, simple tabs */
+.pet-page { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 14px 20px; align-items: start; }
+.pet-page__room .pet-home__art.pet-scene { width: 100%; }
+.pet-page__meta { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; color: #33424f; font-size: .86rem; }
+.pet-page__meta svg { vertical-align: -2px; color: #c77700; }
+.pet-page__tabs { display: flex; gap: 6px; margin: 16px 0 10px; border-bottom: 1px solid #e4ece8; }
+.pet-page__tabs button { min-height: 44px; padding: 0 16px; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; }
+.pet-page__tabs button[aria-selected="true"] { color: #0f5f4c; border-bottom-color: #0f5f4c; }
+@media (max-width: 760px) { .pet-page { grid-template-columns: minmax(0, 1fr); } .pet-page__room .pet-home__art.pet-scene { max-width: 260px; margin: 0 auto; } }
+
+/* Phones: the walking pet stands at the end of the page, in the flow, so it can never cover a button (owner 2026-11-01). */
+@media (max-width: 640px) {
+  .pet-lane, .pet-lane.is-above-card { position: static; height: auto; padding: 0 16px 16px; }
+  .pet-walker { position: static; width: auto; transform: none !important; transition: none; }
+  .pet-body { width: 64px; margin-left: auto; }
+  .pet-talk { position: static; width: auto; margin-bottom: 8px; box-shadow: none; }
+  .pet-dock { position: static; display: block; margin: 0 16px 16px auto; }
+}

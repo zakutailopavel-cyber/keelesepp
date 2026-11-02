@@ -20,4 +20,15 @@ describe('Kuu sammud (owner 2026-10-23)', () => {
     ]);
     expect(result).toMatchObject({ total: 3, mastered: 1, practise: 1, review: 0, todo: 1 });
   });
+
+  it('a learner never reads a goal written for the teacher: the lesson\'s promise takes its place, with its results', () => {
+    const sheet = (meta, perGoal) => ({ status: 'done', completedAt: new Date(now).toISOString(), lessonTitle: 'Minu päev', score: { perGoal }, worksheetDoc: { meta } });
+    const month = monthSteps([sheet({
+      canDo: 'Ma räägin oma päevast.',
+      goals: { a: 'Õpilane mõistab teksti põhiideed.', b: 'Õpilane kasutab päeva sõnu.', c: 'Kirjutan lauseid.' },
+    }, { a: { ok: 1, total: 2 }, b: { ok: 1, total: 2 }, c: { ok: 2, total: 2 } })], { now });
+    expect(month.steps.map((step) => step.goal)).toEqual(['Ma räägin oma päevast.', 'Kirjutan lauseid.']);
+    expect(month.steps[0].pct).toBe(50);
+    expect(monthSteps([sheet({ goals: { a: 'Õpilane mõistab teksti.' } }, {})], { now }).total).toBe(0);
+  });
 });

@@ -14,6 +14,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { shareInFlight } from './shareInFlight.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 import { visibleStudentValue } from '../../utils/studentPrivacy.js';
 
@@ -257,7 +258,10 @@ export const studentsService = {
     snapshots.forEach((snapshot) => snapshot.docs.forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data()))));
     return sortStudents([...unique.values()].filter((student) => student.active && !student.convertedToParent));
   },
-  async list(filters = {}) {
+  list(filters = {}) {
+    return filters.exhaustive ? shareInFlight(`students:${JSON.stringify(filters)}`, () => studentsService.readList(filters)) : studentsService.readList(filters);
+  },
+  async readList(filters = {}) {
     const { db } = requireFirebaseClient();
     const pageSize = Math.max(1, Number(filters.pageSize) || PAGE_SIZE);
     if (filters.scopeTeacherUid && filters.exhaustive) {

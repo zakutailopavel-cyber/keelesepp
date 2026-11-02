@@ -3,7 +3,7 @@ import { hasAnyRole } from '../../utils/roles.js';
 
 // After sign-in the page the visitor wanted, but only if this account may open it: a parent signing in on the
 // family's computer after the child logged out from /student landed on „Ligipääs puudub” (site check 2026-10-27).
-// A path outside the access map (e.g. /ai/connect) is kept as before.
+// A path outside the access map is kept as before.
 export function landingPath(from, roles) {
   const path = from?.pathname || '';
   if (!path || path === '/login') return '/';

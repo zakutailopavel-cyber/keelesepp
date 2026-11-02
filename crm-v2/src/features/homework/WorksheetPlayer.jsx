@@ -1,7 +1,8 @@
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
-import DocWorksheetPlayer from '../worksheet-studio/DocWorksheetPlayer.jsx';
+import DocWorksheetPlayer, { FlowBar } from '../worksheet-studio/DocWorksheetPlayer.jsx';
+import { useFlowKeyboard, useScreenFlow } from '../worksheet-studio/sheetFlow.js';
 import { petCelebrate } from '../pet/petEvents.js';
 import {
   answerKey,
@@ -59,6 +60,45 @@ function clampPercent(value) {
   return Math.max(0, Math.min(1, Number.isFinite(number) ? number : 0)) * 100;
 }
 
+// Fields placed on a scanned page are too small for a finger on a phone: the page is shown whole with numbered dots at
+// the fields' places (it can be enlarged inside its own box), the fields themselves stand under it as a numbered list.
+// The answers are the same keys as on the page.
+function VisualWorksheetList({ page, answers, done, readOnly, onAnswer }) {
+  const [zoomed, setZoomed] = useState(false);
+  const [activeWord, setActiveWord] = useState('');
+  const disabled = done || readOnly;
+  const url = page.file.url || page.file.downloadUrl || '';
+  const set = (key, value) => onAnswer((current) => ({ ...current, [key]: value }));
+  const numbered = page.elements.filter((element) => element.type !== 'word');
+  const words = page.elements.filter((element) => element.type === 'word');
+  const dot = (element) => ({ left: `${clampPercent(Number(element.x) + (Number(element.w) || 0) / 2)}%`, top: `${clampPercent(Number(element.y) + (Number(element.h) || 0) / 2)}%` });
+  return <figure className="visual-worksheet-page is-list">
+    <div className={`visual-list-canvas ${zoomed ? 'is-zoomed' : ''}`}>
+      <div className="visual-list-inner">
+        <img src={url} alt={`${page.file.name || 'Tööleht'} · leht ${page.fileIndex + 1}`} draggable="false" />
+        {numbered.map((element, index) => <span className="visual-list-dot" style={dot(element)} key={visualAnswerKey(page.fileIndex, element)} aria-hidden="true">{index + 1}</span>)}
+      </div>
+    </div>
+    <button type="button" className="visual-list-zoom" aria-pressed={zoomed} onClick={() => setZoomed((value) => !value)}>{zoomed ? 'Näita tervet lehte' : 'Suurenda lehte'}</button>
+    <ol className="visual-list-fields">
+      {numbered.map((element, index) => {
+        const key = visualAnswerKey(page.fileIndex, element);
+        const label = element.label || element.placeholder || `Vastus ${index + 1}`;
+        const status = done ? visualAnswerMatches(element, answers[key]) : null;
+        const mark = status === true ? ' is-correct' : status === false ? ' is-wrong' : '';
+        if (element.type === 'checkbox') return <li key={key}><label className={`visual-list-check${mark}`}><input type="checkbox" checked={Boolean(answers[key])} disabled={disabled} onChange={(event) => set(key, event.target.checked)} /><span>{label}</span></label></li>;
+        return <li key={key}><label className={`visual-list-field${mark}`}><span>{label}</span>
+          {element.type === 'textarea' ? <textarea rows={4} value={answers[key] ?? ''} disabled={disabled} onChange={(event) => set(key, event.target.value)} placeholder={element.placeholder || ''} />
+            : element.type === 'choice' ? <select value={answers[key] ?? ''} disabled={disabled} onChange={(event) => set(key, event.target.value)}><option value="">Vali…</option>{(element.options || []).filter(Boolean).map((option, optionIndex) => <option value={option} key={`${option}-${optionIndex}`}>{option}</option>)}</select>
+              : <input value={answers[key] ?? ''} disabled={disabled} onChange={(event) => set(key, event.target.value)} placeholder={element.placeholder || ''} autoComplete="off" autoCorrect="off" autoCapitalize="none" />}
+        </label></li>;
+      })}
+    </ol>
+    {words.length ? <div className="visual-list-words">{words.map((element) => <button type="button" key={visualAnswerKey(page.fileIndex, element)} aria-expanded={activeWord === element.id} onClick={() => setActiveWord((current) => (current === element.id ? '' : element.id))}>{element.text || element.lemma || 'Sõna'}{activeWord === element.id ? <small>{element.translation || 'Selgitus puudub'}</small> : null}</button>)}</div> : null}
+    <figcaption><strong>Leht {page.fileIndex + 1}</strong><span>{page.file.name || 'Tööleht'}</span></figcaption>
+  </figure>;
+}
+
 function VisualWorksheetPage({ page, answers, done, readOnly, onAnswer }) {
   const [activeWord, setActiveWord] = useState('');
   const disabled = done || readOnly;
@@ -102,7 +142,7 @@ export function VisualWorksheetSubmissionPreview({ files = [], answers = {} }) {
 function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted }) {
   const blocks = useMemo(() => assignment.worksheetData?.blocks || [], [assignment]);
   const visualPages = useMemo(() => visualWorksheetPages(assignment.files || []), [assignment]);
-  const [answers, setAnswers] = useState(assignment.answers || {});
+  const [answers, setRawAnswers] = useState(assignment.answers || {});
   const [submitted, setSubmitted] = useState(assignment.status === 'done');
   const [score, setScore] = useState(assignment.score || null);
   const [saving, setSaving] = useState(false);
@@ -112,6 +152,10 @@ function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClo
   const [difficulty, setDifficulty] = useState(assignment.selfAssessment?.difficulty || '');
   const [comment, setComment] = useState(assignment.selfAssessment?.comment || '');
   const [assessmentSaved, setAssessmentSaved] = useState(Boolean(assignment.selfAssessment));
+  // this old player has no autosave: „Salvestatud” is true only until the next answer
+  const setAnswers = (update) => { setRawAnswers(update); setDraftSaved(false); };
+  const flow = useScreenFlow();
+  useFlowKeyboard(flow && !submitted && !readOnly);
   const structuredProgress = useMemo(() => worksheetProgress(blocks, answers), [answers, blocks]);
   const visualProgress = useMemo(() => visualWorksheetProgress(assignment.files || [], answers), [answers, assignment]);
   const progress = useMemo(() => ({
@@ -152,16 +196,18 @@ function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClo
 
   const hasWork = blocks.length > 0 || visualPages.length > 0;
   const footer = !submitted && !readOnly && hasWork
-    ? <><span className="worksheet-progress">{progress.answered}/{progress.total} vastust{draftSaved ? ' · Salvestatud' : ''}</span><Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button><Button variant="secondary" onClick={onClose}>Sulge</Button><Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
+    ? <>{flow ? null : <span className="worksheet-progress">{progress.answered}/{progress.total} vastust{draftSaved ? ' · Salvestatud' : ''}</span>}<Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button>{flow ? null : <Button variant="secondary" onClick={onClose}>Sulge</Button>}<Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
     : <Button variant="secondary" onClick={onClose}>Sulge</Button>;
 
-  return <Modal open title={assignment.title} onClose={onClose} className="modal--worksheet" footer={footer}>
-    <article className="worksheet-player">
+  const Page = flow ? VisualWorksheetList : VisualWorksheetPage;
+  return <Modal open title={assignment.title} onClose={onClose} className={`modal--worksheet ${flow ? 'modal--sheet-flow' : ''}`} footer={footer}>
+    <article className={`worksheet-player ${flow ? 'ws-narrow' : ''}`}>
+      {flow && !submitted && !readOnly && hasWork ? <FlowBar answered={progress.answered} total={progress.total} state={draftSaved ? 'saved' : 'idle'} saved={draftSaved} /> : null}
       <header><div><span className="eyebrow">{assignment.subject || 'Õppetöö'} · {assignment.level || 'Tööleht'}</span><p>{assignment.topic || assignment.note || 'Õpetaja määratud tööleht'}</p></div>{submitted ? <Badge tone="success">Esitatud</Badge> : readOnly ? <Badge tone="neutral">Ainult vaatamiseks</Badge> : <Badge tone="info">Täitmisel</Badge>}</header>
       {assignment.note ? <div className="worksheet-note"><strong>Õpetaja märkus</strong><p>{assignment.note}</p></div> : null}
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
-      {visualPages.length ? <div className="visual-worksheet-pages">{visualPages.map((page) => <VisualWorksheetPage page={page} answers={answers} done={submitted} readOnly={readOnly} onAnswer={setAnswers} key={`${page.file.url || page.file.name}-${page.fileIndex}`} />)}</div> : null}
+      {visualPages.length ? <div className="visual-worksheet-pages">{visualPages.map((page) => <Page page={page} answers={answers} done={submitted} readOnly={readOnly} onAnswer={setAnswers} key={`${page.file.url || page.file.name}-${page.fileIndex}`} />)}</div> : null}
       {blocks.length ? <div className="worksheet-blocks">{blocks.map((block, index) => <WorksheetBlock block={{ ...block, id: block.id || `block-${index}` }} index={index} answers={answers} done={submitted} readOnly={readOnly} onAnswer={setAnswers} key={block.id || `${block.type}-${index}`} />)}</div> : null}
       {!hasWork ? <div className="worksheet-empty">Töölehel ei ole täidetavaid ülesandeid.</div> : null}
       {submitted ? <section className="worksheet-assessment"><div><Star size={21} /><div><strong>Kuidas tööleht tundus?</strong><span>Tagasiside aitab õpetajal järgmisi ülesandeid kohandada.</span></div></div>{assessmentSaved ? <p><CheckCircle2 size={17} /> Tagasiside salvestatud. Aitäh!</p> : <><Select id="worksheet-difficulty" label="Raskusaste" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Vali</option><option value="1">Väga lihtne</option><option value="2">Lihtne</option><option value="3">Paras</option><option value="4">Raske</option><option value="5">Väga raske</option></Select><label className="textarea-field"><span>Kommentaar</span><textarea rows="3" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Mis oli raske või jäi arusaamatuks?" /></label><Button loading={saving} disabled={!difficulty} onClick={saveAssessment}>Saada tagasiside</Button></>}</section> : null}

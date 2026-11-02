@@ -31,16 +31,25 @@ export const gaps = {
   View: ({ data, ctx, id }) => {
     const lines = String(data.sentences || '').split('\n').filter((l) => l.trim());
     const bank = bankItems(data);
-    const put = (w) => {
+    const keys = lines.flatMap((l, li) => gapParts(l).filter((p) => p.gap).map((_, gi) => `${li}.${gi}`));
+    // on a phone: a tap on a bank word goes into the gap being typed in (the keyboard stays) or else the first empty one,
+    // the next gap is ready after it; with no keyboard open none is opened, so the bank stays in sight
+    const put = (w, event) => {
       if (!ctx.interactive) return;
-      const keys = lines.flatMap((l, li) => gapParts(l).filter((p) => p.gap).map((_, gi) => `${li}.${gi}`));
-      const target = keys.find((k) => k === ctx.focus?.[id]) || keys.find((k) => !ctx.get(k));
-      if (target) ctx.set(target, w);
+      const typing = ctx.flow && event?.currentTarget?.closest?.('.ws-card')?.contains(globalThis.document?.activeElement) && globalThis.document.activeElement.matches?.('.ws-gapline');
+      const chosen = keys.find((k) => k === ctx.focus?.[id]);
+      const target = (chosen && (typing || !ctx.flow || !ctx.get(chosen)) ? chosen : '') || keys.find((k) => !ctx.get(k));
+      if (!target) return;
+      ctx.set(target, w);
+      if (!ctx.flow) return;
+      const next = keys.find((k) => k !== target && !ctx.get(k));
+      ctx.setFocus(id, next);
+      if (typing && next) event.currentTarget.closest('.ws-card').querySelectorAll('.ws-gapline')[keys.indexOf(next)]?.focus();
     };
     return (
       <>
         {data.showBank !== 'no' && bank.length > 0 && (
-          <div className="ws-bank">{bank.map((w, i) => <span key={i} className="ws-bank-w" role={ctx.interactive ? 'button' : undefined} tabIndex={ctx.interactive ? 0 : -1} onClick={() => put(w)} onKeyDown={(e) => e.key === 'Enter' && put(w)}>{w}</span>)}</div>
+          <div className="ws-bank">{bank.map((w, i) => <span key={i} className={`ws-bank-w ${ctx.flow && keys.some((k) => ctx.get(k) === w) ? 'placed' : ''}`} role={ctx.interactive ? 'button' : undefined} tabIndex={ctx.interactive ? 0 : -1} onPointerDown={ctx.flow ? (e) => e.preventDefault() : undefined} onClick={(e) => put(w, e)} onKeyDown={(e) => e.key === 'Enter' && put(w, e)}>{w}</span>)}</div>
         )}
         <ol className="ws-gaps" start={(ctx.start || 0) + 1}>
           {lines.map((l, li) => {
@@ -51,7 +60,7 @@ export const gaps = {
                   if (!p.gap) return <Fragment key={pi}><Md text={p.text} /></Fragment>;
                   gi += 1;
                   const key = `${li}.${gi}`;
-                  return <Line key={pi} interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={gapWidth(p.gap, '26mm')} label={`Lünk ${li + 1}`} className="ws-gapline" />;
+                  return <Line key={pi} interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} onFocus={ctx.flow ? () => ctx.setFocus(id, key) : undefined} width={gapWidth(p.gap, '26mm')} label={`Lünk ${li + 1}`} className="ws-gapline" />;
                 })}
               </li>
             );
@@ -112,6 +121,11 @@ export const choice = {
   ),
   // the right answers as words (live lesson „Näita vastuseid”, the teacher's error list); several right ones joined by +
   answers: (data) => (data.questions || []).map((q, qi) => ({ key: `${qi}`, accept: [opts(q.options).filter((x) => x.correct).map((x) => x.text).join(' + ')] })).filter((a) => a.accept[0]),
+  // the stored answer is the option's number (several: „0,2”): what the learner picked, in words
+  answerText: (data, key, value) => {
+    const o = opts(data.questions?.[Number(key)]?.options);
+    return String(value ?? '').split(',').map((v) => (v.trim() === '' ? undefined : o[Number(v)]?.text)).filter(Boolean).join(' + ');
+  },
   score: (data, get) => (data.questions || []).map((q, qi) => {
     const o = opts(q.options);
     const correct = o.map((x, i) => (x.correct ? i : -1)).filter((i) => i >= 0);
@@ -153,6 +167,7 @@ export const truefalse = {
     </div>
   ),
   answers: (data) => (data.statements || []).map((s, i) => ({ key: `${i}`, accept: [s.answer === 'true' ? 'Õige' : 'Vale'] })),
+  answerText: (data, key, value) => ({ true: 'Õige', false: 'Vale' })[value] || '',
   score: (data, get) => (data.statements || []).map((s, i) => ({ key: `${i}`, ok: get(`${i}`) === s.answer })),
   example: (data) => (data.statements?.[0] ? { 0: data.statements[0].answer } : {}),
   Editor: ({ data, set }) => (
@@ -166,6 +181,9 @@ export const truefalse = {
   ),
 };
 
+// a label of a native option cannot show the sheet's *emphasis*
+export const plainText = (text) => String(text || '').replace(/\{\/?[a-z]+\}|[*~=]{1,3}|\{\{|\}\}/g, '').trim();
+
 // ---------- match pairs (one-to-one) ----------
 const rotate = (arr) => (arr.length > 2 ? [...arr.slice(2), ...arr.slice(0, 2)] : [...arr].reverse());
 export const match = {
@@ -178,15 +196,17 @@ export const match = {
     const right = rotate(pairs.map((p, i) => ({ text: p.right, i })));
     const letter = (k) => String.fromCharCode(65 + k);
     const legacy = pairs.some((_, i) => ctx.get(`${i}`));
-    const slot = (key, options, label) => (ctx.interactive ? (
+    // on a phone the question list scrolls away: the option shows the number with its words (the value stays the number)
+    const said = (value, text) => (ctx.flow ? `${value}. ${plainText(text)}` : undefined);
+    const slot = (key, options, label, textOf = () => '') => (ctx.interactive ? (
       <select className={`ws-sel ${ctx.state(key) ? 'is-' + ctx.state(key) : ''}`} value={ctx.get(key) ?? ''} onChange={(e) => ctx.set(key, e.target.value)} aria-label={label}>
-        <option value="">–</option>{options.map((value) => <option key={value} value={value}>{value}</option>)}
+        <option value="">–</option>{options.map((value, n) => <option key={value} value={value} label={said(value, textOf(n))}>{value}</option>)}
       </select>
     ) : <span className={`ws-letterbox ${ctx.state(key) ? 'is-' + ctx.state(key) : ''}`}>{ctx.get(key) || ''}</span>);
     if (legacy) {
       return (
         <div className="ws-match is-legacy">
-          <ol>{pairs.map((p, i) => <li key={i}>{slot(`${i}`, right.map((_, k) => letter(k)), `Paar ${i + 1}`)}<span><Md text={p.left} /></span></li>)}</ol>
+          <ol>{pairs.map((p, i) => <li key={i}>{slot(`${i}`, right.map((_, k) => letter(k)), `Paar ${i + 1}`, (n) => right[n].text)}<span><Md text={p.left} /></span></li>)}</ol>
           <ul>{right.map((r, k) => <li key={k}><b>{letter(k)}.</b> <Md text={r.text} /></li>)}</ul>
         </div>
       );
@@ -196,7 +216,7 @@ export const match = {
       <div className="ws-match">
         {ctx.interactive ? <div className="ws-hint">Kirjuta iga vastuse ette sobiva küsimuse number.</div> : null}
         <ol>{pairs.map((p, i) => <li key={i}><Md text={p.left} /></li>)}</ol>
-        <ul>{right.map((r, k) => <li key={k}>{slot(`r${k}`, numbers, `Vastus ${letter(k)}`)}<span><b>{letter(k)}.</b> <Md text={r.text} /></span></li>)}</ul>
+        <ul>{right.map((r, k) => <li key={k}>{slot(`r${k}`, numbers, `Vastus ${letter(k)}`, (n) => pairs[n].left)}<span><b>{letter(k)}.</b> <Md text={r.text} /></span></li>)}</ul>
       </div>
     );
   },
@@ -204,6 +224,16 @@ export const match = {
     const pairs = data.pairs || [];
     const right = rotate(pairs.map((p, i) => ({ i })));
     return right.map((r, k) => ({ key: `r${k}`, accept: [`${r.i + 1}`] }));
+  },
+  // the answers are question numbers (older sheets: letters): both sides of the error list in words
+  answerText: (data, key, value) => {
+    const pairs = data.pairs || [];
+    return /^r\d+$/.test(key) ? pairs[Number(value) - 1]?.left || '' : rotate(pairs.map((p) => p.right))[String(value).charCodeAt(0) - 65] || '';
+  },
+  expectedText: (data, key) => {
+    const pairs = data.pairs || [];
+    if (/^r\d+$/.test(key)) return pairs[rotate(pairs.map((p, i) => i))[Number(key.slice(1))]]?.left || '';
+    return pairs[Number(key)]?.right || '';
   },
   score: (data, get) => {
     const pairs = data.pairs || [];

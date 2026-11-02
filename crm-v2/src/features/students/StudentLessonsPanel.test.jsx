@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import StudentLessonsPanel from './StudentLessonsPanel.jsx';
 import { shiftDate } from '../calendar/calendarView.js';
 import { localDate } from '../../utils/localDate.js';
+import { displayDate } from '../finance/finance.js';
 
 const DAY_IDS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -16,8 +17,8 @@ it('a weekly series that started weeks ago still shows its next lessons (owner 2
   ];
   render(<MemoryRouter><StudentLessonsPanel student={{ id: 's', name: 'Agata' }} lessons={[]} schedule={schedule} /></MemoryRouter>);
   expect(screen.queryByText('Tulevasi tunde ei ole')).toBeNull();
-  expect(screen.getByText(`${now} · 15:00`)).toBeInTheDocument();
-  expect(screen.getByText(`${shiftDate(now, 7)} · 15:00`)).toBeInTheDocument();
+  expect(screen.getByText(`${displayDate(now)} · 15:00`)).toBeInTheDocument();
+  expect(screen.getByText(`${displayDate(shiftDate(now, 7))} · 15:00`)).toBeInTheDocument();
   expect(screen.queryByText(/10:00/)).toBeNull();
 });
 
@@ -27,7 +28,7 @@ it('a renamed card still lists its next lessons, which carry the old name', () =
   const now = localDate();
   const schedule = [{ id: 'one', studentId: 's', studentName: 'Agata', recurring: false, date: shiftDate(now, 2), time: '16:00', status: 'Planeeritud', teacher: 'Mari' }];
   render(<MemoryRouter><StudentLessonsPanel student={{ id: 's', name: 'Agata Kuzina' }} lessons={[]} schedule={schedule} /></MemoryRouter>);
-  expect(screen.getByText(`${shiftDate(now, 2)} · 16:00`)).toBeInTheDocument();
+  expect(screen.getByText(`${displayDate(shiftDate(now, 2))} · 16:00`)).toBeInTheDocument();
 });
 
 it('a card with two subjects says the subject of each next lesson', () => {
@@ -52,6 +53,6 @@ it('shows how long each lesson is and marks double lessons (team 2026-10-29)', (
   render(<MemoryRouter><StudentLessonsPanel student={{ id: 's', name: 'Agata' }} lessons={lessons} schedule={schedule} /></MemoryRouter>);
   expect(screen.getAllByText('120 min · Topelttund')).toHaveLength(2);
   expect(screen.getByText('45 min')).toBeInTheDocument();
-  expect(screen.getByText(`${shiftDate(now, 1)} · 16:00–18:00`, { exact: false })).toBeInTheDocument();
+  expect(screen.getByText(`${displayDate(shiftDate(now, 1))} · 16:00–18:00`, { exact: false })).toBeInTheDocument();
   expect(screen.getByText('2 tundi · 2,8 h · topelttunde 1')).toBeInTheDocument();
 });

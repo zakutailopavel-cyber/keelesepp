@@ -50,7 +50,7 @@ export default function MistakesPage({ studentRepository = studentsService, word
   const saved = user?.profile?.practice;
   const last = saved?.errorsDate && saved.errorsDate > (done.errors?.date || '') ? { date: saved.errorsDate, pct: saved.errorsPct } : done.errors;
   return <div className="page-content">
-    <PageHeader eyebrow="Minu õpingud" title="Minu vead" description="Laused, mida ütlesid tunnis valesti. Harjuta neid, kuni need tulevad õigesti." />
+    <PageHeader title="Minu vead" description={<>Laused, mida ütlesid tunnis valesti. Harjuta neid, kuni need tulevad õigesti.<span lang="ru"> · Твои фразы с урока, которые можно потренировать.</span></>} />
     {errors.length ? <section className="ss-hero" aria-label="Harjuta vigu">
       <div><span className="eyebrow">{last?.date === today ? `Täna tehtud · ${last.pct}%` : 'Harjuta'}</span><h2>{errors.length} lauset tundidest</h2><p>Vali õige lause ja pane lause kokku · umbes 5 minutit</p></div>
       <Button onClick={start}><Play size={18} /> Alusta</Button>

@@ -61,7 +61,7 @@ export default function RoomPet({
         seen.current.homework = new Set(items.map((item) => item.id));
         if (!known) return;
         const fresh = items.find((item) => !known.has(item.id));
-        if (fresh) speak('Õpetaja andis kodutöö. Teeme koos!', `Учитель дал домашку: ${fresh.task}`);
+        if (fresh) speak('Õpetaja andis ülesande. Teeme koos!', `Учитель дал домашку: ${fresh.task}`);
       }, () => {});
     } catch { return undefined; }
   }, [active, homeworkService, invitationId, studentId]);
