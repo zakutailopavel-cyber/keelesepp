@@ -1,3 +1,10 @@
+## 2026-11-02 · agent/csp-enforce — the CRM's Content-Security-Policy is enforced
+
+- Base: `main` after #996, checked 2026-11-02. Follows #968 (report-only).
+- Read on the live site before enforcing: a `securitypolicyviolation` listener (proved with a test fetch to example.com, which it caught) saw no violation while 15 signed-in pages were opened (calendar, students, library, finance, homework, live, settings, groups, messages, teachers, vocabulary, worksheets, leads, dashboard, home); a full page load showed none in the console. Production data: all 1616 lesson sheets and 336 assignments reference pictures only on firebasestorage.googleapis.com; lesson files likewise. No form posts to another site (payments and Google Calendar leave by `location.assign`, which CSP does not limit). The page has no inline scripts.
+- Change: `crm-v2/vercel.json` header `Content-Security-Policy-Report-Only` → `Content-Security-Policy`, same policy; `src/app/hostingHeaders.test.js` checks it is enforced.
+- Not checked: the Google sign-in popup from a signed-out browser (it uses apis.google.com and the firebaseapp.com auth frame, both allowed). Rollback: rename the header back.
+- Next safe step: after the deploy, sign in once with Google in a private window and open a sheet with a picture.
 ## 2026-11-02 · agent/parent-no-lesson-balance — parents do not see the lesson balance
 
 - Owner 2026-11-02: how many paid lessons are left is for the administrator and the accountant only. The parent page („Minu pere” → „Tunnid”) no longer shows the „Tunnipakett” card („Paketist alles N tundi”). On the student card it stays in the finance tab (`canViewFinance`). The student cabinet never showed it.
