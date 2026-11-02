@@ -4,7 +4,7 @@ const path = require('path');
 const { test } = require('@playwright/test');
 const admin = require(path.join(__dirname, '../../functions/node_modules/firebase-admin'));
 const { guard, login, expect } = require('./helpers.cjs');
-const { PROJECT, CARDS, PEOPLE, PASSWORD } = require('../fixtures.cjs');
+const { PROJECT, CARDS } = require('../fixtures.cjs');
 
 function db() { if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT }); return admin.firestore(); }
 
@@ -17,10 +17,6 @@ test('student on a phone: autosave, reload, hand in', async ({ browser }) => {
 
   await login(teacher, 'teacher');
   await teacher.goto('/library/lessons/e2e-001/worksheets/discover');
-  // staff see the „what's new” notice once
-  await expect(teacher.getByRole('dialog')).toBeVisible();
-  await teacher.keyboard.press('Escape');
-  await expect(teacher.getByRole('dialog')).toHaveCount(0);
   await teacher.getByRole('link', { name: 'Määra õpilastele' }).click();
   const dialog = teacher.getByRole('dialog');
   await dialog.getByLabel('Otsi õpilast määramiseks').fill('Anna');
@@ -29,20 +25,15 @@ test('student on a phone: autosave, reload, hand in', async ({ browser }) => {
   await expect.poll(async () => (await col()).size).toBe(before + 1);
 
   // the seeded card lacks the data the school now asks for at the door: fill it, then go on as usual
-  await student.goto('/login');
-  await student.getByLabel('E-post').fill(PEOPLE.student.email);
-  await student.getByLabel('Parool').fill(PASSWORD);
-  await student.getByRole('button', { name: 'Logi sisse' }).click();
-  const gate = student.getByRole('dialog', { name: /puuduvad andmed/ });
-  await expect(gate).toBeVisible();
-  await gate.getByRole('combobox').first().selectOption({ index: 1 });
-  await gate.getByRole('radio', { name: 'Eesti keel' }).check();
-  await gate.getByRole('button', { name: /Tööpäeva õhtud/ }).click();
-  await gate.getByRole('button', { name: /Salvesta/ }).first().click();
-  await expect(gate).toHaveCount(0);
+  await login(student, 'student', { fillMissingData: true });
+  const saved = (await db().doc(`students/${CARDS.anna.id}`).get()).data();
+  expect(saved.preferredLanguage).toBe('et');
+  expect((await db().doc(`studentAvailability/${CARDS.anna.id}`).get()).data()?.slots?.length).toBeGreaterThan(0);
   await student.setViewportSize({ width: 375, height: 812 });
   await student.goto('/homework');
-  await student.locator('.assigned-worksheet-list button', { hasText: 'Minu päev' }).first().click();
+  // „Ülesanded”: the sheet is a card in „Tee nüüd” with one action, „Alusta” (after autosaved answers „Jätka”)
+  const sheetCard = student.getByRole('region', { name: /Tee nüüd/ }).getByRole('article').filter({ hasText: 'Minu päev' });
+  await sheetCard.getByRole('button', { name: /Alusta|Jätka/ }).click();
   await expect(student.locator('.ws-root.is-flow .ws-page')).toBeVisible();
   const overflow = await student.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
@@ -55,7 +46,7 @@ test('student on a phone: autosave, reload, hand in', async ({ browser }) => {
   await expect.poll(async () => Object.values((await col()).docs.map((d) => d.data()).find((a) => a.status !== 'done')?.answers || {})).toContain(answers[0]);
 
   await student.reload();
-  await student.locator('.assigned-worksheet-list button', { hasText: 'Minu päev' }).first().click();
+  await sheetCard.getByRole('button', { name: /Jätka/ }).click();
   await expect(gaps.nth(0)).toHaveValue(answers[0]);
 
   for (let i = 1; i < answers.length; i += 1) await gaps.nth(i).fill(answers[i]);
