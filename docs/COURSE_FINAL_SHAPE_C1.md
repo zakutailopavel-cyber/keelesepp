@@ -248,8 +248,12 @@ Decided 2026-11-02:
   133 academic hours of contact, plus **self-study equal to the contact time** (about 60 minutes of homework per lesson),
   as the Estonian courses plan it 1:1.
 
+- **Mocks: full length and like the real exam** (owner: „пробный экзамен полный и соответствует визуально и содержательно тому,
+  что ученикам нужно писать на экзамене в Harno”). Every mock (060 / 080 / 089 / 090) has the real exam's parts, task types,
+  lengths and timing (≈ 215 min), and its pages look like the Harno C1 exam paper: the same order of parts, instructions,
+  answer spaces and point totals, taken from Harno's published C1 sample tests and specification. Nothing is shortened.
+
 Still open:
 
-1. Mocks: four full-length mocks (≈ 215 min each), or full length only for the last two and shorter ones mid-course.
-2. L3 scoring (§2).
-3. Whether a learner may move between the two C1 courses; they share topics but no sentences.
+1. L3 scoring (§2).
+2. Whether a learner may move between the two C1 courses; they share topics but no sentences.
