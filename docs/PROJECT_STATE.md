@@ -1,3 +1,12 @@
+## 2026-11-02 · agent/lesson-sheet-finder — lesson board: find a lesson's sheets without remembering its title
+
+- Base: `main` after #987, checked 2026-11-02. Owner: a teacher does not remember all topics and lesson titles.
+- „Õppekava” in the room's „Ülesanded” and in the preparation before a lesson (`RoomWorksheetPicker`): one row per lesson with buttons for its sheets (Avasta · Harjuta · Kasuta · Õpik) instead of one row per sheet; each row has a line of what the lesson teaches (the „Что учить:” line of the description, else the goal).
+- Without a search the lessons are grouped by module („tunnid 21–25”); the level is the student's level (or the level of their next lesson) until the teacher picks one; the module of the next lesson is open and scrolled to; the next lesson is marked „järgmine”.
+- The search finds a lesson by number, title, module, then by its topic, goal and description (also Russian words of the goal); title matches come first; a search inside one level offers the matches on the other levels.
+- Files: `worksheet-studio/roomWorksheetChoices.js` (`lessonHint`, `lessonRows`, `findLessonRows`, `moduleGroups`), `RoomWorksheetPanel.jsx`, `worksheetStudio.css`, tests.
+- Checks: `npx vitest run src/features/worksheet-studio src/features/live-classroom` 83 files, 539 passed; eslint clean; looked at in a local stand with the real list of 1683 lessons at 420 px (B2 module view, searches „tingiv”, „osastav”). Not tried in a real lesson.
+- Next safe step: a teacher tries it in a lesson and says what they searched for and did not find.
 ## 2026-11-02 · agent/transcriber-reads — school Mac transcriber: no full read of every finished recording each minute
 
 - Base: `main` after #986, checked 2026-11-02. Owner asked to sort out the Google Cloud bill.

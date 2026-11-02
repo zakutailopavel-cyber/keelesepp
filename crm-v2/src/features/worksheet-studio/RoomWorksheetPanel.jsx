@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FileText, Footprints, SkipForward } from 'lucide-react';
 import { Button, Card } from '../../components/ui/index.js';
 import { homeworkService, lessonWorksheetsService, lessonsService, libraryService } from '../../services/firebase/index.js';
 import { publishedPhaseDoc } from './bookProgram.js';
-import { curriculumSheetChoices, filterChoices, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
+import { curriculumSheetChoices, filterChoices, findLessonRows, lessonRows, moduleGroups, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
 import DocWorksheetPlayer from './DocWorksheetPlayer.jsx';
 import { nextToOpen, stepCounts } from './engine/liveLesson.js';
 import LiveWorksheetView from './LiveWorksheetView.jsx';
@@ -45,11 +45,32 @@ async function placeChoice({ choice, studentId, studentName, roomKey, note, user
   await homework.openWorksheetInRoom({ assignmentId, roomKey });
 }
 
+// a curriculum lesson: its number and title, where it is in the course, and a button for each of its sheets
+// (inside its module the place in the course is known, so the line says what the lesson teaches)
+function LessonRow({ row, isNext, opening, onOpen, inModule = false }) {
+  const place = [row.level, row.module].filter(Boolean).join(' · ');
+  return (
+    <li className="room-sheet-picker__lesson">
+      <span>
+        <strong>{row.number ? `${row.number}. ` : ''}{row.lessonTitle}{isNext ? <em className="room-sheet-picker__tag">järgmine</em> : null}</strong>
+        {!inModule && place ? <small>{place}</small> : null}
+        {row.hint ? <small className="room-sheet-picker__hint">{row.hint}</small> : null}
+      </span>
+      <span className="room-sheet-picker__phases">
+        {row.choices.map((choice) => (
+          <Button key={choice.key} variant="secondary" loading={opening === choice.key} disabled={Boolean(opening)} onClick={() => onOpen(choice)} aria-label={`Lisa tahvlile: ${choice.title}`}>{choice.phaseLabel || 'Lisa tahvlile'}</Button>
+        ))}
+      </span>
+    </li>
+  );
+}
+
 export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel = '', roomKey, note = 'Live Classroom', user, homework = homeworkService, library = libraryService, lessonWorksheets = lessonWorksheetsService, lessons = lessonsService, onOpened }) {
   const [state, setState] = useState({ loading: true, error: '', lessons: [], assignments: [], records: [] });
   const [tab, setTab] = useState('curriculum');
   const [query, setQuery] = useState('');
-  const [level, setLevel] = useState('');
+  // null: the student's level (or the level of their next lesson) until the teacher picks one; '' is „Kõik”
+  const [level, setLevel] = useState(null);
   const [opening, setOpening] = useState('');
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
@@ -70,8 +91,24 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
   const curriculum = useMemo(() => curriculumSheetChoices(state.lessons), [state.lessons]);
   const own = useMemo(() => studentSheetChoices(state.assignments, roomKey), [state.assignments, roomKey]);
   const levels = useMemo(() => [...new Set(curriculum.map((choice) => choice.level).filter(Boolean))], [curriculum]);
-  const list = filterChoices(tab === 'own' ? own : curriculum, { query, level: tab === 'own' ? '' : level });
+  const rows = useMemo(() => lessonRows(curriculum), [curriculum]);
   const next = useMemo(() => nextLessonSuggestion({ curriculum, lessonRecords: state.records, assignments: state.assignments, studentLevel, roomKey }), [curriculum, state.records, state.assignments, studentLevel, roomKey]);
+  const ownLevel = String(studentLevel || '').toUpperCase();
+  const activeLevel = level ?? (levels.includes(ownLevel) ? ownLevel : levels.includes(next?.level) ? next.level : '');
+  const list = tab === 'own' ? filterChoices(own, { query }) : [];
+  const found = tab === 'curriculum' ? findLessonRows(rows, { query, level: activeLevel }) : [];
+  const groups = moduleGroups(found, { withLevel: !activeLevel });
+  // a search inside one level says how many lessons match on the other levels
+  const elsewhere = tab === 'curriculum' && query && activeLevel ? findLessonRows(rows, { query }).length - found.length : 0;
+  const nextModule = next ? `${next.level}|${next.module}` : '';
+  // the module of the next lesson is scrolled to the top of the list, so the teacher starts where the student is
+  const modulesRef = useRef(null);
+  const showModules = tab === 'curriculum' && !query && !state.loading;
+  useEffect(() => {
+    const box = modulesRef.current;
+    const target = box?.querySelector('details[data-next]');
+    if (showModules && box && target) box.scrollTop = target.offsetTop;
+  }, [showModules, nextModule, activeLevel]);
   const context = { studentId, studentName, roomKey, note, user, homework, library, lessonWorksheets };
 
   const open = async (choice) => {
@@ -104,14 +141,14 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
   return (
     <div className="room-sheet-picker">
       <div className="ed-seg" role="tablist" aria-label="Töölehtede allikas">
-        <button type="button" role="tab" aria-pressed={tab === 'curriculum'} className={tab === 'curriculum' ? 'is-active' : ''} onClick={() => setTab('curriculum')}>Õppekava ({curriculum.length})</button>
+        <button type="button" role="tab" aria-pressed={tab === 'curriculum'} className={tab === 'curriculum' ? 'is-active' : ''} onClick={() => setTab('curriculum')}>Õppekava ({rows.length} tundi)</button>
         <button type="button" role="tab" aria-pressed={tab === 'own'} className={tab === 'own' ? 'is-active' : ''} onClick={() => setTab('own')}>Õpilase töölehed ({own.length})</button>
       </div>
-      <input className="ed-input" type="search" aria-label="Otsi töölehte" placeholder="Otsi: pealkiri, teema, moodul…" value={query} onChange={(event) => setQuery(event.target.value)} />
+      <input className="ed-input" type="search" aria-label="Otsi töölehte" placeholder={tab === 'own' ? 'Otsi: pealkiri, teema…' : 'Otsi: tunni nr, teema, grammatika, sõna…'} value={query} onChange={(event) => setQuery(event.target.value)} />
       {tab === 'curriculum' && levels.length > 1 ? (
         <div className="room-sheet-picker__levels" role="group" aria-label="Tase">
-          <button type="button" aria-pressed={!level} className={!level ? 'is-active' : ''} onClick={() => setLevel('')}>Kõik</button>
-          {levels.map((item) => <button type="button" key={item} aria-pressed={level === item} className={level === item ? 'is-active' : ''} onClick={() => setLevel(level === item ? '' : item)}>{item}</button>)}
+          <button type="button" aria-pressed={!activeLevel} className={!activeLevel ? 'is-active' : ''} onClick={() => setLevel('')}>Kõik</button>
+          {levels.map((item) => <button type="button" key={item} aria-pressed={activeLevel === item} className={activeLevel === item ? 'is-active' : ''} onClick={() => setLevel(activeLevel === item ? '' : item)}>{item}</button>)}
         </div>
       ) : null}
       {next?.choices.length && tab === 'curriculum' && !query ? (
@@ -121,7 +158,30 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
         </div>
       ) : null}
       {error ? <div className="action-error" role="alert">{error}</div> : null}
-      {state.loading ? <p className="form-hint">Laen töölehti…</p> : !list.length ? <p className="form-hint">{tab === 'own' ? 'Õpilasel pole lõpetamata töölehti.' : 'Midagi ei leitud.'}</p> : (
+      {state.loading ? <p className="form-hint">Laen töölehti…</p> : tab === 'curriculum' ? (
+        !found.length ? (
+          <p className="form-hint">{activeLevel ? 'Sellel tasemel ei leitud.' : 'Midagi ei leitud.'}{elsewhere > 0 ? <> <button type="button" className="room-sheet-picker__more" onClick={() => setLevel('')}>Teistel tasemetel {elsewhere} {elsewhere === 1 ? 'tund' : 'tundi'} — näita</button></> : ''}</p>
+        )
+          : query ? (
+            <ul className="room-sheet-picker__list">
+              {found.slice(0, 40).map((row) => <LessonRow key={row.lessonId} row={row} isNext={row.lessonId === next?.lessonId} opening={opening} onOpen={open} />)}
+              {found.length > 40 ? <li className="form-hint">… veel {found.length - 40} tundi. Täpsusta otsingut.</li> : null}
+              {elsewhere > 0 ? <li><button type="button" className="room-sheet-picker__more" onClick={() => setLevel('')}>Teistel tasemetel veel {elsewhere} {elsewhere === 1 ? 'tund' : 'tundi'} — näita kõiki</button></li> : null}
+            </ul>
+          ) : (
+            // no search: the course by modules; the module of the student's next lesson is open
+            <div className="room-sheet-picker__modules" ref={modulesRef}>
+              {groups.map((group) => (
+                <details key={group.key} open={group.key === nextModule || groups.length === 1} data-next={group.key === nextModule || undefined}>
+                  <summary><span>{group.title}</span><small>{group.range || `${group.rows.length} tundi`}</small></summary>
+                  <ul className="room-sheet-picker__list">
+                    {group.rows.map((row) => <LessonRow key={row.lessonId} row={row} isNext={row.lessonId === next?.lessonId} opening={opening} onOpen={open} inModule />)}
+                  </ul>
+                </details>
+              ))}
+            </div>
+          )
+      ) : !list.length ? <p className="form-hint">Õpilasel pole lõpetamata töölehti.</p> : (
         <ul className="room-sheet-picker__list">
           {list.slice(0, 80).map((choice) => (
             <li key={choice.key}>
