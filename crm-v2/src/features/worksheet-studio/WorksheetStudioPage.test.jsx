@@ -236,6 +236,13 @@ describe('WorksheetStudioPage', () => {
     expect(await screen.findByText(/salvestatud \d/)).toBeInTheDocument();
   });
 
+  it('„?plokk=<id>” (right-click „Muuda ülesannet”) opens that task selected in edit mode, even from the student view', async () => {
+    const blockId = sampleDocument().blocks[2].id;
+    const { container } = renderAt(`/library/worksheets/lesson-1?plokk=${blockId}`, repo());
+    await screen.findByText('Töölehe konstruktor');
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-card.selected')?.dataset.block).toBe(blockId));
+  });
+
   it('a clicked quality issue selects its block; a task can be brought back from an old version', async () => {
     const old = sampleDocument();
     const repository = repo({ listVersions: vi.fn().mockResolvedValue([{ id: 'v1', version: 1, status: 'draft', worksheetDoc: old }]) });
