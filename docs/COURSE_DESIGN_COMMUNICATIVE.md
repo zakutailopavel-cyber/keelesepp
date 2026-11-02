@@ -173,7 +173,9 @@ sheet” it pushed every lesson to the same drills (error correction, translatio
 `v4Problems`, `v4ModuleProblems`):
 
 - **Module:** one storyline with the course's characters and a goal said on the first sheet (B1 module 5: a story for the
-  town paper's contest, written and judged in the last Kasuta). At least 2 listening tasks; error correction ≤ 2,
+  town paper's contest, written and judged in the last Kasuta). **Amended 2026-11-02 (§13):** the cast may stay as the
+  module's thread, but it is no longer the only content — every lesson also has a text from a voice outside the cast and
+  a discussion wider than the episode, and every module opens its Harno topic with real facts. At least 2 listening tasks; error correction ≤ 2,
   translation ≤ 1, dictation ≤ 2 a module (exam lessons not counted); a form or sentence drill once a lesson.
 - **Avasta:** an input to think about (reading, listening, chat, character cards, picture) → notice → find the rule
   (table, categorize, timeline) → talk. No error correction, translation or dictation before the form is met.
@@ -188,3 +190,166 @@ one-to-one note for the teacher (`teach(block, 'Üks-ühele: …')`, shown in th
 `v4-one-to-one`). The level's grammar and where it is taught: `admin/course/grammarPlan.js` (test lists the gaps).
 
 Sample: `admin/course/b1/module05.js` (the v3 file is in `archive/v3/b1/module05.js`). Set `template: 'v4'` in MODULE.
+
+## 13. Academic value: the topic, the world and the learner's opinion (owner 2026-11-02)
+
+Owner 2026-11-02: „привести все модули в порядок, повысить их академическую ценность … каждый лист — это урок, он должен
+быть интересным и полезным, а блоки — красивыми, как страница учебника”; earlier: the textbook goes too deep into one
+concrete situation and gives no food for thought; it should cover the exam topics and the use of language more broadly,
+so the learner gets not only words but general knowledge and experience of talking about different topics. The owner
+approved changing the module plan and the „one storyline per module” rule (§12, amended). The template (v4) and every
+earlier gate stay; §13 adds what a lesson must *be about*.
+
+Measured 2026-11-02 (read-only review of all 180 lessons): in the B1 course ~64 % of the sampled lessons are locked into
+one episode of the cast, 86 / 90 lessons name ≥ 3 cast characters, ~14 % open the wider topic, ~25 % have facts worth
+reading, ~22 % of speaking asks an opinion; B2 ~31 % locked, 71 / 90 lessons with ≥ 3 cast names, 48 / 90 use pro / con
+cards. The 3-2-1 retelling is in ~45 of 90 lessons per course, „record at home” on most Kasuta sheets, and Kasuta keeps
+following voicemail → phone call → letter. Numbers are mostly invented about the fictional school / company (6 lessons
+cite a source); only 20 / 159 B2 readings reach 450 words while the Harno B2 main reading is a 500–600-word opinion /
+problem article. Topic-less modules (grammar / skills / exam): B1 4, 5, 13–18; B2 3, 4, 16, 17, 18.
+
+### 13.1 Topic map (`admin/course/academicTopics.js`)
+
+Every module has a main Harno topic and 1–3 secondary ones; every Harno topic (harno.ee/eesti-keele-tasemeeksamid, the
+same 15 at B1 and B2) is a main or secondary topic of at least one module; the B1 course also covers media and news,
+society (state, politics, law), culture and history (B1 handbook, METHODOLOGY_STANDARD §6.2); work and economy are an
+extra key (`majandus`). The module's grammar line stays — the topic gives its texts and talks a world to be about.
+
+| B1 module (title today) | main topic | secondary | broader theme |
+|---|---|---|---|
+| 1 A2 lähtepunkt ja igapäevaelu | igapäevaelu | isikuandmed, keel | a day in Estonia: working hours, time use, learning a language as an adult |
+| 2 Mina, pere ja suhted | suhted | isikuandmed | families in Estonia: family types, names and name days, generations |
+| 3 Kodu, kohad ja linn | maja ja kodu | ümbruskond, kohad | how Estonia lives: flat or house, panel blocks, districts |
+| 4 Aeg, plaanid ja kohustused *(topic-less)* | vaba aeg ja meelelahutus | igapäevaelu | time and leisure: hobby groups, sport, the folk calendar |
+| 5 Lihtminevik ja kogemused *(topic-less)* | kultuur | vaba aeg, ajalugu | culture and entertainment: song festival, museums, books and films |
+| 6 Toit ja teenindus | söök ja jook | teenused | Estonian food culture: rye bread, kama, seasonal food, eating out |
+| 7 Tervis ja enesetunne | tervis | teenused | health in Estonia: family doctor, health insurance, movement and sleep |
+| 8 Õppimine ja kool | haridus | keel | the Estonian school system and lifelong learning |
+| 9 Töö ja ametid | töö ja majandus | igapäevaelu, haridus | work and the labour market: jobs, pay, Töötukassa |
+| 10 Reisimine | reisimine | kohad | travelling in Estonia and Europe: public transport, islands, national parks |
+| 11 Raha, ostlemine ja teenused | sisseostud | teenused, majandus | money and consumption: prices, consumer rights, online shops |
+| 12 Ilm, loodus ja keskkond | ilm | ümbruskond, kohad | Estonian weather and nature: seasons, bogs, a changing climate |
+| 13 Suhtlemine ja probleemilahendus *(topic-less)* | keel | suhted, ümbruskond | language and communication: languages in Estonia, politeness, neighbours |
+| 14 Minevik, kogemused ja jutustamine *(topic-less)* | ajalugu | kultuur, suhted | history through life stories: 20th-century Estonia, the Singing Revolution, family stories |
+| 15 Tulevik, plaanid ja eesmärgid *(topic-less)* | ühiskond | haridus, majandus | the future and society: e-state, elections, the future of work |
+| 16 Arvamus, võrdlemine ja põhjendamine *(topic-less)* | meedia | ühiskond, suhted | media and news: where we get information, social media, children and screens |
+| 17 B1 lugemine ja kirjutamine *(topic-less)* | teenused | ümbruskond, isikuandmed | dealing with offices: notices, forms, eesti.ee and public services |
+| 18 B1 rääkimine ja lõpphindamine *(topic-less)* | kultuur | vaba aeg, suhted | holidays and celebrations: how Estonia celebrates |
+
+| B2 module (title today) | main topic | secondary | broader theme |
+|---|---|---|---|
+| 1 Igapäevaelu ja B1 lähtepunkt | igapäevaelu | isikuandmed, keel | rhythm of life and time use: what surveys show |
+| 2 Linn, teenused ja asjaajamine | teenused | kohad, ümbruskond | the city and its services: digital state, urban space, paperwork |
+| 3 Minevik ja kogemused *(topic-less)* | söök ja jook | kultuur, ajalugu | food and food culture: how the Estonian table has changed |
+| 4 Sihitis, ma-/da-infinitiiv ja rektsioon *(topic-less)* | maja ja kodu | ümbruskond | housing: rent or buy, renovation, living in town and country |
+| 5 Arvamus ja põhjendamine | keel | ühiskond | language and identity: the future of Estonian, multilingualism, language policy |
+| 6 Tööelu | töö ja majandus | suhted, igapäevaelu | working life: remote work, work and family, the labour market |
+| 7 Haridus ja õppimine | haridus | keel | education: school reforms, lifelong learning, AI at school |
+| 8 Reisimine ja kultuur | reisimine | kultuur, kohad | travel and cultural differences: tourism, overtourism, culture shock |
+| 9 Tervis ja eluviis | tervis | söök ja jook | health and lifestyle: nutrition, movement, mental health |
+| 10 Suhted ja konfliktid | suhted | isikuandmed | relationships and family: generations, loneliness, conflicts |
+| 11 Raha ja tarbimine | sisseostud | majandus, teenused | money and consumption: saving, loans, advertising |
+| 12 Tehnoloogia ja sotsiaalmeedia | meedia | vaba aeg, ühiskond | technology and social media: AI, screen time, privacy |
+| 13 Keskkond ja vastutustundlik elu | ilm | ümbruskond, kohad | climate, weather and environment: extreme weather, forests, energy |
+| 14 Ühiskond ja avalikud teenused | ühiskond | teenused, ümbruskond | society: local government, civil society, taking part |
+| 15 Meedia, info ja kriitiline lugemine | meedia | ühiskond, keel | media and critical reading: disinformation, journalism, sources |
+| 16 B2 grammatika integratsioon *(topic-less)* | vaba aeg ja meelelahutus | kultuur | leisure and cultural life: festivals, sport, reading, hobbies |
+| 17 B2 kirjutamine *(topic-less)* | kohad | ümbruskond, ühiskond | regions of Estonia: town and country, Ida-Virumaa, the islands, regional development |
+| 18 B2 rääkimine ja lõpphindamine *(topic-less)* | kultuur | ajalugu, isikuandmed | Estonia's story and identity: history, traditions, me in Estonia |
+
+A module's title and grammar line may stay; when it is rewritten, its lessons take their situations and texts from the
+theme (B2 module 4: the object and the infinitives are practised on texts about renting and renovating a home). The
+owner may move a theme; the map is code (`TOPIC_MAP`) so the coverage gate follows the change.
+
+### 13.2 The module topic opener („Teema avaleht”)
+
+One per module, on lesson 1's Avasta sheet (lesson 2's when lesson 1 is an entry test), built with
+`B.topicOpener(id, heading, paragraphs, source, questions)`: 200–350 words at B1, 300–450 at B2, **no cast character**,
+real facts about Estonia and the world, the source line „Allikas: …” (Statistikaamet, ERR, Harno, a ministry, a museum,
+an encyclopaedia — a source a reader can find), then 3–4 „Mõtle kaasa” questions that ask an opinion or a comparison,
+one of them Estonia vs the learner's home country („Kuidas on see sinu kodumaal?”). Facts are checked against the named
+source at writing time; when in doubt, round („üle 2000 saare”) and name the year. The opener is a `text` block: it
+counts among the sheet's 5–9 blocks and adds reading time, so the sheet may need one task fewer.
+
+### 13.3 Every lesson is a real lesson
+
+Each teaching lesson (not the module's exam, an oral or a diagnostic lesson) has:
+
+- **a clear goal** — its canDo (lessonGoals.js);
+- **a text from a non-cast voice** — an article, interview, expert, forum, news item, infographic (`B.chart` with its
+  source), a fiction or popular-science excerpt — at least 80 words at A2+, 120 at B1- / B1, 150 at B1+, 180 at B2- / B2,
+  with no cast name. Label it with `tag(block, { voice: 'article' | 'opinion' | 'interview' | 'expert' | 'forum' | 'news' |
+  'infographic' | 'fiction' | 'popsci' })`; the B1 course counts the popsci and fiction labels;
+- **an opinion / discussion speaking task on a question wider than the episode** — a speaking, card or role-play question
+  with no cast name that asks what the learner thinks, compares, argues or relates it to Estonia / their home country;
+- **something new to know** — a fact, a cultural point or a useful real-life procedure: `B.know(id, text, source)`
+  („Kas teadsid?”), the topic opener, or a non-cast text with its source line.
+
+The cast may carry the module's thread (a story to finish, a decision to make), but it is the frame, not the whole
+content. A cast scene stays valuable when it shows a real procedure (registering with a family doctor, a tenancy contract).
+
+### 13.4 Variety limits per module
+
+- 3-2-1 / 4-3-2 retelling at most **1** a module (other fluency tasks: a timed opinion, speed reading, a picture talk).
+- „Record it at home” speaking tasks („salvesta”, „lindista”) at most **2** a module.
+- Kasuta: at most **half** of the module's Kasuta sheets follow „voicemail or phone call → letter”; the others use the §3
+  task menu (negotiation, survey and report, advice column, mini-project, debate, presentation, a plan to choose).
+- Task types stay varied as before (§5, §12).
+
+### 13.5 Exam-like reading
+
+- B2: every module has one cast-free **500–600-word opinion or problem article** (the Harno B2 main reading; it may be the
+  `reading`, `insertion` or `cloze` text, in paragraphs).
+- B1: across the course at least **4 popular-science** and **4 fiction excerpts** (`voice: 'popsci'` / `'fiction'`), adapted
+  to the level, with the author or source named.
+
+### 13.6 Facts are real
+
+A number presented as a fact (a percentage, or a figure with „uuring”, „küsitlus”, „statistika”, „andmetel”,
+„keskmiselt”, „rahvaloendus”, „prognoos”) carries a source line in its block („Allikas: …”; a chart's own source field).
+Invented numbers may appear only inside a clearly fictional cast scene (a block that names the cast). Exam targets
+(„vähemalt 80 % igas osas”), shop discounts and questions are not facts.
+
+### 13.7 Speaking breadth
+
+Each module has an examiner-style question set on its Harno topic: one speaking block with 6–8 cast-free questions, at
+least 2 of them asking an opinion or a reason — B1 speaking part 1 style; at B2 the one-minute talk on the topic followed
+by the discussion questions (`B.examiner(id, topic, questions, 'B1' | 'B2')`).
+
+### 13.8 Gates (`admin/course/academicValue.js`, run by `academicValueGate.test.js`)
+
+| code | scope | rule |
+|---|---|---|
+| `av-goal` | lesson | the lesson has a canDo |
+| `av-voice` | lesson | ≥ 1 cast-free input text of the stage's length (or a chart with a source) |
+| `av-opinion` | lesson | ≥ 1 cast-free speaking question with an opinion / comparison cue |
+| `av-know` | lesson | `B.know`, the opener, or a cast-free input text with a source line |
+| `av-fact` | block, every lesson (exam lessons too) | a statistic outside a cast scene has a source line |
+| `av-opener` | module | one opener on lesson 1 (2) Avasta; B1 200–350 / B2 300–450 words; no cast; source; 3–4 questions incl. home country |
+| `av-retell` | module | 3-2-1 / 4-3-2 retelling ≤ 1 |
+| `av-record` | module | „salvesta / lindista” speaking tasks ≤ 2 |
+| `av-kasuta` | module | ≤ half of the Kasuta sheets are „voicemail / call → letter” |
+| `av-examiner` | module | 6–8 cast-free questions in one speaking block, ≥ 2 opinion / reason; B2 with the „1 minut” talk |
+| `av-article` | module, B2 | one cast-free text of 500–600 words |
+| `av-topics` | course | the topic map has every module and covers every required topic |
+| `av-genres` | course, B1 | ≥ 4 popsci and ≥ 4 fiction texts |
+
+Lesson gates skip exam (`assessment`), oral and diagnostic lessons; supplements (`MODULE.supplement`) are not checked. The
+cast the gates know: Anna, Markus, Liis, Viktor, Sofia, Jaan (art bible §4), Kadri, Helgi, Oskar, Mia, Muki, Tuul
+Logistika, Kase kool, with their case endings („Anna mulle …” is the verb). Thresholds: `AV` in the file. A content gate
+cannot judge whether a fact is true or a question really on topic — the module review (ACADEMIC_VALUE_ROUND1.md §4) does.
+
+**Baseline.** `academicValueBaseline.json` lists every module that is not yet rewritten, with the problems it had when the
+gates came (shown, not blocking). The test fails when a listed module gets a new problem, when a fixed problem is still
+listed, and when a module not in the file has any problem. A rewritten module passes every gate and leaves the file:
+
+```
+cd crm-v2
+ACADEMIC_REPORT=a2b1-module-05 npx vitest run src/features/worksheet-generator/admin/course/academicValueGate.test.js --silent=false --reporter=verbose
+UPDATE_ACADEMIC_BASELINE=1 npx vitest run src/features/worksheet-generator/admin/course/academicValueGate.test.js
+npx vitest run src/features/worksheet-generator
+```
+
+(`ACADEMIC_REPORT=b1` / `b2` prints a course, `ACADEMIC_REPORT=summary` the counts per gate.) After the update the module's
+key must be gone from the baseline; if it is still there, the module is not done. The work order is
+`docs/ACADEMIC_VALUE_ROUND1.md`.
