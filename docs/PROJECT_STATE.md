@@ -1,3 +1,11 @@
+## 2026-11-02 · agent/e2e-homework-roles — browser scenarios `homework` and `roles` pass again
+
+- Base: `main` fd4babf (after #988), checked 2026-11-02. Tests and docs only; no app code, no deploy, no production access.
+- Causes (all four failed on unchanged `main`; the tests were outdated, no app bug): the three `roles` learners/parents stopped at the „Puuduvad andmed” gate (seeded cards lack language, times, class), so no menu appeared; `homework` was blocked by the staff „what's new” notice over „Määra õpilastele”; the student menu is now Täna · Ülesanded · Kursus · Sõnad · Suhtlus.
+- Done: `e2e/tests/helpers.cjs` `completeCardData(...cards)` (emulator only: `preferredLanguage`, `grade: 'Täiskasvanu'` for an adult card, two slots in `studentAvailability`); `roles.spec.cjs` uses it and checks the new student menu; `homework.spec.cjs` uses it, closes the notice with „Selge” and removes Anna's earlier assignments so it does not depend on the spec order; `docs/E2E_SCENARIOS.md`.
+- Checks: `./run.sh tests/homework.spec.cjs tests/roles.spec.cjs` 6 passed; with `homework-phone` first, homework and roles pass too; eslint (crm-v2 config, node globals) clean on the three files.
+- Known: the full run (`./run.sh`) has 10 other failures, out of scope here and not diagnosed one by one: the admin scenarios time out on a click, most likely under the same „what's new” notice (combined-invoice, invite, lesson-tokens, parent-edit, parent-invite, payment-check, registration ×2, rooms), and `homework-phone` looks for `.assigned-worksheet-list`, which the new Ülesanded page no longer has.
+- Next safe step: the same fix for the admin scenarios (close „Selge” after the admin's login) and the new task list selector in `homework-phone.spec.cjs`.
 ## 2026-11-02 · agent/learner-goal-voice — the learner reads the sheet's goals in their own voice
 
 - Base: `main` after #988, checked 2026-11-02.

@@ -39,4 +39,21 @@ async function login(page, who) {
   return person;
 }
 
-module.exports = { guard, login, expect };
+// The cards of a scenario that is not about „Puuduvad andmed” get what the school asks for at the door (class or
+// adult, language, suitable times), so after login the person reaches the CRM as an existing learner with a complete
+// card would. The gate itself is exercised in homework-phone.spec.cjs, which fills it for the seeded Anna card.
+async function completeCardData(...cards) {
+  const path = require('path');
+  const admin = require(path.join(__dirname, '../../functions/node_modules/firebase-admin'));
+  const { PROJECT } = require('../fixtures.cjs');
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const db = admin.firestore();
+  const now = new Date().toISOString();
+  for (const card of cards) {
+    const adult = !card.grade;
+    await db.doc(`students/${card.id}`).set({ preferredLanguage: 'et', ...(adult ? { grade: 'Täiskasvanu' } : {}), updatedAt: now }, { merge: true });
+    await db.doc(`studentAvailability/${card.id}`).set({ studentId: card.id, slots: ['Mon-17:00', 'Mon-17:30'], preferred: [], changedAt: now }, { merge: true });
+  }
+}
+
+module.exports = { guard, login, expect, completeCardData };
