@@ -37,10 +37,21 @@ export const lessonNotesService = {
   },
 };
 
-// the notes that belong to one calendar occurrence: the series note and the note of that date
+// the notes that belong to one calendar occurrence: the series note and the note of that date.
+// A note follows its lesson when the lesson is moved (Oleksiy 2026-11-02: the note was lost on a move to another day):
+// a one-off lesson keeps its id and changes its date, so any dated note of that id is its own (the newest wins); a
+// lesson of a series moved alone becomes a one-off (movedFromSeriesId, movedFromDate) and keeps the note of that date
+// and of its series; a series moved from a date on (continuesSeriesId) keeps the old series' note.
 export function notesFor(notes = [], item = {}) {
   if (!item?.id) return [];
-  const series = notes.find((note) => note.id === noteId(item.id));
-  const day = item.occurrenceDate ? notes.find((note) => note.id === noteId(item.id, item.occurrenceDate)) : null;
-  return [day, series].filter(Boolean);
+  const byId = (id) => notes.find((note) => note.id === id) || null;
+  const newest = (list) => list.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))[0] || null;
+  const own = item.recurring
+    ? (item.occurrenceDate ? byId(noteId(item.id, item.occurrenceDate)) : null)
+    : newest(notes.filter((note) => note.scheduleId === item.id && note.date));
+  const movedFrom = item.movedFromSeriesId && item.movedFromDate ? byId(noteId(item.movedFromSeriesId, item.movedFromDate)) : null;
+  const series = byId(noteId(item.id))
+    || (item.movedFromSeriesId ? byId(noteId(item.movedFromSeriesId)) : null)
+    || (item.continuesSeriesId ? byId(noteId(item.continuesSeriesId)) : null);
+  return [own || movedFrom, series].filter(Boolean);
 }
