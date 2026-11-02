@@ -44,3 +44,5 @@ vahetestist
 # the clitic written as „-ki / -gi” in grammar notes and instructions (EKI ÕS: liide -ki, -gi)
 ki
 gi
+# the examWriting genre key „kusimustik” (an internal value read by language.py, not shown to the learner)
+kusimustik

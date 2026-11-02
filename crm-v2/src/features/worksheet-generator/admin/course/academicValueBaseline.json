@@ -28,19 +28,6 @@
   "a2b1-018|*|av-know",
   "a2b1-019|*|av-know"
  ],
- "a2b1-module-05": [
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "*|*|av-retell",
-  "a2b1-021|*|av-know",
-  "a2b1-021|*|av-voice",
-  "a2b1-022|*|av-know",
-  "a2b1-022|*|av-voice",
-  "a2b1-023|*|av-know",
-  "a2b1-023|*|av-voice",
-  "a2b1-024|*|av-know"
- ],
  "a2b1-module-06": [
   "*|*|av-opener",
   "*|*|av-retell",
