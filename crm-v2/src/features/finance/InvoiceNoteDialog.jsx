@@ -12,7 +12,7 @@ const stamp = (iso) => {
 export function InvoiceNoteButton({ invoice, note, onOpen }) {
   const text = note?.text || '';
   const num = invoice.num || invoice.number || invoice.invoiceNumber || '';
-  return <button type="button" className={`finance-note-button${text ? ' finance-note-button--set' : ''}`} title={text || 'Lisa sisemine märkus'}
+  return <button type="button" data-entity-action="note" className={`finance-note-button${text ? ' finance-note-button--set' : ''}`} title={text || 'Lisa sisemine märkus'}
     aria-label={text ? `Sisemine märkus arvel ${num}: ${text}` : `Lisa sisemine märkus arvele ${num}`} onClick={() => onOpen(invoice)}>
     <StickyNote size={14} aria-hidden="true" />
   </button>;

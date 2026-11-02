@@ -16,7 +16,7 @@ import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx'
 import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
 import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import './appShell.css';
-import StudentContextMenu from '../StudentContextMenu.jsx';
+import EntityContextMenu from '../EntityContextMenu.jsx';
 
 // students only (it renders nothing for anyone else), so nobody else downloads it
 // staff only
@@ -66,7 +66,8 @@ export default function AppShell({ approvals = accountApprovalsService, messages
 
   return (
     <AnnouncementGate enabled={gated} user={user} onSignOut={signOut} {...(announcements ? { service: announcements } : {})}>
-      {isStaff ? <StudentContextMenu /> : null}
+      {/* the right-click menu: staff and the accountant, each with their own actions (not in the admin's preview) */}
+      {hasAnyRole(user.roles, ['admin', 'teacher', 'finance']) && !preview ? <EntityContextMenu roles={user.roles} /> : null}
     <MissingDataGate enabled={gated} user={user} onSignOut={signOut} {...(missingData ? { service: missingData } : {})}>
     <div className="app-shell">
       <button className={`backdrop ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-label="Sulge menüü" />

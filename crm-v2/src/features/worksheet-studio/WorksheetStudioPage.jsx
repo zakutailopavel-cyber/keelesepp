@@ -99,7 +99,11 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const { user } = useAuth();
   const navigate = useNavigate();
   // a draft handed over by another page (e.g. „Tee tööleht vigadest” in a lesson analysis): shown, not saved yet
-  const handed = useLocation().state?.document || null;
+  const location = useLocation();
+  const handed = location.state?.document || null;
+  // „?plokk=<blockId>” (right-click „Muuda ülesannet” on a task, e.g. in the Õpik): that block opens selected in edit mode
+  const focusBlockId = new globalThis.URLSearchParams(location.search).get('plokk') || '';
+  const focusedBlock = useRef('');
 
   const [doc, setDoc] = useState(null);
   const [source, setSource] = useState('');
@@ -304,6 +308,19 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const palette = useMemo(() => { const all = paletteEntries(); return GROUPS.map((g) => [g, all.filter((b) => b.group === g)]); }, []);
   const filteredPalette = useMemo(() => palette.map(([group, defs]) => [group, defs.filter((def) => !paletteQuery.trim() || `${def.label} ${def.hint || ''} ${def.group}`.toLocaleLowerCase('et').includes(paletteQuery.trim().toLocaleLowerCase('et')))]).filter(([, defs]) => defs.length), [palette, paletteQuery]);
   const quality = useMemo(() => analyzeWorksheet(doc || newDocument(), { forms: levelForms }), [doc, levelForms]);
+
+  useEffect(() => {
+    if (!doc || !focusBlockId || focusedBlock.current === focusBlockId) return undefined;
+    focusedBlock.current = focusBlockId;
+    if (!doc.blocks.some((b) => b.id === focusBlockId)) return undefined;
+    setMode('edit');
+    setSelectedId(focusBlockId);
+    globalThis.setTimeout(() => {
+      const id = globalThis.CSS?.escape ? globalThis.CSS.escape(focusBlockId) : focusBlockId;
+      document.querySelector(`.ws-page [data-block="${id}"]`)?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }, 60);
+    return undefined;
+  }, [doc, focusBlockId]);
 
   if (loadError) return <div className="page-content"><div className="ws-studio-error" role="alert">{loadError} <Link to={backTo}>Tagasi: {backLabel}</Link></div></div>;
   if (!doc) return <div className="page-content"><p className="ws-studio-loading">Laen töölehte…</p></div>;
