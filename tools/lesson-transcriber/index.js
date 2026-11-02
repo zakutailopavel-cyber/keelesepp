@@ -153,7 +153,7 @@ function watchdog() {
 
 async function deleteOldAudio() {
   for (const status of ['done', 'failed']) {
-    const snap = await db.collection('lessonRecordings').where('status', '==', status).get();
+    const snap = await db.collection('lessonRecordings').where('status', '==', status).select('startedAt', 'endedAt', 'audioDeletedAt').get();
     for (const d of snap.docs) {
       if (!isAudioExpired(d.data())) continue;
       await bucket.deleteFiles({ prefix: `lessonRecordings/${d.id}/` });
@@ -222,16 +222,30 @@ async function writePetStats(parts, transcript, errors, lang) {
   if (!stats) return;
   await db.collection('petLessonStats').doc(parts[0].id).set({ ...stats, updatedAt: new Date().toISOString() });
 }
+// A finished recording holds its whole transcript and analysis (often 100 KB or more). Reading every finished one each
+// minute cost about 5 GB of Firestore download a day (Oct 2026), so the loops look at these few fields and load a
+// full document only when there is work to do.
+const SCAN_FIELDS = ['status', 'invitationId', 'startedAt', 'endedAt', 'language', 'analysis.version', 'analysis.error', 'analysis.attempts', 'analysis.parts', 'analysis.petStatsAt'];
+const scanDone = async () => (await db.collection('lessonRecordings').where('status', '==', 'done').select(...SCAN_FIELDS).get())
+  .docs.map((d) => ({ id: d.id, ref: d.ref, ...d.data() }));
+const fullRecording = async (ref) => { const s = await ref.get(); return s.exists ? { id: s.id, ref: s.ref, ...s.data() } : null; };
+// without the transcript needsAnalysis cannot decide; this keeps every recording it could still say yes to
+const mayNeedAnalysis = (rec) => !(rec.analysis?.version >= ANALYSIS_VERSION) || Boolean(rec.analysis?.error);
+// the finished list is looked through at most this often while it holds nothing to analyse
+const ANALYSIS_SCAN_MS = Number(env('ANALYSIS_SCAN_SECONDS', '300')) * 1000;
+let analysisScanAt = 0;
+
 // lessons analysed before the pet got its numbers: written once, no model needed
 async function backfillPetStats() {
-  const snap = await db.collection('lessonRecordings').where('status', '==', 'done').get();
-  for (const d of snap.docs) {
-    const a = d.data().analysis;
+  for (const d of await scanDone()) {
+    const a = d.analysis;
     if (!Array.isArray(a?.parts) || a.parts[0] !== d.id || a.petStatsAt) continue;
+    const first = await fullRecording(d.ref);
+    if (!first) continue;
     const parts = (await Promise.all(a.parts.map((id) => db.collection('lessonRecordings').doc(id).get())))
       .filter((x) => x.exists).map((x) => ({ id: x.id, ref: x.ref, ...x.data() }))
       .sort((x, y) => String(x.startedAt).localeCompare(String(y.startedAt)));
-    await writePetStats(parts, joinedTranscript(parts), a.errors || [], d.data().language || 'et');
+    await writePetStats(parts, joinedTranscript(parts), first.analysis?.errors || [], first.language || 'et');
     await d.ref.update({ 'analysis.petStatsAt': new Date().toISOString() });
     log('pet stats', d.id);
   }
@@ -244,8 +258,10 @@ async function analyzeNext() {
   const hasGec = models.includes(GEC_MODEL);
   const hasSummary = models.includes(SUMMARY_MODEL);
   if (!hasGec && !hasSummary) return;
-  const snap = await db.collection('lessonRecordings').where('status', '==', 'done').get();
-  const done = snap.docs.map((d) => ({ id: d.id, ref: d.ref, ...d.data() })).filter(needsAnalysis)
+  if (Date.now() - analysisScanAt < ANALYSIS_SCAN_MS) return;
+  analysisScanAt = Date.now();
+  const maybe = (await scanDone()).filter(mayNeedAnalysis);
+  const done = (await Promise.all(maybe.map((rec) => fullRecording(rec.ref)))).filter((rec) => rec && needsAnalysis(rec))
     .sort((a, b) => String(b.endedAt || b.startedAt || '').localeCompare(String(a.endedAt || a.startedAt || '')));
   // one lesson = all parts of its invitation that day (a reload starts a new recording); wait until all are finished
   let rec = null;
@@ -307,6 +323,7 @@ async function analyzeNext() {
     log('analysis failed', rec.id, err.message);
   } finally {
     current = { state: 'idle', recordingId: '' };
+    analysisScanAt = 0; // another lesson may be waiting: look again on the next tick
   }
 }
 
@@ -412,12 +429,17 @@ async function deleteOldAiRequests() {
 
 async function tick() {
   await handOverAbandoned();
-  for (const rec of await claim()) await transcribe(rec);
+  for (const rec of await claim()) { await transcribe(rec); analysisScanAt = 0; }
   // only when no lesson waits for its text: one analysis per tick
   try { await analyzeNext(); } catch (err) { log('analysis tick error', err.message); }
-  try { await backfillPetStats(); } catch (err) { log('pet stats error', err.message); }
-  if (new Date().getMinutes() < 2) { await deleteOldAudio(); await deleteOldAiRequests().catch(() => {}); } // about once an hour
+  const hourly = new Date().getMinutes() < 2;
+  if (hourly || !petStatsChecked) {
+    petStatsChecked = true;
+    try { await backfillPetStats(); } catch (err) { log('pet stats error', err.message); }
+  }
+  if (hourly) { await deleteOldAudio(); await deleteOldAiRequests().catch(() => {}); } // about once an hour
 }
+let petStatsChecked = false;
 
 async function main() {
   if (!fs.existsSync(MODEL)) throw new Error(`Whisper model not found: ${MODEL}`);

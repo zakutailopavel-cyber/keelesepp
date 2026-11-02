@@ -1,3 +1,12 @@
+## 2026-11-02 · agent/transcriber-reads — school Mac transcriber: no full read of every finished recording each minute
+
+- Base: `main` after #986, checked 2026-11-02. Owner asked to sort out the Google Cloud bill.
+- Cause: Google Cloud charged 18,19 € for October (0,13 € in September); 14,80 € of it is „Cloud Firestore Internet Data Transfer Out from Europe to Europe”, 150 GiB. Firestore Usage Insights for 6 night hours: `/lessonRecordings` 52 695 reads, 3,6 GB. The transcriber on the school Mac (installed 2026-10-12 00:05) read every `done` recording in full every minute in `analyzeNext` and `backfillPetStats`.
+- First commit: the installed copy (`~/KeeleSeppTranscriber/app`: `index.js`, `analysis.js`, `lib.js`, `lib.test.js`) as it ran; it was never committed and is newer than `main` was.
+- Second commit: the loops read `select(...)` of a few fields (28 KB for 120 recordings instead of their full documents) and load a full document only when work is left; the analysis scan runs at most every 5 minutes (`ANALYSIS_SCAN_SECONDS`) and right away after a transcription or an analysis; the pet backfill runs at start and hourly; the audio cleanup reads three fields.
+- Checks: `node --check index.js`; `node --test lib.test.js analysis.test.js` 24 passed, 0 failed; the light scan against production (read-only): 120 finished recordings, 28 KB, 4 that may need analysis, 0 for the pet backfill.
+- Install on the Mac: copy `index.js` to `~/KeeleSeppTranscriber/app/` (backup first) and restart `ee.keelesepp.transcriber`, not during a live lesson.
+- Next safe step: a day after the install, Firestore Usage Insights should show `/lessonRecordings` reads in the hundreds per hour, not 13 000.
 ## 2026-11-02 · agent/functions-deploy-record — all functions deployed with #959 and #967
 
 - Base: `main` 82ce0b8, checked 2026-11-02. Owner approved the deploy on 2026-11-02. #967, then #959 merged.
