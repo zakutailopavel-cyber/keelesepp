@@ -1,3 +1,11 @@
+## 2026-11-02 · agent/lead-throttle-ip — website lead form: the hourly limit can no longer be bypassed with a forged header
+
+- Base: `main` fd4babf (after #988), checked 2026-11-02. Follows the finding noted in the dependency entry: the `websiteLeadApi` throttle used the first `X-Forwarded-For` value, which the visitor writes himself.
+- Change: new pure helper `clientIpForThrottle` in `functions/website-lead-core.js` takes the last `X-Forwarded-For` value (the one Google's front end appends), falls back to `req.ip` only when the header is empty; `websiteLeadApi` in `functions/index.js` uses it. Throttle doc ids (`websiteLeadThrottle`) change for existing visitors once, so the counters effectively restart. No other function in `functions/` reads `X-Forwarded-For` or `req.ip`.
+- Assumption: the site calls the `cloudfunctions.net` URL directly (index.html, ru/index.html, tasemetest.html). Behind a Firebase Hosting rewrite the last value would be a Hosting address, so this would need a second look.
+- Checks: `npm test` in `functions` 433 of 433 passed (2 new tests).
+- Deploy after merge, owner permission: `firebase deploy --only functions:websiteLeadApi`. Not deployed.
+- Next safe step: after the deploy, send one test enquiry from the site and check it arrives at info@.
 ## 2026-11-02 · agent/lesson-sheet-finder — lesson board: find a lesson's sheets without remembering its title
 
 - Base: `main` after #987, checked 2026-11-02. Owner: a teacher does not remember all topics and lesson titles.
