@@ -29,12 +29,13 @@ describe('CRM v2 hosting headers', () => {
     for (const path of ['/assets/main-abc.js', '/audio/a2-001/x.mp3', '/textbook-art/a.png']) expect(appPaths.test(path)).toBe(false);
   });
 
-  // Report-only until the violations have been read on the live site: it must not be able to block anything yet.
-  it('sends the content security policy as report-only, with no enforcing header', () => {
+  // Enforced since 2026-11-02: in report-only mode the live site showed no violation on 15 signed-in pages, the sheets'
+  // pictures and the materials' files are all on Firebase Storage, and nothing posts a form to another site.
+  it('enforces the content security policy', () => {
     const config = JSON.parse(readFileSync(resolve(process.cwd(), 'vercel.json'), 'utf8'));
     const headers = config.headers.flatMap((h) => h.headers);
-    expect(headers.some((h) => h.key.toLowerCase() === 'content-security-policy')).toBe(false);
-    const policy = headers.find((h) => h.key === 'Content-Security-Policy-Report-Only').value;
+    expect(headers.some((h) => h.key === 'Content-Security-Policy-Report-Only')).toBe(false);
+    const policy = headers.find((h) => h.key === 'Content-Security-Policy').value;
     expect(policy).toContain("default-src 'self'");
     expect(policy).toContain('https://us-central1-keelesepp-5136b.cloudfunctions.net');
     expect(policy).toContain('https://firestore.googleapis.com');
