@@ -1,3 +1,13 @@
+## 2026-11-02 · agent/academic-value-gates — B1 / B2: academic-value standard, topic map and gates (no content rewritten)
+
+- Base: `main` be59926, checked 2026-11-02. Owner 2026-11-02: raise the modules' academic value; every sheet a real lesson; the textbook must open the exam topics wider than one cast episode (approved: change the module plan and the „one storyline” rule).
+- Standard: `docs/COURSE_DESIGN_COMMUNICATIVE.md` §13 (§12 storyline rule amended): topic map of both courses (every Harno topic + B1 media / society / culture / history), module topic opener, per-lesson non-cast text + opinion talk + „Kas teadsid?”, variety caps, B2 500–600-word article, B1 popsci / fiction, sourced facts, examiner question set. Work order and per-module contract: new `docs/ACADEMIC_VALUE_ROUND1.md`.
+- Code: new `admin/course/academicTopics.js` (`TOPIC_MAP`, `HARNO_TOPICS`), `academicValue.js` (gates `av-goal`, `av-voice`, `av-opinion`, `av-know`, `av-fact`, `av-opener`, `av-retell`, `av-record`, `av-kasuta`, `av-examiner`, `av-article`, `av-topics`, `av-genres`; thresholds `AV`), `academicValue.test.js` (fixtures that pass and fail each gate), `academicValueGate.test.js` + `academicValueBaseline.json` (all 36 modules listed; a module out of the file must pass every gate). `blocks.js`: builders `B.topicOpener`, `B.know`, `B.examiner`; tag `voice`. No module file changed.
+- Today (gates on `main` content): B1 0 / 18 modules pass — av-opener 18, av-know 18, av-retell 16, av-record 12, av-voice 12 (18 lessons), av-kasuta 9, av-fact 5, av-examiner 2, av-opinion 2 modules; course av-genres (0 popsci, 0 fiction). B2 0 / 18 — av-opener 18, av-know 18, av-record 18, av-examiner 17, av-fact 17 (44 blocks), av-voice 15 (24 lessons), av-article 12, av-kasuta 5, av-opinion 1. av-topics passes for both.
+- Checks: `npx vitest run src/features/worksheet-generator` 67 files passed (1070 tests), `src/features/worksheet-studio` 67 files passed (456); eslint clean on changed files.
+- Limits: the gates read text patterns (cast names, opinion cues, „Allikas:”), they cannot tell a true fact or an on-topic question — the round-1 review step does. Not published, nothing in production touched.
+- Next safe step: B1 module 1 rewritten to §13 on its own branch (`agent/av-b1-module-01`), report PASS, module leaves the baseline.
+
 ## 2026-11-02 · agent/c1-open-decisions — C1: no moving between the two C1 courses; L3 scored as in the Harno exam
 
 - `docs/COURSE_FINAL_SHAPE_C1.md` §10 and §2: owner's last two answers. Nothing is open for the owner. Before module 6 (first L3), read the Harno C1 consultation booklet in full and set L3's scale from it.

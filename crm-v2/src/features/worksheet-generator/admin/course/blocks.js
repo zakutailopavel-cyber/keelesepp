@@ -26,8 +26,11 @@ export const teach = (block, note) => ({ ...block, data: { ...block.data, teache
 //   fluency  true: a fluency task with known language (4-3-2, timed retelling, speed reading) — Nation's 4th strand
 //   main     true: the main task of Kasuta (the can-do done); without it the last speaking / writing task of Kasuta
 //   topic    on a vocab block: the words that are topic words on purpose (not in the EKI A1–B1 lists, §8 V14)
+//   voice    on an input text from outside the cast's story (docs/COURSE_DESIGN_COMMUNICATIVE.md §13): article, opinion,
+//            interview, expert, forum, news, infographic, fiction, popsci — the B1 course counts popsci and fiction
 // The tags live on the block (`block.tag`), never in the learner's text. A wrong value fails at once, not in a gate.
-const TAG_KEYS = ['task', 'harno', 'level', 'fluency', 'main', 'topic'];
+const TAG_KEYS = ['task', 'harno', 'level', 'fluency', 'main', 'topic', 'voice'];
+const VOICES = ['article', 'opinion', 'interview', 'expert', 'forum', 'news', 'infographic', 'fiction', 'popsci'];
 export function tag(block, tags = {}) {
   const unknown = Object.keys(tags).filter((k) => !TAG_KEYS.includes(k));
   if (unknown.length) throw new Error(`${block.id}: tundmatu silt ${unknown.join(', ')} (lubatud: ${TAG_KEYS.join(', ')})`);
@@ -35,6 +38,7 @@ export function tag(block, tags = {}) {
   if (tags.harno !== undefined && !isHarnoFormat(tags.harno)) throw new Error(`${block.id}: Harno vorm ${tags.harno} on tundmatu (R1…S2)`);
   if (tags.level !== undefined && ![1, 2, 3, 4].includes(tags.level)) throw new Error(`${block.id}: tase peab olema 1–4`);
   if (tags.topic !== undefined && (block.type !== 'vocab' || !Array.isArray(tags.topic))) throw new Error(`${block.id}: teemasõnad (topic) on sõnavarakasti sõnade loend`);
+  if (tags.voice !== undefined && !VOICES.includes(tags.voice)) throw new Error(`${block.id}: teksti hääl ${tags.voice} on tundmatu (${VOICES.join(', ')})`);
   const clean = Object.fromEntries(Object.entries(tags).filter(([, v]) => v !== undefined && v !== false));
   return { ...block, tag: { ...(block.tag || {}), ...clean } };
 }
@@ -171,5 +175,20 @@ export const B = {
   rubricSpeaking: (id, title = 'Hindamine: rääkimine (20 punkti).') => block(id, 'examrubric', 'white', '', { title, instruction: 'Neli kriteeriumi, igaüks 0–5 punkti.', scale: 'S', criteria: RUBRIC_SCALES.S.criteria }),
   // the header of an exam part: 'W' | 'L' | 'R' | 'S' with Harno's minutes, tasks and points (override any), target 80 %
   examPart: (id, skill, overrides = {}) => block(id, 'exampart', 'sky', '', { skill, ...EXAM_PART_DEFAULTS[skill], target: 80, note: '', ...overrides }),
+  // ---------- academic value (docs/COURSE_DESIGN_COMMUNICATIVE.md §13) ----------
+  // „Teema avaleht”: the module's topic opener on lesson 1's Avasta — real facts about Estonia and the world (no cast),
+  // the source line, then 3–4 „Mõtle kaasa” questions (one compares Estonia with the learner's home country)
+  topicOpener: (id, heading, paragraphs, source, questions) => block(id, 'text', 'white', '', {
+    heading, text: [...[].concat(paragraphs), `*Allikas: ${source}*`, 'Mõtle kaasa:', ...questions.map((q, i) => `${i + 1}. ${q}`)].join('\n\n'),
+    opener: { source, questions },
+  }, 'full'),
+  // „Kas teadsid?”: one fact, cultural point or real-life procedure with its source
+  know: (id, text, source, title = 'Kas teadsid?') => block(id, 'tip', 'white', '', { title, text: `${join(text)} *Allikas: ${source}.*`, know: true, source }, 'full'),
+  // the examiner's question set on the module's Harno topic: B1 part 1 (6–8 questions), B2 a one-minute talk + discussion
+  examiner: (id, topic, questions, level = 'B1', [minSec, maxSec] = level === 'B2' ? [60, 300] : [120, 300]) => block(id, 'speaking', 'green', 'g_use', {
+    title: `Eksamineerija küsib: ${topic}.`,
+    instruction: level === 'B2' ? `Räägi 1 minut teemal „${topic}”. Siis vastab eksamineerija küsimustele ja te arutlete.` : `Eksamineerija esitab küsimused teemal „${topic}”. Vasta igale 2–4 lausega ja põhjenda.`,
+    questions: join(questions), img: null, aspect: '4:3', bubble: '', tipTitle: '', tipText: '', minSec, maxSec,
+  }),
   selfcheck: (id, items, stamp, titleMore = 'Kas ma oskan?') => block(id, 'selfcheck', 'sky', '', { title: 'Kontrolli end.', titleMore, instruction: 'Märgi, mida juba oskad.', items: join(items), stamp }),
 };
