@@ -53,14 +53,15 @@ the PR, not changed. A theme change in the topic map is asked of the owner first
 - Language check 0 unknown lower-case words (`docs/CODEX_TASKS_B1B2_IDEAL.md` §2).
 - Facts checked: the PR lists every source named in the module (title + URL) and what each one supports.
 
-## 3. Publishing — manual edits are never lost
+## 3. Publishing — every lesson meets the standard, and nothing is lost
 
-The agent does not publish. After review and merge, Claude publishes the module through the existing flow („Kursuse
-tootmine” → „Avalda tund”, or the scratch publish script) **only for sheets whose last version in the database is a code
-publish**. A sheet the owner or a teacher edited by hand in the CRM („✎ Muuda lehte” → „Salvesta” → „Avalda”) is not
-overwritten: it is listed in the PR / hand-over and the owner decides (merge by hand, or keep). Before publishing, export
-the current production sheets of the module read-only and diff them with the code version; publishing never deletes a
-sheet or a learner's answers.
+The agent does not publish. After review and merge, Claude publishes the whole module through the existing flow („Kursuse
+tootmine” → „Avalda tund”, or the scratch publish script). Owner's rule (2026-10-28): every lesson must meet the standard
+whether or not someone edited it by hand, so **a sheet edited by hand in the CRM is also republished**. Nothing is lost: the
+hand-edited version stays in `worksheetVersions` (each publish is a new immutable version), and sheets already assigned to
+learners keep their own copy and answers. Before publishing, export the module's current production sheets read-only and
+list in the PR / hand-over which sheets had a hand-edited last version, so a teacher's useful change can be carried into the
+code version if it is worth keeping. Publishing never deletes a sheet or a learner's answers.
 
 ## 4. Review after round 1
 
