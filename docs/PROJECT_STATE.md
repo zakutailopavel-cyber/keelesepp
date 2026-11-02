@@ -1,4 +1,4 @@
-## 2026-11-03 · agent/av-b1-module-01 — B1 module 1 (a2b1-001…005): academic value round 1
+## 2026-11-03 · agent/av-b1-module-01 (PR #1005) — B1 module 1 (a2b1-001…005): academic value round 1
 
 - Base: `main` dd48b88 (after #1002), checked 2026-11-02. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row: igapäevaelu (+ isikuandmed, keel).
 - 002: topic opener `002_d_open` (replaces the short goal text; Statistikaamet time use 2019–2021, working time and leave from eesti.ee, census 2021 languages; 4 „Mõtle kaasa” questions incl. home country); forum text `002_p_forum` (voice forum, R15); „Kas teadsid?” `002_t_know` (Tallinn's public transport); a home-country question in `002_t_tips`.
