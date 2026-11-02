@@ -187,7 +187,9 @@ export const B = {
   // the examiner's question set on the module's Harno topic: B1 part 1 (6–8 questions), B2 a one-minute talk + discussion
   examiner: (id, topic, questions, level = 'B1', [minSec, maxSec] = level === 'B2' ? [60, 300] : [120, 300]) => block(id, 'speaking', 'green', 'g_use', {
     title: `Eksamineerija küsib: ${topic}.`,
-    instruction: level === 'B2' ? `Räägi 1 minut teemal „${topic}”. Siis vastab eksamineerija küsimustele ja te arutlete.` : `Eksamineerija esitab küsimused teemal „${topic}”. Vasta igale 2–4 lausega ja põhjenda.`,
+    // the topic stays unquoted: the final-shape check strips quoted text, and a shared wording would count as one instruction
+    // repeated in every module
+    instruction: level === 'B2' ? `Räägi 1 minut: ${topic}. Siis vastab eksamineerija küsimustele ja te arutlete.` : `Eksamineerija küsib sinult: ${topic}. Vasta igale küsimusele 2–4 lausega ja põhjenda.`,
     questions: join(questions), img: null, aspect: '4:3', bubble: '', tipTitle: '', tipText: '', minSec, maxSec,
   }),
   selfcheck: (id, items, stamp, titleMore = 'Kas ma oskan?') => block(id, 'selfcheck', 'sky', '', { title: 'Kontrolli end.', titleMore, instruction: 'Märgi, mida juba oskad.', items: join(items), stamp }),

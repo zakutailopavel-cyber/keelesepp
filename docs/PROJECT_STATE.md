@@ -10,6 +10,10 @@
 - Checks: `ACADEMIC_REPORT=a2b1-module-06` PASS; course report 5/5 READY (026 42/51/50, 027 40/45/46, 028 41/47/40, 029 41/49/52 min); language check 0 unknown lower-case; eslint clean; `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 1526 passed, 0 failed. Course `av-genres`: popsci 2 / 4, fiction 0 / 4 (still open).
 - Limits: facts checked on the web 2026-11-03 (sources in the PR). Kaneel, Merike Lõhmus, Kaja Raud and „Kiire Kõht” are invented; Kaja's „300 families a week” and „bread most often” are her own experience, not statistics. Tipping in Estonia is only Merike's opinion (no reliable source found). Not published; nothing in production touched.
 - Next safe step: review and merge the PR, then publish module 6 through the existing flow after exporting the current production sheets read-only.
+## 2026-11-03 · agent/examiner-wording — the examiner set's instruction is not one repeated wording
+
+- `B.examiner` (`admin/course/blocks.js`) wrote the topic in quotes; the final-shape check strips quoted text, so every module's examiner set had the same instruction (V7: a2b1-010 and a2b1-016 were in the baseline, and each new module hit it). The topic is now unquoted in the instruction. `finalShapeBaseline.json` regenerated (two V7 entries fixed). Changes only the instruction line of published examiner sets at their next publish.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` all passed.
 ## 2026-11-03 · agent/av-b1-module-05 (PR #1009) — B1 module 5 „Lihtminevik ja kogemused”: academic value round 1 (topic „kultuur”)
 
 - Base: `main` f7dd6ef → merged with e2fc303, checked 2026-11-03. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row 5: kultuur (vaba aeg, ajalugu). Grammar line (simple past, -si- / -i- forms, time words, linking a story) and the Linnaleht story contest stay.
