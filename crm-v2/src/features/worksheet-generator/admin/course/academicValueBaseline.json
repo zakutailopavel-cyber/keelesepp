@@ -19,15 +19,6 @@
   "a2b1-033|*|av-know",
   "a2b1-034|*|av-know"
  ],
- "a2b1-module-08": [
-  "*|*|av-opener",
-  "*|*|av-record",
-  "*|*|av-retell",
-  "a2b1-036|*|av-know",
-  "a2b1-037|*|av-know",
-  "a2b1-039|*|av-know",
-  "a2b1-039|*|av-voice"
- ],
  "a2b1-module-09": [
   "*|*|av-opener",
   "*|*|av-retell",
@@ -134,7 +125,6 @@
   "a2b1-088|*|av-voice"
  ],
  "course:b1": [
-  "*|*|av-genres",
   "*|*|av-genres"
  ],
  "b1b2-module-01": [
