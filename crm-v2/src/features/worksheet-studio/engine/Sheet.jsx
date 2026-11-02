@@ -46,13 +46,17 @@ function Header({ meta }) {
 }
 
 // In a book (startPage set) pages carry the book page number; a single sheet shows "page/pages".
-const Footer = ({ meta, page, pages, bookPage }) => (
-  <div className="ws-ftr"><div className="ws-fl">KeeleSepp <small>by EP Koolitus</small></div><em>{meta.footer?.tagline}</em><div className="ws-url">{meta.footer?.url}{bookPage ? ` · ${bookPage}` : pages > 1 ? ` · ${page}/${pages}` : ''}</div></div>
+// `running` (Õpik): the book's own running head and footer line instead of the sheet's
+const Footer = ({ meta, page, pages, bookPage, running = null }) => (
+  <div className="ws-ftr"><div className="ws-fl">KeeleSepp <small>by EP Koolitus</small></div><em>{meta.footer?.tagline}</em><div className="ws-url">{running?.foot ?? meta.footer?.url}{bookPage ? ` · ${bookPage}` : pages > 1 ? ` · ${page}/${pages}` : ''}</div></div>
+);
+const RunHead = ({ meta, running }) => (
+  <div className={`ws-runhead${running ? ' is-book' : ''}`}><span>{running ? running.head?.[0] : meta.title}</span><span>{running ? running.head?.[1] : meta.level}</span></div>
 );
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, barSide = 'right', onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false, part = null, flow = false }) {
+function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, barSide = 'right', onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false, part = null, flow = false, entity = true }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = themedTone(theme, block.tone || 'white', TONES[block.tone] || TONES.white);
@@ -82,6 +86,8 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
     set: (k, v) => { if (!(k in example)) base.set(k, v); },
     state: (k) => (k in example ? undefined : base.state(k)),
   } : base;
+  // data-entity / data-block-id: the marks other tools attach to (the book's right-click menu); not on the hidden
+  // measuring copy, so a lookup by block id finds the drawn card
   return (
     <section
       className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm && !flow ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore && !flow ? 'joined-before' : ''} ${joinedAbove && !flow ? 'joined-above' : ''} ${joinedAfter && !flow ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''} ${dragging ? 'is-dragging' : ''} ${part ? (continued ? 'is-part-cont' : 'is-part-first') : ''} ${part && SPLITTABLE[block.type]?.stacked ? 'is-part-stack' : ''} ${look.head ? `head-${look.head}` : ''} ${look.num ? `num-${look.num}` : ''} ${extraClass}`}
@@ -89,6 +95,8 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
       data-size={flow ? undefined : opts.size || undefined}
       style={{ ...(plain ? {} : { background: tone.card }), ...(flow ? {} : { gridColumn: `span ${spanOf(block)}` }), ...(block.minHeightMm && !flow ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}), '--ws-badge': accent || tone.badge }}
       data-block={block.id}
+      data-entity={entity ? 'block' : undefined}
+      data-block-id={entity ? block.id : undefined}
       onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : onPick ? () => onPick(block.id) : undefined}
       ref={dndRef}
       {...(dndListeners || {})}
@@ -126,7 +134,7 @@ const NO_ANSWERS = () => ({ interactive: false, review: false, get: () => undefi
 export function BlockPreview({ block, theme = '' }) {
   return (
     <div className={`ws-root ws-thumb mode-print ${themeClass(theme)}`} aria-hidden="true" inert>
-      <div className="ws-thumb-page"><div className="ws-row"><Card block={{ ...block, span: COLUMNS, width: 'full' }} num={1} mode="print" ctx={NO_ANSWERS} theme={theme} /></div></div>
+      <div className="ws-thumb-page"><div className="ws-row"><Card block={{ ...block, span: COLUMNS, width: 'full' }} num={1} mode="print" ctx={NO_ANSWERS} theme={theme} entity={false} /></div></div>
     </div>
   );
 }
@@ -209,7 +217,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockClasses = null, flow = false }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockClasses = null, flow = false, running = null, lead = null }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
@@ -383,7 +391,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key, measuring = false, part = null) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} flow={flow} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} part={part} />; })}
+      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} flow={flow} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} part={part} entity={!measuring} />; })}
     </div>
   );
 
@@ -392,6 +400,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     return (
       <div ref={rootRef} className={`ws-root is-flow mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onKeyDown={mode === 'interactive' ? focusNextField : undefined}>
         <div className="ws-page">
+          {lead}
           <Header meta={doc.meta} />
           <div className="ws-flow">{rows.map((row, i) => rowView(row, i))}</div>
         </div>
@@ -404,18 +413,20 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
       {/* hidden measuring layer: a page of its own (same width, padding, font and theme as the real pages), grown to
           its content, so a row is measured exactly as it will be drawn */}
       <div className="ws-measure" ref={measureRef} aria-hidden="true"><div className="ws-page-measure">
-        <div className="ws-measure-head"><Header meta={doc.meta} /></div>
+        <div className="ws-measure-head">{running ? <RunHead meta={doc.meta} running={running} /> : null}{lead}<Header meta={doc.meta} /></div>
         {rows.map((row, i) => <div className="ws-measure-row" key={i}>{rowView(row, i, true)}</div>)}
         {rows.map((row, i) => (row.length === 1 && SPLITTABLE[row[0].type]?.stacked && canSplit(row[0], mode)
           ? <div className="ws-measure-stack" data-row={i} key={`s${i}`}>{rowView(row, `s${i}`, true, { from: 0, to: itemCount(row[0]) })}</div> : null))}
       </div></div>
       {pages.map((idxs, p) => (
         <div className={`ws-page${tallPages[p] ? ' is-tall' : ''}`} key={p}>
-          {p === 0 ? <Header key={`head:${rev}`} meta={doc.meta} /> : <div className="ws-runhead"><span>{doc.meta.title}</span><span>{doc.meta.level}</span></div>}
+          {p === 0
+            ? <>{running ? <RunHead meta={doc.meta} running={running} /> : null}{lead}<Header key={`head:${rev}`} meta={doc.meta} /></>
+            : <RunHead meta={doc.meta} running={running} />}
           <div className="ws-flow">{idxs.map((e) => (typeof e === 'number' ? rows[e] && rowView(rows[e], e) : rows[e.row] && rowView(rows[e.row], `${e.row}:${e.from}`, false, e)))}</div>
           {mode === 'edit' && idxs.length === 0 && (dnd ? <EmptyDrop /> : <div className="ws-empty">Lisa vasakult esimene plokk.</div>)}
           {dnd && mode === 'edit' && idxs.length > 0 ? <PageTailDrop page={p} lastId={lastBlockOf(rows, idxs)} /> : null}
-          <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} />
+          <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} running={running} />
         </div>
       ))}
       {rich ? <Suspense fallback={null}><RichInlineEditor key={`${rich.blockId}:${rich.path.join('.')}`} rect={rich.rect} value={rich.value} multiline={rich.multiline} textStyle={rich.textStyle}
