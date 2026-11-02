@@ -489,7 +489,7 @@ export const LESSONS = withShapes({
         'Kooli saab lõpetada ka täiskasvanuna. Täiskasvanud õpivad mittestatsionaarses õppes, näiteks täiskasvanute gümnaasiumis: tunde on vähem ja rohkem tuleb õppida iseseisvalt.',
         'Nii võib põhihariduse omandada 18-aastane ja vanem inimene. Õppida võib ka ainult üksikuid aineid. Kool, kus on mittestatsionaarne õpe, peab andma täiskasvanule ka võimaluse lõpetada kool eksternina.',
       ], 'Riigi Teataja, „Põhikooli- ja gümnaasiumiseadus”, § 22', 'Kas teadsid? Kool täiskasvanule'),
-      teach(tag(B.speaking('037_p_opinion', 'Kas töö juures peab õppima?', 'Arutage paaris. Ütle oma arvamus, too põhjus ja näide ning küsi, mida paariline arvab.', [
+      teach(tag(B.speaking('037_p_opinion', 'Kas töö juures peab õppima?', 'Räägi paarilisega õppimisest töö kõrval. Igale küsimusele ütle oma seisukoht ja üks põhjus, siis küsi, kas paariline on nõus.', [
         'Kas firma peaks töötaja keelekursuse eest maksma? Miks?',
         'Kas lõunapausil tohib õppida või peab puhkama?',
         'Mida sinu arvates peab iga töötaja oskama?',
