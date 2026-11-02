@@ -1,3 +1,12 @@
+## 2026-11-03 · agent/av-b1-module-02 — B1 module 2 „Mina, pere ja suhted”: academic value round 1
+
+- Base: `main` dd48b88, checked 2026-11-03. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; theme „families in Estonia” (§13.1).
+- Done (`admin/course/b1/module02.js`): 006 topic opener `006_d_opener` „Pered Eestis” (census 2021 families, 2025 births / marriages, same-sex marriage since 2024, family days; 4 „Mõtle kaasa” questions) and popsci text `006_d_names` (surnames 1826 / 1830–1835, 1935 name change, Tamm, Saaga) on Avasta; Helgi retelling `006_d_retell` cut; `006_d_photo` no longer a 3-2-1, now a picture talk comparing generations; match `006_d_family` moved to Harjuta (same id). 007 `007_t_know` (nursery / kindergarten place, alusharidusseadus 1.9.2025) + home-country question in `007_t_explain`; `007_p_radio` tagged interview. 008 `008_t_know` (found property, PPA); `008_p_forum` tagged forum. 009 article `009_d_names` (name days, mardi- and kadrisandid). 010 `010_d_warm` became the examiner set (`B.examiner`, 7 questions). Every fact sourced in its block; PR lists the URLs.
+- Baseline: module removed from `academicValueBaseline.json` (`UPDATE_ACADEMIC_BASELINE=1`). Other baselines unchanged.
+- Checks: `ACADEMIC_REPORT=a2b1-module-02` PASS; course report 5/5 READY (006 40/46/41, 007 42/41/43, 008 40/44/41, 009 48/40/51, 010 45/42/43 min); `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 134 files passed, 1 skipped (1526 tests, 9 skipped); language check 0 unknown lower-case words except the genre value `kusimustik` (pre-existing); eslint clean on the module.
+- Limits: `006_d_opener` / `006_d_names` add new words (aadlik, pärisorjus, leibkond) at A2+; 006 Avasta is at the 40-min floor. The radio interview `007_p_radio` (fictional expert, „8–12 € a tunnis”) was not changed (audio). Not published; no production writes.
+- Next safe step: after merge, B1 module 3 on `agent/av-b1-module-03`.
+
 ## 2026-11-02 · agent/academic-value-gates (PR #1002) — B1 / B2: academic-value standard, topic map and gates (no content rewritten)
 
 - Base: `main` be59926, checked 2026-11-02. Owner 2026-11-02: raise the modules' academic value; every sheet a real lesson; the textbook must open the exam topics wider than one cast episode (approved: change the module plan and the „one storyline” rule).
