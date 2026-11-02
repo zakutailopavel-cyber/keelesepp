@@ -92,6 +92,17 @@ function throttleAllows(recentTimestamps = [], nowMs = Date.now()) {
   return recentTimestamps.filter(ts => ts > hourAgo).length < MAX_PER_HOUR;
 }
 
+// Address for the per-hour limit. Google's front end APPENDS the real client address to X-Forwarded-For,
+// so only the last value can be trusted; anything before it the visitor can write himself. req.ip is no help:
+// without "trust proxy" Express gives the socket address, which is Google's front end, the same for everybody.
+// Checked on the deployed function on 2026-11-02: a request sending „198.51.100.7” arrived as „198.51.100.7, <real
+// address>”, and req.ip was the forged first value. The site calls the cloudfunctions.net URL directly; behind a
+// Hosting rewrite this would need a second look.
+function clientIpForThrottle(forwardedFor, fallbackIp = "") {
+  const parts = String(forwardedFor || "").split(",").map(part => part.trim()).filter(Boolean);
+  return parts.length ? parts[parts.length - 1] : String(fallbackIp || "").trim();
+}
+
 const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
 
 function composeWebsiteLeadEmail(lead, { to = "info@epkoolitus.ee" } = {}) {
@@ -126,4 +137,4 @@ function composeWebsiteLeadEmail(lead, { to = "info@epkoolitus.ee" } = {}) {
   return { to, subject, text, html, ...(lead.email ? { replyTo: lead.email } : {}) };
 }
 
-module.exports = { slotSummary, normalizeWebsiteLead, throttleAllows, composeWebsiteLeadEmail, MAX_PER_HOUR };
+module.exports = { slotSummary, normalizeWebsiteLead, throttleAllows, clientIpForThrottle, composeWebsiteLeadEmail, MAX_PER_HOUR };

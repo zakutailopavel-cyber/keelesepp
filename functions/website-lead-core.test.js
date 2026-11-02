@@ -1,7 +1,7 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { normalizeWebsiteLead, throttleAllows, composeWebsiteLeadEmail, MAX_PER_HOUR } = require("./website-lead-core");
+const { normalizeWebsiteLead, throttleAllows, clientIpForThrottle, composeWebsiteLeadEmail, MAX_PER_HOUR } = require("./website-lead-core");
 
 test("accepts a complete enquiry and normalises it", () => {
   const { lead } = normalizeWebsiteLead({ name: " Mari Maasikas ", email: "Mari@Example.EE", phone: "+372 5555 5555", language: "Eesti keel", level: "B1", message: "B1 eksam", locale: "ru" });
@@ -82,4 +82,18 @@ test("„Sobivad ajad”: an adult learner needs no parent", () => {
   assert.ok(result.lead, JSON.stringify(result));
   assert.match(composeWebsiteLeadEmail(result.lead).text, /täiskasvanud õpilane/);
   assert.deepEqual(normalizeWebsiteLead({ source: "availability", name: "Viktoria Tamm", phone: "55555555", slots: ["Mon-17:00"] }).errors, ["parentName"]);
+});
+
+test("throttle address is the one Google appends, not what the visitor wrote", () => {
+  assert.equal(clientIpForThrottle("203.0.113.7"), "203.0.113.7");
+  // a forged first value must not change the key
+  assert.equal(clientIpForThrottle("1.2.3.4, 203.0.113.7"), "203.0.113.7");
+  assert.equal(clientIpForThrottle("9.9.9.9, 1.2.3.4 ,203.0.113.7 "), "203.0.113.7");
+  assert.equal(clientIpForThrottle("2001:db8::1"), "2001:db8::1");
+});
+
+test("throttle address falls back to req.ip only when the header is missing or empty", () => {
+  assert.equal(clientIpForThrottle(undefined, "10.0.0.1"), "10.0.0.1");
+  assert.equal(clientIpForThrottle(" , ", "10.0.0.1"), "10.0.0.1");
+  assert.equal(clientIpForThrottle("", ""), "");
 });
