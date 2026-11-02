@@ -1,3 +1,13 @@
+## 2026-11-02 · agent/functions-deploy-record — all functions deployed with #959 and #967
+
+- Base: `main` 82ce0b8, checked 2026-11-02. Owner approved the deploy on 2026-11-02. #967, then #959 merged.
+- Deployed: `firebase deploy --only functions` from a clean checkout of 82ce0b8 after `npm ci`. All 30 functions (`functions/main.js` exports 30; „25” in #967 counted only `index.js`). No rules, no data change.
+- This also released server code that was on `main` but not yet live on the functions last deployed 2026-10-25 (made-up addresses refused, among others).
+- Checks: `npm test` in `functions` 431 of 431; 30 functions updated today, all ACTIVE; no ERROR entries in Cloud Functions logs in the 20 minutes up to the check; anonymous POST to `financeApi`, `invoiceApi`, `staffOperationsApi` gives 401; `crm.epkoolitus.ee` 200.
+- Not checked: a real e-mail through Zone SMTP with nodemailer 10 and a PDF. My click on „Saada proov mulle” was refused by the permission check, so no mail was sent. No invoice was sent to a client.
+- Known: Dependabot #976–#980 not merged. #978 is replaced by #967, #977 and #980 fail CI, #979 and #976 not reviewed.
+- Known: Vercel used $15 of its $20 credit by 2026-11-01, mostly build minutes; the credit resets 2026-11-08, usage above it is billed. Google Cloud charged 18,19 € on 2026-11-01 (0,13 € a month earlier); the cause is not found from the API.
+- Next safe step: the owner presses „Saada proov mulle” in Seaded → Kool → E-kirjad and later checks the PDF on the first real invoice.
 ## 2026-11-01 · agent/registration-fixes — registration: the administrator assigns the teacher, a parent gives the child's name, e-mail matches are suggestions
 
 - Base: `main` b13d41e, checked 2026-11-01. Redoes what is still missing and correct from draft #514 (2026-10-11); no deploy, no merge, no production access.
