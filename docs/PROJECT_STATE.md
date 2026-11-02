@@ -1,3 +1,9 @@
+## 2026-11-02 · agent/learner-goal-voice — the learner reads the sheet's goals in their own voice
+
+- Base: `main` after #988, checked 2026-11-02.
+- After checking a sheet the learner saw „Tulemus tunni eesmärkide kaupa” with goals written for the teacher („Õpilane mõistab …”). `GoalEvidence` with `learner` (only in `DocWorksheetPlayer`) shows them as „Ma mõistan …”: `learnerGoalText` in `worksheet-studio/engine/goals.js` turns the present tense's -b into -n, „on” into „olen”, keeps „ei”, and leaves other forms (past tense, plural subject) as written. Teacher views are unchanged; no content was edited.
+- Checks: `npx vitest run src/features/worksheet-studio` 67 files, 449 passed; eslint clean.
+- Next safe step: none needed; content agents may still write goals as „Ma oskan …”.
 ## 2026-11-02 · agent/lesson-sheet-finder — lesson board: find a lesson's sheets without remembering its title
 
 - Base: `main` after #987, checked 2026-11-02. Owner: a teacher does not remember all topics and lesson titles.

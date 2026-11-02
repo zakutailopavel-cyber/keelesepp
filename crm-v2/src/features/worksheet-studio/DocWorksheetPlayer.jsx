@@ -246,7 +246,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
         </div>
         </SheetAnnotations>
       </div>
-      {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
+      {checked ? <GoalEvidence doc={doc} evidence={checked} learner /> : null}
       {words.popup}
       {markLine}
       {submitted && !readOnly ? <section className="worksheet-assessment"><div><Star size={21} /><div><strong>Kuidas tööleht tundus?</strong><span>Tagasiside aitab õpetajal järgmisi ülesandeid kohandada.</span></div></div>{assessmentSaved ? <p><CheckCircle2 size={17} /> Tagasiside salvestatud. Aitäh!</p> : <><Select id="worksheet-difficulty" label="Raskusaste" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Vali</option><option value="1">Väga lihtne</option><option value="2">Lihtne</option><option value="3">Paras</option><option value="4">Raske</option><option value="5">Väga raske</option></Select><label className="textarea-field"><span>Kommentaar</span><textarea rows="3" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Mis oli raske või jäi arusaamatuks?" /></label><Button loading={saving} disabled={!difficulty} onClick={saveAssessment}>Saada tagasiside</Button></>}</section> : null}
@@ -267,7 +267,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       </div>
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong></div></div> : null}
-      {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
+      {checked ? <GoalEvidence doc={doc} evidence={checked} learner /> : null}
       {words.popup}
       {markLine}
     </article>;
@@ -294,6 +294,6 @@ export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, anno
         </div>
       </SheetAnnotations>
     </div>
-    <GoalEvidence doc={worksheetDoc} evidence={checked} />
+    <GoalEvidence doc={worksheetDoc} evidence={checked} learner />
   </div>;
 }
