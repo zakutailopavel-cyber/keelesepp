@@ -7954,16 +7954,12 @@ exports.websiteLeadApi = functions.runWith({ secrets: ["SMTP_PASS"] }).https.onR
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
-  // TEMPORARY (owner 2026-11-02, #989): the shape of X-Forwarded-For on this function, to choose the entry the hourly
-  // limit can trust. Addresses are cut to their first half; remove once #989 is decided.
-  const maskIp = (value) => { const ip = String(value || "").trim(); return ip.includes(":") ? `${ip.split(":").slice(0, 2).join(":")}:…` : ip.split(".").slice(0, 2).concat(ip ? ["x", "x"] : []).join("."); };
-  console.log("websiteLead xff shape", JSON.stringify({ xff: String(req.get("x-forwarded-for") || "").split(",").map(maskIp), ip: maskIp(req.ip) }));
   try {
-    const { normalizeWebsiteLead, throttleAllows, composeWebsiteLeadEmail } = require("./website-lead-core");
+    const { normalizeWebsiteLead, throttleAllows, clientIpForThrottle, composeWebsiteLeadEmail } = require("./website-lead-core");
     const result = normalizeWebsiteLead(req.body || {});
     if (result.spam) { res.status(200).json({ ok: true }); return; }
     if (result.errors) { res.status(400).json({ error: "invalid", fields: result.errors }); return; }
-    const ip = String(req.get("x-forwarded-for") || req.ip || "").split(",")[0].trim();
+    const ip = clientIpForThrottle(req.get("x-forwarded-for"), req.ip);
     const ipKey = require("crypto").createHash("sha256").update(`website-lead:${ip}`).digest("hex").slice(0, 32);
     const throttleRef = db.collection("websiteLeadThrottle").doc(ipKey);
     const nowMs = Date.now();
