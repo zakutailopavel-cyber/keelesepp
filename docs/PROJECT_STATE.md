@@ -1,3 +1,7 @@
+## 2026-11-02 · agent/c1-course-size — C1 course: owner's decisions on size, audio and course steps
+
+- `docs/COURSE_FINAL_SHAPE_C1.md` §10: courses are steps (B1 = A2→B1, B2 = B1→B2, C1 = B2→C1, `b2c1` main C1 course); audio synthetic (TartuNLP); size by the Estonian average: published C1 course volumes (median 250 ak h contact, ≈ 250 self-study; B2 median 240) scaled like our B2 (90 × 60 min = half of the group median) give 100 lessons × 60 min (20 modules of 5) plus self-study 1:1. Open: mock lengths, L3 scoring, moving between the two C1 courses.
+- No code change. The profile shape (`PROFILES.b2c1`) and the gates must be set to 20 × 5 in the first module PR.
 ## 2026-11-02 · agent/csp-enforce — the CRM's Content-Security-Policy is enforced
 
 - Base: `main` after #996, checked 2026-11-02. Follows #968 (report-only).
