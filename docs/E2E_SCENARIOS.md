@@ -24,11 +24,16 @@ On a failure: `test-results/<scenario>/` has the screenshot and `trace.zip` (`np
 Olga who is a student and a parent), their cards (Kristi's card carries her mother's e-mail) and one published lesson
 `e2e-001` „Minu päev” with a gaps block (5) and a choice block (5).
 
+The seeded cards lack what „Puuduvad andmed” asks for at login, so a student or parent meets that form first; only
+`homework-phone.spec.cjs` goes through it. Scenarios about something else call `completeCardData(...)` from
+`tests/helpers.cjs` (language, class or „Täiskasvanu”, suitable times) for their cards. Staff see the „what's new”
+notice once per browser after signing in; a scenario that has to click under it closes it with „Selge”.
+
 ## Scenarios
 
 | File | What is checked |
 | --- | --- |
-| `roles.spec.cjs` | the menu of each role: student, parent, student + parent, teacher (no finance/accounts), admin |
+| `roles.spec.cjs` | the menu of each role: student (Täna · Ülesanded · Kursus · Sõnad · Suhtlus), parent, student + parent, teacher (no finance/accounts), admin |
 | `registration.spec.cjs` | a new student registers → admin approves → own card on first login; a mother whose e-mail is on her child's card gets a review `email_on_child_card` → „Seo lapsevanemana” |
 | `invite.spec.cjs` | „Saada kutse” on Kaarel's card (he used his parent's login): the parent e-mail is refused, an own account is created and linked, the password is set from the e-mail link, he logs in to his own studies; a second click sends a new password link, never a second account |
 | `parent-invite.spec.cjs` | admin: „Lapsevanemad” → „Lisa lapsevanem” → child Toomas chosen (name and e-mail filled from his card) → a teacher's e-mail is refused → the parent login is created and linked (users role parent, card parentUid), the e-mail names the child, the parent sets the password from the link and sees Toomas; cleans up |
