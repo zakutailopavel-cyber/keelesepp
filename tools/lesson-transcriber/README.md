@@ -49,6 +49,11 @@ transcribed it keeps the Mac awake (`caffeinate`). Re-run the script after `git 
   lesson language (`et`, or `en` for English learners); both tracks are merged into one dialogue → `done`.
   Errors → `failed` with the message.
 - About once an hour: audio of `done`/`failed` recordings older than 60 days is deleted (`audioDeletedAt`).
+- Finished recordings are looked through for the lesson analysis at most every 5 minutes (`ANALYSIS_SCAN_SECONDS`,
+  right away after a transcription or an analysis), and only a few short fields are read; a full document (with its
+  transcript) is loaded only for a recording that still needs work. Pet numbers for old lessons are backfilled at start
+  and hourly. Reading every finished recording in full each minute cost about 5 GB of Firestore download a day in
+  October 2026 (Google Cloud bill 18,19 €).
 
 If the Mac is off, recordings wait and are processed when it is back. On an M-series Mac one hour of lesson takes a
 few minutes (a 15-second two-track test took about 2 seconds). Tests: `npm test`.

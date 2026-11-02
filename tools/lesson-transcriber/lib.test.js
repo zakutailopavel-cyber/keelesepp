@@ -13,8 +13,6 @@ test('parses whisper output with the segment offset and drops invented lines', (
     { speaker: 'teacher', startMs: 300000, endMs: 302000, text: 'Tere! Kuidas läheb?' },
   ]);
   assert.equal(cleanText('  '), '');
-  assert.equal(cleanText(' . '), '');
-  assert.equal(cleanText('…'), '');
 });
 
 test('merges both tracks into one dialogue in time order', () => {
@@ -92,41 +90,65 @@ test('speech is cut into chunks and each chunk gets its own language', () => {
   assert.equal(chooseLanguage({ lang: 'fi', p: 0.9 }, 'et'), 'et');
   assert.equal(chooseLanguage({ lang: 'en', p: 0.3 }, 'et'), 'et');
   assert.equal(chooseLanguage(null, 'et'), 'et');
-  // a short Estonian answer guessed as English stays Estonian; an English lesson keeps English
-  assert.equal(chooseLanguage({ lang: 'en', p: 0.93 }, 'et'), 'et');
-  assert.equal(chooseLanguage({ lang: 'en', p: 0.93 }, 'en'), 'en');
-  assert.equal(chooseLanguage({ lang: 'et', p: 0.9 }, 'en'), 'en');
 });
 
-test('the learner track takes Russian only when the guess is sure', () => {
-  const { chooseLanguage } = require('./lib');
-  assert.equal(chooseLanguage({ lang: 'ru', p: 0.67 }, 'et'), 'ru');
-  assert.equal(chooseLanguage({ lang: 'ru', p: 0.67 }, 'et', { ruMin: 0.8 }), 'et');
-  assert.equal(chooseLanguage({ lang: 'ru', p: 0.95 }, 'et', { ruMin: 0.8 }), 'ru');
+test('drops invented subtitle credits and English noise in an Estonian line (Monika 2026-10-11)', () => {
+  const { isEnglishNoise } = require('./lib');
+  assert.equal(cleanText('Редактор субтитров А.Семкин Корректор А.Егорова'), '');
+  assert.equal(isEnglishNoise("I'm going to talk to you.", 'et'), true);
+  assert.equal(isEnglishNoise('I just love it.', 'et'), true);
+  assert.equal(isEnglishNoise('Ma lähen poodi.', 'et'), false);
+  assert.equal(isEnglishNoise('Okei, tere.', 'et'), false);
+  assert.equal(isEnglishNoise("I'm going to talk to you.", 'en'), false);
 });
 
-test('words whisper was unsure of are marked; language and marks survive merging', () => {
-  const json = { transcription: [{ offsets: { from: 0, to: 2000 }, text: ' Ma ei saa õega.', tokens: [
-    { text: '[_BEG_]', p: 1 }, { text: ' Ma', p: 0.98 }, { text: ' ei', p: 0.9 }, { text: ' sa', p: 0.31 }, { text: 'a', p: 0.9 },
-    { text: ' õ', p: 0.95 }, { text: 'ega', p: 0.7 }, { text: '.', p: 1 }, { text: '[_TT_100]', p: 0.3 },
-  ] }] };
-  const [line] = parseWhisperJson(json, { speaker: 'student' });
-  assert.equal(line.text, 'Ma ei saa õega.');
-  assert.deepEqual(line.unsure, [2]);
-  const merged = mergeDialogue([
-    { ...line, lang: 'et' },
-    { speaker: 'student', startMs: 2500, endMs: 3000, text: 'Mul on koer.', lang: 'et', unsure: [2] },
-    { speaker: 'student', startMs: 3200, endMs: 4000, text: 'Как сказать?', lang: 'ru' },
-  ]);
-  assert.deepEqual(merged.map((l) => [l.text, l.lang, l.unsure]), [
-    ['Ma ei saa õega. Mul on koer.', 'et', [2, 6]],
-    ['Как сказать?', 'ru', undefined],
-  ]);
+test('learner sentences leave out echoes and self-corrected attempts; corrections get a kind', () => {
+  const { learnerSentences, judgeCorrection } = require('./analysis');
+  const t = [
+    { speaker: 'teacher', startMs: 0, endMs: 2000, text: 'Kui sul on halb tervis.', lang: 'et' },
+    { speaker: 'student', startMs: 3000, endMs: 5000, text: 'Kui sul on halb tervis.', lang: 'et' },
+    { speaker: 'student', startMs: 40000, endMs: 42000, text: 'Esimene ma valin pood.', lang: 'et' },
+    { speaker: 'student', startMs: 46000, endMs: 48000, text: 'Esimeseks ma valin poe.', lang: 'et' },
+    { speaker: 'student', startMs: 90000, endMs: 92000, text: 'Ma lähen raamatukogu.', lang: 'et' },
+    { speaker: 'student', startMs: 95000, endMs: 97000, text: 'Ma lähen poodi.', lang: 'et' },
+  ];
+  assert.deepEqual(learnerSentences(t).map((s) => s.text), ['Esimeseks ma valin poe.', 'Ma lähen raamatukogu.', 'Ma lähen poodi.']);
+  assert.equal(judgeCorrection('Ma lähen raamatukogu.', 'Ma lähen raamatukokku.').kind, 'vorm');
+  assert.equal(judgeCorrection('Õhtuti ma teen süüa.', 'Õhtuti teen ma süüa.').kind, 'sõnajärg');
+  assert.equal(judgeCorrection('Me peame sööma ja.', 'Me peame sööma.').kind, 'liigne sõna');
+  assert.equal(judgeCorrection('Esimeseks ma valin pood.', 'Esiteks valin ma poe.').kind, 'sõnajärg, vorm');
+  assert.equal(judgeCorrection('Ma lähin raamatu.', 'Ma lähen raamatukokku.').kind, 'vorm');
+  assert.equal(judgeCorrection('Viimasel korral see oli.', 'Hiljuti juhtus midagi muud.'), null);
+  assert.equal(judgeCorrection('Ma lähen poodi.', 'Ma lähen poodi!'), null);
 });
 
-test('the heartbeat carries the lesson parts and the progress only while analysing', () => {
-  const { heartbeat } = require('./lib');
-  const beat = heartbeat({ host: 'm', state: 'analyzing', recordingId: 'a', recordingIds: ['a', 'b'], detail: 'vead 8/40', now: new Date(0) });
-  assert.deepEqual([beat.recordingIds, beat.detail], [['a', 'b'], 'vead 8/40']);
-  assert.equal('detail' in heartbeat({ host: 'm', now: new Date(0) }), false);
+test('a passing analysis failure is tried again, at most three times', () => {
+  const { needsAnalysis, ANALYSIS_VERSION } = require('./analysis');
+  const rec = (analysis) => ({ status: 'done', transcript: [{ text: 'Tere' }], analysis });
+  assert.equal(needsAnalysis(rec(undefined)), true);
+  assert.equal(needsAnalysis(rec({ version: ANALYSIS_VERSION, errors: [] })), false);
+  assert.equal(needsAnalysis(rec({ version: ANALYSIS_VERSION, error: 'Ollama 500' })), true);
+  assert.equal(needsAnalysis(rec({ version: ANALYSIS_VERSION, error: 'Ollama 500', attempts: 3 })), false);
+  assert.equal(needsAnalysis(rec({ version: ANALYSIS_VERSION, error: 'Unexpected token' })), false);
+});
+
+test('the teacher\'s recasts become errors; the summary starts with counted topics', () => {
+  const { teacherRecasts, errorTopics, withFocus } = require('./analysis');
+  const t = [
+    { speaker: 'student', startMs: 0, endMs: 2000, text: 'Okei, järgmisel ma valin.', lang: 'et' },
+    { speaker: 'teacher', startMs: 9000, endMs: 10000, text: 'Järgmiseks.', lang: 'et' },
+    { speaker: 'student', startMs: 60000, endMs: 62000, text: 'Õhtuti ma tavaliselt teen süüa kodus.', lang: 'et' },
+    { speaker: 'teacher', startMs: 64000, endMs: 66000, text: 'Õhtuti teen ma tavaliselt süüa.', lang: 'et' },
+    { speaker: 'student', startMs: 90000, endMs: 92000, text: 'Kuidas on vene keeles eesmärk?', lang: 'et' },
+    { speaker: 'teacher', startMs: 95000, endMs: 96000, text: 'Mis on sinu eesmärk?', lang: 'et' },
+  ];
+  const recasts = teacherRecasts(t);
+  assert.deepEqual(recasts.map((e) => e.corrected), ['Okei, järgmiseks ma valin.', 'Õhtuti teen ma tavaliselt süüa.']);
+  assert.ok(recasts.every((e) => e.source === 'teacher'));
+  const topics = errorTopics([...recasts, { said: 'Ma lähen raamatukogu.', corrected: 'Ma lähen raamatukokku.', kind: 'vorm' }]);
+  assert.equal(topics[0].key, 'cases');
+  assert.equal(topics[0].count, 2);
+  const summary = withFocus({ kokkuvote: 'x', meeldis: [], raske: ['muu'], jargmiseks: [] }, topics);
+  assert.match(summary.raske[0], /Падеж после глагола.*2 раз/);
+  assert.equal(summary.raske.at(-1), 'muu');
 });

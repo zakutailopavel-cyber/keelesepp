@@ -14,7 +14,16 @@
 //    to the learner): lines with unsure words, foreign fragments and form lists are left out; `speech` counts the
 //    learner's words and Estonian words the same way, `checked` how many sentences were checked
 // 5: the summary retells in its own words (no copied lines) and „meeldis” holds only what went well
-const ANALYSIS_VERSION = 5;
+// 6: cleaner errors (owner 2026-10-11, Monika's lesson): invented subtitle lines and English noise are left out of
+//    old transcripts too; a learner's sentence that repeats the teacher's line (echo, reading after the teacher) or
+//    that the learner corrects himself within a few seconds is not judged; a „correction” that rewrites more than
+//    half of the sentence is the model's guess and is dropped; every error gets a kind (sõnajärg, vorm, sõna puudu,
+//    liigne sõna, sõnavara)
+// 7: the teacher's recasts are errors too, and the most reliable ones (the teacher repeats the learner's sentence or
+//    word correctly within a few seconds: „Ma lähen raamatukogu.” — „Raamatukokku.”); the summary gets the error
+//    topics counted from the errors (word order, cases after a verb, verb forms…) and „raske” starts with them, so
+//    the advice is about this learner's real errors, not general words (owner 2026-10-11)
+const ANALYSIS_VERSION = 7;
 const MAX_SENTENCES = 60;
 const MAX_TRANSCRIPT_CHARS = 60000;
 
@@ -53,7 +62,42 @@ function knownEnough(text, forms) {
   return unknown <= 1 && unknown / list.length <= 0.5;
 }
 
+// word overlap of two sentences (0…1, of the shorter one), for echoes and self-corrections
+const bag = (s) => plain(s).split(' ').filter(Boolean);
+// the same word, maybe in another form (raamatukogu ~ raamatukokku, pood ~ poe, sõbrad ~ sõpru); short words exactly
+function sameWord(w, x) {
+  if (w === x) return true;
+  if (w.length <= 2 || x.length <= 2) return false;
+  return w.slice(0, 3) === x.slice(0, 3) || (Math.min(w.length, x.length) <= 4 && w.slice(0, 2) === x.slice(0, 2));
+}
+// `b` repairs `a`: a word of `a` comes back in another form, or the same words come in another order
+// („Ma lähen poodi. Ma lähen kooli.” are two sentences, „Esimene ma valin pood. Esimeseks ma valin poe.” a repair)
+function repairs(a, b) {
+  const A = bag(a); const B = bag(b);
+  if (A.some((w) => !B.includes(w) && B.some((x) => x !== w && sameWord(w, x)))) return true;
+  return A.length === B.length && [...A].sort().join(' ') === [...B].sort().join(' ');
+}
+// how many words of `a` are in `b` (in some form)
+const matched = (a, b) => { const B = bag(b); return bag(a).filter((w) => B.some((x) => sameWord(w, x))).length; };
+const ECHO_MS = 20000; // the learner repeats the teacher's line within this time
+const SELF_FIX_MS = 30000; // the learner says the sentence again, corrected, within this time (the teacher may help between)
+
 function learnerSentences(transcript = [], lang = 'et', forms = null) {
+  const all = rawLearnerSentences(transcript, lang, forms);
+  const teacher = transcript.filter((l) => l.speaker === 'teacher');
+  return all.filter((s, i) => {
+    // an echo: the teacher said (almost) the same just before — repeating or reading after the teacher
+    const n = bag(s.text).length;
+    if (n >= 3 && teacher.some((t) => t.startMs <= s.startMs && s.startMs - t.startMs <= ECHO_MS && plain(t.text).length && matched(s.text, t.text) / n >= 0.8 && bag(t.text).length >= n - 1)) return false;
+    // a self-correction: the learner's next sentence soon after is the same sentence said differently
+    const next = all[i + 1];
+    const m = next ? bag(next.text).length : 0;
+    if (next && n >= 2 && m >= 2 && next.startMs - s.startMs <= SELF_FIX_MS && plain(next.text) !== plain(s.text) && matched(s.text, next.text) / Math.max(n, m) >= 0.6 && repairs(s.text, next.text)) return false;
+    return true;
+  }).slice(0, MAX_SENTENCES);
+}
+
+function rawLearnerSentences(transcript = [], lang = 'et', forms = null) {
   const out = [];
   for (const line of transcript) {
     if (line.speaker !== 'student') continue;
@@ -65,7 +109,7 @@ function learnerSentences(transcript = [], lang = 'et', forms = null) {
       if (words(text).length < 2 || CYRILLIC.test(text) || !/\p{L}/u.test(text)) continue;
       if (lang === 'et' && (!looksEstonian(text) || isFormList(text) || !knownEnough(text, forms))) continue;
       out.push({ startMs: line.startMs, text, unsure: false });
-      if (out.length >= MAX_SENTENCES) return out;
+      if (out.length >= MAX_SENTENCES * 2) return out;
     }
   }
   return out;
@@ -79,9 +123,127 @@ function isCorrection(said, corrected) {
   return Boolean(a && b) && a !== b;
 }
 
+// The GEC model's answer as an error: null when nothing changed or when the „correction” rewrote more than half of
+// the words (then it guessed a different sentence: „Esimene ma saan pood” → „Esimene, kust ma saan poe”), else the
+// kind of change
+function lcs(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 1; i <= a.length; i += 1) for (let j = 1; j <= b.length; j += 1) dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+  return dp[a.length][b.length];
+}
+function errorKind(said, corrected) {
+  const a = bag(said); const b = bag(corrected);
+  const kinds = [];
+  const gone = a.filter((w) => !b.includes(w)); const added = b.filter((w) => !a.includes(w));
+  const formOf = gone.filter((w) => added.some((x) => sameWord(w, x)));
+  const otherGone = gone.filter((w) => !formOf.includes(w));
+  const otherAdded = added.filter((x) => !formOf.some((w) => sameWord(w, x)));
+  // the order of the words both sentences have (in some form) changed
+  const keyOf = (list) => list.map((w) => w.slice(0, 3));
+  const common = a.filter((w) => b.some((x) => sameWord(w, x)));
+  const inB = b.filter((x) => a.some((w) => sameWord(w, x)));
+  if (common.length > 1 && lcs(keyOf(common), keyOf(inB)) < Math.min(common.length, inB.length)) kinds.push('sõnajärg');
+  if (formOf.length) kinds.push('vorm');
+  if (otherGone.length && otherAdded.length) kinds.push('sõnavara');
+  else if (otherAdded.length) kinds.push('sõna puudu');
+  else if (otherGone.length) kinds.push('liigne sõna');
+  return kinds.join(', ') || 'vorm';
+}
+function judgeCorrection(said, corrected) {
+  if (!isCorrection(said, corrected)) return null;
+  const n = bag(said).length;
+  if (n >= 3 && matched(said, corrected) / n < 0.5) return null;
+  return { kind: errorKind(said, corrected) };
+}
+
+// ── the teacher's recasts ──
+const RECAST_MS = 20000;
+const sentencesIn = (text) => String(text || '').split(/(?<=[.!?…])\s+/).map((x) => x.trim()).filter(Boolean);
+function replaceWord(text, from, to) {
+  const re = new RegExp(`(^|[^\\p{L}])${from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=$|[^\\p{L}])`, 'iu');
+  return re.test(text) ? text.replace(re, (m, pre) => `${pre}${to}`) : '';
+}
+function teacherRecasts(transcript = [], lang = 'et', forms = null) {
+  const learner = rawLearnerSentences(transcript, lang, null);
+  const teacher = transcript.filter((l) => l.speaker === 'teacher' && (l.lang ? l.lang === lang : !CYRILLIC.test(l.text)));
+  const out = [];
+  for (const s of learner) {
+    const n = bag(s.text).length;
+    if (n < 2) continue;
+    let corrected = '';
+    for (const line of teacher.filter((l) => l.startMs > s.startMs && l.startMs - s.startMs <= RECAST_MS)) {
+      for (const t of sentencesIn(line.text)) {
+        const m = bag(t).length;
+        // a question is not a recast; misheard teacher speech („Eesmärkide tell”) has words that do not exist
+        if (!m || plain(t) === plain(s.text) || CYRILLIC.test(t) || /\?/.test(t) || !knownEnough(t, forms)) continue;
+        // the whole sentence again, corrected
+        if (m >= 2 && m <= n + 4 && matched(s.text, t) / n >= 0.5 && matched(t, s.text) / m >= 0.5 && judgeCorrection(s.text, t)) { corrected = t; break; }
+        // only the corrected word, one word alone („Raamatukokku.”, „Järgmiseks.”)
+        if (m === 1) {
+          const pair = bag(s.text).flatMap((w) => bag(t).filter((x) => x !== w && sameWord(w, x) && x.length >= 3).map((x) => [w, x]))[0];
+          const fixed = pair ? replaceWord(s.text, pair[0], pair[1]) : '';
+          if (fixed && plain(fixed) !== plain(s.text)) { corrected = fixed; break; }
+        }
+      }
+      if (corrected) break;
+    }
+    if (corrected) out.push({ startMs: s.startMs, said: s.text, corrected, kind: errorKind(s.text, corrected), source: 'teacher' });
+  }
+  return out;
+}
+
+// ── error topics for the teacher (counted, with examples) ──
+const CASE_END = /(sse|kku|st|lt|le|ks|ga|ni|na|ta|s|l)$/;
+const VERB_END = /(ma|da|ta|n|b|d|me|te|vad|sin|sid|si|s)$/;
+const TOPICS = {
+  order: 'Порядок слов: глагол на втором месте (Õhtuti teen ma…, Kuna…, ei tulnud ma)',
+  cases: 'Падеж после глагола и места: kuhu? kus? kust? kellega? (lähen raamatukokku, ostan poest)',
+  verb: 'Формы глагола: время, лицо, ma-/da-инфинитив',
+  form: 'Формы слов: падеж и число (palju sõpru, valin poe)',
+  missing: 'Пропущенные слова (on, et, see, oma)',
+  extra: 'Лишние слова',
+  vocab: 'Выбор слова',
+};
+function errorTopicKeys(e) {
+  const keys = new Set();
+  const kind = String(e.kind || '');
+  if (kind.includes('sõnajärg')) keys.add('order');
+  if (kind.includes('sõna puudu')) keys.add('missing');
+  if (kind.includes('liigne sõna')) keys.add('extra');
+  if (kind.includes('sõnavara')) keys.add('vocab');
+  if (kind.includes('vorm')) {
+    const a = bag(e.said); const b = bag(e.corrected);
+    const pairs = a.filter((w) => !b.includes(w)).flatMap((w) => b.filter((x) => !a.includes(x) && sameWord(w, x)).map((x) => [w, x]));
+    for (const [, x] of pairs) keys.add(CASE_END.test(x) && x.length > 4 ? 'cases' : VERB_END.test(x) ? 'verb' : 'form');
+    if (!pairs.length) keys.add('form');
+  }
+  return [...keys];
+}
+function errorTopics(errors = [], limit = 4) {
+  const map = new Map();
+  for (const e of errors) for (const key of errorTopicKeys(e)) {
+    const item = map.get(key) || { key, topic: TOPICS[key], count: 0, teacher: 0, examples: [] };
+    item.count += 1;
+    if (e.source === 'teacher') item.teacher += 1;
+    if (item.examples.length < 2 || (e.source === 'teacher' && !item.examples.some((x) => x.source === 'teacher'))) {
+      item.examples = [...item.examples, { said: e.said, corrected: e.corrected, source: e.source || 'gec' }].sort((x, y) => (y.source === 'teacher') - (x.source === 'teacher')).slice(0, 2);
+    }
+    map.set(key, item);
+  }
+  return [...map.values()].sort((a, b) => b.teacher - a.teacher || b.count - a.count).slice(0, limit);
+}
+const focusLine = (t) => `${t.topic} — ${t.count} раз: ${t.examples.map((x) => `«${x.said}» → «${x.corrected}»`).join('; ')}`.slice(0, 300);
+// the summary's „raske” starts with the counted topics (at most 3), the model's own points follow
+function withFocus(summary, topics = []) {
+  const lines = topics.filter((t) => t.count >= 2).slice(0, 3).map(focusLine);
+  if (!lines.length) return summary;
+  const base = summary || { kokkuvote: '', meeldis: [], raske: [], jargmiseks: [] };
+  return { ...base, raske: [...lines, ...(base.raske || [])].slice(0, 5) };
+}
+
 const GEC_PROMPT = (sentence) => `### Instruction:\nReply with a corrected version of the input sentence in Estonian with all grammatical and spelling errors fixed. If there are no errors, reply with a copy of the original sentence.\n\n### Input:\n${sentence}\n\n### Response:\n`;
 
-function summaryPrompt(transcript = []) {
+function summaryPrompt(transcript = [], topics = []) {
   let text = transcript.map((l) => `[${clock(l.startMs)}] ${l.speaker === 'student' ? 'Õpilane' : 'Õpetaja'}: ${l.text}`).join('\n');
   if (text.length > MAX_TRANSCRIPT_CHARS) text = `${text.slice(0, MAX_TRANSCRIPT_CHARS)}\n[…]`;
   return `Ты опытный методист, преподаватель эстонского языка как второго. Ниже расшифровка урока эстонского языка (автоматическое распознавание речи, возможны ошибки распознавания). «Õpilane» — ученик, «Õpetaja» — учитель. Родной язык ученика обычно русский.
@@ -90,7 +252,10 @@ function summaryPrompt(transcript = []) {
 {"kokkuvote": "2-3 предложения о том, что было на уроке", "meeldis": ["что ученику понравилось или где он был активен — с доказательством из текста"], "raske": ["что было трудно: где ученик запинался, переходил на русский, отвечал односложно"], "jargmiseks": ["2-3 конкретных совета на следующий урок"]}
 Пиши своими словами, коротко (одно предложение на пункт), не копируй реплики целиком. В «meeldis» — только то, что у ученика получилось или где он был активен (не трудности). В «raske» — конкретные языковые трудности (какие формы, слова, темы). В «jargmiseks» — что делать на следующем уроке, без цитат. Опирайся только на реплики с пометкой «Õpilane»; слова учителя («Õpetaja») никогда не приписывай ученику. Списки форм одного слова («käsi, käe, kätt») — это чтение таблицы, а не ошибки речи. Обрывки на английском или другом языке — скорее всего ошибки распознавания, не делай по ним выводов. В каждом пункте не больше двух отметок времени вида 12:34. Не придумывай того, чего нет в тексте. Технические проблемы со связью не анализируй. Если доказательств нет, оставь список пустым.
 
-Расшифровка:
+${topics.length ? `Проверенные факты об ошибках ученика (посчитаны по уроку, на них опирай «raske» и «jargmiseks»; советы — конкретно по этим темам, с примером исправления):
+${topics.map((t) => `- ${focusLine(t)}`).join('\n')}
+
+` : ''}Расшифровка:
 ${text}`;
 }
 
@@ -118,7 +283,7 @@ function joinedTranscript(parts = []) {
   return parts.flatMap((part) => {
     const shift = Math.max(0, (Date.parse(part.startedAt || '') || t0) - t0);
     return (part.transcript || []).map((l) => ({ ...l, startMs: (l.startMs || 0) + shift, endMs: (l.endMs || 0) + shift }));
-  });
+  }).filter((l) => cleanText(l.text) && !isEnglishNoise(l.text, l.lang || 'et'));
 }
 // a lesson is analysed once all its parts are finished (done or failed)
 const partsFinished = (parts) => parts.every((p) => p.status === 'done' || p.status === 'failed');
@@ -127,6 +292,7 @@ const partsFinished = (parts) => parts.every((p) => p.status === 'done' || p.sta
 // The CRM's ES modules are loaded once (dynamic import); in the installed copy they sit in ./didactics, in the
 // repository in crm-v2/src/features/worksheet-studio/didactics.
 const fs = require('node:fs');
+const { cleanText, isEnglishNoise } = require('./lib');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const DIDACTICS_DIRS = [process.env.DIDACTICS_DIR, path.join(__dirname, 'didactics'), path.join(__dirname, '../../crm-v2/src/features/worksheet-studio/didactics')].filter(Boolean);
@@ -281,9 +447,13 @@ function summarizeEvaluation(data, level = 'A2') {
 const sentencesOf = (text) => String(text || '').replace(/\s+/g, ' ').split(/(?<=[.!?…])\s+/).map((x) => x.trim()).filter((x) => wordsOf(x) >= 2);
 
 // a finished recording with a transcript still waiting for (this version of) the analysis
+const PASSING = /Ollama 5\d\d|timeout|aborted|fetch failed|DEADLINE/i;
 function needsAnalysis(rec = {}) {
-  return rec.status === 'done' && Array.isArray(rec.transcript) && rec.transcript.length > 0
-    && !(rec.analysis && rec.analysis.version >= ANALYSIS_VERSION);
+  if (!(rec.status === 'done' && Array.isArray(rec.transcript) && rec.transcript.length > 0)) return false;
+  const a = rec.analysis;
+  if (!(a && a.version >= ANALYSIS_VERSION)) return true;
+  // a passing failure of this version is tried again (three attempts in all)
+  return Boolean(a.error) && a.version === ANALYSIS_VERSION && PASSING.test(a.error) && (Number(a.attempts) || 1) < 3;
 }
 
 // the EKI grammar of a profile key: topics new on the level (targets) and those before (known)
@@ -296,4 +466,4 @@ function ekiGrammar(profile, key) {
 }
 
 module.exports = {
-  looksEstonian, isFormList, learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
+  looksEstonian, isFormList, learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, judgeCorrection, errorKind, teacherRecasts, errorTopics, withFocus, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
