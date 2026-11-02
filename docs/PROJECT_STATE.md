@@ -4,8 +4,34 @@
 - Change: new pure helper `clientIpForThrottle` in `functions/website-lead-core.js` takes the last `X-Forwarded-For` value (the one Google's front end appends), falls back to `req.ip` only when the header is empty; `websiteLeadApi` in `functions/index.js` uses it. Throttle doc ids (`websiteLeadThrottle`) change for existing visitors once, so the counters effectively restart. No other function in `functions/` reads `X-Forwarded-For` or `req.ip`.
 - Assumption: the site calls the `cloudfunctions.net` URL directly (index.html, ru/index.html, tasemetest.html). Behind a Firebase Hosting rewrite the last value would be a Hosting address, so this would need a second look.
 - Checks: `npm test` in `functions` 433 of 433 passed (2 new tests).
-- Deploy after merge, owner permission: `firebase deploy --only functions:websiteLeadApi`. Not deployed.
+- Checked live (#993, 2026-11-02): a request sending X-Forwarded-For „198.51.100.7” arrived as „198.51.100.7, <real address>”; `req.ip` was the forged first value. So the last value is the client. The temporary log from #993 is removed here.
+- Deploy after merge: `firebase deploy --only functions:websiteLeadApi`.
 - Next safe step: after the deploy, send one test enquiry from the site and check it arrives at info@.
+## 2026-11-02 · agent/lead-xff-shape-log — temporary: log the shape of X-Forwarded-For on websiteLeadApi
+
+- Owner approved a deploy to check the header (2026-11-02). Logs `websiteLead xff shape` with each entry cut to its first half (IPv4 `a.b.x.x`), plus `req.ip`, on every POST. Used to decide #989 (which entry the hourly limit can trust). Remove with #989.
+- Deploy: `firebase deploy --only functions:websiteLeadApi`.
+## 2026-11-02 · agent/calendar-note-follows-move — the administrator's note stays with a lesson moved to another day
+
+- Base: `main` after #990, checked 2026-11-02. Bug from Oleksiy (chat, 2026-11-02): moving a lesson to another day lost its „Admini märkus”.
+- Cause: `lessonNotes` ids are `{scheduleId}` (series) or `{scheduleId}_{date}`. A moved one-off keeps its id and changes its date; a series lesson moved alone becomes a new one-off; a series moved from a date on becomes a new series. The notes stayed under the old keys.
+- Fix in `notesFor` (`services/firebase/lessonNotes.js`), read side only, no data written: a one-off lesson takes its newest dated note of any date; a moved series lesson takes the note of `movedFromSeriesId`/`movedFromDate` and that series' note (its own note first); a continued series takes the note of `continuesSeriesId`. Notes lost earlier come back on their own. Substitution („Asendab”) uses the same move fields, so it is covered.
+- Checks: new `lessonNotes.test.js`; `npx vitest run src/services/firebase/lessonNotes.test.js src/features/calendar` 28 files, 206 passed; eslint clean.
+- Next safe step: Oleksiy moves a lesson with a note and confirms the note is there.
+## 2026-11-02 · agent/e2e-homework-roles — browser scenarios `homework` and `roles` pass again
+
+- Base: `main` fd4babf (after #988), checked 2026-11-02. Tests and docs only; no app code, no deploy, no production access.
+- Causes (all four failed on unchanged `main`; the tests were outdated, no app bug): the three `roles` learners/parents stopped at the „Puuduvad andmed” gate (seeded cards lack language, times, class), so no menu appeared; `homework` was blocked by the staff „what's new” notice over „Määra õpilastele”; the student menu is now Täna · Ülesanded · Kursus · Sõnad · Suhtlus.
+- Done: `e2e/tests/helpers.cjs` `completeCardData(...cards)` (emulator only: `preferredLanguage`, `grade: 'Täiskasvanu'` for an adult card, two slots in `studentAvailability`); `roles.spec.cjs` uses it and checks the new student menu; `homework.spec.cjs` uses it, closes the notice with „Selge” and removes Anna's earlier assignments so it does not depend on the spec order; `docs/E2E_SCENARIOS.md`.
+- Checks: `./run.sh tests/homework.spec.cjs tests/roles.spec.cjs` 6 passed; with `homework-phone` first, homework and roles pass too; eslint (crm-v2 config, node globals) clean on the three files.
+- Known: the full run (`./run.sh`) has 10 other failures, out of scope here and not diagnosed one by one: the admin scenarios time out on a click, most likely under the same „what's new” notice (combined-invoice, invite, lesson-tokens, parent-edit, parent-invite, payment-check, registration ×2, rooms), and `homework-phone` looks for `.assigned-worksheet-list`, which the new Ülesanded page no longer has.
+- Next safe step: the same fix for the admin scenarios (close „Selge” after the admin's login) and the new task list selector in `homework-phone.spec.cjs`.
+## 2026-11-02 · agent/learner-goal-voice — the learner reads the sheet's goals in their own voice
+
+- Base: `main` after #988, checked 2026-11-02.
+- After checking a sheet the learner saw „Tulemus tunni eesmärkide kaupa” with goals written for the teacher („Õpilane mõistab …”). `GoalEvidence` with `learner` (only in `DocWorksheetPlayer`) shows them as „Ma mõistan …”: `learnerGoalText` in `worksheet-studio/engine/goals.js` turns the present tense's -b into -n, „on” into „olen”, keeps „ei”, and leaves other forms (past tense, plural subject) as written. Teacher views are unchanged; no content was edited.
+- Checks: `npx vitest run src/features/worksheet-studio` 67 files, 449 passed; eslint clean.
+- Next safe step: none needed; content agents may still write goals as „Ma oskan …”.
 ## 2026-11-02 · agent/lesson-sheet-finder — lesson board: find a lesson's sheets without remembering its title
 
 - Base: `main` after #987, checked 2026-11-02. Owner: a teacher does not remember all topics and lesson titles.

@@ -9,3 +9,14 @@ export function goalEntries(goals) {
   }
   return Object.entries(goals && typeof goals === 'object' ? goals : {}).map(([id, value]) => [id, goalText(value)]);
 }
+
+// A goal written for the teacher („Õpilane mõistab teksti põhiideed”) read by the learner in their own voice
+// („Ma mõistan teksti põhiideed”): the present tense's -b becomes -n, „on” „olen”, „ei” stays. Any other form
+// (a past tense, a plural subject) is left as written.
+export function learnerGoalText(text) {
+  const match = /^\s*(?:Õpilane|Õppija)\s+(\S+)(.*)$/su.exec(String(text || ''));
+  if (!match) return String(text || '');
+  const [, verb, rest] = match;
+  const own = verb === 'on' ? 'olen' : verb === 'ei' ? 'ei' : /[aeiouõäöü]b$/u.test(verb) ? `${verb.slice(0, -1)}n` : '';
+  return own ? `Ma ${own}${rest}` : String(text);
+}
