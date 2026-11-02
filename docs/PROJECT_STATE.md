@@ -1,3 +1,16 @@
+## 2026-11-03 · agent/av-b1-module-03 — B1 module 3 (a2b1-011…015): academic value round 1
+
+- Base: `main` dd48b88 (after #1002), checked 2026-11-03. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row: maja ja kodu (+ ümbruskond, kohad).
+- 011: topic opener `011_d_open` „Teema avaleht: kuidas Eesti elab” (census 2021: flat 67,9 % / house 29,3 %, Estonians 36 % vs Russians 8 % in houses, 71,9 % own / 18,3 % rent, average building 1965 / flat 1972, a quarter of dwellings without permanent residents; Tallinn's 8 districts, Lasnamäe ≈ 115 000 on 1.1.2026; 4 „Mõtle kaasa” questions incl. home country); `011_d_pic` one-minute picture talk + opinion (was 3 listeners); `011_p_radio` tagged `voice: 'interview'`.
+- 012: article `012_p_reg` (text, `voice: 'article'`) on registering one's address (14 days, eesti.ee, owner's consent or tenancy contract, services that depend on it) + gaps `012_p_regq` (tag R15); `012_d_moves` pair talk + Estonia vs home country (was 3 listeners).
+- 013: „Kas teadsid?” `013_t_know` (Tallinn's participatory budget „Koos loodud linn”); opinion question in `013_t_rec`; `013_p_districts` „kõige rohelisem” → „väga roheline”. `013_p_432` is the module's one retelling.
+- 014: forum `014_d_forum` (`voice: 'forum'`, tag R14: a cold home in winter); „Kas teadsid?” `014_t_know` (korteriühistu, KrtS); `014_p_three` pair way description with a map + home-country question (was 3 times).
+- 015: `015_d_warm` became the examiner set (`B.examiner`, „kodu ja elukoht”, 7 questions, same id).
+- Files: `b1/module03.js`, `academicValueBaseline.json` (module 3 removed), `tools/course-audit/language-allow.txt` (kusimustik, same line as PR #1005). No listening transcript changed, no new audio.
+- Checks: `ACADEMIC_REPORT=a2b1-module-03` PASS; course report 5/5 READY (011 41/45/40, 012 41/44/55, 013 44/40/52, 014 48/41/42 min); language check 0 unknown lower-case; eslint clean; `npx vitest run src/features/worksheet-generator src/features/worksheet-studio`: 1525 passed, **1 failed: `worksheet-studio/engine/gradingPin.test.js` b1m03** — the grading pin uses this module's live content as its fixture (`gradingPin.golden.js`, written from main 78d6b72), so any rewrite of module 3 changes its digest (011/d, 012/p, 014/d, 014/p, 015/d). Grading code is unchanged; `worksheet-studio/**` is forbidden for content agents, so the golden was not regenerated.
+- Limits: facts checked on the web 2026-11-03 (sources in the PR); the forum, radio and cast scenes are invented people. Not published; nothing in production touched.
+- Next safe step: the owner / UI agent decides on the grading pin (regenerate `b1m03` in `gradingPin.golden.js`, or pin an archived copy of module 3), then review and merge.
+
 ## 2026-11-02 · agent/academic-value-gates (PR #1002) — B1 / B2: academic-value standard, topic map and gates (no content rewritten)
 
 - Base: `main` be59926, checked 2026-11-02. Owner 2026-11-02: raise the modules' academic value; every sheet a real lesson; the textbook must open the exam topics wider than one cast episode (approved: change the module plan and the „one storyline” rule).
