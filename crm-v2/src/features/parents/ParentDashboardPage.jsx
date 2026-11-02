@@ -15,7 +15,6 @@ import { taskCount, taskDueText } from '../homework/taskList.js';
 import { ChildrenMonthSteps } from '../learner/MonthStepsCard.jsx';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 import OpenInvoicesCard from '../payments/OpenInvoicesCard.jsx';
-import LessonTokensCard from '../students/LessonTokensCard.jsx';
 import RescheduleDialog from '../students/RescheduleDialog.jsx';
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
 import SubjectSwitcher from '../students/SubjectSwitcher.jsx';
@@ -100,7 +99,7 @@ function ChildCard({ child, summary, subjects, onlyOneSubject, lessonRequest, on
   </article>;
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, tokensApi, announcementService }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService }) {
   const { user, preview } = useAuth();
   const location = useLocation();
   const [rescheduling, setRescheduling] = useState(null);
@@ -185,8 +184,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
     <div className="pd-sections">
       <Section id="tunnid" title="Tunnid" ru="уроки" summary={[upcoming.length ? `${upcoming.length} ${upcoming.length === 1 ? 'tund' : 'tundi'} plaanis` : 'Tunde ei ole plaanis', 'läbitud tunnid ja puudumised'].join(' · ')} open={openSection === 'tunnid'} onToggle={() => toggle('tunnid')}>
         <Card><div className="section-heading"><div><h2>Järgmised tunnid<Ru>следующие уроки</Ru></h2></div></div>{upcoming.length ? <div className="simple-list parent-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{day(lesson.occurrenceDate)} · {lesson.time}</strong><span>{[subjectTag(lesson), lesson.teacher || 'Õpetaja'].filter(Boolean).join(' · ')}</span></div>{(() => { const request = lessonRequest(lesson); return request?.status === 'pending' ? <Badge tone="warning">{isAbsenceOnly(request) ? 'Teade saadetud' : 'Palve saadetud'}</Badge> : request?.status === 'accepted' && isAbsenceOnly(request) ? <Badge tone="neutral">Ei tule · märgitud</Badge> : <Button variant="secondary" onClick={() => setRescheduling(lesson)}>Ei saa tulla?</Button>; })()}</div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" description="Kui õpetaja lisab tunni, näete seda siin. · Когда учитель добавит урок, он появится здесь." />}</Card>
-        {/* lesson tokens of each card (shown only for a child with a package) */}
-        {childRecords.map((record) => <LessonTokensCard key={`tokens-${record.id}`} student={record} compact {...(tokensApi ? { service: tokensApi } : {})} />)}
+        {/* no lesson balance here: how many paid lessons are left is for the administrator and the accountant (owner 2026-11-02) */}
         <Card><div className="section-heading"><div><h2>Viimased tunnid<Ru>прошедшие уроки</Ru></h2></div></div>{doneLessons.length ? <div className="simple-list parent-home-done">{doneLessons.map((lesson) => <div key={lesson.id}><div><strong>{lesson.topic || (lesson.status && lesson.status !== 'Toimunud' ? 'Tund jäi vahele' : INDIVIDUAL_TOPIC)}</strong><span>{[day(lesson.date, SHORT_DAY), subjectTag(lesson), [lesson.topicLevel, lesson.topicModule].filter(Boolean).join(' · ')].filter(Boolean).join(' · ')}</span>{lesson.billingStatus === 'school_covered' ? <Badge tone="success">Tasuta (kooli kulul)</Badge> : null}{lesson.notes ? <small className="parent-home-note">{lesson.notes}</small> : null}</div><Badge tone={(LESSON_MARK[lesson.status] || LESSON_MARK.Toimunud)[1]}>{(LESSON_MARK[lesson.status] || LESSON_MARK.Toimunud)[0]}</Badge></div>)}</div> : <EmptyState title="Läbitud tunde veel ei ole" />}</Card>
       </Section>
 
