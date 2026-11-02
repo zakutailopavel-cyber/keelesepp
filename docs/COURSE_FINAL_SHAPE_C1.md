@@ -220,10 +220,40 @@ content zone (AGENTS.md):
 - Work order: module by module, 1 → 18, one branch `agent/b2c1-mNN` and one PR per module, written new in the final shape from the
   start (template v4, `design: 'v2'`), not rewritten from an older version.
 
-## 10. Open for the owner
+## 10. Owner's decisions and what is still open
 
-1. Same size as B2 (18 modules, 90 lessons)? The step B2 → C1 is usually longer than B1 → B2; the süvakursus has 100 lessons.
-2. Mocks 060 / 080 / 089 / 090 as in B2, at full real length (≈ 215 min each)? Alternative: only 089 / 090 at full length and 060 / 080
-   at reduced length (`PROFILES.b2c1.shape.mocks` stays, the sizes change).
-3. L3 scoring (§2) and the audio source (§8.6).
-4. Whether a learner may move between the two C1 courses; they share topics but no sentences.
+Decided 2026-11-02:
+
+- **Each course is a step to the next level** (owner: „курс Б1 — переход от А2 до Б1, Б2 — от Б1 к Б2, С1 — с Б2 до С1”). `b2c1` is
+  the main C1 course; once it has lessons, level C1 points to it instead of the süvakursus, which stays an optional extra course.
+- **Audio: synthetic voice** (TartuNLP). Test one long listening (lecture, debate) on the voice models first (§8.6).
+- **Size by the Estonian average** (owner: size it by the average length of courses in Estonia). Published course volumes, in
+  academic hours (45 min) of contact teaching and of self-study, checked on 2026-11-02:
+
+  | C1 course (provider) | Contact | Self-study |
+  |---|---|---|
+  | Alterum | 250 | 200 |
+  | Multilingua (3 modules) | 216 | 284 |
+  | Shermankoolitus | 250 | 250 |
+  | Folkuniversitetet | 240 | 210–260 |
+  | Keeltekeskus Kaja | 200 | 250 |
+  | Töötukassa C1 exam courses (three providers) | 250 | 200–250 |
+  | Haridusportaal, C1 for education staff | 200 | 50 |
+
+  Median 250 contact and about 250 self-study (total 450–500). B2 courses for comparison: Elem 250/150, Ankor 200/200,
+  Multilingua 240/260, Akubens 250/200, Folkuniversitetet 200/250, SHI 240/160, Kirjatäht 210/210: median 240 contact.
+  These are group courses (up to 15 learners). KeeleSepp's B1 and B2 courses are 90 individual lessons of 60 minutes,
+  120 academic hours, which is half of the group median for B2 (240). The C1 group median is about the same as B2's or a
+  little higher (250 vs 240), so the same ratio gives about 125 academic hours: **100 lessons of 60 minutes (20 modules of 5)**,
+  133 academic hours of contact, plus **self-study equal to the contact time** (about 60 minutes of homework per lesson),
+  as the Estonian courses plan it 1:1.
+
+- **Mocks: full length and like the real exam** (owner: „пробный экзамен полный и соответствует визуально и содержательно тому,
+  что ученикам нужно писать на экзамене в Harno”). Every mock (060 / 080 / 089 / 090) has the real exam's parts, task types,
+  lengths and timing (≈ 215 min), and its pages look like the Harno C1 exam paper: the same order of parts, instructions,
+  answer spaces and point totals, taken from Harno's published C1 sample tests and specification. Nothing is shortened.
+
+Still open:
+
+1. L3 scoring (§2).
+2. Whether a learner may move between the two C1 courses; they share topics but no sentences.
