@@ -1,4 +1,4 @@
-## 2026-11-03 · agent/av-b1-module-06 — B1 module 6 „Toit ja teenindus” (a2b1-026…030): academic value round 1
+## 2026-11-03 · agent/av-b1-module-06 (PR #1010) — B1 module 6 „Toit ja teenindus” (a2b1-026…030): academic value round 1
 
 - Base: `main` e2fc303 (after #1005), checked 2026-11-03. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row: söök ja jook (+ teenused).
 - 026: topic opener `026_d_open` „Teema avaleht: mida Eesti sööb?” (rye, Sangaste rye, kama, mulgi puder in UNESCO 2024, Statistikaamet 2020 household budget: 22,7 % on food, 39 % eat home-grown / gathered food; 4 questions incl. home country); popsci reading `026_p_bread` (voice popsci, R19); `026_d_fridge` is no longer a 3-listener retelling (picture talk + opinion).
