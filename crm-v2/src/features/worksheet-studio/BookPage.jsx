@@ -2,8 +2,11 @@ import { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Icons } from './icons.js';
 import { lessonWorksheetsService, libraryService } from '../../services/firebase/index.js';
-import { assembleProgramBook, BOOK_PHASES, programLevels, programModules, programProgress, publishedPhaseDoc, sheetEditorPath } from './bookProgram.js';
+import { assembleTextbook, BOOK_PHASES, bookContents, programLevels, programModules, programProgress, publishedPhaseDoc, sheetEditorPath, tocPages } from './bookProgram.js';
 import Sheet from './engine/Sheet.jsx';
+import { BOOK_THEME, Contents, Cover, LessonHead, ModuleOpener, ReviewPage, WordsPage } from './BookPages.jsx';
+import { loadBookExtras } from './bookExtras.js';
+import { useScreenFlow } from './sheetFlow.js';
 
 // A book holds hundreds of sheets: a sheet redraws only when its own props change (its first page number), not on
 // every page count another sheet reports (a B1 book of 270 sheets froze the browser, 2026-10-13).
@@ -13,7 +16,10 @@ const BookSheet = memo(Sheet);
 // sheet is drawn twice, once to measure its pages). Until then it is an empty frame of its page height; once drawn it
 // stays. „PDF / Prindi” draws all sheets first. Without IntersectionObserver (old browsers, tests) every sheet is drawn.
 const PAGE_MM = 392; // a 270 × 381.86 mm sheet page on screen plus the gap between pages
-function BookItem({ item, page, pages, force, rootRef, onPageCount, onEdit }) {
+// a phone shows the book as the student's column (docs/WORKSHEET_PHONE_VIEW.md); a tablet keeps the A4 pages
+const BOOK_FLOW_QUERY = '(max-width: 760px)';
+const SHEET_IDS = new Set(BOOK_PHASES.map((phase) => phase.id));
+function BookItem({ item, page, pages, force, rootRef, onPageCount, onEdit, uniform, flow }) {
   const ref = useRef(null);
   const [seen, setSeen] = useState(() => typeof globalThis.IntersectionObserver === 'undefined');
   useEffect(() => {
@@ -26,14 +32,19 @@ function BookItem({ item, page, pages, force, rootRef, onPageCount, onEdit }) {
   }, [seen, rootRef]);
   // a sheet drawn for printing stays drawn (state adjusted while rendering, not in an effect)
   if (force && !seen) setSeen(true);
+  // one look for the whole book: a sheet with its own theme is drawn in the book theme (the sheet itself is unchanged)
+  const doc = useMemo(() => (uniform && item.doc?.meta?.theme !== BOOK_THEME ? { ...item.doc, meta: { ...item.doc.meta, theme: BOOK_THEME } } : item.doc), [item.doc, uniform]);
+  const sheetCanDo = item.doc?.meta?.canDo || '';
+  const lead = useMemo(() => (item.lesson ? <LessonHead lesson={item.lesson} module={item.module} sheetCanDo={sheetCanDo} /> : null), [item.lesson, item.module, sheetCanDo]);
+  // data-entity / data-lesson-id / data-worksheet-id: the marks another tool's right-click menu attaches to
   return (
-    <div className="ws-book-item" ref={ref}>
+    <div className={`ws-book-item${item.lesson ? ' is-lesson-start' : ''}`} ref={ref} data-entity="sheet" data-lesson-id={item.lessonId || item.id} data-worksheet-id={SHEET_IDS.has(item.phase) ? item.phase : undefined}>
       <Link className="st-btn ws-book-edit" to={sheetEditorPath(item)} target="_blank" rel="noopener" title="Avaneb uues vahelehel. Õpikusse jõuab muudatus pärast „Avalda”." onClick={onEdit}>
         <Icons.PenLine size={15} aria-hidden="true" /> Muuda lehte<span className="sr-only">: {item.title}</span>
       </Link>
       {seen || force
-        ? <BookSheet doc={item.doc} mode="print" startPage={page} onPageCount={onPageCount} />
-        : <div className="ws-book-placeholder" style={{ height: `${pages * PAGE_MM}mm` }} aria-label={`${item.title} (laaditakse kerimisel)`} />}
+        ? <BookSheet doc={doc} mode="print" startPage={page} onPageCount={onPageCount} running={item.running || null} lead={lead} flow={flow} />
+        : <div className="ws-book-placeholder" style={{ height: flow ? `${pages * 900}px` : `${pages * PAGE_MM}mm` }} aria-label={`${item.title} (laaditakse kerimisel)`} />}
     </div>
   );
 }
@@ -65,8 +76,15 @@ function pageCounter(setCounts) {
 }
 import { useFitScale } from './useFitScale.js';
 import { applyPrintA4 } from './printPage.js';
-import { courseNameForLevel } from '../curriculum/courseNames.js';
+import { courseForLevel, courseNameForLevel } from '../curriculum/courseNames.js';
+
+// the cover's level: from → to when the course starts a level lower („A2 → B1”, the lessons' levelStage)
+const levelSpan = (lessons, level) => {
+  const from = lessons.find((lesson) => lesson.levelStage)?.levelStage;
+  return from && from !== level && /^[ABC][12]$/.test(from) ? `${from} → ${level}` : level;
+};
 import './engine/sheet.css';
+import './engine/sheetFlow.css';
 import './worksheetStudio.css';
 
 const DRAFT_KEY = 'ks-worksheet-book-draft';
@@ -80,42 +98,28 @@ function writeDraft(value) {
   try { window.localStorage.setItem(DRAFT_KEY, JSON.stringify(value)); } catch { /* private mode: the book still works */ }
 }
 
-// Book pages share the worksheet page frame (270 mm canvas, A4 on print).
-function Cover({ book }) {
-  return (
-    <div className="ws-root mode-print"><div className="ws-page ws-book-cover">
-      <div className="ws-logo">KeeleSepp<small>by EP Koolitus</small></div>
-      <div className="ws-book-cover-title">
-        {book.level && <div className="ws-big">{book.level}</div>}
-        <h1>{book.title || 'Õpik'}</h1>
-        {book.subtitle && <p>{book.subtitle}</p>}
-      </div>
-      <div className="ws-book-cover-foot">{book.author}</div>
-    </div></div>
-  );
-}
-
-function Contents({ entries }) {
-  return (
-    <div className="ws-root mode-print"><div className="ws-page ws-book-toc">
-      <div className="ws-runhead"><span>Sisukord</span><span /></div>
-      <ol>{entries.map((e, i) => [
-        e.section && e.section !== entries[i - 1]?.section ? <li key={`${e.id}-section`} className="ws-book-toc-section">{e.section}</li> : null,
-        <li key={e.id}><span>{!e.section && e.level ? `${e.level} · ` : ''}{e.title}</span><i /><b>{e.page}</b></li>,
-      ])}</ol>
-    </div></div>
-  );
-}
-
-// Textbook export with cover, contents and running page numbers. „Õppekava järgi” assembles the published
-// Avasta / Harjuta / Kasuta sheets of a level (or one module) in curriculum order; „Vali käsitsi” keeps the old
-// hand-picked book of lesson worksheets. Print → "Save as PDF"; the sheets stay the single source.
-export default function BookPage({ repository = libraryService, worksheetRepository = lessonWorksheetsService }) {
+// Textbook export. „Õppekava järgi” is one course as one book: cover, contents by module, and per module an opener,
+// its lessons (lesson head + Avasta / Harjuta / Kasuta / Õpik, published versions), the module's words and a review
+// page; running head and page numbers on every page. „Vali käsitsi” keeps the old hand-picked book of lesson
+// worksheets. Print → "Save as PDF"; the sheets stay the single source.
+export default function BookPage({ repository = libraryService, worksheetRepository = lessonWorksheetsService, loadExtras = loadBookExtras }) {
   const [draft] = useState(readDraft);
   const [state, setState] = useState({ loading: true, error: '', lessons: [], all: [] });
   const [mode, setMode] = useState(draft?.mode === 'manual' ? 'manual' : 'program');
-  const [program, setProgram] = useState({ level: draft?.program?.level || '', module: draft?.program?.module || '', phases: draft?.program?.phases || BOOK_PHASES.map((phase) => phase.id) });
-  const [built, setBuilt] = useState({ loading: false, error: '', sheets: [], missing: [], key: '' });
+  // a draft saved before the 4th sheet „Õpik” was in the book gets it (v2)
+  const [program, setProgram] = useState(() => {
+    const phases = draft?.program?.phases || BOOK_PHASES.map((phase) => phase.id);
+    return {
+      level: draft?.program?.level || '',
+      module: draft?.program?.module || '',
+      phases: draft?.program?.v === 2 || phases.includes('opik') ? phases : [...phases, 'opik'],
+      extras: draft?.program?.extras !== false,
+      uniform: draft?.program?.uniform !== false,
+      v: 2,
+    };
+  });
+  const [built, setBuilt] = useState({ loading: false, error: '', items: [], modules: [], missing: [], key: '' });
+  const flow = useScreenFlow(true, BOOK_FLOW_QUERY);
   const [book, setBook] = useState(draft?.book || { title: '', subtitle: '', level: '', author: 'EP Koolitus' });
   const [ids, setIds] = useState(draft?.ids || []);
   const [query, setQuery] = useState('');
@@ -151,23 +155,28 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   const chosenModule = modules.find((item) => item.key === program.module) || null;
   const scope = chosenModule ? chosenModule.lessons : modules.flatMap((item) => item.lessons);
   const progress = programProgress(scope);
-  const buildKey = `${level}|${chosenModule?.key || ''}|${program.phases.join(',')}`;
+  const courseName = courseNameForLevel(level) || level;
+  const buildKey = `${level}|${chosenModule?.key || ''}|${program.phases.join(',')}|${program.extras ? 'x' : ''}`;
   const latestBuild = useRef('');
   const buildProgram = async () => {
     const key = buildKey;
     latestBuild.current = key;
-    setBuilt({ loading: true, error: '', sheets: [], missing: [], key });
+    setBuilt({ loading: true, error: '', items: [], modules: [], missing: [], key });
     try {
-      const records = await Promise.all(scope.map((lesson) => worksheetRepository.list(lesson.id).then((list) => [lesson.id, list]).catch(() => [lesson.id, []])));
+      // the words and goals of this course only (one chunk per course), next to the sheets
+      const [records, extras] = await Promise.all([
+        Promise.all(scope.map((lesson) => worksheetRepository.list(lesson.id).then((list) => [lesson.id, list]).catch(() => [lesson.id, []]))),
+        program.extras ? loadExtras(scope.map((lesson) => lesson.id)).catch(() => ({})) : Promise.resolve({}),
+      ]);
       if (latestBuild.current !== key) return;
-      const result = assembleProgramBook(scope, Object.fromEntries(records), program.phases);
+      const result = assembleTextbook(scope, Object.fromEntries(records), program.phases, { words: extras.words || {}, goals: extras.goals || {}, course: courseName, extras: program.extras });
       setBuilt({ loading: false, error: '', ...result, key });
       // the default title follows the level; a title the teacher typed is kept
       setBook((current) => (!current.title || /^(Eesti keel (A1|A2|B1|B2|C1|C2)|C1 süvakursus)$/.test(current.title)
-        ? { ...current, title: courseNameForLevel(level) || `Eesti keel ${level}`, level, subtitle: chosenModule ? chosenModule.label : '' }
+        ? { ...current, title: courseNameForLevel(level) || `Eesti keel ${level}`, level: levelSpan(scope, level), subtitle: chosenModule ? chosenModule.label : courseForLevel(level)?.subtitle || '' }
         : current));
     } catch (error) {
-      if (latestBuild.current === key) setBuilt({ loading: false, error: error.message || 'Õpikut ei saanud koostada.', sheets: [], missing: [], key });
+      if (latestBuild.current === key) setBuilt({ loading: false, error: error.message || 'Õpikut ei saanud koostada.', items: [], modules: [], missing: [], key });
     }
   };
   // „✎ Muuda lehte” opens the sheet in its editor in a new tab; when the book tab is shown again the edited sheets are
@@ -185,8 +194,8 @@ export default function BookPage({ repository = libraryService, worksheetReposit
       const fresh = Object.fromEntries(await Promise.all(lessonIds.map((id) => worksheetRepository.list(id).then((list) => [id, list]).catch(() => [id, null]))));
       setBuilt((current) => ({
         ...current,
-        sheets: current.sheets.map((sheet) => {
-          const records = fresh[sheet.lessonId];
+        items: current.items.map((sheet) => {
+          const records = sheet.kind === 'sheet' ? fresh[sheet.lessonId] : null;
           if (!records) return sheet;
           const doc = publishedPhaseDoc(records.find((record) => (record.worksheetId || record.id) === sheet.phase));
           return doc && doc !== sheet.doc ? { ...sheet, doc } : sheet;
@@ -204,19 +213,27 @@ export default function BookPage({ repository = libraryService, worksheetReposit
     if (mode !== 'program' || state.loading || !scope.length || !program.phases.length || latestBuild.current === buildKey) return;
     globalThis.queueMicrotask(buildProgram);
   }, [buildKey, mode, state.loading]); // eslint-disable-line react-hooks/exhaustive-deps
-  const programSheets = built.key === buildKey ? built.sheets : [];
+  const programBuilt = mode === 'program' && built.key === buildKey;
   const items = mode === 'program'
-    ? programSheets
-    : chosen.map((l) => ({ id: l.id, title: l.worksheetDoc.meta?.title || l.title, level: l.worksheetDoc.meta?.level || l.level, doc: l.worksheetDoc }));
+    ? (programBuilt ? built.items : [])
+    : chosen.map((l) => ({ kind: 'sheet', id: l.id, title: l.worksheetDoc.meta?.title || l.title, level: l.worksheetDoc.meta?.level || l.level, doc: l.worksheetDoc }));
+  const sheetItems = items.filter((item) => item.kind === 'sheet');
+  const pagesOf = (item) => item.pages || counts[item.id] || 1;
 
-  // page 1 cover, page 2 contents, then each sheet continues the numbering
-  const entries = items.reduce((list, item) => {
-    const prev = list[list.length - 1];
-    const page = prev ? prev.page + (counts[prev.id] || 1) : 3;
-    return [...list, { id: item.id, title: item.title, level: item.level, section: item.section || '', page }];
-  }, []);
-  const last = entries[entries.length - 1];
-  const totalPages = last ? last.page + (counts[last.id] || 1) - 1 : 2;
+  // page 1 cover, then the contents pages, then every item continues the numbering. The contents rows do not depend
+  // on the page numbers, so the number of contents pages is known before the numbers are
+  const contentsRows = (pageOf) => (mode === 'program'
+    ? bookContents(programBuilt ? built.modules : [], items, pageOf)
+    : items.map((item) => ({ id: item.id, kind: 'lesson', title: `${item.level ? `${item.level} · ` : ''}${item.title}`, page: pageOf(item.id) })));
+  const tocCount = tocPages(contentsRows(() => 0)).length;
+  const pageById = {};
+  let next = 2 + tocCount;
+  for (const item of items) { pageById[item.id] = next; next += pagesOf(item); }
+  const totalPages = next - 1;
+  const toc = tocPages(contentsRows((id) => pageById[id] ?? null));
+  const firstSheetPage = {};
+  for (const item of sheetItems) if (!(item.lessonId in firstSheetPage)) firstSheetPage[item.lessonId] = pageById[item.id];
+  const wordsPageOf = (module) => pageById[`${module.key}:words`];
   // the sheets report their page counts while they lay out; applied once per frame (pageCounter below)
   const [counter] = useState(() => pageCounter(setCounts));
   useEffect(() => () => counter.cancel(), [counter]);
@@ -225,8 +242,8 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   const PRINT_STEP = 4;
   const [printing, setPrinting] = useState(false);
   const [forced, setForced] = useState(0);
-  const measured = items.filter((item) => counts[item.id]).length;
-  const drawing = printing && forced < items.length;
+  const measured = sheetItems.filter((item) => counts[item.id]).length;
+  const drawing = printing && forced < sheetItems.length;
   useEffect(() => {
     if (!drawing) return undefined;
     const timer = globalThis.setTimeout(() => setForced((n) => n + PRINT_STEP), 30);
@@ -235,9 +252,9 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   useEffect(() => {
     if (!printing || drawing) return undefined;
     // a sheet that never reports its pages cannot block the dialog
-    const timer = globalThis.setTimeout(() => { setPrinting(false); window.print(); }, measured >= items.length ? 300 : 1500);
+    const timer = globalThis.setTimeout(() => { setPrinting(false); window.print(); }, measured >= sheetItems.length ? 300 : 1500);
     return () => globalThis.clearTimeout(timer);
-  }, [printing, drawing, counts, measured, items.length]);
+  }, [printing, drawing, counts, measured, sheetItems.length]);
   const startPrint = () => { setForced(0); setPrinting(true); };
   const move = (i, dir) => { const j = i + dir; if (j < 0 || j >= ids.length) return; const n = [...ids]; [n[i], n[j]] = [n[j], n[i]]; setIds(n); };
 
@@ -245,15 +262,15 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   if (state.error) return <div className="page-content"><div className="ws-studio-error" role="alert">{state.error} <Link to="/library">Tagasi Õppevarasse</Link></div></div>;
 
   return (
-    <div className="ws-studio ws-book-studio">
+    <div className={`ws-studio ws-book-studio${flow ? ' ws-narrow ws-book-narrow' : ''}`}>
       <header className="st-bar">
         <Link className="st-back" to="/library"><Icons.ArrowLeft size={16} /> Õppevara</Link>
-        <div className="st-title"><b>Õpik töölehtedest</b><span>{items.length} töölehte · {totalPages} lk</span></div>
+        <div className="st-title"><b>Õpik töölehtedest</b><span>{sheetItems.length} töölehte · {totalPages} lk</span></div>
         <div className="st-seg" role="tablist" aria-label="Õpiku koostamise viis">
           {[['program', 'Õppekava järgi'], ['manual', 'Vali käsitsi']].map(([m, l]) => <button type="button" role="tab" key={m} aria-pressed={mode === m} onClick={() => setMode(m)}>{l}</button>)}
         </div>
         <div className="st-actions">
-          <button type="button" className="st-btn primary" disabled={!items.length || printing} title={items.length > 40 ? 'Enne printimist joonistatakse kõik lehed — suure õpiku puhul võtab see aega' : undefined} onClick={startPrint}>{printing ? `Valmistan… ${Math.min(forced, items.length)}/${items.length}` : 'PDF / Prindi'}</button>
+          <button type="button" className="st-btn primary" disabled={!items.length || printing} title={sheetItems.length > 40 ? 'Enne printimist joonistatakse kõik lehed — suure õpiku puhul võtab see aega' : undefined} onClick={startPrint}>{printing ? `Valmistan… ${Math.min(forced, sheetItems.length)}/${sheetItems.length}` : 'PDF / Prindi'}</button>
         </div>
       </header>
       <div className="st-body">
@@ -267,11 +284,13 @@ export default function BookPage({ repository = libraryService, worksheetReposit
           {mode === 'program' ? (
             <>
               <div className="st-group-title">Õppekava</div>
-              <label className="ed-field"><span>Tase</span><select className="ed-input" aria-label="Õpiku tase" value={level} onChange={(e) => setProgram({ ...program, level: e.target.value, module: '' })}>{levels.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+              <label className="ed-field"><span>Kursus</span><select className="ed-input" aria-label="Õpiku kursus" value={level} onChange={(e) => setProgram({ ...program, level: e.target.value, module: '' })}>{levels.map((item) => <option key={item} value={item}>{courseNameForLevel(item) || item}</option>)}</select></label>
               <label className="ed-field"><span>Moodul</span><select className="ed-input" aria-label="Õpiku moodul" value={chosenModule?.key || ''} onChange={(e) => setProgram({ ...program, module: e.target.value })}><option value="">Kõik moodulid ({modules.length})</option>{modules.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label>
               <fieldset className="ws-book-phases"><legend>Etapid</legend>{BOOK_PHASES.map((phase) => (
                 <label key={phase.id}><input type="checkbox" checked={program.phases.includes(phase.id)} onChange={(e) => setProgram({ ...program, phases: e.target.checked ? BOOK_PHASES.map((item) => item.id).filter((id) => id === phase.id || program.phases.includes(id)) : program.phases.filter((id) => id !== phase.id) })} /> {phase.label}</label>
               ))}</fieldset>
+              <label className="ed-check"><input type="checkbox" checked={program.extras} onChange={(e) => setProgram({ ...program, extras: e.target.checked })} /> Mooduli avaleht, „Sõnad” ja „Korda”</label>
+              <label className="ed-check"><input type="checkbox" checked={program.uniform} onChange={(e) => setProgram({ ...program, uniform: e.target.checked })} /> Ühtne kujundus (kõik lehed õpiku stiilis)</label>
               <p className="st-hint ws-book-progress" aria-label="Valmidus">{progress.map((item) => `${item.label} ${item.done}/${item.total}`).join(' · ')}</p>
               <button type="button" className="st-btn primary" disabled={!scope.length || !program.phases.length || built.loading} onClick={buildProgram}>{built.loading ? 'Koostan…' : 'Koosta õpik'}</button>
               {built.error ? <p className="st-hint" role="alert">{built.error}</p> : null}
@@ -286,10 +305,10 @@ export default function BookPage({ repository = libraryService, worksheetReposit
           <ol className="ws-book-order">
             {chosen.map((l, i) => (
               <li key={l.id}>
-                <span>{entries[i].page}. {entries[i].title}</span>
-                <button type="button" aria-label={`Üles: ${entries[i].title}`} onClick={() => move(i, -1)}><Icons.ChevronUp size={14} /></button>
-                <button type="button" aria-label={`Alla: ${entries[i].title}`} onClick={() => move(i, 1)}><Icons.ChevronDown size={14} /></button>
-                <button type="button" aria-label={`Eemalda: ${entries[i].title}`} onClick={() => setIds(ids.filter((x) => x !== l.id))}><Icons.X size={14} /></button>
+                <span>{pageById[items[i].id]}. {items[i].title}</span>
+                <button type="button" aria-label={`Üles: ${items[i].title}`} onClick={() => move(i, -1)}><Icons.ChevronUp size={14} /></button>
+                <button type="button" aria-label={`Alla: ${items[i].title}`} onClick={() => move(i, 1)}><Icons.ChevronDown size={14} /></button>
+                <button type="button" aria-label={`Eemalda: ${items[i].title}`} onClick={() => setIds(ids.filter((x) => x !== l.id))}><Icons.X size={14} /></button>
               </li>
             ))}
           </ol>
@@ -305,13 +324,18 @@ export default function BookPage({ repository = libraryService, worksheetReposit
           </> : null}
         </aside>
         <main className="st-canvas" ref={canvasNode}>
-          <div className="st-zoom ws-book" style={{ zoom: scale }}>
-            <Cover book={book} />
-            <Contents entries={entries} />
-            {items.map((item, i) => (
-              <BookItem key={item.id} item={item} page={entries[i].page} pages={counts[item.id] || 2} force={printing && i < forced} rootRef={canvasRef} onPageCount={counter.setter(item.id)} onEdit={() => edited.current.add(item.lessonId || item.id)} />
-            ))}
-            {printing ? <p className="ws-studio-loading">Valmistan printimiseks… {Math.min(forced, items.length)}/{items.length} lehte</p> : null}
+          <div className="st-zoom ws-book" style={{ zoom: flow ? 1 : scale }}>
+            <Cover book={book} stats={mode === 'program' && programBuilt && built.modules.length ? `${built.modules.length} moodulit · ${built.modules.reduce((n, m) => n + m.lessons.length, 0)} tundi` : ''} />
+            <Contents pages={toc} course={mode === 'program' ? courseName : book.title} />
+            {items.map((item) => {
+              const page = pageById[item.id];
+              if (item.kind === 'opener') return <ModuleOpener key={item.id} module={item.module} course={courseName} page={page} pageOf={(lessonId) => firstSheetPage[lessonId]} />;
+              if (item.kind === 'words') return <WordsPage key={item.id} item={item} course={courseName} page={page} />;
+              if (item.kind === 'review') return <ReviewPage key={item.id} item={item} course={courseName} page={page} wordsPage={wordsPageOf(item.module)} />;
+              const index = sheetItems.indexOf(item);
+              return <BookItem key={item.id} item={item} page={page} pages={counts[item.id] || 2} force={printing && index < forced} rootRef={flow ? null : canvasRef} onPageCount={counter.setter(item.id)} onEdit={() => edited.current.add(item.lessonId || item.id)} uniform={mode === 'program' ? program.uniform : false} flow={flow} />;
+            })}
+            {printing ? <p className="ws-studio-loading">Valmistan printimiseks… {Math.min(forced, sheetItems.length)}/{sheetItems.length} lehte</p> : null}
           </div>
         </main>
       </div>
