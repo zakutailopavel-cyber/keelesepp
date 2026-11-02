@@ -18,7 +18,7 @@ describe('Täna — four things to do', () => {
       ['work', false, '/homework'], ['words', false, '/student/sonavara?paev=1'], ['mistakes', false, '/student/vead'], ['pet', false, '/student/lemmik'],
     ]);
     expect(path.steps[0].detail).toBe('2 ootab');
-    expect(path.steps[2].detail).toBe('1 lauset tundidest');
+    expect(path.steps[2].detail).toBe('1 lause tundidest');
     expect(path.done).toBe(0);
   });
 

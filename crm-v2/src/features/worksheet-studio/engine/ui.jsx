@@ -22,7 +22,7 @@ export function Photo({ img, aspect = '4:3', alt = '', children, className = '' 
 // a full-width answer grows downwards with what is written (owner 2026-10-10: a long answer was cut off on one line)
 const grow = (node) => { if (node) { node.style.height = 'auto'; node.style.height = `${node.scrollHeight}px`; } };
 
-export function Line({ value, onChange, interactive, state, width, label, className = '' }) {
+export function Line({ value, onChange, onFocus, interactive, state, width, label, className = '' }) {
   if (width === '100%') {
     return (
       <textarea
@@ -34,7 +34,9 @@ export function Line({ value, onChange, interactive, state, width, label, classN
         tabIndex={interactive ? 0 : -1}
         aria-label={label}
         autoComplete="off"
+        autoCorrect="off"
         spellCheck={false}
+        onFocus={onFocus}
         onChange={(e) => { grow(e.target); onChange?.(e.target.value); }}
       />
     );
@@ -49,7 +51,11 @@ export function Line({ value, onChange, interactive, state, width, label, classN
       tabIndex={interactive ? 0 : -1}
       aria-label={label}
       autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="none"
+      enterKeyHint="next"
       spellCheck={false}
+      onFocus={onFocus}
       onChange={(e) => onChange?.(e.target.value)}
     />
   );

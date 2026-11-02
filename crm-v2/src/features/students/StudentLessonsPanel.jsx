@@ -6,6 +6,7 @@ import LessonDetailModal from './LessonDetailModal.jsx';
 import { occurrencesForDates, shiftDate } from '../calendar/calendarView.js';
 import { itemSubject, subjectsOf } from './subjects.js';
 import { localDate } from '../../utils/localDate.js';
+import { displayDate } from '../finance/finance.js';
 
 // Student card „Tunnid”: the timetable (planned lessons) and the lesson journal (held / absent) in one place.
 // Admins change the mark of a held lesson here, including „Toimunud ja kontrollitud”.
@@ -61,6 +62,8 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
   ];
   const markedIds = new Set(lessons.map((lesson) => lesson.scheduleId).filter(Boolean));
   const unmarked = schedule.filter((item) => item.date && item.date < now && !item.recurring && (item.status || 'Planeeritud') === 'Planeeritud' && !markedIds.has(item.id));
+  // two lessons on one day name that day once
+  const unmarkedDays = [...new Set(unmarked.map((item) => item.date))];
   const shownLessons = showAll ? lessons : lessons.slice(0, 15);
   // a card with several subjects: each next lesson says which subject it is (Oleksiy 2026-10-24)
   const manySubjects = subjectsOf(student).length > 1;
@@ -84,7 +87,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
         updated = await lessonApi.changeMark(lesson, next, user, options);
       }
       onChanged(lessons.flatMap((item) => (item.id !== lesson.id ? [item] : updated ? [{ ...item, ...updated }] : [])));
-      setNotice(next === 'remove' ? 'Märge eemaldati, tund on jälle planeeritud.' : `Tund ${lesson.date}: ${LESSON_MARKS.find((mark) => mark.value === next)?.label}.`);
+      setNotice(next === 'remove' ? 'Märge eemaldati, tund on jälle planeeritud.' : `Tund ${displayDate(lesson.date)}: ${LESSON_MARKS.find((mark) => mark.value === next)?.label}.`);
     } catch (changeError) {
       setError(changeError.message || 'Tunni staatust ei saanud muuta.');
     } finally {
@@ -100,13 +103,13 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
           <div className="simple-list">
             {upcoming.slice(0, 12).map((item) => (
               <div key={item.occurrenceId || item.id}>
-                <div><strong>{item.occurrenceDate || item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {timeRange(item) || 'kellaaeg määramata'} <DurationTag item={item} /></strong><span>{[manySubjects ? itemSubject(item, student) : '', item.teacher || student.teacher || 'Õpetaja määramata'].filter(Boolean).join(' · ')}</span></div>
+                <div><strong>{item.occurrenceDate || item.date ? displayDate(item.occurrenceDate || item.date) : `Iganädalane · ${item.day || 'päev määramata'}`} · {timeRange(item) || 'kellaaeg määramata'} <DurationTag item={item} /></strong><span>{[manySubjects ? itemSubject(item, student) : '', item.teacher || student.teacher || 'Õpetaja määramata'].filter(Boolean).join(' · ')}</span></div>
                 <Badge tone="info">{item.status || 'Planeeritud'}</Badge>
               </div>
             ))}
           </div>
         ) : <EmptyState title="Tulevasi tunde ei ole" description="Uus tund lisatakse kalendri kaudu." />}
-        {unmarked.length ? <p className="student-lessons__unmarked">{unmarked.length} möödunud tundi on märkimata ({unmarked.slice(0, 3).map((item) => item.date).join(', ')}{unmarked.length > 3 ? ', …' : ''}). Märgi need kalendris.</p> : null}
+        {unmarked.length ? <p className="student-lessons__unmarked">{unmarked.length === 1 ? '1 möödunud tund' : `${unmarked.length} möödunud tundi`} on märkimata ({unmarkedDays.slice(0, 3).map(displayDate).join(', ')}{unmarkedDays.length > 3 ? ', …' : ''}). Märgi need kalendris.</p> : null}
       </Card>
 
       <Card className="profile-wide">
@@ -120,7 +123,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
               return (
                 <div key={lesson.id}>
                   <button type="button" className="student-lessons__open" onClick={() => setOpened(lesson)} aria-label={`Ava tund ${lesson.date || ''}`}>
-                    <strong>{lesson.date || 'Kuupäev puudub'}{lesson.time ? ` · ${timeRange(lesson)}` : ''} <DurationTag item={lesson} /></strong>
+                    <strong>{lesson.date ? displayDate(lesson.date) : 'Kuupäev puudub'}{lesson.time ? ` · ${timeRange(lesson)}` : ''} <DurationTag item={lesson} /></strong>
                     <span>{[lesson.subject || student.subject, lesson.topic, lesson.teacher].filter(Boolean).join(' · ')}</span>
                     {lesson.billingStatus === 'school_covered' ? <small>Tasuta (kooli kulul){lesson.billingDispositionReason && canManage ? ` · ${lesson.billingDispositionReason}` : ''}</small> : null}
                     {lesson.verified && lesson.verifiedByName ? <small className="student-lessons__verified"><CheckCheck size={13} aria-hidden="true" /> Kontrollis {lesson.verifiedByName}</small> : null}

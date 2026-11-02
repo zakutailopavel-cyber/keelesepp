@@ -24,6 +24,7 @@ function ChartSvg({ data }) {
   const unit = data.unit ? ` ${data.unit}` : '';
   const label = `${data.chartTitle || 'Diagramm'}: ${rows.map((row) => `${row.label} ${row.values.map((value, index) => `${names[index] ? `${names[index]} ` : ''}${formatValue(value)}${unit}`).join(', ')}`).join('; ')}`;
   return (
+    <div className="ws-chart-scroll">
     <svg className="ws-chart-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
       {ticks.map((tick) => (
         <g key={tick}>
@@ -58,6 +59,7 @@ function ChartSvg({ data }) {
         );
       })}
     </svg>
+    </div>
   );
 }
 

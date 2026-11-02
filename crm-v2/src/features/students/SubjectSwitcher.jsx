@@ -5,7 +5,7 @@ export default function SubjectSwitcher({ subjects = [], value = '', onChange, l
   return (
     <div className="subject-switcher" role="tablist" aria-label={label}>
       {['', ...subjects].map((subject) => (
-        <button key={subject || 'all'} type="button" role="tab" aria-selected={value === subject} className={value === subject ? 'is-active' : ''} onClick={() => onChange(subject)}>
+        <button key={subject || 'all'} type="button" role="tab" data-preview-allowed aria-selected={value === subject} className={value === subject ? 'is-active' : ''} onClick={() => onChange(subject)}>
           {subject || 'Kõik'}
         </button>
       ))}

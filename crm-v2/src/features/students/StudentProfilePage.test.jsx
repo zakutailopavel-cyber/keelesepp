@@ -55,11 +55,11 @@ describe('student profile tabs and role access', () => {
     const tabs = await screen.findByRole('tablist', { name: 'Õpilase õppeained' }, { timeout: 4000 });
     expect(screen.getByText(/Matemaatika · Yelyzaveta/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'Tunnid' }));
-    expect(await screen.findByText('2026-10-10 · 15:00', {}, { timeout: 4000 })).toBeInTheDocument();
-    expect(screen.getByText('2026-10-11 · 17:00')).toBeInTheDocument();
+    expect(await screen.findByText('10.10.2026 · 15:00', {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.getByText('11.10.2026 · 17:00')).toBeInTheDocument();
     fireEvent.click(within(tabs).getByRole('tab', { name: 'Matemaatika' }));
-    expect(screen.queryByText('2026-10-10 · 15:00')).toBeNull();
-    expect(screen.getByText('2026-10-11 · 17:00')).toBeInTheDocument();
+    expect(screen.queryByText('10.10.2026 · 15:00')).toBeNull();
+    expect(screen.getByText('11.10.2026 · 17:00')).toBeInTheDocument();
   });
 
   it('an admin archives the student from the card after a confirmation, and can restore them', async () => {
@@ -93,13 +93,13 @@ describe('student profile tabs and role access', () => {
     expect(screen.getByText('MM')).toBeInTheDocument();
     expect(screen.getByText('2', { selector: '.student-profile-hero__stats strong' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Põhiandmed' })).toBeInTheDocument();
-    expect(screen.queryByText('2026-10-10 · 15:00')).not.toBeInTheDocument();
+    expect(screen.queryByText('10.10.2026 · 15:00')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Tunnid' }));
 
     expect(screen.getByRole('tab', { name: 'Tunnid' })).toHaveAttribute('aria-selected', 'true');
-    expect(await screen.findByText('2026-10-10 · 15:00', {}, { timeout: 4000 })).toBeInTheDocument();
-    expect(screen.getByText(/1 möödunud tundi on märkimata \(2026-08-10\)/)).toBeInTheDocument();
+    expect(await screen.findByText('10.10.2026 · 15:00', {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.getByText(/1 möödunud tund on märkimata \(10\.08\.2026\)/)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Põhiandmed' })).not.toBeInTheDocument();
   });
 
@@ -116,10 +116,10 @@ describe('student profile tabs and role access', () => {
     });
 
     await screen.findByRole('tab', { name: 'Tunnid' }, { timeout: 4000 });
-    expect(screen.queryByText('2026-08-04 · 14:00')).not.toBeInTheDocument();
+    expect(screen.queryByText('04.08.2026 · 14:00')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Tunnid' }));
-    expect(await screen.findByText('2026-08-04 · 14:00', {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(await screen.findByText('04.08.2026 · 14:00', {}, { timeout: 4000 })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Areng' }));
     expect(await screen.findByText('Lugemine')).toBeInTheDocument();
@@ -244,7 +244,7 @@ describe('student profile tabs and role access', () => {
       </MemoryRouter>,
     );
     fireEvent.click(await screen.findByRole('tab', { name: 'Tööd' }, { timeout: 4000 }));
-    fireEvent.click(await screen.findByRole('button', { name: /Pere tööleht/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Pere tööleht/ }, { timeout: 8000 }));
     const dialog = await screen.findByRole('dialog', { name: 'Pere tööleht' });
     expect(within(dialog).getByText('Lugemine')).toBeInTheDocument();
     fireEvent.change(within(dialog).getByRole('combobox', { name: 'Oskus Grammatika' }), { target: { value: '4' } });

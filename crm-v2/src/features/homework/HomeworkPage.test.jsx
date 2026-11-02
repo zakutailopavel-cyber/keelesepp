@@ -48,6 +48,18 @@ function renderPage(user, data) {
   render(<MemoryRouter><AuthContext.Provider value={{ user }}><HomeworkPage {...data} /></AuthContext.Provider></MemoryRouter>);
 }
 
+describe('HomeworkPage: a long list of submissions', () => {
+  it('shows the first ten and the rest on request', async () => {
+    const many = Array.from({ length: 12 }, (_, index) => ({ ...completedWork, id: `worksheet-${index}`, title: `Tööleht ${index + 1}` }));
+    renderPage({ uid: 'teacher-1', displayName: 'Õpetaja', roles: ['admin'] }, repositories(many));
+    expect(await screen.findByText('Tööleht 10')).toBeInTheDocument();
+    expect(screen.queryByText('Tööleht 11')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Näita veel (2)' }));
+    expect(screen.getByText('Tööleht 12')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Näita veel/ })).not.toBeInTheDocument();
+  });
+});
+
 describe('HomeworkPage: finishing and closing tasks', () => {
   const today = new Date().toISOString().slice(0, 10);
   it('the student marks a task done with an answer; the teacher sees it', async () => {
@@ -59,7 +71,7 @@ describe('HomeworkPage: finishing and closing tasks', () => {
     fireEvent.change(screen.getByLabelText('Vastus (valikuline)'), { target: { value: 'Ma käisin poes.' } });
     fireEvent.click(screen.getByRole('button', { name: /Saada ja märgi tehtuks/ }));
     await waitFor(() => expect(data.repository.submitAnswer).toHaveBeenCalledWith({ item: expect.objectContaining({ id: 'h1' }), text: 'Ma käisin poes.', file: null }));
-    expect(await screen.findByText(/Kodutöö on märgitud tehtuks/)).toBeInTheDocument();
+    expect(await screen.findByText(/Ülesanne on tehtud/)).toBeInTheDocument();
   });
 
   it('the student finishes a task with one click', async () => {
@@ -75,9 +87,10 @@ describe('HomeworkPage: finishing and closing tasks', () => {
   it('a parent sees the family wording, not the student\'s', async () => {
     const data = repositories([], [], [{ id: 'h3', studentId: 'student-1', studentName: 'Mari', task: 'Õpi sõnad', status: 'Ootel', due: today }]);
     renderPage({ uid: 'parent-user-1', displayName: 'Ema', roles: ['parent'] }, data);
-    expect(await screen.findByText('Laste kodutööd')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Laste esitused' })).toBeInTheDocument();
-    expect(screen.queryByText('Minu kodutööd')).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Vaja teha/ })).toBeInTheDocument();
+    expect(screen.getByText('Õpi sõnad')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Tee nüüd/ })).not.toBeInTheDocument();
+    expect(data.repository.listWorksheetAssignmentsByStudentIds).toHaveBeenCalledWith(['student-1']);
     expect(screen.queryByRole('button', { name: /^Tehtud$/ })).not.toBeInTheDocument();
   });
 
@@ -174,7 +187,8 @@ describe('HomeworkPage', () => {
     const data = repositories([reviewed]);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Pere tööleht/ }));
+    expect(await screen.findByRole('heading', { name: /Õpetaja vaatas üle/ })).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Vaata tagasisidet' }));
     const dialog = screen.getByRole('dialog', { name: 'Pere tööleht' });
     expect(dialog).toHaveTextContent('Harjuta veel käändeid.');
     expect(dialog).toHaveTextContent('Hinne 4');
@@ -197,7 +211,7 @@ describe('HomeworkPage', () => {
     const data = repositories([], [assignment]);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
 
-    fireEvent.click(await screen.findByRole('button', { name: /Pere tööleht/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Alusta' }));
     const dialog = screen.getByRole('dialog', { name: 'Pere tööleht' });
     fireEvent.change(within(dialog).getByLabelText('Lünk 1'), { target: { value: 'ema' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Tallinnas' }));
@@ -219,7 +233,7 @@ describe('HomeworkPage', () => {
     const user = { uid: 'student-user-1', displayName: 'Mari', roles: ['student'] };
     renderPage(user, data);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Alusta harjutust Tegusõnad' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Alusta' }));
     const dialog = await screen.findByRole('dialog', { name: 'Tegusõnad' });
     fireEvent.change(within(dialog).getByLabelText('Lünk 1'), { target: { value: 'lähen' } });
     fireEvent.click(within(dialog).getByRole('button', { name: /Esita tulemus/ }));
@@ -251,7 +265,7 @@ describe('HomeworkPage', () => {
     const data = repositories([], [], [materialHomework]);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Eelvaade: Perekonna materjal' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Vaata materjali: Perekonna materjal' }));
 
     await waitFor(() => expect(data.repository.getAssignedMaterial).toHaveBeenCalledWith(materialHomework));
     const dialog = await screen.findByRole('dialog', { name: 'Eelvaade: Perekonna materjal' });
@@ -264,8 +278,8 @@ describe('HomeworkPage', () => {
     const data = repositories([], [], [completedExercise]);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
     await screen.findByText('Tegusõnad');
-    expect(screen.queryByRole('button', { name: /Märgi pooleliolevaks/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Alusta harjutust/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Võta tagasi/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Alusta/ })).not.toBeInTheDocument();
   });
 
   it('keeps a submitted studio worksheet and its result on screen while the list reloads', async () => {
@@ -275,9 +289,7 @@ describe('HomeworkPage', () => {
     globalThis.confirm = vi.fn(() => true);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
 
-    const summary = await screen.findByRole('region', { name: /Minu kodutööd|Kodutööd/ }).catch(() => null);
-    if (summary) expect(summary).toHaveTextContent(/Kõik ülesanded\s*1/);
-    fireEvent.click(await screen.findByRole('button', { name: /Minu päev/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Alusta' }));
     fireEvent.click(await screen.findByRole('button', { name: /Esita tööleht/ }));
     await waitFor(() => expect(data.repository.submitWorksheet).toHaveBeenCalled());
     await waitFor(() => expect(data.repository.listWorksheetAssignmentsByStudentIds).toHaveBeenCalledTimes(2));
@@ -285,13 +297,15 @@ describe('HomeworkPage', () => {
     expect(screen.queryByRole('button', { name: /Esita tööleht/ })).toBeNull();
   });
 
-  it('counts worksheets in the summary and shows a started one as in progress', async () => {
+  it('a started sheet says „Jätka”, a late one comes first and says so', async () => {
     const started = { id: 'a-3', studentId: 'student-1', studentName: 'Mari', title: 'Pooleli leht', status: 'in_progress', dueDate: '2099-01-01', answers: { 'b1:0': 'x' }, worksheetDoc: sampleDocument() };
     const late = { id: 'a-4', studentId: 'student-1', studentName: 'Mari', title: 'Hiline leht', status: 'new', dueDate: '2000-01-01', answers: {}, worksheetDoc: sampleDocument() };
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, repositories([], [started, late], []));
-    const button = await screen.findByRole('button', { name: /Pooleli leht/ });
-    expect(button).toHaveTextContent('Pooleli');
-    expect(screen.getByText('2 töölehte')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Jätka' })).toBeInTheDocument();
+    const cards = screen.getAllByRole('article');
+    expect(cards[0]).toHaveTextContent('Hiline leht');
+    expect(cards[0]).toHaveTextContent(/Tähtaeg oli \d+ päeva tagasi/);
+    expect(cards[1]).toHaveTextContent('Pooleli leht');
     expect(screen.queryByText(/õpilast/)).toBeNull();
   });
 
@@ -311,7 +325,7 @@ describe('HomeworkPage', () => {
     globalThis.confirm = vi.fn(() => true);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, { ...repositories([], [], []), interactiveRepository });
 
-    fireEvent.click(await screen.findByRole('button', { name: /A2 tund/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Alusta' }));
     const dialog = await screen.findByRole('dialog', { name: 'A2 tund' });
     fireEvent.click(within(dialog).getByRole('button', { name: /Saada õpetajale/ }));
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('Vasta enne saatmist: Tutvustus, Lüngad');
@@ -356,8 +370,6 @@ describe('HomeworkPage: homework from a Live Classroom lesson', () => {
     const data = repositories([], [], [{ id: 'h1', studentId: 'student-1', studentName: 'Mari', task: 'Korda tunni sõnu', status: 'Ootel', due: '2026-10-11', source: 'live-classroom', boardPageId: 'p1', boardPageTitle: 'Tund 1', worksheetTitle: 'Minevik' }]);
     renderPage({ uid: 'student-uid', displayName: 'Mari', roles: ['student'] }, data);
     expect(await screen.findByRole('link', { name: 'Ava tahvlileht „Tund 1”' })).toHaveAttribute('href', '/board?page=p1');
-    expect(screen.getByText(/Tööleht „Minevik”/)).toBeInTheDocument();
-    expect(screen.getByText(/Tunnist/)).toBeInTheDocument();
   });
 });
 

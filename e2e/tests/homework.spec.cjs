@@ -27,7 +27,7 @@ test('teacher assigns a sheet → student answers and hands in → teacher sees 
   await login(student, 'student');
   await student.getByRole('navigation').first().getByRole('link', { name: 'Ülesanded' }).click();
   await expect(student).toHaveURL(/\/homework/);
-  await student.locator('.assigned-worksheet-list button', { hasText: 'Minu päev' }).click();
+  await student.getByRole('article').filter({ hasText: 'Minu päev' }).getByRole('button', { name: 'Alusta' }).click();
   await expect(student.locator('.ws-page').first()).toBeVisible();
   const answers = ['ärkan', 'joob', 'läheme', 'söövad', 'loed'];
   const gaps = student.locator('.ws-page [data-block="e2e_gaps"] input');

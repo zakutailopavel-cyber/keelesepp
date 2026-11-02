@@ -1,0 +1,334 @@
+/* ===== The student's column on a phone or tablet (`.ws-narrow` around the sheet, ../sheetFlow.js, docs/WORKSHEET_PHONE_VIEW.md).
+   Screen only: a printed sheet is always the A4 page of sheet.css. The base rules are the phone; `@container` adds room on a
+   tablet (a browser without container queries simply keeps the phone layout). The measures below are checked by
+   e2e/layout: nothing wider than the screen, targets of 44 px, fields of 16 px (iOS zooms the page into a smaller one). ===== */
+@media screen {
+  /* ---- the frame ---- */
+  .ws-narrow.ws-studio, .ws-narrow .ws-studio { height: auto; min-height: 0; overflow: visible; display: block; background: transparent; border-radius: 0; }
+  .ws-narrow.worksheet-player > header { display: none; }
+  .ws-narrow.worksheet-player, .ws-narrow .worksheet-blocks, .ws-narrow .visual-worksheet-pages { grid-template-columns: minmax(0, 1fr); }
+  .ws-narrow.ws-doc-player .st-canvas, .ws-narrow .ws-doc-player .st-canvas { margin: 0; padding: 6px; overflow: visible; max-height: none; background: transparent; border-radius: 0; min-height: 0; }
+  .ws-narrow .st-zoom { zoom: 1 !important; width: auto; margin: 0; container-type: inline-size; }
+  .ws-narrow .ws-root { display: block; max-width: 760px; margin: 0 auto; }
+  .ws-narrow .ws-page, .ws-narrow .ws-root.theme-klassika .ws-page, .ws-narrow .ws-root.density-compact .ws-page { width: auto; height: auto; min-height: 0; overflow: visible; padding: 12px 10px; font-size: 16px; line-height: 1.45; box-shadow: 0 1px 6px rgba(16, 35, 57, .08); border: 0; outline: 0; border-radius: 10px; gap: 12px; }
+  .ws-narrow .ws-page::before, .ws-narrow .ws-page::after { display: none; }
+  .ws-narrow .ws-page * { min-width: 0; overflow-wrap: anywhere; }
+  .ws-narrow .ws-row, .ws-narrow .ws-root.density-compact .ws-row { display: flex; flex-direction: column; gap: 12px; }
+  .ws-narrow .ws-flow, .ws-narrow .ws-root.density-compact .ws-flow { gap: 12px; }
+  .ws-narrow .ws-row > * { width: 100%; }
+  .ws-narrow img, .ws-narrow .ws-root svg { max-width: 100%; }
+  .ws-narrow .ws-root :is(button, input, select, [role='button'], label) { touch-action: manipulation; }
+
+  /* ---- the sheet's head: the title and the goal; the rest is for paper ---- */
+  .ws-narrow .ws-root :is(.ws-brand, .ws-lvl, .ws-mod, .ws-slogan, .ws-ftr, .ws-page-tail, .ws-runhead) { display: none; }
+  .ws-narrow .ws-root .ws-hdr { display: block; order: 1; }
+  .ws-narrow .ws-root .ws-hbox { margin: 0; padding: 8px 10px; border-radius: 8px; }
+  .ws-narrow .ws-root .ws-hbox b { display: none; }
+  .ws-narrow .ws-root .ws-cando { font-size: 15px; gap: 6px; }
+  .ws-narrow .ws-root .ws-target { width: 24px; height: 24px; }
+  .ws-narrow .ws-root .ws-title { order: 0; padding: 0; min-height: 0; border: 0; text-align: left; display: block; }
+  .ws-narrow .ws-root .ws-title h2 { font-size: clamp(22px, 7cqw, 30px); line-height: 1.15; letter-spacing: 0; text-transform: none; }
+  .ws-narrow .ws-root .ws-title p { font-size: 16px; margin-top: 4px; }
+  .ws-narrow .ws-root .ws-flow { order: 2; }
+
+  /* ---- a task card ---- */
+  .ws-narrow .ws-root .ws-card, .ws-narrow .ws-root .ws-card:not(.plain) { padding: 10px; margin: 0; border-radius: 10px; }
+  .ws-narrow .ws-root .ws-card.plain { padding: 0; }
+  .ws-narrow .ws-root [data-block], .ws-narrow .ws-root .ws-line { scroll-margin-top: 44px; }
+  .ws-narrow .ws-root .ws-ch, .ws-narrow .ws-root.density-compact .ws-ch { grid-template-columns: 32px minmax(0, 1fr); gap: 8px; margin-bottom: 10px; display: grid; align-items: start; padding-bottom: 0; }
+  .ws-narrow .ws-root .ws-num { width: 32px; height: 32px; font: 900 16px var(--font-head); place-items: center; }
+  .ws-narrow .ws-root .ws-ch h3 { font-size: 17px; line-height: 1.25; letter-spacing: 0; }
+  .ws-narrow .ws-root .ws-ch h3 span { font-size: 16px; }
+  .ws-narrow .ws-root .ws-ch p { font-size: 16px; margin-top: 4px; grid-column: auto; }
+  .ws-narrow .ws-root .ws-card.head-band .ws-ch { margin: -10px -10px 10px; padding: 10px; border-radius: 10px 10px 0 0; }
+  .ws-narrow .ws-marks-flow { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .ws-narrow .ws-marks-flow li { padding: 6px 10px; border-radius: 8px; background: #fffbe6; color: #3d2f05; font-size: 15px; }
+  .ws-narrow .ws-marks-flow li.is-sticker { background: transparent; padding: 0 4px; font-size: 22px; }
+  .ws-narrow .ws-card-note { margin-top: 8px; }
+  .ws-narrow .ws-live-answers { font-size: 15px; }
+  .ws-narrow .ws-card.focused { outline-width: 3px; outline-offset: 1px; }
+
+  /* ---- no text under 15 px; the sheet's point sizes are for paper ---- */
+  .ws-narrow .ws-root :is(.ws-hint, .ws-cap, .ws-tip, .ws-notice, .ws-notice b, .ws-self-items, .ws-vocab-cols, .ws-passage, .ws-passage h4, .ws-table, .ws-table th, .ws-pill, .ws-q, .ws-chip, .ws-bank-w, .ws-ad p, .ws-ad h4, .ws-exampart p, .ws-exampart-facts, .ws-taskcard, .ws-taskcard-kind, .ws-who, .ws-cat-g b, .ws-cat-item, .ws-tags, .ws-audio b, .ws-audio.is-print, .ws-qr, .ws-dg-node, .ws-dg-node.is-main, .ws-dg-tl-what, .ws-dg-w, .ws-dg-q, .ws-dg-note, .ws-dg-list, .ws-dg-ch, .ws-dg-vt, .ws-dg2-topic, .ws-dg2-row-label, .ws-dg2-when, .ws-dg2-again, .ws-dg2-num, .ws-chart-title, .ws-chart-legend, .ws-chart-source, .ws-cw-clues, .ws-cw-clues h4, .ws-cw-clues small, .ws-fix__prompt, .ws-formrow > span, .ws-translation small, .ws-lettergrid span, .ws-wordlist, .ws-rubric, .ws-phrasebank, .ws-planning label, .ws-coloring-key, .ws-brush, .ws-profile-name, .ws-profile-facts, .ws-profile-sentences, .ws-count-icons, .ws-idea figcaption, figcaption, .ws-wordstrip span, .ws-trace-clear, .ws-examrubric th, .ws-examrubric th small, .ws-examrubric-total, .ws-readcard, .ws-mark, .ws-inlesson) { font-size: 16px; line-height: 1.4; }
+  .ws-narrow .ws-root .ws-readcard p { font-size: clamp(24px, 8cqw, 34px); letter-spacing: .03em; }
+  .ws-narrow .ws-root .ws-lettergrid span { font-size: 15px; }
+  .ws-narrow .ws-root .ws-textblock p, .ws-narrow .ws-root .ws-passage p { margin: 0 0 8px; }
+
+  /* ---- answer fields: a field a finger can hit, at a size iOS does not zoom into ---- */
+  .ws-narrow :is(input, textarea, select) { font-size: 16px !important; max-width: 100%; }
+  .ws-narrow .ws-root .ws-line, .ws-narrow .ws-root.theme-selge .ws-line { min-height: 44px; padding: 8px 8px; margin: 2px 0; font-family: var(--font-body); font-weight: 600; line-height: 1.3; color: #1b4a8a; background: #fff; border: 1px solid #98a7b8; border-radius: 8px; box-sizing: border-box; vertical-align: middle; min-width: 64px; }
+  .ws-narrow .ws-root .ws-line:focus { border-color: var(--ks-navy); box-shadow: 0 0 0 2px rgba(23, 58, 99, .2); background: #fff; }
+  .ws-narrow .ws-root .ws-line.is-ok { box-shadow: inset 0 -3px 0 var(--ok) !important; }
+  .ws-narrow .ws-root .ws-line.is-bad { box-shadow: inset 0 -3px 0 var(--bad) !important; }
+  .ws-narrow .ws-root .ws-line--grow { display: block; width: 100%; min-height: 44px; }
+  .ws-narrow .ws-root :is(.ws-gaps, .ws-choice, .ws-order, .ws-rq, .ws-fix, .ws-translation) { padding-left: 24px; }
+  .ws-narrow .ws-root .ws-gaps li { padding: 6px 0; line-height: 1.5; }
+  .ws-narrow .ws-root .ws-ruled { font: 600 17px/28px var(--font-body); background: transparent repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--ks-line) 27px, var(--ks-line) 28px); field-sizing: content; min-height: 196px; padding: 0 4px; }
+  .ws-narrow .ws-root .ws-note-img { position: static; display: block; width: min(60%, 220px); margin: 8px auto 0; transform: none; }
+  .ws-narrow .ws-root :is(.ws-planning textarea, .ws-guidedletter textarea) { font: 16px/28px var(--font-body); background: repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--ks-line) 27px, var(--ks-line) 28px); field-sizing: content; min-height: 84px; }
+  .ws-narrow .ws-root .ws-guidedletter textarea { min-height: 224px; }
+
+  /* ---- buttons of a task ---- */
+  .ws-narrow .ws-root .ws-opts { gap: 8px; margin-top: 6px; }
+  .ws-narrow .ws-root .ws-choice li { margin-bottom: 14px; }
+  .ws-narrow .ws-root .ws-opt { width: 100%; min-height: 44px; padding: 8px 12px; gap: 10px; border: 1px solid #c3ccd6; border-radius: 10px; background: #fff; }
+  .ws-narrow .ws-root .ws-opt.on { border-color: var(--ks-green-2); background: #eef7f0; }
+  .ws-narrow .ws-root .ws-opt.is-bad { border-color: var(--bad); background: #fdf1ef; }
+  .ws-narrow .ws-root .ws-opt.is-ok { border-color: var(--ok); background: #ecf8f0; }
+  .ws-narrow .ws-root :is(.ws-dot, .ws-box) { width: 20px; height: 20px; }
+  .ws-narrow .ws-root .ws-opt.on :is(.ws-dot, .ws-box) { box-shadow: inset 0 0 0 4px #fff; }
+  /* true / false: the two buttons under the statement, with their words */
+  .ws-narrow .ws-root .ws-tf-head { display: none; }
+  .ws-narrow .ws-root .ws-tf-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 10px 0; }
+  .ws-narrow .ws-root .ws-tf-row > span { grid-column: 1 / -1; }
+  .ws-narrow .ws-root .ws-tfbox { width: 100%; height: auto; min-height: 44px; border-radius: 10px; color: var(--ks-navy); font: 700 16px var(--font-body); }
+  .ws-narrow .ws-root .ws-tfbox::before { content: attr(aria-label); }
+  .ws-narrow .ws-root .ws-tfbox.on { color: #fff; }
+  /* a word bank and word chips you tap */
+  .ws-narrow .ws-root .ws-bank { justify-content: flex-start; gap: 6px 8px; padding: 8px; margin-bottom: 10px; }
+  .ws-narrow .ws-root .ws-bank-w[role='button'], .ws-narrow .ws-root button.ws-chip { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; justify-content: center; padding: 6px 14px; border: 1px solid #b7c2ce; border-radius: 999px; background: #fff; font: 600 16px var(--font-body); color: var(--ks-navy); cursor: pointer; }
+  .ws-narrow .ws-root .ws-bank-w.sel { background: var(--ks-green-2); border-color: var(--ks-green-2); color: #fff; }
+  .ws-narrow .ws-root .ws-bank-w.placed, .ws-narrow .ws-root button.ws-chip.is-used { opacity: .4; }
+  .ws-narrow .ws-root .ws-chips { gap: 6px; margin-bottom: 6px; }
+  .ws-narrow .ws-root span.ws-chip { padding: 4px 10px; }
+  .ws-narrow .ws-root .ws-order li { margin-bottom: 14px; }
+  .ws-narrow .ws-root :is(.ws-recbtn, .ws-trace-clear, .ws-brush, .ws-block-key-x) { min-height: 44px; min-width: 44px; padding: 8px 14px; }
+  .ws-narrow .ws-root .ws-recbtn { font-size: 16px; }
+
+  /* ---- matching: one list under the other, the choice under its answer ---- */
+  .ws-narrow .ws-root :is(.ws-match, .ws-match:not(.is-legacy), .ws-many) { display: block; }
+  .ws-narrow .ws-root :is(.ws-match ol, .ws-many ol) { padding-left: 24px; margin-bottom: 10px; }
+  .ws-narrow .ws-root .ws-match ol li { padding: 4px 0; }
+  .ws-narrow .ws-root .ws-match:not(.is-legacy) ul li, .ws-narrow .ws-root .ws-match.is-legacy ol li, .ws-narrow .ws-root .ws-ads-sit li { display: flex; flex-direction: column-reverse; align-items: stretch; gap: 4px; padding: 8px 0; border-top: 1px solid rgba(23, 58, 99, .12); }
+  .ws-narrow .ws-root .ws-ads-sit li { flex-direction: column; }
+  .ws-narrow .ws-root .ws-sel { min-height: 44px; width: 100%; padding: 0 8px; }
+  .ws-narrow .ws-root span.ws-letterbox { min-height: 44px; width: 100%; display: flex; align-items: center; padding: 0 8px; border: 1px solid var(--ks-line); border-radius: 8px; }
+  .ws-narrow .ws-root .ws-many ul { list-style: none; padding: 0; margin: 0; }
+  .ws-narrow .ws-root .ws-many li.pick { min-height: 44px; padding: 10px 12px; margin: 6px 0; border: 1px solid #c3ccd6; border-radius: 10px; background: #fff; }
+  .ws-narrow .ws-root .ws-many ol { list-style-position: inside; padding-left: 0; }
+  .ws-narrow .ws-root .ws-many li.sel { background: #e7f4ea; outline: 2px solid var(--ks-green-2); }
+  .ws-narrow .ws-root .ws-tags { font: 700 15px var(--font-body); margin-top: 2px; }
+
+  /* ---- exam text with choices inside ---- */
+  .ws-narrow .ws-root .ws-cloze .ws-passage p { line-height: 1.6; }
+  .ws-narrow .ws-root .ws-cloze-sel { min-height: 44px; margin: 2px 0; padding: 0 6px; font-weight: 600; color: #1b4a8a; border: 1px solid #98a7b8; border-radius: 8px; background: #fff; }
+  .ws-narrow .ws-root .ws-cloze-gap, .ws-narrow .ws-root .ws-formtext-gap, .ws-narrow .ws-root .ws-cloze-options li span { white-space: normal; }
+  .ws-narrow .ws-root .ws-cloze-options { columns: 1; padding-left: 24px; }
+  .ws-narrow .ws-root .ws-insertion-options { padding-left: 24px; }
+  .ws-narrow .ws-root .ws-insertion-options li { margin-bottom: 6px; }
+
+  /* ---- a table: every row its own card, the column's name above the cell ---- */
+  .ws-narrow .ws-root .ws-table, .ws-narrow .ws-root .ws-table :is(tbody, tr, td) { display: block; width: 100%; }
+  .ws-narrow .ws-root .ws-table { background: transparent; border-radius: 0; overflow: visible; }
+  .ws-narrow .ws-root .ws-table thead { display: none; }
+  .ws-narrow .ws-root .ws-table tr { padding: 8px 10px; margin-bottom: 10px; border: 1px solid rgba(23, 58, 99, .2); border-radius: 10px; background: rgba(255, 255, 255, .8); }
+  .ws-narrow .ws-root .ws-table td { padding: 4px 0; border: 0; }
+  .ws-narrow .ws-root .ws-table td[data-label]::before { content: attr(data-label); display: block; font: 700 14px/1.3 var(--font-body); color: var(--ks-muted); margin-bottom: 2px; }
+  .ws-narrow .ws-root .ws-table td[data-label='']::before { display: none; }
+  .ws-narrow .ws-root .ws-examrubric table, .ws-narrow .ws-root .ws-examrubric :is(tbody, tr, th, td) { display: block; width: 100%; }
+  .ws-narrow .ws-root .ws-examrubric tr { padding: 8px 0; border-top: 1px solid var(--ks-line); }
+  .ws-narrow .ws-root .ws-examrubric :is(th, td) { border: 0; padding: 2px 0; }
+  .ws-narrow .ws-root .ws-examrubric td { display: flex; flex-wrap: wrap; gap: 6px; white-space: normal; }
+  .ws-narrow .ws-root .ws-pt { width: 44px; height: 44px; margin: 0; font-size: 16px; }
+  .ws-narrow .ws-root .ws-examrubric-total { text-align: left; }
+
+  /* ---- pictures: they fit; several side by side only as far as they stay big ---- */
+  .ws-narrow .ws-root :is(.ws-pics, .ws-clocks) { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; gap: 10px; }
+  .ws-narrow .ws-root .ws-counting { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .ws-narrow .ws-root .ws-count { padding: 8px; }
+  .ws-narrow .ws-root .ws-count .ws-line { width: 100% !important; }
+  .ws-narrow .ws-root .ws-clock { max-width: 120px; }
+  .ws-narrow .ws-root .ws-clockrow { font-size: 16px; }
+  .ws-narrow .ws-root .ws-clockrow b { flex: none; }
+  .ws-narrow .ws-root .ws-circ { width: 44px; height: 44px; left: 4px; bottom: 4px; font-size: 18px; }
+  .ws-narrow .ws-root .ws-pic-letter { width: 30px; height: 30px; left: 4px; top: 4px; font-size: 16px; }
+  .ws-narrow .ws-root .ws-pin { width: 28px; height: 28px; font-size: 15px; }
+  .ws-narrow .ws-root .ws-bubble { font-size: 15px; padding: 6px 10px; max-width: 60%; top: 6px; right: 6px; }
+  .ws-narrow .ws-root :is(.ws-picmatch, .ws-scenelabel, .ws-reading, .ws-speak.has-img, .ws-self, .ws-self-items, .ws-coloring) { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .ws-narrow .ws-root .ws-card[data-cols] .ws-tf { grid-template-columns: minmax(0, 1fr); }
+  /* the pictures first, the words with their letters under them */
+  .ws-narrow .ws-root .ws-picmatch .ws-pics { order: -1; }
+  .ws-narrow .ws-root .ws-picmatch-words { padding-left: 24px; gap: 6px; }
+  .ws-narrow .ws-root input.ws-letterbox { width: 44px; height: 44px; font-size: 18px !important; border: 1px solid #98a7b8; border-radius: 8px; background: #fff; }
+  .ws-narrow .ws-root .ws-scenelabel-answers { columns: 1 !important; padding-left: 24px; }
+  .ws-narrow .ws-root .ws-vocab-cols { columns: 130px auto !important; column-gap: 12px; }
+  .ws-narrow .ws-root .ws-wordstrip { flex-wrap: wrap; justify-content: flex-start; gap: 8px; }
+  .ws-narrow .ws-root .ws-wordstrip li { flex: 0 1 calc(33.33% - 6px); }
+  .ws-narrow .ws-root :is(.ws-profiles, .ws-cat-groups) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)) !important; }
+  .ws-narrow .ws-root .ws-profile > .ws-photo { width: 45%; }
+  .ws-narrow .ws-root .ws-picrow { grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 8px; }
+  .ws-narrow .ws-root .ws-picrow::before { left: 4px; top: 4px; z-index: 1; }
+  .ws-narrow .ws-root .ws-cat-g { min-height: 72px; padding: 10px; border: 1px dashed #98a7b8; }
+  .ws-narrow .ws-root .ws-cat-item[role='button'] { display: inline-flex; align-items: center; min-height: 44px; padding: 4px 12px; font: 600 16px var(--font-body); border: 1px solid #c3ccd6; border-radius: 999px; background: #fff; }
+  .ws-narrow .ws-root .ws-cat-list { gap: 6px; }
+  .ws-narrow .ws-root .ws-formrow { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; padding-bottom: 6px; }
+  .ws-narrow .ws-root :is(.ws-rolecards, .ws-planning, .ws-phrasebank, .ws-rubric) { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .ws-narrow .ws-root .ws-ideas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ws-narrow .ws-root .ws-ads-grid { grid-template-columns: minmax(0, 1fr); }
+  .ws-narrow .ws-root .ws-ad { padding: 8px 10px 8px 32px; }
+  .ws-narrow .ws-root .ws-ad-letter { left: 10px; top: 8px; font-size: 17px; }
+  .ws-narrow .ws-root :is(.ws-rubric label, .ws-self label) { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px; }
+  .ws-narrow .ws-root :is(.ws-rubric input, .ws-self input) { width: 24px; height: 24px; margin: 0; flex: none; }
+  .ws-narrow .ws-root .ws-stamp { transform: none; font: 700 18px/1.2 var(--font-body); }
+  .ws-narrow .ws-root .ws-say, .ws-narrow .ws-root .ws-say.b { display: block; }
+  .ws-narrow .ws-root .ws-who { text-align: left; padding: 0 0 2px; }
+  .ws-narrow .ws-root .ws-say.b { padding-left: 16px; }
+  .ws-narrow .ws-root .ws-say.a { padding-right: 16px; }
+  .ws-narrow .ws-root .ws-sayb { padding: 8px 10px; }
+
+  /* ---- audio: the player takes the whole width ---- */
+  .ws-narrow .ws-root .ws-audio:not(.is-print) { flex-wrap: wrap; padding: 8px; border-radius: 12px; gap: 6px 8px; }
+  .ws-narrow .ws-root .ws-audio-ico { width: 28px; height: 28px; }
+  .ws-narrow .ws-root .ws-audio-ico svg { width: 16px; height: 16px; }
+  .ws-narrow .ws-root .ws-audio audio, .ws-narrow .ws-root .ws-rec audio { flex: 1 1 100%; width: 100%; min-width: 0; height: 48px; margin: 0; }
+  .ws-narrow .ws-root .ws-audio.is-print svg { width: 22px; height: 22px; }
+
+  /* ---- schemes ---- */
+  .ws-narrow .ws-root .ws-dg2-pairs { grid-template-columns: minmax(0, 1fr); grid-template-rows: none !important; grid-auto-flow: row; gap: 8px; }
+  .ws-narrow .ws-root .ws-dg2-pair { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .ws-narrow .ws-root .ws-dg2-to { display: none; }
+  .ws-narrow .ws-root .ws-dg2-cards { grid-template-columns: minmax(0, 1fr); }
+  .ws-narrow .ws-root .ws-dg2-card li { display: block; }
+  .ws-narrow .ws-root .ws-dg2-card li::before { margin-right: 4px; }
+  .ws-narrow .ws-root .ws-diagram .ws-gapline { display: inline-block; max-width: 100%; }
+  .ws-narrow .ws-root .ws-dg2-steps li { grid-template-columns: 30px minmax(0, 1fr); gap: 8px; }
+  .ws-narrow .ws-root .ws-dg2-steps li::after { left: 9px; }
+  .ws-narrow .ws-root .ws-dg2-num { width: 28px; height: 28px; }
+  .ws-narrow .ws-root .ws-dg2-time li { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 6px 0; }
+  .ws-narrow .ws-root .ws-dg2-time li::after, .ws-narrow .ws-root .ws-dg2-dot { display: none; }
+  .ws-narrow .ws-root .ws-dg2-when { justify-self: start; }
+  .ws-narrow .ws-root .ws-dg-fx { flex-direction: column; align-items: stretch; gap: 4px; }
+  .ws-narrow .ws-root .ws-dg-plus { align-self: center; }
+  .ws-narrow .ws-root .ws-dg-compare { display: block; }
+  .ws-narrow .ws-root .ws-dg-col { padding: 0 0 10px; }
+  .ws-narrow .ws-root .ws-dg-col.is-a { border-right: 0; }
+  .ws-narrow .ws-root .ws-dg-ch { margin: 0 0 6px; padding: 4px 0; }
+  /* Venn: the two circles have no room for fields; three plain lists */
+  .ws-narrow .ws-root .ws-dg-venn { aspect-ratio: auto; display: flex; flex-direction: column; gap: 6px; }
+  .ws-narrow .ws-root .ws-dg-venn svg { display: none; }
+  .ws-narrow .ws-root :is(.ws-dg-vt, .ws-dg-vz) { position: static; transform: none; width: auto; display: block; text-align: left; white-space: normal; }
+  .ws-narrow .ws-root .ws-dg-vt.is-a { order: 1; } .ws-narrow .ws-root .ws-dg-vz.is-a { order: 2; }
+  .ws-narrow .ws-root .ws-dg-vz.is-m { order: 3; } .ws-narrow .ws-root .ws-dg-vt.is-b { order: 4; } .ws-narrow .ws-root .ws-dg-vz.is-b { order: 5; }
+  .ws-narrow .ws-root .ws-dg-vz.is-m::before { content: 'Mõlemad'; display: block; font-weight: 700; color: var(--ks-muted); margin-bottom: 2px; }
+  /* a chart with many bars keeps its words readable and scrolls inside its own box */
+  .ws-narrow .ws-root .ws-chart-scroll { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ws-narrow .ws-root .ws-chart-svg { min-width: 460px; max-height: none; }
+
+  /* ---- children's blocks ---- */
+  .ws-narrow .ws-root .ws-coloring-side { order: -1; gap: 8px; }
+  .ws-narrow .ws-root .ws-coloring-palette { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 2px; }
+  .ws-narrow .ws-root .ws-brush { flex: none; }
+  .ws-narrow .ws-root .ws-coloring-key { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ws-narrow .ws-root .ws-coloring-pic { max-width: 100%; }
+  .ws-narrow .ws-root .ws-swatch { width: 22px; height: 22px; }
+  /* the right edge of a tracing row stays free for the thumb: on the lines the finger writes, it does not scroll */
+  .ws-narrow .ws-root .ws-trace-row { padding-right: 30px; gap: 4px; }
+  .ws-narrow .ws-root .ws-trace-nav { display: flex; gap: 8px; }
+  .ws-narrow .ws-root .ws-trace-nav button { flex: 1; min-height: 44px; font: 600 16px var(--font-body); color: var(--ks-navy); border: 1px solid #c3ccd6; border-radius: 10px; background: #fff; }
+  .ws-narrow .ws-root .ws-trace-nav button:disabled { opacity: .4; }
+  .ws-narrow .ws-root .ws-trace-clear { justify-self: stretch; width: 100%; margin-top: 4px; }
+  .ws-narrow .ws-root .ws-hunt { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 2px; }
+  .ws-narrow .ws-root .ws-hunt-cell { width: 44px; height: 44px; flex: none; }
+  .ws-narrow .ws-root .ws-hunt-row { gap: 4px; }
+  /* a crossword keeps cells a finger can hit and scrolls inside its own box */
+  .ws-narrow .ws-root .ws-cw-grid { grid-template-columns: none !important; grid-auto-columns: 46px; grid-auto-rows: 46px; max-width: none !important; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 1px; }
+  .ws-narrow .ws-root .ws-cw-cell { margin: 0; aspect-ratio: auto; }
+  .ws-narrow .ws-root :is(.ws-cw-cell input, .ws-cw-cell b) { font: 700 18px/1 var(--font-body); }
+  .ws-narrow .ws-root .ws-cw-cell small { font-size: 11px; }
+  .ws-narrow .ws-root .ws-cw-clues { grid-template-columns: minmax(0, 1fr); }
+  .ws-narrow .ws-root .ws-wordlist { gap: 4px 12px; }
+  .ws-narrow .ws-root .ws-lettergrid { width: 100%; overflow-x: auto; }
+
+  /* ---- room on a tablet ---- */
+  @container (min-width: 560px) {
+    .ws-narrow .ws-root .ws-figure { max-width: 480px; margin-inline: auto; }
+    .ws-narrow .ws-root .ws-speak.has-img > .ws-photo { max-width: 420px; }
+    .ws-narrow .ws-root .ws-coloring-pic { max-width: 420px; }
+    .ws-narrow .ws-root .ws-tf-row { grid-template-columns: minmax(0, 1fr) 96px 96px; }
+    .ws-narrow .ws-root .ws-tf-row > span { grid-column: auto; }
+    .ws-narrow .ws-root .ws-ads-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ws-narrow .ws-root .ws-ideas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .ws-narrow .ws-root :is(.ws-rolecards, .ws-phrasebank, .ws-rubric) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ws-narrow .ws-root :is(.ws-pics, .ws-clocks) { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)) !important; }
+    .ws-narrow .ws-root .ws-dg-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .ws-narrow .ws-root .ws-chart-svg { min-width: 0; }
+    .ws-narrow .ws-root .ws-wordstrip li { flex: 0 1 110px; }
+    .ws-narrow .ws-root .ws-table:has(tbody tr:first-child td:nth-child(-n + 4):last-child) { display: table; }
+    .ws-narrow .ws-root .ws-table:has(tbody tr:first-child td:nth-child(-n + 4):last-child) thead { display: table-header-group; }
+    .ws-narrow .ws-root .ws-table:has(tbody tr:first-child td:nth-child(-n + 4):last-child) tbody { display: table-row-group; }
+    .ws-narrow .ws-root .ws-table:has(tbody tr:first-child td:nth-child(-n + 4):last-child) tr { display: table-row; }
+    .ws-narrow .ws-root .ws-table:has(tbody tr:first-child td:nth-child(-n + 4):last-child) td { display: table-cell; width: auto; padding: 6px 8px; border-top: 1px solid rgba(23, 58, 99, .1); }
+    .ws-narrow .ws-root .ws-table:has(tbody tr:first-child td:nth-child(-n + 4):last-child) td::before { display: none; }
+    .ws-narrow .ws-root .ws-table:has(tbody tr:first-child td:nth-child(-n + 4):last-child) th { padding: 6px 8px; }
+  }
+
+  /* ---- the line that stays on top: how far, and whether it is saved ---- */
+  .ws-flow-bar { position: sticky; top: 0; z-index: 8; display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 4px 12px; background: #fff; border-bottom: 1px solid #e4e7ec; font: 700 15px/1.2 'DM Sans', system-ui, sans-serif; color: #173a63; }
+  .ws-flow-bar > b { flex: none; font-variant-numeric: tabular-nums; }
+  .ws-flow-track { flex: 1 1 40px; height: 6px; border-radius: 99px; background: #e9edf2; overflow: hidden; min-width: 30px; }
+  .ws-flow-track i { display: block; height: 100%; border-radius: 99px; background: #2f7d4c; transition: width .2s; }
+  .ws-flow-save { flex: 0 1 auto; font-weight: 600; font-size: 13.5px; color: #52606d; text-align: right; }
+  .ws-flow-save.is-saved { color: #1f7a45; }
+  .ws-flow-save.is-saved::before { content: '✓ '; }
+  .ws-flow-save.is-failed { color: #b42318; font-weight: 700; }
+
+  /* ---- the dialog is the whole screen, and only the part the keyboard leaves ---- */
+  .modal.modal--sheet-flow { position: fixed; left: 0; right: 0; top: var(--ws-vv-top, 0); width: 100%; max-width: none; height: var(--ws-vv-h, 100dvh); max-height: none; border: 0; border-radius: 0; box-shadow: none; }
+  .modal--sheet-flow .modal__header { padding: 4px 4px 4px 14px; min-height: 48px; gap: 8px; }
+  .modal--sheet-flow .modal__header h2 { font-size: 1rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .modal--sheet-flow .modal__header .icon-button { width: 44px; height: 44px; }
+  .modal--worksheet.modal--sheet-flow .modal__body { padding: 0; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: #f4f6f8; }
+  .modal--worksheet.modal--sheet-flow .modal__footer { display: flex; gap: 8px; padding: 8px 10px; flex: none; }
+  .modal--sheet-flow .modal__footer .button { flex: 1 1 0; min-height: 48px; justify-content: center; }
+  .modal--sheet-flow .modal__footer .button:last-child { flex-grow: 2; }
+  /* in a lesson: the same buttons stay in reach at the bottom of the reading page */
+  .ws-narrow .ws-inline-footer, .sb-reading .ws-inline-footer { position: sticky; bottom: 0; z-index: 8; display: flex; gap: 8px; padding: 8px 4px; background: #f4f5f8; flex-wrap: nowrap; }
+  .sb-reading .ws-inline-footer .button { flex: 1 1 0; min-height: 48px; justify-content: center; }
+  .sb-reading .ws-inline-footer .button:last-child { flex-grow: 2; }
+  .sb-reading .ws-inline-player.is-board { display: block; max-width: 760px; margin: 0 auto; }
+  .ws-narrow .ws-live-wait.is-over { position: static; transform: none; white-space: normal; margin: 6px; font-size: 16px; box-shadow: none; }
+  /* with the keyboard up every line counts: only the sheet and the progress line stay */
+  .ws-flow-typing .modal--sheet-flow :is(.modal__header, .modal__footer), .ws-flow-typing .sb-reading .ws-inline-footer, .ws-flow-typing .sb-reading-toggle { display: none; }
+
+  /* ---- what comes around the sheet ---- */
+  .ws-narrow .worksheet-note, .ws-narrow .worksheet-result, .ws-narrow > .action-error, .ws-narrow .worksheet-readonly { margin: 8px; }
+  .ws-narrow .worksheet-assessment { margin: 10px 6px; padding: 12px; }
+  .ws-narrow .worksheet-assessment textarea, .ws-narrow .worksheet-assessment select { min-height: 44px; width: 100%; }
+  .ws-narrow .st-evidence { margin: 8px 6px; font-size: 15px; }
+  .ws-narrow .ws-mark-line { margin: 8px; font-size: 12px; }
+  .ws-narrow .sa-layer button, .ws-narrow .sa-pin { min-width: 28px; min-height: 28px; }
+
+  /* ---- the old v1 player on the same screen ---- */
+  .ws-narrow .worksheet-blocks { padding: 8px 6px; gap: 10px; }
+  .ws-narrow .worksheet-block { padding: 12px; }
+  .ws-narrow .worksheet-block > header strong { font-size: .9rem; }
+  .ws-narrow .worksheet-block > header small { font-size: .95rem; }
+  .ws-narrow .worksheet-question button, .ws-narrow .worksheet-word { min-height: 44px; }
+  .ws-narrow :is(.worksheet-fill input, .worksheet-match select, .worksheet-long-input, .worksheet-repeat input, .worksheet-dialogue input, .worksheet-table-wrap input) { min-height: 44px; }
+  .ws-narrow .worksheet-fill { line-height: 3.2; }
+  .ws-narrow .worksheet-fill input { width: 120px; }
+  .ws-narrow .worksheet-repeat label, .ws-narrow .worksheet-match label { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .ws-narrow .worksheet-dialogue p { flex-wrap: wrap; align-items: center; }
+  .ws-narrow .worksheet-dialogue input { width: 100%; }
+  .ws-narrow .worksheet-table-wrap { max-width: 100%; }
+  /* fields placed on a scanned page: the page with numbers, the fields as a list */
+  .ws-narrow .visual-worksheet-pages { padding: 8px 6px; gap: 12px; }
+  .visual-worksheet-page.is-list { width: 100%; }
+  .visual-list-canvas { overflow: auto; -webkit-overflow-scrolling: touch; max-height: 70dvh; background: #fff; }
+  .visual-list-inner { position: relative; width: 100%; }
+  .visual-list-canvas.is-zoomed .visual-list-inner { width: 220%; }
+  .visual-list-inner > img { display: block; width: 100%; height: auto; user-select: none; }
+  .visual-list-dot { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #175cd3; color: #fff; font: 700 13px/1 'DM Sans', system-ui, sans-serif; box-shadow: 0 0 0 2px #fff; pointer-events: none; }
+  .visual-list-zoom { display: block; width: calc(100% - 16px); min-height: 44px; margin: 8px; font: 600 15px 'DM Sans', system-ui, sans-serif; color: #173a63; background: #fff; border: 1px solid #c3ccd6; border-radius: 10px; }
+  .visual-list-fields { margin: 0; padding: 4px 8px 8px 32px; display: grid; gap: 10px; }
+  .visual-list-field { display: grid; gap: 4px; font-weight: 600; }
+  .visual-list-field :is(input, select, textarea) { width: 100%; min-height: 44px; padding: 8px; font: 16px/1.35 inherit; color: #162033; background: #fff; border: 1px solid #98a7b8; border-radius: 8px; box-sizing: border-box; }
+  .visual-list-field.is-correct :is(input, select, textarea) { border-color: #12b76a; background: #ecfdf3; }
+  .visual-list-field.is-wrong :is(input, select, textarea) { border-color: #f04438; background: #fef3f2; }
+  .visual-list-check { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; }
+  .visual-list-check input { width: 24px; height: 24px; flex: none; }
+  .visual-list-check.is-correct { color: #067647; } .visual-list-check.is-wrong { color: #b42318; }
+  .visual-list-words { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 8px 10px; }
+  .visual-list-words button { min-height: 44px; padding: 6px 14px; font: 600 16px 'DM Sans', system-ui, sans-serif; color: #173a63; background: #fff; border: 1px solid #b7c2ce; border-radius: 12px; display: grid; }
+  .visual-list-words small { font-size: 15px; color: #52606d; font-weight: 500; }
+}

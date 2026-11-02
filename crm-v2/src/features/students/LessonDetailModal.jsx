@@ -7,6 +7,7 @@ import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import LessonsCard from '../lesson-recording/TranscriptView.jsx';
 import { dayKey, lessonTimeline } from '../lesson-recording/lessonTimeline.js';
+import { displayDate } from '../finance/finance.js';
 
 // One lesson of the student card („Tunnid”) opened on its own: the mark, topic and notes, and everything from that day —
 // homework given, the lesson summary, new words, the recording with its analysis and the board page.
@@ -68,7 +69,7 @@ export default function LessonDetailModal({
         {dayHomework.length ? (
           <section>
             <h3>Kodutöö</h3>
-            <ul className="lesson-detail__list">{dayHomework.map((item) => <li key={item.id}><span>{item.task || item.title || 'Kodutöö'}</span><small>{[item.due ? `tähtaeg ${item.due}` : '', item.status].filter(Boolean).join(' · ')}</small></li>)}</ul>
+            <ul className="lesson-detail__list">{dayHomework.map((item) => <li key={item.id}><span>{item.task || item.title || 'Kodutöö'}</span><small>{[item.due ? `tähtaeg ${displayDate(item.due)}` : '', item.status].filter(Boolean).join(' · ')}</small></li>)}</ul>
           </section>
         ) : null}
         {dayWords.length ? (

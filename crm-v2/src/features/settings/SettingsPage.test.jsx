@@ -45,6 +45,16 @@ describe('SettingsPage', () => {
     expect(screen.queryByRole('link', { name: /Ava juhend/ })).toBeNull();
   });
 
+  it('keeps the finished teacher-scope migration out of the technical tab unless asked for by address', () => {
+    const admin = { uid: 'admin-1', displayName: 'Admin', email: 'admin@example.com', roles: ['admin'], profile: {} };
+    const open = (path) => render(<MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ user: admin, configured: true, preview: true }}><SettingsPage /></AuthContext.Provider></MemoryRouter>);
+    const { unmount } = open('/settings?tab=tehniline');
+    expect(screen.queryByText(/Teacher-scope/)).not.toBeInTheDocument();
+    unmount();
+    open('/settings?tab=tehniline&migratsioon=1');
+    expect(screen.getByText(/Teacher-scope/)).toBeInTheDocument();
+  });
+
   it('gives an admin the school and technical tabs, opened from the address', () => {
     const admin = { uid: 'admin-1', displayName: 'Oleksiy', email: 'o@keelesepp.test', roles: ['admin'], profile: {} };
     render(<MemoryRouter initialEntries={['/settings?tab=tehniline']}><AuthContext.Provider value={{ user: admin, configured: true, preview: true }}><SettingsPage /></AuthContext.Provider></MemoryRouter>);

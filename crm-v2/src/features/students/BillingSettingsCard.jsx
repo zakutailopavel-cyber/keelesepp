@@ -7,6 +7,7 @@ import {
   SAME_RATE, STANDARD_HOURLY_RATE_CENTS, lessonPricesFromTerms, priceTermsOf, rateChoiceOf, rateLabel, validatePriceTerms,
 } from '../finance/priceTerms.js';
 import { mainSubject, subjectsOf } from './subjects.js';
+import { displayDate } from '../finance/finance.js';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
 const today = () => new Date().toLocaleDateString('sv-SE');
@@ -173,7 +174,7 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
         </Select>
         <Input label="Kehtib alates" type="date" value={form.validFrom} disabled={!canEdit} onChange={(e) => set({ validFrom: e.target.value })} />
         <label className="billing-settings__check"><input type="checkbox" checked={form.chargeNoShow} disabled={!canEdit} onChange={(e) => set({ chargeNoShow: e.target.checked })} /> Ette teatamata puudumine on tasuline (erandi saab teha tunni juures)</label>
-        {plan?.priceTermsChangedAt ? <p className="billing-settings__changed">Hinnatingimused muudetud {String(plan.priceTermsChangedAt).slice(0, 10)}{plan.priceTermsChangedBy ? ` · ${plan.priceTermsChangedBy}` : ''}</p> : null}
+        {plan?.priceTermsChangedAt ? <p className="billing-settings__changed">Hinnatingimused muudetud {displayDate(String(plan.priceTermsChangedAt).slice(0, 10))}{plan.priceTermsChangedBy ? ` · ${plan.priceTermsChangedBy}` : ''}</p> : null}
         {errors.form ? <p className="action-error" role="alert">{errors.form}</p> : null}
         {canEdit ? <div className="billing-settings__actions">{message ? <span role="status"><Check size={16} /> {message}</span> : null}<Button type="submit" loading={saving}><WalletCards size={17} /> Salvesta</Button></div> : null}
       </form>

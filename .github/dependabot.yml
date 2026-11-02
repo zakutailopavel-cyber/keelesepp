@@ -1,0 +1,51 @@
+# Version updates for the two npm projects and the GitHub Actions in .github/workflows.
+# Weekly, grouped into one PR per ecosystem, at most two open per folder. Needs no token: all registries are public.
+# cooldown: a release must be 7 days old before it is proposed, so a compromised release has time to be noticed.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /crm-v2
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Tallinn
+    open-pull-requests-limit: 2
+    cooldown:
+      default-days: 7
+    groups:
+      crm-v2-production:
+        dependency-type: production
+        update-types: [minor, patch]
+      crm-v2-development:
+        dependency-type: development
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /functions
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Tallinn
+    open-pull-requests-limit: 2
+    cooldown:
+      default-days: 7
+    groups:
+      functions-production:
+        dependency-type: production
+        update-types: [minor, patch]
+      functions-development:
+        dependency-type: development
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Tallinn
+    open-pull-requests-limit: 2
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]

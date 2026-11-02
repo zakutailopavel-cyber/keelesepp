@@ -2,7 +2,11 @@ import { Bell, BookOpenCheck, CalendarClock, CircleAlert, ListTodo, MessageSquar
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, invoicesService, lessonChangeRequestsService, messagesService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { invoicesService } from '../../services/firebase/invoices.js';
+import { lessonChangeRequestsService } from '../../services/firebase/lessonChangeRequests.js';
+import { messagesService } from '../../services/firebase/messages.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { tasksService } from '../../services/firebase/tasks.js';
 import { studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
 import { missingDataService } from '../../services/firebase/missingData.js';
@@ -30,15 +34,17 @@ async function loadSources(user, repositories) {
   const teacher = user.roles.includes('teacher');
   const finance = user.roles.includes('finance');
   const staff = admin || teacher;
+  // started at once so that it joins the same read of the page under the bell (shareInFlight) instead of repeating it
+  const invoicesRead = admin || finance ? quiet(repositories.invoices.list()) : [];
   const studentResult = staff
     ? await repositories.students.list({ status: 'active', pageSize: 500, exhaustive: true, ...(admin ? {} : { scopeTeacherUid: user.uid }) }).catch(() => ({ items: [] }))
     : { items: [] };
   const ids = studentResult.items.map((student) => student.id);
   const names = new Map(studentResult.items.map((student) => [student.id, student.name]));
   const [messages, submissions, invoices, lessonRequests, availability, missingData] = await Promise.all([
-    staff ? quiet(admin ? repositories.messages.list() : repositories.messages.listByStudentIds(ids)) : [],
+    staff ? quiet(admin ? (repositories.messages.listUnread || repositories.messages.list).call(repositories.messages) : repositories.messages.listByStudentIds(ids)) : [],
     staff ? quiet(repositories.homework.listSubmissionsByStudentIds(ids)) : [],
-    admin || finance ? quiet(repositories.invoices.list()) : [],
+    invoicesRead,
     staff && repositories.changeRequests?.listPending ? quiet(repositories.changeRequests.listPending({ teacherUid: user.uid, all: admin })) : [],
     admin && repositories.availability?.list ? quiet(repositories.availability.list()) : [],
     admin && repositories.missingData?.listUnreviewed ? quiet(repositories.missingData.listUnreviewed()) : [],
@@ -76,7 +82,9 @@ export default function NotificationCenter({ user, repositories = defaultReposit
   // the panel itself still lists everything that needs attention
   const seenKey = `ks-notifications-seen:${user.uid}`;
   const [seen, setSeen] = useState(() => { try { return new Set(JSON.parse(window.localStorage.getItem(seenKey) || '[]')); } catch { return new Set(); } });
-  const fresh = items.filter((item) => !seen.has(item.id));
+  // nothing is counted until the sources have come: the live tasks alone would show „1” and then jump to the real number
+  const sourcesCame = Boolean(sources.data) || !sources.loading;
+  const fresh = sourcesCame ? items.filter((item) => !seen.has(item.id)) : [];
   const counts = useMemo(() => items.reduce((all, item) => ({ ...all, [item.category]: (all[item.category] || 0) + 1 }), {}), [items]);
   const visible = category === 'all' ? items : items.filter((item) => item.category === category);
 
@@ -104,7 +112,7 @@ export default function NotificationCenter({ user, repositories = defaultReposit
     <div className="nc" ref={rootRef}>
       <IconButton label={fresh.length ? `Teavitused, ${fresh.length} uut` : items.length ? `Teavitused, ${items.length} avatud` : 'Teavitused'} className={`nc-bell ${items.length && !fresh.length ? 'has-seen' : ''}`} aria-expanded={open} aria-haspopup="dialog" onClick={toggle}>
         <Bell size={19} />
-        {fresh.length ? <span className="nc-count" aria-hidden="true">{fresh.length > 99 ? '99+' : fresh.length}</span> : items.length ? <span className="nc-dot" aria-hidden="true" /> : null}
+        {fresh.length ? <span className="nc-count" aria-hidden="true">{fresh.length > 99 ? '99+' : fresh.length}</span> : sourcesCame && items.length ? <span className="nc-dot" aria-hidden="true" /> : null}
       </IconButton>
       {open ? (
         <section className="nc-panel" role="dialog" aria-label="Teavituskeskus">

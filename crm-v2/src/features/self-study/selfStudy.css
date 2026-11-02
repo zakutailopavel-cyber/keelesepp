@@ -85,3 +85,5 @@
 .course-phase:disabled { cursor: default; opacity: .6; }
 .course-phase.is-done { color: #067647; border-color: #abefc6; background: #ecfdf3; }
 .course-phase.is-started { color: #b54708; border-color: #fedf89; }
+.course-steps { margin: 0 0 14px; color: var(--muted, #52635c); font-size: .88rem; line-height: 1.45; }
+.course-steps strong { color: #123f33; }

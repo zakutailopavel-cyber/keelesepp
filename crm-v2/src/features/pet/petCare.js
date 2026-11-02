@@ -1,9 +1,9 @@
 // Tamagotchi care: three needs that slowly run down and are filled only by learning.
 //   Kõht (food)   ← repeating words of „Minu sõnad” (3 fresh reviews = full; empties in 2 days)
 //   Energia       ← homework: full while nothing is open; open homework drains it from the last finished work
-//   Rõõm (joy)    ← an attended lesson (lasts a week) or the word game (lasts 2 days; needs 3 words with translation)
+//   Rõõm (joy)    ← an attended lesson (lasts a week) or today's request (`playedAt`, lasts 2 days; a game needs 3 words)
 // A need is full when there is nothing to do for it (no words due, no open homework), so a student is never
-// punished for what the teacher did not give. The pet never dies; when a need is low it is only sad.
+// punished for what the teacher did not give. The pet never dies; a low need only makes it ask.
 // Care never gives XP or stars (those come only from CRM data in petModel.js), so playing cannot be farmed.
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 import { isDue } from '../vocabulary/wordsModel.js';
@@ -53,10 +53,10 @@ export function lowestNeed(needs) {
   return value < LOW_NEED ? key : '';
 }
 
-// proud and asleep win; otherwise a low need makes the pet sad
+// proud and asleep win; a low need only quiets the pet: never tears or shame over a missed day (owner 2026-11-01)
 export function careMood(mood, needs) {
   if (mood === 'proud' || mood === 'sleep') return mood;
-  return lowestNeed(needs) ? 'sad' : mood;
+  return lowestNeed(needs) ? 'calm' : mood;
 }
 
 // words for feeding: the due ones first (oldest due first), at most FEED_WORDS
@@ -67,7 +67,8 @@ const playableWords = (words) => {
   const seen = new Set();
   return words.filter((w) => {
     const key = String(w.translation || '').trim().toLocaleLowerCase();
-    if (!w.word || !key || seen.has(key)) return false;
+    // a „Sinu lause” card holds his sentence, not a translation to pick
+    if (!w.word || !key || key.startsWith('sinu lause:') || seen.has(key)) return false;
     seen.add(key);
     return true;
   });
@@ -89,7 +90,7 @@ export function gameRounds(words = [], random = Math.random) {
 const PHRASES = {
   et: {
     food: 'Mul on kõht tühi. Kordame kolm sõna?',
-    energy: 'Olen väsinud. Teeme kodutöö ära?',
+    energy: 'Olen väsinud. Teeme ülesande ära?',
     joy: 'Mul on igav. Mängime sõnamängu?',
   },
   ru: {

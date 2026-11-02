@@ -22,6 +22,16 @@ Shown in Live Classroom → Tööruum → „Õpilane” (opens first when a stu
 board page „Kordamine DD.MM” with the forgotten words on a note) and on the student card → „Ülevaade”.
 Each source loads on its own; one the user may not read (another teacher's journal) is left out with a note.
 
+## Where the student sees it
+
+Since agent/student-home (owner 2026-11-01): the home page `/student` shows only today (`features/students/nextStep.js`: one next
+step, the next lesson, at most three checks, a line only when there is news). „Minu areng”, „Minu sõnad ja vead”, „Kuu sammud”, „Tunni
+kokkuvõtted”, „Millal sulle tund sobib?” and „Teated” moved whole to `/student/areng` (`StudentProgressPage.jsx`).
+
+Since agent/clear-tasks: the teacher's feedback is read on „Ülesanded” (`homework/LearnerTasksPage.jsx`, group „Õpetaja vaatas üle”); „Minu areng” links there. „Kuu sammud” and task cards show a learner only what is said to him: `meta.canDo` in place of a goal written for the teacher.
+
+The pet reads the same data and writes only its play time: `features/pet/petLoop.js` (one request a day from the lowest need, using his own words and corrected sentences; a daily line from his own numbers). Nothing it does gives XP.
+
 ## Known gaps
 
 - „Kordamine” (self-study/reviewStore.js) keeps its results in the browser only: invisible here.

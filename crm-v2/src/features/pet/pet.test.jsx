@@ -22,7 +22,7 @@ describe('pet model', () => {
   });
 
   it('grows from lessons, submitted work and reached goals only', () => {
-    const lessons = Array.from({ length: 6 }, (_, i) => ({ date: day(10 + i).slice(0, 10), status: 'Toimunud' }));
+    const lessons = Array.from({ length: 6 }, (_, i) => ({ date: day(10 + i * 2).slice(0, 10), status: 'Toimunud' }));
     const p = petProgress({ lessons: [...lessons, { date: day(1).slice(0, 10), status: 'Tühistatud' }], submissions: [done(20, { g1: { ok: 2, total: 2 }, g2: { ok: 1, total: 3 } }), done(30)], now: NOW });
     expect(p.xp).toBe(6 * 10 + 2 * 15 + 1 * 5);
     expect(p.stage).toBe(1);
@@ -79,10 +79,11 @@ describe('PetCard', () => {
     fireEvent.change(screen.getByLabelText('Nimi'), { target: { value: 'Tark' } });
     fireEvent.click(screen.getByRole('button', { name: 'Vali Kakk' }));
     await waitFor(() => expect(repository.save).toHaveBeenCalledWith({ uid: 'u1', current: null, kind: 'kakk', name: 'Tark' }));
-    expect(await screen.findByText('Sul on üks kodutöö. Teeme ära?')).toBeInTheDocument();
+    expect(await screen.findByText('Sul on üks ülesanne. Teeme ära?')).toBeInTheDocument();
     expect(screen.getByText('Tark')).toBeInTheDocument();
     expect(container.querySelector('svg.pet')).not.toBeNull();
-    expect(screen.getByText('0 tundi · 0 tööd · 0 eesmärki')).toBeInTheDocument();
+    expect(screen.getByText('0 tundi')).toBeInTheDocument();
+    expect(screen.queryByText(/päeva järjest/)).not.toBeInTheDocument();
   });
 
   it('shows nothing in staff preview when the student has no pet yet', async () => {
@@ -102,7 +103,7 @@ describe('PetCard', () => {
 });
 
 describe('pet outfits', () => {
-  const lessons = Array.from({ length: 3 }, (_, i) => ({ date: day(10 + i).slice(0, 10), status: 'Toimunud' }));
+  const lessons = Array.from({ length: 3 }, (_, i) => ({ date: day(10 + i * 2).slice(0, 10), status: 'Toimunud' }));
 
   it('buys with earned stars, puts it on, and keeps the public copy in step', async () => {
     const repository = {
@@ -112,7 +113,7 @@ describe('pet outfits', () => {
     };
     const { container } = render(<PetCard user={{ uid: 'u1' }} studentId="s1" repository={repository} lessons={lessons} />);
     await waitFor(() => expect(repository.publish).toHaveBeenCalledWith({ uid: 'u1', studentId: 's1', pet: { kind: 'siil', name: 'Okas' } }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Riidekapp' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'Riidekapp' }));
     const wardrobe = screen.getByRole('region', { name: 'Riidekapp' });
     expect(within(wardrobe).getByText('6 tähte')).toBeInTheDocument();
     expect(within(wardrobe).getByRole('button', { name: 'Osta Kroon (40 tähte)' })).toBeDisabled();
@@ -147,6 +148,27 @@ describe('PetOverview (teacher, parent)', () => {
     expect(screen.getByText(/1 päev järjest/)).toBeInTheDocument();
     expect(screen.getByText('1 õpitud sõna')).toBeInTheDocument();
     expect(container.innerHTML).toContain('#f5b301');
+  });
+
+  it('grows from the same data as the student\'s own page: homework, submitted work and lesson stats too', async () => {
+    const lessons = [{ studentId: 's1', date: '2026-01-05', status: 'Toimunud' }];
+    const homework = [{ studentId: 's1', status: 'Tehtud' }];
+    const submissions = [{ studentId: 's1', status: 'done', completedAt: '2026-01-06T10:00:00Z' }];
+    const speech = [{ studentId: 's1', studentWords: 100, share: 80 }];
+    const repository = { listForStudents: vi.fn().mockResolvedValue([{ id: 'u1', studentId: 's1', kind: 'rebane', name: 'Rebu' }]), lessonStatsForStudents: vi.fn().mockResolvedValue(speech) };
+    const workRepository = { listByStudentIds: vi.fn().mockResolvedValue(homework), listSubmissionsByStudentIds: vi.fn().mockResolvedValue(submissions) };
+    render(<PetOverview studentIds={['s1']} lessons={lessons} repository={repository} workRepository={workRepository} wordsService={{ subscribeForStudent: () => () => {} }} />);
+    const expected = petProgress({ lessons, homework, submissions, words: [], speech }).stars;
+    expect(expected).toBeGreaterThan(petProgress({ lessons }).stars);
+    expect(await screen.findByText(`${expected} tähte`)).toBeInTheDocument();
+    expect(repository.lessonStatsForStudents).toHaveBeenCalledWith(['s1']);
+  });
+
+  it('a parent has no lesson stats: the pet still shows from the rest', async () => {
+    const repository = { listForStudents: vi.fn().mockResolvedValue([{ id: 'u1', studentId: 's1', kind: 'rebane', name: 'Rebu' }]), lessonStatsForStudents: vi.fn().mockRejectedValue(new Error('permission-denied')) };
+    const workRepository = { listSubmissionsByStudentIds: vi.fn().mockResolvedValue([]) };
+    render(<PetOverview studentIds={['s1']} lessons={[]} homework={[{ studentId: 's1', status: 'Tehtud' }]} repository={repository} workRepository={workRepository} wordsService={{ subscribeForStudent: () => () => {} }} />);
+    expect(await screen.findByText(`${petProgress({ homework: [{ status: 'Tehtud' }] }).stars} tähte`)).toBeInTheDocument();
   });
 
   it('shows nothing without a pet', async () => {

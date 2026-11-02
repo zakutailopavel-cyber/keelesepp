@@ -55,6 +55,13 @@ export const messagesService = {
     return messageRecords(snapshot)
       .sort((a, b) => String(a.createdAt || a.date || '').localeCompare(String(b.createdAt || b.date || '')));
   },
+  // only what the bell shows: the same query as the unread badge on „Suhtlus”, not the whole message history
+  async listUnread() {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'messages'), where('read', '==', false)));
+    return messageRecords(snapshot)
+      .sort((a, b) => String(a.createdAt || a.date || '').localeCompare(String(b.createdAt || b.date || '')));
+  },
   async listByStudentIds(studentIds = []) {
     if (!studentIds.length) return [];
     const { db } = requireFirebaseClient();

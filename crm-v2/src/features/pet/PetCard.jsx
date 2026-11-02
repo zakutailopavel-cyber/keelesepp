@@ -2,15 +2,16 @@ import { Flame, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button, Card, Input } from '../../components/ui/index.js';
 import { petsService } from '../../services/firebase/index.js';
-import { MOODS, SPECIES, STAGES, petSvg } from './petArt.js';
-import { PET_KINDS, petGreeting, petProgress, validPetName } from './petModel.js';
+import { SPECIES, STAGES, petSvg } from './petArt.js';
+import { PET_KINDS, petProgress, validPetName } from './petModel.js';
 import { announcePet } from './petEvents.js';
 import PetWardrobe from './PetWardrobe.jsx';
 import PetCare from './PetCare.jsx';
-import { careGreeting, careMood, lowestNeed, petNeeds } from './petCare.js';
+import { petNeeds } from './petCare.js';
+import PetLoop from './PetLoop.jsx';
+import { usePetMaterial } from './usePetMaterial.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { homeworkService, lessonWorksheetsService } from '../../services/firebase/index.js';
-import { courseTopics, learnerTopics } from './petGames.js';
 import { roomSvg } from './petRoom.js';
 import { seasonalWear } from './petLife.js';
 import './pet.css';
@@ -65,43 +66,17 @@ function PetPicker({ initial, onSave, onCancel, onDecline, saving, error }) {
   );
 }
 
-// The student's pet on "Minu õpingud": chosen once, then grows from lessons, submitted worksheets and goals.
+// The pet's own page: chosen once, then it lives in its room. The one request of the day, then games and the wardrobe as
+// simple tabs, and one line of numbers. Staff (read-only) see the same pet and no actions.
 export default function PetCard({ user, studentId = '', readOnly = false, lessons = [], submissions = [], homework = [], words = [], pendingHomework = 0, lessonToday = '', subject = '', repository = petsService, wordsService = studentWordsService, assignmentsService = homeworkService, courseSheets = lessonWorksheetsService }) {
   const [pet, setPet] = useState(undefined);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [wardrobe, setWardrobe] = useState(false);
-
-  // the learner's recorded lessons: simple numbers and his own corrected sentences (petLessonStats, school Mac)
-  const [speech, setSpeech] = useState([]);
-  useEffect(() => {
-    let alive = true;
-    if (readOnly || typeof repository.lessonStats !== 'function' || !user?.uid) return undefined;
-    Promise.resolve().then(() => repository.lessonStats(user.uid)).then((list) => { if (alive) setSpeech(list || []); }).catch(() => {});
-    return () => { alive = false; };
-  }, [repository, readOnly, user?.uid]);
-  // the worksheets the teacher gave: their tasks become the pet's topic games (petGames.js)
-  const [topics, setTopics] = useState([]);
-  const lessonKey = lessons.map((l) => `${l.topicLessonId || ''}:${l.status || ''}`).join('|');
-  useEffect(() => {
-    let alive = true;
-    if (readOnly || !studentId || typeof assignmentsService?.listWorksheetAssignmentsByStudentIds !== 'function') return undefined;
-    // plus the published course sheets of the lessons he has had (Õppevara topic of the lesson), so there is always
-    // something to play: one sheet set per lesson, the last four lessons
-    const lessonIds = [...new Set(lessons.filter((l) => l.topicLessonId && (!l.status || l.status === 'Toimunud'))
-      .sort((a, b) => String(b.date).localeCompare(String(a.date))).map((l) => l.topicLessonId))].slice(0, 4);
-    const loadCourse = typeof courseSheets?.list === 'function'
-      ? Promise.all(lessonIds.map((id) => Promise.resolve().then(() => courseSheets.list(id)).then((sheets) => [id, sheets || []]).catch(() => [id, []])))
-      : Promise.resolve([]);
-    Promise.all([
-      Promise.resolve().then(() => assignmentsService.listWorksheetAssignmentsByStudentIds([studentId])).catch(() => []),
-      loadCourse,
-    ]).then(([list, course]) => {
-      if (alive) setTopics(learnerTopics([...(list || []), ...courseTopics(lessons, Object.fromEntries(course))]));
-    }).catch(() => {});
-    return () => { alive = false; };
-  }, [assignmentsService, courseSheets, readOnly, studentId, lessonKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [tab, setTab] = useState('games');
+  const [mood, setMood] = useState('calm');
+  const material = usePetMaterial({ uid: user?.uid, studentId, readOnly, lessons, repository, assignmentsService, courseSheets });
+  const { speech, topics } = material;
   useEffect(() => {
     let alive = true;
     Promise.resolve().then(() => repository.get(user?.uid))
@@ -109,13 +84,6 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
       .catch(() => { if (alive) setPet(null); });
     return () => { alive = false; };
   }, [repository, user?.uid]);
-
-  // the public copy (teacher, parents) follows the student's own pet; written only by the student
-  const publishKey = pet?.kind && !pet.optedOut ? JSON.stringify([pet.kind, pet.name, pet.wearing || {}]) : '';
-  useEffect(() => {
-    if (readOnly || !publishKey || !studentId || !repository.publish) return;
-    Promise.resolve().then(() => repository.publish({ uid: user.uid, studentId, pet })).catch(() => {});
-  }, [publishKey, readOnly, studentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (pet === undefined) return null;
   if (pet?.optedOut) return null;
@@ -144,42 +112,37 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
     const saved = await repository.updateOutfit({ uid: user.uid, current: pet, ...next });
     setPet(saved);
   };
-  // tamagotchi care: needs filled only by learning; a low need makes the pet sad (never more)
   const needs = petNeeds({ words, homework, submissions, lessons, playedAt: pet.playedAt, canFix: speech.some((s) => s.practice?.length) });
-  const mood = careMood(progress.mood, needs);
-  const hungry = mood === 'sad' ? lowestNeed(needs) : '';
-  const greeting = petGreeting({ petName: pet.name, progress, pendingHomework, lessonToday, subject, lastSpeech: speech[0] || null });
-  const say = hungry ? careGreeting(hungry, greeting.lang) : greeting;
   const played = async () => {
     const saved = await Promise.resolve().then(() => repository.update({ uid: user.uid, current: pet, playedAt: new Date().toISOString() })).catch(() => null);
     setPet(saved || { ...pet, playedAt: new Date().toISOString() });
   };
-  const pct = progress.stageSize ? Math.round((progress.stageXp / progress.stageSize) * 100) : 100;
+  const hasWardrobe = !readOnly && repository.updateOutfit;
   return (
     <Card className="pet-card">
-      <div className="pet-home">
-        <PetRoom progress={progress} pet={pet} mood={mood} />
+      <div className="pet-page">
+        <div className="pet-page__room"><PetRoom progress={progress} pet={pet} mood={mood} /></div>
         <div className="pet-home__body">
-          <div className="pet-bubble" lang={say.lang}><p>{say.text}</p><small lang="ru">{say.hint}</small></div>
-          <div className="pet-home__meta">
-            <strong>{pet.name}</strong>
-            <span>{STAGES[progress.stage]} · {MOODS[mood].label}</span>
+          <PetLoop user={user} studentId={studentId} pet={pet} variant="page" readOnly={readOnly} lessons={lessons} submissions={submissions} homework={homework} words={words} subject={subject}
+            pendingHomework={pendingHomework} lessonToday={lessonToday} material={material} repository={repository} wordsService={wordsService} onPetChange={setPet} onMood={setMood} />
+          <div className="pet-page__meta">
+            <span>{STAGES[progress.stage]}</span>
+            {progress.streak ? <span className="pet-stat is-hot"><Flame size={14} aria-hidden="true" /> {count(progress.streak, 'päev', 'päeva')} järjest</span> : null}
+            <span><Star size={14} aria-hidden="true" /> {progress.stars} tähte</span>
+            <span>{count(progress.learnedWords, 'õpitud sõna', 'õpitud sõna')}</span>
+            <span>{count(progress.lessons, 'tund', 'tundi')}</span>
             {!readOnly ? <button type="button" className="pet-home__edit" onClick={() => setEditing(true)}>Muuda</button> : null}
-            {!readOnly && repository.updateOutfit ? <button type="button" className="pet-home__edit" aria-expanded={wardrobe} onClick={() => setWardrobe(!wardrobe)}>Riidekapp</button> : null}
-          </div>
-          <PetCare needs={needs} words={words} wordsService={wordsService} readOnly={readOnly} onPlayed={played} stats={speech} topics={topics} kind={pet.kind} />
-          <div className="pet-xp" aria-label={`Kasv ${pct}%`}>
-            <div className="pet-xp__bar"><i style={{ width: `${pct}%` }} /></div>
-            <div className="pet-xp__row"><span>{progress.nextItem ? `Järgmine: ${progress.nextItem}` : 'Täiskasvanud sõber'}</span><span>{count(progress.lessons, 'tund', 'tundi')} · {count(progress.submissions, 'töö', 'tööd')} · {count(progress.goals, 'eesmärk', 'eesmärki')}</span></div>
-          </div>
-          <div className="pet-stats">
-            <span className={progress.streak ? 'pet-stat is-hot' : 'pet-stat'} title="Päevi järjest õppimist (tund, töö, kodutöö või sõnade kordamine)"><Flame size={15} aria-hidden="true" /> {count(progress.streak, 'päev', 'päeva')} järjest</span>
-            <span className="pet-stat" title="Tähed kasvavad koos õppimisega"><Star size={15} aria-hidden="true" /> {progress.stars} tähte</span>
-            <span className="pet-stat">{count(progress.learnedWords, 'õpitud sõna', 'õpitud sõna')} · {count(progress.homework, 'kodutöö', 'kodutööd')}</span>
           </div>
         </div>
       </div>
-      {wardrobe && !readOnly ? <PetWardrobe pet={pet} progress={progress} onChange={changeOutfit} onClose={() => setWardrobe(false)} /> : null}
+      {readOnly ? <PetCare needs={needs} words={words} wordsService={wordsService} readOnly stats={speech} topics={topics} kind={pet.kind} /> : <>
+        <div className="pet-page__tabs" role="tablist" aria-label={pet.name}>
+          <button type="button" role="tab" aria-selected={tab === 'games'} onClick={() => setTab('games')}>Mängud</button>
+          {hasWardrobe ? <button type="button" role="tab" aria-selected={tab === 'wardrobe'} onClick={() => setTab('wardrobe')}>Riidekapp</button> : null}
+        </div>
+        {tab === 'games' ? <PetCare needs={needs} words={words} wordsService={wordsService} onPlayed={played} stats={speech} topics={topics} kind={pet.kind} /> : null}
+        {tab === 'wardrobe' && hasWardrobe ? <PetWardrobe pet={pet} progress={progress} onChange={changeOutfit} /> : null}
+      </>}
     </Card>
   );
 }

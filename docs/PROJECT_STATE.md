@@ -10,6 +10,145 @@
 - **Deploy needed:** `functions` (all 25), by the owner. Not deployed. All share one lock file. The 7 that hold `SMTP_PASS` and send through nodemailer: `websiteLeadApi`, `staffOperationsApi`, `invoiceApi`, `learnerEmailsTick`, `notifyPendingAccount`, `notifyHomeworkCreated`, `sendInvoicePaymentReminders`. After deploy, send one real invoice e-mail and check it arrives.
 - Not done: the 16 moderate (`uuid` chain needs `firebase-admin` 14, a major; `qs` in `express`). `axios` could be removed as unused. Separate finding, not fixed: the `websiteLeadApi` throttle reads the first `X-Forwarded-For` value, which a client can forge.
 - Next safe step: the owner reviews and merges, then deploys functions.
+## 2026-11-02 · agent/next-step-order — home's next step follows the task list's order
+
+- Found on the live site in a read-only student preview: a batch of sheets without deadlines put „Kontroll 17” first on home, while „Ülesanded” starts from the first lesson. `nextStep.js` `openWork` now uses `groupTasks`.
+- Live checks 2026-11-02 after #981: first load 324 kB gzip of scripts (was 674 kB on the same measure before #973), assets immutable, audio a day, HTML revalidated, student home at 375 px has no sideways scroll and 935 px of height, no console errors.
+- Next safe step: try a sheet and the keyboard on a real phone.
+
+## 2026-11-02 · agent/sheets-mobile — a sheet on a phone is one readable column, not an A4 page at zoom 0.3
+
+- Base: `main` 54d03a1, checked 2026-11-02. Student's player and block renderers only; no rules, functions, production writes, deploy or merge. Content zone untouched: no block's data was the bug. Contract and per-block notes: `docs/WORKSHEET_PHONE_VIEW.md`.
+- Before: at 375 px the homework player zoomed the A4 page to 0.3 (text 4–5 px, targets 6–9 px, fields under 7 px); the Live Classroom reading page overflowed sideways by 420 px on a wide table; fields on scanned pages were 11 px high.
+- Done: `Sheet` takes `flow` (`worksheet-studio/sheetFlow.js`, `engine/sheetFlow.css`): one column at ≤ 1023 px or on a touch screen ≤ 1366 px, A4 otherwise and always in print (`beforeprint`). Sticky „3/8” with a save state (a failed autosave now shows and retries every 5 s, on desktop too), buttons in reach, keyboard handling through the visual viewport. Tap alternatives for word bank and word order. Tables, matching, exam rubric stacked. Scanned-page fields become a numbered list (`VisualWorksheetList`). Live Classroom: phone reading page uses the same column, also a phone on its side; tablet keeps the board by default and gets „Lugemisvaade”.
+- No schema, answer keys or scoring changed. `gradingPin.test.js` pins marks, score and progress of real sheets (A2, B1, B2, C1, template v3) to `main`.
+- Files: `Sheet.jsx`, `Marks.jsx`, `ui.jsx`, `blocks/{tasks,exam,extra,harno,kids,picture,chart}.jsx`, `DocWorksheetPlayer.jsx`, `WorksheetPlayer.jsx`, `StudentBoard.jsx`, `board.css`, `sheet.css` (the old narrow block moved out), new layout check in `e2e/layout/` with `crm-v2/sheet-lab.html` (dev only, not in the build), CI job `sheet-layout`.
+- Checks: see the PR for exact numbers. All 1498 course sheets (14651 blocks) measured once at 375 px: 0 problems. A4 pages pixel-compared to `main` on desktop and in print emulation (one flaky print page per few runs, also main against main).
+- `e2e/tests/homework-phone.spec.cjs` passed on the emulators with the real rules (student at 375 px: autosave reaches Firestore, reload restores, submit scores ≥ 90 %). Noticed, not touched: the existing `e2e/tests/homework.spec.cjs` fails at the teacher step on the staff „what's new” notice, and its student would stop at the missing-data gate.
+- Risks and limits: Chromium only; no real iPhone, Android, iPad or WebKit run, the on-screen keyboard was tested by arithmetic and fake viewport, not by a real keyboard. A teacher's text marks are found again by quoted text, field marks by field order (unchanged).
+- Next safe step: the owner reviews the PR and opens a sheet on a real phone before merging; it needs hosting only.
+## 2026-11-02 · agent/clear-tasks-parent — „Minu pere”: the first screen answers „Как дела у ребёнка?”
+
+- Base: agent/clear-tasks (stacked on its PR; uses `homework/taskList.js`). UI only: no rules, functions, production access, deploy or merge. Reads as before plus `worksheetAssignments` and `exerciseResults`, which the rules already give a parent (`ownsStudent`) and which `/homework` read for parents already.
+- `/parent` (`ParentDashboardPage.jsx`, pure `parentHome.js`): one card per child, `ChildSwitch` by first name with what is left to do; the card says in order: next lesson (with „Ei saa tulla?”), what the child should do now and whether it is done (the merged list, at most 2 titles, one button „Vaata ülesandeid”), the teacher's latest feedback word for word (newest of a reviewed work and a held lesson's note; an automatic percentage is not feedback). Money only when something is due, one line with whose it is. Every label has a Russian hint.
+- Kept, one tap away in sections that read their data when opened: Tunnid (next lessons with „Ei saa tulla?”, packages, last lessons with absences), Arved (card payment `OpenInvoicesCard`, last invoices with state), Areng (words, Kuu sammud, lesson summaries, words list), Teated ja sobivad ajad (answered announcements, availability), Sõnumid. The consent question stays on top and stays out of an administrator's preview; section heads, switches and read-only buttons work in the preview (`data-preview-allowed`).
+- Removed for a parent: the summary tiles, „Minu õpilased” with „õppesuund”, „Kiirviited”, the pet overview (student-style game text; staff still have it on the card), „Live Classroom” in the summaries' empty state. Per-child data follows the switch; invoices stay family-level because one invoice can cover two children.
+- Menu: a pure parent gets `parentNavigation` (Minu pere, Ülesanded, Suhtlus, Tahvel), the same routes as before; „Kodutööd” stays for staff. A student who is also a parent keeps the full menu.
+- Known: opening a section re-reads it; closing it drops an unsaved availability edit. The Russian hints were written by the agent, not checked by the owner.
+- Next safe step: after agent/clear-tasks is merged, retarget this PR to `main`; the owner reviews and merges. It needs hosting only.
+## 2026-11-02 · agent/clear-tasks — „Ülesanded”: one list for a child and a family, every student area says what it is for
+
+- Base: `origin/main` 7601f52 (#974, #975 merged), checked 2026-11-02. UI only: no rules, functions, production access, deploy or merge. Owner 2026-11-01: „не понимаю разницы между назначенными листами и домашним заданием … дети не открывают, так как не понимают, для чего это”.
+- `/homework` for a learner and a parent is a new page, `homework/LearnerTasksPage.jsx`, over a pure model, `homework/taskList.js` (`mergeTasks`, `groupTasks`, `learnerGoal`, `taskMinutes`, `PHASES`). Data stays in `homework`, `worksheetAssignments`, `exerciseResults` and the old interactive lessons; only the presentation merges. Groups: Tee nüüd (parent: Vaja teha), oldest deadline first → Tehtud, ootab õpetajat → Õpetaja vaatas üle. `HomeworkPage.jsx` routes by role; **staff keep their page**: no staff code path, label or read changes (the page only lost its learner branches).
+- Rules of the merge: a homework with `worksheetAssignmentId` and its sheet are one task, the sheet's state counts and the teacher's words stay on the card; a homework and its exercise result are one task, the reviewed try wins; `source: 'self_study'` is not a task until a teacher reviewed it (it lives on Kursus); a closed („Suletud”) homework and the sheet behind it are not listed; an automatic percentage is never a review.
+- Card: title; phase with its purpose (`1/3 Avasta: tutvu uue teemaga`); the teacher's own words if any; why = `meta.canDo`, else the first goal not written for the teacher, else nothing; time = `sheetMinutes` of the sheet's own blocks rounded up to 5, else nothing; deadline; one button. No teacher text, goal or time is invented.
+- Home and the pet read the same list: `nextStep.openWork`, `todayPath` count from `mergeTasks`, so the numbers match the page (`todayPath` used to count a homework and its sheet twice, and self-study sheets). New feedback links to `/homework#vaadatud`; opening that page counts as having seen it (`ks-feedback-seen-<uid>`, was on `/student/areng`).
+- Moved: „Viimased tulemused” left `/student/areng` (it duplicated „Õpetaja vaatas üle”), a link stays. Removed for learners: summary tiles, search, status filter, „Määratud töölehed”, „Kodutööd”, „Minu esitused”. Student wording: „kodutöö” → „ülesanne” in the pet's lines, the tour and the lesson summary.
+- Every area says what it is for: `studentNavigation` items have a `hint` line in the menu (`AppShell.jsx`, `.nav-hint`), and Sõnad (title was Sõnavara), Minu vead, Kursus (with the three steps in order), Lemmik, Minu areng say it on first open; Kursus and Minu areng say nothing has to be done there. No new tour: the pet's page hint for `/homework` was reworded. Routes unchanged.
+- Goals for a learner: `learner/monthSteps.js` shows `meta.canDo` in place of a goal written for the teacher („Õpilane mõistab …”), its results counted there; without a promise that goal is left out. Also read by `MonthlyReportCard` and `LearnerSnapshotCard`, so staff see the same wording there.
+- `SubmissionReviewModal`: for a learner the teacher's words stand first, also on a phone; no „Tööleht”, „Interaktiivne harjutus”, „Õpilase …”. Staff unchanged. `TaskAnswerForm.jsx` moved out to be shared.
+- Known: a plain homework has no teacher review step, so once done it stays under „Tehtud, ootab õpetajat” (the group shows 5, the rest on request): the owner decides. The result panel inside the sheet preview still prints goals as „Õpilane mõistab …” (`worksheet-studio/GoalEvidence.jsx`, left alone: another agent works in the sheet player and renderers). The closed homework's answer is no longer visible to the child.
+- Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/speed — pages load on demand, one course at a time, cache headers, fewer repeated reads
+
+- Base: `main` eb19941, checked 2026-11-01. No deploy, no production access, no rules, indexes or functions changed.
+- First load (JS, gzip): 660 kB → 319 kB for every role (`main` chunk 391 → 49 kB). Kursuste tervis: 4586 kB → 1196 kB (A2), 1435 kB (B2). CSS unchanged on purpose, byte-identical `main-E1qftxn5.css`.
+- Changed:
+  - `app/routes.jsx`, `app/HomePage.jsx`: every role's page is `lazy()`. `AppShell`: bell and pet lazy, pet only for students. `StudentProfilePage`: works tab lazy.
+  - `app/eagerStyles.js`: the stylesheets of the former eager pages stay in the first CSS in the old order, because pages style each other's classes.
+  - Course code: `admin/course/courseSheet.js` (COURSES, PHASES, buildCourseSheet, moduleSheets) and `courseModules.<a2|b1|b2|c1|ek9|en>.js` (the module lists). `registry.js` still exports everything; `courseLoaders.js` loads one course. **A new module is now one import and one list place in `courseModules.<course>.js`, not in `registry.js`.**
+  - `didactics/gates.js moduleGates`: each sheet's text is computed once; output compared with the old code on all 93 modules, identical. `readiness.js`: optional already-built sheets.
+  - `services/firebase/shareInFlight.js`: identical reads running at the same moment share one read, nothing is kept afterwards. Used by `invoices.list`, `lessons.listForCalendar`, exhaustive `students.list`, `homework.listSubmissionsByStudentIds`.
+  - Bell: admin reads `messages.listUnread()` (`read == false`, the query of the Suhtlus badge) instead of all messages; no count until the sources came. A message without any `read` field no longer appears in the bell (the badge never counted it).
+  - `StudentParentsCard`: linked parents by id (`parents.listByIds`), all `users` only when the search opens. `FinanceMonthPage`: token reads no longer repeat when the notes arrive.
+  - `vercel.json`: `/assets/*` a year immutable; `/audio`, `/textbook-art` a day; these three no longer fall back to index.html (a missing file is 404). HTML keeps Vercel's default `max-age=0, must-revalidate`.
+  - `scripts/bundle-size-report.mjs` + CI step: warning only, budget 340 KB JS and 80 KB CSS (1024 bytes).
+- Checks (on the merged branch): `npx eslint --quiet src` exit 0; `npx vitest run --maxWorkers=3 --testTimeout=60000` 421 files passed, 1 skipped, 2958 tests passed, 7 skipped; `vite build` OK. Before the last merges with main: the login page rendered on a local build with a fake Firebase config and all 77 lazy chunks imported without an error.
+- Not measured: seconds on the live site (needs the deploy). Logged-in pages were not opened in a browser, only through tests.
+- Known limits: first CSS not split; `services/firebase/index.js` still brings the sheet engine (50 kB) to pages that import it; Kursuse tootmine still loads all courses; Dashboard reads not touched (#963 is on that file). `interactiveLessonApi` unchanged.
+- After the deploy: `curl -I` an `/assets/main-*.js` (immutable), `/` (`max-age=0`), `/assets/nope.js` (404), an `/audio/...mp3` (`max-age=86400`).
+- Next safe step: owner reviews and merges the PR, then the same four curl checks and the same pages are timed on the live site.
+
+## 2026-11-01 · agent/pet-loop — the pet: a short daily loop tied to learning (stacked on agent/student-home)
+
+- Base: `agent/student-home` merged with `main` (see the PR). UI and pure logic: no rules, functions or production access; no deploy, no merge.
+- Owner 2026-11-01: the tamagotchi was meant to be a strength and is not. Measured before: 36 of 72 accounts made a pet, all needs and XP passive, the pet only on its own page.
+- Loop (`features/pet/petLoop.js` pure, `PetLoop.jsx`): on home's first screen art, one bubble (language being learned + Russian hint), ONE request from the lowest need that can be met here (`petRequest`), one tap plays on the same page (3 cards through `WordPractice`, „Paranda” with his own sentences, word game, or a topic game started directly by `PetGames quick`). The need rises at once, the mood changes, a line of thanks, then `dailySurprise`, a line true about his own data, chosen by date, absent when there is nothing to say. Done today (`pet.playedAt` today, on any device, or 3 words repeated anywhere) means no more asking today. Homework is requested only when nothing else can be done, because it cannot be done in a minute on this page and „Järgmine samm” already points to it.
+- Growth: `nextReward` shows the nearest of the cheapest item or the next art stage, with what is left in plain learning („veel 2 õpitud sõna → Nokamüts”); a reached item takes one tap („Pane selga”, spends earned stars). Levels `petLevel`: 10 XP each, so one lesson a week moves one level a week. One-time news through `growthNews` (browser only).
+- **Changes in the numbers:** `petProgress` counts the streak's XP from the longest run ever (2 days or more), not the current run, so losing a streak no longer lowers XP, stars or stage. Existing learners with a past run gain up to 30 XP, nobody loses. XP still comes only from real learning. New outputs `bestStreak`, `lastActivity`.
+- Warm: `careMood` no longer returns `sad` for a low need (no tears, also on the parent's and teacher's views), no count of days away (`petLife`), a glad welcome after 3 days, gentle wording right after it, streak hidden at 0.
+- Companion (`PetCompanion.jsx`, `companionModel.js`): not on `/student`, `/student/lemmik`, `/live-classroom` (and reads nothing there); by itself at most one line a session (`mayAutoSpeak`, sessionStorage), invitation, lesson soon and celebration excepted; on phones it stands in the page flow at the end of the page, so it covers nothing; no dragging on phones; tour once.
+- Pet page (`PetCard.jsx`): room, the one request, one line of numbers, tabs „Mängud” and „Riidekapp”. No Russian explanations as tooltips.
+- Data: only `users.pet.playedAt` (existing field, now also set after a feeding) and the outfit fields; `firestore.rules` not changed. Browser keys: `ks-pet-growth-<uid>`, `ks-pet-loop-seen-<uid>`, session `ks-pet-spoke-<uid>`.
+- Rule change that would help, not made: nothing is required. A stored `pet.seenLevel` would keep the reveal one-time across devices.
+- Next safe step: the owner reviews #974, then this PR; hosting only.
+## 2026-11-01 · agent/student-home — the student's home: one clear page, „Minu areng” on its own page
+
+- Base: `main` checked 2026-11-01 (see the PR for the merge commit). UI and page structure only: no rules, functions, data or production access; no deploy, no merge.
+- Owner 2026-11-01: students call the cabinet overloaded. `/student` now has on a phone's first screen a one-line greeting, the pet tile, ONE „Järgmine samm” card with one button (`features/students/nextStep.js`: lesson within 30 min or going on → overdue homework → open homework → due words → done) and one line for the next lesson with „Ei saa tulla?”. Under it the day's checklist (at most 3, streak shown only when above 0), one line each only when there is news (new teacher feedback; open announcement; unpaid invoice, adults only; availability question only when an open announcement of type „Sobivad ajad” asks), and the link „Minu areng”.
+- Moved, not deleted, to the new lazy route `/student/areng` (`StudentProgressPage.jsx`, `accessPolicy.js`, `routes.jsx`): MyProgressCard, WordGrowthCard, MonthStepsCard, LessonSummariesCard, Viimased tulemused (`#tulemused`), AvailabilityCard (`#sobivad-ajad`), LearnerAnnouncementsCard (`#teated`). OpenInvoicesCard opens from „Maksa” on the invoice line.
+- Menu (`navigation.js`, pure student only): Täna, Ülesanded, Kursus, Sõnad, Suhtlus; group „Veel”: Tahvel, Minu vead, Minu areng, Lemmik. No route renamed. Parents' and staff menus unchanged.
+- Loads less on first paint: no course catalogue and no lesson stats on home; invoices not read for a child's card; announcements asked after the page is drawn, and the invoice `config` only when something is unpaid.
+- Fixed on the way: the invoice line counted paid invoices as „tasumata”; „1 lauset tundidest”; next lesson could be one already over today (now `petLife.nextLesson`).
+- Browser memory only: `ks-feedback-seen-<uid>` (opening „Minu areng” counts as having seen the feedback; on a new device feedback of the last 14 days counts as new).
+- Known: an open announcement normally stops the learner at the gate first, so the announcement and availability lines appear only when the gate timed out or the school publishes during a session. The pet tile is a placeholder for the pet loop (agent/pet-loop).
+- Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/csp-report-only — CRM host sends a report-only Content-Security-Policy
+
+- Base: `main` ee2eac1, checked 2026-11-01. `crm-v2/vercel.json` only, plus a test. No deploy, no production writes. Nothing can be blocked: no enforcing `Content-Security-Policy` header is sent, and `hostingHeaders.test.js` guards that.
+- Policy built from the code and the live bundle: `script-src` self + `apis.google.com` (Google sign-in); `style-src` self + inline + Google Fonts; `font-src` self + `fonts.gstatic.com`; `img-src` / `media-src` self, data, blob, Firebase Storage (images also Openverse); `connect-src` self, data, blob, Firebase Auth / Firestore / Storage, `us-central1-keelesepp-5136b.cloudfunctions.net`, Openverse, MyMemory; `frame-src` self, blob, `keelesepp-5136b.firebaseapp.com`, Firebase Storage; `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`.
+- Reading violations: no reporting endpoint exists and none was added, so violations appear only in the visitor's own browser. DevTools → Console, with the „Info” level on, shows „…violates the following Content Security Policy directive… The policy is report-only”.
+- Checks: `hostingHeaders.test.js` 3/3, eslint on it clean. The live bundle served through a local read-only proxy with this header: `/login` and `/ajad` show 0 violations. A deliberate image from outside the policy still loaded and was reported with disposition `report`.
+- Not checked: signed-in pages, Google sign-in popup, Live Classroom, file previews. Teacher-entered image URLs on other hosts will show as `img-src` violations; expected, and the reason to read before enforcing.
+- Deploy: CRM hosting, on merge.
+- Next safe step: after merge, the owner opens the main signed-in pages with the console open; enforcing is a later decision.
+## 2026-11-01 · agent/deps-crm — crm-v2 production audit clean: grpc-js override, re2js in the lock, firebase unchanged
+
+- Base: `main` ee2eac1, checked 2026-11-01. Dependencies only; no source change, no deploy, no production access.
+- Finding: **no `firebase` version clears the audit.** Every release from 12.12.0 to 13.1.0 (latest) was installed in a temp folder and audited: all pin `@grpc/grpc-js ~1.9.0` and report 4 high. So `firebase` stays at 12.17.0 and no major upgrade is needed.
+- Changed: `crm-v2/package.json` `overrides: { "@grpc/grpc-js": "1.13.7" }` (1.13.6 is the first fixed release of that line; 1.13.7 is the newest). Lock: `@grpc/grpc-js` 1.9.16 → 1.13.7, `re2js` 2.8.6 → 2.9.1 (allowed by firestore's `^2.8.3`), new `@js-sdsl/ordered-map` 4.4.2.
+- `npm audit --omit=dev`: before 5 high, after 0. Dev tools (eslint, vite, vitest chain) still show 7 high and 8 moderate with `npm audit`; they do not ship.
+- Reach: neither package was reachable. `@grpc/grpc-js` is only in firestore's Node build and is not in the browser bundle (0 chunks mention it); its advisories concern gRPC servers. `re2js` is in the `firebase` chunk, but the advisory needs the Pipelines regex API with lookbehinds, which `src/` does not use.
+- Checks on Node 22 after a clean `npm ci`: `npx vitest run --maxWorkers=3 --testTimeout=60000` 415 files passed, 1 skipped; 2935 tests passed, 7 skipped. `npx eslint src` 0 errors, 17 warnings. `npx vite build` OK. Node build of the Firestore client against the emulator (demo project) answers over gRPC 1.13.7.
+- Bundle (raw / gzip bytes): `main` 1,236,191 / 388,563 → 1,236,191 / 388,557; `firebase` 593,574 / 175,434 → 598,507 / 177,798 (re2js); all JS 22,568,246 / 6,424,289 → 22,573,179 / 6,426,806. Other chunks are the same size; hashes change because they import the renamed `firebase` chunk.
+- Known: the override must be dropped when firestore moves off `~1.9.0`; Dependabot will not do that. Not opened in a browser against production.
+- Deploy: CRM hosting only, on merge. No functions, no rules.
+- Next safe step: the owner reviews and merges the PR.
+## 2026-11-01 · agent/security-ci — Dependabot, security workflow, actions pinned; history scanned for secrets
+
+- Base: `main` ee2eac1, checked 2026-11-01. CI config only; no app code, no deploy, no production access.
+- New `.github/dependabot.yml`: npm for `crm-v2` and `functions`, GitHub Actions; weekly on Monday, minor and patch grouped, at most 2 open per folder, 7-day cooldown. Needs no token.
+- New `.github/workflows/security.yml`, on every PR, on `main` when `.github` or a lock file changes, weekly, and by hand: `npm audit --omit=dev --audit-level=critical` is **reporting only, it never fails** (warning plus run summary); gitleaks scans the PR's commits with redacted values, a finding makes the job red; zizmor audits `.github`, high severity makes the job red. No branch protection exists, so red does not block a merge. gitleaks 8.30.1 and zizmor 1.31.1 are release binaries with a pinned SHA-256; Dependabot does not update those.
+- New `.gitleaks.toml`: default rules, allows only `generic-api-key` in `functions/language-api.test.js` (a made-up fixture).
+- Existing three workflows: every action pinned to a commit SHA in the same major, `persist-credentials: false` on every checkout. zizmor before: 10 high (`unpinned-uses`), 4 medium (`artipacked`). After, online mode: no findings.
+- gitleaks over the full history (all refs, 2841 commits): 58 findings, **no live secret found**. 55 are the Firebase web API key, which is public by design and matches the live CRM bundle (hash compared, value not printed). 1 is the same config with two characters different, `haldus.html` da647dee62, removed by d68a5e8; not tested against Google. 2 are the Ekilex test fixture. **The repository is public**, so the web key is readable there and in the bundle; its restrictions in Google Cloud Console were not checked. Values were never printed or stored; the raw report was deleted.
+- Next safe step: the owner reviews and merges, then checks the Firebase web key's restrictions in Google Cloud Console.
+## 2026-11-01 · agent/progress-truth — one number for speaking, the course „Minu areng” names is the one that opens, one pet for every viewer
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no rules or functions change.
+- Speaking: `speakingFromStats` moved to `students/autoSkills.js` and is the one formula: the share said in the lesson language, from `petLessonStats`, the newer lesson counting more. „Areng” (`AutoSkillsCard.jsx`) and „Minu areng” both read it. Pedagogical contract changed: the teacher's percentage no longer mixes in error-free sentences, which only recordings hold and a student may not read; that figure stays beside the number. A lesson with a recording and no stats still shows from its recording.
+- `levelProgress`: Sõnavara is not „Valmis” while the card has word cards and none learned (`state: 'close'`, `note`); `allReady` follows `state`. New `coursePath`, `courseKeyFor`; a school grade is no longer read as a language level.
+- `self-study/selfStudyModel.js`: new `courseChoice` (the way from level to target, a course named by the card's level, a course he has work in; children's courses not offered above grade 3 when nothing matches) and `heldCourseLessons`, shared with „Minu areng”. `StudentCoursePage.jsx` opens that course and counts held lessons as done.
+- Pet: `PetOverview.jsx` loads homework, submissions and lesson stats itself, and applies food and energy to the mood; `PetCard.jsx` read-only preview reads lesson stats by the card.
+- Rule change needed, not made: `match /petLessonStats` lets only staff and the student read, so a parent's pet misses speech XP. Proposed: add `|| ownsStudent(resource.data.studentId)`. Exposes the learner's corrected sentences (`practice`) to the parent: the owner decides. Teachers read only their own lessons (`lessons` rules), so on a card with two subjects the pet is smaller for the teacher. `playedAt` is private, so „sad from no play” shows only on the student's page.
+- Checks: see the PR. Not compared with production numbers, not opened in a browser.
+- Next safe step: the owner decides on the `petLessonStats` rule for parents.
+## 2026-11-01 · agent/sheet-error-text — the error list and review cards show the chosen option's text, not its number
+
+- Checked `origin/main` 33e6861. From a live-site walkthrough. No production reads or writes, no deploy.
+- Cause: a task with options stores the option's number, and `errorText.js` printed it. Grading is not affected: `choice.score` compares stored number with right number (a test added in `registry.scoring.test.js`).
+- Changed: an optional block contract `answerText(data, key, value)` (and `expectedText(data, key)` for `match`) on `choice`, `truefalse`, `match`, `cloze`, `insertion`, `examlisten`, `categorize`; `givenAnswer()` in `engine/errorText.js`, read by `describeAutoErrors` („õpilane valis „…””) and `errorCards.js`. Conversion happens at display, so errors already stored read correctly.
+- Same bug found in `errorCards.js`: a wrong sentence choice made a review card „Sinu lause: 1”. New cards are right. Cards already in `studentWords` keep the number: fixing them is a production write and was not done.
+- Checks: see the PR. Not opened in a browser.
+- Next safe step: the owner decides whether to clean the old „Sinu lause: <number>” cards in production.
+## 2026-11-01 · agent/home-counts — home counts active students' homework, shows works to review, unmarked lessons no longer fall off
+
+- Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy.
+- `dashboard/DashboardPage.jsx`: students load with `status: 'active'`, like Kodutööd, so „Kodutööd pooleli” matches that page. New row in „Vajab tegutsemist”: „N tööd ootavad kontrolli”, the page's own count (`reviewStatus !== 'reviewed'`), one extra read through `listSubmissionsByStudentIds`; a failed read hides the row and nothing else.
+- `calendar/unmarkedLessons.js`: scan is 365 days, was 14; new `olderUnmarked`. `UnmarkedLessonsCard.jsx` says „Viimase aasta tunnid, neist N vanemad kui 2 nädalat”. A year over 500 weekly series and 3000 one-off lessons took 91 ms in a test.
+- Checks: see the PR. The home page was not opened in a browser.
+- Known limits: older than a year still is not counted, and the card says so; group lessons are still left out, as before. The number on the live site may jump: the 22 older lessons of the report were not checked against production, and a long series nobody marked counts in full.
+- Next safe step: the owner looks at the count after the deploy and says whether a year is the right window.
 ## 2026-11-01 · agent/finance-truth — Ärinäitajad count today's marked lessons, „Lahkunud” means archived, Õpetajate võrdlus reads the calendar, unpaid sums say their period
 
 - Checked `origin/main` 54fab88. From a live-site walkthrough. No production reads or writes, no deploy, no change in how money is calculated.
@@ -40,6 +179,26 @@
 - Seaded and menu: `roleLabels` in `utils/roles.js`; Firebase row, support row and account UID only for staff. Texts: „1 tund”, „1 sõnum”, „1 arve”, lead arrival as a Tallinn date (`LeadsPage.jsx`).
 - Checks: see the PR.
 - Next safe step: the owner reviews and merges the PR; it needs hosting only.
+## 2026-11-01 · agent/ui-wording — readable dates, technical text gone, plurals, bell, tab icon
+
+- Base: `main` ee2eac1, checked 2026-11-01. UI text only; no data, rules, functions or deploy. Text changes in `DashboardPage`, `FinanceDashboard`, `StudentLessonsPanel` leave their numbers to the other agent's branches.
+- Dates through `finance/finance.js` `displayDate`: `StudentLessonsPanel` (rows, notice, unmarked list, a day named once), `HomeworkPage` and `LessonSummariesCard` „Tähtaeg”, `LessonHomeworkPanel`, `LessonDetailModal`, `roomWorksheetChoices`, `NoTimesPanel`, `BillingSettingsCard`. Aria labels of the lesson rows keep the ISO date.
+- Seaded → Tehniline: the teacher-scope migration panel (enforced since 2026-08-05) opens only with `/settings?tab=tehniline&migratsioon=1`; handlers and server endpoints stay. Seaded → Kool: `docs/GPT_SHEET_BUILDER.md` removed from the text. „CRM v1” removed from Ülesanded and `MaterialEditor`.
+- `MonthStepsCard` prop `ruHint` (default on): off on the teacher's `LearnerSnapshotCard`. Students and parents keep the Russian line, the same pattern as `MyProgressCard`.
+- Plurals: kodutöö on the home page and learner snapshot, „1 möödunud tund”, „1 õpilane lisati gruppi”, „Prognoos · järgmine kuu”. Õppevara's curated section is now „Grammatikateemad · N teemat”. `NotificationCenter` shows no number until its sources have loaded.
+- `crm-v2/public`: copies of the root `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png` (the EP koolitus website icon); links in `crm-v2/index.html`. `StudentsPage` shows subjects through `subjectName`.
+- Checks: `npx eslint --quiet src` clean; vitest result in the PR. `vite build` output contains the icons and the links. Not opened on the live site.
+- `MessagesPage` staff heading „Kommunikatsioon” → „Suhtlus”, as in the menu. Open: raw „Inglise Keel” can still show where a screen prints the stored subject. „1 gruppi” was not found in the code. `type="month"` inputs were left alone (Chromium shows the month in words).
+- Next safe step: the owner decides whether „Live Classroom” and the two meanings of „Ülesanded” stay.
+## 2026-11-01 · agent/route-access — routes.jsx and accessPolicy.js agree
+
+- Base: `main` ee2eac1, checked 2026-11-01. Client-side routing only; Firestore rules and functions unchanged, so this is not a data boundary.
+- `routes.jsx`: `/homework` and `/messages` behind `ACCESS.HOMEWORK` and `ACCESS.MESSAGES` (finance-only accounts now reach /forbidden). `/library/worksheet-generator/{avasta-module-1,module-1-three-phase,course,health}` moved from the STAFF group to ADMIN; each page already refused a non-admin itself. Admin, parent and student access unchanged.
+- `accessPolicy.js` new entries: `/library/raamatukogu` and `/library/worksheet-generator` STAFF (`LessonWorksheetSet` links coverage to teachers), `module-1-three-phase`, `health`, `/finance/ostuarved`, `/ai/connect` ADMIN. `landingPath` now sends someone without access to these to `/` after sign-in, not to the forbidden page.
+- New `app/routeAccess.test.jsx` walks the route tree and compares it with the policy in both directions; a new route without an entry fails it.
+- Checks: `npx eslint --quiet src` clean; vitest result in the PR. Not opened in a browser or on the live site.
+- Next safe step: the owner confirms that the finance role needs neither Kodutööd nor Suhtlus.
+
 ## 2026-11-01 · agent/a2-m20-final-2 — A2 module 20 „A2 eksam ja iseseisev keelekasutus” in the final shape (last A2 module)
 
 - Base: `main` b13d41e, checked 2026-11-01. Content only; no production data, no publishing, no deploy. Paid services: none (TartuNLP is free).
@@ -55,6 +214,15 @@
 - Checks: `npx eslint --quiet src` clean. `npx vitest run src/features/worksheet-generator src/features/pet`: 71 files passed, 1 skipped; 1070 tests passed, 7 skipped. `src/features/worksheet-studio`: 380 tests passed. Language check (Vabamorf) of module 20: 0 unknown lower-case words. Final-shape: module 20 0, module 19 0, course 3 (in the baseline 3, new 0). The whole `npx vitest run` was not run. The listening audio was not listened to by a person.
 - Known: the sheets in Õppevara do not change until published. `a2-module-02 V14-topic` and `a2-026 transfer V2` are other modules' old baseline lines.
 - Next safe step: review and merge this PR; publishing module 20 is the owner's decision.
+## 2026-11-01 · agent/phone-layout — page header buttons wrap, narrow modals and student cards, Kodutööd tasks first
+
+- Base: `main` ee2eac1, checked 2026-11-01. A live-site walkthrough found these. CSS plus one list limit; no data, rules, functions or deploy.
+- `styles/index.css`: `.page-header__actions` wraps (Raamatupidamine at 1440 px scrolled sideways). `.modal-backdrop` and `.material-preview` have a `minmax(0,1fr)` track, because an auto track grew to the sheet inside and took `.modal`'s `100%` with it. `.students-mobile-list` the same, and the card's buttons wrap. `.submission-card{order:-1}` removed under 1050 px.
+- `features/homework/HomeworkPage.jsx`: `SubmissionList` shows 10, „Näita veel (N)” adds 20. Quick confirm and „next to review” still work over the whole list.
+- Checks: `npx eslint --quiet src` clean; `npx vitest run --maxWorkers=3 src/styles src/features/homework src/features/library src/features/students src/features/accounting` 55 files, 328 tests passed. Layout measured in a browser on a local Vite page with fake repositories (not committed), not with real data and without the real sidebar and topbar. Before → after: Raamatupidamine 1440 px scrollWidth 1514 → 1440; Õpilased 375 px card right 404 → 327, list right 339; preview modal 375 px width 1040 → 355, close × right 1081 → 348; Kodutööd 375 px with 54 submissions, tasks top 9802 → 478, page 10835 → 3479 px.
+- Known limit: on a phone a worksheet in the preview stops at zoom 0.3 (`useFitScale`), so it is small and scrolls a little sideways inside its box. The task list itself has no limit.
+- Next safe step: open these four screens on a real phone after the next hosting deploy.
+
 ## 2026-11-01 · agent/monthly-lessons-left — lessons left on monthly invoices; unworked lessons come off the next one
 
 - Owner 2026-11-01: the client pays by the 10th, a held lesson is minus one, unworked lessons come off next month's invoice, the admin sees how many are left. This is the monthly flow, not Tunnipakett: production has 0 `studentPackages`, and the 14-day burn of #928 does not fit this rule.

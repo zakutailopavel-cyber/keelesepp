@@ -1,6 +1,7 @@
 import { collection, doc, getDocs, query, runTransaction, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { financeApi } from './financeApi.js';
 import { requireFirebaseClient } from './client.js';
+import { shareInFlight } from './shareInFlight.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
 export function normalizeLesson(id, data = {}) {
@@ -37,7 +38,10 @@ export const lessonsService = {
     const snapshot = await getDocs(collection(db, 'lessons'));
     return snapshot.docs.map((item) => normalizeLesson(item.id, item.data())).sort(newestFirst);
   },
-  async listForCalendar(filters = {}) {
+  listForCalendar(filters = {}) {
+    return shareInFlight(`lessons:${filters.teacherUid || ''}`, () => lessonsService.readForCalendar(filters));
+  },
+  async readForCalendar(filters = {}) {
     const { db } = requireFirebaseClient();
     const reference = collection(db, 'lessons');
     const snapshot = await getDocs(filters.teacherUid ? query(reference, where('teacherUid', '==', filters.teacherUid)) : reference);

@@ -1,31 +1,30 @@
-import { BookOpen, CalendarDays, SpellCheck, Check, ChevronRight, Flame, Gamepad2, Languages, MessageSquareText, Star, Video, WalletCards } from 'lucide-react';
+import { CalendarClock, CalendarDays, Check, ChevronRight, Flame, Megaphone, MessageSquareText, PawPrint, WalletCards } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
+import { Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, invoicesService, lessonChangeRequestsService, lessonsService, libraryService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService, invoicesService, lessonChangeRequestsService, lessonsService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { announcementsService } from '../../services/firebase/announcements.js';
 import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
 import RescheduleDialog from './RescheduleDialog.jsx';
-import { buildTopicCatalog } from '../calendar/lessonTopic.js';
-import { lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
 import { readDone } from '../self-study/reviewStore.js';
-import { autoSkills } from './autoSkills.js';
-import { levelProgress, speakingFromStats } from './levelProgress.js';
-import MyProgressCard from './MyProgressCard.jsx';
-import WordGrowthCard from '../vocabulary/WordGrowthCard.jsx';
-import MonthStepsCard from '../learner/MonthStepsCard.jsx';
+import PetLoop from '../pet/PetLoop.jsx';
 import { petProgress } from '../pet/petModel.js';
+import { nextLesson as firstLessonAhead } from '../pet/petLife.js';
 import { todayPath } from './todayPath.js';
 import { petReact } from '../pet/petEvents.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from './studentFinance.js';
 import OpenInvoicesCard from '../payments/OpenInvoicesCard.jsx';
+import { linkpayApi } from '../../services/firebase/linkpayApi.js';
 import { parentCardIds } from '../parents/parentModel.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
-import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
-import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
+import SubjectSwitcher from './SubjectSwitcher.jsx';
+import { itemSubject, onlySubject, subjectsOf } from './subjects.js';
+import { feedbackSeenAt, homeNotes, newFeedback, nextStep } from './nextStep.js';
+import './studentHome.css';
 
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
@@ -41,11 +40,23 @@ function dateLabel(value) {
   return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString('et-EE', { day: 'numeric', month: 'short' });
 }
 
+const firstName = (name) => String(name || '').trim().split(/\s+/)[0] || 'õpilane';
+const NOTE_ICON = { feedback: MessageSquareText, announcement: Megaphone, invoice: WalletCards, availability: CalendarClock };
 
-import SubjectSwitcher from './SubjectSwitcher.jsx';
-import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
-import LearnerAnnouncementsCard from '../announcements/LearnerAnnouncementsCard.jsx';
-import { itemSubject, onlySubject, subjectsOf } from './subjects.js';
+/** Unpaid invoice: one line; with card payments on, „Maksa” opens the existing payment card right here. */
+function InvoiceNote({ note, invoices, readOnly, api = linkpayApi }) {
+  const [canPay, setCanPay] = useState(false);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    let live = true;
+    Promise.resolve().then(() => api.config()).then((config) => live && setCanPay(Boolean(config?.enabled))).catch(() => {});
+    return () => { live = false; };
+  }, [api]);
+  return <li>
+    <div><WalletCards size={17} aria-hidden="true" /> <span>{note.text}</span>{canPay ? <button type="button" className="link-button" aria-expanded={open} onClick={() => setOpen(!open)}>Maksa</button> : null}</div>
+    {open ? <OpenInvoicesCard invoices={invoices} readOnly={readOnly} api={api} /> : null}
+  </li>;
+}
 
 export default function StudentDashboardPage({
   studentRepository = studentsService,
@@ -54,12 +65,11 @@ export default function StudentDashboardPage({
   invoiceRepository = invoicesService,
   lessonRepository = lessonsService,
   petRepository = petsService,
-  catalogRepository = libraryService,
   changeRequests = lessonChangeRequestsService,
+  announcementService = announcementsService,
   consentService,
   wordsService,
-  summaryService,
-  announcementService,
+  paymentsApi,
 }) {
   const { user, preview } = useAuth();
   const [rescheduling, setRescheduling] = useState(false);
@@ -70,33 +80,30 @@ export default function StudentDashboardPage({
       ? [await studentRepository.getById(preview.studentId)].filter(Boolean)
       : await studentRepository.listSelf(user.uid);
     const studentIds = students.map((student) => student.id);
-    // „Minu areng” needs the course, all his sheets and his lesson stats; each may fail alone without breaking the page
-    const [progressData] = await Promise.all([Promise.all([
-      Promise.resolve().then(() => catalogRepository.listCurriculum?.() || []).catch(() => []),
+    // a child's invoices are the business of the parent linked to the card: not even read for this page
+    const ownInvoiceCards = students.filter((student) => !parentCardIds(student).some((id) => id !== user.uid)).map((student) => student.id);
+    const [pet, sheets, homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
+      // staff in a preview see the same pet read-only, if the rules let them read it
+      Promise.resolve().then(() => petRepository.get?.(user.uid)).catch(() => null),
       Promise.resolve().then(() => homeworkRepository.listWorksheetAssignmentsByStudentIds?.(studentIds) || []).catch(() => []),
-      Promise.resolve().then(() => (preview ? petRepository.lessonStatsForStudents?.(studentIds) : petRepository.lessonStats?.(user.uid)) || []).catch(() => []),
-    ])]);
-    const [pet, homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
-      preview ? null : Promise.resolve().then(() => petRepository.get?.(user.uid)).catch(() => null),
       homeworkRepository.listByStudentIds(studentIds),
       homeworkRepository.listSubmissionsByStudentIds(studentIds),
       Promise.all(studentIds.map((studentId) => scheduleRepository.listByStudent(studentId))),
-      Promise.all(studentIds.map((studentId) => invoiceRepository.listByStudent(studentId))),
+      Promise.all(ownInvoiceCards.map((studentId) => invoiceRepository.listByStudent(studentId))),
       Promise.all(studentIds.map((studentId) => lessonRepository.listByStudent(studentId))),
     ]);
     const requests = await Promise.resolve().then(() => changeRequests?.listForStudents?.(studentIds) || []).catch(() => []);
-    return {
-      progressData,
-      pet: pet || null,
-      students,
-      homework,
-      submissions,
-      schedule: unique(scheduleLists.flat()),
-      invoices: unique(invoiceLists.flat()),
-      lessons: unique(lessonLists.flat()),
-      requests,
-    };
+    return { pet: pet || null, sheets, students, homework, submissions, schedule: unique(scheduleLists.flat()), invoices: unique(invoiceLists.flat()), lessons: unique(lessonLists.flat()), requests };
   }, [homeworkRepository, invoiceRepository, lessonRepository, preview?.studentId, scheduleRepository, studentRepository, user.uid]);
+
+  // the school's open announcements, after the page is drawn: a line appears if there is one (the gate shows them first)
+  const [pendingNotes, setPendingNotes] = useState([]);
+  useEffect(() => {
+    if (preview || !announcementService?.mine) return undefined;
+    let live = true;
+    Promise.resolve().then(() => announcementService.mine()).then((result) => { if (live) setPendingNotes(Array.isArray(result?.pending) ? result.pending : []); }).catch(() => {});
+    return () => { live = false; };
+  }, [announcementService, preview, user.uid]);
 
   // words of „Minu sõnad” also feed the pet (learned words, practice days)
   const words = useStudentWords((state.data?.students || []).map((student) => student.id), ...(wordsService ? [wordsService] : []));
@@ -106,9 +113,9 @@ export default function StudentDashboardPage({
   const reviewedToday = readDone(user?.uid).errors?.date === today || user?.profile?.practice?.errorsDate === today;
   const pathDone = useMemo(() => {
     if (!state.data) return false;
-    const day = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, pet: state.data.pet, assignments: (state.data.progressData?.[1] || []), mistakesDoneToday: reviewedToday, offerPet: !preview, today });
-    return day.total > 0 && day.done === day.total;
-  }, [state.data, words, today, reviewedToday, preview]);
+    const steps = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, assignments: state.data.sheets, mistakesDoneToday: reviewedToday, today }).steps.filter((item) => !item.idle);
+    return steps.length > 0 && steps.every((item) => item.done);
+  }, [state.data, words, today, reviewedToday]);
   useEffect(() => {
     if (!pathDone || preview) return;
     try {
@@ -121,100 +128,82 @@ export default function StudentDashboardPage({
   if (state.loading) return <LoadingState label="Laen sinu õpinguid…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
-  const { students, submissions, invoices } = state.data;
+  const { students, submissions, invoices, sheets, pet } = state.data;
+  const hello = <h1 className="sh-hello">Tere, {firstName(user.displayName)}!</h1>;
+  if (!students.length) {
+    return <div className="page-content sh-page"><div className="sh">{hello}<Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril siduda õpilase kaart sinu kontoga. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card></div></div>;
+  }
+
   const studentMap = new Map(students.map((student) => [student.id, student]));
   const subjects = subjectsOf(students);
   const chosen = subjects.length > 1 ? subject : '';
   const studentOf = (item) => studentMap.get(item.studentId) || null;
   const homework = onlySubject(state.data.homework, chosen, studentOf);
-  const lessons = onlySubject(state.data.lessons, chosen, studentOf);
-  const upcoming = onlySubject(occurrencesForDates(state.data.schedule, nextDates), chosen, studentOf).slice(0, 6);
-  const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);
-  const nextLesson = upcoming[0] || null;
-  const nextRequest = requestFor(state.data.requests, nextLesson);
+  const assignments = onlySubject(sheets, chosen, studentOf);
+  const occurrences = onlySubject(occurrencesForDates(state.data.schedule, nextDates), chosen, studentOf);
+  const lessonAhead = firstLessonAhead(occurrences);
+  const nextRequest = requestFor(state.data.requests, lessonAhead);
   const cancelRequest = async () => { try { await changeRequests.cancel(nextRequest.id); } finally { state.reload(); } };
-  const progress = (() => {
-    const [curriculum, allSheets, stats] = state.data.progressData || [[], [], []];
-    const student = students[0];
-    if (!student) return null;
-    const catalog = buildTopicCatalog(curriculum);
-    const map = progressMap(allSheets);
-    // a course lesson held with the teacher (Live Classroom, the calendar topic) counts as done like its three sheets
-    const held = new Set(lessons.filter((lesson) => lesson.topicLessonId && (!lesson.status || lesson.status === 'Toimunud')).map((lesson) => lesson.topicLessonId));
-    const courseByLevel = Object.fromEntries(catalog.levels.map((entry) => {
-      const list = entry.modules.flatMap((module) => module.lessons);
-      const next = nextCourseLesson(list.filter((lesson) => !held.has(lesson.id)), map);
-      return [entry.key, { done: list.filter((lesson) => held.has(lesson.id) || lessonProgress(lesson.id, map).done === 3).length, total: list.length, next: next ? `${next.number ? `${next.number}. ` : ''}${next.title}` : null }];
-    }));
-    const computed = [...autoSkills({ assignments: allSheets }), ...[speakingFromStats(stats)].filter(Boolean)];
-    return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel });
-  })();
-  const path = todayPath({ words, homework, submissions, pet: state.data.pet, assignments: (state.data.progressData?.[1] || []), mistakesDoneToday: reviewedToday, offerPet: !preview, today });
-  const streak = petProgress({ lessons, submissions, homework, words }).streak;
-  const STEP_ICON = { words: Languages, work: BookOpen, mistakes: SpellCheck, pet: Gamepad2 };
-  // a child's invoices are the business of the parent linked to the card („Minu pere”); an adult learner pays and sees them here
-  const childCards = new Set(students.filter((student) => parentCardIds(student).some((id) => id !== user.uid)).map((student) => student.id));
-  const ownInvoices = invoices.filter((invoice) => !childCards.has(invoice.studentId));
-  const balance = ownInvoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
 
-  return <div className="page-content">
-    <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Alusta ülevalt: plokis „Täna” on kõik, mida täna teha. Iga töö kontrollitakse kohe." />
+  const step = nextStep({ occurrences, homework, assignments, words, today });
+  const daySteps = todayPath({ words, homework, submissions, assignments, mistakesDoneToday: reviewedToday, today }).steps.filter((item) => !item.idle).slice(0, 3);
+  const progress = petProgress({ lessons: state.data.lessons, submissions, homework: state.data.homework, words });
+  const { streak } = progress;
+  const offerPet = !preview && !pet?.optedOut && !pet?.kind;
+  const unpaid = invoices.filter((invoice) => invoice.status !== 'Tühistatud' && invoiceBalanceCents(invoice) > 0);
+  const unpaidCents = unpaid.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
+  const notes = homeNotes({ feedback: newFeedback(submissions, feedbackSeenAt(user.uid)), announcements: preview ? [] : pendingNotes, unpaidCents, money });
+
+  return <div className="page-content sh-page"><div className="sh">
+    {hello}
     {!preview?.studentId ? <RecordingConsentPrompt students={students} user={user} role="student" {...(consentService ? { service: consentService } : {})} /> : null}
-
-    {/* „Minu areng” first, then „Täna” (owner 2026-10-12) */}
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Minu õppeained" />
-    {/* „Minu areng” follows the Estonian course; another subject has its own teacher's plan */}
-    {students.length && (!chosen || chosen === 'Eesti keel') ? <MyProgressCard progress={progress} /> : null}
-    {/* plain numbers: words learned, new this month, own mistakes fixed (owner 2026-10-23) */}
-    {students.length ? <WordGrowthCard words={words} /> : null}
-    {/* „Kuu sammud”: the month's lesson steps and how well each is mastered (owner 2026-10-23) */}
-    {students.length ? <MonthStepsCard assignments={state.data.progressData?.[1] || []} /> : null}
-    {students.length ? <section className="student-path" aria-label="Täna">
-      <header className="student-path__head">
-        <div><span className="eyebrow">Täna</span><h2>{path.done === path.total ? 'Kõik tänased sammud tehtud!' : `${path.done}/${path.total} sammu tehtud`}</h2></div>
-        <span className={`student-path__streak ${streak ? 'is-on' : ''}`} title="Õppimise päevi järjest"><Flame size={17} aria-hidden="true" /> {streak} {streak === 1 ? 'päev' : 'päeva'} järjest</span>
-      </header>
-      <div className="student-path__bar" aria-hidden="true"><i style={{ width: `${path.total ? Math.round((path.done / path.total) * 100) : 0}%` }} /></div>
-      <div className="student-today">
-        <Link className="student-today__card is-lesson" to={nextLesson?.occurrenceDate === today ? '/live-classroom' : '/homework'}>
-          <i>{nextLesson?.occurrenceDate === today ? <Video size={22} /> : <CalendarDays size={22} />}</i>
-          <span><small>Järgmine tund</small><strong>{nextLesson ? `${nextLesson.occurrenceDate === today ? 'Täna' : dateLabel(nextLesson.occurrenceDate)} · ${nextLesson.time}` : 'Tunde ei ole plaanis'}</strong><em>{nextLesson ? (nextLesson.occurrenceDate === today ? 'Ava Live Classroom' : [subjects.length > 1 ? itemSubject(nextLesson, studentOf(nextLesson)) : '', nextLesson.teacher || 'Õpetaja', `${nextLesson.duration || 60} min`].filter(Boolean).join(' · ')) : 'Õpetaja lisab tunni kalendrisse'}</em></span>
-        </Link>
-        {path.steps.map((step, index) => {
-          const Icon = step.done ? Check : STEP_ICON[step.key];
-          return <Link key={step.key} className={`student-today__card is-step ${step.done ? 'is-done' : 'is-todo'}`} to={step.to}>
-            <i><Icon size={22} /></i>
-            <span><small>{index + 1}. samm</small><strong>{step.label}</strong><em>{step.detail}</em></span>
-          </Link>;
-        })}
-        {balance > 0 ? <div className="student-today__card is-todo">
-          <i><WalletCards size={22} /></i>
-          <span><small>Arved</small><strong>{money(balance)}</strong><em>{ownInvoices.length} {ownInvoices.length === 1 ? 'arve' : 'arvet'} · tasumata</em></span>
-        </div> : null}
+
+    <div className="sh-hero">
+      {pet?.kind && !pet.optedOut ? <PetLoop user={user} studentId={students[0].id} pet={pet} readOnly={Boolean(preview)} lessons={state.data.lessons} submissions={submissions} homework={state.data.homework} assignments={sheets} words={words} subject={chosen || students[0].subject || ''}
+        repository={petRepository} {...(wordsService ? { wordsService } : {})} /> : null}
+      {offerPet ? <Link className="sh-pet" to="/student/lemmik"><i style={{ display: 'grid', placeItems: 'center' }}><PawPrint size={40} aria-hidden="true" /></i><span><strong>Vali endale sõber</strong><small>Õppesõber kasvab koos sinuga</small></span></Link> : null}
+      <div className="sh-main">
+        <section className={`sh-step ${step.key === 'done' ? 'is-done' : ''}`} aria-label="Järgmine samm">
+          <small>Järgmine samm</small>
+          <strong>{step.title}</strong>
+          <span>{step.detail}</span>
+          <Link to={step.to}>{step.button} <ChevronRight size={17} aria-hidden="true" /></Link>
+        </section>
+        <div className="sh-lesson">
+          <span><CalendarDays size={17} aria-hidden="true" /> {lessonAhead
+            ? <>Järgmine tund: <strong>{lessonAhead.occurrenceDate === today ? 'täna' : dateLabel(lessonAhead.occurrenceDate)} {lessonAhead.time}</strong>{subjects.length > 1 ? ` · ${itemSubject(lessonAhead, studentOf(lessonAhead))}` : ''}</>
+            : 'Tunde ei ole plaanis'}</span>
+          {lessonAhead && !preview ? (nextRequest?.status === 'pending' ? <p className="form-hint" role="status">{isAbsenceOnly(nextRequest) ? 'Teade, et sa ei tule, on õpetajale saadetud.' : 'Palve tund üle viia on saadetud. Tund jääb oma kohale, kuni õpetaja vastab.'} <button type="button" className="link-button" onClick={cancelRequest}>Võta palve tagasi</button></p>
+            : nextRequest?.status === 'accepted' && isAbsenceOnly(nextRequest) ? <p className="form-hint" role="status">Õpetaja märkis, et sa sellesse tundi ei tule.</p>
+            : nextRequest?.status === 'declined' ? <p className="form-hint" role="status">Õpetaja ei saanud tundi üle viia{nextRequest.teacherNote ? `: ${nextRequest.teacherNote}` : ''}. Tund jääb samale ajale. <button type="button" className="link-button" onClick={() => setRescheduling(true)}>Küsi uuesti</button></p>
+              : <button type="button" className="link-button" onClick={() => setRescheduling(true)}>Ei saa tulla?</button>) : null}
+        </div>
       </div>
-      {nextLesson && !preview ? <div className="student-path__reschedule">
-        {nextRequest?.status === 'pending' ? <p className="form-hint" role="status">{isAbsenceOnly(nextRequest) ? 'Teade, et sa ei tule, on õpetajale saadetud.' : 'Palve tund üle viia on saadetud. Tund jääb oma kohale, kuni õpetaja vastab.'} <button type="button" className="link-button" onClick={cancelRequest}>Võta palve tagasi</button></p>
-          : nextRequest?.status === 'accepted' && isAbsenceOnly(nextRequest) ? <p className="form-hint" role="status">Õpetaja märkis, et sa sellesse tundi ei tule.</p>
-          : nextRequest?.status === 'declined' ? <p className="form-hint" role="status">Õpetaja ei saanud tundi üle viia{nextRequest.teacherNote ? `: ${nextRequest.teacherNote}` : ''}. Tund jääb samale ajale. <button type="button" className="link-button" onClick={() => setRescheduling(true)}>Küsi uuesti</button></p>
-            : <Button variant="secondary" onClick={() => setRescheduling(true)}>Ei saa tulla?</Button>}
-      </div> : null}
-    </section> : null}
-    {rescheduling && nextLesson ? <RescheduleDialog lesson={nextLesson} student={studentMap.get(nextLesson.studentId) || students[0]} user={user} role="student"
-      busy={upcoming.map((item) => ({ date: item.occurrenceDate, time: item.time, duration: item.duration }))} requests={changeRequests}
+    </div>
+    {rescheduling && lessonAhead ? <RescheduleDialog lesson={lessonAhead} student={studentMap.get(lessonAhead.studentId) || students[0]} user={user} role="student"
+      busy={occurrences.slice(0, 6).map((item) => ({ date: item.occurrenceDate, time: item.time, duration: item.duration }))} requests={changeRequests}
       onClose={() => setRescheduling(false)} onSent={() => { setRescheduling(false); state.reload(); }} /> : null}
-    {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril siduda õpilase kaart sinu kontoga. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
-      <OpenInvoicesCard invoices={ownInvoices} readOnly={Boolean(preview)} />
 
-      {/* „Teated”: the school's announcements already answered, to read again (owner 2026-10-24) */}
-      {!preview ? <LearnerAnnouncementsCard user={user} {...(announcementService ? { service: announcementService } : {})} /> : null}
+    {daySteps.length ? <section className="sh-today" aria-label="Täna">
+      <header className="sh-today__head">
+        <h2>Täna {daySteps.filter((item) => item.done).length}/{daySteps.length}</h2>
+        {streak ? <span className="sh-streak" title="Õppimise päevi järjest"><Flame size={15} aria-hidden="true" /> {streak} {streak === 1 ? 'päev' : 'päeva'} järjest</span> : null}
+      </header>
+      <ul>{daySteps.map((item) => (
+        <li key={item.key} className={item.done ? 'is-done' : ''}><Link to={item.to}>
+          <i>{item.done ? <Check size={14} aria-hidden="true" /> : null}</i>
+          <b>{item.label}</b><small>{item.detail}</small>
+        </Link></li>
+      ))}</ul>
+    </section> : null}
 
-      {/* „Millal sulle tund sobib?” — the student keeps the times that suit up to date (owner 2026-10-21) */}
-      {students.slice(0, 1).map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} user={user} mode={preview ? 'view' : 'own'} compact subjects={subjectsOf(student)} />)}
+    {notes.length ? <ul className="sh-notes" aria-label="Sulle on uudiseid">{notes.map((note) => {
+      if (note.key === 'invoice') return <InvoiceNote key={note.key} note={note} invoices={unpaid} readOnly={Boolean(preview)} {...(paymentsApi ? { api: paymentsApi } : {})} />;
+      const Icon = NOTE_ICON[note.key];
+      return <li key={note.key}><Link to={note.to}><Icon size={17} aria-hidden="true" /> {note.text} <ChevronRight size={15} aria-hidden="true" /></Link></li>;
+    })}</ul> : null}
 
-      <LessonSummariesCard studentIds={students.map((student) => student.id)} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
-
-      <Card><div className="section-heading"><div><span className="eyebrow">Tagasiside</span><h2>Viimased tulemused</h2></div><Link to="/homework">Ava tööd <ChevronRight size={15} /></Link></div>{reviewedSubmissions.length ? <div className="student-home-feedback">{reviewedSubmissions.map((item) => <article key={`${item.submissionKind}-${item.id}`}><i><Star size={18} /></i><span><strong>{item.title}</strong><small>{item.teacherFeedback || 'Õpetaja lisas tulemuse.'}</small></span><Badge tone="success">{item.teacherGrade ? `Hinne ${item.teacherGrade}` : item.percentage != null ? `${item.percentage}%` : 'Kontrollitud'}</Badge></article>)}</div> : <EmptyState title="Õpetaja tagasisidet veel ei ole" />}</Card>
-
-    </div>}
-  </div>;
+    <div><Link className="sh-link" to="/student/areng">Minu areng <small>· vaata, kuidas läheb</small> <ChevronRight size={15} aria-hidden="true" /></Link></div>
+  </div></div>;
 }

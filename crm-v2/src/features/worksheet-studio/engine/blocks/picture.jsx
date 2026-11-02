@@ -37,7 +37,7 @@ export const picmatch = {
           {items.map((it, i) => (
             <li key={i}>
               <span>{it.word}</span>
-              <input className={`ws-letterbox ${ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`} maxLength={1} readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1}
+              <input className={`ws-letterbox ${ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`} maxLength={1} autoCapitalize="characters" autoCorrect="off" readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1}
                 value={ctx.get(`${i}`) || ''} onChange={(e) => ctx.set(`${i}`, e.target.value.toUpperCase().replace(/[^A-Z]/g, ''))} aria-label={`Täht: ${it.word}`} />
             </li>
           ))}

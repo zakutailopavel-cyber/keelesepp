@@ -90,7 +90,7 @@ Leht avaldatakse ainult siis, kui:
 
 ## 6. Töövoog
 
-1. Iga moodul on üks fail: `crm-v2/src/features/worksheet-generator/admin/course/<b1|b2>/moduleNN.js` ja rida failis `registry.js`.
+1. Iga moodul on üks fail: `crm-v2/src/features/worksheet-generator/admin/course/<b1|b2>/moduleNN.js` ja rida failis `courseModules.<b1|b2>.js` (import + koht `MODULES` loendis; `registry.js` paneb kõik kursused kokku).
 2. Kontrollid:
    - `npx vitest run src/features/worksheet-generator/admin/course` — kvaliteedivärav;
    - eslint;
