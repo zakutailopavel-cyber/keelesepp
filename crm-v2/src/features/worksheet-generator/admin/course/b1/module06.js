@@ -34,6 +34,16 @@ export const LESSONS = withShapes({
     canDo: 'Ma kirjutan Jaanile 80–100-sõnalise kirja pühapäevase lõuna menüüst ja ostunimekirjast koos kogustega.',
     discover: [
       B.review('026_d_review', [['Mis oli sinu kõige ootamatum päev? Räägi kolme lausega minevikus.', 'a2b1-024'], ['Mida tellis pere Helgi peoks Kõrve Köögist ja palju see inimese kohta maksis?', 'a2b1-009'], 'Mida sa sel nädalal poest ostsid?']),
+      B.topicOpener('026_d_open', 'Teema avaleht: mida Eesti sööb?', [
+        'Mis on eesti köögi kõige tähtsam toit? Paljud eestlased vastavad kohe: must leib. Rukist kasvatatakse Eestis üle tuhande aasta, sest see teravili talub külma ja vaest mulda. Keskajal müüdi Eestist rukist ka teistesse Euroopa maadesse. Lõuna-Eestis Sangaste mõisas aretati 1875. aastal Sangaste rukis, mis on maailma vanim rukkisort, mida praegu veel kasvatatakse. Kui keegi sööb, võib talle öelda „Jätku leiba!” — see tähendab, et leiba jätkuks alati.',
+        'Teine vana eesti toit on kama. See on röstitud ja peeneks jahvatatud odra-, rukki-, kaera- ja hernejahu segu. Kama sündis sellest, et toitu oli vähe: inimesed segasid kokku viljajäägid. Kama ei lähe kiiresti halvaks ja sellest saab mõne sekundiga kõhutäie. Kama segatakse hapupiima või keefiriga ja süüakse hommikul või vahepalaks; tänapäeval teevad kokad sellest ka magustoite. Lõuna-Eestist Mulgimaalt pärit mulgi puder on kartulist ja tangudest tehtud puder, mida 19. sajandi lõpuks tehti juba üle kogu Eesti. 2024. aasta detsembris lisas UNESCO mulgi pudru valmistamise ja söömise inimkonna vaimse kultuuripärandi nimekirja.',
+        'Paljud pered söövad oma aia ja metsa toitu. Statistikaameti 2020. aasta leibkonna eelarve uuringu andmetel sõi enda kasvatatud või korjatud toitu 39 % leibkondadest: maal 57 % ja linnas 31 %. Selline pere sõi aastas keskmiselt 82 kilo oma kartuleid, 50 kilo õunu ja 9 kilo seeni. Samas uuringus kulus toidule ja alkoholita jookidele 22,7 % kõigist kulutustest. Toit on Eestis seega iga pere eelarves väga suur kulu.',
+      ], 'Visit Estonia (Eesti turismiportaal visitestonia.com), lehed musta leiva ja eesti klassikaliste toitude kohta; ERR, „UNESCO lisas Mulgi pudru vaimse kultuuripärandi nimekirja” (2024); Statistikaamet, „Leibkonna eelarve uuring” ja „Iga neljas Eesti leibkond tarbis enda kasvatatud või korjatud toitu” (2026)', [
+        'Milline eesti toit sulle meeldib ja milline mitte? Miks?',
+        'Mis on sinu kodumaa kõige tähtsam toit ja kas seda saab Eestis osta?',
+        'Kas sinu meelest tasub ise kartuleid ja õunu kasvatada? Miks?',
+        'Miks kulub mõnes riigis toidule suurem osa rahast kui teises?',
+      ]),
       B.text('026_d_goal', 'Moodul 6: toit ja teenindus', 'Sofia ema Helgi tuli Tartust nädalaks Tallinnasse. Sel nädalal ostab pere toitu, käib kohvikus ja restoranis, teeb koos süüa ja lahendab ühe ebaõnnestunud toidutellimuse. Mooduli lõpus helistad klienditeenindusse ja kirjutad firmale vastuse. Täna loed, kuidas targalt osta, ja kirjutad lõpuks Jaanile kirja: mida pühapäevaseks lõunaks osta ja kui palju.'),
       tag(B.reading('026_d_blog', 'Liisi blogi.', 'Vaata pealkirja ja arva, mis on Liisi kolm nippi. Siis loe blogi ja kontrolli.', 'Kuidas ma toiduraha kokku hoian', [
         'Eelmisel talvel arvutasin kokku, kui palju raha ma toidule kulutan. Summa ehmatas mind: üle kolmesaja euro kuus! Ma elan üksi, nii et see oli liiga palju. Siis otsustasin oma harjumusi muuta. Nüüd kulutan umbes kakssada eurot ja söön isegi tervislikumalt. Mul on kolm lihtsat nippi.',
@@ -97,8 +107,8 @@ export const LESSONS = withShapes({
         'piim | kaks liitrit [piima]', 'juust | natuke [juustu]', 'mesi | üks purk [mett]', 'või | pool pakki [võid]', 'leib | kaks pätsi [leiba]',
         'õun | kaks kilo [õunu]', 'muna | kümme [muna]', 'kartul | kott [kartuleid]', 'tomat | kolm [tomatit]', 'petersell | üks kimp [peterselli]',
       ], 'g_notice'),
-      teach(tag(B.speaking('026_d_fridge', 'Liisi külmkapp.', 'Kirjelda pildil olevat külmkappi ja ostukorvi kolmele inimesele järjest, igaühele üks minut. Lisa iga kord uus kogus.', ['Mida on külmkapis palju ja mida vähe?', 'Mis on ostukorvis ja kui palju?', 'Mida peab Liis veel ostma?', 'Kas sinu külmkapp on sarnane? Mis on teisiti?', 'Mida sa ise igal nädalal ostad?'], [70, 120], ['Külmkapis on pool pakki…', 'Korvis on kaks kilo…', 'Liis peab ostma…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti kolm korda järjest, iga kord üks minut; õpetaja küsib vahepeal „Kui palju…?” ja nõuab iga kord üht uut kogust.'),
+      teach(tag(B.speaking('026_d_fridge', 'Liisi külmkapp.', 'Kirjelda paarilisele pildil olevat külmkappi ja ostukorvi umbes üks minut ja kasuta koguseid. Siis arutage kahte viimast küsimust.', ['Mida on külmkapis palju ja mida vähe?', 'Mis on ostukorvis ja kui palju?', 'Mida peab Liis veel ostma?', 'Kas sinu meelest on parem osta köögivilju turult või supermarketist? Miks?', 'Kuidas ostetakse toitu sinu kodumaal: turult, poest või internetist?'], [70, 120], ['Külmkapis on pool pakki…', 'Korvis on kaks kilo…', 'Minu meelest…, sest…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti üks minut, õpetaja küsib vahepeal „Kui palju…?” ja nõuab iga kord üht uut kogust. Siis arutate kahte viimast küsimust: õpetaja räägib, kuidas Eestis ostetakse, õpilane võrdleb oma kodumaaga.'),
       tag(B.writing('026_d_write', 'Kaheksa minutit kirjutamist.', 'Vaata pilti veel kord. Kirjuta 8 minutit peatumata lugu: mis juhtus Liisi köögis ja poes sel laupäeval?', [8, 10], ['kilo', 'liitrit', 'pakki', 'natuke'], 3), { task: 'W06', fluency: true }),
     ],
     practice: [
@@ -160,7 +170,25 @@ export const LESSONS = withShapes({
         'Kliendikaardiga saad tagasi [2|kaks] protsenti.',
         'Poe aadress on Niine tänav [15|viisteist].',
       ]), { task: 'L10' }),
-      B.transformation('026_p_more', 'Külalisi tuleb rohkem.', 'Pühapäeval on lauas rohkem inimesi. Kirjuta lause uue arvuga; vaata, kuidas muutub koguse sõna.', [
+      tag(B.reading('026_p_bread', 'Populaarteadus: leib.', 'Loe teksti. Vasta küsimustele lühidalt ja oma sõnadega.', 'Miks just rukkileib?', [
+        'Rukis on teravili, mis kasvab hästi ka seal, kus talv on külm ja muld vaene. Seepärast on rukis Eestis tähtis olnud juba üle tuhande aasta. Suvel võib rukkipõllul näha siniseid rukkililli. Rukkilill on Eesti rahvuslill.',
+        '',
+        'Päris rukkileiva jaoks on vaja ainult mõnda asja: rukkijahu, vett, soola, natuke suhkrut ja juuretist. Leiva tegemine võtab aga palju aega, sest tainas peab rahulikult valmima. Poeleivas on sageli ka nisujahu, seepärast on see pehmem kui puhas rukkileib. Värske hea leiva koorik on krõbe.',
+        '',
+        'Leivaga on seotud palju vanu uskumusi. Uut pätsi ei tohtinud lõigata õhtul, muidu jääb päts väiksemaks. Kui leivaviil kukkus maha, siis seda ära ei visatud: viil tõsteti üles, suudeldi ja söödi edasi. Tänapäeval küpsetavad paljud inimesed jälle ise leiba ja panevad sinna seemneid, marju või rosinaid. Restoranides tuuakse musta leiba sageli lauale juba enne pearooga.',
+        '',
+        'Allikas: Visit Estonia (Eesti turismiportaal visitestonia.com), lehed musta leiva ja eesti klassikaliste toitude kohta.',
+      ], [
+        ['Miks kasvab rukis Eestis hästi?', 'see talub külma ja vaest mulda|ta kasvab ka külmas ja vaeses mullas'],
+        ['Kui kaua on rukis Eestis tähtis olnud?', 'üle tuhande aasta'],
+        ['Mis lill kasvab rukkipõllul ja miks see on eriline?', 'rukkilill, see on Eesti rahvuslill|rukkilill'],
+        ['Mida on vaja päris rukkileiva jaoks?', 'rukkijahu, vett, soola, suhkrut ja juuretist'],
+        ['Miks on poeleib sageli pehmem kui puhas rukkileib?', 'selles on ka nisujahu|seal on nisujahu'],
+        ['Mida ei tohtinud vanasti õhtul teha?', 'lõigata uut pätsi|uut leiba lõigata'],
+        ['Mida tehti, kui leivaviil kukkus maha?', 'see tõsteti üles, suudeldi ja söödi edasi|viil suudeldi ja söödi ära'],
+        ['Kas sinu kodumaal on leival sama tähtis koht? Too näide.', ''],
+      ]), { task: 'R19', voice: 'popsci' }),
+      B.transformation('026_p_more','Külalisi tuleb rohkem.', 'Pühapäeval on lauas rohkem inimesi. Kirjuta lause uue arvuga; vaata, kuidas muutub koguse sõna.', [
         ['Laual on üks kann vett.', 'kaks', 'Laual on kaks kannu vett.'],
         ['Sofia tõi poest ühe paki riisi.', 'kolm', 'Sofia tõi poest kolm pakki riisi.'],
         ['Helgi küpsetas ühe pätsi leiba.', 'kaks', 'Helgi küpsetas kaks pätsi leiba.'],
@@ -333,7 +361,7 @@ export const LESSONS = withShapes({
         'Kas me saaksime palun menüü?', 'Ma sooviksin pearoaks ahjukala kartulitega.', 'Kas seda salatit saab ilma kastmeta?', 'Mida te meile magustoiduks soovitate?', 'Kas teil on lastele midagi ilma pähkliteta?',
         'Palun tooge mulle veel üks klaas vett.', 'Kas ma võiksin maksta telefoniga?', 'Meil on laud broneeritud Sofia nimele.', 'Kas te saaksite toidu kaasa pakkida?', 'Palun tooge meile kaks eraldi arvet.',
       ], 'full'),
-      B.examListen('027_p_radio', 'Raadiointervjuu: kohviku omanik.', 'Kuula, mida kohviku omanik raadios räägib. Kas väide on õige või vale?', 'truefalse', [
+      tag(B.examListen('027_p_radio', 'Raadiointervjuu: kohviku omanik.', 'Kuula, mida kohviku omanik raadios räägib. Kas väide on õige või vale?', 'truefalse', [
         'Ülle: Tere, kuulajad! Täna on stuudios Merike Lõhmus, kes on kohviku Kaneel omanik. Tere, Merike!',
         'Merike: Tere, Ülle! Aitäh kutse eest.',
         'Ülle: Merike, kui kaua on Kaneel avatud olnud?',
@@ -364,7 +392,11 @@ export const LESSONS = withShapes({
         ['Eestis peab jätma kümme protsenti jootraha.', false],
         ['Kui toit ei meeldi, tahab Merike, et klient ütleks seda kohe.', true],
         ['Merike avab teise kohviku Tartus juba sel aastal.', false],
-      ]),
+      ]), { voice: 'interview' }),
+      B.know('027_p_know', [
+        'Toiduallergiaga inimene peab teadma, mis on toidus. Seepärast peab klient kohvikus või restoranis saama enne tellimist teada, kas roas on mõni neljateistkümnest põhilisest allergeenist: gluteeniga teravili, koorikloomad, molluskid, muna, kala, maapähklid, pähklid, soja, piim, seller, sinep, seesamiseemned, lupiin ning vääveldioksiid ja sulfitid.',
+        'Söögikohas võib selle info anda kirjalikult (näiteks menüüs) või suuliselt. Kui info antakse suuliselt, peab söögikohas olema hästi nähtav teade, kust ja kellelt seda küsida. Küsi julgelt — see on sinu õigus.',
+      ], 'Regionaal- ja Põllumajandusministeerium, „Müügipakendisse pakendamata toit” ja „Allergeenid”', 'Kas teadsid? Allergeenid söögikohas'),
       B.wordforms('027_p_ks', 'Mis roaks?', 'Pane sõna -ks vormi nii, et see sobiks lausesse.', [
         ['eelroog', 'Mis on täna …? Kõrvitsasupp.', 'eelroaks'], ['pearoog', 'Helgi võttis … ahjukala.', 'pearoaks'], ['magustoit', 'Oskar tahab … pannkooke.', 'magustoiduks'],
         ['jook', 'Markus tellis … õunamahla.', 'joogiks'], ['lõuna', 'Mida sa täna … sööd?', 'lõunaks'], ['hommikusöök', 'Anna sõi … putru.', 'hommikusöögiks'],
@@ -375,8 +407,8 @@ export const LESSONS = withShapes({
         'Oled ettekandja. Menüü: kõrvitsasupp (koor), kanasalat (pähklid), seenerisoto (juust), seapraad, ahjukala (või), õunakook (pähklid). Vasta küsimustele ja paku, mida saab muuta.',
         ['Mis selles on?', 'Kas seda saab ilma…?', 'Siis ma võtan…'], ['Selles on…', 'Kokk võib teha ilma…', 'Mida joogiks?']),
       'Üks-ühele: õpetaja on ettekandja ja vastab ainult sellele, mida õpilane küsib. Siis vahetage: õpilane on ettekandja ja õpetaja tellib taimetoitlasena.'),
-      teach(tag(B.speaking('027_p_tip', 'Kas jootraha on vajalik?', 'Ütle oma arvamus kolmele inimesele järjest. Iga kord räägi lühemalt ja too uus põhjus.', ['Kas sina jätad kohvikus jootraha? Miks?', 'Kui palju on sinu meelest õige jätta?', 'Kuidas on jootrahaga sinu kodumaal?', 'Millal sa jootraha kindlasti ei jäta?', 'Kas ettekandja palk peaks olema suurem? Põhjenda.'], [70, 120], ['Minu meelest…, sest…', 'Teisest küljest…', 'Näiteks…']), { task: 'S11', fluency: true }),
-        'Üks-ühele: õpilane räägib kolm korda (2 min, 90 s, 1 min); õpetaja on iga kord uus kuulaja ja ütleb vastupidise arvamuse.'),
+      teach(tag(B.speaking('027_p_tip', 'Kas jootraha on vajalik?', 'Arutage paaris. Ütle oma arvamus, too põhjus ja näide ning küsi, mida paariline arvab.', ['Kas sina jätad kohvikus jootraha? Miks?', 'Kui palju on sinu meelest õige jätta?', 'Kuidas on jootrahaga sinu kodumaal?', 'Millal sa jootraha kindlasti ei jäta?', 'Kas ettekandja palk peaks olema suurem? Põhjenda.'], [70, 120], ['Minu meelest…, sest…', 'Teisest küljest…', 'Näiteks…']), { task: 'S11', fluency: true }),
+        'Üks-ühele: õpetaja ütleb igale küsimusele vastupidise arvamuse; õpilane põhjendab oma seisukohta ja võrdleb Eestit oma kodumaaga. Lõpus ütleb õpilane ühe lausega, kas ta muutis oma arvamust.'),
     ],
     transfer: [
       B.text('027_t_sit', 'Reedene õhtusöök', 'Reede õhtul tahab Sofia viia ema restorani Aed. Kaasa tulevad Jaan, Kadri, Mia, Oskar ja Sofia ülemus Liis, kes tahab Helgiga tutvuda. Sofia jättis restoranile sõnumi ja nüüd helistati tagasi. Kuula sõnumit, helista restorani ja kirjuta perele.'),
@@ -530,11 +562,13 @@ export const LESSONS = withShapes({
         '',
         'Ja veel: palun ära unusta Tallinnas osta mulle {*kohvi|kohv|kohvist}. Siin külapoes on ainult kallis kohv. Too palun kaks {*pakki|pakk|paki}. Sinu vend Viktor',
       ], 'g_notice'),
-      B.examListen('028_p_radio', 'Raadiolugu: toit prügikastis.', 'Mida räägib toidupanga töötaja? Kuula kaks korda ja vali õige vastus.', 'choice', [
+      tag(B.examListen('028_p_radio', 'Raadiolugu: toit prügikastis.', 'Mida räägib toidupanga töötaja? Kuula kaks korda ja vali õige vastus. Raadios nimetatud summad — allikas: Kliimaministeerium, „Eesti kodudes jõuab aastas prügikasti 117 miljoni euro väärtuses toitu” (2026).', 'choice', [
         'Ülle: Tere hommikust! Täna räägime toidust, mis jõuab prügikasti. Stuudios on Kaja Raud toidupangast.',
-        'Kaja: Tere! Teema on tõesti tähtis. Iga eestlane viskab aastas ära umbes kaheksakümmend kilo toitu.',
-        'Ülle: Kaheksakümmend kilo! Mida inimesed kõige rohkem ära viskavad?',
-        'Kaja: Kõige rohkem leiba ja saia. Teisel kohal on köögiviljad ja puuviljad, kolmandal piimatooted.',
+        'Kaja: Tere! Teema on tõesti tähtis. Eesti kodudes visatakse aastas ära umbes saja seitsmeteistkümne miljoni euro eest toitu.',
+        'Ülle: Nii palju! Kui palju see ühe pere kohta on?',
+        'Kaja: Keskmine pere viskab aastas ära umbes saja kaheksakümne euro eest süüa. Suures lastega peres võib see olla üle neljasaja euro.',
+        'Ülle: Mida inimesed kõige rohkem ära viskavad?',
+        'Kaja: Minu kogemuse järgi kõige sagedamini leiba ja saia. Siis tulevad köögiviljad ja puuviljad, siis piimatooted.',
         'Ülle: Miks see juhtub?',
         'Kaja: Inimesed ostavad liiga palju. Poes on pakkumised: kolm pakki kahe hinnaga. Kodus ei jõua keegi kõike ära süüa.',
         'Ülle: Mida teie soovitate?',
@@ -549,8 +583,8 @@ export const LESSONS = withShapes({
         'Kaja: Eilse toidu jäägid! Neist saab teha väga hea prae.',
       ], [
         ['Kus töötab raadio tänane külaline?', 'toidupangas', 'toidupoes', 'restoranis'],
-        ['Kui palju toitu viskab üks eestlane aastas ära?', 'umbes 80 kilo', 'umbes 18 kilo', 'umbes 800 kilo'],
-        ['Mida visatakse Eestis kõige rohkem ära?', 'leiba ja saia', 'köögivilju', 'piimatooteid'],
+        ['Kui palju toitu visatakse Eesti kodudes aastas ära?', 'umbes 117 miljoni euro eest', 'umbes 17 miljoni euro eest', 'umbes 180 euro eest'],
+        ['Mida näeb Kaja kõige sagedamini prügikastis?', 'leiba ja saia', 'köögivilju', 'piimatooteid'],
         ['Miks ostavad inimesed liiga palju?', 'poes on pakkumised', 'toit on odav', 'neil on suured külmkapid'],
         ['Mida Kaja teha ei soovita?', 'minna poodi tühja kõhuga', 'kirjutada enne poodi nimekiri', 'vaadata enne poodi külmkappi'],
         ['Millist toitu toidupank poodidest kogub?', 'toitu, mille kuupäev on lähedal', 'toitu, mis on juba rikutud', 'ainult värsket leiba ja saia'],
@@ -558,7 +592,11 @@ export const LESSONS = withShapes({
         ['Mis on Kalamajas, kuhu võib toitu tuua?', 'jagamiskapp', 'toidupank', 'uus turg'],
         ['Mida annab üks kohvik toidupangale?', 'ülejäänud saiad ja supi', 'raha ja kohvi', 'uued nõud'],
         ['Mida sööb Kaja kodus sageli õhtul?', 'eilse toidu jääke', 'restorani toitu', 'võileibu'],
-      ]),
+      ]), { voice: 'interview' }),
+      B.know('028_p_know', [
+        'Pakendil on kahte liiki kuupäevi. „Kõlblik kuni” on toiduohutuse tähtaeg: pärast seda kuupäeva ei ole toit enam söögikõlblik ja seda ei tohi müüa ega annetada. „Parim enne” räägib toidu kvaliteedist: pärast seda kuupäeva võib toit olla veel ohutu, kui seda on õigesti hoitud ja see näeb, lõhnab ja maitseb hästi.',
+        'Kliimaministeeriumi uuringu järgi tekkis Eestis 2025. aastal ligi 139 000 tonni toidujäätmeid ja pool neist tekkis kodudes. Viie aastaga vähenes kodude toidujäätmete hulk 14 %. Riigi eesmärk on vähendada 2030. aastaks kodude toidujäätmeid inimese kohta vähemalt 30 % võrreldes kümnendi algusega.',
+      ], 'Põllumajandus- ja Toiduamet, „Hea toit ei kuulu prügikasti” (2026); Kliimaministeerium, „Eesti kodudes jõuab aastas prügikasti 117 miljoni euro väärtuses toitu” (2026)', 'Kas teadsid? Parim enne või kõlblik kuni'),
       B.dictation('028_p_dict', 'Etteütlus: Anna köögis.', 'Kuula õpetajat: iga lause tuleb kaks korda. Kirjuta lause üles ja kontrolli, kas sihitis on õiges vormis.', [
         'Anna keetis kartulid pehmeks ja tegi kastme valmis.', 'Sofia lõikas kana väikesteks tükkideks.', 'Kaste oli alguses liiga hapu.', 'Ma ei ostnud eile leiba, sest unustasin.', 'Helgi sõi kogu salati ära ja küsis retsepti.',
         'Magustoiduks sõime jogurtit mustikatega.', 'Pärast õhtusööki pesin kõik nõud ära.', 'Bruno vaatas terve õhtu toitu.', 'Viktor tegi aiaõuntest kaksteist purki moosi.', 'Järgmisel korral teen salati ise.',
@@ -603,7 +641,7 @@ export const LESSONS = withShapes({
     canDo: 'Ma helistan toidukulleri klienditeenindusse, kirjeldan probleemi viisakalt ja nõuan lahendust, mis tingimuste järgi mulle kuulub.',
     discover: [
       B.review('029_d_review', [['Mida Markus lõunaks lõpuks sõi? Kasuta täissihitist või osastavat.', 'a2b1-028'], ['Mida teha, kui leiad tänavalt rahakoti?', 'a2b1-008'], 'Kas sul on kunagi poes või kohvikus midagi valesti läinud?']),
-      B.text('029_d_hook', 'Vale burger', 'Teisipäeval läksid Markus ja Anna jälle Kaneelisse. Seekord läks kõik valesti: Markus sai vale toidu ja arvel oli üks jook liiga palju. Kuula, mis juhtus, ja proovi kohe ise kaevata. Tunni lõpus lahendad palju suurema probleemi: Helgi viimase õhtu toidutellimuse.'),
+      B.text('029_d_hook', 'Kui midagi läheb valesti', 'Vale roog, vale arve, hiline kuller, katkine kaup — see juhtub igaühega. Selles tunnis õpid kaebama viisakalt ja selgelt ning saad teada, millised õigused on tarbijal Eestis ja kust saab abi. Kõigepealt kuulad, kuidas Markus ja Anna lahendavad probleemi Kaneelis, ja proovid kohe ise kaevata. Tunni lõpus lahendad suurema probleemi: Helgi viimase õhtu toidutellimuse.'),
       tag(B.listening('029_d_cafe', 'Kaneelis läks midagi valesti.', 'Kuula vestlust kaks korda. Kirjuta lünka, mis läks valesti ja mida Jaan selle parandamiseks teeb.', [
         'Jaan: Palun, teie tellimus: burger ja salat. Head isu!',
         'Markus: Vabandust, Jaan, aga see ei ole see, mida ma tellisin.',
@@ -671,8 +709,10 @@ export const LESSONS = withShapes({
         ['Mida on vaja, et poes rikutud toode tagastada?', 'tšekki|tšekk'],
         ['Miks on hea teha kohe foto, kui tellimuses on viga?', 'siis saab raha tagasi|see on tõend'],
       ]), { task: 'R07' }),
-      B.text('029_d_angry', 'Markuse vihane sõnum', 'Õhtul kirjutas Markus kohvikule: „Teie kohvikus on kõik valesti! Tellisin burgeri ilma sibulata, sain sibulaga. Friikartuleid ei olnud. Arvel oli mahl, mida me ei joonud. Ma ei tule enam kunagi!” Anna ütles, et sellisele sõnumile ei taha keegi vastata.'),
-      tag(B.letter('029_d_polite', 'Markuse sõnum viisakamaks.', 'Kirjuta Markuse sõnum ümber viisakalt ja teie-vormis. Kõik faktid peavad alles jääma.', 'Tere, kohvik Kaneel!', 'Lugupidamisega, Markus', [70, 90]), { task: 'W12' }),
+      B.know('029_d_know', [
+        'Kui sa ei tea, mida poelt, kohvikult või firmalt nõuda võid, küsi nõu Tarbijakaitse ja Tehnilise Järelevalve Ametilt. Tarbijate nõuandetelefon on 620 1707 ja sinna saab helistada tööpäeviti kella 10–15. Küsimuse võib saata ka ameti e-teeninduse kaudu, e-postiga või tavapostiga.',
+      ], 'Eesti.ee / Tarbijakaitse ja Tehnilise Järelevalve Amet, „Pretensioon kauplejale”', 'Kas teadsid? Kust saab tarbija nõu'),
+      tag(B.letter('029_d_polite', 'Markuse sõnum viisakamaks.', 'Õhtul kirjutas Markus kohvikule: „Teie kohvikus on kõik valesti! Tellisin burgeri ilma sibulata, sain sibulaga. Friikartuleid ei olnud. Arvel oli mahl, mida me ei joonud. Ma ei tule enam kunagi!” Sellisele sõnumile ei taha keegi vastata. Kirjuta see ümber viisakalt ja teie-vormis; kõik faktid peavad alles jääma.', 'Tere, kohvik Kaneel!', 'Lugupidamisega, Markus', [70, 90]), { task: 'W12' }),
     ],
     practice: [
       B.choice('029_p_best', 'Viisakas klient.', 'Mida ütleb viisakas klient? Vali iga olukorra jaoks kõige sobivam lause.', [
@@ -728,8 +768,27 @@ export const LESSONS = withShapes({
         ['Kas A-kirjutaja oli lahendusega rahul? Miks?', 'ei, allahindlus ei teinud õhtut paremaks'],
         ['Kumma arvustuse põhjal sa firmat usaldaksid ja miks?', ''],
       ]), { task: 'R09' }),
-      teach(tag(B.speaking('029_p_helgi', 'Seleta Helgile.', 'Helgi ei loe internetist arvustusi. Seleta talle kaks korda, mida kliendid Kiire Kõhu kohta kirjutavad; teisel korral lühemalt.', ['Mis juhtus esimese kliendiga ja mida ta sai?', 'Miks oli teine klient rahul?', 'Mis juhtus kolmanda kliendi tütrega?', 'Kas Sofia peaks Kiire Kõhust tellima? Miks?', 'Mida tuleb teha, kui tellimusega on probleem?'], [90, 150], ['Üks klient kirjutas, et…', 'Teine oli rahul, sest…', 'Kui midagi puudub, tuleb…']), { task: 'S13', fluency: true }),
-        'Üks-ühele: õpetaja on Helgi, kes küsib vahele („Mis asi on arvustus?”). Teisel korral räägib õpilane sama 90 sekundiga ja sujuvamalt.'),
+      tag(B.text('029_p_rights', 'Artikkel: kui teenus või kaup ei vasta lubatule', [
+        'Igaühega juhtub: toit tuuakse hilja, kaup on katki või teenus ei ole see, mille eest maksti. Eestis on tarbijal sellisel juhul selged õigused. Kõigepealt tuleb pöörduda kaupleja või teenusepakkuja poole, näiteks poe, kohviku või kullerfirma poole.',
+        'Kaebuse ehk pretensiooni võib kirjutada vabas vormis. Kirjuta sinna oma nimi ja kontaktandmed, kuupäev, mis oli valesti ja millist lahendust sa soovid. Lisa ostutšekk, tellimuse kinnitus või muu dokument, mis näitab, et sa tegid ostu. Kui suulisele kaebusele ei reageerita, esita kaebus kirjalikult.',
+        'Kaupleja peab kaebuse vastu võtma ja vastama sulle kirjalikult 15 päeva jooksul. Teenuse kohta võib pretensiooni esitada kahe aasta jooksul alates teenuse saamisest, aga probleemist tasub rääkida kohe.',
+        'Kui kaupleja ei vasta või te ei jõua kokkuleppele, võib pöörduda tarbijavaidluste komisjoni poole. Komisjonis on vaidluse lahendamine tasuta nii tarbijale kui ka ettevõttele ja tulemuse saab tavaliselt 90 päeva jooksul. Kui sa ei ole oma õigustes kindel, võid enne küsida nõu tarbijanõustajalt.',
+        'Allikas: Eesti.ee / Tarbijakaitse ja Tehnilise Järelevalve Amet, „Pretensioon kauplejale”; Tarbijakaitse ja Tehnilise Järelevalve Ameti koduleht, tarbija pretensioon.',
+      ].join('\n\n')), { voice: 'article' }),
+      tag(B.match('029_p_rightsq', 'Mida artikkel ütleb?', 'Loe artiklit. Ühenda lause algus ja lõpp nii, nagu artiklis kirjas.', [
+        ['Kõigepealt pöördu', 'kaupleja või teenusepakkuja poole.'],
+        ['Kaebuse võib kirjutada', 'vabas vormis.'],
+        ['Kaebusesse kirjuta ka lahendus,', 'mida sa soovid.'],
+        ['Lisa kaebusele ostutšekk', 'või tellimuse kinnitus.'],
+        ['Kui suulisele kaebusele ei reageerita,', 'esita kaebus kirjalikult.'],
+        ['Kaupleja peab vastama', 'kirjalikult 15 päeva jooksul.'],
+        ['Teenuse kohta võib kaevata', 'kahe aasta jooksul.'],
+        ['Kui te ei jõua kokkuleppele,', 'pöördu tarbijavaidluste komisjoni poole.'],
+        ['Komisjonis on vaidluse lahendamine', 'tasuta.'],
+        ['Kui sa ei ole oma õigustes kindel,', 'küsi nõu tarbijanõustajalt.'],
+      ], 'full', 'g_read'), { task: 'R14' }),
+      teach(tag(B.speaking('029_p_helgi', 'Arutelu: arvustused ja kaebused.', 'Arutage paaris. Vasta igale küsimusele 3–4 lausega, too näide oma elust ja küsi, mida paariline arvab.', ['Kas sa loed enne tellimist internetist arvustusi? Kas sa usaldad neid?', 'Kumb on parem: kaevata kohe kohapeal või kirjutada pärast arvustus internetti? Miks?', 'Kas sa oled kunagi Eestis kaevanud? Mis juhtus?', 'Kas sinu kodumaal kaevatakse sagedamini või harvemini kui Eestis? Miks see nii on?', 'Mida peaks firma sinu arvates tegema, kui ta saab halva arvustuse?'], [90, 150], ['Minu meelest…, sest…', 'Kord juhtus mul…', 'Minu kodumaal…, aga Eestis…']), { task: 'S13', fluency: true }),
+        'Üks-ühele: õpetaja on paariline ja ütleb vahel vastupidise arvamuse („Arvustus internetis on kõige parem kaebus!”). Õpilane põhjendab ja võrdleb Eestit oma kodumaaga.'),
     ],
     transfer: [
       B.text('029_t_sit', 'Helgi viimane õhtu', 'Neljapäeval on Helgi viimane õhtu Tallinnas. Sofia tellis Kiire Kõhust õhtusöögi neljale: Helgile, Viktorile, Jaanile ja endale. Toit tuli poolteist tundi hiljem, supid olid külmad ja üks roog puudus. Loe tellimuse kinnitust, helista klienditeenindusse ja vasta firma kirjale.'),
@@ -843,7 +902,16 @@ export const LESSONS = withShapes({
         ['Viktor müüb turul kümme purki mesi.', 'Viktor müüb turul kümme purki mett.'],
       ]),
       B.writing('030_d_write', 'Minu toidunädal.', 'Kirjuta 8–10 lauset: mida sa sel nädalal ostsid, kus sõid ja mis läks hästi või valesti.', [8, 10], ['kilo', 'sõin ära', 'tellisin', 'ei ostnud'], 3),
-      teach(B.speaking('030_d_warm', 'Soojendus enne eksamit.', 'Vasta küsimustele nii nagu eksami alguses, iga vastus kaks-kolm lauset.', ['Mida sa tavaliselt hommikuks sööd?', 'Kas sa teed meelsasti süüa? Miks?', 'Mis on sinu lemmikkohvik ja mida sa seal tellid?', 'Mis probleem sul kunagi poes või kohvikus oli?'], [70, 120]),
+      // own instruction: B.examiner's fixed wording repeats a2b1-010's (final shape V7 strips the quoted topic)
+      teach(((b) => ({ ...b, data: { ...b.data, instruction: 'Eksamineerija küsib nagu suulise eksami esimeses osas. Vasta igale küsimusele kahe kuni nelja lausega ja too põhjus või näide.' } }))(B.examiner('030_d_warm', 'toit ja söögikohad', [
+        'Mida sa tavaliselt hommikuks sööd?',
+        'Kas sa teed meelsasti ise süüa? Miks?',
+        'Mis on sinu lemmikkohvik ja mida sa seal tellid?',
+        'Milline eesti toit sulle meeldib ja milline mitte? Miks?',
+        'Kuidas on söömine sinu kodumaal ja Eestis erinev?',
+        'Kas toitu peaks rohkem koju tellima või ise tegema? Põhjenda.',
+        'Mida sa teed, kui restoranis või poes läheb midagi valesti?',
+      ])),
         'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt.'),
     ],
     practice: [
