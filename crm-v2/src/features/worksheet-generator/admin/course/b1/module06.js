@@ -19,6 +19,12 @@
 //                 Kõht — the order and its terms, Eksaminurk S2 (the call), the reply to the firm (main), rewritten.
 //   030 EKS       module exam in Harno A2 form with B1 tasks (R1, R2, R3a, L1, L3a, L4, W1b, W2a, S0, S1a, S2), timed
 //                 parts, target 80 % in every part; Helgi's letter from Tartu closes the story.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, 2026-11-03; topic söök ja jook + teenused): topic opener
+// 026_d_open (rye bread, kama, mulgi puder, Statistikaamet food spending and home-grown food), popsci 026_p_bread,
+// „Kas teadsid?” 027_p_know (allergens in eateries), 028_p_know (parim enne / kõlblik kuni, food waste), 029_d_know
+// (TTJA advice line); article 029_p_rights + 029_p_rightsq (consumer rights: claim, 15 days, disputes committee);
+// 028_p_radio uses the Kliimaministeerium 2026 food-waste figures (new audio); 029 opens the wider topic of complaining
+// in Estonia; examiner set 030_d_warm; one retelling left (028_d_432). Facts and sources: the PR of agent/av-b1-module-06.
 // B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): kogus + osastav (026, again in 028); täis- ja osasihitis
 // (028, used again in 029: tellisin supi, aga ei saanud suppi). Cast facts kept: Markus has a milk allergy, Oskar a nut
 // allergy, Mia does not eat fish, Viktor sells apples, eggs and honey at Nõmme market on Saturdays; new: neighbour Tiina
@@ -38,7 +44,7 @@ export const LESSONS = withShapes({
         'Mis on eesti köögi kõige tähtsam toit? Paljud eestlased vastavad kohe: must leib. Rukist kasvatatakse Eestis üle tuhande aasta, sest see teravili talub külma ja vaest mulda. Keskajal müüdi Eestist rukist ka teistesse Euroopa maadesse. Lõuna-Eestis Sangaste mõisas aretati 1875. aastal Sangaste rukis, mis on maailma vanim rukkisort, mida praegu veel kasvatatakse. Kui keegi sööb, võib talle öelda „Jätku leiba!” — see tähendab, et leiba jätkuks alati.',
         'Teine vana eesti toit on kama. See on röstitud ja peeneks jahvatatud odra-, rukki-, kaera- ja hernejahu segu. Kama sündis sellest, et toitu oli vähe: inimesed segasid kokku viljajäägid. Kama ei lähe kiiresti halvaks ja sellest saab mõne sekundiga kõhutäie. Kama segatakse hapupiima või keefiriga ja süüakse hommikul või vahepalaks; tänapäeval teevad kokad sellest ka magustoite. Lõuna-Eestist Mulgimaalt pärit mulgi puder on kartulist ja tangudest tehtud puder, mida 19. sajandi lõpuks tehti juba üle kogu Eesti. 2024. aasta detsembris lisas UNESCO mulgi pudru valmistamise ja söömise inimkonna vaimse kultuuripärandi nimekirja.',
         'Paljud pered söövad oma aia ja metsa toitu. Statistikaameti 2020. aasta leibkonna eelarve uuringu andmetel sõi enda kasvatatud või korjatud toitu 39 % leibkondadest: maal 57 % ja linnas 31 %. Selline pere sõi aastas keskmiselt 82 kilo oma kartuleid, 50 kilo õunu ja 9 kilo seeni. Samas uuringus kulus toidule ja alkoholita jookidele 22,7 % kõigist kulutustest. Toit on Eestis seega iga pere eelarves väga suur kulu.',
-      ], 'Visit Estonia (Eesti turismiportaal visitestonia.com), lehed musta leiva ja eesti klassikaliste toitude kohta; ERR, „UNESCO lisas Mulgi pudru vaimse kultuuripärandi nimekirja” (2024); Statistikaamet, „Leibkonna eelarve uuring” ja „Iga neljas Eesti leibkond tarbis enda kasvatatud või korjatud toitu” (2026)', [
+      ], 'Visit Estonia (Eesti ametlik turismiportaal), lehed musta leiva ja eesti klassikaliste toitude kohta; ERR, „UNESCO lisas Mulgi pudru vaimse kultuuripärandi nimekirja” (2024); Statistikaamet, „Leibkonna eelarve uuring” ja „Iga neljas Eesti leibkond tarbis enda kasvatatud või korjatud toitu” (2026)', [
         'Milline eesti toit sulle meeldib ja milline mitte? Miks?',
         'Mis on sinu kodumaa kõige tähtsam toit ja kas seda saab Eestis osta?',
         'Kas sinu meelest tasub ise kartuleid ja õunu kasvatada? Miks?',
@@ -173,11 +179,11 @@ export const LESSONS = withShapes({
       tag(B.reading('026_p_bread', 'Populaarteadus: leib.', 'Loe teksti. Vasta küsimustele lühidalt ja oma sõnadega.', 'Miks just rukkileib?', [
         'Rukis on teravili, mis kasvab hästi ka seal, kus talv on külm ja muld vaene. Seepärast on rukis Eestis tähtis olnud juba üle tuhande aasta. Suvel võib rukkipõllul näha siniseid rukkililli. Rukkilill on Eesti rahvuslill.',
         '',
-        'Päris rukkileiva jaoks on vaja ainult mõnda asja: rukkijahu, vett, soola, natuke suhkrut ja juuretist. Leiva tegemine võtab aga palju aega, sest tainas peab rahulikult valmima. Poeleivas on sageli ka nisujahu, seepärast on see pehmem kui puhas rukkileib. Värske hea leiva koorik on krõbe.',
+        'Päris rukkileiva jaoks on vaja ainult mõnda asja: rukkijahu, vett, soola, natuke suhkrut ja juuretist. Leiva tegemine võtab aga palju aega, sest tainas peab rahulikult valmima. Poeleivas on sageli ka nisujahu, seepärast on see pehmem kui puhas rukkileib. Värske hea leiva koorik on krõbe. Musta leiba süüakse supi ja pearoa kõrvale, räimega või lihtsalt soolase võiga.',
         '',
         'Leivaga on seotud palju vanu uskumusi. Uut pätsi ei tohtinud lõigata õhtul, muidu jääb päts väiksemaks. Kui leivaviil kukkus maha, siis seda ära ei visatud: viil tõsteti üles, suudeldi ja söödi edasi. Tänapäeval küpsetavad paljud inimesed jälle ise leiba ja panevad sinna seemneid, marju või rosinaid. Restoranides tuuakse musta leiba sageli lauale juba enne pearooga.',
         '',
-        'Allikas: Visit Estonia (Eesti turismiportaal visitestonia.com), lehed musta leiva ja eesti klassikaliste toitude kohta.',
+        'Allikas: Visit Estonia (Eesti ametlik turismiportaal), lehed musta leiva ja eesti klassikaliste toitude kohta.',
       ], [
         ['Miks kasvab rukis Eestis hästi?', 'see talub külma ja vaest mulda|ta kasvab ka külmas ja vaeses mullas'],
         ['Kui kaua on rukis Eestis tähtis olnud?', 'üle tuhande aasta'],
