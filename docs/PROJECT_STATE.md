@@ -1,3 +1,7 @@
+## 2026-11-03 · agent/examiner-wording — the examiner set's instruction is not one repeated wording
+
+- `B.examiner` (`admin/course/blocks.js`) wrote the topic in quotes; the final-shape check strips quoted text, so every module's examiner set had the same instruction (V7: a2b1-010 and a2b1-016 were in the baseline, and each new module hit it). The topic is now unquoted in the instruction. `finalShapeBaseline.json` regenerated (two V7 entries fixed). Changes only the instruction line of published examiner sets at their next publish.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` all passed.
 ## 2026-11-03 · agent/grading-pin-frozen — the grading pin checks grading, not course content
 
 - `worksheet-studio/engine/gradingPin.test.js` graded the LIVE a2 m1, b1 m3, b2 m1 and c1 m1 sheets, so every content rewrite (academic value round 1) broke it. It now grades frozen copies in `worksheet-generator/admin/course/archive/pin/` (main 2026-11-03, only the `blocks.js` import adjusted); `gradingPin.golden.js` unchanged. A grading-code change still fails the pin.
