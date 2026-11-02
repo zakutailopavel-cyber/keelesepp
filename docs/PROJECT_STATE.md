@@ -1,3 +1,19 @@
+## 2026-11-03 · agent/av-b1-module-06 (PR #1010) — B1 module 6 „Toit ja teenindus” (a2b1-026…030): academic value round 1
+
+- Base: `main` e2fc303 (after #1005), checked 2026-11-03. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row: söök ja jook (+ teenused).
+- 026: topic opener `026_d_open` „Teema avaleht: mida Eesti sööb?” (rye, Sangaste rye, kama, mulgi puder in UNESCO 2024, Statistikaamet 2020 household budget: 22,7 % on food, 39 % eat home-grown / gathered food; 4 questions incl. home country); popsci reading `026_p_bread` (voice popsci, R19); `026_d_fridge` is no longer a 3-listener retelling (picture talk + opinion).
+- 027: `027_p_radio` tagged voice interview; „Kas teadsid?” `027_p_know` (14 allergens, oral or written info in eateries); `027_p_tip` is a pair discussion, not a retelling.
+- 028: `028_p_radio` transcript now uses the Kliimaministeerium 2026 food-waste figures (117 M€ a year in homes, ~180 € a household; source in the instruction; new TartuNLP audio); „Kas teadsid?” `028_p_know` (parim enne / kõlblik kuni, 139 000 t, −14 %, 2030 target). `028_d_432` is the module's only retelling.
+- 029 (criticised as „a lesson about one wrong burger”): hook reframed to complaining and consumer rights in Estonia; „Kas teadsid?” `029_d_know` (TTJA advice line 620 1707); article `029_p_rights` (voice article; claim in free form, 15-day reply, 2 years for services, free disputes committee ~90 days) + match `029_p_rightsq` (R14); `029_p_helgi` is now an opinion discussion on reviews and complaining (Estonia vs home country); `029_d_angry` text merged into the instruction of `029_d_polite` (block removed, it had no answers).
+- 030: `030_d_warm` became the examiner set (`B.examiner`, „toit ja söögikohad”, 7 questions, same id, own instruction because V7 strips the quoted topic and every examiner would repeat a2b1-010's wording).
+- Files: `b1/module06.js`, `academicValueBaseline.json` (module 6 removed), `listeningAudio.json` + `public/audio/a2b1-028/028_p_radio.mp3`, this file.
+- Checks: `ACADEMIC_REPORT=a2b1-module-06` PASS; course report 5/5 READY (026 42/51/50, 027 40/45/46, 028 41/47/40, 029 41/49/52 min); language check 0 unknown lower-case; eslint clean; `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 1526 passed, 0 failed. Course `av-genres`: popsci 2 / 4, fiction 0 / 4 (still open).
+- Limits: facts checked on the web 2026-11-03 (sources in the PR). Kaneel, Merike Lõhmus, Kaja Raud and „Kiire Kõht” are invented; Kaja's „300 families a week” and „bread most often” are her own experience, not statistics. Tipping in Estonia is only Merike's opinion (no reliable source found). Not published; nothing in production touched.
+- Next safe step: review and merge the PR, then publish module 6 through the existing flow after exporting the current production sheets read-only.
+## 2026-11-03 · agent/examiner-wording — the examiner set's instruction is not one repeated wording
+
+- `B.examiner` (`admin/course/blocks.js`) wrote the topic in quotes; the final-shape check strips quoted text, so every module's examiner set had the same instruction (V7: a2b1-010 and a2b1-016 were in the baseline, and each new module hit it). The topic is now unquoted in the instruction. `finalShapeBaseline.json` regenerated (two V7 entries fixed). Changes only the instruction line of published examiner sets at their next publish.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` all passed.
 ## 2026-11-03 · agent/av-b1-module-05 (PR #1009) — B1 module 5 „Lihtminevik ja kogemused”: academic value round 1 (topic „kultuur”)
 
 - Base: `main` f7dd6ef → merged with e2fc303, checked 2026-11-03. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row 5: kultuur (vaba aeg, ajalugu). Grammar line (simple past, -si- / -i- forms, time words, linking a story) and the Linnaleht story contest stay.
