@@ -1,3 +1,7 @@
+## 2026-11-03 · agent/grading-pin-frozen — the grading pin checks grading, not course content
+
+- `worksheet-studio/engine/gradingPin.test.js` graded the LIVE a2 m1, b1 m3, b2 m1 and c1 m1 sheets, so every content rewrite (academic value round 1) broke it. It now grades frozen copies in `worksheet-generator/admin/course/archive/pin/` (main 2026-11-03, only the `blocks.js` import adjusted); `gradingPin.golden.js` unchanged. A grading-code change still fails the pin.
+- Checks: `npx vitest run src/features/worksheet-studio/engine/gradingPin.test.js src/features/worksheet-generator` 68 files, 1075 passed.
 ## 2026-11-03 · agent/av-b1-module-04 (PR #1006) — B1 module 4: academic value round 1 (topic „vaba aeg ja meelelahutus”)
 
 - Base: `main` dd48b88, checked 2026-11-03. Work order `docs/ACADEMIC_VALUE_ROUND1.md` §2; the topic-map row of B1 module 4 (main topic vaba aeg ja meelelahutus, secondary igapäevaelu). The grammar line stays (ajamäärused, peab / võib / ei tohi, ühendverbid, aja muutmine); the cast story (winter camp, inventory, the family's weekend) stays as the thread.
