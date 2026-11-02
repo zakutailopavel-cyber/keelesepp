@@ -74,6 +74,15 @@ Regardless of source mode:
 
 A photo, editorial illustration and infographic may look different in medium while still looking like one textbook because the framing, colour discipline, typography and didactic purpose stay consistent.
 
+### Block page system (2026-11-02)
+
+Every block of a sheet in the house theme Klassika follows one system (`engine/sheet.css`, section „Textbook page
+system”, tokens `--tb-*`): navy ink on white, light grey rules, **one lime accent** that marks where the eye goes —
+the task number, the „Märka!” box and „Vihje” rule, the bar under a text heading or reading title, the word-bank tray,
+the caption edge, the exam-part title. Task head = number + title in small caps + italic instruction under it, then a
+rule. Inner boxes have a 1 mm radius; cards are square. 4 mm between blocks, 3 mm under a task head. A new block uses
+these tokens and classes instead of its own colours.
+
 ## 3. Every image needs a learning job
 
 No decorative image-only blocks.
