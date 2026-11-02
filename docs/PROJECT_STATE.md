@@ -11,6 +11,18 @@
 - Deploy (owner's approval): `functions:staffOperationsApi` before or with hosting; no rules. Until the function is live a chosen teacher is ignored and new parent cards get the old default „Pavel”.
 - Known: legacy accounts keep `preferredTeacher` (shown as „Soovitud õpetaja”, not used); after deploy an approved parent with no child name and an unlinked card with their e-mail gets a review at the next sign-in. `preferredTeacher` stays allowed in `firestore.rules`, unused.
 - Next safe step: the owner reviews the PR, merges it and deploys `functions:staffOperationsApi`.
+## 2026-11-01 · agent/deps-functions — functions audit: critical and high cleared, nodemailer 10, new real-SMTP test
+
+- Base: `main` ee2eac1, checked 2026-11-01. No deploy, no production access.
+- `npm audit --omit=dev`: before 1 critical, 8 high, 14 moderate; after 0 critical, 0 high, 16 moderate. The moderate count rises because `express` and `firebase-functions` now show as moderate through `qs`; they were counted under the higher findings before.
+- Changed: `functions/package.json` `axios` ^1.21.0 and `nodemailer` ^10.3.1. Lock only: `proxy-addr` 2.0.8, `body-parser` 1.20.9, `@fastify/busboy` 3.2.4, `@grpc/grpc-js` 1.14.7, `fast-xml-parser` 5.11.2, `follow-redirects` 1.16.2, `brace-expansion` 2.1.7 and 1.1.21, `qs` 6.15.4 and 6.16.2. `firebase-admin` 13.10.0 and `firebase-functions` 7.2.5 stay.
+- New: `functions/email-smtp-delivery.test.js` runs `deliverEmail` with real nodemailer against an SMTP server on 127.0.0.1 (login, recipient, reply-to, List-Unsubscribe, subject encoding, PDF byte for byte). Other tests stub nodemailer.
+- nodemailer 9 → 10: the only stated breaking change is Node ≥ 20 (we run 22). The CommonJS entry stays. We call only `createTransport` and `sendMail`. The new test passes on both 9.0.3 and 10.3.1, and an invoice-shaped message gave the same headers on both.
+- Reach, full table in the PR: only `body-parser` is probably reachable (anonymous request can crash one instance). `axios` is not imported anywhere in `functions/`, so it and `follow-redirects` never load.
+- Checks on Node 22, Java 21: `npm test` 423/423. All emulator suites as in `financial-core-emulator.yml`, project `demo-keelesepp-finance`: 167 tests, 15 runs, 0 failed.
+- **Deploy needed:** `functions` (all 25), by the owner. Not deployed. All share one lock file. The 7 that hold `SMTP_PASS` and send through nodemailer: `websiteLeadApi`, `staffOperationsApi`, `invoiceApi`, `learnerEmailsTick`, `notifyPendingAccount`, `notifyHomeworkCreated`, `sendInvoicePaymentReminders`. After deploy, send one real invoice e-mail and check it arrives.
+- Not done: the 16 moderate (`uuid` chain needs `firebase-admin` 14, a major; `qs` in `express`). `axios` could be removed as unused. Separate finding, not fixed: the `websiteLeadApi` throttle reads the first `X-Forwarded-For` value, which a client can forge.
+- Next safe step: the owner reviews and merges, then deploys functions.
 ## 2026-11-02 · agent/next-step-order — home's next step follows the task list's order
 
 - Found on the live site in a read-only student preview: a batch of sheets without deadlines put „Kontroll 17” first on home, while „Ülesanded” starts from the first lesson. `nextStep.js` `openWork` now uses `groupTasks`.
