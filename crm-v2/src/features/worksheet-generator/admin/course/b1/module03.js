@@ -26,6 +26,11 @@
 //                 target 80 % in every part; the story closes: the housewarming went well.
 // B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): adjective suffixes -line, -kas, -lik, -tu, eba- (011, 013);
 // the locative cases kus? kuhu? kust? (012). Earlier versions: archive/v3/b1/module03.js, archive/v1/b1/module03.js.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE.md §13), 2026-11-03: topic „maja ja
+// kodu” (+ ümbruskond, kohad). 011 opens the module with census facts (flat or house, own or rent, how old Estonia's homes
+// are, Tallinn's districts); 012 adds an article on registering one's address (rahvastikuregister) with a true / false
+// task; 013 a „Kas teadsid?” on Tallinn's participatory budget; 014 one on the apartment association (korteriühistu);
+// 015's warm-up is the examiner set. Retellings 4 → 1 (013_p_432 stays). Every number outside a cast scene names its source.
 import { B, tag, teach, withShapes } from '../blocks.js';
 
 export const MODULE = { id: 'a2b1-module-03', course: 'b1', title: 'Kodu, kohad ja linn', level: 'A2+', design: 'v2', template: 'v4' };
@@ -36,6 +41,22 @@ export const LESSONS = withShapes({
     canDo: 'Ma kirjutan emale 80–100-sõnalise kirja korterist, mille leidsin: milline see on, mis on hea ja halb ning millised on üüritingimused.',
     discover: [
       B.review('011_d_review', [['Mis kell pidi Helgi Viktori tallu jõudma ja miks see oli saladus?', 'a2b1-009'], ['Mis oli Jaani peoplaanis veel lahtine? Tee üks ettepanek.', 'a2b1-009'], ['Kuhu Sofia ja Anna ujuma lähevad? Vasta kuhu-vormiga.', 'a2b1-004']]),
+      // the module's topic opener (§13.2), checked 2026-11-03: rahvaloendus.ee „Population census: the average home in
+      // Estonia is older than the average person” (census 2021), err.ee „Eesti kodud on nõukogudeaegsete paneelmajade nägu”
+      // (2022), err.ee „Rahvaloendus: veerand eluruumidest on püsielaniketa” (2022), Statistikaamet population of Tallinn's
+      // districts on 1.1.2026 (Lasnamäe 115 008 of 452 563, via citypopulation.de)
+      B.topicOpener('011_d_open', 'Teema avaleht: kuidas Eesti elab', [
+        'Kus elavad Eesti inimesed: korteris või eramajas? Vastuse annab rahvaloendus. Viimane rahvaloendus oli 2021. aastal. Selle andmetel elab korteris 67,9 % Eesti elanikest ja eramajas 29,3 %. Ülejäänud elavad näiteks hooldekodus või ühiselamus. Eramus elab 36 % eestlastest, aga ainult 8 % venelastest. Eramajades elab nüüd natuke suurem osa leibkondadest kui 2011. aastal. Linnas korteris elab üle poole kõigist Eesti elanikest.',
+        'Kodusid on Eestis rohkem kui leibkondi. Rahvaloendus luges kokku 737 873 eluruumi, aga peaaegu igas neljandas ei elanud keegi püsivalt. Statistikaameti analüütiku sõnul on paljud inimesed ostnud endale näiteks suvila, kus nad elavad ainult osa aastast. Mõnes uues majas ei ole aga keegi veel jõudnud sisse kolida.',
+        'Kas kodu on oma või üüritud? 71,9 % inimestest elab kodus, mis kuulub neile endile või kellelegi nende perest. Üürikorteris või üüritud majas elab 18,3 %. Kõige sagedamini üürivad kodu inimesed, kes elavad üksi.',
+        'Eesti kodud ei ole uued. Keskmine elumaja on ehitatud 1965. aastal ja keskmine korter 1972. aastal. Keskmine Eesti elanik on aga sündinud 1979. aastal: kodu on vanem kui inimene, kes seal elab! Enamik inimesi elab majades, mis on ehitatud nõukogude ajal, aastatel 1960–1990. Need on sageli paneelmajad. Peaaegu kõigis korterites on kraanivesi, WC ja dušš või vann. Eramajades on see teisiti: kraanivesi on umbes neljas eramajas viiest.',
+        'Tallinnas on kaheksa linnaosa. Kõige rohkem inimesi elab Lasnamäel, mis on suur paneelmajade linnaosa: 2026. aasta alguses umbes 115 000 inimest ehk iga neljas tallinlane. Kalamajas on palju vanu puumaju, Nõmmel eramaju ja männimetsa.',
+      ], 'Statistikaamet (rahvaloendus 2021; rahvastik linnaosade kaupa 1.1.2026); ERR, „Eesti kodud on nõukogudeaegsete paneelmajade nägu” ja „Rahvaloendus: veerand eluruumidest on püsielaniketa” (2022)', [
+        'Mis sind nendes arvudes kõige rohkem üllatas? Miks?',
+        'Kumb on sinu arvates parem: elada korteris või eramajas? Miks?',
+        'Kas sinu kodumaal elavad inimesed pigem korteris või majas? Kas kodu ostetakse või üüritakse?',
+        'Mis on sinu meelest kõige tähtsam, kui valid linnaosa, kus elada?',
+      ]),
       B.text('011_d_goal', 'Moodul 3: kodu ja linn', 'Helgi peol rääkis Sofia emale uudise: perenaise Malle lapselaps Kaarel tuleb Soomest tagasi ja vajab oma tuba. Sofia peab Mustamäelt välja kolima hiljemalt 20. detsembril. Selles moodulis otsib Sofia uue kodu, kolib, tutvub uue linnaosaga ja kutsub pere soolaleivapeole. Sina aitad teda. Täna kuulad häälsõnumeid ja korteri vaatamist ning kirjutad lõpuks emale kirja korterist, mille Sofia leidis.'),
       tag(B.examListen('011_d_msgs', 'Kaheksa häälsõnumit.', 'Sofia telefonis on kaheksa sõnumit korterite kohta. Kuula ja vali igale küsimusele vastus.', 'choice', [
         'Kaja: Tere, Sofia! Siin Kaja Mänd, maakler. Pelgulinna korter on uues majas viiendal korrusel. Toad on ruumikad ja valgusküllased ning majas on lift.',
@@ -100,8 +121,8 @@ export const LESSONS = withShapes({
         ['ilma millegita', ['ohutu', 'maitsetu', 'kasutu', 'rahatu']],
         ['mitte', ['ebamugav', 'ebameeldiv', 'ebatavaline', 'ebapraktiline']],
       ], 'full', 'g_notice'), { task: 'G02' }),
-      teach(tag(B.speaking('011_d_pic', 'Kirjelda korterit pildil.', 'Kirjelda korteri pilti kolmele kuulajale järjest, igaühele üks minut. Kasuta liitega omadussõnu.', ['Mis toad on pildil ja millised need on?', 'Kus on lemmiktugitool ja miks see on hea koht?', 'Mis on selles korteris mugav, mis ebamugav?', 'Kas see korter sobiks Sofiale? Miks?', 'Kas sina tahaksid seal elada?'], [60, 120], ['Elutuba on ruumikas ja…', 'Akna juures on…', 'See korter on…, aga…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti kolm korda järjest, iga kord üks minut; õpetaja küsib vahepeal ühe uue küsimuse („Mis on köögis ebamugav?”). Kolmas kord peab tulema kõige sujuvamalt.'),
+      teach(tag(B.speaking('011_d_pic', 'Kirjelda korterit pildil.', 'Kirjelda korteri pilti umbes üks minut. Kasuta liitega omadussõnu. Siis ütle oma arvamus ja võrdle.', ['Mis toad on pildil ja millised need on?', 'Kus on lemmiktugitool ja miks see on hea koht?', 'Mis on selles korteris mugav, mis ebamugav?', 'Kas sina tahaksid seal elada? Miks?', 'Kas sinu kodumaal on korterid suuremad või väiksemad kui Eestis?'], [60, 120], ['Elutuba on ruumikas ja…', 'Akna juures on…', 'Minu meelest on see korter…, aga…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti üks minut ilma pausideta; õpetaja küsib siis kaks uut küsimust („Mis on köögis ebamugav?”) ja vaidleb arvamusele vastu, nii et õpilane põhjendab.'),
       tag(B.writing('011_d_free', 'Kes siin elab?', 'Vaata pilti ja kirjuta 8 minutit ilma peatumata: kes siin elab ja milline on tema õhtu?', [7, 9], ['valgusküllane', 'rahulik', 'kodune', 'ebamugav'], 2), { task: 'W06', fluency: true }),
     ],
     practice: [
@@ -113,7 +134,7 @@ export const LESSONS = withShapes({
         ['ruumikas', 'kitsas'], ['lärmakas', 'vaikne'], ['valgusküllane', 'pime'], ['ohutu', 'ohtlik'], ['ebamugav', 'mugav'],
         ['kodune', 'võõras'], ['kuiv', 'niiske'], ['odav', 'kallis'],
       ], 'full', 'g_vocab'),
-      B.examListen('011_p_radio', 'Raadiosaade „Kodutunnis”.', 'Kuula raadiosaadet üürikorteritest kaks korda. Vali igale küsimusele üks vastus.', 'choice', [
+      tag(B.examListen('011_p_radio', 'Raadiosaade „Kodutunnis”.', 'Kuula raadiosaadet üürikorteritest kaks korda. Vali igale küsimusele üks vastus.', 'choice', [
         'Ülle: Tere, kuulajad! Saates „Kodutunnis” räägime täna üürikorteritest. Stuudios on Priit Tamm üürnike ühingust.',
         'Priit: Tere! Detsembris otsivad paljud uut kodu, sest tudengid ja töötajad tulevad linna tagasi.',
         'Ülle: Mida peaks üürnik kõigepealt tegema?',
@@ -137,7 +158,7 @@ export const LESSONS = withShapes({
         ['Keda kaitseb kirjalik leping?', 'üürnikku ja omanikku', 'ainult omanikku', 'ainult naabreid'],
         ['Kui suur on tavaliselt tagatisraha?', 'ühe kuu üür', 'kahe kuu üür', 'sada eurot'],
         ['Miks tasub naabritega rääkida?', 'nad räägivad ausalt, milline maja on', 'nad annavad korteri odavamalt', 'nad aitavad alati kolida'],
-      ]),
+      ]), { voice: 'interview' }),
       B.transformation('011_p_short', 'Lühemalt: üks omadussõna.', 'Ütle sama mõte lühemalt: kasuta antud liidet ja kirjuta uus lause.', [
         ['Selles esikus on palju ruumi.', '-kas', 'See esik on ruumikas.'],
         ['Meie hoovis ei ole lastele mingit ohtu.', '-tu', 'Meie hoov on lastele ohutu.'],
@@ -303,8 +324,8 @@ export const LESSONS = withShapes({
         ['Kuhu?', ['kannab tuppa', 'paneb riiulile', 'viib keldrisse', 'sõidab Kalamajja', 'läheb Malle juurde', 'kolib uude korterisse', 'pargib maja ette', 'paneb lilled kasti']],
         ['Kust?', ['võtab aknalaualt', 'toob poest', 'tuleb tööpäeva lõpus kontorist', 'saab võtme Tiinalt', 'kolib Mustamäelt', 'otsib köögist', 'tõstab kasti kaubikust', 'leiab salli voodi alt']],
       ], 'full', 'g_notice'),
-      teach(tag(B.speaking('012_d_moves', 'Minu kolimised.', 'Räägi oma kolimistest kolmele kuulajale järjest. Kasuta kust-, kuhu- ja kus-vorme.', ['Kust sa viimati kolisid ja kuhu?', 'Kes sind aitas?', 'Kuhu sa panid kõige raskema asja?', 'Mis kadus või läks katki?', 'Kus sa praegu elad ja kas sulle seal meeldib?'], [60, 120], ['Ma kolisin … -st … -sse.', 'Kõige raskem oli…, selle panime…', 'Nüüd elan…']), { fluency: true }),
-        'Üks-ühele: õpilane räägib õpetajale kolm korda järjest, õpetaja on iga kord uus kuulaja (naaber, kolleeg, sõber) ja küsib ühe küsimuse „Kust?” või „Kuhu?”.'),
+      teach(tag(B.speaking('012_d_moves', 'Minu kolimised.', 'Räägi paarilisele oma kolimistest. Kasuta kust-, kuhu- ja kus-vorme. Lõpus võrdle Eestit oma kodumaaga.', ['Kust sa viimati kolisid ja kuhu?', 'Kes sind aitas?', 'Kuhu sa panid kõige raskema asja?', 'Mis kadus või läks katki?', 'Kus sa praegu elad ja kas sulle seal meeldib?', 'Kas sinu arvates on Eestis kodu leida ja kolida lihtsam või raskem kui sinu kodumaal? Miks?'], [60, 120], ['Ma kolisin … -st … -sse.', 'Kõige raskem oli…, selle panime…', 'Minu meelest on Eestis…, sest…']), { fluency: true }),
+        'Üks-ühele: õpilane räägib õpetajale; õpetaja küsib vahepeal „Kust?” või „Kuhu?” ja lõpus „Miks sa nii arvad?”.'),
     ],
     practice: [
       B.choice('012_p_form', 'Vali õige vorm.', 'Loe lauset Sofia kolimispäevast ja vali vorm, mis vastab küsimusele kus, kuhu või kust.', [
@@ -370,6 +391,21 @@ export const LESSONS = withShapes({
         ['Talgutel on alati ka maja lapsed.', 'ei selgu'],
         ['Hooldusfirma töötab ka öösel.', 'ei selgu'],
       ]), { task: 'R06' }),
+      // a text from outside the cast (§13.3): a real procedure after moving, checked 2026-11-03: err.ee „Uus
+      // rahvastikuregistri seadus annab rahvastikust täpsema ülevaate” (14 days from 1.1.2019, eesti.ee, services that
+      // depend on the address); Siseministeerium residence notice form (2022: owner's consent or a document of the right
+      // to use, e.g. the tenancy contract) and leaflet „Elukohateate esitamine” (2023: in Tallinn the district government)
+      tag(B.text('012_p_reg', 'Kolisid? Registreeri oma elukoht!', 'Kui inimene kolib Eestis uude koju, peab ta oma uue aadressi rahvastikuregistrisse kirja panema. Seda nimetatakse elukoha registreerimiseks. Seaduse järgi tuleb seda teha 14 päeva jooksul pärast kolimist.\n\nKõige kiirem viis on portaal eesti.ee. Kui sul on ID-kaart, Mobiil-ID või Smart-ID, saad elukohateate sinna saata mõne minutiga. Teate võib viia ka kohalikku omavalitsusse või saata sinna posti või e-postiga. Tallinnas läheb teade selle linnaosa valitsusse, kus sinu uus kodu asub.\n\nKui korter ei ole sinu oma, on vaja ka omaniku nõusolekut või üürilepingut.\n\nMiks see on tähtis? Paljud teenused sõltuvad sellest, kus sa registri järgi elad: näiteks lasteaiakoht, tasuta ühistransport Tallinnas ja mõned toetused. Kui elukoht on registreerimata, võid neist ilma jääda.\n\nAllikas: ERR, „Uus rahvastikuregistri seadus annab rahvastikust täpsema ülevaate” (2018); Siseministeerium, elukohateate vorm ja juhend (2022–2023).'), { voice: 'article' }),
+      tag(B.gaps('012_p_regq', 'Mida artikkel ütleb?', 'Loe artiklit elukoha registreerimisest. Kirjuta lünka üks või kaks sõna artiklist.', [
+        'Uus aadress tuleb kirja panna [rahvastikuregistrisse].',
+        'Seda tuleb teha [14|neliteist] päeva jooksul pärast kolimist.',
+        'Kõige kiirem viis on portaal [eesti.ee].',
+        'Teate võib saata ka posti või [e-postiga].',
+        'Tallinnas läheb teade [linnaosa] valitsusse.',
+        'Kui korter ei ole sinu oma, on vaja omaniku nõusolekut või [üürilepingut].',
+        'Registreeritud elukohast sõltub näiteks [lasteaiakoht|tasuta ühistransport].',
+        'Kui elukoht on registreerimata, võid teenustest ilma [jääda].',
+      ], '', 'full', 'g_read'), { task: 'R15' }),
       B.wordorder('012_p_order', 'Pane lause kokku.', 'Sofia kirjutab, mis kus on. Pane sõnad õigesse järjekorda; esimene sõna on suure algustähega.', [
         'Raamatukast seisab praegu elutoa ukse kõrval.',
         'Homme viin tühjad kastid keldrisse.',
@@ -486,7 +522,7 @@ export const LESSONS = withShapes({
         'Соседка Тийна очень дружелюбная.', 'Пляж песчаный, а вода ещё холодная.', 'По-моему, ещё одна парковка — бессмысленная идея.', 'Вечером в парке немного опасно, потому что там темно.',
       ], 'half', 'g_notice'),
       tag(B.reading('013_p_districts', 'Kolm linnaosa.', 'Linnaosa leht tutvustab kolme linnaosa. Leia pealkirjale lõik ja vasta küsimustele.', 'Kus elada Tallinnas?', [
-        'Nõmme. Nõmme on Tallinna kõige rohelisem linnaosa. Majad on suurte aedade sees ja tänavate ääres kasvavad kõrged männid. Õhtul on siin nii vaikne, et kuuled ainult linde. Lastega peredele on Nõmme ohutu ja meeldiv koht. Miinus on see, et kesklinna sõidab rong või buss umbes pool tundi. Poodi tuleb sageli minna autoga.',
+        'Nõmme. Nõmme on väga roheline linnaosa. Majad on suurte aedade sees ja tänavate ääres kasvavad kõrged männid. Õhtul on siin nii vaikne, et kuuled ainult linde. Lastega peredele on Nõmme ohutu ja meeldiv koht. Miinus on see, et kesklinna sõidab rong või buss umbes pool tundi. Poodi tuleb sageli minna autoga.',
         '',
         'Lasnamäe. Lasnamäel on suured paneelmajad ja siin elab rohkem inimesi kui üheski teises linnaosas. Korterid on siin odavamad kui kesklinnas ja maja lähedal on alati kauplus, kool ja lasteaed. Kesklinna jõuab bussiga veerand tunniga. Paljudele ei meeldi, et majad on ühesugused ja hallid. Elanikud ütlevad aga, et naabrid on abivalmid ja elu on mugav.',
         '',
@@ -547,6 +583,8 @@ export const LESSONS = withShapes({
     ],
     transfer: [
       B.text('013_t_sit', 'Mida teha tühja krundiga?', 'Valgevase tänava nurgal on tühi krunt. Linn lubas selle anda elanikele, kui nad lepivad kokku ühes idees. Neljapäeval on Kalamaja Seltsi koosolek raamatukogus. Viis elanikku on saatnud oma ettepaneku. Loe ettepanekuid ja leppige koosolekul kokku. Siis kirjutad seltsile, mida otsustati.'),
+      // checked 2026-11-03: tallinn.ee „Tallinna kaasava eelarve hääletus algab täna” (8.9.2026) and „Koos loodud linn” KKK
+      B.know('013_t_know', 'Tallinnas saavad elanikud ise otsustada, mida linn nende linnaosas teeb. Seda nimetatakse kaasavaks eelarveks („Koos loodud linn”). Ideid võib esitada igaüks, olenemata vanusest ja elukohast. Hääletada saavad vähemalt 14-aastased tallinlased: ainult oma linnaosa ideede poolt ja kuni kolme idee poolt. Linn annab selleks üks miljon eurot aastas. Igas linnaosas tehakse kahe aasta jooksul vähemalt üks võiduidee.', 'Tallinna linn, „Tallinna kaasava eelarve hääletus algab täna” (2026)'),
       B.profiles('013_t_ideas', 'Viis ettepanekut.', 'Loe elanike ettepanekuid. Täienda iga kaardi lauseid ühe sõnaga.', [
         ['Merilin: mänguväljak', ['kahe lapse ema, elab Valgevase 3', 'lapsi on linnaosas palju', 'pargi mänguväljak on kaugel ja tihti täis', 'maksab umbes 30 000 eurot', 'linn maksab poole'],
           ['Merilini idee on uus [mänguväljak].', 'Pargis on mänguväljak tihti [täis].', 'Lapsed saaksid mängida kodu [lähedal].', 'Merilini meelest oleks see lastele [ohutu].', 'Poole rahast maksaks [linn].', 'Ta elab Valgevase tänaval, majas number [kolm|3].']],
@@ -564,7 +602,7 @@ export const LESSONS = withShapes({
         'Sa elad Kalamajas üksi ja käid palju jalgsi. Sulle meeldib Leida aia idee, sest see toob naabrid kokku. Parklat sa ei taha. Põhjenda ja otsi kompromissi.',
         ['Minu meelest on kõige tähtsam…, sest…', 'Kas sa oled nõus, et…?', 'Teeme nii:…'], ['Ma saan aru, aga…', 'Kuna…, võiksime…', 'Lepime kokku, et…']), { task: 'S03', main: true }),
       'Üks-ühele: õpetaja on B ja on alguses teist meelt; õpilane põhjendab sest- ja kuna-lausetega ning pakub kompromissi. Lõpus sõnastab õpilane kokkuleppe ühe lausega.'),
-      teach(tag(B.speaking('013_t_rec', 'Kodus: minu ettepanek linnale.', 'Mida on sinu linnaosas vaja? Ütle üks ettepanek ja kaks põhjust. Räägi 1–2 minutit ja salvesta.', ['Kus sa elad?', 'Mis on sinu linnaosas hästi?', 'Mis on puudu või ebamugav?', 'Mida linn võiks teha?', 'Miks see on tähtis?'], [60, 120], ['Minu arvates on vaja…', 'sest…', 'Teine põhjus on…']), { task: 'S15', level: 3 }),
+      teach(tag(B.speaking('013_t_rec', 'Kodus: minu ettepanek linnale.', 'Mida on sinu linnaosas vaja? Ütle üks ettepanek ja kaks põhjust. Räägi 1–2 minutit ja salvesta.', ['Kus sa elad?', 'Mis on sinu linnaosas hästi?', 'Mis on puudu või ebamugav?', 'Mida linn võiks teha?', 'Miks see on tähtis?', 'Kas elanikud peaksid sinu arvates ise otsustama, mida linnaosas ehitatakse? Kuidas on see sinu kodumaal?'], [60, 120], ['Minu arvates on vaja…', 'sest…', 'Teine põhjus on…']), { task: 'S15', level: 3 }),
         'Kodune monoloog. Tunnis vaidleb õpetaja vastu ja õpilane kaitseb oma ettepanekut.'),
       tag(B.letter('013_t_report', 'Kokkuvõte seltsile.', 'Selts palus kirjutada, mida koosolekul otsustati. Kirjuta: otsus, kaks põhjust ja üks küsimus.', 'Lugupeetud Kalamaja Selts!', 'Lugupidamisega', [90, 110]), { task: 'W08' }),
       B.rubricSpeaking('013_t_rubric', 'Hindamine: arutelu koosolekul (20 punkti).'),
@@ -620,6 +658,24 @@ export const LESSONS = withShapes({
         'Autod tuleb jätta pargi kõrval asuvasse [parklasse].',
         'Infotelefon on avatud ka [nädalavahetusel].',
       ], 'g_vocab'), { task: 'L06' }),
+      // a text from outside the cast (§13.3): three forum posts on a cold home in winter, invented people, no numbers as facts
+      tag(B.reading('014_d_forum', 'Foorum: talvel on kodus külm.', 'Loe kolme foorumipostitust. Kirjuta iga väite järele, kelle postitusest see on: Irina, Toomas või Maarja.', 'Mida teha, kui toas on külm?', [
+        'Irina_Narvast: Meie paneelmaja on vana ja eelmisel talvel oli toas ainult 18 kraadi. Ma läksin korteriühistu üldkoosolekule ja rääkisin oma murest. Selgus, et külm oli ka teistel. Ühistu otsustas maja seinad ja katuse korda teha. Remont kestis terve suve ja oli kallis, aga nüüd on meil soe ja küttearve on väiksem.',
+        '',
+        'Toomas_K: Mina elan üürikorteris. Kui radiaator külmaks läks, kirjutasin kohe omanikule ja tema kutsus meistri. Minu nõuanne: enne helistamist keera radiaatori kraan lahti ja vaata, kas teistes tubades on soe. Vahel on radiaatoris lihtsalt õhku.',
+        '',
+        'Maarja_T: Meie elame Tartus vanas puumajas ja kütame ahju puudega. Hommikul on tuba jahe, aga õhtul, kui ahi on soe, on väga mõnus. Puid tuleb suvel osta ja kuuri tassida. See on palju tööd, aga mulle meeldib, et kodus on päris tuli.',
+      ], [
+        ['Kelle majas tehti suvel remont?', 'Irina'],
+        ['Kes elab üürikorteris?', 'Toomas'],
+        ['Kes kütab ahju puudega?', 'Maarja'],
+        ['Kes käis ühistu koosolekul?', 'Irina'],
+        ['Kes soovitab enne helistamist radiaatori kraani kontrollida?', 'Toomas'],
+        ['Kellel on nüüd väiksem küttearve?', 'Irina'],
+        ['Kes peab suvel puid ostma?', 'Maarja'],
+        ['Kes kirjutas kõigepealt omanikule?', 'Toomas'],
+        ['Kuidas köetakse kodusid sinu kodumaal? Mis on sinu meelest parem?', ''],
+      ]), { voice: 'forum', task: 'R14' }),
       B.notice('014_d_notice', 'Märka: kuidas teed juhatada?', [
         'Sõbrale (sina): **mine** otse · **pööra** paremale · **ära mine** üle tänava · **tule** pargi kaudu',
         'Võõrale või mitmele (teie): **minge** otse · **pöörake** paremale · **ärge minge** üle tänava · **tulge** pargi kaudu',
@@ -696,11 +752,15 @@ export const LESSONS = withShapes({
         ['Helistaja (Helgi)', ['Ütle, kus sa oled ja mida sa näed.', 'Küsi, kas minna bussiga või jalgsi.', 'Küsi, kui kaua jalgsi minek kestab.', 'Küsi, mis on Sofia maja kõrval.', 'Korda tee üle, et kontrollida.']],
         ['Vastaja (Sofia)', ['Asendusbuss nr 80 väljub jaama eest iga 15 minuti järel.', 'Jalgsi: turu kõrvalt otse ristmikuni, siis paremale.', 'Jalgsi kulub umbes 15 minutit.', 'Maja on kollane, apteegi kõrval.', 'Hoovivärav on maja vasakul pool.']]), { fluency: true }),
       'Üks-ühele: õpetaja on Helgi ja küsib vahepeal üle („Kas paremale või vasakule?”); siis vahetatakse rollid. Teisel korral tehakse kõne ilma kaarti vaatamata ja õpetaja hoiab aega (3 minutit).'),
-      teach(tag(B.speaking('014_p_three', 'Tee minu koju.', 'Kirjelda teed lähimast peatusest koju kolm korda järjest, iga kord kiiremini.', ['Mis on sinu kodu lähim peatus?', 'Kuhu minna peatusest välja tulles?', 'Kus tuleb pöörata?', 'Mis maamärgid on teel?', 'Milline on sinu maja ja kus on uks?'], [60, 120], ['Väljuge … peatuses.', 'Minge otse kuni…', '… juures pöörake…']), { fluency: true }),
-        'Üks-ühele: õpilane kirjeldab teed kolm korda; õpetaja joonistab esimesel korral kaardi ja küsib iga kord ühe täpsustuse („Mis on ristmiku juures?”).'),
+      teach(tag(B.speaking('014_p_three', 'Tee minu koju.', 'Kirjelda paarilisele teed lähimast peatusest oma koju. Paariline joonistab kaardi ja küsib üle. Siis võrdle Eestit oma kodumaaga.', ['Mis on sinu kodu lähim peatus?', 'Kuhu minna peatusest välja tulles?', 'Kus tuleb pöörata?', 'Mis maamärgid on teel?', 'Milline on sinu maja ja kus on uks?', 'Kas Eesti linnas on sinu arvates lihtne teed leida? Kuidas on see sinu kodulinnas?'], [60, 120], ['Väljuge … peatuses.', 'Minge otse kuni…', 'Minu meelest on Eestis…, sest…']), { fluency: true }),
+        'Üks-ühele: õpilane kirjeldab teed; õpetaja joonistab kaardi ja küsib täpsustusi („Mis on ristmiku juures?”). Lõpus kontrollib õpilane kaarti ja parandab, kui õpetaja eksis.'),
     ],
     transfer: [
       B.text('014_t_sit', 'Laupäeva hommik', 'Laupäeva hommikul kell kaheksa on radiaator ikka külm ja toas on ainult 15 kraadi. Kell kolm tulevad külalised. Sofia peab helistama hooldusfirmale ja leppima kokku, millal meister tuleb. Kõigepealt loe hooldusfirma tingimusi ja Sofia päevakava.'),
+      // checked 2026-11-03: Korteriomandi- ja korteriühistuseadus (Riigi Teataja: § 1 lg 4 members, § 34 common parts
+      // through the association, § 40 payments by the share), err.ee „Korteriühistute kohustuslikuks muutumine tekitab
+      // inimestes ohtralt küsimusi” (in force 1.1.2018, associations formed by law)
+      B.know('014_t_know', 'Eesti kortermajades on korteriühistu. Alates 2018. aastast peab see olema igas majas, kus korterid kuuluvad eri omanikele; kui omanikud ühistut ise ei loonud, tekkis see seaduse järgi. Ühistu liikmed on kõik korteriomanikud. Ühistu kaudu hoolitsevad nad koos maja ühiste osade eest ja iga omanik maksab ühistule oma osa kuludest. Tähtsad otsused teeb üldkoosolek, juhatus juhib igapäevast tööd. Üürnik ei ole ühistu liige: kui korteris läheb midagi katki, räägib ta tavaliselt kõigepealt omanikuga.', 'Korteriomandi- ja korteriühistuseadus (Riigi Teataja); ERR, „Korteriühistute kohustuslikuks muutumine tekitab inimestes ohtralt küsimusi” (2017)'),
       tag(B.reading('014_t_plan', 'Hooldusfirma tingimused ja päevakava.', 'Loe tingimusi ja päevakava. Vasta küsimustele: arvuta ja põhjenda.', 'Laupäev, 19. detsember', [
         'Soe Kodu OÜ — avariiabi nädalavahetusel. Meister tuleb kahe kuni nelja tunni jooksul pärast kõnet. Väljakutse maksab nädalavahetusel 45 eurot ja iga töötund 30 eurot. Kui rike on korteriühistu torudes, maksab ühistu. Kui katki on korteri radiaator, maksab korteri omanik. Enne meistri tulekut keerake radiaatori kraan lahti ja kontrollige, kas teistes tubades on soe.',
         '',
@@ -792,8 +852,16 @@ export const LESSONS = withShapes({
         ['Võta rattakuuri võti Tiina juurde.', 'Võta rattakuuri võti Tiinalt.|Võta rattakuuri võti Tiina käest.'],
       ], 'full', 'g_notice'),
       B.writing('015_d_write', 'Minu kodu ja kodukoht.', 'Kirjuta 6–8 lauset: kus sa elad, milline on sinu kodu ja mis on kodu lähedal.', [6, 8], ['ruumikas', 'rahulik', 'kõrval', 'lähedal'], 2),
-      teach(B.speaking('015_d_warm', 'Enne eksamit: soojendus.', 'Küsige teineteiselt nagu eksami alguses ja vastake kahe-kolme lausega.', ['Kus te elate ja kui kaua olete seal elanud?', 'Milline on teie kodu?', 'Mis on teie kodu lähedal?', 'Kuidas te tööle või kooli sõidate?'], [45, 90], ['Ma elan…', 'Minu kodu on…, sest…', 'Kodu lähedal on…']),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt samad küsimused.'),
+      // the examiner's question set on the module's Harno topic (§13.7); keeps the id of the warm-up it grew from
+      teach(B.examiner('015_d_warm', 'kodu ja elukoht', [
+        'Kus te elate ja kui kaua olete seal elanud?',
+        'Kas te elate korteris või majas? Kumb on teie arvates parem ja miks?',
+        'Mis on teie kodu lähedal ja mis on seal puudu?',
+        'Kas noorel inimesel on parem kodu üürida või osta? Põhjendage.',
+        'Mida peab uues kodus ja uues linnaosas kõigepealt tegema?',
+        'Kuidas elatakse teie kodumaal: pigem korteris või majas? Mis on seal teisiti kui Eestis?',
+        'Millises Eesti linnas või linnaosas te tahaksite elada ja miks?',
+      ]), 'Üks-ühele: õpetaja on eksamineerija ja küsib; õpilane vastab igale küsimusele 2–4 lausega ja põhjendab. Õpetaja märgib liitega omadussõnad ning kus-, kuhu- ja kust-vormid.'),
     ],
     practice: [
       B.examPart('015_p_rpart', 'R', { minutes: 50, points: 30, tasks: 5, note: 'Harno A2 lugemisosa, viis ülesannet. Lugege enne iga teksti läbi ülesande juhis.' }),

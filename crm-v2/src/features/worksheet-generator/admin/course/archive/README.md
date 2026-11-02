@@ -10,3 +10,10 @@ design v2 (`docs/COURSE_DESIGN_COMMUNICATIVE.md`), its previous file is copied h
   run the course tests. The git history keeps every version too.
 - Published sheets are versioned separately in the CRM: every save or publish writes `worksheetVersions/…`, and the
   constructor's „Versioonid ja taastamine…” compares and restores a version (one task or the whole sheet).
+
+## `pin/`: frozen sheets for the grading pin
+
+`archive/pin/` holds copies of a2 module 1, b1 module 3, b2 module 1 and c1 module 1 as they were on `main` on 2026-11-03.
+`worksheet-studio/engine/gradingPin.test.js` grades their sheets and compares with `gradingPin.golden.js`, so the pin
+checks the grading code only, and the live modules can be rewritten (academic value round 1) without touching it. Do not edit
+these copies.

@@ -1,37 +1,4 @@
 {
- "a2b1-module-03": [
-  "*|*|av-opener",
-  "*|*|av-retell",
-  "a2b1-011|*|av-know",
-  "a2b1-012|*|av-know",
-  "a2b1-012|*|av-voice",
-  "a2b1-013|*|av-know",
-  "a2b1-014|*|av-know"
- ],
- "a2b1-module-04": [
-  "*|*|av-opener",
-  "*|*|av-record",
-  "*|*|av-retell",
-  "a2b1-016|*|av-know",
-  "a2b1-016|*|av-voice",
-  "a2b1-017|*|av-know",
-  "a2b1-017|*|av-voice",
-  "a2b1-018|*|av-know",
-  "a2b1-019|*|av-know"
- ],
- "a2b1-module-05": [
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "*|*|av-retell",
-  "a2b1-021|*|av-know",
-  "a2b1-021|*|av-voice",
-  "a2b1-022|*|av-know",
-  "a2b1-022|*|av-voice",
-  "a2b1-023|*|av-know",
-  "a2b1-023|*|av-voice",
-  "a2b1-024|*|av-know"
- ],
  "a2b1-module-07": [
   "*|*|av-kasuta",
   "*|*|av-opener",
@@ -158,7 +125,6 @@
   "a2b1-088|*|av-voice"
  ],
  "course:b1": [
-  "*|*|av-genres",
   "*|*|av-genres"
  ],
  "b1b2-module-01": [
