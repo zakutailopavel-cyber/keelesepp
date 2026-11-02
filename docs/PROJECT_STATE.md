@@ -1,3 +1,7 @@
+## 2026-11-02 · agent/lead-xff-shape-log — temporary: log the shape of X-Forwarded-For on websiteLeadApi
+
+- Owner approved a deploy to check the header (2026-11-02). Logs `websiteLead xff shape` with each entry cut to its first half (IPv4 `a.b.x.x`), plus `req.ip`, on every POST. Used to decide #989 (which entry the hourly limit can trust). Remove with #989.
+- Deploy: `firebase deploy --only functions:websiteLeadApi`.
 ## 2026-11-02 · agent/calendar-note-follows-move — the administrator's note stays with a lesson moved to another day
 
 - Base: `main` after #990, checked 2026-11-02. Bug from Oleksiy (chat, 2026-11-02): moving a lesson to another day lost its „Admini märkus”.
