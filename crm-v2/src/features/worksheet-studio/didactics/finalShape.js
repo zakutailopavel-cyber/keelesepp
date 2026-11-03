@@ -11,8 +11,8 @@
 import { blockMinutes } from './timeEstimate.js';
 import { isInLesson } from '../engine/inLesson.js';
 import {
-  ARCHETYPES, FORMAT_INTRO, FORMAT_INTRO_A2, FORMAT_INTRO_B2, FORMAT_INTRO_C1, FORMAT_PRACTICE, FORMAT_PRACTICE_A2, FORMAT_PRACTICE_B2, FORMAT_PRACTICE_C1, LEAD_PAIRS,
-  TASK_CATALOGUE, TEACHING_ARCHETYPES, VARIANT_MIN, VARIANTS, VARIANTS_A2, VARIANTS_B2, VARIANTS_C1, harnoFamily, harnoFamilyA2, harnoFamilyB2, harnoFamilyC1, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
+  ARCHETYPES, FORMAT_INTRO, FORMAT_INTRO_A2, FORMAT_INTRO_B2, FORMAT_INTRO_C1, FORMAT_INTRO_EN, FORMAT_PRACTICE, FORMAT_PRACTICE_A2, FORMAT_PRACTICE_B2, FORMAT_PRACTICE_C1, FORMAT_PRACTICE_EN, LEAD_PAIRS,
+  TASK_CATALOGUE, TEACHING_ARCHETYPES, VARIANT_MIN, VARIANTS, VARIANTS_A2, VARIANTS_B2, VARIANTS_C1, VARIANTS_EN, examPartOf, harnoFamily, harnoFamilyA2, harnoFamilyB2, harnoFamilyC1, harnoFamilyEN, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
 } from './taskCatalogue.js';
 
 export const PHASES = ['discover', 'practice', 'transfer'];
@@ -67,6 +67,18 @@ export const PROFILES = Object.freeze({
     min: { ...B1_MIN, S02: 0, S03: 0, S04: 0, S18: 1, S19: 1 },
     formsLabel: 'A1–C1',
     shape: { ...FINAL_SHAPE, v12: { ...FINAL_SHAPE.v12, fromModule: 2 }, v16: { conditionalFrom: 1 }, examTimingFromModule: 2 },
+  },
+  // docs/COURSE_FINAL_SHAPE_EN_B2.md: English B1 → B2 (en-b2-001…050, course key enb2) against the English state exam
+  // (format ids EW1…ES2, taskCatalogue.js HARNO_FORMATS_EN). 10 modules: exam corners and timed module checks from module 2
+  // (005 is a diagnostic without the timing gate), full mocks 030 and 050, practice counted up to 049. The speaking types
+  // are the state exam's: pictures (S06, ES1) and a monologue with the examiner's questions (S02, ES2); no idea card or
+  // phone call. The sheets are English: the can-do is read with English verbs, and V14 (the EKI etLex word lists) is off.
+  // 40 teaching lessons cannot hold 7 lessons of each of 8 archetypes: 3–8 a course, a project at least twice [INF]
+  enb2: {
+    exam: 'EN-RE', family: harnoFamilyEN, intro: FORMAT_INTRO_EN, practice: FORMAT_PRACTICE_EN, variants: VARIANTS_EN,
+    min: { ...B1_MIN, S03: 0, S04: 0, S06: 1 },
+    formsLabel: 'English', language: 'en', vocabulary: false,
+    shape: { ...FINAL_SHAPE, v5: { maxPerArchetype: 8, minPerArchetype: 3, minProj: 2, relaxedModule: 10 }, v12: { ...FINAL_SHAPE.v12, fromModule: 2 }, v16: { conditionalFrom: 1 }, lastPracticeLesson: 49, examTimingFromModule: 2, mocks: [30, 50] },
   },
 });
 
@@ -232,7 +244,7 @@ function harnoProblemsCourse(lessons, out, P) {
   lessons.filter((l) => l.assessment && l.module >= S.examTimingFromModule).forEach((l) => {
     const blocks = PHASES.flatMap((p) => blocksOf(l.sheets[p]));
     const tasks = lessonTasks(l).map((x) => x.b);
-    const parts = new Set(tasks.map((b) => harnoOf(b)).filter(Boolean).map((f) => f.charAt(0)));
+    const parts = new Set(tasks.map((b) => harnoOf(b)).filter(Boolean).map(examPartOf));
     const timed = new Set(blocks.filter((b) => b.type === 'exampart' && Number(b.data?.minutes) > 0).map((b) => b.data.skill));
     const untimed = [...parts].filter((s) => !timed.has(s));
     if (!parts.size) out.push({ rule: 'V6', check: 'V6-exam-tags', lesson: l, phase: '*', text: 'eksamitunni ülesannetel pole Harno silte (tag(block, { harno }))' });
@@ -304,12 +316,19 @@ const SKILL_VERBS = [
   ['L', /\b(saan aru kuuldust|saan kuuldust aru|kuulan)\b/],
   ['R', /\b(loen|leian tekstist)\b/],
 ];
-export const canDoSkills = (canDo) => SKILL_VERBS.filter(([, re]) => re.test(String(canDo || '').toLocaleLowerCase('et'))).map(([skill]) => skill);
+// English can-dos („I can …”, the English B2 course)
+const SKILL_VERBS_EN = [
+  ['S', /\b(speak|talk|discuss|describe (?:and compare )?(?:pictures|photos)|present|give a talk|argue|take part in|compare .* aloud|answer the examiner)\b/],
+  ['W', /\b(write|writing)\b/],
+  ['L', /\b(understand (?:a |an |the )?(?:talk|podcast|interview|news|recording|lecture|conversation|announcement)s?|follow (?:a |an |the )?(?:talk|podcast|interview|lecture)|listen)\b/],
+  ['R', /\b(read|find (?:information|details|the main idea) in)\b/],
+];
+export const canDoSkills = (canDo, language = 'et') => (language === 'en' ? SKILL_VERBS_EN : SKILL_VERBS).filter(([, re]) => re.test(String(canDo || '').toLocaleLowerCase(language === 'en' ? 'en' : 'et'))).map(([skill]) => skill);
 export function mainTask(lesson) {
   const tasks = tasksOf(lesson.sheets.transfer);
   return tasks.find((b) => b.tag?.main) || [...tasks].reverse().find((b) => ['S', 'W'].includes(skillOf(taskIdOf(b)))) || null;
 }
-function goalProblems(lessons, out) {
+function goalProblems(lessons, out, P = PROFILES.b1) {
   teaching(lessons).forEach((l) => {
     const goals = Object.keys(l.goals || {});
     const tasks = lessonTasks(l);
@@ -322,7 +341,7 @@ function goalProblems(lessons, out) {
     if (!main) out.push({ rule: 'V9', check: 'V9-main', lesson: l, phase: 'transfer', text: 'Kasuta: põhiülesanne (rääkimine või kirjutamine) puudub' });
     else {
       if (main.goal !== l.canDoGoal) out.push({ rule: 'V9', check: 'V9-main-goal', lesson: l, phase: 'transfer', text: `${main.id}: põhiülesande eesmärk on ${main.goal}, tunni oskus („Ma oskan…”) on ${l.canDoGoal}` });
-      const skills = canDoSkills(l.canDo);
+      const skills = canDoSkills(l.canDo, P.language);
       const skill = skillOf(taskIdOf(main));
       if (!skills.length) out.push({ rule: 'V9', check: 'V9-cando-verb', lesson: l, phase: '*', text: `„Ma oskan…” ei ütle, mida õpilane teeb (räägin, kirjutan, loen, saan kuuldust aru …): „${l.canDo.slice(0, 80)}”` });
       else if (!skills.includes(skill)) out.push({ rule: 'V9', check: 'V9-cando-skill', lesson: l, phase: 'transfer', text: `„Ma oskan…” on ${skills.join('/')}, Kasuta põhiülesanne ${main.id} on ${skill}` });
@@ -472,7 +491,8 @@ function speakingPlaceProblems(lessons, out, P) {
   });
 }
 
-// `profile`: 'a2' (the A2 course), 'b1' (the A2→B1 course), 'b2' (the B1→B2 course) or 'b2c1' (the B2→C1 course), see PROFILES
+// `profile`: 'a2' (the A2 course), 'b1' (the A2→B1 course), 'b2' (the B1→B2 course), 'b2c1' (the B2→C1 course) or 'enb2'
+// (English B1→B2), see PROFILES
 export function finalShapeProblems(lessons, { forms = null, profile = 'b1' } = {}) {
   const P = PROFILES[profile];
   if (!P) throw new Error(`tundmatu kursuse profiil ${profile} (${Object.keys(PROFILES).join(', ')})`);
@@ -483,10 +503,10 @@ export function finalShapeProblems(lessons, { forms = null, profile = 'b1' } = {
   harnoProblemsCourse(lessons, raw, P);
   instructionProblems(lessons, raw);
   itemProblems(lessons, raw);
-  goalProblems(lessons, raw);
+  goalProblems(lessons, raw, P);
   strandProblems(lessons, raw, P);
   reviewProblems(lessons, raw);
-  vocabProblems(lessons, raw, forms, P);
+  if (P.vocabulary !== false) vocabProblems(lessons, raw, forms, P);
   capProblems(lessons, raw);
   speakingPlaceProblems(lessons, raw, P);
   return raw.map(({ lesson, course, moduleOnly, ...p }) => ({

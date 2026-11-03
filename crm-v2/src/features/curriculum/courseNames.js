@@ -1,5 +1,5 @@
 // Course names by the TARGET level (owner 2026-10-29, like Harno / Töötukassa): „Eesti keel B1”, not „A2 → B1 õpitee”.
-// Display only — the internal ids (est-a2-b1-roadmap-v1, a2b1-…, course keys a2/b1/b2/c1/b2c1) never change.
+// Display only — the internal ids (est-a2-b1-roadmap-v1, a2b1-…, course keys a2/b1/b2/c1/b2c1/en/enb2) never change.
 // One source for every place a course name is shown: the course registry (admin pages, the worksheet badge „KeeleSepp ·
 // Eesti keel B1 · moodul N”), Õppevara groups, the student's „Minu kursus”, the textbook cover.
 export const COURSE_NAMES = {
@@ -13,6 +13,9 @@ export const COURSE_NAMES = {
   b2c1: { level: 'C1', sharesLevel: true, name: 'Eesti keel C1', subtitle: 'B2 tasemelt · Harno C1 eksamini', curriculumId: 'est-b2-c1-roadmap-v1' },
   enA2: { level: 'English A2', name: 'English A2', subtitle: '', curriculumId: 'en-a2-v1' },
   enB1: { level: 'English B1', name: 'English B1', subtitle: '', curriculumId: 'en-b1-v1' },
+  // English B1 → B2, to the English state exam (docs/COURSE_FINAL_SHAPE_EN_B2.md §1, course key enb2): its own course,
+  // not part of „English A1–B1” (course key en)
+  enB2: { level: 'English B2', name: 'English B2', subtitle: 'B1 tasemelt · inglise keele riigieksamini', curriculumId: 'en-b2-v1' },
 };
 // the English course as a whole (its modules carry English A2 / English B1)
 export const ENGLISH_COURSE_NAME = 'English A1–B1';

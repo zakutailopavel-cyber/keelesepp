@@ -17,7 +17,8 @@ const UPDATE = Boolean(env.UPDATE_ACADEMIC_BASELINE);
 const FILE = 'src/features/worksheet-generator/admin/course/academicValueBaseline.json'; // run from crm-v2
 const baseline = fs.existsSync(FILE) ? JSON.parse(fs.readFileSync(FILE, 'utf8')) : {};
 
-const COURSES = ['b1', 'b2'].map((course) => {
+// enb2: English B2 (English cast and wording, academicValue.js LEXICON.en); no modules yet
+const COURSES = ['b1', 'b2', 'enb2'].map((course) => {
   const modules = COURSE_MODULES.filter((mod) => mod.MODULE.course === course && !mod.MODULE.supplement);
   const groups = modules.map((mod) => [mod.MODULE.id, moduleAcademicProblems(moduleSheets(mod), { profile: course })]);
   groups.push([`course:${course}`, courseAcademicProblems(course, modules, moduleSheets)]);

@@ -5,7 +5,7 @@ import { groupItems } from '../engine/schema.js';
 // speaking amounts, scaffolding (word bank, solved example), recognition vs production, instruction length.
 // Returns { level, label, checks[], score, issues[] } — issues never block publishing (warning / tip only).
 import { BLOCKS } from '../engine/registry.js';
-import { HARNO, LEVELS, PHASE_TASKS, levelKey } from './levels.js';
+import { HARNO, LEVELS, PHASE_TASKS, harnoFor, levelKey } from './levels.js';
 import { VOCABULARY_FOR, wordLevel } from './levelVocabulary.js';
 
 const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).filter(Boolean);
@@ -26,11 +26,12 @@ const CYRILLIC = /[А-Яа-яЁё]/;
 const ABSOLUTE = /\b(alati|ainult|üksnes|mitte kunagi|mitte keegi|iial|kõik|kogu aeg|igal pool)\b/i;
 const answersOf = (line) => (String(line).match(/\[([^\]]*)\]/)?.[1] || '').split('|').map((x) => x.trim()).filter(Boolean);
 
-function solvabilityChecks(tasks, { key, norm: level, name, add }) {
+function solvabilityChecks(tasks, { key, norm: level, name, add, english = false }) {
   // the mother-tongue course fixes commas and capitals too: there sentences are compared as written
   const cmp = key.startsWith('EK') ? (v) => String(v || '').replace(/\s+/g, ' ').trim() : normText;
   const severity = EASY_LEVELS.has(key) ? 'tip' : 'warning';
-  const harno = HARNO[{ 'B2-': 'B2', B2: 'B2', C1: 'C1' }[key]];
+  // an English sheet of the B2 course meets the English state exam (3 options in multiple choice), not the Estonian B2
+  const harno = english && harnoFor(level.label, 'en')?.language === 'en' ? harnoFor(level.label, 'en') : HARNO[{ 'B2-': 'B2', B2: 'B2', C1: 'C1' }[key]];
   tasks.forEach((b) => {
     const d = b.data || {};
     if (b.type === 'choice') {
@@ -269,7 +270,7 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
     }
   }
 
-  solvabilityChecks(tasks, { key, norm, name, add });
+  solvabilityChecks(tasks, { key, norm, name, add, english: doc?.meta?.language === 'en' });
 
   // instructions the learner reads alone
   tasks.forEach((b) => {

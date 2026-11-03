@@ -19,6 +19,8 @@ const COURSES = [
   { course: 'a2', file: `${DIR}/finalShapeBaselineA2.json`, forms: ['A1', 'A2'] },
   // no modules yet (docs/COURSE_FINAL_SHAPE_C1.md §8): no groups until the first module is registered
   { course: 'b2c1', file: `${DIR}/finalShapeBaselineB2C1.json`, forms: ['A1', 'A2', 'B1', 'B2', 'C1'] },
+  // English B2 (docs/COURSE_FINAL_SHAPE_EN_B2.md): no modules yet; English sheets have no EKI word lists (V14 is off)
+  { course: 'enb2', file: `${DIR}/finalShapeBaselineEnB2.json`, forms: [] },
 ].map((c) => {
   const modules = COURSE_MODULES.filter((mod) => mod.MODULE.course === c.course && !mod.MODULE.supplement);
   const problems = finalShapeProblems(lessonsFromModules(modules, moduleSheets), { forms: formsOf(c.forms), profile: c.course });

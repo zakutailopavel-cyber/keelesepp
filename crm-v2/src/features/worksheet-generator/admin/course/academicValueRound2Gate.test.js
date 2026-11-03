@@ -18,11 +18,12 @@ const REPORT = env.ACADEMIC_ROUND2_REPORT;
 const FILE = 'src/features/worksheet-generator/admin/course/academicValueRound2Baseline.json'; // run from crm-v2
 const baseline = fs.existsSync(FILE) ? JSON.parse(fs.readFileSync(FILE, 'utf8')) : {};
 
-const MODULES = ['b1', 'b2'].flatMap((course) => COURSE_MODULES.filter((mod) => mod.MODULE.course === course && !mod.MODULE.supplement));
+// enb2: English B2 (academicValue.js LEXICON.en); its facts are compared with the English sheets only by wording
+const MODULES = ['b1', 'b2', 'enb2'].flatMap((course) => COURSE_MODULES.filter((mod) => mod.MODULE.course === course && !mod.MODULE.supplement));
 // the same fact in two modules of either course (B1 first, then B2): the problem sits with the later module's course
 const DUPS = factDuplicates(MODULES.map((mod) => ({ id: mod.MODULE.id, sheets: moduleSheets(mod) })));
 const courseOf = Object.fromEntries(MODULES.map((mod) => [mod.MODULE.id, mod.MODULE.course]));
-const COURSES = ['b1', 'b2'].map((course) => {
+const COURSES = ['b1', 'b2', 'enb2'].map((course) => {
   const modules = MODULES.filter((mod) => mod.MODULE.course === course);
   const groups = modules.map((mod) => [mod.MODULE.id, moduleRound2Problems(moduleSheets(mod))]);
   const dups = factDupProblems(DUPS).filter((p) => courseOf[p.moduleId] === course);

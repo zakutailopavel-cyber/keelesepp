@@ -39,3 +39,10 @@ Politeness: one request at a time, ≥ 1.1 s apart, retries with backoff. Synthe
 
 Limits: synthetic voices; numbers, abbreviations and foreign names are read as the TTS guesses. If a block sounds
 wrong, fix the transcript text (e.g. write the number in words) and run `build.mjs` again.
+
+## English (no voice yet)
+
+Only Estonian modules are planned (`plan.mjs` skips modules whose `MODULE.language` is not `et`). English listening texts
+(English A1–B1, English B2) are read by the teacher: owner 2026-11-03, no paid TTS. `admin/course/listeningAudio.js`
+`LISTENING_VOICES.en` is the hook for a later English voice (the once-only task EL1 and the 40-minute mock listening of
+English B2 need recorded audio to be exam-like, docs/COURSE_FINAL_SHAPE_EN_B2.md §9 item 10).

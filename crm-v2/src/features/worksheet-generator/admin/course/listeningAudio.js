@@ -6,6 +6,14 @@ import MANIFEST from './listeningAudio.json' with { type: 'json' };
 export const LISTENING_AUDIO = MANIFEST;
 export const listeningAudioFor = (lessonId, blockId) => MANIFEST[`${lessonId}:${blockId}`] || null;
 
+// The voice of each sheet language (tools/listening-audio plans only the languages that have one). English has none
+// (owner 2026-11-03, docs/COURSE_FINAL_SHAPE_EN_B2.md §9 item 10): the teacher reads the English transcripts, so an English
+// listening block keeps its „read by the teacher” note and no audio is attached; no paid service is used. The hook for a
+// later English voice: name it here, teach tools/listening-audio/plan.mjs the language (it now skips every module whose
+// MODULE.language is not 'et') and add the recordings to listeningAudio.json under the same „lessonId:blockId” keys.
+export const LISTENING_VOICES = Object.freeze({ et: 'TartuNLP Neurokõne', en: null });
+export const hasListeningVoice = (language = 'et') => Boolean(LISTENING_VOICES[language || 'et']);
+
 // „Õpetaja loeb X kaks korda / üks kord.” → „Kuula X kaks korda / üks kord.” — kuulama takes the partitive, so the
 // object changes form
 const PARTITIVE = {
