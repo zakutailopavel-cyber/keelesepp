@@ -180,7 +180,7 @@ test.describe('filling in on a phone', () => {
   });
   test('tracing writes on the phone window and keeps coordinates of the whole line', async ({ page }) => {
     await open(page, 'set=catalogue');
-    const row = page.locator('.ws-page [data-block^="b56_tracing"] .ws-trace-row').first();
+    const row = page.locator('.ws-page [data-block*="_tracing"] .ws-trace-row').first();
     await row.locator('button', { hasText: 'Edasi' }).tap();
     await row.scrollIntoViewIfNeeded();
     const svg = await row.locator('svg').boundingBox();
