@@ -2956,8 +2956,8 @@
   },
   "b1b2-072:072_t_helgi": {
     "src": "/audio/b1b2-072/072_t_helgi.mp3",
-    "seconds": 124.2,
-    "hash": "7eafa92228fe6f0b481c28e894432730bfeb36bf"
+    "seconds": 119.6,
+    "hash": "90ee77f2d925b321af38bc5095d79f9d8e9816a0"
   },
   "b1b2-073:073_d_chat": {
     "src": "/audio/b1b2-073/073_d_chat.mp3",
@@ -2976,18 +2976,18 @@
   },
   "b1b2-075:075_d_listen": {
     "src": "/audio/b1b2-075/075_d_listen.mp3",
-    "seconds": 37.5,
-    "hash": "52e309b45a17fe8bf5312ad756a9b5645b5d0a32"
+    "seconds": 36.8,
+    "hash": "48fc451154a8dc53b4dac14d5d31f3bdc2929544"
   },
   "b1b2-075:075_p_lc": {
     "src": "/audio/b1b2-075/075_p_lc.mp3",
-    "seconds": 160,
-    "hash": "43bedd3583f5ade15309b7a46a7b5c1d51a076d5"
+    "seconds": 150.8,
+    "hash": "122784b5a2125502e52ff094c5063cc3434658cb"
   },
   "b1b2-075:075_p_listen": {
     "src": "/audio/b1b2-075/075_p_listen.mp3",
-    "seconds": 160,
-    "hash": "43bedd3583f5ade15309b7a46a7b5c1d51a076d5"
+    "seconds": 150.8,
+    "hash": "122784b5a2125502e52ff094c5063cc3434658cb"
   },
   "b1b2-076:076_d_meeting": {
     "src": "/audio/b1b2-076/076_d_meeting.mp3",
