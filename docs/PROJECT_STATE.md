@@ -1,4 +1,4 @@
-## 2026-11-03 · agent/av-round2-gates — academic value round 2: gates, baseline and work order
+## 2026-11-03 · agent/av-round2-gates (PR #1031) — academic value round 2: gates, baseline and work order
 
 - Base: `main` 36aaff7 (after #1027), checked 2026-11-03; open PRs #1028 / #1029 (B2 modules 4 / 5, round 1) not touched. No module file changed.
 - Goal: turn the learner's-eye review of the finished B1 course into measurable gates with thresholds, without breaking the modules that passed round 1.
