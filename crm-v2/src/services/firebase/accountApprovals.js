@@ -46,8 +46,9 @@ export const accountApprovalsService = {
   },
   // two cards of one learner (the teacher's card and the self-registration card): preview, then merge into keepId
   // „Liida kaardid”: preview (apply false), then apply with confirmed; everything of the other card moves (2026-10-24)
-  mergeStudents({ keepId, sourceId, keepName = '', apply = false, confirmed = false }) {
-    return staffPost('/students/merge-cards', { keepId, sourceId, keepName, apply, confirmed });
+  // keepActive (true / false) chooses whether the merged card is active; left out, it is active when either card was
+  mergeStudents({ keepId, sourceId, keepName = '', keepActive, apply = false, confirmed = false }) {
+    return staffPost('/students/merge-cards', { keepId, sourceId, keepName, ...(typeof keepActive === 'boolean' ? { keepActive } : {}), apply, confirmed });
   },
   // „See on õpilane”: a parent account that is really the learner becomes the learner's own login on that card
   convertParentToStudent({ uid, studentId }) {

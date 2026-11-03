@@ -69,5 +69,12 @@ describe('merge two cards of one learner', () => {
     const [url, init] = globalThis.fetch.mock.calls[0];
     expect(url).toMatch(/\/students\/merge-cards$/);
     expect(JSON.parse(init.body)).toMatchObject({ keepId: 'keep-1', sourceId: 'dup-1', apply: false });
+    expect(JSON.parse(init.body)).not.toHaveProperty('keepActive');
+  });
+
+  it('sends the chosen archive state of the merged card only when it is chosen', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }));
+    await accountApprovalsService.mergeStudents({ keepId: 'keep-1', sourceId: 'old-1', keepActive: false, apply: true, confirmed: true });
+    expect(JSON.parse(globalThis.fetch.mock.calls[0][1].body)).toMatchObject({ keepId: 'keep-1', sourceId: 'old-1', keepActive: false, apply: true, confirmed: true });
   });
 });

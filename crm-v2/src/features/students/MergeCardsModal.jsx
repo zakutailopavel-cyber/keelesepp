@@ -30,6 +30,8 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
   const [otherId, setOtherId] = useState(initialSourceId);
   const [keepThis, setKeepThis] = useState(true);
   const [keepName, setKeepName] = useState('');
+  // the merged card's archive state: null = the server's default (active when either card is), else the admin's choice
+  const [keepActive, setKeepActive] = useState(null);
   const [preview, setPreview] = useState(null);
   const [checked, setChecked] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -47,12 +49,12 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
     if (!open || !otherId) return undefined;
     let alive = true;
     setBusy(true); setError(''); setChecked(false);
-    service.mergeStudents({ keepId, sourceId, ...(keepName ? { keepName } : {}) })
+    service.mergeStudents({ keepId, sourceId, ...(keepName ? { keepName } : {}), ...(keepActive === null ? {} : { keepActive }) })
       .then((result) => { if (alive) setPreview(result); })
       .catch((e) => { if (alive) { setPreview(null); setError(e.message); } })
       .finally(() => { if (alive) setBusy(false); });
     return () => { alive = false; };
-  }, [open, otherId, keepId, sourceId, keepName, service]);
+  }, [open, otherId, keepId, sourceId, keepName, keepActive, service]);
 
   const candidates = useMemo(() => (list || [])
     .filter((s) => s.id !== student.id && !s.mergedInto && !s.mergedIntoStudentId)
@@ -65,13 +67,19 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
   const merge = async () => {
     setBusy(true); setError('');
     try {
-      const result = await service.mergeStudents({ keepId, sourceId, ...(keepName ? { keepName } : {}), apply: true, confirmed: true });
+      const result = await service.mergeStudents({ keepId, sourceId, ...(keepName ? { keepName } : {}), ...(keepActive === null ? {} : { keepActive }), apply: true, confirmed: true });
       onMerged?.({ ...result, keepId, sourceId });
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
   const names = preview?.names || [];
   const chosenName = keepName || preview?.keepName || '';
   const kinds = Object.entries(preview?.totals || {});
+  // archived cards merge like active ones (2026-11-03); the state after the merge is shown and can be chosen
+  // the choice needs a server that reports activeAfter (an older server would ignore keepActive)
+  const archivedInvolved = typeof preview?.activeAfter === 'boolean' && (preview.keep?.active === false || preview.source?.active === false);
+  const activeAfter = keepActive ?? preview?.activeAfter ?? true;
+  const archivedMark = (card) => (card?.active === false ? ' · arhiveeritud' : '');
+  const resetPair = () => { setKeepName(''); setKeepActive(null); };
 
   return (
     <Modal open={open} title={`Liida kaardid: ${student.name}`} className="modal--enrollments" onClose={() => !busy && onClose()}
@@ -85,7 +93,7 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
             <div className="assignment-students" role="radiogroup" aria-label="Teine kaart">
               {candidates.map((s) => (
                 <label key={s.id} className={s.id === otherId ? 'is-selected' : ''}>
-                  <input type="radio" name="merge-source" checked={s.id === otherId} onChange={() => { setOtherId(s.id); setKeepName(''); setPreview(null); }} />
+                  <input type="radio" name="merge-source" checked={s.id === otherId} onChange={() => { setOtherId(s.id); resetPair(); setPreview(null); }} />
                   <span><strong>{s.name}</strong><small>{[s.teacher, s.subject, s.level, s.parentName].filter(Boolean).join(' · ') || s.id}</small>
                     <small>{studentAccess(s) === 'student' ? '✓ õpilase konto' : studentAccess(s) === 'parent' ? 'lapsevanema konto' : 'kontot pole'}{s.active === false ? ' · arhiveeritud' : ''}</small></span>
                 </label>
@@ -97,14 +105,18 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
         {otherId ? (
           <fieldset className="merge-cards__choice">
             <legend>Kumb kaart jääb alles?</legend>
-            <label><input type="radio" name="merge-keep" checked={keepThis} onChange={() => { setKeepThis(true); setKeepName(''); }} /> {student.name} <small>(see kaart)</small></label>
-            <label><input type="radio" name="merge-keep" checked={!keepThis} onChange={() => { setKeepThis(false); setKeepName(''); }} /> {other?.name || preview?.source?.name || 'teine kaart'} <small>(teine kaart)</small></label>
+            <label><input type="radio" name="merge-keep" checked={keepThis} onChange={() => { setKeepThis(true); resetPair(); }} /> {student.name} <small>(see kaart{archivedMark(student)})</small></label>
+            <label><input type="radio" name="merge-keep" checked={!keepThis} onChange={() => { setKeepThis(false); resetPair(); }} /> {other?.name || preview?.source?.name || 'teine kaart'} <small>(teine kaart{archivedMark(other)})</small></label>
           </fieldset>
         ) : null}
         {busy && !preview ? <LoadingState label="Kontrollin, mida liita…" /> : null}
         {preview ? (
           <div role="status" className="merge-cards__preview">
             {names.length > 1 ? <fieldset className="merge-cards__choice"><legend>Nimi pärast liitmist</legend>{names.map((name) => <label key={name}><input type="radio" name="merge-name" checked={chosenName === name} onChange={() => setKeepName(name)} /> {name}</label>)}<small>Teine nimi jääb otsinguks alles.</small></fieldset> : null}
+            {archivedInvolved ? <fieldset className="merge-cards__choice"><legend>Kaart pärast liitmist</legend>
+              <label><input type="radio" name="merge-active" checked={activeAfter} onChange={() => setKeepActive(true)} /> Aktiivne</label>
+              <label><input type="radio" name="merge-active" checked={!activeAfter} onChange={() => setKeepActive(false)} /> Arhiveeritud</label>
+              <small>Arhiveeritud kaardi tunnid, arved, maksed, tööd ja ajalugu tulevad üle nagu aktiivse kaardi omad.</small></fieldset> : null}
             {preview.conflicts?.length ? <div className="merge-cards__conflicts"><b>Vaata üle:</b><ul>{preview.conflicts.map((c) => <li key={c.code}>{c.label}</li>)}</ul></div> : null}
             <b>Alles jäävale kaardile tuleb:</b>
             <ul>
