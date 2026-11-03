@@ -1,6 +1,6 @@
 /* global ResizeObserver */
 import { IN_LESSON_LABEL, isInLesson } from './inLesson.js';
-import { Suspense, lazy, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { dragId, dropId, lastBlockOf } from './dragIds.js';
 import { BLOCKS, exampleAnswers, numberTasks } from './registry.js';
@@ -11,6 +11,7 @@ import { addItemLabel } from './addItem.js';
 import { editSource, findEditable } from './inlineEdit.js';
 import { openFloatingEditor } from './floatingEditor.js';
 import MarksLayer from './Marks.jsx';
+import FloatingNote from './FloatingNote.jsx';
 import { courseBadge } from '../../curriculum/courseNames.js';
 // Tiptap is loaded only when a teacher opens a text for formatting (students never download it)
 const RichInlineEditor = lazy(() => import('./RichInlineEditor.jsx'));
@@ -56,7 +57,13 @@ const RunHead = ({ meta, running }) => (
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, barSide = 'right', onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false, part = null, flow = false, entity = true }) {
+function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, pop = null, badge = null, extraClass = '', toolbar = null, barSide = 'right', onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false, part = null, flow = false, entity = true }) {
+  // the card itself: a floating note (FloatingNote) is placed next to it
+  const cardRef = useRef(null);
+  const setCardRef = useCallback((node) => {
+    cardRef.current = node;
+    if (typeof dndRef === 'function') dndRef(node);
+  }, [dndRef]);
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = themedTone(theme, block.tone || 'white', TONES[block.tone] || TONES.white);
@@ -99,7 +106,7 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
       data-entity={entity ? 'block' : undefined}
       data-block-id={entity ? block.id : undefined}
       onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : onPick ? () => onPick(block.id) : undefined}
-      ref={dndRef}
+      ref={setCardRef}
       {...(dndListeners || {})}
       onMouseEnter={mode === 'edit' && onHover ? () => onHover(block.id) : undefined}
       onMouseLeave={mode === 'edit' && onHover ? () => onHover(null) : undefined}
@@ -118,6 +125,9 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
       {/* body fills the rest of a block made taller than its content (see .is-tall in sheet.css) */}
       <div className="ws-body"><def.View data={d} ctx={blockCtx} id={block.id} /></div>
       {note ? <div className="ws-card-note">{note}</div> : null}
+      {/* a label over the card's edge, out of the flow: the card keeps its size */}
+      {badge && !continued ? <div className="ws-card-badge">{badge}</div> : null}
+      {pop && !continued && entity ? <FloatingNote anchorRef={cardRef} blockId={block.id} {...pop} /> : null}
       <MarksLayer block={block} flow={flow} editable={mode === 'edit' && Boolean(onMarks)} onChange={(next) => onMarks?.(block.id, next.marks)} />
       {addLabel ? <button type="button" className="ws-add" onClick={(e) => { e.stopPropagation(); onAddItem(block.id); }}>+ {addLabel}</button> : null}
       {active && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
@@ -218,7 +228,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockClasses = null, flow = false, running = null, lead = null }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockPopovers = null, blockBadges = null, blockClasses = null, flow = false, running = null, lead = null }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
@@ -238,6 +248,39 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   });
 
   const [hoverId, setHoverId] = useState(null);
+
+  // Notes that open on a task (the teacher's answer key, the right answers shown to the learner) float next to it
+  // (FloatingNote), one at a time: the one the user opened, else the task being typed in, else the task the teacher
+  // points at, else the task nearest the screen's middle; the others wait as a button. A note without its own onClose
+  // is closed here (and opens again from its button).
+  const popGroup = useMemo(() => new Map(), []);
+  const popIds = useMemo(() => Object.keys(blockPopovers || {}), [blockPopovers]);
+  const [closedPops, setClosedPops] = useState(() => new Set());
+  const [chosenPop, setChosenPop] = useState('');
+  const [typingIn, setTypingIn] = useState('');
+  const popKey = popIds.join(',');
+  useEffect(() => {
+    // a note that went away and comes back (the teacher hides and shows the answers again) opens again
+    setClosedPops((closed) => {
+      const kept = [...closed].filter((id) => popIds.includes(id));
+      return kept.length === closed.size ? closed : new Set(kept);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- popKey stands for popIds
+  }, [popKey]);
+  const popFor = (id) => {
+    const item = blockPopovers?.[id];
+    if (!item || mode === 'edit') return null;
+    const close = item.onClose || (() => { setClosedPops((closed) => new Set(closed).add(id)); setChosenPop((current) => (current === id ? '' : current)); });
+    return {
+      label: item.label || 'Märkus', chip: item.chip || '', ownClose: Boolean(item.ownClose), onClose: close, children: item.content,
+      group: popGroup, closed: closedPops.has(id), rank: chosenPop === id ? 0 : typingIn === id ? 1 : focusId === id ? 2 : 3,
+      onOpen: () => { setClosedPops((closed) => { if (!closed.has(id)) return closed; const next = new Set(closed); next.delete(id); return next; }); setChosenPop(id); },
+    };
+  };
+  const trackTyping = (event) => {
+    const id = event.target?.closest?.('[data-block]')?.dataset?.block || '';
+    if (id && id !== typingIn) { setTypingIn(id); setChosenPop(''); }
+  };
   // the formatted text being edited on the sheet (Tiptap over the text)
   const [rich, setRich] = useState(null);
 
@@ -392,14 +435,14 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key, measuring = false, part = null) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} flow={flow} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} part={part} entity={!measuring} />; })}
+      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} pop={measuring ? null : popFor(b.id)} badge={blockBadges?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} flow={flow} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} part={part} entity={!measuring} />; })}
     </div>
   );
 
   // the column: every block in its order on one long page; nothing to measure, nothing to split
   if (flow) {
     return (
-      <div ref={rootRef} className={`ws-root is-flow mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onKeyDown={mode === 'interactive' ? focusNextField : undefined}>
+      <div ref={rootRef} className={`ws-root is-flow mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onKeyDown={mode === 'interactive' ? focusNextField : undefined} onFocus={popIds.length ? trackTyping : undefined}>
         <div className="ws-page">
           {lead}
           <Header meta={doc.meta} />
@@ -410,7 +453,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   }
 
   return (
-    <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
+    <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onFocus={popIds.length ? trackTyping : undefined} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
       {/* hidden measuring layer: a page of its own (same width, padding, font and theme as the real pages), grown to
           its content, so a row is measured exactly as it will be drawn */}
       <div className="ws-measure" ref={measureRef} aria-hidden="true"><div className="ws-page-measure">

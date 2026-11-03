@@ -95,11 +95,11 @@ describe('live worksheet lesson', () => {
     expect(container.querySelector('.ws-page [data-block="g"]')).not.toBeNull();
     expect(screen.getByRole('status')).toHaveTextContent('Õpetaja avab ülesandeid ükshaaval');
     act(() => push({ liveStep: { on: true, open: ['g'] }, liveShown: ['g'] }));
-    expect(container.querySelector('.ws-page .ws-live-answers')).toHaveTextContent('1) hommikul / varahommikul');
+    expect(globalThis.document.querySelector('.ws-float-note[data-for-block="g"] .ws-live-answers')).toHaveTextContent('1) hommikul / varahommikul');
     expect(container.querySelector('.ws-page [data-block="g"] input').className).toContain('is-bad');
     act(() => push({ liveStep: { on: false, open: [] }, liveShown: [] }));
     expect(container.querySelector('.ws-page [data-block="tf"]')).not.toBeNull();
-    expect(container.querySelector('.ws-page .ws-live-answers')).toBeNull();
+    expect(globalThis.document.querySelector('.ws-live-answers')).toBeNull();
   });
 
   it('the teacher corrects a task during the lesson and the learner sheet follows', async () => {

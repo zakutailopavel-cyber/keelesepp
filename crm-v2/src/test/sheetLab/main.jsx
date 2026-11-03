@@ -38,16 +38,23 @@ async function loadDoc(set) {
   return buildCourseSheet(mod, lessonId, phase);
 }
 
-function fakeRepository(pushers) {
+function fakeRepository(pushers, assignment) {
   const log = { drafts: [], submits: [] };
   globalThis.__lab = { log, pushers };
   const failing = () => globalThis.__labFailSave === true;
+  // the teacher's live view (role=teacher): the assignment comes through the subscription, a click points at a task
+  let live = assignment;
+  const push = (patch) => { live = { ...live, ...patch }; pushers.forEach((onNext) => onNext(live)); };
   return {
+    setWorksheetLiveFocus: async ({ blockId }) => push({ liveFocus: { blockId } }),
+    setWorksheetShown: async ({ shown }) => push({ liveShown: shown }),
+    setWorksheetLiveStep: async ({ on, open }) => push({ liveStep: { on, open } }),
+    saveSubmissionAnnotations: async () => {},
     saveWorksheetDraft: async (payload) => { log.drafts.push(payload); if (failing()) throw new Error('Võrgu viga'); },
     submitWorksheet: async (payload) => { log.submits.push(payload); },
     saveSelfAssessment: async () => {},
     uploadRecording: async () => ({ url: 'https://example.invalid/rec.webm' }),
-    subscribeWorksheetAssignment: (_id, onNext) => { pushers.push(onNext); return () => {}; },
+    subscribeWorksheetAssignment: (_id, onNext) => { pushers.push(onNext); if (params.get('role') === 'teacher') globalThis.setTimeout(() => onNext(live), 0); return () => {}; },
   };
 }
 
@@ -62,13 +69,14 @@ function boardService() {
 
 function Lab({ assignment }) {
   const pushers = useMemo(() => [], []);
-  const repository = useMemo(() => fakeRepository(pushers), [pushers]);
+  const repository = useMemo(() => fakeRepository(pushers, assignment), [pushers, assignment]);
   const [open, setOpen] = useState(true);
-  const auth = useMemo(() => ({ user }), []);
+  const teacher = params.get('role') === 'teacher';
+  const auth = useMemo(() => ({ user: teacher ? { uid: 'lab-teacher', displayName: 'Õpetaja Lab', roles: ['teacher'] } : user }), [teacher]);
   if (params.get('room')) {
-    const content = <RoomWorksheetContent current={assignment} role="student" homework={repository} />;
+    const content = <RoomWorksheetContent current={assignment} role={teacher ? 'teacher' : 'student'} homework={repository} />;
     const service = boardService();
-    return <AuthContext.Provider value={auth}><div className="lab-room" style={{ position: 'fixed', inset: 0 }}><StudentBoard studentId="lab-student" user={user} variant="room" service={service} worksheet={{ id: assignment.id, title: 'Labori tööleht', content }} initialPageId="pg-1" /></div></AuthContext.Provider>;
+    return <AuthContext.Provider value={auth}><div className="lab-room" style={{ position: 'fixed', inset: 0 }}><StudentBoard studentId="lab-student" user={auth.user} staff={teacher} variant="room" service={service} worksheet={{ id: assignment.id, title: 'Labori tööleht', content }} initialPageId="pg-1" /></div></AuthContext.Provider>;
   }
   if (!open) return <button type="button" onClick={() => setOpen(true)}>Ava</button>;
   return <AuthContext.Provider value={auth}><WorksheetPlayer assignment={assignment} repository={repository} readOnly={params.get('readonly') === '1'} onClose={() => setOpen(false)} onSubmitted={() => {}} /></AuthContext.Provider>;

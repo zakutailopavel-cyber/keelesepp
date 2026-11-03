@@ -47,6 +47,8 @@
   .ws-narrow .ws-card-note { margin-top: 8px; }
   .ws-narrow .ws-live-answers { font-size: 15px; }
   .ws-narrow .ws-card.focused { outline-width: 3px; outline-offset: 1px; }
+  .ws-narrow .ws-root .ws-card-badge { top: -12px; right: 10px; }
+  .ws-narrow .ws-root .ws-card-badge .ws-live-shown { font-size: 15px; }
 
   /* ---- no text under 15 px; the sheet's point sizes are for paper ---- */
   .ws-narrow .ws-root :is(.ws-hint, .ws-cap, .ws-tip, .ws-notice, .ws-notice b, .ws-self-items, .ws-vocab-cols, .ws-passage, .ws-passage h4, .ws-table, .ws-table th, .ws-pill, .ws-q, .ws-chip, .ws-bank-w, .ws-ad p, .ws-ad h4, .ws-exampart p, .ws-exampart-facts, .ws-taskcard, .ws-taskcard-kind, .ws-who, .ws-cat-g b, .ws-cat-item, .ws-tags, .ws-audio b, .ws-audio.is-print, .ws-qr, .ws-dg-node, .ws-dg-node.is-main, .ws-dg-tl-what, .ws-dg-w, .ws-dg-q, .ws-dg-note, .ws-dg-list, .ws-dg-ch, .ws-dg-vt, .ws-dg2-topic, .ws-dg2-row-label, .ws-dg2-when, .ws-dg2-again, .ws-dg2-num, .ws-chart-title, .ws-chart-legend, .ws-chart-source, .ws-cw-clues, .ws-cw-clues h4, .ws-cw-clues small, .ws-fix__prompt, .ws-formrow > span, .ws-translation small, .ws-lettergrid span, .ws-wordlist, .ws-rubric, .ws-phrasebank, .ws-planning label, .ws-coloring-key, .ws-brush, .ws-profile-name, .ws-profile-facts, .ws-profile-sentences, .ws-count-icons, .ws-idea figcaption, figcaption, .ws-wordstrip span, .ws-trace-clear, .ws-examrubric th, .ws-examrubric th small, .ws-examrubric-total, .ws-readcard, .ws-mark, .ws-inlesson) { font-size: 16px; line-height: 1.4; }
