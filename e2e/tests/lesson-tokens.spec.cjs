@@ -29,7 +29,9 @@ test('a package invoice → payment → „Lisa tunnid” → a held lesson take
   await adminPage.goto('/finance');
   await adminPage.getByRole('button', { name: /Tunnipakett/ }).click();
   const dialog = adminPage.getByRole('dialog', { name: /Tunnipakett/ });
-  await dialog.getByLabel('Õpilane ja aine').selectOption(KAAREL);
+  await dialog.getByLabel('Õpilane', { exact: true }).selectOption(KAAREL);
+  // the package is for one course (#1051): Kaarel has only Estonian, which the dialog already chooses
+  await expect(dialog.getByLabel('Aine (kursus)')).toHaveValue('Eesti keel');
   await expect(dialog.getByText(PEOPLE.parent.name, { exact: true })).toBeVisible();
   await dialog.getByRole('button', { name: '9' }).click();
   await expect(dialog.getByRole('status')).toContainText('180,00');
