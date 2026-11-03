@@ -1,27 +1,4 @@
 {
- "b1b2-module-05": [
-  "*|*|av-examiner",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-021|*|av-know",
-  "b1b2-022|*|av-know",
-  "b1b2-022|*|av-voice",
-  "b1b2-023|*|av-know",
-  "b1b2-024|discover|av-fact"
- ],
- "b1b2-module-06": [
-  "*|*|av-article",
-  "*|*|av-examiner",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-026|*|av-know",
-  "b1b2-026|*|av-voice",
-  "b1b2-027|*|av-know",
-  "b1b2-029|*|av-know",
-  "b1b2-030|practice|av-fact",
-  "b1b2-030|transfer|av-fact",
-  "b1b2-030|transfer|av-fact"
- ],
  "b1b2-module-08": [
   "*|*|av-examiner",
   "*|*|av-opener",
