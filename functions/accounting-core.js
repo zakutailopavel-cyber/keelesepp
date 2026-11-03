@@ -116,7 +116,8 @@ const autoEntryId = (sourceKey) => `auto_${String(sourceKey).replace(/[^A-Za-z0-
 const isVoidedPayment = (payment) => payment.status === "voided" || payment.status === "void";
 // the money came through the company's bank: a bank import line, the 2026-10-15 LHV run (requestId lhv-<archive code>)
 // or LinkPay. Such a payment IS in the statement, so its invoice cannot leave the books while the payment is active.
-const isBankLinkedPayment = (payment) => Boolean(payment.bankTransactionId) || /^lhv-/.test(String(payment.requestId || "")) || payment.method === "linkpay";
+// Since 2026-11-03 also a payment linked to a line of the imported statement (bankStatementLineId).
+const isBankLinkedPayment = (payment) => Boolean(payment.bankTransactionId) || Boolean(payment.bankStatementLineId) || /^lhv-/.test(String(payment.requestId || "")) || payment.method === "linkpay";
 
 // what leaves the books with an invoice (source keys of automaticEntries) and what stands in the way
 function exclusionScope(invoice, { payments = [], creditNotes = [], payerCredits = [] } = {}) {
@@ -156,17 +157,133 @@ function exclusionBookConflicts({ invoices = [], payments = [] } = {}) {
     .map((payment) => ({ invoiceId: payment.invoiceId, invoiceNum: String(excluded.get(payment.invoiceId).num || payment.invoiceId), paymentId: payment.id, amountCents: cents(payment) }));
 }
 
+// ---- Pangapõhine raamatupidamine (owner 2026-11-03, docs/ACCOUNTING.md „Pangapõhine raamatupidamine”) ----
+// From accountingSettings/bankBooks.since on, only money that a bank line of the company account stands behind enters
+// the books:
+// - a receipt on 1010 (bank, card, other, LinkPay) is booked only when its payment is linked to the bank (a bank line of
+//   the statement — bankStatementLineId —, a bank transaction of the CSV flow — bankTransactionId —, the 2026-10-15 LHV
+//   run — requestId lhv-… — or LinkPay, whose card money the bank pays to the account); a payment typed by hand waits
+//   in the CRM (the student's balance is unchanged) until a bank line is linked to it;
+// - cash (1000, the school's own till) is booked as before; a payment from an advance (2500) is booked when the advance
+//   is in the books;
+// - a sales invoice (1200 / 3000) is booked only once one of its payments is booked (owner: „only invoices actually paid
+//   by invoice to the bank go to the books”); a credit note or a cancellation follows its invoice (booked when the
+//   invoice is in the books, also an older one booked before the rule);
+// - a payment void follows its payment, an advance (payer credit) its source (bank → yes; overpayment → its payment);
+//   a refund its advance.
+// Documents dated before `since` keep the earlier rule (every document booked). The sync never rewrites an entry that
+// exists, so earlier months change only through the accountant (docs: migration).
+const isBankLinked = isBankLinkedPayment;
+const paymentBookDate = (payment) => isoDate(payment.bankDate || payment.paidAt);
+
+function bankBooksRule({ invoices = [], payments = [], payerCredits = [], refunds = [], creditNotes = [] } = {}, { since, inBooks = new Set() } = {}) {
+  const paymentById = new Map(payments.map((p) => [p.id, p]));
+  const creditById = new Map(payerCredits.map((c) => [c.id, c]));
+  const noteById = new Map(creditNotes.map((n) => [n.id, n]));
+  const refundById = new Map(refunds.map((r) => [r.id, r]));
+  const memo = new Map();
+  const before = (date) => Boolean(date) && date < since;
+  function paymentBooked(payment, depth = 0) {
+    if (!payment || depth > 6) return false;
+    if (inBooks.has(`payment:${payment.id}`)) return true;
+    if (memo.has(payment.id)) return memo.get(payment.id);
+    let booked;
+    if (before(paymentBookDate(payment))) booked = true;
+    else if (payment.method === "cash") booked = true;
+    else if (payment.method === "credit" || payment.sourceCreditId) booked = creditBooked(creditById.get(payment.sourceCreditId), depth + 1);
+    else booked = isBankLinked(payment);
+    memo.set(payment.id, booked);
+    return booked;
+  }
+  function creditBooked(credit, depth = 0) {
+    if (!credit || depth > 6) return false;
+    if (inBooks.has(`credit:${credit.id}`)) return true;
+    if (credit.sourcePaymentId) return paymentBooked(paymentById.get(credit.sourcePaymentId), depth + 1);
+    if (credit.bankTransactionId) return true;
+    return before(isoDate(credit.createdAt || credit.receivedAt)) || credit.method === "cash";
+  }
+  // the first booked payment of an invoice (the date a sales entry of a locked invoice date moves to)
+  const firstBooked = new Map();
+  payments.forEach((p) => {
+    if (!p.invoiceId || isVoidedPayment(p) || !paymentBooked(p)) return;
+    const date = paymentBookDate(p);
+    const current = firstBooked.get(p.invoiceId);
+    if (!current || date < current) firstBooked.set(p.invoiceId, date);
+  });
+  const invoiceBooked = (invoice) => Boolean(invoice) && (inBooks.has(`invoice:${invoice.id}`) || before(isoDate(invoice.date)) || firstBooked.has(invoice.id));
+  const invoiceById = new Map(invoices.map((i) => [i.id, i]));
+  const allows = (sourceKey) => {
+    if (inBooks.has(sourceKey)) return true;
+    const at = sourceKey.indexOf(":");
+    const kind = sourceKey.slice(0, at);
+    const id = sourceKey.slice(at + 1);
+    if (kind === "invoice" || kind === "invoice-cancel") return invoiceBooked(invoiceById.get(id));
+    if (kind === "credit-note") {
+      const note = noteById.get(id);
+      return !note || invoiceBooked(invoiceById.get(note.invoiceId)) || (!invoiceById.has(note.invoiceId) && before(isoDate(note.date || note.createdAt)));
+    }
+    if (kind === "payment") return paymentBooked(paymentById.get(id));
+    if (kind === "payment-void") return paymentBooked(paymentById.get(id));
+    if (kind === "credit") return creditBooked(creditById.get(id));
+    if (kind === "refund") {
+      const refund = refundById.get(id);
+      return !refund || before(isoDate(refund.refundedAt)) || creditBooked(creditById.get(refund.creditId));
+    }
+    return true;
+  };
+  // what waits for the bank (Raamatupidamine „Ootab panka”): typed payments without a bank line, invoices without a
+  // booked payment
+  const waitingPayments = payments
+    .filter((p) => !isVoidedPayment(p) && cents(p) > 0 && !before(paymentBookDate(p)) && !paymentBooked(p))
+    .map((p) => ({ id: p.id, invoiceId: String(p.invoiceId || ""), invoiceNum: String(p.invoiceNum || ""), paidAt: paymentBookDate(p), amountCents: cents(p), method: String(p.method || ""), payerName: String(p.payerName || p.studentName || "") }));
+  const waitingInvoices = invoices.filter((i) => cents(i) > 0 && i.status !== "Tühistatud" && i.accountingExcluded !== true && !invoiceBooked(i)).length;
+  return { allows, firstBooked, invoiceBooked, paymentBooked, waiting: { payments: waitingPayments, invoices: waitingInvoices } };
+}
+
+// Migration overview (read-only, docs: „Pangapõhine raamatupidamine” → Migration): live automatic entries that the bank
+// rule would not have made, and receipts booked on another day than the bank's. Nothing is changed; the accountant
+// decides entry by entry (Kustuta / correct the date in the päevaraamat) after the owner's go.
+function bankBooksMigration({ invoices = [], payments = [] } = {}, entries = [], { from = "", to = "" } = {}) {
+  const paymentById = new Map(payments.map((p) => [p.id, p]));
+  const invoiceById = new Map(invoices.map((i) => [i.id, i]));
+  const live = entries.filter((e) => e.origin === "auto" && !e.deleted && (!from || String(e.date) >= from) && (!to || String(e.date) <= to));
+  const receiptOf = (p) => !isVoidedPayment(p) && (p.method === "cash" || p.method === "credit" || p.sourceCreditId || isBankLinked(p));
+  const item = (entry, extra) => ({ entryId: entry.id, number: entry.number || "", date: entry.date, totalCents: entry.totalCents || 0, description: entry.description || "", ...extra });
+  const withoutBank = [];
+  const dateDiffers = [];
+  const salesWithoutMoney = [];
+  live.forEach((entry) => {
+    const key = String(entry.sourceKey || "");
+    if (key.startsWith("payment:")) {
+      const payment = paymentById.get(key.slice(8));
+      if (!payment) return;
+      if (!isBankLinked(payment) && !["cash", "credit"].includes(payment.method) && !payment.sourceCreditId) withoutBank.push(item(entry, { paymentId: payment.id, invoiceNum: String(payment.invoiceNum || ""), payerName: String(payment.payerName || payment.studentName || ""), method: payment.method || "" }));
+      else if (payment.bankDate && payment.bankDate !== entry.date) dateDiffers.push(item(entry, { paymentId: payment.id, invoiceNum: String(payment.invoiceNum || ""), bankDate: payment.bankDate }));
+    } else if (key.startsWith("invoice:")) {
+      const invoice = invoiceById.get(key.slice(8));
+      if (!invoice) return;
+      if (!payments.some((p) => p.invoiceId === invoice.id && receiptOf(p))) salesWithoutMoney.push(item(entry, { invoiceId: invoice.id, invoiceNum: String(invoice.num || ""), status: invoice.status || "" }));
+    }
+  });
+  return { withoutBank, dateDiffers, salesWithoutMoney };
+}
+
 const paymentAccount = (method) => (method === "cash" ? POSTING_ACCOUNTS.cash : method === "credit" ? POSTING_ACCOUNTS.prepayments : POSTING_ACCOUNTS.bank);
 const methodLabel = { bank: "pangaülekanne", cash: "sularaha", credit: "ettemaksu arvelt", card: "kaardimakse", other: "muu" };
 
 // Automatic entries for the CRM's documents. Documents dated before the start date are already in the opening
 // balances; a later reversal of such a document is still booked on its own date.
-function automaticEntries({ invoices = [], creditNotes = [], payments = [], payerCredits = [], refunds = [], expenses = [], bankTransactions = [] } = {}, { startDate = ACCOUNTING_START_DATE } = {}) {
+// options.bankBooksSince: the start of the bank rule (accountingSettings/bankBooks.since, "" = off); options.inBooks: the
+// source keys of live automatic entries (an older document already booked keeps its credit notes and voids booked);
+// options.lockedThrough: a sales entry whose invoice date is locked moves to the date of its first booked payment.
+function automaticEntries({ invoices = [], creditNotes = [], payments = [], payerCredits = [], refunds = [], expenses = [], bankTransactions = [], bankStatementLines = [] } = {}, { startDate = ACCOUNTING_START_DATE, bankBooksSince = "", inBooks = new Set(), lockedThrough = "" } = {}) {
   const out = [];
   const excluded = excludedSourceKeys({ invoices, payments, creditNotes, payerCredits });
+  const rule = bankBooksSince ? bankBooksRule({ invoices, payments, payerCredits, refunds, creditNotes }, { since: bankBooksSince, inBooks }) : null;
   const add = (entry) => {
     if (!entry.date || entry.date < startDate) return;
     if (excluded.has(entry.sourceKey)) return;
+    if (rule && !rule.allows(entry.sourceKey)) return;
     const lines = entry.lines.filter((l) => l.debitCents || l.creditCents);
     if (!lines.length) return;
     out.push({ ...entry, lines, origin: "auto" });
@@ -183,9 +300,13 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
     const num = String(invoice.num || invoice.id);
     const customer = customerOf(invoice);
     if (amount > 0) {
+      // bank rule: an invoice dated in a locked period and paid later is booked on the day its money came
+      const invoiceDate = isoDate(invoice.date);
+      const paidDate = rule?.firstBooked.get(invoice.id) || "";
+      const movedDate = rule && lockedThrough && invoiceDate <= lockedThrough && paidDate > lockedThrough ? paidDate : "";
       add({
-        sourceKey: `invoice:${invoice.id}`, date: isoDate(invoice.date), documentType: "invoice", documentRef: num,
-        description: `Müügiarve ${num}${invoice.payerName || invoice.studentName ? ` · ${invoice.payerName || invoice.studentName}` : ""}`,
+        sourceKey: `invoice:${invoice.id}`, date: movedDate || invoiceDate, documentType: "invoice", documentRef: num,
+        description: `Müügiarve ${num}${invoice.payerName || invoice.studentName ? ` · ${invoice.payerName || invoice.studentName}` : ""}${movedDate ? ` (arve kuupäev ${invoiceDate.split("-").reverse().join(".")}, periood suletud)` : ""}`,
         lines: withPartner(simple(POSTING_ACCOUNTS.receivables, POSTING_ACCOUNTS.sales, amount), CUSTOMER_LINES, customer),
       });
     }
@@ -218,7 +339,8 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
     const account = paymentAccount(payment.method);
     const customer = customerOf(payment, invoiceById.get(payment.invoiceId));
     add({
-      sourceKey: `payment:${payment.id}`, date: isoDate(payment.paidAt), documentType: "payment", documentRef: String(payment.reference || ref),
+      // the day the money came to the bank (a linked bank line), else the date typed in the CRM
+      sourceKey: `payment:${payment.id}`, date: paymentBookDate(payment), documentType: "payment", documentRef: String(payment.reference || ref),
       description: `Laekumine arvele ${ref} (${methodLabel[payment.method] || payment.method || "pangaülekanne"})${payment.payerName ? ` · ${payment.payerName}` : ""}`,
       lines: withPartner(simple(account, POSTING_ACCOUNTS.receivables, amount), CUSTOMER_LINES, customer),
     });
@@ -289,6 +411,24 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
         lines: simple(paidFrom, expenseAccount, amount),
       });
     }
+  });
+
+  // a bank line without a CRM document, categorised by the accountant or by a rule (functions/bank-statement-core.js).
+  // Independent of the bank rule's start: the line is the bank itself.
+  bankStatementLines.forEach((bankLine) => {
+    if (bankLine.state !== "categorized" || !bankLine.category?.account || !(bankLine.amountCents > 0)) return;
+    const account = String(bankLine.category.account);
+    if (account === POSTING_ACCOUNTS.bank) return;
+    const amount = Math.round(Number(bankLine.amountCents));
+    const note = String(bankLine.category.note || "").slice(0, 200);
+    const who = bankLine.counterpartyName ? ` · ${bankLine.counterpartyName}` : "";
+    const text = bankLine.explanation ? ` · ${String(bankLine.explanation).slice(0, 80)}` : "";
+    add({
+      // a line categorised again after its entry was deleted gets a new key (`bank-line:<id>~2`), set by the server
+      sourceKey: String(bankLine.category.sourceKey || `bank-line:${bankLine.id}`), date: isoDate(bankLine.date), documentType: "bankLine", documentRef: String(bankLine.archiveId || bankLine.transactionRef || bankLine.id).slice(0, 120),
+      description: `${bankLine.category.label || (bankLine.direction === "D" ? "Väljamakse" : "Laekumine")}${who}${text}`.slice(0, 300),
+      lines: bankLine.direction === "D" ? [line(account, amount, 0, note), line(POSTING_ACCOUNTS.bank, 0, amount)] : [line(POSTING_ACCOUNTS.bank, amount, 0), line(account, 0, amount, note)],
+    });
   });
 
   return out.sort((a, b) => a.date.localeCompare(b.date) || a.sourceKey.localeCompare(b.sourceKey));
@@ -518,6 +658,10 @@ module.exports = {
   EXPENSE_ACCOUNTS,
   POSTING_ACCOUNTS,
   automaticEntries,
+  bankBooksMigration,
+  bankBooksRule,
+  isBankLinked,
+  isBankLinkedPayment,
   entryNumber,
   openingEntry,
   reversalOf,

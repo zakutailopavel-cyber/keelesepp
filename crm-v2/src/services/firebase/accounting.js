@@ -15,6 +15,32 @@ export const accountingService = {
       accounts: accounts.docs.map((item) => ({ code: item.id, ...item.data() })).sort((a, b) => a.code.localeCompare(b.code, 'et', { numeric: true })),
     };
   },
+  // Pangapõhine raamatupidamine (docs/ACCOUNTING.md): the statement lines, rules, closing balances and the start date
+  async loadBank() {
+    const { db } = requireFirebaseClient();
+    const [lines, rules, balances, setting, imports] = await Promise.all([
+      getDocs(collection(db, 'bankStatementLines')), getDocs(collection(db, 'bankRules')), getDocs(collection(db, 'bankStatementBalances')),
+      getDoc(doc(db, 'accountingSettings', 'bankBooks')), getDocs(collection(db, 'bankStatementImports')),
+    ]);
+    const list = (snap) => snap.docs.map((item) => ({ id: item.id, ...item.data() }));
+    return {
+      lines: list(lines),
+      rules: list(rules),
+      balances: Object.fromEntries(list(balances).map((b) => [b.id, b.closingCents])),
+      bankBooksSince: setting.exists() ? String(setting.data().since || '') : '',
+      imports: list(imports).sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))),
+    };
+  },
+  setBankBooks: (since, reason) => financeApi.setBankBooks(since, reason),
+  bankBooksReview: (from, to) => financeApi.bankBooksReview(from, to),
+  importBankStatement: (csv, fileName) => financeApi.importBankStatement(csv, fileName),
+  confirmBankLine: (lineId, choice) => financeApi.confirmBankLine(lineId, choice),
+  dismissBankLine: (lineId) => financeApi.dismissBankLine(lineId),
+  categorizeBankLine: (lineId, values) => financeApi.categorizeBankLine(lineId, values),
+  uncategorizeBankLine: (lineId, reason) => financeApi.uncategorizeBankLine(lineId, reason),
+  saveBankRule: (ruleId, rule) => financeApi.saveBankRule(ruleId, rule),
+  setBankClosingBalance: (month, closingCents) => financeApi.setBankClosingBalance(month, closingCents),
+  rematchBankLines: () => financeApi.rematchBankLines(),
   sync: () => financeApi.syncAccounting(),
   createEntry: (entry) => financeApi.createAccountingEntry(entry),
   reverse: (entryId, date, reason) => financeApi.reverseAccountingEntry(entryId, date, reason),

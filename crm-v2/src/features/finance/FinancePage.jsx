@@ -71,6 +71,8 @@ import FinancialAuditPanel from "./FinancialAuditPanel.jsx";
 import InvoiceNumberingPanel from "./InvoiceNumberingPanel.jsx";
 import EmailDeliveryPanel from "./EmailDeliveryPanel.jsx";
 import "./financeWorkspace.css";
+import PaymentDateField, { OverpaymentQuestion } from "./PaymentDateField.jsx";
+import { isOverpaymentRefusal, paymentRecordedNotice, recordPaymentWithAdvance } from "./paymentEntry.js";
 import MonthlyInvoicePanel from "./MonthlyInvoicePanel.jsx";
 import { useFinanceData } from "./useFinanceData.js";
 import InvoiceCorrectionDialog from "./InvoiceCorrectionDialog.jsx";
@@ -226,6 +228,7 @@ export default function FinancePage({
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [overpaymentQuestion, setOverpaymentQuestion] = useState("");
   const [success, setSuccess] = useState("");
   // „Krediteeri kogu arve” / „Paranda summa või maksja” (owner 2026-10-23)
   const [wholeCorrection, setWholeCorrection] = useState(null);
@@ -296,11 +299,13 @@ export default function FinancePage({
     setForm({ ...paymentDraft(invoice), requestId: financeRequestId("payment") });
     setErrors({});
     setActionError("");
+    setOverpaymentQuestion("");
   };
   const closeInvoice = () => {
     if (!saving) {
       setSelected(null);
       setPaymentMode(false);
+      setOverpaymentQuestion("");
     }
   };
   const openWholeCorrection = (mode) => {
@@ -331,32 +336,31 @@ export default function FinancePage({
       setWholeCorrectionBusy(false);
     }
   };
-  const submitPayment = async (event) => {
-    event.preventDefault();
+  const submitPayment = async (event, { allowOverpayment = false } = {}) => {
+    event?.preventDefault?.();
     const validation = validatePayment(form);
     setErrors(validation.errors);
     if (!validation.valid) return;
     setSaving(true);
     setActionError("");
+    setOverpaymentQuestion("");
     try {
-      await financeRepository.recordPayment(selected.id, {
+      // the same request id when confirming: the refused request wrote nothing
+      const outcome = await recordPaymentWithAdvance(financeRepository, selected.id, {
         ...form,
         amount: validation.amount,
+        ...(allowOverpayment ? { allowOverpayment: true } : {}),
       });
       const invoiceNumber =
         selected.num || selected.number || selected.invoiceNumber || "";
-      const createsOverpayment =
-        Math.round(validation.amount * 100) > invoiceBalanceCents(selected);
       setSelected(null);
       setPaymentMode(false);
-      setSuccess(
-        createsOverpayment
-          ? `Makse arvele ${invoiceNumber} registreeriti. Ava arve ja muuda ülejääk avansiks.`
-          : `Makse arvele ${invoiceNumber} on registreeritud.`,
-      );
+      setSuccess(paymentRecordedNotice(outcome, invoiceNumber));
       await state.reload();
     } catch (error) {
-      setActionError(error.message || "Makse registreerimine ebaõnnestus.");
+      // more than the open balance: the server asks first („Arve on juba makstud. …”)
+      if (isOverpaymentRefusal(error)) setOverpaymentQuestion(error.message);
+      else setActionError(error.message || "Makse registreerimine ebaõnnestus.");
     } finally {
       setSaving(false);
     }
@@ -1176,6 +1180,7 @@ export default function FinancePage({
                 onClick={() => {
                   setPaymentMode(false);
                   setActionError("");
+                  setOverpaymentQuestion("");
                 }}
               >
                 Tagasi
@@ -1527,21 +1532,20 @@ export default function FinancePage({
                 inputMode="decimal"
                 value={form.amount}
                 error={errors.amount}
-                onChange={(event) =>
-                  setForm({ ...form, amount: event.target.value })
-                }
+                onChange={(event) => {
+                  setOverpaymentQuestion("");
+                  setForm({ ...form, amount: event.target.value });
+                }}
                 required
               />
-              <Input
+              <PaymentDateField
                 id="payment-date"
-                label="Makse kuupäev"
-                type="date"
+                invoice={selected}
+                payments={payments.items}
                 value={form.paidAt}
+                method={form.method}
                 error={errors.paidAt}
-                onChange={(event) =>
-                  setForm({ ...form, paidAt: event.target.value })
-                }
-                required
+                onChange={(paidAt) => setForm({ ...form, paidAt })}
               />
               <Select
                 id="payment-method"
@@ -1579,11 +1583,16 @@ export default function FinancePage({
             {Number(String(form.amount || "").replace(",", ".")) >
             selectedBalance / 100 ? (
               <p className="payment-warning">
-                Sisestatud summa ületab arve jääki. Ülejääk jääb arvele
-                ülemaksena; pärast salvestamist ava arve ja vali „Muuda
-                avansiks“.
+                Sisestatud summa ületab arve jääki. Salvestamisel küsitakse,
+                kas registreerida ülemakse maksja ettemaksuna.
               </p>
             ) : null}
+            <OverpaymentQuestion
+              message={overpaymentQuestion}
+              busy={saving}
+              onConfirm={() => submitPayment(null, { allowOverpayment: true })}
+              onCancel={() => setOverpaymentQuestion("")}
+            />
             <p className="payment-confirmation">
               Kinnitamisel luuakse muutmatu maksekirje ja finantsauditi kanne.
               Kontrolli summat enne salvestamist.

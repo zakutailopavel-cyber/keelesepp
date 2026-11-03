@@ -82,6 +82,7 @@ const {
   validIsoDate,
   validIsoMonth,
 } = require("./finance-core");
+const paymentGuards = require("./payment-guards-core");
 const {
   GOOGLE_SCOPE_EVENTS_OWNED,
   hasCalendarWriteScope,
@@ -3004,7 +3005,9 @@ async function correctIssuedInvoice({ actor, invoiceId, amount, amountCents, pay
   });
 }
 
-async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, reference, note, requestId, cash = null, receivedByUid = "" }) {
+// entryGuards (a payment typed in by a person, /payments): refuse a duplicate and an unconfirmed overpayment
+// (payment-guards-core.js). LinkPay and the cash box allocation pass entryGuards: false — their money is already real.
+async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, reference, note, requestId, cash = null, receivedByUid = "", entryGuards = true, allowOverpayment = false }) {
   const mutationId = cleanRequestId(requestId);
   const amountCents = toCents(amount);
   const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
@@ -3032,6 +3035,9 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
     const invoice = invoiceSnap.data();
     if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot receive payments");
     const payments = await activeInvoicePayments(transaction, invoiceRef.id);
+    const guard = !entryGuards ? null : paymentGuards.assertPaymentAllowed({
+      invoice, payments, amountCents, paidAt: paymentDate, method: cleanText(method, 40) || "bank", nowIso, allowOverpayment,
+    });
     await assertFinancialDateOpen(transaction, paymentDate);
     // cash (owner 2026-10-18): the payment names who took the money; a cash payment typed in here (not from a cash
     // receipt) also puts the money into that person's cash box, so the box and the invoices agree
@@ -3064,6 +3070,8 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
       createdBy: actorData,
       requestId: mutationId,
       ...(cashHolder ? { receivedBy: cashHolder, cashReceiptId: cash?.receiptId || cashReceiptRef.id } : {}),
+      // the person confirmed „Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?”
+      ...(guard && amountCents > guard.balanceCents ? { overpaymentConfirmed: true } : {}),
     };
     const patch = invoiceFinancialPatch(invoice, [...payments, payment], nowIso);
 
@@ -4732,7 +4740,7 @@ async function allocateCashReceipt({ actor, receiptId, invoiceId }) {
   const result = await recordInvoicePayment({
     actor, invoiceId, amount: centsToAmount(receipt.amountCents), paidAt: receipt.receivedAt, method: "cash", reference: "Sularaha",
     note: `Sularaha: ${receipt.holderName || ""}${receipt.note ? ` · ${receipt.note}` : ""}`, requestId: `cashalloc_${ref.id}`.slice(0, 120),
-    cash: { receiptId: ref.id, holderUid: receipt.holderUid, holderName: receipt.holderName },
+    cash: { receiptId: ref.id, holderUid: receipt.holderUid, holderName: receipt.holderName }, entryGuards: false,
   });
   await ref.set({ status: "allocated", invoiceId: String(invoiceId), paymentId: result.payment.id, allocatedAt: new Date().toISOString(), allocatedBy: actorSnapshot(actor) }, { merge: true });
   return { ...result, receiptId: ref.id };
@@ -5651,7 +5659,7 @@ async function settleLinkpayPayment({ paymentReference, orderReference }) {
     try {
       const result = await recordInvoicePayment({
         actor: LINKPAY_ACTOR, invoiceId: attempt.invoiceId, amount: verdict.amountCents / 100, paidAt: appToday(nowIso),
-        method: "linkpay", reference: ref, note: `LHV LinkPay ${order}`, requestId: linkpay.paymentRequestId(ref),
+        method: "linkpay", reference: ref, note: `LHV LinkPay ${order}`, requestId: linkpay.paymentRequestId(ref), entryGuards: false,
       });
       paymentId = result.payment.id;
     } catch (error) {
@@ -9068,16 +9076,69 @@ async function writeNumberedEntries(transaction, entries, { actorData, nowIso })
   return written;
 }
 
-const accountingSourceCollections = ["invoices", "creditNotes", "payments", "payerCredits", "refunds", "expenses", "bankTransactions"];
+const accountingSourceCollections = ["invoices", "creditNotes", "payments", "payerCredits", "refunds", "expenses", "bankTransactions", "bankStatementLines"];
+
+// Pangapõhine raamatupidamine (docs/ACCOUNTING.md): accountingSettings/bankBooks { since: "YYYY-MM-DD" | "" } — from that
+// date on only money linked to the company's bank enters the books (accounting-core bankBooksRule). "" = off (every
+// document is booked as before).
+const bankBooksRef = () => db.collection("accountingSettings").doc("bankBooks");
+async function readBankBooksSince() {
+  const snap = await bankBooksRef().get();
+  return snap.exists ? String(snap.get("since") || "") : "";
+}
+
+async function setBankBooksSince({ actor, since, reason }) {
+  const date = String(since || "").trim();
+  if (date) {
+    validIsoDate(date, "since");
+    if (date < accountingCore.ACCOUNTING_START_DATE) throw httpError(400, `Kuupäev ei saa olla enne ${accountingCore.ACCOUNTING_START_DATE}.`);
+  }
+  const cleanReason = cleanText(reason, 300);
+  if (!cleanReason) throw httpError(400, "Põhjus on kohustuslik.");
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(bankBooksRef());
+    const before = snap.exists ? String(snap.get("since") || "") : "";
+    const record = { since: date, reason: cleanReason, updatedAt: nowIso, updatedBy: actorData };
+    transaction.set(bankBooksRef(), record);
+    transaction.create(db.collection("financialAudit").doc(), { entityType: "accountingSettings", entityId: "bankBooks", action: "accounting.bank_books.changed", before, after: date, reason: cleanReason, createdAt: nowIso, createdBy: actorData });
+    return { bankBooks: record };
+  });
+}
+
+let bankStatementService;
+function bankStatement() {
+  if (!bankStatementService) {
+    bankStatementService = require("./bank-statement").createBankStatementService({
+      db, httpError, actorSnapshot, cleanRequestId, allocateBankTransaction, assertAccountingDatesOpen, readAccountingLock, accountingAccounts,
+    });
+  }
+  return bankStatementService;
+}
+
+async function accountingSources() {
+  const snaps = await Promise.all(accountingSourceCollections.map(name => db.collection(name).get()));
+  return Object.fromEntries(accountingSourceCollections.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
+}
+
+// read-only: what the bank rule would not have booked among the existing automatic entries (migration of Jan–Oct 2026)
+async function bankBooksReview({ from, to }) {
+  const [sources, entriesSnap] = await Promise.all([accountingSources(), db.collection("accountingEntries").where("origin", "==", "auto").get()]);
+  const entries = entriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return accountingCore.bankBooksMigration(sources, entries, { from: String(from || ""), to: String(to || "") });
+}
 
 // creates the automatic entries that are still missing; existing entries are never changed
 async function syncAccountingEntries({ actor }) {
   await seedAccountingAccounts(actor);
-  const snaps = await Promise.all(accountingSourceCollections.map(name => db.collection(name).get()));
-  const sources = Object.fromEntries(accountingSourceCollections.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
-  const desired = accountingCore.automaticEntries(sources);
-  const existing = await db.collection("accountingEntries").where("origin", "==", "auto").select("sourceKey").get();
+  const sources = await accountingSources();
+  const existing = await db.collection("accountingEntries").where("origin", "==", "auto").select("sourceKey", "deleted").get();
   const known = new Set(existing.docs.map(doc => doc.get("sourceKey")));
+  // live automatic entries: a document already in the books keeps its credit notes, cancellations and voids booked
+  const inBooks = new Set(existing.docs.filter(doc => !doc.get("deleted")).map(doc => doc.get("sourceKey")));
+  const [bankBooksSince, lockedThrough] = await Promise.all([readBankBooksSince(), readAccountingLock()]);
+  const desired = accountingCore.automaticEntries(sources, { bankBooksSince, inBooks, lockedThrough });
   const missing = desired.filter(entry => !known.has(entry.sourceKey));
   const actorData = actorSnapshot(actor);
   let created = 0;
@@ -9096,7 +9157,9 @@ async function syncAccountingEntries({ actor }) {
   if (created) {
     await db.collection("financialAudit").add({ entityType: "accounting", action: "accounting.synced", createdEntries: created, createdAt: new Date().toISOString(), createdBy: actorData });
   }
-  return { created, total: desired.length, exclusionConflicts: accountingCore.exclusionBookConflicts(sources) };
+  // what waits for the bank (bank rule on): typed payments without a bank line, invoices without a booked payment
+  const waiting = bankBooksSince ? accountingCore.bankBooksRule(sources, { since: bankBooksSince, inBooks }).waiting : null;
+  return { created, total: desired.length, exclusionConflicts: accountingCore.exclusionBookConflicts(sources), bankBooksSince, waiting };
 }
 
 // the supplier cards named as partners on the lines of an entry (accounting-core validateEntry checks they exist)
@@ -10251,6 +10314,40 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
       res.json(await syncAccountingEntries({ actor }));
       return;
     }
+    // Pangapõhine raamatupidamine (owner 2026-11-03, functions/bank-statement.js, docs/ACCOUNTING.md)
+    if (req.path === "/accounting/bank-books") {
+      res.json(await setBankBooksSince({ actor, since: req.body?.since, reason: req.body?.reason }));
+      return;
+    }
+    if (req.path === "/accounting/bank-books/review") {
+      res.json(await bankBooksReview({ from: req.body?.from, to: req.body?.to }));
+      return;
+    }
+    if (req.path.startsWith("/bank-statement/")) {
+      const service = bankStatement();
+      const body = req.body || {};
+      if (req.path === "/bank-statement/import") {
+        const result = await service.importStatement({ actor, csv: body.csv, fileName: body.fileName, requestId: body.requestId });
+        res.status(result.idempotent ? 200 : 201).json(result);
+      } else if (req.path === "/bank-statement/confirm") {
+        res.json(await service.confirmLine({ actor, lineId: body.lineId, choice: body.choice, requestId: body.requestId }));
+      } else if (req.path === "/bank-statement/dismiss") {
+        res.json(await service.dismissLine({ lineId: body.lineId }));
+      } else if (req.path === "/bank-statement/categorize") {
+        res.json(await service.categorizeLine({ actor, lineId: body.lineId, account: body.account, label: body.label, note: body.note, rule: body.rule, requestId: body.requestId }));
+      } else if (req.path === "/bank-statement/uncategorize") {
+        res.json(await service.uncategorizeLine({ actor, lineId: body.lineId, reason: body.reason }));
+      } else if (req.path === "/bank-statement/rules") {
+        res.json(await service.saveRule({ actor, ruleId: body.ruleId, rule: body.rule }));
+      } else if (req.path === "/bank-statement/balance") {
+        res.json(await service.setClosingBalance({ actor, month: body.month, closingCents: body.closingCents }));
+      } else if (req.path === "/bank-statement/rematch") {
+        res.json(await service.rematch({ actor }));
+      } else {
+        throw httpError(404, "Not found");
+      }
+      return;
+    }
     if (req.path === "/accounting/entries") {
       const result = await createAccountingEntry({ actor, values: req.body?.entry, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
@@ -10526,6 +10623,7 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
         note: req.body?.note,
         requestId: req.body?.requestId,
         receivedByUid: req.body?.receivedByUid,
+        allowOverpayment: req.body?.allowOverpayment === true,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
@@ -12600,6 +12698,11 @@ exports.purgeCardTrash = functions
 
 // ChatGPT worksheet connector (functions/sheet-builder-api.js, docs/GPT_SHEET_BUILDER.md): a Custom GPT with its own key
 // reads the rules and blocks, checks a sheet and saves it as a lesson sheet's draft; an administrator manages the keys.
+// `cors: false`: the handler sets its own CORS headers (`*` for the public MCP / OAuth routes, the allow-list
+// elsewhere). firebase-functions 7.4 (not 7.2.5) wraps v1 onRequest in the `cors` middleware whenever the emulator turns on
+// its debug feature `enableCors` (it then answers preflights with the reflected origin and never reaches the
+// handler); `false` keeps the handler in charge there too. In production nothing changes (origin false = pass through).
 exports.sheetBuilderApi = functions.runWith({ timeoutSeconds: 60, memory: "512MB" }).https.onRequest(
+  { cors: false },
   require("./sheet-builder-api").createHandler({ db, requireAdminUser, actorSnapshot, applyCors }),
 );

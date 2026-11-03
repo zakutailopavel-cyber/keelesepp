@@ -890,3 +890,21 @@
 .tsd-total td { font-weight: 700; }
 .tsd-entry-title { border-top: 1px solid #eef1f4; margin-top: 6px !important; }
 .tsd-check { align-items: flex-start; display: flex; gap: 8px; }
+
+/* „Pank” — Pangapõhine raamatupidamine (BankBooksPanel.jsx) */
+.bank-books { display: grid; gap: 18px; }
+.bank-books h2 { margin: 0 0 4px; }
+.bank-books h3 { font-size: 1rem; margin: 0 0 8px; }
+.bank-books__head { align-items: flex-start; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
+.bank-books__actions, .bank-books__buttons, .bank-books__category, .bank-books__since, .bank-books__check-head { align-items: flex-end; display: flex; flex-wrap: wrap; gap: 8px; }
+.bank-books__category { align-items: center; }
+.bank-books__account { width: 76px; }
+.bank-books__totals { display: grid; gap: 4px 16px; grid-template-columns: max-content max-content; margin: 8px 0; }
+.bank-books__totals dt { color: #5b6573; }
+.bank-books__totals dd { font-variant-numeric: tabular-nums; margin: 0; }
+.bank-books__totals .is-ok { color: #1f7a4d; }
+.bank-books__totals .is-off { color: #b42318; font-weight: 700; }
+.bank-books__ok { align-items: center; color: #1f7a4d; display: flex; gap: 6px; }
+.bank-books__review { display: grid; gap: 10px; padding-left: 18px; }
+.bank-books details summary { cursor: pointer; }
+@media (max-width: 760px) { .bank-books__totals { grid-template-columns: 1fr 1fr; } }

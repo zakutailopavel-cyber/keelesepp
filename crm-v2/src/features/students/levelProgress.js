@@ -3,6 +3,7 @@
 // computed from his checked worksheets (autoSkills), speaking from his recorded lessons (petLessonStats), the
 // teacher's grades on the card where the computed value is missing, and the course of the next level (held with the teacher).
 import { AUTO_SKILLS } from './autoSkills.js';
+import { skillTasksPath } from './skillTasks.js';
 
 export { speakingFromStats } from './autoSkills.js';
 
@@ -13,9 +14,9 @@ const norm = (value) => { const level = String(value || '').toUpperCase().replac
 const ACTIONS = {
   Grammatika: { et: 'Harjuta iga päev „Minu vead”: sinu enda laused tundidest.', ru: 'Каждый день тренируй «Minu vead»: твои предложения с уроков.', to: '/student/vead' },
   Sõnavara: { et: 'Korda sõnakaarte iga päev 10 minutit.', ru: 'Повторяй карточки слов по 10 минут в день.', to: '/student/sonavara' },
-  Lugemine: { et: 'Tee õpetaja antud lehtede tekstid ja küsimused lõpuni.', ru: 'Дочитывай тексты в листах от учителя и отвечай на вопросы.', to: '/homework' },
-  Kuulamine: { et: 'Tee kodutöö etteütlused ja kuulamisülesanded.', ru: 'Делай диктанты и задания на слух из домашки.', to: '/homework' },
-  Kirjutamine: { et: 'Kirjuta kodutöö kirjad ja jutud lõpuni.', ru: 'Дописывай письма и рассказы в домашке.', to: '/homework' },
+  Lugemine: { et: 'Tee õpetaja antud lehtede tekstid ja küsimused lõpuni.', ru: 'Дочитывай тексты в листах от учителя и отвечай на вопросы.', to: skillTasksPath('Lugemine') },
+  Kuulamine: { et: 'Tee kodutöö etteütlused ja kuulamisülesanded.', ru: 'Делай диктанты и задания на слух из домашки.', to: skillTasksPath('Kuulamine') },
+  Kirjutamine: { et: 'Kirjuta kodutöö kirjad ja jutud lõpuni.', ru: 'Дописывай письма и рассказы в домашке.', to: skillTasksPath('Kirjutamine') },
   Rääkimine: { et: 'Räägi tunnis eesti keeles, ära mine üle vene keelele.', ru: 'Говори на уроке по-эстонски, не переходи на русский.', to: '/student' },
 };
 const FIRST = {

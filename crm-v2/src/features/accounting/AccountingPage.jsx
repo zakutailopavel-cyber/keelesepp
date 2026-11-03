@@ -12,6 +12,9 @@ import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import JournalDraft from './JournalDraft.jsx';
 import JournalGrid from './JournalGrid.jsx';
 import TsdPanel from './tsd/TsdPanel.jsx';
+import DuplicateReceiptsPanel from './DuplicateReceiptsPanel.jsx';
+import BankBooksPanel from './BankBooksPanel.jsx';
+import { possibleDuplicateReceipts } from './duplicateReceipts.js';
 import { SORT_LABELS, sortEntries } from './journalGrid.js';
 import './accounting.css';
 
@@ -26,9 +29,10 @@ const TABS = [
   ['statements', 'Bilanss ja kasumiaruanne'],
   ['chart', 'Kontoplaan'],
   ['suppliers', 'Tarnijad'],
+  ['bank', 'Pank'],
   ['tsd', 'TSD'],
 ];
-const NO_PERIOD_TABS = new Set(['chart', 'suppliers', 'tsd']);
+const NO_PERIOD_TABS = new Set(['chart', 'suppliers', 'tsd', 'bank']);
 const today = () => new Date().toISOString().slice(0, 10);
 const dateLabel = (value) => (value ? new Date(`${value}T12:00:00`).toLocaleDateString('et-EE') : '—');
 const blankLine = () => ({ account: '', debit: '', credit: '', note: '' });
@@ -86,6 +90,8 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
   const [exclusionWarning, setExclusionWarning] = useState('');
+  // bank rule on: what waits for a bank line (sync result, docs/ACCOUNTING.md „Pangapõhine raamatupidamine”)
+  const [waiting, setWaiting] = useState(null);
   const [error, setError] = useState('');
   const [dialog, setDialog] = useState(null);
   const [form, setForm] = useState({});
@@ -119,6 +125,8 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const trial = useMemo(() => trialBalance(entries, accounts, period), [entries, accounts, period]);
   const accountLedger = useMemo(() => ledger(entries, ledgerAccount, { ...period, partner: ledgerPartner }, accounts), [entries, ledgerAccount, period, ledgerPartner, accounts]);
   const statements = useMemo(() => ({ sheet: balanceSheet(entries, accounts, { to: period.to }), result: incomeStatement(entries, accounts, period) }), [entries, accounts, period]);
+  // read-only: a CRM receipt and a hand-made 1010 entry that look like the same money (duplicateReceipts.js)
+  const duplicateReceipts = useMemo(() => possibleDuplicateReceipts(entries), [entries]);
   const usedAccounts = useMemo(() => new Set(entries.flatMap((e) => (e.lines || []).map((l) => String(l.account)))), [entries]);
 
   const run = async (label, action, success) => {
@@ -139,6 +147,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
     const conflicts = result?.exclusionConflicts || [];
     if (conflicts.length) setExclusionWarning(`Pangamakse arvel, mis ei kuulu raamatupidamisse: ${[...new Set(conflicts.map((c) => c.invoiceNum))].join(', ')}. Raha on väljavõttes, kandeid ei tehta — tühista makse või taasta arve Finantsides.`);
     else setExclusionWarning('');
+    setWaiting(result?.waiting || null);
     return result;
   }, silent ? null : (result) => (result.created ? `Lisati ${result.created} automaatkannet.` : 'Kõik dokumendid on juba kirjendatud.'));
   // the registers are always up to date when the page opens: missing automatic entries are created once
@@ -259,6 +268,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
     {exclusionWarning ? <div className="form-error" role="alert">{exclusionWarning}</div> : null}
     {error && !dialog && !draft ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
     {!trial.balanced ? <div className="expense-error" role="alert">Käibeandmik ei ole tasakaalus — kontrolli kandeid.</div> : null}
+    <DuplicateReceiptsPanel pairs={duplicateReceipts} labels={labels} />
 
     <Card className="accounting-toolbar">
       <nav className="accounting-tabs" aria-label="Raamatupidamise registrid">{TABS.map(([id, label]) => <button key={id} type="button" className={tab === id ? 'is-active' : ''} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav>
@@ -363,6 +373,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
       </Card>
     </div> : null}
 
+    {tab === 'bank' ? <BankBooksPanel repository={repository} entries={allEntries} accounts={accounts} readOnly={readOnly} waiting={waiting} onBooksChanged={() => sync(true)} /> : null}
     {tab === 'tsd' ? <TsdPanel accounts={accounts} entries={state.data?.entries || []} lockedThrough={lockedThrough} canEdit={!readOnly} createEntry={repository.createEntry} onBooked={() => state.reload()} /> : null}
 
     {tab === 'chart' ? <Card className="accounting-card">

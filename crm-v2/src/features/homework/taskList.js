@@ -5,6 +5,7 @@ import { goalEntries } from '../worksheet-studio/engine/goals.js';
 import { sheetMinutes } from '../worksheet-studio/didactics/timeEstimate.js';
 import { localDate } from '../../utils/localDate.js';
 import { compareWorks, phaseOf } from './workOrder.js';
+import { sheetSkills } from '../students/skillTasks.js';
 
 export const TASK_STATE = Object.freeze({ TODO: 'todo', WAITING: 'waiting', REVIEWED: 'reviewed' });
 
@@ -201,6 +202,13 @@ export function mergeTasks({ homework = [], assignments = [], submissions = [], 
   });
   interactive.forEach((item) => tasks.push(fromInteractive(item)));
   return tasks;
+}
+
+// „Minu areng” → „Kuulamine 0% → 70%” opens only the tasks that move that skill: a sheet with such a task. Plain
+// homework and results without their sheet say nothing about the skill, so they are not shown under it.
+export function tasksForSkill(tasks = [], skill = '') {
+  if (!skill) return tasks;
+  return tasks.filter((task) => sheetSkills(sheetDoc(task.sheet) || sheetDoc(task.submission)).has(skill));
 }
 
 const stamp = (value) => (typeof value?.toMillis === 'function' ? value.toMillis() : Date.parse(value || '') || 0);

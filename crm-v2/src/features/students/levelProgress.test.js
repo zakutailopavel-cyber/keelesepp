@@ -22,6 +22,14 @@ describe('Minu areng', () => {
     const p = levelProgress({ level: 'A2', target: 'B1', computed, courseByLevel: { B1: { done: 80, total: 90, next: 'x' } } });
     expect(p.hints[0]).toMatchObject({ key: 'test', to: '/messages' });
   });
+  it('a weak or unknown skill on worksheets leads to the tasks of that skill, not to every task', () => {
+    const computed = [{ skill: 'Kuulamine', pct: 0 }, { skill: 'Grammatika', pct: 90 }];
+    const p = levelProgress({ level: 'B1', target: 'B2', computed });
+    expect(p.hints[0]).toMatchObject({ key: 'skill-Kuulamine', to: '/homework?oskus=Kuulamine' });
+    expect(p.hints[0].et).toContain('Kuulamine 0% → 70%');
+    const unknown = levelProgress({ level: 'B1', target: 'B2', computed: ['Rääkimine', 'Grammatika', 'Sõnavara'].map((skill) => ({ skill, pct: 90 })) });
+    expect(unknown.hints.find((h) => h.key === 'first-Lugemine')).toMatchObject({ to: '/homework?oskus=Lugemine' });
+  });
   it('target reached: 100%', () => {
     expect(levelProgress({ level: 'B1', target: 'B1' })).toMatchObject({ reached: true, overall: 100 });
   });

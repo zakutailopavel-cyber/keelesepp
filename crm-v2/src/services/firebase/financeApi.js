@@ -29,7 +29,10 @@ async function post(path, body) {
     body: JSON.stringify(body),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Finantspäring ebaõnnestus.");
+  if (!response.ok) {
+    // status and details (e.g. { code: "overpayment" } from /payments) let a dialog answer the refusal
+    throw Object.assign(new Error(data.error || "Finantspäring ebaõnnestus."), { status: response.status, details: data.details || null });
+  }
   return data;
 }
 
@@ -98,6 +101,37 @@ export const financeApi = {
   // bookkeeping (functions/accounting-core.js, docs/ACCOUNTING.md)
   syncAccounting() {
     return post("/accounting/sync", {});
+  },
+  // Pangapõhine raamatupidamine (docs/ACCOUNTING.md, functions/bank-statement.js)
+  setBankBooks(since, reason) {
+    return post("/accounting/bank-books", { since, reason });
+  },
+  bankBooksReview(from, to) {
+    return post("/accounting/bank-books/review", { from, to });
+  },
+  importBankStatement(csv, fileName) {
+    return post("/bank-statement/import", { csv, fileName, requestId: financeRequestId("bank_import") });
+  },
+  confirmBankLine(lineId, choice = null) {
+    return post("/bank-statement/confirm", { lineId, ...(choice ? { choice } : {}), requestId: financeRequestId("bank_confirm") });
+  },
+  dismissBankLine(lineId) {
+    return post("/bank-statement/dismiss", { lineId });
+  },
+  categorizeBankLine(lineId, { account, label, note, rule }) {
+    return post("/bank-statement/categorize", { lineId, account, label, note, ...(rule ? { rule } : {}), requestId: financeRequestId("bank_category") });
+  },
+  uncategorizeBankLine(lineId, reason) {
+    return post("/bank-statement/uncategorize", { lineId, reason });
+  },
+  saveBankRule(ruleId, rule) {
+    return post("/bank-statement/rules", { ruleId, rule });
+  },
+  setBankClosingBalance(month, closingCents) {
+    return post("/bank-statement/balance", { month, closingCents });
+  },
+  rematchBankLines() {
+    return post("/bank-statement/rematch", {});
   },
   createAccountingEntry(entry) {
     return post("/accounting/entries", { entry, requestId: financeRequestId("accounting_entry") });
@@ -271,6 +305,8 @@ export const financeApi = {
       note: payment.note || "",
       requestId: payment.requestId || financeRequestId("payment"),
       ...(payment.method === "cash" && payment.receivedByUid ? { receivedByUid: payment.receivedByUid } : {}),
+      // the person answered „Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?” with yes
+      ...(payment.allowOverpayment === true ? { allowOverpayment: true } : {}),
     });
   },
   // cash box (owner 2026-10-18): staff record cash they took and hand it over; an admin links it to an invoice
