@@ -186,7 +186,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const state = useAsyncData(async () => Promise.all([
     scheduleRepository.list(teacherOnly ? { teacherUid: user.uid } : {}),
     studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }),
-    groupRepository.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName } : {}),
+    groupRepository.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName, includeFormer: true } : {}),
     lessonRepository.listForCalendar(teacherOnly ? { teacherUid: user.uid } : {}),
     studentRepository.list({ status: 'archived', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }).then((result) => result.items || []).catch(() => []),
   ]), [groupRepository, lessonRepository, scheduleRepository, studentRepository, teacherOnly, user.displayName, user.uid]);
@@ -234,7 +234,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [scheduleEvents, students, groups, lessonRecords] = state.data;
   const studentMap = new Map(students.items.map((student) => [student.id, student]));
   const archivedIds = new Set((state.data[4] || []).filter((student) => student.active === false).map((student) => student.id));
-  const events = [...withLessonSubjects(withCurrentStudentNames(withoutArchivedFuture(scheduleEvents, archivedIds, toIsoDate()), studentMap), studentMap), ...groupCalendarEvents(groups)];
+  // a teacher also gets the groups he taught before a teacher change (`includeFormer`): only his own periods show
+  const groupEvents = groupCalendarEvents(groups).filter((event) => !teacherOnly || !event.teacherUid || event.teacherUid === user.uid);
+  const events = [...withLessonSubjects(withCurrentStudentNames(withoutArchivedFuture(scheduleEvents, archivedIds, toIsoDate()), studentMap), studentMap), ...groupEvents];
   const filteredEvents = filterCalendarEvents(events, filters);
   const withRecord = (item) => {
     const resolved = resolveOccurrenceRecord(item, lessonRecords);
@@ -327,6 +329,13 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     } catch (error) { setHeldState(''); setActionError(error.message || 'Tundi ei saanud märkida.'); }
   };
   const panelGroup = panelItem?.isGroup ? groups.find((group) => group.id === panelItem.groupId) : null;
+  // every member of a group lesson gets the attendance buttons (admin bug 2026-11-03: „не работает кнопка, которая
+  // подтверждает участие ученика”): the sheet listed only active cards, so archived members (groups filled from former
+  // students) and, for a teacher, members whose card belongs to another teacher had no buttons at all
+  const archivedMap = new Map((state.data[4] || []).map((student) => [student.id, student]));
+  const panelMembers = panelItem?.isGroup ? panelItem.studentIds
+    .map((id) => studentMap.get(id) || archivedMap.get(id) || { id, name: 'Õpilane (kaart ei ole nähtav)', level: '' })
+    .sort((left, right) => Number(left.active === false) - Number(right.active === false) || String(left.name).localeCompare(String(right.name), 'et')) : [];
 
   // ── teacher windows ──────────────────────────────────────────
   const availabilityList = availabilityState.data || [];
@@ -767,7 +776,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     if (!panelGroup || !panelItem?.occurrenceDate) return;
     setAttendanceSaving(studentId); setPanelError('');
     try {
-      const student = studentMap.get(studentId);
+      const student = studentMap.get(studentId) || archivedMap.get(studentId);
       await groupRepository.setAttendance(panelGroup, panelItem.groupLessonId, panelItem.occurrenceDate, studentId, status, user, student?.name || '');
       await state.reload();
     } catch (error) { setPanelError(error.message || 'Kohalolu märkimine ebaõnnestus.'); } finally { setAttendanceSaving(''); }
@@ -995,9 +1004,10 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           <AdminNoteBox key={`note-${panelItem.occurrenceId}`} item={panelItem} notes={notesFor(notesState.data || [], panelItem)} canEdit={isAdmin} onSave={(value) => saveAdminNote(panelItem, value)} />
           {panelItem.isGroup ? (
             <div className="attendance-sheet lp-attendance">
-              {students.items.filter((student) => panelItem.studentIds.includes(student.id)).map((student) => {
+              {panelMembers.length ? null : <p className="lp-hint">Selles tunnis ei ole õpilasi.</p>}
+              {panelMembers.map((student) => {
                 const current = panelItem.attendance?.[`${student.id}_${panelItem.occurrenceDate}`]?.status || '';
-                return <section key={student.id}><div><strong>{student.name}</strong><small>{student.level || 'Tase puudub'}</small></div><div><Button variant={current === 'coming' ? 'primary' : 'secondary'} disabled={Boolean(attendanceSaving)} onClick={() => setAttendance(student.id, 'coming')}>Kohal</Button><Button variant={current === 'absent' ? 'danger' : 'secondary'} disabled={Boolean(attendanceSaving)} onClick={() => setAttendance(student.id, 'absent')}>Puudub</Button><Button variant="secondary" disabled={Boolean(attendanceSaving)} onClick={() => setAttendance(student.id, current ? 'clear' : 'warned')}>{current ? 'Tühista märge' : 'Teatas'}</Button></div></section>;
+                return <section key={student.id}><div><strong>{student.name} {student.active === false ? <Badge tone="warning">Arhiveeritud</Badge> : null}</strong><small>{student.level || 'Tase puudub'}</small></div><div><Button variant={current === 'coming' ? 'primary' : 'secondary'} aria-pressed={current === 'coming'} disabled={Boolean(attendanceSaving)} onClick={() => setAttendance(student.id, 'coming')}>Kohal</Button><Button variant={current === 'absent' ? 'danger' : 'secondary'} aria-pressed={current === 'absent'} disabled={Boolean(attendanceSaving)} onClick={() => setAttendance(student.id, 'absent')}>Puudub</Button><Button variant={current === 'warned' ? 'primary' : 'secondary'} aria-pressed={current === 'warned'} disabled={Boolean(attendanceSaving)} onClick={() => setAttendance(student.id, 'warned')}>Teatas</Button>{current ? <Button variant="secondary" disabled={Boolean(attendanceSaving)} onClick={() => setAttendance(student.id, 'clear')}>Tühista märge</Button> : null}</div></section>;
               })}
             </div>
           ) : null}

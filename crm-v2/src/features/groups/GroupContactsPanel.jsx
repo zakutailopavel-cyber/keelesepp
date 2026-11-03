@@ -78,7 +78,8 @@ export default function GroupContactsPanel({ groups = [], user, saving = '', onA
     if (!group) return;
     const cards = picked.map((id) => state.data.cards.find((student) => student.id === id)).filter(Boolean);
     for (const student of cards) await onAddToGroup(group, student);
-    setMessage(`${cards.length} ${cards.length === 1 ? 'õpilane' : 'õpilast'} lisati gruppi „${group.name}”.`);
+    const archived = cards.filter((student) => student.active === false).length;
+    setMessage(`${cards.length} ${cards.length === 1 ? 'õpilane' : 'õpilast'} lisati gruppi „${group.name}”.${archived ? ` ${archived} neist on arhiivis: kaart jääb arhiivi ja on grupis märgitud „Arhiveeritud”, kuni kaart õpilase lehel taastatakse.` : ''}`);
     setPicked([]);
   };
 

@@ -64,6 +64,7 @@ export default function GroupFillDialog({ group, groups = [], students = [], sav
     {error ? <p className="action-error" role="alert">{error}</p> : null}
     {!result ? <LoadingState label="Otsin sobivaid õpilasi…" /> : <>
       <h3 className="group-fill__heading">Õpilased ({result.students.length})</h3>
+      <p className="form-hint">Siin on aktiivsed õpilased. Arhiveeritud õpilase lisad grupi „Halda” kaudu (märge „Arhiveeritud”) või „Kellele pakkuda grupitunde” → „Endised õpilased”.</p>
       {result.students.length ? <div className="group-fill__list">{result.students.slice(0, 25).map((item) => row(item, <Button variant="secondary" disabled={!free || Boolean(saving)} loading={saving === `student:${item.id}`} onClick={() => onAdd(item.id)}><UserPlus size={15} /> Lisa</Button>))}</div>
         : <EmptyState title="Sobivaid õpilasi ei leitud" description="Sama aine, sihtrühm ja lähedane tase puuduvad." />}
       <h3 className="group-fill__heading">Huvilised veebilehelt ({result.leads.length})</h3>
