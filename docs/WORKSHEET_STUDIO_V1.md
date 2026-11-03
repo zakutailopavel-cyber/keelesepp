@@ -154,6 +154,38 @@ Fixed:
 Not an app bug: in headless Chromium a download name with Estonian letters falls back to "download" (ASCII names keep
 the title); desktop browsers keep the name.
 
+## Media (2026-11-04, agent/constructor-media)
+
+- **Video block** (`engine/blocks/video.jsx`, model `engine/video.js`, group „Tekst ja heli”, task): `data = { title,
+  instruction, url, file, start, end, caption, questions }`. `url` = YouTube (watch / youtu.be / shorts / embed / live,
+  `t=` / `start=`) or Vimeo (incl. private hash, `#t=`); `file` = `{ src, storagePath, name, type, size }` uploaded via
+  `assets.video` → `uploadVideo` (`curriculum/ws_video_*`, private sheets `student-worksheets/<id>/`, ≤ 19 MB); a file
+  wins over a link. `start` / `end` accept „90”, „1:30”, „1m30s”; the start field wins over the link's time.
+  Player: YouTube from `www.youtube-nocookie.com/embed` (rel=0, start, end), Vimeo `player.vimeo.com/video/<id>?dnt=1`,
+  a file in `<video>` with `#t=start,end`; the iframe sets `referrerPolicy="strict-origin-when-cross-origin"` (the site
+  sends no cross-origin referrer and YouTube refuses an embed without one). Student (`interactive`) and live lesson
+  (`review`) show the player; builder (`edit`) and paper (`print`, and `@media print` of any screen) show a QR code
+  (`engine/qr.js`, own byte-mode / level-M encoder, checked module-for-module against libqrencode) + short watch link +
+  caption + part („0:30–1:20”). Questions use the reading block's format and scoring (`reading.answers/score`).
+  CSP (`crm-v2/vercel.json` `frame-src`): `https://www.youtube-nocookie.com https://player.vimeo.com` added.
+- **Images**: „Lõika / pööra” in every photo picker (`editor/ImageEdit.jsx`): rotate ±90°, crop free or 4:3 / 3:2 /
+  1:1 / 16:9 / 3:4 (math in `engine/image.js`: `fitCrop`, `moveCrop`, `resizeCrop`, `cropPixels`, `rotatedSize`). The
+  result is a new upload; a free crop sets the slot to `aspect: 'orig'` (the picture's own shape, `aspectRatioOf`), a
+  fixed one to its key. Needs Storage CORS (`storage.cors.json`), as the original cut does. Intake
+  (`prepareImageFile`): SVG uploaded unchanged; rasters ≤ 1600 px; transparency → PNG (a PNG needing no downscale is
+  uploaded unchanged), otherwise JPEG. Image block: „Alt-tekst” (`data.alt`), screen readers get `altText(data)` =
+  alt, else the caption without markup.
+- **Teacher voice** (`editor/VoiceRecorder.jsx`): „Salvesta hääl” in `AudioPick` (listening, dialogue, reading,
+  examlisten): MediaRecorder (webm/opus, mp4 on Safari), timer, max 10 min, preview, „Salvesta uuesti”, „Kasuta seda” →
+  `assets.audio` (the existing `uploadAudio`), stored as `data.audio` with `recorded: true`, file `haal-<ts>.<ext>`.
+  Hidden where the browser cannot record.
+- **Pank**: tabs Pildid / Heli / Video / Tekstid / Internet (the type filter). `mediaAssets` kinds `audio` and `video`
+  (fields `src`, `storagePath`, `title` = file name, `caption`); every uploaded / recorded / TTS sound and uploaded video
+  is added automatically (`bankMedia` in `WorksheetStudioPage.jsx`), the curriculum index also collects them
+  (`extractAssets(...).media`). From the bank a sound goes into the selected sound block or a new listening block, a
+  video into the selected video block or a new one. `firestore.rules` `mediaAssets`: kinds + `src` required for
+  image / audio / video (rules deploy needed).
+
 ## Not in this slice
 
 1. (done in slice 2)

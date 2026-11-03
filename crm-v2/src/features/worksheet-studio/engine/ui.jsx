@@ -1,12 +1,11 @@
-import { ASPECTS } from './schema.js';
 import { MARK_COLORS, MARK_TOKEN } from './richText.js';
-import { objectPosition } from './image.js';
+import { aspectRatioOf, objectPosition } from './image.js';
 import { Headphones } from 'lucide-react';
 
 // Shared visual primitives used by all blocks. Keep them dumb: blocks decide what to show.
 
 export function Photo({ img, aspect = '4:3', alt = '', children, className = '' }) {
-  const ratio = ASPECTS[aspect] || 4 / 3;
+  const ratio = aspectRatioOf(aspect, img);
   return (
     <div className={`ws-photo ${className}`} style={{ aspectRatio: String(ratio) }}>
       {img?.src ? (

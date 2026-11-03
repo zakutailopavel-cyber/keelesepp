@@ -17,7 +17,7 @@ export const EXPECTED = [
   'gaps', 'choice', 'truefalse', 'match', 'pictures', 'clock', 'cloze', 'formtext', 'insertion', 'picmatch', 'scenelabel', 'profiles', 'picrows',
   'dialogue', 'reading', 'listening', 'table', 'categorize', 'wordorder', 'writing', 'wordforms', 'errorfix',
   'transformation', 'dictation', 'translation', 'crossword', 'planning', 'guidedletter', 'rubric', 'diagram',
-  'adsmatch', 'examlisten', 'examwriting', 'examrubric', 'coloring', 'counting', 'letterhunt',
+  'adsmatch', 'examlisten', 'examwriting', 'examrubric', 'coloring', 'counting', 'letterhunt', 'video',
 ];
 
 export const doc = (blocks) => ({ ...sampleDocument(), blocks });
@@ -136,6 +136,10 @@ export const CASES = {
   reading: {
     data: { passage: 'Mari ärkab kell seitse.\n\nÕhtul ta loeb raamatut.', questions: 'Mis kell Mari ärkab? [kell seitse|7]\nMida Mari õhtul teeb? [loeb raamatut|loeb]\nMis sulle meeldib?\nKes on Mari?  [naine|tüdruk]' },
     right: () => ({ 0: 'Kell seitse.', 1: 'Ta loeb raamatut', 2: 'Mulle meeldib lugeda.', 3: 'tüdruk' }),
+  },
+  video: {
+    data: { url: 'https://youtu.be/dQw4w9WgXcQ?t=30', caption: 'Intervjuu turul', questions: 'Kus nad on? [turul|turg]\nMida nad ostavad? [kartuleid]\nMis sulle meeldib?' },
+    right: () => ({ 0: 'Nad on turul.', 1: 'kartuleid', 2: 'Mulle meeldib turg.' }),
   },
   listening: {
     data: { sentences: 'Mari ärkab kell [seitse|7].\nTa joob [kohvi].\nSiis ta [läheb] tööle.\nTööl on ta [kaheksa|8] tundi.' },
