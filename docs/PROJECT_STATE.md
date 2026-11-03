@@ -1,3 +1,12 @@
+## 2026-11-03 · agent/deps-crm-dev — crm-v2 dev dependencies (supersedes Dependabot #980)
+
+- Base: `main` 2f15942, checked 2026-11-03. Bumps (exact): `@testing-library/react` 16.3.2→16.3.3, `eslint-plugin-react-hooks` 7.0.1→7.1.1, `eslint-plugin-react-refresh` 0.5.2→0.5.7, `jsdom` 30.0.1→30.1.3; lockfile regenerated with npm.
+- Cause of the red CI on #980: `npm run lint` 81 errors. react-hooks 7.1 reports every React-Compiler diagnostic in a component (7.0 stopped at the first) and finds more `set-state-in-effect` / `refs` cases: set-state-in-effect 36, refs 34, purity 7, preserve-manual-memoization 3, immutability 1, use-memo 1, in 31 existing files (calendar, finance, live classroom, worksheets, students, settings). Tests and jsdom were fine.
+- Fix: `crm-v2/eslint.config.js` — a baseline block lists exactly those 31 files and sets only those six rules to `warn` there; every other file keeps them as errors. No app code changed (the project does not use the React Compiler; rewriting 31 files across unrelated areas does not belong in a dependency PR). Remove a file from the list when it is cleaned up.
+- Checks: `npx eslint src` 0 errors, 102 warnings; `npx vitest run` 445 files passed, 1 skipped (3351 tests passed, 12 skipped); `npx vite build` ok.
+- Production: none; dev dependencies only, nothing in the shipped bundle changes.
+- Next safe step: review and merge; Dependabot #980 closes by itself or is closed by the owner.
+
 ## 2026-11-03 · agent/group-fixes — Grupid: edit a group, lesson length, attendance for every member, archived students (admin #bug #groups)
 
 - Base: `main` e1ca801, merged with `origin/main` 75fafd7 (#1050) before the PR, checked 2026-11-03. Four admin bugs (Russian): group data not editable after creation; the button confirming a student's participation did not work; no lesson length when adding a group lesson; archived students not addable / „sometimes there, sometimes not”.
