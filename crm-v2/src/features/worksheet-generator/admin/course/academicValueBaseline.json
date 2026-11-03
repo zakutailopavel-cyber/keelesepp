@@ -1,46 +1,4 @@
 {
- "b1b2-module-08": [
-  "*|*|av-examiner",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-036|*|av-know",
-  "b1b2-036|*|av-voice",
-  "b1b2-037|*|av-know",
-  "b1b2-037|*|av-opinion",
-  "b1b2-038|*|av-know",
-  "b1b2-038|practice|av-fact",
-  "b1b2-039|*|av-know",
-  "b1b2-040|transfer|av-fact"
- ],
- "b1b2-module-11": [
-  "*|*|av-article",
-  "*|*|av-examiner",
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-051|*|av-know",
-  "b1b2-053|*|av-know",
-  "b1b2-053|*|av-voice",
-  "b1b2-054|*|av-know",
-  "b1b2-054|practice|av-fact",
-  "b1b2-055|practice|av-fact",
-  "b1b2-055|transfer|av-fact"
- ],
- "b1b2-module-12": [
-  "*|*|av-examiner",
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-056|*|av-know",
-  "b1b2-056|*|av-voice",
-  "b1b2-057|*|av-know",
-  "b1b2-057|practice|av-fact",
-  "b1b2-058|*|av-know",
-  "b1b2-059|*|av-know",
-  "b1b2-060|discover|av-fact",
-  "b1b2-060|practice|av-fact",
-  "b1b2-060|transfer|av-fact"
- ],
  "b1b2-module-13": [
   "*|*|av-article",
   "*|*|av-opener",
