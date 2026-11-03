@@ -9076,16 +9076,69 @@ async function writeNumberedEntries(transaction, entries, { actorData, nowIso })
   return written;
 }
 
-const accountingSourceCollections = ["invoices", "creditNotes", "payments", "payerCredits", "refunds", "expenses", "bankTransactions"];
+const accountingSourceCollections = ["invoices", "creditNotes", "payments", "payerCredits", "refunds", "expenses", "bankTransactions", "bankStatementLines"];
+
+// Pangapõhine raamatupidamine (docs/ACCOUNTING.md): accountingSettings/bankBooks { since: "YYYY-MM-DD" | "" } — from that
+// date on only money linked to the company's bank enters the books (accounting-core bankBooksRule). "" = off (every
+// document is booked as before).
+const bankBooksRef = () => db.collection("accountingSettings").doc("bankBooks");
+async function readBankBooksSince() {
+  const snap = await bankBooksRef().get();
+  return snap.exists ? String(snap.get("since") || "") : "";
+}
+
+async function setBankBooksSince({ actor, since, reason }) {
+  const date = String(since || "").trim();
+  if (date) {
+    validIsoDate(date, "since");
+    if (date < accountingCore.ACCOUNTING_START_DATE) throw httpError(400, `Kuupäev ei saa olla enne ${accountingCore.ACCOUNTING_START_DATE}.`);
+  }
+  const cleanReason = cleanText(reason, 300);
+  if (!cleanReason) throw httpError(400, "Põhjus on kohustuslik.");
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(bankBooksRef());
+    const before = snap.exists ? String(snap.get("since") || "") : "";
+    const record = { since: date, reason: cleanReason, updatedAt: nowIso, updatedBy: actorData };
+    transaction.set(bankBooksRef(), record);
+    transaction.create(db.collection("financialAudit").doc(), { entityType: "accountingSettings", entityId: "bankBooks", action: "accounting.bank_books.changed", before, after: date, reason: cleanReason, createdAt: nowIso, createdBy: actorData });
+    return { bankBooks: record };
+  });
+}
+
+let bankStatementService;
+function bankStatement() {
+  if (!bankStatementService) {
+    bankStatementService = require("./bank-statement").createBankStatementService({
+      db, httpError, actorSnapshot, cleanRequestId, allocateBankTransaction, assertAccountingDatesOpen, readAccountingLock, accountingAccounts,
+    });
+  }
+  return bankStatementService;
+}
+
+async function accountingSources() {
+  const snaps = await Promise.all(accountingSourceCollections.map(name => db.collection(name).get()));
+  return Object.fromEntries(accountingSourceCollections.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
+}
+
+// read-only: what the bank rule would not have booked among the existing automatic entries (migration of Jan–Oct 2026)
+async function bankBooksReview({ from, to }) {
+  const [sources, entriesSnap] = await Promise.all([accountingSources(), db.collection("accountingEntries").where("origin", "==", "auto").get()]);
+  const entries = entriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return accountingCore.bankBooksMigration(sources, entries, { from: String(from || ""), to: String(to || "") });
+}
 
 // creates the automatic entries that are still missing; existing entries are never changed
 async function syncAccountingEntries({ actor }) {
   await seedAccountingAccounts(actor);
-  const snaps = await Promise.all(accountingSourceCollections.map(name => db.collection(name).get()));
-  const sources = Object.fromEntries(accountingSourceCollections.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
-  const desired = accountingCore.automaticEntries(sources);
-  const existing = await db.collection("accountingEntries").where("origin", "==", "auto").select("sourceKey").get();
+  const sources = await accountingSources();
+  const existing = await db.collection("accountingEntries").where("origin", "==", "auto").select("sourceKey", "deleted").get();
   const known = new Set(existing.docs.map(doc => doc.get("sourceKey")));
+  // live automatic entries: a document already in the books keeps its credit notes, cancellations and voids booked
+  const inBooks = new Set(existing.docs.filter(doc => !doc.get("deleted")).map(doc => doc.get("sourceKey")));
+  const [bankBooksSince, lockedThrough] = await Promise.all([readBankBooksSince(), readAccountingLock()]);
+  const desired = accountingCore.automaticEntries(sources, { bankBooksSince, inBooks, lockedThrough });
   const missing = desired.filter(entry => !known.has(entry.sourceKey));
   const actorData = actorSnapshot(actor);
   let created = 0;
@@ -9104,7 +9157,9 @@ async function syncAccountingEntries({ actor }) {
   if (created) {
     await db.collection("financialAudit").add({ entityType: "accounting", action: "accounting.synced", createdEntries: created, createdAt: new Date().toISOString(), createdBy: actorData });
   }
-  return { created, total: desired.length, exclusionConflicts: accountingCore.exclusionBookConflicts(sources) };
+  // what waits for the bank (bank rule on): typed payments without a bank line, invoices without a booked payment
+  const waiting = bankBooksSince ? accountingCore.bankBooksRule(sources, { since: bankBooksSince, inBooks }).waiting : null;
+  return { created, total: desired.length, exclusionConflicts: accountingCore.exclusionBookConflicts(sources), bankBooksSince, waiting };
 }
 
 // the supplier cards named as partners on the lines of an entry (accounting-core validateEntry checks they exist)
@@ -10257,6 +10312,40 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     }
     if (req.path === "/accounting/sync") {
       res.json(await syncAccountingEntries({ actor }));
+      return;
+    }
+    // Pangapõhine raamatupidamine (owner 2026-11-03, functions/bank-statement.js, docs/ACCOUNTING.md)
+    if (req.path === "/accounting/bank-books") {
+      res.json(await setBankBooksSince({ actor, since: req.body?.since, reason: req.body?.reason }));
+      return;
+    }
+    if (req.path === "/accounting/bank-books/review") {
+      res.json(await bankBooksReview({ from: req.body?.from, to: req.body?.to }));
+      return;
+    }
+    if (req.path.startsWith("/bank-statement/")) {
+      const service = bankStatement();
+      const body = req.body || {};
+      if (req.path === "/bank-statement/import") {
+        const result = await service.importStatement({ actor, csv: body.csv, fileName: body.fileName, requestId: body.requestId });
+        res.status(result.idempotent ? 200 : 201).json(result);
+      } else if (req.path === "/bank-statement/confirm") {
+        res.json(await service.confirmLine({ actor, lineId: body.lineId, choice: body.choice, requestId: body.requestId }));
+      } else if (req.path === "/bank-statement/dismiss") {
+        res.json(await service.dismissLine({ lineId: body.lineId }));
+      } else if (req.path === "/bank-statement/categorize") {
+        res.json(await service.categorizeLine({ actor, lineId: body.lineId, account: body.account, label: body.label, note: body.note, rule: body.rule, requestId: body.requestId }));
+      } else if (req.path === "/bank-statement/uncategorize") {
+        res.json(await service.uncategorizeLine({ actor, lineId: body.lineId, reason: body.reason }));
+      } else if (req.path === "/bank-statement/rules") {
+        res.json(await service.saveRule({ actor, ruleId: body.ruleId, rule: body.rule }));
+      } else if (req.path === "/bank-statement/balance") {
+        res.json(await service.setClosingBalance({ actor, month: body.month, closingCents: body.closingCents }));
+      } else if (req.path === "/bank-statement/rematch") {
+        res.json(await service.rematch({ actor }));
+      } else {
+        throw httpError(404, "Not found");
+      }
       return;
     }
     if (req.path === "/accounting/entries") {

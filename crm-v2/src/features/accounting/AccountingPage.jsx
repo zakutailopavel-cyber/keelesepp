@@ -13,6 +13,7 @@ import JournalDraft from './JournalDraft.jsx';
 import JournalGrid from './JournalGrid.jsx';
 import TsdPanel from './tsd/TsdPanel.jsx';
 import DuplicateReceiptsPanel from './DuplicateReceiptsPanel.jsx';
+import BankBooksPanel from './BankBooksPanel.jsx';
 import { possibleDuplicateReceipts } from './duplicateReceipts.js';
 import { SORT_LABELS, sortEntries } from './journalGrid.js';
 import './accounting.css';
@@ -28,9 +29,10 @@ const TABS = [
   ['statements', 'Bilanss ja kasumiaruanne'],
   ['chart', 'Kontoplaan'],
   ['suppliers', 'Tarnijad'],
+  ['bank', 'Pank'],
   ['tsd', 'TSD'],
 ];
-const NO_PERIOD_TABS = new Set(['chart', 'suppliers', 'tsd']);
+const NO_PERIOD_TABS = new Set(['chart', 'suppliers', 'tsd', 'bank']);
 const today = () => new Date().toISOString().slice(0, 10);
 const dateLabel = (value) => (value ? new Date(`${value}T12:00:00`).toLocaleDateString('et-EE') : '—');
 const blankLine = () => ({ account: '', debit: '', credit: '', note: '' });
@@ -88,6 +90,8 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
   const [exclusionWarning, setExclusionWarning] = useState('');
+  // bank rule on: what waits for a bank line (sync result, docs/ACCOUNTING.md „Pangapõhine raamatupidamine”)
+  const [waiting, setWaiting] = useState(null);
   const [error, setError] = useState('');
   const [dialog, setDialog] = useState(null);
   const [form, setForm] = useState({});
@@ -143,6 +147,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
     const conflicts = result?.exclusionConflicts || [];
     if (conflicts.length) setExclusionWarning(`Pangamakse arvel, mis ei kuulu raamatupidamisse: ${[...new Set(conflicts.map((c) => c.invoiceNum))].join(', ')}. Raha on väljavõttes, kandeid ei tehta — tühista makse või taasta arve Finantsides.`);
     else setExclusionWarning('');
+    setWaiting(result?.waiting || null);
     return result;
   }, silent ? null : (result) => (result.created ? `Lisati ${result.created} automaatkannet.` : 'Kõik dokumendid on juba kirjendatud.'));
   // the registers are always up to date when the page opens: missing automatic entries are created once
@@ -368,6 +373,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
       </Card>
     </div> : null}
 
+    {tab === 'bank' ? <BankBooksPanel repository={repository} entries={allEntries} accounts={accounts} readOnly={readOnly} waiting={waiting} onBooksChanged={() => sync(true)} /> : null}
     {tab === 'tsd' ? <TsdPanel accounts={accounts} entries={state.data?.entries || []} lockedThrough={lockedThrough} canEdit={!readOnly} createEntry={repository.createEntry} onBooked={() => state.reload()} /> : null}
 
     {tab === 'chart' ? <Card className="accounting-card">
