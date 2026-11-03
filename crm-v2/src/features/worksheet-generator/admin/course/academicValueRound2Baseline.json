@@ -189,13 +189,6 @@
   "b1b2-082|*|av-boltedon",
   "b1b2-084|*|av-boltedon"
  ],
- "b1b2-module-18": [
-  "*|*|av-kasuta2",
-  "*|*|av-retell2",
-  "b1b2-086|*|av-boltedon",
-  "b1b2-087|*|av-boltedon",
-  "b1b2-088|*|av-boltedon"
- ],
  "course:b2": [
   "*|*|av-thinkvary",
   "b1b2-002|transfer|av-fact-dup",
