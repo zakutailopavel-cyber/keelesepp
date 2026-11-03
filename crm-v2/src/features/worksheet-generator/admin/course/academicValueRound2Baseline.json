@@ -1,0 +1,250 @@
+{
+ "a2b1-module-01": [
+  "*|*|av-homecountry",
+  "*|*|av-kasuta2",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-002|discover|av-opener-numbers"
+ ],
+ "a2b1-module-02": [
+  "*|*|av-homecountry",
+  "*|*|av-kasuta2",
+  "*|*|av-voices",
+  "a2b1-006|discover|av-opener-numbers",
+  "a2b1-007|*|av-boltedon"
+ ],
+ "a2b1-module-03": [
+  "*|*|av-homecountry",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-011|discover|av-opener-numbers"
+ ],
+ "a2b1-module-04": [
+  "*|*|av-homecountry",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "*|*|av-voices",
+  "a2b1-016|discover|av-opener-numbers"
+ ],
+ "a2b1-module-05": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "*|*|av-voices",
+  "a2b1-021|discover|av-opener-numbers",
+  "a2b1-021|discover|av-thinkvary"
+ ],
+ "a2b1-module-06": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "*|*|av-voices",
+  "a2b1-026|discover|av-opener-numbers",
+  "a2b1-027|*|av-boltedon",
+  "a2b1-028|*|av-boltedon"
+ ],
+ "a2b1-module-07": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-031|*|av-boltedon",
+  "a2b1-034|*|av-boltedon"
+ ],
+ "a2b1-module-08": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "a2b1-036|discover|av-opener-numbers",
+  "a2b1-037|*|av-boltedon"
+ ],
+ "a2b1-module-09": [
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-041|discover|av-opener-numbers",
+  "a2b1-041|discover|av-thinkvary"
+ ],
+ "a2b1-module-10": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-046|discover|av-opener-numbers",
+  "a2b1-046|discover|av-thinkvary"
+ ],
+ "a2b1-module-11": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-051|discover|av-opener-numbers"
+ ],
+ "a2b1-module-12": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-056|discover|av-opener-numbers"
+ ],
+ "a2b1-module-13": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "a2b1-061|discover|av-thinkvary"
+ ],
+ "a2b1-module-14": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-066|discover|av-opener-numbers"
+ ],
+ "a2b1-module-15": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "a2b1-071|discover|av-opener-numbers"
+ ],
+ "a2b1-module-16": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-076|discover|av-opener-numbers",
+  "a2b1-077|*|av-boltedon"
+ ],
+ "a2b1-module-17": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-081|*|av-boltedon",
+  "a2b1-084|*|av-boltedon"
+ ],
+ "a2b1-module-18": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "a2b1-086|*|av-boltedon",
+  "a2b1-086|discover|av-opener-numbers",
+  "a2b1-086|discover|av-thinkvary"
+ ],
+ "course:b1": [
+  "*|*|av-thinkvary",
+  "*|*|av-thinkvary",
+  "a2b1-019|practice|av-fact-dup",
+  "a2b1-038|discover|av-fact-dup",
+  "a2b1-041|discover|av-fact-dup",
+  "a2b1-046|discover|av-fact-dup",
+  "a2b1-054|discover|av-fact-dup",
+  "a2b1-054|transfer|av-fact-dup",
+  "a2b1-071|discover|av-fact-dup",
+  "a2b1-073|practice|av-fact-dup",
+  "a2b1-081|discover|av-fact-dup",
+  "a2b1-085|practice|av-fact-dup",
+  "a2b1-086|discover|av-fact-dup"
+ ],
+ "b1b2-module-01": [
+  "*|*|av-homecountry",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "b1b2-001|discover|av-opener-numbers",
+  "b1b2-004|*|av-boltedon"
+ ],
+ "b1b2-module-02": [
+  "*|*|av-homecountry",
+  "*|*|av-kasuta2",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "b1b2-006|discover|av-opener-numbers"
+ ],
+ "b1b2-module-03": [
+  "*|*|av-homecountry",
+  "*|*|av-retell2",
+  "b1b2-011|discover|av-opener-numbers"
+ ],
+ "b1b2-module-04": [
+  "*|*|av-kasuta2",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "b1b2-016|discover|av-opener-numbers",
+  "b1b2-016|discover|av-thinkvary"
+ ],
+ "b1b2-module-05": [
+  "*|*|av-kasuta2"
+ ],
+ "b1b2-module-07": [
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "b1b2-031|*|av-boltedon"
+ ],
+ "b1b2-module-09": [
+  "*|*|av-homecountry",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "b1b2-042|*|av-boltedon",
+  "b1b2-044|*|av-boltedon"
+ ],
+ "b1b2-module-10": [
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "b1b2-048|*|av-boltedon"
+ ],
+ "b1b2-module-11": [
+  "*|*|av-homecountry",
+  "*|*|av-kasuta2",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "b1b2-053|*|av-boltedon"
+ ],
+ "b1b2-module-12": [
+  "*|*|av-kasuta2",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "b1b2-056|*|av-boltedon"
+ ],
+ "b1b2-module-13": [
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "b1b2-061|*|av-boltedon",
+  "b1b2-063|*|av-boltedon"
+ ],
+ "b1b2-module-14": [
+  "*|*|av-homecountry",
+  "*|*|av-kasuta2",
+  "*|*|av-retell2"
+ ],
+ "b1b2-module-15": [
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "*|*|av-voices",
+  "b1b2-071|*|av-boltedon",
+  "b1b2-073|*|av-boltedon"
+ ],
+ "b1b2-module-16": [
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "b1b2-076|*|av-boltedon",
+  "b1b2-077|*|av-boltedon",
+  "b1b2-078|*|av-boltedon",
+  "b1b2-079|*|av-boltedon"
+ ],
+ "b1b2-module-17": [
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "*|*|av-voices",
+  "b1b2-082|*|av-boltedon",
+  "b1b2-084|*|av-boltedon"
+ ],
+ "b1b2-module-18": [
+  "*|*|av-kasuta2",
+  "*|*|av-retell2",
+  "b1b2-086|*|av-boltedon",
+  "b1b2-087|*|av-boltedon",
+  "b1b2-088|*|av-boltedon"
+ ],
+ "course:b2": [
+  "b1b2-002|transfer|av-fact-dup",
+  "b1b2-005|practice|av-fact-dup",
+  "b1b2-005|practice|av-fact-dup",
+  "b1b2-007|practice|av-fact-dup",
+  "b1b2-008|practice|av-fact-dup",
+  "b1b2-058|discover|av-fact-dup"
+ ]
+}
