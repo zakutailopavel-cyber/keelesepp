@@ -856,3 +856,15 @@ textarea.ed-input { resize: vertical; }
 .st-bank__media-head small { color: #667085; font-size: .74rem; }
 .st-bank__media audio { width: 100%; height: 32px; }
 .st-bank__media .ed-btn { justify-self: start; }
+/* Reuse (sheetReuse.js): „Kopeeri / Teisalda…” and „Uus mallist” dialogs, the empty-sheet banner */
+.ws-studio .st-empty-start { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.st-reuse-modal { width: min(640px, 96vw); }
+.st-reuse { display: grid; gap: 10px; }
+.st-reuse fieldset { border: 1px solid #e4e7ec; border-radius: 8px; padding: 8px 10px; margin: 0; display: grid; gap: 6px; }
+.st-reuse legend { font-weight: 600; font-size: .85rem; padding: 0 4px; }
+.st-reuse__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 260px; overflow: auto; }
+.st-reuse__row { display: flex; align-items: baseline; gap: 6px; cursor: pointer; }
+.st-reuse__row small { color: #667085; margin-left: 6px; }
+.st-reuse__templates li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid #f2f4f7; }
+.st-reuse__templates li > span { flex: 1 1 220px; display: grid; }
+.st-reuse__templates small { color: #667085; }

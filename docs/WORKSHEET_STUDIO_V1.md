@@ -185,6 +185,41 @@ the title); desktop browsers keep the name.
   (`extractAssets(...).media`). From the bank a sound goes into the selected sound block or a new listening block, a
   video into the selected video block or a new one. `firestore.rules` `mediaAssets`: kinds + `src` required for
   image / audio / video (rules deploy needed).
+## Reuse: saved sheets in „Kogu”, copy / move to a phase, sheet and lesson templates (2026-11-04)
+
+Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.test.js`); Firestore:
+`services/firebase/sheetReuse.js` (reads) and `services/firebase/worksheetSheetTemplates.js` (templates); UI:
+`BlockLibraryPanel.jsx` (source switch), `editor/ReuseDialogs.jsx` (`CopyMoveDialog`, `TemplateDialog`),
+`WorksheetStudioPage.jsx` (block bar, „Fail” menu, empty-sheet banner).
+
+- **„Kogu” → „Salvestatud lehed”.** Same search as the course library (words and #tags; extra tags `#salvestatud`,
+  `#leht` / `#tund`, `#mustand` / `#avaldatud`, `#õpik`). Reads only what staff can read under the existing rules
+  (`curriculumLessons` and `curriculumLessons/{id}/worksheets`, `courseReader`): the lesson list once when the source
+  is chosen (cached 5 min) — every standalone sheet's tasks are on it; phase sheets (Avasta / Harjuta / Kasuta / Õpik,
+  the draft `worksheetDoc`) of the open lesson and of at most 12 lessons whose title / level / module contain the typed
+  words, 400 ms after typing stops, each lesson once per session. A broad query (only #tags) does not read phase sheets;
+  the course content itself is already searchable under „Kursus”. Focus sheets of a lesson without a phase summary
+  (`worksheetPhases`) are not read. An inserted task brings its goal text when the sheet has no goal with that key.
+- **„Kopeeri / Teisalda…”** (block bar, folder icon; hidden on a student's private sheet): target = a phase sheet of
+  this lesson or of another lesson (search by name / level / module). The copy is appended to the target's draft by
+  `copyBlocksToPhase` → `lessonWorksheetsService.saveDraft` with the read's `worksheetDocUpdatedAt` (transaction
+  conflict check; on a conflict it reads again once). A missing phase sheet is created with its role / slot (Õpik:
+  `focus`, slot 4). Never published: a published target keeps its `publishedWorksheetDoc` until someone presses
+  „Avalda” there. „Teisalda” = copy first, then the block is removed here and this sheet's draft saved (undoable
+  with Ctrl+Z; a new unsaved sheet only loses it in the editor).
+- **Templates** (`worksheetTemplates`, new collection): `{ kind: 'sheet' | 'lesson', title, level, sheets: [{ phase,
+  label, doc }], ownerUid, ownerName, createdAt, updatedAt, archived }`; save stamps (`updatedAt`, `version`, `status`)
+  are stripped from the docs; ≤ 6 sheets, ≤ 900 kB. „Fail” → „Salvesta leht mallina…”, on a lesson page also
+  „Salvesta terve tund mallina…” (the latest draft of each phase sheet with blocks, the open one as in the editor).
+  „Fail” → „Uus mallist…” (and the „Leht on tühi” banner) lists the built-in sheets („Kiri linnavalitsusele”,
+  „Minu päev”) and saved templates: a sheet template replaces the open sheet in the editor (undoable, not saved by
+  itself); a lesson template on a lesson page („Täida tund”) puts its sheet for the open phase into the editor and
+  saves drafts only for phases with no sheet or an empty one — a sheet with blocks is never overwritten. The author or
+  an admin archives a template („Arhiveeri”); nothing is deleted. Block templates stay in `worksheetBlockTemplates`.
+- **Rules** (`firestore.rules` `worksheetTemplates`): staff read; staff create in their own name with exactly those
+  keys, `archived == false`; author or admin may change only `title`, `archived`, `archivedAt`, `archivedBy`,
+  `updatedAt`; delete denied. Emulator test `functions/worksheet-sheet-templates-emulator.integration.js` (in
+  `npm run test:emulator`). Needs `firebase deploy --only firestore:rules` before templates can be saved.
 
 ## Not in this slice
 

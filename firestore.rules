@@ -2035,6 +2035,33 @@ service cloud.firestore {
       }
     }
 
+    // The teacher's lesson plan (steps, minutes, timer timestamps) and in-room attendance of one Live Classroom room
+    // (roomKey = the 1:1 invitation id or the group room id). Staff-only: the room's teacher writes, admins read.
+    match /liveLessonPlans/{roomKey} {
+      function liveLessonPlanRoomTeacher() {
+        return (exists(liveLessonInvitationPath(roomKey)) && get(liveLessonInvitationPath(roomKey)).data.teacherUid == uid())
+          || (exists(liveGroupRoomPath(roomKey)) && get(liveGroupRoomPath(roomKey)).data.teacherUid == uid());
+      }
+      function liveLessonPlanValid(data) {
+        return data.keys().hasOnly(['teacherUid', 'roomKey', 'kind', 'steps', 'current', 'startedAt', 'stepStartedAt', 'plannedStart', 'attendance', 'updatedAt'])
+          && data.keys().hasAll(['teacherUid', 'roomKey', 'kind', 'steps', 'current', 'startedAt', 'stepStartedAt', 'plannedStart', 'attendance', 'updatedAt'])
+          && data.teacherUid == uid()
+          && data.roomKey == roomKey
+          && data.kind in ['lesson', 'group']
+          && data.steps is list && data.steps.size() <= 12
+          && data.current is int && data.current >= 0 && data.current <= 12
+          && data.startedAt is string && data.startedAt.size() <= 40
+          && data.stepStartedAt is string && data.stepStartedAt.size() <= 40
+          && data.plannedStart is string && data.plannedStart.size() <= 40
+          && data.attendance is map && data.attendance.size() <= 8
+          && data.updatedAt is string && data.updatedAt.size() <= 40;
+      }
+      allow read: if isAdmin() || (isStaff() && (resource == null || resource.data.teacherUid == uid()));
+      allow create: if isStaff() && liveLessonPlanRoomTeacher() && liveLessonPlanValid(request.resource.data);
+      allow update: if isStaff() && resource.data.teacherUid == uid() && liveLessonPlanValid(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
     match /liveLessonInvitations/{invitationId} {
       allow read: if isAdmin()
         || (signedIn() && resource.data.teacherUid == uid())
@@ -2888,6 +2915,36 @@ service cloud.firestore {
         && request.resource.data.createdAt is string;
       allow update: if false;
       allow delete: if isAdmin() || (isStaff() && resource.data.ownerUid == uid());
+    }
+
+    // Worksheet constructor whole-sheet and whole-lesson templates („Salvesta mallina”, „Uus mallist”;
+    // services/firebase/worksheetSheetTemplates.js): shared with all staff, created in one's own name; the author
+    // or an admin renames or archives one; nothing is deleted.
+    match /worksheetTemplates/{templateId} {
+      allow read: if isStaff();
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['kind', 'title', 'level', 'sheets', 'ownerUid', 'ownerName', 'createdAt', 'updatedAt', 'archived'])
+        && request.resource.data.ownerUid == uid()
+        && request.resource.data.kind in ['sheet', 'lesson']
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.level is string
+        && request.resource.data.level.size() <= 20
+        && request.resource.data.sheets is list
+        && request.resource.data.sheets.size() > 0
+        && request.resource.data.sheets.size() <= 6
+        && request.resource.data.ownerName is string
+        && request.resource.data.createdAt is string
+        && request.resource.data.updatedAt is string
+        && request.resource.data.archived == false;
+      allow update: if (isAdmin() || (isStaff() && resource.data.ownerUid == uid()))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'archived', 'archivedAt', 'archivedBy', 'updatedAt'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.archived is bool;
+      allow delete: if false;
     }
 
     match /exercises/{exerciseId} {
