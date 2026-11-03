@@ -1,4 +1,4 @@
-## 2026-11-03 · agent/harno-exam-points — exam sheets: Harno raw points, weighting and pass rule per level (A2, B1, B2, C1)
+## 2026-11-03 · agent/harno-exam-points (PR #1020) — exam sheets: Harno raw points, weighting and pass rule per level (A2, B1, B2, C1)
 
 - Base: `main` 98ec278, checked 2026-11-03. Question from the content agent: B1 exam sheets show 33 / 30 / 20 / 20 points while Harno says 25 per part.
 - Finding: 33 / 30 / 20 / 20 are Harno's own B1 raw points. Harno weighs each of them to 25 („… toorpunkti, mis kaalutakse lõpptulemuses 25 punktiks”), so the sheets were not wrong.
