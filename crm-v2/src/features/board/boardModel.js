@@ -1,3 +1,5 @@
+import { arrowBounds, isArrowLike } from './arrows.js';
+
 // Pure geometry for the student board (same world coordinates as the CRM v1 board: pixels at 100 %, origin top-left).
 
 export const MIN_SCALE = 0.2;
@@ -84,6 +86,7 @@ export function arrowHead(element, size = 14) {
 }
 
 export function elementBounds(element) {
+  if (isArrowLike(element)) return arrowBounds(element);
   if (element.type === 'stroke') {
     const xs = (element.points || []).map((point) => point.x);
     const ys = (element.points || []).map((point) => point.y);
@@ -162,6 +165,18 @@ export function fitWidth(bounds, width, padding = 16) {
   if (!width) return { x: 0, y: 0, scale: 1 };
   const scale = clampScale((width - padding * 2) / (bounds.x2 - bounds.x1));
   return { scale, x: padding - bounds.x1 * scale, y: padding - bounds.y1 * scale };
+}
+// A worksheet on open and with „Sobita” (owner 2026-11-04: the sheet sat at the left): its width fills the free part of
+// the screen (left of the video tiles, `insetRight`), never larger than `maxScale`, and it stands in the middle of the
+// board — as far right as the video tiles allow. The top of the sheet at the top.
+export function fitSheet(bounds, width, { insetRight = 0, padding = 16, maxScale = 1.4 } = {}) {
+  if (!width) return { x: 0, y: 0, scale: 1 };
+  const free = Math.max(320, width - insetRight);
+  const w = Math.max(1, bounds.x2 - bounds.x1);
+  const scale = clampScale(Math.min(maxScale, (free - padding * 2) / w));
+  const shown = w * scale;
+  const x = Math.max(padding, Math.min((width - shown) / 2, free - padding - shown));
+  return { scale, x: x - bounds.x1 * scale, y: padding - bounds.y1 * scale };
 }
 // panning never pushes the sheet off the screen: at least `keep` pixels of it stay visible on every side
 export function clampView(view, bounds, width, height, keep = 80) {
@@ -292,8 +307,9 @@ export function resizePatch(element, dx, dy) {
     const ky = h / h0;
     return { points: (element.points || []).map((p) => ({ x: round2(box.x1 + (p.x - box.x1) * kx), y: round2(box.y1 + (p.y - box.y1) * ky) })) };
   }
-  if (element.type === 'shape' && (element.shape === 'arrow' || element.shape === 'line')) {
-    return { w: Math.round(element.w * (w / w0)), h: Math.round(element.h * (h / h0)) };
+  if (isArrowLike(element)) {
+    const k = Math.sqrt((w / w0) * (h / h0));
+    return { w: Math.round(element.w * (w / w0)), h: Math.round(element.h * (h / h0)), ...(element.bend ? { bend: Math.round(element.bend * k) } : {}) };
   }
   if (element.type === 'text') {
     // sideways: the lines re-wrap at the new width and the letters stay; down or diagonally: the letters grow with the box

@@ -39,6 +39,7 @@ function encode(value) {
   if (typeof value === "boolean") return { booleanValue: value };
   if (typeof value === "number") return Number.isInteger(value) ? { integerValue: String(value) } : { doubleValue: value };
   if (typeof value === "string") return { stringValue: value };
+  if (Array.isArray(value)) return { arrayValue: { values: value.map(encode) } };
   if (typeof value === "object") return { mapValue: { fields: Object.fromEntries(Object.entries(value).map(([key, item]) => [key, encode(item)])) } };
   throw new Error(`Unsupported value ${value}`);
 }
@@ -162,6 +163,27 @@ test("board text may carry one of the four fonts and nothing else", async () => 
   assert.equal(hand.status, 200, JSON.stringify(hand.body));
   const odd = await commit(ctx.studentToken, [createElement(`whiteboards/${ctx.studentId}/elements/txt-odd`, ctx.studentUid, { ...text, fontFamily: "Comic Sans" })]);
   assert.equal(odd.status, 403);
+});
+
+test("arrows bend and carry heads, callouts a label, text styled runs, a bookmark its handwriting (2026-11-04)", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const base = `whiteboards/${ctx.studentId}/elements`;
+  const write = (id, data) => commit(ctx.studentToken, [createElement(`${base}/${id}`, ctx.studentUid, data)]);
+  const arrow = { type: "shape", shape: "arrow", x: 10, y: 10, w: 200, h: -40, color: "#1C2B3A", strokeWidth: 3 };
+  assert.equal((await write("a-curve", { ...arrow, bend: 60 })).status, 200);
+  assert.equal((await write("a-double", { ...arrow, heads: "both" })).status, 200);
+  assert.equal((await write("a-callout", { ...arrow, shape: "callout", text: "Siin on viga" })).status, 200);
+  assert.equal((await write("a-heads", { ...arrow, heads: "many" })).status, 403, "unknown heads");
+  assert.equal((await write("a-bend", { ...arrow, bend: "x" })).status, 403, "bend is a number");
+  assert.equal((await write("a-label", { ...arrow, shape: "callout", text: "x".repeat(501) })).status, 403, "label ≤ 500");
+  const text = { type: "text", x: 0, y: 0, w: 260, h: 44, text: "Tere hommikust", color: "#111827", fontSize: 18 };
+  assert.equal((await write("t-rich", { ...text, spans: [{ t: "Tere", b: true, c: "#DC2626" }, { t: " hommikust" }] })).status, 200);
+  assert.equal((await write("t-many", { ...text, spans: Array.from({ length: 401 }, () => ({ t: "a" })) })).status, 403, "≤ 400 runs");
+  const bookmark = { type: "note", x: 10, y: 10, w: 220, h: 170, text: "Kordan", color: "#FEF3C7", bookmark: true, ink: [{ d: "M1 1L20 20", c: "#1C2B3A", w: 3 }], noteId: "n-1" };
+  assert.equal((await write("b-1", bookmark)).status, 200);
+  assert.equal((await write("b-2", { ...bookmark, bookmark: false })).status, 403, "bookmark is only true");
+  assert.equal((await write("b-3", { ...bookmark, ink: Array.from({ length: 61 }, () => bookmark.ink[0]) })).status, 403, "≤ 60 strokes");
 });
 
 function pageWrite(path, uid, data, exists) {

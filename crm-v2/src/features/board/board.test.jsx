@@ -132,14 +132,16 @@ describe('StudentBoard', () => {
     expect(service.add).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Käsikiri' }));
     await waitFor(() => expect(service.update).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ id: 't1' }), expect.objectContaining({ fontFamily: 'hand' }), user));
-    fireEvent.change(editor, { target: { value: 'Tere hommikust\nKuidas läheb?' } });
+    // the text editor is rich (contenteditable): what is typed is read back from its content
+    editor.textContent = 'Tere hommikust\nKuidas läheb?';
+    fireEvent.input(editor);
     fireEvent.blur(editor);
     await waitFor(() => expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 't1' }), expect.objectContaining({ text: 'Tere hommikust\nKuidas läheb?', h: expect.any(Number) }), user));
     expect(service.update.mock.calls.at(-1)[3].h).toBeGreaterThan(44);
 
     fireEvent.click(screen.getByRole('button', { name: 'Vali ja liiguta' }));
     fireEvent.doubleClick(svg, { clientX: 120, clientY: 110 });
-    expect(await screen.findByRole('textbox', { name: 'Tekst' })).toHaveValue('Tere hommikust\nKuidas läheb?');
+    expect((await screen.findByRole('textbox', { name: 'Tekst' })).textContent).toBe('Tere hommikust\nKuidas läheb?');
   });
 
   it('writes new text in the chosen font and leaves the default font off the element', async () => {
@@ -652,5 +654,138 @@ describe('the worksheet player with any board tool (owner 2026-10-29)', () => {
     } finally {
       document.elementsFromPoint = before;
     }
+  });
+});
+
+describe('board tools (owner 2026-11-04)', () => {
+  const teacher = { uid: 't1', displayName: 'Kati', roles: ['teacher'] };
+  const notes = () => ({ add: vi.fn(async () => 'note-1'), update: vi.fn(async () => {}) });
+
+  it('a bookmark written by the teacher is put on the board and kept as the student\'s note', async () => {
+    const service = { ...fakeService(), root: 'whiteboards' };
+    const noteService = notes();
+    const { container } = render(<StudentBoard studentId="s-1" user={teacher} staff service={service} noteService={noteService} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Järjehoidja / Kleebis' }));
+    await act(async () => { fireEvent.pointerDown(container.querySelector('svg[aria-label="Õpilase tahvel"]'), { clientX: 300, clientY: 200, button: 0 }); });
+    const dialog = screen.getByRole('dialog', { name: 'Järjehoidja' });
+    expect(dialog).toHaveTextContent('läheb ka „Minu vead” alla');
+    const pad = screen.getByTestId('bookmark-pad');
+    fireEvent.pointerDown(pad, { clientX: 0, clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(pad, { clientX: 10, clientY: 10, pointerId: 1 });
+    fireEvent.pointerUp(pad, { pointerId: 1 });
+    fireEvent.click(screen.getByRole('button', { name: /Trüki/ }));
+    fireEvent.change(screen.getByLabelText('Järjehoidja tekst'), { target: { value: 'Kordan: kass → kassi' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta' })); });
+    expect(noteService.add).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's-1', kind: 'board', text: 'Kordan: kass → kassi', byStaff: true, createdByUid: 't1', ink: [expect.objectContaining({ d: expect.stringMatching(/^M/) })] }));
+    await waitFor(() => expect(service.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ type: 'note', bookmark: true, noteId: 'note-1', x: 300, y: 200, text: 'Kordan: kass → kassi', byStaff: true }), teacher));
+    expect(screen.queryByRole('dialog', { name: 'Järjehoidja' })).toBeNull();
+    expect(screen.getByText('Kordan: kass → kassi')).toBeInTheDocument();
+  });
+
+  it('a group board keeps the bookmark on the board only; a failed note still leaves the sheet', async () => {
+    const group = { ...fakeService(), root: 'groupBoards' };
+    const noteService = notes();
+    const view = render(<StudentBoard studentId="room-1" user={teacher} staff service={group} noteService={noteService} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Järjehoidja / Kleebis' }));
+    await act(async () => { fireEvent.pointerDown(view.container.querySelector('svg[aria-label="Õpilase tahvel"]'), { clientX: 30, clientY: 20, button: 0 }); });
+    fireEvent.click(screen.getByRole('button', { name: /Trüki/ }));
+    fireEvent.change(screen.getByLabelText('Järjehoidja tekst'), { target: { value: 'Grupp' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta' })); });
+    expect(noteService.add).not.toHaveBeenCalled();
+    expect(group.add.mock.calls[0][2]).not.toHaveProperty('noteId');
+    view.unmount();
+
+    const service = fakeService();
+    const failing = { add: vi.fn(async () => { throw new Error('permission-denied'); }) };
+    const again = render(<StudentBoard studentId="s-1" user={user} service={service} noteService={failing} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Järjehoidja / Kleebis' }));
+    await act(async () => { fireEvent.pointerDown(again.container.querySelector('svg[aria-label="Õpilase tahvel"]'), { clientX: 30, clientY: 20, button: 0 }); });
+    fireEvent.click(screen.getByRole('button', { name: /Trüki/ }));
+    fireEvent.change(screen.getByLabelText('Järjehoidja tekst'), { target: { value: 'Minu märge' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta' })); });
+    await waitFor(() => expect(service.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ bookmark: true, text: 'Minu märge' }), user));
+    expect(await screen.findByRole('alert')).toHaveTextContent('„Minu vead” alla ei saanud');
+  });
+
+  it('draws a curved arrow, then its end is dragged and its colour changed with „Vali”', async () => {
+    const service = fakeService();
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    const svg = container.querySelector('svg[aria-label="Õpilase tahvel"]');
+    fireEvent.click(screen.getByRole('button', { name: 'Kaarnool' }));
+    fireEvent.pointerDown(svg, { clientX: 100, clientY: 100, button: 0 });
+    fireEvent.pointerMove(svg, { clientX: 200, clientY: 100 });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 200, clientY: 100 }); });
+    expect(service.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ type: 'shape', shape: 'arrow', x: 100, y: 100, w: 100, h: 0, bend: 25 }), user);
+    const arrow = container.querySelector('[data-element-id="new-1"] path');
+    expect(arrow.getAttribute('d')).toContain('Q');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Vali ja liiguta' }));
+    fireEvent.pointerDown(container.querySelector('[data-element-id="new-1"] path'), { clientX: 150, clientY: 90, button: 0 });
+    fireEvent.pointerUp(svg, { clientX: 150, clientY: 90 });
+    const end = container.querySelector('[data-handle="end"]');
+    expect(container.querySelector('[data-handle="bend"]')).toBeTruthy();
+    fireEvent.pointerDown(end, { clientX: 200, clientY: 100, button: 0 });
+    fireEvent.pointerMove(svg, { clientX: 260, clientY: 180 });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 260, clientY: 180 }); });
+    expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 'new-1' }), { w: 160, h: 80 }, user);
+    fireEvent.click(screen.getByRole('button', { name: 'Värv #B42318' }));
+    await waitFor(() => expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 'new-1' }), { color: '#B42318' }, user));
+  });
+
+  it('a callout asks for its label and shows it', async () => {
+    const service = fakeService();
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    const svg = container.querySelector('svg[aria-label="Õpilase tahvel"]');
+    fireEvent.click(screen.getByRole('button', { name: 'Viide tekstiga' }));
+    fireEvent.pointerDown(svg, { clientX: 100, clientY: 100, button: 0 });
+    fireEvent.pointerMove(svg, { clientX: 250, clientY: 160 });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 250, clientY: 160 }); });
+    const label = await screen.findByRole('textbox', { name: 'Viite tekst' });
+    fireEvent.change(label, { target: { value: 'Siin on viga' } });
+    await act(async () => { fireEvent.blur(label); });
+    expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 'new-1' }), { text: 'Siin on viga' }, user);
+    expect(screen.getByText('Siin on viga')).toBeInTheDocument();
+  });
+
+  it('colours one word of a text and keeps the rest; an old plain text still shows', async () => {
+    const service = fakeService({ board: [{ id: 't1', type: 'text', x: 100, y: 100, w: 260, h: 44, text: 'Tere hommikust', color: '#111827', fontSize: 18, revision: 1 }] });
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    expect(screen.getByText('Tere hommikust')).toBeInTheDocument();
+    fireEvent.doubleClick(container.querySelector('svg[aria-label="Õpilase tahvel"]'), { clientX: 120, clientY: 110 });
+    const editor = await screen.findByRole('textbox', { name: 'Tekst' });
+    const { setSelectionOffsets } = await import('./richText.js');
+    setSelectionOffsets(editor, 5, 14);
+    fireEvent.click(screen.getByRole('button', { name: 'Paks kiri' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Teksti värv #B42318' }));
+    await act(async () => { fireEvent.blur(editor); });
+    expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 't1' }), expect.objectContaining({ text: 'Tere hommikust', spans: [{ t: 'Tere ' }, { t: 'hommikust', b: true, c: '#B42318' }] }), user);
+    const styled = await screen.findByText('hommikust');
+    expect(styled.style.fontWeight).toBe('700');
+    expect(screen.getByText('Tere')).toBeInTheDocument();
+  });
+
+  it('a sideways trackpad move is the board\'s, not the browser\'s back / forward swipe', () => {
+    const { container, unmount } = render(<StudentBoard studentId="s-1" user={user} service={fakeService()} />);
+    expect(document.documentElement.classList.contains('sb-no-swipe')).toBe(true);
+    const sideways = new globalThis.WheelEvent('wheel', { deltaX: 40, bubbles: true, cancelable: true });
+    container.querySelector('svg[aria-label="Õpilase tahvel"]').dispatchEvent(sideways);
+    expect(sideways.defaultPrevented).toBe(true);
+    unmount();
+    expect(document.documentElement.classList.contains('sb-no-swipe')).toBe(false);
+  });
+
+  it('drawing blocks the browser\'s text selection until the line is done', () => {
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={fakeService()} />);
+    const svg = container.querySelector('svg[aria-label="Õpilase tahvel"]');
+    fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 });
+    const select = new globalThis.Event('selectstart', { bubbles: true, cancelable: true });
+    document.body.dispatchEvent(select);
+    expect(select.defaultPrevented).toBe(true);
+    expect(document.documentElement.classList.contains('sb-drawing')).toBe(true);
+    fireEvent.pointerUp(svg, { clientX: 10, clientY: 10 });
+    const later = new globalThis.Event('selectstart', { bubbles: true, cancelable: true });
+    document.body.dispatchEvent(later);
+    expect(later.defaultPrevented).toBe(false);
+    expect(document.documentElement.classList.contains('sb-drawing')).toBe(false);
   });
 });

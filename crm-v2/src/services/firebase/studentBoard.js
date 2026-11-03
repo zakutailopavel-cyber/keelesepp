@@ -30,6 +30,8 @@ function timeOf(value) {
 export function createBoardService(root = 'whiteboards') {
   const elementsRef = elementsRefIn(root);
   return {
+  // the board's kind: a group board ('groupBoards') belongs to no single student (no notes for „Minu vead”)
+  root,
   subscribeElements(studentId, pageId, onChange, onError) {
     const { db } = requireFirebaseClient();
     return onSnapshot(elementsRef(db, studentId, pageId), (snapshot) => {

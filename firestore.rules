@@ -1831,6 +1831,37 @@ service cloud.firestore {
       allow delete: if isStaff();
     }
 
+    // The student's notes from lessons („Minu vead” → „Märkmed tunnist”), written from the board's „Järjehoidja / Kleebis”
+    // by staff or the student / a linked parent (2026-11-04). The author or staff change and delete a note.
+    function studentNoteFieldsValid(data) {
+      return data.text is string && data.text.size() <= 2000
+        && data.ink is list && data.ink.size() <= 60
+        && data.color is string && data.color.size() <= 9
+        && data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+    match /studentNotes/{noteId} {
+      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow create: if (isStaff() || ownsStudent(request.resource.data.studentId))
+        && request.resource.data.keys().hasOnly(['studentId', 'kind', 'text', 'ink', 'color', 'pageId', 'pageTitle', 'byStaff',
+          'createdByUid', 'createdByName', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['studentId', 'kind', 'text', 'ink', 'color', 'createdByUid', 'createdAt', 'updatedAt'])
+        && request.resource.data.kind == 'board'
+        && request.resource.data.createdByUid == uid()
+        && request.resource.data.createdAt is string && request.resource.data.createdAt.size() <= 40
+        && request.resource.data.get('createdByName', '') is string && request.resource.data.get('createdByName', '').size() <= 160
+        && request.resource.data.get('pageId', '') is string && request.resource.data.get('pageId', '').size() <= 200
+        && request.resource.data.get('pageTitle', '') is string && request.resource.data.get('pageTitle', '').size() <= 200
+        && request.resource.data.get('byStaff', false) is bool
+        && (request.resource.data.get('byStaff', false) == false || isStaff())
+        && studentNoteFieldsValid(request.resource.data)
+        && exists(studentPath(request.resource.data.studentId));
+      allow update: if (isStaff() || resource.data.createdByUid == uid())
+        && (isStaff() || ownsStudent(resource.data.studentId))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'ink', 'color', 'updatedAt'])
+        && studentNoteFieldsValid(request.resource.data);
+      allow delete: if isStaff() || (resource.data.createdByUid == uid() && ownsStudent(resource.data.studentId));
+    }
+
     // What the student and parents see after a Live Classroom lesson; written by the lesson's teacher when it ends.
     function lessonSummaryValid(data, invitationId) {
       let invitation = get(/databases/$(database)/documents/liveLessonInvitations/$(invitationId)).data;
@@ -2996,8 +3027,12 @@ service cloud.firestore {
         && (
           data.type != 'shape'
           || (
-            data.keys().hasOnly(['type', 'shape', 'x', 'y', 'w', 'h', 'color', 'strokeWidth', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
-            && data.shape in ['rect', 'ellipse', 'line', 'arrow']
+            data.keys().hasOnly(['type', 'shape', 'x', 'y', 'w', 'h', 'color', 'strokeWidth', 'bend', 'heads', 'text', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
+            && data.shape in ['rect', 'ellipse', 'line', 'arrow', 'callout']
+            // arrows (2026-11-04): a curve's bend, the heads, a callout's label
+            && (!('bend' in data) || (data.bend is number && data.bend >= -100000 && data.bend <= 100000))
+            && (!('heads' in data) || data.heads in ['end', 'both', 'none'])
+            && (!('text' in data) || (data.text is string && data.text.size() <= 500))
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.color is string
@@ -3009,7 +3044,9 @@ service cloud.firestore {
         && (
           data.type != 'text'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'fontSize', 'fontFamily', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'spans', 'color', 'fontSize', 'fontFamily', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
+            // rich text (2026-11-04): styled runs of `text`; the client checks each run
+            && (!('spans' in data) || (data.spans is list && data.spans.size() <= 400))
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.text is string
@@ -3024,12 +3061,16 @@ service cloud.firestore {
         && (
           data.type != 'note'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'bookmark', 'ink', 'noteId', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.text is string
             && data.text.size() <= 2000
             && data.color is string
+            // „Järjehoidja / Kleebis” (2026-11-04): handwriting and the student's note it is kept as
+            && (!('bookmark' in data) || data.bookmark == true)
+            && (!('ink' in data) || (data.ink is list && data.ink.size() <= 60))
+            && (!('noteId' in data) || (data.noteId is string && data.noteId.size() <= 200))
           )
         )
         && (
