@@ -22,17 +22,6 @@
   "b1b2-030|transfer|av-fact",
   "b1b2-030|transfer|av-fact"
  ],
- "b1b2-module-07": [
-  "*|*|av-article",
-  "*|*|av-examiner",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-031|*|av-know",
-  "b1b2-031|*|av-voice",
-  "b1b2-032|*|av-know",
-  "b1b2-034|*|av-know",
-  "b1b2-035|practice|av-fact"
- ],
  "b1b2-module-08": [
   "*|*|av-examiner",
   "*|*|av-opener",
