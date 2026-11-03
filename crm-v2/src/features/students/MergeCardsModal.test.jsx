@@ -54,6 +54,38 @@ describe('merge student cards', () => {
     expect(onMerged).toHaveBeenCalledWith(expect.objectContaining({ keepId: 'self_v', sourceId: 'keep' }));
   });
 
+  it('an archived card is a candidate and merges; the state after the merge is shown and can be chosen', async () => {
+    const service = { mergeStudents: vi.fn(async ({ keepActive }) => preview({
+      names: ['Mia'], keepName: 'Mia', keep: { id: 'keep', name: 'Mia', active: true, accounts: [] }, source: { id: 'old', name: 'Mia', active: false, accounts: [] },
+      activeAfter: keepActive ?? true,
+      conflicts: [{ code: 'archived_source', label: '„Mia” on arhiveeritud — tunnid, arved, maksed ja ajalugu tulevad üle, tema õppesuunad märgitakse „Lõpetanud”' }],
+    })) };
+    const students = { list: vi.fn().mockResolvedValue({ items: [{ id: 'keep', name: 'Mia' }, { id: 'old', name: 'Mia', active: false }] }) };
+    const onMerged = vi.fn();
+    render(<MergeCardsModal open student={{ id: 'keep', name: 'Mia', active: true }} onClose={() => {}} onMerged={onMerged} service={service} students={students} />);
+    const option = await screen.findByRole('radio', { name: /Mia.*arhiveeritud/ });
+    await act(async () => { fireEvent.click(option); });
+    expect(service.mergeStudents).toHaveBeenCalledWith({ keepId: 'keep', sourceId: 'old' });
+    expect(await screen.findByText(/on arhiveeritud — tunnid, arved/)).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Aktiivne' })).toBeChecked();
+    // the administrator may keep the merged card archived
+    await act(async () => { fireEvent.click(screen.getByRole('radio', { name: 'Arhiveeritud' })); });
+    expect(service.mergeStudents).toHaveBeenLastCalledWith({ keepId: 'keep', sourceId: 'old', keepActive: false });
+    expect(await screen.findByRole('radio', { name: 'Arhiveeritud' })).toBeChecked();
+    fireEvent.click(screen.getByRole('checkbox', { name: /Kontrollisin eelvaadet/ }));
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Liida kaardid' })); });
+    expect(service.mergeStudents).toHaveBeenLastCalledWith({ keepId: 'keep', sourceId: 'old', keepActive: false, apply: true, confirmed: true });
+    expect(onMerged).toHaveBeenCalled();
+  });
+
+  it('no archive choice when both cards are active', async () => {
+    const service = { mergeStudents: vi.fn(async () => preview({ keep: { id: 'keep', name: 'Vlad', active: true, accounts: [] }, source: { id: 'self_v', name: 'Влад Повжик', active: true, accounts: [] }, activeAfter: true })) };
+    const students = { list: vi.fn().mockResolvedValue({ items: [{ id: 'keep', name: 'Vlad' }, { id: 'self_v', name: 'Влад Повжик' }] }) };
+    render(<MergeCardsModal open initialSourceId="self_v" student={{ id: 'keep', name: 'Vlad' }} onClose={() => {}} onMerged={() => {}} service={service} students={students} />);
+    expect(await screen.findByText(/Töölehed: 2/)).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Arhiveeritud' })).toBeNull();
+  });
+
   it('opens straight on a proposed pair and shows the subject the other card brings', async () => {
     const service = { mergeStudents: vi.fn(async () => preview({ names: ['Milan'], keepName: 'Milan', conflicts: [], subjects: [{ subject: 'Eesti keel', teacher: 'Pavel' }, { subject: 'Matemaatika', teacher: 'Yelyzaveta' }], addedSubjects: [{ subject: 'Matemaatika', teacher: 'Yelyzaveta' }], price: { action: 'addSubjectPrice', subject: 'Matemaatika', sourceCents: 2500 } })) };
     const students = { list: vi.fn().mockResolvedValue({ items: [{ id: 'keep', name: 'Milan' }, { id: 'math', name: 'Milan' }] }) };

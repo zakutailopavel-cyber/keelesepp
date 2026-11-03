@@ -121,10 +121,30 @@ function revenuePlanMerge({ keep = {}, source = {}, keepPlan = null, sourcePlan 
   return { action: "conflict", subject, keepCents: existing.lessonPriceCents, sourceCents: sourcePrice.lessonPriceCents };
 }
 
+// Archived cards (2026-11-03, Oleksiy: „Объединение карточек не работает с архивированными учениками”). Either card may
+// be archived. The merged card is active when either card was active (one child, one card in use); the administrator
+// can choose otherwise (keepActive true / false). The archive state is part of the preview, never a silent side effect.
+const isActive = (student = {}) => student.active !== false;
+function resultActive(keep = {}, source = {}, keepActive) {
+  if (typeof keepActive === "boolean") return keepActive;
+  return isActive(keep) || isActive(source);
+}
+
+// the subject tracks of an archived other card come over as „Lõpetanud” when the merged card is active: its old
+// teacher does not get the child back and the card shows no second running track. A track the kept card also has
+// stays as the kept card has it. Lessons, invoices and the rest of the history move as for an active card.
+function sourceForTracks(source = {}, activeAfter) {
+  if (isActive(source) || !activeAfter) return source;
+  return { ...source, teacherUids: [], enrollments: enrollmentsOf(source).map((track) => ({ ...track, active: false, status: "ended" })) };
+}
+
 // what the administrator must decide or know before merging
-function mergeConflicts({ keep = {}, source = {}, parents, plan, singletons = [], pets = {} }) {
+function mergeConflicts({ keep = {}, source = {}, parents, plan, singletons = [], pets = {}, activeAfter = isActive(keep) || isActive(source) }) {
   const out = [];
   const euro = (cents) => `${(Number(cents) / 100).toFixed(2).replace(".", ",")} €`;
+  if (!isActive(source) && activeAfter) out.push({ code: "archived_source", label: `„${clean(source.name) || "Teine kaart"}” on arhiveeritud — tunnid, arved, maksed ja ajalugu tulevad üle, tema õppesuunad märgitakse „Lõpetanud”` });
+  if (!isActive(keep) && activeAfter) out.push({ code: "archived_keep", label: `Alles jääv kaart „${clean(keep.name) || "kaart"}” on arhiveeritud — pärast liitmist on see aktiivne` });
+  if (!activeAfter) out.push({ code: "archived_result", label: "Pärast liitmist on kaart arhiveeritud" });
   if (clean(keep.name) && clean(source.name) && lower(keep.name) !== lower(source.name)) out.push({ code: "name", label: `Erinevad nimed: „${clean(keep.name)}” ja „${clean(source.name)}” — vali, kumb jääb` });
   if (parents?.differ) out.push({ code: "parents", label: "Kaartidel on erinevad lapsevanemad — mõlemad jäävad lapsega seotuks" });
   if (plan?.action === "conflict") out.push({ code: "price", label: `${plan.subject}: kaks hinda (${euro(plan.keepCents)} jääb, ${euro(plan.sourceCents)} teiselt kaardilt ei tule üle)` });
@@ -160,4 +180,5 @@ function normalizedInput({ keepId, sourceId, keepName } = {}) {
 module.exports = {
   AUDIT, FINANCE, SCHEDULE, DOC_KEYED, NEVER, DOC_LABELS,
   kindOf, accountIds, parentIds, parentContactsOf, mergeParents, profilePatch, mainSubjectOf, revenuePlanMerge, mergeConflicts, normalizedInput, ids,
+  resultActive, sourceForTracks,
 };

@@ -6,6 +6,8 @@
 // the kept card has none, the accounts of the learner and the parents (union), the subjects with their teacher and
 // level. The other card is never deleted: it stays archived as a tombstone (active: false, mergedInto) with an audit
 // entry. History records (activityLog, financialAudit) keep the old id on purpose.
+// Archived cards merge like active ones (2026-11-03): the merged card is active when either card was (keepActive
+// overrides it), and the tracks of an archived other card come over as „Lõpetanud”.
 //
 // Preview first (apply: false), then apply with confirmed: true. Idempotent: studentCardMerges/{sourceId} records the
 // run; a repeated call after success returns the stored result, a call after a failure continues where it stopped
@@ -97,7 +99,7 @@ function cardSummary(id, s = {}) {
   };
 }
 
-async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: rawSource, keepName: rawName, actor = {}, apply = false, confirmed = false, includeFinance = true, includeSchedule = true, nowIso = new Date().toISOString() }) {
+async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: rawSource, keepName: rawName, keepActive, actor = {}, apply = false, confirmed = false, includeFinance = true, includeSchedule = true, nowIso = new Date().toISOString() }) {
   const { keepId, sourceId, keepName } = core.normalizedInput({ keepId: rawKeep, sourceId: rawSource, keepName: rawName });
   const keepRef = db.collection("students").doc(keepId);
   const sourceRef = db.collection("students").doc(sourceId);
@@ -132,18 +134,21 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
   const planDoc = singletons.find((s) => s.collection === "studentRevenuePlans");
   const keepPlanSnap = planDoc ? null : await db.collection("studentRevenuePlans").doc(keepId).get();
   const price = core.revenuePlanMerge({ keep, source, keepPlan: planDoc ? planDoc.keepData : (keepPlanSnap?.exists ? keepPlanSnap.data() : null), sourcePlan: planDoc?.sourceData || null });
-  const tracks = mergeEnrollments(keep, source);
+  // archived cards merge too (2026-11-03); the merged card's archive state is explicit in the preview
+  const activeAfter = core.resultActive(keep, source, keepActive);
+  const tracks = mergeEnrollments(keep, core.sourceForTracks(source, activeAfter));
   const parents = core.mergeParents(keep, source);
   const sourceSubject = cardSubject(source);
   const userLinks = await db.collection("users").where("linkedStudentIds", "array-contains", sourceId).get().catch(() => null);
   const subcollections = await subcollectionCounts(sourceRef);
-  const conflicts = core.mergeConflicts({ keep, source, parents, plan: price, singletons, pets: { keep: Boolean(keepPet?.size), source: Boolean(sourcePet?.size) } });
+  const conflicts = core.mergeConflicts({ keep, source, parents, plan: price, singletons, pets: { keep: Boolean(keepPet?.size), source: Boolean(sourcePet?.size) }, activeAfter });
 
   const summary = {
     keep: cardSummary(keepId, keep),
     source: cardSummary(sourceId, source),
     names,
     keepName: keepName || keep.name || source.name || "",
+    activeAfter,
     move: steps.map(({ collection, field, count, kind }) => ({ collection, field, count, kind })),
     waiting: plan.filter((p) => !moving.includes(p)).map(({ collection, field, count, kind }) => ({ collection, field, count, kind })),
     skipped: skipped.map(({ collection, count, reason }) => ({ collection, count, reason })),
@@ -221,7 +226,8 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
       const [k, s] = await Promise.all([tx.get(keepRef), tx.get(sourceRef)]);
       const keepNow = k.data() || keep;
       const sourceNow = s.data() || source;
-      const fresh = mergeEnrollments(keepNow, sourceNow);
+      const keepWasActive = keepNow.active !== false;
+      const fresh = mergeEnrollments(keepNow, core.sourceForTracks(sourceNow, activeAfter));
       const freshParents = core.mergeParents(keepNow, sourceNow);
       const firstContact = freshParents.parentContacts[0] || {};
       tx.set(keepRef, {
@@ -236,7 +242,7 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
         ...(!keepNow.parentEmail && firstContact.email ? { parentEmail: firstContact.email } : {}),
         enrollments: fresh.enrollments,
         ...(fresh.teacherUids.length ? { teacherUids: fresh.teacherUids } : {}),
-        ...(keepNow.active === false && sourceNow.active !== false ? { active: true } : {}),
+        ...(activeAfter !== keepWasActive ? { active: activeAfter, ...(activeAfter ? { restoredAt: nowIso } : { archivedAt: nowIso }) } : {}),
         mergedStudentIds: FieldValue.arrayUnion(sourceId),
         updatedAt: nowIso,
       }, { merge: true });
@@ -249,6 +255,7 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
         type: "student.cards_merged", action: "student.cards_merged", studentId: keepId, mergedFromStudentId: sourceId,
         studentName: keepName || keepNow.name || "", mergedName: sourceNow.name || "", moved: summary.move, documents: summary.documents,
         conflicts: summary.conflicts.map((c) => c.code), price: summary.price, actor, createdAt: nowIso,
+        activeBefore: { keep: keepWasActive, source: sourceNow.active !== false }, activeAfter,
       });
     });
     // the closed card's id leaves the accounts' lists after the kept one is in

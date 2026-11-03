@@ -8591,7 +8591,7 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       const { mergeStudentCards } = require("./student-merge");
       try {
         res.json(await mergeStudentCards(db, {
-          FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), keepName: cleanText(req.body?.keepName, 200), actor: actorSnapshot(actor),
+          FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), keepName: cleanText(req.body?.keepName, 200), actor: actorSnapshot(actor), ...(typeof req.body?.keepActive === "boolean" ? { keepActive: req.body.keepActive } : {}),
           // everything moves (owner 2026-10-24); finance / schedule can still be left out explicitly
           apply: req.body?.apply === true, confirmed: req.body?.confirmed === true, includeFinance: req.body?.includeFinance !== false, includeSchedule: req.body?.includeSchedule !== false,
         }));
