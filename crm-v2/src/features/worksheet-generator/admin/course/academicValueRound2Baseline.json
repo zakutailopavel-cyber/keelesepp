@@ -173,19 +173,6 @@
   "*|*|av-voices",
   "b1b2-036|*|av-boltedon"
  ],
- "b1b2-module-09": [
-  "*|*|av-homecountry",
-  "*|*|av-kasuta2",
-  "*|*|av-retell2",
-  "*|*|av-voices",
-  "b1b2-042|*|av-boltedon",
-  "b1b2-044|*|av-boltedon"
- ],
- "b1b2-module-10": [
-  "*|*|av-kasuta2",
-  "*|*|av-retell2",
-  "b1b2-048|*|av-boltedon"
- ],
  "b1b2-module-11": [
   "*|*|av-homecountry",
   "*|*|av-kasuta2",
