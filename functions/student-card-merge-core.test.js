@@ -71,3 +71,34 @@ test("input: two different cards required", () => {
   assert.throws(() => core.normalizedInput({ keepId: "a", sourceId: "a" }), /Two different/);
   assert.deepEqual(core.normalizedInput({ keepId: " a ", sourceId: "b", keepName: " Milan " }), { keepId: "a", sourceId: "b", keepName: "Milan" });
 });
+
+test("archived cards: the merged card is active when either card was, unless chosen; the choice is shown", () => {
+  assert.equal(core.resultActive({ active: true }, { active: false }), true);
+  assert.equal(core.resultActive({ active: false }, { active: true }), true);
+  assert.equal(core.resultActive({ active: false }, { active: false }), false);
+  assert.equal(core.resultActive({}, {}), true, "a card without the field is active");
+  assert.equal(core.resultActive({ active: true }, { active: false }, false), false, "the administrator's choice wins");
+  assert.equal(core.resultActive({ active: false }, { active: false }, true), true);
+  const codes = (keep, source, activeAfter) => core.mergeConflicts({ keep, source, activeAfter }).map((c) => c.code);
+  assert.deepEqual(codes({ name: "A", active: true }, { name: "A", active: false }, true), ["archived_source"]);
+  assert.deepEqual(codes({ name: "A", active: false }, { name: "A", active: true }, true), ["archived_keep"]);
+  assert.deepEqual(codes({ name: "A", active: false }, { name: "A", active: false }, false), ["archived_result"]);
+  assert.deepEqual(codes({ name: "A", active: true }, { name: "A", active: true }, true), []);
+});
+
+test("the tracks of an archived other card come over as ended; its teacher gets no access back", () => {
+  const { mergeEnrollments } = require("./student-enrollments-core");
+  const keep = { active: true, subject: "Eesti keel", teacher: "Pavel", teacherUid: "p1", teacherUids: ["p1"] };
+  const source = { active: false, enrollments: [{ subject: "Eesti keel", teacher: "Anna", teacherUid: "a1" }, { subject: "Matemaatika", teacher: "Yelyzaveta", teacherUid: "y1" }], teacherUids: ["a1", "y1"] };
+  const merged = mergeEnrollments(keep, core.sourceForTracks(source, true));
+  assert.deepEqual(merged.enrollments.map((t) => [t.subject, t.teacherUid, t.active, t.status || ""]), [
+    ["Eesti keel", "p1", true, ""], ["Eesti keel", "a1", false, "ended"], ["Matemaatika", "y1", false, "ended"],
+  ]);
+  assert.deepEqual(merged.teacherUids, ["p1"]);
+  // the same track on both cards stays as the kept card has it
+  const twin = mergeEnrollments(keep, core.sourceForTracks({ active: false, subject: "Eesti keel", teacher: "Pavel Z", teacherUid: "p1" }, true));
+  assert.deepEqual(twin.enrollments.map((t) => [t.subject, t.active, t.status || ""]), [["Eesti keel", true, ""]]);
+  // an active other card, or an archived result, keeps the tracks as they are
+  assert.equal(core.sourceForTracks({ ...source, active: true }, true).enrollments, source.enrollments);
+  assert.equal(core.sourceForTracks(source, false), source);
+});
