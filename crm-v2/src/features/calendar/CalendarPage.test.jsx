@@ -697,6 +697,15 @@ describe('calendar v2', () => {
     expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'schedule-1' }), expect.anything(), expect.objectContaining({ topic: 'Sagedus', topicLessonId: 'b1-2', notes: 'Tubli töö' }));
   });
 
+  it('the room’s attendance „Puudub” marks the lesson „Puudus_eta” through the same completeFromSchedule', async () => {
+    const props = repositories({ events: [lesson()] });
+    const key = `schedule-1:${today}|${today}`;
+    const takeHandoff = vi.fn(() => ({ notes: '', lessonIds: [], status: 'Puudus_eta', savedAt: Date.now() }));
+    render(<MemoryRouter initialEntries={[`/calendar?lesson=${encodeURIComponent(key)}`]}><Routes><Route path="/calendar" element={<CalendarPage {...props} takeHandoff={takeHandoff} />} /></Routes></MemoryRouter>);
+    await waitFor(() => expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledTimes(1));
+    expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'schedule-1' }), expect.anything(), expect.objectContaining({ status: 'Puudus_eta' }));
+  });
+
   it('a bare ?lesson= link only opens the panel, it never marks the lesson', async () => {
     const props = repositories({ events: [lesson()] });
     render(<MemoryRouter initialEntries={[`/calendar?lesson=${encodeURIComponent(`schedule-1:${today}|${today}`)}`]}><Routes><Route path="/calendar" element={<CalendarPage {...props} takeHandoff={() => null} />} /></Routes></MemoryRouter>);

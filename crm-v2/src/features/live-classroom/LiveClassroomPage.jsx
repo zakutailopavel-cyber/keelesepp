@@ -277,7 +277,7 @@ export default function LiveClassroomPage({
       const card = studentsState.items.find((item) => item.id === invitation.studentId);
       return { invitation, consent: card ? card.recordingConsent === true : null, subject: card?.subject || '' };
     });
-    return <GroupRoom key={groupRoomId} roomId={groupRoomId} role="teacher" turnInvitationId={accepted?.id || ''} recordings={groupRecordings} recordingService={recordingService} onLeave={() => setSearchParams({}, { replace: true })} onEnd={() => setSearchParams({}, { replace: true })} {...groupProps} />;
+    return <GroupRoom key={groupRoomId} roomId={groupRoomId} role="teacher" turnInvitationId={accepted?.id || ''} recordings={groupRecordings} invitations={allInvitations.filter((item) => item.roomKey === groupRoomId)} recordingService={recordingService} onLeave={() => setSearchParams({}, { replace: true })} onEnd={() => setSearchParams({}, { replace: true })} {...groupProps} />;
   }
 
   if (activeInvitation?.status === INVITATION_STATUS.ACCEPTED) {

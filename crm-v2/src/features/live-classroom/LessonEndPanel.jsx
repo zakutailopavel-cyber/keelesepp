@@ -4,6 +4,7 @@ import { lessonSummariesService } from '../../services/firebase/lessonSummaries.
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { saveLessonHandoff, unfinishedSheets } from './lessonHandoff.js';
 import { localDay, lessonLinkFor, looseLessonKey } from './lessonLink.js';
+import { calendarStatusOf, markLabel } from './roomAttendance.js';
 import '../vocabulary/vocabulary.css';
 import { localDate } from '../../utils/localDate.js';
 
@@ -13,11 +14,12 @@ const inWeek = () => localDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
  * Live Classroom „Lõpeta tund” (teacher): the lesson summary the student and parents get — the board pages used in the
  * lesson, its new words and homework (read live) and an optional note. Worksheets not finished in the lesson become
  * homework with one click. When the room was started from a calendar lesson, the calendar then marks that lesson held
- * („Toimunud”) with the note and the worksheets' curriculum topic (lessonHandoff.js).
+ * („Toimunud”) with the note and the worksheets' curriculum topic (lessonHandoff.js). `attendance`: the student's mark
+ * from the room's „Tunniplaan” (Kohal / Hilines → „Toimunud”, Puudub → „Puudus (ei teatanud)”), handed over the same way.
  */
 export default function LessonEndPanel({
   invitation, user, subject = '', startedAt = '', pages = [], sheets = [], ending = false, onEnd,
-  lessonKey: linkedKey, saveHandoff = saveLessonHandoff,
+  lessonKey: linkedKey, saveHandoff = saveLessonHandoff, attendance = null,
   summaryService = lessonSummariesService, wordsService = studentWordsService, homeworkService = defaultHomework,
 }) {
   const [note, setNote] = useState('');
@@ -59,7 +61,8 @@ export default function LessonEndPanel({
 
   const finish = async (withSummary) => {
     setError('');
-    if (lessonKey && markHeld) saveHandoff(lessonKey, { notes: note, lessonIds: sheets.map((sheet) => sheet.lessonId) });
+    const status = calendarStatusOf(attendance);
+    if (lessonKey && markHeld) saveHandoff(lessonKey, { notes: note, lessonIds: sheets.map((sheet) => sheet.lessonId), ...(status ? { status } : {}) });
     if (withSummary) {
       setBusy(true);
       try {
@@ -94,7 +97,10 @@ export default function LessonEndPanel({
       {homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span>{item.task}</span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud („Rohkem” → „Anna kodutöö”).</p>}
       <label className="vw-field"><span>Sõnum õpilasele (valikuline)</span>
         <textarea rows={3} maxLength={2000} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Tubli töö! Järgmises tunnis kordame …" /></label>
-      <label className="vw-check"><input type="checkbox" checked={markHeld} onChange={(event) => setMarkHeld(event.target.checked)} /> {linked
+      {attendance ? <p className="vw-muted">Kohalolu tunniplaanis: <strong>{markLabel(attendance)}</strong>{attendance.auto ? ' (soovitus — muuda „Tunniplaanis”)' : ''}</p> : null}
+      <label className="vw-check"><input type="checkbox" checked={markHeld} onChange={(event) => setMarkHeld(event.target.checked)} /> {attendance?.status === 'absent'
+        ? `Märgi tund kalendris: Puudus (ei teatanud)${linked ? '' : ' — kalender pakub selle lisada'}`
+        : linked
         ? 'Märgi tund kalendris toimunuks (teema töölehest, märkus läheb päevikusse)'
         : 'Tund ei olnud kalendris: kalender pakub selle lisada ja märkida toimunuks (teema töölehest, märkus päevikusse)'}</label>
       <p className="vw-note">Salvestatud tunni AI analüüs ilmub mõne minuti pärast õpilase kaardile („Tunnid”). Seal on õpilase vigade teemad ja nupud „Anna kodutöö teemade järgi” ning „Lisa parandused kaartidele”.</p>
