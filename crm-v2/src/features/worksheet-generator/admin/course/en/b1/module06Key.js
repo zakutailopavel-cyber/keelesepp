@@ -346,7 +346,7 @@ export const EXPLAIN = {
     'Ответ в тексте: That the suitcase was still in Manchester.',
     'Ответ в тексте: Because he had forgotten his driving licence at home.',
     'Ответ в тексте: In a cheap hotel near the old town in Riga.',
-    'Ответ в тексте: FINALLY!',
+    'Наблюдение: past perfect (had left, had forgotten) показывает, что это случилось раньше другого события в прошлом; подробно — в en-b1-009.',
     'Открытый вопрос: засчитываем любой разумный ответ с причиной.',
   ],
   en_b1_028_d_tf: [
