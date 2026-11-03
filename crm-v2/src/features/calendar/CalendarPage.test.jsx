@@ -124,6 +124,10 @@ describe('calendar v2', () => {
     expect(online.querySelector('.tg-online-icon')).not.toBeNull();
     expect(onsite.closest('.tg-block')).toHaveClass('is-onsite');
     expect(onsite.querySelector('.tg-online-icon')).toBeNull();
+    // the key explains both, so an online lesson is not read as the teacher's red (unavailable) hours (Oleksiy 2026-11-03)
+    const key = screen.getByLabelText('Veebitund ja õpetaja hõivatud aeg');
+    expect(key).toHaveTextContent(/Veebitund/);
+    expect(key).toHaveTextContent(/Punased triibud: õpetaja ei ole saadaval/);
   });
 
   it('admin notes: a note icon on the lesson, the note in the panel, the admin saves a note for the whole series', async () => {

@@ -12,6 +12,17 @@ const Ribbon = ({ item, today }) => {
   return <i className={`tg-mark is-${key}`} title={LESSON_MARKS[key].label} aria-label={LESSON_MARKS[key].label}>{LESSON_MARKS[key].symbol}</i>;
 };
 
+// online lesson vs a teacher's red (unavailable) hours (Oleksiy 2026-11-03: „бекграунд онлайн уроков совпадает с красными
+// часами учителей”): a small key with a sample of each, the same classes as in the grid (calendarV2.css)
+export function LessonKindsLegend() {
+  return (
+    <span className="cal2-kinds" aria-label="Veebitund ja õpetaja hõivatud aeg">
+      <span><i className="cal2-kind-sample tg-kind-online" aria-hidden="true"><Video className="tg-online-icon" size={11} /></i>Veebitund (täpid, katkendjoon, kaamera; värv = õpetaja)</span>
+      <span><i className="cal2-kind-sample tg-kind-busy" aria-hidden="true" />Punased triibud: õpetaja ei ole saadaval</span>
+    </span>
+  );
+}
+
 const nowMinutes = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 
 /**
@@ -253,7 +264,7 @@ export default function TimeGrid({ tones = null, columns, allowColumnChange = tr
                         onClick={(event) => { event.stopPropagation(); if (!movable || event.detail === 0) onOpen(item); }}
                       >
                         <span className="tg-time">{item.online ? <Video className="tg-online-icon" size={13} aria-hidden="true" /> : null}{item.time}{item.adminNote ? <span className="tg-note" title={`Admini märkus: ${item.adminNote}`} aria-label="Admini märkus"><StickyNote size={12} /></span> : null}{!item.online && item.roomName ? <span className="tg-room" title={`Kabinet: ${item.roomName}`}>{item.roomName}</span> : null}{status === 'done' ? <Check size={12} /> : status === 'absent' || status === 'cancelled' ? <X size={12} /> : null}</span>
-                        <strong><SubjectTag subject={item.subject} />{item.studentName || 'Õpilane'}{item.online ? <span className="tg-online" title="Veebitund"> · veeb</span> : null}</strong>
+                        <strong><SubjectTag subject={item.subject} />{item.studentName || 'Õpilane'}{item.online ? <span className="tg-online" title="Veebitund">veeb</span> : null}</strong>
                         {item.recordTopic ? <small className="tg-topic">{item.recordTopic}</small> : showTeacher && manyTeachers ? <small>{item.teacher}</small> : null}
                       </button>
                       {onQuickDone && status === 'planned' && !item.isGroup && item.occurrenceDate <= column.today ? (
