@@ -7,16 +7,9 @@
 //                recordings. Sentences without an error come from the recordings and stay beside it for the teacher.
 // The teacher's own grades (students.skillMap) stay next to it; nothing here is written anywhere.
 import { scoreDocument } from '../worksheet-studio/engine/registry.js';
+import { TASK_SKILL } from './skillTasks.js';
 
 export const AUTO_SKILLS = ['Rääkimine', 'Grammatika', 'Sõnavara', 'Lugemine', 'Kuulamine', 'Kirjutamine'];
-const TASK_SKILL = {
-  gaps: 'Grammatika', choice: 'Grammatika', wordforms: 'Grammatika', errorfix: 'Grammatika', transformation: 'Grammatika',
-  wordorder: 'Grammatika', table: 'Grammatika', categorize: 'Grammatika',
-  match: 'Sõnavara', manymatch: 'Sõnavara', crossword: 'Sõnavara', wordsearch: 'Sõnavara', pictures: 'Sõnavara', clock: 'Sõnavara', vocab: 'Sõnavara',
-  reading: 'Lugemine', truefalse: 'Lugemine',
-  listening: 'Kuulamine', dictation: 'Kuulamine',
-  writing: 'Kirjutamine', guidedletter: 'Kirjutamine', translation: 'Kirjutamine',
-};
 const HALF_LIFE_DAYS = 45;
 const DAY = 24 * 60 * 60 * 1000;
 const CYRILLIC = /[а-яё]/i;
