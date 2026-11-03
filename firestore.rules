@@ -1345,6 +1345,24 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
+    // Pangapõhine raamatupidamine (docs/ACCOUNTING.md, functions/bank-statement.js): the company account's statement
+    // lines, imports, the accountant's categorisation rules and the month's closing balance; written only by financeApi
+    match /bankStatementLines/{lineId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+    match /bankStatementImports/{importId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+    match /bankRules/{ruleId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+    match /bankStatementBalances/{month} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
 
     match /payerCredits/{creditId} {
       allow read: if isAdmin();

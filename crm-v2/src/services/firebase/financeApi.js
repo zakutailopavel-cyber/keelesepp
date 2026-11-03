@@ -102,6 +102,37 @@ export const financeApi = {
   syncAccounting() {
     return post("/accounting/sync", {});
   },
+  // Pangapõhine raamatupidamine (docs/ACCOUNTING.md, functions/bank-statement.js)
+  setBankBooks(since, reason) {
+    return post("/accounting/bank-books", { since, reason });
+  },
+  bankBooksReview(from, to) {
+    return post("/accounting/bank-books/review", { from, to });
+  },
+  importBankStatement(csv, fileName) {
+    return post("/bank-statement/import", { csv, fileName, requestId: financeRequestId("bank_import") });
+  },
+  confirmBankLine(lineId, choice = null) {
+    return post("/bank-statement/confirm", { lineId, ...(choice ? { choice } : {}), requestId: financeRequestId("bank_confirm") });
+  },
+  dismissBankLine(lineId) {
+    return post("/bank-statement/dismiss", { lineId });
+  },
+  categorizeBankLine(lineId, { account, label, note, rule }) {
+    return post("/bank-statement/categorize", { lineId, account, label, note, ...(rule ? { rule } : {}), requestId: financeRequestId("bank_category") });
+  },
+  uncategorizeBankLine(lineId, reason) {
+    return post("/bank-statement/uncategorize", { lineId, reason });
+  },
+  saveBankRule(ruleId, rule) {
+    return post("/bank-statement/rules", { ruleId, rule });
+  },
+  setBankClosingBalance(month, closingCents) {
+    return post("/bank-statement/balance", { month, closingCents });
+  },
+  rematchBankLines() {
+    return post("/bank-statement/rematch", {});
+  },
   createAccountingEntry(entry) {
     return post("/accounting/entries", { entry, requestId: financeRequestId("accounting_entry") });
   },
