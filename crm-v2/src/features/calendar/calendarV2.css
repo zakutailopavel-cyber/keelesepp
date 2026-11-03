@@ -199,7 +199,7 @@
 .tg-band.is-online { background: repeating-linear-gradient(0deg, rgba(217, 138, 28, .12), rgba(217, 138, 28, .12) 6px, rgba(217, 138, 28, .18) 6px, rgba(217, 138, 28, .18) 7px); border-left-color: #d98a1c; }
 .cal2-dot.is-online { background: rgba(217, 138, 28, .4); border: 1px solid #d98a1c; margin-left: 8px; }
 .cal2-paint .cal2-dot.is-online { margin-left: 0; }
-.tg-online { color: #9a5b00; font-weight: 700; font-size: .72rem; }
+.tg-online { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 999px; background: #0b5c9e; color: #fff; font-weight: 700; font-size: .66rem; line-height: 1.45; vertical-align: 1px; }
 .lp-draft { color: #087e6b; }
 .lp-notes-edit { display: grid; gap: 8px; margin-top: 6px; }
 .lp-notice { padding: 8px 10px; border-radius: 10px; background: #ecfdf3; color: #05603a; }
@@ -247,11 +247,34 @@
 .lp-admin-note textarea { font: inherit; padding: 8px 10px; border-radius: 8px; }
 
 /* online vs on-site at a glance (Oleksiy 2026-10-15: several lessons at once — which are online?): an online lesson
-   has a camera icon by its time, a dashed outline and a striped background; an on-site lesson stays solid */
-.tg-block.is-online { border-left-style: dashed; outline: 1.5px dashed var(--tone-strong); outline-offset: -1.5px; background-image: repeating-linear-gradient(135deg, transparent 0 7px, rgba(255, 255, 255, .55) 7px 12px); }
-.tg-online-icon { flex: none; margin-right: 3px; vertical-align: -2px; color: #0b5c9e; }
-.tg-cluster-item.is-online { outline: 1.5px dashed var(--tone-strong); outline-offset: -1.5px; }
-.tg-cluster-item .tg-online-icon { margin-right: 2px; }
+   has a camera icon by its time, a dashed outline and a dotted background; an on-site lesson stays solid.
+   Oleksiy 2026-11-03: the old diagonal white stripes looked like the red diagonal stripes of a teacher's unavailable
+   hours (.tg-band.is-busy), worst with the red/pink teacher tones. Diagonal stripes now mean only „teacher not
+   available”; an online lesson keeps its teacher's colour, gets a dot grid in that colour, a dashed frame and a white
+   camera on a blue chip. Cancelled / absent lessons keep their own background. */
+.tg-block.is-online, .tg-cluster-item.is-online, .tg-kind-online { outline: 1.5px dashed var(--tone-strong); outline-offset: -1.5px; }
+.tg-block.is-online:not(.is-absent):not(.is-cancelled), .tg-cluster-item.is-online, .tg-kind-online {
+  background-color: var(--tone-soft);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--tone-strong) 28%, transparent) 1.1px, transparent 1.6px);
+  background-size: 7px 7px; background-position: 1px 1px;
+}
+.tg-block.is-online { border-left-style: dashed; }
+.tg-online-icon { flex: none; box-sizing: content-box; margin-right: 4px; padding: 1.5px; border-radius: 4px; background: #0b5c9e; color: #fff; vertical-align: -3px; }
+.tg-cluster-item .tg-online-icon { margin-right: 3px; padding: 1px; }
+
+/* the key under the toolbar: an online-lesson sample and a red-hours sample */
+.cal2-kinds { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0 0; color: #667085; font-size: .76rem; }
+.cal2-kinds > span { display: inline-flex; align-items: center; gap: 6px; }
+.cal2-kind-sample { display: inline-grid; place-items: center; flex: none; width: 26px; height: 16px; border-radius: 4px; }
+.cal2-kind-sample.tg-kind-online { --tone-soft: #e8f1ff; --tone-strong: #3b6fd8; }
+.cal2-kind-sample .tg-online-icon { margin: 0; padding: 1px; }
+.tg-kind-busy, .cal2-dot.is-busy { background: repeating-linear-gradient(135deg, rgba(180, 35, 24, .16) 0 3px, rgba(180, 35, 24, .38) 3px 5px); border: 1px solid #b42318; }
+.tg-kind-busy { border-left-width: 3px; }
+
+/* print: keep the colours and patterns (browsers drop backgrounds by default); the dashed frame and camera print anyway */
+@media print {
+  .tg-band, .tg-block, .tg-cluster-item, .tg-online-icon, .tg-online, .tg-mark, .cal2-dot, .cal2-kind-sample { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 
 /* a click on an empty half-hour cell: its status or a new lesson (Oleksiy 2026-10-15) */
 .cal-cell-menu { position: fixed; z-index: 60; max-height: calc(100vh - 16px); overflow-y: auto; display: grid; gap: 8px; padding: 12px; border: 1px solid #dfe5e1; border-radius: 14px; background: #fff; box-shadow: 0 14px 40px rgba(16, 35, 57, .22); }
