@@ -3,7 +3,9 @@
 //  - a similar name (same first name, or a short and a full form) AND the same parent (account, e-mail, phone or
 //    name), or the same learner's account, e-mail or phone.
 // Siblings share a parent but not a first name, so they are not proposed. A pair the administrator marked „Ei ole
-// duplikaat” (students.notDuplicateOf) is not shown again. Archived and merged cards are left out.
+// duplikaat” (students.notDuplicateOf) is not shown again. Merged cards are left out. An archived card is paired with
+// an active one (2026-11-03, Oleksiy: archived cards could not be merged — the pair never appeared); two archived
+// cards are not proposed. The active card comes first, so „Liida” keeps it by default.
 
 // Cyrillic → Latin for comparing names typed in different alphabets (Влад Повжик ~ Vlad, Ульяна ~ Uljana / Ulyana)
 const CYR = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'z', з: 'z', и: 'i', й: 'j', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'c', ч: 'c', ш: 's', щ: 's', ъ: '', ы: 'i', ь: '', э: 'e', ю: 'ju', я: 'ja', і: 'i', ї: 'i', є: 'e', ґ: 'g' };
@@ -41,7 +43,12 @@ function signals(s = {}) {
 }
 
 export function isOpenCard(s = {}) {
-  return Boolean(s.id) && s.active !== false && !s.mergedInto && !s.mergedIntoStudentId && !s.convertedToParent;
+  return isMergeableCard(s) && s.active !== false;
+}
+
+// a card that can still take part in a merge: not merged away, not turned into a parent account; archived is fine
+export function isMergeableCard(s = {}) {
+  return Boolean(s.id) && !s.mergedInto && !s.mergedIntoStudentId && !s.convertedToParent;
 }
 
 export function dismissedPair(a = {}, b = {}) {
@@ -77,13 +84,15 @@ export function duplicatePair(a = {}, b = {}) {
   return { a, b, score, confidence: score >= 80 ? 'high' : 'medium', reasons };
 }
 
-// all pairs among the open cards, the likeliest first
+// all pairs with at least one active card, the likeliest first; an archived card is always the second one
 export function duplicateCandidates(students = []) {
-  const open = (students || []).filter(isOpenCard);
+  const cards = (students || []).filter(isMergeableCard);
   const pairs = [];
-  for (let i = 0; i < open.length; i += 1) {
-    for (let j = i + 1; j < open.length; j += 1) {
-      const pair = duplicatePair(open[i], open[j]);
+  for (let i = 0; i < cards.length; i += 1) {
+    for (let j = i + 1; j < cards.length; j += 1) {
+      const [a, b] = cards[i].active === false ? [cards[j], cards[i]] : [cards[i], cards[j]];
+      if (a.active === false) continue;
+      const pair = duplicatePair(a, b);
       if (pair) pairs.push(pair);
     }
   }

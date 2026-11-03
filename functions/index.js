@@ -22,7 +22,7 @@ const { FieldValue } = require("firebase-admin/firestore");
 let googleModule = null;
 const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
-const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds } = require("./lesson-tokens-core");
+const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject, packageTiersForLesson } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
   buildCreditNotePdf,
@@ -1003,6 +1003,7 @@ async function creditInvoiceTokens({ actor, invoiceId }) {
       packageProductId: "", packageProductName: studentPackage.packageProductName,
       entryType: "grant", sourceType: "invoice_payment", sourceInvoiceId: cleanInvoiceId, sourceInvoiceNum: invoice.num || "",
       creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
+      ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
       reason: `Paid lesson package invoice ${invoice.num || cleanInvoiceId}`, actor: actorData, createdAt: nowIso, requestId: packageId,
     });
     transaction.set(invoiceRef, { tokenStatus: "credited", tokenPackageId: packageId, tokensCreditedAt: nowIso, tokensCreditedBy: actorData, updatedAt: nowIso }, { merge: true });
@@ -1010,6 +1011,7 @@ async function creditInvoiceTokens({ actor, invoiceId }) {
       entityType: "student_package", entityId: packageId, action: "student.package_credited_from_invoice",
       studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
       invoiceId: cleanInvoiceId, invoiceNum: invoice.num || "", creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
+      ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
       actor: actorData, reason: "Lesson package credited after payment", createdAt: nowIso, requestId: packageId,
     });
     return { studentPackage: { id: packageId, ...studentPackage }, idempotent: false };
@@ -1021,14 +1023,19 @@ async function creditInvoiceTokens({ actor, invoiceId }) {
 // lessons marked since the invoice date, before the package existed (the trigger skips a card without a package):
 // they take their credits now, oldest first
 // and lessons owed from before (held when no package had credits, lesson-tokens-core OWED_LESSONS_TAKE_NEXT_PACKAGE)
+// A package of one subject (tokenSubject) takes only that subject's lessons.
 async function consumeTokenBacklog(studentPackage) {
-  const [lessonsSnap, statesSnap] = await Promise.all([
+  const subjectKey = tokenSubjectKey(studentPackage.tokenSubject);
+  const [lessonsSnap, statesSnap, studentSnap] = await Promise.all([
     db.collection("lessons").where("studentId", "==", studentPackage.studentId).get(),
     db.collection("lessonPackageStates").where("studentId", "==", studentPackage.studentId).get(),
+    subjectKey ? db.collection("students").doc(String(studentPackage.studentId)).get() : null,
   ]);
+  const card = studentSnap?.exists ? studentSnap.data() : {};
   const states = new Map(statesSnap.docs.map(doc => [doc.id, doc.data()]));
   const owedLessonIds = statesSnap.docs.filter(doc => doc.data().status === "needs_attention").map(doc => doc.id);
-  const lessonIds = tokenBacklogLessonIds({ lessons: lessonsSnap.docs.map(doc => ({ id: doc.id, date: doc.data().date })), issuedAt: studentPackage.issuedAt, owedLessonIds });
+  const lessons = lessonsSnap.docs.map(doc => ({ id: doc.id, date: doc.data().date, ...(subjectKey ? { subjectKey: tokenSubjectKey(lessonSubject(doc.data(), card)) } : {}) }));
+  const lessonIds = tokenBacklogLessonIds({ lessons, issuedAt: studentPackage.issuedAt, owedLessonIds, subjectKey });
   let consumed = 0;
   for (const lessonId of lessonIds) {
     if (states.get(lessonId)?.status === "consumed") continue;
@@ -1166,20 +1173,45 @@ async function syncLessonPackageConsumption({
         .where("studentId", "==", cleanStudentId);
       const packagesSnap = await transaction.get(packagesQuery);
       const packages = packagesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // packages of one subject (lesson-tokens-core packageTiersForLesson): the lesson's own subject's packages first,
+      // then the shared pool. A card whose packages carry no subject has one tier and takes exactly as before.
+      const subjectScoped = packages.some(item => String(item.tokenSubject || "").trim());
+      const studentSnap = subjectScoped ? await transaction.get(db.collection("students").doc(cleanStudentId)) : null;
+      const subject = subjectScoped ? lessonSubject(lesson, studentSnap?.exists ? studentSnap.data() : {}) : "";
+      const tiers = packageTiersForLesson(packages, tokenSubjectKey(subject));
+      if (!tiers) {
+        // the card's packages are all for other subjects: this subject is not on packages (nothing taken, nothing owed)
+        const result = {
+          changed: false,
+          status: "not_applicable",
+          lessonId: cleanLessonId,
+          reason: `The card has no lesson package for ${subject || "this subject"}`,
+        };
+        clearOwed();
+        transaction.create(requestRef, requestRecord(result));
+        return { ...result, idempotent: false };
+      }
       let selectedPackage = null;
       let selectionError = "";
+      const requestedPackageId = lesson.requestedStudentPackageId || "";
       try {
-        selectedPackage = selectStudentPackageForLesson(packages, {
-          lessonDate,
-          requestedPackageId: lesson.requestedStudentPackageId || "",
-          preferredPackageId: state.studentPackageId || "",
-          credits: lessonCredits,
-        });
+        if (requestedPackageId) {
+          selectedPackage = selectStudentPackageForLesson(tiers.flat(), { lessonDate, requestedPackageId, credits: lessonCredits });
+        } else {
+          for (const tier of tiers) {
+            selectedPackage = selectStudentPackageForLesson(tier, {
+              lessonDate,
+              preferredPackageId: state.studentPackageId || "",
+              credits: lessonCredits,
+            })
+              // owed: no package dated on or before the lesson has credits → the next paid token package pays it
+              || packageForOwedLesson(tier, { credits: lessonCredits });
+            if (selectedPackage) break;
+          }
+        }
       } catch (error) {
         selectionError = error.message;
       }
-      // owed: no package dated on or before the lesson has credits → the next paid token package pays it
-      if (!selectedPackage && !selectionError) selectedPackage = packageForOwedLesson(packages, { credits: lessonCredits });
       if (!selectedPackage) {
         const reason = selectionError
           || (packages.length
@@ -1205,6 +1237,8 @@ async function syncLessonPackageConsumption({
           status: "needs_attention",
           lessonDate,
           credits: lessonCredits,
+          // the subject the owed lesson belongs to (only on a card with packages of one subject)
+          ...(subject ? { subject } : {}),
           cycle: Number(state.cycle) || 0,
           lastError: reason,
           updatedAt: nowIso,
@@ -8604,7 +8638,7 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       const { mergeStudentCards } = require("./student-merge");
       try {
         res.json(await mergeStudentCards(db, {
-          FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), keepName: cleanText(req.body?.keepName, 200), actor: actorSnapshot(actor),
+          FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), keepName: cleanText(req.body?.keepName, 200), actor: actorSnapshot(actor), ...(typeof req.body?.keepActive === "boolean" ? { keepActive: req.body.keepActive } : {}),
           // everything moves (owner 2026-10-24); finance / schedule can still be left out explicitly
           apply: req.body?.apply === true, confirmed: req.body?.confirmed === true, includeFinance: req.body?.includeFinance !== false, includeSchedule: req.body?.includeSchedule !== false,
         }));

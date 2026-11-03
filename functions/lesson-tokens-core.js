@@ -6,6 +6,8 @@
 // Pure helpers; the routes are manualInvoiceApi /create-tokens and financeApi /invoices/tokens/credit, the lesson
 // trigger is syncLessonTokens in index.js.
 
+const { subjectName, enrollmentsOf } = require('./student-enrollments-core');
+
 const clean = (value, max = 300) => String(value || '').trim().slice(0, max);
 const fail = (status, message) => Object.assign(new Error(message), { status });
 const euros = (cents) => (cents / 100).toFixed(2).replace('.', ',');
@@ -17,7 +19,8 @@ function tokenInvoiceInput(values = {}) {
   if (!Number.isInteger(lessons) || lessons < 1 || lessons > 100) throw fail(400, 'Tundide arv peab olema 1–100.');
   const due = clean(values.due, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(due) || Number.isNaN(new Date(`${due}T12:00:00Z`).getTime())) throw fail(400, 'Lisa maksetähtaeg.');
-  return { studentId, lessons, due, note: clean(values.note, 500) };
+  const subject = subjectName(clean(values.subject, 80));
+  return { studentId, lessons, due, note: clean(values.note, 500), ...(subject ? { subject } : {}) };
 }
 
 // the price comes from the card's private plan, never from the request
@@ -84,6 +87,9 @@ function tokenPackageRecord({ invoice, invoiceId, student = {}, issuedAt, nowIso
     sourceInvoiceId: invoiceId,
     sourceInvoiceNum: invoice.num || '',
     subject: invoice.subject || student.subject || '',
+    // the subject whose lessons this package pays (owner bug 2026-11-03); only invoices made with a chosen subject have
+    // one. A package without tokenSubject is the shared pool: it pays every lesson of the card, as before.
+    ...(subjectName(invoice.subject) ? { tokenSubject: subjectName(invoice.subject) } : {}),
     createdAt: nowIso,
     createdBy: actor,
     updatedAt: nowIso,
@@ -130,12 +136,80 @@ function packageForOwedLesson(packages = [], { enabled = OWED_LESSONS_TAKE_NEXT_
 
 // the lessons a newly credited package takes, oldest first: every lesson since the invoice date (held while the payment
 // was on its way) and every owed lesson of the card, whatever its date. lessons: [{ id, date }]; owedLessonIds: ids.
-function tokenBacklogLessonIds({ lessons = [], issuedAt = '', owedLessonIds = [], owedFirst = OWED_LESSONS_TAKE_NEXT_PACKAGE } = {}) {
+// subjectKey (a package of one subject): only the lessons of that subject (lessons then carry their own subjectKey).
+function tokenBacklogLessonIds({ lessons = [], issuedAt = '', owedLessonIds = [], owedFirst = OWED_LESSONS_TAKE_NEXT_PACKAGE, subjectKey = '' } = {}) {
   const owed = new Set(owedFirst ? owedLessonIds : []);
   return lessons
-    .filter((lesson) => lesson && lesson.id && (owed.has(lesson.id) || String(lesson.date || '') >= String(issuedAt || '')))
+    .filter((lesson) => lesson && lesson.id && (!subjectKey || lesson.subjectKey === subjectKey) && (owed.has(lesson.id) || String(lesson.date || '') >= String(issuedAt || '')))
     .sort((a, b) => `${a.date || ''}:${a.id}`.localeCompare(`${b.date || ''}:${b.id}`))
     .map((lesson) => lesson.id);
 }
 
-module.exports = { TOKEN_MINUTES, TOKENS_PER_LESSON, lessonTokenCost, OWED_LESSONS_TAKE_NEXT_PACKAGE, isTokenPackage, packageForOwedLesson, tokenBacklogLessonIds, tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };
+// ---- A package for one subject (Oleksiy 2026-11-03: „при составлении туннипакета нет возможности выбрать курс”) ----
+// A card may study several subjects, each at its own price (studentRevenuePlans.subjectPrices). A package invoice names
+// one subject; its package then pays only that subject's lessons. Packages without a subject (all made before) stay one
+// shared pool and pay every lesson of the card, exactly as before.
+
+// one key per subject: case, spaces, diacritics and the built-in aliases do not matter („English” = „Inglise keel”;
+// crm-v2 studyDirections.js DEFAULT_DIRECTIONS aliases and services/firebase/lessonTokens.js tokenSubjectKey)
+const SUBJECT_ALIASES = { eesti: 'Eesti keel', estonian: 'Eesti keel', english: 'Inglise keel', inglise: 'Inglise keel', matem: 'Matemaatika', 'eesti keel emakeelena': 'Emakeel', russian: 'Vene keel' };
+function tokenSubjectKey(subject) {
+  const low = clean(subject, 120).replace(/\s+/g, ' ').toLocaleLowerCase('et');
+  if (!low) return '';
+  return clean(SUBJECT_ALIASES[low] || low, 120).toLocaleLowerCase('et').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+}
+
+// the subjects a card is taught (its active tracks, as written on the card; a card that names none has [])
+function cardSubjects(card = {}) {
+  const list = Array.isArray(card.enrollments) && card.enrollments.length ? card.enrollments : [card];
+  return [...new Set(list.filter((track) => track && track.active !== false && track.status !== 'ended')
+    .map((track) => subjectName(track.subject || card.subject)).filter(Boolean))];
+}
+
+// the subject of a new package invoice: one of the card's own subjects; a card with one subject gets it without asking;
+// a card with several has to name one; a card that names none may take any subject of the school
+function tokenInvoiceSubject(requested, card = {}) {
+  const subjects = cardSubjects(card);
+  const key = tokenSubjectKey(requested);
+  if (key) {
+    if (!subjects.length) return subjectName(requested);
+    const found = subjects.find((subject) => tokenSubjectKey(subject) === key);
+    if (!found) throw fail(400, 'Õpilasel ei ole seda ainet: vali üks tema ainetest.');
+    return found;
+  }
+  if (subjects.length > 1) throw fail(400, 'Vali aine: õpilasel on mitu ainet ja pakett kuulub ühele neist.');
+  return subjects[0] || '';
+}
+
+// the subject a lesson belongs to: its own when the card has it (a schedule entry without a subject is written as
+// „Eesti keel”), else its teacher's track, else the card's only subject, else its own, else the card's main subject
+// (the order of the monthly invoices, crm-v2 students/subjects.js itemSubject)
+function lessonSubject(lesson = {}, card = {}) {
+  const subjects = cardSubjects(card);
+  const own = subjectName(lesson.subject);
+  if (own && (!subjects.length || subjects.some((subject) => tokenSubjectKey(subject) === tokenSubjectKey(own)))) return own;
+  const teacher = clean(lesson.teacher).toLocaleLowerCase('et');
+  const byTeacher = enrollmentsOf(card).filter((track) => track.active)
+    .find((track) => (lesson.teacherUid && track.teacherUid === lesson.teacherUid) || (teacher && track.teacher.toLocaleLowerCase('et') === teacher));
+  if (byTeacher) return byTeacher.subject;
+  if (subjects.length === 1) return subjects[0];
+  return own || subjectName(card.subject) || subjects[0] || '';
+}
+
+// '' = the shared pool (a package without a subject)
+const packageSubjectKey = (item = {}) => tokenSubjectKey(item.tokenSubject);
+const hasSubjectPackages = (packages = []) => (Array.isArray(packages) ? packages : []).some((item) => item && packageSubjectKey(item));
+
+// the packages a lesson of this subject may take, in the order it tries them: its subject's own packages, then the
+// shared pool. null = the card has packages only for other subjects: this lesson is not on packages (it takes nothing
+// and owes nothing, e.g. English on packages and maths by monthly invoice).
+function packageTiersForLesson(packages = [], subjectKey = '') {
+  const list = (Array.isArray(packages) ? packages : []).filter(Boolean);
+  if (!hasSubjectPackages(list)) return [list];
+  const own = subjectKey ? list.filter((item) => packageSubjectKey(item) === subjectKey) : [];
+  const shared = list.filter((item) => !packageSubjectKey(item));
+  if (!own.length && !shared.length) return null;
+  return [own, shared].filter((tier) => tier.length);
+}
+
+module.exports = { tokenSubjectKey, cardSubjects, tokenInvoiceSubject, lessonSubject, packageSubjectKey, hasSubjectPackages, packageTiersForLesson, TOKEN_MINUTES, TOKENS_PER_LESSON, lessonTokenCost, OWED_LESSONS_TAKE_NEXT_PACKAGE, isTokenPackage, packageForOwedLesson, tokenBacklogLessonIds, tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };

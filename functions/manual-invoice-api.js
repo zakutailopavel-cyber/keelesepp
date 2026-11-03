@@ -8,7 +8,7 @@ const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('
 const { invoiceCancellationError, wasSent } = require('./invoice-cancellation-core');
 const { subjectName } = require('./student-enrollments-core');
 const { sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth } = require('./combined-invoice-core');
-const { tokenInvoiceInput, tokenInvoiceLines } = require('./lesson-tokens-core');
+const { tokenInvoiceInput, tokenInvoiceLines, tokenInvoiceSubject } = require('./lesson-tokens-core');
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
@@ -442,8 +442,14 @@ async function createTokenInvoice({ actor, values, requestId }) {
     if (!studentSnap.exists) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
     const student = studentSnap.data();
+    // the package's subject (Oleksiy 2026-11-03): one of the card's subjects, its price and its name on the invoice; the
+    // package made from this invoice pays only that subject's lessons (lesson-tokens-core tokenInvoiceSubject)
     let priced;
-    try { priced = tokenInvoiceLines({ lessons: input.lessons, plan: planSnap.exists ? planSnap.data() : {}, subject: String(student.subject || '').trim() }); } catch (error) { throw httpError(error.status || 400, error.message); }
+    let subject;
+    try {
+      subject = tokenInvoiceSubject(input.subject, student);
+      priced = tokenInvoiceLines({ lessons: input.lessons, plan: planForSubject(planSnap.exists ? planSnap.data() : {}, subject), subject: subject || String(student.subject || '').trim() });
+    } catch (error) { throw httpError(error.status || 400, error.message); }
     const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
     const base = manualInvoiceRecord({
       input: { studentId: input.studentId, description: priced.description, amountCents: priced.amountCents, amount: priced.amountCents / 100, due: input.due, note: input.note },
@@ -452,6 +458,7 @@ async function createTokenInvoice({ actor, values, requestId }) {
     const invoice = {
       ...base,
       lines: priced.lines,
+      ...(subject ? { subject } : {}),
       billingMode: 'lesson_tokens_v1',
       pricingMode: 'plan',
       lessonCount: input.lessons,
@@ -466,7 +473,7 @@ async function createTokenInvoice({ actor, values, requestId }) {
     transaction.create(db.collection('financialAudit').doc(mutationId), {
       entityType: 'invoice', entityId: mutationId, action: 'invoice.created_lesson_tokens', invoiceId: mutationId, invoiceNum,
       studentId: input.studentId, studentName: invoice.studentName, amountCents: priced.amountCents, amount: priced.amountCents / 100,
-      tokenCredits: input.lessons, actor, reason: input.note || priced.description, createdAt: nowIso, requestId: mutationId,
+      tokenCredits: input.lessons, ...(subject ? { subject } : {}), actor, reason: input.note || priced.description, createdAt: nowIso, requestId: mutationId,
     });
     return { invoice: { id: mutationId, ...invoice }, idempotent: false };
   });
