@@ -33,9 +33,21 @@ export const WIDER_TOPICS = Object.freeze({
   majandus: 'töö ja majandus',
 });
 
+// the six topic areas of the English state exam (Harno, inglise keele riigieksami eristuskiri 2026/27; docs/
+// COURSE_FINAL_SHAPE_EN_B2.md §3.1, §5): the English B2 course (enb2) has each as a main topic at least once
+export const EN_STATE_TOPICS = Object.freeze({
+  en_society: 'inimene ja ühiskond',
+  en_environment: 'inimene ja keskkond',
+  en_world: 'Eesti ja maailm',
+  en_culture: 'kultuur ja looming',
+  en_work: 'haridus ja töö',
+  en_science: 'teadus ja tehnoloogia',
+});
+
 export const REQUIRED_TOPICS = Object.freeze({
   b1: [...Object.keys(HARNO_TOPICS), 'meedia', 'yhiskond', 'kultuur', 'ajalugu'],
   b2: [...Object.keys(HARNO_TOPICS)],
+  enb2: [...Object.keys(EN_STATE_TOPICS)],
 });
 
 const m = (main, secondary, theme) => ({ main, secondary, theme });
@@ -81,6 +93,10 @@ export const TOPIC_MAP = Object.freeze({
     'b1b2-module-17': m('kohad', ['ymbruskond', 'yhiskond'], 'Eesti piirkonnad: maa ja linn, Ida-Virumaa, saared, regionaalareng'),
     'b1b2-module-18': m('kultuur', ['ajalugu', 'isikuandmed'], 'Eesti lugu ja identiteet: ajalugu, traditsioonid, mina Eestis'),
   },
+  // English B2 (docs/COURSE_FINAL_SHAPE_EN_B2.md §5): the state exam's topic areas, module by module
+  enb2: {
+    'en-b2-module-01': m('en_society', ['en_culture'], 'Identity and generations: generation labels, 1992 and the kroon, life stories, leaving home'),
+  },
 });
 
-export const topicName = (key) => HARNO_TOPICS[key] || WIDER_TOPICS[key] || key;
+export const topicName = (key) => HARNO_TOPICS[key] || WIDER_TOPICS[key] || EN_STATE_TOPICS[key] || key;

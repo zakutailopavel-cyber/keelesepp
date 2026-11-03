@@ -6,7 +6,8 @@ its size follows the Estonian average of comparable courses, scaled as C1 was (`
 length and look like the real exam; every sheet is a real lesson with sourced facts (`docs/COURSE_DESIGN_COMMUNICATIVE.md` §13,
 `docs/ACADEMIC_VALUE_ROUND1.md`, `docs/ACADEMIC_VALUE_ROUND2.md`).
 
-**State: design only (2026-11-03).** No code, no module, no lesson, no curriculum record. Labels: **[H]** Harno (eristuskiri, 2026
+**State (2026-11-03):** engine and UI done (PR #1047, §9); module 1 „Who we are” (`admin/course/en/b2/module01.js`,
+en-b2-001…005) written; modules 2–10 not yet. Curriculum records `en-b2-v1` exist in code only (Firestore write = owner's yes). Labels: **[H]** Harno (eristuskiri, 2026
 exam paper), **[C]** Cambridge English, **[W]** a provider's own page, **[INF]** our decision. The existing English course is
 `docs/ENGLISH_COURSE_PLAN.md` (A2 and B1, 50 lessons each, course key `en`).
 
@@ -274,16 +275,26 @@ The §13 standard applies in full, with English wording:
     40-minute mock listening need recorded English audio with several voices: an English TTS choice (§10).
 11. Later, not blocking: English word cards (`vocabulary/lessonWords.js` knows only `a2b1-` / `b1b2-`), an English Õpik.
 
-## 10. Open questions for the owner
+## 10. Owner's decisions (2026-11-03) and what stays open
 
-1. **Size: 45 or 50 lessons?** The Estonian average gives 45 (§4); we propose 50 (10 modules, two full mocks), the size of English A2
-   and B1.
-2. **English audio.** Which voice for English listening (a free or a paid TTS service; paid needs your yes)? Without it the teacher
-   reads the texts, and the once-only task and the mocks are not like the exam.
-3. **Cambridge B2 First.** Is the state exam enough as the target (our proposal), or do some learners (adults) need a B2 First mock as
-   well?
+The three questions of this design were answered by the owner on 2026-11-03:
 
-Next safe step: the B1 gap PR (§2), then the engine PR (§9), then module 1.
+1. **Size: 50 lessons** (10 modules × 5), as proposed: two full mocks (030, 050) and the exam module fit without cutting a topic
+   module. `curriculum/enB2Curriculum.js EN_B2_LESSONS = 50`.
+2. **No English audio for now.** The teacher reads every listening text from the transcript (kept on every listening block);
+   no TTS service is used (`listeningAudio.js LISTENING_VOICES.en = null`). The once-only task (EL1) is read once by the teacher.
+   Recorded English audio remains a later step and a paid service needs the owner's yes.
+3. **IELTS, TOEFL iBT and Cambridge B2 First in addition to the state exam.** The Harno English state exam stays the main target
+   (every module's exam tasks and the mocks 030 / 050 follow it); the course also prepares for IELTS (Academic and General
+   Training), TOEFL iBT and B2 First. Their formats are in `engine/blocks/examFormats.js` (`B.examPart(id, skill, { exam: 'IELTS-A'
+   | 'IELTS-GT' | 'TOEFL' | 'B2F' })`); module 10 holds full-length mocks of them written for KeeleSepp. Language tasks that
+   these exams share (key word transformations of B2 First, for example) appear in the module checks (005: `en_b2_005_p_kwt`).
+
+Still open: when to write the `en-b2-v1` curriculum records to Firestore and publish the sheets (owner's step, per module); an
+English voice if the owner later wants recorded listening.
+
+Next safe step: review and merge module 1; then module 2 „Learning and work” (006–010, the first exam corners and the first timed
+module check).
 
 ## Sources (read 2026-11-03)
 

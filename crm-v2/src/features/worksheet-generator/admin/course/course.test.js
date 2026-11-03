@@ -62,7 +62,7 @@ describe.each(COURSE_MODULES.filter((mod) => STRICT_MODULES.includes(mod.MODULE.
 // every exam-part header carries its course's Harno exam, so the sheet shows the real weighting and pass rule
 // (docs/HARNO_LEVEL_REQUIREMENTS.md „Verified exam table”)
 describe('exam-part headers name the course exam', () => {
-  it.each([['a2', 'A2'], ['b1', 'B1'], ['b2', 'B2']])('course %s → Harno %s', (course, level) => {
+  it.each([['a2', 'A2'], ['b1', 'B1'], ['b2', 'B2'], ['enb2', 'EN-RE']])('course %s → Harno %s', (course, level) => {
     const parts = COURSE_MODULES.filter((m) => m.MODULE.course === course)
       .flatMap((m) => Object.values(moduleSheets(m)).flatMap((sheets) => Object.values(sheets).flatMap((doc) => doc.blocks)))
       .filter((b) => b.type === 'exampart');
