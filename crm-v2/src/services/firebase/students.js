@@ -201,6 +201,8 @@ async function resolveTeacherUid(db, teacherName) {
 }
 
 export function matchesStudentFilters(student, filters = {}) {
+  // a card in the „Prügikast” (or purged after it) is in no list, picker or search (ARCHITECTURE.md „Card trash”)
+  if (!filters.includeDeleted && (student.deletedAt || student.purgedAt)) return false;
   const search = cleanText(filters.search).toLocaleLowerCase('et');
   if (search && ![
     visibleStudentValue(student, 'name'),
@@ -240,7 +242,7 @@ export const studentsService = {
     const snapshots = await Promise.all(constraints.map((constraint) => getDocs(query(collection(db, 'students'), constraint))));
     const unique = new Map();
     snapshots.forEach((snapshot) => snapshot.docs.forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data()))));
-    return sortStudents([...unique.values()].filter((student) => student.active && !student.convertedToParent));
+    return sortStudents([...unique.values()].filter((student) => student.active && !student.convertedToParent && !student.deletedAt && !student.purgedAt));
   },
   async listOwned(uid) {
     const { db } = requireFirebaseClient();
@@ -256,7 +258,7 @@ export const studentsService = {
     const snapshots = await Promise.all(constraints.map((constraint) => getDocs(query(collection(db, 'students'), constraint))));
     const unique = new Map();
     snapshots.forEach((snapshot) => snapshot.docs.forEach((item) => unique.set(item.id, normalizeStudent(item.id, item.data()))));
-    return sortStudents([...unique.values()].filter((student) => student.active && !student.convertedToParent));
+    return sortStudents([...unique.values()].filter((student) => student.active && !student.convertedToParent && !student.deletedAt && !student.purgedAt));
   },
   list(filters = {}) {
     return filters.exhaustive ? shareInFlight(`students:${JSON.stringify(filters)}`, () => studentsService.readList(filters)) : studentsService.readList(filters);

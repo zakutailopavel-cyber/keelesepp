@@ -1,4 +1,4 @@
-import { BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
+import { BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, Trash2, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 // Grouped so the menu stays short on a laptop screen: own pages first, then teaching, people, communication and money.
@@ -18,6 +18,7 @@ export const navigation = [
   { to: '/groups', label: 'Grupid', icon: Layers3, roles: ACCESS.STAFF, group: 'Inimesed' },
   { to: '/teachers', label: 'Õpetajad', icon: UserRoundCog, roles: ACCESS.ADMIN, group: 'Inimesed' },
   { to: '/accounts', label: 'Uued kontod', icon: UserRoundPlus, roles: ACCESS.ADMIN, group: 'Inimesed' },
+  { to: '/trash', label: 'Prügikast', icon: Trash2, roles: ACCESS.ADMIN, group: 'Inimesed' },
   { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.MESSAGES, group: 'Suhtlus ja raha' },
   { to: '/leads', label: 'Päringud', icon: Inbox, roles: ACCESS.LEADS, group: 'Suhtlus ja raha' },
   { to: '/kampaaniad', label: 'Kampaaniad', icon: Megaphone, roles: ACCESS.ADMIN, group: 'Suhtlus ja raha' },

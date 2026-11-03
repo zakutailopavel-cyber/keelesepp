@@ -28,6 +28,8 @@ export default function LessonTokensCard({ student, service = lessonTokensServic
   const account = tokenAccount({ packages: state.packages, owed: state.owed });
   if (!account.rows.length && compact) return null;
   const [tone, label] = BADGE[account.state] || [];
+  // packages for one subject (2026-11-03): the column shows which lessons each package pays
+  const bySubject = account.rows.some((row) => row.subject);
   return <Card className="lesson-tokens-card">
     <div className="section-heading"><div><span className="eyebrow">Tunnipakett{compact && student.name ? ` · ${student.name}` : ''}</span><h2>{account.left} tundi alles</h2></div>
       {label ? <Badge tone={tone}>{label}</Badge> : null}</div>
@@ -36,16 +38,17 @@ export default function LessonTokensCard({ student, service = lessonTokensServic
       {compact ? <p className="form-hint" data-testid="token-line">{tokenLine(account)}</p> : <>
         <p className="form-hint">Ostetud {account.bought} · peetud {account.held} · alles {account.left}{account.owed ? ` · võlg ${tunde(account.owed)}` : ''}{account.state === 'low' || account.state === 'empty' ? ' · aeg saata uus tunnipaketi arve' : ''}</p>
         <table className="lesson-tokens-card__packages" aria-label="Tunnipaketid arvete kaupa">
-          <thead><tr><th scope="col">Arve</th><th scope="col">Alates</th><th scope="col">Ostetud</th><th scope="col">Peetud</th><th scope="col">Alles</th></tr></thead>
+          <thead><tr><th scope="col">Arve</th>{bySubject ? <th scope="col">Aine</th> : null}<th scope="col">Alates</th><th scope="col">Ostetud</th><th scope="col">Peetud</th><th scope="col">Alles</th></tr></thead>
           <tbody>{account.rows.map((row) => <tr key={row.id}>
             <td>{row.invoiceNum || row.invoiceId || <span title={row.name}>arveta pakett</span>}</td>
+            {bySubject ? <td>{row.subject || 'kõik ained'}</td> : null}
             <td>{dateOf(row.issuedAt)}</td>
             <td>{row.bought}{row.corrected ? <small> ({row.corrected > 0 ? '+' : ''}{row.corrected} parandus)</small> : null}</td>
             <td>{row.held}</td>
             <td>{row.usedUp ? 'läbi' : row.left}</td>
           </tr>)}</tbody>
         </table>
-        {account.owed ? <p className="form-error" role="status">Pakett on läbi: ilma paketita peetud {account.owedLessons.map((item) => `${dateOf(item.lessonDate)}${Number(item.credits) > 1 ? ` (${item.credits} tundi)` : ''}`).join(', ')} — võlg {tunde(account.owed)}. Saada uus tunnipaketi arve — makstud pakett katab need esimesena.</p> : null}
+        {account.owed ? <p className="form-error" role="status">Pakett on läbi: ilma paketita peetud {account.owedLessons.map((item) => `${dateOf(item.lessonDate)}${item.subject ? ` ${item.subject}` : ''}${Number(item.credits) > 1 ? ` (${item.credits} tundi)` : ''}`).join(', ')} — võlg {tunde(account.owed)}. Saada uus tunnipaketi arve — makstud pakett katab need esimesena.</p> : null}
       </>}
       {!compact && state.ledger.length ? <ul className="simple-list lesson-tokens-card__ledger" aria-label="Tunnipaketi liikumised">
         {state.ledger.slice(0, 12).map((entry) => <li key={entry.id}>

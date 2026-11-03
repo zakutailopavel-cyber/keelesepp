@@ -36,3 +36,34 @@ describe('TeacherProfilePage', () => {
     expect(screen.queryByRole('button', { name: /Seo õpetaja kontoga/ })).not.toBeInTheDocument();
   });
 });
+
+describe('TeacherProfilePage: „Kustuta” → „Prügikast” (administrator 2026-11-03)', () => {
+  function renderTrash(teacher, { roles = ['admin'], url = '/teachers/teacher-uid' } = {}) {
+    let current = teacher;
+    const teacherRepository = { getById: vi.fn(async () => current) };
+    const trashApi = {
+      trash: vi.fn(async () => { current = { ...current, disabled: true, deletedAt: '2026-11-03T10:00:00.000Z', purgeAfter: '2026-11-10T10:00:00.000Z', deletedBy: { name: 'Oleksiy' } }; return { purgeAfter: current.purgeAfter }; }),
+      restore: vi.fn(async () => { current = teacher; return { restored: true }; }),
+    };
+    render(<MemoryRouter initialEntries={[url]}><AuthContext.Provider value={{ user: { uid: 'admin-uid', roles } }}><Routes><Route path="/teachers/:teacherId" element={<TeacherProfilePage teacherRepository={teacherRepository} studentRepository={{ list: vi.fn().mockResolvedValue({ items: [] }) }} scheduleRepository={{ list: vi.fn().mockResolvedValue([]) }} timeRepository={{ listByStaff: vi.fn().mockResolvedValue({ sessions: [], programDays: [], summary: {} }) }} trashApi={trashApi} />} /></Routes></AuthContext.Provider></MemoryRouter>);
+    return trashApi;
+  }
+
+  it('the menu link ?kustuta=1 opens the window; the card goes to the trash and can be restored from the card', async () => {
+    const trashApi = renderTrash({ id: 'teacher-uid', name: 'Anhelina Korotka', role: 'teacher' }, { url: '/teachers/teacher-uid?kustuta=1' });
+    fireEvent.click(await screen.findByRole('button', { name: /Vii prügikasti/ }));
+    await waitFor(() => expect(trashApi.trash).toHaveBeenCalledWith('teacher', 'teacher-uid'));
+    expect(await screen.findByText(/Õpetaja kaart on viidud prügikasti/)).toBeInTheDocument();
+    expect(screen.getByText('Kaart on prügikastis')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Kustuta/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Taasta/ }));
+    await waitFor(() => expect(trashApi.restore).toHaveBeenCalledWith('teacher', 'teacher-uid'));
+    expect(await screen.findByText(/prügikastist taastatud/)).toBeInTheDocument();
+  });
+
+  it('no „Kustuta” for an administrator account', async () => {
+    renderTrash({ id: 'teacher-uid', name: 'Admin Kaks', role: 'admin' });
+    await screen.findByRole('heading', { name: 'Admin Kaks', level: 1 });
+    expect(screen.queryByRole('button', { name: /Kustuta/ })).not.toBeInTheDocument();
+  });
+});

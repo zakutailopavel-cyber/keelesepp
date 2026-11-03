@@ -21,6 +21,22 @@ export const TOKENS_LOW = 2;
 const COUNTED = new Set(['active', 'depleted']);
 const num = (value) => Number(value) || 0;
 
+// One subject per package (Oleksiy 2026-11-03): a package invoice names a subject and its package (tokenSubject) pays
+// only that subject's lessons; a package without one pays every lesson of the card. The same key as the server's
+// (functions/lesson-tokens-core.js tokenSubjectKey): case, spaces, diacritics and the built-in aliases do not matter.
+const SUBJECT_ALIASES = { eesti: 'Eesti keel', estonian: 'Eesti keel', english: 'Inglise keel', inglise: 'Inglise keel', matem: 'Matemaatika', 'eesti keel emakeelena': 'Emakeel', russian: 'Vene keel' };
+export function tokenSubjectKey(subject) {
+  const low = String(subject || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('et');
+  if (!low) return '';
+  return (SUBJECT_ALIASES[low] || low).toLocaleLowerCase('et').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+}
+// the lessons left that a lesson of this subject can take: its own subject's packages and the packages without a subject
+export function subjectBalance(packages = [], subject = '') {
+  const key = tokenSubjectKey(subject);
+  return packages.filter((item) => item?.status === 'active' && (!tokenSubjectKey(item.tokenSubject) || tokenSubjectKey(item.tokenSubject) === key))
+    .reduce((n, item) => n + num(item.balanceCredits), 0);
+}
+
 export function tokenSummary(packages = []) {
   const counted = packages.filter((item) => COUNTED.has(item.status));
   const sum = (key) => counted.reduce((n, item) => n + num(item[key]), 0);
@@ -46,6 +62,8 @@ export function tokenAccount({ packages = [], owed = [] } = {}) {
         invoiceNum: item.sourceInvoiceNum || '',
         issuedAt: item.issuedAt || '',
         name: item.packageProductName || '',
+        // '' = paid any lesson of the card (packages before 2026-11-03 or a card without a subject)
+        subject: String(item.tokenSubject || '').trim(),
         bought,
         held,
         left,
