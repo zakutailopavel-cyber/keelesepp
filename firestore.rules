@@ -2917,6 +2917,36 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isStaff() && resource.data.ownerUid == uid());
     }
 
+    // Worksheet constructor whole-sheet and whole-lesson templates („Salvesta mallina”, „Uus mallist”;
+    // services/firebase/worksheetSheetTemplates.js): shared with all staff, created in one's own name; the author
+    // or an admin renames or archives one; nothing is deleted.
+    match /worksheetTemplates/{templateId} {
+      allow read: if isStaff();
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['kind', 'title', 'level', 'sheets', 'ownerUid', 'ownerName', 'createdAt', 'updatedAt', 'archived'])
+        && request.resource.data.ownerUid == uid()
+        && request.resource.data.kind in ['sheet', 'lesson']
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.level is string
+        && request.resource.data.level.size() <= 20
+        && request.resource.data.sheets is list
+        && request.resource.data.sheets.size() > 0
+        && request.resource.data.sheets.size() <= 6
+        && request.resource.data.ownerName is string
+        && request.resource.data.createdAt is string
+        && request.resource.data.updatedAt is string
+        && request.resource.data.archived == false;
+      allow update: if (isAdmin() || (isStaff() && resource.data.ownerUid == uid()))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'archived', 'archivedAt', 'archivedBy', 'updatedAt'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.archived is bool;
+      allow delete: if false;
+    }
+
     match /exercises/{exerciseId} {
       allow read: if signedIn();
       allow write: if isStaff();
