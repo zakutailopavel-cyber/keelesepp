@@ -37,7 +37,36 @@ describe('Kogu — the course task library', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Rääkimine' }));
     fireEvent.click(screen.getAllByRole('button', { expanded: false })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Lisa lehele' }));
-    expect(onInsert).toHaveBeenCalledWith([expect.objectContaining({ type: expect.any(String) })]);
+    expect(onInsert).toHaveBeenCalledWith([expect.objectContaining({ type: expect.any(String) })], expect.objectContaining({ goals: expect.any(Object) }));
     expect(screen.getByRole('status')).toHaveTextContent('lisati lehele');
+  });
+
+  it('„Salvestatud lehed”: standalone sheets at once, phase sheets of the open lesson and of a named lesson, each read once', async () => {
+    const sheet = (title, type, text) => ({ schema: 'keelesepp.worksheet/2', id: title, meta: { title, level: 'B1', goals: {} }, blocks: [{ id: `${title}-b`, type, data: { title: text, instruction: 'Vali.', statements: [] } }] });
+    const saved = {
+      listLessons: vi.fn().mockResolvedValue([
+        { id: 's1', title: 'Oma leht', worksheetDoc: sheet('Oma leht', 'truefalse', 'Eraldi lehe ülesanne'), worksheetDocStatus: 'draft' },
+        { id: 'cur', title: 'Praegune tund', type: 'lesson', worksheetPhases: { discover: {} } },
+        { id: 'fam', title: 'Perekond', type: 'lesson', worksheetPhases: { practice: {} } },
+      ]),
+      loadLessonSheets: vi.fn().mockImplementation(async (id) => [{ worksheetId: id === 'cur' ? 'discover' : 'practice', worksheetDoc: sheet(id, 'truefalse', `Tunni ${id} ülesanne`), worksheetDocStatus: 'published' }]),
+    };
+    const onInsert = vi.fn();
+    render(<BlockLibraryPanel onInsert={onInsert} load={() => Promise.resolve([])} saved={saved} currentLessonId="cur" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Salvestatud lehed' }));
+    expect(await screen.findByText('Eraldi lehe ülesanne')).toBeInTheDocument();
+    expect(await screen.findByText('Tunni cur ülesanne')).toBeInTheDocument();
+    expect(saved.loadLessonSheets).toHaveBeenCalledWith('cur');
+    expect(saved.loadLessonSheets).not.toHaveBeenCalledWith('fam');
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Otsi kogust' }), { target: { value: 'perekond' } });
+    expect(await screen.findByText('Tunni fam ülesanne', {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(screen.getByText(/Perekond · Harjuta · avaldatud/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Tunni fam ülesanne/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa lehele' }));
+    expect(onInsert).toHaveBeenCalledWith([expect.objectContaining({ id: 'fam-b' })], { goals: {} });
+    fireEvent.click(screen.getByRole('button', { name: 'Kursus' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvestatud lehed' }));
+    expect(saved.listLessons).toHaveBeenCalledTimes(1);
+    expect(saved.loadLessonSheets.mock.calls.filter(([id]) => id === 'cur')).toHaveLength(1);
   });
 });
