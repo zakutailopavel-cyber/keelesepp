@@ -6,6 +6,8 @@ import { norm, groupItems, splitList } from '../schema.js';
 import { useAssets } from '../assets.jsx';
 import { Text, Area, Rows, SentenceInput } from '../../editor/fields.jsx';
 import { SpeakPanel } from '../../editor/Speak.jsx';
+import VoiceRecorder, { canRecord } from '../../editor/VoiceRecorder.jsx';
+import { Mic } from 'lucide-react';
 import { AudioBar } from '../ui.jsx';
 
 // Second wave: dialogue, reading, listening, table and sorting into groups.
@@ -116,15 +118,19 @@ export function AudioPick({ value, onChange }) {
   const input = useRef(null);
   const assets = useAssets();
   const [busy, setBusy] = useState(false);
+  const [recording, setRecording] = useState(false);
   return (
     <div className="ed-field">
       <span className="ed-label">Helifail</span>
       {value?.src ? <audio controls src={value.src} /> : <span className="ed-hint">Heli puudub.</span>}
+      {value?.recorded ? <span className="ed-hint">Õpetaja salvestatud hääl.</span> : null}
       <div className="ed-row">
         <button type="button" className="ed-btn" disabled={busy} onClick={() => input.current?.click()}>{busy ? 'Laadin…' : value?.src ? 'Vaheta heli' : 'Lisa heli'}</button>
+        {canRecord() ? <button type="button" className="ed-btn ghost" aria-expanded={recording} onClick={() => setRecording(!recording)}><Mic size={13} aria-hidden="true" /> Salvesta hääl</button> : null}
         {value?.src && <button type="button" className="ed-btn ghost" onClick={() => onChange(null)}>Eemalda</button>}
       </div>
-      <input ref={input} type="file" accept="audio/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; setBusy(true); try { onChange(await assets.audio(f)); } finally { setBusy(false); } }} />
+      {recording ? <VoiceRecorder onSave={(audio) => { onChange(audio); setRecording(false); }} onClose={() => setRecording(false)} /> : null}
+      <input ref={input} type="file" accept="audio/*" aria-label="Helifail" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; setBusy(true); try { onChange(await assets.audio(f)); } finally { setBusy(false); } }} />
     </div>
   );
 }

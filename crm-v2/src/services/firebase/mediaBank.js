@@ -4,13 +4,27 @@ import { extractAssets, LEVELS, tagsOf } from '../../features/worksheet-studio/m
 import { publishedWorksheetDoc } from '../../features/library/libraryModel.js';
 import { publishedPhaseDoc } from '../../features/worksheet-studio/bookProgram.js';
 
-// `mediaAssets/{key}`: the school's picture and text bank for the worksheet constructor (staff only). The key is a
+// `mediaAssets/{key}`: the school's picture, sound, video and text bank for the worksheet constructor (staff only). The key is a
 // hash of the picture address or the text, so indexing again never makes duplicates.
 const MAX_ASSETS = 5000;
 
 const str = (value, max) => String(value ?? '').slice(0, max);
 function clean(asset) {
   const image = asset.kind === 'image';
+  // a sound or a video: its address, Storage path, file name (title) and caption
+  if (asset.kind === 'audio' || asset.kind === 'video') {
+    return {
+      kind: asset.kind,
+      level: LEVELS.includes(asset.level) ? asset.level : '',
+      topic: str(asset.topic, 200),
+      sheetTitle: str(asset.sheetTitle, 200),
+      lessonId: str(asset.lessonId, 120),
+      phase: str(asset.phase, 20),
+      tags: (asset.tags || []).slice(0, 60).map((tag) => str(tag, 40)),
+      source: str(asset.source || 'worksheet', 20),
+      src: str(asset.src, 2000), storagePath: str(asset.storagePath, 500), title: str(asset.title, 200), caption: str(asset.caption, 300),
+    };
+  }
   return {
     kind: image ? 'image' : 'text',
     level: LEVELS.includes(asset.level) ? asset.level : '',
@@ -33,7 +47,7 @@ export const mediaBankService = {
     return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
   },
 
-  // one picture or text (a new upload in the constructor, or a text the teacher saves to the bank)
+  // one picture, sound, video or text (a new upload in the constructor, or a text the teacher saves to the bank)
   async save(asset, user) {
     if (!asset?.key) throw new Error('Varal puudub võti.');
     const { db } = requireFirebaseClient();
@@ -64,8 +78,8 @@ export const mediaBankService = {
         }
       }
       for (const { doc: sheet, phase } of docs) {
-        const { images, texts } = extractAssets(sheet, { ...context, phase });
-        [...images, ...texts].forEach((asset) => { if (!found.has(asset.key)) found.set(asset.key, asset); });
+        const { images, texts, media } = extractAssets(sheet, { ...context, phase });
+        [...images, ...texts, ...media].forEach((asset) => { if (!found.has(asset.key)) found.set(asset.key, asset); });
       }
       done += 1;
       onProgress({ done, total: curriculumLessons.length, assets: found.size });
@@ -79,6 +93,7 @@ export const mediaBankService = {
       }, { merge: true }));
       await batch.commit();
     }
-    return { lessons: curriculumLessons.length, images: list.filter((asset) => asset.kind === 'image').length, texts: list.filter((asset) => asset.kind === 'text').length };
+    const count = (kind) => list.filter((asset) => asset.kind === kind).length;
+    return { lessons: curriculumLessons.length, images: count('image'), texts: count('text'), audio: count('audio'), video: count('video') };
   },
 };

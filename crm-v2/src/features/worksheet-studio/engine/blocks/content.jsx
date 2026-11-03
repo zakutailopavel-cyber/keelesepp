@@ -1,6 +1,7 @@
  
 import { Photo, Md, Bulb, Speech } from '../ui.jsx';
 import { splitList } from '../schema.js';
+import { altText } from '../image.js';
 import { Text, Area, ImagePick, Select, Rows } from '../../editor/fields.jsx';
 
 // Non-task blocks: no number badge, no answers. They carry explanation, examples and pictures.
@@ -58,7 +59,7 @@ export const image = {
   create: () => ({ img: null, aspect: '4:3', caption: '', bubble: '' }),
   View: ({ data }) => (
     <figure className="ws-figure">
-      <Photo img={data.img} aspect={data.aspect} alt={data.alt || data.caption}>
+      <Photo img={data.img} aspect={data.aspect} alt={altText(data)}>
         {data.bubble && <div className="ws-bubble">{data.bubble}</div>}
       </Photo>
       {data.caption && <figcaption>{data.caption}</figcaption>}
@@ -68,6 +69,8 @@ export const image = {
     <>
       <ImagePick value={data.img} aspect={data.aspect} onChange={(img) => set({ img })} onAspect={(aspect) => set({ aspect })} />
       <Text label="Allkiri (valikuline)" value={data.caption} onChange={(v) => set({ caption: v })} />
+      <Text label="Alt-tekst" value={data.alt} onChange={(v) => set({ alt: v })} placeholder={altText({ caption: data.caption }) || 'Mida pildil näha on?'}
+        hint="Pildi kirjeldus ekraanilugejale. Tühjana kasutatakse allkirja." />
       <Text label="Jutumull (valikuline)" value={data.bubble} onChange={(v) => set({ bubble: v })} placeholder="Minu päev algab kell …" />
     </>
   ),
