@@ -1,15 +1,4 @@
 {
- "a2b1-module-09": [
-  "*|*|av-opener",
-  "*|*|av-retell",
-  "a2b1-041|*|av-know",
-  "a2b1-041|*|av-voice",
-  "a2b1-042|*|av-know",
-  "a2b1-042|*|av-voice",
-  "a2b1-043|*|av-know",
-  "a2b1-044|*|av-know",
-  "a2b1-044|*|av-voice"
- ],
  "a2b1-module-11": [
   "*|*|av-kasuta",
   "*|*|av-opener",
