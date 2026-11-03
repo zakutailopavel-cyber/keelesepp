@@ -1,3 +1,13 @@
+## 2026-11-03 · agent/en-b2-course-shape — English B2 course design: exam target, size, module plan, B1 gaps (docs only)
+
+- Base: `main` e12b19f, checked 2026-11-03. Asked (owner): „приступай к английскому на Б2”. Design only; no course, module, lesson or curriculum record.
+- Done: `docs/COURSE_FINAL_SHAPE_EN_B2.md`. English B1 gaps checked in `admin/course/en/b1/*`: past perfect, third conditional and question tags are not taught (past perfect only appears inside readings of 004 and 028); smallest fix planned in existing lessons 009, 033, 004 (+ checks 005, 010, 035). Exam target: the Harno English state exam (B1/B2, B2 = 75–100 %, no part 0), format verified from the 2026/27 eristuskiri and the 2026 papers; Cambridge B2 First compared. Size: 10 Estonian English B2 courses, median 120 contact + 120 self-study ak h; × 0.5 (Estonian B2 precedent 240 ↔ our 120) = 45 lessons; proposal 50 lessons (10 modules), mocks 030 and 050 full length. Module plan, formats, academic-value rules in English and the engine / UI list (§9).
+- Files: `docs/COURSE_FINAL_SHAPE_EN_B2.md` (new), this file.
+- Checks: docs only; no tests run. Facts from harno.ee / projektid.edu.ee, cambridgeenglish.org and the providers' pages (URLs in the doc).
+- Limits: the task order of the state exam is the 2026 paper's (the eristuskiri lists allowed types only). Some course pages contradict themselves (Alterum, Kirjatäht; noted). English B1's final mock (`en-b1-050`) is not a full-length exam-look mock.
+- Open for the owner (doc §10): 45 or 50 lessons; English audio voice; whether a B2 First mock is wanted.
+- Next safe step: the English B1 gap PR (`agent/en-b1-gaps`, doc §2), then the engine PR (doc §9).
+
 ## 2026-11-03 · agent/av-b2-module-13 — B2 module 13 „Keskkond ja vastutustundlik elu” (b1b2-061…065): academic value round 1 + round 2 (topic „ilm”, secondary „ümbruskond”, „kohad”: climate, forests, energy)
 
 - Base: `main` 9790f50, checked 2026-11-03; merged with `origin/main` a9e2acb before the PR, checks re-run after the merge. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2 + `docs/ACADEMIC_VALUE_ROUND2.md` §3. The cast thread (Viktor's farm, the Kõrvemaa wind-farm hearing, Tuul Logistika's footprint, Kase kool zero-waste week) and the grammar line stay. B1 module 12 facts (climate averages, records, Soomaa, 2005 storm, 7-day supplies, bogs, Teeme ära, biowaste) and B1 module 4 (igaüheõigus, RMK trails) are not repeated; the car-tax child reduction (B1 module 11) is only referred back to.
