@@ -343,7 +343,7 @@ export const LESSONS = withShapes({
         'Ta ei võtnud Anna abi vastu. | Kui ta [oleks] abi vastu [võtnud] (võtma), …',
         'Tellimus valmis reedel. | …[oleks] tellimus päev varem valmis [saanud] (saama).',
         'Liis ei teadnud midagi. | Kui Liis [oleks teadnud] (teadma), oleks ta appi tulnud.',
-        'Markus tegi vea. | Puhanuna [poleks|ei oleks] ta seda viga [teinud] (tegema).',
+        'Markus tegi vea. | Puhanuna [poleks] ta seda viga [teinud] (tegema, eitus lühivormis).',
         'Ta jäi diivanil magama. | Ta [oleks võinud] (võima) jõusaali asemel jalutada.',
         'Õde ootas teda sünnipäevale. | Õde [oleks tahtnud] (tahtma) venda näha.',
         'Keegi ei jaganud tööd. | Töö [oleks jagatud] (jagama, umbisikuline) kolme inimese vahel.',
