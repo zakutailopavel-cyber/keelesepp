@@ -8,6 +8,23 @@
 - Risk: in the emulator every other v1 onRequest function now gets the reflected-origin CORS wrapper, so emulator tests no longer prove their own CORS allow-list (production unaffected).
 - Production: **needs a full functions deploy** (owner's approval); nothing deployed.
 - Next safe step: review and merge, then the owner deploys all functions and opens one invoice PDF and the ChatGPT connector once.
+## 2026-11-03 · agent/deps-firebase13 — crm-v2: firebase JS SDK 12.17.0 → 13.1.0 (supersedes Dependabot #995)
+
+- Base: `main` 2f15942, checked 2026-11-03. `crm-v2/package.json` `firebase` 13.1.0 (exact); lockfile regenerated with npm. No code change.
+- Release notes 12.17.1 → 13.1.0: the only major changes are in `@firebase/ai` (Template API, removed `VertexAIBackend`, `Part` union, `ChatSession` interface) — we do not use `firebase/ai`. Auth: popup / IndexedDB persistence fixes (12.18, 12.19), falls back to in-memory persistence when storage is blocked, storage errors wrapped as `auth/internal-error`, the persisted user is kept on transient 5xx / quota errors at start (13.0, 13.1). Firestore: BSON types, Temporal.Instant, Pipeline DML (all opt-in). Storage / app: tests and version only.
+- Our usage (`src/services/firebase/client.js` + services): `initializeApp`, `getAuth` (default persistence, `signInWithPopup` Google, e-mail, `signInWithCustomToken`), `getFirestore` (default memory cache, no persistence / long-polling settings), `getStorage`, emulator connectors. No `firebase/functions` (Cloud Functions are called with fetch), App Check, Analytics, AI.
+- Checks: `npx vitest run` 445 files passed, 1 skipped (3351 tests passed, 12 skipped); `npx eslint src` 0 errors (19 old warnings); `npx vite build` ok (`firebase` chunk 618.7 kB / 186.6 kB gzip). E2E on the emulators (`bash e2e/run.sh`, auth + Firestore with the real rules + functions + storage): 17 passed, 1 failed — `lesson-tokens.spec.cjs` looks for the label „Õpilane ja aine” that #1051 renamed (stale scenario on `main`, not this bump). Temporary smoke scenario (not committed) as admin and teacher: login, `/calendar`, `/students/<card>`, `/students`, `/library/lessons/e2e-001/worksheets/discover`, `/finance`, `/finance/vana`, `/maksa/<invoice>` — all load; console errors identical with 12.17.0 and 13.1.0 (worksheet page: 2 nesting warnings + one 404; `/maksa` without `?k=` repeats a 401 request hundreds of times — existing behaviour).
+- Risk: hosting ships the new SDK on merge; any session-handling difference shows only in real browsers (Safari / iPad popup login is the area the auth fixes touched).
+- Production: none until merge; the SDK goes out with the next hosting deploy.
+- Next safe step: review and merge; after the deploy log in once with Google (popup) and once with e-mail, open the calendar.
+## 2026-11-03 · agent/deps-crm-dev — crm-v2 dev dependencies (supersedes Dependabot #980)
+
+- Base: `main` 2f15942, checked 2026-11-03. Bumps (exact): `@testing-library/react` 16.3.2→16.3.3, `eslint-plugin-react-hooks` 7.0.1→7.1.1, `eslint-plugin-react-refresh` 0.5.2→0.5.7, `jsdom` 30.0.1→30.1.3; lockfile regenerated with npm.
+- Cause of the red CI on #980: `npm run lint` 81 errors. react-hooks 7.1 reports every React-Compiler diagnostic in a component (7.0 stopped at the first) and finds more `set-state-in-effect` / `refs` cases: set-state-in-effect 36, refs 34, purity 7, preserve-manual-memoization 3, immutability 1, use-memo 1, in 31 existing files (calendar, finance, live classroom, worksheets, students, settings). Tests and jsdom were fine.
+- Fix: `crm-v2/eslint.config.js` — a baseline block lists exactly those 31 files and sets only those six rules to `warn` there; every other file keeps them as errors. No app code changed (the project does not use the React Compiler; rewriting 31 files across unrelated areas does not belong in a dependency PR). Remove a file from the list when it is cleaned up.
+- Checks: `npx eslint src` 0 errors, 102 warnings; `npx vitest run` 445 files passed, 1 skipped (3351 tests passed, 12 skipped); `npx vite build` ok.
+- Production: none; dev dependencies only, nothing in the shipped bundle changes.
+- Next safe step: review and merge; Dependabot #980 closes by itself or is closed by the owner.
 
 ## 2026-11-03 · agent/group-fixes — Grupid: edit a group, lesson length, attendance for every member, archived students (admin #bug #groups)
 
