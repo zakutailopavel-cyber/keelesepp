@@ -175,7 +175,9 @@ export const B = {
   rubricSpeaking: (id, title = 'Hindamine: rääkimine (20 punkti).') => block(id, 'examrubric', 'white', '', { title, instruction: 'Neli kriteeriumi, igaüks 0–5 punkti.', scale: 'S', criteria: RUBRIC_SCALES.S.criteria }),
   // the header of an exam part: 'W' | 'L' | 'R' | 'S' with Harno's minutes, tasks and raw points (override any), target
   // 80 %. `exam: 'A2' | 'B1' | 'B2' | 'C1'` takes that level's real part (harnoScales.js HARNO_EXAMS; default B1); without
-  // it the course sheet marks the part with the course's exam (courseSheet.js), so the sheet shows how Harno weighs it
+  // it the course sheet marks the part with the course's exam (courseSheet.js), so the sheet shows how Harno weighs it.
+  // `exam: 'EN-RE'` is the English state exam (Writing 90 min / 25 p, Listening 40 / 25, Reading 90 / 30, Speaking 15 / 20);
+  // an English B2 module (course enb2) gets it without naming it, its header then reads „Part II · Listening”
   examPart: (id, skill, overrides = {}) => block(id, 'exampart', 'sky', '', { skill, ...(examPartDefaults(overrides.exam, skill) || EXAM_PART_DEFAULTS[skill]), target: 80, note: '', ...overrides }),
   // ---------- academic value (docs/COURSE_DESIGN_COMMUNICATIVE.md §13) ----------
   // „Teema avaleht”: the module's topic opener on lesson 1's Avasta — real facts about Estonia and the world (no cast),

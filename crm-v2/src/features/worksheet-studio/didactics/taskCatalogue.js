@@ -149,7 +149,20 @@ export const HARNO_FORMATS_C1 = Object.freeze({
   R1: 'R', R2: 'R', R3: 'R',
   S0: 'S', S1: 'S', S2: 'S',
 });
-export const isHarnoFormat = (id) => [HARNO_FORMATS, HARNO_FORMATS_B2, HARNO_FORMATS_A2, HARNO_FORMATS_C1].some((map) => Object.prototype.hasOwnProperty.call(map, id));
+// The English state exam's task ids (docs/COURSE_FINAL_SHAPE_EN_B2.md §3.1, the 2026 paper): writing EW1 a letter, EW2r a
+// report on data, EW2e an essay; listening EL1 once-only completion (≤ 2 words), EL2 news ↔ headlines, EL3 interview MC,
+// EL4 answers ↔ questions, EL5 talk completion (≤ 3 words); reading ER1 MC cloze (4 options), ER2 article MC, ER3 multiple
+// matching, ER4 open cloze, ER5a gapped text, ER5b words ↔ definitions, ER6 word formation; speaking ES1 pictures, ES2
+// monologue from a topic card. The part is the second letter (E W / L / R / S).
+export const HARNO_FORMATS_EN = Object.freeze({
+  EW1: 'W', EW2r: 'W', EW2e: 'W',
+  EL1: 'L', EL2: 'L', EL3: 'L', EL4: 'L', EL5: 'L',
+  ER1: 'R', ER2: 'R', ER3: 'R', ER4: 'R', ER5a: 'R', ER5b: 'R', ER6: 'R',
+  ES1: 'S', ES2: 'S',
+});
+export const isHarnoFormat = (id) => [HARNO_FORMATS, HARNO_FORMATS_B2, HARNO_FORMATS_A2, HARNO_FORMATS_C1, HARNO_FORMATS_EN].some((map) => Object.prototype.hasOwnProperty.call(map, id));
+// the exam part (W / L / R / S) of a format id of any exam
+export const examPartOf = (id) => HARNO_FORMATS_EN[id] || String(id || '').charAt(0);
 // W1a / W1b → W1, L3a / L3b → L3, R3a / R3b → R3; S1a, S1b, S2 stay apart (§6.4 counts them apart)
 export const harnoFamily = (id) => (/^(W1|W2|L3|R3)[ab]$/.test(id) ? id.slice(0, -1) : id);
 // B2: W2a / W2b → W2, R2a / R2b → R2
@@ -158,6 +171,8 @@ export const harnoFamilyB2 = (id) => (/^(W2|R2)[ab]$/.test(id) ? id.slice(0, -1)
 export const harnoFamilyA2 = (id) => (/^W2[ab]$/.test(id) ? 'W2' : id);
 // C1: W2a (arvamuslugu) / W2b (arvamus) → W2
 export const harnoFamilyC1 = (id) => (/^W2[ab]$/.test(id) ? 'W2' : id);
+// English state exam: EW2r (report) / EW2e (essay) → EW2; ER5a and ER5b stay apart (§5.1 counts them apart)
+export const harnoFamilyEN = (id) => (/^EW2[re]$/.test(id) ? 'EW2' : id);
 
 // the block types that are not tasks for the variety rules (§8: text, tip, vocab, phrase bank, review, rubric, self-check,
 // notice; notice counts as G01 only for V3) — plus pictures, charts and the exam part header
@@ -173,7 +188,7 @@ const DEFAULT_BY_TYPE = {
   match: 'G08', wordforms: 'G09', translation: 'G10', crossword: 'G11', wordsearch: 'G11', picmatch: 'G11', scenelabel: 'G11', pictures: 'G11',
   choice: 'G13', clock: 'G13',
 };
-const WRITING_GENRE_TASK = { kusimustik: 'W01', teade: 'W02', kutse: 'W03', kiri: 'W04', jutt: 'W05', vastus: 'W08' };
+const WRITING_GENRE_TASK = { kusimustik: 'W01', teade: 'W02', kutse: 'W03', kiri: 'W04', jutt: 'W05', vastus: 'W08', letter: 'W13', essay: 'W14', report: 'W15' };
 export function defaultTaskId(block) {
   const d = block?.data || {};
   switch (block?.type) {
@@ -256,3 +271,17 @@ export const FORMAT_PRACTICE_C1 = Object.freeze({
   S1: p(5, 6, 12, 2), S2: p(5, 6, 12, 2),
 });
 export const VARIANTS_C1 = ['W2a', 'W2b'];
+
+// English B2 (docs/COURSE_FINAL_SHAPE_EN_B2.md §5.1): the module each state-exam format is first taught in, and how often
+// it is practised before the final mock 050 („at least before 050”). The doc gives the totals; the split — at least 2 in
+// exam lessons (module checks, mock 030) and 2 as exam corners — and the gaps (3 modules; ER6 every module; speaking 2) are
+// our inference [INF], scaled from the Estonian B2 profile to a 10-module course.
+export const FORMAT_INTRO_EN = Object.freeze({ EW1: 1, EL3: 1, ER1: 1, ER2: 1, ER6: 1, ES1: 1, EL1: 2, ER4: 2, ES2: 2, EW2r: 3, EL5: 3, ER5b: 3, EL4: 4, ER5a: 4, EW2e: 5, EL2: 5, ER3: 6 });
+export const FORMAT_PRACTICE_EN = Object.freeze({
+  EW1: p(2, 2, 6, 3), EW2: p(2, 2, 6, 3),
+  EL1: p(2, 2, 5, 3), EL2: p(2, 2, 4, 3), EL3: p(2, 2, 4, 3), EL4: p(2, 2, 4, 3), EL5: p(2, 2, 4, 3),
+  ER1: p(2, 2, 5, 3), ER2: p(2, 2, 5, 3), ER3: p(2, 2, 4, 3), ER4: p(2, 2, 5, 3), ER5a: p(2, 2, 4, 3), ER5b: p(2, 2, 4, 3), ER6: p(2, 2, 5, 1),
+  ES1: p(2, 2, 6, 2), ES2: p(2, 2, 6, 2),
+});
+// the report and the essay: 3 each before 050 (§5.1)
+export const VARIANTS_EN = ['EW2r', 'EW2e'];

@@ -98,10 +98,23 @@ export const HARNO = Object.freeze({
   // mother tongue: põhikooli lõpueksam and riigieksam (eristuskirjad 2026/2027) — written exams, no listening or speaking
   EK9: { level: '9. klass emakeel', longestText: 800, writing: [[200, 300]], monologue: 0, options: 3, listening: false },
   EK12: { level: '12. klass emakeel', longestText: 1000, writing: [[400, 450]], monologue: 0, options: 4, listening: false },
+  // the English state exam (inglise keele riigieksam, B1/B2; Harno eristuskiri 2026/27, docs/COURSE_FINAL_SHAPE_EN_B2.md
+  // §3.1): the longest reading ≈ 550–600 words (≈ 2500 words in all), a 120-word letter and a 200-word report or essay,
+  // at least 1 min 45 s of talk in each speaking task, 3 options in multiple choice (4 in the multiple-choice cloze)
+  'EN-RE': { level: 'English state exam', longestText: 600, writing: [[120, 120], [200, 200]], monologue: 105, options: 3, listening: true, language: 'en' },
 });
 // the exam a stage prepares for (A2+ still meets the A2 exam; B1- already reads toward B1)
 const HARNO_STAGE = { EK9: 'EK9', EK12: 'EK12', A1: 'A2', A2: 'A2', 'A2+': 'A2', 'B1-': 'B1', B1: 'B1', 'B1+': 'B1', 'B2-': 'B2', B2: 'B2', C1: 'C1' };
-export const harnoFor = (value) => HARNO[HARNO_STAGE[levelKey(value)]];
+// English: the stages of the English B2 course (English B1+ / B2- / B2) prepare for the English state exam, chosen by the
+// sheet's language or the „English …” level; English A2 / B1 keep the profile of their level (the basic school exam
+// norms they were built with). V14-style EKI word lists do not apply to English (finalShape.js profile enb2).
+const ENGLISH_STATE_STAGES = new Set(['B1+', 'B2-', 'B2', 'C1']);
+export const isEnglishLevel = (value, language) => language === 'en' || /^\s*english\b/i.test(String(value || ''));
+export const harnoFor = (value, language) => {
+  const key = levelKey(value);
+  if (isEnglishLevel(value, language) && ENGLISH_STATE_STAGES.has(key)) return HARNO['EN-RE'];
+  return HARNO[HARNO_STAGE[key]];
+};
 
 // Grammar of Estonian as a second language, by the level where it becomes a target (what is earlier is known; what is
 // later is too early as a target, though it may appear as a fixed phrase). Used by the generator's planner and the

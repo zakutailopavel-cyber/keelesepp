@@ -294,7 +294,7 @@ export function balanceProblems(sheets) {
 // the exam's longest text. Checked per module, not per sheet: one exam-length text a module is enough.
 export function harnoProblems(sheets) {
   const docs = Object.values(sheets).flatMap((lesson) => Object.values(lesson));
-  const harno = harnoFor(docs[0]?.meta?.level);
+  const harno = harnoFor(docs[0]?.meta?.level, docs[0]?.meta?.language);
   if (!harno || isSupplement(sheets)) return [];
   const out = [];
   const blocks = docs.flatMap((d) => d.blocks || []);

@@ -7,7 +7,7 @@ import { Area, ImagePick, Num, Rows, Select, Text } from '../../editor/fields.js
 import { choice, match, plainText, truefalse } from './tasks.jsx';
 import { AudioPick } from './extra.jsx';
 import { Recorder } from './productive.jsx';
-import { EXAM_PART_DEFAULTS as EXAM_PARTS, HARNO_EXAMS, HARNO_LEVELS, HARNO_PASS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES, examPartDefaults } from './harnoScales.js';
+import { ENGLISH_EXAMS, EN_STATE_EXAM, EN_STATE_EXAM_DATA, EXAM_PART_DEFAULTS as EXAM_PARTS, HARNO_EXAMS, HARNO_LEVELS, HARNO_PASS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES, examFor, examPartDefaults, isEnglishExam } from './harnoScales.js';
 
 export { EXAM_PARTS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES };
 
@@ -20,7 +20,35 @@ export { EXAM_PARTS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES };
 //   speakcard     S1b, S2  the idea card of an agreement („kokkulepe”) or the phone role play's question / answer card
 //   examrubric    the exam-scale rubric (W1 /8, W2 /12, speaking /20, §2.4), points per criterion
 //   exampart      the header of an exam part: minutes, tasks, points and the 80 % target, with a timer on screen; with
-//                 `exam` (A2 | B1 | B2 | C1) also how the real Harno exam weighs the part and its pass rule
+//                 `exam` (A2 | B1 | B2 | C1) also how the real Harno exam weighs the part and its pass rule; with `exam`
+//                 'EN-RE' (the English state exam) the mock booklet's section header: „Part II · Listening”, minutes,
+//                 tasks, items and points, and the exam's own level rule (B1 50–74 %, B2 75–100 %, no part 0)
+// The blocks print their fixed words in the sheet's language: `data.lang` 'en' (set by the course builder for an English
+// course, admin/course/sheetLanguage.js) or an English exam on the block → English; otherwise Estonian.
+
+export const EXAM_TEXT = {
+  et: {
+    listenNote: (plays, live) => `Kuulad teksti ${plays === 1 ? 'üks kord' : `${plays} korda`}${live ? ' — õpetaja mängib salvestuse või loeb teksti ette.' : '.'}`,
+    listen: 'Kuula', writing: 'Kirjutamine', words: 'sõna', yourText: 'Sinu tekst', answer: 'Vastus',
+    wordsLine: (target) => `Sõnu: ______ (eesmärk ${target})`, wordsPill: (n, target) => `${n} sõna · eesmärk ${target}`,
+    outcome: 'Kokkulepe:', questionCard: 'Küsimuste kaart', answerCard: 'Vastuste kaart', noRecording: 'Salvestus puudub.',
+    total: 'Kokku', points: 'punkti', atLeast: 'eesmärk vähemalt', situation: 'Olukord',
+    minutes: 'min', tasks: 'ülesannet', items: 'küsimust', startEnd: 'Algus: ______ Lõpp: ______',
+    start: 'Alusta aega', left: 'Aega jäänud', over: 'Aeg on läbi',
+  },
+  en: {
+    listenNote: (plays, live) => `You will hear the recording ${plays === 1 ? 'only once' : plays === 2 ? 'twice' : `${plays} times`}${live ? ' — the teacher plays it or reads the text aloud.' : '.'}`,
+    listen: 'Listen', writing: 'Writing', words: 'words', yourText: 'Your text', answer: 'Answer',
+    wordsLine: (target) => `Words: ______ (target ${target})`, wordsPill: (n, target) => `${n} words · target ${target}`,
+    outcome: 'Outcome:', questionCard: 'Question card', answerCard: 'Answer card', noRecording: 'No recording.',
+    total: 'Total', points: 'points', atLeast: 'target at least', situation: 'Item',
+    minutes: 'minutes', tasks: 'tasks', items: 'questions', startEnd: 'Start: ______ End: ______',
+    start: 'Start the clock', left: 'Time left', over: 'Time is up',
+  },
+};
+// the language of an exam block: its own `lang`, else English for the English state exam
+export const examLang = (data) => (data?.lang === 'en' || isEnglishExam(data?.exam) ? 'en' : 'et');
+const T = (data) => EXAM_TEXT[examLang(data)];
 
 const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
 const LETTERS = 'ABCDEFGHIJKLMN';
@@ -65,7 +93,7 @@ export const adsmatch = {
               <li key={i}>
                 <span className="ws-ads-text"><Md text={s.text} /></span>
                 {ctx.interactive ? (
-                  <select className={`ws-sel ${state ? 'is-' + state : ''}`} value={ctx.get(key) ?? ''} onChange={(e) => ctx.set(key, e.target.value)} aria-label={`Olukord ${i + 1}`}>
+                  <select className={`ws-sel ${state ? 'is-' + state : ''}`} value={ctx.get(key) ?? ''} onChange={(e) => ctx.set(key, e.target.value)} aria-label={`${T(data).situation} ${i + 1}`}>
                     <option value="">–</option>{letters.map((l, n) => <option key={l} value={l} label={ctx.flow ? `${l}. ${plainText(ads[n].title || ads[n].text)}` : undefined}>{l}</option>)}
                   </select>
                 ) : <span className={`ws-letterbox ${state ? 'is-' + state : ''}`}>{ctx.get(key) || ''}</span>}
@@ -115,8 +143,8 @@ export const examlisten = {
     const plays = Number(data.plays) || 2;
     return (
       <div className="ws-examlisten">
-        {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive || ctx.review} label="Kuula" />
-          : <div className="ws-audio is-print ws-listen-note"><Headphones aria-hidden="true" /><span>Kuulad teksti {plays === 1 ? 'üks kord' : `${plays} korda`}{ctx.interactive ? ' — õpetaja mängib salvestuse või loeb teksti ette.' : '.'}</span></div>}
+        {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive || ctx.review} label={T(data).listen} />
+          : <div className="ws-audio is-print ws-listen-note"><Headphones aria-hidden="true" /><span>{T(data).listenNote(plays, ctx.interactive)}</span></div>}
         <Inner data={data} ctx={ctx} id={id} />
       </div>
     );
@@ -141,7 +169,7 @@ export const examlisten = {
 };
 
 // ---------- W1, W2: the Harno writing task card ----------
-const target = (data) => `${data.minWords}–${data.maxWords} sõna`;
+const target = (data) => (examLang(data) === 'en' && Number(data.minWords) === Number(data.maxWords) ? `${data.minWords} ${T(data).words}` : `${data.minWords}–${data.maxWords} ${T(data).words}`);
 export const examwriting = {
   type: 'examwriting', label: 'Kirjutamisülesanne (eksam)', group: 'Kõne ja kirjutamine', icon: 'FilePenLine', task: true, width: 'full', tone: 'cream',
   create: () => ({
@@ -159,7 +187,7 @@ export const examwriting = {
     return (
       <div className="ws-examwrite">
         <div className="ws-taskcard">
-          <span className="ws-taskcard-kind">{WRITING_GENRES[data.genre] || 'Kirjutamine'}{questions.length ? '' : ` · ${target(data)}`}</span>
+          <span className="ws-taskcard-kind">{WRITING_GENRES[data.genre] || T(data).writing}{questions.length ? '' : ` · ${target(data)}`}</span>
           {data.situation ? <p><Md text={data.situation} /></p> : null}
           {points.length ? <ul className="ws-bullets">{points.map((p, i) => <li key={i}><Md text={p} /></li>)}</ul> : null}
         </div>
@@ -167,16 +195,16 @@ export const examwriting = {
           <ol className="ws-rq ws-questionnaire" start={(ctx.start || 0) + 1}>
             {questions.map((q, i) => (
               <li key={i}><div className="ws-q"><Md text={q} /></div>
-                <Line interactive={ctx.interactive} value={ctx.get(`q${i}`)} onChange={(v) => ctx.set(`q${i}`, v)} state={ctx.state(`q${i}`)} width="100%" label={`Vastus ${i + 1}`} />
+                <Line interactive={ctx.interactive} value={ctx.get(`q${i}`)} onChange={(v) => ctx.set(`q${i}`, v)} state={ctx.state(`q${i}`)} width="100%" label={`${T(data).answer} ${i + 1}`} />
               </li>
             ))}
           </ol>
         ) : (
           <div className="ws-guidedletter">
             {data.opening ? <p>{data.opening}</p> : null}
-            <textarea className="ws-ruled" readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1} rows={Number(data.lines) || 10} value={text} onChange={(e) => ctx.set('text', e.target.value)} aria-label="Sinu tekst" />
+            <textarea className="ws-ruled" readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1} rows={Number(data.lines) || 10} value={text} onChange={(e) => ctx.set('text', e.target.value)} aria-label={T(data).yourText} />
             {data.closing ? <p>{data.closing}</p> : null}
-            {ctx.interactive || ctx.review ? <span className={`ws-pill ${inRange ? 'ok' : 'warn'}`}>{n} sõna · eesmärk {target(data)}</span> : <small>Sõnu: ______ (eesmärk {target(data)})</small>}
+            {ctx.interactive || ctx.review ? <span className={`ws-pill ${inRange ? 'ok' : 'warn'}`}>{T(data).wordsPill(n, target(data))}</span> : <small>{T(data).wordsLine(target(data))}</small>}
           </div>
         )}
       </div>
@@ -215,7 +243,7 @@ export const speakcard = {
       {data.mode === 'phone' ? (
         <div className="ws-rolecards">
           {[data.cardA, data.cardB].map((card, k) => (
-            <section key={k}><b>{card?.label || (k ? 'Vastuste kaart' : 'Küsimuste kaart')}</b><p><Md text={card?.role} /></p>
+            <section key={k}><b>{card?.label || (k ? T(data).answerCard : T(data).questionCard)}</b><p><Md text={card?.role} /></p>
               <ol>{lines(card?.items).map((x, i) => <li key={i}><Md text={x} /></li>)}</ol>
             </section>
           ))}
@@ -225,11 +253,11 @@ export const speakcard = {
           <div className="ws-ideas">{(data.ideas || []).map((idea, i) => (
             <figure key={i} className="ws-idea">{idea.img?.src ? <Photo img={idea.img} aspect="4:3" alt={idea.text} /> : null}<figcaption><Md text={idea.text} /></figcaption></figure>
           ))}</div>
-          {data.outcome ? <p className="ws-speakcard-goal"><b>Kokkulepe:</b> <Md text={data.outcome} /></p> : null}
+          {data.outcome ? <p className="ws-speakcard-goal"><b>{T(data).outcome}</b> <Md text={data.outcome} /></p> : null}
         </>
       )}
       {ctx.interactive ? <Recorder ctx={ctx} target={[Number(data.minSec) || 180, Number(data.maxSec) || 300]} /> : null}
-      {ctx.review ? (ctx.get('audioUrl') ? <div className="ws-rec"><audio controls src={ctx.get('audioUrl')} /><span className="ws-pill">{ctx.get('seconds') || 0} s</span></div> : <div className="ws-hint">Salvestus puudub.</div>) : null}
+      {ctx.review ? (ctx.get('audioUrl') ? <div className="ws-rec"><audio controls src={ctx.get('audioUrl')} /><span className="ws-pill">{ctx.get('seconds') || 0} s</span></div> : <div className="ws-hint">{T(data).noRecording}</div>) : null}
     </div>
   ),
   evidence: (data, get) => ({ recorded: !!get('audioUrl'), seconds: get('seconds') || 0 }),
@@ -276,21 +304,21 @@ export const examrubric = {
                 <td>{Array.from({ length: (Number(c.max) || 0) + 1 }, (_, p) => {
                   const on = ctx.get(`${i}`) === p;
                   return ctx.interactive
-                    ? <button type="button" key={p} className={`ws-pt ${on ? 'on' : ''}`} aria-label={`${c.name}: ${p} punkti`} aria-pressed={on} onClick={() => ctx.set(`${i}`, p)}>{p}</button>
+                    ? <button type="button" key={p} className={`ws-pt ${on ? 'on' : ''}`} aria-label={`${c.name}: ${p} ${T(data).points}`} aria-pressed={on} onClick={() => ctx.set(`${i}`, p)}>{p}</button>
                     : <span key={p} className={`ws-pt ${on ? 'on' : ''}`}>{p}</span>;
                 })}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <p className="ws-examrubric-total">Kokku: <b>{anyGiven ? got : '___'}</b> / {total} punkti · eesmärk vähemalt {Math.ceil(total * PASS_SHARE)} ({Math.round(PASS_SHARE * 100)} %)</p>
+        <p className="ws-examrubric-total">{T(data).total}: <b>{anyGiven ? got : '___'}</b> / {total} {T(data).points} · {T(data).atLeast} {Math.ceil(total * PASS_SHARE)} ({Math.round(PASS_SHARE * 100)} %)</p>
       </div>
     );
   },
   answerKeys: (data) => (data.criteria || []).map((_, i) => `${i}`),
   Editor: ({ data, set }) => (
     <>
-      <Select label="Skaala" value={data.scale} onChange={(scale) => set({ scale, ...(RUBRIC_SCALES[scale] ? { criteria: RUBRIC_SCALES[scale].criteria } : {}) })} options={[['W1', 'Kirjutamine 1 (8 p)'], ['W2', 'Kirjutamine 2 (12 p)'], ['S', 'Rääkimine (20 p)'], ['custom', 'Oma kriteeriumid']]} />
+      <Select label="Skaala" value={data.scale} onChange={(scale) => set({ scale, ...(RUBRIC_SCALES[scale] ? { criteria: RUBRIC_SCALES[scale].criteria } : {}) })} options={[['W1', 'Kirjutamine 1 (8 p)'], ['W2', 'Kirjutamine 2 (12 p)'], ['S', 'Rääkimine (20 p)'], ['EW1', 'Inglise keele riigieksam: kiri (9 p)'], ['EW2', 'Inglise keele riigieksam: aruanne / essee (16 p)'], ['ES', 'Inglise keele riigieksam: suuline osa (20 p)'], ['IW', 'IELTS Writing (4 × 0–9)'], ['IS', 'IELTS Speaking (4 × 0–9)'], ['custom', 'Oma kriteeriumid']]} />
       <Rows label="Kriteeriumid" rows={data.criteria || []} onChange={(criteria) => set({ criteria, scale: 'custom' })} make={() => ({ name: '', max: 3, hint: '' })} addLabel="Lisa kriteerium" max={8}
         render={(row, patch) => <><Text label="Kriteerium" value={row.name} onChange={(name) => patch({ name })} /><Text label="Selgitus" value={row.hint} onChange={(hint) => patch({ hint })} /><Num label="Max punkte" value={row.max} max={10} onChange={(max) => patch({ max })} /></>} />
     </>
@@ -302,7 +330,29 @@ export const examrubric = {
 const inPart = (part) => part.toLowerCase().replace(/mine$/, 'mises');
 const realMinutes = (p) => (p.from ? `${p.from}–${p.minutes}` : `${p.minutes}`);
 const sameTime = (p, minutes) => Number(minutes) >= (p.from || p.minutes) && Number(minutes) <= p.minutes;
+// the English state exam (EN-RE): the part in the real exam and its own level rule (B1 50–74 %, B2 75–100 %, no part 0)
+export function englishPartLine(skill, points, minutes) {
+  const exam = EN_STATE_EXAM_DATA;
+  const p = exam.parts[skill];
+  if (!p) return '';
+  const real = `Part ${p.number} ${p.part} takes ${p.minutes} minutes and gives ${p.weighted} of the ${exam.total} points${p.items ? ` (${p.items} questions, ${p.perItem} points each)` : ''}`;
+  const same = Number(points) === p.raw && Number(minutes) === p.minutes;
+  const where = same ? `As in the English state exam: ${real}.` : `In the English state exam, ${real}.`;
+  const once = p.once ? ` Task ${p.once.join(', ')} is played only once, the others twice.` : '';
+  const turn = p.turnSec ? ` Speak for at least ${Math.floor(p.turnSec / 60)} min ${p.turnSec % 60} s in each task.` : '';
+  const [[b2, b2min], [b1, b1min]] = exam.rule.levels;
+  return `${where}${once}${turn} ${b2} = ${Math.round(b2min * 100)}–100 % of the total, ${b1} = ${Math.round(b1min * 100)}–${Math.round(b2min * 100) - 1} %; no part may be 0 points.`;
+}
+// IELTS, TOEFL iBT, Cambridge B2 First (examFormats.js): the part as the exam has it, and its score scale
+export function internationalPartLine(exam, skill) {
+  const e = examFor(exam);
+  const p = e?.parts[skill];
+  if (!p) return '';
+  return `${e.name}, ${p.part}: ${p.note} ${e.scale.note}`;
+}
 export function harnoPartLine(level, skill, points, minutes) {
+  if (level === EN_STATE_EXAM) return englishPartLine(skill, points, minutes);
+  if (isEnglishExam(level)) return internationalPartLine(level, skill);
   const exam = HARNO_EXAMS[level];
   const p = exam?.parts[skill];
   if (!p) return '';
@@ -314,7 +364,7 @@ export function harnoPartLine(level, skill, points, minutes) {
   const need = Math.ceil(exam.total * HARNO_PASS.share);
   return `${weigh} Eksam on sooritatud, kui kokku on vähemalt ${need} punkti ${exam.total}-st (${Math.round(HARNO_PASS.share * 100)} %) ja ükski osa ei ole 0 punkti.`;
 }
-function PartTimer({ minutes }) {
+function PartTimer({ minutes, text = EXAM_TEXT.et }) {
   const [left, setLeft] = useState(null);
   const timer = useRef(null);
   useEffect(() => () => clearInterval(timer.current), []);
@@ -330,8 +380,18 @@ function PartTimer({ minutes }) {
   };
   const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   return left === null
-    ? <button type="button" className="ws-recbtn" onClick={start}>Alusta aega</button>
-    : <span className={`ws-pill ${left ? '' : 'warn'}`} role="timer">{left ? `Aega jäänud ${fmt(left)}` : 'Aeg on läbi'}</span>;
+    ? <button type="button" className="ws-recbtn" onClick={start}>{text.start}</button>
+    : <span className={`ws-pill ${left ? '' : 'warn'}`} role="timer">{left ? `${text.left} ${fmt(left)}` : text.over}</span>;
+}
+// the section header of an English mock: „Part II · Listening” (the state exam), „IELTS Academic · Listening” (the others)
+export function examPartHeading(data) {
+  if (!isEnglishExam(data?.exam) || String(data.part || '').startsWith('Part ')) return data?.part;
+  if (data.exam === EN_STATE_EXAM) {
+    const number = EN_STATE_EXAM_DATA.parts[data.skill]?.number;
+    return number ? `Part ${number} · ${data.part}` : data.part;
+  }
+  const name = examFor(data.exam).name;
+  return String(data.part || '').startsWith(name) ? data.part : `${name} · ${data.part}`;
 }
 export const exampart = {
   type: 'exampart', label: 'Eksami osa (aeg ja punktid)', group: 'Kujundus', icon: 'Timer', task: false, width: 'full', tone: 'sky',
@@ -340,25 +400,29 @@ export const exampart = {
     const points = Number(data.points) || 0;
     const target = Number(data.target) || 0;
     const harno = harnoPartLine(data.exam, data.skill, points, data.minutes);
+    const text = T(data);
+    // the English state exam's booklet header: „Part II · Listening” (the part's number from the exam data)
+    const heading = examPartHeading(data);
     return (
-      <div className="ws-exampart">
-        <h4>{data.part}</h4>
+      <div className={`ws-exampart${heading !== data.part ? ' is-booklet' : ''}`}>
+        <h4>{heading}</h4>
         <div className="ws-exampart-facts">
-          <span><b>{data.minutes}</b> min</span>
-          {data.tasks ? <span><b>{data.tasks}</b> ülesannet</span> : null}
-          {points ? <span><b>{points}</b> punkti</span> : null}
-          {points && target ? <span>eesmärk vähemalt <b>{Math.ceil((points * target) / 100)}</b> p ({target} %)</span> : null}
+          <span><b>{data.minutes}</b> {text.minutes}</span>
+          {data.tasks ? <span><b>{data.tasks}</b> {text.tasks}</span> : null}
+          {data.items ? <span><b>{data.items}</b> {text.items}</span> : null}
+          {points ? <span><b>{points}</b> {text.points}</span> : null}
+          {points && target ? <span>{text.atLeast} <b>{Math.ceil((points * target) / 100)}</b> p ({target} %)</span> : null}
         </div>
         {data.note ? <p><Md text={data.note} /></p> : null}
         {harno ? <p className="ws-exampart-harno">{harno}</p> : null}
-        {ctx.interactive ? <PartTimer minutes={Number(data.minutes) || 0} /> : <p className="ws-exampart-time">Algus: ______ Lõpp: ______</p>}
+        {ctx.interactive ? <PartTimer minutes={Number(data.minutes) || 0} text={text} /> : <p className="ws-exampart-time">{text.startEnd}</p>}
       </div>
     );
   },
   Editor: ({ data, set }) => (
     <>
       <Select label="Osa" value={data.skill} onChange={(skill) => set({ skill, ...(examPartDefaults(data.exam, skill) || EXAM_PARTS[skill]) })} options={Object.entries(EXAM_PARTS).map(([k, v]) => [k, v.part])} />
-      <Select label="Harno eksam (kaalumine ja lävend)" value={data.exam || ''} onChange={(exam) => set({ exam })} options={[['', '—'], ...HARNO_LEVELS.map((l) => [l, `${l}-tase`])]} />
+      <Select label="Harno eksam (kaalumine ja lävend)" value={data.exam || ''} onChange={(exam) => set({ exam })} options={[['', '—'], ...HARNO_LEVELS.map((l) => [l, `${l}-tase`]), ...ENGLISH_EXAMS.map((e) => [e, e === EN_STATE_EXAM ? 'Inglise keele riigieksam (B1/B2)' : examFor(e).name])]} />
       <div className="ed-row"><Num label="Minutid" value={data.minutes} max={120} onChange={(minutes) => set({ minutes })} /><Num label="Ülesandeid" value={data.tasks} max={10} onChange={(tasks) => set({ tasks })} /><Num label="Punkte" value={data.points} max={100} onChange={(points) => set({ points })} /></div>
       <Num label="Eesmärk %" value={data.target} min={0} max={100} onChange={(value) => set({ target: value })} />
       <Area label="Märkus" value={data.note} onChange={(note) => set({ note })} />

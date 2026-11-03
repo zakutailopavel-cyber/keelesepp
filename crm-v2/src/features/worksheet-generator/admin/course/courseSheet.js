@@ -5,11 +5,13 @@ import { withLessonArt } from '../../art/textbookArt.js';
 import { withWordStrips } from '../../art/wordStrips.js';
 import { withListeningAudio } from './listeningAudio.js';
 import { nativeStage } from '../../../worksheet-studio/didactics/levels.js';
-import { COURSE_EXAM } from '../../../worksheet-studio/engine/blocks/harnoScales.js';
+import { COURSE_EXAM, EXAM_PART_DEFAULTS, examPartDefaults, isEnglishExam } from '../../../worksheet-studio/engine/blocks/harnoScales.js';
 import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
 import { A2_LESSON_GOALS } from './a2/lessonGoals.js';
 import { B2_LESSON_GOALS } from './b2/lessonGoals.js';
 import { C1_LESSON_GOALS } from './c1/lessonGoals.js';
+import { EN_B2_LESSON_GOALS } from './en/b2/lessonGoals.js';
+import { withSheetLanguage } from './sheetLanguage.js';
 import { COURSE_NAMES, ENGLISH_COURSE_NAME } from '../../../curriculum/courseNames.js';
 
 
@@ -29,6 +31,9 @@ export const COURSES = {
   // English (docs/ENGLISH_COURSE_PLAN.md): A1 → B1 by CEFR level, the B1 aim of the Estonian basic school exam; the badge
   // names the module's own level (MODULE.level „English A2” / „English B1”)
   en: { label: ENGLISH_COURSE_NAME, name: ENGLISH_COURSE_NAME, badge: 'KeeleSepp · English', badgeByLevel: true },
+  // English B1 → B2 to the English state exam (docs/COURSE_FINAL_SHAPE_EN_B2.md): a fixed badge „KeeleSepp · English B2 ·
+  // moodul N”, so MODULE.level can carry the stage (English B1+ / B2- / B2) for the level norms; no modules yet
+  enb2: named('enB2'),
   // the Sunday children's groups 5–6, 6–7, 8–9 (kids/sheets.js; not in COURSE_MODULES: adult level gates do not apply)
   kids: { label: 'Lasterühmad 5–9 a', name: 'Lasterühmad 5–9 a', badge: 'KeeleSepp lastele' },
 };
@@ -40,7 +45,7 @@ export const PHASES = {
 };
 
 // the lesson's own goal and sub-goals win over the generic defaults (contract A1–A3)
-const LESSON_GOALS = { ...A2_LESSON_GOALS, ...B1_LESSON_GOALS, ...B2_LESSON_GOALS, ...C1_LESSON_GOALS };
+const LESSON_GOALS = { ...A2_LESSON_GOALS, ...B1_LESSON_GOALS, ...B2_LESSON_GOALS, ...C1_LESSON_GOALS, ...EN_B2_LESSON_GOALS };
 export const lessonGoalsFor = (lessonId) => LESSON_GOALS[lessonId] || null;
 
 const GOALS = {
@@ -86,10 +91,20 @@ function strictSpelling(blocks, level) {
 // an exam part's header shows how the real Harno exam of the course weighs the part and its pass rule (engine/blocks/
 // harno.jsx harnoPartLine); a module may name another level on the block (`exam: 'A2'` for an A2-form check in the B1
 // course) or none (`exam: ''`)
+// An English course (the English state exam, EN-RE) gets the exam's own part header: a B.examPart written without
+// `exam` carries the B1 defaults (Estonian part name, B1 minutes and points), so every field still at its B1 default
+// takes the English exam's value; a field the module set itself is kept.
 function withHarnoExam(blocks, course) {
   const exam = COURSE_EXAM[course];
   if (!exam) return blocks;
-  return blocks.map((b) => (b.type === 'exampart' && !('exam' in (b.data || {})) ? { ...b, data: { ...b.data, exam } } : b));
+  return blocks.map((b) => {
+    if (b.type !== 'exampart' || 'exam' in (b.data || {})) return b;
+    if (!isEnglishExam(exam)) return { ...b, data: { ...b.data, exam } };
+    const was = EXAM_PART_DEFAULTS[b.data?.skill] || {};
+    const now = examPartDefaults(exam, b.data?.skill) || {};
+    const fill = Object.fromEntries(Object.entries(now).filter(([k]) => b.data?.[k] === undefined || b.data[k] === was[k]));
+    return { ...b, data: { ...b.data, ...fill, exam } };
+  });
 }
 
 // the teacher's answer key explains why each answer is right (engine/answerKey.js): a module may export EXPLAIN =
@@ -145,7 +160,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
-    blocks: withHarnoExam(withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN), mod.MODULE.course),
+    blocks: withSheetLanguage(withHarnoExam(withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN), mod.MODULE.course), mod.MODULE.language),
   }, lessonId, phase), lessonId, phase, undefined, Object.keys(mod.LESSONS));
 }
 
