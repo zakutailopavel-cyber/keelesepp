@@ -43,7 +43,19 @@
 // Tallinn's districts run participatory budgets (kaasav eelarve); Estonia has had the ID card since 2002 and digital
 // signatures with it; Brussels (January 2021) and Paris (August 2021) set 30 km/h as the general city speed limit;
 // 24 February is Estonia's Independence Day. Earlier versions: archive/v3/b1/module16.js, archive/v1/b1/module16.js.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, topic „meedia” + „ühiskond”, „suhted”; the opinion / comparison /
+// argument axis stays): the topic opener 076_d_open (ERR and its channels incl. ETV+, the public broadcasting law, where
+// people get news and trust in ERR — Emor for Riigikantselei, March 2026) replaces the goal text 076_d_goal; „Kas
+// teadsid?” 076_p_know (phone rules in schools since 1.9.2025, the age of 13 for online services, WHO screen time),
+// 077_p_media (infographic: news sources, March 2026) with the comparison talk 077_p_mtalk, 078_p_know (news vs opinion,
+// pressinõukogu) with the opinion column 078_p_column, 079_p_know (how to recognise false information, Faktikontroll,
+// Propastop); examiner set 080_d_warm (media and opinions) with its own instruction; mock listening 080_p_l4 without the
+// invented survey shares. One 3-2-1 / 4-3-2 left (076_d_432); record-at-home twice (076_t_rec, 079_t_rec).
+// Sources: the PR of agent/av-b1-module-16.
 import { B, tag, teach, withShapes } from '../blocks.js';
+
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
 export const MODULE = { id: 'a2b1-module-16', course: 'b1', title: 'Arvamus, võrdlemine ja põhjendamine', level: 'B1', design: 'v2', template: 'v4' };
 
@@ -53,8 +65,19 @@ export const LESSONS = withShapes({
     canDo: 'Ma räägin oma arvamusest laste telefonide ja ekraaniaja kohta, põhjendan seda ja lepin lastevanemate koosolekul kokku klassi ühise seisukoha.',
     discover: [
       B.review('076_d_review', [['Mida pidi Sofia mentorprogrammi esimesele kohtumisele kaasa võtma?', 'a2b1-074'], ['Mida Valgevase majade elanikud oma hoovi jaoks kokku leppisid?', 'a2b1-059'], 'Mis teema peale vaidleb sinu pere või sinu töökoht kõige sagedamini?']),
-      B.text('076_d_goal', 'Moodul 16: igaüks arvab midagi', 'Selles moodulis ütled oma arvamuse, võrdled kahte võimalust ja põhjendad oma valikut. On jaanuar. Kase kool tahab teha telefonivaba koolipäeva, Tuul Logistika otsib uut kaugtöö korda ja Jaani maja vaidleb hoovi pärast. Mooduli lõpus aitad maja elanike koosolekul jõuda kompromissini, salvestad kokkuvõtte ja kirjutad otsuse naabritele. Täna kuulad, mida Metsade pere telefonidest arvab.'),
-      B.listening('076_d_kitchen', 'Õhtusöök Metsade köögis.', 'Metsade pere vaidleb õhtusöögi ajal Oskari telefoni üle. Kuula kaks korda ja kirjuta igasse lünka üks sõna või arv.', [
+      B.topicOpener('076_d_open', 'Teema avaleht: meedia ja uudised Eestis', [
+        'Eesti avalik-õiguslik ringhääling on Eesti Rahvusringhääling (ERR). See loodi 1. juunil 2007, kui ühendati Eesti Raadio ja Eesti Televisioon. ERR-il on kolm telekanalit: ETV, ETV2 ja venekeelne ETV+, mis alustas 28. septembril 2015. Raadiokanaleid on viis: Vikerraadio, Raadio 2, Klassikaraadio, venekeelne Raadio 4 ja mitmekeelne Raadio Tallinn. ERR-i uudisteportaalis saab uudiseid lugeda eesti, vene ja inglise keeles.',
+        'Rahvusringhäälingu seaduse järgi peavad ERR-i saated vastama kõigi rahvastikurühmade, ka vähemuste infovajadusele. ERR-i rahastatakse peamiselt riigieelarvest ja seaduse järgi ta üldjuhul reklaami ei edasta. Suuremad erameedia väljaanded on näiteks Postimees, Delfi ja Õhtuleht.',
+        'Kust inimesed uudiseid saavad? Riigikantselei tellitud Emori küsitluses (märts 2026) pidas Eesti uudisteportaale oluliseks infoallikaks 54 % vastajatest, Eesti telekanaleid 44 %, sotsiaalmeediat 38 %, raadiot 28 % ja üleriigilisi ajalehti 11 %. Võrreldes pool aastat varasema küsitlusega kasvas veidi sotsiaalmeedia osa, telekanalite ja raadio osa aga vähenes. ERR-i usaldas samas küsitluses 66 % vastajatest: eestlastest 75 % ja muust rahvusest inimestest 48 %.',
+        'Sotsiaalmeedias on kõrvuti ajakirjanike tehtud uudised, reklaam ja tavaliste inimeste arvamused. Seepärast peab lugeja ise oskama eristada fakti ja arvamust ning kontrollida, kust info pärit on ja kes selle kirjutas. Seda oskust nimetatakse meediapädevuseks ja tänapäeval vajab seda igaüks.',
+        'Selles moodulis ütled oma arvamuse, võrdled ja põhjendad: räägid lastest ja ekraanidest, kodust ja kontorist ning linnast ja hoovist. Õpid ka uudist ja arvamuslugu kriitiliselt lugema. Mooduli lõpus aitad maja elanike koosolekul jõuda kompromissini ja teed teise proovieksami.',
+      ], 'Eesti Rahvusringhäälingu seadus (Riigi Teataja); Vikipeedia, „Eesti Rahvusringhääling”; Wikipedia, „ETV+”; ERR, „ERR-i usaldusväärsus kasvas nii eestlaste kui ka muust rahvusest inimeste seas” (9.4.2026, Emori küsitlus Riigikantselei tellimusel, 16.–23.3.2026)', [
+        'Kust sina kõige sagedamini uudiseid saad: telerist, raadiost, uudisteportaalist või sotsiaalmeediast? Miks just sealt?',
+        'Milliseid Eesti meediakanaleid sa jälgid ja mis keeles?',
+        'Kuidas erineb meedia sinu kodumaal Eesti meediast? Kas inimesed usaldavad seal ajakirjandust?',
+        'Mis vanuses peaks laps sinu arvates saama oma sotsiaalmeedia konto? Põhjenda.',
+      ]),
+      B.listening('076_d_kitchen', 'Õhtusöök Metsade köögis.', 'On jaanuar ja Kase kool tahab teha telefonivaba koolipäeva. Metsade pere vaidleb õhtusöögi ajal Oskari telefoni üle. Kuula kaks korda ja kirjuta igasse lünka üks sõna või arv.', [
         'Oskar: Ema, isa, aprillis saan ma kümneaastaseks. Minu arvates on mul juba aeg saada oma nutitelefon.',
         'Kadri: Oma nutitelefon? Sul on ju telefon olemas.',
         'Oskar: See on vana nuputelefon. Sellega saab ainult helistada ja sõnumeid saata. Kõigil minu klassikaaslastel on nutitelefon.',
@@ -112,8 +135,8 @@ export const LESSONS = withShapes({
         ['arvab nii', ['Minu arvates on telefonikapp hea lahendus.', 'Ma arvan, et Mia peab veel mõne aasta ootama.', 'Jaani arvates peaks laps telefoni saama hiljem.', 'Minu meelest peaks iga pere ise oma reeglid otsustama.']],
         ['ei ole kindel või kahtleb', ['Mulle tundub, et Oskar mängib liiga palju.', 'Võib-olla on telefon kümneaastasele lapsele tõesti vajalik.', 'Ma kahtlen, kas kõigil klassis on nutitelefon.', 'Vaevalt et kümneaastane laps oma ekraaniaega ise piirab.']],
       ], 'full', 'g_vocab'),
-      teach(tag(B.speaking('076_d_survey', 'Küsitlus: lapsed ja ekraanid.', 'Esita samad viis küsimust kolmele inimesele. Iga uue vastajaga küsi ja kommenteeri kiiremini; lõpus anna minutiga ülevaade.', ['Mis vanuses peaks laps saama oma esimese nutitelefoni?', 'Mitu tundi päevas veedad sina ekraani ees?', 'Kas koolis peaks telefon tunni ajal keelatud olema? Miks?', 'Mida teevad lapsed telefoniga sinu arvates kõige rohkem?', 'Milline telefonireegel sinu peres kehtib?'], [120, 180], ['Minu arvates…, sest…', 'Kaks inimest arvavad, et…', 'Üks kahtleb, kas…']), { task: 'S09', fluency: true }),
-        'Üks-ühele: õpilane küsib samu küsimusi õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (Kadri, Jaan, Rasmuse isa Tõnu). Lõpus teeb õpilane minutilise kokkuvõtte: kes on nõus, kes kahtleb ja miks.'),
+      teach(tag(B.speaking('076_d_survey', 'Küsitlus: meedia ja ekraanid.', 'Küsi paariliselt viis küsimust ja kommenteeri iga vastust: kas oled nõus või kahtled? Siis vahetage. Lõpus öelge koos, milles te olete nõus ja milles mitte.', ['Mis vanuses peaks laps saama oma esimese nutiseadme?', 'Mitu tundi päevas veedad sina ekraani ees ja mida sa seal kõige rohkem teed?', 'Kas koolis peaks nutiseade tunni ajal keelatud olema? Miks?', 'Kas sotsiaalmeedia annab sinu arvates rohkem head või halba?', 'Kas lastele mõeldud ekraanireeglid on sinu kodumaal rangemad kui Eestis?'], [120, 180], ['Minu arvates…, sest…', 'Ma olen sinuga nõus, aga…', 'Ma kahtlen, kas…']), { task: 'S09', fluency: true }),
+        'Üks-ühele: õpilane küsib õpetajalt ja õpetaja vastab kord kindlalt, kord kahtlevalt; õpilane kommenteerib iga vastust (olen nõus, kahtlen, olen osaliselt nõus). Siis vahetage. Lõpus ütleb õpilane minutiga, milles te olite nõus ja miks.'),
       teach(tag(B.speaking('076_d_432', 'Minu arvamus kolm korda.', 'Ütle oma arvamus kolm korda järjest: 2 minutit, 90 sekundit ja 1 minut. Alusta iga kord arvamusest ja too kaks põhjust.', ['Kas kümneaastane laps vajab nutitelefoni?', 'Mis on telefoni suurim kasu lapsele?', 'Mis on telefoni suurim oht lapsele?', 'Kes peaks otsustama: lapsevanem, kool või laps ise?', 'Mis on sinu järeldus?'], [120, 180], ['Minu arvates…', 'Esiteks…, teiseks…', 'Kokkuvõttes…']), { task: 'S08' }),
         'Üks-ühele: õpetaja hoiab aega (2 minutit, 90 sekundit, 1 minut) ega katkesta. Pärast kolmandat korda ütleb õpetaja, kas tegusõna tuli pärast „minu arvates” kohe ja mitu eri arvamuse väljendit õpilane kasutas.'),
     ],
@@ -151,6 +174,11 @@ export const LESSONS = withShapes({
         ['Miks toetab õpetaja Aili telefonivaba koolipäeva?', 'lapsed mängivad vahetunnis vähem õues|telefoniga lapsed ei mängi õues ega räägi'],
         ['Kelle arvamusega sina kõige rohkem nõustud? Miks?', ''],
       ], 'g_read'), { task: 'R12' }),
+      B.know('076_p_know', [
+        'Eestis ei ole üleriigilist nutitelefonide keeldu koolis. Alates 1. septembrist 2025 kehtiva määruse järgi peab iga kool koos kogukonna, hoolekogu ja kooli pidajaga välja töötama nutiseadmete kasutamise põhimõtted ja kirjutama reeglid kooli kodukorda. Seepärast on reeglid koolides erinevad: mõnes koolis ei tohi algklasside õpilased nutitelefoni üldse kasutada, teises on telefon tunni ajal kotis ja vahetunnis kapis.',
+        'Isikuandmete kaitse seaduse järgi võib laps alates 13. eluaastast ise nõustuda, et internetiteenus tema andmeid kasutab; noorema lapse puhul on vaja vanema nõusolekut. Ka Instagram ja TikTok lubavad oma reeglite järgi kontot alles 13-aastasele.',
+        'Maailma Terviseorganisatsioon (WHO) soovitab: alla kaheaastane laps ei peaks ekraani ees istuma üldse, kahe- kuni neljaaastane kõige rohkem ühe tunni päevas — ja vähem on parem.',
+      ], 'Riigi Teataja, „Nõuded statsionaarse õppega üldhariduskooli õppekeskkonnale …” (jõustus 1.9.2025); ERR, „Koolid peavad korraldama laste mobiilikasutust, aga ühtne kord puudub” (9.9.2025); isikuandmete kaitse seadus § 8; Instagrami ja TikToki kasutustingimused; WHO pressiteade ja soovitused alla viieaastaste laste liikumise, istumise ja une kohta (24.4.2019)', 'Kas teadsid? Nutiseadmed koolis ja vanusepiirid'),
       B.wordorder('076_p_order', 'Arvamus õiges järjekorras.', 'Pane sõnad õigesse järjekorda ja kirjuta terve lause. Jälgi, kus on tegusõna pärast „minu arvates”, kuna-lauset ja „et”.', [
         'Minu arvates peaks laps saama telefoni alles kümneaastaselt.',
         'Kuna Oskar käib üksi trennis, vajab ta telefoni.',
@@ -200,7 +228,7 @@ export const LESSONS = withShapes({
         ['Kus ei lubaks Toomas lapsel telefoni kasutada?', 'koolis', 'kodus', 'trennis'],
         ['Mida ütleb Marika poeg nüüd oma telefoni kohta?', 'ta oleks võinud kauem oodata', 'telefon on tal liiga vana', 'ta tahab kohe uut telefoni'],
       ], 'g_read'), { task: 'L01' }),
-      B.speaking('076_p_topics', 'Teemaküsimused: tehnoloogia ja pere.', 'Vasta viiele küsimusele. Ütle igal korral arvamus, põhjus ja näide oma elust; räägi igale umbes minut.', ['Milleks sina telefoni kõige rohkem kasutad?', 'Kas lapsepõlv oli varem lihtsam või raskem kui praegu? Miks?', 'Kas pere peaks sööma ilma telefonideta? Miks?', 'Milline tehnoloogia on sinu elu kõige rohkem muutnud?', 'Kas sa suudaksid elada nädal ilma nutitelefonita?'], [120, 180], ['Minu arvates…, sest…', 'Näiteks…', 'Ma olen kindel, et…']),
+      B.speaking('076_p_topics', 'Teemaküsimused: tehnoloogia, meedia ja pere.', 'Vasta viiele küsimusele. Ütle igal korral arvamus, põhjus ja näide oma elust; räägi igale umbes minut.', ['Milleks sina telefoni kõige rohkem kasutad?', 'Kas lapsepõlv oli varem lihtsam või raskem kui praegu? Miks?', 'Kas pere peaks sööma ilma telefonideta? Miks?', 'Kas kool või pere peaks otsustama, kuidas laps nutiseadet kasutab? Põhjenda.', 'Kas sa suudaksid elada nädal ilma nutitelefonita?'], [120, 180], ['Minu arvates…, sest…', 'Näiteks…', 'Ma olen kindel, et…']),
     ],
     transfer: [
       B.text('076_t_sit', 'Koosolek neljapäeval', 'Neljapäeval, 27. jaanuaril on Kase koolis lastevanemate koosolek. Klassijuhataja Kristel Saar jättis kolmanda klassi vanematele häälsõnumi. Kuula sõnumit ja tee märkmed. Seejärel arutage koosolekul direktori ettepanekut ja leppige kokku klassi vanemate ühine seisukoht. Kodus salvesta oma arvamus ja vasta klassijuhatajale.'),
@@ -293,8 +321,8 @@ export const LESSONS = withShapes({
         ['Anna', 'eelistab vabalt valitud päevi'], ['Markus', 'peab kõige lihtsamaks samu päevi kõigile'], ['Jelena', 'kardab, et reedel on kontor tühi'], ['Sofia', 'pakub kahte ühist kontoripäeva'], ['Kristjan', 'tahaks allergia tõttu rohkem kodus olla'],
         ['Anna teises sõnumis', 'soovitab koosolekuid teisipäeva hommikul'], ['Markus teises sõnumis', 'küsib, mis saab kliendi kohtumisest'], ['Liis', 'ootab tiimidelt ühist ettepanekut'], ['variant A', 'esmaspäev ja reede kõigil kodus'], ['variant B', 'kuni kaheksa vaba päeva kuus'],
       ], 'g_read'),
-      teach(tag(B.speaking('077_d_compare', 'Kaks töökohta: võrdle.', 'Kirjelda ja võrdle avatud kontorit ja kodust töölauda. Räägi kolm korda, iga kord uuele kuulajale ja natuke lühemalt.', ['Mis on avatud kontoris paremini kui kodus?', 'Mis on kodus mugavam?', 'Kus on rohkem müra ja vähem rahu?', 'Kus sa ise töötaksid kõige meelsamini?', 'Mis on mõlemas kohas ühesugune?'], [120, 180], ['Kodus on … kui kontoris.', 'Võrreldes kontoriga…', 'Kõige rohkem meeldib mulle…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpetaja näitab kahte pilti (avatud kontor ja kodune töölaud). Õpilane räägib kolm korda (2 minutit, 90 sekundit ja 1 minut); õpetaja on iga kord uus kuulaja (Liis, Anna, Markus) ja küsib ühe täpsustava küsimuse.'),
+      teach(tag(B.speaking('077_d_compare', 'Kaks töökohta: võrdle.', 'Kirjelda ja võrdle avatud kontorit ja kodust töölauda. Paariline küsib pärast iga vastust ühe täpsustava küsimuse; siis vahetage ja võrrelge, kas teie eelistused on sarnased.', ['Mis on avatud kontoris paremini kui kodus?', 'Mis on kodus mugavam?', 'Kus on rohkem müra ja vähem rahu?', 'Kus sa ise töötaksid kõige meelsamini?', 'Mis on mõlemas kohas ühesugune?'], [120, 180], ['Kodus on … kui kontoris.', 'Võrreldes kontoriga…', 'Kõige rohkem meeldib mulle…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpetaja näitab kahte pilti (avatud kontor ja kodune töölaud). Õpilane võrdleb ja õpetaja küsib pärast iga vastust ühe täpsustava küsimuse; siis vahetage rollid. Õpetaja märgib, mitu eri võrdlust (… kui, kõige …, võrreldes …-ga) õpilane kasutas.'),
       tag(B.writing('077_d_write', 'Kaheksa minutit: minu tööpäev.', 'Kirjuta kaheksa minutit peatumata: kas sinu tööpäev või õppimine läheb paremini kodus või mujal? Võrdle vähemalt nelja asja.', [8, 10], ['kui', 'kõige', 'võrreldes', 'sama'], 3), { task: 'W06', fluency: true }),
     ],
     practice: [
@@ -340,6 +368,9 @@ export const LESSONS = withShapes({
         ['Sauelt on bussiga tee pikk. Rongiga on see lühike.', 'lühem kui', 'Rongiga on tee Sauelt lühem kui bussiga.'],
         ['Kodus on Markusel mugav. Kontoris on tal sama mugav.', 'sama … kui', 'Kontoris on Markusel sama mugav kui kodus.'],
       ], 'full', 'g_notice'),
+      tag(B.chart('077_p_media', 'Kust Eesti elanikud uudiseid ja teadmisi saavad? (% vastajatest, kelle jaoks see allikas on oluline)', { kind: 'bar', unit: '%', series: 'Märts 2026', rows: ['Eesti uudisteportaalid | 54', 'Eesti telekanalid | 44', 'sotsiaalmeedia | 38', 'raadio | 28', 'sõbrad ja tuttavad | 20', 'välismaa meediakanalid | 20', 'üleriigilised päeva- ja nädalalehed | 11', 'kohalikud ajalehed | 7'], source: 'Emori küsitlus Riigikantselei tellimusel, 16.–23.3.2026, 1637 vastajat; ERR, „ERR-i usaldusväärsus kasvas nii eestlaste kui ka muust rahvusest inimeste seas” (9.4.2026)' }), { voice: 'infographic' }),
+      teach(B.speaking('077_p_mtalk', 'Infograafik: võrdle ja arutle.', 'Vaata infograafikut. Võrdle paarilisega infoallikaid keskvõrde ja ülivõrdega ning ütle, mida sa ise kasutad ja miks.', ['Milline allikas on vastajate jaoks kõige olulisem ja milline kõige vähem oluline?', 'Kas sotsiaalmeedia on vastajatele olulisem kui raadio? Kui palju?', 'Kust sina saad uudiseid rohkem kui teised vastajad ja kust vähem?', 'Kuidas oleks tulemus sinu arvates sinu kodumaal teistsugune? Miks?'], [60, 120], ['… on olulisem kui …', 'Kõige rohkem / kõige vähem…', 'Võrreldes raadioga…']),
+        'Üks-ühele: õpetaja küsib ja vastab ka ise; õpilane võrdleb vähemalt kolme allikat ja kasutab keskvõrret, ülivõrret ja väljendit „võrreldes …-ga”. Õpetaja ütleb ühe numbri valesti ja õpilane parandab infograafiku järgi.'),
       B.adsmatch('077_p_places', 'Kus veel töötada?', 'Loe kuut kuulutust ja kümmet olukorda. Leia igale olukorrale sobiv kuulutus; sama kuulutus võib sobida mitmele.', [
         ['Kontoriruum „Ühine laud”', 'Kesklinnas on vabu töökohti päevaks, nädalaks või kuuks. Kiire internet, koosolekuruum ja kohv on hinna sees. Päevapilet maksab 15 eurot ja kuupilet 150 eurot. Avatud tööpäeviti kella kaheksast kaheksani.'],
         ['Saue raamatukogu lugemissaal', 'Lugemissaalis on kaheksa vaikset töökohta, tasuta internet ja printer. Telefoniga rääkida ei tohi. Saal on avatud teisipäevast laupäevani kella kümnest kuueni.'],
@@ -378,7 +409,7 @@ export const LESSONS = withShapes({
       'Üks-ühele: õpetaja on Anna ja annab infot ainult küsimise peale; siis vahetage paberid. Lõpus ütleb õpilane kolme võrdlusega, kumb variant on tema arvates parem (… kui, sama … kui, kõige …).'),
     ],
     transfer: [
-      B.text('077_t_sit', 'Ettepanek Liisile', 'Liis palus igal tiimil saata reedeks, 11. veebruariks, üks ühine ettepanek. Sofia pakkus välja ka kolmanda variandi. Loe kolme variandi kirjeldust ja täienda lauseid. Seejärel pange koos variandid järjekorda, salvesta kodus oma võrdlus ja kirjuta tiimi nimel Liisile kiri.'),
+      B.text('077_t_sit', 'Ettepanek Liisile', 'Liis palus igal tiimil saata reedeks, 11. veebruariks, üks ühine ettepanek. Sofia pakkus välja ka kolmanda variandi. Loe kolme variandi kirjeldust ja täienda lauseid. Seejärel pange koos variandid järjekorda, valmista kodus ette oma võrdlus ja kirjuta tiimi nimel Liisile kiri.'),
       B.profiles('077_t_vars', 'Kolm varianti.', 'Loe kolme variandi kirjeldust ja täienda lauseid. Mõtle iga variandi juures, kellele see sobib kõige paremini ja kellele kõige halvemini.', [
         ['Variant A: kaks kindlat päeva', ['kodus esmaspäeval ja reedel, kõigil samad päevad', 'kontoris teisipäevast neljapäevani', 'lihtne planeerida, aga ei arvesta pikka bussisõitu', 'reedel on kontor peaaegu tühi'],
           ['Variandis A on igal töötajal kodus [kaks|2] kindlat päeva nädalas.', 'Kõik töötavad kodus samadel päevadel: esmaspäeval ja [reedel].', 'Variant A on kolmest variandist kõige [lihtsam] planeerida.', 'Reedel on kontor variandi A järgi peaaegu [tühi].']],
@@ -389,8 +420,8 @@ export const LESSONS = withShapes({
       ]),
       teach(tag(B.ideaCard('077_t_rank', 'Pange variandid järjekorda.', 'Arutage kolme varianti ja pange need oma tiimi jaoks järjekorda. Lõpuks valige üks variant, mille te Liisile ettepanekuks saadate.', 'Teie tiimis on Anna (elab Sauel), Markus (tahab kolleegidega koos olla), Jelena (peab vastuvõtus olema) ja Sofia (valmistub eksamiks). Liis tahab igalt tiimilt ühte ettepanekut.', ['variant A: esmaspäev ja reede kodus', 'variant B: kuni 8 päeva kuus vabalt', 'variant C: teisipäev ja neljapäev koos', 'Anna pikk bussisõit', 'Jelena vastuvõtus', 'koosolekud ja keelepraktika'], 'Mis järjekorras on variandid teie tiimi jaoks ja millise te valite?'), { task: 'S12' }),
         'Üks-ühele: õpetaja on Markus, kes eelistab alguses varianti A; õpilane võrdleb (… kui, võrreldes …-ga, kõige …) ja jõuab kokkuleppele. Hinda: kas lõpus on selge järjekord ja üks valitud variant.'),
-      teach(tag(B.speaking('077_t_rec', 'Kodus: kodu või kontor?', 'Salvesta 2–3-minutiline võrdlus: kus sina töötad või õpid paremini, kodus või kodust väljas, ja miks.', ['Kus sa praegu töötad või õpid?', 'Mis on kodus paremini kui mujal?', 'Mis on kodus halvemini?', 'Mis on sinu jaoks töökoha juures kõige tähtsam?', 'Millise variandi valiksid sina Tuul Logistikas?'], [120, 180], ['Kodus on … kui…', 'Võrreldes kontoriga…', 'Minu jaoks on kõige tähtsam…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib: „Ja mis on mõlemas kohas ühesugune?”.'),
+      teach(tag(B.speaking('077_t_rec', 'Kodus ette: kodu või kontor?', 'Valmista kodus ette 2–3-minutiline võrdlus: kus sina töötad või õpid paremini, kodus või kodust väljas, ja miks. Tunnis räägi see ilma paberita.', ['Kus sa praegu töötad või õpid?', 'Mis on kodus paremini kui mujal?', 'Mis on kodus halvemini?', 'Mis on sinu jaoks töökoha juures kõige tähtsam?', 'Millise variandi valiksid sina Tuul Logistikas?'], [120, 180], ['Kodus on … kui…', 'Võrreldes kontoriga…', 'Minu jaoks on kõige tähtsam…']), { task: 'S15', level: 3 }),
+        'Kodus ettevalmistatud monoloog. Tunnis räägib õpilane võrdluse märksõnade järgi ja õpetaja küsib lõpus: „Ja mis on mõlemas kohas ühesugune?”.'),
       tag(B.examWriting('077_t_letter', 'Ettepanek Liisile.', 'Kirjuta tiimi nimel Liisile kiri 90–110 sõnaga. Kirjuta kõigist neljast punktist ja kasuta vähemalt nelja võrdlust.', 'kiri', {
         situation: 'Liis palus igal tiimil saata ühe ühise ettepaneku reedeks, 11. veebruariks. Sa kirjutad Sofia või iseenda nimel.',
         points: ['millise variandi tiim valis', 'kaks võrdlust teiste variantidega', 'kellele valik sobib ja kellele on see raskem', 'üks palve või küsimus Liisile'],
@@ -526,6 +557,23 @@ export const LESSONS = withShapes({
         ['Mis on Antsu järeldus?', 'kontrollimine on sama tähtis kui reegel|tähtis on, kuidas reeglit kontrollitakse'],
         ['Kelle argument on sinu arvates kõige tugevam? Miks?', ''],
       ], 'g_vocab'), { task: 'R09' }),
+      tag(B.insertion('078_p_column', 'Arvamuslugu ajalehes.', 'Kolumnist ehitas oma loo nagu argumendi: arvamus, põhjus, näide, vastuargument ja järeldus. Tekstist on välja võetud kuus lauseosa. Pane iga osa õigesse kohta; kaks osa jääb üle.', 'Sotsiaalmeedia võib oodata', [
+        '[[Minu arvates ei peaks alla 13-aastane laps sotsiaalmeedias oma kontot pidama.]] Töötan põhikoolis õpetajana ja näen iga päev, mida ekraan lastega teeb.',
+        '',
+        'Esimene põhjus on uni. Paljud õpilased räägivad, et vaatavad õhtul voodis videoid ja jäävad hilja magama. [[Näiteks tunnistas üks kuuenda klassi poiss, et vaatas lühivideoid kella kaheni öösel.]] Järgmisel päeval ei suutnud ta tunnis üldse keskenduda.',
+        '',
+        'Teine põhjus on võrdlemine. Sotsiaalmeedias on kõigil ilus elu, uued riided ja huvitavad reisid. [[Laps võrdleb ennast teistega ja hakkab tundma, et ta ise ei ole piisavalt hea.]]',
+        '',
+        'Kolmandaks tõmbavad piiri ka seadus ja platvormid ise. Eestis võib laps alates 13. eluaastast ise nõustuda, et internetiteenus tema andmeid kasutab; [[noorema lapse eest otsustab vanem.]] Suurte platvormide reeglite järgi peab kasutaja olema vähemalt 13-aastane.',
+        '',
+        '[[Teisest küljest ei ole ma tehnoloogia vastu.]] Sotsiaalmeedias saab ka õppida, huvitavaid inimesi leida ja sõpradega suhelda. [[Seega ei soovita ma lastele midagi keelata, vaid oodata ja rääkida.]] Kui laps saab lõpuks konto, võiksid vanemad olla tema esimesed jälgijad ja leppida temaga kokku selged reeglid.',
+        '',
+        'Kolumnist on põhikooli õpetaja ja kahe lapse ema.',
+      ], ['Seepärast peaks iga laps saama nutitelefoni juba lasteaias.', 'Näiteks vaatavad täiskasvanud telerit rohkem kui lapsed.']), { task: 'R10', voice: 'opinion' }),
+      B.know('078_p_know', [
+        'Ajalehes ja uudisteportaalis on uudis ja arvamus eri asjad. Eesti ajakirjanduseetika koodeksi punkt 4.1 ütleb, et uudised, arvamused ja oletused peavad olema selgelt eristatavad. Seepärast ilmuvad kolumnid ja lugejate arvamuslood eraldi arvamusrubriigis.',
+        'Kui inimene leiab, et ajaleht on tema kohta avaldanud vale või ebaausa loo, võib ta kaevata pressinõukogule. Pressinõukogu asutati 2002. aastal ja see lahendab vaidlusi ajakirjanduseetika koodeksi järgi, ilma kohtuta. 2020. aasta lõpuks oli pressinõukogu lahendanud tuhat kaebust. Pressinõukoguga on liitunud ka ERR.',
+      ], 'ERR, „Imestunud välismaalased ja ootamatud teemad ehk pressinõukogu 1000 otsust” (2.12.2020); ERR, „Postimees sai sotsiaalministeeriumi kaebuse peale pressinõukogult taunida” (koodeksi punkt 4.1)', 'Kas teadsid? Uudis, arvamus ja pressinõukogu'),
       B.choice('078_p_link', 'Sidesõna argumendis.', 'Vali igasse lausesse sobiv sidesõna. Mõtle, kas järgneb põhjus, tagajärg, näide või vastandus.', [
         ['Lapsi on majas palju, … vajame hoovis mänguväljakut.', 'seepärast', 'sest', 'näiteks'],
         ['Me vajame hoovis mänguväljakut, … lapsi on majas palju.', 'sest', 'seepärast', 'seega'],
@@ -557,7 +605,7 @@ export const LESSONS = withShapes({
       }), { task: 'W12' }),
     ],
     transfer: [
-      B.text('078_t_sit', 'Hoov — kelle jaoks?', 'Urmas kirjutas maja infolehte artikli hoovi tulevikust. Loe artiklit ja pane puuduvad lauseosad õigesse kohta. Seejärel helista linnaosa valitsusse ja küsi kaasava eelarve kohta, salvesta kodus oma kommentaar raadiole ning kirjuta maja infolehele oma arvamuslugu.'),
+      B.text('078_t_sit', 'Hoov — kelle jaoks?', 'Urmas kirjutas maja infolehte artikli hoovi tulevikust. Loe artiklit ja pane puuduvad lauseosad õigesse kohta. Seejärel helista linnaosa valitsusse ja küsi kaasava eelarve kohta, valmista kodus ette oma kommentaar raadiole ning kirjuta maja infolehele oma arvamuslugu.'),
       B.insertion('078_t_article', 'Urmase artikkel.', 'Urmase artiklist on välja võetud seitse lauseosa. Pane iga osa õigesse kohta; kaks osa jääb üle.', 'Hoov — kelle jaoks?', [
         'Igal kevadel algab meie majas sama vaidlus: kas hoov on laste või autode jaoks? [[Sel aastal peame lõpuks otsuse tegema]], sest ühistu kassas on raha ainult ühe suure töö jaoks.',
         '',
@@ -577,8 +625,8 @@ export const LESSONS = withShapes({
         'Küsi helistaja nime ja maja aadressi.', 'Hoovi idee sobib ainult siis, kui hoov on kõigile avatud.', 'Ideed esitatakse linnaosa kodulehel kuni 28. veebruarini.', 'Jah, kirjuta umbkaudne hind; spetsialist kontrollib seda märtsis.', 'Raamatukogus aitab töötaja hääletada; kaasa tuleb võtta ID-kaart.',
       ]]),
       'Üks-ühele: õpetaja on nõustaja, siis vahetage kaardid. Hinda: kas kõik viis küsimust said küsitud ja vastatud ning kas õpilane tegi lõpus kokkuvõtte (Seega…).'),
-      teach(tag(B.speaking('078_t_rec', 'Kodus: minu kommentaar raadiole.', 'Salvesta 2–3-minutiline kommentaar saatele „Päevateema”: kas kesklinnas peaks kiirus olema 30 km/h? Too kaks argumenti näite ja järeldusega.', ['Kes sa oled ja kuidas sa linnas liigud?', 'Mis on sinu arvamus?', 'Mis on sinu esimene argument ja näide?', 'Mis on sinu teine argument ja näide?', 'Mis on sinu järeldus?'], [120, 180], ['Minu arvates…', 'Näiteks…', 'Seepärast… / Seega…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja esitab ühe vastuargumendi: „Aga taksojuht Kalev ütleb, et…”.'),
+      teach(tag(B.speaking('078_t_rec', 'Kodus ette: minu kommentaar raadiole.', 'Valmista kodus ette 2–3-minutiline kommentaar saatele „Päevateema”: kas kesklinnas peaks kiirus olema 30 km/h? Too kaks argumenti näite ja järeldusega. Tunnis ütle kommentaar nagu otse-eetris.', ['Kes sa oled ja kuidas sa linnas liigud?', 'Mis on sinu arvamus?', 'Mis on sinu esimene argument ja näide?', 'Mis on sinu teine argument ja näide?', 'Mis on sinu järeldus?'], [120, 180], ['Minu arvates…', 'Näiteks…', 'Seepärast… / Seega…']), { task: 'S15', level: 3 }),
+        'Kodus ettevalmistatud monoloog. Tunnis räägib õpilane kommentaari märksõnade järgi; õpetaja on saatejuht ja esitab lõpus ühe vastuargumendi: „Aga taksojuht Kalev ütleb, et…”.'),
       B.planning('078_t_plan', 'Arvamusloo plaan.', 'Enne kirjutamist pane iga lõigu juurde kaks-kolm märksõna: mida sa arvad, millega põhjendad ja mis on näide.', ['Pealkiri ja minu arvamus ühe lausega', 'Esimene argument: põhjus ja näide', 'Teine argument: põhjus ja näide', 'Vastuargument ja minu vastus sellele', 'Järeldus: mida ma naabritele soovitan']),
       tag(B.writing('078_t_text', 'Minu arvamuslugu maja infolehele.', 'Kirjuta maja infolehele arvamuslugu 12–15 lausega: mida peaks hoovis tegema, kaks argumenti näidetega, vastuargument ja järeldus. Kontrolli lugu rubriigi järgi ja paranda vähemalt kaks kohta.', [12, 15], ['minu arvates', 'sest', 'näiteks', 'seepärast', 'seega'], 3), { task: 'W10', level: 4, main: true }),
       B.rubricW2('078_t_rubric', 'Hindamine: arvamuslugu (12 punkti).'),
@@ -711,6 +759,10 @@ export const LESSONS = withShapes({
         ['Mina ei maksa ühtegi senti rohkem!', 'Hoovi raha on juba ühistu eelarves, keegi ei pea juurde maksma.'],
         ['Teeme kõik kolm projekti korraga!', 'See oleks tore, aga raha jätkub ainult ühele suurele asjale.'],
       ], 'full', 'g_vocab'),
+      B.know('079_p_know', [
+        'Tüli algab sageli infost, mis ei ole tõsi. Enne kui jagad uudist, kontrolli: kes on autor ja kas ta on usaldusväärne; kas teised usaldusväärsed väljaanded kirjutavad sama; kas pealkiri ei ole liiga põnev ja kas see ei mängi sinu tunnetega; kas veebiaadress ei ole kummaline. Pea meeles, et satiir ja paroodia võivad tunduda valeuudisena, ja et me usume kergemini infot, mis sobib meie oma arvamusega.',
+        'Kui kahtled, vaata faktikontrolli lehti. Eestis kontrollib poliitikute ja teiste avalike inimeste väiteid näiteks Eesti Päevalehe ja Delfi rubriik „Faktikontroll”, mis alustas 2017. aasta septembris. Valeinfost ja propagandast kirjutab ka vabatahtlike blogi Propastop.',
+      ], 'Euroopa noorteportaal, „Kuidas kaitsta end väärinfo eest?”; Propastopi artikkel Eesti faktikontrolli viiest aastast (23.7.2021) ja Propastopi tutvustus', 'Kas teadsid? Kuidas valeinfot ära tunda?'),
       tag(B.listening('079_p_voice', 'Urmase häälsõnum enne koosolekut.', 'Urmas jättis kõigile korteritele häälsõnumi. Kuula kaks korda ja kirjuta lünka, mida elanik peab tegema või teadma.', [
         'Urmas: Tere, head naabrid! Siin Urmas, ühistu esimees. Mõni praktiline asi enne kolmapäevast koosolekut.',
         'Urmas: Esiteks: koosolek algab täpselt kell pool seitse. Uks avatakse kell kuus ja kakskümmend. Palun võtke kaasa isikut tõendav dokument, sest hääletamiseks peame kontrollima, kes on korteri omanik.',
@@ -745,7 +797,7 @@ export const LESSONS = withShapes({
         ['maksma', 'Üks koht naabermaja parklas … viisteist eurot kuus.', 'maksaks'],
       ], 'full', 'g_notice'),
       B.translation('079_p_ru', 'Скажи вежливо: tõlgi.', 'Tõlgi laused eesti keelde. Kasuta tingivat kõneviisi, et lause kõlaks viisakalt.', ['Я бы предложил сделать площадку поменьше.', 'Было бы лучше, если бы мы проголосовали сегодня.', 'Не могли бы вы говорить по очереди?', 'Мы могли бы арендовать места на соседней парковке.', 'Я частично согласна, но безопасность для меня важнее.', 'А что будет, если денег не хватит?', 'Как насчёт того, чтобы дети играли во дворе только после обеда?', 'Я тебя понимаю, но скамейка нужна всем.', 'Вы были бы согласны на компромисс?', 'Давайте договоримся, что по субботам утром во дворе тихо.'], 'full', 'g_vocab'),
-      teach(tag(B.speaking('079_p_would', 'Mida sa teeksid?', 'Vasta igale olukorrale: mida sa teeksid ja miks? Teisel ringil vasta samadele küsimustele umbes poole minutiga.', ['Mida sa teeksid, kui naaber pargiks iga päev sinu kohale?', 'Mida sa teeksid, kui koosolekul räägiksid kõik korraga?', 'Mida sa teeksid, kui sinu ettepanek kaotaks hääletusel?', 'Kui sa oleksid ühistu esimees, mida sa hoovis muudaksid?', 'Mida sa teeksid, kui naabri koer hauguks igal ööl?'], [120, 180], ['Ma räägiksin kõigepealt…', 'Kui…, siis ma…', 'Ma prooviksin…']), { task: 'S14', fluency: true }),
+      teach(tag(B.speaking('079_p_would', 'Mida sa teeksid?', 'Vasta igale olukorrale: mida sa teeksid ja miks? Teisel ringil vasta samadele küsimustele umbes poole minutiga.', ['Mida sa teeksid, kui naaber pargiks iga päev sinu kohale?', 'Mida sa teeksid, kui koosolekul räägiksid kõik korraga?', 'Mida sa teeksid, kui sinu ettepanek kaotaks hääletusel?', 'Kui sa oleksid ühistu esimees, mida sa hoovis muudaksid?', 'Mida sa teeksid, kui sõber jagaks sotsiaalmeedias uudist, mis on sinu arvates vale?'], [120, 180], ['Ma räägiksin kõigepealt…', 'Kui…, siis ma…', 'Ma prooviksin…']), { task: 'S14', fluency: true }),
         'Üks-ühele: õpetaja loeb olukorra ette ja küsib „Aga miks?”; teisel ringil vastab õpilane igale küsimusele umbes 30 sekundiga. Õpetaja märgib, kas õpilane kasutas tingivat kõneviisi (räägiksin, prooviksin) ja põhjendas.'),
     ],
     transfer: [
@@ -854,8 +906,17 @@ export const LESSONS = withShapes({
         ['Ma kahtlen, et kõik naabrid tulevad koosolekule õigeks ajaks.', 'Ma kahtlen, kas kõik naabrid tulevad koosolekule õigeks ajaks.'],
       ], 'full', 'g_notice'),
       B.writing('080_d_write', 'Minu kõige parem vaidlus.', 'Kirjuta 8–10 lauset: millal sa viimati kellegagi millegi üle vaidlesid, mida kumbki arvas ja kuidas vaidlus lõppes.', [8, 10], ['minu arvates', 'sest', 'kui', 'lõpuks'], 3),
-      teach(B.speaking('080_d_warm', 'Enne eksamit: soojendus.', 'Vasta eksamineerija neljale küsimusele arvamuste ja otsuste kohta; räägi igale umbes pool minutit.', ['Mille üle sinu sõbrad kõige sagedamini vaidlevad?', 'Kas sina muudad kergesti oma arvamust? Miks?', 'Mis on sinu arvates parem: linnas või maal elada?', 'Mida sa teeksid, kui sinu naabrid tahaksid hoovi parkla teha?'], [120, 150]),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija ja õpilane vastab; siis küsib õpilane samu küsimusi õpetajalt.'),
+      // own instruction: B.examiner's fixed wording would repeat another module's instruction (final shape V7)
+      teach(withInstruction(B.examiner('080_d_warm', 'meedia, uudised ja arvamused', [
+        'Kust sa tavaliselt uudiseid saad ja miks just sealt?',
+        'Kas sa loed või kuulad uudiseid ka eesti keeles? Mis aitab sul neist aru saada?',
+        'Kas sotsiaalmeediast saadud infot võib sinu arvates usaldada? Miks?',
+        'Kuidas sa kontrollid, kas üks uudis on tõsi?',
+        'Mille poolest erineb meedia sinu kodumaal Eesti meediast?',
+        'Mis vanuses peaks laps sinu arvates saama oma nutiseadme? Põhjenda.',
+        'Kas sa muudad kergesti oma arvamust, kui keegi toob hea argumendi? Miks?',
+      ], 'B1', [120, 150]), 'Proovieksami eel harjuta rääkimise esimest osa: eksamineerija küsib meediast ja uudistest ning sellest, kuidas sa oma arvamuse kujundad. Vasta igale küsimusele kahe kuni nelja lausega ja too vähemalt kord näide oma elust.'),
+        'Üks-ühele: õpetaja on eksamineerija ega aita; mõnele vastusele küsib ta lisaks „Miks?” või ütleb vastupidise arvamuse. Lõpus küsib õpilane õpetajalt kaks küsimust samast teemast.'),
     ],
     practice: [
       B.examPart('080_p_rpart', 'R', { minutes: 50, points: 33, tasks: 4, note: 'Lugemisosa on Harno B1 vormis ja täispikkuses: neli ülesannet, 33 punkti. Teise vahekontrolli lävi on 25 punkti (75 %), eesmärk vähemalt 27 punkti (80 %). Iga ülesande jaoks on umbes 12 minutit; jäta lõpus aega kontrolliks.' }),
@@ -878,7 +939,7 @@ export const LESSONS = withShapes({
         ['Pensionär tahab, et keegi aitaks tal tasuta e-teenustega hakkama saada.', 'C'],
       ]), { harno: 'R1' }),
       B.reading('080_p_r2text', 'Lugemine 2. Artikkel.', 'Lugege ajakirja artiklit raamatukogude uuest elust. Vastake pärast artiklit valikküsimustele.', 'Raamatukogu kui linna elutuba', [
-        'Kui mõni aasta tagasi arvati, et internet teeb raamatukogud tarbetuks, siis tegelikult juhtus vastupidi. Linna raamatukogudes käib praegu rohkem inimesi kui kümme aastat tagasi, kuigi raamatuid laenutatakse veidi vähem.',
+        'Kui mõni aasta tagasi arvati, et internet teeb raamatukogud tarbetuks, siis meie linnas juhtus vastupidi. Linna raamatukogus käib praegu rohkem inimesi kui kümme aastat tagasi, kuigi raamatuid laenutatakse veidi vähem.',
         '',
         'Raamatukogu direktori sõnul on muutunud see, miks inimesed tulevad. Varem tuldi raamatu järele ja mindi kohe koju. Nüüd veedetakse raamatukogus terve päev. Hommikuti tulevad kaugtöötajad, kes otsivad vaikset kohta ja tasuta internetti. Paljud ütlevad, et lugemissaalis on rahulikum kui kodus ja odavam kui kohvikus.',
         '',
@@ -889,7 +950,7 @@ export const LESSONS = withShapes({
         'Kõik ei ole muutustega rahul. Mõned vanemad lugejad kurdavad, et raamatukogus on liiga lärmakas. Seepärast on igal korrusel nüüd vaikne tuba, kus rääkida ei tohi. Direktor tunnistab, et kõigile meeldida on raske. Tema sõnul on raamatukogu siiski koht, kus kõik on oodatud ja keegi ei pea midagi ostma. Ta loodab, et tulevikus on igas linnaosas oma väike raamatukogu, kuhu saab jalgsi minna.',
       ], [['Pärast eksamit: mida arvad, kas raamatukogu peaks olema vaikne koht või kohtumiste koht? Miks?', '']]),
       tag(B.choice('080_p_r2', 'Lugemine 2. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele kolmest vastusest üks õige.', [
-        ['Mis juhtus raamatukogudega pärast interneti tulekut?', 'nendes käib praegu rohkem inimesi', 'need jäid peaaegu tühjaks', 'neist sai kõigepealt internetikohvik'],
+        ['Mis juhtus linna raamatukoguga pärast interneti tulekut?', 'seal käib praegu rohkem inimesi', 'see jäi peaaegu tühjaks', 'sellest sai kõigepealt internetikohvik'],
         ['Mis on direktori sõnul raamatukogus muutunud?', 'inimesed veedavad seal rohkem aega', 'inimesed laenutavad rohkem raamatuid', 'raamatukogu on avatud ainult hommikul'],
         ['Miks tulevad kaugtöötajad hommikuti raamatukokku?', 'seal on vaikne ja internet on tasuta', 'seal on kõige parem kohv', 'neil ei ole kodus arvutit'],
         ['Miks peab direktor eakate abistamist väga tähtsaks?', 'ilma e-teenusteta on neil raske hakkama saada', 'eakad laenutavad kõige rohkem raamatuid', 'see teenus toob raamatukogule raha'],
@@ -999,7 +1060,7 @@ export const LESSONS = withShapes({
         'Ülle: Mida soovitaksite koolidele, kes alles plaanivad seda?',
         'Reelika: Kõigepealt rääkige vanematega ja kuulake nende muresid. Teiseks andke lastele vahetunniks midagi teha. Ja kolmandaks: proovige vähemalt pool aastat, sest esimesed nädalad on alati kõige raskemad.',
         'Ülle: Kas teie kool jätkab?',
-        'Reelika: Jätkame. Eelmise aasta küsitluses toetas telefonivaba päeva kolm neljandikku vanematest ja üllataval kombel ka pooled lapsed.',
+        'Reelika: Jätkame. Eelmisel kevadel küsisime kõigi arvamust. Peaaegu kõik vanemad toetasid telefonivaba päeva ja üllataval kombel ka paljud lapsed.',
         'Ülle: Aitäh, Reelika!',
       ], [
         ['Reelika koolis on telefonid kapis olnud kaks aastat.', true],
@@ -1010,7 +1071,7 @@ export const LESSONS = withShapes({
         ['Reelika on kindel, et hinded paranesid ainult telefonide pärast.', false],
         ['Tunnis võivad lapsed telefoni õppimiseks kapist võtta.', true],
         ['Reelika soovitab proovida uut korda vähemalt kuu aega.', false],
-        ['Küsitluses toetas telefonivaba päeva pool lastest.', true],
+        ['Ka paljud lapsed toetavad telefonivaba päeva.', true],
       ]), { harno: 'L4' }),
       B.rubric('080_p_rcheck', 'Pärast lugemist: mis töötas?', 'Mõtle lugemisosa peale. Märgi, mida sa tegid, ja kirjuta üks asi, mida proovieksamil 3 teisiti teed.', ['Lugesin enne teksti olukorrad ja küsimused ning leidsin võtmesõnad.', 'Otsisin tekstist sama mõtet teiste sõnadega, mitte samu sõnu.', 'Jälgisin aega: iga ülesande jaoks umbes 12 minutit.', 'Lünkades kontrollisin, kas lause on lõpuni grammatiliselt õige.']),
       B.rubric('080_p_lcheck', 'Pärast kuulamist: mis töötas?', 'Mõtle kuulamisosa peale. Märgi, mida sa tegid, ja kirjuta üks asi, mida proovieksamil 3 teisiti teed.', ['Enne iga teksti lugesin küsimused ja väited läbi.', 'Esimesel kuulamisel märkisin vastuse, teisel kontrollisin.', 'Arvud, kellaajad ja kuupäevad kirjutasin kohe üles.', 'Kui vastus jäi kuulmata, jätkasin rahulikult järgmisega.']),
