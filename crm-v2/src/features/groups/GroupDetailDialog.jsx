@@ -1,16 +1,17 @@
-import { AlertTriangle, CheckCircle2, Phone, UserMinus } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Pencil, Phone, UserMinus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Badge, Button, Modal } from '../../components/ui/index.js';
+import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { studentAvailabilityService, websiteLeadsService } from '../../services/firebase/index.js';
 import { timesFromLeads, withLeadTimes } from '../calendar/leadTimes.js';
 import { ageOf, AUDIENCES } from './groupFill.js';
 import { groupGaps, interestLabel } from './groupCheck.js';
+import { INTEREST } from './groupContacts.js';
 
 const DAYS = { Mon: 'E', Tue: 'T', Wed: 'K', Thu: 'N', Fri: 'R', Sat: 'L', Sun: 'P' };
 
 /** One group for the admin: every member with contacts and the offer status, and what the group still misses. */
-export default function GroupDetailDialog({ group, members = [], saving = '', canEdit = false, onRemove, onFill, onClose, repositories = {} }) {
+export default function GroupDetailDialog({ group, members = [], saving = '', canEdit = false, onRemove, onFill, onEdit, onInterest, onClose, repositories = {} }) {
   const { times = studentAvailabilityService, leads = websiteLeadsService } = repositories;
   const timesState = useAsyncData(async () => {
     const [own, enquiries] = await Promise.all([times.list(null).catch(() => []), leads.list().catch(() => [])]);
@@ -20,7 +21,7 @@ export default function GroupDetailDialog({ group, members = [], saving = '', ca
   const gaps = groupGaps(group, members, { studentTimes });
   const year = new Date().getFullYear();
   return (
-    <Modal open title={group.name} onClose={onClose} className="modal--group-detail" footer={<>{canEdit ? <Button variant="secondary" onClick={onFill}>Täida grupp</Button> : null}<Button onClick={onClose}>Valmis</Button></>}>
+    <Modal open title={group.name} onClose={onClose} className="modal--group-detail" footer={<>{canEdit && onEdit ? <Button variant="secondary" onClick={onEdit}><Pencil size={15} /> Muuda gruppi</Button> : null}{canEdit ? <Button variant="secondary" onClick={onFill}>Täida grupp</Button> : null}<Button onClick={onClose}>Valmis</Button></>}>
       <p className="form-hint">{[group.subject, group.level, group.audience ? AUDIENCES[group.audience] : '', group.teacher, (group.lessons || []).map((lesson) => `${DAYS[lesson.day] || lesson.day} ${lesson.time}`).join(', ')].filter(Boolean).join(' · ')}</p>
       <section className="group-detail__gaps" aria-label="Mis puudub">
         <h3>Mis puudub</h3>
@@ -33,9 +34,13 @@ export default function GroupDetailDialog({ group, members = [], saving = '', ca
           const phone = student.parentPhone || student.phone || '';
           const email = student.parentEmail || student.email || '';
           return <div className="group-detail__row" key={student.id}>
-            <span className="group-contacts__who"><strong><Link to={`/students/${student.id}`}>{student.name}</Link></strong><small>{[age !== null ? `~${age} a` : '', student.level, student.active === false ? 'arhiivis' : '', studentTimes.get(student.id)?.slots?.length ? 'ajad teada' : 'ajad teadmata'].filter(Boolean).join(' · ')}</small></span>
+            <span className="group-contacts__who"><strong><Link to={`/students/${student.id}`}>{student.name}</Link>{student.active === false ? <> <Badge tone="warning">Arhiveeritud</Badge></> : null}</strong><small>{[age !== null ? `~${age} a` : '', student.level,studentTimes.get(student.id)?.slots?.length ? 'ajad teada' : 'ajad teadmata'].filter(Boolean).join(' · ')}</small></span>
             <span className="group-contacts__contact">{student.parentName ? <small>Vanem: {student.parentName}</small> : null}{phone ? <a href={`tel:${phone.replace(/\s/g, '')}`}><Phone size={13} /> {phone}</a> : null}{email ? <a href={`mailto:${email}`}>{email}</a> : null}</span>
-            <span><Badge tone={student.groupInterest?.status === 'interested' ? 'success' : student.groupInterest?.status === 'declined' ? 'warning' : 'neutral'}>{interestLabel(student)}</Badge>{student.groupInterest?.note ? <small className="group-detail__note">{student.groupInterest.note}</small> : null}</span>
+            {/* the group offer answer: „Huvitatud” confirms the student's participation (admin bug 2026-11-03: the window
+                only showed it, so the confirmation could not be given from the group) */}
+            <span>{canEdit && onInterest
+              ? <Select id={`gd-i-${student.id}`} label="" aria-label={`Osalemine: ${student.name}`} value={student.groupInterest?.status || ''} disabled={saving === `interest:${student.id}`} onChange={(event) => onInterest(student, event.target.value)}>{Object.entries(INTEREST).map(([value, label]) => <option key={value || 'none'} value={value}>{label}</option>)}</Select>
+              : <Badge tone={student.groupInterest?.status === 'interested' ? 'success' : student.groupInterest?.status === 'declined' ? 'warning' : 'neutral'}>{interestLabel(student)}</Badge>}{student.groupInterest?.note ? <small className="group-detail__note">{student.groupInterest.note}</small> : null}</span>
             {canEdit ? <button type="button" className="text-button danger" aria-label={`Eemalda grupist: ${student.name}`} disabled={saving === `student:${student.id}`} onClick={() => onRemove(student)}><UserMinus size={16} /></button> : <span />}
           </div>;
         })}</div>

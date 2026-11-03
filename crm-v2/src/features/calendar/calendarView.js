@@ -1,3 +1,5 @@
+import { teacherPeriods } from '../../utils/groupTeachers.js';
+
 const DAY_IDS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function toIsoDate(value = new Date()) {
@@ -158,13 +160,33 @@ export function occurrencesForDates(events, dates) {
     .sort((left, right) => `${left.occurrenceDate} ${left.time}`.localeCompare(`${right.occurrenceDate} ${right.time}`, 'et'));
 }
 
+// a group whose teacher changed (teacherHistory) gives one event per teacher period, so a lesson before the change
+// keeps the teacher who taught it; the current period keeps the plain id `group:<group>:<lesson>`
+function byTeacherPeriod(group, event) {
+  const periods = teacherPeriods(group);
+  if (periods.length === 1) return [event];
+  return periods.flatMap((period, index) => {
+    const current = index === periods.length - 1;
+    const teacher = { teacher: period.teacher || 'Õpetaja määramata', teacherUid: period.teacherUid || '' };
+    const id = current ? event.id : `${event.id}~${period.until}`;
+    if (!event.recurring) {
+      const date = event.date || event.startDate;
+      return (!period.from || date >= period.from) && (!period.until || date <= period.until) ? [{ ...event, ...teacher, id }] : [];
+    }
+    const startDate = period.from && period.from > event.startDate ? period.from : event.startDate;
+    const endDate = period.until && (!event.endDate || period.until < event.endDate) ? period.until : event.endDate;
+    if (endDate && endDate < startDate) return [];
+    return [{ ...event, ...teacher, id, startDate, endDate }];
+  });
+}
+
 export function groupCalendarEvents(groups = []) {
-  return groups.flatMap((group) => (group.lessons || []).map((lesson) => {
+  return groups.flatMap((group) => (group.lessons || []).flatMap((lesson) => {
     const studentIds = (group.students || []).filter((studentId) => {
       const selected = group.studentLessonMap?.[studentId];
       return Array.isArray(selected) ? selected.includes(lesson.id) : true;
     });
-    return {
+    return byTeacherPeriod(group, {
       id: `group:${group.id}:${lesson.id}`,
       groupId: group.id,
       groupLessonId: lesson.id,
@@ -185,7 +207,7 @@ export function groupCalendarEvents(groups = []) {
       attendance: lesson.attendance || {},
       occurrenceStatuses: lesson.occurrenceStatuses || {},
       lessonOccurrenceDate: lesson.lessonOccurrenceDate || '',
-    };
+    });
   }));
 }
 

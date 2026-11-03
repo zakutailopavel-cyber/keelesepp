@@ -2,6 +2,7 @@ import { collection, doc, getDocs, runTransaction, writeBatch } from 'firebase/f
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 import { localDate } from '../../utils/localDate.js';
+import { cleanTeacherHistory, groupTeacherOn, taughtBy, withTeacherChange } from '../../utils/groupTeachers.js';
 
 const DAYS = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
 
@@ -40,6 +41,7 @@ export function normalizeGroup(id, data = {}) {
     name: clean(data.name),
     teacher: canonicalTeacherName(clean(data.teacher)),
     teacherUid: clean(data.teacherUid),
+    teacherHistory: cleanTeacherHistory(data.teacherHistory),
     subject: clean(data.subject) || 'Eesti keel',
     level: clean(data.level) || 'A1',
     active: data.active !== false,
@@ -99,7 +101,9 @@ export const groupsService = {
     return snapshot.docs
       .map((item) => normalizeGroup(item.id, item.data()))
       .filter((group) => group.active)
-      .filter((group) => !filters.teacherUid || group.teacherUid === filters.teacherUid || (!group.teacherUid && isSameTeacher(group.teacher, filters.teacherName)))
+      .filter((group) => !filters.teacherUid || group.teacherUid === filters.teacherUid || (!group.teacherUid && isSameTeacher(group.teacher, filters.teacherName))
+        // the calendar also shows a former teacher the group lessons he gave before the teacher changed
+        || (filters.includeFormer && taughtBy(group, filters.teacherUid)))
       .sort((left, right) => left.name.localeCompare(right.name, 'et', { sensitivity: 'base', numeric: true }));
   },
 
@@ -156,6 +160,49 @@ export const groupsService = {
     activity(batch, db, 'group.settings', `${group.name || 'Grupp'}: sihtrühm ja kohad`, group, user, value);
     await batch.commit();
     return value;
+  },
+
+  // „Muuda gruppi” (admin bug 2026-11-03): name, teacher, subject, level, age group and seats of an existing group.
+  // A new name is copied onto the members' cards that carry the old one. A new teacher takes the lessons from
+  // `teacherFrom` (default today) on; the lessons before stay with the old teacher (teacherHistory). Marked lessons
+  // (`lessons` documents) keep the teacher they were marked with.
+  async update(group, data, user, { students = [], teacherFrom = localDate() } = {}) {
+    requireAdmin(user);
+    if (!group?.id) throw new Error('Gruppi ei leitud.');
+    const name = clean(data.name);
+    if (!name) throw new Error('Sisesta grupi nimi.');
+    const settings = groupSettings(data);
+    if (settings.ageFrom && settings.ageTo && settings.ageFrom > settings.ageTo) throw new Error('Vanus „alates” on suurem kui „kuni”.');
+    const { db } = requireFirebaseClient();
+    const groupRef = doc(db, 'groups', group.id);
+    return runTransaction(db, async (batch) => {
+      const snapshot = await batch.get(groupRef);
+      if (!snapshot.exists()) throw new Error('Gruppi ei leitud.');
+      const current = normalizeGroup(snapshot.id, snapshot.data());
+      const teacher = withTeacherChange(current, { teacher: canonicalTeacherName(clean(data.teacher)), teacherUid: clean(data.teacherUid), from: teacherFrom });
+      if (!teacher.teacher && !teacher.teacherUid) throw new Error('Vali õpetaja.');
+      const updatedAt = new Date().toISOString();
+      const value = {
+        name,
+        teacher: teacher.teacher,
+        teacherUid: teacher.teacherUid,
+        teacherHistory: teacher.teacherHistory,
+        subject: clean(data.subject) || 'Eesti keel',
+        level: clean(data.level) || 'A1',
+        ...settings,
+        updatedAt,
+      };
+      batch.set(groupRef, value, { merge: true });
+      if (name !== current.name) {
+        for (const studentId of current.students || []) {
+          const student = students.find((item) => item.id === studentId);
+          if (!student || !clean(student.group) || student.group === current.name) batch.set(doc(db, 'students', studentId), { group: name, updatedAt: updatedAt.slice(0, 10) }, { merge: true });
+        }
+      }
+      const changes = Object.fromEntries(['name', 'teacher', 'subject', 'level', 'audience', 'capacity'].filter((key) => String(current[key] ?? '') !== String(value[key] ?? '')).map((key) => [key, { from: current[key] ?? '', to: value[key] ?? '' }]));
+      activity(batch, db, 'group.updated', `${name}: grupi andmed muudetud`, { ...current, name }, user, { changes, ...(teacher.changed ? { teacherFrom } : {}) });
+      return { ...current, ...value };
+    });
   },
 
   async setStudent(group, student, shouldAdd, user) {
@@ -302,8 +349,9 @@ export const groupsService = {
         occurrenceDate,
         studentId,
         studentName: clean(studentName),
-        teacher: canonicalTeacherName(group.teacher || user.displayName),
-        teacherUid: group.teacherUid || user.uid,
+        // the teacher of that day: after a teacher change an earlier lesson stays with the teacher who gave it
+        teacher: canonicalTeacherName(groupTeacherOn(group, occurrenceDate).teacher || user.displayName),
+        teacherUid: groupTeacherOn(group, occurrenceDate).teacherUid || user.uid,
         subject: group.subject || 'Eesti keel',
         date: occurrenceDate,
         time: (group.lessons || []).find((lesson) => lesson.id === lessonId)?.time || '',

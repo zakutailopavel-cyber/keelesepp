@@ -89,6 +89,40 @@ describe('groupsService', () => {
     expect(firestore.batch.set.mock.calls[2][1]).toMatchObject({ type: 'group.student_added', meta: expect.objectContaining({ studentId: 'student-1' }) });
   });
 
+  it('edits an existing group: new name on the members cards, new teacher from a date, the old teacher keeps the past', async () => {
+    const stored = { name: 'Vana nimi', teacher: 'Vana Õpetaja', teacherUid: 'old', subject: 'Eesti keel', level: 'A1', students: ['s1', 's2'], lessons: [{ id: 'l1', day: 'Tue', time: '17:00', startDate: '2026-10-06' }] };
+    firestore.getDoc.mockResolvedValue({ exists: () => true, id: 'g1', data: () => stored });
+    const result = await groupsService.update({ id: 'g1' }, { name: 'Uus nimi', teacher: 'Uus Õpetaja', teacherUid: 'new', subject: 'Eesti keel', level: 'A2', audience: 'adult', capacity: '10' }, admin, {
+      students: [{ id: 's1', group: 'Vana nimi' }, { id: 's2', group: 'Teine grupp' }], teacherFrom: '2026-11-03',
+    });
+    expect(result).toMatchObject({ name: 'Uus nimi', teacherUid: 'new', level: 'A2', capacity: 10 });
+    expect(firestore.batch.set.mock.calls[0]).toEqual(['firebase-db:groups:g1', expect.objectContaining({
+      name: 'Uus nimi', teacher: 'Uus Õpetaja', teacherUid: 'new', level: 'A2', audience: 'adult', capacity: 10,
+      teacherHistory: [{ teacher: 'Vana Õpetaja', teacherUid: 'old', until: '2026-11-02' }],
+    }), { merge: true }]);
+    // only the card that carried the old name gets the new one
+    expect(firestore.batch.set.mock.calls[1]).toEqual(['firebase-db:students:s1', expect.objectContaining({ group: 'Uus nimi' }), { merge: true }]);
+    expect(firestore.batch.set.mock.calls[2][1]).toMatchObject({ type: 'group.updated', meta: expect.objectContaining({ teacherFrom: '2026-11-03', changes: expect.objectContaining({ name: { from: 'Vana nimi', to: 'Uus nimi' } }) }) });
+    expect(firestore.batch.set).toHaveBeenCalledTimes(3);
+  });
+
+  it('marks an attendance before a teacher change for the teacher of that day', async () => {
+    const group = { id: 'g1', name: 'G', teacher: 'Uus', teacherUid: 'new', teacherHistory: [{ teacher: 'Vana', teacherUid: 'old', until: '2026-11-02' }], lessons: [{ id: 'l1', attendance: {}, duration: 90 }] };
+    firestore.getDoc.mockResolvedValue({ exists: () => true, id: 'g1', data: () => group });
+    await groupsService.setAttendance(group, 'l1', '2026-10-27', 's1', 'coming', admin, 'Mari');
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ teacher: 'Vana', teacherUid: 'old', duration: 90 });
+    vi.clearAllMocks();
+    firestore.writeBatch.mockReturnValue(firestore.batch);
+    await groupsService.setAttendance(group, 'l1', '2026-11-03', 's1', 'coming', admin, 'Mari');
+    expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ teacher: 'Uus', teacherUid: 'new' });
+  });
+
+  it('stores the chosen length of a new group lesson', async () => {
+    firestore.getDoc.mockResolvedValue({ exists: () => true, id: 'g1', data: () => ({ name: 'G', students: [], lessons: [] }) });
+    const lesson = await groupsService.addLesson({ id: 'g1' }, { day: 'Wed', time: '18:00', duration: 90, startDate: '2026-11-04' }, admin);
+    expect(lesson).toMatchObject({ day: 'Wed', time: '18:00', duration: 90 });
+  });
+
   it('rejects group mutations outside the administrator role', async () => {
     await expect(groupsService.create({ name: 'Test' }, { uid: 'teacher-1', roles: ['teacher'] })).rejects.toThrow('administraator');
     expect(firestore.batch.commit).not.toHaveBeenCalled();
