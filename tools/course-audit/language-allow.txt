@@ -3,6 +3,7 @@
 # B1 module 3: the adjective suffixes named in the grammar notes (-ne, -line, -lik, -tu, eba-)
 # B1 module 9: the ma-infinitive case endings in the phrase tips (… -mas, … -mast)
 # B1 module 7: the imperative endings named in the grammar notice (teie-käsk -ge / -ke: pange, võtke)
+# B1 module 15: the jussive endings named in the grammar notice (möönev kõneviis -gu / -ku: tulgu, tehku)
 # Correct words the Vabamorf speller does not know (checked by hand). One per line.
 # compounds
 # correct but rare
@@ -17,6 +18,7 @@ diktoglossi
 eba
 ge
 gi
+gu
 hedoonilise
 hotelliketid
 ke
@@ -26,6 +28,7 @@ koolipäeviti
 ksi
 ksid
 ksin
+ku
 kusimustik
 kuulamis
 liikumis
