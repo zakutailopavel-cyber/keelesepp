@@ -64,3 +64,5 @@ vintage-stiili
 liivi
 vadja
 vepsa
+# B2 module 5 (EKI ÕS / Sõnaveeb, käänamatu täiendsõna: võro keel): the South Estonian language in the opener and texts
+võro

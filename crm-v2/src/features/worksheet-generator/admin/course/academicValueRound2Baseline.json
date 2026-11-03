@@ -160,18 +160,11 @@
   "*|*|av-kasuta2",
   "*|*|av-kasuta2",
   "*|*|av-retell2",
-  "b1b2-016|*|av-boltedon",
-  "b1b2-017|*|av-boltedon"
+  "b1b2-016|discover|av-opener-numbers",
+  "b1b2-016|discover|av-thinkvary"
  ],
  "b1b2-module-05": [
-  "*|*|av-kasuta2",
-  "*|*|av-retell2",
-  "b1b2-022|*|av-boltedon"
- ],
- "b1b2-module-06": [
-  "*|*|av-retell2",
-  "b1b2-026|*|av-boltedon",
-  "b1b2-028|*|av-boltedon"
+  "*|*|av-kasuta2"
  ],
  "b1b2-module-07": [
   "*|*|av-kasuta2",
@@ -254,6 +247,7 @@
   "b1b2-088|*|av-boltedon"
  ],
  "course:b2": [
+  "*|*|av-thinkvary",
   "b1b2-002|transfer|av-fact-dup",
   "b1b2-005|practice|av-fact-dup",
   "b1b2-005|practice|av-fact-dup",
