@@ -10,18 +10,6 @@
   "b1b2-064|*|av-know",
   "b1b2-064|transfer|av-fact"
  ],
- "b1b2-module-14": [
-  "*|*|av-examiner",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-066|*|av-know",
-  "b1b2-067|*|av-know",
-  "b1b2-068|*|av-know",
-  "b1b2-069|*|av-know",
-  "b1b2-069|practice|av-fact",
-  "b1b2-070|discover|av-fact",
-  "b1b2-070|transfer|av-fact"
- ],
  "b1b2-module-15": [
   "*|*|av-examiner",
   "*|*|av-opener",
