@@ -22,6 +22,11 @@ import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { homeworkService as firebaseHomework } from '../../services/firebase/homework.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
 import { fileKind } from './roomMaterials.js';
+import LessonPlanPanel, { LessonPlanPill } from './LessonPlanPanel.jsx';
+import { useLessonPlan } from './useLessonPlan.js';
+import { defaultPlanSteps } from './lessonPlan.js';
+import { lessonTimingFor } from './lessonLink.js';
+import { attendanceMarks, plannedStartMs } from './roomAttendance.js';
 import './liveRoom.css';
 
 const dateLabel = (date = new Date()) => new Intl.DateTimeFormat('et-EE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
@@ -139,6 +144,7 @@ function DevicesPanel({ call, stream }) {
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
   recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false, observerProps,
+  planService,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
@@ -211,6 +217,19 @@ export default function LiveRoom({
     legacyTitle: item.title || item.worksheetDoc?.meta?.title || 'Tööleht',
     content: <RoomWorksheetContent current={item} role={role} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} />,
   })), [role, sheetList, worksheetProps.homework]);
+  // -- the teacher's lesson plan and the student's attendance (liveLessonPlans/{invitationId}, staff-only) --
+  const timing = useMemo(() => (teacher ? lessonTimingFor(invitation.id) : null), [teacher, invitation.id]);
+  const phaseKey = [...new Set(sheetList.map((item) => item.phase || item.worksheetDoc?.meta?.phase || '').filter(Boolean))].sort().join(',');
+  const defaultSteps = useMemo(() => defaultPlanSteps({ minutes: timing?.duration || 60, phases: phaseKey ? phaseKey.split(',') : [] }), [timing, phaseKey]);
+  const plannedMs = plannedStartMs(timing);
+  const planState = useLessonPlan({
+    roomKey: invitation.id, kind: 'lesson', user, enabled: teacher, defaultSteps,
+    plannedStart: plannedMs ? new Date(plannedMs).toISOString() : '', ...(planService ? { service: planService } : {}),
+  });
+  const participants = useMemo(() => [{ studentId: invitation.studentId, name: invitation.studentName, joinedAt: invitation.respondedAt, online: call.peerOnline }],
+    [invitation.studentId, invitation.studentName, invitation.respondedAt, call.peerOnline]);
+  const attendanceStart = plannedMs || timestampMillis(invitation.createdAt) || startedAt;
+  const studentMark = attendanceMarks(participants, planState.plan.attendance, attendanceStart)[0] || null;
   const pastSheets = usePastSheets({ homework: worksheetProps.homework || firebaseHomework, studentId: guest ? '' : invitation.studentId || '', role });
 
   // ── the teacher's page and pointer over the call's data channel (nothing is saved) ──
@@ -225,6 +244,11 @@ export default function LiveRoom({
   }, [teacher]);
   const { roomChannelOpen, sendRoom, onRoomMessage } = call;
   useEffect(() => { if (teacher && roomChannelOpen) sendRoom?.({ t: 'page', pageId: myPage }); }, [teacher, roomChannelOpen, myPage, sendRoom]);
+  // the student sees only „Samm X/Y” of the teacher's plan (over the data channel, nothing is saved)
+  const planIndex = planState.clock.started && !planState.clock.done ? planState.clock.index : -1;
+  const planCount = planState.clock.count;
+  useEffect(() => { if (teacher && roomChannelOpen) sendRoom?.({ t: 'step', i: planIndex, n: planCount }); }, [teacher, roomChannelOpen, planIndex, planCount, sendRoom]);
+  const [studentStep, setStudentStep] = useState(null);
   const pointerSentAt = useRef(0);
   const sendPointer = useCallback((point) => {
     if (!sendRoom) return;
@@ -250,6 +274,10 @@ export default function LiveRoom({
       if (!teacher && message.t === 'ptr') {
         const ok = !message.off && Number.isFinite(message.x) && Number.isFinite(message.y);
         setPointer(ok ? { x: message.x, y: message.y, pageId: String(message.pageId || '') } : null);
+      }
+      if (!teacher && message.t === 'step') {
+        const ok = Number.isInteger(message.i) && Number.isInteger(message.n) && message.i >= 0 && message.i < message.n && message.n <= 12;
+        setStudentStep(ok ? { index: message.i, count: message.n } : null);
       }
       if (!teacher && message.t === 'view') {
         // a new lead brings the student along again; the end of it leaves him where he is
@@ -328,6 +356,8 @@ export default function LiveRoom({
         <div className="lr-top__group lr-top__center">
           {subject ? <span className="lr-pill lr-subject">{subject}</span> : null}
           <span className="lr-pill lr-timer" aria-label="Tunni kestus"><span>{clock(now - startedAt)}</span><Signal status={call.status} label={`Ühendus: ${call.statusLabel}`} /></span>
+          {teacher ? <LessonPlanPill clock={planState.clock} active={panel === 'plan'} onClick={() => toggle('plan')} /> : null}
+          {!teacher && studentStep && roomChannelOpen ? <span className="lr-pill lr-plan-pill" role="status">Samm {studentStep.index + 1}/{studentStep.count}</span> : null}
           {call.hasLocalMedia ? <>
             <IconButton label={call.audioEnabled ? 'Lülita mikrofon välja' : 'Lülita mikrofon sisse'} active={!call.audioEnabled} onClick={call.toggleAudio}>{call.audioEnabled ? <Mic size={18} /> : <MicOff size={18} />}</IconButton>
             <IconButton label={call.videoEnabled ? 'Lülita kaamera välja' : 'Lülita kaamera sisse'} active={!call.videoEnabled} onClick={call.toggleVideo}>{call.videoEnabled ? <Video size={18} /> : <VideoOff size={18} />}</IconButton>
@@ -364,6 +394,7 @@ export default function LiveRoom({
         </div> : null}
         {menu === 'more' ? <div className="lr-menu" role="menu" aria-label="Rohkem">
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); boardRef.current?.newPage(`Tund ${lessonDate}`).catch((error) => setNotice(error?.message || 'Uut lehte ei saanud luua.')); }}>Uus tunnileht „Tund {lessonDate}”</button> : null}
+          {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('plan'); }}>Tunniplaan ja kohalolu</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('homework'); }}>Anna kodutöö</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('record'); }}>Tunni salvestamine</button> : null}
           {!teacher ? <button type="button" role="menuitemcheckbox" aria-checked={follow} onClick={() => { setMenu(''); setFollow(!follow); }}>{follow ? 'Ära jälgi õpetaja lehte' : 'Jälgi õpetaja lehte'}</button> : null}
@@ -432,8 +463,10 @@ export default function LiveRoom({
           {panel === 'devices' ? <Drawer title="Kaamera ja mikrofon" onClose={() => setPanel('')}><DevicesPanel call={call} stream={streams?.local} /></Drawer> : null}
           {panel === 'words' ? <Drawer title="Sõnad" onClose={() => setPanel('')}><LessonWordsPanel studentId={invitation.studentId} invitationId={invitation.id} user={user} teacher={teacher} lang={/inglise|english/i.test(subject) ? 'en' : 'et'} {...(wordsService ? { service: wordsService } : {})} /></Drawer> : null}
           {panel === 'homework' && teacher ? <Drawer title="Kodutöö" onClose={() => { setPanel(''); setAssignPage(null); }}><LessonHomeworkPanel key={assignPage?.id || 'homework'} invitation={invitation} user={user} boardPage={assignPage || (myPage ? { id: myPage, title: myPageTitle || 'Tahvlileht' } : null)} assignPage={Boolean(assignPage)} worksheet={sheet ? { id: sheet.id, title: worksheet?.title || 'Tööleht' } : null} {...(homeworkService ? { service: homeworkService } : {})} /></Drawer> : null}
-          {panel === 'end' && teacher ? <Drawer title="Tunni lõpp" onClose={() => setPanel('')}><LessonEndPanel invitation={invitation} user={user} subject={subject} startedAt={new Date(startedAt).toISOString()} pages={pagesSeen} sheets={sheetList.map((item) => ({ id: item.id, title: sheetBoardTitle(item), status: item.status, completedAt: item.completedAt, lessonId: item.lessonId || '' }))} ending={ending} onEnd={() => onEndLesson({ confirmed: true })}
+          {panel === 'end' && teacher ? <Drawer title="Tunni lõpp" onClose={() => setPanel('')}><LessonEndPanel invitation={invitation} user={user} subject={subject} startedAt={new Date(startedAt).toISOString()} pages={pagesSeen} sheets={sheetList.map((item) => ({ id: item.id, title: sheetBoardTitle(item), status: item.status, completedAt: item.completedAt, lessonId: item.lessonId || '' }))} ending={ending} attendance={studentMark} onEnd={() => onEndLesson({ confirmed: true })}
             {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /></Drawer> : null}
+          {panel === 'plan' && teacher ? <Drawer title="Tunniplaan" onClose={() => setPanel('')}><LessonPlanPanel planState={planState} participants={participants} startMs={attendanceStart}
+            attendanceNote="„Lõpeta tund” viib märke kalendrisse: Kohal / Hilines → Toimunud, Puudub → Puudus (ei teatanud). Hilinemise minutid jäävad tunniplaani." /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}
           <div className={panel === 'tasks' ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'tasks'} role="region" aria-label="Ülesanded">

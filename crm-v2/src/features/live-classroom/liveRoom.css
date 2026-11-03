@@ -246,3 +246,33 @@
 .lr-tile--observer { aspect-ratio: 16 / 10; width: 62%; align-self: flex-end; border: 2px solid #84cc16; }
 .lo-tile--self video { aspect-ratio: 16 / 9; max-width: 280px; }
 .lr-icon.is-off { color: #d92d20; }
+
+/* lesson plan + attendance (teacher): a compact agenda with a timer per step, the current step in the top bar */
+.lr-plan-pill { gap: 6px; padding: 0 12px; cursor: pointer; color: #24294a; font-variant-numeric: tabular-nums; }
+button.lr-plan-pill:hover, .lr-plan-pill.is-active { background: #eceefe; border-color: #d6dafc; color: #3f5bd8; }
+.lr-plan-pill.is-over { background: #fff4e5; border-color: #f5c27a; color: #9a5b00; }
+.lr-plan { display: grid; gap: 10px; }
+.lr-plan__total { margin: 0; font-size: .86rem; font-weight: 700; color: #24294a; font-variant-numeric: tabular-nums; }
+.lr-plan__steps { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.lr-plan__step { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; padding: 6px 12px; border: 1px solid #e4e6f2; border-radius: 12px; background: #fff; color: #24294a; font: inherit; font-size: .84rem; font-weight: 700; text-align: left; cursor: pointer; }
+.lr-plan__step:disabled { cursor: default; }
+.lr-plan__step small { color: #6b7091; font-weight: 600; font-variant-numeric: tabular-nums; }
+.lr-plan__steps .is-done .lr-plan__step { background: #f7f7fc; color: #6b7091; }
+.lr-plan__steps .is-current .lr-plan__step { border-color: #9fb0f5; background: #eceefe; }
+.lr-plan__steps .is-over .lr-plan__step { border-color: #f5c27a; background: #fff4e5; }
+.lr-plan__steps .is-over .lr-plan__step small { color: #9a5b00; }
+.lr-plan__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.lr-plan .lr-text-btn.is-primary { background: #3f5bd8; border-color: #3f5bd8; color: #fff; }
+.lr-plan__heading { margin: 6px 0 0; font-size: .86rem; color: #24294a; }
+.lr-plan-edit { display: grid; gap: 6px; }
+.lr-plan-edit__row { display: grid; grid-template-columns: minmax(0, 1fr) 64px auto; gap: 6px; align-items: center; }
+.lr-plan-edit input, .lr-attendance__late input { min-width: 0; height: 36px; padding: 0 8px; border: 1px solid #dfe1ee; border-radius: 10px; background: #fff; font: inherit; font-size: .84rem; color: #24294a; }
+.lr-attendance { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.lr-attendance__row { display: grid; gap: 6px; padding: 8px 10px; border: 1px solid #e4e6f2; border-radius: 12px; }
+.lr-attendance__row > span:first-child { display: grid; gap: 2px; font-size: .84rem; }
+.lr-attendance__row small { color: #6b7091; }
+.lr-attendance__buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.lr-attendance__buttons .lr-text-btn { height: 34px; padding: 0 10px; }
+.lr-attendance__buttons .lr-text-btn.is-suggested { border-style: dashed; border-color: #9fb0f5; }
+.lr-attendance__late { display: inline-flex; align-items: center; gap: 4px; font-size: .8rem; color: #4b5070; }
+.lr-attendance__late input { width: 60px; }
