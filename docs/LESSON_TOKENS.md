@@ -40,6 +40,32 @@ the package is used up — how many lessons are owed (to be invoiced and paid).
    - parent / student dashboard: the compact card with one line „Paketist alles N tundi” or „Pakett on läbi · N tundi
      ootab tasumist”.
 
+## One subject per package (Oleksiy 2026-11-03)
+
+„При составлении туннипакета у ученика нет возможности выбрать курс”: the dialog offered only the card and its main
+subject, the server priced and labelled the invoice by the card's main subject and every lesson of the card took from
+any package.
+
+- **Dialog**: „Õpilane” (the option lists all the card's subjects) and „Aine (kursus)”: the card's active subjects
+  (`subjects.js subjectsOf`); a card whose tracks have all ended gets the school's „Õppesuunad”. One subject is chosen by
+  default; with several the administrator must choose. Price and total come from `studentRevenuePlans.subjectPrices[subject]`,
+  else the card's price; „Praegu paketis (aine)” = `subjectBalance` (that subject's packages + shared ones).
+- **Server** `manualInvoiceApi /create-tokens` takes `subject`; `lesson-tokens-core tokenInvoiceSubject` accepts only one
+  of the card's subjects (any subject when the card names none), requires one on a card with several, picks the only one
+  otherwise. Price `planForSubject`; the invoice stores `subject`, the line reads „Tunnipakett (Matemaatika): …”, the
+  audit `invoice.created_lesson_tokens` carries `subject`.
+- **Package**: `tokenPackageRecord` writes `tokenSubject` only when the invoice has `subject`; the grant ledger entry and the
+  audit `student.package_credited_from_invoice` carry it too. `subject` (display) is unchanged.
+- **Consumption** (`syncLessonPackageConsumption`): when no package of the card has `tokenSubject`, nothing changes (one
+  pool, the old code path). Otherwise the lesson's subject (`lessonSubject`: its own if the card has it, else its
+  teacher's track, else the only / main subject) picks the tiers (`packageTiersForLesson`): its subject's packages, then
+  the packages without a subject; FIFO and the owed-lesson rule inside each tier. A lesson whose subject has no package
+  while the card has packages only for other subjects is `not_applicable` (takes nothing, owes nothing; an owed state is
+  cleared). An owed state stores `subject`. „Lisa tunnid” backlog of a subject package takes only that subject's lessons.
+- **Views**: `LessonTokensCard` shows an „Aine” column („kõik ained” for a package without a subject) and the subject of
+  owed lessons.
+- Existing invoices / packages are not rewritten: without `subject` / `tokenSubject` they keep paying every lesson.
+
 ## Package ↔ invoice link
 
 One token invoice gives one package: `studentPackages/tokens_<invoiceId>` has `sourceInvoiceId` / `sourceInvoiceNum`,
@@ -71,8 +97,8 @@ linked automatically (no invoice reference is stored).
 ## Open owner questions
 
 Answered 2026-10-29: a double lesson is 120 min = 2 credits (rule above). Kept at the defaults for now: unused credits
-do not expire; owed lessons are paid by the next package; one pool of packages per card (a lesson takes the oldest
-package of the card, whatever the subject).
+do not expire; owed lessons are paid by the next package. Since 2026-11-03 a package invoice names a subject and its
+package pays only that subject's lessons (above); older packages remain one pool.
 
 ## Tests
 

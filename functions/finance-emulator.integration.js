@@ -3654,6 +3654,62 @@ test("lesson tokens: a lesson held after the package is used up is owed; the nex
   assert.equal((await db.collection("lessonPackageStates").doc("tokens-owed-lesson-6").get()).data().credits, 2);
 });
 
+test("lesson tokens: a package for one subject pays only that subject's lessons (Oleksiy 2026-11-03)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const studentId = "tokens-subject-student";
+  await Promise.all([
+    db.collection("students").doc(studentId).set({
+      name: "Kahe Aine Õpilane", subject: "Eesti keel", active: true, parentName: "Kahe Ema", parentEmail: "kahe@example.com",
+      enrollments: [{ subject: "Eesti keel", teacher: "Pavel", teacherUid: "t-est" }, { subject: "Matemaatika", teacher: "Liza", teacherUid: "t-math" }],
+    }),
+    db.collection("studentRevenuePlans").doc(studentId).set({ studentId, studentName: "Kahe Aine Õpilane", lessonPriceCents: 2000, lessonMinutes: 60, subjectPrices: { Matemaatika: { lessonPriceCents: 2500, lessonMinutes: 45 } }, weeklyLessons: 1, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const post = (fn, path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/${fn}${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const waitFor = async (read, check, label) => {
+    for (let i = 0; i < 60; i += 1) {
+      const value = await read();
+      if (check(value)) return value;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`timed out: ${label}`);
+  };
+
+  // a card with two subjects has to name one; a subject it does not have is refused
+  const unnamed = await post("manualInvoiceApi", "/create-tokens", { studentId, lessons: 4, due: "2031-12-31", requestId: "tokens-subject-unnamed" });
+  assert.equal(unnamed.status, 400, JSON.stringify(unnamed.body));
+  const foreign = await post("manualInvoiceApi", "/create-tokens", { studentId, lessons: 4, due: "2031-12-31", subject: "Vene keel", requestId: "tokens-subject-foreign" });
+  assert.equal(foreign.status, 400, JSON.stringify(foreign.body));
+
+  // a maths package at the maths price
+  const created = await post("manualInvoiceApi", "/create-tokens", { studentId, lessons: 4, due: "2031-12-31", subject: "Matemaatika", requestId: "tokens-subject-math" });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.equal(created.body.invoice.subject, "Matemaatika");
+  assert.equal(created.body.invoice.amountCents, 4 * 2500);
+  assert.match(created.body.invoice.lines[0].description, /Tunnipakett \(Matemaatika\): 4 × 45 min/);
+  await db.collection("invoices").doc("tokens-subject-math").set({ date: "2031-11-01", status: "Makstud", paymentStatus: "paid", paidAmountCents: 10000, balanceDueCents: 0 }, { merge: true });
+  const credited = await post("financeApi", "/invoices/tokens/credit", { invoiceId: "tokens-subject-math" });
+  assert.equal(credited.status, 201, JSON.stringify(credited.body));
+  const packageRef = db.collection("studentPackages").doc("tokens_tokens-subject-math");
+  assert.equal((await packageRef.get()).data().tokenSubject, "Matemaatika");
+
+  const stateOf = async (lessonId) => (await db.collection("lessonPackageStates").doc(lessonId).get()).data()?.status;
+  const held = (id, date, extra) => db.collection("lessons").doc(id).set({ studentId, studentName: "Kahe Aine Õpilane", date, status: "Toimunud", accountingSource: "crm_v2", ...extra });
+  // a maths lesson (by its teacher) takes a credit; an Estonian lesson takes nothing and owes nothing
+  await held("tokens-subject-math-1", "2031-11-03", { teacherUid: "t-math", teacher: "Liza" });
+  await waitFor(() => stateOf("tokens-subject-math-1"), (s) => s === "consumed", "maths lesson consumed");
+  await held("tokens-subject-est-1", "2031-11-04", { teacherUid: "t-est", teacher: "Pavel", subject: "Eesti keel" });
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  assert.notEqual(await stateOf("tokens-subject-est-1"), "consumed");
+  assert.notEqual(await stateOf("tokens-subject-est-1"), "needs_attention");
+  assert.equal((await packageRef.get()).data().balanceCredits, 3);
+});
+
 test("cash box: a teacher takes cash, hands it over, an admin links it to the invoice; a voided payment reopens it", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

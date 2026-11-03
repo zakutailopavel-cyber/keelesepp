@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import TokenInvoiceDialog from './TokenInvoiceDialog.jsx';
 import LessonTokensCard from '../students/LessonTokensCard.jsx';
 import { monthlyBillingRows } from './monthlyBilling.js';
-import { lessonTokenCost, tokenAccount, tokenInvoiceUsage, tokenLine, tokenSummary } from '../../services/firebase/lessonTokens.js';
+import { lessonTokenCost, subjectBalance, tokenAccount, tokenInvoiceUsage, tokenLine, tokenSubjectKey, tokenSummary } from '../../services/firebase/lessonTokens.js';
 
 const kaarel = { id: 'k1', name: 'Kaarel Laps', subject: 'Eesti keel', parentName: 'Liis Vanem', parentEmail: 'liis@example.ee', active: true };
 
@@ -15,7 +15,7 @@ describe('lesson tokens', () => {
     const onCreated = vi.fn();
     render(<TokenInvoiceDialog studentCards={[kaarel]} plans={[{ studentId: 'k1', lessonPriceCents: 2000, lessonMinutes: 60 }]} api={api} deliveryApi={deliveryApi} tokensApi={tokensApi} onCreated={onCreated} />);
     fireEvent.click(screen.getByRole('button', { name: /Tunnipakett/ }));
-    fireEvent.change(screen.getByLabelText('Õpilane ja aine'), { target: { value: 'k1' } });
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'k1' } });
     expect(await screen.findByText('2 tundi')).toBeInTheDocument();
     expect(screen.getByText('Liis Vanem')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '9' }));
@@ -30,10 +30,59 @@ describe('lesson tokens', () => {
     const api = { createTokens: vi.fn() };
     render(<TokenInvoiceDialog studentCards={[kaarel]} plans={[]} api={api} tokensApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} />);
     fireEvent.click(screen.getByRole('button', { name: /Tunnipakett/ }));
-    fireEvent.change(screen.getByLabelText('Õpilane ja aine'), { target: { value: 'k1' } });
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'k1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('tunnihind');
     expect(api.createTokens).not.toHaveBeenCalled();
+  });
+
+  // Oleksiy 2026-11-03: „при составлении туннипакета у ученика нет возможности выбрать курс”
+  const mia = { id: 'm1', name: 'Mia Kaks', subject: 'Eesti keel', parentName: 'Ema', parentEmail: 'ema@example.ee', active: true, enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel', active: true }, { subject: 'Matemaatika', teacher: 'Liza', active: true }] };
+  const noDirections = { list: vi.fn().mockResolvedValue([]) };
+
+  it('a card with two subjects: the course is chosen, priced by its own price and sent with the invoice', async () => {
+    const api = { createTokens: vi.fn().mockResolvedValue({ invoice: { id: 'inv2', num: 'KS-2026-301' } }) };
+    const tokensApi = { listByStudent: vi.fn().mockResolvedValue([
+      { status: 'active', balanceCredits: 3, tokenSubject: 'Matemaatika' },
+      { status: 'active', balanceCredits: 5, tokenSubject: 'Eesti keel' },
+    ]) };
+    const plans = [{ studentId: 'm1', lessonPriceCents: 2000, lessonMinutes: 60, subjectPrices: { Matemaatika: { lessonPriceCents: 2500, lessonMinutes: 45 } } }];
+    render(<TokenInvoiceDialog studentCards={[mia]} plans={plans} api={api} tokensApi={tokensApi} directionsService={noDirections} />);
+    fireEvent.click(screen.getByRole('button', { name: /Tunnipakett/ }));
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'm1' } });
+    const course = screen.getByLabelText('Aine (kursus)');
+    expect([...course.options].map((option) => option.textContent)).toEqual(['Vali aine (2)', 'Eesti keel', 'Matemaatika']);
+    // no subject chosen yet: refused, nothing created
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Vali aine');
+    expect(api.createTokens).not.toHaveBeenCalled();
+    fireEvent.change(course, { target: { value: 'Matemaatika' } });
+    expect(await screen.findByText('3 tundi')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '4' }));
+    expect(screen.getByRole('status')).toHaveTextContent('4 × 25,00 € = 100,00 €');
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    await waitFor(() => expect(api.createTokens).toHaveBeenCalledWith(expect.objectContaining({ studentId: 'm1', lessons: 4, subject: 'Matemaatika' })));
+  });
+
+  it('a card with one subject has it chosen; a card with none is offered the school subjects', async () => {
+    const api = { createTokens: vi.fn().mockResolvedValue({ invoice: { id: 'inv3' } }) };
+    const ended = { id: 'e1', name: 'Endel', subject: 'Eesti keel', active: true, parentEmail: 'x@example.ee', enrollments: [{ subject: 'Eesti keel', status: 'ended', active: false }] };
+    render(<TokenInvoiceDialog studentCards={[kaarel, ended]} plans={[{ studentId: 'k1', lessonPriceCents: 2000 }, { studentId: 'e1', lessonPriceCents: 2000 }]} api={api} tokensApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} directionsService={noDirections} />);
+    fireEvent.click(screen.getByRole('button', { name: /Tunnipakett/ }));
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'k1' } });
+    expect(screen.getByLabelText('Aine (kursus)')).toHaveValue('Eesti keel');
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'e1' } });
+    const options = [...screen.getByLabelText('Aine (kursus)').options].map((option) => option.textContent);
+    expect(options[0]).toBe('Vali aine (5)');
+    expect(options).toContain('Matemaatika');
+  });
+
+  it('the balance a subject can use: its own packages and the shared ones', () => {
+    const packages = [{ status: 'active', balanceCredits: 3, tokenSubject: 'Matemaatika' }, { status: 'active', balanceCredits: 2 }, { status: 'active', balanceCredits: 5, tokenSubject: 'Eesti keel' }, { status: 'depleted', balanceCredits: 0, tokenSubject: 'Matemaatika' }];
+    expect(subjectBalance(packages, 'Matemaatika')).toBe(5);
+    expect(subjectBalance(packages, 'eesti keel')).toBe(7);
+    expect(tokenSubjectKey('English')).toBe(tokenSubjectKey('Inglise keel'));
+    expect(tokenAccount({ packages: [{ id: 'p', status: 'active', tokenSubject: 'Matemaatika', grantedCredits: 4, balanceCredits: 4 }] }).rows[0].subject).toBe('Matemaatika');
   });
 
   it('the student card shows lessons left, a low balance and every movement', async () => {
