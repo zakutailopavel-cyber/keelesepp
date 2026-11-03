@@ -3076,8 +3076,11 @@ service cloud.firestore {
         && (
           data.type != 'image'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'rotation', 'locked', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff', 'byStudent'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'rotation', 'locked', 'credit', 'sourceUrl', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff', 'byStudent'])
             && (!('byStudent' in data) || data.byStudent == true)
+            // „Pildid” (2026-11-04): a picture from an open source keeps its author / licence and the page it came from
+            && (!('credit' in data) || (data.credit is string && data.credit.size() <= 300))
+            && (!('sourceUrl' in data) || (data.sourceUrl is string && data.sourceUrl.size() <= 2000 && data.sourceUrl.matches('^https://.*')))
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.w > 0 && data.h > 0 && data.w <= 100000 && data.h <= 100000

@@ -76,6 +76,8 @@ function boardService() {
     clear: async () => 0, addPage: async () => 'pg-2', renamePage: async () => {},
   };
 }
+// „Pildid”: a small school bank instead of Firestore's mediaAssets
+const labBank = { list: async () => [{ id: 'lab-1', kind: 'image', src: '/textbook-art/a2/a2-001/a2-001-avasta-1.webp', caption: 'Anna keelekeskuses', tags: ['anna', 'keelekeskus'], width: 1600, height: 1067 }] };
 const labNotes = { add: async (record) => { (globalThis.__labNotes ||= []).push(record); return `note-${globalThis.__labNotes.length}`; }, update: async () => {} };
 
 function Lab({ assignment }) {
@@ -89,7 +91,7 @@ function Lab({ assignment }) {
     const content = <RoomWorksheetContent current={assignment} role={teacher ? 'teacher' : 'student'} homework={repository} />;
     // ?room=1&board=1: the plain board page (no worksheet) to try the drawing tools
     const sheet = params.get('board') ? {} : { worksheet: { id: assignment.id, title: 'Labori tööleht', content }, initialPageId: 'pg-1' };
-    return <AuthContext.Provider value={auth}><div className="lab-room" style={{ position: 'fixed', inset: 0 }}><StudentBoard studentId="lab-student" user={auth.user} staff={teacher} variant="room" service={service} noteService={labNotes} insetRight={Number(params.get('inset') || 0)} {...sheet} /></div></AuthContext.Provider>;
+    return <AuthContext.Provider value={auth}><div className="lab-room" style={{ position: 'fixed', inset: 0 }}><StudentBoard studentId="lab-student" user={auth.user} staff={teacher} variant="room" service={service} noteService={labNotes} mediaBank={labBank} insetRight={Number(params.get('inset') || 0)} {...sheet} /></div></AuthContext.Provider>;
   }
   if (!open) return <button type="button" onClick={() => setOpen(true)}>Ava</button>;
   return <AuthContext.Provider value={auth}><WorksheetPlayer assignment={assignment} repository={repository} readOnly={params.get('readonly') === '1'} onClose={() => setOpen(false)} onSubmitted={() => {}} /></AuthContext.Provider>;

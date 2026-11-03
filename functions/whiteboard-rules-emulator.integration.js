@@ -111,6 +111,19 @@ test("a teacher can put images and PDFs on the student's board and on a live les
   }
 });
 
+// „Pildid” (2026-11-04): a picture from an open source keeps its credit and an https link to its page
+test("a teacher's picture from the media search keeps its credit and source link; a bad link is refused", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const credited = { ...image, credit: "Autor: A · CC BY-SA 4.0 · Wikimedia Commons", sourceUrl: "https://commons.wikimedia.org/wiki/File:X.jpg" };
+  const ok = await commit(ctx.teacherToken, [createElement(`whiteboards/${ctx.studentId}/lessonPages/live/elements/t-media`, ctx.teacherUid, credited)]);
+  assert.equal(ok.status, 200, JSON.stringify(ok.body));
+  for (const bad of [{ sourceUrl: "javascript:alert(1)" }, { credit: "x".repeat(301) }]) {
+    const denied = await commit(ctx.teacherToken, [createElement(`whiteboards/${ctx.studentId}/lessonPages/live/elements/t-bad`, ctx.teacherUid, { ...credited, ...bad })]);
+    assert.equal(denied.status, 403, JSON.stringify(bad));
+  }
+});
+
 test("a student draws and writes on their board but cannot add materials or touch locked/snapshot content", async () => {
   requireSafeEmulatorEnvironment();
   const ctx = await seed();
