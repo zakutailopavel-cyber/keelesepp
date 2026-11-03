@@ -1,5 +1,7 @@
-import { ArrowLeft, Columns2, LibraryBig, Rows2, MessageSquare, Mic, MicOff, Phone, PhoneOff, Redo2, Send, Undo2, Users, Video, VideoOff, X } from 'lucide-react';
+import { ArrowLeft, Columns2, LibraryBig, Rows2, MessageSquare, Mic, MicOff, Phone, PhoneOff, Redo2, Send, Timer, Undo2, Users, Video, VideoOff, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CountdownBadge, CountdownControls } from './CountdownTimer.jsx';
+import { useCountdown } from './useCountdown.js';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize } from '../board/boardModel.js';
 import { groupBoardService } from '../../services/firebase/studentBoard.js';
@@ -73,7 +75,7 @@ function GroupChat({ messages, me, closed, onSend }) {
  */
 export default function GroupRoom({
   roomId, role, user, onLeave, onEnd, turnInvitationId = '', service = liveGroupRoomsService, boardService = groupBoardService,
-  library, callOptions = {}, recordings = [], myInvitation = null, recordingService, invitations = [], planService,
+  library, callOptions = {}, recordings = [], myInvitation = null, recordingService, invitations = [], planService, countdownService,
 }) {
   const teacher = role === 'teacher';
   const [room, setRoom] = useState(null);
@@ -99,6 +101,8 @@ export default function GroupRoom({
   const unread = panel === 'chat' ? 0 : messages.slice(seen ?? messages.length).filter((message) => message.fromUid !== user.uid).length;
   const myName = teacher ? room?.teacherName : (room?.members || []).find((member) => member.studentUid === user.uid)?.studentName;
   const closed = room?.status === 'closed';
+  // the teacher's countdown on the group room doc (`countdown`): every member reads it, only the teacher sets it
+  const timer = useCountdown({ kind: 'group', id: roomId, user, teacher, enabled: Boolean(room) && !closed, ...(countdownService ? { service: countdownService } : {}) });
   // -- the teacher's lesson plan and the members' attendance (liveLessonPlans/{roomId}, staff-only) --
   const defaultSteps = useMemo(() => defaultPlanSteps({ minutes: 60 }), []);
   const planState = useLessonPlan({ roomKey: roomId, kind: 'group', user, enabled: teacher, defaultSteps, ...(planService ? { service: planService } : {}) });
@@ -161,6 +165,7 @@ export default function GroupRoom({
         </div>
         <div className="lr-top__group lr-top__right">
           <button type="button" className={`lr-icon ${panel === 'chat' ? 'is-active' : ''}`} aria-label="Vestlus" title="Vestlus" onClick={() => setPanel(panel === 'chat' ? '' : 'chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</button>
+          {teacher && !closed ? <button type="button" className={`lr-icon ${panel === 'timer' || timer.active ? 'is-active' : ''}`} aria-label="Taimer" title="Taimer" onClick={() => setPanel(panel === 'timer' ? '' : 'timer')}><Timer size={18} /></button> : null}
           {teacher && !closed ? <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'materials' ? '' : 'materials')}><LibraryBig size={17} /> Materjalid</button> : null}
           {teacher && recordingCount ? <span className="lr-pill lr-rec" role="status"><span className="lr-rec__dot" aria-hidden="true" />Salvestan ({recordingCount})</span> : null}
           {teacher && recordingCount && transcriber.known && !transcriber.online ? <span className="lr-pill lr-rec is-off" title={transcriberLabel(transcriber)}>Mac ei transkribeeri</span> : null}
@@ -181,6 +186,7 @@ export default function GroupRoom({
       <div className="lr-body lr-body--float">
         <main className="lr-stage">
           <StudentBoard studentId={roomId} user={user} staff={teacher} variant="room" controllerRef={boardRef} onHistoryChange={setHistory} newPageTitle={room?.title || 'Grupitund'} service={boardService} />
+          {!closed ? <CountdownBadge timer={timer} /> : null}
         </main>
         <FloatingLayer inset={{ right: panel && globalThis.innerWidth > 760 ? 362 : 0 }}>
           <FloatingWindow key={orientation} id={`group-${orientation}`} label="Grupi video" heightFor={heightFor} presets={presets}
@@ -205,6 +211,10 @@ export default function GroupRoom({
             <header><strong>Tunniplaan</strong><button type="button" className="lr-icon" aria-label="Sulge tunniplaan" onClick={() => setPanel('')}><X size={18} /></button></header>
             <div className="lr-drawer__body"><LessonPlanPanel planState={planState} participants={participants} startMs={roomStart}
               attendanceNote="Grupiruum ei ole kalendri grupitunniga seotud: märked jäävad tunniplaani. Kalendri kohalolu (ja tunnid) märgi grupi tunnis kalendris." /></div>
+          </section> : null}
+          {panel === 'timer' && teacher ? <section className="lr-drawer" aria-label="Taimer">
+            <header><strong>Taimer</strong><button type="button" className="lr-icon" aria-label="Sulge taimer" onClick={() => setPanel('')}><X size={18} /></button></header>
+            <div className="lr-drawer__body"><CountdownControls timer={timer} /></div>
           </section> : null}
           {panel === 'materials' && teacher ? <section className="lr-drawer" aria-label="Materjalid">
             <header><strong>Materjalid</strong><button type="button" className="lr-icon" aria-label="Sulge" onClick={() => setPanel('')}><X size={18} /></button></header>
