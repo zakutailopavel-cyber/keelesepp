@@ -1,3 +1,13 @@
+## 2026-11-03 · agent/progress-hint-empty — „Mida veel teha?” leads to the tasks of that skill (#student-cabinet)
+
+- Base: `main` 62641d8, checked 2026-11-03. Bug: in „Minu areng” the hint „Kuulamine 0% → 70%: Tee kodutöö etteütlused ja kuulamisülesanded” (and Lugemine / Kirjutamine) opened `/homework` with every task, or none, and nothing about listening.
+- Fix: hints of skills trained on worksheets go to `/homework?oskus=<skill>`; „Ülesanded” then shows only sheets with a block of that skill (`tasksForSkill`) with a status line „Kuulamine: N ülesannet teha” and „Näita kõiki ülesandeid”. With none to do: „praegu kuulamisülesandeid ei ole”, the teacher gives new ones, meanwhile „Ava „Minu kursus”” (`/student/kursus`; a self-study sheet counts in „Minu areng” too). Unknown `oskus` is ignored. Grammatika / Sõnavara / Rääkimine hints keep their own pages.
+- One skill table: `crm-v2/src/features/students/skillTasks.js` (new: `TASK_SKILL`, `sheetSkills`, `SKILL_TASKS`, `skillTasksPath`); `autoSkills.js` imports it (no change in scoring). Files: `students/{skillTasks.js,autoSkills.js,levelProgress.js,levelProgress.test.js}`, `homework/{taskList.js,taskList.test.js,LearnerTasksPage.jsx,LearnerTasksPage.test.jsx,learnerTasks.css}`, this file.
+- Checks: `npx vitest run src/features/students src/features/homework src/features/self-study` 54 files, 274 tests passed; eslint on changed files 0.
+- Production data (owner's request the same day, separate from this PR): Anastasiia Lysenko (`students/self_mNjGX9c5FrMZTeDSzXpcoABjSYG3`, B1→B2, teacher Pavel Zakutailo) got 10 listening sheets in `worksheetAssignments` (`source: learning_library`, assignedBy her teacher, no due date): the `listening` block alone of B1→B2 lessons 002, 006, 007, 008, 011, 012, 017, 037, 041, 053 (audio checked 200 `audio/mpeg` on keelesepp-crm-v2.vercel.app), title „Kuulamine: …”, no `phase` (so they do not mark a course lesson as done), plus one `activityLog` `learning_material.assigned`. No trigger on create (only the review e-mail on update); no `homework` doc, so no homework e-mail.
+- Production: no deploy; hosting deploy after merge.
+- Next safe step: review and merge; after deploy open „Minu areng” as a student and tap the Kuulamine hint.
+
 ## 2026-11-03 · agent/deps-functions-ff74 — functions: firebase-functions 7.4.0, pdfkit 0.20.2 (supersedes Dependabot #985)
 
 - Base: `main` 2f15942, checked 2026-11-03. `functions/package.json` `firebase-functions` ^7.2.5→^7.4.0, `pdfkit` ^0.17.2→^0.20.2; lockfile regenerated with npm (firebase-functions now brings express 5 + cors; used only by its manifest server and the emulator CORS wrapper, not by our handlers).
