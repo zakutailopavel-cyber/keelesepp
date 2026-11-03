@@ -32,7 +32,20 @@
 // (docs/COURSE_CAST.md): Mia (6) travels free, Oskar (9) at half price, the dog Muki needs a ticket; new: conductor Riho
 // Mägi, Riga guesthouse „Lilla Uks” (Liene), bus firm „Balti Ekspress”, Lena (Sofia's friend in Berlin), listener Tarvo,
 // Viljandi guesthouse „Kase”. Earlier versions: archive/v3/b1/module10.js, archive/v1/b1/module10.js.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE.md §13; topic „reisimine”, secondary
+// „kohad”): topic opener 046_d_open „Reisimine Eestis” (islands and ferries, Elron and the Riga train, Pärnu / Haapsalu
+// without trains, six national parks, igaüheõigus, Tallinn port and airport; the module goal as its last paragraph) instead
+// of 046_d_goal; „Kas teadsid?” 046_p_know (Elron's 30-min refund, EU rail minimums), 047_d_know (Tallinn–Tartu–Riga train,
+// Riga's UNESCO centre and Central Market), 047_p_know (European Health Insurance Card), 048_t_know (EU ferry and air
+// delay compensation); fiction 048_p_story (J. K. Jerome, „Three Men in a Boat”, the packing chapter, public domain);
+// 049_d_guide is a sourced travel guide to Tartu and Viljandi; the exam article 050_p_r2text uses Elron's real figures;
+// 050_p_l2 / 050_p_l4 transcripts corrected (Viru bog trail 3.5 km; no invented lost-luggage figure; new audio);
+// examiner set 050_d_warm. One 3-2-1 / 4-3-2 left (048_d_432); Kasuta call → letter only in 046 (048's call-in became
+// a studio talk, 049's self-check no longer names a voicemail). Sources: the PR „B1 module 10: academic value round 1”.
 import { B, tag, teach, withShapes } from '../blocks.js';
+
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
 export const MODULE = { id: 'a2b1-module-10', course: 'b1', title: 'Reisimine', level: 'B1-', design: 'v2', template: 'v4' };
 
@@ -42,8 +55,19 @@ export const LESSONS = withShapes({
     canDo: 'Ma helistan rongifirma infotelefonile, vahetan pere piletid ja selgitan onule telefonis tema teekonna ümberistumisega.',
     discover: [
       B.review('046_d_review', [['Mis on sinu arvates töövestlusel kõige tähtsam? Too üks näide.', 'a2b1-044'], ['Mis läks valesti, kui Sofia tellis Kiire Kõhust õhtusöögi?', 'a2b1-029'], 'Millega sa viimati teise linna sõitsid?']),
-      B.text('046_d_goal', 'Moodul 10: reisimine', 'Selles moodulis on kõik teel. Jaani pere ja Sofia sõidavad koolivaheajal rongiga vanaema Helgi juurde Tartusse. Anna ja Markus lähevad töölähetusele Riiga. Sofia sõbranna Lena tuleb Berliinist Eestisse ja Sofia aitab tal reisi planeerida. Mooduli lõpus kirjutad sõbrale isikliku kirja reisiplaaniga ja jutustad ühe reisiloo. Täna kuulad sõiduinfot ja helistad lõpuks rongifirma infotelefonile.'),
-      tag(B.listening('046_d_call', 'Sofia ja Jaan valivad rongi.', 'Kuula Sofia ja Jaani telefonikõnet kaks korda. Kirjuta lünka kellaaeg, number või üks sõna.', [
+      B.topicOpener('046_d_open', 'Teema avaleht: reisimine Eestis', [
+        'Eesti on väike riik, aga reisida saab siin palju ja mitmel viisil. Eestis on üle 2300 meresaare. Kõige suuremad on Saaremaa ja Hiiumaa. Suurematele saartele sõidab praam: Virtsust Muhu saarele Kuivastusse ja Rohukülast Hiiumaale Heltermaale. Jalgsi või jalgrattaga reisija saab praamipileti osta ka sadamas automaadist.',
+        'Rongiga sõideti Elroni andmetel 2025. aastal 7,66 miljonit korda. Kõige rohkem reisijaid on Tallinna lähedastel liinidel. 2026. aasta jaanuarist sõidab iga päev otserong Tallinnast Tartu kaudu Riiga. Kõikjale rong siiski ei sõida: viimane reisirong käis Pärnus 2018. aasta detsembris ja Haapsalus juba 1995. aastal. Nendesse linnadesse saab praegu ainult bussi või autoga. Kui Elroni rong hilineb pool tundi või rohkem, saab reisija piletiraha tagasi.',
+        'Looduses puhkajale on Eestis kuus rahvusparki: Lahemaa, Matsalu, Soomaa, Vilsandi, Karula ja Alutaguse. Lahemaa rahvuspark loodi 1971. aastal ja see on Eesti esimene rahvuspark. Riigimetsas on RMK matkarajad, lõkkekohad ja metsaonnid. Eestis kehtib igaüheõigus: looduses võib liikuda jalgsi, rattaga või suuskadel, korjata marju ja seeni ning piiramata eramaal telkida üks ööpäev, kui omanik seda ei keela.',
+        'Välismaale sõidetakse sageli laevaga. Tallinna Sadama kaudu reisis 2025. aastal 8,3 miljonit inimest, neist 7,3 miljonit Tallinna ja Helsingi vahel. Tallinna lennujaama läbis samal aastal ligi 3,5 miljonit reisijat.',
+        'Selles moodulis sõidad rongiga, plaanid tööreisi Riiga, räägid reisist, mis läks teisiti, ja teed külalisele reisiplaani. Mooduli lõpus kirjutad sõbrale isikliku kirja reisiplaaniga.',
+      ], 'Maa- ja Ruumiamet (meresaarte arv, 2020); Praamid.ee; Elron, „Tallinn – Tartu – Riia rongiliin alustab liinireise” (12.01.2026) ja „Uued rongiliinid tõid kolmandas kvartalis kaasa rongireisijate arvu kasvu” (9.10.2026); Vikipeedia, „Pärnu raudteepeatus”; Puhka Eestis, „Eesti rahvuspargid”; Keskkonnaamet, „Lahemaa rahvuspark”; eesti.ee, „Liikumine looduses ja igaüheõigus”; Tallinna Sadam, „Tallinna Sadama 2025. aasta reisijate arv oli 8,3 miljonit”; Statistikaamet (2026)', [
+        'Millist kohta Eestis tahaksid sa kõige rohkem näha ja miks?',
+        'Kuidas inimesed sinu kodumaal tavaliselt reisivad: rongi, bussi, auto või lennukiga? Mis on teisiti kui Eestis?',
+        'Kas sinu arvates peaks rong sõitma ka Pärnusse ja Haapsallu? Miks?',
+        'Kas igaüheõigus on sinu meelest hea reegel? Põhjenda.',
+      ]),
+      tag(B.listening('046_d_call', 'Sofia ja Jaan valivad rongi.', 'Jaani pere ja Sofia sõidavad koolivaheajal rongiga vanaema Helgi juurde Tartusse. Kuula Sofia ja Jaani telefonikõnet kaks korda. Kirjuta lünka kellaaeg, number või üks sõna.', [
         'Sofia: Tere, Jaan! Ma vaatan praegu sõiduplaani. Reedel on Tartusse kaks sobivat rongi.',
         'Jaan: Tere! Räägi aeglaselt, mul on pliiats ja paber käes.',
         'Sofia: Esimene väljub Balti jaamast kell 16.35, aga sellega tuleb Tapal ümber istuda. Tartusse jõuab see kell 19.05.',
@@ -130,8 +154,8 @@ export const LESSONS = withShapes({
         ['Seal seisad, kui rong tuleb.', 'perroon'], ['Inimene, kes sõidab rongis.', 'reisija'], ['Suur kott ratastega reisiks.', 'kohver'], ['Ta kontrollib rongis pileteid.', 'rongisaatja'],
         ['Rihm ja … — need peavad suurel koeral olema.', 'suukorv'], ['Selles on kirjas kõik rongide ajad.', 'sõiduplaan'],
       ], 'half', 'g_vocab'),
-      teach(tag(B.speaking('046_d_pic', 'Kaks rongi.', 'Vaata pilti ja kirjelda kahte rongi kolm korda järjest. Iga kord räägi umbes minut ja lisa üks uus detail.', ['Mis kell kumbki rong väljub ja saabub?', 'Kumma rongiga peab ümber istuma ja kus?', 'Kumb rong sobib lastega perele ja miks?', 'Kumma rongi sina valid ja miks?', 'Millega sa ise kõige meelsamini reisid?'], [70, 120], ['Esimene rong väljub…', 'Teisega ei pea ümber istuma, sest…', 'Mina valin…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti kolm korda, iga kord umbes minut; õpetaja on iga kord uus kuulaja ja küsib ühe täpsustava küsimuse („Mis kell…?”, „Kus…?”).'),
+      teach(tag(B.speaking('046_d_pic', 'Kaks rongi.', 'Vaata pilti ja kirjelda paarilisele kahte rongi umbes üks minut. Siis arutage kahte viimast küsimust ja võrrelge oma kogemusi.', ['Mis kell kumbki rong väljub ja saabub?', 'Kumma rongiga peab ümber istuma ja kus?', 'Kumb rong sobib lastega perele ja miks?', 'Kas teise linna on sinu arvates parem sõita rongi, bussi või autoga? Miks?', 'Kuidas sõidavad inimesed sinu kodumaal ühest linnast teise?'], [70, 120], ['Esimene rong väljub…', 'Teisega ei pea ümber istuma, sest…', 'Minu kodumaal…, aga Eestis…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti umbes minut; õpetaja küsib ühe täpsustava küsimuse („Mis kell…?”, „Kus…?”). Siis arutate kahte viimast küsimust: õpetaja räägib oma reisiharjumustest, õpilane võrdleb Eestit oma kodumaaga.'),
     ],
     practice: [
       tag(B.reading('046_p_signs', 'Teated jaamas ja rongis.', 'Loe jaama ja rongi teateid. Vasta lühidalt, mida reisija peab tegema või teadma.', 'Reisija, pane tähele!', [
@@ -160,6 +184,11 @@ export const LESSONS = withShapes({
         ['Miks ei tohi kohvreid vahekäiku panna?', 'vahekäik peab jääma vabaks|inimesed peavad saama vabalt käia'],
         ['Mida saab reisija, kui rong hilineb poolteist tundi?', 'osa piletihinnast tagasi|osa raha tagasi'],
       ]), { task: 'R07' }),
+      B.know('046_p_know', [
+        'Kui Elroni rong hilineb 30 minutit või rohkem, saab reisija selle sõidu piletiraha täielikult tagasi. Kui pilet on ostetud rongist, maksab klienditeenindaja raha tagasi kohe rongis. Eelmüügist ostetud pileti eest tuleb täita Elroni kodulehel tagastusvorm.',
+        'Kui rong juba hilineb vähemalt 30 minutit, ei pea reisija selle rongi peale piletit ostma: sõit on tasuta.',
+        'Euroopa Liidu reeglite järgi on rongireisijal õigus saada vähemalt 25 % piletihinnast, kui ta jõuab kohale 60–119 minutit hiljem, ja 50 %, kui hilinemine on kaks tundi või rohkem. Kaebus esitatakse kõigepealt rongifirmale kolme kuu jooksul; kui vastus ei rahulda, saab pöörduda Transpordiameti poole.',
+      ], 'Elron, „Pileti hüvitamine”; Transpordiamet, „Rongireisijate õigused”', 'Kas teadsid? Kui rong hilineb'),
       tag(B.listening('046_p_announce', 'Teadaanded Balti jaamas.', 'Kuula jaama teadaandeid. Kirjuta lünka, mida reisija peab tegema või teadma.', [
         'Teadustaja: Tähelepanu! Kell 16.35 Tapale väljuv rong väljub täna teiselt perroonilt, mitte esimeselt.',
         'Teadustaja: Tartu otserong kell 17.08 hilineb umbes viisteist minutit. Palume reisijatel oodata soojas ooteruumis.',
@@ -307,6 +336,10 @@ export const LESSONS = withShapes({
         ['Kus saab Riias odavalt lõunat süüa?', 'Keskturul|keskturu söögikohtades'],
         ['Millal on bussipilet kõige kallim?', 'viimasel päeval|sõidupäeval'],
       ]), { task: 'R13' }),
+      B.know('047_d_know', [
+        'Alates 12. jaanuarist 2026 sõidab iga päev otserong Tallinnast Tartu kaudu Riiga. Toonase sõiduplaani järgi väljub rong Tallinnast kell 14.50 ja jõuab Riiga kell 20.46. Tartust Riiga kestab sõit 3 tundi ja 41 minutit.',
+        'Riia vanalinn on 1997. aastast UNESCO maailmapärandi nimekirjas. Selle osa on ka Riia keskturg. Turu viis suurt paviljoni ehitati vanade Saksa õhulaevade angaaride raamidest.',
+      ], 'Elron, „Tallinn – Tartu – Riia rongiliin alustab liinireise” (12.01.2026); Riia keskturu koduleht, „History”', 'Kas teadsid? Rongiga Riiga'),
       tag(B.vocab('047_d_vocab', 'Tunni sõnad.', ['töölähetus — командировка', 'näitus — выставка', 'eelarve — бюджет', 'lend — рейс / полёт', 'lennujaam — аэропорт', 'broneerima — бронировать', 'hotell — гостиница', 'hommikusöök — завтрак', 'soodne — выгодный', 'mugav — удобный', 'võrdlema — сравнивать', 'kulu — расход']), { topic: ['töölähetus'] }),
       B.adsmatch('047_d_ads', 'Mis sobib Annale ja Markusele?', 'Loe Riia reisi kuulutusi ja olukordi. Kirjuta olukorra juurde sobiva kuulutuse täht; sama kuulutus võib sobida mitmele.', [
         ['Balti Ekspress', 'Bussid Tallinn–Riia kuus korda päevas, esimene kell 7.00 ja viimane kell 23.00. Sõit kestab 4 tundi 30 minutit. Igal istmel on laud, pistikupesa ja tasuta internet. Pilet 25 €, nädal ette ostes 17 €. Suur kohver on hinnas.'],
@@ -351,8 +384,8 @@ export const LESSONS = withShapes({
         ['ööbimine', ['kahene tuba', 'külalistemaja', 'hommikusöök', 'vastuvõtt', 'võti', 'voodi']],
         ['raha', ['eelarve', 'soodustus', 'arve', 'kulu', 'hind', 'sularaha']],
       ], 'full', 'g_vocab'),
-      teach(tag(B.speaking('047_d_opinion', 'Buss või lennuk?', 'Kas töölähetusele sõita bussi või lennukiga? Põhjenda oma valikut kolm korda järjest, iga kord kiiremini.', ['Kumb on sinu meelest töölähetusel parem ja miks?', 'Mida saab bussis teha, mida lennukis mitte?', 'Millal on lennuk kindlasti parem valik?', 'Kas hind või aeg on sinu jaoks tähtsam? Miks?', 'Millega sa ise viimati välismaale sõitsid?'], [70, 120], ['Ma eelistan…, sest…', 'Teisest küljest…', 'Mõlemad…, aga…']), { task: 'S11', fluency: true }),
-        'Üks-ühele: õpetaja hoiab aega (2 min, 90 s, 1 min) ja on iga kord teine inimene: Liis (raha), Markus (mugavus), klient (kiirus). Iga kord peab tulema üks uus põhjus.'),
+      teach(tag(B.speaking('047_d_opinion', 'Buss, rong või lennuk?', 'Arutage paarilisega, millega on kõige parem töölähetusele sõita. Põhjenda iga vastust ja too näide oma elust.', ['Kumb on sinu meelest töölähetusel parem, buss või lennuk? Miks?', 'Mida saab bussis või rongis teha, mida lennukis mitte?', 'Millal on lennuk kindlasti parem valik?', 'Kas hind või aeg on sinu jaoks tähtsam? Miks?', 'Kas firmad peaksid keskkonna pärast eelistama rongi lennukile? Mis sa arvad?'], [70, 120], ['Ma eelistan…, sest…', 'Teisest küljest…', 'Mõlemad…, aga…']), { task: 'S11', fluency: true }),
+        'Üks-ühele: õpetaja on vestluskaaslane, kes eelistab alguses lennukit (kiirus); õpilane põhjendab oma valikut numbrite ja näidetega ning küsib õpetaja arvamust. Lõpus ütleb õpilane ühe lausega, mida ta valiks ja miks.'),
     ],
     practice: [
       tag(B.listening('047_p_hotel', 'Anna helistab külalistemajja.', 'Kuula Anna kõnet külalistemajja kaks korda. Kirjuta lünka number, kellaaeg või hind.', [
@@ -423,6 +456,11 @@ export const LESSONS = withShapes({
       ], 'g_notice'), { task: 'W07' }),
       teach(tag(B.speaking('047_p_meet', 'Näitusel: uus tuttav.', 'Näitusel tuleb sinu juurde Läti logistik. Tutvusta end, räägi oma tööst ja küsi temalt vähemalt kaks küsimust.', ['Kes sa oled ja kus sa töötad?', 'Mille eest sa tööl vastutad?', 'Miks sa näitusele tulid?', 'Kas sa oled Riias või Tallinnas varem käinud?', 'Küsi temalt kaks küsimust tema firma kohta.'], [70, 120], ['Mina olen…, töötan…', 'Ma vastutan…', 'Kas teie firma…?']), { task: 'S01' }),
         'Üks-ühele: õpetaja on Läti logistik, kes räägib natuke eesti keelt ja küsib vahel üle („Vabandust, mis firma?”); siis vahetage rollid.'),
+      B.know('047_p_know', [
+        'Kui sul on Eestis ravikindlustus, saad tellida tasuta Euroopa ravikindlustuskaardi. Seda saab teha terviseportaalis või eesti.ee kaudu.',
+        'Kaart aitab, kui jääd teises Euroopa Liidu riigis ootamatult haigeks või saad õnnetuses viga. Siis saad vajalikku arstiabi samadel tingimustel nagu selle riigi elanikud. Kaart kehtib ka Norras, Islandil, Liechtensteinis, Šveitsis ja Suurbritannias.',
+        'Visiiditasu ja muud omaosalustasud maksab patsient ise selle riigi hindade järgi. Kaart ei kata eraarsti kulusid ega sõitu tagasi koju.',
+      ], 'Tervisekassa, „Euroopa ravikindlustuskaart”', 'Kas teadsid? Euroopa ravikindlustuskaart'),
       tag(B.examWriting('047_p_formal', 'Markuse sõnum ametlikuks.', 'Markus kirjutas hotellile nagu sõbrale. Kirjuta sõnum ümber viisakas teie-vormis; kõik faktid jäävad alles.', 'teade', {
         situation: 'Markuse mustand: „Tšau! Meil on neljapäeval vaja kaht tuba, ühte mulle ja ühte Annale. Jõuame kuskil poole kolme paiku. Kas kohvreid saab hommikul teie juurde jätta? Ja arvet tahan firma nimele, muidu Liis pahandab. Vasta kiirelt!”',
         points: ['kes kirjutab ja mis firmast', 'mida ja millal broneerite', 'küsimus kohvrite kohta', 'palve arve kohta ja viisakas lõpp'],
@@ -538,6 +576,19 @@ export const LESSONS = withShapes({
         '',
         'Anna ütleb, et see oli tema elu kõige naljakam reis. Järgmisel korral {*kontrollin|kontrollisin|kontrollinud} aga kõik kaks korda ja tellin takso juba eelmisel õhtul. Kallistan, Sofia',
       ], 'g_notice'),
+      tag(B.insertion('048_p_story', 'Ilukirjandus: kes pakib kohvri?', 'Loe katkendit inglise kirjaniku J. K. Jerome\'i naljakast reisiraamatust. Tekstist on välja võetud kuus lauset. Vali igasse lünka sobiv lause; üks lause on üleliigne.', 'J. K. Jerome, „Kolm meest paadis”: pakkimine', [
+        'Reede õhtul tulime kokku, et asjad reisiks kotti pakkida. Olime kõik vajaliku juba päeval kokku ostnud. Panime asjad toa keskele põrandale suurde hunnikusse. [[Ma ütlesin, et pakin ise, sest ma oskan seda kõige paremini.]] George ja Harris olid kohe nõus. George istus tugitooli ja Harris pani jalad lauale.',
+        '',
+        'See ei olnud päris see, mida ma olin mõelnud. [[Ma olin tahtnud, et nemad töötavad ja mina ainult näitan, kuidas õigesti teha.]] Aga ma ei öelnud midagi ja hakkasin pakkima. Lõpuks oli kott valmis ja ma istusin selle peale, et rihmad kinni tõmmata.',
+        '',
+        '„Kas saapaid sa kotti ei pane?” küsis Harris. Vaatasin ringi: saapad olid jäänud põrandale. [[Muidugi ütles Harris seda alles siis, kui olin koti juba kinni pannud.]] Tegin koti lahti ja panin saapad sisse.',
+        '',
+        'Siis tuli mulle kohutav mõte: kas ma olin hambaharja kotti pannud? [[Ma ei tea kunagi, kas olen hambaharja kaasa pakkinud või mitte.]] Võtsin kõik asjad uuesti välja. Leidsin George\'i ja Harrise hambaharjad, aga mitte enda oma. [[Lõpuks leidsin selle ühe saapa seest.]]',
+        '',
+        'Kui olin kõik uuesti pakkinud, küsis George, kas seep on ka kotis. Kott sai lõpuks kinni kell 22.05. [[Siis ütles Harris, et toidukorvid pakivad nemad kahekesi.]] Kõigepealt läks katki üks tass. Siis astus George võile.',
+        '',
+        'Allikas: J. K. Jerome, „Kolm meest paadis” (1889), 4. peatükk, lihtsustatud ja lühendatud. Autor suri 1927. aastal, teos on avalik omand.',
+      ], ['Harris ja George aitasid mind pakkimisel väga palju.']), { task: 'R16', voice: 'fiction' }),
       B.examListen('048_p_radio', 'Raadiosaade „Teel juhtunud”.', 'Kuula raadiosaadet, kus kuulaja jutustab oma reisiloo. Vali igale küsimusele õige vastus.', 'choice', [
         'Ülle: Tere õhtust! Saates „Teel juhtunud” räägivad kuulajad oma reisilugudest. Esimesena on telefonil Tarvo Tartust. Tere, Tarvo!',
         'Tarvo: Tere, Ülle! Minu lugu juhtus eelmisel suvel, kui mu tütar abiellus Pärnus.',
@@ -596,6 +647,11 @@ export const LESSONS = withShapes({
     ],
     transfer: [
       B.text('048_t_sit', 'Konkurss „Teel juhtunud”', 'Raadio Linnahääl kogub kuulajate reisilugusid. Parim lugu võidab nädalavahetuse Saaremaal. Saatejuht Ülle kutsus Anna ja Sofia žüriisse, sest nende Helsingi lugu oli saate kodulehel väga populaarne. Loe nelja kuulaja lugu, leppige kokku võitja, jutusta oma lugu otse-eetris ja kirjuta see saate kodulehele.'),
+      B.know('048_t_know', [
+        'Euroopa Liidus on laeva- ja lennureisijal kindlad õigused. Kui kuni neljatunnine laevareis jõuab kohale vähemalt tund hiljem, on reisijal õigus saada hüvitist 25 % piletihinnast. Kui hilinemine on vähemalt kaks tundi, on hüvitis 50 %.',
+        'Kui lennuk jõuab sihtkohta kolm tundi või rohkem hiljem, võib reisija saada hüvitist. Kuni 1500 kilomeetri pikkusel lennul on see 250 eurot. Hüvitist ei maksta, kui hilinemise põhjus oli erakorraline, näiteks lendamiseks liiga halb ilm.',
+        'Need reeglid kehtivad siis, kui hilineb laev või lennuk. Kui reisija jääb ise hiljaks, hüvitist ei ole.',
+      ], 'Your Europe, „Laevareisijate õigused” ja „Lennureisijate õigused”', 'Kas teadsid? Kui laev või lennuk hilineb'),
       B.profiles('048_t_stories', 'Neli kuulaja lugu.', 'Loe kuulajate lugude kokkuvõtteid. Täienda lauseid: mis oli juhtunud enne ja mis juhtus pärast.', [
         ['Tarvo, 58, Tartu', ['tütre pulm Pärnus', 'vaatas vana sõiduplaani', 'buss oli juba läinud', 'talunik traktoriga, siis tema poeg autoga', 'ka pruut jäi hiljaks'],
           ['Kui Tarvo bussijaama jõudis, [oli] buss juba läinud.', 'Tarvo oli [vaadanud] vana sõiduplaani.', 'Pärnusse viis teda lõpuks taluniku [poeg].', 'Kui Tarvo kirikusse jõudis, ei olnud pulm veel [alanud].', 'Pruudi auto oli teel katki [läinud].']],
@@ -608,7 +664,7 @@ export const LESSONS = withShapes({
       ], '2'),
       teach(tag(B.ideaCard('048_t_jury', 'Žürii: kes võidab?', 'Te olete žürii. Arutage nelja lugu ja leppige kokku võitja ning teine koht. Põhjendage valikut.', 'Raadio Linnahääl annab parima reisiloo eest nädalavahetuse Saaremaal. Žüriil on otsustamiseks viis minutit.', ['Tarvo: pulm ja traktor', 'Kaidi: äratuskell ja viimane reisija', 'Joosep: telk jäi koju', 'Merit: vale kohver rongis'], 'Kes võidab ja kes saab teise koha? Miks?'), { task: 'S12', main: true }),
         'Üks-ühele: õpetaja on teine žürii liige ja toetab alguses teist lugu kui õpilane; õpilane põhjendab (naljakas, üllatav lõpp, hästi jutustatud) ja leiab kompromissi. Lõpus ütleb õpilane otsuse nii, nagu raadios.'),
-      teach(tag(B.speaking('048_t_live', 'Sinu lugu otse-eetris.', 'Helista saatesse ja jutusta oma reisilugu. Saatejuht küsib vahele. Seejärel jutusta sama lugu uuesti 90 sekundiga.', ['Kuhu ja millal sa sõitsid?', 'Mis oli juhtunud, kui sa kohale jõudsid?', 'Mida sa siis tegid ja kes sind aitas?', 'Kuidas lugu lõppes?', 'Mida sa nüüd teisiti teed?'], [90, 150], ['Kui ma… jõudsin, oli… juba…', 'Siis…', 'Lõpuks…']), { task: 'S07', fluency: true }),
+      teach(tag(B.speaking('048_t_live', 'Sinu lugu otse-eetris.', 'Oled stuudios saatejuhi kõrval ja jutustad otse-eetris oma reisilugu. Saatejuht küsib vahele. Seejärel jutusta sama lugu uuesti 90 sekundiga.', ['Kuhu ja millal sa sõitsid?', 'Mis oli juhtunud, kui sa kohale jõudsid?', 'Mida sa siis tegid ja kes sind aitas?', 'Kuidas lugu lõppes?', 'Mida sa nüüd teisiti teed?'], [90, 150], ['Kui ma… jõudsin, oli… juba…', 'Siis…', 'Lõpuks…']), { task: 'S07', fluency: true }),
         'Üks-ühele: õpetaja on saatejuht Ülle ja küsib kaks täpsustavat küsimust („Ja mis siis juhtus?”). Teisel korral räägib õpilane 90 sekundiga ilma küsimusteta.'),
       B.examWriting('048_t_story', 'Lugu saate kodulehele.', 'Kirjuta oma reisilugu saate kodulehele umbes 100 sõnaga. Kirjuta kõigist neljast punktist.', 'jutt', {
         situation: 'Kirjuta jutt pealkirjaga „Reis, mis läks teisiti”.',
@@ -686,28 +742,28 @@ export const LESSONS = withShapes({
         ['kohtuma', 'Liis lükkas … kliendiga kella kolmeks.', 'kohtumise'],
         ['laulma', 'Viljandi kontserdil laulab tuntud … .', 'laulja'],
       ], 'full', 'g_vocab'),
-      B.reading('049_d_guide', 'Kaks linna Lenale.', 'Loe linnade tutvustust. Vasta küsimustele ja mõtle, mis sobib Lenale ja miks.', 'Tartu ja Viljandi: nädalavahetus Lõuna-Eestis', [
-        'Tartu on Eesti teine linn ja ülikoolilinn. Rong sõidab Tallinnast Tartusse umbes kaks tundi ja pilet maksab üheksa eurot. Raekoja plats, Toomemägi ja Eesti Rahva Muuseum on kesklinna lähedal. Muuseumi pilet maksab neliteist eurot.',
+      tag(B.reading('049_d_guide', 'Kaks linna Lenale.', 'Loe reisijuhi teksti kahe Lõuna-Eesti linna kohta. Vasta küsimustele ja mõtle, mis sobib Lenale ja miks.', 'Tartu ja Viljandi: nädalavahetus Lõuna-Eestis', [
+        'Tartu on Eesti suuruselt teine linn ja vana ülikoolilinn. Tartu ülikool asutati 1632. aastal, kui Rootsi kuningas Gustav II Adolf allkirjastas selle asutamisüriku. 2024. aastal oli Tartu koos Lõuna-Eestiga Euroopa kultuuripealinn.',
         '',
-        'Tartus on palju odavaid külalistemaju ja hosteleid. Öö kahekohalises toas maksab 40–60 eurot. Laupäeva õhtul on kesklinnas palju noori ja kohvikud on hilja õhtuni lahti.',
+        'Tallinnast sõidab Tartusse rong. Raekoja plats ja Toomemägi on kesklinnas ning neid saab vaadata jalgsi. Eesti Rahva Muuseum asub Raadil, kesklinnast natuke eemal. Muuseumi uus maja avati 2016. aastal.',
         '',
-        'Viljandi on väike ja rahulik linn Tartust umbes tunni kaugusel. Sinna sõidab buss, sest rong Tartust Viljandisse ei käi. Bussipilet maksab seitse eurot. Linna kõige ilusam koht on lossimäed järve kohal.',
+        'Viljandi on väike ja rahulik linn. Tallinnast sõidab Viljandisse rong, aga Tartust Viljandisse rongiga ei saa: sinna sõidab buss. Linna kõige ilusam koht on lossimäed. Seal on vana ordulinnuse varemed ja vaade Viljandi järvele.',
         '',
-        'Viljandi on tuntud pärimusmuusika poolest. Pärimusmuusika aidas on igal laupäeval kontsert ja pilet maksab kakskümmend eurot. Pärast kontserti väljub viimane buss Tallinnasse kell 21.30.',
+        'Viljandi on tuntud pärimusmuusika poolest. Lossimägede serval on Pärimusmuusika Ait, mis avati 2008. aastal. See on kontserdimaja ja kultuurikeskus. Igal suvel juuli lõpus toimub Viljandi pärimusmuusika festival. Esimest korda toimus see 1993. aastal.',
         '',
-        'Talvel tasub meeles pidada, et bussid võivad lume tõttu hilineda. Kui sõidad ühe päevaga mitmesse linna, jäta ümberistumiseks piisavalt aega.',
+        'Mõlemas linnas on vanalinn väike ja vaatamisväärsused on jalgsi kättesaadavad. Kui sõidad ühe päevaga mitmesse linna, vaata sõiduplaan enne üle ja jäta ümberistumiseks aega, sest talvel võivad bussid lume tõttu hilineda.',
         '',
-        'Tartus tasub vaadata ka Emajõge ja Tähtvere parki. Viljandis on suvel kuulus folgifestival, aga talvel on linn vaikne ja kohvikutes on alati vaba laud. Mõlemas linnas on vanalinn väike ja kõik vaatamisväärsused on jalgsi kättesaadavad. Linnabussi pole turistil peaaegu vaja. Kevadel ja sügisel on hotellid odavamad kui suvel, sest siis on turiste vähem.',
+        'Allikas: Tartu Ülikool, „Tartu Ülikooli lugu”; Tartu 2024; Eesti Rahva Muuseum, „Ajalugu”; Elron; Eesti Pärimusmuusika Keskus (folk.ee); Puhka Eestis, „Viljandi Pärimusmuusika Ait” ja „Viljandi ordulinnuse varemed”.',
       ], [
-        ['Kui kaua sõidab rong Tallinnast Tartusse?', 'umbes kaks tundi|kaks tundi'],
-        ['Kui palju maksab Eesti Rahva Muuseumi pilet?', 'neliteist eurot|14 eurot'],
-        ['Kui palju maksab öö Tartu külalistemajas?', '40–60 eurot|40-60 eurot|40 kuni 60 eurot'],
+        ['Mis aastal asutati Tartu ülikool?', '1632|1632. aastal|aastal 1632'],
+        ['Mis tiitel oli Tartul 2024. aastal?', 'Euroopa kultuuripealinn|Euroopa kultuuripealinna tiitel|kultuuripealinn'],
+        ['Kus asub Eesti Rahva Muuseum?', 'Raadil|Raadil, kesklinnast natuke eemal'],
         ['Millega saab Tartust Viljandisse sõita?', 'bussiga'],
-        ['Miks on Viljandi Lenale huvitav?', 'seal on pärimusmuusika kontsert|Lena armastab pärimusmuusikat'],
-        ['Mis kell väljub pärast kontserti viimane buss Tallinnasse?', '21.30|kell 21.30'],
-        ['Miks peab talvel ümberistumiseks aega jätma?', 'bussid võivad lume tõttu hilineda'],
+        ['Mida näeb Viljandi lossimägedel?', 'vana ordulinnuse varemeid|linnuse varemeid ja järve|ordulinnuse varemeid ja vaadet järvele'],
+        ['Miks on Viljandi Lenale huvitav?', 'seal on pärimusmuusika kontserdid|Lena armastab pärimusmuusikat|Viljandi on tuntud pärimusmuusika poolest'],
+        ['Millal toimub Viljandi pärimusmuusika festival?', 'igal suvel juuli lõpus|juuli lõpus'],
         ['Kumb linn sobiks Lenale ööbimiseks paremini ja miks?', ''],
-      ]),
+      ]), { voice: 'article' }),
       teach(tag(B.speaking('049_d_survey', 'Kuhu viia välismaa sõber?', 'Küsi kolmelt inimeselt samad küsimused: mida peaks Lena Eestis nägema? Lõpus tee ülevaade.', ['Mida peaks välismaa sõber Eestis kindlasti nägema? Miks?', 'Kas Tartu või Viljandi? Miks?', 'Kas sõita bussi või rongiga?', 'Kus on hea ja odav ööbida?', 'Räägi lõpuks: mida kolm inimest soovitasid?'], [70, 120], ['Mida sa soovitad…?', 'Kõik kolm soovitasid…', 'Üks arvas, et…, aga teine…']), { task: 'S09', fluency: true }),
         'Üks-ühele: õpilane küsib samad küsimused õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (tudeng, pensionär, muusik). Lõpus teeb õpilane minutilise kokkuvõtte.'),
     ],
@@ -820,7 +876,7 @@ export const LESSONS = withShapes({
         'Kodune monoloog. Tunnis küsib õpetaja kaks küsimust plaani kohta ja pakub ühe muudatuse.'),
       B.rubricW2('049_t_rubric', 'Hindamine: kiri Lenale (12 punkti).'),
       tag(B.writing('049_t_edit', 'Parem kiri.', 'Loe oma kirja Lena silmadega. Märgi hindamisjuhendi järgi kaks puudust ja kirjuta parem versioon.', [9, 11], ['kõigepealt', 'pärast seda', 'sest', 'oli'], 3), { task: 'W10' }),
-      B.selfcheck('049_t_self', ['Ma saan aru sõbra häälsõnumist ja kolleegi reisiloost.', 'Ma leian sõiduplaanist ja hinnakirjast sobiva sõidu ning arvutan kulud.', 'Ma kasutan enneminevikku põhjuses ja hoiatuses.', 'Ma kirjutan sõbrale isikliku kirja reisiplaaniga.'], 'Reisiplaan sõbrale'),
+      B.selfcheck('049_t_self', ['Ma saan aru sõbra sõnumist, kolleegi reisiloost ja reisijuhi tekstist.', 'Ma leian sõiduplaanist ja hinnakirjast sobiva sõidu ning arvutan kulud.', 'Ma kasutan enneminevikku põhjuses ja hoiatuses.', 'Ma kirjutan sõbrale isikliku kirja reisiplaaniga.'], 'Reisiplaan sõbrale'),
     ],
   },
 
@@ -895,8 +951,18 @@ export const LESSONS = withShapes({
         ['Meie lend tühistas lumetormi pärast.', 'Meie lend tühistati lumetormi pärast.'],
       ], 'full', 'g_notice'),
       B.writing('050_d_write', 'Minu kõige parem reis.', 'Kirjuta 8–10 lauset oma kõige paremast reisist: kuhu, millega, kus ööbisid ja mis oli enne juhtunud.', [8, 10], ['sõitsin', 'ööbisime', 'oli juba', 'kui'], 3),
-      teach(B.speaking('050_d_warm', 'Soojendus enne eksamit.', 'Vasta küsimustele nagu eksami alguses, igale küsimusele kaks-kolm lauset.', ['Kus sa elad ja kui kaugel on sinu kodust kõige lähem rongijaam?', 'Millega sa tavaliselt tööle või kooli sõidad?', 'Kuhu sa sõitsid oma viimasel puhkusel?', 'Kas sinuga on reisil midagi ootamatut juhtunud?'], [70, 120]),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane samu küsimusi õpetajalt.'),
+      // the examiner's question set on the module's Harno topic (§13.7), with its own instruction (final shape V7); keeps the
+      // id of the warm-up it grew from
+      teach(withInstruction(B.examiner('050_d_warm', 'reisimine ja kohad', [
+        'Kuidas sa tavaliselt teise linna sõidad ja miks just nii?',
+        'Milline koht Eestis on sulle kõige rohkem meeldinud? Miks?',
+        'Kuhu viiksid sa Eestis külalise, kes on siin esimest korda?',
+        'Kas on parem reisida üksi või koos sõpradega? Põhjenda.',
+        'Kuidas erineb reisimine Eestis ja sinu kodumaal?',
+        'Kas ühistransport peaks olema odavam või isegi tasuta? Mis sa arvad?',
+        'Kuhu sa tahaksid järgmisena reisida ja miks?',
+      ]), 'Eksami algus: eksamineerija küsib reisimise ja Eesti paikade kohta. Vasta igale küsimusele paari lausega; kui küsitakse arvamust, ütle ka põhjus.'),
+      'Üks-ühele: õpetaja küsib nagu eksamineerija ega aita; vahel küsib ta lisaks „Miks?” või „Kas näiteks…?”. Lõpus küsib õpilane õpetajalt kaks küsimust samal teemal.'),
     ],
     practice: [
       B.examPart('050_p_rpart', 'R', { minutes: 40, points: 28, tasks: 4, note: 'Lugemisosa on Harno B1 vormis, aga lühem: neli ülesannet, 28 punkti. Eesmärk on vähemalt 23 punkti (80 %).' }),
@@ -918,23 +984,25 @@ export const LESSONS = withShapes({
         ['Reisija sõidab koeraga Muhu saarele jalgsi.', 'C'],
       ]), { harno: 'R1' }),
       B.reading('050_p_r2text', 'Lugemine 2. Artikkel.', 'Lugege rongireisidest kirjutatud artiklit. Valikküsimused tulevad kohe teksti järel.', 'Rongiga ümber Eesti: kas see on võimalik?', [
-        'Veel kümme aastat tagasi sõitsid Eestis rongiga peamiselt pensionärid ja üliõpilased. Täna on pilt teine. Rongides on tööinimesed, lastega pered ja turistid. Rongifirma andmetel sõitis eelmisel aastal rongiga üle kaheksa miljoni reisija.',
+        'Eestis korraldab reisirongiliiklust riigifirma Elron. 2025. aastal tehti Elroni rongidega 7,66 miljonit reisi. 2026. aasta esimese üheksa kuuga sõitis rongiga 5,885 miljonit reisijat, mis on rohkem kui aasta varem samal ajal.',
         '',
-        'Miks? Esiteks on rongid uued ja mugavad. Rongis saab töötada, sest seal on laud, pistikupesa ja internet. Teiseks on pilet sageli odavam kui bussipilet või kütus autole. Kolmandaks ei pea rongis muretsema liiklusummikute ega parkimise pärast.',
+        'Kõige populaarsemad on Tallinna lähedased liinid. 2026. aasta juulist septembrini sõitis kõige rohkem inimesi Tallinna–Turba ja Tallinna–Paldiski liinil. Elroni sõnul tõid reisijaid juurde odavamad perioodipiletid ja kiiremad sõidud Tallinna ja Tartu vahel.',
         '',
-        'Kõik ei ole siiski ideaalne. Eesti väiksematesse linnadesse rong ei sõida. Näiteks Pärnusse ja Haapsalusse saab praegu ainult bussi või autoga, kuigi rööpaid ehitatakse. Talvel juhtub ka seda, et rongid hilinevad külma tõttu.',
+        'Rongiga saab ka välismaale. 2026. aasta jaanuarist sõidab iga päev otserong Tallinnast Tartu kaudu Riiga. Tallinnast Riiga kestab sõit peaaegu kuus tundi. Pilet maksab Tallinnast 29–32 eurot ja Tartust 19–22 eurot; internetist ostes on see soodsam. Rahvusvahelise pileti saab osta ka rongis klienditeenindajalt.',
         '',
-        'Reisijate suurim soov on sagedasemad rongid õhtul. „Kui ma teatris käin, pean lahkuma enne lõppu, sest viimane rong läheb liiga vara,” räägib tartlane Kaja.',
+        'Kõikjale rong siiski ei sõida. Viimane reisirong sõitis Pärnusse 2018. aasta detsembris ja Haapsallu juba 1995. aastal. Neisse linnadesse saab praegu bussi või autoga.',
         '',
-        'Rongifirma lubab, et järgmisest aastast sõidab Tallinna ja Tartu vahel õhtul üks rong rohkem. Lisaks saab tulevikus rongi võtta ka jalgratta, kui see on eelnevalt broneeritud.',
+        'Kui rong hilineb 30 minutit või rohkem, maksab Elron piletiraha tagasi. Suuri hilinemisi on siiski vähe: 2026. aasta esimese üheksa kuu reisidest püsis sõiduplaanis üle 98 protsendi.',
+        '',
+        'Allikas: Elroni uudised (12.01.2026 ja 9.10.2026), Elroni leht „Pileti hüvitamine”, Vikipeedia, Läänlane.',
       ], []),
       tag(B.choice('050_p_r2', 'Lugemine 2. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus kolmest.', [
-        ['Kes sõitsid kümme aastat tagasi rongiga kõige rohkem?', 'pensionärid ja üliõpilased', 'tööinimesed', 'turistid'],
-        ['Mitu reisijat sõitis eelmisel aastal rongiga?', 'üle kaheksa miljoni', 'umbes kaheksasada tuhat', 'alla kahe miljoni'],
-        ['Miks on rongis hea töötada?', 'seal on laud, pistikupesa ja internet', 'rongid on alati tühjad', 'rongid sõidavad aeglaselt'],
+        ['Mitu reisi tehti Elroni rongidega 2025. aastal?', '7,66 miljonit', 'üle kaheksa miljoni', 'alla kahe miljoni'],
+        ['Miks sõidab Elroni sõnul rongiga nüüd rohkem inimesi?', 'perioodipiletid on odavamad ja Tartusse sõit kiirem', 'üksikpiletid on tasuta', 'bussid enam ei sõida'],
+        ['Mis muutus 2026. aasta jaanuaris?', 'hakkas sõitma otserong Riiga', 'piletid läksid kallimaks', 'Pärnusse hakkas sõitma rong'],
         ['Millega saab praegu Pärnusse?', 'bussi või autoga', 'ainult rongiga', 'ainult autoga'],
-        ['Mis on reisijate suurim soov?', 'rohkem ronge õhtul', 'odavamad piletid', 'rohkem jalgrattakohti'],
-        ['Mida lubab rongifirma järgmiseks aastaks?', 'ühe õhtuse rongi rohkem Tallinna ja Tartu vahel', 'uue raudtee Pärnusse', 'tasuta piletid õpilastele'],
+        ['Millal maksab Elron piletiraha tagasi?', 'kui rong hilineb vähemalt 30 minutit', 'kui reisija jääb rongist maha', 'kui rongis ei ole vaba kohta'],
+        ['Mida ütleb artikkel rongide täpsuse kohta?', 'üle 98 protsendi reisidest püsis sõiduplaanis', 'pooled rongid hilinevad', 'talvel hilinevad rongid alati'],
       ]), { harno: 'R2' }),
       tag(B.cloze('050_p_r3', 'Lugemine 3. Lena kiri.', 'Lugege Lena kirja Sofiale. Valige igasse lünka sõna, mis sobib nii vormilt kui ka mõttelt.', 'Kallis Sofia!', [
         'Olen jälle Berliinis ja meenutan iga päev {*meie|meid|meile} reisi. Aitäh sulle ja su emale!',
@@ -970,18 +1038,18 @@ export const LESSONS = withShapes({
         ['Miks praamid täna ei sõida?', 'tuul on liiga tugev', 'praam on remondis', 'meri on jääs'],
       ]), { harno: 'L1' }),
       tag(B.examListen('050_p_l2', 'Kuulamine 2. Raadiolugu.', 'Kuulake raadiolugu matkamisest Eesti rabades. Valige igale küsimusele õige vastus.', 'choice', [
-        'Diktor: Head kuulajad! Kevad on käes ja paljud lähevad nädalavahetusel rappa matkama. Eestis on üle saja märgistatud matkaraja, mille ääres on laudtee.',
-        'Diktor: Kõige populaarsem on Viru raba Lahemaal. Sinna on Tallinnast umbes tund sõitu ja raja pikkus on kuus kilomeetrit. Laupäeviti on seal nii palju inimesi, et parklas ei ole kohti juba kella kümneks.',
-        'Diktor: Seepärast soovitab Keskkonnaamet minna rappa varahommikul või valida mõne vähem tuntud raja. Näiteks Soomaal ja Kõrvemaal on rajad sama ilusad, aga inimesi palju vähem.',
+        'Diktor: Head kuulajad! Kevad on käes ja paljud lähevad nädalavahetusel rappa matkama. Eestis on kuus rahvusparki ja rabasse saab minna mööda laudteed.',
+        'Diktor: Üks tuntumaid rabasid on Viru raba Lahemaa rahvuspargis. Sinna on Tallinnast umbes tund sõitu. Raja pikkus on kolm ja pool kilomeetrit, ringiga viis ja pool. Raja keskel on vaatetorn, kust näeb kogu raba.',
+        'Diktor: Nädalavahetusel on Viru rabas palju inimesi. Kui tahad rahulikku matka, mine varahommikul või vali mõni vähem tuntud raba, näiteks Soomaal või Kõrvemaal.',
         'Diktor: Mida kaasa võtta? Kindlasti vett, sest rabas ei ole poode. Ka putukatõrjevahend on suvel vajalik. Laudteel tuleb kanda mugavaid jalanõusid, sest laud võib vihmaga olla väga libe.',
-        'Diktor: Rabas ei tohi teha lõket ja laudteelt maha minna. Taimed on rabas väga tundlikud ja jalajälg võib jääda aastateks.',
-        'Diktor: Kui soovite rabast rohkem teada, minge giidiga. Giidid räägivad, kuidas raba tekkis ja millised linnud seal elavad. Matk giidiga kestab umbes kolm tundi.',
+        'Diktor: Lõket tohib teha ainult selleks ettevalmistatud lõkkekohas. Rabataimed on väga tundlikud, seepärast püsi laudteel.',
+        'Diktor: Kui soovite rabast rohkem teada, minge giidiga. Giid räägib, kuidas raba tekkis ja millised linnud seal elavad.',
       ], [
-        ['Mitu märgistatud matkarada on Eestis?', 'üle saja', 'umbes kümme', 'üle tuhande'],
-        ['Mis on Viru raba probleem laupäeviti?', 'parklas ei ole kohti', 'rada on suletud', 'laudtee on katki'],
-        ['Mida soovitab Keskkonnaamet?', 'minna varahommikul', 'minna ainult laupäeval', 'sõita bussiga'],
+        ['Mitu rahvusparki on Eestis?', 'kuus', 'kolm', 'üle saja'],
+        ['Mis on Viru raba raja keskel?', 'vaatetorn', 'kohvik', 'parkla'],
+        ['Mida soovitab diktor neile, kes tahavad rahulikku matka?', 'minna varahommikul', 'minna ainult laupäeval', 'sõita bussiga'],
         ['Miks peab vett kaasa võtma?', 'rabas ei ole poode', 'rabavesi on soe', 'matk kestab kaua'],
-        ['Mida ei tohi rabas teha?', 'laudteelt maha minna', 'pildistada linde', 'süüa võileibu'],
+        ['Kus tohib lõket teha?', 'ainult ettevalmistatud lõkkekohas', 'igal pool rabas', 'laudtee peal'],
       ]), { harno: 'L2' }),
       tag(B.listening('050_p_l3', 'Kuulamine 3. Telefonikõne.', 'Kuulake kõnet bussifirma kaotatud asjade lauda. Vastake küsimustele ühe-kahe sõnaga.', [
         'Kaia: Kõrve Reisid, kaotatud asjad. Tere, mina olen Kaia.',
@@ -1011,7 +1079,7 @@ export const LESSONS = withShapes({
         'Ülle: Kui vara peaks reisi broneerima?',
         'Annika: Suvereisi tuleks broneerida juba jaanuaris või veebruaris. Viimasel minutil on head pakkumised harvad, kuigi neid vahel siiski on.',
         'Ülle: Mis on kõige tavalisem probleem, millega kliendid teie juurde tulevad?',
-        'Annika: Kadunud pagas. Umbes üks kohver sajast jõuab sihtkohta hiljem. Ma soovitan panna kõige vajalikumad asjad käsipagasisse.',
+        'Annika: Kadunud pagas. Seda ei juhtu sageli, aga kui juhtub, on puhkuse algus rikutud. Ma soovitan panna kõige vajalikumad asjad käsipagasisse.',
         'Ülle: Kas reisikindlustus on vajalik?',
         'Annika: Minu arvates küll. Kui reis tühistatakse või jääd haigeks, saad raha tagasi. Kindlustus maksab tavaliselt alla kümne protsendi reisi hinnast.',
         'Ülle: Kuhu sina ise sel suvel lähed?',
@@ -1022,7 +1090,7 @@ export const LESSONS = withShapes({
         ['Hotellid on läinud palju kallimaks kui lennupiletid.', false],
         ['Paljud pered sõidavad autoga Lätti ja Leetu.', true],
         ['Annika arvates tuleks suvereis broneerida mais.', false],
-        ['Umbes iga sajas kohver jõuab sihtkohta hiljem.', true],
+        ['Annika sõnul kaob pagas väga sageli.', false],
         ['Annika soovitab reisikindlustust.', true],
       ]), { harno: 'L4' }),
       B.rubric('050_p_rcheck', 'Lugemise strateegiad: mis aitas?', 'Märgi pärast lugemisosa, mida sa tegid. Mida teed järgmisel korral teisiti?', ['Lugesin enne teksti olukorrad või küsimused ja jooni alla võtmesõnad.', 'Leidsin tekstist sama mõtte teiste sõnadega.', 'Jälgisin aega: igale ülesandele umbes 10 minutit.', 'Jätsin raske lünga vahele ja tulin hiljem tagasi.']),
