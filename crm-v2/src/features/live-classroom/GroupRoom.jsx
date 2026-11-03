@@ -1,5 +1,5 @@
 import { ArrowLeft, LibraryBig, MessageSquare, Mic, MicOff, Phone, PhoneOff, Redo2, Send, Undo2, Users, Video, VideoOff, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize } from '../board/boardModel.js';
 import { groupBoardService } from '../../services/firebase/studentBoard.js';
@@ -10,6 +10,10 @@ import { useGroupCall } from './useGroupCall.js';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
+import LessonPlanPanel, { LessonPlanPill } from './LessonPlanPanel.jsx';
+import { useLessonPlan } from './useLessonPlan.js';
+import { defaultPlanSteps } from './lessonPlan.js';
+import { timestampMillis } from './invitationModel.js';
 import './liveRoom.css';
 
 function RemoteTile({ tile }) {
@@ -61,7 +65,7 @@ function GroupChat({ messages, me, closed, onSend }) {
  */
 export default function GroupRoom({
   roomId, role, user, onLeave, onEnd, turnInvitationId = '', service = liveGroupRoomsService, boardService = groupBoardService,
-  library, callOptions = {}, recordings = [], myInvitation = null, recordingService,
+  library, callOptions = {}, recordings = [], myInvitation = null, recordingService, invitations = [], planService,
 }) {
   const teacher = role === 'teacher';
   const [room, setRoom] = useState(null);
@@ -87,6 +91,20 @@ export default function GroupRoom({
   const unread = panel === 'chat' ? 0 : messages.slice(seen ?? messages.length).filter((message) => message.fromUid !== user.uid).length;
   const myName = teacher ? room?.teacherName : (room?.members || []).find((member) => member.studentUid === user.uid)?.studentName;
   const closed = room?.status === 'closed';
+  // -- the teacher's lesson plan and the members' attendance (liveLessonPlans/{roomId}, staff-only) --
+  const defaultSteps = useMemo(() => defaultPlanSteps({ minutes: 60 }), []);
+  const planState = useLessonPlan({ roomKey: roomId, kind: 'group', user, enabled: teacher, defaultSteps, ...(planService ? { service: planService } : {}) });
+  const [presence, setPresence] = useState([]);
+  useEffect(() => {
+    if (!teacher || !service.subscribePresence) return undefined;
+    try { return service.subscribePresence(roomId, setPresence, () => {}); } catch { return undefined; }
+  }, [teacher, roomId, service]);
+  const participants = (room?.members || []).map((member) => {
+    const invitation = invitations.find((item) => item.studentId === member.studentId && item.status === 'accepted');
+    const seen = presence.find((item) => item.uid === member.studentUid);
+    return { studentId: member.studentId, name: member.studentName, joinedAt: invitation?.respondedAt || null, online: Boolean(seen?.online) };
+  });
+  const roomStart = timestampMillis(room?.createdAt) || 0;
   // recording (teacher): one recording per student — the teacher's microphone + that student's audio — on the
   // student's own invitation, so each student gets their own lesson analysis (consent from the student card)
   const [recState, setRecState] = useState({});
@@ -127,6 +145,7 @@ export default function GroupRoom({
           {teacher && !closed ? <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'materials' ? '' : 'materials')}><LibraryBig size={17} /> Materjalid</button> : null}
           {teacher && recordingCount ? <span className="lr-pill lr-rec" role="status"><span className="lr-rec__dot" aria-hidden="true" />Salvestan ({recordingCount})</span> : null}
           {teacher && recordingCount && transcriber.known && !transcriber.online ? <span className="lr-pill lr-rec is-off" title={transcriberLabel(transcriber)}>Mac ei transkribeeri</span> : null}
+          {teacher ? <LessonPlanPill clock={planState.clock} active={panel === 'plan'} onClick={() => setPanel(panel === 'plan' ? '' : 'plan')} /> : null}
           {teacher && !closed ? <button type="button" className="lr-text-btn is-danger" onClick={end}>Lõpeta tund</button> : null}
         </div>
       </header>
@@ -154,6 +173,11 @@ export default function GroupRoom({
           {panel === 'chat' ? <section className="lr-drawer" aria-label="Vestlus">
             <header><strong>Vestlus</strong><button type="button" className="lr-icon" aria-label="Sulge vestlus" onClick={() => setPanel('')}><X size={18} /></button></header>
             <div className="lr-drawer__body"><GroupChat messages={messages} me={user.uid} closed={closed} onSend={(text) => service.sendMessage(roomId, { text, user, name: myName })} /></div>
+          </section> : null}
+          {panel === 'plan' && teacher ? <section className="lr-drawer" aria-label="Tunniplaan">
+            <header><strong>Tunniplaan</strong><button type="button" className="lr-icon" aria-label="Sulge tunniplaan" onClick={() => setPanel('')}><X size={18} /></button></header>
+            <div className="lr-drawer__body"><LessonPlanPanel planState={planState} participants={participants} startMs={roomStart}
+              attendanceNote="Grupiruum ei ole kalendri grupitunniga seotud: märked jäävad tunniplaani. Kalendri kohalolu (ja tunnid) märgi grupi tunnis kalendris." /></div>
           </section> : null}
           {panel === 'materials' && teacher ? <section className="lr-drawer" aria-label="Materjalid">
             <header><strong>Materjalid</strong><button type="button" className="lr-icon" aria-label="Sulge" onClick={() => setPanel('')}><X size={18} /></button></header>

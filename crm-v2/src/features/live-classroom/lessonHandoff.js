@@ -18,12 +18,16 @@ function readAll(store) {
   }
 }
 
-export function saveLessonHandoff(lessonKey, { notes = '', lessonIds = [] } = {}, store = storage(), now = Date.now()) {
+// the calendar statuses the room may hand over (the in-room attendance): the ones the calendar's own buttons write
+const HANDOFF_STATUS = ['Toimunud', 'Puudus_eta'];
+
+export function saveLessonHandoff(lessonKey, { notes = '', lessonIds = [], status = '' } = {}, store = storage(), now = Date.now()) {
   if (!isLessonKey(lessonKey) || !store) return;
   const fresh = Object.fromEntries(Object.entries(readAll(store)).filter(([, entry]) => now - (entry?.savedAt || 0) < MAX_AGE));
   fresh[lessonKey] = {
     notes: String(notes || '').trim().slice(0, 1000),
     lessonIds: [...new Set(lessonIds.filter((id) => typeof id === 'string' && id))].slice(0, 10),
+    ...(HANDOFF_STATUS.includes(status) ? { status } : {}),
     savedAt: now,
   };
   try { store.setItem(KEY, JSON.stringify(fresh)); } catch { /* private mode: the teacher marks the lesson by hand */ }
@@ -38,6 +42,12 @@ export function takeLessonHandoff(lessonKey, store = storage(), now = Date.now()
   delete all[lessonKey];
   try { store.setItem(KEY, JSON.stringify(all)); } catch { /* ignore */ }
   return now - (entry.savedAt || 0) < MAX_AGE ? entry : null;
+}
+
+// The fields for completeFromSchedule: the topic fields plus the room's attendance status when one was handed over
+// (Puudub → „Puudus_eta”); without one the calendar marks „Toimunud” as before.
+export function handoffFields(fields, handoff) {
+  return HANDOFF_STATUS.includes(handoff?.status) ? { ...fields, status: handoff.status } : fields;
 }
 
 // The topic for the journal: the first worksheet's curriculum lesson that is in the catalogue, else the suggestion.

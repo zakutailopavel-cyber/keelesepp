@@ -256,4 +256,23 @@ describe('LiveRoom: the student’s pet', () => {
     await waitFor(() => expect(petRepository.get).toHaveBeenCalled());
     expect(screen.queryByText(/on ka tunnis/)).toBeNull();
   });
+
+  it('the teacher has the lesson plan and attendance (the student does not)', async () => {
+    const planService = { subscribe: vi.fn((key, onChange) => { onChange(null); return vi.fn(); }), save: vi.fn(async () => ({})) };
+    renderRoom('teacher', services(), { planService });
+    fireEvent.click(screen.getByRole('button', { name: 'Tunniplaan' }));
+    const drawer = screen.getByRole('region', { name: 'Tunniplaan' });
+    expect(within(drawer).getByText(/Plaan 60 min/)).toBeInTheDocument();
+    expect(within(drawer).getByRole('group', { name: 'Kohalolu: Julia' })).toBeInTheDocument();
+    expect(within(drawer).getByText(/Soovitus: Kohal/)).toBeInTheDocument();
+    expect(planService.subscribe).toHaveBeenCalledWith('inv-1', expect.any(Function), expect.any(Function));
+    expect(planService.save).not.toHaveBeenCalled();
+  });
+
+  it('a student never reads the plan', () => {
+    const planService = { subscribe: vi.fn(() => vi.fn()), save: vi.fn() };
+    renderRoom('student', services(), { planService });
+    expect(screen.queryByRole('button', { name: 'Tunniplaan' })).toBeNull();
+    expect(planService.subscribe).not.toHaveBeenCalled();
+  });
 });

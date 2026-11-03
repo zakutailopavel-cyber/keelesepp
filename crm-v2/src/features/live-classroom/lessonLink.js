@@ -24,6 +24,24 @@ export function rememberLessonLink(invitationId, lessonKey) {
   try { globalThis.localStorage?.setItem(KEY, JSON.stringify(trimmed)); } catch { /* private mode: fall back to the student filter */ }
 }
 
+// The calendar lesson's day, start and length, kept beside the link: the room's lesson plan is scaled to the length
+// and the attendance compares the join time with the start (separate key: the link format above stays unchanged).
+const TIMING_KEY = 'keelesepp.liveLessonTimings';
+export function rememberLessonTiming(invitationId, { date = '', time = '', duration = 0 } = {}) {
+  if (!invitationId) return;
+  let all = {};
+  try { all = JSON.parse(globalThis.localStorage?.getItem(TIMING_KEY) || '{}') || {}; } catch { all = {}; }
+  const value = { date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : '', time: /^\d{1,2}:\d{2}$/.test(time) ? time : '', duration: Math.min(240, Math.max(0, Math.round(Number(duration) || 0))) };
+  const trimmed = Object.fromEntries(Object.entries({ ...all, [invitationId]: value }).slice(-MAX_LINKS));
+  try { globalThis.localStorage?.setItem(TIMING_KEY, JSON.stringify(trimmed)); } catch { /* private mode: default plan length */ }
+}
+export function lessonTimingFor(invitationId) {
+  try {
+    const value = (JSON.parse(globalThis.localStorage?.getItem(TIMING_KEY) || '{}') || {})[invitationId];
+    return value && typeof value === 'object' ? value : null;
+  } catch { return null; }
+}
+
 export function lessonLinkFor(invitationId) {
   const value = readLinks()[invitationId];
   return isLessonKey(value) ? value : '';
