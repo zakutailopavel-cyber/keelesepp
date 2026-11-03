@@ -1,5 +1,5 @@
 import { isPlaceholderEmail } from '../../utils/placeholderEmail.js';
-import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Eye, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
+import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Eye, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import '../board/board.css';
 import { lazy, Suspense, useCallback, useContext, useEffect, useState } from 'react';
 import MergeCardsModal from './MergeCardsModal.jsx';
@@ -46,6 +46,7 @@ import StudyPlanCard from './StudyPlanCard.jsx';
 import ActivityFeedCard from '../learner/ActivityFeedCard.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
 import { initialAssessmentsService } from '../../services/firebase/initialAssessments.js';
+import { CardTrashDialog, CardTrashNotice } from '../trash/CardTrashDialog.jsx';
 
 // Admin: the student's Facebook / Instagram with links to the profile and to a direct message
 function SocialRow({ label, contact }) {
@@ -70,7 +71,7 @@ const PROFILE_TABS = [
 // the works tab opens the sheet viewer: downloaded when the tab is opened, not with every card
 const StudentWorksPanel = lazy(() => import('./StudentWorksPanel.jsx'));
 
-export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
+export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -92,6 +93,8 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState('');
   const [notice, setNotice] = useState('');
+  // „Kustuta” (administrator 2026-11-03): the card goes to the „Prügikast” for 7 days; the student menu opens it with ?kustuta=1
+  const [trashOpen, setTrashOpen] = useState(() => searchParams.get('kustuta') === '1');
   // several subjects on one card (owner 2026-10-20): the lessons of one subject, or all
   const [subject, setSubject] = useState('');
   const [activeTab, setActiveTab] = useState(() => PROFILE_TABS.some((tab) => tab.id === searchParams.get('tab')) ? searchParams.get('tab') : 'overview');
@@ -153,19 +156,24 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
   // a teacher sees only the directions they teach
   const directionStudent = ownTracks?.length ? { ...student, enrollments: (student.enrollments || []).filter((track) => ownTracks.some((own) => own.subject === subjectName(track.subject))) } : student;
   const tabPanelId = `student-profile-panel-${activeTab}`;
+  const trashed = Boolean(student.deletedAt || student.purgedAt);
+  const trashProps = trashApi ? { service: trashApi } : {};
+  const closeTrash = () => { setTrashOpen(false); if (searchParams.get('kustuta')) setSearchParams((current) => { current.delete('kustuta'); return current; }, { replace: true }); };
   const initials = String(student.name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
   return (
     <div className="page-content">
       <Link className="back-link" to="/students"><ArrowLeft size={17} /> Kõik õpilased</Link>
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
+      {canAssignTeacher ? <CardTrashNotice kind="student" card={student} {...trashProps} onRestored={async () => { await refreshStudent(); setNotice('Õpilase kaart on prügikastist taastatud.'); }} /> : null}
       <header className="student-profile-hero">
-        <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1>{tracks.length > 1 || (ownTracks?.length && subjectsOf(student).length > 1) ? <p className="subject-tracks">{tracks.map((track) => <span key={track.id || track.subject}>{track.subject} · {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}{track.level ? ` · ${track.level}` : ''}</span>)}</p> : <p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p>}</span></div>
+        <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={trashed ? 'danger' : student.active ? 'success' : 'neutral'}>{trashed ? (student.purgedAt ? 'Kustutatud' : 'Prügikastis') : student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1>{tracks.length > 1 || (ownTracks?.length && subjectsOf(student).length > 1) ? <p className="subject-tracks">{tracks.map((track) => <span key={track.id || track.subject}>{track.subject} · {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}{track.level ? ` · ${track.level}` : ''}</span>)}</p> : <p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p>}</span></div>
         <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
         <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link>{auth?.startPreview && !auth?.preview ? <Button variant="secondary" onClick={() => {
           // the student's own cabinet, read only: what he sees is what the teacher sees (owner 2026-10-27)
           previewNavigation.open({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' }, '/student');
-        }}><Eye size={17} /> Vaata õpilase silmadega</Button> : null}<Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setTracksOpen(true)}><Layers size={17} /> Õppesuunad</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
+        }}><Eye size={17} /> Vaata õpilase silmadega</Button> : null}<Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setTracksOpen(true)}><Layers size={17} /> Õppesuunad</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher && !trashed ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}{canAssignTeacher && !trashed ? <Button variant="secondary" onClick={() => setTrashOpen(true)}><Trash2 size={17} /> Kustuta</Button> : null}</div>
+        {canAssignTeacher && !trashed ? <CardTrashDialog open={trashOpen} kind="student" id={student.id} name={student.name} {...trashProps} onClose={closeTrash} onDone={async () => { closeTrash(); await refreshStudent(); setNotice('Õpilase kaart on viidud prügikasti. 7 päeva jooksul saab selle taastada.'); }} /> : null}
         {canAssignTeacher && tracksOpen ? <EnrollmentManager student={student} directions={directions} teachers={teacherChoices(staffTeachers, [student.teacher])} service={studentApi}
           onClose={() => { setTracksOpen(false); if (searchParams.get('enrollments')) setSearchParams((current) => { current.delete('enrollments'); return current; }, { replace: true }); }}
           onChanged={refreshStudent}

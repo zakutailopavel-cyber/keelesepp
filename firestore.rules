@@ -848,6 +848,21 @@ service cloud.firestore {
       ]);
     }
 
+    // the trash fields of a student / teacher card (functions/card-trash.js): administrator only
+    function changesCardTrash() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'deletedAt',
+        'deletedBy',
+        'purgeAfter',
+        'trashState',
+        'purgeBlocked',
+        'purgeBlockedAt',
+        'purgedAt',
+        'anonymised',
+        'restoredFromTrashAt'
+      ]);
+    }
+
     function safeSelfUserFields() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
         'displayName',
@@ -1005,6 +1020,10 @@ service cloud.firestore {
           teacherCanUpdate(resource.data, request.resource.data)
           && !changesStudentOwnership()
           && !changesStudentTariffSource()
+          // „Prügikast” (2026-11-03): only the administrator (through staffOperationsApi) puts a card in the trash or
+          // takes it out; a teacher does not change a card that is in the trash or was purged
+          && !changesCardTrash()
+          && resource.data.get('deletedAt', null) == null
           // the student's Facebook / Instagram contact is kept by the admin
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['facebook', 'instagram'])
         )

@@ -8621,6 +8621,19 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
     // two cards of one learner: preview, then merge (functions/student-merge.js). Its own path: "/students/merge"
     // above is the finance duplicate merge (requestId required), which answered first (owner 2026-10-17:
     // „Liida kaardid” showed "Valid requestId required").
+    // „Prügikast” (administrator 2026-11-03, functions/card-trash.js, ARCHITECTURE.md „Card trash”): a student or teacher
+    // card goes to the trash for 7 days (refused while it has lessons ahead), „Taasta” brings it back; the scheduled
+    // purgeCardTrash deletes or anonymises it afterwards. /cards/purge-due runs that purge now (same rules).
+    if (req.path === "/cards/trash" || req.path === "/cards/restore" || req.path === "/cards/purge-due") {
+      const cardTrash = require("./card-trash");
+      res.set("Cache-Control", "no-store");
+      try {
+        if (req.path === "/cards/trash") res.json(await cardTrash.trashCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
+        else if (req.path === "/cards/restore") res.json(await cardTrash.restoreCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor), FieldValue }));
+        else res.json(await cardTrash.purgeDueCards(db, { FieldValue }));
+      } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
+      return;
+    }
     if (req.path === "/students/merge-cards") {
       const { mergeStudentCards } = require("./student-merge");
       try {
@@ -12567,6 +12580,21 @@ exports.refreshSchoolAssistant = functions
   .onRun(async () => {
     const result = await refreshOperationalAlerts();
     console.log("School assistant refreshed", result);
+    return null;
+  });
+
+// ── SCHEDULED: „Prügikast” — cards whose week in the trash is over ─
+// Deletes a card only when nothing refers to it; a card with history (lessons, invoices, payments, homework, pay …)
+// is anonymised and keeps its id; a card with lessons ahead stays in the trash. Firebase Auth users are not touched.
+// functions/card-trash.js, ARCHITECTURE.md „Card trash”.
+exports.purgeCardTrash = functions
+  .runWith({ timeoutSeconds: 540, memory: "512MB" })
+  .pubsub
+  .schedule("40 3 * * *")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const result = await require("./card-trash").purgeDueCards(db, { FieldValue });
+    console.log("Card trash purged", { deleted: result.deleted, anonymised: result.anonymised, blocked: result.blocked, errors: result.errors });
     return null;
   });
 

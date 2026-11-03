@@ -81,6 +81,35 @@ describe('student profile tabs and role access', () => {
     renderProfile({ actor: { uid: 't1', roles: ['teacher'], displayName: 'Pavel' } });
     await screen.findByRole('heading', { name: 'Mari Maas' });
     expect(screen.queryByRole('button', { name: /Arhiveeri/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Kustuta/ })).toBeNull();
+  });
+
+  it('„Kustuta” (administrator 2026-11-03): the card goes to the trash after a confirmation and comes back with „Taasta”', async () => {
+    let card = { id: 's1', name: 'Mari Maas', teacher: 'Pavel', active: true, skillMap: {} };
+    const trashApi = {
+      trash: vi.fn(async () => { card = { ...card, active: false, deletedAt: '2026-10-01T09:00:00.000Z', purgeAfter: '2026-10-08T09:00:00.000Z', trashState: { active: true } }; return { purgeAfter: card.purgeAfter }; }),
+      restore: vi.fn(async () => { card = { id: 's1', name: 'Mari Maas', teacher: 'Pavel', active: true, skillMap: {} }; return { restored: true }; }),
+    };
+    const studentApi = { getById: vi.fn(async () => card), update: vi.fn() };
+    render(
+      <MemoryRouter initialEntries={['/students/s1']}>
+        <Routes>
+          <Route path="/students/:studentId" element={<StudentProfilePage studentApi={studentApi} lessonApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} invoiceApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} scheduleApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} trashApi={trashApi} actor={{ roles: ['admin'], displayName: 'Admin' }} />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.click(await screen.findByRole('button', { name: /Kustuta/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Kustuta õpilase kaart' });
+    expect(dialog).toHaveTextContent('7 päeva');
+    fireEvent.click(within(dialog).getByRole('button', { name: /Vii prügikasti/ }));
+    await waitFor(() => expect(trashApi.trash).toHaveBeenCalledWith('student', 's1'));
+    expect(await screen.findByText('Prügikastis')).toBeInTheDocument();
+    expect(screen.getByText('Kaart on prügikastis')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Arhiveeri/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Kustuta/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Taasta/ }));
+    await waitFor(() => expect(trashApi.restore).toHaveBeenCalledWith('student', 's1'));
+    expect(await screen.findByText('Aktiivne õpilane')).toBeInTheDocument();
   });
 
   it('shows a concise overview first and switches to the lessons tab with planned and unmarked lessons', async () => {

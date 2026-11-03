@@ -18,6 +18,12 @@ describe('students service mapping', () => {
   it('scopes a teacher to their own students across legacy aliases', () => {
     expect(matchesStudentFilters({ teacher: 'Pavel' }, { scopeTeacher: 'Pavel Zakutailo' })).toBe(true);
     expect(matchesStudentFilters({ teacher: 'Jelena' }, { scopeTeacher: 'Pavel Zakutailo' })).toBe(false);
+    // „Prügikast”: a card in the trash or purged after it is in no list, archive included
+    expect(matchesStudentFilters({ name: 'Mari', active: false, deletedAt: '2026-11-03T10:00:00.000Z' }, {})).toBe(false);
+    expect(matchesStudentFilters({ name: 'Mari', active: false, deletedAt: '2026-11-03T10:00:00.000Z' }, { status: 'archived' })).toBe(false);
+    expect(matchesStudentFilters({ name: 'Kustutatud õpilane #abc', active: false, purgedAt: '2026-11-10T10:00:00.000Z' }, {})).toBe(false);
+    expect(matchesStudentFilters({ name: 'Mari', active: false, deletedAt: '2026-11-03T10:00:00.000Z' }, { includeDeleted: true })).toBe(true);
+    expect(matchesStudentFilters({ name: 'Mari', active: false }, { status: 'archived' })).toBe(true);
     expect(matchesStudentFilters({ teacher: 'Pavel Zakutailo' }, { teacher: 'Pavel' })).toBe(true);
   });
 

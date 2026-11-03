@@ -65,8 +65,10 @@ export const ENTITY_TYPES = Object.freeze({
       { id: 'finance', label: 'Finantsid', icon: 'money', roles: FINANCE, route: '/students/:studentId', to: (d) => `/students/${enc(d.studentId)}?tab=finance` },
       { id: 'copy-phone', label: (d, record) => `Kopeeri telefon (${phoneOf(record)})`, icon: 'copy', when: (d, record) => Boolean(phoneOf(record)), copy: (d, record) => phoneOf(record) },
       { id: 'copy-email', label: 'Kopeeri e-post', icon: 'copy', when: (d, record) => Boolean(emailOf(record)), copy: (d, record) => emailOf(record) },
-      { id: 'restore', label: 'Taasta arhiivist', icon: 'restore', kind: 'restore', when: (d, record) => record?.active === false },
-      { id: 'archive', label: 'Arhiveeri', icon: 'archive', kind: 'archive', danger: true, when: (d, record) => Boolean(record) && record.active !== false },
+      { id: 'restore', label: 'Taasta arhiivist', icon: 'restore', kind: 'restore', when: (d, record) => record?.active === false && !record.deletedAt && !record.purgedAt },
+      { id: 'archive', label: 'Arhiveeri', icon: 'archive', kind: 'archive', danger: true, when: (d, record) => Boolean(record) && record.active !== false && !record.deletedAt },
+      // „Prügikast” (administrator 2026-11-03): the card's own „Kustuta” window (7 days in the trash, then purged)
+      { id: 'delete', label: 'Kustuta (prügikasti)', icon: 'trash', roles: ACCESS.ADMIN, danger: true, route: '/students/:studentId', when: (d, record) => Boolean(record) && !record.deletedAt && !record.purgedAt, to: (d) => `/students/${enc(d.studentId)}?kustuta=1` },
     ],
   },
 
@@ -161,6 +163,7 @@ export const ENTITY_TYPES = Object.freeze({
       { id: 'open', label: 'Ava profiil', icon: 'open', route: '/teachers/:teacherId', to: (d) => `/teachers/${enc(d.teacherUid)}` },
       { id: 'calendar', label: 'Õpetaja kalender', icon: 'calendar', route: '/calendar', to: (d) => `/calendar?teacher=${enc(d.teacherUid)}` },
       { id: 'copy-email', label: 'Kopeeri e-post', icon: 'copy', when: (d) => Boolean(d.email), copy: (d) => d.email },
+      { id: 'delete', label: 'Kustuta (prügikasti)', icon: 'trash', danger: true, route: '/teachers/:teacherId', to: (d) => `/teachers/${enc(d.teacherUid)}?kustuta=1` },
     ],
   },
 

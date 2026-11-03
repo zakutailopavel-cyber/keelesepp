@@ -391,6 +391,56 @@ The scheduled `refreshSchoolAssistant` function derives owner-only alerts from i
 work sessions and sanitized Google Calendar status. It runs without an external AI provider, so
 school and payroll records remain inside the Firebase project.
 
+### Card trash — „Prügikast” for student and teacher cards (2026-11-03)
+
+Administrator request (Oleksiy 2026-11-03): an administrator deletes student and teacher cards; a deleted card waits a
+week in a trash, then it is deleted for good. Code: `functions/card-trash-core.js` (rules, unit-tested),
+`functions/card-trash.js` (Firestore), `staffOperationsApi /cards/trash | /cards/restore | /cards/purge-due` (admin
+only), scheduled `purgeCardTrash` (daily 03:40 Europe/Tallinn); CRM: „Kustuta” on the student card and the teacher card
+(`features/trash/CardTrashDialog.jsx`; the right-click menu opens the same window with `?kustuta=1`), page Inimesed →
+„Prügikast” (`/trash`, `features/trash/TrashPage.jsx`, `services/firebase/cardTrash.js`).
+
+1. **Kustuta (trash).** Refused while the card has lessons ahead (a planned single lesson from today on, or a recurring
+   series without a past end date — `schedule-clear-core.js futureRecordInScope`) or an active group: the administrator
+   cancels or reassigns them first. Blocking rather than cancelling was chosen because cancelling sends e-mails, changes
+   Google Calendar and package balances — not something a delete should do silently. A teacher card: role `teacher`
+   only (an administrator account is changed to teacher first), never the own account. The card gets `deletedAt`,
+   `deletedBy {uid, name}`, `purgeAfter` (= deletedAt + 7 days, ISO strings) and `trashState` (the previous `active` of
+   a student / `disabled` of a teacher). A student card gets `active: false` (so every active list, the learner and
+   parent cabinets, invoicing and e-mails leave it out); a teacher profile gets `disabled: true` (the rules treat a
+   disabled profile as signed out). Nothing else on the card changes. An audit entry `activityLog/card-trash-…` is written.
+2. **Hidden everywhere.** `studentsService` (`matchesStudentFilters`, `listSelf`, `listOwned`) and `teachersService.list`
+   leave out every card with `deletedAt` or `purgedAt` — archive lists, search, calendar, finance and group pickers
+   included (`{ includeDeleted: true }` for history views). The card itself still opens by its link and shows
+   „Kaart on prügikastis — kustutatakse lõplikult <date>” with „Taasta”. Payroll still shows a deleted teacher's work
+   (it adds staff from the work sessions).
+3. **Taasta (restore)** within the week: the previous `active` / `disabled` comes back and the trash fields are removed;
+   audit `activityLog/card-restore-…`.
+4. **Purge after 7 days** (`purgeCardTrash`, or „/cards/purge-due” by an administrator — same rules). Per card:
+   - **block** — lessons ahead or an active group appeared during the week: nothing changes, `purgeBlocked` is set and
+     the card stays in the trash (shown there);
+   - **delete** — no record outside the audit collections refers to the card: the card document is deleted with its
+     disposable per-card documents (student: `studentAvailability`, `studentRevenuePlans`; teacher: `teacherAvailability`);
+   - **anonymise** — anything refers to it (invoices, payments, accounting, packages, held or cancelled lessons,
+     schedule, homework, worksheet results, recordings, messages, groups, tax data, first assessment, board, work
+     sessions / pay, a student card assigned to the teacher, a tombstone merged into the card …): the id and all those
+     records stay unchanged; the card keeps only non-personal fields (`KEEP_FIELDS`: subject, level, teacher ids,
+     enrollments, skill map, plans, `personId`, lifecycle), its name becomes „Kustutatud õpilane #abc123” /
+     „Kustutatud õpetaja #abc123”, contacts and account links are cleared, `purgedAt` and `anonymised: true` are set.
+     Issued invoices and other history keep the name they were made with (financial meaning is never rewritten).
+   References are found like the card merge does: every root collection is queried for `studentId`, `studentIds[]`,
+   `students[]`, `mergedInto` (student) or `teacherUid`, `teacherUids[]`, `staffUid`, `assignedBy`, `createdByUid`,
+   `teacher` / `teacherFull` = the display name (teacher). Audit collections (`activityLog`, `financialAudit`,
+   `emailQueue`, `emailLog`, merge records, …) never count and keep the old id. Audit entry `activityLog/card-purge-…`
+   (decision, reference counts, no name).
+5. **Accounts.** Firebase Auth users are never deleted or changed. At purge a learner's / parent's `users` document
+   loses the card id from `linkedStudentIds`; a teacher's profile stays `disabled` (deleted outright when nothing refers
+   to it — the Auth user could then register again and wait for approval like a new account).
+6. **Rules.** Admin writes the trash fields (`changesCardTrash()` in `firestore.rules`): a teacher cannot set or clear
+   them and cannot change a card that has `deletedAt`; a user cannot set them on the own profile (`safeSelfUserFields`).
+   Tests: `functions/card-trash-core.test.js`, `functions/card-trash-emulator.integration.js`,
+   `crm-v2/src/features/trash/TrashPage.test.jsx`.
+
 ### „Teated” — announcements that gate the learner portal (2026-10-24)
 
 The administrator writes announcements in Suhtlus → Teated (`/messages/teated`,
@@ -541,6 +591,8 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `studyDirections` — the school's study directions; admin writes (no delete), staff and finance read.
 - `plannerBatches` — one record per „Kinnita ajakava” of the calendar's Planeerija `{ createdAt (server time), createdBy, lessonIds[], studentIds[], status: 'confirmed' }`; admin creates once and reads, nobody updates or deletes from the app (the server's schedule e-mail reads it). The created `schedule` entries carry `source: 'planner'` and `plannerBatchId`.
 - `studentCardMerges` — server-only run records of „Liida kaardid” (one per merged card); `students.mergedInto` marks the tombstone.
+- `students` / `users` trash fields `deletedAt`, `deletedBy`, `purgeAfter`, `trashState`, `purgeBlocked`, `purgedAt`,
+  `anonymised` — „Prügikast”, written only by `staffOperationsApi /cards/*` and `purgeCardTrash` (see „Card trash”).
 - `worksheetAssignments`, `homework`, `exerciseResults` — student-specific learning activity.
 - `liveClassrooms` — one teacher and one student per current room.
 - `liveClassrooms.lessonSummary` — immutable teacher outcome attached when a room is completed.
