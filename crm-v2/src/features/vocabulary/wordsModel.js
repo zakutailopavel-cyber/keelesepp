@@ -38,6 +38,10 @@ export function normalizeWord(id, data = {}) {
     forms: data.forms || '',
     formItems: Array.isArray(data.formItems) ? data.formItems : [],
     createdByName: data.createdByName || '',
+    createdByUid: data.createdByUid || '',
+    // „Lisa oma sõna”: source 'student' and the spelling verdict (ok / suggest / unknown / unchecked)
+    source: data.source || '',
+    checked: data.checked || '',
     createdAt: data.createdAt || '',
     box,
     dueAt: data.dueAt || data.createdAt || '',
