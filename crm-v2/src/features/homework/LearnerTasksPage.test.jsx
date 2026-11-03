@@ -151,3 +151,29 @@ describe('„Ülesanded” for a parent', () => {
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
   });
 });
+
+describe('„Ülesanded” from a hint in „Minu areng” (?oskus=…)', () => {
+  const listening = { meta: { title: 'Kuula' }, blocks: [{ id: 'l', type: 'listening', data: { sentences: 'Ta tuleb [kell 7].' } }] };
+
+  it('shows only the tasks of that skill and a way back to all', async () => {
+    renderPage(asStudent, repositories({ items: [homework('h1', { task: 'Õpi luuletus' })], sheets: [sheet('s1'), sheet('s2', { lessonTitle: 'Kuulamine: Gert', title: 'Kuulamine: Gert', phase: '', worksheetDoc: listening })] }), {}, '/homework?oskus=Kuulamine');
+    expect(await screen.findByText('Kuulamine: Gert')).toBeInTheDocument();
+    expect(screen.queryByText('Minu päev')).not.toBeInTheDocument();
+    expect(screen.queryByText('Õpi luuletus')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Kuulamine: 1 ülesanne teha');
+    expect(screen.getByRole('link', { name: 'Näita kõiki ülesandeid' })).toHaveAttribute('href', '/homework');
+  });
+
+  it('none of that skill: says so and opens the course to practise meanwhile, never an unrelated list', async () => {
+    renderPage(asStudent, repositories({ items: [homework('h1', { task: 'Õpi luuletus' })], sheets: [sheet('s1')] }), {}, '/homework?oskus=Kuulamine');
+    expect(await screen.findByText(/praegu kuulamisülesandeid ei ole/)).toBeInTheDocument();
+    expect(screen.queryByText('Õpi luuletus')).not.toBeInTheDocument();
+    expect(screen.queryByText('Praegu ülesandeid ei ole')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ava „Minu kursus”' })).toHaveAttribute('href', '/student/kursus');
+  });
+
+  it('an unknown skill in the address is ignored', async () => {
+    renderPage(asStudent, repositories({ items: [homework('h1', { task: 'Õpi luuletus' })] }), {}, '/homework?oskus=Rääkimine');
+    expect(await screen.findByText('Õpi luuletus')).toBeInTheDocument();
+  });
+});

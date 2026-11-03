@@ -12,6 +12,7 @@ import MaterialPreview from '../library/MaterialPreview.jsx';
 import { buildLibraryItems } from '../library/libraryModel.js';
 import ChildSwitch, { childKeyOf } from '../parents/ChildSwitch.jsx';
 import { feedbackSeenAt, markFeedbackSeen } from '../students/nextStep.js';
+import { isTaskSkill, SKILL_TASKS } from '../students/skillTasks.js';
 import { itemSubject, subjectsOf } from '../students/subjects.js';
 import ExercisePlayer from './ExercisePlayer.jsx';
 import InteractiveLessonPlayer from './InteractiveLessonPlayer.jsx';
@@ -19,7 +20,7 @@ import SubmissionReviewModal from './SubmissionReviewModal.jsx';
 import TaskAnswerForm from './TaskAnswerForm.jsx';
 import VoiceAnswer from './VoiceAnswer.jsx';
 import WorksheetPlayer from './WorksheetPlayer.jsx';
-import { PHASES, TASK_STATE, groupTasks, isTaskLate, mergeTasks, taskDueText } from './taskList.js';
+import { PHASES, TASK_STATE, groupTasks, isTaskLate, mergeTasks, taskCount, taskDueText, tasksForSkill } from './taskList.js';
 import { isAudioFile } from './voiceTask.js';
 import './interactiveLesson.css';
 import './learnerTasks.css';
@@ -104,6 +105,25 @@ function TaskCard({ task, today, canAct, isNew, subjectTag, busy, actions }) {
   </article>;
 }
 
+// „/homework?oskus=Kuulamine” (a hint in „Minu areng”): only the tasks that move that skill, and when there are none,
+// say so plainly and show where to practise it meanwhile, instead of a list that has nothing to do with the hint
+function SkillFilter({ skill, count, todo, studentRole }) {
+  const words = SKILL_TASKS[skill];
+  const head = todo ? `${taskCount(todo)} teha` : count ? 'kõik on tehtud' : `praegu ${words.tasks} ei ole`;
+  const headRu = todo ? `сделать: ${todo}` : count ? 'всё сделано' : `сейчас ${words.ru} нет`;
+  return <div className={`lt-skill${todo ? '' : ' is-empty'}`} role="status">
+    <p><strong>{skill}</strong>: {head}<span className="lt-ru" lang="ru"> · {headRu}</span></p>
+    {!todo ? <p>{studentRole
+      ? <>Õpetaja annab sulle uusi. Seni harjuta ise „Minu kursuses”: tundide lehtedel on ka {words.tasks}, ja iga tehtud leht loeb sinu arengusse.
+        <span className="lt-ru" lang="ru"> Учитель даст новые. А пока тренируйся сам в «Minu kursus»: каждый сделанный лист тоже засчитывается.</span></>
+      : <>Õpetaja annab uusi.<span className="lt-ru" lang="ru"> · Учитель даст новые.</span></>}</p> : null}
+    <p className="lt-skill__links">
+      {!todo && studentRole ? <Link className="button button--secondary" to="/student/kursus">Ava „Minu kursus”</Link> : null}
+      <Link to="/homework">Näita kõiki ülesandeid</Link>
+    </p>
+  </div>;
+}
+
 function TaskGroup({ id, title, ru, tasks, children, renderTask, showAll = false }) {
   const [more, setMore] = useState(false);
   const shown = showAll || more ? tasks : tasks.slice(0, FIRST_SHOWN);
@@ -171,7 +191,10 @@ export default function LearnerTasksPage({ repository = homeworkService, student
       interactive: people.length < 2 ? interactiveState.data || [] : (interactiveState.data || []).filter(mine),
     });
   }, [child, interactiveState.data, people, state.data]);
-  const groups = useMemo(() => groupTasks(tasks), [tasks]);
+  const skillParam = new globalThis.URLSearchParams(location.search).get('oskus') || '';
+  const skill = isTaskSkill(skillParam) ? skillParam : '';
+  const shownTasks = useMemo(() => tasksForSkill(tasks, skill), [skill, tasks]);
+  const groups = useMemo(() => groupTasks(shownTasks), [shownTasks]);
 
   const loaded = Boolean(state.data);
   useEffect(() => { if (loaded && canAct) markFeedbackSeen(user.uid); }, [canAct, loaded, user.uid]);
@@ -229,7 +252,7 @@ export default function LearnerTasksPage({ repository = homeworkService, student
       isNew={task.state === TASK_STATE.REVIEWED && (Date.parse(task.reviewedAt || '') || 0) > seenAt}
       subjectTag={subjects.length > 1 ? itemSubject(task.sheet || task.homework || task, record) : ''} />;
   };
-  const nothing = !tasks.length;
+  const nothing = !shownTasks.length;
 
   return <div className="page-content lt-page">
     <PageHeader compact title="Ülesanded" description={studentRole
@@ -240,7 +263,8 @@ export default function LearnerTasksPage({ repository = homeworkService, student
     {reopenable ? <div className="success-notice" role="status">Ülesanne on tehtud. Kui see oli kirjalik, lisa ka vastus, muidu õpetaja seda ei näe. <button type="button" className="link-button" onClick={() => reopen(reopenable, true)}>Võta tagasi ja lisa vastus</button><button aria-label="Sulge teade" onClick={() => setReopenable(null)}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge teade" onClick={() => setActionError('')}>×</button></div> : null}
 
-    {nothing ? <div className="lt-empty"><EmptyState title="Praegu ülesandeid ei ole" description={studentRole
+    {skill ? <SkillFilter skill={skill} count={shownTasks.length} todo={groups.todo.length} studentRole={studentRole} /> : null}
+    {nothing && skill ? null : nothing ? <div className="lt-empty"><EmptyState title="Praegu ülesandeid ei ole" description={studentRole
       ? 'Kui õpetaja annab sulle ülesande, ilmub see siia. Seni võid korrata sõnu.'
       : 'Kui õpetaja annab lapsele ülesande, näete seda siin. · Когда учитель задаст задание, оно появится здесь.'} action={studentRole ? <Link className="button button--secondary" to="/student/sonavara">Ava sõnad</Link> : null} /></div> : <>
       <TaskGroup id="tee-nuud" title={studentRole ? 'Tee nüüd' : 'Vaja teha'} ru={studentRole ? 'сделать сейчас' : 'нужно сделать'} tasks={groups.todo} renderTask={renderTask} showAll>

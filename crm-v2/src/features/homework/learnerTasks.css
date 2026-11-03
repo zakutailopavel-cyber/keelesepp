@@ -46,3 +46,10 @@
 }
 /* the teacher's words first in the opened work */
 .review-layout__work > .returned-feedback { margin-bottom: 14px; }
+
+/* „/homework?oskus=Kuulamine”: the tasks of one skill (a hint in „Minu areng”) */
+.lt-skill { display: grid; gap: 6px; margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: #eef5fb; color: #17324a; }
+.lt-skill.is-empty { background: #fff7e6; color: #4a3510; }
+.lt-skill p { margin: 0; }
+.lt-skill .lt-ru { font-size: .84rem; }
+.lt-skill__links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
