@@ -29,7 +29,10 @@ async function post(path, body) {
     body: JSON.stringify(body),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Finantspäring ebaõnnestus.");
+  if (!response.ok) {
+    // status and details (e.g. { code: "overpayment" } from /payments) let a dialog answer the refusal
+    throw Object.assign(new Error(data.error || "Finantspäring ebaõnnestus."), { status: response.status, details: data.details || null });
+  }
   return data;
 }
 
@@ -271,6 +274,8 @@ export const financeApi = {
       note: payment.note || "",
       requestId: payment.requestId || financeRequestId("payment"),
       ...(payment.method === "cash" && payment.receivedByUid ? { receivedByUid: payment.receivedByUid } : {}),
+      // the person answered „Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?” with yes
+      ...(payment.allowOverpayment === true ? { allowOverpayment: true } : {}),
     });
   },
   // cash box (owner 2026-10-18): staff record cash they took and hand it over; an admin links it to an invoice

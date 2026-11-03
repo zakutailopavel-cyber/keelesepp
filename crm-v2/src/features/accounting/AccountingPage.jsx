@@ -12,6 +12,8 @@ import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import JournalDraft from './JournalDraft.jsx';
 import JournalGrid from './JournalGrid.jsx';
 import TsdPanel from './tsd/TsdPanel.jsx';
+import DuplicateReceiptsPanel from './DuplicateReceiptsPanel.jsx';
+import { possibleDuplicateReceipts } from './duplicateReceipts.js';
 import { SORT_LABELS, sortEntries } from './journalGrid.js';
 import './accounting.css';
 
@@ -119,6 +121,8 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const trial = useMemo(() => trialBalance(entries, accounts, period), [entries, accounts, period]);
   const accountLedger = useMemo(() => ledger(entries, ledgerAccount, { ...period, partner: ledgerPartner }, accounts), [entries, ledgerAccount, period, ledgerPartner, accounts]);
   const statements = useMemo(() => ({ sheet: balanceSheet(entries, accounts, { to: period.to }), result: incomeStatement(entries, accounts, period) }), [entries, accounts, period]);
+  // read-only: a CRM receipt and a hand-made 1010 entry that look like the same money (duplicateReceipts.js)
+  const duplicateReceipts = useMemo(() => possibleDuplicateReceipts(entries), [entries]);
   const usedAccounts = useMemo(() => new Set(entries.flatMap((e) => (e.lines || []).map((l) => String(l.account)))), [entries]);
 
   const run = async (label, action, success) => {
@@ -259,6 +263,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
     {exclusionWarning ? <div className="form-error" role="alert">{exclusionWarning}</div> : null}
     {error && !dialog && !draft ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
     {!trial.balanced ? <div className="expense-error" role="alert">Käibeandmik ei ole tasakaalus — kontrolli kandeid.</div> : null}
+    <DuplicateReceiptsPanel pairs={duplicateReceipts} labels={labels} />
 
     <Card className="accounting-toolbar">
       <nav className="accounting-tabs" aria-label="Raamatupidamise registrid">{TABS.map(([id, label]) => <button key={id} type="button" className={tab === id ? 'is-active' : ''} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav>

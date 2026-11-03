@@ -158,6 +158,57 @@ describe('FinanceMonthPage', () => {
     expect(new Set(ids).size).toBe(1);
   });
 
+  it('the payment date shows the due date and warns when it is far past it (the receipt is booked on this date)', async () => {
+    const value = props(); renderPage(value);
+    const table = await screen.findByRole('table', { name: 'Arved 2031-10' });
+    fireEvent.click(within(table).getByRole('button', { name: 'Makse' }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText(/Maksetähtaeg 01\.10\.2020/)).toBeInTheDocument();
+    expect(within(dialog).getByText('Kuupäev peab olema päev, mil raha pangakontole laekus.')).toBeInTheDocument();
+    expect(within(dialog).getByText(/üle 7 päeva pärast maksetähtaega/)).toBeInTheDocument();
+    // still editable: a date near the due date drops the „late” reason; another month than today still reminds
+    fireEvent.change(within(dialog).getByLabelText('Makse kuupäev'), { target: { value: '2020-10-03' } });
+    expect(within(dialog).queryByText(/üle 7 päeva pärast maksetähtaega/)).not.toBeInTheDocument();
+    expect(within(dialog).getByText(/teises kuus kui täna/)).toBeInTheDocument();
+    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Registreeri' })); });
+    expect(value.financeRepository.recordPayment).toHaveBeenCalledWith('i1', expect.objectContaining({ paidAt: '2020-10-03' }));
+  });
+
+  it('a refused overpayment asks first; „Jah” records it with the same request id and moves the excess to an advance', async () => {
+    const value = props();
+    const refusal = Object.assign(new Error('Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?'), { status: 409, details: { code: 'overpayment', balanceCents: 0 } });
+    value.financeRepository = {
+      recordPayment: vi.fn().mockRejectedValueOnce(refusal).mockResolvedValueOnce({ invoice: { overpaidAmountCents: 10000 } }),
+      resolveInvoiceOverpayment: vi.fn().mockResolvedValue({}),
+    };
+    renderPage(value);
+    const table = await screen.findByRole('table', { name: 'Arved 2031-10' });
+    fireEvent.click(within(table).getByRole('button', { name: 'Makse' }));
+    const dialog = screen.getByRole('dialog');
+    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Registreeri' })); });
+    const question = await within(dialog).findByRole('alertdialog', { name: 'Ülemakse' });
+    expect(question).toHaveTextContent('Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?');
+    expect(value.financeRepository.resolveInvoiceOverpayment).not.toHaveBeenCalled();
+    await act(async () => { fireEvent.click(within(question).getByRole('button', { name: 'Jah, registreeri ettemaksuna' })); });
+    const [[, first], [, second]] = value.financeRepository.recordPayment.mock.calls;
+    expect(first.allowOverpayment).toBeUndefined();
+    expect(second).toEqual(expect.objectContaining({ allowOverpayment: true, requestId: first.requestId }));
+    expect(value.financeRepository.resolveInvoiceOverpayment).toHaveBeenCalledWith('i1', expect.stringMatching(/ettemaksuna/));
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('ülejääk kanti maksja ettemaksuks'));
+  });
+
+  it('a duplicate payment refused by the server is shown and nothing else happens', async () => {
+    const value = props();
+    value.financeRepository.recordPayment.mockRejectedValue(Object.assign(new Error('Sama makse (100,00 €, 2031-10-01) on sellele arvele juba registreeritud 3 min tagasi.'), { status: 409, details: { code: 'duplicate_payment' } }));
+    renderPage(value);
+    const table = await screen.findByRole('table', { name: 'Arved 2031-10' });
+    fireEvent.click(within(table).getByRole('button', { name: 'Makse' }));
+    const dialog = screen.getByRole('dialog');
+    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Registreeri' })); });
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('juba registreeritud 3 min tagasi');
+    expect(within(dialog).queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
   it('the administrator opens „Kontroll”: invoices against payments', async () => {
     const value = props();
     renderPage({ ...value, paymentRepository: { listAll: vi.fn().mockResolvedValue([]) } });

@@ -82,6 +82,7 @@ const {
   validIsoDate,
   validIsoMonth,
 } = require("./finance-core");
+const paymentGuards = require("./payment-guards-core");
 const {
   GOOGLE_SCOPE_EVENTS_OWNED,
   hasCalendarWriteScope,
@@ -3004,7 +3005,9 @@ async function correctIssuedInvoice({ actor, invoiceId, amount, amountCents, pay
   });
 }
 
-async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, reference, note, requestId, cash = null, receivedByUid = "" }) {
+// entryGuards (a payment typed in by a person, /payments): refuse a duplicate and an unconfirmed overpayment
+// (payment-guards-core.js). LinkPay and the cash box allocation pass entryGuards: false — their money is already real.
+async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, reference, note, requestId, cash = null, receivedByUid = "", entryGuards = true, allowOverpayment = false }) {
   const mutationId = cleanRequestId(requestId);
   const amountCents = toCents(amount);
   const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
@@ -3032,6 +3035,9 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
     const invoice = invoiceSnap.data();
     if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot receive payments");
     const payments = await activeInvoicePayments(transaction, invoiceRef.id);
+    const guard = !entryGuards ? null : paymentGuards.assertPaymentAllowed({
+      invoice, payments, amountCents, paidAt: paymentDate, method: cleanText(method, 40) || "bank", nowIso, allowOverpayment,
+    });
     await assertFinancialDateOpen(transaction, paymentDate);
     // cash (owner 2026-10-18): the payment names who took the money; a cash payment typed in here (not from a cash
     // receipt) also puts the money into that person's cash box, so the box and the invoices agree
@@ -3064,6 +3070,8 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
       createdBy: actorData,
       requestId: mutationId,
       ...(cashHolder ? { receivedBy: cashHolder, cashReceiptId: cash?.receiptId || cashReceiptRef.id } : {}),
+      // the person confirmed „Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?”
+      ...(guard && amountCents > guard.balanceCents ? { overpaymentConfirmed: true } : {}),
     };
     const patch = invoiceFinancialPatch(invoice, [...payments, payment], nowIso);
 
@@ -4732,7 +4740,7 @@ async function allocateCashReceipt({ actor, receiptId, invoiceId }) {
   const result = await recordInvoicePayment({
     actor, invoiceId, amount: centsToAmount(receipt.amountCents), paidAt: receipt.receivedAt, method: "cash", reference: "Sularaha",
     note: `Sularaha: ${receipt.holderName || ""}${receipt.note ? ` · ${receipt.note}` : ""}`, requestId: `cashalloc_${ref.id}`.slice(0, 120),
-    cash: { receiptId: ref.id, holderUid: receipt.holderUid, holderName: receipt.holderName },
+    cash: { receiptId: ref.id, holderUid: receipt.holderUid, holderName: receipt.holderName }, entryGuards: false,
   });
   await ref.set({ status: "allocated", invoiceId: String(invoiceId), paymentId: result.payment.id, allocatedAt: new Date().toISOString(), allocatedBy: actorSnapshot(actor) }, { merge: true });
   return { ...result, receiptId: ref.id };
@@ -5651,7 +5659,7 @@ async function settleLinkpayPayment({ paymentReference, orderReference }) {
     try {
       const result = await recordInvoicePayment({
         actor: LINKPAY_ACTOR, invoiceId: attempt.invoiceId, amount: verdict.amountCents / 100, paidAt: appToday(nowIso),
-        method: "linkpay", reference: ref, note: `LHV LinkPay ${order}`, requestId: linkpay.paymentRequestId(ref),
+        method: "linkpay", reference: ref, note: `LHV LinkPay ${order}`, requestId: linkpay.paymentRequestId(ref), entryGuards: false,
       });
       paymentId = result.payment.id;
     } catch (error) {
@@ -10526,6 +10534,7 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
         note: req.body?.note,
         requestId: req.body?.requestId,
         receivedByUid: req.body?.receivedByUid,
+        allowOverpayment: req.body?.allowOverpayment === true,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
