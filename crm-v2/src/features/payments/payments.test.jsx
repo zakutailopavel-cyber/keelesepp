@@ -29,6 +29,22 @@ describe('LinkPay pay page', () => {
     page('/maksa/inv-1?k=bad', { startWithCode: vi.fn().mockRejectedValue(new Error('Arve on juba tasutud.')) });
     expect(await screen.findByText('Arve on juba tasutud.')).toBeInTheDocument();
   });
+
+  it('asks the server once after an error, also with the default redirect', async () => {
+    const api = { startWithCode: vi.fn().mockRejectedValue(new Error('Arvet ei leitud.')) };
+    render(<MemoryRouter initialEntries={['/maksa/inv-1?k=wrong']}><Routes><Route path="/maksa/:invoiceId" element={<PayInvoicePage api={api} />} /></Routes></MemoryRouter>);
+    expect(await screen.findByText('Arvet ei leitud.')).toBeInTheDocument();
+    await new Promise((resolve) => globalThis.setTimeout(resolve, 50));
+    expect(api.startWithCode).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call the server when the link has no code', async () => {
+    const api = { startWithCode: vi.fn(), checkReturn: vi.fn() };
+    render(<MemoryRouter initialEntries={['/maksa/inv-1']}><Routes><Route path="/maksa/:invoiceId" element={<PayInvoicePage api={api} />} /></Routes></MemoryRouter>);
+    expect(await screen.findByText(/Makselingis puudub arve kood/)).toBeInTheDocument();
+    await new Promise((resolve) => globalThis.setTimeout(resolve, 50));
+    expect(api.startWithCode).not.toHaveBeenCalled();
+  });
 });
 
 describe('Open invoices card', () => {

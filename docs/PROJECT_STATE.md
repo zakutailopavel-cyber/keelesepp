@@ -1,3 +1,13 @@
+## 2026-11-03 · agent/pay-page-loop — /maksa/<invoice> without `?k=`: one request instead of hundreds of 401s
+
+- Base: `main` 9b172a8, checked 2026-11-03. Seen on the emulators (#1056 note): `/maksa/<id>` without `?k=` showed „Firebase ID token required” and sent 280–560 `401` requests in ~5 s.
+- Cause: `PayInvoicePage`'s default prop `go = (url) => …` was a new function on every render and an effect dependency, so every error → re-render → new `go` → effect ran the request again. With a valid `?k=` the page redirects, which hid it. Fix: the default is a module-level function; a link without `?k=` shows „Makselingis puudub arve kood …” and calls nothing.
+- Server (not changed): `startWithCode` sends no ID token (correct for the public link, sign-in state does not matter). `linkpayApi /start` with an empty `k` falls into the signed-in branch (`requireFirebaseUser`) and answers 401 „Firebase ID token required” — technically right, but a missing code could get its own 400 message. Needs the owner's approval; the page no longer reaches it.
+- Files: `crm-v2/src/features/payments/PayInvoicePage.jsx`, `payments.test.jsx` (2 new tests: one call after an error with the default redirect; no call without a code — both fail on the old code).
+- Checks: `npx vitest run src/features/payments` 8/8 passed; `npx eslint --quiet src` clean. Not re-checked in a browser on the emulators.
+- Production: none; hosting deploy only after merge.
+- Next safe step: review and merge; after the deploy open `/maksa/<id>` without `?k=` and check the network tab shows no requests.
+
 ## 2026-11-03 · agent/deps-firebase13 — crm-v2: firebase JS SDK 12.17.0 → 13.1.0 (supersedes Dependabot #995)
 
 - Base: `main` 2f15942, checked 2026-11-03. `crm-v2/package.json` `firebase` 13.1.0 (exact); lockfile regenerated with npm. No code change.
