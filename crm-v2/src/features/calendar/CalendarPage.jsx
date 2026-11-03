@@ -19,7 +19,7 @@ import { LESSON_MARKS, LESSON_STATE_LABELS, datesForView, filterCalendarEvents, 
 import { calendarTones, canMove, cleanPersonalColors, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import CalendarColors from './CalendarColors.jsx';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
-import TimeGrid from './TimeGrid.jsx';
+import TimeGrid, { LessonKindsLegend } from './TimeGrid.jsx';
 import { unplannedStudents } from './unplannedStudents.js';
 import { DAY_IDS, bandsOn, cellStatus, paintSlot, setCellStatus, slotsOn } from './availabilityModel.js';
 import CellStatusMenu from './CellStatusMenu.jsx';
@@ -830,6 +830,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       <span className="cal2-hint">{narrow ? '' : 'Lohista tundi, et muuta aega · tõmba alumisest servast, et muuta kestust'}</span>
       {/* what the marks in the corner of a lesson mean (owner 2026-10-29) */}
       <span className="cal2-marks" aria-label="Märgid tunni nurgas">{Object.entries(LESSON_MARKS).map(([key, mark]) => <span key={key}><i className={`tg-mark is-${key}`} aria-hidden="true">{mark.symbol}</i>{mark.label}</span>)}</span>
+      <LessonKindsLegend />
     </div>
     {heldStudent && (heldState === 'done' || !heldMarked) ? <div className="cal2-held" role="status">
       {heldState === 'done' ? <span>Tund on kalendris ja märgitud toimunuks{heldHandoff?.notes ? ' koos märkusega' : ''}. Kui midagi on valesti, ava tund ja paranda.</span> : <>
@@ -852,7 +853,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         <span className="cal2-paint__hint">{paintSaving ? 'Salvestan…' : 'Lohista kalendris üle aja, et see märkida. Klõps märgitud alal eemaldab selle.'}</span>
         <Button variant="secondary" onClick={() => setPaint(null)}>Valmis</Button>
       </div>
-    ) : bandTeacher && availabilityFor(bandTeacher)?.slots?.length ? <p className="cal2-legend"><i className="cal2-dot is-free" /> vaba aeg <i className="cal2-dot is-online" /> ainult veebitunnid <i className="cal2-dot is-busy" /> hõivatud — tund sinna ainult hoiatusega</p> : null}
+    ) : bandTeacher && availabilityFor(bandTeacher)?.slots?.length ? <p className="cal2-legend"><i className="cal2-dot is-free" /> vaba aeg <i className="cal2-dot is-online" /> ainult veebitunnid <i className="cal2-dot is-busy" /> hõivatud, õpetaja ei ole saadaval — tund sinna ainult hoiatusega</p> : null}
     {fitOpen ? <StudentTimesPanel
       students={students.items}
       availabilityById={studentTimes}

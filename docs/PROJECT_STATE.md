@@ -1,3 +1,12 @@
+## 2026-11-03 · agent/calendar-online-bg — calendar: online lessons no longer look like a teacher's red (unavailable) hours
+
+- Base: `main` c8800f3, checked 2026-11-03. Bug from Oleksiy 2026-11-03 („Изменить бекграунд онлайн уроков, чтобы он не совпадал с бекграундом красных часов учителей”): an online lesson had white diagonal stripes at 135°, the same pattern as `.tg-band.is-busy` (red teacher hours), worst on the red / pink teacher tones 4 and 6.
+- Done: `calendarV2.css` — diagonal stripes now mean only „teacher not available”; an online lesson (`.tg-block.is-online`, `.tg-cluster-item.is-online`) keeps its teacher tone and gets a dot grid in that tone, the dashed frame and a white camera on a blue chip (`.tg-online-icon`); the „veeb” word after the name is a blue pill. Cancelled / absent online lessons keep their own background. The red-hours dot `.cal2-dot.is-busy` is striped like the band. `@media print` keeps colours and patterns (`print-color-adjust: exact`). `TimeGrid.jsx` exports `LessonKindsLegend` (sample + „Veebitund (täpid, katkendjoon, kaamera; värv = õpetaja)” and „Punased triibud: õpetaja ei ole saadaval”), shown in `CalendarPage.jsx` under the corner-marks legend; the teacher-band legend says „hõivatud, õpetaja ei ole saadaval”. No data or behaviour change.
+- Files: `crm-v2/src/features/calendar/{calendarV2.css,TimeGrid.jsx,CalendarPage.jsx,CalendarPage.test.jsx}`, this file.
+- Checks: `cd crm-v2 && npx vitest run src/features/calendar` 27 files, 202 tests passed; `npx eslint src/features/calendar` 0 errors (1 old warning in `UnmarkedLessonsCard.jsx`); a local stand (untracked zz-* files, removed) with all 12 teacher tones, a red band 09:00–11:30 with an online lesson inside it, an on-site lesson after it, an online lesson in a green band and a crowded 3-lesson card — checked at 1600 px, 390 px (phone) and in print-to-PDF.
+- Limits: the dot grid is a CSS radial gradient; very old browsers without `color-mix` show the plain tone background (frame and camera remain).
+- Next safe step: review and merge; Oleksiy looks at the calendar after deploy.
+
 ## 2026-11-03 · agent/en-b2-module-01 — English B2 module 1 „Who we are” (en-b2-001…005, course `enb2`, stage English B1+)
 
 - Base: `main` cfb1719 (#1047 engine merged), checked 2026-11-03. Design: `docs/COURSE_FINAL_SHAPE_EN_B2.md` §5–§8; owner 2026-11-03: 50 lessons, no English audio (teacher reads the transcripts), IELTS / TOEFL iBT / B2 First in addition to the state exam (recorded in §10 of the design).
