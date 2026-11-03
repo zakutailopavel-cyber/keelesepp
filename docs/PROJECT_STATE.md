@@ -1,3 +1,13 @@
+## 2026-11-03 · agent/deps-functions-ff74 — functions: firebase-functions 7.4.0, pdfkit 0.20.2 (supersedes Dependabot #985)
+
+- Base: `main` 2f15942, checked 2026-11-03. `functions/package.json` `firebase-functions` ^7.2.5→^7.4.0, `pdfkit` ^0.17.2→^0.20.2; lockfile regenerated with npm (firebase-functions now brings express 5 + cors; used only by its manifest server and the emulator CORS wrapper, not by our handlers).
+- Cause of the red `financial-core` on #985: `sheet-builder-emulator.integration.js` — the OAuth preflight answered `Access-Control-Allow-Origin: https://chatgpt.com` instead of `*`. firebase-functions 7.4 wraps v1 `https.onRequest` in the `cors` middleware when the emulator's debug feature `enableCors` is on (or when the function declares `cors`); the middleware answers the preflight itself with the reflected origin, so our handler never ran. Production does not set `enableCors`; there the behaviour was unchanged. Reproduced locally (removing the fix fails the same assertion).
+- Fix: `sheetBuilderApi` is declared with `.https.onRequest({ cors: false }, handler)` (new 7.4 signature): the wrapper passes straight through (origin false → next), so the handler's own CORS (`*` for MCP / OAuth, allow-list elsewhere) applies in the emulator and in production. Deploy manifest of all 26 functions (`__endpoint`: memory, timeouts, secrets, schedules) is identical to 7.2.5.
+- PDFs (`invoice-document.js`, `credit-note-document.js`, the only pdfkit users): four made-up samples (basic with a credit, monthly, 45-line 5-page invoice, credit note) built with 0.17.2 and 0.20.2: same page count, PDF 1.3, fonts Helvetica / Helvetica-Bold WinAnsi, identical extracted text and positions (0 pt shift), õ ä ö ü š ž (and capitals) present in both, page-1 renderings pixel-identical.
+- Checks: `cd functions && npm test` 452/452; emulator suite as in CI (`firebase-tools@15.22.3 emulators:exec --only auth,firestore,functions`, JDK 21, `test:emulator` + 14 extra files) 178/178.
+- Risk: in the emulator every other v1 onRequest function now gets the reflected-origin CORS wrapper, so emulator tests no longer prove their own CORS allow-list (production unaffected).
+- Production: **needs a full functions deploy** (owner's approval); nothing deployed.
+- Next safe step: review and merge, then the owner deploys all functions and opens one invoice PDF and the ChatGPT connector once.
 ## 2026-11-03 · agent/deps-firebase13 — crm-v2: firebase JS SDK 12.17.0 → 13.1.0 (supersedes Dependabot #995)
 
 - Base: `main` 2f15942, checked 2026-11-03. `crm-v2/package.json` `firebase` 13.1.0 (exact); lockfile regenerated with npm. No code change.
