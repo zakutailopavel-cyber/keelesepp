@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-23.10';
+export const EN_B1_VERSION = '2026-11-03.1';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -15,7 +15,7 @@ export const EN_B1_MODULES = Object.freeze([
       ['Getting to know you', 'Present simple vs present continuous (habits and temporary situations); stative verbs; subject and object questions.'],
       ['What are you like?', 'Personality adjectives; adjective + preposition (good at, proud of, afraid of); -ed / -ing adjectives; negative prefixes.'],
       ['Friends and family', 'Relationships; phrasal verbs (get on with, fall out, make up, take after, bring up); always + continuous for annoying habits.'],
-      ['Asking politely', 'Indirect questions (Could you tell me where…?, Do you know if…?); polite requests (Would you mind -ing?); a formal e-mail asking for information.'],
+      ['Asking politely', 'Indirect questions (Could you tell me where…?, Do you know if…?); question tags to check information (You\'re Anita, aren\'t you?), rising and falling intonation; polite requests (Would you mind -ing?); a formal e-mail asking for information.'],
       ['Module 1 check: People around me', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
@@ -25,7 +25,7 @@ export const EN_B1_MODULES = Object.freeze([
       ['What happened?', 'Past simple: regular and irregular verbs, spelling and pronunciation of -ed, questions and negatives with did.'],
       ['While it was happening', 'Past continuous for the background; past continuous vs past simple with when and while.'],
       ['How things used to be', 'used to / didn\'t use to / Did you use to…? for past habits and states; used to vs past simple.'],
-      ['Telling a story', 'Time linkers (at first, as soon as, meanwhile, eventually, in the end); strong adjectives; a competition story.'],
+      ['Telling a story', 'Narrative tenses: past simple, past continuous and the past perfect for the earlier past (had left, had never seen; by the time, already); time linkers (as soon as, meanwhile, eventually, in the end); strong adjectives; a competition story.'],
       ['Module 2 check: Life stories', 'Reading, listening, language use, a story, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
@@ -74,7 +74,7 @@ export const EN_B1_MODULES = Object.freeze([
     lessons: [
       ['How much sugar?', 'Countable and uncountable nouns; much, many, a lot of, a few, a little, few, little, plenty of, too much / too many, (not) enough.'],
       ['If I had more time…', 'The second conditional (If I had…, I would…), If I were…, could / might in the result; first vs second conditional.'],
-      ['What would you do?', 'Difficult situations with would, could, might; I wish + past simple; advice with If I were you, You could, It might help.'],
+      ['What would you do?', 'Difficult situations with would, could, might; the third conditional for past choices (If I had known, I would have…); I wish + past simple and I wish + past perfect; advice with If I were you, You could, It might help.'],
       ['I don\'t feel well', 'Symptoms (I\'ve got…, my… hurts, I feel…), How long have you had…?, should and had better (not), instructions; at the doctor\'s.'],
       ['Module 7 check: Health and lifestyle', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
     ],

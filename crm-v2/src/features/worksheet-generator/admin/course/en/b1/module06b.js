@@ -24,7 +24,7 @@ export const LESSONS_B = {
         ['What did the woman at the lost luggage office tell them?', 'That the suitcase was still in Manchester.'],
         ['Why couldn\'t Robin\'s dad rent a car?', 'Because he had forgotten his driving licence at home.'],
         ['Where did they spend the night?', 'In a cheap hotel near the old town in Riga.'],
-        ['What was written on Markus\'s sign?', 'FINALLY!'],
+        ['Look at „it had left” and „he had forgotten”. In each case, which happened first?', 'The bus left before they arrived, and Dad forgot his licence before he tried to rent a car.'],
         ['Why do you think Robin could laugh about it later?', 'Own answer, for example because everything ended well.'],
       ]),
       B.truefalse('en_b1_028_d_tf', 'True or false?', 'Read the story again. Decide if each sentence is true or false.', [
