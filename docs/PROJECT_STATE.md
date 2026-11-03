@@ -1,3 +1,35 @@
+## 2026-11-03 · agent/harno-exam-points (PR #1020) — exam sheets: Harno raw points, weighting and pass rule per level (A2, B1, B2, C1)
+
+- Base: `main` 98ec278, checked 2026-11-03. Question from the content agent: B1 exam sheets show 33 / 30 / 20 / 20 points while Harno says 25 per part.
+- Finding: 33 / 30 / 20 / 20 are Harno's own B1 raw points. Harno weighs each of them to 25 („… toorpunkti, mis kaalutakse lõpptulemuses 25 punktiks”), so the sheets were not wrong.
+- What the sheets lacked:
+  - how the real exam weighs each part;
+  - Harno's pass rule (≥ 60 % in total and no part at 0). The sheets showed only the course target, 80 %.
+- Verified table (A2 / B1 / B2 / C1): `docs/HARNO_LEVEL_REQUIREMENTS.md` § „Verified exam table”, with sources.
+- Done:
+  - `harnoScales.js`: `HARNO_EXAMS` (minutes, raw and weighted points, tasks per level), `HARNO_PASS`, `COURSE_EXAM`, `examPartDefaults`, `harnoWeighted`, `harnoResult`.
+    - `EXAM_PART_DEFAULTS` is derived from B1.
+    - The B1 speaking default is 2 tasks, as at Harno (intro + 2), instead of 3.
+  - `harno.jsx` `exampart`:
+    - With `data.exam` the header adds the Harno line (weighting + pass rule).
+    - The editor can choose the level.
+  - `B.examPart`: `exam` option.
+  - `courseSheet.js`: stamps `exam` on every exam-part header by course (a2 → A2, b1 → B1, b2 → B2, c1 → C1). Block ids are unchanged.
+  - `methodGaps.js` `EXAM_FORMATS`: 13 verified task formats added. The courses already train all of them.
+- Checks:
+  - `npx vitest run src/features/worksheet-generator src/features/worksheet-studio`: 134 files passed, 1 skipped. Tests: 1532 passed, 9 skipped.
+  - eslint is clean on the changed files.
+  - No baseline regenerated.
+- Limits:
+  - Harno publishes no raw scale for B2 writing / speaking, no A2 conversion and no per-criterion split. These gaps are marked in the doc.
+  - Published sheets get the new line only on republish.
+- Follow-ups (module files, not edited here; other agents are editing them):
+  - A2 mock reading has 29 points, while Harno has 30 (T2 = 6 items).
+  - B1 module speaking headers say `tasks: 3`, while Harno has 2 + intro.
+  - The C1 mock listening part 2 has 6 gaps + 4 choices, while Harno has 10 three-option items.
+  - The B1 course's A2-form checks could set `exam: 'A2'`.
+  - On the sheets the part order is R / L | W / S, while Harno's order is W → L → R → S.
+- Next safe step: review and merge the PR. Then republish the exam lessons through the existing flow.
 ## 2026-11-03 · agent/av-b1-module-13 (PR #1019) — B1 module 13 „Suhtlemine ja probleemilahendus” (a2b1-061…065): academic value round 1 (topic „keel”, secondary „suhted”, „ümbruskond”)
 
 - Base: `main` c50d30d (after #1015), checked 2026-11-03; merged with `origin/main` 98ec278 (#1014, #1016) before the PR, checks re-run after the merge. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row 13. The cast storyline (Männi 8 renovation, Saaremaa hotel, the rumour about Karl, the hot office) and the grammar line (paluma + da / nõus olema + ma, tingiv kõneviis from 062, kaudne kõneviis in 063–064) stay.

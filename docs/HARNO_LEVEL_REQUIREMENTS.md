@@ -36,6 +36,70 @@ Researched 2026-10-12. Everything below is paraphrased. No passages are copied.
 - Situations come from 4 domains: personal life, public life, work, education.
 - So a level is set by text length and type, the domain, the task demand and the language quality. The topic does not set the level.
 
+## Verified exam table: parts, minutes, raw points and weighting (checked 2026-11-03)
+
+Checked again on 2026-11-03 against the Harno exam page and the consultation booklets (answer keys and question
+numbering). The engine keeps this table in `crm-v2/src/features/worksheet-studio/engine/blocks/harnoScales.js`
+(`HARNO_EXAMS`, `HARNO_PASS`). The test `harno.test.jsx` („keeps the verified per-level table”) fails if the table changes.
+
+**Order of the parts at every level.** The written part comes first: (1) writing, (2) listening, (3) reading. Then the
+oral part: (4) speaking. The parts are numbered „Esimene osa: kirjutamine … Neljas osa: rääkimine”.
+
+**Raw points and weighted points.**
+- Raw points (toorpunktid) are the points the tasks give. A closed item gives 1 raw point. Writing and speaking are
+  rated on a scale.
+- At B1, B2 and C1 the raw points of each part are weighted to **25 points**, so the total is 100.
+- Harno's own wording for B1: the 20 raw points of speaking „kaalutakse lõpptulemuses 25 punktiks”.
+- A2 is different: each part gives **20 points** and the total is 80.
+
+**Pass rule at every level [H]**
+- The learner needs at least **60 %** of the total: 48 of 80 at A2, 60 of 100 from B1.
+- **No part may be 0 points.**
+- Below 45 % the learner may retake the exam only after 6 months.
+- The certificate shows each part as a band: 0 %; 1–49 %; 50–59 % nõrk; 60–75 % rahuldav; 76–90 % hea; 91–100 % väga hea.
+
+| Level | Part | Minutes | Tasks (items or raw points) | Raw points | Weighted | Source |
+|---|---|---|---|---|---|---|
+| A2 | 1 Kirjutamine | 30 | business-card text ≥ 25 w + message or description ≥ 30 w | 20 (split not published) | 20 | [H] |
+| A2 | 2 Kuulamine | 30 | 7 + 6 + 6 + 6 items | 25 | 20 | [H] counts; [KV] Küsimused 1–25 |
+| A2 | 3 Lugemine | 50 | 6 + 6 + 5 + 5 + 8 items | 30 | 20 | [H] counts; [KV] Küsimused 1–30 (T2 = 7–12) |
+| A2 | 4 Rääkimine | ~15 | picture + questions; idea card | 20 (split not published) | 20 | [H] |
+| B1 | 1 Kirjutamine | 35 | T1 questionnaire / note = 8; T2 story / letter = 12 | 20 | 25 | [H] „20 toorpunkti … 25 punktiks” |
+| B1 | 2 Kuulamine | 30–35 | 7 + 6 + 8 + 9 items | 30 | 25 | [H] „30 toorpunkti … 25 punktiks” |
+| B1 | 3 Lugemine | 50 | 9 + 6 + 10 + 8 items | 33 | 25 | [H] „33 toorpunkti … 25 punktiks” |
+| B1 | 4 Rääkimine | ~15 | intro + T1 (questions + agreement) + T2 phone role play | 20 | 25 | [H] „20 toorpunkti … 25 punktiks” |
+| B2 | 1 Kirjutamine | 80 | letter ~140 w + summary-with-comment or argument ~180 w | not published | 25 % | [H] |
+| B2 | 2 Kuulamine | 35–40 | 5 (clips, heard once) + 5 + 10 + 12 items | 32 | 25 % | [H] counts; [KV] answer key 1–32, „ühe toorpunkti” |
+| B2 | 3 Lugemine | 70 | 7 + 8 + 12 + 8 items | 35 | 25 % | [H] counts; [KV] answer key 1–35 |
+| B2 | 4 Rääkimine | ~20 | intro + 1-min talk (2 min prep) + debate (≤ 4 min) | not published | 25 % | [H] |
+| C1 | 1 Kirjutamine | 90 | T1 data summary = 12; T2 opinion text = 12 | 24 | 25 | [H] „24 punkti … 25 punktiks” |
+| C1 | 2 Kuulamine | ~45 | 7 short answers + 10 three-option items + lecture → 10 main ideas | 27 (lecture = 10, derived 27 − 17) | 25 | [H] „27 punkti … 25 punktiks” |
+| C1 | 3 Lugemine | 60 | 12 statement ↔ paragraph + 10 sentence gaps + 12 short answers | 34 | 25 | [H] „34 punkti … 25 punktiks” |
+| C1 | 4 Rääkimine | ~20 | intro + 2-min talk (3 min prep) + ~7-min discussion | 20 | 25 | [H] „20 punkti … 25 punktiks” |
+
+**What is not published**
+- Harno does not publish how A2 raw points become 20 points per part. The engine assumes the same linear scaling: raw / max × 20.
+- Harno does not publish the raw scale of B2 writing and speaking. The B1→B2 course uses its own scale: writing 10 + 15, speaking 10 + 15. Each part is still 25 % of the result.
+- Harno does not publish how many points each rating criterion gives at B1. `RUBRIC_SCALES` (W1 /8, W2 /12, speaking /20) keeps Harno's totals, but the split per criterion is our own inference.
+
+**How the course sheets show it** (engine since 2026-11-03)
+- An exam-part header (`exampart`, `B.examPart`) shows the part's minutes, tasks, raw points and the course's own target. The owner's course target is 80 %.
+- Under that, the header adds Harno's line. It says how the real exam weighs the part, then gives the 60 % / no-0 pass rule.
+  - Example 1: „Harno B1 eksamil kaalutakse need 33 punkti lõpptulemuses 25 punktiks. …”
+  - Example 2, for a shortened check: „Harno B1 eksamil on lugemises 33 punkti (50 min), mis kaalutakse lõpptulemuses 25 punktiks. …”
+- `courseSheet.js` marks every header with its course's exam: a2 → A2, b1 → B1, b2 → B2, c1 → C1.
+  - A module can name a different level on the block, for example `exam: 'A2'` for an A2-form check in the B1 course.
+  - A module can also name no level: `exam: ''`.
+- `harnoWeighted` and `harnoResult` (harnoScales.js) calculate Harno's result from raw points. The result is the weighted parts, the total and pass / fail. They are for any future score summary.
+
+Sources (2026-11-03):
+- https://harno.ee/eesti-keele-tasemeeksamid: the part tables for A2, B1, B2 and C1, the task descriptions, raw points, weighting and pass rule.
+- https://harno.ee/sites/default/files/documents/2026-01/A2_konsultatsioonivihik.pdf: question numbering. Listening has 1–25 and reading has 1–30.
+- https://harno.ee/sites/default/files/documents/2026-01/B1_konsultatsioon_2021.pdf
+- https://harno.ee/sites/default/files/documents/2026-01/B2_konsultatsioonivihik_2021.pdf: answer keys. Listening has 1–32 with 1 raw point each. Reading has 1–35.
+- https://harno.ee/sites/default/files/documents/2026-01/Konsultatsioonivihik_C1_2023.pdf
+- The performance samples („sooritusnäidis”) for A2, B1, B2 and C1 are 2-page link pages. They give no scoring.
+
 ---
 
 ## A2 — „Algaja keelekasutaja”
