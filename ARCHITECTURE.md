@@ -99,6 +99,17 @@ student's persistent board `whiteboards/{studentId}` (same as CRM „Tahvel” a
 Chat uses the student's internal `messages` conversation. Board rules check access once per write (see
 `whiteboardElementCreateValid`, `lessonPageLive`); evaluating it repeatedly exceeds Firestore's 1000-expression limit.
 
+Room video layout (1:1 and group): the camera tiles are movable / resizable windows (`FloatingWindow.jsx`,
+`floatingLayout.js`) in a pointer-transparent layer over the board; layout per window id is kept anchored to a corner
+in `localStorage` `keelesepp.liveLayout.v1` (group strip orientation in `keelesepp.liveGroupStrip`). Screen share in a
+1:1 call (`screenShare.js`): the teacher's offer has camera video + a second „screen slot” video transceiver
+(`sendrecv`, the student's answer sets it `sendrecv` too); sharing = `replaceTrack(screen)` on the slot, stop =
+`replaceTrack(null)` — no renegotiation, the camera keeps its own track. The receiver recognises the slot as the second
+video transceiver and the sharer announces `{ t: 'screen', on, slot }` over the room data channel (remote track label /
+contentHint are not transmitted, so they cannot identify a screen). Peers without `addTransceiver` fall back to the old
+way (screen replaces the camera track, announced with `slot: false`). The share takes the main area (`ScreenStage.jsx`,
+„Ekraan / Tahvel” switch); group rooms have no screen share.
+
 Lesson plan + in-room attendance (teacher only, 1:1 and group): `liveLessonPlans/{roomKey}` (roomKey = invitation id
 or group room id; staff-only rules, only the room's teacher writes). Steps with minutes (`lessonPlan.js`, default
 Soojendus/Avasta/Harjuta/Kasuta/Kokkuvõte scaled to the calendar lesson length remembered by `rememberLessonTiming`),
