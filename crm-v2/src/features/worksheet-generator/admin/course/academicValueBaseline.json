@@ -1,14 +1,4 @@
 {
- "b1b2-module-05": [
-  "*|*|av-examiner",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-021|*|av-know",
-  "b1b2-022|*|av-know",
-  "b1b2-022|*|av-voice",
-  "b1b2-023|*|av-know",
-  "b1b2-024|discover|av-fact"
- ],
  "b1b2-module-06": [
   "*|*|av-article",
   "*|*|av-examiner",
