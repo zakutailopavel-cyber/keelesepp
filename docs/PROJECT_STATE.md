@@ -1,3 +1,53 @@
+## 2026-11-03 · agent/av-b1-module-16 — B1 module 16 „Arvamus, võrdlemine ja põhjendamine” (a2b1-076…080): academic value round 1 (topic „meedia”, secondary „ühiskond”, „suhted”)
+
+- Base: `main` 98ec278, checked 2026-11-03; merged with `origin/main` (#1017, #1018) before the PR. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row 16. The cast storyline (phone-free school day, Liis's remote-work variants, the Männi 8 courtyard) and the opinion / comparison / argument / polite-conditional axis stay.
+- Done (`admin/course/b1/module16.js`): 076 topic opener `076_d_open` „Meedia ja uudised Eestis” (ERR since 1.6.2007, ETV / ETV2 / ETV+ from 28.9.2015, five radio channels, ERRS: minorities' information needs, no advertising as a rule; news sources and trust in ERR — Emor for Riigikantselei, March 2026; media literacy; module goal) instead of `076_d_goal`; „Kas teadsid?” `076_p_know` (school phone rules in the kodukord since 1.9.2025, no national ban; IKS § 8 age 13; WHO 2019 screen time); `076_d_survey` a pair survey on media and screens (not a 3-person retelling). 077 infographic `077_p_media` (news sources, March 2026, `voice: 'infographic'`) + comparison talk `077_p_mtalk`; `077_d_compare` no longer „three times”; `077_t_rec` prepared at home, told in class. 078 opinion column `078_p_column` (insertion, R10, `voice: 'opinion'`: social media can wait until 13) and „Kas teadsid?” `078_p_know` (ethics code 4.1 news vs opinion; pressinõukogu 2002, 1000 decisions by 2020, ERR a member); `078_t_rec` prepared at home. 079 „Kas teadsid?” `079_p_know` (how to recognise false information — European Youth Portal; EPL / Delfi Faktikontroll since 9/2017; Propastop); one `079_p_would` question on a friend sharing false news. 080 `080_d_warm` the examiner set („meedia, uudised ja arvamused”, 7 questions, own instruction); `080_p_l4` without the invented survey shares (new TartuNLP audio, statement 9 changed); `080_p_r2text` speaks of one city's library (no unsourced national claim), R2 question 1 adjusted. Exam part points unchanged.
+- Module counts: 3-2-1 / 4-3-2 3 → 1 (`076_d_432`); „salvesta” 4 → 2 (`076_t_rec`, `079_t_rec`); Kasuta chain unchanged (passes).
+- Files: `b1/module16.js`, `academicValueBaseline.json` (module 16 removed), `listeningAudio.json` + `public/audio/a2b1-080/080_p_l4.mp3`, this file.
+- Checks: `ACADEMIC_REPORT=a2b1-module-16` PASS; course report 5/5 READY (076–079 40–51 min); language check 0 unknown lower-case; eslint clean; `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 134 files passed, 1526 tests passed.
+- Limits: facts checked on the web 2026-11-03 (sources in the PR). No ERR fact-checking unit could be verified, so the know box names EPL / Delfi Faktikontroll. Survey figures are from March 2026 and are dated in the text. Kept ids with changed content: `076_d_survey`, `076_p_topics`, `077_d_compare`, `077_t_rec`, `078_t_rec`, `079_p_would`, `080_d_warm`, `080_p_l4`, `080_p_r2text`, `080_p_r2`; removed `076_d_goal` (no answers). Not published; nothing in production touched.
+- Next safe step: review and merge; then publish module 16 through the existing flow after listing hand-edited sheets (ACADEMIC_VALUE_ROUND1 §3).
+## 2026-11-03 · agent/harno-exam-points (PR #1020) — exam sheets: Harno raw points, weighting and pass rule per level (A2, B1, B2, C1)
+
+- Base: `main` 98ec278, checked 2026-11-03. Question from the content agent: B1 exam sheets show 33 / 30 / 20 / 20 points while Harno says 25 per part.
+- Finding: 33 / 30 / 20 / 20 are Harno's own B1 raw points. Harno weighs each of them to 25 („… toorpunkti, mis kaalutakse lõpptulemuses 25 punktiks”), so the sheets were not wrong.
+- What the sheets lacked:
+  - how the real exam weighs each part;
+  - Harno's pass rule (≥ 60 % in total and no part at 0). The sheets showed only the course target, 80 %.
+- Verified table (A2 / B1 / B2 / C1): `docs/HARNO_LEVEL_REQUIREMENTS.md` § „Verified exam table”, with sources.
+- Done:
+  - `harnoScales.js`: `HARNO_EXAMS` (minutes, raw and weighted points, tasks per level), `HARNO_PASS`, `COURSE_EXAM`, `examPartDefaults`, `harnoWeighted`, `harnoResult`.
+    - `EXAM_PART_DEFAULTS` is derived from B1.
+    - The B1 speaking default is 2 tasks, as at Harno (intro + 2), instead of 3.
+  - `harno.jsx` `exampart`:
+    - With `data.exam` the header adds the Harno line (weighting + pass rule).
+    - The editor can choose the level.
+  - `B.examPart`: `exam` option.
+  - `courseSheet.js`: stamps `exam` on every exam-part header by course (a2 → A2, b1 → B1, b2 → B2, c1 → C1). Block ids are unchanged.
+  - `methodGaps.js` `EXAM_FORMATS`: 13 verified task formats added. The courses already train all of them.
+- Checks:
+  - `npx vitest run src/features/worksheet-generator src/features/worksheet-studio`: 134 files passed, 1 skipped. Tests: 1532 passed, 9 skipped.
+  - eslint is clean on the changed files.
+  - No baseline regenerated.
+- Limits:
+  - Harno publishes no raw scale for B2 writing / speaking, no A2 conversion and no per-criterion split. These gaps are marked in the doc.
+  - Published sheets get the new line only on republish.
+- Follow-ups (module files, not edited here; other agents are editing them):
+  - A2 mock reading has 29 points, while Harno has 30 (T2 = 6 items).
+  - B1 module speaking headers say `tasks: 3`, while Harno has 2 + intro.
+  - The C1 mock listening part 2 has 6 gaps + 4 choices, while Harno has 10 three-option items.
+  - The B1 course's A2-form checks could set `exam: 'A2'`.
+  - On the sheets the part order is R / L | W / S, while Harno's order is W → L → R → S.
+- Next safe step: review and merge the PR. Then republish the exam lessons through the existing flow.
+## 2026-11-03 · agent/av-b1-module-13 (PR #1019) — B1 module 13 „Suhtlemine ja probleemilahendus” (a2b1-061…065): academic value round 1 (topic „keel”, secondary „suhted”, „ümbruskond”)
+
+- Base: `main` c50d30d (after #1015), checked 2026-11-03; merged with `origin/main` 98ec278 (#1014, #1016) before the PR, checks re-run after the merge. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row 13. The cast storyline (Männi 8 renovation, Saaremaa hotel, the rumour about Karl, the hot office) and the grammar line (paluma + da / nõus olema + ma, tingiv kõneviis from 062, kaudne kõneviis in 063–064) stay.
+- Done (`admin/course/b1/module13.js`): topic opener `061_d_open` „Keeled ja suhtlemine Eestis” replaces the goal text `061_d_goal` (Estonian: state language, ~1,1 M native speakers, EU language since 2004, Uralic / Finnic; 262 mother tongues, 65,4 % Estonian and 26,9 % Russian at the start of 2026; EKI, Sõnaveeb, Keeleamet; 225 words, 4 questions incl. home country). „Kas teadsid?”: `061_p_know` night quiet (KorS § 56: 22–6, before a rest day 0–7; police / korteriühistu), `062_p_know` EKI keelenõu 631 3731 and Sõnaveeb, `063_p_know` 14 cases, no gender, no future form, the quotative -vat, `064_p_know` Estonian at work (põhiseadus § 6, Language Act, regulation nr 84, Keeleamet's ettekirjutus, Harno certificate in EIS, free exam). `061_d_meet`, `062_d_photo`, `064_d_opinion` are one-minute talks / pair opinion talks, not „three listeners in a row”; `061_t_rec`, `063_t_rec` are prepared at home and told in class (no recording); 061 Kasuta has no voicemail any more. 065: `065_d_warm` is the examiner set (7 questions, own instruction); R2 article and exam listenings `065_p_l2` (hotel complaints: no invented „more complaints in summer”, 15-day reply to a written complaint, free disputes committee) and `065_p_l4` (no invented „three of four”) fixed, new TartuNLP audio.
+- Module counts: retelling 4 → 1 (`063_d_432`); „salvesta” 4 → 2 (`062_t_rec`, `064_t_rec`); Kasuta voicemail / call → letter 3/4 → 2/4.
+- Files: `b1/module13.js`, `academicValueBaseline.json` (module 13 removed), `listeningAudio.json` + `public/audio/a2b1-065/065_p_l2.mp3`, `065_p_l4.mp3`, `tools/course-audit/language-allow.txt` (`liivi`, `vadja`, `vepsa`, checked in Sõnaveeb), this file.
+- Checks: `ACADEMIC_REPORT=a2b1-module-13` PASS; course report 5/5 READY (061 41/44/40, 062 44/47/40, 063 44/44/43, 064 42/40/52, 065 53/45/61 min); language check 0 unknown lower-case; `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 134 files passed (1526 tests); eslint clean.
+- Limits: facts checked on the web 2026-11-03 (sources in the PR). Language requirements at work are under political debate (2025–2026); the box names only the frame (law, regulation nr 84, Keeleamet), recheck before publishing. Harno's page gives B1 as 4 × 25 points, the course exam sheets use 33 / 30 / 20 / 20 (engine defaults, not changed here) — worth a separate check.
+- Next safe step: review and merge; then publish module 13 through the existing flow after listing hand-edited sheets (ACADEMIC_VALUE_ROUND1 §3).
 ## 2026-11-03 · agent/av-b1-module-14 (PR #1018) — B1 module 14 „Minevik, kogemused ja jutustamine” (a2b1-066…070): academic value round 1 (topic „ajalugu”, secondary „kultuur”, „suhted”)
 
 - Base: `main` c50d30d (after #1015), checked 2026-11-03; merged with `origin/main` 505346b (#1016) before the PR. Contract: `docs/ACADEMIC_VALUE_ROUND1.md` §2; topic map row 14 (history through life stories). The cast storyline (Viktor's sauna 1988, the living library, family timelines, the story evening) and the grammar line (ära / läbi / valmis, täisminevik, the three pasts) stay.

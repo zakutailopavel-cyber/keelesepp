@@ -53,6 +53,8 @@ export function courseMethodGaps(modules, course) {
 // it shows a format that is never trained, not how well it is trained.
 const words = (v) => String(v || '').split(/\s+/).filter((w) => /\p{L}/u.test(w)).length;
 const text = (b) => Object.values(b.data || {}).filter((v) => typeof v === 'string').join(' ').toLowerCase();
+const optionSets = (b) => String(b.data?.passage || '').match(/\{[^}]*\}/g) || [];
+const listenTF = (b) => b.type === 'examlisten' && b.data?.mode === 'truefalse';
 const writingWords = (b) => (['guidedletter', 'examwriting'].includes(b.type) ? Number(b.data?.maxWords) || 0 : b.type === 'writing' ? (Number(b.data?.maxSent) || 0) * 10 : 0);
 export const EXAM_FORMATS = {
   a2: [
@@ -62,6 +64,11 @@ export const EXAM_FORMATS = {
     ['signs', 'sildid ja teated: sobitamine', (b) => ['match', 'manymatch'].includes(b.type)],
     ['message-30', 'sõnum või kirjeldus ≥ 30 sõna', (b) => writingWords(b) >= 30],
     ['picture', 'pildi kirjeldamine suuliselt', (b) => b.type === 'speaking' && /pilt/.test(text(b))],
+    // verified Harno A2 tasks (docs/HARNO_LEVEL_REQUIREMENTS.md, 2026-11-03): listening 2 true/false, writing 1 from a
+    // business card, speaking 2 questions with an idea card
+    ['listen-tf', 'kuulamine: õige / vale', (b) => listenTF(b) || b.type === 'truefalse'],
+    ['business-card', 'andmed visiitkaardilt ≥ 25 sõna', (b) => /visiitkaart/.test(text(b))],
+    ['idea-card', 'küsimused ideekaardi abil', (b) => ['speaking', 'rolecards', 'speakcard'].includes(b.type) && /ideekaart|küsi/.test(text(b))],
   ],
   b1: [
     ['listening', 'kuulamine', (b) => ['listening', 'examlisten'].includes(b.type)],
@@ -71,6 +78,10 @@ export const EXAM_FORMATS = {
     ['letter-100', 'isiklik kiri või jutt ~100 sõna', (b) => writingWords(b) >= 90],
     ['agreement', 'paaristöö kokkuleppega', (b) => (b.type === 'speakcard' && b.data?.mode !== 'phone') || (['rolecards', 'speaking'].includes(b.type) && /kokku lepp|kokkulepe|otsusta/.test(text(b)))],
     ['phone', 'telefonikõne asutusse (rollimäng)', (b) => (b.type === 'speakcard' && b.data?.mode === 'phone') || (['rolecards', 'speaking'].includes(b.type) && /helista|telefon/.test(text(b)))],
+    // verified Harno B1 tasks: reading 1 situations ↔ ads, writing 1 questionnaire or note, listening 4 true/false
+    ['ads-match', 'olukorrad ja kuulutused', (b) => b.type === 'adsmatch'],
+    ['note-50', 'küsimustik või teade ~50 sõna', (b) => b.type === 'examwriting' && ['kusimustik', 'teade', 'kutse'].includes(b.data?.genre)],
+    ['listen-tf', 'kuulamine: intervjuu, õige / vale', listenTF],
   ],
   b2: [
     ['listening', 'kuulamine', (b) => ['listening', 'examlisten'].includes(b.type)],
@@ -79,6 +90,12 @@ export const EXAM_FORMATS = {
     ['essay-180', 'arutlev tekst või kokkuvõte ~180 sõna', (b) => writingWords(b) >= 170],
     ['monologue-work', 'sõnavõtt töö teemal', (b) => b.type === 'speaking' && /töö|amet|ettevõt/.test(text(b))],
     ['debate', 'arutelu poolt- ja vastuargumentidega', (b) => b.type === 'rolecards' && /poolt|vastu/.test(text(b))],
+    // verified Harno B2 tasks: reading 3 gaps with 4 options, reading 4 sentence bank, listening 1 clips heard once,
+    // listening 4 twelve true / false statements
+    ['gap-4', 'lünktekst 4 valikuga', (b) => b.type === 'cloze' && optionSets(b).some((o) => o.split('|').length >= 4)],
+    ['sentence-bank', 'lausepangaga lünktekst', (b) => b.type === 'insertion'],
+    ['clips-once', 'lühiklipid, kuuldakse üks kord', (b) => b.type === 'examlisten' && Number(b.data?.plays) === 1],
+    ['listen-tf', 'kuulamine: õige / vale', (b) => listenTF(b) || (b.type === 'truefalse' && (b.data?.statements || []).length >= 10)],
   ],
   c1: [
     ['listening', 'kuulamine', (b) => ['listening', 'examlisten'].includes(b.type)],
@@ -87,6 +104,10 @@ export const EXAM_FORMATS = {
     ['data-summary', 'andmete kokkuvõte diagrammist', (b) => b.type === 'chart'],
     ['opinion-220', 'arvamuslugu 220–260 sõna', (b) => writingWords(b) >= 220],
     ['presentation', 'ettekanne töö teemal', (b) => b.type === 'speaking' && /ettekan|esitlus/.test(text(b))],
+    // verified Harno C1 tasks: reading 1 statement ↔ paragraph, reading 2 sentence gaps, reading 3 short answers 1–4 words
+    ['paragraph-match', 'väide ja tekstilõik', (b) => ['table', 'manymatch', 'match', 'adsmatch'].includes(b.type) && /lõik/.test(text(b))],
+    ['sentence-gap', 'lünka sobiv lause', (b) => ['gaps', 'insertion', 'cloze'].includes(b.type) && /lause/.test(text(b))],
+    ['short-answer', 'teabetekst ja lühivastused', (b) => b.type === 'reading'],
   ],
 };
 // formats never trained in a course: [{ id, label }]

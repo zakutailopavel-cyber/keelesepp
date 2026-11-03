@@ -3,7 +3,7 @@
 // lesson + phase + slot, so a republished sheet keeps the learners' answer keys.
 
 import { ARCHETYPES, LEAD_PAIRS, TEACHING_ARCHETYPES, isCatalogueId, isHarnoFormat } from '../../../worksheet-studio/didactics/taskCatalogue.js';
-import { EXAM_PART_DEFAULTS, RUBRIC_SCALES } from '../../../worksheet-studio/engine/blocks/harnoScales.js';
+import { EXAM_PART_DEFAULTS, RUBRIC_SCALES, examPartDefaults } from '../../../worksheet-studio/engine/blocks/harnoScales.js';
 
 const block = (id, type, tone, goal, data, width = 'full') => ({ id, type, width, span: width === 'full' ? 12 : 6, tone, goal, data });
 const join = (v) => (Array.isArray(v) ? v.join('\n') : String(v || ''));
@@ -173,8 +173,10 @@ export const B = {
   }),
   rubricW2: (id, title = 'Hindamine: kirjutamine 2 (12 punkti).') => block(id, 'examrubric', 'white', '', { title, instruction: 'Neli kriteeriumi, igaüks 0–3 punkti.', scale: 'W2', criteria: RUBRIC_SCALES.W2.criteria }),
   rubricSpeaking: (id, title = 'Hindamine: rääkimine (20 punkti).') => block(id, 'examrubric', 'white', '', { title, instruction: 'Neli kriteeriumi, igaüks 0–5 punkti.', scale: 'S', criteria: RUBRIC_SCALES.S.criteria }),
-  // the header of an exam part: 'W' | 'L' | 'R' | 'S' with Harno's minutes, tasks and points (override any), target 80 %
-  examPart: (id, skill, overrides = {}) => block(id, 'exampart', 'sky', '', { skill, ...EXAM_PART_DEFAULTS[skill], target: 80, note: '', ...overrides }),
+  // the header of an exam part: 'W' | 'L' | 'R' | 'S' with Harno's minutes, tasks and raw points (override any), target
+  // 80 %. `exam: 'A2' | 'B1' | 'B2' | 'C1'` takes that level's real part (harnoScales.js HARNO_EXAMS; default B1); without
+  // it the course sheet marks the part with the course's exam (courseSheet.js), so the sheet shows how Harno weighs it
+  examPart: (id, skill, overrides = {}) => block(id, 'exampart', 'sky', '', { skill, ...(examPartDefaults(overrides.exam, skill) || EXAM_PART_DEFAULTS[skill]), target: 80, note: '', ...overrides }),
   // ---------- academic value (docs/COURSE_DESIGN_COMMUNICATIVE.md §13) ----------
   // „Teema avaleht”: the module's topic opener on lesson 1's Avasta — real facts about Estonia and the world (no cast),
   // the source line, then 3–4 „Mõtle kaasa” questions (one compares Estonia with the learner's home country)

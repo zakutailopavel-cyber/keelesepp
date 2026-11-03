@@ -4,6 +4,8 @@ import { checkDocument, scoreDocument } from '../registry.js';
 import { answerKeyOf } from '../answerKey.js';
 import { sampleDocument } from '../sample.js';
 import { B } from '../../../worksheet-generator/admin/course/blocks.js';
+import { harnoPartLine } from './harno.jsx';
+import { EXAM_PART_DEFAULTS, HARNO_EXAMS, harnoResult, harnoWeighted } from './harnoScales.js';
 
 // The Harno B1 exam blocks (harno.jsx) built the way course files build them (admin/course/blocks.js), shown to the
 // student, the teacher and on paper. The answer round trip of every answerable block is in blocksRoundtrip.test.jsx.
@@ -119,5 +121,41 @@ describe('exam rubrics and part headers', () => {
     const screen = render(<Sheet doc={doc([part])} mode="interactive" answers={{}} setAnswer={() => {}} />);
     fireEvent.click(card(screen.container, 'pr').querySelector('.ws-recbtn'));
     expect(card(screen.container, 'pr').querySelector('[role="timer"]').textContent).toContain('Aega jäänud 50:00');
+  });
+});
+
+// the real Harno exams (docs/HARNO_LEVEL_REQUIREMENTS.md, verified table 2026-11-03)
+describe('Harno exam parts: raw points, weighting, pass rule', () => {
+  it('keeps the verified per-level table', () => {
+    const row = (l) => ['W', 'L', 'R', 'S'].map((s) => `${HARNO_EXAMS[l].parts[s].minutes}/${HARNO_EXAMS[l].parts[s].raw}→${HARNO_EXAMS[l].parts[s].weighted}`).join(' ');
+    expect(row('A2')).toBe('30/20→20 30/25→20 50/30→20 15/20→20');
+    expect(row('B1')).toBe('35/20→25 35/30→25 50/33→25 15/20→25');
+    expect(row('B2')).toBe('80/null→25 40/32→25 70/35→25 20/null→25');
+    expect(row('C1')).toBe('90/24→25 45/27→25 60/34→25 20/20→25');
+    expect(EXAM_PART_DEFAULTS.R).toEqual({ part: 'Lugemine', minutes: 50, points: 33, tasks: 4 });
+    expect(EXAM_PART_DEFAULTS.S.tasks).toBe(2);
+  });
+  it('weighs raw points and passes at 60 % with no part at 0', () => {
+    expect(harnoWeighted('B1', 'R', 33)).toBe(25);
+    expect(harnoWeighted('B1', 'L', 15)).toBe(12.5);
+    expect(harnoWeighted('A2', 'R', 15)).toBe(10);
+    const ok = harnoResult('B1', { W: 12, L: 18, R: 20, S: 12 });
+    expect(ok).toMatchObject({ total: 60.2, max: 100, need: 60, passed: true, zero: [] });
+    const zero = harnoResult('B1', { W: 20, L: 30, R: 33, S: 0 });
+    expect(zero).toMatchObject({ total: 75, passed: false, zero: ['S'] });
+    expect(harnoResult('A2', { W: 12, L: 15, R: 18, S: 12 })).toMatchObject({ total: 48, max: 80, need: 48, passed: true });
+    expect(harnoResult('B1', { W: 10, L: 15, R: 16, S: 10 }, { R: 26 }).parts.R).toBe(15.4);
+  });
+  it('a header with the course exam says how Harno weighs the part', () => {
+    expect(harnoPartLine('B1', 'R', 33, 50)).toBe('Harno B1 eksamil kaalutakse need 33 punkti lõpptulemuses 25 punktiks. Eksam on sooritatud, kui kokku on vähemalt 60 punkti 100-st (60 %) ja ükski osa ei ole 0 punkti.');
+    expect(harnoPartLine('B1', 'L', 30, 30)).toMatch(/^Harno B1 eksamil kaalutakse need 30 punkti/);
+    expect(harnoPartLine('B1', 'R', 26, 40)).toMatch(/^Harno B1 eksamil on lugemises 33 punkti \(50 min\), mis kaalutakse lõpptulemuses 25 punktiks\./);
+    expect(harnoPartLine('A2', 'W', 20, 30)).toMatch(/^Harno A2 eksamil annab kirjutamine lõpptulemuses 20 punkti 80-st\. Eksam on sooritatud, kui kokku on vähemalt 48 punkti 80-st/);
+    expect(harnoPartLine('B2', 'S', 25, 20)).toMatch(/^Harno B2 eksamil annab rääkimine lõpptulemuses 25 punkti 100-st\./);
+    expect(harnoPartLine('', 'R', 33, 50)).toBe('');
+    const part = { ...B.examPart('pc', 'L', { exam: 'C1' }) };
+    expect(part.data).toMatchObject({ exam: 'C1', minutes: 45, points: 27, tasks: 3 });
+    const { container } = render(<Sheet doc={doc([part])} mode="print" />);
+    expect(card(container, 'pc').querySelector('.ws-exampart-harno').textContent).toContain('kaalutakse need 27 punkti lõpptulemuses 25 punktiks');
   });
 });
