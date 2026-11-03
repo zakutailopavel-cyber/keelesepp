@@ -1,3 +1,13 @@
+## 2026-11-04 · agent/new-address-laki — school address on the site: Laki 11b, 12915 Tallinn
+
+- Base: `main` 66af0c2, checked 2026-11-04. Owner: the school moves on Saturday 7.11; lessons on Sunday 8.11 are already at the new address (Laki 11b, II korrus, 71,2 m²).
+- Done: every „Mustamäe tee 33, 10616 Tallinn” on the public site replaced. `index.html` and `ru/index.html`: JSON-LD `streetAddress` / `postalCode`, contact block (with floor: „II korrus” / „2-й этаж”), map iframe (now `maps.google.com/maps?q=Laki 11b, 12915 Tallinn&output=embed`, which lands on google.com/maps/embed) and footer. `kutse.html` footer. `privaatsus.html` controller address. Postal code 12915 from the Maa-amet address register (In-ADS: „Harju maakond, Tallinn, Mustamäe linnaosa, Laki tn 11b 12915”).
+- Not changed: the CRM (no address in code), course texts that mention Mustamäe as a place.
+- Checks: `git grep "Mustamäe tee 33\|10616" -- '*.html'` finds nothing; the map URL answers 200. Not opened in a browser after the change.
+- Production: none. The site address changes only after merge + deploy.
+- Limits: `privaatsus.html` names the company's address; if the company's address in the Äriregister stays Mustamäe tee 33, the owner updates it there.
+- Next safe step: merge and deploy on Saturday 7.11 (not earlier, so that students do not come to the new place too soon).
+
 ## 2026-11-03 · agent/e2e-lesson-tokens — e2e `lesson-tokens.spec.cjs` follows the split „Õpilane” / „Aine (kursus)” fields
 
 - Base: `main` 9b172a8, checked 2026-11-03. The scenario waited for the label „Õpilane ja aine” that #1051 split in `TokenInvoiceDialog.jsx`; it timed out on `main`.
