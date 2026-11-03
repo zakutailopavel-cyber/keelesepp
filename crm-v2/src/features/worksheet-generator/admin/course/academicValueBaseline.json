@@ -51,19 +51,6 @@
   "b1b2-070|discover|av-fact",
   "b1b2-070|transfer|av-fact"
  ],
- "b1b2-module-15": [
-  "*|*|av-examiner",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-071|*|av-know",
-  "b1b2-071|*|av-voice",
-  "b1b2-072|*|av-know",
-  "b1b2-072|discover|av-fact",
-  "b1b2-073|*|av-know",
-  "b1b2-073|*|av-voice",
-  "b1b2-074|*|av-know",
-  "b1b2-075|practice|av-fact"
- ],
  "b1b2-module-16": [
   "*|*|av-article",
   "*|*|av-examiner",
