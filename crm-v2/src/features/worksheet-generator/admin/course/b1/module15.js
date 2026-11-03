@@ -41,7 +41,23 @@
 // lake at Vasknarva; the Onion Route (Sibulatee) runs along the western shore through the Old Believers' villages; the red
 // sandstone bank at Kallaste; Värska in Setomaa; the psychologist Peter Gollwitzer's research on if–then plans (1990s).
 // Earlier versions: archive/v3/b1/module15.js, archive/v1/b1/module15.js.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE §13): topic „ühiskond” (secondary
+// „haridus”, „majandus”) — the future and society: e-state, elections, the future of work — around the module's grammar
+// line (ways to express the future, the jussive, kui-clauses, the action plan). Topic opener 071_d_open (digital signature,
+// X-tee, all state services online since December 2024, e-voting since 2005 and in 2023 / 2027, the population projection
+// 2024–2085, OSKA on jobs); non-cast texts 071_p_forecast (Statistikaamet's population projection, read for future forms;
+// replaces the notice board 071_p_board), 072_p_forum (a forum on big plans after 60, sentence insertion with jussive
+// and las forms), 073_p_evote (how e-voting works, read for kui-clauses; replaces the ads task 073_p_camps), 074_d_oska (OSKA:
+// work and skills in the next decade); „Kas teadsid?” 072_p_know (retirement age tied to life expectancy), 073_p_know
+// (who may vote; the 2025 constitutional change, stated neutrally), 074_p_know (digital signature, X-tee, e-residency).
+// Opinion: 071_d_future (Estonia in 20 years; replaces the 4-3-2 071_d_432), 072_p_opinion widened, 073_p_would with two
+// society questions, examiner set 075_d_warm (own instruction). One retelling left (074_d_meet); record-at-home only
+// 073_t_rec and 074_t_rec (071_t_goal and 072_t_circle are done in class). Sources: the PR „B1 module 15: academic
+// value round 1”.
 import { B, tag, teach, withShapes } from '../blocks.js';
+
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
 export const MODULE = { id: 'a2b1-module-15', course: 'b1', title: 'Tulevik, plaanid ja eesmärgid', level: 'B1', design: 'v2', template: 'v4' };
 
@@ -51,8 +67,18 @@ export const LESSONS = withShapes({
     canDo: 'Ma loen teateid ja kursuse infot tuleviku plaanide kohta ning lepin kaaslasega kokku, mida, millal ja kui tihti me järgmisel aastal teeme.',
     discover: [
       B.review('071_d_review', [['Kuidas leppisid vanemad kokku lugude õhtu kava, mis ei mahtunud ühe tunni sisse?', 'a2b1-069'], ['Miks pidi Karl remondi ajal päeval magama?', 'a2b1-061'], 'Mida sa järgmisel aastal kindlasti teha tahad?']),
-      B.text('071_d_goal', 'Moodul 15: tulevik, plaanid ja eesmärgid', 'Selles moodulis räägid tulevikust: mida sa järgmisel aastal teed, mida teised sinu plaanist arvavad, mis tingimusel plaan õnnestub ja mis on plaan B. On november. Lugude õhtu on läbi ja kõik mõtlevad juba uuele aastale. Tuul Logistikas algab mentorprogramm, Sofia tahab teha B1-taseme eksami ja Viktoril on suur suveplaan. Mooduli lõpus koostad oma tegevusplaani, lepid mentoriga kokku esimesed sammud ja kirjutad plaani üles. Täna loed firma infolehte.'),
-      B.reading('071_d_news', 'Firma infoleht.', 'Loe Tuul Logistika infolehe „Meie nädal” artiklit. Vasta küsimustele lühidalt ja oma sõnadega.', 'Järgmine samm: mentorprogramm 2028', [
+      B.topicOpener('071_d_open', 'Teema avaleht: Eesti tulevik — e-riik, valimised ja töö', [
+        'Eestit nimetatakse sageli e-riigiks. Alates 2002. aastast, kui hakati välja andma ID-kaarte, saab Eestis anda digiallkirja, mis kehtib samamoodi nagu allkiri paberil. Riigi andmekogud vahetavad andmeid X-tee kaudu: päevas tehakse seal ligi 13 miljonit päringut. Nii saavad ametid vajalikud andmed teineteiselt ja inimene ei pea neid igale ametile eraldi tooma. 2024. aasta detsembris sai internetis teha ka viimase riigiteenuse, abielu lahutamise avalduse.',
+        'Eesti oli maailmas esimene riik, kus sai üleriigilistel valimistel hääletada interneti teel. E-hääletamine algas 2005. aastal. 2023. aasta Riigikogu valimistel andis üle poole hääletajatest oma hääle internetis, 2025. aasta kohalikel valimistel 45,8 % hääletajatest. 2027. aasta märtsis toimuvatel Riigikogu valimistel saab e-hääletada lisaks arvutile ka nutitelefoniga.',
+        'Muutub ka Eesti rahvastik. Statistikaameti prognoosi järgi elab Eestis 2085. aastal ligi 1,2 miljonit inimest ja tööealisi inimesi on vähem kui praegu. Kutsekoja OSKA prognoosi järgi kasvab järgmise kümne aasta jooksul kõige rohkem töökohtade arv IT-s, finantsvaldkonnas ning tervishoius ja sotsiaalhoolekandes. Noori tuleb tööturule vähem, kui inimesi läheb pensionile, nii et täiskasvanutel tuleb rohkem õppida ja uusi oskusi omandada. Seepärast räägitakse Eestis üha rohkem elukestvast õppest.',
+        'Selles moodulis räägid tulevikust: mida sa järgmisel aastal teed, mis tingimusel plaan õnnestub ja mis on plaan B. Loed ka, kuidas Eesti tulevikuks valmistub. Mooduli lõpus koostad oma tegevusplaani, lepid mentoriga kokku esimesed sammud ja kirjutad plaani üles.',
+      ], 'ID.ee, „Digitaalne allkirjastamine ja elektroonilised allkirjad”; RIA, „Andmevahetuskiht X-tee”; Siseministeerium, „Avalduse abielulahutuseks saab nüüd elektrooniliselt teha” (10.12.2024); e-Estonia (2024); Valimised.ee, „E-hääletamise tutvustus”, „Elektroonilise hääletamise statistika” ja uudis 29.10.2026; Statistikaamet, „Värske rahvastikuprognoos näitab Eesti elanikkonna vähenemist” (2024); Haridusportaal edu.ee, „Töö ja oskused tulevikus” (OSKA)', [
+        'Milliseid e-teenuseid sina kõige sagedamini kasutad? Mida teed sa veel paberil?',
+        'Kuidas suhtlevad inimesed riigi ja ametitega sinu kodumaal? Mis on sarnast ja mis on teisiti kui Eestis?',
+        'Kas sinu arvates on hea, et hääletada saab ka internetis? Miks?',
+        'Milliseid oskusi vajab inimene sinu arvates tööl 20 aasta pärast?',
+      ]),
+      B.reading('071_d_news', 'Firma infoleht.', 'On november ja kõik mõtlevad juba uuele aastale. Loe Tuul Logistika infolehe „Meie nädal” artiklit ja vasta küsimustele lühidalt.', 'Järgmine samm: mentorprogramm 2028', [
         'Järgmisel aastal alustab Tuul Logistika programmiga „Järgmine samm”. Programmi juhib personalijuht Eha Org. Iga töötaja, kes soovib, valib endale ühe eesmärgi aastaks 2028. Eesmärk võib olla seotud töö, keeleõppe, tervise või hobiga.',
         '',
         'Programm algab jaanuaris ja kestab juuni lõpuni. Iga osaleja saab endale mentori, kes on kogenud kolleeg meie firmast või partnerfirmast. Mentor ja osaleja hakkavad kohtuma kord kuus üheks tunniks. Esimesel kohtumisel koostavad nad koos tegevusplaani: mida osaleja teeb, mis ajaks ja kes teda aitab.',
@@ -100,10 +126,10 @@ export const LESSONS = withShapes({
         ['Mia joonistab lasteaias igal hommikul pingviine.', 'septembris + kooli minema', 'Septembris läheb Mia kooli.'],
         ['Eesti keele kuulamine on Sofiale veel raske.', 'kevadeks + muutuma + kergemaks', 'Kevadeks muutub eesti keele kuulamine Sofiale kergemaks.'],
       ], 'full', 'g_notice'),
-      teach(tag(B.speaking('071_d_survey', 'Küsitle kolme: mis sul plaanis on?', 'Esita kolmele inimesele samad viis küsimust. Iga uue inimesega küsi natuke kiiremini; lõpus räägi minutiga, mida kuulsid.', ['Mida sa järgmisel aastal kindlasti teed?', 'Mida sa hakkad tegema, mida sa praegu ei tee?', 'Mida sa kavatsed suvel teha?', 'Kes või mis sind selles aitab?', 'Mis sinu elus järgmise aasta lõpuks muutub?'], [120, 180], ['Mida sa … teed?', 'Ta kavatseb…', 'Kaks inimest hakkavad…, aga keegi ei…']), { task: 'S09', fluency: true }),
+      teach(tag(B.speaking('071_d_survey', 'Küsitlus: mis sul plaanis on?', 'Küsi kolmelt inimeselt samad viis küsimust ja märgi vastused lühidalt üles. Lõpus räägi minutiga, mida kuulsid: mis oli plaanides sarnast ja mis erines.',['Mida sa järgmisel aastal kindlasti teed?', 'Mida sa hakkad tegema, mida sa praegu ei tee?', 'Mida sa kavatsed suvel teha?', 'Kes või mis sind selles aitab?', 'Mis sinu elus järgmise aasta lõpuks muutub?'], [120, 180], ['Mida sa … teed?', 'Ta kavatseb…', 'Kaks inimest hakkavad…, aga keegi ei…']), { task: 'S09', fluency: true }),
         'Üks-ühele: õpilane küsib samu küsimusi õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (Sofia, Markus, Liis). Lõpus teeb õpilane minutilise kokkuvõtte ja kasutab sõnu hakkama ja kavatsema.'),
-      teach(tag(B.speaking('071_d_432', 'Minu järgmine aasta kolm korda.', 'Räägi oma järgmise aasta plaanidest kolm korda: 2 minutit, 90 sekundit ja 1 minut. Kasuta igal korral ajasõnu ja sõna hakkama.', ['Mida sa jaanuaris teed?', 'Mida sa hakkad uuel aastal tegema?', 'Mis on sinu kõige suurem plaan suveks?', 'Mida sa kavatsed järgmise aasta lõpuks saavutada?', 'Mis võib sinu plaani muuta?'], [120, 180], ['Jaanuaris…', 'Uuel aastal hakkan…', 'Aasta lõpuks…']), { task: 'S08' }),
-        'Üks-ühele: õpetaja hoiab aega (2 minutit, 90 sekundit, 1 minut) ega katkesta. Pärast kolmandat korda ütleb õpetaja, mitu eri viisi tulevikust rääkida õpilane kasutas.'),
+      teach(tag(B.speaking('071_d_future', 'Arutelu: Eesti 20 aasta pärast.', 'Arutage paaris: milline on elu Eestis 20 aasta pärast? Kasuta tuleviku vorme (hakkab, muutub, saab) ja põhjenda oma arvamust.', ['Mis sa arvad, kas 20 aasta pärast saab kõiki asju riigiga ajada telefonis?', 'Milliseid ameteid on sinu arvates tulevikus rohkem vaja ja milliseid vähem?', 'Kas tehisintellekt muudab sinu töö lihtsamaks või raskemaks? Miks?', 'Kuidas muutub elu sinu kodumaal järgmise 20 aasta jooksul?', 'Mida peaks inimene juba praegu õppima, et tulevikus tööl hästi hakkama saada?'], [120, 180], ['Minu arvates hakkab…', 'Tulevikus muutub…, sest…', 'Ma ei usu, et…']), { task: 'S19' }),
+        'Üks-ühele: õpetaja vaidleb vahel vastu („Aga mina arvan, et…”) ja küsib „Miks?”. Õpilane kasutab vähemalt viit tuleviku vormi; õpetaja ei hinda arvamust, vaid keelt ja põhjendusi.'),
     ],
     practice: [
       B.choice('071_p_when', 'Mida see lause tähendab?', 'Loe lauset ja mõtle, millal tegevus toimub. Vali kolmest vastusest see, mis tähendab sama.', [
@@ -178,28 +204,28 @@ export const LESSONS = withShapes({
         'Eha Org tänas kõiki [töötajaid] (töötaja) kiire vastuse eest.',
         'Sofia kirjutas õpetajale oma uuest [plaanist] (plaan) ja küsis nõu.',
       ], '', 'full', 'g_vocab'), { task: 'G08' }),
-      tag(B.reading('071_p_board', 'Teadetetahvel.', 'Loe teateid kontori ja keelekooli teadetetahvlil. Vasta küsimustele oma sõnadega: mida peab Sofia nende järgi tegema ja millal?', 'Teated kontoris ja keelekoolis', [
-        'Personaliosakond. Mentorprogrammi „Järgmine samm” infotund toimub kolmapäeval, 1. detsembril kell 12 suures koosolekuruumis. Räägime, kuidas programm töötajate arengut toetab ja kuidas küsimustikku täita. Kohvi ja saiakesi jagub kõigile. Kes ei saa tulla, leiab infotunni salvestuse firma siselehelt.',
+      tag(B.reading('071_p_forecast', 'Uudis: Eesti rahvastik aastal 2085.', 'Loe uudist Statistikaameti rahvastikuprognoosist ja märka tuleviku vorme: väheneb, kasvab, langeb, jääb. Vasta küsimustele lühidalt ja oma sõnadega.', 'Rahvastikuprognoos: Eestis elab tulevikus vähem inimesi', [
+        'Statistikaamet avaldas 2024. aasta juunis uue rahvastikuprognoosi aastateni 2024–2085. Prognoosi järgi elab Eestis 2085. aastal ligi 1,2 miljonit inimest. See on 167 000 inimest vähem kui 2024. aastal ehk rohkem, kui Tartu maakonnas on praegu elanikke kokku.',
         '',
-        'Keelekool Sõna. Detsembris on tasuta konsultatsioonid kevadise eksamikursuse soovijatele. Aja saab broneerida administraator Krista käest telefoni või e-posti teel. Üks konsultatsioon kestab kakskümmend minutit ja selle jooksul teeb õpetaja sinuga lühikese suulise testi.',
+        'Rahvaarv väheneb peamiselt kahel põhjusel: lapsi sünnib vähe ja rahvastik vananeb. Eelmisel kümnel aastal sündis Eestis keskmiselt umbes 13 300 last aastas, prognoosi järgi jääb sündide arv kuni 2050. aastani umbes 11 700 juurde. Samal ajal elavad inimesed kauem. Prognoosi koostamise ajal oli meeste oodatav eluiga 74,5 ja naistel 83,1 aastat. 2085. aastaks kasvab see prognoosi järgi meestel 85,3 ja naistel 90,9 aastani.',
         '',
-        'Köök. Alates jaanuarist on köögis uus kord. Igaüks peseb oma tassi ise ära ja paneb selle kappi tagasi. Reede õhtul viiakse külmkapist kõik vanad toidud välja, nii et palun kirjutage oma karbile nimi.',
+        'Muutub ka see, kui palju on tööealisi inimesi. Prognoosi koostamise ajal olid 20–64-aastased 57,9 % rahvastikust. 2050. aastaks langeb nende osakaal 54,6 %-ni ja 2085. aastaks alla poole. Rahvaarvu aitab hoida ränne: prognoosi järgi tuleb Eestisse igal aastal umbes 4000 inimest rohkem, kui siit ära läheb.',
         '',
-        'Keelekool Sõna. Detsembri keelekohvik jääb ära, sest ruumis on remont. Järgmine keelekohvik toimub neljapäeval, 13. jaanuaril kell 18. Teemaks on uue aasta plaanid ja külla tuleb ajakirjanik, kes on ise eesti keele selgeks õppinud.',
+        'Prognoosi koostamise ajal olid alla 20-aastased 21,6 % ning 65-aastased ja vanemad 20,5 % rahvastikust. Loomulik iive ehk sündide ja surmade vahe on olnud negatiivne kogu aja pärast Eesti taasiseseisvumist. Seepärast arvavad statistikud, et sünnitusealisi naisi jääb ka tulevikus vähemaks.',
         '',
-        'Liis. Detsembri viimasel nädalal on kontor lahti ainult kella kaheteistkümneni. Aastavahetuse peol jagame välja selle aasta tänukirjad. Palun andke Jelenale reedeks teada, kas tulete peole ja kas sööte liha või taimetoitu. Peo algus on kell kuus.',
+        'Statistikaamet tuletab meelde, et prognoos ei ole kindel ennustus, sest tulevik on alati ettearvamatu. Seepärast koostati seitse erinevat stsenaariumi. Riik kasutab prognoosi, kui planeerib, milliseid teenuseid inimesed tulevikus vajavad.',
         '',
-        'Raamatukapp. Uuel aastal hakkab kontori raamatukapis olema ka eesti keele õpikuid ja harjutusvihikuid. Neid võib koju laenata kaheks nädalaks. Kirjuta oma nimi ja kuupäev kapi uksel olevasse vihikusse. Kui raamat jääb kauemaks, anna sellest Jelenale teada, sest järjekorras võib olla teisi lugejaid.',
+        'Allikas: Statistikaamet, „Värske rahvastikuprognoos näitab Eesti elanikkonna vähenemist” (13.06.2024).',
       ], [
-        ['Mis päeval ja mis kell saab mentorprogrammi kohta rohkem teada?', 'kolmapäeval kell 12|1. detsembril kell 12'],
-        ['Mida saab teha töötaja, kes on infotunni ajal tööreisil?', 'vaadata salvestust siselehelt|vaadata infotundi hiljem siselehelt'],
-        ['Mis juhtub keelekooli konsultatsiooni ajal ja kui palju see maksab?', 'õpetaja teeb suulise testi, see on tasuta|tasuta, õpetaja testib rääkimist'],
-        ['Miks peab külmkapis olevale karbile nime kirjutama?', 'muidu viiakse see reedel välja|reedel viiakse vanad toidud välja'],
-        ['Miks ei saa detsembris keelekohvikusse minna?', 'keelekoolis tehakse remonti|remondi tõttu'],
-        ['Mis kell peab Sofia detsembri viimasel nädalal hiljemalt kontorist lahkuma?', 'kell 12|keskpäeval'],
-        ['Mitu päeva tohib kontori õpikut kodus hoida?', '14 päeva|neliteist päeva|kaks nädalat'],
-        ['Milline teade on Sofiale kõige kasulikum? Miks?', ''],
-      ], 'g_vocab'), { task: 'R07' }),
+        ['Mitu inimest elab prognoosi järgi Eestis 2085. aastal?', 'ligi 1,2 miljonit|umbes 1,2 miljonit|1,2 miljonit'],
+        ['Mis on rahvaarvu vähenemise kaks peamist põhjust?', 'lapsi sünnib vähe ja rahvastik vananeb|vähe sünde ja vananev rahvastik'],
+        ['Mitu last sünnib prognoosi järgi aastas kuni 2050. aastani?', 'umbes 11 700|11 700'],
+        ['Kui pikk on prognoosi järgi naiste oodatav eluiga 2085. aastal?', '90,9 aastat|peaaegu 91 aastat|90,9'],
+        ['Mis juhtub 2085. aastaks tööealiste inimeste osakaaluga?', 'see langeb alla poole|langeb alla poole rahvastikust'],
+        ['Mis aitab rahvaarvu hoida?', 'ränne|sisseränne|inimesed, kes tulevad Eestisse'],
+        ['Miks koostas Statistikaamet seitse stsenaariumi?', 'tulevik on alati ettearvamatu|sest prognoos ei ole kindel ennustus'],
+        ['Mis sa arvad, kuidas muudab rahvastiku vananemine tööelu? Kuidas on see sinu kodumaal?', ''],
+      ], 'g_vocab'), { task: 'R15', voice: 'news' }),
       teach(B.rolecards('071_p_gap', 'Infolünk: millal Sofia õpib?', 'A on Sofia, B on õpetaja Maret. Küsige teineteiselt kuupäevi ja leidke, millistel laupäevadel Sofia tundi ei jõua ja kuidas ta need tunnid järele teeb.',
         'Sa oled Sofia. Sinu kalender: 21.–22. jaanuar tööreis Riiga; 5. veebruar ema Helgi juures Tartus; 19. veebruar vaba; 4. märts inventuur laos kell 9–13. Kursuse kuupäevi sa täpselt ei tea. Küsi B-lt ja ütle oma kuupäevad.',
         'Sa oled Maret. Kursus: 10 laupäeva 8. jaanuarist 11. märtsini kell 10–12; 5. veebruaril on kirjutamise test; 4. märtsil kordame rääkimist; 11. märtsil on proovieksam. Puudunud tunni saab järele teha teisipäevases veebirühmas. Sofia kalendrit sa ei tea. Küsi A-lt.',
@@ -207,7 +233,7 @@ export const LESSONS = withShapes({
       'Üks-ühele: õpetaja on Maret ja annab infot ainult küsimise peale; siis vahetage kaardid. Lõpus ütleb õpilane kolme lausega, millal ta puudub ja millal ta tunni järele teeb (Ma hakkan…, Ma kavatsen…).'),
     ],
     transfer: [
-      B.text('071_t_sit', 'Kaks rühma, üks otsus', 'Keelekool Sõna saatis kõigile eksamikursuse soovijatele kirja. Sofia tahab õppida koos oma kursusekaaslase Olenaga, aga neil on erinevad töö- ja pereajad. Loe kirja ja lisa puuduvad lauseosad. Seejärel leppige kokku, millise rühma te valite ja mida te igal nädalal teete. Salvesta kodus oma plaan ja vasta keelekooli kirjale.'),
+      B.text('071_t_sit', 'Kaks rühma, üks otsus', 'Keelekool Sõna saatis kõigile eksamikursuse soovijatele kirja. Sofia tahab õppida koos oma kursusekaaslase Olenaga, aga neil on erinevad töö- ja pereajad. Loe kirja ja lisa puuduvad lauseosad. Seejärel leppige kokku, millise rühma te valite ja mida te igal nädalal teete. Lõpuks räägi oma eesmärgist ja vasta keelekooli kirjale.'),
       teach(tag(B.bankText('071_t_letter', 'Eksaminurk: keelekooli kiri (Harno B1 lugemine 4)', 'Keelekooli kirjast on välja võetud kaheksa lauseosa. Pane iga osa õigesse kohta; kaks osa jäävad üle.', 'Kevadine B1 eksamikursus', [
         'Kallis eksamikursuse soovija! Aitäh, et tunned huvi meie kevadise B1 eksamikursuse vastu. [[Sel kevadel on meil kaks rühma]], et iga õppija leiaks endale sobiva aja.',
         '',
@@ -224,8 +250,8 @@ export const LESSONS = withShapes({
       'Eksaminurk (Harno B1 lugemine 4, lauseosad tekstis, ~9 min). Eksamil on tekst 120–150 sõna, kaheksa lünka ja pangas kaks üleliigset osa. Strateegia: 1) loe kogu tekst enne lünkade täitmist; 2) vaata lünga ümber: kas puudub põhjus, eesmärk, aeg või kõrvallause; 3) kontrolli lõpus, et iga lause on grammatiliselt terve. Üks-ühele: õpilane teeb ülesande üheksa minutiga ja selgitab õpetajale kahe lünga valikut.'),
       teach(tag(B.ideaCard('071_t_agree', 'Leppige kokku: milline rühm ja milline plaan?', 'Arutage, kas te valite laupäevase või teisipäevase rühma ja mida kumbki igal nädalal iseseisvalt teeb. Lõpuks peab olema ühine otsus.', 'Sofia töötab päeval kontoris ja sõidab mõnel laupäeval Tartusse ema juurde. Olena töötab poes ka laupäeva hommikuti, aga teisipäeva õhtuti on tema tütar Daria tantsutrennis. Mõlemad tahavad mais eksami teha ja õppida koos.', ['laupäevane rühm keelekoolis', 'teisipäevane rühm veebis', 'iga päev pool tundi raadiot', 'igal pühapäeval üks kiri Maretile', 'keelekohvik kord kuus', 'koos registreerudes viis eurot soodsamalt'], 'Millise rühma te valite, mida te igal nädalal teete ja miks?'), { main: true }),
         'Üks-ühele: õpetaja on Olena, kes tahab alguses ainult teisipäevast veebirühma; õpilane on Sofia, põhjendab oma soovi ja jõuab kokkuleppele. Hinda: kas lõpus on selge ühine otsus ning kas õpilane kasutas tuleviku vorme (hakkame, kavatseme, jaanuarist).'),
-      teach(tag(B.speaking('071_t_rec', 'Kodus: minu eesmärk ja esimesed sammud.', 'Salvesta 2–3-minutiline sõnum iseendale: mis on sinu eesmärk järgmiseks aastaks ja mida sa jaanuaris, veebruaris ja märtsis teed.', ['Mis on sinu kõige tähtsam eesmärk järgmiseks aastaks?', 'Miks on see sulle tähtis?', 'Mida sa jaanuaris teed?', 'Mida sa hakkad tegema iga nädal?', 'Mis ajaks tahad eesmärgi saavutada?'], [120, 180], ['Minu eesmärk on…', 'Jaanuarist hakkan…', 'Juuni lõpuks…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib, mis on esimese sammu tähtaeg.'),
+      teach(tag(B.speaking('071_t_goal', 'Minu eesmärk kahe minutiga.', 'Räägi umbes kaks minutit vabalt ja ilma pikkade pausideta: mis on sinu eesmärk järgmiseks aastaks ja mida sa jaanuaris, veebruaris ja märtsis teed. Lõpus ütle, mis on esimese sammu tähtaeg.', ['Mis on sinu kõige tähtsam eesmärk järgmiseks aastaks?', 'Miks on see sulle tähtis?', 'Mida sa jaanuaris teed?', 'Mida sa hakkad tegema iga nädal?', 'Mis ajaks tahad eesmärgi saavutada?'], [120, 180], ['Minu eesmärk on…', 'Jaanuarist hakkan…', 'Juuni lõpuks…']), { task: 'S18', level: 3, fluency: true }),
+        'Üks-ühele: õpilane räägib, õpetaja kuulab ja küsib lõpus kaks küsimust (miks just see eesmärk, mis on esimese sammu tähtaeg); siis räägib õpetaja oma eesmärgist ja õpilane küsib. Õpetaja märgib, mitu eri viisi tulevikust rääkida õpilane kasutas.'),
       B.examWriting('071_t_reply', 'Vastus keelekoolile.', 'Vasta Krista kirjale 70–90 sõnaga. Kirjuta kõigist neljast punktist ja kasuta vähemalt kolme tuleviku vormi.', 'vastus', {
         situation: 'Sa oled Sofia või iseenda nimel kursuse soovija. Krista palus kirjale vastata 15. detsembriks.',
         points: ['millisesse rühma sa tuled ja miks', 'kellega koos sa registreerud', 'mida sa kavatsed iga nädal iseseisvalt teha', 'kaks küsimust kursuse kohta'],
@@ -346,10 +372,25 @@ export const LESSONS = withShapes({
         ['Olgu peale!', 'Hea küll, ma olen nõus.'], ['Sõitku, aga mingu enne arsti juurde.', 'Ta võib sõita, kui ta enne arsti juures käib.'], ['Tehku poiss, mis tahab.', 'Las poiss teeb, mida ta ise tahab.'], ['Tulgu igaüks ise vaatama.', 'Kõik võivad tulla ja oma silmaga näha.'], ['Viktor helistagu mulle igal õhtul.', 'Viktor peab Helgile igal õhtul helistama.'],
         ['Ärgu keegi muretsegu.', 'Keegi ei pea muretsema.'], ['Viktor võtku kaasa hea tuju.', 'Las Viktor võtab kaasa hea tuju.'], ['Muki tulgu ka!', 'Oskar tahab, et ka koer tuleks kaasa.'], ['Tulgu suvi kiiresti!', 'Helgi soovib, et suvi tuleks kiiresti.'], ['Elagu sünnipäevalaps!', 'Soov ja tervitus sünnipäeval.'],
       ], 'full', 'g_vocab'),
-      tag(B.speaking('072_p_opinion', 'Kas Viktor peaks sõitma?', 'Ütle oma arvamus Viktori plaanist ja põhjenda seda. Too näide oma elust või tuttavate elust.', ['Kas kuuekümne viie aastane mees peaks sõitma rattaga kakssada kilomeetrit? Miks?', 'Kas pere peab inimese suurt plaani toetama, isegi kui see tundub ohtlik?', 'Mida sa arvad Helgi tingimusest, et Viktor helistagu igal õhtul?', 'Mis vanuses on sinu arvates kõige parem suuri plaane teha?', 'Kas sina oled kunagi teinud midagi, mida teised ei toetanud?'], [120, 180], ['Minu arvates…, sest…', 'Ühest küljest…, teisest küljest…', 'Näiteks minu…']), { task: 'S11' }),
+      tag(B.insertion('072_p_forum', 'Foorum: suured plaanid pärast 60. eluaastat.', 'Loe foorumit vanemate inimeste suurtest plaanidest. Pane iga lause õigesse lünka; üks lause jääb üle. Leia tekstist ka möönva kõneviisi vormid.', 'Foorum „Elu pärast kuuekümnendat”: kas suured plaanid on ainult noortele?', [
+        'Tiiu, 67: Eelmisel suvel sõitsin koos sõbrannaga rattaga ümber Saaremaa. Lapsed ütlesid alguses, et see on liiga ohtlik. [[Lõpuks ütlesid nad: „Olgu peale, aga helistage igal õhtul.”]] Me helistasime ja kõik läks hästi.',
+        '',
+        'Rein, 71: Mina ütlen nii: iga inimene tehku seda, mida ta tahab, kui tervis lubab. [[Aga enne pikka matka mingu ta perearsti juurde.]] See ei ole nõrkus, vaid tarkus.',
+        '',
+        'Maie, 64: Minu naaber ütleb, et pensionär istugu kodus ja hoidku lapselapsi. Mina sellega nõus ei ole. [[Las igaüks ise otsustab, kuidas ta oma vaba aega veedab.]] Mina hakkan sügisel ülikoolis vabakuulajana ajalugu õppima.',
+        '',
+        'Ants, 69: Ma ei taha kedagi hirmutada, aga suur plaan vajab ka plaani B. [[Kaks aastat tagasi läksin üksi metsa matkama ja kukkusin.]] Nüüd ütlen kõigile: üksi keegi ärgu mingu ja laetud mobiil olgu alati taskus.',
+        '',
+        'Tiiu, 67: Ants, sul on õigus. Aga ärgu keegi arvaku, et kuuskümmend viis on elu lõpp. [[Minu järgmine plaan on õppida süstaga sõitma.]] Lapsed ütlevad jälle, et see on ohtlik, aga ma usun, et lõpuks ütlevad nad jälle „olgu peale”.',
+      ], ['Seepärast jään ma tänavu suvel koju ega lähe enam kuhugi.']), { task: 'R16', voice: 'forum' }),
+      B.know('072_p_know', [
+        'Eestis on vanaduspensioniiga 2026. aastal 65 aastat. Alates 2027. aastast lisatakse 65 aastale see, kui palju on muutunud 65-aastaste inimeste keskmine eeldatav eluiga. Nii on pensioniiga 2027. aastal 65 aastat ja 1 kuu, 2028. aastal 65 aastat ja 3 kuud ning 2029. aastal 65 aastat ja 4 kuud.',
+        'Kui eeldatav eluiga pikeneb, tõuseb ka pensioniiga, kuid kõige rohkem kolm kuud aastas. Uus pensioniiga tehakse teatavaks kaks aastat varem, et inimesed saaksid oma tulevikku planeerida. Vanaduspensioni saamiseks on vaja ka vähemalt 15 aastat pensionistaaži.',
+      ], 'Sotsiaalkindlustusamet, „Pensioniiga”', 'Kas teadsid? Pensioniiga sõltub elueast'),
+      tag(B.speaking('072_p_opinion', 'Kas suured plaanid on ainult noortele?', 'Ütle oma arvamus foorumi ja Viktori plaani kohta ning põhjenda seda. Too näide oma elust või tuttavate elust.', ['Kas 65-aastane inimene peaks tegema suuri plaane, näiteks sõitma rattaga sadu kilomeetreid? Miks?', 'Kas pere peab inimese suurt plaani toetama, isegi kui see tundub ohtlik?', 'Kelle arvamusega foorumis oled sina kõige rohkem nõus? Miks?', 'Mida teevad inimesed sinu kodumaal pärast pensionile jäämist? Kas Eestis on teisiti?', 'Mis vanuses on sinu arvates kõige parem suuri plaane teha?', 'Kas sina oled kunagi teinud midagi, mida teised ei toetanud?'], [120, 180], ['Minu arvates…, sest…', 'Ühest küljest…, teisest küljest…', 'Näiteks minu…']), { task: 'S11' }),
     ],
     transfer: [
-      B.text('072_t_sit', 'Kolm plaani', 'Kadri arvutas kaardi järgi, et esimese plaani neljas päev on üle viiekümne kilomeetri. Nüüd on Viktoril ja Ülol kolm plaani ja kahe peale kuni 500 eurot. Loe plaanide märkmeid ja täienda lauseid. Seejärel valige koos parim plaan, salvesta kodus lugu oma suurest plaanist ja kirjuta jutt „Olgu peale!”.'),
+      B.text('072_t_sit', 'Kolm plaani', 'Kadri arvutas kaardi järgi, et esimese plaani neljas päev on üle viiekümne kilomeetri. Nüüd on Viktoril ja Ülol kolm plaani ja kahe peale kuni 500 eurot. Loe plaanide märkmeid ja täienda lauseid. Seejärel valige koos parim plaan, rääkige ringis oma suurtest plaanidest ja kirjuta jutt „Olgu peale!”.'),
       B.profiles('072_t_plans', 'Kolm plaani Peipsi sõiduks.', 'Loe kolme plaani märkmeid ja täienda lauseid. Mõtle iga plaani juures: mis on selle suurim pluss ja suurim miinus?', [
         ['Plaan A: telgiga viis päeva', ['viis päeva, tavaliselt umbes 40 km päevas, aga neljas päev 55 km', 'neli ööd telgis järve ääres', 'kahe peale kokku umbes 120 eurot', 'akut saab laadida ainult Mustvees ja Kallastel'],
           ['Plaanis A sõidavad mehed tavaliselt umbes [nelikümmend|40] kilomeetrit päevas.', 'Arsti soovitust ei saa plaanis A täita, sest neljas päev on [viiskümmend viis|55] kilomeetrit.', 'Plaan A on kolmest plaanist kõige [odavam].', 'Ülo saab plaanis A oma ratta akut laadida ainult [kahel] õhtul.']],
@@ -360,8 +401,8 @@ export const LESSONS = withShapes({
       ]),
       teach(tag(B.ideaCard('072_t_rank', 'Valige Viktorile plaan.', 'Arutage kolme plaani plusse ja miinuseid ning pange plaanid järjekorda. Lõpuks valige üks plaan ja põhjendage oma valikut.', 'Viktor ei suuda ise otsustada ja palub pere abi. Tal on kaks tingimust: põlv peab vastu pidama ja Ülo peab saama oma ratta akut laadida. Raha on kahe peale kuni 500 eurot.', ['plaan A: telgiga viis päeva', 'plaan B: külalistemajades neli päeva', 'plaan C: kotid autoga, kuus päeva', 'arsti soovitus: kuni 50 km päevas', 'Ülo ratta aku', 'Jaan ja Oskar viimasel päeval'], 'Millise plaani te valite, mis järjekorras on teised kaks ja miks?'), { task: 'S12' }),
         'Üks-ühele: õpetaja on Viktor, kes tahab alguses kõige odavamat plaani A; õpilane põhjendab arsti ja Ülo tingimustega ning jõuab kokkuleppele. Hinda: kas lõpus on selge järjekord ja üks valitud plaan.'),
-      teach(tag(B.speaking('072_t_rec', 'Kodus: plaan, mida teised ei uskunud.', 'Salvesta 2–3-minutiline lugu plaanist, mille sina või keegi sinu tuttav tegi, kuigi teised kahtlesid.', ['Mis plaan see oli ja kelle oma?', 'Mida teised alguses ütlesid?', 'Mis oli plaani juures kõige raskem?', 'Kuidas plaan lõpuks õnnestus või ei õnnestunud?', 'Mida sa sellest loost õppisid?'], [120, 180], ['Teised ütlesid, et…', 'Lõpuks ütles … „olgu peale”.', 'Sellest ajast…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib, kes ütles loos „olgu peale” ja miks.'),
+      teach(tag(B.speaking('072_t_circle', 'Ringis: plaan, mida teised ei uskunud.', 'Istuge väikeses ringis. Igaüks räägib umbes kaks minutit plaanist, mille tema või keegi tema tuttav tegi, kuigi teised kahtlesid. Kuulajad küsivad lõpus ühe küsimuse ja ütlevad, kas nemad oleksid öelnud „olgu peale”.', ['Mis plaan see oli ja kelle oma?', 'Mida teised alguses ütlesid?', 'Mis oli plaani juures kõige raskem?', 'Kuidas plaan lõpuks õnnestus või ei õnnestunud?', 'Mida sa sellest loost õppisid?'], [120, 180], ['Teised ütlesid, et…', 'Lõpuks ütles … „olgu peale”.', 'Sellest ajast…']), { task: 'S18', level: 3 }),
+        'Üks-ühele: õpilane räägib oma loo, õpetaja on kuulaja, küsib ühe küsimuse ja ütleb, kas tema oleks öelnud „olgu peale”; siis räägib õpetaja oma loo ja õpilane küsib. Õpetaja märgib, kas õpilane kasutas sõnu kuigi, lõpuks ja olgu peale.'),
       teach(tag(B.examWriting('072_t_story', 'Eksaminurk: jutt „Olgu peale!” (Harno B1 kirjutamine 2)', 'Kirjuta jutt umbes 90 sõnaga. Kirjuta kõigist neljast punktist ja jutusta minevikus.', 'jutt', {
         situation: 'Pealkiri: „Olgu peale!”. Jutusta lugu sellest, kuidas keegi tahtis teha midagi julget ja teised olid alguses vastu — sinu enda elust või Viktori loo moodi.',
         points: ['kelle plaan see oli ja mida ta tahtis teha', 'mida teised alguses arvasid', 'miks nad lõpuks ütlesid „olgu peale”', 'kuidas lugu lõppes'],
@@ -508,25 +549,35 @@ export const LESSONS = withShapes({
         'Mis kuupäeval lõpeb Oskari jalgpallilaager? [kuueteistkümnendal juulil|16. juulil]',
         'Kellega koos tahab Jaan ettemaksu ära maksta? [emaga|Kadriga|Oskari emaga]',
       ], 'g_read'), { task: 'L03' }),
-      B.adsmatch('073_p_camps', 'Suvised võimalused.', 'Loe kuut kuulutust ja kümmet olukorda. Kirjuta iga olukorra juurde sobiva kuulutuse täht; üks kuulutus võib sobida mitmele olukorrale.', [
-        ['Jalgpallilaager Pärnus', 'Jalgpalliklubi Kotkas ootab 10.–16. juulil Pärnusse 9–12-aastaseid poisse ja tüdrukuid. Kaks treeningut päevas, ujumine meres, õhtuti mängud. Hind 290 eurot koos söögi ja majutusega.'],
-        ['Rattamatkad Peipsi ääres', 'Juhendatud matkad mööda Sibulateed nii tavalise kui ka elektrirattaga. Ööbime külalistemajades ja teie kotid viime autoga järgmisse kohta. Sobib ka pensionäridele.'],
-        ['Ujumiskursus lastele', 'Kalevi ujulas juunis kümme hommikust tundi 6–8-aastastele lastele. Harjutame vees käimist, sukeldumist ja esimesi ujumisliigutusi. Ühes tunnis on kõige rohkem kaheksa last.'],
-        ['Eesti keele suvekursus Tartus', 'Augustis kaks nädalat igapäevast eesti keele õpet täiskasvanutele, kes on B1 tasemel ja tahavad edasi minna. Pärastlõunal ekskursioonid ja vestlusõhtud.'],
-        ['Kursus „Oma väike kohvik”', 'Kevadel kuus laupäeva neile, kes unistavad oma kohvikust. Teeme menüü, arvutame eelarve ja kirjutame äriplaani. Õpetaja on kogenud kohvikupidaja.'],
-        ['Perepuhkus talus', 'Rahulik nädalavahetus Lõuna-Eesti talus: lapsed saavad toita loomi ja sõita ponidega, vanemad käivad suitsusaunas ja puhkavad. Hommikusöök ja õhtusöök on hinna sees.'],
+      tag(B.reading('073_p_evote', 'Kuidas e-hääletamine käib?', 'Loe Riigi Valimisteenistuse info põhjal kirjutatud teksti ja märka kui-lauseid: mis juhtub, kui… Vasta küsimustele lühidalt.', 'E-hääletamine samm-sammult', [
+        'Eestis saab valimistel hääletada interneti teel alates 2005. aastast. E-hääletamine toimub valimisnädalal esmaspäevast laupäevani. Valimispäeval, pühapäeval, saab hääletada ainult valimisjaoskonnas pabersedeliga.',
+        '',
+        'Kui tahad e-hääletada, on sul vaja internetiga ühendatud arvutit ning ID-kaarti, mobiil-ID-d või Smart-ID-d koos PIN-koodidega. Kõigepealt laadid valimiste veebilehelt arvutisse valijarakenduse. Rakendus kontrollib, kas sul on hääleõigus, ja näitab sulle õiget kandidaatide nimekirja. Kui oled valiku teinud, kinnitad hääle digiallkirjaga. Hääl krüpteeritakse, nii et keegi ei näe, keda sa valisid. Kui tahad kontrollida, kas hääl jõudis kohale, saad seda teha eraldi nutiseadme rakendusega.',
+        '',
+        'E-häält saab ka muuta. Kui valija leiab, et keegi mõjutas tema valikut, võib ta kuni laupäeva õhtuni uuesti e-hääletada. Arvesse läheb ainult viimane e-hääl. Kui valija hääletab lisaks valimisjaoskonnas pabersedeliga, tühistatakse tema e-hääl ja arvesse läheb paberhääl. Alates 2021. aastast saab nii teha ka valimispäeval.',
+        '',
+        'E-hääled loetakse kokku valimispäeva õhtul. Enne lugemist eraldatakse häältest valijate isikuandmed, nii et hääled loetakse anonüümselt. Tulemused avaldatakse samal õhtul koos paberhäälte tulemustega. Kogu protseduur on avalik ja seda jälgivad vaatlejad.',
+        '',
+        'E-hääletada tohib ainult iseenda eest. Võõra ID-kaardi või koodidega hääletada ei tohi ja oma PIN-koode ei tohi kellelegi teisele anda.',
+        '',
+        '2027. aasta Riigikogu valimistel saab e-hääletada lisaks arvutile ka nutitelefoniga. Need valimised toimuvad 1.–7. märtsini 2027.',
+        '',
+        'Allikas: Valimised.ee, „E-hääletamise tutvustus” ja „Riigikogu valimistel saab elektrooniliselt hääletada ka nutiseadmega” (29.10.2026).',
       ], [
-        ['Oskar tahab suvel terve nädala jalgpalli mängida ja treenida.', 'A'],
-        ['Mia peab enne kooli minekut vees käima ja ujuma õppima.', 'C'],
-        ['Jaan unistab oma kohvikust, aga ei tea, kust alustada.', 'E'],
-        ['Kaks sõpra otsivad matka, kus keegi viib nende kotid järgmisse ööbimiskohta.', 'B'],
-        ['Kadri tahab pärast öövahetusi perega rahulikult maal puhata.', 'F'],
-        ['Olena tahab pärast kevadist eksamit oma eesti keelt veelgi parandada.', 'D'],
-        ['Rasmuse isa otsib pojale spordilaagrit, kus on teisi samas vanuses lapsi.', 'A'],
-        ['Pensionär tahab rattaga järve ääres sõita, aga ei taha üksi teed otsida.', 'B'],
-        ['Kuueaastane laps kardab vett ja vajab väikest gruppi.', 'C'],
-        ['Pere otsib nädalavahetust, kus lapsed näevad loomi ja vanemad saavad saunas käia.', 'F'],
-      ], 'g_vocab'),
+        ['Mis päevadel saab e-hääletada?', 'valimisnädala esmaspäevast laupäevani|esmaspäevast laupäevani'],
+        ['Mida on e-hääletamiseks vaja?', 'internetiga arvutit ja ID-kaarti, mobiil-ID-d või Smart-ID-d|arvutit ja ID-kaarti või mobiil-ID-d'],
+        ['Mida teeb valijarakendus enne hääletamist?', 'kontrollib hääleõigust ja näitab kandidaatide nimekirja|kontrollib, kas valijal on hääleõigus'],
+        ['Kuidas kinnitab valija oma hääle?', 'digiallkirjaga'],
+        ['Mis juhtub, kui valija hääletab internetis kaks korda?', 'arvesse läheb ainult viimane e-hääl|loetakse ainult viimane hääl'],
+        ['Mis juhtub e-häälega, kui valija hääletab ka pabersedeliga?', 'e-hääl tühistatakse|see tühistatakse ja arvesse läheb paberhääl'],
+        ['Mis on 2027. aasta Riigikogu valimistel uut?', 'e-hääletada saab ka nutitelefoniga|saab hääletada nutitelefoniga'],
+        ['Kas sinu arvates peaks internetis hääletamine olema võimalik igas riigis? Miks?', ''],
+      ], 'g_vocab'), { task: 'R19', voice: 'article' }),
+      B.know('073_p_know', [
+        'Eestis on Riigikogu ja kohalikud valimised iga nelja aasta järel, Euroopa Parlamendi valimised iga viie aasta järel. Riigikogu valimistel saavad hääletada Eesti kodanikud alates 18. eluaastast. Euroopa Parlamendi valimistel võivad hääletada ka Eestis elavad teiste Euroopa Liidu riikide kodanikud.',
+        'Kohalikel valimistel saab hääletada juba 16-aastaselt, selles vallas või linnas, kus inimene püsivalt elab. Selleks peab tema elukoha aadress olema kantud rahvastikuregistrisse.',
+        '2025. aasta märtsis muutis Riigikogu põhiseadust. Muudatuse järgi ei ole kolmandate riikide ehk Euroopa Liitu mittekuuluvate riikide kodanikel enam hääleõigust kohalikel valimistel. Kodakondsuseta inimesed said veel hääletada 2025. aasta oktoobri kohalikel valimistel. Muudatuse teine osa jõustus 2026. aasta märtsis: järgmistel kohalikel valimistel saavad hääletada Eesti ja teiste Euroopa Liidu riikide kodanikud.',
+      ], 'Valimised.ee, „Hääleõigus”; Riigi Teataja, „Eesti Vabariigi põhiseaduse muutmise seadus” (vastu võetud 26.03.2025) ja selle kokkuvõte', 'Kas teadsid? Kes saab Eestis valida?'),
       B.choice('073_p_form', 'Vali õige vorm.', 'Loe kui-lauset ja vali lünka sobiv vorm. Mõtle, kas see on päris võimalus või unistus.', [
         ['Kui homme … vihma, treenivad lapsed spordihoones.', 'sajab', 'sadas', 'sadama'],
         ['Kui Oskar käib kaks korda nädalas trennis, … ta laagrisse minna.', 'võib', 'võima', 'võinud'],
@@ -544,7 +595,7 @@ export const LESSONS = withShapes({
         'Sa oled Kadri. Sa tulid öövahetusest ja oled väsinud. Küsi iga asja kohta üks täpsustav küsimus: kui palju, mis ajaks, kes ja mis siis saab, kui…',
         ['Raivo ütles, et…', 'Kui Oskar…, siis…', 'Ettemaks tuleb maksta…'], ['Mis ajaks?', 'Aga mis siis saab, kui…?', 'Kes seda teeb?']), { task: 'S13' }),
       'Üks-ühele: õpetaja on Kadri ja küsib iga asja kohta ühe täpsustava küsimuse; siis vahetage rollid ja õpetaja seletab, õpilane küsib. Õpetaja märgib, kas õpilane andis edasi kõik viis asja ja kasutas vähemalt kolme kui-lauset.'),
-      teach(tag(B.speaking('073_p_would', 'Mida sa teeksid, kui…?', 'Kujuta ette iga olukorda ja ütle, mida sa teeksid ja miks. Seejärel räägi samad vastused uuesti lühemalt.', ['Mida sa teeksid, kui sinu lapsel hakkaks laagris kodu igatsema?', 'Mida sa teeksid, kui sa ei peaks terve aasta tööl käima?', 'Kui sa saaksid suvel ükskõik kuhu sõita, kuhu sa sõidaksid?', 'Mida sa teeksid, kui sinu plaan A ja plaan B mõlemad ebaõnnestuksid?', 'Kui sa saaksid avada oma väikese äri, mis see oleks?'], [120, 180], ['Kui ma saaksin…, siis ma…', 'Ma teeksin…, sest…', 'Kõigepealt ma…']), { task: 'S14', fluency: true }),
+      teach(tag(B.speaking('073_p_would', 'Mida sa teeksid, kui…?', 'Kujuta ette iga olukorda ja ütle, mida sa teeksid ja miks. Seejärel räägi samad vastused uuesti lühemalt.', ['Mida sa teeksid, kui sinu lapsel hakkaks laagris kodu igatsema?', 'Kui sul oleks valida, kas sa annaksid oma hääle pigem internetis või valimisjaoskonnas? Miks?', 'Kui sa saaksid suvel ükskõik kuhu sõita, kuhu sa sõidaksid?', 'Mida sa teeksid, kui sinu plaan A ja plaan B mõlemad ebaõnnestuksid?', 'Kui sa saaksid oma linnas või vallas muuta ühte asja, mis see oleks ja miks?'], [120, 180], ['Kui ma saaksin…, siis ma…', 'Ma teeksin…, sest…', 'Kõigepealt ma…']), { task: 'S14', fluency: true }),
         'Üks-ühele: õpetaja loeb olukorra ette ja küsib „Aga miks?”; teisel korral vastab õpilane igale küsimusele umbes 30 sekundiga. Õpetaja märgib, kas õpilane kasutas tingivat kõneviisi (teeksin, sõidaksin) ja eristas seda päris tingimusest (kui sajab, treenime).'),
     ],
     transfer: [
@@ -626,6 +677,28 @@ export const LESSONS = withShapes({
         ['Eha arvates on plaanist mahajäämine suur häbi.', false],
         ['Eha tahab järgmisel suvel joosta oma esimese poolmaratoni.', true],
       ], 'g_read'),
+      tag(B.reading('074_d_oska', 'Milliseid töötajaid on Eestis tulevikus vaja?', 'Loe Kutsekoja OSKA tööjõuprognoosi põhjal kirjutatud teksti. Vasta küsimustele ja mõtle, mida see tähendab sinu enda tegevusplaanile.', 'Töö ja oskused järgmisel kümnendil', [
+        'Kutsekoja OSKA uuringud vaatavad, milliseid töötajaid ja oskusi Eesti tööturg järgmise kümne aasta jooksul vajab. OSKA üldprognoosi järgi aastateni 2022–2031 lisandub töökohti eelkõige teenuste valdkonnas.',
+        '',
+        'Kõige kiiremini kasvab töökohtade arv info ja side valdkonnas: kümne aastaga 48,5 %. Rohkem töötajaid on vaja ka finantsvaldkonnas ning tervishoius ja sotsiaalhoolekandes. Ametitest lisandub kõige rohkem tarkvaraarendajaid, aga ka arste, õdesid ja teisi tervishoiutöötajaid. Vähem töökohti jääb prognoosi järgi veondusse ja laondusse, kaubandusse ning põllu- ja metsamajandusse.',
+        '',
+        'Suur probleem on see, et noori tuleb tööturule vähem, kui vanemaid inimesi pensionile läheb. Prognoosi järgi on igal aastal vaja umbes 18 000 uut töötajat, aga koolidest ja ülikoolidest tuleb tööle alla 16 000 inimese. Seepärast muutub tähtsamaks täiendus- ja ümberõpe: täiskasvanud õpivad tööl või kursustel uusi oskusi või isegi uue eriala. Kasvab ka mikrokraadide ehk lühikeste õppeprogrammide tähtsus.',
+        '',
+        'Pooled uutest töötajatest peaksid olema kõrgharidusega ja kolmandik kutseharidusega. Paljudes valdkondades on töötajate keskmine vanus kõrge. Näiteks hariduses, tervishoius ja sotsiaalhoolekandes ning põllu- ja metsamajanduses võib järgmise kümne aasta jooksul pensionile jääda ligi kolmandik töötajatest.',
+        '',
+        'Tööandjad ei vaata tulevikus ainult erialaseid teadmisi, mida inimene on koolis õppinud. Tehnoloogia areng, automatiseerimine ja digitaliseerimine muudavad paljusid ameteid, nii et tulevikutöötajalt oodatakse ka häid üldoskusi.',
+        '',
+        'Allikas: Kutsekoda, „OSKA üldprognoos 2022–2031”; Haridusportaal edu.ee, „Töö ja oskused tulevikus”.',
+      ], [
+        ['Mis valdkonnas kasvab töökohtade arv kõige kiiremini?', 'info ja side valdkonnas|info ja side|IT-s'],
+        ['Milliseid töötajaid on tervishoius rohkem vaja?', 'arste ja õdesid|arste, õdesid ja teisi tervishoiutöötajaid'],
+        ['Kus jääb töökohti prognoosi järgi vähemaks?', 'veonduses ja laonduses, kaubanduses ning põllu- ja metsamajanduses|veonduses, kaubanduses ja põllumajanduses'],
+        ['Mitu uut töötajat on igal aastal vaja ja mitu tuleb koolidest?', 'umbes 18 000, koolidest alla 16 000|18 000 ja alla 16 000'],
+        ['Mis on mikrokraad?', 'lühike õppeprogramm|lühike õppeprogramm ülikoolis või kutsekoolis'],
+        ['Mida oodatakse tulevikutöötajalt lisaks erialastele teadmistele?', 'häid üldoskusi|üldoskusi'],
+        ['Milline uus oskus oleks sinu arvates kõige kasulikum sinu tegevusplaanis? Miks?', ''],
+        ['Millised ametid on sinu kodumaal praegu kõige rohkem nõutud?', ''],
+      ]), { task: 'R19', voice: 'expert' }),
       tag(B.vocab('074_d_vocab', 'Tunni sõnad.', ['tegevusplaan — план действий', 'mõõtma — измерять', 'toetama — поддерживать', 'takistus — препятствие', 'edu — успех', 'arenema — развиваться', 'vastutama — отвечать (за что-то)', 'kohtumine — встреча', 'juhend — инструкция / руководство', 'osalema — участвовать', 'esiteks — во-первых', 'põhjus — причина']), { topic: ['tegevusplaan'] }),
       B.notice('074_d_notice', 'Märka: juhendi keel — olgu, võtku, ärgu andku', [
         'Reeglites ja juhendites kasutatakse sageli möönvat kõneviisi: Eesmärk **olgu** mõõdetav. Iga osaleja **võtku** kaasa plaani mustand. Mentor **ärgu andku** valmis vastuseid.',
@@ -663,7 +736,7 @@ export const LESSONS = withShapes({
         situation: 'Personalijuht Eha Org palub kõigil soovijatel täita küsimustiku reedeks, 10. detsembriks. Vastuste põhjal leiab ta igale osalejale sobiva mentori.',
         questions: ['Teie nimi ja amet', 'Kui kaua olete firmas töötanud?', 'Mis on teie eesmärk aastaks 2028?', 'Miks on see eesmärk teile tähtis?', 'Mida olete selle eesmärgi heaks juba teinud?', 'Mis on teie arvates kõige suurem takistus?', 'Mis ajaks tahate eesmärgi saavutada?', 'Kas soovite mentorit oma osakonnast või teisest? Miks?', 'Mis kellaajal sobivad teile kohtumised?', 'Kuidas te juunis teate, et eesmärk on saavutatud?'],
       }),
-      teach(tag(B.rolecards('074_d_meet', 'Tutvusta end mentorile kolm korda.', 'A on programmi osaleja ja tutvustab ennast ning oma eesmärki, B on mentor ja küsib. Tehke seda kolm korda: 3 minutit, 2 minutit ja 1 minut.',
+      teach(tag(B.rolecards('074_d_meet', 'Tutvusta end mentorile kolm korda.', 'A on osaleja ja tutvustab ennast ning oma eesmärki, B on mentor ja küsib. Tehke seda kolm korda: 3 minutit, 2 minutit ja 1 minut.',
         'Sa oled osaleja. Ütle oma nimi, mida sa teed, kui kaua sa firmas oled ja mis on sinu eesmärk järgmiseks aastaks. Ütle ka, miks see on sulle tähtis ja mis võib sind takistada.',
         'Sa oled mentor. Küsi kolm küsimust: mis on eesmärk, miks just see ja mis võib takistada. Ütle lõpus üks julgustav lause.',
         ['Minu nimi on…', 'Minu eesmärk on…, sest…', 'Kõige rohkem kardan, et…'], ['Miks just see eesmärk?', 'Mis võib sind takistada?', 'Ma usun, et sa saad hakkama.']), { task: 'S01', fluency: true }),
@@ -719,6 +792,11 @@ export const LESSONS = withShapes({
         ['Mentor saab programmis töötamise eest lisapalka.', 'ei selgu'],
         ['Miks peab plaan olema osaleja enda oma, mitte ülemuse oma? Mida sina arvad?', ''],
       ], 'g_vocab'), { task: 'R06' }),
+      B.know('074_p_know', [
+        'Eestis saab ID-kaardi, mobiil-ID või Smart-ID abil anda digiallkirja, mis on samaväärne omakäelise allkirjaga. Digiallkirja saab anda alates 2002. aastast, kui hakati välja andma ID-kaarte. Nii saab näiteks töölepingu või üürilepingu allkirjastada kodust lahkumata.',
+        'Riigi andmekogud vahetavad andmeid X-tee kaudu. RIA andmetel tehakse X-teel päevas ligi 13 miljonit päringut ja seal on üle 4500 andmeteenuse.',
+        'Alates 2014. aasta detsembrist saavad ka teiste riikide inimesed taotleda Eesti e-residentsust ehk digitaalset isikutunnistust. See ei anna elamisõigust ega kodakondsust, aga sellega saab Eestis internetis ettevõtet asutada ja juhtida. 2026. aasta novembri seisuga on e-residente üle 145 000 enam kui 170 riigist ja nad on asutanud üle 44 000 Eesti ettevõtte.',
+      ], 'ID.ee, „Digitaalne allkirjastamine ja elektroonilised allkirjad”; Vikipeedia, „Digitaalallkiri Eestis”; RIA, „Andmevahetuskiht X-tee”; e-residentsuse programmi koduleht (seis november 2026)', 'Kas teadsid? Digiallkiri, X-tee ja e-residentsus'),
       B.errorfix('074_p_fix', 'Markuse plaani vead.', 'Markus saatis Ehale oma plaani mustandi. Igas lauses on üks viga; paranda see ja kirjuta lause uuesti.', [
         ['Minu eesmärk on juhtima Riia projekti inglise keeles.', 'Minu eesmärk on juhtida Riia projekti inglise keeles.'],
         ['Selleks hakkan ma käia inglise keele tundides kaks korda nädalas.', 'Selleks hakkan ma käima inglise keele tundides kaks korda nädalas.'],
@@ -846,8 +924,18 @@ export const LESSONS = withShapes({
         ['Ma tahan registreeruda kursusele kuni viieteistkümnendaks detsembriks.', 'Ma tahan registreeruda kursusele viieteistkümnendaks detsembriks.'],
       ], 'full', 'g_notice'),
       B.writing('075_d_write', 'Minu uue aasta komme.', 'Kirjuta 8–10 lauset: kuidas sina või sinu pere uut aastat vastu võtab ja mis on sinu üks plaan uueks aastaks.', [8, 10], ['hakkan', 'kavatsen', 'kui', 'olgu'], 3),
-      teach(B.speaking('075_d_warm', 'Enne eksamit: soojendus.', 'Vasta eksamineerija neljale küsimusele plaanide ja tuleviku kohta; räägi igale umbes pool minutit.', ['Mida sa täna pärast tundi teed?', 'Mis on sinu plaan järgmiseks suveks?', 'Kes aitab sind sinu eesmärkides?', 'Mida sa teeksid, kui saaksid ühe aasta tasuta õppida?'], [120, 150]),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane samu küsimusi õpetajalt.'),
+      // the examiner's question set on the module's Harno topic (§13.7), with its own instruction (final shape V7); keeps the
+      // id of the warm-up it grew from
+      teach(withInstruction(B.examiner('075_d_warm', 'tulevik, ühiskond ja e-riik', [
+        'Milliseid asju ajad sa riigiga internetis ja milliseid pigem kohapeal? Miks?',
+        'Kas tehnoloogia muudab sinu arvates elu lihtsamaks või keerulisemaks?',
+        'Milline amet on sinu arvates 20 aasta pärast kõige rohkem nõutud?',
+        'Kas täiskasvanu peaks kogu elu uusi asju õppima? Põhjenda.',
+        'Mida saaks sinu linnas või vallas järgmise viie aasta jooksul paremaks teha?',
+        'Kuidas on riigiga asjaajamine korraldatud sinu kodumaal? Mis on teisiti kui Eestis?',
+        'Mis on sinu arvates järgmise 20 aasta kõige tähtsam muutus Eesti elus?',
+      ]), 'Eksamineerija vestleb sinuga tulevikust ja ühiskonnast nagu suulise eksami esimeses osas. Vasta igale küsimusele kolme-nelja lausega: ütle oma seisukoht, põhjenda seda ja too näide Eestist või oma kodumaalt.'),
+        'Üks-ühele: õpetaja on eksamineerija ja valib seitsmest küsimusest viis; iga vastuse järel küsib ta ühe täpsustava küsimuse. Pärast ütleb õpetaja, mitu vastust olid põhjenduse või näitega ja milline sõna jäi puudu.'),
     ],
     practice: [
       B.examPart('075_p_rpart', 'R', { minutes: 50, points: 33, tasks: 4, note: 'Lugemisosa on Harno B1 vormis ja täispikkuses: neli ülesannet, kokku 33 punkti. Eesmärk on vähemalt 27 punkti (80 %). Iga ülesande jaoks on umbes 12 minutit; viimased minutid jäta kontrolliks.' }),
