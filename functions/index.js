@@ -12600,6 +12600,11 @@ exports.purgeCardTrash = functions
 
 // ChatGPT worksheet connector (functions/sheet-builder-api.js, docs/GPT_SHEET_BUILDER.md): a Custom GPT with its own key
 // reads the rules and blocks, checks a sheet and saves it as a lesson sheet's draft; an administrator manages the keys.
+// `cors: false`: the handler sets its own CORS headers (`*` for the public MCP / OAuth routes, the allow-list
+// elsewhere). firebase-functions 7.4 (not 7.2.5) wraps v1 onRequest in the `cors` middleware whenever the emulator turns on
+// its debug feature `enableCors` (it then answers preflights with the reflected origin and never reaches the
+// handler); `false` keeps the handler in charge there too. In production nothing changes (origin false = pass through).
 exports.sheetBuilderApi = functions.runWith({ timeoutSeconds: 60, memory: "512MB" }).https.onRequest(
+  { cors: false },
   require("./sheet-builder-api").createHandler({ db, requireAdminUser, actorSnapshot, applyCors }),
 );
