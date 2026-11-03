@@ -41,7 +41,21 @@
 // tradition on UNESCO's intangible heritage list (2014), the Estonian Literary Museum in Tartu collects life stories, the
 // Human Library began in Denmark in 2000, the Baltic Way on 23 August 1989. Earlier versions: archive/v3/b1/module14.js,
 // archive/v1/b1/module14.js.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE §13): topic „ajalugu” (secondary
+// „kultuur”, „suhted”) — history through life stories, around the module's grammar line (completion, täisminevik, the three
+// pasts). Topic opener 066_d_open (1918, 1940–1944, the 1941 and 1949 deportations, 1944 refugees, Soviet-time migration and
+// the 1934 / 1989 censuses, the night song festivals, the Baltic Way, 20.8.1991, the kroon 1992, NATO and EU 2004, the euro
+// 2011, Vabamu); „Kas teadsid?” 066_p_know (the night song festivals and „Eestimaa laul” 1988), 068_p_know (the 1992
+// money reform); non-cast texts 067_d_museum (Vabamu and its founder's life, read for täisminevik) and 069_p_memory (a
+// sentence-insertion life story in four parts of a nurse who came to Tallinn from Pskov in 1979: the night of 20–21 August
+// 1991; replaces the ads task 069_p_help; the story is invented for learning, the dates are real). Opinion: 067_d_gen
+// (generations; replaces the 4-3-2 067_d_432), examiner set 069_p_topic. One retelling left (068_d_photo); record-at-home only
+// 068_t_rec and 069_t_rec (066_t_circle and 067_t_try are done in class). Sources: the PR „B1 module 14: academic value
+// round 1”.
 import { B, tag, teach, withShapes } from '../blocks.js';
+
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
 export const MODULE = { id: 'a2b1-module-14', course: 'b1', title: 'Minevik, kogemused ja jutustamine', level: 'B1', design: 'v2', template: 'v4' };
 
@@ -51,8 +65,19 @@ export const LESSONS = withShapes({
     canDo: 'Ma loen pere lugu, saan aru, mis sai valmis ja mis jäi pooleli, ning kirjutan umbes 100-sõnalise jutu sellest, kuidas midagi viimasel hetkel valmis sai.',
     discover: [
       B.review('066_d_review', [['Milles leppisid Markus ja Kristjan kolmapäeva koosolekul kokku?', 'a2b1-064'], ['Mis juhtus Mukiga äikese ajal rabas?', 'a2b1-057'], 'Kas sinu peres räägitakse vanu lugusid? Kes neid räägib?']),
-      B.text('066_d_goal', 'Moodul 14: lood, mis jäävad meelde', 'Selles moodulis jutustad minevikust: mis sai valmis ja mis jäi pooleli, mida sa oled elus kogenud, mis juhtus sinu elus mis aastal ja miks üks lugu on meelde jäänud. On september. Oskari klass Kase koolis kogub klassi raamatusse „Meie pere lood” ja valmistab ette lugude õhtut, mis on neljapäeval, 14. oktoobril. Mooduli lõpus jutustad oma loo neljas osas ja lepid teise lapsevanemaga kokku, kuidas õhtu läbi viia. Täna loed, kuidas onu Viktor ehitas 1988. aastal oma sauna.'),
-      tag(B.reading('066_d_story', 'Saun, mis pidi valmis saama', 'Vaata pealkirja ja arva: mis pidi valmis saama ja miks oli kiire? Seejärel loe lugu ja kontrolli, kas arvasid õigesti.', 'Saun, mis pidi valmis saama', [
+      B.topicOpener('066_d_open', 'Teema avaleht: 20. sajandi Eesti inimeste lugudes', [
+        'Eesti 20. sajandi ajalugu on ka paljude perede ajalugu. 24. veebruaril 1918 kuulutati välja Eesti Vabariik. 1940. aastal okupeeris Eesti Nõukogude Liit ja aastatel 1941–1944 oli Eesti Saksa okupatsiooni all. Paljude inimeste elu muutus järsku: 14. juunil 1941 viidi Siberisse umbes 10 000 inimest ja 25. märtsil 1949 üle 20 000 inimese. 1944. aasta sügisel põgenes läände, peamiselt Rootsi ja Saksamaale, 70 000 – 80 000 inimest.',
+        'Pärast sõda tuli Eestisse elama ja tööle palju inimesi teistest Nõukogude Liidu vabariikidest. Paljud neist asusid elama Tallinnasse ja Kirde-Eesti tööstuslinnadesse. 1934. aasta rahvaloendusel oli eestlasi rahvastikust 88 %, 1989. aasta rahvaloendusel 61,5 %. Seepärast räägivad Eesti perede lood väga erinevatest kohtadest: Siberist ja Rootsist, Venemaast, Ukrainast ja Valgevenest.',
+        '1980. aastate lõpus algas laulev revolutsioon. 1988. aasta juunis kogunes Tallinna lauluväljakule öölaulupidudele igal õhtul ligikaudu 100 000 inimest. 23. augustil 1989 võttis Balti ketis umbes kaks miljonit inimest Tallinnast Riia kaudu Vilniuseni üksteisel käest kinni. 20. augustil 1991 taastas Eesti oma iseseisvuse.',
+        'Pärast seda muutus elu kiiresti. 20. juunil 1992 tuli kasutusele Eesti kroon, 2004. aastal sai Eesti NATO ja Euroopa Liidu liikmeks ning 2011. aastal tuli krooni asemele euro. Tallinnas Vabamu muuseumis räägitakse neid aegu tavaliste inimeste lugude kaudu.',
+        'Selles moodulis jutustad minevikust: mis sai valmis ja mis jäi pooleli, mida sa oled elus kogenud, mis juhtus mis aastal ja miks üks lugu on meelde jäänud. Mooduli lõpus jutustad oma loo neljas osas ja lepid teise lapsevanemaga kokku, kuidas kooli lugude õhtu läbi viia.',
+      ], 'Vabamu, „Muuseumi lugu”; Vikipeedia, „Juuniküüditamine”, „Märtsiküüditamine Eestis”, „Öölaulupidu” ja „Eesti taasiseseisvumine”; Postimees, „Saatuseaasta 1944. Suur põgenemine” (2024); Eesti entsüklopeedia, „Rahvuskoosseis Eestis”; Rahvusarhiiv, „Eestimaa Laul”; Eesti Pank, „Eesti raha ajalugu”; Välisministeerium, „Eesti liitumine NATOga”', [
+        'Millist lugu minevikust räägitakse sinu peres kõige sagedamini? Kes seda räägib?',
+        'Kuidas räägitakse 20. sajandi ajaloost sinu kodumaal? Mis on sarnast ja mis on teisiti kui Eestis?',
+        'Kes sinu peres mäletab 1990. aastate algust? Mida ta on sellest ajast rääkinud?',
+        'Miks on sinu arvates tähtis kuulata erinevate inimeste mälestusi samast ajast?',
+      ]),
+      tag(B.reading('066_d_story', 'Saun, mis pidi valmis saama', 'On september. Oskari klass Kase koolis kogub klassi raamatusse „Meie pere lood” ja valmistab ette lugude õhtut, mis on neljapäeval, 14. oktoobril. Täna loed, kuidas onu Viktor ehitas 1988. aastal oma sauna. Vaata pealkirja ja arva: mis pidi valmis saama ja miks oli kiire? Seejärel loe lugu ja kontrolli, kas arvasid õigesti.', 'Saun, mis pidi valmis saama', [
         'Septembri alguses sõitis Oskar koos isaga Viktori tallu Kõrvemaale. Õpetaja Kristel Saar oli palunud kõigil lastel kirjutada klassi raamatusse üks pere lugu. Sauna katus, millele jaanipäeva järel tormis kask kukkus, oli just uuesti valmis saanud. Õhtul saunas hakkas Viktor rääkima, kuidas see saun üldse sündis.',
         '',
         '1988. aasta kevadel otsustas kahekümne viie aastane Viktor, et ta ehitab talu juurde uue sauna. Vana saun oli nii vana, et selle katus laskis vihma sisse ja ahi suitses. Viktor ei olnud kunagi varem ehitaja olnud, aga isa uskus temasse ja lubas aidata. Tal oli ainult üks tingimus. Saun pidi valmis saama 20. augustiks, sest siis sai isa viiskümmend aastat vanaks.',
@@ -176,6 +201,11 @@ export const LESSONS = withShapes({
         ['Oskar kirjutas oma loo valmis ja saatis seda õpetajale.', 'Oskar kirjutas oma loo valmis ja saatis selle õpetajale.'],
         ['Pärast sauna jõi isa oma teed ära ja läks magama.', 'Pärast sauna jõi isa oma tee ära ja läks magama.'],
       ], 'full', 'g_notice'),
+      B.know('066_p_know', [
+        '1988. aasta suvel kogunesid inimesed Tallinna lauluväljakule öösiti laulma. 10.–14. juunini tuli öölaulupidudele igal õhtul ligikaudu 100 000 inimest ja lauldi isamaalisi laule. Kunstnik Heinz Valk nimetas seda samal kuul ajaleheartiklis laulvaks revolutsiooniks.',
+        '11. septembril 1988 toimus lauluväljakul suur rahvapidu „Eestimaa Laul”. Seal ütles Heinz Valk lause, mida mäletatakse siiani: „Ükskord me võidame niikuinii!” Korraldajad rääkisid 300 000 inimesest, hilisemate hinnangute järgi oli kohal 100 000 – 200 000 inimest.',
+        'Paljudes peredes on keegi, kes oli sel suvel lauluväljakul. Küsi oma vanematelt või naabritelt, mida nad 1988. aastal tegid.',
+      ], 'Rahvusarhiiv, „Eestimaa Laul”; Vikipeedia, „Öölaulupidu”', 'Kas teadsid? 1988 — laulev suvi'),
       teach(B.rolecards('066_p_gap', 'Infolünk: mis juhtus 1988. aastal?', 'A teab Viktori märkmikust saunaehituse kuupäevi, B teab Helgi mälestusi. Küsige teineteiselt ja pange kokku ühine ajajoon.',
         'Sa oled Oskar. Sul on Viktori 1988. aasta märkmik: 15. aprill — puud metsast maha; 30. juuni — seinad valmis; 25. juuli — katus valmis; 19. august — vihm, ahi pooleli. Helgi mälestusi sa ei tea. Küsi B-lt ja pane ajajoon kokku.',
         'Sa oled Helgi. Sa olid 1988. aastal kahekümne ühe aastane ja õppisid Tartus. Sa mäletad: juunis tulid koju ja aitasid seinu laduda; juulis kukkus haamer kaevu; 20. augustil kell kolm tulid külalised ja ema tõi kringli; õhtul käis isa esimesena saunas. Märkmikku sa ei tea. Küsi A-lt.',
@@ -183,7 +213,7 @@ export const LESSONS = withShapes({
       'Üks-ühele: õpetaja on Helgi ja annab infot ainult küsimise peale; siis vahetage kaardid. Lõpus ütleb õpilane ajajoone viie lausega ja kasutab sõnu valmis, ära ja läbi.'),
     ],
     transfer: [
-      B.text('066_t_sit', 'Lugu klassi raamatusse', 'Õpetaja Kristel Saar kogub klassi raamatusse „Meie pere lood” igast perest ühe loo. Oskar kirjutas Viktori sauna loost mustandi, aga mõni lauseosa jäi puudu. Loe mustandit ja lisa puuduvad osad. Siis valige koos, millised kolm lugu sobivad raamatu algusesse, salvesta kodus oma lugu ja kirjuta jutt.'),
+      B.text('066_t_sit', 'Lugu klassi raamatusse', 'Õpetaja Kristel Saar kogub klassi raamatusse „Meie pere lood” igast perest ühe loo. Oskar kirjutas Viktori sauna loost mustandi, aga mõni lauseosa jäi puudu. Loe mustandit ja lisa puuduvad osad. Siis valige koos, millised kolm lugu sobivad raamatu algusesse, jutustage väikeses ringis oma lood ja kirjuta jutt.'),
       B.bankText('066_t_draft', 'Oskari mustand.', 'Oskari mustandis on kaheksa tühja kohta. Vali igasse kohta sobiv lauseosa; kaks osa on üleliigsed.', 'Saun, mis sai valmis ühe ööga', [
         'Minu vanaonu Viktor elab Kõrvemaal talus. [[Tema talu juures on vana saun]], mille ta ehitas 1988. aastal koos oma isaga. Isa tingimus oli, et saun peab valmis saama tema viiekümnendaks sünnipäevaks.',
         '',
@@ -199,8 +229,8 @@ export const LESSONS = withShapes({
       ], ['kuigi ahjumeister oli terve', 'Saun jäi sel suvel pooleli']),
       teach(tag(B.ideaCard('066_t_choose', 'Valige raamatu algusesse kolm lugu.', 'Arutage, millised kolm pere lugu sobivad klassi raamatu algusesse, ja pange need järjekorda. Põhjendage iga valikut.', 'Klassi raamatusse „Meie pere lood” tuli kaksteist lugu. Õpetaja Kristel palub kahel lapsevanemal valida kolm lugu, millega raamat algab. Lood peavad olema lastele huvitavad ja lõppema hästi.', ['Viktori saun, mis sai valmis ühe ööga', 'Helgi esimene tööpäev külakoolis', 'Rasmuse vanaisa kala, mis oli suurem kui paat', 'Kadri esimene öövahetus haiglas', 'Jaani esimene kook, mis kukkus põrandale', 'vanaema kass, kes elas kolm päeva katusel'], 'Millised kolm lugu te valisite, mis järjekorras ja miks?'), { task: 'S12' }),
         'Üks-ühele: õpetaja on Rasmuse isa Tõnu, kes tahab alguses ainult naljakaid lugusid; õpilane põhjendab ja jõuab kokkuleppele kolme loo ja nende järjekorra osas.'),
-      teach(tag(B.speaking('066_t_rec', 'Kodus: minu valmis saanud asi.', 'Salvesta 2–3-minutiline lugu sellest, kuidas sa midagi suurt valmis tegid või lõpuni viisid.', ['Mida sa tegid ja millal see oli?', 'Kes sind aitas?', 'Mis oli kõige raskem ja mis jäi alguses pooleli?', 'Kuidas sa selle lõpuks valmis said?', 'Mida sa sellest õppisid?'], [120, 180], ['Ma ehitasin / kirjutasin / õmblesin … valmis.', 'Alguses jäi … pooleli, sest…', 'Lõpuks…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib, mis oli kõige raskem hetk ja kes aitas.'),
+      teach(tag(B.speaking('066_t_circle', 'Lugude ring: minu valmis saanud asi.', 'Istuge ringis. Igaüks räägib umbes kaks minutit, kuidas ta midagi suurt valmis tegi või lõpuni viis; teised küsivad lõpus kaks küsimust. Lõpuks otsustage, kelle lugu sobiks klassi raamatusse, ja põhjendage.', ['Mida sa tegid ja millal see oli?', 'Kes sind aitas?', 'Mis oli kõige raskem ja mis jäi alguses pooleli?', 'Kuidas sa selle lõpuks valmis said?', 'Mis sa arvad, miks see lugu on sulle meelde jäänud?'], [120, 180], ['Ma ehitasin / kirjutasin / õmblesin … valmis.', 'Alguses jäi … pooleli, sest…', 'Lõpuks…']), { level: 3 }),
+        'Üks-ühele: õpilane räägib oma loo, õpetaja on kuulaja ja küsib kaks küsimust (mis oli kõige raskem hetk, kes aitas); siis räägib õpetaja oma loo ja õpilane küsib. Lõpus ütleb õpilane, kumb lugu sobiks klassi raamatusse ja miks.'),
       tag(B.examWriting('066_t_story', 'Jutt: „Ühe ööga valmis”.', 'Kirjuta jutt umbes 100 sõnaga. Kirjuta kõigist neljast punktist ja kasuta vähemalt kolme sõna ära, läbi või valmis.', 'jutt', {
         situation: 'Pealkiri: „Ühe ööga valmis”. Jutusta lugu sellest, kuidas midagi sai viimasel hetkel valmis — sinu enda elust või Viktori loo moodi.',
         points: ['mida oli vaja teha ja mis ajaks', 'mis läks valesti ja mis jäi pooleli', 'kes aitas ja kuidas asi valmis sai', 'kuidas lugu lõppes ja mida sa tundsid'],
@@ -270,8 +300,28 @@ export const LESSONS = withShapes({
         'käima | [käisin] | [olen käinud] | [ei ole käinud]', 'lendama | [lendasin] | [olen lennanud] | [ei ole lennanud]', 'võitma | [võitsin] | [olen võitnud] | [ei ole võitnud]', 'nägema | [nägin] | [olen näinud] | [ei ole näinud]', 'tegema | [tegin] | [olen teinud] | [ei ole teinud]',
         'sööma | [sõin] | [olen söönud] | [ei ole söönud]', 'proovima | [proovisin] | [olen proovinud] | [ei ole proovinud]', 'elama | [elasin] | [olen elanud] | [ei ole elanud]', 'minema | [läksin] | [olen läinud] | [ei ole läinud]', 'eksima | [eksisin] | [olen eksinud] | [ei ole eksinud]',
       ], 'g_notice'),
-      teach(tag(B.speaking('067_d_432', 'Minu kõige julgem kogemus.', 'Räägi oma kõige julgemast kogemusest kolm korda: 2 minutit, 90 sekundit ja 1 minut. Alusta täisminevikuga, jätka lihtminevikuga.', ['Mida julget sa oled oma elus teinud?', 'Millal ja kus see juhtus?', 'Kes oli sinuga?', 'Mida sa tundsid enne ja pärast?', 'Kas sa teeksid seda uuesti? Miks?'], [120, 180], ['Ma olen kord…', 'See juhtus … aastal, kui…', 'Pärast seda…']), { task: 'S08' }),
-        'Üks-ühele: õpetaja hoiab aega (2 minutit, 90 sekundit, 1 minut) ega katkesta. Pärast kolmandat korda ütleb õpetaja, kas õpilane alustas täisminevikuga (olen kord …) ja jätkas lihtminevikuga.'),
+      tag(B.reading('067_d_museum', 'Muuseum, mis kogub inimeste lugusid.', 'Loe teksti Tallinna muuseumist ja märka täisminevikku: muuseum on kogunud, inimesed on rääkinud. Vasta küsimustele lühidalt.', 'Muuseum, mis kogub inimeste lugusid', [
+        'Tallinnas Toompea nõlval on okupatsioonide ja vabaduse muuseum Vabamu. Muuseumi eesmärk on rääkida Eesti lähiajaloost inimeste lugude kaudu: kuidas tavalised inimesed elasid okupatsioonide ajal ja kuidas Eesti jõudis tagasi vabaduseni. Vabamule kuulub ka teine muuseum, KGB vangikongid.',
+        '',
+        'Muuseumi lugu algab ühest elust. Olga Kistler-Ritso sündis 1920. aastal Ukrainas. Ta õppis Tartu ülikoolis arstiks ja lõpetas ülikooli 1944. aastal. Sama aasta sügisel põgenes ta läände. Saksamaal töötas ta põgenikelaagris arstina ja 1949. aastal kolis ta Ameerika Ühendriikidesse, kus temast sai silmaarst. Kodumaale tuli ta esimest korda külla alles 1976. aastal. Hiljem andis ta muuseumi rajamiseks kaks miljonit eurot. Muuseum avati 1. juulil 2003.',
+        '',
+        'Muuseum on esemeid kogunud juba 1999. aastast. Praeguseks on kogus ligi 40 000 eset, fotot, kirja ja dokumenti. Tuhanded inimesed on muuseumile oma lugusid rääkinud ja oma pere asju annetanud. Kogus on näiteks haruldasi kirju, mis on Siberis kirjutatud kasetohule. Paljud lood on kurvad, aga neis on ka rõõmu ja lootust.',
+        '',
+        'Muuseumi maja on esimene hoone Eestis, mis on ehitatud spetsiaalselt muuseumiks. Selle seinad on klaasist: need peavad näitama vabadust ja läbipaistvust, mida okupatsioonide ajal ei olnud. Muuseumisse tullakse läbi väikese kasesalu. 2018. aastal avati seal uus püsinäitus „Vabadusel ei ole piire”. Oma tegutsemisaastate jooksul on muuseum võõrustanud ligikaudu pool miljonit külastajat.',
+        '',
+        'Allikas: Vabamu, „Muuseumi lugu”.',
+      ], [
+        ['Millal avati Vabamu?', '1. juulil 2003|2003. aastal'],
+        ['Kus ja milleks õppis Olga Kistler-Ritso?', 'Tartu ülikoolis arstiks|Tartus arstiks'],
+        ['Mida tegi Olga pärast põgenemist Saksamaal?', 'töötas põgenikelaagris arstina|töötas arstina'],
+        ['Mida on muuseumi kogus praeguseks?', 'ligi 40 000 eset, fotot, kirja ja dokumenti|esemeid, fotosid, kirju ja dokumente'],
+        ['Mida on tuhanded inimesed muuseumi heaks teinud?', 'rääkinud oma lugusid ja annetanud pere asju|rääkinud lugusid ja annetanud asju'],
+        ['Mille peale on kirjutatud mõned Siberist pärit kirjad?', 'kasetohule|kasetohu peale'],
+        ['Miks on sinu arvates tähtis koguda tavaliste inimeste lugusid?', ''],
+        ['Kas sina oled käinud mõnes muuseumis, mis räägib inimeste lugudest? Mida sa seal nägid?', ''],
+      ]), { task: 'R15', voice: 'article' }),
+      teach(tag(B.speaking('067_d_gen', 'Põlvkondade kogemused.', 'Arutage paaris: mida on sinu vanemad või vanavanemad elus kogenud, mida sina ei ole kogenud — ja vastupidi? Kasuta täisminevikku ja ütle oma arvamus.', ['Mida on sinu vanavanemad kogenud, mida sina ei ole kunagi kogenud?', 'Mida oled sina teinud, mida sinu vanemad ei ole kunagi teinud?', 'Kas sinu arvates on noortel tänapäeval kergem või raskem elada kui sinu vanematel? Miks?', 'Mida on sinu pere elu jooksul vahetanud: kodu, linna, riiki, keelt või tööd?', 'Kuidas on elu sinu kodumaal viimase 30 aasta jooksul muutunud?'], [120, 180], ['Minu vanaema on…, aga mina ei ole kunagi…', 'Mina olen…, aga minu isa ei ole…', 'Minu arvates…, sest…']), { task: 'S19' }),
+        'Üks-ühele: õpetaja räägib ka oma pere kogemustest ja küsib „Aga miks?”. Õpilane kasutab vähemalt viis täismineviku vormi; õpetaja ei hinda arvamust, vaid keelt ja põhjendusi.'),
       teach(tag(B.speaking('067_d_survey', 'Küsitle kolme: kas sa oled kunagi…?', 'Küsi kolmelt inimeselt viis küsimust. Kui vastus on jah, küsi juurde: millal ja kuidas see oli? Lõpus räägi minutiga, mida kuulsid.', ['Kas sa oled kunagi lennukiga lennanud?', 'Kas sa oled kunagi metsas ära eksinud?', 'Kas sa oled kunagi mõnel võistlusel midagi võitnud?', 'Kas sa oled kunagi laval esinenud?', 'Mida sa ei ole kunagi teinud, aga tahaksid proovida?'], [120, 180], ['Kas sa oled kunagi…?', 'Millal see oli?', 'Kaks inimest on…, aga keegi ei ole…']), { task: 'S09' }),
         'Üks-ühele: õpilane küsib samu küsimusi õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (Helgi, Viktor, Sofia). Lõpus teeb õpilane minutilise kokkuvõtte.'),
     ],
@@ -343,7 +393,7 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja loeb küsimuse ja küsib „Aga miks?”; teisel ringil vastab õpilane igale küsimusele umbes 30 sekundiga. Õpetaja märgib, kas õpilane eristas tingivat (prooviksin) ja täisminevikku (ei ole proovinud).'),
     ],
     transfer: [
-      B.text('067_t_sit', 'Triinu häälsõnum', 'Sofia kirjutas vestlusesse, et tahaks olla elav raamat. Järgmisel päeval jättis kooli raamatukoguhoidja Triin talle häälsõnumi. Kuula sõnumit ja tee märkmed. Siis helista Triinule ja registreeru, salvesta kodus oma raamatu sissejuhatus ja täida elava raamatukogu küsimustik.'),
+      B.text('067_t_sit', 'Triinu häälsõnum', 'Sofia kirjutas vestlusesse, et tahaks olla elav raamat. Järgmisel päeval jättis kooli raamatukoguhoidja Triin talle häälsõnumi. Kuula sõnumit ja tee märkmed. Siis helista Triinule ja registreeru, proovi tunnis oma raamatu sissejuhatust ja täida elava raamatukogu küsimustik.'),
       tag(B.listening('067_t_voice', 'Triinu sõnum.', 'Kuula raamatukoguhoidja Triinu häälsõnumit kaks korda ja tee kõneks märkmed: kirjuta igasse lünka üks või kaks sõna.', [
         'Triin: Tere, Sofia! Siin Triin, Kase kooli raamatukoguhoidja. Kristel andis mulle sinu numbri. Aitäh, et tahad olla meie elav raamat!',
         'Triin: Räägin lühidalt, kuidas elav raamatukogu käib. Lugude õhtu on neljapäeval, neljateistkümnendal oktoobril, ja elav raamatukogu algab kooli raamatukogus kell pool seitse.',
@@ -375,8 +425,8 @@ export const LESSONS = withShapes({
         'Küsi helistaja nime ja telefoninumbrit.', 'Kiida pealkirja ja palu üks märksõna lihtsamaks muuta.', 'Lugejate seas on lapsi alates kümnendast eluaastast.', 'Projektor on olemas, aga pildid tuleb saata e-postiga 10. oktoobriks.', 'Kõik raamatud on aulas kell kuus; parkida saab kooli taga.',
       ]]), { harno: 'S2', main: true }),
       'Eksaminurk (Harno B1 rääkimine 2, telefonikõne, ~8 min). Eksamil on küsimuste kaart ja vastuste kaart; hea sooritus = kõik kaardi punktid on küsitud ja vastatud. Strateegia: 1) loe kaart läbi ja märgi, mida pead küsima; 2) alusta tervituse ja kõne põhjusega; 3) lõpus korda kokkulepet. Üks-ühele: õpetaja on Triin, siis vahetage kaardid. Õpilane kasutab vähemalt kolme täismineviku vormi, kui räägib oma raamatust.'),
-      teach(tag(B.speaking('067_t_rec', 'Kodus: minu raamatu sissejuhatus.', 'Salvesta 2–3-minutiline sissejuhatus oma elava raamatu jaoks: kes sa oled, mida sa oled kogenud ja millest su lugu räägib.', ['Mis on sinu raamatu pealkiri?', 'Mida sa oled oma elus teinud, mida paljud teised ei ole teinud?', 'Millal ja kus sinu lugu juhtus?', 'Mida sa sellest kogemusest õppisid?', 'Mida sa ei ole veel kunagi teinud, aga tahaksid proovida?'], [120, 180], ['Minu raamatu pealkiri on…', 'Ma olen…', 'Ma ei ole kunagi…, aga…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib ühe küsimuse nagu elava raamatu lugeja.'),
+      teach(tag(B.speaking('067_t_try', 'Elava raamatu proov.', 'Tutvusta oma elavat raamatut umbes kahe minutiga: kes sa oled, mida sa oled kogenud ja millest su lugu räägib. Lugeja küsib lõpus kaks küsimust. Siis räägi sama sissejuhatus uuele lugejale veel kord, kiiremini ja vabamalt.', ['Mis on sinu raamatu pealkiri?', 'Mida sa oled oma elus teinud, mida paljud teised ei ole teinud?', 'Millal ja kus sinu lugu juhtus?', 'Mida sa sellest kogemusest õppisid?', 'Mida sa ei ole veel kunagi teinud, aga tahaksid proovida?'], [120, 180], ['Minu raamatu pealkiri on…', 'Ma olen…', 'Ma ei ole kunagi…, aga…']), { task: 'S08', level: 3, fluency: true }),
+        'Üks-ühele: õpilane on raamat ja räägib, õpetaja on lugeja ja küsib kaks küsimust nagu lugude õhtul; siis vahetage rollid. Õpetaja märgib, kas õpilane kasutas täisminevikku (olen …, ei ole kunagi …).'),
       B.examWriting('067_t_form', 'Elava raamatukogu küsimustik.', 'Täida elava raamatu küsimustik Sofia või enda nimel. Vasta lühidalt; „Miks?” küsimustele lisa põhjus.', 'kusimustik', {
         situation: 'Raamatukoguhoidja Triin saatis kõigile elavatele raamatutele küsimustiku. Vastuste põhjal teeb ta lugejatele raamatute kataloogi.',
         questions: ['Mis on teie raamatu pealkiri?', 'Millest teie lugu räägib? Kirjutage üks lause.', 'Millal ja kus see lugu juhtus?', 'Miks valisite just selle kogemuse?', 'Kas olete varem publiku ees esinenud? Kus?', 'Kas olete kunagi ise elavat raamatut lugenud? Kus?', 'Millistes keeltes võite rääkida?', 'Kas teie lugu sobib ka lastele? Miks?', 'Mida soovite, et lugejad teie loost kaasa võtaksid?', 'Kas oleksite valmis järgmisel aastal uuesti tulema? Miks?'],
@@ -577,6 +627,11 @@ export const LESSONS = withShapes({
         ['Mis kellani on aula lugude õhtul avatud?', 'kella üheksani|21-ni'],
         ['Mis saab hääletuse võitja plakatist?', 'see jääb aastaks kooli raamatukokku|see jääb raamatukokku'],
       ], 'g_vocab'), { task: 'R07' }),
+      B.know('068_p_know', [
+        'Eesti kroon tuli kasutusele 20. juunil 1992. Sellest päevast kella neljast hommikul sai kroon Eestis ainsaks seaduslikuks rahaks. Nõukogude rublad vahetati kroonideks kursiga 10 rubla = 1 kroon. Iga elanik sai selle kursiga vahetada kuni 1500 rubla, nii et esimesel päeval oli kõigil kuni 150 krooni.',
+        'Raha vahetamiseks avati üle Eesti 727 rahavahetuspunkti ja rahareformi juures töötas üle 16 500 inimese. Kroon kehtis kuni 2011. aastani, kui Eesti võttis kasutusele euro.',
+        'Kui sinu peres on keegi, kes elas 1992. aastal Eestis, küsi temalt: mida ta oma esimeste kroonidega ostis?',
+      ], 'Eesti Pank, „Eesti raha ajalugu” ja „1992. aasta rahareformi kronoloogia”; Delfi Ärileht, „Hüvasti, Eesti kroon!”', 'Kas teadsid? Uus raha 1992'),
       teach(tag(B.rolecards('068_p_mia', 'Seleta Miale vanaema elu.', 'A on Oskar, B on Mia. A seletab lihtsate sõnadega, mida vanaema oma elust rääkis; B küsib. Seejärel vahetage rollid ja rääkige kiiremini.',
         'Sa oled Oskar. Seleta Miale vanaema elu viis tähtsamat sündmust õiges järjekorras. Kasuta sõnu kõigepealt, siis, pärast seda, hiljem, lõpuks ja pane tegusõna teisele kohale.',
         'Sa oled Mia, kuus aastat vana. Sa ei tea aastaarve. Küsi iga sündmuse kohta: kui vana vanaema siis oli, kus ta elas ja kas ta oli õnnelik.',
@@ -722,32 +777,36 @@ export const LESSONS = withShapes({
         ['Ma olin väga üllatunud, kui nägin minu vana õpetajat.', 'Ma olin väga üllatunud, kui nägin oma vana õpetajat.'],
         ['Lõpuks me leidsime koera naabri kuurist üles.', 'Lõpuks leidsime me koera naabri kuurist üles.'],
       ], 'full', 'g_notice'),
-      B.adsmatch('069_p_help', 'Abi lugude õhtuks.', 'Loe perede muresid ja kuulutusi. Kirjuta iga mure juurde sobiva kuulutuse täht; üks kuulutus võib sobida mitmele murele.', [
-        ['Heli ja Valgus', 'Rendime mikrofone, kõlareid ja väikeseid projektoreid. Üks mikrofon maksab päevas kümme eurot, projektor kakskümmend. Toome tehnika kohale ja paneme selle tööle.'],
-        ['Esinemiskursus Julge Hääl', 'Kahe õhtu kursus neile, kes kardavad publiku ees rääkida. Harjutame hingamist, häält ja lühikese loo jutustamist. Hind on nelikümmend eurot, õpilastele pool hinda.'],
-        ['Pagariäri Kaneelirull', 'Küpsetame kringleid, pirukaid ja torte igaks peoks. Tellimus tuleb esitada vähemalt kolm päeva ette. Suurtele tellimustele toome kauba ise kohale.'],
-        ['Fotograaf Liina', 'Pildistan pidusid, kooliüritusi ja peresid. Tund maksab viiskümmend eurot ja pildid saadan teile nädala jooksul. Ka vanad ja kahjustatud fotod teen uuesti ilusaks.'],
-        ['Lastehoid Mängumaa', 'Hoiame kahe- kuni kaheksa-aastaseid lapsi õhtuti kuni kella kümneni. Meie hoidjad tulevad ka teie üritusele kohale. Tund maksab kaksteist eurot.'],
-        ['Tõlkebüroo Sõnasild', 'Tõlgime tekste vene, ukraina, inglise ja soome keelest eesti keelde. Lühike tekst on valmis samal päeval. Lehekülg maksab viisteist eurot.'],
-      ], [
-        ['Kristel vajab aulasse veel kahte mikrofoni, sest koolil on neid ainult kaks.', 'A'],
-        ['Rasmuse isa Tõnu kardab laval rääkida ja tahaks enne kellegagi harjutada.', 'B'],
-        ['Helgi tahab lugude õhtuks tellida suure kringli, mis tuuakse kooli kohale.', 'C'],
-        ['Kool tahab, et keegi teeks lugude õhtust ilusaid pilte.', 'D'],
-        ['Väikeste lastega pere tahab, et keegi hoiaks õhtul aulas nende lapsi.', 'E'],
-        ['Ivanovite pere vajab oma loo jaoks eestikeelset lauset ekraanile.', 'F'],
-        ['Viktor tahab oma sauna loo ajal näidata vana fotot suurel ekraanil.', 'A'],
-        ['Üks õpilane peab varsti kogu kooli ees esinema ja on väga närvis.', 'B'],
-        ['Pere tahab, et vanavanaema hägune pulmafoto saaks jälle ilusaks.', 'D'],
-        ['Jaan vajab kolme päeva pärast lisaks oma pirukatele ka kahte suurt torti.', 'C'],
-      ], 'g_read'),
+      tag(B.insertion('069_p_memory', 'Elulugu: öö, mil kõik muutus.', 'Elulugude kogumise projektis räägib Tatjana (68), kes tuli Eestisse Pihkvast, ühest ööst 1991. aastal. Tekstist on välja võetud viis lauset. Vali igasse lünka sobiv lause; üks lause on üleliigne. Siis ütle, milline lõik on sündmus, tunne, põhjus ja järeldus.', 'Öö, mil kõik muutus', [
+        'Ma tulin Tallinnasse 1979. aastal, kui olin kahekümneaastane, ja hakkasin haiglas õena tööle. 20. augustil 1991 olin ma öövahetuses. [[Natuke enne keskööd kuulsime raadiost, et Eesti Vabariigi Ülemnõukogu oli just vastu võtnud otsuse Eesti iseseisvuse kohta.]] Varahommikul tuli haiglasse üks noor arst. Ta rääkis, et sõdurid tahavad teletorni võtta ja paljud inimesed on juba sinna sõitnud, et torni kaitsta.',
+        '',
+        'Mul oli hirm. Ma mõtlesin oma kahele lapsele, kes magasid kodus Lasnamäel. Samal ajal tundsin ka midagi uut: lootust. [[Ma ei olnud kunagi varem näinud, et nii erinevad inimesed seisavad koos.]]',
+        '',
+        'Miks see öö mulle nii tähtis on? [[Minu lapsed olid Tallinnas sündinud ja Eesti oli juba ammu ka minu kodu.]] Ma ei teadnud, mis edasi saab, aga ma teadsin, et ma ei taha siit ära minna. [[Hommikul jõudsin koju ja nägin, et naaber oli terve öö raadiot kuulanud ja meie lapsi valvanud.]]',
+        '',
+        '[[Sellest ajast olen ma eesti keelt õppinud ja tööl räägin ma nüüd eesti keeles.]] Kui lapselapsed küsivad, kuidas oli 1991. aastal, ütlen ma: kõige rohkem mäletan ma seda, et keegi ei olnud sel ööl üksi.',
+        '',
+        'Tatjana lugu on õppimiseks välja mõeldud, aga ajaloolised andmed on tõesed.',
+        '',
+        'Allikas: Vikipeedia, „Eesti taasiseseisvumine”; Tallinna Teletorn, „History”.',
+      ], ['Järgmisel päeval sõitsin ma tagasi Pihkvasse ja jäin sinna elama.']), { task: 'R16', voice: 'interview' }),
       teach(tag(B.rolecards('069_p_kringel', 'Kringel ei ole valmis.', 'A on Helgi, kelle tellitud kringel ei ole valmis, B on pagariäri müüja. Lahendage probleem viisakalt. Seejärel vahetage rollid.',
         'Sa oled Helgi. Sa tellisid kaks nädalat tagasi pagariärist suure kringli 14. oktoobriks kella viieks. Nüüd ütleb müüja, et tellimus on 21. oktoobriks. Selgita, mis juhtus, ja leia lahendus: kringel peab täna kella kuueks kooli jõudma.',
         'Sa oled pagariäri müüja. Sinu arvutis on tellimus 21. oktoobriks. Suurt kringlit ei saa täna enam teha, aga sul on kaks väiksemat kringlit ja pirukad. Vabanda, paku lahendus ja anna allahindlust, kui klient on viisakas.',
         ['Ma tellisin… / Mulle öeldi, et…', 'Kas te saaksite…?', 'Mida te pakute?'], ['Vabandust, minu arvutis on…', 'Ma võin pakkuda…', 'Kas see sobib teile?']), { task: 'S10' }),
       'Üks-ühele: õpetaja on müüja, kes alguses ütleb, et midagi teha ei saa; õpilane selgitab viisakalt, mis juhtus, ja jõuab lahenduseni. Siis vahetage rollid.'),
-      teach(tag(B.speaking('069_p_topic', 'Teemaküsimused: mälestused.', 'Vasta eksami moodi viiele küsimusele mälestuste kohta: 3–4 lauset, põhjus või näide. Teisel ringil vasta igaühele umbes poole minutiga.', ['Milline on sinu kõige varasem mälestus?', 'Kes sinu peres räägib kõige paremini lugusid?', 'Milline päev on sulle eriti meelde jäänud? Miks?', 'Kas sa oled kunagi midagi tähtsat unustanud? Mis juhtus?', 'Mida sa tahaksid, et sinu lapsed või lapselapsed sinust teaksid?'], [120, 180], ['Minu kõige varasem mälestus on…', 'Mulle on meelde jäänud…, sest…', 'Sellest ajast…']), { fluency: true }),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija; esimesel ringil vastab õpilane pikalt, teisel ringil umbes 30 sekundiga. Õpetaja loeb kokku, mitu vastust olid põhjuse või näitega.'),
+      // the examiner's question set on the module's Harno topic (§13.7), with its own instruction (final shape V7); keeps the
+      // id of the topic questions it grew from
+      teach(tag(withInstruction(B.examiner('069_p_topic', 'ajalugu, pere ja mälestused', [
+        'Mida on sinu vanavanemad oma noorusest rääkinud?',
+        'Kas sinu peres on alles vanu fotosid või kirju? Kes neid hoiab?',
+        'Milline sündmus on sinu elu kõige rohkem muutnud? Miks?',
+        'Kuidas on elu Eestis või sinu kodumaal viimase 30 aasta jooksul muutunud?',
+        'Millist muuseumi oled sa külastanud ja mis sulle seal meelde jäi?',
+        'Kas sinu arvates peaks koolis rohkem kohalikku ajalugu õppima? Põhjenda.',
+        'Miks on tähtis teada oma pere lugu?',
+      ]), 'Eksamineerija küsib sinu pere, mälestuste ja ajaloo kohta. Vasta igale küsimusele kolme-nelja lausega: mis juhtus, millal ja mida sa sellest arvad. Teisel ringil vasta igale küsimusele umbes poole minutiga.'), { task: 'S02', fluency: true }),
+        'Üks-ühele: õpetaja küsib nagu eksamineerija ega aita; vahel küsib ta juurde „Miks?” või „Kas näiteks…?”. Isiklikule küsimusele võib õpilane vastata ka teise inimese loo kaudu. Õpetaja loeb kokku, mitu vastust olid põhjuse või näitega.'),
     ],
     transfer: [
       B.text('069_t_sit', 'Õhtu teine pool', 'Lavale tahab tulla üksteist peret, aga aega on ainult üks tund. Kristel saatis kava mustandi ja reeglid ning palus Oskari emal ja Rasmuse isal kava kokku leppida. Loe mustandit ja mõtle, mis sobib. Siis leppige kokku õhtu teise poole kava, salvesta kodus oma lugu neljas osas ja kirjuta Viktorile kutse.'),
