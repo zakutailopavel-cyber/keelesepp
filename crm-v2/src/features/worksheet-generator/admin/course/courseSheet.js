@@ -5,6 +5,7 @@ import { withLessonArt } from '../../art/textbookArt.js';
 import { withWordStrips } from '../../art/wordStrips.js';
 import { withListeningAudio } from './listeningAudio.js';
 import { nativeStage } from '../../../worksheet-studio/didactics/levels.js';
+import { COURSE_EXAM } from '../../../worksheet-studio/engine/blocks/harnoScales.js';
 import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
 import { A2_LESSON_GOALS } from './a2/lessonGoals.js';
 import { B2_LESSON_GOALS } from './b2/lessonGoals.js';
@@ -82,6 +83,15 @@ function strictSpelling(blocks, level) {
   return blocks.map((b) => (STRICT_TYPES.has(b.type) ? { ...b, data: { ...b.data, strict: true } } : b));
 }
 
+// an exam part's header shows how the real Harno exam of the course weighs the part and its pass rule (engine/blocks/
+// harno.jsx harnoPartLine); a module may name another level on the block (`exam: 'A2'` for an A2-form check in the B1
+// course) or none (`exam: ''`)
+function withHarnoExam(blocks, course) {
+  const exam = COURSE_EXAM[course];
+  if (!exam) return blocks;
+  return blocks.map((b) => (b.type === 'exampart' && !('exam' in (b.data || {})) ? { ...b, data: { ...b.data, exam } } : b));
+}
+
 // the teacher's answer key explains why each answer is right (engine/answerKey.js): a module may export EXPLAIN =
 // { blockId: [one line per item] }, kept apart from the tasks so the sheet file stays readable
 function withExplanations(blocks, explain) {
@@ -135,7 +145,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
-    blocks: withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN),
+    blocks: withHarnoExam(withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN), mod.MODULE.course),
   }, lessonId, phase), lessonId, phase, undefined, Object.keys(mod.LESSONS));
 }
 
