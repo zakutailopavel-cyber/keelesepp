@@ -83,3 +83,6 @@ When all 36 modules are out of the baseline (or earlier, after B1 module 6 and B
 
 - 2026-11-02: standard (§13), topic map and gates in place; all 36 modules in the baseline (0 / 18 B1, 0 / 18 B2 pass).
   Counts per gate when the gates came — see `docs/PROJECT_STATE.md` (entry agent/academic-value-gates).
+- 2026-11-03: B1 modules 1–18 out of the round-1 baseline. The learner's-eye review of the B1 course found what the gates
+  let through; round 2 (its own gates and baseline) is `docs/ACADEMIC_VALUE_ROUND2.md`, standard §13.9. B2 modules still in
+  round 1 aim for the round-2 gates in the same PR.

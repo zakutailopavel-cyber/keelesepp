@@ -353,3 +353,55 @@ npx vitest run src/features/worksheet-generator
 (`ACADEMIC_REPORT=b1` / `b2` prints a course, `ACADEMIC_REPORT=summary` the counts per gate.) After the update the module's
 key must be gone from the baseline; if it is still there, the module is not done. The work order is
 `docs/ACADEMIC_VALUE_ROUND1.md`.
+
+### 13.9 Round 2: what round 1 let through (learner's-eye review, 2026-11-03)
+
+A review of the finished B1 course read as a learner found: ~10 of 36 sampled lessons are an unchanged cast episode plus
+a 50–100-word fact box; topic openers read like statistics dumps (30 numbers in 242 words); „sinu kodumaa” in 63 lessons,
+though many learners were born in Estonia; Kasuta still mostly a phone call (62 / 90) and call + letter (44 / 90); the
+retelling in other words („esimest korda kolme, teist korda kahe minutiga”) 24–29 times against 18; one radio host
+(„Ülle”) in 51 lessons; the same facts in several modules (ID card / e-services, the right to roam, „Teeme ära!”); the same
+four „Mõtle kaasa” questions everywhere. The rules below add to §13.2–13.7; the work order is
+`docs/ACADEMIC_VALUE_ROUND2.md`.
+
+- **A lesson is not an episode + a fact box.** Each teaching lesson has a main text from outside the story of the stage's
+  length (§13.3 lengths): an article, interview, expert, news item, forum, fiction or popular-science excerpt. A „Kas
+  teadsid?” box, a tip, a chart or the opener does not count; the radio host „Ülle” counts as cast.
+- **The opener is a page to read, not a table:** at most **8 numbers** (digits, years, percentages) in its body; keep
+  the 3–5 that matter, say the rest in words („üle poole”, „iga kolmas”) or move them into a chart.
+- **„Mõtle kaasa” varies:** each opener's questions are of at least **3 kinds** (reaction, experience, opinion,
+  comparison / another country, prediction, problem-solving); across a course the home / other-country question sits in
+  the same slot in at most a third of the openers, and no sequence of question kinds repeats in more than 3 openers.
+- **Not everyone has a „kodumaa”.** The word in any case at most **2 times a module**. Ask in ways that fit a learner born
+  in Estonia too: „mõnes teises riigis”, „riigis, mida sa hästi tead”, „mujal maailmas”, „sinu kodukohas”, „seal, kus sa
+  üles kasvasid”. The opener's comparison question (§13.2) may use these.
+- **One repeated retelling a module, in any wording:** 3-2-1, 4-3-2, „kaks / kolm korda”, „esimest korda … teist korda”,
+  „teisel korral”, „iga kord lühemalt / kiiremini”, „kolmele kuulajale”, „uuele paarilisele”, „uuesti … ilma märkmeteta”,
+  „mitu korda järjest” (speaking and card tasks).
+- **Kasuta without the phone:** at least **half** of a module's Kasuta sheets have no phone task at all (telefon, helista,
+  häälsõnum, kõnepost, videokõne, „kõne” + a case ending such as „kõne klienditeenindusse”, a phone card), and at most half
+  end with a letter or e-mail.
+- **More voices:** one recurring voice (a cast member or the radio host) opens at most **2** listening texts a module, and
+  every module with listening has at least one listening text with no recurring voice — news, an interview, a street poll,
+  an expert (stage length or a `voice` tag).
+- **A fact once.** The same fact does not come back in another module of the B1 or B2 course (a near-duplicate sentence in
+  two fact texts, or a key fact from `FACT_KEYS`: X-tee, igaüheõigus, „Teeme ära!”, ID card + mobile-ID / Smart-ID,
+  e-residency, digital signature, e-voting, Baltic Way, Skype). Choose another fact, or refer back („Mäletad, …”) without
+  restating it.
+
+**Gates** (`academicValue.js` round-2 section, thresholds `AV2`, run by `academicValueRound2Gate.test.js` with its own
+baseline `academicValueRound2Baseline.json`; round 1's gates and baseline are unchanged):
+
+| code | scope | rule |
+|---|---|---|
+| `av-boltedon` | lesson | a cast-free main text of the stage's length; fact box, tip, chart, opener and „Ülle” do not count |
+| `av-opener-numbers` | module | ≤ 8 number tokens in the opener body („450 000” is one, „2019–2021” two) |
+| `av-thinkvary` | module | the opener's questions are of ≥ 3 kinds |
+| `av-thinkvary` | course | home-country question in the same slot ≤ ⅓ of the openers (at least 2 allowed); same kind sequence ≤ 3 openers |
+| `av-retell2` | module | repeated retelling in any wording ≤ 1 (round 1's `av-retell` broadened) |
+| `av-kasuta2` | module | ≥ half of the Kasuta sheets with no phone task; ≤ half ending with a letter / e-mail |
+| `av-homecountry` | module | „kodumaa” (any case) ≤ 2 |
+| `av-voices` | module | ≤ 2 listening texts opened by the same recurring voice; ≥ 1 listening text without one |
+| `av-fact-dup` | course (B1 + B2) | no key fact and no near-duplicate fact sentence (Jaccard ≥ 0.4 on 6-letter stems, ≥ 6 stems; numbers must overlap; 0.6 when only one side has a figure) in a second module |
+
+Round 2 also widens round 1's home-country cue (`HOME`) with the wordings above, so the opener gate accepts them.

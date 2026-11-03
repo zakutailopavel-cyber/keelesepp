@@ -110,7 +110,9 @@ export function mainText(b) {
 }
 
 const OPINION = word('arvad|arvate|arvan|arvamus\\p{L}*|arvates|meelest|nõus|poolt|vastu|võrdle\\p{L}*|eelis\\p{L}*|puudus\\p{L}*|plussid|miinused|peaks|peaksid|tuleks|põhjenda\\p{L}*|kumb|kodumaa\\p{L}*|riigis|ühiskon\\p{L}*|arutle\\p{L}*|argument\\p{L}*|miks|hea või halb|parem või');
-const HOME = word('kodumaa\\p{L}*|sinu riigis|teie riigis|sinu maal|teie maal|seal, kus sa|päritolumaa\\p{L}*|sinu kodu(?:linnas|riigis)');
+// round 2 (av-homecountry) asks for wordings that fit a learner born in Estonia too: „mõnes teises riigis”, „riigis, mida
+// sa hästi tead”, „mujal maailmas”, „sinu kodukohas”
+const HOME = word('kodumaa\\p{L}*|sinu riigis|teie riigis|sinu maal|teie maal|seal, kus sa|päritolumaa\\p{L}*|sinu kodu(?:linnas|riigis|kohas)|(?:mõnes |ühes )?teises riigis|teistes riikides|riigis, mida (?:sa|te) (?:hästi )?(?:tead|teate|tunned|tunnete)|mujal maailmas');
 const SPEAKING = ['speaking', 'speakcard', 'rolecards'];
 const sentences = (s) => String(s || '').split(/\n|(?<=[?.!])\s+/).map((x) => x.trim()).filter(Boolean);
 const PERCENT = /\d(?:[\d\s.,]*\d)?\s?(?:%|protsen\p{L}*)/u;
@@ -259,3 +261,255 @@ export function courseAcademicProblems(course, modules, sheetsOf) {
 }
 
 export const academicKey = (p) => [p.lessonId, p.phase, p.code].join('|');
+
+// ================= round 2 (docs/ACADEMIC_VALUE_ROUND2.md, COURSE_DESIGN_COMMUNICATIVE.md §13.9) =================
+// A learner's-eye review of the finished B1 course (2026-11-03) found what round 1's gates let through: facts bolted on
+// to an unchanged cast episode, openers that read like statistics dumps, „sinu kodumaa” in most lessons, Kasuta still a
+// phone call + letter, the 3-2-1 retelling in other words, one radio host („Ülle”) everywhere, the same facts in several
+// modules and the same four „Mõtle kaasa” questions. The round-2 gates have their own baseline
+// (academicValueRound2Baseline.json, run by academicValueRound2Gate.test.js), so round 1's finished modules do not break.
+//
+//   per lesson
+//     av-boltedon     a teaching lesson has a cast-free main text of the stage's length (AV.voiceWords) — a „Kas
+//                     teadsid?” fact box, a tip, a chart or the opener does not count, and the radio host counts as cast
+//   per module
+//     av-opener-numbers  at most AV2.openerNumbers numbers (digits, years, percentages) in the opener's body
+//     av-thinkvary    the opener's „Mõtle kaasa” questions are of ≥ AV2.thinkTypes types (thinkType)
+//     av-retell2      any repeated retelling (3-2-1, 4-3-2, „kaks / kolm korda”, „esimest … teist korda”, „iga kord
+//                     lühemalt”, „kolmele kuulajale”, „uuesti … kiiremini”) at most AV2.retellMax — round 1's av-retell
+//                     broadened
+//     av-kasuta2      at least half of the Kasuta sheets have no phone task (telefon, helista, häälsõnum, „kõne” + a
+//                     case ending, a phone card) and at most half end with a letter / e-mail
+//     av-homecountry  „kodumaa” (any case) at most AV2.homeMax times in the module
+//     av-voices       ≤ AV2.hostMax listening texts opened by the same recurring voice (cast or the radio host), and ≥ 1
+//                     listening text with no recurring voice (news, interview, street poll, expert)
+//   per course
+//     av-thinkvary    the home-country question sits in the same slot in at most a third of the openers; the same
+//                     sequence of question types in at most AV2.thinkSameMax openers
+//     av-fact-dup     the same fact in more than one module (both courses together): a near-duplicate sentence in two
+//                     fact texts (Jaccard ≥ AV2.dupJaccard on word stems) or a key fact (FACT_KEYS) in two modules
+export const AV2 = Object.freeze({
+  openerNumbers: 8,
+  thinkTypes: 3,
+  retellMax: 1,
+  kasutaPhoneShare: 0.5,
+  kasutaLetterShare: 0.5,
+  homeMax: 2,
+  hostMax: 2,
+  thinkSlotShare: 1 / 3,
+  thinkSameMax: 3,
+  dupJaccard: 0.4,
+  dupJaccardOneNumber: 0.6,
+  dupMinStems: 6,
+});
+// recurring voices that are not in round 1's cast list (the B1 radio host); round 2 treats them as cast
+export const RECURRING_VOICES = ['Ülle'];
+const RECURRING_RE = new RegExp(`(?<!${L})(?:${RECURRING_VOICES.join('|')})\\p{L}{0,4}(?!${L})`, 'u');
+const hasRecurring = (s) => hasCast(s) || RECURRING_RE.test(String(s || ''));
+
+// ---------- the opener ----------
+const openerBody = (b) => {
+  const paras = paragraphs(b?.data?.text);
+  const end = paras.findIndex((p) => sourceLine(p) || /^\W*Mõtle kaasa/iu.test(p));
+  return (end < 0 ? paras : paras.slice(0, end)).join('\n\n');
+};
+// a number token: 450 000, 7,3, 2019, 84 % (a range 2019–2021 is two)
+export const numberTokens = (s) => String(s || '').match(/\d+(?:[ \u00a0\u202f]\d{3}(?!\d))*(?:[.,]\d+)?/gu) || [];
+
+// the kind of a „Mõtle kaasa” question: the first that fits
+export const THINK_TYPES = [
+  ['home', HOME],
+  ['compare', word('võrdle\\p{L}*|erine\\p{L}*|sarnane\\p{L}*|teisiti|samamoodi|kui Eestis|kui varem|mujal|teistes riikides|mõnes riigis')],
+  ['problem', /(?:mida|kuidas)\s+(?:\p{L}+\s+){0,3}(?:peaks|tuleks|saaks|võiks)|lahend|mida sa teeksid|kui sina oleksid|kui sa oleksid/iu],
+  ['prediction', /tulevikus|aasta pärast|aastate pärast|\d{4}\. aastal|hakkab|muutub|muutuvad|jääb alles|kaob/iu],
+  ['reaction', /üllat|imesta|kõige rohkem meelde/iu],
+  ['opinion', OPINION],
+  ['experience', word('oled|olete|sul|sinu|sina|sa|su|teil|teie')],
+];
+export const thinkType = (q) => (THINK_TYPES.find(([, re]) => re.test(String(q || ''))) || ['other'])[0];
+
+// ---------- retelling, phone and letter ----------
+const RETELL2 = new RegExp([
+  '[234]\\s*[-–]\\s*[123]\\s*[-–]\\s*[12](?!\\d)', // 4-3-2, 3-2-1
+  '[234],\\s*(?:siis\\s+)?[123]\\s+(?:ja\\s+)?(?:lõpuks\\s+)?[12](?!\\d)', // 3, 2 ja 1
+  '(?<!\\p{L})(?:kaks|kolm|neli|mitu|2|3|4)\\s+korda(?!\\s+(?:nädalas|päevas|kuus|aastas|rohkem|vähem|suurem|kiiremini))',
+  'esimest korda[^]{0,120}teist korda|esimene kord[^]{0,120}teine kord|teisel korral|kolmandal korral',
+  'iga kord (?:uuele|lühemalt|lühem|kiiremini|vähem|teisele)',
+  '(?<!\\p{L})(?:kahele|kolmele|neljale|mitmele|2|3|4)\\s+(?:uuele\\s+|erinevale\\s+)?(?:kuulajale|paarilisele|inimesele|õppijale|kaaslasele)',
+  'uuele (?:kuulajale|paarilisele)',
+  '(?:uuesti|veel kord|teist korda)[^.?!]{0,60}(?:kiiremini|lühemalt|ilma (?:märkmete|pildi|teksti|paberi|toe|plaani))',
+  'mitu korda järjest',
+].join('|'), 'iu');
+export const isRetelling = (b) => ['speaking', 'speakcard'].includes(b?.type) && RETELL2.test(askedText(b));
+
+const PHONE_RE = /telefon\p{L}*|helista(?!ja)\p{L}*|häälsõnum\p{L}*|kõnepost\p{L}*|automaatvastaja\p{L}*|videokõne\p{L}*|(?<!\p{L})kõne(?:t|d|le|ks)?\s+\p{L}+(?:sse|le|ga)(?!\p{L})/iu;
+const PRODUCE = ['speaking', 'speakcard', 'rolecards', 'writing', 'guidedletter', 'examwriting'];
+// a phone task: a phone card, or a call / voicemail in the task (for a speaking block also in its cards)
+export const isPhoneTask = (b) => {
+  if (b?.type === 'speakcard' && b.data?.mode === 'phone') return true;
+  return PHONE_RE.test(SPEAKING.includes(b?.type) ? studentText(b) : askedText(b));
+};
+const LETTER_RE = /(?<!\p{L})(?:e-)?(?:kiri|kirja|kirjale|kirjas|kirjaga)(?!\p{L})|e-post\p{L}*|e-meil\p{L}*|(?<!\p{L})meil\p{L}*|(?<!hääl)sõnum\p{L}*/iu;
+export const isLetterTask = (b) => b?.type === 'guidedletter' || (['writing', 'examwriting'].includes(b?.type) && LETTER_RE.test(askedText(b)));
+
+// ---------- voices of listening ----------
+const SPEAKER_RE = /^\s*([\p{Lu}][\p{L}-]+(?: [\p{Lu}][\p{L}-]+)?):/gmu;
+// the speakers of a listening text: its „Name:” labels, or „Siin Name” in a voicemail
+export function listeningSpeakers(b) {
+  const t = String(b?.data?.transcript || '');
+  const labels = [...t.matchAll(SPEAKER_RE)].map((m) => m[1]);
+  if (labels.length) return labels;
+  const siin = t.slice(0, 200).match(/(?<!\p{L})[Ss]iin (?:on )?(\p{Lu}\p{L}+)/u);
+  return siin ? [siin[1]] : [];
+}
+// the recurring person behind a speaker label (the cast or the radio host), '' for anyone else
+export const recurringVoice = (name) => {
+  const c = castNames(name)[0];
+  if (c) return c;
+  return RECURRING_VOICES.find((v) => String(name).startsWith(v)) || '';
+};
+const LISTEN = ['listening', 'examlisten'];
+
+// ---------- per lesson ----------
+const isFactBox = (b) => Boolean(b.data?.know) || b.type === 'tip' || /Kas teadsid/iu.test(String(b.data?.title || b.data?.heading || ''));
+// a main text from outside the story: what av-voice counts, minus fact boxes, tips, charts and the radio host
+export function isMainText(b, doc) {
+  if (!INPUT.includes(b.type) || b.type === 'chart' || b.data?.review || b.data?.opener || isFactBox(b)) return false;
+  if (hasRecurring(studentText(b))) return false;
+  return words(mainText(b)) >= voiceMin(doc);
+}
+export function lessonRound2Problems(lessonId, phases) {
+  if (!isTeachingLesson(phases)) return [];
+  const docs = Object.entries(phases || {});
+  if (docs.some(([, doc]) => blocksOf(doc).some((b) => isMainText(b, doc)))) return [];
+  return [{ lessonId, phase: '*', code: 'av-boltedon', text: `tunnis pole põhiteksti väljastpoolt tegelaste lugu (≥ ${voiceMin(docs[0]?.[1])} sõna; „Kas teadsid?” kast, nõuanne, graafik ega teema avaleht ei loe — tegelaste episood + faktikast ei ole tund)` }];
+}
+
+// ---------- per module ----------
+// the round-2 rules are the same for B1 and B2; lengths come from each sheet's level
+export function moduleRound2Problems(sheets) {
+  const out = [];
+  const ids = Object.keys(sheets || {});
+  const add = (code, text, lessonId = '*', phase = '*') => out.push({ lessonId, phase, code, text });
+  ids.forEach((id) => out.push(...lessonRound2Problems(id, sheets[id])));
+  const entries = ids.flatMap((id) => Object.entries(sheets[id]).flatMap(([phase, doc]) => blocksOf(doc).map((b) => ({ id, phase, doc, b }))));
+
+  // the opener: a page to read, not a table of numbers; questions of several kinds
+  const opener = entries.find(({ b }) => b.data?.opener);
+  if (opener) {
+    const n = numberTokens(openerBody(opener.b)).length;
+    if (n > AV2.openerNumbers) add('av-opener-numbers', `teema avalehes ${opener.b.id} on ${n} arvu (kuni ${AV2.openerNumbers}): jäta alles 3–5 tähtsamat, ülejäänu ütle sõnadega („üle poole”, „iga kolmas”) või vii graafikusse`, opener.id, opener.phase);
+    const qs = (opener.b.data.opener.questions || []).map(String);
+    const types = new Set(qs.map(thinkType));
+    if (qs.length && types.size < AV2.thinkTypes) add('av-thinkvary', `„Mõtle kaasa” küsimused on ${types.size} tüüpi (${[...types].join(', ')}; vähemalt ${AV2.thinkTypes}: kogemus, arvamus, võrdlus, ennustus, probleemi lahendus, reaktsioon)`, opener.id, opener.phase);
+  }
+
+  const retell = entries.filter(({ b }) => isRetelling(b));
+  if (retell.length > AV2.retellMax) add('av-retell2', `korduv ümberjutustus ${retell.length} korda (${retell.map(({ b }) => b.id).join(', ')}; kuni ${AV2.retellMax} moodulis: 3-2-1, „kaks korda”, „iga kord lühemalt”, „kolmele kuulajale” …)`);
+
+  const kasuta = ids.filter((id) => isTeachingLesson(sheets[id]) && sheets[id].transfer).map((id) => blocksOf(sheets[id].transfer));
+  if (kasuta.length >= 2) {
+    const phone = kasuta.filter((bs) => bs.some(isPhoneTask)).length;
+    if (kasuta.length - phone < Math.ceil(kasuta.length * AV2.kasutaPhoneShare)) add('av-kasuta2', `${phone}/${kasuta.length} Kasuta lehel on telefonikõne või häälsõnum (vähemalt pooled ilma: läbirääkimine, küsitlus, nõuandeveerg, miniprojekt, väitlus, esitlus)`);
+    const letter = kasuta.filter((bs) => { const last = bs.filter((b) => PRODUCE.includes(b.type)).pop(); return last && isLetterTask(last); }).length;
+    if (letter > Math.floor(kasuta.length * AV2.kasutaLetterShare)) add('av-kasuta2', `${letter}/${kasuta.length} Kasuta lehte lõpeb kirja või e-kirjaga (kuni pooled)`);
+  }
+
+  const home = entries.reduce((n, { b }) => n + (studentText(b).match(/kodumaa\p{L}*/giu) || []).length, 0);
+  if (home > AV2.homeMax) add('av-homecountry', `„kodumaa” ${home} korda (kuni ${AV2.homeMax} moodulis; paljud õppijad on sündinud Eestis): „mõnes teises riigis”, „riigis, mida sa hästi tead”, „sinu kodukohas”, „seal, kus sa üles kasvasid”, „mujal maailmas”`);
+
+  const listens = entries.filter(({ b }) => LISTEN.includes(b.type));
+  const hosts = {};
+  listens.forEach(({ b }) => { const name = recurringVoice(listeningSpeakers(b)[0] || ''); if (name) (hosts[name] = hosts[name] || []).push(b.id); });
+  Object.entries(hosts).filter(([, bs]) => bs.length > AV2.hostMax).forEach(([name, bs]) => add('av-voices', `${name} alustab ${bs.length} kuulamisteksti (${bs.join(', ')}; kuni ${AV2.hostMax}): anna sõna uudisteinimesele, eksperdile, tänavaküsitlusele, teisele saatejuhile`));
+  const outside = listens.filter(({ b, doc }) => !hasRecurring(studentText(b)) && !listeningSpeakers(b).some(recurringVoice) && (b.tag?.voice || words(mainText(b)) >= voiceMin(doc)));
+  if (listens.length && !outside.length) add('av-voices', 'moodulis pole kuulamisteksti väljastpoolt tegelaste ringi (uudis, intervjuu, tänavaküsitlus, ekspert; lehe taseme pikkusega või sildiga voice)');
+  return out;
+}
+
+// ---------- per course ----------
+// openers: [{ moduleId, questions }] of one course
+export function thinkVaryProblems(openers) {
+  const out = [];
+  const add = (text) => out.push({ lessonId: '*', phase: '*', code: 'av-thinkvary', text });
+  if (openers.length < 3) return out;
+  const slots = {};
+  openers.forEach(({ moduleId, questions }) => { const i = questions.findIndex((q) => thinkType(q) === 'home'); if (i >= 0) (slots[i + 1] = slots[i + 1] || []).push(moduleId); });
+  const cap = Math.max(2, Math.ceil(openers.length * AV2.thinkSlotShare));
+  Object.entries(slots).filter(([, ms]) => ms.length > cap).forEach(([slot, ms]) => add(`kodumaa / teise riigi küsimus on ${ms.length} avalehel ${slot}. kohal (kuni ${cap}): ${ms.join(', ')}`));
+  const seqs = {};
+  openers.forEach(({ moduleId, questions }) => { const k = questions.map(thinkType).join('-'); (seqs[k] = seqs[k] || []).push(moduleId); });
+  Object.entries(seqs).filter(([, ms]) => ms.length > AV2.thinkSameMax).forEach(([k, ms]) => add(`${ms.length} avalehe küsimused on sama mustriga ${k} (kuni ${AV2.thinkSameMax}): ${ms.join(', ')}`));
+  return out;
+}
+export function courseRound2Problems(modules, sheetsOf) {
+  const openers = modules.flatMap((mod) => Object.values(sheetsOf(mod)).flatMap((phases) => Object.values(phases).flatMap((doc) => blocksOf(doc).filter((b) => b.data?.opener).map((b) => ({ moduleId: mod.MODULE.id, questions: (b.data.opener.questions || []).map(String) })))));
+  return thinkVaryProblems(openers);
+}
+
+// key facts the review found repeated across modules; each may stand in one module of the two courses
+export const FACT_KEYS = [
+  ['X-tee', /X-te[eel]/u],
+  ['igaüheõigus', /igaüheõigus/iu],
+  ['„Teeme ära!”', /Teeme [Ää]ra(?!\p{L})|Let’s Do It/u],
+  ['ID-kaart, mobiil-ID ja Smart-ID', /ID-kaar\p{L}*[^.]{0,80}(?:mobiil-ID|Smart-ID)/iu],
+  ['e-residentsus', /e-residen/iu],
+  ['digiallkiri', /digiallkir|digitaalallkir/iu],
+  ['e-valimised', /e-hääl|e-valim|i-valim|internetis hääleta/iu],
+  ['Balti kett', /Balti ket/iu],
+  ['Skype', /Skype/u],
+];
+const STEM_STOP = new Set('aga ning kuid see seda selle need nende mis mida kes kus kui või siis ka on oli olid olla ole sest et ja ei veel väga kõik üle ainult juba nii kas palju rohkem enam umbes vähem eestis eesti aasta aastal'.split(' '));
+const stems = (s) => new Set(clean(s).toLowerCase().split(/[^\p{L}\d-]+/u).filter((w) => w.length >= 4 && !STEM_STOP.has(w)).map((w) => w.slice(0, 6)));
+// a sentence about the course itself („Mooduli lõpus teed …”), not a fact
+const COURSE_META = /mooduli|moodulis|selles tunnis|proovieksam|(?<!\p{L})(?:sa|sina) (?:teed|õpid|loed|kuulad|kirjutad)(?!\p{L})/iu;
+const jaccard = (a, b) => { let i = 0; a.forEach((x) => { if (b.has(x)) i += 1; }); return i / (a.size + b.size - i || 1); };
+// the fact text of a block: its main text (the opener's body) without the source line
+const factText = (b) => (b.data?.opener ? openerBody(b) : mainText(b)).replace(/\*?\(?(?:Allikas|Allikad|Andmed)\s*:[^*\n]*\*?\)?/giu, '');
+// modules: [{ id, sheets }] in course order (B1 1–18, then B2 1–18). Sentence duplicates come from fact texts (a source
+// line, a „Kas teadsid?” box or the opener); key facts also from cast-free texts of ≥ 60 words (an exam reading).
+export function factDuplicates(modules) {
+  const sents = []; const keyHits = new Map();
+  for (const { id: moduleId, sheets } of modules) {
+    for (const [lessonId, phases] of Object.entries(sheets || {})) {
+      for (const [phase, doc] of Object.entries(phases)) {
+        for (const b of blocksOf(doc)) {
+          if (!INPUT.includes(b.type) || hasRecurring(studentText(b))) continue;
+          const sourced = Boolean(b.data?.know || b.data?.opener) || hasSource(b);
+          const text = factText(b);
+          if (!sourced && words(text) < 60) continue;
+          const where = { moduleId, lessonId, phase, blockId: b.id };
+          FACT_KEYS.forEach(([key, re]) => { if (re.test(text)) { if (!keyHits.has(key)) keyHits.set(key, []); keyHits.get(key).push(where); } });
+          if (sourced) sentences(text).filter((x) => !x.endsWith('?') && !COURSE_META.test(x)).forEach((x) => { const s = stems(x); if (s.size >= AV2.dupMinStems) sents.push({ ...where, text: x, s }); });
+        }
+      }
+    }
+  }
+  const dups = [];
+  for (const [key, hits] of keyHits) {
+    const first = hits[0];
+    const later = hits.filter((h) => h.moduleId !== first.moduleId);
+    later.filter((h, i) => later.findIndex((x) => x.moduleId === h.moduleId) === i).forEach((again) => dups.push({ kind: 'key', key, first, again }));
+  }
+  // one problem per repeating block and earlier module (a key fact and its sentence are one repeat)
+  const seen = new Set(dups.map(({ first, again }) => `${again.moduleId}|${again.blockId}|${first.moduleId}`));
+  for (let i = 0; i < sents.length; i += 1) {
+    for (let j = i + 1; j < sents.length; j += 1) {
+      const a = sents[i]; const b = sents[j];
+      const pair = `${b.moduleId}|${b.blockId}|${a.moduleId}`;
+      if (a.moduleId === b.moduleId || seen.has(pair)) continue;
+      const v = jaccard(a.s, b.s);
+      // the same frame with other numbers („keskmiselt 9 tundi” / „keskmiselt 3,3 tundi”) is another fact
+      const na = numberTokens(a.text); const nb = new Set(numberTokens(b.text));
+      if (na.length && nb.size && !na.some((x) => nb.has(x))) continue;
+      // a figure on one side only („üheksa tundi” / „3,3 tundi”): only a very close sentence is the same fact
+      const need = (na.length > 0) !== (nb.size > 0) ? AV2.dupJaccardOneNumber : AV2.dupJaccard;
+      if (v >= need) { seen.add(pair); dups.push({ kind: 'sentence', key: b.text.slice(0, 90), similarity: Math.round(v * 100) / 100, first: a, again: b }); }
+    }
+  }
+  return dups;
+}
+export const factDupProblems = (dups) => dups.map(({ kind, key, first, again }) => ({
+  lessonId: again.lessonId, phase: again.phase, code: 'av-fact-dup', moduleId: again.moduleId,
+  text: `${again.blockId}: ${kind === 'key' ? `sama fakt (${key})` : `peaaegu sama lause („${key}…”)`} on juba moodulis ${first.moduleId} (${first.blockId}) — vali teine fakt või viita varasemale („Mäletad, …”)`,
+}));
