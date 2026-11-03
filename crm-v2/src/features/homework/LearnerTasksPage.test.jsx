@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -92,7 +92,8 @@ describe('„Ülesanded”: one list for the child', () => {
     const data = repositories({ items: [homework('h1', { status: 'Tehtud', studentAnswer: 'Minu vastus' })], submissions: [reviewedWork] });
     const view = renderPage(asStudent, data);
     expect(await screen.findByText('Uus')).toBeInTheDocument();
-    expect(Number(window.localStorage.getItem('ks-feedback-seen-child-1'))).toBeGreaterThan(0);
+    // the „seen” mark is written by an effect after the render, so wait for it (it raced on a busy CI runner)
+    await waitFor(() => expect(Number(window.localStorage.getItem('ks-feedback-seen-child-1'))).toBeGreaterThan(0));
     expect(screen.getByText('Sinu vastus')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
     expect(data.repository.setStatus).toHaveBeenCalledWith('h1', 'Ootel');
