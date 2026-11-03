@@ -38,7 +38,16 @@
 // LUGU R→W · AVAS R→S · RÄÄK L→S · Mock 1. Cast (docs/COURSE_CAST.md): new — meteorologist Ragnar Vaher (radio, host
 // Ülle), village hall head Ants, Viktor's neighbour Ülo, Rasmus (Oskar's friend), insurer „Kodukaitse” (Egle), waste
 // adviser Mailis Raudsepp (radio). Earlier versions: archive/v3/b1/module12.js, archive/v1/b1/module12.js.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, topic „ilm” + „ümbruskond”, „kohad”): the topic opener 056_d_open
+// (Estonian climate norms and records, white nights, forests, Soomaa's fifth season) replaces the goal text 056_d_goal;
+// „Kas teadsid?” 056_p_know (day length), 057_p_know (thunderstorms, Keskkonnaagentuur 2023), 058_p_know (the January
+// 2005 storm, Päästeamet's 7-day supplies), 059_p_know (Teeme ära 2008, biowaste sorting since 2024); popular science
+// 057_d_bog (bogs, Põhja-Kõrvemaa, Soomaa) gives the cast's Kõrvemaa real knowledge; examiner set 060_d_warm. One
+// 3-2-1 / 4-3-2 left (058_d_432); record-at-home twice (057_t_rec, 058_t_rec). Sources: the PR of agent/av-b1-module-12.
 import { B, tag, teach, withShapes } from '../blocks.js';
+
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
 export const MODULE = { id: 'a2b1-module-12', course: 'b1', title: 'Ilm, loodus ja keskkond', level: 'B1', design: 'v2', template: 'v4' };
 
@@ -48,8 +57,20 @@ export const LESSONS = withShapes({
     canDo: 'Ma saan kuuldust aru: kuulan ilmateadet ja onu häälsõnumit ning kirjutan sõbrale 80–100-sõnalise kirja, kuidas ilm meie jaanipäeva plaani muudab.',
     discover: [
       B.review('056_d_review', [['Kuidas lõppes Sofia telefoni lugu ja mida ta poe kohta kirjutas?', 'a2b1-054'], ['Miks sõitis pere koolivaheajal Tartusse alles õhtuse rongiga?', 'a2b1-046'], 'Milline ilm sulle suvel kõige rohkem meeldib?']),
-      B.text('056_d_goal', 'Moodul 12: ilm, loodus ja keskkond', 'Selles moodulis kuulad ilmateateid, käid perega rabas, loed tormiuudiseid ja arutad naabritega, kuidas elada keskkonnasõbralikumalt. Juuni keskel on Tallinnas palav nädal ja pere sõidab jaanipäevaks onu Viktori tallu Kõrvemaale. Seal tuleb äike, öösel torm ja kõik ei lähe plaani järgi. Mooduli lõpus lepid Sofia maja elanikega kokku, mida nad ühises hoovis keskkonna heaks teevad, ja teed esimese täispika proovieksami. Täna kuulad ilmateateid ja kirjutad sõbrale, kuidas ilm pere jaanipäeva plaani muudab.'),
-      tag(B.listening('056_d_clips', 'Ilmateated raadios.', 'Raadio Linnahääl loeb nädala jooksul viis ilmateadet. Kuula ja kirjuta lünka number: kraadid, kellaaeg või tuule kiirus.', [
+      B.topicOpener('056_d_open', 'Teema avaleht: ilm ja loodus Eestis', [
+        'Eestis on neli aastaaega, aga ilm võib muutuda väga kiiresti. Meri teeb talve pehmemaks ja suve jahedamaks kui kaugel mandri sees. Ilmateateid ja ohuhoiatusi annab Keskkonnaagentuur, nende leht on ilmateenistus.ee.',
+        'Keskkonnaagentuuri kliimanormi (aastad 1991–2020) järgi on Eesti aasta keskmine temperatuur 6,4 kraadi. Kõige soojem kuu on juuli, keskmiselt 17,8 kraadi, ja kõige külmem veebruar, keskmiselt 3,8 kraadi külma. Aastas sajab keskmiselt 662 millimeetrit, kõige rohkem augustis. Kliima on läinud soojemaks: aastate 1961–1990 keskmine oli alles 5,2 kraadi.',
+        'Eesti rekordid on Võrust ja Jõgevalt. Kõige soojem oli Võrus 11. augustil 1992: 35,6 kraadi. Kõige külmem oli Jõgeval 17. jaanuaril 1940: 43,5 kraadi külma. Kõige rohkem sadas ühe kuuga Tallinnas 2004. aasta juulis: 266 millimeetrit.',
+        'Suvel on päevad väga pikad. Jaanipäeva paiku on Tallinnas valge üle 18 tunni ja ööd jäävad hämaraks: need on valged ööd. Detsembris kestab päev ainult umbes kuus tundi.',
+        'Loodust on Eestis palju. Riikliku metsainventuuri järgi oli 2023. aastal metsa all 51,5 % maast. Eesti looduse eriline osa on sood ja rabad. Soomaa rahvuspargis tuleb igal kevadel suur üleujutus, mida nimetatakse viiendaks aastaajaks: vesi võib katta kuni 175 ruutkilomeetrit ja kohalikud liiguvad siis paadiga. Kaitsealasid valvab Keskkonnaamet, matkaradu, laudteid ja lõkkekohti hooldab Riigimetsa Majandamise Keskus (RMK).',
+        'Selles moodulis kuulad ilmateateid, loed rabast ja tormist ning arutad, kuidas oma kodu ümbrust rohelisemaks teha. Mooduli lõpus lepid naabritega kokku ühe hooviprojekti ja teed esimese täispika proovieksami.',
+      ], 'Keskkonnaagentuur, ilmateenistus.ee: kliimanormid 1991–2020 ja kliimarekordid; R. Parg, „Tähelepanekuid uutest kliimanormidest” (Keskkonnaagentuur, 2021); Timeanddate, Tallinna päikesetõusu ja -loojangu tabel (2026); ERR, „Metsainventuur: Eesti metsa juurdekasv on aeglustunud” (10.6.2024); Wikipedia, „Soomaa National Park”; Visit Estonia; Keskkonnaamet; RMK', [
+        'Milline Eesti aastaaeg sulle kõige rohkem meeldib ja milline kõige vähem? Miks?',
+        'Kuidas erineb ilm ja kliima sinu kodumaal Eesti omast? Kuidas on talv ja suvi sinu kodumaal?',
+        'Kas valged ööd ja pimedad talvepäevad mõjutavad sinu tuju või und? Kuidas?',
+        'Kas sinu arvates on kliima muutumist Eestis juba näha? Mille järgi?',
+      ]),
+      tag(B.listening('056_d_clips', 'Ilmateated raadios.', 'Juuni keskel on Tallinnas palav nädal ja pere sõidab jaanipäevaks onu Viktori tallu Kõrvemaale. Raadio Linnahääl loeb nädala jooksul viis ilmateadet. Kuula ja kirjuta lünka number: kraadid, kellaaeg või tuule kiirus.', [
         'Ragnar: Esimene ilmateade, kell kaheksa hommikul. Tere hommikust! Täna on kogu Eestis päikeseline ja väga soe päev. Pärastlõunal tõuseb temperatuur Tallinnas kahekümne kaheksa kraadini.',
         'Ragnar: Kõige palavam on Lõuna-Eestis, kus Võrus võib sooja olla isegi kolmkümmend üks kraadi. Tuul on nõrk, kaks kuni neli meetrit sekundis.',
         'Ragnar: Teine ilmateade, kell kaksteist päeval. Kuum ilm jätkub terve nädala. Päästeamet tuletab meelde, et metsades on suur tuleoht. Grillida võib ainult selleks ette nähtud kohtades.',
@@ -89,8 +110,8 @@ export const LESSONS = withShapes({
         ['jahe ja tuuline', ['kampsun', 'kindad', 'soe tee termosest', 'villased sokid', 'tuulejope']],
         ['sääsed ja puugid', ['sääsetõrjevahend', 'puugikontroll õhtul', 'heledad pikad riided', 'sääsevõrk aknal', 'kõrge rohu vältimine']],
       ], 'full', 'g_vocab'),
-      teach(tag(B.speaking('056_d_photo', 'Ilm täna ja minu suvefoto.', 'Kirjelda kolmele kuulajale järjest tänast ilma ja üht oma suvefotot. Iga kord räägi lühemalt, aga lisa üks uus detail.', ['Milline on ilm täna sinu akna taga?', 'Mis kuu ja koht on sinu fotol?', 'Milline ilm fotol on ja mida inimesed teevad?', 'Kas ilm muutus sel päeval? Kuidas?', 'Kas sulle meeldib selline ilm? Miks?'], [120, 180], ['Täna on…, aga õhtuks läheb…', 'Fotol on palav / jahe…', 'Mulle meeldib…, sest…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpetaja on kolm korda uus kuulaja (naaber, kolleeg, laps) ja küsib iga kord ühe küsimuse; aeg 2 minutit, 90 sekundit ja 1 minut.'),
+      teach(tag(B.speaking('056_d_photo', 'Ilm täna ja minu suvefoto.', 'Kirjelda üks minut tänast ilma ja üht oma suvefotot. Siis arutage paaris kahte viimast küsimust ja võrrelge oma kogemusi.', ['Milline on ilm täna sinu akna taga ja kuidas see õhtuks muutub?', 'Mis kuu ja koht on sinu fotol ning milline ilm seal on?', 'Mida inimesed fotol teevad? Kas ilm muutis nende plaani?', 'Kas sinu kodumaal on suvi palavam või jahedam kui Eestis? Mis on parem?', 'Kas sinu arvates mõjutab ilm inimeste iseloomu? Too näide.'], [120, 180], ['Täna on…, aga õhtuks läheb…', 'Fotol on palav / jahe…', 'Minu arvates…, sest…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane räägib ühe minuti ilma peatumata; õpetaja hoiab aega. Siis arutate kahte viimast küsimust: õpetaja ütleb vahel vastupidise arvamuse ja küsib „Miks?”.'),
       tag(B.writing('056_d_write', 'Kaheksa minutit ühest ilmast.', 'Kirjuta kaheksa minutit järjest ja ära peatu: sinu elu kõige palavam või kõige külmem päev. Mis juhtus ja mida sa tegid?', [8, 10], ['palav', 'läks', 'kraadi', 'sest'], 3), { task: 'W06', fluency: true }),
     ],
     practice: [
@@ -110,7 +131,7 @@ export const LESSONS = withShapes({
         'Ülle: Tere, head kuulajad! „Päevateema” stuudios on täna meteoroloog Ragnar Vaher. Ragnar, kas selline kuumus on Eestis juunis tavaline?',
         'Ragnar: Tere! Päris tavaline see ei ole. Juuni keskmine temperatuur on Eestis umbes viisteist kraadi. Kolmkümmend kraadi sooja juba juuni keskel on harv, aga viimastel aastatel tuleb selliseid päevi sagedamini.',
         'Ülle: Miks see nii on?',
-        'Ragnar: Kliima muutub soojemaks. Talved on lühemad ja suvel on rohkem kuumi päevi. Samal ajal on rohkem ka tugevaid äikesetorme ja paduvihmu.',
+        'Ragnar: Kliima muutub soojemaks. Viimase kolmekümne aasta keskmine temperatuur on Eestis üle ühe kraadi kõrgem kui varasema kolmekümne aasta oma. Talved on pehmemad ja lund on vähem. Teadlaste prognooside järgi tuleb tulevikus suvel ka rohkem paduvihmu.',
         'Ülle: Paljud kuulajad küsivad jaanipäeva kohta. Kas jaanilaupäeval sajab?',
         'Ragnar: Hommik on veel palav, aga läänest tuleb jahedam õhk. Kahe õhumassi kokkupuutel tekivad äikesepilved. Kesk-Eestis algab äike umbes kell kolm. Õhtuks on taevas jälle selgem, aga temperatuur langeb viieteistkümne kraadini.',
         'Ülle: Kas jaanituld saab ikka teha?',
@@ -125,7 +146,7 @@ export const LESSONS = withShapes({
       ], [
         ['Milline on Ragnari sõnul juuni keskmine temperatuur Eestis?', 'umbes viisteist kraadi', 'umbes kakskümmend kraadi', 'umbes kümme kraadi'],
         ['Mis on Ragnari sõnul viimastel aastatel muutunud?', 'kuumi päevi on sagedamini', 'suved on jahedamad', 'talved on pikemad'],
-        ['Mida toob soojem kliima Ragnari sõnul veel kaasa?', 'rohkem äikesetorme ja paduvihmu', 'rohkem lund talvel', 'vähem tuult suvel'],
+        ['Mida toob soojem kliima prognooside järgi tulevikus kaasa?', 'rohkem paduvihmu suvel', 'rohkem lund talvel', 'vähem tuult suvel'],
         ['Mille tõttu tekivad jaanilaupäeval äikesepilved?', 'kahe õhumassi kokkupuute tõttu', 'tugeva tuule tõttu merelt', 'pika põua tõttu'],
         ['Mitu kraadi sooja on jaanilaupäeva õhtul?', 'viisteist', 'kolmkümmend', 'kaheksateist'],
         ['Miks on metsades praegu suur tuleoht?', 'mitu nädalat ei ole sadanud', 'metsas on liiga palju inimesi', 'tuul on väga tugev'],
@@ -138,6 +159,11 @@ export const LESSONS = withShapes({
       tag(B.reading('056_p_page', 'Ilmateenistuse leht.', 'Loe Kõrvemaa jaaninädala ilma. Kas väide on teksti järgi õige, vale või ei selgu? Viimasele küsimusele vasta oma sõnadega.', 'Kõrvemaa ilm jaanipäevadel',
         'Jaanilaupäeva eelõhtu on Kõrvemaal veel palav ja tuulevaikne. Temperatuur on kakskümmend kuus kraadi ja öösel ei lange see alla kaheksateistkümne kraadi. Sääski on palju, sest õhk on niiske ja soe. Päeval on rannas ja järvede ääres palju inimesi.\n\nJaanilaupäeva hommik algab päikesega, aga keskpäevaks muutub taevas läänes tumedaks. Kella kolme ja kuue vahel liigub üle Kõrvemaa äikesevöönd. Sajab tugevat hoovihma, kohati ka rahet, ja tuul tugevneb puhanguti kaheksateistkümne meetrini sekundis. Pärast äikest läheb kiiresti jahedamaks.\n\nJaanilaupäeva õhtu on vahelduva pilvisusega ja kuiv. Kell kümme õhtul on sooja kõigest neliteist kraadi. Tuul nõrgeneb ja jaanituld saab teha, aga metsades kehtib endiselt suur tuleoht.\n\nJaanipäeva öösel tekib järvede ja rabade kohale udu. Päev on päikeseline, kuid tuuline, sooja on kuni kaheksateist kraadi. Pärastlõunal võib Kõrvemaal sadada lühikest hoovihma.\n\nJaanipäevale järgneval ööl jõuab Läänemerelt Eestisse tugev tuul. Rannikul oodatakse tormi, puhangud võivad olla kuni kakskümmend viis meetrit sekundis. Ka sisemaal võivad murduda puud ja katkeda elektriühendus. Ilmateenistus soovitab kinnitada õues lahtised esemed ja laadida telefonid enne ööd täis.\n\nIlmateenistus tuletab meelde, et jaanilaupäeval on teedel palju autosid. Äikese ja hoovihma ajal on nähtavus halb ja teed on libedad, seepärast tasub sõita aeglasemalt ja hoida eessõitjast suuremat vahet. Lõkke tegemisel arvestage tuule suunaga ja hoidke vesi käepärast.',
         [['Jaanilaupäeva eelõhtul on Kõrvemaal palju sääski.', 'õige'], ['Äike liigub üle Kõrvemaa jaanilaupäeva hommikul.', 'vale'], ['Äikese ajal võib Kõrvemaal sadada ka rahet.', 'õige'], ['Jaanilaupäeva õhtul on jaanitule tegemine keelatud.', 'vale'], ['Jaanipäeva hommikul on rabade kohal udu.', 'õige'], ['Jaanipäeva pärastlõunal sajab kindlasti terve päeva vihma.', 'vale'], ['Torm jõuab Kõrvemaale enne keskööd.', 'ei selgu'], ['Miks soovitab ilmateenistus telefonid enne tormi täis laadida?', 'torm võib elektri ära viia|elektriühendus võib katkeda|elektrit ei pruugi olla']]), { task: 'R06' }),
+      B.know('056_p_know', [
+        'Jaanipäev on aasta kõige valgema aja püha. 2026. aasta jaanipäeva paiku tõuseb päike Tallinnas kell 4.03 ja loojub kell 22.42, nii et päev kestab 18 tundi ja 39 minutit.',
+        'Päike laskub öösel horisondi alla ainult natuke ja täiesti pimedaks ei lähe: need on valged ööd.',
+        'Talvel on vastupidi. 21. detsembril 2026 tõuseb päike Tallinnas kell 9.17 ja loojub juba kell 15.20, päev kestab ainult 6 tundi ja 3 minutit. Lõuna-Eestis on suvepäev veidi lühem ja talvepäev veidi pikem kui Tallinnas.',
+      ], 'Timeanddate, Tallinna päikesetõusu ja -loojangu tabel (juuni ja detsember 2026)', 'Kas teadsid? Valged ööd ja lühikesed talvepäevad'),
       B.dictation('056_p_dict', 'Etteütlus: hoiatused ja nõuanded.', 'Õpetaja loeb kümme ilmahoiatust. Kirjuta iga lause üles ja jooni alla sõna, mis näitab muutust või soovitust.', [
         'Pärastlõunal muutub ilm Kesk-Eestis järsku tuuliseks ja vihmaseks.', 'Õhtuks läheb märgatavalt jahedamaks, sooja on ainult viisteist kraadi.', 'Metsades on suur tuleoht, sest mitu nädalat ei ole sadanud.', 'Äikese ajal ärge seiske üksiku puu all ega lagedal väljal.', 'Rannikul oodatakse tormi ja tuulepuhangud võivad olla väga tugevad.',
         'Palava ilmaga jooge palju vett ja püsige keskpäeval varjus.', 'Ärge jätke lapsi ega koeri kuuma ilmaga autosse.', 'Pärast äikest läheb taevas õhtul jälle selgeks ja vaikseks.', 'Jaanipäeva hommikul tekib järvede ja rabade kohale paks udu.', 'Kinnitage õues lahtised esemed ja laadige telefonid enne ööd täis.',
@@ -161,7 +187,7 @@ export const LESSONS = withShapes({
       'Üks-ühele: õpetaja on B ja annab infot ainult küsimise peale; siis vahetage kaardid. Lõpus ütleb õpilane ühe lausega, millal pere tallu sõidab, millal tehakse jaanituli ja millal sõidetakse tagasi (enne äikest hommikul, tuli pärast kella kümmet, tagasi jaanipäeva õhtul enne tormi).'),
     ],
     transfer: [
-      B.text('056_t_sit', 'Viktori sõnum', 'On jaanilaupäeva eelõhtu. Sofia ja Helgi sõidavad homme rongiga Aegviitu, sest pere Škodas ei ole kõigile kohta. Onu Viktor ei saa Jaanile helistada ja jätab Sofia telefoni häälsõnumi. Kuula sõnumit ja tee märkmed. Siis helista küla seltsimajja ja küsi jaanitule kohta, salvesta kodus Jaanile häälsõnum ja kirjuta Berliini sõbrale Lenale, kuidas te jaanipäeva veedate.'),
+      B.text('056_t_sit', 'Viktori sõnum', 'On jaanilaupäeva eelõhtu. Sofia ja Helgi sõidavad homme rongiga Aegviitu, sest pere Škodas ei ole kõigile kohta. Onu Viktor ei saa Jaanile helistada ja jätab Sofia telefoni häälsõnumi. Kuula sõnumit ja tee märkmed. Siis helista küla seltsimajja ja küsi jaanitule kohta, räägi kodus oma kogemusest ja kirjuta Berliini sõbrale Lenale, kuidas te jaanipäeva veedate.'),
       tag(B.listening('056_t_voice', 'Viktori häälsõnum.', 'Kuula Viktori sõnumit kaks korda ja tee perele märkmed: kirjuta igasse lünka üks või kaks sõna.', [
         'Viktor: Tere, Sofia! Siin onu Viktor. Jaan ei võta telefoni vastu, seepärast räägin sinuga. Palun anna kõik perele edasi.',
         'Viktor: Kuulasin just raadiost ilmateadet. Homme hommikul on veel palav, aga kella kolme paiku jõuab Kõrvemaale äike. Seepärast tulge kõik tallu enne lõunat.',
@@ -192,8 +218,8 @@ export const LESSONS = withShapes({
         'Jaanituli on kell 22 järve rannas, enne seda kell 20 on laulud ja mängud.', 'Kui tuul on üle 10 m/s, tuld ei tehta, aga pidu toimub seltsimajas.', 'Autod pargitakse seltsimaja ette, koer peab olema rihma otsas.', 'Kaasa: sääsetõrjevahend, tekk ja oma tass, sest ühekordseid tasse ei ole.', 'Küsi helistaja nime ja mitu inimest tuleb.',
       ]]),
       'Üks-ühele: õpetaja on Ants ja annab infot ainult küsimise peale; teises ringis vahetage kaardid. Lõpus kordab õpilane kolme lausega, mida pere peab jaanitule kohta teadma.'),
-      teach(tag(B.speaking('056_t_rec', 'Kodus: häälsõnum Jaanile.', 'Salvesta Jaanile 2–3-minutiline häälsõnum: mida Viktor ja Ants ütlesid ning mida pere peab homme tegema.', ['Mis kell tuleb äike ja millal peab tallu jõudma?', 'Kus ei tohi autot parkida ja miks?', 'Mida tuleb poest osta ja kaasa võtta?', 'Mis kell ja kus on jaanituli ning mis saab tugeva tuulega?', 'Mis ilma lubatakse jaanipäevale järgnevaks ööks?'], [120, 180], ['Viktor ütles, et…', 'Ants rääkis, et…', 'Seepärast võta…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib kaks küsimust: mis oli kõige tähtsam info ja miks.'),
+      teach(tag(B.speaking('056_t_rec', 'Kodus: kui ilm muudab plaani.', 'Räägi kodus 2 minutit oma kogemusest: millal ilm sinu plaani muutis ja kas ilmateade aitas. Lõpus ütle oma arvamus, kas ilmateadet tasub alati uskuda.', ['Mis plaan sul oli ja milline ilm tuli?', 'Kas sa olid ilmateadet kuulanud? Mida see lubas?', 'Mida sa siis tegid?', 'Kas sinu kodumaal räägitakse ilmast sama palju kui Eestis?', 'Kas ilmateadet tasub sinu arvates alati uskuda? Miks?'], [120, 180], ['Kord tahtsin…, aga…', 'Ilmateade lubas…', 'Minu arvates…, sest…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis kuulab õpetaja vastust ja küsib kaks küsimust: mis oli kõige suurem üllatus ja kust õpilane ilmateateid vaatab.'),
       tag(B.examWriting('056_t_letter', 'Kiri Lenale.', 'Kirjuta Sofia nimel Lenale 80–100 sõnaga, kuidas te jaanipäeva veedate ja kuidas ilm plaani muudab. Kirjuta kõigist neljast punktist.', 'kiri', {
         situation: 'Lena kirjutas Berliinist, et tahab teada, mis on eesti jaanipäev. Sofia vastab talle jaanilaupäeva eelõhtul.',
         points: ['kus ja kellega te jaanipäeva veedate', 'milline ilm tuleb ja kuidas see plaani muudab', 'mida te kaasa võtate ja miks', 'üks küsimus Lenale tema suveplaanide kohta'],
@@ -209,6 +235,26 @@ export const LESSONS = withShapes({
     canDo: 'Ma loen rabaloo ja kirjutan sellele umbes 100-sõnalise lõpu, kus sündmused on õiges järjekorras (kui, enne kui, pärast seda, kui).',
     discover: [
       B.review('057_d_review', [['Mida pidi pere Viktori häälsõnumi järgi poest kaasa tooma ja miks?', 'a2b1-056'], ['Miks Sofia eesti keelt õpib? Nimeta üks põhjus.', 'a2b1-038'], 'Kas sa oled kunagi äikese kätte jäänud?']),
+      tag(B.reading('057_d_bog', 'Populaarteadus: mis on raba?', 'Enne lugu loe populaarteaduslikku teksti Eesti rabadest. Vasta küsimustele lühidalt oma sõnadega.', 'Raba — looduse aeglane mälu', [
+        'Raba on soo, mis saab vett ainult vihmast ja lumest. Seepärast on rabas vähe toitaineid ja seal kasvavad vaid vähesed taimed: turbasamblad, väikesed männid, kanarbik, jõhvikad ja murakad. Turbasammal hoiab vett nagu käsn: rabaturbast on 90–95 % vesi.',
+        '',
+        'Kui sammal sureb, ei lagune see märjas rabas lõpuni. Nii tekib turvas. Turbakiht kasvab keskmiselt ainult umbes ühe millimeetri aastas, nii et meetri paksune kiht tekib umbes tuhande aastaga. Kõik praegused Eesti rabad hakkasid kujunema pärast viimast jääaega. Turbas säilib ka väga vana õietolm. Selle järgi uurivad teadlased, millised taimed kasvasid siin tuhandeid aastaid tagasi ja milline oli siis kliima.',
+        '',
+        'Rabasid on Eestis palju. Eesti suurim soostik on Puhatu Ida-Virumaal, umbes 468 ruutkilomeetrit. Tallinnale lähemal, Aegviidu lähedal, on Põhja-Kõrvemaa looduskaitseala, mis loodi 1991. aastal. Seal on rabad, metsased künkad ja üle 30 järve. Laudteed ja vaatetornid on näiteks Viru rabas Lahemaal ja Männikjärve rabas Endla looduskaitsealal. Rabas tasub liikuda laudteel: see kaitseb pehmet sammalt ja ka matkajat, kelle jalg võib märga turbasse vajuda.',
+        '',
+        'Soomaa rahvuspargis tuleb igal kevadel suur üleujutus, mida kutsutakse viiendaks aastaajaks. Suurima üleujutuse ajal võib vesi katta kuni 175 ruutkilomeetrit. Soomaa meistrid teevad seal siiani haabjaid, ühest puust paate. 2021. aasta detsembris võeti Soomaa haabjakultuur UNESCO kiiret kaitset vajava vaimse kultuuripärandi nimekirja.',
+        '',
+        'Allikas: Vikipeedia („Raba”, „Eesti sood”, „Põhja-Kõrvemaa looduskaitseala”); Wikipedia („Soomaa National Park”); UNESCO (2021); Niinemets, Saarse, Poska (2002).',
+      ], [
+        ['Kust saab raba vett?', 'ainult vihmast ja lumest|vihmast ja lumest|sademetest'],
+        ['Miks kasvab rabas vähe taimi?', 'rabas on vähe toitaineid|vähe toitaineid'],
+        ['Kuidas tekib turvas?', 'surnud sammal ei lagune märjas rabas lõpuni|sammal ei lagune lõpuni'],
+        ['Kui kaua kulub meetri paksuse turbakihi tekkimiseks?', 'umbes tuhat aastat|tuhat aastat'],
+        ['Miks tasub rabas liikuda laudteel?', 'laudtee kaitseb sammalt ja matkajat|et sammal ei saaks kahju ja jalg ei vajuks turbasse'],
+        ['Mida nimetatakse Soomaal viiendaks aastaajaks?', 'kevadist üleujutust|suurt kevadist üleujutust'],
+        ['Mis on haabjas?', 'ühest puust paat|paat ühest puust'],
+        ['Kas sinu kodumaal on rabasid või soid? Kas raba tuleks sinu arvates kaitsta või kasutada? Miks?', ''],
+      ]), { task: 'R19', voice: 'popsci' }),
       B.text('057_d_hook', 'Jaanipäeva hommik', 'Jaanituli põles südaööni ja hommikul ärkasid kõik hilja. Viktor lubas Miale, et täna minnakse rappa. Raadio lubas äikest alles pärastlõunal. Vaata loo pealkirja ja arva, mis rabas juhtus. Siis loe lugu. Tunni lõpus kirjutad loole ise lõpu.'),
       tag(B.reading('057_d_story', 'Äike tuleb kaks tundi varem.', 'Vaata pealkirja ja arva, mis rabas juhtus. Seejärel loe lugu ja kontrolli, kas sinu arvamus oli õige.', 'Äike tuleb kaks tundi varem', [
         'Jaanipäeva hommikul ärkasid kõik hilja, sest jaanituli oli põlenud südaööni. Kell kümme keetis Viktor kohvi ja teatas, et täna minnakse rappa. Raadio lubas äikest alles kella kolme paiku, nii et aega oli Viktori arvates küllalt.',
@@ -275,7 +321,7 @@ export const LESSONS = withShapes({
         ['udu', 'tõuseb hommikul rabast'], ['päike', 'kõrvetab keskpäeval'], ['sammal', 'hoiab vett nagu käsn'], ['taevas', 'läheb enne äikest tumedaks'], ['jalg', 'vajub märga mutta'],
       ], 'full', 'g_vocab'),
       teach(tag(B.reading('057_p_article', 'Eksaminurk: äike looduses (Harno B1 lugemine 2)', 'Loe ajakirja artiklit ja vasta küsimustele oma sõnadega. Eksamil on valikvastused, siin kirjutad vastuse ise.', 'Kui äike tabab matkajat', [
-        'Eesti suvi on äikeserohke. Kõige rohkem on äikest juulis, aga ka juunis ja augustis tuleb ette päevi, mil välk lööb maha mitu tuhat korda. Enamik inimesi on äikese ajal toas. Matkajad, seenelised ja kalamehed jäävad aga sageli looduses ootamatult äikese kätte.',
+        'Eesti suvi on äikeserohke. Kõige rohkem on äikest tavaliselt juulis ja augustis, aga ka juunis tuleb ette päevi, mil välk lööb maha mitu tuhat korda. Enamik inimesi on äikese ajal toas. Matkajad, seenelised ja kalamehed jäävad aga sageli looduses ootamatult äikese kätte.',
         '',
         'Päästjad soovitavad kõigepealt jälgida ilmateadet. Äikesepilved tekivad tavaliselt palaval päeval pärastlõunal, aga ilmateade ei suuda alati täpset kellaaega öelda. Seepärast tasub taevast ise vaadata: kui läänes kerkib kõrge ja tume pilv, on aeg tagasi pöörduda.',
         '',
@@ -287,7 +333,7 @@ export const LESSONS = withShapes({
         '',
         'Äike möödub tavaliselt poole tunniga. Päästjad soovitavad oodata veel pool tundi pärast viimast müristamist ja alles siis edasi minna. Kui keegi on saanud välgulöögi, helista kohe hädaabinumbril 112.',
       ], [
-        ['Millal on Eestis kõige rohkem äikest?', 'juulis|suvel, eriti juulis'],
+        ['Millal on Eestis kõige rohkem äikest?', 'juulis ja augustis|juulis|augustis|suvel, eriti juulis ja augustis'],
         ['Miks ei saa matkaja ainult ilmateatele loota?', 'ilmateade ei suuda alati täpset kellaaega öelda|ilmateade ei tea täpset aega'],
         ['Mis märk taevas ütleb, et tuleb tagasi pöörduda?', 'läänes kerkib kõrge ja tume pilv|tume pilv läänes'],
         ['Mida tähendab, kui välgu ja müristamise vahe on alla 30 sekundi?', 'äike on lähedal ja tuleb kohe varju otsida|tuleb kohe varju minna'],
@@ -297,6 +343,11 @@ export const LESSONS = withShapes({
         ['Kas Viktori pere tegi rabas kõik õigesti? Põhjenda artikli abil.', ''],
       ]), { harno: 'R2' }),
       'Eksaminurk (Harno B1 lugemine 2, artikkel, ~10 min). Eksamil on kuus küsimust ja kolm valikvastust; siin vastad oma sõnadega, sest nii näed, kas said mõttest aru. Strateegia: 1) loe esmalt küsimused; 2) leia tekstist lõik, kus vastus on; 3) vastus on tekstis sageli teiste sõnadega. Üks-ühele: õpilane loeb 6 minutit, siis arutate viimast küsimust: mida pere tegi õigesti ja mida valesti (torn, lage raba).'),
+      B.know('057_p_know', [
+        'Keskkonnaagentuur loeb välke välgudetektorite võrgu abil. 2023. aastal lõi Eestis maasse 24 390 välku; aastatel 2005–2022 oli neid keskmiselt üle 27 000 aastas.',
+        'Kõige rohkem äikest on tavaliselt juulis ja augustis. Kõige sagedamini müristab Kagu-Eestis ja Pärnumaal, harvem Loode-Eestis, põhjarannikul ja saartel.',
+        'Ühe päeva rekord on 28. juulist 2011: 14 467 välgulööki. 7. augustil 2023 sadas Saaremaal Sõrve poolsaarel rahet, mille terad olid kuni 8 sentimeetrit suured. See on Eesti ametlik rekord.',
+      ], 'Keskkonnaagentuur, M. Kivisild, „Äikeseanalüüs 2023”', 'Kas teadsid? Äike Eestis'),
       tag(B.examListen('057_p_clips', 'Suvised teated looduses.', 'Matkaradade infotelefon ja kohalik raadio annavad suvel lühikesi teateid. Kuula ja märgi iga teate juures õige vastus.', 'choice', [
         'Esimene teade. Head matkajad! Kõrve raba laudtee on remondi tõttu reedeni suletud. Palun kasutage metsarada.',
         'Teine teade. Päästeamet tuletab meelde, et suure tuleohu tõttu on lõkke tegemine metsas keelatud.',
@@ -371,7 +422,7 @@ export const LESSONS = withShapes({
         '',
         'Talus oli kõik vaikne. Isa käis kuuris ja keldris. Mia nuttis ja vanaema tegi talle teed. Siis kuulsin saunast mingit krabinat [[ja süda hakkas kiiremini lööma]]. Mul on nii uni, et kirjutan homme edasi.',
       ], ['kuigi Muki oli juba kodus', 'nii et me jäime tornis ööseks'], 'g_read'),
-      teach(tag(B.ideaCard('057_t_search', 'Kust Mukit otsida?', 'Arutage, kust Mukit otsida, ja pange kohad järjekorda: kust kõigepealt, kust hiljem. Leppige kokku kolm esimest sammu.', 'On jaanipäeva pärastlõuna. Muki jooksis äikese ajal rabas ära. Viktori talu on rabast kahe kilomeetri kaugusel, auto seisab metsa ääres parklas.', ['talu saun ja kuur', 'auto parklas', 'laudtee ja vaatetorn', 'naaber Ülo talu', 'küla seltsimaja', 'teade küla infotahvlil'], 'Kust te otsite kõigepealt, kust siis ja kellele helistate?'), { task: 'S12' }),
+      teach(tag(B.ideaCard('057_t_search', 'Kust Mukit otsida?', 'Arutage, kust Mukit otsida, ja pange kohad järjekorda: kust kõigepealt, kust hiljem. Leppige kokku kolm esimest sammu.', 'On jaanipäeva pärastlõuna. Muki jooksis äikese ajal rabas ära. Viktori talu on rabast kahe kilomeetri kaugusel, auto seisab metsa ääres parklas.', ['talu saun ja kuur', 'auto parklas', 'laudtee ja vaatetorn', 'naaber Ülo talu', 'küla seltsimaja', 'teade küla infotahvlil'], 'Kust te otsite kõigepealt, kust siis ja kelle käest abi küsite?'), { task: 'S12' }),
         'Üks-ühele: õpetaja on Viktor, kes tahab kohe tallu minna; õpilane põhjendab oma järjekorda (kuhu koer on varem peitu läinud, kui kaugel see on). Lõpus ütleb õpilane kolm sammu järjekorras.'),
       teach(tag(B.speaking('057_t_rec', 'Kodus: lugu Mia silmadega.', 'Salvesta 2–3-minutiline lugu nii, nagu Mia seda vanaemale jutustab: mis rabas juhtus ja mida ta kartis.', ['Kuhu Mia koos perega läks ja milline oli ilm?', 'Mida Mia rabas nägi ja tegi?', 'Mis juhtus tema kummikuga?', 'Mida Mia tundis, kui Muki kadus?', 'Mida ta loodab, et edasi juhtub?'], [120, 180], ['Kõigepealt…', 'Kui välk lõi, …', 'Ma kartsin, et…']), { task: 'S15', level: 3 }),
         'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib, mis oli Mia jaoks kõige hirmsam hetk ja miks.'),
@@ -413,7 +464,7 @@ export const LESSONS = withShapes({
         '',
         'D. Kõrvemaa talunik Viktor rääkis, et tuul murdis tema õuel suure kase. Puu kukkus sauna katusele, nii et katus läks katki ja vihm sadas sauna sisse. Õnneks ei saanud keegi viga.',
         '',
-        'E. Päästeameti sõnul tasub enne tormi kinnitada õues lahtised asjad ja laadida telefonid täis. Kui elekter kaob, ei tohi sügavkülmiku ust asjata avada. Täis sügavkülmik hoiab külma umbes kaks ööpäeva. Telefoni saab vajaduse korral laadida ka autos.',
+        'E. Päästeamet soovitab hoida kodus vähemalt seitsmeks päevaks joogivett, toitu ja ravimeid ning enne tormi kinnitada õues lahtised asjad. Kui elekter kaob, ei tohi külmkapi ja sügavkülmiku ust asjata avada. Toiduohutuse juhendi järgi hoiab täis ja suletud sügavkülmik toitu külmas kuni kaks ööpäeva. Telefoni saab vajaduse korral laadida ka autos.',
         '',
         'F. Kindlustusfirmad tuletavad meelde, et tormikahjust tuleb teatada võimalikult kiiresti. Kahjustustest tasub teha pilte enne, kui hakkate koristama. Kodukindlustus hüvitab tavaliselt hoonete kahju, kuid lepingu tingimused võivad olla erinevad.',
       ], [
@@ -513,6 +564,10 @@ export const LESSONS = withShapes({
         ['Miks ei tohi katkiseid asju kohe ära visata?', 'kindlustus peab kahju üle vaatama|kindlustus tahab kahju näha'],
         ['Kus on bussipeatus praegu?', 'seltsimaja ees'],
       ], 'g_vocab'), { task: 'R07' }),
+      B.know('058_p_know', [
+        'Üks Eesti tuntumaid torme oli 2005. aasta jaanuaris. 9. jaanuari öösel olid tuulepuhangud Kihnu saarel kuni 38 meetrit sekundis. Meri tõusis Pärnus ligi kolm meetrit üle keskmise taseme ja ujutas üle osa linnast. Pärnust viidi ära umbes 300 inimest ja Eestis sai kahjustada 775 hoonet.',
+        'Päästeamet soovitab olla elektrikatkestuseks valmis: hoia kodus vähemalt seitsmeks päevaks joogivett, toitu ja ravimeid, patareidega raadiot ja taskulampi. Valguseks soovitab Päästeamet pigem taskulampi kui küünlaid.',
+      ], 'ERR, „2005. aasta jaanuaritormist möödub 10 aastat” (2015); ERR, „Päästeamet soovitab valmistuda elektrita hakkama saamiseks” (16.12.2023)', 'Kas teadsid? Torm ja elektrikatkestus'),
       teach(tag(B.cloze('058_p_paper', 'Eksaminurk: vallalehe lugu (Harno B1 lugemine 3)', 'Loe vallalehe lugu ja vali igasse lünka sobiv sõna kolmest. Mõtle, kas lüngas on põhjus, tagajärg või vorm.', 'Pärast tormi: küla aitas üksteist', [
         'Kõrve küla elanikud ei unusta jaanipäevale järgnenud ööd niipea. Tuul ulgus korstnates, puud raksusid metsas ja paljud ei saanud hommikuni silmagi kinni. Tormi {*tõttu|sest|seepärast} jäi küla kolmekümneks tunniks ilma elektrita ja paljudes peredes ei olnud vett. Kuid nagu ikka, tuli raskel ajal välja ka hea. Küla elanikud aitasid üksteist nii, nagu vanasti talgutel.',
         '',
@@ -674,8 +729,8 @@ export const LESSONS = withShapes({
         ['Kui palju raha on ühistul suveprojekti jaoks?', '300 eurot|kolmsada eurot'],
         ['Kelle ettepanek meeldib sulle kõige rohkem ja miks?', ''],
       ]), { task: 'R12' }),
-      teach(tag(B.speaking('059_d_survey', 'Kas sa sorteerid? Küsi kolmelt.', 'Esita kolmele inimesele samad viis küsimust nende rohelistest harjumustest. Lõpuks võta kuuldu ühe minutiga kokku.', ['Kas sa sorteerid kodus prügi? Kuidas?', 'Kas sa viid pandipudelid poodi tagasi?', 'Mida sa teed vanade riiete ja asjadega?', 'Kas sa oled osalenud talgutel? Kus?', 'Mida sa teed, et vett ja elektrit säästa?'], [120, 180], ['Kas sa…?', 'Kõik kolm ütlesid, et…', 'Mind üllatas, et…']), { task: 'S09', fluency: true }),
-        'Üks-ühele: õpilane küsib samu küsimusi õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (Tiina, tudeng Joosep, kahe lapsega Merilin). Lõpus teeb õpilane minutilise kokkuvõtte.'),
+      teach(tag(B.speaking('059_d_survey', 'Kas sa sorteerid? Küsi kaaslastelt.', 'Küsi kaaslastelt samad viis küsimust nende rohelistest harjumustest ja märgi vastused üles. Lõpuks võta kuuldu ühe minutiga kokku: milles olite ühel meelel ja mis sind üllatas.', ['Kas sa sorteerid kodus prügi? Kuidas?', 'Kas sa viid pandipudelid poodi tagasi?', 'Mida sa teed vanade riiete ja asjadega?', 'Kas sa oled osalenud talgutel? Kus?', 'Mida sa teed, et vett ja elektrit säästa?'], [120, 180], ['Kas sa…?', 'Kõik kolm ütlesid, et…', 'Mind üllatas, et…']), { task: 'S09', fluency: true }),
+        'Üks-ühele: õpilane küsib samu küsimusi õpetajalt mitu korda; õpetaja vastab iga kord teise inimesena (Tiina, tudeng Joosep, kahe lapsega Merilin). Lõpus teeb õpilane minutilise kokkuvõtte.'),
       teach(tag(B.speaking('059_d_opinion', 'Minu arvamus: arvamus, põhjus, näide.', 'Ütle oma arvamus viie väite kohta. Igas vastuses on arvamus, põhjus ja näide sinu enda elust.', ['Prügi sorteerimine on iga inimese kohustus.', 'Talgud on parem viis naabritega tuttavaks saada kui pidu.', 'Kasutatud asjade ostmine on keskkonnale hea.', 'Linnas peab olema rohkem puid ja vähem parklaid.', 'Ühekordsed tassid tuleb ära keelata.'], [120, 180], ['Minu arvates…, sest…', 'Näiteks…', 'Ma ei ole päris nõus, sest…']), { task: 'S11' }),
         'Üks-ühele: õpetaja ütleb iga väite kohta vastupidise arvamuse; õpilane vastab mudeliga arvamus + põhjus + näide.'),
       tag(B.examWriting('059_d_polite', 'Tiina mustand viisakaks.', 'Tiina mustand elanikele on liiga range. Kirjuta sellest viisakas teade 60–80 sõnaga; kõik faktid peavad alles jääma.', 'teade', {
@@ -704,6 +759,10 @@ export const LESSONS = withShapes({
         ['Merilini lapsed on oma mänguasjadest välja kasvanud.', 'A'],
         ['Joosep tahab pudelite raha annetada lastehaiglale.', 'D'],
       ]),
+      B.know('059_p_know', [
+        '3. mail 2008 läks Eestis umbes 50 000 inimest ühel päeval metsadest ja teede äärest prügi koristama. Talgupäeval „Teeme ära!” koguti ühe päevaga kokku umbes 10 000 tonni prügi. Idee levis hiljem üle maailma: sellest kasvas ülemaailmne liikumine „Let’s Do It! World”.',
+        'Alates 1. jaanuarist 2024 on biojäätmete sorteerimine kohustuslik nii korter- kui ka eramajades. ERRi andmetel on segaprügi konteineris umbes kolmandik biojäätmeid.',
+      ], 'ERR, „Kadi Kenk: jäätmereform kui „Teeme Ära!” talgud 2.0” (14.12.2025); ERR, „Paljud ühistud ei täida biojäätmete sorteerimise kohustust” (2.3.2024)', 'Kas teadsid? Talgud ja prügi'),
       tag(B.listening('059_p_voices', 'Naabrite häälsõnumid Tiinale.', 'Neli naabrit ei saa koosolekule tulla ja jätavad Tiinale sõnumi. Kuula ja vasta igale küsimusele ühe-kahe sõnaga.', [
         'Leida: Tere, Tiina! Siin Leida esimeselt korruselt. Ma ei saa neljapäeval tulla, sest sõidan tütre juurde Haapsallu. Minu ettepanek on kompostikast. Elan Kalamajas viiskümmend aastat ja mäletan, et vanasti oli igas hoovis kompost. Kartulikoored ja kohvipaks on ju väärtuslikud! Kasti saab teha vanadest laudadest, mis tormis aia küljest lahti tulid.',
         'Joosep: Tere, Tiina! Joosep siin. Mul on neljapäeval eksam, nii et koosolekule ma ei jõua. Minu arvates on kõige parem mõte jagamisriiul trepikotta. Üliõpilasena ostan palju kasutatud asju ja tean, et inimesed annavad heameelega ära raamatuid ja nõusid. Riiuli panen ise kokku, tööriistad on mul olemas.',
@@ -750,7 +809,7 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja küsib nagu eksamineerija; teisel ringil hoiab õpetaja aega ja küsib iga vastuse järel „Too näide!”.'),
     ],
     transfer: [
-      B.text('059_t_sit', 'Koosolek neljapäeval', 'Neljapäeval kell seitse on hoovis koosolek. Ühistu kassas on suveprojekti jaoks 300 eurot ja üks talgupäev. Kolm naabrit on teinud ettepaneku. Loe ettepanekuid, leppige koosolekul kokku üks plaan, salvesta kodus kokkuvõte neile, kes ei tulnud, ja kirjuta talgukutse.'),
+      B.text('059_t_sit', 'Koosolek neljapäeval', 'Neljapäeval kell seitse on hoovis koosolek. Ühistu kassas on suveprojekti jaoks 300 eurot ja üks talgupäev. Kolm naabrit on teinud ettepaneku. Loe ettepanekuid, leppige koosolekul kokku üks plaan, valmista kodus kokkuvõte neile, kes ei tulnud, ja kirjuta talgukutse.'),
       tag(B.profiles('059_t_ideas', 'Kolm ettepanekut.', 'Loe naabrite ettepanekuid ja täienda lauseid: kui palju see maksab, kes aitab ja kas raha jätkub.', [
         ['Leida: kompostikast', ['kast vanadest laudadest, naelad ja võrk kokku 40 €', 'valmis ühe laupäevaga', 'segaprügi väheneb, prügivedu läheb odavamaks', 'keegi peab kord nädalas komposti segama'],
           ['Kompostikasti materjalid maksavad kokku [40|nelikümmend] eurot.', 'Kasti saab valmis teha ühe [laupäevaga|päevaga].', 'Kompost aitab raha säästa, sest [segaprügi|prügi] jääb vähemaks.', 'Kompostikasti jaoks on vaja inimest, kes seda kord [nädalas] segab.', 'Pärast kasti ostu jääb eelarvest alles [260|kakssada kuuskümmend] eurot.']],
@@ -761,8 +820,8 @@ export const LESSONS = withShapes({
       ]), { level: 3 }),
       teach(tag(B.ideaCard('059_t_meeting', 'Eksaminurk: kokkulepe koosolekul (Harno B1 rääkimine 1)', 'Arutage kolme ettepanekut ja leppige kokku üks plaan, mis mahub 300 eurosse. Lõpus peab olema ühine otsus.', 'Valgevase 7 ja 3 ühises hoovis on pärast tormi segadus. Ühistul on suveprojektiks 300 eurot ja üks talgupäev.', ['kompostikast 40 €', 'jagamisriiul 30 €', 'vihmavee tünn 50 €', 'lillepeenrad 120 €', 'kaks pinki 160 €', 'talgupäev: oksad ja aed'], 'Mida te teete, kui palju see maksab ja millal on talgupäev?'), { harno: 'S1b', main: true }),
         'Eksaminurk (Harno B1 rääkimine 1, teine osa: kokkulepe, ~8 min). Strateegia: 1) ütle oma eelistus ja põhjus; 2) küsi partneri arvamust („Mis sina arvad?”); 3) kaalu raha ja aega; 4) lõpeta selge kokkuleppega („Lepime kokku, et…”). Üks-ühele: õpetaja on Merilin, kes tahab alguses kogu raha oma plaanile; õpilane arvutab ja veenab. Hinda hindamisjuhendiga: kas lõpus oli ühine otsus.'),
-      teach(tag(B.speaking('059_t_rec', 'Kodus: kokkuvõte puudujatele.', 'Salvesta neile naabritele, kes koosolekul ei olnud, 2–3-minutiline kokkuvõte: mida otsustati, miks ja kes mida teeb.', ['Milliseid ettepanekuid arutati?', 'Mida otsustati ja miks just see?', 'Kui palju see maksab?', 'Millal on talgupäev ja mida seal tehakse?', 'Mida iga elanik saab teha?'], [120, 180], ['Koosolekul arutasime…', 'Lõpuks leppisime kokku, et…', 'Seepärast palun…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib, kuidas õpilane veenab naabrit, kes ei taha talgutele tulla.'),
+      teach(tag(B.speaking('059_t_rec', 'Kodus: kokkuvõte puudujatele.', 'Valmista kodus ette 2–3-minutiline kokkuvõte neile naabritele, kes koosolekul ei olnud: mida otsustati, miks ja kes mida teeb. Järgmises tunnis räägid selle ette.', ['Milliseid ettepanekuid arutati?', 'Mida otsustati ja miks just see?', 'Kui palju see maksab?', 'Millal on talgupäev ja mida seal tehakse?', 'Mida iga elanik saab teha?'], [120, 180], ['Koosolekul arutasime…', 'Lõpuks leppisime kokku, et…', 'Seepärast palun…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Järgmises tunnis räägib õpilane kokkuvõtte ette; õpetaja küsib, kuidas õpilane veenab naabrit, kes ei taha talgutele tulla.'),
       B.examWriting('059_t_invite', 'Kutse talgupäevale.', 'Kirjuta trepikoja uksele kutse talgupäevale 60–80 sõnaga. Kirjuta kõigist neljast punktist.', 'kutse', {
         situation: 'Koosolekul lepiti kokku talgupäev ja suveprojekt. Kutse peab olema selge ka neile, kes koosolekul ei olnud.',
         points: ['millal ja kus talgud on', 'mida talgutel tehakse', 'mida kaasa võtta', 'mis toimub pärast tööd'],
@@ -847,8 +906,17 @@ export const LESSONS = withShapes({
         ['Äikese ajal ei tohi seista üksik puu all.', 'Äikese ajal ei tohi seista üksiku puu all.'],
       ], 'full', 'g_notice'),
       B.writing('060_d_write', 'Minu suvepäev looduses.', 'Kirjuta 8–10 lauset: milline oli sinu kõige meeldejäävam suvepäev looduses, milline oli ilm ja mis juhtus.', [8, 10], ['kui', 'seepärast', 'läks', 'ilm'], 3),
-      teach(B.speaking('060_d_warm', 'Soojendus enne eksamit.', 'Vasta eksami moodi neljale küsimusele: igale kaks-kolm lauset.', ['Milline ilm on sinu arvates parim ja miks?', 'Kus sa käid looduses kõige meelsamini?', 'Mida sa teed, et keskkonda hoida?', 'Kas sinu kodumaal on teistsugune suvi kui Eestis?'], [120, 150]),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane samu küsimusi õpetajalt.'),
+      // own instruction: B.examiner's fixed wording would repeat another module's instruction (final shape V7)
+      teach(withInstruction(B.examiner('060_d_warm', 'ilm, loodus ja keskkond', [
+        'Millist ilma sa kõige rohkem armastad ja millist üldse ei talu?',
+        'Kuidas ilm sinu tuju ja nädalavahetuse plaane mõjutab?',
+        'Kus sa Eestis looduses kõige meelsamini käid? Miks just seal?',
+        'Mille poolest erineb kliima sinu kodumaal Eesti kliimast?',
+        'Kas sinu arvates on talved ja suved viimastel aastatel muutunud? Mille järgi sa seda märkad?',
+        'Kas linnas peaks olema rohkem parke ja vähem parklaid? Põhjenda.',
+        'Mida saab üks pere teha, et keskkonda vähem koormata?',
+      ]), 'Enne proovieksamit harjuta rääkimise esimest osa: eksamineerija küsib ilmast, loodusest ja keskkonnast. Igale küsimusele vasta paari-kolme lausega ning põhjenda oma mõtet näitega.'),
+      'Üks-ühele: õpetaja on eksamineerija ega aita; mõnele vastusele küsib ta lisaks „Miks?” või ütleb vastupidise arvamuse. Lõpus küsib õpilane õpetajalt kaks küsimust samast teemast.'),
     ],
     practice: [
       B.examPart('060_p_rpart', 'R', { minutes: 50, points: 33, tasks: 4, note: 'Lugemisosa on Harno B1 vormis ja täispikkuses: neli ülesannet, 33 punkti. Vahekontrolli lävi on 20 punkti (60 %), eesmärk vähemalt 27 punkti (80 %).' }),
