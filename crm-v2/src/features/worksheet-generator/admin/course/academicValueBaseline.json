@@ -46,20 +46,6 @@
   "b1b2-048|*|av-voice",
   "b1b2-050|transfer|av-fact"
  ],
- "b1b2-module-11": [
-  "*|*|av-article",
-  "*|*|av-examiner",
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-051|*|av-know",
-  "b1b2-053|*|av-know",
-  "b1b2-053|*|av-voice",
-  "b1b2-054|*|av-know",
-  "b1b2-054|practice|av-fact",
-  "b1b2-055|practice|av-fact",
-  "b1b2-055|transfer|av-fact"
- ],
  "b1b2-module-12": [
   "*|*|av-examiner",
   "*|*|av-kasuta",

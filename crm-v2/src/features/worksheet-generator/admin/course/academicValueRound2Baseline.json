@@ -191,13 +191,6 @@
   "*|*|av-retell2",
   "b1b2-048|*|av-boltedon"
  ],
- "b1b2-module-11": [
-  "*|*|av-homecountry",
-  "*|*|av-kasuta2",
-  "*|*|av-kasuta2",
-  "*|*|av-retell2",
-  "b1b2-053|*|av-boltedon"
- ],
  "b1b2-module-12": [
   "*|*|av-kasuta2",
   "*|*|av-kasuta2",
@@ -247,7 +240,6 @@
   "b1b2-088|*|av-boltedon"
  ],
  "course:b2": [
-  "*|*|av-thinkvary",
   "b1b2-002|transfer|av-fact-dup",
   "b1b2-005|practice|av-fact-dup",
   "b1b2-005|practice|av-fact-dup",
