@@ -1,19 +1,4 @@
 {
- "b1b2-module-01": [
-  "*|*|av-article",
-  "*|*|av-examiner",
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-001|*|av-know",
-  "b1b2-001|*|av-voice",
-  "b1b2-002|*|av-know",
-  "b1b2-002|*|av-voice",
-  "b1b2-003|*|av-know",
-  "b1b2-004|*|av-know",
-  "b1b2-005|practice|av-fact",
-  "b1b2-005|practice|av-fact"
- ],
  "b1b2-module-03": [
   "*|*|av-article",
   "*|*|av-examiner",
