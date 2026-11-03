@@ -20,6 +20,18 @@ describe('entity menu registry: who gets which actions', () => {
     expect(ids('student', ['finance'], student, { record })).toEqual([]);
   });
 
+  it('„Kustuta (prügikasti)” is for the administrator and opens the card window; a trashed card has no archive / delete', () => {
+    expect(ids('student', ['teacher'], student, { record })).not.toContain('delete');
+    expect(ids('student', ['admin'], student, { record })).toContain('delete');
+    const remove = actionsFor('student', ['admin'], student, { record }).find((action) => action.id === 'delete');
+    expect(remove.to(student)).toBe('/students/s1?kustuta=1');
+    const trashed = { ...record, active: false, deletedAt: '2026-11-03T10:00:00.000Z' };
+    expect(ids('student', ['admin'], student, { record: trashed })).not.toEqual(expect.arrayContaining(['delete']));
+    expect(ids('student', ['admin'], student, { record: trashed })).not.toContain('restore');
+    expect(ids('student', ['admin'], student, { record: trashed })).not.toContain('archive');
+    expect(actionsFor('teacher', ['admin'], { teacherUid: 't1' }).find((action) => action.id === 'delete').to({ teacherUid: 't1' })).toBe('/teachers/t1?kustuta=1');
+  });
+
   it('invoices are for the administrator and the accountant only', () => {
     expect(ids('invoice', ['teacher'], { invoiceId: 'i1' })).toEqual([]);
     expect(ids('invoice', ['finance'], { invoiceId: 'i1', studentId: 's1' })).not.toContain('student-finance');
@@ -37,7 +49,7 @@ describe('entity menu registry: who gets which actions', () => {
 
   it('teachers and admin-only actions follow the route access', () => {
     expect(ids('teacher', ['teacher'], { teacherUid: 't1' })).toEqual([]);
-    expect(ids('teacher', ['admin'], { teacherUid: 't1' })).toEqual(['open', 'calendar']);
+    expect(ids('teacher', ['admin'], { teacherUid: 't1' })).toEqual(['open', 'calendar', 'delete']);
     expect(ids('group', ['teacher'])).toEqual(['open']);
     expect(ids('group', ['admin'])).toEqual(['open', 'fill']);
   });

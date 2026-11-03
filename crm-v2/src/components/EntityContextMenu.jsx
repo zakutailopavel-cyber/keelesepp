@@ -1,4 +1,4 @@
-import { Archive, BookOpen, CalendarPlus, Check, Copy, CreditCard, ExternalLink, Eye, FilePlus2, FileText, Link2, Mail, MessageSquare, PenLine, Pencil, Printer, RotateCcw, Send, Star, StickyNote, Type, UserRound } from 'lucide-react';
+import { Archive, BookOpen, CalendarPlus, Check, Copy, CreditCard, ExternalLink, Eye, FilePlus2, FileText, Link2, Mail, MessageSquare, PenLine, Pencil, Printer, RotateCcw, Send, Star, StickyNote, Trash2, Type, UserRound } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { studentsService } from '../services/firebase/students.js';
@@ -8,7 +8,7 @@ import './entityContextMenu.css';
 const ICONS = {
   open: ExternalLink, rename: Type, edit: Pencil, message: MessageSquare, calendar: CalendarPlus, newSheet: FilePlus2,
   board: PenLine, money: CreditCard, copy: Copy, restore: RotateCcw, archive: Archive, view: Eye, link: Link2,
-  sheet: FileText, user: UserRound, print: Printer, send: Send, mail: Mail, note: StickyNote, star: Star, check: Check, book: BookOpen,
+  sheet: FileText, user: UserRound, print: Printer, send: Send, mail: Mail, note: StickyNote, star: Star, check: Check, book: BookOpen, trash: Trash2,
 };
 
 // a right-click in a field keeps the browser's menu (copy / paste), so does one on selected text

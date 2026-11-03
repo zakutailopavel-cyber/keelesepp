@@ -3,13 +3,15 @@ import { requireFirebaseClient } from './client.js';
 import { cleanPersonalColors } from '../../features/calendar/calendarGrid.js';
 
 export const teachersService = {
-  async list() {
+  // a teacher in the „Prügikast” (or purged after it) is in no list or picker ({ includeDeleted: true } for history
+  // views); payroll still shows their work, it adds staff from the work sessions (features/payroll/payroll.js)
+  async list({ includeDeleted = false } = {}) {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'users'), where('role', 'in', ['admin', 'teacher'])));
     return snapshot.docs.map((item) => {
       const data = item.data();
       return { id: item.id, ...data, name: data.displayName || data.name || data.email || 'Nimetu kasutaja' };
-    }).sort((a, b) => a.name.localeCompare(b.name, 'et'));
+    }).filter((teacher) => includeDeleted || !(teacher.deletedAt || teacher.purgedAt)).sort((a, b) => a.name.localeCompare(b.name, 'et'));
   },
   async getById(id) {
     const { db } = requireFirebaseClient();

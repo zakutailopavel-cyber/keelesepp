@@ -50,6 +50,7 @@ const TeachersPage = lazy(() => import('../features/teachers/TeachersPage.jsx'))
 const AccountsPage = lazy(() => import('../features/accounts/AccountsPage.jsx'));
 const LeadsPage = lazy(() => import('../features/leads/LeadsPage.jsx'));
 const TeacherProfilePage = lazy(() => import('../features/teachers/TeacherProfilePage.jsx'));
+const TrashPage = lazy(() => import('../features/trash/TrashPage.jsx'));
 const AnnouncementsAdminPage = lazy(() => import('../features/announcements/AnnouncementsAdminPage.jsx'));
 const CampaignsPage = lazy(() => import('../features/campaigns/CampaignsPage.jsx'));
 // „Minu areng”: the course and all results load only when the student opens them, not with his home page
@@ -132,6 +133,8 @@ export default function AppRoutes() {
             <Route path="teachers" element={staffPage(<TeachersPage />)} />
             <Route path="accounts" element={staffPage(<AccountsPage />)} />
             <Route path="teachers/:teacherId" element={staffPage(<TeacherProfilePage />)} />
+            {/* „Prügikast” (administrator 2026-11-03): deleted student and teacher cards, 7 days, „Taasta” */}
+            <Route path="trash" element={staffPage(<TrashPage />)} />
             {/* „Teated” (owner 2026-10-24): announcements a student / parent answers before using the CRM */}
             <Route path="messages/teated" element={staffPage(<AnnouncementsAdminPage />)} />
             {/* „Kampaaniad” (owner 2026-10-27): offers, ad campaigns and events prepared here, posted by hand */}
