@@ -99,6 +99,15 @@ student's persistent board `whiteboards/{studentId}` (same as CRM „Tahvel” a
 Chat uses the student's internal `messages` conversation. Board rules check access once per write (see
 `whiteboardElementCreateValid`, `lessonPageLive`); evaluating it repeatedly exceeds Firestore's 1000-expression limit.
 
+Lesson plan + in-room attendance (teacher only, 1:1 and group): `liveLessonPlans/{roomKey}` (roomKey = invitation id
+or group room id; staff-only rules, only the room's teacher writes). Steps with minutes (`lessonPlan.js`, default
+Soojendus/Avasta/Harjuta/Kasuta/Kokkuvõte scaled to the calendar lesson length remembered by `rememberLessonTiming`),
+timer derived from `startedAt` / `stepStartedAt` / `spentMs` (no per-second writes), `attendance.<studentId>`
+(`roomAttendance.js`: present / late + minutes / absent, prefilled from the invitation's `respondedAt`). A 1:1 room
+started from the calendar hands its mark through `lessonHandoff.js` to the calendar's `completeFromSchedule`
+(Kohal/Hilines → `Toimunud`, Puudub → `Puudus_eta`); group rooms are not linked to calendar groups, so their marks stay
+in the plan. The student sees only „Samm X/Y” over the data channel.
+
 `live-classroom-core.js` owns the public scene contract. A scene may contain only:
 
 - type, title, body, bounded public options and version metadata;

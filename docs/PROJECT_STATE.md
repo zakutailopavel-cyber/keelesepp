@@ -9,6 +9,34 @@
 - Limits: text search inside phase sheets needs a lesson-name word (no full scan of all lessons); focus sheets without a `worksheetPhases` summary are not searched; a lesson template uses the latest drafts; standalone sheets are not a copy / move target; a lesson template > 900 kB is refused (save sheets separately).
 - PR #1064 (draft, not merged). Production: none; nothing deployed or written. Deploy needed (owner's approval): `firebase deploy --only firestore:rules` (templates fail with „permission denied” until then; Kogu and copy / move work with the current rules) + hosting.
 - Next safe step: review the draft PR; after merge deploy rules + hosting, then save one sheet as a template and copy one task to Harjuta of a test lesson.
+## 2026-11-04 · agent/live-plan-timer — Live Classroom: tunniplaan + taimer ja kohalolu tunniruumis
+
+- Base: `main` e2d539e (#1061), merged with `origin/main` 66af0c2 before the PR, checked 2026-11-04. Live classroom only; no finance / token / course content change.
+- Plan (teacher, 1:1 and group): pill „Tunniplaan” in the room's top bar (current step `m:ss / N:00`, orange when over time) + drawer „Tunniplaan” (also „Rohkem” → „Tunniplaan ja kohalolu”). Default Soojendus 5 · Avasta 15 · Harjuta 20 · Kasuta 15 · Kokkuvõte 5, only the worksheet phases present in the room, scaled to the calendar lesson length (`rememberLessonTiming` in `lessonLink.js`, set by the calendar's „Alusta tundi”; else 60). „Alusta”, „Järgmine samm” / „Lõpeta plaan”, click a step to go back, „Muuda plaani” (labels, minutes, add/remove, ≤ 12), „Alusta uuesti”. Stored in `liveLessonPlans/{roomKey}` only on those clicks; the clock is derived from `startedAt` / `stepStartedAt` / `spentMs`, so a reload keeps it. The 1:1 student sees „Samm X/Y” (data channel, not stored).
+- Attendance: per student Kohal / Hilines (minutes) / Puudub, suggested from the invitation's `respondedAt` vs the calendar start (else room start; > 5 min → Hilines) and presence; a click saves `attendance.<studentId>`. 1:1 „Lõpeta tund” (`LessonEndPanel`) hands the mark through the existing `lessonHandoff` → calendar `completeFromSchedule` (the same write the calendar buttons use): Kohal / Hilines → `Toimunud`, Puudub → `Puudus_eta`; calendar texts say „Puudus (ei teatanud)” in that case. Hilinemise minutes stay in the plan doc only (the lesson record has no field).
+- Files: `crm-v2/src/features/live-classroom/{lessonPlan.js,roomAttendance.js,useLessonPlan.js,LessonPlanPanel.jsx,LiveRoom.jsx,GroupRoom.jsx,LiveClassroomPage.jsx,LessonEndPanel.jsx,lessonHandoff.js,lessonLink.js,liveRoom.css}` + tests (`lessonPlan.test.js`, `roomAttendance.test.js`, `LessonPlanPanel.test.jsx`, `LiveRoom.test.jsx`), `services/firebase/liveLessonPlans.js`, `features/calendar/CalendarPage.jsx` (+ test), `firestore.rules` (new `liveLessonPlans` block), `functions/live-lesson-plans-emulator.integration.js` (+ listed in `test:emulator`), `ARCHITECTURE.md`.
+- Checks: `npx vitest run src/features/live-classroom src/features/calendar` 46 files / 318 tests passed; full `npx vitest run` 452 passed, 1 skipped (3410 tests); `npx eslint src` 0 errors (19 old warnings); `npx vite build` ok; rules emulator (firebase-tools, JDK 21, `--only auth,firestore`) `live-lesson-plans` + `live-group-rooms` + `live-lesson-invitations` 12/12. Not checked in a real browser / real call.
+- Limits: group rooms are not linked to a calendar group lesson, so group marks stay in `liveLessonPlans` (calendar group attendance is still marked in the calendar); 1:1 Puudub always means `Puudus_eta` (for „teatas ette” fix it in the calendar); the lesson length is known only when the room was started from the calendar in the same browser; group students do not see „Samm X/Y” (mesh has no data channel).
+- PR: draft (see GitHub). Production: none. Deploy needed (owner's approval): `firebase deploy --only firestore:rules` + hosting. Without the rules deploy the plan / marks cannot be saved (error in the drawer); the rest of the room works.
+- Next safe step: review; deploy rules + hosting; hold one test lesson from the calendar, mark Hilines, end it and check the calendar mark.
+
+## 2026-11-03 · agent/e2e-lesson-tokens — e2e `lesson-tokens.spec.cjs` follows the split „Õpilane” / „Aine (kursus)” fields
+
+- Base: `main` 9b172a8, checked 2026-11-03. The scenario waited for the label „Õpilane ja aine” that #1051 split in `TokenInvoiceDialog.jsx`; it timed out on `main`.
+- Done: the scenario picks Kaarel with „Õpilane” (exact label) and asserts „Aine (kursus)” already holds „Eesti keel” (his only subject). The rest of the assertions are unchanged. File: `e2e/tests/lesson-tokens.spec.cjs`, this file. No app code.
+- Checks: `bash e2e/run.sh tests/lesson-tokens.spec.cjs` 1 passed; full `bash e2e/run.sh` 18 passed (local emulators, demo project, Java 21).
+- Production: none.
+- Next safe step: review and merge.
+
+## 2026-11-03 · agent/pay-page-loop — /maksa/<invoice> without `?k=`: one request instead of hundreds of 401s
+
+- Base: `main` 9b172a8, checked 2026-11-03. Seen on the emulators (#1056 note): `/maksa/<id>` without `?k=` showed „Firebase ID token required” and sent 280–560 `401` requests in ~5 s.
+- Cause: `PayInvoicePage`'s default prop `go = (url) => …` was a new function on every render and an effect dependency, so every error → re-render → new `go` → effect ran the request again. With a valid `?k=` the page redirects, which hid it. Fix: the default is a module-level function; a link without `?k=` shows „Makselingis puudub arve kood …” and calls nothing.
+- Server (not changed): `startWithCode` sends no ID token (correct for the public link, sign-in state does not matter). `linkpayApi /start` with an empty `k` falls into the signed-in branch (`requireFirebaseUser`) and answers 401 „Firebase ID token required” — technically right, but a missing code could get its own 400 message. Needs the owner's approval; the page no longer reaches it.
+- Files: `crm-v2/src/features/payments/PayInvoicePage.jsx`, `payments.test.jsx` (2 new tests: one call after an error with the default redirect; no call without a code — both fail on the old code).
+- Checks: `npx vitest run src/features/payments` 8/8 passed; `npx eslint --quiet src` clean. Not re-checked in a browser on the emulators.
+- Production: none; hosting deploy only after merge.
+- Next safe step: review and merge; after the deploy open `/maksa/<id>` without `?k=` and check the network tab shows no requests.
 
 ## 2026-11-03 · agent/bank-driven-books — Pangapõhine raamatupidamine: the LHV statement drives the books' money
 
