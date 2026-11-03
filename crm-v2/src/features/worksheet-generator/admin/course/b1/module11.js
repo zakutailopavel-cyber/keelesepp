@@ -32,7 +32,20 @@
 // sports shop „Värav”, car sellers Raul (Toyota) and Karin (Škoda, Rae vald), e-shop „Lasteriie” (Martin), consumer
 // adviser Heli Paju (radio, host Ülle), Kodupank (Pirjo). Earlier versions: archive/v3/b1/module11.js,
 // archive/v1/b1/module11.js.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE.md §13; topic „sisseostud”, secondary
+// „teenused”, „majandus”): topic opener 051_d_open „Raha ja ostlemine Eestis” (the euro, prices 2022–2025 and VAT,
+// card vs cash, consumer rights, the bottle deposit; the module goal as its last paragraph) instead of 051_d_goal;
+// „Kas teadsid?” 051_p_know (the 30-day lowest price in a price cut), 053_p_know (14-day withdrawal from an e-shop),
+// 054_p_know (bank link, contactless limit, phone fraud), 054_t_know (the 2-year claim, the 1-year presumption, the
+// 15-day answer); article 052_p_guide (buying a used car: Transpordiamet, insurance, car tax); 054 is now also about
+// e-services and payments: forum 054_d_forum (ID-kaart, Mobiil-ID, Smart-ID, PIN codes), the survey on paying and
+// e-services. The exam article 055_p_r2text uses Eesti Pank's figures, the listening 055_p_l2 real second-hand facts;
+// examiner set 055_d_warm. One 3-2-1 left (053_d_432); „salvesta” twice (053_t_rec, 054_t_rec); Kasuta call → letter
+// only in 053. Sources: the PR „B1 module 11: academic value round 1”.
 import { B, tag, teach, withShapes } from '../blocks.js';
+
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
 export const MODULE = { id: 'a2b1-module-11', course: 'b1', title: 'Raha, ostlemine ja teenused', level: 'B1', design: 'v2', template: 'v4' };
 
@@ -42,7 +55,20 @@ export const LESSONS = withShapes({
     canDo: 'Ma loen poe pakkumisi, võrdlen hindu ja lepin poes kokku, mida eelarve piires osta.',
     discover: [
       B.review('051_d_review', [['Millise reisiplaani Sofia Lenale kirjutas ja millise hoiatuse ta andis?', 'a2b1-049'], ['Kui suur oli Kase kooli koka palk ja mis kell tööpäev algas?', 'a2b1-043'], 'Mida sa viimati ostsid, mis maksis üle 50 euro?']),
-      B.text('051_d_goal', 'Moodul 11: ostame, võrdleme, nõuame', 'Selles moodulis käid poes, võrdled hindu ja pakkumisi, tagastad katkise asja ja kaitsed oma õigusi kliendina. Sofia ostab uue telefoni, Jaan otsib perele kasutatud autot ja Kadri tellib e-poest Oskarile jope. Mooduli lõpus helistad poe juhatajale garantiiprobleemi pärast ja kirjutad teenindusest arvustuse. Täna loed poe pakkumisi ja lepid poes kokku, mida eelarve piires osta.'),
+      B.topicOpener('051_d_open', 'Teema avaleht: raha ja ostlemine Eestis', [
+        'Eesti raha on euro. Euro tuli Eestisse 1. jaanuaril 2011 ja asendas Eesti krooni: üks euro oli 15,6466 krooni.',
+        'Viimastel aastatel on hinnad Eestis kiiresti tõusnud. Statistikaameti andmetel tõusid tarbijahinnad 2022. aastal 19,4 %, 2023. aastal 9,2 %, 2024. aastal 3,5 % ja 2025. aastal 4,8 %. 2025. aastal kallines toit 6,9 %, aga riided ja jalanõud läksid 3,7 % odavamaks. Alates 1. juulist 2025 on käibemaks Eestis 24 %.',
+        'Eestis makstakse enamasti kaardi või telefoniga. Eesti Panga 2024. aasta uuringu järgi tehakse kaardi või nutiseadmega 57 % ja sularahas 39 % maksetest. Viipemaksega võib maksta kuni 50 eurot ilma PIN-koodita.',
+        'Ostjal on Eestis kindlad õigused. E-poest ostetud asja võib 14 päeva jooksul tagasi saata ja põhjust ei pea ütlema. Kui asjal on viga, võib poele kaevata kahe aasta jooksul pärast ostu, isegi kui poe garantii on lühem.',
+        'Ka tühjad pudelid viiakse Eestis poodi tagasi. Joogipudelitel ja -purkidel on pant 10 senti. Pandisüsteem loodi 2005. aastal ja kümnest pandiga pudelist või purgist üheksa jõuab tagasi ringlusse.',
+        'Paljud ostavad meelsasti ka kasutatud asju. Näiteks Uuskasutuskeskus loodi 2004. aastal ja 2025. aastal oli tal juba 18 poodi üheksas linnas. Alates 2025. aastast peavad omavalitsused vanu riideid ja muid tekstiile eraldi koguma, et neid saaks uuesti kasutada.',
+        'Selles moodulis võrdled hindu ja pakkumisi, valid kasutatud autot, tagastad katkise asja, räägid e-teenustest ja maksmisest ning kaitsed oma õigusi kliendina. Mooduli lõpus helistad poe juhatajale garantiiprobleemi pärast ja kirjutad teenindusest arvustuse.',
+      ], 'Eesti Pank, „Sularaha” ja pressiteade 14.01.2025 (SPACE-uuring); Statistikaamet, tarbijahinnaindeks (8.01.2026); Maksu- ja Tolliamet, „Üldine käibemaksumäär”; Pangaliit (2.11.2021); võlaõigusseadus § 56 ja § 218; Eesti Pandipakend, „Kuidas pandisüsteem töötab?” ja „Ajalugu”; Uuskasutuskeskus, „Meist”; Keskkonnaamet (2024)', [
+        'Milliseid hinnatõuse oled sina viimastel aastatel poes kõige rohkem märganud?',
+        'Kuidas sa ise kõige sagedamini maksad ja miks?',
+        'Kuidas maksavad inimesed sinu kodumaal ja kas seal on pudelitel pant nagu Eestis?',
+        'Kas pood peaks sinu arvates võtma asja tagasi ka siis, kui see lihtsalt ei meeldi? Põhjenda.',
+      ]),
       tag(B.reading('051_d_ad', 'Poe Nutikas pakkumised.', 'Vaata pealkirja ja arva, mida pood pakub ja mis tingimustel. Seejärel loe tekst ja kontrolli oma arvamust.', 'Nutika nädala pakkumised',
         'Tere tulemast poodi Nutikas! Sel nädalal on meil suured soodustused telefonidele ja kõrvaklappidele. Pakkumised kehtivad pühapäeva õhtuni või seni, kuni kaupa jätkub.\n\nTelefon Nova 5 maksab tavaliselt 320 eurot, aga sel nädalal saate selle kakskümmend protsenti odavamalt. Selle aku kestab kuni kaks päeva ja kaamera teeb ka pimedas häid pilte. Telefoni on mustana, sinisena ja rohelisena.\n\nTelefon Nova 7 on suurem ja uuem mudel. See maksab 450 eurot ja soodustust sellele kahjuks ei ole. Nova 7 ostjad saavad aga kingituseks juhtmeta kõrvaklapid. Nova 5 on hea valik inimesele, kes sõidab palju ja vajab pikka akut. Nova 7 sobib paremini neile, kes teevad palju pilte ja videoid.\n\nKõikidele telefonidele kehtib kahe aasta garantii. Garantii kehtib ainult koos ostutšekiga, seega hoidke tšekk alles. Kui telefon läheb garantii ajal katki, parandame selle tasuta.\n\nÜmbrise ja kaitseklaasi komplekt maksab tavaliselt 25 eurot. Kui ostate selle koos telefoniga, maksab komplekt ainult 15 eurot.\n\nMaksta saab kaardiga või sularahas. Suurema ostu eest võite maksta ka osade kaupa kuue kuu jooksul. Kui te ei saa ise poodi tulla, tellige telefon meie e-poest. Pakk jõuab pakiautomaati kahe tööpäevaga.\n\nKui toote meile oma vana telefoni, anname uue telefoni hinnast kümme eurot maha. Poes saab kõiki telefone enne ostmist proovida. Müüja aitab teil ka vanad andmed uude telefoni üle tõsta. See teenus on tasuta.',
         [['Kas sinu arvamus pealkirja põhjal oli õige? Mis oli teisiti?', ''], ['Kui palju maksab Nova 5 sel nädalal?', '256 eurot|256'], ['Mille poolest erineb Nova 7 telefonist Nova 5?', 'see on suurem ja uuem|suurem ja uuem mudel|kingituseks saab kõrvaklapid'], ['Kellele sobib Nova 5 poe arvates kõige paremini?', 'inimesele, kes sõidab palju ja vajab pikka akut|kes sõidab palju'], ['Mida on vaja, et garantii kehtiks?', 'ostutšekki|tšekki'], ['Kui palju säästad, kui ostad ümbrise koos telefoniga?', '10 eurot|kümme eurot'], ['Miks ei saa Sofia vana telefoni pakkumist kasutada?', 'tema vana telefon jäi rongi|tal ei ole vana telefoni']]), { task: 'R13' }),
@@ -77,8 +103,8 @@ export const LESSONS = withShapes({
         ['Kui palju see roheline telefon praegu maksab?', 'Sel nädalal ainult 256 eurot.'], ['Kas sellele kohvrile on ka soodustust?', 'Jah, kahe kohvri ostjale kümme protsenti.'], ['Kas teil on neid saapaid ka teises värvis?', 'Meil on veel sinised ja mustad.'], ['Kui kaua kehtib selle telefoni garantii?', 'Kaks aastat ostu päevast.'], ['Kas ma saan siin maksta sularahas?', 'Muidugi, kassa on teie paremal.'],
         ['Kas seda jopet saab hiljem tagastada?', 'Jah, 14 päeva jooksul koos tšekiga.'], ['Kas teil on neid saapaid väiksemas suuruses?', 'Kahjuks on alles ainult suurus 36.'], ['Kas te pakite selle mulle kingiks?', 'Jah, pakime tasuta.'], ['Kas see kott sobib lennukisse käsipagasiks?', 'Jah, see on täpselt õige suurusega.'], ['Mis saab, kui telefon läheb katki?', 'Siis parandame selle garantii ajal tasuta.'],
       ], 'full', 'g_vocab'),
-      teach(tag(B.speaking('051_d_best', 'Minu kõige parem ost.', 'Räägi oma kõige paremast ostust kolmele kuulajale järjest. Iga kord räägi lühemalt, aga lisa üks uus detail.', ['Mida sa ostsid ja millal?', 'Kust sa selle ostsid ja kui palju see maksis?', 'Kas sa võrdlesid enne hindu? Kus?', 'Kas sa said soodustust?', 'Miks see oli hea ost?'], [120, 180], ['Ma ostsin…', 'See maksis…, aga mul oli … protsenti soodustust.', 'See oli hea ost, sest…']), { task: 'S07', fluency: true }),
-        'Üks-ühele: õpetaja on kolm korda uus kuulaja (sõber, müüja, vanaema) ja küsib iga kord ühe küsimuse; aeg 2 minutit, 90 sekundit ja 1 minut.'),
+      teach(tag(B.speaking('051_d_best', 'Minu kõige parem ost.', 'Räägi paarilisele umbes kaks minutit oma kõige paremast ostust. Siis arutage kaht viimast küsimust ja võrrelge oma harjumusi.', ['Mida sa ostsid ja millal?', 'Kust sa selle ostsid ja kui palju see maksis?', 'Kas sa võrdlesid enne hindu? Kus?', 'Mis teeb sinu arvates ostu heaks: hind, kvaliteet või see, et asja on kaua vaja?', 'Kas soodusmüük on sinu kodumaal sama populaarne kui Eestis?'], [120, 180], ['Ma ostsin…', 'See maksis…, aga mul oli … protsenti soodustust.', 'Minu kodumaal…, aga Eestis…']), { task: 'S07', fluency: true }),
+        'Üks-ühele: õpilane räägib oma ostust umbes kaks minutit; õpetaja küsib ühe täpsustava küsimuse („Kui palju?”, „Kust?”). Siis arutate kaht viimast küsimust: õpetaja räägib oma ostuharjumustest, õpilane võrdleb Eestit oma kodumaaga.'),
       tag(B.writing('051_d_write', 'Kaheksa minutit kirjutamist.', 'Kirjuta kaheksa minutit peatumata: kuidas Sofia telefon kadus ja mida ta pärast seda tegi. Ära paranda, kirjuta edasi.', [8, 10], ['rong', 'jäi', 'helistas', 'pakkumisi'], 3), { task: 'W06', fluency: true }),
     ],
     practice: [
@@ -108,6 +134,10 @@ export const LESSONS = withShapes({
       tag(B.reading('051_p_sale', 'Soodusmüük: kas ikka odav?', 'Loe ajakirja artiklit soodusmüügist. Vasta küsimustele oma sõnadega.', 'Soodusmüük: kas ikka odav?',
         'Kevadel ja enne jõule näeme poodides suuri silte: −30 %, −50 %, „ainult täna”. Soodusmüük on ostjale hea võimalus raha säästa. Kahjuks ostame soodusmüügil tihti asju, mida meil tegelikult vaja ei ole.\n\nTarbijanõustaja Heli Paju soovitab enne poodi minekut teha nimekirja. Kui ostad ainult seda, mis nimekirjas on, ei kuluta sa liiga palju. Tasub ka küsida endalt: kas ma ostan selle asja ka siis, kui see ei ole soodushinnaga?\n\nTeiseks võrdle hindu. Mõni pood tõstab enne soodusmüüki hinna kõrgemaks ja annab siis „suure” soodustuse. Internetis on hinnavõrdluse lehed, kus näed, kui palju sama toode teistes poodides maksab.\n\nKolmandaks loe tingimusi. Soodushinnaga kauba tagastamine on mõnes poes keerulisem. Küsi müüjalt, kas toodet saab vahetada, ja hoia tšekk alles. Garantii kehtib ka soodushinnaga ostetud tootele.\n\nHeli Paju hoiatab ka pakkumiste eest, kus saad kaks asja ühe hinnaga. Kui teist asja sul vaja ei ole, ei ole see sinu jaoks soodustus, vaid lisakulu.\n\nJa veel üks nõuanne: ära mine poodi näljasena ega väsinuna. Siis teeme kõige rohkem kiireid ja halbu otsuseid. Kõige parem ost on see, mida sa ka kuu aja pärast vajad.\n\nLõpuks mõtle ka sellele, kuidas sa maksad. Kui maksad osade kaupa, tundub hind väike, aga kokku maksad sageli rohkem. Ja kui ost ei sobi, mine poodi kohe tagasi, mitte kuu aja pärast, sest tagastamise aeg on tavaliselt ainult kaks nädalat.',
         [['Miks ostavad inimesed soodusmüügil tihti liiga palju?', 'nad ostavad asju, mida neil vaja ei ole|nad ostavad tarbetuid asju'], ['Mida soovitab Heli Paju teha enne poodi minekut?', 'teha nimekiri|kirjutada nimekiri'], ['Millise küsimuse peaks ostja endalt küsima?', 'kas ma ostan selle ka siis, kui see ei ole soodushinnaga'], ['Miks tasub hindu enne ostu võrrelda?', 'mõni pood tõstab enne soodusmüüki hinna kõrgemaks|soodustus ei pruugi olla päris'], ['Kus saab sama toote hindu võrrelda?', 'internetis hinnavõrdluse lehtedel|hinnavõrdluse lehtedel'], ['Kas soodushinnaga ostetud tootel on garantii?', 'jah|jah, garantii kehtib'], ['Miks ei ole pakkumine „kaks ühe hinnaga” alati soodne?', 'kui teist asja vaja ei ole, on see lisakulu|teine asi on lisakulu'], ['Millal ei tasu poodi minna ja miks?', 'näljasena või väsinuna, sest siis teeme kiireid ja halbu otsuseid|näljasena või väsinuna']]), { task: 'R02' }),
+      B.know('051_p_know', [
+        'Kui pood teatab allahindlusest, peab ta näitama ka varasemat hinda. Varasem hind on selle poe madalaim hind 30 päeva jooksul enne allahindlust. Nii ei saa pood enne soodusmüüki hinda tõsta ja siis „suurt” soodustust näidata.',
+        'Kui toode on olnud müügil vähem kui 30 päeva, võib võrrelda vähemalt seitsme päeva madalaima hinnaga. Kiiresti riknevale toidule see reegel ei kehti. Eestis kehtib reegel 2022. aasta maist.',
+      ], 'TTJA, „Allahindluse meelespea” (aprill 2024); ERR, „TTJA: allahindluse puhul tuleb ära näidata viimase 30 päeva madalaim hind” (12.07.2022)', 'Kas teadsid? Kas allahindlus on päris?'),
       teach(tag(B.bankText('051_p_bank', 'Eksaminurk: Sofia sõnum Annale (Harno B1 lugemine 3)', 'Sofia sõnumist on sõnad välja võetud. Vali pangast igasse lünka sobiv sõna; kaks sõna jääb üle.', 'Uus telefon on käes!', [
         'Tere, Anna! Mul on lõpuks uus [[telefon]]. Käisin pärast tööd poes Nutikas ja rääkisin pikalt [[müüjaga]]. Ta soovitas mulle mudelit Nova 5, sest selle aku [[kestab]] kaks päeva.',
         '',
@@ -130,7 +160,7 @@ export const LESSONS = withShapes({
       'Üks-ühele: õpetaja on B ja annab infot ainult küsimise peale; siis vahetage kaardid. Lõpus ütleb õpilane ühe lausega, kust Anna kõrvaklapid ostab ja miks (Nutikas täna 55,30 €, Telemaailm 69 € või klubikaardiga 65,55 €).'),
     ],
     transfer: [
-      B.text('051_t_sit', 'Jalgpallisaapad Oskarile', 'Oskari vanad jalgpallisaapad on väikseks jäänud ja laupäeval on võistlus. Kadri on haiglas valves, seepärast lähevad Jaan ja Oskar pärast kooli spordipoodi Värav. Oskari jalg on suuruses 34 ja eelarve on 60 eurot. Loe kolme saapapaari kaarte, lepi Oskariga kokku, mida osta, salvesta kodus Kadrile häälsõnum ja kirjuta talle sõnum.'),
+      B.text('051_t_sit', 'Jalgpallisaapad Oskarile', 'Oskari vanad jalgpallisaapad on väikseks jäänud ja laupäeval on võistlus. Kadri on haiglas valves, seepärast lähevad Jaan ja Oskar pärast kooli spordipoodi Värav. Oskari jalg on suuruses 34 ja eelarve on 60 eurot. Loe kolme saapapaari kaarte, lepi Oskariga kokku, mida osta, arutle, kui palju tasub lapse hobile kulutada, ja kirjuta Kadrile sõnum.'),
       tag(B.profiles('051_t_boots', 'Kolm paari saapaid.', 'Loe spordipoe kaarte. Täienda lauseid: mis sobib Oskarile ja kas raha jätkub?', [
         ['Sprint, 55 €', ['nädala lõpuni 20 % odavam', 'kõige kergemad, ainult kunstmurule', 'suurused 30–38', 'vahetus 30 päeva, kui karp ja tšekk on alles'],
           ['Sel nädalal maksavad Sprindid [44] eurot.', 'Pärast Sprintide ostu jääb eelarvest alles [16] eurot.', 'Sprintidega saab Oskar mängida ainult [kunstmurul].', 'Kui suurus ei sobi, saab Sprindid vahetada [30] päeva jooksul.', 'Kolmest paarist on Sprindid kõige [kergemad].']],
@@ -141,10 +171,10 @@ export const LESSONS = withShapes({
       ]), { level: 3 }),
       teach(tag(B.ideaCard('051_t_agree', 'Leppige Oskariga kokku.', 'Arutage Oskariga kolme saapapaari ja leppige kokku, mida osta. Kõik peab mahtuma 60 eurosse.', 'Oskar tahab kõige ilusamaid saapaid, Jaan mõtleb hinnale ja sellele, kas saapad sobivad ka tavalisele murule.', ['Sprint 44 €, ainult kunstmurule', 'Tiiger 65 €, sokid kingituseks', 'Välk 39 €, suurust 34 ei ole', 'klubikaart: 5 % odavam', 'saapakott tasuta kahe toote ostjale', 'jalgpall 15 €'], 'Mida te ostate, kui palju see kokku maksab ja miks just see?'), { main: true }),
         'Üks-ühele: õpetaja on Oskar, kes tahab Tiigreid ja uut palli; õpilane arvutab ja veenab teda hinna ja muru abil. Lõpus ütleb õpilane otsuse ja summa ühe lausega.'),
-      teach(tag(B.speaking('051_t_voice', 'Kodus: häälsõnum Kadrile.', 'Salvesta Kadrile 2–3-minutiline häälsõnum: mida te ostsite, mis see maksis ja miks valisite just need saapad.', ['Mis saapad te ostsite?', 'Kui palju need maksid ja kas saite soodustust?', 'Miks te just need valisite?', 'Mida saab teha, kui suurus ei sobi?', 'Kuhu sa tšeki panid?'], [120, 180], ['Me ostsime…', 'Need olid odavamad, sest…', 'Kui suurus ei sobi, siis…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib kaks täpsustavat küsimust.'),
+      teach(tag(B.speaking('051_t_hobby', 'Kui palju maksab lapse hobi?', 'Räägi umbes kaks minutit laste hobide kuludest. Põhjenda oma arvamust ja too näiteid oma elust.', ['Kui palju võiks pere sinu arvates kuus lapse spordile kulutada?', 'Kas lapsele tasub osta kasutatud spordivarustust? Miks?', 'Kas kallid asjad on alati paremad kui odavad?', 'Kes peaks otsustama, mida osta: laps või vanemad?', 'Kuidas on laste hobid korraldatud sinu kodumaal?'], [120, 180], ['Minu arvates…, sest…', 'Teisest küljest…', 'Minu kodumaal…, aga Eestis…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis kuulab õpetaja vastust ja küsib vastuküsimuse lapsevanemana, kes arvab, et lapsele tuleb osta ainult uued ja kallid asjad; õpilane vastab kahe näitega.'),
       B.examWriting('051_t_msg', 'Sõnum Kadrile.', 'Kirjuta Kadrile 60–80 sõnaga, mida te poest ostsite. Kirjuta kõigist neljast punktist.', 'teade', {
-        situation: 'Kadri on veel tööl ja ei saa häälsõnumit kuulata. Ta palub kirjutada.',
+        situation: 'Kadri on haiglas valves ja küsib sõnumiga, kas saapad on ostetud.',
         points: ['mida te ostsite ja kui palju see maksis', 'miks te valisite just need saapad', 'mis saab, kui suurus ei sobi', 'mida on veel vaja osta'],
         words: [60, 80], opening: 'Tere, kallis!', closing: 'Kohtume õhtul! Jaan',
       }),
@@ -199,8 +229,8 @@ export const LESSONS = withShapes({
         ['vastand', ['aga', 'kuid', 'kuigi', 'samas', 'hoopis', 'ometi']],
         ['järjekord', ['kõigepealt', 'siis', 'pärast seda', 'lõpuks', 'esiteks', 'teiseks']],
       ], 'full', 'g_vocab'),
-      teach(tag(B.speaking('052_d_which', 'Kumb auto sobib Jaani perele?', 'Põhjenda kolm korda järjest, kumb auto sobib perele paremini. Iga kord räägi kiiremini ja lisa uus põhjus.', ['Kumb auto on odavam ja kumb uuem?', 'Kumb sobib paremini linna ja kumb pikale sõidule?', 'Mis on Jaani perele kõige tähtsam?', 'Kumma auto sina valid ja miks?', 'Mis on sinu jaoks autot või ratast valides kõige tähtsam?'], [120, 180], ['… on odavam kui…, aga…', 'Kõige tähtsam on…', 'Ma valin…, sest…']), { task: 'S11', fluency: true }),
-        'Üks-ühele: õpetaja hoiab aega (2 minutit, 90 sekundit, 1 minut) ja on iga kord teine kuulaja: Kadri (ruum), Jaan (hind), Oskar (värv). Iga kord peab tulema üks uus põhjus.'),
+      teach(tag(B.speaking('052_d_which', 'Kumb auto sobib Jaani perele?', 'Arutage paarilisega, kumb auto sobib perele paremini. Too vähemalt kolm põhjust ja vasta paarilise vastuargumentidele.', ['Kumb auto on odavam ja kumb uuem?', 'Kumb sobib paremini linna ja kumb pikale sõidule?', 'Mis on Jaani perele kõige tähtsam?', 'Kumma auto sina valid ja miks?', 'Kas perel on Eestis sinu arvates auto vaja või saab hakkama ühistranspordiga?'], [120, 180], ['… on odavam kui…, aga…', 'Kõige tähtsam on…', 'Ma valin…, sest…']), { task: 'S11', fluency: true }),
+        'Üks-ühele: õpetaja valib alati teise auto kui õpilane ja toob vastuargumendi (hind, kütus, ruum); õpilane vastab igale argumendile võrdlusega. Lõpus arutate viimast küsimust: kuidas on see õpilase kodulinnas.'),
       tag(B.examWriting('052_d_formal', 'Kadri mustand viisakaks.', 'Kadri mustand on liiga vaba. Kirjuta Karinile viisakas teie-vormis sõnum, kus kõik faktid on alles.', 'teade', {
         situation: 'Kadri mustand: „Tšau! Nägime su Škodat netis. Kas see on veel alles? Jaan tahab laupäeval proovida, kuskil kella üheteistkümne paiku. Ja kas hinnas saab rääkida? Vasta kiirelt!”',
         points: ['kes kirjutab ja millise kuulutuse pärast', 'kas auto on veel müügis', 'proovisõidu päev ja kellaaeg', 'küsimus hinna kohta ja viisakas lõpp'],
@@ -294,6 +324,31 @@ export const LESSONS = withShapes({
         ['Karin müüb auto. Tema pere kolib Soome.', 'kuna', 'Karin müüb auto, kuna tema pere kolib Soome.'],
         ['Škoda pagasiruum on suur. Sinna mahub ka Mia jalgratas.', 'nii et', 'Škoda pagasiruum on suur, nii et sinna mahub ka Mia jalgratas.'],
       ]), { task: 'W09' }),
+      tag(B.reading('052_p_guide', 'Kasutatud auto ostja meelespea.', 'Loe ajakirja nõuandeid kasutatud auto ostjale. Vasta küsimustele oma sõnadega.', 'Kasutatud auto: mida kontrollida enne ja pärast ostu?', [
+        'Kasutatud auto on Eestis populaarne valik, sest uus auto on kallis. Enne ostu tasub aga mõned asjad hoolikalt üle kontrollida.',
+        '',
+        'Kõigepealt vaata auto andmeid Transpordiameti e-teeninduses. Seal on kirjas, millal autoga on tehnoülevaatusel käidud ja milline oli läbisõit igal ülevaatusel. Kui kuulutuses on läbisõit väiksem kui viimasel ülevaatusel, on midagi valesti.',
+        '',
+        'Teiseks tee proovisõit ja võta võimaluse korral kaasa sõber, kes autosid tunneb. Küsi müüjalt hooldusraamatut ja arveid. Kolmandaks sõlmi kirjalik leping ja maksa pangaülekandega, siis jääb maksest jälg. Kui müüja ei taha lepingut kirjutada või tahab raha ainult sularahas, ole ettevaatlik.',
+        '',
+        'Pärast ostu tuleb auto registreerida uue omaniku nimele. Seda saab teha Transpordiameti e-teeninduses: müüja alustab tehingut ja ostja peab selle lõpetama viie päeva jooksul. E-teeninduses on see odavam kui teenindusbüroos.',
+        '',
+        'Autol peab olema liikluskindlustus. Kui autol on juba kindlustusleping, läheb see automaatselt uuele omanikule üle.',
+        '',
+        'Alates 1. jaanuarist 2025 on Eestis mootorsõidukimaks. See koosneb iga-aastasest maksust ja registreerimistasust. Registreerimistasu võib tulla maksta ka siis, kui Eestis juba registreeritud auto vahetab omanikku. Maksu- ja Tolliamet teatas 2025. aasta novembris, et lastega pered saavad aastamaksu vähendust kuni 100 eurot iga alaealise lapse kohta.',
+        '',
+        'Allikas: Transpordiamet, „Levinud küsimused”. Liikluskindlustuse Fond, „Sõiduki omaniku muutumine”. Maksu- ja Tolliamet, „Mootorsõidukimaks” (7.10.2026) ja uudis 24.11.2025.',
+      ], [
+        ['Kust saab vaadata auto varasemat läbisõitu?', 'Transpordiameti e-teenindusest|Transpordiameti e-teeninduses'],
+        ['Mida tähendab, kui kuulutuses on läbisõit väiksem kui viimasel ülevaatusel?', 'midagi on valesti|kuulutus ei ole aus'],
+        ['Keda tasub proovisõidule kaasa võtta?', 'sõbra, kes autosid tunneb|sõpra, kes tunneb autosid|sõbra'],
+        ['Miks on parem maksta pangaülekandega?', 'siis jääb maksest jälg|maksest jääb jälg'],
+        ['Kes alustab e-teeninduses omanikuvahetust?', 'müüja'],
+        ['Mitme päeva jooksul peab ostja tehingu lõpetama?', 'viie päeva jooksul|5 päeva jooksul|viie'],
+        ['Mis saab auto kindlustuslepingust, kui auto vahetab omanikku?', 'see läheb automaatselt uuele omanikule üle|läheb uuele omanikule üle'],
+        ['Millest koosneb mootorsõidukimaks?', 'iga-aastasest maksust ja registreerimistasust|aastamaksust ja registreerimistasust'],
+        ['Kas automaks on sinu arvates õiglane? Miks?', ''],
+      ]), { task: 'R19', voice: 'article' }),
       B.errorfix('052_p_fix', 'Kadri mustandi vead.', 'Kadri kirjutas kirja mustandi kiiresti. Igas lauses on üks võrdlemise viga; kirjuta lause õigesti.', [
         ['Toyota on palju odavam kui Škodast.', 'Toyota on palju odavam kui Škoda.'],
         ['Škoda on meie perele kõige parem kui Toyota.', 'Škoda on meie perele parem kui Toyota.'],
@@ -313,7 +368,7 @@ export const LESSONS = withShapes({
       'Eksaminurk (Harno B1 kirjutamine 1, küsimustik, ~9 min). Strateegia: 1) vasta igale küsimusele, ka siis, kui vastus on lühike; 2) miks-küsimusele vasta sest- või kuna-lausega; 3) kasuta küsimuse sõnu oma vastuses (Kõige tähtsam on minu jaoks…); 4) kontrolli lõpus, et ükski küsimus ei jäänud vahele. Üks-ühele: õpetaja loeb vastused ja märgib, mitu miks-vastust olid põhjendatud (eesmärk kolm kolmest).'),
     ],
     transfer: [
-      B.text('052_t_sit', 'Laupäeval Rae vallas', 'Laupäeval kell üksteist on Jaanil proovisõit. Reede õhtul saatis Karin talle e-kirja. Loe kirja, kauple Kariniga hinna üle, salvesta kodus perele kokkuvõte ja kirjuta Helgile kiri: Helgi küsis, kumma auto te lõpuks valisite.'),
+      B.text('052_t_sit', 'Laupäeval Rae vallas', 'Laupäeval kell üksteist on Jaanil proovisõit. Reede õhtul saatis Karin talle e-kirja. Loe kirja, kauple Kariniga hinna üle, räägi perele, mida otsustasid, ja kirjuta Helgile kiri: Helgi küsis, kumma auto te lõpuks valisite.'),
       B.insertion('052_t_mail', 'Karini e-kiri.', 'Mõned lauseosad on Karini kirjast kadunud. Leia igale lüngale sobiv osa; kaks osa on üleliigsed.', 'Proovisõit laupäeval', [
         'Tere, Jaan! Aitäh eilse kõne eest. Mul oli hea meel kuulda, et teie pere otsib just sellist autot. Saadan teile proovisõidu info, [[nii et laupäeval ei pea te midagi otsima]].',
         '',
@@ -331,11 +386,11 @@ export const LESSONS = withShapes({
       ], ['kuigi auto on juba müüdud', 'Talverehve kahjuks ei ole']),
       teach(tag(B.rolecards('052_t_deal', 'Kauplemine.', 'A on ostja Jaan, B on müüja Karin. Kaubelge hinna üle ja jõudke kokkuleppele. Seejärel vahetage rollid ja tehke kiiremini.',
         'Sa oled Jaan. Proovisõit läks hästi, aga esimene käik ei lähe kergelt sisse. Kõige rohkem saad maksta 7800 eurot. Võrdle Toyotaga, too kaks põhjust ja paku madalamat hinda.',
-        'Sa oled Karin. Auto maksab 8200 eurot, telefonis lubasid 7900. Kiida autot võrdlustega. Alla 7800 euro sa ei müü, aga talverehvid võid kaasa anda.',
+        'Sa oled Karin. Auto maksab 8200 eurot, eile lubasid 7900. Kiida autot võrdlustega. Alla 7800 euro sa ei müü, aga talverehvid võid kaasa anda.',
         ['Toyota on … odavam ja…', 'Esimene käik ei lähe…', 'Minu pakkumine on…'], ['See auto on palju parem kui…', 'Kõige rohkem saan anda…', 'Kokku lepitud!']), { task: 'S03', fluency: true }),
       'Üks-ühele: õpetaja on Karin ja ei anna alguses hinnast midagi alla; õpilane võrdleb Toyotaga ja nimetab käigukasti. Teisel korral vahetage rollid ja kaubelge kahe minutiga. Lõpus ütleb õpilane kokkuleppe: hind, rehvid, makseviis.'),
-      teach(tag(B.speaking('052_t_family', 'Kodus: miks just see auto?', 'Salvesta perele 2–3-minutiline kokkuvõte: millise auto te ostsite ja miks just selle. Kasuta vähemalt viit võrdlust.', ['Millised autod olid valikus?', 'Mis on Škodas parem kui Toyotas?', 'Mis on Škodas halvem?', 'Kuidas sa müüjaga kauplesid ja mis oli lõpphind?', 'Mis oli perele kõige tähtsam?'], [120, 180], ['Škoda on … kui Toyota.', 'Kõige tähtsam oli…', 'Lõpuks leppisime kokku…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse, loeb võrdlused kokku ja küsib ühe küsimuse lõpphinna kohta.'),
+      teach(tag(B.speaking('052_t_family', 'Pere nõupidamine: miks just see auto?', 'Räägi perele köögilaua taga 2–3 minutit, millise auto te ostsite ja miks just selle. Kasuta vähemalt viit võrdlust; pere küsib vahele.', ['Millised autod olid valikus?', 'Mis on Škodas parem kui Toyotas?', 'Mis on Škodas halvem?', 'Kuidas sa müüjaga kauplesid ja mis oli lõpphind?', 'Mis oli perele kõige tähtsam?'], [120, 180], ['Škoda on … kui Toyota.', 'Kõige tähtsam oli…', 'Lõpuks leppisime kokku…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog või tunnis: õpetaja on pere (Helgi küsib hinna, Mia värvi kohta) ja küsib vahele; õpetaja loeb võrdlused kokku ja küsib lõpus ühe küsimuse lõpphinna kohta.'),
       tag(B.examWriting('052_t_letter', 'Kiri Helgile.', 'Kirjuta Helgile 80–100 sõnaga, millise auto te ostsite ja miks. Kirjuta kõigist neljast punktist.', 'kiri', {
         situation: 'Helgi vastas Kadri kirjale ja küsis, kumma auto te lõpuks valisite. Kirjuta talle Jaani nimel.',
         points: ['millised autod olid valikus ja mis on nende erinevus', 'kuidas proovisõit ja kauplemine läksid', 'miks te valisite just selle auto', 'millal te uue autoga Tartusse külla tulete'],
@@ -443,6 +498,11 @@ export const LESSONS = withShapes({
       tag(B.reading('053_p_terms', 'Tagastamine ja garantii.', 'Kas väide on poe tingimuste järgi õige, vale või ei ole tekstist teada? Kirjuta õige, vale või ei selgu.', 'Poe Nutikas tingimused',
         'Kas ostetud kaup ei sobi? Ostetud kauba saab tagastada 14 päeva jooksul. Toode peab olema kasutamata ja originaalpakendis. Avatud pakendiga tooteid me tagasi ei võta. Makstud summa kanname teie pangakontole viie tööpäeva jooksul. Kui ostsite kauba e-poest, saate selle tagastada ka pakiautomaadi kaudu.\n\nKas toode läks katki? Kõikidele meie poes müüdavatele telefonidele kehtib kahe aasta garantii. Garantii ajal parandame katkise toote tasuta. Kui toodet ei saa parandada, vahetame selle uue vastu või anname raha tagasi. Kui sama viga tuleb pärast remonti tagasi, parandame toote uuesti tasuta.\n\nGarantii ei kehti, kui toode on kukkunud või saanud märjaks. Ka ise parandatud või lahti võetud telefonile garantii ei kehti.\n\nKuidas toode garantiisse tuua? Tooge katkine toode poodi koos ostutšekiga. Kui tšekk on kadunud, sobib ka pangakonto väljavõte. Kirjeldage teenindajale täpselt, mis juhtus ja millal. Teenindaja täidab koos teiega garantiilehe. Täidetud lehe koopia jääb teile. Hoidke see koos tšekiga alles, sest seda võib hiljem vaja minna.\n\nParandatud toote saate tagasi tavaliselt kahe nädala jooksul. Kui remont võtab kauem, anname teile sellest teada. Remondi ajaks pakume tasuta asendustelefoni. Soovitatav on enne remonti teha oma andmetest varukoopia, sest remondi ajal võivad andmed kaduda.\n\nKas teil on veel küsimusi? Helistage meie klienditeenindusse või kirjutage e-poe vestlusaknasse. Meie teenindajad vastavad tavaliselt ühe tunni jooksul. Oleme avatud iga päev kella kümnest kaheksani.',
         [['Ostetud kauba saab tagastada kahe nädala jooksul.', 'õige'], ['Avatud pakendiga telefoni võtab pood alati tagasi.', 'vale'], ['Makstud raha kantakse kontole samal päeval tagasi.', 'vale'], ['Garantii ei kehti telefonile, mis on saanud märjaks.', 'õige'], ['Garantiiremont kestab alati täpselt kaks nädalat.', 'vale'], ['Asendustelefon on uuem kui klientide telefonid.', 'ei selgu'], ['Vestlusaknas vastatakse tavaliselt ühe tunni jooksul.', 'õige'], ['Miks tasub täidetud garantiilehe koopia alles hoida?', 'seda võib hiljem vaja minna|kui sama viga tuleb tagasi']], 'g_vocab'), { task: 'R06' }),
+      B.know('053_p_know', [
+        'Kui ostad midagi e-poest, võid lepingust taganeda 14 päeva jooksul alates päevast, kui said kauba kätte. Põhjust ei pea ütlema. Taganemiseks peab e-poes olema lihtne võimalus, näiteks taganemisnupp.',
+        'Pood peab raha tagasi maksma hiljemalt 14 päeva jooksul pärast seda, kui sai sinu teate. Tagasi tuleb maksta ka tavalise saatmise hind. Pood võib raha maksta siis, kui kaup on tagasi jõudnud. Tagasisaatmise eest maksab ostja, kui pood on sellest enne ostu teatanud.',
+        'Taganeda ei saa näiteks kiiresti rikneva toidu, ostja mõõtude järgi tehtud asja ega avatud hügieenitoote puhul. Tavalises poes ostetud asja ei pea pood seaduse järgi tagasi võtma, aga paljud poed teevad seda oma reeglite järgi.',
+      ], 'võlaõigusseadus § 53, § 56 ja § 56¹; TTJA, „Meelespea tarbijale – ostmine e-poest” (1.09.2026); Your Europe, „Teie õigused oste tehes”', 'Kas teadsid? Ostja õigused e-poes'),
       B.formtext('053_p_reply', 'Poe vastus.', 'Pood kirjutab Sofiale. Pane sulgudes olev tegusõna sobivasse vormi: kesksõnaks või muuks vormiks.', 'Teie telefon on valmis', [
         'Tere, Sofia! Teie [parandatud] (parandama) telefon on valmis ja ootab teid Ülemiste poes. Meie töökojas vahetati telefonil laadimispesa ja kontrolliti üle ka aku.',
         '',
@@ -531,7 +591,7 @@ export const LESSONS = withShapes({
         'Küsi tellimuse numbrit ja mis juhtus.', 'Viga on poe oma, tagastamine on tasuta.', 'Uus jope tuleb kahe päevaga, kui see kohe uuesti tellida.', 'Katkisest karbist tuleb teha pilt ja see poele saata.', 'Tagastuskood tuleb sõnumiga ja kehtib seitse päeva.',
       ]]),
       'Üks-ühele: õpetaja on klienditeenindaja ja annab infot ainult küsimise peale; teises ringis vahetage kaardid. Lõpus kordab õpilane ühe lausega, mida ta peab tegema ja millal uus jope tuleb.'),
-      teach(tag(B.speaking('053_t_rec', 'Kodus: kui pakk on vale.', 'Salvesta 2–3-minutiline nõuanne sõbrale: mida teha, kui e-poest tuleb vale või katkine asi.', ['Mida sa teed, kui pakk on katki?', 'Mida sa teed, kui sees on vale suurus?', 'Kuidas sa poega ühendust võtad?', 'Mis peab kaebuses kindlasti kirjas olema?', 'Milline oli sinu kõige halvem e-poe kogemus?'], [120, 180], ['Kõigepealt tee…', 'Kui sees on vale…, siis…', 'Kaebuses peab olema…']), { task: 'S15', level: 3 }),
+      teach(tag(B.speaking('053_t_rec', 'Kodus: kui pakk on vale.', 'Salvesta 2–3-minutiline nõuanne sõbrale: mida teha, kui e-poest tuleb vale või katkine asi.', ['Mida sa teed, kui pakk on katki?', 'Mida sa teed, kui sees on vale suurus?', 'Kuidas sa poega ühendust võtad?', 'Mis peab kaebuses kindlasti kirjas olema?', 'Milline oli sinu kõige halvem e-poe kogemus?', 'Kas sinu arvates on e-poest ostmine riskantsem kui poest ostmine? Miks?'], [120, 180], ['Kõigepealt tee…', 'Kui sees on vale…, siis…', 'Kaebuses peab olema…']), { task: 'S15', level: 3 }),
         'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib, mida õpilane teeb, kui pood ei vasta.'),
       B.planning('053_t_plan', 'Kaebuse plaan.', 'Enne kirjutamist märgi iga punkti juurde märksõnad. Kasuta vähemalt kolme kesksõna.', ['Mis on tellimuse number ja kuupäev?', 'Mida sa tellisid ja mida said?', 'Mis juhtus pakiga?', 'Mida sa soovid?', 'Mis on kirja lisas?'], 2),
       tag(B.examWriting('053_t_mail', 'Kaebus e-poele.', 'Kirjuta Lasteriie klienditeenindusele 80–100 sõnaga kaebus. Kirjuta kõigist viiest punktist.', 'vastus', {
@@ -545,11 +605,11 @@ export const LESSONS = withShapes({
   },
 
   'a2b1-054': {
-    title: 'Parandatud telefon läks jälle katki',
-    canDo: 'Ma helistan poe juhatajale, selgitan garantiiprobleemi, põhjendan oma nõuet ja lepin kokku lahenduse.',
+    title: 'E-teenused, maksmine ja garantii',
+    canDo: 'Ma selgitan, kuidas Eestis e-teenustes ja e-poes turvaliselt oma isikut tõendada ja maksta, ning helistan poe juhatajale garantiiprobleemi pärast ja põhjendan oma nõuet.',
     discover: [
       B.review('054_d_review', [['Mida Kadri e-poele Lasteriie kirjutas ja mida ta soovis?', 'a2b1-053'], ['Kuidas Jaani töövestlus telefonis läks?', 'a2b1-044'], 'Kas sa oled kunagi poele kaebuse esitanud?']),
-      B.text('054_d_hook', 'Jälle sama viga', 'Sofia sai parandatud telefoni 8. mail kätte. Kaks nädalat hiljem lõpetas telefon jälle laadimise. Sofia viis selle uuesti poodi ja täna helistati talle töökojast. Kuula sõnumit. Mis on probleem ja mida Sofia nüüd teeb? Proovi kõigepealt ise otsustada, siis õpid, kuidas kaevata nii, et see aitab.'),
+      B.text('054_d_hook', 'Jälle sama viga', 'Sofia sai parandatud telefoni 8. mail kätte. Kaks nädalat hiljem lõpetas telefon jälle laadimise. Ilma telefonita ei saa Sofia isegi internetipanka minna, sest tema Smart-ID on telefonis. Ta viis telefoni uuesti poodi ja täna helistati talle töökojast. Kuula sõnumit. Mis on probleem ja mida Sofia nüüd teeb? Proovi kõigepealt ise otsustada, siis õpid, kuidas kaevata nii, et see aitab.'),
       tag(B.listening('054_d_voice', 'Töökoja häälsõnum.', 'Kuula töökoja sõnumit kaks korda ja tee Sofiale märkmed: mida pood väidab ja mida ta küsib.', [
         'Rene: Tere, Sofia! Siin Rene poe Nutikas töökojast. Helistan teie telefoni pärast, mille te eile meile tõite.',
         'Rene: Me kontrollisime telefoni üle. Laadimispesa, mille me mais vahetasime, töötab hästi. Probleem on seekord akus.',
@@ -598,17 +658,40 @@ export const LESSONS = withShapes({
         'Keeld: **Ärge** võtke telefoni lahti! · Sõbrale: **ära** maksa enne!',
       ], 'full'),
       tag(B.vocab('054_d_vocab', 'Tunni sõnad.', ['nõue — требование', 'nõudma — требовать', 'juhataja — заведующий', 'tõend — доказательство', 'niiskus — влажность', 'lahendus — решение', 'rahul — доволен', 'soovitama — рекомендовать', 'arvustus — отзыв', 'õigus — право', 'vastama — отвечать', 'tähtaeg — срок']), { topic: ['niiskus'] }),
-      B.crossword('054_d_cross', 'Ristsõna: kaebus.', 'Lahenda ristsõna. Kõik sõnad on Sofia probleemist ja tunni sõnadest.', [
-        ['Selle kirjutad, kui teenus või kaup ei ole korras.', 'kaebus'], ['Poe kõige tähtsam töötaja, kes otsustab.', 'juhataja'], ['Vesi, mis on asja sees või peal.', 'niiskus'], ['Paber või pilt, mis näitab, et sul on õigus.', 'tõend'], ['Kirjutad selle poe kodulehele, kui tahad oma kogemust jagada.', 'arvustus'],
-        ['Selle abil töötab telefon ilma juhtmeta.', 'aku'], ['Paber, mille saad poes pärast maksmist.', 'tšekk'], ['Kahe aasta lubadus, et pood parandab tasuta.', 'garantii'], ['Viimane päev, millal tuleb vastata või maksta.', 'tähtaeg'], ['Kui saad, mida tahtsid, oled sellega …', 'rahul'],
-      ], 'half', 'g_vocab'),
       B.match('054_d_words', 'Kaebuse sõnad.', 'Mis tähendab iga kaebuse sõna? Ühenda vasakul ja paremal olev.', [
         ['nõudma', 'kindlalt ütlema, mida sa tahad saada'], ['tõend', 'dokument või pilt, mis näitab, mis juhtus'], ['remondiakt', 'paber, kuhu töökoda kirjutab tehtud töö'], ['kehtiv garantii', 'garantii, mis ei ole veel lõppenud'], ['juhataja', 'inimene, kes juhib poodi ja otsustab'],
         ['lahendus', 'see, mis teeb probleemi korda'], ['tähtaeg', 'päev, milleks midagi peab tehtud olema'], ['arvustus', 'kliendi arvamus teenuse või kauba kohta'], ['tarbijavaidluste komisjon', 'koht, kus saab tasuta kaevata, kui poega kokku ei lepi'], ['niiskuse jäljed', 'märgid, et asja sisse on saanud vett'],
       ], 'full', 'g_vocab'),
       teach(tag(B.ideaCard('054_d_steps', 'Mida Sofia nüüd teeb?', 'Arutage Sofia võimalusi ja pange need järjekorda: mis on kõige parem, mis kõige halvem. Leppige kokku esimene samm.', 'Töökoda tahab remondi eest 89 eurot. Sofia teab, et telefon ei ole märjaks saanud. Garantii kehtib veel peaaegu kaks aastat.', ['maksta 89 eurot ja unustada', 'helistada poe juhatajale', 'kirjutada poele kirjalik kaebus', 'kirjutada internetti halb arvustus', 'pöörduda tarbijavaidluste komisjoni', 'viia telefon teise töökotta kontrolli'], 'Mis on kolm parimat sammu ja mis järjekorras Sofia neid teeb?'), { task: 'S12' }),
         'Üks-ühele: õpetaja on Anna, kes tahab kohe internetti halva arvustuse kirjutada; õpilane põhjendab, miks on teine samm parem. Lõpus nimetab õpilane kolm sammu järjekorras. See on esimene katse; tunni lõpus tuleb sama olukord uuesti.'),
-      teach(tag(B.speaking('054_d_survey', 'Kas sa oled teenindusega rahul?', 'Küsi kolmelt inimeselt samad küsimused teeninduse kohta. Lõpus räägi lühidalt, mida kuulsid.', ['Millises poes on sinu arvates kõige parem teenindus? Miks?', 'Kas sa oled kunagi poele kaevanud?', 'Kuidas pood sinu probleemi lahendas?', 'Kas sa kirjutad internetti arvustusi? Miks?', 'Räägi lõpuks: mida kolm inimest arvasid?'], [120, 180], ['Mida sa arvad…?', 'Kõik kolm arvasid, et…', 'Üks ütles…, aga teine…']), { task: 'S09', fluency: true }),
+      tag(B.reading('054_d_forum', 'Foorum: ID-kaart, Mobiil-ID või Smart-ID?', 'Loe foorumi arutelu. Vasta küsimustele ja mõtle, mida sina kasutad.', 'Kuidas te internetis oma isikut tõendate?', [
+        'Marina_T: Kolisin hiljuti Eestisse. Kõik ütlevad, et internetipangas ja riigi e-teenustes on vaja ID-kaarti, Mobiil-ID-d või Smart-ID-d. Mis vahe neil on ja mida teie kasutate?',
+        '',
+        'Rein65: Mina kasutan ID-kaarti, see on Eestis olemas juba 2002. aastast. Arvutis on vaja kaardilugejat. ID-kaardil on kaks PIN-koodi: PIN1-ga tõendad oma isikut ehk logid sisse, PIN2-ga annad allkirja või kinnitad makse. Digiallkiri on sama tähtis kui käega antud allkiri.',
+        '',
+        'Liina_P: Mina allkirjastan ID-kaardiga isegi üürilepingu ja lasteaia avalduse. Riigiportaalis eesti.ee saab vaadata oma andmeid, tellida dokumente ja esitada taotlusi. Paberit ja järjekorda pole vaja.',
+        '',
+        'Kati_Tartust: Mul on Mobiil-ID. See on mobiilioperaatori eriline SIM-kaart, nii et kaardilugejat pole vaja. Mobiil-ID tuli kasutusele 2007. aastal.',
+        '',
+        'Andrus: Mina kasutan Smart-ID-d. See on rakendus telefonis. Aga olge ettevaatlikud: ükski pank ega riigiasutus ei palu teil PIN-koode sisestada ega edastada. Kui keegi helistab ja palub seda teha, lõpetage kõne. Ärge kinnitage kunagi toimingut, mida te ise ei alustanud.',
+        '',
+        'Marina_T: Aitäh kõigile! Aga mis siis, kui ma telefoni kaotan ja Smart-ID on ainult seal?',
+        '',
+        'Rein65: Siis võta kohe ühendust oma pangaga. Seepärast on hea, kui sul on kaks võimalust, näiteks ID-kaart ja Smart-ID.',
+        '',
+        'Allikas: id.ee, „ID-kaart ja selle kasutamine” ja „PIN-koodide turvalisest kasutamisest”; RIA (20.10.2022); SK ID Solutions, „Mobiil-ID”; Smart-ID; Pangaliit (30.10.2025).',
+      ], [
+        ['Miks kirjutab Marina foorumisse?', 'ta kolis Eestisse ja ei tea, mis vahe neil on|ta tahab teada, mis vahe neil on'],
+        ['Mida teeb ID-kaardi kasutaja PIN1-ga?', 'tõendab oma isikut|logib sisse'],
+        ['Mida teeb ta PIN2-ga?', 'annab allkirja või kinnitab makse|annab digiallkirja'],
+        ['Mida on ID-kaardi kasutajal arvutis vaja?', 'kaardilugejat'],
+        ['Mis on Mobiil-ID?', 'mobiilioperaatori eriline SIM-kaart|eriline SIM-kaart'],
+        ['Mis on Smart-ID?', 'rakendus telefonis|telefoni rakendus'],
+        ['Mida teha, kui keegi helistab ja palub PIN-koode?', 'lõpetada kõne|lõpeta kõne'],
+        ['Mida soovitab Rein teha, kui telefon kaob?', 'võtta kohe ühendust pangaga|helistada pangale'],
+        ['Mida sina kasutad ja miks?', ''],
+      ]), { voice: 'forum', task: 'R15' }),
+      teach(tag(B.speaking('054_d_survey', 'Kuidas sa maksad ja asju ajad?', 'Küsi kolmelt inimeselt samad küsimused maksmise ja e-teenuste kohta. Lõpus räägi lühidalt, mida kuulsid.', ['Kuidas sa tavaliselt maksad: kaardi, telefoni või sularahaga? Miks?', 'Milliseid e-teenuseid sa kasutad kõige rohkem?', 'Kas sa oled kunagi saanud petise kõne või sõnumi? Mida sa tegid?', 'Kas e-teenused on Eestis sinu arvates lihtsamad kui sinu kodumaal?', 'Räägi lõpuks: mida kolm inimest arvasid?'], [120, 180], ['Mida sa arvad…?', 'Kõik kolm arvasid, et…', 'Üks ütles…, aga teine…']), { task: 'S09', fluency: true }),
         'Üks-ühele: õpilane küsib samad küsimused õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (pensionär, tudeng, poemüüja). Lõpus teeb õpilane minutilise kokkuvõtte.'),
     ],
     practice: [
@@ -687,11 +770,16 @@ export const LESSONS = withShapes({
         ['Ma ootan teie vastus kümne päeva jooksul.', 'Ma ootan teie vastust kümne päeva jooksul.'],
         ['Ma olen väga pahane teie teenindusega.', 'Ma olen väga pahane teie teeninduse peale.'],
       ]),
+      B.know('054_p_know', [
+        'Eesti e-poodides saab tavaliselt maksta kaardiga või pangalingiga. Pangalingi puhul valid oma panga, logid panka sisse ID-kaardi, Mobiil-ID või Smart-ID-ga, kinnitad makse ja jõuad tagasi e-poodi. Panka sisselogimise andmeid e-pood ei näe.',
+        'Poes võib viipemaksega maksta kuni 50 eurot ilma PIN-koodita. Suurem makse tuleb kinnitada PIN-koodiga.',
+        'Pangaliidu andmetel registreeris politsei 2025. aasta teises ja kolmandas kvartalis 280 telefonipettust ja kahju oli 6,8 miljonit eurot. Ükski pank ega riigiasutus ei palu sul PIN-koode sisestada ega edastada.',
+      ], 'Samsung Eesti e-pood, „Maksed ja järelmaks”; Pangaliit, „Viipemaksega saab nüüd korraga maksta ka üle 50 euro” (2.11.2021) ja „Uue Smart-ID loomisega seotud pettused põhjustavad miljonikahjusid” (30.10.2025)', 'Kas teadsid? Kuidas turvaliselt maksta'),
       tag(B.examWriting('054_p_form', 'Garantiinõude vorm.', 'Sofia täidab poe e-teeninduses garantiinõude vormi. Vasta igale väljale lühidalt; põhjenda, kus küsitakse „Miks?”.', 'kusimustik', {
         situation: 'Juhataja palus enne kõnet täita e-teeninduses vormi. Vasta Sofia nimel.',
         questions: ['Teie nimi ja telefoninumber?', 'Mis toode see on ja millal te selle ostsite?', 'Kus te toote ostsite?', 'Mis on probleem?', 'Millal probleem esimest korda tekkis?', 'Kas toodet on varem parandatud? Millal?', 'Kas toode on kukkunud või saanud märjaks?', 'Mida te soovite: remonti, uut toodet või raha tagasi? Miks?', 'Milliseid dokumente te lisate?', 'Kuidas soovite vastust saada? Miks?'],
       }), { task: 'W07' }),
-      teach(tag(B.speaking('054_p_topic', 'Teemaküsimused: ostlemine ja teenindus.', 'Vasta igale küsimusele 3–4 lausega ja too näide. Seejärel vasta samadele küsimustele uuesti lühemalt.', ['Kas sa ostad pigem poest või internetist? Miks?', 'Mida sa teed, kui ostetud asi läheb katki?', 'Milline on sinu meelest hea teenindaja?', 'Kas sa loed enne ostmist arvustusi? Miks?', 'Mis on sinu arvates ostlemisel kõige tähtsam: hind, kvaliteet või teenindus?'], [120, 180], ['Minu arvates…, sest…', 'Näiteks eelmisel kuul…', 'Kõige tähtsam on…']), { fluency: true }),
+      teach(tag(B.speaking('054_p_topic', 'Teemaküsimused: ostlemine ja teenindus.', 'Vasta igale küsimusele 3–4 lausega ja too näide. Seejärel vasta samadele küsimustele uuesti lühemalt.', ['Kas sa ostad pigem poest või internetist? Miks?', 'Mida sa teed, kui ostetud asi läheb katki?', 'Milline on sinu meelest hea teenindaja?', 'Kas sa kasutad pigem ID-kaarti, Mobiil-ID-d või Smart-ID-d? Miks?', 'Mis on sinu arvates ostlemisel kõige tähtsam: hind, kvaliteet või teenindus?'], [120, 180], ['Minu arvates…, sest…', 'Näiteks eelmisel kuul…', 'Kõige tähtsam on…']), { fluency: true }),
         'Üks-ühele: õpetaja küsib nagu eksamineerija; esimesel ringil vastab õpilane pikalt, teisel ringil igale küsimusele 30 sekundiga. Õpetaja loeb kokku, mitu vastust olid põhjuse või näitega.'),
     ],
     transfer: [
@@ -713,6 +801,11 @@ export const LESSONS = withShapes({
         ['Kui palju peab Sofia kontrolli eest maksma, kui see on garantiijuhtum?', 'mitte midagi|0 eurot|ei pea maksma'],
         ['Milliseid kolme tõendit saab Sofia juhatajale nimetada?', 'esimene remondiakt, teisel aktil pole pilte ja Anna nägi kuiva telefoni|esimene akt, tingimused ja Anna'],
       ]), { task: 'R08', level: 3 }),
+      B.know('054_t_know', [
+        'Poe garantii ja ostja seaduslik õigus on kaks eri asja. Kui asjal on viga, mis tuleb välja kahe aasta jooksul pärast ostu, võib ostja esitada müüjale nõude ka siis, kui poe garantii on lühem või juba lõppenud.',
+        'Kui viga tuleb välja esimese aasta jooksul, eeldab seadus, et viga oli asjas juba ostu ajal. Veast tuleb müüjale teada anda kahe kuu jooksul pärast seda, kui ostja selle avastas.',
+        'Kirjalikule kaebusele peab kaupleja vastama samuti kirjalikult 15 päeva jooksul.',
+      ], 'võlaõigusseadus § 218 ja § 220; tarbijakaitseseadus § 24', 'Kas teadsid? Garantii ja kahe aasta õigus'),
       teach(tag(B.phoneCards('054_t_call', 'Eksaminurk: kõne poe juhatajale (Harno B1 rääkimine 2)', 'A helistab Sofia nimel poe juhatajale, B on juhataja Kristo Aru. Seejärel vahetage kaardid.', 'Töökoda küsib korduva rikke eest 89 eurot ja väidab, et telefon on saanud märjaks. Sofia ei ole sellega nõus.', ['Sofia', [
         'Tervita, ütle oma nimi ja miks helistad.', 'Seleta, millal telefon osteti ja mida esimesel korral parandati.', 'Ütle, miks sa ei ole niiskuse jälgedega nõus, ja nimeta tõendid.', 'Nõua lahendust: tasuta remont, uus telefon või raha tagasi.', 'Küsi, millal ja kuidas sa vastuse saad.',
       ]], ['Poe juhataja Kristo Aru', [
@@ -724,7 +817,7 @@ export const LESSONS = withShapes({
       B.writing('054_t_review', 'Arvustus poe kodulehel.', 'Kirjuta poe Nutikas kodulehele aus arvustus 9–11 lausega: mis juhtus, mis oli hea, mis halb ja kas soovitad poodi teistele.', [9, 11], ['parandatud', 'juhataja', 'kahjuks', 'soovitan'], 3),
       B.rubricSpeaking('054_t_rubric', 'Hindamine: kõne poe juhatajale (20 punkti).'),
       B.rubric('054_t_check', 'Kas arvustus on aus ja selge?', 'Loe oma arvustust veel kord ja märgi, mis on olemas.', ['Arvustuses on kirjas, mis juhtus ja millal.', 'Seal on nii hea kui ka halb.', 'Toon on aus ja viisakas, ilma solvanguteta.', 'Lõpus on selge soovitus teistele klientidele.']),
-      B.selfcheck('054_t_self', ['Ma loen poe pakkumist ja võrdlen hindu.', 'Ma kirjutan kirja, kus võrdlen ja põhjendan.', 'Ma kasutan kesksõnu: ostetud kaup, makstud summa, kehtiv garantii.', 'Ma kirjutan poele kaebuse.', 'Ma helistan poe juhatajale ja põhjendan oma nõuet.', 'Ma kirjutan teenindusest ausa arvustuse.'], 'Moodul 11 tehtud'),
+      B.selfcheck('054_t_self', ['Ma loen poe pakkumist ja võrdlen hindu.', 'Ma kirjutan kirja, kus võrdlen ja põhjendan.', 'Ma kasutan kesksõnu: ostetud kaup, makstud summa, kehtiv garantii.', 'Ma kirjutan poele kaebuse.', 'Ma selgitan, kuidas e-teenustes ja e-poes turvaliselt maksta.', 'Ma helistan poe juhatajale ja põhjendan oma nõuet.', 'Ma kirjutan teenindusest ausa arvustuse.'], 'Moodul 11 tehtud'),
     ],
   },
 
@@ -803,8 +896,18 @@ export const LESSONS = withShapes({
         ['Kõige tähtsam minu jaoks on hea teenindajat.', 'Kõige tähtsam minu jaoks on hea teenindaja.'],
       ], 'full', 'g_notice'),
       B.writing('055_d_write', 'Minu parim ja halvim ost.', 'Kirjuta 8–10 lauset: mis oli sinu parim ja mis halvim ost, mis need maksid ja miks sa nii arvad.', [8, 10], ['odavam', 'ostetud', 'kahjuks', 'sest'], 3),
-      teach(B.speaking('055_d_warm', 'Soojendus enne eksamit.', 'Vasta neljale küsimusele nagu eksamil: iga vastus on kaks-kolm lauset.', ['Kus sa tavaliselt toitu ja riideid ostad?', 'Kas sa maksad pigem kaardi, telefoni või sularahaga?', 'Mida sa viimati internetist tellisid?', 'Kas sinuga on poes midagi ootamatut juhtunud?'], [120, 150]),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane samu küsimusi õpetajalt.'),
+      // the examiner's question set on the module's Harno topic (§13.7), with its own instruction (final shape V7); keeps the
+      // id of the warm-up it grew from
+      teach(withInstruction(B.examiner('055_d_warm', 'sisseostud, teenused ja raha', [
+        'Kus sa tavaliselt toitu ja riideid ostad ja miks just seal?',
+        'Kas sa maksad pigem kaardi, telefoni või sularahaga? Miks?',
+        'Mida sa viimati internetist tellisid ja kas jäid rahule?',
+        'Kas kasutatud asjade ostmine on sinu arvates hea mõte? Põhjenda.',
+        'Kuidas erinevad poed ja teenindus Eestis ja sinu kodumaal?',
+        'Kas inimesed peaksid vähem asju ostma? Mis sa arvad?',
+        'Millist teenust sa kasutad iga nädal ja miks?',
+      ]), 'Eksami algus: eksamineerija küsib, kuidas sa ostad, maksad ja teenuseid kasutad. Vasta igale küsimusele kahe-kolme lausega ja põhjenda oma arvamust.'),
+        'Üks-ühele: õpetaja küsib nagu eksamineerija ega aita; vahel küsib ta lisaks „Miks?” või „Kas näiteks…?”. Lõpus küsib õpilane õpetajalt kaks küsimust samal teemal.'),
     ],
     practice: [
       B.examPart('055_p_rpart', 'R', { minutes: 50, points: 33, tasks: 4, note: 'Lugemisosa on Harno B1 vormis ja täispikkuses: neli ülesannet, 33 punkti. Eesmärk on vähemalt 27 punkti (80 %).' }),
@@ -827,25 +930,25 @@ export const LESSONS = withShapes({
         ['Mees vajab pükse juba täna õhtuks ja on nõus rohkem maksma.', 'D'],
       ]), { harno: 'R1' }),
       B.reading('055_p_r2text', 'Lugemine 2. Artikkel.', 'Lugege ajaleheartiklit sularaha kohta. Valikküsimused on kohe artikli järel.', 'Kas sularaha kaob?', [
-        'Veel kakskümmend aastat tagasi maksti Eestis enamik oste sularahas. Täna maksab eestlane kaardiga või telefoniga isegi siis, kui ostab ainult saia või bussipileti. Paljud noored ei kanna rahakotti üldse kaasas. Ühe suure poeketi andmetel tehakse sularahas ainult umbes iga kümnes makse.',
+        'Veel mõnikümmend aastat tagasi maksti Eestis peaaegu kõik ostud sularahas. Täna maksab enamik inimesi kaardi või telefoniga isegi siis, kui ostab ainult saia või bussipileti. Eesti Panga 2024. aasta uuringu järgi tehakse Eestis kaardi või nutiseadmega 57 % ja sularahas 39 % maksetest. Euroalal tervikuna kasutatakse poodides sularaha rohkem: seal makstakse sularahas 52 % ostudest.',
         '',
-        'Kaardiga maksmine on kiire ja mugav. Ei pea muretsema, kas rahakotis on piisavalt münte. Ka poodidele on see lihtsam, sest sularaha tuleb loendada ja panka viia.',
+        'Kaardiga maksmine on kiire ja mugav. Viipemaksega saab maksta kuni 50 eurot ilma PIN-koodita. Ka poodidele on see lihtsam, sest sularaha tuleb loendada ja panka viia.',
         '',
-        'Kõik ei ole aga rahul. Paljud vanemad inimesed kasutavad endiselt sularaha, sest nii on lihtsam kulusid kontrollida. Kui rahakott on tühi, teab inimene, et rohkem osta ei saa. Mõnes külas ei ole enam ühtegi pangaautomaati ja raha saab välja võtta ainult poe kassast.',
+        'Kõik ei ole aga rahul. Paljud vanemad inimesed kasutavad endiselt sularaha, sest nii on lihtsam kulusid kontrollida. Kui rahakott on tühi, teab inimene, et rohkem osta ei saa. Sularaha saamiseks on vaja pangaautomaati: 2026. aasta kevadel oli Eestis 660 sularahaautomaati ja 223-sse neist sai raha ka sisse maksta.',
         '',
-        'Sularaha on vajalik ka siis, kui elekter või internet kaob. Möödunud talvel ei töötanud ühel päeval mitmes poes kaardimakse ja kliendid said osta ainult sularahaga. Need, kellel sularaha ei olnud, pidid koju minema tühjade kottidega.',
+        'Sularaha on vajalik ka siis, kui elekter või internet kaob. Siis ei pruugi kaardimakse poes töötada ja osta saab ainult sularahaga.',
         '',
-        'Eksperdid soovitavad hoida kodus väikest summat sularaha, näiteks umbes viiskümmend eurot. Igapäevaseks maksmiseks tasub aga kasutada kaarti, sest see on turvalisem kui suur summa rahakotis.',
+        'Kas sularaha kaob täiesti? Euro on Eestis ainus seaduslik maksevahend alates 1. jaanuarist 2011 ning selle hulka kuuluvad ka mündid ja paberraha. Paljud arvavad, et sularaha jääb veel kauaks alles, sest inimesed tahavad ise valida, kuidas maksta.',
         '',
-        'Kas sularaha kaob täiesti? Pangad arvavad, et lähiaastatel mitte. Paljud inimesed tahavad ise valida, kuidas maksta, ja seepärast jääb sularaha veel kauaks alles. Ka pangad ise soovitavad hoida kodus väikest varu.',
+        'Allikas: Eesti Pank, pressiteade 14.01.2025 (SPACE-uuring) ja „Sularaha”; Pangaliit (2.11.2021); ERR, „Pangad on asunud oma sularahaautomaate moderniseerima” (märts 2026).',
       ], [['Pärast eksamit: kas sina maksad pigem sularaha või kaardiga? Miks?', '']]),
       tag(B.choice('055_p_r2', 'Lugemine 2. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus kolmest variandist.', [
-        ['Kuidas maksti Eestis enamik oste kakskümmend aastat tagasi?', 'sularahas', 'kaardiga', 'telefoniga'],
-        ['Miks on kaardimakse ka poodidele lihtsam kui sularaha?', 'sularaha tuleb loendada ja panka viia', 'kaardimakse on poele tasuta', 'kliendid ostavad kaardiga rohkem'],
+        ['Kui suure osa maksetest tehakse Eestis Eesti Panga uuringu järgi sularahas?', '39 %', '57 %', '52 %'],
+        ['Kus kasutatakse poodides sularaha rohkem kui Eestis?', 'euroalal tervikuna', 'mitte kuskil', 'ainult Eesti külades'],
+        ['Millal tuleb kaardimakse kinnitada PIN-koodiga?', 'kui makse on üle 50 euro', 'iga makse puhul', 'ainult bussipiletit ostes'],
         ['Miks kasutavad paljud vanemad inimesed endiselt sularaha?', 'nii on lihtsam kulusid kontrollida', 'neil ei ole pangakaarti', 'kaardid ei tööta külas'],
-        ['Kust saab mõnes külas sularaha välja võtta?', 'poe kassast', 'pangaautomaadist', 'postkontorist'],
-        ['Miks soovitavad eksperdid igapäevaseks maksmiseks siiski kaarti?', 'see on turvalisem kui suur summa rahakotis', 'kaart on alati odavam', 'sularaha ei võeta enam vastu'],
-        ['Mida arvavad pangad artikli lõpus sularaha tuleviku kohta?', 'see ei kao lähiaastatel', 'see kaob paari aasta pärast', 'kaardid kaovad enne'],
+        ['Mitu sularahaautomaati oli Eestis 2026. aasta kevadel?', '660', '223', 'üle kahe tuhande'],
+        ['Millal on sularaha artikli järgi eriti vajalik?', 'kui elekter või internet kaob', 'kui ostad bussipiletit', 'kui maksad poes üle 50 euro'],
       ]), { harno: 'R2' }),
       tag(B.gaps('055_p_r3', 'Lugemine 3. Anna kiri.', 'Lugege Anna kirja sõbrale. Kirjutage igasse lünka sobiv sõna pangast; kaks sõna jääb üle.', [
         'Tere, Kati! Mul on suur uudis: ostsin lõpuks endale uue [diivani].',
@@ -888,20 +991,20 @@ export const LESSONS = withShapes({
         ['Millal tasub homme pesumasinat kasutada?', 'pärast südaööd', 'hommikul', 'õhtul kell kuus'],
       ]), { harno: 'L1', task: 'L01' }),
       tag(B.examListen('055_p_l2', 'Kuulamine 2. Raadiolugu.', 'Kuulake raadiolugu kasutatud asjade ostmisest. Valige igale küsimusele üks õige vastus.', 'choice', [
-        'Diktor: Head kuulajad! Kasutatud asjade ostmine on Eestis viimastel aastatel väga populaarseks muutunud. Ühe taaskasutuskeskuse andmetel külastab nende poode iga päev üle kahe tuhande inimese.',
-        'Diktor: Miks inimesed ostavad kasutatud asju? Kõige sagedamini on põhjuseks hind. Kasutatud lasteriided on kuni seitsekümmend protsenti odavamad kui uued, aga lapsed kasvavad neist välja sama kiiresti.',
+        'Diktor: Head kuulajad! Kasutatud asjade ostmine on Eestis populaarne. Näiteks Uuskasutuskeskus loodi kahe tuhande neljandal aastal ja selle esimene pood oli Tallinnas Paide tänaval. Kahe tuhande kahekümne viiendal aastal oli sellel juba kaheksateist poodi üheksas linnas ja ka e-pood.',
+        'Diktor: Miks inimesed ostavad kasutatud asju? Kõige sagedamini on põhjuseks hind. Kasutatud lasteriided on palju odavamad kui uued, aga lapsed kasvavad neist välja sama kiiresti.',
         'Diktor: Teine põhjus on loodus. Kui ostame kasutatud jope, ei pea tehas uut tegema. Nii kulub vähem vett ja energiat.',
         'Diktor: Kolmas põhjus on lihtsalt huvi. Paljud käivad taaskasutuspoodides nagu muuseumis, sest seal võib leida vanu raamatuid, plaate ja mööblit, mida tavalistes poodides ei ole.',
         'Diktor: Mida tasub kasutatud asja ostes meeles pidada? Kontrolli, kas lukud ja nööbid on terved. Elektroonikat proovi enne ostmist poes. Pea meeles, et kasutatud asjale ei anta tavaliselt pikka garantiid.',
         'Diktor: Ka müüa saab lihtsalt. Paljud poed võtavad puhtad ja terved asjad tasuta vastu. Internetis saab müüa ise, aga siis tuleb olla ettevaatlik ja anda asi ostjale alles siis, kui raha on kontol.',
-        'Diktor: Järgmisel laupäeval toimub Tallinnas Telliskivis suur taaskasutuslaat. Sissepääs on tasuta ja kõik müüjad annavad osa tulust lastehaiglale.',
+        'Diktor: Ja mis saab vanadest riietest, mida keegi enam kanda ei saa? Alates kahe tuhande kahekümne viiendast aastast peavad omavalitsused tekstiilijäätmeid eraldi koguma. Puhtad ja terved riided tasub aga viia taaskasutuspoodi.',
       ], [
-        ['Mitu inimest külastab taaskasutuskeskuse poode iga päev?', 'üle kahe tuhande', 'umbes kakssada', 'üle kahekümne tuhande'],
+        ['Mitu poodi oli Uuskasutuskeskusel 2025. aastal?', 'kaheksateist', 'üheksa', 'üle kahesaja'],
         ['Mis on kõige sagedasem põhjus kasutatud asju osta?', 'hind', 'loodus', 'huvi'],
         ['Kuidas aitab kasutatud jope ostmine loodust?', 'vett ja energiat kulub vähem', 'jope kestab kauem', 'tehas maksab vähem'],
         ['Mida soovitatakse teha elektroonikaga enne ostmist?', 'proovida seda poes', 'lugeda arvustusi', 'küsida pikka garantiid'],
         ['Millal tuleb internetis müües asi ostjale anda?', 'kui raha on kontol', 'kui ostja saadab pildi', 'enne maksmist'],
-        ['Kuhu läheb osa taaskasutuslaada tulust?', 'lastehaiglale', 'taaskasutuskeskusele', 'linnale'],
+        ['Mida peavad omavalitsused alates 2025. aastast tegema?', 'koguma tekstiilijäätmeid eraldi', 'avama taaskasutuspoode', 'müüma vanu riideid'],
       ]), { harno: 'L2' }),
       tag(B.listening('055_p_l3', 'Kuulamine 3. Telefonikõne.', 'Kuulake Viktori kõnet pangaga. Täiendage lauseid ühe sõna või numbriga.', [
         'Pirjo: Tere, Kodupank, Pirjo kuuleb. Kuidas saan aidata?',
