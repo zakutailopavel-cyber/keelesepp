@@ -49,6 +49,8 @@ import FinanceDashboard from './FinanceDashboard.jsx';
 import { canCancelInvoice, invoiceWasSent } from './invoiceActions.js';
 import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
 import PaymentCheckPanel from './PaymentCheckPanel.jsx';
+import PaymentDateField, { OverpaymentQuestion } from './PaymentDateField.jsx';
+import { isOverpaymentRefusal, paymentRecordedNotice, recordPaymentWithAdvance } from './paymentEntry.js';
 import DocumentPreviewModal from './DocumentPreviewModal.jsx';
 import InvoiceNoteDialog, { InvoiceNoteButton } from './InvoiceNoteDialog.jsx';
 import InvoiceAccountingDialog, { InvoiceAccountingButton } from './InvoiceAccountingDialog.jsx';
@@ -99,7 +101,7 @@ function CancelInvoiceDialog({ invoice, busy, error, onClose, onSubmit }) {
   </Modal>;
 }
 
-function PaymentDialog({ invoice, busy, error, onClose, onSubmit, cashApi = financeApi }) {
+function PaymentDialog({ invoice, busy, error, overpaymentQuestion = '', onDismissOverpayment, onClose, onSubmit, cashApi = financeApi }) {
   const state = financeRowState(invoice || {});
   const [form, setForm] = useState(() => ({
     amount: (state.balanceCents / 100).toFixed(2), paidAt: today(), method: 'bank',
@@ -122,15 +124,21 @@ function PaymentDialog({ invoice, busy, error, onClose, onSubmit, cashApi = fina
     setErrors(validation.errors);
     if (validation.valid) onSubmit({ ...form, amount: validation.amount });
   };
+  // the same request id: the refused request wrote nothing, the confirmed one is still recorded once
+  const confirmOverpayment = () => {
+    const validation = validatePayment(form);
+    if (validation.valid) onSubmit({ ...form, amount: validation.amount, allowOverpayment: true });
+  };
   return (
     <Modal open={Boolean(invoice)} title={`Registreeri makse · ${invoice?.studentName || ''}`} onClose={onClose}
       footer={<><Button variant="secondary" disabled={busy} onClick={onClose}>Loobu</Button><Button type="submit" form="finance-month-payment" loading={busy}>Registreeri</Button></>}>
       <form id="finance-month-payment" className="form-grid" onSubmit={submit}>
-        <Input label="Summa (€)" type="number" min="0.01" step="0.01" value={form.amount} error={errors.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
-        <Input label="Makse kuupäev" type="date" value={form.paidAt} error={errors.paidAt} onChange={(event) => setForm({ ...form, paidAt: event.target.value })} />
+        <Input label="Summa (€)" type="number" min="0.01" step="0.01" value={form.amount} error={errors.amount} onChange={(event) => { onDismissOverpayment?.(); setForm({ ...form, amount: event.target.value }); }} />
+        <PaymentDateField id="finance-month-payment-date" invoice={invoice} value={form.paidAt} method={form.method} error={errors.paidAt} onChange={(paidAt) => setForm({ ...form, paidAt })} />
         <Select label="Makseviis" value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value })}><option value="bank">Pangaülekanne</option><option value="cash">Sularaha</option><option value="card">Kaardimakse</option><option value="other">Muu</option></Select>
         {form.method === 'cash' ? <Select label="Kes raha sai" value={form.receivedByUid || ''} onChange={(event) => setForm({ ...form, receivedByUid: event.target.value })}><option value="">Mina</option>{(people || []).map((person) => <option key={person.uid} value={person.uid}>{person.name}</option>)}</Select> : null}
         <Input label="Viide" value={form.reference} onChange={(event) => setForm({ ...form, reference: event.target.value })} />
+        <OverpaymentQuestion className="form-grid__wide" message={overpaymentQuestion} busy={busy} onConfirm={confirmOverpayment} onCancel={onDismissOverpayment} />
         {error ? <p className="form-error form-grid__wide" role="alert">{error}</p> : null}
       </form>
     </Modal>
@@ -180,6 +188,7 @@ export default function FinanceMonthPage({
   const [cancelInvoice, setCancelInvoice] = useState(null);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [paymentBusy, setPaymentBusy] = useState(false);
+  const [overpaymentQuestion, setOverpaymentQuestion] = useState('');
   const [actionBusy, setActionBusy] = useState('');
   const [printBusy, setPrintBusy] = useState('');
   const [documentPreview, setDocumentPreview] = useState(null);
@@ -310,11 +319,15 @@ export default function FinanceMonthPage({
     finally { setPrintBusy(''); }
   };
   const recordPayment = async (form) => {
-    setPaymentBusy(true); setError('');
+    setPaymentBusy(true); setError(''); setOverpaymentQuestion('');
     try {
-      await financeRepository.recordPayment(paymentInvoice.id, form);
-      setPaymentInvoice(null); announce('Makse registreeriti.'); await state.reload();
-    } catch (caught) { setError(caught.message || 'Makse registreerimine ebaõnnestus.'); }
+      const outcome = await recordPaymentWithAdvance(financeRepository, paymentInvoice.id, form);
+      setPaymentInvoice(null); announce(paymentRecordedNotice(outcome)); await state.reload();
+    } catch (caught) {
+      // more than the open balance (another person may have just registered it): ask, the server records nothing yet
+      if (isOverpaymentRefusal(caught)) setOverpaymentQuestion(caught.message);
+      else setError(caught.message || 'Makse registreerimine ebaõnnestus.');
+    }
     finally { setPaymentBusy(false); }
   };
   const confirmCancellation = async (reason, options = {}) => {
@@ -384,7 +397,7 @@ export default function FinanceMonthPage({
       </Card> : null}
       {activeView === 'unpaid' && canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} onCancel={(invoice) => { setError(''); setCancelInvoice(invoice); }} onCorrectDueDate={(invoice, due, reason) => financeRepository.correctInvoiceDueDate(invoice.id, due, reason)} onCreditLessonLine={(invoice, lessonId, reason) => financeRepository.creditInvoiceLessonLine(invoice.id, lessonId, reason)} onCreditInFull={(invoice, reason, requestId) => financeRepository.creditInvoiceInFull(invoice.id, reason, requestId)} onCorrectInvoice={(invoice, correction) => financeRepository.correctIssuedInvoice(invoice.id, correction)} /> : null}
       </section>
-      <PaymentDialog key={paymentInvoice?.id ? `pay-${paymentInvoice.id}` : 'pay-closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); } }} onSubmit={recordPayment} />
+      <PaymentDialog key={paymentInvoice?.id ? `pay-${paymentInvoice.id}` : 'pay-closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} overpaymentQuestion={overpaymentQuestion} onDismissOverpayment={() => setOverpaymentQuestion('')} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); setOverpaymentQuestion(''); } }} onSubmit={recordPayment} />
       <CancelInvoiceDialog key={cancelInvoice?.id ? `cancel-${cancelInvoice.id}` : 'cancel-closed'} invoice={cancelInvoice} busy={cancelBusy} error={cancelInvoice ? error : ''} onClose={() => { if (!cancelBusy) { setCancelInvoice(null); setError(''); } }} onSubmit={confirmCancellation} />
       {noteInvoice ? <InvoiceNoteDialog key={`note-${noteInvoice.id}`} invoice={noteInvoice} note={notes.get(noteInvoice.id)} onClose={() => setNoteInvoice(null)} onSave={saveNote} /> : null}
       {accountingInvoice ? <InvoiceAccountingDialog key={`accounting-${accountingInvoice.id}`} invoice={accountingInvoice} onClose={() => setAccountingInvoice(null)} onSave={saveAccountingMark} /> : null}

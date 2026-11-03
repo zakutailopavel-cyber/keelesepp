@@ -53,6 +53,8 @@ export function entryCode(entry = {}) {
   if (entry.origin === 'opening') return 'AS';
   if (entry.origin === 'reversal') return 'ST';
   if (entry.origin === 'manual') return 'PR';
+  // a categorised bank line (docs „Pangapõhine raamatupidamine”): money in LK, money out VM
+  if (entry.documentType === 'bankLine') return (entry.lines || []).some((l) => String(l.account) === '1010' && Number(l.debitCents) > 0) ? 'LK' : 'VM';
   return CODE_BY_DOCUMENT[entry.documentType] || 'PR';
 }
 

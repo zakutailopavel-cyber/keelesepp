@@ -1355,6 +1355,66 @@ test("payment-order metadata is attached server-side and audited immutably", asy
   assert.equal(clientRewrite.status, 403, JSON.stringify(clientRewrite.body));
 });
 
+test("payment guards: duplicate entry and unconfirmed overpayment are refused; a confirmed one goes to an advance", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  const invoiceId = "invoice-payment-guards";
+  await db.collection("invoices").doc(invoiceId).set({
+    num: "KS-GUARD-117",
+    date: "2026-09-01",
+    due: "2026-09-15",
+    amountCents: 17000,
+    amount: 170,
+    paidAmountCents: 0,
+    paidAmount: 0,
+    balanceDueCents: 17000,
+    balanceDue: 170,
+    paymentStatus: "unpaid",
+    status: "Ootel",
+    studentId: "student-payment-guards",
+    studentName: "Guard Student",
+  });
+  const payment = { invoiceId, amount: 170, paidAt: "2026-09-10", method: "bank", reference: "KS-GUARD-117", requestId: "emulator_guard_payment_0001" };
+  const first = await financeRequest(token, "/payments", payment);
+  assert.equal(first.status, 201, JSON.stringify(first.body));
+
+  // the same request again stays idempotent (200), a second person typing the same payment is a duplicate (409)
+  const retry = await financeRequest(token, "/payments", payment);
+  assert.equal(retry.status, 200, JSON.stringify(retry.body));
+  const duplicate = await financeRequest(token, "/payments", { ...payment, requestId: "emulator_guard_payment_0002" });
+  assert.equal(duplicate.status, 409, JSON.stringify(duplicate.body));
+  assert.equal(duplicate.body.details.code, "duplicate_payment");
+  assert.match(duplicate.body.error, /juba registreeritud/);
+  const duplicateConfirmed = await financeRequest(token, "/payments", { ...payment, allowOverpayment: true, requestId: "emulator_guard_payment_0003" });
+  assert.equal(duplicateConfirmed.status, 409, JSON.stringify(duplicateConfirmed.body));
+  assert.equal(duplicateConfirmed.body.details.code, "duplicate_payment");
+
+  // another date on the paid invoice: an overpayment, refused without confirmation
+  const later = { ...payment, paidAt: "2026-09-12", requestId: "emulator_guard_payment_0004" };
+  const refused = await financeRequest(token, "/payments", later);
+  assert.equal(refused.status, 409, JSON.stringify(refused.body));
+  assert.equal(refused.body.error, "Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?");
+  assert.equal(refused.body.details.code, "overpayment");
+  assert.equal(refused.body.details.fullyPaid, true);
+  assert.equal((await db.collection("payments").doc(later.requestId).get()).exists, false);
+
+  // confirmed: recorded as an overpayment, then moved to the payer's advance by the existing resolve-overpayment
+  const confirmed = await financeRequest(token, "/payments", { ...later, allowOverpayment: true });
+  assert.equal(confirmed.status, 201, JSON.stringify(confirmed.body));
+  assert.equal(confirmed.body.payment.overpaymentConfirmed, true);
+  assert.equal(confirmed.body.invoice.overpaidAmountCents, 17000);
+  const resolved = await financeRequest(token, "/invoices/resolve-overpayment", { invoiceId, reason: "Ülemakse ettemaksuks", requestId: "emulator_guard_overpayment_0001" });
+  assert.equal(resolved.status, 201, JSON.stringify(resolved.body));
+  const invoiceAfter = (await db.collection("invoices").doc(invoiceId).get()).data();
+  assert.equal(invoiceAfter.overpaidAmountCents, 0);
+  assert.equal(invoiceAfter.balanceDueCents, 0);
+  const credits = await db.collection("payerCredits").where("sourceInvoiceId", "==", invoiceId).get();
+  assert.equal(credits.size, 1);
+  assert.equal(credits.docs[0].data().availableAmountCents, 17000);
+});
+
 test("payment lesson allocations are server-validated, versioned, and append-only", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
@@ -1440,8 +1500,10 @@ test("payment lesson allocations are server-validated, versioned, and append-onl
   );
   assert.equal(directRewrite.status, 403, JSON.stringify(directRewrite.body));
 
+  // a different bank date: the same payment repeated within 10 minutes would be refused as a duplicate
   const secondPayment = {
     ...firstPayment,
+    paidAt: "2026-07-30",
     requestId: "emulator_line_payment_0002",
   };
   assert.equal((await financeRequest(token, "/payments", secondPayment)).status, 201);
@@ -4475,4 +4537,110 @@ test("a whole invoice is credited, or credited and reissued with a corrected amo
   const newInvoiceEntry = (await db.collection("accountingEntries").doc(`auto_invoice_${newId}`).get()).data();
   assert.deepEqual(newInvoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 14000, 0], ["3000", 0, 14000]]);
   assert.equal(newInvoiceEntry.documentRef, newInvoice.num);
+});
+
+test("Pangapõhine raamatupidamine: LHV import → sure matches paid with the bank date → review → rules → only bank money in the books (owner 2026-11-03)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  const IBAN = "EE917700771011885682";
+  const csvOf = (rows) => [
+    '"Счёт клиента","Номер документа","Дата","Счёт плательщика/получателя","Имя плательщика/получателя","Дебет/Кредит (D/C)","Сумма","Номер ссылки","Признак архивирования","Пояснение","Валюта","Личный код или регистрационный код","BIC банка получателя/плательщика","Имя инициатора платежа","Ссылка проводки","Ссылка поставщика счета"',
+    ...rows.map(([date, dc, amount, name, account, text, ref]) => `"${IBAN}","",${date},"${account}","${name}","${dc}",${amount},"","ARCH${ref}","${text}","EUR","00000000000","HABAEE2XXXX","","BB${ref}",""`),
+  ].join("\n");
+  await Promise.all([
+    db.collection("invoices").doc("bb-inv-801").set({ num: "KS-2036-801", date: "2036-10-01", studentId: "bb-s1", studentName: "Panga Laps", payerName: "Julia Näidis", amountCents: 15000, amount: 150, balanceDueCents: 15000, balanceDue: 150, paidAmountCents: 0, paidAmount: 0, status: "Saadetud" }),
+    db.collection("invoices").doc("bb-inv-802").set({ num: "KS-2036-802", date: "2036-10-01", studentId: "bb-s2", studentName: "Teine Laps", amountCents: 9000, amount: 90, balanceDueCents: 0, balanceDue: 0, paidAmountCents: 9000, paidAmount: 90, status: "Makstud" }),
+    db.collection("payments").doc("bb-typed-802").set({ invoiceId: "bb-inv-802", invoiceNum: "KS-2036-802", studentId: "bb-s2", paidAt: "2036-10-20", amountCents: 9000, amount: 90, method: "bank", status: "active" }),
+    db.collection("invoices").doc("bb-inv-803").set({ num: "KS-2036-803", date: "2036-10-01", studentId: "bb-s3", studentName: "Kolmas Laps", payerName: "Mari Näidis", amountCents: 5000, amount: 50, balanceDueCents: 5000, balanceDue: 50, paidAmountCents: 0, paidAmount: 0, status: "Saadetud" }),
+    db.collection("invoices").doc("bb-inv-804").set({ num: "KS-2036-804", date: "2036-10-02", studentId: "bb-s4", studentName: "Neljas Laps", amountCents: 7000, amount: 70, balanceDueCents: 0, balanceDue: 0, paidAmountCents: 7000, paidAmount: 70, status: "Makstud" }),
+    db.collection("payments").doc("bb-typed-804").set({ invoiceId: "bb-inv-804", invoiceNum: "KS-2036-804", studentId: "bb-s4", paidAt: "2036-10-14", amountCents: 7000, amount: 70, method: "bank", status: "active" }),
+  ]);
+  const csv = csvOf([
+    ["2036-10-07", "C", "150.00", "JULIA NÄIDIS", "EE000000000000000701", "KS-2036-801", "001"],
+    ["2036-10-08", "C", "90.00", "OLENA NÄIDIS", "EE000000000000000801", "KC- 2036-802", "002"],
+    ["2036-10-09", "C", "50.00", "MARI NÄIDIS", "EE000000000000000901", "tunnid oktoober", "003"],
+    ["2036-10-10", "C", "884.52", "EESTI TÖÖTUKASSA", "EE000000000000000401", "Juhendamistasu", "004"],
+    ["2036-10-11", "D", "-5.49", "APPLE.COM/BILL", "", "(..0000) APPLE.COM/BILL", "005"],
+  ]);
+
+  // another account (the owner's FIE account) is refused
+  const foreign = await financeRequest(token, "/bank-statement/import", { csv: csv.replaceAll(IBAN, "EE000000000000009999"), fileName: "fie.csv", requestId: "bb_import_foreign" });
+  assert.equal(foreign.status, 400, JSON.stringify(foreign.body));
+
+  const imported = await financeRequest(token, "/bank-statement/import", { csv, fileName: "okt.csv", requestId: "bb_import_0001" });
+  assert.equal(imported.status, 201, JSON.stringify(imported.body));
+  assert.deepEqual([imported.body.imported, imported.body.matched, imported.body.review, imported.body.unmatched], [5, 2, 1, 2], JSON.stringify(imported.body));
+  const lineRef = (ref) => db.collection("bankStatementLines").doc(`lhv_BB${ref}`);
+  const sure = (await lineRef("001").get()).data();
+  assert.equal(sure.state, "matched");
+  assert.equal(sure.direction, "C");
+  assert.equal(sure.counterpartyRegCode, "", "personal codes are not stored");
+  const newPayment = (await db.collection("payments").doc(sure.paymentIds[0]).get()).data();
+  assert.equal(newPayment.paidAt, "2036-10-07", "the payment carries the bank date");
+  assert.equal(newPayment.bankTransactionId, sure.bankTransactionId);
+  assert.equal((await db.collection("invoices").doc("bb-inv-801").get()).data().balanceDueCents, 0);
+  const linked = (await db.collection("payments").doc("bb-typed-802").get()).data();
+  assert.equal(linked.bankStatementLineId, "lhv_BB002", "the typed payment is linked, not paid again");
+  assert.equal(linked.bankDate, "2036-10-08");
+  assert.equal(linked.paidAt, "2036-10-20", "the CRM date of the student's payment is not changed");
+  assert.equal((await lineRef("003").get()).data().state, "review");
+
+  // the same file again changes nothing
+  const again = await financeRequest(token, "/bank-statement/import", { csv, fileName: "okt.csv", requestId: "bb_import_0002" });
+  assert.equal(again.status, 201, JSON.stringify(again.body));
+  assert.deepEqual([again.body.imported, again.body.duplicates, again.body.matched], [0, 5, 0]);
+  assert.equal((await db.collection("payments").where("invoiceId", "==", "bb-inv-801").get()).size, 1);
+
+  // one-click confirm of the suggestion
+  const confirmed = await financeRequest(token, "/bank-statement/confirm", { lineId: "lhv_BB003", requestId: "bb_confirm_0001" });
+  assert.equal(confirmed.status, 200, JSON.stringify(confirmed.body));
+  assert.equal((await lineRef("003").get()).data().state, "matched");
+  assert.equal((await db.collection("invoices").doc("bb-inv-803").get()).data().balanceDueCents, 0);
+
+  // categories and a rule: Töötukassa by name, Apple once
+  const cat = await financeRequest(token, "/bank-statement/categorize", { lineId: "lhv_BB004", account: "3530", label: "Töötukassa toetus", rule: { counterpartyName: "TÖÖTUKASSA" }, requestId: "bb_category_0001" });
+  assert.equal(cat.status, 200, JSON.stringify(cat.body));
+  assert.ok(cat.body.rule.id);
+  const bad = await financeRequest(token, "/bank-statement/categorize", { lineId: "lhv_BB005", account: "1010", requestId: "bb_category_0002" });
+  assert.equal(bad.status, 400);
+  assert.equal((await financeRequest(token, "/bank-statement/categorize", { lineId: "lhv_BB005", account: "4320", label: "IT", requestId: "bb_category_0003" })).status, 200);
+  const twice = await financeRequest(token, "/bank-statement/categorize", { lineId: "lhv_BB001", account: "3000", requestId: "bb_category_0004" });
+  assert.equal(twice.status, 409, "a matched line is never categorised (no money booked twice)");
+  const next = await financeRequest(token, "/bank-statement/import", { csv: csvOf([["2036-10-19", "C", "408.24", "EESTI TÖÖTUKASSA", "EE000000000000000401", "Juhendamistasu", "006"]]), fileName: "okt2.csv", requestId: "bb_import_0003" });
+  assert.equal(next.body.categorized, 1, JSON.stringify(next.body));
+  assert.equal((await lineRef("006").get()).data().category.ruleId, cat.body.rule.id);
+
+  // the bank rule: from 2036-10-01 only bank money; the typed payment of 804 waits
+  assert.equal((await financeRequest(token, "/accounting/bank-books", { since: "2036-10-01", reason: "" })).status, 400, "a reason is required");
+  const on = await financeRequest(token, "/accounting/bank-books", { since: "2036-10-01", reason: "Omaniku otsus 2026-11-03" });
+  assert.equal(on.status, 200, JSON.stringify(on.body));
+  try {
+    const synced = await financeRequest(token, "/accounting/sync", {});
+    assert.equal(synced.status, 200, JSON.stringify(synced.body));
+    assert.ok(synced.body.waiting.payments.some((p) => p.id === "bb-typed-804"));
+    const entry = async (id) => (await db.collection("accountingEntries").doc(id).get());
+    assert.ok((await entry("auto_invoice_bb-inv-801")).exists);
+    assert.ok((await entry(`auto_payment_${sure.paymentIds[0]}`)).exists);
+    assert.equal((await entry("auto_payment_bb-typed-802")).data().date, "2036-10-08", "a linked typed payment is booked on the bank date");
+    assert.equal((await entry("auto_payment_bb-typed-804")).exists, false, "a typed payment without a bank line is not booked");
+    assert.equal((await entry("auto_invoice_bb-inv-804")).exists, false, "nor its invoice");
+    const grant = (await entry("auto_bank-line_lhv_BB004")).data();
+    assert.deepEqual(grant.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1010", 88452, 0], ["3530", 0, 88452]]);
+    assert.ok((await entry("auto_bank-line_lhv_BB006")).exists);
+    assert.deepEqual((await entry("auto_bank-line_lhv_BB005")).data().lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["4320", 549, 0], ["1010", 0, 549]]);
+    const resync = await financeRequest(token, "/accounting/sync", {});
+    assert.equal(resync.body.created, 0, "nothing is booked twice");
+
+    // a categorised line with a live entry cannot be reopened; the migration overview is read-only
+    assert.equal((await financeRequest(token, "/bank-statement/uncategorize", { lineId: "lhv_BB005", reason: "vale" })).status, 409);
+    const review = await financeRequest(token, "/accounting/bank-books/review", { from: "2036-01-01", to: "2036-12-31" });
+    assert.equal(review.status, 200, JSON.stringify(review.body));
+    assert.ok(Array.isArray(review.body.withoutBank));
+    const balance = await financeRequest(token, "/bank-statement/balance", { month: "2036-10", closingCents: 123456 });
+    assert.equal(balance.status, 200, JSON.stringify(balance.body));
+  } finally {
+    await db.collection("accountingSettings").doc("bankBooks").delete();
+  }
 });

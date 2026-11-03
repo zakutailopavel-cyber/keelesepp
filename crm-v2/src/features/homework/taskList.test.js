@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PHASES, TASK_STATE, groupTasks, isTaskLate, learnerGoal, mergeTasks, taskCount, taskDueText, taskMinutes } from './taskList.js';
+import { PHASES, TASK_STATE, groupTasks, isTaskLate, learnerGoal, mergeTasks, taskCount, taskDueText, taskMinutes, tasksForSkill } from './taskList.js';
 
 const TODAY = '2026-11-10';
 const sheet = (id, extra = {}) => ({ id, studentId: 's1', title: 'Minu päev · Avasta', lessonTitle: 'Minu päev', phase: 'discover', status: 'new', answers: {}, ...extra });
@@ -172,5 +172,22 @@ describe('the card says only what is known', () => {
   it('never shows a stored title with the technical phase suffix', () => {
     const [task] = mergeTasks({ assignments: [sheet('a1', { lessonTitle: '', worksheetDoc: null, title: 'Tund · Harjuta', phase: 'practice' })] });
     expect(task.title).toBe('Tund');
+  });
+});
+
+describe('tasksForSkill: the tasks behind a hint „Kuulamine 0% → 70%”', () => {
+  const doc = (...types) => ({ meta: {}, blocks: types.map((type, i) => ({ id: `b${i}`, type, data: {} })) });
+  const tasks = mergeTasks({
+    homework: [work('h1')],
+    assignments: [sheet('listen', { worksheetDoc: doc('text', 'listening') }), sheet('dict', { worksheetDoc: doc('dictation', 'gaps') }), sheet('gram', { worksheetDoc: doc('gaps') })],
+    submissions: [result('r1', 'worksheet', { source: { worksheetDoc: doc('listening') } }), result('x1', 'exercise')],
+  });
+  it('only sheets with a task of that skill, a handed-in one too; plain homework says nothing about a skill', () => {
+    expect(tasksForSkill(tasks, 'Kuulamine').map((task) => task.key)).toEqual(['sheet-listen', 'sheet-dict', 'worksheet-r1']);
+    expect(tasksForSkill(tasks, 'Grammatika').map((task) => task.key)).toEqual(['sheet-dict', 'sheet-gram']);
+    expect(tasksForSkill(tasks, 'Kirjutamine')).toEqual([]);
+  });
+  it('no skill: every task', () => {
+    expect(tasksForSkill(tasks, '')).toBe(tasks);
   });
 });

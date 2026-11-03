@@ -38,6 +38,11 @@ Raamatupidamine is the accountant's own books, separate from the CRM's finance. 
 | Expense correction or void | its date | the old payment account | the old expense account |
 | Purchase invoice (ostuarve, OA) | invoice date | each line's account (cost, prepaid, asset) „<tarnija> <kirjeldus>”; 2311 only for a line with deductible VAT | 2110 Võlad tarnijatele „<tarnija> Arve <nr>” |
 | Payment to a supplier (VM) | payment date | 2110 | 1010 Pangakonto (bank, card) or 1000 Kassa (cash) |
+| Bank line without a document, categorised (since 2026-11-03) | bank date | in: 1010, out: the category account | in: the category account, out: 1010 |
+
+With the bank rule on (accountingSettings/bankBooks.since, see „Pangapõhine raamatupidamine”), an invoice, a payment and
+what follows them are booked only when bank money stands behind them, and a payment linked to a bank line is booked on
+the bank date.
 
 Purchase entries are written by financeApi in the same transaction as the invoice or the payment (not by the sync),
 ids `auto_purchase-invoice_<id>` and `auto_purchase-payment_<invoiceId>_<paymentId>`.
@@ -305,7 +310,7 @@ automatic entry cannot be deleted and a rebuild would re-create it, so the mark 
 - **Undo:** „Taasta raamatupidamisse” removes the mark; the tombstones made by it are live again with the same numbers
   (history action `included`, audit „invoice.accounting_included”); documents without an entry get one from the next sync.
 - **Refused (409):** a date in a locked period or a closed month (the invoice date and every entry date), both ways; an
-  active payment that came through the company's bank (`bankTransactionId`, requestId `lhv-…`, LinkPay), because that money
+  active payment that came through the company's bank (`bankTransactionId`, `bankStatementLineId` since 2026-11-03, requestId `lhv-…`, LinkPay), because that money
   is in the statement; a payment made from a prepayment that would stay in the books; an overpayment credit of the invoice
   already spent. Cancel those first.
 - **A bank payment arriving later** on a marked invoice is not booked; the sync returns it in `exclusionConflicts` and
@@ -314,6 +319,170 @@ automatic entry cannot be deleted and a rebuild would re-create it, so the mark 
   corrected pair, the other stays as it is and the result names it (`relatedInvoices`).
 - **Not changed:** INF 3 (`inf3-core.js`) still counts these payments. Whether a payment made to the FIE belongs in the
   company's INF 3 is the accountant's decision; see PROJECT_STATE.
+
+## Payment guards and „Võimalikud topeltlaekumised” (October 2026 audit, 2026-11-03)
+
+- **Payment date.** The receipt (1010 or 1000 / 1200) is booked on the payment's `paidAt`. The payment dialogs
+  (`/finance` month view and the invoice window) keep the date editable, show the invoice's due date and earlier payment
+  date, and warn „Kuupäev peab olema päev, mil raha pangakontole laekus.” when the date differs from an earlier payment,
+  is more than 7 days after the due date, or is in another month than today (`crm-v2/src/features/finance/paymentEntry.js`).
+- **`financeApi /payments`** (a payment typed in by a person; `functions/payment-guards-core.js`): 409
+  `details.code: "duplicate_payment"` when an active payment with the same invoice, amount, date and method was created
+  in the last 10 minutes (any user; the same `requestId` stays an idempotent 200); 409 `details.code: "overpayment"`
+  („Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?”) when the amount exceeds the open balance, unless the
+  request has `allowOverpayment: true`. A confirmed overpayment is stored with `overpaymentConfirmed: true`, and the
+  dialog then calls the existing `/invoices/resolve-overpayment` so the excess becomes a `payerCredits` advance (auto
+  entry 1200 / 2500). LinkPay and the cash box allocation are not guarded (their money is real; each is idempotent by its
+  own source id). The bank import does not use this endpoint.
+- **„Võimalikud topeltlaekumised”** (Raamatupidamine, above the registers, only when there is something to show;
+  `crm-v2/src/features/accounting/duplicateReceipts.js`): pairs of a live CRM receipt entry (`sourceKey` `payment:` or
+  `credit:`, a debit on 1010) and a live manual entry with a debit on 1010 of the same amount within 120 days, when the
+  manual entry names the same client (line partner id), the same reference / invoice number (whole token) or the payer's
+  name (all words, at least two words or one of 5+ letters). Read-only: nothing is deleted or reversed; the sync on
+  opening the page is unchanged.
+
+## Pangapõhine raamatupidamine (owner 2026-11-03)
+
+Owner: „довести систему до автоматизма, чтобы в бухгалтерию попадали только те деньги, за которые мы получили деньги по
+счетам, только на основе банка”. The October 2026 audit found receipts typed on the wrong day (11 Jul–Sep payments booked
+in October, 1 429 €), a payment typed twice, invoices marked „Ei kuulu raamatupidamisse” although their money came to the
+company account, every bank line booked by hand a second time, and income without a CRM invoice (Töötukassa, lesson
+payments without an invoice, external invoices) and all expenses missing. From now on the **statement of the company
+account LHV EE917700771011885682** is the source of the books' money.
+
+### Rules
+
+1. **Import.** Raamatupidamine → tab **„Pank”** → „Impordi LHV väljavõte (CSV)”. The LHV „Konto väljavõte” CSV in
+   Russian, Estonian or English headers (`functions/bank-statement-core.js` `parseStatement`; separators `,` `;` tab,
+   dates `2026-10-07` or `07.10.2026`, amounts `-1 234,56` / `150.00`). Every line, incoming (C) and outgoing (D), is
+   stored once in `bankStatementLines` with the id `lhv_<„Ссылка проводки” / „Kande viide”>` (card payments have no
+   archive code, they have this reference); without it `lhva_<archive code>`, else a hash of the line. A line already
+   stored under the same bank reference or archive code is a duplicate: the same file twice adds nothing. A statement
+   of another account (e.g. the owner's FIE account) is refused. Personal codes (11 digits) are never stored; a
+   company's 8-digit registry code is kept for the rules.
+2. **Matching incoming lines** (`matchLine`), in this order:
+   - the line is already in the CRM — a bank transaction of the earlier CSV flow (`externalId` = archive code, or the same
+     day, amount and payer when the flow had no archive code) or a payment of the 2026-10-15 LHV run (`requestId lhv-…`)
+     → linked, nothing new (**sure**);
+   - an invoice number in the explanation (tolerant: „KS-2026-085”, „Arve KS -2026-083”, „KC- 2026-088” (C typo),
+     „Makse selgitus KS-2026-097”, „ks 2026-85”), or the invoice's reference number in „Viitenumber”:
+     - a payment typed by hand on that invoice with exactly this amount (bank / card / other, no bank link yet) → that
+       payment is **linked** (`bankStatementLineId`, `bankDate` = the bank date) — not paid twice (**sure**);
+     - else the open balance ≥ the amount → a new payment on the invoice(s) with **the bank date** through the existing
+       `/bank-transactions/allocate` (`bankTransactions/stmt_<lineId>`, payments `…_a1`) (**sure**);
+     - more money than open (already paid, overpaid) → suggestion: pay what is open, the rest as an advance (**likely**);
+   - a LinkPay payment of the same amount 0–5 days before → link (**likely**);
+   - a typed payment with the same payer name and amount within 45 days → link (**likely**);
+   - the payer (account or name) paid for a child before and one open invoice has exactly this balance, or the payer's
+     name is on exactly one open invoice with exactly this balance → new payment (**likely**).
+   Only **sure** matches are executed at import. **Likely** ones go to „Kinnita vasted”: „Kinnita” (one click) or „Pole
+   see” (the line goes to „Ilma dokumendita read”). „Otsi vasteid uuesti” runs the matcher on every open line (after
+   new invoices or payments).
+3. **Matching outgoing lines:** a supplier payment typed on Ostuarved (bank / card, the same amount ± 7 days; sure when
+   the supplier's name or the invoice number is in the line) or a refund of an advance (likely) is linked; nothing new is
+   booked (the VM / refund entry already books 1010).
+4. **Books rule** (`accounting-core.js` `bankBooksRule`, on from `accountingSettings/bankBooks.since`):
+   - a receipt on 1010 (method bank, card, other, LinkPay) is booked only when its payment is **linked to the bank**:
+     `bankStatementLineId`, `bankTransactionId`, `requestId lhv-…` or LinkPay (the bank pays the card money to the
+     account). A payment typed by hand without a bank line stays in the CRM (the student's balance, PDFs and reminders do
+     not change) and waits: „Ootab panka” on the „Pank” tab;
+   - a linked receipt is booked on the **bank date** (`bankDate`), not on the typed `paidAt`;
+   - **cash** (1000, the school's own till, cash box) is booked as before; a payment **from an advance** (2500) when the
+     advance is in the books; an advance from a bank transaction always; an overpayment advance when its payment is;
+     a refund when its advance is; a payment void when its payment is;
+   - **sales (1200 / 3000)**: an invoice is booked only once one of its payments is booked — the owner: only invoices
+     actually paid to the bank go to the books. Reasoning: accrual (booking every issued invoice) put invoices paid to the
+     FIE account or never paid into 1200 for ever and needed the opt-in „Ei kuulu raamatupidamisse” mark per invoice;
+     booking only paid invoices makes the books follow the bank by itself. The whole invoice amount is booked on the
+     invoice date (a partial payment leaves the rest on 1200 as a real receivable); when the invoice date is in a locked
+     period, on the date of its first booked payment („arve kuupäev …, periood suletud”);
+   - **credit notes and cancellations** follow their invoice: booked when the invoice is in the books (also an invoice
+     booked before the rule), otherwise not — an unpaid invoice that is credited or cancelled never touches the books;
+   - documents dated **before** `since` keep the earlier rule (everything booked). The opt-in `accountingExcluded` mark
+     („Ei kuulu raamatupidamisse”) keeps working on top of the rule; it is no longer needed for new invoices.
+5. **Lines without a document** (tab „Pank” → „Ilma dokumendita read”): the accountant picks a category (presets:
+   in — 3000 müügitulu ilma arveta, 2500 ettemaks, 3530 toetus (Töötukassa), 3560 muu äritulu, 2030 laen omanikult,
+   1230 aruandva isiku tagastus; out — 4320 IT, 4210 rent, 2210 palk, 1210 maksude ettemaksukonto, 4340 pangateenus,
+   4050 õppematerjalid, 4330 kontoritarbed, 1230 aruandev isik, 2030 laenu tagasimakse, 4970 mitteseotud kulu, 4398
+   muu) or types any open account (not 1010) → „Kirjenda”. With „Reegel” (basis: the counterparty's IBAN, the name or a
+   piece of the explanation) the rule (`bankRules`) categorises the other open lines now and every new line at import
+   (the most specific active rule wins: IBAN > name > explanation). The sync books a categorised line once:
+   in D 1010 / K account (kande kood LK), out D account / K 1010 (VM), document the archive code (`sourceKey
+   bank-line:<lineId>`). „Tühista…” (reason) reopens a line only when its entry is not live (delete it in the
+   päevaraamat first); a line categorised again gets a new key `bank-line:<id>~2`, so the tombstone stays.
+   Rules are switched off, never deleted.
+6. **Never twice:** a line is either matched (payments, a bank transaction, a supplier payment, a refund) or categorised,
+   never both (409); a payment is linked to one line only; the import is idempotent by line id, bank reference and archive
+   code; `requestId`s of the allocations are derived from the line id.
+7. **Month check** (tab „Pank” → „Kuu kontroll”, `crm-v2/src/features/accounting/bankBooks.js` `monthCheck`): the lines
+   of the month against account 1010. Per line: Korras / Otsus puudub (no decision) / Kanne puudub (linked, no live entry
+   — „Uuenda kanded”) / Summa erineb / Teine kuu (booked in another month, e.g. a receipt typed in October for July
+   money) / Makse tühistatud. Below: 1010 entries of the month without a bank line; a manual one with the amount of a
+   booked line within 5 days is marked „Topelt?”. Totals: statement in / out vs 1010 debit / credit, and the bank's
+   closing balance (typed once per month from the LHV statement, `bankStatementBalances/<yyyy-mm>`, the CSV has no
+   balance) vs the 1010 balance at the month end. „Kuu on korras” only when every line is booked once and the balances
+   match. Then „Sulge periood kuni …”.
+
+### What the sync writes now (opening Raamatupidamine)
+
+Unchanged in kind: only missing automatic entries, never a change of an existing one. New: entries `bank-line:<id>` of
+categorised lines. With the bank rule on, fewer entries: no receipt of an unlinked typed payment, no sales entry of an
+unpaid invoice (they come later, when the money is linked). The sync also returns `waiting` (typed payments and invoices
+waiting for the bank) and `bankBooksSince`. Import, confirm and categorise write CRM payments and lines, never entries;
+the panel then runs the sync.
+
+### Data and API
+
+- `bankStatementLines/{lineId}`: `accountIban`, `date`, `direction` C | D, `amountCents` (> 0), `currency`,
+  `counterpartyName`, `counterpartyAccount`, `counterpartyRegCode` (8 digits only), `explanation`, `referenceNumber`,
+  `documentNumber`, `archiveId`, `transactionRef`, `providerRef`, `sourceLine`, `importId`, `importedAt`, `importedBy`,
+  `state` new | matched | review | unmatched | categorized, `match { kind, confidence, reason, allocations,
+  paymentIds, bankTransactionId, purchaseInvoiceId, purchasePaymentId, refundId, creditStudentId, error }`,
+  `bankTransactionId`, `paymentIds`, `creditIds`, `purchase { invoiceId, paymentId }`, `refundId`, `entryKeys` (source
+  keys of the entries that book its money), `category { account, label, note, ruleId, by, at, sourceKey }`,
+  `categoryVersion`, `categoryHistory`, `linkedAt`, `linkedBy`.
+- `bankStatementImports/{requestId}`: file name, account, from / to, counts, errors, who. `bankRules/{id}`: `direction`,
+  `counterpartyAccount`, `counterpartyName`, `explanation`, `account`, `label`, `active`. `bankStatementBalances/{yyyy-mm}`:
+  `closingCents`. `accountingSettings/bankBooks`: `since` (`""` = off), `reason`, `updatedAt`, `updatedBy` (audit
+  `accounting.bank_books.changed`).
+- New fields: payments `bankStatementLineId`, `bankDate`, `bankLinkedAt`, `bankLinkedBy`; bankTransactions
+  `statementLineId`; purchase invoice payments and refunds `bankStatementLineId`, `bankDate`.
+- financeApi (admin): `/bank-statement/import { csv, fileName, requestId }`, `/bank-statement/confirm { lineId, choice?,
+  requestId }`, `/bank-statement/dismiss`, `/bank-statement/categorize { lineId, account, label, note, rule?, requestId }`,
+  `/bank-statement/uncategorize { lineId, reason }`, `/bank-statement/rules { ruleId?, rule }`,
+  `/bank-statement/balance { month, closingCents }`, `/bank-statement/rematch`, `/accounting/bank-books { since, reason }`,
+  `/accounting/bank-books/review { from, to }` (read-only). Rules: the four new collections admin read, no client writes.
+  No composite index (the collections are read whole; `payments.bankTransactionId ==` is a single-field query).
+
+### Migration (January–October 2026)
+
+Nothing is rewritten automatically. Existing entries stay as they are (RPS § 10); the rule applies to entries the sync
+creates after `since` is set, for documents dated on or after `since`.
+
+1. Deploy (functions + rules + hosting), then the owner or accountant sets „Pangareegel” **from 2026-11-01** (reason).
+2. Import the LHV statements month by month from January (each month's CSV; overlaps are ignored). The sure matches link
+   the typed payments and give them the bank date; new payments are created only for bank money the CRM does not have.
+   Before October the documents keep the old rule, so the import does not book anything twice: linking only adds
+   `bankStatementLineId` / `bankDate` to payments whose entries already exist.
+3. „Pank” → „Varasemad kanded” (`/accounting/bank-books/review`, read-only) lists live automatic entries the rule would
+   not have made: receipts without a bank line (typed, money to the FIE account or never received), receipts booked on
+   another day than the bank's (the October 1 429 €), sales invoices without money. The month check shows the same per
+   month plus manual 1010 entries duplicating a bank line.
+4. With the owner's go, the accountant corrects month by month in the päevaraamat: deletes the receipt / sales entries
+   that do not belong (tombstone with reason, history kept) or moves the date of a receipt to the bank date (while the
+   period is open), deletes her manual 1010 duplicates, categorises the remaining lines. Locked months: a correcting
+   entry after the lock. The month check must show „Kuu on korras” before „Sulge periood”.
+5. Optionally move `since` back to 2026-01-01 afterwards: new entries of older documents (e.g. a credit note) then follow
+   the rule too. Moving `since` never deletes an entry.
+
+### How the accountant works each month
+
+1. LHV → Konto väljavõte → the month → CSV → Raamatupidamine → „Pank” → „Impordi LHV väljavõte”.
+2. „Kinnita vasted”: „Kinnita” or „Pole see” per suggestion.
+3. „Ilma dokumendita read”: a category per line, „Reegel” for recurring ones (Töötukassa, Apple / Google / Anthropic,
+   rent, salary, EMTA, owner transfers). After a few months almost everything comes categorised.
+4. „Ootab panka”: typed payments without bank money — ask the administrator (FIE account, cash, a typo).
+5. „Kuu kontroll”: type the bank's closing balance, clear the red rows, then „Sulge periood kuni <month end>”.
 
 ## Sisemine märkus (invoice internal note, team 2026-10-29)
 
