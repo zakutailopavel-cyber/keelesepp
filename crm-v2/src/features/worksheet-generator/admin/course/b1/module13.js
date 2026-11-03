@@ -40,7 +40,17 @@
 // „Kindel Katus”, hotel „Merekivi” (receptionist Kätlin, manager Hannes), radio trainer Evelin Lill, mediator Mari Kuusk.
 // Places and firms of the story are fictional (Männi 8, Kindel Katus, Merekivi); Virtsu, Kuivastu, Kuressaare and its
 // castle are real. Earlier versions: archive/v3/b1/module13.js, archive/v1/b1/module13.js, git history (design v2 sample).
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, topic „keel” + „suhted”, „ümbruskond”): the topic opener 061_d_open
+// (Estonian among the languages, Uralic family, an EU language, 262 mother tongues in Estonia in 2026, EKI, Sõnaveeb,
+// Keeleamet) replaces the goal text 061_d_goal; „Kas teadsid?” 061_p_know (night quiet, KorS § 56), 062_p_know (EKI's
+// language advice, Sõnaveeb), 063_p_know (what Estonian grammar does differently, the quotative -vat), 064_p_know (Estonian
+// at work: the Language Act, Keeleamet, the Harno certificate); examiner set 065_d_warm. One 3-2-1 / 4-3-2 left
+// (063_d_432); record-at-home twice (062_t_rec, 064_t_rec); 061 Kasuta is no longer voicemail → letter. Exam listenings
+// 065_p_l2 and 065_p_l4 and the R2 article lost invented figures. Sources: the PR of agent/av-b1-module-13.
 import { B, tag, teach, withShapes } from '../blocks.js';
+
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
 export const MODULE = { id: 'a2b1-module-13', course: 'b1', title: 'Suhtlemine ja probleemilahendus', level: 'B1', design: 'v2', template: 'v4' };
 
@@ -50,8 +60,20 @@ export const LESSONS = withShapes({
     canDo: 'Ma loen ühistu teadet ja remondigraafikut ning lepin naabritega kokku, kuidas remondiaja mured lahendada: palun abi, teen ettepaneku ja keeldun viisakalt.',
     discover: [
       B.review('061_d_review', [['Mida Valgevase majade elanikud hoovi koosolekul kokku leppisid?', 'a2b1-059'], ['Millise auto Jaani pere kevadel ostis ja miks just selle?', 'a2b1-052'], 'Kas sinu majas on kunagi olnud suur remont?']),
-      B.text('061_d_goal', 'Moodul 13: räägime asjad selgeks', 'Selles moodulis lahendad probleeme sõnadega: palud abi, teed ettepanekuid, keeldud viisakalt, räägid teeninduses tingiva kõneviisiga, annad edasi, mida teised räägivad, ja aitad tülitsejatel kokku leppida. On juuli. Jaani majas Männi 8 algab suur remont, pere sõidab Saaremaale ja Sofia kontoris lähevad kaks kolleegi kuumaga tülli. Mooduli lõpus aitad neil kokku leppida ja kirjutad kokkuleppe kohta ülemusele kirja. Täna loed ühistu teadet ja lepid naabritega kokku, kuidas remondiaeg üle elada.'),
-      tag(B.reading('061_d_letter', 'Männi 8 remont: mis muutub?', 'Vaata pealkirja ja arva: mis majas muutub ja kellele on see raske? Seejärel loe ühistu esimehe kirja ja kontrolli, kas arvasid õigesti.', 'Männi 8 remont: mis muutub?', [
+      B.topicOpener('061_d_open', 'Teema avaleht: keeled ja suhtlemine Eestis', [
+        'Eesti keel on Eesti riigikeel. Emakeelena räägib eesti keelt umbes 1,1 miljonit inimest, peamiselt Eestis. Alates 2004. aastast on eesti keel ka üks Euroopa Liidu ametlikest keeltest. Liidu ametlikest keeltest on ainult neli sellised, mis ei ole indoeuroopa keeled: eesti, soome, ungari ja malta keel.',
+        'Eesti keel kuulub uurali keelte hulka, täpsemalt läänemeresoome keelte rühma. Kõige lähemad sugulased on soome keel ja väikesed keeled, näiteks vadja, vepsa ja liivi keel. Ka ungari keel on uurali keel, aga see on eesti keele palju kaugem sugulane.',
+        'Eestis räägitakse ka palju teisi keeli. Statistikaameti andmetel räägiti 2026. aasta alguses Eestis emakeelena 262 eri keelt. Eesti emakeelega oli 65,4 % elanikest ja vene emakeelega 26,9 %. Paljudes peredes ja töökohtades kasutatakse iga päev mitut keelt.',
+        'Keelega aitavad ka riigiasutused. Eesti Keele Instituut (EKI) uurib eesti keelt ja teeb sõnaraamatuid. Tema tasuta veebisõnastik Sõnaveeb näitab sõna tähendust, vorme ja näitelauseid. Keeleamet viib ellu riigi keelepoliitikat ja jälgib, kas keeleseadust täidetakse.',
+        'Keel ei ole ainult sõnad ja vormid. Suhtlemisel on tähtis ka see, kuidas me palume, keeldume ja vabandame: kas ütleme sina või teie, kas räägime probleemist otse või kirjutame sellest maja vestlusesse.',
+        'Selles moodulis harjutad just seda: palud abi, teed ettepanekuid, keeldud viisakalt, räägid teeninduses tingiva kõneviisiga, annad edasi kuuldud juttu ja aitad kahel tülitseval kolleegil kokku leppida. Mooduli lõpus kirjutad kokkuleppe kohta ülemusele kirja ja teed mooduli eksami.',
+      ], 'Vikipeedia, „Eesti keel”; ERR, „Eestis elab 224 eri rahvusest inimesi” (Statistikaamet, 2026); Eesti Keele Instituut; Keeleamet', [
+        'Mis on sinu arvates eesti keeles kõige raskem ja mis kõige ilusam?',
+        'Mitut keelt räägitakse sinu kodumaal? Kuidas on see sinu kodumaal teisiti kui Eestis?',
+        'Kas iga Eestis elav inimene peaks sinu arvates oskama eesti keelt? Miks?',
+        'Millises olukorras on sul kõige raskem eesti keeles suhelda: poes, arsti juures, tööl või naabritega? Miks?',
+      ]),
+      tag(B.reading('061_d_letter', 'Männi 8 remont: mis muutub?', 'On juuli ja Jaani majas Männi 8 algab suur remont. Vaata pealkirja ja arva: mis majas muutub ja kellele on see raske? Seejärel loe ühistu esimehe kirja ja kontrolli, kas arvasid õigesti.', 'Männi 8 remont: mis muutub?', [
         'Head Männi 8 elanikud!',
         '',
         'Nagu kevadisel üldkoosolekul otsustasime, algab meie majas esmaspäeval, 12. juulil suur remont. Ehitusfirma „Kindel Katus” vahetab maja katuse ja värvib trepikoja. Augusti teises pooles parandatakse ka rõdud. Kogu töö peab valmis saama 27. augustiks.',
@@ -96,8 +118,8 @@ export const LESSONS = withShapes({
         'Urmas palub kõigil elanikel jalgrattad keldrist ära viia.', 'Ühistu soovitab autod remondi ajaks kõrvaltänavale parkida.', 'Taavi on valmis naabrite rattad oma garaaži võtma.', 'Helju palub Jaanil lillepotid rõdult tuppa tõsta.', 'Andres keelab elanikel tööriistu keldris puudutada.',
         'Kahjuks ma ei saa laupäeval tulla, sest olen tööl.', 'Oskar on nõus Karli koeraga lõuna ajal jalutama.', 'Kas sa saad mulle oma redeli homseks laenata?', 'Karl palub ehitajatel hommikul vaiksemalt töötada.', 'Mul on ettepanek, et kõik naabrid saavad kokku.',
       ], 'full'),
-      teach(tag(B.speaking('061_d_meet', 'Tere, uus naaber!', 'Tutvusta end kolmele kuulajale järjest nagu uutele naabritele trepikojas: kes sa oled, kus elad ja millega saad remondi ajal aidata. Iga kord räägi lühemalt.', ['Kuidas sind kutsutakse ja mis korteris sa elad?', 'Kellega sa koos elad ja mida sa teed?', 'Mis sind remondi juures kõige rohkem muretsema paneb?', 'Millega saad sa naabreid aidata?', 'Mida sa naabritelt palud?'], [120, 180], ['Mina olen…, elan korteris…', 'Ma olen valmis…', 'Mul on üks palve:…']), { task: 'S01', fluency: true }),
-        'Üks-ühele: õpetaja on kolm korda uus naaber (Helju, Karl, Taavi) ja küsib iga kord ühe küsimuse; aeg 2 minutit, 90 sekundit ja 1 minut. Pärast ütleb õpetaja, kas õpilane pakkus abi ja palus midagi.'),
+      teach(tag(B.speaking('061_d_meet', 'Naabrid ja viisakus.', 'Räägi üks minut oma naabritest. Siis arutage paaris kolme viimast küsimust ja võrrelge, kuidas suheldakse naabritega Eestis ja sinu kodumaal.', ['Kas sa tunned oma naabreid? Räägi ühest naabrist.', 'Kuidas sa naabrit trepikojas tervitad: kas ütled sina või teie ja mis keeles sa räägid?', 'Kuidas suhtlevad naabrid sinu kodumaal? Kas Eestis on teisiti?', 'Kas naabriga peab sinu arvates olema sõber või piisab viisakusest? Miks?', 'Mida sa teed, kui naaber teeb öösel müra: räägid temaga ise, kirjutad maja vestlusesse või kutsud politsei? Miks?'], [120, 180], ['Minu naaber on…', 'Minu kodumaal…, aga Eestis…', 'Minu arvates…, sest…']), { task: 'S01', fluency: true }),
+        'Üks-ühele: õpilane räägib ühe minuti ilma peatumata; õpetaja hoiab aega. Siis arutate kolme viimast küsimust: õpetaja ütleb vahel vastupidise arvamuse ja küsib „Miks?”. Lõpus ütleb õpetaja, kas õpilane võrdles Eestit ja oma kodumaad.'),
       tag(B.writing('061_d_write', 'Kaheksa minutit naabritest.', 'Kirjuta kaheksa minutit järjest ja ära peatu: sinu kõige toredam või kõige raskem naaber. Mis juhtus ja kuidas te asja lahendasite?', [8, 10], ['naaber', 'palusin', 'nõus', 'kahjuks'], 3), { task: 'W06', fluency: true }),
     ],
     practice: [
@@ -189,6 +211,10 @@ export const LESSONS = withShapes({
         ['Kui töö algab liiga vara, tuleb ehitajatega kohe vaielda.', 'vale'],
         ['Miks soovitab nõustaja pärast remonti naabrite õhtut korraldada?', 'ühine pidu aitab tolmu ja müra unustada|see näitab, et maja on rohkem kui seinad|naabrid saavad lähemalt tuttavaks'],
       ]), { task: 'R06' }),
+      B.know('061_p_know', [
+        'Korrakaitseseaduse järgi ei tohi kodus ja mujal väljaspool avalikku kohta kella 22-st kuni 6-ni teha müra, mis teist inimest kestvalt või korduvalt tugevalt segab. Puhkepäevale eelneval ööl, näiteks reedest laupäevaks, kehtib see keeld keskööst kuni kella 7-ni.',
+        'Politsei sõnul piisab öise müra korral enamasti suulisest hoiatusest. Päevase müra pärast politsei tavaliselt ei sekku: siis tuleb kõigepealt naabriga ise rääkida ja vajaduse korral pöörduda korteriühistu poole.',
+      ], 'Korrakaitseseadus § 56 (Riigi Teataja); ERR, „Öörahu rikkumiste teadete arv on suvel suurenenud” (12.7.2021)', 'Kas teadsid? Öörahu ja naabrid'),
       teach(B.rolecards('061_p_gap', 'Infolünk: millal Heljut aidata?', 'A teab juuli tööde plaani, B augusti plaani. Küsige teineteiselt ja leppige kokku, millal aitate Heljut ja millal on Karlil kõige raskem.',
         'Sa oled Jaan. Sul on juuli plaan: 12. ja 13. juulil pannakse üles tellingud; 12.–30. juulini vahetatakse katust; kõige valjemad tööd on pärast kella kümmet; lõunapaus on kella 12–13. Augusti plaani sa ei tea. Küsi B-lt ja leppige kokku, millal aitate Heljut.',
         'Sa oled Taavi. Sul on augusti plaan: 2.–13. augustini värvitakse trepikoda ja trepil on värvi lõhn; 16.–27. augustini parandatakse rõdusid; rõdud peavad olema tühjad 15. augustiks. Juuli plaani sa ei tea. Küsi A-lt ja aita otsustada.',
@@ -196,7 +222,7 @@ export const LESSONS = withShapes({
       'Üks-ühele: õpetaja on Taavi ja annab infot ainult küsimise peale; siis vahetage kaardid. Lõpus ütleb õpilane ühe lausega, millal nad Heljut aitavad (14. või 15. augustil, enne rõdude remonti) ja millal Karlil on kõige raskem (juulis pärast kella kümmet).'),
     ],
     transfer: [
-      B.text('061_t_sit', 'Karl ei saa magada', 'On remondi teine nädal. Karl kirjutas maja vestlusesse, et ta ei ole kolm päeva korralikult maganud ja tema koer Roki haugub katusel töötavate meeste peale. Taavi pakkus, et naabrid saavad kokku ja otsivad koos lahenduse. Loe remondigraafikut ja ühistu otsuseid. Siis leppige naabritega kokku, kes mida teeb, salvesta kodus Karlile häälsõnum ja kirjuta maja vestlusesse lühike teade.'),
+      B.text('061_t_sit', 'Karl ei saa magada', 'On remondi teine nädal. Karl kirjutas maja vestlusesse, et ta ei ole kolm päeva korralikult maganud ja tema koer Roki haugub katusel töötavate meeste peale. Taavi pakkus, et naabrid saavad kokku ja otsivad koos lahenduse. Loe remondigraafikut ja ühistu otsuseid. Siis leppige naabritega kokku, kes mida teeb, valmista kodus ette lühike sõnavõtt ühistu koosolekuks ja kirjuta maja vestlusesse lühike teade.'),
       tag(B.reading('061_t_plan', 'Remondigraafik ja ühistu otsused.', 'Loe remondigraafikut ja ühistu otsuseid. Vasta küsimustele: mida see tähendab Karlile ja tema koerale?', 'Männi 8: graafik ja otsused', [
         'Remondigraafik. Katust vahetatakse 12.–30. juulini. Kõige valjemad tööd, kui vana katus maha võetakse, on 12.–16. ja 19.–23. juulil. Trepikoda värvitakse 2.–13. augustini, korraga üks korrus, ja värvimise päeval on lõhn tugev. Rõdusid parandatakse 16.–27. augustini, nii et rõdud peavad olema tühjad 15. augustiks.',
         '',
@@ -218,8 +244,8 @@ export const LESSONS = withShapes({
       ]), { task: 'R08', level: 3 }),
       teach(tag(B.ideaCard('061_t_agree', 'Leppige kokku: kuidas Karl saab magada?', 'Arutage naabritena, kuidas Karli ja Roki muret remondi ajal lahendada. Leppige kokku vähemalt kolm sammu: kes mida teeb ja millal.', 'Karl töötab öösel ja magab päeval neljandal korrusel otse katuse all. Katusetööd kestavad 30. juulini. Roki haugub töömeeste peale, kui Karl magab.', ['koosolekuruum esimesel korrusel', 'kõrvatropid ja unemask', 'Oskar jalutab Rokiga lõuna ajal', 'palve Andresele: valjud tööd pärast kümmet', 'Karl magab nädal aega õe juures', 'Taavi võtab Roki päevaks enda juurde'], 'Mida te teete, kes vastutab ja millest alustate?'), { main: true }),
         'Üks-ühele: õpetaja on Karl, kes on väsinud ja pahane ning keeldub alguses igast pakkumisest; õpilane palub, pakub ja põhjendab, kuni kolm sammu on kokku lepitud. Hinda hindamisjuhendiga: kas lõpus oli selge kokkulepe.'),
-      teach(tag(B.speaking('061_t_rec', 'Kodus: häälsõnum Karlile.', 'Salvesta Karlile 2–3-minutiline häälsõnum: mida naabrid kokku leppisid ja millega sa ise aitad.', ['Mida naabrid Karli mure kohta kokku leppisid?', 'Kes viib Roki jalutama ja millal?', 'Kus saab Karl päeval magada?', 'Mida palutakse töödejuhataja Andreselt?', 'Millega sa ise aitad ja mida palud Karlilt?'], [120, 180], ['Me leppisime kokku, et…', 'Ma olen valmis…', 'Ma palun sul…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib, mis oli kokkuleppes kõige tähtsam ja miks.'),
+      teach(tag(B.speaking('061_t_rec', 'Kodus: sõnavõtt ühistu koosolekul.', 'Valmista kodus ette 2–3-minutiline sõnavõtt ühistu koosolekuks: mida naabrid Karli mure kohta kokku leppisid ja mida sa teistelt naabritelt palud. Järgmises tunnis räägid selle ette.', ['Mis oli Karli ja Roki mure?', 'Mida naabrid kokku leppisid?', 'Kes viib Roki jalutama ja millal?', 'Mida palutakse töödejuhataja Andreselt?', 'Millega sa ise aitad ja mida palud teistelt naabritelt?'], [120, 180], ['Head naabrid, me leppisime kokku, et…', 'Ma olen valmis…', 'Mul on teile üks palve:…']), { task: 'S15', level: 3 }),
+        'Kodune ettevalmistus. Järgmises tunnis räägib õpilane sõnavõtu ette; õpetaja on ühistu esimees ja küsib, mis oli kokkuleppes kõige tähtsam ja miks.'),
       B.examWriting('061_t_note', 'Teade maja vestlusesse.', 'Kirjuta maja vestlusesse 70–90-sõnaline teade: mida naabrid Karli ja Roki jaoks kokku leppisid. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Kõik naabrid ei saanud kokkusaamisele tulla. Urmas palub sul kokkuleppe maja vestluses lühidalt kirja panna.',
         points: ['mis oli probleem', 'mida naabrid kokku leppisid', 'kellelt ja mida te palute', 'kuidas sinuga ühendust võtta'],
@@ -299,8 +325,8 @@ export const LESSONS = withShapes({
         'saama | [saan] | [saaksin] | [saaksite]', 'olema | [olen] | [oleksin] | [oleksite]', 'tegema | [teen] | [teeksin] | [teeksite]', 'tahtma | [tahan] | [tahaksin] | [tahaksite]', 'võima | [võin] | [võiksin] | [võiksite]',
         'soovima | [soovin] | [sooviksin] | [sooviksite]', 'aitama | [aitan] | [aitaksin] | [aitaksite]', 'minema | [lähen] | [läheksin] | [läheksite]', 'tulema | [tulen] | [tuleksin] | [tuleksite]', 'andma | [annan] | [annaksin] | [annaksite]',
       ], 'g_notice'),
-      teach(tag(B.speaking('062_d_photo', 'Minu puhkusefoto.', 'Näita oma puhkusefotot kolmele kuulajale järjest ja räägi, kus ja millal see tehti ning mis seal juhtus. Teisel ja kolmandal korral räägi kiiremini ja lisa üks uus detail.', ['Kus ja millal see foto tehti?', 'Kes on pildil ja mida nad teevad?', 'Kus te ööbisite ja kas kõik sujus?', 'Kas reisil juhtus midagi ootamatut?', 'Kuhu sa järgmisel suvel sõita tahaksid?'], [120, 180], ['See foto on tehtud…', 'Me ööbisime…', 'Järgmisel suvel ma tahaksin…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpetaja on kolm korda uus kuulaja (Kadri, Helju, Oskar) ja küsib iga kord ühe uue küsimuse; aeg 2 minutit, 90 sekundit ja 1 minut. Viimasele küsimusele vastab õpilane tingiva kõneviisiga.'),
+      teach(tag(B.speaking('062_d_photo', 'Minu puhkusefoto.', 'Näita oma puhkusefotot ja räägi sellest üks minut ilma peatumata. Siis arutage paaris kahte viimast küsimust ja võrrelge oma kogemusi.', ['Kus ja millal see foto tehti ning kes on pildil?', 'Kus te ööbisite ja kas kõik sujus?', 'Kas reisil juhtus midagi ootamatut?', 'Kas teenindajad on Eestis sinu arvates viisakad? Kuidas on teenindus sinu kodumaal?', 'Kuhu sa järgmisel suvel sõita tahaksid ja miks?'], [120, 180], ['See foto on tehtud…', 'Minu arvates on teenindajad Eestis…', 'Järgmisel suvel ma tahaksin…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane räägib ühe minuti ilma peatumata; õpetaja hoiab aega. Siis arutate kahte viimast küsimust; õpetaja küsib „Miks?” ja viimasele küsimusele vastab õpilane tingiva kõneviisiga.'),
       tag(B.examWriting('062_d_polite', 'Oskari sõnum viisakaks.', 'Oskar kirjutas hotellile liiga järsu sõnumi. Kirjuta sellest viisakas sõnum 50–70 sõnaga ja kasuta tingivat kõneviisi; kõik palved peavad alles jääma.', 'teade', {
         situation: 'Oskari mustand: „Meie tuba on katki! Andke meile kaks tuba kõrvuti. Koer peab meiega olema. Tahame tasuta hommikusööki ja viimasel päeval lahkume kell 12!”',
         points: ['mis on probleem', 'milliseid tube pere soovib', 'koera ja hommikusöögi küsimus', 'hilisem lahkumine'],
@@ -394,6 +420,10 @@ export const LESSONS = withShapes({
         ['Kui palju maksab rattarent päevas kahele täiskasvanule ja kahele lapsele?', 'nelikümmend eurot|40 eurot'],
         ['Miks palutakse öösel koridorides vaikust hoida?', 'paljud külalised on väikeste lastega|hotellis on palju lastega peresid'],
       ], 'g_vocab'), { task: 'R07' }),
+      B.know('062_p_know', [
+        'Kui sa ei tea, kuidas mõnda sõna eesti keeles öelda või kirjutada, aitab Eesti Keele Instituudi (EKI) keelenõu. Tööpäeviti kella 9-st 13-ni saab helistada numbril 631 3731. Küsimuse võib saata ka e-postiga või instituudi veebilehe kaudu; kirjalikule küsimusele vastatakse tavaliselt ühe kuni kolme tööpäeva jooksul.',
+        'Tasuta Sõnaveebist leiad sõna tähenduse, vormid ja näitelaused. Keeleõppijale on seal lihtsam vaade „Keeleõppija Sõnaveeb”.',
+      ], 'Eesti Keele Instituudi koduleht („Keelenõu”, „Küsi keelenõu”); Sõnaveeb', 'Kas teadsid? Kust saada keeleabi?'),
       teach(tag(B.speaking('062_p_would', 'Mida sa teeksid?', 'Vasta igale olukorrale tingiva kõneviisiga: mida sa teeksid ja miks. Teisel ringil vasta igale olukorrale umbes 30 sekundiga.', ['Sinu hotellituba on koristamata ja vastuvõtus on pikk järjekord. Mida sa teeksid?', 'Sa jäid praamist maha ja järgmine praam on täis. Mida sa teeksid?', 'Naabertoas mängib kell üks öösel vali muusika. Mida sa teeksid?', 'Kelner tõi sulle vale toidu, aga sul on väga kõht tühi. Mida sa teeksid?', 'Hotell pakub probleemi eest tasuta hommikusööki, aga sa tahaksid raha tagasi. Mida sa ütleksid?'], [120, 180], ['Kõigepealt ma läheksin…', 'Ma küsiksin viisakalt…', 'Ma ei teeks…, sest…']), { task: 'S14', fluency: true }),
         'Üks-ühele: õpetaja loeb olukorra ja küsib „Aga miks?”; teisel ringil vastab õpilane igale olukorrale umbes 30 sekundiga. Õpetaja loeb kokku, mitu tingiva kõneviisi vormi õpilane kasutas.'),
     ],
@@ -516,6 +546,11 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja on esimesel korral sõber, teisel korral kolleeg, ja küsib iga kord: „Kas sa nägid seda ise?” Õpetaja hoiab aega (3 minutit, siis 2 minutit).'),
     ],
     practice: [
+      B.know('063_p_know', [
+        'Eesti keeles on 14 käänet. Lisaks nimetavale, omastavale ja osastavale on näiteks seesütlev (majas), alaleütlev (majale) ja ilmaütlev (majata).',
+        'Grammatilist sugu eesti keeles ei ole: „ta” tähendab nii meest kui ka naist. Eraldi tulevikuvormi ka ei ole, tulevikust räägitakse olevikuga: „Homme ma lähen tööle.”',
+        'Eesti keeles on aga omaette vorm kuuldud jutu jaoks: kaudne kõneviis tunnusega -vat (ta olevat, ta tulevat, ta olevat teinud). Nii näitab rääkija, et ta ei näinud asja ise, vaid kuulis seda kelleltki. Vene keeles öeldakse samas olukorras tavaliselt „говорят” või „якобы”.',
+      ], 'Wikipedia, „Estonian language”; Vikipeedia, „Eesti keel” ja „Kaudne kõneviis”', 'Kas teadsid? Mida eesti keel teeb teistmoodi?'),
       B.translation('063_p_trans', 'Tõlgi mõte: kuuldud jutt.', 'Tõlgi vene laused eesti keelde nii, et on näha: rääkija ise ei näinud, vaid kuulis. Kasuta kaudset kõneviisi või sõnu väidetavalt, kuuldavasti, … sõnul.', [
         'Говорят, что новый сосед с четвёртого этажа работает по ночам в аэропорту.', 'Якобы его собака вчера весь день бегала вверх и вниз по лестнице.', 'Соседка сказала, что строители начали шумную работу уже в половине восьмого.', 'По словам Урмаса, ремонт крыши и подъезда закончится в конце августа.', 'Говорят, что Карл утром громко поссорился со строителями во дворе.',
         'По слухам, кто-то в нашем доме курит по вечерам на лестнице.', 'Таави сказал, что громкая музыка ночью шла не из квартиры, а с парковки.', 'Якобы свежая краска на лестнице второго этажа ещё не высохла.', 'Говорят, что серая кошка Хелью утром гуляла по подъезду.', 'По словам строителей, окно на лестнице на ночь открыли маляры.',
@@ -570,7 +605,7 @@ export const LESSONS = withShapes({
       'Üks-ühele: õpetaja on Sofia ja küsib iga lause järel üle („Kes seda nägi?”); siis vahetage. Õpetaja märgib, kas õpilane eristas nähtud ja kuuldud infot.'),
     ],
     transfer: [
-      B.text('063_t_sit', 'Karl on solvunud', 'Neljapäeval kirjutas Urmas kõigile elanikele teate, mis trepikojas tegelikult juhtus. Karl luges maja vestlust ja on väga solvunud: ta mõtleb isegi majast ära kolida. Loe Urmase teadet. Siis räägi Jaanina Karliga, salvesta kodus lugu sõbrale ja kirjuta jutt sellest, kuidas üks kuulujutt sündis.'),
+      B.text('063_t_sit', 'Karl on solvunud', 'Neljapäeval kirjutas Urmas kõigile elanikele teate, mis trepikojas tegelikult juhtus. Karl luges maja vestlust ja on väga solvunud: ta mõtleb isegi majast ära kolida. Loe Urmase teadet. Siis räägi Jaanina Karliga, valmista kodus ette lugu sõbrale ja kirjuta jutt sellest, kuidas üks kuulujutt sündis.'),
       teach(tag(B.bankText('063_t_notice', 'Eksaminurk: Urmase teade (Harno B1 lugemine 4)', 'Urmase teatest on välja võetud kaheksa lauseosa. Kirjuta igasse lünka sobiv osa pangast; kaks osa jääb üle.', 'Mis trepikojas tegelikult juhtus', [
         'Head naabrid! Rääkisin täna ehitajate, Taavi ja Karliga, [[et teada saada, mis tegelikult juhtus]]. Selgus, et käpajäljed trepil ei olnud koera omad. [[Need jättis sinna Helju kass Nurr]], kes oli lõuna ajal lahtisest tagauksest sisse tulnud. Ehitajad pesid trepi puhtaks, aga paar väikest jälge jäi värvi sisse alles.',
         '',
@@ -590,8 +625,8 @@ export const LESSONS = withShapes({
         'Sa oled Karl. Sa oled solvunud: keegi ei küsinud sinult midagi ja paljud uskusid kuulujuttu. Sa mõtled ära kolida. Kuula Jaani, ütle oma tunded ja nõustu ettepanekuga alles siis, kui Helju sinuga ise räägib.',
         ['Majas räägiti, et sa olevat…', 'Tegelikult selgus, et…', 'Mul on ettepanek: …'], ['Mind solvas, et…', 'Keegi ei küsinud minult…', 'Olen nõus, kui…']), { task: 'S10' }),
       'Üks-ühele: õpetaja on Karl, kes on alguses väga pahane; õpilane annab kaudse kõneviisiga edasi, mida räägiti, ütleb, mis tegelikult juhtus, ja pakub lahenduse. Siis vahetage rollid.'),
-      teach(tag(B.speaking('063_t_rec', 'Kodus: kuidas kuulujutt levis.', 'Salvesta 2–3-minutiline lugu sõbrale, kes Männi 8 majas ei ela: mida räägiti, mis tegelikult juhtus ja mida naabrid sellest õppisid.', ['Mis trepikojas juhtus?', 'Mida räägiti Karli kohta?', 'Kuidas kuulujutt majas levis?', 'Mis tegelikult juhtus?', 'Mida naabrid sellest õppisid?'], [120, 180], ['Räägiti, et Karl olevat…', 'Tegelikult…', 'Nüüd…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib, kuidas oleks kuulujuttu saanud ära hoida.'),
+      teach(tag(B.speaking('063_t_rec', 'Kodus: kuidas kuulujutt levis.', 'Valmista kodus ette 2–3-minutiline lugu sõbrale, kes Männi 8 majas ei ela: mida räägiti, mis tegelikult juhtus ja mida naabrid sellest õppisid. Järgmises tunnis räägid selle ette.', ['Mis trepikojas juhtus?', 'Mida räägiti Karli kohta?', 'Kuidas kuulujutt majas levis?', 'Mis tegelikult juhtus?', 'Mida naabrid sellest õppisid?'], [120, 180], ['Räägiti, et Karl olevat…', 'Tegelikult…', 'Nüüd…']), { task: 'S15', level: 3 }),
+        'Kodune ettevalmistus. Järgmises tunnis räägib õpilane loo ette; õpetaja küsib, kuidas oleks kuulujuttu saanud ära hoida.'),
       tag(B.examWriting('063_t_story', 'Jutt: „Kuidas kuulujutt sündis”.', 'Kirjuta jutt umbes 100 sõnaga. Kirjuta kõigist neljast punktist ja kasuta vähemalt kahte kaudse kõneviisi vormi.', 'jutt', {
         situation: 'Pealkiri: „Kuidas kuulujutt sündis”. Jutusta Männi 8 lugu algusest lõpuni kas Helju, Karli või Jaani silmadega.',
         points: ['mida keegi nägi või kuulis', 'mida majas rääkima hakati (olevat, väidetavalt)', 'mis tegelikult juhtus', 'kuidas lugu lõppes ja mida sellest õppida'],
@@ -668,8 +703,8 @@ export const LESSONS = withShapes({
         ['kokkulepe', ['Leppisime kokku, et aken on hommikul lahti.', 'Kristjan istub kaks nädalat Anna laua taga.', 'Ventilaator pööratakse seina poole.', 'Mõlemad lubasid teineteiselt enne küsida.']],
         ['küsimus ülemusele', ['Kas firma saaks osta konditsioneeri?', 'Oleks hea, kui sa saaksid selle heaks kiita.', 'Palun anna teada, mida sa arvad.', 'Kas me võiksime kardinad tellida?']],
       ], 'full', 'g_notice'),
-      teach(tag(B.speaking('064_d_opinion', 'Aken lahti või kinni?', 'Ütle oma arvamus viie väite kohta nii, et igas vastuses on arvamus, põhjus ja näide. Räägi seda kolmele kuulajale järjest; iga kord lühemalt.', ['Kontoris peab suvel alati olema konditsioneer.', 'Kes istub akna juures, see otsustab akna üle.', 'Tülist tuleb ülemusele kohe rääkida.', 'Kodus on parem töötada kui kontoris.', 'Kolleegiga ei pea olema sõber, piisab viisakusest.'], [120, 180], ['Minu arvates…, sest…', 'Näiteks meie töökohas…', 'Ma ei ole päris nõus, sest…']), { task: 'S11', fluency: true }),
-        'Üks-ühele: õpetaja on kolm korda uus kuulaja (Markus, Kristjan, Liis) ja ütleb iga väite kohta vastupidise arvamuse; aeg 2 minutit, 90 sekundit ja 1 minut.'),
+      teach(tag(B.speaking('064_d_opinion', 'Aken lahti või kinni?', 'Ütle oma arvamus viie väite kohta nii, et igas vastuses on arvamus, põhjus ja näide. Siis valige paaris üks väide ja vaielge kaks minutit: üks on poolt, teine vastu.', ['Kontoris peab suvel alati olema konditsioneer.', 'Kes istub akna juures, see otsustab akna üle.', 'Tülist tuleb ülemusele kohe rääkida.', 'Eestis räägitakse probleemidest vähem otse kui minu kodumaal.', 'Kolleegiga ei pea olema sõber, piisab viisakusest.'], [120, 180], ['Minu arvates…, sest…', 'Näiteks meie töökohas…', 'Ma ei ole päris nõus, sest…']), { task: 'S11', fluency: true }),
+        'Üks-ühele: õpilane ütleb iga väite kohta oma arvamuse; õpetaja ütleb vastupidise arvamuse ja küsib „Miks?”. Lõpus vaielge ühe väite üle kaks minutit.'),
       teach(tag(B.speaking('064_d_survey', 'Küsitle kolme: tüli tööl.', 'Küsi kolmelt inimeselt viis küsimust selle kohta, kuidas nad tööl või koolis tülisid lahendavad. Seejärel räägi ühe minutiga, mida kuulsid; kasuta … sõnul ja olevat.', ['Kas sul on olnud kolleegi või klassikaaslasega tüli? Miks?', 'Kas sa räägid probleemist kohe või ootad?', 'Kes peaks tüli lahendama: ülemus või inimesed ise?', 'Mis sind tööl kõige rohkem segab?', 'Mida sa teeksid, kui kolleeg sind solvaks?'], [120, 180], ['Kas sa…?', 'Esimese inimese sõnul olevat…', 'Kõik kolm arvasid, et…']), { task: 'S09', fluency: true }),
         'Üks-ühele: õpilane küsib samu küsimusi õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (Liis, Markus, Anna). Lõpus teeb õpilane minutilise kokkuvõtte kaudse kõneviisiga.'),
     ],
@@ -741,6 +776,11 @@ export const LESSONS = withShapes({
         '',
         'Kui tüli on juba tekkinud, ärge {*oodake|oota|ootama} ülemuse tagasitulekut. Istuge maha ja kuulake teineteist. Sageli selgub, et probleem on {*väiksem|väike|väikseim}, kui alguses tundus. Hea kompromiss on {*selline|sellist|sellisel}, millega on rahul mõlemad pooled. Ja kui kuumus on möödas, tasub koos naerda selle üle, mille pärast suvel vaieldi.',
       ], 'g_vocab'),
+      B.know('064_p_know', [
+        'Eesti põhiseaduse järgi on Eesti riigikeel eesti keel. Keeleseadus ütleb, millal tuleb tööl kasutada eesti keelt, ja Vabariigi Valitsuse määrus näitab, millist eesti keele taset (A2, B1, B2 või C1) on vaja ametnikul ja töötajal.',
+        'Keeleamet kontrollib, kas neid nõudeid täidetakse. Kui töötaja keeleoskus ei vasta nõudele, võib Keeleamet teha ettekirjutuse.',
+        'Keeleoskust tõendab Harno tasemeeksami tunnistus. Eksam on tasuta. Tunnistus on elektrooniline ja tööandja saab seda kontrollida eksamite infosüsteemis (EIS).',
+      ], 'Eesti Vabariigi põhiseadus § 6; Vabariigi Valitsuse määrus nr 84 (20.6.2011) „Ametniku, töötaja ning füüsilisest isikust ettevõtja eesti keele oskuse ja kasutamise nõuded” (Riigi Teataja); Keeleamet (keeleamet.ee); Integratsiooni Sihtasutus, „Juhend avaliku sektori tööandjatele eri keele- ja kultuuritaustaga inimeste eesti keele oskuse tõstmiseks” (2025); Harno, „Eesti keele tasemeeksamid”', 'Kas teadsid? Eesti keel tööl'),
       teach(B.speaking('064_p_topic', 'Teemaküsimused: töö ja suhtlemine.', 'Vasta teemaküsimustele nagu Harno eksami esimeses osas: igas vastuses 3–4 lauset ja üks põhjus või näide. Teisel ringil vasta igale küsimusele umbes poole minutiga.', ['Milline on sinu jaoks hea kolleeg? Miks?', 'Kuidas sa lahendad tüli tööl või kodus?', 'Kas sulle meeldib töötada üksi või koos teistega? Miks?', 'Milline on sinu arvates hea ülemus?', 'Kas sa oled kunagi kaht inimest lepitanud? Mis juhtus?'], [120, 180], ['Minu arvates…, sest…', 'Näiteks kord…', 'Ma eelistan…']),
         'Üks-ühele: õpetaja küsib nagu eksamineerija; esimesel ringil vastab õpilane pikalt, teisel ringil umbes 30 sekundiga. Õpetaja loeb kokku, mitu vastust olid põhjuse või näitega.'),
     ],
@@ -860,8 +900,17 @@ export const LESSONS = withShapes({
         ['Hotell pakkus meile kolmeks päevaks tasuta hommikusöök.', 'Hotell pakkus meile kolmeks päevaks tasuta hommikusööki.'],
       ], 'full', 'g_notice'),
       B.writing('065_d_write', 'Minu kõige raskem vestlus.', 'Kirjuta 8–10 lauset: millal sa pidid kellelegi midagi ebameeldivat ütlema või tüli lahendama. Mis juhtus ja kuidas see lõppes?', [8, 10], ['kahjuks', 'palusin', 'tegelikult', 'leppisime kokku'], 3),
-      teach(B.speaking('065_d_warm', 'Soojendus enne eksamit.', 'Vasta eksamineerija neljale küsimusele naabrite ja suhtlemise kohta; räägi igale küsimusele umbes pool minutit.', ['Kas sa tunned oma naabreid? Räägi ühest neist.', 'Kuidas sa palud võõralt inimeselt abi?', 'Kas sa oled kunagi hotellis või poes kurtnud? Mis juhtus?', 'Mida sa teeksid, kui kuuleksid enda kohta kuulujuttu?'], [120, 150]),
-        'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane samu küsimusi õpetajalt.'),
+      // own instruction: B.examiner's fixed wording would repeat another module's instruction (final shape V7)
+      teach(withInstruction(B.examiner('065_d_warm', 'keel, suhtlemine ja naabrid', [
+        'Mis keeli sa räägid ja millist neist kasutad iga päev kõige rohkem?',
+        'Kus ja kellega sa räägid eesti keelt kõige meelsamini? Miks just seal?',
+        'Mis on eesti keeles sinu arvates kõige raskem?',
+        'Kas sinu kodumaal suheldakse naabritega rohkem või vähem kui Eestis?',
+        'Kuidas sa palud võõralt inimeselt abi, kui sa ei saa temast hästi aru?',
+        'Mida sa teeksid, kui kuuleksid enda kohta kuulujuttu?',
+        'Kas tüli on parem lahendada silmast silma või kirjalikult? Põhjenda.',
+      ]), 'Enne eksamit harjuta rääkimise esimest osa: eksamineerija küsib keelest, suhtlemisest ja naabritest. Vasta igale küsimusele paari-kolme lausega ning too oma elust näide.'),
+        'Üks-ühele: õpetaja on eksamineerija ega aita; mõnele vastusele küsib ta lisaks „Miks?” või ütleb vastupidise arvamuse. Lõpus küsib õpilane õpetajalt kaks küsimust samast teemast.'),
     ],
     practice: [
       B.examPart('065_p_rpart', 'R', { minutes: 50, points: 33, tasks: 4, note: 'Lugemisosa on Harno B1 vormis ja täispikkuses: neli ülesannet, 33 punkti. Eesmärk on vähemalt 27 punkti (80 %). Jälgi aega: iga ülesande jaoks umbes 12 minutit.' }),
@@ -884,9 +933,9 @@ export const LESSONS = withShapes({
         ['Pühapäeva hommikul lekib köögis toru ja põrand on märg.', 'D'],
       ]), { harno: 'R1' }),
       B.reading('065_p_r2text', 'Lugemine 2. Artikkel.', 'Lugege ajakirja artiklit naabritest. Valikküsimused on artikli järel.', 'Kas te teate oma naabri nime?', [
-        'Ühe korteriühistute liidu küsitluse järgi ei tea peaaegu pooled kortermajade elanikud oma naabrite nimesid. Paljud tervitavad trepikojas viisakalt, aga sellega suhtlemine ka lõpeb. Eriti sageli ei tunne üksteist uutes majades elavad noored pered, kes käivad tööl hommikust õhtuni ja kolivad tihti.',
+        'Kortermajas elab sageli kümneid peresid, aga paljud elanikud ei tea oma naabrite nimesid. Trepikojas tervitatakse viisakalt, aga sellega suhtlemine ka lõpeb. Eriti sageli ei tunne üksteist uutes majades elavad noored pered, kes käivad tööl hommikust õhtuni ja kolivad tihti.',
         '',
-        'Küsitluse korraldajate sõnul ei ole see ainult viisakuse küsimus. Kui naabrid üksteist ei tunne, on raskem ka probleeme lahendada. Selle asemel et naabriga rääkida, kirjutatakse pahaseid sõnumeid maja vestlusesse või helistatakse kohe haldusfirmasse.',
+        'Ühistute juhtide sõnul ei ole see ainult viisakuse küsimus. Kui naabrid üksteist ei tunne, on raskem ka probleeme lahendada. Selle asemel et naabriga rääkida, kirjutatakse pahaseid sõnumeid maja vestlusesse või helistatakse kohe haldusfirmasse.',
         '',
         'Mõnes majas on proovitud asja muuta. Näiteks üks Nõmme ühistu korraldab igal suvel hoovipäeva. Elanikud toovad lauale toitu, lapsed mängivad ja vanemad inimesed räägivad, kuidas maja vanasti välja nägi. Ühistu esimehe sõnul on pärast esimest hoovipäeva tülisid majas palju vähem kui varem.',
         '',
@@ -895,7 +944,7 @@ export const LESSONS = withShapes({
         'Siiski ei pea kõik naabrid olema sõbrad. Paljud inimesed hindavad oma rahu ega soovi trepikojas pikki vestlusi. Ka see on psühholoogi sõnul täiesti normaalne. Tähtis on austada teist inimest ja tema soove. Psühholoogi sõnul piisab sageli tervitusest ja naeratusest, et trepikojas oleks meeldivam elada. Kes teab, võib-olla saab naabrist aastate jooksul ka hea sõber.',
       ], [['Pärast eksamit: kas sina tunned oma naabreid? Miks?', '']]),
       tag(B.choice('065_p_r2', 'Lugemine 2. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele kolmest vastusest üks õige.', [
-        ['Mida ei tea küsitluse järgi peaaegu pooled kortermaja elanikud?', 'oma naabrite nimesid', 'naabrite telefoninumbreid', 'ühistu esimehe nime'],
+        ['Mida ei tea artikli järgi paljud kortermaja elanikud?', 'oma naabrite nimesid', 'naabrite telefoninumbreid', 'ühistu esimehe nime'],
         ['Kes ei tunne artikli järgi üksteist eriti sageli?', 'uutes majades elavad noored pered', 'vanemad inimesed', 'üliõpilased ühiselamus'],
         ['Mida teevad inimesed sageli naabriga rääkimise asemel?', 'kirjutavad pahaseid sõnumeid maja vestlusesse', 'kolivad teise majja', 'kutsuvad kohe politsei'],
         ['Mis muutus Nõmme majas pärast esimest hoovipäeva?', 'tülisid jäi palju vähemaks', 'majja kolis uusi peresid', 'hoovi tehti uus mänguväljak'],
@@ -943,18 +992,18 @@ export const LESSONS = withShapes({
         ['Milline ilm on laupäeva õhtul?', 'võib tulla lühike vihm', 'tuleb torm', 'on paks udu'],
       ]), { harno: 'L1', task: 'L01' }),
       tag(B.examListen('065_p_l2', 'Kuulamine 2. Raadiolugu.', 'Kuulake raadiolugu hotellikaebustest. Valige igale küsimusele kolmest vastusest üks.', 'choice', [
-        'Diktor: Head kuulajad! Suvel saab tarbijakaitse tavalisest rohkem kaebusi hotellide kohta. Kõige sagedamini kurdetakse, et tuba ei vasta broneeringule või ei ole puhas.',
+        'Diktor: Head kuulajad! Suvi on puhkuste aeg ja paljud ööbivad hotellides. Mida teha, kui hotellituba ei vasta broneeringule või ei ole puhas?',
         'Diktor: Tarbijanõustaja Heli Paju sõnul tasub probleemist teatada kohe vastuvõtus, mitte alles pärast koju jõudmist. Siis on hotellil võimalus viga kohe parandada.',
         'Diktor: Kui hotell probleemi ei lahenda, tuleb teha pilte ja kirjutada hotellile kirjalik kaebus. Kirjas tuleb öelda, mis juhtus ja mida te soovite: raha tagasi, allahindlust või uut tuba.',
-        'Diktor: Hotellil on aega vastata viisteist päeva. Kui vastust ei tule või see ei ole rahuldav, võib pöörduda tarbijavaidluste komisjoni poole. Avalduse esitamine on tasuta.',
+        'Diktor: Hotellil on aega kirjalikule kaebusele vastata viisteist päeva. Kui vastust ei tule või see ei ole rahuldav, võib pöörduda tarbijavaidluste komisjoni poole. Vaidluse lahendamine komisjonis on tasuta.',
         'Diktor: Heli Paju soovitab ka broneerimisel tingimused hoolikalt läbi lugeda. Mõnes hotellis tuleb koera eest eraldi maksta ja hilisem lahkumine maksab lisaraha.',
         'Diktor: Ja kõige tähtsam: rääkige viisakalt. Kui klient on rahulik, leitakse lahendus tavaliselt kiiremini.',
       ], [
-        ['Mille kohta saab tarbijakaitse suvel tavalisest rohkem kaebusi?', 'hotellide', 'praamide', 'restoranide'],
+        ['Millest räägitakse raadioloos?', 'mida teha, kui hotellituba ei vasta broneeringule', 'kuidas osta odavat praamipiletit', 'kuidas restoranis lauda broneerida'],
         ['Millal tasub Heli Paju sõnul probleemist teatada?', 'kohe vastuvõtus', 'pärast koju jõudmist', 'järgmisel aastal'],
         ['Mida tuleb teha, kui hotell probleemi ei lahenda?', 'teha pilte ja kirjutada kirjalik kaebus', 'kirjutada internetti halb arvustus', 'lahkuda kohe hotellist'],
         ['Mitu päeva on hotellil aega kaebusele vastata?', 'viisteist', 'viis', 'kolmkümmend'],
-        ['Kui palju tuleb maksta, kui esitad tarbijavaidluste komisjonile avalduse?', 'mitte midagi, see on tasuta', 'viisteist eurot', 'viiskümmend eurot'],
+        ['Kui palju maksab vaidluse lahendamine tarbijavaidluste komisjonis?', 'mitte midagi, see on tasuta', 'viisteist eurot', 'viiskümmend eurot'],
         ['Mida soovitab Heli Paju teha juba broneerimisel?', 'tingimused hoolikalt läbi lugeda', 'küsida alati allahindlust', 'maksta kohe kogu summa'],
       ]), { harno: 'L2' }),
       tag(B.listening('065_p_l3', 'Kuulamine 3. Vestlus kontoris.', 'Kuulake Anna ja Sofia vestlust. Vastake igale küsimusele ühe-kahe sõnaga.', [
@@ -990,7 +1039,7 @@ export const LESSONS = withShapes({
         'Ülle: Kas lepitaja ütleb lõpus, kellel on õigus?',
         'Mari: Ei. Minu töö ei ole otsustada, kes on süüdi. Ma aitan inimestel ise lahenduse leida. Kui lahenduse leiavad inimesed ise, peavad nad sellest ka paremini kinni.',
         'Ülle: Kas kõik tülid saab lahendada?',
-        'Mari: Kahjuks mitte. Umbes kolm tüli neljast lõpeb kokkuleppega. Mõnikord on inimesed nii pahased, et nad ei taha üldse rääkida.',
+        'Mari: Kahjuks mitte. Paljud tülid lõpevad kokkuleppega, aga mitte kõik. Mõnikord on inimesed nii pahased, et nad ei taha üldse rääkida.',
         'Ülle: Mida soovitate kuulajatele?',
         'Mari: Rääkige probleemist varakult, kui see on alles väike. Ja ärge kirjutage naabrist internetti. Kirjutatud sõna jääb alles ka siis, kui tüli on ammu läbi.',
         'Ülle: Aitäh, Mari!',

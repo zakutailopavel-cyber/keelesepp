@@ -7,7 +7,7 @@ import { Area, ImagePick, Num, Rows, Select, Text } from '../../editor/fields.js
 import { choice, match, plainText, truefalse } from './tasks.jsx';
 import { AudioPick } from './extra.jsx';
 import { Recorder } from './productive.jsx';
-import { EXAM_PART_DEFAULTS as EXAM_PARTS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES } from './harnoScales.js';
+import { EXAM_PART_DEFAULTS as EXAM_PARTS, HARNO_EXAMS, HARNO_LEVELS, HARNO_PASS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES, examPartDefaults } from './harnoScales.js';
 
 export { EXAM_PARTS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES };
 
@@ -19,7 +19,8 @@ export { EXAM_PARTS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES };
 //   examwriting   W1a, W1b, W2a, W2b  the task card (situation, content points, word target) and the answer
 //   speakcard     S1b, S2  the idea card of an agreement („kokkulepe”) or the phone role play's question / answer card
 //   examrubric    the exam-scale rubric (W1 /8, W2 /12, speaking /20, §2.4), points per criterion
-//   exampart      the header of an exam part: minutes, tasks, points and the 80 % target, with a timer on screen
+//   exampart      the header of an exam part: minutes, tasks, points and the 80 % target, with a timer on screen; with
+//                 `exam` (A2 | B1 | B2 | C1) also how the real Harno exam weighs the part and its pass rule
 
 const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
 const LETTERS = 'ABCDEFGHIJKLMN';
@@ -297,6 +298,22 @@ export const examrubric = {
 };
 
 // ---------- the header of an exam part: time, tasks, points, the 80 % target ----------
+// the real exam's line (harnoScales.js HARNO_EXAMS): raw points → the points in the result, and the pass rule
+const inPart = (part) => part.toLowerCase().replace(/mine$/, 'mises');
+const realMinutes = (p) => (p.from ? `${p.from}–${p.minutes}` : `${p.minutes}`);
+const sameTime = (p, minutes) => Number(minutes) >= (p.from || p.minutes) && Number(minutes) <= p.minutes;
+export function harnoPartLine(level, skill, points, minutes) {
+  const exam = HARNO_EXAMS[level];
+  const p = exam?.parts[skill];
+  if (!p) return '';
+  const same = p.raw && Number(points) === p.raw && sameTime(p, minutes);
+  const weigh = !p.raw || p.raw === p.weighted
+    ? `Harno ${level} eksamil annab ${p.part.toLowerCase()} lõpptulemuses ${p.weighted} punkti ${exam.total}-st${sameTime(p, minutes) ? '' : ` (${realMinutes(p)} min)`}.`
+    : same ? `Harno ${level} eksamil kaalutakse need ${p.raw} punkti lõpptulemuses ${p.weighted} punktiks.`
+      : `Harno ${level} eksamil on ${inPart(p.part)} ${p.raw} punkti (${realMinutes(p)} min), mis kaalutakse lõpptulemuses ${p.weighted} punktiks.`;
+  const need = Math.ceil(exam.total * HARNO_PASS.share);
+  return `${weigh} Eksam on sooritatud, kui kokku on vähemalt ${need} punkti ${exam.total}-st (${Math.round(HARNO_PASS.share * 100)} %) ja ükski osa ei ole 0 punkti.`;
+}
 function PartTimer({ minutes }) {
   const [left, setLeft] = useState(null);
   const timer = useRef(null);
@@ -322,6 +339,7 @@ export const exampart = {
   View: ({ data, ctx }) => {
     const points = Number(data.points) || 0;
     const target = Number(data.target) || 0;
+    const harno = harnoPartLine(data.exam, data.skill, points, data.minutes);
     return (
       <div className="ws-exampart">
         <h4>{data.part}</h4>
@@ -332,13 +350,15 @@ export const exampart = {
           {points && target ? <span>eesmärk vähemalt <b>{Math.ceil((points * target) / 100)}</b> p ({target} %)</span> : null}
         </div>
         {data.note ? <p><Md text={data.note} /></p> : null}
+        {harno ? <p className="ws-exampart-harno">{harno}</p> : null}
         {ctx.interactive ? <PartTimer minutes={Number(data.minutes) || 0} /> : <p className="ws-exampart-time">Algus: ______ Lõpp: ______</p>}
       </div>
     );
   },
   Editor: ({ data, set }) => (
     <>
-      <Select label="Osa" value={data.skill} onChange={(skill) => set({ skill, ...EXAM_PARTS[skill] })} options={Object.entries(EXAM_PARTS).map(([k, v]) => [k, v.part])} />
+      <Select label="Osa" value={data.skill} onChange={(skill) => set({ skill, ...(examPartDefaults(data.exam, skill) || EXAM_PARTS[skill]) })} options={Object.entries(EXAM_PARTS).map(([k, v]) => [k, v.part])} />
+      <Select label="Harno eksam (kaalumine ja lävend)" value={data.exam || ''} onChange={(exam) => set({ exam })} options={[['', '—'], ...HARNO_LEVELS.map((l) => [l, `${l}-tase`])]} />
       <div className="ed-row"><Num label="Minutid" value={data.minutes} max={120} onChange={(minutes) => set({ minutes })} /><Num label="Ülesandeid" value={data.tasks} max={10} onChange={(tasks) => set({ tasks })} /><Num label="Punkte" value={data.points} max={100} onChange={(points) => set({ points })} /></div>
       <Num label="Eesmärk %" value={data.target} min={0} max={100} onChange={(value) => set({ target: value })} />
       <Area label="Märkus" value={data.note} onChange={(note) => set({ note })} />
