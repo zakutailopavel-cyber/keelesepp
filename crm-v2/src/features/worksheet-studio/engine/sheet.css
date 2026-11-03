@@ -1008,3 +1008,24 @@ button.ws-pt { cursor: pointer; }
 /* focus: every control shows where the keyboard is (in every theme) */
 .ws-root :is(.ws-opt, .ws-tfbox, .ws-bank-w, .ws-chip, .ws-recbtn, .ws-pt, .ws-circ, .ws-cat-g):focus-visible { outline: .6mm solid var(--ks-navy); outline-offset: .4mm; }
 .ws-root.theme-klassika .ws-line:focus { border-bottom-color: var(--tb-ink); background: var(--tb-lime-soft); }
+
+/* ---- video block: the player on screen, a QR code + link on paper (and in the builder) ---- */
+.ws-video { display: grid; gap: 3mm; }
+.ws-video-screen { margin: 0; }
+.ws-video-box { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 3mm; overflow: hidden; background: #0b2a4f; }
+.ws-video-box .ws-video-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+.ws-video-screen figcaption { font-size: 10.5pt; color: var(--ks-muted); text-align: center; margin-top: 1.2mm; }
+.ws-video-paper { display: flex; align-items: center; gap: 4mm; padding: 2.5mm 3mm; border-radius: 3mm; background: #fff; border: .35mm solid rgba(23, 58, 99, .18); color: var(--ks-navy-2, #173a63); }
+.ws-video-paper > div { display: grid; gap: 1mm; min-width: 0; }
+.ws-video-paper b { display: flex; align-items: center; gap: 1.5mm; font-size: 11pt; }
+.ws-video-paper b svg { width: 5mm; height: 5mm; color: var(--ks-green-2, #2f7d4c); flex: none; }
+.ws-video-caption { font-size: 10.5pt; }
+.ws-video-link { font-size: 9pt; color: var(--ks-muted); overflow-wrap: anywhere; }
+.ws-video-empty { display: grid; place-items: center; width: 24mm; height: 24mm; border: .35mm dashed rgba(23, 58, 99, .3); border-radius: 2mm; flex: none; }
+.ws-video-empty svg { width: 9mm; height: 9mm; color: rgba(23, 58, 99, .35); }
+.ws-qr { flex: none; display: block; }
+.ws-video-paper.is-print-only { display: none; }
+@media print {
+  .ws-video-screen { display: none; }
+  .ws-video-paper.is-print-only { display: flex; }
+}

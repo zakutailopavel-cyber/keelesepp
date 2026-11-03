@@ -22,6 +22,18 @@
 - Limits: the dictation „Loe ette” note stays inside the teacher's card (static); the docked phone note can cover the „Salvesta / Esita” bar until closed; the note uses a rAF loop while mounted.
 - Production: none. Next safe step: review the draft PR, then try one live lesson on an iPad (focus a field near the edge, teacher shows answers).
 
+## 2026-11-04 · agent/constructor-media — constructor media: Video block, crop / rotate, Alt-tekst, teacher voice, audio + video in „Pank”
+
+- Base: `main` e2d539e (#1061), checked 2026-11-04. Contract: `docs/WORKSHEET_STUDIO_V1.md` „Media”.
+- Video block (`engine/blocks/video.jsx`, `engine/video.js`, `engine/qr.js`): YouTube (youtube-nocookie) / Vimeo (dnt=1) link or uploaded file (≤ 19 MB, `uploadVideo`), start / end, caption, optional questions (reading format and scoring). Player in student + live view; builder and print show QR + link + caption. CSP `frame-src` in `crm-v2/vercel.json` + `www.youtube-nocookie.com`, `player.vimeo.com`.
+- Images: „Lõika / pööra” (`editor/ImageEdit.jsx`, free or fixed ratio, ±90°; free → `aspect: 'orig'`), `prepareImageFile` keeps SVG and transparent PNG (downscales rasters ≤ 1600 px), „Alt-tekst” on the image block (fallback caption).
+- „Salvesta hääl” in `AudioPick` (`editor/VoiceRecorder.jsx`): record, preview, re-record, upload via `uploadAudio`.
+- „Pank”: tabs Heli / Video; uploads, recordings and TTS sounds auto-added; `mediaAssets` kinds `audio` / `video` (`firestore.rules`).
+- Also: `functions/generated/sheet-kit.cjs` rebuilt (`npm run build:sheet-kit`; its test requires the bundle to match the blocks — generated file only, no function code), `src/test/blockAnswerCases.jsx` + sheet-lab catalogue know `video`, `quality.js` warns on a video block without a source.
+- Checks: `npx vitest run` 452 files passed, 1 skipped (3417 tests; new: `engine/video.test.jsx`, `engine/imageEdit.test.jsx`, `editor/mediaTools.test.jsx`, CSP assertion in `hostingHeaders.test.js`); QR encoder matched libqrencode 4.1.1 module-for-module on 9 strings (only the unused remainder bits differ); eslint on changed files 0 errors; `npx vite build` ok. Browser (sheet-lab, vite dev): YouTube player plays inside the sheet at desktop and 375 px without overflow; QR card checked. The editor parts (crop, recorder, bank tabs) are checked by tests only (the studio needs login).
+- Limits: crop of an already uploaded picture needs Storage CORS (`storage.cors.json`; Vercel preview origins are not in it); Vimeo cannot stop at `end`; a file video's QR is the long Storage URL (needs sign-in to open); GIF animation is lost (re-encoded); `functions/media-bank-rules-emulator.integration.js` has no audio / video case (functions/ untouched).
+- PR #1065 (draft, not merged). Production: none. Deploy needed (owner's approval): `firebase deploy --only firestore:rules` (bank audio / video; without it those saves fail silently), hosting (CSP + app); `functions:sheetBuilderApi` only if the ChatGPT connector should know the video block.
+- Next safe step: review the draft PR, deploy rules + hosting, then add one video block and one recorded voice in the constructor in a real browser.
 ## 2026-11-04 · agent/constructor-reuse — constructor: saved sheets in „Kogu”, „Kopeeri / Teisalda…” to a phase, sheet and lesson templates
 
 - Base: `main` e2d539e (#1061), checked 2026-11-04. Contract: `docs/WORKSHEET_STUDIO_V1.md` „Reuse”.
