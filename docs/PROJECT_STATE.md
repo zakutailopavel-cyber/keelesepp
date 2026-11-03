@@ -1,3 +1,11 @@
+## 2026-11-03 · agent/e2e-lesson-tokens — e2e `lesson-tokens.spec.cjs` follows the split „Õpilane” / „Aine (kursus)” fields
+
+- Base: `main` 9b172a8, checked 2026-11-03. The scenario waited for the label „Õpilane ja aine” that #1051 split in `TokenInvoiceDialog.jsx`; it timed out on `main`.
+- Done: the scenario picks Kaarel with „Õpilane” (exact label) and asserts „Aine (kursus)” already holds „Eesti keel” (his only subject). The rest of the assertions are unchanged. File: `e2e/tests/lesson-tokens.spec.cjs`, this file. No app code.
+- Checks: `bash e2e/run.sh tests/lesson-tokens.spec.cjs` 1 passed; full `bash e2e/run.sh` 18 passed (local emulators, demo project, Java 21).
+- Production: none.
+- Next safe step: review and merge.
+
 ## 2026-11-03 · agent/pay-page-loop — /maksa/<invoice> without `?k=`: one request instead of hundreds of 401s
 
 - Base: `main` 9b172a8, checked 2026-11-03. Seen on the emulators (#1056 note): `/maksa/<id>` without `?k=` showed „Firebase ID token required” and sent 280–560 `401` requests in ~5 s.
