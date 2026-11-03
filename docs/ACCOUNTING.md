@@ -315,6 +315,27 @@ automatic entry cannot be deleted and a rebuild would re-create it, so the mark 
 - **Not changed:** INF 3 (`inf3-core.js`) still counts these payments. Whether a payment made to the FIE belongs in the
   company's INF 3 is the accountant's decision; see PROJECT_STATE.
 
+## Payment guards and „Võimalikud topeltlaekumised” (October 2026 audit, 2026-11-03)
+
+- **Payment date.** The receipt (1010 or 1000 / 1200) is booked on the payment's `paidAt`. The payment dialogs
+  (`/finance` month view and the invoice window) keep the date editable, show the invoice's due date and earlier payment
+  date, and warn „Kuupäev peab olema päev, mil raha pangakontole laekus.” when the date differs from an earlier payment,
+  is more than 7 days after the due date, or is in another month than today (`crm-v2/src/features/finance/paymentEntry.js`).
+- **`financeApi /payments`** (a payment typed in by a person; `functions/payment-guards-core.js`): 409
+  `details.code: "duplicate_payment"` when an active payment with the same invoice, amount, date and method was created
+  in the last 10 minutes (any user; the same `requestId` stays an idempotent 200); 409 `details.code: "overpayment"`
+  („Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?”) when the amount exceeds the open balance, unless the
+  request has `allowOverpayment: true`. A confirmed overpayment is stored with `overpaymentConfirmed: true`, and the
+  dialog then calls the existing `/invoices/resolve-overpayment` so the excess becomes a `payerCredits` advance (auto
+  entry 1200 / 2500). LinkPay and the cash box allocation are not guarded (their money is real; each is idempotent by its
+  own source id). The bank import does not use this endpoint.
+- **„Võimalikud topeltlaekumised”** (Raamatupidamine, above the registers, only when there is something to show;
+  `crm-v2/src/features/accounting/duplicateReceipts.js`): pairs of a live CRM receipt entry (`sourceKey` `payment:` or
+  `credit:`, a debit on 1010) and a live manual entry with a debit on 1010 of the same amount within 120 days, when the
+  manual entry names the same client (line partner id), the same reference / invoice number (whole token) or the payer's
+  name (all words, at least two words or one of 5+ letters). Read-only: nothing is deleted or reversed; the sync on
+  opening the page is unchanged.
+
 ## Sisemine märkus (invoice internal note, team 2026-10-29)
 
 „Создать внутреннюю заметку к выставляемым счетам”: the administrator or the bookkeeper writes what exactly an invoice

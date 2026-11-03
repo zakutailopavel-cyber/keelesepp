@@ -203,6 +203,27 @@ describe('AccountingPage', () => {
     await waitFor(() => expect(repository.setLock).toHaveBeenCalledWith('', 'parandus'));
   });
 
+  it('lists „Võimalikud topeltlaekumised” read-only; the sync on open is called as before and nothing is deleted', async () => {
+    const receipt = { id: 'auto_payment_p1', sourceKey: 'payment:p1', number: `${year}-0003`, date: `${year}-02-10`, origin: 'auto', documentType: 'payment', description: 'Laekumine arvele KS-117 (pangaülekanne) · Anna Ivanova', documentRef: 'KS-117', lines: [{ account: '1010', debitCents: 17000, creditCents: 0 }, { account: '1200', debitCents: 0, creditCents: 17000 }], totalCents: 17000 };
+    const bankLine = { id: 'manual_m9', number: `${year}-0004`, date: `${year}-02-11`, origin: 'manual', description: 'LHV laekumine KS-117', documentRef: 'LHV', lines: [{ account: '1010', debitCents: 17000, creditCents: 0 }, { account: '1200', debitCents: 0, creditCents: 17000 }], totalCents: 17000 };
+    const repository = repo({ load: vi.fn().mockResolvedValue({ entries: [...entries, receipt, bankLine], accounts }), deleteEntry: vi.fn(), reverse: vi.fn() });
+    render(<MemoryRouter><AccountingPage repository={repository} canEdit /></MemoryRouter>);
+    const panel = await screen.findByRole('region', { name: 'Võimalikud topeltlaekumised' });
+    expect(within(panel).getByText('Võimalikud topeltlaekumised (1)')).toBeInTheDocument();
+    expect(within(panel).getByText('170,00 €')).toBeInTheDocument();
+    expect(within(panel).getByText('sama viide')).toBeInTheDocument();
+    expect(within(panel).queryAllByRole('button')).toHaveLength(0);
+    await waitFor(() => expect(repository.sync).toHaveBeenCalledTimes(1));
+    expect(repository.deleteEntry).not.toHaveBeenCalled();
+    expect(repository.reverse).not.toHaveBeenCalled();
+  });
+
+  it('shows no duplicate list when nothing matches', async () => {
+    render(<MemoryRouter><AccountingPage repository={repo()} /></MemoryRouter>);
+    await screen.findByText('MA 1');
+    expect(screen.queryByText(/Võimalikud topeltlaekumised/)).not.toBeInTheDocument();
+  });
+
   it('käibeandmik shows the turnover per account with totals', async () => {
     render(<MemoryRouter><AccountingPage repository={repo()} /></MemoryRouter>);
     await screen.findByText('MA 1');

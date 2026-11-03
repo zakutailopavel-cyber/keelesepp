@@ -102,6 +102,26 @@ describe('FinancePage', () => {
     await findNotice();
   });
 
+  it('asks before an overpayment and then moves the excess to an advance; the date field shows the due date', async () => {
+    const refusal = Object.assign(new Error('Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?'), { status: 409, details: { code: 'overpayment' } });
+    const financeRepository = {
+      recordPayment: vi.fn().mockRejectedValueOnce(refusal).mockResolvedValueOnce({ invoice: { overpaidAmountCents: 2550 } }),
+      resolveInvoiceOverpayment: vi.fn().mockResolvedValue({}),
+    };
+    renderPage(financeRepository);
+    await openFinanceSection('Arved');
+    fireEvent.click(await screen.findByRole('button', { name: 'KS-101' }));
+    fireEvent.click(screen.getByRole('button', { name: /Registreeri makse/ }));
+    expect(screen.getByText(/Maksetähtaeg/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Kinnita makse/ }));
+    const question = await screen.findByRole('alertdialog', { name: 'Ülemakse' });
+    fireEvent.click(within(question).getByRole('button', { name: 'Jah, registreeri ettemaksuna' }));
+    await waitFor(() => expect(financeRepository.resolveInvoiceOverpayment).toHaveBeenCalledWith('invoice-1', expect.any(String)));
+    const [[, first], [, second]] = financeRepository.recordPayment.mock.calls;
+    expect(second).toEqual(expect.objectContaining({ allowOverpayment: true, requestId: first.requestId }));
+    expect(await screen.findByText(/ülejääk kanti maksja ettemaksuks/)).toBeInTheDocument();
+  });
+
   it('lets an administrator set lesson price and weekly volume for the revenue forecast', async () => {
     const repositories = renderPage();
     await screen.findByText('Planeeritud tunnitulu');

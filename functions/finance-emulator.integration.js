@@ -1355,6 +1355,66 @@ test("payment-order metadata is attached server-side and audited immutably", asy
   assert.equal(clientRewrite.status, 403, JSON.stringify(clientRewrite.body));
 });
 
+test("payment guards: duplicate entry and unconfirmed overpayment are refused; a confirmed one goes to an advance", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  const invoiceId = "invoice-payment-guards";
+  await db.collection("invoices").doc(invoiceId).set({
+    num: "KS-GUARD-117",
+    date: "2026-09-01",
+    due: "2026-09-15",
+    amountCents: 17000,
+    amount: 170,
+    paidAmountCents: 0,
+    paidAmount: 0,
+    balanceDueCents: 17000,
+    balanceDue: 170,
+    paymentStatus: "unpaid",
+    status: "Ootel",
+    studentId: "student-payment-guards",
+    studentName: "Guard Student",
+  });
+  const payment = { invoiceId, amount: 170, paidAt: "2026-09-10", method: "bank", reference: "KS-GUARD-117", requestId: "emulator_guard_payment_0001" };
+  const first = await financeRequest(token, "/payments", payment);
+  assert.equal(first.status, 201, JSON.stringify(first.body));
+
+  // the same request again stays idempotent (200), a second person typing the same payment is a duplicate (409)
+  const retry = await financeRequest(token, "/payments", payment);
+  assert.equal(retry.status, 200, JSON.stringify(retry.body));
+  const duplicate = await financeRequest(token, "/payments", { ...payment, requestId: "emulator_guard_payment_0002" });
+  assert.equal(duplicate.status, 409, JSON.stringify(duplicate.body));
+  assert.equal(duplicate.body.details.code, "duplicate_payment");
+  assert.match(duplicate.body.error, /juba registreeritud/);
+  const duplicateConfirmed = await financeRequest(token, "/payments", { ...payment, allowOverpayment: true, requestId: "emulator_guard_payment_0003" });
+  assert.equal(duplicateConfirmed.status, 409, JSON.stringify(duplicateConfirmed.body));
+  assert.equal(duplicateConfirmed.body.details.code, "duplicate_payment");
+
+  // another date on the paid invoice: an overpayment, refused without confirmation
+  const later = { ...payment, paidAt: "2026-09-12", requestId: "emulator_guard_payment_0004" };
+  const refused = await financeRequest(token, "/payments", later);
+  assert.equal(refused.status, 409, JSON.stringify(refused.body));
+  assert.equal(refused.body.error, "Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?");
+  assert.equal(refused.body.details.code, "overpayment");
+  assert.equal(refused.body.details.fullyPaid, true);
+  assert.equal((await db.collection("payments").doc(later.requestId).get()).exists, false);
+
+  // confirmed: recorded as an overpayment, then moved to the payer's advance by the existing resolve-overpayment
+  const confirmed = await financeRequest(token, "/payments", { ...later, allowOverpayment: true });
+  assert.equal(confirmed.status, 201, JSON.stringify(confirmed.body));
+  assert.equal(confirmed.body.payment.overpaymentConfirmed, true);
+  assert.equal(confirmed.body.invoice.overpaidAmountCents, 17000);
+  const resolved = await financeRequest(token, "/invoices/resolve-overpayment", { invoiceId, reason: "Ülemakse ettemaksuks", requestId: "emulator_guard_overpayment_0001" });
+  assert.equal(resolved.status, 201, JSON.stringify(resolved.body));
+  const invoiceAfter = (await db.collection("invoices").doc(invoiceId).get()).data();
+  assert.equal(invoiceAfter.overpaidAmountCents, 0);
+  assert.equal(invoiceAfter.balanceDueCents, 0);
+  const credits = await db.collection("payerCredits").where("sourceInvoiceId", "==", invoiceId).get();
+  assert.equal(credits.size, 1);
+  assert.equal(credits.docs[0].data().availableAmountCents, 17000);
+});
+
 test("payment lesson allocations are server-validated, versioned, and append-only", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
@@ -1440,8 +1500,10 @@ test("payment lesson allocations are server-validated, versioned, and append-onl
   );
   assert.equal(directRewrite.status, 403, JSON.stringify(directRewrite.body));
 
+  // a different bank date: the same payment repeated within 10 minutes would be refused as a duplicate
   const secondPayment = {
     ...firstPayment,
+    paidAt: "2026-07-30",
     requestId: "emulator_line_payment_0002",
   };
   assert.equal((await financeRequest(token, "/payments", secondPayment)).status, 201);
