@@ -11,8 +11,8 @@ export const COURSE_LOADERS = {
 
 // courses registered before their first module (docs/COURSE_FINAL_SHAPE_EN_B2.md §9): they have a loader, but no admin
 // page offers them while they are empty. Remove a course from here in the PR that adds its module 1 (courseLoaders.test.js
-// fails while a pending course has modules).
-export const PENDING_COURSES = ['enb2'];
+// fails while a pending course has modules). English B2 left the list with its module 1 (en/b2/module01.js).
+export const PENDING_COURSES = [];
 
 export const LOADABLE_COURSES = Object.keys(COURSE_LOADERS).filter((course) => !PENDING_COURSES.includes(course));
 

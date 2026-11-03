@@ -9,12 +9,18 @@
 export const EN_B2_CURRICULUM_ID = 'en-b2-v1';
 export const EN_B2_CURRICULUM_TITLE = 'KeeleSepp English B2';
 export const EN_B2_LEVEL = 'English B2';
-export const EN_B2_VERSION = '2026-11-03.1';
+export const EN_B2_VERSION = '2026-11-03.2';
 export const EN_B2_LESSONS = 50;
 
 // the module plan (§5): title, stage, the module's goal; `lessons`: [title, focus] as each module is written
 export const EN_B2_MODULES = Object.freeze([
-  { number: 1, title: 'Who we are', stage: 'English B1+', goal: 'Identity, generations and how young people in Estonia live; the tense system, narrative tenses and question tags.', lessons: [] },
+  { number: 1, title: 'Who we are', stage: 'English B1+', goal: 'Identity, generations and how young people in Estonia live; the tense system, narrative tenses and question tags.', lessons: [
+    ['Generations', 'generation labels and what they can explain (article, street interviews); present perfect simple vs continuous; a podcast segment comparing two generations; word formation and a multiple-choice cloze in the exam\'s form.'],
+    ['The day the money changed', 'a memoir of 20 June 1992 (the kroon) and a radio interview (exam listening task 3); narrative tenses: past simple, past continuous, past perfect simple and continuous; a 140–160-word story.'],
+    ['Turning points', 'a podcast about turning points, the reminiscence bump, a life story with gaps; past perfect simple vs continuous; an oral-history interview; a 120-word letter to a museum (exam writing task 1).'],
+    ['Leaving home', 'young people leaving home in Estonia and Europe (Eurostat 2023, exam reading task 2); question tags; a topic-card monologue and a photo comparison (exam speaking tasks 2 and 1); an opinion piece.'],
+    ['Diagnostic: where am I?', 'a short diagnostic in the English state exam\'s form: three listening tasks, reading and language tasks, a letter and both speaking tasks; places the learner on the B1/B2 line.'],
+  ] },
   { number: 2, title: 'Learning and work', stage: 'English B1+', goal: 'School systems, studying abroad, careers, a CV and an interview; future forms, gerund vs infinitive.', lessons: [] },
   { number: 3, title: 'Living with nature', stage: 'English B1+', goal: 'Climate, Estonian nature and sustainable consumption; all conditionals, mixed conditionals, wish and if only.', lessons: [] },
   { number: 4, title: 'Science around us', stage: 'English B2-', goal: 'Discoveries, medicine, Estonian science and technology; the passive in all tenses, have something done.', lessons: [] },
