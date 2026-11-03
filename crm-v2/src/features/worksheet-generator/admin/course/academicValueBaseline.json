@@ -1,14 +1,4 @@
 {
- "a2b1-module-17": [
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "*|*|av-retell",
-  "a2b1-081|*|av-know",
-  "a2b1-082|*|av-know",
-  "a2b1-083|*|av-know",
-  "a2b1-084|*|av-know"
- ],
  "b1b2-module-01": [
   "*|*|av-article",
   "*|*|av-examiner",
@@ -23,17 +13,6 @@
   "b1b2-004|*|av-know",
   "b1b2-005|practice|av-fact",
   "b1b2-005|practice|av-fact"
- ],
- "b1b2-module-02": [
-  "*|*|av-article",
-  "*|*|av-examiner",
-  "*|*|av-kasuta",
-  "*|*|av-opener",
-  "*|*|av-record",
-  "b1b2-006|*|av-know",
-  "b1b2-007|discover|av-fact",
-  "b1b2-008|*|av-know",
-  "b1b2-009|*|av-know"
  ],
  "b1b2-module-04": [
   "*|*|av-article",
