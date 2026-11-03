@@ -60,3 +60,7 @@ vahetesti
 vahetestist
 vintage-stiil
 vintage-stiili
+# B1 module 13 (checked in EKI Sõnaveeb 2026, täiendsõna): the Finnic languages named in the topic opener
+liivi
+vadja
+vepsa
