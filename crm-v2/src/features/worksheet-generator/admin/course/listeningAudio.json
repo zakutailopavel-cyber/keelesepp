@@ -2476,8 +2476,8 @@
   },
   "b1b2-003:003_p_hendrik": {
     "src": "/audio/b1b2-003/003_p_hendrik.mp3",
-    "seconds": 80.1,
-    "hash": "6b473ba531867fa7435dd1e179503f8632de2043"
+    "seconds": 104.9,
+    "hash": "6a4c9ddec070db33e9b6a20ff0b87c12c46503d9"
   },
   "b1b2-004:004_p_radio": {
     "src": "/audio/b1b2-004/004_p_radio.mp3",
@@ -2491,8 +2491,8 @@
   },
   "b1b2-005:005_p_listen": {
     "src": "/audio/b1b2-005/005_p_listen.mp3",
-    "seconds": 113.6,
-    "hash": "801b2d893e1cdf77271214506827661cbca73bf2"
+    "seconds": 138.2,
+    "hash": "914ef2ff661a81401ce570e659c728c2c4e3fa67"
   },
   "b1b2-005:005_p_notes": {
     "src": "/audio/b1b2-005/005_p_notes.mp3",
