@@ -29,7 +29,7 @@ describe('possible duplicate cards', () => {
     expect(duplicatePair({ id: 'a', name: 'Sofia', linkedUserId: 'u1' }, { id: 'b', name: 'S. T.', linkedUserIds: ['u1'] }).reasons.map((r) => r.code)).toEqual(['account']);
   });
 
-  it('leaves out archived, merged and dismissed cards and sorts the likeliest first', () => {
+  it('leaves out merged and dismissed cards and sorts the likeliest first; an archived card pairs with an active one', () => {
     const pairs = duplicateCandidates([
       { id: 'a', name: 'Maria', notDuplicateOf: ['b'] },
       { id: 'b', name: 'Maria' },
@@ -41,6 +41,15 @@ describe('possible duplicate cards', () => {
       { id: 'h', name: 'Jaan' },
       { id: 'i', name: 'Jaan' },
     ]);
-    expect(pairs.map((p) => `${p.a.id}${p.b.id}`)).toEqual(['fg', 'hi']);
+    // the archived card comes second, so „Liida” keeps the active card by default
+    expect(pairs.map((p) => `${p.a.id}${p.b.id}`)).toEqual(['fg', 'hi', 'dc']);
+  });
+
+  it('two archived cards are not proposed; an archived card is still a candidate next to an active one', () => {
+    expect(duplicateCandidates([{ id: 'a', name: 'Karl', active: false }, { id: 'b', name: 'Karl', active: false }])).toEqual([]);
+    const [pair] = duplicateCandidates([{ id: 'old', name: 'Mia Tamm', active: false, parentEmail: 'ema@example.com' }, { id: 'new', name: 'Mia Tamm', parentEmail: 'ema@example.com' }]);
+    expect([pair.a.id, pair.b.id]).toEqual(['new', 'old']);
+    expect(pair.confidence).toBe('high');
+    expect(duplicateCandidates([{ id: 'a', name: 'Karl' }, { id: 'b', name: 'Karl', active: false, convertedToParent: true }])).toEqual([]);
   });
 });

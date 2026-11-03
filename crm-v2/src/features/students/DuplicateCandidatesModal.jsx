@@ -10,7 +10,7 @@ import './directions.css';
 
 function CardLine({ student }) {
   const tracks = tracksOf(student).map((track) => [track.subject, track.teacher].filter(Boolean).join(' – ')).join(', ');
-  return <span className="duplicate-pair__card"><Link to={`/students/${encodeURIComponent(student.id)}`}><strong>{student.name || student.id}</strong></Link><small>{[tracks, student.parentName ? `vanem: ${student.parentName}` : '', student.grade ? `klass ${student.grade}` : ''].filter(Boolean).join(' · ') || '—'}</small></span>;
+  return <span className="duplicate-pair__card"><Link to={`/students/${encodeURIComponent(student.id)}`}><strong>{student.name || student.id}</strong></Link>{student.active === false ? <Badge tone="neutral">Arhiveeritud</Badge> : null}<small>{[tracks, student.parentName ? `vanem: ${student.parentName}` : '', student.grade ? `klass ${student.grade}` : ''].filter(Boolean).join(' · ') || '—'}</small></span>;
 }
 
 // „Võimalikud duplikaadid” (owner 2026-10-24): cards that are probably one child, with „Liida” (the full merge with
@@ -42,7 +42,7 @@ export default function DuplicateCandidatesModal({ open, onClose, onMerged, serv
         <p className="form-hint">Kaardid, mis on tõenäoliselt sama laps: sama nimi, või sarnane nimi ja sama lapsevanem / telefon / e-post. Õed-vennad (sama vanem, eri eesnimi) siia ei tule. Kui paari pole loendis, ava kaart ja vajuta „Liida kaardid”.</p>
         {state.loading ? <LoadingState label="Otsin duplikaate…" /> : null}
         {state.error ? <ErrorState title="Viga" message={state.error} onRetry={load} /> : null}
-        {!state.loading && !state.error && !state.pairs.length ? <EmptyState title="Duplikaate ei leitud" description="Aktiivsete kaartide seas pole sama lapse kahte kaarti." /> : null}
+        {!state.loading && !state.error && !state.pairs.length ? <EmptyState title="Duplikaate ei leitud" description="Aktiivsete ja arhiveeritud kaartide seas pole sama lapse kahte kaarti." /> : null}
         <div className="enrollment-manager__list">{state.pairs.map((pair) => {
           const key = `${pair.a.id}|${pair.b.id}`;
           return <section className="enrollment-editor duplicate-pair" key={key}>

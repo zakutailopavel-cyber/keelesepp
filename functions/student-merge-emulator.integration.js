@@ -62,6 +62,78 @@ test('merge two student cards: accounts, learner records and finance references 
   await assert.rejects(() => mergeStudentCards(store, { FieldValue, keepId: 'someone-else', sourceId, apply: true, confirmed: true }), /not found|already merged/);
 });
 
+test('an archived card merges into an active one: history moves, its tracks end, the card stays active', async () => {
+  const store = db();
+  const t = Date.now();
+  const keepId = `arch-keep-${t}`;
+  const sourceId = `arch-src-${t}`;
+  await store.doc(`students/${keepId}`).set({ name: 'Mia', active: true, subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1', teacherUids: ['p1'] });
+  await store.doc(`students/${sourceId}`).set({ name: 'Mia', active: false, archivedAt: '2026-06-01T00:00:00.000Z', subject: 'Eesti keel', teacher: 'Anna', teacherUid: 'a1', teacherUids: ['a1'], linkedParentId: 'par-a', linkedParentIds: ['par-a'] });
+  await store.doc('users/par-a').set({ role: 'parent', linkedStudentIds: [sourceId] });
+  const lesson = await store.collection('lessons').add({ studentId: sourceId, studentName: 'Mia', date: '2026-05-01', status: 'Toimunud' });
+  const invoice = await store.collection('invoices').add({ studentId: sourceId, studentName: 'Mia', total: 80, number: 'KS-9' });
+  const payment = await store.collection('payments').add({ studentId: sourceId, amountCents: 8000 });
+  const homework = await store.collection('homework').add({ studentId: sourceId, title: 'Töö' });
+
+  const preview = await mergeStudentCards(store, { FieldValue, keepId, sourceId });
+  assert.equal(preview.source.active, false);
+  assert.equal(preview.activeAfter, true);
+  assert.ok(preview.conflicts.some((c) => c.code === 'archived_source'));
+  assert.deepEqual(preview.move.map((m) => m.collection).sort(), ['homework', 'invoices', 'lessons', 'payments']);
+
+  await mergeStudentCards(store, { FieldValue, keepId, sourceId, apply: true, confirmed: true, actor: { uid: 'admin' } });
+  const keep = (await store.doc(`students/${keepId}`).get()).data();
+  assert.equal(keep.active, true);
+  assert.deepEqual(keep.enrollments.map((e) => [e.teacherUid, e.active, e.status || '']), [['p1', true, ''], ['a1', false, 'ended']]);
+  assert.deepEqual(keep.teacherUids, ['p1'], 'the archived card\'s teacher gets no access');
+  assert.deepEqual(keep.linkedParentIds, ['par-a']);
+  for (const ref of [lesson, invoice, payment, homework]) assert.equal((await ref.get()).data().studentId, keepId);
+  assert.equal((await invoice.get()).data().total, 80);
+  assert.deepEqual((await store.doc('users/par-a').get()).data().linkedStudentIds, [keepId]);
+  const source = (await store.doc(`students/${sourceId}`).get()).data();
+  assert.equal(source.active, false);
+  assert.equal(source.mergedInto, keepId);
+  assert.equal(source.archivedAt, '2026-06-01T00:00:00.000Z', 'the tombstone keeps its archive date');
+  const audit = (await store.doc(`activityLog/student-card-merge-${sourceId}`).get()).data();
+  assert.deepEqual(audit.activeBefore, { keep: true, source: false });
+  assert.equal(audit.activeAfter, true);
+});
+
+test('an active card merges into an archived kept card: restored by default, or kept archived on request', async () => {
+  const store = db();
+  const t = Date.now();
+  for (const [suffix, keepActive, expected] of [['default', undefined, true], ['archived', false, false]]) {
+    const keepId = `arch2-keep-${suffix}-${t}`;
+    const sourceId = `arch2-src-${suffix}-${t}`;
+    await store.doc(`students/${keepId}`).set({ name: 'Leo', active: false, subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1' });
+    await store.doc(`students/${sourceId}`).set({ name: 'Leo', active: true, subject: 'Matemaatika', teacher: 'Yelyzaveta', teacherUid: 'y1' });
+    const lesson = await store.collection('lessons').add({ studentId: sourceId, date: '2026-10-01', status: 'Toimunud' });
+    const input = { FieldValue, keepId, sourceId, ...(keepActive === undefined ? {} : { keepActive }) };
+    const preview = await mergeStudentCards(store, input);
+    assert.equal(preview.activeAfter, expected);
+    assert.ok(preview.conflicts.some((c) => c.code === (expected ? 'archived_keep' : 'archived_result')));
+    await mergeStudentCards(store, { ...input, apply: true, confirmed: true, actor: { uid: 'admin' } });
+    const keep = (await store.doc(`students/${keepId}`).get()).data();
+    assert.equal(keep.active, expected);
+    assert.equal(Boolean(keep.restoredAt), expected);
+    assert.equal((await lesson.get()).data().studentId, keepId);
+    assert.equal((await store.doc(`students/${sourceId}`).get()).data().active, false);
+  }
+});
+
+test('an active kept card can be archived by the merge when the administrator chooses so', async () => {
+  const store = db();
+  const t = Date.now();
+  const keepId = `arch3-keep-${t}`;
+  const sourceId = `arch3-src-${t}`;
+  await store.doc(`students/${keepId}`).set({ name: 'Ott', active: true });
+  await store.doc(`students/${sourceId}`).set({ name: 'Ott', active: false });
+  await mergeStudentCards(store, { FieldValue, keepId, sourceId, keepActive: false, apply: true, confirmed: true, actor: { uid: 'admin' } });
+  const keep = (await store.doc(`students/${keepId}`).get()).data();
+  assert.equal(keep.active, false);
+  assert.ok(keep.archivedAt);
+});
+
 test('merging a maths card into an Estonian card keeps both subjects in one card', async () => {
   const store = db();
   const keepId = `est-${Date.now()}`;
