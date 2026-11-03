@@ -54,8 +54,9 @@ export const manualInvoiceApi = {
     });
   },
   // lesson tokens: an invoice for N lessons at the card's plan price (the lessons reach the card after payment)
-  createTokens({ studentId, lessons, due, note = '', requestId }) {
-    return post('/create-tokens', { studentId, lessons: Number(lessons), due, note, requestId: requestId || financeRequestId('lesson_tokens') });
+  // subject: the course the package is for (one of the card's subjects); its lessons only take from this package
+  createTokens({ studentId, lessons, due, note = '', requestId, subject = '' }) {
+    return post('/create-tokens', { studentId, lessons: Number(lessons), due, note, ...(subject ? { subject } : {}), requestId: requestId || financeRequestId('lesson_tokens') });
   },
   create(values) {
     return post('/create', {

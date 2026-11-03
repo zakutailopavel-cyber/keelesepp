@@ -86,3 +86,57 @@ test('a two-credit owed lesson needs a package with two credits left', () => {
   assert.equal(packageForOwedLesson([token('a', '2026-10-01', 1), token('b', '2026-11-01', 4)], { credits: 2 }).id, 'b');
   assert.equal(packageForOwedLesson([token('a', '2026-10-01', 1)], { credits: 2 }), null);
 });
+
+// ---- a package for one subject (Oleksiy 2026-11-03) ----
+const { tokenSubjectKey, cardSubjects, tokenInvoiceSubject, lessonSubject, packageTiersForLesson } = require('./lesson-tokens-core');
+
+test('the subject of a package invoice: one of the card\'s own subjects', () => {
+  const two = { subject: 'Eesti keel', enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel' }, { subject: 'matemaatika', teacher: 'Liza' }, { subject: 'Vene keel', active: false }] };
+  assert.deepEqual(cardSubjects(two), ['Eesti keel', 'Matemaatika']);
+  assert.equal(tokenInvoiceSubject('Matemaatika', two), 'Matemaatika');
+  assert.equal(tokenInvoiceSubject(' matemaatika ', two), 'Matemaatika', 'case and spaces do not matter');
+  assert.throws(() => tokenInvoiceSubject('', two), /Vali aine/, 'several subjects: the invoice has to name one');
+  assert.throws(() => tokenInvoiceSubject('Vene keel', two), /ei ole seda ainet/, 'an ended track is not offered');
+  assert.equal(tokenInvoiceSubject('', { subject: 'Inglise keel' }), 'Inglise keel', 'one subject: chosen without asking');
+  assert.equal(tokenInvoiceSubject('Estonian', { subject: 'Eesti keel' }), 'Eesti keel', 'an alias is the same subject');
+  assert.equal(tokenInvoiceSubject('Matemaatika', { enrollments: [{ subject: 'Eesti keel', status: 'ended' }] }), 'Matemaatika', 'a card with no subject takes any school subject');
+  assert.equal(tokenInvoiceSubject('', {}), '', 'no subject anywhere: a shared package, as before');
+  assert.equal(tokenInvoiceInput({ studentId: 'k1', lessons: 4, due: '2026-11-10', subject: ' inglise keel ' }).subject, 'Inglise keel');
+  assert.equal(tokenSubjectKey('English'), tokenSubjectKey('Inglise keel'));
+});
+
+test('the package of a subject invoice pays only that subject; an old invoice makes a shared package', () => {
+  const base = { studentId: 'k1', tokenCredits: 8, amountCents: 16000, num: 'KS-1' };
+  assert.equal(tokenPackageRecord({ invoice: { ...base, subject: 'Matemaatika' }, invoiceId: 'i1', student: { subject: 'Eesti keel' }, issuedAt: '2026-11-03', nowIso: '2026-11-03T10:00:00Z', actor: {} }).tokenSubject, 'Matemaatika');
+  const old = tokenPackageRecord({ invoice: base, invoiceId: 'i0', student: { subject: 'Eesti keel' }, issuedAt: '2026-11-03', nowIso: '2026-11-03T10:00:00Z', actor: {} });
+  assert.equal(old.tokenSubject, undefined, 'no subject on the invoice: no tokenSubject, the package pays every lesson');
+  assert.equal(old.subject, 'Eesti keel', 'the display subject stays as before');
+});
+
+test('a lesson\'s subject: its own if the card has it, else its teacher\'s track', () => {
+  const card = { subject: 'Eesti keel', enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p' }, { subject: 'Matemaatika', teacher: 'Liza', teacherUid: 'l' }] };
+  assert.equal(lessonSubject({ subject: 'Matemaatika' }, card), 'Matemaatika');
+  assert.equal(lessonSubject({ teacherUid: 'l' }, card), 'Matemaatika');
+  assert.equal(lessonSubject({ subject: 'Inglise keel', teacher: 'Liza' }, card), 'Matemaatika', 'a subject the card does not have: by teacher');
+  assert.equal(lessonSubject({}, card), 'Eesti keel', 'unknown: the card\'s main subject');
+  assert.equal(lessonSubject({}, { subject: 'Inglise keel' }), 'Inglise keel');
+});
+
+test('which packages a lesson may take: its subject first, then the shared pool; old cards unchanged', () => {
+  const pkg = (id, tokenSubject) => ({ id, ...(tokenSubject ? { tokenSubject } : {}) });
+  const est = tokenSubjectKey('Eesti keel');
+  const math = tokenSubjectKey('Matemaatika');
+  const old = [pkg('a'), pkg('b')];
+  assert.deepEqual(packageTiersForLesson(old, math), [old], 'no package has a subject: one pool, as before');
+  const mixed = [pkg('e', 'Eesti keel'), pkg('m', 'Matemaatika'), pkg('s')];
+  assert.deepEqual(packageTiersForLesson(mixed, math).map((tier) => tier.map((item) => item.id)), [['m'], ['s']]);
+  assert.deepEqual(packageTiersForLesson(mixed, est).map((tier) => tier.map((item) => item.id)), [['e'], ['s']]);
+  assert.deepEqual(packageTiersForLesson(mixed, tokenSubjectKey('Vene keel')).map((tier) => tier.map((item) => item.id)), [['s']], 'no own package: the shared pool');
+  assert.equal(packageTiersForLesson([pkg('e', 'Eesti keel')], math), null, 'only another subject\'s packages: this lesson is not on packages');
+});
+
+test('the backlog of a subject package takes only that subject\'s lessons', () => {
+  const lessons = [{ id: 'e1', date: '2026-11-04', subjectKey: 'eesti-keel' }, { id: 'm1', date: '2026-11-05', subjectKey: 'matemaatika' }, { id: 'm0', date: '2026-10-01', subjectKey: 'matemaatika' }];
+  assert.deepEqual(tokenBacklogLessonIds({ lessons, issuedAt: '2026-11-01', owedLessonIds: ['m0'], subjectKey: 'matemaatika' }), ['m0', 'm1']);
+  assert.deepEqual(tokenBacklogLessonIds({ lessons, issuedAt: '2026-11-01', owedLessonIds: ['m0'] }), ['m0', 'e1', 'm1'], 'a shared package: every lesson, as before');
+});
