@@ -1,7 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { ASPECTS } from '../engine/schema.js';
-import { objectPosition } from '../engine/image.js';
+import { ORIGINAL_ASPECT, aspectOfCrop, aspectRatioOf, objectPosition } from '../engine/image.js';
 import { useAssets } from '../engine/assets.jsx';
+import ImageEdit from './ImageEdit.jsx';
 
 // Small form controls for the block inspector. Values are plain strings/objects stored in block.data.
 
@@ -82,6 +83,14 @@ export function ImagePick({ label = 'Foto', value, onChange, aspect = '4:3', onA
   const assets = useAssets();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [editing, setEditing] = useState(false);
+  // a cut / turned picture is a new upload; a free cut makes the slot take the picture's own shape
+  const applyEdit = async (file, ratioKey) => {
+    const img = await assets.image(file);
+    onChange({ ...img, focus: { x: 50, y: 50 } });
+    if (onAspect && allowAspect) onAspect(aspectOfCrop(ratioKey));
+    setEditing(false);
+  };
   const pick = async (file) => {
     if (!file) return;
     setBusy(true);
@@ -105,7 +114,7 @@ export function ImagePick({ label = 'Foto', value, onChange, aspect = '4:3', onA
       <div className="ed-img" onClick={setFocus} title={value?.src ? 'Klõpsa, et valida fookus' : ''}>
         {value?.src ? (
           <>
-            <img src={value.src} alt="" style={{ objectPosition: objectPosition(value), aspectRatio: String(ASPECTS[aspect] || 4 / 3) }} />
+            <img src={value.src} alt="" style={{ objectPosition: objectPosition(value), aspectRatio: String(aspectRatioOf(aspect, value)) }} />
             <span className="ed-focus" style={{ left: `${value.focus?.x ?? 50}%`, top: `${value.focus?.y ?? 50}%` }} />
           </>
         ) : (
@@ -114,16 +123,19 @@ export function ImagePick({ label = 'Foto', value, onChange, aspect = '4:3', onA
       </div>
       <div className="ed-row">
         <button type="button" className="ed-btn" disabled={busy} onClick={() => input.current?.click()}>{busy ? 'Laadin…' : value?.src ? 'Vaheta foto' : 'Lisa foto'}</button>
+        {value?.src && <button type="button" className="ed-btn ghost" aria-expanded={editing} onClick={() => setEditing(!editing)}>Lõika / pööra</button>}
         {value?.src && <button type="button" className="ed-btn ghost" onClick={() => onChange(null)}>Eemalda</button>}
         {allowAspect && onAspect && (
           <select className="ed-input small" value={aspect} onChange={(e) => onAspect(e.target.value)} aria-label="Kuvasuhe">
             {Object.keys(ASPECTS).map((a) => <option key={a} value={a}>{a}</option>)}
+            <option value={ORIGINAL_ASPECT}>Originaal</option>
           </select>
         )}
       </div>
+      {editing && value?.src ? <ImageEdit src={value.src} onApply={applyEdit} onCancel={() => setEditing(false)} /> : null}
       {value?.src && <span className="ed-hint">Klõpsa pildil, et valida, milline osa jääb nähtavaks.</span>}
       {err && <span className="ed-hint ed-err">{err}</span>}
-      <input ref={input} type="file" accept="image/*" hidden onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} />
+      <input ref={input} type="file" accept="image/*" aria-label="Pildifail" hidden onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} />
     </div>
   );
 }

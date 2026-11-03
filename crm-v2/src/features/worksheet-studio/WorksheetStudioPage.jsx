@@ -11,7 +11,7 @@ import MediaBankPanel from './MediaBankPanel.jsx';
 import AnswerKeyView from './AnswerKeyView.jsx';
 // „Kogu” reads the whole course: its own chunk, loaded when the tab opens
 const BlockLibraryPanel = lazy(() => import('./BlockLibraryPanel.jsx'));
-import { assetKey, gapsFromText, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
+import { assetKey, gapsFromText, mediaAsset, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
 import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet, { BlockPreview } from './engine/Sheet.jsx';
 import BlockLookMenus from './editor/BlockBar.jsx';
@@ -59,6 +59,8 @@ const DEFAULT_TITLE = newDocument().meta.title;
 
 
 const MM = 3.7795;
+// the blocks whose editor has a sound (AudioPick): a sound from the bank goes into the selected one
+const AUDIO_BLOCKS = new Set(['listening', 'dialogue', 'reading', 'examlisten']);
 const draftKey = (id) => `ks-worksheet-author-draft:${id || 'new'}`;
 const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem(key) || 'null'); } catch { return null; } };
 
@@ -308,10 +310,20 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       tags: tagsOf(caption, doc?.meta?.title || '', doc?.meta?.module || '', String(name).replace(/\.[^.]+$/, '')),
     }, user)).catch(() => {});
   };
+  // and so does every sound (uploaded, recorded, made by the Estonian voice) and every uploaded video
+  const bankMedia = (kind, item) => {
+    if (!item?.src || !mediaBank?.save) return;
+    Promise.resolve().then(() => mediaBank.save({
+      ...mediaAsset(kind, item, { tags: [doc?.meta?.title || '', doc?.meta?.module || ''] }),
+      // VoiceRecorder names its files „haal-…”, SpeakPanel „neurokone-…”
+      source: /^haal-/.test(item.name || '') ? 'recording' : /^neurokone-/.test(item.name || '') ? 'tts' : 'upload', level: doc?.meta?.level || '', topic: doc?.meta?.title || '', sheetTitle: doc?.meta?.title || '',
+    }, user)).catch(() => {});
+  };
   const docMeta = doc?.meta;
   const assets = useMemo(() => ({
     image: async (file) => { const img = await repository.uploadImage(file); bankImage(img, { name: file?.name }); return img; },
-    audio: (file) => repository.uploadAudio(file),
+    audio: async (file) => { const audio = await repository.uploadAudio(file); bankMedia('audio', audio); return audio; },
+    ...(repository.uploadVideo ? { video: async (file) => { const video = await repository.uploadVideo(file); bankMedia('video', video); return video; } } : {}),
     // Estonian voices (TartuNLP Neurokõne) for listening, dialogue and reading blocks
     ...(speech?.speak ? { speak: (request) => speech.speak(request) } : {}),
   }), [repository, docMeta, speech]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -565,6 +577,31 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const pickBankImage = (asset) => {
     placeImage({ src: asset.src, storagePath: asset.storagePath || '', width: asset.width || 0, height: asset.height || 0, focus: { x: 50, y: 50 } }, asset.credit ? asset.caption : '');
     setNotice('Pilt pangast lisati lehele.');
+  };
+  // a sound from the bank: into the selected block that has a sound, else a new listening block after it
+  const pickBankAudio = (asset) => {
+    const audio = { src: asset.src, storagePath: asset.storagePath || '', name: asset.title || asset.caption || '' };
+    if (selected && AUDIO_BLOCKS.has(selected.type)) {
+      updateBlock({ ...selected, data: { ...selected.data, audio } });
+    } else {
+      const b = createBlock('listening');
+      b.data = { ...b.data, audio, title: asset.caption ? `Kuula: ${asset.caption}` : b.data.title };
+      insertBlocks([b]);
+    }
+    setNotice('Heli pangast lisati lehele.');
+  };
+  // a video from the bank: into the selected video block, else a new video block
+  const pickBankVideo = (asset) => {
+    const file = /^https:\/\/firebasestorage\./.test(asset.src) || asset.storagePath ? { src: asset.src, storagePath: asset.storagePath || '', name: asset.title || '' } : null;
+    const patch = file ? { file, url: '' } : { url: asset.src, file: null };
+    if (selected?.type === 'video') {
+      updateBlock({ ...selected, data: { ...selected.data, ...patch, caption: selected.data.caption || asset.caption || '' } });
+    } else {
+      const b = createBlock('video');
+      b.data = { ...b.data, ...patch, caption: asset.caption || '' };
+      insertBlocks([b]);
+    }
+    setNotice('Video pangast lisati lehele.');
   };
   // a text from the bank: a reading block, and if wanted gaps / word order / vocabulary made from it
   const pickBankText = (asset, extras = []) => {
@@ -958,7 +995,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               : leftTab === 'sheet' ? <div className="st-sheetpanel"><SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} /></div>
               : leftTab === 'library' ? <Suspense fallback={<p className="ed-hint">Laen kogu…</p>}><BlockLibraryPanel level={doc?.meta?.level || ''} currentLessonId={isLessonPage ? lessonId : ''} {...(reuse ? { saved: reuse } : {})} onInsert={(blocks, extra) => { insertBlocks(blocks, extra); setNotice('Kogust lisati ülesanne. Vaata see üle.'); }} /></Suspense>
               : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
-                onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage}
+                onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage} onAudio={pickBankAudio} onVideo={pickBankVideo}
                 onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />
               : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint" title="Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc."><Icons.MousePointerClick size={14} aria-hidden="true" /> Lohista plokk lehele. Topeltklõps lehel muudab teksti.</p>{myTemplates.length ? (
                 <div className="st-group st-templates">

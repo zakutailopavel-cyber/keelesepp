@@ -46,7 +46,7 @@ function imagesIn(data, found = []) {
   return found;
 }
 
-// Pictures and longer texts of one worksheet document, with its level and topic.
+// Pictures, longer texts, sounds and videos of one worksheet document, with its level and topic.
 export function extractAssets(doc, { lessonId = '', lessonTitle = '', level = '', module = '', phase = '' } = {}) {
   const meta = doc?.meta || {};
   const sheetLevel = levelOf(level) || levelOf(meta.level);
@@ -54,6 +54,7 @@ export function extractAssets(doc, { lessonId = '', lessonTitle = '', level = ''
   const base = { level: sheetLevel, topic, lessonId, phase, sheetTitle: meta.title || lessonTitle || '' };
   const images = [];
   const texts = [];
+  const media = [];
   for (const block of doc?.blocks || []) {
     const data = block?.data || {};
     for (const { img, owner } of imagesIn(data)) {
@@ -81,8 +82,31 @@ export function extractAssets(doc, { lessonId = '', lessonTitle = '', level = ''
         tags: tagsOf(title, clean.slice(0, 1500), meta.title || '', module),
       });
     }
+    // a block's sound (uploaded, recorded or made by the Estonian voice) and the video block's file or link
+    // its name: the reading text's title, else the file name (a task title like „Kuula.” says nothing)
+    const label = plainText(data.passageTitle || '');
+    if (data.audio?.src && /^https:\/\//.test(data.audio.src)) {
+      media.push(mediaAsset('audio', { src: data.audio.src, storagePath: data.audio.storagePath, name: data.audio.name, caption: label }, { ...base, tags: [meta.title || '', module, lessonTitle] }));
+    }
+    if (block.type === 'video') {
+      const src = data.file?.src && /^https:\/\//.test(data.file.src) ? data.file.src : String(data.url || '').trim();
+      if (src) media.push(mediaAsset('video', { src, storagePath: data.file?.storagePath, name: data.file?.name, caption: plainText(data.caption || '') }, { ...base, tags: [meta.title || '', module, lessonTitle] }));
+    }
   }
-  return { images, texts };
+  return { images, texts, media };
+}
+
+export const MEDIA_KINDS = ['image', 'audio', 'video', 'text'];
+
+// One sound or video for the bank. `src`: the Storage address of a file (or a YouTube / Vimeo link for a video);
+// the file's name goes into `title`.
+export function mediaAsset(kind, { src, storagePath = '', name = '', caption = '' }, { tags = [], ...context } = {}) {
+  const title = plainText(name || '').slice(0, 200);
+  return {
+    ...context, kind, key: assetKey(kind === 'audio' ? 'aud' : 'vid', src), src, storagePath: storagePath || '',
+    title, caption: plainText(caption || '').slice(0, 300),
+    tags: tagsOf(caption, String(name || '').replace(/\.[^.]+$/, ''), ...tags),
+  };
 }
 
 // Search: every query word must match a tag start (or the title / caption); level and kind filters; best first.
