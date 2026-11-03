@@ -26,7 +26,17 @@
 // sellepärast et and word order (038). Cast facts kept: Oskar 9, football, class 3.b, Kase kool; Mia loves drawing;
 // Anna has the dog Bruno and lives in Saue; Liis studied in Helsinki. Earlier versions: archive/v3/b1/module08.js,
 // archive/v1/b1/module08.js.
+// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md; topic „haridus”, secondary „keel”): topic opener 036_d_open
+// (the Estonian school system, õppimiskohustus to 18, Estonian-language education, PISA 2025) replaces the goal text
+// 036_d_goal; „Kas teadsid?” 036_p_know (e-päevik) and 037_p_know (finishing school as an adult); fiction 036_p_story
+// (De Amicis, „Cuore”, the new boy from Calabria); the magazine article 038_d_article is now popular science on memory
+// and sleep (Ebbinghaus, Rasch & Born, TAI); article 039_p_support (how a school helps a pupil who falls behind);
+// examiner set 040_d_warm. One 3-2-1 / 4-3-2 left (037_d_432); record-at-home twice (038_t_rec, 039_t_rec). Sources: the
+// PR of agent/av-b1-module-08.
 import { B, tag, teach, why, withShapes } from '../blocks.js';
+
+// the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
+const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
 export const MODULE = { id: 'a2b1-module-08', course: 'b1', title: 'Õppimine ja kool', level: 'B1-', design: 'v2', template: 'v4' };
 
@@ -49,7 +59,19 @@ export const LESSONS = withShapes({
     canDo: 'Ma helistan kooli huvijuhile, räägin, millest laps huvitub ja milles ta osaleda tahab, ning küsin huviringide kohta.',
     discover: [
       B.review('036_d_review', [['Mida sa teed, kui sul on palavik ja pea valutab? Anna kaks nõuannet.', 'a2b1-035'], ['Mida Helgi ja Sofia Nõmme turult ostsid ja kui palju?', 'a2b1-026'], 'Mis oli koolis sinu lemmik õppeaine ja miks?']),
-      B.text('036_d_goal', 'Moodul 8: kõik õpivad', 'Selles moodulis õpivad kõik. Sofia käib õhtuti eesti keele kursusel, Anna valmistub soome keele eksamiks, Markus jäi inglise keele kursusel maha ja Oskari klassi tuleb uus tüdruk. Mooduli lõpus räägid oma õppimismurest ja lepid kokku, millise kursuse valid ja kuidas õpid. Täna proovid kõigepealt ise, siis loed klassijuhataja kirja, leiad reegli ja helistad lõpuks kooli huvijuhile.'),
+      B.topicOpener('036_d_open', 'Teema avaleht: kool ja õppimine Eestis', [
+        'Eestis on igal lapsel õppimiskohustus. See algab, kui laps on enne 1. oktoobrit saanud seitsmeaastaseks, ja kestab 18-aastaseks saamiseni. Uus reegel kehtib 2025. aasta septembrist. Nüüd jätkab noor pärast põhikooli õppimist gümnaasiumis või kutsekoolis.',
+        'Põhikool kestab üheksa aastat. Sellel on kolm kooliastet: 1.–3., 4.–6. ja 7.–9. klass. Gümnaasium kestab kolm aastat. Õppeaasta algab 1. septembril ja suvevaheaeg kestab vähemalt kaheksa nädalat. Tund kestab 45 minutit ja vahetund vähemalt kümme minutit. Hindeid pannakse viie palli süsteemis: „5” on „väga hea”, „4” „hea”, „3” „rahuldav”, „2” „puudulik” ja „1” „nõrk”.',
+        'Kool peab last aitama. Põhikoolis saab õpilane õpikud ja töövihikud tasuta. Riik toetab koolilõunat. Kui õpilasel on raske, saab ta koolis tasuta eripedagoogi, logopeedi, psühholoogi või sotsiaalpedagoogi abi. Vähemalt kord aastas on arenguvestlus: õpilane, klassijuhataja ja lapsevanem räägivad, kuidas edasi õppida.',
+        '2024. aasta sügisel algas üleminek eestikeelsele õppele. Esimesena läksid üle lasteaiad ning 1. ja 4. klassid. Igal aastal tuleb juurde uusi klasse ja 2032/2033. õppeaastal õpib eesti keeles ka 12. klass.',
+        'Eesti kool on maailmas tuntud. PISA uuring kontrollib 15-aastaste noorte oskusi. 2026. aasta septembris avaldatud PISA 2025 tulemuste järgi olid Eesti noored matemaatikas ja loodusteadustes Euroopas esimesed ning lugemises teised.',
+        'Selles moodulis räägid koolist ja õppimisest: kuidas uus õpilane klassiga harjub, kuidas täiskasvanu keelt õpib ja mida teha, kui jääd maha. Mooduli lõpus räägid oma õppimismurest ja lepid kokku, kuidas edasi õppida.',
+      ], 'Riigi Teataja, „Eesti Vabariigi haridusseadus” (§ 101) ja „Põhikooli- ja gümnaasiumiseadus” (§ 2, 20, 24, 29, 37, 42); ERR, „Koolid ei saa enam alaealist õpilast gümnaasiumist välja visata” (27.10.2025); ERR, „Riigikogu kiitis heaks eestikeelsele õppele ülemineku” (12.12.2022); Haridus- ja Teadusministeerium, „PISA 2025” (8.9.2026)', [
+        'Mis sind Eesti koolis üllatab või mis sulle meeldib?',
+        'Kuidas on kool korraldatud sinu kodumaal: mis vanuses lapsed kooli lähevad, kui kaua nad õpivad ja milliseid hindeid saavad?',
+        'Kas sinu arvates on hea, et noor peab õppima kuni 18-aastaseks saamiseni? Miks?',
+        'Mis on sinu meelest hea kooli kõige tähtsam omadus?',
+      ]),
       B.choice('036_d_try', 'Proovi kõigepealt ise.', 'Vali igasse lausesse vorm, mis sinu arvates sobib. Reeglit pole veel vaja — arva julgelt.', [
         ['Oskar huvitub juba väikesest peale …', 'loomadest', 'loomi', 'loomadele'],
         ['Daria osaleb igal kolmapäeval …', 'tantsuringis', 'tantsuringi', 'tantsuringist'],
@@ -125,14 +147,14 @@ export const LESSONS = withShapes({
         'valmistuma | [milleks]? | Olena valmistub [kõneks] (kõne).',
         'abi paluma | [kellelt]? | Laps palub abi [õpetajalt] (õpetaja).',
       ], 'g_notice'),
-      teach(tag(B.speaking('036_d_picture', 'Oskari kolmapäev.', 'Vaata pilti. Kirjelda kolmapäevast koolipäeva kolmele kuulajale järjest, igaühele umbes minut. Lisa iga kord uus detail.', [
+      teach(tag(B.speaking('036_d_picture', 'Oskari kolmapäev.', 'Vaata pilti. Kirjelda paarilisele kolmapäevast koolipäeva umbes üks minut. Siis arutage kahte viimast küsimust.', [
         'Mis tunnid on kolmapäeval ja mis kell need algavad?',
-        'Mis tund on sinu arvates kõige raskem ja miks?',
         'Millest Oskar huvitub ja milles ta osaleb?',
         'Millega peab uus õpilane Daria esimesel nädalal harjuma?',
-        'Mis oli sinu koolipäevas teisiti?',
-      ], [70, 120], ['Kolmapäeval on…', 'Oskar huvitub…', 'Daria peab harjuma…']), { task: 'S06', fluency: true }),
-      'Üks-ühele: õpilane kirjeldab pilti õpetajale kolm korda järjest, iga kord umbes minut; õpetaja küsib vahele „Millest?” või „Milles?” ja ootab tegusõna koos õige käändega.'),
+        'Mis on sinu arvates koolipäeva juures kõige tähtsam: tunnid, sõbrad või huviringid? Miks?',
+        'Kuidas erineb koolipäev Eestis ja sinu kodumaal?',
+      ], [70, 120], ['Kolmapäeval on…', 'Oskar huvitub…', 'Minu kodumaal…, aga Eestis…']), { task: 'S06', fluency: true }),
+      'Üks-ühele: õpilane kirjeldab pilti üks minut; õpetaja küsib vahele „Millest?” või „Milles?” ja ootab tegusõna koos õige käändega. Siis arutate kahte viimast küsimust: õpetaja räägib Eesti koolipäevast, õpilane võrdleb oma kodumaaga.'),
       tag(B.writing('036_d_fast', 'Kaheksa minutit Dariast.', 'Vaata pilti veel kord. Kirjuta kaheksa minutit peatumata Daria esimesest nädalast: mida ta nägi, millega harjus, millest huvitus.', [8, 10], ['huvitub', 'osaleb', 'harjub', 'valmistub'], 3), { task: 'W06', fluency: true }),
     ],
     practice: [
@@ -188,6 +210,24 @@ export const LESSONS = withShapes({
         '',
         'Kui teil on aega, kirjutage mulle palun e-kooli kaudu. Olen teile väga tänulik {*abi|abist|abiks} eest. Lugupidamisega, Olena',
       ], 'g_notice'),
+      B.know('036_p_know', [
+        'Eesti koolides on e-päevik, näiteks Stuudium. Kool valib ise, millist süsteemi ta kasutab.',
+        'E-päevikus näeb hindeid ja õpetaja tagasisidet, kodutöid, puudumisi ja sõnumeid.',
+        'Mitme kooli kodukorra järgi teatab lapsevanem klassijuhatajale e-päeviku kaudu hiljemalt esimesel päeval, kui laps koolist puudub, ja ütleb ka põhjuse.',
+      ], 'Stuudium (Koodimasin OÜ), rakenduse kirjeldus; A. Haava nim Pala Kooli kodukord (2025); Valjala Põhikooli kodukord (2025)', 'Kas teadsid? E-päevik'),
+      tag(B.insertion('036_p_story', 'Ilukirjandus: uus poiss kaugelt.', 'Loe katkendit itaalia kirjaniku raamatust. Raamat on kirjutatud nagu ühe kooliõpilase päevik. Pane kuus lauset oma kohale; üks lause jääb üle.', 'E. De Amicis, „Cuore”: poiss Calabriast', [
+        'Laupäev, 22. oktoober. Eile pärast lõunat tuli direktor meie klassi koos uue õpilasega. [[Poisil oli tume nägu, mustad juuksed ja suured mustad silmad.]] Ta vaatas ringi, nagu kardaks ta midagi.',
+        '',
+        'Õpetaja võttis tal käest kinni ja ütles meile: „Täna tuleb meie kooli poiss, kes on sündinud Calabrias, Itaalia teises otsas. [[Armastage oma venda, kes on tulnud nii kaugelt.]] Aidake tal tunda, et ta ei ole siin võõras.” [[Siis näitas õpetaja seinakaardil, kus see koht asub.]]',
+        '',
+        'Õpetaja kutsus Derossi, kes on klassi parim õpilane. [[„Tervita uut sõpra kogu klassi nimel,” ütles õpetaja.]] Derossi kallistas uut poissi ja ütles valjult: „Tere tulemast!” Kõik plaksutasid.',
+        '',
+        '„Vaikust!” hüüdis õpetaja. „Koolis ei plaksutata!” [[Aga oli näha, et ka tema oli rõõmus.]] Ta viis uue poisi tema kohale pingis. Siis ütles ta veel: „Kes solvab seda poissi sellepärast, et ta ei ole siit pärit, see ei ole meie klassi väärt.”',
+        '',
+        '[[Niipea kui uus poiss istus, kinkisid naabrid talle sulepäid ja ühe pildi.]] Üks poiss viimasest pingist saatis talle Šveitsi postmargi.',
+        '',
+        'Allikas: E. De Amicis, „Cuore” (1886), peatükk „Poiss Calabriast”, lihtsustatud ja lühendatud. Autor suri 1908. aastal, teos on avalik omand.',
+      ], ['Uus poiss naeris ja rääkis kohe kõigiga.']), { task: 'R16', voice: 'fiction' }),
       tag(B.listening('036_p_radio', 'Kooliraadio teade.', 'Kuula huvijuhi teadet kooliraadios. Kirjuta lünka kellaaeg, hind, number või päev.', [
         'Triin: Head õpilased ja vanemad! Siin huvijuht Triin Saks. Uuel nädalal algavad meie huviringid.',
         'Triin: Robootika on esmaspäeval ja kolmapäeval kell kolm. Vabu kohti on veel ainult kaks.',
@@ -237,14 +277,14 @@ export const LESSONS = withShapes({
     ],
     transfer: [
       B.text('036_t_sit', 'Daria ringid', 'Huviringidesse registreerimine lõpeb reedel. Olena tahab, et Daria osaleks kahes ringis, aga ta ei tea veel, millised sobivad. Daria huvitub matemaatikast, joonistamisest ja tantsust. Kõigepealt kohtub Olena lastevanemate õhtul Oskari ema Kadriga. Siis loed ringide kaarte, lepid Olenaga kokku ja helistad huvijuhile. Lõpuks kirjutad klassijuhatajale lühikese sõnumi.'),
-      teach(tag(B.speaking('036_t_meet', 'Lastevanemate õhtul.', 'Oled Olena lastevanemate õhtul. Tutvusta ennast ja oma last. Räägi 1–2 minutit ja salvesta.', [
+      teach(tag(B.speaking('036_t_meet', 'Lastevanemate õhtul.', 'Oled Olena lastevanemate õhtul. Tutvusta ennast ja oma last teistele vanematele 1–2 minutit. Siis küsi teiselt vanemalt tema lapse kohta.', [
         'Kes sa oled ja kus sa töötad?',
         'Kui vana su laps on ja millest ta huvitub?',
         'Milles su laps koolis või pärast kooli osaleb?',
         'Millega oli sinu lapsel raske harjuda?',
         'Mida sa tahad klassijuhatajalt küsida?',
       ], [90, 150], ['Meeldiv tutvuda! Mina olen…', 'Minu tütar huvitub…', 'Ta osaleb…']), { task: 'S01' }),
-      'Kodus salvestab õpilane Olena tutvustuse. Tunnis on õpetaja Kadri: kuulab, küsib kaks küsimust ja tutvustab siis oma last — nüüd küsib õpilane.'),
+      'Üks-ühele: õpetaja on Kadri: kuulab Olena tutvustust, küsib kaks küsimust ja tutvustab siis oma last — nüüd küsib õpilane.'),
       B.profiles('036_t_clubs', 'Neli huviringi.', 'Loe Kase kooli nelja huviringi kaarti. Täienda laused: millal, kellele ja mis tingimustel ring toimub.', [
         ['Robootika', ['juhendaja Kuldar', 'esmaspäeval ja kolmapäeval 15.00–16.30', '2.–6. klassi õpilastele, tasuta', 'vaja on aru saada lihtsatest juhistest', 'vabu kohti on kaks'],
           ['Robootikaring toimub esmaspäeval ja [kolmapäeval].', 'Ring on mõeldud teise kuni kuuenda [klassi] õpilastele.', 'Robootikaringis osalemise eest ei pea [maksma].', 'Lapsed peavad saama aru lihtsatest [juhistest].', 'Ringis on veel ainult kaks vaba [kohta].', 'Robootikaringi juhendab [Kuldar].']],
@@ -445,14 +485,18 @@ export const LESSONS = withShapes({
         points: ['millal ja kus klubi kohtub', 'mida klubis teha saab', 'mida peab kaasa võtma', 'miks tasub tulla'],
         words: [50, 70], opening: 'Head kolleegid!', closing: 'Ootame teid! Liis ja Anna',
       }),
-      teach(tag(B.speaking('037_p_opinion', 'Kas töö juures peab õppima?', 'Ütle oma arvamus kolmele kuulajale järjest. Iga kord räägi natuke lühemalt ja too uus põhjus.', [
+      B.know('037_p_know', [
+        'Kooli saab lõpetada ka täiskasvanuna. Täiskasvanud õpivad mittestatsionaarses õppes, näiteks täiskasvanute gümnaasiumis: tunde on vähem ja rohkem tuleb õppida iseseisvalt.',
+        'Nii võib põhihariduse omandada 18-aastane ja vanem inimene. Õppida võib ka ainult üksikuid aineid. Kool, kus on mittestatsionaarne õpe, peab andma täiskasvanule ka võimaluse lõpetada kool eksternina.',
+      ], 'Riigi Teataja, „Põhikooli- ja gümnaasiumiseadus”, § 22', 'Kas teadsid? Kool täiskasvanule'),
+      teach(tag(B.speaking('037_p_opinion', 'Kas töö juures peab õppima?', 'Räägi paarilisega õppimisest töö kõrval. Igale küsimusele ütle oma seisukoht ja üks põhjus, siis küsi, kas paariline on nõus.', [
         'Kas firma peaks töötaja keelekursuse eest maksma? Miks?',
         'Kas lõunapausil tohib õppida või peab puhkama?',
         'Mida sinu arvates peab iga töötaja oskama?',
-        'Mida sa tahaksid veel õppida ja kellelt?',
-        'Kas täiskasvanul on raske uut keelt õppida?',
-      ], [70, 120], ['Minu arvates peab…', 'Teisest küljest tahan…', 'Näiteks…']), { task: 'S11', fluency: true }),
-      'Üks-ühele: õpilane räägib kolm korda (2 min, 90 s, 1 min); õpetaja on iga kord uus kuulaja ja ütleb vastupidise arvamuse, millele õpilane vastab.'),
+        'Kas täiskasvanul on raske uut keelt õppida? Põhjenda.',
+        'Kas sinu kodumaal õpivad täiskasvanud sama palju kui Eestis?',
+      ], [70, 120], ['Minu arvates peab…', 'Teisest küljest…', 'Näiteks…']), { task: 'S11', fluency: true }),
+      'Üks-ühele: õpetaja ütleb igale küsimusele vastupidise arvamuse; õpilane põhjendab oma seisukohta ma- ja da-vormiga („Töötaja peab saama õppida…”). Lõpus ütleb õpilane ühe lausega, kas ta muutis oma arvamust.'),
     ],
     transfer: [
       B.text('037_t_sit', 'Sõnum keelekoolist', 'Anna registreeris end soome keele eksami ettevalmistuskursusele. Keelekooli administraator Krista jättis talle häälsõnumi. Anna on koosolekul ja palub sul sõnumit kuulata. Märgi kõik oluline üles, räägi Liisile, mida sõnumis öeldi, ja kirjuta Anna nimel sõbrale Katile kiri tema plaanist.'),
@@ -510,27 +554,29 @@ export const LESSONS = withShapes({
     canDo: 'Ma kirjutan umbes 100-sõnalise jutu sellest, miks ma õpin, ja põhjendan oma valikuid sõnadega sest, kuna ja seepärast.',
     discover: [
       B.review('038_d_review', [['Mida Anna peab iga päev tegema ja mida ta tahab kevadeks osata?', 'a2b1-037'], ['Mis juhtus Markuse lõunaga kontori külmkapis?', 'a2b1-028'], 'Miks sa täna eesti keelt õpid? Ütle üks põhjus.']),
-      B.text('038_d_hook', 'Anna on väsinud', 'Kaks nädalat on Anna õppinud soome keelt igal õhtul kella kaheteistkümneni. Hommikul on ta väsinud ja uued sõnad on peast läinud. Liis andis talle ajakirja loo täiskasvanud õppijatest. Täna loed seda lugu, kuulad Anna ja Liisi vestlust ning kirjutad lõpuks jutu sellest, miks sina õpid.'),
-      tag(B.reading('038_d_article', 'Ajakirja lugu.', 'Loe ajakirja lugu. Leia kõigepealt, milline lõik (A–E) sobib pealkirjaga, siis vasta teistele küsimustele.', 'Õppida täiskasvanuna: miks ja millal?', [
-        'A. Eesti täiskasvanutest õpib igal aastal midagi uut peaaegu pool. Kõige rohkem õpitakse keeli ja arvutioskust. Paljud käivad kursustel õhtuti, kuna päeval on töö. Üha rohkem õpitakse ka veebis, sest seal saab ise aega valida. Kõige vanem kursusel käija oli eelmisel aastal üheksakümmend kaks aastat vana.',
+      B.text('038_d_hook', 'Anna on väsinud', 'Kaks nädalat on Anna õppinud soome keelt igal õhtul kella kaheteistkümneni. Hommikul on ta väsinud ja uued sõnad on peast läinud. Liis andis talle ajakirja loo sellest, kuidas mälu töötab. Täna loed seda lugu, kuulad Anna ja Liisi vestlust ning kirjutad lõpuks jutu sellest, miks sina õpid.'),
+      tag(B.reading('038_d_article', 'Populaarteadus: kuidas mälu töötab.', 'Loe populaarteaduslikku lugu. Leia kõigepealt, milline lõik (A–E) sobib pealkirjaga, siis vasta teistele küsimustele.', 'Unustamine, kordamine ja uni', [
+        'A. 1885. aastal avaldas saksa teadlane Hermann Ebbinghaus raamatu mälust. Ta tegi katseid iseendaga. Ta valis üle kahe tuhande silbi, millel ei ole tähendust, sest need ei too meelde midagi tuttavat. Ta luges silpe ühtlases rütmis, õppis need pähe ja kontrollis siis, kui palju ta mõne aja pärast veel mäletab.',
         '',
-        'B. Miks täiskasvanud õpivad? Kõige sagedamini ütlevad nad, et uus oskus on tööks vajalik. Teisel kohal on huvi: inimene tahab lihtsalt midagi uut teada. Mõni õpib selleks, et lastel koolis aidata või lastelastega nende keeles rääkida. Noorematel on sageli eesmärgiks parem palk, vanematel uued sõbrad ja huvitav tegevus.',
+        'B. Nii leidis ta unustamiskõvera. Kõige rohkem unustame kohe pärast õppimist, esimestel tundidel ja päevadel. Hiljem läheb unustamine aeglasemaks. Ebbinghaus märkas veel üht asja: kui õpitut korrata mitme päeva jooksul, jääb see paremini meelde kui siis, kui õppida kõike korraga.',
         '',
-        'C. Õppimine ei lähe alati hästi. Kõige suurem probleem on aeg. Kuna töö ja pere võtavad päevast suure osa, jääb õppimine hilisõhtusse. Väsinud aju ei jäta aga uusi sõnu meelde. Inimene istub pärast pikka tööpäeva kaks tundi raamatu taga, aga järgmisel hommikul ei mäleta ta peaaegu midagi. Seepärast kaob paljudel motivatsioon.',
+        'C. Teadlased on üle saja aasta uurinud ka seda, kuidas uni mõjutab mälu. Saksa teadlased Björn Rasch ja Jan Born kirjutasid 2013. aastal suures ülevaates, et uni aitab õpitut meeles hoida. Une ajal kinnistab aju seda, mida me päeval õppisime.',
         '',
-        'D. Unespetsialist dr Tamm selgitab, et uni aitab mälul töötada. „Öösel paneb aju päeva jooksul õpitu korda. Kui magad viis tundi, jääb see töö pooleli. Seepärast on parem õppida pool tundi hommikul kui kaks tundi südaöösel.” Tema sõnul vajab täiskasvanu seitse kuni üheksa tundi und.',
+        'D. Kui palju und on vaja? Tervise Arengu Instituudi andmetel on täiskasvanule soovitatav magada 7–9 tundi ööpäevas, noortele 8–10 tundi. Eesti täiskasvanud magavad uuringute järgi keskmiselt 7,3–7,6 tundi. Kui inimene magab liiga vähe, on ta päeval unine ja mälu töötab halvemini.',
         '',
-        'E. Mida siis teha? Õpi väikeste osadena, näiteks veerand tundi hommikul ja veerand tundi lõunapausil. Korda vanu sõnu enne uusi. Ja ära unusta liikuda: jalutuskäik pärast õppimist aitab sõnadel paremini meelde jääda. Kõige tähtsam on aga regulaarsus: natuke iga päev on parem kui palju korraga.',
+        'E. Mida sellest õppida? Õpi väikeste osadena ja korda vana enne uut. Korda uusi sõnu järgmisel päeval, siis mõne päeva pärast ja uuesti nädala pärast. Ära õpi uneaja arvelt: pool tundi hommikul ja hea uni annavad rohkem kui kaks tundi südaööl.',
+        '',
+        'Allikas: H. Ebbinghaus, raamat mälust (1885); B. Rasch, J. Born, ülevaade une ja mälu kohta ajakirjas Physiological Reviews (2013); Tervise Arengu Instituut, K. Konstabel, K. Vernik, „Uni vaimse tervise näitaja ja mõjutajana” (2022).',
       ], [
-        ['Milline lõik (A–E) sobib pealkirjaga „Uni ja mälu”?', 'D'],
-        ['Milline lõik sobib pealkirjaga „Kolm põhjust õppida”?', 'B'],
-        ['Milline lõik sobib pealkirjaga „Kui aega ei jätku”?', 'C'],
-        ['Miks käivad paljud täiskasvanud kursustel õhtuti?', 'päeval on töö|kuna päeval on töö'],
-        ['Mis on kõige sagedasem põhjus, miks täiskasvanud õpivad?', 'uus oskus on tööks vajalik|töö pärast'],
-        ['Miks ei jää hilisõhtul õpitud sõnad meelde?', 'väsinud aju ei jäta neid meelde|aju on väsinud'],
-        ['Miks on dr Tamme arvates hommikul parem õppida?', 'öösel paneb aju õpitu korda ja hommikul ei ole aju väsinud|uni aitab mälul töötada'],
-        ['Milline nõuanne loost sobiks Annale kõige paremini ja miks?', ''],
-      ]), { task: 'R09' }),
+        ['Milline lõik (A–E) sobib pealkirjaga „Uni ja mälu”?', 'C'],
+        ['Milline lõik sobib pealkirjaga „Kuidas me unustame”?', 'B'],
+        ['Milline lõik sobib pealkirjaga „Teadlane katsetab iseendaga”?', 'A'],
+        ['Miks õppis Ebbinghaus silpe, millel ei ole tähendust?', 'need ei too meelde midagi tuttavat|neil ei ole tähendust'],
+        ['Millal unustame kõige rohkem?', 'kohe pärast õppimist|esimestel tundidel ja päevadel'],
+        ['Mida teeb aju une ajal?', 'kinnistab päeval õpitut|kinnistab õpitut|aitab õpitut meeles hoida'],
+        ['Mitu tundi und on täiskasvanule soovitatav?', '7–9 tundi|seitse kuni üheksa tundi|7-9|7–9'],
+        ['Milline nõuanne tekstist sobib sulle kõige paremini ja miks?', ''],
+      ]), { task: 'R09', voice: 'popsci' }),
       tag(B.vocab('038_d_vocab', 'Tunni sõnad.', ['põhjus — причина', 'tagajärg — последствие', 'väsinud — уставший', 'uni — сон', 'harjumus — привычка', 'keskenduma — сосредоточиться', 'kasulik — полезный', 'vajalik — нужный', 'tööandja — работодатель', 'hommik — утро', 'rutiin — рутина / режим', 'motivatsioon — мотивация']), { topic: ['rutiin', 'motivatsioon'] }),
       B.chart('038_d_chart', 'Keelekool Sõna küsitlus: miks te õpite?', { kind: 'bar', unit: '%', series: 'Vastajad', rows: ['Tööks vajalik | 46', 'Huvi keele vastu | 22', 'Elan Eestis, tahan suhelda | 18', 'Lapse kool | 9', 'Muu põhjus | 5'], source: 'Keelekool Sõna küsitlus. Vastas 120 õppijat.' }),
       B.examListen('038_d_coffee', 'Kohviautomaadi juures.', 'Kuula Anna ja Liisi juttu kohviautomaadi juures. Kas väide on õige või vale?', 'truefalse', [
@@ -863,14 +909,36 @@ export const LESSONS = withShapes({
         'Küsi helistaja nime, e-posti aadressi ja sobivat aega.',
       ]]), { harno: 'S2' }),
       'Eksaminurk (Harno B1 rääkimine 2, telefonikõne, ~8 min): õpilane näeb ainult oma kaarti. Eksamil hinnatakse, kas kõik kaardi küsimused said küsitud ja vastatud. Üks-ühele: õpetaja on administraator; teisel korral vahetage kaardid ja õpilane vastab. Märkige koos, mitu kaardi rida sai täidetud (eesmärk 5/5).'),
-      teach(tag(B.speaking('039_p_mine', 'Minu õppimismure.', 'Räägi oma õppimismurest kolm korda järjest kolmele kuulajale: iga kord lühemalt ja selgemalt.', [
-        'Mis on sinu õppimises praegu kõige raskem?',
-        'Miks see nii on? Ütle põhjus.',
-        'Mida sa oled juba proovinud?',
+      tag(B.reading('039_p_support', 'Kui laps jääb koolis maha.', 'Loe teksti lapsevanematele. Vasta küsimustele oma sõnadega.', 'Mida teeb kool, kui õppimine ei edene?', [
+        'Iga õpilane võib vahel maha jääda: ta oli haige, kolis teise linna või ei saanud uuest teemast aru. Eesti seaduse järgi peab kool sellist õpilast aitama. Õpetajad jälgivad, kuidas laps areneb, ja muudavad vajaduse korral oma õpetamist.',
+        '',
+        'Kui õpilane jääb õppimises maha, annab kool talle üldist tuge. See tähendab, et õpetaja juhendab last eraldi, näiteks pärast tunde. Vajaduse korral korraldab kool õpiabitunde, kas ainult talle või koos teiste õpilastega.',
+        '',
+        'Koolis peab vajaduse korral saama tasuta eripedagoogi, logopeedi, psühholoogi ja sotsiaalpedagoogi abi. Neid nimetatakse tugispetsialistideks. Kui last on vaja rohkem toetada, võib kool koostada talle individuaalse õppekava. Selle koostamisel osaleb ka lapsevanem.',
+        '',
+        'Vähemalt kord õppeaastas on arenguvestlus. Seal räägivad õpilane, klassijuhataja ja lapsevanem, kuidas õppimine läheb, ning lepivad kokku uued eesmärgid.',
+        '',
+        'Mida saab teha lapsevanem? Räägi õpetajaga varakult, mitte alles veerandi lõpus. Küsi, millist abi kool pakub, ja vaata koos lapsega, mida ta juba oskab ja mida veel mitte.',
+        '',
+        'Allikas: Riigi Teataja, „Põhikooli- ja gümnaasiumiseadus”, § 18, 37 ja 46.',
+      ], [
+        ['Miks võib õpilane koolis maha jääda? Nimeta kaks põhjust.', 'ta oli haige|ta kolis teise linna|ei saanud uuest teemast aru'],
+        ['Mida tähendab üldine tugi?', 'õpetaja juhendab last eraldi|õpiabitunnid|õpetaja juhendab last eraldi ja kool korraldab õpiabitunde'],
+        ['Kuidas võivad õpiabitunnid toimuda?', 'ainult talle või koos teiste õpilastega|üksi või koos teistega|individuaalselt või koos teistega'],
+        ['Keda nimetatakse tugispetsialistideks?', 'eripedagoogi, logopeedi, psühholoogi ja sotsiaalpedagoogi|eripedagoog, logopeed, psühholoog ja sotsiaalpedagoog'],
+        ['Kes osaleb individuaalse õppekava koostamisel?', 'lapsevanem|ka lapsevanem'],
+        ['Kui tihti on arenguvestlus ja kes seal räägivad?', 'vähemalt kord õppeaastas; õpilane, klassijuhataja ja lapsevanem|kord aastas'],
+        ['Mida soovitab tekst lapsevanemale?', 'rääkida õpetajaga varakult|küsida, millist abi kool pakub'],
+        ['Kuidas aidatakse mahajäänud õpilast sinu kodumaa koolides?', ''],
+      ]), { task: 'R19', voice: 'article' }),
+      teach(tag(B.speaking('039_p_mine', 'Kuidas maha jäänud õppijat aidata?', 'Arutage paaris. Räägi kõigepealt oma õppimismurest, siis arutage, kes peaks maha jäänud õppijat aitama.', [
+        'Mis on sinu õppimises praegu kõige raskem ja miks?',
         'Kellelt sa võiksid abi paluda?',
-        'Mida sa järgmisel nädalal teisiti teed?',
-      ], [90, 150], ['Minu mure on see, et…', 'Kuna…', 'Ma võiksin…']), { fluency: true }),
-      'Üks-ühele: õpilane räägib õpetajale kolm korda (2 min, 90 s, 1 min); õpetaja küsib pärast igat korda ühe täpsustava küsimuse („Kellelt täpselt?”), mille vastus tuleb järgmisse versiooni sisse.'),
+        'Kas maha jäänud lapse aitamine on kooli või lapsevanema mure? Põhjenda.',
+        'Kuidas on sinu kodumaal: kas koolis töötavad psühholoog ja logopeed?',
+        'Mis on sinu meelest parem: õppida üksi, rühmas või eraõpetajaga? Miks?',
+      ], [90, 150], ['Minu mure on see, et…', 'Minu arvates peaks kool…, sest…', 'Minu kodumaal…']), { fluency: true }),
+      'Üks-ühele: õpilane räägib oma murest, õpetaja küsib ühe täpsustava küsimuse („Kellelt täpselt?”). Siis arutate kolme viimast küsimust; õpetaja ütleb vahel vastupidise arvamuse ja õpilane põhjendab oma arvamust.'),
     ],
     transfer: [
       B.text('039_t_sit', 'Mida Markus valib?', 'Markus otsustas kursust mitte pooleli jätta, aga ta peab järele jõudma. Liis lubas aidata tal valida. Loe keelekooli tabelit ja Markuse märkmeid, leppige kokku, mida ta teeb, järjestage nõuanded ja vasta õpetaja Hanna kirjale.'),
@@ -989,8 +1057,17 @@ export const LESSONS = withShapes({
         ['Pärast trenni jäi Oskar haige.', 'Pärast trenni jäi Oskar haigeks.'],
       ], 'full', 'g_notice'), areas('RRKMMPPROS')),
       B.writing('040_d_write', 'Minu õppimisnädal.', 'Kirjuta 8–10 lauset: mida sa sel nädalal õppisid, mida pidid tegema, mis oli raske ja miks.', [8, 10], ['pean', 'tahan', 'sest', 'kuna'], 3),
-      teach(B.speaking('040_d_warm', 'Soojendus enne eksamit.', 'Vasta küsimustele nagu eksami alguses: iga vastus on kaks-kolm lauset.', ['Mida sa vabal ajal teed ja milles osaled?', 'Mida sa pead sel nädalal veel tegema?', 'Miks sa eesti keelt õpid?', 'Mis on sinu õppimises kõige raskem?'], [70, 120]),
-      'Üks-ühele: õpetaja küsib nagu eksamineerija, õpilane vastab; siis küsib õpilane õpetajalt samad küsimused.'),
+      // own instruction: B.examiner's fixed wording would repeat another module's instruction (final shape V7)
+      teach(withInstruction(B.examiner('040_d_warm', 'haridus ja õppimine', [
+        'Millist kooli sa lapsena käisid ja mis sulle seal meeldis?',
+        'Milline õpetaja on sulle meelde jäänud? Miks?',
+        'Mille poolest erineb kool sinu kodumaal ja Eestis?',
+        'Kas sinu arvates peaksid lapsed kodus palju kodutöid tegema? Põhjenda.',
+        'Kas täiskasvanu peaks kogu elu õppima? Miks?',
+        'Kas on parem õppida keelt kursusel või iseseisvalt internetis?',
+        'Mida sa tahaksid järgmisena õppida ja miks?',
+      ]), 'Soojendus enne eksamit: eksamineerija küsib koolist ja õppimisest. Vasta igale küsimusele kahe kuni nelja lausega ja too põhjus või näide.'),
+      'Üks-ühele: õpetaja küsib nagu eksamineerija ega aita; vahel küsib ta lisaks „Miks?” või ütleb vastupidise arvamuse. Siis küsib õpilane õpetajalt kaks küsimust.'),
     ],
     practice: [
       B.examPart('040_p_rpart', 'R', { part: 'Lugemine', minutes: 45, points: 38, tasks: 4, note: 'Lugemisosa: ülesanded 1, 3 ja 4 on B1 vormis, ülesanne 2 on A2 vormis. Lugege iga ülesande juhis enne teksti läbi. Eesmärk on vähemalt 31 punkti.' }),
