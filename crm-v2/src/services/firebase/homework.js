@@ -210,6 +210,12 @@ export const homeworkService = {
     return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => normalizeWorksheetAssignment(item.id, item.data())))
       .sort((a, b) => String(b.assignedAt).localeCompare(String(a.assignedAt)));
   },
+  // „Täna” (admin): the worksheets whose deadline falls in [from, to] — one range query instead of every assignment
+  async listWorksheetAssignmentsDueBetween(from, to) {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('dueDate', '>=', from), where('dueDate', '<=', to)));
+    return snapshot.docs.map((item) => normalizeWorksheetAssignment(item.id, item.data()));
+  },
   // „Õpi ise” (owner 2026-10-12): the student opens a course lesson's published sheet on his own. The rules allow it
   // only for his own card, with source 'self_study', no score, and the sheet exactly as published in the course.
   async createSelfStudy({ student, lesson, phase, publishedDoc, user }) {

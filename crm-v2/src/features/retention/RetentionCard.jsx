@@ -16,8 +16,9 @@ const api = {
 };
 
 // The dashboard's „Riskis õpilased” (retentionRisk.js): the journal and the words load on their own, so the dashboard
-// itself is not slower; a source that fails is left out.
-export default function RetentionCard({ students = [], unplanned = [], scheduledIds = [], overdueInvoices = [], teacherUid = '', repository = api, limit = 8 }) {
+// itself is not slower; a source that fails is left out. showRenewals: lessons left are for the admin and the accountant
+// only (owner 2026-11-02) — the dashboard shows them in „Täna” and passes false here.
+export default function RetentionCard({ students = [], unplanned = [], scheduledIds = [], overdueInvoices = [], teacherUid = '', repository = api, limit = 8, showRenewals = true }) {
   const ids = useMemo(() => students.map((student) => student.id), [students]);
   const state = useAsyncData(async () => {
     const [lessons, words, seen] = await Promise.all([
@@ -43,7 +44,7 @@ export default function RetentionCard({ students = [], unplanned = [], scheduled
         </li>)}
       </ul> : <p className="form-hint">Kõik aktiivsed õpilased käivad ja õpivad — riskis õpilasi pole.</p>}
       {result.risky.length > limit ? <p className="form-hint">+ veel {result.risky.length - limit} õpilast</p> : null}
-      {result.renewals.length ? <div className="retention-renewals">
+      {showRenewals && result.renewals.length ? <div className="retention-renewals">
         <h3><HeartHandshake size={16} aria-hidden="true" /> Pakett lõpeb — hea hetk rääkida jätkust</h3>
         <ul>{result.renewals.slice(0, 6).map(({ student, left }) => <li key={student.id}><Link to={`/students/${student.id}`}>{student.name}</Link><span>{left ? `${left} tund jäänud` : 'pakett läbi'}</span></li>)}</ul>
       </div> : null}

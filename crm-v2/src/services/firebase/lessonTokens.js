@@ -130,6 +130,17 @@ export const lessonTokensService = {
     const snapshot = await getDocs(query(collection(db, 'lessonPackageStates'), where('studentId', '==', studentId)));
     return snapshot.docs.map((item) => ({ id: item.id, ...item.data() })).filter((item) => item.status === 'needs_attention');
   },
+  // „Täna” (admin / finance): every package that counts and every owed lesson, for the „running out” list
+  async listCountedPackages() {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'studentPackages'), where('status', 'in', [...COUNTED])));
+    return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+  },
+  async listOwed() {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'lessonPackageStates'), where('status', '==', 'needs_attention')));
+    return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+  },
   // the packages of these token invoices (finance month view): { [invoiceId]: package }
   async packagesForInvoices(invoices = []) {
     const credited = invoices.filter((invoice) => invoice?.id && invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus === 'credited');

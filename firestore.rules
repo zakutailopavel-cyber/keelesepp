@@ -1679,6 +1679,25 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // „Täna” → „Vajab kõnet” → „Helistasin” (2026-11-04): the admin's call log. Admin only — the note may say why a
+    // family stops, so it is never on the student card (read by the student, the parent and the teacher). A log entry
+    // is not edited; the server's time is the call's time.
+    match /studentFollowups/{followupId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['studentId', 'studentName', 'note', 'reasons', 'byUid', 'byName', 'at'])
+        && request.resource.data.keys().hasAll(['studentId', 'note', 'byUid', 'at'])
+        && request.resource.data.studentId is string && request.resource.data.studentId.size() > 0 && request.resource.data.studentId.size() <= 200
+        && request.resource.data.get('studentName', '') is string && request.resource.data.get('studentName', '').size() <= 200
+        && request.resource.data.note is string && request.resource.data.note.size() <= 300
+        && request.resource.data.get('reasons', []) is list && request.resource.data.get('reasons', []).size() <= 6
+        && request.resource.data.byUid == uid()
+        && request.resource.data.get('byName', '') is string && request.resource.data.get('byName', '').size() <= 120
+        && request.resource.data.at == request.time;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     // „Õpi ise” (owner 2026-10-12): a student opens a course lesson's sheet on his own — only for his own card, as
     // 'self_study', unscored and new, with the sheet exactly as published in the course (nothing of his own in it)
     function selfStudySheet(data) {
