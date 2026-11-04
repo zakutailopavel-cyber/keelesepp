@@ -14,7 +14,7 @@ describe('B1 → B2 lesson goals (lesson quality contract A2–A3)', () => {
       expect(goals, id).toBeTruthy();
       expect(Object.keys(goals).length, id).toBeGreaterThanOrEqual(3);
       for (const [key, text] of Object.entries(goals)) {
-        expect(['g_vocab', 'g_read', 'g_notice', 'g_use'], id).toContain(key);
+        expect(['g_vocab', 'g_read', 'g_listen', 'g_notice', 'g_use'], id).toContain(key);
         expect(text, `${id} ${key}`).not.toMatch(/[А-Яа-я]/);
         expect(GENERIC.some((g) => text.includes(g)), `${id}: ${text}`).toBe(false);
       }

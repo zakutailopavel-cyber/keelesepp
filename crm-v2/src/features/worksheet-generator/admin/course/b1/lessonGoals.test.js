@@ -22,7 +22,9 @@ describe('B1 lesson goals (lesson quality contract A1–A3)', () => {
       const built = BUILT.get(id);
       expect(built, id).toBeTruthy();
       const vocab = !built.assessment || built.vocab;
-      expect(Object.keys(entry.goals).sort(), id).toEqual(vocab ? ['g_notice', 'g_read', 'g_use', 'g_vocab'] : ['g_notice', 'g_read', 'g_use']);
+      // g_listen (saan kuuldust aru) is extra: only in a lesson with ≥ 2 scored listening tasks (courseSheet.js LISTENING_GOAL)
+      expect(Object.keys(entry.goals).filter((k) => k !== 'g_listen').sort(), id).toEqual(vocab ? ['g_notice', 'g_read', 'g_use', 'g_vocab'] : ['g_notice', 'g_read', 'g_use']);
+      if (entry.goals.g_listen) expect(Object.values(entry.tags || {}).filter((g) => g === 'g_listen').length, id).toBeGreaterThan(0);
       for (const text of Object.values(entry.goals)) expect(GENERIC.some((g) => text.includes(g)), `${id}: ${text}`).toBe(false);
     }
   });
