@@ -76,6 +76,15 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
    (or of a lesson that was not recorded) are listed by clock time; a day with marks only gets its own row in „Tunnid”.
    Joined lessons (several parts) now also move `segments[].startMs` by the part's start (`partStarts` on the joined
    lesson), like the transcript. Group rooms have no „Hetk” yet.
+7. **„Kõneaeg” (since 2026-11-04)** — in the 1:1 room the teacher (only) sees a pill „Õpilane NN %” with a bar and a
+   target line at 60 %: the student's share of the talk time so far, live, also without a recording or consent. It
+   is measured in the teacher's browser from the sound level only (`talkMeter.js`: RMS ~10 Hz, adaptive noise floor,
+   sounds < 250 ms ignored, pauses ≤ 400 ms inside speech counted; `useTalkMeter.js`: AnalyserNodes on the own
+   microphone track and the student's incoming track, never connected to the speakers, paused while the tab is
+   hidden, AudioContext closed on leave). It does not know the language. Amber when the student had < 40 % of the
+   last 10 minutes' talk (at least 2 min of talk in them); a click shows minutes per side. Nothing is saved — the
+   lesson summary (`lessonSummaries`) is readable by the student and its rules allow no extra field; the recorded
+   lesson's „Tunni analüüs” keeps its own share from the transcript.
 
 ## Data and rules
 
