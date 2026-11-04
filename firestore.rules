@@ -1970,6 +1970,25 @@ service cloud.firestore {
         && invitation.teacherUid == uid()
         && invitation.studentId == data.studentId;
     }
+    // „Kuu kokkuvõte vanemale” marked as sent by an admin (the text he sent himself, when, by whom): admins only,
+    // written once, never changed; nothing is sent from here
+    match /parentReports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['studentId', 'month', 'language', 'text', 'channel', 'sentAt', 'byUid', 'byName'])
+        && request.resource.data.keys().hasAll(['studentId', 'month', 'language', 'text', 'channel', 'sentAt', 'byUid', 'byName'])
+        && request.resource.data.studentId is string && request.resource.data.studentId.size() > 0 && request.resource.data.studentId.size() <= 200
+        && request.resource.data.month is string && request.resource.data.month.matches('^[0-9]{4}-[0-9]{2}$')
+        && request.resource.data.language in ['ru', 'et', 'en', 'uk']
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 4000
+        && request.resource.data.channel in ['copy', 'conversation']
+        && request.resource.data.sentAt is string && request.resource.data.sentAt.size() <= 40
+        && request.resource.data.byUid == uid()
+        && request.resource.data.byName is string && request.resource.data.byName.size() <= 160;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     match /lessonSummaries/{invitationId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create: if isStaff()
