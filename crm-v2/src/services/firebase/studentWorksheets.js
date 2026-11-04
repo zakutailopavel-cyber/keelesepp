@@ -2,7 +2,8 @@ import { collection, doc, getDoc, getDocs, query, runTransaction, where } from '
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { validateWorksheetDoc, WorksheetConflictError } from './worksheetDocs.js';
-import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
+import { prepareImageFile } from '../../features/worksheet-studio/engine/image.js';
+import { MAX_VIDEO_BYTES } from '../../features/worksheet-studio/engine/video.js';
 import { SCHEMA } from '../../features/worksheet-studio/engine/schema.js';
 
 const clean = (value) => JSON.parse(JSON.stringify(value));
@@ -112,10 +113,19 @@ export const studentWorksheetsService = {
       async uploadImage(file) {
         if (!String(file?.type || '').startsWith('image/')) throw new Error('Vali pildifail.');
         const { storage } = requireFirebaseClient();
-        const { blob, width, height } = await fileToJpegBlob(file);
-        const storagePath = `student-worksheets/${studentId}/${Date.now()}_${safeName(file.name).replace(/\.[^.]+$/, '')}.jpg`;
-        const src = await upload(storage, storagePath, blob, 'image/jpeg');
+        const { blob, type, ext, width, height } = await prepareImageFile(file);
+        const storagePath = `student-worksheets/${studentId}/${Date.now()}_${safeName(file.name).replace(/\.[^.]+$/, '')}.${ext}`;
+        const src = await upload(storage, storagePath, blob, type);
         return { src, storagePath, width, height, focus: { x: 50, y: 50 } };
+      },
+
+      async uploadVideo(file) {
+        if (!String(file?.type || '').startsWith('video/')) throw new Error('Vali videofail.');
+        if (file.size > MAX_VIDEO_BYTES) throw new Error('Videofail on liiga suur (kuni 19 MB).');
+        const { storage } = requireFirebaseClient();
+        const storagePath = `student-worksheets/${studentId}/${Date.now()}_${safeName(file.name)}`;
+        const src = await upload(storage, storagePath, file, file.type);
+        return { src, storagePath, name: file.name, type: file.type, size: file.size };
       },
 
       async uploadAudio(file) {

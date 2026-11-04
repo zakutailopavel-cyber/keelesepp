@@ -4,7 +4,7 @@ import { beforeEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { sheetBoardTitle, textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
+import { sheetBoardTitle, textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds, focusShift } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -375,6 +375,50 @@ describe('the student scrolls the sheet', () => {
     act(() => { stage.dispatchEvent(new globalThis.Event('scroll')); });
     expect(stage.scrollTop).toBe(0);
     expect(underlay.style.transform).not.toBe(before);
+  });
+});
+
+describe('a focused answer field does not throw the sheet sideways (owner 2026-11-04)', () => {
+  const stage = { left: 0, top: 0, right: 800, bottom: 600 };
+  const field = (left, top, w = 120, h = 40) => ({ left, top, right: left + w, bottom: top + h });
+
+  it('a field already in sight moves nothing, however the browser scrolled', () => {
+    expect(focusShift({ dy: 240, field: field(300, 200), area: stage })).toEqual({ x: 0, y: 0 });
+  });
+
+  it('a field off the side moves the view only as far as needed, each axis on its own', () => {
+    expect(focusShift({ field: field(900, 200), area: stage })).toEqual({ x: 800 - 16 - 1020, y: 0 });
+    expect(focusShift({ field: field(-50, 200), area: stage })).toEqual({ x: 66, y: 0 });
+    expect(focusShift({ field: field(300, 700), area: stage })).toEqual({ x: 0, y: 600 - 16 - 740 });
+    // wider than the stage: its start in sight
+    expect(focusShift({ field: field(-300, 200, 1200), area: stage })).toEqual({ x: 316, y: 0 });
+  });
+
+  it('the keyboard covers the lower part: the field goes just above it', () => {
+    expect(focusShift({ field: field(300, 450), area: { ...stage, bottom: 380 } })).toEqual({ x: 0, y: 380 - 16 - 490 });
+  });
+
+  it('without a field a sideways scroll is ignored, an up / down one followed as before', () => {
+    expect(focusShift({ dy: 120 })).toEqual({ x: 0, y: -120 });
+  });
+
+  it('on the board: a scroll caused by focusing a visible field is undone and the sheet stays where it was', async () => {
+    const service = fakeService({ pages: [{ id: 'pg-a', title: 'Tööleht: Avasta' }] });
+    const worksheets = [{ id: 'as-1', title: 'Avasta', content: <input aria-label="Vastus" /> }];
+    const { container } = render(<StudentBoard studentId="s1" user={user} variant="room" service={service} worksheets={worksheets} initialPageId="pg-a" />);
+    const input = await screen.findByLabelText('Vastus');
+    const stage = container.querySelector('.sb-stage');
+    const underlay = container.querySelector('.sb-underlay');
+    vi.spyOn(stage, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600 });
+    vi.spyOn(input, 'getBoundingClientRect').mockReturnValue({ left: 600, top: 300, right: 760, bottom: 340, width: 160, height: 40 });
+    const before = underlay.style.transform;
+    input.focus();
+    stage.scrollLeft = 300;
+    stage.scrollTop = 80;
+    act(() => { stage.dispatchEvent(new globalThis.Event('scroll')); });
+    expect(stage.scrollLeft).toBe(0);
+    expect(stage.scrollTop).toBe(0);
+    expect(underlay.style.transform).toBe(before);
   });
 });
 
