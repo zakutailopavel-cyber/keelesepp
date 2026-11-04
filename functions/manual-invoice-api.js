@@ -9,6 +9,7 @@ const { invoiceCancellationError, wasSent } = require('./invoice-cancellation-co
 const { subjectName } = require('./student-enrollments-core');
 const { sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth } = require('./combined-invoice-core');
 const { tokenInvoiceInput, tokenInvoiceLines, tokenInvoiceSubject } = require('./lesson-tokens-core');
+const { cardPayerEmail, firstEmail, linkedParentIds } = require('./invoice-payer-core');
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
@@ -99,10 +100,23 @@ async function listInvoiceStudents() {
     .map((doc) => {
       const data = doc.data() || {};
       const hint = [data.parentName, data.parentEmail || data.email, data.subject].map((value) => String(value || '').trim()).filter(Boolean).join(' · ');
-      return { id: doc.id, name: String(data.name || '').trim(), hint };
+      // payerEmail / linkedParent: the dialog warns before creating an invoice nobody can be e-mailed
+      return { id: doc.id, name: String(data.name || '').trim(), hint, payerEmail: cardPayerEmail(data), linkedParent: linkedParentIds(data).length > 0 };
     })
     .filter((student) => student.name)
     .sort((left, right) => left.name.localeCompare(right.name, 'et'));
+}
+
+// the login e-mail of the parent account linked to the card, read only when the card has no address of its own: the
+// same fallback the invoice e-mail uses (index.js linkedParentEmail), so the stored payer and the recipient agree
+async function linkedAccountEmail(transaction, card = {}) {
+  if (cardPayerEmail(card)) return '';
+  for (const id of linkedParentIds(card)) {
+    const snap = await transaction.get(db.collection('users').doc(id));
+    const email = snap?.exists ? firstEmail(snap.data()?.email) : '';
+    if (email) return email;
+  }
+  return '';
 }
 
 async function createManualInvoice({ actor, values, requestId }) {
@@ -159,6 +173,7 @@ async function createManualInvoice({ actor, values, requestId }) {
       actor,
       requestId: mutationId,
       signature,
+      linkedAccountEmail: await linkedAccountEmail(transaction, studentSnap.data()),
     });
     transaction.create(invoiceRef, invoice);
     transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
@@ -247,6 +262,7 @@ async function createMonthlyInvoice({ actor, values }) {
       actor,
       requestId: invoiceId,
       signature,
+      linkedAccountEmail: await linkedAccountEmail(transaction, studentSnap.data()),
     });
     const invoice = {
       ...base,
@@ -342,10 +358,11 @@ async function createCombinedMonthlyInvoice({ actor, values }) {
     const invoiceId = revision === 1 ? `monthly_combined_${month}_${key}` : `monthly_combined_${month}_${key}-r${revision}`;
     const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
     const signature = crypto.createHash('sha256').update(JSON.stringify(inputs)).digest('hex');
+    const payerAccountEmail = await linkedAccountEmail(transaction, cardSnaps[0].data());
     let invoice;
     try {
       invoice = combinedMonthlyRecord({
-        month, due, invoiceNum, nowIso, actor, requestId: invoiceId, signature,
+        month, due, invoiceNum, nowIso, actor, requestId: invoiceId, signature, linkedAccountEmail: payerAccountEmail,
         parts: inputs.map((input, index) => {
           const at = ids.indexOf(items[index].studentId);
           return { card: { id: ids[at], ...cardSnaps[at].data() }, plan: planSnaps[at].exists ? planSnaps[at].data() : {}, subject: items[index].subject, plannedUnits: input.plannedUnits, correctionUnits: input.correctionUnits, correctionNote: input.correctionNote };
@@ -396,10 +413,11 @@ async function createCombinedManualInvoice({ actor, values, requestId }) {
     if (cardSnaps.some((snap) => !snap.exists)) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
     const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
+    const payerAccountEmail = await linkedAccountEmail(transaction, cardSnaps[0].data());
     let invoice;
     try {
       invoice = combinedManualRecord({
-        description: base.description, due: base.due, note: base.note, invoiceNum, nowIso, actor, requestId: mutationId, signature,
+        description: base.description, due: base.due, note: base.note, invoiceNum, nowIso, actor, requestId: mutationId, signature, linkedAccountEmail: payerAccountEmail,
         parts: ids.map((id, index) => ({ card: { id, ...cardSnaps[index].data() }, amountCents: amounts[index] })),
       });
     } catch (error) {
@@ -454,6 +472,7 @@ async function createTokenInvoice({ actor, values, requestId }) {
     const base = manualInvoiceRecord({
       input: { studentId: input.studentId, description: priced.description, amountCents: priced.amountCents, amount: priced.amountCents / 100, due: input.due, note: input.note },
       student, invoiceNum, nowIso, actor, requestId: mutationId, signature,
+      linkedAccountEmail: await linkedAccountEmail(transaction, student),
     });
     const invoice = {
       ...base,

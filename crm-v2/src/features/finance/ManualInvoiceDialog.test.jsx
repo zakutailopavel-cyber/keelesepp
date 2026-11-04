@@ -8,7 +8,7 @@ import ManualInvoiceDialog from './ManualInvoiceDialog.jsx';
 
 describe('ManualInvoiceDialog', () => {
   it('loads the students once the dialog opens and creates the invoice', async () => {
-    api.listStudents.mockResolvedValue([{ id: 's2', name: 'Milan' }, { id: 's1', name: 'Anna' }]);
+    api.listStudents.mockResolvedValue([{ id: 's2', name: 'Milan', payerEmail: 'milan@example.ee' }, { id: 's1', name: 'Anna', payerEmail: 'anna@example.ee' }]);
     api.create.mockResolvedValue({ invoice: { id: 'inv-1' } });
     const onCreated = vi.fn();
     const notesRepository = { save: vi.fn().mockResolvedValue({ id: 'inv-1', text: 'sisemine' }) };
@@ -36,7 +36,7 @@ describe('ManualInvoiceDialog', () => {
   });
 
   it('creates the invoice and downloads the real generated PDF', async () => {
-    api.listStudents.mockResolvedValue([{ id: 's1', name: 'Anna' }]);
+    api.listStudents.mockResolvedValue([{ id: 's1', name: 'Anna', payerEmail: 'anna@example.ee' }]);
     api.create.mockResolvedValue({ invoice: { id: 'inv-pdf' } });
     const deliveryApi = { pdf: vi.fn().mockResolvedValue({
       filename: 'arve-KS-2026-101.pdf', contentType: 'application/pdf', contentBase64: 'UERG',
@@ -74,8 +74,8 @@ describe('ManualInvoiceDialog', () => {
     api.listStudents.mockClear();
     api.create.mockResolvedValue({ invoice: { id: 'inv-2' } });
     const cards = [
-      { id: 'a-et', name: 'Aleksandr Smirnov', subject: 'Eesti keel', parentName: 'Jekaterina' },
-      { id: 'a-en', name: 'Aleksandr Smirnov', subject: 'Inglise keel', parentName: 'Jekaterina' },
+      { id: 'a-et', name: 'Aleksandr Smirnov', subject: 'Eesti keel', parentName: 'Jekaterina', parentEmail: 'jekaterina@example.ee' },
+      { id: 'a-en', name: 'Aleksandr Smirnov', subject: 'Inglise keel', parentName: 'Jekaterina', parentEmail: 'jekaterina@example.ee' },
       { id: 'old', name: 'Vana', convertedToParent: true },
       { id: 'b', name: 'Anna', subject: 'Eesti keel' },
     ];
@@ -99,8 +99,8 @@ describe('ManualInvoiceDialog', () => {
     api.createCombined = vi.fn(async () => ({ invoice: { id: 'inv-combined' } }));
     const onCreated = vi.fn();
     const cards = [
-      { id: 'a-et', name: 'Aleksandr Smirnov', subject: 'Eesti keel', parentName: 'Jekaterina' },
-      { id: 'a-en', name: 'Aleksandr Smirnov', subject: 'Inglise keel', parentName: 'Jekaterina' },
+      { id: 'a-et', name: 'Aleksandr Smirnov', subject: 'Eesti keel', parentName: 'Jekaterina', parentEmail: 'jekaterina@example.ee' },
+      { id: 'a-en', name: 'Aleksandr Smirnov', subject: 'Inglise keel', parentName: 'Jekaterina', parentEmail: 'jekaterina@example.ee' },
     ];
     render(<ManualInvoiceDialog studentCards={cards} onCreated={onCreated} />);
     fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
@@ -119,5 +119,46 @@ describe('ManualInvoiceDialog', () => {
     expect(api.createCombined.mock.calls[0][0].items).toEqual([{ studentId: 'a-et', amount: '80' }, { studentId: 'a-en', amount: '95' }]);
     expect(api.create).not.toHaveBeenCalled();
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: 'inv-combined' }, {}));
+  });
+  it('warns „Arvel pole saaja e-posti” before creating, and a second press creates it anyway', async () => {
+    api.create.mockReset();
+    api.create.mockResolvedValue({ invoice: { id: 'inv-noemail' } });
+    const cards = [{ id: 'j', name: 'Jekaterina', subject: 'Eesti keel', parentName: '', parentEmail: '', email: '' }];
+    render(<ManualInvoiceDialog studentCards={cards} />);
+    fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
+    await screen.findByRole('option', { name: /Jekaterina/ });
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Jekaterina' } });
+    expect(screen.getByTestId('manual-invoice-payer')).toHaveTextContent('Arvel pole saaja e-posti');
+    // a single word on the card: probably a first name only
+    expect(screen.getByTestId('manual-invoice-payer')).toHaveTextContent('Kaardil on ainult üks nimi');
+    fireEvent.change(screen.getByLabelText('Kirjeldus'), { target: { value: 'Kursused' } });
+    fireEvent.change(screen.getByLabelText('Summa (€)'), { target: { value: '270' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Arvel pole saaja e-posti');
+    expect(api.create).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    await waitFor(() => expect(api.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 'j', amount: '270' })));
+  });
+
+  it('shows the payer and the e-mail the invoice will carry (parent e-mail, full card name)', async () => {
+    const cards = [{ id: 'j', name: 'Jekaterina Lesnikova', subject: 'Eesti keel', parentName: '', parentEmail: 'lesnikovajekaterina@gmail.com', email: '' }];
+    render(<ManualInvoiceDialog studentCards={cards} />);
+    fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
+    await screen.findByRole('option', { name: /Jekaterina Lesnikova/ });
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Jekaterina Lesnikova' } });
+    const payer = screen.getByTestId('manual-invoice-payer');
+    expect(payer).toHaveTextContent('Maksja: Jekaterina Lesnikova · lesnikovajekaterina@gmail.com');
+    expect(payer).not.toHaveTextContent('Arvel pole saaja e-posti');
+    expect(within(screen.getByLabelText('Arve eelvaade')).getByText('lesnikovajekaterina@gmail.com')).toBeInTheDocument();
+  });
+
+  it('no warning when the card has no e-mail but a linked parent account (the server uses its e-mail)', async () => {
+    const cards = [{ id: 'm', name: 'Mia Kask', subject: 'Eesti keel', linkedParentId: 'p1' }];
+    render(<ManualInvoiceDialog studentCards={cards} />);
+    fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
+    await screen.findByRole('option', { name: /Mia Kask/ });
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Mia Kask' } });
+    expect(screen.getByTestId('manual-invoice-payer')).toHaveTextContent('e-post lapsevanema kontolt');
+    expect(screen.getByTestId('manual-invoice-payer')).not.toHaveTextContent('Arvel pole saaja e-posti');
   });
 });
