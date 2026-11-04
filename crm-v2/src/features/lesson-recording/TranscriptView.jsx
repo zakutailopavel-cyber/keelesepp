@@ -12,6 +12,7 @@ import { applyErrorReview, errorKey } from './errorReview.js';
 import { lessonAnalysis, wordDiff } from './lessonTimeline.js';
 import { analysisStatus, useTranscriberStatus } from './transcriberStatus.js';
 import { errorsWorksheet } from './errorWorksheet.js';
+import LessonMoments from './LessonMoments.jsx';
 import './lessonRecording.css';
 
 const clock = (ms) => { const s = Math.floor((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
@@ -235,14 +236,16 @@ const WAITING = {
 };
 
 // The text of one recording as it is now: analysis + transcript when done, otherwise what it waits for.
-export function RecordingText({ recording, transcriber = null, reviewService, onChanged = null }) {
+// „Hetked” (the teacher's marks from the room) and the lesson's audio come first, whatever the text's status.
+export function RecordingText({ recording, transcriber = null, reviewService, onChanged = null, moments = [] }) {
+  const marks = <LessonMoments recording={recording} moments={moments} errors={Array.isArray(recording.analysis?.errors) ? recording.analysis.errors : []} service={reviewService || lessonRecordingsService} />;
   if (recording.status === RECORDING_STATUS.done) {
     const ai = analysisStatus(recording, transcriber || {});
     return recording.transcript?.length
-      ? <><Analysis recording={recording} />{ai && ai.key !== 'ready' ? <p className={`lesson-ai__status is-${ai.key}`} role="status">{ai.label}</p> : null}<LessonAi analysis={recording.analysis} recording={recording} reviewService={reviewService} onChanged={onChanged} /><Transcript recording={recording} /></>
-      : <p className="form-hint">Salvestisest ei leitud kõnet (liiga lühike või vaikne).</p>;
+      ? <><Analysis recording={recording} />{marks}{ai && ai.key !== 'ready' ? <p className={`lesson-ai__status is-${ai.key}`} role="status">{ai.label}</p> : null}<LessonAi analysis={recording.analysis} recording={recording} reviewService={reviewService} onChanged={onChanged} /><Transcript recording={recording} /></>
+      : <>{marks}<p className="form-hint">Salvestisest ei leitud kõnet (liiga lühike või vaikne).</p></>;
   }
-  return <p className="form-hint">{WAITING[recording.status] || WAITING.uploaded}{recording.error ? ` ${recording.error}` : ''}</p>;
+  return <>{marks}<p className="form-hint">{WAITING[recording.status] || WAITING.uploaded}{recording.error ? ` ${recording.error}` : ''}</p></>;
 }
 
 // Teacher/admin: the student's Live Classroom lessons; each opens the lesson analysis (transcript) or its board.
@@ -267,18 +270,22 @@ export default function LessonsCard({ rows, studentId, loading, error, onReload,
           const r = row.recording;
           const status = r ? (STATUS[r.status] || STATUS.uploaded) : null;
           return <div key={row.key} className={inline && r ? 'lesson-rows__item is-inline' : undefined}>
-            <div><strong>{r ? dateLabel(r.startedAt) : dateLabel(row.at)} · {row.title}</strong><span>{r ? `${r.teacherName || 'Õpetaja'} · salvestatud${r.parts?.length > 1 ? ` (${r.parts.length} osas)` : ''}` : 'ainult tahvel'}{row.pageTitle ? ` · leht „${row.pageTitle}”` : ''}</span></div>
+            <div><strong>{r ? dateLabel(r.startedAt) : dateLabel(row.at)} · {row.title}</strong><span>{r ? `${r.teacherName || 'Õpetaja'} · salvestatud${r.parts?.length > 1 ? ` (${r.parts.length} osas)` : ''}` : row.pageId ? 'ainult tahvel' : 'salvestamata'}{row.moments?.length ? ` · hetki ${row.moments.length}` : ''}{row.pageTitle ? ` · leht „${row.pageTitle}”` : ''}</span></div>
             {status ? <span className="lesson-rows__badges"><Badge tone={status[1]}>{status[0]}</Badge>{(() => { const ai = analysisStatus(r, transcriber); return ai ? <Badge tone={ai.tone}>{ai.key === 'ready' ? 'AI analüüs' : ai.key === 'running' ? ai.label : ai.key === 'failed' ? 'AI viga' : 'AI ootab'}</Badge> : null; })()}</span> : null}
             <span className="lesson-rows__actions">
               {r && !inline ? <Button variant="secondary" onClick={() => setOpen(r)}><BarChart3 size={15} /> Tunni analüüs</Button> : null}
-              <Link className="button button--secondary" to={`/board/${studentId}${row.pageId ? `?page=${encodeURIComponent(row.pageId)}` : ''}`}><PenLine size={15} /> Tahvel</Link>
+              {r || row.pageId ? <Link className="button button--secondary" to={`/board/${studentId}${row.pageId ? `?page=${encodeURIComponent(row.pageId)}` : ''}`}><PenLine size={15} /> Tahvel</Link> : null}
             </span>
-            {inline && r ? <div className="lesson-rows__text"><RecordingText recording={r} transcriber={transcriber} reviewService={transcriberService} onChanged={onReload} /></div> : null}
+            {inline && r ? <div className="lesson-rows__text"><RecordingText recording={r} transcriber={transcriber} reviewService={transcriberService} onChanged={onReload} moments={row.moments || []} /></div> : null}
+            {!r && row.moments?.length ? <div className="lesson-rows__text"><LessonMoments moments={row.moments} /></div> : null}
           </div>;
         })}</div>
       ) : <EmptyState title="Live Classroomi tunde veel ei ole" description="Tund ilmub siia, kui see on salvestatud või tahvlile on tehtud tunnileht." />}
       {open ? <Modal open title={`Tunni analüüs · ${dateLabel(open.startedAt)} · ${open.title || 'Tund'}`} onClose={() => setOpen(null)} className="modal--transcript">
-        <RecordingText recording={rows.find((row) => row.recording?.id === open.id)?.recording || open} transcriber={transcriber} reviewService={transcriberService} onChanged={onReload} />
+        {(() => {
+          const row = rows.find((item) => item.recording?.id === open.id);
+          return <RecordingText recording={row?.recording || open} transcriber={transcriber} reviewService={transcriberService} onChanged={onReload} moments={row?.moments || []} />;
+        })()}
       </Modal> : null}
     </Card>
   );

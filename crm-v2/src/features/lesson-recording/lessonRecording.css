@@ -100,3 +100,25 @@
 .lesson-ai__dismissed { margin-top: 8px; }
 .lesson-ai__dismissed summary { cursor: pointer; font-size: .82rem; color: var(--muted, #667085); font-weight: 700; }
 .lesson-ai__errors .lesson-ai__why { grid-column: 2 / -1; color: var(--muted, #667085); font-size: .74rem; }
+
+/* „Hetked” (LessonMoments.jsx): the teacher's marks from the room, the lesson's audio and its time line */
+.lesson-moments { display: grid; gap: 8px; margin: 10px 0; padding: 12px; border: 1px solid #e7e8f3; border-radius: 12px; background: #fbfbfe; }
+.lesson-moments header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lesson-moments header small { color: var(--muted, #6b7091); }
+.lesson-moments__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.lesson-moments__list li { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 8px; border-radius: 8px; background: #fff; }
+.lesson-moments__list time { color: var(--muted, #6b7091); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.lesson-moments__list .is-empty { color: var(--muted, #6b7091); font-style: italic; }
+.lesson-moments__list small { color: var(--muted, #6b7091); font-size: .75rem; }
+.lesson-moments__jump { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid #d9dcec; border-radius: 999px; background: #fff; cursor: pointer; }
+.lesson-moments__jump:hover { background: #eef0fa; }
+.lesson-moments__player { display: grid; gap: 8px; }
+.lesson-moments__player audio { width: 100%; }
+.lesson-moments__line { position: relative; height: 18px; border-radius: 9px; background: #eceef6; }
+.lesson-moments__mark { position: absolute; top: 2px; width: 10px; height: 14px; margin-left: -5px; padding: 0; border: 0; border-radius: 3px; cursor: pointer; }
+.lesson-moments__mark.is-error { width: 4px; margin-left: -2px; background: #e5484d; }
+.lesson-moments__mark.is-moment { background: #4f7cff; z-index: 1; }
+.lesson-moments__legend { display: flex; align-items: center; gap: 6px; color: var(--muted, #6b7091); font-size: .75rem; }
+.lesson-moments__legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+.lesson-moments__legend i.is-moment { background: #4f7cff; }
+.lesson-moments__legend i.is-error { background: #e5484d; }
