@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronRight, MessageSquareText } from 'lucide-react';
+import { CalendarDays, CheckCircle2, ChevronRight, ClipboardList, MessageSquareText, Receipt } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -17,7 +17,8 @@ import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarV
 import { INDIVIDUAL_TOPIC } from '../calendar/lessonTopic.js';
 import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
 import { taskCount, taskDueText } from '../homework/taskList.js';
-import { ChildrenMonthSteps } from '../learner/MonthStepsCard.jsx';
+import ProficiencyCard from '../progress-points/ProficiencyCard.jsx';
+import { targetLevelOf } from '../progress-points/levelCurve.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 import OpenInvoicesCard from '../payments/OpenInvoicesCard.jsx';
 import RescheduleDialog from '../students/RescheduleDialog.jsx';
@@ -30,6 +31,7 @@ import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import { ChildrenWordGrowth } from '../vocabulary/WordGrowthCard.jsx';
 import ChildSwitch, { childKeyOf } from './ChildSwitch.jsx';
 import { childSummary, isRealInvoice, moneyDue } from './parentHome.js';
+import NowLearningCard from './NowLearningCard.jsx';
 import './parentHome.css';
 
 function unique(items) {
@@ -62,50 +64,66 @@ function Section({ id, title, ru, summary, open, onToggle, children }) {
   </section>;
 }
 
-function ChildCard({ child, summary, subjects, onlyOneSubject, lessonRequest, onReschedule, readOnly }) {
-  const { next, todo, late, total, feedback } = summary;
+// the child's side cards: next lessons, homework, the teacher's words, money, contact. Short, one tap to the details.
+function ChildCards({ child, summary, upcoming, subjects, onlyOneSubject, lessonRequest, onReschedule, readOnly, due, dueNames, onInvoices, invoicesCount }) {
+  const { todo, late, total, feedback } = summary;
   const today = toIsoDate();
   const childKey = childKeyOf(child);
-  return <article className="pd-card" aria-label={child.name}>
-    <header className="pd-card__head">
-      <h2>{child.name}</h2>
-      {(child.enrollments || []).filter((item) => !onlyOneSubject || itemSubject({ subject: item.subject }) === onlyOneSubject).map((item) => <p key={item.id}>{[item.subject, item.level ? `${item.level}${item.targetLevel ? ` → ${item.targetLevel}` : ''}` : '', item.teacher].filter(Boolean).join(' · ')}</p>)}
-    </header>
+  const next = upcoming.slice(0, 3);
+  return <div className="pd-side">
+    <section className="pd-card" aria-label="Järgmised tunnid">
+      <div className="pd-row">
+        <small><CalendarDays size={14} aria-hidden="true" /> Järgmised tunnid<Ru>следующие уроки</Ru></small>
+        {next.length ? <ul className="pd-next">{next.map((lesson) => {
+          const request = lessonRequest(lesson);
+          return <li key={lesson.occurrenceId}>
+            <span><strong>{day(lesson.occurrenceDate)} kell {lesson.time}</strong><small>{[subjects > 1 && !onlyOneSubject ? itemSubject(lesson, child) : '', lesson.teacher].filter(Boolean).join(' · ')}</small></span>
+            {request?.status === 'pending' ? <em role="status">{isAbsenceOnly(request) ? 'Teade saadetud' : 'Palve saadetud'}<Ru>отправлено</Ru></em>
+              : request?.status === 'accepted' && isAbsenceOnly(request) ? <em role="status">Õpetaja teab, et laps ei tule.<Ru>учитель знает</Ru></em>
+                : readOnly ? null : <button type="button" className="pd-linkbtn" onClick={() => onReschedule(lesson)}>Ei saa tulla?<Ru>не сможет прийти?</Ru></button>}
+          </li>;
+        })}</ul> : <p className="pd-muted">Tunde ei ole plaanis.<Ru>уроков пока нет</Ru></p>}
+      </div>
+    </section>
 
-    <div className="pd-row">
-      <small>Järgmine tund<Ru>следующий урок</Ru></small>
-      {next ? <>
-        <strong>{day(next.occurrenceDate)} kell {next.time}</strong>
-        <p className="pd-muted">{[subjects > 1 ? itemSubject(next, child) : '', next.teacher].filter(Boolean).join(' · ')}</p>
-        {lessonRequest?.status === 'pending' ? <p className="pd-muted" role="status">{isAbsenceOnly(lessonRequest) ? 'Teade on õpetajale saadetud.' : 'Palve on õpetajale saadetud.'}<Ru>сообщение отправлено учителю</Ru></p>
-          : lessonRequest?.status === 'accepted' && isAbsenceOnly(lessonRequest) ? <p className="pd-muted" role="status">Õpetaja teab, et laps ei tule.<Ru>учитель знает, что ребёнок не придёт</Ru></p>
-            : readOnly ? null : <button type="button" className="pd-linkbtn" onClick={() => onReschedule(next)}>Ei saa tulla?<Ru>не сможет прийти?</Ru></button>}
-      </> : <p className="pd-muted">Tunde ei ole plaanis.<Ru>уроков пока нет</Ru></p>}
-    </div>
+    <section className="pd-card" aria-label="Kodutööd">
+      <div className="pd-row">
+        <small><ClipboardList size={14} aria-hidden="true" /> Kodutööd<Ru>домашние задания</Ru></small>
+        {todo.length ? <>
+          <strong>{taskCount(todo.length)} vaja teha{late ? <span className="pd-late"> · {late} hilineb</span> : null}</strong>
+          <ul className="pd-tasks">{todo.slice(0, 2).map((task) => <li key={task.key}><span>{task.title}</span>{task.due ? <small>{taskDueText(task.due, today)}</small> : null}</li>)}</ul>
+          <Link className="pd-action" to="/homework" state={{ child: childKey }}>Vaata ülesandeid <ChevronRight size={17} aria-hidden="true" /></Link>
+        </> : total ? <>
+          <strong className="pd-ok"><CheckCircle2 size={17} aria-hidden="true" /> Kõik on tehtud<Ru>всё сделано</Ru></strong>
+          <Link className="pd-linkbtn" to="/homework" state={{ child: childKey }}>Vaata ülesandeid</Link>
+        </> : <p className="pd-muted">Praegu ülesandeid ei ole.<Ru>заданий пока нет</Ru></p>}
+      </div>
+      <div className="pd-row">
+        <small>Õpetaja viimane tagasiside<Ru>последний отзыв учителя</Ru></small>
+        {feedback ? <>
+          {feedback.text ? <p className="pd-quote">{feedback.text}</p> : null}
+          <p className="pd-muted">{[feedback.grade ? `Hinne ${feedback.grade}` : '', feedback.about, feedback.date ? day(feedback.date, SHORT_DAY) : ''].filter(Boolean).join(' · ')}</p>
+        </> : <p className="pd-muted">Tagasisidet veel ei ole.<Ru>отзыва пока нет</Ru></p>}
+      </div>
+    </section>
 
-    <div className="pd-row">
-      <small>Mida teha<Ru>что нужно сделать</Ru></small>
-      {todo.length ? <>
-        <strong>{taskCount(todo.length)} vaja teha{late ? <span className="pd-late"> · {late} hilineb</span> : null}</strong>
-        <ul className="pd-tasks">{todo.slice(0, 2).map((task) => <li key={task.key}><span>{task.title}</span>{task.due ? <small>{taskDueText(task.due, today)}</small> : null}</li>)}</ul>
-        <Link className="pd-action" to="/homework" state={{ child: childKey }}>Vaata ülesandeid <ChevronRight size={17} aria-hidden="true" /></Link>
-      </> : total ? <>
-        <strong className="pd-ok"><CheckCircle2 size={17} aria-hidden="true" /> Kõik on tehtud<Ru>всё сделано</Ru></strong>
-        <Link className="pd-linkbtn" to="/homework" state={{ child: childKey }}>Vaata ülesandeid</Link>
-      </> : <p className="pd-muted">Praegu ülesandeid ei ole.<Ru>заданий пока нет</Ru></p>}
-    </div>
+    {/* money: what is due, never how many paid lessons are left (owner 2026-11-02: admin and accountant only) */}
+    <section className={`pd-card ${due.cents > 0 ? 'pd-card--due' : ''}`} aria-label="Arved">
+      <div className="pd-row">
+        <small><Receipt size={14} aria-hidden="true" /> Arved<Ru>счета</Ru></small>
+        {due.cents > 0 ? <div role="status">
+          <strong>Tasumata {money(due.cents)}{due.overdue ? <span className="pd-late"> · tähtaeg möödas</span> : null}</strong>
+          <p className="pd-muted">{dueNames.length ? `${dueNames.join(', ')} · ` : ''}<span lang="ru">{due.overdue ? 'к оплате, срок прошёл' : 'к оплате'}</span></p>
+        </div> : <p className="pd-muted">{invoicesCount ? 'Kõik arved on tasutud.' : 'Arveid ei ole.'}<Ru>{invoicesCount ? 'всё оплачено' : 'счетов нет'}</Ru></p>}
+        <button type="button" className="pd-linkbtn" data-preview-allowed onClick={onInvoices}>Vaata arveid<Ru>счета</Ru></button>
+      </div>
+    </section>
 
-    <div className="pd-row">
-      <small>Õpetaja viimane tagasiside<Ru>последний отзыв учителя</Ru></small>
-      {feedback ? <>
-        {feedback.text ? <p className="pd-quote">{feedback.text}</p> : null}
-        <p className="pd-muted">{[feedback.grade ? `Hinne ${feedback.grade}` : '', feedback.about, feedback.date ? day(feedback.date, SHORT_DAY) : ''].filter(Boolean).join(' · ')}</p>
-      </> : <p className="pd-muted">Tagasisidet veel ei ole.<Ru>отзыва пока нет</Ru></p>}
-    </div>
-  </article>;
+    <Link className="pd-link-row" to="/messages"><span><strong><MessageSquareText size={16} aria-hidden="true" style={{ verticalAlign: '-3px' }} /> Kirjuta õpetajale<Ru>написать учителю</Ru></strong><small>{child.teacher ? `${child.teacher} · ` : ''}Sõnumid kooliga · сообщения</small></span><ChevronRight size={18} aria-hidden="true" /></Link>
+  </div>;
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService, pointsService, goalsLoader }) {
   const { user, preview } = useAuth();
   const location = useLocation();
   const [rescheduling, setRescheduling] = useState(null);
@@ -150,18 +168,22 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
   const subjects = subjectsOf(child);
   const chosen = subjects.length > 1 ? subject : '';
   const summary = summaryOf(child, chosen);
-  const switchMarks = Object.fromEntries(students.map((person) => { const { todo, total } = summaryOf(person); return [childKeyOf(person), todo.length ? `${todo.length} vaja teha` : total ? 'kõik tehtud' : '']; }));
+  // the chip: name + level (+ what is still to do), so a parent of two sees both at a glance
+  const switchMarks = Object.fromEntries(students.map((person) => { const { todo, total } = summaryOf(person); const only = person.enrollments?.length === 1 ? person.enrollments[0] : null; const level = only?.level && only?.targetLevel ? `${only.level} → ${only.targetLevel}` : person.level; return [childKeyOf(person), [level, todo.length ? `${todo.length} vaja teha` : total ? 'kõik tehtud' : ''].filter(Boolean).join(' · ')]; }));
 
   const studentOf = (item) => studentRecords.find((record) => record.id === item.studentId) || null;
-  const upcoming = onlySubject(ofPerson(child, occurrences), chosen, studentOf).slice(0, 6);
-  const doneLessons = onlySubject(ofPerson(child, lessons), chosen, studentOf)
+  const childOnly = (items) => onlySubject(ofPerson(child, items), chosen, studentOf);
+  const upcoming = childOnly(occurrences).slice(0, 6);
+  const childLessons = childOnly(lessons);
+  const childAssignments = childOnly(assignments);
+  const doneLessons = childLessons
     .filter((lesson) => !lesson.status || LESSON_MARK[lesson.status])
     .sort((a, b) => `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`)).slice(0, 6);
   const subjectTag = (item) => (subjects.length > 1 && !chosen ? itemSubject(item, studentOf(item)) : '');
   const familyInvoices = invoices.filter(isRealInvoice).sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 6);
   const due = moneyDue(invoices);
   // the family's money under one child's card: say whose it is
-  const dueNames = [...new Set(invoices.filter((invoice) => isRealInvoice(invoice) && invoiceBalanceCents(invoice) > 0).map((invoice) => (studentOf(invoice)?.name || invoice.studentName || '').trim().split(/\s+/)[0]).filter(Boolean))];
+  const dueNames = students.length > 1 ? [...new Set(invoices.filter((invoice) => isRealInvoice(invoice) && invoiceBalanceCents(invoice) > 0).map((invoice) => (studentOf(invoice)?.name || invoice.studentName || '').trim().split(/\s+/)[0]).filter(Boolean))] : [];
   const childRecords = child.records || [child];
   const childRecordIds = recordIds(child);
   const toggle = (id) => setOpenSection((current) => (current === id ? '' : id));
@@ -179,19 +201,32 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
     <ChildSwitch people={students} value={childKeyOf(child)} onChange={(key) => { setChildKey(key); setSubject(''); }} marks={switchMarks} />
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Näita õppeainet" />
 
-    <ChildCard child={child} summary={summary} subjects={subjects.length} onlyOneSubject={chosen} lessonRequest={lessonRequest(summary.next)} onReschedule={setRescheduling} readOnly={Boolean(preview)} />
-
-    {/* money only when something is due */}
-    {due.cents > 0 ? <div className="pd-money" role="status">
-      <span><strong>Tasumata {money(due.cents)}{due.overdue ? <span className="pd-late"> · tähtaeg möödas</span> : null}</strong><small>{students.length > 1 && dueNames.length ? `${dueNames.join(', ')} · ` : ''}<span lang="ru">{due.overdue ? 'к оплате, срок прошёл' : 'к оплате'}</span></small></span>
-      <button type="button" className="pd-linkbtn" data-preview-allowed onClick={openInvoices}>Vaata arveid<Ru>счета</Ru></button>
-    </div> : null}
+    <article className="pd-child" aria-label={child.name}>
+      <header className="pd-child__head">
+        <h2>{child.name}</h2>
+        {(child.enrollments || []).filter((item) => !chosen || itemSubject({ subject: item.subject }) === chosen).map((item) => <p key={item.id || `${item.subject}-${item.teacher}`}>{[item.subject, item.level ? `${item.level}${item.targetLevel ? ` → ${item.targetLevel}` : ''}` : '', item.teacher].filter(Boolean).join(' · ')}</p>)}
+      </header>
+      <div className="pd-layout">
+        <div className="pd-main">
+          {/* „Areng” (owner 2026-11-04): one curve of measured proficiency toward the level, mock exams marked */}
+          <ProficiencyCard key={`areng-${childKeyOf(child)}`} name={String(child.name || '').trim().split(/\s+/)[0]} studentIds={childRecordIds} assignments={ofPerson(child, assignments)} targetLevel={targetLevelOf(child)} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} />
+          <NowLearningCard lessons={childLessons} assignments={childAssignments} today={today} />
+        </div>
+        <ChildCards child={child} summary={summary} upcoming={upcoming} subjects={subjects.length} onlyOneSubject={chosen} lessonRequest={lessonRequest} onReschedule={setRescheduling} readOnly={Boolean(preview)}
+          due={due} dueNames={dueNames} onInvoices={openInvoices} invoicesCount={familyInvoices.length} />
+      </div>
+    </article>
 
     <div className="pd-sections">
       <Section id="tunnid" title="Tunnid" ru="уроки" summary={[upcoming.length ? `${upcoming.length} ${upcoming.length === 1 ? 'tund' : 'tundi'} plaanis` : 'Tunde ei ole plaanis', 'läbitud tunnid ja puudumised'].join(' · ')} open={openSection === 'tunnid'} onToggle={() => toggle('tunnid')}>
-        <Card><div className="section-heading"><div><h2>Järgmised tunnid<Ru>следующие уроки</Ru></h2></div></div>{upcoming.length ? <div className="simple-list parent-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{day(lesson.occurrenceDate)} · {lesson.time}</strong><span>{[subjectTag(lesson), lesson.teacher || 'Õpetaja'].filter(Boolean).join(' · ')}</span></div>{(() => { const request = lessonRequest(lesson); return request?.status === 'pending' ? <Badge tone="warning">{isAbsenceOnly(request) ? 'Teade saadetud' : 'Palve saadetud'}</Badge> : request?.status === 'accepted' && isAbsenceOnly(request) ? <Badge tone="neutral">Ei tule · märgitud</Badge> : <Button variant="secondary" onClick={() => setRescheduling(lesson)}>Ei saa tulla?</Button>; })()}</div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" description="Kui õpetaja lisab tunni, näete seda siin. · Когда учитель добавит урок, он появится здесь." />}</Card>
+        <Card><div className="section-heading"><div><h2>Järgmised tunnid<Ru>следующие уроки</Ru></h2></div></div>{upcoming.length ? <div className="simple-list parent-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{day(lesson.occurrenceDate)} · {lesson.time}</strong><span>{[subjectTag(lesson), lesson.teacher || 'Õpetaja'].filter(Boolean).join(' · ')}</span></div>{(() => { const request = lessonRequest(lesson); return request?.status === 'pending' ? <Badge tone="warning">{isAbsenceOnly(request) ? 'Teade saadetud' : 'Palve saadetud'}</Badge> : request?.status === 'accepted' && isAbsenceOnly(request) ? <Badge tone="neutral">Ei tule · märgitud</Badge> : preview ? null : <Button variant="secondary" onClick={() => setRescheduling(lesson)}>Ei saa tulla?</Button>; })()}</div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" description="Kui õpetaja lisab tunni, näete seda siin. · Когда учитель добавит урок, он появится здесь." />}</Card>
         {/* no lesson balance here: how many paid lessons are left is for the administrator and the accountant (owner 2026-11-02) */}
         <Card><div className="section-heading"><div><h2>Viimased tunnid<Ru>прошедшие уроки</Ru></h2></div></div>{doneLessons.length ? <div className="simple-list parent-home-done">{doneLessons.map((lesson) => <div key={lesson.id}><div><strong>{lesson.topic || (lesson.status && lesson.status !== 'Toimunud' ? 'Tund jäi vahele' : INDIVIDUAL_TOPIC)}</strong><span>{[day(lesson.date, SHORT_DAY), subjectTag(lesson), [lesson.topicLevel, lesson.topicModule].filter(Boolean).join(' · ')].filter(Boolean).join(' · ')}</span>{lesson.billingStatus === 'school_covered' ? <Badge tone="success">Tasuta (kooli kulul)</Badge> : null}{lesson.notes ? <small className="parent-home-note">{lesson.notes}</small> : null}</div><Badge tone={(LESSON_MARK[lesson.status] || LESSON_MARK.Toimunud)[1]}>{(LESSON_MARK[lesson.status] || LESSON_MARK.Toimunud)[0]}</Badge></div>)}</div> : <EmptyState title="Läbitud tunde veel ei ole" />}</Card>
+      </Section>
+
+      {/* „Tunni tahvlid”: the lesson boards as they were at the end of each lesson, read-only */}
+      <Section id="tahvlid" title="Tunni tahvlid" ru="доски с уроков" summary="Mis tunnis tahvlile jäi" open={openSection === 'tahvlid'} onToggle={() => toggle('tahvlid')}>
+        <LessonBoardsCard studentIds={childRecordIds} {...(boardCopiesService ? { service: boardCopiesService } : {})} />
       </Section>
 
       {/* the whole family's invoices; „Tasumata arved” appears only with card payments and pays them */}
@@ -204,12 +239,9 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
         })}</div> : <EmptyState title="Arveid ei ole" />}</Card>
       </Section>
 
-      <Section id="areng" title="Areng" ru="успехи" summary="Sõnad, kuu sammud, tundide kokkuvõtted ja tahvlid" open={openSection === 'areng'} onToggle={() => toggle('areng')}>
+      <Section id="areng" title="Sõnad ja tundide kokkuvõtted" ru="слова и итоги уроков" summary="Õpitud sõnad, parandatud vead, mida tunnis tehti" open={openSection === 'areng'} onToggle={() => toggle('areng')}>
         <ChildrenWordGrowth students={childRecords} {...(wordsService ? { service: wordsService } : {})} />
-        <ChildrenMonthSteps students={childRecords} repository={homeworkRepository} />
         <LessonSummariesCard studentIds={childRecordIds} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
-        {/* „Tunni tahvlid”: the lesson boards as they were at the end of each lesson, read-only */}
-        <LessonBoardsCard studentIds={childRecordIds} {...(boardCopiesService ? { service: boardCopiesService } : {})} />
         <MyWordsCard studentIds={childRecordIds} readOnly {...(wordsService ? { service: wordsService } : {})} />
       </Section>
 
@@ -219,8 +251,6 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
         {/* „Millal sobib tund?” for the child (owner 2026-10-21) */}
         <AvailabilityCard key={`ajad-${child.id}`} studentId={child.id} studentName={child.name} user={user} mode="own" compact subjects={subjects} />
       </Section>
-
-      <Link className="pd-link-row" to="/messages"><span><strong><MessageSquareText size={16} aria-hidden="true" style={{ verticalAlign: '-3px' }} /> Sõnumid<Ru>сообщения</Ru></strong><small>Kirjuta õpetajale · написать учителю</small></span><ChevronRight size={18} aria-hidden="true" /></Link>
     </div>
 
     {rescheduling ? <RescheduleDialog lesson={rescheduling} student={studentFor(rescheduling)} user={user} role="parent"

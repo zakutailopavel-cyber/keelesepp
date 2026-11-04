@@ -19,7 +19,7 @@ describe('ParentDashboardPage', () => {
     expect(await screen.findByRole('heading', { name: 'Tere, Mari Ema!' })).toBeInTheDocument();
     const card = screen.getByRole('article', { name: 'Mari' });
     expect(card).toHaveTextContent('Eesti keel · A1 → A2 · Õpetaja');
-    expect(card).toHaveTextContent('Järgmine tund');
+    expect(card).toHaveTextContent('Järgmised tunnid');
     expect(card).toHaveTextContent('16:00');
     expect(card).toHaveTextContent('1 ülesanne vaja teha');
     expect(within(card).getByText('Õpi sõnad')).toBeInTheDocument();
@@ -27,7 +27,8 @@ describe('ParentDashboardPage', () => {
     expect(card).toHaveTextContent('Tagasisidet veel ei ole');
     expect(screen.getByRole('status')).toHaveTextContent('Tasumata 30,00');
     // none of the old technical tiles and words
-    ['Kõik oluline ühe pilguga', 'Õpilasi', 'õppesuund', 'Pooleli ülesanded', 'Kodutööd'].forEach((word) => expect(document.body.textContent).not.toContain(word));
+    // („Kodutööd” is back as the card's name: owner 2026-11-04)
+    ['Kõik oluline ühe pilguga', 'Õpilasi', 'õppesuund', 'Pooleli ülesanded'].forEach((word) => expect(document.body.textContent).not.toContain(word));
     expect(homeworkRepository.listWorksheetAssignmentsByStudentIds).toBeUndefined();
     expect(studentRepository.listOwned).toHaveBeenCalledWith('parent-1');
     expect(homeworkRepository.listByStudentIds).toHaveBeenCalledWith(['student-1']);

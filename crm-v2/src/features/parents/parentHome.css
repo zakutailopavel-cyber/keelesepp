@@ -1,5 +1,5 @@
 /* „Minu pere” (owner 2026-11-01): the first screen answers „Как дела у ребёнка?” on a phone; everything else one tap away */
-.pd-page { max-width: 760px; }
+.pd-page { max-width: 1120px; }
 .pd-hello { margin: 0 0 2px; font-size: 1.35rem; line-height: 1.2; overflow-wrap: anywhere; }
 .pd-sub { margin: 0 0 14px; color: var(--muted, #52635c); font-size: .92rem; }
 .pd-ru { color: var(--muted, #52635c); font-weight: 400; }
@@ -41,4 +41,26 @@
 .pd-link-row small { color: var(--muted, #52635c); font-size: .8rem; }
 @media (max-width: 640px) {
   .pd-action { width: 100%; }
+}
+/* 2026-11-04: the child's page — „Areng” and „Mida õpime praegu” first, short cards beside them on a wide screen */
+.pd-child { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 0 0 14px; }
+.pd-child__head h2 { margin: 0; font-size: 1.15rem; line-height: 1.25; overflow-wrap: anywhere; }
+.pd-child__head p { margin: 2px 0 0; color: var(--muted, #52635c); font-size: .86rem; line-height: 1.35; }
+.pd-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.pd-main, .pd-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-content: start; min-width: 0; }
+.pd-side .pd-card { margin: 0; }
+/* the curve card fills the column here (elsewhere it stops at 820 px, so a wide page does not stretch the chart) */
+.pd-main .pf-card { max-width: none; }
+.pd-side .pd-card .pd-row:first-child { border-top: 0; }
+.pd-row > small svg { vertical-align: -2px; }
+.pd-card--due { border-color: #f0dcc2; background: #fff9f1; }
+.pd-next { display: grid; gap: 0; margin: 2px 0 0; padding: 0; list-style: none; }
+.pd-next li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 10px; padding: 4px 0; border-top: 1px solid #f1f5f3; }
+.pd-next li:first-child { border-top: 0; }
+.pd-next li > span { display: grid; min-width: 0; }
+.pd-next li > span strong { font-size: .95rem; }
+.pd-next li > span small { color: var(--muted, #52635c); font-size: .8rem; }
+.pd-next li em { color: var(--muted, #52635c); font-size: .8rem; font-style: normal; }
+@media (min-width: 980px) {
+  .pd-layout { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
 }

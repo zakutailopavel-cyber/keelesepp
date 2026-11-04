@@ -1,5 +1,7 @@
-import { useMemo } from 'react';
-import { Card } from '../../components/ui/index.js';
+import { useMemo, useState } from 'react';
+import { Button, Card } from '../../components/ui/index.js';
+import { progressPointsService } from '../../services/firebase/progressPoints.js';
+import { localDate } from '../../utils/localDate.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { libraryService } from '../../services/firebase/library.js';
@@ -23,7 +25,7 @@ const trendText = (n) => (n === null ? '' : n === 0 ? '± 0 p' : `${n > 0 ? '+' 
 
 // „Teekond sihttasemeni” (owner 2026-11-04): admin only. An estimate from sheets, recorded lessons and word cards,
 // not an exam; never shown to teachers, students or parents. The formula: skillEstimate.js, docs/PROGRESS_ESTIMATE.md.
-export default function SkillEstimateCard({ student, lessons = [], repository = defaultApi, now }) {
+export default function SkillEstimateCard({ student, lessons = [], repository = defaultApi, now, pointsService = progressPointsService, user }) {
   const studentId = student?.id;
   const state = useAsyncData(async () => {
     const settle = (fn) => Promise.resolve().then(fn).catch(() => null);
@@ -53,8 +55,31 @@ export default function SkillEstimateCard({ student, lessons = [], repository = 
       {state.loading && !result ? <p className="form-hint">Arvutan…</p> : null}
       {state.error && !result ? <p className="form-hint">Andmeid ei saanud laadida. <button type="button" className="ls-link" onClick={state.reload}>Proovi uuesti</button></p> : null}
       {result ? <Estimate {...result} levels={levels} partial={state.data.partial} /> : null}
+      {result ? <SavePoint student={student} user={user} average={result.estimate.average} level={result.estimate.to} reached={result.estimate.reached} service={pointsService} /> : null}
     </Card>
   );
+}
+
+// „Salvesta punkt” (owner 2026-11-04): the admin turns today's average into a point of the „Keeleoskus” curve, which
+// the student and the parents DO see (kind 'estimate'). Nothing is saved automatically.
+function SavePoint({ student, user, average, level, reached, service }) {
+  const [state, setState] = useState({ busy: false, done: '', error: '' });
+  if (average === null || reached || !level) return null;
+  async function save() {
+    setState({ busy: true, done: '', error: '' });
+    try {
+      await service.add({ studentId: student.id, date: localDate(), level, percent: average, kind: 'estimate', label: 'Oskuste hinnang' }, user);
+      setState({ busy: false, done: `Salvestatud: ${level} ${average}% (näevad õpilane ja lapsevanem).`, error: '' });
+    } catch (failure) {
+      setState({ busy: false, done: '', error: failure?.message || 'Salvestamine ebaõnnestus.' });
+    }
+  }
+  return <div className="skill-estimate__save">
+    <Button variant="secondary" loading={state.busy} disabled={Boolean(state.done)} onClick={save}>Salvesta punkt ({level} {average}%)</Button>
+    <small>Lisab keskmise keeleoskuse kõverale, mida õpilane ja lapsevanem näevad.</small>
+    {state.done ? <p className="form-hint" role="status">{state.done}</p> : null}
+    {state.error ? <p className="form-error" role="alert">{state.error}</p> : null}
+  </div>;
 }
 
 function Estimate({ estimate, course, levels, partial }) {

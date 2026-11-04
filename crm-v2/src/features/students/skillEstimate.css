@@ -7,4 +7,7 @@
 .skill-estimate__summary strong{font-size:1.3rem}
 .skill-estimate__summary small{color:#667085;font-size:.78rem}
 .skill-estimate .auto-skills__row.is-thin .auto-skills__name,.skill-estimate .auto-skills__row.is-thin strong{color:#98a2b3}
+.skill-estimate__save{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:14px 0 0}
+.skill-estimate__save small{color:#667085;font-size:.8rem}
+.skill-estimate__save p{flex-basis:100%;margin:0}
 .skill-estimate__note{margin:16px 0 0;padding:10px 12px;border-radius:10px;background:#fffaeb;color:#7a2e0e;font-size:.85rem}

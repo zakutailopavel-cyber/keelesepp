@@ -72,3 +72,48 @@ Grammar trend +12 (4 weeks ago 50 % of sentences had an error → 40 %).
   fills up only from sheets assigned after re-publishing. English courses are not tagged yet.
 - Grammar and speaking need lessons recorded and analysed by the school Mac.
 - Writing (Kirjutamine) is not estimated: no automatic evidence.
+
+# „Keeleoskus” — the level curve parents and students see (owner 2026-11-04)
+
+Not the admin estimate above: a separate, simpler number, shown to the student and the linked parents („Minu pere” →
+„Areng”) and on the student card („Keeleoskus tasemele”). Code: `crm-v2/src/features/progress-points/levelCurve.js`.
+**The level comes from the coursework; a mock exam only confirms it.**
+
+- **Course** = the course that leads to the card's target level (enrollment `targetLevel`, Estonian track first):
+  A2 → `a2/lessonGoals.js`, B1 → `b1/lessonGoals.js` (a2b1), B2 → `b2`, C1 → `c1`. Its goals = every lesson's sub-goals
+  (`lessonId|g_vocab`, `|g_read`, `|g_listen`, `|g_notice`, `|g_use`); B1 has 413.
+- **„Oskan”** for one goal on a day: up to that day ≥ 2 submitted sheets of that lesson scored it automatically
+  (`score.perGoal[goal].total > 0`; the lesson from the sheet id `ws_<lessonId>_<phase>`) and together they have
+  ≥ 70 % right (`READY`). „≥ 2 tasks” is read as ≥ 2 sheets: the stored `perGoal` is per sheet, not per task.
+- **Without a start point:** level % = Oskan goals / all course goals × 100.
+- **Start point and corrections** = a stored `progressPoints` entry of kind `teacher` (label „Algus” for the start) or
+  `estimate` (the admin's „Salvesta punkt” from „Teekond sihttasemeni”). From the newest such point A on or before the day:
+  level % = A % + (100 − A %) × (Oskan goals now − Oskan goals on A's day) / (all goals − Oskan goals on A's day).
+  So the start counts what the learner already knew; only goals mastered after it move the curve; never above 100 %.
+  A later teacher point restarts the curve from its value (a correction).
+- **Mock exam** (`kind: 'exam'`) is a marker on the chart only; it never changes the curve. The admin sees a warning on
+  the student card when an exam differs from the curve (its value in that week) by more than 15 points.
+- **Points:** every 7 days from the first start point or the first counted sheet, plus the start/correction days and
+  today; computed in the browser from data the reader already may read (the learner's `worksheetAssignments`, the
+  course goal list in the code, `progressPoints`). Nothing is stored by a writer.
+
+Example (demo page `parent-lab.html`): start 43 % on 11.07.2026; by 3.11 he masters 138 of 413 B1 goals →
+43 + 57 × 138 / 413 = 62 %; mock exam 64 % on 23.10 shown beside the curve (difference ≤ 15 → no warning).
+
+Limits: goals scored only by the teacher (most `g_use`: writing / speaking with a rubric) have no automatic score, so
+without teacher points the computed share of a course stays well below 100 % (B1: about 78 % at most). A per-goal teacher
+mark („õpetaja hinnang” per goal) does not exist yet; until then the teacher corrects the curve with a `teacher` point.
+Sheets without `score.perGoal` (old ones) and sheets not built from the course (no `ws_<lessonId>_` id or course
+`lessonId`) do not count.
+
+**One meaning of „Oskan” on the family's page** (owner 2026-11-04): „Mida õpime praegu” (`parents/nowLearning.js`
+`monthGoalSteps` / `goalLight`) uses the same rule as the curve — Oskan = ≥ 2 sheets with an automatic result and
+≥ 70 % right together; Harjutan = a result that is not yet Oskan and ≥ 50 % (also ≥ 70 % from one sheet only); Kordame =
+under 50 %; Veel tegemata = no result yet. The month = the lessons with a sheet in the last 30 days. Difference left: that
+card groups by the learner's promise text (a lesson whose goals are written for the teacher shows one „Ma oskan …” step
+for the lesson), the curve counts each course goal apart. The student's own „Kuu sammud” card (`learner/monthSteps.js`,
+≥ 80 % / ≥ 50 %, shows %) is unchanged.
+
+**Where it is shown:** the parent („Minu pere” → „Areng”, heading „<child's first name> B1 keeleoskus”) and the student
+(„Minu areng”, top, „Sinu B1 keeleoskus”) see the same component (`progress-points/ProficiencyCard.jsx`); only the
+wording differs. Staff see it on the student card („Keeleoskus tasemele”).
