@@ -440,6 +440,17 @@ parent account, adds a contact or removes a link (`parentsService.linkStudent` /
 `removeContact`, admin client writes the rules already allow). Linking adds, never replaces. A contact's e-mail
 links the child when that parent registers (`account-bootstrap-core.js parentEmails`). Rules unchanged.
 
+Parent cabinet „Minu pere” (`/parent`, `features/parents/ParentDashboardPage.jsx`, 2026-11-04): child chips (name +
+level), then per child „Areng” (`ProgressCard.jsx`: four small charts, one measure and one scale each, inline SVG, a
+table fallback) and „Mida õpime praegu” (`NowLearningCard.jsx`), beside them „Järgmised tunnid”, „Kodutööd”, the
+teacher's latest feedback, „Arved” (unpaid sum only) and „Kirjuta õpetajale”. Monthly points come from the pure
+`childProgress.js` (Europe/Tallinn months) over data a linked parent already reads: `lessons` (held / missed),
+homework + `worksheetAssignments` + `exerciseResults` (on time by deadline), `studentWords` (dictionary total) and
+`worksheetAssignments.score.perGoal` („Oskan” steps ≥ 80 %). A series without data is left out, fewer than 2 months
+show „Graafik tekib…”. Never shown to parents: lesson balance / package lessons left, lesson analysis, teacher notes,
+call notes, monologue notes / analysis, skill estimate, per-goal percentages. Demo page for screenshots (dev only, fake
+data): `crm-v2/parent-lab.html` + `src/test/parentLab/`.
+
 Study directions (2026-10-24): `studyDirections/{id}` `{ name, shortLabel, color, levels[], aliases[], status:
 active|archived, order }` — admin writes (validated keys, no delete), staff and finance read. Seaded → „Õppesuunad”
 (`features/settings/StudyDirectionsCard.jsx`). Until saved, the built-in list (`studyDirections.js
