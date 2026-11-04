@@ -2,6 +2,7 @@ import { createContext, startTransition, useContext, useEffect, useMemo, useStat
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/firebase/auth.js';
 import { isFirebaseConfigured } from '../services/firebase/client.js';
+import { clientErrors } from '../features/client-errors/clientErrorReporter.js';
 
 const AuthContext = createContext(null);
 
@@ -21,6 +22,9 @@ export function AuthProvider({ children, service = authService }) {
       (error) => setState({ loading: false, user: null, error }),
     );
   }, [configured, service]);
+
+  // error reports carry the signed-in person's uid + role (the real account, not a preview); never name or e-mail
+  useEffect(() => { clientErrors.setIdentity(state.user ? { uid: state.user.uid, roles: state.user.roles } : null); }, [state.user]);
 
   const value = useMemo(() => ({
     ...state,
