@@ -441,15 +441,21 @@ parent account, adds a contact or removes a link (`parentsService.linkStudent` /
 links the child when that parent registers (`account-bootstrap-core.js parentEmails`). Rules unchanged.
 
 Parent cabinet „Minu pere” (`/parent`, `features/parents/ParentDashboardPage.jsx`, 2026-11-04): child chips (name +
-level), then per child „Areng” (`ProgressCard.jsx`: four small charts, one measure and one scale each, inline SVG, a
-table fallback) and „Mida õpime praegu” (`NowLearningCard.jsx`), beside them „Järgmised tunnid”, „Kodutööd”, the
-teacher's latest feedback, „Arved” (unpaid sum only) and „Kirjuta õpetajale”. Monthly points come from the pure
-`childProgress.js` (Europe/Tallinn months) over data a linked parent already reads: `lessons` (held / missed),
-homework + `worksheetAssignments` + `exerciseResults` (on time by deadline), `studentWords` (dictionary total) and
-`worksheetAssignments.score.perGoal` („Oskan” steps ≥ 80 %). A series without data is left out, fewer than 2 months
-show „Graafik tekib…”. Never shown to parents: lesson balance / package lessons left, lesson analysis, teacher notes,
-call notes, monologue notes / analysis, skill estimate, per-goal percentages. Demo page for screenshots (dev only, fake
-data): `crm-v2/parent-lab.html` + `src/test/parentLab/`.
+level → target), then per child „Areng” = one „Keeleoskus” curve toward the target level (`features/progress-points/`:
+`ProficiencyCard.jsx`, `ProficiencyChart.jsx` inline SVG with a table fallback; formula `levelCurve.js`, documented in
+`docs/PROGRESS_ESTIMATE.md` „Keeleoskus”) and „Mida õpime praegu” (`NowLearningCard.jsx`), beside them „Järgmised
+tunnid”, „Kodutööd”, the teacher's latest feedback, „Arved” (unpaid sum only) and „Kirjuta õpetajale”. The curve is
+computed in the browser from the child's `worksheetAssignments` (score.perGoal) and the course goal list in the code
+(`worksheet-generator/admin/course/<level>/lessonGoals.js`, loaded on demand), anchored by `progressPoints`.
+`progressPoints/{id}` { studentId, date, level, percent 0–100, kind estimate | exam | teacher, label, createdBy,
+createdByName, createdAt, updatedAt }: written only by an admin or the student's teacher (a teacher changes / deletes
+his own), read by them, the student and linked parents (firestore.rules; emulator test
+`functions/progress-points-emulator.integration.js`). Staff add points on the student card („Keeleoskus tasemele”,
+`ProgressPointsCard.jsx`: start „Algus”, corrections, mock exams; admin warning when an exam is > 15 points from the
+curve); the admin's „Teekond sihttasemeni” has „Salvesta punkt” (kind estimate). A mock exam never moves the curve.
+Never shown to parents: lesson balance / package lessons left, lesson analysis, teacher notes, call notes, monologue
+notes / analysis, the skill-estimate card, per-goal percentages. Demo page for screenshots (dev only, fake data):
+`crm-v2/parent-lab.html` (`?family=two|empty`, `?view=staff`) + `src/test/parentLab/`.
 
 Study directions (2026-10-24): `studyDirections/{id}` `{ name, shortLabel, color, levels[], aliases[], status:
 active|archived, order }` — admin writes (validated keys, no delete), staff and finance read. Seaded → „Õppesuunad”

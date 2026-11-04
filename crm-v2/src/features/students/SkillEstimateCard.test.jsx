@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { vi } from 'vitest';
 import SkillEstimateCard from './SkillEstimateCard.jsx';
 
@@ -34,6 +34,17 @@ describe('SkillEstimateCard', () => {
     expect(screen.getByText(/Hinnang, mitte eksam/)).toBeInTheDocument();
     expect(screen.getByText(/Osa andmeid jäi laadimata/)).toBeInTheDocument();
     expect(repository.recordings).toHaveBeenCalledWith('s1');
+  });
+
+  it('„Salvesta punkt” saves the average as a „Keeleoskus” point (kind estimate, target level); nothing before the press', async () => {
+    const pointsService = { add: vi.fn().mockResolvedValue({}) };
+    const user = { uid: 'admin-1', roles: ['admin'] };
+    render(<SkillEstimateCard student={{ id: 's1', level: 'A2', targetLevel: 'B1' }} repository={repo()} now={now} pointsService={pointsService} user={user} />);
+    const button = await screen.findByRole('button', { name: /Salvesta punkt \(B1 80%\)/ }, { timeout: 4000 });
+    expect(pointsService.add).not.toHaveBeenCalled();
+    fireEvent.click(button);
+    await waitFor(() => expect(pointsService.add).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1', level: 'B1', percent: 80, kind: 'estimate' }), user));
+    expect(await screen.findByRole('status')).toHaveTextContent('näevad õpilane ja lapsevanem');
   });
 
   it('says when the level or the target is not on the card', async () => {

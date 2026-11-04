@@ -2282,6 +2282,36 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // „Keeleoskus” curve (owner 2026-11-04): one measured point of the learner's proficiency toward a level, in %.
+    // `progressPoints/{id}` { studentId, date 'YYYY-MM-DD', level, percent 0–100, kind estimate|exam|teacher, label,
+    // createdBy, createdByName, createdAt, updatedAt }. Written only by an admin or the student's own teacher (the
+    // teacher changes / deletes only his own points); read by them, the student and the linked parents.
+    function progressPointValid(data) {
+      return data.keys().hasOnly(['studentId', 'date', 'level', 'percent', 'kind', 'label', 'createdBy', 'createdByName', 'createdAt', 'updatedAt'])
+        && data.keys().hasAll(['studentId', 'date', 'level', 'percent', 'kind', 'createdBy', 'createdAt'])
+        && data.studentId is string && data.studentId.size() > 0 && data.studentId.size() <= 200
+        && data.date is string && data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.level in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+        && (data.percent is int || data.percent is float) && data.percent >= 0 && data.percent <= 100
+        && data.kind in ['estimate', 'exam', 'teacher']
+        && data.get('label', '') is string && data.get('label', '').size() <= 80
+        && data.get('createdByName', '') is string && data.get('createdByName', '').size() <= 160
+        && data.createdBy is string
+        && data.createdAt is string && data.createdAt.size() <= 40
+        && data.get('updatedAt', '') is string && data.get('updatedAt', '').size() <= 40
+        && staffCanAccessStudent(data.studentId);
+    }
+    match /progressPoints/{pointId} {
+      allow read: if staffCanAccessStudent(resource.data.studentId) || ownsStudent(resource.data.studentId);
+      allow create: if progressPointValid(request.resource.data) && request.resource.data.createdBy == uid();
+      allow update: if staffCanAccessStudent(resource.data.studentId)
+        && (isAdmin() || resource.data.createdBy == uid())
+        && request.resource.data.studentId == resource.data.studentId
+        && request.resource.data.createdBy == resource.data.createdBy
+        && progressPointValid(request.resource.data);
+      allow delete: if staffCanAccessStudent(resource.data.studentId) && (isAdmin() || resource.data.createdBy == uid());
+    }
+
     match /lessonSummaries/{invitationId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create: if isStaff()

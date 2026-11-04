@@ -1,7 +1,8 @@
 import { BookOpen } from 'lucide-react';
 import { useMemo } from 'react';
 import { monthSteps } from '../learner/monthSteps.js';
-import { STEP_LIGHT, nowLearning } from './childProgress.js';
+import { STEP_LIGHT, nowLearning } from './nowLearning.js';
+import './nowLearning.css';
 
 const ORDER = ['mastered', 'practise', 'review', 'todo'];
 

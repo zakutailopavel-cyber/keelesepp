@@ -161,9 +161,7 @@ describe('ParentDashboardPage', () => {
     await screen.findByRole('tablist', { name: /Laps/ });
     expect(screen.queryByText(/Tasumata/)).toBeNull();
     expect(screen.getByRole('button', { name: /^Arved/ })).toHaveTextContent('Kõik arved on tasutud');
-    // the „Areng” chart reads the chosen child's words only (owner 2026-11-04); the closed sections read nothing
-    expect(wordsService.subscribeForStudent).toHaveBeenCalledTimes(1);
-    expect(wordsService.subscribeForStudent).toHaveBeenCalledWith('c1', expect.any(Function), expect.any(Function));
+    expect(wordsService.subscribeForStudent).not.toHaveBeenCalled();
     expect(screen.queryByText('Sõnad')).toBeNull();
   });
 

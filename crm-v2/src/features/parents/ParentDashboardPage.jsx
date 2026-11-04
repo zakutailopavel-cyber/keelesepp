@@ -11,7 +11,9 @@ import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { INDIVIDUAL_TOPIC } from '../calendar/lessonTopic.js';
 import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
-import { mergeTasks, taskCount, taskDueText } from '../homework/taskList.js';
+import { taskCount, taskDueText } from '../homework/taskList.js';
+import ProficiencyCard from '../progress-points/ProficiencyCard.jsx';
+import { targetLevelOf } from '../progress-points/levelCurve.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 import OpenInvoicesCard from '../payments/OpenInvoicesCard.jsx';
 import RescheduleDialog from '../students/RescheduleDialog.jsx';
@@ -25,7 +27,6 @@ import { ChildrenWordGrowth } from '../vocabulary/WordGrowthCard.jsx';
 import ChildSwitch, { childKeyOf } from './ChildSwitch.jsx';
 import { childSummary, isRealInvoice, moneyDue } from './parentHome.js';
 import NowLearningCard from './NowLearningCard.jsx';
-import ProgressCard from './ProgressCard.jsx';
 import './parentHome.css';
 
 function unique(items) {
@@ -117,7 +118,7 @@ function ChildCards({ child, summary, upcoming, subjects, onlyOneSubject, lesson
   </div>;
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService, pointsService, goalsLoader }) {
   const { user, preview } = useAuth();
   const location = useLocation();
   const [rescheduling, setRescheduling] = useState(null);
@@ -163,14 +164,13 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
   const chosen = subjects.length > 1 ? subject : '';
   const summary = summaryOf(child, chosen);
   // the chip: name + level (+ what is still to do), so a parent of two sees both at a glance
-  const switchMarks = Object.fromEntries(students.map((person) => { const { todo, total } = summaryOf(person); return [childKeyOf(person), [person.level, todo.length ? `${todo.length} vaja teha` : total ? 'kõik tehtud' : ''].filter(Boolean).join(' · ')]; }));
+  const switchMarks = Object.fromEntries(students.map((person) => { const { todo, total } = summaryOf(person); const only = person.enrollments?.length === 1 ? person.enrollments[0] : null; const level = only?.level && only?.targetLevel ? `${only.level} → ${only.targetLevel}` : person.level; return [childKeyOf(person), [level, todo.length ? `${todo.length} vaja teha` : total ? 'kõik tehtud' : ''].filter(Boolean).join(' · ')]; }));
 
   const studentOf = (item) => studentRecords.find((record) => record.id === item.studentId) || null;
   const childOnly = (items) => onlySubject(ofPerson(child, items), chosen, studentOf);
   const upcoming = childOnly(occurrences).slice(0, 6);
   const childLessons = childOnly(lessons);
   const childAssignments = childOnly(assignments);
-  const childTasks = mergeTasks({ homework: childOnly(homework), assignments: childAssignments, submissions: ofPerson(child, submissions) });
   const doneLessons = childLessons
     .filter((lesson) => !lesson.status || LESSON_MARK[lesson.status])
     .sort((a, b) => `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`)).slice(0, 6);
@@ -188,7 +188,6 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
   };
   const studentFor = (lesson) => studentOf(lesson) || { id: lesson.studentId, name: lesson.studentName };
   const lessonRequest = (lesson) => requestFor(state.data.requests, lesson);
-  const firstName = String(child.name || '').trim().split(/\s+/)[0];
 
   return <div className="page-content pd-page">
     {hello}
@@ -204,7 +203,8 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
       </header>
       <div className="pd-layout">
         <div className="pd-main">
-          <ProgressCard key={`areng-${childKeyOf(child)}-${chosen}`} records={childRecords} lessons={childLessons} tasks={childTasks} assignments={childAssignments} today={today} name={firstName} {...(wordsService ? { wordsService } : {})} />
+          {/* „Areng” (owner 2026-11-04): one curve of measured proficiency toward the level, mock exams marked */}
+          <ProficiencyCard key={`areng-${childKeyOf(child)}`} studentIds={childRecordIds} assignments={ofPerson(child, assignments)} targetLevel={targetLevelOf(child)} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} />
           <NowLearningCard lessons={childLessons} assignments={childAssignments} today={today} />
         </div>
         <ChildCards child={child} summary={summary} upcoming={upcoming} subjects={subjects.length} onlyOneSubject={chosen} lessonRequest={lessonRequest} onReschedule={setRescheduling} readOnly={Boolean(preview)}

@@ -40,6 +40,7 @@ import AutoSkillsCard from './AutoSkillsCard.jsx';
 import LearnerSnapshotCard from '../learner/LearnerSnapshotCard.jsx';
 import MonthlyReportCard from '../learner/MonthlyReportCard.jsx';
 import SkillEstimateCard from './SkillEstimateCard.jsx';
+import ProgressPointsCard from '../progress-points/ProgressPointsCard.jsx';
 import StudentTopicsCard from '../vocabulary/StudentTopicsCard.jsx';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
@@ -73,7 +74,7 @@ const PROFILE_TABS = [
 // the works tab opens the sheet viewer: downloaded when the tab is opened, not with every card
 const StudentWorksPanel = lazy(() => import('./StudentWorksPanel.jsx'));
 
-export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi }) {
+export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi, progressApi }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -225,7 +226,9 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
             {currentUser?.roles?.includes(ROLES.ADMIN) ? <MonthlyReportCard student={student} user={currentUser} {...(reportApi ? { repository: reportApi } : {})} /> : null}
             <LearnerSnapshotCard studentId={student.id} studentName={student.name} {...(learnerRepository ? { repository: learnerRepository } : {})} />
             {/* „Teekond sihttasemeni” (owner 2026-11-04): admin only — an estimate per skill, not for teachers, students or parents */}
-            {currentUser?.roles?.includes(ROLES.ADMIN) ? <SkillEstimateCard student={student} lessons={state.lessons} {...(estimateApi ? { repository: estimateApi } : {})} /> : null}
+            {currentUser?.roles?.includes(ROLES.ADMIN) ? <SkillEstimateCard student={student} lessons={state.lessons} {...(estimateApi ? { repository: estimateApi } : {})} {...(progressApi ? { pointsService: progressApi } : {})} user={currentUser} /> : null}
+            {/* „Keeleoskus tasemele” (owner 2026-11-04): measured points the student and parents see as a curve */}
+            <ProgressPointsCard student={student} user={currentUser} isAdmin={Boolean(currentUser?.roles?.includes(ROLES.ADMIN))} {...(progressApi ? { service: progressApi } : {})} />
             <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{(ownTracks?.length === 1 ? ownTracks[0].level : student.level) || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{tracks.length ? [...new Set(tracks.map((track) => subjectName(track.subject)))].join(', ') : student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
             {canAssignTeacher ? <StudentAccountCard student={student} {...(accountApi ? { service: accountApi } : {})}
               onInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, studentUid: data.uid, linkedUserId: data.uid, linkedUserIds: [data.uid], email: current.student.email || data.email } }))}

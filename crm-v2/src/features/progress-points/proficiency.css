@@ -1,0 +1,57 @@
+/* „Keeleoskus” curve: one line toward the level, mock exams as diamonds, the goal line at 100 % */
+.pf-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 14px 16px 12px; border: 1px solid var(--border, #e4ece8); border-radius: 16px; background: #fff; min-width: 0; }
+.pf-head { display: grid; gap: 2px; }
+.pf-eyebrow { display: inline-flex; align-items: center; gap: 5px; color: #0f5f4c; font-size: .76rem; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
+.pf-eyebrow .pd-ru { text-transform: none; letter-spacing: 0; }
+.pf-head h2 { margin: 0; font-size: 1.05rem; line-height: 1.3; }
+.pf-card .pd-ru { color: var(--muted, #52635c); font-weight: 400; }
+.pf-now { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.pf-now > strong { font-size: 2.3rem; line-height: 1; color: #10231c; font-variant-numeric: tabular-nums; }
+.pf-now > span { display: grid; gap: 1px; }
+.pf-now b { font-size: .95rem; }
+.pf-now b.is-up { color: #0f5f4c; }
+.pf-now b.is-down { color: #a8501a; }
+.pf-now small { color: var(--muted, #52635c); font-size: .8rem; }
+.pf-explain { margin: 0; color: #2c3e37; font-size: .84rem; line-height: 1.4; }
+.pf-empty { display: grid; gap: 2px; margin: 0; padding: 12px; border-radius: 12px; background: #f4f8f6; color: #2c3e37; font-size: .9rem; line-height: 1.4; }
+.pf-empty small { color: var(--muted, #52635c); font-size: .8rem; }
+.pf-chart { min-width: 0; }
+.pf-chart svg { display: block; overflow: visible; touch-action: manipulation; }
+.pf-grid { stroke: #e9efec; stroke-width: 1; }
+.pf-base { stroke: #b9c8c1; stroke-width: 1; }
+.pf-tick { stroke: #b9c8c1; stroke-width: 1; }
+.pf-axis { fill: #6b7d75; font-size: 11px; font-variant-numeric: tabular-nums; }
+.pf-target { stroke: #0f5f4c; stroke-width: 1.5; stroke-dasharray: 5 4; }
+.pf-target-label { fill: #0f5f4c; font-size: 12px; font-weight: 700; }
+.pf-line { fill: none; stroke: #1b7a62; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.pf-dot { fill: #1b7a62; stroke: #fff; stroke-width: 2; }
+.pf-dot.is-weekly { stroke-width: 1; }
+.pf-dot.is-anchor { fill: #fff; stroke: #0f5f4c; stroke-width: 3; }
+.pf-anchor-label { fill: #0f5f4c; font-size: 12px; font-weight: 700; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
+.pf-legend__anchor { width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2.5px solid #0f5f4c; box-sizing: border-box; }
+.pf-warn { margin: 0; padding: 8px 10px; border-radius: 10px; background: #fff4e5; color: #7a3f0a; font-size: .86rem; }
+.pf-exam rect { fill: #b25e12; stroke: #fff; stroke-width: 2; }
+.pf-exam.is-active rect { stroke: #10231c; }
+.pf-exam-label { fill: #7a3f0a; font-size: 12px; font-weight: 700; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
+.pf-value { fill: #10231c; font-size: 13px; font-weight: 700; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
+.pf-hit { fill: transparent; cursor: pointer; }
+.pf-caption { min-height: 1.3em; margin: 2px 0 0; color: #2c3e37; font-size: .84rem; font-variant-numeric: tabular-nums; }
+.pf-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 2px 0 0; padding: 0; list-style: none; color: var(--muted, #52635c); font-size: .78rem; }
+.pf-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.pf-legend__dot { width: 10px; height: 10px; border-radius: 50%; background: #1b7a62; }
+.pf-legend__exam { width: 9px; height: 9px; background: #b25e12; transform: rotate(45deg); }
+.pf-legend__target { width: 16px; border-top: 2px dashed #0f5f4c; }
+.pf-table summary { min-height: 44px; display: flex; align-items: center; color: #0f5f4c; font-size: .86rem; font-weight: 700; cursor: pointer; }
+.pf-table__scroll { overflow-x: auto; }
+.pf-table table { width: 100%; border-collapse: collapse; font-size: .84rem; font-variant-numeric: tabular-nums; }
+.pf-table caption { text-align: left; color: var(--muted, #52635c); font-size: .76rem; padding-bottom: 4px; }
+.pf-table th, .pf-table td { padding: 6px 8px; border-bottom: 1px solid #eef3f1; text-align: left; }
+
+/* staff: the points on the student card */
+.pf-staff form { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; align-items: end; }
+.pf-staff label { display: grid; gap: 3px; font-size: .8rem; color: var(--muted, #52635c); }
+.pf-staff input, .pf-staff select { min-height: 40px; padding: 6px 8px; border: 1px solid var(--border, #d7e1dc); border-radius: 8px; font: inherit; color: inherit; background: #fff; }
+.pf-points { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.pf-points li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; padding: 8px 0; border-top: 1px solid #eef3f1; font-size: .88rem; }
+.pf-points li small { color: var(--muted, #52635c); }
+.pf-staff .pf-actions { display: inline-flex; gap: 6px; }
