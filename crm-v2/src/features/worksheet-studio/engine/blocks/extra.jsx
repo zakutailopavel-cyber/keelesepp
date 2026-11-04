@@ -4,6 +4,7 @@ import { Line, Md } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
 import { norm, groupItems, splitList } from '../schema.js';
 import { useAssets } from '../assets.jsx';
+import { sameMeaningWords } from '../readingMatch.js';
 import { Text, Area, Rows, SentenceInput } from '../../editor/fields.jsx';
 import { SpeakPanel } from '../../editor/Speak.jsx';
 import VoiceRecorder, { canRecord } from '../../editor/VoiceRecorder.jsx';
@@ -62,14 +63,8 @@ export const dialogue = {
 
 // ---------- reading ----------
 // reading checks understanding, not the case ending (owner 2026-10-27: a full right sentence was marked wrong):
-// every word of the right answer is in the learner's answer with the same stem („teisipäeval kell kümme” ≈
-// „Õde pakkus teisipäeva kella kümmet”)
-const stemOf = (word) => word.slice(0, Math.max(3, Math.ceil(word.length * 0.7)));
-export function sameMeaningWords(right, answer) {
-  const words = String(right).split(' ').filter((word) => word.length >= 4); // short words (see, ja, uue) say little
-  const given = String(answer).split(' ');
-  return words.length > 0 && words.every((word) => given.some((other) => other.startsWith(stemOf(word)) || word.startsWith(stemOf(other)) && other.length >= 3));
-}
+// open reading answers vs a model answer: key words in any case / inside a compound, ≥ 70 % of them (owner 2026-11-04)
+export { sameMeaningWords };
 
 export const reading = {
   type: 'reading', label: 'Lugemine + küsimused', group: 'Tekst ja heli', icon: 'BookOpenText', task: true, width: 'full', tone: 'cream',
