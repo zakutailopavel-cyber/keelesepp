@@ -8,6 +8,7 @@ import { copyWithMark, markLabel, OWNER, watermarkStyle } from './contentMark.js
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
+import { effectiveScore } from './engine/storedScore.js';
 import GoalEvidence from './GoalEvidence.jsx';
 import { BOARD_SHEET_SCALE, useFitScale } from './useFitScale.js';
 import { SheetFlowContext, useFlowKeyboard, useScreenFlow } from './sheetFlow.js';
@@ -76,7 +77,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const [doc, setDoc] = useState(assignment.worksheetDoc);
   const [answers, setAnswers] = useState(assignment.answers || {});
   const [submitted, setSubmitted] = useState(assignment.status === 'done');
-  const [score, setScore] = useState(assignment.score || null);
+  // an old stored score that counted unanswered or unmatched tasks as wrong is shown checked again (storedScore.js)
+  const [score, setScore] = useState(() => effectiveScore({ score: assignment.score, worksheetDoc: assignment.worksheetDoc, answers: assignment.answers, status: assignment.status }).score);
   const [saving, setSaving] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
