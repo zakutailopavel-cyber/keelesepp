@@ -744,17 +744,17 @@ export const LESSONS = withShapes({
     ],
     practice: [
       tag(B.bankText('024_p_winner', 'Eelmise aasta võitja.', 'Vali pangast igasse lünka sobiv aja- või sidesõna. Pangas on kaks lisasõna.', 'Kass, kes sõitis Tartusse (Tiina, 72)', [
-        'Möödunud suvel juhtus minuga midagi väga ootamatut. Ma elan Kalamajas ja mul on kass Miisu. Ta on vana ja laisk ning magab terve päeva.',
+        'Möödunud suvel juhtus minuga midagi väga ootamatut. Ma elan Kalamajas ja mul on kass Miisu. Ta on vana ja laisk [[ning]] magab terve päeva.',
         '',
         '[[Alguses]] oli see tavaline laupäev. Ma pakkisin kohvri, [[sest]] tahtsin sõita Tartusse õe juurde. Bussijaamas istusin bussi ja sõitsin minema.',
         '',
-        '[[Äkki]] kuulsin kohvrist imelikku häält. Mõtlesin, et see on telefon. [[Siis]] tegin kohvri lahti. Seal istus minu kass Miisu!',
+        '[[Äkki]] kuulsin kohvrist imelikku häält. Mõtlesin, [[et]] see on telefon. [[Siis]] tegin kohvri lahti. Seal istus minu kass Miisu!',
         '',
-        'Inimesed bussis naersid, [[aga]] mina olin väga mures. Kassil ei olnud vett ega süüa. [[Pärast seda]] andis üks tüdruk talle natuke vett. Bussijuht peatas bussi ja tuli ka kassi vaatama. Ta ütles, et sõidab kakskümmend aastat, aga kassi kohvris pole ta veel näinud.',
+        'Inimesed bussis naersid, [[aga]] mina olin väga mures. Kassil ei olnud vett ega süüa. [[Pärast seda]] andis üks tüdruk talle natuke vett. Bussijuht peatas bussi ja tuli ka kassi vaatama. Ta ütles, et sõidab kakskümmend aastat, [[aga]] kassi kohvris pole ta veel näinud.',
         '',
         'Tartus ootas õde mind bussijaamas. [[Kui]] ta kassi nägi, hakkas ta naerma. Ta ütles, et Miisu tahtis ka puhkust. [[Lõpuks]] jäi Miisu nädalaks õe juurde ja sõi seal kõik kalad ära.',
         '',
-        'Nüüd vaatan alati enne reisi kohvri sisse. Miisu magab jälle diivanil ja ei taha kuhugi sõita.',
+        '[[Nüüd]] vaatan alati enne reisi kohvri sisse. Miisu magab jälle diivanil ja ei taha kuhugi sõita.',
       ], ['Õnneks', 'nii et'], 'g_vocab'), { task: 'R04' }),
       tag(B.listening('024_p_jury', 'Žürii nõuanded.', 'Toimetaja Kaja räägib raadios, mida žürii hindab. Kirjuta lünka, mida autor peab tegema.', [
         'Ülle: Stuudios on Linnalehe toimetaja Kaja Lepp. Kaja, mida žürii eelmisel aastal hindas?',
@@ -779,6 +779,13 @@ export const LESSONS = withShapes({
         'Enne saatmist tuleb lugu veel kord [läbi] lugeda.',
         'Tegusõnad peavad olema [minevikus].',
         'Loo juurde tuleb kirjutada nimi ja [telefoninumber].',
+        'Eelmisel aastal sai Linnaleht [kolmsada|300] lugu.',
+        'Pikka [sissejuhatust] ei ole vaja.',
+        'Ilmast ei pea kirjutama, kui see pole loo jaoks [tähtis].',
+        'Eelmise aasta võitja Tiina kirjutas, et ta oli väga [mures].',
+        'Eelmisel aastal kirjutasid paljud lugu [olevikus].',
+        'Paberil loo võib tuua [toimetusse].',
+        'Lugude saatmise tähtaeg on [reede] südaöö.',
       ]), { task: 'L06' }),
       B.errorfix('024_p_fix', 'Paranda mustand.', 'Markuse mustandis on igas lauses üks viga. Kirjuta lause õigesti.', [
         ['Eelmisel esmaspäeval ma ärkan kell kuus.', 'Eelmisel esmaspäeval ärkasin ma kell kuus.|Eelmisel esmaspäeval ma ärkasin kell kuus.'],
@@ -790,10 +797,6 @@ export const LESSONS = withShapes({
         ['Kell üheksa helistas uksekell.', 'Kell üheksa helises uksekell.'],
         ['Lõpuks me leidsime telefoni külmkapis.', 'Lõpuks leidsime me telefoni külmkapist.|Lõpuks me leidsime telefoni külmkapist.'],
       ]),
-      B.dictation('024_p_dict', 'Etteütlus: Tiina lugu.', 'Õpetaja loeb iga lauset kaks korda. Kirjuta lause, minevikuvormid õigesti.', [
-        'Möödunud suvel sõitsin bussiga Tartusse.', 'Äkki kuulsin kohvrist imelikku häält.', 'Kohvris istus minu kass Miisu.', 'Inimesed bussis naersid kaua.',
-        'Üks tüdruk andis kassile vett.', 'Õde ootas mind bussijaamas.', 'Kass sõi õe juures kõik kalad ära.', 'Sellest päevast ei unusta ma midagi.',
-      ], 8),
       B.know('024_p_know', [
         'Ka sinu lugu võib jääda ajalukku. 1989. aasta hilissuvel saatis Eesti Kirjandusmuuseum eesti- ja venekeelsetele ajalehtedele üleskutse „Kas sa mäletad oma elulugu?”. Aasta lõpuks tuli muuseumi umbes sada elulugu.',
         'Sellest ajast peale korraldab muuseum koos ühendusega Eesti Elulood eluloovõistlusi. Võistlusele „Sajandi sada elulugu” (1998–1999) saadeti 232 elulugu, 2025. aasta teema oli „Raamatud minu elus”. Lood jäävad muuseumi arhiivi ja nendest on ilmunud raamatuid.',

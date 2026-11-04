@@ -45,6 +45,10 @@ the catalog describes *why and when* an activity is used, while Worksheet Studio
 - `Harjuta`: accuracy and controlled practice;
 - `Kasuta`: oral production, written production and reflection.
 
+**No dictation from B1 up** (owner 2026-11-04): `practice-dictation` has `maxLevel: 'A2'`, so the planner offers it to
+A2 profiles only (as before, not A1) and never to B1, B2 or C1 (`planner.test.js`). The course modules follow the same rule
+(`LESSON_QUALITY_CONTRACT.md` A3b).
+
 Selection is seeded, level-safe and lesson-kind-aware. It prefers different activity families and accepts recent
 activity IDs as a cooldown history. If there are not enough compatible activities or curated source banks, generation
 fails closed with stable diagnostics instead of filling the sheet with generic or invented language.

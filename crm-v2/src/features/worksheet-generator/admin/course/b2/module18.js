@@ -676,7 +676,6 @@ export const LESSONS = withShapes({
         ['Saatejuht küsis kuulajatelt, kuidas nad oma vaba aega veedaks.', 'Saatejuht küsis kuulajatelt, kuidas nad oma vaba aega veedavad.'],
         ['Loengus selgitati, miks noored loevad vähem raamatud.', 'Loengus selgitati, miks noored loevad vähem raamatuid.'],
       ]),
-      B.dictation('089_d_dict', 'Keeleosa: etteütlus.', 'Õpetaja loeb ette kuus lauset kuulamisosa teemadel. Kirjuta need õigekirja järgi.', ['Rongiliiklus on tormi tõttu täna õhtul häiritud.', 'Linnavalitsus otsustas registreerida kõik turistikorterid.', 'Uuringu järgi tegid kodus töötajad vähem ületunde.', 'Teadlase sõnul tuleb kliimamuutusega kohaneda juba praegu.', 'Lektor soovitas meeskonnal kohtuda vähemalt kord nädalas.', 'Raadiosaate külaline rääkis oma esimesest töökohast Eestis.']),
       B.rubric('089_d_score', 'Kuulamise punktid.', 'Loe kokku õiged vastused osade kaupa.', ['Osa 1 (klipid): … / 5', 'Osa 2 (intervjuu): … / 5', 'Osa 3 (loeng): … / 10', 'Osa 4 (õige/vale): … / 12', 'Kuulamine kokku: … / 32 → … % (lävend 60% = 20 punkti)']),
 
     ],

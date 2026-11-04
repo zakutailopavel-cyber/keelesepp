@@ -32,6 +32,15 @@ describe('didactic planner', () => {
     expect(transferTags.has('reflection')).toBe(true);
   });
 
+  it('offers dictation up to A2 only (owner 2026-11-04: no dictation in B1–C1)', () => {
+    for (const level of ['A2', 'B1', 'B2', 'C1']) {
+      for (const kind of ['grammar', 'vocabulary', 'listening', 'integrated', 'assessment']) {
+        const ids = catalogReadiness({ ...profile, level }, kind).practice.activityIds;
+        expect(ids.includes('practice-dictation'), `${level} ${kind}`).toBe(level === 'A2');
+      }
+    }
+  });
+
   it('reports catalog readiness and treats recent activities as cooldown history', () => {
     const readiness = catalogReadiness(profile, 'grammar');
     expect(readiness.discover.available).toBeGreaterThanOrEqual(5);

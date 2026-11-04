@@ -234,8 +234,10 @@ export const ACTIVITY_CATALOG = [
     blockType: 'dictation',
     family: 'sentence-reconstruction',
     lessonKinds: ['grammar', 'vocabulary', 'listening', 'integrated', 'assessment'],
+    // owner 2026-11-04: no dictation in B1, B2 or C1 sheets — A2 and below only
+    // (docs/WORKSHEET_GENERATOR_V1.md, docs/LESSON_QUALITY_CONTRACT.md A3b)
     minLevel: 'A2',
-    maxLevel: 'B2',
+    maxLevel: 'A2',
     skills: ['listening', 'writing'],
     production: 'controlled',
     cognitiveLoad: 3,

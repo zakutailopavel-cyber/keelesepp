@@ -14,9 +14,20 @@ measurable part every lesson must pass before it is published. Each rule is chec
 3a. **Listening goal `g_listen`** („saan kuuldust aru”, 2026-11-04): an optional extra sub-goal on top of the 3–4 above.
    A lesson gets it in its `lessonGoals.js` entry (`goals.g_listen` + `tags: { blockId: 'g_listen' }`) when ≥ 2 of its
    scored tasks are done on a recording: a `listening` gap task, a Harno listening part (`examlisten`), true/false or
-   choice questions on a recording heard again, a dictation. Tagging must not leave another sub-goal with < 2 tasks or a
-   phase without its can-do goal. Its score (`score.perGoal.g_listen`) feeds „Kuulamine” on the admin's skill estimate
-   (`docs/PROGRESS_ESTIMATE.md`). A lesson with one listening task keeps it under its old goal.
+   choice questions on a recording heard again, a dictation (A2 only, see 3b). Tagging must not leave another sub-goal
+   with < 2 tasks or a phase without its can-do goal. Its score (`score.perGoal.g_listen`) feeds „Kuulamine” on the
+   admin's skill estimate (`docs/PROGRESS_ESTIMATE.md`). A lesson with one listening task keeps it under its old goal.
+3b. **No dictation in B1, B2 and C1** (owner 2026-11-04: „диктанты вообще не нужны на Б1 Б2 и С1”). The B1 (`a2b1-*`),
+   B2 (`b1b2-*`) and C1 courses have no `dictation` block (also no pair dictation in a speaking task); the A2 course
+   keeps its dictations. Checked by `admin/course/noDictation.test.js`; the generator offers `practice-dictation` up
+   to A2 only (`engine/activityCatalog.js`). A lesson that lost its dictation and has < 2 listening tasks left drops
+   `g_listen` (3a). Sheets published before this rule keep their dictation until they are re-published from
+   „Kursuse tootmine”. The time a dictation took is filled with comprehension work on the texts and recordings the
+   sheet already has (owner 2026-11-04, option 2): more open questions / statements in its reading task, more
+   questions or gap sentences on its recordings, true/false or choice „heard again”, a short-answer or
+   word-in-context gap task on its text — no new audio, no new error-fix or rewrite drill. Open questions answered
+   in whole sentences count as a whole-sentence task when the reading block is wrapped in `fullSentences()`
+   (`admin/course/blocks.js`; the instruction says „terve lausega”).
 4. The Russian teacher note (`curriculumLessons.goal`, `languageFocus`, `successCriteria`) stays for the teacher.
 
 ## B. Every sheet
