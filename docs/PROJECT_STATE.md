@@ -1,3 +1,18 @@
+## 2026-11-04 · owner-requested production data changes (no code) and transcriber update
+
+- Base: `origin/main` 63e909c, checked 2026-11-04. All writes below were made on the owner's explicit request in chat, with the admin SDK (same record shape as the app's own service) or by clicking the app's own buttons in the owner's session; each has an `activityLog` entry unless noted.
+- Bank books rule: `accountingSettings/bankBooks.since = 2026-11-01` (+ `financialAudit` `accounting.bank_books.changed`). Categories (owner transfers, Töötukassa, card / shop payments), the October duplicates (1 429 € + 105 € KS-054) and the Jan–Oct migration WAIT for the accountant.
+- Mariia B2 (`students/self_imA0JUXOnkPGazIQtQvADe5fr1W2`): lesson 2026-10-19 marked held — `lessons/schedule_3X7aFVBL9K972OQ38QMB_2026-10-19_self_imA0JUXOnkPGazIQtQvADe5fr1W2` (like `lessonsService.completeFromSchedule`), schedule status „Toimunud”. Stale planned entries 15.10 12:00 and 23.10 15:00 left for the teacher („Märkimata tunnid”).
+- Demjan (`students/self_1XzTfh9UPjSovuGSIp1AirEikDj1`): assigned (worksheetAssignments, `source: learning_library`) a2-017 discover, a2-018 discover, a2-k01 practice, and the Õpik sheets of a2-017 / a2-018 / a2b1-012.
+- Õpik sheets published (`curriculumLessons/{id}/worksheets/opik`, v1, role focus, slot 4): b1b2-016 (sihitis, own wording), a2-017, a2-018, a2b1-012 (kohakäänded, own wording).
+- Course republish: all B1 (a2b1-module-01…18, a2b1-suuline-01) and B2 (b1b2-module-01…18, b1b2-suuline-01, b1b2-kaanded-01) sheets from `main` 2048ae7 — 563 sheets, new version each (old versions kept in `worksheetVersions`); gates had no new problems. Check after: 569 published B1/B2 sheets, 0 dictation blocks, 273 `g_listen` blocks. Already assigned sheets keep their own copy.
+- Aleksandr Smirnov (`students/self_ZoQ8Yxq32mTYahNBgS38wc3NQbr1`): target level B1 → A2 (card + both enrollments); `progressPoints` A2 40 % (2026-07-11, „Algus”) and A2 56 % (2026-11-04). A mock exam 64 % point added by mistake (it was Mihhail's, B1) was removed; its data is kept in the `activityLog` entry `progress_point.removed`. Password link sent from the card („Saada parooli link”) on the owner's request.
+- Jekaterina Smirnova: account `uycDNrijeWSMOgvP1XQdUz48Qta2` (katjunja72@mail.ru) approved as parent and linked to Nicole, Mihhail and Aleksandr (`users.linkedStudentIds`, cards `linkedParentIds`); the older account `0Vfzzkqhk5bsD0kXvucZB5dPim32` (mail.ee, linked since summer) left unchanged. No approval e-mail was sent.
+- Jekaterina Lesnikova: card `AW06EySetZFjZ2ILyIQI` (archived, had the login) merged into `zZQxk01bC3guSMFBCvxH` with the app's „Liida kaardid” (preview checked; 4 invoices, 2 lessons, 1 payment, schedule moved; amounts and numbers unchanged).
+- School Mac transcriber (`~/KeeleSeppTranscriber/app`, launchd `ee.keelesepp.transcriber`): backup `~/KeeleSeppTranscriber/backup-202611042340`, code from `main` 63e909c `tools/lesson-transcriber` (monologue transcription #1091, „Pole viga” skip #1066); tests 29/29; restarted 2026-11-04 23:40, started cleanly.
+- Not done / open: accountant decisions above; LHV LinkPay production (owner's application); daily smoke test accounts + secrets (docs/DAILY_SMOKE.md); report text for the Smirnov family is a draft in chat only.
+- Next safe step: the owner checks one new invoice's „Maksja” line and, when ready, issues the first „Tunnipakett”; then verify crediting and the first consumed lesson.
+
 ## 2026-11-04 · agent/combined-token-invoice — „Ühine tunnipakett”: one lesson package invoice for a family
 
 - Base: `origin/main` 14d029e (#1107 merged), checked 2026-11-04. Finance only; no rules, indexes, migration; issued invoices and packages unchanged.
