@@ -1,0 +1,22 @@
+/* „Märkimata tunnid” page (calendar/UnmarkedLessonsPage) */
+.unmarked-page__filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
+.unmarked-chip { border: 1px solid #d0d5dd; background: #fff; border-radius: 999px; padding: 4px 12px; font-size: .85rem; cursor: pointer; }
+.unmarked-chip span { color: #667085; margin-left: 2px; }
+.unmarked-chip.is-on { background: #101828; border-color: #101828; color: #fff; }
+.unmarked-chip.is-on span { color: #d0d5dd; }
+.unmarked-page__filters .cal2-select { margin-left: auto; }
+.unmarked-page__list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.unmarked-row { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(200px, 1.4fr) auto; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; border-left: 3px solid transparent; }
+.unmarked-row:hover { background: #f9fafb; }
+.unmarked-row--evidence { border-left-color: #12b76a; }
+.unmarked-row--duplicate { border-left-color: #f04438; }
+.unmarked-row strong { display: block; font-size: .92rem; }
+.unmarked-row small { display: block; color: #667085; font-size: .8rem; margin-top: 2px; }
+.unmarked-row__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; }
+.unmarked-row__actions .button { min-height: 32px; padding: 0 12px; font-size: .82rem; }
+.unmarked-row__actions a { font-size: .85rem; white-space: nowrap; }
+@media (max-width: 760px) {
+  .unmarked-row { grid-template-columns: 1fr; gap: 6px; }
+  .unmarked-row__actions { justify-content: flex-start; }
+  .unmarked-page__filters .cal2-select { margin-left: 0; }
+}

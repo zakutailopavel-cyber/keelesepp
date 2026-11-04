@@ -1,4 +1,4 @@
-import { CalendarClock, CalendarDays, Check, ChevronRight, Flame, Megaphone, MessageSquareText, PawPrint, WalletCards } from 'lucide-react';
+import { CalendarClock, CalendarDays, Check, ChevronRight, Flame, Languages, ListTodo, Megaphone, MessageSquareText, PawPrint, PenLine, SpellCheck, TrendingUp, WalletCards } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -23,7 +23,7 @@ import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.j
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
 import SubjectSwitcher from './SubjectSwitcher.jsx';
 import { itemSubject, onlySubject, subjectsOf } from './subjects.js';
-import { feedbackSeenAt, homeNotes, newFeedback, nextStep } from './nextStep.js';
+import { feedbackSeenAt, homeNotes, homeSections, newFeedback, nextStep } from './nextStep.js';
 import './studentHome.css';
 
 function unique(items) {
@@ -42,6 +42,7 @@ function dateLabel(value) {
 
 const firstName = (name) => String(name || '').trim().split(/\s+/)[0] || 'õpilane';
 const NOTE_ICON = { feedback: MessageSquareText, announcement: Megaphone, invoice: WalletCards, availability: CalendarClock };
+const SECTION_ICON = { tasks: ListTodo, words: Languages, mistakes: SpellCheck, boards: PenLine, progress: TrendingUp };
 
 /** Unpaid invoice: one line; with card payments on, „Maksa” opens the existing payment card right here. */
 function InvoiceNote({ note, invoices, readOnly, api = linkpayApi }) {
@@ -146,7 +147,8 @@ export default function StudentDashboardPage({
   const cancelRequest = async () => { try { await changeRequests.cancel(nextRequest.id); } finally { state.reload(); } };
 
   const step = nextStep({ occurrences, homework, assignments, words, today });
-  const daySteps = todayPath({ words, homework, submissions, assignments, mistakesDoneToday: reviewedToday, today }).steps.filter((item) => !item.idle).slice(0, 3);
+  const sections = homeSections({ homework, assignments, words, today, path: todayPath({ words, homework, submissions, assignments, mistakesDoneToday: reviewedToday, today }) });
+  const upcoming = occurrences.filter((item) => item.status !== 'Tühistatud').slice(0, 5);
   const progress = petProgress({ lessons: state.data.lessons, submissions, homework: state.data.homework, words });
   const { streak } = progress;
   const offerPet = !preview && !pet?.optedOut && !pet?.kind;
@@ -159,19 +161,44 @@ export default function StudentDashboardPage({
     {!preview?.studentId ? <RecordingConsentPrompt students={students} user={user} role="student" {...(consentService ? { service: consentService } : {})} /> : null}
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Minu õppeained" />
 
+    {/* the first screen (owner 2026-11-01): exactly one next step and one request of the pet, nothing else */}
     <div className="sh-hero">
+      <section className={`sh-step ${step.key === 'done' ? 'is-done' : ''}`} aria-label="Järgmine samm">
+        <small>Järgmine samm <span lang="ru">· следующий шаг</span></small>
+        <strong>{step.title}</strong>
+        <span>{step.detail}</span>
+        {step.to.startsWith('#') ? <a href={step.to}>{step.button} <ChevronRight size={17} aria-hidden="true" /></a> : <Link to={step.to}>{step.button} <ChevronRight size={17} aria-hidden="true" /></Link>}
+      </section>
       {pet?.kind && !pet.optedOut ? <PetLoop user={user} studentId={students[0].id} pet={pet} readOnly={Boolean(preview)} lessons={state.data.lessons} submissions={submissions} homework={state.data.homework} assignments={sheets} words={words} subject={chosen || students[0].subject || ''}
         repository={petRepository} {...(wordsService ? { wordsService } : {})} /> : null}
       {offerPet ? <Link className="sh-pet" to="/student/lemmik"><i style={{ display: 'grid', placeItems: 'center' }}><PawPrint size={40} aria-hidden="true" /></i><span><strong>Vali endale sõber</strong><small>Õppesõber kasvab koos sinuga</small></span></Link> : null}
-      <div className="sh-main">
-        <section className={`sh-step ${step.key === 'done' ? 'is-done' : ''}`} aria-label="Järgmine samm">
-          <small>Järgmine samm</small>
-          <strong>{step.title}</strong>
-          <span>{step.detail}</span>
-          <Link to={step.to}>{step.button} <ChevronRight size={17} aria-hidden="true" /></Link>
-        </section>
+    </div>
+
+    {notes.length ? <ul className="sh-notes" aria-label="Sulle on uudiseid">{notes.map((note) => {
+      if (note.key === 'invoice') return <InvoiceNote key={note.key} note={note} invoices={unpaid} readOnly={Boolean(preview)} {...(paymentsApi ? { api: paymentsApi } : {})} />;
+      const Icon = NOTE_ICON[note.key];
+      return <li key={note.key}><Link to={note.to}><Icon size={17} aria-hidden="true" /> {note.text} <ChevronRight size={15} aria-hidden="true" /></Link></li>;
+    })}</ul> : null}
+
+    {/* below the first screen: every section one tap away, with a small count instead of a long block */}
+    <section className="sh-sections" aria-label="Minu õppimine">
+      <header className="sh-sections__head">
+        <h2>Minu õppimine <small lang="ru">· моя учёба</small></h2>
+        {streak ? <span className="sh-streak" title="Õppimise päevi järjest"><Flame size={15} aria-hidden="true" /> {streak} {streak === 1 ? 'päev' : 'päeva'} järjest</span> : null}
+      </header>
+      <ul>{sections.map((item) => {
+        const Icon = SECTION_ICON[item.key];
+        return <li key={item.key} className={item.done ? 'is-done' : ''}><Link to={item.to}>
+          <Icon size={18} aria-hidden="true" />
+          <b>{item.label}</b>
+          <small>{item.detail}</small>
+          {item.count ? <em>{item.count}</em> : item.done ? <Check size={16} className="sh-sections__done" aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
+        </Link></li>;
+      })}</ul>
+      <div className="sh-plan" id="tunniplaan">
+        <h3><CalendarDays size={18} aria-hidden="true" /> Tunniplaan</h3>
         <div className="sh-lesson">
-          <span><CalendarDays size={17} aria-hidden="true" /> {lessonAhead
+          <span>{lessonAhead
             ? <>Järgmine tund: <strong>{lessonAhead.occurrenceDate === today ? 'täna' : dateLabel(lessonAhead.occurrenceDate)} {lessonAhead.time}</strong>{subjects.length > 1 ? ` · ${itemSubject(lessonAhead, studentOf(lessonAhead))}` : ''}</>
             : 'Tunde ei ole plaanis'}</span>
           {lessonAhead && !preview ? (nextRequest?.status === 'pending' ? <p className="form-hint" role="status">{isAbsenceOnly(nextRequest) ? 'Teade, et sa ei tule, on õpetajale saadetud.' : 'Palve tund üle viia on saadetud. Tund jääb oma kohale, kuni õpetaja vastab.'} <button type="button" className="link-button" onClick={cancelRequest}>Võta palve tagasi</button></p>
@@ -180,31 +207,17 @@ export default function StudentDashboardPage({
               : <button type="button" className="link-button" onClick={() => setRescheduling(true)}>Ei saa tulla?</button>) : null}
           {lessonAhead && !preview ? <Link className="link-button" to="/kontroll">Kontrolli seadet <span lang="ru">· проверить камеру и звук</span></Link> : null}
         </div>
+        {upcoming.length > 1 ? <details className="sh-plan__more">
+          <summary>Järgmised tunnid ({upcoming.length})</summary>
+          <ul>{upcoming.map((item) => <li key={`${item.id}-${item.occurrenceDate}-${item.time}`}>
+            <b>{item.occurrenceDate === today ? 'täna' : dateLabel(item.occurrenceDate)} {item.time}</b>
+            <span>{[subjects.length > 1 ? itemSubject(item, studentOf(item)) : '', item.teacher].filter(Boolean).join(' · ')}</span>
+          </li>)}</ul>
+        </details> : null}
       </div>
-    </div>
+    </section>
     {rescheduling && lessonAhead ? <RescheduleDialog lesson={lessonAhead} student={studentMap.get(lessonAhead.studentId) || students[0]} user={user} role="student"
       busy={occurrences.slice(0, 6).map((item) => ({ date: item.occurrenceDate, time: item.time, duration: item.duration }))} requests={changeRequests}
       onClose={() => setRescheduling(false)} onSent={() => { setRescheduling(false); state.reload(); }} /> : null}
-
-    {daySteps.length ? <section className="sh-today" aria-label="Täna">
-      <header className="sh-today__head">
-        <h2>Täna {daySteps.filter((item) => item.done).length}/{daySteps.length}</h2>
-        {streak ? <span className="sh-streak" title="Õppimise päevi järjest"><Flame size={15} aria-hidden="true" /> {streak} {streak === 1 ? 'päev' : 'päeva'} järjest</span> : null}
-      </header>
-      <ul>{daySteps.map((item) => (
-        <li key={item.key} className={item.done ? 'is-done' : ''}><Link to={item.to}>
-          <i>{item.done ? <Check size={14} aria-hidden="true" /> : null}</i>
-          <b>{item.label}</b><small>{item.detail}</small>
-        </Link></li>
-      ))}</ul>
-    </section> : null}
-
-    {notes.length ? <ul className="sh-notes" aria-label="Sulle on uudiseid">{notes.map((note) => {
-      if (note.key === 'invoice') return <InvoiceNote key={note.key} note={note} invoices={unpaid} readOnly={Boolean(preview)} {...(paymentsApi ? { api: paymentsApi } : {})} />;
-      const Icon = NOTE_ICON[note.key];
-      return <li key={note.key}><Link to={note.to}><Icon size={17} aria-hidden="true" /> {note.text} <ChevronRight size={15} aria-hidden="true" /></Link></li>;
-    })}</ul> : null}
-
-    <div><Link className="sh-link" to="/student/areng">Minu areng <small>· vaata, kuidas läheb</small> <ChevronRight size={15} aria-hidden="true" /></Link></div>
   </div></div>;
 }

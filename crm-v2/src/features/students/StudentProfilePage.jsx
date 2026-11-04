@@ -35,6 +35,7 @@ import LessonTokensCard from './LessonTokensCard.jsx';
 import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
+import MonologuesCard from '../monologue/MonologuesCard.jsx';
 import AutoSkillsCard from './AutoSkillsCard.jsx';
 import LearnerSnapshotCard from '../learner/LearnerSnapshotCard.jsx';
 import MonthlyReportCard from '../learner/MonthlyReportCard.jsx';
@@ -72,7 +73,7 @@ const PROFILE_TABS = [
 // the works tab opens the sheet viewer: downloaded when the tab is opened, not with every card
 const StudentWorksPanel = lazy(() => import('./StudentWorksPanel.jsx'));
 
-export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi }) {
+export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -220,7 +221,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
             <StudentDirectionsCard student={directionStudent} schedule={state.schedule} lessons={state.lessons} plan={state.plan} directions={directions} canEdit={canAssignTeacher} canViewFinance={canViewFinance} service={studentApi} onEdit={() => setTracksOpen(true)} onChanged={refreshStudent} />
             {canAssignTeacher ? <StudentParentsCard student={student} user={currentUser} {...(parentApi ? { service: parentApi } : {})} onChanged={refreshStudent} /> : null}
             {/* „Õpilase pilt” (owner 2026-10-23): practice, forgotten words, sheet errors, open homework */}
-            {/* „Kuu aruanne vanemale” (owner 2026-10-23): the admin checks and sends it */}
+            {/* „Kuu kokkuvõte vanemale” (owner 2026-10-23 / 2026-11-04): drafted per month in the parent's language; the admin copies it and marks it sent */}
             {currentUser?.roles?.includes(ROLES.ADMIN) ? <MonthlyReportCard student={student} user={currentUser} {...(reportApi ? { repository: reportApi } : {})} /> : null}
             <LearnerSnapshotCard studentId={student.id} studentName={student.name} {...(learnerRepository ? { repository: learnerRepository } : {})} />
             {/* „Teekond sihttasemeni” (owner 2026-11-04): admin only — an estimate per skill, not for teachers, students or parents */}
@@ -266,6 +267,8 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
           <div className="profile-grid">
             <AutoSkillsCard student={student} user={currentUser} isAdmin={canAssignTeacher} homeworkApi={homeworkApi} recordingApi={recordingApi} />
             <StudentRecordingsPanel student={student} user={currentUser} isAdmin={canAssignTeacher} service={recordingApi} />
+            {/* „Kuu monoloog” (owner 2026-11-04): the monthly two-minute monologues, „Võrdle” plays two months side by side */}
+            <MonologuesCard student={student} user={currentUser} className="profile-wide" {...(monologueApi ? { service: monologueApi } : {})} />
             {/* the student's „Sõnavara → Teemad”, read only; topicsApi: { catalogApi, wordsApi, loadWords } (tests) */}
             <StudentTopicsCard student={student} {...(topicsApi || {})} />
           </div>

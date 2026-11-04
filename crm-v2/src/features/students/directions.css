@@ -1,4 +1,4 @@
-/* „Õppesuunad”, „Lapsevanemad”, „Liida kaardid”, „Võimalikud duplikaadid”, Seaded → Õppesuunad (2026-10-24) */
+/* „Õppesuunad”, „Lapsevanemad”, „Liida kaardid”, „Võimalikud topeltkaardid”, Seaded → Õppesuunad (2026-10-24) */
 .student-directions__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .student-directions__head h2 { margin: 0; }
 .student-directions__list, .student-parents__list, .study-directions-card__list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
@@ -36,3 +36,8 @@
   .student-directions__main { flex: 1 1 calc(100% - 52px); }
   .student-directions__side { justify-items: start; width: 100%; }
 }
+.duplicate-pair__name { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.duplicate-pair__facts { display: grid; gap: 2px; margin: 4px 0 0; font-size: 0.86rem; }
+.duplicate-pair__facts > div { display: grid; grid-template-columns: 7.5em 1fr; gap: 6px; }
+.duplicate-pair__facts dt { color: var(--muted, #667085); }
+.duplicate-pair__facts dd { margin: 0; overflow-wrap: anywhere; }

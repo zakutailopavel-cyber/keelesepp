@@ -1,4 +1,4 @@
-import { CalendarClock, CalendarRange, ChevronLeft, ChevronRight, DoorOpen, Plus, Search, StickyNote, Undo2, UserRoundX, UsersRound, X, XCircle } from 'lucide-react';
+import { CalendarCheck, CalendarClock, CalendarRange, ChevronLeft, ChevronRight, DoorOpen, Plus, Search, StickyNote, Undo2, UserRoundX, UsersRound, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -21,6 +21,8 @@ import CalendarColors from './CalendarColors.jsx';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid, { LessonKindsLegend } from './TimeGrid.jsx';
 import { unplannedStudents } from './unplannedStudents.js';
+import { findUnmarkedLessons } from './unmarkedLessons.js';
+import { unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.js';
 import { DAY_IDS, bandsOn, cellStatus, paintSlot, setCellStatus, slotsOn } from './availabilityModel.js';
 import CellStatusMenu from './CellStatusMenu.jsx';
 import RoomsDialog from './RoomsDialog.jsx';
@@ -229,6 +231,12 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
 
   // the planner: students without „Sobivad ajad” get the times of their past lessons (computed when it opens)
   const learned = useMemo(() => (plannerOpen && state.data ? learnedTimes({ events: state.data[0] || [], lessons: state.data[3] || [], today: toIsoDate() }) : new Map()), [plannerOpen, state.data]);
+  // „Märkimata tunnid”: past lessons of the last 60 days without a mark (the page /calendar/markimata explains each)
+  const unmarkedCount = useMemo(() => (state.data ? findUnmarkedLessons({ schedule: state.data[0] || [], lessons: state.data[3] || [], today: toIsoDate(), teacherUid: teacherOnly ? user.uid : '' }).length : 0), [state.data, teacherOnly, user.uid]);
+  // the admin's menu badge follows the calendar's own number (a lesson marked here lowers it at once)
+  useEffect(() => {
+    if (isAdmin && state.data) unmarkedLessonsService.notifyChanged(unmarkedCount);
+  }, [isAdmin, state.data, unmarkedCount]);
   if (state.loading) return <LoadingState label="Laen kalendrit…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const [scheduleEvents, students, groups, lessonRecords] = state.data;
@@ -829,6 +837,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         {teacherOnly || isAdmin ? <Button variant={plannerOpen ? 'primary' : 'secondary'} aria-pressed={plannerOpen} onClick={() => { setPlannerOpen((value) => !value); setPanelKey(''); }}><UsersRound size={17} /> Planeerija</Button> : null}
         {teacherOnly || isAdmin ? <Button variant={fitOpen ? 'primary' : 'secondary'} aria-pressed={fitOpen} onClick={() => setFitOpen((value) => !value)}><CalendarClock size={17} /> Sobivad ajad</Button> : null}
         {teacherOnly || isAdmin ? <Button variant={paint || (weekEditor && paintTeacher) ? 'primary' : 'secondary'} aria-pressed={Boolean(weekEditor && paintTeacher)} onClick={() => { setPaint(null); if (!paintTeacher) { setActionError('Vali enne õpetaja, kelle aegu soovid märkida.'); return; } setActionError(''); setWeekEditor(true); }}><CalendarRange size={17} /> {teacherOnly ? 'Minu ajad' : 'Õpetaja ajad'}</Button> : null}
+        {(teacherOnly || isAdmin) && unmarkedCount ? <Link className="button button--secondary cal2-unmarked-link" to="/calendar/markimata"><CalendarCheck size={17} /> Märkimata tunnid <b className="nav-count" aria-label={`${unmarkedCount} märkimata`}>{unmarkedCount}</b></Link> : null}
         <CalendarGoogleChip user={user} onSynced={state.reload} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} />
         <Button onClick={() => openCreate()}><Plus size={17} /> Lisa tund</Button>
       </div>
