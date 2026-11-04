@@ -39,7 +39,14 @@ describe('„Minu pere” with the „Keeleoskus” curve (demo family)', () => 
       expect(await within(areng).findByText('62 %', { selector: '.pf-now strong' }, { timeout: 4000 })).toBeInTheDocument();
       expect(within(areng).getByRole('heading', { name: /B1 keeleoskus/ })).toBeInTheDocument();
       expect(areng).toHaveTextContent('+19 % alates juulist');
-      expect(areng).toHaveTextContent('Hinnang tasemele B1: kursuse eesmärgid');
+      // the explanation is behind „Mida see näitab?”; Russian only in the heading and that toggle
+      expect(within(areng).getByText(/Mida see näitab/, { selector: 'summary' })).toBeInTheDocument();
+      expect(areng.querySelector('.pf-info p')).toHaveTextContent('Hinnang tasemele B1');
+      expect(areng.querySelector('.pf-legend [lang="ru"]')).toBeNull();
+      expect(areng.querySelector('.pf-caption')).toBeNull();
+      // weekly dots: only the first, the last and the picked one (the line stays)
+      expect(areng.querySelectorAll('.pf-dot:not(.is-anchor)')).toHaveLength(1); // the first point is the „Algus” ring
+      expect(within(areng).getAllByText(/Õpetaja hinnang|Proovieksam \(kontroll\)/, { selector: '.pf-legend li' })).toHaveLength(2);
       // one chart, the start labelled, the exam a labelled marker, the goal line named
       expect(within(areng).getAllByRole('img')).toHaveLength(1);
       expect(areng).toHaveTextContent('Algus 43 %');
@@ -47,8 +54,11 @@ describe('„Minu pere” with the „Keeleoskus” curve (demo family)', () => 
       expect(areng).toHaveTextContent('B1 tase');
       expect(within(areng).getByRole('table')).toBeInTheDocument();
       expect(read).toHaveBeenCalledWith(['demo-aleksandr']);
-      fireEvent.click(areng.querySelector('.pf-hit[data-point*="Proovieksam"]'));
-      expect(areng.querySelector('.pf-caption')).toHaveTextContent('23. okt · Proovieksam · 64 % (kontroll)');
+      expect(areng.querySelector('.pf-hit[data-point*="Proovieksam"]')).toHaveAttribute('data-point', '23. okt · Proovieksam · 64 % (kontroll)');
+      // picking a weekly point shows its dot and its date and value beside it
+      fireEvent.click(areng.querySelectorAll('.pf-hit')[3]);
+      expect(areng.querySelectorAll('.pf-dot:not(.is-anchor)')).toHaveLength(2);
+      expect(areng.querySelector('.pf-tip')).toHaveTextContent('%');
 
       const now = screen.getByRole('region', { name: 'Mida õpime praegu' });
       expect(now.querySelectorAll(".nl-steps em")).not.toHaveLength(0);

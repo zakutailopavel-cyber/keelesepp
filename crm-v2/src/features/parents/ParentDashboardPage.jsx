@@ -209,7 +209,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
       <div className="pd-layout">
         <div className="pd-main">
           {/* „Areng” (owner 2026-11-04): one curve of measured proficiency toward the level, mock exams marked */}
-          <ProficiencyCard key={`areng-${childKeyOf(child)}`} studentIds={childRecordIds} assignments={ofPerson(child, assignments)} targetLevel={targetLevelOf(child)} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} />
+          <ProficiencyCard key={`areng-${childKeyOf(child)}`} name={String(child.name || '').trim().split(/\s+/)[0]} studentIds={childRecordIds} assignments={ofPerson(child, assignments)} targetLevel={targetLevelOf(child)} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} />
           <NowLearningCard lessons={childLessons} assignments={childAssignments} today={today} />
         </div>
         <ChildCards child={child} summary={summary} upcoming={upcoming} subjects={subjects.length} onlyOneSubject={chosen} lessonRequest={lessonRequest} onReschedule={setRescheduling} readOnly={Boolean(preview)}

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { normalizeProgressPoint, progressPointRecord } from '../../services/firebase/progressPoints.js';
-import { tallinnDay } from '../parents/nowLearning.js';
+import { goalLight, monthGoalSteps, tallinnDay } from '../parents/nowLearning.js';
 import ProgressPointsCard from './ProgressPointsCard.jsx';
 import { courseGoalKeys, courseLessonIdOf, examGaps, levelCurve, masteredOn, goalResults, targetLevelOf } from './levelCurve.js';
 import { changeText, curveSummary } from './proficiencyCurve.js';
@@ -90,6 +90,24 @@ describe('progressPoints record', () => {
   });
   it('normalizes a stored point', () => {
     expect(normalizeProgressPoint('x', { studentId: 's1', date: 'bad', level: 'Z', percent: 140, kind: 'odd' })).toMatchObject({ date: '', level: '', percent: 100, kind: 'teacher' });
+  });
+});
+
+describe('„Mida õpime praegu” uses the curve\'s „Oskan”', () => {
+  const now = Date.parse('2026-11-04T12:00:00Z');
+  const lessonSheet = (id, lesson, day, ok, total, status = 'done') => ({ id, status, lessonTitle: lesson, completedAt: `${day}T12:00:00Z`, worksheetDoc: { meta: { canDo: `Ma oskan ${lesson}`, goals: { g_read: 'Õpilane loeb' } } }, score: { perGoal: { g_read: { ok, total } } } });
+  it('Oskan = ≥ 70 % in ≥ 2 sheets; one good sheet = Harjutan; under 50 % = Kordame; not handed in = Veel tegemata', () => {
+    const month = monthGoalSteps([
+      lessonSheet('a1', 'A', '2026-10-20', 7, 10), lessonSheet('a2', 'A', '2026-10-22', 7, 10),
+      lessonSheet('b1', 'B', '2026-10-25', 10, 10),
+      lessonSheet('c1', 'C', '2026-10-25', 4, 10), lessonSheet('c2', 'C', '2026-10-26', 4, 10),
+      lessonSheet('d1', 'D', '2026-11-01', 0, 0, 'new'),
+      lessonSheet('e1', 'E', '2026-08-01', 10, 10), // a lesson of an older month is not this month's
+    ], { now });
+    const state = Object.fromEntries(month.steps.map((step) => [step.lesson, step.state]));
+    expect(state).toEqual({ A: 'mastered', B: 'practise', C: 'review', D: 'todo' });
+    expect(goalLight({ ok: 8, total: 10, sheets: 1 })).toBe('practise');
+    expect(goalLight({ ok: 7, total: 10, sheets: 2 })).toBe('mastered');
   });
 });
 

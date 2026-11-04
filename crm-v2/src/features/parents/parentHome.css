@@ -49,6 +49,8 @@
 .pd-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .pd-main, .pd-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-content: start; min-width: 0; }
 .pd-side .pd-card { margin: 0; }
+/* the curve card fills the column here (elsewhere it stops at 820 px, so a wide page does not stretch the chart) */
+.pd-main .pf-card { max-width: none; }
 .pd-side .pd-card .pd-row:first-child { border-top: 0; }
 .pd-row > small svg { vertical-align: -2px; }
 .pd-card--due { border-color: #f0dcc2; background: #fff9f1; }

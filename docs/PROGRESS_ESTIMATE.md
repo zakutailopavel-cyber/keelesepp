@@ -104,5 +104,16 @@ Limits: goals scored only by the teacher (most `g_use`: writing / speaking with 
 without teacher points the computed share of a course stays well below 100 % (B1: about 78 % at most). A per-goal teacher
 mark („õpetaja hinnang” per goal) does not exist yet; until then the teacher corrects the curve with a `teacher` point.
 Sheets without `score.perGoal` (old ones) and sheets not built from the course (no `ws_<lessonId>_` id or course
-`lessonId`) do not count. „Mida õpime praegu” on the parent page still uses the month steps' own thresholds
-(`learner/monthSteps.js`: ≥ 80 % Oskan, ≥ 50 % Harjutan), not this rule.
+`lessonId`) do not count.
+
+**One meaning of „Oskan” on the family's page** (owner 2026-11-04): „Mida õpime praegu” (`parents/nowLearning.js`
+`monthGoalSteps` / `goalLight`) uses the same rule as the curve — Oskan = ≥ 2 sheets with an automatic result and
+≥ 70 % right together; Harjutan = a result that is not yet Oskan and ≥ 50 % (also ≥ 70 % from one sheet only); Kordame =
+under 50 %; Veel tegemata = no result yet. The month = the lessons with a sheet in the last 30 days. Difference left: that
+card groups by the learner's promise text (a lesson whose goals are written for the teacher shows one „Ma oskan …” step
+for the lesson), the curve counts each course goal apart. The student's own „Kuu sammud” card (`learner/monthSteps.js`,
+≥ 80 % / ≥ 50 %, shows %) is unchanged.
+
+**Where it is shown:** the parent („Minu pere” → „Areng”, heading „<child's first name> B1 keeleoskus”) and the student
+(„Minu areng”, top, „Sinu B1 keeleoskus”) see the same component (`progress-points/ProficiencyCard.jsx`); only the
+wording differs. Staff see it on the student card („Keeleoskus tasemele”).

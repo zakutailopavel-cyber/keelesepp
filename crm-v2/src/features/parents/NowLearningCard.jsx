@@ -1,7 +1,6 @@
 import { BookOpen } from 'lucide-react';
 import { useMemo } from 'react';
-import { monthSteps } from '../learner/monthSteps.js';
-import { STEP_LIGHT, nowLearning } from './nowLearning.js';
+import { STEP_LIGHT, monthGoalSteps, nowLearning } from './nowLearning.js';
 import './nowLearning.css';
 
 const ORDER = ['mastered', 'practise', 'review', 'todo'];
@@ -10,7 +9,7 @@ const ORDER = ['mastered', 'practise', 'review', 'todo'];
 // traffic lights (Oskan / Harjutan / Kordame). The family sees the state, not the percentages (those are for teachers).
 export default function NowLearningCard({ lessons = [], assignments = [], today, limit = 6 }) {
   const now = useMemo(() => nowLearning({ lessons, today }), [lessons, today]);
-  const month = useMemo(() => monthSteps(assignments), [assignments]);
+  const month = useMemo(() => monthGoalSteps(assignments), [assignments]);
   const steps = [...month.steps].sort((a, b) => ORDER.indexOf(a.state) - ORDER.indexOf(b.state)).slice(0, limit);
   const nothing = !now.module && !now.topics.length && !month.total;
   return <section className="pc-card nl-card" aria-label="Mida õpime praegu">

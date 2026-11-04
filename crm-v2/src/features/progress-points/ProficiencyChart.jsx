@@ -3,8 +3,8 @@ import { formatPercent, pointLabel, pointText } from './proficiencyCurve.js';
 import './proficiency.css';
 
 const DAY = 86400000;
-const H = 230;
-const PAD = { left: 40, right: 18, top: 26, bottom: 28 };
+const H = 210;
+const PAD = { left: 36, right: 16, top: 24, bottom: 24 };
 const ms = (date) => Date.parse(`${date}T12:00:00Z`);
 const MONTHS_SHORT = ['jaan', 'veebr', 'märts', 'apr', 'mai', 'juuni', 'juuli', 'aug', 'sept', 'okt', 'nov', 'dets'];
 
@@ -32,14 +32,15 @@ function monthTicks(from, to) {
 }
 
 /**
- * One line: the level % from the coursework (weekly points, the teacher's start / corrections as bigger points),
- * Y 0–100 % (100 % = the level reached), mock exams as their own labelled markers that do not move the line.
+ * One quiet line: the level % from the coursework (dots only at the start, the end and the point picked), the
+ * teacher's start / corrections as labelled rings, mock exams as labelled diamonds that do not move the line;
+ * gridlines at 0 / 50 / 100 % (100 % = the level).
  */
 export default function ProficiencyChart({ line = [], exams = [], level }) {
   const [ref, width] = useWidth();
   const marks = [...line, ...exams.map((exam) => ({ ...exam, isExam: true }))].sort((a, b) => a.date.localeCompare(b.date));
   const [active, setActive] = useState(null);
-  const shown = active === null ? line.at(-1) || marks.at(-1) : marks[active];
+  const picked = active === null ? null : marks[active];
   const W = Math.max(280, width);
   const dates = marks.map((mark) => ms(mark.date));
   const first = Math.min(...dates);
@@ -51,39 +52,43 @@ export default function ProficiencyChart({ line = [], exams = [], level }) {
   const y = (value) => PAD.top + (H - PAD.top - PAD.bottom) * (1 - value / 100);
   const path = line.map((point, index) => `${index ? 'L' : 'M'}${x(point.date).toFixed(1)},${y(point.percent).toFixed(1)}`).join('');
   const lastLine = line.at(-1);
+  const anchors = line.filter((point) => point.kind !== 'computed');
+  const shownDot = (point, index) => point.kind === 'computed' && (index === 0 || index === line.length - 1 || picked === point);
   const summary = `${level} keeleoskus: ${line.length ? `${formatPercent(line[0].percent)} → ${formatPercent(lastLine.percent)}` : ''}${exams.length ? `; ${exams.map(pointText).join('; ')}` : ''}`;
   const text = (mark) => (mark.isExam ? `${pointText(mark)} (kontroll)` : pointText(mark));
+  // the picked point's words, inside the chart beside the point (no caption under it)
+  const tip = picked && !picked.isExam && picked.kind === 'computed' ? { x: x(picked.date), y: y(picked.percent), text: `${pointText(picked).split(' · ')[0]} · ${formatPercent(picked.percent)}` } : null;
   return <div className="pf-chart" ref={ref}>
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label={summary} onMouseLeave={() => setActive(null)}>
-      {[0, 25, 50, 75].map((value) => <g key={value}><line className="pf-grid" x1={PAD.left} x2={W - PAD.right} y1={y(value)} y2={y(value)} /><text className="pf-axis" x={PAD.left - 6} y={y(value) + 4} textAnchor="end">{value}%</text></g>)}
+      {[0, 50].map((value) => <g key={value}><line className="pf-grid" x1={PAD.left} x2={W - PAD.right} y1={y(value)} y2={y(value)} /><text className="pf-axis" x={PAD.left - 6} y={y(value) + 4} textAnchor="end">{value}%</text></g>)}
       {/* the goal: 100 % = the level */}
       <line className="pf-target" x1={PAD.left} x2={W - PAD.right} y1={y(100)} y2={y(100)} />
       <text className="pf-axis" x={PAD.left - 6} y={y(100) + 4} textAnchor="end">100%</text>
       <text className="pf-target-label" x={W - PAD.right} y={y(100) - 7} textAnchor="end">{level} tase</text>
-      {monthTicks(from, to).map((tick) => <g key={tick.at}><line className="pf-tick" x1={xAt(tick.at)} x2={xAt(tick.at)} y1={y(0)} y2={y(0) + 4} /><text className="pf-axis" x={xAt(tick.at)} y={H - 8} textAnchor="middle">{tick.label}</text></g>)}
-      <line className="pf-base" x1={PAD.left} x2={W - PAD.right} y1={y(0)} y2={y(0)} />
+      {monthTicks(from, to).map((tick) => <text key={tick.at} className="pf-axis" x={xAt(tick.at)} y={H - 6} textAnchor="middle">{tick.label}</text>)}
       {line.length > 1 ? <path className="pf-line" d={path} /> : null}
-      {line.map((point) => <circle key={`${point.date}-${point.kind}`} className={`pf-dot ${point.kind === 'computed' ? 'is-weekly' : 'is-anchor'} ${shown === point ? 'is-active' : ''}`} cx={x(point.date)} cy={y(point.percent)} r={point.kind === 'computed' ? (shown === point ? 4.5 : 3) : 6} />)}
-      {line.filter((point) => point.kind !== 'computed').map((point) => <text key={`a-${point.date}`} className="pf-anchor-label" x={Math.max(PAD.left + 2, x(point.date))} y={y(point.percent) - 11} textAnchor={x(point.date) < PAD.left + 50 ? 'start' : 'middle'}>{`${pointLabel(point)} ${formatPercent(point.percent)}`}</text>)}
+      {line.map((point, index) => (shownDot(point, index) ? <circle key={`${point.date}-${point.kind}`} className="pf-dot" cx={x(point.date)} cy={y(point.percent)} r={picked === point ? 5 : 4} /> : null))}
+      {anchors.map((point) => <g key={`a-${point.date}`}>
+        <circle className="pf-dot is-anchor" cx={x(point.date)} cy={y(point.percent)} r="6" />
+        <text className="pf-anchor-label" x={Math.max(PAD.left + 2, x(point.date))} y={y(point.percent) - 11} textAnchor={x(point.date) < PAD.left + 50 ? 'start' : 'middle'}>{`${pointLabel(point)} ${formatPercent(point.percent)}`}</text>
+      </g>)}
       {exams.map((point) => {
         const cx = x(point.date);
         const cy = y(point.percent);
         const above = cy - 14 > PAD.top + 4;
-        return <g key={point.id || `${point.date}-exam`} className={`pf-exam ${shown?.isExam && shown.date === point.date ? 'is-active' : ''}`}>
+        return <g key={point.id || `${point.date}-exam`} className="pf-exam">
           <rect x={cx - 6} y={cy - 6} width="12" height="12" transform={`rotate(45 ${cx} ${cy})`} />
           <text className="pf-exam-label" x={Math.min(cx, W - PAD.right - 4)} y={above ? cy - 13 : cy + 22} textAnchor={cx > W - PAD.right - 90 ? 'end' : 'middle'}>{`${point.label || 'Proovieksam'} ${formatPercent(point.percent)}`}</text>
         </g>;
       })}
-      {lastLine ? <text className="pf-value" x={x(lastLine.date) - 2} y={y(lastLine.percent) + 20} textAnchor="end">{formatPercent(lastLine.percent)}</text> : null}
-      {/* hit targets bigger than the marks (pointer only: the image has a label and the table below has every point) */}
+      {lastLine && picked !== lastLine ? <text className="pf-value" x={x(lastLine.date) - 2} y={y(lastLine.percent) + 20} textAnchor="end">{formatPercent(lastLine.percent)}</text> : null}
+      {tip ? <text className="pf-tip" x={Math.min(Math.max(tip.x, PAD.left + 40), W - PAD.right - 40)} y={tip.y + 22} textAnchor="middle">{tip.text}</text> : null}
+      {/* hit targets bigger than the marks (pointer only: the image has a label and the table has every point) */}
       {marks.map((mark, index) => <circle key={`hit-${mark.date}-${mark.kind}-${index}`} className="pf-hit" data-point={text(mark)} cx={x(mark.date)} cy={y(mark.percent)} r={mark.kind === 'computed' ? 9 : 16} onMouseEnter={() => setActive(index)} onClick={() => setActive(index)}><title>{text(mark)}</title></circle>)}
     </svg>
-    <p className="pf-caption" aria-live="polite">{shown ? text(shown) : ''}</p>
-    <ul className="pf-legend">
-      {line.length ? <li><i className="pf-legend__dot" aria-hidden="true" />Kursuse eesmärkide järgi<span className="pd-ru" lang="ru"> · по целям курса</span></li> : null}
-      {line.some((point) => point.kind !== 'computed') ? <li><i className="pf-legend__anchor" aria-hidden="true" />Õpetaja hinnang<span className="pd-ru" lang="ru"> · оценка учителя</span></li> : null}
-      {exams.length ? <li><i className="pf-legend__exam" aria-hidden="true" />Proovieksam (kontroll)<span className="pd-ru" lang="ru"> · пробный экзамен</span></li> : null}
-      <li><i className="pf-legend__target" aria-hidden="true" />100 % = {level} tase</li>
-    </ul>
+    {anchors.length || exams.length ? <ul className="pf-legend">
+      {anchors.length ? <li><i className="pf-legend__anchor" aria-hidden="true" />Õpetaja hinnang</li> : null}
+      {exams.length ? <li><i className="pf-legend__exam" aria-hidden="true" />Proovieksam (kontroll)</li> : null}
+    </ul> : null}
   </div>;
 }

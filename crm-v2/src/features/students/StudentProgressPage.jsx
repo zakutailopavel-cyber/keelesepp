@@ -22,6 +22,8 @@ import { useStudentWords } from '../vocabulary/useStudentWords.js';
 import { autoSkills } from './autoSkills.js';
 import { levelProgress, speakingFromStats } from './levelProgress.js';
 import MyProgressCard from './MyProgressCard.jsx';
+import ProficiencyCard from '../progress-points/ProficiencyCard.jsx';
+import { targetLevelOf } from '../progress-points/levelCurve.js';
 import './studentHome.css';
 import { mainSubject, onlySubject, subjectsOf } from './subjects.js';
 import SubjectSwitcher from './SubjectSwitcher.jsx';
@@ -40,6 +42,8 @@ export default function StudentProgressPage({
   summaryService,
   boardCopiesService,
   announcementService,
+  pointsService,
+  goalsLoader,
 }) {
   const { user, preview } = useAuth();
   const [subject, setSubject] = useState('');
@@ -95,6 +99,8 @@ export default function StudentProgressPage({
     <PageHeader title="Minu areng" description={<>Siit näed, kuidas sul läheb. Siin pole vaja midagi ära teha.<span lang="ru"> · Здесь видно твой прогресс, делать ничего не нужно.</span></>} />
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Minu õppeained" />
     {/* „Minu areng” follows the Estonian course; another subject has its own teacher's plan */}
+    {/* „Sinu B1 keeleoskus” (owner 2026-11-04): the same curve the parents see, at the top of „Minu areng” (not on the home screen) */}
+    {!chosen || chosen === 'Eesti keel' ? <ProficiencyCard audience="student" studentIds={students.map((student) => student.id)} assignments={sheets} targetLevel={targetLevelOf(students[0])} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} /> : null}
     {!chosen || chosen === 'Eesti keel' ? <MyProgressCard progress={progress} /> : null}
     <WordGrowthCard words={words} />
     <MonthStepsCard assignments={sheets} />

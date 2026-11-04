@@ -133,8 +133,13 @@ export function demoRepositories(data) {
     changeRequests: { listForStudents: async () => [], create: async () => ({}) },
     wordsService: { subscribeForStudent: (studentId, onData) => { onData(data.words.filter((word) => word.studentId === studentId)); return () => {}; } },
     consentService: { answerConsent: async () => ({}) },
-    summaryService: { listForStudents: async () => [] },
-    boardCopiesService: { listForStudents: async () => [] },
+    summaryService: { listForStudents: async () => [], subscribeForStudent: (id, onData) => { onData([]); return () => {}; } },
+    boardCopiesService: { listForStudents: async () => [], subscribe: (id, onData) => { onData([]); return () => {}; } },
+    // the student's own „Minu areng” (lab ?view=student)
+    studentSelf: { listSelf: async () => data.students.slice(0, 1), getById: async (id) => data.students.find((item) => item.id === id) || null },
+    petRepository: { lessonStats: async () => [], lessonStatsForStudents: async () => [] },
+    catalogRepository: { listCurriculum: async () => [] },
+    availabilityService: { get: async () => null, getForStudent: async () => null, subscribe: () => () => {} },
     pointsService: { listForStudents: byStudents(data.progressPoints || []) },
     announcementService: { listAnswered: async () => [] },
   };
