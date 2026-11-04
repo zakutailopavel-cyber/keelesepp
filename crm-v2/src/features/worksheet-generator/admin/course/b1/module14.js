@@ -356,6 +356,10 @@ export const LESSONS = withShapes({
         ['Miks palub Kristel Viktoril rääkida ratastest, mitte saunast?', 'sauna lugu on Oskar juba kirjutanud ja ratta lugu ei ole keegi kuulnud|ratta lugu on uus'],
         ['Mida peab Kadri kahe nädala pärast tegema?', 'kindlalt ütlema, kas ta tuleb|teatama, kas ta saab tulla'],
         ['Kes helistab kõigile, kes on nõus raamatuks olema?', 'raamatukoguhoidja Triin|Triin'],
+        ['Mitu kohta on lugude õhtul elavas raamatukogus?', 'kaheksa|8'],
+        ['Mida tegi Rasmus eelmisel suvel esimest korda?', 'telkis üksi|telkis'],
+        ['Kui kaua on Kadri lastehaiglas töötanud?', 'üheksa aastat|9 aastat'],
+        ['Millest räägiks Sofia?', 'esimestest kuudest kontoris|kontoris'],
         ['Kelle lugu tahaksid sina kõige rohkem kuulda ja miks?', ''],
       ]), { task: 'R12' }),
       tag(B.examListen('067_p_books', 'Elavad raamatud tutvustavad end.', 'Kümme elavat raamatut tutvustab end paari lausega. Kuula ja vali iga tutvustuse juurde õige vastus kolmest.', 'choice', [

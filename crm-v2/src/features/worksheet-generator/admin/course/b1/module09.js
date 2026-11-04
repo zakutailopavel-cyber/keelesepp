@@ -39,7 +39,7 @@
 // 044_t_know (gross and net pay 2026); examiner set 045_d_warm. One 4-3-2 left (043_d_432); 041_d_picture, 042_d_survey
 // and 044_p_three are pair talks. 045_t_l2: the rule for young workers follows the employment contracts act (2026).
 // Facts and sources: the PR of agent/av-b1-module-09.
-import { B, tag, teach, withShapes } from '../blocks.js';
+import { B, fullSentences, tag, teach, withShapes } from '../blocks.js';
 
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
@@ -839,7 +839,7 @@ export const LESSONS = withShapes({
     discover: [
       B.text('045_d_intro', 'Mooduli eksam Harno B1 vormis', 'Täna teed mooduli 9 eksami Harno B1 vormis. Eksam on lühendatud: igas osas on kõik Harno ülesanded, aga vähem küsimusi. Kirjutamine (35 min, 20 punkti) ja lugemine (40 min, 26 punkti) on teisel lehel, kuulamine (umbes 30 min, 23 punkti) ja rääkimine (umbes 12 min, 20 punkti) kolmandal. Eesmärk: vähemalt 80 % igas osas. Kõigepealt loed, kuidas Jaani esimene nädal koolis läks, ja kordad mooduli keelt.'),
       B.vocab('045_d_vocab', 'Mooduli võtmesõnad.', ['amet — профессия', 'vastutama — отвечать за', 'tegelema — заниматься', 'vahetus — смена', 'koosolek — совещание', 'kohtuma — встречаться', 'kandideerima — подавать заявку', 'kogemus — опыт', 'oskus — умение', 'tugevus — сильная сторона', 'juhendaja — наставник', 'alustama — начинать']),
-      B.reading('045_d_week', 'Jaani esimene nädal.', 'Loe Jaani kirja onu Viktorile. Vasta küsimustele oma sõnadega.', 'Tere, onu Viktor!', [
+      fullSentences(B.reading('045_d_week', 'Jaani esimene nädal.', 'Loe Jaani kirja onu Viktorile. Vasta igale küsimusele oma sõnadega terve lausega.', 'Tere, onu Viktor!', [
         'Nüüd on mul seljataga esimene nädal Kase koolis. Kirjutan sulle reede õhtul, kodus, köögilaua taga. Kas sa kujutad ette? Reede õhtu ja ma olen kodus!',
         '',
         'Esmaspäeval olin nii närvis, et jõudsin kooli juba kell kuus. Uks oli muidugi lukus ja ma pidin pool tundi koolimaja ees ootama. Maire naeris ja ütles, et temaga juhtus kakskümmend aastat tagasi täpselt sama.',
@@ -859,7 +859,15 @@ export const LESSONS = withShapes({
         ['Miks oli kolmapäev kõige toredam päev?', 'Oskar tuli klassiga sööklasse ja oli isa üle uhke'],
         ['Mida Jaan ja Merike detsembri kohta kokku leppisid?', 'Jaan aitab kahel laupäevaõhtul'],
         ['Mida teevad Jaan ja Viktor järgmisel nädalavahetusel?', 'lähevad talvelaagrisse|Jaan teeb süüa ja Viktor juhatab matka'],
-      ]),
+        ['Kus Jaan oma kirja kirjutab?', 'köögilaua taga|kodus'],
+        ['Mis kell jõudis Jaan esmaspäeval kooli?', 'kell kuus|kuus|6'],
+        ['Kui kaua pidi Jaan koolimaja ees ootama?', 'pool tundi'],
+        ['Mida ütles Maire Jaani varajase tuleku kohta?', 'temaga juhtus sama|kakskümmend aastat tagasi'],
+        ['Mille eest vastutab koolisööklas Maire?', 'menüü'],
+        ['Millega tegeleb Jaan praegu peamiselt?', 'suppide ja kastmetega|suppidega|kastmetega'],
+        ['Mitu portsjonit suppi tuleb koolis keeta?', 'nelisada|400'],
+        ['Mida kinkis Merike Jaanile lahkumiseks?', 'kaneelirullide retsepti|retsepti'],
+      ])),
       B.choice('045_d_quiz', 'Mooduli viktoriin.', 'Vali igale küsimusele vastus, mis on mooduli lugudega kooskõlas.', [
         ['Kellena töötas Jaan enne Kase kooli?', 'kokana kohvikus Kaneel', 'ettekandjana restoranis', 'kullerina firmas'],
         ['Miks ei saanud Jaan laupäeval Oskari finaali vaatama minna?', 'kokk Ott jäi haigeks', 'ta oli ise haige', 'mäng jäi ära'],

@@ -135,10 +135,14 @@ export function depthProblems(doc) {
     if (twoOptions.length) out.push({ code: 'two-options', level: 'warning', text: `${twoOptions.length} valikülesannet, kus on alla 3 vastusevariandi`, blocks: twoOptions.map((b) => b.id) });
   }
 
-  const writing = closed.filter((b) => SENTENCE_WRITING.includes(b.type));
+  // owner 2026-11-04 (no dictation in B1–C1): open comprehension questions answered in whole sentences count too — a
+  // reading task marked `fullSentences` (admin/course/blocks.js fullSentences(), the instruction says „terve lausega”)
+  const writing = [...closed.filter((b) => SENTENCE_WRITING.includes(b.type)), ...blocks.filter((b) => b.type === 'reading' && b.data?.fullSentences)];
   // v2 exam parts (reading and listening in exam form) have no sentence writing by design
   // v3: Harjuta is the exam's text tasks (option gaps, forms in a text, sentence gaps); Avasta has one language task
-  if (writing.length < 2 && !(examParts && doc?.meta?.design === 'v2') && !v3) out.push({ code: 'no-sentences', level: 'warning', text: `ainult ${writing.length} ülesannet, kus õpilane kirjutab terve lause (vähemalt 2)` });
+  // …and so has a check lesson's Avasta sheet that is itself an exam part (a mock exam's listening, `exampart` block)
+  const examPartSheet = examParts || (doc?.meta?.assessment && blocks.some((b) => b.type === 'exampart'));
+  if (writing.length < 2 && !(examPartSheet && doc?.meta?.design === 'v2') && !v3) out.push({ code: 'no-sentences', level: 'warning', text: `ainult ${writing.length} ülesannet, kus õpilane kirjutab terve lause (vähemalt 2)` });
 
   blocks.filter((b) => b.type === 'dictation').forEach((b) => {
     const n = lines(b.data?.sentences).length;

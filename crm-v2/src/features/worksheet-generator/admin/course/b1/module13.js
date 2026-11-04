@@ -415,6 +415,9 @@ export const LESSONS = withShapes({
         ['Kui palju peab tavaliselt maksma, kui lahkud toast kell kaks?', 'viisteist eurot|15 eurot'],
         ['Kui palju maksab rattarent päevas kahele täiskasvanule ja kahele lapsele?', 'nelikümmend eurot|40 eurot'],
         ['Miks palutakse öösel koridorides vaikust hoida?', 'paljud külalised on väikeste lastega|hotellis on palju lastega peresid'],
+        ['Kus asub hotelli parkla?', 'hotelli taga'],
+        ['Mis kell väljub ekskursioonibuss?', 'kümme|10'],
+        ['Kui palju maksab lasteratas päevas?', 'kaheksa|8'],
       ], 'g_vocab'), { task: 'R07' }),
       B.know('062_p_know', [
         'Kui sa ei tea, kuidas mõnda sõna eesti keeles öelda või kirjutada, aitab Eesti Keele Instituudi (EKI) keelenõu. Tööpäeviti kella 9-st 13-ni saab helistada numbril 631 3731. Küsimuse võib saata ka e-postiga või instituudi veebilehe kaudu; kirjalikule küsimusele vastatakse tavaliselt ühe kuni kolme tööpäeva jooksul.',

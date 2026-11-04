@@ -22,7 +22,12 @@ measurable part every lesson must pass before it is published. Each rule is chec
    keeps its dictations. Checked by `admin/course/noDictation.test.js`; the generator offers `practice-dictation` up
    to A2 only (`engine/activityCatalog.js`). A lesson that lost its dictation and has < 2 listening tasks left drops
    `g_listen` (3a). Sheets published before this rule keep their dictation until they are re-published from
-   „Kursuse tootmine”.
+   „Kursuse tootmine”. The time a dictation took is filled with comprehension work on the texts and recordings the
+   sheet already has (owner 2026-11-04, option 2): more open questions / statements in its reading task, more
+   questions or gap sentences on its recordings, true/false or choice „heard again”, a short-answer or
+   word-in-context gap task on its text — no new audio, no new error-fix or rewrite drill. Open questions answered
+   in whole sentences count as a whole-sentence task when the reading block is wrapped in `fullSentences()`
+   (`admin/course/blocks.js`; the instruction says „terve lausega”).
 4. The Russian teacher note (`curriculumLessons.goal`, `languageFocus`, `successCriteria`) stays for the teacher.
 
 ## B. Every sheet

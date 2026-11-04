@@ -531,6 +531,18 @@ export const LESSONS = withShapes({
         ['Mida otsiti vanasti jaaniööl metsast ja miks?', 'sõnajalaõit, sest leidja pidi saama rikkaks ja õnnelikuks'],
         ['Milline suvepüha on sinu kodumaal kõige tähtsam ja kuidas seda tähistatakse?', ''],
       ], 'g_read'), { task: 'R13', voice: 'popsci' }),
+      tag(B.gaps('088_p_words', 'Sõnad tekstis „Võidupüha ja jaanipäev”.', 'Loe teksti veel kord. Leia tekstist sobiv sõna ja kirjuta see lünka.', [
+        'Tähtis päev, mida kogu riik tähistab ja kui on vaba päev, on [riigipüha|püha].',
+        'Võitu, mis muudab kogu sõja käiku, nimetatakse tekstis [pöördeliseks|pöördeline] võiduks.',
+        'Pidulik sõdurite marss linna väljakul on [paraad].',
+        'Võidupühal tõstetakse lipud masti: lipud [heisatakse|heiskama].',
+        'Jaaniööl lippe alla ei tooda: lippe ei [langetata|langetama].',
+        'Õhtul pannakse jaanituli põlema: tuli [süüdatakse|süütama].',
+        'Puid korjati lõkke jaoks varakult ehk [aegsasti].',
+        'Vana arusaam, millesse inimesed usuvad, on [uskumus|uskumused].',
+        'Inimene, kellega koos minnakse, on [kaaslane].',
+        'Inimesi, kes elavad linnas, nimetatakse tekstis [linlasteks|linlased].',
+      ], '', 'full', 'g_vocab'), { task: 'R15' }),
       B.examWriting('088_p_form', 'Viktori küsimustik külalistele.', 'Viktor tahab peo hästi ette valmistada. Vasta tema küsimustikule tervete lausetega; kus küsitakse „Miks?”, põhjenda.', 'kusimustik', {
         situation: 'Viktor saatis kõigile jaanipeo külalistele lühikese küsimustiku. Vasta Sofia nimel või enda nimel.',
         questions: ['Mitu inimest tuleb teiega koos jaanipeole talusse?', 'Kas tulete talusse oma autoga või rongiga Aegviitu?', 'Mis kell te laupäeval umbes talusse jõuate?', 'Kas jääte talusse ööseks või sõidate õhtul koju? Miks?', 'Kas eelistate magada heinaküünis või oma telgis?', 'Kas kellelgi teie seltskonnast on mõni toiduallergia?', 'Millise toidu või joogi te peole kaasa toote?', 'Kas lähete enne õhtusööki ka sauna? Miks?', 'Kas oskate mõnda pilli mängida või lõkke ääres laulda?', 'Mida te sellel jaanipäeval kõige rohkem ootate? Miks?'],
