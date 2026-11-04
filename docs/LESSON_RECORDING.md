@@ -86,6 +86,15 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
    lesson summary (`lessonSummaries`) is readable by the student and its rules allow no extra field; the recorded
    lesson's „Tunni analüüs” keeps its own share from the transcript.
 
+7. **„Soojendus” and „Täna harjutada” (since 2026-11-04)** — in the 1:1 room the teacher's „Rohkem → Soojendus eelmise
+   tunni lausetest” picks 3–5 of the learner's own short sentences with errors from the latest analysed lesson before
+   this one (`live-classroom/warmup.js` `pickWarmupItems`: learner lines only, 3–12 words, a 1–3 word change, top
+   focus topics first, no duplicates, no „Pole viga” corrections). The teacher edits / removes rows and puts them on
+   the board as a worksheet assignment with one `errorfix` „Paranda lause.” task per sentence (the board's „Näita
+   vastust” reveals one at a time). „Täna harjutada” is a teacher-only box over the board (not synced, hidden during
+   screen share): 2–3 topics of the last 1–3 analysed lessons with one example each and „Järgmiseks tunniks”
+   (`lessonHints`). Both read `lessonRecordings` once with the existing rule (a teacher his own, an admin all).
+
 ## Data and rules
 
 - `lessonRecordings/{invitationId}_{ms}`: `invitationId, teacherUid, teacherName, studentId, studentUid, studentName,
