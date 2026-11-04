@@ -630,6 +630,14 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `students` / `users` trash fields `deletedAt`, `deletedBy`, `purgeAfter`, `trashState`, `purgeBlocked`, `purgedAt`,
   `anonymised` — „Prügikast”, written only by `staffOperationsApi /cards/*` and `purgeCardTrash` (see „Card trash”).
 - `worksheetAssignments`, `homework`, `exerciseResults` — student-specific learning activity.
+- `studentMonologues/{studentId}_{YYYY-MM}` — „Kuu monoloog” (2026-11-04): one two-minute recording per card and month
+  on the fixed prompt of the level (`features/monologue/monologueModel.js` `MONOLOGUE_PROMPTS`; never reword an id).
+  `{ studentId, studentUid, month, promptId, level, audioPath, contentType, seconds, createdAt, updatedAt }`, audio in
+  Storage `homework/{studentId}/monologues/{YYYY-MM}.{webm|m4a|ogg}`. Only the card's own student account (role student)
+  writes, in the current month, and may replace the take; the card's teacher and admins read; parents nothing (a later
+  „share with parent” needs a new read branch + a flag). `transcriptText` / `wordCount` are reserved for a server
+  transcriber (not built). `studentMonologueNotes/{monologueId}` — the teacher's note, staff only (kept off the
+  monologue so the student cannot read it).
 - `liveClassrooms` — one teacher and one student per current room.
 - `liveClassrooms.lessonSummary` — immutable teacher outcome attached when a room is completed.
 - `students.skillMap` — the canonical current mastery view; structured lesson outcomes may only
