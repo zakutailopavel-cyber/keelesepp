@@ -9,7 +9,9 @@ const HIDE_MS = 6000;
 // „Hetk” in the teacher's top bar (owner 2026-11-04): one click or the key B saves the moment at once (no label);
 // a small box then offers a short label, which can be ignored. The student never sees it. Moments are shown in the
 // lesson analysis on the student card (TranscriptView.jsx).
-export default function MomentButton({ invitation, user, recording = null, service = lessonMomentsService }) {
+// Group room: `targets` = [{ invitation, recording }] of the students in the lesson and `groupRoomId`; one press saves
+// one moment per student (each on the student's own invitation / recording), the label and „Kustuta” apply to all.
+export default function MomentButton({ invitation, user, recording = null, targets = null, groupRoomId = '', service = lessonMomentsService }) {
   const [last, setLast] = useState(null);
   const [label, setLabel] = useState('');
   const [busy, setBusy] = useState(false);
@@ -19,9 +21,13 @@ export default function MomentButton({ invitation, user, recording = null, servi
   const add = async () => {
     setError('');
     try {
-      const record = momentRecord({ invitation, recording, user });
-      const saved = await service.add(record);
-      setLast({ ...saved, time: Number.isFinite(record.atMs) ? clockLabel(record.atMs) : wallLabel(record.at) });
+      const list = targets || [{ invitation, recording }];
+      if (!list.length) throw new Error('Tunnis pole veel ühtegi õpilast.');
+      const now = Date.now();
+      const records = list.map((item) => momentRecord({ invitation: item.invitation, recording: item.recording || null, user, now, groupRoomId }));
+      const saved = records.length > 1 && service.addMany ? await service.addMany(records) : await Promise.all(records.map((record) => service.add(record)));
+      const record = records.find((item) => Number.isFinite(item.atMs)) || records[0];
+      setLast({ ids: saved.map((item) => item.id), time: Number.isFinite(record.atMs) ? clockLabel(record.atMs) : wallLabel(record.at) });
       setLabel('');
       setTyping(false);
     } catch (failure) {
@@ -58,7 +64,7 @@ export default function MomentButton({ invitation, user, recording = null, servi
     if (!last || !text) { setLast(null); return; }
     setBusy(true);
     try {
-      await service.setLabel(last.id, text);
+      await Promise.all(last.ids.map((id) => service.setLabel(id, text)));
       setLast(null);
     } catch (failure) {
       setError(failure?.message || 'Märksõna ei saanud salvestada.');
@@ -67,7 +73,7 @@ export default function MomentButton({ invitation, user, recording = null, servi
   const undo = async () => {
     if (!last) return;
     setBusy(true);
-    try { await service.remove(last.id); setLast(null); } catch (failure) { setError(failure?.message || 'Hetke ei saanud kustutada.'); } finally { setBusy(false); }
+    try { await Promise.all(last.ids.map((id) => service.remove(id))); setLast(null); } catch (failure) { setError(failure?.message || 'Hetke ei saanud kustutada.'); } finally { setBusy(false); }
   };
 
   return (

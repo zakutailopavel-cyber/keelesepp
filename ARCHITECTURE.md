@@ -194,7 +194,10 @@ compares both lists) through `safeSelfUserFields`; staff read it (users read `is
 `DeviceCheckNotice` in the calendar lesson panel (planned lessons) and in the 1:1 room until the call connects:
 „fail” / „warn” with the issues in Estonian, or „Õpilane pole seadet kontrollinud” when there is no result and the
 student has no closed live lesson with this teacher (admin: with anyone). Emulator test:
-`functions/device-check-emulator.integration.js`.
+`functions/device-check-emulator.integration.js`. Group lessons (2026-11-04): `GroupDeviceCheckNotice` lists every
+member whose last check is „fail” / „warn” or missing (also after earlier live lessons; `groupDeviceWarnings`) — in
+the live group room for the teacher until someone's video connects (× hides it), and in the calendar panel of a
+planned group lesson (active members; `LessonPanel` `groupStudents`).
 
 ### Finance
 
@@ -347,6 +350,13 @@ the same projection idea. It adds two optional fields that v1 ignores: `assigned
 `assignedTo` name stays authoritative because v1 reassigns by name) and `openedByUids` (who has opened the task;
 drives "Uus ülesanne sulle" for tasks created in the last 14 days). The v2 bell derives task (new for me, new reply,
 overdue, due today), unread message, homework-awaiting-review and overdue-invoice items from their sources.
+
+„Õpetajate koormus” (`/teachers/koormus`, administrator only, 2026-11-04) is a read-only projection per teacher for a
+week or a month: lessons from `lessonFacts` (calendar + journal), unmarked lessons from `findUnmarkedLessons`, unbooked
+free time from `teacherAvailability` (`effectiveSlots`, next 14 days), works waiting for a review (Kodutööd's rule) and
+a pay estimate by the „Ärinäitajad” rule (`workHourlyRateCents` × lessons given; no rate → „määramata”). It writes
+nothing and adds no collection; the journal and submissions are read by single-field date ranges
+(`features/teachers/teacherLoad.js`, `services/firebase/teacherLoad.js`).
 
 Single-student scheduled lessons use the existing server-owned lesson journal endpoint for one-click completion.
 The optional completion payload extends the same idempotent transaction: it records schedule attendance, creates a
@@ -704,6 +714,18 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `staffProgramPresence` — server-only cross-tab heartbeat pointer. It prevents several visible
   KeeleSepp windows from multiplying the same wall-clock interval.
 - `assistantAlerts` — server-authored operational attention queue visible only to administrators.
+- `clientErrors/{auto id}` — client error tracking „Vead” (2026-11-04). The CRM's own reporter
+  (`crm-v2/src/features/client-errors/clientErrorReporter.js`) writes one record per error group and session window:
+  `{ message ≤ 500 (sanitized), kind: error|rejection|render|permission|call|media, route (path only, ids / link
+  tokens → :id), build ≤ 40, role, uid, browser ≤ 60, frame ≤ 200, count 1–1000, fingerprint (16 hex of kind +
+  message + top frame), status 'new', firstAt, lastAt = server time }`. Sources: window `error` /
+  `unhandledrejection` (main.jsx), `PageErrorBoundary`, Firestore writes refused by the rules (vite alias
+  `firebase/firestore` → `services/firebase/firestoreWithReporting.js`: setDoc / updateDoc / deleteDoc / addDoc /
+  batch / transaction, collection pattern only), Live Classroom call failures and getUserMedia errors (useLiveCall,
+  useGroupCall). Throttle: one record per fingerprint per 10 min per browser session, ≤ 20 per session. Any signed-in
+  user creates (a lesson-link guest only with a valid `liveGuestGrants` grant, as role `guest`); admin reads, sets
+  `status` new / ack / fixed, deletes. Page `/vead` (Seaded → Tehniline), dashboard digest of new groups in 24 h.
+  Never store document data, form contents, names, e-mails, tokens or query strings in it.
 - `schedule` — dated or recurring lesson intent plus additive occurrence exceptions with stable
   student ownership.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.

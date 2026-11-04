@@ -22,6 +22,10 @@ import { defaultPlanSteps } from './lessonPlan.js';
 import { timestampMillis } from './invitationModel.js';
 import FloatingWindow, { FloatingLayer } from './FloatingWindow.jsx';
 import { stripHeight } from './floatingLayout.js';
+import MomentButton from './MomentButton.jsx';
+import GroupTalkMeter from './GroupTalkMeter.jsx';
+import GroupLessonHints from './GroupLessonHints.jsx';
+import GroupDeviceCheckNotice from '../device-check/GroupDeviceCheckNotice.jsx';
 import './liveRoom.css';
 
 // the group's video tiles in one movable strip (owner 2026-11-04): a column on the right by default, or a row
@@ -80,6 +84,7 @@ function GroupChat({ messages, me, closed, onSend }) {
 export default function GroupRoom({
   roomId, role, user, onLeave, onEnd, turnInvitationId = '', service = liveGroupRoomsService, boardService = groupBoardService,
   library, callOptions = {}, recordings = [], myInvitation = null, recordingService, invitations = [], planService, countdownService, pollService, boardCopies,
+  momentsService, deviceCheck,
 }) {
   const teacher = role === 'teacher';
   const [room, setRoom] = useState(null);
@@ -133,6 +138,16 @@ export default function GroupRoom({
   // student's own invitation, so each student gets their own lesson analysis (consent from the student card)
   const [recState, setRecState] = useState({});
   const recordingCount = Object.values(recState).filter((item) => item?.recording).length;
+  // „Hetk” (teacher): one press marks the moment for every student in the lesson, each on his own invitation and,
+  // while his recording runs, at its place in it (so each student's lesson analysis plays it)
+  const momentTargets = useMemo(() => invitations.filter((item) => item.status === 'accepted').map((invitation) => {
+    const rec = recState[invitation.id];
+    return { invitation, recording: rec?.recording && rec.recordingId ? { id: rec.recordingId, t0: rec.t0 } : null };
+  }), [invitations, recState]);
+  // the members' invitations into this room: „Täna harjutada” skips this lesson's own (unfinished) analysis
+  const hintMembers = members.map((member) => ({ studentId: member.studentId, name: member.studentName, invitationId: invitations.find((item) => item.studentId === member.studentId)?.id || '' }));
+  const [deviceNoticeHidden, setDeviceNoticeHidden] = useState(false);
+  const anyoneConnected = call.tiles.some((tile) => tile.stream);
 
   const place = async (file) => {
     const kind = fileKind(file);
@@ -188,6 +203,8 @@ export default function GroupRoom({
           {teacher && !closed ? <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'materials' ? '' : 'materials')}><LibraryBig size={17} /> Materjalid</button> : null}
           {teacher && recordingCount ? <span className="lr-pill lr-rec" role="status"><span className="lr-rec__dot" aria-hidden="true" />Salvestan ({recordingCount})</span> : null}
           {teacher && recordingCount && transcriber.known && !transcriber.online ? <span className="lr-pill lr-rec is-off" title={transcriberLabel(transcriber)}>Mac ei transkribeeri</span> : null}
+          {teacher && !closed ? <MomentButton targets={momentTargets} groupRoomId={roomId} user={user} {...(momentsService ? { service: momentsService } : {})} /> : null}
+          {teacher && !closed ? <GroupTalkMeter local={call.localStream} remotes={call.tiles} members={members.map((member) => ({ id: member.studentUid, name: member.studentName }))} /> : null}
           {teacher ? <LessonPlanPill clock={planState.clock} active={panel === 'plan'} onClick={() => setPanel(panel === 'plan' ? '' : 'plan')} /> : null}
           {teacher && !closed ? <button type="button" className="lr-text-btn is-danger" onClick={end}>Lõpeta tund</button> : null}
         </div>
@@ -200,6 +217,10 @@ export default function GroupRoom({
           onStateChange={(state) => setRecState((current) => (current[item.invitation.id]?.recording === state.recording ? current : { ...current, [item.invitation.id]: state }))}
           {...(recordingService ? { service: recordingService } : {})} />;
       })}</div> : null}
+      {/* the members' last „Seadme kontroll” (fail / warn / none saved): until someone's video is connected */}
+      {teacher && !closed && !anyoneConnected && !deviceNoticeHidden && members.length ? <GroupDeviceCheckNotice className="dcn-room" viewer={user}
+        students={members.map((member) => ({ studentId: member.studentId, studentUid: member.studentUid, name: member.studentName }))}
+        onClose={() => setDeviceNoticeHidden(true)} {...(deviceCheck ? { service: deviceCheck } : {})} /> : null}
       {error || call.error ? <p className="lr-toast lr-toast--error" role="alert">{error || call.error}</p> : null}
       {notice ? <p className="lr-toast" role="status">{notice}</p> : null}
       <div className="lr-body lr-body--float">
@@ -207,6 +228,7 @@ export default function GroupRoom({
           <StudentBoard studentId={roomId} user={user} staff={teacher} variant="room" controllerRef={boardRef} onHistoryChange={setHistory} newPageTitle={room?.title || 'Grupitund'} service={boardService} />
           {!closed ? <CountdownBadge timer={timer} /> : null}
           {!teacher && !closed ? <QuickPollCard quick={quick} timer={timer} /> : null}
+          {teacher && !closed ? <GroupLessonHints members={hintMembers} user={user} {...(recordingService ? { service: recordingService } : {})} /> : null}
         </main>
         <FloatingLayer inset={{ right: panel && globalThis.innerWidth > 760 ? 362 : 0 }}>
           <FloatingWindow key={orientation} id={`group-${orientation}`} label="Grupi video" heightFor={heightFor} presets={presets}

@@ -51,6 +51,7 @@ const TeachersPage = lazy(() => import('../features/teachers/TeachersPage.jsx'))
 const AccountsPage = lazy(() => import('../features/accounts/AccountsPage.jsx'));
 const LeadsPage = lazy(() => import('../features/leads/LeadsPage.jsx'));
 const TeacherProfilePage = lazy(() => import('../features/teachers/TeacherProfilePage.jsx'));
+const TeacherLoadPage = lazy(() => import('../features/teachers/TeacherLoadPage.jsx'));
 const TrashPage = lazy(() => import('../features/trash/TrashPage.jsx'));
 const AnnouncementsAdminPage = lazy(() => import('../features/announcements/AnnouncementsAdminPage.jsx'));
 const CampaignsPage = lazy(() => import('../features/campaigns/CampaignsPage.jsx'));
@@ -71,6 +72,7 @@ const MessagesPage = lazy(() => import('../features/messages/MessagesPage.jsx'))
 const ParentDashboardPage = lazy(() => import('../features/parents/ParentDashboardPage.jsx'));
 const StudentDashboardPage = lazy(() => import('../features/students/StudentDashboardPage.jsx'));
 const VocabularyPage = lazy(() => import('../features/vocabulary/VocabularyPage.jsx'));
+const ClientErrorsPage = lazy(() => import('../features/client-errors/ClientErrorsPage.jsx'));
 const SettingsPage = lazy(() => import('../features/settings/SettingsPage.jsx'));
 const BoardPage = lazy(() => import('../features/board/BoardPage.jsx'));
 const StudentCoursePage = lazy(() => import('../features/self-study/StudentCoursePage.jsx'));
@@ -138,9 +140,13 @@ export default function AppRoutes() {
             <Route path="library/worksheet-generator/health" element={generatorPage(<CourseHealthPage />)} />
             <Route path="teachers" element={staffPage(<TeachersPage />)} />
             <Route path="accounts" element={staffPage(<AccountsPage />)} />
+            {/* „Õpetajate koormus” (admin): lessons, free time, reviews, unmarked lessons and pay estimate per teacher */}
+            <Route path="teachers/koormus" element={staffPage(<TeacherLoadPage />)} />
             <Route path="teachers/:teacherId" element={staffPage(<TeacherProfilePage />)} />
             {/* „Prügikast” (administrator 2026-11-03): deleted student and teacher cards, 7 days, „Taasta” */}
             <Route path="trash" element={staffPage(<TrashPage />)} />
+            {/* „Vead” (admin 2026-11-04): errors reported from people's browsers (clientErrors), Seaded → Tehniline */}
+            <Route path="vead" element={staffPage(<ClientErrorsPage />)} />
             {/* „Teated” (owner 2026-10-24): announcements a student / parent answers before using the CRM */}
             <Route path="messages/teated" element={staffPage(<AnnouncementsAdminPage />)} />
             {/* „Kampaaniad” (owner 2026-10-27): offers, ad campaigns and events prepared here, posted by hand */}

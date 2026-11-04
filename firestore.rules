@@ -1721,6 +1721,43 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // „Vead” (admin 2026-11-04): client error tracking. Anyone signed in reports one record from his browser (a
+    // lesson-link guest only while his grant is valid, as role „guest”); exactly the reporter's fields with fixed sizes,
+    // his own uid, status „new”, `lastAt` = the server's time. No personal data by design (crm-v2 clientErrorReporter.js).
+    // Only an admin reads, changes the status (new / ack / fixed) and deletes.
+    function clientErrorReporterOk() {
+      return request.auth.token.get('liveGuest', false) != true
+        || (exists(liveGuestGrantPath()) && get(liveGuestGrantPath()).data.expiresAt > request.time);
+    }
+
+    function validClientError(data) {
+      return data.keys().hasOnly(['message', 'kind', 'route', 'build', 'role', 'uid', 'browser', 'frame', 'count', 'fingerprint', 'status', 'firstAt', 'lastAt'])
+        && data.keys().hasAll(['message', 'kind', 'route', 'build', 'role', 'uid', 'browser', 'frame', 'count', 'fingerprint', 'status', 'firstAt', 'lastAt'])
+        && data.message is string && data.message.size() > 0 && data.message.size() <= 500
+        && data.kind in ['error', 'rejection', 'render', 'permission', 'call', 'media']
+        && data.route is string && data.route.size() > 0 && data.route.size() <= 200 && data.route.matches('^/[^?#]*$')
+        && data.build is string && data.build.size() <= 40
+        && data.role in ['admin', 'teacher', 'finance', 'parent', 'student', 'guest', 'none']
+        && (data.role == 'guest') == (request.auth.token.get('liveGuest', false) == true)
+        && data.uid == uid()
+        && data.browser is string && data.browser.size() <= 60
+        && data.frame is string && data.frame.size() <= 200
+        && data.count is int && data.count >= 1 && data.count <= 1000
+        && data.fingerprint is string && data.fingerprint.matches('^[0-9a-f]{16}$')
+        && data.status == 'new'
+        && data.firstAt is timestamp
+        && data.lastAt == request.time;
+    }
+
+    match /clientErrors/{errorId} {
+      allow read: if isAdmin();
+      allow create: if signedIn() && clientErrorReporterOk() && validClientError(request.resource.data);
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['new', 'ack', 'fixed'];
+      allow delete: if isAdmin();
+    }
+
     // „Õpi ise” (owner 2026-10-12): a student opens a course lesson's sheet on his own — only for his own card, as
     // 'self_study', unscored and new, with the sheet exactly as published in the course (nothing of his own in it)
     function selfStudySheet(data) {
@@ -1891,7 +1928,7 @@ service cloud.firestore {
     // running recording (`atMs`, null without one) and the clock time. The lesson's teacher (the invitation's
     // teacherUid) and admins read and write them; students and parents have no access.
     function lessonMomentValid(data) {
-      return data.keys().hasOnly(['invitationId', 'recordingId', 'teacherUid', 'studentId', 'atMs', 'at', 'label', 'byUid', 'byName', 'createdAt'])
+      return data.keys().hasOnly(['invitationId', 'recordingId', 'teacherUid', 'studentId', 'atMs', 'at', 'label', 'byUid', 'byName', 'createdAt', 'groupRoomId'])
         && data.keys().hasAll(['invitationId', 'teacherUid', 'studentId', 'at', 'label', 'byUid', 'createdAt'])
         && data.invitationId is string && data.invitationId.size() > 0 && data.invitationId.size() <= 200
         && data.studentId is string && data.studentId.size() > 0 && data.studentId.size() <= 200
@@ -1904,8 +1941,18 @@ service cloud.firestore {
         && data.label is string && data.label.size() <= 80
         && data.byUid == uid()
         && data.get('byName', '') is string && data.get('byName', '').size() <= 160
-        && data.createdAt is string && data.createdAt.size() <= 40;
+        && data.createdAt is string && data.createdAt.size() <= 40
+        && data.get('groupRoomId', '') is string && data.get('groupRoomId', '').size() <= 200;
     }
+
+    // a group room's moment (one per student): the student's invitation belongs to that room and the room to the teacher
+    function lessonMomentRoomValid(data) {
+      return data.get('groupRoomId', '') == ''
+        || (get(liveLessonInvitationPath(data.invitationId)).data.get('roomKey', '') == data.groupRoomId
+          && exists(liveGroupRoomPath(data.groupRoomId))
+          && get(liveGroupRoomPath(data.groupRoomId)).data.teacherUid == data.teacherUid);
+    }
+
     match /lessonMoments/{momentId} {
       allow read: if isAdmin() || (isStaff() && resource.data.teacherUid == uid());
       allow create: if isStaff()
@@ -1913,7 +1960,8 @@ service cloud.firestore {
         && (isAdmin() || request.resource.data.teacherUid == uid())
         && exists(liveLessonInvitationPath(request.resource.data.invitationId))
         && get(liveLessonInvitationPath(request.resource.data.invitationId)).data.teacherUid == request.resource.data.teacherUid
-        && get(liveLessonInvitationPath(request.resource.data.invitationId)).data.studentId == request.resource.data.studentId;
+        && get(liveLessonInvitationPath(request.resource.data.invitationId)).data.studentId == request.resource.data.studentId
+        && lessonMomentRoomValid(request.resource.data);
       allow update: if (isAdmin() || (isStaff() && resource.data.teacherUid == uid()))
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['label'])
         && request.resource.data.label is string && request.resource.data.label.size() <= 80;

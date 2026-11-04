@@ -1,8 +1,23 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+// build id for `clientErrors` records: the deploy's commit (Vercel) or the local commit, else the build date
+function buildId() {
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA;
+  if (sha) return sha.slice(0, 7);
+  try { return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim().slice(0, 12); }
+  catch { return new Date().toISOString().slice(0, 10); }
+}
 
 export default defineConfig({
   plugins: [react()],
+  define: { __APP_BUILD__: JSON.stringify(buildId()) },
+  resolve: {
+    // every `firebase/firestore` import gets the SDK + a report of writes the rules refuse (client error tracking)
+    alias: [{ find: /^firebase\/firestore$/, replacement: fileURLToPath(new URL('./src/services/firebase/firestoreWithReporting.js', import.meta.url)) }],
+  },
   build: {
     chunkSizeWarningLimit: 600,
     rollupOptions: {

@@ -1,9 +1,9 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { cleanMomentLabel } from '../../features/lesson-recording/lessonMoments.js';
 
 // „Hetk” marks of live lessons: `lessonMoments/{auto id}` { invitationId, recordingId, teacherUid, studentId, atMs,
-// at, label, byUid, byName, createdAt } (see features/lesson-recording/lessonMoments.js). The lesson's teacher and
+// at, label, byUid, byName, createdAt, groupRoomId? } (see features/lesson-recording/lessonMoments.js). The lesson's teacher and
 // admins read and write them; students have no access (firestore.rules).
 export function normalizeMoment(id, data = {}) {
   return {
@@ -18,6 +18,7 @@ export function normalizeMoment(id, data = {}) {
     byUid: data.byUid || '',
     byName: data.byName || '',
     createdAt: data.createdAt || '',
+    groupRoomId: data.groupRoomId || '',
   };
 }
 
@@ -27,6 +28,16 @@ export const lessonMomentsService = {
     const { db } = requireFirebaseClient();
     const ref = await addDoc(collection(db, 'lessonMoments'), record);
     return normalizeMoment(ref.id, record);
+  },
+
+  // a group room's press: one moment per student, all or none
+  async addMany(records = []) {
+    if (!records.length) return [];
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    const refs = records.map((record) => { const ref = doc(collection(db, 'lessonMoments')); batch.set(ref, record); return ref; });
+    await batch.commit();
+    return refs.map((ref, index) => normalizeMoment(ref.id, records[index]));
   },
 
   async setLabel(id, label) {

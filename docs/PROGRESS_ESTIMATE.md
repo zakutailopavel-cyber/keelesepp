@@ -65,6 +65,10 @@ Grammar trend +12 (4 weeks ago 50 % of sentences had an error → 40 %).
 ## Limits
 
 - Bands are a first calibration, not validated against level tests; adjust `ESTIMATE_RULES` with the owner.
-- `g_listen` is not used by the course content yet, so Kuulamine mostly shows „vähe andmeid”.
+- `g_listen` (2026-11-04, agent/listening-goal): the scored listening tasks of 200 lessons (A2 88, B1 63, B2 37, C1 12) report
+  under it; a lesson with only one listening task, the oral supplements and lessons without listening do not. The tags
+  are in the code: a lesson's published sheets (Õppevara) carry them only after the admin publishes the lesson again in
+  „Kursuse tootmine”, and sheets assigned before keep their own copy (listening there counted as `g_read`). So Kuulamine
+  fills up only from sheets assigned after re-publishing. English courses are not tagged yet.
 - Grammar and speaking need lessons recorded and analysed by the school Mac.
 - Writing (Kirjutamine) is not estimated: no automatic evidence.
