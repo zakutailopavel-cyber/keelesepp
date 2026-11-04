@@ -1,10 +1,13 @@
 import {
   ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
-  MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Undo2, Users, Video, VideoOff, X,
+  MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Timer, Undo2, Users, Video, VideoOff, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StudentBoard from '../board/StudentBoard.jsx';
-import { imageSize, sheetBoardTitle } from '../board/boardModel.js';
+import { imageSize, sheetBoardTitle, worksheetPageTitle } from '../board/boardModel.js';
+import { CountdownBadge, CountdownControls } from './CountdownTimer.jsx';
+import { useCountdown } from './useCountdown.js';
+import { groupSheetTabs } from './sheetTabs.js';
 import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import { usePastSheets } from './usePastSheets.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
@@ -157,7 +160,7 @@ function DevicesPanel({ call, stream }) {
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
   recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false, observerProps,
-  planService,
+  planService, countdownService,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
@@ -244,6 +247,14 @@ export default function LiveRoom({
   const attendanceStart = plannedMs || timestampMillis(invitation.createdAt) || startedAt;
   const studentMark = attendanceMarks(participants, planState.plan.attendance, attendanceStart)[0] || null;
   const pastSheets = usePastSheets({ homework: worksheetProps.homework || firebaseHomework, studentId: guest ? '' : invitation.studentId || '', role });
+  // the teacher's countdown (invitation field `countdown`): the teacher sets it, both see the badge
+  const timer = useCountdown({ kind: 'lesson', id: invitation.id, user, teacher, enabled: invitation.status !== 'closed', ...(countdownService ? { service: countdownService } : {}) });
+
+  // the student's sheet tabs: only the latest lesson's sheets; older ones in „Varasemad tunnid” (sheetTabs.js)
+  const [openedOlder, setOpenedOlder] = useState(() => new Set());
+  const tabGroups = useMemo(() => (teacher ? null : groupSheetTabs({ roomSheets: sheetList, pastSheets, roomKey: invitation.id, opened: openedOlder })),
+    [teacher, sheetList, pastSheets, invitation.id, openedOlder]);
+  const keepOlder = useCallback((id) => setOpenedOlder((current) => (current.has(id) ? current : new Set([...current, id]))), []);
 
   // ── the teacher's page and pointer over the call's data channel (nothing is saved) ──
   const [myPage, setMyPage] = useState('');
@@ -251,10 +262,35 @@ export default function LiveRoom({
   const [myPageTitle, setMyPageTitle] = useState('');
   // lesson pages the teacher opened in this lesson (for the summary)
   const [pagesSeen, setPagesSeen] = useState([]);
+  // an older sheet the student lands on (the teacher led him there, or he chose it) stays a tab until he closes it
+  const hiddenOlder = tabGroups?.hidden;
   const onPageChange = useCallback((id, title = '') => {
     myPageRef.current = id; setMyPage(id); setMyPageTitle(title);
     if (id && teacher) setPagesSeen((current) => [...current.filter((page) => page.id !== id), { id, title: title || current.find((page) => page.id === id)?.title || 'Leht' }]);
-  }, [teacher]);
+    if (id && !teacher && title && hiddenOlder?.size) {
+      const sheet = pastSheets.find((item) => hiddenOlder.has(item.id) && (worksheetPageTitle(item.title) === title || worksheetPageTitle(item.legacyTitle) === title));
+      if (sheet) keepOlder(sheet.id);
+    }
+  }, [teacher, pastSheets, hiddenOlder, keepOlder]);
+  const sheetTabs = useMemo(() => {
+    if (!tabGroups) return null;
+    const olderIds = new Set(tabGroups.older.flatMap((group) => group.sheets.map((item) => item.id)));
+    return {
+      hidden: tabGroups.hidden,
+      closable: new Set([...openedOlder].filter((id) => olderIds.has(id))),
+      onClose: (id) => setOpenedOlder((current) => { const next = new Set(current); next.delete(id); return next; }),
+      extra: (paged) => {
+        const groups = tabGroups.older.map((group) => ({ ...group, sheets: group.sheets.filter((item) => paged.has(item.id)) })).filter((group) => group.sheets.length);
+        if (!groups.length) return null;
+        const count = groups.reduce((sum, group) => sum + group.sheets.length, 0);
+        return <select key="older" className="lr-older-sheets" aria-label="Varasemad tunnid" title="Varasemate tundide töölehed" value=""
+          onChange={(event) => { const id = event.target.value; if (!id) return; keepOlder(id); boardRef.current?.openWorksheet?.(id); }}>
+          <option value="">Varasemad tunnid ({count})</option>
+          {groups.map((group) => <optgroup key={group.key} label={group.label}>{group.sheets.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</optgroup>)}
+        </select>;
+      },
+    };
+  }, [tabGroups, openedOlder, keepOlder]);
   const { roomChannelOpen, sendRoom, onRoomMessage } = call;
   useEffect(() => { if (teacher && roomChannelOpen) sendRoom?.({ t: 'page', pageId: myPage }); }, [teacher, roomChannelOpen, myPage, sendRoom]);
   // the student sees only „Samm X/Y” of the teacher's plan (over the data channel, nothing is saved)
@@ -408,6 +444,7 @@ export default function LiveRoom({
           <IconButton label="Rohkem" active={menu === 'more'} onClick={() => setMenu(menu === 'more' ? '' : 'more')}><MoreHorizontal size={19} /></IconButton>
           <IconButton label="Osalejad" active={panel === 'people'} onClick={() => toggle('people')}><Users size={18} /></IconButton>
           {!guest ? <IconButton label="Vestlus" active={panel === 'chat'} onClick={() => toggle('chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</IconButton> : null}
+          {teacher ? <IconButton label="Taimer" active={panel === 'timer' || timer.active} onClick={() => toggle('timer')}><Timer size={18} /></IconButton> : null}
           {teacher ? <button type="button" aria-label="Materjalid" title="Materjalid" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => toggle('materials')}><LibraryBig size={17} /><span className="lr-label">Materjalid</span></button> : null}
           {!guest ? <button type="button" aria-label="Sõnad" title="Sõnad" className={`lr-text-btn ${panel === 'words' ? 'is-active' : ''}`} onClick={() => toggle('words')}><Languages size={17} /><span className="lr-label">Sõnad</span></button> : null}
           <button type="button" aria-label={sheet ? 'Ülesanded · tööleht on avatud' : 'Ülesanded'} title="Ülesanded" className={`lr-text-btn ${panel === 'tasks' ? 'is-active' : ''}`} onClick={() => { setMenu(''); if (sheet && !teacher) { boardRef.current?.openWorksheet?.(); return; } toggle('tasks'); }}><ClipboardList size={17} /><span className="lr-label">Ülesanded</span>{sheet ? <span className="lr-dot" aria-label="Tööleht on avatud" /> : null}</button>
@@ -454,7 +491,9 @@ export default function LiveRoom({
             {...(teacher ? { presenting: presenting && roomChannelOpen } : { followView: followView && teacherLeads, onFollowBreak: () => setFollowView(false) })}
             {...(boardService ? { service: boardService } : {})}
             insetRight={insetRight}
+            sheetTabs={sheetTabs}
           />
+          <CountdownBadge timer={timer} />
           {remoteScreen.active ? <ScreenStage stream={remoteScreen.stream} name={call.peerName} visible={showScreen} /> : null}
           {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
             {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
@@ -503,6 +542,7 @@ export default function LiveRoom({
             {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /></Drawer> : null}
           {panel === 'plan' && teacher ? <Drawer title="Tunniplaan" onClose={() => setPanel('')}><LessonPlanPanel planState={planState} participants={participants} startMs={attendanceStart}
             attendanceNote="„Lõpeta tund” viib märke kalendrisse: Kohal / Hilines → Toimunud, Puudub → Puudus (ei teatanud). Hilinemise minutid jäävad tunniplaani." /></Drawer> : null}
+          {panel === 'timer' && teacher ? <Drawer title="Taimer" onClose={() => setPanel('')}><CountdownControls timer={timer} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}
           <div className={panel === 'tasks' ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'tasks'} role="region" aria-label="Ülesanded">

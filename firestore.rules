@@ -254,6 +254,23 @@ service cloud.firestore {
         && data.members.size() == data.memberUids.size();
     }
 
+    // The teacher's countdown timer in a Live Classroom room (owner 2026-11-04): one map `countdown` on the invitation
+    // (1:1) or the group room, read by the students who already read that doc. The remaining time is anchored to the
+    // server time of the write (`updatedAt == request.time`), so readers derive it without per-second writes.
+    function liveCountdownValid(data) {
+      return !('countdown' in data) || data.countdown == null || (
+        data.countdown is map
+        && data.countdown.keys().hasOnly(['running', 'remainingMs', 'durationMs', 'label', 'by', 'updatedAt'])
+        && data.countdown.keys().hasAll(['running', 'remainingMs', 'durationMs', 'by', 'updatedAt'])
+        && data.countdown.running is bool
+        && data.countdown.remainingMs is int && data.countdown.remainingMs >= 0 && data.countdown.remainingMs <= 7200000
+        && data.countdown.durationMs is int && data.countdown.durationMs >= 0 && data.countdown.durationMs <= 7200000
+        && data.countdown.get('label', '') is string && data.countdown.get('label', '').size() <= 80
+        && data.countdown.by == uid()
+        && data.countdown.updatedAt == request.time
+      );
+    }
+
     function canUseLiveLessonInvitation(invitationId) {
       return signedIn()
         && exists(liveLessonInvitationPath(invitationId))
@@ -1988,6 +2005,11 @@ service cloud.firestore {
           (request.resource.data.status == 'open' && request.resource.data.closedAt == null)
           || (request.resource.data.status == 'closed' && request.resource.data.closedAt == request.time)
         );
+      // the teacher's countdown timer: only that one field, while the room is open
+      allow update: if signedIn() && resource.data.teacherUid == uid()
+        && resource.data.status == 'open'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['countdown'])
+        && liveCountdownValid(request.resource.data);
       allow delete: if isAdmin();
 
       // WebRTC mesh: every signal goes from one participant to one other participant
@@ -2206,6 +2228,11 @@ service cloud.firestore {
             && request.resource.data.closedAt == request.time
           )
         );
+      // the teacher's countdown timer (1:1 room): only that one field, while the lesson is accepted
+      allow update: if signedIn() && resource.data.teacherUid == uid()
+        && resource.data.status == 'accepted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['countdown'])
+        && liveCountdownValid(request.resource.data);
       allow delete: if isAdmin();
 
       match /signals/{signalId} {
