@@ -13,6 +13,10 @@ import { defaultBillingMonth, payerKey } from './monthlyBilling.js';
 import { MIXED_PAYER_MESSAGE, TOKEN_ROWS_MAX, tokenRowState, tokenRowsError } from './tokenInvoiceRows.js';
 import { cardPayerEmail, cardPayerName } from './invoicePayer.js';
 
+// one request id per form (a retry after an error never makes a second invoice); outside the component so it is never
+// called during render
+const newRequestId = () => `lesson_tokens_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
 const PRESETS = [4, 8, 9, 12];
 const dueDefault = () => `${defaultBillingMonth()}-10`;
@@ -89,7 +93,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
     if (send && !payerEmail) { setError('Maksjal puudub e-post: lisa see õpilase kaardile või loo arve ilma saatmata.'); return; }
     setBusy(send ? 'send' : 'create');
     // one request id per form: a retry after an error never makes a second invoice
-    const id = requestId || `lesson_tokens_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = requestId || newRequestId();
     setRequestId(id);
     try {
       // the note is internal: it goes to invoiceNotes, never onto the invoice the payer can read
