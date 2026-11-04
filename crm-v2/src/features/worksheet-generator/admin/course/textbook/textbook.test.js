@@ -22,6 +22,10 @@ describe('Õpik sheets', () => {
     const visible = renderToStaticMarkup(createElement(Sheet, { doc: entry.doc, mode: 'print' })).replace(/<[^>]+>/g, ' ');
     expect(visible.match(/.{0,30}(\*|~~|==|\{red\}).{0,30}/g)).toBeNull();
   });
+  it('shows page numbers only for book pages; own material is just „Õpik”', () => {
+    TEXTBOOK_SHEETS.forEach((entry) => expect(entry.doc.meta.subtitle).toBe(entry.pages ? `Õpik, lk ${entry.pages}` : 'Õpik'));
+    expect(TEXTBOOK_SHEETS.find((entry) => entry.lessonId === 'b1b2-016')?.doc.meta.subtitle).toBe('Õpik');
+  });
   it('gives each lesson one Õpik sheet', () => {
     const ids = TEXTBOOK_SHEETS.map((entry) => entry.lessonId);
     expect(new Set(ids).size).toBe(ids.length);

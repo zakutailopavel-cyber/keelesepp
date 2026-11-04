@@ -1,7 +1,11 @@
-import { ArrowLeft, Columns2, LibraryBig, Rows2, MessageSquare, Mic, MicOff, Phone, PhoneOff, Redo2, Send, Timer, Undo2, Users, Video, VideoOff, X } from 'lucide-react';
+import { ArrowLeft, Columns2, LibraryBig, Rows2, MessageSquare, Mic, MicOff, Phone, PhoneOff, Redo2, Send, Sparkles, Timer, Undo2, Users, Video, VideoOff, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CountdownBadge, CountdownControls } from './CountdownTimer.jsx';
 import { useCountdown } from './useCountdown.js';
+import { QuickPollCard, QuickPollPanel } from './QuickPoll.jsx';
+import { useQuickPoll } from './useQuickPoll.js';
+import { pageSelectionText } from '../board/selectionText.js';
+import { saveGroupBoardCopies } from './groupBoardCopies.js';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize } from '../board/boardModel.js';
 import { groupBoardService } from '../../services/firebase/studentBoard.js';
@@ -75,7 +79,7 @@ function GroupChat({ messages, me, closed, onSend }) {
  */
 export default function GroupRoom({
   roomId, role, user, onLeave, onEnd, turnInvitationId = '', service = liveGroupRoomsService, boardService = groupBoardService,
-  library, callOptions = {}, recordings = [], myInvitation = null, recordingService, invitations = [], planService, countdownService,
+  library, callOptions = {}, recordings = [], myInvitation = null, recordingService, invitations = [], planService, countdownService, pollService, boardCopies,
 }) {
   const teacher = role === 'teacher';
   const [room, setRoom] = useState(null);
@@ -103,6 +107,14 @@ export default function GroupRoom({
   const closed = room?.status === 'closed';
   // the teacher's countdown on the group room doc (`countdown`): every member reads it, only the teacher sets it
   const timer = useCountdown({ kind: 'group', id: roomId, user, teacher, enabled: Boolean(room) && !closed, ...(countdownService ? { service: countdownService } : {}) });
+  // „Kiirküsimus” (livePolls/group_{roomId}): every member answers on a card, the teacher sees who answered what
+  const members = useMemo(() => room?.members || [], [room]);
+  const memberNames = useMemo(() => Object.fromEntries(members.map((member) => [member.studentUid, member.studentName])), [members]);
+  const quick = useQuickPoll({
+    kind: 'group', roomId, user, teacher, enabled: Boolean(room) && !closed, participantUids: room?.memberUids || [], timer,
+    studentIdOf: (uid) => members.find((member) => member.studentUid === uid)?.studentId || '',
+    ...(pollService ? { service: pollService } : {}),
+  });
   // -- the teacher's lesson plan and the members' attendance (liveLessonPlans/{roomId}, staff-only) --
   const defaultSteps = useMemo(() => defaultPlanSteps({ minutes: 60 }), []);
   const planState = useLessonPlan({ roomKey: roomId, kind: 'group', user, enabled: teacher, defaultSteps, ...(planService ? { service: planService } : {}) });
@@ -140,7 +152,13 @@ export default function GroupRoom({
   const presets = row ? { s: 90 * tileCount, m: 150 * tileCount, l: 230 * tileCount } : { s: 120, m: 180, l: 280 };
 
   const end = async () => {
-    if (!globalThis.confirm('Lõpetada grupitund? Ruum suletakse kõigile, grupi tahvel jääb alles.')) return;
+    if (!globalThis.confirm('Lõpetada grupitund? Ruum suletakse kõigile, grupi tahvel jääb alles ja iga õpilane saab selle koopia („Tunni tahvlid”).')) return;
+    // „Tunni tahvlid”: a read-only copy of the group board on every member's own board
+    try {
+      await saveGroupBoardCopies({ roomId, room, user, boardService, ...(boardCopies ? { copies: boardCopies } : {}) });
+    } catch (nextError) {
+      if (!globalThis.confirm(`${nextError?.message || 'Tahvli koopiat ei saanud salvestada.'} Lõpetada tund ikkagi (õpilased koopiat ei saa)?`)) return;
+    }
     call.hangUp();
     try { await service.close(roomId); onEnd?.(); } catch (nextError) { setError(nextError?.message || 'Tundi ei saanud lõpetada.'); }
   };
@@ -166,6 +184,7 @@ export default function GroupRoom({
         <div className="lr-top__group lr-top__right">
           <button type="button" className={`lr-icon ${panel === 'chat' ? 'is-active' : ''}`} aria-label="Vestlus" title="Vestlus" onClick={() => setPanel(panel === 'chat' ? '' : 'chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</button>
           {teacher && !closed ? <button type="button" className={`lr-icon ${panel === 'timer' || timer.active ? 'is-active' : ''}`} aria-label="Taimer" title="Taimer" onClick={() => setPanel(panel === 'timer' ? '' : 'timer')}><Timer size={18} /></button> : null}
+          {teacher && !closed ? <button type="button" className={`lr-icon ${panel === 'poll' || (quick.poll && quick.poll.status !== 'closed') ? 'is-active' : ''}`} aria-label="Kiirküsimus" title="Kiirküsimus" onClick={() => setPanel(panel === 'poll' ? '' : 'poll')}><Sparkles size={18} /></button> : null}
           {teacher && !closed ? <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'materials' ? '' : 'materials')}><LibraryBig size={17} /> Materjalid</button> : null}
           {teacher && recordingCount ? <span className="lr-pill lr-rec" role="status"><span className="lr-rec__dot" aria-hidden="true" />Salvestan ({recordingCount})</span> : null}
           {teacher && recordingCount && transcriber.known && !transcriber.online ? <span className="lr-pill lr-rec is-off" title={transcriberLabel(transcriber)}>Mac ei transkribeeri</span> : null}
@@ -187,6 +206,7 @@ export default function GroupRoom({
         <main className="lr-stage">
           <StudentBoard studentId={roomId} user={user} staff={teacher} variant="room" controllerRef={boardRef} onHistoryChange={setHistory} newPageTitle={room?.title || 'Grupitund'} service={boardService} />
           {!closed ? <CountdownBadge timer={timer} /> : null}
+          {!teacher && !closed ? <QuickPollCard quick={quick} timer={timer} /> : null}
         </main>
         <FloatingLayer inset={{ right: panel && globalThis.innerWidth > 760 ? 362 : 0 }}>
           <FloatingWindow key={orientation} id={`group-${orientation}`} label="Grupi video" heightFor={heightFor} presets={presets}
@@ -215,6 +235,10 @@ export default function GroupRoom({
           {panel === 'timer' && teacher ? <section className="lr-drawer" aria-label="Taimer">
             <header><strong>Taimer</strong><button type="button" className="lr-icon" aria-label="Sulge taimer" onClick={() => setPanel('')}><X size={18} /></button></header>
             <div className="lr-drawer__body"><CountdownControls timer={timer} /></div>
+          </section> : null}
+          {panel === 'poll' && teacher ? <section className="lr-drawer" aria-label="Kiirküsimus">
+            <header><strong>Kiirküsimus</strong><button type="button" className="lr-icon" aria-label="Sulge kiirküsimus" onClick={() => setPanel('')}><X size={18} /></button></header>
+            <div className="lr-drawer__body"><QuickPollPanel quick={quick} timer={timer} names={memberNames} pickText={() => boardRef.current?.selectedText?.() || pageSelectionText()} /></div>
           </section> : null}
           {panel === 'materials' && teacher ? <section className="lr-drawer" aria-label="Materjalid">
             <header><strong>Materjalid</strong><button type="button" className="lr-icon" aria-label="Sulge" onClick={() => setPanel('')}><X size={18} /></button></header>
