@@ -58,14 +58,16 @@
 
   /* ---- answer fields: a field a finger can hit, at a size iOS does not zoom into ---- */
   .ws-narrow :is(input, textarea, select) { font-size: 16px !important; max-width: 100%; }
-  .ws-narrow .ws-root .ws-line, .ws-narrow .ws-root.theme-selge .ws-line { min-height: 44px; padding: 8px 8px; margin: 2px 0; font-family: var(--font-body); font-weight: 600; line-height: 1.3; color: #1b4a8a; background: #fff; border: 1px solid #98a7b8; border-radius: 8px; box-sizing: border-box; vertical-align: middle; min-width: 64px; }
+  .ws-narrow .ws-root .ws-line, .ws-narrow .ws-root.theme-selge .ws-line { min-height: 44px; padding: 8px 8px; margin: 2px 0; font-family: var(--ans-font); font-weight: var(--ans-weight); line-height: 1.3; color: #1b4a8a; background: #fff; border: 1px solid #98a7b8; border-radius: 8px; box-sizing: border-box; vertical-align: middle; min-width: 64px; }
   .ws-narrow .ws-root .ws-line:focus { border-color: var(--ks-navy); box-shadow: 0 0 0 2px rgba(23, 58, 99, .2); background: #fff; }
   .ws-narrow .ws-root .ws-line.is-ok { box-shadow: inset 0 -3px 0 var(--ok) !important; }
   .ws-narrow .ws-root .ws-line.is-bad { box-shadow: inset 0 -3px 0 var(--bad) !important; }
   .ws-narrow .ws-root .ws-line--grow { display: block; width: 100%; min-height: 44px; }
+  /* „Kiri”: the handwriting and the large choice are bigger than the 16 px every field has on a phone */
+  .ws-narrow .ws-root:is(.ans-hand, .ans-large) :is(.ws-line, .ws-ruled) { font-size: var(--ans-flow) !important; }
   .ws-narrow .ws-root :is(.ws-gaps, .ws-choice, .ws-order, .ws-rq, .ws-fix, .ws-translation) { padding-left: 24px; }
   .ws-narrow .ws-root .ws-gaps li { padding: 6px 0; line-height: 1.5; }
-  .ws-narrow .ws-root .ws-ruled { font: 600 17px/28px var(--font-body); background: transparent repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--ks-line) 27px, var(--ks-line) 28px); field-sizing: content; min-height: 196px; padding: 0 4px; }
+  .ws-narrow .ws-root .ws-ruled { font: var(--ans-weight) 17px/28px var(--ans-font); background: transparent repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--ks-line) 27px, var(--ks-line) 28px); field-sizing: content; min-height: 196px; padding: 0 4px; }
   .ws-narrow .ws-root .ws-note-img { position: static; display: block; width: min(60%, 220px); margin: 8px auto 0; transform: none; }
   .ws-narrow .ws-root :is(.ws-planning textarea, .ws-guidedletter textarea) { font: 16px/28px var(--font-body); background: repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--ks-line) 27px, var(--ks-line) 28px); field-sizing: content; min-height: 84px; }
   .ws-narrow .ws-root .ws-guidedletter textarea { min-height: 224px; }
