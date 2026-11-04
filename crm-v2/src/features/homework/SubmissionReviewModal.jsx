@@ -98,6 +98,7 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
                 <h3>Hinne</h3>
                 <div className="submission-grade"><Select id="teacher-grade" label="Hinne 1–5" value={review.teacherGrade} onChange={(event) => setReview({ ...review, teacherGrade: event.target.value })}><option value="">Hindeta</option>{[1, 2, 3, 4, 5].map((grade) => <option key={grade} value={grade}>{grade}</option>)}</Select><Star size={21} /></div>
                 {autoGrade ? <p className="form-hint">Soovitus automaatkontrolli järgi: {autoGrade} ({current.percentage}%).</p> : null}
+                {current.storedScore ? <p className="form-hint">Salvestatud tulemus {current.storedScore.correct}/{current.storedScore.total} luges vastamata või muutunud ülesanded valeks; siin on see õpilase lehe järgi uuesti arvutatud{current.score?.unmatched ? ` (${current.score.unmatched} vastust ei vasta enam lehele)` : ''}.</p> : null}
               </section>
               {skillMap ? (
                 <section className="review-skills" aria-label="Oskuste hinnang">

@@ -6,6 +6,7 @@ import { studentsService } from './students.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
 import { paperMeasured, paperWorkPayload } from '../../features/homework/paperWork.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
+import { effectiveScore, scorePct } from '../../features/worksheet-studio/engine/storedScore.js';
 import { localDate } from '../../utils/localDate.js';
 
 // Student-scoped reads (homework, worksheetAssignments, exerciseResults) are checked per student card by the rules
@@ -53,10 +54,16 @@ function assignmentFallback(homework, files) {
 
 export function normalizeSubmission(id, data = {}, submissionKind) {
   const rawScore = data.score;
-  const score = rawScore && typeof rawScore === 'object'
-    ? rawScore
-    : null;
-  const percentage = data.pct !== '' && data.pct != null && Number.isFinite(Number(data.pct))
+  // a submitted structured worksheet: a stored score that is obviously wrong is checked again on its own sheet copy
+  const checked = submissionKind === 'worksheet' ? effectiveScore({ score: rawScore, worksheetDoc: data.worksheetDoc, answers: data.answers, status: data.status || 'done' }) : null;
+  const score = checked?.recomputed
+    ? checked.score
+    : rawScore && typeof rawScore === 'object'
+      ? rawScore
+      : null;
+  const percentage = checked?.recomputed
+    ? scorePct(score)
+    : data.pct !== '' && data.pct != null && Number.isFinite(Number(data.pct))
     ? Number(data.pct)
     : score?.total
       ? Math.round((Number(score.correct) / Number(score.total)) * 100)
@@ -76,6 +83,7 @@ export function normalizeSubmission(id, data = {}, submissionKind) {
     selfAssessment: data.selfAssessment || null,
     score,
     percentage,
+    ...(checked?.recomputed ? { storedScore: checked.stored } : {}),
     teacherGrade: data.teacherGrade ?? '',
     teacherFeedback: data.teacherFeedback || '',
     reviewStatus: data.reviewStatus || (data.reviewedAt || data.teacherFeedback || data.teacherGrade ? 'reviewed' : 'pending'),
@@ -128,9 +136,13 @@ function withPhase(title, data) {
 }
 
 export function normalizeWorksheetAssignment(id, data = {}) {
+  const worksheetDoc = data.worksheetDoc?.blocks?.length ? data.worksheetDoc : null;
+  // shown, never written: an old score that counted unanswered or unmatched tasks as wrong (storedScore.js)
+  const checked = effectiveScore({ score: data.score, worksheetDoc, answers: data.answers, status: data.status });
   return {
     id,
     ...data,
+    ...(checked.recomputed ? { score: checked.score, storedScore: checked.stored } : {}),
     studentId: data.studentId || '',
     studentName: data.studentName || '',
     // a course lesson has three sheets with the same lesson title: name the phase too (owner 2026-10-12: „3 одинаковых
@@ -143,7 +155,7 @@ export function normalizeWorksheetAssignment(id, data = {}) {
     answers: data.answers || {},
     errorLog: data.errorLog || [],
     worksheetData: data.worksheetData || { meta: {}, blocks: [] },
-    worksheetDoc: data.worksheetDoc?.blocks?.length ? data.worksheetDoc : null,
+    worksheetDoc,
     files: Array.isArray(data.files) ? data.files : [],
   };
 }
