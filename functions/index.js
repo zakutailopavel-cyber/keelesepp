@@ -8167,6 +8167,51 @@ async function inviteStudentAccount({ actor, studentId, email, requestId }) {
   return { uid, studentId: cleanStudentId, email: cleanEmail, created: plan.action === "create", mailed: mail.status === "sent", mailStatus: mail.status || "", link };
 }
 
+// „Saada parooli link” on the parent's card (Lapsevanemad, 2026-11-04): the same route as the student card
+// (/accounts/invite, body { parentUid }), the same e-mail and the same audit entry. Only a parent account, only to
+// that account's own login e-mail (functions/parent-account-core.js); nothing is created or linked.
+async function sendParentPasswordLink({ actor, parentUid }) {
+  const { parentPasswordLinkPlan } = require("./parent-account-core");
+  const { composeInviteEmail, CRM_URL } = require("./student-invite-core");
+  const cleanUid = cleanText(parentUid, 180);
+  if (!cleanUid) throw httpError(400, "Lapsevanema konto puudub.");
+  let authUser = null;
+  try { authUser = await admin.auth().getUser(cleanUid); } catch (error) { authUser = null; }
+  const profile = authUser ? ((await db.collection("users").doc(cleanUid).get()).data() || {}) : {};
+  let plan;
+  try { plan = parentPasswordLinkPlan({ authUser, profile, superAdminEmails: SUPER_ADMIN_EMAILS }); } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
+  const cardDocs = new Map();
+  (await Promise.all([
+    db.collection("students").where("parentUid", "==", plan.uid).get(),
+    db.collection("students").where("linkedParentId", "==", plan.uid).get(),
+    db.collection("students").where("linkedParentIds", "array-contains", plan.uid).get(),
+  ])).forEach((snap) => snap.docs.forEach((doc) => cardDocs.set(doc.id, doc.data())));
+  const children = [...new Set([...cardDocs.values()].filter(card => card.active !== false && !card.mergedInto).map(card => cleanText(card.name, 160)).filter(Boolean))];
+  const link = await admin.auth().generatePasswordResetLink(plan.email, { url: `${CRM_URL}/login` });
+  let timer;
+  const limit = new Promise((resolve) => { timer = setTimeout(() => resolve({ status: "timeout" }), APPROVAL_MAIL_LIMIT_MS); });
+  const mail = await Promise.race([
+    deliverEmail(composeInviteEmail({ name: plan.name, email: plan.email, link, resend: true, children }), { kind: "parent-invite", uid: plan.uid })
+      .catch((error) => { console.error("parent password e-mail failed", plan.uid, error); return { status: "failed" }; }),
+    limit,
+  ]).finally(() => clearTimeout(timer));
+  await db.collection("activityLog").add({
+    action: "account_password_link", targetUid: plan.uid, relationship: "parent", displayName: plan.name,
+    email: plan.email, mail: mail.status || "", actor: actorSnapshot(actor), createdAt: FieldValue.serverTimestamp(),
+  });
+  return { uid: plan.uid, email: plan.email, created: false, mailed: mail.status === "sent", mailStatus: mail.status || "", link };
+}
+
+// The parent's „Konto” block: sign-in facts that are only in Firebase Auth (read-only, admin only, ≤ 10 accounts).
+async function accountAuthInfo({ uids }) {
+  const { authInfoUids, authInfoOf } = require("./parent-account-core");
+  let clean;
+  try { clean = authInfoUids(uids); } catch (error) { throw httpError(error.status, error.message); }
+  const result = await admin.auth().getUsers(clean.map(uid => ({ uid })));
+  const byUid = new Map((result.users || []).map(user => [user.uid, authInfoOf(user)]));
+  return { accounts: clean.map(uid => byUid.get(uid) || { uid, found: false }) };
+}
+
 // „Lisa lapsevanem” (owner 2026-10-15): a parent's login without a password, linked to the children's cards, and an
 // e-mail with the password link (functions/parent-invite-core.js). An e-mail that already has a parent login links
 // that login to the cards and sends a new password link; staff logins and a child's own login are refused.
@@ -8595,8 +8640,16 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       res.json(await updateParentProfile({ actor, uid: req.body?.uid, displayName: req.body?.displayName, email: req.body?.email, phone: req.body?.phone, applyToCards: req.body?.applyToCards !== false }));
       return;
     }
+    if (req.path === "/accounts/auth-info") {
+      res.set("Cache-Control", "no-store");
+      res.json(await accountAuthInfo({ uids: req.body?.uids }));
+      return;
+    }
     if (req.path === "/accounts/invite") {
-      const result = await inviteStudentAccount({ actor, studentId: req.body?.studentId, email: req.body?.email, requestId: req.body?.requestId });
+      // the parent's card sends { parentUid }: a new password link to that parent account's own e-mail
+      const result = req.body?.parentUid
+        ? await sendParentPasswordLink({ actor, parentUid: req.body.parentUid })
+        : await inviteStudentAccount({ actor, studentId: req.body?.studentId, email: req.body?.email, requestId: req.body?.requestId });
       res.status(result.created ? 201 : 200).json(result);
       return;
     }
