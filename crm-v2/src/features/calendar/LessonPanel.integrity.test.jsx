@@ -29,6 +29,17 @@ it('the student name opens the student card (admin, 2026-10-17)', () => {
   expect(screen.getByRole('link', { name: 'Maria' })).toHaveAttribute('href', '/students/p');
 });
 
+it('warns about the student device before a planned lesson, not after it (owner 2026-11-04)', async () => {
+  const deviceCheck = { forStudent: vi.fn(async () => ({ deviceCheck: { at: '2026-11-03T18:00:00Z', status: 'fail', issues: ['camera-busy'], browser: 'Chrome 130' }, hadLiveLesson: false })) };
+  const planned = render(<LessonPanel item={{ id: 's', studentId: 'p', studentName: 'Maria', status: 'Planeeritud', occurrenceDate: '2026-10-05', time: '15:00' }} student={{ id: 'p', name: 'Maria' }} deviceCheck={deviceCheck} />);
+  expect(await screen.findByText('Õpilase seadmes on viga')).toBeInTheDocument();
+  expect(screen.getByText('kaamerat kasutab teine rakendus')).toBeInTheDocument();
+  planned.unmount();
+  render(<LessonPanel item={{ id: 's', studentId: 'p', studentName: 'Maria', status: 'Toimunud', lessonRecordId: 'r1', record: { status: 'Toimunud' }, occurrenceDate: '2026-10-05', time: '15:00' }} student={{ id: 'p', name: 'Maria' }} deviceCheck={deviceCheck} />);
+  await waitFor(() => expect(screen.queryByText('Õpilase seadmes on viga')).toBeNull());
+  expect(deviceCheck.forStudent).toHaveBeenCalledTimes(1);
+});
+
 it('the lesson panel names the subject (owner chat 2026-10-17)', () => {
   render(<LessonPanel item={{ id: 's', studentId: 'p', studentName: 'Maria', subject: 'Inglise keel', teacher: 'Kati', status: 'Planeeritud', occurrenceDate: '2026-10-05', time: '15:00' }} student={{ id: 'p', name: 'Maria' }} />);
   expect(screen.getByLabelText('Õppeaine: Inglise keel')).toHaveTextContent('EN');

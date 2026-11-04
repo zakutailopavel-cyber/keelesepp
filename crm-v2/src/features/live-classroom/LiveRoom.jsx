@@ -419,7 +419,7 @@ export default function LiveRoom({
   const callButton = call.hasLocalMedia
     ? <IconButton label="Lõpeta kõne" danger className="lr-call" disabled={call.busy} onClick={call.hangUp}><PhoneOff size={19} /></IconButton>
     : !teacher && !call.manualJoin
-      ? <span className="lr-pill lr-call-wait" role="status">{call.busy ? 'Ühendan…' : 'Ootan, kuni õpetaja alustab kõnet…'}</span>
+      ? <><span className="lr-pill lr-call-wait" role="status">{call.busy ? 'Ühendan…' : 'Ootan, kuni õpetaja alustab kõnet…'}</span><a className="lr-pill" href={`/kontroll?tund=${encodeURIComponent(invitation.id)}`} target="_blank" rel="noopener">Kontrolli seadet</a></>
       : <button type="button" className="lr-call-start" disabled={call.busy} onClick={startCall}><Phone size={17} /> {teacher ? 'Alusta kõnet' : 'Liitu kõnega'}</button>;
 
   return (
