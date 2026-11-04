@@ -9,6 +9,7 @@ import IconButton from '../ui/IconButton.jsx';
 import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { messagesService } from '../../services/firebase/messages.js';
+import { unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.js';
 import { clearTestSession, testSessionName } from '../../services/firebase/auth.js';
 import GuideBanner from '../../features/guide/GuideBanner.jsx';
 import { WhatsNewDialog } from '../../features/guide/WhatsNew.jsx';
@@ -27,7 +28,7 @@ function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
-export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, announcements, missingData }) {
+export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, unmarked = unmarkedLessonsService, announcements, missingData }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, signOut, preview } = useAuth();
   const previewNavigation = usePreviewNavigation();
@@ -49,7 +50,15 @@ export default function AppShell({ approvals = accountApprovalsService, messages
     if (!isStaff || !messages?.subscribeUnreadCount || !user.uid) return undefined;
     try { return messages.subscribeUnreadCount({ uid: user.uid, all: isAdmin }, setUnreadMessages, () => setUnreadMessages(0)); } catch { return undefined; }
   }, [messages, isStaff, isAdmin, user.uid]);
-  const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0 };
+  // admins see past lessons nobody marked (not billed) on „Kalender”
+  const [unmarkedLessons, setUnmarkedLessons] = useState(0);
+  useEffect(() => {
+    if (!isAdmin || !unmarked?.subscribeCount) return undefined;
+    try { return unmarked.subscribeCount({ user, isAdmin: true }, setUnmarkedLessons); } catch { return undefined; }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the user object changes identity; uid is the key
+  }, [unmarked, isAdmin, user.uid]);
+  const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0, '/calendar': isAdmin ? unmarkedLessons : 0 };
+  const badgeLabel = { '/messages': 'lugemata', '/calendar': 'märkimata tundi' };
   const blockPreviewButtons = (event) => {
     if (!preview?.readOnly) return;
     // only closing a dialog is let through: it changes nothing, and a dialog that cannot be closed covers the page
@@ -82,7 +91,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
             <Fragment key={to}>
               {group && group !== visibleNavigation[index - 1]?.group ? <span className="nav-group">{group}</span> : null}
               <NavLink to={to} end={end} data-tour={`nav-${to}`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-                <Icon size={19} /><span>{label}{hint ? <small className="nav-hint">{hint}</small> : null}</span>{badges[to] ? <b className="nav-count" aria-label={to === "/messages" ? `${badges[to]} lugemata` : `${badges[to]} ootel`}>{badges[to]}</b> : null}
+                <Icon size={19} /><span>{label}{hint ? <small className="nav-hint">{hint}</small> : null}</span>{badges[to] ? <b className="nav-count" aria-label={`${badges[to]} ${badgeLabel[to] || 'ootel'}`}>{badges[to]}</b> : null}
               </NavLink>
             </Fragment>
           ))}
