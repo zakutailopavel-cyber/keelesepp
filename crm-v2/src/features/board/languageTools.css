@@ -1,0 +1,40 @@
+/* „Puuduta sõna” card and the „õ ä ö ü” bar on the lesson board (BoardLanguageTools.jsx). Both float on document.body,
+   above the Live Classroom room (.lr 1300) and the sheet's floating notes (1330); they never move the layout. */
+.sb-word-tap {
+  position: fixed; z-index: 1460; box-sizing: border-box; max-width: calc(100vw - 16px); padding: 12px 14px 12px;
+  border: 1px solid #e3e6f0; border-radius: 14px; background: #fff; color: #24294a;
+  box-shadow: 0 14px 40px rgba(20, 30, 60, .22); font: 14px/1.4 Inter, system-ui, sans-serif;
+}
+.sb-word-tap__x {
+  position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 24px; height: 24px;
+  border: 0; border-radius: 8px; background: #f2f3f8; color: #5c6185; cursor: pointer;
+}
+.sb-word-tap__word { display: block; margin-right: 28px; font-size: 1.12rem; overflow-wrap: anywhere; }
+.sb-word-tap__lemma { margin: 4px 0 0; color: #4a4f72; font-size: .88rem; }
+.sb-word-tap__tr { margin: 6px 0 0; color: #2f3566; font-style: italic; }
+.sb-word-tap__tr span { margin-right: 4px; color: #8a8fae; font-size: .72rem; font-style: normal; text-transform: uppercase; letter-spacing: .03em; }
+.sb-word-tap__muted { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; color: #6b7091; font-size: .85rem; }
+.sb-word-tap__saved { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; color: #067647; font-size: .84rem; font-weight: 600; }
+.sb-word-tap__add {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 7px 12px; border: 1px solid #b7c8f5;
+  border-radius: 999px; background: #eef3ff; color: #2446a8; font: inherit; font-weight: 700; font-size: .85rem; cursor: pointer;
+}
+.sb-word-tap__add:disabled { opacity: .6; cursor: default; }
+.sb-word-tap .spin { animation: sb-word-tap-spin 1s linear infinite; }
+@keyframes sb-word-tap-spin { to { transform: rotate(360deg); } }
+
+.sb-letters {
+  position: fixed; z-index: 1460; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 12px;
+  background: #fff; box-shadow: 0 6px 20px rgba(20, 30, 60, .2), 0 0 0 1px rgba(20, 30, 60, .08);
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.sb-letters button {
+  display: grid; place-items: center; min-width: 34px; height: 34px; padding: 0 6px; border: 0; border-radius: 9px;
+  background: transparent; color: #1d2547; font: 600 17px/1 Inter, system-ui, sans-serif; cursor: pointer;
+}
+.sb-letters button:hover { background: #f0f3fa; }
+.sb-letters .sb-letters__caps, .sb-letters .sb-letters__hide { min-width: 28px; color: #6b7091; }
+.sb-letters .sb-letters__caps.is-active { background: #e4ebff; color: #2446a8; }
+.sb-letters.is-folded { padding: 2px; opacity: .8; }
+.sb-letters.is-folded .sb-letters__open { min-width: 26px; height: 26px; font-size: 14px; }
+@media (pointer: coarse) { .sb-letters button { min-width: 40px; height: 40px; } }
