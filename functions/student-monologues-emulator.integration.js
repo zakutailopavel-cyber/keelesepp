@@ -126,9 +126,32 @@ test("the student records its own monthly monologue; the card's teacher and admi
   assert.equal(await commit(student, [remove(`studentMonologueNotes/${id}`)]), 403, "the student cannot delete it");
   assert.equal(await commit(teacher, [remove(`studentMonologueNotes/${id}`)]), 200, "the teacher deletes it");
 
+  // the transcriber's fields (school Mac, Admin SDK): no app user sets them, not even the student on its own doc
+  assert.equal(await commit(student, [patch(`studentMonologues/${id}`, { transcript: "Ise kirjutatud.", words: 2 })]), 403, "the student cannot write the text");
+  assert.equal(await commit(teacher, [patch(`studentMonologues/${id}`, { wpm: 200 })]), 403, "nor the teacher");
+  assert.equal(await commit(adminUser, [patch(`studentMonologues/${id}`, { transcribedTake: "x" })]), 403, "nor an admin through the app");
+  await db.doc(`studentMonologues/${id}`).update({ transcript: "Mina olen Mari.", words: 3, wpm: 2, transcribedTake: now, transcribedAt: now, transcriber: "kool-mac" });
+  assert.equal(await read(student, `studentMonologues/${id}`), 200, "the student reads its own text");
+  assert.equal(await commit(student, [patch(`studentMonologues/${id}`, { audioPath: `homework/${sid}/monologues/${month}.webm`, contentType: "audio/webm", seconds: 100, updatedAt: new Date().toISOString() })]), 200, "a new take next to the text");
+
+  // the error check: staff only, written only by the transcriber
+  const analysis = { studentId: sid, monologueId: id, month, take: now, errors: [{ said: "ma läksin pood", corrected: "ma läksin poodi", kind: "vorm" }], checked: 3, focus: [], analyzedAt: now };
+  assert.equal(await commit(teacher, [create(`studentMonologueAnalysis/${id}`, analysis)]), 403, "the teacher cannot write it");
+  assert.equal(await commit(adminUser, [create(`studentMonologueAnalysis/${id}`, analysis)]), 403, "nor an admin through the app");
+  assert.equal(await commit(student, [create(`studentMonologueAnalysis/${id}`, analysis)]), 403, "nor the student");
+  await db.doc(`studentMonologueAnalysis/${id}`).set(analysis);
+  assert.equal(await read(teacher, `studentMonologueAnalysis/${id}`), 200, "the card's teacher reads it");
+  assert.equal(await list(teacher, "studentMonologueAnalysis", sid), 200, "and lists the card's");
+  assert.equal(await read(adminUser, `studentMonologueAnalysis/${id}`), 200, "an admin");
+  assert.equal(await read(student, `studentMonologueAnalysis/${id}`), 403, "the student never reads it");
+  assert.equal(await list(student, "studentMonologueAnalysis", sid), 403, "nor lists it");
+  assert.equal(await read(parent, `studentMonologueAnalysis/${id}`), 403, "a parent");
+  assert.equal(await read(otherTeacher, `studentMonologueAnalysis/${id}`), 403, "another teacher");
+  assert.equal(await commit(teacher, [remove(`studentMonologueAnalysis/${id}`)]), 403, "the teacher cannot delete it");
+
   // deleting a monologue: admins only
   assert.equal(await commit(student, [remove(`studentMonologues/${id}`)]), 403, "the student");
   assert.equal(await commit(teacher, [remove(`studentMonologues/${id}`)]), 403, "the teacher");
-  assert.equal((await db.doc(`studentMonologues/${id}`).get()).get("seconds"), 95);
+  assert.equal((await db.doc(`studentMonologues/${id}`).get()).get("seconds"), 100);
   assert.equal(await commit(adminUser, [remove(`studentMonologues/${id}`)]), 200, "an admin");
 });
