@@ -4,11 +4,17 @@ import { requireFirebaseClient } from './client.js';
 import { cleanNote, isMonth, monologueAudioPath, monologueId, monologueRecord } from '../../features/monologue/monologueModel.js';
 
 // „Kuu monoloog”: `studentMonologues/{studentId}_{YYYY-MM}` { studentId, studentUid, month, promptId, level, audioPath,
-// contentType, seconds, createdAt, updatedAt } (+ later, from a transcriber: transcriptText, wordCount). The student
+// contentType, seconds, createdAt, updatedAt } + from the school Mac's transcriber (tools/lesson-transcriber, Admin SDK):
+// transcript (text), words, wpm, transcribedAt, transcriber, transcribedTake (the take's updatedAt). The student
 // account of the card writes and reads its own; the card's teacher and admins read. Parents: no access.
 // The teacher's note lives apart, in `studentMonologueNotes/{monologueId}` { studentId, monologueId, text, byUid,
 // byName, updatedAt }, which only staff can read, so the student never sees it (firestore.rules).
 export function normalizeMonologue(id, data = {}) {
+  // a text made for an earlier take of the month (the student recorded again) is not shown: the Mac makes a new one
+  const take = data.updatedAt || data.createdAt || '';
+  const fresh = !data.transcribedTake || data.transcribedTake === take;
+  const text = typeof data.transcript === 'string' ? data.transcript : data.transcriptText;
+  const words = Number.isFinite(data.words) ? data.words : data.wordCount;
   return {
     id,
     studentId: data.studentId || '',
@@ -21,8 +27,23 @@ export function normalizeMonologue(id, data = {}) {
     seconds: Number(data.seconds) || 0,
     createdAt: data.createdAt || '',
     updatedAt: data.updatedAt || data.createdAt || '',
-    ...(typeof data.transcriptText === 'string' ? { transcriptText: data.transcriptText } : {}),
-    ...(Number.isFinite(data.wordCount) ? { wordCount: data.wordCount } : {}),
+    ...(fresh && typeof text === 'string' ? { transcriptText: text } : {}),
+    ...(fresh && Number.isFinite(words) ? { wordCount: words } : {}),
+    ...(fresh && Number.isFinite(data.wpm) ? { wpm: data.wpm } : {}),
+  };
+}
+
+// `studentMonologueAnalysis/{monologueId}`: the transcriber's error check of one take, staff only (rules)
+export function normalizeMonologueAnalysis(id, data = {}) {
+  return {
+    id,
+    take: data.take || '',
+    checked: Number(data.checked) || 0,
+    errors: (Array.isArray(data.errors) ? data.errors : []).filter((e) => e?.said && e?.corrected)
+      .map((e) => ({ said: String(e.said), corrected: String(e.corrected), kind: String(e.kind || '') })),
+    focus: (Array.isArray(data.focus) ? data.focus : []).filter((t) => t?.topic)
+      .map((t) => ({ key: String(t.key || ''), topic: String(t.topic), count: Number(t.count) || 0 })),
+    analyzedAt: data.analyzedAt || '',
   };
 }
 
@@ -76,6 +97,14 @@ export const studentMonologuesService = {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'studentMonologueNotes'), where('studentId', '==', studentId)));
     return Object.fromEntries(snapshot.docs.map((d) => [d.id, normalizeNote(d.id, d.data())]));
+  },
+
+  // staff only: the transcriber's error checks of one card, by monologue id
+  async listAnalysis(studentId) {
+    if (!studentId) return {};
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'studentMonologueAnalysis'), where('studentId', '==', studentId)));
+    return Object.fromEntries(snapshot.docs.map((d) => [d.id, normalizeMonologueAnalysis(d.id, d.data())]));
   },
 
   // an empty note removes it

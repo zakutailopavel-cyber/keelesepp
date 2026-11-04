@@ -138,5 +138,25 @@ topic yet; the owner decides whether to add one or attach it to the nearest less
   (16 gaps, 6 + 7 transformations, 14-verb sort, 7 rewrites, 8 error corrections). Keys checked by `textbook.test.js`.
 - Publishing: „Kursuse tootmine” → „Õpik” → row b1b2-016 → „Avalda” (admin, with confirmation).
 
+### Own material: „Kus? Kuhu? Kust?” (a2-017, a2-018, a2b1-012) — kohakäänded
+
+- Owner 2026-11-04: the local cases must exist as an Õpik sheet with full theory and exercises, structured around the
+  three questions KUS? · KUHU? · KUST?. No licensed book pages for this topic → **own wording and own examples**, no book
+  copied. Forms chosen from words whose forms are certain; both variants accepted where both are correct
+  (kooli ~ koolisse, kööki ~ köögisse, majja ~ majasse, kinno ~ kinosse, Lätti ~ Lätisse).
+- Data: `textbook/kohakaanded.json` (book `oma-kohakaanded`, „KeeleSepa oma materjal: kohakäänded”), `pages: ''` →
+  subtitle just „Õpik”. Three sheets:
+  - a2-017 „Kus? Kuhu? Kust? — sees” (A2): KUS·KUHU·KUST table (both rows), sees-käänded, omastav + ending (11 words),
+    22 short illatives, NB; 7 tasks: choice 10, gaps 12, short/long illative 12, olen→lähen/tulen 10, text 14, errors 8,
+    RU→ET 6.
+  - a2-018 „Kus? Kuhu? Kust? — peal” (A2): KUS·KUHU·KUST table, peal-käänded, omastav + ending (12), sees vs peal list
+    (28 words), rule box (pind / üritus / lahtine koht / erandid jaamas, rannas, trennis, tunnis / juures / kellel?);
+    7 tasks: choice 10, sort 22, gaps 14, olen→lähen/tulen 10, text 11, errors 8, RU→ET 7.
+  - a2b1-012 „Kus? Kuhu? Kust? — kokkuvõte” (A2+): all six forms + juures + kellel/kellele/kellelt + adverbs, case
+    names, step-by-step building (8 words), short illative rules, when sees/peal, place names (-maa, Otepää, Toompea,
+    Lasnamäe, Mustamäe → -l), verb table (kus / kuhu / kust / külastama + osastav), traps, common errors; 7 tasks:
+    verb-driven gaps 16, verb choice 8, places 8, kellel? 6, text 14, errors 9, writing (5–7 sentences, teacher).
+- Publishing: „Kursuse tootmine” → „Õpik” → row → „Avalda” (admin, owner's decision). Not published by the agent.
+
 One lesson has one „Õpik” sheet. When two books (or two chapters) fit the same lesson, they go into that sheet one
 after the other, each with its own source line.

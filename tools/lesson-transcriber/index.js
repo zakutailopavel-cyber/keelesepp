@@ -9,6 +9,7 @@ const { promisify } = require('node:util');
 const admin = require('firebase-admin');
 const { dismissedPairs, isDismissed, learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, judgeCorrection, teacherRecasts, errorTopics, withFocus, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { isEnglishNoise, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
+const { createMonologueWorker } = require('./monologue');
 
 const run = promisify(execFile);
 const env = (k, d) => process.env[k] || d;
@@ -445,9 +446,46 @@ async function deleteOldAiRequests() {
   for (const d of snap.docs) await d.ref.delete();
 }
 
+// ── „Kuu monoloog” (studentMonologues): the student's monthly monologue → text, words/min and the error check ──
+// Looked for every MONOLOGUE_SCAN_SECONDS in recent months, in all months at start and hourly; lessons go first.
+const MONOLOGUE_SCAN_MS = Number(env('MONOLOGUE_SCAN_SECONDS', '300')) * 1000;
+let monologueScanAt = 0;
+let monologueFullScanDone = false;
+const monologues = createMonologueWorker({
+  db, host: os.hostname(), model: path.basename(modelFor('et')), gecModel: GEC_MODEL, log,
+  deleteField: () => admin.firestore.FieldValue.delete(),
+  forms: async () => (await loadDidactics().catch(() => null))?.forms || null,
+  dismissed: () => dismissedFeedback(),
+  // one track, the student's: the same VAD + language detection + TalTech Estonian model as a lesson's student track
+  transcribe: async (audioPath) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ks-mono-'));
+    try { return await transcribeSegment({ path: audioPath, track: 'student', startMs: 0 }, 'et', dir); }
+    finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  },
+});
+async function monologueWork(hourly) {
+  if (env('MONOLOGUES', 'on') === 'off') return;
+  const all = hourly || !monologueFullScanDone;
+  if (!all && Date.now() - monologueScanAt < MONOLOGUE_SCAN_MS) return;
+  monologueScanAt = Date.now();
+  const hasGec = env('ANALYSIS', 'on') !== 'off' && (await ollamaModels()).includes(GEC_MODEL);
+  const gec = hasGec
+    ? async (sentence) => (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(sentence), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim()
+    : null;
+  current = { state: 'monologue', recordingId: '', detail: 'monoloog' };
+  try {
+    const n = await monologues.work({ all, gec });
+    monologueFullScanDone = true;
+    if (n) monologueScanAt = 0; // more may wait: look again on the next tick
+  } finally {
+    current = { state: 'idle', recordingId: '' };
+  }
+}
+
 async function tick() {
   await handOverAbandoned();
   for (const rec of await claim()) { await transcribe(rec); analysisScanAt = 0; }
+  try { await monologueWork(new Date().getMinutes() < 2); } catch (err) { log('monologue tick error', err.message); }
   // only when no lesson waits for its text: one analysis per tick
   try { await analyzeNext(); } catch (err) { log('analysis tick error', err.message); }
   const hourly = new Date().getMinutes() < 2;
