@@ -22,6 +22,7 @@ const CourseProductionPage = lazy(() => import('../features/worksheet-generator/
 const CourseHealthPage = lazy(() => import('../features/worksheet-generator/ui/CourseHealthPage.jsx'));
 // pages only staff open: downloaded when opened, so a student's or parent's first load stays small
 const CalendarPage = lazy(() => import('../features/calendar/CalendarPage.jsx'));
+const UnmarkedLessonsPage = lazy(() => import('../features/calendar/UnmarkedLessonsPage.jsx'));
 const FinanceWorkspacePage = lazy(() => import('../features/finance/FinanceWorkspacePage.jsx'));
 const FinanceMonthPage = lazy(() => import('../features/finance/FinanceMonthPage.jsx'));
 const FinanceSettingsPage = lazy(() => import('../features/finance/FinanceSettingsPage.jsx'));
@@ -103,6 +104,7 @@ export default function AppRoutes() {
             <Route path="students/:studentId" element={staffPage(<StudentProfilePage />)} />
             <Route path="students/:studentId/worksheets/:lessonId" element={generatorPage(<StudentWorksheetStudioPage />)} />
             <Route path="calendar" element={staffPage(<CalendarPage />)} />
+            <Route path="calendar/markimata" element={staffPage(<UnmarkedLessonsPage />)} />
             <Route path="tasks" element={staffPage(<TasksPage />)} />
             <Route path="groups" element={staffPage(<GroupsPage />)} />
             <Route path="library" element={staffPage(<LibraryPage />)} />

@@ -43,6 +43,23 @@ describe('application shell', () => {
     expect(messages.subscribeUnreadCount.mock.calls[0][0]).toMatchObject({ uid: 'a1', all: true });
   });
 
+  it('shows an admin the number of unmarked past lessons on „Kalender”; a teacher gets no menu count', () => {
+    const unmarked = { subscribeCount: vi.fn((who, onCount) => { onCount(4); return () => {}; }) };
+    const shell = (roles) => render(
+      <AuthContext.Provider value={{ user: { uid: 'u1', displayName: 'X', roles }, signOut: vi.fn() }}>
+        <MemoryRouter initialEntries={['/']}><Routes><Route path="*" element={<AppShell unmarked={unmarked} approvals={{}} messages={{}} />}><Route path="*" element={<LocationProbe />} /></Route></Routes></MemoryRouter>
+      </AuthContext.Provider>,
+    );
+    const { unmount } = shell(['admin']);
+    expect(screen.getByLabelText('4 märkimata tundi')).toHaveTextContent('4');
+    expect(unmarked.subscribeCount.mock.calls[0][0]).toMatchObject({ isAdmin: true });
+    unmount();
+    unmarked.subscribeCount.mockClear();
+    shell(['teacher']);
+    expect(unmarked.subscribeCount).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText(/märkimata tundi/)).toBeNull();
+  });
+
   it('in a read-only preview a dialog can be closed, every other button stays blocked', () => {
     const answer = vi.fn();
     function Page() {
