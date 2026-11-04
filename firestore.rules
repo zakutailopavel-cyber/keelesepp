@@ -2075,6 +2075,8 @@ service cloud.firestore {
           && request.resource.data.answeredAt == request.time;
         allow delete: if false;
       }
+    }
+
     // „Kuu monoloog” (2026-11-04): once a month the student records two minutes on the fixed prompt of their level.
     // `studentMonologues/{studentId}_{YYYY-MM}`. Only the student's own account (role student, linked to the card; not a
     // parent) writes it, in that month (UTC, or 3 h ahead for Tallinn), and may replace the take; the card's teacher and
