@@ -25,7 +25,7 @@
 //                 relaying to Kadri, „Mida sa teeksid, kui…?” (S14); Kasuta: Raivo's voicemail → notes, the call to the
 //                 club, plan A and B recorded at home, plan, the letter to Viktor (main, W04).
 //   074 PROJ L→S  „Minu tegevusplaan” — the module product. Eha Org in the firm's podcast (true / false), the jussive in
-//                 the programme's rules (recognition again), rules rewritten with peab / võib / ei tohi, dictation, the
+//                 the programme's rules (recognition again), rules rewritten with peab / võib / ei tohi, the
 //                 application questionnaire (W01), introducing oneself to a mentor three times; crossword, Eha's voice
 //                 message → what to do, the guide (true / false / not stated), Markus's errors, a note to the mentor,
 //                 Eksaminurk S1a = topic questions „Tulevik ja plaanid”; Kasuta: Sofia's draft plan (application), the

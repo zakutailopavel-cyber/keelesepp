@@ -1,3 +1,15 @@
+## 2026-11-04 · agent/no-dictation-b1-c1 — no dictation in B1, B2, C1 (WIP: quality gates fail, owner decision needed)
+
+- Base: `origin/agent/listening-goal` b59ed87 (PR #1094 still open, not merged); `origin/main` 7d4d9eb (#1092) checked 2026-11-04. Content zone + one generator catalog line. Nothing published.
+- Owner 2026-11-04: „диктанты вообще не нужны на Б1 Б2 и С1”; A2 keeps them.
+- Done: 39 `B.dictation` blocks removed — B1 (`b1/module*.js`) 19, B2 (`b2/module*.js`) 20, C1 0 (C1 had one pair dictation inside a speaking task, `c1/module09b.js` `c1_088_p_say`: reworded to „write without punctuation, partner adds it”; its self-check line too). `b1/lessonGoals.js`, `b2/lessonGoals.js`: dictation ids out of `tags`, „etteütlus” out of the `g_listen` texts, two `g_vocab` texts (a2b1-083, a2b1-088) no longer mention dictation; `g_listen` dropped (back to the main version of the entry) in a2b1-024, 028, 048, 056, 062 (only one listening task left). „Keel N.” titles renumbered in a2b1-001 and 005 Harjuta; stale „dictation” mentions in b1 module header comments removed.
+- Generator: `engine/activityCatalog.js` `practice-dictation` `maxLevel: 'A2'` (was B2) + `planner.test.js`. New guard `admin/course/noDictation.test.js`. Docs: `LESSON_QUALITY_CONTRACT.md` A3b, `FINAL_SHAPE_AUTHORING.md` V15, `WORKSHEET_GENERATOR_V1.md`.
+- Grading pin: `gradingPin.golden.js` b1b2-005/discover (b2m01 and b2v3) hash only, pct 94 unchanged (item 005_d_dict gone).
+- BLOCKER: without the dictation 35 sheets fall under the sheet / depth gates (course.test 13 module + 30 strict tests, finalShape b1 m08/m17/m18, CourseProductionPage test): minutes < 40 (a2b1-001, 005, 006, 007, 014, 020, 024, 028, 037, 053, 056, 062, 067, 083 Harjuta; a2b1-045 Avasta), exercise minutes < 25 (most b1b2 check-lesson Avasta sheets 010–085, b1b2-033 Harjuta, a2b1-014/028/037/045), < 2 whole-sentence tasks (a2b1-045, b1b2-075, b1b2-089 Avasta), V9 g_vocab with 1 task (a2b1-037, 083, 088). No baseline regenerated, no task invented.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 145 files passed, 4 failed (48 tests: the gates above + flaky WorksheetStudioPage timeouts); generator, lessonGoals, listeningGoal, noDictation tests pass. `npx eslint src --quiet` prints nothing.
+- Production: none. Published sheets keep their dictations until re-published from „Kursuse tootmine”.
+- PR: draft, do not merge. Next safe step: owner chooses how the freed minutes are filled (a replacement task built on the dictation's own sentences, or more work on the existing texts), then the gates are made green on this branch.
+
 ## 2026-11-04 · agent/group-room-parity — group rooms get „Hetk”, „Kõneaeg”, the device warning and „Täna harjutada”
 
 - Base: `origin/main` ee0c15d (#1087), rebased on c73727a (#1090) before the PR, checked 2026-11-04. Live Classroom group room + its calendar warning (one feature, owner's request); one rules function; no finance / content / functions code (one emulator test).

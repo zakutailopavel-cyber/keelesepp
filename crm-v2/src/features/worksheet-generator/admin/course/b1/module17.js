@@ -22,7 +22,7 @@
 //   083 KUUL L→S  „Eksam ja e-teenused” — radio „Päevateema” with adviser Merit Kask on registering and the exam day
 //                 (L02); reported speech and the impersonal past (öeldi, soovitati; notice, G02 table, G07 word order,
 //                 G03 Sofia's message), 4-3-2 (S08, the module's one retelling), „Mida sa teeksid?” (S14, fluency);
-//                 dictation (L08), Eksaminurk L3a = Ruslan's call to Sotsiaalkindlustusamet, safe e-services (R07, expert),
+//                 Eksaminurk L3a = Ruslan's call to Sotsiaalkindlustusamet, safe e-services (R07, expert),
 //                 key words matched (G08), form choice (G13), the examiner set; Kasuta: Tiina at the house meeting (L06),
 //                 the district's questionnaire (W01), a forum of new residents (R12), the checklist ranked (S12), the
 //                 checklist presented to the neighbours (main, S13).
@@ -527,16 +527,6 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja loeb olukorrad ette; esimesel korral vastab õpilane rahulikult, teisel korral annab õpetaja igale olukorrale 20 sekundit. Õpetaja märgib, kas õpilane kasutas tingivat kõneviisi (teeksin, helistaksin, läheksin).'),
     ],
     practice: [
-      { ...B.dictation('083_p_dict', 'Eksamipäeva meelespea.', 'Kuula iga lauset kaks korda ja kirjuta see täpselt üles. Kontrolli lõpus käänded ja komad.', [
-        'Eksamile tuleb võtta kaasa isikut tõendav dokument.',
-        'Telefon peab eksami ajal olema välja lülitatud ja kotis.',
-        'Kirjalikud osad tehakse samal päeval järjest.',
-        'Rääkimise osa tehakse koos teise eksaminandiga.',
-        'Eksam on sooritatud, kui tulemus on vähemalt kuuskümmend protsenti.',
-        'Enne eksamit tasub minna vara magama ja hommikul korralikult süüa.',
-        'Lugemise osas on aega täpselt viiskümmend minutit.',
-        'Registreerimise tähtaeg on kirjas Harno kodulehel.',
-      ], 8), goal: 'g_vocab' },
       tag(B.listening('083_p_ska', 'Eksaminurk: Ruslan helistab Sotsiaalkindlustusametisse (Harno B1 kuulamine 3)', 'Kuula telefonikõnet kaks korda. Vasta igale küsimusele ühe-kahe sõna või arvuga.', [
         'Kertu: Sotsiaalkindlustusamet, tere! Minu nimi on Kertu. Kuidas saan aidata?',
         'Ruslan: Tere! Ruslan siin. Me kolisime perega Narvast Tallinnasse ja ma tahan teada, kas see muudab midagi meie tütre peretoetuses.',

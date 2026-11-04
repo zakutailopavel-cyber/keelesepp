@@ -633,7 +633,6 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja on eksamineerija, mõõdab aega (2 minutit mõtlemiseks, 1 minut kõneks) ja küsib seejärel 3–4 küsimust; ühele vastusele ütleb ta vastupidise arvamuse ja küsib „Miks?”.'),
       B.letter('065_d_letter', 'Kirjutamine (proov, 140–160 sõna).', 'Kirjuta soovitus kooli õpilasesindusele: kuidas vähendada riiete raiskamist koolis? Probleem, põhjused, lahendused, järeldus.', 'Hea õpilasesindus!', 'Lugupidamisega', [140, 160]),
       TR('065_d_tr', ['Из-за этого возникает огромное количество текстильных отходов.', 'Поскольку футболка дешёвая, её не жалко выбросить.', 'Благодаря этому вещи можно обменивать.', 'Покупать меньше и лучше — самое эффективное решение.', 'Качественная вещь лучше для окружающей среды.', 'Проблема в том, что одежду носят мало.', 'Самым эффективным решением было бы покупать меньше, но качественнее.']),
-      B.dictation('065_d_dict', 'Etteütlus.', 'Õpetaja loeb kuus kiirmoe lauset. Kirjuta need üles ja kontrolli koma sidesõna ees.', ['Kiirmood tähendab odavaid riideid, mida kantakse vähe.', 'Selle tõttu tekib palju tekstiilijäätmeid.', 'Pesemisel eraldub sünteetilistest riietest mikroplastikut.', 'Kuna särk on odav, visatakse see kiiresti ära.', 'Kriitikud on uue seaduse suhtes skeptilised.', 'Kõige tõhusam on osta vähem ja paremini.']),
 
     ],
     // Harno B2 format (docs/HARNO_LEVEL_REQUIREMENTS.md): listening part 3 (a talk, 10 gaps of 1–2 words, heard twice),
@@ -731,7 +730,6 @@ export const LESSONS = withShapes({
       ]),
       B.wordforms('065_p_gov', 'Keeleosa C: rektsioon.', 'Kirjuta sõnad tegusõnale sobivas käändes.', [['sõitude vähendamine', 'keskenduma + …', 'sõitude vähendamisele'], ['kohalikud elanikud', 'arvestama + …', 'kohalike elanikega'], ['maainimesed', 'sobima + …', 'maainimestele'], ['ühistransport', 'sõltuma + …', 'ühistranspordist'], ['ekspertide arvamus', 'nõustuma + …', 'ekspertide arvamusega'], ['kütuse hind', 'mõjutama + …', 'kütuse hinda']], 'full'),
       B.speaking('065_p_say', 'Räägi loetust (3 minutit).', 'Võta artikkel 3 minutiga kokku: probleem, kaks lahendust ja nende puudused. Lõpus ütle oma seisukoht.', ['Mis on probleem?', 'Millised kaks lahendust valid?', 'Mis on nende puudused?', 'Mida sina arvad?'], [150, 210]),
-      B.dictation('065_p_dict', 'Etteütlus.', 'Õpetaja loeb kuus lauset maaelu ja transpordi kohta. Kirjuta need üles.', ['Maal on auto paljude jaoks vajadus.', 'Tänu nõudetranspordile säästab vald raha.', 'Kuna tööajad on erinevad, lähevad kokkulepped katki.', 'Seetõttu tuleks sõite vähendada.', 'Elektriautod on maainimeste jaoks kallid.', 'Rohepööre vajab maapiirkondade toetust.']),
       B.rubric('065_p_score', 'Punktid ja lävend.', 'Loe kokku õiged vastused osade kaupa.', ['Kuulamine, osa 3 (lüngad): … / 10', 'Kuulamine, osa 4 (õige või vale): … / 8', 'Lugemine, osa 1 (valikvastused): … / 7', 'Lugemine, osa 4 (lausepank): … / 8', 'Keeleosa (harjutus, eksamipunktidesse ei lähe): … / 19', 'Eesmärk: kuulamises vähemalt 15/18 ja lugemises vähemalt 12/15 (80 %); Harno lävi on 60 %.']),
 
     ],

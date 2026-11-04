@@ -14,7 +14,7 @@
 //   062 KUUL L→S  „Kas te saaksite meid aidata?” — B1 grammar: tingiv kõneviis in polite requests (sooviksin, kas te
 //                 saaksite, kas oleks võimalik): announcements on the way to Saaremaa, Kadri's call to the hotel, rule,
 //                 a holiday photo three times, Oskar's rude message made polite; the manager's e-mail, Eksaminurk L4
-//                 (a communication trainer on the radio), dictation, command → request, the hotel notices, „Mida sa
+//                 (a communication trainer on the radio), command → request, the hotel notices, „Mida sa
 //                 teeksid?” (S14, the first conditional speaking task of the course); Kasuta: the manager's voicemail →
 //                 what it means, the call to the manager (main), a voice message to Helgi, the hotel questionnaire.
 //   063 AVAS R→W  „Kuulujutt trepikojas” — B1 grammar of the module (METHODOLOGY_STANDARD §7): kaudne kõneviis and
@@ -376,10 +376,6 @@ export const LESSONS = withShapes({
         ['Evelin soovitab pahasena mitte naeratada ega tänada.', false],
       ]), { harno: 'L4' }),
       'Eksaminurk (Harno B1 kuulamine 4, intervjuu, õige või vale, ~9 min). Eksamil on üheksa väidet, siin kümme. Strateegia: 1) loe enne kuulamist kõik väited ja jooni alla sõnad, mis võivad olla valed (ainult, alati, kõik); 2) esimesel kuulamisel märgi, teisel kontrolli; 3) väide on vale ka siis, kui ainult üks detail on vale. Üks-ühele: õpetaja peatab salvestuse pärast viiendat väidet ja küsib, milline sõna aitas otsustada.'),
-      B.dictation('062_p_dict', 'Etteütlus: viisakad palved.', 'Õpetaja loeb kümme viisakat palvet hotellis ja sadamas. Kirjuta laused üles ja jooni alla tingiva kõneviisi vormid.', [
-        'Kas te saaksite meile anda kaks tuba kõrvuti?', 'Ma sooviksin teada, mis kell hommikusöök algab.', 'Kas oleks võimalik toast lahkuda alles keskpäeval?', 'Kas me võiksime jätta kohvrid vastuvõttu kella neljani?', 'Me oleksime tänulikud, kui tuba oleks kella kolmeks valmis.',
-        'Kas te aitaksite mul praamipileti teisele ajale vahetada?', 'Ma tahaksin broneerida restoranis laua kella seitsmeks.', 'Kas lastele oleks võimalik tuua üks lisatekk?', 'Kas te teeksite meile natuke hinnast alla?', 'Mul oleks veel üks palve: äratage meid palun kell seitse.',
-      ], 10),
       B.transformation('062_p_polite', 'Käsust palveks.', 'Muuda järsk lause viisakaks palveks või sooviks antud sõnaga. Kasuta tingivat kõneviisi.', [
         ['Andke meile kohe teine tuba.', 'saaksite', 'Kas te saaksite meile teise toa anda?|Kas te saaksite anda meile teise toa?'],
         ['Ma tahan teada, mis kell praam Kuivastusse väljub.', 'sooviksin', 'Ma sooviksin teada, mis kell praam Kuivastusse väljub.'],

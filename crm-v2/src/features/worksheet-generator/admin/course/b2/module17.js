@@ -696,7 +696,6 @@ export const LESSONS = withShapes({
         'Kas saartele tasub ehitada sild või piisab praamist? Põhjenda.',
       ], 'B2', [120, 240]), 'Mõtle 1 minut ja räägi 1 minut: millises Eesti paigas tahaksid elada kümne aasta pärast ja miks? Seejärel küsib eksamineerija küsimusi ja te arutlete: põhjenda, too näide oma kogemusest ja vasta ka vastuargumendile.'),
         'Üks-ühele: õpetaja on eksamineerija ja mõõdab aega (1 minut mõtlemiseks, 1 minut kõneks); siis küsib ta 3–4 küsimust ja esitab ühele vastusele vastuargumendi, millele õpilane viisakalt vastab.'),
-      B.dictation('085_d_dict', 'Etteütlus.', 'Õpetaja loeb kuus lauset kogukonnaaedadest. Kirjuta need üles ja kontrolli käändeid ning komasid.', ['Paljudesse Eesti linnadesse on rajatud kogukonnaaedu.', 'Uuringute järgi vähendab aiatöö stressi.', 'Kogukonnaaiad toovad kokku eri põlvkondi.', 'Mõnikord jäävad peenrad suve lõpuks hooletusse.', 'Linn annab aia jaoks maad viieks aastaks.', 'Algatus peaks tulema elanikelt endilt.']),
       TR('085_d_tr', ['Во многих городах Эстонии появились общинные огороды.', 'Исследования показывают, что работа в саду снижает стресс.', 'Город мог бы выделить землю для огорода на пять лет.', 'С другой стороны, иногда грядки к концу лета остаются без ухода.', 'Поэтому инициатива должна исходить от самих жителей.', 'В итоге общинный огород может объединить соседей разных поколений.', 'Если жители сами возьмутся за дело, огород будет ухоженным всё лето.', 'Город выделит землю, только если жители подпишут договор об уходе.']),
 
     ],

@@ -6,7 +6,7 @@
 // Valgevase 7 and 3 in Kalamaja after the storm. The goal, said on the first sheet: at the end the learner agrees with the
 // neighbours on one green project for the courtyard (Harno S1b) and does the first full, timed mock exam.
 //   056 KUUL L→W  „Palav nädal ja jaanipäeva ilm” — five radio forecasts (numbers by ear), läheb jahedamaks / muutub
-//                 tuuliseks, the weather service page (true / false / not stated), dictation of warnings, an information
+//                 tuuliseks, the weather service page (true / false / not stated), an information
 //                 gap on two days' weather, Eksaminurk L2 (radio „Päevateema” with meteorologist Ragnar Vaher); Kasuta:
 //                 Viktor's voicemail → notes, the call to the village hall (Ants), a voice message to Jaan, the letter to
 //                 Lena about jaanipäev and the weather (main).
@@ -164,10 +164,6 @@ export const LESSONS = withShapes({
         'Päike laskub öösel horisondi alla ainult natuke ja täiesti pimedaks ei lähe: need on valged ööd.',
         'Talvel on vastupidi. 21. detsembril 2026 tõuseb päike Tallinnas kell 9.17 ja loojub juba kell 15.20, päev kestab ainult 6 tundi ja 3 minutit. Lõuna-Eestis on suvepäev veidi lühem ja talvepäev veidi pikem kui Tallinnas.',
       ], 'Timeanddate, Tallinna päikesetõusu ja -loojangu tabel (juuni ja detsember 2026)', 'Kas teadsid? Valged ööd ja lühikesed talvepäevad'),
-      B.dictation('056_p_dict', 'Etteütlus: hoiatused ja nõuanded.', 'Õpetaja loeb kümme ilmahoiatust. Kirjuta iga lause üles ja jooni alla sõna, mis näitab muutust või soovitust.', [
-        'Pärastlõunal muutub ilm Kesk-Eestis järsku tuuliseks ja vihmaseks.', 'Õhtuks läheb märgatavalt jahedamaks, sooja on ainult viisteist kraadi.', 'Metsades on suur tuleoht, sest mitu nädalat ei ole sadanud.', 'Äikese ajal ärge seiske üksiku puu all ega lagedal väljal.', 'Rannikul oodatakse tormi ja tuulepuhangud võivad olla väga tugevad.',
-        'Palava ilmaga jooge palju vett ja püsige keskpäeval varjus.', 'Ärge jätke lapsi ega koeri kuuma ilmaga autosse.', 'Pärast äikest läheb taevas õhtul jälle selgeks ja vaikseks.', 'Jaanipäeva hommikul tekib järvede ja rabade kohale paks udu.', 'Kinnitage õues lahtised esemed ja laadige telefonid enne ööd täis.',
-      ], 10),
       B.transformation('056_p_report', 'Ilmateate keeles.', 'Ragnar ütleb ilmateates asju lühemalt. Kirjuta lause ümber antud sõnaga, nii nagu ilmateates öeldakse.', [
         ['Meteoroloogid ootavad öösel tugevat tuult.', 'oodatakse', 'Öösel oodatakse tugevat tuult.|Tugevat tuult oodatakse öösel.'],
         ['Ilmateenistus soovitab autojuhtidel sõita aeglasemalt.', 'soovitatakse', 'Autojuhtidel soovitatakse sõita aeglasemalt.'],

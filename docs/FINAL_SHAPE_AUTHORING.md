@@ -104,7 +104,7 @@ target per part.
 | V12 | modules 6–18: exactly one `harno` task a teaching lesson, 8–12 minutes, a different format family than the previous lesson's, ≤ 25 % of the lesson |
 | V13 | Avasta starts with `B.review` whose items name the previous lesson and a lesson from a module 2–4 back |
 | V14 | ≥ 90 % of a module's vocab-box headwords are in the EKI etLex A1–B1 lists (CC BY, `levelForms.*.json`) or an earlier module's boxes; the others are tagged `topic` |
-| V15 | a module: errorfix ≤ 2, translation ≤ 1, dictation ≤ 2; Kasuta has no G task; a drill id once a lesson |
+| V15 | a module: errorfix ≤ 2, translation ≤ 1, dictation ≤ 2 (A2 only — B1, B2 and C1 have no dictation at all, owner 2026-11-04, `LESSON_QUALITY_CONTRACT.md` A3b); Kasuta has no G task; a drill id once a lesson |
 
 ## 6. Minimal example (module 7, lesson 1: KUUL L→W)
 

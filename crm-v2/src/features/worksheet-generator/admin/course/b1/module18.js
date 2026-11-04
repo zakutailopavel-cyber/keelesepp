@@ -531,16 +531,6 @@ export const LESSONS = withShapes({
         ['Mida otsiti vanasti jaaniööl metsast ja miks?', 'sõnajalaõit, sest leidja pidi saama rikkaks ja õnnelikuks'],
         ['Milline suvepüha on sinu kodumaal kõige tähtsam ja kuidas seda tähistatakse?', ''],
       ], 'g_read'), { task: 'R13', voice: 'popsci' }),
-      { ...B.dictation('088_p_dict', 'Jaanipäev Eestis.', 'Kuula iga lauset kaks korda ja kirjuta see täpselt üles. Kontrolli lõpus suur algustäht ja käänded.', [
-        'Jaanipäeva tähistatakse Eestis igal aastal kahekümne neljandal juunil.',
-        'Jaaniõhtul tehakse lõke ja ollakse sõprade või perega kaua üleval.',
-        'Kahekümne kolmas juuni on Eestis ka võidupüha ja riigipüha.',
-        'Vanasti otsiti jaaniööl metsast sõnajalaõit, mis pidi õnne tooma.',
-        'Paljud linlased sõidavad jaanipäevaks maale oma sugulaste või sõprade juurde.',
-        'Jaaniaja ööd on aasta kõige lühemad ja valgemad ööd.',
-        'Jaanipeole võetakse tavaliselt kaasa grilliliha, salatid ja soojad riided.',
-        'Pärast lõket minnakse maal sageli veel kord sauna.',
-      ], 8), goal: 'g_vocab' },
       B.examWriting('088_p_form', 'Viktori küsimustik külalistele.', 'Viktor tahab peo hästi ette valmistada. Vasta tema küsimustikule tervete lausetega; kus küsitakse „Miks?”, põhjenda.', 'kusimustik', {
         situation: 'Viktor saatis kõigile jaanipeo külalistele lühikese küsimustiku. Vasta Sofia nimel või enda nimel.',
         questions: ['Mitu inimest tuleb teiega koos jaanipeole talusse?', 'Kas tulete talusse oma autoga või rongiga Aegviitu?', 'Mis kell te laupäeval umbes talusse jõuate?', 'Kas jääte talusse ööseks või sõidate õhtul koju? Miks?', 'Kas eelistate magada heinaküünis või oma telgis?', 'Kas kellelgi teie seltskonnast on mõni toiduallergia?', 'Millise toidu või joogi te peole kaasa toote?', 'Kas lähete enne õhtusööki ka sauna? Miks?', 'Kas oskate mõnda pilli mängida või lõkke ääres laulda?', 'Mida te sellel jaanipäeval kõige rohkem ootate? Miks?'],

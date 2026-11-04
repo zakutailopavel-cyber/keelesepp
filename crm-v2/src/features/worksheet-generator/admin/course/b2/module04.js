@@ -664,7 +664,6 @@ export const LESSONS = withShapes({
         'Milline on sinu unistuste kodu kümne aasta pärast ja millest see sõltub?',
       ], 'B2', [60, 180]),
       B.letter('020_d_letter', 'Kirjutamine (proov, 130–150 sõna).', 'Kirjuta sõbrale, kes plaanib kolida väikelinna: mida ta peab arvestama, mida tasub proovida ja millest ta võib loobuda.', 'Tere, kallis sõber!', 'Kallistustega', [130, 150]),
-      B.dictation('020_d_dict', 'Etteütlus.', 'Kuula Irina loo lauseid ja kirjuta need üles.', ['Irina pidi oma töökohast loobuma.', 'Lapsed harjusid uue kooliga kiiresti.', 'Nüüd jalutavad nad õhtuti jõe ääres.', 'Arsti juurde pääseb mõnikord alles nädala pärast.', 'Oleme õppinud elama aeglasemalt.', 'Järgmisel aastal plaanivad nad osta maja.']),
       B.translation('020_d_tr', 'Tõlgi eesti keelde.', 'Tõlgi laused eesti keelde: mõtle sihitisele, infinitiivile ja rektsioonile.', ['Я не купил хлеба, потому что магазин был закрыт.', 'Мне нужно научиться плавать до лета.', 'Она интересуется современным искусством.', 'Когда мы пришли, фильм уже начался.', 'Ты когда-нибудь участвовал в марафоне?', 'Я забыл закрыть окно на кухне.'], 'half', 'g_notice'),
     ],
     // Harno format check, reading and listening (owner 2026-10-13): an article with 4-option questions and statements ↔

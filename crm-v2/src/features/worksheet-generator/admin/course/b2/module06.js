@@ -604,7 +604,6 @@ export const LESSONS = withShapes({
       ], 'B2', [60, 180]), 'Valmistu 2 minutit ja räägi 1 minut teemal, milline on hea töö 21. sajandil. Seejärel esitab eksamineerija küsimusi: põhjenda vastuseid ja too näiteid oma töökogemusest või Eesti elust.'),
         'Üks-ühele: õpetaja on eksamineerija, mõõdab aega (2 minutit mõtlemiseks, 1 minut kõneks) ja küsib seejärel 3–4 küsimust; ühele vastusele ütleb ta vastupidise arvamuse ja küsib „Miks?”.'),
       B.letter('030_d_letter', 'Kirjutamine (proov, 140–160 sõna).', 'Kirjuta sõbrale, kes valib kahe töökoha vahel: millised kriteeriumid on olulised ja mida sa soovitad.', 'Tere, Kati!', 'Kallistustega', [140, 160]),
-      B.dictation('030_d_dict', 'Etteütlus.', 'Kuula iga lauset kaks korda ja kirjuta see täpselt üles.', ['Ida-Virumaa on olnud Eesti energia süda.', 'Põlevkivitööstus peab kliimaeesmärkide tõttu kahanema.', 'Osa rahast läheb täiskasvanute ümberõppeks.', 'Piirkonnas on puudus oskustöötajatest.', 'Kriitikud kardavad, et raha kulub liiga kiiresti.', 'Rohepööre on ka tööturu küsimus.']),
       TR('030_d_tr', ['Я отвечаю за ежемесячный отчёт.', 'Для меня хорошая команда важнее большого офиса.', 'Коллега снова опоздал на совещание.', 'С одной стороны, дома спокойно, с другой — скучно.', 'Руководитель дал мне полезную обратную связь.', 'Я хотел бы участвовать в следующем обучении.']),
       B.transformation('030_d_trans', 'Ütle teisiti.', 'Kirjuta sama mõte uuesti, kasutades antud sõna.', [
         ['Minu ülesanne on aruannete koostamine.', 'vastutama', 'Ma vastutan aruannete koostamise eest.'],

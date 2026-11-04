@@ -670,7 +670,6 @@ export const LESSONS = withShapes({
       ], 'B2', [120, 240]), 'Mõtle 2 minutit ja räägi 1 minut: milline on hea linn ja hea teenindus? Siis vasta eksamineerija küsimustele, põhjenda ja too näide oma elust.'),
         'Üks-ühele: õpetaja on eksamineerija, mõõdab aega (2 minutit mõtlemiseks, 1 minut kõneks) ja küsib seejärel 3–4 küsimust; mõnele vastusele ütleb ta vastupidise arvamuse ja küsib „Miks?”.'),
       B.letter('010_d_letter', 'Kordamise kiri (100–120 sõna).', 'Kirjuta linnavalitsusele ettepanek: mida võiks teeninduses paremaks teha ja miks.', 'Lugupeetud linnavalitsus!', 'Lugupidamisega', [100, 120]),
-      B.dictation('010_d_dict', 'Etteütlus.', 'Õpetaja loeb iga lause kaks korda. Kirjuta laused õigesti üles.', ['Teenuskeskuses saab ajada mitut asja.', 'Inimesed ei teadnud, kuhu pöörduda.', 'Kas te saaksite seda aeglasemalt korrata?', 'Paluksin probleemi kiiresti lahendada.', 'Sel juhul tulen hoopis homme.', 'Teenindaja sõidab bussiga linnaosadesse.']),
       TR('010_d_tr', ['Я иду в банк, а потом в библиотеку.', 'Не могли бы вы говорить чуть медленнее?', 'Прошу исправить ошибку в счёте до пятницы.', 'Правильно ли я понял, что автобус не останавливается в центре?', 'В таком случае я приду завтра утром.', 'Документы можно отправить по электронной почте.']),
 
     ],

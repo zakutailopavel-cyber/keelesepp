@@ -15,7 +15,7 @@
 //                 the story „Ühe ööga valmis” (main, W05).
 //   067 AVAS L→S  „Kas sa oled kunagi…?” — täisminevik for experience vs lihtminevik for a fixed time (spiral, grammarPlan
 //                 'perfect'): try first, Oskar's video call with Helgi, rule, 4-3-2, a survey of three; try again (Sofia's
-//                 blog), the parents' chat, ten living books by ear, translation, dictation, „Mida sa teeksid?” (S14);
+//                 blog), the parents' chat, ten living books by ear, translation, „Mida sa teeksid?” (S14);
 //                 Kasuta: the librarian Triin's voicemail → notes, Eksaminurk S2 = the call to Triin (main), the book's
 //                 introduction recorded at home, the living library questionnaire.
 //   068 KUUL L→W  „Ajajoon näitusele” — Helgi's life in years by ear, the radio show „Minu lugu” on life stories, time
@@ -385,10 +385,6 @@ export const LESSONS = withShapes({
         'Ты когда-нибудь был на Сааремаа летом?', 'Я никогда не летал на самолёте один.', 'В прошлом году я впервые летал в Хельсинки.', 'Бабушка много раз рассказывала нам эту историю.', 'Вчера вечером Оскар позвонил бабушке по видео.',
         'Виктор за свою жизнь починил тысячи велосипедов.', 'В 1988 году Виктор вместе с отцом построил сауну.', 'Кристель живёт в Таллинне уже двенадцать лет.', 'Ты уже прочитал эту книгу до конца?', 'Я ещё никогда не выступал перед полным залом.',
       ], 'full', 'g_vocab'),
-      B.dictation('067_p_dict', 'Etteütlus: elavate raamatute laused.', 'Õpetaja loeb kümme lauset elavate raamatute kogemustest. Kirjuta laused üles ja jooni alla täismineviku vormid.', [
-        'Helgi on külakoolis õpetajana töötanud üle kümne aasta.', 'Viktor ei ole kunagi oma talust kaugele kolinud.', 'Kas sa oled kunagi elava raamatu juttu kuulanud?', 'Tõnu on kakskümmend aastat igal kevadel kalal käinud.', 'Kadri on lastehaiglas töötanud juba üheksa aastat.',
-        'Oskar ei ole veel kunagi laval üksi esinenud.', 'Sofia on eesti keeles sadadele klientidele helistanud.', 'Mia on joonistanud vanaemale sel aastal juba kümme pilti.', 'Kristel on lugude õhtut korraldanud juba kaks korda.', 'Me oleme kõik elus vähemalt korra ära eksinud.',
-      ], 10),
       teach(tag(B.speaking('067_p_would', 'Kui saaksid uuesti proovida…', 'Vasta igale küsimusele tingiva kõneviisiga ja põhjenda. Teisel ringil vasta igale küsimusele umbes poole minutiga.', ['Kui saaksid ühe päeva oma elust uuesti elada, millise päeva sa valiksid?', 'Mida sa ei ole kunagi proovinud, aga prooviksid kohe, kui saaksid?', 'Kui sa oleksid elav raamat, millest sa räägiksid?', 'Kui saaksid küsida ühe küsimuse oma vanavanemalt, mida sa küsiksid?', 'Mida sa teeksid, kui eksiksid lastega metsas ära?'], [120, 180], ['Ma valiksin…, sest…', 'Ma prooviksin…', 'Kõigepealt ma…']), { task: 'S14', fluency: true }),
         'Üks-ühele: õpetaja loeb küsimuse ja küsib „Aga miks?”; teisel ringil vastab õpilane igale küsimusele umbes 30 sekundiga. Õpetaja märgib, kas õpilane eristas tingivat (prooviksin) ja täisminevikku (ei ole proovinud).'),
     ],

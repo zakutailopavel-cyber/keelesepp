@@ -720,7 +720,6 @@ export const LESSONS = withShapes({
       ], 'B2', [120, 240]), 'Mõtle 1 minut ja räägi 1 minut: millist uudisteallikat usaldad sina kõige rohkem ja miks? Seejärel esitab eksamineerija küsimusi ja te arutlete: põhjenda, too näide oma elust ja vasta ka vastuargumendile.'),
         'Üks-ühele: õpetaja on eksamineerija ja mõõdab aega (1 minut mõtlemiseks, 1 minut kõneks); siis küsib ta 3–4 küsimust ja esitab ühele vastusele vastuargumendi, millele õpilane viisakalt vastab.'),
       B.wordorder('075_d_order', 'Pane lause kokku.', 'Sõnad on segamini. Kirjuta meedia teema lause õiges sõnajärjes.', ['Autori sõnul on tasuta uudistel oma hind.', 'Reklaami hind sõltub sellest, kui palju inimesi artiklit avab.', 'See väide on hinnang, sest seda ei saa kontrollida.', 'Argument on nõrk, sest sellel puudub tõend.', 'Autor jõuab järeldusele, et keegi maksab alati.', 'Minu arvates tasub kvaliteetse ajakirjanduse eest maksta.']),
-      B.dictation('075_d_dict', 'Etteütlus.', 'Õpetaja loeb kuus lauset tasuta uudistest. Kirjuta need üles ja kontrolli suurtähti ja komasid.', ['Suurem osa inimesi loeb uudiseid tasuta.', 'Reklaami hind sõltub klikkidest.', 'Uurivad lood jäävad sageli tegemata.', 'Paljud maakonnalehed on suletud.', 'Tellijate arv on hakanud kasvama.', 'Ajakirjandus ei ole kunagi olnud tasuta.']),
 
     ],
     // Harno B2 format: listening part 2 (an interview, 5 × 4 options, heard twice), reading part 1 (a 500–600-word

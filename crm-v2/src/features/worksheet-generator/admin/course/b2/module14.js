@@ -606,7 +606,6 @@ export const LESSONS = withShapes({
       B.speaking('070_d_mono', 'Suuline seisukoht (proov).', 'Selgita 3 minutit lihtsate, kuid täpsete sõnadega: mis on „kriitiline usaldus” ja miks see on oluline? Too näide oma elust.', ['Mis on usaldus?', 'Miks on vaja ka kriitikat?', 'Too näide.', 'Mis on sinu järeldus?'], [150, 210]),
       B.letter('070_d_letter', 'Kirjutamine (proov, 150–170 sõna).', 'Kirjuta arvamus: „Kuidas saaks omavalitsus elanike usaldust suurendada?” Kaks konkreetset ettepanekut koos põhjendusega.', 'Kuidas suurendada usaldust?', '', [150, 170]),
       TR('070_d_tr', 'Tõlge (proov).', 'Tõlgi usalduse teema laused eesti keelde nii, et need kõlaksid loomulikult.', ['Доверие не возникает само по себе.', 'Если люди знают, как принимаются решения, они больше согласны.', 'Один скандал может разрушить доверие.', 'Гражданин может доверять и одновременно требовать изменений.', 'Общественные деньги нельзя использовать неправильно.', 'Участвовать не обязательно, но полезно.', 'Чтобы доверие не исчезло, решения должны быть прозрачными.']),
-      B.dictation('070_d_dict', 'Etteütlus.', 'Kuula usalduse artikli lauseid ja kirjuta need üles.', ['Eestis usaldatakse politseid rohkem kui valitsust.', 'Usaldus riigi vastu ei teki iseenesest.', 'Kõige olulisem on otsuste läbipaistvus.', 'Algatustes osalejad usaldavad omavalitsust rohkem.', 'Usaldus võib kaduda väga kiiresti.', 'Terve ühiskond vajab ka ausat kriitikat.']),
 
     ],
     // Harno B2 format: listening part 4 (an interview with two guests, 12 true/false, heard twice), reading part 1

@@ -573,7 +573,6 @@ export const LESSONS = withShapes({
       ], 'B2', [120, 240]), 'Mõtle 2 minutit ja räägi 1 minut: mida tähendab sulle eesti keel ja milline on selle tulevik? Seejärel vastad eksamineerija küsimustele: näita, kui kindel sa oled, põhjenda ja too näide.'),
         'Üks-ühele: õpetaja on eksamineerija, mõõdab aega (2 minutit mõtlemiseks, 1 minut kõneks) ja küsib seejärel 3–4 küsimust; ühele vastusele ütleb ta vastupidise arvamuse ja palub õpilasel viisakalt vastu vaielda.'),
       B.letter('025_d_letter', 'Arvamuslugu (proov, 140–160 sõna).', 'Kirjuta: kas lastele peaks andma taskuraha? Seisukoht, kaks argumenti, vastuargument ja kokkuvõte.', 'Kas lapsed vajavad taskuraha?', '', [140, 160]),
-      B.dictation('025_d_dict', 'Etteütlus.', 'Õpetaja loeb arvamusloo laused ette. Kirjuta need üles ja kontrolli koma sidesõna ümber.', ['Minu arvates on liiga vara sularahast loobuda.', 'Näiteks paneb vanaema raha ümbrikutesse.', 'Järelikult on sularaha omamoodi kindlustus.', 'Samas tuleb tunnistada, et kaardimaksed on turvalisemad.', 'Ma saan aru, miks ettevõtted tahavad sularahast loobuda.', 'Kokkuvõttes peaksid mõlemad makseviisid alles jääma.']),
       TR('025_d_tr', ['Я частично согласен, но вижу и минусы.', 'Во-первых, карта быстрее и удобнее.', 'Например, в деревне не везде принимают карты.', 'Следовательно, наличные нужны ещё несколько лет.', 'С другой стороны, хранить деньги дома опасно.', 'В итоге я выбираю и то, и другое.']),
 
     ],

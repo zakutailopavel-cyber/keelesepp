@@ -10,7 +10,7 @@
 //                 here), Olena's letter, the club radio notice, the info gap; Daria's clubs: cards, agreement, the call to
 //                 the activities leader (main), a message to the class teacher, parents meet.
 //   037 KUUL L→W  „Pean õppima, tahan osata” — Eksaminurk L2 (Maret on Raadio Linnahääl, format introduced here), Anna
-//                 and Liis at lunch, ma- or da-form; the office notice board, the lunch club invitation, a dictation;
+//                 and Liis at lunch, ma- or da-form; the office notice board, the lunch club invitation;
 //                 the course administrator's voicemail → notes, Liis is told, Anna's letter to Kati (main).
 //   038 LUGE R→W  „Miks ma õpin?” — the magazine article on adult learners and sleep, the survey chart, Anna and Liis
 //                 at the coffee machine, sest / kuna / seepärast and word order; the language school's newsletter,
@@ -468,18 +468,6 @@ export const LESSONS = withShapes({
         ['Raamatu võtja kirjutab oma nime kapi ukse vihikusse.', true],
         ['Eha Org juhatab teisipäeviti lõunaklubi.', false],
       ], 'full', 'g_read'),
-      { ...B.dictation('037_p_dict', 'Etteütlus: Anna plaan.', 'Õpetaja loeb iga lause kaks korda. Kirjuta lause üles ja kontrolli ma- ja da-vorme.', [
-        'Anna peab kevadel soome keele eksami sooritama.',
-        'Ta hakkab kaks korda nädalas kursusel käima.',
-        'Liis lubas Annaga lõunapausil soome keeles rääkida.',
-        'Annal on raske kiiret kõnet kuulata.',
-        'Iga päev proovib ta kümme uut sõna meelde jätta.',
-        'Pühapäeval jääb ta koju kodutööd tegema.',
-        'Kas sa tahaksid ka lõunaklubisse tulla?',
-        'Raamatukogus on hea vaikselt õppida.',
-        'Õpetaja soovitas Annal rohkem raadiot kuulata.',
-        'Kevadeks tahab Anna soome keelt hästi osata.',
-      ], 10), goal: 'g_vocab' },
       B.examWriting('037_p_invite', 'Kutse lõunaklubisse.', 'Liis palub sul kirjutada kolleegidele kutse. Kirjuta 50–70 sõna ja kõigist neljast punktist.', 'kutse', {
         situation: 'Kontoris algab lõunaklubi „Keel ja kohv”. Liis tahab, et tuleks rohkem inimesi.',
         points: ['millal ja kus klubi kohtub', 'mida klubis teha saab', 'mida peab kaasa võtma', 'miks tasub tulla'],

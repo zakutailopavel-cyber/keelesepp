@@ -176,10 +176,6 @@ export const LESSONS = withShapes({
         ['A', 'Kas ma võin talle helistada? Meil on üks [saladus] ja minu ema ei tohi sellest teada.'],
         ['B', 'Muidugi. Ma annan talle teie numbri. Ta helistab teile ise!'],
       ], 'g_read'),
-      B.dictation('006_p_dict', 'Etteütlus: Helgi mälestused.', 'Õpetaja loeb iga lauset kaks korda. Kirjuta lause vihikusse, kelle-vormid õigesti.', [
-        'Minu onu tütar on minu nõbu.', 'Iga suvi olime vanaema talus.', 'Maie mängis minu pulmas kitarri.', 'Me läksime Maiega tülli ega leppinud ära.',
-        'Sofia tahab kutsuda Maie ema sünnipäevale.', 'Ma armusin oma mehesse esimesest silmapilgust.', 'Me abiellusime aasta pärast esimest kohtingut.', 'Kas sa tead, kelle tütar see tüdruk on?',
-      ], 8),
       B.match('006_d_family', 'Kes see on?', 'Ühenda sugulus ja sõna, mis seda tähendab.', [
         ['minu ema vend', 'onu'], ['minu isa õde', 'tädi'], ['minu onu tütar', 'nõbu'], ['minu poja tütar', 'lapselaps'],
         ['minu venna tütar', 'vennatütar'], ['minu õe poeg', 'õepoeg'], ['minu ema ja isa', 'vanemad'], ['minu vanaema ja vanaisa', 'vanavanemad'],
@@ -338,10 +334,6 @@ export const LESSONS = withShapes({
         ['Hoidja tunnihind ei sõltu kogemusest.', false],
         ['Rohkem infot on raadio kodulehel.', true],
       ]), { task: 'L05', voice: 'interview' }),
-      B.dictation('007_p_dict', 'Etteütlus: Kadri kuulutus.', 'Õpetaja dikteerib Kadri kuulutuse lauseid. Kirjuta iga lause koos komadega.', [
-        'Otsime lastele hoidjat, kes on kannatlik ja rõõmus.', 'Meie tütar Mia on tüdruk, kellele meeldib joonistada.', 'Oskar on poiss, kellel on alati pall käes.',
-        'Hoidja, keda me otsime, ei karda koeri.', 'Inimene, kellega lapsed õhtuti mängivad, peab olema täpne.', 'Esimene kohtumine on meie kodus Männi tänaval.', 'Palun kirjutage meile reedeni.',
-      ], 7),
       tag(B.bankText('007_p_team', 'Liisi kiri meeskonnale.', 'Pane igasse lünka sobiv sõna pangast. Kaks sõna jääb üle.', 'Tere tulemast, Sofia!', [
         'Kallid kolleegid! Esmaspäeval alustas meie meeskonnas Sofia. Ta on inimene, [[kes]] õpib eesti keelt ja räägib juba väga hästi.',
         '',

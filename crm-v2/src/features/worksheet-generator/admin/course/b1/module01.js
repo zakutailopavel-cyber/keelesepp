@@ -176,20 +176,15 @@ export const LESSONS = withShapes({
         ['Test näitab, kust õppimist alustada.', true], ['Testi tulemus on kursuse hinne.', false],
         ['A2 tasemelt B1 tasemele jõuab tavaliselt umbes aastaga.', true],
       ]), { harno: 'L4' }),
-      why(B.dictation('001_p_dict', 'Keel 1. Etteütlus.', 'Õpetaja loeb iga lause kaks korda. Kirjuta lause täpselt üles.', [
-        'Eile õhtul sadas Tallinnas vihma.', 'Sofia käis pärast tööd poes.', 'Ma tahaksin homme varem tulla.',
-        'Anna ei joo hommikul kohvi.', 'Me läheme laupäeval ujulasse.', 'Markus pidi kaua bussi ootama.',
-        'Kas te saaksite mind jaama viia?', 'Õhtul tahan rahulikult raamatut lugeda.',
-      ]), areas('BAECADED')),
-      why(B.gaps('001_p_gaps', 'Keel 2. Kus, kuhu või kust?', 'Kirjuta sulgudes olev sõna sobivas kohavormis.', [
+      why(B.gaps('001_p_gaps', 'Keel 1. Kus, kuhu või kust?', 'Kirjuta sulgudes olev sõna sobivas kohavormis.', [
         'Ma töötan suures [kontoris] (kontor).', 'Pärast tööd lähen [poodi|poesse] (pood).', 'Anna tuleb hommikul [Sauest] (Saue).', 'Lapsed mängivad [õues] (õu).',
         'Pane piim tagasi [külmkappi] (külmkapp).', 'Võta oma raamat [laualt] (laud).', 'Laupäeval sõidame [maale] (maa).', 'Markus tuli just [koosolekult] (koosolek).',
       ]), areas('AAAAAAAA')),
-      why(B.wordforms('001_p_past', 'Keel 3. Mis juhtus eile?', 'Kirjuta tegusõna lihtminevikus. Vaata, kes teeb.', [
+      why(B.wordforms('001_p_past', 'Keel 2. Mis juhtus eile?', 'Kirjuta tegusõna lihtminevikus. Vaata, kes teeb.', [
         ['minema', 'Eile … ma tööle jala.', 'läksin'], ['tegema', 'Mida sa eile õhtul …?', 'tegid'], ['olema', 'Me … eile terve päeva kodus.', 'olime'], ['nägema', 'Ma … eile poes Annat.', 'nägin'],
         ['sööma', 'Mia … eile kaks kooki.', 'sõi'], ['ostma', 'Nad … eile uue auto.', 'ostsid'], ['tooma', 'Markus … eile tööle kooki.', 'tõi'], ['saama', 'Sa … eile minult kirja.', 'said'],
       ]), areas('BBBBBBBB')),
-      why(B.choice('001_p_forms', 'Keel 4. Vali õige vorm.', 'Vali vorm, mis sobib lausesse.', [
+      why(B.choice('001_p_forms', 'Keel 3. Vali õige vorm.', 'Vali vorm, mis sobib lausesse.', [
         ['Kas te … mulle arve e-postiga saata?', 'saaksite', 'saaksin', 'saama'], ['Ma … tassi teed, palun.', 'sooviksin', 'soovima', 'sooviksid'],
         ['Sofia ei söö hommikul …', 'leiba', 'leib', 'leiva'], ['Mul on vaja uut …', 'arvutit', 'arvuti', 'arvutisse'],
         ['Markus peab homme varem …', 'tõusma', 'tõusta', 'tõuseb'], ['Mulle meeldib õhtul raamatut …', 'lugeda', 'lugema', 'loen'],
@@ -308,10 +303,6 @@ export const LESSONS = withShapes({
         [['Miks Merike tööle hiljaks jäi?', 'buss ei tulnud|bussi ei tulnud|sadas palju lund'], ['Kuidas Merike kontorisse jõudis?', 'jala|kõndis jala|kõndis'], ['Mida ülemus tegi?', 'naeris ja pakkus kohvi|pakkus kohvi|naeris'],
           ['Millal Igor magama jäi?', 'eksami päeval|autokooli eksami päeval|kui tal oli eksam'], ['Mida Igor kohe pärast ärkamist tegi?', 'helistas autokooli|helistas|küsis uut aega'], ['Mida Tiina õhtul ette valmistab?', 'riided ja koti|riided|koti'],
           ['Mis on Tiina arvates suur viga?', 'vaikimine|vaikida|kui ei kirjuta']]), { voice: 'forum', task: 'R15' }),
-      B.dictation('002_p_dict', 'Etteütlus: Anna neljapäev.', 'Õpetaja loeb Anna loost kaheksa lauset. Kirjuta need üles.', [
-        'Neljapäeva hommikul jäi Anna magama.', 'Tema telefon oli öösel tühjaks läinud.', 'Bussipeatuses nägi ta, kuidas buss minema sõitis.', 'Järgmine buss tuli kahekümne minuti pärast.',
-        'Koosolek oli juba alanud, kui Anna kohale jõudis.', 'Anna vabandas ja istus vaikselt laua taha.', 'Markus andis talle oma vana sülearvuti.', 'Õhtul pani Anna kaks äratust.',
-      ]),
       B.wordorder('002_p_order', 'Kus on tegusõna?', 'Pane sõnad järjekorda. Alusta lauset suure algustähega sõnast.', [
         'Eile | ärkas | Sofia | kell | pool | kaheksa', 'Siis | jõi | ta | kiiresti | klaasi | vett', 'Bussis | luges | ta | Mareti | sõnumit', 'Pärast | tööd | läks | Sofia | keelekooli',
         'Tunnis | rääkisid | nad | oma | eilsest | päevast', 'Õhtul | helistas | Sofia | emale | Tartusse', 'Lõpuks | läks | ta | kell | üksteist | magama', 'Kahjuks | ei | jõudnud | ta | raamatut | lugeda',
@@ -778,20 +769,15 @@ export const LESSONS = withShapes({
         'Liis: Ma jooksen enne tööd pool tundi pargis, isegi kui sajab vihma.',
         'Markus: Ma vaatan õhtul liiga kaua sarju. Siis olen hommikul väsinud ja joon liiga palju kohvi.',
       ], [['Kadri', 'magab päeval'], ['Jaan', 'ärkab kell viis'], ['Mia', 'joonistab iga päev'], ['Oskar', 'mängib jalgpalli'], ['Helgi', 'küpsetab pannkooke'], ['Viktor', 'sõidab rattaga'], ['Liis', 'jookseb pargis'], ['Markus', 'vaatab sarju']]),
-      why(B.dictation('005_p_dict', 'Keel 1. Etteütlus.', 'Õpetaja loeb kuus lauset Viktori töökojast. Kirjuta need üles.', [
-        'Viktori töökoda on Mustamäel hoovis.', 'Anna tõi oma ratta eelmisel nädalal.', 'Viktor parandas keti ja pidurid.',
-        'Kas te saaksite kiivrit alles hoida?', 'Esmaspäeval käib Viktor lapselastega ujumas.', 'Anna ei leidnud oma kiivrit.',
-        'Laupäeva hommikul läheme koos ujulasse.', 'Mul on vaja täna varem koju minna.',
-      ]), areas('ABBEDCAD')),
-      why(B.gaps('005_p_gaps', 'Keel 2. Kirjuta õige vorm.', 'Kirjuta sulgudes olev sõna sobivas vormis. Mõtle, mida lause küsib.', [
+      why(B.gaps('005_p_gaps', 'Keel 1. Kirjuta õige vorm.', 'Kirjuta sulgudes olev sõna sobivas vormis. Mõtle, mida lause küsib.', [
         'Sofia hakkab esmaspäeval internetis [õppima] (õppima).', 'Anna tahab laupäeval [ujuda] (ujuma).', 'Markus ei söö enam [šokolaadi] (šokolaad).', 'Liis jõi hommikul kaks tassi [kohvi] (kohv).',
         'Viktor käib esmaspäeviti lastega [ujumas] (ujuma).', 'Pärast ujumist läheme [kohvikusse] (kohvik).', 'Mul on vaja täna varem [lahkuda] (lahkuma).', 'Sofia ostis turult kilo [kartuleid] (kartul).',
       ]), areas('DDCCDADC')),
-      why(B.wordorder('005_p_order', 'Keel 4. Pane lause kokku.', 'Pane Viktori ja Anna sõnad õigesse järjekorda. Alusta suure tähega sõnast.', [
+      why(B.wordorder('005_p_order', 'Keel 2. Pane lause kokku.', 'Pane Viktori ja Anna sõnad õigesse järjekorda. Alusta suure tähega sõnast.', [
         'Eile | tõi | Anna | ratta | Viktori | töökotta', 'Laupäeval | sõidab | Anna | rattaga | parki', 'Kas | te | saaksite | mulle | arve | saata', 'Esmaspäeval | ei | tööta | Viktor | töökojas',
         'Mulle | meeldib | pühapäeviti | metsas | jalutada', 'Pärast | ujumist | läksime | kohvikusse | sööma', 'Hommikul | jõi | Anna | klaasi | vett', 'Viktor | pidi | reedel | kümme | ratast | parandama',
       ], 'full', 'g_notice'), areas('BAEADACD')),
-      why(B.choice('005_p_choice', 'Keel 5. Vali sobiv vorm.', 'Vali, milline vorm sobib lausesse kõige paremini.', [
+      why(B.choice('005_p_choice', 'Keel 3. Vali sobiv vorm.', 'Vali, milline vorm sobib lausesse kõige paremini.', [
         ['Kas sa … mind laupäeval ujulas?', 'ootaksid', 'ootaksin', 'ootama'], ['Eile Anna … rattaga tööle.', 'sõitis', 'sõidab', 'sõitma'],
         ['Me kohtume laupäeval ujula …', 'ees', 'eest', 'ette'], ['Kas te … mulle arve saata?', 'võiksite', 'võiksime', 'võima'],
         ['Sofia läks pärast tundi otse …', 'koju', 'kodus', 'kodust'], ['Viktor ei … reedel tööd lõpetada.', 'jõudnud', 'jõudis', 'jõua'],

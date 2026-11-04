@@ -427,10 +427,6 @@ export const LESSONS = withShapes({
         'Kui laps ei saa tulla, peab vanem õpetajale [helistama] (helistab).',
         'Jõulutalus võivad lapsed piparkooke [küpsetada] (küpsetab).',
       ]),
-      B.dictation('017_p_dict', 'Etteütlus: laoreeglid.', 'Kuula, kuidas õpetaja loeb laoreegleid. Kirjuta iga lause täpselt, ma- ja da-vormid õigesti.', [
-        'Inventuuri ajal peab kogu aeg turvavesti kandma.', 'Lisatöötajad ei pea raskeid kaste tõstma.', 'Inventuuri ajal ei tohi keegi laos joosta.', 'Enne lahkumist tuleb tahvelarvuti tagasi anda.',
-        'Laupäeval peame kõik kastid üle lugema.', 'Lõunapausi ajal saab puhkeruumis süüa.', 'Kas lapsed tohivad muuseumisse telefoni võtta?', 'Kui midagi juhtub, pead kohe Liisile helistama.',
-      ], 8),
       teach(tag(B.speaking('017_p_rank', 'Kolm kõige tähtsamat kodureeglit.', 'Järjestage paarilisega kaheksa kodureeglit tähtsuse järgi. Leppige kokku, millised kolm jäävad.', [
         'Kingad peab esikus jalast võtma.', 'Pärast kella kümmet ei tohi valjult muusikat kuulata.', 'Igaüks peab ise oma nõud ära pesema.', 'Söögilauas ei tohi telefoni kasutada.',
         'Külalisi võib kutsuda ainult nädalavahetusel.', 'Lapsed võivad arvutis mängida tund päevas.', 'Iga pere peab kord kuus trepikoda koristama.', 'Pühapäeval ei pea keegi vara üles tõusma.',
@@ -1065,10 +1061,6 @@ export const LESSONS = withShapes({
         'Sofia lükkas hambaarsti aja edasi.', 'Kas sa lugesid Anna kirja läbi?', 'Viktor ei saanud autot korda.', 'Laupäevane matk jäi lume tõttu ära.',
         'Palun võta mulle vihmavari kaasa!', 'Me leppisime uue aja kokku.', 'Markus maksis kõik arved ära.', 'Kati tuleb homme tööle appi.',
       ]), areas('IIIIIIII')),
-      why(B.dictation('020_p_g4', 'Keel 4. Etteütlus.', 'Kuulake õpetajat. Kirjutage iga lause täpselt, kõik vormid õigesti.', [
-        'Laager algab laupäeval kell veerand kaheksa.', 'Laos ei tohi telefoniga rääkida.', 'Sofia lükkas pakkide saatmise edasi.', 'Eile sadas Kõrvemaal palju lund.',
-        'Pühapäeval sõidame bussiga laagrisse.', 'Kas te saaksite mind homme aidata?', 'See on minu õe uus kalender.', 'Mia ei söönud hommikul putru.',
-      ], 8), areas('HDIBAEFC')),
     ],
     transfer: [
       B.examPart('020_t_wpart', 'W', { part: 'Kirjutamine', minutes: 35, points: 20, tasks: 2, note: 'Ülesanne 1 on B1 vormis lühike teade. Ülesanne 2 on kiri sõbrale.' }),

@@ -15,7 +15,7 @@
 //                 Eksaminurk R4 (phrase bank, introduced here), the plan agreed, defended twice, the reply to Liis (main).
 //   048 RÄÄK R→S  „Reis, mis läks teisiti” — Anna's blog about the Helsinki weekend (headings), Sofia's voice messages;
 //                 B1 grammar: enneminevik (Kui me sadamasse jõudsime, oli laev juba lahkunud), the rule, 4-3-2 retelling;
-//                 Sofia's e-mail (tense choice), the radio show „Teel juhtunud”, dictation, Eksaminurk S1a (topic
+//                 Sofia's e-mail (tense choice), the radio show „Teel juhtunud”, Eksaminurk S1a (topic
 //                 questions „Reisimine”), a postcard; Kasuta: four listeners' stories, the jury agrees on the winner
 //                 (main), the learner's own story on air and on the show's website.
 //   049 PROJ L→W  „Reisiplaan sõbrale” — Lena's voicemail (the brief), Markus's story of the missed bus in Viljandi
@@ -25,7 +25,7 @@
 //   050 EKS       module exam in Harno B1 form at reduced length (R1, R2, R3a, R4 · L1, L2, L3a, L4 · W1a, W2b · S0,
 //                 S1a, S1b, S2), every part timed, target 80 % in every part; Sofia's late train closes the story.
 // B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): enneminevik — taught in 048 (notice, timeline rule,
-// tense choice, transformation, dictation, the listeners' stories), used again in 049 (kui-, et- and sest-clauses,
+// tense choice, transformation, the listeners' stories), used again in 049 (kui-, et- and sest-clauses,
 // Markus's tips, joining sentences); kust / kus / kuhu with travel verbs (046) and choosing with reasons (047) recycle
 // earlier forms. §6.2 row 10 (KUUL L→S · LUGE R→W · RÄÄK R→S · PROJ L→W) is kept as written; §4.1 rule 6 would put the
 // grammar in an AVAS or LUGU lesson, but the row has none, so the RÄÄK lesson brings it in through stories. Cast facts
@@ -633,10 +633,6 @@ export const LESSONS = withShapes({
         ['Talunik niitis hommikul heina ja laadis selle haagisele.', 'oli', 'Talunik oli hommikul heina niitnud ja selle haagisele laadinud.'],
         ['Markus jättis oma telefoni hotelli tuppa.', 'oli', 'Markus oli oma telefoni hotelli tuppa jätnud.'],
       ]),
-      B.dictation('048_p_dict', 'Etteütlus: kuulajate lood.', 'Õpetaja loeb iga lause kaks korda. Kirjuta lause üles ja jooni alla ennemineviku vorm.', [
-        'Kui me lennujaama jõudsime, oli lend juba tühistatud.', 'Ma ei olnud kunagi varem nii väikese lennukiga lennanud.', 'Hotellis selgus, et olime toa valeks kuupäevaks broneerinud.', 'Isa oli autovõtmed kogemata kohvrisse pakkinud.', 'Kui buss peatusse jõudis, olid kõik kohad juba täis.',
-        'Vanaema oli meile teele kaasa pannud kümme pirukat.', 'Kui me tagasi jõudsime, oli lumi kõik teed katnud.', 'Ma ei teadnud, et muuseum oli esmaspäeviti suletud.', 'Õnneks oli keegi minu rahakoti infolauda viinud.', 'Kui laev sadamast lahkus, olime juba kajutis magama jäänud.',
-      ], 10),
       teach(tag(B.speaking('048_p_exam', 'Eksaminurk: teemaküsimused „Reisimine” (Harno B1 rääkimine 1)', 'Eksamineerija küsib reisimise kohta. Vasta igale küsimusele 3–4 lausega ja lisa põhjus või näide.', ['Kas sa reisid pigem Eestis või välismaal? Miks?', 'Milline on sinu meelest kõige parem transport pikaks sõiduks?', 'Räägi reisist, mis sulle eriti meelde jäi.', 'Mida sa võtad reisile alati kaasa?', 'Kas reisi peaks täpselt planeerima või mitte? Miks?'], [90, 120], ['…, sest…', 'Näiteks eelmisel suvel…', 'Kui ma kohale jõudsin, oli…']), { harno: 'S1a' }),
         'Eksaminurk (Harno B1 rääkimine 1, esimene osa, ~10 min). Strateegia: vastus + põhjus (sest…) + näide (näiteks eelmisel suvel…); minevikust rääkides kasuta ka enneminevikku. Üks-ühele: õpetaja on eksamineerija ega aita; pärast loeb, mitu vastust oli põhjuse või näitega (eesmärk vähemalt neli viiest), ja õpilane vastab ühele küsimusele uuesti paremini.'),
       tag(B.examWriting('048_p_card', 'Postkaart Helsingist.', 'Kirjuta Sofia nimel emale postkaart 50–70 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {

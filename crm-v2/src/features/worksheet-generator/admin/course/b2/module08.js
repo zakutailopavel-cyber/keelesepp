@@ -568,7 +568,6 @@ export const LESSONS = withShapes({
         'Mille poolest erineb reisimine Eestis ja seal, kus sa üles kasvasid?',
       ], 'B2', [60, 180]), 'Räägi kõigepealt 1 minut sellest, mida reisimine sulle annab. Seejärel küsib eksamineerija ning sina põhjendad ja tood näiteid oma reisidest.'),
       B.letter('040_d_letter', 'Kirjutamine (proov, 140–160 sõna).', 'Kirjuta arvamuslugu: „Kas Eesti peaks rohkem arendama turismi?” Plussid, miinused ja tasakaalustatud järeldus.', 'Kas Eesti vajab rohkem turiste?', '', [140, 160]),
-      B.dictation('040_d_dict', 'Etteütlus.', 'Kuula iga lauset aeglase turismi artiklist kaks korda ja kirjuta see üles.', ['Aeglane reisija jääb ühte kohta pikemaks.', 'See toob raha kohalikele väikeettevõtetele.', 'Paljudel ei ole võimalik pikka puhkust võtta.', 'Eestil on puhas loodus ja ehe maaelu.', 'Tuleks leida tasakaal.', 'Kohalikud ei tohiks end ebamugavalt tunda.']),
       TR('040_d_tr', 'Tõlge (proov).', ['Мы планируем поехать в Таллинн на три дня.', 'Рейс отменили из-за тумана.', 'В Эстонии не принято громко говорить в автобусе.', 'Поездка оказалась интереснее, чем я думал.', 'Прошу вернуть деньги за неиспользованный билет.', 'Я бы рекомендовал этот музей всем.']),
       B.transformation('040_d_trans', 'Ütle teisiti.', 'Ütle sama mõte teisiti: kasuta paremal antud sõna või vormi.', [
         ['Lend tühistati. Me jäime lennujaama.', 'mistõttu', 'Lend tühistati, mistõttu me jäime lennujaama.|Lend tühistati, mistõttu jäime lennujaama.'],

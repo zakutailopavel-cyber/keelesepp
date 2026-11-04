@@ -15,7 +15,7 @@
 //   053 AVAS L→W  „Telefon ei lae: kesksõnad” — try first, then Sofia at the service desk; B1 grammar: participles as
 //                 attributes (ostetud kaup, makstud summa, avatud pakend, parandatud telefon, kehtiv garantii,
 //                 soovitatav hind), rule, try again; the shop's terms, the shop's reply, Eksaminurk L3b (gapped
-//                 sentences, introduced here: radio „Tarbija tund”), dictation, Anna's headphones at the desk; Kasuta: the
+//                 sentences, introduced here: radio „Tarbija tund”), Anna's headphones at the desk; Kasuta: the
 //                 same situation again — Kadri's wrong parcel: the e-shop's answer, the call, the complaint (main).
 //   054 PROB L→S  „Parandatud telefon läks jälle katki” — the workshop's voicemail (89 €, „moisture”), Sofia and Anna's
 //                 chat, choosing the first step; language after the attempt: shop notices, a consumer adviser on the
@@ -543,10 +543,6 @@ export const LESSONS = withShapes({
         'Järgmine saade on kahe nädala pärast [kolmapäeval].',
       ]), { harno: 'L3b' }),
       'Eksaminurk (Harno B1 kuulamine 3, lünklaused, ~10 min), formaati tutvustatakse siin. Strateegia: 1) loe enne kuulamist kõik laused ja arva, mis sõna lünka tuleb (number, nimi, koht); 2) esimesel kuulamisel kirjuta märksõna, teisel kontrolli vormi; 3) numbri võid kirjutada ka numbriga. Üks-ühele: pärast kontrolli kuulake üht kohta, kus õpilane eksis, uuesti ja leidke sõna, mis otsustas.'),
-      B.dictation('053_p_dict', 'Etteütlus: poe teated.', 'Kuula, kuidas õpetaja loeb poe teateid. Kirjuta iga lause üles ja jooni kesksõnad alla.', [
-        'Kasutamata ja avamata kauba saab tagastada kahe nädala jooksul.', 'Parandatud telefoni saate kätte samast poest kahe nädala pärast.', 'Palun hoidke makstud arve ja täidetud garantiileht alles.', 'Avatud pakendiga tooteid me kahjuks tagasi ei võta.', 'Tellitud kaup tuleb pakiautomaadist ära tuua seitsme päeva jooksul.',
-        'Kehtiv garantii ei kata kukkunud või märjaks saanud telefoni.', 'Tootja soovitatav hind on kirjas iga karbi peal.', 'Tagastatud raha jõuab teie kontole viie tööpäeva jooksul.', 'Katkise toote toomisel võtke kaasa ka ostutšekk.', 'Remondi ajaks pakume kõigile klientidele tasuta asendustelefoni.',
-      ], 10),
       teach(tag(B.rolecards('053_p_desk', 'Teeninduslauas: kõrvaklapid.', 'A on klient, B on teenindaja. Selgitage probleem ja leidke lahendus. Seejärel vahetage rollid.',
         'Sa oled Anna. Kolm nädalat tagasi ostetud kõrvaklapid töötavad ainult ühel poolel. Selgita probleemi 3–4 sammuga, näita tšekki ja ütle oma soov: uued kõrvaklapid.',
         'Sa oled teenindaja. Küsi tšekki ja seda, mis juhtus. Selgita: garantii kehtib, aga remont võtab kümme päeva; uued kõrvaklapid saab ainult siis, kui parandada ei saa.',

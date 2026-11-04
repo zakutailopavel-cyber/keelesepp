@@ -884,11 +884,6 @@ export const LESSONS = withShapes({
         ['Anna on harjunud, et ta töötab kaks päeva kodus.', 'olen harjunud', 'Anna on harjunud kaks päeva kodus töötama.'],
         ['Kadri magab pärast öövahetust terve hommiku.', 'jääb', 'Kadri jääb pärast öövahetust terveks hommikuks magama.'],
       ]),
-      B.dictation('045_d_dict', 'Etteütlus: tööelu laused.', 'Õpetaja loeb iga lause kaks korda. Kirjuta lause ja kontrolli ma-vorme ning lõppe.', [
-        'Jaan töötas viisteist aastat kohvikutes kokana.', 'Uus kokk vastutab ka toiduainete tellimise eest.', 'Anna oli terve hommiku kliendiga kohtumas.', 'Markus läks pärast lõunat lattu kaupa kontrollima.',
-        'Olen harjunud töötama kiiresti ja täpselt.', 'Ükski tellimus ei jäänud minu ajal täitmata.', 'Kandideerimiskiri tuleb saata kahekümnendaks novembriks.', 'Kes mind esimestel nädalatel juhendama hakkab?',
-        'Maire vastutab koolisöökla menüü eest.', 'Jaan käis eile Kaneelis Merikega rääkimas.',
-      ], 10),
       B.categorize('045_d_sort', 'Mooduli sõnad.', 'Pane sõnad rühma, kuhu need tööotsingul kõige paremini sobivad.', [
         ['töökuulutus', ['tööaeg', 'palk', 'nõuded', 'katseaeg', 'osalise ajaga']], ['kandideerimiskiri', ['lugupidamisega', 'soovitus', 'haridus', 'lisan', 'kandideerin']],
         ['töövestlus', ['tugevus', 'nõrkus', 'näide', 'juhendaja', 'kutse']], ['tööpäev kontoris', ['koosolek', 'vastuvõtt', 'lõunapaus', 'hinnapakkumine', 'tellimus']],

@@ -790,10 +790,6 @@ export const LESSONS = withShapes({
         ['Kell üheksa helistas uksekell.', 'Kell üheksa helises uksekell.'],
         ['Lõpuks me leidsime telefoni külmkapis.', 'Lõpuks leidsime me telefoni külmkapist.|Lõpuks me leidsime telefoni külmkapist.'],
       ]),
-      B.dictation('024_p_dict', 'Etteütlus: Tiina lugu.', 'Õpetaja loeb iga lauset kaks korda. Kirjuta lause, minevikuvormid õigesti.', [
-        'Möödunud suvel sõitsin bussiga Tartusse.', 'Äkki kuulsin kohvrist imelikku häält.', 'Kohvris istus minu kass Miisu.', 'Inimesed bussis naersid kaua.',
-        'Üks tüdruk andis kassile vett.', 'Õde ootas mind bussijaamas.', 'Kass sõi õe juures kõik kalad ära.', 'Sellest päevast ei unusta ma midagi.',
-      ], 8),
       B.know('024_p_know', [
         'Ka sinu lugu võib jääda ajalukku. 1989. aasta hilissuvel saatis Eesti Kirjandusmuuseum eesti- ja venekeelsetele ajalehtedele üleskutse „Kas sa mäletad oma elulugu?”. Aasta lõpuks tuli muuseumi umbes sada elulugu.',
         'Sellest ajast peale korraldab muuseum koos ühendusega Eesti Elulood eluloovõistlusi. Võistlusele „Sajandi sada elulugu” (1998–1999) saadeti 232 elulugu, 2025. aasta teema oli „Raamatud minu elus”. Lood jäävad muuseumi arhiivi ja nendest on ilmunud raamatuid.',
