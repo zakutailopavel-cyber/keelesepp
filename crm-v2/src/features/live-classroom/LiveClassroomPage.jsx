@@ -13,6 +13,7 @@ import LiveRoom from './LiveRoom.jsx';
 import GroupRoom from './GroupRoom.jsx';
 import StudentWorkspace from './StudentWorkspace.jsx';
 import TeacherWorkspace from './TeacherWorkspace.jsx';
+import DeviceCheckNotice from '../device-check/DeviceCheckNotice.jsx';
 import './liveClassroom.css';
 
 const statusLabel = {
@@ -52,6 +53,7 @@ export default function LiveClassroomPage({
   groupBoard = groupBoardService,
   groupCallOptions,
   guestService = liveGuestService,
+  deviceCheck,
 }) {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -71,6 +73,7 @@ export default function LiveClassroomPage({
   const [now, setNow] = useState(() => serverNow());
   const [callStreams, setCallStreams] = useState({ local: null, remote: null });
   const [roomStudent, setRoomStudent] = useState(null);
+  const [deviceNoticeHidden, setDeviceNoticeHidden] = useState('');
 
   useEffect(() => {
     if (!isStaff) return undefined;
@@ -284,6 +287,8 @@ export default function LiveClassroomPage({
     return <>
       {streamError || actionError ? <div className="action-error lr-page-error" role="alert">{streamError || actionError}</div> : null}
       <LiveRoom key={activeInvitation.id} {...roomProps('teacher')} />
+      {/* the student's last „Seadme kontroll” (or none before his first live lesson): until the call connects */}
+      {!callStreams.remote && deviceNoticeHidden !== activeInvitation.id ? <DeviceCheckNotice className="dcn-room" viewer={user} studentId={activeInvitation.studentId} studentUid={activeInvitation.studentUid} onClose={() => setDeviceNoticeHidden(activeInvitation.id)} {...(deviceCheck ? { service: deviceCheck } : {})} /> : null}
     </>;
   }
 

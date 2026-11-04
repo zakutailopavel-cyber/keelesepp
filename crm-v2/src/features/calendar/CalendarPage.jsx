@@ -978,6 +978,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {panelItem ? (
         <LessonPanel
           key={panelItem.occurrenceId}
+          viewer={user}
           notice={autoMarked === panelItem.occurrenceId ? 'Tund märgiti Live Classroomist toimunuks: teema töölehest, märkus kokkuvõttest. Kui midagi on valesti, muuda allpool.' : autoMarked === `${panelItem.occurrenceId}|absent` ? 'Tund märgiti Live Classroomist: Puudus (ei teatanud). Kui õpilane teatas ette, muuda allpool.' : ''}
           item={panelItem}
           history={panelItem.isGroup ? [] : historyOf(panelItem.studentId)}

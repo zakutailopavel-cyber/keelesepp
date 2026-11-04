@@ -6,6 +6,7 @@ import { INDIVIDUAL_TOPIC, pickFromRecord, suggestTopic, topicFromPick, topicLin
 import { isGoogleOwned, lessonSyncState } from '../google-calendar/googleCalendarModel.js';
 import '../google-calendar/googleCalendar.css';
 import SubjectTag from './SubjectTag.jsx';
+import DeviceCheckNotice from '../device-check/DeviceCheckNotice.jsx';
 
 const STATUS_LABEL = { Toimunud: 'Toimunud', Puudus_eta: 'Puudus (ei teatanud)', Puudus_p: 'Puudus (teatas ette)', Planeeritud: 'Planeeritud' };
 
@@ -63,7 +64,7 @@ function readDraft(item) {
   try { return JSON.parse(window.localStorage.getItem(draftKey(item)) || 'null'); } catch { return null; }
 }
 
-export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onSubstitute, teachers = [], onStartLive, liveBlocked = '', startingLive = false, children }) {
+export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onSubstitute, teachers = [], onStartLive, liveBlocked = '', startingLive = false, deviceCheck, viewer = null, children }) {
   const done = Boolean(item?.recordProblem || item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history, plan: student?.studyPlan }) : null), [catalog, history, item, student?.level, student?.studyPlan]);
   const [draft] = useState(() => readDraft(item));
@@ -129,6 +130,9 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
           <p className="lp-hint">{liveBlocked || `${item.studentName || 'Õpilane'} saab kutse oma kabinetti; tunniruum avaneb kohe.`}</p>
         </section>
       ) : null}
+
+      {/* the student's last „Seadme kontroll” (owner 2026-11-04): a warning before the lesson, nothing when all is fine */}
+      {!item.isGroup && !done && student?.id ? <DeviceCheckNotice studentId={student.id} viewer={viewer} {...(deviceCheck ? { service: deviceCheck } : {})} /> : null}
 
       {!item.isGroup ? (
         <section className="lp-last">

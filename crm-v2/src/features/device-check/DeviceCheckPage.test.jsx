@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import DeviceCheckPage from './DeviceCheckPage.jsx';
+import { AuthContext } from '../../app/AuthContext.jsx';
 import { gatherIce } from './deviceProbes.js';
 
 const CHROME = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
@@ -21,7 +22,7 @@ class FakeAudioContext {
   createAnalyser() { return { fftSize: 1024, getByteTimeDomainData: (buffer) => buffer.fill(160) }; }
 }
 
-function setup({ userMedia, ice = { iceServers: [] }, search = '' } = {}) {
+function setup({ userMedia, ice = { iceServers: [] }, search = '', auth = null, saveService = { save: vi.fn(async () => true) } } = {}) {
   const made = [];
   const getUserMedia = vi.fn(userMedia || (async (constraints) => {
     const tracks = [];
@@ -63,9 +64,9 @@ function setup({ userMedia, ice = { iceServers: [] }, search = '' } = {}) {
   });
   const fetchImpl = vi.fn(async () => ({ ok: true }));
   globalThis.MediaStream = FakeStream;
-  const view = render(<MemoryRouter initialEntries={[`/kontroll${search}`]}><Routes><Route path="/kontroll" element={
-    <DeviceCheckPage env={env} mediaDevices={mediaDevices} turnService={turnService} peerFactory={peerFactory} fetchImpl={fetchImpl} role="student" />} /></Routes></MemoryRouter>);
-  return { view, made, mediaDevices, turnService, peers, peerFactory, fetchImpl };
+  const view = render(<AuthContext.Provider value={auth}><MemoryRouter initialEntries={[`/kontroll${search}`]}><Routes><Route path="/kontroll" element={
+    <DeviceCheckPage env={env} mediaDevices={mediaDevices} turnService={turnService} peerFactory={peerFactory} fetchImpl={fetchImpl} saveService={saveService} role="student" />} /></Routes></MemoryRouter></AuthContext.Provider>);
+  return { view, made, mediaDevices, turnService, peers, peerFactory, fetchImpl, saveService };
 }
 
 describe('DeviceCheckPage', () => {
@@ -132,6 +133,50 @@ describe('DeviceCheckPage', () => {
     expect(turnService.iceServers).toHaveBeenCalledWith('inv-1');
     expect(peerFactory.mock.calls[0][0].iceServers.some((server) => server.username === 'secret-user')).toBe(true);
     expect(document.body.textContent).not.toMatch(/secret/);
+  });
+
+  const student = { uid: 'stu-1', roles: ['student'], profile: { role: 'student', displayName: 'Mari' }, approvalStatus: 'approved' };
+
+  it('saves the summary for a signed-in student once the check is complete, without device names', async () => {
+    const { saveService } = setup({ auth: { user: student, preview: null } });
+    fireEvent.click(screen.getByRole('button', { name: 'Alusta kontrolli' }));
+    await screen.findByText('Mikrofon kuuleb sind.');
+    await waitFor(() => expect(screen.getByText('võimalik')).toBeInTheDocument());
+    expect(saveService.save).not.toHaveBeenCalled(); // the speaker question is still open
+    fireEvent.click(screen.getByRole('button', { name: 'Mängi heli' }));
+    await act(async () => { await new Promise((resolve) => { globalThis.setTimeout(resolve, 1600); }); });
+    fireEvent.click(await screen.findByRole('button', { name: 'Ei' }));
+    await waitFor(() => expect(saveService.save).toHaveBeenCalledTimes(1));
+    const [uid, record] = saveService.save.mock.calls[0];
+    expect(uid).toBe('stu-1');
+    expect(record).toEqual({ at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/), status: 'warn', issues: ['speakers'], browser: 'Chrome 130' });
+    expect(JSON.stringify(record)).not.toMatch(/cam-1|mic-1|FaceTime|Sisseehitatud/);
+    expect(await screen.findByText(/Tulemus salvestati/)).toBeInTheDocument();
+    // the same answer again does not rewrite; a changed one does
+    fireEvent.click(screen.getByRole('button', { name: 'Jah' }));
+    await waitFor(() => expect(saveService.save).toHaveBeenCalledTimes(2));
+    expect(saveService.save.mock.calls[1][1]).toMatchObject({ status: 'ok', issues: [] });
+  });
+
+  it('saves a failed check at once, and never for a guest or a preview', async () => {
+    const denied = async () => { throw Object.assign(new Error('no'), { name: 'NotAllowedError' }); };
+    const first = setup({ auth: { user: student, preview: null }, userMedia: denied });
+    fireEvent.click(screen.getByRole('button', { name: 'Alusta kontrolli' }));
+    await waitFor(() => expect(first.saveService.save).toHaveBeenCalledWith('stu-1', expect.objectContaining({ status: 'fail', issues: expect.arrayContaining(['mic-denied', 'camera-denied']) })));
+    first.view.unmount();
+
+    const guest = setup({ auth: { user: { uid: 'guest_1', roles: ['student'], profile: {} }, preview: null }, userMedia: denied });
+    fireEvent.click(screen.getByRole('button', { name: 'Alusta kontrolli' }));
+    await screen.findByText(/Luba mikrofon brauseri seadetes/);
+    await waitFor(() => expect(screen.getByText('võimalik')).toBeInTheDocument());
+    expect(guest.saveService.save).not.toHaveBeenCalled();
+    guest.view.unmount();
+
+    const preview = setup({ auth: { user: student, preview: { readOnly: true } }, userMedia: denied });
+    fireEvent.click(screen.getByRole('button', { name: 'Alusta kontrolli' }));
+    await screen.findByText(/Luba mikrofon brauseri seadetes/);
+    await waitFor(() => expect(screen.getByText('võimalik')).toBeInTheDocument());
+    expect(preview.saveService.save).not.toHaveBeenCalled();
   });
 });
 

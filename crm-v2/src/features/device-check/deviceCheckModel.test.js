@@ -1,4 +1,5 @@
-import { classifyCandidates, detectBrowser, evaluateDeviceCheck, mediaErrorKind, meterPercent, readCapabilities, recorderType, rmsFromBytes } from './deviceCheckModel.js';
+import { readFileSync } from 'node:fs';
+import { classifyCandidates, deviceCheckRecord, detectBrowser, evaluateDeviceCheck, ISSUE_CODES, recordKey, teacherWarning, mediaErrorKind, meterPercent, readCapabilities, recorderType, rmsFromBytes } from './deviceCheckModel.js';
 
 const UA = {
   chromeMac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
@@ -142,5 +143,38 @@ describe('evaluateDeviceCheck', () => {
     expect(keys(evaluateDeviceCheck(good({ network: { ...good().network, relay: 'none' } })))).toEqual(['relay']);
     // the relay is checked only with a lesson link; without one that is no problem
     expect(evaluateDeviceCheck(good({ network: { ...good().network, relay: 'unavailable' } })).status).toBe('green');
+  });
+});
+
+describe('stored result and teacher warning', () => {
+  it('keeps only status, red / yellow codes and a short browser label', () => {
+    const ipad = detectBrowser(UA.ipadDesktop, { maxTouchPoints: 5 });
+    const result = evaluateDeviceCheck(good({ browser: ipad, displayMedia: false, micHeard: false }));
+    const record = deviceCheckRecord(result, ipad, new Date('2026-11-04T10:00:00Z'));
+    expect(record).toEqual({ at: '2026-11-04T10:00:00.000Z', status: 'warn', issues: ['mic-silent'], browser: 'Safari 17 iPad' });
+    expect(deviceCheckRecord(evaluateDeviceCheck(good()), detectBrowser(UA.chromeMac)).status).toBe('ok');
+    expect(deviceCheckRecord(evaluateDeviceCheck(good({ mic: 'denied', camera: 'denied' })), {}).status).toBe('fail');
+    expect(recordKey(record)).toBe('warn|mic-silent|Safari 17 iPad');
+  });
+  it('caps the codes at 12', () => {
+    const many = { status: 'red', issues: ISSUE_CODES.map((key) => ({ key, level: 'red' })) };
+    expect(deviceCheckRecord(many, {}).issues).toHaveLength(12);
+  });
+  it('every issue the evaluation can give has a code the rules accept', () => {
+    const rules = readFileSync(`${globalThis.process.cwd()}/../firestore.rules`, 'utf8');
+    const list = /deviceCheck\.issues\.hasOnly\(\[([^\]]*)\]\)/.exec(rules)[1].split(',').map((item) => item.trim().replace(/'/g, ''));
+    expect(list.sort()).toEqual([...ISSUE_CODES].sort());
+    const model = readFileSync(`${globalThis.process.cwd()}/src/features/device-check/deviceCheckModel.js`, 'utf8');
+    const used = [...model.matchAll(/issue\('([a-z0-9-]+)'/g)].map((match) => match[1]);
+    expect(new Set(used)).toEqual(new Set(ISSUE_CODES));
+  });
+  it('warns the teacher about fail / warn and about a student who never checked before a first lesson', () => {
+    expect(teacherWarning({ deviceCheck: { status: 'ok', issues: [], at: 'x', browser: 'Chrome' } })).toBeNull();
+    expect(teacherWarning({ deviceCheck: { status: 'fail', issues: ['mic-denied', 'unknown'], at: '2026-11-04T10:00:00Z', browser: 'Chrome 130' } }))
+      .toEqual({ level: 'fail', title: 'Õpilase seadmes on viga', issues: ['mikrofon on keelatud'], at: '2026-11-04T10:00:00Z', browser: 'Chrome 130' });
+    expect(teacherWarning({ deviceCheck: { status: 'warn', issues: ['slow'] } }).title).toBe('Õpilase seadmes on märkusi');
+    expect(teacherWarning({ deviceCheck: null, hadLiveLesson: false })).toMatchObject({ level: 'none', title: 'Õpilane pole seadet kontrollinud' });
+    expect(teacherWarning({ deviceCheck: null, hadLiveLesson: true })).toBeNull();
+    expect(teacherWarning({ deviceCheck: { status: 'weird' }, hadLiveLesson: true })).toBeNull();
   });
 });

@@ -183,3 +183,74 @@ export const STATUS_TEXT = {
   yellow: { title: 'Tund toimub, aga vaata märkusi', ru: 'Урок пройдёт, но посмотрите замечания' },
   red: { title: 'Enne tundi on vaja midagi parandada', ru: 'Перед уроком нужно кое-что исправить' },
 };
+
+// ── The stored result (users/{uid}.deviceCheck) and the teacher's warning ─────────────────────────────────────────────
+// Owner 2026-11-04: the student's last check is saved so the teacher sees a warning before the lesson. Only a status,
+// short issue codes and a browser label: no device names or ids, no network addresses. firestore.rules
+// (validDeviceCheck) accepts exactly these codes — keep both lists the same.
+export const ISSUE_LABELS = Object.freeze({
+  'in-app': 'avab tunni rakenduse sees (Instagram / Facebook), mitte brauseris',
+  insecure: 'leht pole avatud https-aadressilt',
+  'ios-old': 'iPadi / iPhone’i tarkvara on liiga vana',
+  'no-webrtc': 'brauser ei toeta videotundi',
+  'browser-other': 'kasutab kontrollimata brauserit',
+  'mic-denied': 'mikrofon on keelatud',
+  'mic-busy': 'mikrofoni kasutab teine rakendus',
+  'mic-missing': 'mikrofoni ei leitud',
+  'mic-error': 'mikrofon ei käivitunud',
+  'mic-silent': 'mikrofon ei kuulnud teda',
+  'camera-denied': 'kaamera on keelatud',
+  'camera-busy': 'kaamerat kasutab teine rakendus',
+  'camera-missing': 'kaamerat ei leitud',
+  'camera-error': 'kaamera ei käivitunud',
+  speakers: 'heli polnud kuulda',
+  'no-audio-context': 'brauser ei luba heli mõõta',
+  'no-recorder': 'brauser ei salvesta häält',
+  offline: 'internet puudus',
+  hosting: 'KeeleSepa server ei vastanud',
+  slow: 'ühendus on aeglane',
+  'ice-blocked': 'võrk blokeerib videokõne',
+  stun: 'otseühendus pole võimalik (kõne läheb vahendusserveri kaudu)',
+  relay: 'vahendusserver ei vastanud',
+  functions: 'tunni abiserver ei vastanud',
+  '2g': 'mobiilne ühendus on video jaoks liiga aeglane',
+  '3g': 'ühendus on aeglane (3G)',
+  'screen-ios': 'iPadis / iPhone’is ei saa ekraani jagada',
+  'screen-mobile': 'telefonis ei saa ekraani jagada',
+  screen: 'brauseris ei saa ekraani jagada',
+});
+export const ISSUE_CODES = Object.freeze(Object.keys(ISSUE_LABELS));
+export const MAX_STORED_ISSUES = 12;
+const STORED_STATUS = { green: 'ok', yellow: 'warn', red: 'fail' };
+
+/** evaluateDeviceCheck() result + browser → the small record saved on the student's account. */
+export function deviceCheckRecord(result, browser = {}, at = new Date()) {
+  const issues = (result?.issues || []).filter((item) => item.level === 'red' || item.level === 'yellow').map((item) => item.key)
+    .filter((key) => ISSUE_CODES.includes(key)).slice(0, MAX_STORED_ISSUES);
+  const device = browser.ipad ? 'iPad' : browser.ios ? 'iPhone' : browser.android ? 'Android' : '';
+  const label = [browser.label || 'Brauser', browser.version || '', device].filter(Boolean).join(' ').slice(0, 40);
+  return { at: new Date(at).toISOString(), status: STORED_STATUS[result?.status] || 'warn', issues, browser: label };
+}
+
+/** Changes only when what would be saved changes (no rewrite on every re-render). */
+export const recordKey = (record) => (record ? `${record.status}|${record.issues.join(',')}|${record.browser}` : '');
+
+/**
+ * What the teacher sees before / at the lesson; null when there is nothing to say.
+ * → { level: 'fail' | 'warn' | 'none', title, issues: [Estonian], at, browser }
+ */
+export function teacherWarning({ deviceCheck = null, hadLiveLesson = false } = {}) {
+  if (deviceCheck && typeof deviceCheck === 'object' && ['ok', 'warn', 'fail'].includes(deviceCheck.status)) {
+    if (deviceCheck.status === 'ok') return null;
+    const issues = (Array.isArray(deviceCheck.issues) ? deviceCheck.issues : []).map((code) => ISSUE_LABELS[code]).filter(Boolean);
+    return {
+      level: deviceCheck.status,
+      title: deviceCheck.status === 'fail' ? 'Õpilase seadmes on viga' : 'Õpilase seadmes on märkusi',
+      issues,
+      at: String(deviceCheck.at || ''),
+      browser: String(deviceCheck.browser || ''),
+    };
+  }
+  if (hadLiveLesson) return null;
+  return { level: 'none', title: 'Õpilane pole seadet kontrollinud', issues: [], at: '', browser: '' };
+}

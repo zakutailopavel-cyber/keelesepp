@@ -156,6 +156,18 @@ transaction updates the linked student's existing `skillMap`; rules require the 
 last-lesson markers to match the completed room. Completed summaries cannot be edited later.
 Summary v1 remains valid for previously completed rooms.
 
+**„Seadme kontroll” (`/kontroll`, 2026-11-04).** A public page (no login) checks browser support, camera, microphone,
+speakers, network (hosting round trip, the TURN function, ICE gathering with the room's own `callIceServers`; the TURN
+relay only with `?tund=<invitationId>` of an accepted room) and screen sharing. Media never leaves the browser. A
+signed-in, approved student (not a guest, not a preview) saves only the summary on the own account:
+`users/{uid}.deviceCheck { at: ISO string, status: 'ok'|'warn'|'fail', issues: ≤ 12 codes, browser: ≤ 40 chars }`.
+`firestore.rules` `validDeviceCheck` accepts exactly the codes of `deviceCheckModel.js` `ISSUE_CODES` (a unit test
+compares both lists) through `safeSelfUserFields`; staff read it (users read `isStaff()`). The teacher sees
+`DeviceCheckNotice` in the calendar lesson panel (planned lessons) and in the 1:1 room until the call connects:
+„fail” / „warn” with the issues in Estonian, or „Õpilane pole seadet kontrollinud” when there is no result and the
+student has no closed live lesson with this teacher (admin: with anyone). Emulator test:
+`functions/device-check-emulator.integration.js`.
+
 ### Finance
 
 Financial writes remain isolated from the learning-content slice. Browser screens can request

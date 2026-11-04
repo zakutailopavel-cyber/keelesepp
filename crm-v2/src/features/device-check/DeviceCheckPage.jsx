@@ -4,14 +4,15 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Button, Select } from '../../components/ui/index.js';
 import { liveTurnService } from '../../services/firebase/liveTurn.js';
-import { evaluateDeviceCheck, HEARD_RMS, mediaErrorKind, meterPercent, readCapabilities, rmsFromBytes, STATUS_TEXT } from './deviceCheckModel.js';
+import { deviceCheckService } from '../../services/firebase/deviceCheck.js';
+import { deviceCheckRecord, evaluateDeviceCheck, HEARD_RMS, recordKey, mediaErrorKind, meterPercent, readCapabilities, rmsFromBytes, STATUS_TEXT } from './deviceCheckModel.js';
 import { gatherIce, pingFunctions, pingHosting, playTone, recordClip } from './deviceProbes.js';
 import './deviceCheck.css';
 
 // „Seadme kontroll” (/kontroll, no login needed): browser support, camera, microphone, speakers, network and screen
 // sharing before the first lesson. Everything stays in this browser: no picture or sound is uploaded or stored, and
-// every camera / microphone track is stopped when the page is left. The result is not saved: the users document's
-// rules (safeSelfUserFields) do not allow a `deviceCheck` field.
+// every camera / microphone track is stopped when the page is left. For a signed-in student only the summary
+// (status, issue codes, browser label) is saved on his own account (users/{uid}.deviceCheck) for the teacher's warning.
 
 const DEVICES_KEY = 'keelesepp.liveDevices'; // the live room's remembered camera / microphone (useLiveCall.js)
 const SILENT_AFTER_MS = 10000;
@@ -43,9 +44,13 @@ export default function DeviceCheckPage({
   peerFactory,
   fetchImpl,
   role: roleProp,
+  saveService = deviceCheckService,
 }) {
   const auth = useContext(AuthContext);
   const user = auth?.user || null;
+  // the result is saved for a signed-in student on his own account (not a guest from a lesson link, not a preview)
+  const saveUid = !auth?.preview && user?.uid && user.roles?.includes('student') && !user.guest && user.profile && Object.keys(user.profile).length
+    && (user.approvalStatus || 'approved') === 'approved' ? user.uid : '';
   const role = roleProp || (user?.roles?.some((item) => item === 'teacher' || item === 'admin') ? 'teacher' : 'student');
   const [searchParams] = useSearchParams();
   const lessonId = searchParams.get('tund') || '';
@@ -283,6 +288,20 @@ export default function DeviceCheckPage({
     [caps, camera, mic, micHeard, speakers.heard, network, role]);
   const { browser } = caps;
   const started = phase !== 'idle';
+  // save the latest result once the check is complete (or already failed), and again only when it changes
+  const [saved, setSaved] = useState('');
+  const savedKey = useRef('');
+  const record = useMemo(() => (saveUid && phase === 'ready' && network && (result.complete || result.status === 'red') ? deviceCheckRecord(result, caps.browser) : null),
+    [saveUid, phase, network, result, caps.browser]);
+  useEffect(() => {
+    const key = recordKey(record);
+    if (!record || key === savedKey.current) return;
+    savedKey.current = key;
+    Promise.resolve().then(() => saveService.save(saveUid, record))
+      .then(() => { if (alive.current) setSaved('ok'); })
+      .catch(() => { savedKey.current = ''; if (alive.current) setSaved('error'); });
+  }, [record, saveService, saveUid]);
+
   const statusText = phase === 'starting' ? { title: 'Kontrollin…', ru: 'Проверяю…' }
     : result.status === 'green' && !result.complete ? { title: 'Seni on kõik korras', ru: 'Пока всё в порядке' }
       : STATUS_TEXT[result.status];
@@ -291,7 +310,7 @@ export default function DeviceCheckPage({
     <header className="dc-head">
       <span className="eyebrow">KeeleSepp</span>
       <h1>Seadme kontroll</h1>
-      <p>Kontrolli enne tundi kaamerat, mikrofoni, heli ja internetti. Pilti ega heli ei salvestata ega saadeta kuhugi.<Ru>Проверка камеры, микрофона, звука и интернета перед уроком. Ничего не записывается и не отправляется.</Ru></p>
+      <p>Kontrolli enne tundi kaamerat, mikrofoni, heli ja internetti. Pilti ega heli ei salvestata ega saadeta kuhugi.<Ru>Проверка камеры, микрофона, звука и интернета перед уроком. Изображение и звук не записываются и никуда не отправляются.</Ru></p>
     </header>
 
     <section className={`dc-card dc-summary dc-summary--${started ? result.status : 'idle'}`} aria-label="Tulemus" aria-live="polite">
@@ -301,6 +320,8 @@ export default function DeviceCheckPage({
         {result.issues.length ? <ul className="dc-issues">{result.issues.map((item) => <li key={item.key} className={`dc-issue dc-issue--${item.level}`}>
           <b>{item.title}</b> <span>{item.fix}</span><Ru>{item.ru}</Ru>
         </li>)}</ul> : null}
+        {saved === 'ok' ? <p className="dc-muted" role="status">Tulemus salvestati: õpetaja näeb enne tundi, kas seade on korras.<Ru>Результат сохранён: учитель увидит его перед уроком.</Ru></p>
+          : saved === 'error' ? <p className="dc-muted" role="status">Tulemust ei saanud salvestada.<Ru>Не удалось сохранить результат.</Ru></p> : null}
         <div className="dc-actions">
           <Button variant="secondary" onClick={again} disabled={phase === 'starting'}><RotateCcw size={16} aria-hidden="true" /> Kontrolli uuesti</Button>
           {user ? <Link className="button button--secondary" to="/">Tagasi</Link> : null}
