@@ -203,7 +203,8 @@ describe('LiveRoom lesson end', () => {
     const summaryService = { save: vi.fn(async () => ({})) };
     const wordsService = { subscribeForStudent: vi.fn((id, onData) => { onData([{ id: 'w1', invitationId: 'inv-1', word: 'kass' }, { id: 'w0', invitationId: 'old', word: 'vana' }]); return vi.fn(); }) };
     const homeworkService = { listForLesson: vi.fn(async () => [{ id: 'h1', task: 'Korda sõnu' }]) };
-    const props = renderRoom('teacher', s, { summaryService, wordsService, homeworkService });
+    const boardCopies = { save: vi.fn(async () => ['lb-inv-1-1']) };
+    const props = renderRoom('teacher', s, { summaryService, wordsService, homeworkService, boardCopies });
     fireEvent.click(screen.getByRole('tab', { name: 'Tund 1' }));
     fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
@@ -215,6 +216,8 @@ describe('LiveRoom lesson end', () => {
     fireEvent.click(within(drawer).getByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
     await waitFor(() => expect(props.onEndLesson).toHaveBeenCalledWith({ confirmed: true }));
     expect(summaryService.save).toHaveBeenCalledWith(expect.objectContaining({ note: 'Tubli!', pages: [{ id: 'p1', title: 'Tund 1' }], subject: 'Inglise keel', invitation: expect.objectContaining({ id: 'inv-1' }) }));
+    // „Tunni tahvlid”: the lesson page is copied read-only onto the student's board
+    expect(boardCopies.save).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's-1', sourceRoot: 'whiteboards', sourceId: 's-1', lessonKey: 'inv-1', pages: [{ id: 'p1', title: 'Tund 1' }] }));
   });
 
   it('a failed summary does not end the lesson but offers to end without it', async () => {

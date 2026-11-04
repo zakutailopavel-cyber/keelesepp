@@ -135,6 +135,27 @@ by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen
 stays a tab with a × until closed (session state only). `StudentBoard` takes this as the optional `sheetTabs` prop; the
 teacher's tabs are unchanged.
 
+„Kiirküsimus” (quick poll, teacher tool, 1:1 and group; `quickPoll.js`, `useQuickPoll.js`, `QuickPoll.jsx`,
+`services/firebase/livePolls.js`): one doc per room `livePolls/{kind}_{roomId}` (kind `lesson` = invitation id, `group` =
+group room id) `{ kind, roomId, teacherUid, participantUids, round, mode: choice|gap, question, sentence, options (2–4),
+timeLimitSec, status: open|revealed|closed, correctIndex (−1 until revealed), startedAt, updatedAt }`; a new question is the
+next `round`. The right option is only in the teacher-only `livePolls/{id}/key/current { teacherUid, round, correctIndex }`
+(same batch as the question) until „Näita vastust” copies it onto the poll (rules: must equal the key). Answers
+`livePolls/{id}/answers/{uid} { uid, name, round, choice, answeredAt }`: the student writes only his own, only to the open
+round; the teacher reads all, a student only his own. Rules also require the room to be live (invitation `accepted` /
+group `open`) and `participantUids` to equal the invitation's `studentUid` / the group's `memberUids`. An optional time
+limit starts the room's countdown with the label „Kiirküsimus” (answers lock in the client when it expires). A wrong
+answer becomes a `studentNotes` record (kind `board`, `pageTitle` „Kiirküsimus”) with one teacher click.
+
+„Tunni tahvlid” (`features/board/lessonBoards.js`, `LessonBoardsCard.jsx`, `LessonBoardView.jsx`,
+`studentBoard.js` `lessonCopiesService`): at the lesson end the teacher's browser copies the lesson's board pages onto the
+student's own board as snapshot pages `whiteboards/{studentId}/lessonPages/lb-<lessonKey>-<n>` (`isSnapshot: true`,
+`snapshotOf` = source page id or `board`), copies the elements (fields whitelisted as in `validWhiteboardElement`, drawing
+order in `revision`) and sets `status: 'completed'` — the existing snapshot rules then forbid any change or delete. 1:1:
+„Tunni lõpp” copies the lesson pages the teacher opened (not worksheet pages), or the main board when no page was used.
+Group: „Lõpeta tund” copies the group board (main + pages) onto every member's board. The student („Minu areng”) and
+linked parents („Areng”) list them by `isSnapshot == true`, grouped by lesson (date, teacher), and view them read-only.
+
 `live-classroom-core.js` owns the public scene contract. A scene may contain only:
 
 - type, title, body, bounded public options and version metadata;
