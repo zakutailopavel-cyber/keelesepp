@@ -64,6 +64,7 @@ const PayInvoicePage = lazy(() => import('../features/payments/PayInvoicePage.js
 const LiveClassroomPage = lazy(() => import('../features/live-classroom/LiveClassroomPage.jsx'));
 const PetPage = lazy(() => import('../features/pet/PetPage.jsx'));
 const MistakesPage = lazy(() => import('../features/self-study/MistakesPage.jsx'));
+const MonologuePage = lazy(() => import('../features/monologue/MonologuePage.jsx'));
 const MessagesPage = lazy(() => import('../features/messages/MessagesPage.jsx'));
 const ParentDashboardPage = lazy(() => import('../features/parents/ParentDashboardPage.jsx'));
 const StudentDashboardPage = lazy(() => import('../features/students/StudentDashboardPage.jsx'));
@@ -161,6 +162,8 @@ export default function AppRoutes() {
             <Route path="student/sonavara" element={staffPage(<VocabularyPage />)} />
             <Route path="student/lemmik" element={staffPage(<PetPage />)} />
             <Route path="student/vead" element={staffPage(<MistakesPage />)} />
+            {/* „Kuu monoloog” (owner 2026-11-04): opened from its task in „Ülesanded”, not from the home page */}
+            <Route path="student/monoloog" element={staffPage(<MonologuePage />)} />
             {/* „Kordamine” became „Minu vead” (+ words in Sõnad), owner 2026-10-12 */}
             {/* „Minu kursus” (owner 2026-10-23): the course map; self-study cards open the sheets themselves */}
             <Route path="student/kursus" element={staffPage(<StudentCoursePage />)} />

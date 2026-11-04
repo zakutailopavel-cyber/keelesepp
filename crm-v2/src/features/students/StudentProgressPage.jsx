@@ -11,6 +11,7 @@ import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import MonthStepsCard from '../learner/MonthStepsCard.jsx';
 import { heldCourseLessons, lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
+import LessonBoardsCard from '../board/LessonBoardsCard.jsx';
 import WordGrowthCard from '../vocabulary/WordGrowthCard.jsx';
 import { wordGrowth } from '../vocabulary/wordGrowth.js';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
@@ -33,6 +34,7 @@ export default function StudentProgressPage({
   catalogRepository = libraryService,
   wordsService,
   summaryService,
+  boardCopiesService,
   announcementService,
 }) {
   const { user, preview } = useAuth();
@@ -95,6 +97,8 @@ export default function StudentProgressPage({
     <p><Link className="sh-link" to="/homework#vaadatud">Õpetaja tagasiside on lehel „Ülesanded” <ChevronRight size={15} aria-hidden="true" /></Link></p>
     <div className="student-home-grid">
       <LessonSummariesCard studentIds={students.map((student) => student.id)} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
+      {/* „Tunni tahvlid”: the lesson boards as they were at the end of each lesson, read-only */}
+      <LessonBoardsCard studentIds={students.map((student) => student.id)} {...(boardCopiesService ? { service: boardCopiesService } : {})} />
       {/* „Millal sulle tund sobib?”: the student keeps the times that suit up to date (owner 2026-10-21) */}
       {students.slice(0, 1).map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} user={user} mode={preview ? 'view' : 'own'} compact subjects={subjectsOf(student)} />)}
       {/* „Teated”: the school's announcements already answered, to read again (owner 2026-10-24) */}
