@@ -379,11 +379,18 @@ historical references. Parent and student cabinets exclude inactive and converte
 or reassign an existing student from the parent directory; that workflow updates the existing records and does not
 create a replacement identity.
 
-Possible duplicates (2026-10-24) are listed for the administrator in Õpilased → „Võimalikud duplikaadid”
-(`features/students/duplicateCandidates.js`, `DuplicateCandidatesModal.jsx`): the same name (after Cyrillic → Latin
-transliteration), or the same first name plus the same parent (account, e-mail, phone, name) or the same learner
-account / e-mail / phone. A shared surname or a shared parent alone (siblings) is not a pair. „Ei ole duplikaat”
-stores `students.notDuplicateOf` on both cards. Each pair has „Liida”.
+Possible duplicates (2026-10-24, extended 2026-11-04) are listed for the administrator in Õpilased → „Võimalikud
+topeltkaardid” (`features/students/duplicateCandidates.js`, `DuplicateCandidatesModal.jsx`): the same name after
+Cyrillic → Latin transliteration and spelling variants (`personName`: Mariia = Maria, Jekaterina = Ekaterina =
+Katerina, double letters, й/i; level / subject tags like „B2”, „En” in the name are taken out and kept as a hint), or
+the same first name (surnames not different) plus the same parent (account, e-mail, phone, name) or the same learner
+account / e-mail / phone. Same first name + different surnames, a shared surname or a shared parent alone (siblings)
+is not a pair. Same teacher, same level tag and „one card self-registered, the other without an account” only raise
+the score; different subjects are reported as „Sama inimene, eri ained” (one card per person, subjects are
+enrollments). Cards are compared only inside blocks (canonical name, first-name stem, account, e-mail, phone, parent
+account / e-mail / phone). The list shows both cards side by side (created, archived, account, subjects / teachers,
+lesson and invoice counts via `studentsService.recordCounts` count queries, masked contacts). „Pole sama inimene”
+stores `students.notDuplicateOf` on both cards. „Ava ühendamine” opens „Liida kaardid” with the pair preselected.
 
 „Liida kaardid” (`MergeCardsModal.jsx` → `staffOperationsApi /students/merge-cards` → `functions/student-merge.js`,
 rules in `functions/student-card-merge-core.js`; admin only) is the one merge. The administrator picks the other card,
