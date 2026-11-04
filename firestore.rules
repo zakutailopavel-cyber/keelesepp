@@ -1921,6 +1921,129 @@ service cloud.firestore {
       allow delete: if isStaff() || (resource.data.createdByUid == uid() && ownsStudent(resource.data.studentId));
     }
 
+    // „Kiirküsimus” (quick poll) of a Live Classroom room (2026-11-04, crm-v2/src/features/live-classroom/quickPoll.js):
+    // one doc per room `livePolls/{kind}_{roomId}` (kind 'lesson' = 1:1 invitation, 'group' = group room). Only the room's
+    // teacher asks, while the room is live, and only to the room's students (`participantUids` = the invitation's
+    // student / the group's members). The right option stays in the teacher-only `key/current` until „Näita vastust”.
+    // A student writes only his own answer `answers/{uid}`, only to the open round; the teacher reads all answers.
+    function livePollPath(pollId) {
+      return /databases/$(database)/documents/livePolls/$(pollId);
+    }
+
+    function livePollRoomLive(data) {
+      return (
+          data.kind == 'lesson'
+          && exists(liveLessonInvitationPath(data.roomId))
+          && get(liveLessonInvitationPath(data.roomId)).data.teacherUid == uid()
+          && get(liveLessonInvitationPath(data.roomId)).data.status == 'accepted'
+          && data.participantUids == [get(liveLessonInvitationPath(data.roomId)).data.studentUid]
+        )
+        || (
+          data.kind == 'group'
+          && exists(liveGroupRoomPath(data.roomId))
+          && get(liveGroupRoomPath(data.roomId)).data.teacherUid == uid()
+          && get(liveGroupRoomPath(data.roomId)).data.status == 'open'
+          && data.participantUids == get(liveGroupRoomPath(data.roomId)).data.memberUids
+        );
+    }
+
+    function livePollOptionOk(options, index) {
+      return options.size() <= index || (options[index] is string && options[index].size() > 0 && options[index].size() <= 120);
+    }
+
+    function livePollValid(data, pollId) {
+      return data.keys().hasOnly(['kind', 'roomId', 'teacherUid', 'participantUids', 'round', 'mode', 'question', 'sentence',
+          'options', 'timeLimitSec', 'status', 'correctIndex', 'startedAt', 'updatedAt'])
+        && data.keys().hasAll(['kind', 'roomId', 'teacherUid', 'participantUids', 'round', 'mode', 'question', 'sentence',
+          'options', 'timeLimitSec', 'status', 'correctIndex', 'startedAt', 'updatedAt'])
+        && data.kind in ['lesson', 'group']
+        && data.roomId is string && data.roomId.size() > 0 && data.roomId.size() <= 200
+        && pollId == data.kind + '_' + data.roomId
+        && data.teacherUid == uid()
+        && data.participantUids is list && data.participantUids.size() >= 1 && data.participantUids.size() <= 4
+        && data.round is int && data.round >= 1 && data.round <= 100000
+        && data.mode in ['choice', 'gap']
+        && data.question is string && data.question.size() <= 300
+        && data.sentence is string && data.sentence.size() <= 300
+        && data.options is list && data.options.size() >= 2 && data.options.size() <= 4
+        && livePollOptionOk(data.options, 0) && livePollOptionOk(data.options, 1)
+        && livePollOptionOk(data.options, 2) && livePollOptionOk(data.options, 3)
+        && data.timeLimitSec is int && data.timeLimitSec >= 0 && data.timeLimitSec <= 600
+        && data.status in ['open', 'revealed', 'closed']
+        && data.correctIndex is int && data.correctIndex >= -1 && data.correctIndex < data.options.size()
+        && data.startedAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    // a new question: open, no right option shown, started now, to the room's students while the room is live
+    function livePollNewRound(data, pollId) {
+      return livePollValid(data, pollId)
+        && data.status == 'open'
+        && data.correctIndex == -1
+        && data.startedAt == request.time
+        && livePollRoomLive(data);
+    }
+
+    match /livePolls/{pollId} {
+      // a doc that does not exist yet is readable (the room's screens listen before the first question)
+      allow read: if signedIn() && (resource == null || resource.data.teacherUid == uid() || resource.data.participantUids.hasAny([uid()]) || isAdmin());
+      allow create: if isStaff() && livePollNewRound(request.resource.data, pollId);
+      allow update: if signedIn() && resource.data.teacherUid == uid()
+        && request.resource.data.kind == resource.data.kind
+        && request.resource.data.roomId == resource.data.roomId
+        && (
+          // the next question
+          (request.resource.data.round == resource.data.round + 1 && livePollNewRound(request.resource.data, pollId))
+          // „Näita vastust”: the right option from the teacher's key of this round; or „Lõpeta”
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'correctIndex', 'updatedAt'])
+            && livePollValid(request.resource.data, pollId)
+            && (
+              (request.resource.data.status == 'revealed'
+                && exists(/databases/$(database)/documents/livePolls/$(pollId)/key/current)
+                && get(/databases/$(database)/documents/livePolls/$(pollId)/key/current).data.round == resource.data.round
+                && get(/databases/$(database)/documents/livePolls/$(pollId)/key/current).data.correctIndex == request.resource.data.correctIndex)
+              || (request.resource.data.status == 'closed' && request.resource.data.correctIndex == resource.data.correctIndex)
+            )
+          )
+        );
+      allow delete: if isAdmin() || (signedIn() && resource.data.teacherUid == uid());
+
+      match /key/{keyId} {
+        allow read: if signedIn() && (resource == null || resource.data.teacherUid == uid());
+        allow create, update: if signedIn() && keyId == 'current'
+          && request.resource.data.keys().hasOnly(['teacherUid', 'round', 'correctIndex'])
+          && request.resource.data.keys().hasAll(['teacherUid', 'round', 'correctIndex'])
+          && request.resource.data.teacherUid == uid()
+          && request.resource.data.correctIndex is int && request.resource.data.correctIndex >= 0 && request.resource.data.correctIndex <= 3
+          && getAfter(livePollPath(pollId)).data.teacherUid == uid()
+          && getAfter(livePollPath(pollId)).data.round == request.resource.data.round
+          && request.resource.data.correctIndex < getAfter(livePollPath(pollId)).data.options.size();
+        allow delete: if false;
+      }
+
+      match /answers/{answerUid} {
+        allow read: if signedIn() && (
+          answerUid == uid()
+          || (exists(livePollPath(pollId)) && get(livePollPath(pollId)).data.teacherUid == uid())
+          || isAdmin()
+        );
+        allow create, update: if signedIn() && answerUid == uid()
+          && exists(livePollPath(pollId))
+          && get(livePollPath(pollId)).data.participantUids.hasAny([uid()])
+          && get(livePollPath(pollId)).data.status == 'open'
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'round', 'choice', 'answeredAt'])
+          && request.resource.data.keys().hasAll(['uid', 'name', 'round', 'choice', 'answeredAt'])
+          && request.resource.data.uid == uid()
+          && request.resource.data.name is string && request.resource.data.name.size() <= 160
+          && request.resource.data.round == get(livePollPath(pollId)).data.round
+          && request.resource.data.choice is int && request.resource.data.choice >= 0
+          && request.resource.data.choice < get(livePollPath(pollId)).data.options.size()
+          && request.resource.data.answeredAt == request.time;
+        allow delete: if false;
+      }
+    }
+
     // What the student and parents see after a Live Classroom lesson; written by the lesson's teacher when it ends.
     function lessonSummaryValid(data, invitationId) {
       let invitation = get(/databases/$(database)/documents/liveLessonInvitations/$(invitationId)).data;

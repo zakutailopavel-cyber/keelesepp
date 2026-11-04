@@ -14,6 +14,7 @@ import { spanCss, spansOf, textPatch } from './richText.js';
 import BookmarkDialog from './BookmarkDialog.jsx';
 import RichTextEditor, { FormatBar } from './RichTextEditor.jsx';
 import { MEDIA_MIME, mediaElement, placeableImage, readPayload } from './mediaSearch.js';
+import { selectionText } from './selectionText.js';
 import './board.css';
 
 // „Pildid” (search pictures and drag them onto the board): its own chunk, loaded when the teacher opens it
@@ -458,7 +459,7 @@ export default function StudentBoard({
     if (target.id === worksheet?.id) { setWantWorksheet(target.id); return; }
     if (staff) (service.addWorksheetPage || service.addPage).call(service, studentId, worksheetPageTitle(target.title), pages.length + 1, user).then((id) => { choosePage(id); setTool('fill'); }).catch(fail('Töölehe lehte ei saanud luua.'));
   }, [allSheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]);
-  useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet }), [insertFile, newPage, openWorksheet, redo, undo]);
+  useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet, selectedText: () => selectionText(selected.map((id) => byId.get(id))) }), [insertFile, newPage, openWorksheet, redo, undo, selected, byId]);
 
   // rename a lesson page: double click its tab or „Nimeta ümber” in the ⋯ menu next to the open page
   const [renaming, setRenaming] = useState(null);
