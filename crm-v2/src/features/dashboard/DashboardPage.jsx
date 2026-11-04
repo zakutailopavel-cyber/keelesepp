@@ -14,6 +14,8 @@ import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 import RetentionCard from '../retention/RetentionCard.jsx';
 import { recentlyScheduled } from '../retention/retentionRisk.js';
 import UnmarkedLessonsCard from '../calendar/UnmarkedLessonsCard.jsx';
+import TodayPanel from './today/TodayPanel.jsx';
+import { tallinnDay } from './today/todayModel.js';
 
 const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date());
 const todayLabel = () => new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -79,9 +81,15 @@ async function loadDashboardData(user, repositories) {
   const studentIds = new Set(studentsResult.items.map((item) => item.id));
   const openHomework = homework.filter((item) => isHomeworkOpen(item) && (!studentIds.size || studentIds.has(item.studentId)));
 
+  const events = [...schedule, ...groupCalendarEvents(groups)];
   const unplanned = unplannedStudents({ students: studentsResult.items, events: [...schedule, ...groupCalendarEvents(groups)], today: current, teacherUid: teacherOnly ? user.uid : '' });
 
   return {
+    isAdmin,
+    events,
+    homework,
+    submissions,
+    invoices,
     unplanned,
     schedule,
     current,
@@ -143,6 +151,8 @@ export default function DashboardPage({
         </div>
         {data.canViewLearning ? <Link className="dashboard-welcome__action" to="/calendar"><CalendarDays size={18} /><span><small>Järgmine samm</small><strong>Ava tänane kalender</strong></span><ArrowUpRight size={18} /></Link> : null}
       </section>
+      {/* „Täna” (2026-11-04): the admin's day on one screen; an accountant sees only the lesson packages running out */}
+      {data.isAdmin || data.canViewFinance ? <TodayPanel user={user} isAdmin={data.isAdmin} canViewBalance={data.isAdmin || data.canViewFinance} students={data.activeStudents} events={data.events} homework={data.homework} submissions={data.submissions} invoices={data.invoices} today={tallinnDay()} {...(repositories.today ? { repository: repositories.today } : {})} /> : null}
       <section className="metric-grid">
         {metrics.map(({ icon: Icon, ...item }) => (
           <Card as="article" className={`metric-card metric-card--${item.tone}`} key={item.label}>
@@ -162,9 +172,10 @@ export default function DashboardPage({
         ))}
       </section>
       {/* „Märkimata tunnid”: past lessons without a journal mark, one click to mark held */}
-      {data.canViewLearning ? <section className="content-grid"><UnmarkedLessonsCard schedule={data.schedule} today={data.current} teacherUid={data.teacherUid} user={user} {...(repositories.unmarked ? { repository: repositories.unmarked } : {})} /></section> : null}
+      {data.canViewLearning ? <section className="content-grid" id="markimata-tunnid"><UnmarkedLessonsCard schedule={data.schedule} today={data.current} teacherUid={data.teacherUid} user={user} {...(repositories.unmarked ? { repository: repositories.unmarked } : {})} /></section> : null}
       <section className="content-grid">
-        {data.canViewLearning ? (
+        {/* the admin has all of today's lessons in „Täna” above */}
+        {data.canViewLearning && !data.isAdmin ? (
           <Card>
             <div className="section-heading"><div><span className="eyebrow">Kalender · {data.allTeachers ? 'kõik õpetajad' : 'minu tunnid'}</span><h2>Järgmised tunnid täna</h2></div><Link to="/calendar">Ava kalender →</Link></div>
             {data.upcoming.length ? (
@@ -199,7 +210,7 @@ export default function DashboardPage({
         </Card>
       </section>
       {/* „Riskis õpilased” (owner 2026-10-23): who may stop learning soon and why; packages about to end */}
-      {data.canViewLearning ? <section className="content-grid"><RetentionCard students={data.activeStudents} unplanned={data.unplanned} scheduledIds={data.scheduledIds} overdueInvoices={data.overdue} teacherUid={data.teacherUid} {...(repositories.retention ? { repository: repositories.retention } : {})} /></section> : null}
+      {data.canViewLearning ? <section className="content-grid"><RetentionCard students={data.activeStudents} unplanned={data.unplanned} scheduledIds={data.scheduledIds} overdueInvoices={data.overdue} teacherUid={data.teacherUid} showRenewals={false} {...(repositories.retention ? { repository: repositories.retention } : {})} /></section> : null}
     </div>
   );
 }

@@ -108,4 +108,19 @@ describe('DashboardPage role scoping', () => {
       vi.useRealTimers();
     }
   });
+
+  it('„Täna” is the admin\'s: a teacher never gets it, the admin gets it with today\'s lessons in it', async () => {
+    const teacherRepositories = repositories();
+    const { unmount } = render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'teacher-1', displayName: 'Kati', roles: ['teacher'] } }}><DashboardPage repositories={teacherRepositories} /></AuthContext.Provider></MemoryRouter>);
+    expect(await screen.findByText('Aktiivsed õpilased')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Täna' })).not.toBeInTheDocument();
+    unmount();
+    const adminRepositories = repositories();
+    const today = { lessons: vi.fn(async () => []), seen: vi.fn(async () => new Map()), plans: vi.fn(async () => []), packages: vi.fn(async () => []), owed: vi.fn(async () => []), leads: vi.fn(async () => []), worksheetsDue: vi.fn(async () => []), followups: vi.fn(async () => []), addFollowup: vi.fn() };
+    renderDashboard({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { ...adminRepositories, today, retention: { lessons: vi.fn(async () => []), words: vi.fn(async () => []) } });
+    expect(await screen.findByRole('region', { name: 'Täna' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Märkimata tunnid/ })).toHaveAttribute('href', '#markimata-tunnid');
+    expect(screen.queryByText('Järgmised tunnid täna')).not.toBeInTheDocument();
+    await waitFor(() => expect(today.leads).toHaveBeenCalled());
+  });
 });

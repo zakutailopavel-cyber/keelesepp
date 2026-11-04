@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 
 function timestampValue(value) {
@@ -20,6 +20,13 @@ export const websiteLeadsService = {
   async list() {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(collection(db, 'websiteLeads'));
+    return snapshot.docs.map(item => normalizeWebsiteLead(item.id, item.data()))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  },
+  // „Täna” on the dashboard: only the enquiries nobody has taken yet (the website function writes status 'new')
+  async listNew() {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'websiteLeads'), where('status', '==', 'new')));
     return snapshot.docs.map(item => normalizeWebsiteLead(item.id, item.data()))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   },
