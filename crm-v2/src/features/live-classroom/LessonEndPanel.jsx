@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { homeworkService as defaultHomework } from '../../services/firebase/homework.js';
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
+import { lessonCopiesService } from '../../services/firebase/studentBoard.js';
+import { pagesToCopy } from '../board/lessonBoards.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { saveLessonHandoff, unfinishedSheets } from './lessonHandoff.js';
 import { localDay, lessonLinkFor, looseLessonKey } from './lessonLink.js';
@@ -21,6 +23,7 @@ export default function LessonEndPanel({
   invitation, user, subject = '', startedAt = '', pages = [], sheets = [], ending = false, onEnd,
   lessonKey: linkedKey, saveHandoff = saveLessonHandoff, attendance = null,
   summaryService = lessonSummariesService, wordsService = studentWordsService, homeworkService = defaultHomework,
+  boardCopies = lessonCopiesService,
 }) {
   const [note, setNote] = useState('');
   const [words, setWords] = useState([]);
@@ -31,6 +34,9 @@ export default function LessonEndPanel({
   const [linked] = useState(() => linkedKey ?? lessonLinkFor(invitation.id));
   const lessonKey = linked || looseLessonKey(invitation.studentId, localDay(Date.now()));
   const [markHeld, setMarkHeld] = useState(true);
+  // „Tunni tahvlid”: a read-only copy of the lesson's board pages stays in the student's (and parents') area
+  const copyPages = pagesToCopy(pages);
+  const [keepBoard, setKeepBoard] = useState(true);
   const [giving, setGiving] = useState('');
   useEffect(() => {
     try {
@@ -59,6 +65,9 @@ export default function LessonEndPanel({
     }
   };
 
+  // the board copy of the lesson (lessonBoards.js); ending twice finds the same copy
+  const copyBoard = () => boardCopies.save({ studentId: invitation.studentId, sourceRoot: 'whiteboards', sourceId: invitation.studentId, pages: copyPages, lessonKey: invitation.id, user });
+  const copying = keepBoard && copyPages.length > 0 && Boolean(boardCopies?.save);
   const finish = async (withSummary) => {
     setError('');
     const status = calendarStatusOf(attendance);
@@ -72,7 +81,17 @@ export default function LessonEndPanel({
         setError(`${next?.message || 'Kokkuvõtet ei saanud salvestada.'} Võid tunni lõpetada ka ilma kokkuvõtteta.`);
         return;
       }
+      try {
+        if (copying) await copyBoard();
+      } catch (next) {
+        setBusy(false);
+        setError(`Kokkuvõte on saadetud, aga ${next?.message ? `tahvli koopiat ei saanud salvestada (${next.message})` : 'tahvli koopiat ei saanud salvestada'}. Proovi uuesti või võta linnuke „Jäta õpilasele tunni tahvel” ära.`);
+        return;
+      }
       setBusy(false);
+    } else if (copying) {
+      // ending without a summary never waits: the copy finishes in the background (the teacher's page stays open)
+      Promise.resolve().then(copyBoard).catch(() => {});
     }
     onEnd?.();
   };
@@ -82,6 +101,7 @@ export default function LessonEndPanel({
       <p className="vw-note">Õpilane ja vanem näevad pärast tundi kokkuvõtet: tunni lehed, uued sõnad ja kodutöö.</p>
       <h3 className="vw-heading">Tahvli lehed ({pages.length})</h3>
       {pages.length ? <ul className="vw-list">{pages.map((page) => <li key={page.id}><span>{page.title || 'Leht'}</span></li>)}</ul> : <p className="vw-muted">Tunnis kasutati ainult põhitahvlit.</p>}
+      {copyPages.length ? <label className="vw-check"><input type="checkbox" checked={keepBoard} onChange={(event) => setKeepBoard(event.target.checked)} /> Jäta õpilasele tunni tahvel ({copyPages.map((page) => page.title || 'Leht').join(', ')}) — ainult vaatamiseks, „Tunni tahvlid” all</label> : null}
       {sheets.length ? <>
         <h3 className="vw-heading">Töölehed tunnis ({sheets.length})</h3>
         <ul className="vw-list">{sheets.map((sheet) => {

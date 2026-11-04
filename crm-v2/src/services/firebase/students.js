@@ -4,6 +4,7 @@ import {
   collection,
   doc,
   getDoc,
+  getCountFromServer,
   getDocs,
   limit,
   orderBy,
@@ -498,7 +499,22 @@ export const studentsService = {
     await updateDoc(doc(db, 'students', recordId), payload);
     return this.getById(recordId);
   },
-  // „Ei ole duplikaat” (owner 2026-10-24): the pair is not proposed again (two children with the same name)
+  // „Võimalikud topeltkaardid”: how much history a card has (count queries only — no documents are read). Admins only.
+  async recordCounts(studentId) {
+    const id = cleanText(studentId);
+    if (!id) return { lessons: 0, invoices: 0 };
+    const { db } = requireFirebaseClient();
+    const count = (q) => getCountFromServer(q).then((snap) => Number(snap.data().count) || 0).catch(() => null);
+    const [lessons, invoices, sharedInvoices] = await Promise.all([
+      count(query(collection(db, 'lessons'), where('studentId', '==', id))),
+      count(query(collection(db, 'invoices'), where('studentId', '==', id))),
+      count(query(collection(db, 'invoices'), where('studentIds', 'array-contains', id))),
+    ]);
+    // a combined invoice may carry both fields: the larger number, never their sum
+    const invoiceCount = invoices === null && sharedInvoices === null ? null : Math.max(invoices || 0, sharedInvoices || 0);
+    return { lessons, invoices: invoiceCount };
+  },
+  // „Pole sama inimene” (owner 2026-10-24, was „Ei ole duplikaat”): the pair is not proposed again (two children with the same name)
   async markNotDuplicate(leftId, rightId) {
     const left = cleanText(leftId);
     const right = cleanText(rightId);
