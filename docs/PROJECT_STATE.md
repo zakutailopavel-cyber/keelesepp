@@ -1,3 +1,12 @@
+## 2026-11-04 · agent/opik-kus-kuhu-kust — Õpik sheets „Kus? Kuhu? Kust?” (own material, a2-017, a2-018, a2b1-012)
+
+- Base: `origin/main` d85d24e (#1094), checked 2026-11-04. Content zone only: new `admin/course/textbook/kohakaanded.json` + one import line in `textbook/index.js`; docs. No UI, rules, functions or data writes. Nothing published.
+- Done: three own-wording Õpik sheets (slot 4) built around KUS? · KUHU? · KUST? with both rows (sees -s/-sse/-st, peal -l/-le/-lt), building from the omastav, short illatives, when sees/peal, place names, verb table and traps, common errors; 21 checked tasks with keys + 1 teacher-graded writing task. Details: `docs/TEXTBOOKS.md` „Own material: Kus? Kuhu? Kust?”.
+- Checks: `npx vitest run src/features/worksheet-generator` and `npx eslint src --quiet` — results in the PR. Preview rendered locally with `Sheet` print mode + answer key (not committed): `/Users/pavel/keelesepp-release/opik-kohakaanded-preview.html`.
+- Limits: forms checked by hand, not against EKI's database; variants accepted though less sure: kinosse, Lätisse, Soomesse, saunasse (kept as accepted alternatives only); „poesse” deliberately not used anywhere.
+- PR: draft (see GitHub). Production: none. Deploy: none needed (content is read at publish time).
+- Next safe step: owner or a teacher reads the preview; then admin publishes the three rows in „Kursuse tootmine” → „Õpik”.
+
 ## 2026-11-04 · agent/listening-goal — course listening tasks scored under `g_listen` („Kuulamine” on the skill estimate)
 
 - Base: `origin/main` ee0c15d (#1087), checked 2026-11-04. Content zone only (lesson goals + their tests + one pin file); no task text, answer, UI, rules or data change. Nothing published.
