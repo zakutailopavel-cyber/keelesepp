@@ -45,6 +45,7 @@ export const ROUTE_ACCESS = Object.freeze({
   '/live-classroom/vaatle/:invitationId': ACCESS.ADMIN,
   '/teachers': ACCESS.ADMIN,
   '/accounts': ACCESS.ADMIN,
+  '/teachers/koormus': ACCESS.ADMIN,
   '/teachers/:teacherId': ACCESS.ADMIN,
   '/trash': ACCESS.ADMIN,
   '/settings': ACCESS.ALL_AUTHENTICATED,
