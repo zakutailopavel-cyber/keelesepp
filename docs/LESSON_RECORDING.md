@@ -75,7 +75,11 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
    shows marks (blue) and the learner's errors (red); a click on an error plays it too. Marks outside the recording
    (or of a lesson that was not recorded) are listed by clock time; a day with marks only gets its own row in „Tunnid”.
    Joined lessons (several parts) now also move `segments[].startMs` by the part's start (`partStarts` on the joined
-   lesson), like the transcript. Group rooms have no „Hetk” yet.
+   lesson), like the transcript. **Group room (2026-11-04, `agent/group-room-parity`):** the same button in the
+   teacher's top bar; one press writes one moment per student in the lesson (accepted invitations of the room) in one
+   batch (`lessonMomentsService.addMany`), each on the student's own invitation and, while that student's recording
+   runs, with his `recordingId` + `atMs` — so each student's „Tunni analüüs” plays it like a 1:1 mark. Each doc carries
+   `groupRoomId`; the label and „Kustuta hetk” apply to all of them.
 7. **„Kõneaeg” (since 2026-11-04)** — in the 1:1 room the teacher (only) sees a pill „Õpilane NN %” with a bar and a
    target line at 60 %: the student's share of the talk time so far, live, also without a recording or consent. It
    is measured in the teacher's browser from the sound level only (`talkMeter.js`: RMS ~10 Hz, adaptive noise floor,
@@ -84,7 +88,11 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
    hidden, AudioContext closed on leave). It does not know the language. Amber when the student had < 40 % of the
    last 10 minutes' talk (at least 2 min of talk in them); a click shows minutes per side. Nothing is saved — the
    lesson summary (`lessonSummaries`) is readable by the student and its rules allow no extra field; the recorded
-   lesson's „Tunni analüüs” keeps its own share from the transcript.
+   lesson's „Tunni analüüs” keeps its own share from the transcript. **Group room (2026-11-04):** `GroupTalkMeter.jsx`
+   — pill „Õpilased NN %” (all students together vs the teacher, same target / amber rule) and a box with one row per
+   member (minutes, share of all talk, last 10 min); the member who talked least in the last 10 minutes is marked, the
+   pill shows „vähim: <name>” in amber when that is under half of a fair share of the students' talk
+   (`createGroupTalkTracker`, `groupTalkRows`; one AnalyserNode per incoming track via `useTalkSampler`). Not saved.
 
 7. **„Soojendus” and „Täna harjutada” (since 2026-11-04)** — in the 1:1 room the teacher's „Rohkem → Soojendus eelmise
    tunni lausetest” picks 3–5 of the learner's own short sentences with errors from the latest analysed lesson before
@@ -94,6 +102,10 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
    vastust” reveals one at a time). „Täna harjutada” is a teacher-only box over the board (not synced, hidden during
    screen share): 2–3 topics of the last 1–3 analysed lessons with one example each and „Järgmiseks tunniks”
    (`lessonHints`). Both read `lessonRecordings` once with the existing rule (a teacher his own, an admin all).
+   **Group room (2026-11-04):** group lessons are recorded per student (own invitation), so each member has his own
+   analysis: `GroupLessonHints.jsx` shows the same „Täna harjutada” box with one chip per member who has an analysed
+   earlier lesson (`useMembersRecentLessons`, one read per member). „Soojendus” is **not** offered in group rooms: it
+   puts one student's own error sentences on the shared board, where the other members would see them.
 
 7. **„Koosta kodutöö vigadest” (since 2026-11-04)** — in „Tunni analüüs” (AI part, below „Tee tööleht vigadest”) the
    teacher / admin builds a short personal homework from this lesson's errors (`errorHomework.js`,
@@ -133,7 +145,9 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
   invitation's teacher), studentId, atMs (int ≥ 0 ≤ 8 h, or null), at, label (≤ 80), byUid, byName, createdAt }`.
   Rules: read / delete by the lesson's teacher or an admin; create by staff with `byUid == uid`, the invitation must
   exist with the same teacherUid and studentId, a teacher only for his own lessons, `recordingId` must be
-  `<invitationId>_<ms>` and `atMs` needs a `recordingId`; update only `label`. Students and parents: no access. Tests:
+  `<invitationId>_<ms>` and `atMs` needs a `recordingId`; update only `label`. Optional `groupRoomId` (≤ 200, group
+  rooms): then the invitation's `roomKey` must equal it and `liveGroupRooms/{groupRoomId}` must exist with the same
+  `teacherUid` (`lessonMomentRoomValid`). Students and parents: no access. Tests:
   `functions/lesson-moments-emulator.integration.js` (in `test:emulator`).
 - `transcriberStatus/{workerId}`: staff read, written only by the worker (Admin SDK).
 - Storage: `lessonRecordings/{recordingId}/*` written only by the recording teacher while `recording`, audio < 20 MB.

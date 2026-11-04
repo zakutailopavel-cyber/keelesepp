@@ -187,7 +187,10 @@ compares both lists) through `safeSelfUserFields`; staff read it (users read `is
 `DeviceCheckNotice` in the calendar lesson panel (planned lessons) and in the 1:1 room until the call connects:
 „fail” / „warn” with the issues in Estonian, or „Õpilane pole seadet kontrollinud” when there is no result and the
 student has no closed live lesson with this teacher (admin: with anyone). Emulator test:
-`functions/device-check-emulator.integration.js`.
+`functions/device-check-emulator.integration.js`. Group lessons (2026-11-04): `GroupDeviceCheckNotice` lists every
+member whose last check is „fail” / „warn” or missing (also after earlier live lessons; `groupDeviceWarnings`) — in
+the live group room for the teacher until someone's video connects (× hides it), and in the calendar panel of a
+planned group lesson (active members; `LessonPanel` `groupStudents`).
 
 ### Finance
 

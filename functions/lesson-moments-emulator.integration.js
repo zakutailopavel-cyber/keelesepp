@@ -104,3 +104,59 @@ test("only the lesson's teacher or an admin marks moments; the student has no ac
   assert.equal(await commit(adminUser, [remove(`lessonMoments/${id(2)}`)]), 200, "an admin");
   assert.equal((await db.doc(`lessonMoments/${id(1)}`).get()).get("label"), "admin");
 });
+
+test("group room: one moment per student, keyed by the room; only the room's teacher or an admin", async () => {
+  safe();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const [teacher, other, adminUser, student] = await Promise.all([account("teacher", db), account("teacher", db), account("admin", db), account("student", db)]);
+  const suffix = Math.random().toString(36).slice(2);
+  const roomId = `room-moments-${suffix}`;
+  const otherRoom = `room-other-${suffix}`;
+  const invMari = `inv-gm-${suffix}`;
+  const invJaan = `inv-gj-${suffix}`;
+  const inv1to1 = `inv-g1-${suffix}`;
+  await db.doc(`liveGroupRooms/${roomId}`).set({ teacherUid: teacher.uid, teacherName: "Kati", title: "Grupp", memberUids: [student.uid], members: [], status: "open", createdAt: new Date(), closedAt: null });
+  await db.doc(`liveGroupRooms/${otherRoom}`).set({ teacherUid: other.uid, teacherName: "Teine", title: "Grupp", memberUids: [], members: [], status: "open", createdAt: new Date(), closedAt: null });
+  await db.doc(`liveLessonInvitations/${invMari}`).set({ teacherUid: teacher.uid, studentUid: student.uid, studentId: "s-mari", roomKey: roomId, status: "accepted", title: "Grupp" });
+  await db.doc(`liveLessonInvitations/${invJaan}`).set({ teacherUid: teacher.uid, studentUid: "u-jaan", studentId: "s-jaan", roomKey: roomId, status: "accepted", title: "Grupp" });
+  await db.doc(`liveLessonInvitations/${inv1to1}`).set({ teacherUid: teacher.uid, studentUid: student.uid, studentId: "s-mari", roomKey: inv1to1, status: "accepted", title: "Tund" });
+  const at = "2026-11-04T16:05:00.000Z";
+  const moment = (by, inv, studentId, extra = {}) => ({
+    invitationId: inv, recordingId: "", teacherUid: teacher.uid, studentId, atMs: null, at, label: "", byUid: by.uid, byName: "Kati", createdAt: at, groupRoomId: roomId, ...extra,
+  });
+  const id = (n) => `gmoment-${suffix}-${n}`;
+
+  // one press = a batch of one moment per student (one with its recording)
+  assert.equal(await commit(teacher, [
+    create(`lessonMoments/${id(1)}`, moment(teacher, invMari, "s-mari", { recordingId: `${invMari}_1762272000000`, atMs: 300000 })),
+    create(`lessonMoments/${id(2)}`, moment(teacher, invJaan, "s-jaan")),
+  ]), 200, "the room's teacher marks both students at once");
+  assert.equal(await commit(adminUser, [create(`lessonMoments/${id(3)}`, moment(adminUser, invMari, "s-mari"))]), 200, "an admin");
+
+  // refused
+  assert.equal(await commit(teacher, [create(`lessonMoments/${id(4)}`, moment(teacher, inv1to1, "s-mari"))]), 403, "a 1:1 invitation with a group room id");
+  assert.equal(await commit(teacher, [create(`lessonMoments/${id(4)}`, moment(teacher, invMari, "s-mari", { groupRoomId: otherRoom }))]), 403, "another room");
+  assert.equal(await commit(teacher, [create(`lessonMoments/${id(4)}`, moment(teacher, invMari, "s-mari", { groupRoomId: `room-none-${suffix}` }))]), 403, "no such room");
+  assert.equal(await commit(teacher, [create(`lessonMoments/${id(4)}`, moment(teacher, invMari, "s-mari", { groupRoomId: 5 }))]), 403, "room id is a string");
+  assert.equal(await commit(other, [create(`lessonMoments/${id(4)}`, moment(other, invMari, "s-mari", { teacherUid: other.uid }))]), 403, "another teacher");
+  assert.equal(await commit(student, [create(`lessonMoments/${id(4)}`, moment(student, invMari, "s-mari"))]), 403, "a student of the room");
+  assert.equal(await commit(teacher, [
+    create(`lessonMoments/${id(5)}`, moment(teacher, invMari, "s-mari")),
+    create(`lessonMoments/${id(6)}`, moment(teacher, invJaan, "s-mari")),
+  ]), 403, "the batch is all or none (wrong student on one)");
+  assert.equal((await db.doc(`lessonMoments/${id(5)}`).get()).exists, false);
+
+  // a 1:1 moment still works without the field
+  const plain = moment(teacher, inv1to1, "s-mari");
+  delete plain.groupRoomId;
+  assert.equal(await commit(teacher, [create(`lessonMoments/${id(7)}`, plain)]), 200, "1:1 unchanged");
+
+  // reading / label / delete as before
+  assert.equal(await read(teacher, `lessonMoments/${id(2)}`), 200);
+  assert.equal(await read(student, `lessonMoments/${id(1)}`), 403, "the students never see them");
+  assert.equal(await read(other, `lessonMoments/${id(1)}`), 403);
+  assert.equal(await commit(teacher, [patch(`lessonMoments/${id(1)}`, { label: "hea dialoog" }), patch(`lessonMoments/${id(2)}`, { label: "hea dialoog" })]), 200, "label on all");
+  assert.equal(await commit(teacher, [patch(`lessonMoments/${id(1)}`, { groupRoomId: otherRoom })]), 403, "the room never changes");
+  assert.equal(await commit(teacher, [remove(`lessonMoments/${id(1)}`), remove(`lessonMoments/${id(2)}`)]), 200, "„Kustuta hetk” removes all");
+});
