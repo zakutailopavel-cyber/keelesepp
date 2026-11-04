@@ -2122,7 +2122,9 @@ service cloud.firestore {
     // „Kuu monoloog” (2026-11-04): once a month the student records two minutes on the fixed prompt of their level.
     // `studentMonologues/{studentId}_{YYYY-MM}`. Only the student's own account (role student, linked to the card; not a
     // parent) writes it, in that month (UTC, or 3 h ahead for Tallinn), and may replace the take; the card's teacher and
-    // admins read; any student account linked to the card reads it too. Transcription fields (transcriptText, wordCount) are for a server worker (Admin SDK) later.
+    // admins read; any student account linked to the card reads it too. The text fields (transcript, words, wpm,
+    // transcribedAt, transcriber, transcribedTake, analyzedTake …) are written by the school Mac's transcriber
+    // (tools/lesson-transcriber, Admin SDK, bypasses these rules); no app user may set them (create/update hasOnly).
     // The teacher's note is NOT on this document (the student could read it): see studentMonologueNotes.
     function monthOf(t) {
       return string(t.year()) + '-' + (t.month() < 10 ? '0' : '') + string(t.month());
@@ -2164,6 +2166,14 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['audioPath', 'contentType', 'seconds', 'promptId', 'level', 'updatedAt'])
         && monologueTakeValid(request.resource.data);
       allow delete: if isAdmin();
+    }
+
+    // The transcriber's error check of one monologue (a model's guess, like a lesson's analysis): staff only, never
+    // the student or parents. `studentMonologueAnalysis/{monologueId}` { studentId, monologueId, month, take, errors,
+    // checked, focus, models, analyzedAt }, written only by the school Mac's transcriber (Admin SDK).
+    match /studentMonologueAnalysis/{monologueId} {
+      allow read: if staffCanAccessStudent(resource.data.studentId);
+      allow write: if false;
     }
 
     // The teacher's short note on one monologue, staff only (the student and parents never read it).

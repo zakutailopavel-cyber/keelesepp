@@ -10,8 +10,9 @@ const month = monthOf(new Date());
 const card = { id: 'c1', name: 'Mia', subject: 'Eesti keel', level: 'B1', linkedUserId: 'u1' };
 const asStudent = { uid: 'u1', displayName: 'Mia', roles: ['student'] };
 
-function fakeService(items = [], notes = {}) {
+function fakeService(items = [], notes = {}, analyses = {}) {
   return {
+    listAnalysis: vi.fn(async () => analyses),
     listByStudent: vi.fn(async () => items),
     submit: vi.fn(async () => ({})),
     audioUrl: vi.fn(async (path) => `blob:${path}`),
@@ -121,6 +122,29 @@ describe('MonologuesCard (student card → Areng)', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta' })); });
     expect(service.saveNote).toHaveBeenCalledWith(expect.objectContaining({ monologue: items[0], text: 'Palju vabam.' }));
     await waitFor(() => expect(screen.getByText(/Palju vabam\./)).toBeInTheDocument());
+  });
+
+  it('shows the Mac\'s error check of this take: top topics, the text and the flagged sentences', async () => {
+    const withText = [{ ...items[0], updatedAt: 't2', transcriptText: 'Eile ma läksin pood.' }, items[1]];
+    const analyses = {
+      'c1_2026-11': { id: 'c1_2026-11', take: 't2', checked: 6, errors: [{ said: 'Eile ma läksin pood.', corrected: 'Eile ma läksin poodi.', kind: 'vorm' }],
+        focus: [{ key: 'cases', topic: 'Падеж после глагола и места: kuhu? kus?', count: 2 }] },
+      'c1_2026-10': { id: 'c1_2026-10', take: 'old', checked: 3, errors: [], focus: [] },
+    };
+    render(<MonologuesCard student={card} user={{ uid: 't1' }} service={fakeService(withText, {}, analyses)} />);
+    const rows = [...(await screen.findAllByRole('list'))[0].children];
+    expect(rows[0]).toHaveTextContent('6 lauset kontrollitud, 1 võimalikku viga: Падеж после глагола и места (2)');
+    expect(within(rows[0]).getByText('Tekst ja vead')).toBeInTheDocument();
+    expect(rows[0]).toHaveTextContent('Eile ma läksin poodi.');
+    expect(rows[1]).not.toHaveTextContent('lauset kontrollitud');
+  });
+
+  it('works without the error check (rules not deployed)', async () => {
+    const service = fakeService(items);
+    service.listAnalysis = vi.fn(async () => { throw new Error('Missing or insufficient permissions.'); });
+    render(<MonologuesCard student={card} user={{ uid: 't1' }} service={service} />);
+    expect(await screen.findByText('190 sõna')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('no recordings yet', async () => {
