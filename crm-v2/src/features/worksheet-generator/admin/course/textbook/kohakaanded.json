@@ -1,0 +1,1056 @@
+{
+  "book": {
+    "id": "oma-kohakaanded",
+    "title": "KeeleSepa oma materjal: kohakäänded",
+    "authors": "KeeleSepp"
+  },
+  "sheets": [
+    {
+      "lessonId": "a2-017",
+      "title": "Kus? Kuhu? Kust? — sees",
+      "pages": "",
+      "level": "A2",
+      "canDo": "Ma ütlen, kus ma olen, kuhu ma lähen ja kust ma tulen, kui koht on „sees” (koolis – kooli – koolist, kodus – koju – kodust).",
+      "blocks": [
+        {
+          "id": "kk1_intro",
+          "type": "text",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "",
+          "data": {
+            "heading": "Kus? Kuhu? Kust?",
+            "text": "Kui räägime kohast, on eesti keeles alati kolm küsimust: **Kus?** — kus keegi või miski on; **Kuhu?** — kuhu me liigume või midagi paneme; **Kust?** — kust me tuleme või midagi võtame.\n\nIgal küsimusel on kaks vastust: **sees** (koht on nagu maja, kast või linn) ja **peal** (pind, töö, üritus). Sellel lehel õpime **sees-vorme**: -s, -sse, -st. Peal-vormid on järgmisel lehel.\n\n*Kus? — где? · Kuhu? — куда? · Kust? — откуда? Русское «в» отвечает и на «где?», и на «куда?»; по-эстонски это разные формы: koolis ≠ kooli.*"
+          }
+        },
+        {
+          "id": "kk1_t_kkk",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "KUS? · KUHU? · KUST?",
+            "instruction": "Küsimus valib veeru, koht valib rea. Sellel lehel on ülemine rida.",
+            "headers": "Rida, KUS? где?, KUHU? куда?, KUST? откуда?",
+            "rows": "**sees** (sisekohakääne) ≈ в | -s: koolis, majas, Eestis | -sse või lühike vorm: koolisse ~ kooli, koju | -st: koolist, majast, Eestist\n**peal** (väliskohakääne) ≈ на | -l: laual, tööl, turul | -le: lauale, tööle, turule | -lt: laualt, töölt, turult"
+          }
+        },
+        {
+          "id": "kk1_t_cases",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "SEES-KÄÄNDED",
+            "instruction": "",
+            "headers": "Küsimus, Kääne, Lõpp, Näide, По-русски",
+            "rows": "**Kus?** | seesütlev | -s | Ma olen **majas**. Raamat on **kotis**. | где? в доме, в сумке\n**Kuhu?** | sisseütlev | -sse või lühike vorm | Ma lähen **majasse** ~ **majja**. Panen raamatu **kotti**. | куда? в дом, в сумку\n**Kust?** | seestütlev | -st | Ma tulen **majast**. Võtan raamatu **kotist**. | откуда? из дома, из сумки"
+          }
+        },
+        {
+          "id": "kk1_t_stem",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "KUIDAS VORM TEKIB: OMASTAV + LÕPP",
+            "instruction": "1) Leia omastav (kelle? mille?). 2) Lisa -s, -sse või -st. Tüvi muutub juba omastavas: pood → poe → poes.",
+            "headers": "Nimetav, Omastav, Kus?, Kuhu?, Kust?",
+            "rows": "maja | maja | majas | majasse ~ majja | majast\nkool | kooli | koolis | koolisse ~ kooli | koolist\nlinn | linna | linnas | linnasse ~ linna | linnast\nkott | koti | kotis | kotisse ~ kotti | kotist\npood | poe | poes | poodi | poest\ntuba | toa | toas | tuppa | toast\nköök | köögi | köögis | köögisse ~ kööki | köögist\npank | panga | pangas | pangasse ~ panka | pangast\njõgi | jõe | jões | jõesse ~ jõkke | jõest\nkodu | kodu | kodus | koju | kodust\nhaigla | haigla | haiglas | haiglasse | haiglast"
+          }
+        },
+        {
+          "id": "kk1_t_short",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "LÜHIKE KUHU-VORM: 22 SAGEDAST SÕNA",
+            "instruction": "Need vormid tasub pähe õppida.",
+            "headers": "Sõna, Kuhu?, Sõna, Kuhu?",
+            "rows": "kodu | **koju** | park | **parki**\nkool | **kooli** | pank | **panka**\npood | **poodi** | apteek | **apteeki**\nlinn | **linna** | aed | **aeda**\ntuba | **tuppa** | mets | **metsa**\nköök | **kööki** | rand | **randa**\nsaun | **sauna** | meri | **merre**\nkino | **kinno** | jõgi | **jõkke**\nmaja | **majja** | buss | **bussi**\npea | **pähe** | jaam | **jaama**\ntrenn | **trenni** | kapp | **kappi**"
+          }
+        },
+        {
+          "id": "kk1_nb",
+          "type": "notice",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "g_notice",
+          "data": {
+            "title": "Kuidas meelde jätta?",
+            "lines": "**Lühike kuhu-vorm on sageli sama mis osastav** (mida?): kooli, linna, poodi, kööki, parki, panka, sauna, metsa.\n**Erivormid** tuleb pähe õppida: koju, tuppa, kinno, majja, pähe, merre, jõkke.\n**Paljudel sõnadel sobivad mõlemad:** kooli ~ koolisse, kööki ~ köögisse, majja ~ majasse, linna ~ linnasse. Kõnes kuuleb tihti lühikest vormi.\nSõnadega **kodu** ja **tuba** kasuta lühikest vormi: **koju**, **tuppa**. Paljudel sõnadel lühikest vormi ei ole: haiglasse, kohvikusse, teatrisse, autosse.\nPikk vorm tuleb alati **omastavast**, mitte nimetavast: apteek → apteegi → **apteegisse** (mitte „apteekesse”).\n*Не путай: koolis — в школе (где?), kooli — в школу (куда?), koolist — из школы (откуда?).*"
+          }
+        },
+        {
+          "id": "kk1_1",
+          "type": "choice",
+          "width": "full",
+          "span": 12,
+          "tone": "sky",
+          "goal": "g_notice",
+          "data": {
+            "title": "1. Kus, kuhu või kust?",
+            "instruction": "Vali õige vorm. Mõtle: kas inimene on seal, läheb sinna või tuleb sealt?",
+            "questions": [
+              {
+                "q": "Ma olen praegu ___ ja ootan sind. (pood)",
+                "options": "*poes\npoodi\npoest"
+              },
+              {
+                "q": "Pärast tööd lähen ma ___. (kodu)",
+                "options": "*koju\nkodus\nkodust"
+              },
+              {
+                "q": "Lapsed tulevad kell kaks ___. (kool)",
+                "options": "*koolist\nkoolis\nkooli"
+              },
+              {
+                "q": "Kass magab ___. (tuba)",
+                "options": "*toas\ntuppa\ntoast"
+              },
+              {
+                "q": "Pane piim ___! (külmkapp)",
+                "options": "*külmkappi\nkülmkapis\nkülmkapist"
+              },
+              {
+                "q": "Võta raha ___. (rahakott)",
+                "options": "*rahakotist\nrahakotis\nrahakotti"
+              },
+              {
+                "q": "Me elame ___. (Tartu)",
+                "options": "*Tartus\nTartusse\nTartust"
+              },
+              {
+                "q": "Homme sõidame ___. (Pärnu)",
+                "options": "*Pärnusse\nPärnus\nPärnust"
+              },
+              {
+                "q": "Isa tuleb kell kuus ___ koju. (kontor)",
+                "options": "*kontorist\nkontoris\nkontorisse"
+              },
+              {
+                "q": "Lähme õhtul ___! (kino)",
+                "options": "*kinno\nkinos\nkinost"
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk1_2",
+          "type": "gaps",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "2. Kirjuta sõna õiges vormis.",
+            "instruction": "Kirjuta sulgudes olev sõna lünka. Küsi endalt: kus? kuhu? kust?",
+            "sentences": "Mu õde töötab [haiglas] (haigla).\nMa panen võtmed [kotti|kotisse] (kott).\nKas sa tuled praegu [pangast] (pank)?\nRaamatud on [kapis] (kapp).\nTäna õhtul läheme [teatrisse] (teater).\nTa tuli just [apteegist] (apteek).\nLapsed mängivad [pargis] (park).\nViska paber [prügikasti|prügikastisse] (prügikast).\nKas sa oled juba [kodus] (kodu)?\nSõidame laupäeval [Tallinna|Tallinnasse] (Tallinn).\nMa joon kohvi otse [termosest] (termos).\nTuristid tulevad [muuseumist] (muuseum).",
+            "bank": "",
+            "showBank": "no"
+          }
+        },
+        {
+          "id": "kk1_3",
+          "type": "gaps",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "3. Lühike või pikk kuhu-vorm?",
+            "instruction": "Kirjuta kuhu-vorm. Kui sõnal on kaks õiget vormi (kööki ~ köögisse), sobivad mõlemad.",
+            "sentences": "Lähme [kööki|köögisse] (köök) ja keedame teed.\nKass jooksis [majja|majasse] (maja).\nPärast tööd lähen [koju] (kodu).\nTule [tuppa] (tuba), väljas on külm!\nÕpi see luuletus [pähe] (pea)!\nLaupäeval läheme [sauna|saunasse] (saun).\nLapsed jooksid [metsa|metsasse] (mets).\nTa läks hommikul [kooli|koolisse] (kool).\nMe läheme suvel [randa|rannasse] (rand).\nTule õhtul meiega [kinno|kinosse] (kino)!\nMa viin raha [panka|pangasse] (pank).\nPane kingad [kappi|kapisse] (kapp).",
+            "bank": "",
+            "showBank": "no"
+          }
+        },
+        {
+          "id": "kk1_4",
+          "type": "transformation",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "4. Olen – lähen – tulen.",
+            "instruction": "Kirjuta uus lause: kuhu ma lähen? või kust ma tulen?",
+            "rows": [
+              {
+                "from": "Ma olen koolis.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen kooli.|Ma lähen koolisse."
+              },
+              {
+                "from": "Ma olen koolis.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen koolist."
+              },
+              {
+                "from": "Ma olen kodus.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen koju."
+              },
+              {
+                "from": "Ma olen kodus.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen kodust."
+              },
+              {
+                "from": "Ma olen toas.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen tuppa."
+              },
+              {
+                "from": "Ma olen toas.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen toast."
+              },
+              {
+                "from": "Ma olen apteegis.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen apteeki.|Ma lähen apteegisse."
+              },
+              {
+                "from": "Ma olen apteegis.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen apteegist."
+              },
+              {
+                "from": "Ma olen Tallinnas.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen Tallinna.|Ma lähen Tallinnasse."
+              },
+              {
+                "from": "Ma olen Tallinnas.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen Tallinnast."
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk1_5",
+          "type": "formtext",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "5. Päev linnas.",
+            "instruction": "Kirjuta sulgudes olev sõna lünka sellises vormis, nagu tekst nõuab.",
+            "passageTitle": "Laupäev linnas",
+            "passage": "Laupäeva hommikul olin ma veel [kodus] (kodu). Kell kümme läksin [linna|linnasse] (linn). Kõigepealt läksin [panka|pangasse] (pank), sest mul oli vaja sularaha. [Pangas] (pank) oli pikk järjekord.\n\nSiis läksin [apteeki|apteegisse] (apteek) ja ostsin vitamiine. Kell üks olin juba väga näljane. Läksin [kohvikusse] (kohvik) ja sõin suppi. [Kohvikus] (kohvik) nägin oma sõpra Markust.\n\nPärast lõunat läksime koos [kinno|kinosse] (kino). Film oli hea. [Kinost] (kino) tulime välja kell viis. Markus läks siis [trenni|trennisse] (trenn) ja mina läksin [supermarketisse] (supermarket).\n\nKell kuus olin jälle [kodus] (kodu). Panin piima [külmkappi|külmkapisse] (külmkapp). Õhtul istusin [toas] (tuba) ja lugesin raamatut."
+          }
+        },
+        {
+          "id": "kk1_6",
+          "type": "errorfix",
+          "width": "full",
+          "span": 12,
+          "tone": "peach",
+          "goal": "g_notice",
+          "data": {
+            "title": "6. Leia viga ja paranda.",
+            "instruction": "Igas lauses on üks viga. Kirjuta lause õigesti.",
+            "rows": [
+              {
+                "wrong": "Ma lähen apteekesse.",
+                "answer": "Ma lähen apteeki.|Ma lähen apteegisse."
+              },
+              {
+                "wrong": "Ma pean minema pangisse.",
+                "answer": "Ma pean minema panka.|Ma pean minema pangasse."
+              },
+              {
+                "wrong": "Ma lähen raamatukogusse ja siis kohvikus.",
+                "answer": "Ma lähen raamatukogusse ja siis kohvikusse."
+              },
+              {
+                "wrong": "Ootan sind jaamal.",
+                "answer": "Ootan sind jaamas."
+              },
+              {
+                "wrong": "Ma lähen kodusse.",
+                "answer": "Ma lähen koju."
+              },
+              {
+                "wrong": "Lapsed tulid koolis koju.",
+                "answer": "Lapsed tulid koolist koju."
+              },
+              {
+                "wrong": "Ma elan Tallinnasse.",
+                "answer": "Ma elan Tallinnas."
+              },
+              {
+                "wrong": "Pane leib kotis!",
+                "answer": "Pane leib kotti!|Pane leib kotisse!"
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk1_7",
+          "type": "transformation",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "7. Tõlgi eesti keelde.",
+            "instruction": "Kirjuta lause eesti keeles. Kasuta vihjesõnu. Mõtle: где? куда? откуда?",
+            "rows": [
+              {
+                "from": "Я сейчас в магазине.",
+                "prompt": "olema, praegu, pood",
+                "answer": "Ma olen praegu poes.|Praegu olen ma poes.|Olen praegu poes.|Mina olen praegu poes."
+              },
+              {
+                "from": "Вечером мы идём в кино.",
+                "prompt": "õhtul, minema, kino",
+                "answer": "Õhtul läheme kinno.|Õhtul me läheme kinno.|Me läheme õhtul kinno.|Õhtul läheme kinosse.|Õhtul me läheme kinosse.|Me läheme õhtul kinosse."
+              },
+              {
+                "from": "Откуда ты идёшь?",
+                "prompt": "kust, tulema",
+                "answer": "Kust sa tuled?|Kust sina tuled?"
+              },
+              {
+                "from": "Я иду из школы домой.",
+                "prompt": "tulema, kool, kodu",
+                "answer": "Ma tulen koolist koju.|Ma lähen koolist koju.|Tulen koolist koju."
+              },
+              {
+                "from": "Положи книгу в сумку.",
+                "prompt": "panema, raamat, kott",
+                "answer": "Pane raamat kotti.|Pane raamat kotisse."
+              },
+              {
+                "from": "Мой брат живёт в Таллинне.",
+                "prompt": "vend, elama, Tallinn",
+                "answer": "Mu vend elab Tallinnas.|Minu vend elab Tallinnas."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "lessonId": "a2-018",
+      "title": "Kus? Kuhu? Kust? — peal",
+      "pages": "",
+      "level": "A2",
+      "canDo": "Ma ütlen, kus asi on, kuhu ma selle panen ja kust võtan (laual – lauale – laualt), ning valin sees- või peal-vormi (poes, aga turul).",
+      "blocks": [
+        {
+          "id": "kk2_intro",
+          "type": "text",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "",
+          "data": {
+            "heading": "Kus? Kuhu? Kust? — peal",
+            "text": "Igal kohaküsimusel on kaks vastust: **sees** (-s, -sse, -st) ja **peal** (-l, -le, -lt). Sellel lehel õpime **peal-vorme**.\n\nPeal-vorme kasutame, kui asi on **pinna peal** (laud, sein, põrand), kui räägime **tööst või üritusest** (töö, pidu, koosolek, kontsert) ja mõne **lahtise kohaga** (maa, turg, tänav, saar).\n\n*Peal-vormid ≈ русское «на»: на столе, на стол, со стола; на работе, на работу, с работы. Но не всегда: на вокзале — jaamas!*"
+          }
+        },
+        {
+          "id": "kk2_t_kkk",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "KUS? · KUHU? · KUST?",
+            "instruction": "Küsimus valib veeru, koht valib rea. Sellel lehel on alumine rida.",
+            "headers": "Rida, KUS? где?, KUHU? куда?, KUST? откуда?",
+            "rows": "**sees** (sisekohakääne) ≈ в | -s: koolis, majas, Eestis | -sse või lühike vorm: koolisse ~ kooli, koju | -st: koolist, majast, Eestist\n**peal** (väliskohakääne) ≈ на | -l: laual, tööl, turul | -le: lauale, tööle, turule | -lt: laualt, töölt, turult"
+          }
+        },
+        {
+          "id": "kk2_t_cases",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "PEAL-KÄÄNDED",
+            "instruction": "",
+            "headers": "Küsimus, Kääne, Lõpp, Näide, По-русски",
+            "rows": "**Kus?** | alalütlev | -l | Vaas on **laual**. Isa on **tööl**. | где? на столе, на работе\n**Kuhu?** | alaleütlev | -le | Pane vaas **lauale**. Isa läheb **tööle**. | куда? на стол, на работу\n**Kust?** | alaltütlev | -lt | Võta vaas **laualt**. Isa tuleb **töölt**. | откуда? со стола, с работы"
+          }
+        },
+        {
+          "id": "kk2_t_stem",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "KUIDAS VORM TEKIB: OMASTAV + LÕPP",
+            "instruction": "Leia omastav ja lisa -l, -le või -lt. Lühikest vormi siin ei ole: kuhu? on alati -le.",
+            "headers": "Nimetav, Omastav, Kus?, Kuhu?, Kust?",
+            "rows": "laud | laua | laual | lauale | laualt\nsein | seina | seinal | seinale | seinalt\npõrand | põranda | põrandal | põrandale | põrandalt\nriiul | riiuli | riiulil | riiulile | riiulilt\nkatus | katuse | katusel | katusele | katuselt\ntöö | töö | tööl | tööle | töölt\nturg | turu | turul | turule | turult\npidu | peo | peol | peole | peolt\nkoosolek | koosoleku | koosolekul | koosolekule | koosolekult\nkontsert | kontserdi | kontserdil | kontserdile | kontserdilt\nmaa | maa | maal | maale | maalt\nsaar | saare | saarel | saarele | saarelt"
+          }
+        },
+        {
+          "id": "kk2_t_sorted",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "SEES VÕI PEAL? 28 SAGEDAST SÕNA",
+            "instruction": "Vasakul hoone või suletud koht (-s), paremal pind, üritus või lahtine koht (-l).",
+            "headers": "Sees: -s / -sse / -st, Peal: -l / -le / -lt",
+            "rows": "koolis | tööl\npoes | turul\nlinnas | maal\napteegis | peol\npangas | koosolekul\nhaiglas | kontserdil\njaamas | loengul\nkinos | tänaval\nteatris | saarel\nmuuseumis | reisil\nkontoris | puhkusel\nraamatukogus | kursusel\ntrennis | näitusel\nrannas | staadionil"
+          }
+        },
+        {
+          "id": "kk2_rule",
+          "type": "notice",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "g_notice",
+          "data": {
+            "title": "Kuidas otsustada: sees või peal?",
+            "lines": "**Pind** → -l: pilt on **seinal**, tass on **laual**, kass on **katusel**.\n**Töö, üritus, tegevus** → -l: **tööl**, **peol**, **koosolekul**, **kontserdil**, **loengul**, **kursusel**, **reisil**, **puhkusel**.\n**Lahtine koht** → -l: **maal**, **turul**, **tänaval**, **väljakul**, **saarel**, **staadionil**.\n**Hoone, ruum, suletud koht, linn, riik** → -s: **koolis**, **pangas**, **haiglas**, **kinos**, **Tallinnas**, **Eestis**.\n**Erandid (sees, kuigi vene keeles «на»):** **jaamas** (на вокзале), **rannas** (на пляже), **trennis** (на тренировке), **tunnis** (на уроке).\n**õues** — на улице, во дворе: õues, õue, õuest.\n**Inimese juures:** arsti **juures**, arsti **juurde**, arsti **juurest** (у врача, к врачу, от врача).\n**Inimene peal-vormis:** **emal** on auto (у мамы есть), annan **emale** (маме), sain **emalt** (от мамы) — kellel? kellele? kellelt?"
+          }
+        },
+        {
+          "id": "kk2_1",
+          "type": "choice",
+          "width": "full",
+          "span": 12,
+          "tone": "sky",
+          "goal": "g_notice",
+          "data": {
+            "title": "1. Kus, kuhu või kust?",
+            "instruction": "Vali õige vorm.",
+            "questions": [
+              {
+                "q": "Pilt on ___. (sein)",
+                "options": "*seinal\nseinale\nseinalt"
+              },
+              {
+                "q": "Pane tass ___! (laud)",
+                "options": "*lauale\nlaual\nlaualt"
+              },
+              {
+                "q": "Võta raamat ___. (riiul)",
+                "options": "*riiulilt\nriiulil\nriiulile"
+              },
+              {
+                "q": "Isa on veel ___. (töö)",
+                "options": "*tööl\ntööle\ntöölt"
+              },
+              {
+                "q": "Ema tuli ___ kell kuus. (töö)",
+                "options": "*töölt\ntööl\ntööle"
+              },
+              {
+                "q": "Laupäeval läheme ___ ja ostame kartuleid. (turg)",
+                "options": "*turule\nturul\nturult"
+              },
+              {
+                "q": "Kass ronis ___. (katus)",
+                "options": "*katusele\nkatusel\nkatuselt"
+              },
+              {
+                "q": "Suvel elame ___. (maa)",
+                "options": "*maal\nmaale\nmaalt"
+              },
+              {
+                "q": "Me tulime ___ alles kell kaks öösel. (pidu)",
+                "options": "*peolt\npeol\npeole"
+              },
+              {
+                "q": "Ma olen homme kell kümme ___. (koosolek)",
+                "options": "*koosolekul\nkoosolekule\nkoosolekult"
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk2_2",
+          "type": "categorize",
+          "width": "full",
+          "span": 12,
+          "tone": "peach",
+          "goal": "g_vocab",
+          "data": {
+            "title": "2. Sees või peal?",
+            "instruction": "Sorteeri sõnad: kas kus-vorm lõpeb -s või -l? Neid sõnu ei ole tabelis. Ütle iga sõna ka kus-vormis.",
+            "groups": [
+              {
+                "name": "Sees: -s (kohvikus)",
+                "words": "restoran, ülikool, lasteaed, jõusaal, ujula, kirik, park, mets, lennujaam, sadam, buss"
+              },
+              {
+                "name": "Peal: -l (eksamil)",
+                "words": "ekskursioon, seminar, konverents, festival, väljak, mägi, põld, perroon, etendus, sünnipäev, rõdu"
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk2_3",
+          "type": "gaps",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "3. Kirjuta sõna õiges vormis.",
+            "instruction": "Kirjuta sulgudes olev sõna lünka. Kas sees või peal? Kus, kuhu või kust?",
+            "sentences": "Mu vend on praegu [tööl] (töö).\nPane lilled [aknalauale] (aknalaud).\nMa ostsin need maasikad [turult] (turg).\nLapsed istuvad [põrandal] (põrand) ja mängivad.\nKas sa tuled homme [peole] (pidu)?\nTa ootab sind [jaamas] (jaam).\nMe käisime eile [kontserdil] (kontsert).\nVõta pilt [seinalt] (sein) ära.\nMa lähen [loengule] (loeng) kell kaheksa.\nVanaema elab [maal] (maa).\nPärast tunde mängime [rannas] (rand) võrkpalli.\nLennuk lendab [Saaremaale] (Saaremaa).\nIsa tuli [koosolekult] (koosolek) väga väsinud.\nMa panin raamatu [riiulile] (riiul).",
+            "bank": "",
+            "showBank": "no"
+          }
+        },
+        {
+          "id": "kk2_4",
+          "type": "transformation",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "4. Olen – lähen – tulen.",
+            "instruction": "Kirjuta uus lause: kuhu ma lähen? või kust ma tulen?",
+            "rows": [
+              {
+                "from": "Ma olen tööl.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen tööle."
+              },
+              {
+                "from": "Ma olen tööl.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen töölt."
+              },
+              {
+                "from": "Ma olen turul.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen turule."
+              },
+              {
+                "from": "Ma olen turul.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen turult."
+              },
+              {
+                "from": "Ma olen peol.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen peole."
+              },
+              {
+                "from": "Ma olen peol.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen peolt."
+              },
+              {
+                "from": "Ma olen maal.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen maale."
+              },
+              {
+                "from": "Ma olen maal.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen maalt."
+              },
+              {
+                "from": "Ma olen loengul.",
+                "prompt": "Ma lähen …",
+                "answer": "Ma lähen loengule."
+              },
+              {
+                "from": "Ma olen loengul.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen loengult."
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk2_5",
+          "type": "formtext",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "5. Reede õhtu.",
+            "instruction": "Kirjuta sulgudes olev sõna lünka. Tekstis on sees- ja peal-vorme.",
+            "passageTitle": "Reede",
+            "passage": "Reedel olin ma kella viieni [tööl] (töö). [Töölt] (töö) läksin otse [turule] (turg), sest tahtsin osta värsket kala. [Turul] (turg) oli palju inimesi.\n\nSiis sõitsin bussiga [koju] (kodu). Panin kala [külmkappi|külmkapisse] (külmkapp) ja lilled [lauale] (laud).\n\nKell seitse läksime abikaasaga sõbra [sünnipäevale] (sünnipäev). [Peol] (pidu) oli väga lõbus. Me tulime [peolt] (pidu) ära alles kesköösel. Laupäeval sõidame [maale] (maa) vanaema juurde."
+          }
+        },
+        {
+          "id": "kk2_6",
+          "type": "errorfix",
+          "width": "full",
+          "span": 12,
+          "tone": "peach",
+          "goal": "g_notice",
+          "data": {
+            "title": "6. Leia viga ja paranda.",
+            "instruction": "Igas lauses on üks viga. Kirjuta lause õigesti.",
+            "rows": [
+              {
+                "wrong": "Ma olen trennil.",
+                "answer": "Ma olen trennis."
+              },
+              {
+                "wrong": "Pane pilt seinasse!",
+                "answer": "Pane pilt seinale!"
+              },
+              {
+                "wrong": "Isa tuli tööst koju.",
+                "answer": "Isa tuli töölt koju."
+              },
+              {
+                "wrong": "Me käisime eile kontserdis.",
+                "answer": "Me käisime eile kontserdil."
+              },
+              {
+                "wrong": "Ta elab Saaremaas.",
+                "answer": "Ta elab Saaremaal."
+              },
+              {
+                "wrong": "Laupäeval läheme turgu.",
+                "answer": "Laupäeval läheme turule."
+              },
+              {
+                "wrong": "Raamat kukkus põrandasse.",
+                "answer": "Raamat kukkus põrandale."
+              },
+              {
+                "wrong": "Ma olen homme koosolekus.",
+                "answer": "Ma olen homme koosolekul."
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk2_7",
+          "type": "transformation",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "7. Tõlgi eesti keelde.",
+            "instruction": "Kirjuta lause eesti keeles. Kasuta vihjesõnu. Русское «на» — не всегда -l!",
+            "rows": [
+              {
+                "from": "Ключи на столе.",
+                "prompt": "võtmed, olema, laud",
+                "answer": "Võtmed on laual."
+              },
+              {
+                "from": "Папа на работе.",
+                "prompt": "isa, olema, töö",
+                "answer": "Isa on tööl."
+              },
+              {
+                "from": "Мы идём на рынок.",
+                "prompt": "meie, minema, turg",
+                "answer": "Me läheme turule.|Meie läheme turule.|Läheme turule."
+              },
+              {
+                "from": "Возьми книгу с полки.",
+                "prompt": "võtma, raamat, riiul",
+                "answer": "Võta raamat riiulilt.|Võta riiulilt raamat."
+              },
+              {
+                "from": "Летом мы живём в деревне.",
+                "prompt": "suvel, elama, maa",
+                "answer": "Suvel elame maal.|Suvel me elame maal.|Me elame suvel maal."
+              },
+              {
+                "from": "Мама пришла с концерта.",
+                "prompt": "ema, tulema, kontsert",
+                "answer": "Ema tuli kontserdilt."
+              },
+              {
+                "from": "Я жду тебя на вокзале.",
+                "prompt": "ootama, sina, jaam",
+                "answer": "Ma ootan sind jaamas.|Ootan sind jaamas."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "lessonId": "a2b1-012",
+      "title": "Kus? Kuhu? Kust? — kokkuvõte",
+      "pages": "",
+      "level": "A2+",
+      "canDo": "Ma valin kohasõnale õige vormi kuuest kohakäändest, ka tegusõna järgi (käisin kinos, lähen turule, külastan muuseumi).",
+      "blocks": [
+        {
+          "id": "kk3_intro",
+          "type": "text",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "",
+          "data": {
+            "heading": "Kus? Kuhu? Kust? — kokkuvõte",
+            "text": "Kuus kohakäänet on kolm küsimust korda kaks rida. **Küsimus** (kus? kuhu? kust?) valib veeru, **koht** valib rea: **sees** (-s, -sse, -st) või **peal** (-l, -le, -lt).\n\nKüsimuse annab sageli **tegusõna**: olema → kus?, minema → kuhu?, tulema → kust? Seepärast õpi tegusõna koos küsimusega.\n\n*Kus? — где? · Kuhu? — куда? · Kust? — откуда? · sees ≈ в · peal ≈ на*"
+          }
+        },
+        {
+          "id": "kk3_t_kkk",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "KUS? · KUHU? · KUST? — KÕIK KUUS VORMI",
+            "instruction": "",
+            "headers": "Rida, KUS? где?, KUHU? куда?, KUST? откуда?",
+            "rows": "**sees** (sisekohakääne) ≈ в | -s: koolis, majas, Eestis | -sse või lühike vorm: koolisse ~ kooli, koju | -st: koolist, majast, Eestist\n**peal** (väliskohakääne) ≈ на | -l: laual, tööl, turul | -le: lauale, tööle, turule | -lt: laualt, töölt, turult\n**inimese juures** ≈ у | arsti juures | arsti juurde | arsti juurest\n**inimene peal-vormis** | kellel? emal (on auto) | kellele? emale (annan) | kellelt? emalt (sain)\n**määrsõnad** | siin, seal, kodus, õues | siia, sinna, koju, õue | siit, sealt, kodust, õuest"
+          }
+        },
+        {
+          "id": "kk3_t_names",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "KÄÄNETE NIMED",
+            "instruction": "",
+            "headers": "Rida, Kus?, Kuhu?, Kust?",
+            "rows": "sees | seesütlev (-s) | sisseütlev (-sse) | seestütlev (-st)\npeal | alalütlev (-l) | alaleütlev (-le) | alaltütlev (-lt)"
+          }
+        },
+        {
+          "id": "kk3_t_stem",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "KUIDAS VORM TEKIB: SAMM-SAMMULT",
+            "instruction": "1) Nimetav. 2) Omastav (kelle? mille?) — siin muutub tüvi. 3) Omastav + -s / -sse / -st / -l / -le / -lt.",
+            "headers": "Nimetav, Omastav, Kus? sees, Kus? peal, Kuhu?, Kust?",
+            "rows": "kool | kooli | koolis | — | koolisse ~ kooli | koolist\nlinn | linna | linnas | — | linnasse ~ linna | linnast\npood | poe | poes | — | poodi | poest\ntuba | toa | toas | — | tuppa | toast\njõgi | jõe | jões | — | jõesse ~ jõkke | jõest\nlaud | laua | — | laual | lauale | laualt\nturg | turu | — | turul | turule | turult\npidu | peo | — | peol | peole | peolt"
+          }
+        },
+        {
+          "id": "kk3_short",
+          "type": "notice",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "g_notice",
+          "data": {
+            "title": "Lühike kuhu-vorm",
+            "lines": "Ainult **sees-real** on lühike kuhu-vorm. Peal-real on kuhu? alati **-le** (lauale, tööle).\n**Kuidas tekib?** Sageli on see sama mis osastav (mida?): kool → **kooli**, linn → **linna**, pood → **poodi**, köök → **kööki**, pank → **panka**.\n**Erivormid:** kodu → **koju**, tuba → **tuppa**, kino → **kinno**, maja → **majja**, pea → **pähe**, meri → **merre**, jõgi → **jõkke**.\n**Millal kumb?** Paljudel sõnadel on õiged mõlemad: kooli ~ koolisse, linna ~ linnasse, majja ~ majasse. Sõnadega kodu ja tuba ütle **koju**, **tuppa**. Pikad sõnad ja uued laenud saavad tavaliselt ainult -sse: haiglasse, kohvikusse, supermarketisse.\nKui kahtled, moodusta **omastav + -sse** (köögi → köögisse), mitte nimetav + -sse („apteekesse” on vale)."
+          }
+        },
+        {
+          "id": "kk3_t_when",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "MILLAL SEES, MILLAL PEAL?",
+            "instruction": "",
+            "headers": "Reegel, Rida, Näited",
+            "rows": "hoone, ruum, suletud koht | **sees** | koolis, majas, pangas, haiglas, kinos, kontoris, toas\nlinn, riik (enamasti) | **sees** | Tallinnas, Tartus, Eestis, Soomes, Lätis\npind | **peal** | laual, seinal, põrandal, riiulil, katusel\ntöö, üritus, tegevus | **peal** | tööl, peol, koosolekul, kontserdil, loengul, kursusel, reisil\nlahtine koht | **peal** | maal, turul, tänaval, väljakul, saarel, staadionil\n-maa-ga nimed ja mõned kohad | **peal** | Saaremaal, Hiiumaal, Muhumaal, Saksamaal, Inglismaal, Otepääl, Toompeal, Lasnamäel, Mustamäel\nerandid: sees, kuigi vene keeles «на» | **sees** | jaamas, rannas, trennis, tunnis\ninimene (у кого?) | **juures** | arsti juures, vanaema juurde, sõbra juurest"
+          }
+        },
+        {
+          "id": "kk3_t_places",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "LINNAD, RIIGID, SAARED",
+            "instruction": "",
+            "headers": "Rühm, Kus?, Kuhu?, Kust?",
+            "rows": "enamik linnu ja riike: -s | Tallinnas, Tartus, Eestis, Soomes, Lätis | Tallinna ~ Tallinnasse, Tartusse, Eestisse, Soome ~ Soomesse, Lätti ~ Lätisse | Tallinnast, Tartust, Eestist, Soomest, Lätist\nnimed, mis lõpevad -maa: -l | Saaremaal, Hiiumaal, Saksamaal, Inglismaal | Saaremaale, Hiiumaale, Saksamaale, Inglismaale | Saaremaalt, Hiiumaalt, Saksamaalt, Inglismaalt\nmõned kohad: -l | Otepääl, Toompeal, Lasnamäel, Mustamäel | Otepääle, Toompeale, Lasnamäele, Mustamäele | Otepäält, Toompealt, Lasnamäelt, Mustamäelt"
+          }
+        },
+        {
+          "id": "kk3_t_verbs",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "TEGUSÕNA ÜTLEB KÜSIMUSE",
+            "instruction": "Õpi tegusõna koos küsimusega.",
+            "headers": "Küsimus, Tegusõnad, Näited",
+            "rows": "**Kus?** | olema, elama, töötama, õppima, istuma, ootama, käima | Ma elan Tartus. Töötan pangas. Istun toas. Ootan sind jaamas. Eile käisin **kinos**.\n**Kuhu?** | minema, sõitma, tulema (siia), panema, viima, kolima, astuma, jääma, helistama | Lähen tööle. Sõidame Pärnusse. Tule koju! Pane kott toolile. Kolisime Tartusse. Astusin bussi. Jään täna **koju**. Helistan emale.\n**Kust?** | tulema, saama, võtma, ostma, lahkuma, leidma, küsima | Tulen poest. Sain kirja emalt. Võta piim külmkapist. Ostsin kala turult. Lahkusime peolt. Leidsin võtmed kotist. Küsi õpetajalt.\n**Mida? (osastav)** | külastama | Külastasin **muuseumi**. Külastame **vanaema**. (mitte: muuseumisse)"
+          }
+        },
+        {
+          "id": "kk3_traps",
+          "type": "notice",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "g_notice",
+          "data": {
+            "title": "Lõksud",
+            "lines": "**käima + kus?**: Eile **käisin kinos** (сходил в кино, был там). Võrdle: Homme **lähen kinno**.\n**külastama + mida?**: Külastasin **muuseumi**, **Tallinna**, **sõpra**. Mitte: „külastasin muuseumisse”.\n**elama kus?, kolima kuhu?**: Elan **Tartus**. Kolisin **Tartusse**.\n**jääma kuhu?**: Jään täna **koju**. (остаюсь дома — но по-эстонски куда?)\n**tulema** — kuhu? või kust?: Tule **koju**! Tulen **töölt**.\n**Arsti juurde**, mitte „arstisse”: Lähen **arsti juurde**. Olin **arsti juures**. Tulen **arsti juurest**.\n**Tööle / töölt**: Lähen **tööle**. Tulen **töölt**. (mitte: „tööst”)"
+          }
+        },
+        {
+          "id": "kk3_errors",
+          "type": "notice",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "g_notice",
+          "data": {
+            "title": "Sagedased vead",
+            "lines": "„apteekesse” → **apteeki** ~ **apteegisse** (omastav apteegi)\n„pangisse” → **panka** ~ **pangasse** (omastav panga)\n„jaamal” → **jaamas**\n„käisin kinno” → **käisin kinos** (aga: lähen kinno)\n„kodusse” → **koju**\n„Saksamaas” → **Saksamaal**\n„külastasin muuseumisse” → **külastasin muuseumi**"
+          }
+        },
+        {
+          "id": "kk3_1",
+          "type": "gaps",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "1. Tegusõna ütleb vormi.",
+            "instruction": "Kirjuta sulgudes olev sõna lünka. Vaata tegusõna: kus? kuhu? kust? või mida?",
+            "sentences": "Eile ma käisin [kinos] (kino).\nHomme lähen [turule] (turg).\nMa külastasin [muuseumi] (muuseum).\nMa jään täna [koju] (kodu), sest olen haige.\nMa unustasin vihmavarju [bussi|bussisse] (buss).\nKolisime eelmisel aastal [Tartusse] (Tartu).\nOstsin need õunad [turult] (turg).\nMa käin kaks korda nädalas [trennis] (trenn).\nTa lahkus [koosolekult] (koosolek) varem.\nSain selle raamatu [raamatukogust] (raamatukogu).\nMe külastasime suvel [Saaremaad] (Saaremaa).\nPane kohvitass [lauale] (laud)!\nOotame sind [jaamas] (jaam).\nMu sõber töötab [Saksamaal] (Saksamaa).\nKüsi seda [õpetajalt] (õpetaja).\nHomme lähen [arsti juurde] (arst).",
+            "bank": "",
+            "showBank": "no"
+          }
+        },
+        {
+          "id": "kk3_2",
+          "type": "choice",
+          "width": "full",
+          "span": 12,
+          "tone": "sky",
+          "goal": "g_notice",
+          "data": {
+            "title": "2. Vali tegusõna.",
+            "instruction": "Ainult üks tegusõna sobib lause kohavormiga.",
+            "questions": [
+              {
+                "q": "Eile ___ poes.",
+                "options": "*käisin\nläksin\ntulin"
+              },
+              {
+                "q": "Suvel ___ vanaema.",
+                "options": "*külastasime\nkäisime\nläksime"
+              },
+              {
+                "q": "Homme ___ Pärnusse.",
+                "options": "*sõidame\nelame\noleme"
+              },
+              {
+                "q": "Ma ___ Tallinnas juba viis aastat.",
+                "options": "*elan\nkolin\nsõidan"
+              },
+              {
+                "q": "___ võtmed kotist!",
+                "options": "*Võta\nPane\nJäta"
+              },
+              {
+                "q": "Ta ___ peolt kell üksteist.",
+                "options": "*lahkus\njäi\noli"
+              },
+              {
+                "q": "Ma ___ eile koju, sest sadas vihma.",
+                "options": "*jäin\nolin\nelasin"
+              },
+              {
+                "q": "Ma ___ telefoni tööle.",
+                "options": "*unustasin\nleidsin\nolin"
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk3_3",
+          "type": "transformation",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "3. Kus? → Kuhu? → Kust?",
+            "instruction": "Kirjuta uus lause. Kas koht on -s- või -l-real?",
+            "rows": [
+              {
+                "from": "Ma olen Soomes.",
+                "prompt": "Ma sõidan …",
+                "answer": "Ma sõidan Soome.|Ma sõidan Soomesse."
+              },
+              {
+                "from": "Ma olen Soomes.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen Soomest."
+              },
+              {
+                "from": "Ma olen Saaremaal.",
+                "prompt": "Ma sõidan …",
+                "answer": "Ma sõidan Saaremaale."
+              },
+              {
+                "from": "Ma olen Saaremaal.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen Saaremaalt."
+              },
+              {
+                "from": "Ma olen Otepääl.",
+                "prompt": "Ma sõidan …",
+                "answer": "Ma sõidan Otepääle."
+              },
+              {
+                "from": "Ma olen Otepääl.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen Otepäält."
+              },
+              {
+                "from": "Ma olen Lätis.",
+                "prompt": "Ma sõidan …",
+                "answer": "Ma sõidan Lätti.|Ma sõidan Lätisse."
+              },
+              {
+                "from": "Ma olen Lätis.",
+                "prompt": "Ma tulen …",
+                "answer": "Ma tulen Lätist."
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk3_4",
+          "type": "gaps",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "4. Kellel? Kellele? Kellelt?",
+            "instruction": "Inimene on peal-vormis: kirjuta sulgudes olev sõna lünka.",
+            "sentences": "[Emal] (ema) on uus auto.\nMa annan need lilled [emale] (ema).\nMa sain [vennalt] (vend) kirja.\nHelista homme [Marile] (Mari)!\n[Õpetajal] (õpetaja) on täna palju tööd.\nMa laenasin raha [sõbralt] (sõber).",
+            "bank": "",
+            "showBank": "no"
+          }
+        },
+        {
+          "id": "kk3_5",
+          "type": "formtext",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "5. Minu nädal.",
+            "instruction": "Kirjuta sulgudes olev sõna lünka. Tekstis on kõik kuus vormi ja üks osastav.",
+            "passageTitle": "Minu nädal",
+            "passage": "Ma elan [Tallinnas] (Tallinn), [Mustamäel] (Mustamäe). Esmaspäeviti sõidan bussiga [tööle] (töö). Mu kontor on [kesklinnas] (kesklinn). [Töölt] (töö) lähen tavaliselt otse [trenni|trennisse] (trenn). Kolmapäeval käin [poes] (pood) ja [apteegis] (apteek).\n\nReedel sõitsime perega [Saaremaale] (Saaremaa). Laev väljus [sadamast] (sadam) kell kuus. [Saaremaal] (Saaremaa) elab mu vanaema. Laupäeval külastasime Kuressaare [linnust] (linnus). Pühapäeva õhtul tulime [Saaremaalt] (Saaremaa) tagasi [koju] (kodu)."
+          }
+        },
+        {
+          "id": "kk3_6",
+          "type": "errorfix",
+          "width": "full",
+          "span": 12,
+          "tone": "peach",
+          "goal": "g_notice",
+          "data": {
+            "title": "6. Leia viga ja paranda.",
+            "instruction": "Igas lauses on üks viga. Kirjuta lause õigesti.",
+            "rows": [
+              {
+                "wrong": "Ma külastasin muuseumisse.",
+                "answer": "Ma külastasin muuseumi."
+              },
+              {
+                "wrong": "Eile ma käisin kinno.",
+                "answer": "Eile ma käisin kinos.|Eile käisin ma kinos."
+              },
+              {
+                "wrong": "Ma jään täna kodus.",
+                "answer": "Ma jään täna koju."
+              },
+              {
+                "wrong": "Mu sõbrad elavad Saksamaas.",
+                "answer": "Mu sõbrad elavad Saksamaal."
+              },
+              {
+                "wrong": "Me sõidame homme Tartus.",
+                "answer": "Me sõidame homme Tartusse."
+              },
+              {
+                "wrong": "Ma tulen just pangas.",
+                "answer": "Ma tulen just pangast."
+              },
+              {
+                "wrong": "Ma ootan sind kohvikusse.",
+                "answer": "Ma ootan sind kohvikus."
+              },
+              {
+                "wrong": "Lapsed lahkusid peole.",
+                "answer": "Lapsed lahkusid peolt."
+              },
+              {
+                "wrong": "Homme lähen arstisse.",
+                "answer": "Homme lähen arsti juurde."
+              }
+            ]
+          }
+        },
+        {
+          "id": "kk3_7",
+          "type": "writing",
+          "width": "full",
+          "span": 12,
+          "tone": "cream",
+          "goal": "g_use",
+          "data": {
+            "title": "7. Minu nädalavahetus.",
+            "instruction": "Kirjuta 5–7 lauset oma nädalavahetusest. Kasuta kõiki kolme küsimust (vähemalt üks kus-, üks kuhu- ja üks kust-vorm) ning nii sees- kui ka peal-vorme. Õpetaja kontrollib.",
+            "lines": 7,
+            "minSent": 5,
+            "maxSent": 7,
+            "keywords": "käisin, läksin, tulin, olin, sõitsin, külastasin",
+            "minKeywords": 3,
+            "img": null
+          }
+        }
+      ]
+    }
+  ]
+}

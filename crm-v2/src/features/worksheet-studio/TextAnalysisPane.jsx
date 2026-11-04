@@ -14,6 +14,7 @@ export default function TextAnalysisPane({ text, level = 'A2', onMark, useReques
   const [done, setDone] = useState(() => new Set());
   const [busy, setBusy] = useState(-1);
   const [error, setError] = useState('');
+  const [missed, setMissed] = useState([]);
   useEffect(() => { run(text, level); }, [text, level]); // eslint-disable-line react-hooks/exhaustive-deps
   const result = state.result;
   const corrections = result?.corrections || [];
@@ -21,7 +22,11 @@ export default function TextAnalysisPane({ text, level = 'A2', onMark, useReques
     setError('');
     for (const index of indexes) {
       setBusy(index);
-      try { await onMark(corrections[index]); setDone((current) => new Set(current).add(index)); } catch (caught) { setError(caught?.message || 'Märkust ei saanud lisada.'); break; }
+      try {
+        const outcome = await onMark(corrections[index]);
+        if (outcome?.missed?.length) setMissed((current) => [...current, ...outcome.missed]);
+        setDone((current) => new Set(current).add(index));
+      } catch (caught) { setError(caught?.message || 'Märkust ei saanud lisada.'); break; }
     }
     setBusy(-1);
   };
@@ -39,6 +44,7 @@ export default function TextAnalysisPane({ text, level = 'A2', onMark, useReques
       </li>)}</ol> : null}
       {result.evaluation?.aboveWords?.length ? <p className="sa-muted">Üle taseme {level}: {result.evaluation.aboveWords.slice(0, 8).map((w) => `${w.text} (${w.level})`).join(', ')}</p> : null}
       {open.length > 1 ? <button type="button" className="sa-all" disabled={busy >= 0} onClick={() => mark(open)}>Märgi kõik vigadeks ({open.length})</button> : null}
+      {missed.length ? <div className="sa-muted" role="note">Ei leidnud tekstist (märgi käsitsi):<ul>{missed.map((m, k) => <li key={k}>{m.said ? `„${m.said}”` : '(puudub)'} → {m.corrected || '–'}</li>)}</ul></div> : null}
       <p className="sa-muted">Kontrolli üle: Tartu mudel on abiks, mitte lõplik otsus.</p>
     </> : null}
     {error ? <p className="sa-error" role="alert">{error}</p> : null}
