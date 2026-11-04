@@ -3,7 +3,10 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Card, EmptyState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { lessonsService, studentAvailabilityService, studentsService, websiteLeadsService } from '../../services/firebase/index.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
+import { studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
+import { studentsService } from '../../services/firebase/students.js';
+import { websiteLeadsService } from '../../services/firebase/websiteLeads.js';
 import { ajadMessage, contactsText, studentsWithoutTimes } from './noTimes.js';
 import { displayDate } from '../finance/finance.js';
 

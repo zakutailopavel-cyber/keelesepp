@@ -4,12 +4,9 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { navigationFor, settingsNavigation } from '../../app/navigation.js';
 import { useAuth, usePreviewNavigation } from '../../app/AuthContext.jsx';
 import { hasAnyRole, roleLabels } from '../../utils/roles.js';
-import GlobalStudentSearch from './GlobalStudentSearch.jsx';
 import IconButton from '../ui/IconButton.jsx';
 import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
-import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { messagesService } from '../../services/firebase/messages.js';
-import { unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.js';
 import { clearTestSession, testSessionName } from '../../services/firebase/auth.js';
 import GuideBanner from '../../features/guide/GuideBanner.jsx';
 import { WhatsNewDialog } from '../../features/guide/WhatsNew.jsx';
@@ -17,12 +14,24 @@ import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx'
 import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
 import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import './appShell.css';
-import EntityContextMenu from '../EntityContextMenu.jsx';
 
 // students only (it renders nothing for anyone else), so nobody else downloads it
 // staff only
 const NotificationCenter = lazy(() => import('./NotificationCenter.jsx'));
 const PetCompanion = lazy(() => import('../../features/pet/PetCompanion.jsx'));
+// staff only: the student search, the right-click menu and the administrator's menu counts download for them only, so a
+// student's or parent's first load (and the login page) does not carry the calendar, lesson and finance code they use
+const GlobalStudentSearch = lazy(() => import('./GlobalStudentSearch.jsx'));
+const EntityContextMenu = lazy(() => import('../EntityContextMenu.jsx'));
+// a subscription whose service file downloads on first use; unsubscribing before it arrives starts nothing
+const lazySubscription = (load, method) => (...args) => {
+  let stop = null;
+  let off = false;
+  load().then((service) => { if (!off) stop = service[method](...args); }).catch(() => {});
+  return () => { off = true; if (typeof stop === 'function') stop(); };
+};
+const accountApprovalsService = { subscribePendingCount: lazySubscription(() => import('../../services/firebase/accountApprovals.js').then((m) => m.accountApprovalsService), 'subscribePendingCount') };
+const unmarkedLessonsService = { subscribeCount: lazySubscription(() => import('../../services/firebase/unmarkedLessons.js').then((m) => m.unmarkedLessonsService), 'subscribeCount') };
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
@@ -76,7 +85,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
   return (
     <AnnouncementGate enabled={gated} user={user} onSignOut={signOut} {...(announcements ? { service: announcements } : {})}>
       {/* the right-click menu: staff and the accountant, each with their own actions (not in the admin's preview) */}
-      {hasAnyRole(user.roles, ['admin', 'teacher', 'finance']) && !preview ? <EntityContextMenu roles={user.roles} /> : null}
+      {hasAnyRole(user.roles, ['admin', 'teacher', 'finance']) && !preview ? <Suspense fallback={null}><EntityContextMenu roles={user.roles} /></Suspense> : null}
     <MissingDataGate enabled={gated} user={user} onSignOut={signOut} {...(missingData ? { service: missingData } : {})}>
     <div className="app-shell">
       <button className={`backdrop ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-label="Sulge menüü" />
@@ -114,7 +123,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
         {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={previewNavigation.close}>Lõpeta vaade</button></div> : null}
         <header className="topbar">
           <IconButton className="mobile-only" data-tour="menu" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
-          {canSearchStudents ? <GlobalStudentSearch user={user} /> : null}
+          {canSearchStudents ? <Suspense fallback={null}><GlobalStudentSearch user={user} /></Suspense> : null}
           {showNotifications ? <div className="topbar-actions"><Suspense fallback={null}><NotificationCenter user={user} /></Suspense></div> : null}
         </header>
         <div className={preview?.readOnly ? 'preview-surface preview-surface--readonly' : 'preview-surface'} onClickCapture={blockPreviewButtons} onSubmitCapture={(event) => { if (preview?.readOnly) { event.preventDefault(); event.stopPropagation(); } }}><Outlet /></div>

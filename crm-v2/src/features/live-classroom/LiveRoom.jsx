@@ -2,7 +2,8 @@ import {
   ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
   MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Sparkles, Timer, Undo2, Users, Video, VideoOff, X,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { LoadingState } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize, sheetBoardTitle, worksheetPageTitle } from '../board/boardModel.js';
 import { CountdownBadge, CountdownControls } from './CountdownTimer.jsx';
@@ -13,16 +14,10 @@ import { pageSelectionText } from '../board/selectionText.js';
 import { groupSheetTabs } from './sheetTabs.js';
 import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import { usePastSheets } from './usePastSheets.jsx';
-import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import MomentButton from './MomentButton.jsx';
-import LessonHints from './LessonHints.jsx';
-import WarmupPanel from './WarmupPanel.jsx';
 import { useRecentLessons } from './useRecentLessons.js';
 import TalkMeter from './TalkMeter.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
-import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
-import LessonHomeworkPanel from './LessonHomeworkPanel.jsx';
-import LessonEndPanel from './LessonEndPanel.jsx';
 import RoomPet from '../pet/RoomPet.jsx';
 import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
 import { timestampMillis } from './invitationModel.js';
@@ -31,7 +26,6 @@ import { useObserverPeers } from './useLessonObserver.js';
 import ObserverMedia from './ObserverMedia.jsx';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { homeworkService as firebaseHomework } from '../../services/firebase/homework.js';
-import MaterialsPanel from './MaterialsPanel.jsx';
 import { fileKind } from './roomMaterials.js';
 import LessonPlanPanel, { LessonPlanPill } from './LessonPlanPanel.jsx';
 import { useLessonPlan } from './useLessonPlan.js';
@@ -42,6 +36,17 @@ import FloatingWindow, { FloatingLayer } from './FloatingWindow.jsx';
 import ScreenStage, { StageToggle } from './ScreenStage.jsx';
 import { rightInset } from './floatingLayout.js';
 import './liveRoom.css';
+
+// the side panels and the teacher's recorder download when they are first opened, so the room (call and board) opens
+// sooner; a student never downloads the teacher's tools
+// LessonHints (teacher only) builds warm-up sheets, i.e. needs every worksheet block
+const LessonHints = lazy(() => import('./LessonHints.jsx'));
+const RoomRecorder = lazy(() => import('../lesson-recording/RoomRecorder.jsx'));
+const WarmupPanel = lazy(() => import('./WarmupPanel.jsx'));
+const LessonWordsPanel = lazy(() => import('../vocabulary/LessonWordsPanel.jsx'));
+const LessonHomeworkPanel = lazy(() => import('./LessonHomeworkPanel.jsx'));
+const LessonEndPanel = lazy(() => import('./LessonEndPanel.jsx'));
+const MaterialsPanel = lazy(() => import('./MaterialsPanel.jsx'));
 
 const dateLabel = (date = new Date()) => new Intl.DateTimeFormat('et-EE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 const clock = (ms) => {
@@ -77,7 +82,7 @@ function IconButton({ label, active, danger, children, className = '', ...props 
 function Drawer({ title, onClose, children, wide = false }) {
   return <section className={`lr-drawer ${wide ? 'lr-drawer--wide' : ''}`} aria-label={title}>
     <header><strong>{title}</strong><IconButton label="Sulge" onClick={onClose}><X size={18} /></IconButton></header>
-    <div className="lr-drawer__body">{children}</div>
+    <div className="lr-drawer__body"><Suspense fallback={<LoadingState label="Laen…" />}>{children}</Suspense></div>
   </section>;
 }
 
@@ -518,7 +523,7 @@ export default function LiveRoom({
           />
           <CountdownBadge timer={timer} />
           {!teacher && !guest ? <QuickPollCard quick={quick} timer={timer} /> : null}
-          {teacher && !guest ? <LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /> : null}
+          {teacher && !guest ? <Suspense fallback={null}><LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /></Suspense> : null}
           {remoteScreen.active ? <ScreenStage stream={remoteScreen.stream} name={call.peerName} visible={showScreen} /> : null}
           {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
             {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
@@ -582,7 +587,7 @@ export default function LiveRoom({
           </div>
           <div className={panel === 'record' && teacher ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'record'}>
             <header><strong>Tunni salvestamine</strong><IconButton label="Sulge salvestamine" onClick={() => setPanel('')}><X size={18} /></IconButton></header>
-            <div className="lr-drawer__body">{teacher ? <><RoomRecorder invitation={invitation} user={user} streams={streams} consent={consent} auto onStateChange={setRecState} subject={subject} {...(recordingService ? { service: recordingService } : {})} />{transcriber.known ? <p className={`lr-transcriber ${transcriber.online ? 'is-on' : 'is-off'}`} role="status">{transcriberLabel(transcriber)}</p> : null}</> : null}</div>
+            <div className="lr-drawer__body">{teacher ? <><Suspense fallback={null}><RoomRecorder invitation={invitation} user={user} streams={streams} consent={consent} auto onStateChange={setRecState} subject={subject} {...(recordingService ? { service: recordingService } : {})} /></Suspense>{transcriber.known ? <p className={`lr-transcriber ${transcriber.online ? 'is-on' : 'is-off'}`} role="status">{transcriberLabel(transcriber)}</p> : null}</> : null}</div>
           </div>
         </aside>
       </div>

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/index.js';
-import { homeworkService, libraryService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { libraryService } from '../../services/firebase/library.js';
 import { WARMUP_MAX, pickWarmupItems, warmupWorksheet } from './warmup.js';
 import './warmup.css';
 

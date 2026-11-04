@@ -1,4 +1,21 @@
-import { checkDocument } from './registry.js';
+// The checker is registry.js (every block's rules, ~200 KB). It is not imported here, so a page that only lists
+// submissions (the student's home) does not download every block: registry.js hands its checker over when it loads,
+// and the lists in services/firebase/homework.js call loadScoreChecker() first when a row needs a check.
+let checkDocument = null;
+let loading = null;
+export function provideScoreChecker(fn) { checkDocument = fn; }
+export const scoreCheckerLoaded = () => Boolean(checkDocument);
+export function loadScoreChecker() {
+  if (checkDocument) return Promise.resolve();
+  loading ||= import('./registry.js').then(() => undefined, (error) => { loading = null; throw error; });
+  return loading;
+}
+
+// true when effectiveScore() would check the answers again (it needs the checker); false = the stored score stays
+export function needsScoreCheck({ score = null, worksheetDoc = null, answers = {}, status = 'done' } = {}) {
+  const stored = score && typeof score === 'object' ? score : null;
+  return status === 'done' && Boolean(stored) && Boolean(worksheetDoc?.blocks?.length) && Object.keys(answers || {}).length > 0;
+}
 
 // The score shown for a submitted structured worksheet.
 //
@@ -14,9 +31,9 @@ import { checkDocument } from './registry.js';
 export function effectiveScore({ score = null, worksheetDoc = null, answers = {}, status = 'done' } = {}) {
   const stored = score && typeof score === 'object' ? score : null;
   const keep = { score: stored, recomputed: false, stored };
-  if (status !== 'done' || !stored || !worksheetDoc?.blocks?.length) return keep;
-  const given = Object.keys(answers || {}).length;
-  if (!given) return keep;
+  if (!needsScoreCheck({ score, worksheetDoc, answers, status })) return keep;
+  // not loaded yet (a caller that did not await loadScoreChecker): the stored score, as when the check fails
+  if (!checkDocument) return keep;
   let fresh;
   try { fresh = checkDocument(worksheetDoc, answers).score; } catch { return keep; }
   const total = Number(stored.total) || 0;

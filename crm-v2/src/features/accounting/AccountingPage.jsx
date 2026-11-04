@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { accountingService } from '../../services/firebase/index.js';
+import { accountingService } from '../../services/firebase/accounting.js';
 import { downloadWorkbook, journalWorkbook, partnersWorkbook, statementsWorkbook, suppliersWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
 import { ACCOUNT_TYPES, COMPANY, CUSTOMER_ACCOUNTS, ENTRY_CODES, PARTNER_TYPE_LABELS, SUPPLIER_ACCOUNTS, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, draftDescription, euro, incomeStatement, journalReport, ledger, parseEuro, partnerKey, partnerReport, trialBalance } from './accountingReports.js';
 import SuppliersPanel from '../purchases/SuppliersPanel.jsx';

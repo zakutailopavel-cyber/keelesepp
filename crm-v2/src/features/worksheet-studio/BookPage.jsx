@@ -1,7 +1,8 @@
 import { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Icons } from './icons.js';
-import { lessonWorksheetsService, libraryService } from '../../services/firebase/index.js';
+import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
+import { libraryService } from '../../services/firebase/library.js';
 import { assembleTextbook, BOOK_PHASES, bookContents, programLevels, programModules, programProgress, publishedPhaseDoc, sheetEditorPath, tocPages } from './bookProgram.js';
 import Sheet from './engine/Sheet.jsx';
 import { BOOK_THEME, Contents, Cover, LessonHead, ModuleOpener, ReviewPage, WordsPage } from './BookPages.jsx';

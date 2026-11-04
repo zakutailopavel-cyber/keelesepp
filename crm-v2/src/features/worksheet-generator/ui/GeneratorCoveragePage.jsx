@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
-import { lessonWorksheetsService } from '../../../services/firebase/index.js';
+import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import {
   buildGeneratorCoverage,
   GENERATOR_COVERAGE_LABELS,

@@ -2,7 +2,9 @@ import { AlertTriangle, Download, FilePlus2, Pencil, Plus, Trash2 } from 'lucide
 import { useMemo, useState } from 'react';
 import { Button, Card, ErrorState, Input, LoadingState, Modal, Select } from '../../../components/ui/index.js';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
-import { teachersService, tsdService, workTimeService } from '../../../services/firebase/index.js';
+import { teachersService } from '../../../services/firebase/teachers.js';
+import { tsdService } from '../../../services/firebase/tsd.js';
+import { workTimeService } from '../../../services/firebase/workTime.js';
 import { downloadWorkbook, tsdWorkbook } from '../accountingExcel.js';
 import { COMPANY, amount, dmy, parseEuro } from '../accountingReports.js';
 import { bookedSalary, defaultTsdMonth, dueDate, monthName, salaryEntry, shiftMonth, tsdReport } from './tsdCalc.js';

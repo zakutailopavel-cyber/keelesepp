@@ -8,7 +8,7 @@ import { RoomWorksheetContent, RoomWorksheetPicker } from '../worksheet-studio/R
 import { usePastSheets } from './usePastSheets.jsx';
 import { prepRoomKey } from '../worksheet-studio/roomWorksheetChoices.js';
 import ActiveLessonsMenu from './ActiveLessonsMenu.jsx';
-import { homeworkService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import LearnerSnapshotCard from '../learner/LearnerSnapshotCard.jsx';
 import { fileKind } from './roomMaterials.js';
