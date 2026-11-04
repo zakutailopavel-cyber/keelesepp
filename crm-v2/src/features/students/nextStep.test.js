@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { homeNotes, lessonNow, newFeedback, nextStep, openWork } from './nextStep.js';
+import { homeNotes, homeSections, lessonNow, newFeedback, nextStep, openWork } from './nextStep.js';
 
 const NOW = new Date('2026-11-02T15:00:00').getTime();
 const today = '2026-11-02';
@@ -43,6 +43,79 @@ describe('nextStep priority', () => {
     expect(nextStep({ today, now: NOW })).toMatchObject({ key: 'done', to: '/student/kursus' });
     const reviewed = Array.from({ length: 5 }, (_, i) => ({ id: `w${i}`, word: `s${i}`, translation: 't', box: 2, reviews: 3, reviewedAt: `${today}T10:00:00.000Z`, dueAt: '2026-11-09T10:00:00.000Z' }));
     expect(nextStep({ today, now: NOW, words: reviewed }).key).toBe('done');
+  });
+});
+
+describe('nextStep: the full order (cabinet first screen, 2026-11-04)', () => {
+  const monologue = { key: 'monologue-s-2026-11', kind: 'monologue', state: 'todo', title: 'Kuu monoloog · november 2026', due: '2026-11-30' };
+  const farWork = { id: 'far', task: 'Kauge töö', due: '2026-11-20', status: 'Ootel' };
+  const soonWork = { id: 'soon', task: 'Homne töö', due: '2026-11-03', status: 'Ootel' };
+  const overdueWork = { id: 'old', task: 'Vana töö', due: '2026-10-30', status: 'Ootel' };
+  const selfStudy = { id: 'ss', source: 'self_study', lessonId: 'b1-01', phase: 'discover', lessonTitle: 'Minu pere', status: 'new', assignedAt: '2026-11-01T10:00:00Z' };
+  const base = { today, now: NOW };
+  const everything = { ...base, occurrences: [lesson('15:20'), lesson('18:00')], homework: [overdueWork, soonWork, farWork], tasks: [monologue], words: [dueWord], assignments: [selfStudy] };
+  const order = [];
+  // drop the winner one by one and the next priority must win
+  const peel = (input) => {
+    const step = nextStep(input);
+    order.push(step.key);
+    if (step.key === 'lesson') return peel({ ...input, occurrences: input.occurrences.filter((item) => item.time !== '15:20') });
+    if (step.key === 'overdue') return peel({ ...input, homework: input.homework.filter((item) => item.id !== 'old') });
+    if (step.key === 'due-soon') return peel({ ...input, homework: input.homework.filter((item) => item.id !== 'soon') });
+    if (step.key === 'lesson-today') return peel({ ...input, occurrences: [] });
+    if (step.key === 'monologue') return peel({ ...input, tasks: [] });
+    if (step.key === 'homework') return peel({ ...input, homework: [] });
+    if (step.key === 'review') return peel({ ...input, words: [] });
+    if (step.key === 'self-study') return peel({ ...input, assignments: [] });
+    return step;
+  };
+
+  it('lesson now → overdue → due soon → lesson later today → monologue → other homework → words → self-study → done', () => {
+    peel(everything);
+    expect(order).toEqual(['lesson', 'overdue', 'due-soon', 'lesson-today', 'monologue', 'homework', 'review', 'self-study', 'done']);
+  });
+
+  it('each step has exactly one button and a place to go', () => {
+    const steps = [
+      nextStep({ ...base, homework: [soonWork] }),
+      nextStep({ ...base, occurrences: [lesson('18:00')] }),
+      nextStep({ ...base, tasks: [monologue] }),
+      nextStep({ ...base, assignments: [selfStudy] }),
+    ];
+    expect(steps.map((step) => [step.key, step.button, step.to])).toEqual([
+      ['due-soon', 'Tee ära', '/homework'],
+      ['lesson-today', 'Vaata tunniplaani', '#tunniplaan'],
+      ['monologue', 'Salvesta', '/homework'],
+      ['self-study', 'Jätka', '/student/kursus'],
+    ]);
+    expect(steps[0].detail).toBe('Tähtaeg homme');
+    expect(steps[1].title).toBe('Täna kell 18:00 on tund');
+    expect(steps[3].title).toBe('Minu pere');
+  });
+
+  it('a recorded monologue, a cancelled or past lesson today and a finished self-study sheet are not next steps', () => {
+    expect(nextStep({ ...base, tasks: [{ ...monologue, state: 'waiting' }] }).key).toBe('done');
+    expect(nextStep({ ...base, occurrences: [lesson('18:00', { status: 'Tühistatud' }), lesson('09:00')] }).key).toBe('done');
+    expect(nextStep({ ...base, assignments: [{ ...selfStudy, status: 'done' }] }).key).toBe('done');
+  });
+
+  it('homework due in three days is not „due soon”: a lesson later today comes first', () => {
+    expect(nextStep({ ...base, homework: [{ ...soonWork, due: '2026-11-05' }], occurrences: [lesson('18:00')] }).key).toBe('lesson-today');
+    expect(nextStep({ ...base, homework: [{ ...soonWork, due: '2026-11-04' }], occurrences: [lesson('18:00')] }).key).toBe('due-soon');
+  });
+});
+
+describe('homeSections', () => {
+  it('one row per section, counts only when something waits', () => {
+    const rows = homeSections({ today, now: NOW, homework: [{ id: 'a', task: 'Tee', status: 'Ootel' }], words: [dueWord, { id: 's', word: 'Ma lähen.', translation: 'Sinu lause: x', box: 0, reviews: 1 }] });
+    expect(rows.map((row) => row.key)).toEqual(['tasks', 'words', 'mistakes', 'boards', 'progress']);
+    expect(Object.fromEntries(rows.map((row) => [row.key, row.count]))).toMatchObject({ tasks: 1, mistakes: 1, boards: 0, progress: 0 });
+    expect(rows.find((row) => row.key === 'words').count).toBeGreaterThan(0);
+    expect(homeSections({ today, now: NOW }).every((row) => row.count === 0)).toBe(true);
+  });
+  it('the monthly monologue counts as one open task', () => {
+    const rows = homeSections({ today, now: NOW, tasks: [{ key: 'm', kind: 'monologue', state: 'todo', title: 'Kuu monoloog' }] });
+    expect(rows[0].count).toBe(1);
   });
 });
 
