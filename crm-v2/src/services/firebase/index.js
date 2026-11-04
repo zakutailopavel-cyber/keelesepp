@@ -42,6 +42,8 @@ export { googleCalendarService } from './googleCalendar.js';
 export { tasksService } from './tasks.js';
 export { initialAssessmentsService } from './initialAssessments.js';
 export { worksheetTemplatesService } from './worksheetTemplates.js';
+export { worksheetSheetTemplatesService } from './worksheetSheetTemplates.js';
+export { sheetReuseService } from './sheetReuse.js';
 export { maintenanceService } from './maintenance.js';
 export { teacherAvailabilityService } from './teacherAvailability.js';
 export { emailQueueService } from './emailQueue.js';

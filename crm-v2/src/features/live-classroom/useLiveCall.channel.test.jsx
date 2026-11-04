@@ -42,7 +42,9 @@ describe('useLiveCall room channel', () => {
     act(() => { channel.readyState = 'open'; channel.onopen(); });
     expect(result.current.roomChannelOpen).toBe(true);
     expect(result.current.sendRoom({ t: 'page', pageId: 'p1' })).toBe(true);
-    expect(JSON.parse(channel.send.mock.calls[0][0])).toEqual({ t: 'page', pageId: 'p1' });
+    // the open channel first says that no screen is shared, then carries the room's messages
+    expect(JSON.parse(channel.send.mock.calls[0][0])).toEqual({ t: 'screen', on: false, slot: true });
+    expect(JSON.parse(channel.send.mock.calls.at(-1)[0])).toEqual({ t: 'page', pageId: 'p1' });
 
     const listener = vi.fn();
     act(() => { result.current.onRoomMessage(listener); });

@@ -51,26 +51,34 @@ export function buildLibrary(modules, buildSheet) {
       for (const phase of Object.keys(PHASE_TAG)) {
         if (!mod.LESSONS[lessonId][phase]) continue;
         const doc = buildSheet(mod, lessonId, phase);
-        const level = String(doc.meta?.level || mod.MODULE.level || '').toUpperCase();
-        const topic = mod.MODULE.title || '';
-        const lesson = doc.meta?.title || '';
-        for (const block of doc.blocks) {
-          // tasks only; a lesson's own self-check and rubric make no sense on another sheet
-          if (!BLOCKS[block.type]?.task || ['selfcheck', 'rubric'].includes(block.type)) continue;
-          const skill = skillOf(block);
-          const tags = [...new Set([
-            level.toLowerCase(), level.replace(/[+-]/g, '').toLowerCase(), skill, PHASE_TAG[phase], block.type,
-            ...words(topic).filter((w) => !STOP.has(w)), ...words(lesson).filter((w) => !STOP.has(w)),
-            ...(/kontroll|proovieksam|vahehindamine/i.test(lesson) ? ['kontroll'] : []),
-          ].filter(Boolean))];
-          out.push({
-            key: `${lessonId}:${phase}:${block.id}`, lessonId, phase, level, skill, topic, lesson, block,
-            title: block.data?.title || BLOCKS[block.type]?.label || block.type, label: BLOCKS[block.type]?.label || block.type,
-            tags, text: `${plain(block.data)} ${topic} ${lesson}`.toLocaleLowerCase('et'),
-          });
-        }
+        out.push(...sheetEntries(doc, { lessonId, phase, level: doc.meta?.level || mod.MODULE.level, topic: mod.MODULE.title || '', lesson: doc.meta?.title || '' }));
       }
     }
+  }
+  return out;
+}
+
+// one entry per task block of one sheet (a course sheet, or a sheet saved in the CRM: see sheetReuse.js);
+// `extraTags` and `source` describe where it comes from, `keyPrefix` keeps keys unique across sources
+export function sheetEntries(doc, { lessonId = '', phase = '', level = '', topic = '', lesson = '', extraTags = [], source = 'course', keyPrefix = '', ...rest } = {}) {
+  const out = [];
+  const lvl = String(level || doc?.meta?.level || '').toUpperCase();
+  for (const block of doc?.blocks || []) {
+    // tasks only; a lesson's own self-check and rubric make no sense on another sheet
+    if (!BLOCKS[block.type]?.task || ['selfcheck', 'rubric'].includes(block.type)) continue;
+    const skill = skillOf(block);
+    const tags = [...new Set([
+      lvl.toLowerCase(), lvl.replace(/[+-]/g, '').toLowerCase(), skill, PHASE_TAG[phase] || (phase === 'opik' ? 'õpik' : ''), block.type, ...extraTags,
+      ...words(topic).filter((w) => !STOP.has(w)), ...words(lesson).filter((w) => !STOP.has(w)),
+      ...(/kontroll|proovieksam|vahehindamine/i.test(lesson) ? ['kontroll'] : []),
+    ].filter(Boolean))];
+    const goal = block.goal && doc?.meta?.goals?.[block.goal] ? { [block.goal]: doc.meta.goals[block.goal] } : {};
+    out.push({
+      ...rest,
+      key: `${keyPrefix}${lessonId}:${phase}:${block.id}`, lessonId, phase, level: lvl, skill, topic, lesson, block, goals: goal, source,
+      title: block.data?.title || BLOCKS[block.type]?.label || block.type, label: BLOCKS[block.type]?.label || block.type,
+      tags, text: `${plain(block.data)} ${topic} ${lesson}`.toLocaleLowerCase('et'),
+    });
   }
   return out;
 }

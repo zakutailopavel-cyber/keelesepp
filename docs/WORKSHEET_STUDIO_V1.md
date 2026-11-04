@@ -154,6 +154,73 @@ Fixed:
 Not an app bug: in headless Chromium a download name with Estonian letters falls back to "download" (ASCII names keep
 the title); desktop browsers keep the name.
 
+## Media (2026-11-04, agent/constructor-media)
+
+- **Video block** (`engine/blocks/video.jsx`, model `engine/video.js`, group „Tekst ja heli”, task): `data = { title,
+  instruction, url, file, start, end, caption, questions }`. `url` = YouTube (watch / youtu.be / shorts / embed / live,
+  `t=` / `start=`) or Vimeo (incl. private hash, `#t=`); `file` = `{ src, storagePath, name, type, size }` uploaded via
+  `assets.video` → `uploadVideo` (`curriculum/ws_video_*`, private sheets `student-worksheets/<id>/`, ≤ 19 MB); a file
+  wins over a link. `start` / `end` accept „90”, „1:30”, „1m30s”; the start field wins over the link's time.
+  Player: YouTube from `www.youtube-nocookie.com/embed` (rel=0, start, end), Vimeo `player.vimeo.com/video/<id>?dnt=1`,
+  a file in `<video>` with `#t=start,end`; the iframe sets `referrerPolicy="strict-origin-when-cross-origin"` (the site
+  sends no cross-origin referrer and YouTube refuses an embed without one). Student (`interactive`) and live lesson
+  (`review`) show the player; builder (`edit`) and paper (`print`, and `@media print` of any screen) show a QR code
+  (`engine/qr.js`, own byte-mode / level-M encoder, checked module-for-module against libqrencode) + short watch link +
+  caption + part („0:30–1:20”). Questions use the reading block's format and scoring (`reading.answers/score`).
+  CSP (`crm-v2/vercel.json` `frame-src`): `https://www.youtube-nocookie.com https://player.vimeo.com` added.
+- **Images**: „Lõika / pööra” in every photo picker (`editor/ImageEdit.jsx`): rotate ±90°, crop free or 4:3 / 3:2 /
+  1:1 / 16:9 / 3:4 (math in `engine/image.js`: `fitCrop`, `moveCrop`, `resizeCrop`, `cropPixels`, `rotatedSize`). The
+  result is a new upload; a free crop sets the slot to `aspect: 'orig'` (the picture's own shape, `aspectRatioOf`), a
+  fixed one to its key. Needs Storage CORS (`storage.cors.json`), as the original cut does. Intake
+  (`prepareImageFile`): SVG uploaded unchanged; rasters ≤ 1600 px; transparency → PNG (a PNG needing no downscale is
+  uploaded unchanged), otherwise JPEG. Image block: „Alt-tekst” (`data.alt`), screen readers get `altText(data)` =
+  alt, else the caption without markup.
+- **Teacher voice** (`editor/VoiceRecorder.jsx`): „Salvesta hääl” in `AudioPick` (listening, dialogue, reading,
+  examlisten): MediaRecorder (webm/opus, mp4 on Safari), timer, max 10 min, preview, „Salvesta uuesti”, „Kasuta seda” →
+  `assets.audio` (the existing `uploadAudio`), stored as `data.audio` with `recorded: true`, file `haal-<ts>.<ext>`.
+  Hidden where the browser cannot record.
+- **Pank**: tabs Pildid / Heli / Video / Tekstid / Internet (the type filter). `mediaAssets` kinds `audio` and `video`
+  (fields `src`, `storagePath`, `title` = file name, `caption`); every uploaded / recorded / TTS sound and uploaded video
+  is added automatically (`bankMedia` in `WorksheetStudioPage.jsx`), the curriculum index also collects them
+  (`extractAssets(...).media`). From the bank a sound goes into the selected sound block or a new listening block, a
+  video into the selected video block or a new one. `firestore.rules` `mediaAssets`: kinds + `src` required for
+  image / audio / video (rules deploy needed).
+## Reuse: saved sheets in „Kogu”, copy / move to a phase, sheet and lesson templates (2026-11-04)
+
+Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.test.js`); Firestore:
+`services/firebase/sheetReuse.js` (reads) and `services/firebase/worksheetSheetTemplates.js` (templates); UI:
+`BlockLibraryPanel.jsx` (source switch), `editor/ReuseDialogs.jsx` (`CopyMoveDialog`, `TemplateDialog`),
+`WorksheetStudioPage.jsx` (block bar, „Fail” menu, empty-sheet banner).
+
+- **„Kogu” → „Salvestatud lehed”.** Same search as the course library (words and #tags; extra tags `#salvestatud`,
+  `#leht` / `#tund`, `#mustand` / `#avaldatud`, `#õpik`). Reads only what staff can read under the existing rules
+  (`curriculumLessons` and `curriculumLessons/{id}/worksheets`, `courseReader`): the lesson list once when the source
+  is chosen (cached 5 min) — every standalone sheet's tasks are on it; phase sheets (Avasta / Harjuta / Kasuta / Õpik,
+  the draft `worksheetDoc`) of the open lesson and of at most 12 lessons whose title / level / module contain the typed
+  words, 400 ms after typing stops, each lesson once per session. A broad query (only #tags) does not read phase sheets;
+  the course content itself is already searchable under „Kursus”. Focus sheets of a lesson without a phase summary
+  (`worksheetPhases`) are not read. An inserted task brings its goal text when the sheet has no goal with that key.
+- **„Kopeeri / Teisalda…”** (block bar, folder icon; hidden on a student's private sheet): target = a phase sheet of
+  this lesson or of another lesson (search by name / level / module). The copy is appended to the target's draft by
+  `copyBlocksToPhase` → `lessonWorksheetsService.saveDraft` with the read's `worksheetDocUpdatedAt` (transaction
+  conflict check; on a conflict it reads again once). A missing phase sheet is created with its role / slot (Õpik:
+  `focus`, slot 4). Never published: a published target keeps its `publishedWorksheetDoc` until someone presses
+  „Avalda” there. „Teisalda” = copy first, then the block is removed here and this sheet's draft saved (undoable
+  with Ctrl+Z; a new unsaved sheet only loses it in the editor).
+- **Templates** (`worksheetTemplates`, new collection): `{ kind: 'sheet' | 'lesson', title, level, sheets: [{ phase,
+  label, doc }], ownerUid, ownerName, createdAt, updatedAt, archived }`; save stamps (`updatedAt`, `version`, `status`)
+  are stripped from the docs; ≤ 6 sheets, ≤ 900 kB. „Fail” → „Salvesta leht mallina…”, on a lesson page also
+  „Salvesta terve tund mallina…” (the latest draft of each phase sheet with blocks, the open one as in the editor).
+  „Fail” → „Uus mallist…” (and the „Leht on tühi” banner) lists the built-in sheets („Kiri linnavalitsusele”,
+  „Minu päev”) and saved templates: a sheet template replaces the open sheet in the editor (undoable, not saved by
+  itself); a lesson template on a lesson page („Täida tund”) puts its sheet for the open phase into the editor and
+  saves drafts only for phases with no sheet or an empty one — a sheet with blocks is never overwritten. The author or
+  an admin archives a template („Arhiveeri”); nothing is deleted. Block templates stay in `worksheetBlockTemplates`.
+- **Rules** (`firestore.rules` `worksheetTemplates`): staff read; staff create in their own name with exactly those
+  keys, `archived == false`; author or admin may change only `title`, `archived`, `archivedAt`, `archivedBy`,
+  `updatedAt`; delete denied. Emulator test `functions/worksheet-sheet-templates-emulator.integration.js` (in
+  `npm run test:emulator`). Needs `firebase deploy --only firestore:rules` before templates can be saved.
+
 ## Not in this slice
 
 1. (done in slice 2)

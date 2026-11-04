@@ -829,3 +829,42 @@ textarea.ed-input { resize: vertical; }
 .ed-check { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .85rem; font-weight: 600; }
 .room-sheet-picker__list li small.room-sheet-picker__hint{color:#475467}
 .room-sheet-picker__more{border:0;background:none;padding:6px 0;color:#0b5c4d;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:underline}
+
+/* ---- media: crop / rotate, voice recording, video preview, bank sounds and videos ---- */
+.ws-studio .ed-crop { display: grid; gap: 8px; padding: 8px; border: 1px solid var(--st-line); border-radius: 10px; background: var(--st-bg); }
+.ws-studio .ed-crop-stage { position: relative; width: 100%; overflow: hidden; touch-action: none; user-select: none; }
+.ws-studio .ed-crop-stage canvas { display: block; width: 100%; height: 100%; }
+.ws-studio .ed-crop-rect { position: absolute; box-sizing: border-box; border: 2px solid #fff; outline: 1px solid var(--st-accent); box-shadow: 0 0 0 9999px rgba(11, 42, 79, .55); cursor: move; }
+.ws-studio .ed-crop-handle { position: absolute; width: 14px; height: 14px; background: #fff; border: 2px solid var(--st-accent); border-radius: 3px; }
+.ws-studio .ed-crop-handle.is-nw { left: -8px; top: -8px; cursor: nwse-resize; }
+.ws-studio .ed-crop-handle.is-ne { right: -8px; top: -8px; cursor: nesw-resize; }
+.ws-studio .ed-crop-handle.is-sw { left: -8px; bottom: -8px; cursor: nesw-resize; }
+.ws-studio .ed-crop-handle.is-se { right: -8px; bottom: -8px; cursor: nwse-resize; }
+.ws-studio .ed-crop .ed-seg { flex-wrap: wrap; }
+.ws-studio .ed-btn svg { vertical-align: -2px; }
+.ws-studio .ed-record { display: grid; gap: 6px; padding: 8px; border: 1px solid var(--st-line); border-radius: 10px; background: var(--st-bg); }
+.ws-studio .ed-record audio { width: 100%; }
+.ws-studio .ed-record .ed-row { align-items: center; }
+.ws-studio .ed-record-dot { width: 10px; height: 10px; border-radius: 50%; background: #d92d20; animation: ed-rec-blink 1s infinite; }
+@keyframes ed-rec-blink { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .ws-studio .ed-record-dot { animation: none; } }
+.ws-studio .ed-video-preview { display: grid; gap: 4px; }
+.ws-studio .ed-video-preview .ws-video-frame { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; background: #000; }
+.st-bank__media { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.st-bank__media li { display: grid; gap: 6px; border: 1px solid #e4e7ec; border-radius: 10px; background: #fff; padding: 8px 10px; }
+.st-bank__media-head { display: grid; gap: 2px; min-width: 0; }
+.st-bank__media-head small { color: #667085; font-size: .74rem; }
+.st-bank__media audio { width: 100%; height: 32px; }
+.st-bank__media .ed-btn { justify-self: start; }
+/* Reuse (sheetReuse.js): „Kopeeri / Teisalda…” and „Uus mallist” dialogs, the empty-sheet banner */
+.ws-studio .st-empty-start { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.st-reuse-modal { width: min(640px, 96vw); }
+.st-reuse { display: grid; gap: 10px; }
+.st-reuse fieldset { border: 1px solid #e4e7ec; border-radius: 8px; padding: 8px 10px; margin: 0; display: grid; gap: 6px; }
+.st-reuse legend { font-weight: 600; font-size: .85rem; padding: 0 4px; }
+.st-reuse__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 260px; overflow: auto; }
+.st-reuse__row { display: flex; align-items: baseline; gap: 6px; cursor: pointer; }
+.st-reuse__row small { color: #667085; margin-left: 6px; }
+.st-reuse__templates li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid #f2f4f7; }
+.st-reuse__templates li > span { flex: 1 1 220px; display: grid; }
+.st-reuse__templates small { color: #667085; }
