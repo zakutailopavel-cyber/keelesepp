@@ -4,19 +4,24 @@ import { requireFirebaseClient } from './client.js';
 // Any failure returns an empty list: the call then uses public STUN only, exactly as before TURN existed.
 const defaultLiveTurnUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/liveTurnApi';
 
+const liveTurnBaseUrl = () => String(import.meta.env.VITE_LIVE_TURN_API_URL || defaultLiveTurnUrl).replace(/\/$/, '');
+
 export const liveTurnService = {
   // a cheap request that only wakes the function up (no credentials; the answer is ignored)
   warmUp() {
-    const baseUrl = String(import.meta.env.VITE_LIVE_TURN_API_URL || defaultLiveTurnUrl).replace(/\/$/, '');
-    try { globalThis.fetch?.(`${baseUrl}/ping`, { method: 'POST' })?.catch?.(() => {}); } catch { /* offline: the call still works */ }
+    try { globalThis.fetch?.(`${liveTurnBaseUrl()}/ping`, { method: 'POST' })?.catch?.(() => {}); } catch { /* offline: the call still works */ }
+  },
+  // „Seadme kontroll”: the same wake-up request, awaited — true when the function is reachable (no-cors: only
+  // reachability counts, so it works from any origin and reads nothing)
+  async ping() {
+    try { const response = await globalThis.fetch(`${liveTurnBaseUrl()}/ping`, { method: 'POST', mode: 'no-cors', cache: 'no-store' }); return Boolean(response); } catch { return false; }
   },
   async iceServers(invitationId) {
     try {
       const { auth } = requireFirebaseClient();
       if (!auth.currentUser || !invitationId) return { iceServers: [], ttl: 0 };
       const token = await auth.currentUser.getIdToken();
-      const baseUrl = String(import.meta.env.VITE_LIVE_TURN_API_URL || defaultLiveTurnUrl).replace(/\/$/, '');
-      const response = await globalThis.fetch(`${baseUrl}/ice`, {
+      const response = await globalThis.fetch(`${liveTurnBaseUrl()}/ice`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ invitationId }),

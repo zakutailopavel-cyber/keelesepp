@@ -86,7 +86,7 @@ export default function GuestLessonPage({
     return <div className="page-content live-guest"><Card className="live-waiting-room"><h2>Tund tühistati</h2><p>Palu õpetajalt uus link.</p></Card></div>;
   }
   if (invitation?.status !== INVITATION_STATUS.ACCEPTED) {
-    return <div className="page-content live-guest"><LoadingState label={`Ootan õpetajat (${joined.teacherName})…`} />{error ? <p className="action-error" role="alert">{error}</p> : null}</div>;
+    return <div className="page-content live-guest"><LoadingState label={`Ootan õpetajat (${joined.teacherName})…`} /><p className="form-hint">Seni saad kontrollida kaamerat, mikrofoni ja heli: <a href="/kontroll" target="_blank" rel="noopener">Kontrolli seadet</a> <span lang="ru">· проверьте камеру и звук</span></p>{error ? <p className="action-error" role="alert">{error}</p> : null}</div>;
   }
   return <LiveRoom
     key={invitation.id}

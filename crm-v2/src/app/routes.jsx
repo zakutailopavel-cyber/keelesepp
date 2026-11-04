@@ -59,6 +59,7 @@ const LiveObserverPage = lazy(() => import('../features/live-classroom/LiveObser
 // the pages of every role: each role downloads its own page, not all of them on the first load
 const HomeworkPage = lazy(() => import('../features/homework/HomeworkPage.jsx'));
 const WhatsNewPage = lazy(() => import('../features/guide/WhatsNew.jsx'));
+const DeviceCheckPage = lazy(() => import('../features/device-check/DeviceCheckPage.jsx'));
 const GuestLessonPage = lazy(() => import('../features/live-classroom/GuestLessonPage.jsx'));
 const PayInvoicePage = lazy(() => import('../features/payments/PayInvoicePage.jsx'));
 const LiveClassroomPage = lazy(() => import('../features/live-classroom/LiveClassroomPage.jsx'));
@@ -90,6 +91,8 @@ export default function AppRoutes() {
       <Route path="/ajad" element={<Suspense fallback={null}><AvailabilityPollPage /></Suspense>} />
       {/* parents' INF 3 form (docs/INF3.md): no login, a one-time link from the school */}
       <Route path="/maksuandmed/:token" element={<Suspense fallback={null}><TaxFormPage /></Suspense>} />
+      {/* „Seadme kontroll”: camera, microphone, speakers, network before the first lesson — no login (guests too) */}
+      <Route path="/kontroll" element={staffPage(<DeviceCheckPage />)} />
       {/* e-mails to students and parents: turn them off or choose the language (docs/EMAIL_NOTIFICATIONS.md) */}
       <Route path="/e-kirjad/:token" element={<Suspense fallback={null}><EmailPreferencesPage /></Suspense>} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>

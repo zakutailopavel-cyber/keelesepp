@@ -178,6 +178,7 @@ export default function StudentDashboardPage({
             : nextRequest?.status === 'accepted' && isAbsenceOnly(nextRequest) ? <p className="form-hint" role="status">Õpetaja märkis, et sa sellesse tundi ei tule.</p>
             : nextRequest?.status === 'declined' ? <p className="form-hint" role="status">Õpetaja ei saanud tundi üle viia{nextRequest.teacherNote ? `: ${nextRequest.teacherNote}` : ''}. Tund jääb samale ajale. <button type="button" className="link-button" onClick={() => setRescheduling(true)}>Küsi uuesti</button></p>
               : <button type="button" className="link-button" onClick={() => setRescheduling(true)}>Ei saa tulla?</button>) : null}
+          {lessonAhead && !preview ? <Link className="link-button" to="/kontroll">Kontrolli seadet <span lang="ru">· проверить камеру и звук</span></Link> : null}
         </div>
       </div>
     </div>
