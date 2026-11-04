@@ -6,7 +6,9 @@ import { checkDocument } from './registry.js';
 // before 2026-10-27 counted every task she did not answer (done orally in the lesson) as wrong, so a sheet answered
 // mostly right could read 0/28. The answers and the sheet she answered (`worksheetDoc`, the assignment's own copy) are
 // both on the assignment, so the score is checked again here with the current rules — on display only, nothing is
-// written back. The stored score stays when it agrees, and also when it is not obviously wrong.
+// written back. The stored score stays when it agrees, and also when it is not obviously wrong. When today's rules find
+// more right answers on the same items (open reading answers are checked more leniently since 2026-11-04), the higher
+// score is shown; a score is never lowered by a later rule.
 //
 // Returns { score, recomputed, stored }: `score` is what to show (null = nothing to score), `stored` the original.
 export function effectiveScore({ score = null, worksheetDoc = null, answers = {}, status = 'done' } = {}) {
@@ -22,6 +24,9 @@ export function effectiveScore({ score = null, worksheetDoc = null, answers = {}
   // obviously wrong: it counted items the current rules leave out (unanswered, unmatched or free tasks), or it says
   // nothing was right while her answers on this sheet are right
   const invalid = fresh.total < total || (correct === 0 && fresh.correct > 0);
+  // or a more lenient rule now accepts answers it marked wrong (same items, more right)
+  const lenient = fresh.total === total && fresh.correct > correct;
+  if (lenient && !invalid) return { score: { ...fresh, recomputed: true }, recomputed: true, stored, unmatched: fresh.unmatched || 0 };
   if (!invalid) return keep;
   return { score: fresh.total ? { ...fresh, recomputed: true } : null, recomputed: true, stored, unmatched: fresh.unmatched || 0 };
 }
