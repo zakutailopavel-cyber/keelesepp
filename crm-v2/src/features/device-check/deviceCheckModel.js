@@ -235,6 +235,9 @@ export function deviceCheckRecord(result, browser = {}, at = new Date()) {
 /** Changes only when what would be saved changes (no rewrite on every re-render). */
 export const recordKey = (record) => (record ? `${record.status}|${record.issues.join(',')}|${record.browser}` : '');
 
+// the date of a saved check for the teacher's notice (d.m.yyyy)
+export const checkDay = (iso) => { const time = Date.parse(iso || ''); return time ? new Date(time).toLocaleDateString('et-EE', { day: 'numeric', month: 'numeric', year: 'numeric' }) : ''; };
+
 /**
  * What the teacher sees before / at the lesson; null when there is nothing to say.
  * → { level: 'fail' | 'warn' | 'none', title, issues: [Estonian], at, browser }
@@ -253,4 +256,29 @@ export function teacherWarning({ deviceCheck = null, hadLiveLesson = false } = {
   }
   if (hadLiveLesson) return null;
   return { level: 'none', title: 'Õpilane pole seadet kontrollinud', issues: [], at: '', browser: '' };
+}
+
+// A group lesson (live group room, calendar group lesson): every member whose last „Seadme kontroll” is „fail” /
+// „warn” or who has no saved check at all (in a group one bad device stalls everyone, so „no check” is listed even
+// after earlier live lessons; `hadLiveLesson` only softens the line). `entries` = [{ id, name, result }] with
+// `result` from deviceCheckService.forStudent (null = could not be read: left out). Worst first; null when all fine.
+const LEVEL_ORDER = { fail: 0, warn: 1, none: 2 };
+export function groupDeviceWarnings(entries = []) {
+  const rows = entries
+    .filter((entry) => entry?.result)
+    .map((entry) => {
+      const checked = teacherWarning({ deviceCheck: entry.result.deviceCheck || null, hadLiveLesson: true });
+      const valid = entry.result.deviceCheck && ['ok', 'warn', 'fail'].includes(entry.result.deviceCheck.status);
+      const warning = valid ? checked : { level: 'none', title: 'pole seadet kontrollinud', issues: [], at: '', browser: '' };
+      return warning ? { id: entry.id, name: String(entry.name || 'Õpilane'), warning, hadLiveLesson: Boolean(entry.result.hadLiveLesson), hasAccount: entry.result.hasAccount !== false } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => LEVEL_ORDER[a.warning.level] - LEVEL_ORDER[b.warning.level] || a.name.localeCompare(b.name, 'et'));
+  if (!rows.length) return null;
+  const problems = rows.filter((row) => row.warning.level !== 'none').length;
+  const unchecked = rows.length - problems;
+  const parts = [];
+  if (problems) parts.push(`${problems} õpilase seadmes on ${problems > 1 ? 'vigu või märkusi' : rows[0].warning.level === 'fail' ? 'viga' : 'märkusi'}`);
+  if (unchecked) parts.push(unchecked === 1 ? '1 õpilane pole seadet kontrollinud' : `${unchecked} õpilast pole seadet kontrollinud`);
+  return { level: rows[0].warning.level, title: parts.join(' · '), rows };
 }

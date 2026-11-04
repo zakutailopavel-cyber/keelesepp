@@ -1,4 +1,4 @@
-// „Kõneaeg”: who talks how long in a 1:1 lesson, from the sound level only (not the language, not the words).
+// „Kõneaeg”: who talks how long in a lesson (1:1, and per student in a group room), from the sound level only (not the language, not the words).
 // Pure logic, no Web Audio here: `useTalkMeter.js` feeds levels (RMS 0…1) about 10 times a second.
 
 export const VAD_DEFAULTS = Object.freeze({
@@ -117,6 +117,80 @@ export function createTalkTracker({ vad = {}, recentMs = RECENT_MS } = {}) {
       };
     },
   };
+}
+
+/**
+ * Group room „Kõneaeg”: the same VAD for any number of sides — `teacher` plus one side per student (the uid of the
+ * remote track). `snapshot(nowMs)` has the shape of the 1:1 snapshot for all students together (`studentSec`,
+ * `share`, `recent`, so `talkHint` works on it) and `people[id] = { sec, recentSec }` for every side seen so far.
+ */
+export function createGroupTalkTracker({ vad = {}, recentMs = RECENT_MS } = {}) {
+  const sides = new Map();
+  const total = new Map();
+  const buckets = new Map();
+  const prune = (nowMs) => {
+    const oldest = Math.floor((nowMs - recentMs) / BUCKET_MS);
+    for (const key of buckets.keys()) if (key <= oldest) buckets.delete(key);
+  };
+  return {
+    sample(levels = {}, nowMs = Date.now(), dtMs = 100) {
+      const key = Math.floor(nowMs / BUCKET_MS);
+      for (const [side, level] of Object.entries(levels)) {
+        if (!sides.has(side)) { sides.set(side, createVad(vad)); total.set(side, 0); }
+        const credit = sides.get(side).step(level ?? 0, dtMs);
+        if (!credit) continue;
+        total.set(side, total.get(side) + credit);
+        const bucket = buckets.get(key) || {};
+        bucket[side] = (bucket[side] || 0) + credit;
+        buckets.set(key, bucket);
+      }
+      prune(nowMs);
+    },
+    snapshot(nowMs = Date.now()) {
+      prune(nowMs);
+      const recent = {};
+      for (const bucket of buckets.values()) for (const [side, ms] of Object.entries(bucket)) recent[side] = (recent[side] || 0) + ms;
+      const people = {};
+      let teacher = 0; let students = 0; let recentTeacher = 0; let recentStudents = 0;
+      for (const [side, ms] of total.entries()) {
+        people[side] = { sec: Math.round(ms / 1000), recentSec: Math.round((recent[side] || 0) / 1000), speaking: sides.get(side).speaking };
+        if (side === 'teacher') { teacher += ms; recentTeacher += recent[side] || 0; } else { students += ms; recentStudents += recent[side] || 0; }
+      }
+      return {
+        teacherSec: Math.round(teacher / 1000),
+        studentSec: Math.round(students / 1000),
+        share: share(teacher, students),
+        recent: { teacherSec: Math.round(recentTeacher / 1000), studentSec: Math.round(recentStudents / 1000), share: share(recentTeacher, recentStudents) },
+        people,
+      };
+    },
+  };
+}
+
+/**
+ * Rows for the group meter: one per student in the call (`members` = [{ id, name }]) with talk time, share of all
+ * talk and the last 10 minutes, and who talks least. `quietestId` is set once the last 10 minutes hold enough talk
+ * (2 min) and there are at least two students; `quietLow` when that student had under half of a fair share of the
+ * students' talk in those minutes.
+ */
+export function groupTalkRows(snapshot, members = []) {
+  const people = snapshot?.people || {};
+  const all = (snapshot?.teacherSec || 0) + (snapshot?.studentSec || 0);
+  const rows = members.map((member) => {
+    const person = people[member.id] || { sec: 0, recentSec: 0, speaking: false };
+    return { id: member.id, name: member.name, sec: person.sec, recentSec: person.recentSec, speaking: Boolean(person.speaking), share: all > 0 ? person.sec / all : null };
+  });
+  const recent = snapshot?.recent || {};
+  const recentMs = ((recent.teacherSec || 0) + (recent.studentSec || 0)) * 1000;
+  let quietestId = null;
+  let quietLow = false;
+  if (rows.length >= 2 && recentMs >= MIN_RECENT_MS) {
+    const quietest = rows.reduce((least, row) => (row.recentSec < least.recentSec ? row : least), rows[0]);
+    quietestId = quietest.id;
+    const fair = (recent.studentSec || 0) / rows.length;
+    quietLow = fair > 0 && quietest.recentSec < fair / 2;
+  }
+  return { rows, quietestId, quietLow };
 }
 
 export const EMPTY_TALK = Object.freeze({

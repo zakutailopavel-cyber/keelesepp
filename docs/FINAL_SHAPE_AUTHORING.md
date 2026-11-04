@@ -346,7 +346,8 @@ Module 5 reached 0 problems on every gate with the same loop. New pitfalls on to
 - **One-to-one regex:** `\bklassis` also matches „klassist” (a passage title „Uudised 3.b klassist”) and a gap sentence
   „samas [klassis]”; an `examPart` note „paaris” counts too. Reword („Uudised: 3.b”, „kahekesi”).
 - **Exam lesson goals:** `lessonGoals.test.js` wants exactly g_read, g_notice and g_use for an assessment lesson — no
-  g_vocab, even when its Avasta has a vocab box.
+  g_vocab, even when its Avasta has a vocab box. `g_listen` may come on top (see „Listening goal” in
+  `LESSON_QUALITY_CONTRACT.md`).
 - **Speller:** bold inside a word („tege**ma** → teh**a**”) splits it into „tege”, „teh” for Vabamorf. Bold whole words.
 - **Names:** check `COURSE_CAST.md` before naming a new person: Tiina (Sofia's neighbour) and Aivar (Kase kool's
   director) were almost reused for a language teacher and a language-school head (now Hanna, Mihkel).
