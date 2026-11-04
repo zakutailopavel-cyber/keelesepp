@@ -11,7 +11,8 @@ const dateLabel = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
 // „Täna harjutada” (teacher only): a small box over the board's lower left corner with 2–3 error topics of the last
 // analysed lessons, one example each and the „Järgmiseks tunniks” advice. It is not part of the board (the student's
 // board is synced through Firestore, this box is not), and it hides itself while the teacher shares the screen.
-export default function LessonHints({ invitation, lessons = [], loading = false, hidden = false, onWarmup }) {
+// Group room: `switcher` (GroupLessonHints) picks the member whose hints are shown; it sits on top of the body.
+export default function LessonHints({ invitation, lessons = [], loading = false, hidden = false, onWarmup, switcher = null }) {
   const hints = useMemo(() => lessonHints(lessons, { currentInvitationId: invitation.id }), [lessons, invitation.id]);
   const [open, setOpen] = useState(readOpen);
   if (hidden || loading || !hints) return null;
@@ -26,6 +27,7 @@ export default function LessonHints({ invitation, lessons = [], loading = false,
       </button>
       {open ? (
         <div className="lesson-hints__body">
+          {switcher}
           <small className="lesson-hints__src">{hints.lessonCount === 1 ? 'Eelmisest tunnist' : `Viimasest ${hints.lessonCount} tunnist`}{hints.latestDate ? ` (viimane ${dateLabel(hints.latestDate)})` : ''} · näeb ainult õpetaja</small>
           {hints.topics.length ? (
             <ol className="lesson-hints__topics">

@@ -255,7 +255,7 @@ export default function LiveClassroomPage({
     ...(callPeerFactory ? { peerFactory: callPeerFactory } : {}),
   };
 
-  const groupProps = { user, service: groupService, boardService: groupBoard, library: libraryRepository, ...(groupCallOptions ? { callOptions: groupCallOptions } : {}) };
+  const groupProps = { user, service: groupService, boardService: groupBoard, library: libraryRepository, ...(groupCallOptions ? { callOptions: groupCallOptions } : {}), ...(deviceCheck ? { deviceCheck } : {}) };
   if (isStudent) {
     if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED && isGroupInvitation(activeInvitation)) {
       return <GroupRoom key={activeInvitation.roomKey} roomId={activeInvitation.roomKey} role="student" turnInvitationId={activeInvitation.id} myInvitation={activeInvitation} recordingService={recordingService} onLeave={() => setSearchParams({}, { replace: true })} {...groupProps} />;
