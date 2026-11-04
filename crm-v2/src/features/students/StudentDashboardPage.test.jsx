@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -48,12 +48,56 @@ describe('StudentDashboardPage', () => {
     expect(screen.queryByText('Millal sulle tund sobib?')).not.toBeInTheDocument();
   });
 
-  it('the day is a checklist of at most three steps, without the pet', async () => {
+  it('below the first screen: one short row per section with a small count, and the timetable with „Ei saa tulla?”', async () => {
     const data = repositories(undefined, { wordsService: { subscribeForStudent: (id, onData) => { onData([{ id: 's', word: 'Ma lähen koju.', translation: 'Sinu lause: x', box: 0, reviews: 1 }]); return () => {}; } } });
     renderPage(data);
-    const today_ = await screen.findByRole('region', { name: 'Täna' });
-    expect(within(today_).getAllByRole('listitem').length).toBeLessThanOrEqual(3);
-    expect(within(today_).queryByText(/Mängi|sõber/)).not.toBeInTheDocument();
+    const sections = await screen.findByRole('region', { name: 'Minu õppimine' });
+    const row = (name) => within(sections).getByRole('link', { name });
+    await waitFor(() => expect(row(/Minu vead/)).toHaveTextContent('1'));
+    expect(row(/Ülesanded/)).toHaveAttribute('href', '/homework');
+    expect(row(/Ülesanded/)).toHaveTextContent('1');
+    expect(row(/Sõnad/)).toHaveAttribute('href', '/student/sonavara');
+    expect(row(/Minu vead/)).toHaveAttribute('href', '/student/vead');
+    expect(row(/Minu vead/)).toHaveTextContent('1');
+    expect(row(/Tunni tahvlid/)).toHaveAttribute('href', '/board');
+    expect(row(/Minu areng/)).toHaveAttribute('href', '/student/areng');
+    expect(within(sections).getByRole('heading', { name: /Tunniplaan/ })).toBeInTheDocument();
+    expect(within(sections).getByText(/Järgmine tund:/)).toBeInTheDocument();
+    expect(within(sections).getByRole('button', { name: 'Ei saa tulla?' })).toBeInTheDocument();
+    expect(within(sections).queryByText(/Mängi|sõber/)).not.toBeInTheDocument();
+  });
+
+  it('the first screen is the next step first and the pet\'s one request with its mood, nothing else', async () => {
+    const ago = (days) => new Date(Date.now() - days * 86400000).toISOString();
+    const words = ['koer', 'kass', 'maja'].map((id) => ({ id, word: id, translation: `t-${id}`, box: 1, reviews: 2, dueAt: ago(1), reviewedAt: ago(4) }));
+    const data = repositories(undefined, {
+      petRepository: { get: vi.fn().mockResolvedValue({ kind: 'siil', name: 'Okki', playedAt: ago(5) }), lessonStats: vi.fn().mockResolvedValue([]), update: vi.fn(), publish: vi.fn().mockResolvedValue() },
+      wordsService: { subscribeForStudent: (id, onData) => { onData(words); return () => {}; } },
+    });
+    const { container } = renderPage(data);
+    const pet = await screen.findByRole('region', { name: 'Okki' });
+    const hero = container.querySelector('.sh-hero');
+    expect([...hero.children].map((node) => node.getAttribute('aria-label'))).toEqual(['Järgmine samm', 'Okki']);
+    await waitFor(() => expect(within(pet).getByText(/Tuju: näljane/)).toBeInTheDocument());
+    expect(within(pet).getByRole('button', { name: /Kordame 3 sõna/ })).toBeInTheDocument();
+    expect(within(hero).queryByText(/Järgmine tund:/)).not.toBeInTheDocument();
+  });
+
+  it('a lesson later today is the next step when no homework is close, and its button leads to the timetable', async () => {
+    const data = repositories(undefined, {
+      invoiceRepository: { listByStudent: vi.fn().mockResolvedValue([]) },
+      scheduleRepository: { listByStudent: vi.fn().mockResolvedValue([{ id: 'schedule-1', studentId: 'student-1', teacher: 'Tiina', date: today, time: '23:59', duration: 60, status: 'Planeeritud' }]) },
+    });
+    data.homeworkRepository.listByStudentIds.mockResolvedValue([]);
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(`${today}T10:00:00`));
+    try {
+      renderPage(data);
+      const step = await screen.findByRole('region', { name: 'Järgmine samm' });
+      expect(within(step).getByText('Täna kell 23:59 on tund')).toBeInTheDocument();
+      expect(within(step).getByRole('link', { name: /Vaata tunniplaani/ })).toHaveAttribute('href', '#tunniplaan');
+      expect(document.getElementById('tunniplaan')).not.toBeNull();
+    } finally { vi.useRealTimers(); }
   });
 
   it('a child with a parent linked to the card does not see or even read the family\'s invoices; an adult sees only what is unpaid', async () => {
@@ -68,13 +112,13 @@ describe('StudentDashboardPage', () => {
     expect(child.invoiceRepository.listByStudent).not.toHaveBeenCalled();
   });
 
-  it('shows no empty blocks: without news there are no lines, and a day with nothing to do has no checklist', async () => {
+  it('shows no empty blocks: without news there are no lines, and a section with nothing waiting has no count', async () => {
     const data = repositories(undefined, { invoiceRepository: { listByStudent: vi.fn().mockResolvedValue([]) } });
     data.homeworkRepository.listByStudentIds.mockResolvedValue([]);
-    renderPage(data);
+    const { container } = renderPage(data);
     await screen.findByRole('region', { name: 'Järgmine samm' });
     expect(screen.queryByRole('list', { name: 'Sulle on uudiseid' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Täna' })).not.toBeInTheDocument();
+    expect(container.querySelectorAll('.sh-sections li em')).toHaveLength(0);
     expect(screen.getByText('Praegu on kõik tehtud')).toBeInTheDocument();
   });
 
@@ -96,7 +140,7 @@ describe('StudentDashboardPage', () => {
     const data = repositories();
     data.petRepository.lessonStats = vi.fn();
     renderPage({ ...data, catalogRepository });
-    await screen.findByRole('region', { name: 'Täna' });
+    await screen.findByRole('region', { name: 'Minu õppimine' });
     expect(catalogRepository.listCurriculum).not.toHaveBeenCalled();
     expect(data.petRepository.lessonStats).not.toHaveBeenCalled();
   });
