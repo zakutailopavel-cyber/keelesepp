@@ -1,5 +1,5 @@
-import { ArrowLeft, LibraryBig, MessageSquare, Mic, MicOff, Phone, PhoneOff, Redo2, Send, Undo2, Users, Video, VideoOff, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, Columns2, LibraryBig, Rows2, MessageSquare, Mic, MicOff, Phone, PhoneOff, Redo2, Send, Undo2, Users, Video, VideoOff, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize } from '../board/boardModel.js';
 import { groupBoardService } from '../../services/firebase/studentBoard.js';
@@ -14,7 +14,15 @@ import LessonPlanPanel, { LessonPlanPill } from './LessonPlanPanel.jsx';
 import { useLessonPlan } from './useLessonPlan.js';
 import { defaultPlanSteps } from './lessonPlan.js';
 import { timestampMillis } from './invitationModel.js';
+import FloatingWindow, { FloatingLayer } from './FloatingWindow.jsx';
+import { stripHeight } from './floatingLayout.js';
 import './liveRoom.css';
+
+// the group's video tiles in one movable strip (owner 2026-11-04): a column on the right by default, or a row
+const ORIENTATION_KEY = 'keelesepp.liveGroupStrip';
+const readOrientation = () => { try { return globalThis.localStorage?.getItem(ORIENTATION_KEY) === 'row' ? 'row' : 'column'; } catch { return 'column'; } };
+const columnDefault = (bounds) => ({ ax: 'right', ay: 'top', dx: 14, dy: 56, w: bounds.w < 700 ? 96 : 180, min: false });
+const rowDefault = (bounds) => ({ ax: 'left', ay: 'bottom', dx: 14, dy: 14, w: Math.min(bounds.w - 28, 760), min: false });
 
 function RemoteTile({ tile }) {
   const ref = useRef(null);
@@ -116,6 +124,17 @@ export default function GroupRoom({
     const id = await boardRef.current?.insertFile({ url: file.url, name: file.name, kind, storagePath: file.storagePath || '', ...size });
     if (id) { setNotice(`„${file.name || 'Materjal'}” on tahvlil.`); setPanel(''); }
   };
+  const [orientation, setOrientation] = useState(readOrientation);
+  const flip = () => setOrientation((current) => {
+    const next = current === 'row' ? 'column' : 'row';
+    try { globalThis.localStorage?.setItem(ORIENTATION_KEY, next); } catch { /* private mode */ }
+    return next;
+  });
+  const tileCount = 1 + call.tiles.length;
+  const row = orientation === 'row';
+  const heightFor = useCallback((w) => stripHeight(tileCount, row)(w), [tileCount, row]);
+  const presets = row ? { s: 90 * tileCount, m: 150 * tileCount, l: 230 * tileCount } : { s: 120, m: 180, l: 280 };
+
   const end = async () => {
     if (!globalThis.confirm('Lõpetada grupitund? Ruum suletakse kõigile, grupi tahvel jääb alles.')) return;
     call.hangUp();
@@ -159,17 +178,25 @@ export default function GroupRoom({
       })}</div> : null}
       {error || call.error ? <p className="lr-toast lr-toast--error" role="alert">{error || call.error}</p> : null}
       {notice ? <p className="lr-toast" role="status">{notice}</p> : null}
-      <div className="lr-body">
+      <div className="lr-body lr-body--float">
         <main className="lr-stage">
           <StudentBoard studentId={roomId} user={user} staff={teacher} variant="room" controllerRef={boardRef} onHistoryChange={setHistory} newPageTitle={room?.title || 'Grupitund'} service={boardService} />
         </main>
-        <aside className={`lr-side lg-side ${panel ? 'has-drawer' : ''}`} aria-label="Video">
-          <figure className={`lr-tile lr-tile--self lg-tile ${call.hasLocalMedia ? 'is-live' : ''}`}>
-            <video ref={call.localVideoRef} autoPlay playsInline muted />
-            {!call.hasLocalMedia ? <span className="lr-tile__avatar" aria-hidden="true">{String(user.displayName || '?').charAt(0).toUpperCase()}</span> : null}
-            <figcaption><span>Sina</span></figcaption>
-          </figure>
-          {call.tiles.map((tile) => <RemoteTile key={tile.uid} tile={tile} />)}
+        <FloatingLayer inset={{ right: panel && globalThis.innerWidth > 760 ? 362 : 0 }}>
+          <FloatingWindow key={orientation} id={`group-${orientation}`} label="Grupi video" heightFor={heightFor} presets={presets}
+            defaultLayout={row ? rowDefault : columnDefault} minWidth={row ? 200 : 90} restoreContent={<span>Video ({tileCount})</span>}
+            controls={<button type="button" aria-label={row ? 'Pildid veergu' : 'Pildid ritta'} title={row ? 'Pildid veergu' : 'Pildid ritta'} onClick={flip}>{row ? <Rows2 size={14} aria-hidden="true" /> : <Columns2 size={14} aria-hidden="true" />}</button>}>
+            <div className={`lg-strip ${row ? 'is-row' : ''}`}>
+              <figure className={`lr-tile lr-tile--self lg-tile ${call.hasLocalMedia ? 'is-live' : ''}`}>
+                <video ref={call.localVideoRef} autoPlay playsInline muted />
+                {!call.hasLocalMedia ? <span className="lr-tile__avatar" aria-hidden="true">{String(user.displayName || '?').charAt(0).toUpperCase()}</span> : null}
+                <figcaption><span>Sina</span></figcaption>
+              </figure>
+              {call.tiles.map((tile) => <RemoteTile key={tile.uid} tile={tile} />)}
+            </div>
+          </FloatingWindow>
+        </FloatingLayer>
+        <aside className={`lr-side lg-side ${panel ? 'has-drawer' : ''}`} aria-label="Paneelid">
           {panel === 'chat' ? <section className="lr-drawer" aria-label="Vestlus">
             <header><strong>Vestlus</strong><button type="button" className="lr-icon" aria-label="Sulge vestlus" onClick={() => setPanel('')}><X size={18} /></button></header>
             <div className="lr-drawer__body"><GroupChat messages={messages} me={user.uid} closed={closed} onSend={(text) => service.sendMessage(roomId, { text, user, name: myName })} /></div>

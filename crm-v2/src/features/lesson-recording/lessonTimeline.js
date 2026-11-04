@@ -1,5 +1,6 @@
 // The student's Live Classroom lessons for the teacher's view of the student card: one row per lesson, plus board
 // lesson pages of days without a recording. Each row offers the lesson analysis (transcript) and the board.
+import { withErrorReview } from './errorReview.js';
 
 const pad = (n) => String(n).padStart(2, '0');
 export function dayKey(value) {
@@ -43,7 +44,8 @@ export function groupRecordings(recordings = []) {
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(rec);
   }
-  return [...groups.values()].map(joinRecordingParts);
+  // the teacher's „Pole viga” marks apply to everything that reads a lesson's errors (errorReview.js)
+  return [...groups.values()].map(joinRecordingParts).map(withErrorReview);
 }
 
 export function lessonTimeline(recordings = [], pages = []) {

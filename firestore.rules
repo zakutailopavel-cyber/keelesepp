@@ -1741,7 +1741,7 @@ service cloud.firestore {
     // Lesson recordings from the Live Classroom room. The teacher of an accepted invitation starts one only when
     // the student card has recordingConsent == true; the browser appends audio segments; the transcription worker
     // (Admin SDK on the school Mac) writes the text. Teacher, student and admin may read; nobody else.
-    // The school's picture and text bank for the worksheet constructor (staff only).
+    // The school's picture, sound, video and text bank for the worksheet constructor (staff only).
     match /mediaAssets/{assetId} {
       allow read: if isStaff();
       allow create, update: if isStaff()
@@ -1751,10 +1751,10 @@ service cloud.firestore {
           'title', 'text', 'words', 'textType',
           'createdAt', 'createdBy', 'createdByName', 'updatedAt'
         ])
-        && request.resource.data.kind in ['image', 'text']
+        && request.resource.data.kind in ['image', 'text', 'audio', 'video']
         && request.resource.data.level in ['', 'A1', 'A2', 'B1', 'B2', 'C1']
         && request.resource.data.tags is list && request.resource.data.tags.size() <= 60
-        && (request.resource.data.kind != 'image' || (request.resource.data.src is string && request.resource.data.src.size() > 0 && request.resource.data.src.size() <= 2000))
+        && (request.resource.data.kind == 'text' || (request.resource.data.src is string && request.resource.data.src.size() > 0 && request.resource.data.src.size() <= 2000))
         && (request.resource.data.kind != 'text' || (request.resource.data.text is string && request.resource.data.text.size() <= 6000));
       allow delete: if isAdmin() || (isStaff() && resource.data.createdBy == uid());
     }
@@ -1782,15 +1782,50 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/liveLessonInvitations/$(request.resource.data.invitationId)).data.studentUid == request.resource.data.studentUid
         && exists(studentPath(request.resource.data.studentId))
         && studentDoc(request.resource.data.studentId).get('recordingConsent', false) == true;
-      allow update: if isStaff()
+      allow update: if (isStaff()
         && resource.data.teacherUid == uid()
         && resource.data.status == 'recording'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'endedAt', 'segments', 'updatedAt', 'textRequestedAt'])
         && (!('textRequestedAt' in request.resource.data) || (request.resource.data.textRequestedAt is string && request.resource.data.textRequestedAt.size() <= 40))
         && request.resource.data.status in ['recording', 'uploaded']
         && request.resource.data.segments is list
-        && request.resource.data.segments.size() <= 240;
+        && request.resource.data.segments.size() <= 240)
+        // „Pole viga”: the recording's teacher or an admin marks flagged errors (only `errorReview`, any status)
+        || ((isAdmin() || (isStaff() && resource.data.teacherUid == uid()))
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['errorReview'])
+          && request.resource.data.errorReview is map
+          && request.resource.data.errorReview.size() <= 300);
       allow delete: if isAdmin();
+    }
+
+    // „Pole viga” copies for the school Mac (tools/lesson-transcriber skips a correction dismissed in 2+ lessons).
+    // Written by the recording's teacher or an admin with their own uid; read by admins (and the Mac's Admin SDK).
+    function analyzerFeedbackValid(data) {
+      return data.keys().hasOnly(['said', 'corrected', 'kind', 'source', 'reason', 'lang', 'recordingId', 'byUid', 'byName', 'at'])
+        && data.keys().hasAll(['said', 'corrected', 'recordingId', 'byUid', 'at'])
+        && data.byUid == uid()
+        && data.said is string && data.said.size() > 0 && data.said.size() <= 600
+        && data.corrected is string && data.corrected.size() > 0 && data.corrected.size() <= 600
+        && data.get('kind', '') is string && data.get('kind', '').size() <= 60
+        && data.get('source', '') in ['', 'gec', 'teacher']
+        && data.get('reason', '') is string && data.get('reason', '').size() <= 200
+        && data.get('lang', '') in ['', 'et', 'en']
+        && data.get('byName', '') is string && data.get('byName', '').size() <= 160
+        && data.at is string && data.at.size() <= 40
+        && data.recordingId is string && data.recordingId.size() > 0 && data.recordingId.size() <= 200;
+    }
+    function teachesRecording(recordingId) {
+      return exists(/databases/$(database)/documents/lessonRecordings/$(recordingId))
+        && get(/databases/$(database)/documents/lessonRecordings/$(recordingId)).data.teacherUid == uid();
+    }
+    match /analyzerFeedback/{feedbackId} {
+      allow read: if isAdmin();
+      allow create, update: if isStaff()
+        && analyzerFeedbackValid(request.resource.data)
+        && feedbackId.matches('^' + request.resource.data.recordingId + '_[0-9a-z]+$')
+        && (isAdmin() || teachesRecording(request.resource.data.recordingId));
+      // an undo deletes the copy (also when it is already gone)
+      allow delete: if isAdmin() || (isStaff() && (resource == null || resource.data.byUid == uid() || teachesRecording(resource.data.recordingId)));
     }
 
     // The student's own word list (Live Classroom „Sõnad”). Staff add and edit words; the student or a linked parent
