@@ -1,4 +1,31 @@
 .sb { display: grid; gap: 10px; }
+/* „Pildid”: search pictures during the lesson and drag them onto the board (a Pinterest-like column grid) */
+.sb-media { position: absolute; left: 14px; top: 56px; bottom: 84px; z-index: 4; display: flex; flex-direction: column; gap: 8px; width: min(340px, calc(100% - 28px)); padding: 12px; border: 1px solid #e7e9f3; border-radius: 18px; background: rgba(255, 255, 255, .98); box-shadow: 0 12px 34px rgba(30, 34, 70, .16); }
+.sb-media__head { display: flex; align-items: center; justify-content: space-between; }
+.sb-media__close { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: #3c4257; cursor: pointer; }
+.sb-media__close:hover { background: #f1f2f8; }
+.sb-media__search { display: flex; gap: 6px; }
+.sb-media__search input { flex: 1; min-width: 0; height: 36px; padding: 0 12px; border: 1px solid #d6d9e4; border-radius: 999px; font: inherit; }
+.sb-media__search button { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #4f7cff; color: #fff; cursor: pointer; }
+.sb-media__tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.sb-media__tabs button { padding: 4px 10px; border: 1px solid #e4e6f2; border-radius: 999px; background: #fff; font-size: .8rem; cursor: pointer; }
+.sb-media__tabs button.is-active { border-color: #4f7cff; background: #eef2ff; color: #2c3a8c; font-weight: 700; }
+.sb-media__hint { margin: 0; color: #5b6075; font-size: .82rem; }
+.sb-media__results { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.sb-media__grid { columns: 2; column-gap: 8px; }
+.sb-media__item { position: relative; display: block; width: 100%; margin: 0 0 8px; padding: 0; border: 0; border-radius: 12px; overflow: hidden; background: #f1f2f8; cursor: grab; break-inside: avoid; }
+.sb-media__item img { display: block; width: 100%; height: auto; min-height: 40px; object-fit: cover; }
+.sb-media__item:hover img { filter: brightness(.92); }
+.sb-media__item:disabled { opacity: .6; cursor: progress; }
+.sb-media__badge { position: absolute; left: 6px; bottom: 6px; padding: 1px 7px; border-radius: 999px; background: rgba(20, 24, 45, .62); color: #fff; font-size: .68rem; }
+.sb-media__more { display: block; width: 100%; height: 36px; margin: 4px 0; border: 1px solid #d6d9e4; border-radius: 999px; background: #fff; cursor: pointer; }
+.sb-media__foot { margin: 0; color: #7a7f95; font-size: .72rem; }
+.sb-credit { cursor: pointer; }
+.sb-credit circle { fill: rgba(20, 24, 45, .62); }
+.sb-credit text { fill: #fff; font-weight: 700; font-family: Georgia, serif; font-style: italic; pointer-events: none; }
+@media (max-width: 760px) {
+  .sb-media { left: 8px; right: 8px; top: auto; bottom: 64px; width: auto; height: 55%; }
+}
 .sb-pages { display: flex; gap: 6px; align-items: center; overflow-x: auto; }
 .sb-pages button { border: 1px solid var(--border, #e4e7ec); background: #fff; border-radius: 999px; padding: 6px 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .sb-pages button[aria-selected="true"] { background: #14243a; border-color: #14243a; color: #fff; }

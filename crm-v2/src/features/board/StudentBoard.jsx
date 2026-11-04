@@ -1,5 +1,5 @@
-import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type, X } from 'lucide-react';
-import { Fragment, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, Images, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type, X } from 'lucide-react';
+import { Fragment, Suspense, lazy, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
@@ -13,7 +13,11 @@ import { INK_BOX, bookmarkElement, bookmarkEmpty, isBookmark, notePatch, noteRec
 import { spanCss, spansOf, textPatch } from './richText.js';
 import BookmarkDialog from './BookmarkDialog.jsx';
 import RichTextEditor, { FormatBar } from './RichTextEditor.jsx';
+import { MEDIA_MIME, mediaElement, placeableImage, readPayload } from './mediaSearch.js';
 import './board.css';
+
+// „Pildid” (search pictures and drag them onto the board): its own chunk, loaded when the teacher opens it
+const MediaSearchPanel = lazy(() => import('./MediaSearchPanel.jsx'));
 
 const TOOLS = [
   ['select', 'Vali ja liiguta', MousePointer2],
@@ -92,6 +96,8 @@ export default function StudentBoard({
   insetRight = 0,
   // „Järjehoidja / Kleebis”: the bookmarks are kept for the student in „Minu vead” (studentNotes)
   noteService = studentNotesService,
+  // „Pildid”: the school picture bank to search (tests / sheet-lab pass their own; default mediaBankService)
+  mediaBank,
   // Live Classroom (student): which worksheet pages are tabs — { hidden: Set<sheetId> (no tab unless open),
   // closable: Set<sheetId> (a × after the tab), onClose(sheetId), extra(pagedSheetIds) → node after the tabs }
   sheetTabs = null,
@@ -131,6 +137,9 @@ export default function StudentBoard({
   // the open bookmark sheet: { x, y } for a new one, or { element } to change one
   const [bookmark, setBookmark] = useState(null);
   const [bookmarkSaving, setBookmarkSaving] = useState(false);
+  // „Pildid” panel (teacher in the live room) and the result being put on the board
+  const [mediaOpen, setMediaOpen] = useState(false);
+  const [placing, setPlacing] = useState('');
   // the rich text editor of an open text element
   const richRef = useRef(null);
   // the paper of each page (dots, grid, lines, plain), shared by everyone with the board
@@ -983,6 +992,34 @@ export default function StudentBoard({
     }
   };
 
+  // a search result dropped at a screen point (or tapped: the middle of the visible board) becomes an image element
+  const placeMedia = async (item, client = null) => {
+    if (!staff || !item?.full || placing) return;
+    const rect = svgRef.current?.getBoundingClientRect();
+    const box = { w: rect?.width || 900, h: rect?.height || 600 };
+    const at = client && rect && Number.isFinite(client.x) && Number.isFinite(client.y) ? { x: client.x - rect.left, y: client.y - rect.top } : { x: box.w / 2, y: box.h / 2 };
+    setPlacing(item.id || item.full);
+    setError('');
+    try {
+      const { url, storagePath } = await placeableImage(item, { upload: uploadImage });
+      const size = item.width && item.height ? { width: item.width, height: item.height } : await imageSize(url);
+      await add(mediaElement({ url, storagePath, ...size, credit: item.credit, sourceUrl: item.sourceUrl }, screenToWorld(at, view), view, box), 'Pilti ei saanud tahvlile lisada.');
+    } finally {
+      setPlacing('');
+    }
+  };
+  const mediaDragOver = (event) => {
+    if (!staff || !Array.from(event.dataTransfer?.types || []).includes(MEDIA_MIME)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  };
+  const mediaDrop = (event) => {
+    const item = staff ? readPayload(event.dataTransfer?.getData(MEDIA_MIME)) : null;
+    if (!item) return;
+    event.preventDefault();
+    placeMedia(item, { x: event.clientX, y: event.clientY });
+  };
+
   const render = (element) => {
     const common = { 'data-element-id': element.id };
     if (element.type === 'stroke') return <path {...common} d={pathFor(element.points)} fill="none" stroke={element.color || COLORS[0]} strokeWidth={element.strokeWidth || 4} strokeLinecap="round" strokeLinejoin="round" style={isMarker(element) ? { mixBlendMode: 'multiply' } : undefined} />;
@@ -1023,7 +1060,18 @@ export default function StudentBoard({
           : element.text || (isNote ? 'Topeltklõps, et kirjutada' : 'Tekst')}</div>
       </foreignObject>;
     }
-    if (element.type === 'image') return <image {...common} href={element.url} x={element.x} y={element.y} width={element.w} height={element.h} preserveAspectRatio="xMidYMid meet" />;
+    if (element.type === 'image') {
+      const picture = <image {...common} href={element.url} x={element.x} y={element.y} width={element.w} height={element.h} preserveAspectRatio="xMidYMid meet" />;
+      if (!element.credit && !element.sourceUrl) return picture;
+      // „ⓘ”: the licence, author and source of a picture from the internet, the same size at every zoom
+      const r = 9 / view.scale;
+      const badge = <g className="sb-credit" transform={`translate(${element.x + element.w - r * 1.4} ${element.y + element.h - r * 1.4})`}>
+        <title>{[element.credit, element.sourceUrl].filter(Boolean).join('\n')}</title>
+        <circle r={r} />
+        <text y={r * 0.42} fontSize={r * 1.3} textAnchor="middle">i</text>
+      </g>;
+      return <>{picture}{element.sourceUrl ? <a href={element.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`Pildi allikas: ${element.credit || element.sourceUrl}`} onPointerDown={(event) => event.stopPropagation()}>{badge}</a> : badge}</>;
+    }
     if (element.type === 'pdf') return <foreignObject {...common} x={element.x} y={element.y} width={Math.max(element.w, 160)} height={room ? Math.max(element.h, 120) : Math.max(Math.min(element.h, 120), 60)}>
       {room ? <div data-element-id={element.id} className="sb-pdf sb-pdf--page"><iframe title={`PDF: ${element.name || 'materjal'}`} src={`${element.url}#toolbar=0&navpanes=0&view=FitH`} /><span>{element.name || 'PDF'} · <a href={element.url} target="_blank" rel="noreferrer">Ava PDF</a></span></div>
         : <div data-element-id={element.id} className="sb-pdf"><strong>{element.name || 'PDF'}</strong><a href={element.url} target="_blank" rel="noreferrer">Ava PDF</a></div>}
@@ -1086,6 +1134,7 @@ export default function StudentBoard({
     <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('board')}>Tahvlivaade{elements.length ? ' · õpetaja märkmed' : ''}</button>
   </div>;
   const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
+    onDragOver={mediaDragOver} onDrop={mediaDrop}
     onPointerDownCapture={(event) => { if (!mediaDown(event)) navDown(event); }} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
     {onWorksheet && (narrow || tablet) ? <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('reading')}>Lugemisvaade</button> : null}
     {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
@@ -1218,8 +1267,12 @@ export default function StudentBoard({
             <input ref={fileInput} className="sr-only" type="file" accept="image/*" aria-label="Lisa pilt tahvlile" onChange={(event) => { pickImage(event.target.files?.[0]); event.target.value = ''; }} />
             <button type="button" aria-label="Pilt" title={staff ? 'Lisa pilt' : 'Lisa foto (nt vihikust)'} disabled={uploading} onClick={() => fileInput.current?.click()}><ImagePlus size={20} /></button>
           </> : null}
+          {staff ? <button type="button" className={mediaOpen ? 'is-active' : ''} aria-label="Pildid" aria-pressed={mediaOpen} title="Pildid: otsi ja lohista tahvlile" onClick={() => setMediaOpen(!mediaOpen)}><Images size={20} /></button> : null}
           <button type="button" className={`sb-dock__more ${stylesOpen ? 'is-open' : ''}`} aria-label={stylesOpen ? 'Peida värvid' : 'Näita värve'} aria-pressed={stylesOpen} onClick={() => setStylesOpen(!stylesOpen)}><ChevronDown size={18} /></button>
         </div>
+        {staff && mediaOpen ? <Suspense fallback={<aside className="sb-media" aria-label="Pildid"><p className="sb-media__hint">Laen…</p></aside>}>
+          <MediaSearchPanel onPlace={(item) => placeMedia(item)} onClose={() => setMediaOpen(false)} placing={placing} {...(mediaBank ? { bank: mediaBank } : {})} />
+        </Suspense> : null}
         {stylesOpen && !reading ? <div className="sb-style" aria-label="Värv ja suurus">
           <div className="sb-style__colors">{palette.map((value) => <button type="button" key={value} className={`sb-color ${activeColor === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Värv ${value}`} aria-pressed={activeColor === value} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseColor(value)} />)}</div>
           <label className="sb-style__width"><span className="sr-only">Joone paksus</span><input type="range" min="1" max="24" value={width} aria-label="Joone paksus" onChange={(event) => pickWidth(Number(event.target.value))} /></label>
