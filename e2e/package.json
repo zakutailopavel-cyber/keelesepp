@@ -4,7 +4,8 @@
   "description": "Browser scenarios against local Firebase emulators and the CRM dev server (never production)",
   "scripts": {
     "test": "playwright test",
-    "emulated": "bash ./run.sh"
+    "emulated": "bash ./run.sh",
+    "smoke": "node smoke/daily-smoke.cjs"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1"
