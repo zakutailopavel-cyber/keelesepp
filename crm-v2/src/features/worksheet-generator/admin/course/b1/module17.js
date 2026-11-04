@@ -22,7 +22,7 @@
 //   083 KUUL L→S  „Eksam ja e-teenused” — radio „Päevateema” with adviser Merit Kask on registering and the exam day
 //                 (L02); reported speech and the impersonal past (öeldi, soovitati; notice, G02 table, G07 word order,
 //                 G03 Sofia's message), 4-3-2 (S08, the module's one retelling), „Mida sa teeksid?” (S14, fluency);
-//                 dictation (L08), Eksaminurk L3a = Ruslan's call to Sotsiaalkindlustusamet, safe e-services (R07, expert),
+//                 Eksaminurk L3a = Ruslan's call to Sotsiaalkindlustusamet, safe e-services (R07, expert),
 //                 key words matched (G08), form choice (G13), the examiner set; Kasuta: Tiina at the house meeting (L06),
 //                 the district's questionnaire (W01), a forum of new residents (R12), the checklist ranked (S12), the
 //                 checklist presented to the neighbours (main, S13).
@@ -527,16 +527,6 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpetaja loeb olukorrad ette; esimesel korral vastab õpilane rahulikult, teisel korral annab õpetaja igale olukorrale 20 sekundit. Õpetaja märgib, kas õpilane kasutas tingivat kõneviisi (teeksin, helistaksin, läheksin).'),
     ],
     practice: [
-      { ...B.dictation('083_p_dict', 'Eksamipäeva meelespea.', 'Kuula iga lauset kaks korda ja kirjuta see täpselt üles. Kontrolli lõpus käänded ja komad.', [
-        'Eksamile tuleb võtta kaasa isikut tõendav dokument.',
-        'Telefon peab eksami ajal olema välja lülitatud ja kotis.',
-        'Kirjalikud osad tehakse samal päeval järjest.',
-        'Rääkimise osa tehakse koos teise eksaminandiga.',
-        'Eksam on sooritatud, kui tulemus on vähemalt kuuskümmend protsenti.',
-        'Enne eksamit tasub minna vara magama ja hommikul korralikult süüa.',
-        'Lugemise osas on aega täpselt viiskümmend minutit.',
-        'Registreerimise tähtaeg on kirjas Harno kodulehel.',
-      ], 8), goal: 'g_vocab' },
       tag(B.listening('083_p_ska', 'Eksaminurk: Ruslan helistab Sotsiaalkindlustusametisse (Harno B1 kuulamine 3)', 'Kuula telefonikõnet kaks korda. Vasta igale küsimusele ühe-kahe sõna või arvuga.', [
         'Kertu: Sotsiaalkindlustusamet, tere! Minu nimi on Kertu. Kuidas saan aidata?',
         'Ruslan: Tere! Ruslan siin. Me kolisime perega Narvast Tallinnasse ja ma tahan teada, kas see muudab midagi meie tütre peretoetuses.',
@@ -566,6 +556,10 @@ export const LESSONS = withShapes({
         'Mida tuleb klienditeenindusse kaasa võtta? [isikut tõendav dokument|dokument]',
         'Mida küsis eilne helistaja Ruslanilt? [PIN-koodi|Smart-ID PIN-koodi]',
         'Kellele tuleb petukõnest teatada? [politseile]',
+        'Mis on teenindaja nimi? [Kertu]',
+        'Kui tihti makstakse Alisa peretoetust? [iga kuu|kord kuus]',
+        'Kas kolimine Eesti sees muudab peretoetust? [ei|ei muuda]',
+        'Kuhu saadab amet oma teated? [e-postile|e-posti]',
       ], 'g_read'), { task: 'L03', harno: 'L3a' }),
       B.know('083_d_know', [
         'Eesti keele tasemeeksam on tasuta. B1-taseme keeleoskust on vaja näiteks Eesti kodakondsuse ja pikaajalise elaniku elamisloa saamiseks. Kodakondsuse taotleja, kes on 65-aastane või vanem, võib teha B1 eksami ilma kirjutamise osata.',
@@ -590,8 +584,26 @@ export const LESSONS = withShapes({
         ['Mis vahe on PIN1-l ja PIN2-l?', 'PIN1 on sisselogimiseks, PIN2 allkirjastamiseks'],
         ['Millised on pettuse ohumärgid?', 'salajasus ja kiirustamine|helistaja ütleb, et asi on salajane või kiire'],
         ['Mida teha, kui PIN-kood on juba ära antud?', 'helistada pangale, sulgeda kaardid ja teha politseile avaldus'],
+        ['Mis keeles võivad petturid rääkida?', 'eesti keeles|ka eesti keeles'],
+        ['Mitmekohaline on Smart-ID kontrollkood?', 'neljakohaline|neli|4'],
+        ['Mida teha, kui ekraanil on tekst, millest sa aru ei saa?', 'koodi mitte sisestada|ära sisesta koodi|mitte sisestada'],
+        ['Kust leida asutuse õige telefoninumber?', 'ametlikult kodulehelt|kodulehelt'],
+        ['Mida võtta politseisse kaasa?', 'tõendid|kõnede ajalugu ja sõnumid'],
+        ['Mida näeb eesti.ee andmejälgijast?', 'millised asutused on sinu andmeid kasutanud|asutused'],
         ['Kas sinule või su tuttavatele on helistanud petturid? Mida sa sellises olukorras teeksid?', ''],
       ], 'g_read'), { task: 'R07', voice: 'expert' }),
+      tag(B.gaps('083_p_safe_words', 'Sõnad meelespeas.', 'Loe meelespead veel kord. Leia tekstist sobiv sõna ja kirjuta see lünka.', [
+        'Inimene, kes petab teisi raha saamiseks, on [pettur|petturid].',
+        'Smart-ID-ga saab end telefonis [tuvastada|tuvastama].',
+        'PIN2 on vaja dokumendi [allkirjastamiseks|allkirjastamine].',
+        'Neljakohaline number, mida tuleb ekraanil ja telefonis võrrelda, on [kontrollkood].',
+        'Kui helistaja ütleb, et asi on salajane, on see [ohumärk].',
+        'Politseile tuleb pettuse kohta teha [avaldus].',
+        'Kõnede ajalugu ja sõnumid on [tõendid|tõend].',
+        'Riigi ja panga teenused internetis on [e-teenused].',
+        'Eesti.ee-s näitab [andmejälgija], millised asutused on sinu andmeid kasutanud.',
+        'Pettur ei lase sul rahulikult mõelda, vaid hakkab sind [kiirustama|kiirustab].',
+      ], '', 'full', 'g_vocab'), { task: 'R15' }),
       B.match('083_p_words', 'Asjaajamise sõnad.', 'Ühenda iga sõna selle seletusega. Kõik sõnad on raadiosaatest, telefonikõnest ja meelespeast.', [
         ['isikukood', 'inimese number, mille järgi riik teda registrites tunneb'],
         ['tunnistus', 'dokument, mis näitab eksami tulemust'],

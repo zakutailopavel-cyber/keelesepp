@@ -10,7 +10,7 @@
 //                 here), Olena's letter, the club radio notice, the info gap; Daria's clubs: cards, agreement, the call to
 //                 the activities leader (main), a message to the class teacher, parents meet.
 //   037 KUUL L→W  „Pean õppima, tahan osata” — Eksaminurk L2 (Maret on Raadio Linnahääl, format introduced here), Anna
-//                 and Liis at lunch, ma- or da-form; the office notice board, the lunch club invitation, a dictation;
+//                 and Liis at lunch, ma- or da-form; the office notice board, the lunch club invitation;
 //                 the course administrator's voicemail → notes, Liis is told, Anna's letter to Kati (main).
 //   038 LUGE R→W  „Miks ma õpin?” — the magazine article on adult learners and sleep, the survey chart, Anna and Liis
 //                 at the coffee machine, sest / kuna / seepärast and word order; the language school's newsletter,
@@ -455,6 +455,15 @@ export const LESSONS = withShapes({
         ['Mida ei tohi teha toas 210?', 'telefoniga rääkida ega süüa|rääkida telefoniga|süüa'],
         ['Kui kauaks võib õpiku koju viia?', 'kaheks nädalaks|kaks nädalat'],
         ['Miks on hea, et lõunaklubis räägitakse mitmes keeles?', 'igaüks saab harjutada oma keelt|igaüks saab tulla'],
+        ['Mis kell lõunaklubi algab?', '12.30|pool üks'],
+        ['Kus lõunaklubi kohtub?', 'koosolekuruumis'],
+        ['Mis teemadel räägitakse lõunaklubis näiteks?', 'reisimine|sport|reisimisest|spordist'],
+        ['Kes pakub lõunaklubis kohvi?', 'firma'],
+        ['Kellelt saab keelekursuste kohta küsida?', 'Eha Org'],
+        ['Mis numbriga on Eha Orgi tuba?', '214'],
+        ['Mitu lauda on vaikses toas?', 'neli|4'],
+        ['Millal tuleb vaikne tuba kalendris broneerida?', 'üle tunni|kui tahad seal olla üle tunni'],
+        ['Kus on uus raamatukogu kapp?', 'köögis'],
       ]), { task: 'R07' }),
       B.truefalse('037_p_true', 'Kas teadetes on nii?', 'Loe infotahvli teateid veel kord. Kas väide vastab teadetele või mitte?', [
         ['Lõunaklubis võib rääkida ka eesti keeles.', true],
@@ -467,19 +476,23 @@ export const LESSONS = withShapes({
         ['Kapist võetud raamatu võib kaheks nädalaks koju viia.', true],
         ['Raamatu võtja kirjutab oma nime kapi ukse vihikusse.', true],
         ['Eha Org juhatab teisipäeviti lõunaklubi.', false],
+        ['Lõunaklubi kohtub kaks korda nädalas.', true],
+        ['Vaikses toas on suur aken.', true],
+        ['Keeleõpikuid saab kapist osta.', false],
+        ['Töötaja, kes lahkub firmast aasta jooksul, maksab poole kursuse hinnast tagasi.', true],
       ], 'full', 'g_read'),
-      { ...B.dictation('037_p_dict', 'Etteütlus: Anna plaan.', 'Õpetaja loeb iga lause kaks korda. Kirjuta lause üles ja kontrolli ma- ja da-vorme.', [
-        'Anna peab kevadel soome keele eksami sooritama.',
-        'Ta hakkab kaks korda nädalas kursusel käima.',
-        'Liis lubas Annaga lõunapausil soome keeles rääkida.',
-        'Annal on raske kiiret kõnet kuulata.',
-        'Iga päev proovib ta kümme uut sõna meelde jätta.',
-        'Pühapäeval jääb ta koju kodutööd tegema.',
-        'Kas sa tahaksid ka lõunaklubisse tulla?',
-        'Raamatukogus on hea vaikselt õppida.',
-        'Õpetaja soovitas Annal rohkem raadiot kuulata.',
-        'Kevadeks tahab Anna soome keelt hästi osata.',
-      ], 10), goal: 'g_vocab' },
+      tag(B.choice('037_p_words', 'Mida see sõna teadetes tähendab?', 'Loe infotahvli teateid. Vali, mida esiletõstetud sõna seal tähendab.', [
+        ['„Tulla võib igaüks, kes tahab keelt harjutada, ka **algaja**.” Kes on algaja?', 'inimene, kes alles hakkab keelt õppima', 'inimene, kes räägib keelt väga hästi', 'inimene, kes juhib klubi'],
+        ['„Kohvi **pakub** firma.” Mida see tähendab?', 'firma annab kohvi tasuta', 'töötaja peab kohvi ise ostma', 'kohvi müüakse klubis'],
+        ['„Kursuse peab enne **kokku leppima** oma juhiga.” Mida see tähendab?', 'koos juhiga otsustama', 'juhile pärast kursust teatama', 'juhilt raha laenama'],
+        ['„Pärast kursust tuleb personaliosakonda tuua **tunnistus**.” Mis on tunnistus?', 'paber, mis näitab, et kursus on läbitud', 'kursuse arve', 'uus tööleping'],
+        ['„… peab ta **poole** kursuse hinnast tagasi maksma.” Kui palju see on?', '50 protsenti hinnast', 'kogu hind', 'veerand hinnast'],
+        ['„Seal võib lugeda, õppida ja **keskenduda**.” Mida tähendab keskenduma?', 'mõtlema ainult ühele asjale', 'puhkama ja magama', 'teistega vestlema'],
+        ['„Palun **broneeri** tuba kalendris.” Mida tähendab broneerima?', 'tuba endale ette kinni panema', 'tuba koristama', 'toast lahkuma'],
+        ['„Kööki tuli uus kapp, kus on keeleõpikud ja **sõnaraamatud**.” Mida leiab sõnaraamatust?', 'sõnade tähendused', 'kontori telefoninumbrid', 'lõunaklubi kava'],
+        ['„Raamatu võib koju viia **kaheks nädalaks**.” Mida see tähendab?', 'raamatu peab kahe nädala pärast tagasi tooma', 'raamatu peab kahe päeva pärast tagasi tooma', 'raamatu võib endale jätta'],
+        ['„Kui sul on kodus vanu õpikuid, **too** need kappi teistele!” Mida Liis palub?', 'kinkida vanad õpikud kappi', 'osta kapist õpikuid', 'viia kapi õpikud koju'],
+      ], 'full', 'g_vocab'), { task: 'G14' }),
       B.examWriting('037_p_invite', 'Kutse lõunaklubisse.', 'Liis palub sul kirjutada kolleegidele kutse. Kirjuta 50–70 sõna ja kõigist neljast punktist.', 'kutse', {
         situation: 'Kontoris algab lõunaklubi „Keel ja kohv”. Liis tahab, et tuleks rohkem inimesi.',
         points: ['millal ja kus klubi kohtub', 'mida klubis teha saab', 'mida peab kaasa võtma', 'miks tasub tulla'],
