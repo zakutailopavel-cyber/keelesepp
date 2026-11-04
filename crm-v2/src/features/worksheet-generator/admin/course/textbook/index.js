@@ -5,9 +5,10 @@ import minuEesti from './minuEesti.json';
 import grammatika from './grammatika.json';
 // our own material written from grammar facts (no book pages): `pages: ''` → subtitle just „Õpik” (docs/TEXTBOOKS.md)
 import sihitis from './sihitis.json';
+import kohakaanded from './kohakaanded.json';
 
 export const TEXTBOOK_SHEET_ID = 'opik';
-const BOOKS = [minuEesti, grammatika, sihitis];
+const BOOKS = [minuEesti, grammatika, sihitis, kohakaanded];
 
 // every textbook sheet: { lessonId, book, pages, doc }
 export const TEXTBOOK_SHEETS = BOOKS.flatMap(({ book, sheets }) => sheets.map((sheet) => ({
