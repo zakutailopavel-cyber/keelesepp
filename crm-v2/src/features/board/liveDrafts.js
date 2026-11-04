@@ -16,6 +16,8 @@ const page = (value) => text(value, 200);
 const COLOR = /^#[0-9a-f]{3,8}$/i;
 const color = (value, fallback = '#1C2B3A') => (COLOR.test(String(value || '')) ? value : fallback);
 
+import { normalizeSpans, plainText, MAX_SPANS } from './richText.js';
+
 // a drawing in progress: a line (pen or marker) or a shape
 function cleanDraft(draft) {
   if (!draft || typeof draft !== 'object') return null;
@@ -25,18 +27,33 @@ function cleanDraft(draft) {
     if (points.length < 1) return null;
     return { type: 'stroke', points, color: color(draft.color), strokeWidth: Math.min(40, Math.max(1, num(draft.strokeWidth) || 4)) };
   }
-  if (draft.type === 'shape' && ['rect', 'ellipse', 'arrow', 'line'].includes(draft.shape)) {
+  if (draft.type === 'shape' && ['rect', 'ellipse', 'arrow', 'line', 'callout'].includes(draft.shape)) {
     const box = ['x', 'y', 'w', 'h'].map((key) => num(draft[key]));
     if (box.some((value) => value === null)) return null;
     const [x, y, w, h] = box;
-    return { type: 'shape', shape: draft.shape, x, y, w, h, color: color(draft.color), strokeWidth: Math.min(40, Math.max(1, num(draft.strokeWidth) || 3)) };
+    const bend = num(draft.bend);
+    return {
+      type: 'shape', shape: draft.shape, x, y, w, h, color: color(draft.color), strokeWidth: Math.min(40, Math.max(1, num(draft.strokeWidth) || 3)),
+      ...(bend ? { bend } : {}), ...(['both', 'none'].includes(draft.heads) ? { heads: draft.heads } : {}),
+      ...(draft.shape === 'callout' ? { text: text(draft.text, 500) } : {}),
+    };
   }
   return null;
 }
 
 // the outgoing messages (`d` drawing, `typing`, `move`, `cur` cursor, `view`); `pageId` '' is the main board
 export const draftMessage = (pageId, draft) => ({ t: 'd', pageId: page(pageId), draft: draft ? cleanDraft(draft) : null });
-export const typingMessage = (pageId, id, value) => ({ t: 'typing', pageId: page(pageId), id: id ? text(id, 200) : '', text: id ? text(value, MAX_TEXT) : '' });
+// rich text (richText.js) also sends its runs, so the other side sees the colours and bold while it is typed
+const cleanSpans = (spans, value) => {
+  if (!Array.isArray(spans)) return null;
+  const list = normalizeSpans(spans.slice(0, MAX_SPANS));
+  return plainText(list) === value && list.some((span) => Object.keys(span).length > 1) ? list : null;
+};
+export const typingMessage = (pageId, id, value, spans) => {
+  const typed = id ? text(value, MAX_TEXT) : '';
+  const runs = id ? cleanSpans(spans, typed) : null;
+  return { t: 'typing', pageId: page(pageId), id: id ? text(id, 200) : '', text: typed, ...(runs ? { spans: runs } : {}) };
+};
 export const moveMessage = (pageId, ids, dx, dy) => ({ t: 'move', pageId: page(pageId), ids: ids?.length ? ids.slice(0, MAX_IDS).map((id) => text(id, 200)) : [], dx: num(dx) || 0, dy: num(dy) || 0 });
 export const cursorMessage = (pageId, point, { typing = false } = {}) => (point ? { t: 'cur', pageId: page(pageId), x: num(point.x), y: num(point.y), typing: Boolean(typing) } : { t: 'cur', off: true });
 // the teacher's visible part of the board (world coordinates); off = the teacher stopped leading the view
@@ -53,7 +70,9 @@ export function reduceRemote(state = EMPTY_REMOTE, message, now = Date.now()) {
   }
   if (message.t === 'typing') {
     const id = text(message.id, 200);
-    return { ...state, typing: id ? { pageId: page(message.pageId), id, text: text(message.text, MAX_TEXT), at: now } : null };
+    const typed = text(message.text, MAX_TEXT);
+    const runs = cleanSpans(message.spans, typed);
+    return { ...state, typing: id ? { pageId: page(message.pageId), id, text: typed, ...(runs ? { spans: runs } : {}), at: now } : null };
   }
   if (message.t === 'move') {
     const ids = Array.isArray(message.ids) ? message.ids.slice(0, MAX_IDS).map((id) => text(id, 200)).filter(Boolean) : [];
