@@ -137,8 +137,6 @@ export function demoRepositories(data) {
     boardCopiesService: { listForStudents: async () => [], subscribe: (id, onData) => { onData([]); return () => {}; } },
     // the student's own „Minu areng” (lab ?view=student)
     studentSelf: { listSelf: async () => data.students.slice(0, 1), getById: async (id) => data.students.find((item) => item.id === id) || null },
-    petRepository: { lessonStats: async () => [], lessonStatsForStudents: async () => [] },
-    catalogRepository: { listCurriculum: async () => [] },
     availabilityService: { get: async () => null, getForStudent: async () => null, subscribe: () => () => {} },
     pointsService: { listForStudents: byStudents(data.progressPoints || []) },
     announcementService: { listAnswered: async () => [] },
