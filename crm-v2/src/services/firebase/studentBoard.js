@@ -3,13 +3,10 @@ import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
 import { copyableElement, lessonCopyId } from '../../features/board/lessonBoards.js';
+import { worksheetPageId } from '../../features/board/boardModel.js';
 
-// stable page id of a worksheet title (FNV-1a), e.g. ws-3f2a9c1b
-export function worksheetPageId(title) {
-  let hash = 0x811c9dc5;
-  for (const char of String(title || '')) { hash ^= char.codePointAt(0); hash = Math.imul(hash, 0x01000193) >>> 0; }
-  return `ws-${hash.toString(16).padStart(8, '0')}`;
-}
+// stable page id of a worksheet title (boardModel.js; also used to find the sheet behind a page)
+export { worksheetPageId };
 
 // The student's own board outside lessons: the same data as the CRM v1 board (whiteboards/{studentId}/elements and
 // lesson pages whiteboards/{studentId}/lessonPages/{pageId}/elements), so everything drawn in v1 stays and both CRMs

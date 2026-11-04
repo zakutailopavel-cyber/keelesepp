@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { PHASES, TASK_STATE, groupTasks, isTaskLate, learnerGoal, mergeTasks, taskCount, taskDueText, taskMinutes, tasksForSkill } from './taskList.js';
+import { worksheetPageId } from '../board/boardModel.js';
+import { PHASES, TASK_STATE, groupTasks, isTaskLate, learnerGoal, mergeTasks, withBoardSheet, taskCount, taskDueText, taskMinutes, tasksForSkill } from './taskList.js';
 
 const TODAY = '2026-11-10';
 const sheet = (id, extra = {}) => ({ id, studentId: 's1', title: 'Minu päev · Avasta', lessonTitle: 'Minu päev', phase: 'discover', status: 'new', answers: {}, ...extra });
@@ -189,5 +190,28 @@ describe('tasksForSkill: the tasks behind a hint „Kuulamine 0% → 70%”', ()
   });
   it('no skill: every task', () => {
     expect(tasksForSkill(tasks, '')).toBe(tasks);
+  });
+});
+
+describe('a lesson homework given with a worksheet page (2026-11-04, Demjan)', () => {
+  const page = 'Tööleht: Loodus · Õpik';
+  const given = { id: 'h1', status: 'Ootel', source: 'live-classroom', boardPageId: worksheetPageId(page), boardPageTitle: page, task: `Õpi tahvlilehe „${page}” materjal.`, due: '2026-11-11' };
+  const sheet = { id: 'as-opik', title: 'Loodus', phase: 'opik', status: 'assigned', liveRoomKey: 'inv1', liveOpenedAt: '2026-11-04T10:00:00Z' };
+  it('becomes the task of the sheet behind the page (display only)', () => {
+    const tasks = mergeTasks({ homework: [given], assignments: [sheet] });
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]).toMatchObject({ kind: 'sheet', sheet, teacherText: '', due: '2026-11-11' });
+    expect(tasks[0].homework).toMatchObject({ id: 'h1', worksheetAssignmentId: 'as-opik', worksheetFromBoardPage: true });
+    expect(given.worksheetAssignmentId).toBeUndefined();
+  });
+  it('the teacher\'s own words stay; the newest sheet opened in a lesson wins', () => {
+    const older = { ...sheet, id: 'as-older', liveOpenedAt: '2026-10-01T10:00:00Z' };
+    expect(withBoardSheet({ ...given, task: 'Tee ära' }, [older, sheet])).toMatchObject({ task: 'Tee ära', worksheetAssignmentId: 'as-opik' });
+  });
+  it('a real board page, or a worksheet page without a known sheet, stays as it was', () => {
+    const real = { ...given, boardPageId: 'pg-7', boardPageTitle: 'Selgitus' };
+    expect(withBoardSheet(real, [sheet])).toBe(real);
+    const lost = { ...given, boardPageId: 'ws-0000abcd', boardPageTitle: 'Tööleht: Kadunud' };
+    expect(withBoardSheet(lost, [sheet])).toBe(lost);
   });
 });

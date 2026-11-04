@@ -6,6 +6,8 @@ import { sheetMinutes } from '../worksheet-studio/didactics/timeEstimate.js';
 import { localDate } from '../../utils/localDate.js';
 import { compareWorks, phaseOf } from './workOrder.js';
 import { sheetSkills } from '../students/skillTasks.js';
+import { sheetForPage } from '../board/boardModel.js';
+import { isWorksheetPage } from '../board/lessonBoards.js';
 
 export const TASK_STATE = Object.freeze({ TODO: 'todo', WAITING: 'waiting', REVIEWED: 'reviewed' });
 
@@ -164,7 +166,8 @@ function fromInteractive(item) {
  * - A sheet the learner opened himself from the course is not a task (it lives on „Kursus”) until a teacher has looked at it.
  * - What the teacher closed („Suletud”: nobody will do it any more) is not listed.
  */
-export function mergeTasks({ homework = [], assignments = [], submissions = [], interactive = [] } = {}) {
+export function mergeTasks({ homework: given = [], assignments = [], submissions = [], interactive = [] } = {}) {
+  const homework = given.map((item) => withBoardSheet(item, assignments));
   const sheetIds = new Set(assignments.map((item) => item.id));
   const linkedBySheet = new Map(homework.filter((item) => item.worksheetAssignmentId && sheetIds.has(item.worksheetAssignmentId)).map((item) => [item.worksheetAssignmentId, item]));
   const sheetResults = new Map(submissions.filter((item) => item.submissionKind === 'worksheet').map((item) => [item.id, item]));
@@ -202,6 +205,23 @@ export function mergeTasks({ homework = [], assignments = [], submissions = [], 
   });
   interactive.forEach((item) => tasks.push(fromInteractive(item)));
   return tasks;
+}
+
+/**
+ * A lesson homework given with a worksheet's board page („Tööleht: …”, before 2026-11-04) points at the sheet behind
+ * that page instead: the page holds only drawings, the student's board showed it empty (Demjan). Display only — the
+ * homework doc is not changed. The sheet opened in a lesson most recently wins among sheets with the same title.
+ */
+export function withBoardSheet(item, assignments = []) {
+  if (!item?.boardPageId || item.worksheetAssignmentId) return item;
+  const page = { id: item.boardPageId, title: item.boardPageTitle || '' };
+  if (!isWorksheetPage(page)) return item;
+  const ordered = [...assignments].sort((a, b) => Number(Boolean(b.liveRoomKey)) - Number(Boolean(a.liveRoomKey)) || String(b.liveOpenedAt || '').localeCompare(String(a.liveOpenedAt || '')));
+  const sheet = sheetForPage(page, ordered);
+  if (!sheet) return item;
+  // the words the panel wrote for a board page („Õpi tahvlilehe „…” materjal.”) say nothing on the sheet's own card
+  const auto = /^Õpi tahvlilehe „.*” materjal\.?$/.test(String(item.task || '').trim());
+  return { ...item, ...(auto ? { task: '' } : {}), worksheetAssignmentId: sheet.id, worksheetFromBoardPage: true };
 }
 
 // „Minu areng” → „Kuulamine 0% → 70%” opens only the tasks that move that skill: a sheet with such a task. Plain
