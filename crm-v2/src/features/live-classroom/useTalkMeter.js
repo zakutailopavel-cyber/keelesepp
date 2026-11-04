@@ -1,35 +1,37 @@
-import { useEffect, useState } from 'react';
-import { createTalkTracker, EMPTY_TALK, rms, rmsBytes } from './talkMeter.js';
+import { useEffect, useRef, useState } from 'react';
+import { createGroupTalkTracker, createTalkTracker, EMPTY_TALK, rms, rmsBytes } from './talkMeter.js';
 
 const SAMPLE_MS = 100; // ~10 Hz
 const PAINT_MS = 1000; // the indicator changes once a second
 
 /**
- * „Kõneaeg” for the teacher: reads the level of the own microphone (`local`) and the student's incoming audio
- * (`remote`) with AnalyserNodes and counts talk time (`talkMeter.js`). The sources are never connected to the
- * speakers, so playback, echo cancellation and the recording stay as they are. Paused while the tab is hidden; the
- * AudioContext is closed when the streams change or the room is left. The totals live as long as the component.
+ * Reads the level of every side's audio (`streams` = { side: MediaStream|null }) with AnalyserNodes and feeds a
+ * talk tracker (`talkMeter.js`). The sources are never connected to the speakers, so playback, echo cancellation and
+ * the recording stay as they are. Each tick reads the latest `streams`, so a side whose track appears, changes or
+ * leaves is re-attached / detached without a new AudioContext. Paused while the tab is hidden; the AudioContext is
+ * closed when the room is left (or no side has a stream any more). The totals live as long as the tracker.
  */
-export function useTalkMeter({ local = null, remote = null, enabled = true } = {}) {
-  const [tracker] = useState(() => createTalkTracker());
-  const [snapshot, setSnapshot] = useState(EMPTY_TALK);
+export function useTalkSampler({ streams = {}, tracker, enabled = true, empty = EMPTY_TALK } = {}) {
+  const [snapshot, setSnapshot] = useState(empty);
+  const streamsRef = useRef(streams);
+  useEffect(() => { streamsRef.current = streams; });
+  const anyStream = Object.values(streams).some(Boolean);
 
   useEffect(() => {
     const AudioCtx = globalThis.AudioContext || globalThis.webkitAudioContext;
     const doc = globalThis.document;
-    if (!enabled || !AudioCtx || typeof globalThis.MediaStream !== 'function' || (!local && !remote)) return undefined;
+    if (!enabled || !AudioCtx || typeof globalThis.MediaStream !== 'function' || !anyStream) return undefined;
     let context;
     try { context = new AudioCtx(); } catch { return undefined; }
-    const streams = { teacher: local, student: remote };
-    const taps = { teacher: null, student: null };
+    const taps = new Map();
     const detach = (side) => {
-      try { taps[side]?.source.disconnect(); } catch { /* already gone */ }
-      taps[side] = null;
+      try { taps.get(side)?.source.disconnect(); } catch { /* already gone */ }
+      taps.delete(side);
     };
     // (re)attach when the side's audio track appears or changes (a mobile peer may add it to the same stream later)
-    const tapFor = (side) => {
-      const track = streams[side]?.getAudioTracks?.().find((item) => item.readyState !== 'ended') || null;
-      if (taps[side]?.track === track) return taps[side];
+    const tapFor = (side, stream) => {
+      const track = stream?.getAudioTracks?.().find((item) => item.readyState !== 'ended') || null;
+      if (taps.get(side)?.track === track) return taps.get(side);
       detach(side);
       if (!track) return null;
       try {
@@ -40,12 +42,12 @@ export function useTalkMeter({ local = null, remote = null, enabled = true } = {
         const source = context.createMediaStreamSource(new globalThis.MediaStream([track]));
         source.connect(analyser);
         const float = typeof analyser.getFloatTimeDomainData === 'function';
-        taps[side] = { track, source, analyser, float, data: float ? new Float32Array(analyser.fftSize) : new Uint8Array(analyser.fftSize) };
-      } catch { taps[side] = null; }
-      return taps[side];
+        taps.set(side, { track, source, analyser, float, data: float ? new Float32Array(analyser.fftSize) : new Uint8Array(analyser.fftSize) });
+      } catch { taps.delete(side); }
+      return taps.get(side) || null;
     };
-    const level = (side) => {
-      const tap = tapFor(side);
+    const level = (side, stream) => {
+      const tap = tapFor(side, stream);
       if (!tap) return 0;
       // a muted microphone (enabled = false) delivers silence anyway; this only saves the work
       if (tap.track.enabled === false) return 0;
@@ -62,8 +64,12 @@ export function useTalkMeter({ local = null, remote = null, enabled = true } = {
       const dt = at - last;
       last = at;
       if (context.state !== 'running') return;
+      const current = streamsRef.current || {};
+      for (const side of [...taps.keys()]) if (!(side in current)) detach(side);
+      const levels = {};
+      for (const [side, stream] of Object.entries(current)) levels[side] = level(side, stream);
       const now = Date.now();
-      tracker.sample({ teacher: level('teacher'), student: level('student') }, now, dt);
+      tracker.sample(levels, now, dt);
       if (now - painted >= PAINT_MS) { painted = now; setSnapshot(tracker.snapshot(now)); }
     };
     const resume = () => { if (context.state === 'suspended') context.resume?.()?.catch?.(() => {}); };
@@ -90,11 +96,26 @@ export function useTalkMeter({ local = null, remote = null, enabled = true } = {
       doc?.removeEventListener?.('pointerdown', onPointer);
       if (timer) globalThis.clearInterval(timer);
       timer = 0;
-      detach('teacher');
-      detach('student');
+      for (const side of [...taps.keys()]) detach(side);
       context.close?.()?.catch?.(() => {});
     };
-  }, [enabled, local, remote, tracker]);
+  }, [anyStream, enabled, tracker]);
 
   return snapshot;
+}
+
+/** „Kõneaeg” for the teacher in a 1:1 room: the own microphone (`local`) against the student's incoming audio. */
+export function useTalkMeter({ local = null, remote = null, enabled = true } = {}) {
+  const [tracker] = useState(() => createTalkTracker());
+  return useTalkSampler({ streams: { teacher: local, student: remote }, tracker, enabled });
+}
+
+const EMPTY_GROUP = Object.freeze({ ...EMPTY_TALK, people: {} });
+
+/** Group room: the teacher's microphone (`local`) and every student's incoming track (`remotes` = [{ uid, stream }]). */
+export function useGroupTalkMeter({ local = null, remotes = [], enabled = true } = {}) {
+  const [tracker] = useState(() => createGroupTalkTracker());
+  const streams = { teacher: local };
+  for (const item of remotes) if (item?.uid && item.uid !== 'teacher') streams[item.uid] = item.stream || null;
+  return useTalkSampler({ streams, tracker, enabled, empty: EMPTY_GROUP });
 }

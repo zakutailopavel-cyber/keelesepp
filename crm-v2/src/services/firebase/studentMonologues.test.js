@@ -13,8 +13,12 @@ vi.mock('firebase/firestore', () => ({
     ? [
       { id: 'c1_2026-09', data: () => ({ studentId: 'c1', month: '2026-09', seconds: 80, audioPath: 'a' }) },
       { id: 'c1_2026-11', data: () => ({ studentId: 'c1', month: '2026-11', seconds: 118, audioPath: 'b', wordCount: 150 }) },
+      { id: 'c1_2026-10', data: () => ({ studentId: 'c1', month: '2026-10', seconds: 120, audioPath: 'c', updatedAt: 't1', transcript: 'Mina olen Mari.', words: 3, wpm: 2, transcribedTake: 't1' }) },
+      { id: 'c1_2026-08', data: () => ({ studentId: 'c1', month: '2026-08', seconds: 120, audioPath: 'd', updatedAt: 't2', transcript: 'Vana tekst.', words: 2, wpm: 1, transcribedTake: 't1' }) },
     ]
-    : [{ id: 'c1_2026-11', data: () => ({ studentId: 'c1', text: 'Hea', byName: 'Kati' }) }] })),
+    : q.ref.collection === 'studentMonologueAnalysis'
+      ? [{ id: 'c1_2026-10', data: () => ({ studentId: 'c1', take: 't1', checked: 4, errors: [{ said: 'ma läksin pood', corrected: 'ma läksin poodi', kind: 'vorm' }, { said: '' }], focus: [{ key: 'form', topic: 'Формы слов: падеж', count: 1 }] }) }]
+      : [{ id: 'c1_2026-11', data: () => ({ studentId: 'c1', text: 'Hea', byName: 'Kati' }) }] })),
 }));
 vi.mock('firebase/storage', () => ({
   ref: (_storage, path) => ({ path }),
@@ -35,9 +39,25 @@ describe('studentMonologuesService', () => {
   it('lists one card, newest month first, with word counts when present', async () => {
     const items = await studentMonologuesService.listByStudent('c1');
     expect(calls.where).toEqual([['studentId', '==', 'c1']]);
-    expect(items.map((item) => item.month)).toEqual(['2026-11', '2026-09']);
+    expect(items.map((item) => item.month)).toEqual(['2026-11', '2026-10', '2026-09', '2026-08']);
     expect(items[0].wordCount).toBe(150);
-    expect(items[1]).not.toHaveProperty('wordCount');
+    expect(items[2]).not.toHaveProperty('wordCount');
+  });
+
+  it('reads the transcriber\'s text, words and wpm, but not a text made for an earlier take', async () => {
+    const items = await studentMonologuesService.listByStudent('c1');
+    expect(items[1]).toMatchObject({ transcriptText: 'Mina olen Mari.', wordCount: 3, wpm: 2 });
+    expect(items[3]).not.toHaveProperty('transcriptText');
+    expect(items[3]).not.toHaveProperty('wordCount');
+    expect(items[3]).not.toHaveProperty('wpm');
+  });
+
+  it('lists the staff-only error checks of a card', async () => {
+    const analyses = await studentMonologuesService.listAnalysis('c1');
+    expect(calls.where).toEqual([['studentId', '==', 'c1']]);
+    expect(analyses['c1_2026-10']).toEqual({ id: 'c1_2026-10', take: 't1', checked: 4, analyzedAt: '',
+      errors: [{ said: 'ma läksin pood', corrected: 'ma läksin poodi', kind: 'vorm' }], focus: [{ key: 'form', topic: 'Формы слов: падеж', count: 1 }] });
+    expect(await studentMonologuesService.listAnalysis('')).toEqual({});
   });
 
   it('uploads the month file and writes the record with the rules’ fields', async () => {

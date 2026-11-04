@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  MONOLOGUE_PROMPTS, countWords, defaultPair, monologueAudioPath, monologueLevel, monologueRecord, monologueStats,
+  MONOLOGUE_PROMPTS, analysisFor, countWords, defaultPair, monologueAudioPath, monologueLevel, monologueRecord, monologueStats,
   monologueTask, monthEnd, monthLabel, monthOf, promptForLevel,
 } from './monologueModel.js';
 
@@ -56,6 +56,19 @@ describe('Kuu monoloog: model', () => {
     expect(monologueStats({ seconds: 120, wordCount: 180 })).toEqual({ seconds: 120, words: 180, wpm: 90 });
     expect(monologueStats({ seconds: 60, transcriptText: 'üks kaks kolm' })).toEqual({ seconds: 60, words: 3, wpm: 3 });
     expect(monologueStats({ seconds: 5, wordCount: 10 }).wpm).toBeNull();
+    expect(monologueStats({ seconds: 120, wordCount: 180, wpm: 88 }).wpm).toBe(88);
+  });
+
+  it('shows the error check of this take only, with short topic names', () => {
+    const item = { id: 'c1_2026-11', updatedAt: 't2' };
+    const analysis = { take: 't2', checked: 8, errors: [{ said: 'a', corrected: 'b' }], focus: [
+      { key: 'cases', topic: 'Падеж после глагола и места: kuhu? kus?', count: 3 }, { key: 'verb', topic: 'Формы глагола: время', count: 1 },
+    ] };
+    expect(analysisFor(item, { 'c1_2026-11': analysis })).toEqual({ checked: 8, errors: analysis.errors, topics: [
+      { label: 'Падеж после глагола и места', count: 3 }, { label: 'Формы глагола', count: 1 },
+    ] });
+    expect(analysisFor(item, { 'c1_2026-11': { ...analysis, take: 't1' } })).toBeNull();
+    expect(analysisFor(item, {})).toBeNull();
   });
 
   it('„Võrdle” starts with the oldest and the newest month', () => {

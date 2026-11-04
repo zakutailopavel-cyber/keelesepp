@@ -14,8 +14,10 @@ export const cleanMomentLabel = (label = '') => String(label || '').replace(/\s+
 
 const msOf = (value) => { const t = Date.parse(value || ''); return Number.isNaN(t) ? null : t; };
 
-// the document of a new moment; `recording` = { id, t0 } of the running recording (t0 = the recorder's start in ms)
-export function momentRecord({ invitation, recording = null, user, label = '', now = Date.now() }) {
+// the document of a new moment; `recording` = { id, t0 } of the running recording (t0 = the recorder's start in ms).
+// In a group room one press saves one moment per student (on the student's own invitation and recording, so each
+// student's lesson analysis shows it) with `groupRoomId` = the room; 1:1 moments have no such field.
+export function momentRecord({ invitation, recording = null, user, label = '', now = Date.now(), groupRoomId = '' }) {
   if (!invitation?.id || !invitation.studentId) throw new Error('Tund puudub.');
   if (!user?.uid) throw new Error('Pole sisse logitud.');
   const at = new Date(now).toISOString();
@@ -31,6 +33,7 @@ export function momentRecord({ invitation, recording = null, user, label = '', n
     byUid: user.uid,
     byName: String(user.displayName || user.email || '').slice(0, 160),
     createdAt: at,
+    ...(groupRoomId ? { groupRoomId: String(groupRoomId) } : {}),
   };
 }
 

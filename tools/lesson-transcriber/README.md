@@ -55,5 +55,10 @@ transcribed it keeps the Mac awake (`caffeinate`). Re-run the script after `git 
   and hourly. Reading every finished recording in full each minute cost about 5 GB of Firestore download a day in
   October 2026 (Google Cloud bill 18,19 €).
 
+- „Kuu monoloog”: students' monthly monologues (`studentMonologues`) with audio and no text for the current take
+  are transcribed after the lessons (recent months every 5 min, all months at start and hourly) → `transcript`,
+  `words`, `wpm` on the monologue; with the GEC model also the staff-only error check
+  `studentMonologueAnalysis/{id}`. Details: `docs/LESSON_RECORDING.md` „Kuu monoloog on the same Mac”.
+
 If the Mac is off, recordings wait and are processed when it is back. On an M-series Mac one hour of lesson takes a
 few minutes (a 15-second two-track test took about 2 seconds). Tests: `npm test`.
