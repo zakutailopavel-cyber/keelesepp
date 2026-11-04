@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { languageToolsService } from '../../services/firebase/languageTools.js';
 import { WORD_LIMITS, newestFirst, sameWord } from './wordsModel.js';
+import OwnWordForm from './OwnWordForm.jsx';
 import './vocabulary.css';
 
 const EMPTY = { word: '', translation: '', example: '', forms: '', formItems: [] };
@@ -13,6 +14,8 @@ const EMPTY = { word: '', translation: '', example: '', forms: '', formItems: []
  */
 export default function LessonWordsPanel({ studentId, invitationId, user, teacher = false, service = studentWordsService, toolsService = languageToolsService, lang = 'et' }) {
   const [words, setWords] = useState([]);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const ownToolsService = toolsService?.checkOwnWord ? toolsService : null;
   const [error, setError] = useState('');
   const [form, setForm] = useState(EMPTY);
   const [busy, setBusy] = useState(false);
@@ -81,7 +84,12 @@ export default function LessonWordsPanel({ studentId, invitationId, user, teache
         {lookupNote ? <p className="vw-note" role="status">{lookupNote}</p> : null}
         {duplicate ? <p className="vw-note" role="status">„{duplicate.word}” on õpilase sõnastikus juba olemas.</p> : null}
         <button type="submit" className="vw-btn is-primary" disabled={busy || !form.word.trim()}>Lisa sõnastikku</button>
-      </form> : <p className="vw-note">Õpetaja lisab siia tunni uued sõnad. Need jäävad sinu sõnastikku („Minu õpingud” → „Minu sõnad”).</p>}
+      </form> : <>
+        <p className="vw-note">Õpetaja lisab siia tunni uued sõnad. Need jäävad sinu sõnastikku („Minu õpingud” → „Minu sõnad”).</p>
+        {/* the student may add a word himself (owner 2026-11-04): checked and translated, saved to „Minu sõnad” */}
+        {!user?.uid || !studentId ? null : ownOpen ? <OwnWordForm studentId={studentId} user={user} words={words} languages={[lang === 'en' ? 'en' : 'et']} service={service} {...(ownToolsService ? { toolsService: ownToolsService } : {})} />
+          : <button type="button" className="vw-chip vw-lookup" onClick={() => setOwnOpen(true)}><Sparkles size={13} aria-hidden="true" /> Lisa ise sõna · Добавить своё слово</button>}
+      </>}
       {error ? <p className="vw-error" role="alert">{error}</p> : null}
       <h3 className="vw-heading">Selle tunni sõnad ({lessonWords.length})</h3>
       {lessonWords.length ? <ul className="vw-list">{lessonWords.map((item) => <li key={item.id}>

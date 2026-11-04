@@ -6,6 +6,10 @@ import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { loadWordsForLessons } from './lessonWords.js';
 import { buildTopics, levelHasWords, topicReport } from './topicModel.js';
+import { newestFirst } from './wordsModel.js';
+import { CHECK_LABEL } from './ownWord.js';
+
+const OWN_SOURCES = ['student', 'double-click'];
 import './vocabulary.css';
 
 const STATE_LABEL = { passed: 'läbitud', open: 'avatud', locked: 'lukus' };
@@ -17,7 +21,7 @@ const day = (iso) => { const d = new Date(iso); return iso && !Number.isNaN(d.ge
  * Reads the curriculum and the student's studentWords (staff may read them); writes nothing.
  */
 export default function StudentTopicsCard({ student, catalogApi = libraryService, wordsApi = studentWordsService, loadWords = loadWordsForLessons }) {
-  const [state, setState] = useState({ loading: true, error: '', level: null, topics: [] });
+  const [state, setState] = useState({ loading: true, error: '', level: null, topics: [], added: [] });
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let alive = true;
@@ -29,12 +33,14 @@ export default function StudentTopicsCard({ student, catalogApi = libraryService
       const levels = buildTopicCatalog(curriculum || []).levels.filter(levelHasWords);
       // the same level the student sees first in „Teemad”: his own, else the first level with words
       const level = levels.find((entry) => entry.key === student.level || entry.label === student.level) || levels[0] || null;
-      if (!level) return { level: null, topics: [] };
+      // words the student added himself („Lisa oma sõna”, a double-click on a sheet), newest first
+      const added = newestFirst((own || []).filter((word) => OWN_SOURCES.includes(word.source)));
+      if (!level) return { level: null, topics: [], added };
       const words = await loadWords(level.modules.flatMap((module) => module.lessons.map((lesson) => lesson.id)));
-      return { level, topics: topicReport(buildTopics(level, words, student.id), own || []) };
+      return { level, topics: topicReport(buildTopics(level, words, student.id), own || []), added };
     })()
       .then((data) => { if (alive) setState({ loading: false, error: '', ...data }); })
-      .catch((error) => { if (alive) setState({ loading: false, error: error?.message || 'Teemasid ei saanud laadida.', level: null, topics: [] }); });
+      .catch((error) => { if (alive) setState({ loading: false, error: error?.message || 'Teemasid ei saanud laadida.', level: null, topics: [], added: [] }); });
     return () => { alive = false; };
   }, [catalogApi, wordsApi, loadWords, student.id, student.level, attempt]);
 
@@ -65,6 +71,17 @@ export default function StudentTopicsCard({ student, catalogApi = libraryService
                 ))}</ol>
               </>
             )}
+      {!state.loading && !state.error && state.added?.length ? (
+        <details className="vd-module">
+          <summary>Õpilane lisas ise <small>{state.added.length} sõna</small></summary>
+          <ul className="vw-list">{state.added.slice(0, 40).map((word) => (
+            <li key={word.id}><span><strong>{word.word}</strong>{word.translation ? <> — {word.translation}</> : null}{word.example ? <small>{word.example}</small> : null}
+              <span className="own-word__meta"><span className="own-word__tag">{word.source === 'student' ? 'õpilane lisas' : 'topeltklõps lehel'}</span>
+                {word.checked ? <span className={`own-word__tag${word.checked === 'ok' ? '' : ' is-warn'}`}>{CHECK_LABEL[word.checked] || word.checked}</span> : null}
+                {day(word.createdAt) ? <span>{day(word.createdAt)}</span> : null}</span></span></li>
+          ))}</ul>
+        </details>
+      ) : null}
     </Card>
   );
 }

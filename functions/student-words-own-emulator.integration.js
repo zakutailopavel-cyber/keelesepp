@@ -91,3 +91,29 @@ test("a student adds words only to their own list, new and without a lesson link
   assert.equal((await documentRequest(token, "PATCH", "studentWords/own-3", word("words-own", { box: { integerValue: "5" } }))).status, 403);
   assert.equal((await documentRequest(token, "PATCH", "studentWords/own-4", word("words-own", { createdByUid: str("teacher-uid") }))).status, 403);
 });
+
+test("„Lisa oma sõna”: the student saves source + check verdict, edits the text of own words only", async () => {
+  requireSafeEmulatorEnvironment();
+  const token = await account("words-own-edit@example.com", { role: "student", roles: ["student"] });
+  const uid = tokenUid(token);
+  await db().collection("students").doc("words-own-edit").set({ name: "Own Edit", studentUid: uid, linkedUserId: uid, active: true });
+  const fields = (extra = {}) => ({
+    studentId: str("words-own-edit"), invitationId: str(""), word: str("raamatukogu"), translation: str("библиотека"), example: str(""), forms: str(""),
+    createdByUid: str(uid), createdByName: str("Own Edit"), createdAt: str("2026-11-04T10:00:00Z"), updatedAt: str("2026-11-04T10:00:00Z"),
+    box: { integerValue: "0" }, dueAt: str("2026-11-04T10:00:00Z"), source: str("student"), checked: str("ok"), ...extra,
+  });
+  assert.equal((await documentRequest(token, "PATCH", "studentWords/own-edit-1", { fields: fields() })).status, 200);
+  assert.equal((await documentRequest(token, "PATCH", "studentWords/own-edit-2", { fields: fields({ checked: str("trust-me") }) })).status, 403);
+  // own word: text editable
+  const edited = await documentRequest(token, "PATCH", "studentWords/own-edit-1?updateMask.fieldPaths=translation&updateMask.fieldPaths=example&updateMask.fieldPaths=updatedAt&updateMask.fieldPaths=checked",
+    { fields: { translation: str("библиотека (место)"), example: str("Ma käin raamatukogus."), updatedAt: str("2026-11-04T11:00:00Z"), checked: str("unchecked") } });
+  assert.equal(edited.status, 200);
+  // but not its practice box beyond the rules, nor the owner
+  assert.equal((await documentRequest(token, "PATCH", "studentWords/own-edit-1?updateMask.fieldPaths=createdByUid", { fields: { createdByUid: str("someone") } })).status, 403);
+  // a teacher's word: the student may not change its text
+  await db().collection("studentWords").doc("own-edit-teacher").set({ studentId: "words-own-edit", invitationId: "", word: "kass", translation: "кот", example: "", forms: "",
+    createdByUid: "teacher-uid", createdByName: "Õpetaja", createdAt: "2026-11-04T10:00:00Z", updatedAt: "2026-11-04T10:00:00Z", box: 0, dueAt: "2026-11-04T10:00:00Z" });
+  assert.equal((await documentRequest(token, "PATCH", "studentWords/own-edit-teacher?updateMask.fieldPaths=translation", { fields: { translation: str("кошка") } })).status, 403);
+  // nobody reads the quota collection from the client
+  assert.equal((await documentRequest(token, "GET", `languageQuotas/${uid}`)).status, 403);
+});
