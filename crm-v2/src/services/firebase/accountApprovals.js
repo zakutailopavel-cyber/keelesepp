@@ -64,6 +64,16 @@ export const accountApprovalsService = {
   inviteStudent({ studentId, email = '' }) {
     return staffPost('/accounts/invite', { studentId, email });
   },
+  // „Saada parooli link” on the parent's card: the same route as the student card, only to that parent account's own
+  // login e-mail (the server decides the address); answers { email, mailed, link }
+  sendParentPasswordLink({ parentUid }) {
+    return staffPost('/accounts/invite', { parentUid });
+  },
+  // the parent's „Konto” block: sign-in facts kept only in Firebase Auth (read-only, admin, ≤ 10 accounts)
+  async authInfo(uids = []) {
+    const data = await staffPost('/accounts/auth-info', { uids });
+    return Array.isArray(data.accounts) ? data.accounts : [];
+  },
   // „Lisa lapsevanem”: a parent's login without a password, linked to the children's cards, + the password e-mail
   inviteParent({ displayName, email, phone = '', studentIds = [], requestId }) {
     return staffPost('/accounts/invite-parent', { displayName, email, phone, studentIds, requestId });
