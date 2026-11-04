@@ -3,7 +3,7 @@ import { Fragment, useCallback, useEffect, useImperativeHandle, useLayoutEffect,
 import { createPortal } from 'react-dom';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
+import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView, focusShift,
   BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, fitRect, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds, viewRect } from './boardModel.js';
 import { EMPTY_REMOTE, createThrottle, cursorMessage, draftMessage, dropStale, moveMessage, reduceRemote, remoteOnPage, typingMessage, viewMessage } from './liveDrafts.js';
 import { SheetFlowContext } from '../worksheet-studio/sheetFlow.js';
@@ -656,14 +656,35 @@ export default function StudentBoard({
     if (!el) return undefined;
     const stopPageZoom = (event) => { if (event.ctrlKey || event.metaKey) event.preventDefault(); };
     const stopGesture = (event) => event.preventDefault();
+    // the answer field being typed in on this board, and the part of the stage the screen (keyboard) leaves for it
+    const focusedField = () => {
+      const active = globalThis.document?.activeElement;
+      return active && active !== el && el.contains(active) && active.matches?.('input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"]') ? active : null;
+    };
+    const visibleArea = () => {
+      const box = el.getBoundingClientRect();
+      const vv = globalThis.visualViewport;
+      if (!vv || !vv.height) return box;
+      return { left: Math.max(box.left, vv.offsetLeft), right: Math.min(box.right, vv.offsetLeft + vv.width), top: Math.max(box.top, vv.offsetTop), bottom: Math.min(box.bottom, vv.offsetTop + vv.height) };
+    };
+    const shiftBy = (dy) => {
+      const field = focusedField();
+      const shift = focusShift({ dy, field: field?.getBoundingClientRect?.() || null, area: field ? visibleArea() : null });
+      if (shift.x || shift.y) moveViewRef.current?.((current) => ({ ...current, x: current.x + shift.x, y: current.y + shift.y }));
+    };
+    // the browser's own scroll is undone first, then the view moves only as far as the field needs (boardModel focusShift):
+    // the browser centred the field, so the sheet jumped sideways (owner 2026-11-04)
     const unscroll = () => {
       const dx = el.scrollLeft;
       const dy = el.scrollTop;
       if (!dx && !dy) return;
       el.scrollLeft = 0;
       el.scrollTop = 0;
-      moveViewRef.current?.((current) => ({ ...current, x: current.x - dx, y: current.y - dy }));
+      shiftBy(dy);
     };
+    // the on-screen keyboard came up (or went away) over a field being typed in
+    const keyboard = () => { if (!el.classList.contains('is-reading') && focusedField()) shiftBy(0); };
+    const viewport = globalThis.visualViewport;
     const reveal = (event) => {
       if (el.classList.contains('is-reading')) { event.stopPropagation(); event.target?.scrollIntoView?.({ block: 'center', behavior: 'smooth' }); return; }
       const target = event.target?.getBoundingClientRect?.();
@@ -681,7 +702,9 @@ export default function StudentBoard({
     el.addEventListener('gesturechange', stopGesture);
     el.addEventListener('scroll', unscroll);
     el.addEventListener('ws-reveal', reveal);
+    viewport?.addEventListener?.('resize', keyboard);
     return () => {
+      viewport?.removeEventListener?.('resize', keyboard);
       el.removeEventListener('wheel', stopPageZoom);
       el.removeEventListener('gesturestart', stopGesture);
       el.removeEventListener('gesturechange', stopGesture);

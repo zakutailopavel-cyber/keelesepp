@@ -161,5 +161,112 @@ function paradigmHasForm(paradigms = [], term = "") {
   return (Array.isArray(paradigms) ? paradigms : []).some((p) => (p?.paradigmForms || p?.forms || []).some((f) => String(f?.value || "").toLocaleLowerCase("et") === key));
 }
 
+// ── The student's own word („Lisa oma sõna”, owner 2026-11-04): spelling, base form, translation ──
+// POST /own-word { text, lang: et|en, tgt: ru|en|uk|et }: a word or a short phrase (≤ 60 characters, ≤ 4 words).
+const OWN_WORD_MAX = 60;
+const OWN_WORD_WORDS = 4;
+const OWN_WORD_LANGS = ["et", "en"];
+const OWN_WORD_TARGETS = ["ru", "en", "uk", "et"];
+function ownWordRequest(body = {}) {
+  const bad = (message) => Object.assign(new Error(message), { status: 400 });
+  const raw = String(body?.text ?? "");
+  if (raw.length > 400) throw bad(`Too long (max ${OWN_WORD_MAX} characters)`);
+  const text = cleanTerm(raw.replace(/^[^\p{L}]+|[^\p{L}.!?]+$/gu, ""), 400);
+  if (!text || !/\p{L}/u.test(text)) throw bad("Word required");
+  if (text.length > OWN_WORD_MAX) throw bad(`Too long (max ${OWN_WORD_MAX} characters)`);
+  const parts = text.split(" ").filter(Boolean);
+  if (parts.length > OWN_WORD_WORDS) throw bad(`Too many words (max ${OWN_WORD_WORDS})`);
+  const lang = OWN_WORD_LANGS.includes(body.lang) ? body.lang : "et";
+  let tgt = OWN_WORD_TARGETS.includes(body.tgt) ? body.tgt : "ru";
+  if (tgt === lang) tgt = lang === "et" ? "ru" : "et";
+  return { text, lang, tgt, words: parts.map(word => word.replace(/^[^\p{L}]+|[^\p{L}-]+$/gu, "")).filter(Boolean) };
+}
+
+// optimal string alignment distance (a swap of two neighbours counts once: „raamtu” ↔ „raamatu” is 1)
+function editDistance(a = "", b = "") {
+  const s = String(a).toLocaleLowerCase("et");
+  const t = String(b).toLocaleLowerCase("et");
+  const rows = Array.from({ length: s.length + 1 }, (_, i) => [i, ...Array(t.length).fill(0)]);
+  for (let j = 0; j <= t.length; j++) rows[0][j] = j;
+  for (let i = 1; i <= s.length; i++) {
+    for (let j = 1; j <= t.length; j++) {
+      const cost = s[i - 1] === t[j - 1] ? 0 : 1;
+      rows[i][j] = Math.min(rows[i - 1][j] + 1, rows[i][j - 1] + 1, rows[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && s[i - 1] === t[j - 2] && s[i - 2] === t[j - 1]) rows[i][j] = Math.min(rows[i][j], rows[i - 2][j - 2] + 1);
+    }
+  }
+  return rows[s.length][t.length];
+}
+
+// candidate headwords (Ekilex wildcard hits) → the closest real words: distance 1 for short words, 2 for ≥ 6 letters;
+// proper names only for a capitalised word; at most `max`
+function rankSuggestions(term = "", candidates = [], max = 3) {
+  const key = cleanTerm(term, 80);
+  const lower = key.toLocaleLowerCase("et");
+  const capital = Boolean(key) && key.charAt(0) !== key.charAt(0).toLocaleLowerCase("et");
+  const limit = lower.length >= 6 ? 2 : 1;
+  const seen = new Set();
+  return (Array.isArray(candidates) ? candidates : [])
+    .map(value => cleanTerm(typeof value === "string" ? value : value?.wordValue, 80))
+    .filter(value => value && !/\s/.test(value) && (capital || value.charAt(0) === value.charAt(0).toLocaleLowerCase("et")))
+    .filter(value => { const k = value.toLocaleLowerCase("et"); if (k === lower || seen.has(k)) return false; seen.add(k); return true; })
+    .map(value => ({ value, distance: editDistance(lower, value), common: value.slice(0, 2).toLocaleLowerCase("et") === lower.slice(0, 2) ? 0 : 1 }))
+    .filter(item => item.distance <= limit)
+    .sort((a, b) => a.distance - b.distance || a.common - b.common || Math.abs(a.value.length - lower.length) - Math.abs(b.value.length - lower.length) || a.value.localeCompare(b.value, "et"))
+    .slice(0, max)
+    .map(item => item.value);
+}
+
+// the Ekilex wildcard searches for a word that was not found: the first half + *, and * + the last half
+function suggestionSearches(term = "") {
+  const t = cleanTerm(term, 80).toLocaleLowerCase("et");
+  if (t.length < 3) return [];
+  const half = Math.max(2, Math.ceil(t.length / 2));
+  return [...new Set([`${t.slice(0, half)}*`, `*${t.slice(-Math.max(3, t.length - half))}`])];
+}
+
+// EKI etLex evaluation → the words with their base form: [{ token, lemma, level }] (punctuation left out)
+function etlexWords(data) {
+  return (Array.isArray(data?.evaluatedText) ? data.evaluatedText : [])
+    .filter(item => item && item.pos !== "Z" && /\p{L}/u.test(String(item.token || item.text || "")))
+    // `compound`: Vabamorf split it into known parts (raamatu_kogu), so it is a real word even if no dictionary lists it
+    .map(item => ({ token: cleanTerm(item.token || item.text, 80), lemma: cleanTerm(String(item.lemma || "").replace(/[_=]/g, ""), 80), level: String(item.level || ""), compound: /_/.test(String(item.root || "")) }));
+}
+
+// one verdict for the whole entry: suggest (a word unknown and a correction exists), unknown (a word unknown, nothing
+// close), ok (every word known), unchecked (no dictionary answered for some word, or nothing to check)
+function spellVerdict(words = []) {
+  const list = Array.isArray(words) ? words : [];
+  if (list.some(word => word.known === false)) return list.some(word => word.known === false && word.suggestions?.length) ? "suggest" : "unknown";
+  if (list.length && list.every(word => word.known === true)) return "ok";
+  return "unchecked";
+}
+
+// the whole text with every unknown word replaced by its first suggestion („raamatukoggu” → „raamatukogu”); "" when
+// nothing changes
+function correctedText(text = "", words = []) {
+  let out = String(text);
+  (Array.isArray(words) ? words : []).forEach(word => {
+    if (word.known !== false || !word.suggestions?.length) return;
+    const escaped = String(word.text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    out = out.replace(new RegExp(`(^|[^\\p{L}])${escaped}(?=$|[^\\p{L}])`, "u"), `$1${word.suggestions[0]}`);
+  });
+  return out !== text ? out : "";
+}
+
+// per-user quota for the student's checks: N per minute and per day; state { minute, minuteCount, day, dayCount }
+const OWN_WORD_LIMITS = { perMinute: 20, perDay: 300 };
+function nextQuota(state = {}, now = new Date(), limits = OWN_WORD_LIMITS) {
+  const iso = now.toISOString();
+  const minute = iso.slice(0, 16);
+  const day = iso.slice(0, 10);
+  const minuteCount = state?.minute === minute ? Number(state.minuteCount) || 0 : 0;
+  const dayCount = state?.day === day ? Number(state.dayCount) || 0 : 0;
+  if (dayCount >= limits.perDay) return { allowed: false, next: null, reason: "day" };
+  if (minuteCount >= limits.perMinute) return { allowed: false, next: null, reason: "minute" };
+  return { allowed: true, next: { minute, minuteCount: minuteCount + 1, day, dayCount: dayCount + 1, updatedAt: iso } };
+}
+
 module.exports = {
+  ownWordRequest, editDistance, rankSuggestions, suggestionSearches, etlexWords, spellVerdict, correctedText, nextQuota, OWN_WORD_LIMITS, OWN_WORD_MAX,
   threeKeyForms, keyFormsRequest, MAX_KEY_FORM_WORDS, evaluationRequest, summarizeEvaluation, LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor };

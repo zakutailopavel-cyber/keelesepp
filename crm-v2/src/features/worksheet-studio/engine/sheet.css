@@ -788,6 +788,33 @@ button.ws-pt { cursor: pointer; }
 .ws-block-key-state { color: #4a5568; font-size: 9.5pt; }
 @media print { .ws-block-key { display: none; } }
 
+/* ===== A task's floating note (FloatingNote.jsx, floatingNote.js): the teacher's answer key and the right answers shown
+   to the learner float next to the task on document.body (screen pixels), never inside the card, so opening one never
+   changes the sheet's layout (owner 2026-11-04). ===== */
+.ws-float-note {
+  --st-panel: #fff; --st-line: #dfe5ec; --st-ink: #17253a; --st-accent: #087e6b;
+  position: fixed; z-index: 1330; box-sizing: border-box; width: 360px; max-width: calc(100vw - 16px); overflow: auto; overscroll-behavior: contain;
+  background: #fff; color: #17253a; border-radius: 12px; box-shadow: 0 14px 34px rgba(16, 35, 57, .24), 0 0 0 1px rgba(16, 35, 57, .1);
+  font: 14px/1.4 'DM Sans', system-ui, sans-serif; text-align: left;
+}
+.ws-float-note .ws-block-key { margin: 0; border: 0; border-radius: 12px; padding: 12px 14px; font-size: 14px; gap: 8px; }
+.ws-float-note .ws-block-key-head b { font-size: 15px; }
+.ws-float-note :is(.ws-block-key-only, .ws-block-key-state, .ws-key-why, .ws-block-key-note) { font-size: 13px; }
+.ws-float-note .ws-block-key-x { width: 32px; height: 32px; }
+.ws-float-note .ws-block-key-items { padding-left: 22px; gap: 5px; }
+.ws-float-note .ws-live-answers { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 12px 44px 12px 14px; border: 0; border-radius: 12px; font-size: 15px; }
+.ws-float-note .st-btn { display: inline-flex; align-items: center; gap: 5px; font: 700 13px inherit; border: 1px solid var(--st-line); background: var(--st-panel); color: var(--st-ink); padding: 6px 11px; border-radius: 999px; cursor: pointer; }
+.ws-float-note .st-btn.primary { background: var(--st-accent); border-color: var(--st-accent); color: #fff; }
+.ws-float-note .st-btn:disabled { opacity: .5; cursor: default; }
+.ws-float-note-x { position: absolute; top: 6px; right: 6px; display: inline-grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 99px; background: transparent; color: #1d5b35; cursor: pointer; }
+.ws-float-note-x:hover { background: rgba(29, 91, 53, .1); }
+.ws-float-note.is-folded { width: auto; max-width: none; overflow: visible; border-radius: 99px; background: transparent; box-shadow: none; }
+.ws-float-note-open { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 16px; border: 1px solid #b7e0c4; border-radius: 99px; background: #e9f7ee; color: #1d5b35; box-shadow: 0 2px 8px rgba(16, 35, 57, .18); font: 700 15px 'DM Sans', system-ui, sans-serif; cursor: pointer; }
+@media (pointer: coarse) { .ws-float-note-x, .ws-float-note .ws-block-key-x { width: 44px; height: 44px; } }
+/* a shown task's label (teacher): over the card's top edge, out of the flow */
+.ws-card-badge { position: absolute; top: -3.2mm; right: 4mm; z-index: 5; pointer-events: none; }
+@media print { .ws-float-note, .ws-card-badge { display: none; } }
+
 /* ---------- children's blocks (engine/blocks/kids.jsx) ---------- */
 .ws-coloring { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(40mm, 1fr); gap: 5mm; align-items: start; }
 .ws-coloring-pic { width: 100%; max-width: 110mm; aspect-ratio: 1; display: block; margin: 0 auto; }

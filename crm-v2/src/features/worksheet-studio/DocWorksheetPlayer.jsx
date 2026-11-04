@@ -26,7 +26,8 @@ function useTeacherKey(doc, enabled) {
   const [keyId, setKeyId] = useState('');
   const notes = useMemo(() => {
     const task = enabled && keyId ? blockAnswerKey(doc, keyId) : null;
-    return task ? { [keyId]: <BlockKeyPanel task={task} onClose={() => setKeyId('')} /> } : null;
+    // floats next to the task (FloatingNote): the sheet keeps its layout
+    return task ? { [keyId]: { label: `Vastused: ülesanne ${task.num}`, ownClose: true, onClose: () => setKeyId(''), content: <BlockKeyPanel task={task} onClose={() => setKeyId('')} /> } } : null;
   }, [doc, keyId, enabled]);
   const onPick = enabled ? (blockId) => setKeyId((current) => (current === blockId ? '' : blockId)) : undefined;
   return { notes, onPick };
@@ -173,7 +174,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     if (review || !liveShown.length) return null;
     return Object.fromEntries(doc.blocks.filter((b) => liveShown.includes(b.id)).map((b) => {
       const list = rightAnswers(b);
-      return [b.id, list.length ? <span className="ws-live-answers"><b>Õiged vastused:</b> {list.map((a, i) => <span key={i}>{i + 1}) {a}</span>)}</span> : <span className="ws-live-answers">Õpetaja vaatab selle ülesande koos sinuga üle.</span>];
+      // next to the task, not inside it (owner 2026-11-04: the answers covered half of the task and moved it)
+      const content = list.length ? <span className="ws-live-answers"><b>Õiged vastused:</b> {list.map((a, i) => <span key={i}>{i + 1}) {a}</span>)}</span> : <span className="ws-live-answers">Õpetaja vaatab selle ülesande koos sinuga üle.</span>;
+      return [b.id, { label: 'Õiged vastused', chip: 'Õiged vastused', content }];
     }));
   }, [doc, liveShown, review]);
 
@@ -242,7 +245,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={zoomStyle}>
-          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
+          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockPopovers={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
         </SheetAnnotations>
       </div>
@@ -261,7 +264,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={zoomStyle}>
-          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
+          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockPopovers={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
         </SheetAnnotations>
       </div>
@@ -290,7 +293,7 @@ export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, anno
     <div className="st-canvas" ref={fitRef}>
       <SheetAnnotations annotations={annotations} editable={editable} onChange={onAnnotationsChange} analysis={editable ? { level: worksheetDoc?.meta?.level || 'A2' } : null}>
         <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} blockNotes={teacherKey.notes} onPick={teacherKey.onPick} />
+          <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} blockPopovers={teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
       </SheetAnnotations>
     </div>

@@ -229,6 +229,25 @@ export function wheelView(view, { deltaX = 0, deltaY = 0, ctrlKey = false, metaK
   return { ...view, x: view.x - deltaX * unit, y: view.y - deltaY * unit };
 }
 
+// The stage never scrolls itself (StudentBoard): when the browser scrolled it (a focused answer field, the iPad
+// keyboard) the scroll is undone and the view moves instead. Owner 2026-11-04: the browser centred the field it focused,
+// so the student's task flew left and right. Now, with the focused field known (its screen rect after the scroll was
+// undone), the view moves only as far as the field needs to be in sight (`area`: the stage's part of the screen the
+// keyboard leaves free), in each axis on its own: a field already in sight never moves the sheet, sideways least of all.
+// Without a field, a sideways scroll is ignored and an up / down one is followed as before.
+// Returns the shift of the view { x, y } in screen pixels.
+const into = (lo, hi, min, max) => {
+  if (lo >= min && hi <= max) return 0;
+  if (hi - lo > max - min || lo < min) return min - lo; // too big to fit: its start in sight
+  return max - hi;
+};
+export function focusShift({ dy = 0, field = null, area = null, margin = 16 }) {
+  if (!field || !area) return { x: 0, y: -dy };
+  const box = { left: area.left + margin, right: area.right - margin, top: area.top + margin, bottom: area.bottom - margin };
+  if (box.right <= box.left || box.bottom <= box.top) return { x: 0, y: -dy };
+  return { x: into(field.left, field.right, box.left, box.right), y: into(field.top, field.bottom, box.top, box.bottom) };
+}
+
 // Two fingers: the board follows the fingers' centre and scales with their distance (from the view at the start).
 export function pinchView(start, [a0, b0], [a1, b1]) {
   const centre = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });

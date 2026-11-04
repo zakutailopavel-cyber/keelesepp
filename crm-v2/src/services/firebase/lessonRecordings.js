@@ -1,6 +1,7 @@
-import { arrayUnion, collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { arrayUnion, collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
+import { dismissalEntry, errorKey, feedbackEntry } from '../../features/lesson-recording/errorReview.js';
 
 // Lesson recordings from the Live Classroom room.
 // The teacher's browser records two audio tracks (teacher microphone, student's incoming audio) in 5-minute
@@ -138,6 +139,36 @@ export const lessonRecordingsService = {
   subscribeTranscribers(onData, onError) {
     const { db } = requireFirebaseClient();
     return onSnapshot(collection(db, 'transcriberStatus'), (snapshot) => onData(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))), (error) => onError?.(error));
+  },
+
+  // „Pole viga”: the teacher (of the recording) or an admin marks a flagged error as not an error; the mark goes on
+  // the lesson's first recording and a copy to `analyzerFeedback` for the school Mac, in one batch
+  async dismissError({ recording, error, reason = '', user }) {
+    if (!recording?.id || !error) throw new Error('Viga puudub.');
+    const { db } = requireFirebaseClient();
+    const key = errorKey(error);
+    const entry = dismissalEntry({ error, reason, user });
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'lessonRecordings', recording.id), { [`errorReview.${key}`]: entry });
+    batch.set(doc(db, 'analyzerFeedback', `${recording.id}_${key}`), feedbackEntry({ entry, recording }));
+    await batch.commit();
+    return { key, entry };
+  },
+
+  // undo: the mark stays with who and when undid it; the copy for the Mac is removed
+  async restoreError({ recording, key, user }) {
+    if (!recording?.id || !key) throw new Error('Viga puudub.');
+    const { db } = requireFirebaseClient();
+    const undoneAt = new Date().toISOString();
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'lessonRecordings', recording.id), {
+      [`errorReview.${key}.undoneAt`]: undoneAt,
+      [`errorReview.${key}.undoneByUid`]: user?.uid || '',
+      [`errorReview.${key}.undoneByName`]: String(user?.displayName || user?.email || '').slice(0, 160),
+    });
+    batch.delete(doc(db, 'analyzerFeedback', `${recording.id}_${key}`));
+    await batch.commit();
+    return { key, undoneAt };
   },
 
   async audioUrl(path) {
