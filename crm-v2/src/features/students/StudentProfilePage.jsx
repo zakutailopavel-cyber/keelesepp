@@ -221,7 +221,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
             <StudentDirectionsCard student={directionStudent} schedule={state.schedule} lessons={state.lessons} plan={state.plan} directions={directions} canEdit={canAssignTeacher} canViewFinance={canViewFinance} service={studentApi} onEdit={() => setTracksOpen(true)} onChanged={refreshStudent} />
             {canAssignTeacher ? <StudentParentsCard student={student} user={currentUser} {...(parentApi ? { service: parentApi } : {})} onChanged={refreshStudent} /> : null}
             {/* „Õpilase pilt” (owner 2026-10-23): practice, forgotten words, sheet errors, open homework */}
-            {/* „Kuu aruanne vanemale” (owner 2026-10-23): the admin checks and sends it */}
+            {/* „Kuu kokkuvõte vanemale” (owner 2026-10-23 / 2026-11-04): drafted per month in the parent's language; the admin copies it and marks it sent */}
             {currentUser?.roles?.includes(ROLES.ADMIN) ? <MonthlyReportCard student={student} user={currentUser} {...(reportApi ? { repository: reportApi } : {})} /> : null}
             <LearnerSnapshotCard studentId={student.id} studentName={student.name} {...(learnerRepository ? { repository: learnerRepository } : {})} />
             {/* „Teekond sihttasemeni” (owner 2026-11-04): admin only — an estimate per skill, not for teachers, students or parents */}
