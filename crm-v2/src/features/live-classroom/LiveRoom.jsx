@@ -262,6 +262,8 @@ export default function LiveRoom({
   const attendanceStart = plannedMs || timestampMillis(invitation.createdAt) || startedAt;
   const studentMark = attendanceMarks(participants, planState.plan.attendance, attendanceStart)[0] || null;
   const pastSheets = usePastSheets({ homework: worksheetProps.homework || firebaseHomework, studentId: guest ? '' : invitation.studentId || '', role });
+  // „Kodutöö” from a worksheet's page gives the sheet behind it (this lesson's sheets first, then earlier ones)
+  const homeworkSheets = useMemo(() => [...boardSheets, ...pastSheets], [boardSheets, pastSheets]);
   // the teacher's countdown (invitation field `countdown`): the teacher sets it, both see the badge
   // „Täna harjutada” and „Soojendus”: the student's earlier analysed lessons (teacher only, read once)
   const recent = useRecentLessons({ studentId: invitation.studentId, user, enabled: teacher && !guest, ...(recordingService ? { service: recordingService } : {}) });
@@ -567,7 +569,7 @@ export default function LiveRoom({
           </Drawer> : null}
           {panel === 'devices' ? <Drawer title="Kaamera ja mikrofon" onClose={() => setPanel('')}><DevicesPanel call={call} stream={streams?.local} /></Drawer> : null}
           {panel === 'words' ? <Drawer title="Sõnad" onClose={() => setPanel('')}><LessonWordsPanel studentId={invitation.studentId} invitationId={invitation.id} user={user} teacher={teacher} lang={/inglise|english/i.test(subject) ? 'en' : 'et'} {...(wordsService ? { service: wordsService } : {})} /></Drawer> : null}
-          {panel === 'homework' && teacher ? <Drawer title="Kodutöö" onClose={() => { setPanel(''); setAssignPage(null); }}><LessonHomeworkPanel key={assignPage?.id || 'homework'} invitation={invitation} user={user} boardPage={assignPage || (myPage ? { id: myPage, title: myPageTitle || 'Tahvlileht' } : null)} assignPage={Boolean(assignPage)} worksheet={sheet ? { id: sheet.id, title: worksheet?.title || 'Tööleht' } : null} {...(homeworkService ? { service: homeworkService } : {})} /></Drawer> : null}
+          {panel === 'homework' && teacher ? <Drawer title="Kodutöö" onClose={() => { setPanel(''); setAssignPage(null); }}><LessonHomeworkPanel key={assignPage?.id || 'homework'} invitation={invitation} user={user} boardPage={assignPage || (myPage ? { id: myPage, title: myPageTitle || 'Tahvlileht' } : null)} assignPage={Boolean(assignPage)} worksheet={sheet ? { id: sheet.id, title: worksheet?.title || 'Tööleht' } : null} sheets={homeworkSheets} {...(homeworkService ? { service: homeworkService } : {})} /></Drawer> : null}
           {panel === 'end' && teacher ? <Drawer title="Tunni lõpp" onClose={() => setPanel('')}><LessonEndPanel invitation={invitation} user={user} subject={subject} startedAt={new Date(startedAt).toISOString()} pages={pagesSeen} sheets={sheetList.map((item) => ({ id: item.id, title: sheetBoardTitle(item), status: item.status, completedAt: item.completedAt, lessonId: item.lessonId || '' }))} ending={ending} attendance={studentMark} onEnd={() => onEndLesson({ confirmed: true })}
             {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} {...(boardCopies ? { boardCopies } : {})} /></Drawer> : null}
           {panel === 'plan' && teacher ? <Drawer title="Tunniplaan" onClose={() => setPanel('')}><LessonPlanPanel planState={planState} participants={participants} startMs={attendanceStart}

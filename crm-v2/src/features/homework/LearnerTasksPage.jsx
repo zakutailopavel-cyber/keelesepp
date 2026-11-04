@@ -100,7 +100,7 @@ function TaskCard({ task, today, canAct, isNew, subjectTag, busy, actions }) {
       <OwnAnswer homework={homework} />
       {/* quiet ways on: the action stays one */}
       <div className="lt-links">
-        {homework?.boardPageId ? <Link to={`/board?page=${homework.boardPageId}`}>Ava tahvlileht „{homework.boardPageTitle || 'Tahvlileht'}”</Link> : null}
+        {homework?.boardPageId && !homework.worksheetFromBoardPage ? <Link to={`/board?page=${homework.boardPageId}`}>Ava tahvlileht „{homework.boardPageTitle || 'Tahvlileht'}”</Link> : null}
         {canPreviewMaterial(homework) ? <button type="button" className="lt-link" data-preview-allowed disabled={busy === `material-${homework.id}`} aria-label={`Vaata materjali: ${task.title}`} onClick={() => actions.previewMaterial(homework)}>Vaata materjali</button> : null}
         {canAct && todo && task.kind === 'homework' && !answering ? <button type="button" className="lt-link" onClick={() => actions.setAnswering(homework.id)}><Paperclip size={13} aria-hidden="true" /> Lisa vastus</button> : null}
         {canAct && task.state === TASK_STATE.WAITING && (task.kind === 'homework' || task.kind === 'voice') ? <button type="button" className="lt-link" onClick={() => actions.reopen(homework)}>Võta tagasi</button> : null}

@@ -52,6 +52,11 @@
 .sb-editor { position: absolute; box-sizing: border-box; padding: 10px; border: 2px solid #175cd3; border-radius: 6px; background: rgba(255, 255, 255, .96); font-family: inherit; line-height: 1.35; resize: none; z-index: 2; }
 .sb-editor--text { padding: 2px 4px; overflow-wrap: anywhere; overflow: hidden; }
 .sb-empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: #667085; pointer-events: none; }
+/* a worksheet page without its sheet (student's own board): a card that can be clicked, over an empty or drawn page */
+.sb-empty--sheet { z-index: 3; }
+.sb-sheet-missing { pointer-events: auto; display: grid; gap: 8px; justify-items: center; max-width: 420px; padding: 20px 22px; border: 1px solid #e4e6f0; border-radius: 18px; background: var(--surface, #fff); color: #3c4257; box-shadow: 0 6px 24px rgba(30, 34, 70, .08); }
+.sb-sheet-missing p { margin: 0; font-size: .9rem; }
+.sb-sheet-missing p[lang="ru"] { color: #667085; font-size: .84rem; }
 .sb-hint { display: flex; gap: 6px; align-items: center; margin: 0; color: #667085; font-size: .8rem; }
 .board-page .board-pick { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .student-profile-hero__actions{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px}

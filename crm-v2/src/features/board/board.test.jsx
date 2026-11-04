@@ -4,7 +4,7 @@ import { beforeEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { sheetBoardTitle, textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds, focusShift } from './boardModel.js';
+import { assignmentPageTitles, sheetForPage, worksheetPageId, worksheetPageTitle, sheetBoardTitle, textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds, focusShift } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -787,5 +787,53 @@ describe('board tools (owner 2026-11-04)', () => {
     document.body.dispatchEvent(later);
     expect(later.defaultPrevented).toBe(false);
     expect(document.documentElement.classList.contains('sb-drawing')).toBe(false);
+  });
+});
+
+describe('the sheet behind a worksheet page (2026-11-04, Demjan: „Ava tahvlileht” showed an empty board)', () => {
+  const opik = { id: 'as-opik', title: 'Loodus', phase: 'opik' };
+  const old = { id: 'as-old', title: 'Kontroll 1' };
+  it('finds the assignment by the page id (hash of the title), by the title, and by the older title without the phase', () => {
+    const title = worksheetPageTitle(sheetBoardTitle(opik));
+    expect(title).toBe('Tööleht: Loodus · Õpik');
+    expect(assignmentPageTitles(opik)).toEqual(['Tööleht: Loodus · Õpik', 'Tööleht: Loodus']);
+    expect(sheetForPage({ id: worksheetPageId(title) }, [old, opik])).toBe(opik);
+    expect(sheetForPage({ id: 'ws-unknown', title }, [old, opik])).toBe(opik);
+    expect(sheetForPage({ id: worksheetPageId('Tööleht: Loodus'), title: 'Tööleht: Loodus' }, [old, opik])).toBe(opik);
+    expect(sheetForPage({ id: worksheetPageId('Tööleht: Muu') }, [old, opik])).toBeNull();
+    expect(sheetForPage({ id: 'ws-1', title: 'Tööleht: Kontroll 1' }, [{ id: 'b', title: 'Kontroll 1', legacyTitle: 'Kontroll' }], { boardSheet: true })?.id).toBe('b');
+  });
+  it('the title with the phase wins over an older sheet that had the same title without it', () => {
+    const plain = { id: 'as-plain', title: 'Loodus · Õpik' };
+    expect(sheetForPage({ title: 'Tööleht: Loodus · Õpik' }, [{ id: 'as-x', title: 'Loodus · Õpik', phase: 'discover' }, plain])).toBe(plain);
+  });
+});
+
+describe("the student's own board (/board) on a worksheet page", () => {
+  const page = { id: worksheetPageId('Tööleht: Loodus · Õpik'), title: 'Tööleht: Loodus · Õpik' };
+  const renderBoard = (homework) => render(<MemoryRouter initialEntries={[`/board?page=${page.id}`]}><AuthContext.Provider value={{ user }}><Routes><Route path="/board" element={
+    <BoardPage studentRepository={{ listOwned: vi.fn().mockResolvedValue([{ id: 's-1', name: 'Demjan' }]) }} boardService={fakeService({ pages: [page] })} homework={homework} />} /></Routes></AuthContext.Provider></MemoryRouter>);
+
+  it('shows the worksheet of that page (the sheet opened in a lesson), not „Tühi tahvel”', async () => {
+    const homework = { subscribeStudentLiveWorksheets: vi.fn((_id, onData) => { onData([{ id: 'as-opik', title: 'Loodus', phase: 'opik', liveRoomKey: 'inv1', worksheetDoc: { meta: {}, blocks: [] } }]); return () => {}; }) };
+    renderBoard(homework);
+    await waitFor(() => expect(homework.subscribeStudentLiveWorksheets).toHaveBeenCalledWith('s-1', expect.any(Function), expect.any(Function)));
+    await waitFor(() => expect(document.querySelector('.sb-underlay, [data-testid="worksheet-reading"]')).not.toBeNull());
+    expect(screen.queryByText(/Tühi tahvel/)).toBeNull();
+    expect(screen.queryByText('See tööleht on avatud ainult tunnis')).toBeNull();
+  });
+
+  it('without its sheet says it opens only in the lesson, with a way to „Ülesanded”', async () => {
+    const homework = { subscribeStudentLiveWorksheets: vi.fn((_id, onData) => { onData([]); return () => {}; }) };
+    renderBoard(homework);
+    expect(await screen.findByText('See tööleht on avatud ainult tunnis')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ülesanded' })).toHaveAttribute('href', '/homework');
+    expect(screen.queryByText(/Tühi tahvel/)).toBeNull();
+  });
+
+  it('an ordinary page stays a board („Tühi tahvel” when empty)', async () => {
+    render(<StudentBoard studentId="s1" user={user} variant="room" service={fakeService({ pages: [{ id: 'pg-1', title: 'Leht 1' }] })} initialPageId="pg-1" sheetPageFallback={() => <p>ainult tunnis</p>} />);
+    expect(await screen.findByText(/Tühi tahvel/)).toBeInTheDocument();
+    expect(screen.queryByText('ainult tunnis')).toBeNull();
   });
 });
