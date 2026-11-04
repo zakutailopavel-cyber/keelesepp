@@ -106,13 +106,15 @@ mark („õpetaja hinnang” per goal) does not exist yet; until then the teache
 Sheets without `score.perGoal` (old ones) and sheets not built from the course (no `ws_<lessonId>_` id or course
 `lessonId`) do not count.
 
-**One meaning of „Oskan” on the family's page** (owner 2026-11-04): „Mida õpime praegu” (`parents/nowLearning.js`
-`monthGoalSteps` / `goalLight`) uses the same rule as the curve — Oskan = ≥ 2 sheets with an automatic result and
-≥ 70 % right together; Harjutan = a result that is not yet Oskan and ≥ 50 % (also ≥ 70 % from one sheet only); Kordame =
-under 50 %; Veel tegemata = no result yet. The month = the lessons with a sheet in the last 30 days. Difference left: that
-card groups by the learner's promise text (a lesson whose goals are written for the teacher shows one „Ma oskan …” step
-for the lesson), the curve counts each course goal apart. The student's own „Kuu sammud” card (`learner/monthSteps.js`,
-≥ 80 % / ≥ 50 %, shows %) is unchanged.
+**One meaning of „Oskan” for the family and the learner** (owner 2026-11-04): the parent's „Mida õpime praegu” and the
+student's „Kuu sammud” on „Minu areng” use one shared helper (`learner/goalLights.js` `monthGoalSteps` / `goalLight` /
+`STEP_LIGHT`) with the same rule as the curve — Oskan = ≥ 2 sheets with an automatic result and ≥ 70 % right together;
+Harjutan = a result that is not yet Oskan and ≥ 50 % (also ≥ 70 % from one sheet only); Kordame = under 50 %; Veel
+tegemata = no result yet. Both show only the lights (a dot and the word), no percentages. The month = the lessons with a
+sheet in the last 30 days (all sheets of those lessons count). Difference left: these cards group by the learner's
+promise text (a lesson whose goals are written for the teacher shows one „Ma oskan …” step for the lesson), the curve
+counts each course goal apart. Staff views keep the percentages and the older 80 % / 50 % thresholds of
+`learner/monthSteps.js` (`LearnerSnapshotCard`, the admin's monthly parent report).
 
 **Where it is shown:** the parent („Minu pere” → „Areng”, heading „<child's first name> B1 keeleoskus”) and the student
 („Minu areng”, top, „Sinu B1 keeleoskus”) see the same component (`progress-points/ProficiencyCard.jsx`); only the
