@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icons } from './icons.js';
-import { homeworkService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';

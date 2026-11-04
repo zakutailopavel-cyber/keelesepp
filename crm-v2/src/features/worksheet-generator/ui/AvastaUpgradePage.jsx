@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { Button, Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
-import { lessonWorksheetsService } from '../../../services/firebase/index.js';
+import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import { ROLES } from '../../../utils/roles.js';
 import { AVASTA_MODULE1_IDS, upgradeAvastaModule1Document } from '../admin/avastaModule1.js';
 import { AVASTA_MODULE2_IDS, upgradeAvastaModule2Document } from '../admin/avastaModule2.js';

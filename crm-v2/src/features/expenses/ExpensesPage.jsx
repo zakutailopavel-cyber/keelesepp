@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { expensesService } from '../../services/firebase/index.js';
+import { expensesService } from '../../services/firebase/expenses.js';
 import { categoryLabel, EXPENSE_CATEGORIES, EXPENSE_PAYMENT_METHODS, expenseTotals, filterExpenses, paymentMethodLabel, validateExpenseForm } from './expenses.js';
 import './expenses.css';
 

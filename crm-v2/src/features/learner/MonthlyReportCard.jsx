@@ -1,7 +1,8 @@
 import { Check, Copy, Send } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button, Card } from '../../components/ui/index.js';
-import { homeworkService, lessonsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
 import { messagesService } from '../../services/firebase/messages.js';

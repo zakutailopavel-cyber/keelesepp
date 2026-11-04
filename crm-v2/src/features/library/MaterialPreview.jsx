@@ -2,7 +2,7 @@ import { CheckCircle2, FilePenLine, FileQuestion, Image as ImageIcon } from 'luc
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Badge, Button, EmptyState, LoadingState, Modal } from '../../components/ui/index.js';
 import { isUnpublishedWorksheet, LIBRARY_TYPES, publishedWorksheetDoc } from './libraryModel.js';
-import { lessonWorksheetsService } from '../../services/firebase/index.js';
+import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
 
 const StudioSheetPreview = lazy(() => import('./StudioSheetPreview.jsx'));
 

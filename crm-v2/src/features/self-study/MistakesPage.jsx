@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { studentsService } from '../../services/firebase/index.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { studentNotesService } from '../../services/firebase/studentNotes.js';
 import { INK_BOX } from '../board/bookmarkModel.js';

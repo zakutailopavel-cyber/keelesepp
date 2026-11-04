@@ -4,7 +4,13 @@ import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Icons } from './icons.js';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { homeworkService, lessonWorksheetsService, libraryService, sheetReuseService, worksheetDocsService, worksheetSheetTemplatesService, worksheetTemplatesService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
+import { libraryService } from '../../services/firebase/library.js';
+import { sheetReuseService } from '../../services/firebase/sheetReuse.js';
+import { worksheetDocsService } from '../../services/firebase/worksheetDocs.js';
+import { worksheetSheetTemplatesService } from '../../services/firebase/worksheetSheetTemplates.js';
+import { worksheetTemplatesService } from '../../services/firebase/worksheetTemplates.js';
 import { mediaBankService } from '../../services/firebase/mediaBank.js';
 import { languageToolsService } from '../../services/firebase/languageTools.js';
 import MediaBankPanel from './MediaBankPanel.jsx';

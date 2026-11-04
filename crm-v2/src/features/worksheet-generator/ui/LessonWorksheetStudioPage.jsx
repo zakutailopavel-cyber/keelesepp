@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { lessonWorksheetsService, worksheetDocsService } from '../../../services/firebase/index.js';
+import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
+import { worksheetDocsService } from '../../../services/firebase/worksheetDocs.js';
 import WorksheetStudioPage from '../../worksheet-studio/WorksheetStudioPage.jsx';
 import { newDocument } from '../../worksheet-studio/engine/schema.js';
 import { regenerateTask, regenerateTaskOptions } from '../engine/regenerate.js';

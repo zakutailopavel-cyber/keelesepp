@@ -3,6 +3,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import LiveRoom from './LiveRoom.jsx';
 import { sampleDocument } from '../worksheet-studio/engine/sample.js';
+import { beforeAll as preloadBeforeAll } from 'vitest';
+import { preloadLiveClassroomParts } from './lazyParts.testkit.js';
+
+// the room's views and panels are lazy: load them once, so the tests wait for behaviour, not for module loading
+preloadBeforeAll(() => preloadLiveClassroomParts(), 60000);
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};

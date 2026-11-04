@@ -4,7 +4,7 @@ import { useContext, useState } from 'react';
 import { ClipboardList, Send, Trash2 } from 'lucide-react';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Button, IconButton, Input } from '../../components/ui/index.js';
-import { homeworkService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
 import { studentWorksheetsService } from '../../services/firebase/studentWorksheets.js';
 import { studentsService } from '../../services/firebase/students.js';
 // the builder (with the generator's word-form lexicon) loads only when the teacher asks for the draft

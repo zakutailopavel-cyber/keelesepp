@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { teachersService, workTimeService } from '../../services/firebase/index.js';
+import { teachersService } from '../../services/firebase/teachers.js';
+import { workTimeService } from '../../services/firebase/workTime.js';
 import { payrollRows, payrollTotals } from './payroll.js';
 import './payroll.css';
 

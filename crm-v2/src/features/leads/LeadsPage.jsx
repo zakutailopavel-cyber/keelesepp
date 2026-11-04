@@ -3,7 +3,8 @@ import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader }
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Link } from 'react-router-dom';
-import { studentsService, websiteLeadsService } from '../../services/firebase/index.js';
+import { studentsService } from '../../services/firebase/students.js';
+import { websiteLeadsService } from '../../services/firebase/websiteLeads.js';
 import { leadStudentIds } from '../calendar/leadTimes.js';
 import './leads.css';
 import PollGrid from '../availability-poll/PollGrid.jsx';

@@ -12,6 +12,7 @@ import { harnoBlocks } from './blocks/harno.jsx';
 import { kidsBlocks } from './blocks/kids.jsx';
 import { video } from './blocks/video.jsx';
 import { newId } from './schema.js';
+import { provideScoreChecker } from './storedScore.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
 export const BLOCKS = { text, notice, tip, image, vocab, wordstrip, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, video, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks };
@@ -140,3 +141,6 @@ export function answerProgress(doc, answers = {}) {
   }).length + speak.filter((x) => x.recorded).length;
   return { answered, total: keys.length + speak.length };
 }
+
+// storedScore.js re-checks old stored scores with these rules; it does not import this file (see there)
+provideScoreChecker(checkDocument);

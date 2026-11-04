@@ -1,20 +1,32 @@
 import { CheckCircle2, Clock3, GraduationCap, Search, Video, XCircle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
-import { libraryService, liveGuestService, liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, messagesService, studentsService } from '../../services/firebase/index.js';
+import { libraryService } from '../../services/firebase/library.js';
+import { liveGuestService } from '../../services/firebase/liveGuest.js';
+import { liveLessonCallSignalsService } from '../../services/firebase/liveLessonCallSignals.js';
+import { liveLessonInvitationsService } from '../../services/firebase/liveLessonInvitations.js';
+import { liveLessonPresenceService } from '../../services/firebase/liveLessonPresence.js';
+import { messagesService } from '../../services/firebase/messages.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { groupBoardService, studentBoardService } from '../../services/firebase/studentBoard.js';
 import { liveGroupRoomsService } from '../../services/firebase/liveGroupRooms.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, serverNow, timestampMillis, workspaceStudents } from './invitationModel.js';
 import { calendarPathAfterLesson } from './lessonLink.js';
-import LiveRoom from './LiveRoom.jsx';
-import GroupRoom from './GroupRoom.jsx';
-import StudentWorkspace from './StudentWorkspace.jsx';
-import TeacherWorkspace from './TeacherWorkspace.jsx';
+import { loadLiveRoom } from './liveRoomPrefetch.js';
 import DeviceCheckNotice from '../device-check/DeviceCheckNotice.jsx';
 import './liveClassroom.css';
+
+// each view downloads when it is shown: a student does not load the teacher's workspace, the group room or the
+// teacher's tools, and the 1:1 room starts downloading as soon as an invitation is in the address (see below)
+const LiveRoom = lazy(loadLiveRoom);
+const GroupRoom = lazy(() => import('./GroupRoom.jsx'));
+const StudentWorkspace = lazy(() => import('./StudentWorkspace.jsx'));
+const TeacherWorkspace = lazy(() => import('./TeacherWorkspace.jsx'));
+const roomFallback = <div className="page-content"><LoadingState label="Laen tunniruumi…" /></div>;
+const view = (node) => <Suspense fallback={roomFallback}>{node}</Suspense>;
 
 const statusLabel = {
   [INVITATION_STATUS.PENDING]: 'Ootab vastust',
@@ -62,6 +74,8 @@ export default function LiveClassroomPage({
   const groupRoomId = searchParams.get('group') || '';
   const isStudent = user.roles?.includes('student');
   const isStaff = user.roles?.some((role) => role === 'admin' || role === 'teacher');
+  // the room's code downloads while the invitation is read, not after it
+  useEffect(() => { if (invitationId) loadLiveRoom().catch(() => {}); }, [invitationId]);
   const [studentsState, setStudentsState] = useState({ loading: isStaff, items: [], error: '' });
   const [invitations, setInvitations] = useState([]);
   const [streamReady, setStreamReady] = useState(false);
@@ -258,11 +272,11 @@ export default function LiveClassroomPage({
   const groupProps = { user, service: groupService, boardService: groupBoard, library: libraryRepository, ...(groupCallOptions ? { callOptions: groupCallOptions } : {}), ...(deviceCheck ? { deviceCheck } : {}) };
   if (isStudent) {
     if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED && isGroupInvitation(activeInvitation)) {
-      return <GroupRoom key={activeInvitation.roomKey} roomId={activeInvitation.roomKey} role="student" turnInvitationId={activeInvitation.id} myInvitation={activeInvitation} recordingService={recordingService} onLeave={() => setSearchParams({}, { replace: true })} {...groupProps} />;
+      return view(<GroupRoom key={activeInvitation.roomKey} roomId={activeInvitation.roomKey} role="student" turnInvitationId={activeInvitation.id} myInvitation={activeInvitation} recordingService={recordingService} onLeave={() => setSearchParams({}, { replace: true })} {...groupProps} />);
     }
-    if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED) return <LiveRoom key={activeInvitation.id} {...roomProps('student')} />;
+    if (streamReady && !streamError && activeInvitation?.status === INVITATION_STATUS.ACCEPTED) return view(<LiveRoom key={activeInvitation.id} {...roomProps('student')} />);
     if (!streamReady) return <div className="page-content"><LoadingState label="Laen tunnikutset…" /></div>;
-    return <StudentWorkspace
+    return view(<StudentWorkspace
       user={user}
       studentRepository={studentRepository}
       boardService={boardService}
@@ -270,7 +284,7 @@ export default function LiveClassroomPage({
       onResume={() => setSearchParams({ invitation: resumable.id }, { replace: true })}
       onBack={() => navigate('/')}
       error={streamError}
-    />;
+    />);
   }
 
   if (groupRoomId) {
@@ -280,20 +294,20 @@ export default function LiveClassroomPage({
       const card = studentsState.items.find((item) => item.id === invitation.studentId);
       return { invitation, consent: card ? card.recordingConsent === true : null, subject: card?.subject || '' };
     });
-    return <GroupRoom key={groupRoomId} roomId={groupRoomId} role="teacher" turnInvitationId={accepted?.id || ''} recordings={groupRecordings} invitations={allInvitations.filter((item) => item.roomKey === groupRoomId)} recordingService={recordingService} onLeave={() => setSearchParams({}, { replace: true })} onEnd={() => setSearchParams({}, { replace: true })} {...groupProps} />;
+    return view(<GroupRoom key={groupRoomId} roomId={groupRoomId} role="teacher" turnInvitationId={accepted?.id || ''} recordings={groupRecordings} invitations={allInvitations.filter((item) => item.roomKey === groupRoomId)} recordingService={recordingService} onLeave={() => setSearchParams({}, { replace: true })} onEnd={() => setSearchParams({}, { replace: true })} {...groupProps} />);
   }
 
   if (activeInvitation?.status === INVITATION_STATUS.ACCEPTED) {
     return <>
       {streamError || actionError ? <div className="action-error lr-page-error" role="alert">{streamError || actionError}</div> : null}
-      <LiveRoom key={activeInvitation.id} {...roomProps('teacher')} />
+      {view(<LiveRoom key={activeInvitation.id} {...roomProps('teacher')} />)}
       {/* the student's last „Seadme kontroll” (or none before his first live lesson): until the call connects */}
       {!callStreams.remote && deviceNoticeHidden !== activeInvitation.id ? <DeviceCheckNotice className="dcn-room" viewer={user} studentId={activeInvitation.studentId} studentUid={activeInvitation.studentUid} onClose={() => setDeviceNoticeHidden(activeInvitation.id)} {...(deviceCheck ? { service: deviceCheck } : {})} /> : null}
     </>;
   }
 
   const pending = activeInvitation?.status === INVITATION_STATUS.PENDING ? activeInvitation : null;
-  return <TeacherWorkspace
+  return view(<TeacherWorkspace
     user={user}
     studentsState={studentsState}
     selectedId={selectedId}
@@ -319,5 +333,5 @@ export default function LiveClassroomPage({
     invitingGroup={saving === 'group'}
     openGroups={openGroups}
     onOpenGroup={(id) => setSearchParams({ group: id }, { replace: true })}
-  />;
+  />);
 }

@@ -6,7 +6,7 @@ import { studentsService } from './students.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
 import { paperMeasured, paperWorkPayload } from '../../features/homework/paperWork.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
-import { effectiveScore, scorePct } from '../../features/worksheet-studio/engine/storedScore.js';
+import { effectiveScore, loadScoreChecker, needsScoreCheck, scoreCheckerLoaded, scorePct } from '../../features/worksheet-studio/engine/storedScore.js';
 import { localDate } from '../../utils/localDate.js';
 
 // Student-scoped reads (homework, worksheetAssignments, exerciseResults) are checked per student card by the rules
@@ -52,10 +52,33 @@ function assignmentFallback(homework, files) {
   };
 }
 
+// the inputs of the stored-score check (storedScore.js) of a submission row and of an assignment row
+const submissionScoreInput = (data = {}) => ({ score: data.score, worksheetDoc: data.worksheetDoc, answers: data.answers, status: data.status || 'done' });
+const assignmentScoreInput = (data = {}) => ({ score: data.score, worksheetDoc: data.worksheetDoc?.blocks?.length ? data.worksheetDoc : null, answers: data.answers, status: data.status });
+// the check needs every block's rules (engine/registry.js, ~200 KB): they load only when a row really needs them
+async function scoreRulesFor(rows, input) {
+  if (rows.some((data) => needsScoreCheck(input(data)))) await loadScoreChecker();
+}
+// a live subscription: a snapshot that needs the rules waits for them, and the snapshots still arrive in order (a
+// snapshot that arrives after unsubscribing while it waited is still handed over: the callers only set state)
+function scoredDelivery(input) {
+  let queue = Promise.resolve();
+  let waiting = 0;
+  return (rows, send) => {
+    const needs = rows.some((data) => needsScoreCheck(input(data)));
+    if (!waiting && (!needs || scoreCheckerLoaded())) { send(); return; }
+    waiting += 1;
+    queue = queue.then(() => (needs ? loadScoreChecker() : undefined)).catch(() => undefined).then(() => {
+      waiting -= 1;
+      send();
+    });
+  };
+}
+
 export function normalizeSubmission(id, data = {}, submissionKind) {
   const rawScore = data.score;
   // a submitted structured worksheet: a stored score that is obviously wrong is checked again on its own sheet copy
-  const checked = submissionKind === 'worksheet' ? effectiveScore({ score: rawScore, worksheetDoc: data.worksheetDoc, answers: data.answers, status: data.status || 'done' }) : null;
+  const checked = submissionKind === 'worksheet' ? effectiveScore(submissionScoreInput(data)) : null;
   const score = checked?.recomputed
     ? checked.score
     : rawScore && typeof rawScore === 'object'
@@ -138,7 +161,7 @@ function withPhase(title, data) {
 export function normalizeWorksheetAssignment(id, data = {}) {
   const worksheetDoc = data.worksheetDoc?.blocks?.length ? data.worksheetDoc : null;
   // shown, never written: an old score that counted unanswered or unmatched tasks as wrong (storedScore.js)
-  const checked = effectiveScore({ score: data.score, worksheetDoc, answers: data.answers, status: data.status });
+  const checked = effectiveScore(assignmentScoreInput(data));
   return {
     id,
     ...data,
@@ -160,12 +183,24 @@ export function normalizeWorksheetAssignment(id, data = {}) {
   };
 }
 
+// The documents of one collection for these students. Parts of one page that ask at the same moment (the student's
+// home, its pet and the companion all read the worksheets) share one read (shareInFlight.js); each caller reads its own
+// fresh copy of every document (item.data()), as before.
+function docsByStudentIds(db, collectionName, studentIds) {
+  return shareInFlight(`docs:${collectionName}:${studentIds.join(',')}`, async () => {
+    const snapshots = await Promise.all(chunksForRules(studentIds).map((ids) => getDocs(query(
+      collection(db, collectionName),
+      where('studentId', 'in', ids),
+    ))));
+    // plain { id, data } records: shareInFlight hands each caller a shallow copy of every record
+    return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => ({ id: item.id, data: () => item.data() })));
+  });
+}
+
 async function listCollectionByStudentIds(db, collectionName, studentIds, submissionKind) {
-  const snapshots = await Promise.all(chunksForRules(studentIds).map((ids) => getDocs(query(
-    collection(db, collectionName),
-    where('studentId', 'in', ids),
-  ))));
-  return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => normalizeSubmission(item.id, item.data(), submissionKind)));
+  const docs = await docsByStudentIds(db, collectionName, studentIds);
+  if (submissionKind === 'worksheet') await scoreRulesFor(docs.map((item) => item.data()), submissionScoreInput);
+  return docs.map((item) => normalizeSubmission(item.id, item.data(), submissionKind));
 }
 
 export const homeworkService = {
@@ -178,8 +213,8 @@ export const homeworkService = {
   async listByStudentIds(studentIds = []) {
     if (!studentIds.length) return [];
     const { db } = requireFirebaseClient();
-    const snapshots = await Promise.all(chunksForRules(studentIds).map((ids) => getDocs(query(collection(db, 'homework'), where('studentId', 'in', ids)))));
-    return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => ({ id: item.id, status: 'Ootel', ...item.data() }))).sort((a, b) => String(a.due || '9999').localeCompare(String(b.due || '9999')));
+    const docs = await docsByStudentIds(db, 'homework', studentIds);
+    return docs.map((item) => ({ id: item.id, status: 'Ootel', ...item.data() })).sort((a, b) => String(a.due || '9999').localeCompare(String(b.due || '9999')));
   },
   listSubmissionsByStudentIds(studentIds = []) {
     return shareInFlight(`submissions:${studentIds.join(',')}`, () => homeworkService.readSubmissionsByStudentIds(studentIds));
@@ -198,22 +233,22 @@ export const homeworkService = {
   async listDoneWorksheetAssignments({ max = 800 } = {}) {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('status', '==', 'done'), limit(max)));
+    await scoreRulesFor(snapshot.docs.map((item) => item.data()), assignmentScoreInput);
     return snapshot.docs.map((item) => normalizeWorksheetAssignment(item.id, item.data()));
   },
   async listWorksheetAssignmentsByStudentIds(studentIds = []) {
     if (!studentIds.length) return [];
     const { db } = requireFirebaseClient();
-    const snapshots = await Promise.all(chunksForRules(studentIds).map((ids) => getDocs(query(
-      collection(db, 'worksheetAssignments'),
-      where('studentId', 'in', ids),
-    ))));
-    return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => normalizeWorksheetAssignment(item.id, item.data())))
+    const docs = await docsByStudentIds(db, 'worksheetAssignments', studentIds);
+    await scoreRulesFor(docs.map((item) => item.data()), assignmentScoreInput);
+    return docs.map((item) => normalizeWorksheetAssignment(item.id, item.data()))
       .sort((a, b) => String(b.assignedAt).localeCompare(String(a.assignedAt)));
   },
   // „Täna” (admin): the worksheets whose deadline falls in [from, to] — one range query instead of every assignment
   async listWorksheetAssignmentsDueBetween(from, to) {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('dueDate', '>=', from), where('dueDate', '<=', to)));
+    await scoreRulesFor(snapshot.docs.map((item) => item.data()), assignmentScoreInput);
     return snapshot.docs.map((item) => normalizeWorksheetAssignment(item.id, item.data()));
   },
   // „Õpi ise” (owner 2026-10-12): the student opens a course lesson's published sheet on his own. The rules allow it
@@ -463,9 +498,11 @@ export const homeworkService = {
   // Live lesson on a structured worksheet: both sides watch the same assignment document.
   subscribeWorksheetAssignment(assignmentId, onData, onError) {
     const { db } = requireFirebaseClient();
+    const deliver = scoredDelivery(assignmentScoreInput);
     return onSnapshot(doc(db, 'worksheetAssignments', assignmentId), (snapshot) => {
-      if (!snapshot.exists()) { onError?.(new Error('Töölehte ei leitud.')); return; }
-      onData(normalizeWorksheetAssignment(snapshot.id, snapshot.data()));
+      if (!snapshot.exists()) { deliver([], () => onError?.(new Error('Töölehte ei leitud.'))); return; }
+      const data = snapshot.data();
+      deliver([data], () => onData(normalizeWorksheetAssignment(snapshot.id, data)));
     }, (error) => onError?.(error));
   },
   // Live Classroom: the structured worksheet opened in one lesson room (newest first). The student may run this
@@ -473,10 +510,13 @@ export const homeworkService = {
   subscribeRoomWorksheets({ studentId, roomKey }, onData, onError) {
     const { db } = requireFirebaseClient();
     const q = query(collection(db, 'worksheetAssignments'), where('studentId', '==', studentId), where('liveRoomKey', '==', roomKey));
+    const deliver = scoredDelivery(assignmentScoreInput);
     return onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map((d) => normalizeWorksheetAssignment(d.id, d.data()))
-        .sort((a, b) => String(b.liveOpenedAt || '').localeCompare(String(a.liveOpenedAt || '')));
-      onData(items);
+      deliver(snapshot.docs.map((d) => d.data()), () => {
+        const items = snapshot.docs.map((d) => normalizeWorksheetAssignment(d.id, d.data()))
+          .sort((a, b) => String(b.liveOpenedAt || '').localeCompare(String(a.liveOpenedAt || '')));
+        onData(items);
+      });
     }, (error) => onError?.(error));
   },
   // every worksheet the student ever had on a lesson board (any room key): a board page „Tööleht: …” stays after its
@@ -484,9 +524,10 @@ export const homeworkService = {
   subscribeStudentLiveWorksheets(studentId, onData, onError) {
     const { db } = requireFirebaseClient();
     const q = query(collection(db, 'worksheetAssignments'), where('studentId', '==', studentId));
+    const deliver = scoredDelivery(assignmentScoreInput);
     return onSnapshot(q, (snapshot) => {
-      onData(snapshot.docs.map((d) => normalizeWorksheetAssignment(d.id, d.data())).filter((item) => item.liveRoomKey)
-        .sort((a, b) => String(b.liveOpenedAt || '').localeCompare(String(a.liveOpenedAt || ''))));
+      deliver(snapshot.docs.map((d) => d.data()), () => onData(snapshot.docs.map((d) => normalizeWorksheetAssignment(d.id, d.data())).filter((item) => item.liveRoomKey)
+        .sort((a, b) => String(b.liveOpenedAt || '').localeCompare(String(a.liveOpenedAt || '')))));
     }, (error) => onError?.(error));
   },
   // Staff only (existing rule): mark an assignment as the worksheet of this lesson room.

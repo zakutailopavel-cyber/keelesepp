@@ -20,21 +20,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, Select } from '../../components/ui/index.js';
-import {
-  bankTransactionsService,
-  creditNotesService,
-  financeApi,
-  financeRequestId,
-  financialAuditService,
-  financialPeriodsService,
-  invoiceDeliveryApi,
-  invoiceNotesService,
-  invoicesService,
-  lessonsService,
-  payerCreditsService,
-  revenuePlansService,
-  studentsService,
-} from '../../services/firebase/index.js';
+import { bankTransactionsService } from '../../services/firebase/bankTransactions.js';
+import { creditNotesService } from '../../services/firebase/creditNotes.js';
+import { financeApi, financeRequestId, invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
+import { financialAuditService } from '../../services/firebase/financialAudit.js';
+import { financialPeriodsService } from '../../services/firebase/financialPeriods.js';
+import { invoiceNotesService } from '../../services/firebase/invoiceNotes.js';
+import { invoicesService } from '../../services/firebase/invoices.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
+import { payerCreditsService } from '../../services/firebase/payerCredits.js';
+import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import { displayDate, validatePayment } from './finance.js';
 import { filterFinanceRows, financeRowState, sortFinanceRows, summarizeFinanceRows } from './financeRows.js';

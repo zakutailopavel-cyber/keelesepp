@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { homeworkService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
 import LiveWorksheetView from './LiveWorksheetView.jsx';
 
 // /library/worksheets/live/:assignmentId — the live view as a stand-alone page.

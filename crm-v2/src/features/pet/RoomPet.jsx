@@ -1,9 +1,9 @@
 /* global setTimeout, clearTimeout */
 import { useEffect, useRef, useState } from 'react';
 import { homeworkService as defaultHomework } from '../../services/firebase/homework.js';
-import { petsService } from '../../services/firebase/index.js';
+import { petsService } from '../../services/firebase/pets.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
-import { PetArt } from './PetCard.jsx';
+import { PetArt } from './PetArtView.jsx';
 import './pet.css';
 
 const SHOW_MS = 5000;

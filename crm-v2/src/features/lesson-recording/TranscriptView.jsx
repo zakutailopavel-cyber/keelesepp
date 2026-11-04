@@ -2,7 +2,7 @@ import { Fragment, useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BarChart3, BookOpen, FilePlus2, Languages, PenLine, Sparkles, Users } from 'lucide-react';
 import { AuthContext } from '../../app/AuthContext.jsx';
-import { homeworkService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { cardsFromErrors, focusTopics, homeworkFromAnalysis, parentNoteFromAnalysis } from './afterLesson.js';
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';

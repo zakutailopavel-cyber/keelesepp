@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { lessonsService } from '../../services/firebase/index.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
 import { olderUnmarked, unmarkedLessons } from './unmarkedLessons.js';
 import '../retention/retention.css';
 

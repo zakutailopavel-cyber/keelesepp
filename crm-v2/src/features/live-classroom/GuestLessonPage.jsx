@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button, Card, ErrorState, LoadingState } from '../../components/ui/index.js';
-import { liveGuestService, liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService } from '../../services/firebase/index.js';
+import { liveGuestService } from '../../services/firebase/liveGuest.js';
+import { liveLessonCallSignalsService } from '../../services/firebase/liveLessonCallSignals.js';
+import { liveLessonInvitationsService } from '../../services/firebase/liveLessonInvitations.js';
+import { liveLessonPresenceService } from '../../services/firebase/liveLessonPresence.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { INVITATION_STATUS, normalizeInvitation, serverNow } from './invitationModel.js';

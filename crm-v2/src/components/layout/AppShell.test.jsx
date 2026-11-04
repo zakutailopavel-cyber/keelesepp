@@ -11,7 +11,7 @@ function LocationProbe() {
 }
 
 describe('application shell', () => {
-  it('shows the global student search to an administrator', () => {
+  it('shows the global student search to an administrator', async () => {
     const auth = { user: { displayName: 'Admin', roles: ['admin'] }, signOut: vi.fn() };
     render(
       <AuthContext.Provider value={auth}>
@@ -22,7 +22,8 @@ describe('application shell', () => {
         </MemoryRouter>
       </AuthContext.Provider>,
     );
-    expect(screen.getByLabelText('Otsi õpilast')).toBeInTheDocument();
+    // the staff search downloads with the staff's shell (lazy)
+    expect(await screen.findByLabelText('Otsi õpilast', {}, { timeout: 5000 })).toBeInTheDocument();
   });
 
   it('shows the number of registrations waiting for approval on „Uued kontod”', () => {

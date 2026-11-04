@@ -5,6 +5,10 @@ import { gapWidth } from '../gapWidth.js';
 import { norm } from '../schema.js';
 import { Area, Text } from '../../editor/fields.jsx';
 import { plainText, seededShuffle } from './tasks.jsx';
+import { clozeGaps } from './clozeGaps.js';
+
+// clozeGaps lives in clozeGaps.js (the pet's games read it without the block views); kept exported here
+export { clozeGaps };
 
 // Exam-format tasks (owner 2026-10-12: B1 course after Harno). „Valiklünktekst”: a text with numbered gaps, each with
 // 3–4 options — Harno B1 reading task 3 (10 gaps, 3 options), B2 (4 options). Written as
@@ -12,12 +16,7 @@ import { plainText, seededShuffle } from './tasks.jsx';
 // the block id, the same on screen and paper). On paper the options are listed under the text, as in the exam.
 
 const LETTERS = 'abcdefgh';
-const GAP = /\{([^}]*)\}/g;
 const paragraphs = (text) => String(text || '').split(/\n{2,}/).filter((p) => p.trim());
-export function clozeGaps(passage) {
-  return [...String(passage || '').matchAll(GAP)].map((m) => m[1].split('|').map((o) => o.trim()).filter(Boolean)
-    .map((o, oi) => ({ text: o.replace(/^\*/, ''), correct: o.startsWith('*'), oi })));
-}
 // the gaps of one paragraph keep their running number over the whole text
 function parts(passage) {
   let n = -1;

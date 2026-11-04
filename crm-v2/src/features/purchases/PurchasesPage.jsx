@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { purchasesService } from '../../services/firebase/index.js';
+import { purchasesService } from '../../services/firebase/purchases.js';
 import { downloadWorkbook, purchaseInvoicesWorkbook, suppliersWorkbook } from '../accounting/accountingExcel.js';
 import { COMPANY, amount, dmy, isLockedDate, parseEuro } from '../accounting/accountingReports.js';
 import PurchaseInvoiceDraft from './PurchaseInvoiceDraft.jsx';

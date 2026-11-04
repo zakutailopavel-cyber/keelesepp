@@ -3,6 +3,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import RoomWorksheetPanel from './RoomWorksheetPanel.jsx';
 import { SCHEMA } from './engine/schema.js';
+import { beforeAll as preloadBeforeAll } from 'vitest';
+import { preloadLiveClassroomParts } from '../live-classroom/lazyParts.testkit.js';
+
+// the room's views and panels are lazy: load them once, so the tests wait for behaviour, not for module loading
+preloadBeforeAll(() => preloadLiveClassroomParts(), 60000);
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 
@@ -113,7 +118,7 @@ describe('RoomWorksheetPanel', () => {
 
 describe('Samm-sammult in the side panel (the task list lies under the sheet on the board)', () => {
   it('shows how many tasks the student sees and opens the next or all of them', async () => {
-    const { RoomStepControl } = await import('./RoomWorksheetPanel.jsx');
+    const { default: RoomStepControl } = await import('./RoomStepControl.jsx');
     const doc = { ...worksheetDoc, blocks: [{ id: 'txt', type: 'text', data: { text: 'Loe.' } }, ...worksheetDoc.blocks, { id: 'tf2', type: 'truefalse', data: { statements: [{ text: 'Öösel on pime.', answer: 'true' }] } }] };
     const homework = { setWorksheetLiveStep: vi.fn().mockResolvedValue({}), setWorksheetLiveFocus: vi.fn().mockResolvedValue({}) };
     const current = { id: 'a1', status: 'new', worksheetDoc: doc, liveStep: { on: true, open: [] } };

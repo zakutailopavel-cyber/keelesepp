@@ -1,7 +1,8 @@
 import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button, Modal } from '../../components/ui/index.js';
-import { lessonChangeRequestsService, teacherAvailabilityService } from '../../services/firebase/index.js';
+import { lessonChangeRequestsService } from '../../services/firebase/lessonChangeRequests.js';
+import { teacherAvailabilityService } from '../../services/firebase/teacherAvailability.js';
 import { buildRequest, isLate, proposalSlots, slotLabel } from '../calendar/rescheduleModel.js';
 import { localDate } from '../../utils/localDate.js';
 

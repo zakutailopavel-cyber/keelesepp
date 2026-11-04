@@ -755,6 +755,21 @@ student input is stored only in the assignment's existing `answers` map under vi
 submitted through the existing worksheet completion contract. This adds no second assignment store and
 keeps legacy structured `worksheetData.blocks` assignments compatible.
 
+## Loading on a phone (2026-11-04)
+
+Every route is lazy (`app/routes.jsx`); the first load is React, Firebase, the shell and the one CSS file
+(`app/eagerStyles.js`). Contracts that keep a student's first screen and the lesson room small:
+
+- Import a service file directly (`services/firebase/homework.js`), not the `services/firebase/index.js` barrel: modules
+  with top-level work behind it (the worksheet block registry, the kids campaigns) are then pulled into the page.
+- The worksheet block registry (`worksheet-studio/engine/registry.js`, every block's views and rules) loads only where a
+  sheet is shown or edited. `engine/storedScore.js` does not import it: registry calls `provideScoreChecker` when it
+  loads; services await `loadScoreChecker()` when a stored score needs a re-check (`needsScoreCheck`).
+- Live Classroom: page → room → panels/recorder/sheet are separate downloads (`LiveClassroomPage.jsx`, `LiveRoom.jsx`,
+  `RoomWorksheetPanel.jsx`); `live-classroom/liveRoomPrefetch.js` fetches the room before a lesson / on an invitation.
+- Staff-only shell parts (search, right-click menu, admin counts) load lazily in `AppShell.jsx`.
+- Tests of lazy parts preload them (`live-classroom/lazyParts.testkit.js`) and wait with `findBy…`.
+
 ## Safe evolution rules
 
 1. Preserve legacy records and add optional fields; do not rewrite history merely to fit a new UI.
