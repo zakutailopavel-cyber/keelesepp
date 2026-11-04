@@ -868,3 +868,27 @@ textarea.ed-input { resize: vertical; }
 .st-reuse__templates li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid #f2f4f7; }
 .st-reuse__templates li > span { flex: 1 1 220px; display: grid; }
 .st-reuse__templates small { color: #667085; }
+
+/* „Kiri” (AnswerFontMenu.jsx): the viewer's font for typed answers; each option name is shown in its own font.
+   Light like the paper it changes (the player's header and the sheet stay white in the dark theme too). */
+.ws-player-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.ws-review-tools { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.ws-review-tools .sa-hint { margin-right: auto; }
+.ws-ansfont { position: relative; display: inline-flex; }
+.ws-ansfont-btn { min-width: 40px; height: 36px; padding: 0 10px; border: 1px solid #cfd8e3; border-radius: 10px; background: #fff; color: #17253a; font: 700 16px/1 'Nunito Sans', system-ui, sans-serif; cursor: pointer; }
+.ws-ansfont-btn:hover, .ws-ansfont-btn[aria-expanded='true'] { border-color: #087e6b; }
+.ws-ansfont-btn:focus-visible, .ws-ansfont-opt:focus-visible { outline: 2px solid #087e6b; outline-offset: 2px; }
+.ws-ansfont-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; display: grid; gap: 4px; width: 240px; padding: 10px; border: 1px solid #dfe5ec; border-radius: 12px; background: #fff; color: #17253a; box-shadow: 0 10px 30px rgba(15, 23, 42, .18); text-align: left; }
+.ws-ansfont.is-up .ws-ansfont-pop { top: auto; bottom: calc(100% + 6px); }
+.ws-ansfont-pop > b { font-size: 13px; padding: 0 4px 2px; }
+.ws-ansfont-pop > p { margin: 4px 4px 0; font-size: 12px; line-height: 1.35; color: #627087; }
+.ws-ansfont-opt { display: grid; gap: 1px; min-height: 44px; padding: 6px 10px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #1b4a8a; text-align: left; cursor: pointer; }
+.ws-ansfont-opt:hover { background: #f6f8fb; }
+.ws-ansfont-opt.is-on { border-color: #087e6b; background: #e8f6f2; }
+.ws-ansfont-opt span { font: 600 17px/1.2 'Nunito Sans', system-ui, sans-serif; }
+.ws-ansfont-opt small { font: 400 12px/1.3 system-ui, sans-serif; color: #627087; }
+.ws-ansfont-opt.is-hand span { font: 700 22px/1.1 'Caveat', 'Bradley Hand', cursive; }
+.ws-ansfont-opt.is-serif span { font: 500 17px/1.2 'Lora', Georgia, serif; }
+.ws-ansfont-opt.is-large span { font-size: 21px; }
+.ws-flow-bar .ws-ansfont-btn { height: 32px; min-width: 36px; }
+@media print { .ws-ansfont { display: none !important; } }
