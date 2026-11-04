@@ -166,3 +166,38 @@ test('text requests for the school Mac: evaluate and learnerText with a bounded 
   assert.equal(await ask(ok('learnerText', 'Ma elan Tallinnas koos minu ema.')), 200);
   assert.equal(await ask(ok('learnerText', 'x'.repeat(8001))), 403);
 });
+
+test('„Pole viga”: the recording teacher or an admin marks errors; the Mac copy is admin-read', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const db = admin.firestore();
+  const teacher = await account('teacher');
+  const other = await account('teacher');
+  const boss = await account('admin');
+  const learner = await account('student');
+  await db.doc('lessonRecordings/inv-pv_1').set({ invitationId: 'inv-pv', teacherUid: teacher.uid, studentId: 'st-pv', studentUid: learner.uid, status: 'done', transcript: [], analysis: { version: 7, errors: [] } });
+  const mark = (who) => ({ errorReview: { eabc: { said: 'Mul on kaks vend.', corrected: 'Mul on kaks venda.', kind: 'vorm', reason: '', byUid: who.uid, byName: 'Kati', at: '2026-11-04T10:00:00Z' } } });
+  assert.equal(await patch(teacher, 'inv-pv_1', mark(teacher)), 200, 'the teacher marks on a finished recording');
+  assert.equal(await patch(boss, 'inv-pv_1', mark(boss)), 200, 'an admin too');
+  assert.equal(await patch(other, 'inv-pv_1', mark(other)), 403, 'not another teacher');
+  assert.equal(await patch(learner, 'inv-pv_1', mark(learner)), 403, 'not the student');
+  assert.equal(await patch(teacher, 'inv-pv_1', { ...mark(teacher), status: 'uploaded' }), 403, 'only errorReview');
+  assert.equal(await patch(teacher, 'inv-pv_1', { analysis: { version: 7, errors: ['forged'] } }), 403, 'the analysis stays the Mac\'s');
+
+  const feedback = (who, extra = {}) => ({ said: 'Mul on kaks vend.', corrected: 'Mul on kaks venda.', kind: 'vorm', source: 'gec', reason: 'õige', lang: 'et', recordingId: 'inv-pv_1', byUid: who.uid, byName: 'Kati', at: '2026-11-04T10:00:00Z', ...extra });
+  const put = async (who, id, data) => (await fetch(`${base}/analyzerFeedback?documentId=${encodeURIComponent(id)}`, { method: 'POST', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: fields(data) }) })).status;
+  const get = async (who, id) => (await fetch(`${base}/analyzerFeedback/${id}`, { headers: { Authorization: `Bearer ${who.token}` } })).status;
+  const del = async (who, id) => (await fetch(`${base}/analyzerFeedback/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${who.token}` } })).status;
+  assert.equal(await put(teacher, 'inv-pv_1_eabc', feedback(teacher)), 200);
+  assert.equal(await put(teacher, 'inv-pv_1_ebcd', feedback(other)), 403, 'own uid only');
+  assert.equal(await put(other, 'inv-pv_1_ecde', feedback(other)), 403, 'only for own recordings');
+  assert.equal(await put(learner, 'inv-pv_1_edef', feedback(learner)), 403, 'students cannot');
+  assert.equal(await put(teacher, 'other_1_efgh', feedback(teacher)), 403, 'the id belongs to the recording');
+  assert.equal(await put(teacher, 'inv-pv_1_eghi', feedback(teacher, { transcript: 'x' })), 403, 'no other fields');
+  assert.equal(await put(boss, 'inv-pv_1_ehij', feedback(boss)), 200, 'an admin');
+  assert.equal(await get(teacher, 'inv-pv_1_eabc'), 403, 'admins read');
+  assert.equal(await get(boss, 'inv-pv_1_eabc'), 200);
+  assert.equal(await del(other, 'inv-pv_1_eabc'), 403);
+  assert.equal(await del(teacher, 'inv-pv_1_eabc'), 200, 'undo');
+  assert.equal(await del(teacher, 'inv-pv_1_ehij'), 200, 'the recording teacher undoes an admin mark');
+  assert.equal(await del(teacher, 'inv-pv_1_enone'), 200, 'undo of a copy already gone');
+});
