@@ -1,0 +1,48 @@
+/* „Täna” on the admin dashboard (dashboard/today/TodayPanel.jsx) */
+.today-desk { margin: 18px 0; }
+.today-desk__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.today-desk__head h2 { margin: 4px 0 0; }
+.today-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #e4e6f2; border-radius: 999px; background: #fff; color: #344054; font-size: .85rem; font-weight: 600; text-decoration: none; }
+.today-chip b { min-width: 20px; padding: 0 6px; border-radius: 999px; background: #fffaeb; color: #b54708; text-align: center; }
+.today-desk__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.today-card--wide { grid-column: 1 / -1; }
+.today-card h2 { display: flex; align-items: center; gap: 6px; font-size: 1.1rem; }
+.today-lessons, .today-list, .today-calls, .today-reasons, .today-called ul { margin: 0; padding: 0; list-style: none; }
+.today-lessons { display: grid; gap: 2px; }
+.today-lessons > li { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; }
+.today-lessons > li:hover { background: #f9fafb; }
+.today-lessons > li.is-past, .today-lessons > li.is-cancelled { opacity: .62; }
+.today-lessons > li.is-now { background: #ecfdf3; }
+.today-lessons time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.today-lessons strong, .today-list strong, .today-calls strong { display: block; font-size: .92rem; }
+.today-lessons small, .today-list small, .today-calls small { display: block; color: #667085; font-size: .8rem; }
+.today-start { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 9px; background: #f0f9f6; color: var(--green, #067647); font-size: .82rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.today-list { display: grid; gap: 2px; }
+.today-list > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #f2f4f7; }
+.today-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.today-numbers div { padding: 10px 12px; border-radius: 12px; background: #f9fafb; }
+.today-numbers strong { display: block; font-size: 1.5rem; }
+.today-numbers small { color: #667085; font-size: .78rem; }
+.today-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.today-table th, .today-table td { padding: 6px 4px; border-bottom: 1px solid #f2f4f7; text-align: left; }
+.today-table th:not(:first-child), .today-table td:not(:first-child) { text-align: right; width: 72px; }
+.today-table th { color: #667085; font-weight: 600; font-size: .78rem; }
+.today-calls { display: grid; gap: 4px; }
+.today-calls > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid #f2f4f7; }
+.today-reasons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.today-reasons li { padding: 2px 8px; border-radius: 999px; background: #fef3f2; color: #b42318; font-size: .76rem; }
+.today-call-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.today-call-form .field { min-width: 220px; margin: 0; }
+.today-called { margin-top: 10px; font-size: .85rem; }
+.today-called summary { cursor: pointer; color: #475467; font-weight: 600; }
+.today-called ul { display: grid; gap: 4px; margin-top: 6px; }
+.today-called span { color: #667085; }
+@media (max-width: 1100px) { .today-desk__grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 720px) {
+  .today-desk__grid { grid-template-columns: 1fr; }
+  .today-lessons > li { grid-template-columns: 72px minmax(0, 1fr); }
+  .today-lessons > li > .badge, .today-lessons > li > span:empty { display: none; }
+  .today-lessons .today-start { grid-column: 2; justify-self: start; }
+  .today-calls > li { grid-template-columns: 1fr; }
+  .today-call-form .field { min-width: 0; flex: 1 1 100%; }
+}
