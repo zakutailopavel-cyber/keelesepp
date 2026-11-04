@@ -697,6 +697,18 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `staffProgramPresence` — server-only cross-tab heartbeat pointer. It prevents several visible
   KeeleSepp windows from multiplying the same wall-clock interval.
 - `assistantAlerts` — server-authored operational attention queue visible only to administrators.
+- `clientErrors/{auto id}` — client error tracking „Vead” (2026-11-04). The CRM's own reporter
+  (`crm-v2/src/features/client-errors/clientErrorReporter.js`) writes one record per error group and session window:
+  `{ message ≤ 500 (sanitized), kind: error|rejection|render|permission|call|media, route (path only, ids / link
+  tokens → :id), build ≤ 40, role, uid, browser ≤ 60, frame ≤ 200, count 1–1000, fingerprint (16 hex of kind +
+  message + top frame), status 'new', firstAt, lastAt = server time }`. Sources: window `error` /
+  `unhandledrejection` (main.jsx), `PageErrorBoundary`, Firestore writes refused by the rules (vite alias
+  `firebase/firestore` → `services/firebase/firestoreWithReporting.js`: setDoc / updateDoc / deleteDoc / addDoc /
+  batch / transaction, collection pattern only), Live Classroom call failures and getUserMedia errors (useLiveCall,
+  useGroupCall). Throttle: one record per fingerprint per 10 min per browser session, ≤ 20 per session. Any signed-in
+  user creates (a lesson-link guest only with a valid `liveGuestGrants` grant, as role `guest`); admin reads, sets
+  `status` new / ack / fixed, deletes. Page `/vead` (Seaded → Tehniline), dashboard digest of new groups in 24 h.
+  Never store document data, form contents, names, e-mails, tokens or query strings in it.
 - `schedule` — dated or recurring lesson intent plus additive occurrence exceptions with stable
   student ownership.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.

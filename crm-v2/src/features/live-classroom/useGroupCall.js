@@ -4,6 +4,7 @@ import { presenceIsFresh } from '../../services/firebase/liveLessonPresence.js';
 import { liveTurnService } from '../../services/firebase/liveTurn.js';
 import { callIceServers, mediaConstraints } from './useLiveCall.js';
 import { openMedia } from './mobileMedia.js';
+import { callErrorKind, clientErrors } from '../client-errors/clientErrorReporter.js';
 
 // Group lesson call (owner, 2026-10-04: up to 4 students, no paid video server): a WebRTC mesh — one
 // RTCPeerConnection per pair of participants. For every pair the participant with the smaller uid makes the offer, so
@@ -82,6 +83,7 @@ export function useGroupCall({
       const state = pc.connectionState;
       setRemote(uid, { status: state });
       if (state === 'connected') entry.attempts = 0;
+      if (state === 'failed' && isInitiator(me, uid) && entry.attempts >= MAX_RECOVERIES) clientErrors.report('call', `group call connection failed (${pc.iceConnectionState || 'ice ?'})`);
       if (state === 'failed' && isInitiator(me, uid) && entry.attempts < MAX_RECOVERIES) {
         globalThis.setTimeout(() => { if (peers.current.get(uid)?.pc === pc) offerTo.current?.(uid, entry.attempts + 1); }, RECOVERY_DELAY_MS);
       }
@@ -182,6 +184,7 @@ export function useGroupCall({
       setLocalStream(stream);
       setHasLocalMedia(true);
     } catch (nextError) {
+      clientErrors.report(callErrorKind(nextError), nextError, { detail: 'group call camera' });
       setError(nextError?.message || 'Kaamerat ei saanud käivitada.');
     } finally {
       setBusy(false);

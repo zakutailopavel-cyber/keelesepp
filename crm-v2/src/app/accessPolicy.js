@@ -47,6 +47,7 @@ export const ROUTE_ACCESS = Object.freeze({
   '/accounts': ACCESS.ADMIN,
   '/teachers/:teacherId': ACCESS.ADMIN,
   '/trash': ACCESS.ADMIN,
+  '/vead': ACCESS.ADMIN,
   '/settings': ACCESS.ALL_AUTHENTICATED,
   '/homework': ACCESS.HOMEWORK,
   '/messages': ACCESS.MESSAGES,

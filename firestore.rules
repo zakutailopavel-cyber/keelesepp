@@ -1721,6 +1721,43 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // „Vead” (admin 2026-11-04): client error tracking. Anyone signed in reports one record from his browser (a
+    // lesson-link guest only while his grant is valid, as role „guest”); exactly the reporter's fields with fixed sizes,
+    // his own uid, status „new”, `lastAt` = the server's time. No personal data by design (crm-v2 clientErrorReporter.js).
+    // Only an admin reads, changes the status (new / ack / fixed) and deletes.
+    function clientErrorReporterOk() {
+      return request.auth.token.get('liveGuest', false) != true
+        || (exists(liveGuestGrantPath()) && get(liveGuestGrantPath()).data.expiresAt > request.time);
+    }
+
+    function validClientError(data) {
+      return data.keys().hasOnly(['message', 'kind', 'route', 'build', 'role', 'uid', 'browser', 'frame', 'count', 'fingerprint', 'status', 'firstAt', 'lastAt'])
+        && data.keys().hasAll(['message', 'kind', 'route', 'build', 'role', 'uid', 'browser', 'frame', 'count', 'fingerprint', 'status', 'firstAt', 'lastAt'])
+        && data.message is string && data.message.size() > 0 && data.message.size() <= 500
+        && data.kind in ['error', 'rejection', 'render', 'permission', 'call', 'media']
+        && data.route is string && data.route.size() > 0 && data.route.size() <= 200 && data.route.matches('^/[^?#]*$')
+        && data.build is string && data.build.size() <= 40
+        && data.role in ['admin', 'teacher', 'finance', 'parent', 'student', 'guest', 'none']
+        && (data.role == 'guest') == (request.auth.token.get('liveGuest', false) == true)
+        && data.uid == uid()
+        && data.browser is string && data.browser.size() <= 60
+        && data.frame is string && data.frame.size() <= 200
+        && data.count is int && data.count >= 1 && data.count <= 1000
+        && data.fingerprint is string && data.fingerprint.matches('^[0-9a-f]{16}$')
+        && data.status == 'new'
+        && data.firstAt is timestamp
+        && data.lastAt == request.time;
+    }
+
+    match /clientErrors/{errorId} {
+      allow read: if isAdmin();
+      allow create: if signedIn() && clientErrorReporterOk() && validClientError(request.resource.data);
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['new', 'ack', 'fixed'];
+      allow delete: if isAdmin();
+    }
+
     // „Õpi ise” (owner 2026-10-12): a student opens a course lesson's sheet on his own — only for his own card, as
     // 'self_study', unscored and new, with the sheet exactly as published in the course (nothing of his own in it)
     function selfStudySheet(data) {

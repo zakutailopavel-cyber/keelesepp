@@ -3,6 +3,7 @@ import { liveLessonCallSignalsService } from '../../services/firebase/liveLesson
 import { liveLessonPresenceService, presenceIsFresh } from '../../services/firebase/liveLessonPresence.js';
 import { liveTurnService } from '../../services/firebase/liveTurn.js';
 import { openMedia } from './mobileMedia.js';
+import { callErrorKind, clientErrors } from '../client-errors/clientErrorReporter.js';
 import { isScreenSlot, remoteShareActive, remoteShareStream, screenSlotTransceiver, shareMessage } from './screenShare.js';
 
 export const STUN_SERVERS = Object.freeze([
@@ -362,7 +363,10 @@ export function useLiveCall({
       } else if (next === 'connecting' || next === 'new') setStatus('connecting');
       else if (next === 'failed') {
         clearRecovery();
-        setStatus(scheduleRecovery(RECOVERY_DELAY_MS) ? 'reconnecting' : 'failed');
+        const retrying = scheduleRecovery(RECOVERY_DELAY_MS);
+        // reported once the automatic recoveries are used up (ICE / connection failed for good)
+        if (!retrying) clientErrors.report('call', `1:1 call connection failed (${peer.iceConnectionState || 'ice ?'}, ${role})`);
+        setStatus(retrying ? 'reconnecting' : 'failed');
       } else if (next === 'disconnected') {
         setStatus('reconnecting');
         scheduleRecovery(DISCONNECT_GRACE_MS);
@@ -621,6 +625,7 @@ export function useLiveCall({
       await sendOffer();
       setStatus('waiting');
     } catch (nextError) {
+      clientErrors.report(callErrorKind(nextError), nextError, { detail: '1:1 call start' });
       resetCall('failed', true);
       setError(nextError.message || 'Videokõnet ei saanud käivitada.');
     } finally {
@@ -641,6 +646,7 @@ export function useLiveCall({
       if (offer) await answerOffer(offer);
       else setStatus('waiting');
     } catch (nextError) {
+      clientErrors.report(callErrorKind(nextError), nextError, { detail: '1:1 call join' });
       resetCall('failed', true);
       setError(nextError.message || 'Videokõnega ei saanud liituda.');
     } finally {
@@ -741,6 +747,7 @@ export function useLiveCall({
       reportStreams({ local: stream });
       refreshDevices();
     } catch (nextError) {
+      clientErrors.report(callErrorKind(nextError), nextError, { detail: 'device switch' });
       setError(nextError?.message ? `Seadet ei saanud vahetada: ${nextError.message}` : 'Seadet ei saanud vahetada.');
     } finally {
       setDeviceBusy(false);
