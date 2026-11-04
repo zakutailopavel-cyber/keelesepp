@@ -305,3 +305,32 @@ button.lr-plan-pill:hover, .lr-plan-pill.is-active { background: #eceefe; border
 .lr-attendance__buttons .lr-text-btn.is-suggested { border-style: dashed; border-color: #9fb0f5; }
 .lr-attendance__late { display: inline-flex; align-items: center; gap: 4px; font-size: .8rem; color: #4b5070; }
 .lr-attendance__late input { width: 60px; }
+
+/* the teacher's countdown (CountdownTimer.jsx): a badge under the page tabs, a click makes it big; never covers the board */
+.lr-countdown { position: absolute; top: 54px; left: 14px; z-index: 6; display: flex; align-items: stretch; gap: 2px; padding: 3px; border: 1px solid #d9dcf0; border-radius: 14px; background: rgba(255, 255, 255, .97); box-shadow: 0 8px 22px rgba(30, 34, 70, .14); color: #24294a; }
+.lr-countdown button { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; border-radius: 11px; }
+.lr-countdown__main { display: flex; align-items: center; gap: 6px; padding: 4px 9px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.lr-countdown__main small { font-size: .72rem; font-weight: 700; color: #6b7090; }
+.lr-countdown__time { font-size: 1.05rem; }
+.lr-countdown__mute { display: grid; place-items: center; width: 30px; color: #6b7090; }
+.lr-countdown button:hover, .lr-countdown button:focus-visible { background: #eef0fa; }
+.lr-countdown.is-big { left: 50%; transform: translateX(-50%); padding: 6px; border-radius: 22px; }
+.lr-countdown.is-big .lr-countdown__main { flex-wrap: wrap; justify-content: center; gap: 4px 10px; padding: 10px 18px; max-width: 360px; }
+.lr-countdown.is-big .lr-countdown__time { font-size: clamp(2.4rem, 7vw, 4rem); line-height: 1; }
+.lr-countdown.is-paused .lr-countdown__time { color: #6b7090; }
+.lr-countdown.is-warn { border-color: #f5a623; background: #fff4e5; color: #9a5b00; animation: lr-countdown-pulse 1s ease-in-out infinite; }
+.lr-countdown.is-done { border-color: #e04f5f; background: #fdecee; color: #b42318; }
+@keyframes lr-countdown-pulse { 50% { box-shadow: 0 0 0 6px rgba(245, 166, 35, .25); } }
+@media (prefers-reduced-motion: reduce) { .lr-countdown.is-warn { animation: none; } }
+.lr-countdown-tool { display: grid; gap: 12px; }
+.lr-countdown-tool__now { display: grid; gap: 6px; padding: 12px; border: 1px solid #e4e6f0; border-radius: 14px; background: #f8f9fe; }
+.lr-countdown-tool__now strong { font-size: 2rem; font-variant-numeric: tabular-nums; }
+.lr-countdown-tool__now strong.is-done { color: #b42318; }
+.lr-countdown-tool__row, .lr-countdown-tool__presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.lr-countdown-tool__custom { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; }
+.lr-countdown-tool input { width: 100%; min-width: 0; height: 38px; padding: 0 10px; border: 1px solid #dfe1ee; border-radius: 10px; background: #fff; font: inherit; font-weight: 500; color: #24294a; box-sizing: border-box; }
+
+/* the student's older worksheet tabs (sheetTabs.js): one dropdown „Varasemad tunnid” after the page tabs */
+.lr .lr-older-sheets { pointer-events: auto; flex: none; height: 30px; max-width: 220px; padding: 0 8px; border: 1px dashed #c9cde6; border-radius: 10px; background: rgba(255, 255, 255, .95); font: inherit; font-size: .8rem; font-weight: 700; color: #4b5070; }
+.lr .sb-page-close { pointer-events: auto; flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-left: -4px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #6b7090; cursor: pointer; }
+.lr .sb-page-close:hover, .lr .sb-page-close:focus-visible { background: #eef0fa; color: #24294a; }

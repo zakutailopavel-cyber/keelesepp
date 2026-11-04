@@ -58,25 +58,40 @@ function fakeRepository(pushers, assignment) {
   };
 }
 
+// an in-memory board: what is drawn stays and comes back through the subscription, as from Firestore
 function boardService() {
   const pages = [{ id: 'pg-1', title: 'Tööleht: Labori tööleht' }];
+  const data = {};
+  const listeners = {};
+  const key = (pageId) => pageId || 'board';
+  const emit = (pageId) => listeners[key(pageId)]?.([...(data[key(pageId)] || [])]);
+  let next = 0;
   return {
+    root: 'whiteboards',
     subscribePages: (_s, onChange) => { onChange(pages); return () => {}; },
-    subscribeElements: (_s, _p, onChange) => { onChange([]); return () => {}; },
-    add: async () => 'x', update: async () => {}, remove: async () => {}, clear: async () => 0, addPage: async () => 'pg-2', renamePage: async () => {},
+    subscribeElements: (_s, pageId, onChange) => { listeners[key(pageId)] = onChange; onChange([...(data[key(pageId)] || [])]); return () => {}; },
+    add: async (_s, pageId, element) => { next += 1; const id = `el-${next}`; data[key(pageId)] = [...(data[key(pageId)] || []), { id, ...element, revision: 1 }]; emit(pageId); return id; },
+    update: async (_s, pageId, element, patch) => { data[key(pageId)] = (data[key(pageId)] || []).map((item) => (item.id === element.id ? { ...item, ...patch } : item)); emit(pageId); },
+    remove: async (_s, pageId, id) => { data[key(pageId)] = (data[key(pageId)] || []).filter((item) => item.id !== id); emit(pageId); },
+    clear: async () => 0, addPage: async () => 'pg-2', renamePage: async () => {},
   };
 }
+// „Pildid”: a small school bank instead of Firestore's mediaAssets
+const labBank = { list: async () => [{ id: 'lab-1', kind: 'image', src: '/textbook-art/a2/a2-001/a2-001-avasta-1.webp', caption: 'Anna keelekeskuses', tags: ['anna', 'keelekeskus'], width: 1600, height: 1067 }] };
+const labNotes = { add: async (record) => { (globalThis.__labNotes ||= []).push(record); return `note-${globalThis.__labNotes.length}`; }, update: async () => {} };
 
 function Lab({ assignment }) {
   const pushers = useMemo(() => [], []);
   const repository = useMemo(() => fakeRepository(pushers, assignment), [pushers, assignment]);
   const [open, setOpen] = useState(true);
   const teacher = params.get('role') === 'teacher';
+  const service = useMemo(() => boardService(), []);
   const auth = useMemo(() => ({ user: teacher ? { uid: 'lab-teacher', displayName: 'Õpetaja Lab', roles: ['teacher'] } : user }), [teacher]);
   if (params.get('room')) {
     const content = <RoomWorksheetContent current={assignment} role={teacher ? 'teacher' : 'student'} homework={repository} />;
-    const service = boardService();
-    return <AuthContext.Provider value={auth}><div className="lab-room" style={{ position: 'fixed', inset: 0 }}><StudentBoard studentId="lab-student" user={auth.user} staff={teacher} variant="room" service={service} worksheet={{ id: assignment.id, title: 'Labori tööleht', content }} initialPageId="pg-1" /></div></AuthContext.Provider>;
+    // ?room=1&board=1: the plain board page (no worksheet) to try the drawing tools
+    const sheet = params.get('board') ? {} : { worksheet: { id: assignment.id, title: 'Labori tööleht', content }, initialPageId: 'pg-1' };
+    return <AuthContext.Provider value={auth}><div className="lab-room" style={{ position: 'fixed', inset: 0 }}><StudentBoard studentId="lab-student" user={auth.user} staff={teacher} variant="room" service={service} noteService={labNotes} mediaBank={labBank} insetRight={Number(params.get('inset') || 0)} {...sheet} /></div></AuthContext.Provider>;
   }
   if (!open) return <button type="button" onClick={() => setOpen(true)}>Ava</button>;
   return <AuthContext.Provider value={auth}><WorksheetPlayer assignment={assignment} repository={repository} readOnly={params.get('readonly') === '1'} onClose={() => setOpen(false)} onSubmitted={() => {}} /></AuthContext.Provider>;

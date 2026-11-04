@@ -2,6 +2,8 @@ import { getDocs, collection, deleteDoc, doc, onSnapshot, query, setDoc, updateD
 import { requireFirebaseClient } from './client.js';
 import { cleanWord, normalizeWord, review } from '../../features/vocabulary/wordsModel.js';
 
+const CHECKS = ['ok', 'suggest', 'unknown', 'unchecked'];
+
 // `studentWords/{id}`: the student's own word list. Staff add and edit words (also during a Live Classroom lesson,
 // then with `invitationId`); the student or a linked parent reads them and writes only the practice fields.
 export const studentWordsService = {
@@ -85,6 +87,34 @@ export const studentWordsService = {
   // the student keeps a word from a course deck for repetition („Lisa raskemad minu sõnadesse”)
   async addOwn({ studentId, user, ...input }) {
     return this.add({ studentId, invitationId: '', user, ...cleanWord(input) });
+  },
+
+  // „Lisa oma sõna”: the student's own word with where it came from and the spelling verdict
+  async addStudentWord({ studentId, user, checked = '', ...input }) {
+    const data = cleanWord(input);
+    if (!studentId) throw new Error('Õpilane puudub.');
+    if (!data.word) throw new Error('Kirjuta sõna.');
+    const { db } = requireFirebaseClient();
+    const ref = doc(collection(db, 'studentWords'));
+    const now = new Date().toISOString();
+    const record = {
+      studentId, invitationId: '', ...data, source: 'student', checked: CHECKS.includes(checked) ? checked : 'unchecked',
+      createdByUid: user.uid, createdByName: String(user.displayName || user.email || '').slice(0, 160),
+      createdAt: now, updatedAt: now, box: 0, dueAt: now,
+    };
+    await setDoc(ref, record);
+    return normalizeWord(ref.id, record);
+  },
+
+  // the student edits the text of a word they added (rules: only their own words); the verdict follows the new text
+  async updateOwn(id, { checked, ...input }) {
+    const data = cleanWord(input);
+    if (!data.word) throw new Error('Kirjuta sõna.');
+    const { db } = requireFirebaseClient();
+    await updateDoc(doc(db, 'studentWords', id), {
+      word: data.word, translation: data.translation, example: data.example, forms: data.forms, formItems: data.formItems || [],
+      ...(CHECKS.includes(checked) ? { checked } : {}), updatedAt: new Date().toISOString(),
+    });
   },
 
   async update(id, input) {

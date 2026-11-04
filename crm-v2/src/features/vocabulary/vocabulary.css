@@ -179,3 +179,20 @@
 .vd-reminder { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -4px 0 4px; padding: 10px 14px; border: 1px dashed #d0d5dd; border-radius: 14px; color: #475467; font-size: .88rem; }
 .vd-reminder span { flex: 1 1 180px; }
 .vd-reminder select { min-height: 34px; border: 1px solid #d0d5dd; border-radius: 10px; padding: 0 8px; background: #fff; }
+/* „Lisa oma sõna” (OwnWordForm, OwnWordsCard) */
+.own-word__langs { display: flex; gap: 6px; }
+.vw-chip.is-on { border-color: #1849a9; background: #eff4ff; color: #1849a9; font-weight: 600; }
+.own-word__tgt { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #475467; }
+.own-word__tgt select { min-height: 30px; border: 1px solid #d0d5dd; border-radius: 8px; padding: 0 6px; background: #fff; font: inherit; font-size: 13px; }
+.own-word__check { display: grid; gap: 6px; padding: 8px 10px; border-radius: 8px; font-size: 13px; background: #f9fafb; color: #344054; border: 1px solid #eaecf0; }
+.own-word__check > svg { display: none; }
+.own-word__check.is-ok { background: #ecfdf3; border-color: #abefc6; color: #067647; }
+.own-word__check.is-suggest, .own-word__check.is-unknown { background: #fffaeb; border-color: #fedf89; color: #93370d; }
+.own-word__suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: #344054; }
+.own-word__dup { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.own-word__meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: #667085; }
+.own-word__tag { padding: 1px 8px; border-radius: 999px; background: #eff4ff; color: #1849a9; font-size: 12px; }
+.own-word__tag.is-warn { background: #fffaeb; color: #93370d; }
+.vw-list li.is-open { outline: 2px solid #1849a9; }
+.own-words__list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.own-words__list li > form { grid-column: 1 / -1; }

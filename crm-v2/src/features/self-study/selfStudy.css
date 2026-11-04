@@ -87,3 +87,13 @@
 .course-phase.is-started { color: #b54708; border-color: #fedf89; }
 .course-steps { margin: 0 0 14px; color: var(--muted, #52635c); font-size: .88rem; line-height: 1.45; }
 .course-steps strong { color: #123f33; }
+
+/* „Minu vead” → „Märkmed tunnist”: the board's bookmarks (2026-11-04) */
+.ss-notes { display: grid; gap: 10px; margin-top: 18px; }
+.ss-notes h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.1rem; }
+.ss-notes__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.ss-note { display: grid; gap: 6px; padding: 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(28, 43, 58, .12); color: #1c2b3a; }
+.ss-note svg { width: 100%; height: auto; aspect-ratio: 320 / 200; }
+.ss-note p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ss-note footer { display: flex; align-items: center; gap: 6px; font-size: .78rem; color: #475467; }
+.ss-note footer button { margin-left: auto; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 8px; background: rgba(255, 255, 255, .6); cursor: pointer; }
