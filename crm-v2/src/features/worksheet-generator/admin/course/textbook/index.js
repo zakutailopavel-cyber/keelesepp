@@ -3,9 +3,11 @@
 // Kasuta; the course's own three sheets stay unchanged. No author or source line on the sheet (owner 2026-10-21). Published from „Kursuse tootmine” like the course sheets.
 import minuEesti from './minuEesti.json';
 import grammatika from './grammatika.json';
+// our own material written from grammar facts (no book pages): `pages: ''` → subtitle just „Õpik” (docs/TEXTBOOKS.md)
+import sihitis from './sihitis.json';
 
 export const TEXTBOOK_SHEET_ID = 'opik';
-const BOOKS = [minuEesti, grammatika];
+const BOOKS = [minuEesti, grammatika, sihitis];
 
 // every textbook sheet: { lessonId, book, pages, doc }
 export const TEXTBOOK_SHEETS = BOOKS.flatMap(({ book, sheets }) => sheets.map((sheet) => ({
@@ -18,7 +20,7 @@ export const TEXTBOOK_SHEETS = BOOKS.flatMap(({ book, sheets }) => sheets.map((s
     id: `ws_${sheet.lessonId}_${TEXTBOOK_SHEET_ID}`,
     meta: {
       title: sheet.title,
-      subtitle: `Õpik, lk ${sheet.pages}`,
+      subtitle: sheet.pages ? `Õpik, lk ${sheet.pages}` : 'Õpik',
       level: sheet.level,
       module: 'Õpik',
       canDo: sheet.canDo,
