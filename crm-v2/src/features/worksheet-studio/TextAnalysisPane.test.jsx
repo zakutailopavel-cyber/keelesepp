@@ -29,7 +29,7 @@ describe('„Analüüs” in the mark composer', () => {
     expect(screen.queryByRole('button', { name: 'Analüüs' })).toBeNull(); // no selection yet
   });
 
-  it('a correction becomes a „Viga” on its own words of the answer and a sentence in „Minu vead”', async () => {
+  it('a correction becomes a „Viga” on the changed word only and a sentence in „Minu vead”', async () => {
     const onChange = vi.fn().mockResolvedValue([]);
     const words = { lookup: vi.fn(), add: vi.fn(), addError: vi.fn().mockResolvedValue({}) };
     const answer = 'Eile mul oli vaba päev ja ma käis poes';
@@ -43,8 +43,26 @@ describe('„Analüüs” in the mark composer', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Analüüs' }));
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Märgi veaks: ma käis poes' })); });
     await waitFor(() => expect(onChange).toHaveBeenCalled());
-    const start = answer.indexOf('ma käis poes');
-    expect(onChange.mock.calls[0][0][0]).toMatchObject({ kind: 'field', blockId: 'b1', start, end: start + 'ma käis poes'.length, selectedText: 'ma käis poes', parandus: 'ma käisin poes', color: 'error' });
+    const start = answer.indexOf('käis');
+    expect(onChange.mock.calls[0][0]).toHaveLength(1);
+    expect(onChange.mock.calls[0][0][0]).toMatchObject({ kind: 'field', blockId: 'b1', start, end: start + 'käis'.length, selectedText: 'käis', parandus: 'käisin', color: 'error' });
     expect(words.addError).toHaveBeenCalledWith({ said: 'ma käis poes', corrected: 'ma käisin poes' });
+  });
+
+  it('extra spaces or a line break in the answer no longer frame the whole field (owner bug 2026-11-04)', async () => {
+    const onChange = vi.fn().mockResolvedValue([]);
+    const answer = 'Eile mul oli vaba päev ja ma  käis\npoes';
+    const { container } = render(<SheetAnnotations annotations={[]} editable onChange={onChange} analysis={{ level: 'A2' }}>
+      <div className="ws-page"><section data-block="b1"><textarea className="ws-line" readOnly value={answer} /></section></div>
+    </SheetAnnotations>);
+    const field = container.querySelector('textarea');
+    field.setSelectionRange(0, answer.length);
+    fireEvent.mouseUp(field);
+    await act(async () => {});
+    fireEvent.click(await screen.findByRole('button', { name: 'Analüüs' }));
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Märgi veaks: ma käis poes' })); });
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
+    const [mark] = onChange.mock.calls[0][0];
+    expect(mark).toMatchObject({ start: answer.indexOf('käis'), end: answer.indexOf('käis') + 4, selectedText: 'käis', parandus: 'käisin' });
   });
 });
