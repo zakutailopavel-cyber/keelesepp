@@ -1845,6 +1845,39 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isStaff() && (resource == null || resource.data.byUid == uid() || teachesRecording(resource.data.recordingId)));
     }
 
+    // „Hetk” (Live Classroom, owner 2026-11-04): the teacher's marks of moments in a lesson, with the offset in the
+    // running recording (`atMs`, null without one) and the clock time. The lesson's teacher (the invitation's
+    // teacherUid) and admins read and write them; students and parents have no access.
+    function lessonMomentValid(data) {
+      return data.keys().hasOnly(['invitationId', 'recordingId', 'teacherUid', 'studentId', 'atMs', 'at', 'label', 'byUid', 'byName', 'createdAt'])
+        && data.keys().hasAll(['invitationId', 'teacherUid', 'studentId', 'at', 'label', 'byUid', 'createdAt'])
+        && data.invitationId is string && data.invitationId.size() > 0 && data.invitationId.size() <= 200
+        && data.studentId is string && data.studentId.size() > 0 && data.studentId.size() <= 200
+        && data.teacherUid is string && data.teacherUid.size() > 0
+        && data.get('recordingId', '') is string
+        && (data.get('recordingId', '') == '' || data.get('recordingId', '').matches('^' + data.invitationId + '_[0-9]+$'))
+        && (data.get('atMs', null) == null || (data.atMs is int && data.atMs >= 0 && data.atMs <= 28800000))
+        && (data.get('atMs', null) == null || data.get('recordingId', '') != '')
+        && data.at is string && data.at.size() > 0 && data.at.size() <= 40
+        && data.label is string && data.label.size() <= 80
+        && data.byUid == uid()
+        && data.get('byName', '') is string && data.get('byName', '').size() <= 160
+        && data.createdAt is string && data.createdAt.size() <= 40;
+    }
+    match /lessonMoments/{momentId} {
+      allow read: if isAdmin() || (isStaff() && resource.data.teacherUid == uid());
+      allow create: if isStaff()
+        && lessonMomentValid(request.resource.data)
+        && (isAdmin() || request.resource.data.teacherUid == uid())
+        && exists(liveLessonInvitationPath(request.resource.data.invitationId))
+        && get(liveLessonInvitationPath(request.resource.data.invitationId)).data.teacherUid == request.resource.data.teacherUid
+        && get(liveLessonInvitationPath(request.resource.data.invitationId)).data.studentId == request.resource.data.studentId;
+      allow update: if (isAdmin() || (isStaff() && resource.data.teacherUid == uid()))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['label'])
+        && request.resource.data.label is string && request.resource.data.label.size() <= 80;
+      allow delete: if isAdmin() || (isStaff() && resource.data.teacherUid == uid());
+    }
+
     // The student's own word list (Live Classroom „Sõnad”). Staff add and edit words; the student or a linked parent
     // reads them and writes only the flashcard practice fields.
     function studentWordTextValid(data) {

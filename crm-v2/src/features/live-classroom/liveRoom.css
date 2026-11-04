@@ -334,3 +334,14 @@ button.lr-plan-pill:hover, .lr-plan-pill.is-active { background: #eceefe; border
 .lr .lr-older-sheets { pointer-events: auto; flex: none; height: 30px; max-width: 220px; padding: 0 8px; border: 1px dashed #c9cde6; border-radius: 10px; background: rgba(255, 255, 255, .95); font: inherit; font-size: .8rem; font-weight: 700; color: #4b5070; }
 .lr .sb-page-close { pointer-events: auto; flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-left: -4px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #6b7090; cursor: pointer; }
 .lr .sb-page-close:hover, .lr .sb-page-close:focus-visible { background: #eef0fa; color: #24294a; }
+
+/* „Hetk” (MomentButton.jsx): the teacher's moment mark and its small label box under the top bar */
+.lr-moment { position: relative; display: inline-flex; }
+.lr-moment__btn { cursor: pointer; color: #24294a; }
+.lr-moment__btn:hover { background: #eef0fa; }
+.lr-moment__box { position: absolute; top: calc(100% + 8px); left: 50%; z-index: 30; transform: translateX(-50%); display: grid; gap: 6px; width: 240px; padding: 10px; border: 1px solid #e7e8f3; border-radius: 14px; background: #fff; box-shadow: 0 14px 36px rgba(36, 41, 74, .18); font-size: .82rem; white-space: normal; }
+.lr-moment__box input { height: 32px; padding: 0 10px; border: 1px solid #d9dcec; border-radius: 9px; font: inherit; }
+.lr-moment__actions { display: flex; gap: 6px; }
+.lr-moment__actions button { padding: 5px 10px; border: 1px solid #e4e6f2; border-radius: 9px; background: #f7f7fc; font: inherit; font-weight: 600; cursor: pointer; }
+.lr-moment__actions button:disabled { opacity: .5; cursor: default; }
+.lr-moment__box.is-error { color: #b42318; }
