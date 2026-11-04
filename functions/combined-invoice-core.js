@@ -77,7 +77,7 @@ function combinedFields(cards, lines, cardParts) {
 
 // month: [{ card, plan, plannedUnits, correctionUnits, correctionNote }] → { record, amountCents }
 // a part may name its subject: then the subject's price and a line of its own (one card, several subjects)
-function combinedMonthlyRecord({ month, due, parts, invoiceNum, nowIso, actor, requestId, signature }) {
+function combinedMonthlyRecord({ month, due, parts, invoiceNum, nowIso, actor, requestId, signature, linkedAccountEmail = '' }) {
   const cards = [...new Map(parts.map((part) => [part.card.id, part.card])).values()];
   checkOnePayer(cards);
   const many = nameList(cards).length > 1;
@@ -101,7 +101,7 @@ function combinedMonthlyRecord({ month, due, parts, invoiceNum, nowIso, actor, r
   const fields = combinedFields(cards, lines, cardParts);
   const base = manualInvoiceRecord({
     input: { studentId: cards[0].id, description: `Keeletunnid, ${monthLabel(month)}`, amountCents: fields.amountCents, amount: fields.amount, due, note: '' },
-    student: cards[0], invoiceNum, nowIso, actor, requestId, signature,
+    student: cards[0], invoiceNum, nowIso, actor, requestId, signature, linkedAccountEmail,
   });
   return {
     ...base,
@@ -115,7 +115,7 @@ function combinedMonthlyRecord({ month, due, parts, invoiceNum, nowIso, actor, r
 }
 
 // manual charge: [{ card, amountCents }] with one description
-function combinedManualRecord({ description, due, note, parts, invoiceNum, nowIso, actor, requestId, signature }) {
+function combinedManualRecord({ description, due, note, parts, invoiceNum, nowIso, actor, requestId, signature, linkedAccountEmail = '' }) {
   const cards = parts.map((part) => part.card);
   checkOnePayer(cards);
   const many = nameList(cards).length > 1;
@@ -127,7 +127,7 @@ function combinedManualRecord({ description, due, note, parts, invoiceNum, nowIs
   const fields = combinedFields(cards, lines, cardParts);
   const base = manualInvoiceRecord({
     input: { studentId: cards[0].id, description, amountCents: fields.amountCents, amount: fields.amount, due, note },
-    student: cards[0], invoiceNum, nowIso, actor, requestId, signature,
+    student: cards[0], invoiceNum, nowIso, actor, requestId, signature, linkedAccountEmail,
   });
   return { ...base, ...fields };
 }

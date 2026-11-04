@@ -1,5 +1,6 @@
 import { groupCalendarEvents, occurrencesForDates, toIsoDate } from '../calendar/calendarView.js';
 import { itemSubject, mainSubject, subjectName, subjectsOf } from '../students/subjects.js';
+import { cardPayerEmail, firstEmail, linkedParentIds } from './invoicePayer.js';
 
 // Finance v2 §2: one invoice per student per month for the lessons planned in the calendar.
 // "current": invoiced at the start of the month. "advance": invoiced the month before. Both are due by the 10th (owner 2026-11-01).
@@ -138,11 +139,12 @@ export function studentLessonBalances({ student, plan, invoices = [], lessons = 
 }
 
 // payer e-mail: the student card first, then the parent account linked to the card (Lapsevanemad)
+// (the same resolution the server stores and sends to: invoicePayer.js ↔ functions/invoice-payer-core.js)
 export function payerEmailOf(student, parents = []) {
-  const own = student.payerEmail || student.parentEmail || student.contactEmail || student.email || '';
+  const own = cardPayerEmail(student);
   if (own) return own;
-  const parentIds = [student.linkedParentId, student.parentUid, student.guardianUid].filter(Boolean);
-  return parents.find((parent) => parentIds.includes(parent.id) && parent.email)?.email || '';
+  const parentIds = linkedParentIds(student);
+  return parents.find((parent) => parentIds.includes(parent.id) && firstEmail(parent.email))?.email || '';
 }
 
 export function monthlyBillingRows({ month, students = [], plans = [], schedule = [], groups = [], lessons = [], invoices = [], parents = [] }) {

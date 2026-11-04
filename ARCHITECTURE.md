@@ -212,6 +212,15 @@ students or parents retain their own invoice cabinet. Legacy internal routes are
 matching administrator section so dashboard alerts and saved operational links do not lose their
 destination during the UI consolidation.
 
+Invoice payer snapshot (2026-11-04): every new one-card invoice (manual, monthly, lesson package, combined, lesson-based)
+stores `studentName` (the card's full `name`), `payerName` (payer / company → parent → the learner himself) and one
+resolved address in `payerEmail` / `parentEmail` (+ `*Lower`) from `functions/invoice-payer-core.js`
+(card `payerEmail → parentEmail → billingEmail → contactEmail → guardianEmail → email`, else the linked parent
+account's login e-mail). The invoice e-mail (`index.js` `invoiceRecipient`) uses the same file: the snapshot first, then
+the same card resolution, so the stored payer and the recipient cannot differ. `crm-v2/src/features/finance/invoicePayer.js`
+mirrors it for the „Arvel pole saaja e-posti” warning before creating. Issued invoices are never rewritten; the PDF and
+the month list show `emailRecipient` when an old invoice has no payer e-mail (display only).
+
 The `/finance` month screen shows one finance view at a time: issued invoices, invoices with
 received payments, open invoices and earlier debts, student advances, or monthly invoice
 preparation. Its summary cards select the corresponding views. Invoice printing reads the

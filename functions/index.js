@@ -150,6 +150,7 @@ const {
   uniqueIds,
 } = require("./student-merge-core");
 const { planPricePrivacy, lessonPriceFor } = require("./price-privacy-core");
+const invoicePayer = require("./invoice-payer-core");
 const {
   metaSendRequest,
   replyInput: normalizeMetaReply,
@@ -2030,11 +2031,16 @@ async function createLessonInvoice({
       nextSequence += 1;
     }
     if (!invoiceNum) throw httpError(409, "Invoice counter requires numbering repair");
-    const parentUid = student.linkedParentId || student.parentUid || student.guardianUid || "";
-    const parentName = student.parentName || student.guardianName || "";
-    const parentEmail = student.parentEmail || student.contactEmail || student.guardianEmail || "";
-    const payerName = student.payerName || student.companyName || parentName || student.name || "";
-    const payerEmail = student.payerEmail || parentEmail || student.email || "";
+    // the same payer snapshot as every other new invoice and the same address the e-mail goes to (invoice-payer-core)
+    let linkedAccountEmail = "";
+    if (!invoicePayer.cardPayerEmail(student)) {
+      for (const id of invoicePayer.linkedParentIds(student)) {
+        const userSnap = await transaction.get(db.collection("users").doc(id));
+        linkedAccountEmail = userSnap.exists ? firstEmail(userSnap.data().email) : "";
+        if (linkedAccountEmail) break;
+      }
+    }
+    const payer = invoicePayer.invoicePayerSnapshot(student, { linkedAccountEmail });
     const invoice = {
       num: invoiceNum,
       status: "Ootel",
@@ -2044,16 +2050,16 @@ async function createLessonInvoice({
       paymentReference: cleanReference || invoiceNum,
       invoiceTargetType: "student",
       studentId: cleanStudentId,
-      studentName: student.name || "—",
-      parentUid,
-      linkedParentId: student.linkedParentId || student.parentUid || "",
-      guardianUid: student.guardianUid || "",
-      parentName,
-      parentEmail,
-      parentEmailLower: String(parentEmail).trim().toLowerCase(),
-      payerName,
-      payerEmail,
-      payerEmailLower: String(payerEmail).trim().toLowerCase(),
+      studentName: payer.studentName,
+      parentUid: payer.parentUid,
+      linkedParentId: payer.linkedParentId,
+      guardianUid: payer.guardianUid,
+      parentName: payer.parentName,
+      parentEmail: payer.parentEmail,
+      parentEmailLower: payer.parentEmailLower,
+      payerName: payer.payerName,
+      payerEmail: payer.payerEmail,
+      payerEmailLower: payer.payerEmailLower,
       amountCents: lessonData.amountCents,
       amount: lessonData.amount,
       paidAmountCents: 0,
@@ -5184,10 +5190,7 @@ function parseAddress(address) {
   return { name: match[1].replace(/^"|"$/g, "").trim(), email: match[2].trim() };
 }
 
-function firstEmail(...values) {
-  const flat = values.flat().map(value => String(value || "").trim()).filter(Boolean);
-  return flat.find(value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) || "";
-}
+const firstEmail = invoicePayer.firstEmail;
 
 async function loadInvoice(invoiceId) {
   if (!invoiceId) throw httpError(400, "invoiceId required");
@@ -5211,17 +5214,9 @@ async function loadInvoiceStudent(invoice) {
   return snap.exists ? { id: snap.id, ...snap.data() } : null;
 }
 
+// the invoice's own snapshot first, then the card by the same resolution a new invoice stores (invoice-payer-core)
 function invoiceRecipient(invoice, student) {
-  return firstEmail(
-    invoice.email,
-    invoice.parentEmail,
-    invoice.payerEmail,
-    student?.payerEmail,
-    student?.parentEmail,
-    student?.contactEmail,
-    student?.guardianEmail,
-    student?.email,
-  );
+  return invoicePayer.invoiceRecipient(invoice, student);
 }
 
 // the parent account linked to the invoice or the student card (Lapsevanemad), when no e-mail is on the card
