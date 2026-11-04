@@ -12,6 +12,7 @@ import { ARROW_TOOLS, CALLOUT_FONT, arrowFromDrag, arrowHeads, arrowPathD, bendP
 import { INK_BOX, bookmarkElement, bookmarkEmpty, isBookmark, notePatch, noteRecord } from './bookmarkModel.js';
 import { spanCss, spansOf, textPatch } from './richText.js';
 import BookmarkDialog from './BookmarkDialog.jsx';
+import BoardLanguageTools from './BoardLanguageTools.jsx';
 import RichTextEditor, { FormatBar } from './RichTextEditor.jsx';
 import { MEDIA_MIME, mediaElement, placeableImage, readPayload } from './mediaSearch.js';
 import './board.css';
@@ -1251,6 +1252,7 @@ export default function StudentBoard({
     return (
       <div className="sb sb--room">
         {pageTabs('sb-room-pages')}
+        <BoardLanguageTools dictionaryFor={notesStudentId} user={user} staff={staff} />
         {stage}
         {error ? <p className="sb-room-error" role="alert">{error}</p> : null}
         {reading ? null : <div className="sb-zoombar" aria-label="Suum">{zoomControls}</div>}
@@ -1288,6 +1290,7 @@ export default function StudentBoard({
   return (
     <div className="sb">
       {pageTabs('sb-pages')}
+      <BoardLanguageTools dictionaryFor={notesStudentId} user={user} staff={staff} />
       <div className="sb-toolbar" role="toolbar" aria-label="Tahvli tööriistad">
         {onWorksheet ? toolButton(FILL_TOOL) : null}
         {TOOLS.map(toolButton)}

@@ -55,7 +55,8 @@ export function sentenceAt(node, offset = 0) {
 
 const DOUBLE_TAP_MS = 350;
 const DOUBLE_TAP_PX = 24;
-const SKIP = 'input, textarea, select, button, [contenteditable="true"], [contenteditable="plaintext-only"], .sb-lause-dialog';
+// [data-word-tap]: the lesson board has its own word card („Puuduta sõna”, features/board/BoardLanguageTools.jsx)
+const SKIP = 'input, textarea, select, button, [contenteditable="true"], [contenteditable="plaintext-only"], .sb-lause-dialog, [data-word-tap]';
 
 export function useWordLookup({ studentId, enabled = true, service = languageToolsService }) {
   const [card, setCard] = useState(null);
