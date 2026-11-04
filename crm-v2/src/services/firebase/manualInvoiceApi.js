@@ -58,6 +58,14 @@ export const manualInvoiceApi = {
   createTokens({ studentId, lessons, due, note = '', requestId, subject = '' }) {
     return post('/create-tokens', { studentId, lessons: Number(lessons), due, note, ...(subject ? { subject } : {}), requestId: requestId || financeRequestId('lesson_tokens') });
   },
+  // „Ühine tunnipakett”: ONE package invoice for the cards of one payer — items [{ studentId, subject, lessons }] (2–12);
+  // every line is priced from its own card's plan, after payment every line becomes its own package on its own card
+  createTokensCombined({ items, due, note = '', requestId }) {
+    return post('/create-tokens-combined', {
+      items: items.map((item) => ({ studentId: item.studentId, lessons: Number(item.lessons), ...(item.subject ? { subject: item.subject } : {}) })),
+      due, note, requestId: requestId || financeRequestId('lesson_tokens'),
+    });
+  },
   create(values) {
     return post('/create', {
       studentId: values.studentId,

@@ -53,7 +53,7 @@ import InvoiceNoteDialog, { InvoiceNoteButton } from './InvoiceNoteDialog.jsx';
 import InvoiceAccountingDialog, { InvoiceAccountingButton } from './InvoiceAccountingDialog.jsx';
 import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
-import { lessonTokensService, owedCredits, tokenInvoiceUsage } from '../../services/firebase/lessonTokens.js';
+import { lessonTokensService, owedCredits, tokenInvoiceStudentIds, tokenInvoiceUsageLines } from '../../services/firebase/lessonTokens.js';
 import './financeMonth.css';
 import './manualInvoice.css';
 
@@ -251,20 +251,24 @@ export default function FinanceMonthPage({
   useEffect(() => {
     if (!tokenInvoices.length || !tokensRepository?.packagesForInvoices) return undefined;
     let alive = true;
-    const studentIds = [...new Set(tokenInvoices.map((invoice) => invoice.studentId).filter(Boolean))];
+    // a combined package invoice („Ühine tunnipakett”) counts for each of its cards
+    const studentIds = [...new Set(tokenInvoices.flatMap(tokenInvoiceStudentIds))];
     Promise.all([
       tokensRepository.packagesForInvoices(tokenInvoices).catch(() => ({})),
       Promise.all(studentIds.map((id) => (tokensRepository.owedByStudent ? tokensRepository.owedByStudent(id) : Promise.resolve([])).then((owed) => [id, owedCredits(owed)]).catch(() => [id, 0]))),
     ]).then(([packages, owed]) => { if (alive) setTokenUsage({ packages, owed: Object.fromEntries(owed) }); });
     return () => { alive = false; };
   }, [tokenInvoices, tokensRepository]);
+  // the newest token invoice of each card (a combined one counts for each of its cards): `${invoiceId}|${studentId}`
   const newestTokenInvoice = useMemo(() => {
     const newest = {};
     monthInvoices.filter((invoice) => invoice.billingMode === 'lesson_tokens_v1').forEach((invoice) => {
-      const current = newest[invoice.studentId];
-      if (!current || String(invoice.date || '') > String(current.date || '')) newest[invoice.studentId] = invoice;
+      tokenInvoiceStudentIds(invoice).forEach((studentId) => {
+        const current = newest[studentId];
+        if (!current || String(invoice.date || '') > String(current.date || '')) newest[studentId] = invoice;
+      });
     });
-    return new Set(Object.values(newest).map((invoice) => invoice.id));
+    return new Set(Object.entries(newest).map(([studentId, invoice]) => `${invoice.id}|${studentId}`));
   }, [monthInvoices]);
   const creditTotal = (state.data?.credits || []).reduce((sum, credit) => sum + creditAvailableCents(credit), 0);
 
@@ -294,8 +298,11 @@ export default function FinanceMonthPage({
   const creditTokens = async (invoice) => {
     setActionBusy(`tokens-${invoice.id}`); setError('');
     try {
-      const { studentPackage } = await financeRepository.creditInvoiceTokens(invoice.id);
-      announce(`${invoice.studentName || 'Õpilane'}: lisati ${studentPackage?.grantedCredits ?? invoice.tokenCredits} tundi.`);
+      const { studentPackage, studentPackages } = await financeRepository.creditInvoiceTokens(invoice.id);
+      // a combined invoice: every line went to its own card
+      announce(studentPackages?.length
+        ? `Lisati ${studentPackages.reduce((sum, item) => sum + (Number(item.grantedCredits) || 0), 0)} tundi: ${studentPackages.map((item) => `${item.studentName || 'Õpilane'}${item.tokenSubject ? ` (${item.tokenSubject})` : ''} ${item.grantedCredits}`).join(', ')}.`
+        : `${invoice.studentName || 'Õpilane'}: lisati ${studentPackage?.grantedCredits ?? invoice.tokenCredits} tundi.`);
       await state.reload();
     } catch (caught) { setError(caught.message || 'Tunde ei saanud lisada.'); } finally { setActionBusy(''); }
   };
@@ -386,7 +393,7 @@ export default function FinanceMonthPage({
         {!rows.length ? <EmptyState title={activeView === 'paid' ? 'Laekunud makseid ei ole' : activeView === 'unpaid' ? 'Selle kuu võlgnevusi ei ole' : 'Selle kuu arveid ei ole'} description={activeView === 'invoices' ? 'Koosta arved eraldi vaates või vali teine kuu.' : 'Vali teine kuu või muuda filtrit.'} /> : <div className="finance-month-table" role="table" aria-label={`Arved ${month}`}>
           <div className="finance-month-table__head" role="row"><span>Õpilane</span><span>Arve</span><span>Tähtaeg</span><span>Summa</span><span>Jääk</span><span>Olek</span><span>Tegevused</span></div>
           {rows.map((invoice) => { const row = financeRowState(invoice); const [label, tone] = STATUS[row.status]; return <div className="finance-month-table__row" role="row" key={invoice.id} data-entity="invoice" data-invoice-id={invoice.id} data-invoice-number={invoice.num || invoice.number || invoice.invoiceNumber || undefined} data-student-id={invoice.studentId || undefined} data-entity-title={[invoice.studentName || invoice.payerName, invoice.num || invoice.number || invoice.invoiceNumber].filter(Boolean).join(' · ') || undefined}>
-            <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{[invoice.subject, invoiceShownEmail(invoice)].filter(Boolean).join(' · ')}</small>{invoice.billingMode === 'lesson_tokens_v1' ? <small className="finance-tokens">{tokenInvoiceUsage(invoice, tokenUsage.packages[invoice.id], { owed: tokenUsage.owed[invoice.studentId] || 0, showOwed: newestTokenInvoice.has(invoice.id) })}</small> : null}{noteText(invoice) ? <small className="finance-note-line" title={noteText(invoice)}>Märkus: {noteText(invoice)}</small> : null}{canNote && invoice.accountingExcluded === true ? <small className="finance-note-line" title={invoice.accountingExcludedReason || ''}>Ei kuulu raamatupidamisse</small> : null}</span>
+            <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{[invoice.subject, invoiceShownEmail(invoice)].filter(Boolean).join(' · ')}</small>{invoice.billingMode === 'lesson_tokens_v1' ? tokenInvoiceUsageLines(invoice, tokenUsage.packages[invoice.id], { owed: tokenUsage.owed[invoice.studentId] || 0, showOwed: newestTokenInvoice.has(`${invoice.id}|${invoice.studentId}`), owedBy: tokenUsage.owed, showOwedFor: (studentId) => newestTokenInvoice.has(`${invoice.id}|${studentId}`) }).map((line) => <small key={line} className="finance-tokens">{line}</small>) : null}{noteText(invoice) ? <small className="finance-note-line" title={noteText(invoice)}>Märkus: {noteText(invoice)}</small> : null}{canNote && invoice.accountingExcluded === true ? <small className="finance-note-line" title={invoice.accountingExcludedReason || ''}>Ei kuulu raamatupidamisse</small> : null}</span>
             <span><span className="finance-month-table__num">{invoice.num || invoice.number || invoice.invoiceNumber || '—'}{canNote ? <InvoiceNoteButton invoice={invoice} note={notes.get(invoice.id)} onOpen={(item) => { setError(''); setNoteInvoice(item); }} /> : null}{canNote ? <InvoiceAccountingButton invoice={invoice} onOpen={setAccountingInvoice} /> : null}</span></span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span className="finance-month-table__state"><Badge tone={tone}>{label}</Badge>{(() => { const mail = invoiceEmailLine(invoice); return <small className={`finance-mail finance-mail--${mail.tone}`} title={mail.title || undefined}>✉ {mail.text}</small>; })()}</span>
             <span className="finance-month-table__actions">{canManage && invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus !== 'credited' && !row.balanceCents && row.status !== 'cancelled' ? <Button loading={actionBusy === `tokens-${invoice.id}`} data-entity-action="tokens" onClick={() => creditTokens(invoice)}>Lisa tunnid ({invoice.tokenCredits})</Button> : null}{canManage && row.balanceCents ? <Button variant="secondary" data-entity-action="payment" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} data-entity-action="print" onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} data-entity-action="send" onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.balanceCents > 0 && row.status !== 'cancelled' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} data-entity-action="remind" onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" data-entity-action="cancel" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
           </div>; })}

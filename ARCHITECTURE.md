@@ -221,6 +221,13 @@ the same card resolution, so the stored payer and the recipient cannot differ. `
 mirrors it for the „Arvel pole saaja e-posti” warning before creating. Issued invoices are never rewritten; the PDF and
 the month list show `emailRecipient` when an old invoice has no payer e-mail (display only).
 
+Combined lesson package invoice („Ühine tunnipakett”, 2026-11-04, `docs/LESSON_TOKENS.md`): `manualInvoiceApi
+/create-tokens-combined` makes ONE `lesson_tokens_v1` invoice for 2–12 lines of one payer (`combined: true`,
+`studentIds`, `cardParts[i] = { studentId, subject, tokenCredits, priceCents, amountCents }`), each line priced from its
+own card's plan. `financeApi /invoices/tokens/credit` gives every line its own package
+`studentPackages/tokens_<invoiceId>_<lineIndex>` (own grant, audit and backlog) in one transaction; the invoice stores
+`tokenPackageIds`. One-card package invoices keep `tokens_<invoiceId>`.
+
 The `/finance` month screen shows one finance view at a time: issued invoices, invoices with
 received payments, open invoices and earlier debts, student advances, or monthly invoice
 preparation. Its summary cards select the corresponding views. Invoice printing reads the

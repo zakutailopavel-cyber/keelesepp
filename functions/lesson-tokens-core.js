@@ -62,13 +62,59 @@ function creditBlocker(invoice) {
 
 const tokenPackageId = (invoiceId) => `tokens_${invoiceId}`.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 140);
 
-function tokenPackageRecord({ invoice, invoiceId, student = {}, issuedAt, nowIso, actor }) {
-  const credits = Number(invoice.tokenCredits) || 0;
+// ---- One package invoice for a family („Ühine tunnipakett”, owner 2026-11-04) ----
+// A parent paying for several children (or one child's two subjects, each at its own price) gets ONE invoice: one
+// number, one PDF, one e-mail, one payment. Every line keeps its card and subject (`cardParts`), and „Lisa tunnid” gives
+// every line its own package on its own card: studentPackages/tokens_<invoiceId>_<lineIndex>. The invoice is made by
+// manualInvoiceApi /create-tokens-combined (combined-invoice-core.js combinedTokenRecord).
+
+// the package of one line of a combined package invoice (invoice ids are ≤ 120 characters, so the index is never cut)
+const tokenPartPackageId = (invoiceId, index) => `tokens_${invoiceId}_${index}`.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 140);
+
+const isCombinedTokenInvoice = (invoice = {}) => isTokenInvoice(invoice) && invoice.combined === true && Array.isArray(invoice.cardParts) && invoice.cardParts.length > 0;
+
+// what „Lisa tunnid” credits: one part per package. A one-card invoice is one part (its old package id); a combined
+// invoice has one part per line, each with its own card, subject, lessons and price.
+function tokenInvoiceParts(invoiceId, invoice = {}) {
+  if (!isCombinedTokenInvoice(invoice)) {
+    return [{
+      index: 0, packageId: tokenPackageId(invoiceId), studentId: invoice.studentId, studentName: invoice.studentName || '',
+      subject: invoice.subject || '', tokenCredits: Number(invoice.tokenCredits) || 0,
+      amountCents: Number(invoice.amountCents) || 0, priceCents: Number(invoice.lessonPriceCents) || 0, combined: false,
+    }];
+  }
+  return invoice.cardParts.map((part, index) => ({
+    index, packageId: tokenPartPackageId(invoiceId, index), studentId: part.studentId, studentName: part.studentName || '',
+    subject: part.subject || '', tokenCredits: Number(part.tokenCredits) || 0,
+    amountCents: Number(part.amountCents) || 0, priceCents: Number(part.priceCents) || 0, combined: true,
+  }));
+}
+
+// the input of a combined package invoice: 2–12 lines { studentId, subject, lessons }, one due date; every line is
+// checked like a one-card package invoice (tokenInvoiceInput); a card and subject only once
+function combinedTokenInput(values = {}) {
+  const items = values.items;
+  if (!Array.isArray(items) || items.length < 2 || items.length > 12) throw fail(400, 'Ühisele tunnipaketile vali 2–12 rida.');
+  const lines = items.map((item) => tokenInvoiceInput({ studentId: item?.studentId, lessons: item?.lessons, subject: item?.subject, due: values.due }));
+  const keys = lines.map((line) => `${line.studentId}|${tokenSubjectKey(line.subject)}`);
+  if (new Set(keys).size !== keys.length) throw fail(400, 'Iga õpilane ja aine võib ühisel tunnipaketil olla üks kord.');
   return {
-    studentId: invoice.studentId,
-    studentName: student.name || invoice.studentName || '—',
+    due: lines[0].due,
+    note: clean(values.note, 500),
+    items: lines.map(({ studentId, lessons, subject }) => ({ studentId, lessons, ...(subject ? { subject } : {}) })),
+  };
+}
+
+// part (tokenInvoiceParts): the line of a combined invoice this package is for; without it the whole one-card invoice
+function tokenPackageRecord({ invoice, invoiceId, student = {}, issuedAt, nowIso, actor, part = null }) {
+  const credits = part ? part.tokenCredits : (Number(invoice.tokenCredits) || 0);
+  const amountCents = part ? part.amountCents : (Number(invoice.amountCents) || 0);
+  const subject = part ? part.subject : invoice.subject;
+  return {
+    studentId: part ? part.studentId : invoice.studentId,
+    studentName: student.name || (part && part.studentName) || invoice.studentName || '—',
     packageProductId: '',
-    packageProductName: `Tunnipakett ${credits} tundi (arve ${invoice.num || invoiceId})`,
+    packageProductName: `Tunnipakett ${credits} tundi (arve ${invoice.num || invoiceId}${part && part.combined ? `, rida ${part.index + 1}` : ''})`,
     productType: 'lesson_package',
     lessonCredits: credits,
     grantedCredits: credits,
@@ -77,23 +123,25 @@ function tokenPackageRecord({ invoice, invoiceId, student = {}, issuedAt, nowIso
     adjustmentCreditCredits: 0,
     adjustmentDebitCredits: 0,
     ledgerEntryCount: 1,
-    priceCents: Number(invoice.amountCents) || 0,
-    price: (Number(invoice.amountCents) || 0) / 100,
-    lessonPriceCents: Number(invoice.lessonPriceCents) || 0,
+    priceCents: amountCents,
+    price: amountCents / 100,
+    lessonPriceCents: part ? part.priceCents : (Number(invoice.lessonPriceCents) || 0),
     currency: 'EUR',
     issuedAt,
     status: 'active',
     sourceType: 'invoice_payment',
     sourceInvoiceId: invoiceId,
     sourceInvoiceNum: invoice.num || '',
-    subject: invoice.subject || student.subject || '',
+    // the line of a combined invoice (one family invoice, a package per line)
+    ...(part && part.combined ? { sourceInvoiceLine: part.index } : {}),
+    subject: subject || student.subject || '',
     // the subject whose lessons this package pays (owner bug 2026-11-03); only invoices made with a chosen subject have
     // one. A package without tokenSubject is the shared pool: it pays every lesson of the card, as before.
-    ...(subjectName(invoice.subject) ? { tokenSubject: subjectName(invoice.subject) } : {}),
+    ...(subjectName(subject) ? { tokenSubject: subjectName(subject) } : {}),
     createdAt: nowIso,
     createdBy: actor,
     updatedAt: nowIso,
-    requestId: tokenPackageId(invoiceId),
+    requestId: part ? part.packageId : tokenPackageId(invoiceId),
   };
 }
 
@@ -212,4 +260,4 @@ function packageTiersForLesson(packages = [], subjectKey = '') {
   return [own, shared].filter((tier) => tier.length);
 }
 
-module.exports = { tokenSubjectKey, cardSubjects, tokenInvoiceSubject, lessonSubject, packageSubjectKey, hasSubjectPackages, packageTiersForLesson, TOKEN_MINUTES, TOKENS_PER_LESSON, lessonTokenCost, OWED_LESSONS_TAKE_NEXT_PACKAGE, isTokenPackage, packageForOwedLesson, tokenBacklogLessonIds, tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };
+module.exports = { tokenPartPackageId, isCombinedTokenInvoice, tokenInvoiceParts, combinedTokenInput, tokenSubjectKey, cardSubjects, tokenInvoiceSubject, lessonSubject, packageSubjectKey, hasSubjectPackages, packageTiersForLesson, TOKEN_MINUTES, TOKENS_PER_LESSON, lessonTokenCost, OWED_LESSONS_TAKE_NEXT_PACKAGE, isTokenPackage, packageForOwedLesson, tokenBacklogLessonIds, tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };

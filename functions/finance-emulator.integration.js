@@ -3772,6 +3772,114 @@ test("lesson tokens: a package for one subject pays only that subject's lessons 
   assert.equal((await packageRef.get()).data().balanceCredits, 3);
 });
 
+test("lesson tokens: one package invoice for a family, a package per line on its own card (owner 2026-11-04)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const parent = { parentName: "Pere Ema", parentEmail: "pere@example.com", linkedParentId: "family-parent-1" };
+  await Promise.all([
+    db.collection("students").doc("family-mari").set({ name: "Mari Pere", subject: "Eesti keel", active: true, ...parent }),
+    db.collection("students").doc("family-jaan").set({
+      name: "Jaan Pere", subject: "Eesti keel", active: true, ...parent,
+      enrollments: [{ subject: "Eesti keel", teacher: "Pavel", teacherUid: "t-est" }, { subject: "Matemaatika", teacher: "Liza", teacherUid: "t-math" }],
+    }),
+    db.collection("students").doc("family-other").set({ name: "Teise Pere Laps", subject: "Eesti keel", active: true, parentName: "Teine", parentEmail: "teine@example.com" }),
+    db.collection("studentRevenuePlans").doc("family-mari").set({ studentId: "family-mari", lessonPriceCents: 2000, lessonMinutes: 60, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+    db.collection("studentRevenuePlans").doc("family-jaan").set({ studentId: "family-jaan", lessonPriceCents: 2200, lessonMinutes: 60, subjectPrices: { Matemaatika: { lessonPriceCents: 2500, lessonMinutes: 45 } }, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+    db.collection("studentRevenuePlans").doc("family-other").set({ studentId: "family-other", lessonPriceCents: 1800, lessonMinutes: 60, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const post = (fn, path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/${fn}${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const waitFor = async (read, check, label) => {
+    for (let i = 0; i < 60; i += 1) {
+      const value = await read();
+      if (check(value)) return value;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`timed out: ${label}`);
+  };
+  const invoiceId = "tokens-family-0001";
+  const items = [
+    { studentId: "family-mari", lessons: 8, lessonPriceCents: 1 },
+    { studentId: "family-jaan", subject: "Matemaatika", lessons: 4 },
+    { studentId: "family-jaan", subject: "Eesti keel", lessons: 2 },
+  ];
+
+  // another family's child is refused; nothing is written
+  const mixed = await post("manualInvoiceApi", "/create-tokens-combined", { due: "2031-12-10", items: [items[0], { studentId: "family-other", lessons: 4 }], requestId: "tokens-family-mixed" });
+  assert.equal(mixed.status, 409, JSON.stringify(mixed.body));
+  assert.match(mixed.body.error, /erinev maksja/);
+  assert.equal((await db.collection("invoices").doc("tokens-family-mixed").get()).exists, false);
+
+  // 1. one invoice: every line at its own card's (and subject's) plan price, never the request's
+  const created = await post("manualInvoiceApi", "/create-tokens-combined", { due: "2031-12-10", items, requestId: invoiceId });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const invoice = created.body.invoice;
+  assert.equal(invoice.billingMode, "lesson_tokens_v1");
+  assert.equal(invoice.tokenStatus, "pending");
+  assert.equal(invoice.combined, true);
+  assert.deepEqual(invoice.studentIds, ["family-mari", "family-jaan"]);
+  assert.equal(invoice.tokenCredits, 14);
+  assert.equal(invoice.amountCents, 8 * 2000 + 4 * 2500 + 2 * 2200);
+  assert.equal(invoice.payerEmail, "pere@example.com");
+  assert.match(invoice.num, /^KS-\d{4}-\d{3}/);
+  const again = await post("manualInvoiceApi", "/create-tokens-combined", { due: "2031-12-10", items, requestId: invoiceId });
+  assert.equal(again.status, 200);
+  assert.equal(again.body.invoice.num, invoice.num);
+
+  // lessons held while the payment was on its way: Jaan's maths and Mari's Estonian; Jaan's Estonian package stays full
+  await db.collection("lessons").doc("family-mari-1").set({ studentId: "family-mari", studentName: "Mari Pere", date: "2031-11-05", status: "Toimunud", teacherUid: "t-est", accountingSource: "crm_v2" });
+  await db.collection("lessons").doc("family-jaan-math-1").set({ studentId: "family-jaan", studentName: "Jaan Pere", date: "2031-11-05", status: "Toimunud", teacherUid: "t-math", teacher: "Liza", accountingSource: "crm_v2" });
+  await db.collection("invoices").doc(invoiceId).set({ date: "2031-11-04" }, { merge: true });
+
+  // 2. partly paid: nothing is credited
+  await db.collection("invoices").doc(invoiceId).set({ paidAmountCents: 10000, balanceDueCents: invoice.amountCents - 10000 }, { merge: true });
+  const early = await post("financeApi", "/invoices/tokens/credit", { invoiceId });
+  assert.equal(early.status, 409, JSON.stringify(early.body));
+  assert.equal((await db.collection("studentPackages").doc(`tokens_${invoiceId}_0`).get()).exists, false);
+
+  // 3. paid in full → „Lisa tunnid” → a package per line, each on its own card and subject, the backlog per card
+  await db.collection("invoices").doc(invoiceId).set({ status: "Makstud", paymentStatus: "paid", paidAmountCents: invoice.amountCents, balanceDueCents: 0 }, { merge: true });
+  const credited = await post("financeApi", "/invoices/tokens/credit", { invoiceId });
+  assert.equal(credited.status, 201, JSON.stringify(credited.body));
+  assert.equal(credited.body.studentPackages.length, 3);
+  assert.equal(credited.body.backlog.consumed, 2);
+  const pkg = async (index) => (await db.collection("studentPackages").doc(`tokens_${invoiceId}_${index}`).get()).data();
+  const [mariPkg, jaanMath, jaanEst] = [await pkg(0), await pkg(1), await pkg(2)];
+  assert.deepEqual([mariPkg.studentId, mariPkg.tokenSubject, mariPkg.grantedCredits, mariPkg.balanceCredits, mariPkg.priceCents], ["family-mari", "Eesti keel", 8, 7, 16000]);
+  assert.deepEqual([jaanMath.studentId, jaanMath.tokenSubject, jaanMath.grantedCredits, jaanMath.balanceCredits, jaanMath.lessonPriceCents], ["family-jaan", "Matemaatika", 4, 3, 2500]);
+  assert.deepEqual([jaanEst.studentId, jaanEst.tokenSubject, jaanEst.grantedCredits, jaanEst.balanceCredits], ["family-jaan", "Eesti keel", 2, 2]);
+  assert.equal(jaanEst.sourceInvoiceId, invoiceId);
+  assert.equal(jaanEst.sourceInvoiceLine, 2);
+  const stored = (await db.collection("invoices").doc(invoiceId).get()).data();
+  assert.equal(stored.tokenStatus, "credited");
+  assert.deepEqual(stored.tokenPackageIds, [0, 1, 2].map((index) => `tokens_${invoiceId}_${index}`));
+  const grants = (await db.collection("packageLedger").where("sourceInvoiceId", "==", invoiceId).get()).docs.filter((doc) => doc.data().entryType === "grant");
+  assert.equal(grants.length, 3);
+  const audits = (await db.collection("financialAudit").where("invoiceId", "==", invoiceId).get()).docs.filter((doc) => doc.data().action === "student.package_credited_from_invoice");
+  assert.equal(audits.length, 3);
+
+  // 4. a second click changes nothing
+  const twice = await post("financeApi", "/invoices/tokens/credit", { invoiceId });
+  assert.equal(twice.status, 200);
+  assert.equal(twice.body.idempotent, true);
+  assert.equal(twice.body.studentPackages.length, 3);
+  assert.equal((await pkg(0)).balanceCredits, 7);
+
+  // 5. later lessons take from their own card's package: Jaan's Estonian lesson from his Estonian line
+  await db.collection("lessons").doc("family-jaan-est-1").set({ studentId: "family-jaan", studentName: "Jaan Pere", date: "2031-11-12", status: "Toimunud", teacherUid: "t-est", teacher: "Pavel", subject: "Eesti keel", accountingSource: "crm_v2" });
+  await waitFor(async () => (await pkg(2)).balanceCredits, (b) => b === 1, "Jaan's Estonian lesson took from his Estonian line");
+  assert.equal((await pkg(0)).balanceCredits, 7);
+  assert.equal((await pkg(1)).balanceCredits, 3);
+
+  // 6. a credited combined invoice is not cancelled (the lessons are on the cards)
+  const cancel = await post("manualInvoiceApi", "/cancel", { invoiceId, reason: "Proovin tühistada ühise paketi", requestId: "tokens-family-cancel-1" });
+  assert.equal(cancel.status, 409, JSON.stringify(cancel.body));
+});
+
 test("cash box: a teacher takes cash, hands it over, an admin links it to the invoice; a voided payment reopens it", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

@@ -46,6 +46,23 @@ export function tokenSummary(packages = []) {
 // the package of a token invoice (the server's id rule, functions/lesson-tokens-core.js tokenPackageId)
 export const tokenPackageId = (invoiceId) => `tokens_${invoiceId}`.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 140);
 
+// „Ühine tunnipakett” (owner 2026-11-04): one package invoice for a family; after payment every line (cardParts) is its
+// own package on its own card — the server's id rule (functions/lesson-tokens-core.js tokenPartPackageId / tokenInvoiceParts)
+export const tokenPartPackageId = (invoiceId, index) => `tokens_${invoiceId}_${index}`.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 140);
+export const isCombinedTokenInvoice = (invoice = {}) => invoice?.billingMode === 'lesson_tokens_v1' && invoice.combined === true && Array.isArray(invoice.cardParts) && invoice.cardParts.length > 0;
+// the lines a token invoice credits: one for a one-card invoice, one per card and subject for a combined one
+export function tokenInvoiceParts(invoice = {}) {
+  if (!isCombinedTokenInvoice(invoice)) {
+    return [{ index: 0, packageId: invoice.tokenPackageId || tokenPackageId(invoice.id), studentId: invoice.studentId || '', studentName: invoice.studentName || '', subject: invoice.subject || '', tokenCredits: num(invoice.tokenCredits) }];
+  }
+  return invoice.cardParts.map((part, index) => ({
+    index, packageId: invoice.tokenPackageIds?.[index] || tokenPartPackageId(invoice.id, index), studentId: part.studentId || '',
+    studentName: part.studentName || '', subject: part.subject || '', tokenCredits: num(part.tokenCredits),
+  }));
+}
+// every card a token invoice is for (a combined one: each of its cards)
+export const tokenInvoiceStudentIds = (invoice = {}) => [...new Set(tokenInvoiceParts(invoice).map((part) => part.studentId).filter(Boolean))];
+
 // Per package (oldest first, the order lessons take credits) and in total: bought, held, left, and the lessons held
 // when no package had credits (owed: to be invoiced and paid; the next paid package takes them first).
 // packages: studentPackages docs; owed: lessonPackageStates with status needs_attention ([{ lessonId, lessonDate }]).
@@ -97,17 +114,41 @@ export function tokenLine(account) {
 
 // the line under a token invoice in the finance month view: before payment, waiting to be credited, or bought / held /
 // left of its package; owed lessons of the student are shown on their newest token invoice (showOwed)
-export function tokenInvoiceUsage(invoice = {}, studentPackage = null, { owed = 0, showOwed = false } = {}) {
+// A combined invoice („Ühine tunnipakett”) gets a line per card and subject: studentPackage is then the array of its
+// packages (index = line), owedBy { studentId: owed credits } and showOwedFor(studentId) say where the owed lessons go
+// (once per card, on its first line).
+export function tokenInvoiceUsageLines(invoice = {}, studentPackage = null, { owed = 0, showOwed = false, owedBy = {}, showOwedFor = null } = {}) {
   const credits = num(invoice.tokenCredits);
+  const owedText = (n) => `võlg ${n} ${n === 1 ? 'tund' : 'tundi'} (uus arve)`;
+  const usage = (pkg) => {
+    if (!pkg) return ['✓ lisatud õpilasele'];
+    const left = num(pkg.balanceCredits);
+    return [`peetud ${num(pkg.consumedCredits)}`, left > 0 ? `alles ${left}` : 'läbi'];
+  };
+  if (isCombinedTokenInvoice(invoice)) {
+    const packages = Array.isArray(studentPackage) ? studentPackage : [];
+    const head = [`Ühine tunnipakett · ${credits} tundi`];
+    if (invoice.tokenStatus !== 'credited' && invoice.tokenStatus !== 'voided') head.push('tunnid lisatakse pärast makset');
+    const seen = new Set();
+    const lines = tokenInvoiceParts(invoice).map((part) => {
+      const bits = [`${[part.studentName, part.subject].filter(Boolean).join(' · ') || 'Õpilane'}: ${part.tokenCredits} tundi`];
+      if (invoice.tokenStatus === 'credited') bits.push(...usage(packages[part.index]));
+      const n = num(owedBy[part.studentId]);
+      if (!seen.has(part.studentId) && n > 0 && showOwedFor?.(part.studentId)) bits.push(owedText(n));
+      seen.add(part.studentId);
+      return bits.join(' · ');
+    });
+    return [head.join(' · '), ...lines];
+  }
   const parts = [`Tunnipakett · ${credits} tundi`];
-  if (invoice.tokenStatus === 'credited') {
-    if (studentPackage) {
-      const left = num(studentPackage.balanceCredits);
-      parts.push(`peetud ${num(studentPackage.consumedCredits)}`, left > 0 ? `alles ${left}` : 'läbi');
-    } else parts.push('✓ lisatud õpilasele');
-  } else if (invoice.tokenStatus !== 'voided') parts.push('tunnid lisatakse pärast makset');
-  if (showOwed && owed > 0) parts.push(`võlg ${owed} ${owed === 1 ? 'tund' : 'tundi'} (uus arve)`);
-  return parts.join(' · ');
+  if (invoice.tokenStatus === 'credited') parts.push(...usage(studentPackage));
+  else if (invoice.tokenStatus !== 'voided') parts.push('tunnid lisatakse pärast makset');
+  if (showOwed && owed > 0) parts.push(owedText(owed));
+  return [parts.join(' · ')];
+}
+
+export function tokenInvoiceUsage(invoice = {}, studentPackage = null, options = {}) {
+  return tokenInvoiceUsageLines(invoice, studentPackage, options).join('; ');
 }
 
 export const lessonTokensService = {
@@ -141,14 +182,20 @@ export const lessonTokensService = {
     const snapshot = await getDocs(query(collection(db, 'lessonPackageStates'), where('status', '==', 'needs_attention')));
     return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
   },
-  // the packages of these token invoices (finance month view): { [invoiceId]: package }
+  // the packages of these token invoices (finance month view): { [invoiceId]: package }; a combined invoice gets the
+  // array of its lines' packages (index = line, null when one cannot be read)
   async packagesForInvoices(invoices = []) {
     const credited = invoices.filter((invoice) => invoice?.id && invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus === 'credited');
     if (!credited.length) return {};
     const { db } = requireFirebaseClient();
+    const read = async (id) => {
+      const snapshot = await getDoc(doc(db, 'studentPackages', id));
+      return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
+    };
     const found = await Promise.all(credited.map(async (invoice) => {
-      const snapshot = await getDoc(doc(db, 'studentPackages', invoice.tokenPackageId || tokenPackageId(invoice.id)));
-      return snapshot.exists() ? [invoice.id, { id: snapshot.id, ...snapshot.data() }] : null;
+      if (isCombinedTokenInvoice(invoice)) return [invoice.id, await Promise.all(tokenInvoiceParts(invoice).map((part) => read(part.packageId).catch(() => null)))];
+      const item = await read(invoice.tokenPackageId || tokenPackageId(invoice.id));
+      return item ? [invoice.id, item] : null;
     }));
     return Object.fromEntries(found.filter(Boolean));
   },

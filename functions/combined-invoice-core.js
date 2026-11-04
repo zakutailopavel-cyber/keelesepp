@@ -9,6 +9,7 @@
 const { manualInvoiceRecord } = require('./manual-invoice-core');
 const { monthlyInvoiceLines, monthLabel } = require('./monthly-invoice-core');
 const { subjectName } = require('./student-enrollments-core');
+const { tokenInvoiceLines, tokenInvoiceSubject, tokenSubjectKey } = require('./lesson-tokens-core');
 
 const clean = (value, max = 160) => String(value || '').trim().slice(0, max);
 const fail = (status, message) => Object.assign(new Error(message), { status });
@@ -132,10 +133,54 @@ function combinedManualRecord({ description, due, note, parts, invoiceNum, nowIs
   return { ...base, ...fields };
 }
 
+// „Ühine tunnipakett” (owner 2026-11-04): one lesson package invoice for several cards / subjects of one payer.
+// parts: [{ card, plan, subject, lessons }]. Every line is priced from its own card's plan (the subject's price, else the
+// card's price — never the request's) and keeps its card, subject and lessons (cardParts[i].tokenCredits); after payment
+// „Lisa tunnid” gives every line its own package (lesson-tokens-core tokenInvoiceParts).
+function combinedTokenRecord({ due, note = '', parts, invoiceNum, nowIso, actor, requestId, signature, linkedAccountEmail = '' }) {
+  const cards = [...new Map(parts.map((part) => [part.card.id, part.card])).values()];
+  checkOnePayer(cards);
+  const many = nameList(cards).length > 1;
+  const lines = [];
+  const cardParts = [];
+  const seen = new Set();
+  for (const part of parts) {
+    let subject;
+    let priced;
+    try {
+      subject = tokenInvoiceSubject(part.subject, part.card);
+      priced = tokenInvoiceLines({ lessons: part.lessons, plan: planForSubject(part.plan || {}, subject), subject: subject || clean(part.card.subject, 80) });
+    } catch (error) {
+      throw fail(error.status || 400, `${lineLabel(part.card, true, part.subject)}: ${error.message}`);
+    }
+    const key = `${part.card.id}|${tokenSubjectKey(subject)}`;
+    if (seen.has(key)) throw fail(400, 'Iga õpilane ja aine võib ühisel tunnipaketil olla üks kord.');
+    seen.add(key);
+    const studentName = clean(part.card.name);
+    priced.lines.forEach((line) => lines.push({ ...line, description: many ? `${studentName} · ${line.description}` : line.description, studentId: part.card.id, studentName, subject, tokenCredits: part.lessons }));
+    cardParts.push({ studentId: part.card.id, studentName, subject, tokenCredits: part.lessons, priceCents: priced.priceCents, minutes: priced.minutes, amountCents: priced.amountCents });
+  }
+  const fields = combinedFields(cards, lines, cardParts);
+  const credits = cardParts.reduce((sum, part) => sum + part.tokenCredits, 0);
+  const base = manualInvoiceRecord({
+    input: { studentId: cards[0].id, description: `Tunnipakett: ${credits} tundi`, amountCents: fields.amountCents, amount: fields.amount, due, note },
+    student: cards[0], invoiceNum, nowIso, actor, requestId, signature, linkedAccountEmail,
+  });
+  return {
+    ...base,
+    ...fields,
+    billingMode: 'lesson_tokens_v1',
+    pricingMode: 'plan',
+    lessonCount: credits,
+    tokenCredits: credits,
+    tokenStatus: 'pending',
+  };
+}
+
 // does this invoice already bill the card for the month (an own monthly invoice or a part of a combined one)?
 function billsCardForMonth(invoice = {}, cardId, month) {
   if (invoice.status === 'Tühistatud' || invoice.planMonth !== month) return false;
   return invoice.studentId === cardId || (Array.isArray(invoice.studentIds) && invoice.studentIds.includes(cardId));
 }
 
-module.exports = { payerKey, sameCardsInput, monthlyItemsInput, planForSubject, checkOnePayer, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth };
+module.exports = { payerKey, sameCardsInput, monthlyItemsInput, planForSubject, checkOnePayer, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth };

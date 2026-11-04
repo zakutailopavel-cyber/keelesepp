@@ -195,7 +195,7 @@ const NOT_COPIED = new Set([
   "corrections", "correction", "correctionStatus", "fullCreditNoteId", "fullyCreditedAt", "correctedBy", "correctionOf",
   "emailStatus", "emailRecipient", "emailSentAt", "emailLastType", "emailQueuedAt", "invoiceEmailSentAt", "lastReminderSentAt",
   "reminderCount", "due10ReminderMonth", "cancelledAt", "cancelledBy", "cancellationReason", "cancellationRequestId",
-  "cancelledAfterSending", "dueDateHistory", "tokenStatus", "tokenPackageId", "tokensCreditedAt", "tokensCreditedBy",
+  "cancelledAfterSending", "dueDateHistory", "tokenStatus", "tokenPackageId", "tokenPackageIds", "tokensCreditedAt", "tokensCreditedBy",
   "financialUpdatedAt", "updatedAt", "pdfPath", "pdfUrl", "documentPath", "documentUrl",
 ]);
 
