@@ -341,6 +341,13 @@ the same projection idea. It adds two optional fields that v1 ignores: `assigned
 drives "Uus ülesanne sulle" for tasks created in the last 14 days). The v2 bell derives task (new for me, new reply,
 overdue, due today), unread message, homework-awaiting-review and overdue-invoice items from their sources.
 
+„Õpetajate koormus” (`/teachers/koormus`, administrator only, 2026-11-04) is a read-only projection per teacher for a
+week or a month: lessons from `lessonFacts` (calendar + journal), unmarked lessons from `findUnmarkedLessons`, unbooked
+free time from `teacherAvailability` (`effectiveSlots`, next 14 days), works waiting for a review (Kodutööd's rule) and
+a pay estimate by the „Ärinäitajad” rule (`workHourlyRateCents` × lessons given; no rate → „määramata”). It writes
+nothing and adds no collection; the journal and submissions are read by single-field date ranges
+(`features/teachers/teacherLoad.js`, `services/firebase/teacherLoad.js`).
+
 Single-student scheduled lessons use the existing server-owned lesson journal endpoint for one-click completion.
 The optional completion payload extends the same idempotent transaction: it records schedule attendance, creates a
 stable lesson-derived homework record, advances `students.curriculumPlan`, and optionally creates a linked follow-up

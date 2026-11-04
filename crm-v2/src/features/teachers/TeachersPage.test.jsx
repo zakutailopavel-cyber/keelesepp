@@ -36,9 +36,11 @@ describe('TeachersPage: „Õpetajate võrdlus” (owner 2026-10-23)', () => {
     const { unmount } = render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 't1', roles: ['teacher'] } }}><TeachersPage {...props} /></AuthContext.Provider></MemoryRouter>);
     await screen.findByRole('region', { name: 'Õpetajate kokkuvõte' });
     expect(screen.queryByText('Õpetajate võrdlus')).toBeNull();
+    expect(screen.queryByRole('link', { name: /Ava koormus/ })).toBeNull();
     unmount();
     render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'a', roles: ['admin'] } }}><TeachersPage {...props} /></AuthContext.Provider></MemoryRouter>);
     expect(await screen.findByText('Õpetajate võrdlus')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Ava koormus/ })).toHaveAttribute('href', '/teachers/koormus');
     expect(await screen.findByRole('table', { name: 'Õpetajate võrdlus' })).toHaveTextContent('Anna');
   });
 });
