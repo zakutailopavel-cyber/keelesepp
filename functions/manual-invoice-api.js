@@ -7,8 +7,8 @@ const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-co
 const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('./monthly-invoice-core');
 const { invoiceCancellationError, wasSent } = require('./invoice-cancellation-core');
 const { subjectName } = require('./student-enrollments-core');
-const { sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth } = require('./combined-invoice-core');
-const { tokenInvoiceInput, tokenInvoiceLines, tokenInvoiceSubject } = require('./lesson-tokens-core');
+const { sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth } = require('./combined-invoice-core');
+const { tokenInvoiceInput, tokenInvoiceLines, tokenInvoiceSubject, combinedTokenInput } = require('./lesson-tokens-core');
 const { cardPayerEmail, firstEmail, linkedParentIds } = require('./invoice-payer-core');
 
 const db = admin.firestore();
@@ -498,6 +498,58 @@ async function createTokenInvoice({ actor, values, requestId }) {
   });
 }
 
+// „Ühine tunnipakett” (owner 2026-11-04): ONE lesson package invoice for the cards of one payer (several children, or
+// one child's subjects at their own prices). Every line is priced from its own card's plan, never from the request;
+// cards of different payers are refused. After payment „Lisa tunnid” (financeApi /invoices/tokens/credit) gives every
+// line its own package on its own card (lesson-tokens-core tokenInvoiceParts).
+async function createCombinedTokenInvoice({ actor, values, requestId }) {
+  let input;
+  try { input = combinedTokenInput(values); } catch (error) { throw httpError(error.status || 400, error.message); }
+  const mutationId = cleanRequestId(requestId);
+  const signature = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
+  const invoiceRef = db.collection('invoices').doc(mutationId);
+  const counterRef = db.collection('meta').doc('invoiceCounter');
+  const ids = [...new Set(input.items.map((item) => item.studentId))];
+  const nowIso = new Date().toISOString();
+  const todayIso = appToday(nowIso);
+  return db.runTransaction(async (transaction) => {
+    const existing = await transaction.get(invoiceRef);
+    if (existing.exists) {
+      if (existing.data().creationSignature !== signature) throw httpError(409, 'requestId already used for a different invoice');
+      return { invoice: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    const cardSnaps = await Promise.all(ids.map((id) => transaction.get(db.collection('students').doc(id))));
+    const planSnaps = await Promise.all(ids.map((id) => transaction.get(db.collection('studentRevenuePlans').doc(id))));
+    const [counterSnap, dateLockSnap] = await Promise.all([transaction.get(counterRef), transaction.get(db.collection('financialLockedDates').doc(todayIso))]);
+    if (cardSnaps.some((snap) => !snap.exists)) throw httpError(404, 'Student not found');
+    if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
+    const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
+    const payerAccountEmail = await linkedAccountEmail(transaction, cardSnaps[0].data());
+    let invoice;
+    try {
+      invoice = combinedTokenRecord({
+        due: input.due, note: input.note, invoiceNum, nowIso, actor, requestId: mutationId, signature, linkedAccountEmail: payerAccountEmail,
+        parts: input.items.map((item) => {
+          const at = ids.indexOf(item.studentId);
+          return { card: { id: ids[at], ...cardSnaps[at].data() }, plan: planSnaps[at].exists ? planSnaps[at].data() : {}, subject: item.subject || '', lessons: item.lessons };
+        }),
+      });
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    transaction.create(invoiceRef, invoice);
+    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
+    transaction.create(db.collection('financialAudit').doc(mutationId), {
+      entityType: 'invoice', entityId: mutationId, action: 'invoice.created_lesson_tokens_combined', invoiceId: mutationId, invoiceNum,
+      studentId: ids[0], studentIds: ids, studentName: invoice.studentName, amountCents: invoice.amountCents, amount: invoice.amount,
+      tokenCredits: invoice.tokenCredits, actor,
+      reason: input.note || invoice.cardParts.map((part) => `${part.studentName}${part.subject ? ` ${part.subject}` : ''} ${part.tokenCredits} × ${part.priceCents / 100} €`).join('; '),
+      createdAt: nowIso, requestId: mutationId,
+    });
+    return { invoice: { id: mutationId, ...invoice }, idempotent: false };
+  });
+}
+
 async function cancelInvoice({ actor, invoiceId, reason, requestId, afterSending = false }) {
   const mutationId = cleanRequestId(requestId);
   const cleanInvoiceId = String(invoiceId || '').trim();
@@ -570,6 +622,11 @@ const manualInvoiceApi = functions.runWith({ memory: "1GB" }).https.onRequest(as
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
+    if (req.path === '/create-tokens-combined') {
+      const result = await createCombinedTokenInvoice({ actor, values: req.body || {}, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
     if (req.path === '/create-combined') {
       const result = await createCombinedManualInvoice({ actor, values: req.body || {}, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
@@ -600,4 +657,4 @@ const manualInvoiceApi = functions.runWith({ memory: "1GB" }).https.onRequest(as
   }
 });
 
-module.exports = { manualInvoiceApi, createManualInvoice, createMonthlyInvoice, createTokenInvoice, cancelInvoice, listInvoiceStudents };
+module.exports = { manualInvoiceApi, createManualInvoice, createMonthlyInvoice, createTokenInvoice, createCombinedTokenInvoice, cancelInvoice, listInvoiceStudents };

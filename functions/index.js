@@ -22,7 +22,7 @@ const { FieldValue } = require("firebase-admin/firestore");
 let googleModule = null;
 const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
-const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject, packageTiersForLesson } = require("./lesson-tokens-core");
+const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, tokenInvoiceParts, isCombinedTokenInvoice, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject, packageTiersForLesson } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
   buildCreditNotePdf,
@@ -977,48 +977,74 @@ function lessonPackageLedgerEntryId(lessonId, cycle, movement) {
 // Lesson tokens (functions/lesson-tokens-core.js): the administrator confirms a paid lesson package invoice and the card
 // gets its credits — one package per invoice (id from the invoice, so a second click changes nothing), a grant entry in
 // the package ledger, the invoice marked credited, an audit record.
+// A combined package invoice („Ühine tunnipakett”, owner 2026-11-04: one invoice for a family) gives every line its own
+// package on its own card and subject (tokens_<invoiceId>_<lineIndex>), each with its own grant, audit and backlog —
+// all in one transaction, so either every line is credited or none.
 async function creditInvoiceTokens({ actor, invoiceId }) {
   const cleanInvoiceId = cleanText(invoiceId, 180);
   if (!cleanInvoiceId) throw httpError(400, "invoiceId required");
-  const packageId = tokenPackageId(cleanInvoiceId);
   const invoiceRef = db.collection("invoices").doc(cleanInvoiceId);
-  const packageRef = db.collection("studentPackages").doc(packageId);
-  const ledgerRef = db.collection("packageLedger").doc(packageId);
-  const auditRef = db.collection("financialAudit").doc(`credit_${packageId}`.slice(0, 150));
   const nowIso = new Date().toISOString();
   const actorData = actorSnapshot(actor);
   const result = await db.runTransaction(async transaction => {
-    const [invoiceSnap, packageSnap] = await Promise.all([transaction.get(invoiceRef), transaction.get(packageRef)]);
-    if (packageSnap.exists) return { studentPackage: { id: packageSnap.id, ...packageSnap.data() }, idempotent: true };
+    const invoiceSnap = await transaction.get(invoiceRef);
     const invoice = invoiceSnap.exists ? invoiceSnap.data() : null;
+    const combined = isCombinedTokenInvoice(invoice || {});
+    const parts = tokenInvoiceParts(cleanInvoiceId, invoice || {});
+    const packageSnaps = await Promise.all(parts.map(part => transaction.get(db.collection("studentPackages").doc(part.packageId))));
+    if (packageSnaps.every(snap => snap.exists)) {
+      const studentPackages = packageSnaps.map(snap => ({ id: snap.id, ...snap.data() }));
+      return { studentPackage: studentPackages[0], ...(combined ? { studentPackages } : {}), idempotent: true };
+    }
+    if (packageSnaps.some(snap => snap.exists)) throw httpError(409, "Osa tunde on juba lisatud, kuid mitte kõik — kontrolli auditit.");
     const blocker = creditBlocker(invoice);
     if (blocker) throw httpError(invoice ? 409 : 404, blocker);
     if (invoice.tokenStatus === "credited") throw httpError(409, "Tunnid on juba lisatud, kuid paketti ei leitud — kontrolli auditit.");
-    const studentSnap = await transaction.get(db.collection("students").doc(String(invoice.studentId)));
-    if (!studentSnap.exists) throw httpError(404, "Student not found");
+    const studentIds = [...new Set(parts.map(part => String(part.studentId || "")))];
+    if (studentIds.some(id => !id)) throw httpError(404, "Student not found");
+    const studentSnaps = await Promise.all(studentIds.map(id => transaction.get(db.collection("students").doc(id))));
+    if (studentSnaps.some(snap => !snap.exists)) throw httpError(404, "Student not found");
+    const cards = new Map(studentSnaps.map(snap => [snap.id, snap.data()]));
     // valid from the invoice date: lessons held while the payment was on its way are covered too
-    const studentPackage = tokenPackageRecord({ invoice, invoiceId: cleanInvoiceId, student: studentSnap.data(), issuedAt: String(invoice.date || appToday(nowIso)).slice(0, 10), nowIso, actor: actorData });
-    const credits = studentPackage.grantedCredits;
-    transaction.create(packageRef, studentPackage);
-    transaction.create(ledgerRef, {
-      studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
-      packageProductId: "", packageProductName: studentPackage.packageProductName,
-      entryType: "grant", sourceType: "invoice_payment", sourceInvoiceId: cleanInvoiceId, sourceInvoiceNum: invoice.num || "",
-      creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
-      ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
-      reason: `Paid lesson package invoice ${invoice.num || cleanInvoiceId}`, actor: actorData, createdAt: nowIso, requestId: packageId,
+    const issuedAt = String(invoice.date || appToday(nowIso)).slice(0, 10);
+    const studentPackages = parts.map(part => {
+      const packageId = part.packageId;
+      const studentPackage = tokenPackageRecord({ invoice, invoiceId: cleanInvoiceId, student: cards.get(String(part.studentId)), issuedAt, nowIso, actor: actorData, ...(combined ? { part } : {}) });
+      const credits = studentPackage.grantedCredits;
+      transaction.create(db.collection("studentPackages").doc(packageId), studentPackage);
+      transaction.create(db.collection("packageLedger").doc(packageId), {
+        studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
+        packageProductId: "", packageProductName: studentPackage.packageProductName,
+        entryType: "grant", sourceType: "invoice_payment", sourceInvoiceId: cleanInvoiceId, sourceInvoiceNum: invoice.num || "",
+        ...(combined ? { sourceInvoiceLine: part.index } : {}),
+        creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
+        ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
+        reason: `Paid lesson package invoice ${invoice.num || cleanInvoiceId}${combined ? ` line ${part.index + 1}` : ""}`, actor: actorData, createdAt: nowIso, requestId: packageId,
+      });
+      transaction.create(db.collection("financialAudit").doc(`credit_${packageId}`.slice(0, 150)), {
+        entityType: "student_package", entityId: packageId, action: "student.package_credited_from_invoice",
+        studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
+        invoiceId: cleanInvoiceId, invoiceNum: invoice.num || "", creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
+        ...(combined ? { sourceInvoiceLine: part.index } : {}),
+        ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
+        actor: actorData, reason: "Lesson package credited after payment", createdAt: nowIso, requestId: packageId,
+      });
+      return { id: packageId, ...studentPackage };
     });
-    transaction.set(invoiceRef, { tokenStatus: "credited", tokenPackageId: packageId, tokensCreditedAt: nowIso, tokensCreditedBy: actorData, updatedAt: nowIso }, { merge: true });
-    transaction.create(auditRef, {
-      entityType: "student_package", entityId: packageId, action: "student.package_credited_from_invoice",
-      studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
-      invoiceId: cleanInvoiceId, invoiceNum: invoice.num || "", creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
-      ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
-      actor: actorData, reason: "Lesson package credited after payment", createdAt: nowIso, requestId: packageId,
-    });
-    return { studentPackage: { id: packageId, ...studentPackage }, idempotent: false };
+    transaction.set(invoiceRef, {
+      tokenStatus: "credited",
+      ...(combined ? { tokenPackageIds: studentPackages.map(item => item.id) } : { tokenPackageId: studentPackages[0].id }),
+      tokensCreditedAt: nowIso, tokensCreditedBy: actorData, updatedAt: nowIso,
+    }, { merge: true });
+    return { studentPackage: studentPackages[0], ...(combined ? { studentPackages } : {}), idempotent: false };
   });
-  if (!result.idempotent) result.backlog = await consumeTokenBacklog(result.studentPackage);
+  if (!result.idempotent) {
+    // every package takes its own card's (and subject's) lessons since the invoice date and the card's owed lessons
+    const packages = result.studentPackages || [result.studentPackage];
+    const backlogs = [];
+    for (const studentPackage of packages) backlogs.push({ studentPackageId: studentPackage.id, studentId: studentPackage.studentId, ...(await consumeTokenBacklog(studentPackage)) });
+    result.backlog = { consumed: backlogs.reduce((sum, item) => sum + item.consumed, 0), ...(result.studentPackages ? { packages: backlogs } : {}) };
+  }
   return result;
 }
 

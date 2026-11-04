@@ -66,6 +66,47 @@ any package.
   owed lessons.
 - Existing invoices / packages are not rewritten: without `subject` / `tokenSubject` they keep paying every lesson.
 
+## One invoice for a family („Ühine tunnipakett”, owner 2026-11-04)
+
+A parent paying for several children (or one child's two subjects, each at its own price) gets ONE package invoice:
+one number, one PDF, one e-mail, one payment — like the combined monthly / manual invoice (`combined-invoice-core.js`).
+
+- **Dialog** (`TokenInvoiceDialog.jsx`, rules in `tokenInvoiceRows.js`): the first line as before (card, subject, N
+  lessons), „Maksja: name · e-mail” (`invoicePayer.js`); „+ Lisa rida (teine laps või aine, sama maksja)” adds a line
+  (card + subject + N lessons), up to 12. The other lines offer the first card's payer's cards first („Sama maksja”);
+  a card of another payer (`monthlyBilling.payerKey`, the server's `combined-invoice-core payerKey`) shows and is refused
+  with „Kaartidel on erinev maksja: ühine tunnipakett on ühe maksja (sama lapsevanema) lastele…”; the same card and
+  subject twice is refused. Each line shows its price (the subject's `subjectPrices`, else the card's price) and amount,
+  „Kokku” the lessons, lines and total. One line → `/create-tokens` (unchanged); two or more → `/create-tokens-combined`.
+- **Server** `manualInvoiceApi POST /create-tokens-combined` `{ items: [{ studentId, subject, lessons }], due, note,
+  requestId }` (`lesson-tokens-core combinedTokenInput`: 2–12 lines, 1–100 lessons each, card + subject once;
+  `combined-invoice-core combinedTokenRecord`): `checkOnePayer` (409 on mixed payers), every line's subject by
+  `tokenInvoiceSubject` and price by `planForSubject` from that card's `studentRevenuePlans` (never the request's), the
+  line „<name> · Tunnipakett (aine): N × min × €” with `studentId`, `subject`, `tokenCredits`. Invoice: `billingMode:
+  'lesson_tokens_v1'`, `combined: true`, `studentIds`, `studentId` = the first card, `cardParts[i] = { studentId,
+  studentName, subject, tokenCredits, priceCents, minutes, amountCents }`, `tokenCredits` = the sum, `tokenStatus:
+  'pending'`, the payer snapshot of the first card (same payer for all). Audit `invoice.created_lesson_tokens_combined`.
+  Idempotent by `requestId`.
+- **Crediting** „Lisa tunnid (N)” → the same `financeApi /invoices/tokens/credit`: for a combined invoice
+  (`lesson-tokens-core isCombinedTokenInvoice` / `tokenInvoiceParts`) one transaction creates per line
+  `studentPackages/tokens_<invoiceId>_<lineIndex>` (`tokenPartPackageId`) on that line's card with its credits, price and
+  `tokenSubject`, `sourceInvoiceLine`, its own ledger grant (`packageLedger` same id) and audit
+  (`credit_tokens_<invoiceId>_<lineIndex>`); the invoice gets `tokenStatus: 'credited'`, `tokenPackageIds` (no
+  `tokenPackageId`). Refused while not paid in full (partial payment too), when credited / voided; all packages present
+  → idempotent 200 with `studentPackages`; only some present → 409 (cannot happen through the route). Then every package
+  runs its own backlog (`consumeTokenBacklog`: its card's lessons since the invoice date and owed lessons, of its subject).
+  Response: `studentPackage` (first), `studentPackages`, `backlog { consumed, packages: [{ studentPackageId, studentId,
+  consumed }] }`.
+- **Views**: student card „Tunnipakett”, parent / student line and Täna „Makstud tunnid lõppevad” read packages by
+  `studentId`, so every line appears on its own card. Finance month view: `tokenInvoiceUsageLines` — „Ühine tunnipakett ·
+  N tundi” and a line per card and subject („Mari · Eesti keel: 8 tundi · peetud 1 · alles 7”); owed lessons of a card
+  once, on its newest token invoice (a combined invoice counts for each of its cards). `packagesForInvoices` returns an
+  array per combined invoice.
+- **Cancel / credit note / correction**: the one-card rules apply to the whole invoice (all its lines are credited
+  together): not credited → can be cancelled or credited in full (`tokenStatus: 'voided'`); credited → refused („Selle
+  paketi tunnid on juba õpilase kaardil”, correct the packages with `/student-packages/adjust`). A corrected replacement
+  keeps `cardParts` and gets `tokenStatus: 'pending'`; `tokenPackageIds` is not copied.
+
 ## Package ↔ invoice link
 
 One token invoice gives one package: `studentPackages/tokens_<invoiceId>` has `sourceInvoiceId` / `sourceInvoiceNum`,
@@ -107,3 +148,8 @@ paid credit (+ backlog) → held / notified / no-show / removed marks → ledger
 owed lesson cleared → the next package pays the owed lesson first), `security-finance-emulator.integration.js`
 („lesson tokens: the plan saves „Tunnipakett” …”: the rule and who reads owed lessons), `crm-v2/src/features/finance/lessonTokens.test.jsx`,
 `e2e/tests/lesson-tokens.spec.cjs` (UI: dialog → payment → Lisa tunnid → trigger → student card and parent).
+„Ühine tunnipakett”: `functions/combined-token-invoice.test.js` (input, price per card / subject, mixed payers refused,
+a package per line, partial payment refused, backlog per card), `finance-emulator.integration.js` („lesson tokens: one
+package invoice for a family …”: mixed payer 409, invoice, partial payment refused, credit → 3 packages + 3 grants + 3
+audits + backlog per card, second click idempotent, a later lesson takes from its own line, credited invoice not
+cancelled), `crm-v2/src/features/finance/TokenInvoiceDialog.combined.test.jsx`.
