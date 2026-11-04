@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { normalizeProgressPoint, progressPointRecord } from '../../services/firebase/progressPoints.js';
-import { goalLight, monthGoalSteps, tallinnDay } from '../parents/nowLearning.js';
+import { goalLight, monthGoalSteps } from '../learner/goalLights.js';
+import { tallinnDay } from '../parents/nowLearning.js';
 import ProgressPointsCard from './ProgressPointsCard.jsx';
 import { courseGoalKeys, courseLessonIdOf, examGaps, levelCurve, masteredOn, goalResults, targetLevelOf } from './levelCurve.js';
 import { changeText, curveSummary } from './proficiencyCurve.js';

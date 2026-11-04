@@ -1,3 +1,13 @@
+## 2026-11-04 · agent/kuu-sammud-lights — student's „Kuu sammud”: the curve's „Oskan” rule, traffic lights only
+
+- Base: `origin/main` 2048ae7 (#1104 merged), checked 2026-11-04. Learner / parents UI only; no rules, data or staff views changed.
+- Owner 2026-11-04 (option 1): the student's „Kuu sammud” on „Minu areng” uses the same „Oskan” as the curve and the parent's „Mida õpime praegu” (≥ 70 % across ≥ 2 sheets; Harjutan ≥ 50 % or one good sheet; Kordame < 50 %; Veel tegemata) and shows only lights, no percentages.
+- Shared helper: new `crm-v2/src/features/learner/goalLights.js` (`STEP_LIGHT`, `OSKAN_PCT`, `OSKAN_SHEETS`, `goalLight`, `monthGoalSteps`), moved from `parents/nowLearning.js` (not duplicated); `NowLearningCard` imports it. `MonthStepsCard` prop `lights`: header „Kuu eesmärgid” + count pills, each step with a dot + word (+ Russian helper), no bar, no %; `StudentProgressPage` passes `lights`. Without `lights` (teacher's `LearnerSnapshotCard`) and the admin's monthly parent report (`monthSteps.js`) keep the percentages and 80 / 50 %.
+- Files: `crm-v2/src/features/learner/{goalLights.js,MonthStepsCard.jsx,MonthStepsCard.test.jsx,learner.css}`, `crm-v2/src/features/parents/{nowLearning.js,NowLearningCard.jsx}`, `crm-v2/src/features/progress-points/progressPoints.test.jsx` (import path), `crm-v2/src/features/students/StudentProgressPage.jsx`, `docs/PROGRESS_ESTIMATE.md`.
+- Checks: `npx eslint src --quiet` no output; `npx vitest run src/features/learner src/features/parents src/features/progress-points src/features/students src/features/homework` 66 files / 359 tests passed (new: `MonthStepsCard` lights — 70 % in 2 sheets Oskan, 90 % in one sheet Harjutan, 30 % Kordame, no % and no bar, the staff view of the same sheets still shows %). Screenshot (demo lab): `/Users/pavel/keelesepp-release/parent-cabinet-screens/v5-student-kuu-sammud.png` (+ `-phone`), not committed.
+- PR: draft (see GitHub, `agent/kuu-sammud-lights`). Production: none. Deploy: hosting only, after the owner's OK.
+- Next safe step: owner looks at the v5 screenshot; after merge + hosting, check one real student's „Minu areng”.
+
 ## 2026-11-04 · agent/student-areng-cleanup — „Minu areng”: the older level / skills card removed (the curve is the one progress card)
 
 - Base: `origin/main` 1bebf8e (#1103 merged), checked 2026-11-04. Student area only; no rules, data, functions or staff views changed.

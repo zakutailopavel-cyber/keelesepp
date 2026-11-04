@@ -70,7 +70,8 @@ export default function StudentProgressPage({
     {/* „Sinu B1 keeleoskus” (owner 2026-11-04): the same curve the parents see, at the top of „Minu areng” (not on the home screen) */}
     {!chosen || chosen === 'Eesti keel' ? <ProficiencyCard audience="student" studentIds={students.map((student) => student.id)} assignments={sheets} targetLevel={targetLevelOf(students[0])} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} /> : null}
     <WordGrowthCard words={words} />
-    <MonthStepsCard assignments={sheets} />
+    {/* „Kuu sammud” for the learner: traffic lights with the curve's „Oskan” rule, no percentages (owner 2026-11-04) */}
+    <MonthStepsCard assignments={sheets} lights />
     <p><Link className="sh-link" to="/homework#vaadatud">Õpetaja tagasiside on lehel „Ülesanded” <ChevronRight size={15} aria-hidden="true" /></Link></p>
     <div className="student-home-grid">
       <LessonSummariesCard studentIds={students.map((student) => student.id)} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
