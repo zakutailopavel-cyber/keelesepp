@@ -11,6 +11,12 @@ measurable part every lesson must pass before it is published. Each rule is chec
    situation. Generic sentences that fit any lesson („Õpilane mõistab teksti põhiideed ja detaile”) fail.
 3. **Coverage:** every task block has a `goal`; every sub-goal is trained by ≥ 2 task blocks across the three sheets
    and appears in the Kasuta self-check („Ma oskan…”).
+3a. **Listening goal `g_listen`** („saan kuuldust aru”, 2026-11-04): an optional extra sub-goal on top of the 3–4 above.
+   A lesson gets it in its `lessonGoals.js` entry (`goals.g_listen` + `tags: { blockId: 'g_listen' }`) when ≥ 2 of its
+   scored tasks are done on a recording: a `listening` gap task, a Harno listening part (`examlisten`), true/false or
+   choice questions on a recording heard again, a dictation. Tagging must not leave another sub-goal with < 2 tasks or a
+   phase without its can-do goal. Its score (`score.perGoal.g_listen`) feeds „Kuulamine” on the admin's skill estimate
+   (`docs/PROGRESS_ESTIMATE.md`). A lesson with one listening task keeps it under its old goal.
 4. The Russian teacher note (`curriculumLessons.goal`, `languageFocus`, `successCriteria`) stays for the teacher.
 
 ## B. Every sheet

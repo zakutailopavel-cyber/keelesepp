@@ -54,6 +54,12 @@ const GOALS = {
   g_notice: 'Õpilane märkab ja selgitab tunni keelemustrit.',
   g_use: 'Õpilane kasutab õpitut suulises ja kirjalikus suhtluses.',
 };
+// `g_listen` — „saan kuuldust aru”: the scored tasks done on a recording (listening gaps, Harno listening parts, questions
+// on a recording heard again, dictation). It is not one of the generic defaults above: a lesson gets it in its
+// lessonGoals entry (goals.g_listen + `tags` for its listening tasks) only when ≥ 2 of its tasks train it, so the
+// sub-goal rules (≥ 2 tasks per sub-goal, final shape V9) hold. The skill estimate „Kuulamine” reads score.perGoal.g_listen
+// (students/skillEstimate.js, docs/PROGRESS_ESTIMATE.md).
+export const LISTENING_GOAL = 'g_listen';
 
 // every task trains one of the lesson's own sub-goals (contract A3): a lesson's `tags` set a task's real sub-goal, and in
 // a lesson with three sub-goals (checks, grammar lessons) a task tagged with a missing one counts as language form
