@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
+import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type, X } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../../components/ui/index.js';
@@ -92,6 +92,9 @@ export default function StudentBoard({
   insetRight = 0,
   // „Järjehoidja / Kleebis”: the bookmarks are kept for the student in „Minu vead” (studentNotes)
   noteService = studentNotesService,
+  // Live Classroom (student): which worksheet pages are tabs — { hidden: Set<sheetId> (no tab unless open),
+  // closable: Set<sheetId> (a × after the tab), onClose(sheetId), extra(pagedSheetIds) → node after the tabs }
+  sheetTabs = null,
 }) {
   const room = variant === 'room';
   useNoHistorySwipe();
@@ -200,6 +203,8 @@ export default function StudentBoard({
     return heir?.id === sheet.id ? pages.find((page) => page.title === worksheetPageTitle(sheet.legacyTitle)) || null : null;
   }, [pages, allSheets]);
   const sheetPageIds = useMemo(() => new Set(allSheets.map(sheetPageOf).filter(Boolean).map((page) => page.id)), [allSheets, sheetPageOf]);
+  // page id → sheet id (only for `sheetTabs`)
+  const sheetOfPage = useMemo(() => (sheetTabs ? new Map(allSheets.map((sheet) => [sheetPageOf(sheet)?.id, sheet.id]).filter(([id]) => id)) : null), [sheetTabs, allSheets, sheetPageOf]);
   // the newest sheet takes over the board when it opens; the page on screen decides which sheet lies under the drawing
   const worksheet = sheets[0] || null;
   const worksheetPage = sheetPageOf(worksheet);
@@ -480,12 +485,13 @@ export default function StudentBoard({
   const menuPage = pages.find((item) => item.id === pageMenu?.id) || null;
   const pageTabs = (className) => <div className={className} role="tablist" aria-label="Tahvli lehed">
     <button type="button" role="tab" aria-selected={pageId === null} onClick={() => choosePage(null)}>Tahvel</button>
-    {pages.map((page) => (renaming?.id === page.id
+    {(sheetOfPage ? pages.filter((page) => page.id === pageId || !sheetTabs.hidden?.has(sheetOfPage.get(page.id))) : pages).map((page) => (renaming?.id === page.id
       ? <input key={page.id} className="sb-page-rename" aria-label="Lehe nimi" autoFocus maxLength={200} value={renaming.title}
         onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
         onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
       : <Fragment key={page.id}>
         <button type="button" role="tab" aria-selected={pageId === page.id} className={sheetPageIds.has(page.id) ? 'is-worksheet' : ''} title="Topeltklõps: nimeta ümber · paremklõps: lehe toimingud" onClick={() => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); }} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })} onContextMenu={(event) => { event.preventDefault(); openPageMenu(event, page.id); }}>{sheetPageIds.has(page.id) ? <ClipboardList size={13} aria-hidden="true" /> : null}{page.title || 'Leht'}</button>
+        {sheetOfPage && sheetTabs.closable?.has(sheetOfPage.get(page.id)) ? <button type="button" className="sb-page-close" aria-label={`Sulge „${page.title || 'Leht'}”`} title="Sulge (jääb „Varasemad tunnid” alla)" onClick={() => { if (pageId === page.id) choosePage(null); sheetTabs.onClose?.(sheetOfPage.get(page.id)); }}><X size={13} aria-hidden="true" /></button> : null}
         {pageId === page.id && !renaming ? <button type="button" className="sb-page-tool sb-page-more" aria-label="Lehe toimingud" title={`Lehe „${page.title || 'Leht'}” toimingud`} aria-haspopup="menu" aria-expanded={pageMenu?.id === page.id} onClick={(event) => openPageMenu(event, page.id)}><MoreHorizontal size={16} /></button> : null}
       </Fragment>))}
     {menuPage ? createPortal(<div className="sb-page-menu" role="menu" aria-label={`Leht „${menuPage.title || 'Leht'}”`} style={{ left: pageMenu.x, top: pageMenu.y }}>
@@ -495,6 +501,7 @@ export default function StudentBoard({
       {staff && service.deletePage && menuPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(menuPage)}>Kustuta leht</button> : null}
       {staff && menuPage.status === 'completed' ? <p className="sb-page-menu__note">Lõpetatud tunni lehte ei saa kustutada.</p> : null}
     </div>, document.body) : null}
+    {sheetOfPage && sheetTabs.extra ? sheetTabs.extra(new Set(sheetOfPage.values())) : null}
     <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
     <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
   </div>;

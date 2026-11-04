@@ -4,6 +4,7 @@ import { lessonRecordingsService } from '../../services/firebase/lessonRecording
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import LessonsCard from './TranscriptView.jsx';
 import { lessonTimeline } from './lessonTimeline.js';
+import LessonTrendCard from './LessonTrendCard.jsx';
 
 // Student card → „Areng”: the recorded lessons with their text. The recording consent is set in the student's form
 // („Muuda” → „Tundi võib salvestada”).
@@ -22,10 +23,13 @@ export default function StudentRecordingsPanel({ student, user, isAdmin = false,
     try { return boardService.subscribePages(student.id, setPages, () => setPages([])); } catch { return undefined; }
   }, [boardService, student.id]);
   const rows = useMemo(() => lessonTimeline(state.items, pages), [pages, state.items]);
+  // „Areng tundide kaupa”: the same lessons (marks of „Pole viga” already applied)
+  const lessons = useMemo(() => rows.map((row) => row.recording).filter(Boolean), [rows]);
 
   return (
     <>
       {student.recordingConsent === true ? null : <p className="form-hint profile-wide"><Mic size={15} aria-hidden="true" /> Tundi ei salvestata: nõusolekut pole. Selle saab märkida nupu „Muuda” all.</p>}
+      <LessonTrendCard lessons={lessons} className="profile-wide" />
       <div className="profile-wide"><LessonsCard rows={rows} studentId={student.id} loading={state.loading} error={state.error} onReload={load} transcriberService={service} /></div>
     </>
   );

@@ -146,7 +146,7 @@ describe('LiveRoom: the video tiles can be made small', () => {
     renderRoom('teacher');
     fireEvent.click(screen.getByRole('button', { name: 'Peida video (heli jääb)' }));
     // the video elements stay (sound goes on), only the chip is in sight
-    expect(document.querySelectorAll('.lr-side video')).toHaveLength(2);
+    expect(document.querySelectorAll('.lr-float video')).toHaveLength(2);
     fireEvent.click(screen.getByRole('button', { name: /^Näita videot/ }));
     expect(screen.getByRole('button', { name: 'Peida video (heli jääb)' })).toBeInTheDocument();
   });

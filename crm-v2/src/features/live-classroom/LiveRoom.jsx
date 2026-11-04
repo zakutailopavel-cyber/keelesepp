@@ -1,10 +1,13 @@
 import {
-  ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Maximize2, Menu, MessageSquare, Mic, MicOff, Minimize2, Monitor, MonitorOff,
-  MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Undo2, Users, Video, VideoOff, X,
+  ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
+  MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Timer, Undo2, Users, Video, VideoOff, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StudentBoard from '../board/StudentBoard.jsx';
-import { imageSize, sheetBoardTitle } from '../board/boardModel.js';
+import { imageSize, sheetBoardTitle, worksheetPageTitle } from '../board/boardModel.js';
+import { CountdownBadge, CountdownControls } from './CountdownTimer.jsx';
+import { useCountdown } from './useCountdown.js';
+import { groupSheetTabs } from './sheetTabs.js';
 import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import { usePastSheets } from './usePastSheets.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
@@ -27,6 +30,9 @@ import { useLessonPlan } from './useLessonPlan.js';
 import { defaultPlanSteps } from './lessonPlan.js';
 import { lessonTimingFor } from './lessonLink.js';
 import { attendanceMarks, plannedStartMs } from './roomAttendance.js';
+import FloatingWindow, { FloatingLayer } from './FloatingWindow.jsx';
+import ScreenStage, { StageToggle } from './ScreenStage.jsx';
+import { rightInset } from './floatingLayout.js';
 import './liveRoom.css';
 
 const dateLabel = (date = new Date()) => new Intl.DateTimeFormat('et-EE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
@@ -40,6 +46,16 @@ const clock = (ms) => {
 const initial = (name) => String(name || '?').trim().charAt(0).toUpperCase() || '?';
 // signal strength from the call state: 3 bars connected, 2 connecting, 1 waiting/reconnecting, 0 otherwise
 const BARS = { connected: 3, connecting: 2, reconnecting: 1, waiting: 1 };
+// the movable video windows (owner 2026-11-04): the other side 4:3, the own picture 16:10; first placed top right
+const remoteHeight = (w) => Math.round(w * 0.75);
+const selfHeight = (w) => Math.round(w * 0.625);
+const narrow = (bounds) => bounds.w < 700;
+const remoteDefault = (bounds) => ({ ax: 'right', ay: 'top', dx: 14, dy: 56, w: narrow(bounds) ? 112 : 220, min: false });
+const selfDefault = (bounds) => {
+  const remoteW = narrow(bounds) ? 112 : 220;
+  return { ax: 'right', ay: 'top', dx: 14, dy: 56 + remoteHeight(remoteW) + 8, w: narrow(bounds) ? 92 : 132, min: narrow(bounds) };
+};
+const observerDefault = (bounds) => ({ ax: 'left', ay: 'bottom', dx: 14, dy: 14, w: narrow(bounds) ? 96 : 150, min: false });
 
 function Signal({ status, label }) {
   const level = BARS[status] || 0;
@@ -144,7 +160,7 @@ function DevicesPanel({ call, stream }) {
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
   recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false, observerProps,
-  planService,
+  planService, countdownService,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
@@ -231,6 +247,14 @@ export default function LiveRoom({
   const attendanceStart = plannedMs || timestampMillis(invitation.createdAt) || startedAt;
   const studentMark = attendanceMarks(participants, planState.plan.attendance, attendanceStart)[0] || null;
   const pastSheets = usePastSheets({ homework: worksheetProps.homework || firebaseHomework, studentId: guest ? '' : invitation.studentId || '', role });
+  // the teacher's countdown (invitation field `countdown`): the teacher sets it, both see the badge
+  const timer = useCountdown({ kind: 'lesson', id: invitation.id, user, teacher, enabled: invitation.status !== 'closed', ...(countdownService ? { service: countdownService } : {}) });
+
+  // the student's sheet tabs: only the latest lesson's sheets; older ones in „Varasemad tunnid” (sheetTabs.js)
+  const [openedOlder, setOpenedOlder] = useState(() => new Set());
+  const tabGroups = useMemo(() => (teacher ? null : groupSheetTabs({ roomSheets: sheetList, pastSheets, roomKey: invitation.id, opened: openedOlder })),
+    [teacher, sheetList, pastSheets, invitation.id, openedOlder]);
+  const keepOlder = useCallback((id) => setOpenedOlder((current) => (current.has(id) ? current : new Set([...current, id]))), []);
 
   // ── the teacher's page and pointer over the call's data channel (nothing is saved) ──
   const [myPage, setMyPage] = useState('');
@@ -238,10 +262,35 @@ export default function LiveRoom({
   const [myPageTitle, setMyPageTitle] = useState('');
   // lesson pages the teacher opened in this lesson (for the summary)
   const [pagesSeen, setPagesSeen] = useState([]);
+  // an older sheet the student lands on (the teacher led him there, or he chose it) stays a tab until he closes it
+  const hiddenOlder = tabGroups?.hidden;
   const onPageChange = useCallback((id, title = '') => {
     myPageRef.current = id; setMyPage(id); setMyPageTitle(title);
     if (id && teacher) setPagesSeen((current) => [...current.filter((page) => page.id !== id), { id, title: title || current.find((page) => page.id === id)?.title || 'Leht' }]);
-  }, [teacher]);
+    if (id && !teacher && title && hiddenOlder?.size) {
+      const sheet = pastSheets.find((item) => hiddenOlder.has(item.id) && (worksheetPageTitle(item.title) === title || worksheetPageTitle(item.legacyTitle) === title));
+      if (sheet) keepOlder(sheet.id);
+    }
+  }, [teacher, pastSheets, hiddenOlder, keepOlder]);
+  const sheetTabs = useMemo(() => {
+    if (!tabGroups) return null;
+    const olderIds = new Set(tabGroups.older.flatMap((group) => group.sheets.map((item) => item.id)));
+    return {
+      hidden: tabGroups.hidden,
+      closable: new Set([...openedOlder].filter((id) => olderIds.has(id))),
+      onClose: (id) => setOpenedOlder((current) => { const next = new Set(current); next.delete(id); return next; }),
+      extra: (paged) => {
+        const groups = tabGroups.older.map((group) => ({ ...group, sheets: group.sheets.filter((item) => paged.has(item.id)) })).filter((group) => group.sheets.length);
+        if (!groups.length) return null;
+        const count = groups.reduce((sum, group) => sum + group.sheets.length, 0);
+        return <select key="older" className="lr-older-sheets" aria-label="Varasemad tunnid" title="Varasemate tundide töölehed" value=""
+          onChange={(event) => { const id = event.target.value; if (!id) return; keepOlder(id); boardRef.current?.openWorksheet?.(id); }}>
+          <option value="">Varasemad tunnid ({count})</option>
+          {groups.map((group) => <optgroup key={group.key} label={group.label}>{group.sheets.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</optgroup>)}
+        </select>;
+      },
+    };
+  }, [tabGroups, openedOlder, keepOlder]);
   const { roomChannelOpen, sendRoom, onRoomMessage } = call;
   useEffect(() => { if (teacher && roomChannelOpen) sendRoom?.({ t: 'page', pageId: myPage }); }, [teacher, roomChannelOpen, myPage, sendRoom]);
   // the student sees only „Samm X/Y” of the teacher's plan (over the data channel, nothing is saved)
@@ -306,9 +355,19 @@ export default function LiveRoom({
   }, [pointer]);
   const awayFromTeacher = !teacher && roomChannelOpen && teacherPage !== null && teacherPage !== myPage;
 
-  // the video tiles float over the board's right edge: they can be made small, and on a wide screen a worksheet is
-  // fitted beside them (owner 2026-10-23: the tiles and the colour panel covered the sheet). Picture and sound go on.
-  const [videoHidden, setVideoHidden] = useState(false);
+  // the video windows float over the board and can be moved, resized and made small (owner 2026-11-04); a window kept
+  // at the right edge leaves the worksheet room beside it (owner 2026-10-23). Picture and sound go on when small.
+  const [layouts, setLayouts] = useState({});
+  const onLayoutChange = useCallback((id, layout) => setLayouts((current) => (current[id] === layout ? current : { ...current, [id]: layout })), []);
+  // the other side's shared screen takes the main area; „Tahvel” goes back to the board while the share lasts
+  const remoteScreen = call.remoteScreen || { active: false, stream: null };
+  const [stageView, setStageView] = useState('screen');
+  const sharingBefore = useRef(false);
+  useEffect(() => {
+    if (remoteScreen.active && !sharingBefore.current) setStageView('screen');
+    sharingBefore.current = remoteScreen.active;
+  }, [remoteScreen.active]);
+  const showScreen = remoteScreen.active && stageView === 'screen';
   const [wide, setWide] = useState(() => Boolean(globalThis.matchMedia?.('(min-width: 761px)').matches));
   useEffect(() => {
     const query = globalThis.matchMedia?.('(min-width: 761px)');
@@ -317,7 +376,8 @@ export default function LiveRoom({
     query.addEventListener?.('change', change);
     return () => query.removeEventListener?.('change', change);
   }, []);
-  const insetRight = wide && !videoHidden ? 250 : 0;
+  const insetRight = wide && !showScreen ? rightInset(Object.values(layouts), globalThis.innerWidth || 1280) : 0;
+  const observerVideo = watching.observers.some((item) => watching.streams?.[item.uid || item.id]?.getVideoTracks?.().length);
   const toggle = (name) => { setMenu(''); setPanel((current) => (current === name ? '' : name)); };
   const place = async (file) => {
     const kind = fileKind(file);
@@ -355,13 +415,14 @@ export default function LiveRoom({
         </div>
         <div className="lr-top__group lr-top__center">
           {subject ? <span className="lr-pill lr-subject">{subject}</span> : null}
+          {remoteScreen.active ? <StageToggle view={stageView} onChange={setStageView} /> : null}
           <span className="lr-pill lr-timer" aria-label="Tunni kestus"><span>{clock(now - startedAt)}</span><Signal status={call.status} label={`Ühendus: ${call.statusLabel}`} /></span>
           {teacher ? <LessonPlanPill clock={planState.clock} active={panel === 'plan'} onClick={() => toggle('plan')} /> : null}
           {!teacher && studentStep && roomChannelOpen ? <span className="lr-pill lr-plan-pill" role="status">Samm {studentStep.index + 1}/{studentStep.count}</span> : null}
           {call.hasLocalMedia ? <>
             <IconButton label={call.audioEnabled ? 'Lülita mikrofon välja' : 'Lülita mikrofon sisse'} active={!call.audioEnabled} onClick={call.toggleAudio}>{call.audioEnabled ? <Mic size={18} /> : <MicOff size={18} />}</IconButton>
             <IconButton label={call.videoEnabled ? 'Lülita kaamera välja' : 'Lülita kaamera sisse'} active={!call.videoEnabled} onClick={call.toggleVideo}>{call.videoEnabled ? <Video size={18} /> : <VideoOff size={18} />}</IconButton>
-            {teacher ? <IconButton label={call.screenSharing ? 'Lõpeta ekraani jagamine' : 'Jaga ekraani'} active={call.screenSharing} disabled={call.screenBusy} onClick={call.screenSharing ? call.stopScreenShare : call.startScreenShare}>{call.screenSharing ? <MonitorOff size={18} /> : <Monitor size={18} />}</IconButton> : null}
+            {teacher || call.canShareScreen ? <IconButton label={call.screenSharing ? 'Lõpeta ekraani jagamine' : 'Jaga ekraani'} active={call.screenSharing} disabled={call.screenBusy} onClick={call.screenSharing ? call.stopScreenShare : call.startScreenShare}>{call.screenSharing ? <MonitorOff size={18} /> : <Monitor size={18} />}</IconButton> : null}
           </> : null}
           {teacher && recState.recording ? (() => {
             // one pill: a Mac that does not transcribe is a warning mark inside it, not a second pill (the bar is full)
@@ -383,6 +444,7 @@ export default function LiveRoom({
           <IconButton label="Rohkem" active={menu === 'more'} onClick={() => setMenu(menu === 'more' ? '' : 'more')}><MoreHorizontal size={19} /></IconButton>
           <IconButton label="Osalejad" active={panel === 'people'} onClick={() => toggle('people')}><Users size={18} /></IconButton>
           {!guest ? <IconButton label="Vestlus" active={panel === 'chat'} onClick={() => toggle('chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</IconButton> : null}
+          {teacher ? <IconButton label="Taimer" active={panel === 'timer' || timer.active} onClick={() => toggle('timer')}><Timer size={18} /></IconButton> : null}
           {teacher ? <button type="button" aria-label="Materjalid" title="Materjalid" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => toggle('materials')}><LibraryBig size={17} /><span className="lr-label">Materjalid</span></button> : null}
           {!guest ? <button type="button" aria-label="Sõnad" title="Sõnad" className={`lr-text-btn ${panel === 'words' ? 'is-active' : ''}`} onClick={() => toggle('words')}><Languages size={17} /><span className="lr-label">Sõnad</span></button> : null}
           <button type="button" aria-label={sheet ? 'Ülesanded · tööleht on avatud' : 'Ülesanded'} title="Ülesanded" className={`lr-text-btn ${panel === 'tasks' ? 'is-active' : ''}`} onClick={() => { setMenu(''); if (sheet && !teacher) { boardRef.current?.openWorksheet?.(); return; } toggle('tasks'); }}><ClipboardList size={17} /><span className="lr-label">Ülesanded</span>{sheet ? <span className="lr-dot" aria-label="Tööleht on avatud" /> : null}</button>
@@ -429,29 +491,42 @@ export default function LiveRoom({
             {...(teacher ? { presenting: presenting && roomChannelOpen } : { followView: followView && teacherLeads, onFollowBreak: () => setFollowView(false) })}
             {...(boardService ? { service: boardService } : {})}
             insetRight={insetRight}
+            sheetTabs={sheetTabs}
           />
+          <CountdownBadge timer={timer} />
+          {remoteScreen.active ? <ScreenStage stream={remoteScreen.stream} name={call.peerName} visible={showScreen} /> : null}
           {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
             {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
         </main>
 
-        <aside className={`lr-side ${panel ? 'has-drawer' : ''} ${videoHidden ? 'is-collapsed' : ''}`} aria-label="Video">
-          {videoHidden
-            ? <button type="button" className="lr-video-chip" onClick={() => setVideoHidden(false)} aria-label={`Näita videot: ${call.peerName}`}><Maximize2 size={14} aria-hidden="true" /><span>{call.peerName}</span><Signal status={call.connected ? 'connected' : call.peerOnline ? 'waiting' : 'idle'} label={`${call.peerName} ${peerLabel}`} /></button>
-            : <button type="button" className="lr-video-hide" onClick={() => setVideoHidden(true)} aria-label="Peida video (heli jääb)" title="Peida video — pilt ja heli jäävad alles"><Minimize2 size={14} aria-hidden="true" /></button>}
-          <figure className={`lr-tile lr-tile--remote ${call.connected ? 'is-live' : ''}`}>
-            <video ref={call.remoteVideoRef} autoPlay playsInline />
-            {!call.connected ? <span className="lr-tile__avatar" aria-hidden="true">{initial(call.peerName)}</span> : null}
-            <figcaption><span>{call.peerName}</span><Signal status={call.connected ? 'connected' : call.peerOnline ? 'waiting' : 'idle'} label={`${call.peerName} ${peerLabel}`} /></figcaption>
-            {!call.connected ? <small className="lr-tile__state">{call.peerOnline ? call.statusLabel : `${call.peerName} ${peerLabel}`}</small> : null}
-            {call.needsPlay ? <button type="button" className="lr-tap-play" onClick={call.resumePlayback}>▶ Puuduta, et näha ja kuulda<span>Нажмите, чтобы видеть и слышать</span></button> : null}
-          </figure>
-          <figure className={`lr-tile lr-tile--self ${call.hasLocalMedia ? 'is-live' : ''}`}>
-            <video ref={call.localVideoRef} autoPlay playsInline muted className={call.screenSharing ? 'is-screen' : ''} />
-            {!call.hasLocalMedia ? <span className="lr-tile__avatar" aria-hidden="true">{initial(user.displayName)}</span> : null}
-            <figcaption><span>Sina{call.screenSharing ? ' · ekraan' : ''}{call.audioOnly ? ' · ainult heli' : ''}</span></figcaption>
-          </figure>
-          {/* a speaking administrator („Räägi kaasa”): heard always, seen while the video is shown */}
-          <ObserverMedia observers={watching.observers} streams={watching.streams || {}} showVideo={!videoHidden} />
+        {/* the video windows: moved, resized and made small by hand, remembered in this browser (owner 2026-11-04) */}
+        <FloatingLayer inset={{ right: panel && wide ? 362 : 0 }}>
+          <FloatingWindow id="room-remote" label={`Video: ${call.peerName}`} heightFor={remoteHeight} defaultLayout={remoteDefault} onLayoutChange={onLayoutChange} restoreLabel={`Näita videot: ${call.peerName}`}
+            restoreContent={<><span>{call.peerName}</span><Signal status={call.connected ? 'connected' : call.peerOnline ? 'waiting' : 'idle'} label={`${call.peerName} ${peerLabel}`} /></>}>
+            <figure className={`lr-tile lr-tile--remote ${call.connected ? 'is-live' : ''}`}>
+              <video ref={call.remoteVideoRef} autoPlay playsInline />
+              {!call.connected ? <span className="lr-tile__avatar" aria-hidden="true">{initial(call.peerName)}</span> : null}
+              <figcaption><span>{call.peerName}{remoteScreen.active ? ' · jagab ekraani' : ''}</span><Signal status={call.connected ? 'connected' : call.peerOnline ? 'waiting' : 'idle'} label={`${call.peerName} ${peerLabel}`} /></figcaption>
+              {!call.connected ? <small className="lr-tile__state">{call.peerOnline ? call.statusLabel : `${call.peerName} ${peerLabel}`}</small> : null}
+              {call.needsPlay ? <button type="button" className="lr-tap-play" onClick={call.resumePlayback}>▶ Puuduta, et näha ja kuulda<span>Нажмите, чтобы видеть и слышать</span></button> : null}
+            </figure>
+          </FloatingWindow>
+          <FloatingWindow id="room-self" label="Video: sina" heightFor={selfHeight} defaultLayout={selfDefault} onLayoutChange={onLayoutChange}
+            minimizeLabel="Peida oma pilt" restoreLabel="Näita oma pilti" restoreContent={<span>Sina</span>}>
+            <figure className={`lr-tile lr-tile--self ${call.hasLocalMedia ? 'is-live' : ''}`}>
+              <video ref={call.localVideoRef} autoPlay playsInline muted />
+              {!call.hasLocalMedia ? <span className="lr-tile__avatar" aria-hidden="true">{initial(user.displayName)}</span> : null}
+              <figcaption><span>Sina{call.screenSharing ? ' · jagad ekraani' : ''}{call.audioOnly ? ' · ainult heli' : ''}</span></figcaption>
+            </figure>
+          </FloatingWindow>
+          {/* a speaking administrator („Räägi kaasa”): always heard; with a camera also in a window of its own */}
+          {observerVideo ? <FloatingWindow id="room-observer" label="Video: administraator" heightFor={selfHeight} defaultLayout={observerDefault}
+            minimizeLabel="Peida administraatori pilt" restoreLabel="Näita administraatori pilti" restoreContent={<span>Administraator</span>}>
+            <ObserverMedia observers={watching.observers} streams={watching.streams || {}} showVideo />
+          </FloatingWindow> : <ObserverMedia observers={watching.observers} streams={watching.streams || {}} showVideo={false} />}
+        </FloatingLayer>
+
+        <aside className={`lr-side ${panel ? 'has-drawer' : ''}`} aria-label="Paneelid">
 
           {panel === 'chat' ? <Drawer title="Vestlus" onClose={() => setPanel('')}><ChatPanel invitation={invitation} user={user} repository={messagesRepository} messages={messages} error={chatError} /></Drawer> : null}
           {panel === 'people' ? <Drawer title="Osalejad" onClose={() => setPanel('')}>
@@ -467,6 +542,7 @@ export default function LiveRoom({
             {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /></Drawer> : null}
           {panel === 'plan' && teacher ? <Drawer title="Tunniplaan" onClose={() => setPanel('')}><LessonPlanPanel planState={planState} participants={participants} startMs={attendanceStart}
             attendanceNote="„Lõpeta tund” viib märke kalendrisse: Kohal / Hilines → Toimunud, Puudub → Puudus (ei teatanud). Hilinemise minutid jäävad tunniplaani." /></Drawer> : null}
+          {panel === 'timer' && teacher ? <Drawer title="Taimer" onClose={() => setPanel('')}><CountdownControls timer={timer} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}
           <div className={panel === 'tasks' ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'tasks'} role="region" aria-label="Ülesanded">

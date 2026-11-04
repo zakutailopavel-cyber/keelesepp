@@ -12214,6 +12214,114 @@ async function studentWordLookup({ decoded, studentId = "", word = "", tgt = "ru
   return { ...result, saved: true, wordId: ref.id };
 }
 
+// ── „Lisa oma sõna” (owner 2026-11-04): the student types a word or a short phrase; the server checks the spelling,
+// gives the base form and a translation. Nothing is saved here: the student edits everything and saves it himself.
+// Only the typed text leaves the server (EKI etLex, EKI Ekilex, TartuNLP — all free); answers are cached; each user
+// has a quota (server-only `languageQuotas/{uid}`).
+async function takeLanguageQuota(uid) {
+  const { nextQuota } = require("./language-core");
+  const ref = db.collection("languageQuotas").doc(String(uid));
+  const verdict = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const result = nextQuota(snap.exists ? snap.data() : {}, new Date());
+    if (result.allowed) tx.set(ref, result.next);
+    return result;
+  });
+  if (!verdict.allowed) throw httpError(429, verdict.reason === "day" ? "Daily limit reached, try again tomorrow" : "Too many checks, wait a minute");
+}
+
+async function etlexEvaluate(text) {
+  const { cacheKey, etlexWords } = require("./language-core");
+  return cachedLanguageAnswer(cacheKey("etlexw", text), async () => {
+    const data = await fetchJsonWithin("https://etlex.eki.ee/etLex/api/v1.0/projects/etLex/evaluation", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
+    });
+    return { words: etlexWords(data) };
+  }).then((answer) => answer.words || []);
+}
+
+// Ekilex headword search (exact or with * wildcards): the Estonian headwords, or null without the key
+async function ekilexHeadwords(pattern) {
+  const { cacheKey } = require("./language-core");
+  const apiKey = String(process.env.EKILEX_API_KEY || "").trim();
+  if (!/^[0-9a-fA-F]{32}$/.test(apiKey)) return null;
+  const answer = await cachedLanguageAnswer(cacheKey("ekw", pattern.toLocaleLowerCase("et")), async () => {
+    const data = await fetchJsonWithin(`${EKILEX_URL}word/search/${encodeURIComponent(pattern).replace(/%2A/g, "*")}/eki`, { headers: { "ekilex-api-key": apiKey } });
+    const words = (Array.isArray(data?.words) ? data.words : []).filter((word) => word && (word.lang === "est" || !word.lang))
+      .map((word) => String(word.wordValue || "").slice(0, 80)).filter(Boolean);
+    return { words: [...new Set(words)].slice(0, 400) };
+  });
+  return answer.words || [];
+}
+
+async function checkEstonianWord(text, analysed = {}) {
+  const { rankSuggestions, suggestionSearches } = require("./language-core");
+  const lemma = analysed.lemma || text;
+  const out = { text, lemma, known: null, suggestions: [] };
+  const sameAs = (list, value) => (list || []).some((word) => word.toLocaleLowerCase("et") === value.toLocaleLowerCase("et"));
+  const exact = await ekilexHeadwords(text).catch(() => undefined);
+  if (exact === null) {
+    // no Ekilex key: the learner vocabulary of etLex still knows the common words
+    if (analysed.level) out.known = true;
+    return out;
+  }
+  if (exact && sameAs(exact, text)) { out.known = true; return out; }
+  if (lemma.toLocaleLowerCase("et") !== text.toLocaleLowerCase("et")) {
+    const byLemma = await ekilexHeadwords(lemma).catch(() => undefined);
+    if (byLemma && sameAs(byLemma, lemma)) { out.known = true; return out; }
+  }
+  if (analysed.level) { out.known = true; return out; }
+  if (exact === undefined) return out;
+  const searches = await Promise.allSettled(suggestionSearches(text).map((pattern) => ekilexHeadwords(pattern)));
+  const candidates = searches.flatMap((answer) => (answer.status === "fulfilled" && answer.value ? answer.value : []));
+  out.suggestions = rankSuggestions(text, candidates, 3);
+  // a compound Vabamorf could split (kooli_raamat) is often missing from the dictionary: not a mistake unless
+  // something close exists
+  out.known = out.suggestions.length || !analysed.compound ? false : null;
+  if (analysed.compound && !out.suggestions.length) out.compound = true;
+  return out;
+}
+
+async function checkOwnWord({ decoded, body }) {
+  const { ownWordRequest, spellVerdict, correctedText } = require("./language-core");
+  const input = ownWordRequest(body || {});
+  await takeLanguageQuota(decoded.uid);
+  const result = { text: input.text, lang: input.lang, tgt: input.tgt, status: "unchecked", words: [], suggestion: "", lemma: "", translation: "", translationOf: "", forms: { line: "", forms: [] }, sources: [] };
+  if (input.lang === "et") {
+    try {
+      const analysed = await etlexEvaluate(input.text);
+      const byToken = new Map(analysed.map((item) => [item.token.toLocaleLowerCase("et"), item]));
+      result.words = await Promise.all(input.words.map((word) => checkEstonianWord(word, byToken.get(word.toLocaleLowerCase("et")) || {})));
+      result.status = spellVerdict(result.words);
+      result.suggestion = correctedText(input.text, result.words);
+      result.sources.push("EKI etLex");
+      if (process.env.EKILEX_API_KEY) result.sources.push("EKI Ekilex");
+    } catch (error) {
+      console.warn("own-word spelling check failed", error.message);
+    }
+    if (input.words.length === 1) {
+      const single = result.words[0];
+      result.lemma = single && single.known !== false ? single.lemma : "";
+      const forms = await estonianWordForms({ word: result.lemma || input.text }).catch(() => null);
+      if (forms?.found) {
+        result.lemma = forms.headword || result.lemma;
+        result.forms = { line: forms.line || "", forms: (forms.forms || []).slice(0, 8) };
+      }
+    }
+  }
+  // the base form of one word is translated (ärkan → ärkama → просыпаться); a phrase as typed
+  const source = (input.words.length === 1 && result.lemma) || input.text;
+  try {
+    const translated = await translateText({ text: source, src: input.lang, tgt: input.tgt });
+    result.translation = String(translated.result || "").slice(0, 200);
+    result.translationOf = source;
+    result.sources.push("TartuNLP Neurotõlge");
+  } catch (error) {
+    console.warn("own-word translation failed", error.message);
+  }
+  return result;
+}
+
 // One sentence → words with base form, part of speech and form (EKI etLex), multi-word verbs, a gloss per word and the
 // translation of the sentence (TartuNLP). Each translation may fail alone; the morphology must answer.
 async function analyzeSentence(input) {
@@ -12278,6 +12386,12 @@ exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSe
       // TartuNLP translation, both public); the whole answer is cached by the sentence
       await requireFirebaseUser(req);
       res.json(await analyzeSentence(req.body || {}));
+      return;
+    }
+    if (req.path === "/own-word") {
+      // „Lisa oma sõna”: any signed-in user (the student, a parent, staff), quota per user, nothing saved here
+      const decoded = await requireFirebaseUser(req);
+      res.json(await checkOwnWord({ decoded, body: req.body }));
       return;
     }
     if (req.path === "/student-word") {

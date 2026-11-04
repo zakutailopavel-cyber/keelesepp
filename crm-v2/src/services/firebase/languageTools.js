@@ -41,6 +41,12 @@ export const languageToolsService = {
   lookupStudentWord({ studentId, word, tgt = 'ru' }) {
     return post('/student-word', { studentId, word, tgt });
   },
+  // „Lisa oma sõna”: spelling (EKI etLex + Ekilex), base form, forms and a translation (TartuNLP); saves nothing.
+  // { text, lang, tgt, status: ok|suggest|unknown|unchecked, words: [{ text, lemma, known, suggestions }], suggestion,
+  //   lemma, translation, translationOf, forms: { line, forms }, sources }
+  checkOwnWord({ text, lang = 'et', tgt = 'ru' }) {
+    return post('/own-word', { text, lang, tgt });
+  },
   // „Lause lahti”: { text, translation, tokens: [{ text, lemma, pos, posEt, posRu, formEt, formRu, gloss, level, punct, space }],
   // expressions: [{ phrase, ru, government, tokens }] } (EKI etLex morphology + TartuNLP, cached on the server)
   analyzeSentence({ text, tgt = 'ru' }) {

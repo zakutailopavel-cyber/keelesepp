@@ -1,7 +1,8 @@
 # Lesson recording and free transcription
 
 Owner decision 2026-09-29: record Live Classroom lessons and turn them into text for free, so the teacher can see after
-the lesson what the student said and where they struggled. No AI analysis yet (a local model was postponed).
+the lesson what the student said and where they struggled. Since October 2026 the school Mac also analyses the lesson
+with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the learner's errors, gemma3 summary).
 
 ## Consent and privacy
 
@@ -44,6 +45,27 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
    speaker filter; before transcription it says the text is on its way) and „Tahvel” (`/board/:studentId?page=<id>`,
    the lesson page of that day, otherwise the main board). Model: `lessonTimeline.js`.
 
+4. **„Areng tundide kaupa” (since 2026-11-04)** — on the same tab, above „Tunnid” (`LessonTrendCard.jsx`,
+   `lessonTrend.js`): per lesson with text, oldest first — learner's share of speaking time %, learner words, average
+   learner utterance (words per learner line), errors per 100 learner words in the lesson language (the Mac's
+   `analysis.speech.langWords`, else counted from the transcript; „ei analüüsitud” when there is no analysis), the top
+   error kinds (sõnajärg, vorm, sõna puudu, liigne sõna, sõnavara) and new distinct words (lesson-language words the
+   learner had not said in the earlier lessons of the list; the first lesson shows its distinct words only). Four small
+   lines (last 12 lessons) + a table. Counted in the browser from the recordings already loaded for „Tunnid”, nothing
+   is written; the same visibility (the teacher's own recordings, an admin all).
+5. **„Pole viga” (since 2026-11-04)** — in „Tunni analüüs” → „Õpilase vead” each flagged error has „Pole viga”: the
+   recording's teacher or an admin confirms it with an optional reason (≤ 200 chars). The error moves under „Märgitud
+   „Pole viga” (N)” with who / when / reason and „Taasta” (undo). A dismissed error is left out of the error count,
+   „Pärast tundi” (topic counts, homework, word cards, parent note), „Tee tööleht vigadest”, the trend, „Rääkimine”
+   accuracy (`autoSkills.js`) and the personal worksheet — everything reads lessons through `groupRecordings` →
+   `withErrorReview` (`errorReview.js`). Topic counts (`focus`) are counted again in the browser with the Mac's own
+   rules (`errorTopicKeys`, a copy of `analysis.js`).
+   The school Mac learns from it: a correction (said → corrected, compared without capitals / punctuation) dismissed
+   in **2 or more different lessons** is not flagged again (`analysis.js` `dismissedPairs` / `isDismissed`, both for
+   GEC errors and the teacher's recasts). The worker reads `analyzerFeedback` with one query (`select said, corrected,
+   recordingId`) only when it really analyses a lesson, cached 1 h — never on the idle loop. `ANALYSIS_VERSION` is
+   unchanged (old lessons are not analysed again; their marks still hide the errors in the CRM).
+
 ## Data and rules
 
 - `lessonRecordings/{invitationId}_{ms}`: `invitationId, teacherUid, teacherName, studentId, studentUid, studentName,
@@ -51,10 +73,21 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
   transcriptModel, audioDeletedAt, error`.
 - Firestore: create only by the teacher of an accepted invitation with consent on the student card; browser updates
   only `status, endedAt, segments, updatedAt` while `recording`; transcript is written by the worker (Admin SDK).
+- `lessonRecordings/{id}.errorReview.{key}` (on the lesson's first part; `key` = `errorKey(error)`, a hash of
+  startMs | said | corrected): `{ said, corrected, kind, source, startMs, reason, byUid, byName, at }`, an undo adds
+  `undoneAt, undoneByUid, undoneByName` (the mark is kept for the audit; a new „Pole viga” overwrites it). Kept outside
+  `analysis`, so a new analysis does not wipe it. Rule: the recording's teacher or an admin may change only
+  `errorReview` (map, ≤ 300 keys), in any status.
+- `analyzerFeedback/{recordingId}_{key}`: `{ said, corrected, kind, source, reason, lang, recordingId, byUid, byName,
+  at }`, written in the same batch as the mark; created by the recording's teacher or an admin with their own uid;
+  read by admins only (and the worker); deleted on undo (author, the recording's teacher or an admin; deleting a
+  missing copy is allowed). Rules tests: `functions/lesson-recording-emulator.integration.js` („Pole viga” test).
 - `transcriberStatus/{workerId}`: staff read, written only by the worker (Admin SDK).
 - Storage: `lessonRecordings/{recordingId}/*` written only by the recording teacher while `recording`, audio < 20 MB.
-- Tests: `functions/lesson-recording-emulator.integration.js` (rules), `tools/lesson-transcriber/lib.test.js`
-  (merging, junk filter, retention), `crm-v2/src/features/lesson-recording/lessonRecording.test.jsx` (UI).
+- Tests: `functions/lesson-recording-emulator.integration.js` (rules; not in `test:emulator`, run it by name),
+  `tools/lesson-transcriber` `npm test` (`lib.test.js` merging, junk filter, retention; `analysis.test.js` analysis
+  helpers and the „Pole viga” filter), `crm-v2/src/features/lesson-recording/lessonRecording.test.jsx` (UI),
+  `errorReview.test.jsx`, `lessonTrend.test.jsx`.
 
 ## Setup on the Mac
 

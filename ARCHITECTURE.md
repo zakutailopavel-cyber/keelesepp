@@ -99,6 +99,17 @@ student's persistent board `whiteboards/{studentId}` (same as CRM „Tahvel” a
 Chat uses the student's internal `messages` conversation. Board rules check access once per write (see
 `whiteboardElementCreateValid`, `lessonPageLive`); evaluating it repeatedly exceeds Firestore's 1000-expression limit.
 
+Room video layout (1:1 and group): the camera tiles are movable / resizable windows (`FloatingWindow.jsx`,
+`floatingLayout.js`) in a pointer-transparent layer over the board; layout per window id is kept anchored to a corner
+in `localStorage` `keelesepp.liveLayout.v1` (group strip orientation in `keelesepp.liveGroupStrip`). Screen share in a
+1:1 call (`screenShare.js`): the teacher's offer has camera video + a second „screen slot” video transceiver
+(`sendrecv`, the student's answer sets it `sendrecv` too); sharing = `replaceTrack(screen)` on the slot, stop =
+`replaceTrack(null)` — no renegotiation, the camera keeps its own track. The receiver recognises the slot as the second
+video transceiver and the sharer announces `{ t: 'screen', on, slot }` over the room data channel (remote track label /
+contentHint are not transmitted, so they cannot identify a screen). Peers without `addTransceiver` fall back to the old
+way (screen replaces the camera track, announced with `slot: false`). The share takes the main area (`ScreenStage.jsx`,
+„Ekraan / Tahvel” switch); group rooms have no screen share.
+
 Lesson plan + in-room attendance (teacher only, 1:1 and group): `liveLessonPlans/{roomKey}` (roomKey = invitation id
 or group room id; staff-only rules, only the room's teacher writes). Steps with minutes (`lessonPlan.js`, default
 Soojendus/Avasta/Harjuta/Kasuta/Kokkuvõte scaled to the calendar lesson length remembered by `rememberLessonTiming`),
@@ -107,6 +118,22 @@ timer derived from `startedAt` / `stepStartedAt` / `spentMs` (no per-second writ
 started from the calendar hands its mark through `lessonHandoff.js` to the calendar's `completeFromSchedule`
 (Kohal/Hilines → `Toimunud`, Puudub → `Puudus_eta`); group rooms are not linked to calendar groups, so their marks stay
 in the plan. The student sees only „Samm X/Y” over the data channel.
+
+Countdown timer (teacher tool, 1:1 and group; `countdown.js`, `useCountdown.js`, `CountdownTimer.jsx`,
+`services/firebase/liveCountdown.js`): one map `countdown { running, remainingMs, durationMs, label, by, updatedAt }` on
+`liveLessonInvitations/{id}` (1:1) or `liveGroupRooms/{id}` (group) — docs the students already read. Rules: only the
+room's teacher, only that field (`affectedKeys().hasOnly(['countdown'])`), while the room is accepted / open,
+`updatedAt == request.time`, ≤ 2 h, `by == uid`. Readers derive the time left as `updatedAt + remainingMs − (local now +
+offset)`; the offset (server − local) is the largest of the last 5 samples `updatedAt − arrival time` of writes seen
+live (not the first, possibly old snapshot). Writes only on start / pause / resume / +1 min / stop. Badge in the stage
+corner (click: big), last 10 s highlighted, „Aeg läbi!” + Web Audio chime once (mute in `localStorage`
+`keelesepp.countdownMuted`).
+
+Student sheet tabs (1:1 room, student side; `sheetTabs.js`): worksheet pages („Tööleht: …”) are tabs only for this room's
+sheets (or, when the room has none yet, the most recent lesson day's); older sheets (grouped by `liveRoomKey`, labelled
+by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen there or reached by following the teacher
+stays a tab with a × until closed (session state only). `StudentBoard` takes this as the optional `sheetTabs` prop; the
+teacher's tabs are unchanged.
 
 `live-classroom-core.js` owns the public scene contract. A scene may contain only:
 

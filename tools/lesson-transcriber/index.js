@@ -7,7 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, judgeCorrection, teacherRecasts, errorTopics, withFocus, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { dismissedPairs, isDismissed, learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, judgeCorrection, teacherRecasts, errorTopics, withFocus, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { isEnglishNoise, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
@@ -251,6 +251,22 @@ async function backfillPetStats() {
   }
 }
 
+// Teachers' „Pole viga” marks (analyzerFeedback): read in one query only when a lesson is really analysed, then kept
+// for an hour — never on the idle minute loop (reads cost money). A failed read analyses without the filter.
+const FEEDBACK_TTL_MS = 60 * 60 * 1000;
+let feedbackCache = { at: 0, pairs: new Set() };
+async function dismissedFeedback() {
+  if (feedbackCache.at && Date.now() - feedbackCache.at < FEEDBACK_TTL_MS) return feedbackCache.pairs;
+  try {
+    const snap = await db.collection('analyzerFeedback').select('said', 'corrected', 'recordingId').get();
+    feedbackCache = { at: Date.now(), pairs: dismissedPairs(snap.docs.map((d) => d.data())) };
+  } catch (err) {
+    log('analyzer feedback error', err.message);
+    feedbackCache = { ...feedbackCache, at: Date.now() };
+  }
+  return feedbackCache.pairs;
+}
+
 // one finished recording per tick: the learner's errors (GEC) and the summary for the teacher, saved as `analysis`
 async function analyzeNext() {
   if (env('ANALYSIS', 'on') === 'off') return;
@@ -282,15 +298,17 @@ async function analyzeNext() {
   try {
     // the teacher's recasts first (the most reliable errors); their sentences are not sent to the GEC model
     const forms = (await loadDidactics().catch(() => null))?.forms || null;
-    const errors = teacherRecasts(transcript, rec.language || 'et', forms);
-    const recast = new Set(errors.map((e) => e.said));
+    const dismissed = await dismissedFeedback();
+    const recasts = teacherRecasts(transcript, rec.language || 'et', forms);
+    const recast = new Set(recasts.map((e) => e.said));
+    const errors = recasts.filter((e) => !isDismissed(dismissed, e.said, e.corrected));
     const sentences = learnerSentences(transcript, rec.language || 'et', forms).filter((s) => !recast.has(s.text));
     if (hasGec) {
       for (const [i, s] of sentences.entries()) {
         if (i % 8 === 0) { current = { ...current, detail: `vead ${i}/${sentences.length}` }; await beat(); }
         const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(s.text), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
         const judged = judgeCorrection(s.text, corrected);
-        if (judged) errors.push({ startMs: s.startMs, said: s.text, corrected, kind: judged.kind, ...(s.unsure ? { unsure: true } : {}) });
+        if (judged && !isDismissed(dismissed, s.text, corrected)) errors.push({ startMs: s.startMs, said: s.text, corrected, kind: judged.kind, ...(s.unsure ? { unsure: true } : {}) });
         progress();
       }
     }
