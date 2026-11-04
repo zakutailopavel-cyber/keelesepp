@@ -27,7 +27,8 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('node_modules/firebase') || id.includes('node_modules/@firebase')) return 'firebase';
           if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) return 'react';
-          if (id.includes('node_modules/lucide-react')) return 'icons';
+          // icons (lucide-react) are not one chunk: each page carries the icons it uses, so the first load (login, the
+          // student's home) does not download every staff page's icons (2026-11-04, ~13 KB gzip less on the first load)
           return undefined;
         },
       },

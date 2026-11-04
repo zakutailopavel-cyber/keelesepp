@@ -2,7 +2,9 @@ import { ArrowDown, ArrowUp, ListChecks, Plus, Sparkles, Trash2 } from 'lucide-r
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, Input, LoadingState, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, libraryService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { libraryService } from '../../services/firebase/library.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { autoPlan, lessonResults, movePlanLesson, planDoneIds, planPace, planRows, recommendLessons, weeklyLessonsNow } from './studyPlanModel.js';
 import { toIsoDate } from '../calendar/calendarView.js';

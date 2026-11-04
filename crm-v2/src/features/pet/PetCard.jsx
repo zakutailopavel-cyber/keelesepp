@@ -1,8 +1,9 @@
 import { Flame, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button, Card, Input } from '../../components/ui/index.js';
-import { petsService } from '../../services/firebase/index.js';
-import { SPECIES, STAGES, petSvg } from './petArt.js';
+import { petsService } from '../../services/firebase/pets.js';
+import { SPECIES, STAGES } from './petArt.js';
+import { PetArt } from './PetArtView.jsx';
 import { PET_KINDS, petProgress, validPetName } from './petModel.js';
 import { announcePet } from './petEvents.js';
 import PetWardrobe from './PetWardrobe.jsx';
@@ -11,7 +12,8 @@ import { petNeeds } from './petCare.js';
 import PetLoop from './PetLoop.jsx';
 import { usePetMaterial } from './usePetMaterial.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
-import { homeworkService, lessonWorksheetsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
 import { roomSvg } from './petRoom.js';
 import { seasonalWear } from './petLife.js';
 import './pet.css';
@@ -19,10 +21,8 @@ import './pet.css';
 // Estonian: singular after 1, partitive otherwise (1 tund, 3 tundi)
 const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
-// Our own generated SVG (constants only), safe to inject.
-export function PetArt({ kind, mood, stage, wearing = {}, className = '' }) {
-  return <div className={`pet-art ${className}`} dangerouslySetInnerHTML={{ __html: petSvg(kind, mood, stage, wearing) }} />;
-}
+// PetArt lives in PetArtView.jsx (the lesson room shows the pet without loading this page's games); kept exported here
+export { PetArt };
 
 // The pet in its room: the room grows with learning (petRoom.js); a bought background shows in the window
 function PetRoom({ progress, pet, mood }) {

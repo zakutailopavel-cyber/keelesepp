@@ -2,7 +2,8 @@ import { AlertTriangle, CheckCircle2, Pencil, Phone, UserMinus } from 'lucide-re
 import { Link } from 'react-router-dom';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { studentAvailabilityService, websiteLeadsService } from '../../services/firebase/index.js';
+import { studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
+import { websiteLeadsService } from '../../services/firebase/websiteLeads.js';
 import { timesFromLeads, withLeadTimes } from '../calendar/leadTimes.js';
 import { ageOf, AUDIENCES } from './groupFill.js';
 import { groupGaps, interestLabel } from './groupCheck.js';

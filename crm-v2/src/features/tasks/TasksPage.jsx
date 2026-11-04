@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { teachersService } from '../../services/firebase/index.js';
+import { teachersService } from '../../services/firebase/teachers.js';
 import { tasksService } from '../../services/firebase/tasks.js';
 import {
   CATEGORY_LABEL,

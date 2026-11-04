@@ -4,7 +4,13 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, invoicesService, lessonChangeRequestsService, lessonsService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { invoicesService } from '../../services/firebase/invoices.js';
+import { lessonChangeRequestsService } from '../../services/firebase/lessonChangeRequests.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
+import { petsService } from '../../services/firebase/pets.js';
+import { scheduleService } from '../../services/firebase/schedule.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { announcementsService } from '../../services/firebase/announcements.js';
 import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
 import RescheduleDialog from './RescheduleDialog.jsx';
@@ -24,6 +30,7 @@ import { useStudentWords } from '../vocabulary/useStudentWords.js';
 import SubjectSwitcher from './SubjectSwitcher.jsx';
 import { itemSubject, onlySubject, subjectsOf } from './subjects.js';
 import { feedbackSeenAt, homeNotes, homeSections, newFeedback, nextStep } from './nextStep.js';
+import LessonSoonPrefetch from '../live-classroom/LessonSoonPrefetch.jsx';
 import './studentHome.css';
 
 function unique(items) {
@@ -196,6 +203,7 @@ export default function StudentDashboardPage({
         </Link></li>;
       })}</ul>
       <div className="sh-plan" id="tunniplaan">
+        {lessonAhead && !preview ? <LessonSoonPrefetch lesson={lessonAhead} /> : null}
         <h3><CalendarDays size={18} aria-hidden="true" /> Tunniplaan</h3>
         <div className="sh-lesson">
           <span>{lessonAhead

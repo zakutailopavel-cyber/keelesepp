@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Card } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { lessonsService } from '../../services/firebase/index.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { presenceService } from '../../services/firebase/presence.js';
 import { retentionRisk } from './retentionRisk.js';

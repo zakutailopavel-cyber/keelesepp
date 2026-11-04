@@ -2,6 +2,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, vi } from 'vitest';
 import LiveRoom from './LiveRoom.jsx';
+import { beforeAll as preloadBeforeAll } from 'vitest';
+import { preloadLiveClassroomParts } from './lazyParts.testkit.js';
+
+// the room's views and panels are lazy: load them once, so the tests wait for behaviour, not for module loading
+preloadBeforeAll(() => preloadLiveClassroomParts(), 60000);
 
 // the call's data channel is replaced by a controllable fake; everything else is the real room
 const room = vi.hoisted(() => {

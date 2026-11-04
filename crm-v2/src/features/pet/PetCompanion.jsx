@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { homeworkService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { petsService } from '../../services/firebase/pets.js';
+import { scheduleService } from '../../services/firebase/schedule.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { liveLessonInvitationsService } from '../../services/firebase/liveLessonInvitations.js';
 import { INVITATION_STATUS, newestInvitation, normalizeInvitation } from '../live-classroom/invitationModel.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';

@@ -1,6 +1,5 @@
 import { collection, doc, getDoc, getDocs, query, runTransaction, setDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
-import { validateWorksheetDoc } from './worksheetDocs.js';
 
 export const LESSON_WORKSHEET_SCHEMA = 'keelesepp.lesson-worksheet/1';
 const ROLES = new Set(['discover', 'practice', 'transfer', 'focus']);
@@ -77,6 +76,9 @@ async function persist({
   contentOrigin,
 }) {
   assertIdentity(lessonId, worksheetId);
+  // the check knows every block type (engine/registry.js, ~200 KB): loaded on save, so reading course sheets (the
+  // student's home, the pet) does not download every block
+  const { validateWorksheetDoc } = await import('./worksheetDocs.js');
   validateWorksheetDoc(worksheetDoc);
   const normalizedRole = normalizeRole(role, worksheetId);
   const normalizedStatus = status === 'published' ? 'published' : 'draft';

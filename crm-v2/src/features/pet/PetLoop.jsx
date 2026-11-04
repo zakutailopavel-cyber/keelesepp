@@ -1,7 +1,9 @@
 import { Gamepad2, Sparkles, Utensils } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { homeworkService, lessonWorksheetsService, petsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
+import { petsService } from '../../services/firebase/pets.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { localDate } from '../../utils/localDate.js';
 import WordPractice from '../vocabulary/WordPractice.jsx';

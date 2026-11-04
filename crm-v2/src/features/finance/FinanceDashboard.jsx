@@ -1,7 +1,11 @@
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, LineChart, TrendingDown, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { businessSettingsService, groupsService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
+import { businessSettingsService } from '../../services/firebase/businessSettings.js';
+import { groupsService } from '../../services/firebase/groups.js';
+import { scheduleService } from '../../services/firebase/schedule.js';
+import { studentsService } from '../../services/firebase/students.js';
+import { teachersService } from '../../services/firebase/teachers.js';
 import { PERIODS, lessonRevenue, monthRange, niceMax, periodSummary, smoothPath } from './financeDashboard.js';
 import { currentMonth, shiftMonth } from './monthlyBilling.js';
 import BusinessReport from './BusinessReport.jsx';
