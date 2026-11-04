@@ -1,3 +1,11 @@
+## 2026-11-04 · agent/opik-sihitis — Õpik sheet „Sihitis” for b1b2-016 (own wording)
+
+- Base: `origin/main` 82df269 (#1077), checked 2026-11-04. Content only: new `textbook/sihitis.json`; `textbook/index.js` (+ book, `pages: ''` → subtitle „Õpik” without „lk”); `textbook.test.js` (+1 test); `docs/TEXTBOOKS.md` (new section with source and „own wording, not a copy”).
+- Sheet `ws_b1b2-016_opik` („Sihitis: täis- või osasihitis ja täissihitise kääne”, B1+): intro, tables osa/täis, verb groups, omastav/nimetav, „4 küsimust”, NB, exercises 1–6 (16 gaps, 6 negations, 7 „ära / läbi / pähe / valmis”, 14-verb sort, 7 imperative / impersonal rewrites, 8 error fixes). Grammar facts from T. Leemets, Õiguskeel 2023/2; no text or example copied (no permission recorded).
+- Checks: `npx vitest run src/features/worksheet-generator` 71 files passed, 1 skipped (1151 tests); `npx eslint src` 0 errors (19 old warnings). Print render checked as static HTML (keys hidden); not checked in a browser.
+- Limits: „Kursuse tootmine” row shows „…, lk ” with an empty page (cosmetic, admin only). Not published.
+- Production: none. PR: draft (see GitHub). Next safe step: owner/teacher reads the sheet; then admin publishes it in „Kursuse tootmine” → „Õpik” → b1b2-016 → „Avalda”.
+
 ## 2026-11-04 · agent/live-warmup-hints — Live Classroom: „Soojendus” from the last lesson's sentences, teacher's „Täna harjutada”
 
 - Base: `origin/main` e6ef972 (#1074), checked 2026-11-04. Live classroom (1:1, teacher) only; no finance / calendar / constructor / content / functions code; no rules change. Contract: `docs/LESSON_RECORDING.md` (Flow 7).
