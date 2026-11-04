@@ -8,6 +8,14 @@
 - Limits: a guest by lesson link gets no poll card (the invitation's `studentUid` is the student's account); the time limit is enforced in the client (rules accept an answer while the round is open); the „Minu vead” note is plain text; the board copy is made by the teacher's browser (closing the tab during „Lõpeta ilma kokkuvõtteta” may lose it; ending again finds the same copy ids); a group copy needs the teacher to be on each member's card (teacher scope).
 - PR: draft (see GitHub). Production: none. Deploy needed (owner's approval): `firebase deploy --only firestore:rules` (without it „Kiirküsimus” says „permission denied”; „Tunni tahvlid” needs no rule change) + hosting.
 - Next safe step: review; deploy rules + hosting; one test lesson: teacher asks a „Vali õige vorm” with 30 s, the student answers on an iPad, teacher saves the wrong answer and reveals; end the lesson and open „Minu areng” → „Tunni tahvlid” as the student and as the parent.
+## 2026-11-04 · agent/opik-sihitis — Õpik sheet „Sihitis” for b1b2-016 (own wording)
+
+- Base: `origin/main` 82df269 (#1077), checked 2026-11-04. Content only: new `textbook/sihitis.json`; `textbook/index.js` (+ book, `pages: ''` → subtitle „Õpik” without „lk”); `textbook.test.js` (+1 test); `docs/TEXTBOOKS.md` (new section with source and „own wording, not a copy”).
+- Sheet `ws_b1b2-016_opik` („Sihitis: täis- või osasihitis ja täissihitise kääne”, B1+): intro, tables osa/täis, verb groups, omastav/nimetav, „4 küsimust”, NB, exercises 1–6 (16 gaps, 6 negations, 7 „ära / läbi / pähe / valmis”, 14-verb sort, 7 imperative / impersonal rewrites, 8 error fixes). Grammar facts from T. Leemets, Õiguskeel 2023/2; no text or example copied (no permission recorded).
+- Checks: `npx vitest run src/features/worksheet-generator` 71 files passed, 1 skipped (1151 tests); `npx eslint src` 0 errors (19 old warnings). Print render checked as static HTML (keys hidden); not checked in a browser.
+- Limits: „Kursuse tootmine” row shows „…, lk ” with an empty page (cosmetic, admin only). Not published.
+- Production: none. PR: draft (see GitHub). Next safe step: owner/teacher reads the sheet; then admin publishes it in „Kursuse tootmine” → „Õpik” → b1b2-016 → „Avalda”.
+
 ## 2026-11-04 · agent/skill-estimate-card — „Teekond sihttasemeni”: admin-only estimate per skill to the target level
 
 - Base: `origin/main` e6ef972 (#1074), checked 2026-11-04. Student card only; no rules, functions, data, finance, calendar, live classroom or content change. Contract: `docs/PROGRESS_ESTIMATE.md`.
