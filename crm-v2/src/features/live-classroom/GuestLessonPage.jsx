@@ -9,6 +9,7 @@ import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { INVITATION_STATUS, normalizeInvitation, serverNow } from './invitationModel.js';
 import LiveRoom from './LiveRoom.jsx';
+import { clientErrors } from '../client-errors/clientErrorReporter.js';
 import './liveClassroom.css';
 
 // /tund/:token — the lesson link a teacher sent to a student without a login (functions/live-guest.js). The server
@@ -35,7 +36,9 @@ export default function GuestLessonPage({
     setPhase('joining');
     setError('');
     try {
-      setJoined(await guestService.join(token));
+      const result = await guestService.join(token);
+      if (result?.uid) clientErrors.setGuest(result.uid); // error reports from this lesson: role „guest”, the guest uid
+      setJoined(result);
       setPhase('joined');
     } catch (joinError) {
       setError(firebaseErrorMessage(joinError));

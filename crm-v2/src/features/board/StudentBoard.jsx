@@ -1,5 +1,5 @@
 import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, Images, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type, X } from 'lucide-react';
-import { Fragment, Suspense, lazy, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
@@ -13,6 +13,7 @@ import { INK_BOX, bookmarkElement, bookmarkEmpty, isBookmark, notePatch, noteRec
 import { spanCss, spansOf, textPatch } from './richText.js';
 import BookmarkDialog from './BookmarkDialog.jsx';
 import BoardLanguageTools from './BoardLanguageTools.jsx';
+import BoardPageTabs from './BoardPageTabs.jsx';
 import RichTextEditor, { FormatBar } from './RichTextEditor.jsx';
 import { MEDIA_MIME, mediaElement, placeableImage, readPayload } from './mediaSearch.js';
 import { selectionText } from './selectionText.js';
@@ -494,28 +495,32 @@ export default function StudentBoard({
     service.renamePage(studentId, page.id, current.title, user).catch(fail('Lehte ei saanud ümber nimetada.'));
   };
   const menuPage = pages.find((item) => item.id === pageMenu?.id) || null;
-  const pageTabs = (className) => <div className={className} role="tablist" aria-label="Tahvli lehed">
-    <button type="button" role="tab" aria-selected={pageId === null} onClick={() => choosePage(null)}>Tahvel</button>
-    {(sheetOfPage ? pages.filter((page) => page.id === pageId || !sheetTabs.hidden?.has(sheetOfPage.get(page.id))) : pages).map((page) => (renaming?.id === page.id
-      ? <input key={page.id} className="sb-page-rename" aria-label="Lehe nimi" autoFocus maxLength={200} value={renaming.title}
-        onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
-        onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
-      : <Fragment key={page.id}>
-        <button type="button" role="tab" aria-selected={pageId === page.id} className={sheetPageIds.has(page.id) ? 'is-worksheet' : ''} title="Topeltklõps: nimeta ümber · paremklõps: lehe toimingud" onClick={() => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); }} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })} onContextMenu={(event) => { event.preventDefault(); openPageMenu(event, page.id); }}>{sheetPageIds.has(page.id) ? <ClipboardList size={13} aria-hidden="true" /> : null}{page.title || 'Leht'}</button>
-        {sheetOfPage && sheetTabs.closable?.has(sheetOfPage.get(page.id)) ? <button type="button" className="sb-page-close" aria-label={`Sulge „${page.title || 'Leht'}”`} title="Sulge (jääb „Varasemad tunnid” alla)" onClick={() => { if (pageId === page.id) choosePage(null); sheetTabs.onClose?.(sheetOfPage.get(page.id)); }}><X size={13} aria-hidden="true" /></button> : null}
-        {pageId === page.id && !renaming ? <button type="button" className="sb-page-tool sb-page-more" aria-label="Lehe toimingud" title={`Lehe „${page.title || 'Leht'}” toimingud`} aria-haspopup="menu" aria-expanded={pageMenu?.id === page.id} onClick={(event) => openPageMenu(event, page.id)}><MoreHorizontal size={16} /></button> : null}
-      </Fragment>))}
-    {menuPage ? createPortal(<div className="sb-page-menu" role="menu" aria-label={`Leht „${menuPage.title || 'Leht'}”`} style={{ left: pageMenu.x, top: pageMenu.y }}>
-      <p className="sb-page-menu__title">{menuPage.title || 'Leht'}</p>
-      <button type="button" role="menuitem" onClick={() => { setPageMenu(null); setRenaming({ id: menuPage.id, title: menuPage.title || '' }); }}>Nimeta ümber</button>
-      {onAssignPage ? <button type="button" role="menuitem" onClick={() => { setPageMenu(null); onAssignPage({ id: menuPage.id, title: menuPage.title || 'Tahvlileht' }); }}>Määra õpilasele õppimiseks</button> : null}
-      {staff && service.deletePage && menuPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(menuPage)}>Kustuta leht</button> : null}
-      {staff && menuPage.status === 'completed' ? <p className="sb-page-menu__note">Lõpetatud tunni lehte ei saa kustutada.</p> : null}
-    </div>, document.body) : null}
-    {sheetOfPage && sheetTabs.extra ? sheetTabs.extra(new Set(sheetOfPage.values())) : null}
-    <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
-    <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
-  </div>;
+  const visiblePages = sheetOfPage ? pages.filter((page) => page.id === pageId || !sheetTabs.hidden?.has(sheetOfPage.get(page.id))) : pages;
+  const openTab = (page) => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); };
+  // one page's tab (BoardPageTabs lays them out: lesson chips, scrolling, „Lehed ▾”): rename, × and „…” stay here
+  const renderTab = (page, { label, className: tabClass }) => (renaming?.id === page.id
+    ? <input className="sb-page-rename" aria-label="Lehe nimi" autoFocus maxLength={200} value={renaming.title}
+      onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
+      onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
+    : <>
+      <button type="button" role="tab" aria-selected={pageId === page.id} aria-label={page.title || 'Leht'} className={`${tabClass}${sheetPageIds.has(page.id) ? ' is-worksheet' : ''}`} title={`${page.title || 'Leht'}\nTopeltklõps: nimeta ümber · paremklõps: lehe toimingud`} onClick={() => openTab(page)} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })} onContextMenu={(event) => { event.preventDefault(); openPageMenu(event, page.id); }}>{sheetPageIds.has(page.id) && !tabClass.includes('chip') ? <ClipboardList size={13} aria-hidden="true" /> : null}<span className="sb-tab__label">{label}</span></button>
+      {sheetOfPage && sheetTabs.closable?.has(sheetOfPage.get(page.id)) ? <button type="button" className="sb-page-close" aria-label={`Sulge „${page.title || 'Leht'}”`} title="Sulge (jääb „Varasemad tunnid” alla)" onClick={() => { if (pageId === page.id) choosePage(null); sheetTabs.onClose?.(sheetOfPage.get(page.id)); }}><X size={13} aria-hidden="true" /></button> : null}
+      {pageId === page.id && !renaming ? <button type="button" className="sb-page-tool sb-page-more" aria-label="Lehe toimingud" title={`Lehe „${page.title || 'Leht'}” toimingud`} aria-haspopup="menu" aria-expanded={pageMenu?.id === page.id} onClick={(event) => openPageMenu(event, page.id)}><MoreHorizontal size={16} /></button> : null}
+    </>);
+  const pageTabs = (className) => <BoardPageTabs className={className} pages={visiblePages} pageId={pageId} onBoard={() => choosePage(null)} onChoose={openTab} renderTab={renderTab}
+    insetRight={className === 'sb-room-pages' ? insetRight : 0}
+    trailing={<span className="sb-tabbar__end">
+      {menuPage ? createPortal(<div className="sb-page-menu" role="menu" aria-label={`Leht „${menuPage.title || 'Leht'}”`} style={{ left: pageMenu.x, top: pageMenu.y }}>
+        <p className="sb-page-menu__title">{menuPage.title || 'Leht'}</p>
+        <button type="button" role="menuitem" onClick={() => { setPageMenu(null); setRenaming({ id: menuPage.id, title: menuPage.title || '' }); }}>Nimeta ümber</button>
+        {onAssignPage ? <button type="button" role="menuitem" onClick={() => { setPageMenu(null); onAssignPage({ id: menuPage.id, title: menuPage.title || 'Tahvlileht' }); }}>Määra õpilasele õppimiseks</button> : null}
+        {staff && service.deletePage && menuPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(menuPage)}>Kustuta leht</button> : null}
+        {staff && menuPage.status === 'completed' ? <p className="sb-page-menu__note">Lõpetatud tunni lehte ei saa kustutada.</p> : null}
+      </div>, document.body) : null}
+      {sheetOfPage && sheetTabs.extra ? sheetTabs.extra(new Set(sheetOfPage.values())) : null}
+      <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
+      <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
+    </span>} />;
 
   // while a text is open for editing, the font, size and colour buttons change that text
   const editingText = () => { const element = byId.get(editing?.id); return element?.type === 'text' ? element : null; };

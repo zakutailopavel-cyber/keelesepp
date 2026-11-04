@@ -129,11 +129,18 @@ live (not the first, possibly old snapshot). Writes only on start / pause / resu
 corner (click: big), last 10 s highlighted, „Aeg läbi!” + Web Audio chime once (mute in `localStorage`
 `keelesepp.countdownMuted`).
 
-Student sheet tabs (1:1 room, student side; `sheetTabs.js`): worksheet pages („Tööleht: …”) are tabs only for this room's
-sheets (or, when the room has none yet, the most recent lesson day's); older sheets (grouped by `liveRoomKey`, labelled
-by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen there or reached by following the teacher
-stays a tab with a × until closed (session state only). `StudentBoard` takes this as the optional `sheetTabs` prop; the
-teacher's tabs are unchanged.
+Sheet tabs (1:1 room, teacher and student alike since 2026-11-04 `agent/live-tabs-bar`; `sheetTabs.js`): worksheet pages
+(„Tööleht: …”) are tabs only for this room's sheets (or, when the room has none yet, the most recent lesson day's); older
+sheets (grouped by `liveRoomKey`, labelled by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen
+there, opened otherwise or reached by following the teacher stays a tab with a × until closed (session state only).
+`StudentBoard` takes this as the optional `sheetTabs` prop.
+
+Page bar (`board/BoardPageTabs.jsx`, `board/pageTabsModel.js`, every board variant): a solid toolbar above the board
+(room variant: `--sb-bar-h` 44 px, the stage starts 8 px below it, the bar ends `insetRight` px before the video tiles).
+Labels drop „Tööleht:”; the pages of one lesson („<lesson> · Avasta|Harjuta|Kasuta|Õpik”) are one tab with a chip per
+phase (title ellipsized, full title as tooltip / accessible name = page title). The active tab is scrolled into view;
+overflow shows edge fades + arrows; a bar narrower than 1000 px whose tabs do not fit folds to „Tahvel” + the open
+tab + menu „Lehed ▾”.
 
 „Kiirküsimus” (quick poll, teacher tool, 1:1 and group; `quickPoll.js`, `useQuickPoll.js`, `QuickPoll.jsx`,
 `services/firebase/livePolls.js`): one doc per room `livePolls/{kind}_{roomId}` (kind `lesson` = invitation id, `group` =
@@ -685,9 +692,13 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
   `{ studentId, studentUid, month, promptId, level, audioPath, contentType, seconds, createdAt, updatedAt }`, audio in
   Storage `homework/{studentId}/monologues/{YYYY-MM}.{webm|m4a|ogg}`. Only the card's own student account (role student)
   writes, in the current month, and may replace the take; the card's teacher and admins read; parents nothing (a later
-  „share with parent” needs a new read branch + a flag). `transcriptText` / `wordCount` are reserved for a server
-  transcriber (not built). `studentMonologueNotes/{monologueId}` — the teacher's note, staff only (kept off the
-  monologue so the student cannot read it).
+  „share with parent” needs a new read branch + a flag). The school Mac's transcriber (`tools/lesson-transcriber`,
+  Admin SDK) adds `transcript`, `words`, `wpm`, `transcribedAt`, `transcriber`, `transcriptModel`, `transcribedTake`
+  (= the take's `updatedAt`; a re-record makes the text stale), `analyzedTake` and error / attempt fields; no app user
+  may write them. `studentMonologueAnalysis/{monologueId}` — the transcriber's error check of one take (`take`,
+  `errors`, `checked`, `focus`), staff read only, no client write (docs/LESSON_RECORDING.md).
+  `studentMonologueNotes/{monologueId}` — the teacher's note, staff only (kept off the monologue so the student cannot
+  read it).
 - `liveClassrooms` — one teacher and one student per current room.
 - `liveClassrooms.lessonSummary` — immutable teacher outcome attached when a room is completed.
 - `students.skillMap` — the canonical current mastery view; structured lesson outcomes may only
@@ -707,6 +718,18 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `staffProgramPresence` — server-only cross-tab heartbeat pointer. It prevents several visible
   KeeleSepp windows from multiplying the same wall-clock interval.
 - `assistantAlerts` — server-authored operational attention queue visible only to administrators.
+- `clientErrors/{auto id}` — client error tracking „Vead” (2026-11-04). The CRM's own reporter
+  (`crm-v2/src/features/client-errors/clientErrorReporter.js`) writes one record per error group and session window:
+  `{ message ≤ 500 (sanitized), kind: error|rejection|render|permission|call|media, route (path only, ids / link
+  tokens → :id), build ≤ 40, role, uid, browser ≤ 60, frame ≤ 200, count 1–1000, fingerprint (16 hex of kind +
+  message + top frame), status 'new', firstAt, lastAt = server time }`. Sources: window `error` /
+  `unhandledrejection` (main.jsx), `PageErrorBoundary`, Firestore writes refused by the rules (vite alias
+  `firebase/firestore` → `services/firebase/firestoreWithReporting.js`: setDoc / updateDoc / deleteDoc / addDoc /
+  batch / transaction, collection pattern only), Live Classroom call failures and getUserMedia errors (useLiveCall,
+  useGroupCall). Throttle: one record per fingerprint per 10 min per browser session, ≤ 20 per session. Any signed-in
+  user creates (a lesson-link guest only with a valid `liveGuestGrants` grant, as role `guest`); admin reads, sets
+  `status` new / ack / fixed, deletes. Page `/vead` (Seaded → Tehniline), dashboard digest of new groups in 24 h.
+  Never store document data, form contents, names, e-mails, tokens or query strings in it.
 - `schedule` — dated or recurring lesson intent plus additive occurrence exceptions with stable
   student ownership.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.

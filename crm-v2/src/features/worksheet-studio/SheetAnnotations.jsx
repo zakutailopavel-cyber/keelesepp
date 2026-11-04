@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { HIGHLIGHT, fieldTextRects, fieldsOf, isSheetAnnotation, offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
 import { singleWord, correctedAnswer } from './annotationWords.js';
 import TextAnalysisPane, { ANALYSIS_MIN_WORDS, wordCount } from './TextAnalysisPane.jsx';
+import { correctionMarks } from './correctionMarks.js';
 import './sheetAnnotations.css';
 
 const nextFrame = (fn) => (globalThis.requestAnimationFrame ? globalThis.requestAnimationFrame(fn) : setTimeout(fn, 16));
@@ -161,18 +162,22 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
       globalThis.getSelection?.()?.removeAllRanges();
     } catch (caught) { setError(caught.message || 'Salvestamine ebaõnnestus.'); } finally { setSaving(false); }
   };
-  // one correction of „Analüüs” → a „Viga” on its own words (the whole selection when they cannot be found)
+  // one (sentence) correction of „Analüüs” → a „Viga” on every changed word or short group (correctionMarks.js);
+  // what cannot be found in the text is returned to the pane as a note, never framed as the whole answer
   const markCorrection = async (correction) => {
     const said = String(correction?.said || '');
-    const found = said ? draft.selectedText.indexOf(said) : -1;
-    const start = draft.start + (found >= 0 ? found : 0);
-    const end = found >= 0 ? start + said.length : draft.end;
+    const { marks: found, missed } = correctionMarks(draft.selectedText, correction);
     const { at, value, toErrors, ...rest } = draft; // eslint-disable-line no-unused-vars
-    const mark = { ...rest, start, end, selectedText: found >= 0 ? said : draft.selectedText, color: 'error', parandus: String(correction.corrected || ''), selgitus: '', id: `a${Date.now()}${Math.random().toString(36).slice(2, 6)}`, createdAt: new Date().toISOString() };
-    const next = [...latest.current, mark];
-    await onChange(next);
-    latest.current = next;
+    const stamp = `a${Date.now()}${Math.random().toString(36).slice(2, 6)}`;
+    const createdAt = new Date().toISOString();
+    const added = found.map((m, k) => ({ ...rest, start: draft.start + m.start, end: draft.start + m.end, selectedText: m.selectedText, color: 'error', parandus: m.parandus, selgitus: m.selgitus || '', id: found.length > 1 ? `${stamp}_${k}` : stamp, createdAt }));
+    if (added.length) {
+      const next = [...latest.current, ...added];
+      await onChange(next);
+      latest.current = next;
+    }
     if (words?.addError && draft.toErrors !== false && said && correction.corrected) await words.addError({ said: said.trim(), corrected: String(correction.corrected).trim() });
+    return { marked: added.length, missed };
   };
   const remove = async (id) => {
     setSaving(true);

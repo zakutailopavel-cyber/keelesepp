@@ -1,4 +1,4 @@
-// The student's worksheet tabs in the live lesson (owner 2026-11-04: too many „Tööleht: …” tabs). Only the sheets of
+// The worksheet tabs in the live lesson, teacher and student (owner 2026-11-04: too many „Tööleht: …” tabs). Only the sheets of
 // the latest lesson are tabs: this room's sheets, or — when this room has none yet — the sheets opened on the most
 // recent lesson day. Older ones are listed in „Varasemad tunnid”, grouped by lesson (room) and date; a sheet the student
 // opens from there (or the teacher leads him to) stays a tab until he closes it.

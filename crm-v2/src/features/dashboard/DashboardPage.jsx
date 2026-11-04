@@ -19,6 +19,7 @@ import RetentionCard from '../retention/RetentionCard.jsx';
 import { recentlyScheduled } from '../retention/retentionRisk.js';
 import UnmarkedLessonsCard from '../calendar/UnmarkedLessonsCard.jsx';
 import TodayPanel from './today/TodayPanel.jsx';
+import ClientErrorsDigest from '../client-errors/ClientErrorsDigest.jsx';
 import { tallinnDay } from './today/todayModel.js';
 
 const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date());
@@ -155,6 +156,8 @@ export default function DashboardPage({
         </div>
         {data.canViewLearning ? <Link className="dashboard-welcome__action" to="/calendar"><CalendarDays size={18} /><span><small>Järgmine samm</small><strong>Ava tänane kalender</strong></span><ArrowUpRight size={18} /></Link> : null}
       </section>
+      {/* „Vead” (2026-11-04): new errors from people's browsers in the last 24 h, admin only */}
+      {data.isAdmin ? <ClientErrorsDigest {...(repositories.clientErrors ? { service: repositories.clientErrors } : {})} /> : null}
       {/* „Täna” (2026-11-04): the admin's day on one screen; an accountant sees only the lesson packages running out */}
       {data.isAdmin || data.canViewFinance ? <TodayPanel user={user} isAdmin={data.isAdmin} canViewBalance={data.isAdmin || data.canViewFinance} students={data.activeStudents} events={data.events} homework={data.homework} submissions={data.submissions} invoices={data.invoices} today={tallinnDay()} {...(repositories.today ? { repository: repositories.today } : {})} /> : null}
       <section className="metric-grid">

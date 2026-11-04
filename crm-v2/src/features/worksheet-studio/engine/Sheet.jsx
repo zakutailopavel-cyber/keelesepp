@@ -18,6 +18,7 @@ const RichInlineEditor = lazy(() => import('./RichInlineEditor.jsx'));
 import { themeClass, themedTone } from './look.js';
 import { SPLITTABLE, canSplit, itemCount, packPages, shiftKey, sliceBlock } from './pageSplit.js';
 import { focusNextField } from '../sheetFlow.js';
+import { answerFontClass, useAnswerFont } from '../answerFont.js';
 
 // texts that may carry formatting (bold, colour, highlight) — they are rendered with <Md>
 const RICH_FIELDS = new Set(['instruction', 'text', 'passage']);
@@ -231,6 +232,9 @@ function ResizeHandles({ block, onResize }) {
 export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockPopovers = null, blockBadges = null, blockClasses = null, flow = false, running = null, lead = null }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
+  // „Kiri”: the viewer's own font for typed answers (answerFont.js); plain by default
+  const [answerFont] = useAnswerFont();
+  const fontClass = answerFontClass(answerFont);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
   const [focus, setFocusState] = useState({});
   const interactive = mode === 'interactive';
@@ -360,7 +364,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     const ro = new ResizeObserver(run);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [rows, doc.meta, mode, flow]);
+  }, [rows, doc.meta, mode, flow, fontClass]);
 
   useLayoutEffect(() => { onPageCount?.(pages.length); }, [pages.length, onPageCount]);
 
@@ -442,7 +446,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   // the column: every block in its order on one long page; nothing to measure, nothing to split
   if (flow) {
     return (
-      <div ref={rootRef} className={`ws-root is-flow mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onKeyDown={mode === 'interactive' ? focusNextField : undefined} onFocus={popIds.length ? trackTyping : undefined}>
+      <div ref={rootRef} className={`ws-root is-flow mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)} ${fontClass}`} onKeyDown={mode === 'interactive' ? focusNextField : undefined} onFocus={popIds.length ? trackTyping : undefined}>
         <div className="ws-page">
           {lead}
           <Header meta={doc.meta} />
@@ -453,7 +457,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   }
 
   return (
-    <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onFocus={popIds.length ? trackTyping : undefined} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
+    <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)} ${fontClass}`} onFocus={popIds.length ? trackTyping : undefined} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
       {/* hidden measuring layer: a page of its own (same width, padding, font and theme as the real pages), grown to
           its content, so a row is measured exactly as it will be drawn */}
       <div className="ws-measure" ref={measureRef} aria-hidden="true"><div className="ws-page-measure">

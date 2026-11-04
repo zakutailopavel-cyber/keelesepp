@@ -204,6 +204,8 @@ export default function SettingsPage({ parentRepository = parentsService, studen
     </section> : null}
     {tab === 'tehniline' ? <section className="settings-grid">
       <Card><div className="settings-icon"><Database /></div><h2>Firebase</h2><div className="integration-row"><div><strong>Andmebaasi ühendus</strong><span>Autentimine ja Firestore</span></div><Badge tone={configured ? 'success' : 'danger'}>{configured ? 'Ühendatud' : 'Seadistamata'}</Badge></div><div className="integration-row"><div><strong>Ligipääsureeglid</strong><span>Rollipõhine kaitse</span></div><CheckCircle2 size={20} color="#067647" /></div></Card>
+      {/* „Vead” (2026-11-04): errors reported from people's browsers, grouped; new ones also on the dashboard */}
+      {isAdmin ? <Card><div className="settings-icon"><ShieldAlert /></div><h2>Vead</h2><p className="settings-copy">Vead, mis tekkisid õpilaste, õpetajate ja vanemate brauserites: lehe vead, kokku kukkunud lehed, keelatud salvestused ning videokõne ja kaamera probleemid. Ilma nimede ja sisestatud andmeteta.</p><Link className="button button--secondary" to="/vead">Ava vead</Link></Card> : null}
       {isAdmin && !preview ? <TestStudentCard /> : null}
       {isAdmin ? <DataCleanupPanel user={user} /> : null}
       {/* in force since 2026-08-05 (securityMigrations/teacherUidV1): opens only with ?tab=tehniline&migratsioon=1; the server endpoints stay */}

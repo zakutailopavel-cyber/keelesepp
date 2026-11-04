@@ -175,7 +175,7 @@
   .lw-picker { flex: 1 1 100%; width: 100%; }
   .lw .lr-top__right { width: 100%; }
   .lw .lr-top__right .field { flex: 1; }
-  .lw .sb-room-pages { right: 14px; }
+  .lw .sb-room-pages { right: 0; }
 }
 /* group lesson: a column of up to five small video tiles */
 .lg-side { overflow-y: auto; }
@@ -307,7 +307,7 @@ button.lr-plan-pill:hover, .lr-plan-pill.is-active { background: #eceefe; border
 .lr-attendance__late input { width: 60px; }
 
 /* the teacher's countdown (CountdownTimer.jsx): a badge under the page tabs, a click makes it big; never covers the board */
-.lr-countdown { position: absolute; top: 54px; left: 14px; z-index: 6; display: flex; align-items: stretch; gap: 2px; padding: 3px; border: 1px solid #d9dcf0; border-radius: 14px; background: rgba(255, 255, 255, .97); box-shadow: 0 8px 22px rgba(30, 34, 70, .14); color: #24294a; }
+.lr-countdown { position: absolute; top: 62px; left: 14px; z-index: 6; display: flex; align-items: stretch; gap: 2px; padding: 3px; border: 1px solid #d9dcf0; border-radius: 14px; background: rgba(255, 255, 255, .97); box-shadow: 0 8px 22px rgba(30, 34, 70, .14); color: #24294a; }
 .lr-countdown button { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; border-radius: 11px; }
 .lr-countdown__main { display: flex; align-items: center; gap: 6px; padding: 4px 9px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .lr-countdown__main small { font-size: .72rem; font-weight: 700; color: #6b7090; }
@@ -331,8 +331,8 @@ button.lr-plan-pill:hover, .lr-plan-pill.is-active { background: #eceefe; border
 .lr-countdown-tool input { width: 100%; min-width: 0; height: 38px; padding: 0 10px; border: 1px solid #dfe1ee; border-radius: 10px; background: #fff; font: inherit; font-weight: 500; color: #24294a; box-sizing: border-box; }
 
 /* the student's older worksheet tabs (sheetTabs.js): one dropdown „Varasemad tunnid” after the page tabs */
-.lr .lr-older-sheets { pointer-events: auto; flex: none; height: 30px; max-width: 220px; padding: 0 8px; border: 1px dashed #c9cde6; border-radius: 10px; background: rgba(255, 255, 255, .95); font: inherit; font-size: .8rem; font-weight: 700; color: #4b5070; }
-.lr .sb-page-close { pointer-events: auto; flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-left: -4px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #6b7090; cursor: pointer; }
+.lr .lr-older-sheets { flex: none; height: 30px; max-width: 220px; padding: 0 8px; border: 1px dashed #c9cde6; border-radius: 10px; background: rgba(255, 255, 255, .95); font: inherit; font-size: .8rem; font-weight: 700; color: #4b5070; }
+.lr .sb-page-close { flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-left: -4px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #6b7090; cursor: pointer; }
 .lr .sb-page-close:hover, .lr .sb-page-close:focus-visible { background: #eef0fa; color: #24294a; }
 
 /* „Hetk” (MomentButton.jsx): the teacher's moment mark and its small label box under the top bar */

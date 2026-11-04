@@ -274,10 +274,10 @@ export default function LiveRoom({
   });
   const pollLive = Boolean(quick.poll && quick.poll.status !== 'closed');
 
-  // the student's sheet tabs: only the latest lesson's sheets; older ones in „Varasemad tunnid” (sheetTabs.js)
+  // the sheet tabs (teacher and student alike): only the latest lesson's sheets; older ones in „Varasemad tunnid” (sheetTabs.js)
   const [openedOlder, setOpenedOlder] = useState(() => new Set());
-  const tabGroups = useMemo(() => (teacher ? null : groupSheetTabs({ roomSheets: sheetList, pastSheets, roomKey: invitation.id, opened: openedOlder })),
-    [teacher, sheetList, pastSheets, invitation.id, openedOlder]);
+  const tabGroups = useMemo(() => groupSheetTabs({ roomSheets: sheetList, pastSheets, roomKey: invitation.id, opened: openedOlder }),
+    [sheetList, pastSheets, invitation.id, openedOlder]);
   const keepOlder = useCallback((id) => setOpenedOlder((current) => (current.has(id) ? current : new Set([...current, id]))), []);
 
   // ── the teacher's page and pointer over the call's data channel (nothing is saved) ──
@@ -286,12 +286,12 @@ export default function LiveRoom({
   const [myPageTitle, setMyPageTitle] = useState('');
   // lesson pages the teacher opened in this lesson (for the summary)
   const [pagesSeen, setPagesSeen] = useState([]);
-  // an older sheet the student lands on (the teacher led him there, or he chose it) stays a tab until he closes it
+  // an older sheet one lands on (chosen, opened from „Materjalid”, or the teacher led the student there) stays a tab until closed
   const hiddenOlder = tabGroups?.hidden;
   const onPageChange = useCallback((id, title = '') => {
     myPageRef.current = id; setMyPage(id); setMyPageTitle(title);
     if (id && teacher) setPagesSeen((current) => [...current.filter((page) => page.id !== id), { id, title: title || current.find((page) => page.id === id)?.title || 'Leht' }]);
-    if (id && !teacher && title && hiddenOlder?.size) {
+    if (id && title && hiddenOlder?.size) {
       const sheet = pastSheets.find((item) => hiddenOlder.has(item.id) && (worksheetPageTitle(item.title) === title || worksheetPageTitle(item.legacyTitle) === title));
       if (sheet) keepOlder(sheet.id);
     }
