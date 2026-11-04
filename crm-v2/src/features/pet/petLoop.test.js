@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { petNeeds } from './petCare.js';
-import { dailySurprise, growthNews, isBackAfterAbsence, leftInWork, nextReward, petLevel, petRequest, requestDoneToday, requestWords, surpriseLines, thanksLine } from './petLoop.js';
+import { dailySurprise, growthNews, isBackAfterAbsence, leftInWork, moodLabel, nextReward, petLevel, petRequest, requestDoneToday, requestWords, surpriseLines, thanksLine } from './petLoop.js';
 import { petProgress } from './petModel.js';
+
+describe('moodLabel', () => {
+  it('glad after today\'s request, proud of a great week, the low need it asks for, else calm; never sad', () => {
+    const request = { need: 'food' };
+    expect(moodLabel({ mood: 'calm', request, needs: { food: 10 }, done: true }).et).toBe('rõõmus');
+    expect(moodLabel({ mood: 'proud', request, needs: { food: 10 } }).et).toBe('uhke');
+    expect(moodLabel({ mood: 'calm', request, needs: { food: 10 } })).toMatchObject({ key: 'food', et: 'näljane', ru: 'голодный' });
+    expect(moodLabel({ mood: 'calm', request: { need: 'joy' }, needs: { joy: 5 } }).et).toBe('igavleb');
+    expect(moodLabel({ mood: 'calm', request, needs: { food: 80 } }).et).toBe('rahulik');
+    expect(moodLabel({}).et).toBe('rahulik');
+  });
+});
 
 const NOW = new Date('2026-11-02T12:00:00').getTime();
 const today = '2026-11-02';

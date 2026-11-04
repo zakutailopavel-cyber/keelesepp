@@ -55,7 +55,7 @@ export default function StudentsPage({ service = studentsService, mergeService, 
   const [notice, setNotice] = useState('');
   const [noTimesOpen, setNoTimesOpen] = useState(() => searchParams.get('ajad') === '1'); // „Ilma ajata” (owner 2026-10-27)
   const [actionError, setActionError] = useState('');
-  // „Võimalikud duplikaadid” (owner 2026-10-24): pairs + „Liida” with the server preview; cards are never deleted
+  // „Võimalikud topeltkaardid” (owner 2026-10-24, 2026-11-04): pairs + „Ava ühendamine” with the server preview; cards are never deleted
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   // „Puuduvad andmed” (owner 2026-10-25): what each card misses; ?puuduvad=1 (the bell) opens it, &taidetud=<id> marks a filling
   const [missing, setMissing] = useState(() => ({ open: searchParams.get('puuduvad') === '1', focus: searchParams.get('taidetud') || '' }));
@@ -148,7 +148,7 @@ export default function StudentsPage({ service = studentsService, mergeService, 
   };
   return (
     <div className="page-content">
-      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${people.length} õpilast`} actions={<>{canAssignTeacher ? <Button variant="secondary" onClick={() => setMissing({ open: true, focus: '' })}><ClipboardList size={18} /> Puuduvad andmed</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setDuplicatesOpen(true)}><UsersRound size={18} /> Võimalikud duplikaadid{duplicateCount ? <Badge tone="warning">{duplicateCount}</Badge> : null}</Button> : null}<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button></>} />
+      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${people.length} õpilast`} actions={<>{canAssignTeacher ? <Button variant="secondary" onClick={() => setMissing({ open: true, focus: '' })}><ClipboardList size={18} /> Puuduvad andmed</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setDuplicatesOpen(true)}><UsersRound size={18} /> Võimalikud topeltkaardid{duplicateCount ? <Badge tone="warning">{duplicateCount}</Badge> : null}</Button> : null}<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button></>} />
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')} aria-label="Sulge veateade">×</button></div> : null}
       {state.items.length ? <section className="student-directory-summary" aria-label="Õpilaste kokkuvõte"><div><span>Leitud</span><strong>{people.length}</strong></div><div><span>Aktiivsed</span><strong>{activeCount}</strong></div><div><span>Tasemeid</span><strong>{new Set(people.flatMap((student) => (student.enrollments || []).map((enrollment) => enrollment.level)).filter(Boolean)).size}</strong></div>{canAssignTeacher ? <div className={unassignedCount ? 'needs-attention' : ''}><span>Õpetajata</span><strong>{unassignedCount}</strong></div> : null}</section> : null}

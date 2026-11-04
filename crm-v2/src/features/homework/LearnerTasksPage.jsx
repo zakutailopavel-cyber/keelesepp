@@ -6,6 +6,8 @@ import { Button, EmptyState, ErrorState, LoadingState, PageHeader } from '../../
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, interactiveAssignmentsService, studentsService } from '../../services/firebase/index.js';
 import { groupStudentPeople } from '../../services/firebase/students.js';
+import { studentMonologuesService } from '../../services/firebase/studentMonologues.js';
+import { monologueLevel, monologueTask } from '../monologue/monologueModel.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import { localDate } from '../../utils/localDate.js';
 import MaterialPreview from '../library/MaterialPreview.jsx';
@@ -66,8 +68,12 @@ function TaskCard({ task, today, canAct, isNew, subjectTag, busy, actions }) {
     if (task.kind === 'sheet') primary = <Button data-preview-allowed onClick={() => actions.playSheet(task.sheet)}><PlayCircle size={16} /> {!canAct ? 'Vaata' : task.started ? 'Jätka' : 'Alusta'}</Button>;
     else if (canAct && task.kind === 'exercise') primary = <Button loading={busy === homework.id} onClick={() => actions.playExercise(homework)}><PlayCircle size={16} /> Alusta</Button>;
     else if (canAct && task.kind === 'interactive') primary = <Button onClick={() => actions.playInteractive(task.interactive.id)}><PlayCircle size={16} /> Alusta</Button>;
+    // „Kuu monoloog”: its own page (prompt, 2-minute timer, record again, send)
+    else if (task.kind === 'monologue') primary = <Link className={`button button--${canAct ? 'primary' : 'secondary'}`} to="/student/monoloog"><Mic size={16} /> {canAct ? 'Salvesta' : 'Vaata'}</Link>;
     else if (canAct && task.kind === 'voice' && !answering) primary = <Button onClick={() => actions.setAnswering(homework.id)}><Mic size={16} /> Salvesta vastus</Button>;
     else if (canAct && task.kind === 'homework' && !answering) primary = <Button loading={actions.answerBusy && actions.finishing === homework.id} disabled={actions.answerBusy} onClick={() => actions.finish(homework)}><CheckCircle2 size={16} /> Tehtud</Button>;
+  } else if (task.kind === 'monologue') {
+    primary = <Link className="button button--secondary" to="/student/monoloog">Vaata</Link>;
   } else if (task.kind === 'interactive') {
     primary = canAct ? <Button variant="secondary" onClick={() => actions.playInteractive(task.interactive.id)}>{task.state === TASK_STATE.REVIEWED ? 'Vaata tagasisidet' : 'Vaata'}</Button> : null;
   } else if (task.submission) {
@@ -138,7 +144,7 @@ function TaskGroup({ id, title, ru, tasks, children, renderTask, showAll = false
  * „Ülesanded” for a student and a family (owner 2026-11-01): one list, whatever collection a task lives in. Tee nüüd →
  * Tehtud → Õpetaja vaatas üle (plain homework has no review step, so „Tehtud” does not promise one). A parent reads the same list, per child, and answers nothing.
  */
-export default function LearnerTasksPage({ repository = homeworkService, studentRepository = studentsService, interactiveRepository = interactiveAssignmentsService }) {
+export default function LearnerTasksPage({ repository = homeworkService, studentRepository = studentsService, interactiveRepository = interactiveAssignmentsService, monologueRepository = studentMonologuesService }) {
   const { user, preview } = useAuth();
   const studentRole = hasAnyRole(user.roles, [ROLES.STUDENT]);
   const canAct = studentRole && !preview;
@@ -169,8 +175,12 @@ export default function LearnerTasksPage({ repository = homeworkService, student
       repository.listSubmissionsByStudentIds(ids),
       repository.listWorksheetAssignmentsByStudentIds(ids),
     ]);
-    return { records, homework, submissions, assignments };
-  }, [preview?.studentId, repository, studentRepository, user.uid]);
+    // „Kuu monoloog” (owner 2026-11-04): the student's own card with an Estonian A2–C1 track; parents have no access.
+    // A failed read (e.g. rules not deployed yet) leaves the task out instead of showing it as never done.
+    const monologueCard = studentRole && monologueRepository ? records.find((record) => monologueLevel(record)) || null : null;
+    const monologues = monologueCard ? await monologueRepository.listByStudent(monologueCard.id).catch(() => null) : null;
+    return { records, homework, submissions, assignments, monologueCard, monologues };
+  }, [monologueRepository, preview?.studentId, repository, studentRepository, studentRole, user.uid]);
 
   // Interactive lessons from the old CRM: only the student's own login may read them, a failing API only hides them.
   const interactiveState = useAsyncData(
@@ -184,12 +194,15 @@ export default function LearnerTasksPage({ repository = homeworkService, student
     if (!state.data) return [];
     const ids = new Set(child?.recordIds || (child ? [child.id] : []));
     const mine = (item) => !people.length || people.length < 2 || ids.has(item.studentId);
-    return mergeTasks({
+    const merged = mergeTasks({
       homework: state.data.homework.filter(mine),
       assignments: state.data.assignments.filter(mine),
       submissions: state.data.submissions.filter(mine),
       interactive: people.length < 2 ? interactiveState.data || [] : (interactiveState.data || []).filter(mine),
     });
+    const { monologueCard, monologues } = state.data;
+    const monologue = monologueCard && monologues && mine({ studentId: monologueCard.id }) ? monologueTask({ student: monologueCard, monologues }) : null;
+    return monologue ? [...merged, monologue] : merged;
   }, [child, interactiveState.data, people, state.data]);
   const skillParam = new globalThis.URLSearchParams(location.search).get('oskus') || '';
   const skill = isTaskSkill(skillParam) ? skillParam : '';

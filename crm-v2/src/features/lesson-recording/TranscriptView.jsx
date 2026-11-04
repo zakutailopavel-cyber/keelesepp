@@ -13,6 +13,7 @@ import { lessonAnalysis, wordDiff } from './lessonTimeline.js';
 import { analysisStatus, useTranscriberStatus } from './transcriberStatus.js';
 import { errorsWorksheet } from './errorWorksheet.js';
 import LessonMoments from './LessonMoments.jsx';
+import ErrorHomework from './ErrorHomework.jsx';
 import './lessonRecording.css';
 
 const clock = (ms) => { const s = Math.floor((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
@@ -189,7 +190,7 @@ export function AfterLesson({ analysis, recording, homework = homeworkService, w
 
 const SUMMARY_PARTS = [['meeldis', 'Meeldis / aktiivne', 'is-good'], ['raske', 'Oli raske', 'is-hard'], ['jargmiseks', 'Järgmiseks tunniks', 'is-next']];
 // The didactic analysis made on the school Mac with local models (nothing leaves the Mac). Teacher and admins only.
-export function LessonAi({ analysis: given, recording = null, reviewService = lessonRecordingsService, onChanged = null }) {
+export function LessonAi({ analysis: given, recording = null, reviewService = lessonRecordingsService, onChanged = null, homeworkServices = null }) {
   const navigate = useNavigate();
   const user = useContext(AuthContext)?.user || null;
   // „Pole viga” marks made here are shown at once; the saved ones come with the recording (errorReview.js)
@@ -225,6 +226,7 @@ export function LessonAi({ analysis: given, recording = null, reviewService = le
     <AfterLesson analysis={analysis} recording={recording} />
     {Array.isArray(analysis.errors) ? <LearnerErrors errors={analysis.errors} dismissed={analysis.dismissedErrors || []} onDismiss={canReview ? dismiss : null} onRestore={canReview ? restore : null} /> : null}
     {usableErrors ? <div><Button variant="secondary" onClick={draft}><FilePlus2 size={15} aria-hidden="true" /> Tee tööleht vigadest ({usableErrors})</Button></div> : null}
+    {recording && Array.isArray(analysis.errors) && analysis.errors.length ? <ErrorHomework analysis={analysis} recording={recording} services={homeworkServices || undefined} /> : null}
   </section>;
 }
 

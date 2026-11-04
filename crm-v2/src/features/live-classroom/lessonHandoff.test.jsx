@@ -36,6 +36,7 @@ describe('LessonEndPanel: closing the lesson', () => {
     wordsService: { subscribeForStudent: vi.fn(() => () => {}) },
     homeworkService: { listForLesson: vi.fn(async () => []), createFromLesson: vi.fn(async ({ task, worksheet }) => ({ id: 'h1', task, worksheetAssignmentId: worksheet.id })) },
     saveHandoff: vi.fn(),
+    boardCopies: { save: vi.fn(async () => []) },
     ...extra,
   });
 
@@ -76,5 +77,31 @@ describe('LessonEndPanel: closing the lesson', () => {
     expect(parseHeld('2026-10-09|18:18|45')).toEqual({ date: '2026-10-09', time: '18:18', duration: 45 });
     expect(parseHeld('bogus')).toBeNull();
     expect(isLessonKey(looseLessonKey('s1', '2026-10-09'))).toBe(true);
+  });
+
+  it('keeps a read-only copy of the lesson board for the student; a failed copy stops the summary path until unticked', async () => {
+    const save = vi.fn().mockRejectedValueOnce(new Error('Võrk puudub')).mockResolvedValue(['lb-inv-1-1']);
+    const props = base({ lessonKey: KEY, pages: [{ id: 'p1', title: 'Tund 4.11' }, { id: 'ws-0a1b2c3d', title: 'Tööleht: Minu päev' }], boardCopies: { save } });
+    render(<LessonEndPanel {...props} />);
+    const keep = screen.getByRole('checkbox', { name: /Jäta õpilasele tunni tahvel \(Tund 4\.11\)/ });
+    expect(keep).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
+    expect(await screen.findByText(/tahvli koopiat ei saanud salvestada \(Võrk puudub\)/)).toBeInTheDocument();
+    expect(props.onEnd).not.toHaveBeenCalled();
+    // only the lesson page: a worksheet's page is the worksheet itself
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1', lessonKey: 'inv-1', pages: [{ id: 'p1', title: 'Tund 4.11' }] }));
+    fireEvent.click(screen.getByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
+    await waitFor(() => expect(props.onEnd).toHaveBeenCalled());
+    expect(save).toHaveBeenCalledTimes(2);
+  });
+
+  it('ending without a summary still copies the board in the background and never waits for it', () => {
+    const save = vi.fn(() => new Promise(() => {}));
+    const props = base({ lessonKey: KEY, boardCopies: { save } });
+    render(<LessonEndPanel {...props} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: /Jäta õpilasele tunni tahvel \(Tahvel\)/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lõpeta ilma kokkuvõtteta' }));
+    expect(props.onEnd).toHaveBeenCalled();
+    expect(save).not.toHaveBeenCalled();
   });
 });

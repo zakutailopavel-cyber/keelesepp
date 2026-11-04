@@ -1973,6 +1973,199 @@ service cloud.firestore {
       allow delete: if isStaff() || (resource.data.createdByUid == uid() && ownsStudent(resource.data.studentId));
     }
 
+    // „Kiirküsimus” (quick poll) of a Live Classroom room (2026-11-04, crm-v2/src/features/live-classroom/quickPoll.js):
+    // one doc per room `livePolls/{kind}_{roomId}` (kind 'lesson' = 1:1 invitation, 'group' = group room). Only the room's
+    // teacher asks, while the room is live, and only to the room's students (`participantUids` = the invitation's
+    // student / the group's members). The right option stays in the teacher-only `key/current` until „Näita vastust”.
+    // A student writes only his own answer `answers/{uid}`, only to the open round; the teacher reads all answers.
+    function livePollPath(pollId) {
+      return /databases/$(database)/documents/livePolls/$(pollId);
+    }
+
+    function livePollRoomLive(data) {
+      return (
+          data.kind == 'lesson'
+          && exists(liveLessonInvitationPath(data.roomId))
+          && get(liveLessonInvitationPath(data.roomId)).data.teacherUid == uid()
+          && get(liveLessonInvitationPath(data.roomId)).data.status == 'accepted'
+          && data.participantUids == [get(liveLessonInvitationPath(data.roomId)).data.studentUid]
+        )
+        || (
+          data.kind == 'group'
+          && exists(liveGroupRoomPath(data.roomId))
+          && get(liveGroupRoomPath(data.roomId)).data.teacherUid == uid()
+          && get(liveGroupRoomPath(data.roomId)).data.status == 'open'
+          && data.participantUids == get(liveGroupRoomPath(data.roomId)).data.memberUids
+        );
+    }
+
+    function livePollOptionOk(options, index) {
+      return options.size() <= index || (options[index] is string && options[index].size() > 0 && options[index].size() <= 120);
+    }
+
+    function livePollValid(data, pollId) {
+      return data.keys().hasOnly(['kind', 'roomId', 'teacherUid', 'participantUids', 'round', 'mode', 'question', 'sentence',
+          'options', 'timeLimitSec', 'status', 'correctIndex', 'startedAt', 'updatedAt'])
+        && data.keys().hasAll(['kind', 'roomId', 'teacherUid', 'participantUids', 'round', 'mode', 'question', 'sentence',
+          'options', 'timeLimitSec', 'status', 'correctIndex', 'startedAt', 'updatedAt'])
+        && data.kind in ['lesson', 'group']
+        && data.roomId is string && data.roomId.size() > 0 && data.roomId.size() <= 200
+        && pollId == data.kind + '_' + data.roomId
+        && data.teacherUid == uid()
+        && data.participantUids is list && data.participantUids.size() >= 1 && data.participantUids.size() <= 4
+        && data.round is int && data.round >= 1 && data.round <= 100000
+        && data.mode in ['choice', 'gap']
+        && data.question is string && data.question.size() <= 300
+        && data.sentence is string && data.sentence.size() <= 300
+        && data.options is list && data.options.size() >= 2 && data.options.size() <= 4
+        && livePollOptionOk(data.options, 0) && livePollOptionOk(data.options, 1)
+        && livePollOptionOk(data.options, 2) && livePollOptionOk(data.options, 3)
+        && data.timeLimitSec is int && data.timeLimitSec >= 0 && data.timeLimitSec <= 600
+        && data.status in ['open', 'revealed', 'closed']
+        && data.correctIndex is int && data.correctIndex >= -1 && data.correctIndex < data.options.size()
+        && data.startedAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    // a new question: open, no right option shown, started now, to the room's students while the room is live
+    function livePollNewRound(data, pollId) {
+      return livePollValid(data, pollId)
+        && data.status == 'open'
+        && data.correctIndex == -1
+        && data.startedAt == request.time
+        && livePollRoomLive(data);
+    }
+
+    match /livePolls/{pollId} {
+      // a doc that does not exist yet is readable (the room's screens listen before the first question)
+      allow read: if signedIn() && (resource == null || resource.data.teacherUid == uid() || resource.data.participantUids.hasAny([uid()]) || isAdmin());
+      allow create: if isStaff() && livePollNewRound(request.resource.data, pollId);
+      allow update: if signedIn() && resource.data.teacherUid == uid()
+        && request.resource.data.kind == resource.data.kind
+        && request.resource.data.roomId == resource.data.roomId
+        && (
+          // the next question
+          (request.resource.data.round == resource.data.round + 1 && livePollNewRound(request.resource.data, pollId))
+          // „Näita vastust”: the right option from the teacher's key of this round; or „Lõpeta”
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'correctIndex', 'updatedAt'])
+            && livePollValid(request.resource.data, pollId)
+            && (
+              (request.resource.data.status == 'revealed'
+                && exists(/databases/$(database)/documents/livePolls/$(pollId)/key/current)
+                && get(/databases/$(database)/documents/livePolls/$(pollId)/key/current).data.round == resource.data.round
+                && get(/databases/$(database)/documents/livePolls/$(pollId)/key/current).data.correctIndex == request.resource.data.correctIndex)
+              || (request.resource.data.status == 'closed' && request.resource.data.correctIndex == resource.data.correctIndex)
+            )
+          )
+        );
+      allow delete: if isAdmin() || (signedIn() && resource.data.teacherUid == uid());
+
+      match /key/{keyId} {
+        allow read: if signedIn() && (resource == null || resource.data.teacherUid == uid());
+        allow create, update: if signedIn() && keyId == 'current'
+          && request.resource.data.keys().hasOnly(['teacherUid', 'round', 'correctIndex'])
+          && request.resource.data.keys().hasAll(['teacherUid', 'round', 'correctIndex'])
+          && request.resource.data.teacherUid == uid()
+          && request.resource.data.correctIndex is int && request.resource.data.correctIndex >= 0 && request.resource.data.correctIndex <= 3
+          && getAfter(livePollPath(pollId)).data.teacherUid == uid()
+          && getAfter(livePollPath(pollId)).data.round == request.resource.data.round
+          && request.resource.data.correctIndex < getAfter(livePollPath(pollId)).data.options.size();
+        allow delete: if false;
+      }
+
+      match /answers/{answerUid} {
+        allow read: if signedIn() && (
+          answerUid == uid()
+          || (exists(livePollPath(pollId)) && get(livePollPath(pollId)).data.teacherUid == uid())
+          || isAdmin()
+        );
+        allow create, update: if signedIn() && answerUid == uid()
+          && exists(livePollPath(pollId))
+          && get(livePollPath(pollId)).data.participantUids.hasAny([uid()])
+          && get(livePollPath(pollId)).data.status == 'open'
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'round', 'choice', 'answeredAt'])
+          && request.resource.data.keys().hasAll(['uid', 'name', 'round', 'choice', 'answeredAt'])
+          && request.resource.data.uid == uid()
+          && request.resource.data.name is string && request.resource.data.name.size() <= 160
+          && request.resource.data.round == get(livePollPath(pollId)).data.round
+          && request.resource.data.choice is int && request.resource.data.choice >= 0
+          && request.resource.data.choice < get(livePollPath(pollId)).data.options.size()
+          && request.resource.data.answeredAt == request.time;
+        allow delete: if false;
+      }
+    }
+
+    // „Kuu monoloog” (2026-11-04): once a month the student records two minutes on the fixed prompt of their level.
+    // `studentMonologues/{studentId}_{YYYY-MM}`. Only the student's own account (role student, linked to the card; not a
+    // parent) writes it, in that month (UTC, or 3 h ahead for Tallinn), and may replace the take; the card's teacher and
+    // admins read; any student account linked to the card reads it too. Transcription fields (transcriptText, wordCount) are for a server worker (Admin SDK) later.
+    // The teacher's note is NOT on this document (the student could read it): see studentMonologueNotes.
+    function monthOf(t) {
+      return string(t.year()) + '-' + (t.month() < 10 ? '0' : '') + string(t.month());
+    }
+    function monologueMonthNow(month) {
+      return month == monthOf(request.time) || month == monthOf(request.time + duration.value(3, 'h'));
+    }
+    function monologueStudent(studentId) {
+      return signedIn() && userRole(uid()) == 'student' && studentAccountOwns(studentId, uid());
+    }
+    function monologueTakeValid(data) {
+      return data.audioPath is string
+        && data.audioPath.matches('^homework/' + data.studentId + '/monologues/' + data.month + '[.](webm|m4a|ogg)$')
+        && data.contentType is string && data.contentType.matches('^audio/[a-z0-9.+-]{1,40}$')
+        && data.seconds is int && data.seconds >= 1 && data.seconds <= 130
+        && data.promptId is string && data.promptId.size() <= 60
+        && data.level in ['A2', 'B1', 'B2', 'C1']
+        && data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+    match /studentMonologues/{monologueId} {
+      allow read: if staffCanAccessStudent(resource.data.studentId)
+        || monologueStudent(resource.data.studentId);
+      allow create: if request.resource.data.keys().hasOnly(['studentId', 'studentUid', 'month', 'promptId', 'level', 'audioPath',
+          'contentType', 'seconds', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['studentId', 'studentUid', 'month', 'promptId', 'level', 'audioPath',
+          'contentType', 'seconds', 'createdAt', 'updatedAt'])
+        && request.resource.data.studentId is string && request.resource.data.studentId.matches('^[A-Za-z0-9_-]{1,128}$')
+        && request.resource.data.month is string && request.resource.data.month.matches('^[0-9]{4}-(0[1-9]|1[0-2])$')
+        && monologueId == request.resource.data.studentId + '_' + request.resource.data.month
+        && request.resource.data.studentUid == uid()
+        && monologueStudent(request.resource.data.studentId)
+        && monologueMonthNow(request.resource.data.month)
+        && request.resource.data.createdAt is string && request.resource.data.createdAt.size() <= 40
+        && monologueTakeValid(request.resource.data);
+      // a new take in the same month: only the take's fields change
+      allow update: if resource.data.studentUid == uid()
+        && monologueStudent(resource.data.studentId)
+        && monologueMonthNow(resource.data.month)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['audioPath', 'contentType', 'seconds', 'promptId', 'level', 'updatedAt'])
+        && monologueTakeValid(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // The teacher's short note on one monologue, staff only (the student and parents never read it).
+    // `studentMonologueNotes/{monologueId}` { studentId, monologueId, text ≤ 500, byUid, byName, updatedAt }.
+    function monologueNoteValid(data, monologueId) {
+      return data.keys().hasOnly(['studentId', 'monologueId', 'text', 'byUid', 'byName', 'updatedAt'])
+        && data.keys().hasAll(['studentId', 'monologueId', 'text', 'byUid', 'updatedAt'])
+        && data.monologueId == monologueId
+        && data.byUid == uid()
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 500
+        && data.get('byName', '') is string && data.get('byName', '').size() <= 160
+        && data.updatedAt is string && data.updatedAt.size() <= 40
+        && staffCanAccessStudent(data.studentId)
+        && exists(/databases/$(database)/documents/studentMonologues/$(monologueId))
+        && get(/databases/$(database)/documents/studentMonologues/$(monologueId)).data.studentId == data.studentId;
+    }
+    match /studentMonologueNotes/{monologueId} {
+      allow read: if staffCanAccessStudent(resource.data.studentId);
+      allow create: if monologueNoteValid(request.resource.data, monologueId);
+      allow update: if staffCanAccessStudent(resource.data.studentId)
+        && request.resource.data.studentId == resource.data.studentId
+        && monologueNoteValid(request.resource.data, monologueId);
+      allow delete: if staffCanAccessStudent(resource.data.studentId);
+    }
+
     // What the student and parents see after a Live Classroom lesson; written by the lesson's teacher when it ends.
     function lessonSummaryValid(data, invitationId) {
       let invitation = get(/databases/$(database)/documents/liveLessonInvitations/$(invitationId)).data;
@@ -1989,6 +2182,25 @@ service cloud.firestore {
         && invitation.teacherUid == uid()
         && invitation.studentId == data.studentId;
     }
+    // „Kuu kokkuvõte vanemale” marked as sent by an admin (the text he sent himself, when, by whom): admins only,
+    // written once, never changed; nothing is sent from here
+    match /parentReports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['studentId', 'month', 'language', 'text', 'channel', 'sentAt', 'byUid', 'byName'])
+        && request.resource.data.keys().hasAll(['studentId', 'month', 'language', 'text', 'channel', 'sentAt', 'byUid', 'byName'])
+        && request.resource.data.studentId is string && request.resource.data.studentId.size() > 0 && request.resource.data.studentId.size() <= 200
+        && request.resource.data.month is string && request.resource.data.month.matches('^[0-9]{4}-[0-9]{2}$')
+        && request.resource.data.language in ['ru', 'et', 'en', 'uk']
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 4000
+        && request.resource.data.channel in ['copy', 'conversation']
+        && request.resource.data.sentAt is string && request.resource.data.sentAt.size() <= 40
+        && request.resource.data.byUid == uid()
+        && request.resource.data.byName is string && request.resource.data.byName.size() <= 160;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     match /lessonSummaries/{invitationId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create: if isStaff()

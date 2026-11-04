@@ -135,6 +135,27 @@ by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen
 stays a tab with a × until closed (session state only). `StudentBoard` takes this as the optional `sheetTabs` prop; the
 teacher's tabs are unchanged.
 
+„Kiirküsimus” (quick poll, teacher tool, 1:1 and group; `quickPoll.js`, `useQuickPoll.js`, `QuickPoll.jsx`,
+`services/firebase/livePolls.js`): one doc per room `livePolls/{kind}_{roomId}` (kind `lesson` = invitation id, `group` =
+group room id) `{ kind, roomId, teacherUid, participantUids, round, mode: choice|gap, question, sentence, options (2–4),
+timeLimitSec, status: open|revealed|closed, correctIndex (−1 until revealed), startedAt, updatedAt }`; a new question is the
+next `round`. The right option is only in the teacher-only `livePolls/{id}/key/current { teacherUid, round, correctIndex }`
+(same batch as the question) until „Näita vastust” copies it onto the poll (rules: must equal the key). Answers
+`livePolls/{id}/answers/{uid} { uid, name, round, choice, answeredAt }`: the student writes only his own, only to the open
+round; the teacher reads all, a student only his own. Rules also require the room to be live (invitation `accepted` /
+group `open`) and `participantUids` to equal the invitation's `studentUid` / the group's `memberUids`. An optional time
+limit starts the room's countdown with the label „Kiirküsimus” (answers lock in the client when it expires). A wrong
+answer becomes a `studentNotes` record (kind `board`, `pageTitle` „Kiirküsimus”) with one teacher click.
+
+„Tunni tahvlid” (`features/board/lessonBoards.js`, `LessonBoardsCard.jsx`, `LessonBoardView.jsx`,
+`studentBoard.js` `lessonCopiesService`): at the lesson end the teacher's browser copies the lesson's board pages onto the
+student's own board as snapshot pages `whiteboards/{studentId}/lessonPages/lb-<lessonKey>-<n>` (`isSnapshot: true`,
+`snapshotOf` = source page id or `board`), copies the elements (fields whitelisted as in `validWhiteboardElement`, drawing
+order in `revision`) and sets `status: 'completed'` — the existing snapshot rules then forbid any change or delete. 1:1:
+„Tunni lõpp” copies the lesson pages the teacher opened (not worksheet pages), or the main board when no page was used.
+Group: „Lõpeta tund” copies the group board (main + pages) onto every member's board. The student („Minu areng”) and
+linked parents („Areng”) list them by `isSnapshot == true`, grouped by lesson (date, teacher), and view them read-only.
+
 `live-classroom-core.js` owns the public scene contract. A scene may contain only:
 
 - type, title, body, bounded public options and version metadata;
@@ -358,11 +379,18 @@ historical references. Parent and student cabinets exclude inactive and converte
 or reassign an existing student from the parent directory; that workflow updates the existing records and does not
 create a replacement identity.
 
-Possible duplicates (2026-10-24) are listed for the administrator in Õpilased → „Võimalikud duplikaadid”
-(`features/students/duplicateCandidates.js`, `DuplicateCandidatesModal.jsx`): the same name (after Cyrillic → Latin
-transliteration), or the same first name plus the same parent (account, e-mail, phone, name) or the same learner
-account / e-mail / phone. A shared surname or a shared parent alone (siblings) is not a pair. „Ei ole duplikaat”
-stores `students.notDuplicateOf` on both cards. Each pair has „Liida”.
+Possible duplicates (2026-10-24, extended 2026-11-04) are listed for the administrator in Õpilased → „Võimalikud
+topeltkaardid” (`features/students/duplicateCandidates.js`, `DuplicateCandidatesModal.jsx`): the same name after
+Cyrillic → Latin transliteration and spelling variants (`personName`: Mariia = Maria, Jekaterina = Ekaterina =
+Katerina, double letters, й/i; level / subject tags like „B2”, „En” in the name are taken out and kept as a hint), or
+the same first name (surnames not different) plus the same parent (account, e-mail, phone, name) or the same learner
+account / e-mail / phone. Same first name + different surnames, a shared surname or a shared parent alone (siblings)
+is not a pair. Same teacher, same level tag and „one card self-registered, the other without an account” only raise
+the score; different subjects are reported as „Sama inimene, eri ained” (one card per person, subjects are
+enrollments). Cards are compared only inside blocks (canonical name, first-name stem, account, e-mail, phone, parent
+account / e-mail / phone). The list shows both cards side by side (created, archived, account, subjects / teachers,
+lesson and invoice counts via `studentsService.recordCounts` count queries, masked contacts). „Pole sama inimene”
+stores `students.notDuplicateOf` on both cards. „Ava ühendamine” opens „Liida kaardid” with the pair preselected.
 
 „Liida kaardid” (`MergeCardsModal.jsx` → `staffOperationsApi /students/merge-cards` → `functions/student-merge.js`,
 rules in `functions/student-card-merge-core.js`; admin only) is the one merge. The administrator picks the other card,
@@ -630,6 +658,14 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `students` / `users` trash fields `deletedAt`, `deletedBy`, `purgeAfter`, `trashState`, `purgeBlocked`, `purgedAt`,
   `anonymised` — „Prügikast”, written only by `staffOperationsApi /cards/*` and `purgeCardTrash` (see „Card trash”).
 - `worksheetAssignments`, `homework`, `exerciseResults` — student-specific learning activity.
+- `studentMonologues/{studentId}_{YYYY-MM}` — „Kuu monoloog” (2026-11-04): one two-minute recording per card and month
+  on the fixed prompt of the level (`features/monologue/monologueModel.js` `MONOLOGUE_PROMPTS`; never reword an id).
+  `{ studentId, studentUid, month, promptId, level, audioPath, contentType, seconds, createdAt, updatedAt }`, audio in
+  Storage `homework/{studentId}/monologues/{YYYY-MM}.{webm|m4a|ogg}`. Only the card's own student account (role student)
+  writes, in the current month, and may replace the take; the card's teacher and admins read; parents nothing (a later
+  „share with parent” needs a new read branch + a flag). `transcriptText` / `wordCount` are reserved for a server
+  transcriber (not built). `studentMonologueNotes/{monologueId}` — the teacher's note, staff only (kept off the
+  monologue so the student cannot read it).
 - `liveClassrooms` — one teacher and one student per current room.
 - `liveClassrooms.lessonSummary` — immutable teacher outcome attached when a room is completed.
 - `students.skillMap` — the canonical current mastery view; structured lesson outcomes may only

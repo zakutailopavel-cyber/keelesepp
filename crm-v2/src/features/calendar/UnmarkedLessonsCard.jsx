@@ -51,6 +51,6 @@ export default function UnmarkedLessonsCard({ schedule = [], teacherUid = '', to
         <Link to={calendarLessonPath(item)}>Muu…</Link>
       </li>)}
     </ul>
-    {items.length > limit ? <p className="form-hint">+ veel {items.length - limit} tundi · <Link to="/calendar">Ava kalender</Link></p> : null}
+    <p className="form-hint">{items.length > limit ? `+ veel ${items.length - limit} tundi · ` : ''}<Link to="/calendar/markimata">Märkimata tunnid koos Live-tundidega</Link></p>
   </Card>;
 }

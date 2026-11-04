@@ -1,0 +1,325 @@
+{
+  "book": {
+    "id": "oma-sihitis",
+    "title": "KeeleSepa oma materjal: sihitis",
+    "authors": "KeeleSepp"
+  },
+  "sheets": [
+    {
+      "lessonId": "b1b2-016",
+      "title": "Sihitis: täis- või osasihitis ja täissihitise kääne",
+      "pages": "",
+      "level": "B1+",
+      "canDo": "Ma otsustan nelja küsimuse abil, kas sihitis on täis- või osasihitis, ja valin täissihitisele omastava või nimetava käände.",
+      "blocks": [
+        {
+          "id": "sih_intro",
+          "type": "text",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "",
+          "data": {
+            "heading": "Sihitis: kogu asi või osa?",
+            "text": "Sihitis vastab küsimusele **keda? mida?** (osasihitis, osastav) või **kelle? mille?** / **kes? mis?** (täissihitis, omastav või nimetav).\n\nEesti keeles on **osasihitis tavaline vorm**. Täissihitist kasutame ainult siis, kui lause vastab korraga neljale tingimusele. Kontrolli neid alati samas järjekorras.\n\n*Osasihitis ≈ процесс, часть, отрицание. Täissihitis ≈ результат, целое, «до конца».*"
+          }
+        },
+        {
+          "id": "sih_t_osa",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "OSASIHITIS VÕI TÄISSIHITIS?",
+            "instruction": "Võrdle lauseid. Täissihitis on võimalik ainult siis, kui kõigis neljas reas sobib parem veerg.",
+            "headers": "Mida kontrollid?, Osasihitis (osastav), Täissihitis (omastav / nimetav)",
+            "rows": "1. Lause | eitav: Ma ei parandanud **ratast**. | jaatav: Ma parandasin **ratta** ära.\n2. Tegevus | pooleli, protsess: Isa värvib praegu **tuba**. | tulemus (ka tulevikus): Isa värvib õhtuks **toa** valmis.\n3. Sihitis | määramata hulk: Ostsin turult **õunu**. | kindel tervik: Ostsin turult need **õunad**.\n4. Tegusõna | partitiivverb: Ma armastan **seda linna**. | lubab täissihitist: Võitsin **auhinna**."
+          }
+        },
+        {
+          "id": "sih_4q",
+          "type": "notice",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "g_notice",
+          "data": {
+            "title": "4 küsimust: täis või osa?",
+            "lines": "**1. Kas lause on jaatav?** Ei → osasihitis. Ma ei lõpetanud **kursust**.\n**2. Kas tegevus jõuab tulemuseni** (on lõpetatud või saab tulevikus valmis)? Ei, on pooleli → osasihitis. Ta alles parandab **autot**.\n**3. Kas sihitis on kindel tervik?** Ei, mingi hulk („natuke”, „mõned”) → osasihitis. Joon hommikul **kohvi**.\n**4. Kas tegusõna lubab täissihitist?** Ei (armastama, ootama, kartma …) → osasihitis. Ma tänan **sind**.\nKõik neli vastust on **jah** → täissihitis. Ta lõpetas **kursuse**.\n*Если хотя бы один ответ «нет» — osasihitis.*\nAbiks: kui lausesse sobib **ära, valmis, läbi, välja, pähe** või tulemust näitav sõna (puhtaks, kinni, lõpuni), on tegevus lõpetatud."
+          }
+        },
+        {
+          "id": "sih_t_verbs",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "KOLM TEGUSÕNARÜHMA (+ NÕRGAD PARTITIIVVERBID)",
+            "instruction": "Tegusõna rühm otsustab, kas täissihitis on üldse võimalik.",
+            "headers": "Rühm, Mis juhtub?, Tegusõnu, Näide",
+            "rows": "**aspektverb** | osa või täis: protsess → osa; tulemus → täis | ehitama, värvima, küpsetama, kirjutama | Isa ehitab aias **pinki**. → Isa ehitab laupäevaks **pingi** valmis.\n**perfektiivverb** | jaatavas lauses peaaegu alati täis; eituses osa | kaotama, leidma, võitma, lõpetama | Kaotasin **kindad**. → Ma ei kaotanud **kindaid**.\n**partitiivverb** | alati osa, ka jaatuses ja tulemuse korral | armastama, ootama, omama, kartma | Ootasin **bussi** pool tundi. Firma omab **kahte poodi**.\n**nõrk partitiivverb** | tavaliselt osa; täis, kui on **ära, pähe, läbi**, tulemust näitav sõna või piiritlev täiend | õppima, kuulama, vaatama, aitama, lugema | Kuulasin **loengut**. → Kuulasin **loengu** lõpuni."
+          }
+        },
+        {
+          "id": "sih_t_case",
+          "type": "table",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_use",
+          "data": {
+            "title": "TÄISSIHITISE KÄÄNE: OMASTAV VÕI NIMETAV?",
+            "instruction": "Kui sihitis on täis, on ta tavaliselt omastavas. Nimetav tuleb siis, kui kehtib vähemalt üks neljast juhust.",
+            "headers": "Millal?, Kääne, Näide",
+            "rows": "tavaline juht (ainsus) | **omastav** (kelle? mille?) | Ta lõpetas **kursuse**. Ma lubasin koostada **tabeli**.\n1) sihitis on mitmuses | **nimetav** (kes? mis?) | Ta lõpetas mõlemad **kursused**. Tõin **raamatud** tagasi.\n2) umbisikuline tegumood (-takse, -ti, on …-tud) | **nimetav** | **Kursus** lõpetati juunis. Uus **sild** ehitatakse sügiseks valmis.\n3) käsk ja palve: käskiv kõneviis; palun / palume / soovitan + da | **nimetav** | Pane **aken** kinni! Palun saata **leping** e-postiga.\n4) da-tegevusnimi ei ole ise sihitis (ta on alus või täiend) | **nimetav** | Minu ülesanne on koostada **tabel**. Meil on plaan osta uus **korter**."
+          }
+        },
+        {
+          "id": "sih_nb",
+          "type": "notice",
+          "width": "full",
+          "span": 12,
+          "tone": "white",
+          "goal": "g_notice",
+          "data": {
+            "title": "NB!",
+            "lines": "Võrdle: Ma lubasin koostada **tabeli**. (koostada on lubama sihitis → omastav) — Minu ülesanne on koostada **tabel**. (koostada on alus → nimetav).\nKui käsku **refereeritakse** (teine isik või minevik: käskis, soovitas, palus), sobivad mõlemad: Juhataja käskis teha **aruanne** ~ **aruande** valmis.\nEitavas lauses on sihitis alati osastavas, ka käsus ja umbisikulises lauses: Ära pane **akent** kinni! **Kursust** ei lõpetatud."
+          }
+        },
+        {
+          "id": "sih_1",
+          "type": "gaps",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "1. Osastav, omastav või nimetav?",
+            "instruction": "Kirjuta sulgudes olev sõna lünka õiges vormis. Mõtle neljale küsimusele.",
+            "sentences": "Ma ei leidnud hommikul oma [prille] (prillid).\nEma küpsetab praegu köögis [kooki] (kook), ära sinna veel mine.\nHomseks küpsetab ema sünnipäevaks suure [koogi] (kook) valmis.\nKorjasime metsas natuke [seeni] (seened).\nMa austan [oma vanemaid] (oma vanemad) väga.\nMe ootame juba pool tundi [taksot] (takso).\nTa kaotas eile bussis oma [rahakoti] (rahakott).\nMu õde lõpetas eelmisel kevadel keele[kursuse] (keelekursus).\nMaja ette ehitatakse sügiseks uus [mänguväljak] (mänguväljak).\nVõta [mantel] (mantel) seljast ja istu lauda!\nKõik [aruanded] (aruanne, mitmus) saadeti reedeks ära.\nMe ei ostnud sel aastal uut [autot] (auto).\nMinu esimene ülesanne uues töökohas oli kirjutada turu [ülevaade] (ülevaade).\nMa lubasin kirjutada turu [ülevaate] (ülevaade) reedeks.\nAitasin eile [naabrit] (naaber) kolida.\nÕpetaja käskis meil kirjutada [kokkuvõte|kokkuvõtte] (kokkuvõte) tunni lõpuks valmis.",
+            "bank": "",
+            "showBank": "no"
+          }
+        },
+        {
+          "id": "sih_2",
+          "type": "transformation",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "2. Ütle eitavalt.",
+            "instruction": "Muuda lause eitavaks. Eitavas lauses on sihitis alati osastavas.",
+            "rows": [
+              {
+                "from": "Tõnu värvis eile aia.",
+                "prompt": "ei …",
+                "answer": "Tõnu ei värvinud eile aeda.|Tõnu ei värvinud aeda eile."
+              },
+              {
+                "from": "Ma leidsin oma prillid.",
+                "prompt": "ei …",
+                "answer": "Ma ei leidnud oma prille.|Ma ei leidnud prille."
+              },
+              {
+                "from": "Liisa kirjutab homseks essee valmis.",
+                "prompt": "ei …",
+                "answer": "Liisa ei kirjuta homseks esseed valmis.|Liisa ei kirjuta esseed homseks valmis."
+              },
+              {
+                "from": "Raamatukogu uus hoone avati mais.",
+                "prompt": "ei …",
+                "answer": "Raamatukogu uut hoonet ei avatud mais.|Mais raamatukogu uut hoonet ei avatud."
+              },
+              {
+                "from": "Osta poest piim!",
+                "prompt": "ära …",
+                "answer": "Ära osta poest piima!|Ära osta piima poest!"
+              },
+              {
+                "from": "Tooge homme passid kaasa!",
+                "prompt": "ärge …",
+                "answer": "Ärge tooge homme passe kaasa!|Ärge tooge passe homme kaasa!"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sih_3",
+          "type": "transformation",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "3. Tee tegevus lõpuni.",
+            "instruction": "Lisa vihjes olev sõna ja muuda sihitis täissihitiseks.",
+            "rows": [
+              {
+                "from": "Ma vaatasin eile saadet.",
+                "prompt": "lõpuni",
+                "answer": "Ma vaatasin eile saate lõpuni.|Ma vaatasin saate eile lõpuni.|Eile vaatasin saate lõpuni."
+              },
+              {
+                "from": "Õpilane õppis telefoninumbrit.",
+                "prompt": "pähe",
+                "answer": "Õpilane õppis telefoninumbri pähe."
+              },
+              {
+                "from": "Ma lugesin lepingut.",
+                "prompt": "läbi",
+                "answer": "Ma lugesin lepingu läbi."
+              },
+              {
+                "from": "Naaber ehitab aias kasvuhoonet.",
+                "prompt": "suveks … valmis",
+                "answer": "Naaber ehitab suveks aias kasvuhoone valmis.|Naaber ehitab aias suveks kasvuhoone valmis.|Suveks ehitab naaber aias kasvuhoone valmis.|Naaber ehitab aias kasvuhoone suveks valmis."
+              },
+              {
+                "from": "Poiss sõi võileiba.",
+                "prompt": "ära",
+                "answer": "Poiss sõi võileiva ära."
+              },
+              {
+                "from": "Me koristame korterit.",
+                "prompt": "pühapäevaks … ära",
+                "answer": "Me koristame pühapäevaks korteri ära.|Pühapäevaks koristame korteri ära.|Me koristame korteri pühapäevaks ära."
+              },
+              {
+                "from": "Ma aitasin last.",
+                "prompt": "üle tänava",
+                "answer": "Ma aitasin lapse üle tänava.|Aitasin lapse üle tänava."
+              }
+            ]
+          }
+        },
+        {
+          "id": "sih_4",
+          "type": "categorize",
+          "width": "full",
+          "span": 12,
+          "tone": "peach",
+          "goal": "g_vocab",
+          "data": {
+            "title": "4. Mis rühma tegusõna kuulub?",
+            "instruction": "Sorteeri tegusõnad (neid ei ole tabelis). Proovi iga tegusõna kahe lausega: jaatav lause minevikus ja sama lause sõnaga „praegu”.",
+            "groups": [
+              {
+                "name": "Partitiivverb: alati osasihitis",
+                "words": "austama, vihkama, usaldama, tänama, imetlema"
+              },
+              {
+                "name": "Aspektverb: osa- või täissihitis",
+                "words": "pesema, parandama, koostama, jooma, joonistama"
+              },
+              {
+                "name": "Perfektiivverb: jaatuses täissihitis",
+                "words": "saama, avastama, saavutama, omandama"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sih_5",
+          "type": "transformation",
+          "width": "full",
+          "span": 12,
+          "tone": "blue",
+          "goal": "g_notice",
+          "data": {
+            "title": "5. Käsk ja umbisikuline: sihitis nimetavasse.",
+            "instruction": "Kirjuta lause ümber nii, nagu vihje ütleb. Täissihitis läheb nimetavasse.",
+            "rows": [
+              {
+                "from": "Sa parandad arvutis selle vea.",
+                "prompt": "käsk (sina)",
+                "answer": "Paranda arvutis see viga!|Paranda see viga arvutis!"
+              },
+              {
+                "from": "Te täidate selle ankeedi.",
+                "prompt": "käsk (teie)",
+                "answer": "Täitke see ankeet!"
+              },
+              {
+                "from": "Sa lülitad teleri välja.",
+                "prompt": "käsk (sina)",
+                "answer": "Lülita teler välja!"
+              },
+              {
+                "from": "Meister parandas eile kraani ära.",
+                "prompt": "umbisikuline: … parandati …",
+                "answer": "Eile parandati kraan ära.|Kraan parandati eile ära."
+              },
+              {
+                "from": "Vald ehitab järgmiseks aastaks uue spordihalli.",
+                "prompt": "umbisikuline: … ehitatakse …",
+                "answer": "Järgmiseks aastaks ehitatakse uus spordihall.|Uus spordihall ehitatakse järgmiseks aastaks."
+              },
+              {
+                "from": "Firma saatis kliendile uue lepingu.",
+                "prompt": "umbisikuline: … saadeti …",
+                "answer": "Kliendile saadeti uus leping.|Uus leping saadeti kliendile."
+              },
+              {
+                "from": "Saatke mulle oma uus aadress!",
+                "prompt": "viisakalt: Palun … + da",
+                "answer": "Palun saata mulle oma uus aadress.|Palun saata mulle teie uus aadress."
+              }
+            ]
+          }
+        },
+        {
+          "id": "sih_6",
+          "type": "errorfix",
+          "width": "full",
+          "span": 12,
+          "tone": "peach",
+          "goal": "g_notice",
+          "data": {
+            "title": "6. Leia viga ja paranda.",
+            "instruction": "Igas lauses on üks sihitise viga. Kirjuta lause õigesti.",
+            "rows": [
+              {
+                "wrong": "Ma armastan oma uue töö.",
+                "answer": "Ma armastan oma uut tööd."
+              },
+              {
+                "wrong": "Me ei ostnud uue auto.",
+                "answer": "Me ei ostnud uut autot."
+              },
+              {
+                "wrong": "Pane ukse kinni!",
+                "answer": "Pane uks kinni!"
+              },
+              {
+                "wrong": "Uue kooli ehitati kahe aastaga valmis.",
+                "answer": "Uus kool ehitati kahe aastaga valmis."
+              },
+              {
+                "wrong": "Ma ootan sinu vastuse.",
+                "answer": "Ma ootan sinu vastust."
+              },
+              {
+                "wrong": "Ta võitis võistlust ja sai medali.",
+                "answer": "Ta võitis võistluse ja sai medali."
+              },
+              {
+                "wrong": "Ma õppisin kõik uued sõnu pähe.",
+                "answer": "Ma õppisin kõik uued sõnad pähe."
+              },
+              {
+                "wrong": "Minu eesmärk on sooritada juuniks B2-eksami.",
+                "answer": "Minu eesmärk on sooritada juuniks B2-eksam."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

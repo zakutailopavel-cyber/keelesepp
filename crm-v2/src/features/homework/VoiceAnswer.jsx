@@ -7,7 +7,8 @@ import { VOICE_MAX_SECONDS, clockLabel as fmt } from './voiceTask.js';
 
 // „Häälülesanne” (owner 2026-10-23: говорение между уроками): the student records up to two minutes, listens and sends;
 // the file goes with the homework's answer (homework/{studentId}/…, the storage rules allow audio).
-export default function VoiceAnswer({ prompts = [], busy = false, onSend, onCancel, recorderFactory }) {
+// „Kuu monoloog” (features/monologue) uses the same recorder with its own button words; `seconds` goes with the file.
+export default function VoiceAnswer({ prompts = [], busy = false, onSend, onCancel, recorderFactory, maxSeconds = VOICE_MAX_SECONDS, sendLabel = 'Saada õpetajale', cancelLabel = 'Loobu' }) {
   const [recorder, setRecorder] = useState(null);
   const [seconds, setSeconds] = useState(0);
   const [take, setTake] = useState(null);
@@ -38,7 +39,7 @@ export default function VoiceAnswer({ prompts = [], busy = false, onSend, onCanc
       timer.current = globalThis.setInterval(() => {
         const passed = Math.round((Date.now() - started) / 1000);
         setSeconds(passed);
-        if (passed >= VOICE_MAX_SECONDS && next.state !== 'inactive') next.stop();
+        if (passed >= maxSeconds && next.state !== 'inactive') next.stop();
       }, 250);
     } catch {
       setError('Mikrofon ei ole lubatud. Luba see brauseri aadressiribalt ja proovi uuesti. / Разрешите микрофон в браузере.');
@@ -46,7 +47,7 @@ export default function VoiceAnswer({ prompts = [], busy = false, onSend, onCanc
   };
   const send = () => {
     const extension = take.type.includes('mp4') ? 'm4a' : take.type.includes('ogg') ? 'ogg' : 'webm';
-    onSend({ text: '', file: new File([take.blob], `haalvastus-${take.seconds}s.${extension}`, { type: take.type }) });
+    onSend({ text: '', seconds: take.seconds, file: new File([take.blob], `haalvastus-${take.seconds}s.${extension}`, { type: take.type }) });
   };
 
   return <div className="voice-answer" aria-label="Häälvastus">
@@ -55,13 +56,13 @@ export default function VoiceAnswer({ prompts = [], busy = false, onSend, onCanc
       {recorder
         ? <Button variant="danger" onClick={() => recorder.stop()}><Square size={15} /> Lõpeta</Button>
         : <Button variant={take ? 'secondary' : 'primary'} onClick={start}>{take ? <RotateCcw size={15} /> : <Mic size={15} />} {take ? 'Salvesta uuesti' : 'Alusta salvestamist'}</Button>}
-      <span className={`voice-answer__time ${recorder ? 'is-on' : ''}`} aria-live="polite">{fmt(recorder ? seconds : take?.seconds || 0)} / {fmt(VOICE_MAX_SECONDS)}</span>
+      <span className={`voice-answer__time ${recorder ? 'is-on' : ''}`} aria-live="polite">{fmt(recorder ? seconds : take?.seconds || 0)} / {fmt(maxSeconds)}</span>
     </div>
     {take && !recorder ? <audio controls src={take.url} aria-label="Sinu salvestus" /> : null}
     {error ? <p className="form-error" role="alert">{error}</p> : null}
     <div className="task-answer-actions">
-      <Button loading={busy} disabled={!take || Boolean(recorder)} onClick={send}><Send size={15} /> Saada õpetajale</Button>
-      <Button variant="secondary" disabled={busy || Boolean(recorder)} onClick={onCancel}>Loobu</Button>
+      <Button loading={busy} disabled={!take || Boolean(recorder)} onClick={send}><Send size={15} /> {sendLabel}</Button>
+      <Button variant="secondary" disabled={busy || Boolean(recorder)} onClick={onCancel}>{cancelLabel}</Button>
     </div>
   </div>;
 }
