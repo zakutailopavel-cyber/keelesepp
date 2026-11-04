@@ -177,3 +177,42 @@ describe('„Ülesanded” from a hint in „Minu areng” (?oskus=…)', () => 
     expect(await screen.findByText('Õpi luuletus')).toBeInTheDocument();
   });
 });
+
+describe('„Kuu monoloog” in the task list', () => {
+  const b1 = [{ id: 'c1', name: 'Mia Tamm', subject: 'Eesti keel', level: 'B1' }];
+  const monthNow = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+
+  it('is one task with one button to its page while this month is not recorded', async () => {
+    const monologueRepository = { listByStudent: vi.fn().mockResolvedValue([]) };
+    renderPage(asStudent, { ...repositories({ records: b1 }), monologueRepository });
+    const card = (await screen.findByRole('heading', { name: /Kuu monoloog/ })).closest('article');
+    expect(monologueRepository.listByStudent).toHaveBeenCalledWith('c1');
+    expect(card).toHaveTextContent('Räägi endast, oma päevast ja plaanidest');
+    expect(within(card).getByRole('link', { name: /Salvesta/ })).toHaveAttribute('href', '/student/monoloog');
+  });
+
+  it('done this month: under „Tehtud”', async () => {
+    const monologueRepository = { listByStudent: vi.fn().mockResolvedValue([{ id: `c1_${monthNow}`, studentId: 'c1', month: monthNow, createdAt: new Date().toISOString() }]) };
+    renderPage(asStudent, { ...repositories({ records: b1 }), monologueRepository });
+    const waiting = (await screen.findByRole('heading', { name: /^Tehtud/ })).closest('section');
+    expect(within(waiting).getByText(/Kuu monoloog/)).toBeInTheDocument();
+  });
+
+  it('no task for A1, for a parent, or when the list cannot be read', async () => {
+    const failing = { listByStudent: vi.fn().mockRejectedValue(new Error('permission-denied')) };
+    const { unmount } = renderPage(asStudent, { ...repositories({ records: b1, items: [homework('h1')] }), monologueRepository: failing });
+    expect(await screen.findByText('Õpi luuletus')).toBeInTheDocument();
+    expect(screen.queryByText(/Kuu monoloog/)).not.toBeInTheDocument();
+    unmount();
+    const parentRepo = { listByStudent: vi.fn().mockResolvedValue([]) };
+    const second = renderPage(asParent, { ...repositories({ records: b1, items: [homework('h1')] }), monologueRepository: parentRepo });
+    expect(await screen.findByText('Õpi luuletus')).toBeInTheDocument();
+    expect(parentRepo.listByStudent).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Kuu monoloog/)).not.toBeInTheDocument();
+    second.unmount();
+    const a1Repo = { listByStudent: vi.fn().mockResolvedValue([]) };
+    renderPage(asStudent, { ...repositories({ records: [{ ...b1[0], level: 'A1' }], items: [homework('h1')] }), monologueRepository: a1Repo });
+    expect(await screen.findByText('Õpi luuletus')).toBeInTheDocument();
+    expect(a1Repo.listByStudent).not.toHaveBeenCalled();
+  });
+});

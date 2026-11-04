@@ -147,6 +147,29 @@ service firebase.storage {
       allow write: if (staff() || ownsStudent(studentId)) && safeContent();
     }
 
+    // „Kuu monoloog” (2026-11-04): one audio file per month, written (and re-recorded) only by the student's own account
+    // (role student, linked to the card; parents have no access); staff listen. Never deleted from the client.
+    function monologueStudent(studentId) {
+      return signedIn() && role() == 'student'
+        && firestore.exists(/databases/(default)/documents/students/$(studentId))
+        && (
+          firestore.get(/databases/(default)/documents/students/$(studentId)).data.get('linkedUserId', '') == request.auth.uid
+          || firestore.get(/databases/(default)/documents/students/$(studentId)).data.get('studentUid', '') == request.auth.uid
+          || firestore.get(/databases/(default)/documents/students/$(studentId)).data.get('linkedUserIds', []).hasAny([request.auth.uid])
+        );
+    }
+
+    match /homework/{studentId}/monologues/{fileName} {
+      allow read: if staff() || monologueStudent(studentId);
+      allow create, update: if monologueStudent(studentId)
+        && fileName.matches('^[0-9]{4}-(0[1-9]|1[0-2])[.](webm|m4a|ogg)$')
+        && request.resource != null
+        && request.resource.size > 0
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('^audio/.*$');
+      allow delete: if false;
+    }
+
     // Reusable illustrations for adaptive lessons. These are non-sensitive
     // teaching assets, so learners may load them without Firebase Auth. Only
     // staff can create, replace or delete scene files.

@@ -2075,6 +2075,74 @@ service cloud.firestore {
           && request.resource.data.answeredAt == request.time;
         allow delete: if false;
       }
+    // „Kuu monoloog” (2026-11-04): once a month the student records two minutes on the fixed prompt of their level.
+    // `studentMonologues/{studentId}_{YYYY-MM}`. Only the student's own account (role student, linked to the card; not a
+    // parent) writes it, in that month (UTC, or 3 h ahead for Tallinn), and may replace the take; the card's teacher and
+    // admins read; any student account linked to the card reads it too. Transcription fields (transcriptText, wordCount) are for a server worker (Admin SDK) later.
+    // The teacher's note is NOT on this document (the student could read it): see studentMonologueNotes.
+    function monthOf(t) {
+      return string(t.year()) + '-' + (t.month() < 10 ? '0' : '') + string(t.month());
+    }
+    function monologueMonthNow(month) {
+      return month == monthOf(request.time) || month == monthOf(request.time + duration.value(3, 'h'));
+    }
+    function monologueStudent(studentId) {
+      return signedIn() && userRole(uid()) == 'student' && studentAccountOwns(studentId, uid());
+    }
+    function monologueTakeValid(data) {
+      return data.audioPath is string
+        && data.audioPath.matches('^homework/' + data.studentId + '/monologues/' + data.month + '[.](webm|m4a|ogg)$')
+        && data.contentType is string && data.contentType.matches('^audio/[a-z0-9.+-]{1,40}$')
+        && data.seconds is int && data.seconds >= 1 && data.seconds <= 130
+        && data.promptId is string && data.promptId.size() <= 60
+        && data.level in ['A2', 'B1', 'B2', 'C1']
+        && data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+    match /studentMonologues/{monologueId} {
+      allow read: if staffCanAccessStudent(resource.data.studentId)
+        || monologueStudent(resource.data.studentId);
+      allow create: if request.resource.data.keys().hasOnly(['studentId', 'studentUid', 'month', 'promptId', 'level', 'audioPath',
+          'contentType', 'seconds', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['studentId', 'studentUid', 'month', 'promptId', 'level', 'audioPath',
+          'contentType', 'seconds', 'createdAt', 'updatedAt'])
+        && request.resource.data.studentId is string && request.resource.data.studentId.matches('^[A-Za-z0-9_-]{1,128}$')
+        && request.resource.data.month is string && request.resource.data.month.matches('^[0-9]{4}-(0[1-9]|1[0-2])$')
+        && monologueId == request.resource.data.studentId + '_' + request.resource.data.month
+        && request.resource.data.studentUid == uid()
+        && monologueStudent(request.resource.data.studentId)
+        && monologueMonthNow(request.resource.data.month)
+        && request.resource.data.createdAt is string && request.resource.data.createdAt.size() <= 40
+        && monologueTakeValid(request.resource.data);
+      // a new take in the same month: only the take's fields change
+      allow update: if resource.data.studentUid == uid()
+        && monologueStudent(resource.data.studentId)
+        && monologueMonthNow(resource.data.month)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['audioPath', 'contentType', 'seconds', 'promptId', 'level', 'updatedAt'])
+        && monologueTakeValid(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // The teacher's short note on one monologue, staff only (the student and parents never read it).
+    // `studentMonologueNotes/{monologueId}` { studentId, monologueId, text ≤ 500, byUid, byName, updatedAt }.
+    function monologueNoteValid(data, monologueId) {
+      return data.keys().hasOnly(['studentId', 'monologueId', 'text', 'byUid', 'byName', 'updatedAt'])
+        && data.keys().hasAll(['studentId', 'monologueId', 'text', 'byUid', 'updatedAt'])
+        && data.monologueId == monologueId
+        && data.byUid == uid()
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 500
+        && data.get('byName', '') is string && data.get('byName', '').size() <= 160
+        && data.updatedAt is string && data.updatedAt.size() <= 40
+        && staffCanAccessStudent(data.studentId)
+        && exists(/databases/$(database)/documents/studentMonologues/$(monologueId))
+        && get(/databases/$(database)/documents/studentMonologues/$(monologueId)).data.studentId == data.studentId;
+    }
+    match /studentMonologueNotes/{monologueId} {
+      allow read: if staffCanAccessStudent(resource.data.studentId);
+      allow create: if monologueNoteValid(request.resource.data, monologueId);
+      allow update: if staffCanAccessStudent(resource.data.studentId)
+        && request.resource.data.studentId == resource.data.studentId
+        && monologueNoteValid(request.resource.data, monologueId);
+      allow delete: if staffCanAccessStudent(resource.data.studentId);
     }
 
     // What the student and parents see after a Live Classroom lesson; written by the lesson's teacher when it ends.
