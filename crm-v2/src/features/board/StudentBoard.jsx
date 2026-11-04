@@ -17,6 +17,7 @@ import BoardPageTabs from './BoardPageTabs.jsx';
 import RichTextEditor, { FormatBar } from './RichTextEditor.jsx';
 import { MEDIA_MIME, mediaElement, placeableImage, readPayload } from './mediaSearch.js';
 import { selectionText } from './selectionText.js';
+import { isWorksheetPage } from './lessonBoards.js';
 import './board.css';
 
 // „Pildid” (search pictures and drag them onto the board): its own chunk, loaded when the teacher opens it
@@ -104,6 +105,9 @@ export default function StudentBoard({
   // Live Classroom (student): which worksheet pages are tabs — { hidden: Set<sheetId> (no tab unless open),
   // closable: Set<sheetId> (a × after the tab), onClose(sheetId), extra(pagedSheetIds) → node after the tabs }
   sheetTabs = null,
+  // the student's own board (/board): what a worksheet page „Tööleht: …” shows when its sheet is not known here (the
+  // sheet lies under the page only in the lesson) — (page) → node, instead of a bare „Tühi tahvel”
+  sheetPageFallback = null,
 }) {
   const room = variant === 'room';
   useNoHistorySwipe();
@@ -222,6 +226,8 @@ export default function StudentBoard({
   const worksheetPage = sheetPageOf(worksheet);
   const activeSheet = allSheets.find((sheet) => sheetPageOf(sheet)?.id === pageId) || null;
   const onWorksheet = Boolean(activeSheet);
+  // a worksheet page without its sheet (only on the student's own board, `sheetPageFallback`): say why, never „Tühi tahvel”
+  const lostSheet = !onWorksheet && sheetPageFallback && pageId && isWorksheetPage({ id: pageId, title: pageTitle }) ? sheetPageFallback({ id: pageId, title: pageTitle }) : null;
   // on a phone the worksheet is read as a one-column page (owner 2026-10-20: the A4 sheet shrunk to a third could not be
   // read or moved); „Tahvlivaade” brings back the board with the teacher's drawings
   const narrow = useNarrowScreen();
@@ -1249,7 +1255,8 @@ export default function StudentBoard({
       <button type="button" aria-label="Kopeeri" title="Kopeeri (Ctrl+D)" onClick={duplicate}><Copy size={16} /></button>
       <button type="button" aria-label="Kustuta valitud" title="Kustuta (Delete)" onClick={deleteSelection}><Trash2 size={16} /></button>
     </div> : null}
-    {ready && !elements.length && !draft && !onWorksheet ? <div className="sb-empty">{room ? (staff ? 'Tühi tahvel. Lisa materjal nupust „Materjalid” või joonista ja kirjuta — õpilane näeb kõike kohe.' : 'Tühi tahvel. Kui õpetaja lisab materjali, näed seda siin. Võid ka ise joonistada ja kirjutada.') : 'Tühi tahvel: joonista, lisa märkmepaber või tekst. Õpetaja ja õpilane näevad muudatusi kohe.'}</div> : null}
+    {ready && lostSheet ? <div className="sb-empty sb-empty--sheet">{lostSheet}</div> : null}
+    {ready && !elements.length && !draft && !onWorksheet && !lostSheet ? <div className="sb-empty">{room ? (staff ? 'Tühi tahvel. Lisa materjal nupust „Materjalid” või joonista ja kirjuta — õpilane näeb kõike kohe.' : 'Tühi tahvel. Kui õpetaja lisab materjali, näed seda siin. Võid ka ise joonistada ja kirjutada.') : 'Tühi tahvel: joonista, lisa märkmepaber või tekst. Õpetaja ja õpilane näevad muudatusi kohe.'}</div> : null}
   </div>;
 
   if (room) {

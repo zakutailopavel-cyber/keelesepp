@@ -123,6 +123,36 @@ export function sheetBoardTitle(item = {}) {
   return label && !title.toLocaleLowerCase('et').includes(label.toLocaleLowerCase('et')) ? `${title} · ${label}` : title;
 }
 export const worksheetPageTitle = (title) => `Tööleht: ${String(title || 'Tööleht').trim()}`.slice(0, 200);
+// stable page id of a worksheet title (FNV-1a), e.g. ws-3f2a9c1b: studentBoard.js addWorksheetPage keys the page by it
+export function worksheetPageId(title) {
+  let hash = 0x811c9dc5;
+  for (const char of String(title || '')) { hash ^= char.codePointAt(0); hash = Math.imul(hash, 0x01000193) >>> 0; }
+  return `ws-${hash.toString(16).padStart(8, '0')}`;
+}
+// the page titles a worksheet assignment may have on the board: the title with its phase, then the older one without
+// it (a sheet placed before the phase was part of the title keeps its old page)
+export function assignmentPageTitles(item = {}) {
+  const titles = [worksheetPageTitle(sheetBoardTitle(item)), worksheetPageTitle(item.title || item.worksheetDoc?.meta?.title || 'Tööleht')];
+  return [...new Set(titles)];
+}
+// a board sheet ({ id, title, legacyTitle } as the live room passes them): the same two titles
+const boardSheetPageTitles = (sheet = {}) => [...new Set([sheet.title, sheet.legacyTitle].filter(Boolean).map(worksheetPageTitle))];
+/**
+ * The worksheet behind a board page „Tööleht: …” (2026-11-04, Demjan: homework „Ava tahvlileht” opened an empty board).
+ * The page keeps only drawings; its sheet is found by the page id (the hash of the title) or the title. `sheets` are
+ * worksheet assignments, or board sheets with `boardSheet: true`. The title with the phase wins over the older title;
+ * among equals the newest sheet opened in a lesson (the order the lists already have: newest first).
+ */
+export function sheetForPage(page, sheets = [], { boardSheet = false } = {}) {
+  if (!page?.id && !page?.title) return null;
+  const titlesOf = boardSheet ? boardSheetPageTitles : assignmentPageTitles;
+  const matches = (title) => (page.id && page.id === worksheetPageId(title)) || (page.title && page.title === title);
+  for (const rank of [0, 1]) {
+    const found = (sheets || []).find((sheet) => { const title = titlesOf(sheet)[rank]; return title && matches(title); });
+    if (found) return found;
+  }
+  return null;
+}
 export function pageBounds(elements = [], margin = 40, base = PAGE) {
   const boxes = elements.map(elementBounds).filter(Boolean);
   const x1 = Math.min(0, ...boxes.map((box) => box.x1 - margin));
