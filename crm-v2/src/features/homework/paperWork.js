@@ -2,7 +2,7 @@
 // оценку в профиле”): the teacher enters the points per criterion, the work is stored as an exerciseResults record
 // (exerciseType 'paper', staff may create it under the rules) and checked in the usual review window. The skills the
 // points measure move the skill map half way to the measured percent (skillGrades.js `measured`), other skills by grade.
-import { suggestedGrade } from './reviewTemplates.js';
+import { suggestedGrade } from './gradeSuggestion.js';
 
 export const PAPER_TEMPLATES = [
   {

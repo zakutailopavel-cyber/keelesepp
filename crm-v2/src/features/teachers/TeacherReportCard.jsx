@@ -2,7 +2,9 @@ import { BarChart3 } from 'lucide-react';
 import { useMemo } from 'react';
 import { Card } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { groupsService, homeworkService, lessonsService } from '../../services/firebase/index.js';
+import { groupsService } from '../../services/firebase/groups.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { teacherReport } from './teacherReport.js';
 

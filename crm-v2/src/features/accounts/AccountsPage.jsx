@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Check, UserRoundCheck, UserRoundX, X } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { accountApprovalsService } from '../../services/firebase/index.js';
+import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { APPROVAL_RESPONSE_LOST_MESSAGE } from '../../services/firebase/accountApprovals.js';
 import LinkReviewsCard from './LinkReviewsCard.jsx';
 import './accounts.css';

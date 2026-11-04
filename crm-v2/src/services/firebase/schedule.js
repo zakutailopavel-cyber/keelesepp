@@ -1,5 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { shareInFlight } from './shareInFlight.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
 export function normalizeScheduleEvent(id, data = {}) {
@@ -70,7 +71,11 @@ export const scheduleService = {
     return sort(snapshot.docs.map((item) => normalizeScheduleEvent(item.id, item.data())));
   },
   // a teacher passes their uid: with teacher scope enforced the rules let a teacher read only their own entries
-  async listByStudent(studentId, { teacherUid = '' } = {}) {
+  // the student's home page and its pet companion ask at the same moment: one read (shareInFlight.js)
+  listByStudent(studentId, { teacherUid = '' } = {}) {
+    return shareInFlight(`schedule:${studentId}:${teacherUid}`, () => scheduleService.readByStudent(studentId, { teacherUid }));
+  },
+  async readByStudent(studentId, { teacherUid = '' } = {}) {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'schedule'), where('studentId', '==', studentId), ...(teacherUid ? [where('teacherUid', '==', teacherUid)] : [])));
     return sort(snapshot.docs.map((item) => normalizeScheduleEvent(item.id, item.data())));

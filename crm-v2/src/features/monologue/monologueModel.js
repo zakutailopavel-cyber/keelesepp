@@ -124,8 +124,17 @@ export const countWords = (text) => (clean(text).match(/[\p{L}\p{N}]+(?:[-'’][
 export function monologueStats(item = {}) {
   const seconds = Number(item.seconds) || 0;
   const words = Number.isFinite(item.wordCount) ? item.wordCount : item.transcriptText ? countWords(item.transcriptText) : null;
-  const wpm = words != null && seconds >= 10 ? Math.round((words / seconds) * 60) : null;
+  const wpm = Number.isFinite(item.wpm) ? item.wpm : words != null && seconds >= 10 ? Math.round((words / seconds) * 60) : null;
   return { seconds, words, wpm };
+}
+
+// the transcriber's error check of this take only (a re-record makes the old one stale): the top topics, short
+// („Падеж после глагола и места: kuhu? …” → „Падеж после глагола и места”), for the teacher's line
+export function analysisFor(item = {}, analyses = {}) {
+  const a = analyses[item.id];
+  if (!a || !a.take || a.take !== (item.updatedAt || item.createdAt)) return null;
+  const topics = (a.focus || []).slice(0, 3).map((t) => ({ label: String(t.topic).split(':')[0].trim(), count: t.count }));
+  return { checked: a.checked, errors: a.errors || [], topics };
 }
 
 // newest month first

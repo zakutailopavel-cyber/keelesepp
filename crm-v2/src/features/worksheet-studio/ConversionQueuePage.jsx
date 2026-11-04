@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, FileImage, FileText } from 'lucide-react';
 import { Badge, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
-import { libraryService } from '../../services/firebase/index.js';
+import { libraryService } from '../../services/firebase/library.js';
 import { CONVERSION_STATUS, conversionQueue, fileKind } from './conversion.js';
 import './worksheetStudio.css';
 

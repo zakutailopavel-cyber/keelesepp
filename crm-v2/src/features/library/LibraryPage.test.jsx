@@ -305,7 +305,8 @@ describe('LibraryPage', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Vaata: Minu päev' }));
     const preview = screen.getByRole('dialog', { name: 'Eelvaade: Minu päev' });
-    expect((await within(preview).findAllByText('Minu päev ja kellaaeg')).length).toBeGreaterThan(0);
+    // the sheet preview downloads the worksheet blocks on first open (they are no longer part of the library page)
+    expect((await within(preview).findAllByText('Minu päev ja kellaaeg', {}, { timeout: 8000 })).length).toBeGreaterThan(0);
     expect(within(preview).getByRole('region', { name: 'Tööleht' })).toBeInTheDocument();
     fireEvent.click(within(preview).getByRole('button', { name: /Muuda töölehte/ }));
     expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/plan-2');

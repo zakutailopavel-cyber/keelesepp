@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icons } from './icons.js';
-import { homeworkService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';
@@ -10,6 +10,7 @@ import BlockKeyPanel from './BlockKeyPanel.jsx';
 import { blockAnswerKey } from './engine/answerKey.js';
 import { taskStats } from './engine/liveLesson.js';
 import SheetAnnotations from './SheetAnnotations.jsx';
+import AnswerFontMenu from './AnswerFontMenu.jsx';
 import { liveWordTools } from './liveWordTools.js';
 import { setPath } from './engine/inlineEdit.js';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -153,6 +154,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     <span>{done ? 'Esitatud' : assignment.status === 'in_progress' ? 'Täidab' : 'Pole alustanud'}</span>
     <b>{progress.answered}/{progress.total} vastust</b>
     <span>viimati {time(assignment.updatedAt)}</span>
+    <AnswerFontMenu />
   </div>;
   // on the board: the sheet first and nothing above it, so it lies exactly like the student's copy; the rest below
   if (board) {
@@ -183,6 +185,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
           <span>{done ? 'Esitatud' : assignment.status === 'in_progress' ? 'Täidab' : 'Pole alustanud'}</span>
           <b>{progress.answered}/{progress.total} vastust</b>
           <span>viimati {time(assignment.updatedAt)}</span>
+          <AnswerFontMenu />
           {editToggle}
         </div>
       </header>

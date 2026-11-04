@@ -1,7 +1,8 @@
 import { AlertTriangle, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardList, Languages, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, lessonsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { presenceService } from '../../services/firebase/presence.js';
 import { describeAutoErrors } from '../worksheet-studio/engine/errorText.js';

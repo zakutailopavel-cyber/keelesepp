@@ -129,11 +129,18 @@ live (not the first, possibly old snapshot). Writes only on start / pause / resu
 corner (click: big), last 10 s highlighted, „Aeg läbi!” + Web Audio chime once (mute in `localStorage`
 `keelesepp.countdownMuted`).
 
-Student sheet tabs (1:1 room, student side; `sheetTabs.js`): worksheet pages („Tööleht: …”) are tabs only for this room's
-sheets (or, when the room has none yet, the most recent lesson day's); older sheets (grouped by `liveRoomKey`, labelled
-by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen there or reached by following the teacher
-stays a tab with a × until closed (session state only). `StudentBoard` takes this as the optional `sheetTabs` prop; the
-teacher's tabs are unchanged.
+Sheet tabs (1:1 room, teacher and student alike since 2026-11-04 `agent/live-tabs-bar`; `sheetTabs.js`): worksheet pages
+(„Tööleht: …”) are tabs only for this room's sheets (or, when the room has none yet, the most recent lesson day's); older
+sheets (grouped by `liveRoomKey`, labelled by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen
+there, opened otherwise or reached by following the teacher stays a tab with a × until closed (session state only).
+`StudentBoard` takes this as the optional `sheetTabs` prop.
+
+Page bar (`board/BoardPageTabs.jsx`, `board/pageTabsModel.js`, every board variant): a solid toolbar above the board
+(room variant: `--sb-bar-h` 44 px, the stage starts 8 px below it, the bar ends `insetRight` px before the video tiles).
+Labels drop „Tööleht:”; the pages of one lesson („<lesson> · Avasta|Harjuta|Kasuta|Õpik”) are one tab with a chip per
+phase (title ellipsized, full title as tooltip / accessible name = page title). The active tab is scrolled into view;
+overflow shows edge fades + arrows; a bar narrower than 1000 px whose tabs do not fit folds to „Tahvel” + the open
+tab + menu „Lehed ▾”.
 
 „Kiirküsimus” (quick poll, teacher tool, 1:1 and group; `quickPoll.js`, `useQuickPoll.js`, `QuickPoll.jsx`,
 `services/firebase/livePolls.js`): one doc per room `livePolls/{kind}_{roomId}` (kind `lesson` = invitation id, `group` =
@@ -685,9 +692,13 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
   `{ studentId, studentUid, month, promptId, level, audioPath, contentType, seconds, createdAt, updatedAt }`, audio in
   Storage `homework/{studentId}/monologues/{YYYY-MM}.{webm|m4a|ogg}`. Only the card's own student account (role student)
   writes, in the current month, and may replace the take; the card's teacher and admins read; parents nothing (a later
-  „share with parent” needs a new read branch + a flag). `transcriptText` / `wordCount` are reserved for a server
-  transcriber (not built). `studentMonologueNotes/{monologueId}` — the teacher's note, staff only (kept off the
-  monologue so the student cannot read it).
+  „share with parent” needs a new read branch + a flag). The school Mac's transcriber (`tools/lesson-transcriber`,
+  Admin SDK) adds `transcript`, `words`, `wpm`, `transcribedAt`, `transcriber`, `transcriptModel`, `transcribedTake`
+  (= the take's `updatedAt`; a re-record makes the text stale), `analyzedTake` and error / attempt fields; no app user
+  may write them. `studentMonologueAnalysis/{monologueId}` — the transcriber's error check of one take (`take`,
+  `errors`, `checked`, `focus`), staff read only, no client write (docs/LESSON_RECORDING.md).
+  `studentMonologueNotes/{monologueId}` — the teacher's note, staff only (kept off the monologue so the student cannot
+  read it).
 - `liveClassrooms` — one teacher and one student per current room.
 - `liveClassrooms.lessonSummary` — immutable teacher outcome attached when a room is completed.
 - `students.skillMap` — the canonical current mastery view; structured lesson outcomes may only
@@ -743,6 +754,21 @@ can be moved and resized through visible edge and corner handles without changin
 student input is stored only in the assignment's existing `answers` map under visual field keys and is
 submitted through the existing worksheet completion contract. This adds no second assignment store and
 keeps legacy structured `worksheetData.blocks` assignments compatible.
+
+## Loading on a phone (2026-11-04)
+
+Every route is lazy (`app/routes.jsx`); the first load is React, Firebase, the shell and the one CSS file
+(`app/eagerStyles.js`). Contracts that keep a student's first screen and the lesson room small:
+
+- Import a service file directly (`services/firebase/homework.js`), not the `services/firebase/index.js` barrel: modules
+  with top-level work behind it (the worksheet block registry, the kids campaigns) are then pulled into the page.
+- The worksheet block registry (`worksheet-studio/engine/registry.js`, every block's views and rules) loads only where a
+  sheet is shown or edited. `engine/storedScore.js` does not import it: registry calls `provideScoreChecker` when it
+  loads; services await `loadScoreChecker()` when a stored score needs a re-check (`needsScoreCheck`).
+- Live Classroom: page → room → panels/recorder/sheet are separate downloads (`LiveClassroomPage.jsx`, `LiveRoom.jsx`,
+  `RoomWorksheetPanel.jsx`); `live-classroom/liveRoomPrefetch.js` fetches the room before a lesson / on an invitation.
+- Staff-only shell parts (search, right-click menu, admin counts) load lazily in `AppShell.jsx`.
+- Tests of lazy parts preload them (`live-classroom/lazyParts.testkit.js`) and wait with `findBy…`.
 
 ## Safe evolution rules
 

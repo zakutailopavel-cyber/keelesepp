@@ -1,7 +1,12 @@
 import { Eraser } from 'lucide-react';
 import { useState } from 'react';
 import { Badge, Button, Card } from '../../components/ui/index.js';
-import { homeworkService, maintenanceService, messagesService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { maintenanceService } from '../../services/firebase/maintenance.js';
+import { messagesService } from '../../services/firebase/messages.js';
+import { scheduleService } from '../../services/firebase/schedule.js';
+import { studentsService } from '../../services/firebase/students.js';
+import { teachersService } from '../../services/firebase/teachers.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
 import { findCleanup, OLD_DAYS } from './cleanupModel.js';

@@ -27,4 +27,8 @@
 .mono-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .mono-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; padding: 12px; border: 1px solid #e4e6f2; border-radius: 12px; background: #fafbff; }
 .mono-compare__side { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.mono-analysis { flex-basis: 100%; font-size: .85rem; color: #475467; }
+.mono-details { margin: 6px 0 0; }
+.mono-details summary { cursor: pointer; font-size: .88rem; color: #344054; }
+.mono-errors { margin: 6px 0 0; padding-left: 18px; font-size: .86rem; }
 .mono-transcript { margin: 0; max-height: 180px; overflow: auto; font-size: .88rem; white-space: pre-wrap; }

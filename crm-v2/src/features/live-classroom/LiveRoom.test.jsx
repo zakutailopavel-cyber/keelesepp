@@ -3,6 +3,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import LiveRoom from './LiveRoom.jsx';
 import { sampleDocument } from '../worksheet-studio/engine/sample.js';
+import { beforeAll as preloadBeforeAll } from 'vitest';
+import { preloadLiveClassroomParts } from './lazyParts.testkit.js';
+
+// the room's views and panels are lazy: load them once, so the tests wait for behaviour, not for module loading
+preloadBeforeAll(() => preloadLiveClassroomParts(), 60000);
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 
@@ -128,6 +133,8 @@ describe('LiveRoom', () => {
     fireEvent.click(screen.getByRole('button', { name: /Materjalid/ }));
     const panel = screen.getByRole('region', { name: 'Materjalid' });
     await waitFor(() => expect(s.library.list).toHaveBeenCalled());
+    // the panel downloads when first opened (lazy): wait for it outside act()
+    await within(panel).findByRole('button', { name: /Leht\.pdf/ }, { timeout: 4000 });
     await act(async () => { fireEvent.click(await within(panel).findByRole('button', { name: /Leht\.pdf/ }, { timeout: 4000 })); });
     await waitFor(() => expect(s.board.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ type: 'pdf', url: 'https://files.example/leht.pdf', name: 'Leht.pdf' }), expect.objectContaining({ uid: 'teach' })));
     expect(await screen.findByRole('status')).toHaveTextContent('„Leht.pdf” on tahvlil.');
@@ -169,7 +176,7 @@ describe('LiveRoom words', () => {
     renderRoom('teacher', services(), { wordsService });
     fireEvent.click(screen.getByRole('button', { name: /Sõnad/ }));
     const drawer = screen.getByRole('region', { name: 'Sõnad' });
-    fireEvent.change(within(drawer).getByLabelText('Sõna või väljend'), { target: { value: 'kass' } });
+    fireEvent.change(await within(drawer).findByLabelText('Sõna või väljend'), { target: { value: 'kass' } });
     fireEvent.click(within(drawer).getByRole('button', { name: 'Lisa sõnastikku' }));
     await waitFor(() => expect(wordsService.add).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's-1', invitationId: 'inv-1', word: 'kass' })));
   });
@@ -185,7 +192,7 @@ describe('LiveRoom homework', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Anna kodutöö' }));
     const drawer = screen.getByRole('region', { name: 'Kodutöö' });
-    fireEvent.click(within(drawer).getByRole('button', { name: /Korda tunni sõnu/ }));
+    fireEvent.click(await within(drawer).findByRole('button', { name: /Korda tunni sõnu/ }));
     fireEvent.click(within(drawer).getByRole('checkbox', { name: /Lisa tahvlileht „Tund 1”/ }));
     fireEvent.click(within(drawer).getByRole('button', { name: 'Anna kodutöö' }));
     await waitFor(() => expect(homeworkService.createFromLesson).toHaveBeenCalledWith(expect.objectContaining({
@@ -209,7 +216,7 @@ describe('LiveRoom lesson end', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
     const drawer = screen.getByRole('region', { name: 'Tunni lõpp' });
-    expect(within(drawer).getByText('kass')).toBeInTheDocument();
+    expect(await within(drawer).findByText('kass')).toBeInTheDocument();
     expect(within(drawer).queryByText(/vana/)).toBeNull();
     expect(await within(drawer).findByText('Korda sõnu')).toBeInTheDocument();
     fireEvent.change(within(drawer).getByLabelText(/Sõnum õpilasele/), { target: { value: 'Tubli!' } });
@@ -225,7 +232,7 @@ describe('LiveRoom lesson end', () => {
     const props = renderRoom('teacher', services(), { summaryService, wordsService: { subscribeForStudent: vi.fn(() => vi.fn()) }, homeworkService: { listForLesson: vi.fn(async () => []) } });
     fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
     expect(await screen.findByText(/Võrk puudub\. Võid tunni lõpetada ka ilma kokkuvõtteta/)).toBeInTheDocument();
     expect(props.onEndLesson).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Lõpeta ilma kokkuvõtteta' }));

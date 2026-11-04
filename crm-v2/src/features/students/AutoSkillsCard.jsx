@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FilePlus2 } from 'lucide-react';
 import { Button, Card, EmptyState } from '../../components/ui/index.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
-import { petsService } from '../../services/firebase/index.js';
+import { petsService } from '../../services/firebase/pets.js';
 import { personalWorksheet } from './personalWorksheet.js';
 import { AUTO_SKILLS, autoSkills } from './autoSkills.js';
 import { groupRecordings } from '../lesson-recording/lessonTimeline.js';

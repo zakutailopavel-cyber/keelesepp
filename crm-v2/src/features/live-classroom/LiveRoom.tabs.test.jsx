@@ -3,6 +3,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import LiveRoom from './LiveRoom.jsx';
 import { sampleDocument } from '../worksheet-studio/engine/sample.js';
+import { beforeAll as preloadBeforeAll } from 'vitest';
+import { preloadLiveClassroomParts } from './lazyParts.testkit.js';
+
+// the room's views and panels are lazy: load them once, so the tests wait for behaviour, not for module loading
+preloadBeforeAll(() => preloadLiveClassroomParts(), 60000);
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
@@ -48,9 +53,10 @@ function renderRoom(role, s) {
     streams={{ local: null, remote: null }} onLeave={vi.fn()} onEndLesson={vi.fn()} student={{ subject: 'Eesti keel', recordingConsent: false }} /></MemoryRouter>);
 }
 
-const tabs = () => within(screen.getByRole('tablist', { name: 'Tahvli lehed' })).getAllByRole('tab').map((tab) => tab.textContent);
+// the accessible name keeps the full page title; the visible label is compact (BoardPageTabs)
+const tabs = () => within(screen.getByRole('tablist', { name: 'Tahvli lehed' })).getAllByRole('tab').map((tab) => tab.getAttribute('aria-label') || tab.textContent);
 
-describe('the student\'s worksheet tabs in the live lesson', () => {
+describe('the worksheet tabs in the live lesson', () => {
   it('shows only this lesson\'s sheet; older sheets wait in „Varasemad tunnid” grouped by lesson date', async () => {
     renderRoom('student', services());
     await waitFor(() => expect(tabs()).toContain('Tööleht: Täna'));
@@ -72,10 +78,26 @@ describe('the student\'s worksheet tabs in the live lesson', () => {
     expect(screen.queryByRole('tab', { name: 'Tööleht: Vana' })).toBeNull();
   });
 
-  it('the teacher keeps every tab and has no dropdown', async () => {
+  it('the teacher gets the same rule: only this lesson\'s sheet as a tab, older ones in „Varasemad tunnid”', async () => {
     renderRoom('teacher', services());
-    await waitFor(() => expect(tabs()).toContain('Tööleht: Vana'));
-    expect(tabs()).toHaveLength(5);
-    expect(screen.queryByRole('combobox', { name: 'Varasemad tunnid' })).toBeNull();
+    await waitFor(() => expect(tabs()).toContain('Tööleht: Täna'));
+    expect(tabs()).toEqual(['Tahvel', 'Tund 20.10.2026', 'Tööleht: Täna']);
+    const older = screen.getByRole('combobox', { name: 'Varasemad tunnid' });
+    act(() => { fireEvent.change(older, { target: { value: 'b1' } }); });
+    expect(await screen.findByRole('tab', { name: 'Tööleht: Eelmine' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: 'Sulge „Tööleht: Eelmine”' })).toBeInTheDocument();
+  });
+
+  it('the tab bar is a toolbar above the board: the sheet is not inside it and the label has no „Tööleht:” prefix', async () => {
+    renderRoom('student', services());
+    const list = await screen.findByRole('tablist', { name: 'Tahvli lehed' });
+    const bar = list.closest('.sb-room-pages');
+    const stage = document.querySelector('.sb-stage');
+    expect(bar).not.toBeNull();
+    expect(stage).not.toBeNull();
+    expect(bar.contains(stage)).toBe(false);
+    expect(stage.contains(bar)).toBe(false);
+    expect(bar.compareDocumentPosition(stage) & globalThis.Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Tööleht: Täna' })).toHaveTextContent(/^Täna$/);
   });
 });

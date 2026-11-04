@@ -153,8 +153,49 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
 - Storage: `lessonRecordings/{recordingId}/*` written only by the recording teacher while `recording`, audio < 20 MB.
 - Tests: `functions/lesson-recording-emulator.integration.js` (rules; not in `test:emulator`, run it by name),
   `tools/lesson-transcriber` `npm test` (`lib.test.js` merging, junk filter, retention; `analysis.test.js` analysis
-  helpers and the „Pole viga” filter), `crm-v2/src/features/lesson-recording/lessonRecording.test.jsx` (UI),
+  helpers and the „Pole viga” filter; `monologue.test.js` the monthly monologue job), `crm-v2/src/features/lesson-recording/lessonRecording.test.jsx` (UI),
   `errorReview.test.jsx`, `lessonTrend.test.jsx`.
+
+## „Kuu monoloog” on the same Mac (2026-11-04)
+
+The same worker (`tools/lesson-transcriber`, no new service) also turns the students' monthly two-minute monologues
+into text. Code: `tools/lesson-transcriber/monologue.js` (job selection and writes, I/O injected), wired in `index.js`
+(`monologueWork`, after the lessons in every tick; lessons always go first). Tests: `monologue.test.js` (fake
+Firestore: field-limited scan, the text and words/min written, the staff-only analysis, a re-record during the work is
+not overwritten, three attempts at most).
+
+- What it picks up: `studentMonologues/{studentId}_{YYYY-MM}` with an `audioPath` whose current take (the doc's
+  `updatedAt`) has no text yet (`transcribedTake != updatedAt`). Recent months (from 40 days back) every 5 minutes
+  (`MONOLOGUE_SCAN_SECONDS`), all months at start and hourly (old monologues, or ones that waited for the GEC model).
+  Only a few fields are read (`select`), never a whole transcript just to decide. At most 5 per tick.
+- How: the audio `homework/{studentId}/monologues/{YYYY-MM}.*` is downloaded with the Admin SDK and transcribed like a
+  lesson's student track (VAD chunks, language per chunk, TalTech's Estonian verbatim model for Estonian, the general
+  model for a Russian aside).
+- Written on the monologue doc (the student reads it too): `transcript` (text, all languages), `words` (words in the
+  Estonian chunks), `wpm` (words / seconds x 60, only from 10 s), `transcribedAt`, `transcriber` (host),
+  `transcriptModel`, `transcribedTake` (the take's `updatedAt`). A failure: `transcribeError`, `transcribeErrorTake`,
+  `transcribeAttempts` (at most 3 per take). A new take in the same month changes `updatedAt`, so the text is made
+  again; the CRM hides a text whose `transcribedTake` is not the current take. Writes happen in a transaction only if
+  the take is still the same (the student may record again while the Mac works).
+- Error check (when Ollama has the GEC model `llammas-gec`; otherwise only the text, the check follows on a later pass):
+  the same code as a lesson's (`learnerSentences`, `judgeCorrection`, „Pole viga” filter, `errorTopics`). It is a
+  model's guess and, like a lesson's analysis, **staff only**: `studentMonologueAnalysis/{monologueId}`
+  `{ studentId, monologueId, month, take, errors[{startMs, said, corrected, kind}], checked, focus[{key, topic, count,
+  examples}], models, analyzedAt }`. The monologue doc only gets `analyzedTake` (or `analysisError`,
+  `analysisErrorTake`, `analysisAttempts`).
+- Rules: the worker writes with the Admin SDK (service account), so no rule lets anyone else write those fields
+  (`studentMonologues` create / update keep their `hasOnly` lists). New `studentMonologueAnalysis`: read by the card's
+  teacher and admins (`staffCanAccessStudent`), no client write; student and parents cannot read it. Test:
+  `functions/student-monologues-emulator.integration.js`.
+- CRM: student card → „Areng” → „Monoloogid” shows words and words/min, a line „N lauset kontrollitud, M võimalikku
+  viga: <top topics> (count)” and „Tekst ja vead” (the text and said → corrected). Without the rules deployed the card
+  works and simply shows no error line.
+- Switch off: `MONOLOGUES=off` in the launchd environment (`ANALYSIS=off` also stops the error check).
+
+**After this change the owner must update the school Mac**, otherwise monologues stay audio only:
+1. On the school Mac, in the repository folder: `git pull`
+2. Then: `tools/lesson-transcriber/install-mac.sh` (restarts the worker with the new code; nothing new to download).
+3. Check `~/KeeleSeppTranscriber/transcriber.log` for `monologue text …` lines within a few minutes.
 
 ## Setup on the Mac
 
