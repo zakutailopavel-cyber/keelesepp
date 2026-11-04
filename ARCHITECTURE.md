@@ -129,11 +129,18 @@ live (not the first, possibly old snapshot). Writes only on start / pause / resu
 corner (click: big), last 10 s highlighted, „Aeg läbi!” + Web Audio chime once (mute in `localStorage`
 `keelesepp.countdownMuted`).
 
-Student sheet tabs (1:1 room, student side; `sheetTabs.js`): worksheet pages („Tööleht: …”) are tabs only for this room's
-sheets (or, when the room has none yet, the most recent lesson day's); older sheets (grouped by `liveRoomKey`, labelled
-by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen there or reached by following the teacher
-stays a tab with a × until closed (session state only). `StudentBoard` takes this as the optional `sheetTabs` prop; the
-teacher's tabs are unchanged.
+Sheet tabs (1:1 room, teacher and student alike since 2026-11-04 `agent/live-tabs-bar`; `sheetTabs.js`): worksheet pages
+(„Tööleht: …”) are tabs only for this room's sheets (or, when the room has none yet, the most recent lesson day's); older
+sheets (grouped by `liveRoomKey`, labelled by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen
+there, opened otherwise or reached by following the teacher stays a tab with a × until closed (session state only).
+`StudentBoard` takes this as the optional `sheetTabs` prop.
+
+Page bar (`board/BoardPageTabs.jsx`, `board/pageTabsModel.js`, every board variant): a solid toolbar above the board
+(room variant: `--sb-bar-h` 44 px, the stage starts 8 px below it, the bar ends `insetRight` px before the video tiles).
+Labels drop „Tööleht:”; the pages of one lesson („<lesson> · Avasta|Harjuta|Kasuta|Õpik”) are one tab with a chip per
+phase (title ellipsized, full title as tooltip / accessible name = page title). The active tab is scrolled into view;
+overflow shows edge fades + arrows; a bar narrower than 1000 px whose tabs do not fit folds to „Tahvel” + the open
+tab + menu „Lehed ▾”.
 
 „Kiirküsimus” (quick poll, teacher tool, 1:1 and group; `quickPoll.js`, `useQuickPoll.js`, `QuickPoll.jsx`,
 `services/firebase/livePolls.js`): one doc per room `livePolls/{kind}_{roomId}` (kind `lesson` = invitation id, `group` =

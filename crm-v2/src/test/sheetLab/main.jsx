@@ -61,6 +61,11 @@ function fakeRepository(pushers, assignment) {
 // an in-memory board: what is drawn stays and comes back through the subscription, as from Firestore
 function boardService() {
   const pages = [{ id: 'pg-1', title: 'Tööleht: Labori tööleht' }];
+  // ?tabs=1: many long lesson pages, to see the page bar (BoardPageTabs) fold, scroll and group
+  if (params.get('tabs')) {
+    ['Probleemi lahendamine grammatikaga', 'Vahehindamine 1 — tunnid 1–20', 'Minu pere ja sugulased'].forEach((lesson, index) => ['Avasta', 'Harjuta', 'Kasuta'].forEach((phase) => pages.push({ id: `pg-${index}-${phase}`, title: `Tööleht: ${lesson} · ${phase}` })));
+    pages.push({ id: 'pg-day', title: 'Tund 04.11.2026' });
+  }
   const data = {};
   const listeners = {};
   const key = (pageId) => pageId || 'board';
