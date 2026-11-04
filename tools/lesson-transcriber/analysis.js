@@ -241,6 +241,24 @@ function withFocus(summary, topics = []) {
   return { ...base, raske: [...lines, ...(base.raske || [])].slice(0, 5) };
 }
 
+// ── teachers' „Pole viga” (owner 2026-11-04) ──
+// A teacher marks a flagged error as not an error on the student card; the CRM stores a copy in `analyzerFeedback`
+// (said, corrected, recordingId…). The same correction (said → corrected, compared without capitals and punctuation)
+// dismissed in at least FEEDBACK_MIN different lessons is the model's habit, not the learner's error: it is skipped.
+const FEEDBACK_MIN = 2;
+const feedbackPair = (said, corrected) => `${plain(said)}→${plain(corrected)}`;
+function dismissedPairs(items = [], min = FEEDBACK_MIN) {
+  const lessons = new Map();
+  for (const x of items) {
+    if (!x?.said || !x?.corrected) continue;
+    const key = feedbackPair(x.said, x.corrected);
+    if (!lessons.has(key)) lessons.set(key, new Set());
+    lessons.get(key).add(x.recordingId || `${lessons.get(key).size}`);
+  }
+  return new Set([...lessons].filter(([, ids]) => ids.size >= min).map(([key]) => key));
+}
+const isDismissed = (pairs, said, corrected) => Boolean(pairs?.size) && pairs.has(feedbackPair(said, corrected));
+
 const GEC_PROMPT = (sentence) => `### Instruction:\nReply with a corrected version of the input sentence in Estonian with all grammatical and spelling errors fixed. If there are no errors, reply with a copy of the original sentence.\n\n### Input:\n${sentence}\n\n### Response:\n`;
 
 function summaryPrompt(transcript = [], topics = []) {
@@ -466,4 +484,5 @@ function ekiGrammar(profile, key) {
 }
 
 module.exports = {
+  FEEDBACK_MIN, feedbackPair, dismissedPairs, isDismissed,
   looksEstonian, isFormList, learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, judgeCorrection, errorKind, teacherRecasts, errorTopics, withFocus, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };

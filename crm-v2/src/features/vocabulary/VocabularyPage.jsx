@@ -16,6 +16,7 @@ import { isDue, sameWord } from './wordsModel.js';
 import { useStudentWords } from './useStudentWords.js';
 import { dailyPlan } from './dailyReview.js';
 import DailyReminder from './DailyReminder.jsx';
+import OwnWordsCard from './OwnWordsCard.jsx';
 import './vocabulary.css';
 
 /**
@@ -30,6 +31,7 @@ export default function VocabularyPage({
   worksheetRepository = lessonWorksheetsService,
   wordsService = studentWordsService,
   loadWords = loadWordsForLessons,
+  toolsService,
 }) {
   const { user, preview } = useAuth();
   const state = useAsyncData(async () => {
@@ -132,6 +134,7 @@ export default function VocabularyPage({
               : myDeck.length >= 2 ? <button type="button" className="vd-hero__go is-soft" onClick={() => setOpen({ key: 'all', title: 'Minu sõnad', lessonId: '', deck: myDeck, mode: 'match' })}><Play size={18} /> Mängi paare</button> : null}
           </section>
           {!preview && myDeck.length ? <DailyReminder /> : null}
+          <OwnWordsCard students={students} words={words} user={user} preview={Boolean(preview)} service={wordsService} {...(toolsService ? { toolsService } : {})} />
           <Card>
             <div className="section-heading"><div><span className="eyebrow">Lause lahti</span><h2>Võta lause lahti</h2></div></div>
             <SentenceAnalyzer />

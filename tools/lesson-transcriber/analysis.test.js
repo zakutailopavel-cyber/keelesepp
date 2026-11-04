@@ -131,3 +131,24 @@ test('foreign recognition noise and lists of one word\'s forms are not checked (
   const speech = learnerSpeech([line('The bovli out of the book.'), line('Ma elan Tallinnas.'), { speaker: 'student', text: 'Я не знаю', lang: 'ru' }]);
   assert.deepEqual(speech, { words: 12, langWords: 3 });
 });
+
+test('„Pole viga”: a correction dismissed in two lessons is skipped, one dismissal is not enough', () => {
+  const { dismissedPairs, isDismissed, feedbackPair, FEEDBACK_MIN } = require('./analysis');
+  assert.equal(FEEDBACK_MIN, 2);
+  assert.equal(feedbackPair('Ma lähen poodi.', 'Ma lähen  poodi!'), feedbackPair('ma lähen poodi', 'Ma lähen poodi'));
+  const feedback = [
+    { said: 'Mul on kaks vend.', corrected: 'Mul on kaks venda.', recordingId: 'a' },
+    { said: 'mul on kaks vend', corrected: 'Mul on kaks venda!', recordingId: 'b' },
+    // the same lesson twice counts once
+    { said: 'Ta tuleb homme.', corrected: 'Ta tuleb homme ka.', recordingId: 'c' },
+    { said: 'Ta tuleb homme.', corrected: 'Ta tuleb homme ka.', recordingId: 'c' },
+    { said: '', corrected: 'x', recordingId: 'd' },
+  ];
+  const pairs = dismissedPairs(feedback);
+  assert.equal(pairs.size, 1);
+  assert.equal(isDismissed(pairs, 'Mul on kaks vend.', 'Mul on kaks venda.'), true);
+  assert.equal(isDismissed(pairs, 'Ta tuleb homme.', 'Ta tuleb homme ka.'), false);
+  assert.equal(isDismissed(pairs, 'Mul on kaks vend.', 'Mul on kaks vendi.'), false, 'another correction of the same sentence stays');
+  assert.equal(isDismissed(new Set(), 'a b', 'a c'), false);
+  assert.equal(isDismissed(undefined, 'a b', 'a c'), false);
+});

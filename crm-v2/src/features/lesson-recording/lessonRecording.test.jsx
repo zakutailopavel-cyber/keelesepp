@@ -169,8 +169,10 @@ describe('StudentRecordingsPanel', () => {
     expect(screen.getByText(/Tundi ei salvestata: nõusolekut pole/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Märgi nõusolek saadud' })).toBeNull();
     expect(await screen.findByRole('link', { name: /Tahvel/ })).toHaveAttribute('href', '/board/st-1?page=p-29');
+    // „Areng tundide kaupa” above the lessons, from the same recordings
+    expect(screen.getByRole('heading', { name: /Areng tundide kaupa/ })).toBeInTheDocument();
     fireEvent.click(await screen.findByRole('button', { name: /Tunni analüüs/ }));
-    expect(screen.getByText('Õpilase osa kõnest')).toBeInTheDocument();
+    expect(screen.getByText('Õpilase osa kõnest', { selector: 'dt' })).toBeInTheDocument();
     expect(screen.getByText('Ma ärkan kell seitse.')).toBeInTheDocument();
     expect(screen.getByText('Õpilane ütles 4 sõna')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Õpilane' }));

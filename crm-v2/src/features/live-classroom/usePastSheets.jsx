@@ -21,6 +21,9 @@ export function usePastSheets({ homework, studentId, role }) {
     id: item.id,
     title: sheetBoardTitle(item),
     legacyTitle: item.title || item.worksheetDoc?.meta?.title || 'Tööleht',
+    // the lesson (room) and time it was opened in: the live room groups older sheets by them (sheetTabs.js)
+    roomKey: item.liveRoomKey || '',
+    openedAt: item.liveOpenedAt || '',
     content: <RoomWorksheetContent current={item} role={role} {...(homework ? { homework } : {})} />,
   })), [homework, items, role]);
 }

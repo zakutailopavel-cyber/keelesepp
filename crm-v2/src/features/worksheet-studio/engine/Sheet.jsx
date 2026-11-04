@@ -1,6 +1,6 @@
 /* global ResizeObserver */
 import { IN_LESSON_LABEL, isInLesson } from './inLesson.js';
-import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { dragId, dropId, lastBlockOf } from './dragIds.js';
 import { BLOCKS, exampleAnswers, numberTasks } from './registry.js';
@@ -259,14 +259,14 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   const [chosenPop, setChosenPop] = useState('');
   const [typingIn, setTypingIn] = useState('');
   const popKey = popIds.join(',');
-  useEffect(() => {
-    // a note that went away and comes back (the teacher hides and shows the answers again) opens again
-    setClosedPops((closed) => {
-      const kept = [...closed].filter((id) => popIds.includes(id));
-      return kept.length === closed.size ? closed : new Set(kept);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- popKey stands for popIds
-  }, [popKey]);
+  // a note that went away and comes back (the teacher hides and shows the answers again) opens again: adjusted while
+  // rendering when the set of notes changes (no effect, so no extra render pass)
+  const [seenPopKey, setSeenPopKey] = useState(popKey);
+  if (seenPopKey !== popKey) {
+    setSeenPopKey(popKey);
+    const kept = [...closedPops].filter((id) => popIds.includes(id));
+    if (kept.length !== closedPops.size) setClosedPops(new Set(kept));
+  }
   const popFor = (id) => {
     const item = blockPopovers?.[id];
     if (!item || mode === 'edit') return null;
