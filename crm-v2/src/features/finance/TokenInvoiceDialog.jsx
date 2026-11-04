@@ -10,6 +10,7 @@ import { activeDirections } from '../students/studyDirections.js';
 import { useStudyDirections } from '../students/useStudyDirections.js';
 import { INVOICE_NOTE_MAX, invoiceNotesService, saveCreationNote } from '../../services/firebase/invoiceNotes.js';
 import { defaultBillingMonth } from './monthlyBilling.js';
+import { cardPayerEmail, cardPayerName } from './invoicePayer.js';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
 const PRESETS = [4, 8, 9, 12];
@@ -51,8 +52,9 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
   const priceCents = subject ? Number(subjectPrice?.lessonPriceCents ?? plan?.lessonPriceCents) || 0 : 0;
   const minutes = subjectPrice?.lessonMinutes || plan?.lessonMinutes || 60;
   const count = Math.max(0, Math.floor(Number(lessons) || 0));
-  const payer = card ? (card.payerName || card.parentName || card.name) : '';
-  const payerEmail = card ? (card.payerEmail || card.parentEmail || card.email || '') : '';
+  // the same payer and address the server stores and sends to (invoicePayer.js ↔ functions/invoice-payer-core.js)
+  const payer = card ? cardPayerName(card) : '';
+  const payerEmail = card ? cardPayerEmail(card) : '';
 
   // the lessons left that this subject's lessons can take (shown only for the card it was read for)
   const balance = loaded.studentId === studentId && loaded.packages && subject ? subjectBalance(loaded.packages, subject) : null;
@@ -110,7 +112,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
           {subjects.map((item) => <option key={item} value={item}>{item}</option>)}
         </Select> : null}
         {card ? <p className="form-hint form-grid__wide">
-          Maksja: <strong>{payer}</strong>{payerEmail ? ` · ${payerEmail}` : ' · e-post puudub'} · Tunnihind{subject ? ` (${subject})` : ''}: <strong>{!subject ? 'vali aine' : priceCents ? `${money(priceCents)} / ${minutes} min` : 'määramata'}</strong>
+          Maksja: <strong>{payer}</strong>{payerEmail ? ` · ${payerEmail}` : ' · Arvel pole saaja e-posti'} · Tunnihind{subject ? ` (${subject})` : ''}: <strong>{!subject ? 'vali aine' : priceCents ? `${money(priceCents)} / ${minutes} min` : 'määramata'}</strong>
           {balance !== null ? <> · Praegu paketis ({subject}): <strong>{balance} tundi</strong></> : null}
         </p> : null}
         <div className="field form-grid__wide">

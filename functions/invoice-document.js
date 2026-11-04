@@ -38,8 +38,10 @@ function invoiceParties(invoice = {}, student = {}) {
       || student.payerAddress
       || student.address
       || "",
+    // an old invoice made without a payer e-mail shows the address it was actually sent to (display only)
     payerEmail: invoice.payerEmail
       || invoice.parentEmail
+      || invoice.emailRecipient
       || student.payerEmail
       || student.parentEmail
       || student.contactEmail

@@ -55,6 +55,7 @@ function documentParties(creditNote, invoice = {}, student = {}) {
     payerEmail: creditNote.payerEmail
       || invoice.payerEmail
       || invoice.parentEmail
+      || invoice.emailRecipient
       || student.payerEmail
       || student.parentEmail
       || student.contactEmail
