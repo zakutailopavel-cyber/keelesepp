@@ -122,3 +122,15 @@
 .lesson-moments__legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
 .lesson-moments__legend i.is-moment { background: #4f7cff; }
 .lesson-moments__legend i.is-error { background: #e5484d; }
+
+/* „Koosta kodutöö vigadest” (ErrorHomework.jsx): the draft the teacher checks before sending */
+.error-homework { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid #c7d7fe; border-radius: 12px; background: #f5f8ff; }
+.error-homework header { display: grid; gap: 2px; }
+.error-homework header small { color: var(--muted, #667085); }
+.error-homework__group h4 { margin: 0 0 6px; font-size: .9rem; }
+.error-homework__group ol { display: grid; gap: 8px; margin: 0; padding-left: 20px; }
+.error-homework__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.error-homework__row.is-choice { grid-template-columns: minmax(0, 1.4fr) minmax(0, .8fr) minmax(0, 1fr) auto; }
+.error-homework__send { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.error-homework__start { display: grid; gap: 6px; justify-items: start; }
+@media (max-width: 720px) { .error-homework__row, .error-homework__row.is-choice { grid-template-columns: minmax(0, 1fr); } }

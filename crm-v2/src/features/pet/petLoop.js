@@ -65,6 +65,23 @@ export function petRequest({ needs, words = [], stats = [], topics = [], lang = 
   return null;
 }
 
+// The pet's mood in one word for the home card („Tuju”): content after today's request, proud of a great week, else the
+// need it asks for when that need is low, else calm. Never sad or ashamed (owner 2026-11-01).
+const MOODS = {
+  glad: { et: 'rõõmus', ru: 'радуется' },
+  proud: { et: 'uhke', ru: 'гордится' },
+  food: { et: 'näljane', ru: 'голодный' },
+  joy: { et: 'igavleb', ru: 'скучает' },
+  energy: { et: 'väsinud', ru: 'устал' },
+  calm: { et: 'rahulik', ru: 'спокоен' },
+};
+export function moodLabel({ mood = 'calm', request = null, needs = null, done = false }) {
+  if (done || mood === 'happy') return { key: 'glad', ...MOODS.glad };
+  if (mood === 'proud') return { key: 'proud', ...MOODS.proud };
+  if (request && needs && (needs[request.need] ?? 100) < LOW_NEED) return { key: request.need, ...MOODS[request.need] };
+  return { key: 'calm', ...MOODS.calm };
+}
+
 const THANKS = {
   food: { et: 'Aitäh! Nüüd on kõht täis.', en: 'Thank you! Now I am full.', ru: 'Спасибо! Теперь я сыт(а).' },
   joy: { et: 'Aitäh! See oli tore!', en: 'Thank you! That was fun!', ru: 'Спасибо! Было здорово!' },

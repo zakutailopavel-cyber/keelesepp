@@ -154,30 +154,39 @@ describe('students list states', () => {
     await waitFor(() => expect(service.restore).toHaveBeenCalledWith(['s1', 's2']));
   });
 
-  it('lists possible duplicates, hides a pair marked „Ei ole duplikaat” and merges a pair with the preview', async () => {
+  it('lists possible duplicate cards side by side, hides a pair marked „Pole sama inimene” and opens the merge with the pair', async () => {
     const items = [
-      { id: 'a1', name: 'Milan', active: true, linkedParentId: 'p1', subject: 'Inglise keel' },
+      { id: 'a1', name: 'Milan', active: true, linkedParentId: 'p1', subject: 'Inglise keel', phone: '+372 5123 4567', email: 'milan.g@example.com' },
       { id: 'b2', name: 'Milan Grozovski', active: true, linkedParentIds: ['p1'], subject: 'Eesti keel' },
       { id: 'c3', name: 'Maria', active: true },
       { id: 'd4', name: 'Maria', active: true },
       { id: 'e5', name: 'Sofia', active: true, linkedParentId: 'p1' },
     ];
-    const service = { list: vi.fn().mockResolvedValue({ items, cursor: null, hasMore: false }), markNotDuplicate: vi.fn().mockResolvedValue({}) };
+    const service = { list: vi.fn().mockResolvedValue({ items, cursor: null, hasMore: false }), markNotDuplicate: vi.fn().mockResolvedValue({}), recordCounts: vi.fn(async (id) => (id === 'a1' ? { lessons: 12, invoices: 3 } : { lessons: 0, invoices: 0 })) };
     const mergeService = { mergeStudents: vi.fn(async ({ apply }) => ({ applied: Boolean(apply), keep: { id: 'a1', name: 'Milan', accounts: [] }, source: { id: 'b2', name: 'Milan Grozovski', accounts: [] }, names: ['Milan', 'Milan Grozovski'], keepName: 'Milan', move: [{ collection: 'lessons', field: 'studentId', count: 4, kind: 'learner' }], totals: { learner: 4 }, documents: [], conflicts: [], skipped: [], price: { action: 'none' } })) };
     render(<MemoryRouter><StudentsPage service={service} mergeService={mergeService} actor={{ uid: 'admin', roles: ['admin'] }} /></MemoryRouter>);
-    fireEvent.click(await screen.findByRole('button', { name: /Võimalikud duplikaadid/ }));
-    const dialog = await screen.findByRole('dialog', { name: 'Võimalikud duplikaadid' });
+    fireEvent.click(await screen.findByRole('button', { name: /Võimalikud topeltkaardid/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'Võimalikud topeltkaardid' });
     expect(await within(dialog).findByText('Milan / Milan Grozovski')).toBeInTheDocument();
     expect(within(dialog).getByText(/Sarnane nimi · Sama lapsevanema konto/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Sama inimene, eri ained \(Inglise keel \/ Eesti keel\)/)).toBeInTheDocument();
     expect(within(dialog).getByText('Maria / Maria')).toBeInTheDocument();
     expect(within(dialog).queryByText(/Sofia/)).toBeNull();
+    // both cards side by side with their history; contacts never in full
+    const milanCards = within(dialog).getByText('Milan / Milan Grozovski').closest('section');
+    expect(await within(milanCards).findByText('12')).toBeInTheDocument();
+    expect(within(milanCards).queryAllByText('kontot pole')).toHaveLength(0);
+    expect(within(milanCards).getAllByText('ainult lapsevanema konto')).toHaveLength(2);
+    expect(within(milanCards).getByText('m•••@example.com · •••• 67')).toBeInTheDocument();
+    expect(within(dialog).queryByText(/5123|milan\.g@/)).toBeNull();
+    expect(service.recordCounts).toHaveBeenCalledWith('a1');
     // two children called Maria
     const maria = within(dialog).getByText('Maria / Maria').closest('section');
-    fireEvent.click(within(maria).getByRole('button', { name: 'Ei ole duplikaat' }));
+    fireEvent.click(within(maria).getByRole('button', { name: 'Pole sama inimene' }));
     await waitFor(() => expect(service.markNotDuplicate).toHaveBeenCalledWith('c3', 'd4'));
     await waitFor(() => expect(within(dialog).queryByText('Maria / Maria')).toBeNull());
     const milan = within(dialog).getByText('Milan / Milan Grozovski').closest('section');
-    fireEvent.click(within(milan).getByRole('button', { name: 'Liida' }));
+    fireEvent.click(within(milan).getByRole('button', { name: 'Ava ühendamine' }));
     const merge = await screen.findByRole('dialog', { name: 'Liida kaardid: Milan' });
     expect(await within(merge).findByText(/Tunnid: 4/)).toBeInTheDocument();
     expect(mergeService.mergeStudents).toHaveBeenCalledWith({ keepId: 'a1', sourceId: 'b2' });
