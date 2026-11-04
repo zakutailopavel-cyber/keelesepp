@@ -8,3 +8,8 @@ useDefault = true
 description = "Test fixture: a made-up Ekilex key in the language API test, not a real credential"
 targetRules = ["generic-api-key"]
 paths = ['''^functions/language-api\.test\.js$''', '''^functions/own-word\.test\.js$''']
+
+[[allowlists]]
+description = "Test fixture: a task key like monologue-s-2026-11 in the cabinet next-step test, not a credential"
+targetRules = ["generic-api-key"]
+paths = ['''^crm-v2/src/features/students/nextStep\.test\.js$''']
