@@ -1,0 +1,105 @@
+name: Daily smoke (live site)
+
+# Read-only check of the LIVE site every morning (docs/DAILY_SMOKE.md): public pages, Cloud Functions answering,
+# Firestore rules refusing anonymous reads, and — when the owner has added the test accounts as secrets — a student's
+# and a teacher's first screens. The browser stops every data write; nothing is created, sent or deployed.
+# A red run e-mails the repository owner (GitHub default) and opens / updates one issue labelled „smoke”.
+
+on:
+  schedule:
+    # 04:30 UTC = 06:30 Tallinn in winter (EET), 07:30 in summer (EEST). GitHub may start scheduled runs late.
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Live site checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    outputs:
+      failed: ${{ steps.run.outputs.failed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Install Playwright (pinned in e2e/package-lock.json)
+        working-directory: e2e
+        run: npm ci --no-audit --no-fund
+      - name: Install the headless browser
+        working-directory: e2e
+        run: npx playwright install --with-deps --only-shell chromium
+      - name: Check the live site (read-only)
+        id: run
+        env:
+          SMOKE_OUT: ${{ runner.temp }}/smoke-report
+          SMOKE_STUDENT_EMAIL: ${{ secrets.SMOKE_STUDENT_EMAIL }}
+          SMOKE_STUDENT_PASSWORD: ${{ secrets.SMOKE_STUDENT_PASSWORD }}
+          SMOKE_TEACHER_EMAIL: ${{ secrets.SMOKE_TEACHER_EMAIL }}
+          SMOKE_TEACHER_PASSWORD: ${{ secrets.SMOKE_TEACHER_PASSWORD }}
+          SMOKE_SIGNED_IN_SCREENSHOTS: ${{ vars.SMOKE_SIGNED_IN_SCREENSHOTS }}
+        run: |
+          status=0
+          node e2e/smoke/daily-smoke.cjs || status=$?
+          delimiter="SMOKE_$(openssl rand -hex 12)"
+          {
+            echo "failed<<${delimiter}"
+            cat "$SMOKE_OUT/failed.md" 2>/dev/null || echo "- the smoke script did not finish (see the run log)"
+            echo
+            echo "${delimiter}"
+          } >> "$GITHUB_OUTPUT"
+          exit "$status"
+      - name: Keep the summary and screenshots (failed runs only)
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: daily-smoke-${{ github.run_id }}
+          path: ${{ runner.temp }}/smoke-report
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # A separate small job holds the only write permission (issues), so the job that runs npm packages and the browser
+  # never gets it. It opens one issue on failure, comments on it while it keeps failing, and closes it when green.
+  issue:
+    name: Smoke issue
+    needs: smoke
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      issues: write # open / comment on / close the one „smoke” issue in this repository
+    steps:
+      - name: Open, update or close „Igapäevane kontroll ebaõnnestus”
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RESULT: ${{ needs.smoke.result }}
+          FAILED: ${{ needs.smoke.outputs.failed }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Igapäevane kontroll ebaõnnestus"
+          number=$(gh issue list --state open --label smoke --limit 20 --json number,title \
+            --jq "map(select(.title == \"$title\")) | .[0].number // empty")
+          if [ "$RESULT" = "success" ]; then
+            if [ -n "$number" ]; then
+              gh issue comment "$number" --body "Korras uuesti: $RUN_URL"
+              gh issue close "$number" --reason completed
+            fi
+            exit 0
+          fi
+          body=$(printf 'Igapäevane kontroll (live sait) ebaõnnestus.\n\n%s\n\nKäivitus, kokkuvõte ja ekraanipildid (artefakt): %s\n\nJuhend: docs/DAILY_SMOKE.md\n' "${FAILED:-- vt käivituse logi}" "$RUN_URL")
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh label create smoke --color B60205 --description "Daily live-site check" 2>/dev/null || true
+            gh issue create --title "$title" --label smoke --body "$body"
+          fi
