@@ -47,7 +47,9 @@ export const studentWorksheetsService = {
         };
       },
 
-      async save({ lessonId = '', document, user, baseUpdatedAt = '', status = 'draft' }) {
+      // `origin` (optional): where the sheet came from, kept on the draft and the assignment — „Koosta kodutöö
+      // vigadest” passes { kind: 'lesson-errors', recordingId, invitationId } (a link back to the lesson recording)
+      async save({ lessonId = '', document, user, baseUpdatedAt = '', status = 'draft', origin = null }) {
         validateWorksheetDoc(document);
         const { db } = requireFirebaseClient();
         const now = new Date().toISOString();
@@ -55,6 +57,11 @@ export const studentWorksheetsService = {
         const assignmentRef = doc(db, 'worksheetAssignments', draftRef.id);
         const created = !lessonId;
         const published = status === 'published';
+        const originFields = origin?.kind ? {
+          origin: String(origin.kind).slice(0, 40),
+          ...(origin.recordingId ? { sourceRecordingId: String(origin.recordingId).slice(0, 200) } : {}),
+          ...(origin.invitationId ? { sourceInvitationId: String(origin.invitationId).slice(0, 200) } : {}),
+        } : {};
         return runTransaction(db, async (transaction) => {
           const existing = created ? null : await transaction.get(draftRef);
           if (existing && (!existing.exists() || existing.data().studentId !== studentId)) throw new Error('Õpilase töölehte ei leitud.');
@@ -82,6 +89,7 @@ export const studentWorksheetsService = {
             createdBy: current.createdBy || user?.uid || '',
             updatedAt: now,
             updatedBy: user?.uid || '',
+            ...originFields,
           });
           if (published) {
             transaction.set(assignmentRef, {
@@ -104,6 +112,7 @@ export const studentWorksheetsService = {
               answers: {},
               source: 'student_private_worksheet',
               privateWorksheetId: draftRef.id,
+              ...originFields,
             }, { merge: true });
           }
           return { id: draftRef.id, created, title, updatedAt: now, version, status: published ? 'published' : 'draft' };

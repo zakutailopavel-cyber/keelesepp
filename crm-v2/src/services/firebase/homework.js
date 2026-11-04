@@ -234,7 +234,8 @@ export const homeworkService = {
   },
   // Live Classroom „Kodutöö”: a task given in the lesson. It may point at a board page (the student opens it from the
   // homework list) and may give the room's worksheet a due date (it is already the student's assignment).
-  async createFromLesson({ invitation, user, task, due = '', note = '', boardPage = null, worksheet = null, voice = false }) {
+  // `source` 'lesson-errors' + `recordingId`: „Koosta kodutöö vigadest” in the lesson analysis (link to the recording)
+  async createFromLesson({ invitation, user, task, due = '', note = '', boardPage = null, worksheet = null, voice = false, source = 'live-classroom', recordingId = '' }) {
     const text = String(task || '').trim();
     if (!invitation?.studentId) throw new Error('Õpilane puudub.');
     if (!text) throw new Error('Kirjuta, mida teha.');
@@ -254,7 +255,8 @@ export const homeworkService = {
       invitationId: invitation.id,
       teacherUid: user.uid,
       teacherName: user.displayName || invitation.teacherName || '',
-      source: 'live-classroom',
+      source: source === 'lesson-errors' ? 'lesson-errors' : 'live-classroom',
+      ...(recordingId ? { recordingId: String(recordingId).slice(0, 200) } : {}),
       createdAt: now,
       ...(boardPage?.id ? { boardPageId: boardPage.id, boardPageTitle: String(boardPage.title || 'Tahvlileht').slice(0, 200) } : {}),
       ...(worksheet?.id ? { worksheetAssignmentId: worksheet.id, worksheetTitle: String(worksheet.title || 'Tööleht').slice(0, 200) } : {}),

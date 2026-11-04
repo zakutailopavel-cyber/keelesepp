@@ -1,17 +1,24 @@
 import {
   ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
-  MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Timer, Undo2, Users, Video, VideoOff, X,
+  MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Sparkles, Timer, Undo2, Users, Video, VideoOff, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize, sheetBoardTitle, worksheetPageTitle } from '../board/boardModel.js';
 import { CountdownBadge, CountdownControls } from './CountdownTimer.jsx';
 import { useCountdown } from './useCountdown.js';
+import { QuickPollCard, QuickPollPanel } from './QuickPoll.jsx';
+import { useQuickPoll } from './useQuickPoll.js';
+import { pageSelectionText } from '../board/selectionText.js';
 import { groupSheetTabs } from './sheetTabs.js';
 import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import { usePastSheets } from './usePastSheets.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import MomentButton from './MomentButton.jsx';
+import LessonHints from './LessonHints.jsx';
+import WarmupPanel from './WarmupPanel.jsx';
+import { useRecentLessons } from './useRecentLessons.js';
+import TalkMeter from './TalkMeter.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
 import LessonHomeworkPanel from './LessonHomeworkPanel.jsx';
@@ -161,7 +168,7 @@ function DevicesPanel({ call, stream }) {
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
   recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false, observerProps,
-  planService, countdownService, momentsService,
+  planService, countdownService, momentsService, pollService, boardCopies,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
@@ -251,7 +258,16 @@ export default function LiveRoom({
   const studentMark = attendanceMarks(participants, planState.plan.attendance, attendanceStart)[0] || null;
   const pastSheets = usePastSheets({ homework: worksheetProps.homework || firebaseHomework, studentId: guest ? '' : invitation.studentId || '', role });
   // the teacher's countdown (invitation field `countdown`): the teacher sets it, both see the badge
+  // „Täna harjutada” and „Soojendus”: the student's earlier analysed lessons (teacher only, read once)
+  const recent = useRecentLessons({ studentId: invitation.studentId, user, enabled: teacher && !guest, ...(recordingService ? { service: recordingService } : {}) });
   const timer = useCountdown({ kind: 'lesson', id: invitation.id, user, teacher, enabled: invitation.status !== 'closed', ...(countdownService ? { service: countdownService } : {}) });
+  // „Kiirküsimus” (livePolls/lesson_{invitationId}): the teacher asks, the student answers on a card over the board
+  const quick = useQuickPoll({
+    kind: 'lesson', roomId: invitation.id, user, teacher, enabled: invitation.status === 'accepted' && !guest,
+    participantUids: invitation.studentUid ? [invitation.studentUid] : [], studentIdOf: () => invitation.studentId, timer,
+    ...(pollService ? { service: pollService } : {}),
+  });
+  const pollLive = Boolean(quick.poll && quick.poll.status !== 'closed');
 
   // the student's sheet tabs: only the latest lesson's sheets; older ones in „Varasemad tunnid” (sheetTabs.js)
   const [openedOlder, setOpenedOlder] = useState(() => new Set());
@@ -437,6 +453,7 @@ export default function LiveRoom({
           })() : null}
           {teacher && !recState.recording && call.hasLocalMedia && consent === false ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
           {teacher && !guest ? <MomentButton invitation={invitation} user={user} recording={momentRecording} {...(momentsService ? { service: momentsService } : {})} /> : null}
+          {teacher ? <TalkMeter streams={streams} /> : null}
           {watching.observers.length ? <span className="lr-pill lr-observer" role="img" aria-label="Administraator vaatab tundi" title={`Administraator vaatab tundi: ${watching.observers.map((item) => item.displayName).join(', ')}`}><Eye size={16} /></span> : null}
           {awayFromTeacher ? <button type="button" className="lr-pill lr-follow" onClick={() => boardRef.current?.selectPage?.(teacherPage || null)}>Mine õpetaja lehele</button> : null}
           {teacher && roomChannelOpen ? <button type="button" className={`lr-pill lr-lead ${presenting ? 'is-on' : ''}`} aria-pressed={presenting} aria-label={presenting ? 'Lõpeta vaate juhtimine' : 'Juhi vaadet: õpilane näeb sama kohta'} title={presenting ? 'Õpilane näeb sama kohta, mida sina. Klõps: lõpeta' : 'Õpilane näeb sama kohta ja suurust, mida sina'} onClick={() => setPresenting(!presenting)}><Presentation size={16} aria-hidden="true" /><span className="lr-label">{presenting ? 'Juhin vaadet' : 'Juhi vaadet'}</span></button> : null}
@@ -449,6 +466,7 @@ export default function LiveRoom({
           <IconButton label="Osalejad" active={panel === 'people'} onClick={() => toggle('people')}><Users size={18} /></IconButton>
           {!guest ? <IconButton label="Vestlus" active={panel === 'chat'} onClick={() => toggle('chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</IconButton> : null}
           {teacher ? <IconButton label="Taimer" active={panel === 'timer' || timer.active} onClick={() => toggle('timer')}><Timer size={18} /></IconButton> : null}
+          {teacher && !guest ? <IconButton label="Kiirküsimus" active={panel === 'poll' || pollLive} onClick={() => toggle('poll')}><Sparkles size={18} /></IconButton> : null}
           {teacher ? <button type="button" aria-label="Materjalid" title="Materjalid" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => toggle('materials')}><LibraryBig size={17} /><span className="lr-label">Materjalid</span></button> : null}
           {!guest ? <button type="button" aria-label="Sõnad" title="Sõnad" className={`lr-text-btn ${panel === 'words' ? 'is-active' : ''}`} onClick={() => toggle('words')}><Languages size={17} /><span className="lr-label">Sõnad</span></button> : null}
           <button type="button" aria-label={sheet ? 'Ülesanded · tööleht on avatud' : 'Ülesanded'} title="Ülesanded" className={`lr-text-btn ${panel === 'tasks' ? 'is-active' : ''}`} onClick={() => { setMenu(''); if (sheet && !teacher) { boardRef.current?.openWorksheet?.(); return; } toggle('tasks'); }}><ClipboardList size={17} /><span className="lr-label">Ülesanded</span>{sheet ? <span className="lr-dot" aria-label="Tööleht on avatud" /> : null}</button>
@@ -462,6 +480,7 @@ export default function LiveRoom({
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); boardRef.current?.newPage(`Tund ${lessonDate}`).catch((error) => setNotice(error?.message || 'Uut lehte ei saanud luua.')); }}>Uus tunnileht „Tund {lessonDate}”</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('plan'); }}>Tunniplaan ja kohalolu</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('homework'); }}>Anna kodutöö</button> : null}
+          {teacher && !guest ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('warmup'); }}>Soojendus eelmise tunni lausetest</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('record'); }}>Tunni salvestamine</button> : null}
           {!teacher ? <button type="button" role="menuitemcheckbox" aria-checked={follow} onClick={() => { setMenu(''); setFollow(!follow); }}>{follow ? 'Ära jälgi õpetaja lehte' : 'Jälgi õpetaja lehte'}</button> : null}
           <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('devices'); }}>Kaamera ja mikrofon</button>
@@ -498,6 +517,8 @@ export default function LiveRoom({
             sheetTabs={sheetTabs}
           />
           <CountdownBadge timer={timer} />
+          {!teacher && !guest ? <QuickPollCard quick={quick} timer={timer} /> : null}
+          {teacher && !guest ? <LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /> : null}
           {remoteScreen.active ? <ScreenStage stream={remoteScreen.stream} name={call.peerName} visible={showScreen} /> : null}
           {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
             {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
@@ -543,10 +564,13 @@ export default function LiveRoom({
           {panel === 'words' ? <Drawer title="Sõnad" onClose={() => setPanel('')}><LessonWordsPanel studentId={invitation.studentId} invitationId={invitation.id} user={user} teacher={teacher} lang={/inglise|english/i.test(subject) ? 'en' : 'et'} {...(wordsService ? { service: wordsService } : {})} /></Drawer> : null}
           {panel === 'homework' && teacher ? <Drawer title="Kodutöö" onClose={() => { setPanel(''); setAssignPage(null); }}><LessonHomeworkPanel key={assignPage?.id || 'homework'} invitation={invitation} user={user} boardPage={assignPage || (myPage ? { id: myPage, title: myPageTitle || 'Tahvlileht' } : null)} assignPage={Boolean(assignPage)} worksheet={sheet ? { id: sheet.id, title: worksheet?.title || 'Tööleht' } : null} {...(homeworkService ? { service: homeworkService } : {})} /></Drawer> : null}
           {panel === 'end' && teacher ? <Drawer title="Tunni lõpp" onClose={() => setPanel('')}><LessonEndPanel invitation={invitation} user={user} subject={subject} startedAt={new Date(startedAt).toISOString()} pages={pagesSeen} sheets={sheetList.map((item) => ({ id: item.id, title: sheetBoardTitle(item), status: item.status, completedAt: item.completedAt, lessonId: item.lessonId || '' }))} ending={ending} attendance={studentMark} onEnd={() => onEndLesson({ confirmed: true })}
-            {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /></Drawer> : null}
+            {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} {...(boardCopies ? { boardCopies } : {})} /></Drawer> : null}
           {panel === 'plan' && teacher ? <Drawer title="Tunniplaan" onClose={() => setPanel('')}><LessonPlanPanel planState={planState} participants={participants} startMs={attendanceStart}
             attendanceNote="„Lõpeta tund” viib märke kalendrisse: Kohal / Hilines → Toimunud, Puudub → Puudus (ei teatanud). Hilinemise minutid jäävad tunniplaani." /></Drawer> : null}
+          {panel === 'warmup' && teacher ? <Drawer title="Soojendus" onClose={() => setPanel('')}><WarmupPanel invitation={invitation} user={user} student={student} lessons={recent.lessons} loading={recent.loading} error={recent.error} {...((worksheetProps.library || library)?.assign ? { library: worksheetProps.library || library } : {})} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} onPlaced={() => { setPanel(''); setNotice('Soojendus on tahvlil.'); }} /></Drawer> : null}
           {panel === 'timer' && teacher ? <Drawer title="Taimer" onClose={() => setPanel('')}><CountdownControls timer={timer} /></Drawer> : null}
+          {panel === 'poll' && teacher ? <Drawer title="Kiirküsimus" onClose={() => setPanel('')}><QuickPollPanel quick={quick} timer={timer} names={invitation.studentUid ? { [invitation.studentUid]: invitation.studentName } : {}}
+            pickText={() => boardRef.current?.selectedText?.() || pageSelectionText()} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}
           <div className={panel === 'tasks' ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'tasks'} role="region" aria-label="Ülesanded">

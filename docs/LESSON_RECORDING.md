@@ -76,6 +76,42 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
    (or of a lesson that was not recorded) are listed by clock time; a day with marks only gets its own row in „Tunnid”.
    Joined lessons (several parts) now also move `segments[].startMs` by the part's start (`partStarts` on the joined
    lesson), like the transcript. Group rooms have no „Hetk” yet.
+7. **„Kõneaeg” (since 2026-11-04)** — in the 1:1 room the teacher (only) sees a pill „Õpilane NN %” with a bar and a
+   target line at 60 %: the student's share of the talk time so far, live, also without a recording or consent. It
+   is measured in the teacher's browser from the sound level only (`talkMeter.js`: RMS ~10 Hz, adaptive noise floor,
+   sounds < 250 ms ignored, pauses ≤ 400 ms inside speech counted; `useTalkMeter.js`: AnalyserNodes on the own
+   microphone track and the student's incoming track, never connected to the speakers, paused while the tab is
+   hidden, AudioContext closed on leave). It does not know the language. Amber when the student had < 40 % of the
+   last 10 minutes' talk (at least 2 min of talk in them); a click shows minutes per side. Nothing is saved — the
+   lesson summary (`lessonSummaries`) is readable by the student and its rules allow no extra field; the recorded
+   lesson's „Tunni analüüs” keeps its own share from the transcript.
+
+7. **„Soojendus” and „Täna harjutada” (since 2026-11-04)** — in the 1:1 room the teacher's „Rohkem → Soojendus eelmise
+   tunni lausetest” picks 3–5 of the learner's own short sentences with errors from the latest analysed lesson before
+   this one (`live-classroom/warmup.js` `pickWarmupItems`: learner lines only, 3–12 words, a 1–3 word change, top
+   focus topics first, no duplicates, no „Pole viga” corrections). The teacher edits / removes rows and puts them on
+   the board as a worksheet assignment with one `errorfix` „Paranda lause.” task per sentence (the board's „Näita
+   vastust” reveals one at a time). „Täna harjutada” is a teacher-only box over the board (not synced, hidden during
+   screen share): 2–3 topics of the last 1–3 analysed lessons with one example each and „Järgmiseks tunniks”
+   (`lessonHints`). Both read `lessonRecordings` once with the existing rule (a teacher his own, an admin all).
+
+7. **„Koosta kodutöö vigadest” (since 2026-11-04)** — in „Tunni analüüs” (AI part, below „Tee tööleht vigadest”) the
+   teacher / admin builds a short personal homework from this lesson's errors (`errorHomework.js`,
+   `ErrorHomework.jsx`; the builder is a lazy chunk). Rows: (a) „Paranda lause” — 4–6 of the learner's own sentences
+   (said → corrected); left out: the teacher's lines (`source: 'teacher'`), `unsure`, fewer than 3 words or more than
+   22, no real change, corrections that change more than about a third of the words (word-level edit distance, a
+   swap of two neighbouring words = 1 edit), „Pole viga” (also the same pair said again elsewhere in the lesson),
+   the same sentence twice; the lesson's top topic first. (b) 4–6 „Vali õige vorm / sõnajärg” items on the lesson's
+   top topic (`focus[0]`) from the network-free generator: `cases` → `local-cases` patterns; `form` → koos +
+   kaasaütlev and / or palju + osastav when the learner's sentences contain them, else `partitive-object`; `verb` →
+   `olema-present` + `past-simple`; `order` → verb-second sentences from the lexicon („Homme lähen ma kooli.” vs
+   „Homme ma lähen kooli.”). `missing`, `extra`, `vocab` (or fewer than 4 items) → no generated items, up to 10 own
+   rows instead. The teacher sees the draft, edits / removes rows, sets the due date (default +7 days); nothing is
+   written before „Saada õpilasele”. Then, like any personal sheet given from a lesson: `studentWorksheets.save`
+   (published → `studentWorksheetDrafts/{id}` + `worksheetAssignments/{id}`, source `student_private_worksheet`, with
+   `origin: 'lesson-errors'`, `sourceRecordingId`, `sourceInvitationId`) and `homework.createFromLesson` (task „Tee
+   tööleht „…””, `worksheetAssignmentId`, `source: 'lesson-errors'`, `recordingId`; the homework list shows „Tunni
+   vigadest”). Scoring (errorfix + choice), review and the student's cabinet are unchanged. No rules change.
 
 ## Data and rules
 
