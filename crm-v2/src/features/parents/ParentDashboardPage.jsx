@@ -20,6 +20,7 @@ import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinanc
 import SubjectSwitcher from '../students/SubjectSwitcher.jsx';
 import { itemSubject, onlySubject, subjectsOf } from '../students/subjects.js';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
+import LessonBoardsCard from '../board/LessonBoardsCard.jsx';
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import { ChildrenWordGrowth } from '../vocabulary/WordGrowthCard.jsx';
 import ChildSwitch, { childKeyOf } from './ChildSwitch.jsx';
@@ -99,7 +100,7 @@ function ChildCard({ child, summary, subjects, onlyOneSubject, lessonRequest, on
   </article>;
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService }) {
   const { user, preview } = useAuth();
   const location = useLocation();
   const [rescheduling, setRescheduling] = useState(null);
@@ -198,10 +199,12 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
         })}</div> : <EmptyState title="Arveid ei ole" />}</Card>
       </Section>
 
-      <Section id="areng" title="Areng" ru="успехи" summary="Sõnad, kuu sammud ja tundide kokkuvõtted" open={openSection === 'areng'} onToggle={() => toggle('areng')}>
+      <Section id="areng" title="Areng" ru="успехи" summary="Sõnad, kuu sammud, tundide kokkuvõtted ja tahvlid" open={openSection === 'areng'} onToggle={() => toggle('areng')}>
         <ChildrenWordGrowth students={childRecords} {...(wordsService ? { service: wordsService } : {})} />
         <ChildrenMonthSteps students={childRecords} repository={homeworkRepository} />
         <LessonSummariesCard studentIds={childRecordIds} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
+        {/* „Tunni tahvlid”: the lesson boards as they were at the end of each lesson, read-only */}
+        <LessonBoardsCard studentIds={childRecordIds} {...(boardCopiesService ? { service: boardCopiesService } : {})} />
         <MyWordsCard studentIds={childRecordIds} readOnly {...(wordsService ? { service: wordsService } : {})} />
       </Section>
 
