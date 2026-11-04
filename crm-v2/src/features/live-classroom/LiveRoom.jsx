@@ -12,6 +12,9 @@ import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/Ro
 import { usePastSheets } from './usePastSheets.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import MomentButton from './MomentButton.jsx';
+import LessonHints from './LessonHints.jsx';
+import WarmupPanel from './WarmupPanel.jsx';
+import { useRecentLessons } from './useRecentLessons.js';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
 import LessonHomeworkPanel from './LessonHomeworkPanel.jsx';
@@ -251,6 +254,8 @@ export default function LiveRoom({
   const studentMark = attendanceMarks(participants, planState.plan.attendance, attendanceStart)[0] || null;
   const pastSheets = usePastSheets({ homework: worksheetProps.homework || firebaseHomework, studentId: guest ? '' : invitation.studentId || '', role });
   // the teacher's countdown (invitation field `countdown`): the teacher sets it, both see the badge
+  // „Täna harjutada” and „Soojendus”: the student's earlier analysed lessons (teacher only, read once)
+  const recent = useRecentLessons({ studentId: invitation.studentId, user, enabled: teacher && !guest, ...(recordingService ? { service: recordingService } : {}) });
   const timer = useCountdown({ kind: 'lesson', id: invitation.id, user, teacher, enabled: invitation.status !== 'closed', ...(countdownService ? { service: countdownService } : {}) });
 
   // the student's sheet tabs: only the latest lesson's sheets; older ones in „Varasemad tunnid” (sheetTabs.js)
@@ -462,6 +467,7 @@ export default function LiveRoom({
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); boardRef.current?.newPage(`Tund ${lessonDate}`).catch((error) => setNotice(error?.message || 'Uut lehte ei saanud luua.')); }}>Uus tunnileht „Tund {lessonDate}”</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('plan'); }}>Tunniplaan ja kohalolu</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('homework'); }}>Anna kodutöö</button> : null}
+          {teacher && !guest ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('warmup'); }}>Soojendus eelmise tunni lausetest</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('record'); }}>Tunni salvestamine</button> : null}
           {!teacher ? <button type="button" role="menuitemcheckbox" aria-checked={follow} onClick={() => { setMenu(''); setFollow(!follow); }}>{follow ? 'Ära jälgi õpetaja lehte' : 'Jälgi õpetaja lehte'}</button> : null}
           <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('devices'); }}>Kaamera ja mikrofon</button>
@@ -498,6 +504,7 @@ export default function LiveRoom({
             sheetTabs={sheetTabs}
           />
           <CountdownBadge timer={timer} />
+          {teacher && !guest ? <LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /> : null}
           {remoteScreen.active ? <ScreenStage stream={remoteScreen.stream} name={call.peerName} visible={showScreen} /> : null}
           {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
             {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
@@ -546,6 +553,7 @@ export default function LiveRoom({
             {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /></Drawer> : null}
           {panel === 'plan' && teacher ? <Drawer title="Tunniplaan" onClose={() => setPanel('')}><LessonPlanPanel planState={planState} participants={participants} startMs={attendanceStart}
             attendanceNote="„Lõpeta tund” viib märke kalendrisse: Kohal / Hilines → Toimunud, Puudub → Puudus (ei teatanud). Hilinemise minutid jäävad tunniplaani." /></Drawer> : null}
+          {panel === 'warmup' && teacher ? <Drawer title="Soojendus" onClose={() => setPanel('')}><WarmupPanel invitation={invitation} user={user} student={student} lessons={recent.lessons} loading={recent.loading} error={recent.error} {...((worksheetProps.library || library)?.assign ? { library: worksheetProps.library || library } : {})} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} onPlaced={() => { setPanel(''); setNotice('Soojendus on tahvlil.'); }} /></Drawer> : null}
           {panel === 'timer' && teacher ? <Drawer title="Taimer" onClose={() => setPanel('')}><CountdownControls timer={timer} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}
