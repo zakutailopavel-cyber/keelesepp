@@ -15,6 +15,7 @@ import MomentButton from './MomentButton.jsx';
 import LessonHints from './LessonHints.jsx';
 import WarmupPanel from './WarmupPanel.jsx';
 import { useRecentLessons } from './useRecentLessons.js';
+import TalkMeter from './TalkMeter.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
 import LessonHomeworkPanel from './LessonHomeworkPanel.jsx';
@@ -442,6 +443,7 @@ export default function LiveRoom({
           })() : null}
           {teacher && !recState.recording && call.hasLocalMedia && consent === false ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
           {teacher && !guest ? <MomentButton invitation={invitation} user={user} recording={momentRecording} {...(momentsService ? { service: momentsService } : {})} /> : null}
+          {teacher ? <TalkMeter streams={streams} /> : null}
           {watching.observers.length ? <span className="lr-pill lr-observer" role="img" aria-label="Administraator vaatab tundi" title={`Administraator vaatab tundi: ${watching.observers.map((item) => item.displayName).join(', ')}`}><Eye size={16} /></span> : null}
           {awayFromTeacher ? <button type="button" className="lr-pill lr-follow" onClick={() => boardRef.current?.selectPage?.(teacherPage || null)}>Mine õpetaja lehele</button> : null}
           {teacher && roomChannelOpen ? <button type="button" className={`lr-pill lr-lead ${presenting ? 'is-on' : ''}`} aria-pressed={presenting} aria-label={presenting ? 'Lõpeta vaate juhtimine' : 'Juhi vaadet: õpilane näeb sama kohta'} title={presenting ? 'Õpilane näeb sama kohta, mida sina. Klõps: lõpeta' : 'Õpilane näeb sama kohta ja suurust, mida sina'} onClick={() => setPresenting(!presenting)}><Presentation size={16} aria-hidden="true" /><span className="lr-label">{presenting ? 'Juhin vaadet' : 'Juhi vaadet'}</span></button> : null}
