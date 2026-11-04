@@ -140,7 +140,7 @@ export default function RoomRecorder({
       ctx.current = { id: rec.id, t0: Date.now(), teacher: null, student: null, uploads: [], seq: { teacher: 0, student: 0 } };
       ctx.current.teacher = { stream: streams.local, rec: recorder('teacher', streams.local) };
       setElapsed(0);
-      setRecording(rec);
+      setRecording({ ...rec, t0: ctx.current.t0 });
     } catch (err) {
       setError(err.message || 'Salvestamist ei saanud alustada.');
     } finally { setBusy(false); }
@@ -174,7 +174,9 @@ export default function RoomRecorder({
     start();
   }, [auto, hasLocal, consent, recording, busy]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { onStateChange?.({ recording: Boolean(recording), error }); }, [error, onStateChange, recording]);
+  // the running recording's id and start (ms) let the room's „Hetk” marks keep their place in the recording
+  const t0 = recording ? recording.t0 || 0 : 0;
+  useEffect(() => { onStateChange?.({ recording: Boolean(recording), error, recordingId: recording?.id || '', t0 }); }, [error, onStateChange, recording, t0]);
 
   // the text of this recording, growing during the lesson (the school Mac transcribes every closed file)
   const [live, setLive] = useState(null);

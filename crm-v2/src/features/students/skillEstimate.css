@@ -1,0 +1,10 @@
+/* „Teekond sihttasemeni” (SkillEstimateCard.jsx): the bars are the „Areng” card's (.auto-skills__*) */
+.skill-estimate__path{margin:0 0 12px;color:#344054}
+.skill-estimate__warn{color:#b54708}
+.skill-estimate__summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 16px}
+.skill-estimate__summary>div{display:grid;gap:2px;padding:10px 12px;border:1px solid #e4e7ec;border-radius:10px;background:#f9fafb}
+.skill-estimate__summary span{font-size:.78rem;color:#667085}
+.skill-estimate__summary strong{font-size:1.3rem}
+.skill-estimate__summary small{color:#667085;font-size:.78rem}
+.skill-estimate .auto-skills__row.is-thin .auto-skills__name,.skill-estimate .auto-skills__row.is-thin strong{color:#98a2b3}
+.skill-estimate__note{margin:16px 0 0;padding:10px 12px;border-radius:10px;background:#fffaeb;color:#7a2e0e;font-size:.85rem}

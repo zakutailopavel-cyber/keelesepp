@@ -14,6 +14,11 @@ import { groupSheetTabs } from './sheetTabs.js';
 import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import { usePastSheets } from './usePastSheets.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
+import MomentButton from './MomentButton.jsx';
+import LessonHints from './LessonHints.jsx';
+import WarmupPanel from './WarmupPanel.jsx';
+import { useRecentLessons } from './useRecentLessons.js';
+import TalkMeter from './TalkMeter.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
 import LessonHomeworkPanel from './LessonHomeworkPanel.jsx';
@@ -163,7 +168,7 @@ function DevicesPanel({ call, stream }) {
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
   recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false, observerProps,
-  planService, countdownService, pollService, boardCopies,
+  planService, countdownService, momentsService, pollService, boardCopies,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
@@ -192,7 +197,9 @@ export default function LiveRoom({
   }, [watchingCount]);
   const [now, setNow] = useState(() => Date.now());
   // recording starts by itself with the call when the student card has consent
-  const [recState, setRecState] = useState({ recording: false, error: '' });
+  const [recState, setRecState] = useState({ recording: false, error: '', recordingId: '', t0: 0 });
+  // „Hetk” marks keep their place in the running recording (or only the clock time without one)
+  const momentRecording = useMemo(() => (recState.recording && recState.recordingId ? { id: recState.recordingId, t0: recState.t0 } : null), [recState.recording, recState.recordingId, recState.t0]);
   const consent = student ? student.recordingConsent === true : null;
   // is the transcriber on the school Mac running? (the recording itself never depends on it)
   const transcriber = useTranscriberStatus({ ...(recordingService ? { service: recordingService } : {}), enabled: teacher });
@@ -251,6 +258,8 @@ export default function LiveRoom({
   const studentMark = attendanceMarks(participants, planState.plan.attendance, attendanceStart)[0] || null;
   const pastSheets = usePastSheets({ homework: worksheetProps.homework || firebaseHomework, studentId: guest ? '' : invitation.studentId || '', role });
   // the teacher's countdown (invitation field `countdown`): the teacher sets it, both see the badge
+  // „Täna harjutada” and „Soojendus”: the student's earlier analysed lessons (teacher only, read once)
+  const recent = useRecentLessons({ studentId: invitation.studentId, user, enabled: teacher && !guest, ...(recordingService ? { service: recordingService } : {}) });
   const timer = useCountdown({ kind: 'lesson', id: invitation.id, user, teacher, enabled: invitation.status !== 'closed', ...(countdownService ? { service: countdownService } : {}) });
   // „Kiirküsimus” (livePolls/lesson_{invitationId}): the teacher asks, the student answers on a card over the board
   const quick = useQuickPoll({
@@ -443,6 +452,8 @@ export default function LiveRoom({
             </button>;
           })() : null}
           {teacher && !recState.recording && call.hasLocalMedia && consent === false ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
+          {teacher && !guest ? <MomentButton invitation={invitation} user={user} recording={momentRecording} {...(momentsService ? { service: momentsService } : {})} /> : null}
+          {teacher ? <TalkMeter streams={streams} /> : null}
           {watching.observers.length ? <span className="lr-pill lr-observer" role="img" aria-label="Administraator vaatab tundi" title={`Administraator vaatab tundi: ${watching.observers.map((item) => item.displayName).join(', ')}`}><Eye size={16} /></span> : null}
           {awayFromTeacher ? <button type="button" className="lr-pill lr-follow" onClick={() => boardRef.current?.selectPage?.(teacherPage || null)}>Mine õpetaja lehele</button> : null}
           {teacher && roomChannelOpen ? <button type="button" className={`lr-pill lr-lead ${presenting ? 'is-on' : ''}`} aria-pressed={presenting} aria-label={presenting ? 'Lõpeta vaate juhtimine' : 'Juhi vaadet: õpilane näeb sama kohta'} title={presenting ? 'Õpilane näeb sama kohta, mida sina. Klõps: lõpeta' : 'Õpilane näeb sama kohta ja suurust, mida sina'} onClick={() => setPresenting(!presenting)}><Presentation size={16} aria-hidden="true" /><span className="lr-label">{presenting ? 'Juhin vaadet' : 'Juhi vaadet'}</span></button> : null}
@@ -469,6 +480,7 @@ export default function LiveRoom({
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); boardRef.current?.newPage(`Tund ${lessonDate}`).catch((error) => setNotice(error?.message || 'Uut lehte ei saanud luua.')); }}>Uus tunnileht „Tund {lessonDate}”</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('plan'); }}>Tunniplaan ja kohalolu</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('homework'); }}>Anna kodutöö</button> : null}
+          {teacher && !guest ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('warmup'); }}>Soojendus eelmise tunni lausetest</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('record'); }}>Tunni salvestamine</button> : null}
           {!teacher ? <button type="button" role="menuitemcheckbox" aria-checked={follow} onClick={() => { setMenu(''); setFollow(!follow); }}>{follow ? 'Ära jälgi õpetaja lehte' : 'Jälgi õpetaja lehte'}</button> : null}
           <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('devices'); }}>Kaamera ja mikrofon</button>
@@ -506,6 +518,7 @@ export default function LiveRoom({
           />
           <CountdownBadge timer={timer} />
           {!teacher && !guest ? <QuickPollCard quick={quick} timer={timer} /> : null}
+          {teacher && !guest ? <LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /> : null}
           {remoteScreen.active ? <ScreenStage stream={remoteScreen.stream} name={call.peerName} visible={showScreen} /> : null}
           {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
             {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
@@ -554,6 +567,7 @@ export default function LiveRoom({
             {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} {...(boardCopies ? { boardCopies } : {})} /></Drawer> : null}
           {panel === 'plan' && teacher ? <Drawer title="Tunniplaan" onClose={() => setPanel('')}><LessonPlanPanel planState={planState} participants={participants} startMs={attendanceStart}
             attendanceNote="„Lõpeta tund” viib märke kalendrisse: Kohal / Hilines → Toimunud, Puudub → Puudus (ei teatanud). Hilinemise minutid jäävad tunniplaani." /></Drawer> : null}
+          {panel === 'warmup' && teacher ? <Drawer title="Soojendus" onClose={() => setPanel('')}><WarmupPanel invitation={invitation} user={user} student={student} lessons={recent.lessons} loading={recent.loading} error={recent.error} {...((worksheetProps.library || library)?.assign ? { library: worksheetProps.library || library } : {})} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} onPlaced={() => { setPanel(''); setNotice('Soojendus on tahvlil.'); }} /></Drawer> : null}
           {panel === 'timer' && teacher ? <Drawer title="Taimer" onClose={() => setPanel('')}><CountdownControls timer={timer} /></Drawer> : null}
           {panel === 'poll' && teacher ? <Drawer title="Kiirküsimus" onClose={() => setPanel('')}><QuickPollPanel quick={quick} timer={timer} names={invitation.studentUid ? { [invitation.studentUid]: invitation.studentName } : {}}
             pickText={() => boardRef.current?.selectedText?.() || pageSelectionText()} /></Drawer> : null}

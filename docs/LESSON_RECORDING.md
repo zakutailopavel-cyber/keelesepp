@@ -65,6 +65,35 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
    GEC errors and the teacher's recasts). The worker reads `analyzerFeedback` with one query (`select said, corrected,
    recordingId`) only when it really analyses a lesson, cached 1 h — never on the idle loop. `ANALYSIS_VERSION` is
    unchanged (old lessons are not analysed again; their marks still hide the errors in the CRM).
+6. **„Hetk” (since 2026-11-04)** — in the 1:1 room the teacher presses „Hetk” in the top bar (or the key **B** outside
+   text fields; M is the board's marker) to mark a moment. It is saved at once without a label; a small box offers an
+   optional label (≤ 80, Enter) and „Kustuta hetk”, and closes by itself after 6 s. With a running recording the mark
+   keeps `recordingId` + `atMs` (ms from the recorder's start, same clock as `segments[].startMs`); without one only the
+   clock time `at`. The student never sees it. In „Tunni analüüs” / the inline lesson text, „Hetked (N)” lists the
+   marks (time + label + who) above the AI part; a click plays the lesson's audio (student track by default, „Õpetaja”
+   switch) from 3 s before the mark (`LessonMoments.jsx`, `lessonMoments.js` `segmentAt` / `playFrom`). A time line
+   shows marks (blue) and the learner's errors (red); a click on an error plays it too. Marks outside the recording
+   (or of a lesson that was not recorded) are listed by clock time; a day with marks only gets its own row in „Tunnid”.
+   Joined lessons (several parts) now also move `segments[].startMs` by the part's start (`partStarts` on the joined
+   lesson), like the transcript. Group rooms have no „Hetk” yet.
+7. **„Kõneaeg” (since 2026-11-04)** — in the 1:1 room the teacher (only) sees a pill „Õpilane NN %” with a bar and a
+   target line at 60 %: the student's share of the talk time so far, live, also without a recording or consent. It
+   is measured in the teacher's browser from the sound level only (`talkMeter.js`: RMS ~10 Hz, adaptive noise floor,
+   sounds < 250 ms ignored, pauses ≤ 400 ms inside speech counted; `useTalkMeter.js`: AnalyserNodes on the own
+   microphone track and the student's incoming track, never connected to the speakers, paused while the tab is
+   hidden, AudioContext closed on leave). It does not know the language. Amber when the student had < 40 % of the
+   last 10 minutes' talk (at least 2 min of talk in them); a click shows minutes per side. Nothing is saved — the
+   lesson summary (`lessonSummaries`) is readable by the student and its rules allow no extra field; the recorded
+   lesson's „Tunni analüüs” keeps its own share from the transcript.
+
+7. **„Soojendus” and „Täna harjutada” (since 2026-11-04)** — in the 1:1 room the teacher's „Rohkem → Soojendus eelmise
+   tunni lausetest” picks 3–5 of the learner's own short sentences with errors from the latest analysed lesson before
+   this one (`live-classroom/warmup.js` `pickWarmupItems`: learner lines only, 3–12 words, a 1–3 word change, top
+   focus topics first, no duplicates, no „Pole viga” corrections). The teacher edits / removes rows and puts them on
+   the board as a worksheet assignment with one `errorfix` „Paranda lause.” task per sentence (the board's „Näita
+   vastust” reveals one at a time). „Täna harjutada” is a teacher-only box over the board (not synced, hidden during
+   screen share): 2–3 topics of the last 1–3 analysed lessons with one example each and „Järgmiseks tunniks”
+   (`lessonHints`). Both read `lessonRecordings` once with the existing rule (a teacher his own, an admin all).
 
 ## Data and rules
 
@@ -82,6 +111,12 @@ with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the 
   at }`, written in the same batch as the mark; created by the recording's teacher or an admin with their own uid;
   read by admins only (and the worker); deleted on undo (author, the recording's teacher or an admin; deleting a
   missing copy is allowed). Rules tests: `functions/lesson-recording-emulator.integration.js` („Pole viga” test).
+- `lessonMoments/{auto id}` („Hetk”): `{ invitationId, recordingId ('' without a recording), teacherUid (the
+  invitation's teacher), studentId, atMs (int ≥ 0 ≤ 8 h, or null), at, label (≤ 80), byUid, byName, createdAt }`.
+  Rules: read / delete by the lesson's teacher or an admin; create by staff with `byUid == uid`, the invitation must
+  exist with the same teacherUid and studentId, a teacher only for his own lessons, `recordingId` must be
+  `<invitationId>_<ms>` and `atMs` needs a `recordingId`; update only `label`. Students and parents: no access. Tests:
+  `functions/lesson-moments-emulator.integration.js` (in `test:emulator`).
 - `transcriberStatus/{workerId}`: staff read, written only by the worker (Admin SDK).
 - Storage: `lessonRecordings/{recordingId}/*` written only by the recording teacher while `recording`, audio < 20 MB.
 - Tests: `functions/lesson-recording-emulator.integration.js` (rules; not in `test:emulator`, run it by name),

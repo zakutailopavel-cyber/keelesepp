@@ -186,6 +186,11 @@ describe('student profile tabs and role access', () => {
     expect(screen.getAllByText('0,00 €')).toHaveLength(3);
   });
 
+  it('an admin sees „Teekond sihttasemeni” on the overview', async () => {
+    renderProfile();
+    expect(await screen.findByRole('heading', { name: 'Teekond sihttasemeni' }, { timeout: 4000 })).toBeInTheDocument();
+  });
+
   it('blocks a teacher from another teacher’s student before loading related data', async () => {
     const apis = renderProfile({
       actor: { roles: ['teacher'], displayName: 'Pavel Zakutailo' },
@@ -206,6 +211,8 @@ describe('student profile tabs and role access', () => {
 
     expect(await screen.findByText('Mari Maas')).toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: 'Finantsid' })).not.toBeInTheDocument();
+    // „Teekond sihttasemeni” is the administrator's (owner 2026-11-04)
+    expect(screen.queryByRole('heading', { name: 'Teekond sihttasemeni' })).toBeNull();
     fireEvent.click(screen.getByRole('tab', { name: 'Tunnid' }));
     expect(await screen.findByText('Iganädalane · Mon · 12:00', {}, { timeout: 4000 })).toBeInTheDocument();
     expect(apis.invoiceApi.listByStudent).not.toHaveBeenCalled();
