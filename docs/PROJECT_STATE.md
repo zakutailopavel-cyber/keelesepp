@@ -6,6 +6,16 @@
 - Limits: „Kursuse tootmine” row shows „…, lk ” with an empty page (cosmetic, admin only). Not published.
 - Production: none. PR: draft (see GitHub). Next safe step: owner/teacher reads the sheet; then admin publishes it in „Kursuse tootmine” → „Õpik” → b1b2-016 → „Avalda”.
 
+## 2026-11-04 · agent/skill-estimate-card — „Teekond sihttasemeni”: admin-only estimate per skill to the target level
+
+- Base: `origin/main` e6ef972 (#1074), checked 2026-11-04. Student card only; no rules, functions, data, finance, calendar, live classroom or content change. Contract: `docs/PROGRESS_ESTIMATE.md`.
+- Card on the student card „Ülevaade” under „Õpilase pilt”, shown only when the viewer has the admin role (teachers, students, parents never see it). Per skill (Lugemine, Grammatika täpsus, Kõnelemine, Sõnavara, Kuulamine): bar with % of the way from the current level to the target, data points + basis, trend vs. 4 weeks ago; average; course position (lessons done / total of the course he works on); „vähe andmeid” below each skill's minimum; note „Hinnang, mitte eksam”.
+- Formula (pure `skillEstimate.js`): measure → band (`low` → `high`, e.g. reading 40 → 85 % right in `g_read`) → divided by level steps to the target. Reads only what the admin already reads (`worksheetAssignments`, `lessonRecordings`, `petLessonStats`, `studentWords`, `curriculum`); nothing written.
+- Files: `crm-v2/src/features/students/{skillEstimate.js,skillEstimate.test.js,SkillEstimateCard.jsx,SkillEstimateCard.test.jsx,skillEstimate.css,StudentProfilePage.jsx,StudentProfilePage.test.jsx}`, `docs/PROGRESS_ESTIMATE.md`.
+- Checks: `npx vitest run src/features/students src/features/learner src/features/lesson-recording` 53 files / 250 tests passed (new: formula 10 with the owner-shaped fixture, card 2, profile role 2 assertions); `npx eslint src` 0 errors (19 old warnings); `npx vite build` ok. Not checked in a browser or on real data.
+- Limits: bands are a first calibration, not validated against level tests; `g_listen` is not used by course content yet (Kuulamine mostly „vähe andmeid”); grammar and speaking need analysed recordings; writing not estimated.
+- PR: draft (see GitHub). Production: none. Deploy: hosting only (owner's approval).
+- Next safe step: review; after hosting deploy open 2–3 real students as admin and compare the numbers with the teacher's impression, then tune `ESTIMATE_RULES` with the owner.
 ## 2026-11-04 · agent/live-warmup-hints — Live Classroom: „Soojendus” from the last lesson's sentences, teacher's „Täna harjutada”
 
 - Base: `origin/main` e6ef972 (#1074), checked 2026-11-04. Live classroom (1:1, teacher) only; no finance / calendar / constructor / content / functions code; no rules change. Contract: `docs/LESSON_RECORDING.md` (Flow 7).
