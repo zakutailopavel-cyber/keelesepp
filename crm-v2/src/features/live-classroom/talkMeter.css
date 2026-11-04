@@ -16,4 +16,13 @@
 .tm-hint--low { background: #fff6e5; color: #8a4b00; }
 .tm-hint--good { background: #eaf7ef; color: #1d6b3c; }
 .tm-box small { color: #6b6f8a; }
+/* group room: one row per student, the quietest marked */
+.tm-quiet { max-width: 12ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .74rem; font-weight: 600; }
+.tm-rows--group { grid-template-columns: 1fr auto auto; }
+.tm-rows__head { color: #6b6f8a; font-size: .74rem; }
+.tm-rows__head + .tm-rows__head { text-align: right; }
+.tm-row { display: contents; }
+.tm-row > span { min-width: 0; overflow-wrap: anywhere; }
+.tm-row.is-quiet > * { color: #8a4b00; font-weight: 600; }
+.tm-row.is-quiet small { font-weight: 400; }
 @media (max-width: 760px) { .tm-bar { width: 36px; } .tm-box { left: auto; right: 0; transform: none; } }
