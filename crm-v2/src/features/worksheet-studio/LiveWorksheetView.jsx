@@ -84,8 +84,8 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
   const [keyId, setKeyId] = useState('');
   // on the teacher's sheet: tasks the learner does not see yet are dimmed, shown answers are labelled
   const blockClasses = useMemo(() => (step?.on ? Object.fromEntries(stats.filter((s) => !(step.open || []).includes(s.id)).map((s) => [s.id, 'is-live-closed'])) : null), [step, stats]);
-  // the teacher's notes under the blocks: answers shown to the learner, and the dictation text to read aloud (the
-  // learner never sees it; before, it lived only in the editor and the teacher had nothing to read from)
+  // the teacher's notes under the blocks: the dictation text to read aloud (the learner never sees it; before, it lived
+  // only in the editor and the teacher had nothing to read from). Always there, so the sheet does not move.
   const blockNotes = useMemo(() => {
     const notes = {};
     (doc?.blocks || []).filter((b) => b.type === 'dictation').forEach((b) => {
@@ -95,13 +95,17 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
         {sentences.length ? <ol>{sentences.map((line, i) => <li key={i}>{line}</li>)}</ol> : <p>Etteütluse lauseid pole lisatud: lisa need lehe muutmises.</p>}
       </div>;
     });
-    shown.filter((id) => id !== keyId).forEach((id) => { notes[id] = <>{notes[id] || null}<span key={id} className="ws-live-shown"><Icons.Eye size={14} aria-hidden="true" /> Õiged vastused on õpilasele näha</span></>; });
-    const task = keyId ? blockAnswerKey(doc, keyId) : null;
-    if (task) {
-      notes[keyId] = <>{notes[keyId] || null}<BlockKeyPanel key={`${keyId}-key`} task={task} shown={shown.includes(keyId)} shownBy={shownBy?.[keyId] || null} busy={busy}
-        onShow={done || !canShow ? null : (on) => showTask(keyId, on)} onClose={() => setKeyId('')} /></>;
-    }
     return notes;
+  }, [doc]);
+  // „Õiged vastused on õpilasele näha”: a label over the card's edge (owner 2026-11-04: nothing that appears during the
+  // lesson may push the task or the sheet)
+  const blockBadges = useMemo(() => Object.fromEntries(shown.filter((id) => id !== keyId).map((id) => [id, <span key={id} className="ws-live-shown"><Icons.Eye size={14} aria-hidden="true" /> Õiged vastused on õpilasele näha</span>])), [shown, keyId]);
+  // the answers of the task the teacher clicked float next to that task (FloatingNote), on the teacher's screen only
+  const blockPopovers = useMemo(() => {
+    const task = keyId ? blockAnswerKey(doc, keyId) : null;
+    if (!task) return null;
+    return { [keyId]: { label: `Vastused: ülesanne ${task.num}`, ownClose: true, onClose: () => setKeyId(''), content: <BlockKeyPanel key={`${keyId}-key`} task={task} shown={shown.includes(keyId)} shownBy={shownBy?.[keyId] || null} busy={busy}
+      onShow={done || !canShow ? null : (on) => showTask(keyId, on)} onClose={() => setKeyId('')} /> } };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- showTask is rebuilt every render; its inputs are listed
   }, [doc, shown, keyId, shownBy, busy, done, canShow, user]);
 
@@ -132,7 +136,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
   const editBanner = editing ? <div className="st-banner" role="status">{editNote || 'Topeltklõpsa tekstil, mida tahad parandada (lünga õige vastus on nurksulgudes). Parandus läheb ainult selle õpilase lehele.'}</div> : null;
   const sheet = editing
     ? <Sheet doc={doc} mode="edit" onEditText={editText} />
-    : <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} />;
+    : <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} blockPopovers={blockPopovers} blockBadges={blockBadges} />;
 
   // marks go to the assignment; the student's player is subscribed and shows them at once
   // double-click a word: „Viga”, „Märkus” or „Sõna” (three key forms → the student's „Sõnad”); a corrected answer can go
