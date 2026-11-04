@@ -28,7 +28,9 @@ const when = (iso) => { const d = new Date(iso || ''); return Number.isNaN(d.get
 // app drafts a short message in the parent's language from stored data only (parentMonthReport.js), the admin edits it,
 // copies it to wherever he writes to the family and marks it sent. Nothing goes to the family on its own; „Saada õpilase
 // vestlusesse” sends only after the admin's confirmation. Lessons left (balance) are never part of it.
-export default function MonthlyReportCard({ student, user, repository = api, now = Date.now() }) {
+export default function MonthlyReportCard({ student, user, repository = api, now: nowProp }) {
+  // the moment the card opened (tests pass `now`); read once, not on every render
+  const [now] = useState(() => nowProp ?? Date.now());
   const [month, setMonth] = useState(() => defaultMonth(now));
   const [language, setLanguage] = useState(() => reportLanguage(student));
   const [text, setText] = useState(null);
