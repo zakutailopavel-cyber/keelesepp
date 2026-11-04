@@ -25,8 +25,8 @@ const noWrites = { ...repositories.pointsService, add: async () => { throw new E
 const student = { uid: 'demo-student', displayName: 'Aleksandr Smirnov', roles: ['student'] };
 const studentPage = <MemoryRouter>
   <AuthContext.Provider value={{ user: student }}>
-    <StudentProgressPage studentRepository={repositories.studentSelf} homeworkRepository={repositories.homeworkRepository} lessonRepository={repositories.lessonRepository}
-      petRepository={repositories.petRepository} catalogRepository={repositories.catalogRepository} wordsService={repositories.wordsService} summaryService={repositories.summaryService}
+    <StudentProgressPage studentRepository={repositories.studentSelf} homeworkRepository={repositories.homeworkRepository}
+      wordsService={repositories.wordsService} summaryService={repositories.summaryService}
       boardCopiesService={repositories.boardCopiesService} announcementService={repositories.announcementService} pointsService={repositories.pointsService} />
   </AuthContext.Provider>
 </MemoryRouter>;
