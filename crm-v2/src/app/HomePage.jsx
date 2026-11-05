@@ -1,10 +1,11 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyComponent } from './lazyComponent.js';
 import { Navigate } from 'react-router-dom';
 import { LoadingState } from '../components/ui/index.js';
 import { useAuth } from './AuthContext.jsx';
 import { hasAnyRole, ROLES } from '../utils/roles.js';
 
-const DashboardPage = lazy(() => import('../features/dashboard/DashboardPage.jsx'));
+const DashboardPage = lazyComponent(() => import('../features/dashboard/DashboardPage.jsx'));
 
 export default function HomePage() {
   const { user } = useAuth();

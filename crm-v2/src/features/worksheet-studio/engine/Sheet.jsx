@@ -1,6 +1,7 @@
 /* global ResizeObserver */
 import { IN_LESSON_LABEL, isInLesson } from './inLesson.js';
-import { Suspense, lazy, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazyComponent } from '../../../app/lazyComponent.js';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { dragId, dropId, lastBlockOf } from './dragIds.js';
 import { BLOCKS, exampleAnswers, numberTasks } from './registry.js';
@@ -14,7 +15,7 @@ import MarksLayer from './Marks.jsx';
 import FloatingNote from './FloatingNote.jsx';
 import { courseBadge } from '../../curriculum/courseNames.js';
 // Tiptap is loaded only when a teacher opens a text for formatting (students never download it)
-const RichInlineEditor = lazy(() => import('./RichInlineEditor.jsx'));
+const RichInlineEditor = lazyComponent(() => import('./RichInlineEditor.jsx'));
 import { themeClass, themedTone } from './look.js';
 import { SPLITTABLE, canSplit, itemCount, packPages, shiftKey, sliceBlock } from './pageSplit.js';
 import { focusNextField } from '../sheetFlow.js';

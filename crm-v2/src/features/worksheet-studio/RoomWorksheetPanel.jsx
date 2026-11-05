@@ -1,4 +1,6 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
+import RoomPartBoundary from '../live-classroom/RoomPartBoundary.jsx';
 import { FileText } from 'lucide-react';
 import { Button, Card, LoadingState } from '../../components/ui/index.js';
 import { homeworkService } from '../../services/firebase/homework.js';
@@ -9,9 +11,9 @@ import { publishedPhaseDoc } from './bookProgram.js';
 import { curriculumSheetChoices, filterChoices, findLessonRows, lessonRows, moduleGroups, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
 
 // the worksheet itself (every block's views and rules) downloads when a sheet is on the board, not with the room
-const DocWorksheetPlayer = lazy(() => import('./DocWorksheetPlayer.jsx'));
-const LiveWorksheetView = lazy(() => import('./LiveWorksheetView.jsx'));
-const RoomStepControl = lazy(() => import('./RoomStepControl.jsx'));
+const DocWorksheetPlayer = lazyComponent(() => import('./DocWorksheetPlayer.jsx'));
+const LiveWorksheetView = lazyComponent(() => import('./LiveWorksheetView.jsx'));
+const RoomStepControl = lazyComponent(() => import('./RoomStepControl.jsx'));
 import './worksheetStudio.css';
 
 // A structured worksheet inside a Live Classroom room (materials of the lesson).
@@ -21,9 +23,9 @@ import './worksheetStudio.css';
 // The worksheet itself (teacher: live answers; student: fill in). In the Live Classroom room it lies on the board.
 export function RoomWorksheetContent({ current, role, homework = homeworkService }) {
   if (!current) return null;
-  return <Suspense fallback={<LoadingState label="Laen töölehte…" />}>{role === 'teacher'
+  return <RoomPartBoundary label="Töölehte"><Suspense fallback={<LoadingState label="Laen töölehte…" />}>{role === 'teacher'
     ? <LiveWorksheetView key={current.id} assignmentId={current.id} repository={homework} embedded board />
-    : <DocWorksheetPlayer key={`${current.id}-${current.status === 'done' ? 'done' : 'open'}`} assignment={current} repository={homework} inline board />}</Suspense>;
+    : <DocWorksheetPlayer key={`${current.id}-${current.status === 'done' ? 'done' : 'open'}`} assignment={current} repository={homework} inline board />}</Suspense></RoomPartBoundary>;
 }
 
 const errorText = (err, fallback) => err?.message || fallback;
@@ -240,7 +242,7 @@ export default function RoomWorksheetPanel({ invitation, role, user, homework = 
       </div>
       {error ? <div className="action-error" role="alert">{error}</div> : null}
       {!showSheet && items?.length ? <p className="form-hint">Tahvlil: {items.map((item) => item.title || item.worksheetDoc?.meta?.title || 'Tööleht').join(' · ')}</p> : null}
-      {role === 'teacher' && current?.liveStep?.on ? <Suspense fallback={null}><RoomStepControl current={current} homework={homework} /></Suspense> : null}
+      {role === 'teacher' && current?.liveStep?.on ? <RoomPartBoundary label="Sammude juhtimist"><Suspense fallback={null}><RoomStepControl current={current} homework={homework} /></Suspense></RoomPartBoundary> : null}
       {role === 'teacher' ? <RoomWorksheetPicker studentId={invitation.studentId} studentName={invitation.studentName} roomKey={roomKey} note={invitation.title ? `Live Classroom: ${invitation.title}` : 'Live Classroom'} user={user} homework={homework} library={library} lessonWorksheets={lessonWorksheets} lessons={lessons} /> : null}
       {showSheet ? <RoomWorksheetContent current={current} role={role} homework={homework} /> : null}
     </Card>

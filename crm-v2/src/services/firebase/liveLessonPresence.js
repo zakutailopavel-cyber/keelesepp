@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -49,7 +50,16 @@ export const liveLessonPresenceService = {
     });
   },
 
+  // Leaving the room. The rules accept presence writes only while the invitation is 'accepted': when the room is left
+  // because the lesson was just closed (the teacher's „Lõpeta tund” → calendar, the student's room closing), the
+  // write would be refused and reported to „Vead” — so the invitation is read first (pending local writes included)
+  // and a closed room is left without a write. Nobody reads presence of a closed room.
   async markOffline(invitationId, participant) {
-    return this.heartbeat(invitationId, { ...participant, online: false });
+    if (!invitationId) return false;
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDoc(doc(db, 'liveLessonInvitations', invitationId)).catch(() => null);
+    if (!snapshot?.exists?.() || snapshot.data()?.status !== 'accepted') return false;
+    await this.heartbeat(invitationId, { ...participant, online: false });
+    return true;
   },
 };

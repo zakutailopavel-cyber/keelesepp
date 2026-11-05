@@ -3,7 +3,7 @@ import { liveLessonCallSignalsService } from '../../services/firebase/liveLesson
 import { liveLessonPresenceService, presenceIsFresh } from '../../services/firebase/liveLessonPresence.js';
 import { liveTurnService } from '../../services/firebase/liveTurn.js';
 import { openMedia } from './mobileMedia.js';
-import { callErrorKind, clientErrors } from '../client-errors/clientErrorReporter.js';
+import { callErrorKind, clientErrors, isPermissionDenied } from '../client-errors/clientErrorReporter.js';
 import { isScreenSlot, remoteShareActive, remoteShareStream, screenSlotTransceiver, shareMessage } from './screenShare.js';
 
 export const STUN_SERVERS = Object.freeze([
@@ -532,11 +532,23 @@ export function useLiveCall({
     return () => unsubscribe?.();
   }, [answerOffer, autoAnswer, flushCandidates, invitation.id, resetCall, role, signalService, user.uid]);
 
+  // the latest invitation status: a room that is no longer 'accepted' (closed, cancelled) gets no presence writes —
+  // the rules refuse them and every refusal would land in „Vead” (2026-11-04/05 reports)
+  const invitationStatusRef = useRef(invitation.status);
+  invitationStatusRef.current = invitation.status;
+
   useEffect(() => {
     let alive = true;
-    const reportPresence = () => presenceService.heartbeat(invitation.id, participant).catch((nextError) => {
-      if (alive) setError(nextError?.message || 'Kohalolekut ei saanud uuendada.');
-    });
+    let refused = false;
+    const roomOpen = () => !refused && (!invitationStatusRef.current || invitationStatusRef.current === 'accepted');
+    const reportPresence = () => {
+      if (!alive || !roomOpen()) return Promise.resolve();
+      return presenceService.heartbeat(invitation.id, participant).catch((nextError) => {
+        // refused = the lesson was closed meanwhile (or this user is not its participant): stop, no banner, no retries
+        if (isPermissionDenied(nextError)) { refused = true; return; }
+        if (alive) setError(nextError?.message || 'Kohalolekut ei saanud uuendada.');
+      });
+    };
     reportPresence();
     const heartbeatTimer = window.setInterval(reportPresence, 20_000);
     const freshnessTimer = window.setInterval(() => setPresenceNow(Date.now()), 5_000);
@@ -555,7 +567,7 @@ export function useLiveCall({
       window.clearInterval(freshnessTimer);
       document.removeEventListener('visibilitychange', onVisibility);
       unsubscribe?.();
-      presenceService.markOffline(invitation.id, participant).catch(() => {});
+      if (roomOpen()) presenceService.markOffline(invitation.id, participant)?.catch?.(() => {});
     };
   }, [invitation.id, participant, presenceService]);
 
