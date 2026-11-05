@@ -14,4 +14,4 @@
 .dcn__link a{overflow-wrap:anywhere}
 .dcn__link button,.dcn__close{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--border);background:#fff;border-radius:8px;padding:2px 7px;font-size:.78rem;cursor:pointer;color:var(--ink)}
 .dcn__close{border:0;background:transparent;padding:2px}
-.dcn-room{position:fixed;z-index:60;top:112px;left:50%;transform:translateX(-50%);width:min(420px,calc(100vw - 32px));box-shadow:var(--shadow)}
+.dcn-room{position:fixed;z-index:60;top:calc(var(--lr-stage-top, 84px) + 60px);left:50%;transform:translateX(-50%);width:min(420px,calc(100vw - 32px));box-shadow:var(--shadow)}

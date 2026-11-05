@@ -300,9 +300,10 @@ export default function LiveClassroomPage({
   if (activeInvitation?.status === INVITATION_STATUS.ACCEPTED) {
     return <>
       {streamError || actionError ? <div className="action-error lr-page-error" role="alert">{streamError || actionError}</div> : null}
-      {view(<LiveRoom key={activeInvitation.id} {...roomProps('teacher')} />)}
-      {/* the student's last „Seadme kontroll” (or none before his first live lesson): until the call connects */}
-      {!callStreams.remote && deviceNoticeHidden !== activeInvitation.id ? <DeviceCheckNotice className="dcn-room" viewer={user} studentId={activeInvitation.studentId} studentUid={activeInvitation.studentUid} onClose={() => setDeviceNoticeHidden(activeInvitation.id)} {...(deviceCheck ? { service: deviceCheck } : {})} /> : null}
+      {/* the student's last „Seadme kontroll” (or none before his first live lesson): until the call connects; in the
+          room's left column over the board, so it never covers the video windows */}
+      {view(<LiveRoom key={activeInvitation.id} {...roomProps('teacher')}
+        stageNotice={!callStreams.remote && deviceNoticeHidden !== activeInvitation.id ? <DeviceCheckNotice className="dcn-room" viewer={user} studentId={activeInvitation.studentId} studentUid={activeInvitation.studentUid} onClose={() => setDeviceNoticeHidden(activeInvitation.id)} {...(deviceCheck ? { service: deviceCheck } : {})} /> : null} />)}
     </>;
   }
 
