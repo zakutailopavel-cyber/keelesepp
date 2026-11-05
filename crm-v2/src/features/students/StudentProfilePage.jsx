@@ -1,7 +1,8 @@
 import { isPlaceholderEmail } from '../../utils/placeholderEmail.js';
 import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Eye, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import '../board/board.css';
-import { lazy, Suspense, useCallback, useContext, useEffect, useState } from 'react';
+import { Suspense, useCallback, useContext, useEffect, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import MergeCardsModal from './MergeCardsModal.jsx';
 import EnrollmentManager from './EnrollmentManager.jsx';
 import StudentDirectionsCard from './StudentDirectionsCard.jsx';
@@ -72,7 +73,7 @@ const PROFILE_TABS = [
 ];
 
 // the works tab opens the sheet viewer: downloaded when the tab is opened, not with every card
-const StudentWorksPanel = lazy(() => import('./StudentWorksPanel.jsx'));
+const StudentWorksPanel = lazyComponent(() => import('./StudentWorksPanel.jsx'));
 
 export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi, progressApi }) {
   const { studentId } = useParams();

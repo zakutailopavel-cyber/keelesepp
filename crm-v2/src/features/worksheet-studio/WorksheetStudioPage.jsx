@@ -1,5 +1,6 @@
 /* global ResizeObserver, IntersectionObserver, Blob, setTimeout, clearTimeout, structuredClone */
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Icons } from './icons.js';
@@ -16,7 +17,7 @@ import { languageToolsService } from '../../services/firebase/languageTools.js';
 import MediaBankPanel from './MediaBankPanel.jsx';
 import AnswerKeyView from './AnswerKeyView.jsx';
 // „Kogu” reads the whole course: its own chunk, loaded when the tab opens
-const BlockLibraryPanel = lazy(() => import('./BlockLibraryPanel.jsx'));
+const BlockLibraryPanel = lazyComponent(() => import('./BlockLibraryPanel.jsx'));
 import { assetKey, gapsFromText, mediaAsset, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
 import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet, { BlockPreview } from './engine/Sheet.jsx';

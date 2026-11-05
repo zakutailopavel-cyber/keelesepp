@@ -2,7 +2,9 @@ import {
   ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
   MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Sparkles, Timer, Undo2, Users, Video, VideoOff, X,
 } from 'lucide-react';
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
+import RoomPartBoundary from './RoomPartBoundary.jsx';
 import { LoadingState } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize, sheetBoardTitle, worksheetPageTitle } from '../board/boardModel.js';
@@ -41,13 +43,13 @@ import './liveRoom.css';
 // the side panels and the teacher's recorder download when they are first opened, so the room (call and board) opens
 // sooner; a student never downloads the teacher's tools
 // LessonHints (teacher only) builds warm-up sheets, i.e. needs every worksheet block
-const LessonHints = lazy(() => import('./LessonHints.jsx'));
-const RoomRecorder = lazy(() => import('../lesson-recording/RoomRecorder.jsx'));
-const WarmupPanel = lazy(() => import('./WarmupPanel.jsx'));
-const LessonWordsPanel = lazy(() => import('../vocabulary/LessonWordsPanel.jsx'));
-const LessonHomeworkPanel = lazy(() => import('./LessonHomeworkPanel.jsx'));
-const LessonEndPanel = lazy(() => import('./LessonEndPanel.jsx'));
-const MaterialsPanel = lazy(() => import('./MaterialsPanel.jsx'));
+const LessonHints = lazyComponent(() => import('./LessonHints.jsx'));
+const RoomRecorder = lazyComponent(() => import('../lesson-recording/RoomRecorder.jsx'));
+const WarmupPanel = lazyComponent(() => import('./WarmupPanel.jsx'));
+const LessonWordsPanel = lazyComponent(() => import('../vocabulary/LessonWordsPanel.jsx'));
+const LessonHomeworkPanel = lazyComponent(() => import('./LessonHomeworkPanel.jsx'));
+const LessonEndPanel = lazyComponent(() => import('./LessonEndPanel.jsx'));
+const MaterialsPanel = lazyComponent(() => import('./MaterialsPanel.jsx'));
 
 const dateLabel = (date = new Date()) => new Intl.DateTimeFormat('et-EE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 const clock = (ms) => {
@@ -86,7 +88,7 @@ function IconButton({ label, active, danger, children, className = '', ...props 
 function Drawer({ title, onClose, children, wide = false }) {
   return <section className={`lr-drawer ${wide ? 'lr-drawer--wide' : ''}`} aria-label={title}>
     <header><strong>{title}</strong><IconButton label="Sulge" onClick={onClose}><X size={18} /></IconButton></header>
-    <div className="lr-drawer__body"><Suspense fallback={<LoadingState label="Laen…" />}>{children}</Suspense></div>
+    <div className="lr-drawer__body"><RoomPartBoundary label="Seda paneeli"><Suspense fallback={<LoadingState label="Laen…" />}>{children}</Suspense></RoomPartBoundary></div>
   </section>;
 }
 
@@ -558,7 +560,7 @@ export default function LiveRoom({
           <div className="lr-stack" style={insetRight ? { right: insetRight } : undefined}>
             <CountdownBadge timer={timer} />
             {stageNotice}
-            {teacher && !guest ? <Suspense fallback={null}><LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /></Suspense> : null}
+            {teacher && !guest ? <RoomPartBoundary label="Vihjeid"><Suspense fallback={null}><LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /></Suspense></RoomPartBoundary> : null}
           </div>
           {!teacher && !guest ? <QuickPollCard quick={quick} timer={timer} /> : null}
           {remoteScreen.active ? <ScreenStage stream={remoteScreen.stream} name={call.peerName} visible={showScreen} /> : null}
@@ -624,7 +626,7 @@ export default function LiveRoom({
           </div>
           <div className={panel === 'record' && teacher ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'record'}>
             <header><strong>Tunni salvestamine</strong><IconButton label="Sulge salvestamine" onClick={() => setPanel('')}><X size={18} /></IconButton></header>
-            <div className="lr-drawer__body">{teacher ? <><Suspense fallback={null}><RoomRecorder invitation={invitation} user={user} streams={streams} consent={consent} auto onStateChange={setRecState} subject={subject} {...(recordingService ? { service: recordingService } : {})} /></Suspense>{transcriber.known ? <p className={`lr-transcriber ${transcriber.online ? 'is-on' : 'is-off'}`} role="status">{transcriberLabel(transcriber)}</p> : null}</> : null}</div>
+            <div className="lr-drawer__body">{teacher ? <><RoomPartBoundary label="Salvestust"><Suspense fallback={null}><RoomRecorder invitation={invitation} user={user} streams={streams} consent={consent} auto onStateChange={setRecState} subject={subject} {...(recordingService ? { service: recordingService } : {})} /></Suspense></RoomPartBoundary>{transcriber.known ? <p className={`lr-transcriber ${transcriber.online ? 'is-on' : 'is-off'}`} role="status">{transcriberLabel(transcriber)}</p> : null}</> : null}</div>
           </div>
         </aside>
       </div>

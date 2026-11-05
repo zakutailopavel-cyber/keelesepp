@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazyComponent } from '../../../app/lazyComponent.js';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { Button, Card, ErrorState, LoadingState, Modal, PageHeader } from '../../../components/ui/index.js';
 import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
@@ -11,7 +12,7 @@ import { courseReadiness, GATE_LABEL } from '../admin/course/readiness.js';
 import { TEXTBOOK_SHEETS, TEXTBOOK_SHEET_ID } from '../admin/course/textbook/index.js';
 import { keysProblems } from '../../worksheet-studio/didactics/gates.js';
 
-const StudioSheetPreview = lazy(() => import('../../library/StudioSheetPreview.jsx'));
+const StudioSheetPreview = lazyComponent(() => import('../../library/StudioSheetPreview.jsx'));
 const MISSING = 'Töölehte ei leitud.';
 
 // „Kursuse tootmine”: the B1 / B2 course sheets written in code (admin/course/*), checked by the quality gate, previewed

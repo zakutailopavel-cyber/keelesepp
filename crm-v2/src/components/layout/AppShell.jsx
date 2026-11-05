@@ -1,5 +1,6 @@
 import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
-import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { Fragment, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import { NavLink, Outlet } from 'react-router-dom';
 import { navigationFor, settingsNavigation } from '../../app/navigation.js';
 import { useAuth, usePreviewNavigation } from '../../app/AuthContext.jsx';
@@ -17,12 +18,12 @@ import './appShell.css';
 
 // students only (it renders nothing for anyone else), so nobody else downloads it
 // staff only
-const NotificationCenter = lazy(() => import('./NotificationCenter.jsx'));
-const PetCompanion = lazy(() => import('../../features/pet/PetCompanion.jsx'));
+const NotificationCenter = lazyComponent(() => import('./NotificationCenter.jsx'));
+const PetCompanion = lazyComponent(() => import('../../features/pet/PetCompanion.jsx'));
 // staff only: the student search, the right-click menu and the administrator's menu counts download for them only, so a
 // student's or parent's first load (and the login page) does not carry the calendar, lesson and finance code they use
-const GlobalStudentSearch = lazy(() => import('./GlobalStudentSearch.jsx'));
-const EntityContextMenu = lazy(() => import('../EntityContextMenu.jsx'));
+const GlobalStudentSearch = lazyComponent(() => import('./GlobalStudentSearch.jsx'));
+const EntityContextMenu = lazyComponent(() => import('../EntityContextMenu.jsx'));
 // a subscription whose service file downloads on first use; unsubscribing before it arrives starts nothing
 const lazySubscription = (load, method) => (...args) => {
   let stop = null;
