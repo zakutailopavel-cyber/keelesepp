@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock3, GraduationCap, Search, Video, XCircle } from 'lucide-react';
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
@@ -16,17 +17,18 @@ import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, serverNow, timestampMillis, workspaceStudents } from './invitationModel.js';
 import { calendarPathAfterLesson } from './lessonLink.js';
 import { loadLiveRoom } from './liveRoomPrefetch.js';
+import RoomPartBoundary from './RoomPartBoundary.jsx';
 import DeviceCheckNotice from '../device-check/DeviceCheckNotice.jsx';
 import './liveClassroom.css';
 
 // each view downloads when it is shown: a student does not load the teacher's workspace, the group room or the
 // teacher's tools, and the 1:1 room starts downloading as soon as an invitation is in the address (see below)
-const LiveRoom = lazy(loadLiveRoom);
-const GroupRoom = lazy(() => import('./GroupRoom.jsx'));
-const StudentWorkspace = lazy(() => import('./StudentWorkspace.jsx'));
-const TeacherWorkspace = lazy(() => import('./TeacherWorkspace.jsx'));
+const LiveRoom = lazyComponent(loadLiveRoom);
+const GroupRoom = lazyComponent(() => import('./GroupRoom.jsx'));
+const StudentWorkspace = lazyComponent(() => import('./StudentWorkspace.jsx'));
+const TeacherWorkspace = lazyComponent(() => import('./TeacherWorkspace.jsx'));
 const roomFallback = <div className="page-content"><LoadingState label="Laen tunniruumi…" /></div>;
-const view = (node) => <Suspense fallback={roomFallback}>{node}</Suspense>;
+const view = (node) => <RoomPartBoundary label="Tunniruumi"><Suspense fallback={roomFallback}>{node}</Suspense></RoomPartBoundary>;
 
 const statusLabel = {
   [INVITATION_STATUS.PENDING]: 'Ootab vastust',

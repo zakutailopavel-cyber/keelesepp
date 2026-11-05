@@ -1,5 +1,6 @@
 import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, Images, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type, X } from 'lucide-react';
-import { Suspense, lazy, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import { createPortal } from 'react-dom';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
@@ -21,7 +22,7 @@ import { isWorksheetPage } from './lessonBoards.js';
 import './board.css';
 
 // „Pildid” (search pictures and drag them onto the board): its own chunk, loaded when the teacher opens it
-const MediaSearchPanel = lazy(() => import('./MediaSearchPanel.jsx'));
+const MediaSearchPanel = lazyComponent(() => import('./MediaSearchPanel.jsx'));
 
 // One pointer, „Vali ja täida” (owner 2026-11-05, it replaced „Täida töölehte” + „Vali ja liiguta”): the worksheet's
 // fields take clicks and typing as before, a click on the board's own part (text, note, picture, shape, arrow, sticker)
