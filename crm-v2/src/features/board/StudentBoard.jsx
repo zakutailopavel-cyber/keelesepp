@@ -1,10 +1,10 @@
-import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, Images, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type, X } from 'lucide-react';
+import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, Images, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type, X } from 'lucide-react';
 import { Suspense, lazy, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitSheet, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView, focusShift,
-  BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, fitRect, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds, viewRect } from './boardModel.js';
+  BACKGROUNDS, MARKER_COLORS, POINTER_TOOL, backgroundOf, boardTool, copyData, fitRect, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds, viewRect } from './boardModel.js';
 import { EMPTY_REMOTE, createThrottle, cursorMessage, draftMessage, dropStale, moveMessage, reduceRemote, remoteOnPage, typingMessage, viewMessage } from './liveDrafts.js';
 import { SheetFlowContext } from '../worksheet-studio/sheetFlow.js';
 import { studentNotesService } from '../../services/firebase/studentNotes.js';
@@ -23,8 +23,11 @@ import './board.css';
 // „Pildid” (search pictures and drag them onto the board): its own chunk, loaded when the teacher opens it
 const MediaSearchPanel = lazy(() => import('./MediaSearchPanel.jsx'));
 
+// One pointer, „Vali ja täida” (owner 2026-11-05, it replaced „Täida töölehte” + „Vali ja liiguta”): the worksheet's
+// fields take clicks and typing as before, a click on the board's own part (text, note, picture, shape, arrow, sticker)
+// selects it, a drag moves it, its handles resize it, Delete removes it; a click on an empty place clears the selection.
 const TOOLS = [
-  ['select', 'Vali ja liiguta', MousePointer2],
+  [POINTER_TOOL, 'Vali ja täida', MousePointer2, 'Vali ja täida (V): kirjuta töölehele, vali ja liiguta tahvli osi'],
   ['pen', 'Pliiats', PenLine],
   ['marker', 'Marker', Highlighter],
   ['note', 'Märkmepaber', StickyNote],
@@ -39,14 +42,14 @@ const TOOLS = [
   ['eraser', 'Kustutaja', Eraser],
   ['hand', 'Liiguta tahvlit', Hand],
 ];
-// on a worksheet page: click into the worksheet (answer) instead of drawing on top of it
-const FILL_TOOL = ['fill', 'Täida töölehte', MousePointerClick];
 // Live Classroom, teacher: a pointer the student sees on the same page (sent over the call, nothing is saved)
 const LASER_TOOL = ['laser', 'Osuti', Crosshair];
 const SHAPE_KEYS = ['rect', 'ellipse', 'arrow', 'curve', 'double', 'callout'];
 const SHAPES = TOOLS.filter(([key]) => SHAPE_KEYS.includes(key));
 // drawing tools: while one of them drags, the page's text must not get selected (owner 2026-11-04: blue selection)
 const DRAW_TOOLS = new Set(['pen', 'marker', 'eraser', 'select', 'hand', 'laser', ...SHAPE_KEYS]);
+// what „Vali ja täida” grabs on a worksheet page: the board's own parts, their handles and the selection's buttons
+const BOARD_PART = '[data-element-id], [data-handle], .sb-selbar';
 const META = ['id', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'];
 const plain = (element) => Object.fromEntries(Object.entries(element).filter(([key]) => !META.includes(key)));
 const HISTORY_LIMIT = 50;
@@ -123,7 +126,9 @@ export default function StudentBoard({
   // Elements of the open page; tagged with the page they belong to, so a page switch never shows stale elements.
   const [loaded, setLoaded] = useState({ key: '', items: [] });
   const [error, setError] = useState('');
-  const [tool, setTool] = useState('pen');
+  // the default tool on every page is the pointer; an old id (`fill`, „Täida töölehte”) is the same tool (boardTool)
+  const [tool, setToolState] = useState(POINTER_TOOL);
+  const setTool = useCallback((key) => setToolState(boardTool(key)), []);
   const [color, setColor] = useState(COLORS[0]);
   const [noteColor, setNoteColor] = useState(NOTE_COLORS[0]);
   const [size, setSize] = useState('M');
@@ -143,8 +148,11 @@ export default function StudentBoard({
   const [resizing, setResizing] = useState(null);
   const [marquee, setMarquee] = useState(null);
   const [spaceHeld, setSpaceHeld] = useState(false);
+  // „Vali ja täida” on a worksheet: the drawing layer lets clicks through to the sheet except on the board's own parts;
+  // while one of them is being moved or resized the whole layer takes the pointer (ends with any release, as the block)
+  const [grabbing, setGrabbing] = useState(false);
   // the pointer is over a player of the worksheet (owner 2026-10-29: „учитель должен мочь открыть аудиозапись прямо во
-  // время урока”): the board lets the click through to the player whatever tool is on, not only in „Täida töölehte”
+  // время урока”): the board lets the click through to the player whatever tool is on, not only with „Vali ja täida”
   const [overMedia, setOverMedia] = useState(false);
   const [marker, setMarker] = useState(MARKER_COLORS[0]);
   const clipboard = useRef([]);
@@ -242,9 +250,11 @@ export default function StudentBoard({
   const [viewChoice, setViewChoice] = useState('');
   const boardView = viewChoice === 'board';
   const reading = onWorksheet && (viewChoice === 'reading' || (narrow && !boardView));
+  // „Vali ja täida” on a worksheet page: the sheet is answered through the drawing layer (see `pointerFor`)
+  const filling = onWorksheet && tool === POINTER_TOOL;
   // the student who follows the teacher onto a worksheet page fills it in: one finger moves the sheet and taps the
   // answer fields instead of drawing over them (a pen left on from the board page did that on tablets)
-  useEffect(() => { if (onWorksheet && !staff) setTool('fill'); }, [pageId, onWorksheet, staff]);
+  useEffect(() => { if (onWorksheet && !staff) setTool(POINTER_TOOL); }, [pageId, onWorksheet, staff, setTool]);
   // the sheet's height bounds how far the board pans down. The stage is rendered in two layouts, so the underlay may
   // be a new element (a reconnect, the layout switching on a tablet): the observer follows the element itself, else
   // the old height stayed and the student could not scroll past it (owner 2026-10-11, Monika on an iPad)
@@ -385,7 +395,7 @@ export default function StudentBoard({
     if (worksheetPage) {
       setWantWorksheet('');
       if (pageId !== worksheetPage.id) choosePage(worksheetPage.id);
-      setTool('fill');
+      setTool(POINTER_TOOL);
       return;
     }
     if (staff && creatingWorksheet.current !== worksheet.id) {
@@ -419,7 +429,6 @@ export default function StudentBoard({
     observer.observe(node);
     return () => observer.disconnect();
   }, [onWorksheet, pageId]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (!onWorksheet && tool === 'fill') setTool('pen'); }, [onWorksheet, tool]);
   // the video tiles shown or hidden: the sheet takes the free width again (unless the user has moved it himself)
   useEffect(() => {
     if (!onWorksheet || userMoved.current) return;
@@ -470,10 +479,10 @@ export default function StudentBoard({
     const target = allSheets.find((sheet) => sheet.id === sheetId) || worksheet;
     if (!target) return;
     const page = sheetPageOf(target);
-    if (page) { choosePage(page.id); setTool('fill'); return; }
+    if (page) { choosePage(page.id); setTool(POINTER_TOOL); return; }
     if (target.id === worksheet?.id) { setWantWorksheet(target.id); return; }
-    if (staff) (service.addWorksheetPage || service.addPage).call(service, studentId, worksheetPageTitle(target.title), pages.length + 1, user).then((id) => { choosePage(id); setTool('fill'); }).catch(fail('Töölehe lehte ei saanud luua.'));
-  }, [allSheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]);
+    if (staff) (service.addWorksheetPage || service.addPage).call(service, studentId, worksheetPageTitle(target.title), pages.length + 1, user).then((id) => { choosePage(id); setTool(POINTER_TOOL); }).catch(fail('Töölehe lehte ei saanud luua.'));
+  }, [allSheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user, setTool]);
   useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet, selectedText: () => selectionText(selected.map((id) => byId.get(id))) }), [insertFile, newPage, openWorksheet, redo, undo, selected, byId]);
 
   // rename a lesson page: double click its tab or „Nimeta ümber” in the ⋯ menu next to the open page
@@ -509,7 +518,7 @@ export default function StudentBoard({
   };
   const menuPage = pages.find((item) => item.id === pageMenu?.id) || null;
   const visiblePages = sheetOfPage ? pages.filter((page) => page.id === pageId || !sheetTabs.hidden?.has(sheetOfPage.get(page.id))) : pages;
-  const openTab = (page) => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); };
+  const openTab = (page) => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool(POINTER_TOOL); };
   // one page's tab (BoardPageTabs lays them out: lesson chips, scrolling, „Lehed ▾”): rename, × and „…” stay here
   const renderTab = (page, { label, className: tabClass }) => (renaming?.id === page.id
     ? <input className="sb-page-rename" aria-label="Lehe nimi" autoFocus maxLength={200} value={renaming.title}
@@ -588,7 +597,7 @@ export default function StudentBoard({
   // While a drawing gesture runs, the browser must not select the page's text (owner 2026-11-04: dragging a pen or an
   // arrow painted the worksheet and the page blue). Typing is untouched: answer fields and text editors are not drawing.
   const selectionBlock = useRef(null);
-  const releaseSelection = () => { selectionBlock.current?.(); selectionBlock.current = null; };
+  const releaseSelection = () => { selectionBlock.current?.(); selectionBlock.current = null; setGrabbing(false); };
   // The block lives only as long as the press (2026-11-05: students could not type into the sheet's answers). The press
   // used to end only through the drawing layer's own pointerup; a release it never saw (off the board, over the dock or
   // a video window, Safari losing the SVG's pointer capture, the window losing focus) left `sb-drawing` on <html> and
@@ -652,6 +661,10 @@ export default function StudentBoard({
         const ids = event.shiftKey ? (has ? selected.filter((id) => id !== target.id) : [...selected, target.id]) : (has ? selected : [target.id]);
         setSelected(ids);
         gesture.current = { kind: 'move', ids, start: raw, dx: 0, dy: 0 };
+      } else if (filling) {
+        // on a worksheet the empty place is the sheet (its clicks never reach the layer): nothing to frame there
+        if (!event.shiftKey) setSelected([]);
+        return;
       } else {
         // empty place (or the teacher's material for a student): drag a frame to select several
         gesture.current = { kind: 'marquee', start: raw, add: event.shiftKey };
@@ -681,6 +694,8 @@ export default function StudentBoard({
       return;
     }
     if (DRAW_TOOLS.has(tool) || spaceHeld) blockSelection();
+    // a board part pressed on a worksheet: the layer takes the pointer until the release (moves, resizes)
+    if (filling) setGrabbing(true);
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
@@ -905,7 +920,7 @@ export default function StudentBoard({
       gesture.current = null; setDraft(null);
       nav.current = { kind: 'pinch', start: [...touches.current.values()], view };
       event.stopPropagation();
-    } else if (touches.current.size === 1 && filling) {
+    } else if (touches.current.size === 1 && filling && !event.target?.closest?.(BOARD_PART)) {
       nav.current = { kind: 'pan', start: point, view, pointerId: event.pointerId, moved: false };
     }
   };
@@ -1140,7 +1155,7 @@ export default function StudentBoard({
     if (tool === 'select') restyleSelected({ color: value });
   };
   const fontButtons = <div className="sb-style__fonts" role="group" aria-label="Kiri">{Object.entries(FONTS).map(([key, item]) => <button type="button" key={key} className={font === key ? 'is-active' : ''} aria-pressed={font === key} style={{ fontFamily: item.css }} onMouseDown={(event) => event.preventDefault()} onClick={() => pickFont(key)}>{item.label}</button>)}</div>;
-  const toolButton = ([key, label, Icon]) => <button type="button" key={key} className={tool === key ? 'is-active' : ''} aria-pressed={tool === key} aria-label={label} title={label} onClick={() => { setTool(key); setShapesOpen(false); if (key !== 'select') setSelected([]); }}><Icon size={room ? 20 : 18} /></button>;
+  const toolButton = ([key, label, Icon, hint]) => <button type="button" key={key} className={tool === key ? 'is-active' : ''} aria-pressed={tool === key} aria-label={label} title={hint || label} onClick={() => { setTool(key); setShapesOpen(false); if (key !== 'select') setSelected([]); }}><Icon size={room ? 20 : 18} /></button>;
   const zoomControls = <>
     <button type="button" aria-label="Vähenda" onClick={() => zoom(1 / 1.2)}><Minus size={16} /></button>
     <span className="sb-zoom">{Math.round(view.scale * 100)}%</span>
@@ -1151,7 +1166,6 @@ export default function StudentBoard({
   const shownSelection = selectedElements.map((element) => (resizing?.id === element.id ? { ...element, ...resizing.patch } : element));
   const selectionBounds = tool === 'select' ? unionBounds(shownSelection) : null;
   const selectionBox = selectionBounds && moving ? { x1: selectionBounds.x1 + moving.dx, y1: selectionBounds.y1 + moving.dy, x2: selectionBounds.x2 + moving.dx, y2: selectionBounds.y2 + moving.dy } : selectionBounds;
-  const filling = onWorksheet && tool === 'fill';
   const mediaHover = (event) => {
     if (!onWorksheet || filling) { if (overMedia) setOverMedia(false); return; }
     const stack = globalThis.document?.elementsFromPoint?.(event.clientX, event.clientY) || [];
@@ -1169,6 +1183,29 @@ export default function StudentBoard({
     if (audio.paused) audio.play?.()?.catch?.(() => {}); else audio.pause?.();
     return true;
   };
+  // „Vali ja täida” on a worksheet page: the layer is see-through (the sheet's fields take clicks and typing) except for
+  // the board's own parts the user may move — a teacher's material for a student, a locked one, lets clicks through too,
+  // and so does a highlighter line: it marks the sheet's text and must not cover the words and gaps under it (the eraser
+  // still removes it)
+  const pointerFor = (element) => (filling && movable(element) && canEdit(element) && !isMarker(element) ? 'auto' : undefined);
+  // a press on the sheet or beside it clears the selection; on the empty desk beside the sheet (mouse / pen) it draws a
+  // frame to select several, as on a plain page. Never a selection block for a press on the sheet itself.
+  const sheetPointerDown = (event) => {
+    if (!filling || (event.button !== undefined && event.button !== 0)) return;
+    if (event.target?.closest?.(BOARD_PART)) return;
+    if (event.target === event.currentTarget && event.pointerType !== 'touch' && !spaceHeld) {
+      const raw = screenToWorld(local(event), view);
+      gesture.current = { kind: 'marquee', start: raw, add: event.shiftKey, stage: true };
+      blockSelection();
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+      return;
+    }
+    if (selected.length && !event.shiftKey) setSelected([]);
+  };
+  const stageMarquee = (event) => {
+    if (!gesture.current?.stage) return;
+    if (event.type === 'pointermove') move(event); else up(event);
+  };
   const scrollbar = onWorksheet ? scrollbarFor(view, bounds, stageHeight) : null;
   const readingStage = <div ref={stageRef} className="sb-stage has-worksheet is-reading">
     <div className="sb-reading ws-narrow" data-testid="worksheet-reading"><SheetFlowContext.Provider value>{activeSheet?.content}</SheetFlowContext.Provider></div>
@@ -1176,10 +1213,10 @@ export default function StudentBoard({
   </div>;
   const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onDragOver={mediaDragOver} onDrop={mediaDrop}
-    onPointerDownCapture={(event) => { if (!mediaDown(event)) navDown(event); }} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
+    onPointerDownCapture={(event) => { if (!mediaDown(event)) { sheetPointerDown(event); navDown(event); } }} onPointerMove={stageMarquee} onPointerUp={stageMarquee} onPointerCancel={stageMarquee} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
     {onWorksheet && (narrow || tablet) ? <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('reading')}>Lugemisvaade</button> : null}
     {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
-    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling || overMedia ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => {
+    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={(filling && !grabbing) || overMedia ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => {
       const point = screenToWorld(local(event), view);
       const callout = byId.get(event.target?.closest?.('[data-element-id]')?.dataset?.elementId);
       const hit = editableText(callout) ? callout : textAt(elements, point);
@@ -1201,7 +1238,7 @@ export default function StudentBoard({
           const shift = moving?.ids.has(element.id) ? moving : remoteShift;
           const typed = here.typing?.id === element.id && editing?.id !== element.id ? { text: here.typing.text, ...(here.typing.spans ? { spans: here.typing.spans } : {}) } : null;
           const shown = resizing?.id === element.id ? { ...element, ...resizing.patch } : typed ? { ...element, ...typed } : element;
-          return <g key={element.id} transform={shift ? `translate(${shift.dx} ${shift.dy})` : undefined}>{render(shown)}</g>;
+          return <g key={element.id} transform={shift ? `translate(${shift.dx} ${shift.dy})` : undefined} pointerEvents={pointerFor(element)}>{render(shown)}</g>;
         })}
         {here.draft ? <g key="__remote" className="sb-remote-draft" data-testid="remote-draft" pointerEvents="none">{render({ ...here.draft.draft, id: '__remote' })}</g> : null}
         {draft ? <g key="__draft">{render({ ...draft, id: draft.id || '__draft' })}</g> : null}
@@ -1213,7 +1250,7 @@ export default function StudentBoard({
           <path d="M0 0 L0 16 L4.5 12 L7.5 19 L10 18 L7 11 L13 11 Z" />
           <text x="14" y="24">{live?.peerName || 'Teine'}</text>
         </g> : null}
-        {selectionBox ? <g className="sb-selection">
+        {selectionBox ? <g className="sb-selection" pointerEvents={filling ? 'auto' : undefined}>
           <rect x={selectionBox.x1 - 6 / view.scale} y={selectionBox.y1 - 6 / view.scale} width={selectionBox.x2 - selectionBox.x1 + 12 / view.scale} height={selectionBox.y2 - selectionBox.y1 + 12 / view.scale} fill="none" stroke="#4f7cff" strokeWidth={1.5 / view.scale} strokeDasharray={`${6 / view.scale} ${4 / view.scale}`} pointerEvents="none" />
           {selectedElements.length === 1 && !moving && isArrowLike(shownSelection[0]) ? (() => {
             const shown = shownSelection[0];
@@ -1298,8 +1335,7 @@ export default function StudentBoard({
         {error ? <p className="sb-room-error" role="alert">{error}</p> : null}
         {reading ? null : <div className="sb-zoombar" aria-label="Suum">{zoomControls}</div>}
         <div className="sb-dock" role="toolbar" aria-label="Tahvli tööriistad" hidden={reading}>
-          {onWorksheet ? toolButton(FILL_TOOL) : null}
-          {TOOLS.filter(([key]) => ['select', 'hand'].includes(key)).map(toolButton)}
+          {TOOLS.filter(([key]) => [POINTER_TOOL, 'hand'].includes(key)).map(toolButton)}
           {staff && onPointer ? toolButton(LASER_TOOL) : null}
           <span className="sb-dock__group">
             <button type="button" className={SHAPES.some(([key]) => key === tool) ? 'is-active' : ''} aria-label="Kujundid" aria-expanded={shapesOpen} title="Kujundid" onClick={() => setShapesOpen(!shapesOpen)}><ShapeIcon size={20} /></button>
@@ -1333,7 +1369,6 @@ export default function StudentBoard({
       {pageTabs('sb-pages')}
       <BoardLanguageTools dictionaryFor={notesStudentId} user={user} staff={staff} />
       <div className="sb-toolbar" role="toolbar" aria-label="Tahvli tööriistad">
-        {onWorksheet ? toolButton(FILL_TOOL) : null}
         {TOOLS.map(toolButton)}
         <span className="sb-sep" />
         {palette.map((value) => <button type="button" key={value} className={`sb-color ${activeColor === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Värv ${value}`} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseColor(value)} />)}

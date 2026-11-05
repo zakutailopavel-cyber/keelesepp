@@ -373,3 +373,9 @@ export const MARKER_COLORS = ['#FDE047', '#86EFAC', '#F9A8D4', '#93C5FD'];
 export const markerColor = (hex) => `${String(hex).slice(0, 7)}66`;
 export const isMarker = (element) => element?.type === 'stroke' && /^#[0-9a-f]{8}$/i.test(String(element.color || ''));
 export const markerWidth = (penWidth = 4) => Math.min(40, Math.max(12, penWidth * 4));
+
+// One pointer tool (owner 2026-11-05: „нам нет смысла в двух одинаковых мышках”): „Vali ja täida” answers the worksheet
+// and selects / moves the board's own parts. The old „Täida töölehte” id `fill` is the same tool now.
+export const POINTER_TOOL = 'select';
+const TOOL_ALIASES = { fill: POINTER_TOOL };
+export const boardTool = (key) => TOOL_ALIASES[key] || key || POINTER_TOOL;

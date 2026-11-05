@@ -83,6 +83,7 @@ describe('LiveRoom', () => {
     const s = services();
     renderRoom('student', s);
     const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Pliiats' }));
     fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 });
     fireEvent.pointerMove(svg, { clientX: 60, clientY: 60 });
     fireEvent.pointerUp(svg, { clientX: 60, clientY: 60 });
@@ -100,6 +101,7 @@ describe('LiveRoom', () => {
     renderRoom('student', s);
     fireEvent.click(screen.getByRole('button', { name: 'XL' }));
     const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Pliiats' }));
     fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 });
     fireEvent.pointerMove(svg, { clientX: 60, clientY: 60 });
     fireEvent.pointerUp(svg, { clientX: 60, clientY: 60 });
@@ -146,7 +148,9 @@ describe('LiveRoom', () => {
     act(() => s.pushSheet([{ id: 'a1', title: 'Minevik', status: 'assigned', studentId: 's-1', worksheetDoc: sampleDocument(), answers: {} }]));
     await waitFor(() => expect(s.board.addPage).toHaveBeenCalledWith('s-1', 'Tööleht: Minevik', 1, expect.objectContaining({ uid: 'teach' })));
     expect(await screen.findByRole('tab', { name: 'Tööleht: Minevik' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('button', { name: 'Täida töölehte' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Vali ja täida' })).toHaveAttribute('aria-pressed', 'true');
+    // one pointer in the dock: the old „Täida töölehte” button is gone
+    expect(screen.queryByRole('button', { name: 'Täida töölehte' })).toBeNull();
     expect(document.querySelector('.sb-underlay')).not.toBeNull();
     expect(document.querySelector('.lr-sheet')).toBeNull();
   });

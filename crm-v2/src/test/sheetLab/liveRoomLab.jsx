@@ -17,6 +17,8 @@ function services(assignment) {
   let sheet = { ...assignment, liveRoomKey: 'lab-inv', liveOpenedAt: new Date().toISOString() };
   const pages = [{ id: 'pg-sheet', title: worksheetPageTitle(sheet.title) }];
   const data = {};
+  const boards = new Map();
+  let nextId = 0;
   const drafts = [];
   const rooms = new Set();
   const lists = new Set();
@@ -31,8 +33,12 @@ function services(assignment) {
   return {
     board: {
       subscribePages: (_s, onChange) => { onChange(pages); return noop; },
-      subscribeElements: (_s, pageId, onChange) => { onChange(data[pageId] || []); return noop; },
-      add: async () => 'el-1', update: async () => {}, remove: async () => {}, clear: async () => 0, addPage: async () => 'pg-x',
+      // the board's own parts are kept in memory too (to try „Vali ja täida” on a line or a note over the sheet)
+      subscribeElements: (_s, pageId, onChange) => { boards.set(pageId, onChange); onChange(data[pageId] || []); return () => boards.delete(pageId); },
+      add: async (_s, pageId, element) => { const id = `el-${(nextId += 1)}`; data[pageId] = [...(data[pageId] || []), { id, ...element, revision: 1 }]; boards.get(pageId)?.([...data[pageId]]); return id; },
+      update: async (_s, pageId, element, change) => { data[pageId] = (data[pageId] || []).map((item) => (item.id === element.id ? { ...item, ...change } : item)); boards.get(pageId)?.([...data[pageId]]); },
+      remove: async (_s, pageId, id) => { data[pageId] = (data[pageId] || []).filter((item) => item.id !== id); boards.get(pageId)?.([...data[pageId]]); },
+      clear: async () => 0, addPage: async () => 'pg-x',
     },
     chat: { subscribeByStudent: (_id, onChange) => { onChange([]); return noop; }, send: async () => {} },
     library: { list: async () => ({ curriculumLessons: [] }), assign: async () => ({}), uploadFile: async () => ({}) },

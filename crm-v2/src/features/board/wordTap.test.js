@@ -113,14 +113,21 @@ describe('tapIntent: when a tap is a word lookup', () => {
     const stage = board('fill', '<div class="sb-underlay"><p>Tere</p></div><div class="sb-text">Tahvel</div>');
     expect(tapIntent({ target: stage.querySelector('p'), stage, staff: true })).toBe(false);
     expect(tapIntent({ target: stage.querySelector('.sb-text'), stage, staff: true })).toBe(true);
+    // „Vali ja täida” is the same tool: the teacher's Viga / Märkus / Sõna on the sheet keep working under it
     stage.className = 'sb-stage tool-select';
+    expect(tapIntent({ target: stage.querySelector('p'), stage, staff: true })).toBe(false);
+    expect(tapIntent({ target: stage.querySelector('.sb-text'), stage, staff: true })).toBe(true);
+    stage.className = 'sb-stage tool-hand';
     expect(tapIntent({ target: stage.querySelector('p'), stage, staff: true })).toBe(true);
     stage.remove();
   });
   it('reads the tool from the stage (the reading page is answering)', () => {
     const stage = document.createElement('div');
     stage.className = 'sb-stage has-worksheet is-reading';
-    expect(stageTool(stage)).toBe('fill');
+    expect(stageTool(stage)).toBe('select');
+    // the old „Täida töölehte” class is read as the one pointer tool
+    stage.className = 'sb-stage tool-fill has-worksheet';
+    expect(stageTool(stage)).toBe('select');
     stage.className = 'sb-stage tool-hand has-worksheet';
     expect(stageTool(stage)).toBe('hand');
   });
