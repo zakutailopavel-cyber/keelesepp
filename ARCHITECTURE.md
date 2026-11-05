@@ -135,6 +135,15 @@ sheets (grouped by `liveRoomKey`, labelled by `liveOpenedAt` date) are in the se
 there, opened otherwise or reached by following the teacher stays a tab with a × until closed (session state only).
 `StudentBoard` takes this as the optional `sheetTabs` prop.
 
+Board pointer (2026-11-05 `agent/board-one-pointer`): one tool „Vali ja täida” (id `select`, `boardModel.POINTER_TOOL`,
+key V) replaced „Täida töölehte” (`fill`) + „Vali ja liiguta”; it is the default on every page. `boardTool()` maps an old
+id (`fill`) to it; `wordTap.stageTool` reads `tool-fill` the same way. On a worksheet page the drawing SVG is
+`pointer-events: none` (the sheet's fields, word tools and the teacher's Viga / Märkus / Sõna take the clicks) and only
+the user's own movable parts (not locked, not a teacher's material for a student, not a highlighter line) get
+`pointer-events: auto`; pressing one makes the whole layer take the pointer until any release (ends with the #1111
+selection block). A press on the sheet clears the selection; a mouse drag on the empty desk beside the sheet draws a
+selection frame.
+
 Page bar (`board/BoardPageTabs.jsx`, `board/pageTabsModel.js`, every board variant): a solid toolbar above the board
 (room variant: `--sb-bar-h` 44 px, the stage starts 8 px below it, the bar ends `insetRight` px before the video tiles).
 Labels drop „Tööleht:”; the pages of one lesson („<lesson> · Avasta|Harjuta|Kasuta|Õpik”) are one tab with a chip per

@@ -3,6 +3,7 @@
 // language, with „Lisa sõnastikku” (the student's own `studentWords`). Pure helpers here; the card is WordTapCard.jsx.
 import { checkWord, findDuplicate, rememberedTarget } from '../vocabulary/ownWord.js';
 import { anchorVisible, placeFloating } from '../worksheet-studio/engine/floatingNote.js';
+import { POINTER_TOOL, boardTool } from './boardModel.js';
 
 // letters (with combining marks); a hyphen or an apostrophe inside a word belongs to it (e-post, O'Neill)
 const LETTER = /[\p{L}\p{M}]/u;
@@ -85,21 +86,22 @@ export const TAP_SKIP = [
   '.sb-scrollbar', '.sb-reading-toggle', '.sb-lause-dialog',
 ].join(', ');
 
-// the tools a word may be looked up with: answering a sheet, selecting, moving the board — never while drawing
-export const TAP_TOOLS = new Set(['fill', 'select', 'hand']);
+// the tools a word may be looked up with: „Vali ja täida” (answering a sheet, selecting), moving the board — never while drawing
+export const TAP_TOOLS = new Set([POINTER_TOOL, 'hand']);
 
+// the tool on the stage; the old „Täida töölehte” (`tool-fill`) is the one pointer tool, the reading page is answering
 export function stageTool(stage) {
   if (!stage) return '';
-  if (stage.classList?.contains('is-reading')) return 'fill';
+  if (stage.classList?.contains('is-reading')) return POINTER_TOOL;
   const name = [...(stage.classList || [])].find((item) => item.startsWith('tool-'));
-  return name ? name.slice(5) : '';
+  return name ? boardTool(name.slice(5)) : '';
 }
 
 const FIELD = 'input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"]';
 export const isTypingField = (el) => Boolean(el?.matches?.(FIELD));
 
 // Whether a tap / double click on the board is a word lookup. kind 'tap' (finger) or 'dblclick' (mouse).
-// staff on a worksheet with „Täida töölehte” keep the sheet's own word tools (Viga / Märkus / Sõna).
+// staff on a worksheet with „Vali ja täida” keep the sheet's own word tools (Viga / Märkus / Sõna).
 export function tapIntent({ target, stage, staff = false, active = null }) {
   if (!target || !stage || !stage.contains?.(target)) return false;
   if (target.closest?.(TAP_SKIP)) return false;
@@ -108,7 +110,7 @@ export function tapIntent({ target, stage, staff = false, active = null }) {
   // typing in an answer field: the tap only moves on
   if (active && active !== stage && stage.contains?.(active) && isTypingField(active)) return false;
   const onSheet = Boolean(target.closest?.('.sb-underlay, .sb-reading'));
-  if (staff && onSheet && tool === 'fill') return false;
+  if (staff && onSheet && tool === POINTER_TOOL) return false;
   return true;
 }
 

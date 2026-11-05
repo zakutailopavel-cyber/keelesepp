@@ -149,7 +149,9 @@
 .sb-scrollbar__thumb { position: absolute; left: 2px; right: 2px; border-radius: 4px; background: rgba(36, 41, 74, .38); cursor: grab; }
 .sb-scrollbar__thumb:hover, .sb-scrollbar__thumb:active { background: rgba(36, 41, 74, .6); }
 .sb-scrollbar__thumb:active { cursor: grabbing; }
-.sb-stage.tool-fill > svg { cursor: default; }
+.sb-stage.has-worksheet.tool-select > svg { cursor: default; }
+/* „Vali ja täida” on a worksheet: the board's own parts show they can be grabbed */
+.sb-stage.has-worksheet.tool-select > svg [data-element-id] { cursor: move; }
 .sb-pages button.is-worksheet { display: inline-flex; align-items: center; gap: 5px; }
 
 /* Live Classroom pointer: the teacher's red dot the student follows */
@@ -213,8 +215,8 @@
 /* ── 2026-11-04: no text selection while drawing; no history swipe; arrows; bookmark; rich text ── */
 html.sb-no-swipe, html.sb-no-swipe body { overscroll-behavior-x: none; }
 .sb-stage { overscroll-behavior: contain; }
-.sb-stage:not(.tool-fill) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-.sb-stage:not(.tool-fill) :is(input, textarea, select, [contenteditable="true"], .sb-editor) { -webkit-user-select: text; user-select: text; }
+.sb-stage:not(.has-worksheet.tool-select) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.sb-stage:not(.has-worksheet.tool-select) :is(input, textarea, select, [contenteditable="true"], .sb-editor) { -webkit-user-select: text; user-select: text; }
 html.sb-drawing, html.sb-drawing body { -webkit-user-select: none; user-select: none; }
 /* Safari inherits -webkit-user-select into fields, and a field with `none` takes no typing (2026-11-05): fields always
    keep theirs, whatever an ancestor says */

@@ -8,7 +8,8 @@ import { beforeAll as preloadBeforeAll } from 'vitest';
 import { preloadLiveClassroomParts } from './lazyParts.testkit.js';
 
 // 2026-11-05 (owner, 1:1 lesson): the student could not type into the sheet's writing task „Kodutöö: Kirjuta arvamus”
-// under the teacher's spotlight. The student's side of the room, the default tool on a sheet page („Täida töölehte”):
+// under the teacher's spotlight. The student's side of the room, the default tool on a sheet page (the one pointer
+// „Vali ja täida”, which replaced „Täida töölehte” on 2026-11-05):
 // every kind of answer field takes the typing — with the õ ä ö ü bar, with each answer font, and after a press on the
 // board whose release the drawing layer never saw.
 preloadBeforeAll(() => preloadLiveClassroomParts(), 60000);
@@ -86,9 +87,13 @@ function typeInto(field, text) {
 afterEach(() => { try { globalThis.localStorage?.removeItem?.(ANSWER_FONT_KEY); } catch { /* no storage */ } });
 
 describe('typing into worksheet answers on the live board (student)', () => {
-  it('the default tool on the sheet page is „Täida töölehte” and the spotlit writing task takes the text', async () => {
+  it('the default tool on the sheet page is „Vali ja täida” and the spotlit writing task takes the text', async () => {
     await renderStudentRoom();
-    expect(document.querySelector('.sb-dock [aria-pressed="true"]')).toHaveAttribute('aria-label', 'Täida töölehte');
+    expect(document.querySelector('.sb-dock [aria-pressed="true"]')).toHaveAttribute('aria-label', 'Vali ja täida');
+    // one pointer in the dock, and the drawing layer lets the sheet take the clicks
+    expect(document.querySelectorAll('.sb-dock [aria-label="Vali ja täida"]')).toHaveLength(1);
+    expect(document.querySelector('.sb-dock [aria-label="Täida töölehte"]')).toBeNull();
+    expect(document.querySelector('svg[aria-label="Õpilase tahvel"]').style.pointerEvents).toBe('none');
     expect(writingField().closest('.ws-card')).toHaveClass('focused');
     expect(writingField().readOnly).toBe(false);
     typeInto(writingField(), 'Mina arvan nii. See on hea.');
@@ -128,14 +133,15 @@ describe('typing into worksheet answers on the live board (student)', () => {
 
   it('after a press on the board released off the drawing layer, the block is gone and the field takes the text', async () => {
     await renderStudentRoom();
-    fireEvent.click(document.querySelector('.sb-dock [aria-label="Pliiats"]') || document.querySelector('.sb-dock [aria-label="Vali"]'));
+    fireEvent.click(document.querySelector('.sb-dock [aria-label="Pliiats"]'));
     const svg = document.querySelector('svg[aria-label="Õpilase tahvel"]');
     fireEvent.pointerDown(svg, { clientX: 20, clientY: 20, button: 0 });
     expect(document.documentElement.classList.contains('sb-drawing')).toBe(true);
     // released over the dock: the drawing layer never sees it
     fireEvent.pointerUp(document.querySelector('.sb-dock'), { clientX: 20, clientY: 900 });
     await waitFor(() => expect(document.documentElement.classList.contains('sb-drawing')).toBe(false));
-    fireEvent.click(document.querySelector('.sb-dock [aria-label="Täida töölehte"]'));
+    fireEvent.click(document.querySelector('.sb-dock [aria-label="Vali ja täida"]'));
+    expect(document.querySelector('svg[aria-label="Õpilase tahvel"]').style.pointerEvents).toBe('none');
     typeInto(writingField(), 'Tagasi tööle.');
     await waitFor(() => expect(writingField().value).toBe('Tagasi tööle.'));
   });
