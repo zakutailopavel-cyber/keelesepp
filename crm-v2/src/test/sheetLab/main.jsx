@@ -117,6 +117,11 @@ async function start() {
   const saved = params.get('answers');
   if (saved) assignment.answers = JSON.parse(saved);
   globalThis.__labDoc = assignment.worksheetDoc;
+  if (params.get('live')) {
+    const { default: LiveRoomLab } = await import('./liveRoomLab.jsx');
+    createRoot(document.getElementById('root')).render(<LiveRoomLab assignment={assignment} focus={params.get('focus') || ''} />);
+    return;
+  }
   createRoot(document.getElementById('root')).render(<Lab assignment={assignment} />);
 }
 start().catch((error) => { document.body.textContent = `LAB ERROR: ${error.message}`; globalThis.__labError = error.message; });
