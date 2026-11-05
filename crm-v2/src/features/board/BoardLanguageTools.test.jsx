@@ -84,6 +84,42 @@ describe('„Puuduta sõna” on the board', () => {
     expect(tools.checkOwnWord).not.toHaveBeenCalled();
   });
 
+  it('opens at once with „Otsin…”, shows a partial answer, and „Proovi uuesti” asks again', async () => {
+    let answer;
+    const checkOwnWord = vi.fn(() => new Promise((resolve) => { answer = resolve; }));
+    const tools = service({ checkOwnWord });
+    render(<Board service={tools} />);
+    pointAtWord();
+    fireEvent.doubleClick(screen.getByTestId('text'), { clientX: 10, clientY: 10 });
+    expect(await screen.findByText(/Otsin…/)).toBeTruthy();
+    expect(document.querySelector('.sb-word-tap[aria-label="Sõna jookseb"]')).toBeTruthy();
+    // the translation service was slow: the base form came, the translation did not
+    await act(async () => { answer({ status: 'ok', lemma: 'jooksma', translation: '', words: [], partial: true, missing: ['translation'] }); });
+    expect(await screen.findByText('jooksma')).toBeTruthy();
+    expect(screen.queryByText(/Otsin…/)).toBeNull();
+    expect(screen.getByText('Tõlget ei saanud praegu leida.').getAttribute('role')).toBe('alert');
+    fireEvent.click(screen.getByText('Proovi uuesti'));
+    expect(await screen.findByText(/Otsin…/)).toBeTruthy();
+    await act(async () => { answer({ status: 'ok', lemma: 'jooksma', translation: 'бегать', words: [] }); });
+    expect(await screen.findByText('бегать')).toBeTruthy();
+    expect(screen.queryByText('Proovi uuesti')).toBeNull();
+    expect(checkOwnWord).toHaveBeenCalledTimes(2);
+  });
+
+  it('a failed lookup (timeout) says so and offers „Proovi uuesti”; the spelling part missing is named', async () => {
+    const checkOwnWord = vi.fn()
+      .mockRejectedValueOnce(new Error('Keeletööriist ei vastanud õigel ajal.'))
+      .mockResolvedValueOnce({ status: 'unchecked', lemma: '', translation: 'бежит', words: [], partial: true, missing: ['spelling', 'forms'] });
+    render(<Board service={service({ checkOwnWord })} />);
+    pointAtWord();
+    fireEvent.doubleClick(screen.getByTestId('text'), { clientX: 10, clientY: 10 });
+    expect(await screen.findByText('Tõlget ei saanud praegu leida.')).toBeTruthy();
+    fireEvent.click(screen.getByText('Proovi uuesti'));
+    expect(await screen.findByText('бежит')).toBeTruthy();
+    expect(screen.getByText('Põhivormi ei jõudnud leida.')).toBeTruthy();
+    expect(screen.getByText('Proovi uuesti')).toBeTruthy();
+  });
+
   it('marks the board so the sheet’s own double-click card stands aside', () => {
     const { container } = render(<Board service={service()} />);
     expect(container.querySelector('.sb').dataset.wordTap).toBe('1');

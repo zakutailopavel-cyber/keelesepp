@@ -12161,15 +12161,24 @@ exports.notifyHomeworkCreated = functions
 const TARTUNLP_URL = process.env.TARTUNLP_URL || "https://api.tartunlp.ai/translation/v2";
 const EKILEX_URL = (process.env.EKILEX_URL || "https://ekilex.ee/api/").replace(/\/?$/, "/");
 const LANGUAGE_TIMEOUT_MS = 8000;
+// A caller with a time budget (the own-word card) runs its upstream calls inside `languageBudget.run({ until, trace })`:
+// each call then stops at `until` (never later than LANGUAGE_TIMEOUT_MS) and a failure is counted in `trace.failed`, so
+// an answer built over a failed call is not cached as if it were complete.
+const { AsyncLocalStorage } = require("node:async_hooks");
+const languageBudget = new AsyncLocalStorage();
 
 async function fetchJsonWithin(url, options = {}) {
+  const budget = languageBudget.getStore();
+  const left = budget?.until ? budget.until - Date.now() : LANGUAGE_TIMEOUT_MS;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), LANGUAGE_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), Math.max(1, Math.min(LANGUAGE_TIMEOUT_MS, left)));
   try {
+    if (left <= 0) throw Object.assign(new Error("No time left"), { name: "AbortError" });
     const response = await fetch(url, { ...options, signal: controller.signal });
     if (!response.ok) throw httpError(502, `Language service answered ${response.status}`);
     return await response.json();
   } catch (error) {
+    if (budget?.trace) budget.trace.failed += 1;
     if (error.status) throw error;
     throw httpError(502, error.name === "AbortError" ? "Language service did not answer in time" : "Language service unavailable");
   } finally {
@@ -12356,43 +12365,129 @@ async function checkEstonianWord(text, analysed = {}) {
   return out;
 }
 
+// Timing of /own-word (production log 2026-11-05: 9–13 s per word, ~20 s and no translation during a live lesson when
+// both services were slow). The spelling chain (etLex → Ekilex) and the translation run side by side, each stops after
+// `upstreamMs`; the answer leaves after `totalMs` at the latest with what has arrived (`partial: true`, `missing`).
+const OWN_WORD_TIMING = { upstreamMs: 4500, totalMs: 5000, lemmaMinMs: 700, cacheDays: 90 };
+
+// the promise's value, or `fallback` when it fails or `until` passes first (a late promise goes on unobserved)
+function settleBy(promise, until, fallback) {
+  let timer;
+  const late = new Promise((resolve) => { timer = setTimeout(() => resolve(fallback), Math.max(0, until - Date.now())); });
+  return Promise.race([promise.catch(() => fallback), late]).finally(() => clearTimeout(timer));
+}
+
+// Whole /own-word answers: `languageCache/ownword1_<hash of lang, tgt, lowercased text>` = { value, createdAt, expiresAt }
+// (server-only collection, admin SDK). Only complete answers are kept (no failed or late upstream call), for 90 days.
+function ownWordCacheRef(input) {
+  const { cacheKey } = require("./language-core");
+  return db.collection("languageCache").doc(cacheKey("ownword1", input.lang, input.tgt, input.text.toLocaleLowerCase("et")));
+}
+
+async function readOwnWordCache(input) {
+  try {
+    const snap = await ownWordCacheRef(input).get();
+    if (!snap.exists) return null;
+    const data = snap.data() || {};
+    if (!data.value || !data.expiresAt || !(Date.parse(data.expiresAt) > Date.now())) return null;
+    return data.value;
+  } catch (error) {
+    console.warn("own-word cache read failed", error.message);
+    return null;
+  }
+}
+
 async function checkOwnWord({ decoded, body }) {
   const { ownWordRequest, spellVerdict, correctedText } = require("./language-core");
   const input = ownWordRequest(body || {});
-  await takeLanguageQuota(decoded.uid);
-  const result = { text: input.text, lang: input.lang, tgt: input.tgt, status: "unchecked", words: [], suggestion: "", lemma: "", translation: "", translationOf: "", forms: { line: "", forms: [] }, sources: [] };
-  if (input.lang === "et") {
+  // the quota counts every check, as before; the cache is read meanwhile
+  const [, cachedAnswer] = await Promise.all([takeLanguageQuota(decoded.uid), readOwnWordCache(input)]);
+  if (cachedAnswer) return { ...cachedAnswer, text: input.text, partial: false, missing: [], cached: true };
+
+  const timing = OWN_WORD_TIMING;
+  const started = Date.now();
+  const deadline = started + timing.totalMs;
+  const upstreamUntil = Math.min(deadline, started + timing.upstreamMs);
+  const trace = { failed: 0 };
+  const single = input.words.length === 1;
+  const estonian = input.lang === "et";
+  const sameWord = (a, b) => String(a || "").toLocaleLowerCase("et") === String(b || "").toLocaleLowerCase("et");
+  const translate = (text, until) => languageBudget.run({ until, trace }, () => translateText({ text, src: input.lang, tgt: input.tgt }))
+    .then((answer) => String(answer.result || "").slice(0, 200));
+
+  // the typed text is translated at once; the base form of one word too, as soon as one is known and time is left
+  const surface = translate(input.text, upstreamUntil);
+  surface.catch((error) => console.warn("own-word translation failed", error.message));
+  const lemmaTranslations = new Map();
+  const translateLemma = (lemma) => {
+    if (!single || !lemma || sameWord(lemma, input.text) || lemmaTranslations.has(lemma)) return;
+    if (deadline - Date.now() < timing.lemmaMinMs) return;
+    const pending = translate(lemma, Math.min(deadline, Date.now() + timing.upstreamMs));
+    pending.catch(() => {});
+    lemmaTranslations.set(lemma, pending);
+  };
+
+  // spelling, base form and forms (Estonian only), filled step by step: a late chain still gives what has arrived
+  const spell = { checked: !estonian, formsDone: !estonian || !single, words: [], status: "unchecked", suggestion: "", lemma: "", forms: { line: "", forms: [] }, sources: [] };
+  const spelling = !estonian ? Promise.resolve() : languageBudget.run({ until: upstreamUntil, trace }, async () => {
     try {
       const analysed = await etlexEvaluate(input.text);
       const byToken = new Map(analysed.map((item) => [item.token.toLocaleLowerCase("et"), item]));
-      result.words = await Promise.all(input.words.map((word) => checkEstonianWord(word, byToken.get(word.toLocaleLowerCase("et")) || {})));
-      result.status = spellVerdict(result.words);
-      result.suggestion = correctedText(input.text, result.words);
-      result.sources.push("EKI etLex");
-      if (process.env.EKILEX_API_KEY) result.sources.push("EKI Ekilex");
+      if (single) translateLemma(byToken.get(input.words[0].toLocaleLowerCase("et"))?.lemma);
+      const words = await Promise.all(input.words.map((word) => checkEstonianWord(word, byToken.get(word.toLocaleLowerCase("et")) || {})));
+      spell.words = words;
+      spell.status = spellVerdict(words);
+      spell.suggestion = correctedText(input.text, words);
+      spell.sources.push("EKI etLex");
+      if (process.env.EKILEX_API_KEY) spell.sources.push("EKI Ekilex");
+      spell.checked = true;
     } catch (error) {
+      trace.failed += 1;
       console.warn("own-word spelling check failed", error.message);
     }
-    if (input.words.length === 1) {
-      const single = result.words[0];
-      result.lemma = single && single.known !== false ? single.lemma : "";
-      const forms = await estonianWordForms({ word: result.lemma || input.text }).catch(() => null);
+    if (single) {
+      const first = spell.words[0];
+      spell.lemma = first && first.known !== false ? first.lemma : "";
+      translateLemma(spell.lemma);
+      const forms = await estonianWordForms({ word: spell.lemma || input.text }).catch(() => null);
       if (forms?.found) {
-        result.lemma = forms.headword || result.lemma;
-        result.forms = { line: forms.line || "", forms: (forms.forms || []).slice(0, 8) };
+        spell.lemma = forms.headword || spell.lemma;
+        spell.forms = { line: forms.line || "", forms: (forms.forms || []).slice(0, 8) };
+        translateLemma(spell.lemma);
       }
+      spell.formsDone = Boolean(forms);
     }
+  });
+
+  const [, surfaceText] = await Promise.all([settleBy(spelling, upstreamUntil, undefined), settleBy(surface, upstreamUntil, "")]);
+  const snapshot = JSON.parse(JSON.stringify(spell));
+
+  // the base form of one word is translated (ärkan → ärkama → просыпаться) when that answer is in by the deadline;
+  // otherwise the typed form's translation stands in
+  const lemma = single && snapshot.lemma && !sameWord(snapshot.lemma, input.text) ? snapshot.lemma : "";
+  const lemmaText = lemma && lemmaTranslations.has(lemma) ? await settleBy(lemmaTranslations.get(lemma), deadline, "") : "";
+  const translation = lemmaText || surfaceText;
+  const missing = [];
+  if (!snapshot.checked) missing.push("spelling");
+  if (!snapshot.formsDone) missing.push("forms");
+  if (!translation) missing.push("translation");
+
+  const result = {
+    text: input.text, lang: input.lang, tgt: input.tgt,
+    status: snapshot.status, words: snapshot.words, suggestion: snapshot.suggestion, lemma: snapshot.lemma,
+    translation, translationOf: lemmaText ? lemma : surfaceText ? input.text : "", forms: snapshot.forms,
+    sources: [...snapshot.sources, ...(translation ? ["TartuNLP Neurotõlge"] : [])],
+    partial: missing.length > 0,
+    missing,
+  };
+  // kept only when nothing failed or came late (a base form shown with the typed form's translation is not kept either)
+  const complete = !missing.length && !trace.failed && !(lemma && !lemmaText);
+  if (complete) {
+    const now = new Date();
+    await ownWordCacheRef(input).set({ value: result, createdAt: now.toISOString(), expiresAt: new Date(now.getTime() + timing.cacheDays * 86400000).toISOString() })
+      .catch((error) => console.warn("own-word cache write failed", error.message));
   }
-  // the base form of one word is translated (ärkan → ärkama → просыпаться); a phrase as typed
-  const source = (input.words.length === 1 && result.lemma) || input.text;
-  try {
-    const translated = await translateText({ text: source, src: input.lang, tgt: input.tgt });
-    result.translation = String(translated.result || "").slice(0, 200);
-    result.translationOf = source;
-    result.sources.push("TartuNLP Neurotõlge");
-  } catch (error) {
-    console.warn("own-word translation failed", error.message);
-  }
+  console.log("own-word answered", JSON.stringify({ ms: Date.now() - started, missing, failed: trace.failed, kept: complete }));
   return result;
 }
 

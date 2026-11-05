@@ -37,6 +37,21 @@ describe('OwnWordForm', () => {
     expect(toolsService.checkOwnWord).toHaveBeenLastCalledWith({ text: 'raamatukogu', lang: 'et', tgt: 'ru' });
   });
 
+  it('a partial answer (slow service) names what is missing; „Proovi uuesti” checks again and fills the translation', async () => {
+    const toolsService = { checkOwnWord: vi.fn()
+      .mockResolvedValueOnce(answer({ translation: '', translationOf: '', partial: true, missing: ['translation'] }))
+      .mockResolvedValueOnce(answer()) };
+    render(<OwnWordForm studentId="s1" user={user} toolsService={toolsService} service={{ addStudentWord: vi.fn() }} />);
+    fireEvent.change(screen.getByLabelText(/Sõna või väljend/), { target: { value: 'kass' } });
+    fireEvent.click(screen.getByRole('button', { name: /Kontrolli ja tõlgi/ }));
+    expect(await screen.findByText(/Puudu: tõlge/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Tõlge või selgitus/)).toHaveValue('');
+    fireEvent.click(screen.getByRole('button', { name: 'Proovi uuesti' }));
+    await waitFor(() => expect(screen.getByLabelText(/Tõlge või selgitus/)).toHaveValue('кошка'));
+    expect(screen.queryByRole('button', { name: 'Proovi uuesti' })).toBeNull();
+    expect(toolsService.checkOwnWord).toHaveBeenCalledTimes(2);
+  });
+
   it('a failing check never blocks: the word is saved unchecked with the typed translation', async () => {
     const toolsService = { checkOwnWord: vi.fn().mockRejectedValue(new Error('down')) };
     const service = { addStudentWord: vi.fn().mockResolvedValue({}) };
