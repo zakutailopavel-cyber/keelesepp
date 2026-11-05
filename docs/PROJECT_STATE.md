@@ -1,3 +1,14 @@
+## 2026-11-05 · agent/trial-balance-period-hint — käibeandmik: quick periods and a note on a mid-year opening
+
+- Base: `origin/main` 3c7594e (#1112 merged), checked 2026-11-05. Accounting UI only; `trialBalance` maths unchanged; no rules, data, functions or content changed; no production writes, no deploy.
+- Why: the accountant opened „Käibeandmik” with a period from mid-year and saw expense accounts (4210, 4230, 4300, 4320…) in „Algsaldo deebet” instead of „Käive deebet”. That is correct (income / expense opening = year so far before the period). Owner: keep the calculation, make it clearer.
+- Done: new `crm-v2/src/features/accounting/accountingPeriod.js` (Tallinn day `tallinnToday`, `presetPeriod` / `activePreset`, `startsMidYear`, `TRIAL_MID_YEAR_NOTE`, `loadPeriod` / `savePeriod` with try/catch). Period bar: „Aasta algusest”, „See kuu”, „Eelmine kuu”, „See kvartal”, „Eelmine kvartal” (replace „Jooksev kuu” / „Jooksev aasta”), active one highlighted (`aria-pressed`); shared by päevaraamat, pearaamat, käibeandmik, partnerid, bilanss ja kasumiaruanne. Käibeandmik title „Käibeandmik dd.mm.yyyy–dd.mm.yyyy”; when „Alates” ≠ 01.01 a note above the table + „Näita aasta algusest”; same note as a „Märkus” row in the Excel header. Period remembered per device (`localStorage` key `keelesepp.accounting.period`; invalid / blocked → 01.01–today). „Today” is now the Tallinn day (was UTC).
+- Files: `crm-v2/src/features/accounting/{accountingPeriod.js,accountingPeriod.test.js,AccountingPage.jsx,AccountingPage.test.jsx,accountingExcel.js,accounting.css}`, `docs/ACCOUNTING.md` (Käibeandmik).
+- Checks: `cd crm-v2 && npx eslint src --quiet` no output; `npx vitest run src/features/accounting` 11 files, 113/113 passed (new: 7 period-helper tests incl. month / quarter / leap-year / Tallinn boundaries and Excel header, 3 page tests). Not checked in a browser (the page syncs against production when opened).
+- Limits: the remembered period is per device / browser, not per user. „Näita aasta algusest” keeps „Kuni”.
+- PR: draft (see GitHub, `agent/trial-balance-period-hint`). Production: none. Deploy: hosting only, after the owner's OK.
+- Next safe step: after the owner's OK deploy hosting and let the accountant open Käibeandmik with „Aasta algusest” / „See kvartal” and confirm the note reads clearly.
+
 ## 2026-11-05 · agent/board-one-pointer — one board pointer „Vali ja täida” instead of two „mice”
 
 - Base: `origin/main` 083ab24 (#1111 merged), checked 2026-11-05. Board / Live Classroom UI only; no rules, data, functions or content changed; no production writes, no deploy.

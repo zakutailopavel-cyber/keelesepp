@@ -4,6 +4,7 @@
 // (Konto nr | Konto nimetus | Saldo D/K | Käibed D/K | Saldo D/K).
 
 import { dmy } from './accountingReports.js';
+import { TRIAL_MID_YEAR_NOTE, startsMidYear } from './accountingPeriod.js';
 
 const esc = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const num = (cents) => (cents ? `<Cell ss:StyleID="money"><Data ss:Type="Number">${(cents / 100).toFixed(2)}</Data></Cell>` : '<Cell/>');
@@ -73,6 +74,7 @@ export function trialBalanceWorkbook(balance, { company, period }) {
     row([text('Käibeandmik', 'title')]),
     row([text('Periood'), text(`${dmy(period.from) || '…'} kuni ${dmy(period.to) || '…'}`)]),
     row([text('Ettevõte'), text(`${company.name}, Rg-kood ${company.regCode}`)]),
+    ...(startsMidYear(period.from) ? [row([text('Märkus'), text(TRIAL_MID_YEAR_NOTE)])] : []),
     `<Row><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Konto</Data></Cell><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Nimetus</Data></Cell>${['Algsaldo', 'Käive', 'Lõppsaldo'].map((t) => gText(t, 'gHeadCenter', 1)).join('')}</Row>`,
     `<Row><Cell ss:Index="3" ss:StyleID="gHeadNum"><Data ss:Type="String">Deebet</Data></Cell>${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}</Row>`,
     ...balance.rows.map((r) => row([gText(r.code), gText(r.name), ...six(r).map(cell)])),
