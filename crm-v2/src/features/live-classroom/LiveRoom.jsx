@@ -37,6 +37,7 @@ import { attendanceMarks, plannedStartMs } from './roomAttendance.js';
 import FloatingWindow, { FloatingLayer } from './FloatingWindow.jsx';
 import ScreenStage, { StageToggle } from './ScreenStage.jsx';
 import { rightInset } from './floatingLayout.js';
+import { liveRoomFoldSteps, useTopBarFit } from './topBarFit.js';
 import './liveRoom.css';
 
 // the side panels and the teacher's recorder download when they are first opened, so the room (call and board) opens
@@ -65,12 +66,15 @@ const BARS = { connected: 3, connecting: 2, reconnecting: 1, waiting: 1 };
 const remoteHeight = (w) => Math.round(w * 0.75);
 const selfHeight = (w) => Math.round(w * 0.625);
 const narrow = (bounds) => bounds.w < 700;
-const remoteDefault = (bounds) => ({ ax: 'right', ay: 'top', dx: 14, dy: 56, w: narrow(bounds) ? 112 : 220, min: false });
+// the layer starts under the page tab bar and ends above the tool dock (FLOAT_INSET), so a window never covers them
+const remoteDefault = (bounds) => ({ ax: 'right', ay: 'top', dx: 14, dy: 4, w: narrow(bounds) ? 112 : 220, min: false });
 const selfDefault = (bounds) => {
   const remoteW = narrow(bounds) ? 112 : 220;
-  return { ax: 'right', ay: 'top', dx: 14, dy: 56 + remoteHeight(remoteW) + 8, w: narrow(bounds) ? 92 : 132, min: narrow(bounds) };
+  return { ax: 'right', ay: 'top', dx: 14, dy: 4 + remoteHeight(remoteW) + 8, w: narrow(bounds) ? 92 : 132, min: narrow(bounds) };
 };
-const observerDefault = (bounds) => ({ ax: 'left', ay: 'bottom', dx: 14, dy: 14, w: narrow(bounds) ? 96 : 150, min: false });
+const observerDefault = (bounds) => ({ ax: 'left', ay: 'bottom', dx: 14, dy: 4, w: narrow(bounds) ? 96 : 150, min: false });
+// px kept free in the stage: the page tab bar above (44 + 8) and the tool dock / zoom bar below
+const FLOAT_INSET = Object.freeze({ top: 52, bottom: 66 });
 
 function Signal({ status, label }) {
   const level = BARS[status] || 0;
@@ -175,7 +179,7 @@ function DevicesPanel({ call, stream }) {
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
   recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false, observerProps,
-  planService, countdownService, momentsService, pollService, boardCopies,
+  planService, countdownService, momentsService, pollService, boardCopies, stageNotice = null,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
@@ -407,6 +411,9 @@ export default function LiveRoom({
   const insetRight = wide && !showScreen ? rightInset(Object.values(layouts), globalThis.innerWidth || 1280) : 0;
   const observerVideo = watching.observers.some((item) => watching.streams?.[item.uid || item.id]?.getVideoTracks?.().length);
   const toggle = (name) => { setMenu(''); setPanel((current) => (current === name ? '' : name)); };
+  const openTasks = () => { setMenu(''); if (sheet && !teacher) { boardRef.current?.openWorksheet?.(); return; } toggle('tasks'); };
+  const headerRef = useRef(null);
+  const foldSteps = useMemo(() => liveRoomFoldSteps({ teacher, guest }), [teacher, guest]);
   const place = async (file) => {
     const kind = fileKind(file);
     const size = kind === 'image' ? await imageSize(file.url) : { width: 1000, height: 1414 };
@@ -431,21 +438,32 @@ export default function LiveRoom({
       ? <><span className="lr-pill lr-call-wait" role="status">{call.busy ? 'Ühendan…' : 'Ootan, kuni õpetaja alustab kõnet…'}</span><a className="lr-pill" href={`/kontroll?tund=${encodeURIComponent(invitation.id)}`} target="_blank" rel="noopener">Kontrolli seadet</a></>
       : <button type="button" className="lr-call-start" disabled={call.busy} onClick={startCall}><Phone size={17} /> {teacher ? 'Alusta kõnet' : 'Liitu kõnega'}</button>;
 
+  const talkShown = Boolean(streams?.local || streams?.remote);
+  const barContent = [call.hasLocalMedia, recState.recording, roomChannelOpen, remoteScreen.active, awayFromTeacher, teacherLeads && !followView,
+    Boolean(studentStep), watchingCount > 0, consent, call.canReconnect, talkShown, call.manualJoin].map(Number).join('');
+  const fold = useTopBarFit(headerRef, foldSteps, barContent);
+  const folded = (name) => fold.has(name);
+  const fromMenu = (action) => () => { setMenu(''); action(); };
+  const titleText = `${invitation.title}${teacher ? ` · ${invitation.studentName}` : ` · ${invitation.teacherName}`}`;
+
   return (
     <div className="lr" role="region" aria-label="Tunniruum">
-      <header className="lr-top">
-        <div className="lr-top__group">
+      <header className={`lr-top ${folded('labels') ? 'is-compact' : ''}`} ref={headerRef}>
+        <div className="lr-top__group lr-top__left">
           <IconButton label="Lahku tunniruumist" onClick={onLeave}><ArrowLeft size={19} /></IconButton>
           <IconButton label="Tunni info" active={menu === 'info'} onClick={() => setMenu(menu === 'info' ? '' : 'info')}><Menu size={19} /></IconButton>
-          <div className="lr-title"><strong>Tund — {lessonDate}</strong><small>{invitation.title}{teacher ? ` · ${invitation.studentName}` : ` · ${invitation.teacherName}`}</small></div>
-          <IconButton label="Võta tagasi" disabled={!history.canUndo} onClick={() => boardRef.current?.undo()}><Undo2 size={18} /></IconButton>
-          <IconButton label="Tee uuesti" disabled={!history.canRedo} onClick={() => boardRef.current?.redo()}><Redo2 size={18} /></IconButton>
+          <div className="lr-title" title={`Tund — ${lessonDate} · ${titleText}`}><strong>Tund — {lessonDate}</strong><small>{titleText}</small></div>
+          {!folded('history') ? <>
+            <IconButton label="Võta tagasi" disabled={!history.canUndo} onClick={() => boardRef.current?.undo()}><Undo2 size={18} /></IconButton>
+            <IconButton label="Tee uuesti" disabled={!history.canRedo} onClick={() => boardRef.current?.redo()}><Redo2 size={18} /></IconButton>
+          </> : null}
         </div>
         <div className="lr-top__group lr-top__center">
           {subject ? <span className="lr-pill lr-subject">{subject}</span> : null}
           {remoteScreen.active ? <StageToggle view={stageView} onChange={setStageView} /> : null}
           <span className="lr-pill lr-timer" aria-label="Tunni kestus"><span>{clock(now - startedAt)}</span><Signal status={call.status} label={`Ühendus: ${call.statusLabel}`} /></span>
-          {teacher ? <LessonPlanPill clock={planState.clock} active={panel === 'plan'} onClick={() => toggle('plan')} /> : null}
+          {!teacher ? <RecordingIndicator invitation={invitation} user={user} {...(recordingService ? { service: recordingService } : {})} /> : null}
+          {teacher && !folded('plan') ? <LessonPlanPill clock={planState.clock} active={panel === 'plan'} onClick={() => toggle('plan')} /> : null}
           {!teacher && studentStep && roomChannelOpen ? <span className="lr-pill lr-plan-pill" role="status">Samm {studentStep.index + 1}/{studentStep.count}</span> : null}
           {call.hasLocalMedia ? <>
             <IconButton label={call.audioEnabled ? 'Lülita mikrofon välja' : 'Lülita mikrofon sisse'} active={!call.audioEnabled} onClick={call.toggleAudio}>{call.audioEnabled ? <Mic size={18} /> : <MicOff size={18} />}</IconButton>
@@ -460,7 +478,7 @@ export default function LiveRoom({
               <span className="lr-rec__dot" aria-hidden="true" />Salvestan{macOff ? <span className="lr-rec__warn" aria-hidden="true">!</span> : null}
             </button>;
           })() : null}
-          {teacher && !recState.recording && call.hasLocalMedia && consent === false ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
+          {teacher && !recState.recording && call.hasLocalMedia && consent === false && !folded('norec') ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
           {teacher && !guest ? <MomentButton invitation={invitation} user={user} recording={momentRecording} {...(momentsService ? { service: momentsService } : {})} /> : null}
           {teacher ? <TalkMeter streams={streams} /> : null}
           {watching.observers.length ? <span className="lr-pill lr-observer" role="img" aria-label="Administraator vaatab tundi" title={`Administraator vaatab tundi: ${watching.observers.map((item) => item.displayName).join(', ')}`}><Eye size={16} /></span> : null}
@@ -472,13 +490,13 @@ export default function LiveRoom({
         </div>
         <div className="lr-top__group lr-top__right">
           <IconButton label="Rohkem" active={menu === 'more'} onClick={() => setMenu(menu === 'more' ? '' : 'more')}><MoreHorizontal size={19} /></IconButton>
-          <IconButton label="Osalejad" active={panel === 'people'} onClick={() => toggle('people')}><Users size={18} /></IconButton>
-          {!guest ? <IconButton label="Vestlus" active={panel === 'chat'} onClick={() => toggle('chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</IconButton> : null}
-          {teacher ? <IconButton label="Taimer" active={panel === 'timer' || timer.active} onClick={() => toggle('timer')}><Timer size={18} /></IconButton> : null}
-          {teacher && !guest ? <IconButton label="Kiirküsimus" active={panel === 'poll' || pollLive} onClick={() => toggle('poll')}><Sparkles size={18} /></IconButton> : null}
-          {teacher ? <button type="button" aria-label="Materjalid" title="Materjalid" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => toggle('materials')}><LibraryBig size={17} /><span className="lr-label">Materjalid</span></button> : null}
-          {!guest ? <button type="button" aria-label="Sõnad" title="Sõnad" className={`lr-text-btn ${panel === 'words' ? 'is-active' : ''}`} onClick={() => toggle('words')}><Languages size={17} /><span className="lr-label">Sõnad</span></button> : null}
-          <button type="button" aria-label={sheet ? 'Ülesanded · tööleht on avatud' : 'Ülesanded'} title="Ülesanded" className={`lr-text-btn ${panel === 'tasks' ? 'is-active' : ''}`} onClick={() => { setMenu(''); if (sheet && !teacher) { boardRef.current?.openWorksheet?.(); return; } toggle('tasks'); }}><ClipboardList size={17} /><span className="lr-label">Ülesanded</span>{sheet ? <span className="lr-dot" aria-label="Tööleht on avatud" /> : null}</button>
+          {!folded('people') ? <IconButton label="Osalejad" active={panel === 'people'} onClick={() => toggle('people')}><Users size={18} /></IconButton> : null}
+          {!guest && !folded('chat') ? <IconButton label="Vestlus" active={panel === 'chat'} onClick={() => toggle('chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</IconButton> : null}
+          {teacher && !folded('timer') ? <IconButton label="Taimer" active={panel === 'timer' || timer.active} onClick={() => toggle('timer')}><Timer size={18} /></IconButton> : null}
+          {teacher && !guest && !folded('poll') ? <IconButton label="Kiirküsimus" active={panel === 'poll' || pollLive} onClick={() => toggle('poll')}><Sparkles size={18} /></IconButton> : null}
+          {teacher && !folded('materials') ? <button type="button" aria-label="Materjalid" title="Materjalid" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => toggle('materials')}><LibraryBig size={17} /><span className="lr-label">Materjalid</span></button> : null}
+          {!guest && !folded('words') ? <button type="button" aria-label="Sõnad" title="Sõnad" className={`lr-text-btn ${panel === 'words' ? 'is-active' : ''}`} onClick={() => toggle('words')}><Languages size={17} /><span className="lr-label">Sõnad</span></button> : null}
+          {!folded('tasks') ? <button type="button" aria-label={sheet ? 'Ülesanded · tööleht on avatud' : 'Ülesanded'} title="Ülesanded" className={`lr-text-btn ${panel === 'tasks' ? 'is-active' : ''}`} onClick={openTasks}><ClipboardList size={17} /><span className="lr-label">Ülesanded</span>{sheet ? <span className="lr-dot" aria-label="Tööleht on avatud" /> : null}</button> : null}
         </div>
         {menu === 'info' ? <div className="lr-menu lr-menu--left" role="dialog" aria-label="Tunni info">
           <strong>{invitation.title}</strong>
@@ -486,11 +504,24 @@ export default function LiveRoom({
           <p className="lr-muted">Tahvel on õpilase oma tahvel: kõik joonistatu jääb alles ka pärast tundi (CRM-is „Tahvel”).</p>
         </div> : null}
         {menu === 'more' ? <div className="lr-menu" role="menu" aria-label="Rohkem">
+          {/* the buttons that did not fit into the bar (topBarFit.js) come first */}
+          {folded('history') ? <>
+            <button type="button" role="menuitem" disabled={!history.canUndo} onClick={fromMenu(() => boardRef.current?.undo())}><Undo2 size={16} aria-hidden="true" /> Võta tagasi</button>
+            <button type="button" role="menuitem" disabled={!history.canRedo} onClick={fromMenu(() => boardRef.current?.redo())}><Redo2 size={16} aria-hidden="true" /> Tee uuesti</button>
+          </> : null}
+          {folded('tasks') ? <button type="button" role="menuitem" onClick={openTasks}><ClipboardList size={16} aria-hidden="true" /> Ülesanded{sheet ? ' · tööleht on avatud' : ''}</button> : null}
+          {!guest && folded('chat') ? <button type="button" role="menuitem" onClick={() => toggle('chat')}><MessageSquare size={16} aria-hidden="true" /> Vestlus{unread ? ` (${unread} uut)` : ''}</button> : null}
+          {teacher && folded('timer') ? <button type="button" role="menuitem" onClick={() => toggle('timer')}><Timer size={16} aria-hidden="true" /> Taimer{timer.active ? ' · käib' : ''}</button> : null}
+          {teacher && !guest && folded('poll') ? <button type="button" role="menuitem" onClick={() => toggle('poll')}><Sparkles size={16} aria-hidden="true" /> Kiirküsimus{pollLive ? ' · käib' : ''}</button> : null}
+          {!guest && folded('words') ? <button type="button" role="menuitem" onClick={() => toggle('words')}><Languages size={16} aria-hidden="true" /> Sõnad</button> : null}
+          {teacher && folded('materials') ? <button type="button" role="menuitem" onClick={() => toggle('materials')}><LibraryBig size={16} aria-hidden="true" /> Materjalid</button> : null}
+          {folded('people') ? <button type="button" role="menuitem" onClick={() => toggle('people')}><Users size={16} aria-hidden="true" /> Osalejad</button> : null}
+          {fold.size > 1 ? <hr /> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); boardRef.current?.newPage(`Tund ${lessonDate}`).catch((error) => setNotice(error?.message || 'Uut lehte ei saanud luua.')); }}>Uus tunnileht „Tund {lessonDate}”</button> : null}
-          {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('plan'); }}>Tunniplaan ja kohalolu</button> : null}
+          {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('plan'); }}>Tunniplaan ja kohalolu{folded('plan') && planState.clock.started && !planState.clock.done ? ` · samm ${planState.clock.index + 1}/${planState.clock.count}` : ''}</button> : null}
           {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('homework'); }}>Anna kodutöö</button> : null}
           {teacher && !guest ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('warmup'); }}>Soojendus eelmise tunni lausetest</button> : null}
-          {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('record'); }}>Tunni salvestamine</button> : null}
+          {teacher ? <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('record'); }}>Tunni salvestamine{folded('norec') && !recState.recording && consent === false ? ' · ei salvesta' : ''}</button> : null}
           {!teacher ? <button type="button" role="menuitemcheckbox" aria-checked={follow} onClick={() => { setMenu(''); setFollow(!follow); }}>{follow ? 'Ära jälgi õpetaja lehte' : 'Jälgi õpetaja lehte'}</button> : null}
           <button type="button" role="menuitem" onClick={() => { setMenu(''); setPanel('devices'); }}>Kaamera ja mikrofon</button>
           <button type="button" role="menuitem" onClick={() => { setMenu(''); onLeave(); }}>Lahku tunniruumist</button>
@@ -498,7 +529,6 @@ export default function LiveRoom({
         </div> : null}
       </header>
 
-      {!teacher ? <RecordingIndicator invitation={invitation} user={user} {...(recordingService ? { service: recordingService } : {})} /> : null}
       {call.error ? <p className="lr-toast lr-toast--error" role="alert">{call.error}</p> : null}
       {notice ? <p className="lr-toast" role="status">{notice}</p> : null}
 
@@ -525,16 +555,21 @@ export default function LiveRoom({
             insetRight={insetRight}
             sheetTabs={sheetTabs}
           />
-          <CountdownBadge timer={timer} />
+          {/* the left column over the board (under the tab bar, above the zoom bar): countdown, the teacher's device
+              warning and „Täna harjutada” stack one under another and stay left of the video windows */}
+          <div className="lr-stack" style={insetRight ? { right: insetRight } : undefined}>
+            <CountdownBadge timer={timer} />
+            {stageNotice}
+            {teacher && !guest ? <RoomPartBoundary label="Vihjeid"><Suspense fallback={null}><LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /></Suspense></RoomPartBoundary> : null}
+          </div>
           {!teacher && !guest ? <QuickPollCard quick={quick} timer={timer} /> : null}
-          {teacher && !guest ? <RoomPartBoundary label="Vihjeid"><Suspense fallback={null}><LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /></Suspense></RoomPartBoundary> : null}
           {remoteScreen.active ? <ScreenStage stream={remoteScreen.stream} name={call.peerName} visible={showScreen} /> : null}
           {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
             {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
         </main>
 
         {/* the video windows: moved, resized and made small by hand, remembered in this browser (owner 2026-11-04) */}
-        <FloatingLayer inset={{ right: panel && wide ? 362 : 0 }}>
+        <FloatingLayer inset={{ ...FLOAT_INSET, right: panel && wide ? 362 : 0 }}>
           <FloatingWindow id="room-remote" label={`Video: ${call.peerName}`} heightFor={remoteHeight} defaultLayout={remoteDefault} onLayoutChange={onLayoutChange} restoreLabel={`Näita videot: ${call.peerName}`}
             restoreContent={<><span>{call.peerName}</span><Signal status={call.connected ? 'connected' : call.peerOnline ? 'waiting' : 'idle'} label={`${call.peerName} ${peerLabel}`} /></>}>
             <figure className={`lr-tile lr-tile--remote ${call.connected ? 'is-live' : ''}`}>

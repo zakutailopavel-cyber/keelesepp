@@ -105,6 +105,17 @@
 .sb-zoombar button { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 9px; background: transparent; color: #3c4257; cursor: pointer; }
 .sb-zoombar button:hover { background: #f1f2f8; }
 .sb-dock { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 3; display: flex; align-items: center; gap: 4px; max-width: calc(100% - 28px); padding: 7px 9px; border: 1px solid #e7e9f3; border-radius: 20px; background: rgba(255, 255, 255, .97); box-shadow: 0 12px 34px rgba(30, 34, 70, .14); }
+/* lesson room: centred on the board, but never under the zoom bar on the left (a narrow board: it starts right of it) */
+@media (min-width: 761px) {
+  .sb--room { container-type: inline-size; }
+  .sb--room .sb-dock { left: 172px; right: 172px; width: fit-content; max-width: none; margin-inline: auto; transform: none; }
+}
+/* a narrow board (iPad upright, a small window): smaller tool buttons; if they still do not fit the dock scrolls */
+@container (max-width: 980px) {
+  .sb--room .sb-dock { right: 14px; max-width: calc(100% - 186px); gap: 2px; padding: 5px; overflow-x: auto; justify-content: flex-start; }
+  .sb--room .sb-dock > button, .sb--room .sb-dock__group > button { width: 38px; height: 38px; }
+  .sb--room .sb-dock__menu { position: fixed; bottom: 96px; }
+}
 .sb-dock > button, .sb-dock__group > button, .sb-dock__menu > button { display: grid; place-items: center; width: 42px; height: 42px; border: 0; border-radius: 50%; background: transparent; color: #2c3150; cursor: pointer; flex: none; }
 .sb-dock > button:hover, .sb-dock__group > button:hover, .sb-dock__menu > button:hover { background: #f1f2f8; }
 .sb-dock > button.is-active, .sb-dock__group > button.is-active, .sb-dock__menu > button.is-active { background: #4f7cff; color: #fff; box-shadow: 0 6px 16px rgba(79, 124, 255, .35); }
@@ -201,6 +212,8 @@
 .sb-reading-toggle { position: absolute; right: 10px; bottom: 76px; z-index: 6; border: 1px solid #e4e6f0; border-radius: 999px; background: rgba(255, 255, 255, .95); padding: 6px 12px; font-size: .78rem; font-weight: 700; color: #24294a; box-shadow: 0 4px 14px rgba(30, 34, 70, .12); }
 .sb-dock[hidden] { display: none; }
 .sb-stage.is-reading .sb-reading-toggle { bottom: 72px; right: 8px; min-height: 40px; }
+/* in the lesson room the switch is a button of the page tab bar (never over the video windows, owner 2026-11-05) */
+.sb-room-pages .sb-reading-toggle { position: static; flex: none; min-height: 30px; padding: 4px 10px; box-shadow: none; background: #fff; cursor: pointer; white-space: nowrap; }
 /* the student's sheet player carries .ws-studio (the constructor's full-screen frame: height of the window, overflow
    hidden). On the board it clipped the sheet at the window's height, so the student saw only its top while the teacher
    saw it all (owner 2026-10-20). On the board and on the phone reading page the sheet is as long as it is. */
