@@ -112,6 +112,12 @@ The running number („MA 3”) counts the entries of one code in one year in th
 
 Käibeandmik (`trialBalance`, `trialBalanceWorkbook`): Konto | Nimetus | Algsaldo Deebet / Kreedit | Käive Deebet /
 Kreedit | Lõppsaldo Deebet / Kreedit (two-level header), Kokku row.
+Title „Käibeandmik 01.09.2026–05.11.2026”. For income / expense accounts the opening of a period that does not start
+on 1 January is the sum from 1 January to the day before the period (standard; the maths is unchanged). Then a note
+above the table (and a „Märkus” row in the Excel header) says so, with „Näita aasta algusest” (sets „Alates” to 01.01
+of the same year). Quick period buttons for all period reports (`accountingPeriod.js`): „Aasta algusest” (01.01 of the
+year in view → today, a past year → 31.12), „See kuu”, „Eelmine kuu”, „See kvartal”, „Eelmine kvartal”; Tallinn day;
+the active one is highlighted. The period is remembered per device (`localStorage` `keelesepp.accounting.period`).
 
 Manual entry (`JournalDraft.jsx`): „Lisa kanne” opens editable rows at the top of the päevaraamat grid: the date,
 document and content in the entry row, account / note / debit / credit in each line. Tab moves cell to cell; Tab in

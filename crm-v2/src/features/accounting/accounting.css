@@ -51,6 +51,22 @@
   min-width: 160px;
 }
 
+.accounting-period__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* käibeandmik: a period that does not start on 1 January (accountingPeriod.js TRIAL_MID_YEAR_NOTE) */
+.accounting-trial__note {
+  background: #eff8ff;
+  border: 1px solid #b2ddff;
+  color: #175cd3;
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+}
+
 .accounting-card {
   overflow: hidden;
   padding: 0;
