@@ -29,6 +29,18 @@ export default function BoardLanguageTools({ dictionaryFor = '', user = null, st
 
   const close = useCallback(() => setCard(null), []);
 
+  // the base form and translation of the card's word; a failed or partial answer can be asked again („Proovi uuesti”)
+  const lookup = useCallback((key, word) => {
+    const { service: words, dictionaryFor: student } = live.current;
+    setCard((current) => (current?.key === key ? { ...current, loading: true } : current));
+    (async () => {
+      const tgt = translationTarget(await Promise.resolve(words.preferredLanguage?.(student)).catch(() => ''));
+      const data = await cacheFor(words).get(word, tgt);
+      setCard((current) => (current?.key === key ? { ...current, loading: false, tgt, data } : current));
+    })().catch((error) => setCard((current) => (current?.key === key ? { ...current, loading: false, data: { word, lemma: '', translation: '', error: error?.message || 'error' } } : current)));
+  }, []);
+  const retry = () => { if (card && !card.loading) lookup(card.key, card.word); };
+
   useEffect(() => {
     if (!root) return undefined;
     // the sheet's own double-click card (WordLookup) stands aside on this board
@@ -44,13 +56,8 @@ export default function BoardLanguageTools({ dictionaryFor = '', user = null, st
       if (!hit || !stage.contains(hit.node)) return;
       const key = seq.current + 1;
       seq.current = key;
-      const { service: words, dictionaryFor: student } = live.current;
       setCard({ key, word: hit.word, anchor: rangeAnchor(hit.range, hit.node), loading: true, tgt: '' });
-      (async () => {
-        const tgt = translationTarget(await Promise.resolve(words.preferredLanguage?.(student)).catch(() => ''));
-        const data = await cacheFor(words).get(hit.word, tgt);
-        setCard((current) => (current?.key === key ? { ...current, loading: false, tgt, data } : current));
-      })().catch((error) => setCard((current) => (current?.key === key ? { ...current, loading: false, data: { word: hit.word, lemma: '', translation: '', error: error?.message || 'error' } } : current)));
+      lookup(key, hit.word);
     };
 
     const onDown = (event) => {
@@ -87,7 +94,7 @@ export default function BoardLanguageTools({ dictionaryFor = '', user = null, st
       root.removeEventListener('pointercancel', onCancel, true);
       root.removeEventListener('dblclick', onDouble, true);
     };
-  }, [root]);
+  }, [root, lookup]);
 
   const add = async () => {
     if (!card?.data || card.saving) return;
@@ -103,7 +110,7 @@ export default function BoardLanguageTools({ dictionaryFor = '', user = null, st
 
   return <>
     <span ref={marker} hidden data-board-language-tools="" />
-    {card ? <WordTapCard key={card.key} card={card} canAdd={Boolean(dictionaryFor && user?.uid && service.words)} onAdd={add} onClose={close} /> : null}
+    {card ? <WordTapCard key={card.key} card={card} canAdd={Boolean(dictionaryFor && user?.uid && service.words)} onAdd={add} onRetry={retry} onClose={close} /> : null}
     <LetterBar root={root} canHide={staff} />
   </>;
 }

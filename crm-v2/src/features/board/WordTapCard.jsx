@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BookmarkCheck, BookmarkPlus, Loader2, X } from 'lucide-react';
+import { BookmarkCheck, BookmarkPlus, Loader2, RotateCw, X } from 'lucide-react';
 import { CARD_WIDTH, wordCardSpot } from './wordTap.js';
 
 const LANGUAGE_NAMES = { ru: 'vene k', en: 'inglise k', uk: 'ukraina k' };
@@ -15,7 +15,7 @@ const sameSpot = (a, b) => Boolean(a && b) && a.hidden === b.hidden && a.left ==
 
 // The small card of „Puuduta sõna”, drawn on document.body (the board is a scaled, panned layer: the card would be
 // clipped there or move the layout). It follows its word every frame, so it moves with the board's pan and zoom.
-export default function WordTapCard({ card, canAdd, onAdd, onClose }) {
+export default function WordTapCard({ card, canAdd, onAdd, onRetry, onClose }) {
   const ref = useRef(null);
   const [spot, setSpot] = useState(null);
   const spotRef = useRef(null);
@@ -49,6 +49,9 @@ export default function WordTapCard({ card, canAdd, onAdd, onClose }) {
   const body = globalThis.document?.body;
   if (!body || !card) return null;
   const data = card.data;
+  // the service failed or answered only in part (it was slow): say so and offer another try
+  const failed = Boolean(data?.error || data?.missing?.includes('translation'));
+  const retryable = Boolean(data && !card.loading && (data.error || data.partial));
   const style = !spot || spot.hidden ? { visibility: 'hidden', left: 0, top: 0, width: CARD_WIDTH } : { left: spot.left, top: spot.top, width: spot.width };
   const stop = (event) => event.stopPropagation();
   return createPortal(
@@ -56,10 +59,12 @@ export default function WordTapCard({ card, canAdd, onAdd, onClose }) {
       onPointerDown={stop} onPointerUp={stop} onClick={stop} onDoubleClick={stop} onWheel={stop}>
       <button type="button" className="sb-word-tap__x" aria-label="Sulge" onClick={onClose}><X size={14} aria-hidden="true" /></button>
       <strong className="sb-word-tap__word">{card.word}</strong>
-      {card.loading ? <p className="sb-word-tap__muted"><Loader2 size={14} className="spin" aria-hidden="true" /> Otsin põhivormi ja tõlget…</p> : null}
+      {card.loading ? <p className="sb-word-tap__muted" role="status"><Loader2 size={14} className="spin" aria-hidden="true" /> Otsin…</p> : null}
       {data?.lemma ? <p className="sb-word-tap__lemma">Põhivorm: <b>{data.lemma}</b></p> : null}
       {data?.translation ? <p className="sb-word-tap__tr" lang={card.tgt}><span>{LANGUAGE_NAMES[card.tgt] || card.tgt}</span> {data.translation}</p> : null}
-      {data && !data.translation ? <p className="sb-word-tap__muted" role={data.error ? 'alert' : undefined}>{data.error ? 'Tõlget ei saanud praegu leida.' : 'Tõlget ei leitud.'}</p> : null}
+      {data && !data.translation && !card.loading ? <p className="sb-word-tap__muted" role={failed ? 'alert' : undefined}>{failed ? 'Tõlget ei saanud praegu leida.' : 'Tõlget ei leitud.'}</p> : null}
+      {data && !data.lemma && !card.loading && data.missing?.includes('spelling') ? <p className="sb-word-tap__muted">Põhivormi ei jõudnud leida.</p> : null}
+      {retryable && onRetry ? <button type="button" className="sb-word-tap__retry" onClick={onRetry}><RotateCw size={14} aria-hidden="true" /> Proovi uuesti</button> : null}
       {canAdd && data ? (card.saved
         ? <p className="sb-word-tap__saved" role="status"><BookmarkCheck size={14} aria-hidden="true" /> {card.saved === 'already' ? 'See sõna on juba sõnastikus.' : 'Lisatud sõnastikku.'}</p>
         : <button type="button" className="sb-word-tap__add" disabled={card.saving} onClick={onAdd}>

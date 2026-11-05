@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { languageToolsService } from '../../services/firebase/languageTools.js';
 import { WORD_LIMITS } from './wordsModel.js';
-import { OWN_WORD_MAX, TRANSLATION_LANGUAGES, checkWord, findDuplicate, rememberTarget, rememberedTarget, savedVerdict, verdictText } from './ownWord.js';
+import { OWN_WORD_MAX, TRANSLATION_LANGUAGES, checkWord, findDuplicate, partialText, rememberTarget, rememberedTarget, savedVerdict, verdictText } from './ownWord.js';
 import './vocabulary.css';
 
 const LANG_LABEL = { et: 'eesti', en: 'English' };
@@ -115,6 +115,8 @@ export default function OwnWordForm({
           ))}?</span> : null}
           {showLemma ? <span className="own-word__suggest">Põhivorm · Начальная форма: <strong>{check.lemma}</strong>
             <button type="button" className="vw-chip" onClick={() => takeWord(check.lemma)}>Kasuta põhivormi</button></span> : null}
+          {partialText(check) || check.error ? <span className="own-word__suggest">{partialText(check)}
+            <button type="button" className="vw-chip" disabled={checking} onClick={() => runCheck()}>Proovi uuesti</button></span> : null}
         </div>
       ) : null}
       {duplicate ? (

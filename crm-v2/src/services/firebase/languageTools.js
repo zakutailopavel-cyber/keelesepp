@@ -4,20 +4,34 @@ import { requireFirebaseClient } from './client.js';
 // forms from EKI Ekilex. Only the word itself is sent; answers are cached on the server.
 const defaultLanguageApiUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/languageApi';
 
-async function request(path, body) {
+// /own-word answers within ~5 s on the server (partial when a service is slow); the browser gives up a little later
+export const OWN_WORD_CLIENT_TIMEOUT_MS = 8000;
+export const TIMEOUT_MESSAGE = 'Keeletööriist ei vastanud õigel ajal.';
+
+async function request(path, body, { timeoutMs = 0 } = {}) {
   const { auth } = requireFirebaseClient();
   if (!auth.currentUser) throw new Error('Aktiivne kasutajaseanss puudub.');
   const token = await auth.currentUser.getIdToken();
   const baseUrl = String(import.meta.env.VITE_LANGUAGE_API_URL || defaultLanguageApiUrl).replace(/\/$/, '');
-  return globalThis.fetch(`${baseUrl}${path}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  const controller = timeoutMs > 0 && typeof globalThis.AbortController === 'function' ? new globalThis.AbortController() : null;
+  const timer = controller ? globalThis.setTimeout(() => controller.abort(), timeoutMs) : 0;
+  try {
+    return await globalThis.fetch(`${baseUrl}${path}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      ...(controller ? { signal: controller.signal } : {}),
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error(TIMEOUT_MESSAGE);
+    throw error;
+  } finally {
+    if (timer) globalThis.clearTimeout(timer);
+  }
 }
 
-async function post(path, body) {
-  const response = await request(path, body);
+async function post(path, body, options) {
+  const response = await request(path, body, options);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Keeletööriist ei vastanud.');
   return data;
@@ -43,9 +57,9 @@ export const languageToolsService = {
   },
   // „Lisa oma sõna”: spelling (EKI etLex + Ekilex), base form, forms and a translation (TartuNLP); saves nothing.
   // { text, lang, tgt, status: ok|suggest|unknown|unchecked, words: [{ text, lemma, known, suggestions }], suggestion,
-  //   lemma, translation, translationOf, forms: { line, forms }, sources }
+  //   lemma, translation, translationOf, forms: { line, forms }, sources, partial, missing: ['spelling'|'forms'|'translation'] }
   checkOwnWord({ text, lang = 'et', tgt = 'ru' }) {
-    return post('/own-word', { text, lang, tgt });
+    return post('/own-word', { text, lang, tgt }, { timeoutMs: OWN_WORD_CLIENT_TIMEOUT_MS });
   },
   // „Lause lahti”: { text, translation, tokens: [{ text, lemma, pos, posEt, posRu, formEt, formRu, gloss, level, punct, space }],
   // expressions: [{ phrase, ru, government, tokens }] } (EKI etLex morphology + TartuNLP, cached on the server)

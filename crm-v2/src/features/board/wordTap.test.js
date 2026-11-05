@@ -168,6 +168,15 @@ describe('lookup, language and the session cache', () => {
     const failed = await lookupWord({ checkOwnWord: async () => { throw new Error('429'); } }, 'maja', 'ru');
     expect(failed.error).toBe('429');
   });
+  it('a partial answer (a slow service) carries what is missing and is asked again next time', async () => {
+    const service = { checkOwnWord: vi.fn(async () => ({ status: 'unchecked', lemma: '', translation: 'идти', partial: true, missing: ['spelling', 'forms', 'bogus'] })) };
+    const card = await lookupWord(service, 'lähen', 'ru');
+    expect(card).toMatchObject({ translation: 'идти', partial: true, missing: ['spelling', 'forms'] });
+    const cache = createLookupCache((word, tgt) => lookupWord(service, word, tgt));
+    await cache.get('lähen', 'ru');
+    await cache.get('lähen', 'ru');
+    expect(service.checkOwnWord).toHaveBeenCalledTimes(3);
+  });
 });
 
 describe('„Lisa sõnastikku”', () => {
