@@ -101,7 +101,7 @@ Chat uses the student's internal `messages` conversation. Board rules check acce
 
 Room video layout (1:1 and group): the camera tiles are movable / resizable windows (`FloatingWindow.jsx`,
 `floatingLayout.js`) in a pointer-transparent layer over the board; layout per window id is kept anchored to a corner
-in `localStorage` `keelesepp.liveLayout.v1` (group strip orientation in `keelesepp.liveGroupStrip`). Screen share in a
+in `localStorage` `keelesepp.liveLayout.v2` (v1 until 2026-11-05; group strip orientation in `keelesepp.liveGroupStrip`). Screen share in a
 1:1 call (`screenShare.js`): the teacher's offer has camera video + a second „screen slot” video transceiver
 (`sendrecv`, the student's answer sets it `sendrecv` too); sharing = `replaceTrack(screen)` on the slot, stop =
 `replaceTrack(null)` — no renegotiation, the camera keeps its own track. The receiver recognises the slot as the second
@@ -109,6 +109,20 @@ video transceiver and the sharer announces `{ t: 'screen', on, slot }` over the 
 contentHint are not transmitted, so they cannot identify a screen). Peers without `addTransceiver` fall back to the old
 way (screen replaces the camera track, announced with `slot: false`). The share takes the main area (`ScreenStage.jsx`,
 „Ekraan / Tahvel” switch); group rooms have no screen share.
+
+Room on small screens (2026-11-05 `agent/live-room-small-screens`, 1:1 and group, teacher and student): `.lr` is
+exactly the viewport (`100dvh`, page scroll locked with `body:has(.lr)`); the top bar is one row of fixed height
+(`--lr-top-h`, 52 px when the window is ≤ 820 px high; phones ≤ 760 px keep two rows). `topBarFit.js`
+(`useTopBarFit`, pure `foldReducer`) measures the bar after each render / resize and folds steps in a fixed order into
+„⋯” (`liveRoomFoldSteps` / `groupRoomFoldSteps`: first `labels` = words next to icons, then Osalejad, Materjalid, Sõnad,
+Kiirküsimus, Taimer, undo/redo, Vestlus, Ülesanded, Tunniplaan pill, „Ei salvesta”); mic, camera, screen, leave /
+end call, the lesson clock and the recording mark never fold; the title truncates with „…”. Layers over the board: page
+tab bar (StudentBoard; the „Tahvlivaade / Lugemisvaade” switch is a button in it in the room) → left column
+`.lr-stack` (countdown, the teacher's device warning — passed as `LiveRoom stageNotice` —, „Täna harjutada”; it stops
+`insetRight` px before the video windows) → video windows (`FloatingLayer` inset 52 px top / 66 px bottom, so they never
+cover the tab bar or the tool dock) → quick poll card (bottom 80 px, above the dock, z 30) → dock (centred, never under
+the zoom bar; ≤ 980 px board width smaller buttons). The student's „Tundi salvestatakse” is a pill in the top bar.
+Fixed notes (toasts, page error, device warning outside the stack) use `--lr-stage-top`.
 
 Lesson plan + in-room attendance (teacher only, 1:1 and group): `liveLessonPlans/{roomKey}` (roomKey = invitation id
 or group room id; staff-only rules, only the room's teacher writes). Steps with minutes (`lessonPlan.js`, default
