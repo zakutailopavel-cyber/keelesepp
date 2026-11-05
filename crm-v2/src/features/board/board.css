@@ -216,6 +216,10 @@ html.sb-no-swipe, html.sb-no-swipe body { overscroll-behavior-x: none; }
 .sb-stage:not(.tool-fill) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .sb-stage:not(.tool-fill) :is(input, textarea, select, [contenteditable="true"], .sb-editor) { -webkit-user-select: text; user-select: text; }
 html.sb-drawing, html.sb-drawing body { -webkit-user-select: none; user-select: none; }
+/* Safari inherits -webkit-user-select into fields, and a field with `none` takes no typing (2026-11-05): fields always
+   keep theirs, whatever an ancestor says */
+html.sb-drawing :is(input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"], .sb-editor),
+.sb-stage :is(input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"]) { -webkit-user-select: text; user-select: text; }
 .sb-stage.tool-curve > svg, .sb-stage.tool-double > svg, .sb-stage.tool-callout > svg, .sb-stage.tool-marker > svg { cursor: crosshair; }
 .sb-stage.tool-bookmark > svg { cursor: copy; }
 .sb-handle--point { cursor: move; }

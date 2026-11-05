@@ -72,6 +72,13 @@ function useNarrowScreen(media = NARROW) {
   return narrow;
 }
 
+// a field one types in (an answer on the sheet, a board text being edited); `node` may be a text node inside one
+const TEXT_FIELD = 'input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"]';
+function isTextField(node) {
+  const el = node?.nodeType === 3 ? node.parentElement : node;
+  return Boolean(el?.nodeType === 1 && (el.isContentEditable || el.closest?.(TEXT_FIELD)));
+}
+
 // While a board is on screen the page itself never swipes sideways: a two-finger move on a Mac trackpad over the board
 // was the browser's back / forward gesture (owner 2026-11-04). Counted, since a teacher's workspace can hold two boards.
 let noSwipeBoards = 0;
@@ -582,17 +589,38 @@ export default function StudentBoard({
   // arrow painted the worksheet and the page blue). Typing is untouched: answer fields and text editors are not drawing.
   const selectionBlock = useRef(null);
   const releaseSelection = () => { selectionBlock.current?.(); selectionBlock.current = null; };
+  // The block lives only as long as the press (2026-11-05: students could not type into the sheet's answers). The press
+  // used to end only through the drawing layer's own pointerup; a release it never saw (off the board, over the dock or
+  // a video window, Safari losing the SVG's pointer capture, the window losing focus) left `sb-drawing` on <html> and
+  // `selectstart` cancelled for good — in Safari the inherited `-webkit-user-select: none` makes every answer field
+  // untypeable. Now any release anywhere, a lost window focus or a field taking the focus ends it, and a field is never
+  // blocked while it lasts.
   const blockSelection = () => {
     const doc = globalThis.document;
     if (selectionBlock.current || !doc) return;
     const active = doc.activeElement;
-    const typing = active && (active.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName || ''));
+    const typing = isTextField(active);
     const current = globalThis.getSelection?.();
     if (current && !current.isCollapsed && !typing) current.removeAllRanges();
-    const stop = (event) => event.preventDefault();
+    const stop = (event) => { if (!isTextField(event.target)) event.preventDefault(); };
+    const end = () => releaseSelection();
+    const focusIn = (event) => { if (isTextField(event.target)) releaseSelection(); };
+    const win = doc.defaultView || globalThis;
     doc.addEventListener('selectstart', stop);
+    // after the board's own pointerup (bubbling, a later tick): its `up` still runs with the block on
+    const ends = ['pointerup', 'pointercancel', 'mouseup', 'touchend', 'touchcancel'];
+    const later = () => globalThis.setTimeout(end, 0);
+    ends.forEach((type) => win.addEventListener?.(type, later, true));
+    win.addEventListener?.('blur', end);
+    doc.addEventListener('focusin', focusIn);
     doc.documentElement.classList.add('sb-drawing');
-    selectionBlock.current = () => { doc.removeEventListener('selectstart', stop); doc.documentElement.classList.remove('sb-drawing'); };
+    selectionBlock.current = () => {
+      doc.removeEventListener('selectstart', stop);
+      ends.forEach((type) => win.removeEventListener?.(type, later, true));
+      win.removeEventListener?.('blur', end);
+      doc.removeEventListener('focusin', focusIn);
+      doc.documentElement.classList.remove('sb-drawing');
+    };
   };
   useEffect(() => () => releaseSelection(), []);
 

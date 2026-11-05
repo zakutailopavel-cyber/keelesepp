@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { beforeEach, vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
@@ -787,6 +787,53 @@ describe('board tools (owner 2026-11-04)', () => {
     document.body.dispatchEvent(later);
     expect(later.defaultPrevented).toBe(false);
     expect(document.documentElement.classList.contains('sb-drawing')).toBe(false);
+  });
+
+  // 2026-11-05: a student could not type into the sheet's writing field in a live lesson. A press whose release the
+  // drawing layer never saw left the block on for good; Safari then takes no typing in any field.
+  describe('the selection block never outlives the press and never touches a field', () => {
+    const drawing = () => document.documentElement.classList.contains('sb-drawing');
+    const selectStart = (target) => { const event = new globalThis.Event('selectstart', { bubbles: true, cancelable: true }); target.dispatchEvent(event); return event.defaultPrevented; };
+    const press = () => {
+      const view = render(<StudentBoard studentId="s-1" user={user} service={fakeService()} />);
+      const svg = view.container.querySelector('svg[aria-label="Õpilase tahvel"]');
+      fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 });
+      expect(drawing()).toBe(true);
+      return view;
+    };
+    afterEach(() => { vi.useRealTimers(); });
+
+    it('a release outside the drawing layer (the dock, a video window, off the board) ends it', () => {
+      vi.useFakeTimers();
+      press();
+      fireEvent.pointerUp(document.body, { clientX: 900, clientY: 900 });
+      act(() => { vi.runAllTimers(); });
+      expect(drawing()).toBe(false);
+      expect(selectStart(document.body)).toBe(false);
+    });
+
+    it('the window losing focus ends it', () => {
+      press();
+      act(() => { globalThis.dispatchEvent(new globalThis.Event('blur')); });
+      expect(drawing()).toBe(false);
+    });
+
+    it('while it lasts an answer field is never blocked, and a field taking the focus ends it', () => {
+      press();
+      const field = document.createElement('textarea');
+      document.body.appendChild(field);
+      expect(selectStart(field)).toBe(false);
+      expect(selectStart(document.body)).toBe(true);
+      act(() => { field.focus(); });
+      expect(drawing()).toBe(false);
+      field.remove();
+    });
+
+    it('unmounting the board mid-press ends it', () => {
+      const { unmount } = press();
+      unmount();
+      expect(drawing()).toBe(false);
+    });
   });
 });
 
