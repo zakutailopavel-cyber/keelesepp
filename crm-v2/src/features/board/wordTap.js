@@ -138,7 +138,8 @@ export function createLookupCache(check) {
       const key = `${tgt}:${String(word || '').toLocaleLowerCase('et')}`;
       if (!answers.has(key)) {
         const pending = Promise.resolve(check(word, tgt)).then((result) => {
-          if (result?.error) answers.delete(key);
+          // a failed or partial answer is not kept: the next tap (or „Proovi uuesti”) asks again
+          if (result?.error || result?.partial) answers.delete(key);
           return result;
         }, (error) => { answers.delete(key); throw error; });
         answers.set(key, pending);
@@ -160,6 +161,8 @@ export async function lookupWord(service, word, tgt) {
     status: check.status,
     formsLine: check.formsLine,
     formItems: check.formItems,
+    partial: Boolean(check.partial),
+    missing: check.missing || [],
     error: check.error,
   };
 }

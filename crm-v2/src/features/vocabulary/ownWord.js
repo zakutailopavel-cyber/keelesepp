@@ -68,8 +68,20 @@ export function parseCheck(data = {}) {
     formsLine: text(data?.forms?.line, 200),
     formItems: forms,
     sources: Array.isArray(data?.sources) ? data.sources.map((item) => text(item, 60)).filter(Boolean) : [],
+    // a slow service: the server answers in time with what it has and names the missing parts
+    missing: (Array.isArray(data?.missing) ? data.missing : []).filter((item) => MISSING_PARTS.includes(item)),
+    partial: data?.partial === true,
     error: '',
   };
+}
+
+const MISSING_PARTS = ['spelling', 'forms', 'translation'];
+
+// a line for a partial answer (a service did not answer in time): what is missing, with „Proovi uuesti” next to it
+export function partialText(check) {
+  if (!check || check.error || !check.partial) return '';
+  const parts = [check.missing.includes('translation') ? 'tõlge' : '', check.missing.includes('spelling') ? 'õigekirja kontroll' : '', check.missing.includes('forms') && !check.missing.includes('spelling') ? 'vormid' : ''].filter(Boolean);
+  return `${parts.length ? `Puudu: ${parts.join(', ')}` : 'Vastus jäi poolikuks'} — teenus vastas aeglaselt. · Часть ответа не пришла.`;
 }
 
 // the check never blocks adding: when the service fails the student gets an empty translation and writes it himself
