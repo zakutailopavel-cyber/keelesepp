@@ -14,6 +14,8 @@
     <key>WHISPER_MODEL</key><string>__HOME__/KeeleSeppTranscriber/models/ggml-large-v3-turbo.bin</string>
     <key>WHISPER_BIN</key><string>__WHISPER__</string>
     <key>FFMPEG_BIN</key><string>__FFMPEG__</string>
+    <!-- owner 2026-11-05: lessons, monologues and analysis only at night (local time); remove for always -->
+    <key>TRANSCRIBE_HOURS</key><string>02-07</string>
   </dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>

@@ -152,3 +152,23 @@ test('the teacher\'s recasts become errors; the summary starts with counted topi
   assert.match(summary.raske[0], /Падеж после глагола.*2 раз/);
   assert.equal(summary.raske.at(-1), 'muu');
 });
+
+test('night window: parse and check local hours', () => {
+  const { parseHoursWindow, inHoursWindow } = require('./lib');
+  const w = parseHoursWindow('02-07');
+  assert.deepEqual(w, { from: 2, to: 7 });
+  const at = (h) => new Date(2026, 10, 5, h, 30);
+  assert.equal(inHoursWindow(at(1), w), false);
+  assert.equal(inHoursWindow(at(2), w), true);
+  assert.equal(inHoursWindow(at(6), w), true);
+  assert.equal(inHoursWindow(at(7), w), false);
+  assert.equal(inHoursWindow(at(15), w), false);
+  const wrap = parseHoursWindow('22-06');
+  assert.equal(inHoursWindow(at(23), wrap), true);
+  assert.equal(inHoursWindow(at(5), wrap), true);
+  assert.equal(inHoursWindow(at(12), wrap), false);
+  assert.equal(parseHoursWindow(''), null);
+  assert.equal(parseHoursWindow('abc'), null);
+  assert.equal(parseHoursWindow('5-5'), null);
+  assert.equal(inHoursWindow(at(15), null), true);
+});

@@ -8,7 +8,7 @@ const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
 const { dismissedPairs, isDismissed, learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, judgeCorrection, teacherRecasts, errorTopics, withFocus, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
-const { isEnglishNoise, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
+const { parseHoursWindow, inHoursWindow, isEnglishNoise, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 const { createMonologueWorker } = require('./monologue');
 
 const run = promisify(execFile);
@@ -26,6 +26,9 @@ const THREADS = env('WHISPER_THREADS', String(Math.max(2, os.cpus().length - 2))
 const EVERY_MS = Number(env('POLL_SECONDS', '60')) * 1000;
 // during a lesson the new 5-min files (and „Tekst kohe”) are looked for this often
 const LIVE_MS = Number(env('LIVE_POLL_SECONDS', '15')) * 1000;
+// lessons, monologues and analysis only inside this local-time window (e.g. "02-07"); AI text requests from the site
+// (answerAiRequests) and the heartbeat run all day. Unset = always (lib.js parseHoursWindow).
+const WORK_HOURS = parseHoursWindow(env('TRANSCRIBE_HOURS', ''));
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 const HOST = os.hostname().replace(/\.local$/, '');
 const STARTED_AT = new Date().toISOString();
@@ -499,16 +502,19 @@ let petStatsChecked = false;
 
 async function main() {
   if (!fs.existsSync(MODEL)) throw new Error(`Whisper model not found: ${MODEL}`);
-  log('lesson transcriber started', { bucket: BUCKET, model: path.basename(MODEL), modelEt: path.basename(modelFor('et')), vad: fs.existsSync(VAD_MODEL) });
+  log('lesson transcriber started', { hours: WORK_HOURS ? `${WORK_HOURS.from}-${WORK_HOURS.to}` : 'always', bucket: BUCKET, model: path.basename(MODEL), modelEt: path.basename(modelFor('et')), vad: fs.existsSync(VAD_MODEL) });
   if (process.argv.includes('--once')) { await tick(); await deleteOldAudio(); return; }
   await beat();
   setInterval(beat, 60 * 1000).unref?.();
   setInterval(watchdog, 60 * 1000).unref?.();
   let lastTick = 0;
+  let windowOpen = null;
   for (;;) {
-    try { await liveWork(); } catch (err) { log('live tick error', err.message); }
+    const open = inHoursWindow(new Date(), WORK_HOURS);
+    if (open !== windowOpen) { windowOpen = open; log(open ? 'work window open' : `work window closed until ${String(WORK_HOURS.from).padStart(2, '0')}:00`); }
+    if (open) { try { await liveWork(); } catch (err) { log('live tick error', err.message); } }
     try { await answerAiRequests(); } catch (err) { log('ai requests error', err.message); }
-    if (Date.now() - lastTick >= EVERY_MS) {
+    if (open && Date.now() - lastTick >= EVERY_MS) {
       try { await tick(); } catch (err) { log('tick error', err.message); }
       lastTick = Date.now();
     }
