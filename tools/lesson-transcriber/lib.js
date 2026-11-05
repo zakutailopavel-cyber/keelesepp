@@ -184,5 +184,21 @@ function heartbeat({ host, state = 'idle', recordingId = '', recordingIds = null
   };
 }
 
+// Night-only work (owner 2026-11-05: „уроки транскрибировались только ночью с 2 до 7”): TRANSCRIBE_HOURS="02-07" is a
+// window in the Mac's local time (from inclusive, to exclusive; "22-06" wraps over midnight). Empty / invalid = always.
+function parseHoursWindow(value) {
+  const m = String(value || '').trim().match(/^(\d{1,2})\s*-\s*(\d{1,2})$/);
+  if (!m) return null;
+  const from = Number(m[1]); const to = Number(m[2]);
+  if (from > 23 || to > 24 || from === to) return null;
+  return { from, to };
+}
+function inHoursWindow(date, window) {
+  if (!window) return true;
+  const h = date.getHours();
+  return window.from < window.to ? h >= window.from && h < window.to : h >= window.from || h < window.to;
+}
+
 module.exports = {
+  parseHoursWindow, inHoursWindow,
   isEnglishNoise, tokenWords, UNSURE_P, collapseRepeats, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage, isStaleTranscribing, pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };

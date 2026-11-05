@@ -1,3 +1,10 @@
+## 2026-11-05 · agent/transcriber-night-window — lessons transcribed only 02:00–07:00
+
+- Owner 2026-11-05: „настрой чтобы уроки транскрибировались только ночью с 2 ночи до 7 утра”.
+- `tools/lesson-transcriber`: new env `TRANSCRIBE_HOURS` ("02-07", Mac local time, from inclusive, to exclusive, wraps over midnight; unset = always; lib.js `parseHoursWindow` / `inHoursWindow`, test in lib.test.js). Outside the window the loop skips `liveWork` (live 5-min segments / „Tekst kohe”) and `tick` (lesson transcription, monologues, analysis, pet stats, old-audio cleanup); the heartbeat and `answerAiRequests` (text checks from the site) run all day. Logs „work window open / closed until 02:00”. The plist template sets `TRANSCRIBE_HOURS=02-07`.
+- Effect: lesson texts, „Tunni analüüs”, warm-up/hints data and monologue numbers appear the next morning; „Tekst kohe” during a lesson no longer gives text right away.
+- Installed on the school Mac 2026-11-05 (backup in `~/KeeleSeppTranscriber/backup-*`, LaunchAgent env `TRANSCRIBE_HOURS=02-07`). Tests: transcriber 30/30.
+
 ## 2026-11-05 · agent/fast-word-lookup — „Puuduta sõna” / „Lisa oma sõna”: answer within ~5 s, whole-answer cache, partial answers
 
 - Base: `origin/main` d801ce0 (#1113 merged), checked 2026-11-05; open PRs #1114 (word-tap regression test) and #1062 not touched. Functions `languageApi /own-word` + board / vocabulary UI; no rules, no other endpoints' behaviour, no content; no production writes, no deploy.
