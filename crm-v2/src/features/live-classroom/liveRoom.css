@@ -1,13 +1,40 @@
-/* Live Classroom room — full-screen lesson (top bar, board, video column). */
-.lr { position: fixed; inset: 0; z-index: 1300; display: flex; flex-direction: column; gap: 12px; padding: 12px 14px 14px; background: linear-gradient(180deg, #f6f5fd 0%, #eef0fa 100%); color: #24294a; }
+/* Live Classroom room — full-screen lesson (top bar, board, video column).
+   Small screens (owner 2026-11-05, a Windows laptop 1366×768 at 125 % → ~1093×470–600 CSS px): the room is exactly
+   the viewport (100dvh, nothing scrolls the page), the top bar is ONE row (buttons that do not fit fold into „⋯”,
+   topBarFit.js) and the board takes the rest. Layers over the board, from the top:
+     page tab bar (44 px, StudentBoard; „Tahvlivaade / Lugemisvaade” lives in it)
+     left column `.lr-stack` (countdown, the teacher's device warning, „Täna harjutada”) — stops left of the videos
+     video windows (`.lr-float`, between the tab bar and the dock: LiveRoom FLOAT_INSET)
+     quick poll card (bottom centre, above the tool dock) · tool dock + zoom bar (bottom)
+   --lr-stage-top = where the board area starts; fixed notes (toasts, page errors) are placed under its tab bar. */
+:root { --lr-pad: 12px; --lr-gap: 12px; --lr-top-h: 58px; --lr-stage-top: calc(var(--lr-pad) + var(--lr-top-h) + var(--lr-gap)); }
+@media (max-height: 820px) and (min-width: 761px) { :root { --lr-pad: 8px; --lr-gap: 8px; --lr-top-h: 52px; } }
+@media (max-width: 760px) { :root { --lr-pad: 8px; --lr-gap: 8px; --lr-top-h: 96px; } }
+html:has(> body .lr), body:has(.lr) { overflow: hidden; }
+.lr { position: fixed; top: 0; left: 0; right: 0; height: 100vh; height: 100dvh; z-index: 1300; display: flex; flex-direction: column; gap: var(--lr-gap); padding: var(--lr-pad) calc(var(--lr-pad) + 2px) calc(var(--lr-pad) + 2px); overflow: hidden; background: linear-gradient(180deg, #f6f5fd 0%, #eef0fa 100%); color: #24294a; }
 .lr * { box-sizing: border-box; }
-.lr-top { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-height: 58px; padding: 8px 10px; border: 1px solid #e7e8f3; border-radius: 20px; background: rgba(255, 255, 255, .96); box-shadow: 0 8px 26px rgba(36, 41, 74, .07); }
-.lr-top__group { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.lr-top__center { margin: 0 auto; }
-.lr-top__right { margin-left: auto; }
-.lr-title { display: grid; min-width: 0; margin: 0 8px 0 4px; }
-.lr-title strong { font-size: .95rem; white-space: nowrap; }
+.lr-top { position: relative; flex: none; display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; height: var(--lr-top-h); padding: 0 10px; border: 1px solid #e7e8f3; border-radius: 20px; background: rgba(255, 255, 255, .96); box-shadow: 0 8px 26px rgba(36, 41, 74, .07); }
+.lr-top__group { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; min-width: 0; }
+/* the left group gives way first: the title shortens with „…” down to its minimum, then buttons fold */
+.lr-top__left { flex: 0 1 auto; overflow: hidden; }
+.lr-top__center { flex: none; margin: 0 auto; }
+.lr-top__right { flex: none; margin-left: auto; }
+.lr-top__center + .lr-top__right { margin-left: 0; }
+.lr-title { display: grid; flex: 0 1 auto; min-width: 6.5rem; margin: 0 6px 0 2px; }
+.lr-title strong { overflow: hidden; font-size: .95rem; text-overflow: ellipsis; white-space: nowrap; }
 .lr-title small { overflow: hidden; color: #6b7091; font-size: .74rem; text-overflow: ellipsis; white-space: nowrap; }
+/* a tight bar: words next to icons go (their names stay in the tooltip / accessible name) */
+.lr-top.is-compact .lr-label { display: none; }
+.lr-top.is-compact .lr-pill { padding: 0 10px; }
+.lr-top .rec-indicator { flex: none; height: 36px; margin: 0; padding: 0 12px; font-size: .8rem; white-space: nowrap; }
+.rec-indicator__short { display: none; }
+.lr-top.is-compact .rec-indicator__long { display: none; }
+.lr-top.is-compact .rec-indicator__short { display: inline; }
+@media (max-height: 820px) and (min-width: 761px) {
+  .lr-top { border-radius: 16px; }
+  .lr-top .lr-icon, .lr-top .lr-text-btn, .lr-top .lr-call-start { height: 38px; }
+  .lr-top .lr-icon { width: 38px; }
+}
 .lr-icon { position: relative; display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; border: 0; border-radius: 13px; background: transparent; color: #2c3150; cursor: pointer; }
 .lr-icon:hover:not(:disabled) { background: #f0f1f8; }
 .lr-icon:disabled { opacity: .35; cursor: default; }
@@ -31,19 +58,20 @@
 .lr-text-btn:hover, .lr-text-btn.is-active { background: #eceefe; border-color: #d6dafc; color: #3f5bd8; }
 .lr-badge { position: absolute; top: 2px; right: 2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: #ef3b3b; color: #fff; font-size: .66rem; font-weight: 800; line-height: 17px; }
 .lr-dot { width: 8px; height: 8px; border-radius: 50%; background: #4f7cff; box-shadow: 0 0 0 3px rgba(79, 124, 255, .2); }
-.lr-menu { position: absolute; top: calc(100% + 8px); right: 120px; z-index: 20; display: grid; gap: 2px; min-width: 240px; padding: 8px; border: 1px solid #e7e8f3; border-radius: 16px; background: #fff; box-shadow: 0 18px 44px rgba(36, 41, 74, .18); }
+.lr-menu { position: absolute; top: calc(100% + 8px); right: 8px; z-index: 20; display: grid; gap: 2px; min-width: 240px; max-height: calc(100dvh - var(--lr-pad) - var(--lr-top-h) - 16px); overflow-y: auto; padding: 8px; border: 1px solid #e7e8f3; border-radius: 16px; background: #fff; box-shadow: 0 18px 44px rgba(36, 41, 74, .18); }
 .lr-menu--left { right: auto; left: 50px; width: 300px; padding: 14px; gap: 8px; }
-.lr-menu button { padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; color: #24294a; text-align: left; font-size: .88rem; font-weight: 600; cursor: pointer; }
-.lr-menu button:hover { background: #f3f4fa; }
+.lr-menu button { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; color: #24294a; text-align: left; font-size: .88rem; font-weight: 600; cursor: pointer; }
+.lr-menu button:hover:not(:disabled) { background: #f3f4fa; }
+.lr-menu button:disabled { opacity: .45; cursor: default; }
+.lr-menu hr { width: 100%; margin: 4px 0; border: 0; border-top: 1px solid #eceef6; }
 .lr-menu button.is-danger { color: #b42318; }
 .lr-menu dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: .85rem; }
 .lr-menu dt { color: #6b7091; }
 .lr-menu dd { margin: 0; font-weight: 600; }
 .lr-muted { margin: 0; color: #6b7091; font-size: .82rem; line-height: 1.4; }
 .lr-error { margin: 0; color: #b42318; font-size: .82rem; }
-.lr-toast { position: fixed; top: 84px; left: 50%; z-index: 1310; transform: translateX(-50%); margin: 0; padding: 9px 16px; border-radius: 12px; background: #24294a; color: #fff; font-size: .85rem; box-shadow: 0 10px 30px rgba(0, 0, 0, .2); }
+.lr-toast { position: fixed; top: calc(var(--lr-stage-top) + 60px); left: 50%; max-width: calc(100vw - 32px); z-index: 1310; transform: translateX(-50%); margin: 0; padding: 9px 16px; border-radius: 12px; background: #24294a; color: #fff; font-size: .85rem; box-shadow: 0 10px 30px rgba(0, 0, 0, .2); }
 .lr-toast--error { background: #b42318; }
-.lr .rec-indicator { position: fixed; top: 84px; left: 50%; z-index: 1310; transform: translateX(-50%); }
 .lr-body { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 12px; min-height: 0; }
 .lr-stage { position: relative; min-width: 0; min-height: 0; }
 .lr-side { position: relative; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
@@ -101,19 +129,17 @@
   .lr-subject { display: none; }
 }
 @media (max-width: 1180px) {
-  .lr-top { flex-wrap: wrap; }
-  .lr-top__center { order: 3; width: 100%; justify-content: center; margin: 0; }
   .lr-body { grid-template-columns: minmax(0, 1fr) 210px; }
-  .lr-menu { right: 12px; }
 }
+/* phones: row 1 = back, title and the room buttons; row 2 = the call (scrolls sideways if it must) */
 @media (max-width: 760px) {
-  .lr { padding: 8px; gap: 8px; }
-  .lr-top { gap: 4px; padding: 6px; border-radius: 16px; }
-  .lr-title { margin: 0 2px; }
+  .lr-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; height: var(--lr-top-h); row-gap: 4px; column-gap: 4px; padding: 6px; border-radius: 16px; }
+  .lr-top__left { grid-column: 1; grid-row: 1; }
+  .lr-top__right { grid-column: 2; grid-row: 1; margin-left: 0; }
+  .lr-top__center { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; overflow-x: auto; margin: 0; }
+  .lr-title { min-width: 4.5rem; margin: 0 2px; }
   .lr-title small { display: none; }
-  .lr-top__right { margin-left: 0; flex-wrap: wrap; }
   .lr-text-btn { height: 36px; padding: 0 10px; font-size: .78rem; }
-  .lr-top__center { justify-content: flex-start; overflow-x: auto; }
   .lr-subject { display: none; }
   .lr-body { display: block; position: relative; }
   .lr-stage { position: absolute; inset: 0; }
@@ -123,7 +149,7 @@
   .lr-tile__avatar { width: 40px; height: 40px; font-size: 1rem; }
   .lr-tile__state { display: none; }
   .lr-drawer { position: fixed; inset: auto 8px 8px 8px; top: 30%; flex: none; }
-  .lr-menu, .lr-menu--left { position: fixed; top: 64px; left: 8px; right: 8px; width: auto; }
+  .lr-menu, .lr-menu--left { position: fixed; top: calc(var(--lr-pad) + var(--lr-top-h) + 6px); left: 8px; right: 8px; width: auto; }
   .lr .sb-room-pages { right: 128px; }
 }
 .lr-rec { display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer; font: inherit; color: #b42318; background: #fee4e2; }
@@ -306,6 +332,15 @@ button.lr-plan-pill:hover, .lr-plan-pill.is-active { background: #eceefe; border
 .lr-attendance__late { display: inline-flex; align-items: center; gap: 4px; font-size: .8rem; color: #4b5070; }
 .lr-attendance__late input { width: 60px; }
 
+/* the left column over the board: under the tab bar, above the zoom bar, left of the video windows (LiveRoom sets
+   `right` to the windows' inset); its cards stack and never overlap; only the cards catch the pointer */
+.lr-stack { position: absolute; top: 60px; left: 14px; right: 14px; bottom: 80px; z-index: 6; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 0; pointer-events: none; }
+.lr-stack > * { pointer-events: auto; max-width: 100%; }
+.lr-stack > .lr-countdown { position: relative; top: auto; left: auto; flex: none; }
+.lr-stack > .lr-countdown.is-big { align-self: center; left: auto; transform: none; }
+.lr-stack > .dcn-room { position: relative; top: auto; left: auto; flex: none; transform: none; width: min(420px, 100%); }
+.lr-stack > .lesson-hints { position: relative; left: auto; bottom: auto; flex: 0 1 auto; margin-top: auto; min-height: 0; overflow-y: auto; }
+@media (max-width: 760px) { .lr-stack { top: 56px; left: 8px; right: 8px; bottom: 70px; } }
 /* the teacher's countdown (CountdownTimer.jsx): a badge under the page tabs, a click makes it big; never covers the board */
 .lr-countdown { position: absolute; top: 62px; left: 14px; z-index: 6; display: flex; align-items: stretch; gap: 2px; padding: 3px; border: 1px solid #d9dcf0; border-radius: 14px; background: rgba(255, 255, 255, .97); box-shadow: 0 8px 22px rgba(30, 34, 70, .14); color: #24294a; }
 .lr-countdown button { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; border-radius: 11px; }

@@ -30,7 +30,8 @@
 .qp-mistakes li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; font-size: 14px; }
 .qp-saved { color: #15803d; font-weight: 600; }
 
-.qp-card { position: absolute; left: 50%; bottom: 22px; z-index: 7; transform: translateX(-50%); width: min(460px, calc(100% - 32px)); display: grid; gap: 10px; padding: 12px 14px 14px; border: 1px solid #d9dcf0; border-radius: 20px; background: #fff; box-shadow: 0 18px 44px rgba(36, 41, 74, .22); overflow: hidden; animation: qp-in .25s ease-out; }
+/* above the tool dock and over the sheet (its sticky bars too), never under the tab bar */
+.qp-card { position: absolute; left: 50%; bottom: 80px; z-index: 30; transform: translateX(-50%); width: min(460px, calc(100% - 32px)); max-height: calc(100% - 140px); display: grid; gap: 10px; padding: 12px 14px 14px; border: 1px solid #d9dcf0; border-radius: 20px; background: #fff; box-shadow: 0 18px 44px rgba(36, 41, 74, .22); overflow: hidden auto; animation: qp-in .25s ease-out; }
 .qp-card header { display: flex; align-items: center; justify-content: space-between; }
 .qp-card header strong { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #4f46e5; }
 .qp-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -50,4 +51,4 @@
 @keyframes qp-pop { 50% { transform: translate(-50%, 0) scale(1.03); } }
 @keyframes qp-fall { to { transform: translateY(260px) rotate(540deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .qp-card, .qp-card.is-right, .qp-confetti i { animation: none; } .qp-confetti { display: none; } }
-@media (max-width: 520px) { .qp-choices { grid-template-columns: 1fr; } .qp-card { bottom: 12px; } }
+@media (max-width: 520px) { .qp-choices { grid-template-columns: 1fr; } .qp-card { bottom: 70px; } }

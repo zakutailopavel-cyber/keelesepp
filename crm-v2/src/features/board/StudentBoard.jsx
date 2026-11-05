@@ -539,6 +539,7 @@ export default function StudentBoard({
         {staff && service.deletePage && menuPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(menuPage)}>Kustuta leht</button> : null}
         {staff && menuPage.status === 'completed' ? <p className="sb-page-menu__note">Lõpetatud tunni lehte ei saa kustutada.</p> : null}
       </div>, document.body) : null}
+      {room ? readingToggle || boardToggle : null}
       {sheetOfPage && sheetTabs.extra ? sheetTabs.extra(new Set(sheetOfPage.values())) : null}
       <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
       <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
@@ -1207,14 +1208,18 @@ export default function StudentBoard({
     if (event.type === 'pointermove') move(event); else up(event);
   };
   const scrollbar = onWorksheet ? scrollbarFor(view, bounds, stageHeight) : null;
+  // reading view ⇄ board view: in the lesson room a button in the page tab bar (it never lies over the video windows)
+  const readingToggle = onWorksheet && reading ? <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('board')}
+    title={elements.length ? 'Tahvlivaade: tööleht koos õpetaja märkmetega' : 'Tahvlivaade: tööleht tahvlil'}>Tahvlivaade{elements.length && !room ? ' · õpetaja märkmed' : ''}</button> : null;
+  const boardToggle = onWorksheet && !reading && (narrow || tablet) ? <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('reading')} title="Lugemisvaade: tööleht ühe veeruna">Lugemisvaade</button> : null;
   const readingStage = <div ref={stageRef} className="sb-stage has-worksheet is-reading">
     <div className="sb-reading ws-narrow" data-testid="worksheet-reading"><SheetFlowContext.Provider value>{activeSheet?.content}</SheetFlowContext.Provider></div>
-    <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('board')}>Tahvlivaade{elements.length ? ' · õpetaja märkmed' : ''}</button>
+    {room ? null : readingToggle}
   </div>;
   const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onDragOver={mediaDragOver} onDrop={mediaDrop}
     onPointerDownCapture={(event) => { if (!mediaDown(event)) { sheetPointerDown(event); navDown(event); } }} onPointerMove={stageMarquee} onPointerUp={stageMarquee} onPointerCancel={stageMarquee} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
-    {onWorksheet && (narrow || tablet) ? <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('reading')}>Lugemisvaade</button> : null}
+    {room ? null : boardToggle}
     {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={(filling && !grabbing) || overMedia ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => {
       const point = screenToWorld(local(event), view);

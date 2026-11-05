@@ -2,7 +2,8 @@
 // layout. A window is kept as an anchored layout — which corner it belongs to and the distance from those edges — so
 // it stays in its corner when the screen turns or the browser is resized. Remembered per device (localStorage).
 
-export const STORAGE_KEY = 'keelesepp.liveLayout.v1';
+// v2 (2026-11-05): the layer starts under the page tab bar, so v1 places (measured from the board's top) are not reused
+export const STORAGE_KEY = 'keelesepp.liveLayout.v2';
 export const MARGIN = 8;
 export const SNAP = 28;
 export const PRESET_WIDTHS = Object.freeze({ s: 160, m: 240, l: 380 });
