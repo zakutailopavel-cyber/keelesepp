@@ -39,7 +39,12 @@ export default function GroupDetailDialog({ group, members = [], saving = '', ca
             <span className="group-contacts__contact">{student.parentName ? <small>Vanem: {student.parentName}</small> : null}{phone ? <a href={`tel:${phone.replace(/\s/g, '')}`}><Phone size={13} /> {phone}</a> : null}{email ? <a href={`mailto:${email}`}>{email}</a> : null}</span>
             {/* the group offer answer: „Huvitatud” confirms the student's participation (admin bug 2026-11-03: the window
                 only showed it, so the confirmation could not be given from the group) */}
+            {/* 2026-11-06: the confirmation is also one clear button („Kinnita osalemine”), not only „Huvitatud” in the list */}
             <span>{canEdit && onInterest
+              ? (student.groupInterest?.status === 'interested'
+                ? <span className="group-detail__confirm"><CheckCircle2 size={14} /> Osalemine kinnitatud</span>
+                : <Button variant="secondary" aria-label={`Kinnita osalemine: ${student.name}`} loading={saving === `interest:${student.id}`} disabled={Boolean(saving)} onClick={() => onInterest(student, 'interested')}><CheckCircle2 size={15} /> Kinnita osalemine</Button>)
+              : null}{canEdit && onInterest
               ? <Select id={`gd-i-${student.id}`} label="" aria-label={`Osalemine: ${student.name}`} value={student.groupInterest?.status || ''} disabled={saving === `interest:${student.id}`} onChange={(event) => onInterest(student, event.target.value)}>{Object.entries(INTEREST).map(([value, label]) => <option key={value || 'none'} value={value}>{label}</option>)}</Select>
               : <Badge tone={student.groupInterest?.status === 'interested' ? 'success' : student.groupInterest?.status === 'declined' ? 'warning' : 'neutral'}>{interestLabel(student)}</Badge>}{student.groupInterest?.note ? <small className="group-detail__note">{student.groupInterest.note}</small> : null}</span>
             {canEdit ? <button type="button" className="text-button danger" aria-label={`Eemalda grupist: ${student.name}`} disabled={saving === `student:${student.id}`} onClick={() => onRemove(student)}><UserMinus size={16} /></button> : <span />}

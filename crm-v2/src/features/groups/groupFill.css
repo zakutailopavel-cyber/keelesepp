@@ -38,3 +38,11 @@
 .group-card__open { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .group-card__open:hover h2 { text-decoration: underline; }
 @media (max-width: 700px) { .group-detail__row { grid-template-columns: minmax(0, 1fr) auto; } }
+/* „Halda”: active and archived students under their own headers (2026-11-06) */
+.group-member-manager__head { margin: 6px 0 0; font-size: .78rem; font-weight: 800; color: #344054; text-transform: uppercase; letter-spacing: .03em; }
+.group-member-manager__head:first-child { margin-top: 0; }
+.group-detail__confirm { display: inline-flex; align-items: center; gap: 4px; color: #067647; font-size: .75rem; font-weight: 700; }
+.group-detail__row > span:nth-child(3) { display: grid; gap: 6px; justify-items: start; }
+.group-detail__row > span:nth-child(3) .button { min-height: 34px; padding: 0 10px; font-size: .8rem; }
+.group-member-manager .search-field input { width: 100%; height: auto; }
+.group-detail__row > span:nth-child(3) .button { white-space: nowrap; }
