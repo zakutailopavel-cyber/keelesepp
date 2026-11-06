@@ -10,8 +10,9 @@
 // by the learner, the other made by the school” only raise the score. One card per person with a subject per
 // enrollment is the model (owner 2026-10-20), so two cards with different subjects ARE a candidate („sama inimene, eri
 // ained”). A pair the administrator marked „Pole sama inimene” (students.notDuplicateOf) is not shown again. Merged
-// cards are left out. An archived card is paired with an active one (two archived cards are not proposed); the
-// active card comes first, so the merge keeps it by default.
+// cards and cards in the „Prügikast” are left out. Archived cards take part like active ones (2026-11-06, Oleksiy:
+// two archived cards of one child were never proposed): the active card comes first, so the merge keeps it by default;
+// a pair of two archived cards is listed after the pairs with an active card of the same score.
 // Efficiency: cards are compared only inside blocks (same canonical name, same first-name stem, same account, e-mail,
 // phone, parent account / e-mail / phone), not all n² pairs.
 
@@ -139,9 +140,10 @@ export function isOpenCard(s = {}) {
   return isMergeableCard(s) && s.active !== false;
 }
 
-// a card that can still take part in a merge: not merged away, not turned into a parent account; archived is fine
+// a card that can still take part in a merge: not merged away, not turned into a parent account, not in the
+// „Prügikast” (the server refuses those); archived is fine
 export function isMergeableCard(s = {}) {
-  return Boolean(s.id) && !s.mergedInto && !s.mergedIntoStudentId && !s.convertedToParent;
+  return Boolean(s.id) && !s.mergedInto && !s.mergedIntoStudentId && !s.convertedToParent && !s.deletedAt && !s.purgedAt;
 }
 
 export function dismissedPair(a = {}, b = {}) {
@@ -207,7 +209,7 @@ function blockKeys(s) {
   return keys;
 }
 
-// all pairs with at least one active card, the likeliest first; an archived card is always the second one
+// all pairs, archived cards included, the likeliest first; an archived card is the second one next to an active one
 export function duplicateCandidates(students = []) {
   const cards = (students || []).filter(isMergeableCard);
   const blocks = new Map();
@@ -223,14 +225,36 @@ export function duplicateCandidates(students = []) {
         if (seen.has(key)) continue;
         seen.add(key);
         const [first, second] = [cards[members[m]], cards[members[n]]];
-        const [a, b] = first.active === false ? [second, first] : [first, second];
-        if (a.active === false) continue;
+        const [a, b] = first.active === false && second.active !== false ? [second, first] : [first, second];
         const pair = duplicatePair(a, b);
         if (pair) pairs.push(pair);
       }
     }
   }
-  return pairs.sort((p, q) => q.score - p.score || clean(p.a.name).localeCompare(clean(q.a.name), 'et'));
+  const archivedPair = (pair) => Number(pair.a.active === false);
+  return pairs.sort((p, q) => q.score - p.score || archivedPair(p) - archivedPair(q) || clean(p.a.name).localeCompare(clean(q.a.name), 'et'));
+}
+
+// „Liida kaardid” search (2026-11-06): the name in any alphabet, an earlier name of the card (nameAliases), the
+// learner's or the parent's e-mail / phone, the parent's name or the card id — archived cards included. An archived
+// duplicate often has only the old contact, not the name typed the same way.
+export function matchesMergeSearch(s = {}, query = '') {
+  const q = String(query || '').trim();
+  if (!q) return true;
+  const key = nameKey(q);
+  const names = [s.name, ...(Array.isArray(s.nameAliases) ? s.nameAliases : []), s.parentName, ...(Array.isArray(s.parentContacts) ? s.parentContacts.map((c) => c?.name) : [])];
+  if (key && names.some((n) => nameKey(n).includes(key))) return true;
+  const lowered = q.toLowerCase();
+  const mails = [s.email, s.parentEmail, ...(Array.isArray(s.parentContacts) ? s.parentContacts.map((c) => c?.email) : [])];
+  if (lowered.includes('@') || /[a-z]/.test(lowered)) {
+    if (mails.some((m) => String(m || '').toLowerCase().includes(lowered))) return true;
+  }
+  const digits = q.replace(/\D/g, '');
+  if (digits.length >= 4) {
+    const phones = [s.phone, s.parentPhone, ...(Array.isArray(s.parentContacts) ? s.parentContacts.map((c) => c?.phone) : [])];
+    if (phones.some((p) => String(p || '').replace(/\D/g, '').includes(digits))) return true;
+  }
+  return String(s.id || '') === q;
 }
 
 // a contact shown without giving it away: „m•••@gmail.com”, „••• •• 45”

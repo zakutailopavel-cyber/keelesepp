@@ -115,6 +115,10 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
     throw Object.assign(new Error("This card is already merged"), { status: 409 });
   }
   if (keep.mergedInto || keep.mergedIntoStudentId) throw Object.assign(new Error("The kept card is itself merged into another card"), { status: 409 });
+  // a card in the „Prügikast” (or purged after it) takes no part: its purge would anonymise the merged history
+  // (2026-11-06). Archived cards merge as usual.
+  const trashed = [keep, source].find((card) => card.deletedAt || card.purgedAt);
+  if (trashed) throw Object.assign(new Error(`Kaart „${trashed.name || ""}” on prügikastis. Taasta see enne liitmist (Inimesed → Prügikast).`), { status: 409 });
   const names = [...new Set([keep.name, source.name].map((n) => String(n || "").trim()).filter(Boolean))];
   if (keepName && !names.includes(keepName)) throw Object.assign(new Error("The name must be one of the two cards' names"), { status: 400 });
 
