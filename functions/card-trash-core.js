@@ -8,6 +8,7 @@
 //    the old value is kept in trashState so „Taasta” brings back exactly what was there) and gets
 //    deletedAt / deletedBy / purgeAfter (= deletedAt + 7 days). Nothing else on the card changes.
 //    Refused while the card still has lessons ahead (or an active group): those must be moved or cancelled first.
+//    A student card with an unpaid invoice is refused too (2026-11-06): it is archived instead.
 // 2. After purgeAfter the scheduled purge decides per card:
 //    - „delete”: nothing anywhere refers to the card (no lesson, invoice, payment, homework, result, pay record …):
 //      the card document and its own disposable documents are deleted;
@@ -84,11 +85,40 @@ function futureLessons(schedule = [], today) {
   return (schedule || []).filter((record) => record && futureRecordInScope(record, today));
 }
 
+// what the administrator has to move or cancel first (2026-11-06: „show what to reassign”): one line per lesson or
+// series, the next date first, at most 20
+const WEEKDAYS = ["", "esmaspäev", "teisipäev", "kolmapäev", "neljapäev", "reede", "laupäev", "pühapäev"];
+function lessonItems(schedule = [], today, max = 20) {
+  return futureLessons(schedule, today).map((record) => ({
+    id: String(record.id || ""),
+    date: String(record.date || ""),
+    weekday: record.date ? "" : (WEEKDAYS[Number(record.day)] || String(record.day || "")),
+    recurring: !record.date,
+    time: String(record.time || record.startTime || ""),
+    studentName: String(record.studentName || ""),
+    teacher: String(record.teacherFull || record.teacher || ""),
+    subject: String(record.subject || ""),
+    ...(record.groupId ? { groupId: String(record.groupId) } : {}),
+  })).sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999") || a.time.localeCompare(b.time)).slice(0, max);
+}
+
+// the open balance of an invoice in cents (cancelled = 0); the same fields the finance core writes
+function invoiceOpenCents(invoice = {}) {
+  if (!invoice || ["Tühistatud", "cancelled", "Makstud", "Tasutud", "paid"].includes(String(invoice.status || ""))) return 0;
+  if (Number.isFinite(Number(invoice.balanceDueCents)) && invoice.balanceDueCents !== null && invoice.balanceDueCents !== "") return Math.max(0, Math.round(Number(invoice.balanceDueCents)));
+  if (invoice.balanceDue !== undefined && invoice.balanceDue !== null && Number.isFinite(Number(invoice.balanceDue))) return Math.max(0, Math.round(Number(invoice.balanceDue) * 100));
+  const amount = Number(invoice.effectiveAmountCents ?? invoice.amountCents ?? Math.round((Number(invoice.effectiveAmount ?? invoice.amount) || 0) * 100));
+  const paid = Number(invoice.paidAmountCents ?? Math.round((Number(invoice.paidAmount) || 0) * 100));
+  return Math.max(0, Math.round((amount || 0) - (paid || 0)));
+}
+const openInvoicesOf = (invoices = []) => (invoices || []).filter((invoice) => invoiceOpenCents(invoice) > 0);
+const euro = (cents) => `${(Math.round(cents) / 100).toFixed(2).replace(".", ",")} €`;
+
 /**
  * Why a card cannot go to the trash now: [{ code, message }]; empty = it can.
  * schedule: the card's schedule records; groups: the groups it is in (student) or teaches (teacher).
  */
-function trashBlockers(kind, { id, card, schedule = [], groups = [], today, actorUid = "" } = {}) {
+function trashBlockers(kind, { id, card, schedule = [], groups = [], invoices = [], today, actorUid = "" } = {}) {
   const blockers = [];
   if (!card) return [{ code: "missing", message: "Kaarti ei leitud." }];
   if (card.purgedAt) blockers.push({ code: "purged", message: "Kaart on juba lõplikult kustutatud." });
@@ -118,7 +148,59 @@ function trashBlockers(kind, { id, card, schedule = [], groups = [], today, acto
         : `Õpilane on aktiivses grupis (${names}). Eemalda ta enne grupist.`,
     });
   }
+  // an unpaid invoice (2026-11-06): the purge would take away the contacts the debt is collected with — archive instead.
+  // Paid and cancelled invoices do not stop a delete: they stay unchanged and the card is anonymised at the purge.
+  const open = kind === "student" ? openInvoicesOf(invoices) : [];
+  if (open.length) {
+    const total = open.reduce((sum, invoice) => sum + invoiceOpenCents(invoice), 0);
+    blockers.push({
+      code: "open-invoices",
+      count: open.length,
+      message: `Kaardil on tasumata arveid (${open.length}, kokku ${euro(total)}) — arhiveeri kaart. Kustutada saab pärast arvete tasumist või tühistamist.`,
+    });
+  }
   return blockers;
+}
+
+// the „Kustuta” window's names for the records that keep a card (the purge then anonymises it instead of deleting)
+const LINK_LABELS = {
+  lessons: "Tunnid", schedule: "Tunniplaan", groups: "Grupid", homework: "Kodutööd", worksheetAssignments: "Töölehed",
+  exerciseResults: "Harjutuste tulemused", invoices: "Arved", payments: "Maksed", creditNotes: "Kreeditarved",
+  refunds: "Tagastused", payerCredits: "Ettemaksed", studentPackages: "Tunnipaketid", packageLedger: "Paketi liikumised",
+  cashLedger: "Kassa", lessonNotes: "Tunnimärkmed", lessonRecordings: "Salvestused", lessonSummaries: "Tunni kokkuvõtted",
+  messages: "Sõnumid", workSessions: "Tööaeg", payrollRecords: "Töötasu", students: "Õpilaste kaardid",
+  taxIdentities: "Maksuandmed", studentInitialAssessments: "Esmane hindamine", whiteboards: "Tahvel",
+  accountingEntries: "Raamatupidamiskanded", bankTransactions: "Pangaread",
+};
+const FINANCE_LINKS = new Set(["invoices", "payments", "creditNotes", "refunds", "payerCredits", "studentPackages", "packageLedger", "cashLedger", "accountingEntries", "bankTransactions", "taxIdentities", "payrollRecords"]);
+
+/**
+ * What „Kustuta” would do, before anything is written (2026-11-06: the confirmation lists what is linked):
+ * { blockers, lessons (what to move or cancel first), groups, links [{ collection, label, count, more, finance }],
+ *   outcome: "delete" | "anonymise" | "blocked", purgeAfter }. references: cardReferences() (each query capped at 20).
+ */
+function trashPreview(kind, { id, card, schedule = [], groups = [], invoices = [], references = [], today, actorUid = "", nowIso = new Date().toISOString() } = {}) {
+  const blockers = trashBlockers(kind, { id, card, schedule, groups, invoices, today, actorUid });
+  const byCollection = new Map();
+  for (const ref of references || []) {
+    if (!ref || !(ref.count > 0) || IGNORED_COLLECTIONS.has(ref.collection)) continue;
+    const current = byCollection.get(ref.collection) || { collection: ref.collection, label: LINK_LABELS[ref.collection] || ref.collection, count: 0, more: false, finance: FINANCE_LINKS.has(ref.collection) };
+    current.count = Math.max(current.count, ref.count);
+    current.more = current.more || ref.count >= 20;
+    byCollection.set(ref.collection, current);
+  }
+  const links = [...byCollection.values()].sort((a, b) => Number(b.finance) - Number(a.finance) || a.label.localeCompare(b.label, "et"));
+  return {
+    kind,
+    id,
+    name: cardName(kind, card || {}),
+    blockers,
+    lessons: lessonItems(schedule, today),
+    groups: (groups || []).filter((group) => group && group.active !== false).map((group) => ({ id: String(group.id || ""), name: String(group.name || group.id || "") })),
+    links,
+    outcome: blockers.length ? "blocked" : links.length ? "anonymise" : "delete",
+    purgeAfter: addDays(nowIso, TRASH_DAYS),
+  };
 }
 
 // „Kustuta”: the fields set on the card (merge write)
@@ -151,7 +233,7 @@ function restoreChange(kind, card = {}, { nowIso = new Date().toISOString() } = 
  * groups: the groups it is in / teaches. Returns { action: "skip" | "wait" | "block" | "delete" | "anonymise", reason,
  * references }.
  */
-function purgeDecision({ card, references = [], schedule = [], groups = [], now = new Date().toISOString(), today } = {}) {
+function purgeDecision({ card, references = [], schedule = [], groups = [], invoices = [], now = new Date().toISOString(), today } = {}) {
   if (!card || !card.deletedAt) return { action: "skip", reason: "not-in-trash", references: [] };
   if (card.purgedAt) return { action: "skip", reason: "already-purged", references: [] };
   if (!card.purgeAfter || String(card.purgeAfter) > String(now)) return { action: "wait", reason: "not-due", references: [] };
@@ -159,6 +241,8 @@ function purgeDecision({ card, references = [], schedule = [], groups = [], now 
   if (ahead.length) return { action: "block", reason: "future-lessons", count: ahead.length, references: [] };
   const activeGroups = (groups || []).filter((group) => group && group.active !== false);
   if (activeGroups.length) return { action: "block", reason: "active-group", count: activeGroups.length, references: [] };
+  const open = openInvoicesOf(invoices);
+  if (open.length) return { action: "block", reason: "open-invoices", count: open.length, references: [] };
   const kept = (references || []).filter((ref) => ref && ref.count > 0 && !IGNORED_COLLECTIONS.has(ref.collection));
   if (kept.length) return { action: "anonymise", reason: "history", references: kept };
   return { action: "delete", reason: "no-history", references: [] };
@@ -228,7 +312,10 @@ module.exports = {
   cleanKind,
   deletedName,
   futureLessons,
+  invoiceOpenCents,
   isTrashed,
+  lessonItems,
+  openInvoicesOf,
   linkedAccountIds,
   purgeDecision,
   referenceQueries,
@@ -237,4 +324,5 @@ module.exports = {
   skipCollection,
   trashBlockers,
   trashPatch,
+  trashPreview,
 };

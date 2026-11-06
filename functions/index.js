@@ -22,6 +22,7 @@ const { FieldValue } = require("firebase-admin/firestore");
 let googleModule = null;
 const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
+const { runInvoiceReminderBatch } = require("./invoice-reminder-batch-core");
 const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, tokenInvoiceParts, isCombinedTokenInvoice, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject, packageTiersForLesson } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
@@ -5815,26 +5816,14 @@ function shouldSendOverdueReminder(invoice, todayIso, force = false) {
 async function sendInvoiceBatch({ type, force = false, actor = null } = {}) {
   const todayIso = localDate(new Date(), APP_TIME_ZONE);
   const snap = await db.collection("invoices").where("status", "==", "Ootel").get();
-  const result = { sent: 0, queued: 0, skipped: 0, failed: 0, errors: [] };
-  for (const doc of snap.docs) {
-    const invoice = { id: doc.id, ...doc.data() };
-    const shouldSend = type === "due10"
+  // a lesson-package invoice is never e-mailed by a batch (Oleksiy 2026-11-06): invoice-reminder-batch-core.js
+  return runInvoiceReminderBatch({
+    invoices: snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+    shouldSend: (invoice) => (type === "due10"
       ? shouldSendDue10Reminder(invoice, todayIso, force)
-      : shouldSendOverdueReminder(invoice, todayIso, force);
-    if (!shouldSend) {
-      result.skipped++;
-      continue;
-    }
-    try {
-      const delivery = await sendInvoiceMessage(doc.id, { type, actor });
-      if (delivery.status === "sent") result.sent++;
-      else result.queued++;
-    } catch (e) {
-      result.failed++;
-      result.errors.push({ invoiceId: doc.id, error: e.message || String(e) });
-    }
-  }
-  return result;
+      : shouldSendOverdueReminder(invoice, todayIso, force)),
+    send: (invoiceId) => sendInvoiceMessage(invoiceId, { type, actor }),
+  });
 }
 
 function formatInTimeZone(date, timeZone, fields) {
@@ -8706,11 +8695,13 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
     // „Prügikast” (administrator 2026-11-03, functions/card-trash.js, ARCHITECTURE.md „Card trash”): a student or teacher
     // card goes to the trash for 7 days (refused while it has lessons ahead), „Taasta” brings it back; the scheduled
     // purgeCardTrash deletes or anonymises it afterwards. /cards/purge-due runs that purge now (same rules).
-    if (req.path === "/cards/trash" || req.path === "/cards/restore" || req.path === "/cards/purge-due") {
+    // /cards/trash-preview (2026-11-06) only reads: blockers, lessons / groups to move first, linked records, outcome.
+    if (req.path === "/cards/trash" || req.path === "/cards/trash-preview" || req.path === "/cards/restore" || req.path === "/cards/purge-due") {
       const cardTrash = require("./card-trash");
       res.set("Cache-Control", "no-store");
       try {
-        if (req.path === "/cards/trash") res.json(await cardTrash.trashCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
+        if (req.path === "/cards/trash-preview") res.json(await cardTrash.previewTrash(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
+        else if (req.path === "/cards/trash") res.json(await cardTrash.trashCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
         else if (req.path === "/cards/restore") res.json(await cardTrash.restoreCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor), FieldValue }));
         else res.json(await cardTrash.purgeDueCards(db, { FieldValue }));
       } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }

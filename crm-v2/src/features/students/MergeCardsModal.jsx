@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { studentAccess, studentsService } from '../../services/firebase/students.js';
-import { nameKey, nameLikeness } from './duplicateCandidates.js';
+import { isMergeableCard, matchesMergeSearch, nameLikeness } from './duplicateCandidates.js';
 import './directions.css';
 
 const KIND = { learner: 'õppetöö', finance: 'finantsid', schedule: 'tunniplaan' };
@@ -56,12 +56,14 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
     return () => { alive = false; };
   }, [open, otherId, keepId, sourceId, keepName, keepActive, service]);
 
+  // archived cards are candidates like active ones; the search also finds an old name, an e-mail, a phone or a parent
+  // (2026-11-06: an archived duplicate was not found by typing)
   const candidates = useMemo(() => (list || [])
-    .filter((s) => s.id !== student.id && !s.mergedInto && !s.mergedIntoStudentId)
-    .map((s) => ({ ...s, like: nameLikeness(student.name, s.name) }))
-    .filter((s) => (query ? nameKey(s.name).includes(nameKey(query)) : s.like > 0 || s.id === otherId))
-    .sort((a, b) => b.like - a.like || String(a.name).localeCompare(String(b.name), 'et'))
-    .slice(0, 20), [list, query, student, otherId]);
+    .filter((s) => s.id !== student.id && isMergeableCard(s))
+    .map((s) => ({ ...s, like: Math.max(nameLikeness(student.name, s.name), ...(s.nameAliases || []).map((alias) => nameLikeness(student.name, alias))) }))
+    .filter((s) => (query ? matchesMergeSearch(s, query) : s.like > 0 || s.id === otherId))
+    .sort((a, b) => b.like - a.like || Number(a.active === false) - Number(b.active === false) || String(a.name).localeCompare(String(b.name), 'et'))
+    .slice(0, 30), [list, query, student, otherId]);
 
   const other = (list || []).find((s) => s.id === otherId);
   const merge = async () => {
@@ -89,7 +91,7 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
         {error ? <ErrorState title="Viga" message={error} /> : null}
         {!initialSourceId ? (!list ? <LoadingState label="Laen kaarte…" /> : (
           <>
-            <div className="search-field"><input aria-label="Otsi kaarti" placeholder="Otsi nime järgi (näitab sarnaseid nimesid)" value={query} onChange={(e) => setQuery(e.target.value)} /></div>
+            <div className="search-field"><input aria-label="Otsi kaarti" placeholder="Otsi nime, e-posti, telefoni või lapsevanema järgi (ka arhiveeritud)" value={query} onChange={(e) => setQuery(e.target.value)} /></div>
             <div className="assignment-students" role="radiogroup" aria-label="Teine kaart">
               {candidates.map((s) => (
                 <label key={s.id} className={s.id === otherId ? 'is-selected' : ''}>
@@ -98,7 +100,7 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
                     <small>{studentAccess(s) === 'student' ? '✓ õpilase konto' : studentAccess(s) === 'parent' ? 'lapsevanema konto' : 'kontot pole'}{s.active === false ? ' · arhiveeritud' : ''}</small></span>
                 </label>
               ))}
-              {!candidates.length ? <p className="form-hint">Sarnaseid nimesid ei leitud. Otsi nime järgi.</p> : null}
+              {!candidates.length ? <p className="form-hint">{query ? 'Sellist kaarti ei leitud (otsitakse aktiivsete ja arhiveeritud kaartide seast; prügikastis olevaid kaarte liita ei saa).' : 'Sarnaseid nimesid ei leitud. Otsi nime järgi.'}</p> : null}
             </div>
           </>
         )) : null}

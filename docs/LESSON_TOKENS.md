@@ -11,7 +11,10 @@ the package is used up — how many lessons are owed (to be invoiced and paid).
    subject; the payer is the card's parent / payer), N lessons (4 / 8 / 9 / 12 or any 1–100), due date →
    `manualInvoiceApi POST /create-tokens`. The price is the card's plan price (`studentRevenuePlans.lessonPriceCents`),
    never the request's. Invoice: `billingMode: 'lesson_tokens_v1'`, `tokenCredits`, `tokenStatus: 'pending'`, one line
-   „Tunnipakett (aine): N × min × €”. „Loo ja saada” e-mails it.
+   „Tunnipakett (aine): N × min × €”. The dialog only creates it („Loo arve”); it is NEVER e-mailed automatically
+   (Oleksiy 2026-11-06): the administrator checks it and sends it by hand with „Saada” on its invoice row. The reminder
+   batches (scheduled `sendInvoicePaymentReminders`, admin `/monthly-reminders`, `/overdue-reminders`) skip package
+   invoices (`functions/invoice-reminder-batch-core.js isPackageInvoice`); a reminder is only the row's own button.
 2. The payment is registered as for any invoice (Makse, bank match, LinkPay).
 3. **„Lisa tunnid (N)”** on the paid invoice row → `financeApi POST /invoices/tokens/credit` (admin): refuses an unpaid
    invoice; creates `studentPackages/tokens_<invoiceId>` (N credits, valid from the invoice date), a `grant` entry in

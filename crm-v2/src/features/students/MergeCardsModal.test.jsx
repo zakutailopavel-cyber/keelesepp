@@ -78,6 +78,43 @@ describe('merge student cards', () => {
     expect(onMerged).toHaveBeenCalled();
   });
 
+  it('on an ARCHIVED card: the search finds archived and active cards by name, old name, e-mail, phone or parent; the archived card can be the one kept', async () => {
+    const service = { mergeStudents: vi.fn(async ({ keepId, sourceId }) => preview({
+      names: ['Mia Saar'], keepName: 'Mia Saar', conflicts: [], activeAfter: false,
+      keep: { id: keepId, name: 'Mia Saar', active: false, accounts: [] }, source: { id: sourceId, name: 'Mia Saar', active: false, accounts: [] },
+    })) };
+    const students = { list: vi.fn().mockResolvedValue({ items: [
+      { id: 'here', name: 'Mia Saar', active: false },
+      { id: 'old2', name: 'M. Saar', active: false, phone: '+372 5551 2345' },
+      { id: 'alias', name: 'Kask', nameAliases: ['Mia Kask'], active: false },
+      { id: 'mail', name: 'Lapsevanema kaart', parentEmail: 'ema@example.com', active: false },
+      { id: 'act', name: 'Mia', active: true },
+      { id: 'bin', name: 'Mia Saar', active: false, deletedAt: '2026-11-05T10:00:00.000Z' },
+    ] }) };
+    render(<MergeCardsModal open student={{ id: 'here', name: 'Mia Saar', active: false }} onClose={() => {}} onMerged={() => {}} service={service} students={students} />);
+    // without a search: similar names, active and archived; a card in the trash is never offered
+    await screen.findByRole('radio', { name: /M\. Saar.*arhiveeritud/ });
+    const offered = () => screen.getAllByRole('radio').map((r) => r.closest('label').querySelector('strong').textContent);
+    expect(offered().sort()).toEqual(['Kask', 'M. Saar', 'Mia']); // „Kask” by its earlier name „Mia Kask”
+    const search = screen.getByRole('textbox', { name: 'Otsi kaarti' });
+    fireEvent.change(search, { target: { value: '5551 2345' } });
+    expect(offered()).toEqual(['M. Saar']);
+    fireEvent.change(search, { target: { value: 'mia kask' } });
+    expect(screen.getByRole('radio', { name: /Kask/ })).toBeInTheDocument();
+    fireEvent.change(search, { target: { value: 'ema@example' } });
+    expect(screen.getByRole('radio', { name: /Lapsevanema kaart/ })).toBeInTheDocument();
+    fireEvent.change(search, { target: { value: 'Mia Saar' } });
+    expect(screen.queryByRole('radio', { name: /Mia Saar/ })).toBeNull();
+    expect(screen.getByText(/prügikastis olevaid kaarte liita ei saa/)).toBeInTheDocument();
+    // archived + archived: keep this (archived) card, then the other one
+    fireEvent.change(search, { target: { value: '5551' } });
+    await act(async () => { fireEvent.click(screen.getByRole('radio', { name: /M\. Saar/ })); });
+    expect(service.mergeStudents).toHaveBeenLastCalledWith({ keepId: 'here', sourceId: 'old2' });
+    expect(await screen.findByRole('radio', { name: 'Arhiveeritud' })).toBeChecked();
+    await act(async () => { fireEvent.click(screen.getByRole('radio', { name: /teine kaart · arhiveeritud/ })); });
+    expect(service.mergeStudents).toHaveBeenLastCalledWith({ keepId: 'old2', sourceId: 'here' });
+  });
+
   it('no archive choice when both cards are active', async () => {
     const service = { mergeStudents: vi.fn(async () => preview({ keep: { id: 'keep', name: 'Vlad', active: true, accounts: [] }, source: { id: 'self_v', name: 'Влад Повжик', active: true, accounts: [] }, activeAfter: true })) };
     const students = { list: vi.fn().mockResolvedValue({ items: [{ id: 'keep', name: 'Vlad' }, { id: 'self_v', name: 'Влад Повжик' }] }) };

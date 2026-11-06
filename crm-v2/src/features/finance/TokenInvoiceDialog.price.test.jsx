@@ -64,7 +64,7 @@ describe('„Tunnihind” in the Tunnipakett dialog', () => {
     // the first row now reads „Rida 1: …”
     expect(nb(document.querySelector('[data-token-price="1"]').textContent)).toContain('Rida 1: 8 tundi × 18,75 € = 150,00 €');
     expect(screen.getByRole('button', { name: 'Loo arve' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Loo ja saada' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Loo ja saada' })).not.toBeInTheDocument();
     expect(api.createTokensCombined).not.toHaveBeenCalled();
   });
 });

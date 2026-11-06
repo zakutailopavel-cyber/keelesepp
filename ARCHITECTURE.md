@@ -478,6 +478,11 @@ joined. History (`activityLog`, `financialAudit`, …) keeps the old id. The old
 documents are marked `mergedInto` too. `studentCardMerges/{oldCardId}` records the run (idempotent: a repeat returns
 the stored result; a failed run continues where it stopped); `activityLog/student-card-merge-{oldCardId}` is the
 audit entry. The older `/students/merge` with `permanent` and `/students/merged/purge` answer 410 (no deletes).
+Archived cards merge in every direction (archived source, archived kept card, two archived cards; 2026-11-03 /
+2026-11-06). A card in the „Prügikast” (`deletedAt` / `purgedAt`) is refused with 409 „… on prügikastis. Taasta see
+enne liitmist” — its purge would anonymise the merged history. The dialog's search finds archived cards by name, an
+earlier name (`nameAliases`), e-mail, phone or parent (`duplicateCandidates.js matchesMergeSearch`); „Võimalikud
+topeltkaardid” also proposes two archived cards (after the pairs with an active card).
 
 Parents (2026-10-24): a child may have several parent accounts (`linkedParentIds`; `linkedParentId` / `parentUid` is
 the main one) and parents without an account (`parentContacts: [{ name, email, phone }]`, plus the old
@@ -549,9 +554,16 @@ only), scheduled `purgeCardTrash` (daily 03:40 Europe/Tallinn); CRM: „Kustuta�
 (`features/trash/CardTrashDialog.jsx`; the right-click menu opens the same window with `?kustuta=1`), page Inimesed →
 „Prügikast” (`/trash`, `features/trash/TrashPage.jsx`, `services/firebase/cardTrash.js`).
 
+0. **Preview (2026-11-06).** The „Kustuta” window first calls `/cards/trash-preview` (reads only,
+   `card-trash.js previewTrash` → `card-trash-core.js trashPreview`): the blockers, the lessons / series ahead (date or
+   weekday, time, student or teacher, subject — what to reassign) and the active groups, the linked records per
+   collection (finance first; audit collections never listed) and the outcome `delete | anonymise | blocked`.
+   „Vii prügikasti” is disabled while blocked; the server checks again on the real call.
 1. **Kustuta (trash).** Refused while the card has lessons ahead (a planned single lesson from today on, or a recurring
    series without a past end date — `schedule-clear-core.js futureRecordInScope`) or an active group: the administrator
-   cancels or reassigns them first. Blocking rather than cancelling was chosen because cancelling sends e-mails, changes
+   cancels or reassigns them first. A student card with an unpaid invoice (`invoiceOpenCents` > 0: not „Tühistatud” /
+   „Makstud”, open balance from `balanceDueCents` or amount − paid) is refused too, „Kaardil on tasumata arveid … —
+   arhiveeri kaart” (2026-11-06); paid / cancelled invoices do not block (the card is anonymised at the purge). Blocking rather than cancelling was chosen because cancelling sends e-mails, changes
    Google Calendar and package balances — not something a delete should do silently. A teacher card: role `teacher`
    only (an administrator account is changed to teacher first), never the own account. The card gets `deletedAt`,
    `deletedBy {uid, name}`, `purgeAfter` (= deletedAt + 7 days, ISO strings) and `trashState` (the previous `active` of
@@ -566,7 +578,8 @@ only), scheduled `purgeCardTrash` (daily 03:40 Europe/Tallinn); CRM: „Kustuta�
 3. **Taasta (restore)** within the week: the previous `active` / `disabled` comes back and the trash fields are removed;
    audit `activityLog/card-restore-…`.
 4. **Purge after 7 days** (`purgeCardTrash`, or „/cards/purge-due” by an administrator — same rules). Per card:
-   - **block** — lessons ahead or an active group appeared during the week: nothing changes, `purgeBlocked` is set and
+   - **block** — lessons ahead, an active group or an unpaid invoice (`open-invoices`) appeared during the week:
+     nothing changes, `purgeBlocked` is set and
      the card stays in the trash (shown there);
    - **delete** — no record outside the audit collections refers to the card: the card document is deleted with its
      disposable per-card documents (student: `studentAvailability`, `studentRevenuePlans`; teacher: `teacherAvailability`);
