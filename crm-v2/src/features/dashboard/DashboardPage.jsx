@@ -114,9 +114,10 @@ async function loadDashboardData(user, repositories, now) {
   };
 }
 
-// Home page (calm layout, owner 2026-11-06): a one-line greeting, ONE short „Vajab tähelepanu” list (≤ 5 lines, the
-// most urgent first, only what has a count), today's next lessons, and „Ülevaated” tiles that open the details
-// (numbers, calls, packages, homework, enquiries, unmarked lessons, risk) only when asked. Nothing was removed: every
+// Home page (calm layout, owner 2026-11-06): a one-line greeting, the four numbers and the quick links at the top
+// (as on the old page), ONE short „Vajab tähelepanu” list (≤ 5 lines, the most urgent first, only what has a count),
+// today's next lessons, and „Ülevaated” tiles that open the details (calls, packages, homework, enquiries, unmarked
+// lessons, risk) only when asked. Nothing was removed: every
 // list of the old page is one tile or link away. Roles as before: the admin sees everything, a teacher own students
 // and lessons, the accountant only invoices and the paid lessons running out.
 export default function DashboardPage({
@@ -213,9 +214,6 @@ function CalmDashboard({ data, user, repositories, now }) {
   ];
   const count = (value) => (value == null ? '…' : String(value));
   const tiles = [
-    { key: 'numbers', title: 'Numbrid', meta: data.canViewLearning ? `${data.activePeople.length} õpilast · ${data.todayCount} tundi täna` : `Laekumata ${money(data.balance)}`,
-      render: () => <section className="metric-grid">{metrics.map(({ icon: Icon, ...item }) => <Card as="article" className={`metric-card metric-card--${item.tone}`} key={item.label}>
-        <div className="metric-card__top"><span>{item.label}</span><i><Icon size={19} /></i></div><strong>{item.value}</strong><small>{item.meta}</small></Card>)}</section> },
     ...(isAdmin ? [{ key: 'calls', title: 'Vajab kõnet', meta: `${count(signals.calls?.list.length)} õpilast`, render: () => <CallsPanel calls={signals.calls} user={user} onCalled={signals.addCall} save={(input, actor) => (repositories.today || todayApi).addFollowup(input, actor)} /> }] : []),
     ...(canViewBalance ? [{ key: 'balance', title: 'Makstud tunnid lõppevad', meta: `${count(signals.runningOut?.length)} õpilast`, render: () => <BalancePanel runningOut={signals.runningOut} isAdmin={isAdmin} journalMissing={Boolean(signals.data && !signals.data.lessons)} /> }] : []),
     ...(isAdmin ? [{ key: 'homework', title: 'Kodutööd', meta: `${data.pendingReviews} ootab kontrolli`, render: () => <HomeworkPanel queue={signals.queue} /> }]
@@ -237,12 +235,12 @@ function CalmDashboard({ data, user, repositories, now }) {
   ];
   const quickLinks = [
     ...(data.canViewLearning ? [
-      { to: '/calendar', label: 'Tunniplaan', icon: CalendarDays },
-      { to: '/students', label: 'Õpilased', icon: Users },
-      { to: '/library', label: 'Õppevara', icon: BookOpenCheck },
-      { to: '/messages', label: 'Suhtlus', icon: MessageSquareText },
+      { to: '/calendar', label: 'Tunniplaan', meta: 'Vaata päeva ja lisa tund', icon: CalendarDays },
+      { to: '/students', label: 'Õpilased', meta: 'Profiilid ja õpiteekond', icon: Users },
+      { to: '/library', label: 'Õppevara', meta: 'Valmista järgmine tund', icon: BookOpenCheck },
+      { to: '/messages', label: 'Suhtlus', meta: 'Vestlused ühes kohas', icon: MessageSquareText },
     ] : []),
-    ...(data.canViewFinance ? [{ to: '/finance', label: 'Finantsid', icon: ReceiptText }] : []),
+    ...(data.canViewFinance ? [{ to: '/finance', label: 'Finantsid', meta: 'Arved, maksed ja kontroll', icon: ReceiptText }] : []),
   ];
   const openTile = tiles.find((tile) => tile.key === panel && tile.render);
   const dayLabel = new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Tallinn' }).format(now());
@@ -253,6 +251,20 @@ function CalmDashboard({ data, user, repositories, now }) {
         <h1>Tere, {user.displayName?.split(' ')[0] || 'tagasi'}</h1>
         <span>· {dayLabel}</span>
       </header>
+      {/* owner 2026-11-06: the numbers and the quick links stay at the top, as on the old home page */}
+      {metrics.length ? <section className={`metric-grid calm-kpis calm-kpis--${metrics.length}`} aria-label="Numbrid">
+        {metrics.map(({ icon: Icon, ...item }) => <Card as="article" className={`metric-card metric-card--${item.tone}`} key={item.label}>
+          <div className="metric-card__top"><span>{item.label}</span><i><Icon size={17} aria-hidden="true" /></i></div>
+          <strong>{item.value}</strong><small>{item.meta}</small>
+        </Card>)}
+      </section> : null}
+      {quickLinks.length ? <nav className="dashboard-quick-actions calm-quick" aria-label="Kiirvalikud">
+        {quickLinks.map(({ to, label, meta, icon: Icon }) => <Link key={to} to={to}>
+          <i><Icon size={18} aria-hidden="true" /></i>
+          <span><strong>{label}</strong><small>{meta}</small></span>
+          <ArrowUpRight size={15} aria-hidden="true" />
+        </Link>)}
+      </nav> : null}
       <div className={`calm-top${data.canViewLearning ? '' : ' calm-top--single'}`}>
         <AttentionCard attention={attention} loading={signals.loading} onOpen={setPanel} />
         {data.canViewLearning ? <TodayTimeline lessons={signals.lessonsToday} allTeachers={data.allTeachers} /> : null}
@@ -269,9 +281,6 @@ function CalmDashboard({ data, user, repositories, now }) {
           <div className={`calm-card__head${openTile.ownHeading ? ' calm-card__head--float' : ''}`}>{openTile.ownHeading ? null : <h2>{openTile.title}</h2>}<button type="button" className="calm-close" aria-label="Sulge" onClick={() => setPanel('')}><X size={16} /></button></div>
           {openTile.render()}
         </Card> : null}
-        {quickLinks.length ? <nav className="calm-links" aria-label="Kiirvalikud">
-          {quickLinks.map(({ to, label, icon: Icon }) => <Link key={to} to={to}><Icon size={15} aria-hidden="true" /> {label}</Link>)}
-        </nav> : null}
       </section>
     </div>
   );

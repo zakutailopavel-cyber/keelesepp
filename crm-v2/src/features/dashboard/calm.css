@@ -46,11 +46,35 @@ a.calm-tile { padding-right: 30px; }
 .calm-card__head--float { position: absolute; top: 14px; right: 16px; z-index: 1; margin: 0; }
 .calm-panel .section-heading { padding-right: 44px; }
 .calm-close { display: inline-flex; padding: 6px; border: 0; border-radius: 8px; background: #f2f4f7; color: #475467; cursor: pointer; }
-.calm-links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 14px; }
-.calm-links a { display: inline-flex; align-items: center; gap: 6px; color: #475467; font-size: .87rem; font-weight: 600; text-decoration: none; }
-.calm-links a:hover { color: var(--green, #067647); }
+/* the four numbers and the quick links at the top (owner 2026-11-06), compact */
+.calm-dashboard .calm-kpis { gap: 12px; margin: 0 0 12px; }
+.calm-dashboard .calm-kpis--1 { grid-template-columns: minmax(0, 320px); }
+.calm-kpis .metric-card { padding: 13px 16px; }
+.calm-kpis .metric-card:after { display: none; }
+.calm-kpis .metric-card__top span { font-size: .85rem; }
+.calm-kpis .metric-card__top i { width: 32px; height: 32px; border-radius: 10px; }
+.calm-kpis .metric-card strong { margin: 4px 0 2px; font-size: 1.55rem; }
+.calm-kpis .metric-card small { display: block; overflow: hidden; font-size: .78rem; white-space: nowrap; text-overflow: ellipsis; }
+.calm-dashboard .calm-quick { gap: 10px; margin: 0 0 18px; }
+.calm-quick > a { padding: 10px 12px; }
+.calm-quick i { width: 32px; height: 32px; border-radius: 10px; }
 @media (max-width: 1100px) { .calm-top { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) {
+  /* quick links scroll sideways instead of taking half the phone screen */
+  .calm-dashboard .calm-quick { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 4px; }
+  .calm-quick > a { flex: 0 0 auto; grid-template-columns: auto auto; scroll-snap-align: start; }
+  .calm-quick > a > svg, .calm-quick small { display: none; }
+}
 @media (max-width: 720px) {
+  .calm-dashboard .calm-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .calm-dashboard .calm-kpis--1 { grid-template-columns: minmax(0, 1fr); }
+  .calm-kpis .metric-card { padding: 10px 12px; }
+  .calm-kpis .metric-card__top span { font-size: .78rem; }
+  .calm-kpis .metric-card__top i { display: none; }
+  .calm-kpis .metric-card strong { font-size: 1.3rem; }
+  .calm-kpis .metric-card small { font-size: .72rem; white-space: normal; }
+  .calm-quick > a { padding: 8px 12px; }
+  .calm-quick i { width: 28px; height: 28px; }
   .calm-head h1 { font-size: 1.3rem; }
   .calm-head span { font-size: .9rem; }
   .calm-card, .calm-panel { padding: 14px; }
