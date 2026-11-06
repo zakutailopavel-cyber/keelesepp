@@ -1,3 +1,15 @@
+## 2026-11-06 · agent/dashboard-kpis-top — the four numbers and the quick links back at the top of the home page
+
+- Base: `origin/main` e26ba25 (#1120 merged), checked 2026-11-06. Branch `agent/dashboard-kpis-top`, draft PR. Dashboard UI only.
+- Owner (2026-11-06, screenshot of the old page): the KPI cards and the quick-link tiles belong at the top „as before”. In #1120 they were hidden in the closed „Numbrid” tile and a slim link row at the bottom.
+- Order now (`dashboard/DashboardPage.jsx`, all roles): one-line greeting → 4 KPI cards (region „Numbrid”: Aktiivsed õpilased · Tunnid täna · Kodutööd pooleli · Laekumata; same data and role rules as before: teacher gets his own 3, accountant only „Laekumata”) → quick-link tiles (nav „Kiirvalikud”: Tunniplaan, Õpilased, Õppevara, Suhtlus, Finantsid by role) → „Vajab tähelepanu” + „Täna” → „Ülevaated” tiles. The „Numbrid” tile and the bottom slim link row were removed (duplicates). No new reads: the KPIs use data already loaded.
+- CSS (`dashboard/calm.css`): compact KPI cards (smaller padding, number 1.55rem, no decorative circle); one card (accountant) is max 320 px wide. ≤ 900 px the quick links scroll sideways (icon + name only); ≤ 720 px KPIs are a 2×2 grid.
+- Files: `crm-v2/src/features/dashboard/{DashboardPage.jsx,DashboardPage.test.jsx,calm.css}`, `docs/PROJECT_STATE.md`.
+- Checks: `npx eslint src --quiet` prints nothing; `npx vitest run src/features/dashboard` 4 files, 34 tests passed. New test: section order (h1 → Numbrid → Kiirvalikud → Vajab tähelepanu → Täna → Ülevaated), card order, links, no „Numbrid” tile, one nav only; teacher test: 3 cards, „minu õpilased”, no „Laekumata”, 4 links without Finantsid; accountant: 1 card „Laekumata 100,00 €”, only `/finance`.
+- Screenshots: demo-data harness (not committed), desktop 1440×900 + phone 390×844, `dashboard-screens/v2-*.png` in the local release folder (not committed). No page-wide horizontal scroll. NOT checked against production data.
+- Risks: UI only; no rules, services, functions; no production reads/writes, no deploy.
+- Next safe step: the owner reviews the draft PR; after merge and a hosting deploy, open „Ülevaade” as admin and check that the numbers match „Õpilased”, the calendar and „Arved”.
+
 ## 2026-11-06 · agent/calm-dashboard — calm admin home: one attention list, short „Täna”, details behind tiles
 
 - Base: `origin/main` 4aebe7a (#1118), checked 2026-11-06. Dashboard UI only; no rules, services, functions, finance, calendar or Live Classroom code changed. No production reads/writes, no deploy.

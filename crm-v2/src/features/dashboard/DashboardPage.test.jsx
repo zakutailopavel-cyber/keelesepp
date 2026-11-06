@@ -75,14 +75,30 @@ describe('DashboardPage — calm home', () => {
     expect(screen.getByRole('link', { name: /Vead saidil.*1 uut/ })).toHaveAttribute('href', '/vead');
   });
 
+  it('admin: the four numbers and the quick links sit at the top, before „Vajab tähelepanu”, „Täna” and „Ülevaated”', async () => {
+    renderDashboard(ADMIN, repositories());
+    const overviews = await screen.findByRole('region', { name: 'Ülevaated' });
+    const numbers = screen.getByRole('region', { name: 'Numbrid' });
+    const links = screen.getByRole('navigation', { name: 'Kiirvalikud' });
+    const order = [screen.getByRole('heading', { level: 1 }), numbers, links, attention(), screen.getByRole('region', { name: 'Täna' }), overviews];
+    order.slice(1).forEach((node, index) => expect(order[index].compareDocumentPosition(node) & 4 /* DOCUMENT_POSITION_FOLLOWING */).toBeTruthy());
+    expect(within(numbers).getAllByRole('article').map((card) => card.querySelector('.metric-card__top span').textContent))
+      .toEqual(['Aktiivsed õpilased', 'Tunnid täna', 'Kodutööd pooleli', 'Laekumata']);
+    expect(within(numbers).getByText('kõik õpetajad')).toBeInTheDocument();
+    expect(within(numbers).getByText(/kõik kuud · 1 tähtaja ületanud/)).toBeInTheDocument();
+    expect(within(links).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(['/calendar', '/students', '/library', '/messages', '/finance']);
+    // the numbers are no longer a tile, and the old slim link row at the bottom is gone
+    expect(within(overviews).queryByRole('button', { name: /Numbrid/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('navigation')).toHaveLength(1);
+  });
+
   it('admin: details stay closed; a tile opens its panel, „Riskis õpilased” reads the words only when opened', async () => {
     const repo = repositories();
     renderDashboard(ADMIN, repo);
     const overviews = await screen.findByRole('region', { name: 'Ülevaated' });
     await waitFor(() => expect(repo.today.leads).toHaveBeenCalled());
-    ['Numbrid', 'Vajab kõnet', 'Makstud tunnid lõppevad', 'Kodutööd', 'Veebipäringud', 'Märkimata tunnid', 'Riskis õpilased'].forEach((title) => expect(within(overviews).getByRole('button', { name: new RegExp(title) })).toHaveAttribute('aria-expanded', 'false'));
+    ['Vajab kõnet', 'Makstud tunnid lõppevad', 'Kodutööd', 'Veebipäringud', 'Märkimata tunnid', 'Riskis õpilased'].forEach((title) => expect(within(overviews).getByRole('button', { name: new RegExp(title) })).toHaveAttribute('aria-expanded', 'false'));
     ['Õpetajate koormus', 'Ilma tulevase tunnita', 'Vead saidil', 'Arved'].forEach((title) => expect(within(overviews).getByRole('link', { name: new RegExp(title) })).toBeInTheDocument());
-    expect(screen.queryByText('Aktiivsed õpilased')).not.toBeInTheDocument();
     expect(screen.queryByText('Riskis õpilased', { selector: 'h2' })).not.toBeInTheDocument();
     expect(repo.retention.words).not.toHaveBeenCalled();
     expect(repo.today.lessons).toHaveBeenCalledTimes(1);
@@ -91,11 +107,9 @@ describe('DashboardPage — calm home', () => {
     fireEvent.click(within(overviews).getByRole('button', { name: /Riskis õpilased/ }));
     await waitFor(() => expect(repo.retention.words).toHaveBeenCalledWith(['student-1']));
     expect(repo.today.lessons).toHaveBeenCalledTimes(1); // the panel reuses the journal read for the counts
-    fireEvent.click(within(overviews).getByRole('button', { name: /Numbrid/ }));
-    expect(screen.getByText('Aktiivsed õpilased')).toBeInTheDocument();
-    expect(screen.getByText('Laekumata')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Riskis õpilased' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Sulge' }));
-    expect(screen.queryByText('Aktiivsed õpilased')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Riskis õpilased' })).not.toBeInTheDocument();
   });
 
   it('admin: „Vajab kõnet” in the attention list opens its panel with „Helistasin”', async () => {
@@ -127,7 +141,12 @@ describe('DashboardPage — calm home', () => {
     const overviews = screen.getByRole('region', { name: 'Ülevaated' });
     ['Vajab kõnet', 'Makstud tunnid', 'Veebipäringud', 'Õpetajate koormus', 'Vead saidil', 'Arved'].forEach((title) => expect(within(overviews).queryByText(new RegExp(title))).not.toBeInTheDocument());
     expect(within(overviews).getByRole('link', { name: /Kodutööd/ })).toHaveAttribute('href', '/homework');
-    expect(screen.queryByRole('link', { name: 'Finantsid' })).not.toBeInTheDocument();
+    const numbers = screen.getByRole('region', { name: 'Numbrid' });
+    expect(within(numbers).getAllByRole('article')).toHaveLength(3);
+    expect(within(numbers).getByText('minu õpilased')).toBeInTheDocument();
+    expect(within(numbers).queryByText('Laekumata')).not.toBeInTheDocument();
+    expect(within(screen.getByRole('navigation', { name: 'Kiirvalikud' })).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(['/calendar', '/students', '/library', '/messages']);
+    expect(screen.queryByRole('link', { name: /Finantsid/ })).not.toBeInTheDocument();
   });
 
   it('accountant: invoices and packages only; no lessons, no learning reads', async () => {
@@ -144,6 +163,10 @@ describe('DashboardPage — calm home', () => {
     expect(repo.clientErrors.listRecent).not.toHaveBeenCalled();
     fireEvent.click(within(attention()).getByRole('button', { name: /makstud tunnid/ }));
     expect(within(screen.getByRole('region', { name: 'Makstud tunnid lõppevad' })).getByText('Pakett läbi')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Finantsid' })).toHaveAttribute('href', '/finance');
+    const numbers = screen.getByRole('region', { name: 'Numbrid' });
+    expect(within(numbers).getAllByRole('article')).toHaveLength(1);
+    expect(within(numbers).getByText('Laekumata')).toBeInTheDocument();
+    expect(within(numbers).getByText('100,00 €', { normalizer: (text) => text.replace(/\s/g, ' ') })).toBeInTheDocument();
+    expect(within(screen.getByRole('navigation', { name: 'Kiirvalikud' })).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(['/finance']);
   });
 });
