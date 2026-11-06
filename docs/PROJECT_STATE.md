@@ -12,6 +12,15 @@
 - PR: draft (see GitHub). Production: none.
 - Next safe step: owner reviews the draft PR screenshots; after merge + hosting deploy, open „Ülevaade” as admin and compare the attention counts with the calendar and Kodutööd.
 
+## 2026-11-06 · agent/token-dialog-hourly-price — „Tunnipakett” dialog shows the price per hour for control
+
+- Request: Oleksiy (administrator) 2026-11-06 #improvement #finance — when composing a package, show the student's price per hour on the composing page.
+- Base: `origin/main` 4aebe7a (2026-11-05), checked 2026-11-06. Finance UI only (client + tests + docs); no server, rules, data or production writes; no deploy.
+- `crm-v2/src/features/finance/tokenInvoiceRows.js`: new `tokenPlanPrice(plan, subject)` — the per-lesson price exactly as the server takes it (`combined-invoice-core planForSubject` → `lesson-tokens-core tokenInvoiceLines`: a subject entry in `subjectPrices` replaces the card price, its minutes fall back to the card's, price rounded to cents, no minutes = 60). Fix: before, a subject entry without a price borrowed the card's price in the dialog while the server refuses it. New `tokenRowPriceView(state)`: „Tunnihind: 25,00 € / h” (= price × 60 / minutes, display only), „Tund 45 min = 18,75 €” when not 60 min, „N tundi × hind = summa”; no price → `TOKEN_PRICE_MISSING` „Hind määramata — lisa see õpilase kaardil (Finantsid → Arveldus)” (also the `tokenRowsError` text). `tokenMoney` moved here.
+- `TokenInvoiceDialog.jsx`: every row (card + subject) shows that block (`data-token-price="N"`; „Rida N:” before the amount on a combined invoice); a row without price shows the warning in red and „Loo arve” / „Loo ja saada” are disabled. Invoice amounts unchanged (lessons × lesson price, server-side).
+- Tests: new `TokenInvoiceDialog.price.test.jsx` (60 / 45 / 90 min, missing price, subject price, dialog rows + blocked buttons); `lessonTokens.test.jsx` missing-price case now expects the warning + disabled buttons; `TokenInvoiceDialog.combined.test.jsx` new amount text.
+- Checks: `cd crm-v2 && npx eslint src --quiet` no output; `npx vitest run src/features/finance` 38 files, 253/253 passed.
+- Deploy: hosting only, owner's OK required. Next safe step: after merge + hosting deploy, Oleksiy opens „Tunnipakett” for a 45-min student and confirms the hourly price matches the card.
 ## 2026-11-05 · agent/transcriber-night-window — lessons transcribed only 02:00–07:00
 
 - Owner 2026-11-05: „настрой чтобы уроки транскрибировались только ночью с 2 ночи до 7 утра”.

@@ -31,8 +31,10 @@ describe('lesson tokens', () => {
     render(<TokenInvoiceDialog studentCards={[kaarel]} plans={[]} api={api} tokensApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} />);
     fireEvent.click(screen.getByRole('button', { name: /Tunnipakett/ }));
     fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'k1' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('tunnihind');
+    // Oleksiy 2026-11-06: the row shows „Hind määramata — …” and both buttons wait for the price
+    expect(screen.getByText(/Hind määramata — lisa see õpilase kaardil/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Loo arve' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Loo ja saada' })).toBeDisabled();
     expect(api.createTokens).not.toHaveBeenCalled();
   });
 

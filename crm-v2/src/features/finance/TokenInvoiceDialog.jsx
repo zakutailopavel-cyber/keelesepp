@@ -10,14 +10,13 @@ import { activeDirections } from '../students/studyDirections.js';
 import { useStudyDirections } from '../students/useStudyDirections.js';
 import { INVOICE_NOTE_MAX, invoiceNotesService, saveCreationNote } from '../../services/firebase/invoiceNotes.js';
 import { defaultBillingMonth, payerKey } from './monthlyBilling.js';
-import { MIXED_PAYER_MESSAGE, TOKEN_ROWS_MAX, tokenRowState, tokenRowsError } from './tokenInvoiceRows.js';
+import { MIXED_PAYER_MESSAGE, TOKEN_ROWS_MAX, tokenMoney as money, tokenRowPriceView, tokenRowState, tokenRowsError } from './tokenInvoiceRows.js';
 import { cardPayerEmail, cardPayerName } from './invoicePayer.js';
 
 // one request id per form (a retry after an error never makes a second invoice); outside the component so it is never
 // called during render
 const newRequestId = () => `lesson_tokens_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
 const PRESETS = [4, 8, 9, 12];
 const dueDefault = () => `${defaultBillingMonth()}-10`;
 let rowSeq = 0;
@@ -65,6 +64,8 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
   const total = states.reduce((sum, state) => sum + state.amountCents, 0);
   const totalLessons = states.reduce((sum, state) => sum + state.count, 0);
   const complete = states.every((state) => state.priceCents && state.count);
+  // a line whose card + subject has no price cannot be invoiced (the server refuses it too): both buttons wait
+  const priceMissing = states.some((state) => state.card && tokenRowPriceView(state).status === 'missing');
 
   // the lessons left that this subject's lessons can take (shown only for the card it was read for)
   const balanceOf = (state) => (state.card && state.subject && loaded[state.card.id] ? subjectBalance(loaded[state.card.id], state.subject) : null);
@@ -115,7 +116,20 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
     {state.subjects.length === 1 && state.ownSubjects.length === 1 ? null : <option value="">{`Vali aine (${state.subjects.length})`}</option>}
     {state.subjects.map((item) => <option key={item} value={item}>{item}</option>)}
   </Select> : null);
-  const priceText = (state) => (!state.subject ? 'vali aine' : state.priceCents ? `${money(state.priceCents)} / ${state.minutes} min` : 'määramata');
+  // „Tunnihind” for control (Oleksiy 2026-11-06): the price per hour, the lesson length and price when not 60 min, and
+  // „N tundi × hind = summa” — all from the server's per-lesson price (tokenInvoiceRows.js tokenPlanPrice)
+  const priceBlock = (state, index) => {
+    if (!state.card) return null;
+    const view = tokenRowPriceView(state);
+    const subject = state.subject ? ` (${state.subject})` : '';
+    if (view.status === 'no-subject') return <p className="form-hint form-grid__wide" data-token-price={index + 1}>Tunnihind: vali aine</p>;
+    if (view.status === 'missing') return <p className="action-error form-grid__wide" data-token-price={index + 1}>{state.subject}: {view.warning}</p>;
+    return <p className="form-hint form-grid__wide" data-token-price={index + 1}>
+      <strong>{view.hourly}</strong>{subject}
+      {view.lesson ? <> · {view.lesson}</> : null}
+      {view.amount ? <><br />{index || combined ? `Rida ${index + 1}: ` : ''}{view.amount}</> : null}
+    </p>;
+  };
   const cardOption = (item) => <option key={item.id} value={item.id}>{item.name}{subjectsOf(item).length ? ` · ${subjectsOf(item).join(', ')}` : ''}{item.parentName ? ` · ${item.parentName}` : ''}</option>;
   const firstBalance = balanceOf(first);
 
@@ -123,8 +137,8 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
     <Button variant="secondary" onClick={() => setOpen(true)}><Coins size={17} /> Tunnipakett</Button>
     <Modal open={open} title={combined ? 'Ühine tunnipakett: üks arve mitme rea eest' : 'Tunnipakett: arve N tunni eest'} onClose={close} footer={<>
       <Button variant="secondary" disabled={Boolean(busy)} onClick={close}>Loobu</Button>
-      <Button variant="secondary" loading={busy === 'create'} disabled={Boolean(busy)} onClick={() => create(false)}>Loo arve</Button>
-      <Button loading={busy === 'send'} disabled={Boolean(busy)} onClick={() => create(true)}>Loo ja saada</Button>
+      <Button variant="secondary" loading={busy === 'create'} disabled={Boolean(busy) || priceMissing} onClick={() => create(false)}>Loo arve</Button>
+      <Button loading={busy === 'send'} disabled={Boolean(busy) || priceMissing} onClick={() => create(true)}>Loo ja saada</Button>
     </>}>
       <div className="form-grid">
         <Input className="form-grid__wide" label="Otsi õpilast" type="search" placeholder="Nimi, aine, lapsevanem või e-post" value={query} onChange={(event) => setQuery(event.target.value)} />
@@ -134,7 +148,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
         </Select>
         {subjectSelect(rows[0], first, 'Aine (kursus)')}
         {card ? <p className="form-hint form-grid__wide">
-          Maksja: <strong>{payer}</strong>{payerEmail ? ` · ${payerEmail}` : ' · Arvel pole saaja e-posti'} · Tunnihind{first.subject ? ` (${first.subject})` : ''}: <strong>{priceText(first)}</strong>
+          Maksja: <strong>{payer}</strong>{payerEmail ? ` · ${payerEmail}` : ' · Arvel pole saaja e-posti'}
           {firstBalance !== null ? <> · Praegu paketis ({first.subject}): <strong>{firstBalance} tundi</strong></> : null}
         </p> : null}
         <div className="field form-grid__wide">
@@ -144,8 +158,8 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
             <input aria-label="Tundide arv" className="field__input" style={{ width: 90 }} type="number" min="1" max="100" value={rows[0].lessons} onChange={(event) => updateRow(rows[0].key, { lessons: event.target.value })} />
             <span className="form-hint">nt 2 korda nädalas → 8–9 tundi kuus</span>
           </div>
-          {combined && first.amountCents ? <span className="form-hint">Rida 1: {first.count} × {money(first.priceCents)} = {money(first.amountCents)}</span> : null}
         </div>
+        {priceBlock(first, 0)}
 
         {rows.slice(1).map((row, offset) => {
           const index = offset + 1;
@@ -162,11 +176,8 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
             </Select>
             {subjectSelect(row, state, `Aine (rida ${index + 1})`)}
             <Input label={`Tundide arv (rida ${index + 1})`} type="number" min="1" max="100" value={row.lessons} onChange={(event) => updateRow(row.key, { lessons: event.target.value })} />
-            {state.card ? <p className="form-hint form-grid__wide">
-              Tunnihind{state.subject ? ` (${state.subject})` : ''}: <strong>{priceText(state)}</strong>
-              {state.amountCents ? <> · Rida {index + 1}: {state.count} × {money(state.priceCents)} = <strong>{money(state.amountCents)}</strong></> : null}
-              {balance !== null ? <> · Praegu paketis: {balance} tundi</> : null}
-            </p> : null}
+            {priceBlock(state, index)}
+            {balance !== null ? <p className="form-hint form-grid__wide">Praegu paketis: {balance} tundi</p> : null}
             {otherPayer ? <p className="action-error form-grid__wide">{MIXED_PAYER_MESSAGE}</p> : null}
           </fieldset>;
         })}
