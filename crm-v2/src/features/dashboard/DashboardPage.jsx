@@ -1,12 +1,16 @@
-import { ArrowUpRight, BookOpenCheck, CalendarDays, CircleAlert, GraduationCap, MessageSquareText, ReceiptText, Users } from 'lucide-react';
+import { ArrowUpRight, BookOpenCheck, CalendarDays, CheckCircle2, CircleAlert, GraduationCap, MessageSquareText, ReceiptText, Users, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { Badge, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
+import { Card, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService } from '../../services/firebase/groups.js';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
+import { presenceService } from '../../services/firebase/presence.js';
 import { scheduleService } from '../../services/firebase/schedule.js';
+import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { groupCalendarEvents } from '../calendar/calendarView.js';
 import { unplannedStudents } from '../calendar/unplannedStudents.js';
@@ -18,12 +22,12 @@ import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 import RetentionCard from '../retention/RetentionCard.jsx';
 import { recentlyScheduled } from '../retention/retentionRisk.js';
 import UnmarkedLessonsCard from '../calendar/UnmarkedLessonsCard.jsx';
-import TodayPanel from './today/TodayPanel.jsx';
-import ClientErrorsDigest from '../client-errors/ClientErrorsDigest.jsx';
+import { BalancePanel, CallsPanel, HomeworkPanel, LeadsPanel, TodayTimeline } from './today/TodayPanel.jsx';
+import { todayApi, useTodaySignals } from './today/useTodaySignals.js';
 import { tallinnDay } from './today/todayModel.js';
+import { attentionItems, lateReviews, lessonsSoon } from './calmModel.js';
+import './calm.css';
 
-const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date());
-const todayLabel = () => new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 const defaultRepositories = {
   students: studentsService,
@@ -33,7 +37,7 @@ const defaultRepositories = {
   groups: groupsService,
 };
 
-async function loadDashboardData(user, repositories) {
+async function loadDashboardData(user, repositories, now) {
   const isAdmin = user.roles.includes(ROLES.ADMIN);
   const isTeacher = user.roles.includes(ROLES.TEACHER);
   const isFinance = user.roles.includes(ROLES.FINANCE);
@@ -74,20 +78,17 @@ async function loadDashboardData(user, repositories) {
     groupsPromise,
     submissionsPromise,
   ]);
-  // same counting as the pages the tiles open: people (not card records) in „Õpilased”, weekly lessons expanded like
+  // same counting as the pages the numbers open: people (not card records) in „Õpilased”, weekly lessons expanded like
   // the calendar does, homework of the students in scope like „Kodutööd”
   const activePeople = groupStudentPeople(studentsResult.items).filter((person) => person.records?.some((record) => record.active));
   const activeStudents = studentsResult.items.filter((item) => item.active);
-  const current = today();
-  const nowClock = new Date().toTimeString().slice(0, 5);
-  const todayLessons = occurrencesForDates([...schedule, ...groupCalendarEvents(groups)], [current]);
-  const upcoming = todayLessons.filter((item) => String(item.time || '99:99') >= nowClock);
+  const current = tallinnDay(now());
+  const events = [...schedule, ...groupCalendarEvents(groups)];
+  const todayCount = occurrencesForDates(events, [current]).filter((item) => item.status !== 'Tühistatud').length;
   const overdue = invoices.filter(isInvoiceOverdue);
   const studentIds = new Set(studentsResult.items.map((item) => item.id));
   const openHomework = homework.filter((item) => isHomeworkOpen(item) && (!studentIds.size || studentIds.has(item.studentId)));
-
-  const events = [...schedule, ...groupCalendarEvents(groups)];
-  const unplanned = unplannedStudents({ students: studentsResult.items, events: [...schedule, ...groupCalendarEvents(groups)], today: current, teacherUid: teacherOnly ? user.uid : '' });
+  const unplanned = unplannedStudents({ students: studentsResult.items, events, today: current, teacherUid: teacherOnly ? user.uid : '' });
 
   return {
     isAdmin,
@@ -100,8 +101,7 @@ async function loadDashboardData(user, repositories) {
     current,
     activeStudents,
     activePeople,
-    todayLessons,
-    upcoming,
+    todayCount,
     allTeachers: !teacherOnly,
     overdue,
     openHomework,
@@ -110,114 +110,169 @@ async function loadDashboardData(user, repositories) {
     canViewLearning,
     canViewFinance,
     teacherUid: teacherOnly ? user.uid : '',
-    scheduledIds: [...recentlyScheduled([...schedule, ...groupCalendarEvents(groups)], current)],
+    scheduledIds: [...recentlyScheduled(events, current)],
   };
 }
 
+// Home page (calm layout, owner 2026-11-06): a one-line greeting, ONE short „Vajab tähelepanu” list (≤ 5 lines, the
+// most urgent first, only what has a count), today's next lessons, and „Ülevaated” tiles that open the details
+// (numbers, calls, packages, homework, enquiries, unmarked lessons, risk) only when asked. Nothing was removed: every
+// list of the old page is one tile or link away. Roles as before: the admin sees everything, a teacher own students
+// and lessons, the accountant only invoices and the paid lessons running out.
 export default function DashboardPage({
   repositories = defaultRepositories,
+  now = () => new Date(),
 }) {
   const { user } = useAuth();
-  const state = useAsyncData(() => loadDashboardData(user, repositories), [repositories, user]);
+  const state = useAsyncData(() => loadDashboardData(user, repositories, now), [repositories, user]);
 
   if (state.loading) return <LoadingState label="Koostan töölauda…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
+  return <CalmDashboard data={state.data} user={user} repositories={repositories} now={now} />;
+}
 
-  const data = state.data;
+function AttentionCard({ attention, loading, onOpen }) {
+  return <Card className="calm-card calm-attention" as="section" aria-label="Vajab tähelepanu">
+    <div className="calm-card__head"><h2><CircleAlert size={17} aria-hidden="true" /> Vajab tähelepanu</h2></div>
+    {attention.items.length ? <ul className="calm-attention__list">
+      {attention.items.map((item) => {
+        const body = <><b className={`calm-count is-${item.tone}`}>{item.count}</b><span><strong>{item.text}</strong>{item.detail ? <small>{item.detail}</small> : null}</span></>;
+        return <li key={item.key} data-key={item.key}>
+          {item.panel
+            ? <button type="button" className="calm-attention__main" onClick={() => onOpen(item.panel)}>{body}</button>
+            : <Link className="calm-attention__main" to={item.to}>{body}</Link>}
+          {item.action ? <Link className="today-start" to={item.action.to}>{item.action.label}</Link>
+            : <span className="calm-attention__go" aria-hidden="true">{item.linkLabel ? `${item.linkLabel} →` : '→'}</span>}
+        </li>;
+      })}
+    </ul> : loading ? <p className="calm-empty">Kontrollin…</p> : <p className="calm-empty calm-ok"><CheckCircle2 size={18} aria-hidden="true" /> Kõik on korras ✓</p>}
+    {attention.rest ? <p className="calm-more">+ veel {attention.rest} teemat — vaata „Ülevaated”</p> : null}
+  </Card>;
+}
+
+function CalmDashboard({ data, user, repositories, now }) {
+  const isAdmin = data.isAdmin;
+  const canViewBalance = isAdmin || data.canViewFinance;
+  const signals = useTodaySignals({
+    isAdmin,
+    canViewLearning: data.canViewLearning,
+    canViewBalance,
+    teacherUid: data.teacherUid,
+    students: data.activeStudents,
+    schedule: data.schedule,
+    events: data.events,
+    homework: data.homework,
+    submissions: data.submissions,
+    invoices: data.invoices,
+    today: data.current,
+    repository: repositories.today || todayApi,
+    ...(repositories.clientErrors ? { errorsService: repositories.clientErrors } : {}),
+    now,
+  });
+  const [panel, setPanel] = useState('');
+  const panelRef = useRef(null);
+  useEffect(() => { if (panel) panelRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }); }, [panel]);
+
+  const journal = signals.data?.lessons;
+  // the panels reuse the journal already read for the counts; only „Riskis õpilased” adds the words
+  const unmarkedRepository = useMemo(() => ({
+    lessons: async () => journal || [],
+    markHeld: repositories.unmarked?.markHeld || ((item, actor) => lessonsService.completeFromSchedule(item, actor, { status: 'Toimunud' })),
+  }), [journal, repositories.unmarked]);
+  const seen = signals.data?.seen;
+  const retentionRepository = useMemo(() => ({
+    lessons: async () => journal || [],
+    words: repositories.retention?.words || ((ids) => studentWordsService.listForStudentIds(ids)),
+    seen: isAdmin && seen ? async () => seen : (repositories.retention?.seen || ((students) => presenceService.forStudents(students))),
+  }), [journal, seen, isAdmin, repositories.retention]);
+
+  const attention = attentionItems({
+    soon: data.canViewLearning ? lessonsSoon(signals.lessonsToday, signals.clock) : [],
+    showTeacher: data.allTeachers,
+    unmarked: signals.unmarked ? signals.unmarked.length : null,
+    reviewsLate: data.canViewLearning ? lateReviews(data.submissions, now().getTime()) : null,
+    overdueInvoices: data.canViewFinance ? data.overdue.length : null,
+    overdueCents: data.overdue.reduce((sum, item) => sum + invoiceBalanceCents(item), 0),
+    leads: signals.leads ? signals.leads.length : null,
+    calls: signals.calls ? signals.calls.list.length : null,
+    runningOut: signals.runningOut ? signals.runningOut.length : null,
+    errors: signals.errors ? signals.errors.length : null,
+    // the admin's „Vajab kõnet” already covers students without a lesson ahead
+    unplanned: data.canViewLearning && !isAdmin ? data.unplanned.length : null,
+  });
+
   const metrics = [
     ...(data.canViewLearning ? [
       { label: 'Aktiivsed õpilased', value: data.activePeople.length, meta: data.allTeachers ? 'kõik õpetajad' : 'minu õpilased', icon: GraduationCap, tone: 'green' },
-      { label: 'Tunnid täna', value: data.todayLessons.length, meta: `${data.upcoming.length} veel ees · ${data.allTeachers ? 'kõik õpetajad' : 'minu'}`, icon: CalendarDays, tone: 'blue' },
-      { label: 'Kodutööd pooleli', value: data.openHomework.length, meta: 'ootab tegemist', icon: CircleAlert, tone: 'purple' },
+      { label: 'Tunnid täna', value: data.todayCount, meta: `${signals.lessonsToday.filter((item) => item.phase === 'now' || item.phase === 'later').length} veel ees · ${data.allTeachers ? 'kõik õpetajad' : 'minu'}`, icon: CalendarDays, tone: 'blue' },
+      { label: 'Kodutööd pooleli', value: data.openHomework.length, meta: `ootab tegemist · ${data.pendingReviews} ootab kontrolli`, icon: CircleAlert, tone: 'purple' },
     ] : []),
     ...(data.canViewFinance ? [
       { label: 'Laekumata', value: money(data.balance), meta: `kõik kuud · ${data.overdue.length} tähtaja ületanud`, icon: ReceiptText, tone: 'amber' },
     ] : []),
   ];
-  const quickActions = [
+  const count = (value) => (value == null ? '…' : String(value));
+  const tiles = [
+    { key: 'numbers', title: 'Numbrid', meta: data.canViewLearning ? `${data.activePeople.length} õpilast · ${data.todayCount} tundi täna` : `Laekumata ${money(data.balance)}`,
+      render: () => <section className="metric-grid">{metrics.map(({ icon: Icon, ...item }) => <Card as="article" className={`metric-card metric-card--${item.tone}`} key={item.label}>
+        <div className="metric-card__top"><span>{item.label}</span><i><Icon size={19} /></i></div><strong>{item.value}</strong><small>{item.meta}</small></Card>)}</section> },
+    ...(isAdmin ? [{ key: 'calls', title: 'Vajab kõnet', meta: `${count(signals.calls?.list.length)} õpilast`, render: () => <CallsPanel calls={signals.calls} user={user} onCalled={signals.addCall} save={(input, actor) => (repositories.today || todayApi).addFollowup(input, actor)} /> }] : []),
+    ...(canViewBalance ? [{ key: 'balance', title: 'Makstud tunnid lõppevad', meta: `${count(signals.runningOut?.length)} õpilast`, render: () => <BalancePanel runningOut={signals.runningOut} isAdmin={isAdmin} journalMissing={Boolean(signals.data && !signals.data.lessons)} /> }] : []),
+    ...(isAdmin ? [{ key: 'homework', title: 'Kodutööd', meta: `${data.pendingReviews} ootab kontrolli`, render: () => <HomeworkPanel queue={signals.queue} /> }]
+      : data.canViewLearning ? [{ key: 'homework', title: 'Kodutööd', meta: `${data.openHomework.length} pooleli · ${data.pendingReviews} kontrolli`, to: '/homework' }] : []),
+    ...(isAdmin ? [{ key: 'leads', title: 'Veebipäringud', meta: `${count(signals.leads?.length)} uut`, render: () => <LeadsPanel leads={signals.leads} failed={Boolean(signals.data && !signals.data.leads)} /> }] : []),
     ...(data.canViewLearning ? [
-      { to: '/calendar', label: 'Tunniplaan', meta: 'Vaata päeva ja lisa tund', icon: CalendarDays },
-      { to: '/students', label: 'Õpilased', meta: 'Profiilid ja õpiteekond', icon: Users },
-      { to: '/library', label: 'Õppevara', meta: 'Valmista järgmine tund', icon: BookOpenCheck },
-      { to: '/messages', label: 'Suhtlus', meta: 'Vestlused ühes kohas', icon: MessageSquareText },
+      { key: 'unmarked', title: 'Märkimata tunnid', meta: `${count(signals.unmarked?.length)} tundi`, ownHeading: Boolean(signals.unmarked?.length),
+        render: () => (signals.unmarked && !signals.unmarked.length ? <p className="form-hint">Kõik tunnid on märgitud. <Link to="/calendar/markimata">Märkimata tunnid koos Live-tundidega →</Link></p>
+          : <UnmarkedLessonsCard schedule={data.schedule} today={data.current} teacherUid={data.teacherUid} user={user} repository={unmarkedRepository} />) },
+      { key: 'risk', title: 'Riskis õpilased', meta: 'Kes võib õppimise lõpetada', ownHeading: true,
+        render: () => <RetentionCard students={data.activeStudents} unplanned={data.unplanned} scheduledIds={data.scheduledIds} overdueInvoices={data.overdue} teacherUid={data.teacherUid} showRenewals={false} repository={retentionRepository} /> },
+      { key: 'unplanned', title: 'Ilma tulevase tunnita', meta: `${data.unplanned.length} õpilast`, to: '/calendar?unplanned=1' },
     ] : []),
-    ...(data.canViewFinance ? [
-      { to: '/finance', label: 'Finantsid', meta: 'Arved, maksed ja kontroll', icon: ReceiptText },
+    ...(isAdmin ? [
+      { key: 'load', title: 'Õpetajate koormus', meta: 'Tunnid, vabad ajad, töötasu', to: '/teachers/koormus' },
+      { key: 'errors', title: 'Vead saidil', meta: `${count(signals.errors?.length)} uut (24 h)`, to: '/vead' },
     ] : []),
+    ...(data.canViewFinance ? [{ key: 'invoices', title: 'Arved', meta: `${data.overdue.length} tähtaja ületanud`, to: '/finance?status=overdue' }] : []),
   ];
+  const quickLinks = [
+    ...(data.canViewLearning ? [
+      { to: '/calendar', label: 'Tunniplaan', icon: CalendarDays },
+      { to: '/students', label: 'Õpilased', icon: Users },
+      { to: '/library', label: 'Õppevara', icon: BookOpenCheck },
+      { to: '/messages', label: 'Suhtlus', icon: MessageSquareText },
+    ] : []),
+    ...(data.canViewFinance ? [{ to: '/finance', label: 'Finantsid', icon: ReceiptText }] : []),
+  ];
+  const openTile = tiles.find((tile) => tile.key === panel && tile.render);
+  const dayLabel = new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Tallinn' }).format(now());
 
   return (
-    <div className="page-content dashboard-page">
-      <section className="dashboard-welcome">
-        <div>
-          <span className="eyebrow">{todayLabel()}</span>
-          <h1>Tere, {user.displayName?.split(' ')[0] || 'tagasi'}</h1>
-          <p>Päeva olulised numbrid, tunnid ja järgmised tegevused ühes rahulikus vaates.</p>
+    <div className="page-content dashboard-page calm-dashboard">
+      <header className="calm-head">
+        <h1>Tere, {user.displayName?.split(' ')[0] || 'tagasi'}</h1>
+        <span>· {dayLabel}</span>
+      </header>
+      <div className={`calm-top${data.canViewLearning ? '' : ' calm-top--single'}`}>
+        <AttentionCard attention={attention} loading={signals.loading} onOpen={setPanel} />
+        {data.canViewLearning ? <TodayTimeline lessons={signals.lessonsToday} allTeachers={data.allTeachers} /> : null}
+      </div>
+      <section className="calm-overviews" aria-label="Ülevaated">
+        <h2 className="calm-overviews__title">Ülevaated</h2>
+        <div className="calm-tiles">
+          {tiles.map((tile) => (tile.to
+            ? <Link key={tile.key} className="calm-tile" to={tile.to}><strong>{tile.title}</strong><small>{tile.meta}</small><ArrowUpRight size={15} aria-hidden="true" /></Link>
+            : <button key={tile.key} type="button" className={`calm-tile${panel === tile.key ? ' is-open' : ''}`} aria-expanded={panel === tile.key} onClick={() => setPanel((current) => (current === tile.key ? '' : tile.key))}>
+              <strong>{tile.title}</strong><small>{tile.meta}</small></button>))}
         </div>
-        {data.canViewLearning ? <Link className="dashboard-welcome__action" to="/calendar"><CalendarDays size={18} /><span><small>Järgmine samm</small><strong>Ava tänane kalender</strong></span><ArrowUpRight size={18} /></Link> : null}
+        {openTile ? <Card className="calm-panel" as="section" aria-label={openTile.title} ref={panelRef}>
+          <div className={`calm-card__head${openTile.ownHeading ? ' calm-card__head--float' : ''}`}>{openTile.ownHeading ? null : <h2>{openTile.title}</h2>}<button type="button" className="calm-close" aria-label="Sulge" onClick={() => setPanel('')}><X size={16} /></button></div>
+          {openTile.render()}
+        </Card> : null}
+        {quickLinks.length ? <nav className="calm-links" aria-label="Kiirvalikud">
+          {quickLinks.map(({ to, label, icon: Icon }) => <Link key={to} to={to}><Icon size={15} aria-hidden="true" /> {label}</Link>)}
+        </nav> : null}
       </section>
-      {/* „Vead” (2026-11-04): new errors from people's browsers in the last 24 h, admin only */}
-      {data.isAdmin ? <ClientErrorsDigest {...(repositories.clientErrors ? { service: repositories.clientErrors } : {})} /> : null}
-      {/* „Täna” (2026-11-04): the admin's day on one screen; an accountant sees only the lesson packages running out */}
-      {data.isAdmin || data.canViewFinance ? <TodayPanel user={user} isAdmin={data.isAdmin} canViewBalance={data.isAdmin || data.canViewFinance} students={data.activeStudents} events={data.events} homework={data.homework} submissions={data.submissions} invoices={data.invoices} today={tallinnDay()} {...(repositories.today ? { repository: repositories.today } : {})} /> : null}
-      <section className="metric-grid">
-        {metrics.map(({ icon: Icon, ...item }) => (
-          <Card as="article" className={`metric-card metric-card--${item.tone}`} key={item.label}>
-            <div className="metric-card__top"><span>{item.label}</span><i><Icon size={19} /></i></div>
-            <strong>{item.value}</strong>
-            <small>{item.meta}</small>
-          </Card>
-        ))}
-      </section>
-      <section className="dashboard-quick-actions" aria-label="Kiirvalikud">
-        {quickActions.map(({ to, label, meta, icon: Icon }) => (
-          <Link to={to} key={to}>
-            <i><Icon size={19} /></i>
-            <span><strong>{label}</strong><small>{meta}</small></span>
-            <ArrowUpRight size={16} />
-          </Link>
-        ))}
-      </section>
-      {/* „Märkimata tunnid”: past lessons without a journal mark, one click to mark held */}
-      {data.canViewLearning ? <section className="content-grid" id="markimata-tunnid"><UnmarkedLessonsCard schedule={data.schedule} today={data.current} teacherUid={data.teacherUid} user={user} {...(repositories.unmarked ? { repository: repositories.unmarked } : {})} /></section> : null}
-      <section className="content-grid">
-        {/* the admin has all of today's lessons in „Täna” above */}
-        {data.canViewLearning && !data.isAdmin ? (
-          <Card>
-            <div className="section-heading"><div><span className="eyebrow">Kalender · {data.allTeachers ? 'kõik õpetajad' : 'minu tunnid'}</span><h2>Järgmised tunnid täna</h2></div><Link to="/calendar">Ava kalender →</Link></div>
-            {data.upcoming.length ? (
-              <div className="agenda-list">
-                {data.upcoming.slice(0, 6).map((item) => (
-                  <div className="agenda-item" key={item.occurrenceId || item.id}>
-                    <time><strong>{item.time}</strong><span>{item.occurrenceDate || item.date || item.startDate}</span></time>
-                    <div><strong>{item.studentName || 'Õpilane'}</strong><span>{item.teacher || 'Õpetaja'} · {item.duration} min</span></div>
-                    <Badge tone="info">{item.status}</Badge>
-                  </div>
-                ))}
-              </div>
-            ) : <EmptyState title={data.todayLessons.length ? 'Tänased tunnid on läbi' : 'Täna tunde ei ole'} description={data.todayLessons.length ? `Täna oli ${data.todayLessons.length} ${data.todayLessons.length === 1 ? 'tund' : 'tundi'}. Märgi need kalendris.` : 'Tänaseks ei ole ühtegi planeeritud tundi.'} />}
-            {data.upcoming.length > 6 ? <p className="form-hint">+ veel {data.upcoming.length - 6} {data.upcoming.length - 6 === 1 ? 'tund' : 'tundi'} täna</p> : null}
-          </Card>
-        ) : null}
-        <Card>
-          <div className="section-heading"><div><span className="eyebrow">Tähelepanu</span><h2>Vajab tegutsemist</h2></div></div>
-          <div className="attention-list">
-            {data.canViewFinance ? (
-              <Link to="/finance?status=overdue"><span className="attention-dot attention-dot--danger" /><div><strong>{data.overdue.length} tähtaja ületanud arvet</strong><small>Kokku {money(data.overdue.reduce((sum, item) => sum + invoiceBalanceCents(item), 0))}</small></div><b>→</b></Link>
-            ) : null}
-            {data.canViewLearning ? (
-              <>
-                <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.openHomework.length} {data.openHomework.length === 1 ? 'kodutöö' : 'kodutööd'} pooleli</strong><small>Kontrolli tähtaegu ja esitusi</small></div><b>→</b></Link>
-                {data.pendingReviews ? <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.pendingReviews} {data.pendingReviews === 1 ? 'töö ootab' : 'tööd ootavad'} kontrolli</strong><small>Esitatud tööd, mida õpetaja pole veel üle vaadanud</small></div><b>→</b></Link> : null}
-                {data.unplanned.length ? <Link to="/calendar?unplanned=1"><span className="attention-dot attention-dot--amber" /><div><strong>{data.unplanned.length} õpilast ilma tulevase tunnita</strong><small>Lisa neile tund või märgi paus</small></div><b>→</b></Link> : null}
-                <Link to="/students"><span className="attention-dot attention-dot--green" /><div><strong>{data.activePeople.length} aktiivset õpilast</strong><small>Vaata profiile ja edenemist</small></div><b>→</b></Link>
-              </>
-            ) : null}
-          </div>
-        </Card>
-      </section>
-      {/* „Riskis õpilased” (owner 2026-10-23): who may stop learning soon and why; packages about to end */}
-      {data.canViewLearning ? <section className="content-grid"><RetentionCard students={data.activeStudents} unplanned={data.unplanned} scheduledIds={data.scheduledIds} overdueInvoices={data.overdue} teacherUid={data.teacherUid} showRenewals={false} {...(repositories.retention ? { repository: repositories.retention } : {})} /></section> : null}
     </div>
   );
 }

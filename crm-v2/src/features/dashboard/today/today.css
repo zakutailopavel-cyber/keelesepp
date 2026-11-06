@@ -1,12 +1,4 @@
-/* „Täna” on the admin dashboard (dashboard/today/TodayPanel.jsx) */
-.today-desk { margin: 18px 0; }
-.today-desk__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-.today-desk__head h2 { margin: 4px 0 0; }
-.today-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #e4e6f2; border-radius: 999px; background: #fff; color: #344054; font-size: .85rem; font-weight: 600; text-decoration: none; }
-.today-chip b { min-width: 20px; padding: 0 6px; border-radius: 999px; background: #fffaeb; color: #b54708; text-align: center; }
-.today-desk__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
-.today-card--wide { grid-column: 1 / -1; }
-.today-card h2 { display: flex; align-items: center; gap: 6px; font-size: 1.1rem; }
+/* „Täna” lists on the home page (dashboard/today/TodayPanel.jsx; layout in dashboard/calm.css) */
 .today-lessons, .today-list, .today-calls, .today-reasons, .today-called ul { margin: 0; padding: 0; list-style: none; }
 .today-lessons { display: grid; gap: 2px; }
 .today-lessons > li { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; }
@@ -37,9 +29,8 @@
 .today-called summary { cursor: pointer; color: #475467; font-weight: 600; }
 .today-called ul { display: grid; gap: 4px; margin-top: 6px; }
 .today-called span { color: #667085; }
-@media (max-width: 1100px) { .today-desk__grid { grid-template-columns: 1fr 1fr; } }
+
 @media (max-width: 720px) {
-  .today-desk__grid { grid-template-columns: 1fr; }
   .today-lessons > li { grid-template-columns: 72px minmax(0, 1fr); }
   .today-lessons > li > .badge, .today-lessons > li > span:empty { display: none; }
   .today-lessons .today-start { grid-column: 2; justify-self: start; }
