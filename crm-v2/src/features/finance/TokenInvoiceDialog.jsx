@@ -154,7 +154,9 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
         <div className="field form-grid__wide">
           <span className="field__label">Tundide arv</span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            {PRESETS.map((n) => <Button key={n} type="button" variant={first.count === n ? 'primary' : 'secondary'} onClick={() => updateRow(rows[0].key, { lessons: n })}>{n}</Button>)}
+            {/* the modal renders inside .finance-month-hero__actions (no portal): the hero's white-on-dark secondary
+                buttons rule is scoped to direct children (financeMonth.css), so unselected chips stay dark on white (#bug 2026-11-06) */}
+            {PRESETS.map((n) => <Button key={n} type="button" data-token-chip={n} aria-pressed={first.count === n} variant={first.count === n ? 'primary' : 'secondary'} onClick={() => updateRow(rows[0].key, { lessons: n })}>{n}</Button>)}
             <input aria-label="Tundide arv" className="field__input" style={{ width: 90 }} type="number" min="1" max="100" value={rows[0].lessons} onChange={(event) => updateRow(rows[0].key, { lessons: event.target.value })} />
             <span className="form-hint">nt 2 korda nädalas → 8–9 tundi kuus</span>
           </div>
