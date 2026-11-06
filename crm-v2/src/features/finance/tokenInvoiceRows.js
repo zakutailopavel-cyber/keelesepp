@@ -69,3 +69,9 @@ export function tokenRowsError(states = []) {
   return '';
 }
 
+// Oleksiy 2026-11-06 („Убрать автоматическую отправку счета по туннипакету!!”): the „Tunnipakett” dialog only creates
+// the invoice; it is e-mailed by hand from its row in the invoice list („Saada”) after the administrator has checked it
+export const TOKEN_INVOICE_NOT_SENT = 'Arve on loodud, aga EI OLE saadetud. Saada see arvete nimekirjast, kui oled kontrollinud.';
+export const TOKEN_INVOICE_NOT_SENT_HINT = 'Arvet ei saadeta automaatselt: pärast loomist kontrolli see üle ja saada arvete nimekirjast („Saada”).';
+export const tokenInvoiceCreatedMessage = (invoice = {}) => `Tunnipaketi arve${invoice.num ? ` ${invoice.num}` : ''}: ${TOKEN_INVOICE_NOT_SENT} Tunnid lisatakse pärast makset.`;
+
