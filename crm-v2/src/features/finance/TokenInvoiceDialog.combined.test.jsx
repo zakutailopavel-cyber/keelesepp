@@ -100,3 +100,17 @@ describe('„Ühine tunnipakett”', () => {
     expect(tokenInvoiceParts({ id: 'one', billingMode: 'lesson_tokens_v1', studentId: 'mari', tokenCredits: 8 })[0].packageId).toBe('tokens_one');
   });
 });
+
+describe('„Tundide arv” chips (#bug 2026-11-06)', () => {
+  it('shows every preset; the picked one is primary and pressed, the others secondary and not pressed', () => {
+    openWith({ createTokens: vi.fn(), createTokensCombined: vi.fn() });
+    fireEvent.click(screen.getByRole('button', { name: '8' }));
+    const chips = [...document.querySelectorAll('[data-token-chip]')];
+    expect(chips.map((chip) => chip.textContent)).toEqual(['4', '8', '9', '12']);
+    for (const chip of chips) {
+      const picked = chip.textContent === '8';
+      expect(chip).toHaveAttribute('aria-pressed', String(picked));
+      expect(chip).toHaveClass(picked ? 'button--primary' : 'button--secondary');
+    }
+  });
+});

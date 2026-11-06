@@ -109,6 +109,17 @@ export function validatePriceTerms(form = {}, initial = null) {
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
+// The price one subject of a card is billed at, read the way the invoices read it (monthlyBilling.js subjectParts,
+// functions/combined-invoice-core.js planForSubject): the card's main subject is the card's price; a further subject
+// its own entry in subjectPrices (its minutes fall back to the card's), else the card's price ({ fallback: true }).
+// lessonPriceCents 0 = no price set.
+export function billedSubjectPrice(plan, subject, main) {
+  const card = { lessonPriceCents: Math.max(0, Math.round(Number(plan?.lessonPriceCents) || 0)), lessonMinutes: minutesOf(plan?.lessonMinutes) };
+  const own = subject && subject !== main ? plan?.subjectPrices?.[subject] : null;
+  if (own?.lessonPriceCents) return { lessonPriceCents: Math.round(Number(own.lessonPriceCents)), lessonMinutes: minutesOf(own.lessonMinutes || card.lessonMinutes), fallback: false };
+  return { ...card, fallback: Boolean(subject && subject !== main) };
+}
+
 // Per-lesson prices for the plan from a valid terms form. An untouched stored „Muu” keeps its cents exactly;
 // a subject „sama kui kaardil” stays unwritten while the card keeps its stored price (billed at the card's price).
 export function lessonPricesFromTerms(form, initial = null, plan = null) {
@@ -133,7 +144,9 @@ export function lessonPricesFromTerms(form, initial = null, plan = null) {
       subjectPrices[subject] = { lessonPriceCents: stored.lessonPriceCents, lessonMinutes: stored.lessonMinutes || rowMinutes };
       return;
     }
-    if (!general && (row?.hourlyRate ?? SAME_RATE) === SAME_RATE && mainKept && !stored?.lessonPriceCents) return;
+    // left unwritten, the invoices bill it at the card's price AND length; a subject set to its own length gets the
+    // card's hourly rate written explicitly, so the length on the screen is the length billed (#bug 2026-11-06)
+    if (!general && (row?.hourlyRate ?? SAME_RATE) === SAME_RATE && mainKept && !stored?.lessonPriceCents && rowMinutes === minutes) return;
     const ownHourly = general ? STANDARD_HOURLY_RATE_CENTS : rowHourly(row, hourlyCents);
     subjectPrices[subject] = { lessonPriceCents: lessonCentsFromHourly(ownHourly, rowMinutes), lessonMinutes: rowMinutes };
   });
