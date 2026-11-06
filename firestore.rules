@@ -1458,6 +1458,7 @@ service cloud.firestore {
           'validFrom',
           'priceHistory',
           'subjectPrices',
+          'subjectBilling',
           'priceTerms',
           'hourlyRateCents',
           'discountReason',
@@ -1482,6 +1483,9 @@ service cloud.firestore {
           && request.resource.data.priceTermsChangedByUid is string))
         // the price of a second subject of the card (owner 2026-10-20): { "Matemaatika": { lessonPriceCents, lessonMinutes } }
         && (!('subjectPrices' in request.resource.data) || (request.resource.data.subjectPrices is map && request.resource.data.subjectPrices.size() <= 8))
+        // billing per subject (owner 2026-11-06): { "Inglise keel": { billingMode, weeklyLessons, chargeNoShow } }; a field
+        // left out is the card's value. The invoices read it with functions/subject-billing-core.js (invalid values = card's)
+        && (!('subjectBilling' in request.resource.data) || (request.resource.data.subjectBilling is map && request.resource.data.subjectBilling.size() <= 8))
         && request.resource.data.keys().hasAll([
           'studentId',
           'studentName',

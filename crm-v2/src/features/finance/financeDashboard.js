@@ -5,6 +5,7 @@
 import { monthDates, shiftMonth } from './monthlyBilling.js';
 import { groupCalendarEvents, occurrencesForDates } from '../calendar/calendarView.js';
 import { itemSubject, mainSubject } from '../students/subjects.js';
+import { subjectBilling } from './subjectBilling.js';
 
 export const HISTORY_MONTHS = 12;
 export const FORECAST_MONTHS = 3;
@@ -61,6 +62,13 @@ export function lessonPriceCents(item, student, plan) {
   return Math.round(((Number(item.duration) || minutes) / minutes) * price);
 }
 
+// is a no-show without notice of this lesson charged: its subject's own rule, else the card's (finance/subjectBilling.js)
+export function noShowCharged(plan, item, student) {
+  if (!plan) return false;
+  const main = mainSubject(student || {});
+  return subjectBilling(plan, itemSubject(item || {}, student) || main, main).chargeNoShow;
+}
+
 // month by month: held lessons (past dates and today's already marked — marked „Toimunud” or a charged no-show, or a
 // past one still unmarked and not cancelled) and planned lessons (from today on), each at its student's price; journal lessons that are not in the
 // calendar count as held
@@ -74,7 +82,8 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
     if (lesson.scheduleId && date) journal.set(`${lesson.scheduleId}:${date}`, lesson);
     if (lesson.studentId && lesson.date) journal.set(`${lesson.studentId}@${lesson.date}`, lesson);
   });
-  const charged = (status, plan, record) => status === 'Toimunud' ? record?.billingStatus !== 'school_covered' : status === 'Puudus_eta' ? plan.chargeNoShow !== false && !record?.billingWaived : false;
+  // a no-show follows its subject's rule (subjectBilling, owner 2026-11-06), else the card's
+  const charged = (status, plan, record, item, student) => status === 'Toimunud' ? record?.billingStatus !== 'school_covered' : status === 'Puudus_eta' ? noShowCharged(plan, item, student) && !record?.billingWaived : false;
   return months.map((month) => {
     const row = { month, heldCents: 0, heldLessons: 0, unmarkedLessons: 0, plannedCents: 0, plannedLessons: 0, noPrice: 0 };
     const seen = new Set();
@@ -94,7 +103,7 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
           return;
         }
         if (status === 'Planeeritud' && !record) { row.heldCents += cents; row.heldLessons += 1; row.unmarkedLessons += 1; return; }
-        if (plan && charged(status, plan, record)) { row.heldCents += cents; row.heldLessons += 1; }
+        if (plan && charged(status, plan, record, record || item, student)) { row.heldCents += cents; row.heldLessons += 1; }
       });
     });
     // a lesson written in the journal only (not in the calendar)
@@ -102,7 +111,7 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
       .forEach((lesson) => {
         const student = studentById.get(lesson.studentId);
         const plan = planById.get(lesson.studentId);
-        if (!student || !plan || !charged(lesson.status, plan, lesson)) return;
+        if (!student || !plan || !charged(lesson.status, plan, lesson, lesson, student)) return;
         const cents = lessonPriceCents(lesson, student, plan);
         if (cents) { row.heldCents += cents; row.heldLessons += 1; }
       });

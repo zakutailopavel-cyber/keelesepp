@@ -23,6 +23,8 @@ const STATUS = {
   'no-lessons': { label: 'Tunde pole', tone: 'neutral' },
   'nothing-to-pay': { label: 'Tasaarveldus katab', tone: 'neutral' },
   package: { label: 'Tunnipakett', tone: 'neutral' },
+  // per-subject billing (owner 2026-11-06): „Pärast toimunud tunde” and a subject billed ahead cannot share one invoice
+  'mixed-timing': { label: 'Arveldusviisid ei sobi', tone: 'danger' },
 };
 
 // Finance v2 §2, tab "Kuuarved": one invoice per student for the lessons planned in the chosen month, with last
@@ -187,7 +189,7 @@ export default function MonthlyInvoicePanel({
               <div key={row.student.id} className="monthly-invoices__group">
                 <div className="monthly-invoices__row" role="row">
                   <span>{row.status === 'ready' ? <input type="checkbox" aria-label={`Vali ${row.student.name}`} checked={selected.has(row.student.id)} onChange={() => toggle(row.student.id)} /> : null}</span>
-                  <span><strong>{row.student.name}</strong><small>{row.subjectParts?.length ? `${row.subjectParts.map((part) => `${part.subject} ${num(part.plannedUnits + part.correction.units)} × ${part.priceCents ? money(part.priceCents) : 'hind puudub'}`).join(' · ')} · ` : row.student.subject ? `${row.student.subject} · ` : ''}{row.mode === 'advance' ? 'Kuu ette' : row.mode === 'actual' ? 'Toimunud tunnid' : 'Jooksev kuu'} · {row.priceCents ? `${money(row.priceCents)} / ${row.plan?.lessonMinutes || 60} min` : 'hind määramata'}{row.payerEmail ? '' : ' · e-post puudub'}</small></span>
+                  <span><strong>{row.student.name}</strong><small>{row.subjectParts?.length ? `${row.subjectParts.map((part) => `${part.subject} ${num(part.plannedUnits + part.correction.units)} × ${part.priceCents ? money(part.priceCents) : 'hind puudub'}`).join(' · ')} · ` : row.student.subject ? `${row.student.subject} · ` : ''}{row.mode === 'advance' ? 'Kuu ette' : row.mode === 'actual' ? 'Toimunud tunnid' : 'Jooksev kuu'} · {row.priceCents ? `${money(row.priceCents)} / ${row.plan?.lessonMinutes || 60} min` : 'hind määramata'}{row.packageSubjects?.length ? ` · tunnipaketiga: ${row.packageSubjects.join(', ')}` : ''}{row.payerEmail ? '' : ' · e-post puudub'}{row.status === 'mixed-timing' ? ' · ühel ainel on „Pärast toimunud tunde”, teisel ettemaks: muuda õpilase kaardil (Arveldus) ühe aine arveldusviisi' : ''}</small></span>
                   <span>{row.lessonCount}{row.plan && row.plannedUnits !== row.lessonCount ? <small>{num(row.plannedUnits)} ühikut</small> : null}</span>
                   <span>{row.correction.units ? <button type="button" className="linklike" aria-expanded={open === row.student.id} onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>{row.correction.units > 0 ? '+' : ''}{num(row.correction.units)}</button> : noShows.length ? <button type="button" className="linklike" onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>0</button> : '—'}</span>
                   <span title="Arvetega makstud tunnid miinus peetud tunnid">{row.lessonsLeft === null ? '—' : num(row.lessonsLeft)}{row.correction.unmarked ? <small>{num(row.correction.unmarked)} märkimata</small> : null}</span>

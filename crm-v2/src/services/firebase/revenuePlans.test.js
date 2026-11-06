@@ -12,7 +12,7 @@ const firestore = vi.hoisted(() => ({
 vi.mock('firebase/firestore', () => firestore);
 vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db' }) }));
 
-import { nextPriceHistory, normalizeRevenuePlan, priceTermsRecord, revenuePlansService, validateRevenuePlan } from './revenuePlans.js';
+import { nextPriceHistory, normalizeRevenuePlan, priceTermsRecord, revenuePlansService, validateRevenuePlan, validateSubjectBilling } from './revenuePlans.js';
 
 describe('revenuePlansService', () => {
   beforeEach(() => {
@@ -85,6 +85,30 @@ describe('revenuePlansService', () => {
     const previous = { lessonPriceCents: 2000, lessonMinutes: 60, validFrom: '2026-01-01', priceTerms: 'discount', discountReason: 'Kaks last' };
     expect(nextPriceHistory(previous, { lessonPriceCents: 2500, lessonMinutes: 60, validFrom: '2026-11-01' }))
       .toEqual([{ lessonPriceCents: 2000, lessonMinutes: 60, validFrom: '2026-01-01', validTo: '2026-11-01', priceTerms: 'discount', discountReason: 'Kaks last' }]);
+  });
+
+  // billing per subject (owner 2026-11-06)
+  it('validates per-subject billing: only own fields are stored, wrong values are refused', () => {
+    expect(validateSubjectBilling({ 'Inglise keel': { billingMode: 'package', weeklyLessons: '', chargeNoShow: null }, Matemaatika: { weeklyLessons: '1,5', chargeNoShow: false }, Füüsika: {} }))
+      .toEqual({ valid: true, errors: {}, billing: { 'Inglise keel': { billingMode: 'package' }, Matemaatika: { weeklyLessons: 1.5, chargeNoShow: false } } });
+    expect(validateSubjectBilling({ Matemaatika: { weeklyLessons: '99' } }).errors).toEqual({ Matemaatika: 'Sisesta 0,5–50 tundi nädalas.' });
+    expect(validateSubjectBilling({ Matemaatika: { billingMode: 'weekly' } }).valid).toBe(false);
+    expect(normalizeRevenuePlan('s1', {}).subjectBilling).toEqual({});
+    expect(normalizeRevenuePlan('s1', { subjectBilling: { 'Inglise keel': { billingMode: 'package', weeklyLessons: 0 } } }).subjectBilling).toEqual({ 'Inglise keel': { billingMode: 'package' } });
+  });
+
+  it('writes subjectBilling only when the form sends it (a plan without it is saved as before)', async () => {
+    const admin = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
+    const values = { lessonPrice: '25', weeklyLessons: '2', billingMode: 'advance', validFrom: '2026-11-06' };
+    await revenuePlansService.save({ id: 'student-1', name: 'Mari' }, values, admin);
+    expect(firestore.batch.set.mock.calls[0][1]).not.toHaveProperty('subjectBilling');
+    vi.clearAllMocks();
+    firestore.writeBatch.mockReturnValue(firestore.batch);
+    await expect(revenuePlansService.save({ id: 'student-1', name: 'Mari' }, { ...values, subjectBilling: { 'Inglise keel': { billingMode: 'package' } } }, admin))
+      .resolves.toMatchObject({ subjectBilling: { 'Inglise keel': { billingMode: 'package' } } });
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ subjectBilling: { 'Inglise keel': { billingMode: 'package' } } });
+    expect(firestore.batch.set.mock.calls[0][2].mergeFields).toContain('subjectBilling');
+    await expect(revenuePlansService.save({ id: 'student-1', name: 'Mari' }, { ...values, subjectBilling: { 'Inglise keel': { weeklyLessons: '0' } } }, admin)).rejects.toThrow('0,5–50');
   });
 
   it('does not let a non-admin change a revenue plan', async () => {

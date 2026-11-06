@@ -23,6 +23,8 @@ let googleModule = null;
 const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
 const { runInvoiceReminderBatch } = require("./invoice-reminder-batch-core");
+const { hasSubjectBilling, planForSubjectBilling } = require("./subject-billing-core");
+const { mainSubject } = require("./student-enrollments-core");
 const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, tokenInvoiceParts, isCombinedTokenInvoice, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject, packageTiersForLesson } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
@@ -1129,7 +1131,18 @@ async function syncLessonPackageConsumption({
     }
     // the card's plan decides whether a no-show without notice is charged (lesson tokens, functions/lesson-tokens-core.js)
     const planSnap = lesson.studentId ? await transaction.get(db.collection("studentRevenuePlans").doc(String(lesson.studentId))) : null;
-    const plan = planSnap?.exists ? planSnap.data() : {};
+    const cardPlan = planSnap?.exists ? planSnap.data() : {};
+    // billing per subject (owner 2026-11-06, subject-billing-core.js): with subjectBilling in the plan the lesson's own
+    // subject decides the no-show rule, and a subject billed by monthly invoice takes no package credit. A plan without
+    // it reads exactly as before (no extra read).
+    let plan = cardPlan;
+    let billedMonthly = false;
+    if (!lessonDeleted && hasSubjectBilling(cardPlan)) {
+      const cardSnap = await transaction.get(db.collection("students").doc(String(lesson.studentId)));
+      const card = cardSnap.exists ? cardSnap.data() : {};
+      plan = planForSubjectBilling(cardPlan, lessonSubject(lesson, card), mainSubject(card));
+      billedMonthly = plan.billingMode !== "package";
+    }
     if (!lessonActorCanWrite(actor, { lesson })) {
       throw httpError(403, "Lesson belongs to another teacher");
     }
@@ -1180,6 +1193,18 @@ async function syncLessonPackageConsumption({
         status: "not_applicable",
         lessonId: cleanLessonId,
         reason: "Lesson is already invoiced or excluded from billing",
+      };
+      clearOwed();
+      transaction.create(requestRef, requestRecord(result));
+      return { ...result, idempotent: false };
+    }
+
+    if (completed && billedMonthly) {
+      const result = {
+        changed: false,
+        status: "not_applicable",
+        lessonId: cleanLessonId,
+        reason: "The lesson's subject is billed by monthly invoice, not by lesson packages",
       };
       clearOwed();
       transaction.create(requestRef, requestRecord(result));

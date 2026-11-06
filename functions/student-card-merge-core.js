@@ -4,7 +4,8 @@
 // other card, which collections move, and what the administrator must see before confirming. The database work is in
 // functions/student-merge.js; nothing here reads or writes Firestore.
 
-const { subjectName, enrollmentsOf, cardSubject } = require("./student-enrollments-core");
+const { subjectName, enrollmentsOf, cardSubject, mainSubject } = require("./student-enrollments-core");
+const { SUBJECT_BILLING_FIELDS, cardBilling } = require("./subject-billing-core");
 
 const clean = (value) => String(value ?? "").trim();
 const lower = (value) => clean(value).toLocaleLowerCase("et");
@@ -96,11 +97,7 @@ function profilePatch(keep = {}, source = {}) {
 }
 
 // the card's own price is its main subject's; further subjects may have their own in subjectPrices
-function mainSubjectOf(student = {}) {
-  const subjects = enrollmentsOf(student).filter((t) => t.active).map((t) => t.subject);
-  const own = subjectName(student.subject);
-  return subjects.includes(own) ? own : subjects[0] || own || "Eesti keel";
-}
+const mainSubjectOf = mainSubject;
 
 // the other card's price joins the kept card's plan as the price of its subject; amounts are never changed. Returns
 // { action: 'none' | 'copy' | 'addSubjectPrice' | 'same' | 'conflict', patch, subject, keepCents, sourceCents }
@@ -115,7 +112,13 @@ function revenuePlanMerge({ keep = {}, source = {}, keepPlan = null, sourcePlan 
     : keepPlan.subjectPrices?.[subject] || null;
   if (!existing) {
     if (!sourcePrice.lessonPriceCents) return { action: "none", subject };
-    return { action: "addSubjectPrice", subject, sourceCents: sourcePrice.lessonPriceCents, patch: { subjectPrices: { ...(keepPlan.subjectPrices || {}), [subject]: sourcePrice } } };
+    // the other card's billing comes with its subject when it differs from the kept card's (owner 2026-11-06: e.g. the
+    // English card paid by lesson packages stays on packages after the merge); the kept card's own values stay
+    const keepBilling = cardBilling(keepPlan);
+    const sourceBilling = cardBilling(sourcePlan);
+    const own = Object.fromEntries(SUBJECT_BILLING_FIELDS.filter((field) => sourceBilling[field] !== keepBilling[field] && !(field === "weeklyLessons" && !sourceBilling[field])).map((field) => [field, sourceBilling[field]]));
+    const billing = Object.keys(own).length ? { subjectBilling: { ...(keepPlan.subjectBilling || {}), [subject]: own } } : {};
+    return { action: "addSubjectPrice", subject, sourceCents: sourcePrice.lessonPriceCents, patch: { subjectPrices: { ...(keepPlan.subjectPrices || {}), [subject]: sourcePrice }, ...billing } };
   }
   if (existing.lessonPriceCents === sourcePrice.lessonPriceCents || !sourcePrice.lessonPriceCents) return { action: "same", subject };
   return { action: "conflict", subject, keepCents: existing.lessonPriceCents, sourceCents: sourcePrice.lessonPriceCents };

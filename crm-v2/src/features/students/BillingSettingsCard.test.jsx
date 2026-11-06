@@ -17,6 +17,8 @@ describe('BillingSettingsCard', () => {
     fireEvent.change(screen.getByLabelText('Arveldus'), { target: { value: 'advance' } });
     await save();
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ priceTerms: 'general', hourlyRateCents: 2500, discountReason: '', lessonPrice: '18.75', lessonMinutes: '45', billingMode: 'advance', chargeNoShow: true }));
+    // a one-subject card never writes per-subject billing (its plan stays as it was)
+    expect(onSave.mock.calls[0][0]).not.toHaveProperty('subjectBilling');
     expect(screen.getByRole('status')).toHaveTextContent('salvestatud');
     expect(screen.getByText(/Varasemad hinnad \(1\)/)).toBeInTheDocument();
   });
@@ -118,7 +120,7 @@ describe('BillingSettingsCard', () => {
     it('each tab shows its own price, length and hourly rate — the price billed for that subject', () => {
       render(<BillingSettingsCard student={student} plan={priced} canEdit onSave={vi.fn()} />);
       const tabs = screen.getAllByRole('tab');
-      expect(tabs.map((tab) => tab.textContent.replace(/\s/g, ' '))).toEqual(['Eesti keel20,00 € / 60 min', 'Inglise keel20,00 € / 60 min', 'Matemaatika11,25 € / 45 min']);
+      expect(tabs.map((tab) => tab.textContent.replace(/\s/g, ' '))).toEqual(['Eesti keel20,00 € / 60 min · Kuu ette', 'Inglise keel20,00 € / 60 min · Kuu ette', 'Matemaatika11,25 € / 45 min · Kuu ette']);
       expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
       expect(screen.getByRole('radio', { name: '20 € / h' })).toBeChecked();
       expect(screen.getByLabelText('Tunni pikkus')).toHaveValue('60');
@@ -127,8 +129,10 @@ describe('BillingSettingsCard', () => {
       expect(screen.getByRole('radio', { name: '15 € / h' })).toBeChecked();
       expect(screen.getByLabelText('Tunni pikkus')).toHaveValue('45');
       expect(screen.getByRole('tabpanel')).toHaveTextContent('Tunni hind: 11,25 € / 45 min · tunnitasu 15 € / h');
-      // the same fields on every tab
-      expect(screen.getByRole('tabpanel')).toHaveTextContent('Arveldus: Kuu ette (vaikimisi) · 2 tundi nädalas — ühine kõigile ainetele');
+      // billing per subject (owner 2026-11-06): a further subject takes the card's values until it gets its own
+      expect(screen.getByRole('tabpanel')).toHaveTextContent('Sama mis kaardil: Kuu ette (vaikimisi)');
+      expect(screen.getByRole('tabpanel')).toHaveTextContent('Sama mis kaardil: kaardi arvu sees (2 nädalas)');
+      expect(screen.getByRole('tabpanel')).toHaveTextContent('Sama mis kaardil: tasuline');
       // the saved summary: every subject at the price its invoice takes
       expect([...document.querySelectorAll('.billing-settings__saved li')].map((item) => item.textContent.replace(/\s/g, ' '))).toEqual(['Eesti keel: 20,00 € / 60 min', 'Inglise keel: 20,00 € / 60 min (kaardi hind)', 'Matemaatika: 11,25 € / 45 min']);
     });
@@ -162,6 +166,85 @@ describe('BillingSettingsCard', () => {
       expect(document.activeElement).toBe(screen.getAllByRole('tab')[1]);
       fireEvent.keyDown(screen.getAllByRole('tab')[0], { key: 'ArrowLeft' });
       expect(screen.getAllByRole('tab')[2]).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
+  // owner 2026-11-06: billing mode, lessons per week and the no-show rule per subject
+  describe('billing per subject', () => {
+    const student = { id: 'st', name: 'Stefania', subject: 'Eesti keel', enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel' }, { subject: 'Inglise keel', teacher: 'Anna' }, { subject: 'Matemaatika', teacher: 'Liza' }] };
+    const priced = { lessonPriceCents: 2000, lessonMinutes: 60, weeklyLessons: 2, billingMode: 'advance', chargeNoShow: true, priceTerms: 'discount', hourlyRateCents: 2000, discountReason: 'Mitu kursust' };
+
+    it('the main tab edits the card’s own values with „?” help; a card without own values saves no subjectBilling', async () => {
+      const onSave = vi.fn().mockResolvedValue({});
+      render(<BillingSettingsCard student={student} plan={priced} canEdit onSave={onSave} />);
+      expect(screen.getByLabelText('Arveldus')).toHaveValue('advance');
+      expect(screen.getByLabelText('Tunde nädalas')).toHaveValue('2');
+      expect(screen.getByRole('button', { name: 'Abi: Arveldus' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Abi: Tunde nädalas' })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Abi: Arveldus' }));
+      expect(screen.getByRole('dialog', { name: 'Arveldus' })).toHaveTextContent('Tunnipakett: kuuarvet ei tehta');
+      await save();
+      expect(onSave.mock.calls[0][0]).not.toHaveProperty('subjectBilling');
+    });
+
+    it('a further subject gets its own mode, weekly lessons and no-show rule; the saved map holds only its own fields', async () => {
+      const onSave = vi.fn().mockResolvedValue({});
+      render(<BillingSettingsCard student={student} plan={priced} canEdit onSave={onSave} />);
+      fireEvent.click(screen.getByRole('tab', { name: /Inglise keel/ }));
+      expect(screen.queryByLabelText('Arveldus')).toBeNull();
+      fireEvent.click(screen.getByRole('button', { name: 'Arveldus: määra ainele Inglise keel oma' }));
+      fireEvent.change(screen.getByLabelText('Arveldus'), { target: { value: 'package' } });
+      expect(screen.getByRole('tab', { name: /Inglise keel/ })).toHaveTextContent('Tunnipakett');
+      expect(screen.getByRole('tabpanel')).toHaveTextContent('Inglise keel: kuuarvet ei tehta');
+      fireEvent.click(screen.getByRole('tab', { name: /Matemaatika/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Tunde nädalas: määra ainele Matemaatika oma' }));
+      fireEvent.change(screen.getByLabelText('Tunde nädalas'), { target: { value: '1,5' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Ette teatamata puudumine: määra ainele Matemaatika oma' }));
+      fireEvent.click(screen.getByRole('checkbox', { name: /Ette teatamata puudumine on tasuline/ }));
+      await save();
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ billingMode: 'advance', weeklyLessons: '2', chargeNoShow: true,
+        subjectBilling: { 'Inglise keel': { billingMode: 'package' }, Matemaatika: { weeklyLessons: '1,5', chargeNoShow: false } } }));
+    });
+
+    it('a stored override loads as its own value; „Sama mis kaardil” removes it (an empty map is saved)', async () => {
+      const onSave = vi.fn().mockResolvedValue({});
+      render(<BillingSettingsCard student={student} plan={{ ...priced, subjectBilling: { 'Inglise keel': { billingMode: 'package' } } }} canEdit onSave={onSave} />);
+      expect(screen.getByRole('tab', { name: /Inglise keel/ })).toHaveTextContent('Tunnipakett');
+      expect(screen.getByRole('tab', { name: /Eesti keel/ })).toHaveTextContent('Kuu ette');
+      fireEvent.click(screen.getByRole('tab', { name: /Inglise keel/ }));
+      expect(screen.getByLabelText('Arveldus')).toHaveValue('package');
+      fireEvent.click(screen.getByRole('button', { name: 'Arveldus: sama mis kaardil' }));
+      expect(screen.getByRole('tabpanel')).toHaveTextContent('Sama mis kaardil: Kuu ette (vaikimisi)');
+      await save();
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ subjectBilling: {} }));
+    });
+
+    it('„Pärast toimunud tunde” next to „Kuu ette” is refused with the reason; a wrong weekly number opens its tab', async () => {
+      const onSave = vi.fn().mockResolvedValue({});
+      render(<BillingSettingsCard student={student} plan={{ ...priced, subjectBilling: { Matemaatika: { billingMode: 'actual' } } }} canEdit onSave={onSave} />);
+      await save();
+      expect(onSave).not.toHaveBeenCalled();
+      expect(screen.getByRole('alert')).toHaveTextContent('„Pärast toimunud tunde” ja „Kuu ette” / „Jooksev kuu” ei saa olla ühel kaardil koos');
+      fireEvent.click(screen.getByRole('tab', { name: /Matemaatika/ }));
+      fireEvent.change(screen.getByLabelText('Arveldus'), { target: { value: 'package' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Tunde nädalas: määra ainele Matemaatika oma' }));
+      fireEvent.change(screen.getByLabelText('Tunde nädalas'), { target: { value: '99' } });
+      fireEvent.click(screen.getByRole('tab', { name: /Eesti keel/ }));
+      await save();
+      expect(onSave).not.toHaveBeenCalled();
+      expect(screen.getByRole('tab', { name: /Matemaatika/ })).toHaveAttribute('aria-selected', 'true');
+      fireEvent.change(screen.getByLabelText('Tunde nädalas'), { target: { value: '1' } });
+      await save();
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ subjectBilling: { Matemaatika: { billingMode: 'package', weeklyLessons: '1' } } }));
+    });
+
+    it('read-only for the finance role: no override buttons', () => {
+      render(<BillingSettingsCard student={student} plan={{ ...priced, subjectBilling: { 'Inglise keel': { billingMode: 'package' } } }} canEdit={false} onSave={vi.fn()} />);
+      fireEvent.click(screen.getByRole('tab', { name: /Matemaatika/ }));
+      expect(screen.queryByRole('button', { name: /määra ainele/ })).toBeNull();
+      fireEvent.click(screen.getByRole('tab', { name: /Inglise keel/ }));
+      expect(screen.getByLabelText('Arveldus')).toBeDisabled();
+      expect(screen.queryByRole('button', { name: /sama mis kaardil/ })).toBeNull();
     });
   });
 });

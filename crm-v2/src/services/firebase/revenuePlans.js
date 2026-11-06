@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { DISCOUNT_REASON_MAX, PRICE_TERMS } from '../../features/finance/priceTerms.js';
+import { BILLING_MODE_IDS, subjectBillingOf } from '../../features/finance/subjectBilling.js';
 
 function clean(value) {
   return String(value || '').trim();
@@ -20,6 +21,9 @@ export function normalizeRevenuePlan(id, data = {}) {
     validFrom: clean(data.validFrom),
     priceHistory: Array.isArray(data.priceHistory) ? data.priceHistory : [],
     subjectPrices: subjectPricesOf(data.subjectPrices),
+    // billing per subject (owner 2026-11-06): { "Inglise keel": { billingMode, weeklyLessons, chargeNoShow } }, a
+    // missing field = the card's value (finance/subjectBilling.js)
+    subjectBilling: subjectBillingOf(data.subjectBilling),
     active: data.active !== false,
   };
 }
@@ -47,6 +51,32 @@ export function validateSubjectPrices(values = {}) {
   return { valid: Object.keys(errors).length === 0, errors, prices };
 }
 
+// form values { "Inglise keel": { billingMode: "package", weeklyLessons: "1,5", chargeNoShow: false } } → stored
+// overrides, or an error per subject. A field left out (or '') is not stored: the subject takes the card's value.
+export function validateSubjectBilling(values = {}) {
+  const errors = {};
+  const billing = {};
+  Object.entries(values || {}).forEach(([subject, entry]) => {
+    const name = clean(subject);
+    if (!name || !entry || typeof entry !== 'object') return;
+    const own = {};
+    if (entry.billingMode !== undefined && entry.billingMode !== '') {
+      if (!BILLING_MODE_IDS.includes(entry.billingMode)) { errors[name] = 'Vali arveldusviis.'; return; }
+      own.billingMode = entry.billingMode;
+    }
+    const weeklyText = String(entry.weeklyLessons ?? '').trim();
+    if (weeklyText) {
+      const weekly = Number(weeklyText.replace(',', '.'));
+      if (!Number.isFinite(weekly) || weekly < 0.5 || weekly > 50) { errors[name] = 'Sisesta 0,5–50 tundi nädalas.'; return; }
+      own.weeklyLessons = Math.round(weekly * 100) / 100;
+    }
+    if (typeof entry.chargeNoShow === 'boolean') own.chargeNoShow = entry.chargeNoShow;
+    if (Object.keys(own).length) billing[name] = own;
+  });
+  if (Object.keys(billing).length > 8) errors.form = 'Kuni 8 ainet saavad oma arvelduse.';
+  return { valid: Object.keys(errors).length === 0, errors, billing };
+}
+
 export const LESSON_MINUTES = [30, 45, 60, 75, 90, 120];
 export const BILLING_MODES = [
   { id: 'advance', label: 'Kuu ette (vaikimisi)' },
@@ -55,6 +85,17 @@ export const BILLING_MODES = [
   // lesson tokens (owner 2026-10-14): a paid invoice for N lessons, every lesson takes one; no monthly invoice
   { id: 'package', label: 'Tunnipakett (ettemaks N tunni eest)' },
 ];
+
+// „?” help of the billing fields on the student card (FieldHelp): what each mode means for the invoices
+export const BILLING_MODE_HELP = 'Kuu ette: arve tuleb kuu alguses selle kuu kalendris planeeritud tundide eest, tähtaeg 10. kuupäev; '
+  + 'eelmise kuu toimumata tunnid tulevad järgmiselt arvelt maha. Jooksev kuu: sama arvutus, vana lepingu nimi. '
+  + 'Pärast toimunud tunde: arve tuleb kuu lõpus ainult toimunud tundide eest, tähtaeg järgmise kuu 10. kuupäev. '
+  + 'Tunnipakett: kuuarvet ei tehta, õpilane maksab ette N tunni eest (Finantsid → Tunnipakett) ja iga tund võtab ühe. '
+  + 'Ühel kaardil ei saa „Pärast toimunud tunde” ja „Kuu ette” / „Jooksev kuu” koos olla (üks kuuarve), tunnipakett sobib iga viisiga.';
+export const WEEKLY_LESSONS_HELP = 'Mitu tundi nädalas see aine tavaliselt on. Arvet see ei muuda (arve tuleb kalendrist), '
+  + 'seda kasutab ainult tuluprognoos. Kui teisel ainel pole oma arvu, on selle tunnid kaardi arvu sees.';
+export const NO_SHOW_HELP = 'Kui õpilane puudub ette teatamata: linnuke = tund on tasuline (kuuarvel ei tule tagasi, tunnipaketist võetakse tund). '
+  + 'Ühe tunni erandi saab teha tunni juures.';
 
 // A new price or lesson length starts from `validFrom`; the previous one is kept so earlier lessons keep their price.
 export function nextPriceHistory(previous, next) {
@@ -124,6 +165,8 @@ export const revenuePlansService = {
     if (!validation.valid) throw new Error(Object.values(validation.errors)[0]);
     const subjects = validateSubjectPrices(values.subjectPrices);
     if (!subjects.valid) throw new Error(Object.values(subjects.errors)[0]);
+    const perSubject = validateSubjectBilling(values.subjectBilling);
+    if (!perSubject.valid) throw new Error(Object.values(perSubject.errors)[0]);
     const updatedAt = new Date().toISOString();
     const updatedBy = user.displayName || user.email || '';
     const terms = priceTermsRecord(values, previous, { at: updatedAt, name: updatedBy, uid: user.uid });
@@ -147,6 +190,9 @@ export const revenuePlansService = {
       ...billing,
       priceHistory: nextPriceHistory(previous, { lessonPriceCents: validation.lessonPriceCents, ...billing }),
       ...(values.subjectPrices ? { subjectPrices: subjects.prices } : {}),
+      // written only when the form sends it (a card with own billing for a subject, or one that had it): a plan
+      // without it bills every subject by the card's values, and saves keep working before the rules know the field
+      ...(values.subjectBilling ? { subjectBilling: perSubject.billing } : {}),
       ...terms,
     };
     // activityLog is readable by all staff: it gets the terms only, never the discount reason or the rate.
@@ -163,7 +209,7 @@ export const revenuePlansService = {
       byRole: 'admin',
       createdAt: updatedAt,
       date: updatedAt.slice(0, 10),
-      meta: { studentId: student.id, studentName: student.name || '', lessonPriceCents: validation.lessonPriceCents, weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode, ...(values.subjectPrices ? { subjectPrices: subjects.prices } : {}), ...(terms.priceTerms ? { priceTerms: terms.priceTerms } : {}) },
+      meta: { studentId: student.id, studentName: student.name || '', lessonPriceCents: validation.lessonPriceCents, weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode, ...(values.subjectPrices ? { subjectPrices: subjects.prices } : {}), ...(values.subjectBilling ? { subjectBilling: perSubject.billing } : {}), ...(terms.priceTerms ? { priceTerms: terms.priceTerms } : {}) },
     });
     await batch.commit();
     return normalizeRevenuePlan(student.id, plan);

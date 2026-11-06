@@ -8,7 +8,8 @@
 
 const { manualInvoiceRecord } = require('./manual-invoice-core');
 const { monthlyInvoiceLines, monthLabel } = require('./monthly-invoice-core');
-const { subjectName } = require('./student-enrollments-core');
+const { subjectName, enrollmentsOf, mainSubject } = require('./student-enrollments-core');
+const { cardMonthlyMode, hasSubjectBilling, subjectBilling } = require('./subject-billing-core');
 const { tokenInvoiceLines, tokenInvoiceSubject, tokenSubjectKey } = require('./lesson-tokens-core');
 
 const clean = (value, max = 160) => String(value || '').trim().slice(0, max);
@@ -45,6 +46,19 @@ function planForSubject(plan = {}, subject = '') {
   const own = subject && plan.subjectPrices && typeof plan.subjectPrices === 'object' ? plan.subjectPrices[subject] : null;
   if (!own) return plan;
   return { ...plan, lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan.lessonMinutes };
+}
+
+// Billing per subject (owner 2026-11-06, subject-billing-core.js): why this card / subject gets no monthly invoice line
+// ('' = it may). A subject on lesson packages pays by package invoices; „Pärast toimunud tunde” next to a subject billed
+// ahead cannot share one monthly invoice. A plan without per-subject billing is never stopped here (exactly as before).
+function monthlyBillingBlocker(card = {}, plan = {}, subject = '') {
+  if (!hasSubjectBilling(plan)) return '';
+  const main = mainSubject(card);
+  const name = subjectName(subject);
+  if (subjectBilling(plan, name, main).billingMode === 'package') return `${name || clean(card.name) || 'Õpilane'}: tasub tunnipaketiga — kuuarvet selle eest ei tehta.`;
+  const subjects = [...new Set(enrollmentsOf(card).filter((track) => track.active).map((track) => track.subject))];
+  if (cardMonthlyMode(plan, subjects, main).mixedTiming) return `${clean(card.name) || 'Õpilane'}: „Pärast toimunud tunde” ja ettemaksuga aine ei saa olla ühel kuuarvel — muuda õpilase kaardil ühe aine arveldusviisi.`;
+  return '';
 }
 
 function checkOnePayer(cards = []) {
@@ -85,6 +99,8 @@ function combinedMonthlyRecord({ month, due, parts, invoiceNum, nowIso, actor, r
   const lines = [];
   const cardParts = [];
   for (const part of parts) {
+    const blocked = monthlyBillingBlocker(part.card, part.plan || {}, part.subject);
+    if (blocked) throw fail(400, blocked);
     let priced;
     try {
       const subjectPlan = part.subject ? planForSubject(part.plan || {}, part.subject) : (part.plan || {});
@@ -183,4 +199,5 @@ function billsCardForMonth(invoice = {}, cardId, month) {
   return invoice.studentId === cardId || (Array.isArray(invoice.studentIds) && invoice.studentIds.includes(cardId));
 }
 
-module.exports = { payerKey, sameCardsInput, monthlyItemsInput, planForSubject, checkOnePayer, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth };
+module.exports = {
+  monthlyBillingBlocker, payerKey, sameCardsInput, monthlyItemsInput, planForSubject, checkOnePayer, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth };

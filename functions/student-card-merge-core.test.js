@@ -48,6 +48,10 @@ test("price: the other card's price becomes its subject's price; the same subjec
   assert.equal(core.revenuePlanMerge({ keep, source: { subject: "Inglise keel" }, keepPlan: { lessonPriceCents: 2000 }, sourcePlan: { lessonPriceCents: 2000 } }).action, "same");
   assert.equal(core.revenuePlanMerge({ keep, source: {}, keepPlan: null, sourcePlan: { lessonPriceCents: 2000 } }).action, "copy");
   assert.equal(core.revenuePlanMerge({ keep, source: {}, keepPlan: { lessonPriceCents: 1 }, sourcePlan: null }).action, "none");
+  // the other card's billing mode / weekly lessons / no-show rule come with its subject when they differ (2026-11-06)
+  const packaged = core.revenuePlanMerge({ keep, source: { subject: "Eesti keel" }, keepPlan: { lessonPriceCents: 2000, billingMode: "advance", weeklyLessons: 2 }, sourcePlan: { lessonPriceCents: 2500, billingMode: "package", weeklyLessons: 2, chargeNoShow: false } });
+  assert.deepEqual(packaged.patch.subjectBilling, { "Eesti keel": { billingMode: "package", chargeNoShow: false } });
+  assert.equal("subjectBilling" in add.patch, false);
   const existing = core.revenuePlanMerge({ keep, source: { subject: "Matemaatika" }, keepPlan: { lessonPriceCents: 2000, subjectPrices: { Matemaatika: { lessonPriceCents: 3000 } } }, sourcePlan: { lessonPriceCents: 2800 } });
   assert.equal(existing.action, "conflict");
 });

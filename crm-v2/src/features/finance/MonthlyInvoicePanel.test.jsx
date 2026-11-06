@@ -32,6 +32,33 @@ describe('MonthlyInvoicePanel', () => {
     expect(p.onChanged).toHaveBeenCalled();
   });
 
+  it('billing per subject (owner 2026-11-06): a package subject has no line; actual next to advance is not offered', async () => {
+    const p = props();
+    const enrollments = [{ subject: 'Eesti keel', teacherUid: 'p1' }, { subject: 'Inglise keel', teacherUid: 'a1' }];
+    p.students = [
+      { id: 'k1', name: 'Kristjan', subject: 'Eesti keel', enrollments, active: true, parentEmail: 'k1@example.com' },
+      { id: 'k2', name: 'Liisa', subject: 'Eesti keel', enrollments, active: true, parentEmail: 'k2@example.com' },
+    ];
+    p.plans = [
+      { studentId: 'k1', lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'advance', subjectBilling: { 'Inglise keel': { billingMode: 'package' } } },
+      { studentId: 'k2', lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'advance', subjectBilling: { 'Inglise keel': { billingMode: 'actual' } } },
+    ];
+    p.lessons = [];
+    p.invoices = [];
+    p.scheduleRepository = { list: vi.fn().mockResolvedValue(['k1', 'k2'].flatMap((id) => [
+      { id: `${id}-est`, studentId: id, subject: 'Eesti keel', recurring: true, day: 'Wed', startDate: '2031-10-01', duration: 60 },
+      { id: `${id}-eng`, studentId: id, subject: 'Inglise keel', recurring: true, day: 'Mon', startDate: '2031-10-01', duration: 60 },
+    ])) };
+    render(<MonthlyInvoicePanel {...p} />);
+    const table = await screen.findByRole('table', { name: 'Kuuarved 2031-10' });
+    expect(within(table).getByText(/tunnipaketiga: Inglise keel/)).toBeInTheDocument();
+    expect(within(table).getByText('Arveldusviisid ei sobi')).toBeInTheDocument();
+    expect(await screen.findByText(/Valitud 1 \/ 1 rida/)).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Koosta kõik/ })); });
+    expect(p.invoiceApi.createMonthly).toHaveBeenCalledWith(expect.objectContaining({ studentId: 'k1', subject: 'Eesti keel', plannedUnits: 5 }));
+    expect(p.invoiceApi.createMonthly).toHaveBeenCalledTimes(1);
+  });
+
   it('two subjects of one student (two cards, one payer) go on one invoice', async () => {
     const p = props();
     p.students = [
