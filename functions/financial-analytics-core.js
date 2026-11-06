@@ -1,6 +1,7 @@
 "use strict";
 
 const { invoiceAmountCents, paymentNetAmountCents } = require("./finance-core");
+const { weeklyForecastCents } = require("./subject-billing-core");
 
 function validMonth(value) {
   const month = String(value || "");
@@ -201,9 +202,8 @@ function financialAnalyticsSnapshot({
   const metrics = monthMetrics(selectedMonth, data);
   const forecastCents = revenuePlans
     .filter(plan => plan?.active !== false)
-    .reduce((sum, plan) => sum + Math.round(
-      (Math.max(0, Number(plan.lessonPriceCents) || 0) * Math.max(0, Number(plan.weeklyLessons) || 0) * 52) / 12,
-    ), 0);
+    // card price × lessons per week, plus further subjects with their own lessons per week (owner 2026-11-06)
+    .reduce((sum, plan) => sum + Math.round((weeklyForecastCents(plan) * 52) / 12), 0);
   const issuedInvoices = invoices.filter(item => monthOf(item, ["date", "issuedAt", "createdAt"]) === selectedMonth);
   const lessonById = new Map(lessons.map(item => [String(item.id || ""), item]));
   const asOfDate = selectedMonth === currentMonth ? nowIso.slice(0, 10) : monthEnd(selectedMonth);

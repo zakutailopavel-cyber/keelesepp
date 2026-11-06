@@ -56,3 +56,15 @@
 .billing-settings__lesson-price { margin: 0; align-self: center; color: var(--text-muted, #475467); }
 .billing-settings__changed { grid-column: 1 / -1; margin: 0; font-size: .85rem; color: var(--text-muted, #667085); }
 @media (max-width: 760px) { .billing-settings__reason { grid-column: auto; } .billing-settings__summary { justify-items: start; } }
+/* billing per subject (owner 2026-11-06): Arveldus / Tunde nädalas / no-show inside every subject tab */
+.billing-settings__billing { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; align-items: start; padding-top: 12px; border-top: 1px dashed var(--border, #e5e7eb); }
+.billing-settings__billing > .billing-settings__check, .billing-settings__billing-note { grid-column: 1 / -1; }
+.billing-settings__billing-note { margin: 0; font-size: .85rem; color: var(--text-muted, #475467); }
+.billing-settings__check > label { display: inline-flex; gap: 8px; align-items: center; }
+.billing-settings__own { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.billing-settings__own .billing-settings__check { grid-column: auto; align-items: flex-start; }
+.billing-settings__field-label { display: inline-flex; align-items: center; gap: 4px; }
+.billing-settings__inherited { margin: 0; display: grid; gap: 6px; justify-items: start; padding: 10px 12px; border-radius: 10px; background: var(--surface-subtle, #f8fafc); color: #344054; }
+.billing-settings__inherited .button, .billing-settings__back { min-height: 34px; padding: 0 12px; justify-self: start; }
+.billing-settings__mixed { grid-column: 1 / -1; margin: 0; }
+@media (max-width: 760px) { .billing-settings__billing { grid-template-columns: 1fr; } }

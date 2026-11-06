@@ -61,3 +61,10 @@ test("analytics rejects future and invalid months", () => {
   assert.throws(() => financialAnalyticsSnapshot({ month: "2026-09", nowIso: "2026-08-04T12:00:00.000Z" }), /future/);
   assert.throws(() => financialAnalyticsSnapshot({ month: "2026-13" }), /Valid analytics month/);
 });
+
+test("forecast adds further subjects with their own lessons per week (owner 2026-11-06); legacy plans unchanged", () => {
+  const forecast = (revenuePlans) => financialAnalyticsSnapshot({ month: "2026-07", nowIso: "2026-08-04T12:00:00.000Z", revenuePlans }).summary.forecastCents;
+  const legacy = { id: "r1", lessonPriceCents: 2500, weeklyLessons: 1, active: true, subjectPrices: { Matemaatika: { lessonPriceCents: 3000 } } };
+  assert.equal(forecast([legacy]), 10833);
+  assert.equal(forecast([{ ...legacy, subjectBilling: { Matemaatika: { weeklyLessons: 2, billingMode: "package" } } }]), Math.round(((2500 + 2 * 3000) * 52) / 12));
+});

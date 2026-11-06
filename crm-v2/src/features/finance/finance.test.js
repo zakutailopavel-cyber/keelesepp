@@ -32,4 +32,10 @@ describe('finance helpers', () => {
     expect(forecast).toMatchObject({ weeklyCents: 8000, monthlyCents: 34667, annualCents: 416000 });
     expect(forecast.rows.map((row) => row.id)).toEqual(['student-1', 'student-2']);
   });
+
+  it('a further subject with its own lessons per week adds them at its price (owner 2026-11-06)', () => {
+    const plan = { id: 's', studentName: 'Kristjan', lessonPriceCents: 2000, weeklyLessons: 2, active: true, subjectPrices: { Matemaatika: { lessonPriceCents: 2800 } } };
+    expect(revenueForecast([plan]).weeklyCents).toBe(4000);
+    expect(revenueForecast([{ ...plan, subjectBilling: { Matemaatika: { weeklyLessons: 1 }, 'Inglise keel': { billingMode: 'package' } } }]).weeklyCents).toBe(4000 + 2800);
+  });
 });

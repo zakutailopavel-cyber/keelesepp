@@ -131,6 +131,11 @@ linked automatically (no invoice reference is stored).
 - Plan billing mode „Tunnipakett” (`billingMode: 'package'`): the card is not offered a monthly invoice. Until
   2026-10-29 `firestore.rules` (`studentRevenuePlans`) allowed only `advance` / `current` / `actual`, so saving the price
   form with „Tunnipakett” was refused; the rule now allows `package`.
+- Per subject (owner 2026-11-06, ARCHITECTURE.md „Billing per subject”): one subject of a card may be on packages while
+  another is billed monthly (`studentRevenuePlans.subjectBilling`). Its monthly invoice has no line for the package
+  subject (the server refuses one), and with `subjectBilling` a lesson of a subject billed monthly takes no credit —
+  also not from an old package without a subject. The no-show rule is the lesson's subject's. A plan without
+  `subjectBilling` takes credits exactly as before.
 - **Credits per lesson** (owner 2026-10-29): `lessonTokenCost(lesson) = max(1, floor(duration / 60))` — 45 / 60 / 90
   min = 1, a double lesson of 120 min = 2, 180 min = 3; no length = 60 min (`TOKEN_MINUTES`, `TOKENS_PER_LESSON` = the
   minimum; `functions/lesson-tokens-core.js` and the same in `crm-v2/src/services/firebase/lessonTokens.js`). The lesson

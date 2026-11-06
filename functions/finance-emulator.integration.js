@@ -176,6 +176,22 @@ test("finance role can read invoices without gaining student or mutation access"
   });
   assert.equal((await planWith("actual")).status, 200, "billingMode actual");
   assert.equal((await planWith("weekly")).status, 403, "unknown billingMode");
+  // billing per subject (owner 2026-11-06): subjectBilling is a map of at most 8 subjects
+  const planWithSubjects = (subjectBilling) => firestoreDocumentRequest(adminToken, "PATCH", "studentRevenuePlans/admin-forecast-student", {
+    fields: {
+      studentId: { stringValue: "admin-forecast-student" }, studentName: { stringValue: "Admin Forecast Student" },
+      lessonPriceCents: { integerValue: "2500" }, weeklyLessons: { doubleValue: 1 }, currency: { stringValue: "EUR" },
+      active: { booleanValue: true }, updatedAt: { stringValue: "2026-11-06T12:00:00.000Z" }, updatedBy: { stringValue: "Admin" },
+      updatedByUid: { stringValue: tokenUid(adminToken) }, billingMode: { stringValue: "advance" }, subjectBilling,
+    },
+  });
+  const subjectMap = (count) => ({ mapValue: { fields: Object.fromEntries(Array.from({ length: count }, (_, index) => [`Aine ${index}`, { mapValue: { fields: { billingMode: { stringValue: "package" } } } }])) } });
+  assert.equal((await planWithSubjects(subjectMap(1))).status, 200, "subjectBilling map");
+  assert.equal((await planWithSubjects(subjectMap(0))).status, 200, "empty subjectBilling map");
+  assert.equal((await planWithSubjects(subjectMap(9))).status, 403, "more than 8 subjects");
+  assert.equal((await planWithSubjects({ stringValue: "package" })).status, 403, "subjectBilling must be a map");
+  const financeSubjectsWrite = await firestoreDocumentRequest(financeToken, "PATCH", "studentRevenuePlans/admin-forecast-student?updateMask.fieldPaths=subjectBilling", { fields: { subjectBilling: subjectMap(1) } });
+  assert.equal(financeSubjectsWrite.status, 403, "the finance role cannot change per-subject billing");
   // price terms (2026-10-29): general = standard rate, no reason; discount = own rate + a reason of 1–300 characters
   const planWithTerms = (priceTerms, discountReason, hourlyRateCents = 2000) => firestoreDocumentRequest(adminToken, "PATCH", "studentRevenuePlans/admin-forecast-student", {
     fields: {
@@ -4016,6 +4032,76 @@ test("one card, two subjects: one monthly invoice with a line per subject at its
   assert.equal(single.status, 201, JSON.stringify(single.body));
   assert.equal(single.body.invoice.amountCents, 2 * 2800);
   assert.equal(single.body.invoice.subject, "Matemaatika");
+});
+
+test("billing per subject: a package subject gets no monthly line, its lessons take credits, the others none (owner 2026-11-06)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const studentId = "per-subject-billing";
+  // the card had no subject when its (shared) package was bought; it now has three subjects
+  await Promise.all([
+    db.collection("students").doc(studentId).set({ name: "Aine Arveldus", active: true, parentEmail: "aine@example.com" }),
+    db.collection("studentRevenuePlans").doc(studentId).set({ studentId, studentName: "Aine Arveldus", lessonPriceCents: 2000, lessonMinutes: 60, weeklyLessons: 1, billingMode: "package", chargeNoShow: true, currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const post = (fn, path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/${fn}${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const waitFor = async (read, check, label) => {
+    for (let i = 0; i < 60; i += 1) {
+      const value = await read();
+      if (check(value)) return value;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`timed out: ${label}`);
+  };
+  const created = await post("manualInvoiceApi", "/create-tokens", { studentId, lessons: 4, due: "2031-12-31", requestId: "per-subject-pool" });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  await db.collection("invoices").doc("per-subject-pool").set({ date: "2031-11-01", status: "Makstud", paymentStatus: "paid", paidAmountCents: 8000, balanceDueCents: 0 }, { merge: true });
+  const credited = await post("financeApi", "/invoices/tokens/credit", { invoiceId: "per-subject-pool" });
+  assert.equal(credited.status, 201, JSON.stringify(credited.body));
+  const packageRef = db.collection("studentPackages").doc("tokens_per-subject-pool");
+  assert.equal((await packageRef.get()).data().balanceCredits, 4);
+
+  await Promise.all([
+    db.collection("students").doc(studentId).set({ subject: "Inglise keel", enrollments: [
+      { subject: "Inglise keel", teacher: "Anna", teacherUid: "t-eng" },
+      { subject: "Eesti keel", teacher: "Pavel", teacherUid: "t-est" },
+      { subject: "Matemaatika", teacher: "Liza", teacherUid: "t-math" },
+    ] }, { merge: true }),
+    // English (main) stays on packages; Estonian by monthly invoice; maths on packages with free no-shows
+    db.collection("studentRevenuePlans").doc(studentId).set({ subjectBilling: { "Eesti keel": { billingMode: "advance" }, Matemaatika: { chargeNoShow: false } } }, { merge: true }),
+  ]);
+
+  // monthly invoices: the Estonian line is made, an English or maths line is refused
+  const english = await post("manualInvoiceApi", "/monthly", { studentId, month: "2031-12", due: "2031-12-10", plannedUnits: 4, subject: "Inglise keel" });
+  assert.equal(english.status, 400, JSON.stringify(english.body));
+  assert.match(english.body.error || JSON.stringify(english.body), /tunnipaketiga/);
+  const both = await post("manualInvoiceApi", "/monthly-combined", { month: "2031-12", due: "2031-12-10", items: [
+    { studentId, subject: "Eesti keel", plannedUnits: 4, correctionUnits: 0 },
+    { studentId, subject: "Matemaatika", plannedUnits: 4, correctionUnits: 0 },
+  ] });
+  assert.equal(both.status, 400, JSON.stringify(both.body));
+  const estonian = await post("manualInvoiceApi", "/monthly", { studentId, month: "2031-12", due: "2031-12-10", plannedUnits: 4, subject: "Eesti keel" });
+  assert.equal(estonian.status, 201, JSON.stringify(estonian.body));
+  assert.equal(estonian.body.invoice.amountCents, 4 * 2000);
+
+  // lessons: English takes a credit; Estonian (monthly) takes none from the shared package; a maths no-show is free
+  const stateOf = async (lessonId) => (await db.collection("lessonPackageStates").doc(lessonId).get()).data()?.status;
+  const lesson = (id, date, extra) => db.collection("lessons").doc(id).set({ studentId, studentName: "Aine Arveldus", date, accountingSource: "crm_v2", ...extra });
+  await lesson("per-subject-eng", "2031-11-03", { status: "Toimunud", teacherUid: "t-eng", teacher: "Anna", subject: "Inglise keel" });
+  await waitFor(() => stateOf("per-subject-eng"), (state) => state === "consumed", "English lesson consumed");
+  await lesson("per-subject-est", "2031-11-04", { status: "Toimunud", teacherUid: "t-est", teacher: "Pavel", subject: "Eesti keel" });
+  await lesson("per-subject-math", "2031-11-05", { status: "Puudus_eta", teacherUid: "t-math", teacher: "Liza", subject: "Matemaatika" });
+  await lesson("per-subject-eng-noshow", "2031-11-06", { status: "Puudus_eta", teacherUid: "t-eng", teacher: "Anna", subject: "Inglise keel" });
+  await waitFor(() => stateOf("per-subject-eng-noshow"), (state) => state === "consumed", "English no-show consumed (card rule)");
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  assert.notEqual(await stateOf("per-subject-est"), "consumed");
+  assert.notEqual(await stateOf("per-subject-est"), "needs_attention");
+  assert.notEqual(await stateOf("per-subject-math"), "consumed");
+  assert.equal((await packageRef.get()).data().balanceCredits, 2);
 });
 
 test("one bank payment pays two invoices of a child and remembers the payer's account (owner 2026-10-21)", async () => {

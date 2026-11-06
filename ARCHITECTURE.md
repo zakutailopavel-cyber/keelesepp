@@ -367,6 +367,35 @@ stores `priceTerms`, `hourlyRateCents`, `discountReason` and `priceTermsChangedA
 rate keeps its stored per-lesson cents. `activityLog` (readable by all staff) gets the terms, not the reason. The
 Finantsid forecast form still edits the lesson price directly and leaves the terms as they are.
 
+#### Billing per subject (2026-11-06)
+
+On a card with several subjects every subject may have its own billing mode, lessons per week and no-show rule:
+`studentRevenuePlans.subjectBilling = { "<subject>": { billingMode?, weeklyLessons?, chargeNoShow? } }` (≤ 8 subjects,
+firestore.rules: a map; the finance role cannot write it). A field that is absent is the card's own value; the card's
+main subject (`mainSubject`, the card's price subject) always bills by the card's `billingMode` / `weeklyLessons` /
+`chargeNoShow`, and its tab on the student card edits exactly those. A plan without `subjectBilling` bills exactly as
+before (golden test `crm-v2/src/features/finance/monthlyBilling.golden.test.js` on fixtures run through the code before
+the change). Prices stay in `subjectPrices`; price terms and `validFrom` stay card-wide.
+
+One resolver, two copies kept equal: `functions/subject-billing-core.js` (server) and
+`crm-v2/src/features/finance/subjectBilling.js` (browser); `functions/subject-billing-core.test.js` imports the browser
+file and compares every function on the same cases. `subjectBilling(plan, subject, main)` → the effective values plus
+`own` flags; `cardMonthlyMode(plan, subjects, main)` → the monthly row's mode, `monthlySubjects`, `packageSubjects` and
+`mixedTiming`; `weeklyForecastCents(plan)` → card price × card weekly + each further subject with its OWN weekly × its
+price (a subject without its own number counts inside the card's number, as before).
+
+Who reads it: monthly invoice rows (`monthlyBilling.js`: package subjects get no line, the no-show rule per subject in
+the correction, lessons left per subject), the student card „Alles” balances and Täna „Makstud tunnid lõppevad”
+(`studentLessonBalances`), the revenue forecast (Finantsid `revenueForecast`, server `financial-analytics-core`), the
+calendar revenue in Ülevaade / Ärinäitajad (`financeDashboard.noShowCharged`), the server's monthly invoice routes
+(`combined-invoice-core monthlyBillingBlocker`: a package subject, or „Pärast toimunud tunde” next to a subject billed
+ahead, is refused with 400 — only for plans with `subjectBilling`) and the lesson-package trigger
+(`syncLessonPackageConsumption`: with `subjectBilling`, the lesson's subject decides the no-show rule and a subject
+billed monthly takes no package credit, also not from an old shared package). „Pärast toimunud tunde” (held lessons
+of the month, due the next month) and „Kuu ette” / „Jooksev kuu” (the month ahead) cannot share one monthly invoice:
+the card form refuses that combination and the monthly row shows „Arveldusviisid ei sobi”; packages combine with any.
+A card merge brings the other card's billing as `subjectBilling[its subject]` when it differs from the kept card's.
+
 ### Staff operations
 
 Teacher-facing navigation is task-oriented. `haldus.html` is the daily start surface and keeps the common
@@ -471,7 +500,7 @@ name in `studentName`; finance records change only the card id — never an amou
 `studentRevenuePlans`, `studentAvailability`, `studentInitialAssessments`, `taxIdentities`, `whiteboards` (with
 subcollections) are copied when the kept card has none, else the kept one stays; the other card's price becomes
 `subjectPrices[its subject]` when the kept plan has no price for that subject (same subject, other price = conflict,
-nothing changes); accounts listing the old id (`users.linkedStudentIds`) get the kept id; learner and parent accounts
+nothing changes) and its billing mode / weekly lessons / no-show rule `subjectBilling[its subject]` when they differ; accounts listing the old id (`users.linkedStudentIds`) get the kept id; learner and parent accounts
 and parent contacts are united; enrollments and `teacherUids` are united; empty profile fields are filled, notes
 joined. History (`activityLog`, `financialAudit`, …) keeps the old id. The old card is never deleted: it stays
 `active: false`, `mergedInto` + `mergedIntoStudentId`, without account links, as a tombstone; the old per-card

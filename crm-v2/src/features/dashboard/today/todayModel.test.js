@@ -68,6 +68,14 @@ describe('lessonsRunningOut', () => {
     const list = lessonsRunningOut({ students: [student], plans: [plan], invoices, lessons, events: [weekly], today: '2026-11-04' });
     expect(list).toEqual([expect.objectContaining({ kind: 'month', studentId: 's1', left: 1, planned: 3 })]);
   });
+  it('monthly per subject: a subject on lesson packages has no monthly balance (owner 2026-11-06)', () => {
+    const kid = { id: 'k', name: 'Kristjan', active: true, subject: 'Eesti keel', enrollments: [{ subject: 'Eesti keel' }, { subject: 'Inglise keel' }] };
+    const plan = { studentId: 'k', billingMode: 'advance', lessonMinutes: 60, lessonPriceCents: 2000, active: true, subjectBilling: { 'Inglise keel': { billingMode: 'package' } } };
+    const invoices = [{ id: 'i', planMonth: '2026-11', status: 'Ootel', combined: true, studentIds: ['k'], cardParts: [{ studentId: 'k', subject: 'Eesti keel', plannedUnits: 1 }] }];
+    const events = [{ ...weekly, studentId: 'k', subject: 'Eesti keel' }, { ...weekly, id: 'w2', day: 'Thu', studentId: 'k', subject: 'Inglise keel' }];
+    const list = lessonsRunningOut({ students: [kid], plans: [plan], invoices, lessons: [], events, today: '2026-11-04' });
+    expect(list).toEqual([expect.objectContaining({ kind: 'month', studentId: 'k', subject: 'Eesti keel', left: 1, planned: 4 })]);
+  });
   it('monthly: enough paid lessons is not listed', () => {
     const invoices = [{ id: 'i1', studentId: 's1', planMonth: '2026-11', plannedUnits: 4, status: 'Ootel' }];
     expect(lessonsRunningOut({ students: [student], plans: [plan], invoices, lessons: [], events: [weekly], today: '2026-11-04' })).toEqual([]);

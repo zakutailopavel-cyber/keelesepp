@@ -7,7 +7,7 @@ const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-co
 const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('./monthly-invoice-core');
 const { invoiceCancellationError, wasSent } = require('./invoice-cancellation-core');
 const { subjectName } = require('./student-enrollments-core');
-const { sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth } = require('./combined-invoice-core');
+const { monthlyBillingBlocker, sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth } = require('./combined-invoice-core');
 const { tokenInvoiceInput, tokenInvoiceLines, tokenInvoiceSubject, combinedTokenInput } = require('./lesson-tokens-core');
 const { cardPayerEmail, firstEmail, linkedParentIds } = require('./invoice-payer-core');
 
@@ -231,6 +231,9 @@ async function createMonthlyInvoice({ actor, values }) {
     if (existing.exists) throw httpError(409, 'Monthly invoice revision already exists');
     if (!studentSnap.exists) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
+    // billing per subject (owner 2026-11-06): a subject on lesson packages gets no monthly invoice
+    const blocked = monthlyBillingBlocker(studentSnap.data(), planSnap.exists ? planSnap.data() : {}, values.subject);
+    if (blocked) throw httpError(400, blocked);
     let priced;
     try {
       // one subject of a card with several (owner 2026-10-20): that subject's price, its name on the invoice

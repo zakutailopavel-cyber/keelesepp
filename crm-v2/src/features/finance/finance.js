@@ -1,4 +1,5 @@
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
+import { weeklyForecastCents } from './subjectBilling.js';
 
 export function invoiceAmountCents(invoice = {}) {
   if (Number.isFinite(Number(invoice.amountCents))) return Math.max(0, Number(invoice.amountCents));
@@ -34,7 +35,8 @@ export function displayDate(value) {
 
 export function revenueForecast(plans = []) {
   const rows = plans.filter((plan) => plan.active !== false && Number(plan.lessonPriceCents) > 0 && Number(plan.weeklyLessons) > 0).map((plan) => {
-    const weeklyCents = Math.round(Number(plan.lessonPriceCents) * Number(plan.weeklyLessons));
+    // card price × lessons per week, plus further subjects with their own lessons per week (owner 2026-11-06)
+    const weeklyCents = Math.round(weeklyForecastCents(plan));
     return {
       ...plan,
       weeklyCents,
