@@ -747,6 +747,46 @@ move or cancel them.
 The current two-way slice still uses last-synchronized-write-wins. Explicit conflict review,
 Google eTag preconditions and incremental sync tokens remain separate releases.
 
+### Groups (Grupid) — what follows an edit (2026-11-06)
+
+`groups/{id}` holds name, teacher (`teacher`, `teacherUid`, `teacherHistory`), subject, level, `audience`,
+`capacity`, `ageFrom`/`ageTo`, `students[]`, `studentLessonMap` and the weekly `lessons[]` (day, time, `duration`,
+`startDate`, attendance). Groups have no room / online flag and no price of their own: billing reads the
+attendance `lessons` docs (`group_<g>_<l>_<date>_<student>`) like any other lesson, and the group lesson's `duration`
+goes into each of them exactly like a 1:1 lesson's.
+Create and edit use one form and one check (`features/groups/groupForm.js groupFormError`; the service checks name and
+ages again). What an edit changes:
+
+- **Name** → the members' cards whose `group` is the old name (or empty); marked lessons keep the old name.
+- **Teacher** (from a chosen date) → `teacherHistory` gets the old teacher until the day before; calendar, attendance,
+  reports and Google Calendar (`syncGroupToGoogleCalendar`) follow the teacher of each date. Group lessons have no
+  `schedule` docs, so nothing else is rewritten; already marked `lessons` docs keep their teacher. Live group rooms
+  (`liveGroupRooms`) are ad-hoc rooms of the teacher who opens them, not linked to `groups`, so nothing there changes.
+  Members' cards are not given to the new teacher (`teacherUids` unchanged), same as when a member is added.
+- **Lesson length** → `patchLesson { duration }`: every unmarked lesson of that weekly time; marked ones keep theirs.
+  The form offers 45 / 60 / 90 / 120 min and „Muu pikkus” (5–480).
+- **Archived students** may join a group: „Halda” lists them under their own „Arhiveeritud” header (one search over
+  name, e-mail, phone, parent, level for both lists); ticking one asks „Õpilane on arhiveeritud — kas taastada
+  aktiivseks?” → „Lisa ja taasta kaart” or „Lisa, kaart jääb arhiivi”. A failed archive read is shown, not hidden.
+- Participation: the group window has „Kinnita osalemine” per member (card `groupInterest.status = interested`); the
+  lesson attendance („Kohal / Puudub / Teatas”) is marked in the calendar lesson panel.
+- Pages that reload after a save keep their data on screen (`if (!state.data)` shows the loader only on the first
+  load) so an open window does not disappear and come back.
+
+## Form field help („?”) — the pattern for every form (owner 2026-11-06)
+
+Forms must explain themselves. Every input whose meaning is not obvious gets a small „?” right after its label:
+`<Input label="Grupi nimi" help="Lühike nimi, mida näevad õpilased ja õpetaja." helpExample="Eesti keel B1 · teisipäev 18:00" />`
+(`Select` and wrappers that pass props on, e.g. `SubjectSelect`, take the same `help` / `helpExample`), or on its own
+`<FieldHelp label="…" text="…" example="…" />` from `components/ui`. Behaviour (`components/ui/FieldHelp.jsx`,
+`fieldHelp.css`): a 20 px round button (bigger invisible touch area) with `aria-label="Abi: <label>"`,
+`aria-expanded`, `aria-controls`; tap / click / Enter toggles a popover `role="dialog"` named by the label, which takes
+the focus; Escape closes it and returns the focus to „?” without closing a surrounding `Modal`; a tap outside or
+tabbing away closes it. The popover is absolutely positioned (no layout shift), at most 300 px wide, and is shifted
+so it stays inside the screen with a 16 px gutter (phones). Text rules: plain Estonian, one or two short sentences saying what to enter and what it affects, then
+„Näide: …”. Keep the texts next to the form's model (groups: `GROUP_HELP` in `groupForm.js`). Form errors are shown
+inside the open window (`role="alert"`), not behind it.
+
 ## Firestore ownership
 
 - `curriculumLessons`, `exercises` — staff-authored learning sources.
