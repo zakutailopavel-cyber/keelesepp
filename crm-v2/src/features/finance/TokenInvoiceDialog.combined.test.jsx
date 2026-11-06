@@ -37,7 +37,7 @@ describe('„Ühine tunnipakett”', () => {
     fireEvent.change(second, { target: { value: 'jaan' } });
     fireEvent.change(screen.getByLabelText('Aine (rida 2)'), { target: { value: 'Matemaatika' } });
     fireEvent.change(screen.getByLabelText('Tundide arv (rida 2)'), { target: { value: '4' } });
-    expect(screen.getByText(/Rida 2: 4 × 25,00 €/)).toBeInTheDocument();
+    expect(screen.getByText(/Rida 2: 4 tundi × 25,00\s€ = 100,00\s€/)).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('12 tundi, 2 rida = 260,00 €');
     fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
     await waitFor(() => expect(api.createTokensCombined).toHaveBeenCalledWith(expect.objectContaining({
