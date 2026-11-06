@@ -22,6 +22,7 @@ const { FieldValue } = require("firebase-admin/firestore");
 let googleModule = null;
 const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
+const { runInvoiceReminderBatch } = require("./invoice-reminder-batch-core");
 const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, tokenInvoiceParts, isCombinedTokenInvoice, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject, packageTiersForLesson } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
@@ -5815,26 +5816,14 @@ function shouldSendOverdueReminder(invoice, todayIso, force = false) {
 async function sendInvoiceBatch({ type, force = false, actor = null } = {}) {
   const todayIso = localDate(new Date(), APP_TIME_ZONE);
   const snap = await db.collection("invoices").where("status", "==", "Ootel").get();
-  const result = { sent: 0, queued: 0, skipped: 0, failed: 0, errors: [] };
-  for (const doc of snap.docs) {
-    const invoice = { id: doc.id, ...doc.data() };
-    const shouldSend = type === "due10"
+  // a lesson-package invoice is never e-mailed by a batch (Oleksiy 2026-11-06): invoice-reminder-batch-core.js
+  return runInvoiceReminderBatch({
+    invoices: snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+    shouldSend: (invoice) => (type === "due10"
       ? shouldSendDue10Reminder(invoice, todayIso, force)
-      : shouldSendOverdueReminder(invoice, todayIso, force);
-    if (!shouldSend) {
-      result.skipped++;
-      continue;
-    }
-    try {
-      const delivery = await sendInvoiceMessage(doc.id, { type, actor });
-      if (delivery.status === "sent") result.sent++;
-      else result.queued++;
-    } catch (e) {
-      result.failed++;
-      result.errors.push({ invoiceId: doc.id, error: e.message || String(e) });
-    }
-  }
-  return result;
+      : shouldSendOverdueReminder(invoice, todayIso, force)),
+    send: (invoiceId) => sendInvoiceMessage(invoiceId, { type, actor }),
+  });
 }
 
 function formatInTimeZone(date, timeZone, fields) {
