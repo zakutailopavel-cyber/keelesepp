@@ -249,8 +249,12 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   useEffect(() => {
     if (isAdmin && state.data) unmarkedLessonsService.notifyChanged(unmarkedCount);
   }, [isAdmin, state.data, unmarkedCount]);
-  if (state.loading) return <LoadingState label="Laen kalendrit…" />;
-  if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
+  // a reload after a mark keeps the calendar and the open lesson panel on screen (2026-11-06, group attendance:
+  // the whole page turned into „Laen kalendrit…” after every „Kohal” click, so the click looked lost)
+  if (!state.data) {
+    if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
+    return <LoadingState label="Laen kalendrit…" />;
+  }
   const [scheduleEvents, students, groups, lessonRecords] = state.data;
   const studentMap = new Map(students.items.map((student) => [student.id, student]));
   const archivedIds = new Set((state.data[4] || []).filter((student) => student.active === false).map((student) => student.id));

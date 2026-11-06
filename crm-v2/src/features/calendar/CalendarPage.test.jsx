@@ -380,6 +380,25 @@ describe('calendar v2', () => {
     await waitFor(() => expect(props.groupRepository.setAttendance).toHaveBeenCalledWith(expect.anything(), 'gl1', today, 's1', 'clear', expect.anything(), 'Mari Maas'));
   });
 
+  it('group attendance: the lesson panel stays on screen while the calendar reloads after „Kohal”', async () => {
+    const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()];
+    const group = { id: 'g1', name: 'A2 õhtune', teacher: 'Jelena', teacherUid: 't2', students: ['s1'], lessons: [{ id: 'gl1', day: weekday, time: '18:00', duration: 90, recurring: true, startDate: today }] };
+    const props = repositories({ groups: [group] });
+    props.studentRepository.list = vi.fn(async ({ status }) => ({ items: status === 'archived' ? [] : [{ id: 's1', name: 'Mari Maas', level: 'B1', active: true }] }));
+    props.groupRepository.setAttendance = vi.fn().mockResolvedValue({});
+    render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /18:00 A2 õhtune/ }));
+    let release;
+    props.groupRepository.list.mockImplementation(() => new Promise((resolve) => { release = () => resolve([group]); }));
+    const mari = within(screen.getByRole('dialog', { name: 'Tund: A2 õhtune' })).getByText('Mari Maas').closest('section');
+    fireEvent.click(within(mari).getByRole('button', { name: 'Kohal' }));
+    await waitFor(() => expect(props.groupRepository.setAttendance).toHaveBeenCalled());
+    await waitFor(() => expect(release).toBeTypeOf('function'));
+    expect(screen.queryByText('Laen kalendrit…')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Tund: A2 õhtune' })).toBeInTheDocument();
+    release();
+  });
+
   it('a former group teacher keeps only the lessons he gave: the new teacher\'s lessons are not in his calendar', async () => {
     const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()];
     const group = { id: 'g1', name: 'A2 õhtune', teacher: 'Jelena', teacherUid: 't2', teacherHistory: [{ teacher: 'Pavel', teacherUid: 't1', until: shiftDate(today, -1) }], students: [], lessons: [{ id: 'gl1', day: weekday, time: '18:00', duration: 90, recurring: true, startDate: shiftDate(today, -14) }] };
