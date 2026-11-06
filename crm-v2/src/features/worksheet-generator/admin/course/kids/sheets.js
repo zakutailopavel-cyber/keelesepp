@@ -1,15 +1,18 @@
 // The children's courses as course modules (owner 2026-10-28: „учебные планы для групп, с раскрасками, полным
 // учебным планом, что на каком уроке делать”): every lesson of program56 / program67 / program89 becomes three
 // sheets for the constructor and the Live Classroom:
-//   discover „Tunnis: uued sõnad” — the chant, the words with pictures (and reading / a story for 6–9);
-//   practice „Tunnis: harjutame” — colouring by numbers, tracing, counting / letter hunt (grammar for 8–9);
-//   transfer „Kodus koos vanemaga” — the parents' note, colouring, tracing (writing and talking for 8–9).
+//   discover „Tunnis: uued sõnad” — the chant, the words with pictures (and reading / a story for 6–7);
+//   practice „Tunnis: harjutame” — colouring by numbers, tracing, counting / letter hunt;
+//   transfer „Kodus koos vanemaga” — the parents' note, colouring, tracing.
+// The 8–9 group has full school-style sheets instead (1 Loeme, 2 Harjutame keelt, 3 Kirjutame ja räägime; owner
+// 2026-11-06): content in school89.js, built by schoolLesson below.
 // Pictures: public/kids-art/<id>.svg (scripts/kids-art.mjs) from engine/blocks/kidsPictures.js.
 import { B } from '../blocks.js';
 import { COLORING_PICTURES } from '../../../../worksheet-studio/engine/blocks/kidsPictures.js';
 import { PROGRAM_56 } from './program56.js';
 import { PROGRAM_67 } from './program67.js';
 import { PROGRAM_89 } from './program89.js';
+import { SCHOOL_89 } from './school89.js';
 
 const pad = (n) => String(n).padStart(3, '0');
 const block = (id, type, tone, goal, data, width = 'full') => ({ id, type, width, span: width === 'full' ? 12 : 6, tone, goal, data });
@@ -68,8 +71,9 @@ const certificate = (id, program) => B.text(id, 'TUNNISTUS', [
   'Sa oskad nüüd eesti keeles tervitada, rääkida endast ja palju uusi sõnu. Tubli!',
   'Õpetaja: ________________    Kuupäev: ____________',
 ].join('\n\n'));
-const parentsNote = (id, lesson) => B.text(id, 'Vanemale · Родителям', [
+const parentsNote = (id, lesson, extra = '') => B.text(id, 'Vanemale · Родителям', [
   `**Сегодня на уроке:** ${lesson.ru}. ${lesson.home}`,
+  ...(extra ? [extra] : []),
   `**Sõnad · слова:** ${words(lesson).join(', ')}.`,
   ...(lesson.phrases?.length ? [`**Laused · фразы:** ${lesson.phrases.join(' · ')}`] : []),
 ].join('\n\n'));
@@ -111,39 +115,85 @@ function youngLesson(program, lesson, index) {
   return { discover, practice, transfer };
 }
 
+// The 8–9 group's three full sheets (owner 2026-11-06): content in school89.js, one entry per lesson of PROGRAM_89.
+const SCHOOL_GOALS = {
+  g_vocab: 'Laps teab ja kasutab tunni sõnu.',
+  g_read: 'Laps loeb teksti ja vastab küsimustele.',
+  g_notice: 'Laps märkab tunni keelereeglit ja kasutab seda harjutustes.',
+  g_use: 'Laps kirjutab ja räägib oma teemal.',
+};
+const full = (b) => ({ ...b, width: 'full', span: 12 });
+const wordsearch = (id, title, instruction, words, goal = 'g_vocab') => block(id, 'wordsearch', 'green', goal, { title, instruction, words: words.join(', '), size: 10 });
+const picsOf = (id, [title, items]) => block(id, 'picmatch', 'cream', 'g_vocab', {
+  title, instruction: 'Loe sõna. Kirjuta sõna kõrvale pildi täht.', columns: '4', aspect: '1:1', items: items.map(([word, pic]) => ({ img: art(pic), word })),
+});
+// one exercise of school89.js: ex(key, type, title, instruction, items, { bank, goal })
+function exercise(id, e, lesson) {
+  const { type, title, instruction, items } = e;
+  const goal = (fallback) => e.goal || fallback;
+  switch (type) {
+    case 'gaps': return B.gaps(id, title, instruction, items, e.bank || '', 'full', goal('g_notice'));
+    case 'choice': return B.choice(id, title, instruction, items, 'full', goal('g_notice'));
+    case 'match': return B.match(id, title, instruction, items, 'full', goal('g_vocab'));
+    case 'wordforms': return B.wordforms(id, title, instruction, items, 'full', goal('g_notice'));
+    case 'transformation': return B.transformation(id, title, instruction, items, 'full', goal('g_notice'));
+    case 'errorfix': return B.errorfix(id, title, instruction, items, 'full', goal('g_notice'));
+    case 'categorize': return B.categorize(id, title, instruction, items, 'full', goal('g_vocab'));
+    case 'wordorder': return B.wordorder(id, title, instruction, items, 'full', goal('g_notice'));
+    case 'crossword': return B.crossword(id, title, instruction, items, 'full', goal('g_vocab'));
+    case 'truefalse': return B.truefalse(id, title, instruction, items, 'full', goal('g_read'));
+    case 'wordsearch': return wordsearch(id, title, instruction, items, goal('g_vocab'));
+    case 'coloring': return coloring(id, lesson.color, { title, instruction });
+    default: throw new Error(`${id}: tundmatu harjutus ${type}`);
+  }
+}
+
 function schoolLesson(program, lesson, index) {
   const id = lessonIdOf(program, index).replace(/-/g, '_');
-  const [passageTitle, passage, questions] = lesson.reading;
+  const s = SCHOOL_89[index];
+  if (!s) throw new Error(`${lessonIdOf(program, index)}: school89.js sisu puudub`);
+  const [passageTitle, passage, questions] = s.reading;
   const [writeInstruction, keywords] = lesson.write;
   const discover = [
-    B.vocab(`${id}_d_words`, 'Tunni sõnad', lesson.words, '3'),
-    B.reading(`${id}_d_read`, 'Loe teksti.', 'Loe tekst läbi. Vasta küsimustele lühidalt.', passageTitle, passage, questions),
-    B.choice(`${id}_d_choice`, 'Vali õige vastus.', 'Vali iga küsimuse juurde vastus, mis on tekstis.', lesson.choice),
+    B.tip(`${id}_d_warm`, 'Enne lugemist', s.warm, 'full'),
+    B.vocab(`${id}_d_words`, 'Tunni sõnad · слова урока', s.vocab.join('\n'), '2'),
+    picsOf(`${id}_d_pics`, s.pictures),
+    B.reading(`${id}_d_read`, 'Loe teksti.', 'Loe tekst läbi. Vasta küsimustele lühidalt: üks või paar sõna.', passageTitle, passage, questions),
+    B.truefalse(`${id}_d_tf`, 'Õige või vale?', 'Loe lauset. Märgi, kas see on teksti järgi õige või vale.', s.truefalse, 'full'),
+    B.choice(`${id}_d_choice`, 'Vali õige vastus.', 'Vali iga küsimuse juurde vastus, mis sobib teksti järgi.', s.choice),
+    B.notice(`${id}_d_rule`, `Keelekast: ${lesson.grammar}`, [...s.rule, `Подсказка: ${s.ru}`], 'full'),
+    full(exercise(`${id}_d_use`, s.use, lesson)),
   ];
   const practice = [
-    B.notice(`${id}_p_rule`, `Märka: ${lesson.grammar}`, lesson.gaps.slice(0, 3).map((s) => s.replace(/\[([^\]|]+)[^\]]*\]/g, '**$1**')), 'full'),
-    B.gaps(`${id}_p_gaps`, 'Kirjuta lünka sobiv sõna.', 'Vali sõna kastist.', lesson.gaps, lesson.bank, 'full', 'g_notice'),
-    B.wordorder(`${id}_p_order`, 'Pane sõnad järjekorda.', 'Kirjuta lause õiges järjekorras.', lesson.order, 'full', 'g_notice'),
-    ...(lesson.color ? [coloring(`${id}_p_color`, lesson.color, { title: 'Värvi pilt numbrite järgi.' })] : []),
+    B.notice(`${id}_p_rule`, `Pea meeles: ${lesson.grammar}`, s.rule.slice(0, 3), 'full'),
+    B.review(`${id}_p_review`, s.review),
+    ...s.practice.map((e) => full(exercise(`${id}_p_${e.key}`, e, lesson))),
   ];
+  const [modelTitle, modelText] = s.model;
   const transfer = [
-    B.writing(`${id}_t_write`, 'Kirjuta.', writeInstruction, [5, 7], keywords, Math.min(2, keywords.length)),
-    B.speaking(`${id}_t_talk`, 'Räägi.', lesson.talk, ['Räägi umbes ühe minuti.', 'Kasuta tunni sõnu.'], [45, 75]),
-    parentsNote(`${id}_t_parents`, { ...lesson, words: lesson.words }),
+    B.text(`${id}_t_model`, `Näidis: ${modelTitle}`, modelText),
+    B.tip(`${id}_t_starters`, 'Lauseabi: alusta nii', s.starters, 'full'),
+    B.planning(`${id}_t_plan`, 'Mõtle enne kirjutamist.', 'Vasta igale küsimusele paari sõnaga. Need on sinu teksti märksõnad.', s.plan, 1),
+    B.writing(`${id}_t_write`, 'Kirjuta oma tekst.', writeInstruction, [5, 7], keywords, Math.min(2, keywords.length)),
+    B.speaking(`${id}_t_talk`, 'Räägi umbes üks minut.', lesson.talk, s.talk, [45, 75], s.talkTip || 'Kasuta tunni sõnu ja oma teksti. Räägi tervete lausetega.'),
+    parentsNote(`${id}_t_parents`, lesson, 'Дома: закончить упражнения листа 2, которые не успели на уроке, и дописать текст (5–7 предложений). Ребёнок рассказывает вам свой текст по-эстонски около минуты.'),
     ...(lesson.celebration ? [certificate(`${id}_t_cert`, program)] : []),
+    B.selfcheck(`${id}_t_self`, s.self, 'Tubli töö!', 'Ma oskan'),
   ];
   return { discover, practice, transfer };
 }
 
-function moduleOf(program, build, phases = KIDS_PHASES) {
+function moduleOf(program, build, phases = KIDS_PHASES, goals = KIDS_GOALS) {
   return {
     MODULE: { id: `${program.id}-module-01`, course: 'kids', title: program.title, level: program.level, supplement: true, phases },
     LESSONS: Object.fromEntries(program.lessons.map((lesson, index) => [lessonIdOf(program, index), {
-      title: lesson.title, canDo: lesson.can, level: program.level, goals: KIDS_GOALS, shortSheet: true,
+      title: lesson.title, canDo: lesson.can, level: program.level, goals,
+      // the 8–9 sheets are full lessons (owner 2026-11-06); the younger groups' sheets stay short
+      ...(build === schoolLesson ? {} : { shortSheet: true }),
       ...build(program, lesson, index),
     }])),
   };
 }
 
 export const KIDS_PROGRAMS = [PROGRAM_56, PROGRAM_67, PROGRAM_89];
-export const KIDS_MODULES = [moduleOf(PROGRAM_56, youngLesson), moduleOf(PROGRAM_67, youngLesson), moduleOf(PROGRAM_89, schoolLesson, SCHOOL_PHASES)];
+export const KIDS_MODULES = [moduleOf(PROGRAM_56, youngLesson), moduleOf(PROGRAM_67, youngLesson), moduleOf(PROGRAM_89, schoolLesson, SCHOOL_PHASES, SCHOOL_GOALS)];
