@@ -18,12 +18,40 @@ export function tokenRowState(row, { cards = [], plans = [], schoolSubjects = []
   // the card's subjects; a card that names none (every track ended) is offered the school's subjects
   const subjects = ownSubjects.length ? ownSubjects : schoolSubjects;
   const subject = subjects.includes(row.pickedSubject) ? row.pickedSubject : ownSubjects.length === 1 ? ownSubjects[0] : '';
-  const subjectPrice = subject ? plan?.subjectPrices?.[subject] : null;
   // no total before the subject is chosen: each subject may have its own price
-  const priceCents = subject ? Number(subjectPrice?.lessonPriceCents ?? plan?.lessonPriceCents) || 0 : 0;
-  const minutes = subjectPrice?.lessonMinutes || plan?.lessonMinutes || 60;
+  const { priceCents, minutes } = subject ? tokenPlanPrice(plan, subject) : { priceCents: 0, minutes: 60 };
   const count = Math.max(0, Math.floor(Number(row.lessons) || 0));
   return { card, ownSubjects, subjects, subject, priceCents, minutes, count, amountCents: priceCents * count };
+}
+
+// the price of one lesson exactly as the server takes it (functions/combined-invoice-core.js planForSubject →
+// functions/lesson-tokens-core.js tokenInvoiceLines): the subject's own entry in subjectPrices replaces the card's
+// price (its minutes fall back to the card's), the price is rounded to whole cents, no minutes = 60
+export function tokenPlanPrice(plan, subject = '') {
+  const own = subject && plan?.subjectPrices && typeof plan.subjectPrices === 'object' ? plan.subjectPrices[subject] : null;
+  const source = own ? { lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan?.lessonMinutes } : plan || {};
+  return {
+    priceCents: Math.max(0, Math.round(Number(source.lessonPriceCents) || 0)),
+    minutes: Number(source.lessonMinutes) || 60,
+  };
+}
+
+export const tokenMoney = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
+export const TOKEN_PRICE_MISSING = 'Hind määramata — lisa see õpilase kaardil (Finantsid → Arveldus)';
+
+// „Tunnihind” for control (Oleksiy 2026-11-06): the server's price is per lesson; the price per hour is derived from it
+// (price × 60 / minutes, rounded to cents) and is shown only — the invoice is always lessons × the lesson price
+export function tokenRowPriceView(state = {}) {
+  if (!state.subject) return { status: 'no-subject' };
+  if (!state.priceCents) return { status: 'missing', warning: TOKEN_PRICE_MISSING };
+  const hourlyCents = Math.round((state.priceCents * 60) / state.minutes);
+  return {
+    status: 'ok',
+    hourlyCents,
+    hourly: `Tunnihind: ${tokenMoney(hourlyCents)} / h`,
+    lesson: state.minutes === 60 ? '' : `Tund ${state.minutes} min = ${tokenMoney(state.priceCents)}`,
+    amount: state.count ? `${state.count} tundi × ${tokenMoney(state.priceCents)} = ${tokenMoney(state.amountCents)}` : '',
+  };
 }
 
 // why these lines cannot be one invoice ('' = they can): every line complete, one payer, a card and subject once
@@ -32,7 +60,7 @@ export function tokenRowsError(states = []) {
     const label = states.length > 1 ? `Rida ${index + 1}: ` : '';
     if (!state.card) return `${label}Vali õpilane.`;
     if (!state.subject) return `${label}Vali aine: pakett kuulub ühele ainele ja ainult selle aine tunnid võtavad sellest.`;
-    if (!state.priceCents) return `${label}Õpilasel puudub tunnihind: määra see õpilase kaardil (Finantsid → Arveldus).`;
+    if (!state.priceCents) return `${label}${TOKEN_PRICE_MISSING}.`;
     if (state.count < 1 || state.count > 100) return `${label}Tundide arv peab olema 1–100.`;
   }
   if (new Set(states.map((state) => payerKey(state.card))).size > 1) return MIXED_PAYER_MESSAGE;

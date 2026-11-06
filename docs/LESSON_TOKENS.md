@@ -107,6 +107,14 @@ one number, one PDF, one e-mail, one payment — like the combined monthly / man
   paketi tunnid on juba õpilase kaardil”, correct the packages with `/student-packages/adjust`). A corrected replacement
   keeps `cardParts` and gets `tokenStatus: 'pending'`; `tokenPackageIds` is not copied.
 
+## Price per hour on the composing page (Oleksiy 2026-11-06)
+
+Every row of the dialog shows „Tunnihind: 25,00 € / h”, „Tund 45 min = 18,75 €” when the lesson is not 60 min, and
+„N tundi × hind = summa”. The per-lesson price is `tokenInvoiceRows.js tokenPlanPrice` — the same rule as the server
+(`planForSubject` + `tokenInvoiceLines`); the hourly figure is derived (price × 60 / minutes) for display only. A row
+without price shows „Hind määramata — lisa see õpilase kaardil (Finantsid → Arveldus)” and both create buttons are
+disabled. Test: `crm-v2/src/features/finance/TokenInvoiceDialog.price.test.jsx`.
+
 ## Package ↔ invoice link
 
 One token invoice gives one package: `studentPackages/tokens_<invoiceId>` has `sourceInvoiceId` / `sourceInvoiceNum`,
