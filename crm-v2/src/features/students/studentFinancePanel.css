@@ -25,7 +25,21 @@
 .duplicate-manual__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .duplicate-permanent { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0; font-weight: 600; color: #b42318; }
 @media (max-width: 640px) { .duplicate-manual__row { grid-template-columns: 1fr; } }
-.billing-settings__subject{display:contents}
+/* one tab per subject (#bug 2026-11-06): equal tabs, each with the same fields */
+.billing-settings__tabs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--border, #e5e7eb); }
+.billing-settings__tab { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 44px; padding: 8px 14px; margin-bottom: -1px; border: 1px solid transparent; border-radius: 10px 10px 0 0; background: transparent; color: #344054; font: inherit; font-weight: 700; cursor: pointer; position: relative; }
+.billing-settings__tab small { font-weight: 500; color: #667085; font-size: .78rem; }
+.billing-settings__tab:hover { background: #f8fafc; }
+.billing-settings__tab.is-active { background: #fff; border-color: var(--border, #e5e7eb); border-bottom-color: #fff; color: #162033; box-shadow: inset 0 3px 0 #087e6b; }
+.billing-settings__tab:focus-visible { outline: 3px solid rgba(8,126,107,.45); outline-offset: 2px; }
+.billing-settings__tab-alert { position: absolute; top: 4px; right: 6px; color: #b42318; font-weight: 800; }
+.billing-settings__panel { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; align-items: end; }
+.billing-settings__panel .billing-settings__lesson-price { grid-column: span 2; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.billing-settings__panel .billing-settings__lesson-price .button { min-height: 34px; padding: 0 12px; }
+.billing-settings__shared-note { grid-column: 1 / -1; margin: 0; font-size: .85rem; color: var(--text-muted, #667085); }
+.billing-settings__shared-title { grid-column: 1 / -1; margin: 6px 0 0; padding-top: 12px; border-top: 1px solid var(--border, #e5e7eb); font-weight: 700; }
+.billing-settings__saved { margin: 0; padding: 0; list-style: none; display: grid; justify-items: end; gap: 2px; }
+@media (max-width: 760px) { .billing-settings__panel { grid-template-columns: 1fr; } .billing-settings__panel .billing-settings__lesson-price { grid-column: auto; } .billing-settings__saved { justify-items: start; } .billing-settings__tab { flex: 1 1 40%; } }
 /* price terms (2026-10-29): „Üldtingimused” / „Soodustus” */
 .billing-settings__summary { display: grid; justify-items: end; gap: 4px; }
 .billing-settings__terms { font-size: .82rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: #ecfdf3; color: #087443; }

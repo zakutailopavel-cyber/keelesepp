@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { tokenPlanPrice } from './tokenInvoiceRows.js';
 import {
   CUSTOM_RATE, DISCOUNT_HOURLY_RATES_CENTS, GENERAL_RATE, SAME_RATE, STANDARD_HOURLY_RATE_CENTS, lessonCentsFromHourly,
-  lessonPricesFromTerms, priceTermsOf, rateChoiceOf, validatePriceTerms,
+  billedSubjectPrice, lessonPricesFromTerms, priceTermsOf, rateChoiceOf, validatePriceTerms,
 } from './priceTerms.js';
 
 describe('price terms', () => {
@@ -91,5 +92,25 @@ describe('price terms', () => {
     // editing the card's own rate re-prices the card; the empty subject gets that rate explicitly, the kept one stays
     expect(lessonPricesFromTerms({ ...initial, customRate: '6' }, initial, plan))
       .toEqual({ lessonPriceCents: 1200, hourlyRateCents: 600, subjectPrices: { Matemaatika: { lessonPriceCents: 1333, lessonMinutes: 45 }, Vene: { lessonPriceCents: 1200, lessonMinutes: 120 } } });
+    // a subject at the card's rate but with its own length is written at that rate and length (else the length on the
+    // screen would be ignored: the invoice falls back to the card's price and length)
+    const ownLength = { ...initial, subjects: { ...initial.subjects, Vene: { ...initial.subjects.Vene, lessonMinutes: '60' } } };
+    expect(lessonPricesFromTerms(ownLength, initial, plan).subjectPrices.Vene).toEqual({ lessonPriceCents: 501, lessonMinutes: 60 });
+  });
+
+  // the student card shows each subject at the price its invoice takes (#bug 2026-11-06)
+  it('billedSubjectPrice: main subject = card price; a further subject its own price, else the card price', () => {
+    const plan = { lessonPriceCents: 2000, lessonMinutes: 60, subjectPrices: { Matemaatika: { lessonPriceCents: 1125, lessonMinutes: 45 }, Vene: { lessonPriceCents: 1500 } } };
+    expect(billedSubjectPrice(plan, 'Eesti keel', 'Eesti keel')).toEqual({ lessonPriceCents: 2000, lessonMinutes: 60, fallback: false });
+    expect(billedSubjectPrice(plan, 'Matemaatika', 'Eesti keel')).toEqual({ lessonPriceCents: 1125, lessonMinutes: 45, fallback: false });
+    // own price without a length: the card's length (the server rule)
+    expect(billedSubjectPrice(plan, 'Vene keel', 'Eesti keel')).toEqual({ lessonPriceCents: 2000, lessonMinutes: 60, fallback: true });
+    expect(billedSubjectPrice(plan, 'Vene', 'Eesti keel')).toEqual({ lessonPriceCents: 1500, lessonMinutes: 60, fallback: false });
+    expect(billedSubjectPrice(null, 'Matemaatika', 'Eesti keel').lessonPriceCents).toBe(0);
+    // the package invoice prices further subjects the same way
+    for (const subject of ['Matemaatika', 'Vene', 'Inglise keel']) {
+      const billed = billedSubjectPrice(plan, subject, 'Eesti keel');
+      expect(tokenPlanPrice(plan, subject)).toEqual({ priceCents: billed.lessonPriceCents, minutes: billed.lessonMinutes });
+    }
   });
 });

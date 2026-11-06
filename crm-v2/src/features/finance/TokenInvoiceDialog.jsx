@@ -2,7 +2,6 @@ import { Coins, Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
-import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
 import { lessonTokensService, subjectBalance } from '../../services/firebase/lessonTokens.js';
 import { studyDirectionsService } from '../../services/firebase/studyDirections.js';
 import { subjectsOf } from '../students/subjects.js';
@@ -10,7 +9,7 @@ import { activeDirections } from '../students/studyDirections.js';
 import { useStudyDirections } from '../students/useStudyDirections.js';
 import { INVOICE_NOTE_MAX, invoiceNotesService, saveCreationNote } from '../../services/firebase/invoiceNotes.js';
 import { defaultBillingMonth, payerKey } from './monthlyBilling.js';
-import { MIXED_PAYER_MESSAGE, TOKEN_ROWS_MAX, tokenMoney as money, tokenRowPriceView, tokenRowState, tokenRowsError } from './tokenInvoiceRows.js';
+import { MIXED_PAYER_MESSAGE, TOKEN_INVOICE_NOT_SENT_HINT, TOKEN_ROWS_MAX, tokenMoney as money, tokenRowPriceView, tokenRowState, tokenRowsError } from './tokenInvoiceRows.js';
 import { cardPayerEmail, cardPayerName } from './invoicePayer.js';
 
 // one request id per form (a retry after an error never makes a second invoice); outside the component so it is never
@@ -30,7 +29,7 @@ const newRow = (studentId = '') => ({ key: `row-${(rowSeq += 1)}`, studentId, pi
 // „Ühine tunnipakett” (owner 2026-11-04): „+ Lisa rida” adds another child (or another subject) of the SAME payer; the
 // lines become ONE invoice (manualInvoiceApi /create-tokens-combined), each line priced from its own card, and after
 // payment every line becomes its own package on its own card.
-export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCreated, api = manualInvoiceApi, deliveryApi = invoiceDeliveryApi, tokensApi = lessonTokensService, notesRepository = invoiceNotesService, directionsService = studyDirectionsService }) {
+export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCreated, api = manualInvoiceApi, tokensApi = lessonTokensService, notesRepository = invoiceNotesService, directionsService = studyDirectionsService }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [rows, setRows] = useState(() => [newRow()]);
@@ -64,7 +63,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
   const total = states.reduce((sum, state) => sum + state.amountCents, 0);
   const totalLessons = states.reduce((sum, state) => sum + state.count, 0);
   const complete = states.every((state) => state.priceCents && state.count);
-  // a line whose card + subject has no price cannot be invoiced (the server refuses it too): both buttons wait
+  // a line whose card + subject has no price cannot be invoiced (the server refuses it too): „Loo arve” waits
   const priceMissing = states.some((state) => state.card && tokenRowPriceView(state).status === 'missing');
 
   // the lessons left that this subject's lessons can take (shown only for the card it was read for)
@@ -87,12 +86,13 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
   const removeRow = (key) => { setRows((current) => current.filter((row) => row.key !== key)); setRequestId(''); setError(''); };
   const close = () => { if (busy) return; setOpen(false); setQuery(''); setRows([newRow()]); setNote(''); setError(''); setRequestId(''); setDue(dueDefault()); };
 
-  const create = async (send) => {
+  // Oleksiy 2026-11-06 („Убрать автоматическую отправку счета по туннипакету!!”): the dialog only creates the invoice;
+  // it is e-mailed by hand from its row in the invoice list („Saada”), never from here
+  const create = async () => {
     setError('');
     const blocked = tokenRowsError(states);
     if (blocked) { setError(blocked); return; }
-    if (send && !payerEmail) { setError('Maksjal puudub e-post: lisa see õpilase kaardile või loo arve ilma saatmata.'); return; }
-    setBusy(send ? 'send' : 'create');
+    setBusy('create');
     // one request id per form: a retry after an error never makes a second invoice
     const id = requestId || newRequestId();
     setRequestId(id);
@@ -102,10 +102,9 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
         ? await api.createTokensCombined({ items: states.map((state) => ({ studentId: state.card.id, subject: state.subject, lessons: state.count })), due, note: '', requestId: id })
         : await api.createTokens({ studentId: card.id, lessons: first.count, due, note: '', subject: first.subject, requestId: id });
       const noted = await saveCreationNote(notesRepository, invoice, note);
-      if (send) await deliveryApi.send(invoice.id);
       setBusy('');
       close();
-      await onCreated?.(invoice, { sent: send, ...noted });
+      await onCreated?.(invoice, { sent: false, ...noted });
     } catch (caught) {
       setError(caught.message || 'Arvet ei saanud luua.');
       setBusy('');
@@ -137,8 +136,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
     <Button variant="secondary" onClick={() => setOpen(true)}><Coins size={17} /> Tunnipakett</Button>
     <Modal open={open} title={combined ? 'Ühine tunnipakett: üks arve mitme rea eest' : 'Tunnipakett: arve N tunni eest'} onClose={close} footer={<>
       <Button variant="secondary" disabled={Boolean(busy)} onClick={close}>Loobu</Button>
-      <Button variant="secondary" loading={busy === 'create'} disabled={Boolean(busy) || priceMissing} onClick={() => create(false)}>Loo arve</Button>
-      <Button loading={busy === 'send'} disabled={Boolean(busy) || priceMissing} onClick={() => create(true)}>Loo ja saada</Button>
+      <Button loading={busy === 'create'} disabled={Boolean(busy) || priceMissing} onClick={create}>Loo arve</Button>
     </>}>
       <div className="form-grid">
         <Input className="form-grid__wide" label="Otsi õpilast" type="search" placeholder="Nimi, aine, lapsevanem või e-post" value={query} onChange={(event) => setQuery(event.target.value)} />
@@ -154,7 +152,9 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
         <div className="field form-grid__wide">
           <span className="field__label">Tundide arv</span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            {PRESETS.map((n) => <Button key={n} type="button" variant={first.count === n ? 'primary' : 'secondary'} onClick={() => updateRow(rows[0].key, { lessons: n })}>{n}</Button>)}
+            {/* the modal renders inside .finance-month-hero__actions (no portal): the hero's white-on-dark secondary
+                buttons rule is scoped to direct children (financeMonth.css), so unselected chips stay dark on white (#bug 2026-11-06) */}
+            {PRESETS.map((n) => <Button key={n} type="button" data-token-chip={n} aria-pressed={first.count === n} variant={first.count === n ? 'primary' : 'secondary'} onClick={() => updateRow(rows[0].key, { lessons: n })}>{n}</Button>)}
             <input aria-label="Tundide arv" className="field__input" style={{ width: 90 }} type="number" min="1" max="100" value={rows[0].lessons} onChange={(event) => updateRow(rows[0].key, { lessons: event.target.value })} />
             <span className="form-hint">nt 2 korda nädalas → 8–9 tundi kuus</span>
           </div>
@@ -191,6 +191,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
           <span className="form-hint">{combined
             ? 'Üks arve, üks makse. Pärast makse laekumist lisab „Lisa tunnid” iga rea tunnid selle õpilase kaardile ja ainele eraldi paketina.'
             : 'Tunnid lisatakse õpilasele pärast makse laekumist nupuga „Lisa tunnid” arvete nimekirjas. Iga selle aine toimunud tund (ja ette teatamata puudumine) võtab ühe tunni; teiste ainete tunnid sellest paketist ei võta.'}</span></p>
+        <p className="form-hint form-grid__wide" data-token-not-sent>{TOKEN_INVOICE_NOT_SENT_HINT}</p>
         {error ? <p className="action-error form-grid__wide" role="alert">{error}</p> : null}
       </div>
     </Modal>
