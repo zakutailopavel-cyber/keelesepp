@@ -160,11 +160,16 @@ export const parentsService = {
   async linkStudent(parent, student, user, options = {}) {
     requireAdmin(user);
     if (!parent?.id || !student?.id) throw new Error('Lapsevanemat või õpilast ei leitud.');
+    // an archived card may be linked (Oleksiy 2026-11-06); a card in the „Prügikast” may not (#1124)
+    if (student.deletedAt || student.purgedAt) throw new Error(`Õpilase kaart „${student.name || student.id}” on prügikastis. Taasta see enne sidumist.`);
+    if (student.mergedInto || student.mergedIntoStudentId) throw new Error(`Õpilase kaart „${student.name || student.id}” on liidetud teise kaardiga. Seo alles jäänud kaart.`);
     const existingParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
     const force = Boolean(options.force);
+    // „Taasta ja seo”: the chosen archived card becomes active in the same write (its other archived tracks stay)
+    const restore = Boolean(options.restore);
     const relatedStudents = Array.isArray(options.relatedStudents) ? options.relatedStudents : [];
     const selectedKey = studentPersonKey(student);
-    const samePerson = relatedStudents.filter((item) => item?.id && studentPersonKey(item) === selectedKey);
+    const samePerson = relatedStudents.filter((item) => item?.id && !item.deletedAt && !item.purgedAt && !item.mergedInto && !item.mergedIntoStudentId && studentPersonKey(item) === selectedKey);
     const targets = [...new Map([student, ...samePerson].map((item) => [item.id, item])).values()];
     const childNames = splitChildNames(parent.childName);
     if (!childNames.some((name) => name.toLocaleLowerCase('et') === clean(student.name).toLocaleLowerCase('et'))) childNames.push(clean(student.name));
@@ -180,6 +185,7 @@ export const parentsService = {
         ...(makeMain ? { linkedParentId: parent.id, parentUid: parent.id } : {}),
         ...(makeMain || !clean(target.parentName) ? { parentName: parent.displayName || '' } : {}),
         ...(makeMain || !clean(target.parentEmail) ? { parentEmail: parent.email || '' } : {}),
+        ...(restore && target.id === student.id && target.active === false ? { active: true, restoredAt: linkedAt } : {}),
         updatedAt: linkedAt,
       }, { merge: true });
     });
@@ -191,9 +197,9 @@ export const parentsService = {
       parentReviewedAt: linkedAt,
       parentReviewedBy: user.displayName || user.email || '',
     }, { merge: true });
-    writeActivity(batch, db, force ? 'parent.student_force_assigned' : 'parent.student_assigned', `${student.name || 'Õpilane'} seoti lapsevanemaga`, parent, user, { studentId: student.id, studentName: student.name || '', linkedRecordCount: targets.length, previousParentId: existingParentId || '' });
+    writeActivity(batch, db, force ? 'parent.student_force_assigned' : 'parent.student_assigned', `${student.name || 'Õpilane'} seoti lapsevanemaga`, parent, user, { studentId: student.id, studentName: student.name || '', linkedRecordCount: targets.length, previousParentId: existingParentId || '', ...(student.active === false ? { archivedCard: true, restored: restore } : {}) });
     await batch.commit();
-    return { childName, linkedRecordCount: targets.length };
+    return { childName, linkedRecordCount: targets.length, ...(student.active === false ? { restored: restore } : {}) };
   },
 
   // removes one parent account from the child's card (the other parents stay); the parent loses access to the child
