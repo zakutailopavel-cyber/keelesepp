@@ -7516,7 +7516,10 @@ async function relinkDataQualityRecord({ actor, entityType, entityId, studentId,
     ]);
     if (existingAudit.exists) return { idempotent: true, entityId: cleanEntityId, studentId: cleanStudentId };
     if (!entitySnap.exists) throw httpError(404, "Record not found");
-    if (!studentSnap.exists || studentSnap.data().active === false) throw httpError(404, "Active student profile not found");
+    // a parent may be linked to an archived card, never to one in the trash or merged away; a student's own login
+    // only to an active card (parent-invite-core.js linkCardRefusal, Oleksiy 2026-11-06)
+    const refusal = require("./parent-invite-core").linkCardRefusal(studentSnap.exists ? { id: studentSnap.id, ...studentSnap.data() } : null, cleanRelationship);
+    if (refusal) throw httpError(refusal.status, refusal.message);
     const entity = entitySnap.data();
     if (type === "lesson" && entity.date) await assertFinancialDateOpen(transaction, entity.date);
     if (type === "invoice" && entity.date) await assertFinancialDateOpen(transaction, entity.date);
@@ -7608,7 +7611,10 @@ async function linkAccountToStudent({ actor, uid, studentId, relationship, reque
       transaction.get(auditRef), transaction.get(studentRef), transaction.get(userRef),
     ]);
     if (auditSnap.exists) return { uid: cleanUid, studentId: cleanStudentId, relationship: cleanRelationship, idempotent: true };
-    if (!studentSnap.exists || studentSnap.data().active === false) throw httpError(404, "Active student profile not found");
+    // a parent may be linked to an archived card, never to one in the trash or merged away; a student's own login
+    // only to an active card (parent-invite-core.js linkCardRefusal, Oleksiy 2026-11-06)
+    const refusal = require("./parent-invite-core").linkCardRefusal(studentSnap.exists ? { id: studentSnap.id, ...studentSnap.data() } : null, cleanRelationship);
+    if (refusal) throw httpError(refusal.status, refusal.message);
     const student = studentSnap.data();
     const profile = userSnap.exists ? userSnap.data() : {};
     const existingRole = String(profile.role || "").toLowerCase();

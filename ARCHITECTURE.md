@@ -520,6 +520,15 @@ parent account, adds a contact or removes a link (`parentsService.linkStudent` /
 `removeContact`, admin client writes the rules already allow). Linking adds, never replaces. A contact's e-mail
 links the child when that parent registers (`account-bootstrap-core.js parentEmails`). Rules unchanged.
 
+Archived children (2026-11-06): a parent can be linked to an archived card everywhere — Lapsevanemad „Lisa laps”,
+„Lisa lapsevanem” (`ParentInviteDialog`), the student card „Seo lapsevanem”, `/accounts/invite-parent` and
+`/accounts/link` (relationship `parent`). Pickers use `features/parents/childPicker.js`: active cards, then an
+„Arhiveeritud” section, one search over name, e-mail, phone and parent; trashed (`deletedAt` / `purgedAt`), merged-away
+and converted cards are never offered. Choosing an archived card asks „Taasta ja seo” (card `active: true`,
+`restoredAt`, in the same batch / after the invite) or „Seo arhiveerituna”. Server: `parent-invite-core.js
+linkCardRefusal` — parent accepts archived, refuses trash / merged (409); a student's own login still needs an active
+card. The parent's „Minu pere” still lists only active cards (`students.listOwned`).
+
 Parent cabinet „Minu pere” (`/parent`, `features/parents/ParentDashboardPage.jsx`, 2026-11-04): child chips (name +
 level → target), then per child „Areng” = one „Keeleoskus” curve toward the target level (`features/progress-points/`:
 `ProficiencyCard.jsx`, `ProficiencyChart.jsx` inline SVG with a table fallback; formula `levelCurve.js`, documented in

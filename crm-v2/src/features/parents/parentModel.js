@@ -37,6 +37,11 @@ export function buildParentRows(parents = [], students = [], invoices = []) {
   return parents.map((parent) => {
     const activeStudents = students.filter((student) => student.active !== false && !student.convertedToParent);
     const children = groupStudentPeople(activeStudents.filter((student) => parentLinkedToStudent(parent, student)));
+    // linked archived cards (Oleksiy 2026-11-06): shown with „Arhiveeritud”, not counted as children (no invoices,
+    // no „Minu pere”); a child who also has an active card is listed once, as active
+    const activeKeys = new Set(children.map((child) => child.personKey || child.id));
+    const archivedChildren = groupStudentPeople(students.filter((student) => student.active === false && !student.convertedToParent && !student.deletedAt && !student.purgedAt && !student.mergedInto && !student.mergedIntoStudentId && parentLinkedToStudent(parent, student)))
+      .filter((child) => !activeKeys.has(child.personKey || child.id));
     const suggestedChildren = groupStudentPeople(activeStudents.filter((student) => !parentLinkedToStudent(parent, student) && parentMatchesStudent(parent, student)));
     const requestedNames = splitChildNames(parent.childName);
     const linkedNames = new Set(children.map((student) => normalize(student.name)));
@@ -45,6 +50,7 @@ export function buildParentRows(parents = [], students = [], invoices = []) {
     return {
       parent,
       children,
+      archivedChildren,
       suggestedChildren,
       requestedNames,
       missingNames,
@@ -60,7 +66,7 @@ export function filterParentRows(rows, { query = '', status = 'all' } = {}) {
   return rows.filter((row) => {
     if (status === 'cash') { if (row.parent.payerMethod !== 'cash') return false; } else if (status !== 'all' && row.parent.parentContactStatus !== status) return false;
     if (!needle) return true;
-    return [row.parent.displayName, row.parent.email, row.parent.phone, row.parent.parentContactOwner, row.parent.parentContactNotes, ...row.requestedNames, ...[...row.children, ...(row.suggestedChildren || [])].map((child) => `${child.name} ${child.teacher} ${child.subject}`)]
+    return [row.parent.displayName, row.parent.email, row.parent.phone, row.parent.parentContactOwner, row.parent.parentContactNotes, ...row.requestedNames, ...[...row.children, ...(row.archivedChildren || []), ...(row.suggestedChildren || [])].map((child) => `${child.name} ${child.teacher} ${child.subject}`)]
       .some((value) => normalize(value).includes(needle));
   });
 }

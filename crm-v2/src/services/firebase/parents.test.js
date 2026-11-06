@@ -69,6 +69,26 @@ describe('parentsService', () => {
     expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ linkedParentIds: ['parent-2', 'parent-1'], linkedParentId: 'parent-1', parentUid: 'parent-1' });
   });
 
+  it('links an archived card: kept archived, or restored in the same batch („Taasta ja seo”)', async () => {
+    const archived = { id: 'student-9', name: 'Liisa', active: false };
+    await expect(parentsService.linkStudent({ id: 'parent-1', displayName: 'Vanem' }, archived, admin)).resolves.toMatchObject({ linkedRecordCount: 1, restored: false });
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ linkedParentId: 'parent-1' });
+    expect(firestore.batch.set.mock.calls[0][1]).not.toHaveProperty('active');
+    expect(firestore.batch.set.mock.calls[2][1].meta).toMatchObject({ archivedCard: true, restored: false });
+    vi.clearAllMocks(); firestore.writeBatch.mockReturnValue(firestore.batch);
+    const otherTrack = { id: 'student-10', name: 'Liisa', active: false };
+    await expect(parentsService.linkStudent({ id: 'parent-1', displayName: 'Vanem' }, archived, admin, { restore: true, relatedStudents: [archived, otherTrack] })).resolves.toMatchObject({ restored: true });
+    const cards = firestore.batch.set.mock.calls.filter(([path]) => String(path).includes(':students:'));
+    expect(cards.find(([path]) => path.endsWith('student-9'))[1]).toMatchObject({ active: true, restoredAt: expect.any(String), linkedParentId: 'parent-1' });
+    expect(cards.find(([path]) => path.endsWith('student-10'))?.[1] || {}).not.toHaveProperty('active');
+  });
+
+  it('refuses a card in the trash and a merged-away card, writes nothing', async () => {
+    await expect(parentsService.linkStudent({ id: 'parent-1' }, { id: 's1', name: 'Mari', active: false, deletedAt: '2026-11-05T10:00:00Z' }, admin)).rejects.toThrow('prügikastis');
+    await expect(parentsService.linkStudent({ id: 'parent-1' }, { id: 's2', name: 'Mari', active: false, mergedInto: 's3' }, admin)).rejects.toThrow('liidetud');
+    expect(firestore.batch.set).not.toHaveBeenCalled();
+  });
+
   it('unlinks one parent: the others stay, the main parent moves to the next one', async () => {
     const student = { id: 'student-1', name: 'Mari', linkedParentId: 'parent-1', parentUid: 'parent-1', linkedParentIds: ['parent-1', 'parent-2'] };
     expect(parentIdsOf(student)).toEqual(['parent-1', 'parent-2']);

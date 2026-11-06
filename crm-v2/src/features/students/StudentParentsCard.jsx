@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Badge, Button, Card, Input } from '../../components/ui/index.js';
 import { parentContactsOf, parentIdsOf, parentsService } from '../../services/firebase/parents.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
+import ArchivedLinkAsk from '../parents/ArchivedLinkAsk.jsx';
 import './directions.css';
 
 const norm = (value) => String(value || '').trim().toLocaleLowerCase('et');
@@ -19,6 +20,9 @@ export default function StudentParentsCard({ student, user, service = parentsSer
   const [busy, setBusy] = useState('');
   const [ask, setAsk] = useState('');
   const [error, setError] = useState('');
+  // an archived card (Oleksiy 2026-11-06): the parent chosen to link waits for „Taasta ja seo” / „Seo arhiveerituna”
+  const [archivedAsk, setArchivedAsk] = useState(null);
+  const archived = student.active === false;
 
   const linkedIds = parentIdsOf(student);
   const linkedKey = linkedIds.join('|');
@@ -53,7 +57,11 @@ export default function StudentParentsCard({ student, user, service = parentsSer
     setBusy(key); setError('');
     try { await action(); await onChanged?.(); return true; } catch (err) { setError(firebaseErrorMessage(err)); return false; } finally { setBusy(''); }
   };
-  const link = (parent) => run(`link:${parent.id}`, () => service.linkStudent(parent, student, user)).then((ok) => { if (ok) { setMode(''); setQuery(''); } });
+  const link = (parent, { confirmed = false, restore = false } = {}) => {
+    if (archived && !confirmed) { setError(''); setArchivedAsk(parent); return Promise.resolve(); }
+    return run(confirmed ? (restore ? 'archived:restore' : 'archived:keep') : `link:${parent.id}`, () => service.linkStudent(parent, student, user, ...(restore ? [{ restore: true }] : [])))
+      .then((ok) => { if (ok) { setMode(''); setQuery(''); setArchivedAsk(null); } });
+  };
   const unlink = (id) => run(`unlink:${id}`, () => service.unlinkStudent(id, student, user)).then(() => setAsk(''));
   const addContact = () => run('contact', () => service.addContact(student, contact, user)).then((ok) => { if (ok) { setMode(''); setContact({ name: '', email: '', phone: '' }); } });
   const removeContact = (item) => run(`contact:${item.email || item.phone || item.name}`, () => service.removeContact(student, item, user)).then(() => setAsk(''));
@@ -90,7 +98,7 @@ export default function StudentParentsCard({ student, user, service = parentsSer
       {mode === 'link' ? <div className="student-parents__panel">
         <div className="search-field"><Search size={16} /><input aria-label="Otsi lapsevanemat" placeholder="Nimi, e-post või telefon" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
         {query && !results.length ? <p className="form-hint">{parents ? 'Sellist lapsevanema kontot ei leitud. Lisa kontakt ilma kontota või kutsu lapsevanem (konto kaart).' : 'Laen lapsevanemaid…'}</p> : null}
-        <ul className="student-parents__list">{results.map((parent) => <li key={parent.id}><div><strong>{parent.displayName || parent.email}</strong><small>{[parent.email, parent.phone, parent.childName ? `lapsed: ${parent.childName}` : ''].filter(Boolean).join(' · ')}</small></div><Button variant="secondary" loading={busy === `link:${parent.id}`} disabled={Boolean(busy)} onClick={() => link(parent)}>Seo</Button></li>)}</ul>
+        <ul className="student-parents__list">{results.map((parent) => <li key={parent.id}><div><strong>{parent.displayName || parent.email}</strong><small>{[parent.email, parent.phone, parent.childName ? `lapsed: ${parent.childName}` : ''].filter(Boolean).join(' · ')}</small></div><Button variant="secondary" loading={busy === `link:${parent.id}`} disabled={Boolean(busy) || archivedAsk?.id === parent.id} onClick={() => link(parent)}>Seo</Button>{archivedAsk?.id === parent.id ? <ArchivedLinkAsk name={student.name} busy={busy === 'archived:restore' ? 'restore' : busy === 'archived:keep' ? 'keep' : false} onRestore={() => link(parent, { confirmed: true, restore: true })} onKeep={() => link(parent, { confirmed: true })} onCancel={() => setArchivedAsk(null)} /> : null}</li>)}</ul>
       </div> : null}
       {mode === 'contact' ? <div className="student-parents__panel form-grid">
         <Input label="Lapsevanema nimi" value={contact.name} onChange={(event) => setContact({ ...contact, name: event.target.value })} />

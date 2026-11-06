@@ -53,4 +53,23 @@ describe('student card „Lapsevanemad”', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta kontakt' })); });
     expect(await screen.findByRole('alert')).toHaveTextContent('juba olemas');
   });
+  it('an archived card: „Seo” asks first, „Taasta ja seo” restores in the same write, „Seo arhiveerituna” does not', async () => {
+    const service = { list: vi.fn().mockResolvedValue(parents), linkStudent: vi.fn().mockResolvedValue({}) };
+    const student = { id: 's9', name: 'Liisa', active: false };
+    renderCard(student, service);
+    fireEvent.click(screen.getByRole('button', { name: /Seo lapsevanem/ }));
+    fireEvent.change(screen.getByLabelText('Otsi lapsevanemat'), { target: { value: 'isa' } });
+    const row = (await screen.findByText('Isa Tamm')).closest('li');
+    fireEvent.click(within(row).getByRole('button', { name: 'Seo' }));
+    expect(service.linkStudent).not.toHaveBeenCalled();
+    expect(within(row).getByRole('group', { name: 'Arhiveeritud õpilane' })).toHaveTextContent('Õpilane on arhiveeritud — kas taastada aktiivseks?');
+    await act(async () => { fireEvent.click(within(row).getByRole('button', { name: 'Seo arhiveerituna' })); });
+    expect(service.linkStudent).toHaveBeenLastCalledWith(parents[1], student, admin);
+    fireEvent.click(screen.getByRole('button', { name: /Seo lapsevanem/ }));
+    fireEvent.change(screen.getByLabelText('Otsi lapsevanemat'), { target: { value: 'ema' } });
+    const again = (await screen.findByText('Ema Tamm')).closest('li');
+    fireEvent.click(within(again).getByRole('button', { name: 'Seo' }));
+    await act(async () => { fireEvent.click(within(again).getByRole('button', { name: 'Taasta ja seo' })); });
+    expect(service.linkStudent).toHaveBeenLastCalledWith(parents[0], student, admin, { restore: true });
+  });
 });
