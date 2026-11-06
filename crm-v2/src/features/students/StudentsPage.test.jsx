@@ -195,6 +195,25 @@ describe('students list states', () => {
     await waitFor(() => expect(mergeService.mergeStudents).toHaveBeenLastCalledWith({ keepId: 'a1', sourceId: 'b2', apply: true, confirmed: true }));
     expect(await screen.findByText(/Kaardid on liidetud/)).toBeInTheDocument();
   });
+
+  it('two ARCHIVED cards of one child are listed (2026-11-06) and „Ava ühendamine” opens the merge with both archived', async () => {
+    const items = [
+      { id: 'old1', name: 'Mia Saar', active: false, parentEmail: 'ema@example.com' },
+      { id: 'old2', name: 'Mia Saar', active: false, parentEmail: 'ema@example.com' },
+    ];
+    const service = { list: vi.fn().mockResolvedValue({ items, cursor: null, hasMore: false }), markNotDuplicate: vi.fn() };
+    const mergeService = { mergeStudents: vi.fn(async () => ({ applied: false, keep: { id: 'old1', name: 'Mia Saar', active: false, accounts: [] }, source: { id: 'old2', name: 'Mia Saar', active: false, accounts: [] }, names: ['Mia Saar'], keepName: 'Mia Saar', activeAfter: false, move: [{ collection: 'invoices', field: 'studentId', count: 2, kind: 'finance' }], totals: { finance: 2 }, documents: [], conflicts: [{ code: 'archived_result', label: 'Pärast liitmist on kaart arhiveeritud' }], skipped: [], price: { action: 'none' } })) };
+    render(<MemoryRouter><StudentsPage service={service} mergeService={mergeService} actor={{ uid: 'admin', roles: ['admin'] }} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /Võimalikud topeltkaardid/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'Võimalikud topeltkaardid' });
+    const pair = (await within(dialog).findByText('Mia Saar / Mia Saar')).closest('section');
+    expect(within(pair).getAllByText('Arhiveeritud')).toHaveLength(2);
+    fireEvent.click(within(pair).getByRole('button', { name: 'Ava ühendamine' }));
+    const merge = await screen.findByRole('dialog', { name: 'Liida kaardid: Mia Saar' });
+    expect(await within(merge).findByText(/Arved: 2 \(summad ja numbrid ei muutu\)/)).toBeInTheDocument();
+    expect(mergeService.mergeStudents).toHaveBeenCalledWith({ keepId: 'old1', sourceId: 'old2' });
+    expect(within(merge).getByRole('radio', { name: 'Arhiveeritud' })).toBeChecked();
+  });
 });
 
 describe('students list: last visit', () => {

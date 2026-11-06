@@ -152,3 +152,41 @@ test('reference queries and skipped collections', () => {
   assert.throws(() => core.cleanKind('parent'), /student või teacher/);
   assert.throws(() => core.cleanId('a/b'), /vigane/);
 });
+
+test('an unpaid invoice blocks the trash and the purge; paid and cancelled ones do not (2026-11-06)', () => {
+  const card = { name: 'Mari', active: true };
+  const unpaid = { status: 'Saadetud', amountCents: 5000, paidAmountCents: 1000 };
+  const blockers = core.trashBlockers('student', { id: 's1', card, invoices: [unpaid, { status: 'Makstud', amountCents: 9000 }], today: '2026-11-06' });
+  assert.deepEqual(blockers.map((b) => b.code), ['open-invoices']);
+  assert.match(blockers[0].message, /Kaardil on tasumata arveid \(1, kokku 40,00 €\) — arhiveeri kaart/);
+  assert.deepEqual(core.trashBlockers('student', { id: 's1', card, invoices: [{ status: 'Tühistatud', amountCents: 5000 }, { balanceDueCents: 0, amountCents: 5000 }], today: '2026-11-06' }), []);
+  assert.equal(core.invoiceOpenCents({ amount: 25, paidAmount: 10 }), 1500, 'legacy euro fields');
+  assert.equal(core.invoiceOpenCents({ balanceDueCents: 700, amountCents: 5000 }), 700);
+  const trashed = { ...card, ...core.trashPatch('student', card, { actor, nowIso: NOW }) };
+  assert.deepEqual(core.purgeDecision({ card: trashed, invoices: [unpaid], references: [{ collection: 'invoices', field: 'studentId', count: 1 }], now: LATER }), { action: 'block', reason: 'open-invoices', count: 1, references: [] });
+  assert.equal(core.purgeDecision({ card: trashed, invoices: [{ ...unpaid, paidAmountCents: 5000 }], references: [{ collection: 'invoices', field: 'studentId', count: 1 }], now: LATER }).action, 'anonymise');
+  // a teacher has no invoices of his own: nothing to block
+  assert.deepEqual(core.trashBlockers('teacher', { id: 't1', card: { role: 'teacher' }, invoices: [unpaid], today: '2026-11-06' }), []);
+});
+
+test('preview: what blocks, what to move first (lessons, groups), what is linked and what the purge will do', () => {
+  const teacher = { role: 'teacher', displayName: 'Jelena Tamm' };
+  const schedule = [
+    { id: 'l2', date: '2026-11-20', time: '10:00', studentName: 'Mari', subject: 'Eesti keel' },
+    { id: 'l1', day: 1, time: '17:00', studentName: 'Jaan', subject: 'Eesti keel' },
+    { id: 'old', date: '2026-10-01', time: '09:00', studentName: 'Vana' },
+    { id: 'cx', date: '2026-11-21', time: '09:00', status: 'Tühistatud' },
+  ];
+  const view = core.trashPreview('teacher', { id: 't1', card: teacher, schedule, groups: [{ id: 'g1', name: 'B1 õhtu', active: true }, { id: 'g0', name: 'Vana', active: false }], references: [{ collection: 'workSessions', field: 'staffUid', count: 3 }, { collection: 'activityLog', field: 'teacherUid', count: 9 }], today: '2026-11-06', nowIso: NOW });
+  assert.equal(view.outcome, 'blocked');
+  assert.deepEqual(view.blockers.map((b) => b.code), ['future-lessons', 'active-group']);
+  assert.deepEqual(view.lessons.map((l) => [l.id, l.studentName, l.recurring, l.weekday]), [['l2', 'Mari', false, ''], ['l1', 'Jaan', true, 'esmaspäev']]);
+  assert.deepEqual(view.groups, [{ id: 'g1', name: 'B1 õhtu' }]);
+  assert.deepEqual(view.links.map((l) => [l.collection, l.label, l.count]), [['workSessions', 'Tööaeg', 3]], 'audit collections are not listed');
+  assert.equal(view.purgeAfter, '2026-11-10T10:00:00.000Z');
+
+  const student = core.trashPreview('student', { id: 's1', card: { name: 'Mari' }, references: [{ collection: 'lessons', field: 'studentId', count: 4 }, { collection: 'invoices', field: 'studentId', count: 20 }, { collection: 'payments', field: 'studentId', count: 1 }], invoices: [{ status: 'Makstud', amountCents: 100 }], today: '2026-11-06', nowIso: NOW });
+  assert.equal(student.outcome, 'anonymise');
+  assert.deepEqual(student.links.map((l) => [l.label, l.count, l.more, l.finance]), [['Arved', 20, true, true], ['Maksed', 1, false, true], ['Tunnid', 4, false, false]]);
+  assert.equal(core.trashPreview('student', { id: 's2', card: { name: 'Uus' }, today: '2026-11-06', nowIso: NOW }).outcome, 'delete');
+});

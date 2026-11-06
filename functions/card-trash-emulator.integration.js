@@ -6,7 +6,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
-const { trashCard, restoreCard, purgeDueCards } = require('./card-trash');
+const { previewTrash, trashCard, restoreCard, purgeDueCards } = require('./card-trash');
 
 const PROJECT = 'demo-keelesepp-finance';
 function db() {
@@ -129,6 +129,64 @@ test('teacher: refused with lessons ahead, disabled in the trash, anonymised wit
   assert.equal(profile.disabled, true);
   assert.equal(profile.role, 'teacher');
   assert.equal('staffNotes' in profile, false);
+});
+
+test('preview lists what is linked; an unpaid invoice refuses the trash; once paid, trashed and purged after 7 days (anonymised)', async () => {
+  const store = db();
+  const id = `trash-i-${stamp()}`;
+  await store.doc(`students/${id}`).set({ name: 'Võlg Olev', active: false, phone: '+372 6' });
+  const invoice = await store.collection('invoices').add({ studentId: id, studentName: 'Võlg Olev', number: 'KS-77', amountCents: 5000, paidAmountCents: 0, status: 'Saadetud' });
+  await store.collection('payments').add({ studentId: id, invoiceId: invoice.id, amountCents: 1000 });
+  await store.collection('lessons').add({ studentId: id, date: '2026-10-02', status: 'Toimunud' });
+
+  const view = await previewTrash(store, { kind: 'student', id, actor });
+  assert.equal(view.outcome, 'blocked');
+  assert.deepEqual(view.blockers.map((b) => b.code), ['open-invoices']);
+  assert.deepEqual(view.links.map((l) => l.label), ['Arved', 'Maksed', 'Tunnid']);
+  assert.equal((await store.doc(`students/${id}`).get()).data().deletedAt, undefined, 'the preview writes nothing');
+  await assert.rejects(() => trashCard(store, { kind: 'student', id, actor }), (error) => error.status === 409 && /Kaardil on tasumata arveid .* arhiveeri kaart/.test(error.message));
+
+  await invoice.update({ paidAmountCents: 5000, balanceDueCents: 0, status: 'Makstud' });
+  assert.equal((await previewTrash(store, { kind: 'student', id, actor })).outcome, 'anonymise');
+  const at = new Date();
+  await trashCard(store, { kind: 'student', id, actor, now: at });
+  const sixDays = new Date(at.getTime() + 6 * 24 * 60 * 60 * 1000);
+  assert.equal((await purgeDueCards(store, { FieldValue, now: sixDays })).results.some((item) => item.id === id), false, 'day 6: still in the trash');
+  const result = await purgeDueCards(store, { FieldValue, now: weekLater(at) });
+  assert.equal(result.results.find((item) => item.id === id).action, 'anonymise');
+  const kept = (await invoice.get()).data();
+  assert.equal(kept.studentName, 'Võlg Olev', 'the invoice keeps the issued name');
+  assert.equal(kept.amountCents, 5000);
+  assert.equal(kept.number, 'KS-77');
+  assert.equal((await store.collection('payments').where('studentId', '==', id).get()).size, 1, 'payments stay');
+});
+
+test('an invoice that becomes unpaid during the week stops the purge (purgeBlocked open-invoices)', async () => {
+  const store = db();
+  const id = `trash-u-${stamp()}`;
+  await store.doc(`students/${id}`).set({ name: 'Hiline Arve', active: true });
+  const at = new Date();
+  await trashCard(store, { kind: 'student', id, actor, now: at });
+  await store.collection('invoices').add({ studentId: id, amountCents: 2500, status: 'Saadetud' });
+  const result = await purgeDueCards(store, { FieldValue, now: weekLater(at) });
+  assert.equal(result.results.find((item) => item.id === id).action, 'block');
+  const card = (await store.doc(`students/${id}`).get()).data();
+  assert.equal(card.purgeBlocked, 'open-invoices');
+  assert.equal(card.name, 'Hiline Arve');
+});
+
+test('teacher preview: the lessons and groups to give to another teacher first', async () => {
+  const store = db();
+  const uid = `trash-tp-${stamp()}`;
+  await store.doc(`users/${uid}`).set({ role: 'teacher', displayName: `Õpetaja ${uid}` });
+  await store.collection('schedule').add({ teacherUid: uid, date: '2999-03-03', time: '12:00', studentName: 'Mari', subject: 'Eesti keel' });
+  await store.collection('schedule').add({ teacherUid: uid, day: 3, time: '18:00', studentName: 'Jaan' });
+  await store.collection('groups').add({ teacherUid: uid, name: 'B1 õhtu', active: true });
+  const view = await previewTrash(store, { kind: 'teacher', id: uid, actor });
+  assert.deepEqual(view.blockers.map((b) => b.code), ['future-lessons', 'active-group']);
+  assert.deepEqual(view.lessons.map((l) => [l.studentName, l.recurring]), [['Mari', false], ['Jaan', true]]);
+  assert.deepEqual(view.groups.map((g) => g.name), ['B1 õhtu']);
+  await assert.rejects(() => trashCard(store, { kind: 'teacher', id: uid, actor }), /teisele õpetajale/);
 });
 
 // the rules: a teacher cannot put a card in the trash or change a trashed card; an administrator can

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { cardTrashService } from '../../services/firebase/cardTrash.js';
-import { dateLabel, daysLeft } from './trashDates.js';
+import { blockedReason, dateLabel, daysLeft } from './trashDates.js';
 import './trash.css';
 
 const KIND = { student: 'Õpilane', teacher: 'Õpetaja' };
@@ -53,7 +53,7 @@ export default function TrashPage({ service = cardTrashService }) {
                 <div className="trash-row__when">
                   <span>Kustutatud {dateLabel(item.deletedAt)}{item.deletedBy ? ` · ${item.deletedBy}` : ''}</span>
                   <strong>Lõplikult {dateLabel(item.purgeAfter)} ({daysLeft(item.purgeAfter)} p)</strong>
-                  {item.purgeBlocked ? <small className="trash-row__blocked">Peatatud: kaardil on eesootavad tunnid või aktiivne grupp.</small> : null}
+                  {item.purgeBlocked ? <small className="trash-row__blocked">Peatatud: {blockedReason(item.purgeBlocked)}.</small> : null}
                 </div>
                 <Button variant="secondary" loading={busyId === item.id} disabled={Boolean(busyId) && busyId !== item.id} onClick={() => restore(item)} aria-label={`Taasta ${item.name}`}><RotateCcw size={16} /> Taasta</Button>
               </li>

@@ -45,8 +45,17 @@ describe('possible duplicate cards', () => {
     expect(pairs.map((p) => `${p.a.id}${p.b.id}`)).toEqual(['fg', 'hi', 'dc']);
   });
 
-  it('two archived cards are not proposed; an archived card is still a candidate next to an active one', () => {
-    expect(duplicateCandidates([{ id: 'a', name: 'Karl', active: false }, { id: 'b', name: 'Karl', active: false }])).toEqual([]);
+  it('two archived cards are proposed too (2026-11-06), after a pair with an active card; cards in the trash are not', () => {
+    const archived = duplicateCandidates([{ id: 'a', name: 'Karl', active: false }, { id: 'b', name: 'Karl', active: false }]);
+    expect(archived.map((p) => `${p.a.id}${p.b.id}`)).toEqual(['ab']);
+    expect(duplicateCandidates([
+      { id: 'a', name: 'Karl', active: false }, { id: 'b', name: 'Karl', active: false },
+      { id: 'c', name: 'Jaan' }, { id: 'd', name: 'Jaan', active: false },
+    ]).map((p) => `${p.a.id}${p.b.id}`)).toEqual(['cd', 'ab']);
+    expect(duplicateCandidates([{ id: 'a', name: 'Karl' }, { id: 'b', name: 'Karl', deletedAt: '2026-11-05T10:00:00.000Z' }])).toEqual([]);
+  });
+
+  it('an archived card is a candidate next to an active one (the active card first)', () => {
     const [pair] = duplicateCandidates([{ id: 'old', name: 'Mia Tamm', active: false, parentEmail: 'ema@example.com' }, { id: 'new', name: 'Mia Tamm', parentEmail: 'ema@example.com' }]);
     expect([pair.a.id, pair.b.id]).toEqual(['new', 'old']);
     expect(pair.confidence).toBe('high');

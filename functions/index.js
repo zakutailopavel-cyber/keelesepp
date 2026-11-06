@@ -8695,11 +8695,13 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
     // „Prügikast” (administrator 2026-11-03, functions/card-trash.js, ARCHITECTURE.md „Card trash”): a student or teacher
     // card goes to the trash for 7 days (refused while it has lessons ahead), „Taasta” brings it back; the scheduled
     // purgeCardTrash deletes or anonymises it afterwards. /cards/purge-due runs that purge now (same rules).
-    if (req.path === "/cards/trash" || req.path === "/cards/restore" || req.path === "/cards/purge-due") {
+    // /cards/trash-preview (2026-11-06) only reads: blockers, lessons / groups to move first, linked records, outcome.
+    if (req.path === "/cards/trash" || req.path === "/cards/trash-preview" || req.path === "/cards/restore" || req.path === "/cards/purge-due") {
       const cardTrash = require("./card-trash");
       res.set("Cache-Control", "no-store");
       try {
-        if (req.path === "/cards/trash") res.json(await cardTrash.trashCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
+        if (req.path === "/cards/trash-preview") res.json(await cardTrash.previewTrash(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
+        else if (req.path === "/cards/trash") res.json(await cardTrash.trashCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
         else if (req.path === "/cards/restore") res.json(await cardTrash.restoreCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor), FieldValue }));
         else res.json(await cardTrash.purgeDueCards(db, { FieldValue }));
       } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
