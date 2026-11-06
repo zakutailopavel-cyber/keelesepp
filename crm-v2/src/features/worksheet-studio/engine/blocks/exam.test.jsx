@@ -19,6 +19,15 @@ describe('cloze (option gaps in a text)', () => {
     expect(scoreDocument(doc([b]), answers).perBlock[b.id].map((i) => i.ok)).toEqual([true, false, true]);
   });
 
+  it('prints whole-sentence options in one wrapping column, short words stay in two columns', () => {
+    const short = render(<Sheet doc={doc([createBlock('cloze')])} mode="print" />).container;
+    expect(short.querySelector('.ws-cloze-options').classList.contains('is-long')).toBe(false);
+    const b = createBlock('cloze');
+    b.data.passage = 'Algus. {*Psühholoogid seletavad seda osaliselt kahetsuse hirmuga.|Psühholoogid peavad seda täiesti juhuslikuks nähtuseks.|Psühholoogid ei tea sellest midagi.}';
+    const long = render(<Sheet doc={doc([b])} mode="print" />).container;
+    expect(long.querySelector('.ws-cloze-options').classList.contains('is-long')).toBe(true);
+  });
+
   it('is measured as solved sentences with one answer per gap', () => {
     const b = createBlock('cloze');
     const check = didacticCheck({ meta: { level: 'B1' }, blocks: [b] });

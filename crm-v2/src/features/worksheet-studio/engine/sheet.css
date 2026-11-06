@@ -679,6 +679,8 @@
 .ws-cloze-options li { break-inside: avoid; margin-bottom: 1.2mm; }
 .ws-cloze-options { font-size: .92em; }
 .ws-cloze-options li span { margin-right: 2.5mm; white-space: nowrap; }
+.ws-cloze-options.is-long { columns: 1; }
+.ws-cloze-options.is-long li span { display: block; white-space: normal; padding-left: 5mm; text-indent: -5mm; margin: 0 0 .6mm; }
 .ws-formtext-gap { white-space: nowrap; }
 .ws-formtext-gap b { color: var(--ks-navy); margin-right: .8mm; }
 .ws-insertion-options { margin: 3mm 0 0; padding-left: 7mm; }

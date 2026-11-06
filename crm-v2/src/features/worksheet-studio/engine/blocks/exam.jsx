@@ -23,6 +23,9 @@ function parts(passage) {
   return paragraphs(passage).map((p) => p.split(/(\{[^}]*\})/g).map((piece) => (piece.startsWith('{') ? { gap: (n += 1) } : { text: piece })));
 }
 
+// options longer than this (whole sentences) print in one column and wrap, so they never run into the next column
+const LONG_OPTION = 24;
+
 // review: the option the learner chose (its index may be 0), with its mark; print: an empty line
 const chosenOption = (options, value) => (value === undefined || value === null || value === '' ? null : options.find((o) => o.oi === Number(value)) || null);
 const ClozeGap = ({ n, chosen, state }) => <span className={`ws-cloze-gap ${chosen && state ? 'is-' + state : ''}`}>({n}) {chosen ? <b>{chosen.text}</b> : '________'}</span>;
@@ -56,7 +59,7 @@ export const cloze = {
           ))}
         </div>
         {!ctx.interactive ? (
-          <ol className="ws-cloze-options">
+          <ol className={`ws-cloze-options${shown.some((opts) => opts.some((o) => o.text.length > LONG_OPTION)) ? ' is-long' : ''}`}>
             {shown.map((opts, gi) => <li key={gi}>{opts.map((o, k) => <span key={o.oi}><i className="ws-dot" /> {LETTERS[k]}) {o.text}</span>)}</li>)}
           </ol>
         ) : null}
