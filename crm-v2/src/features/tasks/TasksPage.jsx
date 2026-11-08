@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { CalendarClock, CheckCircle2, Circle, Columns3, List, MessageSquare, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -142,7 +143,7 @@ export default function TasksPage({ service = tasksService, staffRepository = te
   const toggle = (task) => update(task, { status: task.status === 'done' ? 'open' : 'done' });
   const replyTo = (task, text) => { setActionError(''); return service.reply(task, text, user).then(() => true, fail('Vastust ei saanud saata.')); };
   const remove = async (task) => {
-    if (!globalThis.confirm('Kustuta see ülesanne?')) return;
+    if (!(await askConfirm('Kustuta see ülesanne?'))) return;
     setActionError('');
     if (await service.remove(task, user).then(() => true, fail('Ülesannet ei saanud kustutada.'))) closeTask();
   };
