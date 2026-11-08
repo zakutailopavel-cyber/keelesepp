@@ -22,6 +22,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, Select } from '../../components/ui/index.js';
 import { bankTransactionsService } from '../../services/firebase/bankTransactions.js';
 import { creditNotesService } from '../../services/firebase/creditNotes.js';
+import FinancialAnalyticsPanel from './FinancialAnalyticsPanel.jsx';
 import { financeApi, financeRequestId, invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
 import { financialAuditService } from '../../services/firebase/financialAudit.js';
 import { financialPeriodsService } from '../../services/firebase/financialPeriods.js';
@@ -358,6 +359,8 @@ export default function FinanceMonthPage({
 
       {/* „Ülevaade” (owner 2026-10-26): what the calendar's lessons earn — held and planned, not the invoices — administrators */}
       {canManage ? <FinanceDashboard user={user} plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
+      {/* money actually in and out, margin and debt age (audit 2026-11-09: it lived only in „Vana vaade”); built on demand */}
+      {canManage && financeRepository.previewFinancialAnalytics ? <details className="finance-month-cash"><summary>Raha liikumine: laekumised, kulud, marginaal ja võlgade vanus</summary><FinancialAnalyticsPanel onPreview={(chosen) => financeRepository.previewFinancialAnalytics(chosen)} onOpenInvoice={(invoiceId) => { const found = invoices.find((item) => item.id === invoiceId); if (found) openInvoiceForPrint(found); }} /></details> : null}
 
       <div className="finance-month-switcher">
         <Button variant="secondary" aria-label="Eelmine kuu" onClick={() => setMonth(shiftMonth(month, -1))}><ArrowLeft size={17} /></Button>
