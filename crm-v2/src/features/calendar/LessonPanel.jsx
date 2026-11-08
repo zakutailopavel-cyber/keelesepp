@@ -1,3 +1,4 @@
+import { askText } from '../../components/ui/ConfirmHost.jsx';
 import { CalendarClock, Check, Repeat2, HandCoins, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, Video, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
@@ -172,7 +173,7 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
               <div className="lp-actions"><Button loading={saving} disabled={!covering.trim()} onClick={async () => { if (await onSchoolCovered('school_covered', covering.trim())) setCovering(null); }}>Kinnita: kooli kulul</Button><Button variant="secondary" disabled={saving} onClick={() => setCovering(null)}>Loobu</Button></div>
             </div>
           ) : null}
-          {schoolCovered && onSchoolCovered ? <button type="button" className="link-button" disabled={saving} onClick={() => { const reason = globalThis.prompt('Miks õpilane siiski maksab? (põhjus jääb auditisse)'); if (reason && reason.trim()) onSchoolCovered('unset', reason.trim()); }}><RotateCcw size={13} /> Tühista „kooli kulul”</button> : null}
+          {schoolCovered && onSchoolCovered ? <button type="button" className="link-button" disabled={saving} onClick={async () => { const reason = (await askText('Miks õpilane siiski maksab? (põhjus jääb auditisse)')); if (reason && reason.trim()) onSchoolCovered('unset', reason.trim()); }}><RotateCcw size={13} /> Tühista „kooli kulul”</button> : null}
           {record && onChangeMark && !fixing && !record.billingStatus ? <button type="button" className="link-button" onClick={() => setFixing(true)}>Märkisid valesti? Paranda</button> : null}
           {record && fixing ? (
             <div className="lp-fix" role="group" aria-label="Paranda märge">
