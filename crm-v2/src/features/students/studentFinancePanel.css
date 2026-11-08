@@ -30,7 +30,7 @@
 .billing-settings__tab { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 44px; padding: 8px 14px; margin-bottom: -1px; border: 1px solid transparent; border-radius: 10px 10px 0 0; background: transparent; color: #344054; font: inherit; font-weight: 700; cursor: pointer; position: relative; }
 .billing-settings__tab small { font-weight: 500; color: #667085; font-size: .78rem; }
 .billing-settings__tab:hover { background: #f8fafc; }
-.billing-settings__tab.is-active { background: #fff; border-color: var(--border, #e5e7eb); border-bottom-color: #fff; color: #162033; box-shadow: inset 0 3px 0 #087e6b; }
+.billing-settings__tab.is-active { background: #fff; border-color: var(--border, #e5e7eb); border-bottom-color: #fff; color: #162033; box-shadow: inset 0 3px 0 var(--green); }
 .billing-settings__tab:focus-visible { outline: 3px solid rgba(8,126,107,.45); outline-offset: 2px; }
 .billing-settings__tab-alert { position: absolute; top: 4px; right: 6px; color: #b42318; font-weight: 800; }
 .billing-settings__panel { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; align-items: end; }

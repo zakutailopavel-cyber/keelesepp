@@ -1,3 +1,15 @@
+## 2026-11-09 · agent/design-tokens-1 — one :root token block, old green gone (design audit)
+
+- Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/design-tokens-1`, draft PR.
+- Done:
+  - `styles/index.css`: the two `:root` blocks and the Polish 1 one are now one token block; the effective values were kept. New scale tokens `--radius-sm/md/lg/xl/pill`, `--shadow-sm/md/lg`, `--space-1..6` (not yet used by existing rules).
+  - Old green `#226b5a` / `rgba(34,107,90,…)` → `var(--green)` / `color-mix(…)`: 9 spots in `index.css`, `fieldHelp.css`, `lessonRecording.css`. This is the only visual change (focus outlines, teacher/conversation avatar, visual worksheet control border now use the current green).
+  - 101 one-to-one swaps of `#087e6b`, `#056454`, `#e8f6f2`, `#132238`, `#dfe5ec`, `#f6f8fb` for their variables in 15 CSS files (calendar, finance, homework, library, worksheet studio, …). `availabilityPoll.css` skipped (own scoped palette).
+  - `docs/DESIGN_TOKENS.md`: the tokens and the plan for the next passes (radius, shadows, remaining colours, then dark mode).
+- No JS, data or rules changed.
+- Checks: `npm run build` ok; `npx vitest run src/components src/app src/styles` → 23 files, 90 passed; CSS-reading tests `answerFont`, `financeMonthCss` → 11 passed. No stylelint in the project; eslint covers JS only. No browser screenshot comparison.
+- Next safe step: pass 2 — radius literals → `--radius-*`, file by file with a look at each screen.
+
 ## 2026-11-09 · agent/finance-debts-family — debts by age and by family (finance)
 
 - Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-debts-family`.
