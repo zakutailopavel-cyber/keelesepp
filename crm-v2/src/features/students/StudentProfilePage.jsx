@@ -76,7 +76,7 @@ const PROFILE_TABS = [
 const StudentWorksPanel = lazyComponent(() => import('./StudentWorksPanel.jsx'));
 
 export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi, progressApi, studentId: shownId = '', embedded = false }) {
-  // `embedded` (owner 2026-11-09): the card opens in the side drawer over any page (StudentDrawer.jsx) — it gets the id
+  // `embedded` (owner 2026-11-09): the card opens in the side drawer over any page (EntityDrawer.jsx) — it gets the id
   // as a prop and keeps its tabs in its own state, so the page under the drawer keeps its address and filters
   const params = useParams();
   const studentId = shownId || params.studentId;

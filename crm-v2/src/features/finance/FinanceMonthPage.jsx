@@ -22,7 +22,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, Select } from '../../components/ui/index.js';
 import { bankTransactionsService } from '../../services/firebase/bankTransactions.js';
 import { creditNotesService } from '../../services/firebase/creditNotes.js';
-import { financeApi, financeRequestId, invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
+import { financeApi, invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
 import { financialAuditService } from '../../services/firebase/financialAudit.js';
 import { financialPeriodsService } from '../../services/firebase/financialPeriods.js';
 import { invoiceNotesService } from '../../services/firebase/invoiceNotes.js';
@@ -32,8 +32,8 @@ import { payerCreditsService } from '../../services/firebase/payerCredits.js';
 import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
-import { displayDate, validatePayment } from './finance.js';
-import { filterFinanceRows, financeRowState, sortFinanceRows, summarizeFinanceRows } from './financeRows.js';
+import { displayDate } from './finance.js';
+import { FINANCE_STATUS_LABELS, filterFinanceRows, financeRowState, sortFinanceRows, summarizeFinanceRows } from './financeRows.js';
 import ManualInvoiceDialog from './ManualInvoiceDialog.jsx';
 import { invoiceShownEmail } from './invoicePayer.js';
 import TokenInvoiceDialog from './TokenInvoiceDialog.jsx';
@@ -47,7 +47,7 @@ import FinanceDashboard from './FinanceDashboard.jsx';
 import { canCancelInvoice, invoiceWasSent } from './invoiceActions.js';
 import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
 import PaymentCheckPanel from './PaymentCheckPanel.jsx';
-import PaymentDateField, { OverpaymentQuestion } from './PaymentDateField.jsx';
+import PaymentDialog from './PaymentDialog.jsx';
 import { isOverpaymentRefusal, paymentRecordedNotice, recordPaymentWithAdvance } from './paymentEntry.js';
 import DocumentPreviewModal from './DocumentPreviewModal.jsx';
 import InvoiceNoteDialog, { InvoiceNoteButton } from './InvoiceNoteDialog.jsx';
@@ -59,11 +59,7 @@ import './financeMonth.css';
 import './manualInvoice.css';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
-const today = () => new Date().toISOString().slice(0, 10);
-const STATUS = {
-  unpaid: ['Tasumata', 'neutral'], partial: ['Osaliselt', 'info'], overdue: ['Üle tähtaja', 'danger'],
-  paid: ['Makstud', 'success'], credit: ['Krediteeritud', 'neutral'], 'email-failed': ['E-post ebaõnnestus', 'danger'], 'no-show': ['Puudumine', 'warning'],
-};
+const STATUS = FINANCE_STATUS_LABELS;
 // „check” (Kontroll, admin): invoices against payment records and the bank (owner 2026-10-15)
 const VIEWS = ['invoices', 'paid', 'unpaid', 'credits', 'prepare', 'check'];
 const creditAvailableCents = (credit) => Number.isInteger(credit?.availableAmountCents)
@@ -97,50 +93,6 @@ function CancelInvoiceDialog({ invoice, busy, error, onClose, onSubmit }) {
       {error ? <p className="form-error" role="alert">{error}</p> : null}
     </form>
   </Modal>;
-}
-
-function PaymentDialog({ invoice, busy, error, overpaymentQuestion = '', onDismissOverpayment, onClose, onSubmit, cashApi = financeApi }) {
-  const state = financeRowState(invoice || {});
-  const [form, setForm] = useState(() => ({
-    amount: (state.balanceCents / 100).toFixed(2), paidAt: today(), method: 'bank',
-    reference: invoice?.paymentReference || invoice?.num || invoice?.number || '', note: '',
-    // one request id per opened dialog: a double click never records the payment twice
-    requestId: financeRequestId('payment'),
-  }));
-  const [errors, setErrors] = useState({});
-  // cash (owner 2026-10-18): who took the money — it goes into that person's cash box („Kassa”)
-  const [people, setPeople] = useState(null);
-  useEffect(() => {
-    if (form.method !== 'cash' || people) return undefined;
-    let live = true;
-    cashApi.cashSummary?.().then((summary) => { if (live) setPeople(summary.people || []); }).catch(() => { if (live) setPeople([]); });
-    return () => { live = false; };
-  }, [cashApi, form.method, people]);
-  const submit = (event) => {
-    event.preventDefault();
-    const validation = validatePayment(form);
-    setErrors(validation.errors);
-    if (validation.valid) onSubmit({ ...form, amount: validation.amount });
-  };
-  // the same request id: the refused request wrote nothing, the confirmed one is still recorded once
-  const confirmOverpayment = () => {
-    const validation = validatePayment(form);
-    if (validation.valid) onSubmit({ ...form, amount: validation.amount, allowOverpayment: true });
-  };
-  return (
-    <Modal open={Boolean(invoice)} title={`Registreeri makse · ${invoice?.studentName || ''}`} onClose={onClose}
-      footer={<><Button variant="secondary" disabled={busy} onClick={onClose}>Loobu</Button><Button type="submit" form="finance-month-payment" loading={busy}>Registreeri</Button></>}>
-      <form id="finance-month-payment" className="form-grid" onSubmit={submit}>
-        <Input label="Summa (€)" type="number" min="0.01" step="0.01" value={form.amount} error={errors.amount} onChange={(event) => { onDismissOverpayment?.(); setForm({ ...form, amount: event.target.value }); }} />
-        <PaymentDateField id="finance-month-payment-date" invoice={invoice} value={form.paidAt} method={form.method} error={errors.paidAt} onChange={(paidAt) => setForm({ ...form, paidAt })} />
-        <Select label="Makseviis" value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value })}><option value="bank">Pangaülekanne</option><option value="cash">Sularaha</option><option value="card">Kaardimakse</option><option value="other">Muu</option></Select>
-        {form.method === 'cash' ? <Select label="Kes raha sai" value={form.receivedByUid || ''} onChange={(event) => setForm({ ...form, receivedByUid: event.target.value })}><option value="">Mina</option>{(people || []).map((person) => <option key={person.uid} value={person.uid}>{person.name}</option>)}</Select> : null}
-        <Input label="Viide" value={form.reference} onChange={(event) => setForm({ ...form, reference: event.target.value })} />
-        <OverpaymentQuestion className="form-grid__wide" message={overpaymentQuestion} busy={busy} onConfirm={confirmOverpayment} onCancel={onDismissOverpayment} />
-        {error ? <p className="form-error form-grid__wide" role="alert">{error}</p> : null}
-      </form>
-    </Modal>
-  );
 }
 
 export default function FinanceMonthPage({

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
@@ -7,6 +7,7 @@ import { unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.
 import { ROLES } from '../../utils/roles.js';
 import { toIsoDate } from './calendarView.js';
 import { REVIEW_DAYS, actionError, summarizeUnmarked } from './unmarkedLessons.js';
+import { onLessonMarked } from './lessonActions.js';
 import './unmarkedLessons.css';
 
 const dayLabel = (iso) => new Intl.DateTimeFormat('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' }).format(new Date(`${iso}T12:00:00`));
@@ -42,6 +43,11 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
   const [error, setError] = useState('');
   const [kind, setKind] = useState('');
   const [teacher, setTeacher] = useState('');
+  // marked in the side drawer (right-click → „Ava tund (siinsamas)”, owner 2026-11-09): the row moves to „done” here too
+  useEffect(() => onLessonMarked((occurrenceId) => setDone((current) => {
+    const item = (state.data?.items || []).find((entry) => entry.occurrenceId === occurrenceId);
+    return item ? new Map(current).set(occurrenceId, `${item.studentName || 'Õpilane'} ${dayLabel(item.occurrenceDate)}: märgitud paneelis`) : current;
+  })), [state.data]);
 
   const open = useMemo(() => (state.data?.items || []).filter((item) => !done.has(item.occurrenceId)), [state.data, done]);
   const teachers = useMemo(() => [...new Set(open.map((item) => item.teacher || 'Õpetaja määramata'))].sort((a, b) => a.localeCompare(b, 'et')), [open]);
@@ -93,7 +99,7 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
       {finished.length ? <p className="form-hint" role="status">Tehtud: {finished.slice(-3).join(' · ')}{finished.length > 3 ? ` (+${finished.length - 3})` : ''}</p> : null}
       {!shown.length ? <EmptyState title={open.length ? 'Selles valikus pole tunde' : 'Kõik tunnid on märgitud'} description={open.length ? 'Vali teine filter.' : `Viimase ${REVIEW_DAYS} päeva tunnid on päevikus.`} /> : null}
       <ul className="unmarked-page__list">
-        {shown.map((item) => <li key={item.occurrenceId} className={`unmarked-row unmarked-row--${item.kind}`}>
+        {shown.map((item) => <li key={item.occurrenceId} className={`unmarked-row unmarked-row--${item.kind}`} data-entity="lesson" data-schedule-id={item.id} data-date={item.occurrenceDate} data-student-id={item.studentId || undefined} data-entity-title={`${item.time ? `${item.time} · ` : ''}${item.studentName || 'Tund'}`}>
           <div className="unmarked-row__who">
             <strong>{item.studentName || 'Õpilane'}</strong>
             <small>{dayLabel(item.occurrenceDate)}{item.time ? ` · ${item.time}` : ''}{item.duration ? ` · ${item.duration} min` : ''}{isAdmin ? ` · ${item.teacher || 'Õpetaja määramata'}` : ''}{item.recurring ? ' · sari' : ''}</small>
@@ -104,10 +110,10 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
             {item.kind === 'teacher' ? <><Badge tone="neutral">Õpetaja otsustab</Badge><small>Live-tundi ega salvestust ei leitud.</small></> : null}
           </div>
           <div className="unmarked-row__actions">
-            {item.kind === 'evidence' ? <Button loading={isBusy(item, 'Toimunud')} disabled={Boolean(busy)} onClick={() => mark(item, 'Toimunud')}>Märgi toimunuks</Button> : null}
+            {item.kind === 'evidence' ? <Button loading={isBusy(item, 'Toimunud')} disabled={Boolean(busy)} data-entity-action="done" onClick={() => mark(item, 'Toimunud')}>Märgi toimunuks</Button> : null}
             {item.kind === 'duplicate' ? <Button variant="danger" loading={isBusy(item, 'cancel')} disabled={Boolean(busy)} onClick={() => cancel(item)}>Tühista</Button> : null}
             {item.kind === 'teacher' ? <>
-              <Button loading={isBusy(item, 'Toimunud')} disabled={Boolean(busy)} onClick={() => mark(item, 'Toimunud')}>Toimus</Button>
+              <Button loading={isBusy(item, 'Toimunud')} disabled={Boolean(busy)} data-entity-action="done" onClick={() => mark(item, 'Toimunud')}>Toimus</Button>
               <Button variant="secondary" loading={isBusy(item, 'Puudus_p')} disabled={Boolean(busy)} onClick={() => mark(item, 'Puudus_p')}>Puudus (teatas)</Button>
               <Button variant="secondary" loading={isBusy(item, 'Puudus_eta')} disabled={Boolean(busy)} onClick={() => mark(item, 'Puudus_eta')}>Puudus (ei teatanud)</Button>
             </> : null}

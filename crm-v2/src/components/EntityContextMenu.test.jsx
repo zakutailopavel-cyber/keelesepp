@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import EntityContextMenu from './EntityContextMenu.jsx';
 import { studentIdAt } from './entityMenu/entityRegistry.js';
+import { onDrawer } from './entityDrawer/entityDrawer.js';
 
 const studentService = () => ({ getById: vi.fn(async () => ({ id: 's1', name: 'Mia', level: 'A2', active: true, parentPhone: '5551 111' })), rename: vi.fn(async (id, name) => ({ name, copies: {} })), archive: vi.fn(), restore: vi.fn() });
 
@@ -90,5 +91,38 @@ describe('the right-click menu', () => {
     expect(items[items.length - 1]).toHaveFocus();
     fireEvent.keyDown(menu, { key: 'Escape' });
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  it('„Ava tund (siinsamas)” opens the lesson in the side drawer; without a drawer the calendar opens it (owner 2026-11-09)', async () => {
+    const row = <li data-entity="lesson" data-schedule-id="e1" data-date="2026-11-03" data-student-id="s1" data-entity-title="10:00 · Mia"><span>10:00 tund</span></li>;
+    setup(row, { path: '/calendar/markimata' });
+    fireEvent.contextMenu(screen.getByText('10:00 tund'));
+    fireEvent.click(await screen.findByRole('menuitem', { name: /Ava tund \(siinsamas\)/ }));
+    expect(screen.getByTestId('where')).toHaveTextContent(`/calendar?lesson=${encodeURIComponent('e1:2026-11-03|2026-11-03')}`);
+    // in the calendar its own panel opens the lesson in place
+    fireEvent.contextMenu(screen.getByText('10:00 tund'));
+    expect(await screen.findByRole('menu')).not.toHaveTextContent('Ava tund (siinsamas)');
+  });
+
+  it('with the drawer mounted the lesson opens over the page, which stays', async () => {
+    const requests = [];
+    const stop = onDrawer((request) => requests.push(request));
+    setup(<li data-entity="lesson" data-schedule-id="e1" data-date="2026-11-03" data-student-id="s1"><span>10:00 tund</span></li>, { path: '/' });
+    fireEvent.contextMenu(screen.getByText('10:00 tund'));
+    fireEvent.click(await screen.findByRole('menuitem', { name: /Ava tund \(siinsamas\)/ }));
+    stop();
+    expect(requests).toEqual([expect.objectContaining({ kind: 'lesson', scheduleId: 'e1', date: '2026-11-03', studentId: 's1' })]);
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/$/);
+  });
+
+  it('„Ava arve (siinsamas)” opens the invoice in the side drawer for the accountant', async () => {
+    const requests = [];
+    const stop = onDrawer((request) => requests.push(request));
+    setup(<div data-entity="invoice" data-invoice-id="i1" data-invoice-number="26-001"><span>Arve 26-001</span></div>, { roles: ['finance'], path: '/finance' });
+    fireEvent.contextMenu(screen.getByText('Arve 26-001'));
+    fireEvent.click(await screen.findByRole('menuitem', { name: /Ava arve \(siinsamas\)/ }));
+    stop();
+    expect(requests).toEqual([expect.objectContaining({ kind: 'invoice', invoiceId: 'i1' })]);
+    expect(screen.getByTestId('where')).toHaveTextContent('/finance');
   });
 });

@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { shareInFlight } from './shareInFlight.js';
 
@@ -10,6 +10,12 @@ export const invoicesService = {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(collection(db, 'invoices'));
     return snapshot.docs.map((item) => ({ id: item.id, ...item.data() })).sort((a, b) => String(b.date || b.createdAt || '').localeCompare(String(a.date || a.createdAt || '')));
+  },
+  // one invoice (the side drawer's invoice panel, owner 2026-11-09): administrator and accountant read every invoice
+  async get(id) {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDoc(doc(db, 'invoices', id));
+    return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
   },
   // the card's own invoices and the combined invoices it is a line of (several cards of one payer on one invoice)
   async listByStudent(studentId) {

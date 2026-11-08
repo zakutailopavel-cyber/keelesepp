@@ -21,7 +21,8 @@ const Pending = ({ label = 'Arvutan…' }) => <p className="form-hint">{label}</
 const Failed = () => <p className="form-hint">Andmeid ei saanud praegu laadida.</p>;
 
 function LessonRow({ item, showTeacher }) {
-  return <li className={`is-${item.phase}`}>
+  // a right-click opens the lesson's menu (entityRegistry.js `lesson`): the lesson in the side drawer, the student
+  return <li className={`is-${item.phase}`} data-entity="lesson" data-schedule-id={item.scheduleId || undefined} data-date={item.date || undefined} data-student-id={item.isGroup ? undefined : item.studentId || undefined} data-entity-title={`${item.time} · ${item.studentName}`}>
     <time>{item.time}{item.end ? <span className="today-end">–{item.end}</span> : null}</time>
     <div><strong>{item.studentId && !item.isGroup ? <Link to={`/students/${item.studentId}`}>{item.studentName}</Link> : item.studentName}</strong>
       <small>{[showTeacher ? item.teacher : '', item.place, item.marked ? item.status : ''].filter(Boolean).join(' · ')}</small></div>

@@ -40,6 +40,7 @@ import CellStatusMenu from './CellStatusMenu.jsx';
 import RoomsDialog from './RoomsDialog.jsx';
 import { assignRoom, mergedBookings, roomChoices, roomConflict } from './roomModel.js';
 import LessonPanel from './LessonPanel.jsx';
+import { fixMarkError, fixOccurrenceMark, markOccurrence, schoolCoveredError } from './lessonActions.js';
 import AdminNoteBox from './AdminNoteBox.jsx';
 import { notesFor } from '../../services/firebase/lessonNotes.js';
 import QuickAttendanceAction from './QuickAttendanceAction.jsx';
@@ -655,20 +656,16 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     if (!panelItem) return;
     setPanelSaving(true); setPanelError('');
     try {
-      const { homework, schoolCoveredReason = '', ...fields } = details;
-      const lesson = await lessonRepository.completeFromSchedule(panelItem, user, fields);
-      // „Kooli kulul” right away (Oleksiy 2026-10-19: a fourth way to close a lesson): held for the teacher, free for the
-      // student; the audited finance route also gives back a credit the lesson took
-      if (schoolCoveredReason && lesson?.id) {
-        try { await financeRepository.setLessonBillingDisposition(lesson.id, 'school_covered', schoolCoveredReason); }
-        catch (coverError) { await state.reload(); setPanelError(`Tund märgiti toimunuks, kuid „kooli kulul” ei salvestunud (${coverError.message || 'viga'}). Ava tund ja vajuta „Kooli kulul” uuesti.`); return false; }
-      }
-      const student = studentMap.get(panelItem.studentId);
-      if (homework && student) await libraryRepository.assign({ item: homework, students: [student], dueDate: '', note: fields.topic ? `Tund: ${fields.topic}` : '', user });
+      // the same path as the side drawer's lesson panel (lessonActions.js): the mark, „kooli kulul” (Oleksiy
+      // 2026-10-19), the homework
+      await markOccurrence({ lessonRepository, financeRepository, libraryRepository }, panelItem, user, details, studentMap.get(panelItem.studentId));
       setPanelKey('');
       await state.reload();
       return true;
-    } catch (error) { setPanelError(error.message || 'Salvestamine ebaõnnestus.'); return false; } finally { setPanelSaving(false); }
+    } catch (error) {
+      if (error.marked) await state.reload();
+      setPanelError(error.message || 'Salvestamine ebaõnnestus.'); return false;
+    } finally { setPanelSaving(false); }
   };
   // the topic (level / module / lesson) and the note of an already marked lesson can be changed later
   const updateDetails = async (details) => {
@@ -778,11 +775,10 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     if (!item?.record) return;
     setPanelSaving(true); setPanelError('');
     try {
-      if (action === 'remove') await lessonRepository.removeMark(item.record, user, { scheduleRecurring: Boolean(item.recurring) });
-      else await lessonRepository.changeMark(item.record, status, user, { scheduleRecurring: Boolean(item.recurring) });
+      await fixOccurrenceMark(lessonRepository, item, user, action, status);
       await state.reload();
     } catch (error) {
-      setPanelError(error.code === 'permission-denied' ? 'Seda märget ei saa siin muuta: tund on arvel või periood on suletud. Paranda see Finantsides.' : (error.message || 'Parandamine ebaõnnestus.'));
+      setPanelError(fixMarkError(error));
     } finally { setPanelSaving(false); }
   };
   // „Kooli kulul” (owner 2026-10-19): admin marks a held lesson as paid by the school, or undoes it; server-side audit
@@ -795,7 +791,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       await state.reload();
       return true;
     } catch (error) {
-      setPanelError(/closed|suletud/i.test(error.message || '') ? 'Periood on suletud: seda tundi ei saa enam muuta.' : (error.message || 'Muutmine ebaõnnestus.'));
+      setPanelError(schoolCoveredError(error));
       return false;
     } finally { setPanelSaving(false); }
   };
