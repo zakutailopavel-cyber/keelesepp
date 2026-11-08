@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { Archive, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Mic, Paperclip, PlayCircle, Plus, RotateCcw, Search, Star, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -206,7 +207,7 @@ function StaffHomeworkPage({ repository = homeworkService, studentRepository = s
     } catch (error) { setActionError(error.message || 'Kodutööd ei saanud tagasi võtta.'); }
   };
   const closeTasks = async (items, ask) => {
-    if (!items.length || (ask && !globalThis.confirm(ask))) return;
+    if (!items.length || (ask && !(await askConfirm(ask)))) return;
     setActionError('');
     try {
       await (repository.closeMany ? repository.closeMany(items.map((item) => item.id)) : Promise.all(items.map((item) => repository.setStatus(item.id, 'Suletud'))));
@@ -279,7 +280,7 @@ function StaffHomeworkPage({ repository = homeworkService, studentRepository = s
               {studentCanFinish && answering === item.id ? (item.kind === 'voice'
                 ? <VoiceAnswer prompts={item.prompts || []} busy={answerBusy} onSend={(answer) => finishTask(item, answer)} onCancel={() => setAnswering(null)} />
                 : <TaskAnswerForm busy={answerBusy} onSend={(answer) => finishTask(item, answer)} onCancel={() => setAnswering(null)} />) : null}</div>
-            <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}{materialTask ? <button className="task-preview-button" data-entity-action="preview" aria-label={`Eelvaade: ${item.task}`} disabled={loadingMaterial === item.id} onClick={() => openMaterial(item)}>{loadingMaterial === item.id ? <span className="button__spinner" /> : <Eye size={16} />}<span>Eelvaade</span></button> : null}<Badge tone={done ? 'success' : closed ? 'neutral' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : closed ? 'Suletud' : <span title={item.due ? `Tähtaeg ${displayDate(item.due)}` : undefined}>{dueLabel(item.due, today)}</span>}</Badge>{!done && !closed ? <button className="text-button" aria-label={`Sulge: ${item.task}`} title="Sulge (keegi ei tee seda enam)" onClick={() => closeTasks([item])}><Archive size={17} /></button> : null}<button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button></div>
+            <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}{materialTask ? <button className="task-preview-button" data-entity-action="preview" aria-label={`Eelvaade: ${item.task}`} disabled={loadingMaterial === item.id} onClick={() => openMaterial(item)}>{loadingMaterial === item.id ? <span className="button__spinner" /> : <Eye size={16} />}<span>Eelvaade</span></button> : null}<Badge tone={done ? 'success' : closed ? 'neutral' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : closed ? 'Suletud' : <span title={item.due ? `Tähtaeg ${displayDate(item.due)}` : undefined}>{dueLabel(item.due, today)}</span>}</Badge>{!done && !closed ? <button className="text-button" aria-label={`Sulge: ${item.task}`} title="Sulge (keegi ei tee seda enam)" onClick={() => closeTasks([item])}><Archive size={17} /></button> : null}<button className="text-button danger" aria-label="Kustuta" onClick={async () => { if ((await askConfirm('Kas kustutada kodutöö?'))) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button></div>
           </article>;
         })}</div> : <EmptyState title="Kodutöid ei leitud" description="Lisa esimene ülesanne või muuda filtrit." />}
       </Card>

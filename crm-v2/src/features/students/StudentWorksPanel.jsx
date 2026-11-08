@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { ClipboardCheck, Eye, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -56,7 +57,7 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
   // a sheet given by mistake: taken back before it is handed in (the student's answers on it go too)
   const removeWatching = async () => {
     if (!watching || !homeworkApi.removeWorksheetAssignment) return;
-    if (!globalThis.confirm(`Eemaldada „${watching.title}” õpilaselt? Tööleht kaob tema töölehtede alt koos tehtud vastustega.`)) return;
+    if (!(await askConfirm(`Eemaldada „${watching.title}” õpilaselt? Tööleht kaob tema töölehtede alt koos tehtud vastustega.`))) return;
     setRemoving(true);
     setRemoveError('');
     try {
