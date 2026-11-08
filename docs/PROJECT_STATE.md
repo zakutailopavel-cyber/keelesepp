@@ -1,3 +1,17 @@
+## 2026-11-09 · agent/batched-release — the CRM is released in batches, not on every merge (Vercel cost)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/batched-release`.
+- Why: the Vercel bill went over the Pro credit. On 2026-11-05 build CPU was 4.6K minutes ($16.11) and deployment storage 1.43 TB ($4.77). There were ~730 production builds in a month, one per merge to main, and each uploaded a 365 MB dist (audio 276 MB).
+- Done:
+  - `crm-v2/scripts/vercel-ignore.sh` is the CRM project's `ignoreCommand` (`crm-v2/vercel.json`). `main` builds only when the commit message contains `[deploy]` or `[hotfix]`; agent/* previews stay skipped; other branches build as before.
+  - New `.github/workflows/release.yml` runs at 05:00 and 14:00 UTC and on „Run workflow”. If `crm-v2/` changed since the last `[deploy]`/`[hotfix]` commit, it pushes an empty `[deploy] Release …` commit to main, which Vercel builds.
+  - AGENTS.md documents the rule.
+  - The public website project (root `vercel.json`) is unchanged. Its upload is the small static site only, and `.vercelignore` would hide the script from it.
+- Hotfix: put `[hotfix]` in the PR title (the merge commit message carries it).
+- Checks: ran the ignore script by hand for main / main + `[hotfix]` / `[deploy]` / agent/x / another branch → 0 / 1 / 1 / 0 / 1. `hostingHeaders.test.js` passed. The workflow runs for the first time after merge.
+- Risk: a merge without `[deploy]` waits up to ~9 hours, or until someone presses „Run workflow”.
+- Next safe step: after the first scheduled run, check that Vercel built the release commit, and in the next weekly usage mail that build minutes dropped.
+
 ## 2026-11-09 · agent/finance-debts-family — debts by age and by family (finance)
 
 - Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-debts-family`.

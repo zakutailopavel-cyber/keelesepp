@@ -13,6 +13,7 @@ See fail on kohustuslik lähtepunkt igale inimesele või AI-agendile, kes muudab
 
 - Kasuta tavaliselt haru `agent/<lühike-nimi>` ja ava draft-PR.
 - Agent ei ühenda PR-i ise.
+- CRM-i väljalase käib partiidena (omanik 2026-11-09): `main` ei ehitu iga ühendamise peale, vaid `[deploy]`-commitist, mille `.github/workflows/release.yml` teeb kaks korda päevas või käsitsi (Actions → Release → Run workflow). Kiire parandus: pane PR-i pealkirja `[hotfix]`. Reegel: `crm-v2/scripts/vercel-ignore.sh`.
 - Ära tee production-deploy'd, production-andmebaasi migratsiooni, destruktiivset andmemuudatust ega tasulist väliskutset ilma omaniku konkreetse loata.
 - Säilita olemasolevad muutumatud ID-d, auditijälg ja ajalooliste finants- ning õppeandmete tähendus.
 - Ära ühenda samasse PR-i omavahel sõltumatuid kalendri-, finantsi-, Live Classroomi ja õppesisu muudatusi.
