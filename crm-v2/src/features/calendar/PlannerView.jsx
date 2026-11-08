@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { CalendarCheck, Copy, Shuffle, Trash2, UsersRound, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -71,8 +72,8 @@ export default function PlannerView({ user, teacherOnly = false, students = [], 
     setSelectedId(''); setPickedKey('');
     setNotice(`Jaotatud: ${result.lessons.length} tundi${kept.length ? ` (${kept.length} käsitsi tõstetud jäid paigale)` : ''}.`);
   };
-  const clearAll = () => {
-    if (!globalThis.confirm('Tühjendan plaani (õppesuunad ja mustandtunnid)? Kalendris olevaid tunde see ei puuduta.')) return;
+  const clearAll = async () => {
+    if (!(await askConfirm('Tühjendan plaani (õppesuunad ja mustandtunnid)? Kalendris olevaid tunde see ei puuduta.'))) return;
     update({ requests: [], lessons: [], unplaced: [], stale: false });
     setSelectedId(''); setPickedKey(''); setNotice('');
   };

@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { ChevronLeft, ChevronRight, Save, Send } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge, Button, LoadingState, Modal } from '../../components/ui/index.js';
@@ -103,10 +104,10 @@ export default function InteractiveLessonPlayer({ assignmentId, user, staff = fa
     setMessage('Vastused salvestati.');
     onChanged?.();
   });
-  const submit = () => {
+  const submit = async () => {
     const missing = missingRequired(activities, answers);
     if (missing.length) { setError(`Vasta enne saatmist: ${missing.map((item) => item.title).join(', ')}.`); setCurrent(missing[0].id); return; }
-    if (!globalThis.confirm('Saata vastused õpetajale? Pärast saatmist neid enam muuta ei saa.')) return;
+    if (!(await askConfirm('Saata vastused õpetajale? Pärast saatmist neid enam muuta ei saa.'))) return;
     run('submit', async () => {
       await repository.submit(record, answers, activity.id);
       clearDraft(user.uid, record.id);

@@ -1,3 +1,13 @@
+## 2026-11-09 · agent/ui-confirm — the CRM's own confirm dialog instead of the browser's box (design audit)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/ui-confirm`.
+- Done:
+  - `components/ui/ConfirmHost.jsx` (+ `confirmHost.css`, test) is mounted once in `App.jsx`. `askConfirm(message, { confirmLabel, danger })` returns a Promise<boolean>; `askText(message)` returns a Promise<string|null>. Without a mounted host (unit tests) they fall back to `globalThis.confirm` / `prompt`, so existing tests that stub those keep working.
+  - Migrated 29 calls in 18 files to it: calendar (page, planner, unmarked, lesson panel), homework, live room (plan, group room, end lesson), student panels, groups, parents, tasks, mistakes, worksheet player, interactive lesson, board, monthly report.
+- Not migrated yet: worksheet-studio and worksheet-generator tools (content), and the finance panels `PaymentCheckPanel` / `EmailDeliveryPanel` (finance, a separate PR).
+- Checks: `npx vitest run` over the affected features plus components and app → 258 files, 1720 passed, +2 ConfirmHost tests; eslint clean apart from main's translateGuard test (fixed in #1134). Looked at the dialog in a temporary lab page (removed).
+- Next safe step: migrate the remaining 25 calls (studio, generator, finance) in their own PRs.
+
 ## 2026-11-09 · agent/admin-quickfix — web leads can be closed and say when a save fails; no false „without a future lesson” alarms
 
 - Base: `origin/main`, checked 2026-11-09. Branch `agent/admin-quickfix`.

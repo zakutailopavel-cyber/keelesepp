@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 /* global fetch, setTimeout, clearTimeout */
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -195,7 +196,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   };
 
   const submit = async () => {
-    if (progress.answered < progress.total && !window.confirm(`Vastatud ${progress.answered}/${progress.total}. Kas esitad töölehe ikkagi?`)) return;
+    if (progress.answered < progress.total && !(await askConfirm(`Vastatud ${progress.answered}/${progress.total}. Kas esitad töölehe ikkagi?`))) return;
     setSaving(true); setError(''); submitting.current = true;
     try {
       const stored = await persistRecordings({ doc, answers, assignment, repository });
