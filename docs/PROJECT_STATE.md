@@ -1,3 +1,23 @@
+## 2026-11-09 · agent/finance-quickfix — the bookkeeper sees older debts; „Palgad” on the finance page (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-quickfix`.
+- Audit found:
+  - the home page counts overdue invoices from all months and links to `/finance?status=overdue`, but the earlier months' debts list was admin-only, so the bookkeeper saw „no debts this month”;
+  - `/finance/payroll` was linked only from „Vana vaade”.
+- Done:
+  - `FinanceMonthPage.jsx`: the bookkeeper (finance role, not admin) gets `FinanceDebtsPanel` without actions;
+  - `FinanceDebtsPanel.jsx`: hides „Impordi pank” / „Meeldetuletus” when no handler is passed and says „Ainult vaatamiseks”;
+  - an admin link „Palgad” to `/finance/payroll` in the finance header.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/finance src/features/payroll src/features/dashboard` → 47 files, 316 passed (+1 read-only test); eslint clean.
+- Audit backlog (finance):
+  - money received per month and debt age exist only in „Vana vaade”;
+  - the payroll page and the teacher-load estimate are two sums, with no „paid out” mark;
+  - debts are not totalled per family;
+  - no reminder to teachers about unmarked lessons;
+  - bank import is CSV only.
+- Next safe step: total the debts per payer, with 30/60/90-day age, on the new finance page.
+
 ## 2026-11-09 · agent/translate-guard — the browser's page translation no longer crashes a lesson (owner 2026-11-09)
 
 - Base: `origin/main` d5d3681, checked 2026-11-09. Branch `agent/translate-guard`.
