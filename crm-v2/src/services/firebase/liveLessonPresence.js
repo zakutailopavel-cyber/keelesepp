@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocFromServer,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -54,10 +55,14 @@ export const liveLessonPresenceService = {
   // because the lesson was just closed (the teacher's „Lõpeta tund” → calendar, the student's room closing), the
   // write would be refused and reported to „Vead” — so the invitation is read first (pending local writes included)
   // and a closed room is left without a write. Nobody reads presence of a closed room.
+  // The status is read from the server: the local cache still said 'accepted' right after the teacher closed the
+  // lesson, and the refused write reached „Vead” (clientErrors 2026-11-04…08, teachers on /calendar). Offline, the
+  // cached copy is the fallback.
   async markOffline(invitationId, participant) {
     if (!invitationId) return false;
     const { db } = requireFirebaseClient();
-    const snapshot = await getDoc(doc(db, 'liveLessonInvitations', invitationId)).catch(() => null);
+    const reference = doc(db, 'liveLessonInvitations', invitationId);
+    const snapshot = await getDocFromServer(reference).catch(() => getDoc(reference).catch(() => null));
     if (!snapshot?.exists?.() || snapshot.data()?.status !== 'accepted') return false;
     await this.heartbeat(invitationId, { ...participant, online: false });
     return true;

@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { ArrowLeft, Columns2, LibraryBig, Rows2, MessageSquare, Mic, MicOff, MoreHorizontal, Phone, PhoneOff, Redo2, Send, Sparkles, Timer, Undo2, Users, Video, VideoOff, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CountdownBadge, CountdownControls } from './CountdownTimer.jsx';
@@ -170,12 +171,12 @@ export default function GroupRoom({
   const presets = row ? { s: 90 * tileCount, m: 150 * tileCount, l: 230 * tileCount } : { s: 120, m: 180, l: 280 };
 
   const end = async () => {
-    if (!globalThis.confirm('Lõpetada grupitund? Ruum suletakse kõigile, grupi tahvel jääb alles ja iga õpilane saab selle koopia („Tunni tahvlid”).')) return;
+    if (!(await askConfirm('Lõpetada grupitund? Ruum suletakse kõigile, grupi tahvel jääb alles ja iga õpilane saab selle koopia („Tunni tahvlid”).'))) return;
     // „Tunni tahvlid”: a read-only copy of the group board on every member's own board
     try {
       await saveGroupBoardCopies({ roomId, room, user, boardService, ...(boardCopies ? { copies: boardCopies } : {}) });
     } catch (nextError) {
-      if (!globalThis.confirm(`${nextError?.message || 'Tahvli koopiat ei saanud salvestada.'} Lõpetada tund ikkagi (õpilased koopiat ei saa)?`)) return;
+      if (!(await askConfirm(`${nextError?.message || 'Tahvli koopiat ei saanud salvestada.'} Lõpetada tund ikkagi (õpilased koopiat ei saa)?`))) return;
     }
     call.hangUp();
     try { await service.close(roomId); onEnd?.(); } catch (nextError) { setError(nextError?.message || 'Tundi ei saanud lõpetada.'); }
