@@ -16,10 +16,9 @@ function translatePage(root) {
   });
 }
 
-function Lesson({ setShow }) {
-  const [show, set] = useState(true);
-  setShow.current = set;
-  return <div>{show ? 'Tund algab' : null}{show ? <b>Ava tund</b> : 'Tund on läbi'}</div>;
+function Lesson() {
+  const [show, setShow] = useState(true);
+  return <div><button type="button" onClick={() => setShow(false)}>Lõpeta</button>{show ? 'Tund algab' : null}{show ? <b>Ava tund</b> : 'Tund on läbi'}</div>;
 }
 
 describe('translateGuard', () => {
@@ -30,10 +29,9 @@ describe('translateGuard', () => {
     const host = document.createElement('div');
     document.body.append(host);
     const root = createRoot(host);
-    const setShow = { current: null };
-    act(() => root.render(<Lesson setShow={setShow} />));
+    act(() => root.render(<Lesson />));
     translatePage(host);
-    expect(() => act(() => setShow.current(false))).not.toThrow();
+    expect(() => act(() => host.querySelector('button').click())).not.toThrow();
     expect(host.textContent).toContain('Tund on läbi');
     act(() => root.unmount());
     host.remove();
