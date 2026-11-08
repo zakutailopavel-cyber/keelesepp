@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, Images, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type, X } from 'lucide-react';
 import { Suspense, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { lazyComponent } from '../../app/lazyComponent.js';
@@ -504,9 +505,9 @@ export default function StudentBoard({
     const rect = event.currentTarget.getBoundingClientRect();
     setPageMenu({ id, x: Math.max(8, Math.min(rect.left, (globalThis.innerWidth || 1200) - 228)), y: rect.bottom + 6 });
   };
-  const deletePage = (page) => {
+  const deletePage = async (page) => {
     setPageMenu(null);
-    if (!globalThis.confirm(`Kustuta leht „${page.title || 'Leht'}” koos kõigega, mis sellel on?`)) return;
+    if (!(await askConfirm(`Kustuta leht „${page.title || 'Leht'}” koos kõigega, mis sellel on?`))) return;
     if (page.id === pageId) choosePage(null);
     service.deletePage(studentId, page.id).catch(fail('Lehte ei saanud kustutada.'));
   };
@@ -967,8 +968,8 @@ export default function StudentBoard({
     userMoved.current = false;
     setView(onWorksheet ? sheetFit(rect?.width || 800) : fitPage(bounds, rect?.width || 800, rect?.height || 500));
   };
-  const clear = () => {
-    if (!globalThis.confirm('Tühjendada see tahvel? Lukus materjalid jäävad alles.')) return;
+  const clear = async () => {
+    if (!(await askConfirm('Tühjendada see tahvel? Lukus materjalid jäävad alles.'))) return;
     service.clear(studentId, pageId).then(() => setHistory({ undo: [], redo: [] })).catch(fail('Tahvlit ei saanud tühjendada.'));
   };
   // the saved size of a text: wrapped estimate, or the editor's measured height when the browser wrapped more lines

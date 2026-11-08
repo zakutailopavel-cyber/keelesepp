@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { ListChecks } from 'lucide-react';
 import { useState } from 'react';
 import { clockLabel, goToStep, MAX_STEPS, nextStep, normalizeSteps, startPlan } from './lessonPlan.js';
@@ -77,7 +78,7 @@ export default function LessonPlanPanel({ planState, participants = [], startMs 
         {!clock.started ? <button type="button" className="lr-text-btn is-primary" onClick={() => save(startPlan(plan, Date.now()))}>Alusta</button>
           : !clock.done ? <button type="button" className="lr-text-btn is-primary" onClick={() => save(nextStep(plan, Date.now()))}>{clock.index + 1 >= clock.count ? 'Lõpeta plaan' : 'Järgmine samm'}</button> : null}
         <button type="button" className="lr-text-btn" onClick={() => setEditing(true)}>Muuda plaani</button>
-        {clock.started ? <button type="button" className="lr-text-btn" onClick={() => { if (globalThis.confirm('Alustada kell otsast?')) save(startPlan(plan, Date.now())); }}>Alusta uuesti</button> : null}
+        {clock.started ? <button type="button" className="lr-text-btn" onClick={async () => { if ((await askConfirm('Alustada kell otsast?'))) save(startPlan(plan, Date.now())); }}>Alusta uuesti</button> : null}
       </div>
     </>}
     <h3 className="lr-plan__heading">Kohalolu</h3>
