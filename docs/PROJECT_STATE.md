@@ -13,6 +13,91 @@
 - Not done: the security headers (X-Frame-Options DENY, frame-ancestors 'none') were kept on purpose: no iframe.
 - Checks: `npx vitest run src/components src/features/students` → 42 files, all passed (+2 drawer tests, registry test updated); eslint clean; looked at 1440 px with the real card and demo data (lab page, removed). Switching tabs inside the drawer left the page URL unchanged.
 - Next safe step: the same drawer for a lesson and for an invoice.
+## 2026-11-09 · agent/lead-to-student — „Õppijaks” on a web lead opens a prefilled student card (stacked on agent/admin-quickfix)
+
+- Base: `origin/agent/admin-quickfix` (#1136), checked 2026-11-09. Branch `agent/lead-to-student`.
+- Before, „Õppijaks” only changed the lead's status, so the card had to be typed again.
+- Done:
+  - New `leads/leadToStudent.js` maps a lead to StudentForm fields: name, phone, parent + parentEmail or own email, level A1–C1, subject „… keel”. Tests in `leadToStudent.test.js`.
+  - `LeadsPage` „Õppijaks” saves the status, then goes to /students with `state.newStudent`. The details go in router state, never in the URL.
+  - `StudentsPage` opens `StudentForm` with it (new `initial` prop) and clears the router state. The prefill is dropped on close or save, and „Uus õpilane” opens an empty form.
+  - The card is saved only when the admin presses save; the duplicate warning in StudentForm still runs.
+- Checks: `npx vitest run src/features/leads src/features/students` → all passed (+4 tests); eslint clean.
+- Next safe step: link the created card back to the lead (`studentId` on the lead).
+## 2026-11-09 · agent/finance-cash-view — money in/out on the new finance page (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-cash-view`.
+- Before, money actually received, cash out, margin and debt age were only in „Vana vaade” (`FinancialAnalyticsPanel`).
+- Done: `FinanceMonthPage.jsx` (admin) shows the same panel folded under the overview as „Raha liikumine: laekumised, kulud, marginaal ja võlgade vanus”. It is built on demand with „Koosta analüüs”. „Ava” on a debt opens the invoice document. CSS in `financeMonth.css`; new test.
+- The backend `previewFinancialAnalytics` only reads (checked `functions/index.js`: no writes in it).
+- Checks: `npx vitest run src/features/finance` → 41 files, 274 passed; eslint clean.
+- Next safe step: one teacher-pay figure with a „paid out” mark (payroll vs teacher-load estimate).
+
+## 2026-11-09 · agent/finance-debts-family — debts by age and by family (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-debts-family`.
+- Before, the earlier-months debts were one row per invoice, with no total per payer and no age.
+- Done:
+  - `financeDebts.js`: `debtAgeBuckets` (due date ahead / 1–30 / 31–60 / over 60 days past due) and `debtsByPayer` (by payer e-mail, else name, else student; largest first, students named).
+  - `FinanceDebtsPanel.jsx`: four age tiles and a collapsible „Pere kaupa” list above the invoice table.
+  - Styles in `financeDebts.css`, with 2 columns on a phone.
+  - Test `financeDebtsAge.test.js`.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/finance` → 42 files, 275 passed; eslint clean; looked at 1280 px with demo data (temporary lab page, removed).
+- Next safe step: money received per month on the new finance page (now only in „Vana vaade”).
+
+## 2026-11-09 · agent/live-presence-leave — leaving a just-closed room no longer writes refused presence (live classroom)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/live-presence-leave`.
+- clientErrors had 5 × `Missing or insufficient permissions (set liveLessonInvitations/{id}/presence/{id})`, from teachers on /calendar and /live-classroom right after „Lõpeta tund”. `markOffline` read the invitation status from the local cache, which still said 'accepted', so the write was refused by the rules. It did not affect the lesson, but it filled „Vead”.
+- Done: `liveLessonPresence.js` reads the status with `getDocFromServer` and falls back to the cache when offline. Two new tests. No rules change.
+- Checks: `npx vitest run src/services/firebase/liveLessonPresence.test.js src/features/live-classroom` → 41 files, 256 passed.
+- Next safe step: watch „Vead” for presence errors over a week.
+
+## 2026-11-09 · agent/ui-confirm — the CRM's own confirm dialog instead of the browser's box (design audit)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/ui-confirm`.
+- Done:
+  - `components/ui/ConfirmHost.jsx` (+ `confirmHost.css`, test) is mounted once in `App.jsx`. `askConfirm(message, { confirmLabel, danger })` returns a Promise<boolean>; `askText(message)` returns a Promise<string|null>. Without a mounted host (unit tests) they fall back to `globalThis.confirm` / `prompt`, so existing tests that stub those keep working.
+  - Migrated 29 calls in 18 files to it: calendar (page, planner, unmarked, lesson panel), homework, live room (plan, group room, end lesson), student panels, groups, parents, tasks, mistakes, worksheet player, interactive lesson, board, monthly report.
+- Not migrated yet: worksheet-studio and worksheet-generator tools (content), and the finance panels `PaymentCheckPanel` / `EmailDeliveryPanel` (finance, a separate PR).
+- Checks: `npx vitest run` over the affected features plus components and app → 258 files, 1720 passed, +2 ConfirmHost tests; eslint clean apart from main's translateGuard test (fixed in #1134). Looked at the dialog in a temporary lab page (removed).
+- Next safe step: migrate the remaining 25 calls (studio, generator, finance) in their own PRs.
+
+## 2026-11-09 · agent/admin-quickfix — web leads can be closed and say when a save fails; no false „without a future lesson” alarms
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/admin-quickfix`.
+- Done:
+  - `LeadsPage.jsx`:
+    - a failed status save shows an error (it was `try/finally` and said nothing);
+    - new buttons „Sulge” (status closed) and „Ava uuesti”;
+    - new filter tab „Suletud”;
+    - new test `LeadsPage.test.jsx`.
+  - `DashboardPage.jsx`: if reading groups fails, the „Ilma tulevase tunnita” list is left out. Before, every group-only student showed as unplanned.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/leads src/features/dashboard src/features/calendar` → all passed (264 + 2 new); eslint clean.
+- Backlog: „Õppijaks” still only changes the status. It should open a new student card prefilled from the lead (M).
+- Next safe step: „Õppijaks” → create the student card from the lead.
+
+## 2026-11-09 · agent/finance-quickfix — the bookkeeper sees older debts; „Palgad” on the finance page (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-quickfix`.
+- Audit found:
+  - the home page counts overdue invoices from all months and links to `/finance?status=overdue`, but the earlier months' debts list was admin-only, so the bookkeeper saw „no debts this month”;
+  - `/finance/payroll` was linked only from „Vana vaade”.
+- Done:
+  - `FinanceMonthPage.jsx`: the bookkeeper (finance role, not admin) gets `FinanceDebtsPanel` without actions;
+  - `FinanceDebtsPanel.jsx`: hides „Impordi pank” / „Meeldetuletus” when no handler is passed and says „Ainult vaatamiseks”;
+  - an admin link „Palgad” to `/finance/payroll` in the finance header.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/finance src/features/payroll src/features/dashboard` → 47 files, 316 passed (+1 read-only test); eslint clean.
+- Audit backlog (finance):
+  - money received per month and debt age exist only in „Vana vaade”;
+  - the payroll page and the teacher-load estimate are two sums, with no „paid out” mark;
+  - debts are not totalled per family;
+  - no reminder to teachers about unmarked lessons;
+  - bank import is CSV only.
+- Next safe step: total the debts per payer, with 30/60/90-day age, on the new finance page.
 
 ## 2026-11-09 · agent/ui-polish-1 — one focus ring, soft entrances, finger-sized targets (owner 2026-11-09: „pleasant, smooth, clear”)
 

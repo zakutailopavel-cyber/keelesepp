@@ -2,13 +2,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const firestore = vi.hoisted(() => ({
   status: 'accepted',
+  cached: 'accepted',
+  offline: false,
   setDoc: vi.fn(async () => {}),
 }));
 
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
   doc: vi.fn((_db, ...segments) => ({ path: segments.join('/') })),
-  getDoc: vi.fn(async () => ({ exists: () => firestore.status !== null, data: () => ({ status: firestore.status }) })),
+  getDoc: vi.fn(async () => ({ exists: () => firestore.cached !== null, data: () => ({ status: firestore.cached }) })),
+  getDocFromServer: vi.fn(async () => { if (firestore.offline) throw new Error('offline'); return { exists: () => firestore.status !== null, data: () => ({ status: firestore.status }) }; }),
   onSnapshot: vi.fn(),
   serverTimestamp: vi.fn(() => 'SERVER_TIME'),
   setDoc: firestore.setDoc,
@@ -33,5 +36,17 @@ describe('leaving the room (markOffline)', () => {
       await expect(liveLessonPresenceService.markOffline('inv-1', teacher)).resolves.toBe(false);
     }
     expect(firestore.setDoc).not.toHaveBeenCalled();
+  });
+
+  it('the cache still says open but the server has closed it: no write', async () => {
+    firestore.status = 'closed'; firestore.cached = 'accepted';
+    await expect(liveLessonPresenceService.markOffline('inv-1', teacher)).resolves.toBe(false);
+    expect(firestore.setDoc).not.toHaveBeenCalled();
+  });
+
+  it('offline: falls back to the cached status', async () => {
+    firestore.offline = true; firestore.cached = 'accepted';
+    await expect(liveLessonPresenceService.markOffline('inv-1', teacher)).resolves.toBe(true);
+    firestore.offline = false;
   });
 });

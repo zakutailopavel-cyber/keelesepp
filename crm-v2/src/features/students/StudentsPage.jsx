@@ -1,6 +1,6 @@
 import { Archive, ChevronRight, ClipboardList, Pencil, Plus, RotateCcw, Search, UsersRound } from 'lucide-react';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, IconButton, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { groupStudentPeople, studentsService } from '../../services/firebase/students.js';
@@ -48,7 +48,13 @@ export default function StudentsPage({ service = studentsService, mergeService, 
   const [filters, setFilters] = useState(initialFilters);
   const [state, setState] = useState({ loading: true, error: null, items: [], cursor: null, hasMore: false });
   const [formStudent, setFormStudent] = useState(undefined);
-  const [formOpen, setFormOpen] = useState(false);
+  // a web lead's „Õppijaks” (LeadsPage) sends its contact details in router state — never in the URL — and the new-card
+  // form opens prefilled; the state is cleared so a reload does not open it again
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [prefill, setPrefill] = useState(() => location.state?.newStudent || null);
+  const [formOpen, setFormOpen] = useState(() => Boolean(prefill));
+  useEffect(() => { if (location.state?.newStudent) navigate(`${location.pathname}${location.search}`, { replace: true, state: null }); }, [location, navigate]);
   const [archiveTarget, setArchiveTarget] = useState(null);
   const [enrollmentStudent, setEnrollmentStudent] = useState(null);
   const [archiving, setArchiving] = useState(false);
@@ -124,13 +130,14 @@ export default function StudentsPage({ service = studentsService, mergeService, 
   const initials = (name) => String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
   const activeCount = people.filter((student) => student.records?.some((record) => record.active)).length;
   const unassignedCount = people.filter((student) => student.active && !(student.enrollments || []).some((enrollment) => canonicalTeacherName(enrollment.teacher))).length;
-  const openCreate = () => { setFormStudent(undefined); setFormOpen(true); };
+  const openCreate = () => { setFormStudent(undefined); setPrefill(null); setFormOpen(true); };
   const openEdit = (student) => { setFormStudent(student); setFormOpen(true); };
   const save = async (values) => {
     setActionError('');
     const safeValues = canAssignTeacher ? values : { ...values, teacher: formStudent?.teacher || teacherScope };
     if (formStudent) await service.update(formStudent.id, safeValues); else await service.create(safeValues);
     setNotice(formStudent ? 'Õpilase andmed on salvestatud.' : 'Õpilane on lisatud.');
+    setPrefill(null);
     await load();
   };
   const setActive = async (active) => {
@@ -179,7 +186,7 @@ export default function StudentsPage({ service = studentsService, mergeService, 
       ) : null}
 
       {enrollmentStudent ? <EnrollmentManager student={enrollmentStudent} teachers={options.teachers} service={service} onClose={() => setEnrollmentStudent(null)} onChanged={async () => { await load(); const fresh = groupStudentPeople((await service.list({ ...filters, scopeTeacher: teacherScope, scopeTeacherUid: canAssignTeacher ? '' : currentUser.uid, pageSize: 500, exhaustive: true })).items).find((item) => item.personKey === enrollmentStudent.personKey); if (fresh) setEnrollmentStudent(fresh); }} /> : null}
-      <StudentForm open={formOpen} student={formStudent} teachers={options.teachers} canAssignTeacher={canAssignTeacher} existingStudents={state.items} defaultTeacher={teacherScope} onClose={() => setFormOpen(false)} onSubmit={save} />
+      <StudentForm open={formOpen} student={formStudent} initial={formStudent ? null : prefill} teachers={options.teachers} canAssignTeacher={canAssignTeacher} existingStudents={state.items} defaultTeacher={teacherScope} onClose={() => { setFormOpen(false); setPrefill(null); }} onSubmit={save} />
       <Modal open={Boolean(archiveTarget)} title={archiveTarget?.active ? 'Arhiveeri õpilane' : 'Taasta õpilane'} onClose={() => !archiving && setArchiveTarget(null)} footer={<><Button variant="secondary" onClick={() => setArchiveTarget(null)} disabled={archiving}>Loobu</Button><Button variant={archiveTarget?.active ? 'danger' : 'primary'} loading={archiving} onClick={() => setActive(!archiveTarget?.active)}>{archiveTarget?.active ? 'Arhiveeri' : 'Taasta'}</Button></>}><p>Kas {archiveTarget?.active ? 'arhiveerida' : 'taastada'} <strong>{archiveTarget?.name}</strong>? Toiming rakendub kõigile {archiveTarget?.recordIds?.length || 1} seotud kirjele. Õpilase ID-d, õppesuunad ja ajalugu säilivad.</p></Modal>
       {canAssignTeacher && missing.open ? <MissingDataPanel open user={currentUser} focusSubmission={missing.focus} {...(missingDataApi ? { service: missingDataApi } : {})} onClose={() => setMissing({ open: false, focus: '' })} /> : null}
       {canAssignTeacher && duplicatesOpen ? <DuplicateCandidatesModal open service={service} {...(mergeService ? { mergeService } : {})} onClose={() => setDuplicatesOpen(false)} onMerged={() => { setNotice('Kaardid on liidetud. Teine kaart on arhiveeritud ja viitab alles jäänud kaardile.'); load(); }} /> : null}

@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { CheckCircle2, Clock3, GraduationCap, Search, Video, XCircle } from 'lucide-react';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { lazyComponent } from '../../app/lazyComponent.js';
@@ -257,7 +258,7 @@ export default function LiveClassroomPage({
     streams: callStreams,
     onLeave: leaveRoom,
     // the room's „Tunni lõpp” drawer already asked (and saved the summary); other callers still confirm
-    onEndLesson: (options = {}) => { if (options.confirmed || globalThis.confirm('Lõpetada tund? Tunniruum suletakse mõlemale ja kalendris avaneb tund märkimiseks.')) closeRoom(); },
+    onEndLesson: async (options = {}) => { if (options.confirmed || (await askConfirm('Lõpetada tund? Tunniruum suletakse mõlemale ja kalendris avaneb tund märkimiseks.'))) closeRoom(); },
     ending: saving === 'close',
   });
   const worksheetProps = { ...(worksheetHomework ? { homework: worksheetHomework } : {}), ...(worksheetLibrary ? { library: worksheetLibrary } : {}) };
