@@ -29,7 +29,7 @@ import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.j
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
 import SubjectSwitcher from './SubjectSwitcher.jsx';
 import { itemSubject, onlySubject, subjectsOf } from './subjects.js';
-import { feedbackSeenAt, homeNotes, homeSections, newFeedback, nextStep } from './nextStep.js';
+import { feedbackSeenAt, homeNotes, homeSections, newFeedback, nextStep, openWork } from './nextStep.js';
 import LessonSoonPrefetch from '../live-classroom/LessonSoonPrefetch.jsx';
 import './studentHome.css';
 
@@ -154,6 +154,8 @@ export default function StudentDashboardPage({
   const cancelRequest = async () => { try { await changeRequests.cancel(nextRequest.id); } finally { state.reload(); } };
 
   const step = nextStep({ occurrences, homework, assignments, words, today });
+  // a wide screen has room for the open work itself under the next step (hidden on a phone, where the first screen stays one step)
+  const todo = openWork({ homework, assignments }).slice(0, 5);
   const sections = homeSections({ homework, assignments, words, today, path: todayPath({ words, homework, submissions, assignments, mistakesDoneToday: reviewedToday, today }) });
   const upcoming = occurrences.filter((item) => item.status !== 'Tühistatud').slice(0, 5);
   const progress = petProgress({ lessons: state.data.lessons, submissions, homework: state.data.homework, words });
@@ -170,12 +172,18 @@ export default function StudentDashboardPage({
 
     {/* the first screen (owner 2026-11-01): exactly one next step and one request of the pet, nothing else */}
     <div className="sh-hero">
-      <section className={`sh-step ${step.key === 'done' ? 'is-done' : ''}`} aria-label="Järgmine samm">
-        <small>Järgmine samm <span lang="ru">· следующий шаг</span></small>
-        <strong>{step.title}</strong>
-        <span>{step.detail}</span>
-        {step.to.startsWith('#') ? <a href={step.to}>{step.button} <ChevronRight size={17} aria-hidden="true" /></a> : <Link to={step.to}>{step.button} <ChevronRight size={17} aria-hidden="true" /></Link>}
-      </section>
+      <div className="sh-main">
+        <section className={`sh-step ${step.key === 'done' ? 'is-done' : ''}`} aria-label="Järgmine samm">
+          <small>Järgmine samm <span lang="ru">· следующий шаг</span></small>
+          <strong>{step.title}</strong>
+          <span>{step.detail}</span>
+          {step.to.startsWith('#') ? <a href={step.to}>{step.button} <ChevronRight size={17} aria-hidden="true" /></a> : <Link to={step.to}>{step.button} <ChevronRight size={17} aria-hidden="true" /></Link>}
+        </section>
+        {todo.length > 1 ? <section className="sh-todo" aria-label="Ülesanded">
+          <h2>Ülesanded <small lang="ru">· задания</small></h2>
+          <ul>{todo.map((task) => <li key={task.id}><Link to="/homework"><ListTodo size={17} aria-hidden="true" /><b>{task.title}</b>{task.due ? <small className={task.due < today ? 'is-late' : ''}>{task.due < today ? 'tähtaeg oli ' : ''}{dateLabel(task.due)}</small> : <small />}<ChevronRight size={16} aria-hidden="true" /></Link></li>)}</ul>
+        </section> : null}
+      </div>
       {pet?.kind && !pet.optedOut ? <PetLoop user={user} studentId={students[0].id} pet={pet} readOnly={Boolean(preview)} lessons={state.data.lessons} submissions={submissions} homework={state.data.homework} assignments={sheets} words={words} subject={chosen || students[0].subject || ''}
         repository={petRepository} {...(wordsService ? { wordsService } : {})} /> : null}
       {offerPet ? <Link className="sh-pet" to="/student/lemmik"><i style={{ display: 'grid', placeItems: 'center' }}><PawPrint size={40} aria-hidden="true" /></i><span><strong>Vali endale sõber</strong><small>Õppesõber kasvab koos sinuga</small></span></Link> : null}

@@ -1,3 +1,11 @@
+## 2026-11-08 · agent/student-home-wide — the student's home uses a wide screen (owner 2026-11-08, Artemi's screen)
+
+- Base: `origin/main` d17d801, checked 2026-11-08. Branch `agent/student-home-wide`.
+- Owner: on a computer the student's home was a 980 px phone column with empty space around it.
+- Done: from 1200 px wide the home is up to 1480 px: next step (larger) with the open work list („Ülesanded”, up to 5, overdue in red) under it on the left, the pet on the right; „Minu õppimine” beside „Tunniplaan”. Below 1200 px nothing changes (the list is hidden; phone = one next step as decided 2026-11-01). Files: `StudentDashboardPage.jsx` (uses `openWork` from `nextStep.js`), `studentHome.css`, test updated.
+- Checks: `npx vitest run src/features/students src/features/homework` — all passed after the test update. Looked at 1600×900 and 375×812 with demo data (temporary lab page, removed).
+- Next safe step: owner looks at a student's home on a computer and on a phone.
+
 ## 2026-11-06 · agent/k89-full-sheets — full sheets for the children's course 8–9 (k89-001…012, content)
 
 - Base: `origin/main` 1a37d92 (#1127), checked 2026-11-06. Branch `agent/k89-full-sheets`, draft PR. Open PRs at start: #1062 only, not touched; ek2/ek3 not touched.

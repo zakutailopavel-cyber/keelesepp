@@ -77,7 +77,8 @@ describe('StudentDashboardPage', () => {
     const { container } = renderPage(data);
     const pet = await screen.findByRole('region', { name: 'Okki' });
     const hero = container.querySelector('.sh-hero');
-    expect([...hero.children].map((node) => node.getAttribute('aria-label'))).toEqual(['Järgmine samm', 'Okki']);
+    // the left column starts with the next step (the open work under it is shown only on a wide screen)
+    expect([hero.querySelector('.sh-main').firstElementChild, hero.children[1]].map((node) => node.getAttribute('aria-label'))).toEqual(['Järgmine samm', 'Okki']);
     await waitFor(() => expect(within(pet).getByText(/Tuju: näljane/)).toBeInTheDocument());
     expect(within(pet).getByRole('button', { name: /Kordame 3 sõna/ })).toBeInTheDocument();
     expect(within(hero).queryByText(/Järgmine tund:/)).not.toBeInTheDocument();
