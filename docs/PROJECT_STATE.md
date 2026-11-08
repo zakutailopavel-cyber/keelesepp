@@ -1,3 +1,18 @@
+## 2026-11-09 · agent/admin-quickfix — web leads can be closed and say when a save fails; no false „without a future lesson” alarms
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/admin-quickfix`.
+- Done:
+  - `LeadsPage.jsx`:
+    - a failed status save shows an error (it was `try/finally` and said nothing);
+    - new buttons „Sulge” (status closed) and „Ava uuesti”;
+    - new filter tab „Suletud”;
+    - new test `LeadsPage.test.jsx`.
+  - `DashboardPage.jsx`: if reading groups fails, the „Ilma tulevase tunnita” list is left out. Before, every group-only student showed as unplanned.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/leads src/features/dashboard src/features/calendar` → all passed (264 + 2 new); eslint clean.
+- Backlog: „Õppijaks” still only changes the status. It should open a new student card prefilled from the lead (M).
+- Next safe step: „Õppijaks” → create the student card from the lead.
+
 ## 2026-11-09 · agent/translate-guard — the browser's page translation no longer crashes a lesson (owner 2026-11-09)
 
 - Base: `origin/main` d5d3681, checked 2026-11-09. Branch `agent/translate-guard`.
