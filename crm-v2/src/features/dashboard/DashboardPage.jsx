@@ -63,8 +63,11 @@ async function loadDashboardData(user, repositories, now) {
       : repositories.homework.list())
     : Promise.resolve([]);
 
+  // a failed groups read must not take the home page down — but then group-only students would all look „without a
+  // future lesson”, so that list is left out instead of raising false alarms (audit 2026-11-09)
+  let groupsFailed = false;
   const groupsPromise = canViewLearning && repositories.groups?.list
-    ? repositories.groups.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName } : {}).catch(() => [])
+    ? repositories.groups.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName } : {}).catch(() => { groupsFailed = true; return []; })
     : Promise.resolve([]);
   // „Ootab kontrolli”, counted like the Kodutööd page; a failed read must not take the home page down
   const submissionsPromise = canViewLearning && repositories.homework.listSubmissionsByStudentIds
@@ -88,7 +91,7 @@ async function loadDashboardData(user, repositories, now) {
   const overdue = invoices.filter(isInvoiceOverdue);
   const studentIds = new Set(studentsResult.items.map((item) => item.id));
   const openHomework = homework.filter((item) => isHomeworkOpen(item) && (!studentIds.size || studentIds.has(item.studentId)));
-  const unplanned = unplannedStudents({ students: studentsResult.items, events, today: current, teacherUid: teacherOnly ? user.uid : '' });
+  const unplanned = groupsFailed ? [] : unplannedStudents({ students: studentsResult.items, events, today: current, teacherUid: teacherOnly ? user.uid : '' });
 
   return {
     isAdmin,
