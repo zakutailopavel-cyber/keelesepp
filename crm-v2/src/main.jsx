@@ -8,6 +8,10 @@ import './styles/index.css';
 import { reloadOnceForNewBuild } from './app/staleBuild.js';
 import { clientErrors, installClientErrorListeners } from './features/client-errors/clientErrorReporter.js';
 import { clientErrorsService } from './services/firebase/clientErrors.js';
+import { installTranslateGuard } from './app/translateGuard.js';
+
+// the browser's page translation must not crash a lesson (translateGuard.js)
+installTranslateGuard();
 
 // client error tracking (admin „Vead”): page errors and unhandled rejections → clientErrors (no personal data)
 clientErrors.setSender((record) => clientErrorsService.send(record));

@@ -18,6 +18,14 @@
   - `npx vitest run src/components src/app` → 20 files, 83 passed;
   - looked at a modal and Tab focus in a temporary lab page (removed).
 - Next safe step: replace the native confirm()/prompt() dialogs with a `useConfirm()` built on `Modal`.
+## 2026-11-09 · agent/translate-guard — the browser's page translation no longer crashes a lesson (owner 2026-11-09)
+
+- Base: `origin/main` d5d3681, checked 2026-11-09. Branch `agent/translate-guard`.
+- Owner: students and teachers sometimes lose the lesson when they press translate. clientErrors confirmed it: `Failed to execute 'removeChild' on 'Node'` on /student and /homework, and Safari's `The object can not be found here` on /. That is Chrome/Safari page translation replacing React's text nodes (facebook/react#11538).
+- Done: `src/app/translateGuard.js` (installed first in `main.jsx`). It turns removeChild of a node that already left its parent into a no-op and turns insertBefore with such a reference into an append. Translation stays allowed, because learners translate Estonian screens into Russian. Test `translateGuard.test.jsx` translates a rendered tree and re-renders; without the guard the same test throws.
+- Checks: `npx vitest run src/app src/features/students src/features/homework src/features/live-classroom` → 104 files, 591 tests passed.
+- Not done: live-room `presence` permission errors (5 in clientErrors) are a separate fix.
+- Next safe step: watch admin „Vead” for a week; removeChild / „can not be found here” should stop.
 
 ## 2026-11-08 · agent/student-home-wide — the student's home uses a wide screen (owner 2026-11-08, Artemi's screen)
 
