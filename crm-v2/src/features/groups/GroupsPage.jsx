@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { CalendarClock, Layers3, Pencil, Plus, Search, ShieldCheck, Trash2, UserPlus, UsersRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -230,7 +231,7 @@ export default function GroupsPage({ repository = groupsService, studentReposito
   };
 
   const removeLesson = async (group, lesson) => {
-    if (!window.confirm(`Kas eemaldada ${dayLabels[lesson.day]} kell ${lesson.time}?`)) return;
+    if (!(await askConfirm(`Kas eemaldada ${dayLabels[lesson.day]} kell ${lesson.time}?`))) return;
     setSaving(`lesson:${lesson.id}`);
     try {
       await repository.removeLesson(group, lesson.id, user);
@@ -244,7 +245,7 @@ export default function GroupsPage({ repository = groupsService, studentReposito
   };
 
   const removeGroup = async (group) => {
-    if (!window.confirm(`Kas kustutada grupp „${group.name}”? Õpilasi ei kustutata.`)) return;
+    if (!(await askConfirm(`Kas kustutada grupp „${group.name}”? Õpilasi ei kustutata.`))) return;
     setSaving(`group:${group.id}`);
     try {
       await repository.remove(group, state.data.students, user);

@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { Check, Copy, Send } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button, Card } from '../../components/ui/index.js';
@@ -71,7 +72,7 @@ export default function MonthlyReportCard({ student, user, repository = api, now
     try { await record('copy'); setText(null); setNotice('Märgitud saadetuks.'); } catch (error) { setNotice(error?.message || 'Ei saanud märkida.'); } finally { setBusy(''); }
   };
   const send = async () => {
-    if (!globalThis.confirm('Saada see kokkuvõte õpilase vestlusesse (vanem näeb seda „Suhtlus” all)?')) return;
+    if (!(await askConfirm('Saada see kokkuvõte õpilase vestlusesse (vanem näeb seda „Suhtlus” all)?'))) return;
     setBusy('send'); setNotice('');
     try {
       await repository.send({ studentId: student.id, studentName: student.name, teacher: student.teacher || '', text }, user);
