@@ -1,3 +1,18 @@
+## 2026-11-09 · agent/student-drawer — the student's full card opens beside the work (right-click), not on another page
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/student-drawer`.
+- Owner 2026-11-09: a right-click → student card should not take the admin away from the page.
+- Done:
+  - `components/studentDrawer/` adds `openStudentDrawer(id)`, `StudentDrawer.jsx` (lazy, mounted in `AppShell` next to the right-click menu for admin, teacher and finance) and CSS. The drawer slides in from the right; Escape, the backdrop or × closes it.
+  - The drawer has an „Ava täislehena” link. It closes itself when a link inside the card opens another page.
+  - `StudentProfilePage` gets `studentId` and `embedded` props. Embedded, its tabs and dialogs keep their query in local state, so the page under the drawer keeps its URL and filters, and the „Kõik õpilased” back link is hidden.
+  - Right-click menu (`entityRegistry.js`):
+    - student: „Ava kaart (siinsamas)” opens the drawer; the new „Ava kaart eraldi lehel” keeps the old navigation;
+    - every entity with a student (lesson, invoice, homework…): „Õpilase kaart (siinsamas)”;
+    - `EntityContextMenu` handles `kind: 'drawer'` and falls back to the page without a drawer.
+- Not done: the security headers (X-Frame-Options DENY, frame-ancestors 'none') were kept on purpose: no iframe.
+- Checks: `npx vitest run src/components src/features/students` → 42 files, all passed (+2 drawer tests, registry test updated); eslint clean; looked at 1440 px with the real card and demo data (lab page, removed). Switching tabs inside the drawer left the page URL unchanged.
+- Next safe step: the same drawer for a lesson and for an invoice.
 ## 2026-11-09 · agent/lead-to-student — „Õppijaks” on a web lead opens a prefilled student card (stacked on agent/admin-quickfix)
 
 - Base: `origin/agent/admin-quickfix` (#1136), checked 2026-11-09. Branch `agent/lead-to-student`.

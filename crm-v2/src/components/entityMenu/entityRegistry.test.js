@@ -15,7 +15,7 @@ describe('entity menu registry: who gets which actions', () => {
   });
 
   it('a teacher keeps the student actions; the finance tab is for the administrator', () => {
-    expect(ids('student', ['teacher'], student, { record })).toEqual(['open', 'rename', 'edit', 'write', 'calendar', 'new-sheet', 'board', 'copy-phone', 'archive']);
+    expect(ids('student', ['teacher'], student, { record })).toEqual(['open', 'open-page', 'rename', 'edit', 'write', 'calendar', 'new-sheet', 'board', 'copy-phone', 'archive']);
     expect(ids('student', ['admin'], student, { record })).toContain('finance');
     expect(ids('student', ['finance'], student, { record })).toEqual([]);
   });
