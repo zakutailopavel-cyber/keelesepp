@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, Modal } from '../../components/ui/index.js';
 import { displayDate } from './finance.js';
 import { financeRowState } from './financeRows.js';
-import { pastDueInvoices } from './financeDebts.js';
+import { debtAgeBuckets, debtsByPayer, pastDueInvoices } from './financeDebts.js';
 import { canCancelInvoice, creditableLessonLines, fullCorrectionBlocker } from './invoiceActions.js';
 import InvoiceCorrectionDialog from './InvoiceCorrectionDialog.jsx';
 import BankReconciliationPanel from './BankReconciliationPanel.jsx';
@@ -72,6 +72,8 @@ export default function FinanceDebtsPanel({ month, invoices, students, transacti
   const canEdit = Boolean(onCorrectDueDate || onCreditLessonLine || onCreditInFull || onCorrectInvoice);
   const debts = useMemo(() => pastDueInvoices(invoices, month), [invoices, month]);
   const total = debts.reduce((sum, invoice) => sum + financeRowState(invoice).balanceCents, 0);
+  const ages = useMemo(() => debtAgeBuckets(debts), [debts]);
+  const payers = useMemo(() => debtsByPayer(debts), [debts]);
   const remind = async (invoice) => {
     setBusy(invoice.id); setNotice('');
     try { await onRemind(invoice); setNotice('Maksemeeldetuletus saadeti.'); }
@@ -113,6 +115,10 @@ export default function FinanceDebtsPanel({ month, invoices, students, transacti
     <Card className="finance-debts" id="volgnevused">
       <div className="finance-debts__heading"><div><span className="eyebrow">Võlgnevused</span><h2>Varasemate kuude tasumata arved</h2><p>Kõik valitud kuust varasemad arved, millel on veel jääk.</p></div><div><strong>{money(total)}</strong><Button variant="secondary" onClick={() => setImportOpen(true)}><FileUp size={17} /> Impordi pank</Button></div></div>
       {notice ? <p className="finance-debts__notice" role="status">{notice}</p> : null}
+      {debts.length ? <div className="finance-debts__summary">
+        <ul className="finance-debts__ages" aria-label="Võlgade vanus">{ages.map((bucket) => <li key={bucket.id} className={`is-${bucket.id}${bucket.count ? '' : ' is-empty'}`}><span>{bucket.label}</span><strong>{money(bucket.cents)}</strong><small>{bucket.count} arvet</small></li>)}</ul>
+        {payers.length > 1 ? <details className="finance-debts__payers"><summary>Pere kaupa · {payers.length} maksjat</summary><ol>{payers.map((payer) => <li key={payer.key}><span><b>{payer.name}</b>{payer.students.length ? <small>{payer.students.join(', ')}</small> : null}</span><span>{payer.count} arvet</span><strong>{money(payer.cents)}</strong></li>)}</ol></details> : null}
+      </div> : null}
       {!debts.length ? <EmptyState title="Varasemaid võlgnevusi ei ole" description="Kõik eelmiste kuude arved on tasutud või krediteeritud." action={<History size={28} />} /> : <div className="finance-debts__table" role="table" aria-label="Võlgnevused">
         <div className="finance-debts__head" role="row"><span>Õpilane</span><span>Arve</span><span>Tähtaeg</span><span>Jääk</span><span>Olek</span><span /></div>
         {debts.map((invoice) => { const row = financeRowState(invoice); const label = invoice.num || invoice.number || ''; return <div className="finance-debts__row" role="row" key={invoice.id} data-entity="invoice" data-invoice-id={invoice.id} data-invoice-number={label || undefined} data-student-id={invoice.studentId || undefined} data-entity-title={[invoice.studentName || invoice.payerName, label].filter(Boolean).join(' · ') || undefined}><span data-label="Õpilane"><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{invoice.payerEmail || ''}</small></span><span data-label="Arve">{label || '—'}</span><span data-label="Tähtaeg">{displayDate(invoice.due || invoice.dueDate)}</span><span data-label="Jääk"><strong>{money(row.balanceCents)}</strong></span><span data-label="Olek"><Badge tone={row.overdue ? 'danger' : 'neutral'}>{row.overdue ? 'Üle tähtaja' : 'Tasumata'}</Badge></span><span className="finance-debts__actions"><Button variant="secondary" loading={busy === invoice.id} data-entity-action="remind" onClick={() => remind(invoice)}><Mail size={15} /> Meeldetuletus</Button>{canEdit ? <Button variant="secondary" data-entity-action="edit" onClick={() => { setEditError(''); setEditInvoice(invoice); }} aria-label={`Muuda arvet ${label}`}><Pencil size={15} /> Muuda</Button> : null}{onCancel && canCancelInvoice(invoice) ? <Button variant="secondary" data-entity-action="cancel" onClick={() => onCancel(invoice)} aria-label={`Tühista arve ${label}`}><Trash2 size={15} /> Tühista</Button> : null}</span></div>; })}
