@@ -1,3 +1,11 @@
+## 2026-11-09 · agent/live-presence-leave — leaving a just-closed room no longer writes refused presence (live classroom)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/live-presence-leave`.
+- clientErrors had 5 × `Missing or insufficient permissions (set liveLessonInvitations/{id}/presence/{id})`, from teachers on /calendar and /live-classroom right after „Lõpeta tund”. `markOffline` read the invitation status from the local cache, which still said 'accepted', so the write was refused by the rules. It did not affect the lesson, but it filled „Vead”.
+- Done: `liveLessonPresence.js` reads the status with `getDocFromServer` and falls back to the cache when offline. Two new tests. No rules change.
+- Checks: `npx vitest run src/services/firebase/liveLessonPresence.test.js src/features/live-classroom` → 41 files, 256 passed.
+- Next safe step: watch „Vead” for presence errors over a week.
+
 ## 2026-11-09 · agent/ui-confirm — the CRM's own confirm dialog instead of the browser's box (design audit)
 
 - Base: `origin/main`, checked 2026-11-09. Branch `agent/ui-confirm`.
