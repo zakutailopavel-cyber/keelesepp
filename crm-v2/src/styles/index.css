@@ -257,3 +257,27 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
 .modal-backdrop{grid-template-columns:minmax(0,1fr)}.modal{min-width:0}.modal__body{min-width:0}.modal__header h2{min-width:0;overflow-wrap:anywhere}.modal__header .icon-button{flex:0 0 auto}.material-preview{grid-template-columns:minmax(0,1fr)}.preview-phases,.preview-studio{min-width:0}
 @media(max-width:800px){.page-header__actions{justify-content:flex-start}.students-mobile-list{grid-template-columns:minmax(0,1fr)}.student-mobile-card{min-width:0}.student-mobile-card .row-actions{flex-wrap:wrap}}
 @media(max-width:560px){.modal{max-height:calc(100dvh - 20px)}}
+
+/* Polish 1 (owner 2026-11-09: „pleasant, smooth, clear”): one focus ring, soft entrances, finger-sized targets. */
+:root{--focus-ring:0 0 0 3px rgba(8,126,107,.28);--ease-out:cubic-bezier(.2,.8,.2,1)}
+/* the focus ring was the old green and missed every custom button and textarea: one ring for all controls */
+:where(button,a,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--green);outline-offset:2px;box-shadow:var(--focus-ring)}
+.button:focus-visible,.icon-button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,.textarea-field textarea:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+/* modals, notices and errors fade in instead of popping (prefers-reduced-motion above turns this off) */
+@keyframes ks-fade{from{opacity:0}to{opacity:1}}
+@keyframes ks-rise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes ks-drop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.modal-backdrop{animation:ks-fade .18s ease-out}
+.modal{animation:ks-rise .24s var(--ease-out)}
+.success-notice,.action-error,.form-error[role=alert]{animation:ks-drop .22s var(--ease-out)}
+.button,.icon-button{transition:background-color .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease,transform .1s ease}
+.button:active:not(:disabled),.icon-button:active:not(:disabled){transform:scale(.97)}
+/* phones and tablets: small controls get a finger-sized hit area (kids and parents mis-tapped 20–36 px buttons) */
+@media(pointer:coarse){
+  .row-actions .icon-button{width:42px;height:42px}
+  .task-preview-button{min-height:40px}
+  .live-call-float-toggle{width:42px;height:42px}
+  .text-button{padding-block:10px}
+  .field-help__button{position:relative}
+  .field-help__button::after{content:'';position:absolute;inset:-12px}
+}

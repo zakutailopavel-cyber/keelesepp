@@ -13,6 +13,46 @@
 - Backlog: „Õppijaks” still only changes the status. It should open a new student card prefilled from the lead (M).
 - Next safe step: „Õppijaks” → create the student card from the lead.
 
+## 2026-11-09 · agent/finance-quickfix — the bookkeeper sees older debts; „Palgad” on the finance page (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-quickfix`.
+- Audit found:
+  - the home page counts overdue invoices from all months and links to `/finance?status=overdue`, but the earlier months' debts list was admin-only, so the bookkeeper saw „no debts this month”;
+  - `/finance/payroll` was linked only from „Vana vaade”.
+- Done:
+  - `FinanceMonthPage.jsx`: the bookkeeper (finance role, not admin) gets `FinanceDebtsPanel` without actions;
+  - `FinanceDebtsPanel.jsx`: hides „Impordi pank” / „Meeldetuletus” when no handler is passed and says „Ainult vaatamiseks”;
+  - an admin link „Palgad” to `/finance/payroll` in the finance header.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/finance src/features/payroll src/features/dashboard` → 47 files, 316 passed (+1 read-only test); eslint clean.
+- Audit backlog (finance):
+  - money received per month and debt age exist only in „Vana vaade”;
+  - the payroll page and the teacher-load estimate are two sums, with no „paid out” mark;
+  - debts are not totalled per family;
+  - no reminder to teachers about unmarked lessons;
+  - bank import is CSV only.
+- Next safe step: total the debts per payer, with 30/60/90-day age, on the new finance page.
+
+## 2026-11-09 · agent/ui-polish-1 — one focus ring, soft entrances, finger-sized targets (owner 2026-11-09: „pleasant, smooth, clear”)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/ui-polish-1`. CSS only: an appended „Polish 1” block at the end of `src/styles/index.css`.
+- Done:
+  - one focus ring for every control (the old ring used the old green #226b5a and missed custom buttons and textareas);
+  - modals fade and rise, success/error notices slide in;
+  - buttons press and transition softly;
+  - on touch screens the 20–36 px controls get a ≥42 px hit area.
+- `prefers-reduced-motion` already turns the motion off.
+- Design audit for later steps:
+  - two `:root` blocks in index.css;
+  - 4302 hard-coded hex colours;
+  - 55 native confirm()/prompt();
+  - 867 raw `<button>`;
+  - 11 `Suspense fallback={null}`, including the public /ajad and /maksuandmed;
+  - dark mode only in the worksheet studio.
+- Checks:
+  - `npx vitest run src/components src/app` → 20 files, 83 passed;
+  - looked at a modal and Tab focus in a temporary lab page (removed).
+- Next safe step: replace the native confirm()/prompt() dialogs with a `useConfirm()` built on `Modal`.
 ## 2026-11-09 · agent/translate-guard — the browser's page translation no longer crashes a lesson (owner 2026-11-09)
 
 - Base: `origin/main` d5d3681, checked 2026-11-09. Branch `agent/translate-guard`.

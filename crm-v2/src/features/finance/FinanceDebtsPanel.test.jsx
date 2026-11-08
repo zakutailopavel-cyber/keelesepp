@@ -193,4 +193,11 @@ describe('FinanceDebtsPanel', () => {
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('täielikult krediteeritud');
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
+
+  it('is read-only without actions (the bookkeeper)', () => {
+    render(<FinanceDebtsPanel month={base.month} invoices={[unpaid]} students={[]} />);
+    expect(screen.getByText('AR-7')).toBeInTheDocument();
+    expect(screen.getByText(/Ainult vaatamiseks/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Meeldetuletus|Impordi pank|Muuda arvet/ })).not.toBeInTheDocument();
+  });
 });
