@@ -1,3 +1,16 @@
+## 2026-11-09 · agent/ui-confirm-2 — the rest of the browser confirm/prompt boxes become the CRM dialog (studio, generator, settings, library)
+
+- Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/ui-confirm-2`, draft PR.
+- Done: 24 calls in 13 files moved to `askConfirm` / `askText` (`components/ui/ConfirmHost.jsx`, #1137); handlers made async.
+  - worksheet-studio: `WorksheetStudioPage.jsx` (7 confirm + 3 prompt → `askText`), `editor/ReuseDialogs.jsx`, `editorHistory.js` (unsaved-work guard on links: the click is stopped, and after „Lahku” it is repeated once on the same link).
+  - worksheet-generator: `AvastaUpgradePage`, `CourseProductionPage`, `LessonGeneratorBar`, `LessonWorksheetSet`, `Module1ThreePhasePage`.
+  - settings `SheetBuilderCard`, `DataCleanupPanel` (red „Kustuta” only for deleting conversations), library `LibraryPage`, `components/EntityContextMenu.jsx` (archive student).
+  - `danger: true` on delete / archive / revoke key / leave with unsaved work.
+- Left on purpose: `beforeunload` in `editorHistory.js` (reload / tab close) keeps the browser's own box: a page dialog cannot answer it synchronously. Finance `PaymentCheckPanel` / `EmailDeliveryPanel` go in their own PR `agent/ui-confirm-finance`.
+- Test change: `LibraryPage.test.jsx` waits for the busy button (the confirm now answers in a microtask).
+- Checks: `npx vitest run src/features/worksheet-studio src/features/worksheet-generator src/features/settings src/features/library src/components` → 172 files, 1848 passed, 12 skipped; eslint --quiet clean on touched files.
+- Next safe step: click through „Salvesta mallina” and leaving the studio with unsaved changes in the running app.
+
 ## 2026-11-09 · agent/finance-debts-family — debts by age and by family (finance)
 
 - Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-debts-family`.

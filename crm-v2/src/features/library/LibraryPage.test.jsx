@@ -361,7 +361,7 @@ describe('LibraryPage', () => {
     render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 'admin', displayName: 'Admin', roles: ['admin'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} worksheetRepository={{ syncPhases: vi.fn() }} /></AuthContext.Provider></MemoryRouter>);
     fireEvent.click(await screen.findByRole('button', { name: 'Valmista moodul ette' }));
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining('kvaliteedikontrollis vigu ei ole'));
-    expect(screen.getByRole('button', { name: 'Laen generaatorit…' })).toBeDisabled();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Laen generaatorit…' })).toBeDisabled());
     expect(await screen.findByRole('status')).toHaveTextContent('lehed loodi 2 tunnile; avaldati 5 lehte, pilt lisati 1 avaldatud lehele; 1 lehte jäi kvaliteedivigade tõttu mustandiks.');
     expect(prepareModule).toHaveBeenCalledWith(expect.objectContaining({ lessons: [expect.objectContaining({ id: 'a2-001' }), expect.objectContaining({ id: 'a2-002' })] }));
     confirm.mockRestore();
