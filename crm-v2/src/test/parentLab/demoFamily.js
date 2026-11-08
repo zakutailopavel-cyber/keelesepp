@@ -108,6 +108,8 @@ export function demoFamily(today, family = 'two') {
   schedule.push({ id: 'sch-sofia', studentId: 'demo-sofia', studentName: 'Sofia Smirnova', teacher: 'Jaan Õpetaja', date: shift(today, 2), time: '17:00', duration: 45, status: 'Planeeritud' });
   // one unpaid invoice (a family invoice, money only — never lessons left)
   invoices.push({ id: 'inv-1', num: 'KS-2026-311', studentId: 'demo-aleksandr', studentName: 'Aleksandr Smirnov', amountCents: 20000, paidAmountCents: 0, status: 'Ootel', date: at(today, 0, 1), due: shift(today, 10), desc: 'November' });
+  // and one past its due date (the red line of „Arve ootab tasumist”)
+  if (family === 'two') invoices.push({ id: 'inv-2', num: 'KS-2026-298', studentId: 'demo-sofia', studentName: 'Sofia Smirnova', amountCents: 24000, paidAmountCents: 0, status: 'Ootel', date: at(today, 1, 20), due: shift(today, -3), desc: 'Oktoober' });
   invoices.push({ id: 'inv-0', num: 'KS-2026-270', studentId: 'demo-aleksandr', studentName: 'Aleksandr Smirnov', amountCents: 20000, paidAmountCents: 20000, status: 'Makstud', date: at(today, 1, 1), desc: 'Oktoober' });
   // „Keeleoskus” points (progressPoints): Aleksandr's start 43 % on 11.07 („Algus”, teacher) and a mock exam 64 % on
   // 23.10 (a marker only); Sofia's start 35 % today. The rest of the curve is computed from the sheets above.
@@ -133,6 +135,8 @@ export function demoRepositories(data) {
     changeRequests: { listForStudents: async () => [], create: async () => ({}) },
     wordsService: { subscribeForStudent: (studentId, onData) => { onData(data.words.filter((word) => word.studentId === studentId)); return () => {}; } },
     consentService: { answerConsent: async () => ({}) },
+    // card payments „on” so the lab shows „Maksa arve”; it never opens a bank page
+    paymentsApi: { config: async () => ({ enabled: true }), startForInvoice: async () => { throw new Error('Demo: makset ei alustata.'); } },
     summaryService: { listForStudents: async () => [], subscribeForStudent: (id, onData) => { onData([]); return () => {}; } },
     boardCopiesService: { listForStudents: async () => [], subscribe: (id, onData) => { onData([]); return () => {}; } },
     // the student's own „Minu areng” (lab ?view=student)

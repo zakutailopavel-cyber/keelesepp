@@ -32,6 +32,7 @@ import { ChildrenWordGrowth } from '../vocabulary/WordGrowthCard.jsx';
 import ChildSwitch, { childKeyOf } from './ChildSwitch.jsx';
 import { childSummary, isRealInvoice, moneyDue } from './parentHome.js';
 import NowLearningCard from './NowLearningCard.jsx';
+import UnpaidInvoicesNotice from './UnpaidInvoicesNotice.jsx';
 import './parentHome.css';
 
 function unique(items) {
@@ -123,7 +124,7 @@ function ChildCards({ child, summary, upcoming, subjects, onlyOneSubject, lesson
   </div>;
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService, pointsService, goalsLoader }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService, pointsService, goalsLoader, paymentsApi }) {
   const { user, preview } = useAuth();
   const location = useLocation();
   const [rescheduling, setRescheduling] = useState(null);
@@ -196,6 +197,10 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
 
   return <div className="page-content pd-page">
     {hello}
+    {/* „Arve ootab tasumist” (owner 2026-11-09): unpaid invoices first, in the CRM only; invoice data, never a lesson balance */}
+    <UnpaidInvoicesNotice invoices={invoices} readOnly={Boolean(preview)} onOpenInvoices={openInvoices}
+      nameOf={(invoice) => (students.length > 1 ? (studentOf(invoice)?.name || invoice.studentName || '').trim().split(/\s+/)[0] : '')}
+      {...(paymentsApi ? { api: paymentsApi } : {})} />
     {/* the parent's own question: an administrator's preview cannot answer it (as in the student's view) */}
     {consent}
     <ChildSwitch people={students} value={childKeyOf(child)} onChange={(key) => { setChildKey(key); setSubject(''); }} marks={switchMarks} />
@@ -231,7 +236,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
 
       {/* the whole family's invoices; „Tasumata arved” appears only with card payments and pays them */}
       <Section id="arved" title="Arved" ru="счета" summary={due.cents > 0 ? `Tasumata ${money(due.cents)}` : familyInvoices.length ? 'Kõik arved on tasutud' : 'Arveid ei ole'} open={openSection === 'arved'} onToggle={() => toggle('arved')}>
-        <OpenInvoicesCard invoices={invoices} readOnly={Boolean(preview)} />
+        <OpenInvoicesCard invoices={invoices} readOnly={Boolean(preview)} {...(paymentsApi ? { api: paymentsApi } : {})} />
         <Card><div className="section-heading"><div><h2>Viimased arved<Ru>последние счета</Ru></h2></div></div>{familyInvoices.length ? <div className="simple-list parent-home-invoices">{familyInvoices.map((invoice) => {
           const open = invoiceBalanceCents(invoice);
           const overdue = isInvoiceOverdue(invoice);
