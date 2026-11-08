@@ -6,7 +6,7 @@ import { installTranslateGuard } from './translateGuard.js';
 
 // what the browser's translator does: every text node is replaced by <font>translated text</font>
 function translatePage(root) {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const walker = document.createTreeWalker(root, globalThis.NodeFilter.SHOW_TEXT);
   const texts = [];
   while (walker.nextNode()) texts.push(walker.currentNode);
   texts.forEach((text) => {
