@@ -1,3 +1,16 @@
+## 2026-11-09 · agent/finance-debts-family — debts by age and by family (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-debts-family`.
+- Before, the earlier-months debts were one row per invoice, with no total per payer and no age.
+- Done:
+  - `financeDebts.js`: `debtAgeBuckets` (due date ahead / 1–30 / 31–60 / over 60 days past due) and `debtsByPayer` (by payer e-mail, else name, else student; largest first, students named).
+  - `FinanceDebtsPanel.jsx`: four age tiles and a collapsible „Pere kaupa” list above the invoice table.
+  - Styles in `financeDebts.css`, with 2 columns on a phone.
+  - Test `financeDebtsAge.test.js`.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/finance` → 42 files, 275 passed; eslint clean; looked at 1280 px with demo data (temporary lab page, removed).
+- Next safe step: money received per month on the new finance page (now only in „Vana vaade”).
+
 ## 2026-11-09 · agent/live-presence-leave — leaving a just-closed room no longer writes refused presence (live classroom)
 
 - Base: `origin/main`, checked 2026-11-09. Branch `agent/live-presence-leave`.
