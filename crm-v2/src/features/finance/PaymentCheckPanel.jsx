@@ -1,6 +1,7 @@
 import { CheckCircle2, FileUp, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, LoadingState, Modal } from '../../components/ui/index.js';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { paymentsService } from '../../services/firebase/payments.js';
 import { displayDate } from './finance.js';
 import { missingPaymentRecord, reconcilePayments } from './paymentReconciliation.js';
@@ -52,8 +53,8 @@ export default function PaymentCheckPanel({ invoices = [], transactions = [], st
   const addAllMissing = (items) => act('missing-all', async () => {
     for (const item of items) await financeRepository.recordPayment(item.invoice.id, missingPaymentRecord(item.invoice));
   }, `Makse kirje lisati ${items.length} arvele.`);
-  const voidDuplicate = (item, payment) => {
-    if (!globalThis.confirm(`Tühistada korduv makse ${paymentLine(payment)} arvelt ${item.label}?`)) return;
+  const voidDuplicate = async (item, payment) => {
+    if (!(await askConfirm(`Tühistada korduv makse ${paymentLine(payment)} arvelt ${item.label}?`, { confirmLabel: 'Tühista makse', danger: true }))) return;
     act(`void-${payment.id}`, () => financeRepository.voidPayment(payment.id, 'Kontroll: sama makse oli sisestatud kaks korda'), `Korduv makse arvelt ${item.label} tühistati.`);
   };
   const moveOverpayment = (item) => act(`over-${item.invoice.id}`, () => financeRepository.resolveInvoiceOverpayment(item.invoice.id, 'Kontroll: ülemakse maksja ettemaksuks'), `Arve ${item.label} ülejääk kanti ettemaksuks.`);
