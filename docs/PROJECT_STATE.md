@@ -1,3 +1,15 @@
+## 2026-11-09 · agent/loading-states — one calm loading look (design audit)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/loading-states`, draft PR.
+- Done:
+  - `components/ui/LoadingState.jsx`: spinner is `aria-hidden`, label announced with `aria-live="polite"`; new `inline` variant (one small muted line, keeps the old hint class via `className`) and `page` variant (full-screen, for public pages). New `components/ui/Skeleton.jsx` (`lines` / `card`, shimmer) exported from `components/ui/index.js`. Styles in `components/ui/loadingState.css` with the shared tokens; `prefers-reduced-motion` stops the spin and shimmer.
+  - 28 bare „Laen…” paragraphs in 26 files now use `LoadingState` (inline in cards and panels, block in `BookPage` / `WorksheetStudioPage`); wording unchanged.
+  - `app/routes.jsx`: `/ajad`, `/maksuandmed/:token`, `/e-kirjad/:token` use `publicPage()` — a full-screen „Laen… · Загрузка…” instead of a blank screen. The other `fallback={null}` (topbar search/notifications, context menu, pet, live-room hints and recorder, step control, inline rich editor) stay, each with a comment why.
+- Left as they were: „Laen…” inside buttons, `<option>`, row `<small>`, list `<li>` and texts mixed with an empty-state message (NotificationCenter, LessonPanel, StudentParentsCard).
+- No data, rules or behaviour changed. Two tests (`googleCalendar.test.jsx`, `ParentDashboardPage.test.jsx`) now look through all status regions, because inline loaders are status regions too. +4 tests in `ui.test.jsx`.
+- Checks: `cd crm-v2 && npx vitest run` → 546 files passed (1 skipped), 4207 tests passed, 12 skipped; `npx eslint src --quiet` clean. Not looked at in a browser.
+- Next safe step: use `Skeleton` on the busiest first screens (student and parent dashboards) instead of the spinner.
+
 ## 2026-11-09 · agent/finance-debts-family — debts by age and by family (finance)
 
 - Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-debts-family`.

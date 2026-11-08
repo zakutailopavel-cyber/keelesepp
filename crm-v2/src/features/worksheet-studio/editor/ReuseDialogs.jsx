@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Modal } from '../../../components/ui/index.js';
+import { Modal, LoadingState } from '../../../components/ui/index.js';
 import { BLOCKS } from '../engine/registry.js';
 import { filterTemplates, PHASE_SHEETS, phaseLabel, targetLessons, TEMPLATE_KINDS } from '../sheetReuse.js';
 
@@ -63,7 +63,7 @@ export function CopyMoveDialog({ block, doc, lessonId = '', worksheetId = '', re
           <legend>Tund</legend>
           {lessonId && worksheetId ? <label className="st-reuse__row"><input type="radio" name="reuse-lesson" checked={target === lessonId} onChange={() => setTarget(lessonId)} /> See tund</label> : null}
           <input className="ed-input" type="search" value={lessonQuery} onChange={(e) => setLessonQuery(e.target.value)} placeholder="Otsi tundi: nimi, tase, moodul" aria-label="Otsi tundi" />
-          {loadError ? <p className="ed-hint" role="alert">{loadError}</p> : !lessons ? <p className="ed-hint">Laen tunde…</p> : (
+          {loadError ? <p className="ed-hint" role="alert">{loadError}</p> : !lessons ? <LoadingState inline className="ed-hint" label="Laen tunde…" /> : (
             <ul className="st-reuse__list">
               {found.items.filter((l) => l.id !== lessonId || !worksheetId).map((l) => (
                 <li key={l.id}><label className="st-reuse__row"><input type="radio" name="reuse-lesson" checked={target === l.id} onChange={() => setTarget(l.id)} /> {l.title || l.id}<small>{[l.levelStage || l.level, l.roadmapModuleTitle || l.module].filter(Boolean).join(' · ')}</small></label></li>

@@ -1399,7 +1399,7 @@ export default function FinancePage({
                   Makseajalugu on nähtav administraatorile.
                 </p>
               ) : payments.loading ? (
-                <p className="form-hint">Laen makseid…</p>
+                <LoadingState inline className="form-hint" label="Laen makseid…" />
               ) : payments.error ? (
                 <p className="form-error">{payments.error}</p>
               ) : payments.items.length ? (

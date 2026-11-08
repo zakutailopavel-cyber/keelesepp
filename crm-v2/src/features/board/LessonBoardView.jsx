@@ -5,6 +5,7 @@ import { COLORS, fontCss, isMarker, pathFor, textBox, unionBounds } from './boar
 import { INK_BOX, isBookmark } from './bookmarkModel.js';
 import { spanCss, spansOf } from './richText.js';
 import './board.css';
+import { LoadingState } from '../../components/ui/index.js';
 
 const MARGIN = 40;
 
@@ -64,7 +65,7 @@ export default function LessonBoardView({ studentId, pageId, service = lessonCop
       .catch((error) => { if (alive) setState({ key, items: [], error: error?.message || 'Tahvlit ei saanud avada.' }); });
     return () => { alive = false; };
   }, [key, pageId, service, studentId]);
-  if (state.key !== key || state.items === null) return <p className="lb-muted">Laen tahvlit…</p>;
+  if (state.key !== key || state.items === null) return <LoadingState inline className="lb-muted" label="Laen tahvlit…" />;
   if (state.error) return <p className="lb-error" role="alert">{state.error}</p>;
   const bounds = unionBounds(state.items);
   if (!bounds) return <p className="lb-muted">Sellel lehel ei ole midagi.</p>;

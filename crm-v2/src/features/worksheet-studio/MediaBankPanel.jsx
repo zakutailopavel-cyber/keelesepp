@@ -3,6 +3,7 @@ import { mediaBankService } from '../../services/firebase/mediaBank.js';
 import ImageSearch from './editor/ImageSearch.jsx';
 import { LEVELS, searchAssets, textbookArtAssets } from './mediaBank.js';
 import { parseVideoUrl } from './engine/video.js';
+import { LoadingState } from '../../components/ui/index.js';
 
 
 const EXTRAS = [['gaps', '+ lüngad tekstist'], ['wordorder', '+ sõnajärg'], ['vocab', '+ sõnavara']];
@@ -69,7 +70,7 @@ export default function MediaBankPanel({ level = '', service = mediaBankService,
           {LEVELS.map((item) => <button type="button" key={item} aria-pressed={lvl === item} className={lvl === item ? 'is-active' : ''} onClick={() => setLvl(lvl === item ? '' : item)}>{item}</button>)}
         </div>
         {state.error ? <p className="ed-hint" role="alert">{state.error}</p> : null}
-        {state.loading ? <p className="ed-hint">Laen panka…</p> : null}
+        {state.loading ? <LoadingState inline className="ed-hint" label="Laen panka…" /> : null}
         {tab === 'images' ? (
           images.length ? <div className="st-bank__grid">{images.slice(0, 60).map((asset) => (
             <button type="button" key={asset.key || asset.id} title={asset.caption || asset.topic || ''} aria-label={`Lisa pilt: ${asset.caption || asset.topic || 'pilt'}`} onClick={() => onImage(asset)}>
