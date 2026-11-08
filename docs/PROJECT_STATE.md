@@ -1,3 +1,13 @@
+## 2026-11-09 · agent/unmarked-reminders — teachers get a daily in-CRM reminder about their unmarked lessons (owner 2026-11-09)
+
+- Base: `origin/main` d5e1b0a, checked 2026-11-09. Branch `agent/unmarked-reminders`, draft PR. Open PRs at start (#1062, #1133, #1135–#1141) not touched.
+- Owner: „a daily reminder to teachers about their unmarked lessons — an in-CRM notification, NOT an e-mail”. No e-mail / SMS anywhere; learner e-mails stay off.
+- Before: a teacher had no menu badge (the „Kalender” count is admin-only) and nothing in the bell. Only when they opened home: a „Vajab tähelepanu” line „N märkimata tundi” (365-day legacy `unmarkedLessons`) and the „Märkimata tunnid” tile; in the calendar a „Märkimata tunnid N” button.
+- Done (client only, no server write, no scheduled function): `unmarkedReminder(items, today)` in `features/calendar/unmarkedLessons.js` (REMINDER_DAYS = REVIEW_DAYS = 60, so the old backlog „308 — пока не делаем” does not nag and the number matches /calendar/markimata; nothing is bulk-marked) + `unmarkedLessonsService.reminder({ user })` (the page's own `load`, own lessons only, without Live evidence). Bell: `unmarkedNotifications` in `notificationModel.js` → „N tundi märkimata (vanim DD.MM)” → /calendar/markimata (a teacher's page shows only own lessons); id `unmarked:<day>` so the bell counts it as new once a day; re-read on panel open and on `UNMARKED_CHANGED_EVENT`. Teachers only; the admin keeps the school-wide count. Home: `features/dashboard/UnmarkedNudge.jsx` — once a day (localStorage `ks-unmarked-nudge:<uid>` = date, try/catch), dismissible, when own lessons from before yesterday are unmarked: „Sul on N märkimata tundi (vanim DD.MM). Märgi need 1 minutiga →”; computed from the journal and calendar the home page already reads (no extra read); not in the admin's preview. CSS `.calm-nudge` in `calm.css`.
+- Checks: `cd crm-v2 && npx vitest run src/components/layout src/features/notifications src/features/calendar src/features/dashboard` → 37 files, 283 tests passed (4 new); `npx vitest run src/services/firebase src/app` → 50 files, 259 passed; eslint clean on the touched files.
+- Limits: the home's „Vajab tähelepanu” line still counts 365 days (legacy), the nudge and the bell 60 days, so the numbers can differ for a teacher with an old backlog. Not looked at in a browser with real data.
+- Next safe step: owner opens the CRM as a teacher (preview shows the bell; the banner is hidden in preview) and checks the bell line and the link.
+
 ## 2026-11-09 · agent/translate-guard — the browser's page translation no longer crashes a lesson (owner 2026-11-09)
 
 - Base: `origin/main` d5d3681, checked 2026-11-09. Branch `agent/translate-guard`.

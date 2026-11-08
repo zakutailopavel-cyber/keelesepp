@@ -3,7 +3,7 @@ import { requireFirebaseClient } from './client.js';
 import { lessonsService, normalizeLesson } from './lessons.js';
 import { scheduleService } from './schedule.js';
 import { toIsoDate, shiftDate } from '../../features/calendar/calendarView.js';
-import { REVIEW_DAYS, findUnmarkedLessons, liveSessions, summarizeUnmarked } from '../../features/calendar/unmarkedLessons.js';
+import { REMINDER_DAYS, REVIEW_DAYS, findUnmarkedLessons, liveSessions, summarizeUnmarked, unmarkedReminder } from '../../features/calendar/unmarkedLessons.js';
 
 // „Märkimata tunnid”: loads the calendar, the lesson marks and (for the page) the Live Classroom's summaries and
 // recordings, and hands them to the pure findUnmarkedLessons. An admin sees every teacher; a teacher his own lessons
@@ -59,6 +59,12 @@ export const unmarkedLessonsService = {
   async count({ user, isAdmin = false, today = toIsoDate(), withEvidence = false } = {}) {
     const { items } = await unmarkedLessonsService.load({ user, isAdmin, today, withEvidence });
     return summarizeUnmarked(items);
+  },
+  // a teacher's own reminder (bell + home banner, owner 2026-11-09): { total, oldest, oldestLabel, stale } of the
+  // REMINDER_DAYS window; read only from the calendar and the marks (no Live evidence: it changes the kind, not the set)
+  async reminder({ user, today = toIsoDate() } = {}) {
+    const { items } = await unmarkedLessonsService.load({ user, isAdmin: false, today, days: REMINDER_DAYS, withEvidence: false });
+    return unmarkedReminder(items, today);
   },
   // the calendar's own „Toimunud / Puudus” path (lesson record + schedule status + activityLog in one transaction)
   async mark(item, user, status = 'Toimunud') {
