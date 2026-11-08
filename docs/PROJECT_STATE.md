@@ -1,3 +1,14 @@
+## 2026-11-09 · agent/lead-to-student — „Õppijaks” on a web lead opens a prefilled student card (stacked on agent/admin-quickfix)
+
+- Base: `origin/agent/admin-quickfix` (#1136), checked 2026-11-09. Branch `agent/lead-to-student`.
+- Before, „Õppijaks” only changed the lead's status, so the card had to be typed again.
+- Done:
+  - New `leads/leadToStudent.js` maps a lead to StudentForm fields: name, phone, parent + parentEmail or own email, level A1–C1, subject „… keel”. Tests in `leadToStudent.test.js`.
+  - `LeadsPage` „Õppijaks” saves the status, then goes to /students with `state.newStudent`. The details go in router state, never in the URL.
+  - `StudentsPage` opens `StudentForm` with it (new `initial` prop) and clears the router state. The prefill is dropped on close or save, and „Uus õpilane” opens an empty form.
+  - The card is saved only when the admin presses save; the duplicate warning in StudentForm still runs.
+- Checks: `npx vitest run src/features/leads src/features/students` → all passed (+4 tests); eslint clean.
+- Next safe step: link the created card back to the lead (`studentId` on the lead).
 ## 2026-11-09 · agent/finance-cash-view — money in/out on the new finance page (finance)
 
 - Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-cash-view`.
