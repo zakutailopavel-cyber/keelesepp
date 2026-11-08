@@ -1,0 +1,14 @@
+/* the student's card beside the work (owner 2026-11-09) */
+@keyframes student-drawer-in { from { transform: translateX(32px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes student-drawer-fade { from { opacity: 0; } to { opacity: 1; } }
+.student-drawer { position: fixed; inset: 0; z-index: 90; display: flex; justify-content: flex-end; background: rgba(15, 23, 42, .32); animation: student-drawer-fade .18s ease-out; }
+.student-drawer__panel { width: min(1080px, 94vw); height: 100%; display: flex; flex-direction: column; background: var(--surface-soft, #f6f8fb); box-shadow: -24px 0 60px rgba(15, 23, 42, .22); animation: student-drawer-in .24s cubic-bezier(.2, .8, .2, 1); outline: none; }
+.student-drawer__bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 22px; border-bottom: 1px solid var(--border, #dfe5ec); background: #fff; }
+.student-drawer__bar strong { flex: 1; font-size: .95rem; }
+.student-drawer__full { display: inline-flex; align-items: center; gap: 6px; color: var(--green, #087e6b); font-weight: 700; font-size: .86rem; text-decoration: none; padding: 8px 10px; border-radius: 10px; }
+.student-drawer__full:hover { background: var(--green-soft, #e8f6f2); }
+.student-drawer__close { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--border, #dfe5ec); border-radius: 11px; background: #fff; color: inherit; }
+.student-drawer__close:hover { background: #f2f4f7; }
+.student-drawer__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+.student-drawer__body .page-content { padding: 22px 24px 40px; max-width: none; }
+@media (max-width: 700px) { .student-drawer__panel { width: 100vw; } .student-drawer__body .page-content { padding: 16px 14px 32px; } }
