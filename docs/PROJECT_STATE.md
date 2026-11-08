@@ -1,3 +1,12 @@
+## 2026-11-09 · agent/finance-cash-view — money in/out on the new finance page (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-cash-view`.
+- Before, money actually received, cash out, margin and debt age were only in „Vana vaade” (`FinancialAnalyticsPanel`).
+- Done: `FinanceMonthPage.jsx` (admin) shows the same panel folded under the overview as „Raha liikumine: laekumised, kulud, marginaal ja võlgade vanus”. It is built on demand with „Koosta analüüs”. „Ava” on a debt opens the invoice document. CSS in `financeMonth.css`; new test.
+- The backend `previewFinancialAnalytics` only reads (checked `functions/index.js`: no writes in it).
+- Checks: `npx vitest run src/features/finance` → 41 files, 274 passed; eslint clean.
+- Next safe step: one teacher-pay figure with a „paid out” mark (payroll vs teacher-load estimate).
+
 ## 2026-11-09 · agent/finance-debts-family — debts by age and by family (finance)
 
 - Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-debts-family`.
