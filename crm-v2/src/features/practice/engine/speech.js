@@ -1,5 +1,6 @@
-// Listening items need a real Estonian voice: the browser's speechSynthesis with an et-EE voice (no recorded audio
-// exists for the course sentences yet). Without one the lesson builder gets canListen = false and leaves listening out.
+// Listening items need a real Estonian voice: a stored Neurokõne recording of the sentence (vocabulary/wordAudio.js,
+// checked per item by the caller of buildLesson) or the browser's speechSynthesis with an et-EE voice. With neither the
+// item stays a plain build.
 
 export function estonianVoice(synth = typeof window !== 'undefined' ? window.speechSynthesis : null) {
   try {

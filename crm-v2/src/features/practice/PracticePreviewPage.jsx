@@ -6,7 +6,8 @@ import { coverageOf } from './engine/coverage.js';
 import { buildLesson, LESSON_MAX, LESSON_MIN } from './engine/lesson.js';
 import { grammarLabel } from './engine/grammar.js';
 import { estonianVoice } from './engine/speech.js';
-import { TYPE_LABELS } from './engine/items.js';
+import { TYPE_LABELS, fullSentence } from './engine/items.js';
+import { hasWordAudio, useWordAudio, WORD_AUDIO_CREDIT } from '../vocabulary/wordAudio.js';
 import PracticeLesson from './PracticeLesson.jsx';
 import './practice.css';
 
@@ -36,7 +37,10 @@ export default function PracticePreviewPage({ loaders = COURSE_LOADERS }) {
   const [lang, setLang] = useState('ru');
   const [seed, setSeed] = useState(1);
   const [running, setRunning] = useState(null);
-  const canListen = useEstonianVoice();
+  const hasVoice = useEstonianVoice();
+  const stored = useWordAudio();
+  // a listening item needs that sentence's stored recording or the browser's Estonian voice
+  const canListen = useMemo(() => (hasVoice ? true : stored ? (item) => hasWordAudio(fullSentence(item)) : false), [hasVoice, stored]);
 
   useEffect(() => {
     let alive = true;
@@ -88,7 +92,8 @@ export default function PracticePreviewPage({ loaders = COURSE_LOADERS }) {
             {running ? <Button variant="secondary" onClick={() => { setSeed((s) => s + 1); setRunning(null); }}>Uus segu</Button> : null}
           </div>
         </div>
-        <p className="pr-preview__meta">{canListen ? 'Brauseris on eesti hääl: kuulamisülesanded on sees.' : 'Brauseris pole eesti häält: kuulamisülesanded jäävad välja.'}</p>
+        <p className="pr-preview__meta">{stored ? `Kuulamisülesanded: salvestatud heli (${WORD_AUDIO_CREDIT})${hasVoice ? ', muu brauseri eesti häälega' : ''}.`
+          : hasVoice ? 'Brauseris on eesti hääl: kuulamisülesanded on sees.' : 'Brauseris pole eesti häält ega salvestatud heli: kuulamisülesanded jäävad välja.'}</p>
       </Card>
 
       {state.error ? <ErrorState title="Kursust ei saanud avada" message={state.error} /> : null}

@@ -30,6 +30,7 @@
 .fc-tap { color: var(--muted); font-size: 13px; opacity: .8; }
 .fc-audio { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--green-text); cursor: pointer; transition: background .2s, transform .2s; }
 .fc-audio:hover { background: var(--green-soft); transform: scale(1.05); }
+.fc-example .fc-audio { width: 36px; height: 36px; margin-left: 8px; vertical-align: middle; font-style: normal; }
 .fc-forms { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%; margin: 0; }
 .fc-forms div { flex: 1 1 auto; min-width: 84px; max-width: 100%; padding: 6px 10px; border-radius: var(--radius-md); background: var(--surface-soft); border: 1px solid var(--border); text-align: center; }
 .fc-forms dt { color: var(--muted); font-size: 11px; text-transform: lowercase; }

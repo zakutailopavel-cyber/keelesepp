@@ -3,6 +3,8 @@ import { vi } from 'vitest';
 import FlashcardSession from './FlashcardSession.jsx';
 import { onPractice } from '../practice/events.js';
 import { exampleFor, formatWhen, formRows, meaningFor, posLabel } from './cardFace.js';
+import { setWordAudioManifest } from './wordAudio.js';
+import { wordAudioKey } from './wordAudioKey.js';
 
 const NOW = new Date('2026-11-09T10:00:00Z');
 const card = (id, front, back, extra = {}) => ({ id, key: `${id}:r`, dir: 'r', front, back, hint: '', side: null, ...extra });
@@ -130,6 +132,19 @@ describe('FlashcardSession', () => {
     expect(spoken).toEqual([expect.objectContaining({ text: 'tegema', lang: 'et-EE', voice: expect.objectContaining({ name: 'Anu' }) })]);
     expect(theCard()).toHaveAttribute('aria-pressed', 'false'); // the sound button does not turn the card
     delete globalThis.SpeechSynthesisUtterance;
+  });
+
+  it('audio: a stored Neurokõne file plays without any browser voice; the example sentence gets its own button', () => {
+    setWordAudioManifest({ v: 1, speaker: 'mari', ext: 'm4a', base: 'https://files.test/', keys: [wordAudioKey('tegema'), wordAudioKey('Mida sa täna teed?')] });
+    const played = [];
+    const original = globalThis.Audio;
+    globalThis.Audio = class { constructor(src) { this.src = src; } load() {} pause() {} play() { played.push(this.src); return Promise.resolve(); } };
+    setup();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Kuula: tegema' })[0]);
+    expect(played).toEqual([`https://files.test/${wordAudioKey('tegema')}.m4a?alt=media`]);
+    expect(screen.getByRole('button', { name: 'Kuula lauset: Mida sa täna teed?' })).toBeInTheDocument();
+    globalThis.Audio = original;
+    setWordAudioManifest(null);
   });
 
   it('respects prefers-reduced-motion (no flying card)', () => {

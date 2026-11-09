@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { Volume2 } from 'lucide-react';
 import { TYPE_LABELS, fullSentence, inputOf } from './engine/items.js';
-import { speakEstonian } from './engine/speech.js';
+import { playEstonian, preloadWordAudio } from '../vocabulary/wordAudio.js';
 
 // What the learner sees above the answer: the task in one line (Estonian, with the learner's language under it), then
 // the sentence with its gap, the sentence to rewrite with its cue, or the play button of a listening item.
@@ -44,13 +45,16 @@ function GapSentence({ item, filled }) {
 const Gap = ({ filled }) => <span className={`pr-gap${filled ? ' is-filled' : ''}`} aria-label={filled ? `lünk: ${filled}` : 'lünk'}>{filled || ' '}</span>;
 
 function ListenButton({ item }) {
-  const say = (rate) => speakEstonian(fullSentence(item), { rate });
+  // the stored Neurokõne recording when there is one (slowed down for „Aeglaselt”), else the browser's Estonian voice
+  const text = fullSentence(item);
+  useEffect(() => { preloadWordAudio([text]); }, [text]);
+  const say = (slow) => playEstonian(text, { slow });
   return (
     <div className="pr-listen">
-      <button type="button" className="pr-listen__play" onClick={() => say(0.9)} aria-label="Kuula lauset">
+      <button type="button" className="pr-listen__play" onClick={() => say(false)} aria-label="Kuula lauset">
         <Volume2 size={30} aria-hidden="true" />
       </button>
-      <button type="button" className="pr-listen__slow" onClick={() => say(0.65)}>Aeglaselt</button>
+      <button type="button" className="pr-listen__slow" onClick={() => say(true)}>Aeglaselt</button>
     </div>
   );
 }
