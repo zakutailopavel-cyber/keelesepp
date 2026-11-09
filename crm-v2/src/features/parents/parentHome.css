@@ -83,9 +83,9 @@
 .pd-pay__more { display: flex; flex-basis: 100%; flex-wrap: wrap; align-items: center; gap: 4px 18px; padding-left: 28px; }
 .pd-pay__more .pd-linkbtn { display: inline-flex; align-items: center; gap: 6px; }
 .pd-pay__claimed { display: inline-flex; align-items: center; gap: 6px; color: #0f5f4c; font-size: .88rem; font-weight: 700; }
-.pd-pay__claim { display: grid; flex-basis: 100%; gap: 6px; margin: 2px 0 4px 28px; padding: 10px 12px; border: 1px solid #f0dcc2; border-radius: 12px; background: #fff; }
+.pd-pay__claim { display: grid; flex-basis: 100%; gap: 6px; margin: 2px 0 4px 28px; padding: 10px 12px; border: 1px solid #f0dcc2; border-radius: var(--radius-lg); background: var(--surface); }
 .pd-pay__claim p { margin: 0; font-size: .85rem; }
 .pd-pay__claim label { font-size: .82rem; font-weight: 700; }
-.pd-pay__claim textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #d8d2c4; border-radius: 10px; font: inherit; resize: vertical; }
+.pd-pay__claim textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); font: inherit; resize: vertical; }
 .pd-pay__claim-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 @media (max-width: 560px) { .pd-pay__more { padding-left: 0; } .pd-pay__claim { margin-left: 0; } }
