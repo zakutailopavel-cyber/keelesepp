@@ -4,7 +4,10 @@
 //    B2”, „Jekaterina” = „Ekaterina” = „Katerina”); a level / subject tag in the name („B2”, „En”) is not part of it;
 //  - a similar name (same first name with a surname missing on one card, or a short and a full form) AND the same
 //    learner's account, e-mail or phone, or the same parent (account, e-mail, phone or name);
-//  - the same learner's account alone.
+//  - the same learner's account alone;
+//  - a card the sign-up linking marked as probably this card (`possibleExistingCardIds`, written by the server when a
+//    self-registration made a new card next to a card with the same first name and surname / parent surname / contact,
+//    functions/account-bootstrap-core.js likelyExistingCards, 2026-11-09).
 // Two people with the same first name and different surnames are never proposed on the name alone. Siblings share a
 // parent but not a first name, so they are not proposed. The same teacher, the same level tag and „one card registered
 // by the learner, the other made by the school” only raise the score. One card per person with a subject per
@@ -169,6 +172,8 @@ export function duplicatePair(a = {}, b = {}) {
   if (sameName) add('name', x.name.plain === y.name.plain ? 'Sama nimi' : 'Sama nimi (eri kirjapilt)');
   else if (similar) add('similar_name', 'Sarnane nimi');
   if (shared(x.accounts, y.accounts)) add('account', 'Sama õpilase konto');
+  const signupMatch = (a.possibleExistingCardIds || []).includes(b.id) || (b.possibleExistingCardIds || []).includes(a.id);
+  if (signupMatch) add('signup_match', 'Uus konto võib kuuluda olemasolevale kaardile');
   if (similar && shared(x.emails, y.emails)) add('email', 'Sama e-post');
   if (similar && shared(x.phones, y.phones)) add('phone', 'Sama telefon');
   if (similar && shared(x.parentIds, y.parentIds)) add('parent_account', 'Sama lapsevanema konto');
@@ -177,7 +182,7 @@ export function duplicatePair(a = {}, b = {}) {
   if (similar && shared(x.parentNames, y.parentNames)) add('parent_name', 'Sama lapsevanema nimi');
   const codes = new Set(reasons.map((r) => r.code));
   const linked = ['account', 'email', 'phone', 'parent_account', 'parent_email', 'parent_phone', 'parent_name'].some((code) => codes.has(code));
-  if (!sameName && !(similar && linked) && !codes.has('account')) return null;
+  if (!sameName && !(similar && linked) && !codes.has('account') && !signupMatch) return null;
   // supporting signals: only raise the score of a pair that is already a candidate
   const sameTeacher = shared(x.teachers, y.teachers);
   if (sameTeacher) add('teacher', 'Sama õpetaja');
@@ -187,7 +192,7 @@ export function duplicatePair(a = {}, b = {}) {
   const accountPattern = (x.accounts.length > 0) !== (y.accounts.length > 0) && (x.selfRegistered || y.selfRegistered);
   if (accountPattern) add('self_registered', 'Üks kaart on õpilase enda registreeritud, teisel kontot pole');
   if (x.subjects.length && y.subjects.length && !shared(x.subjects, y.subjects)) add('subjects', `Sama inimene, eri ained (${x.subjects.join(', ')} / ${y.subjects.join(', ')})`);
-  const score = (sameName ? 50 : similar ? 25 : 0) + (codes.has('account') ? 100 : 0) + (codes.has('email') || codes.has('phone') ? 40 : 0)
+  const score = (sameName ? 50 : similar ? 25 : 0) + (codes.has('account') ? 100 : 0) + (signupMatch ? 60 : 0) + (codes.has('email') || codes.has('phone') ? 40 : 0)
     + (codes.has('parent_account') || codes.has('parent_email') ? 40 : 0) + (codes.has('parent_phone') ? 30 : 0) + (codes.has('parent_name') ? 15 : 0)
     + (sameTeacher ? 15 : 0) + (tag ? 10 : shared(x.levels, y.levels) ? 5 : 0) + (accountPattern ? 10 : 0);
   return { a, b, score, confidence: score >= 80 ? 'high' : 'medium', reasons };
@@ -201,6 +206,9 @@ function blockKeys(s) {
   if (x.name.first.length >= 3) keys.push(`f:${x.name.first.slice(0, 3)}`);
   else if (x.name.first) keys.push(`f:${x.name.first}`);
   x.accounts.forEach((v) => keys.push(`a:${v}`));
+  // a sign-up card and the card it may belong to share a block (by the older card's id)
+  keys.push(`id:${s.id}`);
+  (s.possibleExistingCardIds || []).forEach((v) => keys.push(`id:${v}`));
   x.emails.forEach((v) => keys.push(`e:${v}`));
   x.phones.forEach((v) => keys.push(`p:${v}`));
   x.parentIds.forEach((v) => keys.push(`pa:${v}`));
