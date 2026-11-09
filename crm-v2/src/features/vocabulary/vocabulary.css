@@ -57,6 +57,7 @@
 .vd-deck small { color: var(--gray-500); font-size: 13px; }
 .vd-deck.is-mine { border-color: #a6e3cc;border-color:light-dark(#a6e3cc,#1b4c3d); background: #f0faf6;background:light-dark(#f0faf6,#12211c); }
 .vd-list { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.vd-credit { margin: 4px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
 .vd-level { height: 38px; padding: 0 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); background: var(--surface); font: inherit; }
 .vd-module { border-top: 1px solid #f2f4f7;border-top:1px solid light-dark(#f2f4f7,#2d343b); padding: 8px 0; }
 .vd-module summary { display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-weight: 700; cursor: pointer; }

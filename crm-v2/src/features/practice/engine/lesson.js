@@ -15,7 +15,7 @@ export const LESSON_MAX = 12;
 export const LESSON_SIZE = 10;
 const SPACED_SHARE = 0.3;
 const LISTEN_MAX = 2;
-const LISTEN_TILES = 10;
+export const LISTEN_TILES = 10;
 
 const BASE = { connector: 1, form: 1.6, build: 2, listen: 2.8, transform: 3 };
 // easy → hard: type and input, sentence length, lesson phase (Avasta < Harjuta < Kasuta), error correction
@@ -133,13 +133,15 @@ export function buildLesson({ pool = [], level = '', moduleId = '', grammarFocus
   // how each item is answered: transformations alternate tiles / typed (tiles first = easier), a few builds are heard
   let transforms = 0;
   let listens = 0;
+  // canListen: true / false, or (item) => boolean — a stored recording of that sentence, or the browser's Estonian voice
+  const listenable = typeof canListen === 'function' ? canListen : () => Boolean(canListen);
   const shaped = chosen.map((it) => {
     let next = { ...it };
     if (it.type === 'transform') {
       next.input = it.orders?.length && transforms % 2 === 0 ? 'tiles' : 'type';
       transforms += 1;
     }
-    if (canListen && it.type === 'build' && listens < LISTEN_MAX && (it.tiles || []).length <= LISTEN_TILES && random() < 0.5) {
+    if (it.type === 'build' && listens < LISTEN_MAX && (it.tiles || []).length <= LISTEN_TILES && listenable(it) && random() < 0.5) {
       next = { ...next, type: 'listen' };
       listens += 1;
     }

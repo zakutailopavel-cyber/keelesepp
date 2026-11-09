@@ -1,4 +1,3 @@
-/* global SpeechSynthesisUtterance, Audio */
 // „Kaardid” (2026-11-09, docs/VOCABULARY_SRS.md): one big card on spaced repetition. Tap / Space turns it; then
 // Uuesti / Raske / Hea / Lihtne by button, key 1–4 or a swipe (left = Uuesti, right = Hea, up = Lihtne). A card answered
 // „Uuesti” comes back in the same session after its learning step; the end screen tells honestly how it went.
@@ -6,6 +5,7 @@ import { RotateCcw, Star, Volume2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { petReact } from '../pet/petEvents.js';
 import { announcePractice } from '../practice/events.js';
+import { audioSource, playEstonian, preloadWordAudio, useWordAudio } from './wordAudio.js';
 import { estonianVoice, exampleFor, formatWhen, formRows, meaningFor, meaningLang, posLabel } from './cardFace.js';
 import { formatInterval, previewIntervals, RATING_LABELS, RATINGS, rateInSession, sessionStats, startSession } from './srs.js';
 import './flashcards.css';
@@ -39,21 +39,14 @@ function useEstonianVoice(synth) {
   return voice;
 }
 
-function AudioButton({ text, audio, voice, synth }) {
-  if (!audio && !voice) return null;
+// stored Neurokõne file → the lesson's own file → the browser's Estonian voice (wordAudio.js); nothing at all → no button
+function AudioButton({ text, audio, voice, synth, label = '' }) {
+  if (!text || !audioSource(text, { audio, synth, voice })) return null;
   const play = (event) => {
     event.stopPropagation();
-    try {
-      if (audio) { new Audio(audio).play()?.catch?.(() => {}); return; }
-      synth.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'et-EE';
-      utterance.voice = voice;
-      utterance.rate = 0.9;
-      synth.speak(utterance);
-    } catch { /* no sound: the card works without it */ }
+    try { playEstonian(text, { audio, voice, synth }); } catch { /* no sound: the card works without it */ }
   };
-  return <button type="button" className="fc-audio" onClick={play} onPointerDown={(event) => event.stopPropagation()} aria-label={`Kuula: ${text}`}><Volume2 size={18} aria-hidden="true" /></button>;
+  return <button type="button" className="fc-audio" onClick={play} onPointerDown={(event) => event.stopPropagation()} aria-label={label || `Kuula: ${text}`}><Volume2 size={18} aria-hidden="true" /></button>;
 }
 
 function Face({ item, side, dictionary, language, voice, synth }) {
@@ -86,7 +79,7 @@ function Face({ item, side, dictionary, language, voice, synth }) {
           <div key={`${row.label}-${row.value}`}><dt>{row.label}</dt><dd lang="et">{row.value}</dd></div>
         ))}</dl>
       ) : null}
-      {example ? <p className="fc-example" lang="et">{example}</p> : null}
+      {example ? <p className="fc-example" lang="et">{example}<AudioButton text={example} voice={voice} synth={synth} label={`Kuula lauset: ${example}`} /></p> : null}
     </div>
   );
 }
@@ -136,7 +129,14 @@ export default function FlashcardSession({ cards = [], dictionary = {}, language
   const moved = useRef(false);
   const reduced = usePrefersReducedMotion();
   const voice = useEstonianVoice(synth);
+  const stored = useWordAudio();
   const item = session.current >= 0 ? session.queue[session.current] : null;
+  // the shown card's word and example and the next two cards' words load ahead, so a tap plays at once
+  useEffect(() => {
+    if (!stored || !item) return;
+    const after = session.queue.filter((_, index) => index !== session.current).slice(0, 2);
+    preloadWordAudio([item.front, exampleFor(item), ...after.map((entry) => entry.front)].filter(Boolean));
+  }, [stored, item, session]);
   const intervals = useMemo(() => (item ? previewIntervals(item.side, now()) : null), [item]); // eslint-disable-line react-hooks/exhaustive-deps
   const missed = useMemo(() => {
     const keys = new Set(session.answers.filter((answer) => answer.rating === 'again').map((answer) => answer.key));

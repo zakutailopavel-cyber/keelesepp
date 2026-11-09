@@ -22,6 +22,7 @@ import { nextReviewAt } from './srs.js';
 import { formatWhen } from './cardFace.js';
 import DailyReminder from './DailyReminder.jsx';
 import OwnWordsCard from './OwnWordsCard.jsx';
+import { useWordAudio, WORD_AUDIO_CREDIT } from './wordAudio.js';
 import './vocabulary.css';
 
 /**
@@ -54,6 +55,7 @@ export default function VocabularyPage({
   const [open, setOpen] = useState(null);
   const [level, setLevel] = useState('');
   const [notice, setNotice] = useState('');
+  const storedAudio = useWordAudio();
   const reviewed = useRef(new Set());
 
   const catalog = state.data?.catalog;
@@ -201,6 +203,7 @@ export default function VocabularyPage({
               </details>
             )) : <EmptyState title="Kursuse tunde ei leitud" />}
           </Card>
+          {storedAudio ? <p className="vd-credit">{WORD_AUDIO_CREDIT}</p> : null}
         </div>
       )}
     </div>

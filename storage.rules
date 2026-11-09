@@ -178,6 +178,13 @@ service firebase.storage {
       allow write: if staff() && safeContent();
     }
 
+    // Course word / sentence audio (Neurokõne, docs/VOCABULARY_SRS.md „Sõnade heli”): public teaching sound files, read
+    // without sign-in; written only by the generator script through the Admin SDK (which bypasses these rules).
+    match /audio/words/{fileName} {
+      allow get: if fileName.matches('^[0-9a-f]{12}[.]m4a$');
+      allow write: if false;
+    }
+
     // Images/PDFs uploaded directly onto a student's whiteboard. Uploading
     // material is a teacher/admin action; linked students and parents may
     // read the resulting object but cannot replace or delete it in Storage.

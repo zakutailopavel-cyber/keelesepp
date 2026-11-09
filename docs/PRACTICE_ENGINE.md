@@ -12,7 +12,7 @@ and stored results. Code: `crm-v2/src/features/practice/` (engine in `engine/`, 
 | `transform` | Ütle teisiti / Paranda viga | typed, or tiles in the first half of a lesson | `transformation`, `errorfix` |
 | `form` | Vali õige vorm | course options (cloze / bank / choice) or typed, base form shown | `gaps` with `(base)`, `formtext`, `wordforms`, `cloze` with forms of one word, grammar `choice` |
 | `connector` | Vali sidesõna | options or typed | gaps / cloze / choice whose answer is a linking word |
-| `listen` | Kuula ja pane kokku | a `build` item heard (speechSynthesis et-EE); slow replay | made by the lesson builder only when an Estonian voice exists (`engine/speech.js`), otherwise skipped |
+| `listen` | Kuula ja pane kokku | a `build` item heard: the stored Neurokõne file of the sentence, else speechSynthesis et-EE; slow replay (0.75×) | made by the lesson builder when `canListen` allows that item (a stored file — `vocabulary/wordAudio.js`, docs/VOCABULARY_SRS.md „Sõnade heli” — or a browser Estonian voice), otherwise skipped |
 
 `checkItem(item, response)` → `{ verdict: 'correct' | 'almost' | 'wrong', expected, letters }`.
 
@@ -74,7 +74,7 @@ The staff page shows these numbers live per course.
   (`studentHistory.wrong = { grammarId: n }`), `studentHistory.recent` sentence keys are left out;
 - 2–3 types (the focus's most frequent), never three of one type in a row;
 - easy → hard (`difficultyOf`: type and input, length, phase, error fix); transformations alternate tiles (easier) and
-  typed; up to two builds become listening when `canListen`;
+  typed; up to two builds become listening when `canListen` (boolean or `(item) => boolean`) allows them;
 - one sentence once per lesson (`sentenceKey`); tiles shown mixed (`item.shown`); deterministic for a seed.
 
 ## Session (`engine/session.js`) and events
