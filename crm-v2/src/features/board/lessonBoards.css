@@ -1,14 +1,14 @@
 /* „Tunni tahvlid”: the read-only lesson boards in the student's and parent's area */
 .lb-list { display: grid; gap: 8px; }
-.lb-lesson { border: 1px solid #eaecf0; border-radius: var(--radius-lg); background: #fff; }
+.lb-lesson { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); background: var(--surface); }
 .lb-lesson__head { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; }
 .lb-lesson__head span { display: grid; gap: 2px; }
-.lb-lesson__head small { color: #667085; font-size: 13px; }
+.lb-lesson__head small { color: var(--gray-500); font-size: 13px; }
 .lb-pages { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0 12px 12px; list-style: none; }
-.lb-pages button, .lb-more { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid #d0d5dd; border-radius: var(--radius-pill); background: #fff; color: #1849a9; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.lb-pages button, .lb-more { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-pill); background: var(--surface); color: #1849a9;color:light-dark(#1849a9,#a2c2fc); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .lb-more { margin-top: 10px; }
-.lb-muted { margin: 0 0 8px; font-size: 13px; color: #667085; }
-.lb-error { margin: 0; font-size: 13px; color: #b42318; }
-.lb-view { max-height: 72vh; overflow: auto; border: 1px solid #eaecf0; border-radius: var(--radius-lg); background: #fff; }
+.lb-muted { margin: 0 0 8px; font-size: 13px; color: var(--gray-500); }
+.lb-error { margin: 0; font-size: 13px; color: var(--danger-text); }
+.lb-view { max-height: 72vh; overflow: auto; border: 1px solid var(--gray-200); border-radius: var(--radius-lg); background: var(--surface); }
 .lb-view svg { display: block; width: 100%; height: auto; min-height: 200px; }
 .lb-modal { width: min(1100px, calc(100vw - 32px)); max-width: none; }

@@ -9,7 +9,7 @@
   border-radius: 20px;
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary, #3157d5) 13%, transparent), transparent 44%),
-    var(--surface-raised, #fff);
+    var(--surface-raised, var(--surface));
   box-shadow: 0 14px 36px rgba(32, 48, 92, 0.08);
 }
 
@@ -27,7 +27,7 @@
   flex: 0 0 44px;
   border-radius: 14px;
   color: var(--color-primary, #3157d5);
-  background: color-mix(in srgb, var(--color-primary, #3157d5) 12%, white);
+  background: color-mix(in srgb, var(--color-primary, #3157d5) 12%, var(--surface));
 }
 
 .student-invoice-creator h3 {
@@ -37,7 +37,7 @@
 
 .student-invoice-creator p {
   margin: 0;
-  color: var(--text-muted, #667085);
+  color: var(--text-muted, var(--gray-500));
   line-height: 1.5;
 }
 
@@ -50,12 +50,12 @@
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 8px;
-  color: var(--text-muted, #667085);
+  color: var(--text-muted, var(--gray-500));
   font-size: 0.86rem;
 }
 
 .student-invoice-creator__summary strong {
-  color: var(--text-primary, #182230);
+  color: var(--text-primary, #182230);color:var(--text-primary, light-dark(#182230,#d4dae2));
 }
 
 .student-invoice-creator__action {

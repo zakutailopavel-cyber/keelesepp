@@ -9,6 +9,7 @@ for colours; component-local variables (e.g. `--lr-pad`, `--st-shadow`) are fine
 | Group | Tokens | Notes |
 |---|---|---|
 | Colour | `--navy` `#132238`, `--navy-soft` `#1d314d`, `--green` `#087e6b`, `--green-dark` `#056454`, `--green-soft` `#e8f6f2`, `--amber` `#e7a93f`, `--ink` `#17253a`, `--muted` `#627087`, `--surface` `#fff`, `--surface-soft` `#f6f8fb`, `--border` `#dfe5ec`, `--danger` `#b42318` | `--green` is the only brand green. The old green `#226b5a` is gone. |
+| Colour, added for dark (light value = the literal it replaced) | `--app-bg` `#f4f6f8`, `--surface-alt` `#f8fafc`, grey scale `--gray-50/100/200/300/400/500/600/700/900` (`#f9fafb` `#f2f4f7` `#eaecf0` `#d0d5dd` `#98a2b3` `#667085` `#475467` `#344054` `#101828`), `--border-cool` `#e4e7ec`, `--border-faint` `#eef0f3`, text twins `--green-text` `--navy-text` `--danger-text`, status `--success-text/-soft`, `--warning-text/-soft`, `--danger-soft`, `--info-text` | `--green` / `--navy` / `--danger` are **fills** (keep white text readable, same in dark); as a text colour use the `*-text` twin (lighter in dark). Grey tokens 50–300 are backgrounds/borders, 400–900 are text. |
 | Tints | `color-mix(in srgb, var(--green) 25%, transparent)` | Use `color-mix` for alpha tints of a token instead of a hand-written `rgba()`. |
 | Radius | `--radius-sm` 8px, `--radius-md` 10px, `--radius-lg` 12px, `--radius-xl` 16px, `--radius-pill` 999px | The five most used values (≈ 210 × 12px, 182 × 10px, 149 × 999px, 120 × 8px, 57 × 16px). |
 | Elevation | `--shadow-sm`, `--shadow-md`, `--shadow-lg` (`--shadow` = `--shadow-lg`) | `--shadow-md` is new; `--shadow-sm` / `--shadow` keep their old values. |
@@ -57,4 +58,42 @@ Left on purpose (not equal and not ±1px from a step):
 1. Radius: decide 14px (→ 12 or 16) and 9 / 11px per screen; consider `--radius-2xl` 20px for cards.
 2. Shadows: pick the 3–4 hand-written shadow families (menus/popovers, cards hover, toasts, modals) and either map them to `--shadow-sm/md/lg` with a visual check or add named tokens.
 3. Colour: `rgba(8,126,107,x)` → `color-mix(in srgb, var(--green) x%, transparent)`; `#b42318` → `var(--danger)`; `#17253a` / `#627087` → `--ink` / `--muted` outside the poll scope; greys and tints (`#f1faf7`, `#0b5c4d`, …) into named tokens.
-4. Dark mode later: only after (1)–(3), add `@media (prefers-color-scheme: dark)` / `[data-theme=dark]` overrides of the `:root` tokens. Raw hex left in feature CSS will not follow the theme, so the colour pass has to come first.
+4. ~~Dark mode~~ — done, see „Dark theme” below.
+
+## Dark theme (agent/dark-theme, 2026-11-09)
+
+**Switch.** „Teema: Hele / Tume / Süsteem” — the round button beside „Logi välja” in the side menu (`components/layout/ThemeMenu.jsx`,
+`app/theme.js`). Default „Süsteem” (follows `prefers-color-scheme`). Saved in localStorage per user (`keelesepp.theme.<uid>`)
+and as the device's last choice (`keelesepp.theme`); `public/theme-boot.js` (loaded in the `<head>` of `index.html` and `ajad.html`)
+puts `data-theme="light|dark|system"` on `<html>` before the first paint, so there is no white flash. It is a file, not an inline
+script, because the site CSP (`vercel.json`) allows only `script-src 'self'`. In the admin's preview the choice stays the admin's own.
+
+**CSS.** In `styles/index.css` right after `:root`:
+`@media screen { @supports (color: light-dark(#000,#fff)) { :root[data-theme="dark"] {…} } }` and the same under
+`@media screen and (prefers-color-scheme: dark)` for `:root:not([data-theme="light"])`. Both set `color-scheme: dark` and the dark
+token values. Consequences: **printouts are always light** (`screen` only), and a browser without `light-dark()` (Safari < 17.5,
+Chrome < 123) stays fully light — the menu button is hidden there (`themeSupported()`).
+
+**Feature CSS** (≈ 90 files) was converted by `scripts/dark_theme_colors.py` (property-aware, idempotent):
+- a literal equal to a token's light value in the right kind of property → `var(--token)` (≈ 1 300; `color: var(--green)` → `var(--green-text)` etc., ≈ 140);
+- any other light background / border / dark text → `prop: #hex; prop: light-dark(#hex, <dark>)` (≈ 1 340). The first line is the
+  old-browser fallback. Dark values are computed in OKLCH: light backgrounds → dark surfaces of the same hue (white = card `#1c2127`,
+  paler = slightly darker), light borders → `L≈.30–.39`, dark text → light text of the same hue (`L = .985 − .4·L`), saturated fills
+  (buttons, badges, navy sidebar, amber) stay as they are; a block that paints such a fill keeps its text colour too. Light veils /
+  dark shadows stay. SVG `fill` of chart labels follows the text rule.
+- **Light mode is unchanged**: headless before/after screenshots of 8 screens differ only in the new theme button.
+- New CSS: use tokens; if a raw colour is really needed, write `prop:#hex;prop:light-dark(#hex,dark)` or run the script on the file.
+
+**Stays light** (`color-scheme: light` + the light token values + dark ink, only inside the dark blocks):
+`[data-theme-scope="light"]` (also gets the light page background), `.ws-root` (every worksheet / textbook sheet, in lessons and homework),
+`.sb` (the lesson whiteboard and its tools), `.poll-page` (public „Sobivad ajad”). Not converted at all: `worksheet-generator/`,
+`worksheet-studio/` (sheet + print, CI `sheet-layout`), `availabilityPoll.css`, `board/board.css`, `board/languageTools.css`, every
+`@media print` block, selectors with `.ws-` / `.sb`. Pages wrapped with `data-theme-scope="light"`: the generator pages
+(GeneratorCoverage, LessonWorksheetSet, AvastaUpgrade, Module1ThreePhase, CourseProduction, CourseHealth) and ConversionQueue.
+The worksheet studio (`.ws-studio`) keeps its own older dark skin, which follows the *system* setting only (unchanged).
+
+**Calendar tones**: `.tone-0…11` get a darker `--tone-soft` in the dark blocks (`L .31`); `--tone-strong` (edge) stays.
+
+**Known gaps**: inline `style={{}}` colours in JSX (a handful; `ArchivedLinkAsk` now uses `--warning-soft`), feature-local colour
+variables other than the calendar tones (e.g. pet `--outline`), and pages not looked at (live classroom room, library, accounting,
+pet) were converted by the same rule but not checked by eye.

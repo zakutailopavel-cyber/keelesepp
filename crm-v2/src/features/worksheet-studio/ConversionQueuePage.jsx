@@ -35,7 +35,7 @@ export default function ConversionQueuePage({ repository = libraryService }) {
   ));
 
   return (
-    <div className="page-content ws-convert">
+    <div className="page-content ws-convert" data-theme-scope="light">
       <PageHeader eyebrow="Õppevara" title="Töölehtede üleviimine" description="Genereeritud pildid ja vanad töölehed viiakse ükshaaval uude, muudetavasse vormingusse. Vana versioon jääb alles." />
       {state.loading ? <LoadingState label="Laen õppematerjale…" /> : state.error ? <ErrorState message={state.error} onRetry={load} /> : (
         <>

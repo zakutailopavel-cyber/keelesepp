@@ -1,9 +1,9 @@
 /* teacher's warning about the student's device („Seadme kontroll”) */
-.dcn{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border-radius:var(--radius-lg);border:1px solid var(--border);border-left-width:4px;background:#fff;font-size:.86rem;line-height:1.4;color:var(--ink);min-width:0}
+.dcn{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border-radius:var(--radius-lg);border:1px solid var(--border);border-left-width:4px;background:var(--surface);font-size:.86rem;line-height:1.4;color:var(--ink);min-width:0}
 .dcn svg{flex:none;margin-top:2px}
-.dcn--fail{border-left-color:var(--danger);background:#fff4f2}
-.dcn--fail>svg{color:var(--danger)}
-.dcn--warn{border-left-color:var(--amber);background:#fffaeb}
+.dcn--fail{border-left-color:var(--danger);background:#fff4f2;background:light-dark(#fff4f2,#281917)}
+.dcn--fail>svg{color:var(--danger-text)}
+.dcn--warn{border-left-color:var(--amber);background:var(--warning-soft)}
 .dcn--warn>svg{color:#b7791f}
 .dcn--none{border-left-color:#94a3b8;background:var(--surface-soft)}
 .dcn--none>svg{color:var(--muted)}
@@ -12,6 +12,6 @@
 .dcn__body small{color:var(--muted)}
 .dcn__link{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--muted)}
 .dcn__link a{overflow-wrap:anywhere}
-.dcn__link button,.dcn__close{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--border);background:#fff;border-radius:var(--radius-sm);padding:2px 7px;font-size:.78rem;cursor:pointer;color:var(--ink)}
+.dcn__link button,.dcn__close{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:2px 7px;font-size:.78rem;cursor:pointer;color:var(--ink)}
 .dcn__close{border:0;background:transparent;padding:2px}
 .dcn-room{position:fixed;z-index:60;top:calc(var(--lr-stage-top, 84px) + 60px);left:50%;transform:translateX(-50%);width:min(420px,calc(100vw - 32px));box-shadow:var(--shadow)}

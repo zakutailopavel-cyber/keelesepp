@@ -77,7 +77,7 @@ export default function CourseHealthPage({ repository = lessonWorksheetsService,
   };
 
   return (
-    <div className="page-stack">
+    <div className="page-stack" data-theme-scope="light">
       <PageHeader eyebrow="Õppevara · kursused" title="Kursuste tervis" description="Kas kursus on terviklik: kas iga tunni lehed läbivad kvaliteedikontrolli ja kas Õppevaras on avaldatud samad lehed, mis koodis. Leht ainult loeb — midagi ei muudeta." />
       <Card>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }} role="radiogroup" aria-label="Kursus">

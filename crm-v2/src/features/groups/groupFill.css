@@ -5,7 +5,7 @@
 .group-fill__settings { align-items: end; margin-bottom: 8px; }
 .group-fill__heading { font: 800 .9rem Manrope, sans-serif; margin: 18px 0 8px; }
 .group-fill__list { display: grid; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-.group-fill__row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #eef0f3; }
+.group-fill__row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border-faint); }
 .group-fill__row:last-child { border-bottom: 0; }
 .group-fill__row > span { display: grid; gap: 3px; min-width: 0; }
 .group-fill__row small { color: var(--muted); font-size: .76rem; }
@@ -18,7 +18,7 @@
 .group-contacts__bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 6px 0 10px; }
 .group-contacts__add { display: flex; gap: 8px; align-items: center; }
 .group-contacts__list { display: grid; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-.group-contacts__row { display: grid; grid-template-columns: auto minmax(0, 1.6fr) minmax(0, 1.2fr) minmax(0, 1.3fr); gap: 12px; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eef0f3; }
+.group-contacts__row { display: grid; grid-template-columns: auto minmax(0, 1.6fr) minmax(0, 1.2fr) minmax(0, 1.3fr); gap: 12px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border-faint); }
 .group-contacts__row:last-child { border-bottom: 0; }
 .group-contacts__who, .group-contacts__contact { display: grid; gap: 2px; min-width: 0; }
 .group-contacts__who small, .group-contacts__contact small { color: var(--muted); font-size: .76rem; }
@@ -30,18 +30,18 @@
 .modal--group-detail { width: min(900px, 100%); }
 .group-detail__gaps ul { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 6px; }
 .group-detail__gaps li { display: flex; align-items: center; gap: 8px; font-size: .88rem; padding: 7px 10px; border-radius: 9px; }
-.group-detail__gaps li.is-open { background: #fff4e5; color: #8a5300; }
-.group-detail__gaps li.is-ok { background: #f1f8f5; color: #176553; }
-.group-detail__row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eef0f3; }
+.group-detail__gaps li.is-open { background: #fff4e5;background:light-dark(#fff4e5,#291a01); color: #8a5300;color:light-dark(#8a5300,#e9ac6a); }
+.group-detail__gaps li.is-ok { background: #f1f8f5;background:light-dark(#f1f8f5,#16201c); color: #176553;color:light-dark(#176553,#87d0ba); }
+.group-detail__row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border-faint); }
 .group-detail__row:last-child { border-bottom: 0; }
 .group-detail__note { display: block; color: var(--muted); font-size: .74rem; margin-top: 2px; }
 .group-card__open { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .group-card__open:hover h2 { text-decoration: underline; }
 @media (max-width: 700px) { .group-detail__row { grid-template-columns: minmax(0, 1fr) auto; } }
 /* „Halda”: active and archived students under their own headers (2026-11-06) */
-.group-member-manager__head { margin: 6px 0 0; font-size: .78rem; font-weight: 800; color: #344054; text-transform: uppercase; letter-spacing: .03em; }
+.group-member-manager__head { margin: 6px 0 0; font-size: .78rem; font-weight: 800; color: var(--gray-700); text-transform: uppercase; letter-spacing: .03em; }
 .group-member-manager__head:first-child { margin-top: 0; }
-.group-detail__confirm { display: inline-flex; align-items: center; gap: 4px; color: #067647; font-size: .75rem; font-weight: 700; }
+.group-detail__confirm { display: inline-flex; align-items: center; gap: 4px; color: var(--success-text); font-size: .75rem; font-weight: 700; }
 .group-detail__row > span:nth-child(3) { display: grid; gap: 6px; justify-items: start; }
 .group-detail__row > span:nth-child(3) .button { min-height: 34px; padding: 0 10px; font-size: .8rem; }
 .group-member-manager .search-field input { width: 100%; height: auto; }

@@ -237,7 +237,7 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
   if (loading) return <LoadingState label="Kontrollin olemasolevaid Avasta töölehti…" />;
 
   return (
-    <div className="page-stack">
+    <div className="page-stack" data-theme-scope="light">
       <PageHeader
         eyebrow="Õppevara · B1"
         title="Avasta kvaliteeditäiendus · 001–050"

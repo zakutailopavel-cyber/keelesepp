@@ -4,7 +4,7 @@
 }
 
 .purchases-grid td.is-late {
-  color: #b42318;
+  color: var(--danger-text);
 }
 
 .purchases-status {
@@ -12,15 +12,15 @@
 }
 
 .purchases-status--paid {
-  color: #067647 !important;
+  color: var(--success-text) !important;
 }
 
 .purchases-status--unpaid {
-  color: #b54708 !important;
+  color: var(--warning-text) !important;
 }
 
 .purchases-status--voided {
-  color: #667085 !important;
+  color: var(--gray-500) !important;
 }
 
 .purchases-files {
@@ -47,13 +47,13 @@
 }
 
 .purchases-payment td {
-  color: #475467;
+  color: var(--gray-600);
   font-style: italic;
 }
 
 .purchases-totals,
 .purchases-lock {
-  color: #475467;
+  color: var(--gray-600);
   font-size: 0.82rem;
   margin: 0 0 6px;
 }
@@ -90,7 +90,7 @@
 
 .purchases-suppliers small,
 .purchases-grid small {
-  color: #667085;
+  color: var(--gray-500);
   display: block;
   font-size: 0.72rem;
   font-weight: 400;
@@ -98,15 +98,15 @@
 
 .purchases-suppliers .is-off,
 .purchases-grid .is-off {
-  color: #b42318;
+  color: var(--danger-text);
 }
 
 .purchases-suppliers tr.is-inactive td {
-  color: #667085;
+  color: var(--gray-500);
 }
 
 .purchases-new-row td {
-  background: #f6fbf6;
+  background: #f6fbf6;background:light-dark(#f6fbf6,#19211a);
 }
 
 /* Tarnijad (2026-10-24): search, count, import from Excel */
@@ -120,7 +120,7 @@
 
 .suppliers-panel__search {
   align-items: center;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--gray-300);
   border-radius: var(--radius-sm);
   display: flex;
   flex: 1 1 260px;
@@ -137,13 +137,13 @@
 }
 
 .suppliers-panel__count {
-  color: #667085;
+  color: var(--gray-500);
   font-size: 0.85rem;
 }
 
 .suppliers-import {
-  background: #f9fafb;
-  border: 1px solid #d0d5dd;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-300);
   border-radius: var(--radius-sm);
   display: grid;
   gap: 10px;
@@ -164,11 +164,11 @@
 }
 
 .suppliers-import__preview td.is-ok {
-  color: #067647;
+  color: var(--success-text);
 }
 
 .suppliers-import__preview td.is-off {
-  color: #b42318;
+  color: var(--danger-text);
 }
 
 .purchases-suppliers th .accounting-sort {

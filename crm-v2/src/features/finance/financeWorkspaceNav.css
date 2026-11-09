@@ -1,11 +1,11 @@
-.finance-tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; margin: 0 0 18px; padding: 5px; border-radius: 14px; background: var(--surface-subtle, #f2f4f7); }
-.finance-tabs > button, .finance-tabs summary { border: 0; background: transparent; padding: 10px 16px; border-radius: var(--radius-md); font-weight: 700; color: #475467; cursor: pointer; font: inherit; font-weight: 700; }
-.finance-tabs > button.is-active { background: #fff; color: #101828; box-shadow: 0 1px 3px rgba(16, 24, 40, .12); }
+.finance-tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; margin: 0 0 18px; padding: 5px; border-radius: 14px; background: var(--surface-subtle, var(--gray-100)); }
+.finance-tabs > button, .finance-tabs summary { border: 0; background: transparent; padding: 10px 16px; border-radius: var(--radius-md); font-weight: 700; color: var(--gray-600); cursor: pointer; font: inherit; font-weight: 700; }
+.finance-tabs > button.is-active { background: var(--surface); color: var(--gray-900); box-shadow: 0 1px 3px rgba(16, 24, 40, .12); }
 .finance-tabs__more { margin-left: auto; position: relative; }
 .finance-tabs summary { list-style: none; display: inline-flex; gap: 4px; align-items: center; }
 .finance-tabs summary::-webkit-details-marker { display: none; }
-.finance-tabs summary.is-active { color: #101828; }
-.finance-tabs__more > div { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; display: grid; min-width: 240px; padding: 6px; border-radius: var(--radius-lg); background: #fff; border: 1px solid var(--border-color, #eaecf0); box-shadow: 0 12px 30px rgba(16, 24, 40, .14); }
-.finance-tabs__more > div button { border: 0; background: transparent; text-align: left; padding: 9px 12px; border-radius: var(--radius-sm); font: inherit; cursor: pointer; color: #344054; }
-.finance-tabs__more > div button:hover, .finance-tabs__more > div button.is-active { background: var(--surface-subtle, #f2f4f7); font-weight: 700; }
+.finance-tabs summary.is-active { color: var(--gray-900); }
+.finance-tabs__more > div { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; display: grid; min-width: 240px; padding: 6px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--border-color, var(--gray-200)); box-shadow: 0 12px 30px rgba(16, 24, 40, .14); }
+.finance-tabs__more > div button { border: 0; background: transparent; text-align: left; padding: 9px 12px; border-radius: var(--radius-sm); font: inherit; cursor: pointer; color: var(--gray-700); }
+.finance-tabs__more > div button:hover, .finance-tabs__more > div button.is-active { background: var(--surface-subtle, var(--gray-100)); font-weight: 700; }
 @media (max-width: 640px) { .finance-tabs > button { flex: 1 1 auto; } .finance-tabs__more { margin-left: 0; } }

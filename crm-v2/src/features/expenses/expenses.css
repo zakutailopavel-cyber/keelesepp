@@ -16,8 +16,8 @@
 
 .expenses-toolbar {
   align-items: center;
-  background: linear-gradient(135deg, #ffffff 0%, #f7faf9 100%);
-  border-color: #dce8e4;
+  background: linear-gradient(135deg, var(--surface) 0%, #f7faf9 100%);background:linear-gradient(135deg, var(--surface) 0%, light-dark(#f7faf9,#1a1f25) 100%);
+  border-color: #dce8e4;border-color:light-dark(#dce8e4,#2f3e39);
   display: grid;
   gap: 14px;
   grid-template-columns: minmax(260px, 1fr) 190px;
@@ -30,7 +30,7 @@
 }
 
 .expenses-toolbar .search-field {
-  background: #fff;
+  background: var(--surface);
   border-radius: 11px;
   min-height: 44px;
 }
@@ -42,11 +42,11 @@
 }
 
 .expense-table thead {
-  background: #f7f9fa;
+  background: #f7f9fa;background:light-dark(#f7f9fa,#191f25);
 }
 
 .expense-table th {
-  color: #667085;
+  color: var(--gray-500);
   font-size: .7rem;
   letter-spacing: .025em;
   text-transform: uppercase;
@@ -62,7 +62,7 @@
 }
 
 .expense-table tbody tr:hover {
-  background: #fbfdfc;
+  background: #fbfdfc;background:light-dark(#fbfdfc,#1b2026);
 }
 
 .expense-table td:nth-child(2) {
@@ -75,7 +75,7 @@
 
 .expense-table strong {
   display: block;
-  color: var(--navy);
+  color: var(--navy-text);
 }
 
 .expense-table td > span {
@@ -87,7 +87,7 @@
 }
 
 .expense-row--inactive {
-  background: #f8fafc;
+  background: var(--surface-alt);
   opacity: .72;
 }
 
@@ -112,8 +112,8 @@
 }
 
 .expense-documents .button {
-  background: #f5faf8;
-  border-color: #d5e7e0;
+  background: #f5faf8;background:light-dark(#f5faf8,#191f25);
+  border-color: #d5e7e0;border-color:light-dark(#d5e7e0,#2a4139);
 }
 
 .expense-upload {
@@ -144,10 +144,10 @@
 
 .expense-error {
   align-items: center;
-  background: #fef3f2;
-  border: 1px solid #fecdca;
+  background: var(--danger-soft);
+  border: 1px solid #fecdca;border:1px solid light-dark(#fecdca,#5a3130);
   border-radius: var(--radius-lg);
-  color: #b42318;
+  color: var(--danger-text);
   display: flex;
   font-size: .86rem;
   font-weight: 600;
