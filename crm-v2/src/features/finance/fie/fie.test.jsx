@@ -85,4 +85,18 @@ describe('FIE (the owner\'s own sole proprietorship)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Registreeri' }));
     await waitFor(() => expect(api.recordPayment).toHaveBeenCalledWith('f1', expect.objectContaining({ amount: 100 })));
   });
+  it('„Saada” asks first (PDF first, then send) and sends only after the yes', async () => {
+    const invoiceRepository = { listFie: vi.fn().mockResolvedValue([{ id: 'f1', issuer: 'fie', num: 'FIE-2026-001', date: '2026-11-02', studentName: 'Mari', parentEmail: 'mari@example.com', amountCents: 10000, balanceDueCents: 10000, paidAmountCents: 0, due: '2099-11-10' }]) };
+    const pdfApi = { pdf: vi.fn(), send: vi.fn().mockResolvedValue({}), remind: vi.fn() };
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true);
+    as(OWNER, <FiePanel month="2026-11" invoiceRepository={invoiceRepository} api={{}} pdfApi={pdfApi} />);
+    expect(await screen.findByText(/saatmata/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Saada' }));
+    await waitFor(() => expect(confirm).toHaveBeenCalledWith(expect.stringContaining('mari@example.com')));
+    expect(pdfApi.send).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Saada' }));
+    await waitFor(() => expect(pdfApi.send).toHaveBeenCalledWith('f1'));
+    expect(await screen.findByText('Arve saadetud: FIE-2026-001')).toBeInTheDocument();
+    confirm.mockRestore();
+  });
 });

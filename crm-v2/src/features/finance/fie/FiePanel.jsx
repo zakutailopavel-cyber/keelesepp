@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { askConfirm } from '../../../components/ui/ConfirmHost.jsx';
 import { Badge, Button, Card, EmptyState, LoadingState } from '../../../components/ui/index.js';
 import { financeApi, invoiceDeliveryApi } from '../../../services/firebase/financeApi.js';
 import { invoicesService } from '../../../services/firebase/invoices.js';
@@ -18,6 +19,8 @@ export default function FiePanel({ month = '', invoiceRepository = invoicesServi
   const [allMonths, setAllMonths] = useState(false);
   const [paying, setPaying] = useState(null);
   const [payState, setPayState] = useState({ busy: false, error: '' });
+  const [sending, setSending] = useState('');
+  const [notice, setNotice] = useState('');
   const load = useCallback(() => invoiceRepository.listFie()
     .then((list) => { setInvoices(list); setError(''); })
     .catch((loadError) => setError(loadError?.message || 'FIE arveid ei saanud laadida.')), [invoiceRepository]);
@@ -35,6 +38,27 @@ export default function FiePanel({ month = '', invoiceRepository = invoicesServi
     }
   };
 
+  // „Saada” (owner 2026-11-09): look at the PDF first, then send — always with a question, the e-mail goes to the family
+  const deliver = async (invoice, kind) => {
+    const to = invoice.emailRecipient || invoice.parentEmail || invoice.payerEmail || '';
+    const ok = await askConfirm(`${invoice.num} · ${invoice.studentName || ''}${to ? ` → ${to}` : ''}. Vaata enne PDF üle.`, {
+      title: kind === 'remind' ? 'Saada meeldetuletus?' : 'Saada arve?',
+      confirmLabel: kind === 'remind' ? 'Saada meeldetuletus' : 'Saada arve',
+    });
+    if (!ok) return;
+    setSending(`${kind}-${invoice.id}`);
+    setNotice('');
+    try {
+      await (kind === 'remind' ? pdfApi.remind(invoice.id) : pdfApi.send(invoice.id));
+      setNotice(kind === 'remind' ? `Meeldetuletus saadetud: ${invoice.num}` : `Arve saadetud: ${invoice.num}`);
+      await load();
+    } catch (sendError) {
+      setNotice(sendError?.message || 'Arvet ei saanud saata.');
+    } finally {
+      setSending('');
+    }
+  };
+
   if (error) return <Card><p className="form-error" role="alert">{error}</p></Card>;
   if (!invoices) return <Card><LoadingState inline label="Laen FIE arveid…" /></Card>;
   const summary = fieSummary(invoices, allMonths ? '' : month);
@@ -49,6 +73,7 @@ export default function FiePanel({ month = '', invoiceRepository = invoicesServi
       <div><dt>Laekunud</dt><dd>{euro(summary.paidCents)}</dd></div>
       <div><dt>Võlg</dt><dd>{euro(summary.debtCents)}{summary.overdueCount ? ` (${summary.overdueCount} üle tähtaja)` : ''}</dd></div>
     </dl>
+    {notice ? <p className="success-notice" role="status">{notice}</p> : null}
     {!summary.rows.length ? <EmptyState title="FIE arveid ei ole" description="Vali õpilase kaardil „Arve väljastaja: FIE” või arve koostamisel „FIE (minu)”." /> : <div className="table-wrap"><table className="table">
       <thead><tr><th>Arve</th><th>Kuupäev</th><th>Õpilane</th><th>Summa</th><th>Laekunud</th><th>Jääk</th><th>Olek</th><th aria-label="Toimingud" /></tr></thead>
       <tbody>{summary.rows.map(({ invoice, state }) => <tr key={invoice.id}>
@@ -58,8 +83,8 @@ export default function FiePanel({ month = '', invoiceRepository = invoicesServi
         <td>{euro(state.amountCents)}</td>
         <td>{euro(state.paidCents)}</td>
         <td>{euro(state.balanceCents)}</td>
-        <td><Badge tone={state.status === 'paid' ? 'success' : state.overdue ? 'danger' : 'warning'}>{STATUS[state.status] || state.status}</Badge></td>
-        <td className="fie-panel__actions"><InvoicePdfButton invoice={invoice} api={pdfApi} className="link-button" />{state.balanceCents > 0 ? <button type="button" className="link-button" onClick={() => { setPayState({ busy: false, error: '' }); setPaying(invoice); }}>Registreeri makse</button> : null}</td>
+        <td><Badge tone={state.status === 'paid' ? 'success' : state.overdue ? 'danger' : 'warning'}>{STATUS[state.status] || state.status}</Badge>{invoice.invoiceEmailSentAt || invoice.emailSentAt ? <small className="fie-panel__sent"> ✉ saadetud</small> : <small className="fie-panel__sent"> ✉ saatmata</small>}</td>
+        <td className="fie-panel__actions"><InvoicePdfButton invoice={invoice} api={pdfApi} className="link-button" /><button type="button" className="link-button" disabled={Boolean(sending)} onClick={() => deliver(invoice, 'send')}>{sending === `send-${invoice.id}` ? 'Saadan…' : 'Saada'}</button>{state.balanceCents > 0 && (invoice.invoiceEmailSentAt || invoice.emailSentAt) ? <button type="button" className="link-button" disabled={Boolean(sending)} onClick={() => deliver(invoice, 'remind')}>{sending === `remind-${invoice.id}` ? 'Saadan…' : 'Meeldetuletus'}</button> : null}{state.balanceCents > 0 ? <button type="button" className="link-button" onClick={() => { setPayState({ busy: false, error: '' }); setPaying(invoice); }}>Registreeri makse</button> : null}</td>
       </tr>)}</tbody>
     </table></div>}
     {paying ? <PaymentDialog invoice={paying} busy={payState.busy} error={payState.error} onClose={() => setPaying(null)} onSubmit={submitPayment} /> : null}

@@ -56,6 +56,10 @@ def main():
             forms = [entry['lemma'], first('sg g'), first('sg p')]
         if all(forms):
             out[entry['lemma'].lower()] = forms
+    # course words outside the EKI level list (lessonWords), checked with Vabamorf etsyn 2026-11-09; never overrides
+    course = json.loads((ROOT / 'tools/lexicon/course-key-forms.json').read_text())['forms']
+    for key, forms in course.items():
+        out.setdefault(key, forms)
     OUT.write_text(json.dumps({'source': 'EKI etLex (CC BY) + Vabamorf', 'forms': out}, ensure_ascii=False, separators=(',', ':')))
     print('words', len(out), 'skipped (ambiguous)', skipped, 'bytes', OUT.stat().st_size)
 
