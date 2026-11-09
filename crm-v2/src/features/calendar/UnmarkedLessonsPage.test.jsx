@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
+import { announceLessonChanged, announceLessonMarked } from './lessonActions.js';
 import UnmarkedLessonsPage from './UnmarkedLessonsPage.jsx';
 
 const base = { studentId: 's1', teacherUid: 't1', teacher: 'Anna', time: '10:00', duration: 60, recurring: false, status: 'Planeeritud' };
@@ -61,5 +62,22 @@ describe('UnmarkedLessonsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /Tõenäoliselt topelt/ }));
     expect(screen.queryByText('Mia')).not.toBeInTheDocument();
     expect(screen.getByText('Timur')).toBeInTheDocument();
+  });
+
+  it('the drawer: a mark drops the row at once; another change reads the list again in place, the filter stays', async () => {
+    const load = vi.fn().mockResolvedValueOnce({ items, schedule: [] }).mockResolvedValue({ items: items.filter((item) => item.id !== 'c'), schedule: [] });
+    renderPage({ load, mark: vi.fn(), cancel: vi.fn() });
+    await screen.findByText('Mia');
+    act(() => { announceLessonMarked('a:2026-11-02'); });
+    expect(screen.queryByText('Mia')).not.toBeInTheDocument();
+    expect(load).toHaveBeenCalledTimes(1);
+    const filter = screen.getByRole('button', { name: /Õpetaja otsustab/ });
+    fireEvent.click(filter);
+    expect(screen.getByText('Ott')).toBeInTheDocument();
+    act(() => { announceLessonChanged('c'); });
+    await waitFor(() => expect(load).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByText('Ott')).not.toBeInTheDocument());
+    expect(filter).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('Otsin märkimata tunde…')).not.toBeInTheDocument();
   });
 });

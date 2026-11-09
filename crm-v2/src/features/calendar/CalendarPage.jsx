@@ -42,6 +42,7 @@ import RoomsDialog from './RoomsDialog.jsx';
 import { assignRoom, mergedBookings, roomChoices, roomConflict } from './roomModel.js';
 import LessonPanel from './LessonPanel.jsx';
 import { fixMarkError, fixOccurrenceMark, markOccurrence, schoolCoveredError } from './lessonActions.js';
+import { useEntityChanged } from '../../components/entityDrawer/useEntityChanged.js';
 import AdminNoteBox from './AdminNoteBox.jsx';
 import { notesFor } from '../../services/firebase/lessonNotes.js';
 import QuickAttendanceAction from './QuickAttendanceAction.jsx';
@@ -206,6 +207,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     lessonRepository.listForCalendar(teacherOnly ? { teacherUid: user.uid } : {}),
     studentRepository.list({ status: 'archived', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }).then((result) => result.items || []).catch(() => []),
   ]), [groupRepository, lessonRepository, scheduleRepository, studentRepository, teacherOnly, user.displayName, user.uid]);
+  // a lesson marked or fixed in the side drawer over the calendar (a student's card → „Tunnid”): the calendar reads its
+  // journal again in place — it stays on screen (see below), the week, filters and scroll are kept
+  useEntityChanged('lesson', () => { state.reload(); });
   // the students' „Sobivad ajad” (studentAvailability): an administrator reads all, a teacher their own students' cards
   const scopedStudentIds = teacherOnly && state.data ? state.data[1].items.map((student) => student.id).join(',') : '';
   const studentTimesState = useAsyncData(async () => {

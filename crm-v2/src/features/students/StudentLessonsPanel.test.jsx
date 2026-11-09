@@ -1,5 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { vi } from 'vitest';
+import { onEntityChanged } from '../../components/entityDrawer/entityDrawer.js';
 import StudentLessonsPanel from './StudentLessonsPanel.jsx';
 import { shiftDate } from '../calendar/calendarView.js';
 import { localDate } from '../../utils/localDate.js';
@@ -55,4 +57,19 @@ it('shows how long each lesson is and marks double lessons (team 2026-10-29)', (
   expect(screen.getByText('45 min')).toBeInTheDocument();
   expect(screen.getByText(`${displayDate(shiftDate(now, 1))} · 16:00–18:00`, { exact: false })).toBeInTheDocument();
   expect(screen.getByText('2 tundi · 2,8 h · topelttunde 1')).toBeInTheDocument();
+});
+
+it('a mark changed on the card (also in the side drawer) tells the page underneath that a lesson changed', async () => {
+  const now = localDate();
+  const lessons = [{ id: 'l1', scheduleId: 'e1', date: shiftDate(now, -7), time: '16:00', duration: 60, status: 'Toimunud' }];
+  const lessonApi = { changeMark: vi.fn(async () => ({ status: 'Puudus_p' })) };
+  const onChanged = vi.fn();
+  const changes = [];
+  const stop = onEntityChanged('lesson', (change) => changes.push(change));
+  render(<MemoryRouter><StudentLessonsPanel student={{ id: 's', name: 'Agata' }} lessons={lessons} schedule={[]} canManage lessonApi={lessonApi} user={{ uid: 'a1' }} onChanged={onChanged} /></MemoryRouter>);
+  fireEvent.change(screen.getByLabelText(`Tunni ${lessons[0].date} staatus`), { target: { value: 'Puudus_p' } });
+  await waitFor(() => expect(onChanged).toHaveBeenCalled());
+  stop();
+  expect(lessonApi.changeMark).toHaveBeenCalledWith(lessons[0], 'Puudus_p', { uid: 'a1' }, { scheduleRecurring: true });
+  expect(changes).toEqual([{ kind: 'lesson', occurrenceId: 'e1', change: 'changed' }]);
 });

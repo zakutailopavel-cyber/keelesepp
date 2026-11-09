@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
+import { announceLessonMarked } from '../calendar/lessonActions.js';
 import DashboardPage from './DashboardPage.jsx';
 
 const NOW = new Date('2026-11-06T10:40:00Z'); // reede 12:40 in Tallinn
@@ -196,6 +197,26 @@ describe('DashboardPage — calm home', () => {
     await screen.findByRole('region', { name: 'Vajab tähelepanu' });
     await within(attention()).findByRole('link', { name: /1 märkimata tund/ });
     expect(screen.queryByText(/Märgi need 1 minutiga/)).not.toBeInTheDocument();
+  });
+
+  it('a lesson marked in the side drawer: the journal is read again in place, the count drops, the page stays', async () => {
+    const repo = repositories();
+    repo.schedule.list.mockResolvedValue([{ id: 'old', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', status: 'Planeeritud' }]);
+    repo.today.lessons.mockResolvedValueOnce([]).mockResolvedValue([{ id: 'L1', scheduleId: 'old', studentId: 'student-1', date: '2026-11-03', time: '10:00', status: 'Toimunud' }]);
+    renderDashboard(ADMIN, repo);
+    await screen.findByRole('region', { name: 'Vajab tähelepanu' });
+    await within(attention()).findByRole('link', { name: /1 märkimata tund/ });
+    // an overview stays open across the reload
+    const tile = within(screen.getByRole('region', { name: 'Ülevaated' })).getByRole('button', { name: /Märkimata tunnid/ });
+    fireEvent.click(tile);
+    act(() => { announceLessonMarked('old:2026-11-03'); });
+    await waitFor(() => expect(within(attention()).queryByRole('link', { name: /märkimata tund/ })).not.toBeInTheDocument());
+    expect(repo.today.lessons).toHaveBeenCalledTimes(2);
+    // no full reload: the first data was read once, the open overview is the same element
+    expect(repo.schedule.list).toHaveBeenCalledTimes(1);
+    expect(tile).toBeInTheDocument();
+    expect(tile).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryByText('Koostan töölauda…')).not.toBeInTheDocument();
   });
 
   it('accountant: invoices and packages only; no lessons, no learning reads', async () => {

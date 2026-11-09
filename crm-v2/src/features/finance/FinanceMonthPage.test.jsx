@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
+import { announceEntityChanged } from '../../components/entityDrawer/entityDrawer.js';
 import FinanceMonthPage from './FinanceMonthPage.jsx';
 
 vi.mock('./monthlyBilling.js', async (importOriginal) => ({ ...(await importOriginal()), defaultBillingMonth: () => '2031-10', currentMonth: () => '2031-10' }));
@@ -54,6 +55,25 @@ describe('FinanceMonthPage', () => {
     fireEvent.click(screen.getByRole('tab', { name: /Koosta arved/ }));
     expect(screen.getByText('Kuuarved')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Õpilaste avansid' })).not.toBeInTheDocument();
+  });
+
+  it('a payment added in the side drawer: the month reads its invoices again in place, the open view stays', async () => {
+    const value = props();
+    value.invoiceRepository.list
+      .mockResolvedValueOnce([{ id: 'i1', planMonth: '2031-10', studentName: 'Mari Maasikas', num: 'AR-31', amountCents: 10000, paidCents: 0, due: '2031-10-10' }])
+      .mockResolvedValue([{ id: 'i1', planMonth: '2031-10', studentName: 'Mari Maasikas', num: 'AR-31', amountCents: 10000, paidAmountCents: 10000, due: '2031-10-10' }]);
+    renderPage(value);
+    await screen.findByRole('table', { name: 'Arved 2031-10' });
+    fireEvent.click(screen.getByRole('tab', { name: /Laekumata/ }));
+    expect(screen.getByText('Mari Maasikas')).toBeInTheDocument();
+    const tab = screen.getByRole('tab', { name: /Laekumata/ });
+    act(() => { announceEntityChanged('invoice', { invoiceId: 'i1', change: 'payment' }); });
+    await waitFor(() => expect(value.invoiceRepository.list).toHaveBeenCalledTimes(2));
+    // the paid invoice leaves the unpaid list; the same tab element is still selected (no remount, no reset)
+    await waitFor(() => expect(screen.queryByText('Mari Maasikas')).not.toBeInTheDocument());
+    expect(tab).toBeInTheDocument();
+    expect(tab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByText('Laen finantsandmeid…')).not.toBeInTheDocument();
   });
 
   it('shows current unpaid invoices and previous debts only in the unpaid tab', async () => {

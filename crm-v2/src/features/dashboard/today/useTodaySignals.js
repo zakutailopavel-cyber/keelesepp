@@ -82,5 +82,7 @@ export function useTodaySignals({ isAdmin = false, canViewLearning = false, canV
     calls,
     errors,
     addCall: (record) => setAdded((current) => [...current, record]),
+    // read again in place (the counts and panels keep the old data until the new arrives)
+    reload: state.reload,
   };
 }

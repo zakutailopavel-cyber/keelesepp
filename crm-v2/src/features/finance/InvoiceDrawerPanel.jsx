@@ -1,6 +1,7 @@
 import { CreditCard, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
+import { announceEntityChanged } from '../../components/entityDrawer/entityDrawer.js';
 import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { Badge, Button, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -78,7 +79,10 @@ export default function InvoiceDrawerPanel({ invoiceId, invoiceRepository = invo
     setBusy(true); setError(''); setOverpaymentQuestion('');
     try {
       const outcome = await recordPaymentWithAdvance(financeRepository, invoice.id, form);
-      setPaying(false); setNotice(paymentRecordedNotice(outcome, number)); await state.reload();
+      setPaying(false); setNotice(paymentRecordedNotice(outcome, number));
+      // the finance month under the drawer reads its invoices again in place (its view, filters and scroll stay)
+      announceEntityChanged('invoice', { invoiceId: invoice.id, change: 'payment' });
+      await state.reload();
     } catch (caught) {
       // more than the open balance (another person may have just registered it): ask, the server records nothing yet
       if (isOverpaymentRefusal(caught)) setOverpaymentQuestion(caught.message);
