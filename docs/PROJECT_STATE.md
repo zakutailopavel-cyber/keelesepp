@@ -1,3 +1,15 @@
+## 2026-11-09 · agent/parent-pay-visible — „Arve ootab tasumist” at the top of the parent's home (parents, finance-adjacent UI)
+
+- Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/parent-pay-visible`, draft PR.
+- Owner 2026-11-09: parents must see unpaid invoices clearly inside the CRM, with NO e-mails (learner/parent e-mails stay off). 17 invoices are due 2026-11-10.
+- What existed: a small „Arved” card in the child's side column (family total „Tasumata … €”) and the collapsed „Arved” section (list + `OpenInvoicesCard` with „Maksa arve” via LHV LinkPay, only when `financeSettings/linkpay.enabled`). The invoice PDF (`invoiceApi /pdf`) is admin-only, so parents cannot open a PDF. Invoices carry `parentPaymentStatus/Method/SubmittedAt`, but there is no parent „Märkisin makstuks” UI and the rules let only admins write invoices — so nothing like that was added.
+- Done:
+  - `features/parents/UnpaidInvoicesNotice.jsx`: under the greeting, one line per unpaid invoice of the family — „Arve ootab tasumist · KS-… · 240,00 € · tähtaeg 10.11” (open balance); past due first and in red „tähtaeg möödus 06.11”; Russian hint; the child's first name when there are several children. Actions only the existing ones: „Maksa arve” (same LinkPay `startForInvoice`, only when enabled and not in admin preview) and „Vaata arveid” (opens the „Arved” section). Shows nothing when all is paid. Invoice data only, never a lesson balance.
+  - `ParentDashboardPage.jsx`: renders the notice; new optional `paymentsApi` prop (also passed to `OpenInvoicesCard`). Styles `.pd-pay*` in `parentHome.css`.
+  - Parent lab (`src/test/parentLab/demoFamily.js`): one overdue demo invoice and a fake payments API; `ParentCabinet.test.jsx` expects the new family total 440,00 and the two lines.
+- No data, rules, functions or e-mail changes.
+- Checks: `npx vitest run src/features/parents src/features/payments src/features/finance` → 52 files, 340 passed; eslint --quiet on touched files clean; parent lab looked at 375 px (no horizontal scroll) and 1280 px.
+- Next safe step: owner checks on a phone after deploy that a real parent sees the card; whether LinkPay is switched on decides if „Maksa arve” shows.
 ## 2026-11-09 · agent/ui-confirm-finance — finance panels ask with the CRM dialog (finance)
 
 - Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/ui-confirm-finance`, draft PR. Sibling of `agent/ui-confirm-2` (non-finance, #1147).
