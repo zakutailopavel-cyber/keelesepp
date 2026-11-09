@@ -910,8 +910,18 @@ keeps legacy structured `worksheetData.blocks` assignments compatible.
 
 ## Loading on a phone (2026-11-04)
 
-Every route is lazy (`app/routes.jsx`); the first load is React, Firebase, the shell and the one CSS file
-(`app/eagerStyles.js`). Contracts that keep a student's first screen and the lesson room small:
+Every route is lazy (`app/routes.jsx`); the first load is React, Firebase (app + auth + Firestore), the router with the
+sign-in page and the one CSS file (`app/eagerStyles.js`). Contracts that keep a student's first screen and the lesson
+room small:
+
+- The signed-in shell (`AppShell` with its gates, invitation overlay, announcements) is a lazy file (2026-11-09):
+  `app/shellPrefetch.js` starts it from `main.jsx` at once on a signed-in address (in parallel with the session check),
+  on `/login` / `/registreeru` when the page is idle, never on the public links. A new public route outside the shell
+  belongs in its `NO_SHELL` list (`shellPrefetch.test.js` checks routes.jsx).
+- Firebase Storage is its own chunk (`firebase-storage`, vite.config.js): `client.js` does not import it; a service that
+  uses `requireFirebaseClient().storage` must `import './storageClient.js'` (checked by `storageClient.test.js`).
+- `re2js` (Firestore Pipelines' regex engine, ~45 KB gzip) is aliased to `services/firebase/re2jsStub.js`: the CRM
+  never uses Pipelines (`re2jsStub.test.js`). Using `firebase/firestore/pipelines` would need the alias removed.
 
 - Import a service file directly (`services/firebase/homework.js`), not the `services/firebase/index.js` barrel: modules
   with top-level work behind it (the worksheet block registry, the kids campaigns) are then pulled into the page.

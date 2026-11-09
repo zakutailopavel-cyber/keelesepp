@@ -1,4 +1,5 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import "./storageClient.js";
 import { requireFirebaseClient } from "./client.js";
 import { financeRequestId } from "./financeApi.js";
 
