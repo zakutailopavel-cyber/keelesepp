@@ -5,7 +5,9 @@ import { AUDIO_TYPES, LISTENING_AUDIO, TEACHER_READS, listenInstruction } from '
 
 // every listening block of the course, read from the module files (run from crm-v2)
 // the TTS is Estonian (TartuNLP): an English module's transcripts are read by the teacher until it has its own voices
-const blocks = COURSE_MODULES.filter((mod) => (mod.MODULE.language || 'et') === 'et').flatMap((mod) => Object.entries(mod.LESSONS).flatMap(([lessonId, lesson]) => Object.keys(PHASES)
+// a module with MODULE.audio 'pending' (a new course before its recordings are built, e.g. „B1 noorkeele õppija”) keeps
+// „Õpetaja loeb …” and has no audio yet; it leaves the list when `node tools/listening-audio/build.mjs` has recorded it
+const blocks = COURSE_MODULES.filter((mod) => (mod.MODULE.language || 'et') === 'et' && mod.MODULE.audio !== 'pending').flatMap((mod) => Object.entries(mod.LESSONS).flatMap(([lessonId, lesson]) => Object.keys(PHASES)
   .flatMap((phase) => (lesson[phase] || []).filter((b) => AUDIO_TYPES.has(b.type)).map((block) => ({ mod, lessonId, phase, block })))));
 
 describe('listening audio of the course (tools/listening-audio/build.mjs)', () => {
