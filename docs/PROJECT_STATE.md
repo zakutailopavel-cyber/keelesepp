@@ -1,3 +1,12 @@
+## 2026-11-04 · agent/new-address-laki — school address on the site: Laki 11b, 12915 Tallinn
+
+- Base: `main` 66af0c2, checked 2026-11-04. Owner: the school moves on Saturday 7.11; lessons on Sunday 8.11 are already at the new address (Laki 11b, II korrus, 71,2 m²).
+- Done: every „Mustamäe tee 33, 10616 Tallinn” on the public site replaced. `index.html` and `ru/index.html`: JSON-LD `streetAddress` / `postalCode`, contact block (with floor: „II korrus” / „2-й этаж”), map iframe (now `maps.google.com/maps?q=Laki 11b, 12915 Tallinn&output=embed`, which lands on google.com/maps/embed) and footer. `kutse.html` footer. `privaatsus.html` controller address. Postal code 12915 from the Maa-amet address register (In-ADS: „Harju maakond, Tallinn, Mustamäe linnaosa, Laki tn 11b 12915”).
+- Not changed: the CRM (no address in code), course texts that mention Mustamäe as a place.
+- Checks: `git grep "Mustamäe tee 33\|10616" -- '*.html'` finds nothing; the map URL answers 200. Not opened in a browser after the change.
+- Production: none. The site address changes only after merge + deploy.
+- Limits: `privaatsus.html` names the company's address; if the company's address in the Äriregister stays Mustamäe tee 33, the owner updates it there.
+- Next safe step: merge and deploy on Saturday 7.11 (not earlier, so that students do not come to the new place too soon).
 ## 2026-11-09 · agent/word-audio — real Estonian audio (Neurokõne) for every course word, example and listening sentence · ⚠ storage.rules need deploy
 
 - Base: `origin/main` 9121782, checked 2026-11-09 (merged in). Branch `agent/word-audio`, draft PR #1177. Owner decision 2026-11-09: TartuNLP Neurokõne (free public API, voice „mari”), generated once and stored by us; owner approved the TTS calls and the production Storage upload. Contract: `docs/VOCABULARY_SRS.md` „Sõnade heli”.
