@@ -8683,6 +8683,19 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       else res.json(await learnerEmails().sendTest(type, actor.decoded.email || actor.profile.email || "", options));
       return;
     }
+    // Seaded → „Õpetajatele iganädalane märkimata tundide kiri”: on/off (the browser cannot write emailSettings/
+    // teacherDigest, only this route) and a test copy of one teacher's e-mail to the administrator's own address
+    if (req.path === "/teacher-digest/settings" || req.path === "/teacher-digest/test") {
+      const actor = await requireAdminUser(req);
+      res.set("Cache-Control", "no-store");
+      if (req.path === "/teacher-digest/settings") {
+        if (typeof req.body?.weeklyUnmarked !== "boolean") throw httpError(400, "weeklyUnmarked must be true or false");
+        res.json(await teacherDigest().saveSettings({ weeklyUnmarked: req.body.weeklyUnmarked }, { uid: actor.decoded.uid, name: actor.profile.displayName || actor.decoded.name || actor.decoded.email || "" }));
+      } else {
+        res.json(await teacherDigest().sendTest(actor.decoded.email || actor.profile.email || "", { teacherUid: String(req.body?.teacherUid || "").slice(0, 128) }));
+      }
+      return;
+    }
     // „Teated” (functions/announcements-service.js): a learner / parent gets only their own announcements and answers
     // once; the administrator sees who answered. Announcements are never readable by learners in Firestore.
     if (req.path === "/announcements/mine" || req.path === "/announcements/respond") {
@@ -13329,6 +13342,29 @@ exports.systemHealthDigest = functions
       ...digest,
     });
     console.log("System health digest", { total: digest.total, occurrences: digest.occurrences });
+    return null;
+  });
+
+// ── SCHEDULED: „Märkimata tunnid” weekly e-mail to every teacher (owner 2026-11-09) ─
+// Mondays 08:00 Tallinn: each teacher with past unmarked lessons (last 60 days, the CRM page's own definition) gets one
+// e-mail with the list + a bell notice (teacherUnmarkedDigests/{uid}_{week}); once per ISO week per teacher. Off in
+// Seaded (emailSettings/teacherDigest.weeklyUnmarked === false). Never to learners or parents.
+// functions/teacher-unmarked-digest-core.js, -service.js; docs/EMAIL_NOTIFICATIONS.md „Õpetajate nädalakiri”.
+let teacherDigestService = null;
+function teacherDigest() {
+  if (!teacherDigestService) teacherDigestService = require("./teacher-unmarked-digest-service").createTeacherDigestService({ db, auth: admin.auth(), deliver: deliverEmail });
+  return teacherDigestService;
+}
+
+exports.weeklyUnmarkedLessonsDigest = functions
+  .runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 300, memory: "512MB" })
+  .pubsub
+  .schedule("0 8 * * 1")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const result = await teacherDigest().run();
+    const { preview: _preview, ...counts } = result;
+    console.log("Weekly unmarked-lessons digest", JSON.stringify(counts));
     return null;
   });
 

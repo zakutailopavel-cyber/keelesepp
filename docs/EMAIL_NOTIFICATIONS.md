@@ -130,3 +130,18 @@ Functions: `learnerEmailsTick`, `queueLearnerScheduleEmail`, `queueLearnerWorksh
 `queueLearnerExerciseReviewEmail` (new), `staffOperationsApi` (routes), `notifyHomeworkCreated` (opt-out), and
 `deliverEmail` callers (List-Unsubscribe header support). Rules: `emailSettings`, `emailLog`. Front end: Seaded card and
 `/e-kirjad/:token`. After deploy everything stays off until the administrator switches types on.
+
+## Õpetajate nädalakiri — „Märkimata tunnid: N” (owner 2026-11-09)
+
+Not a learner e-mail: it goes **only to teachers** and never reads a student / parent address.
+
+- **When:** `weeklyUnmarkedLessonsDigest` (functions/index.js), Cloud Scheduler `0 8 * * 1` Europe/Tallinn (Mondays 08:00).
+- **What:** each teacher's own past unmarked lessons — the same set as the CRM page „Märkimata tunnid” (`crm-v2/src/features/calendar/unmarkedLessons.js` `findUnmarkedLessons`; the server copy `functions/teacher-unmarked-digest-core.js` `unmarkedOccurrences`, a parity test runs both on the same data), then one rule `countableUnmarked` (owner 2026-11-09): **from the fixed cutoff 2026-11-01** up to yesterday (older ones ignored, not mentioned), only active student cards (not archived / trashed / merged), only entries with a teacher, never a day of a closed financial period (`financialLockedDates`). Kept as one small function so it can be swapped for the shared definition `agent/fast-marking` is unifying in crm-v2. A lesson is the teacher's by the entry's `teacherUid`, an old entry without one by the teacher's name.
+- **Content:** subject `Märkimata tunnid: N`; rows grouped by date (date, time, student name, subject), at most 30 rows then „… ja veel M”; one button to `https://crm.epkoolitus.ee/calendar/markimata`; one Russian line; HTML + text. No prices, no contacts.
+- **Recipients:** users with `role: "teacher"` (or an admin whose Auth claims carry `teacher`), not disabled / pending / in the trash, whose users-doc address is the Auth account's **verified** one. Teachers with 0 lessons are skipped. A teacher without a verified address gets the bell notice only (marker status `no-email`).
+- **Once a week:** marker `teacherUnmarkedDigests/{uid}_{YYYY-Www}` (`total`, `status` sending / sent / failed / no-email, `attempts`) is claimed in a transaction before sending; a second run that week skips; only `failed` is retried (≤ 3). Rules: the teacher `get`s his own, the admin reads all, no browser writes.
+- **Bell:** `notificationModel.weeklyDigestNotifications` from the teacher's own marker of the current week (id `unmarked-week:<week>`). The live daily „N tundi märkimata” item stays as before.
+- **Switch:** Seaded → Kool → „Õpetajatele iganädalane märkimata tundide kiri”. `emailSettings/teacherDigest.weeklyUnmarked` (no document = **on**), written only by `staffOperationsApi /teacher-digest/settings` (admin). „Saada mulle proovikiri” → `/teacher-digest/test`: one teacher's real e-mail of this week (chosen, or the one with most lessons) to the administrator's own address, subject `[PROOV · <teacher>]`, no marker.
+- **Dry run:** env `TEACHER_DIGEST_DRY_RUN=1`, or the functions emulator (`FUNCTIONS_EMULATOR=true`), or `run({ dryRun: true })` → returns the plan with the composed e-mails, writes and sends nothing.
+- **Log:** `activityLog` `system.teacher_unmarked_digest` (counts only) and `emailLog` `kind: teacherUnmarkedWeekly`; the e-mail itself goes through `deliverEmail` (logged in `emailQueue`).
+- **Deploy:** `firebase deploy --only functions:weeklyUnmarkedLessonsDigest,functions:staffOperationsApi,firestore:rules` (the first deploy creates the Cloud Scheduler job `firebase-schedule-weeklyUnmarkedLessonsDigest-us-central1`).
