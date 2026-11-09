@@ -3,12 +3,15 @@ import { lazyComponent } from './lazyComponent.js';
 import PageErrorBoundary from './PageErrorBoundary.jsx';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoadingState } from '../components/ui/index.js';
-import AppShell from '../components/layout/AppShell.jsx';
 import ForbiddenPage from '../features/auth/ForbiddenPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import HomePage from './HomePage.jsx';
 import { ACCESS } from './accessPolicy.js';
+import { loadAppShell } from './shellPrefetch.js';
+
+// the signed-in shell is not in /login's first download; main.jsx starts loading it early (shellPrefetch.js)
+const AppShell = lazyComponent(loadAppShell);
 
 // The worksheet generator (with its Estonian form lexicon) is loaded only on its own staff pages.
 const GeneratorCoveragePage = lazyComponent(() => import('../features/worksheet-generator/ui/GeneratorCoveragePage.jsx'));
@@ -104,7 +107,7 @@ export default function AppRoutes() {
       {/* e-mails to students and parents: turn them off or choose the language (docs/EMAIL_NOTIFICATIONS.md) */}
       <Route path="/e-kirjad/:token" element={publicPage(<EmailPreferencesPage />)} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
-        <Route element={<AppShell />}>
+        <Route element={staffPage(<AppShell />)}>
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}
           <Route index element={<HomePage />} />
           <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>

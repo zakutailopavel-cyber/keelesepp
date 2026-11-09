@@ -1,5 +1,6 @@
 import { collection, deleteDoc, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { cleanNote, isMonth, monologueAudioPath, monologueId, monologueRecord } from '../../features/monologue/monologueModel.js';
 
