@@ -1,6 +1,9 @@
 import { getDocs, collection, deleteDoc, doc, onSnapshot, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
-import { cleanWord, normalizeWord, review } from '../../features/vocabulary/wordsModel.js';
+import { cleanWord, normalizeWord } from '../../features/vocabulary/wordsModel.js';
+import { ratingPatch } from '../../features/vocabulary/srs.js';
+
+const CHECKS = ['ok', 'suggest', 'unknown', 'unchecked'];
 
 // `studentWords/{id}`: the student's own word list. Staff add and edit words (also during a Live Classroom lesson,
 // then with `invitationId`); the student or a linked parent reads them and writes only the practice fields.
@@ -87,6 +90,34 @@ export const studentWordsService = {
     return this.add({ studentId, invitationId: '', user, ...cleanWord(input) });
   },
 
+  // „Lisa oma sõna”: the student's own word with where it came from and the spelling verdict
+  async addStudentWord({ studentId, user, checked = '', ...input }) {
+    const data = cleanWord(input);
+    if (!studentId) throw new Error('Õpilane puudub.');
+    if (!data.word) throw new Error('Kirjuta sõna.');
+    const { db } = requireFirebaseClient();
+    const ref = doc(collection(db, 'studentWords'));
+    const now = new Date().toISOString();
+    const record = {
+      studentId, invitationId: '', ...data, source: 'student', checked: CHECKS.includes(checked) ? checked : 'unchecked',
+      createdByUid: user.uid, createdByName: String(user.displayName || user.email || '').slice(0, 160),
+      createdAt: now, updatedAt: now, box: 0, dueAt: now,
+    };
+    await setDoc(ref, record);
+    return normalizeWord(ref.id, record);
+  },
+
+  // the student edits the text of a word they added (rules: only their own words); the verdict follows the new text
+  async updateOwn(id, { checked, ...input }) {
+    const data = cleanWord(input);
+    if (!data.word) throw new Error('Kirjuta sõna.');
+    const { db } = requireFirebaseClient();
+    await updateDoc(doc(db, 'studentWords', id), {
+      word: data.word, translation: data.translation, example: data.example, forms: data.forms, formItems: data.formItems || [],
+      ...(CHECKS.includes(checked) ? { checked } : {}), updatedAt: new Date().toISOString(),
+    });
+  },
+
   async update(id, input) {
     const data = cleanWord(input);
     if (!data.word) throw new Error('Kirjuta sõna.');
@@ -99,10 +130,26 @@ export const studentWordsService = {
     await deleteDoc(doc(db, 'studentWords', id));
   },
 
-  async review(word, knew) {
+  // one answer of the student on spaced repetition (srs.js): direction 'r' (et → meaning) or 'p' (meaning → et),
+  // rating again / hard / good / easy; `nextSide` when the flashcard session already scheduled it. Writes `srs` and the
+  // old summary fields (box, dueAt, reviewedAt, reviews) — the rules allow the student exactly these keys.
+  async rate(word, { direction = 'r', rating = 'good', nextSide = null, now = new Date() } = {}) {
     const { db } = requireFirebaseClient();
-    const patch = review(word, knew);
-    await updateDoc(doc(db, 'studentWords', word.id), patch);
+    const patch = ratingPatch(word, direction, rating, now, nextSide);
+    try {
+      await updateDoc(doc(db, 'studentWords', word.id), patch);
+    } catch (error) {
+      // rules older than 2026-11-09 do not know `srs`: keep the summary fields, the schedule migrates again later
+      if (error?.code !== 'permission-denied') throw error;
+      const { srs, ...summary } = patch; // eslint-disable-line no-unused-vars
+      await updateDoc(doc(db, 'studentWords', word.id), summary);
+      return summary;
+    }
     return patch;
+  },
+
+  // a plain knew / did not know answer (the other study modes, „Minu sõnad” practice) on the same schedule
+  async review(word, knew, direction = 'r') {
+    return this.rate(word, { direction, rating: knew ? 'good' : 'again' });
   },
 };

@@ -20,10 +20,10 @@
 }
 .financial-period__reviewed {
   align-items: center;
-  background: #ecfdf3;
-  border: 1px solid #abefc6;
+  background: var(--success-soft);
+  border: 1px solid #abefc6;border:1px solid light-dark(#abefc6,#1f4731);
   border-radius: 14px;
-  color: #067647;
+  color: var(--success-text);
   display: flex;
   gap: 12px;
   padding: 13px 15px;
@@ -33,24 +33,24 @@
   gap: 2px;
 }
 .financial-period__reviewed small {
-  color: #39866b;
+  color: #39866b;color:light-dark(#39866b,#77c3a6);
 }
 .financial-period__reviewed .badge {
   margin-left: auto;
 }
 .financial-period__reviewed.is-closed {
-  background: #eef4ff;
-  border-color: #c7d7fe;
-  color: #3538cd;
+  background: #eef4ff;background:light-dark(#eef4ff,#141c2c);
+  border-color: #c7d7fe;border-color:light-dark(#c7d7fe,#323f60);
+  color: #3538cd;color:light-dark(#3538cd,#a9bcfe);
 }
-.financial-period__reviewed.is-closed small { color: #6172f3; }
+.financial-period__reviewed.is-closed small { color: #6172f3;color:light-dark(#6172f3,#93a5fa); }
 .financial-period__metrics {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 .financial-period__metrics > span {
-  background: #f8fafc;
+  background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: 14px;
   display: grid;
@@ -59,7 +59,7 @@
   padding: 14px;
 }
 .financial-period__metrics svg {
-  color: var(--green);
+  color: var(--green-text);
   grid-row: 1/3;
 }
 .financial-period__metrics small,
@@ -74,32 +74,32 @@
     sans-serif;
 }
 .financial-period__metrics .has-attention {
-  background: #fff7ed;
-  border-color: #fed7aa;
+  background: #fff7ed;background:light-dark(#fff7ed,#271c0c);
+  border-color: #fed7aa;border-color:light-dark(#fed7aa,#513716);
 }
 .financial-period__metrics .has-attention svg {
-  color: #c2410c;
+  color: #c2410c;color:light-dark(#c2410c,#fb9271);
 }
 .financial-period__metrics .is-ready {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+  background: #f0fdf4;background:light-dark(#f0fdf4,#0f2317);
+  border-color: #bbf7d0;border-color:light-dark(#bbf7d0,#1b422c);
 }
 .financial-period__result {
   align-items: center;
   border: 1px solid;
-  border-radius: 15px;
+  border-radius: var(--radius-xl);
   display: flex;
   gap: 18px;
   justify-content: space-between;
   padding: 16px;
 }
 .financial-period__result.is-ready {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+  background: #f0fdf4;background:light-dark(#f0fdf4,#0f2317);
+  border-color: #bbf7d0;border-color:light-dark(#bbf7d0,#1b422c);
 }
 .financial-period__result.has-blockers {
-  background: #fff7ed;
-  border-color: #fed7aa;
+  background: #fff7ed;background:light-dark(#fff7ed,#271c0c);
+  border-color: #fed7aa;border-color:light-dark(#fed7aa,#513716);
 }
 .financial-period__result p {
   color: var(--muted);
@@ -126,7 +126,7 @@
   border-bottom: 0;
 }
 .financial-period__issues article > svg {
-  color: #b54708;
+  color: var(--warning-text);
 }
 .financial-period__issues article > span {
   display: grid;
@@ -136,9 +136,9 @@
   color: var(--muted);
 }
 .financial-period__issues code {
-  background: #f2f4f7;
-  border-radius: 7px;
-  color: #475467;
+  background: var(--gray-100);
+  border-radius: var(--radius-sm);
+  color: var(--gray-600);
   font-size: 11px;
   max-width: 170px;
   overflow: hidden;
@@ -158,7 +158,7 @@
 }
 .financial-period__empty {
   align-items: center;
-  border: 1px dashed #d0d5dd;
+  border: 1px dashed var(--gray-300);
   border-radius: 14px;
   color: var(--muted);
   display: grid;
@@ -168,7 +168,7 @@
   text-align: center;
 }
 .financial-period__empty strong {
-  color: #344054;
+  color: var(--gray-700);
 }
 .financial-period__empty p {
   margin: 0;
@@ -188,7 +188,7 @@
 .period-close__checklist article {
   align-items: start;
   border: 1px solid;
-  border-radius: 13px;
+  border-radius: var(--radius-lg);
   display: grid;
   gap: 9px;
   grid-template-columns: auto 1fr;
@@ -198,10 +198,10 @@
 .period-close__checklist article strong { font-size: 13px; line-height: 1.3; }
 .period-close__checklist article small { color: var(--muted); font-size: 11px; line-height: 1.4; }
 .period-close__checklist article .badge { grid-column: 2; justify-self: start; }
-.period-close__checklist .is-ready { background: #f0fdf4; border-color: #bbf7d0; }
-.period-close__checklist .is-ready > svg { color: #079455; }
-.period-close__checklist .has-blocker { background: #fff7ed; border-color: #fed7aa; }
-.period-close__checklist .has-blocker > svg { color: #c2410c; }
+.period-close__checklist .is-ready { background: #f0fdf4;background:light-dark(#f0fdf4,#0f2317); border-color: #bbf7d0;border-color:light-dark(#bbf7d0,#1b422c); }
+.period-close__checklist .is-ready > svg { color: #079455;color:light-dark(#079455,#56c886); }
+.period-close__checklist .has-blocker { background: #fff7ed;background:light-dark(#fff7ed,#271c0c); border-color: #fed7aa;border-color:light-dark(#fed7aa,#513716); }
+.period-close__checklist .has-blocker > svg { color: #c2410c;color:light-dark(#c2410c,#fb9271); }
 .period-close__totals {
   background: var(--border);
   border: 1px solid var(--border);
@@ -212,18 +212,18 @@
   overflow: hidden;
 }
 .period-close__totals > span {
-  background: #fff;
+  background: var(--surface);
   display: grid;
   gap: 4px;
   grid-template-columns: auto 1fr;
   padding: 14px;
 }
-.period-close__totals svg { color: var(--green); grid-row: 1/4; }
+.period-close__totals svg { color: var(--green-text); grid-row: 1/4; }
 .period-close__totals small, .period-close__totals em { color: var(--muted); font-size: 11px; font-style: normal; }
 .period-close__totals strong { font: 800 1.15rem Manrope, sans-serif; }
 .period-close__actions {
   align-items: center;
-  background: #f8fafc;
+  background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: 14px;
   display: flex;
@@ -231,9 +231,9 @@
   justify-content: space-between;
   padding: 15px;
 }
-.period-close__actions.is-closed { background: #eef4ff; border-color: #c7d7fe; }
+.period-close__actions.is-closed { background: #eef4ff;background:light-dark(#eef4ff,#141c2c); border-color: #c7d7fe;border-color:light-dark(#c7d7fe,#323f60); }
 .period-close__actions > div { align-items: center; display: flex; gap: 10px; }
-.period-close__actions > div:first-child > svg { color: var(--green); flex: 0 0 auto; }
+.period-close__actions > div:first-child > svg { color: var(--green-text); flex: 0 0 auto; }
 .period-close__actions span { display: grid; gap: 3px; }
 .period-close__actions small { color: var(--muted); }
 .period-close__form { display: grid; gap: 16px; }

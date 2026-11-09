@@ -1,5 +1,6 @@
 import { collection, doc, documentId, getDoc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { shareInFlight } from './shareInFlight.js';
 
 // „Viimati sees” and the last „Minu vead” review on the account document (owner 2026-10-23: the teacher sees when the
 // student was in and whether he practises). The rules (validPresence) allow only the server's time for lastSeenAt and a
@@ -52,7 +53,12 @@ export const presenceService = {
     return practice;
   },
   // many students at once (the students list, the dashboard): Map studentId → { lastSeenAt, practice }
-  async forStudents(students = []) {
+  // two dashboard cards asking at once („Riskis õpilased”, „Täna”) share one read
+  forStudents(students = []) {
+    const key = students.map((student) => `${student?.id || ''}:${accountUid(student)}`).join(',');
+    return shareInFlight(`presence:${key}`, () => presenceService.readForStudents(students));
+  },
+  async readForStudents(students = []) {
     const byUid = new Map();
     students.forEach((student) => { const uid = accountUid(student); if (uid && student?.id) byUid.set(uid, [...(byUid.get(uid) || []), student.id]); });
     const uids = [...byUid.keys()];

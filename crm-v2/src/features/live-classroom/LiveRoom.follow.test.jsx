@@ -2,6 +2,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, vi } from 'vitest';
 import LiveRoom from './LiveRoom.jsx';
+import { beforeAll as preloadBeforeAll } from 'vitest';
+import { preloadLiveClassroomParts } from './lazyParts.testkit.js';
+
+// the room's views and panels are lazy: load them once, so the tests wait for behaviour, not for module loading
+preloadBeforeAll(() => preloadLiveClassroomParts(), 60000);
 
 // the call's data channel is replaced by a controllable fake; everything else is the real room
 const room = vi.hoisted(() => {
@@ -146,7 +151,7 @@ describe('LiveRoom: the video tiles can be made small', () => {
     renderRoom('teacher');
     fireEvent.click(screen.getByRole('button', { name: 'Peida video (heli jääb)' }));
     // the video elements stay (sound goes on), only the chip is in sight
-    expect(document.querySelectorAll('.lr-side video')).toHaveLength(2);
+    expect(document.querySelectorAll('.lr-float video')).toHaveLength(2);
     fireEvent.click(screen.getByRole('button', { name: /^Näita videot/ }));
     expect(screen.getByRole('button', { name: 'Peida video (heli jääb)' })).toBeInTheDocument();
   });

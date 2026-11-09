@@ -5,6 +5,7 @@
 import { monthDates, shiftMonth } from './monthlyBilling.js';
 import { groupCalendarEvents, occurrencesForDates } from '../calendar/calendarView.js';
 import { itemSubject, mainSubject } from '../students/subjects.js';
+import { subjectBilling } from './subjectBilling.js';
 
 export const HISTORY_MONTHS = 12;
 export const FORECAST_MONTHS = 3;
@@ -18,30 +19,8 @@ export function monthRange(last, count) {
   return Array.from({ length: count }, (_, index) => shiftMonth(last, index - count + 1));
 }
 
-// a round top for the chart's scale (e.g. 3 870 € → 4 000 €)
-export function niceMax(cents) {
-  const value = Math.max(1, cents);
-  const step = 10 ** Math.floor(Math.log10(value));
-  return [1, 2, 2.5, 5, 10].map((k) => k * step).find((top) => top >= value) || 10 * step;
-}
-
-// a smooth line through the points that never overshoots (monotone cubic, Fritsch–Carlson): money never dips below 0
-export function smoothPath(points) {
-  if (!points.length) return '';
-  if (points.length === 1) return `M${points[0][0]},${points[0][1]}`;
-  const n = points.length;
-  const dx = []; const slope = [];
-  for (let i = 0; i < n - 1; i += 1) { dx[i] = points[i + 1][0] - points[i][0]; slope[i] = (points[i + 1][1] - points[i][1]) / dx[i]; }
-  const tangent = [slope[0]];
-  for (let i = 1; i < n - 1; i += 1) tangent[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (3 * (dx[i - 1] + dx[i])) / ((2 * dx[i] + dx[i - 1]) / slope[i - 1] + (dx[i] + 2 * dx[i - 1]) / slope[i]);
-  tangent[n - 1] = slope[n - 2];
-  let d = `M${points[0][0]},${points[0][1]}`;
-  for (let i = 0; i < n - 1; i += 1) {
-    const h = dx[i] / 3;
-    d += ` C${points[i][0] + h},${points[i][1] + h * tangent[i]} ${points[i + 1][0] - h},${points[i + 1][1] - h * tangent[i + 1]} ${points[i + 1][0]},${points[i + 1][1]}`;
-  }
-  return d;
-}
+// the chart helpers live in components/charts (shared with the finance overview); re-exported for the old imports
+export { niceMax, smoothPath } from '../../components/charts/chartPath.js';
 
 // ---------- lesson revenue (owner 2026-10-26: the dashboard is not the bookkeeping — it counts the calendar's lessons,
 // held and planned, at each student's price; the accountant does the books herself) ----------
@@ -61,6 +40,13 @@ export function lessonPriceCents(item, student, plan) {
   return Math.round(((Number(item.duration) || minutes) / minutes) * price);
 }
 
+// is a no-show without notice of this lesson charged: its subject's own rule, else the card's (finance/subjectBilling.js)
+export function noShowCharged(plan, item, student) {
+  if (!plan) return false;
+  const main = mainSubject(student || {});
+  return subjectBilling(plan, itemSubject(item || {}, student) || main, main).chargeNoShow;
+}
+
 // month by month: held lessons (past dates and today's already marked — marked „Toimunud” or a charged no-show, or a
 // past one still unmarked and not cancelled) and planned lessons (from today on), each at its student's price; journal lessons that are not in the
 // calendar count as held
@@ -74,7 +60,8 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
     if (lesson.scheduleId && date) journal.set(`${lesson.scheduleId}:${date}`, lesson);
     if (lesson.studentId && lesson.date) journal.set(`${lesson.studentId}@${lesson.date}`, lesson);
   });
-  const charged = (status, plan, record) => status === 'Toimunud' ? record?.billingStatus !== 'school_covered' : status === 'Puudus_eta' ? plan.chargeNoShow !== false && !record?.billingWaived : false;
+  // a no-show follows its subject's rule (subjectBilling, owner 2026-11-06), else the card's
+  const charged = (status, plan, record, item, student) => status === 'Toimunud' ? record?.billingStatus !== 'school_covered' : status === 'Puudus_eta' ? noShowCharged(plan, item, student) && !record?.billingWaived : false;
   return months.map((month) => {
     const row = { month, heldCents: 0, heldLessons: 0, unmarkedLessons: 0, plannedCents: 0, plannedLessons: 0, noPrice: 0 };
     const seen = new Set();
@@ -94,7 +81,7 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
           return;
         }
         if (status === 'Planeeritud' && !record) { row.heldCents += cents; row.heldLessons += 1; row.unmarkedLessons += 1; return; }
-        if (plan && charged(status, plan, record)) { row.heldCents += cents; row.heldLessons += 1; }
+        if (plan && charged(status, plan, record, record || item, student)) { row.heldCents += cents; row.heldLessons += 1; }
       });
     });
     // a lesson written in the journal only (not in the calendar)
@@ -102,7 +89,7 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
       .forEach((lesson) => {
         const student = studentById.get(lesson.studentId);
         const plan = planById.get(lesson.studentId);
-        if (!student || !plan || !charged(lesson.status, plan, lesson)) return;
+        if (!student || !plan || !charged(lesson.status, plan, lesson, lesson, student)) return;
         const cents = lessonPriceCents(lesson, student, plan);
         if (cents) { row.heldCents += cents; row.heldLessons += 1; }
       });

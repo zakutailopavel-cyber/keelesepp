@@ -99,7 +99,7 @@ function cardSummary(id, s = {}) {
   };
 }
 
-async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: rawSource, keepName: rawName, keepActive, actor = {}, apply = false, confirmed = false, includeFinance = true, includeSchedule = true, nowIso = new Date().toISOString() }) {
+async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: rawSource, keepName: rawName, keepActive, actor = {}, apply = false, confirmed = false, confirmedDifferences = false, includeFinance = true, includeSchedule = true, nowIso = new Date().toISOString() }) {
   const { keepId, sourceId, keepName } = core.normalizedInput({ keepId: rawKeep, sourceId: rawSource, keepName: rawName });
   const keepRef = db.collection("students").doc(keepId);
   const sourceRef = db.collection("students").doc(sourceId);
@@ -115,6 +115,10 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
     throw Object.assign(new Error("This card is already merged"), { status: 409 });
   }
   if (keep.mergedInto || keep.mergedIntoStudentId) throw Object.assign(new Error("The kept card is itself merged into another card"), { status: 409 });
+  // a card in the „Prügikast” (or purged after it) takes no part: its purge would anonymise the merged history
+  // (2026-11-06). Archived cards merge as usual.
+  const trashed = [keep, source].find((card) => card.deletedAt || card.purgedAt);
+  if (trashed) throw Object.assign(new Error(`Kaart „${trashed.name || ""}” on prügikastis. Taasta see enne liitmist (Inimesed → Prügikast).`), { status: 409 });
   const names = [...new Set([keep.name, source.name].map((n) => String(n || "").trim()).filter(Boolean))];
   if (keepName && !names.includes(keepName)) throw Object.assign(new Error("The name must be one of the two cards' names"), { status: 400 });
 
@@ -138,7 +142,8 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
   const activeAfter = core.resultActive(keep, source, keepActive);
   const tracks = mergeEnrollments(keep, core.sourceForTracks(source, activeAfter));
   const parents = core.mergeParents(keep, source);
-  const sourceSubject = cardSubject(source);
+  // a moved lesson keeps its own subject; one without a subject gets the other card's (never the kept card's)
+  const sourceSubject = core.sourceLessonSubject(source) || cardSubject(source);
   const userLinks = await db.collection("users").where("linkedStudentIds", "array-contains", sourceId).get().catch(() => null);
   const subcollections = await subcollectionCounts(sourceRef);
   const conflicts = core.mergeConflicts({ keep, source, parents, plan: price, singletons, pets: { keep: Boolean(keepPet?.size), source: Boolean(sourcePet?.size) }, activeAfter });
@@ -160,17 +165,38 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
     addedSubjects: tracks.added.map(({ subject, teacher, level }) => ({ subject, teacher, level })),
     parents: { accounts: parents.linkedParentIds, contacts: parents.parentContacts },
     conflicts,
+    // „Need võivad olla erinevad lapsed” (2026-11-09): any signal needs confirmedDifferences: true
+    differentPerson: core.differentPersonSignals(keep, source),
     totals: steps.reduce((acc, s) => ({ ...acc, [s.kind]: (acc[s.kind] || 0) + s.count }), {}),
   };
   if (!apply) return { ...summary, applied: false };
   if (confirmed !== true) throw Object.assign(new Error("Confirm the merge after the preview"), { status: 400 });
+  if (summary.differentPerson.length && confirmedDifferences !== true) {
+    throw Object.assign(new Error(`Need võivad olla erinevad lapsed (${summary.differentPerson.map((s) => s.label).join("; ")}). Liitmiseks kinnita, et see on sama laps.`), { status: 409, code: "different_person" });
+  }
 
-  await opRef.set({ status: "running", keepId, sourceId, startedAt: op?.startedAt || nowIso, updatedAt: nowIso, actor, preview: { move: summary.move, conflicts: summary.conflicts } }, { merge: true });
+  // a run continued after a failure keeps its id (its undo records are already written); a new merge gets a new one
+  const resumed = Boolean(op && ["running", "failed"].includes(op.status) && op.runId);
+  const runId = resumed ? op.runId : `${Date.parse(nowIso) || Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  await opRef.set({
+    status: "running", keepId, sourceId, runId, undoVersion: core.UNDO_VERSION, startedAt: (resumed && op.startedAt) || nowIso, updatedAt: nowIso, actor,
+    preview: { move: summary.move, conflicts: summary.conflicts, differentPerson: summary.differentPerson.map((s) => s.code) },
+    confirmedDifferences: summary.differentPerson.length > 0,
+  }, { merge: true });
+  const undoCol = opRef.collection("undo");
   try {
     // 1. re-point the records in batches
+    // every moved record writes what it was before in the same batch (studentCardMerges/{sourceId}/undo), so
+    // „Võta ühendamine tagasi” can restore it (2026-11-09)
     let batch = db.batch();
     let n = 0;
-    const flush = async () => { if (n) { await batch.commit(); batch = db.batch(); n = 0; } };
+    let entries = [];
+    let entryBytes = 0;
+    const flush = async () => {
+      if (entries.length) batch.set(undoCol.doc(), { runId, entries, createdAt: nowIso });
+      if (n || entries.length) { await batch.commit(); batch = db.batch(); n = 0; entries = []; entryBytes = 0; }
+    };
+    const record = (entry) => { entries.push(entry); entryBytes += JSON.stringify(entry).length; };
     const keepNameFinal = summary.keepName;
     for (const step of steps) {
       const learnerSide = step.kind !== "finance";
@@ -180,14 +206,19 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
           const subject = learnerSide && sourceSubject && !data.subject ? { subject: sourceSubject } : {};
           // a lesson's name follows the card; an invoice keeps the name it was issued with
           const name = learnerSide && data.studentName ? { studentName: keepNameFinal } : {};
-          batch.update(ref, { studentId: keepId, mergedFromStudentId: sourceId, ...subject, ...name });
+          const after = { studentId: keepId, mergedFromStudentId: sourceId, ...subject, ...name };
+          record(core.undoEntry(ref.path, data, after, "studentId"));
+          batch.update(ref, after);
         } else if (step.field === "students") {
-          batch.update(ref, { ...mergeGroupStudentReferences(data, keepId, [sourceId]), mergedStudentAt: nowIso });
+          const after = { ...mergeGroupStudentReferences(data, keepId, [sourceId]), mergedStudentAt: nowIso };
+          record(core.undoEntry(ref.path, data, after, "students"));
+          batch.update(ref, after);
         } else {
+          record({ kind: "ids", path: ref.path, field: "studentIds", keepId, sourceId, hadKeep: Array.isArray(data.studentIds) && data.studentIds.includes(keepId) });
           batch.update(ref, { studentIds: FieldValue.arrayUnion(keepId) });
         }
         n += 1;
-        if (n >= BATCH) await flush();
+        if (n >= BATCH || entryBytes > 600000) await flush();
       }
     }
     await flush();
@@ -198,22 +229,44 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
 
     // 2. the per-card documents: copied when the kept card has none; the old one is marked, never deleted
     const counter = { n: 0 };
+    const cardDocs = [];
+    const copies = [];
     for (const item of singletons) {
       const fromRef = db.collection(item.collection).doc(sourceId);
       if (item.action === "copy") {
         const extra = { copiedFromStudentId: sourceId, mergedStudentAt: nowIso, ...(item.sourceData.studentId !== undefined ? { studentId: keepId } : {}), ...(item.collection === "studentRevenuePlans" ? { studentName: keepNameFinal } : {}) };
         await copyTree(db, fromRef, db.collection(item.collection).doc(keepId), extra, counter);
+        copies.push({ path: `${item.collection}/${keepId}`, collection: item.collection, label: core.DOC_LABELS[item.collection] || item.collection });
       }
-      await fromRef.set({ mergedInto: keepId, mergedAt: nowIso, ...(item.collection === "studentRevenuePlans" ? { active: false } : {}) }, { merge: true });
+      const mark = { mergedInto: keepId, mergedAt: nowIso, ...(item.collection === "studentRevenuePlans" ? { active: false } : {}) };
+      cardDocs.push(core.undoEntry(fromRef.path, item.sourceData, mark));
+      await fromRef.set(mark, { merge: true });
     }
-    if (price.action === "addSubjectPrice") await db.collection("studentRevenuePlans").doc(keepId).set({ ...price.patch, updatedAt: nowIso }, { merge: true });
+    if (price.action === "addSubjectPrice") {
+      const planRef = db.collection("studentRevenuePlans").doc(keepId);
+      const planNow = await planRef.get();
+      cardDocs.push(core.undoEntry(planRef.path, planNow.exists ? planNow.data() : {}, price.patch));
+      await planRef.set({ ...price.patch, updatedAt: nowIso }, { merge: true });
+    }
     // subcollections of the old card (if any) are copied as they are
     for (const sub of subcollections) {
       const docs = await sourceRef.collection(sub.collection).get();
       for (const doc of docs.docs) await copyTree(db, doc.ref, keepRef.collection(sub.collection).doc(doc.id), { copiedFromStudentId: sourceId }, counter);
+      copies.push({ path: `students/${keepId}/${sub.collection}`, collection: sub.collection, label: sub.collection });
     }
 
-    // 3. accounts that list the old card (the learner's and the parents') get the kept one
+    // 3. accounts that list the old card (the learner's and the parents') get the kept one; what each account listed
+    // before is recorded for the reversal
+    const linkedDocs = new Map((userLinks?.docs || []).map((doc) => [doc.id, doc.data() || {}]));
+    for (const uid of core.accountIds(source)) {
+      if (linkedDocs.has(uid)) continue;
+      const snap = await db.collection("users").doc(uid).get();
+      linkedDocs.set(uid, snap.exists ? snap.data() || {} : {});
+    }
+    const users = [...linkedDocs.entries()].map(([uid, data]) => {
+      const list = Array.isArray(data.linkedStudentIds) ? data.linkedStudentIds : [];
+      return { uid, hadKeep: list.includes(keepId), hadSource: list.includes(sourceId) };
+    });
     const linkBatch = db.batch();
     for (const doc of userLinks?.docs || []) linkBatch.set(doc.ref, { linkedStudentIds: FieldValue.arrayUnion(keepId), updatedAt: nowIso }, { merge: true });
     for (const uid of core.accountIds(source)) linkBatch.set(db.collection("users").doc(uid), { linkedStudentIds: FieldValue.arrayUnion(keepId), updatedAt: nowIso }, { merge: true });
@@ -230,7 +283,7 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
       const fresh = mergeEnrollments(keepNow, core.sourceForTracks(sourceNow, activeAfter));
       const freshParents = core.mergeParents(keepNow, sourceNow);
       const firstContact = freshParents.parentContacts[0] || {};
-      tx.set(keepRef, {
+      const keepPatch = {
         ...core.profilePatch(keepNow, sourceNow),
         ...(keepName && keepName !== keepNow.name ? { name: keepName } : {}),
         nameAliases: core.ids(keepNow.nameAliases || [], keepNow.name, sourceNow.name),
@@ -243,14 +296,21 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
         enrollments: fresh.enrollments,
         ...(fresh.teacherUids.length ? { teacherUids: fresh.teacherUids } : {}),
         ...(activeAfter !== keepWasActive ? { active: activeAfter, ...(activeAfter ? { restoredAt: nowIso } : { archivedAt: nowIso }) } : {}),
-        mergedStudentIds: FieldValue.arrayUnion(sourceId),
-        updatedAt: nowIso,
-      }, { merge: true });
-      tx.set(sourceRef, {
+        mergedStudentIds: core.ids(keepNow.mergedStudentIds || [], sourceId),
+      };
+      // the tombstone says the merge can be reversed (mergeUndoVersion; older merges have no record)
+      const sourcePatch = {
         active: false, mergedInto: keepId, mergedIntoStudentId: keepId, mergedIntoStudentName: keepName || keepNow.name || "", mergedAt: nowIso, mergedBy: actor,
-        linkedUserId: "", studentUid: "", linkedUserIds: [], linkedParentId: "", parentUid: "", guardianUid: "", linkedParentIds: [], updatedAt: nowIso,
-      }, { merge: true });
-      tx.set(opRef, { status: "complete", result, completedAt: nowIso, updatedAt: nowIso }, { merge: true });
+        linkedUserId: "", studentUid: "", linkedUserIds: [], linkedParentId: "", parentUid: "", guardianUid: "", linkedParentIds: [], mergeUndoVersion: core.UNDO_VERSION,
+      };
+      tx.set(keepRef, { ...keepPatch, updatedAt: nowIso }, { merge: true });
+      tx.set(sourceRef, { ...sourcePatch, updatedAt: nowIso }, { merge: true });
+      const undo = {
+        version: core.UNDO_VERSION, runId, keepId, sourceId,
+        cards: [core.undoEntry(keepRef.path, keepNow, keepPatch), core.undoEntry(sourceRef.path, sourceNow, sourcePatch)],
+        docs: cardDocs, users, copies,
+      };
+      tx.set(opRef, { status: "complete", result, undo, completedAt: nowIso, updatedAt: nowIso }, { merge: true });
       tx.set(db.collection("activityLog").doc(`student-card-merge-${sourceId}`), {
         type: "student.cards_merged", action: "student.cards_merged", studentId: keepId, mergedFromStudentId: sourceId,
         studentName: keepName || keepNow.name || "", mergedName: sourceNow.name || "", moved: summary.move, documents: summary.documents,
@@ -270,4 +330,158 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
   }
 }
 
-module.exports = { mergeStudentCards, mergePlan, FINANCE: core.FINANCE, SCHEDULE: core.SCHEDULE };
+// „Võta ühendamine tagasi” (incident 2026-11-09: two different girls named Stefania were merged). Reverses a merge
+// from its record (studentCardMerges/{sourceId}.undo + the undo subcollection written in the same batches as the
+// moves): every moved record gets its old card id and fields back, the accounts their old card lists, both cards their
+// old fields, the other card is active again. Nothing is deleted. A field someone changed after the merge is left as
+// it is and reported; documents copied to the kept card (price plan, „Sobivad ajad”, board …) stay and are listed for
+// a manual check; records created on the kept card after the merge stay there. Preview first, then confirmed: true.
+// Merges made before 2026-11-09 have no record: they are refused with code "legacy".
+const UNMERGE_LEGACY = "Vana ühendamine — tagasi võtmiseks pöördu administraatori poole";
+
+function patchFor(FieldValue, revert, extra = {}) {
+  return { ...revert.set, ...Object.fromEntries(revert.remove.map((field) => [field, FieldValue.delete()])), ...extra };
+}
+
+// all the revert results of one document together (a group may have both a `students` and a `studentIds` record)
+function combineReverts(results) {
+  const out = { status: "done", set: {}, remove: [], skipped: [] };
+  for (const r of results) {
+    Object.assign(out.set, r.set);
+    out.remove.push(...r.remove);
+    out.skipped.push(...r.skipped);
+  }
+  if (results.some((r) => r.status === "missing")) out.status = "missing";
+  else if (Object.keys(out.set).length || out.remove.length) out.status = "revert";
+  else if (results.some((r) => r.status === "conflict")) out.status = "conflict";
+  return out;
+}
+
+async function readAll(db, paths) {
+  const out = new Map();
+  for (let start = 0; start < paths.length; start += 300) {
+    const refs = paths.slice(start, start + 300).map((path) => db.doc(path));
+    const snaps = refs.length ? await db.getAll(...refs) : [];
+    snaps.forEach((snap, i) => out.set(refs[i].path, snap));
+  }
+  return out;
+}
+
+function cardRevert(snap, entry, sourceId) {
+  const revert = core.revertFields(snap?.exists ? snap.data() : null, entry);
+  const data = snap?.exists ? snap.data() : {};
+  // the kept card always lets go of the merged card id, even when another merge added ids since
+  if (revert.skipped.includes("mergedStudentIds") && Array.isArray(data.mergedStudentIds)) {
+    revert.skipped = revert.skipped.filter((f) => f !== "mergedStudentIds");
+    revert.set.mergedStudentIds = data.mergedStudentIds.filter((id) => id !== sourceId);
+    revert.status = "revert";
+  }
+  return revert;
+}
+
+async function unmergeStudentCards(db, { FieldValue, sourceId: rawSource, keepId: rawKeep = "", actor = {}, apply = false, confirmed = false, nowIso = new Date().toISOString() }) {
+  const sourceId = String(rawSource || "").trim();
+  if (!sourceId) throw Object.assign(new Error("Student card required"), { status: 400 });
+  const opRef = db.collection("studentCardMerges").doc(sourceId);
+  const sourceRef = db.collection("students").doc(sourceId);
+  const [opSnap, sourceSnap] = await Promise.all([opRef.get(), sourceRef.get()]);
+  if (!sourceSnap.exists) throw Object.assign(new Error("Student card not found"), { status: 404 });
+  const source = sourceSnap.data() || {};
+  const op = opSnap.exists ? opSnap.data() : null;
+  if (op?.status === "unmerged") {
+    if (apply) return { applied: true, idempotent: true, keepId: op.keepId, sourceId, unmergedAt: op.unmergedAt };
+    throw Object.assign(new Error("See ühendamine on juba tagasi võetud"), { status: 409, code: "already_unmerged" });
+  }
+  const mergedInto = source.mergedInto || source.mergedIntoStudentId || "";
+  if (!mergedInto && op?.status !== "complete") throw Object.assign(new Error("See kaart ei ole ühendatud"), { status: 404, code: "not_merged" });
+  const undo = op?.status === "complete" ? op.undo : null;
+  if (!undo || undo.version !== core.UNDO_VERSION) throw Object.assign(new Error(UNMERGE_LEGACY), { status: 409, code: "legacy" });
+  const keepId = undo.keepId;
+  if (rawKeep && String(rawKeep).trim() !== keepId) throw Object.assign(new Error("Kaart ei ole ühendatud selle kaardiga"), { status: 400 });
+  if (mergedInto !== keepId) throw Object.assign(new Error("Kaart on vahepeal ühendatud muul viisil — võta see tagasi käsitsi"), { status: 409, code: "changed" });
+  const keepRef = db.collection("students").doc(keepId);
+  const keepSnap = await keepRef.get();
+  if (!keepSnap.exists) throw Object.assign(new Error("Alles jäänud kaarti ei leitud"), { status: 404 });
+  const keep = keepSnap.data() || {};
+  if (keep.mergedInto || keep.mergedIntoStudentId) throw Object.assign(new Error(`„${keep.name || ""}” on hiljem ühendatud veel ühe kaardiga — võta esmalt see ühendamine tagasi`), { status: 409, code: "keep_merged" });
+  const trashed = [keep, source].find((card) => card.deletedAt || card.purgedAt);
+  if (trashed) throw Object.assign(new Error(`Kaart „${trashed.name || ""}” on prügikastis. Taasta see enne.`), { status: 409 });
+
+  // the moved records, grouped by document
+  const chunks = await opRef.collection("undo").where("runId", "==", undo.runId).get();
+  const byPath = new Map();
+  for (const chunk of chunks.docs) for (const entry of chunk.data().entries || []) byPath.set(entry.path, [...(byPath.get(entry.path) || []), entry]);
+  for (const entry of undo.docs || []) byPath.set(entry.path, [...(byPath.get(entry.path) || []), entry]);
+  const snaps = await readAll(db, [...byPath.keys()]);
+  const items = [...byPath.entries()].map(([path, list]) => {
+    const snap = snaps.get(path);
+    const data = snap?.exists ? snap.data() : null;
+    return { path, snap, revert: combineReverts(list.map((entry) => core.revertFields(data, entry))) };
+  });
+  const userSnaps = await readAll(db, (undo.users || []).map((u) => `users/${u.uid}`));
+  const users = (undo.users || []).map((u) => {
+    const snap = userSnaps.get(`users/${u.uid}`);
+    if (!snap?.exists) return { ...u, status: "missing" };
+    const list = Array.isArray(snap.data().linkedStudentIds) ? snap.data().linkedStudentIds : [];
+    const next = [...list.filter((id) => u.hadKeep || id !== keepId), ...(u.hadSource && !list.includes(sourceId) ? [sourceId] : [])];
+    return { ...u, snap, next, status: core.sameValue(next, list) ? "done" : "revert" };
+  });
+  const [keepEntry, sourceEntry] = undo.cards || [];
+  const keepRevert = cardRevert(keepSnap, keepEntry, sourceId);
+  const sourceRevert = cardRevert(sourceSnap, sourceEntry, sourceId);
+
+  const collectionOf = (path) => path.split("/")[0];
+  const count = (status) => items.filter((i) => i.revert.status === status).reduce((acc, i) => ({ ...acc, [collectionOf(i.path)]: (acc[collectionOf(i.path)] || 0) + 1 }), {});
+  const summary = {
+    keep: { id: keepId, name: keep.name || "" },
+    source: { id: sourceId, name: source.name || "" },
+    mergedAt: source.mergedAt || op.completedAt || "",
+    revert: count("revert"),
+    alreadyBack: items.filter((i) => i.revert.status === "done").length,
+    conflicts: items.filter((i) => i.revert.skipped.length).map((i) => ({ path: i.path, fields: [...new Set(i.revert.skipped)] })),
+    missing: items.filter((i) => i.revert.status === "missing").map((i) => i.path),
+    accounts: users.filter((u) => u.status === "revert").length,
+    keepFields: { restored: [...Object.keys(keepRevert.set), ...keepRevert.remove], changedSince: keepRevert.skipped },
+    sourceFields: { restored: [...Object.keys(sourceRevert.set), ...sourceRevert.remove], changedSince: sourceRevert.skipped },
+    copies: undo.copies || [],
+  };
+  summary.totalRevert = Object.values(summary.revert).reduce((a, b) => a + b, 0);
+  if (!apply) return { ...summary, applied: false };
+  if (confirmed !== true) throw Object.assign(new Error("Confirm the reversal after the preview"), { status: 400 });
+
+  // 1. the records, in batches; each write only if the document did not change since it was read
+  let batch = db.batch();
+  let n = 0;
+  const flush = async () => { if (n) { await batch.commit(); batch = db.batch(); n = 0; } };
+  for (const item of items.filter((i) => i.revert.status === "revert")) {
+    batch.update(item.snap.ref, patchFor(FieldValue, item.revert, { unmergedAt: nowIso }), { lastUpdateTime: item.snap.updateTime });
+    n += 1;
+    if (n >= BATCH) await flush();
+  }
+  for (const u of users.filter((x) => x.status === "revert")) {
+    batch.update(u.snap.ref, { linkedStudentIds: u.next, updatedAt: nowIso }, { lastUpdateTime: u.snap.updateTime });
+    n += 1;
+    if (n >= BATCH) await flush();
+  }
+  await flush();
+
+  // 2. both cards, the operation record and the audit entry together
+  const result = { ...summary, applied: true, unmergedAt: nowIso };
+  await db.runTransaction(async (tx) => {
+    const [k, s, o] = await Promise.all([tx.get(keepRef), tx.get(sourceRef), tx.get(opRef)]);
+    if (o.data()?.status !== "complete") throw Object.assign(new Error("See ühendamine on juba tagasi võetud"), { status: 409 });
+    const kr = cardRevert(k, keepEntry, sourceId);
+    const sr = cardRevert(s, sourceEntry, sourceId);
+    tx.update(keepRef, patchFor(FieldValue, kr, { updatedAt: nowIso, unmergedStudentIds: core.ids(k.data()?.unmergedStudentIds || [], sourceId) }));
+    tx.update(sourceRef, patchFor(FieldValue, sr, { updatedAt: nowIso, unmergedAt: nowIso, unmergedBy: actor, unmergedFromStudentId: keepId }));
+    tx.set(opRef, { status: "unmerged", unmergedAt: nowIso, unmergedBy: actor, unmergeResult: { revert: summary.revert, conflicts: summary.conflicts.length, missing: summary.missing.length, accounts: summary.accounts }, updatedAt: nowIso }, { merge: true });
+    tx.set(db.collection("activityLog").doc(`student-card-unmerge-${sourceId}-${undo.runId}`), {
+      type: "student.cards_unmerged", action: "student.cards_unmerged", studentId: sourceId, unmergedFromStudentId: keepId,
+      studentName: source.name || "", keepName: keep.name || "", revert: summary.revert, conflicts: summary.conflicts, missing: summary.missing,
+      copies: summary.copies.map((c) => c.path), keepChangedSince: kr.skipped, actor, createdAt: nowIso,
+    });
+  });
+  return result;
+}
+
+module.exports = { mergeStudentCards, unmergeStudentCards, UNMERGE_LEGACY, mergePlan, FINANCE: core.FINANCE, SCHEDULE: core.SCHEDULE };

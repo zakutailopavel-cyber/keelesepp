@@ -11,7 +11,7 @@ const firestore = vi.hoisted(() => ({
   updateDoc: vi.fn(),
   onSnapshot: vi.fn(),
   where: vi.fn((field, operator, value) => ({ field, operator, value })),
-  batch: { set: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
+  batch: { set: vi.fn(), update: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
   runTransaction: vi.fn(),
 }));
@@ -279,5 +279,26 @@ describe('homeworkService submissions', () => {
     expect(firestore.where).toHaveBeenCalledWith('studentId', '==', 'st-1');
     expect(firestore.where).toHaveBeenCalledWith('liveRoomKey', '==', 'inv-1');
     expect(onData.mock.calls[0][0].map((x) => x.id)).toEqual(['b', 'a']);
+  });
+});
+
+describe('homeworkService.createFromLesson — „Koosta kodutöö vigadest”', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    firestore.writeBatch.mockReturnValue(firestore.batch);
+  });
+
+  it('keeps the lesson-errors source and the recording link, and gives the sheet its due date in the same batch', async () => {
+    const item = await homeworkService.createFromLesson({
+      invitation: { id: 'inv1', studentId: 's1', studentName: 'Anna' }, user: { uid: 't1', displayName: 'Kati' },
+      task: 'Tee tööleht „Kodutöö tunnist 4.11”', due: '2026-11-11', worksheet: { id: 'draft1', title: 'Kodutöö tunnist 4.11' },
+      source: 'lesson-errors', recordingId: 'inv1_1730700000000',
+    });
+    expect(item).toMatchObject({ source: 'lesson-errors', recordingId: 'inv1_1730700000000', worksheetAssignmentId: 'draft1', due: '2026-11-11', invitationId: 'inv1', status: 'Ootel' });
+    expect(firestore.batch.update).toHaveBeenCalledWith('firebase-db:worksheetAssignments:draft1', expect.objectContaining({ dueDate: '2026-11-11' }));
+    // any other source stays the room's
+    const other = await homeworkService.createFromLesson({ invitation: { id: 'inv1', studentId: 's1' }, user: { uid: 't1' }, task: 'Loe', source: 'anything' });
+    expect(other.source).toBe('live-classroom');
+    expect(other).not.toHaveProperty('recordingId');
   });
 });

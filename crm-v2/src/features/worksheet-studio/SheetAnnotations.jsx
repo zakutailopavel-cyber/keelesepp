@@ -1,9 +1,11 @@
 /* global ResizeObserver, Highlight, CSS, setTimeout, clearTimeout */
-import { BookmarkPlus, Check, Loader2, MessageCircleWarning, StickyNote, Trash2, X } from 'lucide-react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Bookmark, BookmarkPlus, Check, Loader2, MessageCircleWarning, StickyNote, Trash2, X } from 'lucide-react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { HIGHLIGHT, fieldTextRects, fieldsOf, isSheetAnnotation, offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
 import { singleWord, correctedAnswer } from './annotationWords.js';
 import TextAnalysisPane, { ANALYSIS_MIN_WORDS, wordCount } from './TextAnalysisPane.jsx';
+import { correctionMarks } from './correctionMarks.js';
+import { BoardBookmarkContext } from '../board/bookmarkContext.js';
 import './sheetAnnotations.css';
 
 const nextFrame = (fn) => (globalThis.requestAnimationFrame ? globalThis.requestAnimationFrame(fn) : setTimeout(fn, 16));
@@ -34,6 +36,16 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
   const latest = useRef(annotations);
   useEffect(() => { latest.current = annotations; }, [annotations]);
   const list = useMemo(() => JSON.parse(listKey), [listKey]);
+  // on the lesson board: „Järjehoidja” on the selected text; the popup and the bookmark sheet never stay open together
+  const board = useContext(BoardBookmarkContext);
+  useEffect(() => board?.register?.(() => { setDraft(null); setOpen(''); }), [board]);
+  useEffect(() => { if (draft) board?.onPopup?.(); }, [draft ? `${draft.blockId}:${draft.start}:${draft.end}` : '', board]); // eslint-disable-line react-hooks/exhaustive-deps
+  const toBookmark = () => {
+    const { blockId, start, end } = draft;
+    setDraft(null); setWord(null);
+    globalThis.getSelection?.()?.removeAllRanges();
+    board.open({ blockId, start, end });
+  };
 
   const layout = useCallback(() => {
     const wrap = wrapRef.current;
@@ -161,18 +173,22 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
       globalThis.getSelection?.()?.removeAllRanges();
     } catch (caught) { setError(caught.message || 'Salvestamine ebaõnnestus.'); } finally { setSaving(false); }
   };
-  // one correction of „Analüüs” → a „Viga” on its own words (the whole selection when they cannot be found)
+  // one (sentence) correction of „Analüüs” → a „Viga” on every changed word or short group (correctionMarks.js);
+  // what cannot be found in the text is returned to the pane as a note, never framed as the whole answer
   const markCorrection = async (correction) => {
     const said = String(correction?.said || '');
-    const found = said ? draft.selectedText.indexOf(said) : -1;
-    const start = draft.start + (found >= 0 ? found : 0);
-    const end = found >= 0 ? start + said.length : draft.end;
+    const { marks: found, missed } = correctionMarks(draft.selectedText, correction);
     const { at, value, toErrors, ...rest } = draft; // eslint-disable-line no-unused-vars
-    const mark = { ...rest, start, end, selectedText: found >= 0 ? said : draft.selectedText, color: 'error', parandus: String(correction.corrected || ''), selgitus: '', id: `a${Date.now()}${Math.random().toString(36).slice(2, 6)}`, createdAt: new Date().toISOString() };
-    const next = [...latest.current, mark];
-    await onChange(next);
-    latest.current = next;
+    const stamp = `a${Date.now()}${Math.random().toString(36).slice(2, 6)}`;
+    const createdAt = new Date().toISOString();
+    const added = found.map((m, k) => ({ ...rest, start: draft.start + m.start, end: draft.start + m.end, selectedText: m.selectedText, color: 'error', parandus: m.parandus, selgitus: m.selgitus || '', id: found.length > 1 ? `${stamp}_${k}` : stamp, createdAt }));
+    if (added.length) {
+      const next = [...latest.current, ...added];
+      await onChange(next);
+      latest.current = next;
+    }
     if (words?.addError && draft.toErrors !== false && said && correction.corrected) await words.addError({ said: said.trim(), corrected: String(correction.corrected).trim() });
+    return { marked: added.length, missed };
   };
   const remove = async (id) => {
     setSaving(true);
@@ -209,6 +225,7 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
             <button type="button" aria-pressed={draft.color === 'note'} className={draft.color === 'note' ? 'on is-note' : ''} onClick={() => setDraft({ ...draft, color: 'note' })}>Märkus</button>
             {picked ? <button type="button" aria-pressed={draft.color === 'word'} className={draft.color === 'word' ? 'on is-word' : ''} onClick={() => setDraft({ ...draft, color: 'word' })}>Sõna</button> : null}
             {canAnalyse ? <button type="button" aria-pressed={draft.color === 'analysis'} className={draft.color === 'analysis' ? 'on is-analysis' : ''} onClick={() => setDraft({ ...draft, color: 'analysis' })}>Analüüs</button> : null}
+            {board?.open && draft.kind === 'text' ? <button type="button" className="sa-bookmark" title="Järjehoidja selle sõna või lause juurde (läheb õpilase „Minu vead” alla)" onClick={toBookmark}><Bookmark size={13} aria-hidden="true" /> Järjehoidja</button> : null}
           </div>
           {draft.color === 'analysis' ? <>
             <TextAnalysisPane text={draft.selectedText} level={analysis?.level || 'A2'} onMark={markCorrection} />

@@ -1,10 +1,10 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { beforeEach, vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { sheetBoardTitle, textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
+import { assignmentPageTitles, sheetForPage, worksheetPageId, worksheetPageTitle, sheetBoardTitle, textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, boardTool, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds, focusShift } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -132,14 +132,16 @@ describe('StudentBoard', () => {
     expect(service.add).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Käsikiri' }));
     await waitFor(() => expect(service.update).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ id: 't1' }), expect.objectContaining({ fontFamily: 'hand' }), user));
-    fireEvent.change(editor, { target: { value: 'Tere hommikust\nKuidas läheb?' } });
+    // the text editor is rich (contenteditable): what is typed is read back from its content
+    editor.textContent = 'Tere hommikust\nKuidas läheb?';
+    fireEvent.input(editor);
     fireEvent.blur(editor);
     await waitFor(() => expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 't1' }), expect.objectContaining({ text: 'Tere hommikust\nKuidas läheb?', h: expect.any(Number) }), user));
     expect(service.update.mock.calls.at(-1)[3].h).toBeGreaterThan(44);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Vali ja liiguta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Vali ja täida' }));
     fireEvent.doubleClick(svg, { clientX: 120, clientY: 110 });
-    expect(await screen.findByRole('textbox', { name: 'Tekst' })).toHaveValue('Tere hommikust\nKuidas läheb?');
+    expect((await screen.findByRole('textbox', { name: 'Tekst' })).textContent).toBe('Tere hommikust\nKuidas läheb?');
   });
 
   it('writes new text in the chosen font and leaves the default font off the element', async () => {
@@ -204,6 +206,7 @@ describe('StudentBoard', () => {
     const service = fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', order: 1 }], 'page:pg1': [{ id: 'x1', type: 'text', x: 0, y: 0, w: 200, h: 40, text: 'Lehe tekst', color: '#000', fontSize: 18 }] });
     render(<StudentBoard studentId="s-1" user={user} service={service} />);
     const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Pliiats' }));
     fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 });
     fireEvent.pointerMove(svg, { clientX: 40, clientY: 40 });
     fireEvent.pointerMove(svg, { clientX: 80, clientY: 60 });
@@ -378,6 +381,50 @@ describe('the student scrolls the sheet', () => {
   });
 });
 
+describe('a focused answer field does not throw the sheet sideways (owner 2026-11-04)', () => {
+  const stage = { left: 0, top: 0, right: 800, bottom: 600 };
+  const field = (left, top, w = 120, h = 40) => ({ left, top, right: left + w, bottom: top + h });
+
+  it('a field already in sight moves nothing, however the browser scrolled', () => {
+    expect(focusShift({ dy: 240, field: field(300, 200), area: stage })).toEqual({ x: 0, y: 0 });
+  });
+
+  it('a field off the side moves the view only as far as needed, each axis on its own', () => {
+    expect(focusShift({ field: field(900, 200), area: stage })).toEqual({ x: 800 - 16 - 1020, y: 0 });
+    expect(focusShift({ field: field(-50, 200), area: stage })).toEqual({ x: 66, y: 0 });
+    expect(focusShift({ field: field(300, 700), area: stage })).toEqual({ x: 0, y: 600 - 16 - 740 });
+    // wider than the stage: its start in sight
+    expect(focusShift({ field: field(-300, 200, 1200), area: stage })).toEqual({ x: 316, y: 0 });
+  });
+
+  it('the keyboard covers the lower part: the field goes just above it', () => {
+    expect(focusShift({ field: field(300, 450), area: { ...stage, bottom: 380 } })).toEqual({ x: 0, y: 380 - 16 - 490 });
+  });
+
+  it('without a field a sideways scroll is ignored, an up / down one followed as before', () => {
+    expect(focusShift({ dy: 120 })).toEqual({ x: 0, y: -120 });
+  });
+
+  it('on the board: a scroll caused by focusing a visible field is undone and the sheet stays where it was', async () => {
+    const service = fakeService({ pages: [{ id: 'pg-a', title: 'Tööleht: Avasta' }] });
+    const worksheets = [{ id: 'as-1', title: 'Avasta', content: <input aria-label="Vastus" /> }];
+    const { container } = render(<StudentBoard studentId="s1" user={user} variant="room" service={service} worksheets={worksheets} initialPageId="pg-a" />);
+    const input = await screen.findByLabelText('Vastus');
+    const stage = container.querySelector('.sb-stage');
+    const underlay = container.querySelector('.sb-underlay');
+    vi.spyOn(stage, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600 });
+    vi.spyOn(input, 'getBoundingClientRect').mockReturnValue({ left: 600, top: 300, right: 760, bottom: 340, width: 160, height: 40 });
+    const before = underlay.style.transform;
+    input.focus();
+    stage.scrollLeft = 300;
+    stage.scrollTop = 80;
+    act(() => { stage.dispatchEvent(new globalThis.Event('scroll')); });
+    expect(stage.scrollLeft).toBe(0);
+    expect(stage.scrollTop).toBe(0);
+    expect(underlay.style.transform).toBe(before);
+  });
+});
+
 describe('sheets of one lesson that share a title', () => {
   it('get a page each (the phase is in the title); the old shared page stays with the newest sheet', async () => {
     expect(sheetBoardTitle({ title: 'Kontroll 1', phase: 'practice' })).toBe('Kontroll 1 · Harjuta');
@@ -480,7 +527,7 @@ describe('board objects, paper and marker', () => {
     ] });
     const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} variant="room" />);
     const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
-    fireEvent.click(screen.getByRole('button', { name: 'Vali ja liiguta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Vali ja täida' }));
     await act(async () => { fireEvent.pointerDown(svg, { clientX: 80, clientY: 80, button: 0 }); });
     await act(async () => { fireEvent.pointerMove(svg, { clientX: 300, clientY: 200 }); });
     await act(async () => { fireEvent.pointerUp(svg, { clientX: 300, clientY: 200 }); });
@@ -502,7 +549,7 @@ describe('board objects, paper and marker', () => {
     const service = { ...fakeService({ board: [{ id: 'n1', type: 'note', x: 100, y: 100, w: 50, h: 50, text: 'a', color: '#FEF3C7' }] }), setBackground: vi.fn(async () => {}), subscribeBackgrounds: vi.fn((_id, onData) => { onData({}); return () => {}; }) };
     const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} variant="room" />);
     const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
-    fireEvent.click(screen.getByRole('button', { name: 'Vali ja liiguta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Vali ja täida' }));
     await act(async () => { fireEvent.pointerDown(container.querySelector('[data-element-id="n1"]'), { clientX: 120, clientY: 120, button: 0 }); });
     await act(async () => { fireEvent.pointerUp(svg, { clientX: 120, clientY: 120 }); });
     await act(async () => { fireEvent.keyDown(window, { key: 'd', ctrlKey: true }); });
@@ -547,9 +594,15 @@ describe('a worksheet on a phone', () => {
     const media = phone(false);
     const controllerRef = { current: null };
     render(<StudentBoard studentId="s1" user={user} variant="room" service={fakeService({ pages })} worksheets={sheets} controllerRef={controllerRef} />);
+    // the sheet takes over the board with the one pointer; a pen taken on another page is put away on the sheet
+    expect(document.querySelector('.sb-stage')).toHaveClass('tool-select');
+    act(() => { controllerRef.current.selectPage('p1'); });
+    fireEvent.click(screen.getByRole('button', { name: 'Pliiats' }));
+    expect(document.querySelector('.sb-stage')).toHaveClass('tool-pen');
     act(() => { controllerRef.current.selectPage('ws'); });
     expect(screen.queryByTestId('worksheet-reading')).toBeNull();
-    expect(document.querySelector('.sb-stage')).toHaveClass('tool-fill');
+    expect(document.querySelector('.sb-stage')).toHaveClass('tool-select');
+    expect(screen.getByRole('button', { name: 'Vali ja täida' })).toHaveAttribute('aria-pressed', 'true');
     media.mockRestore();
   });
 });
@@ -608,5 +661,342 @@ describe('the worksheet player with any board tool (owner 2026-10-29)', () => {
     } finally {
       document.elementsFromPoint = before;
     }
+  });
+});
+
+describe('board tools (owner 2026-11-04)', () => {
+  const teacher = { uid: 't1', displayName: 'Kati', roles: ['teacher'] };
+  const notes = () => ({ add: vi.fn(async () => 'note-1'), update: vi.fn(async () => {}) });
+
+  it('a bookmark written by the teacher is put on the board and kept as the student\'s note', async () => {
+    const service = { ...fakeService(), root: 'whiteboards' };
+    const noteService = notes();
+    const { container } = render(<StudentBoard studentId="s-1" user={teacher} staff service={service} noteService={noteService} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Järjehoidja / Kleebis' }));
+    await act(async () => { fireEvent.pointerDown(container.querySelector('svg[aria-label="Õpilase tahvel"]'), { clientX: 300, clientY: 200, button: 0 }); });
+    const dialog = screen.getByRole('dialog', { name: 'Järjehoidja' });
+    expect(dialog).toHaveTextContent('läheb ka „Minu vead” alla');
+    const pad = screen.getByTestId('bookmark-pad');
+    fireEvent.pointerDown(pad, { clientX: 0, clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(pad, { clientX: 10, clientY: 10, pointerId: 1 });
+    fireEvent.pointerUp(pad, { pointerId: 1 });
+    fireEvent.click(screen.getByRole('button', { name: /Trüki/ }));
+    fireEvent.change(screen.getByLabelText('Järjehoidja tekst'), { target: { value: 'Kordan: kass → kassi' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta' })); });
+    expect(noteService.add).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's-1', kind: 'board', text: 'Kordan: kass → kassi', byStaff: true, createdByUid: 't1', ink: [expect.objectContaining({ d: expect.stringMatching(/^M/) })] }));
+    await waitFor(() => expect(service.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ type: 'note', bookmark: true, noteId: 'note-1', x: 300, y: 200, text: 'Kordan: kass → kassi', byStaff: true }), teacher));
+    expect(screen.queryByRole('dialog', { name: 'Järjehoidja' })).toBeNull();
+    expect(screen.getByText('Kordan: kass → kassi')).toBeInTheDocument();
+  });
+
+  it('a group board keeps the bookmark on the board only; a failed note still leaves the sheet', async () => {
+    const group = { ...fakeService(), root: 'groupBoards' };
+    const noteService = notes();
+    const view = render(<StudentBoard studentId="room-1" user={teacher} staff service={group} noteService={noteService} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Järjehoidja / Kleebis' }));
+    await act(async () => { fireEvent.pointerDown(view.container.querySelector('svg[aria-label="Õpilase tahvel"]'), { clientX: 30, clientY: 20, button: 0 }); });
+    fireEvent.click(screen.getByRole('button', { name: /Trüki/ }));
+    fireEvent.change(screen.getByLabelText('Järjehoidja tekst'), { target: { value: 'Grupp' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta' })); });
+    expect(noteService.add).not.toHaveBeenCalled();
+    expect(group.add.mock.calls[0][2]).not.toHaveProperty('noteId');
+    view.unmount();
+
+    const service = fakeService();
+    const failing = { add: vi.fn(async () => { throw new Error('permission-denied'); }) };
+    const again = render(<StudentBoard studentId="s-1" user={user} service={service} noteService={failing} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Järjehoidja / Kleebis' }));
+    await act(async () => { fireEvent.pointerDown(again.container.querySelector('svg[aria-label="Õpilase tahvel"]'), { clientX: 30, clientY: 20, button: 0 }); });
+    fireEvent.click(screen.getByRole('button', { name: /Trüki/ }));
+    fireEvent.change(screen.getByLabelText('Järjehoidja tekst'), { target: { value: 'Minu märge' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta' })); });
+    await waitFor(() => expect(service.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ bookmark: true, text: 'Minu märge' }), user));
+    expect(await screen.findByRole('alert')).toHaveTextContent('„Minu vead” alla ei saanud');
+  });
+
+  it('draws a curved arrow, then its end is dragged and its colour changed with „Vali”', async () => {
+    const service = fakeService();
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    const svg = container.querySelector('svg[aria-label="Õpilase tahvel"]');
+    fireEvent.click(screen.getByRole('button', { name: 'Kaarnool' }));
+    fireEvent.pointerDown(svg, { clientX: 100, clientY: 100, button: 0 });
+    fireEvent.pointerMove(svg, { clientX: 200, clientY: 100 });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 200, clientY: 100 }); });
+    expect(service.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ type: 'shape', shape: 'arrow', x: 100, y: 100, w: 100, h: 0, bend: 25 }), user);
+    const arrow = container.querySelector('[data-element-id="new-1"] path');
+    expect(arrow.getAttribute('d')).toContain('Q');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Vali ja täida' }));
+    fireEvent.pointerDown(container.querySelector('[data-element-id="new-1"] path'), { clientX: 150, clientY: 90, button: 0 });
+    fireEvent.pointerUp(svg, { clientX: 150, clientY: 90 });
+    const end = container.querySelector('[data-handle="end"]');
+    expect(container.querySelector('[data-handle="bend"]')).toBeTruthy();
+    fireEvent.pointerDown(end, { clientX: 200, clientY: 100, button: 0 });
+    fireEvent.pointerMove(svg, { clientX: 260, clientY: 180 });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 260, clientY: 180 }); });
+    expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 'new-1' }), { w: 160, h: 80 }, user);
+    fireEvent.click(screen.getByRole('button', { name: 'Värv #B42318' }));
+    await waitFor(() => expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 'new-1' }), { color: '#B42318' }, user));
+  });
+
+  it('a callout asks for its label and shows it', async () => {
+    const service = fakeService();
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    const svg = container.querySelector('svg[aria-label="Õpilase tahvel"]');
+    fireEvent.click(screen.getByRole('button', { name: 'Viide tekstiga' }));
+    fireEvent.pointerDown(svg, { clientX: 100, clientY: 100, button: 0 });
+    fireEvent.pointerMove(svg, { clientX: 250, clientY: 160 });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 250, clientY: 160 }); });
+    const label = await screen.findByRole('textbox', { name: 'Viite tekst' });
+    fireEvent.change(label, { target: { value: 'Siin on viga' } });
+    await act(async () => { fireEvent.blur(label); });
+    expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 'new-1' }), { text: 'Siin on viga' }, user);
+    expect(screen.getByText('Siin on viga')).toBeInTheDocument();
+  });
+
+  it('colours one word of a text and keeps the rest; an old plain text still shows', async () => {
+    const service = fakeService({ board: [{ id: 't1', type: 'text', x: 100, y: 100, w: 260, h: 44, text: 'Tere hommikust', color: '#111827', fontSize: 18, revision: 1 }] });
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} />);
+    expect(screen.getByText('Tere hommikust')).toBeInTheDocument();
+    fireEvent.doubleClick(container.querySelector('svg[aria-label="Õpilase tahvel"]'), { clientX: 120, clientY: 110 });
+    const editor = await screen.findByRole('textbox', { name: 'Tekst' });
+    const { setSelectionOffsets } = await import('./richText.js');
+    setSelectionOffsets(editor, 5, 14);
+    fireEvent.click(screen.getByRole('button', { name: 'Paks kiri' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Teksti värv #B42318' }));
+    await act(async () => { fireEvent.blur(editor); });
+    expect(service.update).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ id: 't1' }), expect.objectContaining({ text: 'Tere hommikust', spans: [{ t: 'Tere ' }, { t: 'hommikust', b: true, c: '#B42318' }] }), user);
+    const styled = await screen.findByText('hommikust');
+    expect(styled.style.fontWeight).toBe('700');
+    expect(screen.getByText('Tere')).toBeInTheDocument();
+  });
+
+  it('a sideways trackpad move is the board\'s, not the browser\'s back / forward swipe', () => {
+    const { container, unmount } = render(<StudentBoard studentId="s-1" user={user} service={fakeService()} />);
+    expect(document.documentElement.classList.contains('sb-no-swipe')).toBe(true);
+    const sideways = new globalThis.WheelEvent('wheel', { deltaX: 40, bubbles: true, cancelable: true });
+    container.querySelector('svg[aria-label="Õpilase tahvel"]').dispatchEvent(sideways);
+    expect(sideways.defaultPrevented).toBe(true);
+    unmount();
+    expect(document.documentElement.classList.contains('sb-no-swipe')).toBe(false);
+  });
+
+  it('drawing blocks the browser\'s text selection until the line is done', () => {
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={fakeService()} />);
+    const svg = container.querySelector('svg[aria-label="Õpilase tahvel"]');
+    fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 });
+    const select = new globalThis.Event('selectstart', { bubbles: true, cancelable: true });
+    document.body.dispatchEvent(select);
+    expect(select.defaultPrevented).toBe(true);
+    expect(document.documentElement.classList.contains('sb-drawing')).toBe(true);
+    fireEvent.pointerUp(svg, { clientX: 10, clientY: 10 });
+    const later = new globalThis.Event('selectstart', { bubbles: true, cancelable: true });
+    document.body.dispatchEvent(later);
+    expect(later.defaultPrevented).toBe(false);
+    expect(document.documentElement.classList.contains('sb-drawing')).toBe(false);
+  });
+
+  // 2026-11-05: a student could not type into the sheet's writing field in a live lesson. A press whose release the
+  // drawing layer never saw left the block on for good; Safari then takes no typing in any field.
+  describe('the selection block never outlives the press and never touches a field', () => {
+    const drawing = () => document.documentElement.classList.contains('sb-drawing');
+    const selectStart = (target) => { const event = new globalThis.Event('selectstart', { bubbles: true, cancelable: true }); target.dispatchEvent(event); return event.defaultPrevented; };
+    const press = () => {
+      const view = render(<StudentBoard studentId="s-1" user={user} service={fakeService()} />);
+      const svg = view.container.querySelector('svg[aria-label="Õpilase tahvel"]');
+      fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 });
+      expect(drawing()).toBe(true);
+      return view;
+    };
+    afterEach(() => { vi.useRealTimers(); });
+
+    it('a release outside the drawing layer (the dock, a video window, off the board) ends it', () => {
+      vi.useFakeTimers();
+      press();
+      fireEvent.pointerUp(document.body, { clientX: 900, clientY: 900 });
+      act(() => { vi.runAllTimers(); });
+      expect(drawing()).toBe(false);
+      expect(selectStart(document.body)).toBe(false);
+    });
+
+    it('the window losing focus ends it', () => {
+      press();
+      act(() => { globalThis.dispatchEvent(new globalThis.Event('blur')); });
+      expect(drawing()).toBe(false);
+    });
+
+    it('while it lasts an answer field is never blocked, and a field taking the focus ends it', () => {
+      press();
+      const field = document.createElement('textarea');
+      document.body.appendChild(field);
+      expect(selectStart(field)).toBe(false);
+      expect(selectStart(document.body)).toBe(true);
+      act(() => { field.focus(); });
+      expect(drawing()).toBe(false);
+      field.remove();
+    });
+
+    it('unmounting the board mid-press ends it', () => {
+      const { unmount } = press();
+      unmount();
+      expect(drawing()).toBe(false);
+    });
+  });
+});
+
+describe('the sheet behind a worksheet page (2026-11-04, Demjan: „Ava tahvlileht” showed an empty board)', () => {
+  const opik = { id: 'as-opik', title: 'Loodus', phase: 'opik' };
+  const old = { id: 'as-old', title: 'Kontroll 1' };
+  it('finds the assignment by the page id (hash of the title), by the title, and by the older title without the phase', () => {
+    const title = worksheetPageTitle(sheetBoardTitle(opik));
+    expect(title).toBe('Tööleht: Loodus · Õpik');
+    expect(assignmentPageTitles(opik)).toEqual(['Tööleht: Loodus · Õpik', 'Tööleht: Loodus']);
+    expect(sheetForPage({ id: worksheetPageId(title) }, [old, opik])).toBe(opik);
+    expect(sheetForPage({ id: 'ws-unknown', title }, [old, opik])).toBe(opik);
+    expect(sheetForPage({ id: worksheetPageId('Tööleht: Loodus'), title: 'Tööleht: Loodus' }, [old, opik])).toBe(opik);
+    expect(sheetForPage({ id: worksheetPageId('Tööleht: Muu') }, [old, opik])).toBeNull();
+    expect(sheetForPage({ id: 'ws-1', title: 'Tööleht: Kontroll 1' }, [{ id: 'b', title: 'Kontroll 1', legacyTitle: 'Kontroll' }], { boardSheet: true })?.id).toBe('b');
+  });
+  it('the title with the phase wins over an older sheet that had the same title without it', () => {
+    const plain = { id: 'as-plain', title: 'Loodus · Õpik' };
+    expect(sheetForPage({ title: 'Tööleht: Loodus · Õpik' }, [{ id: 'as-x', title: 'Loodus · Õpik', phase: 'discover' }, plain])).toBe(plain);
+  });
+});
+
+describe("the student's own board (/board) on a worksheet page", () => {
+  const page = { id: worksheetPageId('Tööleht: Loodus · Õpik'), title: 'Tööleht: Loodus · Õpik' };
+  const renderBoard = (homework) => render(<MemoryRouter initialEntries={[`/board?page=${page.id}`]}><AuthContext.Provider value={{ user }}><Routes><Route path="/board" element={
+    <BoardPage studentRepository={{ listOwned: vi.fn().mockResolvedValue([{ id: 's-1', name: 'Demjan' }]) }} boardService={fakeService({ pages: [page] })} homework={homework} />} /></Routes></AuthContext.Provider></MemoryRouter>);
+
+  it('shows the worksheet of that page (the sheet opened in a lesson), not „Tühi tahvel”', async () => {
+    const homework = { subscribeStudentLiveWorksheets: vi.fn((_id, onData) => { onData([{ id: 'as-opik', title: 'Loodus', phase: 'opik', liveRoomKey: 'inv1', worksheetDoc: { meta: {}, blocks: [] } }]); return () => {}; }) };
+    renderBoard(homework);
+    await waitFor(() => expect(homework.subscribeStudentLiveWorksheets).toHaveBeenCalledWith('s-1', expect.any(Function), expect.any(Function)));
+    await waitFor(() => expect(document.querySelector('.sb-underlay, [data-testid="worksheet-reading"]')).not.toBeNull());
+    expect(screen.queryByText(/Tühi tahvel/)).toBeNull();
+    expect(screen.queryByText('See tööleht on avatud ainult tunnis')).toBeNull();
+  });
+
+  it('without its sheet says it opens only in the lesson, with a way to „Ülesanded”', async () => {
+    const homework = { subscribeStudentLiveWorksheets: vi.fn((_id, onData) => { onData([]); return () => {}; }) };
+    renderBoard(homework);
+    expect(await screen.findByText('See tööleht on avatud ainult tunnis')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ülesanded' })).toHaveAttribute('href', '/homework');
+    expect(screen.queryByText(/Tühi tahvel/)).toBeNull();
+  });
+
+  it('an ordinary page stays a board („Tühi tahvel” when empty)', async () => {
+    render(<StudentBoard studentId="s1" user={user} variant="room" service={fakeService({ pages: [{ id: 'pg-1', title: 'Leht 1' }] })} initialPageId="pg-1" sheetPageFallback={() => <p>ainult tunnis</p>} />);
+    expect(await screen.findByText(/Tühi tahvel/)).toBeInTheDocument();
+    expect(screen.queryByText('ainult tunnis')).toBeNull();
+  });
+});
+
+describe('one pointer „Vali ja täida” (owner 2026-11-05: „нам нет смысла в двух одинаковых мышках”)', () => {
+  const pages = [{ id: 'p1', title: 'Leht 1' }, { id: 'ws', title: 'Tööleht: Avasta' }];
+  const sheets = [{ id: 'as-1', title: 'Avasta', content: <div><p>Loe ja vasta.</p><input aria-label="Vastus" defaultValue="" /></div> }];
+  const own = { id: 'n1', type: 'note', x: 100, y: 100, w: 80, h: 60, text: 'minu', color: '#FEF3C7' };
+  const teacherPicture = { id: 'img', type: 'image', x: 300, y: 100, w: 80, h: 60, url: 'https://files.example/a.png' };
+  const highlight = { id: 'mk', type: 'stroke', points: [{ x: 10, y: 300 }, { x: 200, y: 300 }], color: '#FDE04766', strokeWidth: 16 };
+  const sheetBoard = (extra = {}) => {
+    const service = fakeService({ pages, 'page:ws': [own, teacherPicture, highlight] });
+    const view = render(<StudentBoard studentId="s1" user={user} variant="room" service={service} worksheets={sheets} {...extra} />);
+    return { service, ...view, svg: screen.getByRole('img', { name: 'Õpilase tahvel' }), layerOf: (id) => view.container.querySelector(`[data-element-id="${id}"]`).closest('svg > g > g') };
+  };
+  afterEach(() => { document.documentElement.classList.remove('sb-drawing'); });
+
+  it('the old tool id „fill” is the same tool; an empty one is the pointer', () => {
+    expect(boardTool('fill')).toBe('select');
+    expect(boardTool('pen')).toBe('pen');
+    expect(boardTool('')).toBe('select');
+    expect(boardTool(undefined)).toBe('select');
+  });
+
+  it('one pointer button, pressed by default on a plain page (page layout and room dock, teacher and student)', () => {
+    const { unmount } = render(<StudentBoard studentId="s1" user={user} service={fakeService()} />);
+    expect(screen.getAllByRole('button', { name: 'Vali ja täida' })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Vali ja täida' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Vali ja täida' })).toHaveAttribute('title', expect.stringContaining('(V)'));
+    expect(screen.queryByRole('button', { name: 'Täida töölehte' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Vali ja liiguta' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Pliiats' })).toHaveAttribute('aria-pressed', 'false');
+    unmount();
+    render(<StudentBoard studentId="s1" user={{ uid: 't1', displayName: 'Õpetaja' }} staff variant="room" service={fakeService({ pages })} worksheets={sheets} onPointer={() => {}} />);
+    const dock = screen.getByRole('toolbar', { name: 'Tahvli tööriistad' });
+    expect(dock.querySelectorAll('[aria-label="Vali ja täida"]')).toHaveLength(1);
+    expect(dock.querySelector('[aria-label="Täida töölehte"]')).toBeNull();
+    expect(dock.querySelector('[aria-label="Vali ja täida"]')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('on the sheet the layer lets the fields take clicks and typing; only the user\'s own board parts take the pointer', async () => {
+    const { svg, layerOf } = sheetBoard();
+    await screen.findByText('Loe ja vasta.');
+    expect(document.querySelector('.sb-stage')).toHaveClass('tool-select', 'has-worksheet');
+    expect(svg.style.pointerEvents).toBe('none');
+    expect(layerOf('n1')).toHaveAttribute('pointer-events', 'auto');
+    // a teacher's picture for the student and a highlighter line over the text let the clicks through to the sheet
+    expect(layerOf('img')).not.toHaveAttribute('pointer-events');
+    expect(layerOf('mk')).not.toHaveAttribute('pointer-events');
+    const field = screen.getByLabelText('Vastus');
+    fireEvent.pointerDown(field, { button: 0, pointerType: 'mouse' });
+    expect(document.documentElement.classList.contains('sb-drawing')).toBe(false);
+    const select = new globalThis.Event('selectstart', { bubbles: true, cancelable: true });
+    field.dispatchEvent(select);
+    expect(select.defaultPrevented).toBe(false);
+    fireEvent.change(field, { target: { value: 'Ma elan Tartus.' } });
+    expect(field).toHaveValue('Ma elan Tartus.');
+  });
+
+  it('a board part on the sheet is selected, moved and deleted; a click on the sheet clears the selection', async () => {
+    const { service, svg, container } = sheetBoard();
+    await screen.findByText('Loe ja vasta.');
+    const note = container.querySelector('[data-element-id="n1"]');
+    await act(async () => { fireEvent.pointerDown(note, { clientX: 120, clientY: 120, button: 0, pointerType: 'mouse' }); });
+    // while it is held the whole layer follows the pointer
+    expect(svg.style.pointerEvents).toBe('');
+    await act(async () => { fireEvent.pointerMove(svg, { clientX: 150, clientY: 160 }); });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 150, clientY: 160 }); });
+    await waitFor(() => expect(service.data['page:ws'].find((e) => e.id === 'n1')).toMatchObject({ x: 130, y: 140 }));
+    expect(svg.style.pointerEvents).toBe('none');
+    expect(document.documentElement.classList.contains('sb-drawing')).toBe(false);
+    expect(screen.getByRole('toolbar', { name: 'Valitud' })).toBeInTheDocument();
+    // a press on the sheet: the selection goes, the field gets the click
+    await act(async () => { fireEvent.pointerDown(screen.getByText('Loe ja vasta.'), { button: 0, pointerType: 'mouse' }); });
+    expect(screen.queryByRole('toolbar', { name: 'Valitud' })).toBeNull();
+    // selected again and removed with Delete
+    await act(async () => { fireEvent.pointerDown(container.querySelector('[data-element-id="n1"]'), { clientX: 140, clientY: 150, button: 0, pointerType: 'mouse' }); });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 140, clientY: 150 }); });
+    await act(async () => { fireEvent.keyDown(window, { key: 'Delete' }); });
+    await waitFor(() => expect(service.data['page:ws'].map((e) => e.id)).toEqual(['img', 'mk']));
+  });
+
+  it('a press held on a board part and released off the board never leaves the layer covering the fields', async () => {
+    const { svg, container } = sheetBoard();
+    await screen.findByText('Loe ja vasta.');
+    await act(async () => { fireEvent.pointerDown(container.querySelector('[data-element-id="n1"]'), { clientX: 120, clientY: 120, button: 0, pointerType: 'mouse' }); });
+    expect(svg.style.pointerEvents).toBe('');
+    await act(async () => { fireEvent.pointerUp(document.body, { clientX: 5, clientY: 900 }); });
+    await waitFor(() => expect(svg.style.pointerEvents).toBe('none'));
+    expect(document.documentElement.classList.contains('sb-drawing')).toBe(false);
+  });
+
+  it('a frame drawn on the empty desk beside the sheet selects the board parts in it', async () => {
+    const { container } = sheetBoard();
+    await screen.findByText('Loe ja vasta.');
+    const stage = container.querySelector('.sb-stage');
+    await act(async () => { fireEvent.pointerDown(stage, { clientX: 60, clientY: 60, button: 0, pointerType: 'mouse' }); });
+    await act(async () => { fireEvent.pointerMove(stage, { clientX: 260, clientY: 240 }); });
+    await act(async () => { fireEvent.pointerUp(stage, { clientX: 260, clientY: 240 }); });
+    expect(screen.getByRole('toolbar', { name: 'Valitud' })).toBeInTheDocument();
+    expect(document.documentElement.classList.contains('sb-drawing')).toBe(false);
+  });
+
+  it('the V key takes the pointer back from the pen', () => {
+    render(<StudentBoard studentId="s1" user={user} service={fakeService()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Pliiats' }));
+    expect(document.querySelector('.sb-stage')).toHaveClass('tool-pen');
+    fireEvent.keyDown(window, { key: 'v' });
+    expect(document.querySelector('.sb-stage')).toHaveClass('tool-select');
+    expect(screen.getByRole('button', { name: 'Vali ja täida' })).toHaveAttribute('aria-pressed', 'true');
   });
 });

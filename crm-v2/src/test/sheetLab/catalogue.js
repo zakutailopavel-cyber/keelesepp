@@ -38,6 +38,7 @@ const STRESS = {
   counting: { items: [{ icon: '🍎', count: 20 }, { icon: '🐟', count: 5 }, { icon: '🎈', count: 2 }, { icon: '⭐', count: 4 }] },
   examrubric: { criteria: [{ name: 'Ülesande täitmine', hint: 'Kõik sisupunktid on kirjas.', max: 10 }, { name: 'Sõnavara', hint: 'Sobiv ja mitmekesine.', max: 3 }] },
   speakcard: { ideas: [1, 2, 3, 4].map((n) => ({ text: `idee ${n}`, img: PIC(n * 40) })) },
+  video: { url: 'https://youtu.be/dQw4w9WgXcQ?t=30', end: '1:20', caption: `Intervjuu turul: ${LONG}`, questions: 'Kus nad on? [turul]\nMida nad ostavad? [kartuleid]\nMis sulle videos meeldis?' },
   adsmatch: { ads: [{ title: 'Ujula', text: 'Avatud iga päev kell 7–21. Laste ujumistunnid laupäeviti.' }, { title: LONG, text: 'Uued raamatud ja ajakirjad.' }, { title: 'Rattarent', text: 'Jalgrattad päevaks.' }] },
 };
 

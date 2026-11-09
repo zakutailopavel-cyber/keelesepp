@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, vi } from 'vitest';
 import CalendarPage from './CalendarPage.jsx';
+import { announceLessonChanged } from './lessonActions.js';
 import { shiftDate, toIsoDate } from './calendarView.js';
 
 // jsdom's PointerEvent drops clientX/clientY: without them a drag looks like a click
@@ -170,6 +171,19 @@ describe('calendar v2', () => {
     expect(screen.getByText(/Filtritele vastavaid tunde ei leitud/)).toBeInTheDocument();
     fireEvent.click(screen.getAllByRole('button', { name: 'Tühjenda filtrid' })[0]);
     expect(screen.getByLabelText('Otsi kalendrist')).toHaveValue('');
+  });
+
+  it('a lesson changed in the side drawer over the calendar: the journal is read again in place, the search stays', async () => {
+    const props = renderCalendar({ events: [lesson()] });
+    await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    fireEvent.change(screen.getByLabelText('Otsi kalendrist'), { target: { value: 'Mari' } });
+    act(() => { announceLessonChanged('schedule-1'); });
+    await waitFor(() => expect(props.lessonRepository.listForCalendar).toHaveBeenCalledTimes(2));
+    expect(props.scheduleRepository.list).toHaveBeenCalledTimes(2);
+    // the calendar never turned into „Laen kalendrit…”: the filter and the lesson are still on screen
+    expect(screen.getByLabelText('Otsi kalendrist')).toHaveValue('Mari');
+    expect(screen.queryByText('Laen kalendrit…')).not.toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /10:00 Mari Maas/ })).toBeInTheDocument();
   });
 
   it('a lesson that once came from Google Calendar is edited in KeeleSepp (one-way sync)', async () => {
@@ -378,6 +392,25 @@ describe('calendar v2', () => {
     expect(within(mari).getByRole('button', { name: 'Teatas' })).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(within(mari).getByRole('button', { name: 'Tühista märge' }));
     await waitFor(() => expect(props.groupRepository.setAttendance).toHaveBeenCalledWith(expect.anything(), 'gl1', today, 's1', 'clear', expect.anything(), 'Mari Maas'));
+  });
+
+  it('group attendance: the lesson panel stays on screen while the calendar reloads after „Kohal”', async () => {
+    const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()];
+    const group = { id: 'g1', name: 'A2 õhtune', teacher: 'Jelena', teacherUid: 't2', students: ['s1'], lessons: [{ id: 'gl1', day: weekday, time: '18:00', duration: 90, recurring: true, startDate: today }] };
+    const props = repositories({ groups: [group] });
+    props.studentRepository.list = vi.fn(async ({ status }) => ({ items: status === 'archived' ? [] : [{ id: 's1', name: 'Mari Maas', level: 'B1', active: true }] }));
+    props.groupRepository.setAttendance = vi.fn().mockResolvedValue({});
+    render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /18:00 A2 õhtune/ }));
+    let release;
+    props.groupRepository.list.mockImplementation(() => new Promise((resolve) => { release = () => resolve([group]); }));
+    const mari = within(screen.getByRole('dialog', { name: 'Tund: A2 õhtune' })).getByText('Mari Maas').closest('section');
+    fireEvent.click(within(mari).getByRole('button', { name: 'Kohal' }));
+    await waitFor(() => expect(props.groupRepository.setAttendance).toHaveBeenCalled());
+    await waitFor(() => expect(release).toBeTypeOf('function'));
+    expect(screen.queryByText('Laen kalendrit…')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Tund: A2 õhtune' })).toBeInTheDocument();
+    release();
   });
 
   it('a former group teacher keeps only the lessons he gave: the new teacher\'s lessons are not in his calendar', async () => {
@@ -695,6 +728,15 @@ describe('calendar v2', () => {
     await waitFor(() => expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledTimes(1));
     expect(takeHandoff).toHaveBeenCalledWith(key);
     expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'schedule-1' }), expect.anything(), expect.objectContaining({ topic: 'Sagedus', topicLessonId: 'b1-2', notes: 'Tubli töö' }));
+  });
+
+  it('the room’s attendance „Puudub” marks the lesson „Puudus_eta” through the same completeFromSchedule', async () => {
+    const props = repositories({ events: [lesson()] });
+    const key = `schedule-1:${today}|${today}`;
+    const takeHandoff = vi.fn(() => ({ notes: '', lessonIds: [], status: 'Puudus_eta', savedAt: Date.now() }));
+    render(<MemoryRouter initialEntries={[`/calendar?lesson=${encodeURIComponent(key)}`]}><Routes><Route path="/calendar" element={<CalendarPage {...props} takeHandoff={takeHandoff} />} /></Routes></MemoryRouter>);
+    await waitFor(() => expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledTimes(1));
+    expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'schedule-1' }), expect.anything(), expect.objectContaining({ status: 'Puudus_eta' }));
   });
 
   it('a bare ?lesson= link only opens the panel, it never marks the lesson', async () => {

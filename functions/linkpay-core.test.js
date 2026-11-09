@@ -54,6 +54,17 @@ test("invoice owners match the Firestore rule", () => {
   assert.equal(core.ownsInvoice(invoice, {}), false);
 });
 
+test("the invoice PDF: the invoice's owners and the parent linked on the student card, nobody else", () => {
+  const invoice = { studentId: "s1", parentUid: "p1" };
+  assert.equal(core.ownsInvoiceDocument(invoice, null, { uid: "p1" }), true);
+  assert.equal(core.ownsInvoiceDocument(invoice, { linkedParentIds: ["p2"] }, { uid: "p2" }), true);
+  assert.equal(core.ownsInvoiceDocument(invoice, { linkedParentId: "p3" }, { uid: "p3" }), true);
+  assert.equal(core.ownsInvoiceDocument(invoice, { linkedUserIds: ["kid"] }, { uid: "kid" }), true);
+  assert.equal(core.ownsInvoiceDocument(invoice, { linkedParentIds: ["p2"] }, { uid: "other" }), false);
+  assert.equal(core.ownsInvoiceDocument({ parentUid: "p1" }, { linkedParentIds: ["other"] }, { uid: "other" }), false, "no student on the invoice: the card does not count");
+  assert.equal(core.ownsInvoiceDocument(invoice, { linkedParentIds: [""] }, { uid: "" }), false);
+});
+
 test("only a settled payment with the same reference, currency and amount counts", () => {
   const attempt = { orderReference: "KS-1-a", amountCents: 2500 };
   assert.deepEqual(core.paymentVerdict({ payment_state: "settled", order_reference: "KS-1-a", initial_amount: 25, currency: "EUR" }, attempt), { status: "settled", state: "settled", amountCents: 2500 });

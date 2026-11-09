@@ -1,16 +1,17 @@
-import { AlertTriangle, ArrowLeft, CheckCircle2, Clock3, Euro, Pencil, Search, Settings2, ShieldCheck, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Banknote, CheckCircle2, Clock3, Download, Euro, Pencil, RotateCcw, Search, Settings2, ShieldCheck, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader } from '../../components/ui/index.js';
+import { useAuth } from '../../app/AuthContext.jsx';
+import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { teachersService, workTimeService } from '../../services/firebase/index.js';
-import { payrollRows, payrollTotals } from './payroll.js';
+import { teacherLoadService } from '../../services/firebase/teacherLoad.js';
+import { teacherPayoutsService } from '../../services/firebase/teacherPayouts.js';
+import { teachersService } from '../../services/firebase/teachers.js';
+import { workTimeService } from '../../services/firebase/workTime.js';
+import { periodRange, tallinnDay, teacherLoad } from '../teachers/teacherLoad.js';
+import { PAYOUT_METHODS, payoutCsv, payoutTotals, payoutView, payrollRows, payrollTotals, validatePayout } from './payroll.js';
 import './payroll.css';
 
-const currentMonth = () => {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-};
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
 const duration = (minutes) => `${Math.floor(Number(minutes || 0) / 60)} h ${String(Number(minutes || 0) % 60).padStart(2, '0')} min`;
 const dateTime = (value) => {
@@ -22,6 +23,17 @@ const localDateTimeInput = (value) => {
   if (!date || Number.isNaN(date.getTime())) return '';
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 };
+const euroInput = (cents) => (Number(cents || 0) / 100).toFixed(2).replace('.', ',');
+const shortDate = (iso) => (iso ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}` : '');
+const lessonHours = (value) => `${String(value).replace('.', ',')} h`;
+function downloadCsv(content, filename) {
+  const blob = new globalThis.Blob([content], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = filename;
+  document.body.appendChild(link); link.click(); link.remove();
+  globalThis.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 const statusMeta = {
   open: ['Avatud', 'info'],
   pending: ['Ootel', 'neutral'],
@@ -29,8 +41,25 @@ const statusMeta = {
   rejected: ['Tagasi lükatud', 'danger'],
 };
 
-export default function PayrollPage({ teacherRepository = teachersService, timeRepository = workTimeService }) {
-  const [month, setMonth] = useState(currentMonth);
+// one figure per teacher-month (owner 2026-11-09): „Väljamaksmisele” = approved work-time pay; the lessons given × the
+// same rate is a check next to it, a gap ≥ 5 € is flagged; a mark shows „Makstud 05.11 · 820,00 €”
+function PayoutBlock({ row, item, pending, canMark, onPay, onUndo }) {
+  if (!item) return null;
+  const lessonPay = item.lessons?.payCents;
+  return <div className="payroll-payout">
+    <span className="payroll-payout__main"><small>Väljamaksmisele</small><strong>{money(item.payableCents)}</strong>{pending ? <small className="payroll-payout__warn">{pending} kirjet ootab kinnitamist — need pole summas</small> : null}</span>
+    <span><small>Tundide järgi (kontroll)</small><strong>{lessonPay === null || lessonPay === undefined ? (item.lessons ? 'tunnitasu määramata' : '—') : money(lessonPay)}</strong>{item.warn ? <small className="payroll-payout__warn" role="note"><AlertTriangle size={13} /> Erinevus {money(Math.abs(item.diffCents))} — kontrolli tööaega ja märkimata tunde</small> : null}</span>
+    <span className="payroll-payout__status">{item.payout ? <><Badge tone="success">Makstud {shortDate(item.payout.paidAt)} · {money(item.payout.amountCents)}</Badge>{item.paidDiffers ? <small className="payroll-payout__warn">Makstud summa erineb praegusest arvestusest</small> : null}{canMark ? <Button variant="secondary" onClick={onUndo}><RotateCcw size={15} /> Tühista märge</Button> : null}</> : canMark ? <Button onClick={onPay} disabled={!item.payableCents && !lessonPay} aria-label={`Märgi makstuks: ${row.teacher.name}`}><Banknote size={15} /> Märgi makstuks</Button> : null}</span>
+  </div>;
+}
+
+// lessonRepository: „Õpetajate koormus” reads (lessonsOnly); payoutRepository: teacherPayouts (owner 2026-11-09)
+export default function PayrollPage({ teacherRepository = teachersService, timeRepository = workTimeService, lessonRepository = teacherLoadService, payoutRepository = teacherPayoutsService, now = new Date() }) {
+  const { user } = useAuth();
+  const [month, setMonth] = useState(() => tallinnDay(now).slice(0, 7));
+  const [payTarget, setPayTarget] = useState(null);
+  const [payForm, setPayForm] = useState(null);
+  const [undoTarget, setUndoTarget] = useState(null);
   const [query, setQuery] = useState('');
   const [review, setReview] = useState(null);
   const [adjust, setAdjust] = useState(null);
@@ -41,12 +70,26 @@ export default function PayrollPage({ teacherRepository = teachersService, timeR
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const today = tallinnDay(now);
+  const period = useMemo(() => periodRange('month', month), [month]);
+  // the lessons and the marks are extras: when they cannot be read (e.g. the teacherPayouts rules not deployed yet) the
+  // approved work time still shows and the page says what is missing
   const state = useAsyncData(async () => {
-    const [teachers, evidence] = await Promise.all([teacherRepository.list(), timeRepository.listAll(month)]);
-    return { teachers, ...evidence };
-  }, [month, teacherRepository, timeRepository]);
+    const [teachers, evidence, lessonData, payouts] = await Promise.all([
+      teacherRepository.list(),
+      timeRepository.listAll(month),
+      lessonRepository.load({ period, today, lessonsOnly: true }).catch(() => null),
+      payoutRepository.listMonth(month).catch(() => null),
+    ]);
+    return { teachers, ...evidence, lessonData, payouts };
+  }, [month, teacherRepository, timeRepository, lessonRepository, payoutRepository, period, today]);
 
   const rows = useMemo(() => state.data ? payrollRows(state.data.teachers, state.data.sessions, state.data.programDays) : [], [state.data]);
+  const loadRows = useMemo(() => (state.data?.lessonData ? teacherLoad({ ...state.data.lessonData, period, today }) : null), [state.data, period, today]);
+  const payouts = useMemo(() => state.data?.payouts || [], [state.data]);
+  const payoutsFailed = Boolean(state.data && state.data.payouts === null);
+  const view = useMemo(() => payoutView(rows, loadRows, payouts), [rows, loadRows, payouts]);
+  const payTotals = useMemo(() => payoutTotals(rows, view, payouts), [rows, view, payouts]);
   const visibleRows = useMemo(() => {
     const search = query.trim().toLocaleLowerCase('et');
     return search ? rows.filter((row) => `${row.teacher.name} ${row.teacher.email || ''}`.toLocaleLowerCase('et').includes(search)) : rows;
@@ -124,6 +167,41 @@ export default function PayrollPage({ teacherRepository = teachersService, timeR
     finally { setSaving(false); }
   };
 
+  const openPay = (row) => {
+    setPayTarget(row);
+    // the approved pay; only when there is none (no clock-in this month) the lessons' estimate, to be checked by hand
+    const item = view.get(row.teacher.id);
+    setPayForm({ amount: euroInput(item?.payableCents || item?.lessons?.payCents || 0), paidAt: today, method: 'pank', note: '' });
+    setError('');
+  };
+  const submitPay = async (event) => {
+    event.preventDefault();
+    const check = validatePayout(payForm);
+    if (!check.valid) { setError(Object.values(check.errors)[0]); return; }
+    setSaving(true); setError('');
+    try {
+      await payoutRepository.mark({ teacher: payTarget.teacher, month, value: check.value }, user);
+      setSuccess(`${payTarget.teacher.name}: ${month} märgiti makstuks (${money(check.value.amountCents)}).`);
+      setPayTarget(null); setPayForm(null);
+      await state.reload();
+    } catch (nextError) { setError(nextError.message || 'Väljamakse märkimine ebaõnnestus.'); }
+    finally { setSaving(false); }
+  };
+  const openUndo = (row) => { setUndoTarget(row); setReason(''); setError(''); };
+  const submitUndo = async (event) => {
+    event.preventDefault();
+    if (reason.trim().length < 3) { setError('Lisa tühistamise põhjus.'); return; }
+    setSaving(true); setError('');
+    try {
+      await payoutRepository.cancel({ teacherUid: undoTarget.teacher.id, teacherName: undoTarget.teacher.name, month, reason: reason.trim() }, user);
+      setSuccess(`${undoTarget.teacher.name}: väljamakse märge tühistati.`);
+      setUndoTarget(null);
+      await state.reload();
+    } catch (nextError) { setError(nextError.message || 'Märke tühistamine ebaõnnestus.'); }
+    finally { setSaving(false); }
+  };
+  const exportCsv = () => downloadCsv(payoutCsv(month, rows, view), `keelesepp-opetajate-tootasu-${month}.csv`);
+
   if (state.loading) return <LoadingState label="Laen palgaarvestust…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
@@ -134,13 +212,17 @@ export default function PayrollPage({ teacherRepository = teachersService, timeR
     <section className="metric-grid">
       <Card className="metric-card metric-card--amber"><div className="metric-card__top"><span>Kinnitamise ootel</span><i><AlertTriangle size={19} /></i></div><strong>{totals.pendingCount}</strong><small>{duration(totals.pendingMinutes)}</small></Card>
       <Card className="metric-card metric-card--blue"><div className="metric-card__top"><span>Kinnitatud tööaeg</span><i><Clock3 size={19} /></i></div><strong>{duration(totals.approvedMinutes)}</strong><small>{month}</small></Card>
-      <Card className="metric-card metric-card--green"><div className="metric-card__top"><span>Arvestatud töötasu</span><i><Euro size={19} /></i></div><strong>{money(totals.approvedPayCents)}</strong><small>ainult kinnitatud kirjed</small></Card>
+      <Card className="metric-card metric-card--green"><div className="metric-card__top"><span>Väljamaksmisele kokku</span><i><Euro size={19} /></i></div><strong>{money(totals.approvedPayCents)}</strong><small>ainult kinnitatud tööaeg</small></Card>
       <Card className="metric-card metric-card--purple"><div className="metric-card__top"><span>Programmis aktiivne</span><i><ShieldCheck size={19} /></i></div><strong>{duration(totals.programMinutes)}</strong><small>kontrolltõend, mitte palgaalus</small></Card>
     </section>
+    <Card className="payroll-payouts-bar" aria-label="Kuu väljamaksed"><span><small>Makstud</small><strong>{money(payTotals.paidCents)}</strong><small>{payTotals.paidCount} õpetajat</small></span><span><small>Maksmata</small><strong>{money(payTotals.unpaidCents)}</strong><small>{payTotals.unpaidCount} õpetajat</small></span><Button variant="secondary" onClick={exportCsv} disabled={!rows.length}><Download size={16} /> Laadi CSV</Button></Card>
+    {payoutsFailed ? <p className="action-error" role="alert">Väljamaksete märkeid ei õnnestunud lugeda — „Märgi makstuks” on ajutiselt peidetud.</p> : null}
+    {state.data && !state.data.lessonData ? <p className="action-error" role="status">Antud tundide andmeid ei õnnestunud lugeda — kontrollsumma tundide järgi puudub.</p> : null}
     <Card className="payroll-toolbar"><div className="search-field"><Search size={17} /><input aria-label="Otsi õpetajat palgaarvestusest" placeholder="Otsi õpetajat…" value={query} onChange={(event) => setQuery(event.target.value)} /></div><Input aria-label="Palgaarvestuse kuu" type="month" value={month} onChange={(event) => setMonth(event.target.value)} /><Badge tone={totals.openCount ? 'danger' : 'success'}>{totals.openCount ? `${totals.openCount} avatud tööpäeva` : 'Avatud tööpäevi pole'}</Badge></Card>
     {visibleRows.length ? <div className="payroll-staff-list">{visibleRows.map((row) => <Card className="payroll-staff" key={row.teacher.id}>
       <header><div className="teacher-avatar">{row.teacher.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</div><span><strong>{row.teacher.name}</strong><small>{row.teacher.email || row.teacher.role || 'Õpetaja'}</small></span><div><Badge tone={row.pendingCount ? 'danger' : 'success'}>{row.pendingCount ? `${row.pendingCount} ootel` : 'Kontrollitud'}</Badge><Button variant="secondary" onClick={() => openRate(row)}><Settings2 size={16} /> {row.teacher.workHourlyRateCents ? `${money(row.teacher.workHourlyRateCents)} / h` : 'Määra tunnitasu'}</Button></div></header>
-      <div className="payroll-staff-summary"><span><small>Programmis</small><strong>{duration(row.summary.programMinutes)}</strong></span><span><small>Ootel</small><strong>{duration(row.summary.pendingMinutes)}</strong></span><span><small>Kinnitatud</small><strong>{duration(row.summary.approvedMinutes)}</strong></span><span><small>Töötasu</small><strong>{money(row.summary.approvedPayCents)}</strong></span></div>
+      <div className="payroll-staff-summary"><span><small>Programmis</small><strong>{duration(row.summary.programMinutes)}</strong></span><span><small>Ootel</small><strong>{duration(row.summary.pendingMinutes)}</strong></span><span><small>Kinnitatud</small><strong>{duration(row.summary.approvedMinutes)}</strong></span><span><small>Antud tunde</small><strong>{view.get(row.teacher.id)?.lessons ? `${view.get(row.teacher.id).lessons.held} · ${lessonHours(view.get(row.teacher.id).lessons.hours)}` : '—'}</strong></span></div>
+      <PayoutBlock row={row} item={view.get(row.teacher.id)} pending={row.pendingCount} canMark={!payoutsFailed} onPay={() => openPay(row)} onUndo={() => openUndo(row)} />
       {row.sessions.length ? <div className="students-table-wrap"><table className="students-table payroll-table"><thead><tr><th>Algus</th><th>Lõpp</th><th>Kestus</th><th>Olek</th><th>Tasu</th><th>Tegevus</th></tr></thead><tbody>{row.sessions.map((session) => { const status = session.status === 'open' ? 'open' : session.approvalStatus || 'pending'; const meta = statusMeta[status] || [status, 'neutral']; const pending = session.status === 'closed' && session.approvalStatus === 'pending'; return <tr key={session.id}><td>{dateTime(session.startedAt)}</td><td>{dateTime(session.endedAt)}</td><td>{duration(session.durationMinutes)}</td><td><Badge tone={meta[1]}>{meta[0]}</Badge>{session.approvalReason ? <small className="payroll-reason">{session.approvalReason}</small> : null}</td><td>{session.approvalStatus === 'approved' ? money(session.payAmountCents) : '—'}</td><td>{session.status === 'closed' ? <div className="payroll-actions">{pending ? <><Button onClick={() => openReview(row, session, 'approve')}><CheckCircle2 size={15} /> Kinnita</Button><Button variant="danger" onClick={() => openReview(row, session, 'reject')}><XCircle size={15} /> Lükka tagasi</Button></> : null}<Button variant="secondary" onClick={() => openAdjust(row, session)}><Pencil size={15} /> Paranda</Button></div> : '—'}</td></tr>; })}</tbody></table></div> : <EmptyState title="Selles kuus tööaja kirjeid ei ole" />}
     </Card>)}</div> : <Card><EmptyState title="Valitud kuul palgaarvestuse kirjeid ei ole" description="Kirjed ilmuvad pärast tööpäeva alustamist ja lõpetamist KeeleSepp CRM-is." /></Card>}
 
@@ -149,5 +231,9 @@ export default function PayrollPage({ teacherRepository = teachersService, timeR
     <Modal open={Boolean(adjust && adjustForm)} title={`Paranda tööaega: ${adjust?.row.teacher.name || ''}`} onClose={() => !saving && setAdjust(null)} footer={<><Button variant="secondary" disabled={saving} onClick={() => setAdjust(null)}>Loobu</Button><Button type="submit" form="payroll-adjust-form" loading={saving}>Salvesta parandus</Button></>}>
       {adjustForm ? <form id="payroll-adjust-form" className="form-grid" onSubmit={submitAdjustment}>{error ? <p className="form-error form-grid__wide" role="alert">{error}</p> : null}<p className="form-hint form-grid__wide">Parandus säilib auditis ja viib kirje uuesti kinnitamisele. Varem kinnitatud summa eemaldatakse kuni uue kinnituseni.</p><Input id="payroll-adjust-start" label="Algus" type="datetime-local" value={adjustForm.startedAt} required onChange={(event) => setAdjustForm({ ...adjustForm, startedAt: event.target.value })} /><Input id="payroll-adjust-end" label="Lõpp" type="datetime-local" value={adjustForm.endedAt} required onChange={(event) => setAdjustForm({ ...adjustForm, endedAt: event.target.value })} /><Input id="payroll-adjust-break" label="Paus (min)" type="number" min="0" step="1" value={adjustForm.breakMinutes} required onChange={(event) => setAdjustForm({ ...adjustForm, breakMinutes: event.target.value })} /><Input id="payroll-adjust-note" label="Märkus" value={adjustForm.note} onChange={(event) => setAdjustForm({ ...adjustForm, note: event.target.value })} /><label className="textarea-field form-grid__wide"><span>Paranduse põhjus *</span><textarea aria-label="Paranduse põhjus" rows="4" value={adjustForm.reason} required onChange={(event) => setAdjustForm({ ...adjustForm, reason: event.target.value })} /></label></form> : null}
     </Modal>
+    <Modal open={Boolean(payTarget && payForm)} title={`Märgi makstuks: ${payTarget?.teacher.name || ''}`} onClose={() => !saving && setPayTarget(null)} footer={<><Button variant="secondary" disabled={saving} onClick={() => setPayTarget(null)}>Loobu</Button><Button type="submit" form="payroll-payout-form" loading={saving}>Märgi makstuks</Button></>}>
+      {payTarget && payForm ? <form id="payroll-payout-form" className="form-grid" onSubmit={submitPay}>{error ? <p className="form-error form-grid__wide" role="alert">{error}</p> : null}<p className="form-hint form-grid__wide">{month} · väljamaksmisele {money(view.get(payTarget.teacher.id)?.payableCents)}{view.get(payTarget.teacher.id)?.lessons?.payCents != null ? ` · tundide järgi ${money(view.get(payTarget.teacher.id).lessons.payCents)}` : ''}. Märge ei tee makset — see salvestab, et raha on välja makstud.</p>{payTarget.pendingCount ? <p className="form-error form-grid__wide" role="note">{payTarget.pendingCount} tööaja kirjet ootab veel kinnitamist ja ei ole summas.</p> : null}<Input id="payroll-payout-amount" label="Makstud summa (€)" value={payForm.amount} inputMode="decimal" required onChange={(event) => setPayForm({ ...payForm, amount: event.target.value })} /><Input id="payroll-payout-date" label="Maksmise kuupäev" type="date" value={payForm.paidAt} required onChange={(event) => setPayForm({ ...payForm, paidAt: event.target.value })} /><Select id="payroll-payout-method" label="Makseviis" value={payForm.method} onChange={(event) => setPayForm({ ...payForm, method: event.target.value })}>{PAYOUT_METHODS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</Select><Input id="payroll-payout-note" label="Märkus" value={payForm.note} maxLength={500} onChange={(event) => setPayForm({ ...payForm, note: event.target.value })} /></form> : null}
+    </Modal>
+    <Modal open={Boolean(undoTarget)} title={`Tühista märge: ${undoTarget?.teacher.name || ''}`} onClose={() => !saving && setUndoTarget(null)} footer={<><Button variant="secondary" disabled={saving} onClick={() => setUndoTarget(null)}>Loobu</Button><Button variant="danger" type="submit" form="payroll-undo-form" loading={saving}>Tühista märge</Button></>}><form id="payroll-undo-form" className="payroll-review-form" onSubmit={submitUndo}>{error ? <p className="form-error" role="alert">{error}</p> : null}<p className="form-hint">Märge jääb ajalukku (kes, millal, miks). Kuu läheb tagasi maksmata õpetajate hulka.</p><label className="textarea-field"><span>Tühistamise põhjus *</span><textarea aria-label="Tühistamise põhjus" rows="3" maxLength={500} value={reason} onChange={(event) => setReason(event.target.value)} /></label></form></Modal>
   </div>;
 }

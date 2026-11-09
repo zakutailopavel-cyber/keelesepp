@@ -1,12 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { FileText, Footprints, SkipForward } from 'lucide-react';
-import { Button, Card } from '../../components/ui/index.js';
-import { homeworkService, lessonWorksheetsService, lessonsService, libraryService } from '../../services/firebase/index.js';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
+import RoomPartBoundary from '../live-classroom/RoomPartBoundary.jsx';
+import { FileText } from 'lucide-react';
+import { Button, Card, LoadingState } from '../../components/ui/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
+import { libraryService } from '../../services/firebase/library.js';
 import { publishedPhaseDoc } from './bookProgram.js';
 import { curriculumSheetChoices, filterChoices, findLessonRows, lessonRows, moduleGroups, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
-import DocWorksheetPlayer from './DocWorksheetPlayer.jsx';
-import { nextToOpen, stepCounts } from './engine/liveLesson.js';
-import LiveWorksheetView from './LiveWorksheetView.jsx';
+
+// the worksheet itself (every block's views and rules) downloads when a sheet is on the board, not with the room
+const DocWorksheetPlayer = lazyComponent(() => import('./DocWorksheetPlayer.jsx'));
+const LiveWorksheetView = lazyComponent(() => import('./LiveWorksheetView.jsx'));
+const RoomStepControl = lazyComponent(() => import('./RoomStepControl.jsx'));
 import './worksheetStudio.css';
 
 // A structured worksheet inside a Live Classroom room (materials of the lesson).
@@ -16,9 +23,9 @@ import './worksheetStudio.css';
 // The worksheet itself (teacher: live answers; student: fill in). In the Live Classroom room it lies on the board.
 export function RoomWorksheetContent({ current, role, homework = homeworkService }) {
   if (!current) return null;
-  return role === 'teacher'
+  return <RoomPartBoundary label="Töölehte"><Suspense fallback={<LoadingState label="Laen töölehte…" />}>{role === 'teacher'
     ? <LiveWorksheetView key={current.id} assignmentId={current.id} repository={homework} embedded board />
-    : <DocWorksheetPlayer key={`${current.id}-${current.status === 'done' ? 'done' : 'open'}`} assignment={current} repository={homework} inline board />;
+    : <DocWorksheetPlayer key={`${current.id}-${current.status === 'done' ? 'done' : 'open'}`} assignment={current} repository={homework} inline board />}</Suspense></RoomPartBoundary>;
 }
 
 const errorText = (err, fallback) => err?.message || fallback;
@@ -158,7 +165,7 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
         </div>
       ) : null}
       {error ? <div className="action-error" role="alert">{error}</div> : null}
-      {state.loading ? <p className="form-hint">Laen töölehti…</p> : tab === 'curriculum' ? (
+      {state.loading ? <LoadingState inline className="form-hint" label="Laen töölehti…" /> : tab === 'curriculum' ? (
         !found.length ? (
           <p className="form-hint">{activeLevel ? 'Sellel tasemel ei leitud.' : 'Midagi ei leitud.'}{elsewhere > 0 ? <> <button type="button" className="room-sheet-picker__more" onClick={() => setLevel('')}>Teistel tasemetel {elsewhere} {elsewhere === 1 ? 'tund' : 'tundi'} — näita</button></> : ''}</p>
         )
@@ -198,35 +205,6 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
 
 // `showSheet`: false when the room shows the worksheet on the board and this panel only picks/announces it.
 // onSheetsChange: every worksheet of this room, newest first (the board shows each on its own page).
-// „Samm-sammult” in the side panel: on the board the task list lies under the sheet, out of sight (owner 2026-10-13:
-// the student saw only the text and the picture and thought the sheet was broken)
-export function RoomStepControl({ current, homework = homeworkService }) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const step = current?.liveStep;
-  if (!step?.on || current?.status === 'done' || !homework.setWorksheetLiveStep) return null;
-  const doc = current.worksheetDoc;
-  const counts = stepCounts(doc, step);
-  const nextId = nextToOpen(doc, step);
-  const run = async (task) => {
-    setBusy(true); setError('');
-    try { await task(); } catch (err) { setError(err.message || 'Ei õnnestunud.'); } finally { setBusy(false); }
-  };
-  return (
-    <div className="live-step-control" role="status">
-      <p><Footprints size={16} aria-hidden="true" /> <b>Samm-sammult</b>: õpilane näeb {counts.open}/{counts.total} ülesannet.</p>
-      <div>
-        <Button variant="secondary" disabled={busy || !nextId} onClick={() => run(async () => {
-          await homework.setWorksheetLiveStep({ assignmentId: current.id, on: true, open: [...(step.open || []), nextId] });
-          if (homework.setWorksheetLiveFocus) await homework.setWorksheetLiveFocus({ assignmentId: current.id, blockId: nextId });
-        })}><SkipForward size={15} aria-hidden="true" /> Ava järgmine</Button>
-        <Button disabled={busy} onClick={() => run(() => homework.setWorksheetLiveStep({ assignmentId: current.id, on: false, open: step.open || [] }))}>Näita kõiki</Button>
-      </div>
-      {error ? <p className="action-error" role="alert">{error}</p> : null}
-    </div>
-  );
-}
-
 export default function RoomWorksheetPanel({ invitation, role, user, homework = homeworkService, library = libraryService, lessonWorksheets = lessonWorksheetsService, lessons = lessonsService, onCurrentChange, onSheetsChange, showSheet = true }) {
   const roomKey = invitation.roomKey || invitation.id;
   const [items, setItems] = useState(null);
@@ -264,7 +242,8 @@ export default function RoomWorksheetPanel({ invitation, role, user, homework = 
       </div>
       {error ? <div className="action-error" role="alert">{error}</div> : null}
       {!showSheet && items?.length ? <p className="form-hint">Tahvlil: {items.map((item) => item.title || item.worksheetDoc?.meta?.title || 'Tööleht').join(' · ')}</p> : null}
-      {role === 'teacher' ? <RoomStepControl current={current} homework={homework} /> : null}
+      {/* fallback={null}: a small optional control bar above the sheet; the sheet itself stays visible meanwhile */}
+      {role === 'teacher' && current?.liveStep?.on ? <RoomPartBoundary label="Sammude juhtimist"><Suspense fallback={null}><RoomStepControl current={current} homework={homework} /></Suspense></RoomPartBoundary> : null}
       {role === 'teacher' ? <RoomWorksheetPicker studentId={invitation.studentId} studentName={invitation.studentName} roomKey={roomKey} note={invitation.title ? `Live Classroom: ${invitation.title}` : 'Live Classroom'} user={user} homework={homework} library={library} lessonWorksheets={lessonWorksheets} lessons={lessons} /> : null}
       {showSheet ? <RoomWorksheetContent current={current} role={role} homework={homework} /> : null}
     </Card>

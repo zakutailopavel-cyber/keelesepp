@@ -2,15 +2,18 @@ import { Fragment, useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BarChart3, BookOpen, FilePlus2, Languages, PenLine, Sparkles, Users } from 'lucide-react';
 import { AuthContext } from '../../app/AuthContext.jsx';
-import { homeworkService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { cardsFromErrors, focusTopics, homeworkFromAnalysis, parentNoteFromAnalysis } from './afterLesson.js';
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
-import { Badge, Button, Card, EmptyState, Input, Modal } from '../../components/ui/index.js';
-import { RECORDING_STATUS } from '../../services/firebase/lessonRecordings.js';
+import { Badge, Button, Card, EmptyState, Input, Modal, LoadingState } from '../../components/ui/index.js';
+import { RECORDING_STATUS, lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
+import { applyErrorReview, errorKey } from './errorReview.js';
 import { lessonAnalysis, wordDiff } from './lessonTimeline.js';
 import { analysisStatus, useTranscriberStatus } from './transcriberStatus.js';
 import { errorsWorksheet } from './errorWorksheet.js';
+import LessonMoments from './LessonMoments.jsx';
+import ErrorHomework from './ErrorHomework.jsx';
 import './lessonRecording.css';
 
 const clock = (ms) => { const s = Math.floor((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
@@ -90,14 +93,43 @@ function Analysis({ recording }) {
 
 // The learner's likely errors (TartuNLP's Estonian correction model on the school Mac): what was said, with the
 // changed words struck through and the right ones in bold. A model's suggestion, so the teacher checks it.
-function LearnerErrors({ errors }) {
+const Diff = ({ error }) => <span>{wordDiff(error.said, error.corrected).map((w, k) => (
+  <Fragment key={k}>{k ? ' ' : ''}{w.type === 'del' ? <s>{w.text}</s> : w.type === 'ins' ? <ins>{w.text}</ins> : w.text}</Fragment>
+))}</span>;
+
+// „Pole viga” (owner 2026-11-04): the teacher marks a flag of the model as wrong (with a short reason if he wants);
+// it leaves the counts, „Pärast tundi”, the worksheet and the trend, and can be undone below the list
+function LearnerErrors({ errors, dismissed = [], onDismiss = null, onRestore = null }) {
+  const [asking, setAsking] = useState('');
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState('');
+  const [failure, setFailure] = useState('');
+  const act = async (key, action) => {
+    setBusy(key); setFailure('');
+    try { await action(); setAsking(''); setReason(''); } catch (err) { setFailure(err?.message || 'Ei õnnestunud.'); } finally { setBusy(''); }
+  };
   return <div className="lesson-ai__errors">
     <b>Õpilase vead ({errors.length})</b>
-    {errors.length ? <ol>{errors.map((e, i) => (
-      <li key={i}><time>{clock(e.startMs)}</time><span>{wordDiff(e.said, e.corrected).map((w, k) => (
-        <Fragment key={k}>{k ? ' ' : ''}{w.type === 'del' ? <s>{w.text}</s> : w.type === 'ins' ? <ins>{w.text}</ins> : w.text}</Fragment>
-      ))}</span>{e.unsure ? <small title="Kõnetuvastus polnud selles lauses kindel">kontrolli salvestisest</small> : null}</li>
-    ))}</ol> : <p className="form-hint">Eestikeelsetes lausetes vigu ei leitud.</p>}
+    {errors.length ? <ol>{errors.map((e, i) => {
+      const key = errorKey(e);
+      return <li key={key || i}><time>{clock(e.startMs)}</time><Diff error={e} />
+        <span className="lesson-ai__errors-side">{e.unsure ? <small title="Kõnetuvastus polnud selles lauses kindel">kontrolli salvestisest</small> : null}
+          {onDismiss && asking !== key ? <button type="button" className="lesson-ai__notanerror" title="Mudel eksis: see ei ole õpilase viga" onClick={() => { setAsking(key); setReason(''); }}>Pole viga</button> : null}</span>
+        {asking === key ? <div className="lesson-ai__dismiss-form">
+          <Input id={`dismiss-reason-${key}`} label="Põhjus (valikuline)" value={reason} maxLength={200} onChange={(event) => setReason(event.target.value)} placeholder="nt õige vorm, kõnetuvastuse viga" />
+          <Button variant="secondary" loading={busy === key} onClick={() => act(key, () => onDismiss(e, reason))}>Kinnita „Pole viga”</Button>
+          <Button variant="secondary" onClick={() => setAsking('')}>Loobu</Button>
+        </div> : null}
+      </li>;
+    })}</ol> : <p className="form-hint">Eestikeelsetes lausetes vigu ei leitud.</p>}
+    {dismissed.length ? <details className="lesson-ai__dismissed">
+      <summary>Märgitud „Pole viga” ({dismissed.length})</summary>
+      <ol>{dismissed.map((e) => <li key={e.key} className="is-dismissed"><time>{clock(e.startMs)}</time><Diff error={e} />
+        <span className="lesson-ai__errors-side">{onRestore ? <button type="button" className="lesson-ai__notanerror" disabled={busy === e.key} onClick={() => act(e.key, () => onRestore(e))}>Taasta</button> : null}</span>
+        <small className="lesson-ai__why">{e.review?.byName || 'Õpetaja'} · {dateLabel(e.review?.at)}{e.review?.reason ? ` · „${e.review.reason}”` : ''}</small>
+      </li>)}</ol>
+    </details> : null}
+    {failure ? <p className="form-error" role="alert">{failure}</p> : null}
   </div>;
 }
 
@@ -158,9 +190,25 @@ export function AfterLesson({ analysis, recording, homework = homeworkService, w
 
 const SUMMARY_PARTS = [['meeldis', 'Meeldis / aktiivne', 'is-good'], ['raske', 'Oli raske', 'is-hard'], ['jargmiseks', 'Järgmiseks tunniks', 'is-next']];
 // The didactic analysis made on the school Mac with local models (nothing leaves the Mac). Teacher and admins only.
-export function LessonAi({ analysis, recording = null }) {
+export function LessonAi({ analysis: given, recording = null, reviewService = lessonRecordingsService, onChanged = null, homeworkServices = null }) {
   const navigate = useNavigate();
+  const user = useContext(AuthContext)?.user || null;
+  // „Pole viga” marks made here are shown at once; the saved ones come with the recording (errorReview.js)
+  const [marks, setMarks] = useState({});
+  const raw = recording?.analysisRaw || given;
+  const analysis = useMemo(() => (Array.isArray(raw?.errors) ? applyErrorReview(raw, { ...(recording?.errorReview || {}), ...marks }) : raw), [raw, recording?.errorReview, marks]);
   if (!analysis || analysis.error || (!analysis.summary && !analysis.errors)) return null;
+  const canReview = Boolean(user && recording?.id && reviewService?.dismissError);
+  const dismiss = async (error, reason) => {
+    const { key, entry } = await reviewService.dismissError({ recording, error, reason, user });
+    setMarks((current) => ({ ...current, [key]: entry }));
+    onChanged?.();
+  };
+  const restore = async (error) => {
+    const { key, undoneAt } = await reviewService.restoreError({ recording, key: error.key, user });
+    setMarks((current) => ({ ...current, [key]: { ...error.review, undoneAt } }));
+    onChanged?.();
+  };
   const s = analysis.summary;
   // „Tee tööleht vigadest”: the learner's own sentences of this lesson as a draft in the constructor (not saved yet)
   const draft = () => {
@@ -176,8 +224,9 @@ export function LessonAi({ analysis, recording = null }) {
       <div key={k} className={cls}><b>{label}</b><ul>{s[k].map((t, i) => <li key={i}>{t}</li>)}</ul></div>
     ))}</div> : null}
     <AfterLesson analysis={analysis} recording={recording} />
-    {Array.isArray(analysis.errors) ? <LearnerErrors errors={analysis.errors} /> : null}
+    {Array.isArray(analysis.errors) ? <LearnerErrors errors={analysis.errors} dismissed={analysis.dismissedErrors || []} onDismiss={canReview ? dismiss : null} onRestore={canReview ? restore : null} /> : null}
     {usableErrors ? <div><Button variant="secondary" onClick={draft}><FilePlus2 size={15} aria-hidden="true" /> Tee tööleht vigadest ({usableErrors})</Button></div> : null}
+    {recording && Array.isArray(analysis.errors) && analysis.errors.length ? <ErrorHomework analysis={analysis} recording={recording} services={homeworkServices || undefined} /> : null}
   </section>;
 }
 
@@ -189,14 +238,16 @@ const WAITING = {
 };
 
 // The text of one recording as it is now: analysis + transcript when done, otherwise what it waits for.
-export function RecordingText({ recording, transcriber = null }) {
+// „Hetked” (the teacher's marks from the room) and the lesson's audio come first, whatever the text's status.
+export function RecordingText({ recording, transcriber = null, reviewService, onChanged = null, moments = [] }) {
+  const marks = <LessonMoments recording={recording} moments={moments} errors={Array.isArray(recording.analysis?.errors) ? recording.analysis.errors : []} service={reviewService || lessonRecordingsService} />;
   if (recording.status === RECORDING_STATUS.done) {
     const ai = analysisStatus(recording, transcriber || {});
     return recording.transcript?.length
-      ? <><Analysis recording={recording} />{ai && ai.key !== 'ready' ? <p className={`lesson-ai__status is-${ai.key}`} role="status">{ai.label}</p> : null}<LessonAi analysis={recording.analysis} recording={recording} /><Transcript recording={recording} /></>
-      : <p className="form-hint">Salvestisest ei leitud kõnet (liiga lühike või vaikne).</p>;
+      ? <><Analysis recording={recording} />{marks}{ai && ai.key !== 'ready' ? <p className={`lesson-ai__status is-${ai.key}`} role="status">{ai.label}</p> : null}<LessonAi analysis={recording.analysis} recording={recording} reviewService={reviewService} onChanged={onChanged} /><Transcript recording={recording} /></>
+      : <>{marks}<p className="form-hint">Salvestisest ei leitud kõnet (liiga lühike või vaikne).</p></>;
   }
-  return <p className="form-hint">{WAITING[recording.status] || WAITING.uploaded}{recording.error ? ` ${recording.error}` : ''}</p>;
+  return <>{marks}<p className="form-hint">{WAITING[recording.status] || WAITING.uploaded}{recording.error ? ` ${recording.error}` : ''}</p></>;
 }
 
 // Teacher/admin: the student's Live Classroom lessons; each opens the lesson analysis (transcript) or its board.
@@ -216,23 +267,27 @@ export default function LessonsCard({ rows, studentId, loading, error, onReload,
     <Card>
       <div className="section-heading"><div><span className="eyebrow">Live Classroom · ainult õpetajale</span><h2>Tunnid</h2></div>{onReload ? <Button variant="secondary" onClick={onReload}>Värskenda</Button> : null}</div>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
-      {loading ? <p className="form-hint">Laen…</p> : rows.length ? (
+      {loading ? <LoadingState inline className="form-hint" label="Laen…" /> : rows.length ? (
         <div className="simple-list lesson-rows">{rows.map((row) => {
           const r = row.recording;
           const status = r ? (STATUS[r.status] || STATUS.uploaded) : null;
           return <div key={row.key} className={inline && r ? 'lesson-rows__item is-inline' : undefined}>
-            <div><strong>{r ? dateLabel(r.startedAt) : dateLabel(row.at)} · {row.title}</strong><span>{r ? `${r.teacherName || 'Õpetaja'} · salvestatud${r.parts?.length > 1 ? ` (${r.parts.length} osas)` : ''}` : 'ainult tahvel'}{row.pageTitle ? ` · leht „${row.pageTitle}”` : ''}</span></div>
+            <div><strong>{r ? dateLabel(r.startedAt) : dateLabel(row.at)} · {row.title}</strong><span>{r ? `${r.teacherName || 'Õpetaja'} · salvestatud${r.parts?.length > 1 ? ` (${r.parts.length} osas)` : ''}` : row.pageId ? 'ainult tahvel' : 'salvestamata'}{row.moments?.length ? ` · hetki ${row.moments.length}` : ''}{row.pageTitle ? ` · leht „${row.pageTitle}”` : ''}</span></div>
             {status ? <span className="lesson-rows__badges"><Badge tone={status[1]}>{status[0]}</Badge>{(() => { const ai = analysisStatus(r, transcriber); return ai ? <Badge tone={ai.tone}>{ai.key === 'ready' ? 'AI analüüs' : ai.key === 'running' ? ai.label : ai.key === 'failed' ? 'AI viga' : 'AI ootab'}</Badge> : null; })()}</span> : null}
             <span className="lesson-rows__actions">
               {r && !inline ? <Button variant="secondary" onClick={() => setOpen(r)}><BarChart3 size={15} /> Tunni analüüs</Button> : null}
-              <Link className="button button--secondary" to={`/board/${studentId}${row.pageId ? `?page=${encodeURIComponent(row.pageId)}` : ''}`}><PenLine size={15} /> Tahvel</Link>
+              {r || row.pageId ? <Link className="button button--secondary" to={`/board/${studentId}${row.pageId ? `?page=${encodeURIComponent(row.pageId)}` : ''}`}><PenLine size={15} /> Tahvel</Link> : null}
             </span>
-            {inline && r ? <div className="lesson-rows__text"><RecordingText recording={r} transcriber={transcriber} /></div> : null}
+            {inline && r ? <div className="lesson-rows__text"><RecordingText recording={r} transcriber={transcriber} reviewService={transcriberService} onChanged={onReload} moments={row.moments || []} /></div> : null}
+            {!r && row.moments?.length ? <div className="lesson-rows__text"><LessonMoments moments={row.moments} /></div> : null}
           </div>;
         })}</div>
       ) : <EmptyState title="Live Classroomi tunde veel ei ole" description="Tund ilmub siia, kui see on salvestatud või tahvlile on tehtud tunnileht." />}
       {open ? <Modal open title={`Tunni analüüs · ${dateLabel(open.startedAt)} · ${open.title || 'Tund'}`} onClose={() => setOpen(null)} className="modal--transcript">
-        <RecordingText recording={rows.find((row) => row.recording?.id === open.id)?.recording || open} transcriber={transcriber} />
+        {(() => {
+          const row = rows.find((item) => item.recording?.id === open.id);
+          return <RecordingText recording={row?.recording || open} transcriber={transcriber} reviewService={transcriberService} onChanged={onReload} moments={row?.moments || []} />;
+        })()}
       </Modal> : null}
     </Card>
   );

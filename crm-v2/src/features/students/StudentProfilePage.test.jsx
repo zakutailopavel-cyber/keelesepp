@@ -32,6 +32,9 @@ function renderProfile({
   return apis;
 }
 
+// a money figure „1 234,56 €” whose number and euro sign are separate spans (MoneyValue)
+const moneyText = (text) => (_, element) => Boolean(element?.classList?.contains('money-value')) && element.textContent.replace(/\s/g, ' ') === text;
+
 describe('student profile tabs and role access', () => {
   it('the second subject\'s teacher opens the shared card, reads only their lessons and sees only their subject', async () => {
     const apis = renderProfile({
@@ -174,7 +177,7 @@ describe('student profile tabs and role access', () => {
     expect(screen.getByText('Osaliselt makstud')).toBeInTheDocument();
     expect(screen.getAllByText('Makstud').length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: /Loo arve/ })).toHaveAttribute('href', '/finance#kuuarved');
-    expect(within(finance).getAllByText('50,00 €').length).toBeGreaterThan(0);
+    expect(within(finance).getAllByText(moneyText('50,00 €')).length).toBeGreaterThan(0);
   });
 
   it('shows a clear empty finance state in the finance tab', async () => {
@@ -183,7 +186,13 @@ describe('student profile tabs and role access', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Finantsid' }));
 
     expect(await screen.findByText('Õpilasel ei ole veel arveid', {}, { timeout: 4000 })).toBeInTheDocument();
-    expect(screen.getAllByText('0,00 €')).toHaveLength(3);
+    // the summary cards show the euro sign in its own lighter span (components/charts/MetricCard)
+    expect(screen.getAllByText(moneyText('0,00 €'))).toHaveLength(3);
+  });
+
+  it('an admin sees „Teekond sihttasemeni” on the overview', async () => {
+    renderProfile();
+    expect(await screen.findByRole('heading', { name: 'Teekond sihttasemeni' }, { timeout: 4000 })).toBeInTheDocument();
   });
 
   it('blocks a teacher from another teacher’s student before loading related data', async () => {
@@ -206,6 +215,8 @@ describe('student profile tabs and role access', () => {
 
     expect(await screen.findByText('Mari Maas')).toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: 'Finantsid' })).not.toBeInTheDocument();
+    // „Teekond sihttasemeni” is the administrator's (owner 2026-11-04)
+    expect(screen.queryByRole('heading', { name: 'Teekond sihttasemeni' })).toBeNull();
     fireEvent.click(screen.getByRole('tab', { name: 'Tunnid' }));
     expect(await screen.findByText('Iganädalane · Mon · 12:00', {}, { timeout: 4000 })).toBeInTheDocument();
     expect(apis.invoiceApi.listByStudent).not.toHaveBeenCalled();

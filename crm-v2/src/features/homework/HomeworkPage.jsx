@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { Archive, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Mic, Paperclip, PlayCircle, Plus, RotateCcw, Search, Star, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -7,7 +8,9 @@ import TaskAnswerForm from './TaskAnswerForm.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, interactiveAssignmentsService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { interactiveAssignmentsService } from '../../services/firebase/interactiveAssignments.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import InteractiveLessonPlayer from './InteractiveLessonPlayer.jsx';
 import { ASSIGNMENT_STATUS_LABEL } from './interactiveLessonModel.js';
@@ -204,7 +207,7 @@ function StaffHomeworkPage({ repository = homeworkService, studentRepository = s
     } catch (error) { setActionError(error.message || 'Kodutööd ei saanud tagasi võtta.'); }
   };
   const closeTasks = async (items, ask) => {
-    if (!items.length || (ask && !globalThis.confirm(ask))) return;
+    if (!items.length || (ask && !(await askConfirm(ask)))) return;
     setActionError('');
     try {
       await (repository.closeMany ? repository.closeMany(items.map((item) => item.id)) : Promise.all(items.map((item) => repository.setStatus(item.id, 'Suletud'))));
@@ -266,7 +269,7 @@ function StaffHomeworkPage({ repository = homeworkService, studentRepository = s
           const materialTask = Boolean(!exerciseTask && (item.sourceId || item.attachments?.length || item.fileUrl));
           return <article className={done || closed ? 'task-row is-done' : 'task-row'} key={item.id} data-entity="homework" data-assignment-id={item.id} data-entity-title={[item.studentName, item.task].filter(Boolean).join(' · ') || undefined} data-student-id={item.studentId || undefined}>
             <button className="task-check" data-entity-action="toggle" aria-label={done ? 'Märgi pooleliolevaks' : 'Märgi tehtuks'} onClick={async () => { await repository.setStatus(item.id, done ? 'Ootel' : 'Tehtud'); await state.reload(); }}>{done ? <CheckCircle2 /> : <Clock3 />}</button>
-            <div><b className="task-student">{item.studentName || 'Õpilane'}</b><strong className="task-text">{item.task}</strong>{exerciseTask || item.source === 'live-classroom' ? <span>{[exerciseTask ? 'Interaktiivne harjutus' : '', item.source === 'live-classroom' ? 'Tunnist' : ''].filter(Boolean).join(' · ')}</span> : null}
+            <div><b className="task-student">{item.studentName || 'Õpilane'}</b><strong className="task-text">{item.task}</strong>{exerciseTask || item.source === 'live-classroom' || item.source === 'lesson-errors' ? <span>{[exerciseTask ? 'Interaktiivne harjutus' : '', item.source === 'live-classroom' ? 'Tunnist' : '', item.source === 'lesson-errors' ? 'Tunni vigadest' : ''].filter(Boolean).join(' · ')}</span> : null}
               {item.boardPageId ? <Link className="task-link" to={`/board/${item.studentId}?page=${item.boardPageId}`}>Ava tahvlileht „{item.boardPageTitle || 'Tahvlileht'}”</Link> : null}
               {item.worksheetTitle ? <span>Tööleht „{item.worksheetTitle}” on all „Töölehed”</span> : null}
               {item.kind === 'voice' && !(item.studentFiles || []).some(isAudioFile) && item.prompts?.length ? <ul className="voice-answer__prompts">{item.prompts.map((line) => <li key={line}>{line}</li>)}</ul> : null}
@@ -277,7 +280,7 @@ function StaffHomeworkPage({ repository = homeworkService, studentRepository = s
               {studentCanFinish && answering === item.id ? (item.kind === 'voice'
                 ? <VoiceAnswer prompts={item.prompts || []} busy={answerBusy} onSend={(answer) => finishTask(item, answer)} onCancel={() => setAnswering(null)} />
                 : <TaskAnswerForm busy={answerBusy} onSend={(answer) => finishTask(item, answer)} onCancel={() => setAnswering(null)} />) : null}</div>
-            <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}{materialTask ? <button className="task-preview-button" data-entity-action="preview" aria-label={`Eelvaade: ${item.task}`} disabled={loadingMaterial === item.id} onClick={() => openMaterial(item)}>{loadingMaterial === item.id ? <span className="button__spinner" /> : <Eye size={16} />}<span>Eelvaade</span></button> : null}<Badge tone={done ? 'success' : closed ? 'neutral' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : closed ? 'Suletud' : <span title={item.due ? `Tähtaeg ${displayDate(item.due)}` : undefined}>{dueLabel(item.due, today)}</span>}</Badge>{!done && !closed ? <button className="text-button" aria-label={`Sulge: ${item.task}`} title="Sulge (keegi ei tee seda enam)" onClick={() => closeTasks([item])}><Archive size={17} /></button> : null}<button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button></div>
+            <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}{materialTask ? <button className="task-preview-button" data-entity-action="preview" aria-label={`Eelvaade: ${item.task}`} disabled={loadingMaterial === item.id} onClick={() => openMaterial(item)}>{loadingMaterial === item.id ? <span className="button__spinner" /> : <Eye size={16} />}<span>Eelvaade</span></button> : null}<Badge tone={done ? 'success' : closed ? 'neutral' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : closed ? 'Suletud' : <span title={item.due ? `Tähtaeg ${displayDate(item.due)}` : undefined}>{dueLabel(item.due, today)}</span>}</Badge>{!done && !closed ? <button className="text-button" aria-label={`Sulge: ${item.task}`} title="Sulge (keegi ei tee seda enam)" onClick={() => closeTasks([item])}><Archive size={17} /></button> : null}<button className="text-button danger" aria-label="Kustuta" onClick={async () => { if ((await askConfirm('Kas kustutada kodutöö?'))) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button></div>
           </article>;
         })}</div> : <EmptyState title="Kodutöid ei leitud" description="Lisa esimene ülesanne või muuda filtrit." />}
       </Card>

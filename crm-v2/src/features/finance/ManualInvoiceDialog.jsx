@@ -5,6 +5,8 @@ import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
 import { base64DocumentBlob } from '../../services/firebase/paymentDocuments.js';
 import { INVOICE_NOTE_MAX, invoiceNotesService, saveCreationNote } from '../../services/firebase/invoiceNotes.js';
+import { invoicePayerPreview } from './invoicePayer.js';
+import IssuerSelect from './fie/IssuerSelect.jsx';
 
 function nextDueDate() {
   const now = new Date();
@@ -53,7 +55,7 @@ function invoiceStudents(cards = []) {
     .map((card) => {
       const subject = String(card.subject || '').trim();
       const hint = [card.parentName, card.parentEmail || card.email, subject].map((value) => String(value || '').trim()).filter(Boolean).join(' · ');
-      return { id: card.id, name: String(card.name).trim(), subject, parent: String(card.parentName || card.parentEmail || card.email || '').trim(), hint };
+      return { id: card.id, name: String(card.name).trim(), subject, parent: String(card.parentName || card.parentEmail || card.email || '').trim(), hint, payer: invoicePayerPreview(card) };
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'et'));
 }
@@ -84,6 +86,8 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
   const [error, setError] = useState('');
   const [form, setForm] = useState(emptyForm);
   const [query, setQuery] = useState('');
+  // the card the admin already confirmed to bill without an e-mail (a second „Loo arve” goes ahead)
+  const [noEmailConfirmed, setNoEmailConfirmed] = useState('');
 
   // loadingStudents is not a dependency: setting it would re-run the effect, cancel this request and never load
   useEffect(() => {
@@ -128,8 +132,12 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
   const allSubjects = form.studentId === ALL_SUBJECTS && sameName.length > 1;
   const bothLines = allSubjects ? sameName.map((card) => ({ card, amount: form.amounts[card.id] || '' })) : [];
   const bothTotal = bothLines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
+  // the payer the server will store (functions/invoice-payer-core.js): a combined invoice takes its first card
+  const payerCard = allSubjects ? bothLines[0]?.card : selectedStudent;
+  const payer = payerCard ? payerCard.payer || invoicePayerPreview(payerCard) : null;
   const pickName = (value) => {
     setError('');
+    setNoEmailConfirmed('');
     setPickedName(value);
     const cards = students.filter((student) => student.name === value);
     setForm((current) => ({ ...current, studentId: cards.length === 1 ? cards[0].id : '' }));
@@ -140,6 +148,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
     setError('');
     setQuery('');
     setPickedName('');
+    setNoEmailConfirmed('');
     setForm(emptyForm());
   };
 
@@ -156,6 +165,11 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
       if (bothLines.some((line) => !(Number(line.amount) > 0))) return setError('Lisa summa igale ainele.');
     } else if (!(Number(form.amount) > 0)) return setError('Lisa korrektne summa.');
     if (!form.due) return setError('Lisa maksetähtaeg.');
+    // no e-mail on the card (nor a linked parent account): warn once, a second press creates it anyway
+    if (payer?.missingEmail && noEmailConfirmed !== form.studentId) {
+      setNoEmailConfirmed(form.studentId);
+      return setError('Arvel pole saaja e-posti: lisa õpilase kaardile lapsevanema e-post (arved) või vajuta uuesti, et luua arve ilma e-postita.');
+    }
 
     if (allSubjects) {
       setSaving(true);
@@ -300,6 +314,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             onChange={(event) => setForm({ ...form, due: event.target.value })}
             required
           />
+          <IssuerSelect id="manual-invoice-issuer" value={form.issuer || ''} onChange={(issuer) => setForm({ ...form, issuer })} />
           <div className="field form-grid__wide">
             <label className="field__label" htmlFor="manual-invoice-note">Sisemine märkus</label>
             <textarea
@@ -323,6 +338,12 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
               Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong>{subjectOf(selectedStudent) ? <> ({subjectOf(selectedStudent)})</> : null} ja lisatakse kohe arvete nimekirja.
             </p>
           ) : null}
+          {payer ? (
+            <p className={`form-hint form-grid__wide${payer.missingEmail || payer.shortName ? ' manual-invoice-payer--warning' : ''}`} data-testid="manual-invoice-payer">
+              Maksja: <strong>{payer.payerName || '—'}</strong> · {payer.email || (payer.missingEmail ? 'Arvel pole saaja e-posti' : 'e-post lapsevanema kontolt')}
+              {payer.shortName ? <> · Kaardil on ainult üks nimi („{payer.studentName}”): arvele läheb kaardi nimi, paranda see enne kaardil.</> : null}
+            </p>
+          ) : null}
         </form>
         <aside className="manual-invoice-preview" aria-label="Arve eelvaade">
           <div className="manual-invoice-preview__label">Arve eelvaade</div>
@@ -339,8 +360,8 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             <h3>ARVE</h3>
             <section className="manual-invoice-paper__payer">
               <span>Maksja / õpilane</span>
-              <strong>{selectedStudent?.name || name || 'Vali õpilane'}</strong>
-              <small>{selectedStudent?.hint || 'Maksja andmed lisatakse õpilase kaardilt'}</small>
+              <strong>{payer?.payerName || selectedStudent?.name || name || 'Vali õpilane'}</strong>
+              <small>{payer ? [payer.payerName !== payer.studentName ? `Õpilane: ${payer.studentName}` : '', payer.email || (payer.missingEmail ? 'Arvel pole saaja e-posti' : '')].filter(Boolean).join(' · ') || selectedStudent?.hint : 'Maksja andmed lisatakse õpilase kaardilt'}</small>
             </section>
             <div className="manual-invoice-paper__line">
               <span>Nimetus</span><span>Kogus</span><span>Summa</span>

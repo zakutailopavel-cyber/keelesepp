@@ -1,9 +1,11 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { CheckCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Card, EmptyState } from '../../components/ui/index.js';
 import LessonDetailModal from './LessonDetailModal.jsx';
 import { occurrencesForDates, shiftDate } from '../calendar/calendarView.js';
+import { announceLessonChanged } from '../calendar/lessonActions.js';
 import { itemSubject, subjectsOf } from './subjects.js';
 import { localDate } from '../../utils/localDate.js';
 import { displayDate } from '../finance/finance.js';
@@ -71,7 +73,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
   const change = async (lesson, next) => {
     const current = markOf(lesson);
     if (next === current) return;
-    if (next === 'remove' && !globalThis.confirm('Eemalda tunni märge? Tund on siis jälle planeeritud ja seda ei arvestata arvel.')) return;
+    if (next === 'remove' && !(await askConfirm('Eemalda tunni märge? Tund on siis jälle planeeritud ja seda ei arvestata arvel.'))) return;
     setBusy(lesson.id); setError(''); setNotice('');
     try {
       const recurring = schedule.find((item) => item.id === lesson.scheduleId)?.recurring;
@@ -87,6 +89,8 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
         updated = await lessonApi.changeMark(lesson, next, user, options);
       }
       onChanged(lessons.flatMap((item) => (item.id !== lesson.id ? [item] : updated ? [{ ...item, ...updated }] : [])));
+      // the card in the side drawer: the calendar / dashboard / „Märkimata tunnid” under it read the journal again
+      announceLessonChanged(lesson.scheduleId || lesson.id);
       setNotice(next === 'remove' ? 'Märge eemaldati, tund on jälle planeeritud.' : `Tund ${displayDate(lesson.date)}: ${LESSON_MARKS.find((mark) => mark.value === next)?.label}.`);
     } catch (changeError) {
       setError(changeError.message || 'Tunni staatust ei saanud muuta.');

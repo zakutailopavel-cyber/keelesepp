@@ -1,7 +1,8 @@
 import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Button, Modal } from '../../components/ui/index.js';
-import { lessonChangeRequestsService, teacherAvailabilityService } from '../../services/firebase/index.js';
+import { Button, Modal, LoadingState } from '../../components/ui/index.js';
+import { lessonChangeRequestsService } from '../../services/firebase/lessonChangeRequests.js';
+import { teacherAvailabilityService } from '../../services/firebase/teacherAvailability.js';
 import { buildRequest, isLate, proposalSlots, slotLabel } from '../calendar/rescheduleModel.js';
 import { localDate } from '../../utils/localDate.js';
 
@@ -57,7 +58,7 @@ export default function RescheduleDialog({ lesson, student, user, role = 'studen
     </div>
     {absent ? <p className="form-hint">Õpetaja saab teate, et sa sellesse tundi ei tule.</p> : <>
     <p className="form-hint">Vali kuni kolm uut aega õpetaja vabadest aegadest. Õpetaja kinnitab ühe neist.</p>
-    {slots === null ? <p className="form-hint">Laen vabu aegu…</p> : slots.length ? <div className="form-actions" role="group" aria-label="Uued ajad">
+    {slots === null ? <LoadingState inline className="form-hint" label="Laen vabu aegu…" /> : slots.length ? <div className="form-actions" role="group" aria-label="Uued ajad">
       {slots.map((slot) => {
         const on = picked.some((item) => item.date === slot.date && item.time === slot.time);
         return <Button key={`${slot.date} ${slot.time}`} variant={on ? 'primary' : 'secondary'} aria-pressed={on} onClick={() => toggle(slot)}>{slotLabel(slot)}</Button>;

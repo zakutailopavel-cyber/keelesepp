@@ -27,11 +27,28 @@ const accountIds = (card, keys, listKey) => [...new Set([...keys.map((key) => ca
 const studentIdsOf = (card) => accountIds(card, ["linkedUserId", "studentUid"], "linkedUserIds");
 const parentIdsOf = (card) => accountIds(card, ["linkedParentId", "parentUid", "guardianUid"], "linkedParentIds");
 
+// Which card an account may be linked to (Oleksiy 2026-11-06: „Невозможно добавить родителю архивированного
+// ученика”). A parent may be linked to an active OR an archived card (the parent's „Minu pere” still shows only active
+// cards); never to a card in the „Prügikast” (deletedAt / purgedAt, #1124) or a card merged into another one. A
+// student's own login keeps the old rule: active cards only. Returns null or { status, message }.
+function linkCardRefusal(card, relationship = "parent") {
+  const name = clean(card?.name) || clean(card?.id) || "";
+  if (!card) return { status: 404, message: "Õpilase kaarti ei leitud." };
+  if (card.deletedAt || card.purgedAt) return { status: 409, message: `Õpilase kaart „${name}” on prügikastis. Taasta see enne sidumist.` };
+  if (card.mergedInto || card.mergedIntoStudentId) return { status: 409, message: `Õpilase kaart „${name}” on liidetud teise kaardiga. Seo alles jäänud kaart.` };
+  if (relationship !== "parent" && card.active === false) return { status: 404, message: "Aktiivset õpilase kaarti ei leitud." };
+  return null;
+}
+
 // cards: [{ id, ...data }] of the chosen children; existing: the Firebase account with the e-mail (or null) and its
 // users/{uid} profile. A new e-mail gets a new account; an existing parent (or a student who is also a parent) is
 // linked to the cards it is not on yet and gets a new password link. Staff logins and a child's own login never.
 function parentInvitePlan({ cards = [], existing = null, existingProfile = {} }) {
-  if (cards.some((card) => !card || card.active === false)) throw fail(404, "Aktiivset õpilase kaarti ei leitud.");
+  // archived cards are accepted, cards in the trash / merged away are refused (linkCardRefusal)
+  for (const card of cards) {
+    const refusal = linkCardRefusal(card, "parent");
+    if (refusal) throw fail(refusal.status, refusal.message);
+  }
   if (!existing) return { action: "create", link: cards.map((card) => card.id) };
   const roles = [String(existingProfile.role || "").toLowerCase(), ...(existingProfile.roles || []).map((role) => String(role).toLowerCase())];
   if (roles.some((role) => STAFF.has(role))) throw fail(409, "See e-post on töötaja konto. Kasuta lapsevanema enda e-posti.");
@@ -48,4 +65,4 @@ function parentCardPatch(card = {}, parent = {}) {
   return patch;
 }
 
-module.exports = { parentInviteInput, parentInvitePlan, parentCardPatch, parentIdsOf, studentIdsOf };
+module.exports = { linkCardRefusal, parentInviteInput, parentInvitePlan, parentCardPatch, parentIdsOf, studentIdsOf };

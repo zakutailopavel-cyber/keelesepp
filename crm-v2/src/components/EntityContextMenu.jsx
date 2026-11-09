@@ -2,7 +2,9 @@ import { Archive, BookOpen, CalendarPlus, Check, Copy, CreditCard, ExternalLink,
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { studentsService } from '../services/firebase/students.js';
+import { askConfirm } from './ui/ConfirmHost.jsx';
 import { actionLabel, actionsFor, ENTITY_TYPES, entityAt, pressTarget } from './entityMenu/entityRegistry.js';
+import { openDrawer } from './entityDrawer/entityDrawer.js';
 import './entityContextMenu.css';
 
 const ICONS = {
@@ -110,7 +112,7 @@ export default function EntityContextMenu({ roles = [], enabled = true, services
   if (!menu) return null;
   const { type: typeName, data, element, record } = menu;
   const type = ENTITY_TYPES[typeName];
-  const actions = actionsFor(typeName, roles, data, { record, element });
+  const actions = actionsFor(typeName, roles, data, { record, element, pathname });
   if (!actions.length) return null;
 
   const onKeyDown = (event) => {
@@ -134,13 +136,15 @@ export default function EntityContextMenu({ roles = [], enabled = true, services
   const setRecord = (patch) => setMenu((current) => ({ ...current, record: { ...current.record, ...patch } }));
   const students = services.students;
 
-  const choose = (action) => {
+  const choose = async (action) => {
+    // a panel in the side drawer over this page; without a mounted drawer the entity's own page
+    if (action.kind === 'drawer') { close(); if (!openDrawer({ ...data, kind: action.drawer || 'student' }) && action.to) navigate(action.to(data, { pathname })); return; }
     if (action.to) { close(); navigate(action.to(data, { pathname })); return; }
     if (action.press) { const button = pressTarget(element, action.press); close(); button?.click(); return; }
     if (action.copy) { copy(action.copy(data, record)); return; }
     if (action.kind === 'rename') { setRenaming(record?.name || ''); return; }
     if (action.kind === 'restore') { run(() => students.restore([data.studentId]), () => { setRecord({ active: true }); return 'Õpilane taastatud.'; }); return; }
-    if (action.kind === 'archive' && globalThis.confirm(`Arhiveerida ${record?.name || 'õpilane'}? Tunnid, arved ja ajalugu jäävad alles.`)) {
+    if (action.kind === 'archive' && await askConfirm(`Arhiveerida ${record?.name || 'õpilane'}? Tunnid, arved ja ajalugu jäävad alles.`, { confirmLabel: 'Arhiveeri', danger: true })) {
       run(() => students.archive([data.studentId]), () => { setRecord({ active: false }); return 'Õpilane arhiveeritud.'; });
     }
   };

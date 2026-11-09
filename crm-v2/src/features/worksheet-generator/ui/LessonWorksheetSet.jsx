@@ -3,8 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { Badge, Button, Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
+import { askConfirm } from '../../../components/ui/ConfirmHost.jsx';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
-import { lessonWorksheetsService, levelVocabularyService } from '../../../services/firebase/index.js';
+import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
+import { levelVocabularyService } from '../../../services/firebase/levelVocabulary.js';
 import { FOCUS_PHASES, focusWorksheetId } from '../engine/focusWorksheet.js';
 import { CORE_SHEETS, generateCoreSheets, generateFocusSheet } from './lessonGeneration.js';
 import { canCreateContentPackDraft, createContentPackDraft } from '../factory/factory.js';
@@ -99,7 +101,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
 
   const generate = async () => {
     const existing = coreSheets;
-    if (existing.length && !globalThis.confirm(`Tunnil on juba ${existing.length} põhitöölehte. Genereerimine loob neist uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?`)) return;
+    if (existing.length && !(await askConfirm(`Tunnil on juba ${existing.length} põhitöölehte. Genereerimine loob neist uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?`, { confirmLabel: 'Genereeri' }))) return;
     setBusy(true); setError(''); setNotice('');
     try {
       const { variant } = await generateCoreSheets({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user });
@@ -121,7 +123,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
     }
     const worksheetId = focusWorksheetId({ focusIds: [selectedFocusId], phase: focusPhase });
     const current = byId.get(worksheetId);
-    if (current && !globalThis.confirm(`Fookuse tööleht „${current.displayLabel || current.title}” on juba olemas. Loon sellest uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?`)) return;
+    if (current && !(await askConfirm(`Fookuse tööleht „${current.displayLabel || current.title}” on juba olemas. Loon sellest uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?`, { confirmLabel: 'Genereeri' }))) return;
 
     setFocusBusy(true); setError(''); setNotice('');
     try {
@@ -136,7 +138,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   };
 
   return (
-    <div className="page-content generator-set-page">
+    <div className="page-content generator-set-page" data-theme-scope="light">
       <Link className="generator-back" to="/library"><ArrowLeft size={16} /> Õppevara</Link>
       <PageHeader
         eyebrow="Tunni töölehed"

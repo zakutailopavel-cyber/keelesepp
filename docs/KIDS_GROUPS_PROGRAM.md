@@ -2,7 +2,7 @@
 
 Owner 2026-10-28: three Sunday groups (up to 5 children) with a full lesson plan, colouring pages, tracing and home tasks.
 Source of truth in code: `crm-v2/src/features/worksheet-generator/admin/course/kids/program56.js`, `program67.js`, `program89.js` (content), `kids/sheets.js` (three sheets a lesson), `crm-v2/src/features/curriculum/kidsCurriculum.js` (Õppevara records and the teacher's plan minute by minute). Campaigns: `features/campaigns/kidsCampaigns.js`.
-Sheets per lesson: 1 „Tunnis: uued sõnad” (chant, words with pictures), 2 „Tunnis: harjutame” (colouring by numbers, tracing, counting / letter hunt), 3 „Kodus vanemaga” (parents' note in Russian, colouring, tracing). For 8–9: 1 „Loeme”, 2 „Harjutame keelt”, 3 „Kirjutame ja räägime”.
+Sheets per lesson: 1 „Tunnis: uued sõnad” (chant, words with pictures), 2 „Tunnis: harjutame” (colouring by numbers, tracing, counting / letter hunt), 3 „Kodus vanemaga” (parents' note in Russian, colouring, tracing). For 8–9: 1 „Loeme”, 2 „Harjutame keelt”, 3 „Kirjutame ja räägime” — full sheets since 2026-11-06 (content `kids/school89.js`): 1 = before reading, words with forms + Russian, words with pictures, text (~85 words in lesson 1 → ~145 by lesson 10–12) with 5 short-answer questions, true/false, choice, „Keelekast” (the lesson's focus with a Russian hint), a first use; 2 = rule, „Mäletad?”, 7–8 auto-checked exercises (easy → harder); 3 = model text, sentence starters, plan, writing 5–7 sentences, one-minute talk with prompts, parents' note, „Ma oskan”.
 Blocks used: `coloring`, `tracing`, `counting`, `letterhunt`, `readcard` (engine/blocks/kids.jsx); pictures `public/kids-art/*.svg` (`node scripts/kids-art.mjs`).
 
 ## Eelkool pühapäeviti (5–6-aastased) — 45 min, Eelkool 5–6 a

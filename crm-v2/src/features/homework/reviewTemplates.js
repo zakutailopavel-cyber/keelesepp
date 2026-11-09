@@ -1,17 +1,10 @@
 // Quick review: a grade suggested from the automatic check and ready-made feedback lines, so a teacher can confirm an
 // auto-checked work in one click or write a comment with a few taps. The teacher's choice always wins.
 import { describeAutoErrors } from '../worksheet-studio/engine/errorText.js';
+import { suggestedGrade } from './gradeSuggestion.js';
 
-// percentage of correct answers → grade 1–5 (null when the work was not checked automatically)
-export function suggestedGrade(percentage) {
-  if (percentage == null || !Number.isFinite(Number(percentage))) return null;
-  const p = Number(percentage);
-  if (p >= 90) return 5;
-  if (p >= 75) return 4;
-  if (p >= 50) return 3;
-  if (p >= 30) return 2;
-  return 1;
-}
+// kept here for the existing importers; paperWork.js imports gradeSuggestion.js directly (no worksheet blocks)
+export { suggestedGrade };
 
 // one line for the one-click confirmation
 export function quickFeedback(percentage) {

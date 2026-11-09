@@ -122,5 +122,41 @@ topic yet; the owner decides whether to add one or attach it to the nearest less
 | 7.6 Nimisõna- ja omadussõnamoodustus | 273 | — |
 | Grammatikatabelid | 276 | reference for every grammar lesson |
 
+### Own material: „Sihitis” (b1b2-016) — basis: Tiina Leemets, „Sihitis eesti (õigus)keeles”, Õiguskeel 2023/2
+
+- Owner 2026-11-04 chose this article as the basis of the Õpik sheet of b1b2-016 „Täissihitis ja osasihitis”.
+- **Permission to copy the article: not recorded.** So the sheet is **our own wording, not a copy**: only the grammar facts
+  are used (also in Erelt, Erelt, Ross „Eesti keele käsiraamat” and EKI's „Sihitis”): osasihitis is the default;
+  täissihitis needs all four of jaatav lause, tulemus, piiritletud tervik and a verb that allows it; aspekt-,
+  perfektiiv-, partitiiv- and weak partitive verbs; omastav vs nimetav (mitmus, umbisikuline, käsk incl. palun / soovitan
+  + da, da-infinitive that is not itself the object; a reported order allows both). No sentence or example of the article
+  is used; all examples are everyday B1+ sentences written for the sheet. The article's legal-text examples are not used.
+- Data: `textbook/sihitis.json` (book `oma-sihitis`), `pages: ''` → the sheet's subtitle is just „Õpik” (no page numbers;
+  `textbook/index.js`). No author or source line on the sheet. Not in `functions/textbooks.json` (that file lists only
+  the books the AI connector reads, with photographed pages; „Grammatika” is not there either).
+- Sheet: intro, 3 rule tables (osa vs täis; verb groups; omastav vs nimetav), „4 küsimust” checklist, NB, 6 exercises
+  (16 gaps, 6 + 7 transformations, 14-verb sort, 7 rewrites, 8 error corrections). Keys checked by `textbook.test.js`.
+- Publishing: „Kursuse tootmine” → „Õpik” → row b1b2-016 → „Avalda” (admin, with confirmation).
+
+### Own material: „Kus? Kuhu? Kust?” (a2-017, a2-018, a2b1-012) — kohakäänded
+
+- Owner 2026-11-04: the local cases must exist as an Õpik sheet with full theory and exercises, structured around the
+  three questions KUS? · KUHU? · KUST?. No licensed book pages for this topic → **own wording and own examples**, no book
+  copied. Forms chosen from words whose forms are certain; both variants accepted where both are correct
+  (kooli ~ koolisse, kööki ~ köögisse, majja ~ majasse, kinno ~ kinosse, Lätti ~ Lätisse).
+- Data: `textbook/kohakaanded.json` (book `oma-kohakaanded`, „KeeleSepa oma materjal: kohakäänded”), `pages: ''` →
+  subtitle just „Õpik”. Three sheets:
+  - a2-017 „Kus? Kuhu? Kust? — sees” (A2): KUS·KUHU·KUST table (both rows), sees-käänded, omastav + ending (11 words),
+    22 short illatives, NB; 7 tasks: choice 10, gaps 12, short/long illative 12, olen→lähen/tulen 10, text 14, errors 8,
+    RU→ET 6.
+  - a2-018 „Kus? Kuhu? Kust? — peal” (A2): KUS·KUHU·KUST table, peal-käänded, omastav + ending (12), sees vs peal list
+    (28 words), rule box (pind / üritus / lahtine koht / erandid jaamas, rannas, trennis, tunnis / juures / kellel?);
+    7 tasks: choice 10, sort 22, gaps 14, olen→lähen/tulen 10, text 11, errors 8, RU→ET 7.
+  - a2b1-012 „Kus? Kuhu? Kust? — kokkuvõte” (A2+): all six forms + juures + kellel/kellele/kellelt + adverbs, case
+    names, step-by-step building (8 words), short illative rules, when sees/peal, place names (-maa, Otepää, Toompea,
+    Lasnamäe, Mustamäe → -l), verb table (kus / kuhu / kust / külastama + osastav), traps, common errors; 7 tasks:
+    verb-driven gaps 16, verb choice 8, places 8, kellel? 6, text 14, errors 9, writing (5–7 sentences, teacher).
+- Publishing: „Kursuse tootmine” → „Õpik” → row → „Avalda” (admin, owner's decision). Not published by the agent.
+
 One lesson has one „Õpik” sheet. When two books (or two chapters) fit the same lesson, they go into that sheet one
 after the other, each with its own source line.

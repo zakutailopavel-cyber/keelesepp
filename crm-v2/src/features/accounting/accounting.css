@@ -24,10 +24,10 @@
 }
 
 .accounting-tabs button {
-  background: #f4f6f8;
-  border: 1px solid #e3e8ee;
-  border-radius: 999px;
-  color: #344054;
+  background: var(--app-bg);
+  border: 1px solid #e3e8ee;border:1px solid light-dark(#e3e8ee,#333940);
+  border-radius: var(--radius-pill);
+  color: var(--gray-700);
   cursor: pointer;
   font-weight: 600;
   padding: 7px 14px;
@@ -51,6 +51,22 @@
   min-width: 160px;
 }
 
+.accounting-period__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* käibeandmik: a period that does not start on 1 January (accountingPeriod.js TRIAL_MID_YEAR_NOTE) */
+.accounting-trial__note {
+  background: #eff8ff;background:light-dark(#eff8ff,#121f29);
+  border: 1px solid #b2ddff;border:1px solid light-dark(#b2ddff,#21445e);
+  color: var(--info-text);
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+}
+
 .accounting-card {
   overflow: hidden;
   padding: 0;
@@ -58,7 +74,7 @@
 
 .accounting-card__search {
   align-items: center;
-  border-bottom: 1px solid #eef1f4;
+  border-bottom: 1px solid #eef1f4;border-bottom:1px solid light-dark(#eef1f4,#2f353d);
   display: flex;
   gap: 12px;
   justify-content: space-between;
@@ -66,8 +82,8 @@
 }
 
 .accounting-card__search input {
-  border: 1px solid #dfe5ea;
-  border-radius: 10px;
+  border: 1px solid #dfe5ea;border:1px solid light-dark(#dfe5ea,#343b41);
+  border-radius: var(--radius-md);
   flex: 1;
   min-height: 40px;
   padding: 0 12px;
@@ -90,24 +106,24 @@
 }
 
 .accounting-table .accounting-entry td {
-  background: #f8faf9;
-  border-top: 2px solid #e6ece9;
+  background: #f8faf9;background:light-dark(#f8faf9,#1a1f25);
+  border-top: 2px solid #e6ece9;border-top:2px solid light-dark(#e6ece9,#313840);
 }
 
 .accounting-table .accounting-line td {
-  color: #475467;
+  color: var(--gray-600);
   font-size: .92rem;
 }
 
 .accounting-table .is-reversed td {
-  color: #98a2b3;
+  color: var(--gray-400);
 }
 
 .accounting-table .link-button,
 .accounting-grid .link-button {
   background: none;
   border: 0;
-  color: #0f6b4f;
+  color: #0f6b4f;color:light-dark(#0f6b4f,#80d0af);
   cursor: pointer;
   font-weight: 700;
   padding: 0;
@@ -132,7 +148,7 @@
 }
 
 .accounting-statement h3 {
-  color: #667085;
+  color: var(--gray-500);
   font-size: .75rem;
   letter-spacing: .03em;
   margin: 14px 0 4px;
@@ -152,7 +168,7 @@
 }
 
 .accounting-statement p.total {
-  border-top: 1px solid #e3e8ee;
+  border-top: 1px solid #e3e8ee;border-top:1px solid light-dark(#e3e8ee,#333940);
   font-weight: 700;
   padding-top: 4px;
 }
@@ -171,22 +187,22 @@
 }
 
 .accounting-lines__head {
-  color: #667085;
+  color: var(--gray-500);
   font-size: .75rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .accounting-lines__row input {
-  border: 1px solid #dfe5ea;
-  border-radius: 8px;
+  border: 1px solid #dfe5ea;border:1px solid light-dark(#dfe5ea,#343b41);
+  border-radius: var(--radius-sm);
   min-height: 38px;
   padding: 0 10px;
   width: 100%;
 }
 
 .accounting-lines__row label small {
-  color: #667085;
+  color: var(--gray-500);
   display: block;
   font-size: .75rem;
   margin-top: 2px;
@@ -202,13 +218,13 @@
 
 .accounting-lines__foot .is-ok,
 .accounting-statement .is-ok {
-  color: #0f6b4f;
+  color: #0f6b4f;color:light-dark(#0f6b4f,#80d0af);
   font-weight: 700;
 }
 
 .accounting-lines__foot .is-off,
 .accounting-statement .is-off {
-  color: #b42318;
+  color: var(--danger-text);
   font-weight: 700;
 }
 
@@ -225,7 +241,7 @@
   }
 
   .accounting-lines__row {
-    border-bottom: 1px solid #eef1f4;
+    border-bottom: 1px solid #eef1f4;border-bottom:1px solid light-dark(#eef1f4,#2f353d);
     grid-template-columns: 1fr 1fr;
     padding-bottom: 8px;
   }
@@ -263,7 +279,7 @@
 }
 
 .accounting-sheet__filters dt {
-  color: #475467;
+  color: var(--gray-600);
 }
 
 .accounting-sheet__filters dd {
@@ -292,7 +308,7 @@
 }
 
 .accounting-grid thead th {
-  background: #dce9f7;
+  background: #dce9f7;background:light-dark(#dce9f7,#05192d);
   font-weight: 700;
 }
 
@@ -319,7 +335,7 @@
 }
 
 .accounting-grid__entry td {
-  background: #e5e7eb;
+  background: #e5e7eb;background:light-dark(#e5e7eb,#13191e);
   font-weight: 700;
 }
 
@@ -329,7 +345,7 @@
 }
 
 .accounting-grid__actions span {
-  color: #b54708;
+  color: var(--warning-text);
   margin-right: 8px;
 }
 
@@ -346,11 +362,11 @@
 }
 
 .accounting-grid tbody.is-reversed td {
-  color: #667085;
+  color: var(--gray-500);
 }
 
 .accounting-sheet__footer {
-  color: #475467;
+  color: var(--gray-600);
   display: flex;
   font-size: 0.8rem;
   justify-content: space-between;
@@ -363,11 +379,11 @@
 
 /* a manual entry typed into the grid: the inputs fill their cells like spreadsheet cells */
 .accounting-draft td {
-  background: #fffdf2;
+  background: #fffdf2;background:light-dark(#fffdf2,#23200f);
 }
 
 .accounting-draft .accounting-grid__entry td {
-  background: #f3efd9;
+  background: #f3efd9;background:light-dark(#f3efd9,#211a00);
 }
 
 .accounting-draft input {
@@ -381,7 +397,7 @@
 }
 
 .accounting-draft input:focus {
-  background: #fff;
+  background: var(--surface);
   outline: 2px solid #12372a;
   outline-offset: -2px;
 }
@@ -395,7 +411,7 @@
 }
 
 .accounting-draft__account small {
-  color: #667085;
+  color: var(--gray-500);
   font-size: 0.72rem;
   font-weight: 400;
 }
@@ -408,11 +424,11 @@
 }
 
 .accounting-draft__actions .is-ok {
-  color: #067647;
+  color: var(--success-text);
 }
 
 .accounting-draft__actions .is-off {
-  color: #b42318;
+  color: var(--danger-text);
 }
 
 .accounting-draft__buttons {
@@ -430,13 +446,13 @@
   border-radius: 3px;
   font-size: 11px;
   font-weight: 600;
-  color: #4b5563;
+  color: #4b5563;color:light-dark(#4b5563,#bbc0c8);
 }
 
 .accounting-grid tr.accounting-grid__history td {
-  background: #fffbea;
+  background: #fffbea;background:light-dark(#fffbea,#251f02);
   font-size: 12px;
-  color: #4b5563;
+  color: #4b5563;color:light-dark(#4b5563,#bbc0c8);
 }
 
 .accounting-grid tr.accounting-grid__history div {
@@ -444,8 +460,8 @@
 }
 
 .accounting-draft input.accounting-draft__reason {
-  background: #fff;
-  border: 1px solid #c7ced8;
+  background: var(--surface);
+  border: 1px solid #c7ced8;border:1px solid light-dark(#c7ced8,#3d4652);
   margin: 0;
   width: 260px;
 }
@@ -472,28 +488,28 @@
 }
 
 .accounting-grid td.is-selected {
-  background: #d9ebe2;
+  background: #d9ebe2;background:light-dark(#d9ebe2,#001e12);
 }
 
 .accounting-grid td.is-active {
-  background: #fff;
+  background: var(--surface);
   box-shadow: inset 0 0 0 2px #12372a;
 }
 
 .accounting-grid td.is-bad {
-  color: #b42318;
+  color: var(--danger-text);
 }
 
 .accounting-grid tbody.is-dirty td {
-  background: #fffdf2;
+  background: #fffdf2;background:light-dark(#fffdf2,#23200f);
 }
 
 .accounting-grid tbody.is-dirty .accounting-grid__entry td {
-  background: #f3efd9;
+  background: #f3efd9;background:light-dark(#f3efd9,#211a00);
 }
 
 .accounting-grid tbody.is-invalid td {
-  background: #fef3f2;
+  background: var(--danger-soft);
 }
 
 .accounting-grid tbody.is-invalid tr:first-child td {
@@ -505,7 +521,7 @@
 }
 
 .accounting-grid .accounting-cell__editor {
-  background: #fff;
+  background: var(--surface);
   border: 0;
   font: inherit;
   margin: -3px -6px;
@@ -526,7 +542,7 @@
 }
 
 .accounting-cell__account small {
-  color: #b42318;
+  color: var(--danger-text);
   font-size: 0.72rem;
 }
 
@@ -545,7 +561,7 @@
 }
 
 .accounting-cell__rowtools button {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid #8c96a3;
   border-radius: 3px;
   cursor: pointer;
@@ -565,17 +581,17 @@
   font: inherit;
   border: 1px solid currentColor;
   border-radius: 4px;
-  background: var(--color-surface, #fff);
+  background: var(--color-surface, var(--surface));
   color: var(--color-text, inherit);
 }
 
 .accounting-grid__pending {
-  color: #93370d;
+  color: #93370d;color:light-dark(#93370d,#fca585);
   font-weight: 400;
 }
 
 .accounting-grid__subtotal .is-off {
-  color: #b42318;
+  color: var(--danger-text);
 }
 
 .accounting-grid__subtotal .link-button {
@@ -584,7 +600,7 @@
 
 .accounting-grid__hint {
   align-items: center;
-  color: #667085 !important;
+  color: var(--gray-500) !important;
   cursor: help;
   display: inline-flex;
   gap: 3px;
@@ -627,7 +643,7 @@
 
 .accounting-grid-tools input,
 .accounting-replace input {
-  border: 1px solid #c7ced8;
+  border: 1px solid #c7ced8;border:1px solid light-dark(#c7ced8,#3d4652);
   border-radius: 4px;
   font: inherit;
   font-size: 0.85rem;
@@ -651,8 +667,8 @@
 }
 
 .accounting-replace {
-  background: #f8fafc;
-  border: 1px solid #c7ced8;
+  background: var(--surface-alt);
+  border: 1px solid #c7ced8;border:1px solid light-dark(#c7ced8,#3d4652);
   border-radius: 4px;
   margin-bottom: 8px;
   padding: 8px;
@@ -663,16 +679,16 @@
 }
 
 .accounting-replace .is-ok {
-  color: #067647;
+  color: var(--success-text);
 }
 
 .accounting-replace .is-off {
-  color: #b42318;
+  color: var(--danger-text);
 }
 
 .accounting-grid-tools__message {
   align-items: center;
-  color: #b42318;
+  color: var(--danger-text);
   display: flex;
   gap: 8px;
   margin: 0 0 8px;
@@ -686,7 +702,7 @@
 
 .accounting-grid-tools__readonly,
 .accounting-grid-tools__keys {
-  color: #667085;
+  color: var(--gray-500);
   font-size: 0.75rem;
   margin: 6px 0 0;
 }
@@ -731,14 +747,14 @@
 
 .accounting-cell__partner small,
 .accounting-draft small.is-off {
-  color: #b42318;
+  color: var(--danger-text);
   display: block;
   font-size: 0.72rem;
   font-weight: 600;
 }
 
 .accounting-cell__missing {
-  color: #b54708;
+  color: var(--warning-text);
 }
 
 .accounting-grid.accounting-journal td {
@@ -752,7 +768,7 @@
 }
 
 .accounting-account-input__list {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid #8c96a3;
   box-shadow: 0 6px 16px rgb(16 24 40 / 14%);
   left: -6px;
@@ -775,7 +791,7 @@
 
 .accounting-account-input__list li.is-active,
 .accounting-account-input__list li:hover {
-  background: #dce9f7;
+  background: #dce9f7;background:light-dark(#dce9f7,#05192d);
 }
 
 /* Partnerid (the accountant 2026-10-24): per partner on one account, the lines open under it */
@@ -801,17 +817,17 @@
 }
 
 .accounting-partners td small {
-  color: #667085;
+  color: var(--gray-500);
   font-weight: 400;
 }
 
 .accounting-partners tbody.is-missing td {
-  color: #b54708;
+  color: var(--warning-text);
 }
 
 .accounting-partners__lines-head td {
-  background: #f3f4f6;
-  color: #475467;
+  background: #f3f4f6;background:light-dark(#f3f4f6,#181d23);
+  color: var(--gray-600);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -822,16 +838,16 @@
 }
 
 .accounting-partners__missing {
-  background: #fffaeb;
-  border: 1px solid #fedf89;
-  color: #93370d;
+  background: var(--warning-soft);
+  border: 1px solid #fedf89;border:1px solid light-dark(#fedf89,#473a11);
+  color: #93370d;color:light-dark(#93370d,#fca585);
   margin: 0 0 10px;
   padding: 8px 10px;
 }
 
 .accounting-partners__hint {
   align-self: end;
-  color: #667085;
+  color: var(--gray-500);
   font-size: 0.82rem;
 }
 
@@ -863,8 +879,8 @@
 .tsd-toolbar .field { margin: 0; }
 .tsd-toolbar__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 .tsd-due { margin: 0 0 10px; }
-.tsd-note { color: #475467; font-size: .9rem; margin: 0; padding: 0 14px 12px; }
-.tsd-warning { align-items: center; color: #b54708; display: flex; gap: 6px; margin: 0; padding: 0 14px 12px; }
+.tsd-note { color: var(--gray-600); font-size: .9rem; margin: 0; padding: 0 14px 12px; }
+.tsd-warning { align-items: center; color: var(--warning-text); display: flex; gap: 6px; margin: 0; padding: 0 14px 12px; }
 .tsd-empty { padding: 16px; }
 .tsd-rates { display: grid; gap: 10px; justify-items: start; padding: 14px; }
 .tsd-rates h2, .tsd-form h2 { font-size: 1rem; margin: 0; padding: 14px 14px 8px; }
@@ -872,23 +888,23 @@
 .tsd-rates .tsd-note { padding: 0; }
 .tsd-grid { min-width: 1240px; }
 .tsd-grid th { vertical-align: bottom; }
-.tsd-grid th small { color: #667085; display: block; font-weight: 400; }
+.tsd-grid th small { color: var(--gray-500); display: block; font-weight: 400; }
 .tsd-grid select { max-width: 92px; }
-.tsd-gross { border: 1px solid #dfe5ea; border-radius: 6px; font-variant-numeric: tabular-nums; min-height: 30px; padding: 0 6px; text-align: right; width: 88px; }
+.tsd-gross { border: 1px solid #dfe5ea;border:1px solid light-dark(#dfe5ea,#343b41); border-radius: 6px; font-variant-numeric: tabular-nums; min-height: 30px; padding: 0 6px; text-align: right; width: 88px; }
 .tsd-grid .num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .tsd-grid tfoot td { font-weight: 700; }
 .tsd-id { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tsd-edit { margin-left: 6px; vertical-align: middle; }
-.tsd-source { color: #0f6b4f; display: block; }
-.tsd-not-calculated { color: #98a2b3; }
-.tsd-warning-row td { background: #fffaeb; color: #b54708; font-size: .88rem; }
+.tsd-source { color: #0f6b4f;color:light-dark(#0f6b4f,#80d0af); display: block; }
+.tsd-not-calculated { color: var(--gray-400); }
+.tsd-warning-row td { background: var(--warning-soft); color: var(--warning-text); font-size: .88rem; }
 .tsd-columns { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 .tsd-form .accounting-grid, .tsd-rates .accounting-grid { min-width: 0; }
 .tsd-form .accounting-grid { margin: 0 14px 10px; width: calc(100% - 28px); }
 .tsd-form .num { font-variant-numeric: tabular-nums; text-align: right; }
 .tsd-form > .button { margin: 0 14px 14px; }
 .tsd-total td { font-weight: 700; }
-.tsd-entry-title { border-top: 1px solid #eef1f4; margin-top: 6px !important; }
+.tsd-entry-title { border-top: 1px solid #eef1f4;border-top:1px solid light-dark(#eef1f4,#2f353d); margin-top: 6px !important; }
 .tsd-check { align-items: flex-start; display: flex; gap: 8px; }
 
 /* „Pank” — Pangapõhine raamatupidamine (BankBooksPanel.jsx) */
@@ -900,11 +916,11 @@
 .bank-books__category { align-items: center; }
 .bank-books__account { width: 76px; }
 .bank-books__totals { display: grid; gap: 4px 16px; grid-template-columns: max-content max-content; margin: 8px 0; }
-.bank-books__totals dt { color: #5b6573; }
+.bank-books__totals dt { color: #5b6573;color:light-dark(#5b6573,#b4b9c0); }
 .bank-books__totals dd { font-variant-numeric: tabular-nums; margin: 0; }
-.bank-books__totals .is-ok { color: #1f7a4d; }
-.bank-books__totals .is-off { color: #b42318; font-weight: 700; }
-.bank-books__ok { align-items: center; color: #1f7a4d; display: flex; gap: 6px; }
+.bank-books__totals .is-ok { color: #1f7a4d;color:light-dark(#1f7a4d,#78cc9a); }
+.bank-books__totals .is-off { color: var(--danger-text); font-weight: 700; }
+.bank-books__ok { align-items: center; color: #1f7a4d;color:light-dark(#1f7a4d,#78cc9a); display: flex; gap: 6px; }
 .bank-books__review { display: grid; gap: 10px; padding-left: 18px; }
 .bank-books details summary { cursor: pointer; }
 @media (max-width: 760px) { .bank-books__totals { grid-template-columns: 1fr 1fr; } }

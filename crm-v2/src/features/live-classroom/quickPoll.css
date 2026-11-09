@@ -1,0 +1,54 @@
+/* „Kiirküsimus”: the teacher's drawer and the student's card over the board */
+.qp-panel { display: grid; gap: 12px; }
+.qp-modes { display: flex; gap: 4px; padding: 3px; border-radius: var(--radius-lg); background: #eef0fa;background:light-dark(#eef0fa,#181a28); }
+.qp-modes button { flex: 1; border: 0; border-radius: 9px; padding: 7px 10px; background: transparent; color: var(--gray-700); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.qp-modes button.is-active { background: var(--surface); color: #1849a9;color:light-dark(#1849a9,#a2c2fc); box-shadow: 0 1px 4px rgba(30, 34, 70, .12); }
+.qp-form select { font: inherit; font-size: 15px; padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); background: var(--surface); }
+.qp-options { display: grid; gap: 6px; margin: 0; padding: 0; border: 0; }
+.qp-options legend { margin-bottom: 4px; font-size: 13px; color: var(--gray-600); }
+.qp-option { display: flex; align-items: center; gap: 6px; }
+.qp-option input[type="radio"] { width: 18px; height: 18px; accent-color: #16a34a; }
+.qp-option input:not([type]) { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 7px 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); }
+.qp-now { display: grid; gap: 4px; padding: 10px 12px; border-radius: var(--radius-lg); background: #f5f6fd;background:light-dark(#f5f6fd,#1b1d26); }
+.qp-now small { font-size: 12px; font-weight: 700; color: #6b7090;color:light-dark(#6b7090,#aeb1c1); text-transform: uppercase; letter-spacing: .02em; }
+.qp-question { margin: 0; font-size: 17px; font-weight: 700; color: #1f2445;color:light-dark(#1f2445,#cbd4fc); line-height: 1.35; }
+.qp-hint { margin: 0; font-size: 13px; color: #6b7090;color:light-dark(#6b7090,#aeb1c1); }
+.qp-gap { display: inline-block; min-width: 4.5em; margin: 0 .2em; padding: 0 .35em; border-bottom: 2px solid #6172f3; border-radius: 4px; background: #eef0fa;background:light-dark(#eef0fa,#181a28); text-align: center; }
+.qp-gap.is-filled { color: #1849a9;color:light-dark(#1849a9,#a2c2fc); }
+.qp-count { margin: 0; font-size: 14px; font-weight: 700; color: var(--gray-700); }
+.qp-results { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.qp-results li { display: grid; grid-template-columns: 1fr 34px; gap: 2px 8px; align-items: center; }
+.qp-results__label { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--gray-700); }
+.qp-results__count { grid-row: span 2; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+.qp-results small { grid-column: 1; font-size: 12px; color: var(--gray-500); }
+.qp-bar { grid-column: 1; height: 8px; border-radius: var(--radius-pill); background: #eef0fa;background:light-dark(#eef0fa,#181a28); overflow: hidden; }
+.qp-bar span { display: block; height: 100%; border-radius: inherit; background: #98a2d3; transition: width .3s ease; }
+.qp-results li.is-correct .qp-bar span { background: #16a34a; }
+.qp-results li.is-correct .qp-results__label { color: #15803d;color:light-dark(#15803d,#6fce86); }
+.qp-mistakes h4 { margin: 0 0 6px; font-size: 14px; }
+.qp-mistakes ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.qp-mistakes li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; font-size: 14px; }
+.qp-saved { color: #15803d;color:light-dark(#15803d,#6fce86); font-weight: 600; }
+
+/* above the tool dock and over the sheet (its sticky bars too), never under the tab bar */
+.qp-card { position: absolute; left: 50%; bottom: 80px; z-index: 30; transform: translateX(-50%); width: min(460px, calc(100% - 32px)); max-height: calc(100% - 140px); display: grid; gap: 10px; padding: 12px 14px 14px; border: 1px solid #d9dcf0;border:1px solid light-dark(#d9dcf0,#393b53); border-radius: 20px; background: var(--surface); box-shadow: 0 18px 44px rgba(36, 41, 74, .22); overflow: hidden auto; animation: qp-in .25s ease-out; }
+.qp-card header { display: flex; align-items: center; justify-content: space-between; }
+.qp-card header strong { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #4f46e5;color:light-dark(#4f46e5,#a6b2fb); }
+.qp-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.qp-choices button { min-height: 48px; padding: 10px 12px; border: 2px solid var(--gray-300); border-radius: 14px; background: var(--surface); color: #1f2445;color:light-dark(#1f2445,#cbd4fc); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform .12s ease, border-color .12s ease; }
+.qp-choices button:not(:disabled):hover { border-color: #6172f3; transform: translateY(-1px); }
+.qp-choices button.is-mine { border-color: #4f46e5; background: #eef0fe;background:light-dark(#eef0fe,#18192d); }
+.qp-choices button.is-correct { border-color: #16a34a; background: #dcfce7;background:light-dark(#dcfce7,#032312); color: #14532d;color:light-dark(#14532d,#9ad8ab); }
+.qp-choices button.is-wrong { border-color: #dc2626; background: #fee2e2;background:light-dark(#fee2e2,#2c0e10); color: #7f1d1d;color:light-dark(#7f1d1d,#feaea6); }
+.qp-choices button:disabled { cursor: default; }
+.qp-status { margin: 0; min-height: 1.2em; font-size: 14px; font-weight: 600; color: var(--gray-600); }
+.qp-card.is-right .qp-status { color: #15803d;color:light-dark(#15803d,#6fce86); font-size: 16px; }
+.qp-card.is-wrong .qp-status { color: var(--danger-text); }
+.qp-card.is-right { animation: qp-in .25s ease-out, qp-pop .5s ease-out .05s; }
+.qp-confetti { position: absolute; inset: 0; pointer-events: none; }
+.qp-confetti i { position: absolute; top: -10px; left: calc(4% + var(--i) * 7%); width: 8px; height: 12px; border-radius: 2px; background: hsl(calc(var(--i) * 47), 85%, 58%); animation: qp-fall 1.4s ease-in calc(var(--i) * 40ms) forwards; }
+@keyframes qp-in { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes qp-pop { 50% { transform: translate(-50%, 0) scale(1.03); } }
+@keyframes qp-fall { to { transform: translateY(260px) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .qp-card, .qp-card.is-right, .qp-confetti i { animation: none; } .qp-confetti { display: none; } }
+@media (max-width: 520px) { .qp-choices { grid-template-columns: 1fr; } .qp-card { bottom: 70px; } }

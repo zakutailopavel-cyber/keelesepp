@@ -38,8 +38,10 @@ function invoiceParties(invoice = {}, student = {}) {
       || student.payerAddress
       || student.address
       || "",
+    // an old invoice made without a payer e-mail shows the address it was actually sent to (display only)
     payerEmail: invoice.payerEmail
       || invoice.parentEmail
+      || invoice.emailRecipient
       || student.payerEmail
       || student.parentEmail
       || student.contactEmail
@@ -95,7 +97,25 @@ const quantityText = (value) => String(Math.round(value * 100) / 100).replace(".
 // Invoice layout of the first KeeleSepp version (haldus printInvoice): seller with address and contacts, number /
 // date / due / currency table, payer and payment terms, a line table with unit, quantity, price and VAT, the sum in
 // words, payment info and signature lines.
-function buildInvoicePdf({ invoice, student = {}, paymentDetails = {}, payUrl = "" }) {
+// „Arve väljastaja” (owner 2026-11-09): an FIE invoice shows only the owner's name and FIE account as the seller
+// (stored on the invoice when it was issued) — no company registry code, address, contacts or card payment link.
+function invoicePaymentDetails(invoice = {}, companyDetails = {}) {
+  if (!invoice || invoice.issuer !== "fie") return companyDetails;
+  const details = invoice.issuerDetails || {};
+  const iban = String(details.iban || "").replace(/\s+/g, "").toUpperCase().replace(/(.{4})/g, "$1 ").trim();
+  return {
+    fie: true,
+    company: String(details.name || ""),
+    iban,
+    issuer: String(details.name || ""),
+    paymentDueDay: companyDetails.paymentDueDay,
+    lateFeePerDay: companyDetails.lateFeePerDay,
+  };
+}
+
+function buildInvoicePdf({ invoice, student = {}, paymentDetails: given = {}, payUrl: givenPayUrl = "" }) {
+  const paymentDetails = invoicePaymentDetails(invoice, given);
+  const payUrl = paymentDetails.fie ? "" : givenPayUrl;
   const invoiceNumber = invoice?.num || invoice?.number;
   if (!invoiceNumber) throw new Error("Invoice number required");
   const parties = invoiceParties(invoice, student);
@@ -140,7 +160,7 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails = {}, payUrl = 
       paymentDetails.address || "",
       paymentDetails.email ? `E-post: ${paymentDetails.email}` : "",
       paymentDetails.phone ? `Tel: ${paymentDetails.phone}` : "",
-      paymentDetails.iban ? `${paymentDetails.iban}, ${paymentDetails.bank || ""}${paymentDetails.swift ? `, SWIFT: ${paymentDetails.swift}` : ""}` : "",
+      paymentDetails.iban ? [paymentDetails.iban, paymentDetails.bank, paymentDetails.swift ? `SWIFT: ${paymentDetails.swift}` : ""].filter(Boolean).join(", ") : "",
     ].filter(Boolean).forEach(value => document.text(value, { width: width - metaWidth - 20 }));
     const metaRows = [["Arve nr.", invoiceNumber], ["Kuupäev", formatEtDate(invoice.date || invoice.createdAt)], ["Tähtaeg", formatEtDate(invoice.due || invoice.dueDate)], ["Valuuta", "EUR"]];
     metaRows.forEach(([label, value], index) => {
@@ -221,7 +241,7 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails = {}, payUrl = 
 
     // payment info + student
     const boxHeight = 74;
-    [[left, "Makseinfo", [`Saaja: ${paymentDetails.company || "KeeleSepp"}`, `IBAN: ${paymentDetails.iban || "—"}`, `Pank: ${paymentDetails.bank || "—"}`, paymentDetails.swift ? `SWIFT: ${paymentDetails.swift}` : ""]],
+    [[left, "Makseinfo", [`Saaja: ${paymentDetails.company || "KeeleSepp"}`, `IBAN: ${paymentDetails.iban || "—"}`, paymentDetails.fie ? "" : `Pank: ${paymentDetails.bank || "—"}`, paymentDetails.swift ? `SWIFT: ${paymentDetails.swift}` : ""]],
       [left + half + 28, isParentInvoice ? "Arve saaja" : "Õpilane", [isParentInvoice ? parties.payerName : studentName || parties.payerName, isParentInvoice && studentName ? `Õpilane: ${studentName}` : "", subject ? `Õppeaine: ${subject}` : ""]],
     ].forEach(([boxLeft, title, rows]) => {
       document.rect(boxLeft, y, half, boxHeight).lineWidth(0.7).strokeColor(border).stroke();
@@ -252,6 +272,7 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails = {}, payUrl = 
 }
 
 module.exports = {
+  invoicePaymentDetails,
   amountInWords,
   buildInvoicePdf,
   invoiceFileName,

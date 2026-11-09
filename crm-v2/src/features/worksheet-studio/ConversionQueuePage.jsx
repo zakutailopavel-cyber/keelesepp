@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, FileImage, FileText } from 'lucide-react';
 import { Badge, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
-import { libraryService } from '../../services/firebase/index.js';
+import { libraryService } from '../../services/firebase/library.js';
 import { CONVERSION_STATUS, conversionQueue, fileKind } from './conversion.js';
 import './worksheetStudio.css';
 
@@ -35,7 +35,7 @@ export default function ConversionQueuePage({ repository = libraryService }) {
   ));
 
   return (
-    <div className="page-content ws-convert">
+    <div className="page-content ws-convert" data-theme-scope="light">
       <PageHeader eyebrow="Õppevara" title="Töölehtede üleviimine" description="Genereeritud pildid ja vanad töölehed viiakse ükshaaval uude, muudetavasse vormingusse. Vana versioon jääb alles." />
       {state.loading ? <LoadingState label="Laen õppematerjale…" /> : state.error ? <ErrorState message={state.error} onRetry={load} /> : (
         <>

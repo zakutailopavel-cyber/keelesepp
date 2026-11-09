@@ -28,6 +28,7 @@ export function analyzeWorksheet(document, { forms = null } = {}) {
     if (block.type === 'examlisten' && !d.audio?.src) issues.push({ level: 'warning', code: `${block.id}:audio`, text: `${name}: helifail puudub. Õpetaja saab teksti ise ette lugeda.` });
     if (block.type === 'listening' && !d.audio?.src) issues.push({ level: 'warning', code: `${block.id}:audio`, text: `${name}: helifail puudub. Õpetaja saab teksti ise ette lugeda.` });
     if (block.type === 'diagram' && !diagramHasContent(d)) issues.push({ level: 'error', code: `${block.id}:nodes`, text: `${name}: skeemil pole ühtegi kasti.` });
+    if (block.type === 'video' && !d.file?.src && !String(d.url || '').trim()) issues.push({ level: 'warning', code: `${block.id}:video`, text: `${name}: video link või fail puudub.` });
     if (block.type === 'image' && !d.img?.src) issues.push({ level: 'warning', code: `${block.id}:image`, text: `${name}: pilt puudub.` });
   });
   // tips (do not block publishing): a balanced, not too long sheet

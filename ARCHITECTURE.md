@@ -99,6 +99,93 @@ student's persistent board `whiteboards/{studentId}` (same as CRM „Tahvel” a
 Chat uses the student's internal `messages` conversation. Board rules check access once per write (see
 `whiteboardElementCreateValid`, `lessonPageLive`); evaluating it repeatedly exceeds Firestore's 1000-expression limit.
 
+Room video layout (1:1 and group): the camera tiles are movable / resizable windows (`FloatingWindow.jsx`,
+`floatingLayout.js`) in a pointer-transparent layer over the board; layout per window id is kept anchored to a corner
+in `localStorage` `keelesepp.liveLayout.v2` (v1 until 2026-11-05; group strip orientation in `keelesepp.liveGroupStrip`). Screen share in a
+1:1 call (`screenShare.js`): the teacher's offer has camera video + a second „screen slot” video transceiver
+(`sendrecv`, the student's answer sets it `sendrecv` too); sharing = `replaceTrack(screen)` on the slot, stop =
+`replaceTrack(null)` — no renegotiation, the camera keeps its own track. The receiver recognises the slot as the second
+video transceiver and the sharer announces `{ t: 'screen', on, slot }` over the room data channel (remote track label /
+contentHint are not transmitted, so they cannot identify a screen). Peers without `addTransceiver` fall back to the old
+way (screen replaces the camera track, announced with `slot: false`). The share takes the main area (`ScreenStage.jsx`,
+„Ekraan / Tahvel” switch); group rooms have no screen share.
+
+Room on small screens (2026-11-05 `agent/live-room-small-screens`, 1:1 and group, teacher and student): `.lr` is
+exactly the viewport (`100dvh`, page scroll locked with `body:has(.lr)`); the top bar is one row of fixed height
+(`--lr-top-h`, 52 px when the window is ≤ 820 px high; phones ≤ 760 px keep two rows). `topBarFit.js`
+(`useTopBarFit`, pure `foldReducer`) measures the bar after each render / resize and folds steps in a fixed order into
+„⋯” (`liveRoomFoldSteps` / `groupRoomFoldSteps`: first `labels` = words next to icons, then Osalejad, Materjalid, Sõnad,
+Kiirküsimus, Taimer, undo/redo, Vestlus, Ülesanded, Tunniplaan pill, „Ei salvesta”); mic, camera, screen, leave /
+end call, the lesson clock and the recording mark never fold; the title truncates with „…”. Layers over the board: page
+tab bar (StudentBoard; the „Tahvlivaade / Lugemisvaade” switch is a button in it in the room) → left column
+`.lr-stack` (countdown, the teacher's device warning — passed as `LiveRoom stageNotice` —, „Täna harjutada”; it stops
+`insetRight` px before the video windows) → video windows (`FloatingLayer` inset 52 px top / 66 px bottom, so they never
+cover the tab bar or the tool dock) → quick poll card (bottom 80 px, above the dock, z 30) → dock (centred, never under
+the zoom bar; ≤ 980 px board width smaller buttons). The student's „Tundi salvestatakse” is a pill in the top bar.
+Fixed notes (toasts, page error, device warning outside the stack) use `--lr-stage-top`.
+
+Lesson plan + in-room attendance (teacher only, 1:1 and group): `liveLessonPlans/{roomKey}` (roomKey = invitation id
+or group room id; staff-only rules, only the room's teacher writes). Steps with minutes (`lessonPlan.js`, default
+Soojendus/Avasta/Harjuta/Kasuta/Kokkuvõte scaled to the calendar lesson length remembered by `rememberLessonTiming`),
+timer derived from `startedAt` / `stepStartedAt` / `spentMs` (no per-second writes), `attendance.<studentId>`
+(`roomAttendance.js`: present / late + minutes / absent, prefilled from the invitation's `respondedAt`). A 1:1 room
+started from the calendar hands its mark through `lessonHandoff.js` to the calendar's `completeFromSchedule`
+(Kohal/Hilines → `Toimunud`, Puudub → `Puudus_eta`); group rooms are not linked to calendar groups, so their marks stay
+in the plan. The student sees only „Samm X/Y” over the data channel.
+
+Countdown timer (teacher tool, 1:1 and group; `countdown.js`, `useCountdown.js`, `CountdownTimer.jsx`,
+`services/firebase/liveCountdown.js`): one map `countdown { running, remainingMs, durationMs, label, by, updatedAt }` on
+`liveLessonInvitations/{id}` (1:1) or `liveGroupRooms/{id}` (group) — docs the students already read. Rules: only the
+room's teacher, only that field (`affectedKeys().hasOnly(['countdown'])`), while the room is accepted / open,
+`updatedAt == request.time`, ≤ 2 h, `by == uid`. Readers derive the time left as `updatedAt + remainingMs − (local now +
+offset)`; the offset (server − local) is the largest of the last 5 samples `updatedAt − arrival time` of writes seen
+live (not the first, possibly old snapshot). Writes only on start / pause / resume / +1 min / stop. Badge in the stage
+corner (click: big), last 10 s highlighted, „Aeg läbi!” + Web Audio chime once (mute in `localStorage`
+`keelesepp.countdownMuted`).
+
+Sheet tabs (1:1 room, teacher and student alike since 2026-11-04 `agent/live-tabs-bar`; `sheetTabs.js`): worksheet pages
+(„Tööleht: …”) are tabs only for this room's sheets (or, when the room has none yet, the most recent lesson day's); older
+sheets (grouped by `liveRoomKey`, labelled by `liveOpenedAt` date) are in the select „Varasemad tunnid”. A sheet chosen
+there, opened otherwise or reached by following the teacher stays a tab with a × until closed (session state only).
+`StudentBoard` takes this as the optional `sheetTabs` prop.
+
+Board pointer (2026-11-05 `agent/board-one-pointer`): one tool „Vali ja täida” (id `select`, `boardModel.POINTER_TOOL`,
+key V) replaced „Täida töölehte” (`fill`) + „Vali ja liiguta”; it is the default on every page. `boardTool()` maps an old
+id (`fill`) to it; `wordTap.stageTool` reads `tool-fill` the same way. On a worksheet page the drawing SVG is
+`pointer-events: none` (the sheet's fields, word tools and the teacher's Viga / Märkus / Sõna take the clicks) and only
+the user's own movable parts (not locked, not a teacher's material for a student, not a highlighter line) get
+`pointer-events: auto`; pressing one makes the whole layer take the pointer until any release (ends with the #1111
+selection block). A press on the sheet clears the selection; a mouse drag on the empty desk beside the sheet draws a
+selection frame.
+
+Page bar (`board/BoardPageTabs.jsx`, `board/pageTabsModel.js`, every board variant): a solid toolbar above the board
+(room variant: `--sb-bar-h` 44 px, the stage starts 8 px below it, the bar ends `insetRight` px before the video tiles).
+Labels drop „Tööleht:”; the pages of one lesson („<lesson> · Avasta|Harjuta|Kasuta|Õpik”) are one tab with a chip per
+phase (title ellipsized, full title as tooltip / accessible name = page title). The active tab is scrolled into view;
+overflow shows edge fades + arrows; a bar narrower than 1000 px whose tabs do not fit folds to „Tahvel” + the open
+tab + menu „Lehed ▾”.
+
+„Kiirküsimus” (quick poll, teacher tool, 1:1 and group; `quickPoll.js`, `useQuickPoll.js`, `QuickPoll.jsx`,
+`services/firebase/livePolls.js`): one doc per room `livePolls/{kind}_{roomId}` (kind `lesson` = invitation id, `group` =
+group room id) `{ kind, roomId, teacherUid, participantUids, round, mode: choice|gap, question, sentence, options (2–4),
+timeLimitSec, status: open|revealed|closed, correctIndex (−1 until revealed), startedAt, updatedAt }`; a new question is the
+next `round`. The right option is only in the teacher-only `livePolls/{id}/key/current { teacherUid, round, correctIndex }`
+(same batch as the question) until „Näita vastust” copies it onto the poll (rules: must equal the key). Answers
+`livePolls/{id}/answers/{uid} { uid, name, round, choice, answeredAt }`: the student writes only his own, only to the open
+round; the teacher reads all, a student only his own. Rules also require the room to be live (invitation `accepted` /
+group `open`) and `participantUids` to equal the invitation's `studentUid` / the group's `memberUids`. An optional time
+limit starts the room's countdown with the label „Kiirküsimus” (answers lock in the client when it expires). A wrong
+answer becomes a `studentNotes` record (kind `board`, `pageTitle` „Kiirküsimus”) with one teacher click.
+
+„Tunni tahvlid” (`features/board/lessonBoards.js`, `LessonBoardsCard.jsx`, `LessonBoardView.jsx`,
+`studentBoard.js` `lessonCopiesService`): at the lesson end the teacher's browser copies the lesson's board pages onto the
+student's own board as snapshot pages `whiteboards/{studentId}/lessonPages/lb-<lessonKey>-<n>` (`isSnapshot: true`,
+`snapshotOf` = source page id or `board`), copies the elements (fields whitelisted as in `validWhiteboardElement`, drawing
+order in `revision`) and sets `status: 'completed'` — the existing snapshot rules then forbid any change or delete. 1:1:
+„Tunni lõpp” copies the lesson pages the teacher opened (not worksheet pages), or the main board when no page was used.
+Group: „Lõpeta tund” copies the group board (main + pages) onto every member's board. The student („Minu areng”) and
+linked parents („Areng”) list them by `isSnapshot == true`, grouped by lesson (date, teacher), and view them read-only.
+
 `live-classroom-core.js` owns the public scene contract. A scene may contain only:
 
 - type, title, body, bounded public options and version metadata;
@@ -120,6 +207,21 @@ transaction updates the linked student's existing `skillMap`; rules require the 
 last-lesson markers to match the completed room. Completed summaries cannot be edited later.
 Summary v1 remains valid for previously completed rooms.
 
+**„Seadme kontroll” (`/kontroll`, 2026-11-04).** A public page (no login) checks browser support, camera, microphone,
+speakers, network (hosting round trip, the TURN function, ICE gathering with the room's own `callIceServers`; the TURN
+relay only with `?tund=<invitationId>` of an accepted room) and screen sharing. Media never leaves the browser. A
+signed-in, approved student (not a guest, not a preview) saves only the summary on the own account:
+`users/{uid}.deviceCheck { at: ISO string, status: 'ok'|'warn'|'fail', issues: ≤ 12 codes, browser: ≤ 40 chars }`.
+`firestore.rules` `validDeviceCheck` accepts exactly the codes of `deviceCheckModel.js` `ISSUE_CODES` (a unit test
+compares both lists) through `safeSelfUserFields`; staff read it (users read `isStaff()`). The teacher sees
+`DeviceCheckNotice` in the calendar lesson panel (planned lessons) and in the 1:1 room until the call connects:
+„fail” / „warn” with the issues in Estonian, or „Õpilane pole seadet kontrollinud” when there is no result and the
+student has no closed live lesson with this teacher (admin: with anyone). Emulator test:
+`functions/device-check-emulator.integration.js`. Group lessons (2026-11-04): `GroupDeviceCheckNotice` lists every
+member whose last check is „fail” / „warn” or missing (also after earlier live lessons; `groupDeviceWarnings`) — in
+the live group room for the teacher until someone's video connects (× hides it), and in the calendar panel of a
+planned group lesson (active members; `LessonPanel` `groupStudents`).
+
 ### Finance
 
 Financial writes remain isolated from the learning-content slice. Browser screens can request
@@ -132,6 +234,22 @@ views, not separate data stores. Teachers retain the narrower invoice-management
 students or parents retain their own invoice cabinet. Legacy internal routes are mapped to the
 matching administrator section so dashboard alerts and saved operational links do not lose their
 destination during the UI consolidation.
+
+Invoice payer snapshot (2026-11-04): every new one-card invoice (manual, monthly, lesson package, combined, lesson-based)
+stores `studentName` (the card's full `name`), `payerName` (payer / company → parent → the learner himself) and one
+resolved address in `payerEmail` / `parentEmail` (+ `*Lower`) from `functions/invoice-payer-core.js`
+(card `payerEmail → parentEmail → billingEmail → contactEmail → guardianEmail → email`, else the linked parent
+account's login e-mail). The invoice e-mail (`index.js` `invoiceRecipient`) uses the same file: the snapshot first, then
+the same card resolution, so the stored payer and the recipient cannot differ. `crm-v2/src/features/finance/invoicePayer.js`
+mirrors it for the „Arvel pole saaja e-posti” warning before creating. Issued invoices are never rewritten; the PDF and
+the month list show `emailRecipient` when an old invoice has no payer e-mail (display only).
+
+Combined lesson package invoice („Ühine tunnipakett”, 2026-11-04, `docs/LESSON_TOKENS.md`): `manualInvoiceApi
+/create-tokens-combined` makes ONE `lesson_tokens_v1` invoice for 2–12 lines of one payer (`combined: true`,
+`studentIds`, `cardParts[i] = { studentId, subject, tokenCredits, priceCents, amountCents }`), each line priced from its
+own card's plan. `financeApi /invoices/tokens/credit` gives every line its own package
+`studentPackages/tokens_<invoiceId>_<lineIndex>` (own grant, audit and backlog) in one transaction; the invoice stores
+`tokenPackageIds`. One-card package invoices keep `tokens_<invoiceId>`.
 
 The `/finance` month screen shows one finance view at a time: issued invoices, invoices with
 received payments, open invoices and earlier debts, student advances, or monthly invoice
@@ -249,6 +367,35 @@ stores `priceTerms`, `hourlyRateCents`, `discountReason` and `priceTermsChangedA
 rate keeps its stored per-lesson cents. `activityLog` (readable by all staff) gets the terms, not the reason. The
 Finantsid forecast form still edits the lesson price directly and leaves the terms as they are.
 
+#### Billing per subject (2026-11-06)
+
+On a card with several subjects every subject may have its own billing mode, lessons per week and no-show rule:
+`studentRevenuePlans.subjectBilling = { "<subject>": { billingMode?, weeklyLessons?, chargeNoShow? } }` (≤ 8 subjects,
+firestore.rules: a map; the finance role cannot write it). A field that is absent is the card's own value; the card's
+main subject (`mainSubject`, the card's price subject) always bills by the card's `billingMode` / `weeklyLessons` /
+`chargeNoShow`, and its tab on the student card edits exactly those. A plan without `subjectBilling` bills exactly as
+before (golden test `crm-v2/src/features/finance/monthlyBilling.golden.test.js` on fixtures run through the code before
+the change). Prices stay in `subjectPrices`; price terms and `validFrom` stay card-wide.
+
+One resolver, two copies kept equal: `functions/subject-billing-core.js` (server) and
+`crm-v2/src/features/finance/subjectBilling.js` (browser); `functions/subject-billing-core.test.js` imports the browser
+file and compares every function on the same cases. `subjectBilling(plan, subject, main)` → the effective values plus
+`own` flags; `cardMonthlyMode(plan, subjects, main)` → the monthly row's mode, `monthlySubjects`, `packageSubjects` and
+`mixedTiming`; `weeklyForecastCents(plan)` → card price × card weekly + each further subject with its OWN weekly × its
+price (a subject without its own number counts inside the card's number, as before).
+
+Who reads it: monthly invoice rows (`monthlyBilling.js`: package subjects get no line, the no-show rule per subject in
+the correction, lessons left per subject), the student card „Alles” balances and Täna „Makstud tunnid lõppevad”
+(`studentLessonBalances`), the revenue forecast (Finantsid `revenueForecast`, server `financial-analytics-core`), the
+calendar revenue in Ülevaade / Ärinäitajad (`financeDashboard.noShowCharged`), the server's monthly invoice routes
+(`combined-invoice-core monthlyBillingBlocker`: a package subject, or „Pärast toimunud tunde” next to a subject billed
+ahead, is refused with 400 — only for plans with `subjectBilling`) and the lesson-package trigger
+(`syncLessonPackageConsumption`: with `subjectBilling`, the lesson's subject decides the no-show rule and a subject
+billed monthly takes no package credit, also not from an old shared package). „Pärast toimunud tunde” (held lessons
+of the month, due the next month) and „Kuu ette” / „Jooksev kuu” (the month ahead) cannot share one monthly invoice:
+the card form refuses that combination and the monthly row shows „Arveldusviisid ei sobi”; packages combine with any.
+A card merge brings the other card's billing as `subjectBilling[its subject]` when it differs from the kept card's.
+
 ### Staff operations
 
 Teacher-facing navigation is task-oriented. `haldus.html` is the daily start surface and keeps the common
@@ -271,6 +418,13 @@ the same projection idea. It adds two optional fields that v1 ignores: `assigned
 `assignedTo` name stays authoritative because v1 reassigns by name) and `openedByUids` (who has opened the task;
 drives "Uus ülesanne sulle" for tasks created in the last 14 days). The v2 bell derives task (new for me, new reply,
 overdue, due today), unread message, homework-awaiting-review and overdue-invoice items from their sources.
+
+„Õpetajate koormus” (`/teachers/koormus`, administrator only, 2026-11-04) is a read-only projection per teacher for a
+week or a month: lessons from `lessonFacts` (calendar + journal), unmarked lessons from `findUnmarkedLessons`, unbooked
+free time from `teacherAvailability` (`effectiveSlots`, next 14 days), works waiting for a review (Kodutööd's rule) and
+a pay estimate by the „Ärinäitajad” rule (`workHourlyRateCents` × lessons given; no rate → „määramata”). It writes
+nothing and adds no collection; the journal and submissions are read by single-field date ranges
+(`features/teachers/teacherLoad.js`, `services/firebase/teacherLoad.js`).
 
 Single-student scheduled lessons use the existing server-owned lesson journal endpoint for one-click completion.
 The optional completion payload extends the same idempotent transaction: it records schedule attendance, creates a
@@ -322,11 +476,18 @@ historical references. Parent and student cabinets exclude inactive and converte
 or reassign an existing student from the parent directory; that workflow updates the existing records and does not
 create a replacement identity.
 
-Possible duplicates (2026-10-24) are listed for the administrator in Õpilased → „Võimalikud duplikaadid”
-(`features/students/duplicateCandidates.js`, `DuplicateCandidatesModal.jsx`): the same name (after Cyrillic → Latin
-transliteration), or the same first name plus the same parent (account, e-mail, phone, name) or the same learner
-account / e-mail / phone. A shared surname or a shared parent alone (siblings) is not a pair. „Ei ole duplikaat”
-stores `students.notDuplicateOf` on both cards. Each pair has „Liida”.
+Possible duplicates (2026-10-24, extended 2026-11-04) are listed for the administrator in Õpilased → „Võimalikud
+topeltkaardid” (`features/students/duplicateCandidates.js`, `DuplicateCandidatesModal.jsx`): the same name after
+Cyrillic → Latin transliteration and spelling variants (`personName`: Mariia = Maria, Jekaterina = Ekaterina =
+Katerina, double letters, й/i; level / subject tags like „B2”, „En” in the name are taken out and kept as a hint), or
+the same first name (surnames not different) plus the same parent (account, e-mail, phone, name) or the same learner
+account / e-mail / phone. Same first name + different surnames, a shared surname or a shared parent alone (siblings)
+is not a pair. Same teacher, same level tag and „one card self-registered, the other without an account” only raise
+the score; different subjects are reported as „Sama inimene, eri ained” (one card per person, subjects are
+enrollments). Cards are compared only inside blocks (canonical name, first-name stem, account, e-mail, phone, parent
+account / e-mail / phone). The list shows both cards side by side (created, archived, account, subjects / teachers,
+lesson and invoice counts via `studentsService.recordCounts` count queries, masked contacts). „Pole sama inimene”
+stores `students.notDuplicateOf` on both cards. „Ava ühendamine” opens „Liida kaardid” with the pair preselected.
 
 „Liida kaardid” (`MergeCardsModal.jsx` → `staffOperationsApi /students/merge-cards` → `functions/student-merge.js`,
 rules in `functions/student-card-merge-core.js`; admin only) is the one merge. The administrator picks the other card,
@@ -339,13 +500,38 @@ name in `studentName`; finance records change only the card id — never an amou
 `studentRevenuePlans`, `studentAvailability`, `studentInitialAssessments`, `taxIdentities`, `whiteboards` (with
 subcollections) are copied when the kept card has none, else the kept one stays; the other card's price becomes
 `subjectPrices[its subject]` when the kept plan has no price for that subject (same subject, other price = conflict,
-nothing changes); accounts listing the old id (`users.linkedStudentIds`) get the kept id; learner and parent accounts
+nothing changes) and its billing mode / weekly lessons / no-show rule `subjectBilling[its subject]` when they differ; accounts listing the old id (`users.linkedStudentIds`) get the kept id; learner and parent accounts
 and parent contacts are united; enrollments and `teacherUids` are united; empty profile fields are filled, notes
 joined. History (`activityLog`, `financialAudit`, …) keeps the old id. The old card is never deleted: it stays
 `active: false`, `mergedInto` + `mergedIntoStudentId`, without account links, as a tombstone; the old per-card
 documents are marked `mergedInto` too. `studentCardMerges/{oldCardId}` records the run (idempotent: a repeat returns
 the stored result; a failed run continues where it stopped); `activityLog/student-card-merge-{oldCardId}` is the
 audit entry. The older `/students/merge` with `permanent` and `/students/merged/purge` answer 410 (no deletes).
+Archived cards merge in every direction (archived source, archived kept card, two archived cards; 2026-11-03 /
+2026-11-06). A card in the „Prügikast” (`deletedAt` / `purgedAt`) is refused with 409 „… on prügikastis. Taasta see
+enne liitmist” — its purge would anonymise the merged history. The dialog's search finds archived cards by name, an
+earlier name (`nameAliases`), e-mail, phone or parent (`duplicateCandidates.js matchesMergeSearch`); „Võimalikud
+topeltkaardid” also proposes two archived cards (after the pairs with an active card).
+
+Guard and undo (2026-11-09, after two different girls named Stefania were merged). The preview returns
+`differentPerson: [{ code, label }]` (`student-card-merge-core.js differentPersonSignals`): `surname` (both cards
+have one, same alphabet, no shared surname incl. `nameAliases`), `grade` (`grade` field / „N. klass” track levels with
+nothing in common), `parent` (parent uids, e-mails or names both present and disjoint), `subject_teacher` (both cards
+name subjects; no shared subject and no shared teacher), `birth_year` (`birthYear` / `birthDate` / `dateOfBirth` /
+isikukood). The dialog shows them in a red block and needs a second tick „Kinnitan, et see on sama laps”; the server
+refuses apply with 409 `code: different_person` unless `confirmedDifferences: true`. A moved lesson keeps its own
+subject; one without gets the other card's subject (`sourceLessonSubject`, also for archived / multi-subject cards).
+Every moved record writes `{ path, anchor, after, before, absent }` (or `{ kind: 'ids', hadKeep }` for `studentIds`)
+into `studentCardMerges/{oldId}/undo/*` in the same batch as the move (`runId`); the final transaction stores
+`undo: { version: 1, runId, cards: [kept, old], docs (per-card document marks, the added subject price), users
+[{ uid, hadKeep, hadSource }], copies }` on the operation and `mergeUndoVersion: 1` on the tombstone.
+„Võta ühendamine tagasi” (`MergeHistoryCard.jsx` on both cards → `/students/unmerge-cards` → `unmergeStudentCards`,
+admin only, preview then `confirmed: true`) restores each field only while it still holds the merge's value
+(`revertFields`; writes with a `lastUpdateTime` precondition); a field changed since is left and listed; documents
+copied to the kept card stay (listed for a manual check); records created on the kept card after the merge stay.
+Nothing is deleted. Then `studentCardMerges.status = 'unmerged'`, `activityLog/student-card-unmerge-{oldId}-{runId}`.
+Merges without the record answer 409 `code: legacy` („Vana ühendamine — tagasi võtmiseks pöördu administraatori
+poole”); the button is shown disabled with that hint.
 
 Parents (2026-10-24): a child may have several parent accounts (`linkedParentIds`; `linkedParentId` / `parentUid` is
 the main one) and parents without an account (`parentContacts: [{ name, email, phone }]`, plus the old
@@ -353,6 +539,32 @@ the main one) and parents without an account (`parentContacts: [{ name, email, p
 parent account, adds a contact or removes a link (`parentsService.linkStudent` / `unlinkStudent` / `addContact` /
 `removeContact`, admin client writes the rules already allow). Linking adds, never replaces. A contact's e-mail
 links the child when that parent registers (`account-bootstrap-core.js parentEmails`). Rules unchanged.
+
+Archived children (2026-11-06): a parent can be linked to an archived card everywhere — Lapsevanemad „Lisa laps”,
+„Lisa lapsevanem” (`ParentInviteDialog`), the student card „Seo lapsevanem”, `/accounts/invite-parent` and
+`/accounts/link` (relationship `parent`). Pickers use `features/parents/childPicker.js`: active cards, then an
+„Arhiveeritud” section, one search over name, e-mail, phone and parent; trashed (`deletedAt` / `purgedAt`), merged-away
+and converted cards are never offered. Choosing an archived card asks „Taasta ja seo” (card `active: true`,
+`restoredAt`, in the same batch / after the invite) or „Seo arhiveerituna”. Server: `parent-invite-core.js
+linkCardRefusal` — parent accepts archived, refuses trash / merged (409); a student's own login still needs an active
+card. The parent's „Minu pere” still lists only active cards (`students.listOwned`).
+
+Parent cabinet „Minu pere” (`/parent`, `features/parents/ParentDashboardPage.jsx`, 2026-11-04): child chips (name +
+level → target), then per child „Areng” = one „Keeleoskus” curve toward the target level (`features/progress-points/`:
+`ProficiencyCard.jsx`, `ProficiencyChart.jsx` inline SVG with a table fallback; formula `levelCurve.js`, documented in
+`docs/PROGRESS_ESTIMATE.md` „Keeleoskus”) and „Mida õpime praegu” (`NowLearningCard.jsx`), beside them „Järgmised
+tunnid”, „Kodutööd”, the teacher's latest feedback, „Arved” (unpaid sum only) and „Kirjuta õpetajale”. The curve is
+computed in the browser from the child's `worksheetAssignments` (score.perGoal) and the course goal list in the code
+(`worksheet-generator/admin/course/<level>/lessonGoals.js`, loaded on demand), anchored by `progressPoints`.
+`progressPoints/{id}` { studentId, date, level, percent 0–100, kind estimate | exam | teacher, label, createdBy,
+createdByName, createdAt, updatedAt }: written only by an admin or the student's teacher (a teacher changes / deletes
+his own), read by them, the student and linked parents (firestore.rules; emulator test
+`functions/progress-points-emulator.integration.js`). Staff add points on the student card („Keeleoskus tasemele”,
+`ProgressPointsCard.jsx`: start „Algus”, corrections, mock exams; admin warning when an exam is > 15 points from the
+curve); the admin's „Teekond sihttasemeni” has „Salvesta punkt” (kind estimate). A mock exam never moves the curve.
+Never shown to parents: lesson balance / package lessons left, lesson analysis, teacher notes, call notes, monologue
+notes / analysis, the skill-estimate card, per-goal percentages. Demo page for screenshots (dev only, fake data):
+`crm-v2/parent-lab.html` (`?family=two|empty`, `?view=staff`) + `src/test/parentLab/`.
 
 Study directions (2026-10-24): `studyDirections/{id}` `{ name, shortLabel, color, levels[], aliases[], status:
 active|archived, order }` — admin writes (validated keys, no delete), staff and finance read. Seaded → „Õppesuunad”
@@ -386,6 +598,12 @@ also creates a `workTimeAudit` snapshot. Closed shifts are pending until an admi
 approves them; approval snapshots the hourly rate and calculated pay so later rate changes do not
 rewrite prior payroll.
 
+Teacher payouts (owner 2026-11-09): `/finance/payroll` shows one figure per teacher-month, „Väljamaksmisele” =
+the approved session pay above; lessons given × the same `workHourlyRateCents` (`teachers/teacherLoad.js`) is shown
+next to it as a check (gap ≥ 5 € flagged). „Märgi makstuks” writes `teacherPayouts/{YYYY-MM}_{teacherUid}` from the
+browser (admin only; bookkeeper reads; never deleted; undo = status `cancelled`; append-only `history`) plus an
+`activityLog` line without the amount. A mark records a payment made elsewhere; it moves no money.
+
 Activity-log time is deliberately a capped estimate and remains separate from approved payroll.
 The scheduled `refreshSchoolAssistant` function derives owner-only alerts from invoices, tasks,
 work sessions and sanitized Google Calendar status. It runs without an external AI provider, so
@@ -400,9 +618,16 @@ only), scheduled `purgeCardTrash` (daily 03:40 Europe/Tallinn); CRM: „Kustuta�
 (`features/trash/CardTrashDialog.jsx`; the right-click menu opens the same window with `?kustuta=1`), page Inimesed →
 „Prügikast” (`/trash`, `features/trash/TrashPage.jsx`, `services/firebase/cardTrash.js`).
 
+0. **Preview (2026-11-06).** The „Kustuta” window first calls `/cards/trash-preview` (reads only,
+   `card-trash.js previewTrash` → `card-trash-core.js trashPreview`): the blockers, the lessons / series ahead (date or
+   weekday, time, student or teacher, subject — what to reassign) and the active groups, the linked records per
+   collection (finance first; audit collections never listed) and the outcome `delete | anonymise | blocked`.
+   „Vii prügikasti” is disabled while blocked; the server checks again on the real call.
 1. **Kustuta (trash).** Refused while the card has lessons ahead (a planned single lesson from today on, or a recurring
    series without a past end date — `schedule-clear-core.js futureRecordInScope`) or an active group: the administrator
-   cancels or reassigns them first. Blocking rather than cancelling was chosen because cancelling sends e-mails, changes
+   cancels or reassigns them first. A student card with an unpaid invoice (`invoiceOpenCents` > 0: not „Tühistatud” /
+   „Makstud”, open balance from `balanceDueCents` or amount − paid) is refused too, „Kaardil on tasumata arveid … —
+   arhiveeri kaart” (2026-11-06); paid / cancelled invoices do not block (the card is anonymised at the purge). Blocking rather than cancelling was chosen because cancelling sends e-mails, changes
    Google Calendar and package balances — not something a delete should do silently. A teacher card: role `teacher`
    only (an administrator account is changed to teacher first), never the own account. The card gets `deletedAt`,
    `deletedBy {uid, name}`, `purgeAfter` (= deletedAt + 7 days, ISO strings) and `trashState` (the previous `active` of
@@ -417,7 +642,8 @@ only), scheduled `purgeCardTrash` (daily 03:40 Europe/Tallinn); CRM: „Kustuta�
 3. **Taasta (restore)** within the week: the previous `active` / `disabled` comes back and the trash fields are removed;
    audit `activityLog/card-restore-…`.
 4. **Purge after 7 days** (`purgeCardTrash`, or „/cards/purge-due” by an administrator — same rules). Per card:
-   - **block** — lessons ahead or an active group appeared during the week: nothing changes, `purgeBlocked` is set and
+   - **block** — lessons ahead, an active group or an unpaid invoice (`open-invoices`) appeared during the week:
+     nothing changes, `purgeBlocked` is set and
      the card stays in the trash (shown there);
    - **delete** — no record outside the audit collections refers to the card: the card document is deleted with its
      disposable per-card documents (student: `studentAvailability`, `studentRevenuePlans`; teacher: `teacherAvailability`);
@@ -585,15 +811,73 @@ move or cancel them.
 The current two-way slice still uses last-synchronized-write-wins. Explicit conflict review,
 Google eTag preconditions and incremental sync tokens remain separate releases.
 
+### Groups (Grupid) — what follows an edit (2026-11-06)
+
+`groups/{id}` holds name, teacher (`teacher`, `teacherUid`, `teacherHistory`), subject, level, `audience`,
+`capacity`, `ageFrom`/`ageTo`, `students[]`, `studentLessonMap` and the weekly `lessons[]` (day, time, `duration`,
+`startDate`, attendance). Groups have no room / online flag and no price of their own: billing reads the
+attendance `lessons` docs (`group_<g>_<l>_<date>_<student>`) like any other lesson, and the group lesson's `duration`
+goes into each of them exactly like a 1:1 lesson's.
+Create and edit use one form and one check (`features/groups/groupForm.js groupFormError`; the service checks name and
+ages again). What an edit changes:
+
+- **Name** → the members' cards whose `group` is the old name (or empty); marked lessons keep the old name.
+- **Teacher** (from a chosen date) → `teacherHistory` gets the old teacher until the day before; calendar, attendance,
+  reports and Google Calendar (`syncGroupToGoogleCalendar`) follow the teacher of each date. Group lessons have no
+  `schedule` docs, so nothing else is rewritten; already marked `lessons` docs keep their teacher. Live group rooms
+  (`liveGroupRooms`) are ad-hoc rooms of the teacher who opens them, not linked to `groups`, so nothing there changes.
+  Members' cards are not given to the new teacher (`teacherUids` unchanged), same as when a member is added.
+- **Lesson length** → `patchLesson { duration }`: every unmarked lesson of that weekly time; marked ones keep theirs.
+  The form offers 45 / 60 / 90 / 120 min and „Muu pikkus” (5–480).
+- **Archived students** may join a group: „Halda” lists them under their own „Arhiveeritud” header (one search over
+  name, e-mail, phone, parent, level for both lists); ticking one asks „Õpilane on arhiveeritud — kas taastada
+  aktiivseks?” → „Lisa ja taasta kaart” or „Lisa, kaart jääb arhiivi”. A failed archive read is shown, not hidden.
+- Participation: the group window has „Kinnita osalemine” per member (card `groupInterest.status = interested`); the
+  lesson attendance („Kohal / Puudub / Teatas”) is marked in the calendar lesson panel.
+- Pages that reload after a save keep their data on screen (`if (!state.data)` shows the loader only on the first
+  load) so an open window does not disappear and come back.
+
+## Form field help („?”) — the pattern for every form (owner 2026-11-06)
+
+Forms must explain themselves. Every input whose meaning is not obvious gets a small „?” right after its label:
+`<Input label="Grupi nimi" help="Lühike nimi, mida näevad õpilased ja õpetaja." helpExample="Eesti keel B1 · teisipäev 18:00" />`
+(`Select` and wrappers that pass props on, e.g. `SubjectSelect`, take the same `help` / `helpExample`), or on its own
+`<FieldHelp label="…" text="…" example="…" />` from `components/ui`. Behaviour (`components/ui/FieldHelp.jsx`,
+`fieldHelp.css`): a 20 px round button (bigger invisible touch area) with `aria-label="Abi: <label>"`,
+`aria-expanded`, `aria-controls`; tap / click / Enter toggles a popover `role="dialog"` named by the label, which takes
+the focus; Escape closes it and returns the focus to „?” without closing a surrounding `Modal`; a tap outside or
+tabbing away closes it. The popover is absolutely positioned (no layout shift), at most 300 px wide, and is shifted
+so it stays inside the screen with a 16 px gutter (phones). Text rules: plain Estonian, one or two short sentences saying what to enter and what it affects, then
+„Näide: …”. Keep the texts next to the form's model (groups: `GROUP_HELP` in `groupForm.js`). Form errors are shown
+inside the open window (`role="alert"`), not behind it.
+
 ## Firestore ownership
 
 - `curriculumLessons`, `exercises` — staff-authored learning sources.
 - `studyDirections` — the school's study directions; admin writes (no delete), staff and finance read.
 - `plannerBatches` — one record per „Kinnita ajakava” of the calendar's Planeerija `{ createdAt (server time), createdBy, lessonIds[], studentIds[], status: 'confirmed' }`; admin creates once and reads, nobody updates or deletes from the app (the server's schedule e-mail reads it). The created `schedule` entries carry `source: 'planner'` and `plannerBatchId`.
+- `invoices.issuer` — „Arve väljastaja” (owner 2026-11-09, docs/ACCOUNTING.md „FIE arved”): `company` (also when
+  absent) or `fie` (the owner's own sole proprietorship, `issuerDetails { name, iban }`, number series `FIE-` with
+  `meta/invoiceCounterFie`). FIE invoices: read by the owner (super admin) and the family only; a non-owner admin /
+  the bookkeeper must list with `where('issuer', '==', 'company')` (`services/firebase/invoices.js`). Owner-only,
+  server-written: `invoiceIssuers/fie`, `studentInvoiceIssuers/{studentId}`, `fiePayments`, `fieAudit`,
+  `fieEmailQueue`; `fieInvoicePaymentClaims` = „Maksin ära” on an FIE invoice (family writes, owner reads/deletes).
 - `studentCardMerges` — server-only run records of „Liida kaardid” (one per merged card); `students.mergedInto` marks the tombstone.
 - `students` / `users` trash fields `deletedAt`, `deletedBy`, `purgeAfter`, `trashState`, `purgeBlocked`, `purgedAt`,
   `anonymised` — „Prügikast”, written only by `staffOperationsApi /cards/*` and `purgeCardTrash` (see „Card trash”).
 - `worksheetAssignments`, `homework`, `exerciseResults` — student-specific learning activity.
+- `studentMonologues/{studentId}_{YYYY-MM}` — „Kuu monoloog” (2026-11-04): one two-minute recording per card and month
+  on the fixed prompt of the level (`features/monologue/monologueModel.js` `MONOLOGUE_PROMPTS`; never reword an id).
+  `{ studentId, studentUid, month, promptId, level, audioPath, contentType, seconds, createdAt, updatedAt }`, audio in
+  Storage `homework/{studentId}/monologues/{YYYY-MM}.{webm|m4a|ogg}`. Only the card's own student account (role student)
+  writes, in the current month, and may replace the take; the card's teacher and admins read; parents nothing (a later
+  „share with parent” needs a new read branch + a flag). The school Mac's transcriber (`tools/lesson-transcriber`,
+  Admin SDK) adds `transcript`, `words`, `wpm`, `transcribedAt`, `transcriber`, `transcriptModel`, `transcribedTake`
+  (= the take's `updatedAt`; a re-record makes the text stale), `analyzedTake` and error / attempt fields; no app user
+  may write them. `studentMonologueAnalysis/{monologueId}` — the transcriber's error check of one take (`take`,
+  `errors`, `checked`, `focus`), staff read only, no client write (docs/LESSON_RECORDING.md).
+  `studentMonologueNotes/{monologueId}` — the teacher's note, staff only (kept off the monologue so the student cannot
+  read it).
 - `liveClassrooms` — one teacher and one student per current room.
 - `liveClassrooms.lessonSummary` — immutable teacher outcome attached when a room is completed.
 - `students.skillMap` — the canonical current mastery view; structured lesson outcomes may only
@@ -613,6 +897,28 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `staffProgramPresence` — server-only cross-tab heartbeat pointer. It prevents several visible
   KeeleSepp windows from multiplying the same wall-clock interval.
 - `assistantAlerts` — server-authored operational attention queue visible only to administrators.
+- `clientErrors/{auto id}` — client error tracking „Vead” (2026-11-04). The CRM's own reporter
+  (`crm-v2/src/features/client-errors/clientErrorReporter.js`) writes one record per error group and session window:
+  `{ message ≤ 500 (sanitized), kind: error|rejection|render|permission|call|media, route (path only, ids / link
+  tokens → :id), build ≤ 40, role, uid, browser ≤ 60, frame ≤ 200, count 1–1000, fingerprint (16 hex of kind +
+  message + top frame), status 'new', firstAt, lastAt = server time }`. Sources: window `error` /
+  `unhandledrejection` (main.jsx), `PageErrorBoundary`, Firestore writes refused by the rules (vite alias
+  `firebase/firestore` → `services/firebase/firestoreWithReporting.js`: setDoc / updateDoc / deleteDoc / addDoc /
+  batch / transaction, collection pattern only), Live Classroom call failures and getUserMedia errors (useLiveCall,
+  useGroupCall). Throttle: one record per fingerprint per 10 min per browser session, ≤ 20 per session. Any signed-in
+  user creates (a lesson-link guest only with a valid `liveGuestGrants` grant, as role `guest`); admin reads, sets
+  `status` new / ack / fixed, deletes. Page `/vead` (Seaded → Tehniline), dashboard digest of new groups in 24 h.
+  Never store document data, form contents, names, e-mails, tokens or query strings in it.
+- `systemHealth/{current|digest}` — „Süsteemi olek” (2026-11-09), server-written only (`allow write: if false`),
+  admin reads. `systemHealthTick` (every 10 min) GETs the CRM (`crm.epkoolitus.ee/login`, expects `id="root"`), the
+  website (`www.epkoolitus.ee`) and `financeApi/health` + `staffOperationsApi/health` (200 `{ ok: true }`, no
+  data, no sign-in) and writes `current`: `{ status ok|down, checkedAt, targets.{id}: { label, ok, httpStatus, ms,
+  error, failStreak, lastOkAt }, incident | null, lastIncident, history[≤ 48] }`. A target failing 2 checks in a
+  row opens one incident (`inc_<yyyymmddhhmmss>`); all targets answering closes it (pure logic:
+  `functions/system-health-core.js`). `systemHealthDigest` (07:00 Europe/Tallinn) writes `digest`: `{ date, total,
+  occurrences, groups, top[5] by message + route }` of `clientErrors` with `lastAt` in the last 24 h. No e-mail:
+  the admin's bell derives notices from both docs (`notificationModel.systemHealthNotifications`, category
+  „Süsteem”, id per incident / per day), the „Vead” page shows `SystemHealthCard`.
 - `schedule` — dated or recurring lesson intent plus additive occurrence exceptions with stable
   student ownership.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.
@@ -637,6 +943,31 @@ can be moved and resized through visible edge and corner handles without changin
 student input is stored only in the assignment's existing `answers` map under visual field keys and is
 submitted through the existing worksheet completion contract. This adds no second assignment store and
 keeps legacy structured `worksheetData.blocks` assignments compatible.
+
+## Loading on a phone (2026-11-04)
+
+Every route is lazy (`app/routes.jsx`); the first load is React, Firebase (app + auth + Firestore), the router with the
+sign-in page and the one CSS file (`app/eagerStyles.js`). Contracts that keep a student's first screen and the lesson
+room small:
+
+- The signed-in shell (`AppShell` with its gates, invitation overlay, announcements) is a lazy file (2026-11-09):
+  `app/shellPrefetch.js` starts it from `main.jsx` at once on a signed-in address (in parallel with the session check),
+  on `/login` / `/registreeru` when the page is idle, never on the public links. A new public route outside the shell
+  belongs in its `NO_SHELL` list (`shellPrefetch.test.js` checks routes.jsx).
+- Firebase Storage is its own chunk (`firebase-storage`, vite.config.js): `client.js` does not import it; a service that
+  uses `requireFirebaseClient().storage` must `import './storageClient.js'` (checked by `storageClient.test.js`).
+- `re2js` (Firestore Pipelines' regex engine, ~45 KB gzip) is aliased to `services/firebase/re2jsStub.js`: the CRM
+  never uses Pipelines (`re2jsStub.test.js`). Using `firebase/firestore/pipelines` would need the alias removed.
+
+- Import a service file directly (`services/firebase/homework.js`), not the `services/firebase/index.js` barrel: modules
+  with top-level work behind it (the worksheet block registry, the kids campaigns) are then pulled into the page.
+- The worksheet block registry (`worksheet-studio/engine/registry.js`, every block's views and rules) loads only where a
+  sheet is shown or edited. `engine/storedScore.js` does not import it: registry calls `provideScoreChecker` when it
+  loads; services await `loadScoreChecker()` when a stored score needs a re-check (`needsScoreCheck`).
+- Live Classroom: page → room → panels/recorder/sheet are separate downloads (`LiveClassroomPage.jsx`, `LiveRoom.jsx`,
+  `RoomWorksheetPanel.jsx`); `live-classroom/liveRoomPrefetch.js` fetches the room before a lesson / on an invitation.
+- Staff-only shell parts (search, right-click menu, admin counts) load lazily in `AppShell.jsx`.
+- Tests of lazy parts preload them (`live-classroom/lazyParts.testkit.js`) and wait with `findBy…`.
 
 ## Safe evolution rules
 

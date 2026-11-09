@@ -37,6 +37,8 @@ function openBalanceCents(invoice = {}) {
 function unpayableReason(invoice) {
   if (!invoice) return "Arvet ei leitud.";
   if (invoice.status === "Tühistatud") return "Arve on tühistatud.";
+  // the card merchant is E&P Koolitus OÜ: an FIE invoice is paid only by bank transfer to the FIE account
+  if (invoice.issuer === "fie") return "Selle arve saab tasuda ainult pangaülekandega arvel toodud kontole.";
   if (openBalanceCents(invoice) <= 0) return "Arve on juba tasutud.";
   return "";
 }
@@ -66,6 +68,23 @@ function ownsInvoice(invoice = {}, { uid = "", email = "", emailVerified = false
     .some(value => String(value || "").trim().toLowerCase() === mail);
 }
 
+// the rule's ownsStudentProfile(): the student's own account or a parent linked on the student card
+const STUDENT_LINK_FIELDS = ["linkedUserId", "studentUid", "linkedParentId", "parentUid", "guardianUid"];
+const STUDENT_LINK_LISTS = ["linkedUserIds", "linkedParentIds"];
+function ownsStudentCard(studentId, student, uid) {
+  if (!uid || !studentId || !student) return false;
+  if (studentId === uid) return true;
+  if (STUDENT_LINK_FIELDS.some(field => student[field] === uid)) return true;
+  return STUDENT_LINK_LISTS.some(field => Array.isArray(student[field]) && student[field].includes(uid));
+}
+
+// „Ava arve PDF” in the parent's cabinet (owner 2026-11-09): exactly who may read the invoice in Firestore
+// (rule ownsInvoice: the invoice's own owner fields or the linked student card) — never another family's invoice
+function ownsInvoiceDocument(invoice = {}, student = null, who = {}) {
+  if (ownsInvoice(invoice, who)) return true;
+  return Boolean(invoice.studentId) && ownsStudentCard(String(invoice.studentId), student, who.uid);
+}
+
 const FINAL_FAILED = new Set(["failed", "abandoned", "voided", "chargebacked"]);
 const cents = value => Math.round((Number(value) || 0) * 100);
 
@@ -90,5 +109,5 @@ const paymentRequestId = paymentReference => `linkpay_${String(paymentReference 
 
 module.exports = {
   ENVIRONMENTS, phpEncode, signedLinkpayUrl, amountString, openBalanceCents, unpayableReason, orderReference,
-  newPayCode, payCodeMatches, ownsInvoice, paymentVerdict, paymentRequestId,
+  newPayCode, payCodeMatches, ownsInvoice, ownsInvoiceDocument, paymentVerdict, paymentRequestId,
 };

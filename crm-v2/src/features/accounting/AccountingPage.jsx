@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { accountingService } from '../../services/firebase/index.js';
+import { accountingService } from '../../services/firebase/accounting.js';
 import { downloadWorkbook, journalWorkbook, partnersWorkbook, statementsWorkbook, suppliersWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
 import { ACCOUNT_TYPES, COMPANY, CUSTOMER_ACCOUNTS, ENTRY_CODES, PARTNER_TYPE_LABELS, SUPPLIER_ACCOUNTS, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, draftDescription, euro, incomeStatement, journalReport, ledger, parseEuro, partnerKey, partnerReport, trialBalance } from './accountingReports.js';
 import SuppliersPanel from '../purchases/SuppliersPanel.jsx';
@@ -15,6 +15,7 @@ import TsdPanel from './tsd/TsdPanel.jsx';
 import DuplicateReceiptsPanel from './DuplicateReceiptsPanel.jsx';
 import BankBooksPanel from './BankBooksPanel.jsx';
 import { possibleDuplicateReceipts } from './duplicateReceipts.js';
+import { PERIOD_PRESETS, TRIAL_MID_YEAR_NOTE, activePreset, loadPeriod, periodLabel, presetPeriod, savePeriod, startsMidYear, tallinnToday, yearStartOf } from './accountingPeriod.js';
 import { SORT_LABELS, sortEntries } from './journalGrid.js';
 import './accounting.css';
 
@@ -33,7 +34,7 @@ const TABS = [
   ['tsd', 'TSD'],
 ];
 const NO_PERIOD_TABS = new Set(['chart', 'suppliers', 'tsd', 'bank']);
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => tallinnToday();
 const dateLabel = (value) => (value ? new Date(`${value}T12:00:00`).toLocaleDateString('et-EE') : '—');
 const blankLine = () => ({ account: '', debit: '', credit: '', note: '' });
 
@@ -83,7 +84,9 @@ export default function AccountingPage({ repository = accountingService, canEdit
   // only an admin changes the books (financeApi checks again); the others and a phone see a read-only grid
   const readOnly = narrow || !(canEdit ?? (auth?.user ? hasAnyRole(auth.user.roles, [ROLES.ADMIN]) : true));
   const [tab, setTab] = useState('journal');
-  const [period, setPeriod] = useState({ from: `${today().slice(0, 4)}-01-01`, to: today() });
+  // remembered per device (accountingPeriod.js) so the period does not change between visits
+  const [period, setPeriod] = useState(() => loadPeriod(today()));
+  useEffect(() => { savePeriod(period); }, [period]);
   const [ledgerAccount, setLedgerAccount] = useState('1010');
   const [journalCode, setJournalCode] = useState('');
   const [journalSort, setJournalSort] = useState({ key: 'code', dir: 'asc' });
@@ -249,8 +252,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
   if (state.loading && !state.data) return <LoadingState label="Laen raamatupidamist…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
-  const setYear = () => setPeriod({ from: `${today().slice(0, 4)}-01-01`, to: today() });
-  const setMonth = () => setPeriod({ from: `${today().slice(0, 7)}-01`, to: today() });
+  const preset = activePreset(period, today());
 
   return <div className="page-content accounting-page">
     <Link className="back-link" to="/finance"><ArrowLeft size={17} /> Tagasi finantsidesse</Link>
@@ -275,8 +277,9 @@ export default function AccountingPage({ repository = accountingService, canEdit
       {!NO_PERIOD_TABS.has(tab) ? <div className="accounting-period">
         <Input id="accounting-from" label="Alates" type="date" value={period.from} onChange={(event) => setPeriod({ ...period, from: event.target.value })} />
         <Input id="accounting-to" label="Kuni" type="date" value={period.to} onChange={(event) => setPeriod({ ...period, to: event.target.value })} />
-        <Button variant="secondary" onClick={setMonth}>Jooksev kuu</Button>
-        <Button variant="secondary" onClick={setYear}>Jooksev aasta</Button>
+        <div className="accounting-period__quick" role="group" aria-label="Kiirperiood">
+          {PERIOD_PRESETS.map(([key, label]) => <Button key={key} variant={preset === key ? 'primary' : 'secondary'} aria-pressed={preset === key} onClick={() => setPeriod(presetPeriod(key, today(), period))}>{label}</Button>)}
+        </div>
         {tab !== 'ledger' ? <Button variant="secondary" onClick={exportFile}><Download size={17} /> Excel</Button> : null}
       </div> : null}
     </Card>
@@ -313,7 +316,10 @@ export default function AccountingPage({ repository = accountingService, canEdit
     </Card> : null}
 
     {tab === 'trial' ? <Card className="accounting-card">
-      {trial.rows.length ? <div className="accounting-sheet"><div className="accounting-grid-wrap"><table className="accounting-grid accounting-trial"><thead>
+      {trial.rows.length ? <div className="accounting-sheet">
+        <h2>Käibeandmik {periodLabel(period)}</h2>
+        {startsMidYear(period.from) ? <p className="accounting-trial__note" role="note">{TRIAL_MID_YEAR_NOTE} <button type="button" className="link-button" onClick={() => setPeriod({ ...period, from: yearStartOf(period.from) })}>Näita aasta algusest</button></p> : null}
+        <div className="accounting-grid-wrap"><table className="accounting-grid accounting-trial"><thead>
         <tr><th rowSpan="2">Konto</th><th rowSpan="2">Nimetus</th><th colSpan="2" className="center">Algsaldo{!readOnly ? <> <button type="button" className="link-button" onClick={openOpening}>muuda</button></> : null}</th><th colSpan="2" className="center">Käive</th><th colSpan="2" className="center">Lõppsaldo</th></tr>
         <tr><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Deebet</th><th className="num">Kreedit</th></tr></thead>
         <tbody>{trial.rows.map((r) => <tr key={r.code}><td><button type="button" className="link-button" onClick={() => { setLedgerAccount(r.code); setTab('ledger'); }}>{r.code}</button></td><td>{r.name}</td>{[r.opening.debit, r.opening.credit, r.turnover.debit, r.turnover.credit, r.closing.debit, r.closing.credit].map((v, i) => <td key={i} className="num">{v ? amount(v) : ''}</td>)}</tr>)}</tbody>

@@ -1,0 +1,553 @@
+{
+ "2031-09": {
+  "rows": [
+   {
+    "id": "s2",
+    "mode": "advance",
+    "status": "invoiced",
+    "lessonCount": 4,
+    "lessonsLeft": 3,
+    "plannedUnits": 6,
+    "priceCents": 3000,
+    "totalCents": 18000,
+    "due": "2031-09-10",
+    "payerEmail": "",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": null
+   },
+   {
+    "id": "s1",
+    "mode": "current",
+    "status": "invoiced",
+    "lessonCount": 4,
+    "lessonsLeft": 2,
+    "plannedUnits": 4,
+    "priceCents": 2500,
+    "totalCents": 10000,
+    "due": "2031-09-10",
+    "payerEmail": "mari@example.com",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": null
+   },
+   {
+    "id": "s4",
+    "mode": "package",
+    "status": "package",
+    "lessonCount": 5,
+    "lessonsLeft": null,
+    "plannedUnits": 5,
+    "priceCents": 2200,
+    "totalCents": 11000,
+    "due": "2031-09-10",
+    "payerEmail": "",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": null
+   },
+   {
+    "id": "st",
+    "mode": "advance",
+    "status": "ready",
+    "lessonCount": 8,
+    "lessonsLeft": null,
+    "plannedUnits": 7,
+    "priceCents": 2000,
+    "totalCents": 19200,
+    "due": "2031-09-10",
+    "payerEmail": "ema@example.com",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": [
+     {
+      "subject": "Eesti keel",
+      "plannedUnits": 4,
+      "priceCents": 2000,
+      "minutes": 60,
+      "lessonCount": 4,
+      "totalCents": 8000,
+      "correction": {
+       "units": 0,
+       "note": ""
+      }
+     },
+     {
+      "subject": "Matemaatika",
+      "plannedUnits": 4,
+      "priceCents": 2800,
+      "minutes": 45,
+      "lessonCount": 4,
+      "totalCents": 11200,
+      "correction": {
+       "units": 0,
+       "note": ""
+      }
+     }
+    ]
+   },
+   {
+    "id": "s5",
+    "mode": "actual",
+    "status": "no-lessons",
+    "lessonCount": 0,
+    "lessonsLeft": null,
+    "plannedUnits": 0,
+    "priceCents": 2000,
+    "totalCents": 0,
+    "due": "2031-10-10",
+    "payerEmail": "toim@example.com",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": null
+   }
+  ],
+  "items": [
+   {
+    "studentId": "st",
+    "subject": "Eesti keel",
+    "plannedUnits": 4,
+    "correctionUnits": 0,
+    "correctionNote": ""
+   },
+   {
+    "studentId": "st",
+    "subject": "Matemaatika",
+    "plannedUnits": 4,
+    "correctionUnits": 0,
+    "correctionNote": ""
+   }
+  ],
+  "balances": {
+   "s1": [
+    {
+     "subject": "",
+     "start": "2031-09",
+     "paid": 4,
+     "used": 2,
+     "expected": 0,
+     "left": 2
+    }
+   ],
+   "s2": [
+    {
+     "subject": "",
+     "start": "2031-09",
+     "paid": 6,
+     "used": 3,
+     "expected": 0,
+     "left": 3
+    }
+   ],
+   "s4": [],
+   "s5": [],
+   "st": []
+  }
+ },
+ "2031-10": {
+  "rows": [
+   {
+    "id": "s2",
+    "mode": "advance",
+    "status": "ready",
+    "lessonCount": 5,
+    "lessonsLeft": 3,
+    "plannedUnits": 7.5,
+    "priceCents": 3000,
+    "totalCents": 22500,
+    "due": "2031-10-10",
+    "payerEmail": "",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 3
+    },
+    "subjectParts": null
+   },
+   {
+    "id": "s1",
+    "mode": "current",
+    "status": "ready",
+    "lessonCount": 6,
+    "lessonsLeft": 2,
+    "plannedUnits": 6,
+    "priceCents": 2500,
+    "totalCents": 10000,
+    "due": "2031-10-10",
+    "payerEmail": "mari@example.com",
+    "correction": {
+     "units": -2,
+     "note": "1 ette teatatud puudumist, 1 erandit",
+     "noShows": [
+      "s1-2031-09-17",
+      "s1-2031-09-24"
+     ],
+     "unmarked": 0
+    },
+    "subjectParts": null
+   },
+   {
+    "id": "s4",
+    "mode": "package",
+    "status": "package",
+    "lessonCount": 4,
+    "lessonsLeft": null,
+    "plannedUnits": 4,
+    "priceCents": 2200,
+    "totalCents": 8800,
+    "due": "2031-10-10",
+    "payerEmail": "",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": null
+   },
+   {
+    "id": "st",
+    "mode": "advance",
+    "status": "invoiced",
+    "lessonCount": 10,
+    "lessonsLeft": 1.5,
+    "plannedUnits": 8.75,
+    "priceCents": 2000,
+    "totalCents": 24000,
+    "due": "2031-10-10",
+    "payerEmail": "ema@example.com",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": [
+     {
+      "subject": "Eesti keel",
+      "plannedUnits": 5,
+      "priceCents": 2000,
+      "minutes": 60,
+      "lessonCount": 5,
+      "totalCents": 10000,
+      "correction": {
+       "units": 0,
+       "note": ""
+      }
+     },
+     {
+      "subject": "Matemaatika",
+      "plannedUnits": 5,
+      "priceCents": 2800,
+      "minutes": 45,
+      "lessonCount": 5,
+      "totalCents": 14000,
+      "correction": {
+       "units": 0,
+       "note": ""
+      }
+     }
+    ]
+   },
+   {
+    "id": "s5",
+    "mode": "actual",
+    "status": "ready",
+    "lessonCount": 1,
+    "lessonsLeft": null,
+    "plannedUnits": 1,
+    "priceCents": 2000,
+    "totalCents": 2000,
+    "due": "2031-11-10",
+    "payerEmail": "toim@example.com",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": null
+   }
+  ],
+  "items": [
+   {
+    "studentId": "s2",
+    "plannedUnits": 7.5,
+    "correctionUnits": 0,
+    "correctionNote": ""
+   },
+   {
+    "studentId": "s1",
+    "plannedUnits": 6,
+    "correctionUnits": -2,
+    "correctionNote": "1 ette teatatud puudumist, 1 erandit"
+   },
+   {
+    "studentId": "s5",
+    "plannedUnits": 1,
+    "correctionUnits": 0,
+    "correctionNote": ""
+   }
+  ],
+  "balances": {
+   "s1": [
+    {
+     "subject": "",
+     "start": "2031-09",
+     "paid": 4,
+     "used": 2,
+     "expected": 0,
+     "left": 2
+    }
+   ],
+   "s2": [
+    {
+     "subject": "",
+     "start": "2031-09",
+     "paid": 6,
+     "used": 3,
+     "expected": 0,
+     "left": 3
+    }
+   ],
+   "s4": [],
+   "s5": [],
+   "st": [
+    {
+     "subject": "Eesti keel",
+     "start": "2031-10",
+     "paid": 5,
+     "used": 2,
+     "expected": 0,
+     "left": 3
+    },
+    {
+     "subject": "Matemaatika",
+     "start": "2031-10",
+     "paid": 5,
+     "used": 2,
+     "expected": 0,
+     "left": 3
+    }
+   ]
+  }
+ },
+ "2031-11": {
+  "rows": [
+   {
+    "id": "s2",
+    "mode": "advance",
+    "status": "ready",
+    "lessonCount": 4,
+    "lessonsLeft": 3,
+    "plannedUnits": 6,
+    "priceCents": 3000,
+    "totalCents": 18000,
+    "due": "2031-11-10",
+    "payerEmail": "",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 10.5
+    },
+    "subjectParts": null
+   },
+   {
+    "id": "s1",
+    "mode": "current",
+    "status": "ready",
+    "lessonCount": 4,
+    "lessonsLeft": 2,
+    "plannedUnits": 4,
+    "priceCents": 2500,
+    "totalCents": 10000,
+    "due": "2031-11-10",
+    "payerEmail": "mari@example.com",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 6
+    },
+    "subjectParts": null
+   },
+   {
+    "id": "s4",
+    "mode": "package",
+    "status": "package",
+    "lessonCount": 4,
+    "lessonsLeft": null,
+    "plannedUnits": 4,
+    "priceCents": 2200,
+    "totalCents": 8800,
+    "due": "2031-11-10",
+    "payerEmail": "",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": null
+   },
+   {
+    "id": "st",
+    "mode": "advance",
+    "status": "ready",
+    "lessonCount": 8,
+    "lessonsLeft": 1.5,
+    "plannedUnits": 7,
+    "priceCents": 2000,
+    "totalCents": 16400,
+    "due": "2031-11-10",
+    "payerEmail": "ema@example.com",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [
+      "st-2031-10-08",
+      "st-2031-10-16"
+     ],
+     "unmarked": 4.5
+    },
+    "subjectParts": [
+     {
+      "subject": "Eesti keel",
+      "plannedUnits": 4,
+      "priceCents": 2000,
+      "minutes": 60,
+      "lessonCount": 4,
+      "totalCents": 8000,
+      "correction": {
+       "units": 0,
+       "note": ""
+      }
+     },
+     {
+      "subject": "Matemaatika",
+      "plannedUnits": 4,
+      "priceCents": 2800,
+      "minutes": 45,
+      "lessonCount": 4,
+      "totalCents": 8400,
+      "correction": {
+       "units": -1,
+       "note": "1 ette teatatud puudumist"
+      }
+     }
+    ]
+   },
+   {
+    "id": "s5",
+    "mode": "actual",
+    "status": "no-lessons",
+    "lessonCount": 0,
+    "lessonsLeft": null,
+    "plannedUnits": 0,
+    "priceCents": 2000,
+    "totalCents": 0,
+    "due": "2031-12-10",
+    "payerEmail": "toim@example.com",
+    "correction": {
+     "units": 0,
+     "note": "",
+     "noShows": [],
+     "unmarked": 0
+    },
+    "subjectParts": null
+   }
+  ],
+  "items": [
+   {
+    "studentId": "s2",
+    "plannedUnits": 6,
+    "correctionUnits": 0,
+    "correctionNote": ""
+   },
+   {
+    "studentId": "s1",
+    "plannedUnits": 4,
+    "correctionUnits": 0,
+    "correctionNote": ""
+   },
+   {
+    "studentId": "st",
+    "subject": "Eesti keel",
+    "plannedUnits": 4,
+    "correctionUnits": 0,
+    "correctionNote": ""
+   },
+   {
+    "studentId": "st",
+    "subject": "Matemaatika",
+    "plannedUnits": 4,
+    "correctionUnits": -1,
+    "correctionNote": "1 ette teatatud puudumist"
+   }
+  ],
+  "balances": {
+   "s1": [
+    {
+     "subject": "",
+     "start": "2031-09",
+     "paid": 4,
+     "used": 2,
+     "expected": 0,
+     "left": 2
+    }
+   ],
+   "s2": [
+    {
+     "subject": "",
+     "start": "2031-09",
+     "paid": 6,
+     "used": 3,
+     "expected": 0,
+     "left": 3
+    }
+   ],
+   "s4": [],
+   "s5": [],
+   "st": [
+    {
+     "subject": "Eesti keel",
+     "start": "2031-10",
+     "paid": 5,
+     "used": 2,
+     "expected": 0,
+     "left": 3
+    },
+    {
+     "subject": "Matemaatika",
+     "start": "2031-10",
+     "paid": 5,
+     "used": 2,
+     "expected": 0,
+     "left": 3
+    }
+   ]
+  }
+ }
+}

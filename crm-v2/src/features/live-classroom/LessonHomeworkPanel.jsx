@@ -3,6 +3,8 @@ import { homeworkService } from '../../services/firebase/homework.js';
 import '../vocabulary/vocabulary.css';
 import { localDate } from '../../utils/localDate.js';
 import { displayDate } from '../finance/finance.js';
+import { sheetForPage } from '../board/boardModel.js';
+import { isWorksheetPage } from '../board/lessonBoards.js';
 
 const QUICK = ['Korda tunni sõnu („Minu sõnad” → „Harjuta”)', 'Lõpeta tööleht', 'Vaata tahvlileht üle ja kirjuta 5 lauset'];
 
@@ -14,13 +16,21 @@ function inDays(days, from = new Date()) {
 /**
  * Live Classroom „Kodutöö” (teacher): give homework from the lesson. It lands in the student's homework list
  * („Kodutööd”, dashboard); the open board page and the room's worksheet can be attached with one tick.
+ * A worksheet's page („Tööleht: …”) is never given as a board page: it holds only drawings, and the student's board
+ * showed it empty (2026-11-04, Demjan). The homework points at the worksheet assignment behind it instead.
+ * `sheets`: the board sheets of the room ({ id, title, legacyTitle }: this lesson's and earlier ones).
  */
-export default function LessonHomeworkPanel({ invitation, user, boardPage = null, worksheet = null, assignPage = false, service = homeworkService }) {
-  // assignPage: opened from the page's ⋯ menu („Määra õpilasele”) — the page is attached and the task written
-  const [task, setTask] = useState(() => (assignPage && boardPage ? `Õpi tahvlilehe „${boardPage.title}” materjal.` : ''));
+export default function LessonHomeworkPanel({ invitation, user, boardPage: chosenPage = null, worksheet: roomSheet = null, sheets = [], assignPage = false, service = homeworkService }) {
+  const onSheetPage = Boolean(chosenPage && isWorksheetPage(chosenPage));
+  // the sheet behind a worksheet page; a worksheet page without a known sheet is not attached at all
+  const pageSheet = onSheetPage ? sheetForPage(chosenPage, roomSheet ? [...sheets, roomSheet] : sheets, { boardSheet: true }) : null;
+  const boardPage = onSheetPage ? null : chosenPage;
+  const worksheet = pageSheet ? { id: pageSheet.id, title: pageSheet.title } : roomSheet;
+  // assignPage: opened from the page's ⋯ menu („Määra õpilasele”) — the page (or the sheet on it) is attached and the task written
+  const [task, setTask] = useState(() => (assignPage && pageSheet ? `Tee tööleht „${pageSheet.title}”.` : assignPage && boardPage ? `Õpi tahvlilehe „${boardPage.title}” materjal.` : ''));
   const [due, setDue] = useState(() => inDays(7));
   const [withPage, setWithPage] = useState(Boolean(assignPage && boardPage));
-  const [withSheet, setWithSheet] = useState(Boolean(worksheet) && !assignPage);
+  const [withSheet, setWithSheet] = useState(Boolean(worksheet) && (!assignPage || Boolean(pageSheet)));
   const [voice, setVoice] = useState(false);
   const [given, setGiven] = useState([]);
   const [busy, setBusy] = useState(false);

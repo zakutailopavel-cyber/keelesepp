@@ -1,6 +1,6 @@
 import { Check, Pencil, Send } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Button } from '../../components/ui/index.js';
+import { Button, LoadingState } from '../../components/ui/index.js';
 import { studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
 import PollGrid from '../availability-poll/PollGrid.jsx';
 import { PRESETS, cellsOf, pollPayload, withPreset } from '../availability-poll/pollModel.js';
@@ -110,7 +110,7 @@ export default function AnnouncementResponder({ item, user, service, availabilit
             {times.saved ? <p className="form-hint">Varem märgitud ajad on juba sees — kontrolli ja kinnita. · Ранее отмеченное время уже внесено — проверьте и подтвердите.</p> : null}
             <div className="poll-quick"><span>Kiirvalik:</span>{Object.entries(PRESETS).map(([key, preset]) => <button type="button" key={key} onClick={() => setTimes((current) => ({ ...current, cells: withPreset(current.cells, preset) }))}>{PRESET_LABELS[key]}</button>)}<button type="button" className="is-clear" onClick={() => setTimes((current) => ({ ...current, cells: {} }))}>Tühjenda</button></div>
             <PollGrid cells={times.cells} onChange={(cells) => setTimes((current) => ({ ...current, cells }))} dayNames={DAYS} partNames={{ morning: 'Hommik', day: 'Päev', evening: 'Õhtu' }} label="Märgi sobivad ajad" />
-          </> : <p className="form-hint">Laen… · Загрузка…</p>}
+          </> : <LoadingState inline className="form-hint" label="Laen… · Загрузка…" />}
         </div>
       ) : null}
       {error ? <p className="form-error" role="alert">{error}</p> : null}

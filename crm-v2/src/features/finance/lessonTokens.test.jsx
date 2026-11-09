@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import TokenInvoiceDialog from './TokenInvoiceDialog.jsx';
+import { TOKEN_INVOICE_NOT_SENT, TOKEN_INVOICE_NOT_SENT_HINT, tokenInvoiceCreatedMessage } from './tokenInvoiceRows.js';
 import LessonTokensCard from '../students/LessonTokensCard.jsx';
 import { monthlyBillingRows } from './monthlyBilling.js';
 import { lessonTokenCost, subjectBalance, tokenAccount, tokenInvoiceUsage, tokenLine, tokenSubjectKey, tokenSummary } from '../../services/firebase/lessonTokens.js';
@@ -8,9 +9,11 @@ import { lessonTokenCost, subjectBalance, tokenAccount, tokenInvoiceUsage, token
 const kaarel = { id: 'k1', name: 'Kaarel Laps', subject: 'Eesti keel', parentName: 'Liis Vanem', parentEmail: 'liis@example.ee', active: true };
 
 describe('lesson tokens', () => {
-  it('an invoice for N lessons at the card price, created and e-mailed, with the current balance shown', async () => {
+  // Oleksiy 2026-11-06 („Убрать автоматическую отправку счета по туннипакету!!”): the dialog only creates; the
+  // invoice is e-mailed later by hand from its row in the invoice list
+  it('an invoice for N lessons at the card price, created but NOT e-mailed, with the current balance shown', async () => {
     const api = { createTokens: vi.fn().mockResolvedValue({ invoice: { id: 'inv1', num: 'KS-2026-300' } }) };
-    const deliveryApi = { send: vi.fn().mockResolvedValue({}) };
+    const deliveryApi = { send: vi.fn().mockResolvedValue({}), remind: vi.fn().mockResolvedValue({}) };
     const tokensApi = { listByStudent: vi.fn().mockResolvedValue([{ status: 'active', balanceCredits: 2, grantedCredits: 8, consumedCredits: 6 }]) };
     const onCreated = vi.fn();
     render(<TokenInvoiceDialog studentCards={[kaarel]} plans={[{ studentId: 'k1', lessonPriceCents: 2000, lessonMinutes: 60 }]} api={api} deliveryApi={deliveryApi} tokensApi={tokensApi} onCreated={onCreated} />);
@@ -18,12 +21,20 @@ describe('lesson tokens', () => {
     fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'k1' } });
     expect(await screen.findByText('2 tundi')).toBeInTheDocument();
     expect(screen.getByText('Liis Vanem')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /saada/i })).not.toBeInTheDocument();
+    expect(screen.getByText(TOKEN_INVOICE_NOT_SENT_HINT)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '9' }));
     expect(screen.getByRole('status')).toHaveTextContent('9 × 20,00 € = 180,00 €');
-    fireEvent.click(screen.getByRole('button', { name: 'Loo ja saada' }));
-    await waitFor(() => expect(api.createTokens).toHaveBeenCalledWith(expect.objectContaining({ studentId: 'k1', lessons: 9 })));
-    expect(deliveryApi.send).toHaveBeenCalledWith('inv1');
-    expect(onCreated).toHaveBeenCalledWith({ id: 'inv1', num: 'KS-2026-300' }, { sent: true });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: 'inv1', num: 'KS-2026-300' }, { sent: false }));
+    expect(api.createTokens).toHaveBeenCalledWith(expect.objectContaining({ studentId: 'k1', lessons: 9 }));
+    expect(deliveryApi.send).not.toHaveBeenCalled();
+    expect(deliveryApi.remind).not.toHaveBeenCalled();
+  });
+
+  it('the page message after creating says the invoice is NOT sent', () => {
+    expect(tokenInvoiceCreatedMessage({ num: 'KS-2026-300' })).toBe(`Tunnipaketi arve KS-2026-300: ${TOKEN_INVOICE_NOT_SENT} Tunnid lisatakse pärast makset.`);
+    expect(TOKEN_INVOICE_NOT_SENT).toBe('Arve on loodud, aga EI OLE saadetud. Saada see arvete nimekirjast, kui oled kontrollinud.');
   });
 
   it('refuses without a lesson price on the card', async () => {
@@ -31,8 +42,10 @@ describe('lesson tokens', () => {
     render(<TokenInvoiceDialog studentCards={[kaarel]} plans={[]} api={api} tokensApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} />);
     fireEvent.click(screen.getByRole('button', { name: /Tunnipakett/ }));
     fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'k1' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('tunnihind');
+    // Oleksiy 2026-11-06: the row shows „Hind määramata — …” and „Loo arve” waits for the price
+    expect(screen.getByText(/Hind määramata — lisa see õpilase kaardil/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Loo arve' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Loo ja saada' })).not.toBeInTheDocument();
     expect(api.createTokens).not.toHaveBeenCalled();
   });
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { liveLessonInvitationsService } from '../../services/firebase/liveLessonInvitations.js';
 import { INVITATION_STATUS, newestInvitation, normalizeInvitation, serverNow } from '../../features/live-classroom/invitationModel.js';
+import { prefetchLiveClassroom } from '../../features/live-classroom/liveRoomPrefetch.js';
 import { Button, IconButton } from '../ui/index.js';
 import '../../features/live-classroom/liveClassroom.css';
 
@@ -45,6 +46,9 @@ export default function LessonInvitationOverlay({ service = liveLessonInvitation
   useEffect(() => {
     if (invitation?.id !== hiddenId) setHiddenId('');
   }, [hiddenId, invitation?.id]);
+  // an invitation on the screen: the room's code downloads while the student reads it
+  const visibleId = isStudent && !readOnlyPreview && invitation ? invitation.id : '';
+  useEffect(() => { if (visibleId) prefetchLiveClassroom(); }, [visibleId]);
 
   if (!isStudent || readOnlyPreview || !invitation || hiddenId === invitation.id) return null;
 

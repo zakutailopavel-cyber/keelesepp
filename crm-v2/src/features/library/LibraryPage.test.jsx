@@ -305,7 +305,8 @@ describe('LibraryPage', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Vaata: Minu päev' }));
     const preview = screen.getByRole('dialog', { name: 'Eelvaade: Minu päev' });
-    expect((await within(preview).findAllByText('Minu päev ja kellaaeg')).length).toBeGreaterThan(0);
+    // the sheet preview downloads the worksheet blocks on first open (they are no longer part of the library page)
+    expect((await within(preview).findAllByText('Minu päev ja kellaaeg', {}, { timeout: 8000 })).length).toBeGreaterThan(0);
     expect(within(preview).getByRole('region', { name: 'Tööleht' })).toBeInTheDocument();
     fireEvent.click(within(preview).getByRole('button', { name: /Muuda töölehte/ }));
     expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/plan-2');
@@ -354,13 +355,17 @@ describe('LibraryPage', () => {
   it('an admin prepares a whole module in one click and sees what was published', async () => {
     const lesson = (id, number, phases) => ({ id, title: `Tund ${number}`, level: 'A2', topic: '01. Algus', roadmapManaged: true, roadmapModuleNumber: 1, roadmapModuleTitle: '01. Algus', roadmapLessonNumber: number, ...(phases ? { worksheetPhases: phases } : {}) });
     const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [lesson('a2-001', 1, { discover: { publishedVersion: 1 } }), lesson('a2-002', 2)], exercises: [] }) };
-    const prepareModule = vi.fn().mockResolvedValue({ drafts: { created: ['a2-002'], completed: ['a2-001'], existing: [], noProfile: [], failed: [] }, published: ['a', 'b', 'c', 'd', 'e'], pictured: ['a2-001:discover'], notReady: ['a2-002:transfer'], failed: [] });
+    // held until the busy button was seen (the confirm answers in a microtask, CI could miss a state that short)
+    let finish;
+    const prepareModule = vi.fn().mockImplementation(() => new Promise((resolve) => { finish = () => resolve({ drafts: { created: ['a2-002'], completed: ['a2-001'], existing: [], noProfile: [], failed: [] }, published: ['a', 'b', 'c', 'd', 'e'], pictured: ['a2-001:discover'], notReady: ['a2-002:transfer'], failed: [] }); }));
     vi.doMock('../worksheet-generator/ui/moduleDrafts.js', () => ({ prepareModule }));
     const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
     render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 'admin', displayName: 'Admin', roles: ['admin'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} worksheetRepository={{ syncPhases: vi.fn() }} /></AuthContext.Provider></MemoryRouter>);
     fireEvent.click(await screen.findByRole('button', { name: 'Valmista moodul ette' }));
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining('kvaliteedikontrollis vigu ei ole'));
-    expect(screen.getByRole('button', { name: 'Laen generaatorit…' })).toBeDisabled();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Laen generaatorit…' })).toBeDisabled());
+    await waitFor(() => expect(prepareModule).toHaveBeenCalled());
+    finish();
     expect(await screen.findByRole('status')).toHaveTextContent('lehed loodi 2 tunnile; avaldati 5 lehte, pilt lisati 1 avaldatud lehele; 1 lehte jäi kvaliteedivigade tõttu mustandiks.');
     expect(prepareModule).toHaveBeenCalledWith(expect.objectContaining({ lessons: [expect.objectContaining({ id: 'a2-001' }), expect.objectContaining({ id: 'a2-002' })] }));
     confirm.mockRestore();

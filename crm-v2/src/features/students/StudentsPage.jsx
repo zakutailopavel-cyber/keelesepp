@@ -1,6 +1,6 @@
 import { Archive, ChevronRight, ClipboardList, Pencil, Plus, RotateCcw, Search, UsersRound } from 'lucide-react';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, IconButton, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { groupStudentPeople, studentsService } from '../../services/firebase/students.js';
@@ -48,14 +48,20 @@ export default function StudentsPage({ service = studentsService, mergeService, 
   const [filters, setFilters] = useState(initialFilters);
   const [state, setState] = useState({ loading: true, error: null, items: [], cursor: null, hasMore: false });
   const [formStudent, setFormStudent] = useState(undefined);
-  const [formOpen, setFormOpen] = useState(false);
+  // a web lead's „Õppijaks” (LeadsPage) sends its contact details in router state — never in the URL — and the new-card
+  // form opens prefilled; the state is cleared so a reload does not open it again
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [prefill, setPrefill] = useState(() => location.state?.newStudent || null);
+  const [formOpen, setFormOpen] = useState(() => Boolean(prefill));
+  useEffect(() => { if (location.state?.newStudent) navigate(`${location.pathname}${location.search}`, { replace: true, state: null }); }, [location, navigate]);
   const [archiveTarget, setArchiveTarget] = useState(null);
   const [enrollmentStudent, setEnrollmentStudent] = useState(null);
   const [archiving, setArchiving] = useState(false);
   const [notice, setNotice] = useState('');
   const [noTimesOpen, setNoTimesOpen] = useState(() => searchParams.get('ajad') === '1'); // „Ilma ajata” (owner 2026-10-27)
   const [actionError, setActionError] = useState('');
-  // „Võimalikud duplikaadid” (owner 2026-10-24): pairs + „Liida” with the server preview; cards are never deleted
+  // „Võimalikud topeltkaardid” (owner 2026-10-24, 2026-11-04): pairs + „Ava ühendamine” with the server preview; cards are never deleted
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   // „Puuduvad andmed” (owner 2026-10-25): what each card misses; ?puuduvad=1 (the bell) opens it, &taidetud=<id> marks a filling
   const [missing, setMissing] = useState(() => ({ open: searchParams.get('puuduvad') === '1', focus: searchParams.get('taidetud') || '' }));
@@ -124,13 +130,14 @@ export default function StudentsPage({ service = studentsService, mergeService, 
   const initials = (name) => String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
   const activeCount = people.filter((student) => student.records?.some((record) => record.active)).length;
   const unassignedCount = people.filter((student) => student.active && !(student.enrollments || []).some((enrollment) => canonicalTeacherName(enrollment.teacher))).length;
-  const openCreate = () => { setFormStudent(undefined); setFormOpen(true); };
+  const openCreate = () => { setFormStudent(undefined); setPrefill(null); setFormOpen(true); };
   const openEdit = (student) => { setFormStudent(student); setFormOpen(true); };
   const save = async (values) => {
     setActionError('');
     const safeValues = canAssignTeacher ? values : { ...values, teacher: formStudent?.teacher || teacherScope };
     if (formStudent) await service.update(formStudent.id, safeValues); else await service.create(safeValues);
     setNotice(formStudent ? 'Õpilase andmed on salvestatud.' : 'Õpilane on lisatud.');
+    setPrefill(null);
     await load();
   };
   const setActive = async (active) => {
@@ -148,7 +155,7 @@ export default function StudentsPage({ service = studentsService, mergeService, 
   };
   return (
     <div className="page-content">
-      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${people.length} õpilast`} actions={<>{canAssignTeacher ? <Button variant="secondary" onClick={() => setMissing({ open: true, focus: '' })}><ClipboardList size={18} /> Puuduvad andmed</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setDuplicatesOpen(true)}><UsersRound size={18} /> Võimalikud duplikaadid{duplicateCount ? <Badge tone="warning">{duplicateCount}</Badge> : null}</Button> : null}<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button></>} />
+      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${people.length} õpilast`} actions={<>{canAssignTeacher ? <Button variant="secondary" onClick={() => setMissing({ open: true, focus: '' })}><ClipboardList size={18} /> Puuduvad andmed</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setDuplicatesOpen(true)}><UsersRound size={18} /> Võimalikud topeltkaardid{duplicateCount ? <Badge tone="warning">{duplicateCount}</Badge> : null}</Button> : null}<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button></>} />
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')} aria-label="Sulge veateade">×</button></div> : null}
       {state.items.length ? <section className="student-directory-summary" aria-label="Õpilaste kokkuvõte"><div><span>Leitud</span><strong>{people.length}</strong></div><div><span>Aktiivsed</span><strong>{activeCount}</strong></div><div><span>Tasemeid</span><strong>{new Set(people.flatMap((student) => (student.enrollments || []).map((enrollment) => enrollment.level)).filter(Boolean)).size}</strong></div>{canAssignTeacher ? <div className={unassignedCount ? 'needs-attention' : ''}><span>Õpetajata</span><strong>{unassignedCount}</strong></div> : null}</section> : null}
@@ -179,7 +186,7 @@ export default function StudentsPage({ service = studentsService, mergeService, 
       ) : null}
 
       {enrollmentStudent ? <EnrollmentManager student={enrollmentStudent} teachers={options.teachers} service={service} onClose={() => setEnrollmentStudent(null)} onChanged={async () => { await load(); const fresh = groupStudentPeople((await service.list({ ...filters, scopeTeacher: teacherScope, scopeTeacherUid: canAssignTeacher ? '' : currentUser.uid, pageSize: 500, exhaustive: true })).items).find((item) => item.personKey === enrollmentStudent.personKey); if (fresh) setEnrollmentStudent(fresh); }} /> : null}
-      <StudentForm open={formOpen} student={formStudent} teachers={options.teachers} canAssignTeacher={canAssignTeacher} existingStudents={state.items} defaultTeacher={teacherScope} onClose={() => setFormOpen(false)} onSubmit={save} />
+      <StudentForm open={formOpen} student={formStudent} initial={formStudent ? null : prefill} teachers={options.teachers} canAssignTeacher={canAssignTeacher} existingStudents={state.items} defaultTeacher={teacherScope} onClose={() => { setFormOpen(false); setPrefill(null); }} onSubmit={save} />
       <Modal open={Boolean(archiveTarget)} title={archiveTarget?.active ? 'Arhiveeri õpilane' : 'Taasta õpilane'} onClose={() => !archiving && setArchiveTarget(null)} footer={<><Button variant="secondary" onClick={() => setArchiveTarget(null)} disabled={archiving}>Loobu</Button><Button variant={archiveTarget?.active ? 'danger' : 'primary'} loading={archiving} onClick={() => setActive(!archiveTarget?.active)}>{archiveTarget?.active ? 'Arhiveeri' : 'Taasta'}</Button></>}><p>Kas {archiveTarget?.active ? 'arhiveerida' : 'taastada'} <strong>{archiveTarget?.name}</strong>? Toiming rakendub kõigile {archiveTarget?.recordIds?.length || 1} seotud kirjele. Õpilase ID-d, õppesuunad ja ajalugu säilivad.</p></Modal>
       {canAssignTeacher && missing.open ? <MissingDataPanel open user={currentUser} focusSubmission={missing.focus} {...(missingDataApi ? { service: missingDataApi } : {})} onClose={() => setMissing({ open: false, focus: '' })} /> : null}
       {canAssignTeacher && duplicatesOpen ? <DuplicateCandidatesModal open service={service} {...(mergeService ? { mergeService } : {})} onClose={() => setDuplicatesOpen(false)} onMerged={() => { setNotice('Kaardid on liidetud. Teine kaart on arhiveeritud ja viitab alles jäänud kaardile.'); load(); }} /> : null}

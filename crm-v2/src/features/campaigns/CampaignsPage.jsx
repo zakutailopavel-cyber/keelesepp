@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { campaignsService, groupsService } from '../../services/firebase/index.js';
+import { campaignsService } from '../../services/firebase/campaigns.js';
+import { groupsService } from '../../services/firebase/groups.js';
 import { CHANNELS, KINDS, LANGS, STATUSES, TEMPLATES, duePosts, normalizeCampaign, progressOf, sortCampaigns, validateCampaign } from './campaignModel.js';
 import './campaigns.css';
 

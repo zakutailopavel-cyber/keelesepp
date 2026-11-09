@@ -1,10 +1,11 @@
 import { CheckCircle2, FilePenLine, FileQuestion, Image as ImageIcon } from 'lucide-react';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import { Badge, Button, EmptyState, LoadingState, Modal } from '../../components/ui/index.js';
 import { isUnpublishedWorksheet, LIBRARY_TYPES, publishedWorksheetDoc } from './libraryModel.js';
-import { lessonWorksheetsService } from '../../services/firebase/index.js';
+import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
 
-const StudioSheetPreview = lazy(() => import('./StudioSheetPreview.jsx'));
+const StudioSheetPreview = lazyComponent(() => import('./StudioSheetPreview.jsx'));
 
 function safeUrl(value) {
   try {

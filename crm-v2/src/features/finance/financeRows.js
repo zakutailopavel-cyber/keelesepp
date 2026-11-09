@@ -17,6 +17,12 @@ function noShow(invoice) {
     (Array.isArray(invoice.lessons) && invoice.lessons.some((lesson) => lesson.status === 'Puudus_eta'));
 }
 
+// a row's status (financeRowState) → [label, Badge tone]: the month's list and the side drawer's invoice panel
+export const FINANCE_STATUS_LABELS = Object.freeze({
+  unpaid: ['Tasumata', 'neutral'], partial: ['Osaliselt', 'info'], overdue: ['Üle tähtaja', 'danger'],
+  paid: ['Makstud', 'success'], credit: ['Krediteeritud', 'neutral'], 'email-failed': ['E-post ebaõnnestus', 'danger'], 'no-show': ['Puudumine', 'warning'],
+});
+
 export function financeRowState(invoice = {}, today = new Date()) {
   if (invoice.status === 'Tühistatud') return { status: 'cancelled', amountCents: 0, paidCents: 0, balanceCents: 0, dueDate: asDate(invoice.due || invoice.dueDate), overdue: false, emailFailed: false, noShow: false };
   const amountCents = Number.isFinite(Number(invoice.effectiveAmountCents))

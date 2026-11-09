@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Badge, Modal } from '../../components/ui/index.js';
+import { Badge, Modal, LoadingState } from '../../components/ui/index.js';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
+import { lessonMomentsService } from '../../services/firebase/lessonMoments.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import LessonsCard from '../lesson-recording/TranscriptView.jsx';
@@ -19,7 +20,7 @@ const quiet = (subscribe) => {
 export default function LessonDetailModal({
   lesson, student, user, isAdmin = false, markLabel, onClose,
   homeworkApi = homeworkService, summaryApi = lessonSummariesService, wordsApi = studentWordsService,
-  recordingApi = lessonRecordingsService, boardApi = studentBoardService,
+  recordingApi = lessonRecordingsService, boardApi = studentBoardService, momentsApi = lessonMomentsService,
 }) {
   const day = lesson.date;
   const [homework, setHomework] = useState([]);
@@ -27,6 +28,7 @@ export default function LessonDetailModal({
   const [words, setWords] = useState([]);
   const [recordings, setRecordings] = useState({ loading: true, error: '', items: [] });
   const [pages, setPages] = useState([]);
+  const [moments, setMoments] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -34,18 +36,20 @@ export default function LessonDetailModal({
     Promise.resolve().then(() => recordingApi.listForStudent({ studentId: student.id, user, isAdmin }))
       .then((items) => { if (alive) setRecordings({ loading: false, error: '', items: items || [] }); })
       .catch((error) => { if (alive) setRecordings({ loading: false, error: error.message || 'Salvestisi ei saanud laadida.', items: [] }); });
+    Promise.resolve().then(() => momentsApi?.listForStudent?.({ studentId: student.id, user, isAdmin }) || [])
+      .then((items) => { if (alive) setMoments(items || []); }).catch(() => {});
     const stops = [
       quiet(() => summaryApi.subscribeForStudent(student.id, setSummaries, () => setSummaries([]))),
       quiet(() => wordsApi.subscribeForStudent(student.id, setWords, () => setWords([]))),
       quiet(() => boardApi.subscribePages(student.id, setPages, () => setPages([]))),
     ];
     return () => { alive = false; stops.forEach((stop) => stop?.()); };
-  }, [boardApi, homeworkApi, isAdmin, recordingApi, student.id, summaryApi, user, wordsApi]);
+  }, [boardApi, homeworkApi, isAdmin, momentsApi, recordingApi, student.id, summaryApi, user, wordsApi]);
 
   const dayHomework = homework.filter((item) => (item.date || dayKey(item.createdAt)) === day);
   const daySummaries = summaries.filter((item) => dayKey(item.startedAt || item.endedAt) === day);
   const dayWords = words.filter((item) => dayKey(item.createdAt) === day);
-  const rows = useMemo(() => lessonTimeline(recordings.items, pages).filter((row) => row.day === day), [day, pages, recordings.items]);
+  const rows = useMemo(() => lessonTimeline(recordings.items, pages, moments).filter((row) => row.day === day), [day, moments, pages, recordings.items]);
   const nothing = !dayHomework.length && !daySummaries.length && !dayWords.length && !rows.length && !recordings.loading;
 
   return (
@@ -79,7 +83,7 @@ export default function LessonDetailModal({
           </section>
         ) : null}
         {rows.length || recordings.error ? <LessonsCard rows={rows} studentId={student.id} loading={false} error={recordings.error} inline /> : null}
-        {recordings.loading ? <p className="form-hint">Laen tunni materjale…</p> : null}
+        {recordings.loading ? <LoadingState inline className="form-hint" label="Laen tunni materjale…" /> : null}
         {nothing ? <p className="form-hint">Selle päeva kohta pole kodutööd, kokkuvõtet, sõnu ega salvestist.</p> : null}
       </div>
     </Modal>

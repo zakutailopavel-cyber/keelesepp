@@ -30,6 +30,18 @@ describe('finance dashboard: lesson revenue (not the bookkeeping)', () => {
     expect(notified.plannedLessons).toBe(unmarked.plannedLessons - 1);
   });
 
+  it('a no-show follows its subject’s own rule (owner 2026-11-06)', () => {
+    const kid = { id: 'k', name: 'Kristjan', subject: 'Eesti keel', enrollments: [{ subject: 'Eesti keel' }, { subject: 'Matemaatika' }] };
+    const plan = { studentId: 'k', lessonPriceCents: 2000, lessonMinutes: 60, chargeNoShow: true, subjectBilling: { Matemaatika: { chargeNoShow: false } } };
+    const lessons = [
+      { id: 'a', studentId: 'k', date: '2026-10-05', status: 'Puudus_eta', duration: 60, subject: 'Eesti keel' },
+      { id: 'b', studentId: 'k', date: '2026-10-06', status: 'Puudus_eta', duration: 60, subject: 'Matemaatika' },
+    ];
+    const [row] = lessonRevenue({ months: ['2026-10'], today: '2026-10-20', students: [kid], plans: [plan], schedule: [], lessons });
+    expect(row.heldLessons).toBe(1);
+    expect(row.heldCents).toBe(2000);
+  });
+
   it('a lesson is priced by its length and the subject’s own price', () => {
     expect(lessonPriceCents({ duration: 90 }, students[0], plans[0])).toBe(3750);
     expect(lessonPriceCents({ duration: 45, subject: 'Matemaatika' }, { ...students[0], subjects: ['Eesti keel', 'Matemaatika'] }, plans[0])).toBe(3000);

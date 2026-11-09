@@ -13,10 +13,13 @@ const scoreRows = (rows, get, answerKey = 'answer') => (rows || []).map((row, i)
 // (owner's B1 check 2026-10-12: „Valime rongi, sest …” was split at the comma and a right answer scored wrong; course
 // files list variants with „;” as well).
 export const sentenceVariants = (answer) => String(answer || '').split(/[|;\n]/).map((x) => x.trim()).filter(Boolean);
+// A model sentence that runs on („Kas ma sain õigesti aru, et sa arvad…?”) is an example of a free answer, not a key:
+// nobody types the „…”, so it could only ever be scored wrong.
+const fixedVariants = (answer) => sentenceVariants(answer).filter((variant) => !/…|\.\.\./.test(variant));
 const scoreSentences = (rows, get, data) => {
   const cmp = normFor(data);
-  // a row without a right answer is the teacher's to judge, never an automatic mistake
-  return (rows || []).map((row, i) => (sentenceVariants(row.answer).length ? { key: String(i), ok: sentenceVariants(row.answer).map(cmp).includes(cmp(get(String(i)))) } : null)).filter(Boolean);
+  // a row without a right answer (or with only a free example) is the teacher's to judge, never an automatic mistake
+  return (rows || []).map((row, i) => (fixedVariants(row.answer).length ? { key: String(i), ok: fixedVariants(row.answer).map(cmp).includes(cmp(get(String(i)))) } : null)).filter(Boolean);
 };
 
 export const wordforms = {

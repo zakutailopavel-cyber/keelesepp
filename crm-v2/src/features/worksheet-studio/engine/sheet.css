@@ -7,8 +7,15 @@
   --font-head: 'Nunito', 'Arial Rounded MT Bold', system-ui, sans-serif;
   --font-body: 'Nunito Sans', system-ui, sans-serif;
   --font-hand: 'Caveat', 'Bradley Hand', cursive;
+  /* the student's typed answers („Kiri”, answerFont.js): a plain, even font by default, the viewer's choice otherwise.
+     The ruled writing lines stay 7.4 mm apart for every choice; each size keeps the text on its line. */
+  --ans-font: var(--font-body); --ans-weight: 600; --ans-line: 13.5pt; --ans-ruled: 13pt; --ans-item: 12.5pt; --ans-flow: 17px;
   display: flex; flex-direction: column; align-items: center; gap: 10mm;
 }
+/* „Kiri” choices (answerFont.js); teacher marks and pen strokes are drawn over the sheet and keep their own look */
+.ws-root.ans-hand { --ans-font: var(--font-hand); --ans-weight: 700; --ans-line: 16pt; --ans-ruled: 15.5pt; --ans-item: 14pt; --ans-flow: 21px; }
+.ws-root.ans-serif { --ans-font: 'Lora', Georgia, 'Times New Roman', serif; --ans-weight: 500; }
+.ws-root.ans-large { --ans-line: 16pt; --ans-ruled: 15pt; --ans-item: 14pt; --ans-flow: 20px; }
 .ws-measure { position: absolute; left: -99999px; top: 0; visibility: hidden; width: 270mm; box-sizing: border-box; }
 .ws-page, .ws-page-measure {
   width: 270mm; height: 381.86mm; background: #fff; color: var(--ks-ink); box-sizing: border-box;
@@ -53,7 +60,7 @@
 .ws-photo { position: relative; width: 100%; border-radius: 2.5mm; overflow: hidden; background: #e7e3da; }
 .ws-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ws-photo-empty { position: absolute; inset: 0; display: grid; place-items: center; color: #9a9384; font: 700 11pt var(--font-body); }
-.ws-line { border: 0; border-bottom: 1px solid var(--ks-line); background: transparent; font: 700 16pt var(--font-hand); color: #1b4a8a; min-width: 18mm; padding: 0 1mm; outline: none; border-radius: 0; }
+.ws-line { border: 0; border-bottom: 1px solid var(--ks-line); background: transparent; font: var(--ans-weight) var(--ans-line) var(--ans-font); color: #1b4a8a; min-width: 18mm; padding: 0 1mm; outline: none; border-radius: 0; }
 .ws-line--grow { display: block; width: 100%; box-sizing: border-box; resize: none; overflow: hidden; line-height: 1.35; field-sizing: content; min-height: 1.4em; white-space: pre-wrap; overflow-wrap: anywhere; }
 .ws-line:focus { border-bottom-color: var(--ks-navy); background: rgba(23,58,99,.05); }
 .is-ok { box-shadow: inset 0 -2px 0 var(--ok) !important; color: var(--ok) !important; }
@@ -161,7 +168,7 @@
 
 /* writing */
 .ws-write { position: relative; }
-.ws-ruled { width: 100%; border: 0; resize: none; outline: none; font: 700 15.5pt/7.4mm var(--font-hand); color: #1b4a8a; padding: 0 1mm; display: block;
+.ws-ruled { width: 100%; border: 0; resize: none; outline: none; font: var(--ans-weight) var(--ans-ruled)/7.4mm var(--ans-font); color: #1b4a8a; padding: 0 1mm; display: block;
   background: transparent repeating-linear-gradient(to bottom, transparent 0, transparent 6.9mm, var(--ks-line) 6.9mm, var(--ks-line) 7.4mm); }
 .ws-note-img { position: absolute; right: -1mm; bottom: -1mm; width: 36%; transform: rotate(3deg); border-radius: 2mm; pointer-events: none; }
 .ws-counters { display: flex; gap: 2mm; flex-wrap: wrap; margin-top: 2mm; }
@@ -213,7 +220,7 @@
 .mode-interactive .ws-cat-g { cursor: pointer; }
 .ws-cat-g b { display: block; font: 900 12pt var(--font-head); color: var(--ks-navy); margin-bottom: 1.2mm; }
 .ws-cat-list { display: flex; flex-wrap: wrap; gap: 1.2mm; }
-.ws-cat-item { font: 700 14pt/1.2 var(--font-hand); color: #1b4a8a; }
+.ws-cat-item { font: var(--ans-weight) var(--ans-item)/1.2 var(--ans-font); color: #1b4a8a; }
 .ws-cat-line { width: 100%; height: 6.5mm; border-bottom: 1px solid var(--ks-line); }
 .ed-err { color: #c2412d; }
 
@@ -435,7 +442,7 @@
 
 /* inline editing on the sheet (edit mode, double-click a text) */
 .mode-edit .ws-card .ws-body, .mode-edit .ws-card h3, .mode-edit .ws-card .ws-ch p, .mode-edit .ws-title, .mode-edit .ws-hdr { cursor: text; }
-.ws-inline-editing { outline: 2px solid var(--ks-green-2, #087e6b); outline-offset: 2px; border-radius: 4px; background: rgba(8,126,107,.06); cursor: text; user-select: text; -webkit-user-select: text; }
+.ws-inline-editing { outline: 2px solid var(--ks-green-2, var(--green)); outline-offset: 2px; border-radius: 4px; background: rgba(8,126,107,.06); cursor: text; user-select: text; -webkit-user-select: text; }
 
 /* edit mode: tools above the selected block, „+” to insert a block after it */
 .ws-toolbar { position: absolute; top: 0; right: 2mm; transform: translateY(calc(-100% - 2mm)); z-index: 6; display: flex; align-items: center; gap: 1px; padding: 4px; background: #111827; border-radius: 12px; box-shadow: 0 10px 28px rgba(17,24,39,.28); cursor: default; }
@@ -447,7 +454,7 @@
 .ws-toolbar button:disabled { opacity: .45; cursor: default; }
 .ws-toolbar button.is-danger:hover { background: #b42318; }
 .ws-toolbar svg { width: 15px; height: 15px; }
-.ws-insert { position: absolute; left: 50%; bottom: 0; transform: translate(-50%, 55%); z-index: 5; width: 22px; height: 22px; border-radius: 50%; border: 0; background: #087e6b; color: #fff; font: 800 15px/22px 'DM Sans', system-ui, sans-serif; padding: 0; cursor: pointer; opacity: 0; transition: opacity .15s, transform .15s; box-shadow: 0 3px 10px rgba(8,126,107,.35); }
+.ws-insert { position: absolute; left: 50%; bottom: 0; transform: translate(-50%, 55%); z-index: 5; width: 22px; height: 22px; border-radius: 50%; border: 0; background: var(--green); color: #fff; font: 800 15px/22px 'DM Sans', system-ui, sans-serif; padding: 0; cursor: pointer; opacity: 0; transition: opacity .15s, transform .15s; box-shadow: 0 3px 10px rgba(8,126,107,.35); }
 .mode-edit .ws-card:hover > .ws-insert, .mode-edit .ws-card.selected > .ws-insert, .ws-insert:focus-visible { opacity: 1; }
 .ws-insert:hover { transform: translate(-50%, 55%) scale(1.12); }
 @media print { .ws-toolbar, .ws-insert { display: none !important; } }
@@ -470,7 +477,7 @@
 .mode-edit .ws-card.hovered > .ws-toolbar { opacity: .92; }
 .ws-resize-xy { right: -2.4mm; bottom: -2.4mm; width: 4.5mm; height: 4.5mm; cursor: nwse-resize; z-index: 4; }
 .ws-resize-xy::after { inset: 0; border-radius: 50%; background: #fff; border: .5mm solid var(--ks-green-2, #2f7d4c); opacity: 1; }
-.ws-card[data-size-label]::before { content: attr(data-size-label); position: absolute; right: 2mm; bottom: 2mm; z-index: 7; padding: 1mm 2.5mm; border-radius: 99px; background: #132238; color: #fff; font: 700 11px 'DM Sans', system-ui, sans-serif; pointer-events: none; }
+.ws-card[data-size-label]::before { content: attr(data-size-label); position: absolute; right: 2mm; bottom: 2mm; z-index: 7; padding: 1mm 2.5mm; border-radius: 99px; background: var(--navy); color: #fff; font: 700 11px 'DM Sans', system-ui, sans-serif; pointer-events: none; }
 .ws-card.drop-before, .ws-card.drop-after, .ws-card.drop-left, .ws-card.drop-right { position: relative; }
 .ws-card.drop-before::after, .ws-card.drop-after::after, .ws-card.drop-left::after, .ws-card.drop-right::after { content: ''; position: absolute; z-index: 8; border-radius: 99px; background: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, .25), 0 0 14px rgba(14, 165, 233, .6); pointer-events: none; animation: ws-drop-pulse 1s ease-in-out infinite; }
 .ws-card.drop-before::after { left: 0; right: 0; top: -2.4mm; height: 1.4mm; }
@@ -495,21 +502,21 @@
 .ws-mark.is-label { color: var(--mark-c); font-weight: 800; font-size: 12pt; line-height: 1.2; }
 .ws-mark.is-sticker { line-height: 1; transform: translate(-0%, -0%); filter: drop-shadow(0 .5mm .8mm rgba(0, 0, 0, .18)); }
 .ws-mark.is-circle { border: .7mm solid var(--mark-c); border-radius: 50%; }
-.ws-mark.is-selected, .ws-mark:focus-visible { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #087e6b; }
+.ws-mark.is-selected, .ws-mark:focus-visible { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--green); }
 .ws-mark.is-label.is-selected, .ws-mark.is-sticker.is-selected { border-radius: 2mm; }
-.ws-mark-handle { position: absolute; z-index: 2; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; border: 2px solid #087e6b; pointer-events: auto; cursor: nwse-resize; touch-action: none; }
+.ws-mark-handle { position: absolute; z-index: 2; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; border: 2px solid var(--green); pointer-events: auto; cursor: nwse-resize; touch-action: none; }
 .ws-mark-handle.is-start, .ws-mark-handle.is-end { cursor: crosshair; }
-.ws-mark-bar { position: absolute; z-index: 4; display: flex; gap: 3px; padding: 4px; transform: translateY(calc(-100% - 8px)); background: #132238; border-radius: 10px; box-shadow: 0 8px 22px rgba(16, 35, 57, .22); pointer-events: auto; }
+.ws-mark-bar { position: absolute; z-index: 4; display: flex; gap: 3px; padding: 4px; transform: translateY(calc(-100% - 8px)); background: var(--navy); border-radius: 10px; box-shadow: 0 8px 22px rgba(16, 35, 57, .22); pointer-events: auto; }
 .ws-mark-bar button { display: grid; place-items: center; min-width: 24px; height: 24px; padding: 0 3px; border: 0; border-radius: 6px; background: transparent; color: #fff; font-size: 15px; cursor: pointer; }
 .ws-mark-bar button.on, .ws-mark-bar button:hover { background: rgba(255, 255, 255, .16); }
 .ws-mark-bar button.is-color { width: 20px; min-width: 20px; height: 20px; margin: 2px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .5); }
-.ws-mark-bar button.is-color.on { border-color: #fff; box-shadow: 0 0 0 2px #087e6b; }
+.ws-mark-bar button.is-color.on { border-color: #fff; box-shadow: 0 0 0 2px var(--green); }
 .ws-mark-bar button.is-delete svg { width: 15px; height: 15px; color: #ffb4a8; }
 
 /* lines that can be edited on the sheet (double-click) */
 .mode-edit .ws-card [data-edit] { cursor: text; border-radius: 1.5mm; transition: background-color .12s; }
 .mode-edit .ws-card [data-edit]:hover { background-color: rgba(8, 126, 107, .08); box-shadow: 0 0 0 1.5mm rgba(8, 126, 107, .08); }
-.ws-float-edit { box-sizing: border-box; padding: 6px 9px; font: 500 15px/1.35 'DM Sans', system-ui, sans-serif; color: #17253a; background: #fff; border: 2px solid #087e6b; border-radius: 8px; box-shadow: 0 10px 28px rgba(16, 35, 57, .25); resize: none; outline: none; overflow: hidden; }
+.ws-float-edit { box-sizing: border-box; padding: 6px 9px; font: 500 15px/1.35 'DM Sans', system-ui, sans-serif; color: #17253a; background: #fff; border: 2px solid var(--green); border-radius: 8px; box-shadow: 0 10px 28px rgba(16, 35, 57, .25); resize: none; outline: none; overflow: hidden; }
 .ws-reading > .ws-audio, .ws-dialog > .ws-audio { grid-column: 1 / -1; align-self: start; }
 
 /* live lesson: a note under a task (shown answers), tasks the learner does not see yet */
@@ -518,7 +525,7 @@
 .ws-live-answers b { width: 100%; }
 .ws-live-shown { display: inline-flex; align-items: center; gap: 1.5mm; padding: 1mm 2.5mm; border-radius: 99px; background: #e9f7ee; color: #1d5b35; font-size: 9.5pt; font-weight: 700; }
 .ws-card.is-live-closed { opacity: .45; filter: grayscale(.6); }
-.ws-card.is-live-closed::before { content: 'Õpilane ei näe veel'; position: absolute; right: 3mm; top: 3mm; z-index: 4; padding: .8mm 2.5mm; border-radius: 99px; background: #132238; color: #fff; font-size: 8.5pt; font-weight: 700; }
+.ws-card.is-live-closed::before { content: 'Õpilane ei näe veel'; position: absolute; right: 3mm; top: 3mm; z-index: 4; padding: .8mm 2.5mm; border-radius: 99px; background: var(--navy); color: #fff; font-size: 8.5pt; font-weight: 700; }
 /* on-sheet formatted text (Md + RichInlineEditor) */
 .ws-mark-hl { background: #fde68a; color: inherit; padding: 0 .4mm; border-radius: .6mm; }
 .ws-rich-hidden { visibility: hidden; }
@@ -526,10 +533,10 @@
 .ws-tiptap .ProseMirror { outline: none; white-space: pre-wrap; }
 .ws-tiptap .ProseMirror p { margin: 0 0 .4em; } .ws-tiptap .ProseMirror p:last-child { margin: 0; }
 .ws-tiptap mark { background: #fde68a; color: inherit; border-radius: 2px; }
-.ws-tiptap-bar { display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 10px; background: #132238; box-shadow: 0 10px 26px rgba(16, 35, 57, .3); z-index: 1001; }
+.ws-tiptap-bar { display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 10px; background: var(--navy); box-shadow: 0 10px 26px rgba(16, 35, 57, .3); z-index: 1001; }
 .ws-tiptap-bar button { display: grid; place-items: center; min-width: 28px; height: 28px; border: 0; border-radius: 7px; background: transparent; color: #fff; font: 700 13px 'DM Sans', system-ui, sans-serif; cursor: pointer; }
 .ws-tiptap-bar button:hover, .ws-tiptap-bar button.is-on { background: rgba(255, 255, 255, .18); }
-.ws-tiptap-hl { background: #fde68a; color: #132238; padding: 0 4px; border-radius: 3px; }
+.ws-tiptap-hl { background: #fde68a; color: var(--navy); padding: 0 4px; border-radius: 3px; }
 .ws-tiptap-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .85); }
 .ws-tiptap-sep { width: 1px; height: 18px; margin: 0 3px; background: rgba(255, 255, 255, .25); }
 @media print { .ws-tiptap, .ws-tiptap-bar { display: none !important; } }
@@ -549,7 +556,7 @@
 .ws-root.theme-bw .ws-num { background: #2c2c2a !important; }
 /* the toolbar's „Stiil” menu */
 .ws-toolbar-menu { position: relative; display: inline-flex; }
-.ws-style-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 9; display: grid; gap: 1px; min-width: 170px; padding: 4px; border-radius: 10px; background: #132238; box-shadow: 0 14px 32px rgba(16, 35, 57, .3); }
+.ws-style-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 9; display: grid; gap: 1px; min-width: 170px; padding: 4px; border-radius: 10px; background: var(--navy); box-shadow: 0 14px 32px rgba(16, 35, 57, .3); }
 .ws-style-menu button { justify-content: flex-start; }
 .ws-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 4px; border: 1.5px solid rgba(255, 255, 255, .7); }
 .ws-swatch.tone-blue { background: #edf5fd; } .ws-swatch.tone-green { background: #ecf6e9; } .ws-swatch.tone-peach { background: #fcf3e4; }
@@ -586,7 +593,7 @@
 .ws-root.theme-selge :is(.ws-passage, .ws-bank, .ws-textblock, .ws-notice, .ws-tip, .ws-vocab) { background: var(--sel-soft); border-radius: 3mm; border: 0; }
 .ws-root.theme-selge .ws-passage, .ws-root.theme-selge .ws-bank { padding: 3.5mm 4.5mm; }
 .ws-root.theme-selge :is(.ws-dot, .ws-box, .ws-tfbox) { border-color: var(--sel); border-radius: .6mm; }
-.ws-root.theme-selge .ws-line { font-family: var(--font-hand); color: var(--sel); }
+.ws-root.theme-selge .ws-line { font-family: var(--ans-font); color: var(--sel); }
 .ws-root.theme-selge .ws-runhead { border-bottom-color: var(--sel); }
 .ws-root.theme-selge .ws-fl { color: var(--sel); }
 
@@ -672,6 +679,8 @@
 .ws-cloze-options li { break-inside: avoid; margin-bottom: 1.2mm; }
 .ws-cloze-options { font-size: .92em; }
 .ws-cloze-options li span { margin-right: 2.5mm; white-space: nowrap; }
+.ws-cloze-options.is-long { columns: 1; }
+.ws-cloze-options.is-long li span { display: block; white-space: normal; padding-left: 5mm; text-indent: -5mm; margin: 0 0 .6mm; }
 .ws-formtext-gap { white-space: nowrap; }
 .ws-formtext-gap b { color: var(--ks-navy); margin-right: .8mm; }
 .ws-insertion-options { margin: 3mm 0 0; padding-left: 7mm; }
@@ -787,6 +796,33 @@ button.ws-pt { cursor: pointer; }
 .ws-block-key-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 2mm 3mm; }
 .ws-block-key-state { color: #4a5568; font-size: 9.5pt; }
 @media print { .ws-block-key { display: none; } }
+
+/* ===== A task's floating note (FloatingNote.jsx, floatingNote.js): the teacher's answer key and the right answers shown
+   to the learner float next to the task on document.body (screen pixels), never inside the card, so opening one never
+   changes the sheet's layout (owner 2026-11-04). ===== */
+.ws-float-note {
+  --st-panel: #fff; --st-line: var(--border); --st-ink: #17253a; --st-accent: var(--green);
+  position: fixed; z-index: 1330; box-sizing: border-box; width: 360px; max-width: calc(100vw - 16px); overflow: auto; overscroll-behavior: contain;
+  background: #fff; color: #17253a; border-radius: 12px; box-shadow: 0 14px 34px rgba(16, 35, 57, .24), 0 0 0 1px rgba(16, 35, 57, .1);
+  font: 14px/1.4 'DM Sans', system-ui, sans-serif; text-align: left;
+}
+.ws-float-note .ws-block-key { margin: 0; border: 0; border-radius: 12px; padding: 12px 14px; font-size: 14px; gap: 8px; }
+.ws-float-note .ws-block-key-head b { font-size: 15px; }
+.ws-float-note :is(.ws-block-key-only, .ws-block-key-state, .ws-key-why, .ws-block-key-note) { font-size: 13px; }
+.ws-float-note .ws-block-key-x { width: 32px; height: 32px; }
+.ws-float-note .ws-block-key-items { padding-left: 22px; gap: 5px; }
+.ws-float-note .ws-live-answers { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 12px 44px 12px 14px; border: 0; border-radius: 12px; font-size: 15px; }
+.ws-float-note .st-btn { display: inline-flex; align-items: center; gap: 5px; font: 700 13px inherit; border: 1px solid var(--st-line); background: var(--st-panel); color: var(--st-ink); padding: 6px 11px; border-radius: 999px; cursor: pointer; }
+.ws-float-note .st-btn.primary { background: var(--st-accent); border-color: var(--st-accent); color: #fff; }
+.ws-float-note .st-btn:disabled { opacity: .5; cursor: default; }
+.ws-float-note-x { position: absolute; top: 6px; right: 6px; display: inline-grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 99px; background: transparent; color: #1d5b35; cursor: pointer; }
+.ws-float-note-x:hover { background: rgba(29, 91, 53, .1); }
+.ws-float-note.is-folded { width: auto; max-width: none; overflow: visible; border-radius: 99px; background: transparent; box-shadow: none; }
+.ws-float-note-open { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 16px; border: 1px solid #b7e0c4; border-radius: 99px; background: #e9f7ee; color: #1d5b35; box-shadow: 0 2px 8px rgba(16, 35, 57, .18); font: 700 15px 'DM Sans', system-ui, sans-serif; cursor: pointer; }
+@media (pointer: coarse) { .ws-float-note-x, .ws-float-note .ws-block-key-x { width: 44px; height: 44px; } }
+/* a shown task's label (teacher): over the card's top edge, out of the flow */
+.ws-card-badge { position: absolute; top: -3.2mm; right: 4mm; z-index: 5; pointer-events: none; }
+@media print { .ws-float-note, .ws-card-badge { display: none; } }
 
 /* ---------- children's blocks (engine/blocks/kids.jsx) ---------- */
 .ws-coloring { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(40mm, 1fr); gap: 5mm; align-items: start; }
@@ -981,3 +1017,24 @@ button.ws-pt { cursor: pointer; }
 /* focus: every control shows where the keyboard is (in every theme) */
 .ws-root :is(.ws-opt, .ws-tfbox, .ws-bank-w, .ws-chip, .ws-recbtn, .ws-pt, .ws-circ, .ws-cat-g):focus-visible { outline: .6mm solid var(--ks-navy); outline-offset: .4mm; }
 .ws-root.theme-klassika .ws-line:focus { border-bottom-color: var(--tb-ink); background: var(--tb-lime-soft); }
+
+/* ---- video block: the player on screen, a QR code + link on paper (and in the builder) ---- */
+.ws-video { display: grid; gap: 3mm; }
+.ws-video-screen { margin: 0; }
+.ws-video-box { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 3mm; overflow: hidden; background: #0b2a4f; }
+.ws-video-box .ws-video-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+.ws-video-screen figcaption { font-size: 10.5pt; color: var(--ks-muted); text-align: center; margin-top: 1.2mm; }
+.ws-video-paper { display: flex; align-items: center; gap: 4mm; padding: 2.5mm 3mm; border-radius: 3mm; background: #fff; border: .35mm solid rgba(23, 58, 99, .18); color: var(--ks-navy-2, #173a63); }
+.ws-video-paper > div { display: grid; gap: 1mm; min-width: 0; }
+.ws-video-paper b { display: flex; align-items: center; gap: 1.5mm; font-size: 11pt; }
+.ws-video-paper b svg { width: 5mm; height: 5mm; color: var(--ks-green-2, #2f7d4c); flex: none; }
+.ws-video-caption { font-size: 10.5pt; }
+.ws-video-link { font-size: 9pt; color: var(--ks-muted); overflow-wrap: anywhere; }
+.ws-video-empty { display: grid; place-items: center; width: 24mm; height: 24mm; border: .35mm dashed rgba(23, 58, 99, .3); border-radius: 2mm; flex: none; }
+.ws-video-empty svg { width: 9mm; height: 9mm; color: rgba(23, 58, 99, .35); }
+.ws-qr { flex: none; display: block; }
+.ws-video-paper.is-print-only { display: none; }
+@media print {
+  .ws-video-screen { display: none; }
+  .ws-video-paper.is-print-only { display: flex; }
+}

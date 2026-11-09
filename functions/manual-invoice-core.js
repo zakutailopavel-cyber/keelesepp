@@ -1,3 +1,5 @@
+const { invoicePayerSnapshot } = require('./invoice-payer-core');
+
 function cleanText(value, maxLength = 500) {
   return String(value || '').trim().slice(0, maxLength);
 }
@@ -37,12 +39,10 @@ function manualInvoiceInput(values = {}) {
   };
 }
 
-function manualInvoiceRecord({ input, student, invoiceNum, nowIso, actor, requestId, signature }) {
-  const parentUid = student.linkedParentId || student.parentUid || student.guardianUid || '';
-  const parentName = student.parentName || student.guardianName || '';
-  const parentEmail = student.parentEmail || student.contactEmail || student.guardianEmail || '';
-  const payerName = student.payerName || student.companyName || parentName || student.name || '';
-  const payerEmail = student.payerEmail || parentEmail || student.email || '';
+// linkedAccountEmail: the login e-mail of the parent account linked to the card, read by the caller only when the card
+// itself has no address (invoice-payer-core.js; the same resolution decides where the invoice e-mail goes)
+function manualInvoiceRecord({ input, student, invoiceNum, nowIso, actor, requestId, signature, linkedAccountEmail = '' }) {
+  const payer = invoicePayerSnapshot(student, { linkedAccountEmail });
   return {
     num: invoiceNum,
     status: 'Ootel',
@@ -52,17 +52,17 @@ function manualInvoiceRecord({ input, student, invoiceNum, nowIso, actor, reques
     paymentReference: invoiceNum,
     invoiceTargetType: 'student',
     studentId: input.studentId,
-    studentName: student.name || '—',
+    studentName: payer.studentName,
     subject: String(student.subject || '').trim().slice(0, 80),
-    parentUid,
-    linkedParentId: student.linkedParentId || student.parentUid || '',
-    guardianUid: student.guardianUid || '',
-    parentName,
-    parentEmail,
-    parentEmailLower: String(parentEmail).trim().toLowerCase(),
-    payerName,
-    payerEmail,
-    payerEmailLower: String(payerEmail).trim().toLowerCase(),
+    parentUid: payer.parentUid,
+    linkedParentId: payer.linkedParentId,
+    guardianUid: payer.guardianUid,
+    parentName: payer.parentName,
+    parentEmail: payer.parentEmail,
+    parentEmailLower: payer.parentEmailLower,
+    payerName: payer.payerName,
+    payerEmail: payer.payerEmail,
+    payerEmailLower: payer.payerEmailLower,
     amountCents: input.amountCents,
     amount: input.amount,
     paidAmountCents: 0,

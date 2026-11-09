@@ -1,17 +1,25 @@
 /* global ResizeObserver, IntersectionObserver, Blob, setTimeout, clearTimeout, structuredClone */
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Icons } from './icons.js';
+import { askConfirm, askText } from '../../components/ui/ConfirmHost.jsx';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { homeworkService, lessonWorksheetsService, libraryService, worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
+import { libraryService } from '../../services/firebase/library.js';
+import { sheetReuseService } from '../../services/firebase/sheetReuse.js';
+import { worksheetDocsService } from '../../services/firebase/worksheetDocs.js';
+import { worksheetSheetTemplatesService } from '../../services/firebase/worksheetSheetTemplates.js';
+import { worksheetTemplatesService } from '../../services/firebase/worksheetTemplates.js';
 import { mediaBankService } from '../../services/firebase/mediaBank.js';
 import { languageToolsService } from '../../services/firebase/languageTools.js';
 import MediaBankPanel from './MediaBankPanel.jsx';
 import AnswerKeyView from './AnswerKeyView.jsx';
 // „Kogu” reads the whole course: its own chunk, loaded when the tab opens
-const BlockLibraryPanel = lazy(() => import('./BlockLibraryPanel.jsx'));
-import { assetKey, gapsFromText, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
+const BlockLibraryPanel = lazyComponent(() => import('./BlockLibraryPanel.jsx'));
+import { assetKey, gapsFromText, mediaAsset, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
 import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet, { BlockPreview } from './engine/Sheet.jsx';
 import BlockLookMenus from './editor/BlockBar.jsx';
@@ -46,11 +54,22 @@ import { levelKey } from './didactics/levels.js';
 import InsightsPanel from './InsightsPanel.jsx';
 import { addAlternative } from './engine/insights.js';
 import { formalLetterDocument } from './engine/templates.js';
+import { CopyMoveDialog, TemplateDialog } from './editor/ReuseDialogs.jsx';
+import { applyLessonTemplate, applySheetTemplate, lessonTemplatePlan, PHASE_SHEETS, phaseLabel } from './sheetReuse.js';
+import { LoadingState } from '../../components/ui/index.js';
+
+// „Uus mallist”: the hard-coded sheets stay available next to the templates staff saved
+const BUILT_IN_TEMPLATES = [
+  { id: 'builtin:letter', title: 'Kiri linnavalitsusele', make: formalLetterDocument },
+  { id: 'builtin:sample', title: 'Minu päev (näidisleht)', make: sampleDocument },
+];
 
 const DEFAULT_TITLE = newDocument().meta.title;
 
 
 const MM = 3.7795;
+// the blocks whose editor has a sound (AudioPick): a sound from the bank goes into the selected one
+const AUDIO_BLOCKS = new Set(['listening', 'dialogue', 'reading', 'examlisten']);
 const draftKey = (id) => `ks-worksheet-author-draft:${id || 'new'}`;
 const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem(key) || 'null'); } catch { return null; } };
 
@@ -91,7 +110,7 @@ function PaletteItem({ id, onClick, title, theme = '', children }) {
   );
 }
 
-export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, mediaBank = mediaBankService, speech = languageToolsService, resultsSource = homeworkService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, sheetTemplates = worksheetSheetTemplatesService, reuse = sheetReuseService, lessonSheets = lessonWorksheetsService, mediaBank = mediaBankService, speech = languageToolsService, resultsSource = homeworkService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
   // worksheetId: the lesson's Avasta / Harjuta / Kasuta sheet (/library/lessons/:lessonId/worksheets/:worksheetId)
   const { lessonId, worksheetId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
@@ -184,6 +203,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [variants, setVariants] = useState(null);
   const [comparing, setComparing] = useState(null);
   const [myTemplates, setMyTemplates] = useState([]);
+  // „Kopeeri / Teisalda…” (the block) and „Uus mallist” dialogs
+  const [copying, setCopying] = useState(null);
+  const [pickTemplate, setPickTemplate] = useState(false);
   // focus mode: the constructor takes the whole window (CRM menu and top bar hidden); remembered in this browser
   const [focus, setFocus] = useState(() => { try { return window.localStorage.getItem('ks-studio-focus') !== 'off'; } catch { return true; } });
   const toggleFocus = () => setFocus((value) => { try { window.localStorage.setItem('ks-studio-focus', value ? 'off' : 'on'); } catch { /* storage may be disabled */ } return !value; });
@@ -297,10 +319,20 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       tags: tagsOf(caption, doc?.meta?.title || '', doc?.meta?.module || '', String(name).replace(/\.[^.]+$/, '')),
     }, user)).catch(() => {});
   };
+  // and so does every sound (uploaded, recorded, made by the Estonian voice) and every uploaded video
+  const bankMedia = (kind, item) => {
+    if (!item?.src || !mediaBank?.save) return;
+    Promise.resolve().then(() => mediaBank.save({
+      ...mediaAsset(kind, item, { tags: [doc?.meta?.title || '', doc?.meta?.module || ''] }),
+      // VoiceRecorder names its files „haal-…”, SpeakPanel „neurokone-…”
+      source: /^haal-/.test(item.name || '') ? 'recording' : /^neurokone-/.test(item.name || '') ? 'tts' : 'upload', level: doc?.meta?.level || '', topic: doc?.meta?.title || '', sheetTitle: doc?.meta?.title || '',
+    }, user)).catch(() => {});
+  };
   const docMeta = doc?.meta;
   const assets = useMemo(() => ({
     image: async (file) => { const img = await repository.uploadImage(file); bankImage(img, { name: file?.name }); return img; },
-    audio: (file) => repository.uploadAudio(file),
+    audio: async (file) => { const audio = await repository.uploadAudio(file); bankMedia('audio', audio); return audio; },
+    ...(repository.uploadVideo ? { video: async (file) => { const video = await repository.uploadVideo(file); bankMedia('video', video); return video; } } : {}),
     // Estonian voices (TartuNLP Neurokõne) for listening, dialogue and reading blocks
     ...(speech?.speak ? { speak: (request) => speech.speak(request) } : {}),
   }), [repository, docMeta, speech]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -323,7 +355,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   }, [doc, focusBlockId]);
 
   if (loadError) return <div className="page-content"><div className="ws-studio-error" role="alert">{loadError} <Link to={backTo}>Tagasi: {backLabel}</Link></div></div>;
-  if (!doc) return <div className="page-content"><p className="ws-studio-loading">Laen töölehte…</p></div>;
+  if (!doc) return <div className="page-content"><LoadingState label="Laen töölehte…" /></div>;
 
   // Every change is undoable; quick successive edits (typing in the inspector) form one undo step.
   const change = (next) => {
@@ -436,18 +468,86 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setSelectedId(b.id);
     setPanelOpen(true);
   };
-  // blocks made elsewhere (template, lesson words) go after the selected block, or to the end
-  const insertBlocks = (blocks) => {
+  // blocks made elsewhere (template, lesson words, „Kogu”) go after the selected block, or to the end; the goals they
+  // use come along when this sheet has no goal with that key
+  const insertBlocks = (blocks, { goals = {} } = {}) => {
     if (!blocks.length) return;
     const fresh = blocks.map((b) => ({ ...structuredClone(b), id: newId() }));
     const at = selectedId ? doc.blocks.findIndex((x) => x.id === selectedId) + 1 : doc.blocks.length;
     const next = [...doc.blocks];
     next.splice(at, 0, ...fresh);
-    setBlocks(next);
+    const missing = Object.fromEntries(Object.entries(goals).filter(([key]) => !doc.meta?.goals?.[key] && fresh.some((b) => b.goal === key)));
+    change({ ...doc, ...(Object.keys(missing).length ? { meta: { ...doc.meta, goals: { ...(doc.meta?.goals || {}), ...missing } } } : {}), blocks: next });
     setSelectedId(fresh[fresh.length - 1].id);
   };
+  // „Kopeeri / Teisalda…” done: a move takes the block off this sheet and saves the draft (the copy is already saved)
+  const copyDone = ({ mode: how, label }) => {
+    const block = copying;
+    setCopying(null);
+    if (how !== 'move' || !block) { setNotice(`Ülesanne kopeeriti ${label} (mustand).`); return; }
+    lastPush.current = 0;
+    const next = { ...doc, blocks: doc.blocks.filter((b) => b.id !== block.id) };
+    change(next);
+    setSelectedId(null);
+    setNotice(`Ülesanne teisaldati ${label} (mustand).${isNew ? ' Salvesta see leht, et see siit ka eemalduks.' : ''}`);
+    if (!isNew) globalThis.setTimeout(() => saveRef.current?.('draft', { auto: true, document: next }), 0);
+  };
+  // „Uus mallist”: one sheet replaces this one in the editor (undoable); a lesson template also fills the empty phases
+  const isLessonPage = Boolean(worksheetId) && !isNew;
+  const takeSheetTemplate = async (templateDoc, title) => {
+    if (doc.blocks.length && !(await askConfirm(`Mall „${title}” asendab selle lehe sisu. Jätkata? (Saad tagasi ka „Võta tagasi” nupuga.)`, { confirmLabel: 'Asenda' }))) return;
+    setPickTemplate(false);
+    lastPush.current = 0;
+    change(applySheetTemplate(templateDoc, doc)); setSelectedId(null);
+    setNotice(`Mall „${title}” on lehel. Vaata see üle ja salvesta.`);
+  };
+  const takeLessonTemplate = async (template) => {
+    setSaveError('');
+    try {
+      const records = await lessonSheets.list(lessonId);
+      const existing = Object.fromEntries(PHASE_SHEETS.map((p) => [p.id, records.find((r) => (r.worksheetId || r.id) === p.id) || null]));
+      const plan = lessonTemplatePlan(template, existing, worksheetId);
+      const current = plan.find((row) => row.action === 'current');
+      const lines = plan.map((row) => `${row.label}: ${row.action === 'current' ? `see leht${doc.blocks.length ? ' (asendab sisu)' : ''}` : row.action === 'fill' ? 'uus mustand' : `jääb alles (${row.reason})`}`);
+      if (!plan.some((row) => row.action !== 'skip')) { setSaveError('Mallis pole ühtegi lehte, mida saaks sellesse tundi panna: kõigil lehtedel on juba plokid.'); return; }
+      if (!(await askConfirm(`Mall „${template.title}”:\n${lines.join('\n')}\n\nMidagi ei avaldata. Jätkata?`, { confirmLabel: 'Kasuta malli' }))) return;
+      setPickTemplate(false);
+      const { done, failed } = await applyLessonTemplate({ repository: lessonSheets, lessonId, plan, existing, user });
+      reuse?.forget?.(lessonId);
+      if (current) { lastPush.current = 0; change(applySheetTemplate(current.sheet.doc, doc)); setSelectedId(null); }
+      setNotice(`Mall „${template.title}”: ${[current ? `${phaseLabel(worksheetId)} on redaktoris (salvesta)` : '', done.length ? `mustandina salvestati ${done.join(', ')}` : ''].filter(Boolean).join('; ')}.`);
+      if (failed.length) setSaveError(`Mõnda lehte ei saanud salvestada: ${failed.join('; ')}`);
+    } catch (error) {
+      setSaveError(error.message || 'Malli ei saanud kasutada.');
+    }
+  };
+  // „Salvesta mallina”: this sheet, or the whole lesson (the latest draft of each phase sheet, this one as in the editor)
+  const saveSheetTemplate = async () => {
+    closeMenu();
+    const title = await askText('Malli nimi (näha kõigile õpetajatele):', { initial: doc.meta.title || 'Mall', title: 'Salvesta mallina' });
+    if (!title) return;
+    try {
+      const created = await sheetTemplates.create({ kind: 'sheet', title, sheets: [{ phase: worksheetId || '', doc }], user });
+      setNotice(`Leht salvestati mallina „${created.title}”. Leiad selle „Fail” → „Uus mallist…”.`);
+    } catch (error) { setSaveError(error.message || 'Malli ei saanud salvestada.'); }
+  };
+  const saveLessonTemplate = async () => {
+    closeMenu();
+    try {
+      const records = await lessonSheets.list(lessonId);
+      const sheets = PHASE_SHEETS.map((p) => {
+        if (p.id === worksheetId) return { phase: p.id, label: p.label, doc };
+        const record = records.find((r) => (r.worksheetId || r.id) === p.id);
+        return record?.worksheetDoc?.blocks?.length ? { phase: p.id, label: p.label, doc: record.worksheetDoc } : null;
+      }).filter(Boolean);
+      const title = await askText(`Tunni malli nimi (${sheets.map((x) => x.label).join(', ')}; näha kõigile õpetajatele):`, { initial: doc.meta.title || 'Tunni mall', title: 'Salvesta tunni mallina' });
+      if (!title) return;
+      const created = await sheetTemplates.create({ kind: 'lesson', title, sheets, user });
+      setNotice(`Tund salvestati mallina „${created.title}” (${sheets.length} lehte).`);
+    } catch (error) { setSaveError(error.message || 'Malli ei saanud salvestada.'); }
+  };
   const saveTemplate = async (block) => {
-    const title = window.prompt('Malli nimi (näha kõigile õpetajatele):', block.data?.title || BLOCKS[block.type]?.label || 'Mall');
+    const title = await askText('Malli nimi (näha kõigile õpetajatele):', { initial: block.data?.title || BLOCKS[block.type]?.label || 'Mall', title: 'Salvesta mallina' });
     if (!title) return;
     try {
       const created = await templates.create({ title, block, user });
@@ -458,7 +558,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     }
   };
   const removeTemplate = async (template) => {
-    if (!window.confirm(`Kustuta mall „${template.title}”?`)) return;
+    if (!(await askConfirm(`Kustuta mall „${template.title}”?`, { confirmLabel: 'Kustuta', danger: true }))) return;
     try {
       await templates.remove(template.id);
       setMyTemplates((list) => list.filter((item) => item.id !== template.id));
@@ -486,6 +586,31 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const pickBankImage = (asset) => {
     placeImage({ src: asset.src, storagePath: asset.storagePath || '', width: asset.width || 0, height: asset.height || 0, focus: { x: 50, y: 50 } }, asset.credit ? asset.caption : '');
     setNotice('Pilt pangast lisati lehele.');
+  };
+  // a sound from the bank: into the selected block that has a sound, else a new listening block after it
+  const pickBankAudio = (asset) => {
+    const audio = { src: asset.src, storagePath: asset.storagePath || '', name: asset.title || asset.caption || '' };
+    if (selected && AUDIO_BLOCKS.has(selected.type)) {
+      updateBlock({ ...selected, data: { ...selected.data, audio } });
+    } else {
+      const b = createBlock('listening');
+      b.data = { ...b.data, audio, title: asset.caption ? `Kuula: ${asset.caption}` : b.data.title };
+      insertBlocks([b]);
+    }
+    setNotice('Heli pangast lisati lehele.');
+  };
+  // a video from the bank: into the selected video block, else a new video block
+  const pickBankVideo = (asset) => {
+    const file = /^https:\/\/firebasestorage\./.test(asset.src) || asset.storagePath ? { src: asset.src, storagePath: asset.storagePath || '', name: asset.title || '' } : null;
+    const patch = file ? { file, url: '' } : { url: asset.src, file: null };
+    if (selected?.type === 'video') {
+      updateBlock({ ...selected, data: { ...selected.data, ...patch, caption: selected.data.caption || asset.caption || '' } });
+    } else {
+      const b = createBlock('video');
+      b.data = { ...b.data, ...patch, caption: asset.caption || '' };
+      insertBlocks([b]);
+    }
+    setNotice('Video pangast lisati lehele.');
   };
   // a text from the bank: a reading block, and if wanted gaps / word order / vocabulary made from it
   const pickBankText = (asset, extras = []) => {
@@ -630,6 +755,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         <span className="ws-bar-sep" aria-hidden="true" />
         <button type="button" onClick={() => { setSelectedId(block.id); setPanelOpen(true); }} title="Ploki sisu ja ülesande seaded"><Icons.SlidersHorizontal aria-hidden="true" /> Sisu</button>
         <button type="button" onClick={() => duplicateBlock(block.id)} title="Kopeeri (Ctrl+D)" aria-label="Kopeeri"><Icons.Copy aria-hidden="true" /></button>
+        {reuse && !privateFor ? <button type="button" onClick={() => setCopying(block)} title="Kopeeri või teisalda tunni teisele lehele" aria-label="Teisalda või kopeeri teisele lehele…"><Icons.FolderInput aria-hidden="true" /></button> : null}
         {canAssign && BLOCKS[block.type]?.task ? <button type="button" onClick={() => navigate(`${assignUrl}&plokk=${encodeURIComponent(block.id)}`)} title="Määra ainult see ülesanne õpilastele"><Icons.Send aria-hidden="true" /> Määra</button> : null}
         {canRegenerate && !flipping ? <button type="button" onClick={() => regenerateSelected()} disabled={regenerating} title="Sama fookus ja raskus, kolm uut varianti"><Icons.Sparkles aria-hidden="true" /> {regenerating ? 'Genereerin…' : 'Uus variant'}</button> : null}
         {canRegenerate && flipping ? (
@@ -676,7 +802,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setEvidence(res);
   };
 
-  const save = async (nextStatus = 'draft', { auto = false } = {}) => {
+  const save = async (nextStatus = 'draft', { auto = false, document: toSave = doc } = {}) => {
     if (isNew && doc.meta.title.trim() === DEFAULT_TITLE) {
       setSelectedId(null);
       setSaveError('Anna töölehele pealkiri (paremal „Töölehe andmed” → Pealkiri), siis salvesta.');
@@ -689,7 +815,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setSaving(true);
     setSaveError('');
     try {
-      const res = await repository.save({ lessonId: isNew ? '' : lessonId, document: doc, user, baseUpdatedAt, status: nextStatus, ...(generation ? { generation } : {}) });
+      const res = await repository.save({ lessonId: isNew ? '' : lessonId, document: toSave, user, baseUpdatedAt, status: nextStatus, ...(generation ? { generation } : {}) });
       setDirty(false);
       setSource('worksheetDoc');
       setBaseUpdatedAt(res.updatedAt || '');
@@ -748,19 +874,19 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     closeMenu();
     const parsed = parseWorksheetFile(await file.text());
     if (!parsed) { setSaveError('See fail ei ole KeeleSepa tööleht (JSON). Tööleht jäi muutmata.'); return; }
-    if (doc.blocks.length && !window.confirm(`Fail „${parsed.meta?.title || 'tööleht'}” asendab praeguse sisu. Jätkata?`)) return;
+    if (doc.blocks.length && !(await askConfirm(`Fail „${parsed.meta?.title || 'tööleht'}” asendab praeguse sisu. Jätkata?`, { confirmLabel: 'Asenda' }))) return;
     setSaveError('');
     change({ ...parsed, id: doc.id }); setSelectedId(null);
   };
-  const loadSample = () => {
+  const loadSample = async () => {
     closeMenu();
-    if (doc.blocks.length && !window.confirm('Näidisleht asendab praeguse lehe sisu. Jätkata? (Saad tagasi ka „Võta tagasi” nupuga.)')) return;
+    if (doc.blocks.length && !(await askConfirm('Näidisleht asendab praeguse lehe sisu. Jätkata? (Saad tagasi ka „Võta tagasi” nupuga.)', { confirmLabel: 'Asenda' }))) return;
     lastPush.current = 0;
     change({ ...sampleDocument(), id: doc.id }); setSelectedId(null);
   };
-  const loadFormalLetter = () => {
+  const loadFormalLetter = async () => {
     closeMenu();
-    if (doc.blocks.length && !window.confirm('Mall „Kiri linnavalitsusele” asendab praeguse sisu. Jätkata?')) return;
+    if (doc.blocks.length && !(await askConfirm('Mall „Kiri linnavalitsusele” asendab praeguse sisu. Jätkata?', { confirmLabel: 'Asenda' }))) return;
     lastPush.current = 0;
     change({ ...formalLetterDocument(), id: doc.id }); setSelectedId(null);
   };
@@ -814,6 +940,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                 <button type="button" onClick={() => { closeMenu(); switchMode('print'); setTimeout(() => window.print(), 300); }}><Icons.Printer size={15} aria-hidden="true" /> PDF / Prindi</button>
                 <button type="button" onClick={loadSample}>Laadi näidisleht „Minu päev”</button>
                 <button type="button" onClick={loadFormalLetter}>Mall „Kiri linnavalitsusele”</button>
+                {sheetTemplates ? <button type="button" onClick={() => { closeMenu(); setPickTemplate(true); }}>Uus mallist…</button> : null}
+                {sheetTemplates && !privateFor ? <button type="button" onClick={saveSheetTemplate}>Salvesta leht mallina…</button> : null}
+                {sheetTemplates && isLessonPage ? <button type="button" onClick={saveLessonTemplate}>Salvesta terve tund mallina…</button> : null}
                 {allowCopy ? <button type="button" onClick={saveCopy}>Tee töölehest koopia</button> : null}
                 {allowCopy ? Object.entries(VARIANTS).map(([level, v]) => <button key={level} type="button" onClick={() => saveVariant(level)} title={v.hint}>{level === 'support' ? 'Tee lihtsam versioon (toetav)' : 'Tee raskem versioon (väljakutse)'}</button>) : null}
                 {!isNew && <button type="button" onClick={loadVersions}>Versioonid ja taastamine…</button>}
@@ -845,6 +974,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         {source === 'converted' && <div className="st-banner">See tööleht teisendati vanast vormingust uude kujundusse. Kontrolli ülesandeid ja salvesta. Vana versioon jääb alles.</div>}
         {doc?.meta?.variant && VARIANTS[doc.meta.variant] ? <div className={`st-banner st-variant is-${doc.meta.variant}`} role="note"><b>{VARIANTS[doc.meta.variant].label}</b>{doc.meta.variantOf ? <> lehest <Link to={`${editorBase}/${doc.meta.variantOf}`}>algne leht</Link></> : null}{doc.meta.variantChanges?.length ? <span>: {doc.meta.variantChanges.join(' · ')}.</span> : null} Vaata üle ja salvesta.</div> : null}
         {saveError && <div className="st-banner error" role="alert">{saveError}</div>}
+        {mode === 'edit' && !doc.blocks.length && sheetTemplates ? <div className="st-banner st-empty-start" role="note"><span>Leht on tühi. Alusta plokkidest vasakult või mallist{isLessonPage ? ' — tunni mall täidab ka tunni tühjad lehed' : ''}.</span><button type="button" className="st-btn" onClick={() => setPickTemplate(true)}>Uus mallist…</button></div> : null}
         {draftRestored && <div className="st-banner st-draft-note" role="status"><span>Taastasin selles brauseris automaatselt salvestatud mustandi.</span><button type="button" className="st-btn" onClick={() => { try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ } window.location.reload(); }}>Loobu mustandist</button></div>}
         {versions.length > 0 && <div className="st-banner"><strong>Versioonid:</strong> {versions.slice(0, 12).map((entry) => <button type="button" className={`st-btn ${comparing?.id === entry.id ? 'primary' : ''}`} key={entry.id} onClick={() => setComparing(comparing?.id === entry.id ? null : entry)}>v{entry.version} · {entry.status === 'published' ? 'avaldatud' : 'mustand'}</button>)} <button type="button" className="st-btn" onClick={() => { setVersions([]); setComparing(null); }}>Sulge</button></div>}
         {comparing && (() => {
@@ -853,7 +983,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <div className="st-banner st-compare" role="region" aria-label={`Versioon ${comparing.version} võrreldes praegusega`}>
               <strong>Versioon {comparing.version} võrreldes praegusega:</strong>
               {rows.length ? <ul>{rows.map(({ block, state }) => <li key={block.id}><span>{state === 'removed' ? 'Kustutatud' : 'Muudetud'}: {block.data?.title || BLOCKS[block.type]?.label || 'plokk'}</span> <button type="button" className="st-btn" onClick={() => restoreTask(block)}>Too see ülesanne tagasi</button></li>)}</ul> : <span> ülesanded on samad.</span>}
-              <button type="button" className="st-btn" onClick={() => { if (window.confirm(`Taasta kogu versioon ${comparing.version} uue mustandina?`)) { change({ ...structuredClone(comparing.worksheetDoc), id: doc.id }); setVersions([]); setComparing(null); setNotice(`Versioon ${comparing.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>Taasta kogu leht</button>
+              <button type="button" className="st-btn" onClick={async () => { if (await askConfirm(`Taasta kogu versioon ${comparing.version} uue mustandina?`, { confirmLabel: 'Taasta' })) { change({ ...structuredClone(comparing.worksheetDoc), id: doc.id }); setVersions([]); setComparing(null); setNotice(`Versioon ${comparing.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>Taasta kogu leht</button>
             </div>
           );
         })()}
@@ -872,9 +1002,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               {leftTab === 'results' && !isNew ? <InsightsPanel lessonId={lessonId} doc={doc} load={loadResults} onSelect={(id) => setSelectedId(id)} onAddAlternative={addRightAnswer} />
               : leftTab === 'text' ? <TextToTasks onInsert={(blocks) => { insertBlocks(blocks); setNotice(`Tekstist lisati ${blocks.length} ülesannet. Vaata need üle.`); }} />
               : leftTab === 'sheet' ? <div className="st-sheetpanel"><SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} /></div>
-              : leftTab === 'library' ? <Suspense fallback={<p className="ed-hint">Laen kogu…</p>}><BlockLibraryPanel level={doc?.meta?.level || ''} onInsert={(blocks) => { insertBlocks(blocks); setNotice('Kogust lisati ülesanne. Vaata see üle.'); }} /></Suspense>
+              : leftTab === 'library' ? <Suspense fallback={<LoadingState inline className="ed-hint" label="Laen kogu…" />}><BlockLibraryPanel level={doc?.meta?.level || ''} currentLessonId={isLessonPage ? lessonId : ''} {...(reuse ? { saved: reuse } : {})} onInsert={(blocks, extra) => { insertBlocks(blocks, extra); setNotice('Kogust lisati ülesanne. Vaata see üle.'); }} /></Suspense>
               : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
-                onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage}
+                onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage} onAudio={pickBankAudio} onVideo={pickBankVideo}
                 onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />
               : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint" title="Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc."><Icons.MousePointerClick size={14} aria-hidden="true" /> Lohista plokk lehele. Topeltklõps lehel muudab teksti.</p>{myTemplates.length ? (
                 <div className="st-group st-templates">
@@ -942,6 +1072,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           {dragging ? <div className="st-drag-ghost"><Icons.GripVertical size={16} aria-hidden="true" /><span>{dragLabel}</span></div> : null}
         </DragOverlay>
         </DndContext>
+        {copying ? <CopyMoveDialog block={copying} doc={doc} lessonId={isNew ? '' : lessonId} worksheetId={worksheetId || ''} reuse={reuse} user={user} onClose={() => setCopying(null)} onDone={copyDone} /> : null}
+        {pickTemplate ? <TemplateDialog service={sheetTemplates} user={user} builtIns={BUILT_IN_TEMPLATES} lessonPage={isLessonPage} onClose={() => setPickTemplate(false)} onUseSheet={takeSheetTemplate} onUseLesson={takeLessonTemplate} /> : null}
         {notice && <div className="st-banner ok st-toast" role="status"><Icons.CircleCheck size={16} aria-hidden="true" />{notice}<button type="button" onClick={() => setNotice('')} aria-label="Sulge teade"><Icons.X size={14} aria-hidden="true" /></button></div>}
       </div>
     </AssetContext.Provider>

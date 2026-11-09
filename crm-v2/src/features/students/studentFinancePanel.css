@@ -1,44 +1,69 @@
 .student-finance-panel { display: grid; gap: 22px; }
-.student-finance-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.student-finance-metrics > div { padding: 18px; border: 1px solid var(--border-color, #e5e7eb); border-radius: 16px; background: var(--surface-subtle, #f8fafc); }
-.student-finance-metrics span { display: flex; align-items: center; gap: 8px; color: var(--text-muted, #667085); font-size: .85rem; }
-.student-finance-metrics strong { display: block; margin-top: 10px; font-size: 1.35rem; }
-.student-finance-metrics small { color: var(--text-muted, #667085); }
+.student-finance-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.student-finance-metrics__alert .metric-tile__value > strong { color: var(--danger-text); }
+.student-invoice-history__num { justify-self: end; text-align: right; font-variant-numeric: tabular-nums; }
 .student-invoice-history { overflow-x: auto; }
-.student-invoice-history > div { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr; gap: 16px; align-items: center; min-width: 720px; padding: 13px 8px; border-bottom: 1px solid var(--border-color, #e5e7eb); }
-.student-invoice-history__head { color: var(--text-muted, #667085); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.student-invoice-history > div { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr; gap: 16px; align-items: center; min-width: 720px; padding: 13px 8px; border-bottom: 1px solid var(--border-color, #e5e7eb);border-bottom:1px solid var(--border-color, light-dark(#e5e7eb,#333a41)); }
+.student-invoice-history__head { color: var(--text-muted, var(--gray-500)); font-size: .78rem; font-weight: 600; }
+.student-invoice-history > div > .badge { justify-self: start; }
 .student-finance-panel__footer { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
-.student-finance-panel__footer small { color: var(--text-muted, #667085); }
+.student-finance-panel__footer small { color: var(--text-muted, var(--gray-500)); }
 @media (max-width: 900px) { .student-finance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .student-finance-metrics { grid-template-columns: 1fr; } .student-finance-panel__footer { align-items: stretch; flex-direction: column; } }
+@media (max-width: 560px) { .student-finance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .student-finance-panel__footer { align-items: stretch; flex-direction: column; } }
 .billing-settings { display: grid; gap: 16px; }
 .billing-settings .eyebrow { display: inline-flex; align-items: center; gap: 6px; }
 .billing-settings__price { font-size: 1.25rem; }
-.billing-settings__missing { color: #b42318; font-weight: 700; }
+.billing-settings__missing { color: var(--danger-text); font-weight: 700; }
 .billing-settings__form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; align-items: end; }
 .billing-settings__check { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; }
-.billing-settings__actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: center; gap: 12px; color: #087443; }
+.billing-settings__actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: center; gap: 12px; color: #087443;color:light-dark(#087443,#77d09a); }
 .billing-settings__actions span { display: inline-flex; align-items: center; gap: 6px; }
-.billing-settings__history summary { cursor: pointer; color: var(--text-muted, #667085); }
+.billing-settings__history summary { cursor: pointer; color: var(--text-muted, var(--gray-500)); }
 .billing-settings__history ul { margin: 8px 0 0; padding-left: 18px; }
 @media (max-width: 760px) { .billing-settings__form { grid-template-columns: 1fr; } }
 .duplicate-manual__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.duplicate-permanent { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0; font-weight: 600; color: #b42318; }
+.duplicate-permanent { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0; font-weight: 600; color: var(--danger-text); }
 @media (max-width: 640px) { .duplicate-manual__row { grid-template-columns: 1fr; } }
-.billing-settings__subject{display:contents}
+/* one tab per subject (#bug 2026-11-06): equal tabs, each with the same fields */
+.billing-settings__tabs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--border, #e5e7eb);border-bottom:1px solid var(--border, light-dark(#e5e7eb,#333a41)); }
+.billing-settings__tab { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 44px; padding: 8px 14px; margin-bottom: -1px; border: 1px solid transparent; border-radius: var(--radius-md) var(--radius-md) 0 0; background: transparent; color: var(--gray-700); font: inherit; font-weight: 700; cursor: pointer; position: relative; }
+.billing-settings__tab small { font-weight: 500; color: var(--gray-500); font-size: .78rem; }
+.billing-settings__tab:hover { background: var(--surface-alt); }
+.billing-settings__tab.is-active { background: var(--surface); border-color: var(--border, #e5e7eb);border-color:var(--border, light-dark(#e5e7eb,#333a41)); border-bottom-color: #fff;border-bottom-color:light-dark(#fff,#282e36); color: #162033;color:light-dark(#162033,#d4dae6); box-shadow: inset 0 3px 0 var(--green); }
+.billing-settings__tab:focus-visible { outline: 3px solid rgba(8,126,107,.45); outline-offset: 2px; }
+.billing-settings__tab-alert { position: absolute; top: 4px; right: 6px; color: var(--danger-text); font-weight: 800; }
+.billing-settings__panel { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; align-items: end; }
+.billing-settings__panel .billing-settings__lesson-price { grid-column: span 2; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.billing-settings__panel .billing-settings__lesson-price .button { min-height: 34px; padding: 0 12px; }
+.billing-settings__shared-note { grid-column: 1 / -1; margin: 0; font-size: .85rem; color: var(--text-muted, var(--gray-500)); }
+.billing-settings__shared-title { grid-column: 1 / -1; margin: 6px 0 0; padding-top: 12px; border-top: 1px solid var(--border, #e5e7eb);border-top:1px solid var(--border, light-dark(#e5e7eb,#333a41)); font-weight: 700; }
+.billing-settings__saved { margin: 0; padding: 0; list-style: none; display: grid; justify-items: end; gap: 2px; }
+@media (max-width: 760px) { .billing-settings__panel { grid-template-columns: 1fr; } .billing-settings__panel .billing-settings__lesson-price { grid-column: auto; } .billing-settings__saved { justify-items: start; } .billing-settings__tab { flex: 1 1 40%; } }
 /* price terms (2026-10-29): „Üldtingimused” / „Soodustus” */
 .billing-settings__summary { display: grid; justify-items: end; gap: 4px; }
-.billing-settings__terms { font-size: .82rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: #ecfdf3; color: #087443; }
-.billing-settings__terms--discount { background: #fff6ed; color: #b54708; }
+.billing-settings__terms { font-size: .82rem; font-weight: 700; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--success-soft); color: #087443;color:light-dark(#087443,#77d09a); }
+.billing-settings__terms--discount { background: #fff6ed;background:light-dark(#fff6ed,#271b0d); color: var(--warning-text); }
 .billing-settings__switch { grid-column: 1 / -1; border: 0; padding: 0; margin: 0; min-width: 0; }
 .billing-settings__switch legend { font-weight: 600; margin-bottom: 6px; }
-.billing-settings__switch [role="radiogroup"] { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border-color, #e5e7eb); border-radius: 12px; overflow: hidden; }
+.billing-settings__switch [role="radiogroup"] { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border-color, #e5e7eb);border:1px solid var(--border-color, light-dark(#e5e7eb,#333a41)); border-radius: var(--radius-lg); overflow: hidden; }
 .billing-settings__switch label { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; cursor: pointer; }
-.billing-settings__switch label.is-active { background: var(--surface-subtle, #f2f4f7); font-weight: 700; }
-.billing-settings__auto { grid-column: 1 / -1; margin: 0; color: var(--text-muted, #475467); }
+.billing-settings__switch label.is-active { background: var(--surface-subtle, var(--gray-100)); font-weight: 700; }
+.billing-settings__auto { grid-column: 1 / -1; margin: 0; color: var(--text-muted, var(--gray-600)); }
 .billing-settings__reason { grid-column: span 2; }
 .billing-settings__reason textarea { width: 100%; resize: vertical; font: inherit; }
-.billing-settings__reason small { color: var(--text-muted, #667085); }
-.billing-settings__lesson-price { margin: 0; align-self: center; color: var(--text-muted, #475467); }
-.billing-settings__changed { grid-column: 1 / -1; margin: 0; font-size: .85rem; color: var(--text-muted, #667085); }
+.billing-settings__reason small { color: var(--text-muted, var(--gray-500)); }
+.billing-settings__lesson-price { margin: 0; align-self: center; color: var(--text-muted, var(--gray-600)); }
+.billing-settings__changed { grid-column: 1 / -1; margin: 0; font-size: .85rem; color: var(--text-muted, var(--gray-500)); }
 @media (max-width: 760px) { .billing-settings__reason { grid-column: auto; } .billing-settings__summary { justify-items: start; } }
+/* billing per subject (owner 2026-11-06): Arveldus / Tunde nädalas / no-show inside every subject tab */
+.billing-settings__billing { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; align-items: start; padding-top: 12px; border-top: 1px dashed var(--border, #e5e7eb);border-top:1px dashed var(--border, light-dark(#e5e7eb,#333a41)); }
+.billing-settings__billing > .billing-settings__check, .billing-settings__billing-note { grid-column: 1 / -1; }
+.billing-settings__billing-note { margin: 0; font-size: .85rem; color: var(--text-muted, var(--gray-600)); }
+.billing-settings__check > label { display: inline-flex; gap: 8px; align-items: center; }
+.billing-settings__own { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.billing-settings__own .billing-settings__check { grid-column: auto; align-items: flex-start; }
+.billing-settings__field-label { display: inline-flex; align-items: center; gap: 4px; }
+.billing-settings__inherited { margin: 0; display: grid; gap: 6px; justify-items: start; padding: 10px 12px; border-radius: var(--radius-md); background: var(--surface-subtle, var(--surface-alt)); color: var(--gray-700); }
+.billing-settings__inherited .button, .billing-settings__back { min-height: 34px; padding: 0 12px; justify-self: start; }
+.billing-settings__mixed { grid-column: 1 / -1; margin: 0; }
+@media (max-width: 760px) { .billing-settings__billing { grid-template-columns: 1fr; } }

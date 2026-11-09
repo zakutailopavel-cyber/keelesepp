@@ -1,5 +1,5 @@
 export const FINANCE_SETTINGS_DEFAULT = 'tuluprognoos';
-export const FINANCE_SETTINGS_SECTIONS = new Set(['tuluprognoos', 'perioodid', 'numeratsioon', 'ekirjad', 'kaardimaksed', 'audit']);
+export const FINANCE_SETTINGS_SECTIONS = new Set(['tuluprognoos', 'perioodid', 'numeratsioon', 'ekirjad', 'kaardimaksed', 'audit', 'fie']);
 
 const SETTINGS_ALIASES = { settings: 'tuluprognoos', seaded: 'tuluprognoos', forecast: 'tuluprognoos', numbering: 'numeratsioon', email: 'ekirjad', emails: 'ekirjad', periods: 'perioodid' };
 

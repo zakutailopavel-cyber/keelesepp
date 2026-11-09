@@ -104,7 +104,7 @@ target per part.
 | V12 | modules 6–18: exactly one `harno` task a teaching lesson, 8–12 minutes, a different format family than the previous lesson's, ≤ 25 % of the lesson |
 | V13 | Avasta starts with `B.review` whose items name the previous lesson and a lesson from a module 2–4 back |
 | V14 | ≥ 90 % of a module's vocab-box headwords are in the EKI etLex A1–B1 lists (CC BY, `levelForms.*.json`) or an earlier module's boxes; the others are tagged `topic` |
-| V15 | a module: errorfix ≤ 2, translation ≤ 1, dictation ≤ 2; Kasuta has no G task; a drill id once a lesson |
+| V15 | a module: errorfix ≤ 2, translation ≤ 1, dictation ≤ 2 (A2 only — B1, B2 and C1 have no dictation at all, owner 2026-11-04, `LESSON_QUALITY_CONTRACT.md` A3b); Kasuta has no G task; a drill id once a lesson |
 
 ## 6. Minimal example (module 7, lesson 1: KUUL L→W)
 
@@ -346,7 +346,8 @@ Module 5 reached 0 problems on every gate with the same loop. New pitfalls on to
 - **One-to-one regex:** `\bklassis` also matches „klassist” (a passage title „Uudised 3.b klassist”) and a gap sentence
   „samas [klassis]”; an `examPart` note „paaris” counts too. Reword („Uudised: 3.b”, „kahekesi”).
 - **Exam lesson goals:** `lessonGoals.test.js` wants exactly g_read, g_notice and g_use for an assessment lesson — no
-  g_vocab, even when its Avasta has a vocab box.
+  g_vocab, even when its Avasta has a vocab box. `g_listen` may come on top (see „Listening goal” in
+  `LESSON_QUALITY_CONTRACT.md`).
 - **Speller:** bold inside a word („tege**ma** → teh**a**”) splits it into „tege”, „teh” for Vabamorf. Bold whole words.
 - **Names:** check `COURSE_CAST.md` before naming a new person: Tiina (Sofia's neighbour) and Aivar (Kase kool's
   director) were almost reused for a language teacher and a language-school head (now Hanna, Mihkel).
@@ -606,7 +607,16 @@ the baseline. New pitfalls:
 - **`module-same`:** two Kasuta sheets of a module with the same block-type sequence (listening → speakcard → speaking →
   examwriting) are one problem; changing the order of one sheet fixes it.
 - **`depth/no-sentences`:** only `errorfix`, `transformation`, `translation` and `dictation` count as whole-sentence tasks;
-  `wordorder` does not.
+  `wordorder` does not. Since 2026-11-04 (no dictation in B1–C1) also a reading task wrapped in `fullSentences()`
+  (open questions answered „terve lausega”), and a check lesson's sheet that is itself an exam part (`exampart`
+  block, design v2) needs none — like the Harjuta exam parts.
+- **Filling the time of a removed dictation (2026-11-04):** extend what the sheet already has — reading questions
+  (0.6 min each, no item cap in the didactic check), listening gap sentences or exam-listening questions (0.4 min), a
+  true/false or choice „heard again”. Mind three limits: a closed task has at most 8 (A2+) / 10 (B1) / 12 (B2) answers
+  (didactic tip), at most ~60 % (A2+) / under 50 % (B1) of a sheet's tasks may be recognition (true/false, choice,
+  match: a `norm` warning), and in a teaching lesson a new block takes a catalogue id the module has not used
+  (`V4-max`, e.g. R06 and G13 are usually taken): tag it (`R15` short answers from the text, `L02` choice on a
+  recording, `G14` paraphrase / word in context). A `reading` block needs its own passage of the level's length.
 - **An R + W check (no listening, no speaking) is hard to split.** What passed: Avasta = warm-up (quiz, story, sort,
   transformation, errorfix, writing, talk); Harjuta = the reading part (R1, R2 text + choice, R3b as a `gaps` text with a
   bank, R4 as `B.bankText`, two rubrics) plus two untimed after-reading tasks (a `wordorder` and a talk on the R2 topic) to

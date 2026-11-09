@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AccountingPage from './AccountingPage.jsx';
 import { journalWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
 import { COMPANY, journalReport, trialBalance } from './accountingReports.js';
@@ -235,6 +235,44 @@ describe('AccountingPage', () => {
     expect(screen.getAllByRole('columnheader', { name: 'Kreedit' })).toHaveLength(3);
     const total = screen.getByText('Kokku').closest('tr');
     expect(within(total).getAllByText('110,00')).toHaveLength(4);
+  });
+
+  describe('käibeandmik period', () => {
+    beforeEach(() => globalThis.localStorage.clear());
+    afterEach(() => globalThis.localStorage.clear());
+    const openTrial = async () => {
+      render(<MemoryRouter><AccountingPage repository={repo()} /></MemoryRouter>);
+      fireEvent.click(await screen.findByRole('button', { name: 'Käibeandmik' }));
+      await screen.findByRole('heading', { name: /^Käibeandmik / });
+    };
+
+    it('shows the period in the title and no note for a period from 1 January', async () => {
+      await openTrial();
+      expect(screen.getByRole('heading', { name: new RegExp(`^Käibeandmik 01\\.01\\.${year}–`) })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Aasta algusest' })).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.queryByText(/Periood ei alga 1\. jaanuarist/)).not.toBeInTheDocument();
+    });
+
+    it('explains a mid-year opening and „Näita aasta algusest” goes back to 01.01', async () => {
+      globalThis.localStorage.setItem('keelesepp.accounting.period', JSON.stringify({ from: `${year}-02-01`, to: `${year}-12-31` }));
+      await openTrial();
+      expect(screen.getByRole('heading', { name: `Käibeandmik 01.02.${year}–31.12.${year}` })).toBeInTheDocument();
+      // the January salary is in the opening balance, not in the turnover
+      const salary = screen.getByRole('button', { name: '4710' }).closest('tr');
+      expect(within(salary).getAllByText('30,00')).toHaveLength(2);
+      expect(screen.getByText(/Periood ei alga 1\. jaanuarist/)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Näita aasta algusest' }));
+      expect(screen.getByRole('heading', { name: `Käibeandmik 01.01.${year}–31.12.${year}` })).toBeInTheDocument();
+      expect(screen.queryByText(/Periood ei alga 1\. jaanuarist/)).not.toBeInTheDocument();
+      expect(JSON.parse(globalThis.localStorage.getItem('keelesepp.accounting.period'))).toEqual({ from: `${year}-01-01`, to: `${year}-12-31` });
+    });
+
+    it('a quick button sets and highlights the period', async () => {
+      await openTrial();
+      fireEvent.click(screen.getByRole('button', { name: 'Eelmine kuu' }));
+      expect(screen.getByRole('button', { name: 'Eelmine kuu' })).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByRole('button', { name: 'Aasta algusest' })).toHaveAttribute('aria-pressed', 'false');
+    });
   });
 });
 

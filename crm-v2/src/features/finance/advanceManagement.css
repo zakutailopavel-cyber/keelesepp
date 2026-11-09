@@ -14,7 +14,7 @@
 }
 .advance-management__metrics > span {
   align-items: center;
-  background: #f8fafc;
+  background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: 14px;
   color: var(--muted);
@@ -23,10 +23,10 @@
   padding: 14px;
 }
 .advance-management__metrics svg {
-  color: var(--green);
+  color: var(--green-text);
 }
 .advance-management__metrics strong {
-  color: #162033;
+  color: #162033;color:light-dark(#162033,#d4dae6);
   margin-left: auto;
 }
 .advance-list {
@@ -44,7 +44,7 @@
   border-bottom: 0;
 }
 .advance-list article > svg {
-  color: var(--green);
+  color: var(--green-text);
 }
 .advance-list article > span {
   display: grid;
@@ -82,9 +82,9 @@
 }
 .advance-context {
   align-items: center;
-  background: #f8fafc;
+  background: var(--surface-alt);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   display: flex;
   justify-content: space-between;
   padding: 13px;

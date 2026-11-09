@@ -5,7 +5,7 @@
 import { monthDates, shiftMonth } from './monthlyBilling.js';
 import { groupCalendarEvents, occurrencesForDates } from '../calendar/calendarView.js';
 import { itemSubject } from '../students/subjects.js';
-import { lessonPriceCents } from './financeDashboard.js';
+import { lessonPriceCents, noShowCharged } from './financeDashboard.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 import { unplannedStudents } from '../calendar/unplannedStudents.js';
 
@@ -41,7 +41,7 @@ export function lessonFacts({ from, to, today, students = [], plans = [], schedu
       if (status === 'Tühistatud') state = 'cancelled';
       else if (item.occurrenceDate >= today && !(item.occurrenceDate === today && MARKED_TODAY.has(status))) state = status === 'Puudus_p' ? 'absentNotified' : 'planned';
       else if (status === 'Puudus_p') state = 'absentNotified';
-      else if (status === 'Puudus_eta') state = plan?.chargeNoShow !== false && !record?.billingWaived ? 'absentCharged' : 'absentFree';
+      else if (status === 'Puudus_eta') state = (plan ? noShowCharged(plan, record || item, student) : true) && !record?.billingWaived ? 'absentCharged' : 'absentFree';
       else if (status === 'Toimunud') state = record?.billingStatus === 'school_covered' ? 'covered' : 'held';
       else state = 'unmarked';
       out.push({ ...base, state });

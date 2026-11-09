@@ -1,20 +1,25 @@
 import { ArrowLeft, Redo2, Undo2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Card, EmptyState, ErrorState, LoadingState, Select } from '../../components/ui/index.js';
-import { libraryService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { libraryService } from '../../services/firebase/library.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import StudentBoard from './StudentBoard.jsx';
+import { usePastSheetsState } from '../live-classroom/usePastSheets.jsx';
 import '../live-classroom/liveRoom.css';
 
 /**
  * "Tahvel": the student's own board outside lessons, full screen like the Live Classroom board (floating tools).
  * Staff open it from the student card (/board/:studentId); students and parents open /board and see the board of
  * their own student card (a choice when there are several). Always available, also without a lesson.
+ * A worksheet page „Tööleht: …” shows its sheet (the student's sheets opened in lessons, as in the live room); a page
+ * whose sheet is not found says so with a way to „Ülesanded” (2026-11-04, Demjan: homework opened an empty board).
  */
-export default function BoardPage({ studentRepository = studentsService, boardService = studentBoardService, library = libraryService }) {
+export default function BoardPage({ studentRepository = studentsService, boardService = studentBoardService, library = libraryService, homework = homeworkService }) {
   const { user } = useAuth();
   const { studentId: routeStudentId } = useParams();
   // ?page=<lessonPageId>: opened from a lesson row on the student card, straight on that lesson's page
@@ -36,6 +41,9 @@ export default function BoardPage({ studentRepository = studentsService, boardSe
       .catch((error) => { if (alive) setState({ loading: false, students: [], error: error.message || 'Õpilast ei saanud laadida.' }); });
     return () => { alive = false; };
   }, [routeStudentId, studentRepository, user.uid]);
+  const studentId = state.students.find((item) => item.id === chosen)?.id || '';
+  const past = usePastSheetsState({ homework, studentId, role: staff ? 'teacher' : 'student' });
+  const sheetPageFallback = useCallback(() => (past.ready ? <SheetOnlyInLesson /> : null), [past.ready]);
 
   if (state.loading) return <LoadingState label="Laen tahvlit…" />;
   if (state.error) return <div className="page-content"><ErrorState message={state.error} /></div>;
@@ -64,9 +72,20 @@ export default function BoardPage({ studentRepository = studentsService, boardSe
       <div className="lr-body">
         <main className="lr-stage">
           <StudentBoard key={student.id} studentId={student.id} user={user} staff={staff} service={boardService} variant="room"
-            controllerRef={boardRef} onHistoryChange={setHistory} uploadImage={uploadImage} initialPageId={initialPageId} />
+            controllerRef={boardRef} onHistoryChange={setHistory} uploadImage={uploadImage} initialPageId={initialPageId}
+            pastWorksheets={past.sheets} sheetPageFallback={sheetPageFallback} />
         </main>
       </div>
     </div>
   );
+}
+
+// a worksheet page whose sheet is not among the student's lesson sheets (removed, or another student's copy)
+export function SheetOnlyInLesson() {
+  return <div className="sb-sheet-missing" role="status">
+    <strong>See tööleht on avatud ainult tunnis</strong>
+    <p>Tahvlil on selle lehe kohta ainult joonistused. Töölehe leiad ülesannete hulgast.</p>
+    <p lang="ru">Этот лист открывается только на уроке — найди его в заданиях.</p>
+    <Link className="button button--secondary" to="/homework">Ülesanded</Link>
+  </div>;
 }

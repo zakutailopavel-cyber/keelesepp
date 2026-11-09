@@ -24,12 +24,12 @@
   gap: 5px 9px;
   padding: 18px;
   border: 1px solid var(--border);
-  border-radius: 16px;
-  background: #f8fafc;
+  border-radius: var(--radius-xl);
+  background: var(--surface-alt);
 }
 .financial-analytics__metrics svg {
   grid-row: 1 / span 3;
-  color: var(--green);
+  color: var(--green-text);
 }
 .financial-analytics__metrics small,
 .financial-analytics__metrics em {
@@ -40,10 +40,10 @@
   font-size: 1.35rem;
 }
 .financial-analytics__metrics .is-negative strong {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 .financial-analytics__metrics .is-positive strong {
-  color: #067647;
+  color: var(--success-text);
 }
 .analytics-forecast {
   display: grid;
@@ -51,8 +51,8 @@
   align-items: center;
   gap: 18px;
   padding: 18px;
-  border-radius: 16px;
-  background: #f8fafc;
+  border-radius: var(--radius-xl);
+  background: var(--surface-alt);
   border: 1px solid var(--border);
 }
 .analytics-forecast > div:first-child {
@@ -68,7 +68,7 @@
 .analytics-forecast__progress {
   height: 10px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--border);
 }
 .analytics-forecast__progress span {
@@ -103,8 +103,8 @@
   display: grid;
   gap: 4px;
   padding: 12px;
-  border-radius: 13px;
-  background: #f8fafc;
+  border-radius: var(--radius-lg);
+  background: var(--surface-alt);
 }
 .aged-debt-buckets small,
 .aged-debt-buckets em {
@@ -169,7 +169,7 @@
   padding: 30px;
   text-align: center;
   border: 1px dashed var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
 }
 .analytics-method {
   display: flex;

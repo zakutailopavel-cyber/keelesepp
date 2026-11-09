@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
-import { lessonWorksheetsService } from '../../../services/firebase/index.js';
+import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import {
   buildGeneratorCoverage,
   GENERATOR_COVERAGE_LABELS,
@@ -63,7 +63,7 @@ export default function GeneratorCoveragePage({ repository = lessonWorksheetsSer
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
   return (
-    <div className="page-content generator-coverage-page">
+    <div className="page-content generator-coverage-page" data-theme-scope="light">
       <PageHeader
         eyebrow="Lesson Engine"
         title="Generaatori katvus"

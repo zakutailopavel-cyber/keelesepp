@@ -206,4 +206,67 @@ describe('ParentsPage', () => {
     expect(await screen.findByText(/pole ühtegi lapsevanema kontot seotud/)).toBeInTheDocument();
     expect(document.querySelectorAll('.parent-card').length).toBe(0);
   });
+  it('„Lisa laps” lists archived cards under „Arhiveeritud”, searches both, asks before linking, never shows the trash (Oleksiy 2026-11-06)', async () => {
+    const data = repositories();
+    const archived = { id: 'student-3', name: 'Liisa Vana', email: 'liisa@example.com', phone: '+372 5123 4567', parentName: 'Mari Ema', level: 'A2', subject: 'Eesti keel', teacher: 'Õpetaja', active: false };
+    const trashed = { id: 'student-4', name: 'Liisa Prügi', active: false, deletedAt: '2026-11-05T10:00:00Z' };
+    const merged = { id: 'student-5', name: 'Liisa Liidetud', active: false, mergedInto: 'student-3' };
+    const all = [...students, archived, trashed, merged];
+    data.studentRepository.list.mockResolvedValue({ items: all });
+    const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
+    renderPage(user, data);
+    await screen.findByText('Mari Ema');
+    expect(data.studentRepository.list).toHaveBeenCalledWith(expect.objectContaining({ status: 'all' }));
+    const card = screen.getByText('Mari Ema').closest('.parent-card');
+    fireEvent.click(within(card).getByRole('button', { name: /Lisa laps/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Lisa laps: Mari Ema' });
+    const activeGroup = within(dialog).getByRole('group', { name: 'Aktiivsed õpilased' });
+    const archivedGroup = within(dialog).getByRole('group', { name: 'Arhiveeritud' });
+    expect(within(activeGroup).getByText('Jaan')).toBeInTheDocument();
+    expect(within(activeGroup).queryByText('Liisa Vana')).not.toBeInTheDocument();
+    expect(within(archivedGroup).getByText('Liisa Vana')).toBeInTheDocument();
+    expect(within(dialog).queryByText('Liisa Prügi')).not.toBeInTheDocument();
+    expect(within(dialog).queryByText('Liisa Liidetud')).not.toBeInTheDocument();
+
+    // one search over name, e-mail, phone and parent, for both lists
+    const search = within(dialog).getByLabelText('Otsi õpilast lisamiseks');
+    fireEvent.change(search, { target: { value: 'liisa@example' } });
+    expect(within(dialog).getByText('Liisa Vana')).toBeInTheDocument();
+    expect(within(dialog).queryByText('Jaan')).not.toBeInTheDocument();
+    fireEvent.change(search, { target: { value: '5123 4567' } });
+    expect(within(dialog).getByText('Liisa Vana')).toBeInTheDocument();
+    fireEvent.change(search, { target: { value: 'prügi' } });
+    expect(within(dialog).getByText('Õpilasi ei leitud')).toBeInTheDocument();
+    fireEvent.change(search, { target: { value: '' } });
+
+    const row = within(dialog).getByText('Liisa Vana').closest('section');
+    fireEvent.click(within(row).getByRole('button', { name: 'Lisa' }));
+    expect(data.repository.linkStudent).not.toHaveBeenCalled();
+    const ask = within(row).getByRole('group', { name: 'Arhiveeritud õpilane' });
+    expect(ask).toHaveTextContent('Õpilane on arhiveeritud — kas taastada aktiivseks?');
+    fireEvent.click(within(ask).getByRole('button', { name: 'Taasta ja seo' }));
+    await waitFor(() => expect(data.repository.linkStudent).toHaveBeenCalledWith(parents[0], archived, user, expect.objectContaining({ restore: true, relatedStudents: expect.arrayContaining([archived]) })));
+    expect(await screen.findByRole('status')).toHaveTextContent('Kaart taastati arhiivist.');
+  });
+
+  it('„Seo arhiveerituna” links without restoring; a linked archived child shows with „Arhiveeritud” on the parent card', async () => {
+    const data = repositories();
+    const archived = { id: 'student-3', name: 'Liisa Vana', subject: 'Eesti keel', teacher: 'Õpetaja', active: false };
+    const linkedArchived = { id: 'student-6', name: 'Oskar Endine', subject: 'Inglise keel', teacher: 'Õpetaja', active: false, linkedParentId: 'parent-1', parentUid: 'parent-1' };
+    data.studentRepository.list.mockResolvedValue({ items: [...students, archived, linkedArchived] });
+    const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
+    renderPage(user, data);
+    await screen.findByText('Mari Ema');
+    const card = screen.getByText('Mari Ema').closest('.parent-card');
+    expect(within(within(card).getByText('Oskar Endine').closest('a')).getByText('Arhiveeritud')).toBeInTheDocument();
+    fireEvent.click(within(card).getByRole('button', { name: /Lisa laps/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Lisa laps: Mari Ema' });
+    expect(within(within(dialog).getByRole('group', { name: 'Arhiveeritud' })).getByText('Oskar Endine').closest('section')).toHaveTextContent('Lisatud');
+    const row = within(dialog).getByText('Liisa Vana').closest('section');
+    fireEvent.click(within(row).getByRole('button', { name: 'Lisa' }));
+    fireEvent.click(within(row).getByRole('button', { name: 'Seo arhiveerituna' }));
+    await waitFor(() => expect(data.repository.linkStudent).toHaveBeenCalled());
+    expect(data.repository.linkStudent.mock.calls[0][3]).not.toHaveProperty('restore');
+    expect(await screen.findByRole('status')).toHaveTextContent('Kaart jääb arhiivi.');
+  });
 });

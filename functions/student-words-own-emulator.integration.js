@@ -91,3 +91,73 @@ test("a student adds words only to their own list, new and without a lesson link
   assert.equal((await documentRequest(token, "PATCH", "studentWords/own-3", word("words-own", { box: { integerValue: "5" } }))).status, 403);
   assert.equal((await documentRequest(token, "PATCH", "studentWords/own-4", word("words-own", { createdByUid: str("teacher-uid") }))).status, 403);
 });
+
+test("„Lisa oma sõna”: the student saves source + check verdict, edits the text of own words only", async () => {
+  requireSafeEmulatorEnvironment();
+  const token = await account("words-own-edit@example.com", { role: "student", roles: ["student"] });
+  const uid = tokenUid(token);
+  await db().collection("students").doc("words-own-edit").set({ name: "Own Edit", studentUid: uid, linkedUserId: uid, active: true });
+  const fields = (extra = {}) => ({
+    studentId: str("words-own-edit"), invitationId: str(""), word: str("raamatukogu"), translation: str("библиотека"), example: str(""), forms: str(""),
+    createdByUid: str(uid), createdByName: str("Own Edit"), createdAt: str("2026-11-04T10:00:00Z"), updatedAt: str("2026-11-04T10:00:00Z"),
+    box: { integerValue: "0" }, dueAt: str("2026-11-04T10:00:00Z"), source: str("student"), checked: str("ok"), ...extra,
+  });
+  assert.equal((await documentRequest(token, "PATCH", "studentWords/own-edit-1", { fields: fields() })).status, 200);
+  assert.equal((await documentRequest(token, "PATCH", "studentWords/own-edit-2", { fields: fields({ checked: str("trust-me") }) })).status, 403);
+  // own word: text editable
+  const edited = await documentRequest(token, "PATCH", "studentWords/own-edit-1?updateMask.fieldPaths=translation&updateMask.fieldPaths=example&updateMask.fieldPaths=updatedAt&updateMask.fieldPaths=checked",
+    { fields: { translation: str("библиотека (место)"), example: str("Ma käin raamatukogus."), updatedAt: str("2026-11-04T11:00:00Z"), checked: str("unchecked") } });
+  assert.equal(edited.status, 200);
+  // but not its practice box beyond the rules, nor the owner
+  assert.equal((await documentRequest(token, "PATCH", "studentWords/own-edit-1?updateMask.fieldPaths=createdByUid", { fields: { createdByUid: str("someone") } })).status, 403);
+  // a teacher's word: the student may not change its text
+  await db().collection("studentWords").doc("own-edit-teacher").set({ studentId: "words-own-edit", invitationId: "", word: "kass", translation: "кот", example: "", forms: "",
+    createdByUid: "teacher-uid", createdByName: "Õpetaja", createdAt: "2026-11-04T10:00:00Z", updatedAt: "2026-11-04T10:00:00Z", box: 0, dueAt: "2026-11-04T10:00:00Z" });
+  assert.equal((await documentRequest(token, "PATCH", "studentWords/own-edit-teacher?updateMask.fieldPaths=translation", { fields: { translation: str("кошка") } })).status, 403);
+  // nobody reads the quota collection from the client
+  assert.equal((await documentRequest(token, "GET", `languageQuotas/${uid}`)).status, 403);
+});
+
+test("spaced repetition: the student writes `srs` with the practice fields; bad shapes and create-time srs are refused", async () => {
+  requireSafeEmulatorEnvironment();
+  const token = await account("words-srs@example.com", { role: "student", roles: ["student"] });
+  const uid = tokenUid(token);
+  await db().collection("students").doc("words-srs").set({ name: "Srs", studentUid: uid, linkedUserId: uid, active: true });
+  await db().collection("studentWords").doc("srs-1").set({ studentId: "words-srs", invitationId: "", word: "kass", translation: "кот", example: "", forms: "",
+    createdByUid: "teacher-uid", createdByName: "Õpetaja", createdAt: "2026-11-01T10:00:00Z", updatedAt: "2026-11-01T10:00:00Z", box: 2, dueAt: "2026-11-08T10:00:00Z", reviews: 3 });
+  const int = (value) => ({ integerValue: String(value) });
+  const num = (value) => ({ doubleValue: value });
+  const side = (extra = {}) => ({ mapValue: { fields: {
+    state: str("review"), s: num(5.17), d: num(5.12), due: str("2026-11-14T10:00:00.000Z"), last: str("2026-11-09T10:00:00.000Z"),
+    reps: int(4), lapses: int(0), step: int(0), intro: str("2026-11-01"), ...extra,
+  } } });
+  const mask = ["box", "dueAt", "reviewedAt", "reviews", "srs"].map((key) => `updateMask.fieldPaths=${key}`).join("&");
+  const patch = (srs, extra = {}) => documentRequest(token, "PATCH", `studentWords/srs-1?${mask}`, { fields: {
+    box: int(2), dueAt: str("2026-11-09T10:01:00.000Z"), reviewedAt: str("2026-11-09T10:00:00.000Z"), reviews: int(4), srs, ...extra,
+  } });
+  const ok = await patch({ mapValue: { fields: { v: int(1), r: side(), p: side({ state: str("learning"), s: num(0.49), d: num(6.39), step: int(0), reps: int(1) }) } } });
+  assert.equal(ok.status, 200, JSON.stringify(ok.body));
+  assert.equal((await db().collection("studentWords").doc("srs-1").get()).data().srs.p.state, "learning");
+  // an unknown key in a side, an unknown state, a third direction, a string as stability, not a map: refused
+  assert.equal((await patch({ mapValue: { fields: { v: int(1), r: side({ hack: str("x") }) } } })).status, 403);
+  assert.equal((await patch({ mapValue: { fields: { v: int(1), r: side({ state: str("mastered") }) } } })).status, 403);
+  assert.equal((await patch({ mapValue: { fields: { v: int(1), r: side(), q: side() } } })).status, 403);
+  assert.equal((await patch({ mapValue: { fields: { v: int(1), r: side({ s: str("5") }) } } })).status, 403);
+  assert.equal((await patch(str("not a map"))).status, 403);
+  // still no text change together with the practice fields
+  assert.equal((await documentRequest(token, "PATCH", `studentWords/srs-1?${mask}&updateMask.fieldPaths=translation`, { fields: {
+    box: int(2), dueAt: str("2026-11-09T10:01:00.000Z"), reviewedAt: str("2026-11-09T10:00:00.000Z"), reviews: int(4), translation: str("кошка"),
+    srs: { mapValue: { fields: { v: int(1), r: side() } } },
+  } })).status, 403);
+  // a word is never created with a schedule (it starts new)
+  assert.equal((await documentRequest(token, "PATCH", "studentWords/srs-2", { fields: {
+    studentId: str("words-srs"), invitationId: str(""), word: str("koer"), translation: str("собака"), example: str(""), forms: str(""),
+    createdByUid: str(uid), createdByName: str("Srs"), createdAt: str("2026-11-09T10:00:00Z"), updatedAt: str("2026-11-09T10:00:00Z"),
+    box: int(0), dueAt: str("2026-11-09T10:00:00Z"), srs: { mapValue: { fields: { v: int(1), r: side() } } },
+  } })).status, 403);
+  // another student's word: refused
+  await db().collection("studentWords").doc("srs-other").set({ studentId: "someone-else-card", word: "x", createdByUid: "t", createdAt: "2026-11-01", box: 0, dueAt: "" });
+  assert.equal((await documentRequest(token, "PATCH", `studentWords/srs-other?${mask}`, { fields: {
+    box: int(0), dueAt: str(""), reviewedAt: str(""), reviews: int(1), srs: { mapValue: { fields: { v: int(1), r: side() } } },
+  } })).status, 403);
+});

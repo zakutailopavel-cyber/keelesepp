@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Input } from '../../components/ui/index.js';
+import { Button, Card, Input, LoadingState } from '../../components/ui/index.js';
 import { linkpayApi } from '../../services/firebase/linkpayApi.js';
 
 /**
@@ -34,7 +34,7 @@ export default function LinkpaySettings({ api = linkpayApi, go = (url) => global
     try { go((await api.startForInvoice(testId.trim())).url); } catch (error) { setMessage(error?.message || 'Testmakset ei saanud alustada.'); }
   };
 
-  if (state.loading) return <Card><p>Laen…</p></Card>;
+  if (state.loading) return <Card><LoadingState inline label="Laen…" /></Card>;
   if (state.error) return <Card><p className="form-error" role="alert">{state.error}</p></Card>;
   return <Card>
     <div className="section-heading"><div><span className="eyebrow">LHV LinkPay</span><h2>Kaardi- ja pangalingimaksed</h2></div></div>

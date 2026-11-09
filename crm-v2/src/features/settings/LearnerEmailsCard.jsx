@@ -1,6 +1,6 @@
 import { Eye, Mail, Save, Send } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Badge, Button, Card, Input, Modal, Select } from '../../components/ui/index.js';
+import { Badge, Button, Card, Input, Modal, Select, LoadingState } from '../../components/ui/index.js';
 import { learnerEmailsService } from '../../services/firebase/learnerEmails.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { DAILY_HOURS, DEFAULT_TEXTS, EMAIL_TYPES, logRow, normalizeEmailSettings, TEXT_FIELDS, toggleType, unknownPlaceholders } from './learnerEmailModel.js';
@@ -53,7 +53,7 @@ export default function LearnerEmailsCard({ user, service = learnerEmailsService
       <div className="settings-icon"><Mail /></div>
       <h2>E-kirjad õpilastele ja vanematele</h2>
       <p className="settings-copy">Teavitused e-postiga: tunni meeldetuletus, ümber tõstetud või ära jäänud tund, uus tunniplaan, kodutöö tähtaeg, kontrollitud töö ja teated. Iga kiri on eesti ja vene keeles (kui saaja pole ise keelt valinud) ning lõpus on link, millega saaja saab need kirjad endale välja lülitada. Arveid ja maksemeeldetuletusi see ei mõjuta. Kaardile, millel pole e-posti, kirja ei lähe.</p>
-      {!settings ? <p className="form-hint">Laen…</p> : <>
+      {!settings ? <LoadingState inline className="form-hint" label="Laen…" /> : <>
         <p className="form-hint">{enabledCount ? `Sisse lülitatud: ${enabledCount} / ${EMAIL_TYPES.length}.` : 'Kõik kirjad on välja lülitatud — keegi ei saa midagi enne, kui lülitad siin sisse ja salvestad.'}</p>
         <div className="learner-emails-card__general">
           <Select id="learner-emails-hour" label="Igapäevaste meeldetuletuste kellaaeg" value={String(settings.dailyHour)} onChange={(event) => change({ ...settings, dailyHour: Number(event.target.value) })}>

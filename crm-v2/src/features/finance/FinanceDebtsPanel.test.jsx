@@ -193,4 +193,63 @@ describe('FinanceDebtsPanel', () => {
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('täielikult krediteeritud');
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
+
+  it('is read-only without actions (the bookkeeper)', () => {
+    render(<FinanceDebtsPanel month={base.month} invoices={[unpaid]} students={[]} />);
+    expect(screen.getByText('AR-7')).toBeInTheDocument();
+    expect(screen.getByText(/Ainult vaatamiseks/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Meeldetuletus|Impordi pank|Muuda arvet/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('FinanceDebtsPanel · „Maksin ära” from the parents (owner 2026-11-09)', () => {
+  it('lists the families who say they paid, of any month, with a badge on the debt — the invoice stays unpaid', async () => {
+    const claims = new Map([
+      ['old', { id: 'old', invoiceId: 'old', claimedByName: 'Mari Ema', claimedAt: '2031-10-05T09:00:00.000Z', note: 'LHV 05.10' }],
+      ['current', { id: 'current', invoiceId: 'current', claimedByName: 'Sofia Isa', claimedAt: '2031-10-12T09:00:00.000Z' }],
+      ['paid', { id: 'paid', invoiceId: 'paid', claimedByName: 'Jaan Ema', claimedAt: '2031-08-12T09:00:00.000Z' }],
+    ]);
+    const claimsRepository = { list: vi.fn().mockResolvedValue(claims) };
+    render(<FinanceDebtsPanel month="2031-10" invoices={invoices} students={[]} transactions={[]} onAllocate={vi.fn()} onReload={vi.fn()} onRemind={vi.fn()} claimsRepository={claimsRepository} />);
+    const block = await screen.findByRole('region', { name: 'Pere teated: makstud' });
+    expect(block).toHaveTextContent('Pere teatas „Maksin ära” · 2');
+    expect(block).toHaveTextContent('Mari');
+    expect(block).toHaveTextContent('Sofia');
+    expect(block).not.toHaveTextContent('Jaan');
+    expect(block).toHaveTextContent('Pere teatas maksest 05.10.2031 (Mari Ema) — „LHV 05.10”. Kontrolli panka ja lisa makse.');
+    const table = screen.getByRole('table', { name: 'Võlgnevused' });
+    const row = within(table).getByText('Mari').closest('[role="row"]');
+    expect(within(row).getByText('Pere: makstud?')).toBeInTheDocument();
+    expect(within(row).getByText(/^(Üle tähtaja|Tasumata)$/)).toBeInTheDocument();
+  });
+
+  it('the administrator removes a mistaken notice after confirming; the accountant has no button', async () => {
+    const claims = new Map([['old', { id: 'old', invoiceId: 'old', claimedByName: 'Mari Ema', claimedAt: '2031-10-05T09:00:00.000Z' }]]);
+    const claimsRepository = { list: vi.fn().mockResolvedValue(claims), remove: vi.fn().mockResolvedValue() };
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true);
+    const { unmount } = render(<FinanceDebtsPanel canRemoveClaims month="2031-10" invoices={invoices} students={[]} onReload={vi.fn()} claimsRepository={claimsRepository} />);
+    const block = await screen.findByRole('region', { name: 'Pere teated: makstud' });
+    fireEvent.click(within(block).getByRole('button', { name: 'Eemalda pere teade arvelt AR-1' }));
+    await waitFor(() => expect(confirm).toHaveBeenCalledTimes(1));
+    expect(confirm.mock.calls[0][0]).toContain('Arve ja maksed ei muutu');
+    expect(claimsRepository.remove).not.toHaveBeenCalled();
+    fireEvent.click(within(block).getByRole('button', { name: 'Eemalda pere teade arvelt AR-1' }));
+    await waitFor(() => expect(claimsRepository.remove).toHaveBeenCalledWith('old', expect.objectContaining({ id: 'old' })));
+    expect(await screen.findByText('Pere teade arvelt AR-1 eemaldati.')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Pere teated: makstud' })).toBeNull();
+    expect(screen.queryByText('Pere: makstud?')).toBeNull();
+    confirm.mockRestore();
+    unmount();
+    render(<FinanceDebtsPanel month="2031-10" invoices={invoices} students={[]} claimsRepository={{ list: vi.fn().mockResolvedValue(claims), remove: vi.fn() }} />);
+    expect(await screen.findByRole('region', { name: 'Pere teated: makstud' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Eemalda/ })).toBeNull();
+  });
+
+  it('shows nothing extra without claims or when they cannot be read', async () => {
+    const claimsRepository = { list: vi.fn().mockRejectedValue(new Error('Missing or insufficient permissions.')) };
+    render(<FinanceDebtsPanel month="2031-10" invoices={invoices} students={[]} claimsRepository={claimsRepository} />);
+    await waitFor(() => expect(claimsRepository.list).toHaveBeenCalled());
+    expect(screen.queryByRole('region', { name: 'Pere teated: makstud' })).toBeNull();
+    expect(screen.queryByText('Pere: makstud?')).toBeNull();
+  });
 });

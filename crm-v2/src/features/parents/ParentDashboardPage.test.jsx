@@ -6,6 +6,17 @@ import { shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import ParentDashboardPage from './ParentDashboardPage.jsx';
 
 describe('ParentDashboardPage', () => {
+  it('while the family loads: placeholder cards (no spinner) under one busy label', () => {
+    const studentRepository = { listOwned: vi.fn(() => new Promise(() => {})) };
+    const user = { uid: 'parent-1', displayName: 'Mari Ema', roles: ['parent'] };
+    const { container } = render(<MemoryRouter><AuthContext.Provider value={{ user }}><ParentDashboardPage studentRepository={studentRepository} /></AuthContext.Provider></MemoryRouter>);
+    const region = screen.getByRole('status');
+    expect(region).toHaveAttribute('aria-busy', 'true');
+    expect(region).toHaveTextContent('Laen pere ülevaadet…');
+    expect(container.querySelector('.state-spinner')).toBeNull();
+    expect(region.querySelector('.skeleton-row--split')).not.toBeNull();
+  });
+
   it('loads only explicitly owned students; the first screen answers: next lesson, what to do, feedback, money due', async () => {
     const today = toIsoDate();
     const studentRepository = { listOwned: vi.fn().mockResolvedValue([{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', targetLevel: 'A2', teacher: 'Õpetaja' }]) };
@@ -19,15 +30,17 @@ describe('ParentDashboardPage', () => {
     expect(await screen.findByRole('heading', { name: 'Tere, Mari Ema!' })).toBeInTheDocument();
     const card = screen.getByRole('article', { name: 'Mari' });
     expect(card).toHaveTextContent('Eesti keel · A1 → A2 · Õpetaja');
-    expect(card).toHaveTextContent('Järgmine tund');
+    expect(card).toHaveTextContent('Järgmised tunnid');
     expect(card).toHaveTextContent('16:00');
     expect(card).toHaveTextContent('1 ülesanne vaja teha');
     expect(within(card).getByText('Õpi sõnad')).toBeInTheDocument();
     expect(within(card).getByRole('link', { name: /Vaata ülesandeid/ })).toHaveAttribute('href', '/homework');
     expect(card).toHaveTextContent('Tagasisidet veel ei ole');
-    expect(screen.getByRole('status')).toHaveTextContent('Tasumata 30,00');
+    // the announcement dialog's inline loader is a status region too
+    expect(screen.getAllByRole('status').map((el) => el.textContent).join(' ')).toContain('Tasumata 30,00');
     // none of the old technical tiles and words
-    ['Kõik oluline ühe pilguga', 'Õpilasi', 'õppesuund', 'Pooleli ülesanded', 'Kodutööd'].forEach((word) => expect(document.body.textContent).not.toContain(word));
+    // („Kodutööd” is back as the card's name: owner 2026-11-04)
+    ['Kõik oluline ühe pilguga', 'Õpilasi', 'õppesuund', 'Pooleli ülesanded'].forEach((word) => expect(document.body.textContent).not.toContain(word));
     expect(homeworkRepository.listWorksheetAssignmentsByStudentIds).toBeUndefined();
     expect(studentRepository.listOwned).toHaveBeenCalledWith('parent-1');
     expect(homeworkRepository.listByStudentIds).toHaveBeenCalledWith(['student-1']);

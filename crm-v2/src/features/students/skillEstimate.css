@@ -1,0 +1,13 @@
+/* „Teekond sihttasemeni” (SkillEstimateCard.jsx): the bars are the „Areng” card's (.auto-skills__*) */
+.skill-estimate__path{margin:0 0 12px;color:var(--gray-700)}
+.skill-estimate__warn{color:var(--warning-text)}
+.skill-estimate__summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 16px}
+.skill-estimate__summary>div{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--border-cool);border-radius:var(--radius-md);background:var(--gray-50)}
+.skill-estimate__summary span{font-size:.78rem;color:var(--gray-500)}
+.skill-estimate__summary strong{font-size:1.3rem}
+.skill-estimate__summary small{color:var(--gray-500);font-size:.78rem}
+.skill-estimate .auto-skills__row.is-thin .auto-skills__name,.skill-estimate .auto-skills__row.is-thin strong{color:var(--gray-400)}
+.skill-estimate__save{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:14px 0 0}
+.skill-estimate__save small{color:var(--gray-500);font-size:.8rem}
+.skill-estimate__save p{flex-basis:100%;margin:0}
+.skill-estimate__note{margin:16px 0 0;padding:10px 12px;border-radius:var(--radius-md);background:var(--warning-soft);color:#7a2e0e;color:light-dark(#7a2e0e,#fcb095);font-size:.85rem}

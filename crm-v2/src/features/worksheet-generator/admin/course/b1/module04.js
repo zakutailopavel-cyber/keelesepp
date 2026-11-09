@@ -427,10 +427,6 @@ export const LESSONS = withShapes({
         'Kui laps ei saa tulla, peab vanem õpetajale [helistama] (helistab).',
         'Jõulutalus võivad lapsed piparkooke [küpsetada] (küpsetab).',
       ]),
-      B.dictation('017_p_dict', 'Etteütlus: laoreeglid.', 'Kuula, kuidas õpetaja loeb laoreegleid. Kirjuta iga lause täpselt, ma- ja da-vormid õigesti.', [
-        'Inventuuri ajal peab kogu aeg turvavesti kandma.', 'Lisatöötajad ei pea raskeid kaste tõstma.', 'Inventuuri ajal ei tohi keegi laos joosta.', 'Enne lahkumist tuleb tahvelarvuti tagasi anda.',
-        'Laupäeval peame kõik kastid üle lugema.', 'Lõunapausi ajal saab puhkeruumis süüa.', 'Kas lapsed tohivad muuseumisse telefoni võtta?', 'Kui midagi juhtub, pead kohe Liisile helistama.',
-      ], 8),
       teach(tag(B.speaking('017_p_rank', 'Kolm kõige tähtsamat kodureeglit.', 'Järjestage paarilisega kaheksa kodureeglit tähtsuse järgi. Leppige kokku, millised kolm jäävad.', [
         'Kingad peab esikus jalast võtma.', 'Pärast kella kümmet ei tohi valjult muusikat kuulata.', 'Igaüks peab ise oma nõud ära pesema.', 'Söögilauas ei tohi telefoni kasutada.',
         'Külalisi võib kutsuda ainult nädalavahetusel.', 'Lapsed võivad arvutis mängida tund päevas.', 'Iga pere peab kord kuus trepikoda koristama.', 'Pühapäeval ei pea keegi vara üles tõusma.',
@@ -1047,6 +1043,36 @@ export const LESSONS = withShapes({
         ['Kui laps jääb haigeks, tuleb plaan ümber teha.', true],
         ['Katrin helistas emale sünnipäeval alles hilja õhtul.', true],
       ], 'g_read'), { harno: 'L4' }),
+      B.truefalse('020_p_party_tf', 'Liisi sõnum veel kord.', 'Kuulake Liisi sõnumit veel kord. Kas väide on õige või vale?', [
+        ['Jõulupidu on reede õhtul.', true],
+        ['Pidu on sel aastal kontoris.', false],
+        ['Restoran asub Kalamaja pargi kõrval.', true],
+        ['Restoran pakub ka taimetoitu.', true],
+        ['Viktoriini teeb sel aastal Liis.', false],
+        ['Kingitus tuleb ilusti pakkida.', true],
+        ['Autoga tulijad võivad peol veini juua.', false],
+        ['Laupäeval peavad kõik tööle tulema.', false],
+      ], 'full', 'g_listen'),
+      B.choice('020_p_radio_q', 'Raadiointervjuu veel kord.', 'Kuulake intervjuud veel kord. Valige igale küsimusele õige vastus.', [
+        ['Mis tööd teeb Katrin Sild?', 'ta on koolitaja', 'ta on õpetaja', 'ta on arst'],
+        ['Millest saates räägitakse?', 'kuidas aega planeerida', 'kuidas raha säästa', 'kuidas tervislikult süüa'],
+        ['Millal heliseb paljudel telefon?', 'ka õhtul ja nädalavahetusel', 'ainult hommikul', 'ainult tööajal'],
+        ['Mida ostavad Katrini kursuslased jälle?', 'paberkalendri', 'uue telefoni', 'arvuti'],
+        ['Mida teevad inimesed tihti tähtsate asjadega?', 'lükkavad need edasi', 'teevad need kohe ära', 'annavad need teistele'],
+        ['Kui palju aega soovitab Katrin igal õhtul planeerida?', 'viis minutit', 'pool tundi', 'tund aega'],
+        ['Mitu asja tuleks homseks valida?', 'kolm', 'viis', 'kümme'],
+        ['Millega võrdleb Katrin head plaani?', 'kaardiga', 'kiviga', 'kalendriga'],
+      ], 'full', 'g_listen'),
+      B.choice('020_p_who_q', 'Kellega klient räägib? Veel kord.', 'Kuulake vestlusi veel kord. Valige igale küsimusele õige vastus.', [
+        ['Mis päeval on Toomase aeg hambakliinikus?', 'kolmapäeval', 'neljapäeval', 'reedel'],
+        ['Kui palju maksab bussipilet Kõrvemaale?', 'neli eurot', 'kaks eurot', 'kuus eurot'],
+        ['Mis on lastel laagris pärast matka?', 'vaba aeg kuni õhtusöögini', 'trenn', 'kontsert'],
+        ['Kui kaua võtab Viktori auto remont?', 'nädal aega', 'ühe päeva', 'kuu aega'],
+        ['Millal peab Liina raamatu nüüd tagastama?', 'kahe nädala pärast', 'homme', 'kuu pärast'],
+        ['Millal tuleb Mardi rohtu võtta?', 'pärast sööki', 'enne sööki', 'öösel'],
+        ['Mis kell saab Katrini seltskond reedel laua?', 'kell kaheksa', 'kell seitse', 'kell kuus'],
+        ['Kes tohib tõstukiga sõita?', 'Rein', 'Markus', 'Liis'],
+      ], 'full', 'g_listen'),
       why(B.gaps('020_p_g1', 'Keel 1. Aeg ja koht.', 'Kirjutage sulgudes olev sõna vormis, mida lause vajab.', [
         'Talvelaager kestis reedest [pühapäevani] (pühapäev).',
         'Enne [koosolekut] (koosolek) loen kirjad läbi.',
@@ -1065,10 +1091,6 @@ export const LESSONS = withShapes({
         'Sofia lükkas hambaarsti aja edasi.', 'Kas sa lugesid Anna kirja läbi?', 'Viktor ei saanud autot korda.', 'Laupäevane matk jäi lume tõttu ära.',
         'Palun võta mulle vihmavari kaasa!', 'Me leppisime uue aja kokku.', 'Markus maksis kõik arved ära.', 'Kati tuleb homme tööle appi.',
       ]), areas('IIIIIIII')),
-      why(B.dictation('020_p_g4', 'Keel 4. Etteütlus.', 'Kuulake õpetajat. Kirjutage iga lause täpselt, kõik vormid õigesti.', [
-        'Laager algab laupäeval kell veerand kaheksa.', 'Laos ei tohi telefoniga rääkida.', 'Sofia lükkas pakkide saatmise edasi.', 'Eile sadas Kõrvemaal palju lund.',
-        'Pühapäeval sõidame bussiga laagrisse.', 'Kas te saaksite mind homme aidata?', 'See on minu õe uus kalender.', 'Mia ei söönud hommikul putru.',
-      ], 8), areas('HDIBAEFC')),
     ],
     transfer: [
       B.examPart('020_t_wpart', 'W', { part: 'Kirjutamine', minutes: 35, points: 20, tasks: 2, note: 'Ülesanne 1 on B1 vormis lühike teade. Ülesanne 2 on kiri sõbrale.' }),

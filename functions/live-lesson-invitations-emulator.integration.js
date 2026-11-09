@@ -518,6 +518,49 @@ test("live lesson presence is restricted to each accepted participant", async ()
   assert.equal(parentReadsTeacher.status, 403, JSON.stringify(parentReadsTeacher.body));
 });
 
+// clientErrors 2026-11-04/05: „Missing or insufficient permissions (set liveLessonInvitations/{id}/presence/{id})” for
+// teacher and admin. The rule is right — presence is written only by the invitation's own teacher and student while it
+// is 'accepted'; the client (useLiveCall / liveLessonPresence.markOffline) no longer writes outside that.
+test("live lesson presence: an admin observer and a closed lesson get no presence writes", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seedUsersAndStudents("presence-closed");
+  const adminToken = await createUserToken("invite-admin-presence@example.com");
+  const adminUid = tokenUid(adminToken);
+  await ctx.db.collection("users").doc(adminUid).set({ role: "admin", displayName: "Watching Admin" });
+  const invitationId = "invite-presence-closed";
+  const created = admin.firestore.Timestamp.fromMillis(Date.now() - 30000);
+  const invitationRef = ctx.db.collection("liveLessonInvitations").doc(invitationId);
+  await invitationRef.set({
+    teacherUid: ctx.teacherUid, teacherName: "Invite Teacher", studentId: ctx.ownStudentId, studentUid: ctx.studentUid,
+    studentName: "Invite Student", title: "Closing", status: "accepted", roomKey: invitationId, createdAt: created,
+    createdAtIso: created.toDate().toISOString(), expiresAt: created, respondedAt: created, cancelledAt: null, closedAt: null,
+  });
+  const participants = [[ctx.teacherToken, ctx.teacherUid, "teacher"], [ctx.studentToken, ctx.studentUid, "student"]];
+
+  // open lesson: teacher and student mark themselves online and offline
+  for (const [token, uid, role] of participants) {
+    for (const online of [true, false]) {
+      const write = await firestoreCommitRequest(token, [presenceWrite(invitationId, uid, role, online)]);
+      assert.equal(write.status, 200, `${role} online=${online}: ${JSON.stringify(write.body)}`);
+    }
+  }
+
+  // an admin who is not the lesson's teacher (the observer, „vaatle”) has no presence of his own here
+  const adminAsTeacher = await firestoreCommitRequest(adminToken, [presenceWrite(invitationId, adminUid, "teacher")]);
+  assert.equal(adminAsTeacher.status, 403, JSON.stringify(adminAsTeacher.body));
+  const adminForTeacher = await firestoreCommitRequest(adminToken, [presenceWrite(invitationId, ctx.teacherUid, "teacher", false)]);
+  assert.equal(adminForTeacher.status, 403, JSON.stringify(adminForTeacher.body));
+
+  // closed lesson: even the offline mark is refused — why the client reads the invitation before marking offline
+  await invitationRef.update({ status: "closed", closedAt: admin.firestore.FieldValue.serverTimestamp() });
+  for (const [token, uid, role] of participants) {
+    const write = await firestoreCommitRequest(token, [presenceWrite(invitationId, uid, role, false)]);
+    assert.equal(write.status, 403, `${role} after close: ${JSON.stringify(write.body)}`);
+    const read = await firestoreDocumentRequest(token, "GET", `liveLessonInvitations/${invitationId}`);
+    assert.equal(read.status, 200, `${role} reads the closed invitation: ${JSON.stringify(read.body)}`);
+  }
+});
+
 
 function whiteboardStrokeWrite(invitationId, elementId, uid, color = "#1C2B3A") {
   return {

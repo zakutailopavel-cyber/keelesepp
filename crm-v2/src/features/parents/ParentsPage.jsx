@@ -1,18 +1,25 @@
-import { GitMerge, HeartHandshake, Mail, Pencil, Phone, Search, ShieldAlert, UserCheck, UserPlus, WalletCards } from 'lucide-react';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
+import { GitMerge, HeartHandshake, KeyRound, Mail, Pencil, Phone, Search, ShieldAlert, UserCheck, UserPlus, WalletCards } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { invoicesService, parentsService, studentsService, teachersService } from '../../services/firebase/index.js';
+import { invoicesService } from '../../services/firebase/invoices.js';
+import { parentsService } from '../../services/firebase/parents.js';
+import { studentsService } from '../../services/firebase/students.js';
+import { teachersService } from '../../services/firebase/teachers.js';
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { ROLES } from '../../utils/roles.js';
 import { STUDENT_LEVELS } from '../students/studentOptions.js';
 import ParentInviteDialog from './ParentInviteDialog.jsx';
+import ParentAccountCard from './ParentAccountCard.jsx';
 import { nameLikeness } from '../students/duplicateCandidates.js';
 import SubjectSelect from '../students/SubjectSelect.jsx';
 import { buildParentRows, exactParentDuplicateClusters, filterParentRows } from './parentModel.js';
+import { childPickerGroups, isArchivedCard } from './childPicker.js';
+import ArchivedLinkAsk from './ArchivedLinkAsk.jsx';
 import { localDate } from '../../utils/localDate.js';
 
 const statuses = {
@@ -62,6 +69,8 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   const [creatingId, setCreatingId] = useState('');
   const [childForm, setChildForm] = useState(null);
   const [studentQuery, setStudentQuery] = useState('');
+  // „Lisa laps” on an archived card: { id } of the card waiting for „Taasta ja seo” / „Seo arhiveerituna”
+  const [archivedAsk, setArchivedAsk] = useState(null);
   const [saving, setSaving] = useState('');
   const [success, setSuccess] = useState('');
   const [actionError, setActionError] = useState('');
@@ -69,15 +78,18 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   // „See on õpilane”: the parent account is really the learner (owner 2026-10-17)
   const [convertingId, setConvertingId] = useState('');
   const [convertCardId, setConvertCardId] = useState('');
+  // the „Konto” block (admin, 2026-11-04): opened per card; open at once when one parent is shown
+  const [accountIds, setAccountIds] = useState(() => new Set());
 
   const state = useAsyncData(async () => {
     const [parents, studentResult, invoices, teachers] = await Promise.all([
       repository.list(),
-      studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }),
+      // active AND archived cards (Oleksiy 2026-11-06: an archived child can be linked); the trash is left out
+      studentRepository.list({ status: 'all', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }),
       admin ? invoiceRepository.list() : Promise.resolve([]),
       admin ? teacherRepository.list() : Promise.resolve([]),
     ]);
-    return { parents, students: studentResult.items.filter((student) => student.active && !student.convertedToParent), invoices, teachers: teachers.filter((teacher) => teacher.disabled !== true) };
+    return { parents, students: studentResult.items.filter((student) => !student.convertedToParent && !student.deletedAt && !student.purgedAt), invoices, teachers: teachers.filter((teacher) => teacher.disabled !== true) };
   }, [admin, invoiceRepository, repository, studentRepository, teacherOnly, teacherRepository, user.uid]);
 
   const rows = useMemo(() => state.data ? buildParentRows(state.data.parents, state.data.students, state.data.invoices) : [], [state.data]);
@@ -88,7 +100,12 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   const creatingRow = rows.find((row) => row.parent.id === creatingId) || null;
   const convertingRow = rows.find((row) => row.parent.id === convertingId) || null;
   const duplicateClusters = useMemo(() => admin && state.data ? exactParentDuplicateClusters(state.data.parents, state.data.students) : [], [admin, state.data]);
-  const linkStudents = (state.data?.students || []).filter((student) => `${student.name} ${student.teacher || ''} ${student.subject || ''} ${student.email || ''}`.toLocaleLowerCase('et').includes(studentQuery.toLocaleLowerCase('et')));
+  const sameNameOf = (parent) => {
+    const name = String(parent.displayName || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('et');
+    return name ? (state.data?.parents || []).filter((item) => String(item.displayName || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('et') === name) : [];
+  };
+  const toggleAccount = (id) => setAccountIds((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  const linkGroups = childPickerGroups(state.data?.students || [], studentQuery);
 
   const openConvert = (row) => {
     const named = [...row.children].sort((a, b) => nameLikeness(row.parent.displayName, b.name) - nameLikeness(row.parent.displayName, a.name));
@@ -160,14 +177,17 @@ export default function ParentsPage({ repository = parentsService, studentReposi
     }
   };
 
-  const linkStudent = async (student, force = false) => {
-    if (force && !window.confirm(`Määrata ${student.name} sellele lapsevanemale? Olemasolev vanemaseos kirjutatakse üle ning sama lapse selgelt seotud õppekaardid viiakse kaasa.`)) return;
-    setSaving(`link:${student.id}`);
+  const linkStudent = async (student, force = false, { restore, confirmed = false } = {}) => {
+    if (force && !(await askConfirm(`Määrata ${student.name} sellele lapsevanemale? Olemasolev vanemaseos kirjutatakse üle ning sama lapse selgelt seotud õppekaardid viiakse kaasa.`))) return;
+    // an archived card: ask first „Taasta ja seo” / „Seo arhiveerituna”
+    if (isArchivedCard(student) && !confirmed) { setActionError(''); setArchivedAsk({ id: student.id }); return; }
+    setSaving(restore === undefined ? `link:${student.id}` : restore ? 'archived:restore' : 'archived:keep');
     setActionError('');
     try {
-      const result = await repository.linkStudent(linkingRow.parent, student, user, { force, relatedStudents: state.data.students });
+      const result = await repository.linkStudent(linkingRow.parent, student, user, { force, relatedStudents: state.data.students, ...(restore ? { restore: true } : {}) });
       setStudentQuery('');
-      setSuccess(`${student.name} seoti lapsevanemaga${result?.linkedRecordCount > 1 ? ` (${result.linkedRecordCount} õppekaarti)` : ''}.`);
+      setArchivedAsk(null);
+      setSuccess(`${student.name} seoti lapsevanemaga${result?.linkedRecordCount > 1 ? ` (${result.linkedRecordCount} õppekaarti)` : ''}.${isArchivedCard(student) ? (restore ? ' Kaart taastati arhiivist.' : ' Kaart jääb arhiivi.') : ''}`);
       await state.reload();
     } catch (error) {
       setActionError(error.message || 'Õpilase sidumine ebaõnnestus.');
@@ -215,7 +235,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   };
 
   const mergeCluster = async (cluster) => {
-    const confirmed = window.confirm(`Arhiveerida ${cluster.duplicates.length} sama e-posti aadressiga duplikaati ja viia nende selged õpilaslingid kontole ${cluster.primary.displayName || cluster.primary.email}? Firebase Auth kontosid ei kustutata.`);
+    const confirmed = (await askConfirm(`Arhiveerida ${cluster.duplicates.length} sama e-posti aadressiga duplikaati ja viia nende selged õpilaslingid kontole ${cluster.primary.displayName || cluster.primary.email}? Firebase Auth kontosid ei kustutata.`));
     if (!confirmed) return;
     setSaving(`merge:${cluster.key}`);
     setActionError('');
@@ -239,7 +259,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   return <div className="page-content">
     <PageHeader eyebrow="CRM" title="Lapsevanemad" description={teacherOnly ? 'Sinu õpilastega seotud lapsevanemad ja kontaktid.' : 'Lapsevanemate kontaktid, seotud lapsed ja registreeringute kontroll.'}
       actions={admin ? <Button onClick={() => setInviting(true)}><UserPlus size={16} /> Lisa lapsevanem</Button> : null} />
-    {admin ? <ParentInviteDialog open={inviting} onClose={() => { setInviting(false); state.reload(); }} students={state.data.students} service={accountApi} /> : null}
+    {admin ? <ParentInviteDialog open={inviting} onClose={() => { setInviting(false); state.reload(); }} students={state.data.students} service={accountApi} studentRepository={studentRepository} /> : null}
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
     <PeopleOverview label="Lapsevanemate kokkuvõte" eyebrow="Suhete ülevaade" title="Lapsevanemate töölaud" description="Seosed, järgmised kontaktid ja tähelepanu vajavad registreeringud." metrics={[
@@ -258,7 +278,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
     {onlyParent ? <p className="parent-only-note" role="status">Näitan ühte lapsevanemat. <button type="button" className="link-button" onClick={() => setSearchParams({})}>Näita kõiki</button></p> : null}{onlyStudent ? <p className="parent-only-note" role="status">{visibleRows.length ? 'Näitan selle õpilase lapsevanemat.' : 'Selle õpilasega pole ühtegi lapsevanema kontot seotud (kaardil on ainult nimi või e-post).'} <button type="button" className="link-button" onClick={() => setSearchParams({})}>Näita kõiki</button></p> : null}
     {visibleRows.length ? <div className="parent-grid">{visibleRows.map((row) => {
       const meta = statuses[row.parent.parentContactStatus] || statuses.new;
-      return <Card className={row.parent.parentNextContactAt === today ? 'parent-card is-due' : 'parent-card'} key={row.parent.id}><header><div className="parent-avatar">{(row.parent.displayName || row.parent.email || 'LV').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toLocaleUpperCase('et')}</div><div><h2>{row.parent.displayName || 'Nimetu lapsevanem'}{row.parent.payerMethod === 'cash' ? <> <Badge tone="warning">sularaha</Badge></> : null}{row.parent.selfPayer && !row.parent.roles?.includes('parent') && row.parent.role !== 'parent' ? <> <Badge tone="info">Õpib ise</Badge></> : null}</h2><span>{row.parent.email || 'E-post puudub'}</span></div><Badge tone={meta.tone}>{meta.label}</Badge></header><div className="parent-contact-links">{row.parent.phone ? <a href={`tel:${row.parent.phone}`}><Phone size={16} /> {row.parent.phone}</a> : <span><Phone size={16} /> Telefon puudub</span>}{row.parent.email ? <a href={`mailto:${row.parent.email}`}><Mail size={16} /> Saada e-kiri</a> : null}</div><dl><div><dt>Kanal</dt><dd>{channels[row.parent.parentContactChannel] || 'Muu'}</dd></div><div><dt>Järgmine kontakt</dt><dd>{row.parent.parentNextContactAt || 'Määramata'}</dd></div><div><dt>Vastutaja</dt><dd>{row.parent.parentContactOwner || 'Määramata'}</dd></div>{admin ? <div><dt>Tasumata jääk</dt><dd>{money(row.balanceCents)}</dd></div> : null}</dl><section><div className="parent-section-head"><strong>Lapsed</strong><Badge tone={row.children.length ? 'success' : 'danger'}>{row.children.length || 'Sidumata'}</Badge></div>{row.children.length ? row.children.map((student) => <Link to={`/students/${student.id}`} key={student.personKey || student.id}><span><strong>{student.name}</strong>{(student.enrollments || []).map((enrollment) => <small key={enrollment.id}>{enrollment.subject || 'Õppeaine puudub'} · {enrollment.teacher || 'Õpetaja puudub'} · {enrollment.level || '—'}</small>)}</span><Badge tone="info">{student.enrollments?.length > 1 ? `${student.enrollments.length} ainet` : student.level || '—'}</Badge></Link>) : <p>{row.requestedNames.length ? `Registreerimisel sisestatud: ${row.requestedNames.join(', ')}` : 'Lapse andmed puuduvad.'}</p>}{row.suggestedChildren.length ? <p className="form-hint">Sidumata, kuid sobib e-posti või nime järgi: {row.suggestedChildren.map((student) => student.name).join(', ')}. Lapsevanem ei näe neid enne sidumist{admin ? ' — vajuta „Lisa laps”' : ''}.</p> : null}</section><p className="parent-notes"><strong>Märkmed:</strong> {row.parent.parentContactNotes || 'Märkmeid ei ole.'}</p>{admin ? <footer><Button variant="secondary" onClick={() => openEdit(row)}><Pencil size={16} /> Muuda</Button><Button variant="secondary" onClick={() => { setLinkingId(row.parent.id); setStudentQuery(''); }}><UserPlus size={16} /> Lisa laps</Button>{row.children.length ? <Button variant="secondary" onClick={() => openConvert(row)}><UserCheck size={16} /> See on õpilane</Button> : null}{row.needsReview ? <Button onClick={() => reviewParent(row)}>Kontrollitud</Button> : null}</footer> : null}</Card>;
+      return <Card className={row.parent.parentNextContactAt === today ? 'parent-card is-due' : 'parent-card'} key={row.parent.id}><header><div className="parent-avatar">{(row.parent.displayName || row.parent.email || 'LV').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toLocaleUpperCase('et')}</div><div><h2>{row.parent.displayName || 'Nimetu lapsevanem'}{row.parent.payerMethod === 'cash' ? <> <Badge tone="warning">sularaha</Badge></> : null}{row.parent.selfPayer && !row.parent.roles?.includes('parent') && row.parent.role !== 'parent' ? <> <Badge tone="info">Õpib ise</Badge></> : null}</h2><span>{row.parent.email || 'E-post puudub'}</span></div><Badge tone={meta.tone}>{meta.label}</Badge></header><div className="parent-contact-links">{row.parent.phone ? <a href={`tel:${row.parent.phone}`}><Phone size={16} /> {row.parent.phone}</a> : <span><Phone size={16} /> Telefon puudub</span>}{row.parent.email ? <a href={`mailto:${row.parent.email}`}><Mail size={16} /> Saada e-kiri</a> : null}</div><dl><div><dt>Kanal</dt><dd>{channels[row.parent.parentContactChannel] || 'Muu'}</dd></div><div><dt>Järgmine kontakt</dt><dd>{row.parent.parentNextContactAt || 'Määramata'}</dd></div><div><dt>Vastutaja</dt><dd>{row.parent.parentContactOwner || 'Määramata'}</dd></div>{admin ? <div><dt>Tasumata jääk</dt><dd>{money(row.balanceCents)}</dd></div> : null}</dl><section><div className="parent-section-head"><strong>Lapsed</strong><Badge tone={row.children.length ? 'success' : 'danger'}>{row.children.length || 'Sidumata'}</Badge></div>{row.children.length ? row.children.map((student) => <Link to={`/students/${student.id}`} key={student.personKey || student.id}><span><strong>{student.name}</strong>{(student.enrollments || []).map((enrollment) => <small key={enrollment.id}>{enrollment.subject || 'Õppeaine puudub'} · {enrollment.teacher || 'Õpetaja puudub'} · {enrollment.level || '—'}</small>)}</span><Badge tone="info">{student.enrollments?.length > 1 ? `${student.enrollments.length} ainet` : student.level || '—'}</Badge></Link>) : <p>{row.requestedNames.length ? `Registreerimisel sisestatud: ${row.requestedNames.join(', ')}` : 'Lapse andmed puuduvad.'}</p>}{(row.archivedChildren || []).map((student) => <Link to={`/students/${student.id}`} key={`archived-${student.personKey || student.id}`}><span><strong>{student.name}</strong><small>{student.subject || 'Õppeaine puudub'} · {student.teacher || 'Õpetaja puudub'}</small></span><Badge tone="warning">Arhiveeritud</Badge></Link>)}{row.suggestedChildren.length ? <p className="form-hint">Sidumata, kuid sobib e-posti või nime järgi: {row.suggestedChildren.map((student) => student.name).join(', ')}. Lapsevanem ei näe neid enne sidumist{admin ? ' — vajuta „Lisa laps”' : ''}.</p> : null}</section><p className="parent-notes"><strong>Märkmed:</strong> {row.parent.parentContactNotes || 'Märkmeid ei ole.'}</p>{admin && (onlyParent || accountIds.has(row.parent.id)) ? <ParentAccountCard parent={row.parent} kids={row.children} sameName={sameNameOf(row.parent)} service={accountApi} onApproved={(text) => { setSuccess(`${row.parent.displayName || row.parent.email}: ${text}`); state.reload(); }} /> : null}{admin ? <footer><Button variant="secondary" onClick={() => openEdit(row)}><Pencil size={16} /> Muuda</Button>{onlyParent ? null : <Button variant="secondary" aria-expanded={accountIds.has(row.parent.id)} onClick={() => toggleAccount(row.parent.id)}><KeyRound size={16} /> Konto</Button>}<Button variant="secondary" onClick={() => { setLinkingId(row.parent.id); setStudentQuery(''); }}><UserPlus size={16} /> Lisa laps</Button>{row.children.length ? <Button variant="secondary" onClick={() => openConvert(row)}><UserCheck size={16} /> See on õpilane</Button> : null}{row.needsReview ? <Button onClick={() => reviewParent(row)}>Kontrollitud</Button> : null}</footer> : null}</Card>;
     })}</div> : <Card><EmptyState title="Lapsevanemaid ei leitud" description={query || status !== 'all' ? 'Muuda otsingut või filtrit.' : 'Sinu tööalas ei ole seotud lapsevanemaid.'} /></Card>}
 
     <Modal open={Boolean(editingRow && editForm)} title={`Muuda: ${editingRow?.parent.displayName || editingRow?.parent.email || ''}`} onClose={() => !saving && setEditingId('')} footer={<><Button variant="secondary" disabled={Boolean(saving)} onClick={() => setEditingId('')}>Loobu</Button><Button type="submit" form="parent-edit-form" loading={saving === 'edit'}>Salvesta</Button></>}>
@@ -273,12 +293,13 @@ export default function ParentsPage({ repository = parentsService, studentReposi
         {actionError ? <p className="action-error" role="alert">{actionError}</p> : null}
       </div> : null}
     </Modal>
-    <Modal open={Boolean(linkingRow)} title={`Lisa laps: ${linkingRow?.parent.displayName || linkingRow?.parent.email || ''}`} onClose={() => !saving && setLinkingId('')} className="modal--parent-link" footer={<Button variant="secondary" disabled={Boolean(saving)} onClick={() => setLinkingId('')}>Valmis</Button>}>
-      {linkingRow ? <div className="parent-link-manager"><div className="parent-linked-children"><div className="parent-link-manager__heading"><div><strong>Juba lisatud lapsed</strong><span>{linkingRow.children.length ? 'Kõik selle lapsevanemaga seotud õpilased.' : 'Selle lapsevanemaga pole veel ühtegi õpilast seotud.'}</span></div><Badge tone={linkingRow.children.length ? 'success' : 'neutral'}>{linkingRow.children.length}</Badge></div>{linkingRow.children.length ? <div className="parent-linked-children__list">{linkingRow.children.map((student) => <Link to={`/students/${student.id}`} key={student.personKey || student.id}><span><strong>{student.name}</strong>{(student.enrollments || []).map((enrollment) => <small key={enrollment.id}>{enrollment.subject || 'Õppeaine puudub'} · {enrollment.teacher || 'Õpetaja puudub'} · {enrollment.level || '—'}</small>)}</span><Badge tone="info">{student.enrollments?.length > 1 ? `${student.enrollments.length} ainet` : student.level || '—'}</Badge></Link>)}</div> : null}</div><div className="parent-link-manager__heading"><div><strong>Lisa olemasolev õpilane</strong><span>Vali õpilase kaart või loo uus kaart.</span></div><Button variant="secondary" disabled={Boolean(saving)} onClick={() => openCreate(linkingRow)}><UserPlus size={16} /> Loo uus lapse kaart</Button></div><p className="form-hint">Lapsel võib olla mitu lapsevanemat. „Lisa ka sellele vanemale” jätab senise vanema alles; vale seose saab eemaldada õpilase kaardil („Lapsevanemad” → „Eemalda seos”).</p><div className="search-field"><Search size={17} /><input aria-label="Otsi õpilast lisamiseks" placeholder="Otsi nime, õpetaja või aine järgi" value={studentQuery} onChange={(event) => setStudentQuery(event.target.value)} /></div><div className="parent-link-manager__results">{linkStudents.map((student) => {
-        const linked = linkingRow.children.some((child) => (child.recordIds || [child.id]).includes(student.id));
+    <Modal open={Boolean(linkingRow)} title={`Lisa laps: ${linkingRow?.parent.displayName || linkingRow?.parent.email || ''}`} onClose={() => { if (!saving) { setLinkingId(''); setArchivedAsk(null); } }} className="modal--parent-link" footer={<Button variant="secondary" disabled={Boolean(saving)} onClick={() => { setLinkingId(''); setArchivedAsk(null); }}>Valmis</Button>}>
+      {linkingRow ? <div className="parent-link-manager"><div className="parent-linked-children"><div className="parent-link-manager__heading"><div><strong>Juba lisatud lapsed</strong><span>{linkingRow.children.length || linkingRow.archivedChildren?.length ? 'Kõik selle lapsevanemaga seotud õpilased.' : 'Selle lapsevanemaga pole veel ühtegi õpilast seotud.'}</span></div><Badge tone={linkingRow.children.length ? 'success' : 'neutral'}>{linkingRow.children.length + (linkingRow.archivedChildren?.length || 0)}</Badge></div>{linkingRow.children.length || linkingRow.archivedChildren?.length ? <div className="parent-linked-children__list">{linkingRow.children.map((student) => <Link to={`/students/${student.id}`} key={student.personKey || student.id}><span><strong>{student.name}</strong>{(student.enrollments || []).map((enrollment) => <small key={enrollment.id}>{enrollment.subject || 'Õppeaine puudub'} · {enrollment.teacher || 'Õpetaja puudub'} · {enrollment.level || '—'}</small>)}</span><Badge tone="info">{student.enrollments?.length > 1 ? `${student.enrollments.length} ainet` : student.level || '—'}</Badge></Link>)}{(linkingRow.archivedChildren || []).map((student) => <Link to={`/students/${student.id}`} key={`archived-${student.personKey || student.id}`}><span><strong>{student.name}</strong><small>{student.subject || 'Õppeaine puudub'} · {student.teacher || 'Õpetaja puudub'}</small></span><Badge tone="warning">Arhiveeritud</Badge></Link>)}</div> : null}</div><div className="parent-link-manager__heading"><div><strong>Lisa olemasolev õpilane</strong><span>Vali õpilase kaart või loo uus kaart.</span></div><Button variant="secondary" disabled={Boolean(saving)} onClick={() => openCreate(linkingRow)}><UserPlus size={16} /> Loo uus lapse kaart</Button></div><p className="form-hint">Lapsel võib olla mitu lapsevanemat. „Lisa ka sellele vanemale” jätab senise vanema alles; vale seose saab eemaldada õpilase kaardil („Lapsevanemad” → „Eemalda seos”).</p><div className="search-field"><Search size={17} /><input aria-label="Otsi õpilast lisamiseks" placeholder="Otsi nime, e-posti, telefoni või lapsevanema järgi" value={studentQuery} onChange={(event) => setStudentQuery(event.target.value)} /></div>{actionError ? <p className="action-error" role="alert">{actionError}</p> : null}<div className="parent-link-manager__results">{[['active', 'Aktiivsed õpilased', linkGroups.active], ['archived', 'Arhiveeritud', linkGroups.archived]].map(([key, heading, items]) => items.length ? <div key={key} role="group" aria-label={heading}>{key === 'archived' || linkGroups.archived.length ? <h3 className="parent-link-manager__group">{heading} ({items.length})</h3> : null}{key === 'archived' ? <p className="form-hint">Arhiveeritud õpilase saab siduda: enne küsitakse, kas kaart taastada aktiivseks.</p> : null}{items.map((student) => {
+        const linked = [...linkingRow.children, ...(linkingRow.archivedChildren || [])].some((child) => (child.recordIds || [child.id]).includes(student.id));
         const otherParent = (student.linkedParentId || student.parentUid || student.guardianUid) && !linked;
-        return <section key={student.id}><span><strong>{student.name}</strong><small>{student.subject || 'Õppeaine puudub'} · {student.teacher || 'Õpetaja puudub'}</small></span>{linked ? <Badge tone="success">Lisatud</Badge> : otherParent ? <Button variant="secondary" loading={saving === `link:${student.id}`} disabled={Boolean(saving)} onClick={() => linkStudent(student)}>Lisa ka sellele vanemale</Button> : <Button variant="secondary" loading={saving === `link:${student.id}`} disabled={Boolean(saving)} onClick={() => linkStudent(student)}>Lisa</Button>}</section>;
-      })}{!linkStudents.length ? <EmptyState title="Õpilasi ei leitud" /> : null}</div></div> : null}
+        const archived = isArchivedCard(student);
+        return <section key={student.id}><span><strong>{student.name}</strong><small>{student.subject || 'Õppeaine puudub'} · {student.teacher || 'Õpetaja puudub'}</small>{archived ? <span style={{ justifySelf: 'start' }}><Badge tone="warning">Arhiveeritud</Badge></span> : null}</span>{linked ? <Badge tone="success">Lisatud</Badge> : <Button variant="secondary" loading={saving === `link:${student.id}`} disabled={Boolean(saving) || archivedAsk?.id === student.id} onClick={() => linkStudent(student)}>{otherParent ? 'Lisa ka sellele vanemale' : 'Lisa'}</Button>}{archivedAsk?.id === student.id ? <ArchivedLinkAsk name={student.name} busy={saving === 'archived:restore' ? 'restore' : saving === 'archived:keep' ? 'keep' : false} onRestore={() => linkStudent(student, false, { restore: true, confirmed: true })} onKeep={() => linkStudent(student, false, { restore: false, confirmed: true })} onCancel={() => setArchivedAsk(null)} /> : null}</section>;
+      })}</div> : null)}{!linkGroups.active.length && !linkGroups.archived.length ? <EmptyState title="Õpilasi ei leitud" description={studentQuery ? 'Otsing vaatab aktiivseid ja arhiveeritud õpilasi (prügikasti kaarte mitte).' : ''} /> : null}</div></div> : null}
     </Modal>
 
     <Modal open={Boolean(creatingRow && childForm)} title={`Loo õpilase kaart: ${creatingRow?.parent.displayName || creatingRow?.parent.email || ''}`} onClose={() => !saving && setCreatingId('')} footer={<><Button variant="secondary" disabled={Boolean(saving)} onClick={() => setCreatingId('')}>Loobu</Button><Button type="submit" form="parent-child-form" loading={saving === 'create'}>Loo ja seo</Button></>}>

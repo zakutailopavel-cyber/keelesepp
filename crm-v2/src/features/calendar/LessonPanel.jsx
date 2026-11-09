@@ -1,3 +1,4 @@
+import { askText } from '../../components/ui/ConfirmHost.jsx';
 import { CalendarClock, Check, Repeat2, HandCoins, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, Video, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
@@ -6,6 +7,8 @@ import { INDIVIDUAL_TOPIC, pickFromRecord, suggestTopic, topicFromPick, topicLin
 import { isGoogleOwned, lessonSyncState } from '../google-calendar/googleCalendarModel.js';
 import '../google-calendar/googleCalendar.css';
 import SubjectTag from './SubjectTag.jsx';
+import DeviceCheckNotice from '../device-check/DeviceCheckNotice.jsx';
+import GroupDeviceCheckNotice from '../device-check/GroupDeviceCheckNotice.jsx';
 
 const STATUS_LABEL = { Toimunud: 'Toimunud', Puudus_eta: 'Puudus (ei teatanud)', Puudus_p: 'Puudus (teatas ette)', Planeeritud: 'Planeeritud' };
 
@@ -63,7 +66,7 @@ function readDraft(item) {
   try { return JSON.parse(window.localStorage.getItem(draftKey(item)) || 'null'); } catch { return null; }
 }
 
-export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onSubstitute, teachers = [], onStartLive, liveBlocked = '', startingLive = false, children }) {
+export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onSubstitute, teachers = [], onStartLive, liveBlocked = '', startingLive = false, deviceCheck, viewer = null, groupStudents = [], children }) {
   const done = Boolean(item?.recordProblem || item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history, plan: student?.studyPlan }) : null), [catalog, history, item, student?.level, student?.studyPlan]);
   const [draft] = useState(() => readDraft(item));
@@ -130,6 +133,10 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
         </section>
       ) : null}
 
+      {/* the student's last „Seadme kontroll” (owner 2026-11-04): a warning before the lesson, nothing when all is fine */}
+      {!item.isGroup && !done && student?.id ? <DeviceCheckNotice studentId={student.id} viewer={viewer} {...(deviceCheck ? { service: deviceCheck } : {})} /> : null}
+      {item.isGroup && !done && groupStudents.length ? <GroupDeviceCheckNotice students={groupStudents.filter((member) => member?.id && member.active !== false).map((member) => ({ studentId: member.id, name: member.name || '' }))} viewer={viewer} {...(deviceCheck ? { service: deviceCheck } : {})} /> : null}
+
       {!item.isGroup ? (
         <section className="lp-last">
           <History size={16} aria-hidden="true" />
@@ -166,7 +173,7 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
               <div className="lp-actions"><Button loading={saving} disabled={!covering.trim()} onClick={async () => { if (await onSchoolCovered('school_covered', covering.trim())) setCovering(null); }}>Kinnita: kooli kulul</Button><Button variant="secondary" disabled={saving} onClick={() => setCovering(null)}>Loobu</Button></div>
             </div>
           ) : null}
-          {schoolCovered && onSchoolCovered ? <button type="button" className="link-button" disabled={saving} onClick={() => { const reason = globalThis.prompt('Miks õpilane siiski maksab? (põhjus jääb auditisse)'); if (reason && reason.trim()) onSchoolCovered('unset', reason.trim()); }}><RotateCcw size={13} /> Tühista „kooli kulul”</button> : null}
+          {schoolCovered && onSchoolCovered ? <button type="button" className="link-button" disabled={saving} onClick={async () => { const reason = (await askText('Miks õpilane siiski maksab? (põhjus jääb auditisse)')); if (reason && reason.trim()) onSchoolCovered('unset', reason.trim()); }}><RotateCcw size={13} /> Tühista „kooli kulul”</button> : null}
           {record && onChangeMark && !fixing && !record.billingStatus ? <button type="button" className="link-button" onClick={() => setFixing(true)}>Märkisid valesti? Paranda</button> : null}
           {record && fixing ? (
             <div className="lp-fix" role="group" aria-label="Paranda märge">
@@ -217,9 +224,10 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
         </section>
       ) : null}
 
-      {(!done || orphanMark) && !item.isGroup && !googleOwned ? (
+      {/* the side drawer (owner 2026-11-09) passes no time / cancel handlers: those stay in the calendar */}
+      {(!done || orphanMark) && !item.isGroup && !googleOwned && (onEdit || onCancelLesson) ? (
         <footer className="lp-foot">
-          {!done ? <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button> : null}
+          {!done && onEdit ? <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button> : null}
           {!done && onSubstitute ? <Button variant="secondary" disabled={saving} aria-expanded={substitute !== null} onClick={() => setSubstitute(substitute === null ? '' : null)}><Repeat2 size={15} /> Asendab</Button> : null}
           {!done && onSubstitute && substitute !== null ? (
             <div className="lp-notes-edit lp-substitute-form" role="group" aria-label="Asendab">
@@ -233,7 +241,7 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
               <div className="lp-actions"><Button loading={saving} disabled={!substitute} onClick={async () => { const chosen = teachers.find((teacher) => teacher.id === substitute); if (chosen && await onSubstitute(chosen)) setSubstitute(null); }}>Kinnita asendus</Button><Button variant="secondary" disabled={saving} onClick={() => setSubstitute(null)}>Loobu</Button></div>
             </div>
           ) : null}
-          <Button variant="danger" disabled={saving} onClick={onCancelLesson}><XCircle size={15} /> Tühista tund</Button>
+          {onCancelLesson ? <Button variant="danger" disabled={saving} onClick={onCancelLesson}><XCircle size={15} /> Tühista tund</Button> : null}
           {onDeleteLesson ? <Button variant="danger" disabled={saving} onClick={onDeleteLesson}><Trash2 size={15} /> Kustuta</Button> : null}
           {onDeleteLesson ? <p className="lp-hint">„Tühista” — tund jääb ära. „Kustuta” — tund lisati kogemata (vale õpilane või päev).</p> : null}
         </footer>

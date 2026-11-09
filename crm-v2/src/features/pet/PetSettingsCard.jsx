@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PawPrint } from 'lucide-react';
 import { Button, Card } from '../../components/ui/index.js';
-import { petsService } from '../../services/firebase/index.js';
+import { petsService } from '../../services/firebase/pets.js';
 import { announcePet } from './petEvents.js';
 
 // "Seaded" for students: switch the pet off or on again, and replay the first-visit tour.

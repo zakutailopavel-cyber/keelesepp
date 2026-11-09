@@ -95,3 +95,19 @@ test('one card, two subjects (owner 2026-10-20): a line per subject at its own p
   assert.deepEqual(record.cardParts.map((part) => [part.studentId, part.subject, part.plannedUnits]), [['st', 'Eesti keel', 4], ['st', 'Matemaatika', 3]]);
   assert.deepEqual(record.subjects, ['Eesti keel', 'Matemaatika']);
 });
+
+// billing per subject (owner 2026-11-06, subject-billing-core.js)
+test('per-subject billing: a package subject gets no monthly line; actual next to advance is refused; legacy plans pass', () => {
+  const { monthlyBillingBlocker } = require('./combined-invoice-core');
+  const kid = { id: 'k', name: 'Kristjan', subject: 'Eesti keel', parentEmail: 'ema@example.ee', enrollments: [{ subject: 'Eesti keel' }, { subject: 'Inglise keel' }] };
+  const plan = { lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'advance', subjectPrices: { 'Inglise keel': { lessonPriceCents: 2500 } }, subjectBilling: { 'Inglise keel': { billingMode: 'package' } } };
+  assert.equal(monthlyBillingBlocker(kid, plan, 'Eesti keel'), '');
+  assert.match(monthlyBillingBlocker(kid, plan, 'Inglise keel'), /Inglise keel: tasub tunnipaketiga/);
+  assert.match(monthlyBillingBlocker(kid, { ...plan, subjectBilling: { 'Inglise keel': { billingMode: 'actual' } } }, 'Eesti keel'), /Pärast toimunud tunde/);
+  // a plan without subjectBilling is never stopped, also a card-wide package plan (unchanged behaviour)
+  assert.equal(monthlyBillingBlocker(kid, { ...plan, billingMode: 'package', subjectBilling: undefined }, 'Inglise keel'), '');
+  const base = { month: '2026-11', due: '2026-11-10', invoiceNum: 'KS-2026-201', nowIso: '2026-11-06T10:00:00.000Z', actor, requestId: 'r', signature: 's' };
+  const ok = combinedMonthlyRecord({ ...base, parts: [{ card: kid, plan, subject: 'Eesti keel', plannedUnits: 4, correctionUnits: 0 }, { card: { ...en, id: 'en2', name: 'Kristjan' , parentEmail: 'ema@example.ee' }, plan: { lessonPriceCents: 1800 }, plannedUnits: 2, correctionUnits: 0 }] });
+  assert.equal(ok.amountCents, 4 * 2000 + 2 * 1800);
+  assert.throws(() => combinedMonthlyRecord({ ...base, parts: [{ card: kid, plan, subject: 'Eesti keel', plannedUnits: 4, correctionUnits: 0 }, { card: kid, plan, subject: 'Inglise keel', plannedUnits: 4, correctionUnits: 0 }] }), { status: 400, message: /tunnipaketiga/ });
+});

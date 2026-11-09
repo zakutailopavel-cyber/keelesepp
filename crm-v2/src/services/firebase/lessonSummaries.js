@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 
 // `lessonSummaries/{invitationId}`: what the student and parents see after a Live Classroom lesson. The teacher's
@@ -70,6 +70,14 @@ export const lessonSummariesService = {
     };
     await setDoc(reference, record);
     return normalizeSummary(invitationId, record);
+  },
+
+  // one read (staff): the month summary for the parent takes the board pages' titles as topics
+  async listForStudent(studentId) {
+    if (!studentId) return [];
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'lessonSummaries'), where('studentId', '==', studentId)));
+    return snapshot.docs.map((d) => normalizeSummary(d.id, d.data()));
   },
 
   subscribeForStudent(studentId, onData, onError) {

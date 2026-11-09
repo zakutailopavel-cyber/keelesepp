@@ -91,6 +91,7 @@ test("finance role can read invoices without gaining student or mutation access"
     }),
     db.collection("invoices").doc("finance-readable-invoice").set({
       num: "KS-FINANCE-1",
+      issuer: "company",
       studentId: "finance-private-student",
       amountCents: 10000,
       balanceDueCents: 10000,
@@ -113,7 +114,11 @@ test("finance role can read invoices without gaining student or mutation access"
     }),
   ]);
 
-  const invoiceList = await firestoreQueryRequest(financeToken, "invoices");
+  // „Arve väljastaja” (owner 2026-11-09): the bookkeeper lists company invoices only; an unconstrained list (that
+  // could contain the owner's FIE invoices) is refused
+  const unconstrained = await firestoreQueryRequest(financeToken, "invoices");
+  assert.equal(unconstrained.status, 403, JSON.stringify(unconstrained.body));
+  const invoiceList = await firestoreQueryRequest(financeToken, "invoices", "company", "issuer");
   assert.equal(invoiceList.status, 200, JSON.stringify(invoiceList.body));
   assert.ok(invoiceList.body.some(item => item.document?.name.endsWith("/invoices/finance-readable-invoice")));
 
@@ -176,6 +181,22 @@ test("finance role can read invoices without gaining student or mutation access"
   });
   assert.equal((await planWith("actual")).status, 200, "billingMode actual");
   assert.equal((await planWith("weekly")).status, 403, "unknown billingMode");
+  // billing per subject (owner 2026-11-06): subjectBilling is a map of at most 8 subjects
+  const planWithSubjects = (subjectBilling) => firestoreDocumentRequest(adminToken, "PATCH", "studentRevenuePlans/admin-forecast-student", {
+    fields: {
+      studentId: { stringValue: "admin-forecast-student" }, studentName: { stringValue: "Admin Forecast Student" },
+      lessonPriceCents: { integerValue: "2500" }, weeklyLessons: { doubleValue: 1 }, currency: { stringValue: "EUR" },
+      active: { booleanValue: true }, updatedAt: { stringValue: "2026-11-06T12:00:00.000Z" }, updatedBy: { stringValue: "Admin" },
+      updatedByUid: { stringValue: tokenUid(adminToken) }, billingMode: { stringValue: "advance" }, subjectBilling,
+    },
+  });
+  const subjectMap = (count) => ({ mapValue: { fields: Object.fromEntries(Array.from({ length: count }, (_, index) => [`Aine ${index}`, { mapValue: { fields: { billingMode: { stringValue: "package" } } } }])) } });
+  assert.equal((await planWithSubjects(subjectMap(1))).status, 200, "subjectBilling map");
+  assert.equal((await planWithSubjects(subjectMap(0))).status, 200, "empty subjectBilling map");
+  assert.equal((await planWithSubjects(subjectMap(9))).status, 403, "more than 8 subjects");
+  assert.equal((await planWithSubjects({ stringValue: "package" })).status, 403, "subjectBilling must be a map");
+  const financeSubjectsWrite = await firestoreDocumentRequest(financeToken, "PATCH", "studentRevenuePlans/admin-forecast-student?updateMask.fieldPaths=subjectBilling", { fields: { subjectBilling: subjectMap(1) } });
+  assert.equal(financeSubjectsWrite.status, 403, "the finance role cannot change per-subject billing");
   // price terms (2026-10-29): general = standard rate, no reason; discount = own rate + a reason of 1–300 characters
   const planWithTerms = (priceTerms, discountReason, hourlyRateCents = 2000) => firestoreDocumentRequest(adminToken, "PATCH", "studentRevenuePlans/admin-forecast-student", {
     fields: {
@@ -228,7 +249,7 @@ async function firestoreCommitRequest(token, writes) {
   return { status: response.status, body: await response.json().catch(() => ({})) };
 }
 
-async function firestoreQueryRequest(token, collectionId, teacherUid) {
+async function firestoreQueryRequest(token, collectionId, teacherUid, field = "teacherUid") {
   const response = await fetch(
     `http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`,
     {
@@ -243,7 +264,7 @@ async function firestoreQueryRequest(token, collectionId, teacherUid) {
           ...(teacherUid ? {
             where: {
               fieldFilter: {
-                field: { fieldPath: "teacherUid" },
+                field: { fieldPath: field },
                 op: "EQUAL",
                 value: { stringValue: teacherUid },
               },
@@ -3466,7 +3487,11 @@ test("„Liida kaardid” over HTTP: admin only, preview writes nothing, apply n
   assert.equal((await db.collection("homework").doc("mc-hw").get()).data().studentId, "mc-src");
   const unconfirmed = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", apply: true });
   assert.equal(unconfirmed.status, 400, JSON.stringify(unconfirmed.body));
-  const applied = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", keepName: "Mari Tamm", apply: true, confirmed: true });
+  // Eesti keel vs Matemaatika with no shared teacher: a sign of two different children, so apply needs one more confirmation
+  const differences = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", keepName: "Mari Tamm", apply: true, confirmed: true });
+  assert.equal(differences.status, 409, JSON.stringify(differences.body));
+  assert.equal((await db.collection("homework").doc("mc-hw").get()).data().studentId, "mc-src");
+  const applied = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", keepName: "Mari Tamm", apply: true, confirmed: true, confirmedDifferences: true });
   assert.equal(applied.status, 200, JSON.stringify(applied.body));
   assert.equal((await db.collection("homework").doc("mc-hw").get()).data().studentId, "mc-keep");
   assert.equal((await db.collection("students").doc("mc-keep").get()).data().name, "Mari Tamm");
@@ -3772,6 +3797,114 @@ test("lesson tokens: a package for one subject pays only that subject's lessons 
   assert.equal((await packageRef.get()).data().balanceCredits, 3);
 });
 
+test("lesson tokens: one package invoice for a family, a package per line on its own card (owner 2026-11-04)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const parent = { parentName: "Pere Ema", parentEmail: "pere@example.com", linkedParentId: "family-parent-1" };
+  await Promise.all([
+    db.collection("students").doc("family-mari").set({ name: "Mari Pere", subject: "Eesti keel", active: true, ...parent }),
+    db.collection("students").doc("family-jaan").set({
+      name: "Jaan Pere", subject: "Eesti keel", active: true, ...parent,
+      enrollments: [{ subject: "Eesti keel", teacher: "Pavel", teacherUid: "t-est" }, { subject: "Matemaatika", teacher: "Liza", teacherUid: "t-math" }],
+    }),
+    db.collection("students").doc("family-other").set({ name: "Teise Pere Laps", subject: "Eesti keel", active: true, parentName: "Teine", parentEmail: "teine@example.com" }),
+    db.collection("studentRevenuePlans").doc("family-mari").set({ studentId: "family-mari", lessonPriceCents: 2000, lessonMinutes: 60, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+    db.collection("studentRevenuePlans").doc("family-jaan").set({ studentId: "family-jaan", lessonPriceCents: 2200, lessonMinutes: 60, subjectPrices: { Matemaatika: { lessonPriceCents: 2500, lessonMinutes: 45 } }, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+    db.collection("studentRevenuePlans").doc("family-other").set({ studentId: "family-other", lessonPriceCents: 1800, lessonMinutes: 60, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const post = (fn, path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/${fn}${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const waitFor = async (read, check, label) => {
+    for (let i = 0; i < 60; i += 1) {
+      const value = await read();
+      if (check(value)) return value;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`timed out: ${label}`);
+  };
+  const invoiceId = "tokens-family-0001";
+  const items = [
+    { studentId: "family-mari", lessons: 8, lessonPriceCents: 1 },
+    { studentId: "family-jaan", subject: "Matemaatika", lessons: 4 },
+    { studentId: "family-jaan", subject: "Eesti keel", lessons: 2 },
+  ];
+
+  // another family's child is refused; nothing is written
+  const mixed = await post("manualInvoiceApi", "/create-tokens-combined", { due: "2031-12-10", items: [items[0], { studentId: "family-other", lessons: 4 }], requestId: "tokens-family-mixed" });
+  assert.equal(mixed.status, 409, JSON.stringify(mixed.body));
+  assert.match(mixed.body.error, /erinev maksja/);
+  assert.equal((await db.collection("invoices").doc("tokens-family-mixed").get()).exists, false);
+
+  // 1. one invoice: every line at its own card's (and subject's) plan price, never the request's
+  const created = await post("manualInvoiceApi", "/create-tokens-combined", { due: "2031-12-10", items, requestId: invoiceId });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const invoice = created.body.invoice;
+  assert.equal(invoice.billingMode, "lesson_tokens_v1");
+  assert.equal(invoice.tokenStatus, "pending");
+  assert.equal(invoice.combined, true);
+  assert.deepEqual(invoice.studentIds, ["family-mari", "family-jaan"]);
+  assert.equal(invoice.tokenCredits, 14);
+  assert.equal(invoice.amountCents, 8 * 2000 + 4 * 2500 + 2 * 2200);
+  assert.equal(invoice.payerEmail, "pere@example.com");
+  assert.match(invoice.num, /^KS-\d{4}-\d{3}/);
+  const again = await post("manualInvoiceApi", "/create-tokens-combined", { due: "2031-12-10", items, requestId: invoiceId });
+  assert.equal(again.status, 200);
+  assert.equal(again.body.invoice.num, invoice.num);
+
+  // lessons held while the payment was on its way: Jaan's maths and Mari's Estonian; Jaan's Estonian package stays full
+  await db.collection("lessons").doc("family-mari-1").set({ studentId: "family-mari", studentName: "Mari Pere", date: "2031-11-05", status: "Toimunud", teacherUid: "t-est", accountingSource: "crm_v2" });
+  await db.collection("lessons").doc("family-jaan-math-1").set({ studentId: "family-jaan", studentName: "Jaan Pere", date: "2031-11-05", status: "Toimunud", teacherUid: "t-math", teacher: "Liza", accountingSource: "crm_v2" });
+  await db.collection("invoices").doc(invoiceId).set({ date: "2031-11-04" }, { merge: true });
+
+  // 2. partly paid: nothing is credited
+  await db.collection("invoices").doc(invoiceId).set({ paidAmountCents: 10000, balanceDueCents: invoice.amountCents - 10000 }, { merge: true });
+  const early = await post("financeApi", "/invoices/tokens/credit", { invoiceId });
+  assert.equal(early.status, 409, JSON.stringify(early.body));
+  assert.equal((await db.collection("studentPackages").doc(`tokens_${invoiceId}_0`).get()).exists, false);
+
+  // 3. paid in full → „Lisa tunnid” → a package per line, each on its own card and subject, the backlog per card
+  await db.collection("invoices").doc(invoiceId).set({ status: "Makstud", paymentStatus: "paid", paidAmountCents: invoice.amountCents, balanceDueCents: 0 }, { merge: true });
+  const credited = await post("financeApi", "/invoices/tokens/credit", { invoiceId });
+  assert.equal(credited.status, 201, JSON.stringify(credited.body));
+  assert.equal(credited.body.studentPackages.length, 3);
+  assert.equal(credited.body.backlog.consumed, 2);
+  const pkg = async (index) => (await db.collection("studentPackages").doc(`tokens_${invoiceId}_${index}`).get()).data();
+  const [mariPkg, jaanMath, jaanEst] = [await pkg(0), await pkg(1), await pkg(2)];
+  assert.deepEqual([mariPkg.studentId, mariPkg.tokenSubject, mariPkg.grantedCredits, mariPkg.balanceCredits, mariPkg.priceCents], ["family-mari", "Eesti keel", 8, 7, 16000]);
+  assert.deepEqual([jaanMath.studentId, jaanMath.tokenSubject, jaanMath.grantedCredits, jaanMath.balanceCredits, jaanMath.lessonPriceCents], ["family-jaan", "Matemaatika", 4, 3, 2500]);
+  assert.deepEqual([jaanEst.studentId, jaanEst.tokenSubject, jaanEst.grantedCredits, jaanEst.balanceCredits], ["family-jaan", "Eesti keel", 2, 2]);
+  assert.equal(jaanEst.sourceInvoiceId, invoiceId);
+  assert.equal(jaanEst.sourceInvoiceLine, 2);
+  const stored = (await db.collection("invoices").doc(invoiceId).get()).data();
+  assert.equal(stored.tokenStatus, "credited");
+  assert.deepEqual(stored.tokenPackageIds, [0, 1, 2].map((index) => `tokens_${invoiceId}_${index}`));
+  const grants = (await db.collection("packageLedger").where("sourceInvoiceId", "==", invoiceId).get()).docs.filter((doc) => doc.data().entryType === "grant");
+  assert.equal(grants.length, 3);
+  const audits = (await db.collection("financialAudit").where("invoiceId", "==", invoiceId).get()).docs.filter((doc) => doc.data().action === "student.package_credited_from_invoice");
+  assert.equal(audits.length, 3);
+
+  // 4. a second click changes nothing
+  const twice = await post("financeApi", "/invoices/tokens/credit", { invoiceId });
+  assert.equal(twice.status, 200);
+  assert.equal(twice.body.idempotent, true);
+  assert.equal(twice.body.studentPackages.length, 3);
+  assert.equal((await pkg(0)).balanceCredits, 7);
+
+  // 5. later lessons take from their own card's package: Jaan's Estonian lesson from his Estonian line
+  await db.collection("lessons").doc("family-jaan-est-1").set({ studentId: "family-jaan", studentName: "Jaan Pere", date: "2031-11-12", status: "Toimunud", teacherUid: "t-est", teacher: "Pavel", subject: "Eesti keel", accountingSource: "crm_v2" });
+  await waitFor(async () => (await pkg(2)).balanceCredits, (b) => b === 1, "Jaan's Estonian lesson took from his Estonian line");
+  assert.equal((await pkg(0)).balanceCredits, 7);
+  assert.equal((await pkg(1)).balanceCredits, 3);
+
+  // 6. a credited combined invoice is not cancelled (the lessons are on the cards)
+  const cancel = await post("manualInvoiceApi", "/cancel", { invoiceId, reason: "Proovin tühistada ühise paketi", requestId: "tokens-family-cancel-1" });
+  assert.equal(cancel.status, 409, JSON.stringify(cancel.body));
+});
+
 test("cash box: a teacher takes cash, hands it over, an admin links it to the invoice; a voided payment reopens it", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
@@ -3908,6 +4041,76 @@ test("one card, two subjects: one monthly invoice with a line per subject at its
   assert.equal(single.status, 201, JSON.stringify(single.body));
   assert.equal(single.body.invoice.amountCents, 2 * 2800);
   assert.equal(single.body.invoice.subject, "Matemaatika");
+});
+
+test("billing per subject: a package subject gets no monthly line, its lessons take credits, the others none (owner 2026-11-06)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const studentId = "per-subject-billing";
+  // the card had no subject when its (shared) package was bought; it now has three subjects
+  await Promise.all([
+    db.collection("students").doc(studentId).set({ name: "Aine Arveldus", active: true, parentEmail: "aine@example.com" }),
+    db.collection("studentRevenuePlans").doc(studentId).set({ studentId, studentName: "Aine Arveldus", lessonPriceCents: 2000, lessonMinutes: 60, weeklyLessons: 1, billingMode: "package", chargeNoShow: true, currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const post = (fn, path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/${fn}${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const waitFor = async (read, check, label) => {
+    for (let i = 0; i < 60; i += 1) {
+      const value = await read();
+      if (check(value)) return value;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`timed out: ${label}`);
+  };
+  const created = await post("manualInvoiceApi", "/create-tokens", { studentId, lessons: 4, due: "2031-12-31", requestId: "per-subject-pool" });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  await db.collection("invoices").doc("per-subject-pool").set({ date: "2031-11-01", status: "Makstud", paymentStatus: "paid", paidAmountCents: 8000, balanceDueCents: 0 }, { merge: true });
+  const credited = await post("financeApi", "/invoices/tokens/credit", { invoiceId: "per-subject-pool" });
+  assert.equal(credited.status, 201, JSON.stringify(credited.body));
+  const packageRef = db.collection("studentPackages").doc("tokens_per-subject-pool");
+  assert.equal((await packageRef.get()).data().balanceCredits, 4);
+
+  await Promise.all([
+    db.collection("students").doc(studentId).set({ subject: "Inglise keel", enrollments: [
+      { subject: "Inglise keel", teacher: "Anna", teacherUid: "t-eng" },
+      { subject: "Eesti keel", teacher: "Pavel", teacherUid: "t-est" },
+      { subject: "Matemaatika", teacher: "Liza", teacherUid: "t-math" },
+    ] }, { merge: true }),
+    // English (main) stays on packages; Estonian by monthly invoice; maths on packages with free no-shows
+    db.collection("studentRevenuePlans").doc(studentId).set({ subjectBilling: { "Eesti keel": { billingMode: "advance" }, Matemaatika: { chargeNoShow: false } } }, { merge: true }),
+  ]);
+
+  // monthly invoices: the Estonian line is made, an English or maths line is refused
+  const english = await post("manualInvoiceApi", "/monthly", { studentId, month: "2031-12", due: "2031-12-10", plannedUnits: 4, subject: "Inglise keel" });
+  assert.equal(english.status, 400, JSON.stringify(english.body));
+  assert.match(english.body.error || JSON.stringify(english.body), /tunnipaketiga/);
+  const both = await post("manualInvoiceApi", "/monthly-combined", { month: "2031-12", due: "2031-12-10", items: [
+    { studentId, subject: "Eesti keel", plannedUnits: 4, correctionUnits: 0 },
+    { studentId, subject: "Matemaatika", plannedUnits: 4, correctionUnits: 0 },
+  ] });
+  assert.equal(both.status, 400, JSON.stringify(both.body));
+  const estonian = await post("manualInvoiceApi", "/monthly", { studentId, month: "2031-12", due: "2031-12-10", plannedUnits: 4, subject: "Eesti keel" });
+  assert.equal(estonian.status, 201, JSON.stringify(estonian.body));
+  assert.equal(estonian.body.invoice.amountCents, 4 * 2000);
+
+  // lessons: English takes a credit; Estonian (monthly) takes none from the shared package; a maths no-show is free
+  const stateOf = async (lessonId) => (await db.collection("lessonPackageStates").doc(lessonId).get()).data()?.status;
+  const lesson = (id, date, extra) => db.collection("lessons").doc(id).set({ studentId, studentName: "Aine Arveldus", date, accountingSource: "crm_v2", ...extra });
+  await lesson("per-subject-eng", "2031-11-03", { status: "Toimunud", teacherUid: "t-eng", teacher: "Anna", subject: "Inglise keel" });
+  await waitFor(() => stateOf("per-subject-eng"), (state) => state === "consumed", "English lesson consumed");
+  await lesson("per-subject-est", "2031-11-04", { status: "Toimunud", teacherUid: "t-est", teacher: "Pavel", subject: "Eesti keel" });
+  await lesson("per-subject-math", "2031-11-05", { status: "Puudus_eta", teacherUid: "t-math", teacher: "Liza", subject: "Matemaatika" });
+  await lesson("per-subject-eng-noshow", "2031-11-06", { status: "Puudus_eta", teacherUid: "t-eng", teacher: "Anna", subject: "Inglise keel" });
+  await waitFor(() => stateOf("per-subject-eng-noshow"), (state) => state === "consumed", "English no-show consumed (card rule)");
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  assert.notEqual(await stateOf("per-subject-est"), "consumed");
+  assert.notEqual(await stateOf("per-subject-est"), "needs_attention");
+  assert.notEqual(await stateOf("per-subject-math"), "consumed");
+  assert.equal((await packageRef.get()).data().balanceCredits, 2);
 });
 
 test("one bank payment pays two invoices of a child and remembers the payer's account (owner 2026-10-21)", async () => {

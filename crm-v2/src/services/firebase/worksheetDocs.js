@@ -1,11 +1,13 @@
 /* global TextEncoder */
 import { collection, doc, getDoc, getDocs, query, where, runTransaction } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { convertLegacyWorksheet } from '../../features/worksheet-studio/engine/legacy.js';
 import { newDocument, SCHEMA } from '../../features/worksheet-studio/engine/schema.js';
 import { BLOCKS } from '../../features/worksheet-studio/engine/registry.js';
-import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
+import { prepareImageFile } from '../../features/worksheet-studio/engine/image.js';
+import { MAX_VIDEO_BYTES } from '../../features/worksheet-studio/engine/video.js';
 
 // Worksheet Studio persistence.
 // A worksheet document lives on its curriculum lesson as `worksheetDoc` (existing collection, existing
@@ -143,10 +145,21 @@ export const worksheetDocsService = {
   async uploadImage(file) {
     if (!String(file?.type || '').startsWith('image/')) throw new Error('Vali pildifail.');
     const { storage } = requireFirebaseClient();
-    const { blob, width, height } = await fileToJpegBlob(file);
-    const storagePath = `curriculum/ws_${Date.now()}_${safeName(file.name).replace(/\.[^.]+$/, '')}.jpg`;
-    const src = await upload(storage, storagePath, blob, 'image/jpeg');
+    // a photo → JPEG; transparency → PNG; SVG as it is (engine/image.js)
+    const { blob, type, ext, width, height } = await prepareImageFile(file);
+    const storagePath = `curriculum/ws_${Date.now()}_${safeName(file.name).replace(/\.[^.]+$/, '')}.${ext}`;
+    const src = await upload(storage, storagePath, blob, type);
     return { src, storagePath, width, height, focus: { x: 50, y: 50 } };
+  },
+
+  // the video block's own file (storage.rules: video/*, < 20 MB)
+  async uploadVideo(file) {
+    if (!String(file?.type || '').startsWith('video/')) throw new Error('Vali videofail.');
+    if (file.size > MAX_VIDEO_BYTES) throw new Error('Videofail on liiga suur (kuni 19 MB).');
+    const { storage } = requireFirebaseClient();
+    const storagePath = `curriculum/ws_video_${Date.now()}_${safeName(file.name)}`;
+    const src = await upload(storage, storagePath, file, file.type);
+    return { src, storagePath, name: file.name, type: file.type, size: file.size };
   },
 
   async uploadAudio(file) {

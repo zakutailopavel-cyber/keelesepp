@@ -1,7 +1,8 @@
 import { Flame, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Card } from '../../components/ui/index.js';
-import { homeworkService, petsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { petsService } from '../../services/firebase/pets.js';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
 import { MOODS, STAGES } from './petArt.js';
 import { PetArt } from './PetCard.jsx';

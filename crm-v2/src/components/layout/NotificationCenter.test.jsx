@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import NotificationCenter from './NotificationCenter.jsx';
@@ -36,5 +36,42 @@ describe('NotificationCenter', () => {
     await screen.findByRole('button', { name: /uut$/ });
     expect(repos.messages.listUnread).toHaveBeenCalledTimes(1);
     expect(repos.messages.list).not.toHaveBeenCalled();
+  });
+
+  it('a teacher sees own unmarked lessons as one line „N tundi märkimata (vanim DD.MM)” that opens the list', async () => {
+    const teacher = { uid: 'bell-teacher', roles: ['teacher'] };
+    const reminder = vi.fn(async () => ({ total: 3, oldest: '2026-10-20', oldestLabel: '20.10', stale: 2 }));
+    render(<MemoryRouter><NotificationCenter user={teacher} repositories={repositories({ unmarked: { reminder } })} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /uut$/ }));
+    expect(await screen.findByRole('button', { name: /3 tundi märkimata \(vanim 20\.10\)/ })).toBeInTheDocument();
+    expect(reminder).toHaveBeenCalledWith({ user: teacher });
+  });
+
+  it('an administrator keeps the school-wide count on „Kalender”: no own reminder is read', async () => {
+    const reminder = vi.fn(async () => ({ total: 3, oldestLabel: '20.10', stale: 2 }));
+    render(<MemoryRouter><NotificationCenter user={admin} repositories={repositories({ unmarked: { reminder } })} /></MemoryRouter>);
+    await screen.findByRole('button', { name: /uut$/ });
+    expect(reminder).not.toHaveBeenCalled();
+  });
+
+  it('an administrator sees the system notices (one per incident, the morning digest); a teacher never reads them', async () => {
+    const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Tallinn' }).format(new Date());
+    const both = vi.fn(async () => ({
+      current: { status: 'down', checkedAt: new Date().toISOString(), incident: { id: 'inc_1', startedAt: new Date().toISOString(), failing: ['crm'], failingLabels: ['CRM'], resolvedAt: '' } },
+      digest: { date: today, total: 4, top: [{ message: 'TypeError: x', route: '/calendar', count: 6 }] },
+    }));
+    render(<MemoryRouter><NotificationCenter user={admin} repositories={repositories({ health: { both } })} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /uut$/ }));
+    expect(await screen.findByRole('button', { name: /Süsteem ei vasta: CRM/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Eile 4 viga — vaata Vead/ })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Süsteem 2/ })).toBeInTheDocument();
+  });
+
+  it('a teacher never reads the system health', async () => {
+    const both = vi.fn(async () => ({ current: null, digest: null }));
+    render(<MemoryRouter><NotificationCenter user={{ uid: 'bell-teacher-2', roles: ['teacher'] }} repositories={repositories({ health: { both } })} /></MemoryRouter>);
+    await screen.findByRole('button', { name: /^Teavitused/ });
+    await act(async () => {});
+    expect(both).not.toHaveBeenCalled();
   });
 });

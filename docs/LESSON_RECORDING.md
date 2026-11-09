@@ -1,7 +1,8 @@
 # Lesson recording and free transcription
 
 Owner decision 2026-09-29: record Live Classroom lessons and turn them into text for free, so the teacher can see after
-the lesson what the student said and where they struggled. No AI analysis yet (a local model was postponed).
+the lesson what the student said and where they struggled. Since October 2026 the school Mac also analyses the lesson
+with local models (`tools/lesson-transcriber/analysis.js`: TartuNLP GEC for the learner's errors, gemma3 summary).
 
 ## Consent and privacy
 
@@ -44,6 +45,86 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
    speaker filter; before transcription it says the text is on its way) and „Tahvel” (`/board/:studentId?page=<id>`,
    the lesson page of that day, otherwise the main board). Model: `lessonTimeline.js`.
 
+4. **„Areng tundide kaupa” (since 2026-11-04)** — on the same tab, above „Tunnid” (`LessonTrendCard.jsx`,
+   `lessonTrend.js`): per lesson with text, oldest first — learner's share of speaking time %, learner words, average
+   learner utterance (words per learner line), errors per 100 learner words in the lesson language (the Mac's
+   `analysis.speech.langWords`, else counted from the transcript; „ei analüüsitud” when there is no analysis), the top
+   error kinds (sõnajärg, vorm, sõna puudu, liigne sõna, sõnavara) and new distinct words (lesson-language words the
+   learner had not said in the earlier lessons of the list; the first lesson shows its distinct words only). Four small
+   lines (last 12 lessons) + a table. Counted in the browser from the recordings already loaded for „Tunnid”, nothing
+   is written; the same visibility (the teacher's own recordings, an admin all).
+5. **„Pole viga” (since 2026-11-04)** — in „Tunni analüüs” → „Õpilase vead” each flagged error has „Pole viga”: the
+   recording's teacher or an admin confirms it with an optional reason (≤ 200 chars). The error moves under „Märgitud
+   „Pole viga” (N)” with who / when / reason and „Taasta” (undo). A dismissed error is left out of the error count,
+   „Pärast tundi” (topic counts, homework, word cards, parent note), „Tee tööleht vigadest”, the trend, „Rääkimine”
+   accuracy (`autoSkills.js`) and the personal worksheet — everything reads lessons through `groupRecordings` →
+   `withErrorReview` (`errorReview.js`). Topic counts (`focus`) are counted again in the browser with the Mac's own
+   rules (`errorTopicKeys`, a copy of `analysis.js`).
+   The school Mac learns from it: a correction (said → corrected, compared without capitals / punctuation) dismissed
+   in **2 or more different lessons** is not flagged again (`analysis.js` `dismissedPairs` / `isDismissed`, both for
+   GEC errors and the teacher's recasts). The worker reads `analyzerFeedback` with one query (`select said, corrected,
+   recordingId`) only when it really analyses a lesson, cached 1 h — never on the idle loop. `ANALYSIS_VERSION` is
+   unchanged (old lessons are not analysed again; their marks still hide the errors in the CRM).
+6. **„Hetk” (since 2026-11-04)** — in the 1:1 room the teacher presses „Hetk” in the top bar (or the key **B** outside
+   text fields; M is the board's marker) to mark a moment. It is saved at once without a label; a small box offers an
+   optional label (≤ 80, Enter) and „Kustuta hetk”, and closes by itself after 6 s. With a running recording the mark
+   keeps `recordingId` + `atMs` (ms from the recorder's start, same clock as `segments[].startMs`); without one only the
+   clock time `at`. The student never sees it. In „Tunni analüüs” / the inline lesson text, „Hetked (N)” lists the
+   marks (time + label + who) above the AI part; a click plays the lesson's audio (student track by default, „Õpetaja”
+   switch) from 3 s before the mark (`LessonMoments.jsx`, `lessonMoments.js` `segmentAt` / `playFrom`). A time line
+   shows marks (blue) and the learner's errors (red); a click on an error plays it too. Marks outside the recording
+   (or of a lesson that was not recorded) are listed by clock time; a day with marks only gets its own row in „Tunnid”.
+   Joined lessons (several parts) now also move `segments[].startMs` by the part's start (`partStarts` on the joined
+   lesson), like the transcript. **Group room (2026-11-04, `agent/group-room-parity`):** the same button in the
+   teacher's top bar; one press writes one moment per student in the lesson (accepted invitations of the room) in one
+   batch (`lessonMomentsService.addMany`), each on the student's own invitation and, while that student's recording
+   runs, with his `recordingId` + `atMs` — so each student's „Tunni analüüs” plays it like a 1:1 mark. Each doc carries
+   `groupRoomId`; the label and „Kustuta hetk” apply to all of them.
+7. **„Kõneaeg” (since 2026-11-04)** — in the 1:1 room the teacher (only) sees a pill „Õpilane NN %” with a bar and a
+   target line at 60 %: the student's share of the talk time so far, live, also without a recording or consent. It
+   is measured in the teacher's browser from the sound level only (`talkMeter.js`: RMS ~10 Hz, adaptive noise floor,
+   sounds < 250 ms ignored, pauses ≤ 400 ms inside speech counted; `useTalkMeter.js`: AnalyserNodes on the own
+   microphone track and the student's incoming track, never connected to the speakers, paused while the tab is
+   hidden, AudioContext closed on leave). It does not know the language. Amber when the student had < 40 % of the
+   last 10 minutes' talk (at least 2 min of talk in them); a click shows minutes per side. Nothing is saved — the
+   lesson summary (`lessonSummaries`) is readable by the student and its rules allow no extra field; the recorded
+   lesson's „Tunni analüüs” keeps its own share from the transcript. **Group room (2026-11-04):** `GroupTalkMeter.jsx`
+   — pill „Õpilased NN %” (all students together vs the teacher, same target / amber rule) and a box with one row per
+   member (minutes, share of all talk, last 10 min); the member who talked least in the last 10 minutes is marked, the
+   pill shows „vähim: <name>” in amber when that is under half of a fair share of the students' talk
+   (`createGroupTalkTracker`, `groupTalkRows`; one AnalyserNode per incoming track via `useTalkSampler`). Not saved.
+
+7. **„Soojendus” and „Täna harjutada” (since 2026-11-04)** — in the 1:1 room the teacher's „Rohkem → Soojendus eelmise
+   tunni lausetest” picks 3–5 of the learner's own short sentences with errors from the latest analysed lesson before
+   this one (`live-classroom/warmup.js` `pickWarmupItems`: learner lines only, 3–12 words, a 1–3 word change, top
+   focus topics first, no duplicates, no „Pole viga” corrections). The teacher edits / removes rows and puts them on
+   the board as a worksheet assignment with one `errorfix` „Paranda lause.” task per sentence (the board's „Näita
+   vastust” reveals one at a time). „Täna harjutada” is a teacher-only box over the board (not synced, hidden during
+   screen share): 2–3 topics of the last 1–3 analysed lessons with one example each and „Järgmiseks tunniks”
+   (`lessonHints`). Both read `lessonRecordings` once with the existing rule (a teacher his own, an admin all).
+   **Group room (2026-11-04):** group lessons are recorded per student (own invitation), so each member has his own
+   analysis: `GroupLessonHints.jsx` shows the same „Täna harjutada” box with one chip per member who has an analysed
+   earlier lesson (`useMembersRecentLessons`, one read per member). „Soojendus” is **not** offered in group rooms: it
+   puts one student's own error sentences on the shared board, where the other members would see them.
+
+7. **„Koosta kodutöö vigadest” (since 2026-11-04)** — in „Tunni analüüs” (AI part, below „Tee tööleht vigadest”) the
+   teacher / admin builds a short personal homework from this lesson's errors (`errorHomework.js`,
+   `ErrorHomework.jsx`; the builder is a lazy chunk). Rows: (a) „Paranda lause” — 4–6 of the learner's own sentences
+   (said → corrected); left out: the teacher's lines (`source: 'teacher'`), `unsure`, fewer than 3 words or more than
+   22, no real change, corrections that change more than about a third of the words (word-level edit distance, a
+   swap of two neighbouring words = 1 edit), „Pole viga” (also the same pair said again elsewhere in the lesson),
+   the same sentence twice; the lesson's top topic first. (b) 4–6 „Vali õige vorm / sõnajärg” items on the lesson's
+   top topic (`focus[0]`) from the network-free generator: `cases` → `local-cases` patterns; `form` → koos +
+   kaasaütlev and / or palju + osastav when the learner's sentences contain them, else `partitive-object`; `verb` →
+   `olema-present` + `past-simple`; `order` → verb-second sentences from the lexicon („Homme lähen ma kooli.” vs
+   „Homme ma lähen kooli.”). `missing`, `extra`, `vocab` (or fewer than 4 items) → no generated items, up to 10 own
+   rows instead. The teacher sees the draft, edits / removes rows, sets the due date (default +7 days); nothing is
+   written before „Saada õpilasele”. Then, like any personal sheet given from a lesson: `studentWorksheets.save`
+   (published → `studentWorksheetDrafts/{id}` + `worksheetAssignments/{id}`, source `student_private_worksheet`, with
+   `origin: 'lesson-errors'`, `sourceRecordingId`, `sourceInvitationId`) and `homework.createFromLesson` (task „Tee
+   tööleht „…””, `worksheetAssignmentId`, `source: 'lesson-errors'`, `recordingId`; the homework list shows „Tunni
+   vigadest”). Scoring (errorfix + choice), review and the student's cabinet are unchanged. No rules change.
+
 ## Data and rules
 
 - `lessonRecordings/{invitationId}_{ms}`: `invitationId, teacherUid, teacherName, studentId, studentUid, studentName,
@@ -51,10 +132,70 @@ the lesson what the student said and where they struggled. No AI analysis yet (a
   transcriptModel, audioDeletedAt, error`.
 - Firestore: create only by the teacher of an accepted invitation with consent on the student card; browser updates
   only `status, endedAt, segments, updatedAt` while `recording`; transcript is written by the worker (Admin SDK).
+- `lessonRecordings/{id}.errorReview.{key}` (on the lesson's first part; `key` = `errorKey(error)`, a hash of
+  startMs | said | corrected): `{ said, corrected, kind, source, startMs, reason, byUid, byName, at }`, an undo adds
+  `undoneAt, undoneByUid, undoneByName` (the mark is kept for the audit; a new „Pole viga” overwrites it). Kept outside
+  `analysis`, so a new analysis does not wipe it. Rule: the recording's teacher or an admin may change only
+  `errorReview` (map, ≤ 300 keys), in any status.
+- `analyzerFeedback/{recordingId}_{key}`: `{ said, corrected, kind, source, reason, lang, recordingId, byUid, byName,
+  at }`, written in the same batch as the mark; created by the recording's teacher or an admin with their own uid;
+  read by admins only (and the worker); deleted on undo (author, the recording's teacher or an admin; deleting a
+  missing copy is allowed). Rules tests: `functions/lesson-recording-emulator.integration.js` („Pole viga” test).
+- `lessonMoments/{auto id}` („Hetk”): `{ invitationId, recordingId ('' without a recording), teacherUid (the
+  invitation's teacher), studentId, atMs (int ≥ 0 ≤ 8 h, or null), at, label (≤ 80), byUid, byName, createdAt }`.
+  Rules: read / delete by the lesson's teacher or an admin; create by staff with `byUid == uid`, the invitation must
+  exist with the same teacherUid and studentId, a teacher only for his own lessons, `recordingId` must be
+  `<invitationId>_<ms>` and `atMs` needs a `recordingId`; update only `label`. Optional `groupRoomId` (≤ 200, group
+  rooms): then the invitation's `roomKey` must equal it and `liveGroupRooms/{groupRoomId}` must exist with the same
+  `teacherUid` (`lessonMomentRoomValid`). Students and parents: no access. Tests:
+  `functions/lesson-moments-emulator.integration.js` (in `test:emulator`).
 - `transcriberStatus/{workerId}`: staff read, written only by the worker (Admin SDK).
 - Storage: `lessonRecordings/{recordingId}/*` written only by the recording teacher while `recording`, audio < 20 MB.
-- Tests: `functions/lesson-recording-emulator.integration.js` (rules), `tools/lesson-transcriber/lib.test.js`
-  (merging, junk filter, retention), `crm-v2/src/features/lesson-recording/lessonRecording.test.jsx` (UI).
+- Tests: `functions/lesson-recording-emulator.integration.js` (rules; not in `test:emulator`, run it by name),
+  `tools/lesson-transcriber` `npm test` (`lib.test.js` merging, junk filter, retention; `analysis.test.js` analysis
+  helpers and the „Pole viga” filter; `monologue.test.js` the monthly monologue job), `crm-v2/src/features/lesson-recording/lessonRecording.test.jsx` (UI),
+  `errorReview.test.jsx`, `lessonTrend.test.jsx`.
+
+## „Kuu monoloog” on the same Mac (2026-11-04)
+
+The same worker (`tools/lesson-transcriber`, no new service) also turns the students' monthly two-minute monologues
+into text. Code: `tools/lesson-transcriber/monologue.js` (job selection and writes, I/O injected), wired in `index.js`
+(`monologueWork`, after the lessons in every tick; lessons always go first). Tests: `monologue.test.js` (fake
+Firestore: field-limited scan, the text and words/min written, the staff-only analysis, a re-record during the work is
+not overwritten, three attempts at most).
+
+- What it picks up: `studentMonologues/{studentId}_{YYYY-MM}` with an `audioPath` whose current take (the doc's
+  `updatedAt`) has no text yet (`transcribedTake != updatedAt`). Recent months (from 40 days back) every 5 minutes
+  (`MONOLOGUE_SCAN_SECONDS`), all months at start and hourly (old monologues, or ones that waited for the GEC model).
+  Only a few fields are read (`select`), never a whole transcript just to decide. At most 5 per tick.
+- How: the audio `homework/{studentId}/monologues/{YYYY-MM}.*` is downloaded with the Admin SDK and transcribed like a
+  lesson's student track (VAD chunks, language per chunk, TalTech's Estonian verbatim model for Estonian, the general
+  model for a Russian aside).
+- Written on the monologue doc (the student reads it too): `transcript` (text, all languages), `words` (words in the
+  Estonian chunks), `wpm` (words / seconds x 60, only from 10 s), `transcribedAt`, `transcriber` (host),
+  `transcriptModel`, `transcribedTake` (the take's `updatedAt`). A failure: `transcribeError`, `transcribeErrorTake`,
+  `transcribeAttempts` (at most 3 per take). A new take in the same month changes `updatedAt`, so the text is made
+  again; the CRM hides a text whose `transcribedTake` is not the current take. Writes happen in a transaction only if
+  the take is still the same (the student may record again while the Mac works).
+- Error check (when Ollama has the GEC model `llammas-gec`; otherwise only the text, the check follows on a later pass):
+  the same code as a lesson's (`learnerSentences`, `judgeCorrection`, „Pole viga” filter, `errorTopics`). It is a
+  model's guess and, like a lesson's analysis, **staff only**: `studentMonologueAnalysis/{monologueId}`
+  `{ studentId, monologueId, month, take, errors[{startMs, said, corrected, kind}], checked, focus[{key, topic, count,
+  examples}], models, analyzedAt }`. The monologue doc only gets `analyzedTake` (or `analysisError`,
+  `analysisErrorTake`, `analysisAttempts`).
+- Rules: the worker writes with the Admin SDK (service account), so no rule lets anyone else write those fields
+  (`studentMonologues` create / update keep their `hasOnly` lists). New `studentMonologueAnalysis`: read by the card's
+  teacher and admins (`staffCanAccessStudent`), no client write; student and parents cannot read it. Test:
+  `functions/student-monologues-emulator.integration.js`.
+- CRM: student card → „Areng” → „Monoloogid” shows words and words/min, a line „N lauset kontrollitud, M võimalikku
+  viga: <top topics> (count)” and „Tekst ja vead” (the text and said → corrected). Without the rules deployed the card
+  works and simply shows no error line.
+- Switch off: `MONOLOGUES=off` in the launchd environment (`ANALYSIS=off` also stops the error check).
+
+**After this change the owner must update the school Mac**, otherwise monologues stay audio only:
+1. On the school Mac, in the repository folder: `git pull`
+2. Then: `tools/lesson-transcriber/install-mac.sh` (restarts the worker with the new code; nothing new to download).
+3. Check `~/KeeleSeppTranscriber/transcriber.log` for `monologue text …` lines within a few minutes.
 
 ## Setup on the Mac
 

@@ -1,78 +1,91 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyComponent } from './lazyComponent.js';
 import PageErrorBoundary from './PageErrorBoundary.jsx';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoadingState } from '../components/ui/index.js';
-import AppShell from '../components/layout/AppShell.jsx';
 import ForbiddenPage from '../features/auth/ForbiddenPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import HomePage from './HomePage.jsx';
 import { ACCESS } from './accessPolicy.js';
+import { loadAppShell } from './shellPrefetch.js';
+
+// the signed-in shell is not in /login's first download; main.jsx starts loading it early (shellPrefetch.js)
+const AppShell = lazyComponent(loadAppShell);
 
 // The worksheet generator (with its Estonian form lexicon) is loaded only on its own staff pages.
-const GeneratorCoveragePage = lazy(() => import('../features/worksheet-generator/ui/GeneratorCoveragePage.jsx'));
-const LessonWorksheetSet = lazy(() => import('../features/worksheet-generator/ui/LessonWorksheetSet.jsx'));
+const GeneratorCoveragePage = lazyComponent(() => import('../features/worksheet-generator/ui/GeneratorCoveragePage.jsx'));
+const LessonWorksheetSet = lazyComponent(() => import('../features/worksheet-generator/ui/LessonWorksheetSet.jsx'));
 // the constructor (drag & drop, floating panels, text formatting) loads only when it is opened
-const WorksheetStudioPage = lazy(() => import('../features/worksheet-studio/WorksheetStudioPage.jsx'));
-const StudentWorksheetStudioPage = lazy(() => import('../features/students/StudentWorksheetStudioPage.jsx'));
-const LessonWorksheetStudioPage = lazy(() => import('../features/worksheet-generator/ui/LessonWorksheetStudioPage.jsx'));
-const AvastaUpgradePage = lazy(() => import('../features/worksheet-generator/ui/AvastaUpgradePage.jsx'));
-const Module1ThreePhasePage = lazy(() => import('../features/worksheet-generator/ui/Module1ThreePhasePage.jsx'));
-const CourseProductionPage = lazy(() => import('../features/worksheet-generator/ui/CourseProductionPage.jsx'));
-const CourseHealthPage = lazy(() => import('../features/worksheet-generator/ui/CourseHealthPage.jsx'));
+const WorksheetStudioPage = lazyComponent(() => import('../features/worksheet-studio/WorksheetStudioPage.jsx'));
+const StudentWorksheetStudioPage = lazyComponent(() => import('../features/students/StudentWorksheetStudioPage.jsx'));
+const LessonWorksheetStudioPage = lazyComponent(() => import('../features/worksheet-generator/ui/LessonWorksheetStudioPage.jsx'));
+const AvastaUpgradePage = lazyComponent(() => import('../features/worksheet-generator/ui/AvastaUpgradePage.jsx'));
+const Module1ThreePhasePage = lazyComponent(() => import('../features/worksheet-generator/ui/Module1ThreePhasePage.jsx'));
+const CourseProductionPage = lazyComponent(() => import('../features/worksheet-generator/ui/CourseProductionPage.jsx'));
+const CourseHealthPage = lazyComponent(() => import('../features/worksheet-generator/ui/CourseHealthPage.jsx'));
+const PracticePreviewPage = lazyComponent(() => import('../features/practice/PracticePreviewPage.jsx'));
 // pages only staff open: downloaded when opened, so a student's or parent's first load stays small
-const CalendarPage = lazy(() => import('../features/calendar/CalendarPage.jsx'));
-const FinanceWorkspacePage = lazy(() => import('../features/finance/FinanceWorkspacePage.jsx'));
-const FinanceMonthPage = lazy(() => import('../features/finance/FinanceMonthPage.jsx'));
-const FinanceSettingsPage = lazy(() => import('../features/finance/FinanceSettingsPage.jsx'));
-const AccountingPage = lazy(() => import('../features/accounting/AccountingPage.jsx'));
-const PurchasesPage = lazy(() => import('../features/purchases/PurchasesPage.jsx'));
-const Inf3Page = lazy(() => import('../features/tax/Inf3Page.jsx'));
+const CalendarPage = lazyComponent(() => import('../features/calendar/CalendarPage.jsx'));
+const UnmarkedLessonsPage = lazyComponent(() => import('../features/calendar/UnmarkedLessonsPage.jsx'));
+const FinanceWorkspacePage = lazyComponent(() => import('../features/finance/FinanceWorkspacePage.jsx'));
+const FinanceMonthPage = lazyComponent(() => import('../features/finance/FinanceMonthPage.jsx'));
+const FinanceSettingsPage = lazyComponent(() => import('../features/finance/FinanceSettingsPage.jsx'));
+const AccountingPage = lazyComponent(() => import('../features/accounting/AccountingPage.jsx'));
+const PurchasesPage = lazyComponent(() => import('../features/purchases/PurchasesPage.jsx'));
+const Inf3Page = lazyComponent(() => import('../features/tax/Inf3Page.jsx'));
 // the recipient's own e-mail settings: the link at the bottom of every e-mail to students and parents (no login)
-const EmailPreferencesPage = lazy(() => import('../features/learner/EmailPreferencesPage.jsx'));
-const TaxFormPage = lazy(() => import('../features/tax/TaxFormPage.jsx'));
-const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage.jsx'));
-const GroupsPage = lazy(() => import('../features/groups/GroupsPage.jsx'));
-const LibraryPage = lazy(() => import('../features/library/LibraryPage.jsx'));
-const AvailabilityPollPage = lazy(() => import('../features/availability-poll/AvailabilityPollPage.jsx'));
-const RaamatukoguPage = lazy(() => import('../features/library/raamatukogu/RaamatukoguPage.jsx'));
-const AiConnectPage = lazy(() => import('../features/settings/AiConnectPage.jsx'));
-const ConversionQueuePage = lazy(() => import('../features/worksheet-studio/ConversionQueuePage.jsx'));
-const BookPage = lazy(() => import('../features/worksheet-studio/BookPage.jsx'));
-const LiveWorksheetPage = lazy(() => import('../features/worksheet-studio/LiveWorksheetPage.jsx'));
-const ParentsPage = lazy(() => import('../features/parents/ParentsPage.jsx'));
-const CashPage = lazy(() => import('../features/cash/CashPage.jsx'));
-const PayrollPage = lazy(() => import('../features/payroll/PayrollPage.jsx'));
-const StudentsPage = lazy(() => import('../features/students/StudentsPage.jsx'));
-const StudentProfilePage = lazy(() => import('../features/students/StudentProfilePage.jsx'));
-const TasksPage = lazy(() => import('../features/tasks/TasksPage.jsx'));
-const TeachersPage = lazy(() => import('../features/teachers/TeachersPage.jsx'));
-const AccountsPage = lazy(() => import('../features/accounts/AccountsPage.jsx'));
-const LeadsPage = lazy(() => import('../features/leads/LeadsPage.jsx'));
-const TeacherProfilePage = lazy(() => import('../features/teachers/TeacherProfilePage.jsx'));
-const TrashPage = lazy(() => import('../features/trash/TrashPage.jsx'));
-const AnnouncementsAdminPage = lazy(() => import('../features/announcements/AnnouncementsAdminPage.jsx'));
-const CampaignsPage = lazy(() => import('../features/campaigns/CampaignsPage.jsx'));
+const EmailPreferencesPage = lazyComponent(() => import('../features/learner/EmailPreferencesPage.jsx'));
+const TaxFormPage = lazyComponent(() => import('../features/tax/TaxFormPage.jsx'));
+const ExpensesPage = lazyComponent(() => import('../features/expenses/ExpensesPage.jsx'));
+const GroupsPage = lazyComponent(() => import('../features/groups/GroupsPage.jsx'));
+const LibraryPage = lazyComponent(() => import('../features/library/LibraryPage.jsx'));
+const AvailabilityPollPage = lazyComponent(() => import('../features/availability-poll/AvailabilityPollPage.jsx'));
+const RaamatukoguPage = lazyComponent(() => import('../features/library/raamatukogu/RaamatukoguPage.jsx'));
+const AiConnectPage = lazyComponent(() => import('../features/settings/AiConnectPage.jsx'));
+const ConversionQueuePage = lazyComponent(() => import('../features/worksheet-studio/ConversionQueuePage.jsx'));
+const BookPage = lazyComponent(() => import('../features/worksheet-studio/BookPage.jsx'));
+const LiveWorksheetPage = lazyComponent(() => import('../features/worksheet-studio/LiveWorksheetPage.jsx'));
+const ParentsPage = lazyComponent(() => import('../features/parents/ParentsPage.jsx'));
+const CashPage = lazyComponent(() => import('../features/cash/CashPage.jsx'));
+const PayrollPage = lazyComponent(() => import('../features/payroll/PayrollPage.jsx'));
+const StudentsPage = lazyComponent(() => import('../features/students/StudentsPage.jsx'));
+const StudentProfilePage = lazyComponent(() => import('../features/students/StudentProfilePage.jsx'));
+const TasksPage = lazyComponent(() => import('../features/tasks/TasksPage.jsx'));
+const TeachersPage = lazyComponent(() => import('../features/teachers/TeachersPage.jsx'));
+const AccountsPage = lazyComponent(() => import('../features/accounts/AccountsPage.jsx'));
+const LeadsPage = lazyComponent(() => import('../features/leads/LeadsPage.jsx'));
+const TeacherProfilePage = lazyComponent(() => import('../features/teachers/TeacherProfilePage.jsx'));
+const TeacherLoadPage = lazyComponent(() => import('../features/teachers/TeacherLoadPage.jsx'));
+const TrashPage = lazyComponent(() => import('../features/trash/TrashPage.jsx'));
+const AnnouncementsAdminPage = lazyComponent(() => import('../features/announcements/AnnouncementsAdminPage.jsx'));
+const CampaignsPage = lazyComponent(() => import('../features/campaigns/CampaignsPage.jsx'));
 // „Minu areng”: the course and all results load only when the student opens them, not with his home page
-const StudentProgressPage = lazy(() => import('../features/students/StudentProgressPage.jsx'));
-const LiveObserverPage = lazy(() => import('../features/live-classroom/LiveObserverPage.jsx'));
+const StudentProgressPage = lazyComponent(() => import('../features/students/StudentProgressPage.jsx'));
+const LiveObserverPage = lazyComponent(() => import('../features/live-classroom/LiveObserverPage.jsx'));
 // the pages of every role: each role downloads its own page, not all of them on the first load
-const HomeworkPage = lazy(() => import('../features/homework/HomeworkPage.jsx'));
-const WhatsNewPage = lazy(() => import('../features/guide/WhatsNew.jsx'));
-const GuestLessonPage = lazy(() => import('../features/live-classroom/GuestLessonPage.jsx'));
-const PayInvoicePage = lazy(() => import('../features/payments/PayInvoicePage.jsx'));
-const LiveClassroomPage = lazy(() => import('../features/live-classroom/LiveClassroomPage.jsx'));
-const PetPage = lazy(() => import('../features/pet/PetPage.jsx'));
-const MistakesPage = lazy(() => import('../features/self-study/MistakesPage.jsx'));
-const MessagesPage = lazy(() => import('../features/messages/MessagesPage.jsx'));
-const ParentDashboardPage = lazy(() => import('../features/parents/ParentDashboardPage.jsx'));
-const StudentDashboardPage = lazy(() => import('../features/students/StudentDashboardPage.jsx'));
-const VocabularyPage = lazy(() => import('../features/vocabulary/VocabularyPage.jsx'));
-const SettingsPage = lazy(() => import('../features/settings/SettingsPage.jsx'));
-const BoardPage = lazy(() => import('../features/board/BoardPage.jsx'));
-const StudentCoursePage = lazy(() => import('../features/self-study/StudentCoursePage.jsx'));
-const TeacherGuidePage = lazy(() => import('../features/guide/TeacherGuidePage.jsx'));
+const HomeworkPage = lazyComponent(() => import('../features/homework/HomeworkPage.jsx'));
+const WhatsNewPage = lazyComponent(() => import('../features/guide/WhatsNew.jsx'));
+const DeviceCheckPage = lazyComponent(() => import('../features/device-check/DeviceCheckPage.jsx'));
+const GuestLessonPage = lazyComponent(() => import('../features/live-classroom/GuestLessonPage.jsx'));
+const PayInvoicePage = lazyComponent(() => import('../features/payments/PayInvoicePage.jsx'));
+const LiveClassroomPage = lazyComponent(() => import('../features/live-classroom/LiveClassroomPage.jsx'));
+const PetPage = lazyComponent(() => import('../features/pet/PetPage.jsx'));
+const MistakesPage = lazyComponent(() => import('../features/self-study/MistakesPage.jsx'));
+const MonologuePage = lazyComponent(() => import('../features/monologue/MonologuePage.jsx'));
+const MessagesPage = lazyComponent(() => import('../features/messages/MessagesPage.jsx'));
+const ParentDashboardPage = lazyComponent(() => import('../features/parents/ParentDashboardPage.jsx'));
+const StudentDashboardPage = lazyComponent(() => import('../features/students/StudentDashboardPage.jsx'));
+const VocabularyPage = lazyComponent(() => import('../features/vocabulary/VocabularyPage.jsx'));
+const ClientErrorsPage = lazyComponent(() => import('../features/client-errors/ClientErrorsPage.jsx'));
+const SettingsPage = lazyComponent(() => import('../features/settings/SettingsPage.jsx'));
+const BoardPage = lazyComponent(() => import('../features/board/BoardPage.jsx'));
+const StudentCoursePage = lazyComponent(() => import('../features/self-study/StudentCoursePage.jsx'));
+const TeacherGuidePage = lazyComponent(() => import('../features/guide/TeacherGuidePage.jsx'));
 const staffPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen…" />}>{element}</Suspense></PageErrorBoundary>;
+// public links for parents and learners (no login, no app shell): a full-screen bilingual loading view instead of a
+// blank page while the page code downloads. No error boundary here on purpose — behaviour stays as it was.
+const publicPage = (element) => <Suspense fallback={<LoadingState page label="Laen… · Загрузка…" />}>{element}</Suspense>;
 const generatorPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense></PageErrorBoundary>;
 
 export default function AppRoutes() {
@@ -87,13 +100,15 @@ export default function AppRoutes() {
       {/* LHV LinkPay: public pay link from the invoice PDF / e-mail and the bank's return page */}
       <Route path="/maksa/:invoiceId" element={staffPage(<PayInvoicePage />)} />
       {/* „Sobivad ajad”: a public page the school sends to a learner to mark every hour that really suits a lesson */}
-      <Route path="/ajad" element={<Suspense fallback={null}><AvailabilityPollPage /></Suspense>} />
+      <Route path="/ajad" element={publicPage(<AvailabilityPollPage />)} />
       {/* parents' INF 3 form (docs/INF3.md): no login, a one-time link from the school */}
-      <Route path="/maksuandmed/:token" element={<Suspense fallback={null}><TaxFormPage /></Suspense>} />
+      <Route path="/maksuandmed/:token" element={publicPage(<TaxFormPage />)} />
+      {/* „Seadme kontroll”: camera, microphone, speakers, network before the first lesson — no login (guests too) */}
+      <Route path="/kontroll" element={staffPage(<DeviceCheckPage />)} />
       {/* e-mails to students and parents: turn them off or choose the language (docs/EMAIL_NOTIFICATIONS.md) */}
-      <Route path="/e-kirjad/:token" element={<Suspense fallback={null}><EmailPreferencesPage /></Suspense>} />
+      <Route path="/e-kirjad/:token" element={publicPage(<EmailPreferencesPage />)} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
-        <Route element={<AppShell />}>
+        <Route element={staffPage(<AppShell />)}>
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}
           <Route index element={<HomePage />} />
           <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>
@@ -103,6 +118,7 @@ export default function AppRoutes() {
             <Route path="students/:studentId" element={staffPage(<StudentProfilePage />)} />
             <Route path="students/:studentId/worksheets/:lessonId" element={generatorPage(<StudentWorksheetStudioPage />)} />
             <Route path="calendar" element={staffPage(<CalendarPage />)} />
+            <Route path="calendar/markimata" element={staffPage(<UnmarkedLessonsPage />)} />
             <Route path="tasks" element={staffPage(<TasksPage />)} />
             <Route path="groups" element={staffPage(<GroupsPage />)} />
             <Route path="library" element={staffPage(<LibraryPage />)} />
@@ -111,6 +127,7 @@ export default function AppRoutes() {
             <Route path="library/worksheets/book" element={staffPage(<BookPage />)} />
             <Route path="library/worksheets/live/:assignmentId" element={staffPage(<LiveWorksheetPage />)} />
             <Route path="library/worksheet-generator" element={generatorPage(<GeneratorCoveragePage />)} />
+            <Route path="library/harjutused" element={generatorPage(<PracticePreviewPage />)} />
             <Route path="library/lessons/:lessonId/worksheets" element={generatorPage(<LessonWorksheetSet />)} />
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
             <Route path="library/worksheets/:lessonId" element={generatorPage(<WorksheetStudioPage />)} />
@@ -132,9 +149,13 @@ export default function AppRoutes() {
             <Route path="library/worksheet-generator/health" element={generatorPage(<CourseHealthPage />)} />
             <Route path="teachers" element={staffPage(<TeachersPage />)} />
             <Route path="accounts" element={staffPage(<AccountsPage />)} />
+            {/* „Õpetajate koormus” (admin): lessons, free time, reviews, unmarked lessons and pay estimate per teacher */}
+            <Route path="teachers/koormus" element={staffPage(<TeacherLoadPage />)} />
             <Route path="teachers/:teacherId" element={staffPage(<TeacherProfilePage />)} />
             {/* „Prügikast” (administrator 2026-11-03): deleted student and teacher cards, 7 days, „Taasta” */}
             <Route path="trash" element={staffPage(<TrashPage />)} />
+            {/* „Vead” (admin 2026-11-04): errors reported from people's browsers (clientErrors), Seaded → Tehniline */}
+            <Route path="vead" element={staffPage(<ClientErrorsPage />)} />
             {/* „Teated” (owner 2026-10-24): announcements a student / parent answers before using the CRM */}
             <Route path="messages/teated" element={staffPage(<AnnouncementsAdminPage />)} />
             {/* „Kampaaniad” (owner 2026-10-27): offers, ad campaigns and events prepared here, posted by hand */}
@@ -161,6 +182,8 @@ export default function AppRoutes() {
             <Route path="student/sonavara" element={staffPage(<VocabularyPage />)} />
             <Route path="student/lemmik" element={staffPage(<PetPage />)} />
             <Route path="student/vead" element={staffPage(<MistakesPage />)} />
+            {/* „Kuu monoloog” (owner 2026-11-04): opened from its task in „Ülesanded”, not from the home page */}
+            <Route path="student/monoloog" element={staffPage(<MonologuePage />)} />
             {/* „Kordamine” became „Minu vead” (+ words in Sõnad), owner 2026-10-12 */}
             {/* „Minu kursus” (owner 2026-10-23): the course map; self-study cards open the sheets themselves */}
             <Route path="student/kursus" element={staffPage(<StudentCoursePage />)} />

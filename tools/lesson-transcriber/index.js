@@ -7,8 +7,9 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, judgeCorrection, teacherRecasts, errorTopics, withFocus, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
-const { isEnglishNoise, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
+const { dismissedPairs, isDismissed, learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, judgeCorrection, teacherRecasts, errorTopics, withFocus, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { parseHoursWindow, inHoursWindow, isEnglishNoise, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
+const { createMonologueWorker } = require('./monologue');
 
 const run = promisify(execFile);
 const env = (k, d) => process.env[k] || d;
@@ -25,6 +26,9 @@ const THREADS = env('WHISPER_THREADS', String(Math.max(2, os.cpus().length - 2))
 const EVERY_MS = Number(env('POLL_SECONDS', '60')) * 1000;
 // during a lesson the new 5-min files (and „Tekst kohe”) are looked for this often
 const LIVE_MS = Number(env('LIVE_POLL_SECONDS', '15')) * 1000;
+// lessons, monologues and analysis only inside this local-time window (e.g. "02-07"); AI text requests from the site
+// (answerAiRequests) and the heartbeat run all day. Unset = always (lib.js parseHoursWindow).
+const WORK_HOURS = parseHoursWindow(env('TRANSCRIBE_HOURS', ''));
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 const HOST = os.hostname().replace(/\.local$/, '');
 const STARTED_AT = new Date().toISOString();
@@ -251,6 +255,22 @@ async function backfillPetStats() {
   }
 }
 
+// Teachers' „Pole viga” marks (analyzerFeedback): read in one query only when a lesson is really analysed, then kept
+// for an hour — never on the idle minute loop (reads cost money). A failed read analyses without the filter.
+const FEEDBACK_TTL_MS = 60 * 60 * 1000;
+let feedbackCache = { at: 0, pairs: new Set() };
+async function dismissedFeedback() {
+  if (feedbackCache.at && Date.now() - feedbackCache.at < FEEDBACK_TTL_MS) return feedbackCache.pairs;
+  try {
+    const snap = await db.collection('analyzerFeedback').select('said', 'corrected', 'recordingId').get();
+    feedbackCache = { at: Date.now(), pairs: dismissedPairs(snap.docs.map((d) => d.data())) };
+  } catch (err) {
+    log('analyzer feedback error', err.message);
+    feedbackCache = { ...feedbackCache, at: Date.now() };
+  }
+  return feedbackCache.pairs;
+}
+
 // one finished recording per tick: the learner's errors (GEC) and the summary for the teacher, saved as `analysis`
 async function analyzeNext() {
   if (env('ANALYSIS', 'on') === 'off') return;
@@ -282,15 +302,17 @@ async function analyzeNext() {
   try {
     // the teacher's recasts first (the most reliable errors); their sentences are not sent to the GEC model
     const forms = (await loadDidactics().catch(() => null))?.forms || null;
-    const errors = teacherRecasts(transcript, rec.language || 'et', forms);
-    const recast = new Set(errors.map((e) => e.said));
+    const dismissed = await dismissedFeedback();
+    const recasts = teacherRecasts(transcript, rec.language || 'et', forms);
+    const recast = new Set(recasts.map((e) => e.said));
+    const errors = recasts.filter((e) => !isDismissed(dismissed, e.said, e.corrected));
     const sentences = learnerSentences(transcript, rec.language || 'et', forms).filter((s) => !recast.has(s.text));
     if (hasGec) {
       for (const [i, s] of sentences.entries()) {
         if (i % 8 === 0) { current = { ...current, detail: `vead ${i}/${sentences.length}` }; await beat(); }
         const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(s.text), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
         const judged = judgeCorrection(s.text, corrected);
-        if (judged) errors.push({ startMs: s.startMs, said: s.text, corrected, kind: judged.kind, ...(s.unsure ? { unsure: true } : {}) });
+        if (judged && !isDismissed(dismissed, s.text, corrected)) errors.push({ startMs: s.startMs, said: s.text, corrected, kind: judged.kind, ...(s.unsure ? { unsure: true } : {}) });
         progress();
       }
     }
@@ -427,9 +449,46 @@ async function deleteOldAiRequests() {
   for (const d of snap.docs) await d.ref.delete();
 }
 
+// ── „Kuu monoloog” (studentMonologues): the student's monthly monologue → text, words/min and the error check ──
+// Looked for every MONOLOGUE_SCAN_SECONDS in recent months, in all months at start and hourly; lessons go first.
+const MONOLOGUE_SCAN_MS = Number(env('MONOLOGUE_SCAN_SECONDS', '300')) * 1000;
+let monologueScanAt = 0;
+let monologueFullScanDone = false;
+const monologues = createMonologueWorker({
+  db, host: os.hostname(), model: path.basename(modelFor('et')), gecModel: GEC_MODEL, log,
+  deleteField: () => admin.firestore.FieldValue.delete(),
+  forms: async () => (await loadDidactics().catch(() => null))?.forms || null,
+  dismissed: () => dismissedFeedback(),
+  // one track, the student's: the same VAD + language detection + TalTech Estonian model as a lesson's student track
+  transcribe: async (audioPath) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ks-mono-'));
+    try { return await transcribeSegment({ path: audioPath, track: 'student', startMs: 0 }, 'et', dir); }
+    finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  },
+});
+async function monologueWork(hourly) {
+  if (env('MONOLOGUES', 'on') === 'off') return;
+  const all = hourly || !monologueFullScanDone;
+  if (!all && Date.now() - monologueScanAt < MONOLOGUE_SCAN_MS) return;
+  monologueScanAt = Date.now();
+  const hasGec = env('ANALYSIS', 'on') !== 'off' && (await ollamaModels()).includes(GEC_MODEL);
+  const gec = hasGec
+    ? async (sentence) => (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(sentence), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim()
+    : null;
+  current = { state: 'monologue', recordingId: '', detail: 'monoloog' };
+  try {
+    const n = await monologues.work({ all, gec });
+    monologueFullScanDone = true;
+    if (n) monologueScanAt = 0; // more may wait: look again on the next tick
+  } finally {
+    current = { state: 'idle', recordingId: '' };
+  }
+}
+
 async function tick() {
   await handOverAbandoned();
   for (const rec of await claim()) { await transcribe(rec); analysisScanAt = 0; }
+  try { await monologueWork(new Date().getMinutes() < 2); } catch (err) { log('monologue tick error', err.message); }
   // only when no lesson waits for its text: one analysis per tick
   try { await analyzeNext(); } catch (err) { log('analysis tick error', err.message); }
   const hourly = new Date().getMinutes() < 2;
@@ -443,16 +502,19 @@ let petStatsChecked = false;
 
 async function main() {
   if (!fs.existsSync(MODEL)) throw new Error(`Whisper model not found: ${MODEL}`);
-  log('lesson transcriber started', { bucket: BUCKET, model: path.basename(MODEL), modelEt: path.basename(modelFor('et')), vad: fs.existsSync(VAD_MODEL) });
+  log('lesson transcriber started', { hours: WORK_HOURS ? `${WORK_HOURS.from}-${WORK_HOURS.to}` : 'always', bucket: BUCKET, model: path.basename(MODEL), modelEt: path.basename(modelFor('et')), vad: fs.existsSync(VAD_MODEL) });
   if (process.argv.includes('--once')) { await tick(); await deleteOldAudio(); return; }
   await beat();
   setInterval(beat, 60 * 1000).unref?.();
   setInterval(watchdog, 60 * 1000).unref?.();
   let lastTick = 0;
+  let windowOpen = null;
   for (;;) {
-    try { await liveWork(); } catch (err) { log('live tick error', err.message); }
+    const open = inHoursWindow(new Date(), WORK_HOURS);
+    if (open !== windowOpen) { windowOpen = open; log(open ? 'work window open' : `work window closed until ${String(WORK_HOURS.from).padStart(2, '0')}:00`); }
+    if (open) { try { await liveWork(); } catch (err) { log('live tick error', err.message); } }
     try { await answerAiRequests(); } catch (err) { log('ai requests error', err.message); }
-    if (Date.now() - lastTick >= EVERY_MS) {
+    if (open && Date.now() - lastTick >= EVERY_MS) {
       try { await tick(); } catch (err) { log('tick error', err.message); }
       lastTick = Date.now();
     }

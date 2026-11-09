@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 /* global fetch, setTimeout, clearTimeout */
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -8,6 +9,7 @@ import { copyWithMark, markLabel, OWNER, watermarkStyle } from './contentMark.js
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
+import { effectiveScore } from './engine/storedScore.js';
 import GoalEvidence from './GoalEvidence.jsx';
 import { BOARD_SHEET_SCALE, useFitScale } from './useFitScale.js';
 import { SheetFlowContext, useFlowKeyboard, useScreenFlow } from './sheetFlow.js';
@@ -20,13 +22,15 @@ import { useWordLookup } from './WordLookup.jsx';
 import { rightAnswers, shownResults, stepView } from './engine/liveLesson.js';
 import { blockAnswerKey } from './engine/answerKey.js';
 import BlockKeyPanel from './BlockKeyPanel.jsx';
+import AnswerFontMenu from './AnswerFontMenu.jsx';
 
 // A teacher's read-only look at a sheet: a click on a task opens its answers under it (never for a learner).
 function useTeacherKey(doc, enabled) {
   const [keyId, setKeyId] = useState('');
   const notes = useMemo(() => {
     const task = enabled && keyId ? blockAnswerKey(doc, keyId) : null;
-    return task ? { [keyId]: <BlockKeyPanel task={task} onClose={() => setKeyId('')} /> } : null;
+    // floats next to the task (FloatingNote): the sheet keeps its layout
+    return task ? { [keyId]: { label: `Vastused: ülesanne ${task.num}`, ownClose: true, onClose: () => setKeyId(''), content: <BlockKeyPanel task={task} onClose={() => setKeyId('')} /> } } : null;
   }, [doc, keyId, enabled]);
   const onPick = enabled ? (blockId) => setKeyId((current) => (current === blockId ? '' : blockId)) : undefined;
   return { notes, onPick };
@@ -48,7 +52,7 @@ async function persistRecordings({ doc, answers, assignment, repository }) {
 }
 
 // The one thin line that stays on top of the column: how far she is and whether her work is safe.
-export function FlowBar({ answered, total, state = 'idle', time = '', saved = false }) {
+export function FlowBar({ answered, total, state = 'idle', time = '', saved = false, tools = null }) {
   const offline = globalThis.navigator?.onLine === false;
   const text = state === 'failed' ? (offline ? 'Võrku pole · salvestan, kui võrk tuleb' : 'Ei salvestunud · proovin uuesti') : state === 'saving' ? 'Salvestan…' : saved || state === 'saved' ? `Salvestatud${time ? ` ${time}` : ''}` : '';
   return (
@@ -56,6 +60,7 @@ export function FlowBar({ answered, total, state = 'idle', time = '', saved = fa
       <b aria-label={`Vastatud ${answered}, kokku ${total}`}>{answered}/{total}</b>
       <span className="ws-flow-track" aria-hidden="true"><i style={{ width: `${total ? Math.round((answered / total) * 100) : 0}%` }} /></span>
       <span className={`ws-flow-save is-${state}`} role={state === 'failed' ? 'alert' : undefined}>{text}</span>
+      {tools}
     </div>
   );
 }
@@ -75,7 +80,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const [doc, setDoc] = useState(assignment.worksheetDoc);
   const [answers, setAnswers] = useState(assignment.answers || {});
   const [submitted, setSubmitted] = useState(assignment.status === 'done');
-  const [score, setScore] = useState(assignment.score || null);
+  // an old stored score that counted unanswered or unmatched tasks as wrong is shown checked again (storedScore.js)
+  const [score, setScore] = useState(() => effectiveScore({ score: assignment.score, worksheetDoc: assignment.worksheetDoc, answers: assignment.answers, status: assignment.status }).score);
   const [saving, setSaving] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -173,7 +179,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     if (review || !liveShown.length) return null;
     return Object.fromEntries(doc.blocks.filter((b) => liveShown.includes(b.id)).map((b) => {
       const list = rightAnswers(b);
-      return [b.id, list.length ? <span className="ws-live-answers"><b>Õiged vastused:</b> {list.map((a, i) => <span key={i}>{i + 1}) {a}</span>)}</span> : <span className="ws-live-answers">Õpetaja vaatab selle ülesande koos sinuga üle.</span>];
+      // next to the task, not inside it (owner 2026-11-04: the answers covered half of the task and moved it)
+      const content = list.length ? <span className="ws-live-answers"><b>Õiged vastused:</b> {list.map((a, i) => <span key={i}>{i + 1}) {a}</span>)}</span> : <span className="ws-live-answers">Õpetaja vaatab selle ülesande koos sinuga üle.</span>;
+      return [b.id, { label: 'Õiged vastused', chip: 'Õiged vastused', content }];
     }));
   }, [doc, liveShown, review]);
 
@@ -188,7 +196,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   };
 
   const submit = async () => {
-    if (progress.answered < progress.total && !window.confirm(`Vastatud ${progress.answered}/${progress.total}. Kas esitad töölehe ikkagi?`)) return;
+    if (progress.answered < progress.total && !(await askConfirm(`Vastatud ${progress.answered}/${progress.total}. Kas esitad töölehe ikkagi?`))) return;
     setSaving(true); setError(''); submitting.current = true;
     try {
       const stored = await persistRecordings({ doc, answers, assignment, repository });
@@ -217,8 +225,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 
   const footer = !review
     ? <>{flow ? null : <span className="worksheet-progress">{progress.answered}/{progress.total} vastust{saveState === 'failed' ? ' · ei salvestunud, proovin uuesti' : draftSaved ? ' · Salvestatud' : autosaved ? ` · automaatselt salvestatud ${autosaved}` : ''}</span>}<Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button>{onClose && !flow ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null}<Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
-    : onClose ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null;
-  const flowBar = flow && !review ? <FlowBar answered={progress.answered} total={progress.total} state={saveState} time={autosaved} saved={draftSaved} /> : null;
+    : onClose ? <>{flow ? <AnswerFontMenu className="is-up" /> : null}<Button variant="secondary" onClick={onClose}>Sulge</Button></> : null;
+  // „Kiri” (AnswerFontMenu): in the header on a page, in the thin top bar of a phone's column (its header is hidden)
+  const flowBar = flow && !review ? <FlowBar answered={progress.answered} total={progress.total} state={saveState} time={autosaved} saved={draftSaved} tools={<AnswerFontMenu />} /> : null;
 
   // whose screen: a student's sheet carries his name as a faint watermark and on copied text (staff see none)
   const mark = markLabel(useContext(AuthContext)?.user);
@@ -233,7 +242,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const body = (
     <article className={`worksheet-player ws-studio ws-doc-player ${inline ? 'is-inline' : ''} ${mark ? 'is-marked' : ''} ${flow ? 'ws-narrow' : ''}`} style={watermarkStyle(mark)} onCopy={onCopy}>
       {flowBar}
-      <header><div><span className="eyebrow">{assignment.subject || 'Õppetöö'} · {assignment.level || doc.meta?.level || 'Tööleht'}</span><p>{assignment.topic || assignment.note || doc.meta?.canDo || 'Õpetaja määratud tööleht'}</p></div>{submitted ? <Badge tone="success">Esitatud</Badge> : readOnly ? <Badge tone="neutral">Ainult vaatamiseks</Badge> : <Badge tone="info">Täitmisel</Badge>}</header>
+      <header><div><span className="eyebrow">{assignment.subject || 'Õppetöö'} · {assignment.level || doc.meta?.level || 'Tööleht'}</span><p>{assignment.topic || assignment.note || doc.meta?.canDo || 'Õpetaja määratud tööleht'}</p></div><div className="ws-player-tools"><AnswerFontMenu />{submitted ? <Badge tone="success">Esitatud</Badge> : readOnly ? <Badge tone="neutral">Ainult vaatamiseks</Badge> : <Badge tone="info">Täitmisel</Badge>}</div></header>
       {assignment.note ? <div className="worksheet-note"><strong>Õpetaja märkus</strong><p>{assignment.note}</p></div> : null}
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
@@ -242,7 +251,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={zoomStyle}>
-          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
+          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockPopovers={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
         </SheetAnnotations>
       </div>
@@ -261,7 +270,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={zoomStyle}>
-          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
+          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockPopovers={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
         </SheetAnnotations>
       </div>
@@ -271,7 +280,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {words.popup}
       {markLine}
     </article>;
-    return <section className="ws-inline-player is-board" aria-label={assignment.title}>{sheetFirst}{footer ? <div className="ws-inline-footer">{footer}</div> : null}</section>;
+    // on the board the font menu sits with the buttons under the sheet
+    return <section className="ws-inline-player is-board" aria-label={assignment.title}>{sheetFirst}{footer || !flow ? <div className="ws-inline-footer">{flow ? null : <AnswerFontMenu className="is-up" />}{footer}</div> : null}</section>;
   }
   // inline: inside the Live Classroom room, next to video and board (no dialog)
   if (inline) return <section className="ws-inline-player" aria-label={assignment.title}><h3>{assignment.title}</h3>{body}{footer ? <div className="ws-inline-footer">{footer}</div> : null}</section>;
@@ -286,11 +296,11 @@ export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, anno
   const teacherKey = useTeacherKey(worksheetDoc, answerKey);
   const checked = useMemo(() => checkDocument(worksheetDoc, answers), [worksheetDoc, answers]);
   return <div className="ws-studio ws-doc-player">
-    {editable ? <p className="sa-hint">Vali ülesandes tekst või klõpsa õpilase vastusel, et lisada viga või märkus.{answerKey ? ' Klõps ülesandel näitab selle õigeid vastuseid (ainult sulle).' : ''}</p> : null}
+    <div className="ws-review-tools">{editable ? <p className="sa-hint">Vali ülesandes tekst või klõpsa õpilase vastusel, et lisada viga või märkus.{answerKey ? ' Klõps ülesandel näitab selle õigeid vastuseid (ainult sulle).' : ''}</p> : null}<AnswerFontMenu /></div>
     <div className="st-canvas" ref={fitRef}>
       <SheetAnnotations annotations={annotations} editable={editable} onChange={onAnnotationsChange} analysis={editable ? { level: worksheetDoc?.meta?.level || 'A2' } : null}>
         <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} blockNotes={teacherKey.notes} onPick={teacherKey.onPick} />
+          <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} blockPopovers={teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
       </SheetAnnotations>
     </div>

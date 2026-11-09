@@ -1,0 +1,40 @@
+/* „Vead” (admin): client errors grouped by fingerprint + the dashboard's 24-hour digest */
+.client-errors__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.client-errors__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.client-errors__main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.client-errors__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.client-errors__message { overflow-wrap: anywhere; }
+.client-errors__frame { color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; }
+.client-errors__facts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; font-size: .86rem; }
+.client-errors__facts div { display: flex; gap: 6px; min-width: 0; }
+.client-errors__facts dt { color: var(--muted); }
+.client-errors__facts dd { margin: 0; overflow-wrap: anywhere; }
+.client-errors__numbers { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: .86rem; color: var(--muted); white-space: nowrap; }
+.client-errors__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin-top: 6px; }
+.client-errors-digest { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 18px; padding: 12px 14px; border: 1px solid #fecdca;border:1px solid light-dark(#fecdca,#5a3130); background: var(--danger-soft); color: #912018;color:light-dark(#912018,#fba99d); border-radius: var(--radius-lg); font-size: .9rem; }
+.client-errors-digest ul { flex-basis: 100%; margin: 0; padding-left: 20px; display: grid; gap: 2px; }
+.client-errors-digest li { overflow-wrap: anywhere; }
+.client-errors-digest a { color: inherit; font-weight: 700; }
+@media (max-width: 720px) {
+  .client-errors__row { grid-template-columns: 1fr; }
+  .client-errors__numbers { align-items: flex-start; }
+  .client-errors__actions { justify-content: flex-start; }
+}
+/* „Süsteemi olek” (SystemHealthCard): the scheduled health check's last result */
+.system-health { --sh: #12b76a; --sh-bg: #ecfdf3; display: grid; gap: 10px; margin: 0 0 18px; padding: 14px; border: 1px solid var(--border); border-left: 4px solid var(--sh); border-radius: var(--radius-lg); background: var(--surface, var(--surface)); }
+.system-health--down { --sh: #d92d20; --sh-bg: #fef3f2; background: var(--sh-bg); }
+.system-health--stale { --sh: #dc6803; --sh-bg: #fffaeb; }
+.system-health--unknown { --sh: #98a2b3; --sh-bg: #f2f4f7; }
+.system-health__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.system-health__head > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.system-health__dot { width: 14px; height: 14px; border-radius: 50%; background: var(--sh); box-shadow: 0 0 0 4px var(--sh-bg); flex: none; }
+.system-health__eyebrow { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.system-health__note, .system-health__checked, .system-health__last { color: var(--muted); font-size: .86rem; margin: 0; }
+.system-health__targets { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .86rem; }
+.system-health__targets li { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.system-health__targets li::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #12b76a; flex: none; align-self: center; }
+.system-health__targets li.is-down::before { background: #d92d20; }
+.system-health__targets small { color: var(--muted); overflow-wrap: anywhere; }
+.system-health__history { display: flex; gap: 2px; height: 14px; }
+.system-health__history span { flex: 1; max-width: 10px; border-radius: 2px; background: #a6f4c5;background:light-dark(#a6f4c5,#001c0c); }
+.system-health__history span.is-down { background: #d92d20; }

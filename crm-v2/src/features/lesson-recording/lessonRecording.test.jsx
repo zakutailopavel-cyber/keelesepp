@@ -86,10 +86,10 @@ describe('RoomRecorder', () => {
     await screen.findByText(/Salvestan/);
     expect(service.start).toHaveBeenCalledTimes(1);
     // the parent hears about the recording from an effect after the text is shown: wait for it (slow CI)
-    await waitFor(() => expect(onStateChange).toHaveBeenLastCalledWith({ recording: true, error: '' }));
+    await waitFor(() => expect(onStateChange).toHaveBeenLastCalledWith(expect.objectContaining({ recording: true, error: '' })));
     rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: null }} consent auto onStateChange={onStateChange} service={service} />);
     await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'), { timeout: 3000 });
-    await waitFor(() => expect(onStateChange).toHaveBeenLastCalledWith({ recording: false, error: '' }));
+    await waitFor(() => expect(onStateChange).toHaveBeenLastCalledWith(expect.objectContaining({ recording: false, error: '' })));
     rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: null }} consent auto onStateChange={onStateChange} service={service} />);
     await waitFor(() => expect(service.start).toHaveBeenCalledTimes(2));
   });
@@ -169,8 +169,10 @@ describe('StudentRecordingsPanel', () => {
     expect(screen.getByText(/Tundi ei salvestata: nõusolekut pole/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Märgi nõusolek saadud' })).toBeNull();
     expect(await screen.findByRole('link', { name: /Tahvel/ })).toHaveAttribute('href', '/board/st-1?page=p-29');
+    // „Areng tundide kaupa” above the lessons, from the same recordings
+    expect(screen.getByRole('heading', { name: /Areng tundide kaupa/ })).toBeInTheDocument();
     fireEvent.click(await screen.findByRole('button', { name: /Tunni analüüs/ }));
-    expect(screen.getByText('Õpilase osa kõnest')).toBeInTheDocument();
+    expect(screen.getByText('Õpilase osa kõnest', { selector: 'dt' })).toBeInTheDocument();
     expect(screen.getByText('Ma ärkan kell seitse.')).toBeInTheDocument();
     expect(screen.getByText('Õpilane ütles 4 sõna')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Õpilane' }));

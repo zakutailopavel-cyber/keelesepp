@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { studentAccess, studentsService } from '../../services/firebase/students.js';
-import { nameKey, nameLikeness } from './duplicateCandidates.js';
+import { isMergeableCard, matchesMergeSearch, nameLikeness } from './duplicateCandidates.js';
 import './directions.css';
 
 const KIND = { learner: 'õppetöö', finance: 'finantsid', schedule: 'tunniplaan' };
@@ -34,6 +34,8 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
   const [keepActive, setKeepActive] = useState(null);
   const [preview, setPreview] = useState(null);
   const [checked, setChecked] = useState(false);
+  // „Kinnitan, et see on sama laps”: a second confirmation when the cards may belong to different children (2026-11-09)
+  const [sameChild, setSameChild] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
   useEffect(() => {
     if (!open || !otherId) return undefined;
     let alive = true;
-    setBusy(true); setError(''); setChecked(false);
+    setBusy(true); setError(''); setChecked(false); setSameChild(false);
     service.mergeStudents({ keepId, sourceId, ...(keepName ? { keepName } : {}), ...(keepActive === null ? {} : { keepActive }) })
       .then((result) => { if (alive) setPreview(result); })
       .catch((e) => { if (alive) { setPreview(null); setError(e.message); } })
@@ -56,21 +58,25 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
     return () => { alive = false; };
   }, [open, otherId, keepId, sourceId, keepName, keepActive, service]);
 
+  // archived cards are candidates like active ones; the search also finds an old name, an e-mail, a phone or a parent
+  // (2026-11-06: an archived duplicate was not found by typing)
   const candidates = useMemo(() => (list || [])
-    .filter((s) => s.id !== student.id && !s.mergedInto && !s.mergedIntoStudentId)
-    .map((s) => ({ ...s, like: nameLikeness(student.name, s.name) }))
-    .filter((s) => (query ? nameKey(s.name).includes(nameKey(query)) : s.like > 0 || s.id === otherId))
-    .sort((a, b) => b.like - a.like || String(a.name).localeCompare(String(b.name), 'et'))
-    .slice(0, 20), [list, query, student, otherId]);
+    .filter((s) => s.id !== student.id && isMergeableCard(s))
+    .map((s) => ({ ...s, like: Math.max(nameLikeness(student.name, s.name), ...(s.nameAliases || []).map((alias) => nameLikeness(student.name, alias))) }))
+    .filter((s) => (query ? matchesMergeSearch(s, query) : s.like > 0 || s.id === otherId))
+    .sort((a, b) => b.like - a.like || Number(a.active === false) - Number(b.active === false) || String(a.name).localeCompare(String(b.name), 'et'))
+    .slice(0, 30), [list, query, student, otherId]);
 
   const other = (list || []).find((s) => s.id === otherId);
   const merge = async () => {
     setBusy(true); setError('');
     try {
-      const result = await service.mergeStudents({ keepId, sourceId, ...(keepName ? { keepName } : {}), ...(keepActive === null ? {} : { keepActive }), apply: true, confirmed: true });
+      const result = await service.mergeStudents({ keepId, sourceId, ...(keepName ? { keepName } : {}), ...(keepActive === null ? {} : { keepActive }), apply: true, confirmed: true, ...(differences.length ? { confirmedDifferences: true } : {}) });
       onMerged?.({ ...result, keepId, sourceId });
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
+  const differences = preview?.differentPerson || [];
+  const canMerge = Boolean(preview) && checked && (!differences.length || sameChild);
   const names = preview?.names || [];
   const chosenName = keepName || preview?.keepName || '';
   const kinds = Object.entries(preview?.totals || {});
@@ -83,13 +89,13 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
 
   return (
     <Modal open={open} title={`Liida kaardid: ${student.name}`} className="modal--enrollments" onClose={() => !busy && onClose()}
-      footer={<><Button variant="secondary" disabled={busy} onClick={onClose}>Loobu</Button><Button variant="danger" disabled={!preview || busy || !checked} loading={busy && Boolean(preview)} onClick={merge}>Liida kaardid</Button></>}>
+      footer={<><Button variant="secondary" disabled={busy} onClick={onClose}>Loobu</Button><Button variant="danger" disabled={!canMerge || busy} loading={busy && Boolean(preview)} onClick={merge}>Liida kaardid</Button></>}>
       <div className="assignment-form merge-cards">
         <p className="form-hint">Üks laps = üks kaart. Kõik teise kaardi andmed (tunnid, korduvad tunnid, grupid, tööd, arved ja maksed, hinnad, sobivad ajad, kontod, lapsevanemad, õppesuunad) tõstetakse alles jäävale kaardile. Teist kaarti ei kustutata: see arhiveeritakse ja jääb viitama uuele kaardile.</p>
         {error ? <ErrorState title="Viga" message={error} /> : null}
         {!initialSourceId ? (!list ? <LoadingState label="Laen kaarte…" /> : (
           <>
-            <div className="search-field"><input aria-label="Otsi kaarti" placeholder="Otsi nime järgi (näitab sarnaseid nimesid)" value={query} onChange={(e) => setQuery(e.target.value)} /></div>
+            <div className="search-field"><input aria-label="Otsi kaarti" placeholder="Otsi nime, e-posti, telefoni või lapsevanema järgi (ka arhiveeritud)" value={query} onChange={(e) => setQuery(e.target.value)} /></div>
             <div className="assignment-students" role="radiogroup" aria-label="Teine kaart">
               {candidates.map((s) => (
                 <label key={s.id} className={s.id === otherId ? 'is-selected' : ''}>
@@ -98,7 +104,7 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
                     <small>{studentAccess(s) === 'student' ? '✓ õpilase konto' : studentAccess(s) === 'parent' ? 'lapsevanema konto' : 'kontot pole'}{s.active === false ? ' · arhiveeritud' : ''}</small></span>
                 </label>
               ))}
-              {!candidates.length ? <p className="form-hint">Sarnaseid nimesid ei leitud. Otsi nime järgi.</p> : null}
+              {!candidates.length ? <p className="form-hint">{query ? 'Sellist kaarti ei leitud (otsitakse aktiivsete ja arhiveeritud kaartide seast; prügikastis olevaid kaarte liita ei saa).' : 'Sarnaseid nimesid ei leitud. Otsi nime järgi.'}</p> : null}
             </div>
           </>
         )) : null}
@@ -112,6 +118,13 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
         {busy && !preview ? <LoadingState label="Kontrollin, mida liita…" /> : null}
         {preview ? (
           <div role="status" className="merge-cards__preview">
+            {differences.length ? (
+              <div className="merge-cards__danger" role="alert">
+                <b>Need võivad olla kaks erinevat last!</b>
+                <ul>{differences.map((d) => <li key={d.code}>{d.label}</li>)}</ul>
+                <p>Liida ainult siis, kui oled kindel, et mõlemad kaardid on sama lapse omad. Kahe lapse ühendamisel lähevad tunnid, arved ja lapsevanemad segi.</p>
+              </div>
+            ) : null}
             {names.length > 1 ? <fieldset className="merge-cards__choice"><legend>Nimi pärast liitmist</legend>{names.map((name) => <label key={name}><input type="radio" name="merge-name" checked={chosenName === name} onChange={() => setKeepName(name)} /> {name}</label>)}<small>Teine nimi jääb otsinguks alles.</small></fieldset> : null}
             {archivedInvolved ? <fieldset className="merge-cards__choice"><legend>Kaart pärast liitmist</legend>
               <label><input type="radio" name="merge-active" checked={activeAfter} onChange={() => setKeepActive(true)} /> Aktiivne</label>
@@ -134,6 +147,7 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, init
             {(preview.parents?.accounts?.length || preview.parents?.contacts?.length) ? <p className="form-hint">Lapsevanemad pärast liitmist: {preview.parents.accounts.length} kontoga{preview.parents.contacts.length ? `, kontaktid: ${preview.parents.contacts.map((c) => c.name || c.email || c.phone).join(', ')}` : ''}.</p> : null}
             {(preview.skipped || []).length ? <p className="form-hint">Jääb tõstmata: {preview.skipped.map((m) => `${label(m.collection)} (${m.reason})`).join(', ')}</p> : null}
             <label className="merge-cards__confirm"><input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} /> Kontrollisin eelvaadet. Liida „{preview.source?.name}” kaardiga „{chosenName || preview.keep?.name}”.</label>
+            {differences.length ? <label className="merge-cards__confirm merge-cards__confirm--danger"><input type="checkbox" checked={sameChild} onChange={(e) => setSameChild(e.target.checked)} /> Kinnitan, et see on sama laps (vaatamata ülal toodud erinevustele).</label> : null}
           </div>
         ) : null}
       </div>

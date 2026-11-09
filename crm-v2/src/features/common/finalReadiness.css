@@ -47,7 +47,7 @@
 
 @media (max-width: 650px) {
   .homework-grid > .card,
-  .settings-grid > .card { border-radius: 16px; }
+  .settings-grid > .card { border-radius: var(--radius-xl); }
 }
 
 /* homework given in a Live Classroom lesson */

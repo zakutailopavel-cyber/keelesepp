@@ -48,6 +48,10 @@ test("price: the other card's price becomes its subject's price; the same subjec
   assert.equal(core.revenuePlanMerge({ keep, source: { subject: "Inglise keel" }, keepPlan: { lessonPriceCents: 2000 }, sourcePlan: { lessonPriceCents: 2000 } }).action, "same");
   assert.equal(core.revenuePlanMerge({ keep, source: {}, keepPlan: null, sourcePlan: { lessonPriceCents: 2000 } }).action, "copy");
   assert.equal(core.revenuePlanMerge({ keep, source: {}, keepPlan: { lessonPriceCents: 1 }, sourcePlan: null }).action, "none");
+  // the other card's billing mode / weekly lessons / no-show rule come with its subject when they differ (2026-11-06)
+  const packaged = core.revenuePlanMerge({ keep, source: { subject: "Eesti keel" }, keepPlan: { lessonPriceCents: 2000, billingMode: "advance", weeklyLessons: 2 }, sourcePlan: { lessonPriceCents: 2500, billingMode: "package", weeklyLessons: 2, chargeNoShow: false } });
+  assert.deepEqual(packaged.patch.subjectBilling, { "Eesti keel": { billingMode: "package", chargeNoShow: false } });
+  assert.equal("subjectBilling" in add.patch, false);
   const existing = core.revenuePlanMerge({ keep, source: { subject: "Matemaatika" }, keepPlan: { lessonPriceCents: 2000, subjectPrices: { Matemaatika: { lessonPriceCents: 3000 } } }, sourcePlan: { lessonPriceCents: 2800 } });
   assert.equal(existing.action, "conflict");
 });
@@ -101,4 +105,67 @@ test("the tracks of an archived other card come over as ended; its teacher gets 
   // an active other card, or an archived result, keeps the tracks as they are
   assert.equal(core.sourceForTracks({ ...source, active: true }, true).enrollments, source.enrollments);
   assert.equal(core.sourceForTracks(source, false), source);
+});
+
+// incident 2026-11-09: two different girls named Stefania were merged
+test("different-person signals: the two Stefanias give signals for grade and subject + teacher", () => {
+  const math = { name: "Stefania", grade: "10", subject: "Matemaatika", teacher: "Yelyzaveta Lukiianchuk", teacherUid: "y1", level: "10. klass" };
+  const estonian = { name: "Stefania", grade: "12. klass", subject: "Eesti keel", teacher: "Pavel", teacherUid: "p1", level: "C1", parentName: "Jelena Shabanova", parentEmail: "jelena@example.com", linkedParentId: "par-j" };
+  const signals = core.differentPersonSignals(math, estonian);
+  assert.deepEqual(signals.map((s) => s.code), ["grade", "subject_teacher"], "no parent on one card is no parent signal; no surname to compare");
+  const labels = signals.map((s) => s.label).join(" | ");
+  assert.match(labels, /10\. klass ja 12\. klass/);
+  assert.match(labels, /Matemaatika \(Yelyzaveta Lukiianchuk\) ja Eesti keel \(Pavel\)/);
+});
+
+test("different-person signals: surname, parents, birth year; the same child gives none", () => {
+  const sig = (a, b) => core.differentPersonSignals(a, b).map((s) => s.code);
+  assert.deepEqual(sig({ name: "Mari Maasikas" }, { name: "Mari Tamm" }), ["surname"]);
+  assert.deepEqual(sig({ name: "Mari Maasikas" }, { name: "Mari" }), [], "one card has only a first name");
+  assert.deepEqual(sig({ name: "Mari Maasikas (B1)" }, { name: "mari maasikas" }), []);
+  assert.deepEqual(sig({ name: "Vlad Povzhik" }, { name: "Влад Повжик" }), [], "different alphabets are not compared");
+  assert.deepEqual(sig({ name: "Ann Kask", nameAliases: ["Ann Tamm"] }, { name: "Ann Tamm" }), [], "an old name counts");
+  assert.deepEqual(sig({ name: "A", linkedParentId: "p1" }, { name: "A", parentUid: "p2" }), ["parent"]);
+  assert.deepEqual(sig({ name: "A", parentEmail: "ema@x.ee" }, { name: "A", parentEmail: "EMA@x.ee" }), []);
+  assert.deepEqual(sig({ name: "A", parentName: "Jelena" }, { name: "A", parentName: "Olga" }), ["parent"]);
+  assert.deepEqual(sig({ name: "A", linkedParentIds: ["p1", "p2"] }, { name: "A", linkedParentId: "p2" }), []);
+  assert.deepEqual(sig({ name: "A", birthDate: "2010-04-01" }, { name: "A", birthYear: 2008 }), ["birth_year"]);
+  assert.deepEqual(sig({ name: "A", personalCode: "61004010000" }, { name: "A", birthYear: 2010 }), []);
+  // one child with two subjects but the same teacher, or the same subject with two teachers: no signal
+  assert.deepEqual(sig({ name: "A", subject: "Eesti keel", teacher: "Pavel" }, { name: "A", subject: "Inglise keel", teacher: "Pavel Z" }), []);
+  assert.deepEqual(sig({ name: "A", subject: "Eesti keel", teacher: "Pavel" }, { name: "A", subject: "Eesti keel", teacher: "Anna" }), []);
+  assert.deepEqual(sig({ name: "A", subject: "Eesti keel", teacher: "Pavel" }, { name: "A" }), [], "a card with no subject names none");
+  assert.deepEqual(sig({ name: "A", grade: "7" }, { name: "A", enrollments: [{ subject: "Matemaatika", level: "7. klass" }] }), []);
+});
+
+test("a moved lesson without a subject gets the other card's subject, also from an archived or multi-subject card", () => {
+  assert.equal(core.sourceLessonSubject({ subject: "Matemaatika" }), "Matemaatika");
+  assert.equal(core.sourceLessonSubject({ active: false, enrollments: [{ subject: "Matemaatika", active: false, status: "ended" }] }), "Matemaatika");
+  assert.equal(core.sourceLessonSubject({ subject: "Matemaatika", enrollments: [{ subject: "Matemaatika" }, { subject: "Eesti keel" }] }), "Matemaatika");
+  assert.equal(core.sourceLessonSubject({}), "", "no subject on the card: the lesson is left as it is");
+});
+
+test("undo records restore only what still holds the merge's value", () => {
+  const entry = core.undoEntry("lessons/l1", { studentId: "src", subject: "Matemaatika", status: "Toimunud" }, { studentId: "keep", mergedFromStudentId: "src" }, "studentId");
+  assert.deepEqual(entry.before, { studentId: "src" });
+  assert.deepEqual(entry.absent, ["mergedFromStudentId"]);
+  const back = core.revertFields({ studentId: "keep", mergedFromStudentId: "src", subject: "Matemaatika" }, entry);
+  assert.equal(back.status, "revert");
+  assert.deepEqual(back.set, { studentId: "src" });
+  assert.deepEqual(back.remove, ["mergedFromStudentId"]);
+  assert.equal(core.revertFields({ studentId: "src" }, entry).status, "done", "already back");
+  assert.equal(core.revertFields({ studentId: "third" }, entry).status, "conflict", "moved elsewhere since: left alone");
+  assert.equal(core.revertFields(null, entry).status, "missing");
+  // a field changed after the merge stays and is reported
+  const named = core.undoEntry("lessons/l2", { studentId: "src", studentName: "Stefania M" }, { studentId: "keep", studentName: "Stefania" }, "studentId");
+  const partly = core.revertFields({ studentId: "keep", studentName: "Stefania Uus" }, named);
+  assert.deepEqual(partly.set, { studentId: "src" });
+  assert.deepEqual(partly.skipped, ["studentName"]);
+  // id lists: the kept id leaves only when the record did not have it before
+  const ids = { kind: "ids", path: "groups/g", field: "studentIds", keepId: "keep", sourceId: "src", hadKeep: false };
+  assert.deepEqual(core.revertFields({ studentIds: ["x", "keep"] }, ids).set, { studentIds: ["x", "src"] });
+  assert.deepEqual(core.revertFields({ studentIds: ["keep", "x"] }, { ...ids, hadKeep: true }).set, { studentIds: ["keep", "x", "src"] });
+  assert.equal(core.revertFields({ studentIds: ["x", "src"] }, ids).status, "done");
+  assert.ok(core.sameValue({ a: [1, { b: 2 }] }, { a: [1, { b: 2 }] }));
+  assert.ok(!core.sameValue([1, 2], [2, 1]));
 });

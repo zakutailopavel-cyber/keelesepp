@@ -1,8 +1,10 @@
 import { isPlaceholderEmail } from '../../utils/placeholderEmail.js';
 import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Eye, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import '../board/board.css';
-import { lazy, Suspense, useCallback, useContext, useEffect, useState } from 'react';
+import { Suspense, useCallback, useContext, useEffect, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import MergeCardsModal from './MergeCardsModal.jsx';
+import MergeHistoryCard from './MergeHistoryCard.jsx';
 import EnrollmentManager from './EnrollmentManager.jsx';
 import StudentDirectionsCard from './StudentDirectionsCard.jsx';
 import StudentParentsCard from './StudentParentsCard.jsx';
@@ -32,12 +34,16 @@ import StudentForm from './StudentForm.jsx';
 import StudentAccountCard from './StudentAccountCard.jsx';
 import LessonBalanceCard from './LessonBalanceCard.jsx';
 import LessonTokensCard from './LessonTokensCard.jsx';
+import StudentInvoiceIssuerCard from '../finance/fie/StudentInvoiceIssuerCard.jsx';
 import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
+import MonologuesCard from '../monologue/MonologuesCard.jsx';
 import AutoSkillsCard from './AutoSkillsCard.jsx';
 import LearnerSnapshotCard from '../learner/LearnerSnapshotCard.jsx';
 import MonthlyReportCard from '../learner/MonthlyReportCard.jsx';
+import SkillEstimateCard from './SkillEstimateCard.jsx';
+import ProgressPointsCard from '../progress-points/ProgressPointsCard.jsx';
 import StudentTopicsCard from '../vocabulary/StudentTopicsCard.jsx';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
@@ -69,11 +75,17 @@ const PROFILE_TABS = [
 ];
 
 // the works tab opens the sheet viewer: downloaded when the tab is opened, not with every card
-const StudentWorksPanel = lazy(() => import('./StudentWorksPanel.jsx'));
+const StudentWorksPanel = lazyComponent(() => import('./StudentWorksPanel.jsx'));
 
-export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi }) {
-  const { studentId } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi, progressApi, mergeApi, studentId: shownId = '', embedded = false }) {
+  // `embedded` (owner 2026-11-09): the card opens in the side drawer over any page (EntityDrawer.jsx) — it gets the id
+  // as a prop and keeps its tabs in its own state, so the page under the drawer keeps its address and filters
+  const params = useParams();
+  const studentId = shownId || params.studentId;
+  const routedParams = useSearchParams();
+  const [localParams, setLocalParams] = useState(() => new globalThis.URLSearchParams());
+  const setLocal = useCallback((next) => setLocalParams((current) => new globalThis.URLSearchParams(typeof next === 'function' ? next(new globalThis.URLSearchParams(current)) : next)), []);
+  const [searchParams, setSearchParams] = embedded ? [localParams, setLocal] : routedParams;
   const auth = useContext(AuthContext);
   const previewNavigation = usePreviewNavigation();
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
@@ -163,7 +175,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
 
   return (
     <div className="page-content">
-      <Link className="back-link" to="/students"><ArrowLeft size={17} /> Kõik õpilased</Link>
+      {embedded ? null : <Link className="back-link" to="/students"><ArrowLeft size={17} /> Kõik õpilased</Link>}
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       {canAssignTeacher ? <CardTrashNotice kind="student" card={student} {...trashProps} onRestored={async () => { await refreshStudent(); setNotice('Õpilase kaart on prügikastist taastatud.'); }} /> : null}
       <header className="student-profile-hero">
@@ -192,6 +204,8 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         </Modal>
       </header>
 
+      {/* „Ühendamised” + „Võta ühendamine tagasi” (2026-11-09): only on a card that was merged or took a merged card */}
+      {canAssignTeacher ? <MergeHistoryCard student={student} students={studentApi} {...(mergeApi ? { service: mergeApi } : {})} onUnmerged={() => load()} /> : null}
       <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Õpilase õppeained" />
       <nav className="student-profile-tabs" role="tablist" aria-label="Õpilase profiili jaotised">
         {visibleTabs.map((tab) => (
@@ -219,9 +233,13 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
             <StudentDirectionsCard student={directionStudent} schedule={state.schedule} lessons={state.lessons} plan={state.plan} directions={directions} canEdit={canAssignTeacher} canViewFinance={canViewFinance} service={studentApi} onEdit={() => setTracksOpen(true)} onChanged={refreshStudent} />
             {canAssignTeacher ? <StudentParentsCard student={student} user={currentUser} {...(parentApi ? { service: parentApi } : {})} onChanged={refreshStudent} /> : null}
             {/* „Õpilase pilt” (owner 2026-10-23): practice, forgotten words, sheet errors, open homework */}
-            {/* „Kuu aruanne vanemale” (owner 2026-10-23): the admin checks and sends it */}
+            {/* „Kuu kokkuvõte vanemale” (owner 2026-10-23 / 2026-11-04): drafted per month in the parent's language; the admin copies it and marks it sent */}
             {currentUser?.roles?.includes(ROLES.ADMIN) ? <MonthlyReportCard student={student} user={currentUser} {...(reportApi ? { repository: reportApi } : {})} /> : null}
             <LearnerSnapshotCard studentId={student.id} studentName={student.name} {...(learnerRepository ? { repository: learnerRepository } : {})} />
+            {/* „Teekond sihttasemeni” (owner 2026-11-04): admin only — an estimate per skill, not for teachers, students or parents */}
+            {currentUser?.roles?.includes(ROLES.ADMIN) ? <SkillEstimateCard student={student} lessons={state.lessons} {...(estimateApi ? { repository: estimateApi } : {})} {...(progressApi ? { pointsService: progressApi } : {})} user={currentUser} /> : null}
+            {/* „Keeleoskus tasemele” (owner 2026-11-04): measured points the student and parents see as a curve */}
+            <ProgressPointsCard student={student} user={currentUser} isAdmin={Boolean(currentUser?.roles?.includes(ROLES.ADMIN))} {...(progressApi ? { service: progressApi } : {})} />
             <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{(ownTracks?.length === 1 ? ownTracks[0].level : student.level) || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{tracks.length ? [...new Set(tracks.map((track) => subjectName(track.subject)))].join(', ') : student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
             {canAssignTeacher ? <StudentAccountCard student={student} {...(accountApi ? { service: accountApi } : {})}
               onInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, studentUid: data.uid, linkedUserId: data.uid, linkedUserIds: [data.uid], email: current.student.email || data.email } }))}
@@ -263,6 +281,8 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
           <div className="profile-grid">
             <AutoSkillsCard student={student} user={currentUser} isAdmin={canAssignTeacher} homeworkApi={homeworkApi} recordingApi={recordingApi} />
             <StudentRecordingsPanel student={student} user={currentUser} isAdmin={canAssignTeacher} service={recordingApi} />
+            {/* „Kuu monoloog” (owner 2026-11-04): the monthly two-minute monologues, „Võrdle” plays two months side by side */}
+            <MonologuesCard student={student} user={currentUser} className="profile-wide" {...(monologueApi ? { service: monologueApi } : {})} />
             {/* the student's „Sõnavara → Teemad”, read only; topicsApi: { catalogApi, wordsApi, loadWords } (tests) */}
             <StudentTopicsCard student={student} {...(topicsApi || {})} />
           </div>
@@ -277,6 +297,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
             onSave={async (values) => { const plan = await planApi.save(student, values, currentUser, state.plan); setState((current) => ({ ...current, plan })); }} />
           <LessonBalanceCard student={student} plan={state.plan} invoices={state.invoices} lessons={state.lessons} />
           <LessonTokensCard student={student} {...(tokensApi ? { service: tokensApi } : {})} />
+          <StudentInvoiceIssuerCard student={student} />
           <StudentFinancePanel student={student} invoices={state.invoices} />
         </> : null}
       </div>

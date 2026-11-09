@@ -22,7 +22,10 @@ const { FieldValue } = require("firebase-admin/firestore");
 let googleModule = null;
 const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
-const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject, packageTiersForLesson } = require("./lesson-tokens-core");
+const { runInvoiceReminderBatch } = require("./invoice-reminder-batch-core");
+const { hasSubjectBilling, planForSubjectBilling } = require("./subject-billing-core");
+const { mainSubject } = require("./student-enrollments-core");
+const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, tokenInvoiceParts, isCombinedTokenInvoice, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject, packageTiersForLesson } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
   buildCreditNotePdf,
@@ -34,6 +37,8 @@ const {
   invoiceFileName,
 } = require("./invoice-document");
 const linkpay = require("./linkpay-core");
+const issuerCore = require("./invoice-issuer-core");
+const invoiceIssuer = require("./invoice-issuer");
 const liveTurnCore = require("./live-turn-core");
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
@@ -128,6 +133,8 @@ const {
   normalizeName: normalizeAccountName,
   planParentChildBootstrap,
   planStudentAccountBootstrap,
+  possibleExistingNotice,
+  reviewClosedByBootstrap,
 } = require("./account-bootstrap-core");
 const {
   lessonCompletionCounterDelta,
@@ -150,6 +157,7 @@ const {
   uniqueIds,
 } = require("./student-merge-core");
 const { planPricePrivacy, lessonPriceFor } = require("./price-privacy-core");
+const invoicePayer = require("./invoice-payer-core");
 const {
   metaSendRequest,
   replyInput: normalizeMetaReply,
@@ -396,6 +404,30 @@ function isSuperAdmin(decoded) {
   return SUPER_ADMIN_EMAILS.has(String(decoded.email || "").toLowerCase());
 }
 
+// „Arve väljastaja” (owner 2026-11-09, docs/ACCOUNTING.md „FIE arved”): FIE invoices are the owner's own. Anyone else —
+// other administrators and the bookkeeper — gets the same 404 as for a missing invoice.
+function actorIsOwner(actor) {
+  return Boolean(actor?.decoded && isSuperAdmin(actor.decoded));
+}
+
+function assertInvoiceVisible(actor, invoice) {
+  if (issuerCore.isFieInvoice(invoice) && !actorIsOwner(actor)) throw httpError(404, "Invoice not found");
+}
+
+// company money (bank lines, advances, the cash box, card payments, credit notes) never touches an FIE invoice
+function assertCompanyInvoice(actor, invoice, message = "FIE arvega seda toimingut ei tehta (ettevõtte raha ja dokumendid).") {
+  assertInvoiceVisible(actor, invoice);
+  if (issuerCore.isFieInvoice(invoice)) throw httpError(409, message);
+}
+
+function decideIssuerOrThrow(args) {
+  try {
+    return issuerCore.decideIssuer(args);
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+}
+
 async function requireCalendarOwner(req, uid, { staffOnly = true } = {}) {
   const decoded = await requireFirebaseUser(req);
   if (decoded.uid !== uid && !isSuperAdmin(decoded)) throw httpError(403, "Forbidden");
@@ -436,6 +468,28 @@ async function requireAdminUser(req) {
     throw httpError(403, "Administrator access required");
   }
   return actor;
+}
+
+// „Ava arve PDF” (owner 2026-11-09): the administrator, or whoever reads the invoice in Firestore as its owner (rule
+// ownsInvoice). Anyone else — teachers included — gets the same 404 as a missing invoice.
+async function requireInvoiceDocumentReader(req, invoiceId) {
+  const decoded = await requireFirebaseUser(req);
+  const snap = await db.collection("users").doc(decoded.uid).get();
+  const profile = snap.exists ? snap.data() : {};
+  if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+  const roles = collectTrustedRoles(profile, decoded);
+  if (isSuperAdmin(decoded)) return;
+  if (!invoiceId) throw httpError(400, "invoiceId required");
+  const invoiceSnap = await db.collection("invoices").doc(String(invoiceId)).get();
+  const invoice = invoiceSnap.exists ? invoiceSnap.data() : null;
+  // another administrator reads every company invoice, never an FIE one (the owner's own)
+  if (roles.has("admin") && !(invoice && issuerCore.isFieInvoice(invoice))) return;
+  const student = invoice?.studentId ? await loadInvoiceStudent(invoice) : null;
+  const owner = invoice && linkpay.ownsInvoiceDocument(invoice, student, {
+    uid: decoded.uid, email: decoded.email, emailVerified: decoded.email_verified === true,
+    linkedStudentIds: Array.isArray(profile.linkedStudentIds) ? profile.linkedStudentIds : [],
+  });
+  if (!owner) throw httpError(404, "Arvet ei leitud.");
 }
 
 // the administrator or the bookkeeper (role finance is not a staff role, so requireStaffUser would refuse it)
@@ -976,48 +1030,75 @@ function lessonPackageLedgerEntryId(lessonId, cycle, movement) {
 // Lesson tokens (functions/lesson-tokens-core.js): the administrator confirms a paid lesson package invoice and the card
 // gets its credits — one package per invoice (id from the invoice, so a second click changes nothing), a grant entry in
 // the package ledger, the invoice marked credited, an audit record.
+// A combined package invoice („Ühine tunnipakett”, owner 2026-11-04: one invoice for a family) gives every line its own
+// package on its own card and subject (tokens_<invoiceId>_<lineIndex>), each with its own grant, audit and backlog —
+// all in one transaction, so either every line is credited or none.
 async function creditInvoiceTokens({ actor, invoiceId }) {
   const cleanInvoiceId = cleanText(invoiceId, 180);
   if (!cleanInvoiceId) throw httpError(400, "invoiceId required");
-  const packageId = tokenPackageId(cleanInvoiceId);
   const invoiceRef = db.collection("invoices").doc(cleanInvoiceId);
-  const packageRef = db.collection("studentPackages").doc(packageId);
-  const ledgerRef = db.collection("packageLedger").doc(packageId);
-  const auditRef = db.collection("financialAudit").doc(`credit_${packageId}`.slice(0, 150));
   const nowIso = new Date().toISOString();
   const actorData = actorSnapshot(actor);
   const result = await db.runTransaction(async transaction => {
-    const [invoiceSnap, packageSnap] = await Promise.all([transaction.get(invoiceRef), transaction.get(packageRef)]);
-    if (packageSnap.exists) return { studentPackage: { id: packageSnap.id, ...packageSnap.data() }, idempotent: true };
+    const invoiceSnap = await transaction.get(invoiceRef);
     const invoice = invoiceSnap.exists ? invoiceSnap.data() : null;
+    if (invoice) assertInvoiceVisible(actor, invoice);
+    const combined = isCombinedTokenInvoice(invoice || {});
+    const parts = tokenInvoiceParts(cleanInvoiceId, invoice || {});
+    const packageSnaps = await Promise.all(parts.map(part => transaction.get(db.collection("studentPackages").doc(part.packageId))));
+    if (packageSnaps.every(snap => snap.exists)) {
+      const studentPackages = packageSnaps.map(snap => ({ id: snap.id, ...snap.data() }));
+      return { studentPackage: studentPackages[0], ...(combined ? { studentPackages } : {}), idempotent: true };
+    }
+    if (packageSnaps.some(snap => snap.exists)) throw httpError(409, "Osa tunde on juba lisatud, kuid mitte kõik — kontrolli auditit.");
     const blocker = creditBlocker(invoice);
     if (blocker) throw httpError(invoice ? 409 : 404, blocker);
     if (invoice.tokenStatus === "credited") throw httpError(409, "Tunnid on juba lisatud, kuid paketti ei leitud — kontrolli auditit.");
-    const studentSnap = await transaction.get(db.collection("students").doc(String(invoice.studentId)));
-    if (!studentSnap.exists) throw httpError(404, "Student not found");
+    const studentIds = [...new Set(parts.map(part => String(part.studentId || "")))];
+    if (studentIds.some(id => !id)) throw httpError(404, "Student not found");
+    const studentSnaps = await Promise.all(studentIds.map(id => transaction.get(db.collection("students").doc(id))));
+    if (studentSnaps.some(snap => !snap.exists)) throw httpError(404, "Student not found");
+    const cards = new Map(studentSnaps.map(snap => [snap.id, snap.data()]));
     // valid from the invoice date: lessons held while the payment was on its way are covered too
-    const studentPackage = tokenPackageRecord({ invoice, invoiceId: cleanInvoiceId, student: studentSnap.data(), issuedAt: String(invoice.date || appToday(nowIso)).slice(0, 10), nowIso, actor: actorData });
-    const credits = studentPackage.grantedCredits;
-    transaction.create(packageRef, studentPackage);
-    transaction.create(ledgerRef, {
-      studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
-      packageProductId: "", packageProductName: studentPackage.packageProductName,
-      entryType: "grant", sourceType: "invoice_payment", sourceInvoiceId: cleanInvoiceId, sourceInvoiceNum: invoice.num || "",
-      creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
-      ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
-      reason: `Paid lesson package invoice ${invoice.num || cleanInvoiceId}`, actor: actorData, createdAt: nowIso, requestId: packageId,
+    const issuedAt = String(invoice.date || appToday(nowIso)).slice(0, 10);
+    const studentPackages = parts.map(part => {
+      const packageId = part.packageId;
+      const studentPackage = tokenPackageRecord({ invoice, invoiceId: cleanInvoiceId, student: cards.get(String(part.studentId)), issuedAt, nowIso, actor: actorData, ...(combined ? { part } : {}) });
+      const credits = studentPackage.grantedCredits;
+      transaction.create(db.collection("studentPackages").doc(packageId), studentPackage);
+      transaction.create(db.collection("packageLedger").doc(packageId), {
+        studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
+        packageProductId: "", packageProductName: studentPackage.packageProductName,
+        entryType: "grant", sourceType: "invoice_payment", sourceInvoiceId: cleanInvoiceId, sourceInvoiceNum: invoice.num || "",
+        ...(combined ? { sourceInvoiceLine: part.index } : {}),
+        creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
+        ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
+        reason: `Paid lesson package invoice ${invoice.num || cleanInvoiceId}${combined ? ` line ${part.index + 1}` : ""}`, actor: actorData, createdAt: nowIso, requestId: packageId,
+      });
+      transaction.create(db.collection(issuerCore.collectionFor("financialAudit", issuerCore.invoiceIssuer(invoice))).doc(`credit_${packageId}`.slice(0, 150)), {
+        entityType: "student_package", entityId: packageId, action: "student.package_credited_from_invoice",
+        studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
+        invoiceId: cleanInvoiceId, invoiceNum: invoice.num || "", creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
+        ...(combined ? { sourceInvoiceLine: part.index } : {}),
+        ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
+        actor: actorData, reason: "Lesson package credited after payment", createdAt: nowIso, requestId: packageId,
+      });
+      return { id: packageId, ...studentPackage };
     });
-    transaction.set(invoiceRef, { tokenStatus: "credited", tokenPackageId: packageId, tokensCreditedAt: nowIso, tokensCreditedBy: actorData, updatedAt: nowIso }, { merge: true });
-    transaction.create(auditRef, {
-      entityType: "student_package", entityId: packageId, action: "student.package_credited_from_invoice",
-      studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
-      invoiceId: cleanInvoiceId, invoiceNum: invoice.num || "", creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
-      ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
-      actor: actorData, reason: "Lesson package credited after payment", createdAt: nowIso, requestId: packageId,
-    });
-    return { studentPackage: { id: packageId, ...studentPackage }, idempotent: false };
+    transaction.set(invoiceRef, {
+      tokenStatus: "credited",
+      ...(combined ? { tokenPackageIds: studentPackages.map(item => item.id) } : { tokenPackageId: studentPackages[0].id }),
+      tokensCreditedAt: nowIso, tokensCreditedBy: actorData, updatedAt: nowIso,
+    }, { merge: true });
+    return { studentPackage: studentPackages[0], ...(combined ? { studentPackages } : {}), idempotent: false };
   });
-  if (!result.idempotent) result.backlog = await consumeTokenBacklog(result.studentPackage);
+  if (!result.idempotent) {
+    // every package takes its own card's (and subject's) lessons since the invoice date and the card's owed lessons
+    const packages = result.studentPackages || [result.studentPackage];
+    const backlogs = [];
+    for (const studentPackage of packages) backlogs.push({ studentPackageId: studentPackage.id, studentId: studentPackage.studentId, ...(await consumeTokenBacklog(studentPackage)) });
+    result.backlog = { consumed: backlogs.reduce((sum, item) => sum + item.consumed, 0), ...(result.studentPackages ? { packages: backlogs } : {}) };
+  }
   return result;
 }
 
@@ -1101,7 +1182,18 @@ async function syncLessonPackageConsumption({
     }
     // the card's plan decides whether a no-show without notice is charged (lesson tokens, functions/lesson-tokens-core.js)
     const planSnap = lesson.studentId ? await transaction.get(db.collection("studentRevenuePlans").doc(String(lesson.studentId))) : null;
-    const plan = planSnap?.exists ? planSnap.data() : {};
+    const cardPlan = planSnap?.exists ? planSnap.data() : {};
+    // billing per subject (owner 2026-11-06, subject-billing-core.js): with subjectBilling in the plan the lesson's own
+    // subject decides the no-show rule, and a subject billed by monthly invoice takes no package credit. A plan without
+    // it reads exactly as before (no extra read).
+    let plan = cardPlan;
+    let billedMonthly = false;
+    if (!lessonDeleted && hasSubjectBilling(cardPlan)) {
+      const cardSnap = await transaction.get(db.collection("students").doc(String(lesson.studentId)));
+      const card = cardSnap.exists ? cardSnap.data() : {};
+      plan = planForSubjectBilling(cardPlan, lessonSubject(lesson, card), mainSubject(card));
+      billedMonthly = plan.billingMode !== "package";
+    }
     if (!lessonActorCanWrite(actor, { lesson })) {
       throw httpError(403, "Lesson belongs to another teacher");
     }
@@ -1152,6 +1244,18 @@ async function syncLessonPackageConsumption({
         status: "not_applicable",
         lessonId: cleanLessonId,
         reason: "Lesson is already invoiced or excluded from billing",
+      };
+      clearOwed();
+      transaction.create(requestRef, requestRecord(result));
+      return { ...result, idempotent: false };
+    }
+
+    if (completed && billedMonthly) {
+      const result = {
+        changed: false,
+        status: "not_applicable",
+        lessonId: cleanLessonId,
+        reason: "The lesson's subject is billed by monthly invoice, not by lesson packages",
       };
       clearOwed();
       transaction.create(requestRef, requestRecord(result));
@@ -1923,6 +2027,7 @@ async function createLessonInvoice({
   description,
   paymentReference,
   requestId,
+  issuer: requestedIssuer = "",
 }) {
   const mutationId = cleanRequestId(requestId);
   const cleanStudentId = String(studentId || "").trim();
@@ -1953,9 +2058,7 @@ async function createLessonInvoice({
     paymentReference: cleanReference,
   })).digest("hex");
   const invoiceRef = db.collection("invoices").doc(mutationId);
-  const auditRef = db.collection("financialAudit").doc(mutationId);
   const studentRef = db.collection("students").doc(cleanStudentId);
-  const counterRef = db.collection("meta").doc("invoiceCounter");
   const lessonRefs = uniqueLessonIds.map(id => db.collection("lessons").doc(id));
   const studentLessonsQuery = db.collection("lessons").where("studentId", "==", cleanStudentId);
   const tariffAssignmentsQuery = db.collection("studentTariffAssignments")
@@ -1972,9 +2075,9 @@ async function createLessonInvoice({
       }
       return { invoice: { id: existingInvoice.id, ...existingInvoice.data() }, idempotent: true };
     }
-    const [studentSnap, counterSnap, studentLessonsSnap, tariffAssignmentsSnap, revenuePlanSnap] = await Promise.all([
+    const [studentSnap, issuerContext, studentLessonsSnap, tariffAssignmentsSnap, revenuePlanSnap] = await Promise.all([
       transaction.get(studentRef),
-      transaction.get(counterRef),
+      invoiceIssuer.readIssuerContext(transaction, db, [cleanStudentId]),
       transaction.get(studentLessonsQuery),
       transaction.get(tariffAssignmentsQuery),
       transaction.get(db.collection("studentRevenuePlans").doc(cleanStudentId)),
@@ -2016,25 +2119,26 @@ async function createLessonInvoice({
       lessonPrice,
       tariffAssignments,
     );
-    let nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
-    let invoiceNum = "";
-    for (let attempt = 0; attempt < 50; attempt += 1) {
-      const candidate = `KS-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, "0")}`;
-      const collision = await transaction.get(
-        db.collection("invoices").where("num", "==", candidate).limit(1),
-      );
-      if (collision.empty) {
-        invoiceNum = candidate;
-        break;
+    // „Arve väljastaja”: FIE only for the owner's own lessons of a card set to FIE (or the owner's explicit choice)
+    const issuerChoice = decideIssuerOrThrow({
+      lines: selectedLessons.map(lesson => invoiceIssuer.lessonLine(issuerContext, lesson, cleanStudentId)),
+      requested: requestedIssuer,
+      isOwner: isSuperAdmin(actor.decoded),
+      ready: issuerContext.ready,
+    });
+    const issued = await invoiceIssuer.nextIssuerNumber(transaction, db, { issuer: issuerChoice, todayIso });
+    const invoiceNum = issued.invoiceNum;
+    const auditRef = db.collection(issuerCore.collectionFor("financialAudit", issuerChoice)).doc(mutationId);
+    // the same payer snapshot as every other new invoice and the same address the e-mail goes to (invoice-payer-core)
+    let linkedAccountEmail = "";
+    if (!invoicePayer.cardPayerEmail(student)) {
+      for (const id of invoicePayer.linkedParentIds(student)) {
+        const userSnap = await transaction.get(db.collection("users").doc(id));
+        linkedAccountEmail = userSnap.exists ? firstEmail(userSnap.data().email) : "";
+        if (linkedAccountEmail) break;
       }
-      nextSequence += 1;
     }
-    if (!invoiceNum) throw httpError(409, "Invoice counter requires numbering repair");
-    const parentUid = student.linkedParentId || student.parentUid || student.guardianUid || "";
-    const parentName = student.parentName || student.guardianName || "";
-    const parentEmail = student.parentEmail || student.contactEmail || student.guardianEmail || "";
-    const payerName = student.payerName || student.companyName || parentName || student.name || "";
-    const payerEmail = student.payerEmail || parentEmail || student.email || "";
+    const payer = invoicePayer.invoicePayerSnapshot(student, { linkedAccountEmail });
     const invoice = {
       num: invoiceNum,
       status: "Ootel",
@@ -2044,16 +2148,16 @@ async function createLessonInvoice({
       paymentReference: cleanReference || invoiceNum,
       invoiceTargetType: "student",
       studentId: cleanStudentId,
-      studentName: student.name || "—",
-      parentUid,
-      linkedParentId: student.linkedParentId || student.parentUid || "",
-      guardianUid: student.guardianUid || "",
-      parentName,
-      parentEmail,
-      parentEmailLower: String(parentEmail).trim().toLowerCase(),
-      payerName,
-      payerEmail,
-      payerEmailLower: String(payerEmail).trim().toLowerCase(),
+      studentName: payer.studentName,
+      parentUid: payer.parentUid,
+      linkedParentId: payer.linkedParentId,
+      guardianUid: payer.guardianUid,
+      parentName: payer.parentName,
+      parentEmail: payer.parentEmail,
+      parentEmailLower: payer.parentEmailLower,
+      payerName: payer.payerName,
+      payerEmail: payer.payerEmail,
+      payerEmailLower: payer.payerEmailLower,
       amountCents: lessonData.amountCents,
       amount: lessonData.amount,
       paidAmountCents: 0,
@@ -2094,10 +2198,11 @@ async function createLessonInvoice({
       createdAt: nowIso,
       createdBy: actorData,
       requestId: mutationId,
+      ...issuerCore.issuerFields(issuerChoice, issuerContext.settings),
     };
 
     transaction.create(invoiceRef, invoice);
-    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
+    issued.commit(transaction, nowIso);
     const lineByLessonId = new Map(
       lessonData.lines.map((line, index) => [line.lessonId, { line, index }]),
     );
@@ -2253,9 +2358,9 @@ async function setLessonBillingDisposition({
   });
 }
 
-async function activeInvoicePayments(transaction, invoiceId) {
+async function activeInvoicePayments(transaction, invoiceId, issuer = "company") {
   const snap = await transaction.get(
-    db.collection("payments").where("invoiceId", "==", invoiceId),
+    db.collection(issuerCore.collectionFor("payments", issuer)).where("invoiceId", "==", invoiceId),
   );
   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
@@ -2295,6 +2400,7 @@ async function transferInvoiceOverpayment({ actor, invoiceId, reason, requestId 
     const invoiceSnap = await transaction.get(invoiceRef);
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
     const invoice = invoiceSnap.data();
+    assertCompanyInvoice(actor, invoice, "FIE arve ülemakset ei tehta ettevõtte ettemaksuks.");
     const payments = await activeInvoicePayments(transaction, cleanInvoiceId);
     const plan = planInvoiceOverpaymentTransfer(invoice, payments);
     const paymentsById = new Map(payments.map(payment => [payment.id, payment]));
@@ -2617,6 +2723,7 @@ async function createInvoiceLessonCreditNote({
     if (!lessonSnap.exists) throw httpError(404, "Lesson not found");
 
     const invoice = invoiceSnap.data();
+    assertCompanyInvoice(actor, invoice, "FIE arvet ei krediteerita: tühista see (kui maksmata) ja koosta uus.");
     const lesson = lessonSnap.data();
     const line = (Array.isArray(invoice.lines) ? invoice.lines : [])
       .find(item => item && item.lessonId === cleanLessonId);
@@ -2776,7 +2883,7 @@ function correctionIssuer() {
 }
 
 // reads the invoice, its payments and its still invoiced lessons; refuses what cannot be credited in full
-async function readInvoiceForFullCredit(transaction, invoiceId) {
+async function readInvoiceForFullCredit(transaction, invoiceId, actor) {
   const invoiceRef = db.collection("invoices").doc(invoiceId);
   const [invoiceSnap, payments] = await Promise.all([
     transaction.get(invoiceRef),
@@ -2784,6 +2891,7 @@ async function readInvoiceForFullCredit(transaction, invoiceId) {
   ]);
   if (!invoiceSnap.exists) throw httpError(404, "Arvet ei leitud.");
   const invoice = invoiceSnap.data();
+  assertCompanyInvoice(actor, invoice, "FIE arvet ei krediteerita ega parandata: tühista see (kui maksmata) ja koosta uus.");
   const blocked = invoiceCorrectionCore.fullCreditError(invoice, payments);
   if (blocked) throw httpError(409, blocked);
   const lessonIds = invoiceCorrectionCore.activeLessonIds(invoice);
@@ -2815,7 +2923,7 @@ async function creditInvoiceInFull({ actor, invoiceId, reason, requestId }) {
       return { creditNote: { id: existing.id, ...existing.data() }, idempotent: true };
     }
     const counterSnap = await transaction.get(counterRef);
-    const { invoiceRef, invoice, lessons } = await readInvoiceForFullCredit(transaction, cleanInvoiceId);
+    const { invoiceRef, invoice, lessons } = await readInvoiceForFullCredit(transaction, cleanInvoiceId, actor);
     // the credit note is dated today: a closed earlier month stays untouched (old debts of closed months can be credited)
     await assertFinancialDateOpen(transaction, todayIso);
 
@@ -2899,7 +3007,7 @@ async function correctIssuedInvoice({ actor, invoiceId, amount, amountCents, pay
       };
     }
     const [creditCounterSnap, invoiceCounterSnap] = await Promise.all([transaction.get(creditCounterRef), transaction.get(invoiceCounterRef)]);
-    const { invoiceRef, invoice, lessons } = await readInvoiceForFullCredit(transaction, cleanInvoiceId);
+    const { invoiceRef, invoice, lessons } = await readInvoiceForFullCredit(transaction, cleanInvoiceId, actor);
     let input;
     try {
       input = invoiceCorrectionCore.correctionInput(invoice, { amount, amountCents, payer, due, reason });
@@ -2941,7 +3049,8 @@ async function correctIssuedInvoice({ actor, invoiceId, amount, amountCents, pay
     const correctedBy = { invoiceId: newInvoiceId, invoiceNum, creditNoteId: mutationId, creditNoteNum, reason: input.reason, createdAt: nowIso, createdBy: actorData };
 
     transaction.create(creditNoteRef, creditNote);
-    transaction.create(newInvoiceRef, newInvoice);
+    // an FIE invoice is never corrected here (readInvoiceForFullCredit), so the new one is the company's
+    transaction.create(newInvoiceRef, { ...newInvoice, issuer: "company" });
     transaction.set(creditCounterRef, { seq: nextCreditSequence, updatedAt: nowIso }, { merge: true });
     transaction.set(invoiceCounterRef, { seq: nextInvoiceSequence, updatedAt: nowIso }, { merge: true });
     transaction.set(invoiceRef, {
@@ -3011,8 +3120,6 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
   const mutationId = cleanRequestId(requestId);
   const amountCents = toCents(amount);
   const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
-  const paymentRef = db.collection("payments").doc(mutationId);
-  const auditRef = db.collection("financialAudit").doc(mutationId);
   const nowIso = new Date().toISOString();
   const paymentDate = /^\d{4}-\d{2}-\d{2}$/.test(String(paidAt || ""))
     ? String(paidAt)
@@ -3020,6 +3127,14 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
   const actorData = actorSnapshot(actor);
 
   return db.runTransaction(async transaction => {
+    // „Arve väljastaja”: an FIE invoice's payments and audit are the owner's own (fiePayments, fieAudit); the company's
+    // cash box never takes FIE money
+    const issuerSnap = await transaction.get(invoiceRef);
+    const fie = issuerSnap.exists && issuerCore.isFieInvoice(issuerSnap.data());
+    if (fie) assertInvoiceVisible(actor, issuerSnap.data());
+    if (fie && cash?.receiptId) throw httpError(409, "Kassa raha ei saa siduda FIE arvega.");
+    const paymentRef = db.collection(issuerCore.collectionFor("payments", fie ? "fie" : "company")).doc(mutationId);
+    const auditRef = db.collection(issuerCore.collectionFor("financialAudit", fie ? "fie" : "company")).doc(mutationId);
     const existing = await transaction.get(paymentRef);
     if (existing.exists) {
       const data = existing.data();
@@ -3034,7 +3149,7 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
     const invoice = invoiceSnap.data();
     if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot receive payments");
-    const payments = await activeInvoicePayments(transaction, invoiceRef.id);
+    const payments = await activeInvoicePayments(transaction, invoiceRef.id, fie ? "fie" : "company");
     const guard = !entryGuards ? null : paymentGuards.assertPaymentAllowed({
       invoice, payments, amountCents, paidAt: paymentDate, method: cleanText(method, 40) || "bank", nowIso, allowOverpayment,
     });
@@ -3044,7 +3159,9 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
     const isCash = cleanText(method, 40) === "cash";
     let cashHolder = null;
     let cashReceiptRef = null;
-    if (isCash && cash?.receiptId) {
+    if (isCash && fie) {
+      cashHolder = { uid: actorData.uid, name: actorData.name };
+    } else if (isCash && cash?.receiptId) {
       cashHolder = { uid: String(cash.holderUid || ""), name: cleanText(cash.holderName, 120) };
     } else if (isCash) {
       const holderUid = String(receivedByUid || actor.decoded.uid);
@@ -3069,7 +3186,9 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
       createdAt: nowIso,
       createdBy: actorData,
       requestId: mutationId,
-      ...(cashHolder ? { receivedBy: cashHolder, cashReceiptId: cash?.receiptId || cashReceiptRef.id } : {}),
+      ...(cashHolder && !fie ? { receivedBy: cashHolder, cashReceiptId: cash?.receiptId || cashReceiptRef.id } : {}),
+      ...(cashHolder && fie ? { receivedBy: cashHolder } : {}),
+      ...(fie ? { issuer: "fie" } : {}),
       // the person confirmed „Arve on juba makstud. Kas registreerida ülemakse ettemaksuna?”
       ...(guard && amountCents > guard.balanceCents ? { overpaymentConfirmed: true } : {}),
     };
@@ -3404,6 +3523,16 @@ async function savePaymentLineAllocation({
   });
 }
 
+// „Arve väljastaja”: the company's period close, analytics and numbering see only company invoices and the lessons
+// those bill; FIE invoices and the lessons on them are the owner's own (docs/ACCOUNTING.md „FIE arved”)
+function withoutFie({ invoices = [], lessons = [] }) {
+  const fieIds = new Set(invoices.filter(issuerCore.isFieInvoice).map(invoice => String(invoice.id)));
+  return {
+    invoices: issuerCore.companyOnly(invoices),
+    lessons: lessons.filter(lesson => !fieIds.has(String(lesson.invoiceId || ""))),
+  };
+}
+
 async function previewFinancialPeriod({ month }) {
   const reviewMonth = validIsoMonth(month);
   const [invoiceSnap, paymentSnap, bankSnap, creditSnap, lessonSnap, lineAllocationSnap,
@@ -3425,12 +3554,13 @@ async function previewFinancialPeriod({ month }) {
       db.collection("financialPeriodExports").where("month", "==", reviewMonth).get(),
     ]);
   const withIds = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const companyData = withoutFie({ invoices: withIds(invoiceSnap), lessons: withIds(lessonSnap) });
   const data = {
-    invoices: withIds(invoiceSnap),
+    invoices: companyData.invoices,
     payments: withIds(paymentSnap),
     bankTransactions: withIds(bankSnap),
     payerCredits: withIds(creditSnap),
-    lessons: withIds(lessonSnap),
+    lessons: companyData.lessons,
     paymentLineAllocations: withIds(lineAllocationSnap),
     workSessions: withIds(workSessionSnap),
     expenses: withIds(expenseSnap),
@@ -3469,10 +3599,15 @@ async function previewFinancialAnalytics({ month }) {
     db.collection("studentRevenuePlans").get(),
     db.collection("financialPeriodCorrections").get(),
     db.collection("lessons").get(),
+    db.collection("studentInvoiceIssuers").where("issuer", "==", "fie").get(),
   ]);
   const records = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  const [invoices, payments, bankTransactions, refunds, expenses, workSessions,
-    revenuePlans, corrections, lessons] = snapshots.map(records);
+  const [allInvoices, payments, bankTransactions, refunds, expenses, workSessions,
+    allPlans, corrections, allLessons, fieCards] = snapshots.map(records);
+  const { invoices, lessons } = withoutFie({ invoices: allInvoices, lessons: allLessons });
+  // the forecast leaves out the cards the owner invoices through the FIE
+  const fieCardIds = new Set(fieCards.map(item => String(item.id)));
+  const revenuePlans = allPlans.filter(plan => !fieCardIds.has(String(plan.id)));
   try {
     return {
       snapshot: financialAnalyticsSnapshot({
@@ -3499,8 +3634,9 @@ async function previewInvoiceNumbering() {
     db.collection("meta").doc("invoiceCounter").get(),
   ]);
   return {
+    // the KS series only: an FIE number is never renumbered into the company's series
     plan: invoiceNumberingPlan(
-      invoiceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+      issuerCore.companyOnly(invoiceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))),
       { counterSeq: Number(counterSnap.data()?.seq) || 0 },
     ),
   };
@@ -3533,7 +3669,7 @@ async function repairInvoiceNumbering({ actor, reason, expectedFingerprint, requ
       return { repair: { id: repairSnap.id, ...repair }, idempotent: true };
     }
 
-    const invoices = invoiceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const invoices = issuerCore.companyOnly(invoiceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     const invoiceById = new Map(invoices.map(invoice => [invoice.id, invoice]));
     const plan = invoiceNumberingPlan(invoices, {
       counterSeq: Number(counterSnap.data()?.seq) || 0,
@@ -3666,13 +3802,14 @@ async function reviewFinancialPeriod({ actor, month, requestId }) {
       transaction.get(db.collection("paymentLineAllocations")),
     ]);
     const withIds = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const companyData = withoutFie({ invoices: withIds(invoiceSnap), lessons: withIds(lessonSnap) });
     const snapshot = financialPeriodReviewSnapshot({
       month: reviewMonth,
-      invoices: withIds(invoiceSnap),
+      invoices: companyData.invoices,
       payments: withIds(paymentSnap),
       bankTransactions: withIds(bankSnap),
       payerCredits: withIds(creditSnap),
-      lessons: withIds(lessonSnap),
+      lessons: companyData.lessons,
       paymentLineAllocations: withIds(lineAllocationSnap),
     });
     if (!snapshot.canReview) {
@@ -3752,14 +3889,16 @@ async function periodCloseData(transaction, month) {
     correctionSnap, exportSnap] = await Promise.all(reads);
   const withIds = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   const exports = withIds(exportSnap).sort((a, b) => String(b.generatedAt || "").localeCompare(String(a.generatedAt || "")));
+  // the accountant's export and the month close: company documents only
+  const companyData = withoutFie({ invoices: withIds(invoiceSnap), lessons: withIds(lessonSnap) });
   return {
     period: periodSnap.exists ? periodSnap.data() : {},
     data: {
-      invoices: withIds(invoiceSnap),
+      invoices: companyData.invoices,
       payments: withIds(paymentSnap),
       bankTransactions: withIds(bankSnap),
       payerCredits: withIds(creditSnap),
-      lessons: withIds(lessonSnap),
+      lessons: companyData.lessons,
       paymentLineAllocations: withIds(allocationSnap),
       workSessions: withIds(workSessionSnap),
       expenses: withIds(expenseSnap),
@@ -4006,6 +4145,7 @@ async function resetInvoicePayments({ actor, invoiceId, reason, requestId }) {
     const invoiceSnap = await transaction.get(invoiceRef);
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
     const invoice = invoiceSnap.data();
+    assertCompanyInvoice(actor, invoice, "FIE arve makseid tühistatakse ükshaaval.");
     const payments = await activeInvoicePayments(transaction, invoiceRef.id);
     const activePayments = payments.filter(payment => payment.status !== "voided");
     if (activePayments.some(payment => payment.bankTransactionId || payment.sourceCreditId)) {
@@ -4148,6 +4288,8 @@ async function allocateBankTransaction({
     const invoiceSnaps = await Promise.all(invoiceRefs.map(ref => transaction.get(ref)));
     invoiceSnaps.forEach((snap, index) => {
       if (!snap.exists) throw httpError(404, `Invoice ${sortedAllocations[index].invoiceId} not found`);
+      // the company's bank money and advances never pay an FIE invoice (owner 2026-11-09)
+      assertCompanyInvoice(actor, snap.data(), "Ettevõtte raha ei saa siduda FIE arvega — FIE arve makstakse FIE kontole.");
       if (snap.data().status === "Tühistatud") throw httpError(409, `Invoice ${sortedAllocations[index].invoiceId} is cancelled`);
     });
     const lessonRefs = sortedLessonAllocations.map(allocation =>
@@ -4451,6 +4593,8 @@ async function applyPayerCredit({ actor, creditId, allocations, lessonAllocation
     const invoiceSnaps = await Promise.all(invoiceRefs.map(ref => transaction.get(ref)));
     invoiceSnaps.forEach((snap, index) => {
       if (!snap.exists) throw httpError(404, `Invoice ${sortedAllocations[index].invoiceId} not found`);
+      // the company's bank money and advances never pay an FIE invoice (owner 2026-11-09)
+      assertCompanyInvoice(actor, snap.data(), "Ettevõtte raha ei saa siduda FIE arvega — FIE arve makstakse FIE kontole.");
       if (snap.data().status === "Tühistatud") throw httpError(409, `Invoice ${sortedAllocations[index].invoiceId} is cancelled`);
     });
     if (credit.studentId) {
@@ -4766,12 +4910,115 @@ async function voidCashEntry({ actor, entryId, reason }) {
   });
 }
 
+// ---- „Arve väljastaja” settings (owner only; docs/ACCOUNTING.md „FIE arved”) ----
+// invoiceIssuers/fie { name, iban, ownerUid } — the owner's FIE: only the name and the account (owner 2026-11-09);
+// studentInvoiceIssuers/<card> { issuer: "company" | "fie" } — the card's default (absent = company).
+async function fieSettings({ actor, save = null }) {
+  const ref = db.collection("invoiceIssuers").doc(issuerCore.FIE_SETTINGS_ID);
+  if (save) {
+    let clean;
+    try {
+      clean = issuerCore.cleanFieSettings(save);
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    const nowIso = new Date().toISOString();
+    const actorData = actorSnapshot(actor);
+    await db.runTransaction(async transaction => {
+      const before = await transaction.get(ref);
+      transaction.set(ref, { ...clean, ownerUid: actor.decoded.uid, updatedAt: nowIso, updatedBy: actorData });
+      transaction.create(db.collection("fieAudit").doc(), {
+        entityType: "invoiceIssuer", entityId: "fie", action: "fie.settings_saved",
+        before: before.exists ? { name: before.data().name || "", iban: before.data().iban || "" } : null,
+        after: clean, actor: actorData, createdAt: nowIso,
+      });
+    });
+  }
+  const [snap, cards] = await Promise.all([ref.get(), db.collection("studentInvoiceIssuers").get()]);
+  const settings = snap.exists ? snap.data() : {};
+  return {
+    settings: { name: String(settings.name || ""), iban: String(settings.iban || ""), updatedAt: String(settings.updatedAt || "") },
+    ready: issuerCore.fieReady(settings),
+    prefix: issuerCore.FIE_PREFIX,
+    students: cards.docs.map(doc => ({ studentId: doc.id, issuer: doc.data().issuer === "fie" ? "fie" : "company" })),
+  };
+}
+
+async function setStudentInvoiceIssuer({ actor, studentId, issuer }) {
+  const cleanStudentId = cleanText(studentId, 180);
+  if (!cleanStudentId) throw httpError(400, "studentId required");
+  if (!issuerCore.ISSUERS.includes(issuer)) throw httpError(400, "Arve väljastaja peab olema company või fie.");
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const ref = db.collection("studentInvoiceIssuers").doc(cleanStudentId);
+  return db.runTransaction(async transaction => {
+    const [studentSnap, context, beforeSnap] = await Promise.all([
+      transaction.get(db.collection("students").doc(cleanStudentId)),
+      invoiceIssuer.readIssuerContext(transaction, db, []),
+      transaction.get(ref),
+    ]);
+    if (!studentSnap.exists) throw httpError(404, "Student not found");
+    if (issuer === "fie") {
+      if (!context.ready) throw httpError(409, issuerCore.FIE_NOT_READY);
+      const line = invoiceIssuer.subjectLine(context, studentSnap.data(), cleanStudentId, "");
+      if (!line.ownerTeachesAny) throw httpError(409, "FIE on võimalik ainult õpilasele, keda õpetab omanik ise.");
+    }
+    const before = beforeSnap.exists && beforeSnap.data().issuer === "fie" ? "fie" : "company";
+    transaction.set(ref, { issuer, updatedAt: nowIso, updatedByUid: actor.decoded.uid });
+    transaction.create(db.collection("fieAudit").doc(), {
+      entityType: "studentInvoiceIssuer", entityId: cleanStudentId, action: "fie.student_issuer_set",
+      studentId: cleanStudentId, studentName: studentSnap.data().name || "", before, after: issuer, actor: actorData, createdAt: nowIso,
+    });
+    return { studentId: cleanStudentId, issuer };
+  });
+}
+
+// an FIE invoice's payment (fiePayments, owner only): no bank line, advance or cash box behind it, so only the payment
+// and the invoice's totals change; the audit stays owner-only (fieAudit)
+async function voidFiePayment({ actor, paymentId, reason, requestId }) {
+  if (!actorIsOwner(actor)) throw httpError(404, "Payment not found");
+  const mutationId = cleanRequestId(requestId);
+  const paymentRef = db.collection("fiePayments").doc(paymentId);
+  const auditRef = db.collection("fieAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const existingAudit = await transaction.get(auditRef);
+    if (existingAudit.exists) {
+      if (existingAudit.data().action !== "payment.voided" || existingAudit.data().paymentId !== paymentId) throw httpError(409, "requestId already used for a different financial mutation");
+      return { paymentId, idempotent: true };
+    }
+    const paymentSnap = await transaction.get(paymentRef);
+    if (!paymentSnap.exists) throw httpError(404, "Payment not found");
+    const payment = paymentSnap.data();
+    if (payment.status === "voided") throw httpError(409, "Payment is already voided");
+    const invoiceRef = db.collection("invoices").doc(String(payment.invoiceId || ""));
+    const invoiceSnap = await transaction.get(invoiceRef);
+    if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
+    const invoice = invoiceSnap.data();
+    const invoicePayments = await activeInvoicePayments(transaction, invoiceRef.id, "fie");
+    await assertFinancialDateOpen(transaction, String(payment.paidAt || payment.createdAt || nowIso).slice(0, 10));
+    const invoicePatch = invoiceFinancialPatch(invoice, invoicePayments.map(item => (item.id === paymentId ? { ...item, status: "voided" } : item)), nowIso);
+    transaction.set(paymentRef, { status: "voided", voidedAt: nowIso, voidedBy: actorData, voidReason: reason, voidRequestId: mutationId }, { merge: true });
+    transaction.set(invoiceRef, { ...invoicePatch, ...(invoicePatch.paidAt ? {} : { paidAt: FieldValue.delete() }) }, { merge: true });
+    transaction.create(auditRef, {
+      entityType: "payment", entityId: paymentId, paymentId, invoiceId: invoiceRef.id, invoiceNum: invoice.num || "",
+      action: "payment.voided", amountCents: Number(payment.amountCents) || 0, actor: actorData, reason, createdAt: nowIso, requestId: mutationId,
+    });
+    return { payment: { id: paymentId, ...payment, status: "voided" }, invoice: { id: invoiceRef.id, ...invoice, ...invoicePatch }, idempotent: false };
+  });
+}
+
 async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanPaymentId = String(paymentId || "").trim();
   if (!cleanPaymentId) throw httpError(400, "paymentId required");
   const cleanReason = cleanText(reason);
   if (!cleanReason) throw httpError(400, "Reason required");
+  if (!(await db.collection("payments").doc(cleanPaymentId).get()).exists
+    && (await db.collection("fiePayments").doc(cleanPaymentId).get()).exists) {
+    return voidFiePayment({ actor, paymentId: cleanPaymentId, reason: cleanReason, requestId: mutationId });
+  }
   const paymentRef = db.collection("payments").doc(cleanPaymentId);
   const auditRef = db.collection("financialAudit").doc(mutationId);
   const nowIso = new Date().toISOString();
@@ -5184,10 +5431,7 @@ function parseAddress(address) {
   return { name: match[1].replace(/^"|"$/g, "").trim(), email: match[2].trim() };
 }
 
-function firstEmail(...values) {
-  const flat = values.flat().map(value => String(value || "").trim()).filter(Boolean);
-  return flat.find(value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) || "";
-}
+const firstEmail = invoicePayer.firstEmail;
 
 async function loadInvoice(invoiceId) {
   if (!invoiceId) throw httpError(400, "invoiceId required");
@@ -5211,17 +5455,9 @@ async function loadInvoiceStudent(invoice) {
   return snap.exists ? { id: snap.id, ...snap.data() } : null;
 }
 
+// the invoice's own snapshot first, then the card by the same resolution a new invoice stores (invoice-payer-core)
 function invoiceRecipient(invoice, student) {
-  return firstEmail(
-    invoice.email,
-    invoice.parentEmail,
-    invoice.payerEmail,
-    student?.payerEmail,
-    student?.parentEmail,
-    student?.contactEmail,
-    student?.guardianEmail,
-    student?.email,
-  );
+  return invoicePayer.invoiceRecipient(invoice, student);
 }
 
 // the parent account linked to the invoice or the student card (Lapsevanemad), when no e-mail is on the card
@@ -5246,7 +5482,16 @@ function invoicePartyLabel(invoice, student) {
   return invoice.studentName || student?.name || "õpilane";
 }
 
+// who is paid: the company, or for an FIE invoice the owner's FIE as stored on the invoice (name + IBAN only)
+function invoicePayee(invoice = {}) {
+  if (!issuerCore.isFieInvoice(invoice)) return { company: PAYMENT_DETAILS.company, iban: PAYMENT_DETAILS.iban, bank: PAYMENT_DETAILS.bank, swift: PAYMENT_DETAILS.swift };
+  const details = invoice.issuerDetails || {};
+  return { company: String(details.name || ""), iban: issuerCore.formatIban(details.iban), bank: "", swift: "" };
+}
+
 function composeInvoiceEmail(invoice, student, type = "invoice", payUrl = "") {
+  const payee = invoicePayee(invoice);
+  if (issuerCore.isFieInvoice(invoice)) payUrl = "";
   const due = invoice.due || invoiceDueDate();
   const reference = invoice.paymentReference || invoice.num || "";
   const partyKind = invoiceIsParentTarget(invoice) ? "Lapsevanem" : "Õpilane";
@@ -5284,10 +5529,10 @@ function composeInvoiceEmail(invoice, student, type = "invoice", payUrl = "") {
     `Tähtaeg: ${formatEtDate(due)}`,
     `Makse selgitus: ${reference}`,
     "",
-    `Saaja: ${PAYMENT_DETAILS.company}`,
-    `IBAN: ${PAYMENT_DETAILS.iban}`,
-    `Pank: ${PAYMENT_DETAILS.bank}`,
-    `SWIFT: ${PAYMENT_DETAILS.swift}`,
+    `Saaja: ${payee.company}`,
+    `IBAN: ${payee.iban}`,
+    payee.bank ? `Pank: ${payee.bank}` : "",
+    payee.swift ? `SWIFT: ${payee.swift}` : "",
     "",
     ...(payUrl ? [`Maksa kaardi või pangalingiga: ${payUrl}`, ""] : []),
     "Aitäh!",
@@ -5315,9 +5560,9 @@ function composeInvoiceEmail(invoice, student, type = "invoice", payUrl = "") {
       </table>
       ${payUrl ? `<p style="margin:0 0 16px"><a href="${escapeHtml(payUrl)}" style="display:inline-block;padding:12px 22px;background:#0f766e;color:#fff;border-radius:10px;text-decoration:none;font-weight:700">Maksa arve</a> <span style="color:#667085">kaardi või pangalingiga</span></p>` : ""}
       <div style="padding:14px 16px;background:#F9F8F6;border:1px solid #e5e7eb;border-radius:10px">
-        <strong>${escapeHtml(PAYMENT_DETAILS.company)}</strong><br>
-        IBAN: ${escapeHtml(PAYMENT_DETAILS.iban)}<br>
-        ${escapeHtml(PAYMENT_DETAILS.bank)} · SWIFT: ${escapeHtml(PAYMENT_DETAILS.swift)}
+        <strong>${escapeHtml(payee.company)}</strong><br>
+        IBAN: ${escapeHtml(payee.iban)}${payee.bank ? `<br>
+        ${escapeHtml(payee.bank)} · SWIFT: ${escapeHtml(payee.swift)}` : ""}
       </div>
       <p style="margin-top:18px"><a href="${escapeHtml(APP_BASE_URL)}" style="display:inline-block;background:#2F5D50;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:700">Ava KeeleSepp kabinet</a></p>
       <p style="font-size:12px;color:#64748b">Kui makse on juba tehtud, võib seda kirja ignoreerida.</p>
@@ -5378,7 +5623,9 @@ async function deliverEmail(message, context = {}) {
   if (attachmentBytes > 600000) {
     throw httpError(413, "Email attachments are too large for the delivery queue");
   }
-  const ref = db.collection("emailQueue").doc();
+  // an FIE invoice's e-mail (PDF, amounts) is logged in the owner-only fieEmailQueue, never in emailQueue that the
+  // administrators and the bookkeeper read
+  const ref = db.collection(issuerCore.collectionFor("emailQueue", context.issuer === "fie" ? "fie" : "company")).doc();
   const queueBase = {
     ...context,
     to: message.to,
@@ -5494,6 +5741,7 @@ async function deliverEmail(message, context = {}) {
 
 async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } = {}) {
   const invoice = await loadInvoice(invoiceId);
+  if (actor) assertInvoiceVisible(actor, invoice);
   if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot be sent");
   if (type !== "invoice" && invoice.status === "Makstud") {
     throw httpError(400, "Invoice is already paid");
@@ -5531,6 +5779,7 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
       parentEmail: invoice.parentEmail || invoice.payerEmail || "",
       createdByUid: actor?.decoded?.uid || "system",
       createdByEmail: actor?.decoded?.email || "system",
+      ...(issuerCore.isFieInvoice(invoice) ? { issuer: "fie" } : {}),
     });
   } catch (e) {
     await invoice.ref.update({
@@ -5677,8 +5926,9 @@ async function settleLinkpayPayment({ paymentReference, orderReference }) {
   return { status, invoiceNum: invoice.num || attempt.invoiceNum || "", invoiceStatus: invoice.status || "", balanceCents: linkpay.openBalanceCents(invoice) };
 }
 
-async function invoicePdf(invoiceId) {
+async function invoicePdf(invoiceId, actor = null) {
   const invoice = await loadInvoice(invoiceId);
+  if (actor) assertInvoiceVisible(actor, invoice);
   if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice has no active PDF");
   const student = await loadInvoiceStudent(invoice);
   const payUrl = await invoicePayUrl(invoice.ref, invoice).catch(() => "");
@@ -5794,26 +6044,15 @@ function shouldSendOverdueReminder(invoice, todayIso, force = false) {
 async function sendInvoiceBatch({ type, force = false, actor = null } = {}) {
   const todayIso = localDate(new Date(), APP_TIME_ZONE);
   const snap = await db.collection("invoices").where("status", "==", "Ootel").get();
-  const result = { sent: 0, queued: 0, skipped: 0, failed: 0, errors: [] };
-  for (const doc of snap.docs) {
-    const invoice = { id: doc.id, ...doc.data() };
-    const shouldSend = type === "due10"
+  // a lesson-package invoice is never e-mailed by a batch (Oleksiy 2026-11-06): invoice-reminder-batch-core.js
+  return runInvoiceReminderBatch({
+    // the scheduled run (no actor) and the owner also remind FIE invoices; another administrator only company ones
+    invoices: (actor && !actorIsOwner(actor) ? issuerCore.companyOnly : (list) => list)(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))),
+    shouldSend: (invoice) => (type === "due10"
       ? shouldSendDue10Reminder(invoice, todayIso, force)
-      : shouldSendOverdueReminder(invoice, todayIso, force);
-    if (!shouldSend) {
-      result.skipped++;
-      continue;
-    }
-    try {
-      const delivery = await sendInvoiceMessage(doc.id, { type, actor });
-      if (delivery.status === "sent") result.sent++;
-      else result.queued++;
-    } catch (e) {
-      result.failed++;
-      result.errors.push({ invoiceId: doc.id, error: e.message || String(e) });
-    }
-  }
-  return result;
+      : shouldSendOverdueReminder(invoice, todayIso, force)),
+    send: (invoiceId) => sendInvoiceMessage(invoiceId, { type, actor }),
+  });
 }
 
 function formatInTimeZone(date, timeZone, fields) {
@@ -6384,7 +6623,8 @@ async function refreshOperationalAlerts({ actor = null } = {}) {
   ]);
   const mapDocs = snap => snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   const alerts = buildOperationalAlerts({
-    invoices: mapDocs(invoiceSnap),
+    // the bell is read by every administrator: FIE invoices stay the owner's own
+    invoices: issuerCore.companyOnly(mapDocs(invoiceSnap)),
     tasks: mapDocs(taskSnap),
     workSessions: mapDocs(sessionSnap),
     users: mapDocs(userSnap),
@@ -7000,6 +7240,7 @@ const LINK_REVIEW_REASONS = {
   parent_email_other_child_name: "Vanema e-postiga on teise nimega lapse kaart",
   email_on_child_card: "Sama e-post on lapse kaardil: kas see on lapsevanema konto? Siis seo lapsevanemana",
   possible_existing_card: "Sarnane kaart on juba olemas (ka mitteaktiivne): kas see on sama inimene?",
+  possible_existing_card_created: "Uus konto võib kuuluda olemasolevale kaardile: uus kaart on loodud, ava ühendamine, kui see on sama inimene",
 };
 
 // Administrator: registrations the automatic linking did not decide (possible duplicates). Shown in „Uued kontod”.
@@ -7009,7 +7250,16 @@ async function listAccountLinkReviews() {
   const uids = [...new Set(reviews.map(review => review.uid).filter(Boolean))];
   const profiles = new Map((await Promise.all(uids.map(uid => db.collection("users").doc(uid).get())))
     .filter(doc => doc.exists).map(doc => [doc.id, doc.data()]));
-  return reviews.map(review => {
+  // a notice about a created card that was merged away or removed meanwhile (merged in „Õpilased”) is no longer shown
+  const createdIds = [...new Set(reviews.map(review => review.createdStudentId).filter(Boolean))];
+  const createdCards = new Map((await Promise.all(createdIds.map(id => db.collection("students").doc(id).get())))
+    .map(doc => [doc.id, doc.exists ? doc.data() : null]));
+  const settled = review => {
+    if (!review.createdStudentId) return false;
+    const card = createdCards.get(review.createdStudentId);
+    return !card || Boolean(card.mergedIntoStudentId || card.mergedInto || card.deletedAt || card.purgedAt);
+  };
+  return reviews.filter(review => !settled(review)).map(review => {
     const profile = profiles.get(review.uid) || {};
     return {
       id: review.id,
@@ -7022,6 +7272,8 @@ async function listAccountLinkReviews() {
       reason: review.reason || "",
       reasonText: LINK_REVIEW_REASONS[review.reason] || review.reason || "",
       candidates: Array.isArray(review.candidates) ? review.candidates : [],
+      createdStudentId: review.createdStudentId || "",
+      createdStudentName: review.createdStudentName || "",
       detectedAt: review.lastDetectedAt || review.firstDetectedAt || "",
     };
   }).sort((a, b) => String(b.detectedAt).localeCompare(String(a.detectedAt)));
@@ -7103,6 +7355,7 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   const emailVerified = decoded.email_verified === true;
   const displayName = cleanText(profile.displayName || decoded.name || email || "Õpilane", 180);
   const childNames = accountChildNames(profile.childName);
+  const phone = cleanText(profile.phone || "", 40);
   const [studentSnap, accountReviewSnap] = await Promise.all([
     db.collection("students").get(),
     db.collection("accountLinkReviews").where("uid", "==", uid).get(),
@@ -7111,8 +7364,8 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   const existingReviews = new Map(accountReviewSnap.docs.map(doc => [doc.id, doc.data()]));
   const { name: preferredTeacher, uid: teacherUid } = accountCardTeacher(profile);
   const plans = [];
-  if (shouldBootstrapStudent) plans.push({ relationship: "student", ...planStudentAccountBootstrap({ uid, email, emailVerified, displayName, students }) });
-  if (isParent) planParentChildBootstrap({ uid, email, emailVerified, childNames, students, decidedChildNames: decidedReviewChildNames([...existingReviews.values()]) }).forEach(plan => plans.push({ relationship: "parent", ...plan }));
+  if (shouldBootstrapStudent) plans.push({ relationship: "student", ...planStudentAccountBootstrap({ uid, email, emailVerified, displayName, phone, students }) });
+  if (isParent) planParentChildBootstrap({ uid, email, emailVerified, displayName, phone, childNames, students, decidedChildNames: decidedReviewChildNames([...existingReviews.values()]) }).forEach(plan => plans.push({ relationship: "parent", ...plan }));
 
   const fingerprint = accountBootstrapKey(uid, [...roles].sort().join(","), childNames.map(name => name.toLowerCase()).sort().join("|"), email, includeSelfStudent ? "self" : "family");
   const auditRef = db.collection("activityLog").doc(`account-bootstrap-${fingerprint}`);
@@ -7120,6 +7373,8 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   const linkedStudentIds = [];
   const createdStudentIds = [];
   const reviews = [];
+  // created cards that may belong to an existing card: the administrator's notice, not a block (2026-11-09)
+  const notices = [];
   const batch = db.batch();
 
   plans.forEach(plan => {
@@ -7150,11 +7405,26 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
         ? `self_${uid}`
         : `parent_${uid}_${accountBootstrapKey(plan.childName || plan.student?.name).slice(0, 12)}`;
       const student = plan.student || {};
-      batch.set(db.collection("students").doc(studentId), bootstrapStudentCardData({
-        relationship: plan.relationship, uid, email, displayName, student, childName: plan.childName,
-        isParent, preferredTeacher, teacherUid, source: plan.source, nowIso,
-      }), { merge: true });
+      const notice = possibleExistingNotice(plan, studentId);
+      batch.set(db.collection("students").doc(studentId), {
+        ...bootstrapStudentCardData({
+          relationship: plan.relationship, uid, email, displayName, student, childName: plan.childName,
+          isParent, preferredTeacher, teacherUid, source: plan.source, nowIso,
+        }),
+        // read by „Võimalikud topeltkaardid” (duplicateCandidates.js) and the „Vajab otsust” notice
+        ...(notice ? { possibleExistingCardIds: notice.candidateStudentIds, possibleExistingCheckedAt: nowIso } : {}),
+      }, { merge: true });
       createdStudentIds.push(studentId);
+      if (notice) {
+        const reviewId = accountBootstrapKey(uid, notice.relationship, notice.childName, notice.reason);
+        if (!existingReviews.get(reviewId)?.resolvedBy) {
+          notices.push({ id: reviewId, studentId, candidateCount: notice.candidates.length });
+          batch.set(db.collection("accountLinkReviews").doc(reviewId), {
+            uid, email, displayName, ...notice, status: "pending",
+            firstDetectedAt: nowIso, lastDetectedAt: nowIso, updatedAt: nowIso,
+          }, { merge: true });
+        }
+      }
     } else if (plan.status === "link") {
       batch.set(db.collection("students").doc(studentId), plan.relationship === "student" ? {
         linkedUserId: uid,
@@ -7195,6 +7465,7 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
     linkedStudentIds: uniqueStudentIds,
     createdStudentIds,
     reviewIds: reviews.map(review => review.id),
+    possibleExistingNoticeIds: notices.map(notice => notice.id),
     createdAt: nowIso,
     fingerprint,
   }, { merge: false });
@@ -7207,7 +7478,7 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   let resolvedReviewCount = 0;
   pendingReviewSnap.docs.forEach(doc => {
     const review = doc.data();
-    if (review.status !== "pending") return;
+    if (review.status !== "pending" || !reviewClosedByBootstrap(review)) return;
     const candidateMatch = (review.candidateStudentIds || []).some(id => linkedIds.has(id));
     const studentLinked = review.relationship === "student" && linkedPlans.some(plan => plan.relationship === "student");
     const parentNameLinked = review.relationship === "parent" && linkedPlans.some(plan =>
@@ -7229,6 +7500,8 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
     linkedStudentIds: uniqueStudentIds,
     createdStudentIds,
     reviews,
+    // only a count: the candidate cards (other people's names) are for the administrator, never in this response
+    possibleExistingCount: notices.length,
     resolvedReviewCount,
   };
 }
@@ -7247,8 +7520,9 @@ async function previewDataQuality() {
   ]);
   const records = snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   const students = records(studentSnap);
+  // „Andmete kvaliteet” is shared by the administrators: FIE invoices stay the owner's own
   const lessons = records(lessonSnap);
-  const invoices = records(invoiceSnap);
+  const invoices = issuerCore.companyOnly(records(invoiceSnap));
   const groups = records(groupSnap);
   const userProfileRecords = records(userSnap);
   const userProfiles = new Map(userProfileRecords.map(profile => [profile.id, profile]));
@@ -7481,7 +7755,10 @@ async function relinkDataQualityRecord({ actor, entityType, entityId, studentId,
     ]);
     if (existingAudit.exists) return { idempotent: true, entityId: cleanEntityId, studentId: cleanStudentId };
     if (!entitySnap.exists) throw httpError(404, "Record not found");
-    if (!studentSnap.exists || studentSnap.data().active === false) throw httpError(404, "Active student profile not found");
+    // a parent may be linked to an archived card, never to one in the trash or merged away; a student's own login
+    // only to an active card (parent-invite-core.js linkCardRefusal, Oleksiy 2026-11-06)
+    const refusal = require("./parent-invite-core").linkCardRefusal(studentSnap.exists ? { id: studentSnap.id, ...studentSnap.data() } : null, cleanRelationship);
+    if (refusal) throw httpError(refusal.status, refusal.message);
     const entity = entitySnap.data();
     if (type === "lesson" && entity.date) await assertFinancialDateOpen(transaction, entity.date);
     if (type === "invoice" && entity.date) await assertFinancialDateOpen(transaction, entity.date);
@@ -7526,6 +7803,7 @@ async function correctInvoiceDueDate({ actor, invoiceId, due, reason, requestId 
     if (auditSnap.exists) return { invoice: { id: invoiceSnap.id, ...invoiceSnap.data() }, idempotent: true };
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
     const invoice = invoiceSnap.data();
+    assertInvoiceVisible(actor, invoice);
     if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot be corrected");
     await assertFinancialDateOpen(transaction, invoice.date || cleanDue);
     if (invoice.date && cleanDue < invoice.date) throw httpError(400, "Due date cannot be before invoice date");
@@ -7538,7 +7816,7 @@ async function correctInvoiceDueDate({ actor, invoiceId, due, reason, requestId 
       requestId: mutationId,
     }].slice(-20);
     transaction.update(invoiceRef, { due: cleanDue, dueDateHistory: history, updatedAt: nowIso });
-    transaction.create(auditRef, {
+    transaction.create(issuerCore.isFieInvoice(invoice) ? db.collection("fieAudit").doc(mutationId) : auditRef, {
       entityType: "invoice",
       entityId: cleanInvoiceId,
       action: "invoice.due_date_corrected",
@@ -7573,7 +7851,10 @@ async function linkAccountToStudent({ actor, uid, studentId, relationship, reque
       transaction.get(auditRef), transaction.get(studentRef), transaction.get(userRef),
     ]);
     if (auditSnap.exists) return { uid: cleanUid, studentId: cleanStudentId, relationship: cleanRelationship, idempotent: true };
-    if (!studentSnap.exists || studentSnap.data().active === false) throw httpError(404, "Active student profile not found");
+    // a parent may be linked to an archived card, never to one in the trash or merged away; a student's own login
+    // only to an active card (parent-invite-core.js linkCardRefusal, Oleksiy 2026-11-06)
+    const refusal = require("./parent-invite-core").linkCardRefusal(studentSnap.exists ? { id: studentSnap.id, ...studentSnap.data() } : null, cleanRelationship);
+    if (refusal) throw httpError(refusal.status, refusal.message);
     const student = studentSnap.data();
     const profile = userSnap.exists ? userSnap.data() : {};
     const existingRole = String(profile.role || "").toLowerCase();
@@ -8172,6 +8453,51 @@ async function inviteStudentAccount({ actor, studentId, email, requestId }) {
   return { uid, studentId: cleanStudentId, email: cleanEmail, created: plan.action === "create", mailed: mail.status === "sent", mailStatus: mail.status || "", link };
 }
 
+// „Saada parooli link” on the parent's card (Lapsevanemad, 2026-11-04): the same route as the student card
+// (/accounts/invite, body { parentUid }), the same e-mail and the same audit entry. Only a parent account, only to
+// that account's own login e-mail (functions/parent-account-core.js); nothing is created or linked.
+async function sendParentPasswordLink({ actor, parentUid }) {
+  const { parentPasswordLinkPlan } = require("./parent-account-core");
+  const { composeInviteEmail, CRM_URL } = require("./student-invite-core");
+  const cleanUid = cleanText(parentUid, 180);
+  if (!cleanUid) throw httpError(400, "Lapsevanema konto puudub.");
+  let authUser = null;
+  try { authUser = await admin.auth().getUser(cleanUid); } catch (error) { authUser = null; }
+  const profile = authUser ? ((await db.collection("users").doc(cleanUid).get()).data() || {}) : {};
+  let plan;
+  try { plan = parentPasswordLinkPlan({ authUser, profile, superAdminEmails: SUPER_ADMIN_EMAILS }); } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
+  const cardDocs = new Map();
+  (await Promise.all([
+    db.collection("students").where("parentUid", "==", plan.uid).get(),
+    db.collection("students").where("linkedParentId", "==", plan.uid).get(),
+    db.collection("students").where("linkedParentIds", "array-contains", plan.uid).get(),
+  ])).forEach((snap) => snap.docs.forEach((doc) => cardDocs.set(doc.id, doc.data())));
+  const children = [...new Set([...cardDocs.values()].filter(card => card.active !== false && !card.mergedInto).map(card => cleanText(card.name, 160)).filter(Boolean))];
+  const link = await admin.auth().generatePasswordResetLink(plan.email, { url: `${CRM_URL}/login` });
+  let timer;
+  const limit = new Promise((resolve) => { timer = setTimeout(() => resolve({ status: "timeout" }), APPROVAL_MAIL_LIMIT_MS); });
+  const mail = await Promise.race([
+    deliverEmail(composeInviteEmail({ name: plan.name, email: plan.email, link, resend: true, children }), { kind: "parent-invite", uid: plan.uid })
+      .catch((error) => { console.error("parent password e-mail failed", plan.uid, error); return { status: "failed" }; }),
+    limit,
+  ]).finally(() => clearTimeout(timer));
+  await db.collection("activityLog").add({
+    action: "account_password_link", targetUid: plan.uid, relationship: "parent", displayName: plan.name,
+    email: plan.email, mail: mail.status || "", actor: actorSnapshot(actor), createdAt: FieldValue.serverTimestamp(),
+  });
+  return { uid: plan.uid, email: plan.email, created: false, mailed: mail.status === "sent", mailStatus: mail.status || "", link };
+}
+
+// The parent's „Konto” block: sign-in facts that are only in Firebase Auth (read-only, admin only, ≤ 10 accounts).
+async function accountAuthInfo({ uids }) {
+  const { authInfoUids, authInfoOf } = require("./parent-account-core");
+  let clean;
+  try { clean = authInfoUids(uids); } catch (error) { throw httpError(error.status, error.message); }
+  const result = await admin.auth().getUsers(clean.map(uid => ({ uid })));
+  const byUid = new Map((result.users || []).map(user => [user.uid, authInfoOf(user)]));
+  return { accounts: clean.map(uid => byUid.get(uid) || { uid, found: false }) };
+}
+
 // „Lisa lapsevanem” (owner 2026-10-15): a parent's login without a password, linked to the children's cards, and an
 // e-mail with the password link (functions/parent-invite-core.js). An e-mail that already has a parent login links
 // that login to the cards and sends a new password link; staff logins and a child's own login are refused.
@@ -8281,6 +8607,8 @@ async function convertParentToStudent({ actor, uid, studentId, requestId }) {
 exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120, memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  // „Süsteemi olek” (systemHealthTick): the function is deployed and starts; reads nothing, needs no sign-in
+  if (req.method === "GET" && req.path === "/health") { res.set("Cache-Control", "no-store"); res.status(200).json({ ok: true }); return; }
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST required" });
     return;
@@ -8600,8 +8928,16 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       res.json(await updateParentProfile({ actor, uid: req.body?.uid, displayName: req.body?.displayName, email: req.body?.email, phone: req.body?.phone, applyToCards: req.body?.applyToCards !== false }));
       return;
     }
+    if (req.path === "/accounts/auth-info") {
+      res.set("Cache-Control", "no-store");
+      res.json(await accountAuthInfo({ uids: req.body?.uids }));
+      return;
+    }
     if (req.path === "/accounts/invite") {
-      const result = await inviteStudentAccount({ actor, studentId: req.body?.studentId, email: req.body?.email, requestId: req.body?.requestId });
+      // the parent's card sends { parentUid }: a new password link to that parent account's own e-mail
+      const result = req.body?.parentUid
+        ? await sendParentPasswordLink({ actor, parentUid: req.body.parentUid })
+        : await inviteStudentAccount({ actor, studentId: req.body?.studentId, email: req.body?.email, requestId: req.body?.requestId });
       res.status(result.created ? 201 : 200).json(result);
       return;
     }
@@ -8632,11 +8968,13 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
     // „Prügikast” (administrator 2026-11-03, functions/card-trash.js, ARCHITECTURE.md „Card trash”): a student or teacher
     // card goes to the trash for 7 days (refused while it has lessons ahead), „Taasta” brings it back; the scheduled
     // purgeCardTrash deletes or anonymises it afterwards. /cards/purge-due runs that purge now (same rules).
-    if (req.path === "/cards/trash" || req.path === "/cards/restore" || req.path === "/cards/purge-due") {
+    // /cards/trash-preview (2026-11-06) only reads: blockers, lessons / groups to move first, linked records, outcome.
+    if (req.path === "/cards/trash" || req.path === "/cards/trash-preview" || req.path === "/cards/restore" || req.path === "/cards/purge-due") {
       const cardTrash = require("./card-trash");
       res.set("Cache-Control", "no-store");
       try {
-        if (req.path === "/cards/trash") res.json(await cardTrash.trashCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
+        if (req.path === "/cards/trash-preview") res.json(await cardTrash.previewTrash(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
+        else if (req.path === "/cards/trash") res.json(await cardTrash.trashCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor) }));
         else if (req.path === "/cards/restore") res.json(await cardTrash.restoreCard(db, { kind: cleanText(req.body?.kind, 20), id: cleanText(req.body?.id, 180), actor: actorSnapshot(actor), FieldValue }));
         else res.json(await cardTrash.purgeDueCards(db, { FieldValue }));
       } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
@@ -8649,8 +8987,26 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
           FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), keepName: cleanText(req.body?.keepName, 200), actor: actorSnapshot(actor), ...(typeof req.body?.keepActive === "boolean" ? { keepActive: req.body.keepActive } : {}),
           // everything moves (owner 2026-10-24); finance / schedule can still be left out explicitly
           apply: req.body?.apply === true, confirmed: req.body?.confirmed === true, includeFinance: req.body?.includeFinance !== false, includeSchedule: req.body?.includeSchedule !== false,
+          // „Kinnitan, et see on sama laps” (2026-11-09): required when the preview lists differentPerson signals
+          confirmedDifferences: req.body?.confirmedDifferences === true,
         }));
       } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
+      return;
+    }
+    // „Võta ühendamine tagasi” (2026-11-09, functions/student-merge.js unmergeStudentCards): preview, then apply with
+    // confirmed: true; reverses a merge from its record, deletes nothing. Administrators only (requireAdminUser above).
+    if (req.path === "/students/unmerge-cards") {
+      const { unmergeStudentCards } = require("./student-merge");
+      res.set("Cache-Control", "no-store");
+      try {
+        res.json(await unmergeStudentCards(db, {
+          FieldValue, sourceId: cleanText(req.body?.sourceId, 180), keepId: cleanText(req.body?.keepId, 180), actor: actorSnapshot(actor),
+          apply: req.body?.apply === true, confirmed: req.body?.confirmed === true,
+        }));
+      } catch (error) {
+        if (!error.status) throw error;
+        res.status(error.status).json({ error: error.message, ...(error.code ? { code: error.code } : {}) });
+      }
       return;
     }
     if (req.path === "/accounts/reviews") {
@@ -8712,7 +9068,7 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       const mailed = sendApprovalEmail
         ? await deliverApprovalEmailWithin(composeApprovedEmail(profile), { kind: "account-approved", uid: targetUid })
         : false;
-      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], reviewCount: linked?.reviews?.length || 0, mailed, mailPending: false });
+      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], reviewCount: linked?.reviews?.length || 0, possibleExistingCount: linked?.possibleExistingCount || 0, mailed, mailPending: false });
       return;
     }
     if (req.path === "/accounts/bootstrap-admin") {
@@ -8925,7 +9281,8 @@ exports.invoiceApi = functions
 
   try {
     if (path === "/pdf") {
-      await requireAdminUser(req);
+      // the administrator, or (owner 2026-11-09) the parent / student who owns the invoice — the same PDF as e-mailed
+      await requireInvoiceDocumentReader(req, req.body?.invoiceId);
       const result = await invoicePdf(req.body?.invoiceId);
       res.json({
         invoiceId: result.invoice.id,
@@ -9119,7 +9476,9 @@ function bankStatement() {
 
 async function accountingSources() {
   const snaps = await Promise.all(accountingSourceCollections.map(name => db.collection(name).get()));
-  return Object.fromEntries(accountingSourceCollections.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
+  const sources = Object.fromEntries(accountingSourceCollections.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
+  // FIE invoices are the owner's own, never the company's books (their payments live in fiePayments)
+  return { ...sources, invoices: issuerCore.companyOnly(sources.invoices) };
 }
 
 // read-only: what the bank rule would not have booked among the existing automatic entries (migration of Jan–Oct 2026)
@@ -9555,6 +9914,7 @@ async function excludeInvoiceFromAccounting({ actor, invoiceId, reason, requestI
     if (auditSnap.exists) return { invoiceId: invoiceRef.id, ...auditSnap.data().result, idempotent: true };
     if (!invoiceSnap.exists) throw httpError(404, "Arvet ei leitud.");
     const invoice = { id: invoiceSnap.id, ...invoiceSnap.data() };
+    assertCompanyInvoice(actor, invoice, "FIE arve ei ole kunagi ettevõtte raamatupidamises.");
     const [paymentSnap, noteSnap] = await Promise.all([
       transaction.get(db.collection("payments").where("invoiceId", "==", invoice.id)),
       transaction.get(db.collection("creditNotes").where("invoiceId", "==", invoice.id)),
@@ -9608,6 +9968,7 @@ async function includeInvoiceInAccounting({ actor, invoiceId, reason, requestId 
     if (auditSnap.exists) return { invoiceId: invoiceRef.id, ...auditSnap.data().result, idempotent: true };
     if (!invoiceSnap.exists) throw httpError(404, "Arvet ei leitud.");
     const invoice = { id: invoiceSnap.id, ...invoiceSnap.data() };
+    assertCompanyInvoice(actor, invoice, "FIE arve ei ole kunagi ettevõtte raamatupidamises.");
     if (invoice.accountingExcluded !== true) throw httpError(409, "Arve ei ole raamatupidamisest väljas.");
     const entrySnap = await transaction.get(db.collection("accountingEntries").where("excludedInvoiceId", "==", invoice.id));
     const entries = entrySnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -9970,6 +10331,8 @@ async function inf3Report({ year }) {
   const names = ["invoices", "payments", "payerCredits", "refunds", "bankTransactions", "taxIdentities", "taxPayers", "students"];
   const snaps = await Promise.all(names.map(name => db.collection(name).get()));
   const data = Object.fromEntries(names.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
+  // the company's INF 3: FIE invoices (the owner's own sole proprietorship) are not the company's training fees
+  data.invoices = issuerCore.companyOnly(data.invoices);
   const report = inf3Core.inf3Rows({ year: y, ...data, identities: data.taxIdentities, payers: data.taxPayers, students: data.students.map(s => ({ id: s.id, name: s.name, parentName: s.parentName, payerRegCode: s.payerRegCode, linkedParentId: s.linkedParentId, parentUid: s.parentUid, guardianUid: s.guardianUid, linkedParentIds: s.linkedParentIds, parentEmail: s.parentEmail })) });
   let xml = "";
   if (report.rows.some(row => row.ready)) xml = inf3Core.inf3Xml({ regCode: PAYMENT_DETAILS.regCode, year: y, rows: report.rows });
@@ -10245,6 +10608,8 @@ async function attachExpenseDocument({ actor, expenseId, document, requestId }) 
 exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  // „Süsteemi olek” (systemHealthTick): the function is deployed and starts; reads nothing, needs no sign-in
+  if (req.method === "GET" && req.path === "/health") { res.set("Cache-Control", "no-store"); res.status(200).json({ ok: true }); return; }
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST required" });
     return;
@@ -10306,6 +10671,18 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
       return;
     }
     const actor = await requireAdminUser(req);
+    // „Arve väljastaja”: the FIE is the owner's own — another administrator gets the same 404 as an unknown route
+    if (req.path.startsWith("/fie/")) {
+      if (!actorIsOwner(actor)) throw httpError(404, "Not found");
+      if (req.path === "/fie/settings") {
+        res.json(await fieSettings({ actor, save: req.body?.save || null }));
+      } else if (req.path === "/fie/student-issuer") {
+        res.json(await setStudentInvoiceIssuer({ actor, studentId: req.body?.studentId, issuer: req.body?.issuer }));
+      } else {
+        throw httpError(404, "Not found");
+      }
+      return;
+    }
     if (req.path === "/students/price-privacy/preview" || req.path === "/students/price-privacy/apply") {
       res.json(await studentPricePrivacy({ actor, apply: req.path.endsWith("/apply") }));
       return;
@@ -10553,6 +10930,7 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
         description: req.body?.description,
         paymentReference: req.body?.paymentReference,
         requestId: req.body?.requestId,
+        issuer: req.body?.issuer,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
@@ -12087,15 +12465,24 @@ exports.notifyHomeworkCreated = functions
 const TARTUNLP_URL = process.env.TARTUNLP_URL || "https://api.tartunlp.ai/translation/v2";
 const EKILEX_URL = (process.env.EKILEX_URL || "https://ekilex.ee/api/").replace(/\/?$/, "/");
 const LANGUAGE_TIMEOUT_MS = 8000;
+// A caller with a time budget (the own-word card) runs its upstream calls inside `languageBudget.run({ until, trace })`:
+// each call then stops at `until` (never later than LANGUAGE_TIMEOUT_MS) and a failure is counted in `trace.failed`, so
+// an answer built over a failed call is not cached as if it were complete.
+const { AsyncLocalStorage } = require("node:async_hooks");
+const languageBudget = new AsyncLocalStorage();
 
 async function fetchJsonWithin(url, options = {}) {
+  const budget = languageBudget.getStore();
+  const left = budget?.until ? budget.until - Date.now() : LANGUAGE_TIMEOUT_MS;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), LANGUAGE_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), Math.max(1, Math.min(LANGUAGE_TIMEOUT_MS, left)));
   try {
+    if (left <= 0) throw Object.assign(new Error("No time left"), { name: "AbortError" });
     const response = await fetch(url, { ...options, signal: controller.signal });
     if (!response.ok) throw httpError(502, `Language service answered ${response.status}`);
     return await response.json();
   } catch (error) {
+    if (budget?.trace) budget.trace.failed += 1;
     if (error.status) throw error;
     throw httpError(502, error.name === "AbortError" ? "Language service did not answer in time" : "Language service unavailable");
   } finally {
@@ -12214,6 +12601,200 @@ async function studentWordLookup({ decoded, studentId = "", word = "", tgt = "ru
   return { ...result, saved: true, wordId: ref.id };
 }
 
+// ── „Lisa oma sõna” (owner 2026-11-04): the student types a word or a short phrase; the server checks the spelling,
+// gives the base form and a translation. Nothing is saved here: the student edits everything and saves it himself.
+// Only the typed text leaves the server (EKI etLex, EKI Ekilex, TartuNLP — all free); answers are cached; each user
+// has a quota (server-only `languageQuotas/{uid}`).
+async function takeLanguageQuota(uid) {
+  const { nextQuota } = require("./language-core");
+  const ref = db.collection("languageQuotas").doc(String(uid));
+  const verdict = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const result = nextQuota(snap.exists ? snap.data() : {}, new Date());
+    if (result.allowed) tx.set(ref, result.next);
+    return result;
+  });
+  if (!verdict.allowed) throw httpError(429, verdict.reason === "day" ? "Daily limit reached, try again tomorrow" : "Too many checks, wait a minute");
+}
+
+async function etlexEvaluate(text) {
+  const { cacheKey, etlexWords } = require("./language-core");
+  return cachedLanguageAnswer(cacheKey("etlexw", text), async () => {
+    const data = await fetchJsonWithin("https://etlex.eki.ee/etLex/api/v1.0/projects/etLex/evaluation", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
+    });
+    return { words: etlexWords(data) };
+  }).then((answer) => answer.words || []);
+}
+
+// Ekilex headword search (exact or with * wildcards): the Estonian headwords, or null without the key
+async function ekilexHeadwords(pattern) {
+  const { cacheKey } = require("./language-core");
+  const apiKey = String(process.env.EKILEX_API_KEY || "").trim();
+  if (!/^[0-9a-fA-F]{32}$/.test(apiKey)) return null;
+  const answer = await cachedLanguageAnswer(cacheKey("ekw", pattern.toLocaleLowerCase("et")), async () => {
+    const data = await fetchJsonWithin(`${EKILEX_URL}word/search/${encodeURIComponent(pattern).replace(/%2A/g, "*")}/eki`, { headers: { "ekilex-api-key": apiKey } });
+    const words = (Array.isArray(data?.words) ? data.words : []).filter((word) => word && (word.lang === "est" || !word.lang))
+      .map((word) => String(word.wordValue || "").slice(0, 80)).filter(Boolean);
+    return { words: [...new Set(words)].slice(0, 400) };
+  });
+  return answer.words || [];
+}
+
+async function checkEstonianWord(text, analysed = {}) {
+  const { rankSuggestions, suggestionSearches } = require("./language-core");
+  const lemma = analysed.lemma || text;
+  const out = { text, lemma, known: null, suggestions: [] };
+  const sameAs = (list, value) => (list || []).some((word) => word.toLocaleLowerCase("et") === value.toLocaleLowerCase("et"));
+  const exact = await ekilexHeadwords(text).catch(() => undefined);
+  if (exact === null) {
+    // no Ekilex key: the learner vocabulary of etLex still knows the common words
+    if (analysed.level) out.known = true;
+    return out;
+  }
+  if (exact && sameAs(exact, text)) { out.known = true; return out; }
+  if (lemma.toLocaleLowerCase("et") !== text.toLocaleLowerCase("et")) {
+    const byLemma = await ekilexHeadwords(lemma).catch(() => undefined);
+    if (byLemma && sameAs(byLemma, lemma)) { out.known = true; return out; }
+  }
+  if (analysed.level) { out.known = true; return out; }
+  if (exact === undefined) return out;
+  const searches = await Promise.allSettled(suggestionSearches(text).map((pattern) => ekilexHeadwords(pattern)));
+  const candidates = searches.flatMap((answer) => (answer.status === "fulfilled" && answer.value ? answer.value : []));
+  out.suggestions = rankSuggestions(text, candidates, 3);
+  // a compound Vabamorf could split (kooli_raamat) is often missing from the dictionary: not a mistake unless
+  // something close exists
+  out.known = out.suggestions.length || !analysed.compound ? false : null;
+  if (analysed.compound && !out.suggestions.length) out.compound = true;
+  return out;
+}
+
+// Timing of /own-word (production log 2026-11-05: 9–13 s per word, ~20 s and no translation during a live lesson when
+// both services were slow). The spelling chain (etLex → Ekilex) and the translation run side by side, each stops after
+// `upstreamMs`; the answer leaves after `totalMs` at the latest with what has arrived (`partial: true`, `missing`).
+const OWN_WORD_TIMING = { upstreamMs: 4500, totalMs: 5000, lemmaMinMs: 700, cacheDays: 90 };
+
+// the promise's value, or `fallback` when it fails or `until` passes first (a late promise goes on unobserved)
+function settleBy(promise, until, fallback) {
+  let timer;
+  const late = new Promise((resolve) => { timer = setTimeout(() => resolve(fallback), Math.max(0, until - Date.now())); });
+  return Promise.race([promise.catch(() => fallback), late]).finally(() => clearTimeout(timer));
+}
+
+// Whole /own-word answers: `languageCache/ownword1_<hash of lang, tgt, lowercased text>` = { value, createdAt, expiresAt }
+// (server-only collection, admin SDK). Only complete answers are kept (no failed or late upstream call), for 90 days.
+function ownWordCacheRef(input) {
+  const { cacheKey } = require("./language-core");
+  return db.collection("languageCache").doc(cacheKey("ownword1", input.lang, input.tgt, input.text.toLocaleLowerCase("et")));
+}
+
+async function readOwnWordCache(input) {
+  try {
+    const snap = await ownWordCacheRef(input).get();
+    if (!snap.exists) return null;
+    const data = snap.data() || {};
+    if (!data.value || !data.expiresAt || !(Date.parse(data.expiresAt) > Date.now())) return null;
+    return data.value;
+  } catch (error) {
+    console.warn("own-word cache read failed", error.message);
+    return null;
+  }
+}
+
+async function checkOwnWord({ decoded, body }) {
+  const { ownWordRequest, spellVerdict, correctedText } = require("./language-core");
+  const input = ownWordRequest(body || {});
+  // the quota counts every check, as before; the cache is read meanwhile
+  const [, cachedAnswer] = await Promise.all([takeLanguageQuota(decoded.uid), readOwnWordCache(input)]);
+  if (cachedAnswer) return { ...cachedAnswer, text: input.text, partial: false, missing: [], cached: true };
+
+  const timing = OWN_WORD_TIMING;
+  const started = Date.now();
+  const deadline = started + timing.totalMs;
+  const upstreamUntil = Math.min(deadline, started + timing.upstreamMs);
+  const trace = { failed: 0 };
+  const single = input.words.length === 1;
+  const estonian = input.lang === "et";
+  const sameWord = (a, b) => String(a || "").toLocaleLowerCase("et") === String(b || "").toLocaleLowerCase("et");
+  const translate = (text, until) => languageBudget.run({ until, trace }, () => translateText({ text, src: input.lang, tgt: input.tgt }))
+    .then((answer) => String(answer.result || "").slice(0, 200));
+
+  // the typed text is translated at once; the base form of one word too, as soon as one is known and time is left
+  const surface = translate(input.text, upstreamUntil);
+  surface.catch((error) => console.warn("own-word translation failed", error.message));
+  const lemmaTranslations = new Map();
+  const translateLemma = (lemma) => {
+    if (!single || !lemma || sameWord(lemma, input.text) || lemmaTranslations.has(lemma)) return;
+    if (deadline - Date.now() < timing.lemmaMinMs) return;
+    const pending = translate(lemma, Math.min(deadline, Date.now() + timing.upstreamMs));
+    pending.catch(() => {});
+    lemmaTranslations.set(lemma, pending);
+  };
+
+  // spelling, base form and forms (Estonian only), filled step by step: a late chain still gives what has arrived
+  const spell = { checked: !estonian, formsDone: !estonian || !single, words: [], status: "unchecked", suggestion: "", lemma: "", forms: { line: "", forms: [] }, sources: [] };
+  const spelling = !estonian ? Promise.resolve() : languageBudget.run({ until: upstreamUntil, trace }, async () => {
+    try {
+      const analysed = await etlexEvaluate(input.text);
+      const byToken = new Map(analysed.map((item) => [item.token.toLocaleLowerCase("et"), item]));
+      if (single) translateLemma(byToken.get(input.words[0].toLocaleLowerCase("et"))?.lemma);
+      const words = await Promise.all(input.words.map((word) => checkEstonianWord(word, byToken.get(word.toLocaleLowerCase("et")) || {})));
+      spell.words = words;
+      spell.status = spellVerdict(words);
+      spell.suggestion = correctedText(input.text, words);
+      spell.sources.push("EKI etLex");
+      if (process.env.EKILEX_API_KEY) spell.sources.push("EKI Ekilex");
+      spell.checked = true;
+    } catch (error) {
+      trace.failed += 1;
+      console.warn("own-word spelling check failed", error.message);
+    }
+    if (single) {
+      const first = spell.words[0];
+      spell.lemma = first && first.known !== false ? first.lemma : "";
+      translateLemma(spell.lemma);
+      const forms = await estonianWordForms({ word: spell.lemma || input.text }).catch(() => null);
+      if (forms?.found) {
+        spell.lemma = forms.headword || spell.lemma;
+        spell.forms = { line: forms.line || "", forms: (forms.forms || []).slice(0, 8) };
+        translateLemma(spell.lemma);
+      }
+      spell.formsDone = Boolean(forms);
+    }
+  });
+
+  const [, surfaceText] = await Promise.all([settleBy(spelling, upstreamUntil, undefined), settleBy(surface, upstreamUntil, "")]);
+  const snapshot = JSON.parse(JSON.stringify(spell));
+
+  // the base form of one word is translated (ärkan → ärkama → просыпаться) when that answer is in by the deadline;
+  // otherwise the typed form's translation stands in
+  const lemma = single && snapshot.lemma && !sameWord(snapshot.lemma, input.text) ? snapshot.lemma : "";
+  const lemmaText = lemma && lemmaTranslations.has(lemma) ? await settleBy(lemmaTranslations.get(lemma), deadline, "") : "";
+  const translation = lemmaText || surfaceText;
+  const missing = [];
+  if (!snapshot.checked) missing.push("spelling");
+  if (!snapshot.formsDone) missing.push("forms");
+  if (!translation) missing.push("translation");
+
+  const result = {
+    text: input.text, lang: input.lang, tgt: input.tgt,
+    status: snapshot.status, words: snapshot.words, suggestion: snapshot.suggestion, lemma: snapshot.lemma,
+    translation, translationOf: lemmaText ? lemma : surfaceText ? input.text : "", forms: snapshot.forms,
+    sources: [...snapshot.sources, ...(translation ? ["TartuNLP Neurotõlge"] : [])],
+    partial: missing.length > 0,
+    missing,
+  };
+  // kept only when nothing failed or came late (a base form shown with the typed form's translation is not kept either)
+  const complete = !missing.length && !trace.failed && !(lemma && !lemmaText);
+  if (complete) {
+    const now = new Date();
+    await ownWordCacheRef(input).set({ value: result, createdAt: now.toISOString(), expiresAt: new Date(now.getTime() + timing.cacheDays * 86400000).toISOString() })
+      .catch((error) => console.warn("own-word cache write failed", error.message));
+  }
+  console.log("own-word answered", JSON.stringify({ ms: Date.now() - started, missing, failed: trace.failed, kept: complete }));
+  return result;
+}
+
 // One sentence → words with base form, part of speech and form (EKI etLex), multi-word verbs, a gloss per word and the
 // translation of the sentence (TartuNLP). Each translation may fail alone; the morphology must answer.
 async function analyzeSentence(input) {
@@ -12278,6 +12859,12 @@ exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSe
       // TartuNLP translation, both public); the whole answer is cached by the sentence
       await requireFirebaseUser(req);
       res.json(await analyzeSentence(req.body || {}));
+      return;
+    }
+    if (req.path === "/own-word") {
+      // „Lisa oma sõna”: any signed-in user (the student, a parent, staff), quota per user, nothing saved here
+      const decoded = await requireFirebaseUser(req);
+      res.json(await checkOwnWord({ decoded, body: req.body }));
       return;
     }
     if (req.path === "/student-word") {
@@ -12693,6 +13280,53 @@ exports.purgeCardTrash = functions
   .onRun(async () => {
     const result = await require("./card-trash").purgeDueCards(db, { FieldValue });
     console.log("Card trash purged", { deleted: result.deleted, anonymised: result.anonymised, blocked: result.blocked, errors: result.errors });
+    return null;
+  });
+
+// ── SCHEDULED: „Süsteemi olek” — the admin learns about a breakage before the teachers do ─
+// Every 10 min: the CRM, the website and two main HTTP functions (GET /health). Result in `systemHealth/current`
+// (admin reads, only the server writes); 2 failed checks in a row open an incident, one answer from all closes it.
+// The CRM bell shows one admin notice per incident (crm-v2 notificationModel `systemHealthNotifications`). Nothing is
+// e-mailed. Pure logic: functions/system-health-core.js.
+exports.systemHealthTick = functions
+  .runWith({ timeoutSeconds: 60, memory: "256MB" })
+  .pubsub
+  .schedule("every 10 minutes")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const health = require("./system-health-core");
+    const targets = health.healthTargets(process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || "keelesepp-5136b");
+    const probed = await Promise.all(targets.map((target) => health.probeTarget(target)));
+    const results = Object.fromEntries(targets.map((target, index) => [target.id, probed[index]]));
+    const labels = Object.fromEntries(targets.map((target) => [target.id, target.label]));
+    const ref = db.collection("systemHealth").doc("current");
+    const before = await ref.get();
+    const { state, event } = health.nextHealthState(before.exists ? before.data() : null, results, new Date().toISOString(), labels);
+    await ref.set(state);
+    if (event) console.warn("System health changed", JSON.stringify({ event, failing: state.incident?.failingLabels || [] }));
+    return null;
+  });
+
+// 07:00: the last 24 h of „Vead” (`clientErrors`) → `systemHealth/digest`; the bell shows „Eile N viga — vaata Vead”
+// that day when N > 0. Failed function runs are not recorded in Firestore by this repo, so only client errors count.
+exports.systemHealthDigest = functions
+  .runWith({ timeoutSeconds: 120, memory: "256MB" })
+  .pubsub
+  .schedule("0 7 * * *")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const health = require("./system-health-core");
+    const now = new Date();
+    const { since } = health.digestWindow(now);
+    const snap = await db.collection("clientErrors").where("lastAt", ">=", admin.firestore.Timestamp.fromDate(since)).get();
+    const digest = health.digestClientErrors(snap.docs.map((doc) => doc.data()));
+    await db.collection("systemHealth").doc("digest").set({
+      date: localDate(now, APP_TIME_ZONE),
+      generatedAt: now.toISOString(),
+      since: since.toISOString(),
+      ...digest,
+    });
+    console.log("System health digest", { total: digest.total, occurrences: digest.occurrences });
     return null;
   });
 

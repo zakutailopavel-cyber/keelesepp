@@ -64,6 +64,14 @@ export function withShapes(lessons, map) {
   }));
 }
 
+// A reading task whose open questions are answered in whole sentences (owner 2026-11-04, no dictation in B1–C1): it
+// counts as a whole-sentence task in the depth gate (worksheet-studio/didactics/depth.js). The instruction says so.
+export const fullSentences = (block) => {
+  if (block.type !== 'reading') throw new Error(`${block.id}: täislausetega vastused on lugemisülesande omadus`);
+  if (!/terve(te)? lause|täislause/i.test(block.data?.instruction || '')) throw new Error(`${block.id}: juhis peab ütlema, et vastata tervete lausetega`);
+  return { ...block, data: { ...block.data, fullSentences: true } };
+};
+
 export const B = {
   text: (id, heading, text, width = 'full') => block(id, 'text', 'white', '', { heading, text }, width),
   tip: (id, title, text, width = 'half') => block(id, 'tip', 'white', '', { title, text: join(text) }, width),

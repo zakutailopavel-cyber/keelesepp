@@ -1,7 +1,9 @@
 import { Gamepad2, Sparkles, Utensils } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { homeworkService, lessonWorksheetsService, petsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
+import { petsService } from '../../services/firebase/pets.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { localDate } from '../../utils/localDate.js';
 import WordPractice from '../vocabulary/WordPractice.jsx';
@@ -13,7 +15,7 @@ import { announcePet, petQuiet } from './petEvents.js';
 import { seasonalWear } from './petLife.js';
 import { buyItem } from './petItems.js';
 import {
-  dailySurprise, growthNews, isBackAfterAbsence, langOf, nextReward, petLevel, petRequest, readLoopSeen, readSeenGrowth,
+  dailySurprise, growthNews, isBackAfterAbsence, langOf, moodLabel, nextReward, petLevel, petRequest, readLoopSeen, readSeenGrowth,
   requestDoneToday, requestWords, thanksLine, welcomeLine, writeLoopSeen, writeSeenGrowth,
 } from './petLoop.js';
 import { petGreeting, petProgress } from './petModel.js';
@@ -128,12 +130,13 @@ export default function PetLoop({
   const needValue = request ? needs[request.need] : 0;
   const shownNeed = justDone?.kind === 'feed' ? 'food' : justDone ? 'joy' : request?.need;
   const canAsk = !readOnly && !done && request;
+  const feeling = moodLabel({ mood, request, needs, done });
 
   return (
     <section className={`pl pl--${variant}`} aria-label={pet.name} data-tour="pet">
       {variant === 'home' ? <Figure pet={pet} mood={mood} stage={progress.stage} jump={Boolean(justDone || news)} /> : null}
       <div className="pl__talk">
-        <div className="pl__head"><strong>{pet.name}</strong><span>{petLevel(progress.xp)}. tase</span>{variant === 'home' ? <Link to="/student/lemmik">Vaata lähemalt</Link> : null}</div>
+        <div className="pl__head"><strong>{pet.name}</strong><span>{petLevel(progress.xp)}. tase</span>{variant === 'home' ? <span className={`pl__mood is-${feeling.key}`}>Tuju: {feeling.et} <small lang="ru">· {feeling.ru}</small></span> : null}{variant === 'home' ? <Link to="/student/lemmik">Vaata lähemalt</Link> : null}</div>
         {news && !playing ? <p className="pl__news" role="status"><Sparkles size={15} aria-hidden="true" /> <span>{news.text} <small lang="ru">{news.hint}</small></span></p> : null}
         <div className="pet-bubble pl__bubble" lang={line.lang}><p>{line.text}</p><small lang="ru">{line.hint}</small>
           {justDone?.right != null ? <small className="pl__score" role="status">Õigeid vastuseid: {justDone.right}</small> : null}

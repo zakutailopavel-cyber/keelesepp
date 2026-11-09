@@ -6,11 +6,25 @@ import App from './App.jsx';
 import { AuthProvider } from './app/AuthContext.jsx';
 import './styles/index.css';
 import { reloadOnceForNewBuild } from './app/staleBuild.js';
+import { clientErrors, installClientErrorListeners } from './features/client-errors/clientErrorReporter.js';
+import { clientErrorsService } from './services/firebase/clientErrors.js';
+import { installTranslateGuard } from './app/translateGuard.js';
+import { prefetchAppShell } from './app/shellPrefetch.js';
+
+// the browser's page translation must not crash a lesson (translateGuard.js)
+installTranslateGuard();
+
+// client error tracking (admin „Vead”): page errors and unhandled rejections → clientErrors (no personal data)
+clientErrors.setSender((record) => clientErrorsService.send(record));
+installClientErrorListeners(globalThis);
 
 // a lazy page file of an older build is missing after a deploy: reload once instead of a blank screen
 globalThis.addEventListener('vite:preloadError', (event) => {
   if (reloadOnceForNewBuild()) event.preventDefault();
 });
+
+// the signed-in shell downloads while the session is checked (not on /login's first download, see shellPrefetch.js)
+prefetchAppShell(globalThis);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

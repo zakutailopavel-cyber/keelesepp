@@ -45,6 +45,14 @@ describe('worksheet depth', () => {
     expect(codes(doc)).toEqual(expect.arrayContaining(['short-sentences', 'no-sentences']));
     expect(DEPTH.C1.items).toBe(10);
   });
+
+  it('open reading questions answered in whole sentences count as a whole-sentence task (no dictation in B1–C1)', () => {
+    const reading = { id: 'r', type: 'reading', data: { passage: 'Tekst.', questions: 'Miks? [sest]\nKuidas? [nii]' } };
+    const plain = { meta: { level: 'B2' }, blocks: [fix(10), reading] };
+    expect(codes(plain)).toContain('no-sentences');
+    const full = { meta: { level: 'B2' }, blocks: [fix(10), { ...reading, data: { ...reading.data, fullSentences: true } }] };
+    expect(codes(full)).not.toContain('no-sentences');
+  });
 });
 
 describe('check lessons', () => {
@@ -52,5 +60,11 @@ describe('check lessons', () => {
     const doc = { meta: { level: 'B1', phase: 'transfer', assessment: true }, blocks: [{ id: 'l', type: 'guidedletter', data: { minWords: 140 } }] };
     expect(depthProblems(doc)).toEqual([]);
     expect(depthProblems({ ...doc, meta: { ...doc.meta, assessment: false } }).length).toBeGreaterThan(0);
+  });
+
+  it('a check lesson sheet that is itself an exam part (exampart block) needs no whole-sentence tasks', () => {
+    const doc = { meta: { level: 'B2', phase: 'discover', assessment: true, design: 'v2' }, blocks: [{ id: 'p', type: 'exampart', data: {} }, fix(10)] };
+    expect(codes(doc)).not.toContain('no-sentences');
+    expect(codes({ ...doc, blocks: [fix(10)] })).toContain('no-sentences');
   });
 });

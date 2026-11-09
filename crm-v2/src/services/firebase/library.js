@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { isUnpublishedWorksheet } from '../../features/library/libraryModel.js';
 import { publishedPhaseDoc } from '../../features/worksheet-studio/bookProgram.js';

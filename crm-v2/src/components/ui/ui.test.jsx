@@ -4,6 +4,8 @@ import Button from './Button.jsx';
 import Input from './Input.jsx';
 import Modal from './Modal.jsx';
 import Select from './Select.jsx';
+import LoadingState from './LoadingState.jsx';
+import Skeleton, { SkeletonRow, SkeletonScreen } from './Skeleton.jsx';
 
 describe('shared UI safety and accessibility', () => {
   it('does not submit a form unless the button explicitly opts in', () => {
@@ -58,5 +60,40 @@ describe('shared UI safety and accessibility', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(second).toHaveBeenCalledOnce();
     expect(first).not.toHaveBeenCalled();
+  });
+});
+
+describe('loading states', () => {
+  it('announces the label and hides the decorative spinner', () => {
+    render(<LoadingState label="Laen…" />);
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('Laen…');
+    expect(status.querySelector('.state-spinner')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('keeps the hint class on the inline variant', () => {
+    render(<LoadingState inline className="form-hint" label="Laen võtmeid…" />);
+    expect(screen.getByText('Laen võtmeid…')).toHaveClass('state-inline', 'form-hint');
+  });
+
+  it('wraps the page variant in a full-screen view', () => {
+    const { container } = render(<LoadingState page label="Laen… · Загрузка…" />);
+    expect(container.firstChild).toHaveClass('standalone-state');
+  });
+
+  it('renders skeleton lines hidden from screen readers', () => {
+    render(<Skeleton lines={4} />);
+    const skeleton = screen.getByTestId('skeleton');
+    expect(skeleton).toHaveAttribute('aria-hidden', 'true');
+    expect(skeleton.querySelectorAll('.skeleton__bar')).toHaveLength(4);
+  });
+
+  it('a skeleton screen is one busy status region that says its label once; the shapes are hidden', () => {
+    render(<SkeletonScreen label="Laen…"><SkeletonRow kind="split"><Skeleton variant="card" /><Skeleton variant="card" /></SkeletonRow></SkeletonScreen>);
+    const region = screen.getByRole('status');
+    expect(region).toHaveAttribute('aria-busy', 'true');
+    expect(region).toHaveTextContent(/^Laen…$/);
+    expect(region.querySelector('.skeleton-row--split')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getAllByTestId('skeleton')).toHaveLength(2);
   });
 });

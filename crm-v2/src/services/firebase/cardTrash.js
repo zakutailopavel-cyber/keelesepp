@@ -65,6 +65,8 @@ export const cardTrashService = {
     ].sort((a, b) => String(b.purgedAt).localeCompare(String(a.purgedAt)));
     return { waiting, purged };
   },
+  // what „Kustuta” would do (reads only): { blockers, lessons, groups, links, outcome, purgeAfter }
+  preview(kind, id) { return post('/trash-preview', { kind, id }); },
   trash(kind, id) { return post('/trash', { kind, id }); },
   restore(kind, id) { return post('/restore', { kind, id }); },
   purgeDue() { return post('/purge-due'); },

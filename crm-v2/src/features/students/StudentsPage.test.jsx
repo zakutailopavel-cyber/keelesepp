@@ -154,30 +154,39 @@ describe('students list states', () => {
     await waitFor(() => expect(service.restore).toHaveBeenCalledWith(['s1', 's2']));
   });
 
-  it('lists possible duplicates, hides a pair marked „Ei ole duplikaat” and merges a pair with the preview', async () => {
+  it('lists possible duplicate cards side by side, hides a pair marked „Pole sama inimene” and opens the merge with the pair', async () => {
     const items = [
-      { id: 'a1', name: 'Milan', active: true, linkedParentId: 'p1', subject: 'Inglise keel' },
+      { id: 'a1', name: 'Milan', active: true, linkedParentId: 'p1', subject: 'Inglise keel', phone: '+372 5123 4567', email: 'milan.g@example.com' },
       { id: 'b2', name: 'Milan Grozovski', active: true, linkedParentIds: ['p1'], subject: 'Eesti keel' },
       { id: 'c3', name: 'Maria', active: true },
       { id: 'd4', name: 'Maria', active: true },
       { id: 'e5', name: 'Sofia', active: true, linkedParentId: 'p1' },
     ];
-    const service = { list: vi.fn().mockResolvedValue({ items, cursor: null, hasMore: false }), markNotDuplicate: vi.fn().mockResolvedValue({}) };
+    const service = { list: vi.fn().mockResolvedValue({ items, cursor: null, hasMore: false }), markNotDuplicate: vi.fn().mockResolvedValue({}), recordCounts: vi.fn(async (id) => (id === 'a1' ? { lessons: 12, invoices: 3 } : { lessons: 0, invoices: 0 })) };
     const mergeService = { mergeStudents: vi.fn(async ({ apply }) => ({ applied: Boolean(apply), keep: { id: 'a1', name: 'Milan', accounts: [] }, source: { id: 'b2', name: 'Milan Grozovski', accounts: [] }, names: ['Milan', 'Milan Grozovski'], keepName: 'Milan', move: [{ collection: 'lessons', field: 'studentId', count: 4, kind: 'learner' }], totals: { learner: 4 }, documents: [], conflicts: [], skipped: [], price: { action: 'none' } })) };
     render(<MemoryRouter><StudentsPage service={service} mergeService={mergeService} actor={{ uid: 'admin', roles: ['admin'] }} /></MemoryRouter>);
-    fireEvent.click(await screen.findByRole('button', { name: /Võimalikud duplikaadid/ }));
-    const dialog = await screen.findByRole('dialog', { name: 'Võimalikud duplikaadid' });
+    fireEvent.click(await screen.findByRole('button', { name: /Võimalikud topeltkaardid/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'Võimalikud topeltkaardid' });
     expect(await within(dialog).findByText('Milan / Milan Grozovski')).toBeInTheDocument();
     expect(within(dialog).getByText(/Sarnane nimi · Sama lapsevanema konto/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Sama inimene, eri ained \(Inglise keel \/ Eesti keel\)/)).toBeInTheDocument();
     expect(within(dialog).getByText('Maria / Maria')).toBeInTheDocument();
     expect(within(dialog).queryByText(/Sofia/)).toBeNull();
+    // both cards side by side with their history; contacts never in full
+    const milanCards = within(dialog).getByText('Milan / Milan Grozovski').closest('section');
+    expect(await within(milanCards).findByText('12')).toBeInTheDocument();
+    expect(within(milanCards).queryAllByText('kontot pole')).toHaveLength(0);
+    expect(within(milanCards).getAllByText('ainult lapsevanema konto')).toHaveLength(2);
+    expect(within(milanCards).getByText('m•••@example.com · •••• 67')).toBeInTheDocument();
+    expect(within(dialog).queryByText(/5123|milan\.g@/)).toBeNull();
+    expect(service.recordCounts).toHaveBeenCalledWith('a1');
     // two children called Maria
     const maria = within(dialog).getByText('Maria / Maria').closest('section');
-    fireEvent.click(within(maria).getByRole('button', { name: 'Ei ole duplikaat' }));
+    fireEvent.click(within(maria).getByRole('button', { name: 'Pole sama inimene' }));
     await waitFor(() => expect(service.markNotDuplicate).toHaveBeenCalledWith('c3', 'd4'));
     await waitFor(() => expect(within(dialog).queryByText('Maria / Maria')).toBeNull());
     const milan = within(dialog).getByText('Milan / Milan Grozovski').closest('section');
-    fireEvent.click(within(milan).getByRole('button', { name: 'Liida' }));
+    fireEvent.click(within(milan).getByRole('button', { name: 'Ava ühendamine' }));
     const merge = await screen.findByRole('dialog', { name: 'Liida kaardid: Milan' });
     expect(await within(merge).findByText(/Tunnid: 4/)).toBeInTheDocument();
     expect(mergeService.mergeStudents).toHaveBeenCalledWith({ keepId: 'a1', sourceId: 'b2' });
@@ -185,6 +194,25 @@ describe('students list states', () => {
     fireEvent.click(within(merge).getByRole('button', { name: 'Liida kaardid' }));
     await waitFor(() => expect(mergeService.mergeStudents).toHaveBeenLastCalledWith({ keepId: 'a1', sourceId: 'b2', apply: true, confirmed: true }));
     expect(await screen.findByText(/Kaardid on liidetud/)).toBeInTheDocument();
+  });
+
+  it('two ARCHIVED cards of one child are listed (2026-11-06) and „Ava ühendamine” opens the merge with both archived', async () => {
+    const items = [
+      { id: 'old1', name: 'Mia Saar', active: false, parentEmail: 'ema@example.com' },
+      { id: 'old2', name: 'Mia Saar', active: false, parentEmail: 'ema@example.com' },
+    ];
+    const service = { list: vi.fn().mockResolvedValue({ items, cursor: null, hasMore: false }), markNotDuplicate: vi.fn() };
+    const mergeService = { mergeStudents: vi.fn(async () => ({ applied: false, keep: { id: 'old1', name: 'Mia Saar', active: false, accounts: [] }, source: { id: 'old2', name: 'Mia Saar', active: false, accounts: [] }, names: ['Mia Saar'], keepName: 'Mia Saar', activeAfter: false, move: [{ collection: 'invoices', field: 'studentId', count: 2, kind: 'finance' }], totals: { finance: 2 }, documents: [], conflicts: [{ code: 'archived_result', label: 'Pärast liitmist on kaart arhiveeritud' }], skipped: [], price: { action: 'none' } })) };
+    render(<MemoryRouter><StudentsPage service={service} mergeService={mergeService} actor={{ uid: 'admin', roles: ['admin'] }} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /Võimalikud topeltkaardid/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'Võimalikud topeltkaardid' });
+    const pair = (await within(dialog).findByText('Mia Saar / Mia Saar')).closest('section');
+    expect(within(pair).getAllByText('Arhiveeritud')).toHaveLength(2);
+    fireEvent.click(within(pair).getByRole('button', { name: 'Ava ühendamine' }));
+    const merge = await screen.findByRole('dialog', { name: 'Liida kaardid: Mia Saar' });
+    expect(await within(merge).findByText(/Arved: 2 \(summad ja numbrid ei muutu\)/)).toBeInTheDocument();
+    expect(mergeService.mergeStudents).toHaveBeenCalledWith({ keepId: 'old1', sourceId: 'old2' });
+    expect(within(merge).getByRole('radio', { name: 'Arhiveeritud' })).toBeChecked();
   });
 });
 
@@ -209,5 +237,13 @@ describe('„Ilma ajata” (owner 2026-10-27)', () => {
     const panel = await screen.findByRole('region', { name: 'Ilma ajata' });
     expect(await within(panel).findByText('Vanem: Ema')).toBeInTheDocument();
     expect(within(panel).getByRole('heading', { name: 'Ilma ajata (1)' })).toBeInTheDocument();
+  });
+});
+
+describe('a web lead becomes a student', () => {
+  it('opens the new-card form filled from the lead', async () => {
+    render(<MemoryRouter initialEntries={[{ pathname: '/students', state: { newStudent: { name: 'Mia Lepp', parentName: 'Olga', parentEmail: 'olga@example.com', level: 'A2' } } }]}><StudentsPage service={{ list: async () => ({ items: [], cursor: null, hasMore: false }) }} actor={{ uid: 'admin', roles: ['admin'] }} /></MemoryRouter>);
+    expect(await screen.findByLabelText('Õpilase nimi *')).toHaveValue('Mia Lepp');
+    expect(screen.getByDisplayValue('olga@example.com')).toBeInTheDocument();
   });
 });

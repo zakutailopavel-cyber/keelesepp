@@ -1,4 +1,4 @@
-import { Bell, BookOpenCheck, CalendarClock, CircleAlert, ListTodo, MessageSquareText, ReceiptText, RefreshCw, UserRound } from 'lucide-react';
+import { Activity, Bell, BookOpenCheck, CalendarClock, CircleAlert, ListTodo, MessageSquareText, ReceiptText, RefreshCw, UserRound } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -10,6 +10,8 @@ import { studentsService } from '../../services/firebase/students.js';
 import { tasksService } from '../../services/firebase/tasks.js';
 import { studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
 import { missingDataService } from '../../services/firebase/missingData.js';
+import { systemHealthService } from '../../services/firebase/systemHealth.js';
+import { UNMARKED_CHANGED_EVENT, unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.js';
 import {
   CATEGORY_LABEL,
   homeworkNotifications,
@@ -19,14 +21,16 @@ import {
   missingDataNotifications,
   messageNotifications,
   sortNotifications,
+  systemHealthNotifications,
   taskNotifications,
+  unmarkedNotifications,
 } from '../../features/notifications/notificationModel.js';
 import { useTasks } from '../../features/tasks/useTasks.js';
 import IconButton from '../ui/IconButton.jsx';
 import '../../features/notifications/notifications.css';
 
-const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService, availability: studentAvailabilityService, missingData: missingDataService };
-const ICONS = { task: ListTodo, message: MessageSquareText, homework: BookOpenCheck, lesson: CalendarClock, student: UserRound, invoice: ReceiptText };
+const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService, availability: studentAvailabilityService, missingData: missingDataService, unmarked: unmarkedLessonsService, health: systemHealthService };
+const ICONS = { task: ListTodo, message: MessageSquareText, homework: BookOpenCheck, lesson: CalendarClock, student: UserRound, invoice: ReceiptText, system: Activity };
 const quiet = (promise) => Promise.resolve(promise).catch(() => []);
 
 async function loadSources(user, repositories) {
@@ -41,13 +45,14 @@ async function loadSources(user, repositories) {
     : { items: [] };
   const ids = studentResult.items.map((student) => student.id);
   const names = new Map(studentResult.items.map((student) => [student.id, student.name]));
-  const [messages, submissions, invoices, lessonRequests, availability, missingData] = await Promise.all([
+  const [messages, submissions, invoices, lessonRequests, availability, missingData, health] = await Promise.all([
     staff ? quiet(admin ? (repositories.messages.listUnread || repositories.messages.list).call(repositories.messages) : repositories.messages.listByStudentIds(ids)) : [],
     staff ? quiet(repositories.homework.listSubmissionsByStudentIds(ids)) : [],
     invoicesRead,
     staff && repositories.changeRequests?.listPending ? quiet(repositories.changeRequests.listPending({ teacherUid: user.uid, all: admin })) : [],
     admin && repositories.availability?.list ? quiet(repositories.availability.list()) : [],
     admin && repositories.missingData?.listUnreviewed ? quiet(repositories.missingData.listUnreviewed()) : [],
+    admin && repositories.health?.both ? Promise.resolve(repositories.health.both()).catch(() => null) : null,
   ]);
   return {
     messages,
@@ -56,6 +61,7 @@ async function loadSources(user, repositories) {
     lessonRequests,
     availability: availabilityNotifications(availability, names),
     missingData: missingDataNotifications(missingData),
+    health: health ? systemHealthNotifications(health) : [],
   };
 }
 
@@ -68,6 +74,17 @@ export default function NotificationCenter({ user, repositories = defaultReposit
   const staff = user.roles.includes('admin') || user.roles.includes('teacher');
   const { tasks } = useTasks(repositories.tasks, staff);
   const sources = useAsyncData(() => loadSources(user, repositories), [user.uid, repositories, refreshKey]);
+  // a teacher's own unmarked past lessons (owner 2026-11-09: a daily reminder in the CRM, never an e-mail); the admin
+  // keeps the school-wide count on „Kalender”. Read again when the panel opens and after a lesson is marked.
+  const teacherOnly = user.roles.includes('teacher') && !user.roles.includes('admin');
+  const [unmarkedKey, setUnmarkedKey] = useState(0);
+  useEffect(() => {
+    if (!teacherOnly) return undefined;
+    const onChange = () => setUnmarkedKey((key) => key + 1);
+    globalThis.addEventListener?.(UNMARKED_CHANGED_EVENT, onChange);
+    return () => globalThis.removeEventListener?.(UNMARKED_CHANGED_EVENT, onChange);
+  }, [teacherOnly]);
+  const unmarked = useAsyncData(() => (teacherOnly && repositories.unmarked?.reminder ? repositories.unmarked.reminder({ user }) : null), [user.uid, teacherOnly, repositories, refreshKey, unmarkedKey]);
 
   const items = useMemo(() => sortNotifications([
     ...(staff ? taskNotifications(tasks, user) : []),
@@ -76,8 +93,10 @@ export default function NotificationCenter({ user, repositories = defaultReposit
     ...lessonChangeNotifications(sources.data?.lessonRequests || []),
     ...(sources.data?.availability || []),
     ...(sources.data?.missingData || []),
+    ...(sources.data?.health || []),
+    ...unmarkedNotifications(unmarked.data),
     ...invoiceNotifications(sources.data?.invoices || []),
-  ]), [sources.data, staff, tasks, user]);
+  ]), [sources.data, unmarked.data, staff, tasks, user]);
   // the bell counts only what is new since the panel was last opened (remembered per user in this browser);
   // the panel itself still lists everything that needs attention
   const seenKey = `ks-notifications-seen:${user.uid}`;

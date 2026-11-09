@@ -47,8 +47,13 @@ export const accountApprovalsService = {
   // two cards of one learner (the teacher's card and the self-registration card): preview, then merge into keepId
   // „Liida kaardid”: preview (apply false), then apply with confirmed; everything of the other card moves (2026-10-24)
   // keepActive (true / false) chooses whether the merged card is active; left out, it is active when either card was
-  mergeStudents({ keepId, sourceId, keepName = '', keepActive, apply = false, confirmed = false }) {
-    return staffPost('/students/merge-cards', { keepId, sourceId, keepName, ...(typeof keepActive === 'boolean' ? { keepActive } : {}), apply, confirmed });
+  // confirmedDifferences: „Kinnitan, et see on sama laps” — required when the preview lists differentPerson (2026-11-09)
+  mergeStudents({ keepId, sourceId, keepName = '', keepActive, apply = false, confirmed = false, confirmedDifferences = false }) {
+    return staffPost('/students/merge-cards', { keepId, sourceId, keepName, ...(typeof keepActive === 'boolean' ? { keepActive } : {}), apply, confirmed, ...(confirmedDifferences ? { confirmedDifferences: true } : {}) });
+  },
+  // „Võta ühendamine tagasi” (2026-11-09): preview (apply false), then apply with confirmed; sourceId = the merged-away card
+  unmergeStudents({ sourceId, keepId = '', apply = false, confirmed = false }) {
+    return staffPost('/students/unmerge-cards', { sourceId, ...(keepId ? { keepId } : {}), apply, confirmed });
   },
   // „See on õpilane”: a parent account that is really the learner becomes the learner's own login on that card
   convertParentToStudent({ uid, studentId }) {
@@ -63,6 +68,16 @@ export const accountApprovalsService = {
   // on a card that has the student's account already (no e-mail given) a new password link
   inviteStudent({ studentId, email = '' }) {
     return staffPost('/accounts/invite', { studentId, email });
+  },
+  // „Saada parooli link” on the parent's card: the same route as the student card, only to that parent account's own
+  // login e-mail (the server decides the address); answers { email, mailed, link }
+  sendParentPasswordLink({ parentUid }) {
+    return staffPost('/accounts/invite', { parentUid });
+  },
+  // the parent's „Konto” block: sign-in facts kept only in Firebase Auth (read-only, admin, ≤ 10 accounts)
+  async authInfo(uids = []) {
+    const data = await staffPost('/accounts/auth-info', { uids });
+    return Array.isArray(data.accounts) ? data.accounts : [];
   },
   // „Lisa lapsevanem”: a parent's login without a password, linked to the children's cards, + the password e-mail
   inviteParent({ displayName, email, phone = '', studentIds = [], requestId }) {

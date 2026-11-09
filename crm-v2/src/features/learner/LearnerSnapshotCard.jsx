@@ -1,13 +1,15 @@
 import { AlertTriangle, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardList, Languages, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, lessonsService } from '../../services/firebase/index.js';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { lessonsService } from '../../services/firebase/lessons.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { presenceService } from '../../services/firebase/presence.js';
 import { describeAutoErrors } from '../worksheet-studio/engine/errorText.js';
 import { learnerSnapshot, reviewPageText } from './learnerSnapshot.js';
 import MonthStepsCard from './MonthStepsCard.jsx';
 import './learner.css';
+import { LoadingState } from '../../components/ui/index.js';
 
 const api = {
   words: (studentId) => studentWordsService.listForStudent(studentId),
@@ -34,7 +36,7 @@ export default function LearnerSnapshotCard({ studentId, studentName = '', repos
   const [placed, setPlaced] = useState('');
 
   if (!studentId) return null;
-  if (state.loading && !snapshot) return <section className="ls-card" aria-busy="true"><p className="ls-muted">Laen õpilase pilti…</p></section>;
+  if (state.loading && !snapshot) return <section className="ls-card" aria-busy="true"><LoadingState inline className="ls-muted" label="Laen õpilase pilti…" /></section>;
   if (!snapshot) return <section className="ls-card"><p className="ls-muted">Õpilase pilti ei saanud laadida.</p><button type="button" className="ls-link" onClick={state.reload}>Proovi uuesti</button></section>;
 
   const review = reviewPageText(snapshot);

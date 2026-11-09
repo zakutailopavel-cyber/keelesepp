@@ -1,5 +1,6 @@
 // The student's Live Classroom lessons for the teacher's view of the student card: one row per lesson, plus board
 // lesson pages of days without a recording. Each row offers the lesson analysis (transcript) and the board.
+import { withErrorReview } from './errorReview.js';
 
 const pad = (n) => String(n).padStart(2, '0');
 export function dayKey(value) {
@@ -33,7 +34,9 @@ export function joinRecordingParts(parts = []) {
   return {
     ...first, parts: ids, status, transcript, analysis,
     endedAt: sorted[sorted.length - 1].endedAt || first.endedAt,
-    segments: sorted.flatMap((part) => part.segments || []),
+    // the audio files on the lesson's time line (as the transcript), and each part's start for the „Hetk” marks
+    segments: sorted.flatMap((part) => (part.segments || []).map((s) => ({ ...s, startMs: (s.startMs || 0) + shift(part) }))),
+    partStarts: Object.fromEntries(sorted.map((part) => [part.id, part.startedAt])),
   };
 }
 export function groupRecordings(recordings = []) {
@@ -43,10 +46,22 @@ export function groupRecordings(recordings = []) {
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(rec);
   }
-  return [...groups.values()].map(joinRecordingParts);
+  // the teacher's „Pole viga” marks apply to everything that reads a lesson's errors (errorReview.js)
+  return [...groups.values()].map(joinRecordingParts).map(withErrorReview);
 }
 
-export function lessonTimeline(recordings = [], pages = []) {
+// „Hetk” marks (lessonMoments.js) go with the lesson of their invitation and day; marks of a day without a recording
+// go with that day's board page, or make a row of their own (the lesson was not recorded)
+const momentKey = (moment) => `${moment.invitationId || ''}|${dayKey(moment.at)}`;
+export function lessonTimeline(recordings = [], pages = [], moments = []) {
+  const momentsBy = new Map();
+  for (const moment of moments) {
+    const key = momentKey(moment);
+    if (!momentsBy.has(key)) momentsBy.set(key, []);
+    momentsBy.get(key).push(moment);
+  }
+  const used = new Set();
+  const take = (key) => { used.add(key); return momentsBy.get(key) || []; };
   const pageByDay = new Map();
   for (const page of pages) {
     const key = dayKey(page.createdAt);
@@ -55,11 +70,21 @@ export function lessonTimeline(recordings = [], pages = []) {
   const rows = groupRecordings(recordings).map((recording) => {
     const day = dayKey(recording.startedAt);
     const page = pageByDay.get(day) || null;
-    return { key: `rec-${recording.id}`, day, at: recording.startedAt, title: recording.title || 'Tund', recording, pageId: page?.id || '', pageTitle: page?.title || '' };
+    return { key: `rec-${recording.id}`, day, at: recording.startedAt, title: recording.title || 'Tund', recording, pageId: page?.id || '', pageTitle: page?.title || '', moments: take(`${recording.invitationId || recording.id}|${day}`) };
   });
   const recordedDays = new Set(rows.map((row) => row.day));
+  const unrecorded = [...momentsBy.entries()].filter(([key]) => !used.has(key));
   for (const [day, page] of pageByDay) {
-    if (!recordedDays.has(day)) rows.push({ key: `page-${page.id}`, day, at: page.createdAt?.toDate ? page.createdAt.toDate().toISOString() : page.createdAt, title: page.title || 'Tund', recording: null, pageId: page.id, pageTitle: page.title || '' });
+    if (recordedDays.has(day)) continue;
+    const dayMoments = unrecorded.filter(([key]) => key.endsWith(`|${day}`));
+    dayMoments.forEach(([key]) => used.add(key));
+    rows.push({ key: `page-${page.id}`, day, at: page.createdAt?.toDate ? page.createdAt.toDate().toISOString() : page.createdAt, title: page.title || 'Tund', recording: null, pageId: page.id, pageTitle: page.title || '', moments: dayMoments.flatMap(([, list]) => list) });
+  }
+  for (const [key, list] of momentsBy) {
+    if (used.has(key)) continue;
+    const day = key.split('|')[1];
+    if (!day) continue;
+    rows.push({ key: `moments-${key}`, day, at: list[0].at, title: 'Tund', recording: null, pageId: '', pageTitle: '', moments: list });
   }
   return rows.sort((a, b) => String(b.day).localeCompare(String(a.day)) || String(b.at || '').localeCompare(String(a.at || '')));
 }

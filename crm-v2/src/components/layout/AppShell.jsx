@@ -1,13 +1,13 @@
 import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
-import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { Fragment, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import { NavLink, Outlet } from 'react-router-dom';
 import { navigationFor, settingsNavigation } from '../../app/navigation.js';
 import { useAuth, usePreviewNavigation } from '../../app/AuthContext.jsx';
 import { hasAnyRole, roleLabels } from '../../utils/roles.js';
-import GlobalStudentSearch from './GlobalStudentSearch.jsx';
 import IconButton from '../ui/IconButton.jsx';
 import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
-import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
+import ThemeMenu from './ThemeMenu.jsx';
 import { messagesService } from '../../services/firebase/messages.js';
 import { clearTestSession, testSessionName } from '../../services/firebase/auth.js';
 import GuideBanner from '../../features/guide/GuideBanner.jsx';
@@ -16,18 +16,32 @@ import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx'
 import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
 import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import './appShell.css';
-import EntityContextMenu from '../EntityContextMenu.jsx';
 
 // students only (it renders nothing for anyone else), so nobody else downloads it
 // staff only
-const NotificationCenter = lazy(() => import('./NotificationCenter.jsx'));
-const PetCompanion = lazy(() => import('../../features/pet/PetCompanion.jsx'));
+const NotificationCenter = lazyComponent(() => import('./NotificationCenter.jsx'));
+const PetCompanion = lazyComponent(() => import('../../features/pet/PetCompanion.jsx'));
+// staff only: the student search, the right-click menu and the administrator's menu counts download for them only, so a
+// student's or parent's first load (and the login page) does not carry the calendar, lesson and finance code they use
+const GlobalStudentSearch = lazyComponent(() => import('./GlobalStudentSearch.jsx'));
+const EntityContextMenu = lazyComponent(() => import('../EntityContextMenu.jsx'));
+// a student's card, a lesson or an invoice in a side drawer over any page (entityDrawer.js); tiny until one is opened
+const EntityDrawer = lazyComponent(() => import('../entityDrawer/EntityDrawer.jsx'));
+// a subscription whose service file downloads on first use; unsubscribing before it arrives starts nothing
+const lazySubscription = (load, method) => (...args) => {
+  let stop = null;
+  let off = false;
+  load().then((service) => { if (!off) stop = service[method](...args); }).catch(() => {});
+  return () => { off = true; if (typeof stop === 'function') stop(); };
+};
+const accountApprovalsService = { subscribePendingCount: lazySubscription(() => import('../../services/firebase/accountApprovals.js').then((m) => m.accountApprovalsService), 'subscribePendingCount') };
+const unmarkedLessonsService = { subscribeCount: lazySubscription(() => import('../../services/firebase/unmarkedLessons.js').then((m) => m.unmarkedLessonsService), 'subscribeCount') };
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
-export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, announcements, missingData }) {
+export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, unmarked = unmarkedLessonsService, announcements, missingData }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, signOut, preview } = useAuth();
   const previewNavigation = usePreviewNavigation();
@@ -49,7 +63,15 @@ export default function AppShell({ approvals = accountApprovalsService, messages
     if (!isStaff || !messages?.subscribeUnreadCount || !user.uid) return undefined;
     try { return messages.subscribeUnreadCount({ uid: user.uid, all: isAdmin }, setUnreadMessages, () => setUnreadMessages(0)); } catch { return undefined; }
   }, [messages, isStaff, isAdmin, user.uid]);
-  const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0 };
+  // admins see past lessons nobody marked (not billed) on „Kalender”
+  const [unmarkedLessons, setUnmarkedLessons] = useState(0);
+  useEffect(() => {
+    if (!isAdmin || !unmarked?.subscribeCount) return undefined;
+    try { return unmarked.subscribeCount({ user, isAdmin: true }, setUnmarkedLessons); } catch { return undefined; }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the user object changes identity; uid is the key
+  }, [unmarked, isAdmin, user.uid]);
+  const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0, '/calendar': isAdmin ? unmarkedLessons : 0 };
+  const badgeLabel = { '/messages': 'lugemata', '/calendar': 'märkimata tundi' };
   const blockPreviewButtons = (event) => {
     if (!preview?.readOnly) return;
     // only closing a dialog is let through: it changes nothing, and a dialog that cannot be closed covers the page
@@ -67,7 +89,9 @@ export default function AppShell({ approvals = accountApprovalsService, messages
   return (
     <AnnouncementGate enabled={gated} user={user} onSignOut={signOut} {...(announcements ? { service: announcements } : {})}>
       {/* the right-click menu: staff and the accountant, each with their own actions (not in the admin's preview) */}
-      {hasAnyRole(user.roles, ['admin', 'teacher', 'finance']) && !preview ? <EntityContextMenu roles={user.roles} /> : null}
+      {/* fallback={null} for this menu, the topbar search/notifications and the pet: small helper widgets around the
+          page — a spinner there would flicker on every load; the page itself has its own loading view */}
+      {hasAnyRole(user.roles, ['admin', 'teacher', 'finance']) && !preview ? <Suspense fallback={null}><EntityContextMenu roles={user.roles} /><EntityDrawer roles={user.roles} /></Suspense> : null}
     <MissingDataGate enabled={gated} user={user} onSignOut={signOut} {...(missingData ? { service: missingData } : {})}>
     <div className="app-shell">
       <button className={`backdrop ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-label="Sulge menüü" />
@@ -82,7 +106,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
             <Fragment key={to}>
               {group && group !== visibleNavigation[index - 1]?.group ? <span className="nav-group">{group}</span> : null}
               <NavLink to={to} end={end} data-tour={`nav-${to}`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-                <Icon size={19} /><span>{label}{hint ? <small className="nav-hint">{hint}</small> : null}</span>{badges[to] ? <b className="nav-count" aria-label={to === "/messages" ? `${badges[to]} lugemata` : `${badges[to]} ootel`}>{badges[to]}</b> : null}
+                <Icon size={19} /><span>{label}{hint ? <small className="nav-hint">{hint}</small> : null}</span>{badges[to] ? <b className="nav-count" aria-label={`${badges[to]} ${badgeLabel[to] || 'ootel'}`}>{badges[to]}</b> : null}
               </NavLink>
             </Fragment>
           ))}
@@ -92,6 +116,8 @@ export default function AppShell({ approvals = accountApprovalsService, messages
           <div className="profile-chip">
             <div className="avatar">{initials(user.displayName)}</div>
             <div className="profile-chip__text"><strong>{user.displayName}</strong><span>{roleLabels(user.roles) || 'kasutaja'}</span></div>
+            {/* in the admin's preview the choice stays the admin's own (no uid of the previewed person) */}
+            <ThemeMenu uid={preview ? undefined : user.uid} />
             <IconButton label="Logi välja" className="profile-chip__logout" onClick={signOut}><LogOut size={17} /></IconButton>
           </div>
         </div>
@@ -105,7 +131,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
         {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={previewNavigation.close}>Lõpeta vaade</button></div> : null}
         <header className="topbar">
           <IconButton className="mobile-only" data-tour="menu" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>
-          {canSearchStudents ? <GlobalStudentSearch user={user} /> : null}
+          {canSearchStudents ? <Suspense fallback={null}><GlobalStudentSearch user={user} /></Suspense> : null}
           {showNotifications ? <div className="topbar-actions"><Suspense fallback={null}><NotificationCenter user={user} /></Suspense></div> : null}
         </header>
         <div className={preview?.readOnly ? 'preview-surface preview-surface--readonly' : 'preview-surface'} onClickCapture={blockPreviewButtons} onSubmitCapture={(event) => { if (preview?.readOnly) { event.preventDefault(); event.stopPropagation(); } }}><Outlet /></div>

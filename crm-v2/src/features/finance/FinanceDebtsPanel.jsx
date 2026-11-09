@@ -1,12 +1,15 @@
-import { FileUp, History, Mail, Pencil, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { FileUp, History, Mail, Pencil, Trash2, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, Modal } from '../../components/ui/index.js';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { displayDate } from './finance.js';
-import { financeRowState } from './financeRows.js';
-import { pastDueInvoices } from './financeDebts.js';
+import { financeRowState, sortFinanceRows } from './financeRows.js';
+import { debtAgeBuckets, debtsByPayer, pastDueInvoices } from './financeDebts.js';
 import { canCancelInvoice, creditableLessonLines, fullCorrectionBlocker } from './invoiceActions.js';
 import InvoiceCorrectionDialog from './InvoiceCorrectionDialog.jsx';
 import BankReconciliationPanel from './BankReconciliationPanel.jsx';
+import PaymentClaimBadge, { paymentClaimTitle } from './PaymentClaimBadge.jsx';
+import { invoicePaymentClaimsService, openPaymentClaim } from '../../services/firebase/invoicePaymentClaims.js';
 import './financeDebts.css';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
@@ -60,7 +63,7 @@ function DebtInvoiceEditDialog({ invoice, busy, error, canDue, canCredit, canCre
   </Modal>;
 }
 
-export default function FinanceDebtsPanel({ month, invoices, students, transactions, onAllocate, onReload, onRemind, onCancel, onCorrectDueDate, onCreditLessonLine, onCreditInFull, onCorrectInvoice }) {
+export default function FinanceDebtsPanel({ month, invoices, students, transactions, onAllocate, onReload, onRemind, onCancel, onCorrectDueDate, onCreditLessonLine, onCreditInFull, onCorrectInvoice, claimsRepository = invoicePaymentClaimsService, canRemoveClaims = false }) {
   const [importOpen, setImportOpen] = useState(false);
   const [editInvoice, setEditInvoice] = useState(null);
   const [editError, setEditError] = useState('');
@@ -72,6 +75,29 @@ export default function FinanceDebtsPanel({ month, invoices, students, transacti
   const canEdit = Boolean(onCorrectDueDate || onCreditLessonLine || onCreditInFull || onCorrectInvoice);
   const debts = useMemo(() => pastDueInvoices(invoices, month), [invoices, month]);
   const total = debts.reduce((sum, invoice) => sum + financeRowState(invoice).balanceCents, 0);
+  const ages = useMemo(() => debtAgeBuckets(debts), [debts]);
+  const payers = useMemo(() => debtsByPayer(debts), [debts]);
+  // „Maksin ära” from the parents' cabinet (owner 2026-11-09): notices only, the money is confirmed here from the bank
+  const [claims, setClaims] = useState(() => new Map());
+  useEffect(() => {
+    let live = true;
+    Promise.resolve().then(() => claimsRepository.list()).then((found) => live && setClaims(found instanceof Map ? found : new Map())).catch(() => {});
+    return () => { live = false; };
+  }, [claimsRepository]);
+  // „Eemalda teade” (administrator): a mistaken notice is deleted; the parent sees „Maksin ära” again
+  const removeClaim = async (invoice) => {
+    const label = invoice.num || invoice.number || '';
+    if (!(await askConfirm(`Eemaldada pere teade „Maksin ära” arvelt ${label}? Arve ja maksed ei muutu; pere saab teate uuesti saata.`, { confirmLabel: 'Eemalda teade', danger: true }))) return;
+    setBusy(`claim-${invoice.id}`); setNotice('');
+    try {
+      await claimsRepository.remove(invoice.id, invoice);
+      setClaims((current) => { const next = new Map(current); next.delete(invoice.id); return next; });
+      setNotice(`Pere teade arvelt ${label} eemaldati.`);
+    } catch (error) { setNotice(error.message || 'Teadet ei saanud eemaldada.'); }
+    finally { setBusy(''); }
+  };
+  // every unpaid invoice a family says it has paid, of any month (also this month's, which are not in the list below)
+  const claimed = useMemo(() => sortFinanceRows(invoices.filter((invoice) => invoice.status !== 'Tühistatud' && openPaymentClaim(claims, invoice, financeRowState(invoice).balanceCents)), 'dueDate'), [claims, invoices]);
   const remind = async (invoice) => {
     setBusy(invoice.id); setNotice('');
     try { await onRemind(invoice); setNotice('Maksemeeldetuletus saadeti.'); }
@@ -111,11 +137,20 @@ export default function FinanceDebtsPanel({ month, invoices, students, transacti
   };
   return (
     <Card className="finance-debts" id="volgnevused">
-      <div className="finance-debts__heading"><div><span className="eyebrow">Võlgnevused</span><h2>Varasemate kuude tasumata arved</h2><p>Kõik valitud kuust varasemad arved, millel on veel jääk.</p></div><div><strong>{money(total)}</strong><Button variant="secondary" onClick={() => setImportOpen(true)}><FileUp size={17} /> Impordi pank</Button></div></div>
+      <div className="finance-debts__heading"><div><span className="eyebrow">Võlgnevused</span><h2>Varasemate kuude tasumata arved</h2><p>Kõik valitud kuust varasemad arved, millel on veel jääk.{onRemind ? '' : ' Ainult vaatamiseks.'}</p></div><div><strong>{money(total)}</strong>{onAllocate ? <Button variant="secondary" onClick={() => setImportOpen(true)}><FileUp size={17} /> Impordi pank</Button> : null}</div></div>
       {notice ? <p className="finance-debts__notice" role="status">{notice}</p> : null}
+      {claimed.length ? <section className="finance-debts__claims" aria-label="Pere teated: makstud">
+        <h3>Pere teatas „Maksin ära” · {claimed.length}</h3>
+        <p>Arve on veel tasumata: kontrolli pangast ja lisa makse (Arved → arve → „Lisa makse”). Teade ise arvet makstuks ei märgi.</p>
+        <ul>{claimed.map((invoice) => { const claim = claims.get(invoice.id); const label = invoice.num || invoice.number || ''; return <li key={invoice.id} data-entity="invoice" data-invoice-id={invoice.id} data-invoice-number={label || undefined} data-student-id={invoice.studentId || undefined}><PaymentClaimBadge claim={claim} /><span><b>{invoice.studentName || invoice.payerName || '—'}</b> · {label || '—'} · {money(financeRowState(invoice).balanceCents)}</span><small>{paymentClaimTitle(claim)}</small>{canRemoveClaims ? <Button variant="secondary" loading={busy === `claim-${invoice.id}`} onClick={() => removeClaim(invoice)} aria-label={`Eemalda pere teade arvelt ${label}`}><X size={15} /> Eemalda teade</Button> : null}</li>; })}</ul>
+      </section> : null}
+      {debts.length ? <div className="finance-debts__summary">
+        <ul className="finance-debts__ages" aria-label="Võlgade vanus">{ages.map((bucket) => <li key={bucket.id} className={`is-${bucket.id}${bucket.count ? '' : ' is-empty'}`}><span>{bucket.label}</span><strong>{money(bucket.cents)}</strong><small>{bucket.count} arvet</small></li>)}</ul>
+        {payers.length > 1 ? <details className="finance-debts__payers"><summary>Pere kaupa · {payers.length} maksjat</summary><ol>{payers.map((payer) => <li key={payer.key}><span><b>{payer.name}</b>{payer.students.length ? <small>{payer.students.join(', ')}</small> : null}</span><span>{payer.count} arvet</span><strong>{money(payer.cents)}</strong></li>)}</ol></details> : null}
+      </div> : null}
       {!debts.length ? <EmptyState title="Varasemaid võlgnevusi ei ole" description="Kõik eelmiste kuude arved on tasutud või krediteeritud." action={<History size={28} />} /> : <div className="finance-debts__table" role="table" aria-label="Võlgnevused">
         <div className="finance-debts__head" role="row"><span>Õpilane</span><span>Arve</span><span>Tähtaeg</span><span>Jääk</span><span>Olek</span><span /></div>
-        {debts.map((invoice) => { const row = financeRowState(invoice); const label = invoice.num || invoice.number || ''; return <div className="finance-debts__row" role="row" key={invoice.id} data-entity="invoice" data-invoice-id={invoice.id} data-invoice-number={label || undefined} data-student-id={invoice.studentId || undefined} data-entity-title={[invoice.studentName || invoice.payerName, label].filter(Boolean).join(' · ') || undefined}><span data-label="Õpilane"><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{invoice.payerEmail || ''}</small></span><span data-label="Arve">{label || '—'}</span><span data-label="Tähtaeg">{displayDate(invoice.due || invoice.dueDate)}</span><span data-label="Jääk"><strong>{money(row.balanceCents)}</strong></span><span data-label="Olek"><Badge tone={row.overdue ? 'danger' : 'neutral'}>{row.overdue ? 'Üle tähtaja' : 'Tasumata'}</Badge></span><span className="finance-debts__actions"><Button variant="secondary" loading={busy === invoice.id} data-entity-action="remind" onClick={() => remind(invoice)}><Mail size={15} /> Meeldetuletus</Button>{canEdit ? <Button variant="secondary" data-entity-action="edit" onClick={() => { setEditError(''); setEditInvoice(invoice); }} aria-label={`Muuda arvet ${label}`}><Pencil size={15} /> Muuda</Button> : null}{onCancel && canCancelInvoice(invoice) ? <Button variant="secondary" data-entity-action="cancel" onClick={() => onCancel(invoice)} aria-label={`Tühista arve ${label}`}><Trash2 size={15} /> Tühista</Button> : null}</span></div>; })}
+        {debts.map((invoice) => { const row = financeRowState(invoice); const label = invoice.num || invoice.number || ''; return <div className="finance-debts__row" role="row" key={invoice.id} data-entity="invoice" data-invoice-id={invoice.id} data-invoice-number={label || undefined} data-student-id={invoice.studentId || undefined} data-entity-title={[invoice.studentName || invoice.payerName, label].filter(Boolean).join(' · ') || undefined}><span data-label="Õpilane"><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{invoice.payerEmail || ''}</small></span><span data-label="Arve">{label || '—'}</span><span data-label="Tähtaeg">{displayDate(invoice.due || invoice.dueDate)}</span><span data-label="Jääk"><strong>{money(row.balanceCents)}</strong></span><span data-label="Olek"><Badge tone={row.overdue ? 'danger' : 'neutral'}>{row.overdue ? 'Üle tähtaja' : 'Tasumata'}</Badge> <PaymentClaimBadge claim={openPaymentClaim(claims, invoice, row.balanceCents)} /></span><span className="finance-debts__actions">{onRemind ? <Button variant="secondary" loading={busy === invoice.id} data-entity-action="remind" onClick={() => remind(invoice)}><Mail size={15} /> Meeldetuletus</Button> : null}{canEdit ? <Button variant="secondary" data-entity-action="edit" onClick={() => { setEditError(''); setEditInvoice(invoice); }} aria-label={`Muuda arvet ${label}`}><Pencil size={15} /> Muuda</Button> : null}{onCancel && canCancelInvoice(invoice) ? <Button variant="secondary" data-entity-action="cancel" onClick={() => onCancel(invoice)} aria-label={`Tühista arve ${label}`}><Trash2 size={15} /> Tühista</Button> : null}</span></div>; })}
       </div>}
       <DebtInvoiceEditDialog key={editInvoice?.id || 'closed'} invoice={editInvoice} busy={Boolean(editInvoice) && busy === `edit-${editInvoice.id}`} error={editError} canDue={Boolean(onCorrectDueDate)} canCredit={Boolean(onCreditLessonLine)} canCreditFull={Boolean(onCreditInFull)} canCorrect={Boolean(onCorrectInvoice)} onOpenCorrection={openCorrection} onClose={() => { if (!busy) setEditInvoice(null); }} onSaveDueDate={(due, reason) => correct('due', due, reason)} onCreditLessonLine={(lessonId, reason) => correct('credit', lessonId, reason)} />
       {correction ? <InvoiceCorrectionDialog key={`${correction.mode}-${correction.invoice.id}`} invoice={correction.invoice} mode={correction.mode} busy={busy === `correct-${correction.invoice.id}`} error={correctionError} onClose={() => { if (!busy) setCorrection(null); }} onSubmit={submitCorrection} /> : null}

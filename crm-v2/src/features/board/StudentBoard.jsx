@@ -1,16 +1,37 @@
-import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
-import { Fragment, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
+import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareText, Spline, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, Images, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type, X } from 'lucide-react';
+import { Suspense, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import { createPortal } from 'react-dom';
-import { Button } from '../../components/ui/index.js';
+import { Button, LoadingState } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
-  BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, fitRect, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds, viewRect } from './boardModel.js';
+import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitSheet, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView, focusShift,
+  BACKGROUNDS, MARKER_COLORS, POINTER_TOOL, backgroundOf, boardTool, copyData, fitRect, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds, viewRect } from './boardModel.js';
 import { EMPTY_REMOTE, createThrottle, cursorMessage, draftMessage, dropStale, moveMessage, reduceRemote, remoteOnPage, typingMessage, viewMessage } from './liveDrafts.js';
 import { SheetFlowContext } from '../worksheet-studio/sheetFlow.js';
+import { studentNotesService } from '../../services/firebase/studentNotes.js';
+import { ARROW_TOOLS, CALLOUT_FONT, arrowFromDrag, arrowHeads, arrowPathD, bendPatch, calloutBox, curveMiddle, endpointPatch, isArrowLike } from './arrows.js';
+import { INK_BOX, anchorTint, bookmarkElement, bookmarkEmpty, isAnchoredBookmark, isBookmark, notePatch, noteRecord } from './bookmarkModel.js';
+import { anchorFromOffsets, anchorFromPoint, anchorFromRange, anchorLabel, locateAnchor, spotOf } from './bookmarkAnchor.js';
+import { BoardBookmarkContext } from './bookmarkContext.js';
+import { spanCss, spansOf, textPatch } from './richText.js';
+import BookmarkDialog from './BookmarkDialog.jsx';
+import BoardLanguageTools from './BoardLanguageTools.jsx';
+import BoardPageTabs from './BoardPageTabs.jsx';
+import RichTextEditor, { FormatBar } from './RichTextEditor.jsx';
+import { MEDIA_MIME, mediaElement, placeableImage, readPayload } from './mediaSearch.js';
+import { selectionText } from './selectionText.js';
+import { isWorksheetPage } from './lessonBoards.js';
 import './board.css';
 
+// „Pildid” (search pictures and drag them onto the board): its own chunk, loaded when the teacher opens it
+const MediaSearchPanel = lazyComponent(() => import('./MediaSearchPanel.jsx'));
+
+// One pointer, „Vali ja täida” (owner 2026-11-05, it replaced „Täida töölehte” + „Vali ja liiguta”): the worksheet's
+// fields take clicks and typing as before, a click on the board's own part (text, note, picture, shape, arrow, sticker)
+// selects it, a drag moves it, its handles resize it, Delete removes it; a click on an empty place clears the selection.
 const TOOLS = [
-  ['select', 'Vali ja liiguta', MousePointer2],
+  [POINTER_TOOL, 'Vali ja täida', MousePointer2, 'Vali ja täida (V): kirjuta töölehele, vali ja liiguta tahvli osi'],
   ['pen', 'Pliiats', PenLine],
   ['marker', 'Marker', Highlighter],
   ['note', 'Märkmepaber', StickyNote],
@@ -18,17 +39,27 @@ const TOOLS = [
   ['rect', 'Ristkülik', Square],
   ['ellipse', 'Ellips', Circle],
   ['arrow', 'Nool', ArrowUpRight],
+  ['curve', 'Kaarnool', Spline],
+  ['double', 'Kahepoolne nool', ArrowLeftRight],
+  ['callout', 'Viide tekstiga', MessageSquareText],
+  ['bookmark', 'Järjehoidja / Kleebis', BookmarkPlus],
   ['eraser', 'Kustutaja', Eraser],
   ['hand', 'Liiguta tahvlit', Hand],
 ];
-// on a worksheet page: click into the worksheet (answer) instead of drawing on top of it
-const FILL_TOOL = ['fill', 'Täida töölehte', MousePointerClick];
 // Live Classroom, teacher: a pointer the student sees on the same page (sent over the call, nothing is saved)
 const LASER_TOOL = ['laser', 'Osuti', Crosshair];
-const SHAPES = TOOLS.filter(([key]) => ['rect', 'ellipse', 'arrow'].includes(key));
+const SHAPE_KEYS = ['rect', 'ellipse', 'arrow', 'curve', 'double', 'callout'];
+const SHAPES = TOOLS.filter(([key]) => SHAPE_KEYS.includes(key));
+// drawing tools: while one of them drags, the page's text must not get selected (owner 2026-11-04: blue selection)
+const DRAW_TOOLS = new Set(['pen', 'marker', 'eraser', 'select', 'hand', 'laser', ...SHAPE_KEYS]);
+// what „Vali ja täida” grabs on a worksheet page: the board's own parts, their handles and the selection's buttons
+const BOARD_PART = '[data-element-id], [data-handle], .sb-selbar';
 const META = ['id', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'];
 const plain = (element) => Object.fromEntries(Object.entries(element).filter(([key]) => !META.includes(key)));
 const HISTORY_LIMIT = 50;
+// „Järjehoidja” on a word: a press this long (ms) or a second tap this soon takes its whole sentence
+const LONG_PRESS = 550;
+const DOUBLE_TAP = 280;
 
 /**
  * The student's persistent board (and the v1 lesson pages), shared live by the student, parents and the teacher.
@@ -51,6 +82,29 @@ function useNarrowScreen(media = NARROW) {
   return narrow;
 }
 
+// a field one types in (an answer on the sheet, a board text being edited); `node` may be a text node inside one
+const TEXT_FIELD = 'input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"]';
+function isTextField(node) {
+  const el = node?.nodeType === 3 ? node.parentElement : node;
+  return Boolean(el?.nodeType === 1 && (el.isContentEditable || el.closest?.(TEXT_FIELD)));
+}
+
+// While a board is on screen the page itself never swipes sideways: a two-finger move on a Mac trackpad over the board
+// was the browser's back / forward gesture (owner 2026-11-04). Counted, since a teacher's workspace can hold two boards.
+let noSwipeBoards = 0;
+function useNoHistorySwipe() {
+  useEffect(() => {
+    const root = globalThis.document?.documentElement;
+    if (!root) return undefined;
+    noSwipeBoards += 1;
+    root.classList.add('sb-no-swipe');
+    return () => {
+      noSwipeBoards = Math.max(0, noSwipeBoards - 1);
+      if (!noSwipeBoards) root.classList.remove('sb-no-swipe');
+    };
+  }, []);
+}
+
 export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
   controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet: singleWorksheet = null, worksheets: worksheetList = null, pastWorksheets = null,
@@ -61,14 +115,27 @@ export default function StudentBoard({
   live = null, presenting = false, followView = false, onFollowBreak,
   // Live Classroom: how much of the board's right edge the video tiles cover; a worksheet is fitted beside them
   insetRight = 0,
+  // „Järjehoidja / Kleebis”: the bookmarks are kept for the student in „Minu vead” (studentNotes)
+  noteService = studentNotesService,
+  // „Pildid”: the school picture bank to search (tests / sheet-lab pass their own; default mediaBankService)
+  mediaBank,
+  // Live Classroom (student): which worksheet pages are tabs — { hidden: Set<sheetId> (no tab unless open),
+  // closable: Set<sheetId> (a × after the tab), onClose(sheetId), extra(pagedSheetIds) → node after the tabs }
+  sheetTabs = null,
+  // the student's own board (/board): what a worksheet page „Tööleht: …” shows when its sheet is not known here (the
+  // sheet lies under the page only in the lesson) — (page) → node, instead of a bare „Tühi tahvel”
+  sheetPageFallback = null,
 }) {
   const room = variant === 'room';
+  useNoHistorySwipe();
   const [pages, setPages] = useState([]);
   const [pageId, setPageId] = useState(initialPageId || null);
   // Elements of the open page; tagged with the page they belong to, so a page switch never shows stale elements.
   const [loaded, setLoaded] = useState({ key: '', items: [] });
   const [error, setError] = useState('');
-  const [tool, setTool] = useState('pen');
+  // the default tool on every page is the pointer; an old id (`fill`, „Täida töölehte”) is the same tool (boardTool)
+  const [tool, setToolState] = useState(POINTER_TOOL);
+  const setTool = useCallback((key) => setToolState(boardTool(key)), []);
   const [color, setColor] = useState(COLORS[0]);
   const [noteColor, setNoteColor] = useState(NOTE_COLORS[0]);
   const [size, setSize] = useState('M');
@@ -88,11 +155,29 @@ export default function StudentBoard({
   const [resizing, setResizing] = useState(null);
   const [marquee, setMarquee] = useState(null);
   const [spaceHeld, setSpaceHeld] = useState(false);
+  // „Vali ja täida” on a worksheet: the drawing layer lets clicks through to the sheet except on the board's own parts;
+  // while one of them is being moved or resized the whole layer takes the pointer (ends with any release, as the block)
+  const [grabbing, setGrabbing] = useState(false);
   // the pointer is over a player of the worksheet (owner 2026-10-29: „учитель должен мочь открыть аудиозапись прямо во
-  // время урока”): the board lets the click through to the player whatever tool is on, not only in „Täida töölehte”
+  // время урока”): the board lets the click through to the player whatever tool is on, not only with „Vali ja täida”
   const [overMedia, setOverMedia] = useState(false);
   const [marker, setMarker] = useState(MARKER_COLORS[0]);
   const clipboard = useRef([]);
+  // the open bookmark sheet: { x, y } for a new one, or { element } to change one
+  const [bookmark, setBookmark] = useState(null);
+  const [bookmarkSaving, setBookmarkSaving] = useState(false);
+  // an anchored bookmark (owner 2026-11-09): „Järjehoidja” over a text selected in the sheet, the popups of the sheet
+  // (the teacher's „Märkus / Analüüs”) to close when a bookmark sheet opens, a word tapped with the tool waiting for a
+  // second tap (= its sentence)
+  const [selChip, setSelChip] = useState(null);
+  const sheetPopups = useRef(new Set());
+  const pendingWord = useRef(null);
+  const bookmarkSeq = useRef(0);
+  // „Pildid” panel (teacher in the live room) and the result being put on the board
+  const [mediaOpen, setMediaOpen] = useState(false);
+  const [placing, setPlacing] = useState('');
+  // the rich text editor of an open text element
+  const richRef = useRef(null);
   // the paper of each page (dots, grid, lines, plain), shared by everyone with the board
   const [backgrounds, setBackgrounds] = useState({});
   useEffect(() => {
@@ -163,11 +248,15 @@ export default function StudentBoard({
     return heir?.id === sheet.id ? pages.find((page) => page.title === worksheetPageTitle(sheet.legacyTitle)) || null : null;
   }, [pages, allSheets]);
   const sheetPageIds = useMemo(() => new Set(allSheets.map(sheetPageOf).filter(Boolean).map((page) => page.id)), [allSheets, sheetPageOf]);
+  // page id → sheet id (only for `sheetTabs`)
+  const sheetOfPage = useMemo(() => (sheetTabs ? new Map(allSheets.map((sheet) => [sheetPageOf(sheet)?.id, sheet.id]).filter(([id]) => id)) : null), [sheetTabs, allSheets, sheetPageOf]);
   // the newest sheet takes over the board when it opens; the page on screen decides which sheet lies under the drawing
   const worksheet = sheets[0] || null;
   const worksheetPage = sheetPageOf(worksheet);
   const activeSheet = allSheets.find((sheet) => sheetPageOf(sheet)?.id === pageId) || null;
   const onWorksheet = Boolean(activeSheet);
+  // a worksheet page without its sheet (only on the student's own board, `sheetPageFallback`): say why, never „Tühi tahvel”
+  const lostSheet = !onWorksheet && sheetPageFallback && pageId && isWorksheetPage({ id: pageId, title: pageTitle }) ? sheetPageFallback({ id: pageId, title: pageTitle }) : null;
   // on a phone the worksheet is read as a one-column page (owner 2026-10-20: the A4 sheet shrunk to a third could not be
   // read or moved); „Tahvlivaade” brings back the board with the teacher's drawings
   const narrow = useNarrowScreen();
@@ -175,9 +264,11 @@ export default function StudentBoard({
   const [viewChoice, setViewChoice] = useState('');
   const boardView = viewChoice === 'board';
   const reading = onWorksheet && (viewChoice === 'reading' || (narrow && !boardView));
+  // „Vali ja täida” on a worksheet page: the sheet is answered through the drawing layer (see `pointerFor`)
+  const filling = onWorksheet && tool === POINTER_TOOL;
   // the student who follows the teacher onto a worksheet page fills it in: one finger moves the sheet and taps the
   // answer fields instead of drawing over them (a pen left on from the board page did that on tablets)
-  useEffect(() => { if (onWorksheet && !staff) setTool('fill'); }, [pageId, onWorksheet, staff]);
+  useEffect(() => { if (onWorksheet && !staff) setTool(POINTER_TOOL); }, [pageId, onWorksheet, staff, setTool]);
   // the sheet's height bounds how far the board pans down. The stage is rendered in two layouts, so the underlay may
   // be a new element (a reconnect, the layout switching on a tablet): the observer follows the element itself, else
   // the old height stayed and the student could not scroll past it (owner 2026-10-11, Monika on an iPad)
@@ -200,7 +291,7 @@ export default function StudentBoard({
   const userMoved = useRef(false);
   const moveView = (update) => { userMoved.current = true; if (followView && here.view) onFollowBreak?.(); setView((current) => clampView(typeof update === 'function' ? update(current) : update, bounds, ...screenSize())); };
   // a worksheet fits by the sheet itself, not by drawings far beside it (owner 2026-10-10: the sheet was tiny for the student)
-  const sheetFit = (width) => fitWidth({ x1: 0, y1: 0, x2: WORKSHEET_WIDTH, y2: bounds.y2 }, Math.max(320, width - insetRight));
+  const sheetFit = (width) => fitSheet({ x1: 0, y1: 0, x2: WORKSHEET_WIDTH, y2: bounds.y2 }, width, { insetRight });
   const fail = (message) => (nextError) => setError(nextError?.message || message);
   const local = (event) => {
     const rect = svgRef.current.getBoundingClientRect();
@@ -216,6 +307,8 @@ export default function StudentBoard({
     service.setBackground?.(studentId, pageKeyName, key, user).catch(fail('Tausta ei saanud muuta.'));
   };
   const preset = SIZES[size] || SIZES.M;
+  // a shape from a drag: rectangles and ellipses as before, arrows of every kind from arrows.js
+  const shapeOf = (start, end) => (ARROW_TOOLS[tool] ? arrowFromDrag(tool, start, end) : { shape: tool, ...shapeFromDrag(tool, start, end) });
   const shapeWidth = Math.max(1, Math.round(width * 0.75));
 
   // ── own-action history (undo/redo) ─────────────────────────────
@@ -316,7 +409,7 @@ export default function StudentBoard({
     if (worksheetPage) {
       setWantWorksheet('');
       if (pageId !== worksheetPage.id) choosePage(worksheetPage.id);
-      setTool('fill');
+      setTool(POINTER_TOOL);
       return;
     }
     if (staff && creatingWorksheet.current !== worksheet.id) {
@@ -350,7 +443,6 @@ export default function StudentBoard({
     observer.observe(node);
     return () => observer.disconnect();
   }, [onWorksheet, pageId]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (!onWorksheet && tool === 'fill') setTool('pen'); }, [onWorksheet, tool]);
   // the video tiles shown or hidden: the sheet takes the free width again (unless the user has moved it himself)
   useEffect(() => {
     if (!onWorksheet || userMoved.current) return;
@@ -401,11 +493,11 @@ export default function StudentBoard({
     const target = allSheets.find((sheet) => sheet.id === sheetId) || worksheet;
     if (!target) return;
     const page = sheetPageOf(target);
-    if (page) { choosePage(page.id); setTool('fill'); return; }
+    if (page) { choosePage(page.id); setTool(POINTER_TOOL); return; }
     if (target.id === worksheet?.id) { setWantWorksheet(target.id); return; }
-    if (staff) (service.addWorksheetPage || service.addPage).call(service, studentId, worksheetPageTitle(target.title), pages.length + 1, user).then((id) => { choosePage(id); setTool('fill'); }).catch(fail('Töölehe lehte ei saanud luua.'));
-  }, [allSheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]);
-  useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet }), [insertFile, newPage, openWorksheet, redo, undo]);
+    if (staff) (service.addWorksheetPage || service.addPage).call(service, studentId, worksheetPageTitle(target.title), pages.length + 1, user).then((id) => { choosePage(id); setTool(POINTER_TOOL); }).catch(fail('Töölehe lehte ei saanud luua.'));
+  }, [allSheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user, setTool]);
+  useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet, selectedText: () => selectionText(selected.map((id) => byId.get(id))) }), [insertFile, newPage, openWorksheet, redo, undo, selected, byId]);
 
   // rename a lesson page: double click its tab or „Nimeta ümber” in the ⋯ menu next to the open page
   const [renaming, setRenaming] = useState(null);
@@ -425,9 +517,9 @@ export default function StudentBoard({
     const rect = event.currentTarget.getBoundingClientRect();
     setPageMenu({ id, x: Math.max(8, Math.min(rect.left, (globalThis.innerWidth || 1200) - 228)), y: rect.bottom + 6 });
   };
-  const deletePage = (page) => {
+  const deletePage = async (page) => {
     setPageMenu(null);
-    if (!globalThis.confirm(`Kustuta leht „${page.title || 'Leht'}” koos kõigega, mis sellel on?`)) return;
+    if (!(await askConfirm(`Kustuta leht „${page.title || 'Leht'}” koos kõigega, mis sellel on?`))) return;
     if (page.id === pageId) choosePage(null);
     service.deletePage(studentId, page.id).catch(fail('Lehte ei saanud kustutada.'));
   };
@@ -439,37 +531,122 @@ export default function StudentBoard({
     service.renamePage(studentId, page.id, current.title, user).catch(fail('Lehte ei saanud ümber nimetada.'));
   };
   const menuPage = pages.find((item) => item.id === pageMenu?.id) || null;
-  const pageTabs = (className) => <div className={className} role="tablist" aria-label="Tahvli lehed">
-    <button type="button" role="tab" aria-selected={pageId === null} onClick={() => choosePage(null)}>Tahvel</button>
-    {pages.map((page) => (renaming?.id === page.id
-      ? <input key={page.id} className="sb-page-rename" aria-label="Lehe nimi" autoFocus maxLength={200} value={renaming.title}
-        onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
-        onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
-      : <Fragment key={page.id}>
-        <button type="button" role="tab" aria-selected={pageId === page.id} className={sheetPageIds.has(page.id) ? 'is-worksheet' : ''} title="Topeltklõps: nimeta ümber · paremklõps: lehe toimingud" onClick={() => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); }} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })} onContextMenu={(event) => { event.preventDefault(); openPageMenu(event, page.id); }}>{sheetPageIds.has(page.id) ? <ClipboardList size={13} aria-hidden="true" /> : null}{page.title || 'Leht'}</button>
-        {pageId === page.id && !renaming ? <button type="button" className="sb-page-tool sb-page-more" aria-label="Lehe toimingud" title={`Lehe „${page.title || 'Leht'}” toimingud`} aria-haspopup="menu" aria-expanded={pageMenu?.id === page.id} onClick={(event) => openPageMenu(event, page.id)}><MoreHorizontal size={16} /></button> : null}
-      </Fragment>))}
-    {menuPage ? createPortal(<div className="sb-page-menu" role="menu" aria-label={`Leht „${menuPage.title || 'Leht'}”`} style={{ left: pageMenu.x, top: pageMenu.y }}>
-      <p className="sb-page-menu__title">{menuPage.title || 'Leht'}</p>
-      <button type="button" role="menuitem" onClick={() => { setPageMenu(null); setRenaming({ id: menuPage.id, title: menuPage.title || '' }); }}>Nimeta ümber</button>
-      {onAssignPage ? <button type="button" role="menuitem" onClick={() => { setPageMenu(null); onAssignPage({ id: menuPage.id, title: menuPage.title || 'Tahvlileht' }); }}>Määra õpilasele õppimiseks</button> : null}
-      {staff && service.deletePage && menuPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(menuPage)}>Kustuta leht</button> : null}
-      {staff && menuPage.status === 'completed' ? <p className="sb-page-menu__note">Lõpetatud tunni lehte ei saa kustutada.</p> : null}
-    </div>, document.body) : null}
-    <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
-    <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
-  </div>;
+  const visiblePages = sheetOfPage ? pages.filter((page) => page.id === pageId || !sheetTabs.hidden?.has(sheetOfPage.get(page.id))) : pages;
+  const openTab = (page) => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool(POINTER_TOOL); };
+  // one page's tab (BoardPageTabs lays them out: lesson chips, scrolling, „Lehed ▾”): rename, × and „…” stay here
+  const renderTab = (page, { label, className: tabClass }) => (renaming?.id === page.id
+    ? <input className="sb-page-rename" aria-label="Lehe nimi" autoFocus maxLength={200} value={renaming.title}
+      onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
+      onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
+    : <>
+      <button type="button" role="tab" aria-selected={pageId === page.id} aria-label={page.title || 'Leht'} className={`${tabClass}${sheetPageIds.has(page.id) ? ' is-worksheet' : ''}`} title={`${page.title || 'Leht'}\nTopeltklõps: nimeta ümber · paremklõps: lehe toimingud`} onClick={() => openTab(page)} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })} onContextMenu={(event) => { event.preventDefault(); openPageMenu(event, page.id); }}>{sheetPageIds.has(page.id) && !tabClass.includes('chip') ? <ClipboardList size={13} aria-hidden="true" /> : null}<span className="sb-tab__label">{label}</span></button>
+      {sheetOfPage && sheetTabs.closable?.has(sheetOfPage.get(page.id)) ? <button type="button" className="sb-page-close" aria-label={`Sulge „${page.title || 'Leht'}”`} title="Sulge (jääb „Varasemad tunnid” alla)" onClick={() => { if (pageId === page.id) choosePage(null); sheetTabs.onClose?.(sheetOfPage.get(page.id)); }}><X size={13} aria-hidden="true" /></button> : null}
+      {pageId === page.id && !renaming ? <button type="button" className="sb-page-tool sb-page-more" aria-label="Lehe toimingud" title={`Lehe „${page.title || 'Leht'}” toimingud`} aria-haspopup="menu" aria-expanded={pageMenu?.id === page.id} onClick={(event) => openPageMenu(event, page.id)}><MoreHorizontal size={16} /></button> : null}
+    </>);
+  const pageTabs = (className) => <BoardPageTabs className={className} pages={visiblePages} pageId={pageId} onBoard={() => choosePage(null)} onChoose={openTab} renderTab={renderTab}
+    insetRight={className === 'sb-room-pages' ? insetRight : 0}
+    trailing={<span className="sb-tabbar__end">
+      {menuPage ? createPortal(<div className="sb-page-menu" role="menu" aria-label={`Leht „${menuPage.title || 'Leht'}”`} style={{ left: pageMenu.x, top: pageMenu.y }}>
+        <p className="sb-page-menu__title">{menuPage.title || 'Leht'}</p>
+        <button type="button" role="menuitem" onClick={() => { setPageMenu(null); setRenaming({ id: menuPage.id, title: menuPage.title || '' }); }}>Nimeta ümber</button>
+        {onAssignPage ? <button type="button" role="menuitem" onClick={() => { setPageMenu(null); onAssignPage({ id: menuPage.id, title: menuPage.title || 'Tahvlileht' }); }}>Määra õpilasele õppimiseks</button> : null}
+        {staff && service.deletePage && menuPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(menuPage)}>Kustuta leht</button> : null}
+        {staff && menuPage.status === 'completed' ? <p className="sb-page-menu__note">Lõpetatud tunni lehte ei saa kustutada.</p> : null}
+      </div>, document.body) : null}
+      {room ? readingToggle || boardToggle : null}
+      {sheetOfPage && sheetTabs.extra ? sheetTabs.extra(new Set(sheetOfPage.values())) : null}
+      <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
+      <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
+    </span>} />;
 
   // while a text is open for editing, the font, size and colour buttons change that text
   const editingText = () => { const element = byId.get(editing?.id); return element?.type === 'text' ? element : null; };
+  // the whole open text: its own colour / size / font, and single runs lose theirs of that kind
   const restyle = (patch) => {
     const element = editingText();
     if (!element) return;
+    const keys = { color: 'c', fontSize: 's', fontFamily: 'f' };
+    Object.keys(patch).forEach((key) => { if (keys[key]) richRef.current?.clear(keys[key]); });
     const next = { ...element, ...patch };
-    update(element, { ...patch, ...textBoxOf(next, editing?.text ?? element.text) }, 'Teksti ei saanud muuta.');
+    const spans = richRef.current?.spans() || editing?.spans || spansOf(element);
+    update(element, { ...patch, ...textBoxOf(next, editing?.text ?? element.text), ...(element.spans?.length || spans.length > 1 ? textPatch(element, spans) : {}) }, 'Teksti ei saanud muuta.');
   };
-  const pickSize = (key) => { setSize(key); setWidth(SIZES[key].pen); restyle({ fontSize: SIZES[key].font }); };
-  const pickFont = (key) => { setFont(key); restyle({ fontFamily: key }); };
+  // a part of the open text is selected: the style goes to that part only
+  const styleSelection = (patch) => {
+    const editor = richRef.current;
+    if (!editingText() || !editor?.selection()) return false;
+    editor.style(patch);
+    return true;
+  };
+  // colour and line width of the selected drawings (tool „Vali”): arrows, shapes, lines, texts
+  const restyleSelected = (patch) => {
+    const pairs = selectedElements.flatMap((element) => {
+      const next = {};
+      if (patch.color && (element.type === 'shape' || element.type === 'text' || (element.type === 'stroke' && !isMarker(element)))) next.color = patch.color;
+      if (patch.strokeWidth && (element.type === 'shape' || (element.type === 'stroke' && !isMarker(element)))) next.strokeWidth = element.type === 'shape' ? Math.max(1, Math.round(patch.strokeWidth * 0.75)) : patch.strokeWidth;
+      return Object.keys(next).length && Object.entries(next).some(([key, value]) => element[key] !== value) ? [{ element, patch: next }] : [];
+    });
+    if (pairs.length) changeMany(pairs, 'Stiili ei saanud muuta.');
+  };
+  const widthTimer = useRef(0);
+  const pickWidth = (value) => {
+    setWidth(value); setSize('');
+    globalThis.clearTimeout(widthTimer.current);
+    if (tool === 'select' && selectedElements.length) widthTimer.current = globalThis.setTimeout(() => restyleSelected({ strokeWidth: value }), 350);
+  };
+  const pickSize = (key) => {
+    setSize(key); setWidth(SIZES[key].pen);
+    if (styleSelection({ s: SIZES[key].font })) return;
+    restyle({ fontSize: SIZES[key].font });
+    if (!editing && tool === 'select') restyleSelected({ strokeWidth: SIZES[key].pen });
+  };
+  const pickFont = (key) => { setFont(key); if (!styleSelection({ f: key })) restyle({ fontFamily: key }); };
+  // open a text, a note, a callout or a bookmark for writing
+  const openEditor = (element) => {
+    if (!element) return;
+    if (isBookmark(element)) { openBookmark({ element }); return; }
+    setEditing({ id: element.id, text: element.text || '', ...(element.type === 'text' ? { spans: spansOf(element) } : {}) });
+  };
+  const editableText = (element) => element && (element.type === 'text' || element.type === 'note' || (element.type === 'shape' && element.shape === 'callout'));
+
+  // While a drawing gesture runs, the browser must not select the page's text (owner 2026-11-04: dragging a pen or an
+  // arrow painted the worksheet and the page blue). Typing is untouched: answer fields and text editors are not drawing.
+  const selectionBlock = useRef(null);
+  const releaseSelection = () => { selectionBlock.current?.(); selectionBlock.current = null; setGrabbing(false); };
+  // The block lives only as long as the press (2026-11-05: students could not type into the sheet's answers). The press
+  // used to end only through the drawing layer's own pointerup; a release it never saw (off the board, over the dock or
+  // a video window, Safari losing the SVG's pointer capture, the window losing focus) left `sb-drawing` on <html> and
+  // `selectstart` cancelled for good — in Safari the inherited `-webkit-user-select: none` makes every answer field
+  // untypeable. Now any release anywhere, a lost window focus or a field taking the focus ends it, and a field is never
+  // blocked while it lasts.
+  const blockSelection = () => {
+    const doc = globalThis.document;
+    if (selectionBlock.current || !doc) return;
+    const active = doc.activeElement;
+    const typing = isTextField(active);
+    const current = globalThis.getSelection?.();
+    if (current && !current.isCollapsed && !typing) current.removeAllRanges();
+    const stop = (event) => { if (!isTextField(event.target)) event.preventDefault(); };
+    const end = () => releaseSelection();
+    const focusIn = (event) => { if (isTextField(event.target)) releaseSelection(); };
+    const win = doc.defaultView || globalThis;
+    doc.addEventListener('selectstart', stop);
+    // after the board's own pointerup (bubbling, a later tick): its `up` still runs with the block on
+    const ends = ['pointerup', 'pointercancel', 'mouseup', 'touchend', 'touchcancel'];
+    const later = () => globalThis.setTimeout(end, 0);
+    ends.forEach((type) => win.addEventListener?.(type, later, true));
+    win.addEventListener?.('blur', end);
+    doc.addEventListener('focusin', focusIn);
+    doc.documentElement.classList.add('sb-drawing');
+    selectionBlock.current = () => {
+      doc.removeEventListener('selectstart', stop);
+      ends.forEach((type) => win.removeEventListener?.(type, later, true));
+      win.removeEventListener?.('blur', end);
+      doc.removeEventListener('focusin', focusIn);
+      doc.documentElement.classList.remove('sb-drawing');
+    };
+  };
+  useEffect(() => () => releaseSelection(), []);
 
   const down = (event) => {
     if (event.button !== undefined && event.button !== 0) return;
@@ -489,13 +666,20 @@ export default function StudentBoard({
       if (target) erase(target);
       return;
     } else if (tool === 'select') {
-      if (event.target?.dataset?.handle && selectedElements.length === 1) {
+      const handle = event.target?.dataset?.handle;
+      if (handle && selectedElements.length === 1 && ['start', 'end', 'bend'].includes(handle)) {
+        gesture.current = { kind: 'endpoint', which: handle, element: selectedElements[0] };
+      } else if (handle && selectedElements.length === 1) {
         gesture.current = { kind: 'resize', element: selectedElements[0], start: raw };
       } else if (movable(target) && canEdit(target)) {
         const has = selected.includes(target.id);
         const ids = event.shiftKey ? (has ? selected.filter((id) => id !== target.id) : [...selected, target.id]) : (has ? selected : [target.id]);
         setSelected(ids);
         gesture.current = { kind: 'move', ids, start: raw, dx: 0, dy: 0 };
+      } else if (filling) {
+        // on a worksheet the empty place is the sheet (its clicks never reach the layer): nothing to frame there
+        if (!event.shiftKey) setSelected([]);
+        return;
       } else {
         // empty place (or the teacher's material for a student): drag a frame to select several
         gesture.current = { kind: 'marquee', start: raw, add: event.shiftKey };
@@ -504,19 +688,45 @@ export default function StudentBoard({
       const style = tool === 'marker' ? { color: markerColor(marker), strokeWidth: markerWidth(width) } : { color, strokeWidth: width };
       gesture.current = { kind: 'pen', points: [world], style };
       setDraft({ type: 'stroke', points: [world], ...style });
-    } else if (['rect', 'ellipse', 'arrow'].includes(tool)) {
+    } else if (SHAPE_KEYS.includes(tool)) {
       gesture.current = { kind: 'shape', start: world };
+    } else if (tool === 'bookmark') {
+      const existing = textAt(elements, world);
+      if (isBookmark(existing) && canEdit(existing)) { openBookmark({ element: existing }); return; }
+      // on a worksheet: the word under the pointer (a second tap or a long press: its whole sentence)
+      const word = onWorksheet ? textUnder(event.clientX, event.clientY) : null;
+      if (word) {
+        const waiting = pendingWord.current;
+        if (waiting && Math.hypot(waiting.x - event.clientX, waiting.y - event.clientY) < 16) {
+          globalThis.clearTimeout(waiting.timer);
+          pendingWord.current = null;
+          openAnchored(textUnder(event.clientX, event.clientY, true) || word);
+          return;
+        }
+        const press = { kind: 'anchor', word, x: event.clientX, y: event.clientY, done: false };
+        press.timer = globalThis.setTimeout(() => { press.done = true; openAnchored(textUnder(press.x, press.y, true) || word); }, LONG_PRESS);
+        gesture.current = press;
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        return;
+      }
+      openBookmark({ x: world.x, y: world.y });
+      return;
     } else if (tool === 'note' || tool === 'text') {
+      // the editor opens right away: the click must not move the focus back to the page (that closed the new, empty text)
+      event.preventDefault();
       const existing = textAt(elements, world);
       if (existing && !staff && teacherMaterial(existing)) { setError('Õpetaja teksti saab muuta ainult õpetaja.'); return; }
-      if (existing) { setEditing({ id: existing.id, text: existing.text || '' }); return; }
+      if (existing) { openEditor(existing); return; }
       const data = tool === 'note'
         ? { type: 'note', x: world.x, y: world.y, w: 180, h: 140, text: '', color: noteColor }
         : { type: 'text', x: world.x, y: world.y, w: 260, h: Math.round(preset.font * 2.4), text: '', color, fontSize: preset.font, ...(font !== 'sans' ? { fontFamily: font } : {}) };
-      add(data, 'Elementi ei saanud lisada.').then((id) => { if (id) setEditing({ id, text: '' }); });
+      add(data, 'Elementi ei saanud lisada.').then((id) => { if (id) setEditing({ id, text: '', ...(tool === 'text' ? { spans: [] } : {}) }); });
       setTool('select');
       return;
     }
+    if (DRAW_TOOLS.has(tool) || spaceHeld) blockSelection();
+    // a board part pressed on a worksheet: the layer takes the pointer until the release (moves, resizes)
+    if (filling) setGrabbing(true);
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
@@ -528,6 +738,11 @@ export default function StudentBoard({
     }
     const current = gesture.current;
     if (!current) return;
+    if (current.kind === 'anchor') {
+      // the finger slid: no long press (the word is still taken on release)
+      if (Math.hypot(event.clientX - current.x, event.clientY - current.y) > 10) globalThis.clearTimeout(current.timer);
+      return;
+    }
     const screen = local(event);
     const raw = screenToWorld(screen, view);
     const world = clampPoint(raw, drawBounds);
@@ -540,9 +755,12 @@ export default function StudentBoard({
       setDraft({ type: 'stroke', points: current.points, ...current.style });
       push?.('d', draftMessage(livePage, { type: 'stroke', points: current.points, ...current.style }));
     } else if (current.kind === 'shape') {
-      const shape = { type: 'shape', shape: tool, ...shapeFromDrag(tool, current.start, world), color, strokeWidth: shapeWidth };
+      const shape = { type: 'shape', ...shapeOf(current.start, world), color, strokeWidth: shapeWidth };
       setDraft(shape);
       push?.('d', draftMessage(livePage, shape));
+    } else if (current.kind === 'endpoint') {
+      current.patch = current.which === 'bend' ? bendPatch(current.element, raw) : endpointPatch(current.element, current.which, world);
+      setResizing({ id: current.element.id, patch: current.patch });
     } else if (current.kind === 'move') {
       current.dx = raw.x - current.start.x; current.dy = raw.y - current.start.y;
       setMoving({ ids: new Set(current.ids), dx: current.dx, dy: current.dy });
@@ -559,6 +777,7 @@ export default function StudentBoard({
   const up = (event) => {
     const current = gesture.current;
     gesture.current = null;
+    releaseSelection();
     // a pointer the browser no longer tracks (a lost touch) must not stop the line from being saved
     try { event.currentTarget.releasePointerCapture?.(event.pointerId); } catch { /* not captured */ }
     setDraft(null);
@@ -566,20 +785,32 @@ export default function StudentBoard({
     // the other side keeps seeing the draft until the saved element has arrived
     const endDraft = () => push?.('d', draftMessage(livePage, null), { now: true });
     const endMove = () => push?.('move', moveMessage(livePage, [], 0, 0), { now: true });
+    if (current.kind === 'anchor') {
+      globalThis.clearTimeout(current.timer);
+      if (current.done) return;
+      // a short wait: a second tap on the same place takes the whole sentence
+      const waiting = { x: current.x, y: current.y };
+      waiting.timer = globalThis.setTimeout(() => { if (pendingWord.current === waiting) pendingWord.current = null; openAnchored(current.word); }, DOUBLE_TAP);
+      pendingWord.current = waiting;
+      return;
+    }
     if (current.kind === 'pen') {
       if (current.points.length > 1) add({ type: 'stroke', points: current.points, ...current.style }, 'Joont ei saanud salvestada.').finally(endDraft);
       else endDraft();
     } else if (current.kind === 'shape') {
       const end = clampPoint(screenToWorld(local(event), view), drawBounds);
-      const box = shapeFromDrag(tool, current.start, end);
-      if (Math.abs(box.w) > 4 || Math.abs(box.h) > 4) add({ type: 'shape', shape: tool, ...box, color, strokeWidth: shapeWidth }, 'Kujundit ei saanud salvestada.').finally(endDraft);
-      else endDraft();
+      const box = shapeOf(current.start, end);
+      if (Math.abs(box.w) > 4 || Math.abs(box.h) > 4) {
+        add({ type: 'shape', ...box, color, strokeWidth: shapeWidth }, 'Kujundit ei saanud salvestada.')
+          .then((id) => { if (id && box.shape === 'callout') setEditing({ id, text: '' }); })
+          .finally(endDraft);
+      } else endDraft();
     } else if (current.kind === 'move') {
       const list = current.ids.map((id) => byId.get(id)).filter((element) => element && movable(element) && canEdit(element));
       if (list.length && (Math.abs(current.dx) > 1 || Math.abs(current.dy) > 1)) {
         changeMany(list.map((element) => ({ element, patch: movePatch(element, current.dx, current.dy) })), 'Elementi ei saanud liigutada.').finally(() => { setMoving(null); endMove(); });
       } else { setMoving(null); endMove(); }
-    } else if (current.kind === 'resize') {
+    } else if (current.kind === 'resize' || current.kind === 'endpoint') {
       if (current.patch && Object.keys(current.patch).length) changeMany([{ element: current.element, patch: current.patch }], 'Suurust ei saanud muuta.').finally(() => setResizing(null));
       else setResizing(null);
     } else if (current.kind === 'marquee') {
@@ -647,16 +878,45 @@ export default function StudentBoard({
   moveViewRef.current = moveView;
   const stageRef = useCallback((el) => {
     if (!el) return undefined;
-    const stopPageZoom = (event) => { if (event.ctrlKey || event.metaKey) event.preventDefault(); };
+    // every wheel on the board moves or zooms the board (wheelView): the browser must not zoom the page, and a sideways
+    // two-finger move on a Mac trackpad must not become its back / forward swipe (owner 2026-11-04). The reading page
+    // scrolls by itself; text being typed and the bookmark sheet keep their own scrolling.
+    const stopPageZoom = (event) => {
+      if (event.ctrlKey || event.metaKey) { event.preventDefault(); return; }
+      if (el.classList.contains('is-reading')) return;
+      if (event.target?.closest?.('textarea, select, .sb-editor, .sb-bookmark, .sb-page-menu')) return;
+      event.preventDefault();
+    };
     const stopGesture = (event) => event.preventDefault();
+    // the answer field being typed in on this board, and the part of the stage the screen (keyboard) leaves for it
+    const focusedField = () => {
+      const active = globalThis.document?.activeElement;
+      return active && active !== el && el.contains(active) && active.matches?.('input, textarea, select, [contenteditable="true"], [contenteditable="plaintext-only"]') ? active : null;
+    };
+    const visibleArea = () => {
+      const box = el.getBoundingClientRect();
+      const vv = globalThis.visualViewport;
+      if (!vv || !vv.height) return box;
+      return { left: Math.max(box.left, vv.offsetLeft), right: Math.min(box.right, vv.offsetLeft + vv.width), top: Math.max(box.top, vv.offsetTop), bottom: Math.min(box.bottom, vv.offsetTop + vv.height) };
+    };
+    const shiftBy = (dy) => {
+      const field = focusedField();
+      const shift = focusShift({ dy, field: field?.getBoundingClientRect?.() || null, area: field ? visibleArea() : null });
+      if (shift.x || shift.y) moveViewRef.current?.((current) => ({ ...current, x: current.x + shift.x, y: current.y + shift.y }));
+    };
+    // the browser's own scroll is undone first, then the view moves only as far as the field needs (boardModel focusShift):
+    // the browser centred the field, so the sheet jumped sideways (owner 2026-11-04)
     const unscroll = () => {
       const dx = el.scrollLeft;
       const dy = el.scrollTop;
       if (!dx && !dy) return;
       el.scrollLeft = 0;
       el.scrollTop = 0;
-      moveViewRef.current?.((current) => ({ ...current, x: current.x - dx, y: current.y - dy }));
+      shiftBy(dy);
     };
+    // the on-screen keyboard came up (or went away) over a field being typed in
+    const keyboard = () => { if (!el.classList.contains('is-reading') && focusedField()) shiftBy(0); };
+    const viewport = globalThis.visualViewport;
     const reveal = (event) => {
       if (el.classList.contains('is-reading')) { event.stopPropagation(); event.target?.scrollIntoView?.({ block: 'center', behavior: 'smooth' }); return; }
       const target = event.target?.getBoundingClientRect?.();
@@ -674,7 +934,9 @@ export default function StudentBoard({
     el.addEventListener('gesturechange', stopGesture);
     el.addEventListener('scroll', unscroll);
     el.addEventListener('ws-reveal', reveal);
+    viewport?.addEventListener?.('resize', keyboard);
     return () => {
+      viewport?.removeEventListener?.('resize', keyboard);
       el.removeEventListener('wheel', stopPageZoom);
       el.removeEventListener('gesturestart', stopGesture);
       el.removeEventListener('gesturechange', stopGesture);
@@ -703,7 +965,7 @@ export default function StudentBoard({
       gesture.current = null; setDraft(null);
       nav.current = { kind: 'pinch', start: [...touches.current.values()], view };
       event.stopPropagation();
-    } else if (touches.current.size === 1 && filling) {
+    } else if (touches.current.size === 1 && filling && !event.target?.closest?.(BOARD_PART)) {
       nav.current = { kind: 'pan', start: point, view, pointerId: event.pointerId, moved: false };
     }
   };
@@ -748,8 +1010,8 @@ export default function StudentBoard({
     userMoved.current = false;
     setView(onWorksheet ? sheetFit(rect?.width || 800) : fitPage(bounds, rect?.width || 800, rect?.height || 500));
   };
-  const clear = () => {
-    if (!globalThis.confirm('Tühjendada see tahvel? Lukus materjalid jäävad alles.')) return;
+  const clear = async () => {
+    if (!(await askConfirm('Tühjendada see tahvel? Lukus materjalid jäävad alles.'))) return;
     service.clear(studentId, pageId).then(() => setHistory({ undo: [], redo: [] })).catch(fail('Tahvlit ei saanud tühjendada.'));
   };
   // the saved size of a text: wrapped estimate, or the editor's measured height when the browser wrapped more lines
@@ -765,11 +1027,156 @@ export default function StudentBoard({
     setEditing(null);
     const endTyping = () => push?.('typing', typingMessage(livePage, ''), { now: true });
     if (!element) { endTyping(); return; }
+    // a callout keeps its arrow without a label
+    if (element.type === 'shape') {
+      const label = text.slice(0, 500);
+      if (label === (element.text || '')) endTyping();
+      else update(element, { text: label }, 'Teksti ei saanud salvestada.').finally(endTyping);
+      return;
+    }
     if (!text.trim()) { service.remove(studentId, pageId, element.id).catch(fail('Tühja elementi ei saanud eemaldada.')).finally(endTyping); return; }
+    if (element.type === 'text' && editing?.spans) {
+      const patch = textPatch(element, editing.spans);
+      if (patch.text.length > 4000) patch.text = patch.text.slice(0, 4000);
+      const same = patch.text === element.text && JSON.stringify(patch.spans || []) === JSON.stringify(element.spans || []);
+      if (same) { endTyping(); return; }
+      update(element, { ...patch, ...measuredBox(element, patch.text) }, 'Teksti ei saanud salvestada.').finally(endTyping);
+      return;
+    }
     if (text === element.text) { endTyping(); return; }
     const value = text.slice(0, element.type === 'note' ? 2000 : 4000);
     const box = element.type === 'text' ? measuredBox(element, value) : {};
     update(element, { text: value, ...box }, 'Teksti ei saanud salvestada.').finally(endTyping);
+  };
+  // ── anchored bookmarks: a word or a sentence of the worksheet (bookmarkAnchor.js) ──
+  const openBookmark = (value) => {
+    sheetPopups.current.forEach((close) => { try { close(); } catch { /* gone */ } });
+    setSelChip(null);
+    setBookmark(value);
+  };
+  // the text under a screen point: the drawing layer lets the pointer through for the look-up
+  const textUnder = (x, y, sentence = false) => {
+    if (!underlayNode) return null;
+    const svg = svgRef.current;
+    const before = svg?.style.pointerEvents || '';
+    if (svg) svg.style.pointerEvents = 'none';
+    try { return anchorFromPoint(underlayNode, x, y, { sentence }); } finally { if (svg) svg.style.pointerEvents = before; }
+  };
+  const openAnchored = (anchor) => {
+    if (!anchor) return;
+    // the marker sits after the quote's last line; without a layout (hidden page) in the middle of the view
+    const spot = underlayNode ? spotOf(locateAnchor(underlayNode, anchor), underlayNode) : null;
+    const rect = svgRef.current?.getBoundingClientRect();
+    const pin = spot?.pin || screenToWorld({ x: (rect?.width || 800) / 2, y: (rect?.height || 600) / 3 }, view);
+    bookmarkSeq.current += 1;
+    globalThis.getSelection?.()?.removeAllRanges?.();
+    openBookmark({ x: pin.x, y: pin.y, anchor, key: `anchor-${bookmarkSeq.current}` });
+  };
+  const openAnchoredRef = useRef(openAnchored);
+  useLayoutEffect(() => { openAnchoredRef.current = openAnchored; });
+  const underlayRef = useRef(null);
+  useLayoutEffect(() => { underlayRef.current = underlayNode; }, [underlayNode]);
+  // for the sheet under the board (SheetAnnotations): its popup's „Järjehoidja”, and only one popup open at a time
+  const sheetBookmarks = useMemo(() => ({
+    open: (where) => openAnchoredRef.current(anchorFromOffsets(underlayRef.current, where || {})),
+    onPopup: () => { setSelChip(null); setBookmark((current) => (current ? null : current)); },
+    register: (close) => { sheetPopups.current.add(close); return () => sheetPopups.current.delete(close); },
+  }), []);
+  // a text selected in the sheet (a student, or where no popup of the sheet took it): a small „Järjehoidja” beside it
+  const checkSelection = (event) => {
+    const node = underlayNode;
+    if (!node) return;
+    const touch = event.changedTouches?.[0];
+    const at = { x: touch ? touch.clientX : event.clientX, y: touch ? touch.clientY : event.clientY };
+    globalThis.setTimeout(() => {
+      const doc = node.ownerDocument;
+      const selection = doc.getSelection?.();
+      if (!selection || selection.isCollapsed || !selection.rangeCount) return;
+      const active = doc.activeElement;
+      if (node.querySelector('.sa-composer') || (active && node.contains(active) && /^(INPUT|TEXTAREA)$/.test(active.tagName))) return;
+      const range = selection.getRangeAt(0);
+      const anchor = anchorFromRange(node, range);
+      if (!anchor) return;
+      const box = range.getBoundingClientRect?.();
+      // above the selection (the word card of a double-clicked word opens below it); below when there is no room
+      const point = box && box.width ? { x: box.left, y: box.top } : at;
+      const stage = node.parentElement?.getBoundingClientRect?.() || { left: 0, top: 0, width: 800 };
+      const above = (point.y || 0) - stage.top - 42;
+      setSelChip({ anchor, left: Math.max(8, Math.min((stage.width || 800) - 150, (point.x || 0) - stage.left)), top: above >= 8 ? above : (box && box.height ? box.bottom - stage.top + 8 : 8) });
+    }, 0);
+  };
+  useEffect(() => {
+    if (!selChip) return undefined;
+    const doc = globalThis.document;
+    const gone = () => { const selection = doc?.getSelection?.(); if (!selection || selection.isCollapsed) setSelChip(null); };
+    doc?.addEventListener('selectionchange', gone);
+    return () => doc?.removeEventListener('selectionchange', gone);
+  }, [selChip]);
+  useEffect(() => () => globalThis.clearTimeout(pendingWord.current?.timer), []);
+  // where the anchored bookmarks of this page are in the sheet now (board units): highlight boxes and the marker
+  const anchoredElements = useMemo(() => elements.filter(isAnchoredBookmark), [elements]);
+  const [anchorSpots, setAnchorSpots] = useState({});
+  useEffect(() => {
+    // (off a worksheet the markers use their stored place: `anchorSpots` is not read there)
+    if (!onWorksheet || !underlayNode || !anchoredElements.length) return undefined;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const next = {};
+      anchoredElements.forEach((element) => {
+        const spot = spotOf(locateAnchor(underlayNode, element.anchor), underlayNode);
+        if (spot) next[element.id] = spot;
+      });
+      setAnchorSpots((current) => (JSON.stringify(current) === JSON.stringify(next) ? current : next));
+    };
+    const later = () => { if (!frame) frame = globalThis.requestAnimationFrame ? globalThis.requestAnimationFrame(measure) : globalThis.setTimeout(measure, 16); };
+    measure();
+    const mutations = globalThis.MutationObserver ? new globalThis.MutationObserver(later) : null;
+    mutations?.observe(underlayNode, { childList: true, subtree: true, characterData: true });
+    const sizes = globalThis.ResizeObserver ? new globalThis.ResizeObserver(later) : null;
+    sizes?.observe(underlayNode);
+    return () => {
+      mutations?.disconnect(); sizes?.disconnect();
+      if (frame) { globalThis.cancelAnimationFrame?.(frame); globalThis.clearTimeout(frame); }
+    };
+  }, [onWorksheet, underlayNode, anchoredElements]);
+  // the marker opens the note (read only for what one may not change); the eraser removes it from the board
+  const pinDown = (event, element) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    event.stopPropagation(); event.preventDefault();
+    if (tool === 'eraser') { if (canEdit(element)) erase(element); return; }
+    openBookmark({ element });
+  };
+  // „Järjehoidja / Kleebis”: the sheet on the board and the student's note in „Minu vead” (not on a group board)
+  const notesStudentId = service.root === 'groupBoards' ? '' : studentId;
+  const saveBookmark = async ({ text, ink, color: paper }) => {
+    const current = bookmark;
+    if (!current || bookmarkEmpty({ text, ink }) || (current.element && !canEdit(current.element))) return;
+    setBookmarkSaving(true);
+    const element = current.element || null;
+    const anchor = element?.anchor || current.anchor || null;
+    let noteId = element?.noteId || '';
+    let noteError = '';
+    if (notesStudentId && noteService) {
+      const fresh = () => noteService.add(noteRecord({ studentId: notesStudentId, text, ink, color: paper, pageId: pageId || '', pageTitle: pageId ? pageTitle : 'Tahvel', user, staff, anchor }));
+      try {
+        if (noteId) await noteService.update(noteId, notePatch({ text, ink, color: paper })).catch(fresh).then((id) => { if (typeof id === 'string') noteId = id; });
+        else noteId = await fresh();
+      } catch {
+        noteError = 'Järjehoidja on tahvlil, aga „Minu vead” alla ei saanud seda salvestada.';
+      }
+    }
+    const data = bookmarkElement({ x: element ? element.x : current.x, y: element ? element.y : current.y, text, ink, color: paper, noteId, anchor });
+    try {
+      if (element) {
+        const { type, bookmark: mark, x, y, w, h, anchor: kept, ...patch } = data; // eslint-disable-line no-unused-vars
+        await update(element, patch, 'Järjehoidjat ei saanud salvestada.');
+      } else if (!(await add(data, 'Järjehoidjat ei saanud lisada.'))) return;
+      setBookmark(null);
+    } finally {
+      setBookmarkSaving(false);
+      if (noteError) setError(noteError);
+    }
   };
   const pickImage = async (file) => {
     if (!file || !uploadImage) return;
@@ -786,22 +1193,103 @@ export default function StudentBoard({
     }
   };
 
+  // a search result dropped at a screen point (or tapped: the middle of the visible board) becomes an image element
+  const placeMedia = async (item, client = null) => {
+    if (!staff || !item?.full || placing) return;
+    const rect = svgRef.current?.getBoundingClientRect();
+    const box = { w: rect?.width || 900, h: rect?.height || 600 };
+    const at = client && rect && Number.isFinite(client.x) && Number.isFinite(client.y) ? { x: client.x - rect.left, y: client.y - rect.top } : { x: box.w / 2, y: box.h / 2 };
+    setPlacing(item.id || item.full);
+    setError('');
+    try {
+      const { url, storagePath } = await placeableImage(item, { upload: uploadImage });
+      const size = item.width && item.height ? { width: item.width, height: item.height } : await imageSize(url);
+      await add(mediaElement({ url, storagePath, ...size, credit: item.credit, sourceUrl: item.sourceUrl }, screenToWorld(at, view), view, box), 'Pilti ei saanud tahvlile lisada.');
+    } finally {
+      setPlacing('');
+    }
+  };
+  const mediaDragOver = (event) => {
+    if (!staff || !Array.from(event.dataTransfer?.types || []).includes(MEDIA_MIME)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  };
+  const mediaDrop = (event) => {
+    const item = staff ? readPayload(event.dataTransfer?.getData(MEDIA_MIME)) : null;
+    if (!item) return;
+    event.preventDefault();
+    placeMedia(item, { x: event.clientX, y: event.clientY });
+  };
+
   const render = (element) => {
     const common = { 'data-element-id': element.id };
     if (element.type === 'stroke') return <path {...common} d={pathFor(element.points)} fill="none" stroke={element.color || COLORS[0]} strokeWidth={element.strokeWidth || 4} strokeLinecap="round" strokeLinejoin="round" style={isMarker(element) ? { mixBlendMode: 'multiply' } : undefined} />;
     if (element.type === 'shape') {
       const stroke = { stroke: element.color || COLORS[0], strokeWidth: element.strokeWidth || 3, fill: 'none' };
       if (element.shape === 'ellipse') return <ellipse {...common} {...stroke} cx={element.x + element.w / 2} cy={element.y + element.h / 2} rx={Math.abs(element.w / 2)} ry={Math.abs(element.h / 2)} />;
-      if (element.shape === 'line' || element.shape === 'arrow') return <g {...common}><line {...stroke} x1={element.x} y1={element.y} x2={element.x + element.w} y2={element.y + element.h} strokeLinecap="round" />{element.shape === 'arrow' ? <polyline {...stroke} points={arrowHead(element)} strokeLinecap="round" strokeLinejoin="round" /> : null}<line x1={element.x} y1={element.y} x2={element.x + element.w} y2={element.y + element.h} stroke="transparent" strokeWidth="14" /></g>;
+      if (isArrowLike(element)) {
+        const d = arrowPathD(element);
+        const label = element.shape === 'callout' ? calloutBox(element) : null;
+        return <g {...common}>
+          <path {...stroke} d={d} strokeLinecap="round" />
+          {arrowHeads(element).map((points, index) => <polyline key={index} {...stroke} points={points} strokeLinecap="round" strokeLinejoin="round" />)}
+          <path d={d} stroke="transparent" strokeWidth="14" fill="none" />
+          {label ? <g className="sb-callout">
+            <rect x={label.x} y={label.y} width={label.w} height={label.h} rx="10" fill="#fff" stroke={stroke.stroke} strokeWidth={Math.max(1.5, stroke.strokeWidth * 0.6)} />
+            <foreignObject x={label.x} y={label.y} width={label.w} height={label.h}><div data-element-id={element.id} className="sb-callout__text" style={{ fontSize: label.fontSize, color: stroke.stroke }}>{element.text || ''}</div></foreignObject>
+          </g> : null}
+        </g>;
+      }
       return <rect {...common} {...stroke} x={element.x} y={element.y} width={element.w} height={element.h} rx="4" />;
+    }
+    if (isAnchoredBookmark(element)) {
+      // the quote highlighted in the paper's colour, a small marker after it (the stored place when the text is not here)
+      const spot = onWorksheet ? anchorSpots[element.id] : null;
+      const pin = spot?.pin || { x: element.x, y: element.y };
+      const quote = element.anchor.quote.length > 60 ? `${element.anchor.quote.slice(0, 57)}…` : element.anchor.quote;
+      return <g {...common} className="sb-anchor">
+        {(spot?.rects || []).map((box, index) => <rect key={index} className="sb-anchor__mark" x={box.x} y={box.y} width={box.w} height={box.h} rx="2" fill={anchorTint(element.color)} pointerEvents="none" />)}
+        <g className="sb-anchor__pin" data-element-id={element.id} role="button" tabIndex={0} aria-label={`Järjehoidja: „${quote}”`} pointerEvents="auto"
+          transform={`translate(${pin.x} ${pin.y}) scale(${1 / (view.scale || 1)})`}
+          onPointerDown={(event) => pinDown(event, element)} onDoubleClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openBookmark({ element }); } }}>
+          <title>{`${anchorLabel(element.anchor)}: ${element.anchor.quote}`}</title>
+          <rect x="0" y="-15" width="14" height="17" rx="3" fill={anchorTint(element.color)} stroke="#b45309" strokeWidth="1.2" />
+          <path d="M4 -11.5h6v9.5l-3-2.3-3 2.3z" fill="#b45309" />
+        </g>
+      </g>;
+    }
+    if (isBookmark(element)) {
+      return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={element.h} onDoubleClick={(event) => { event.stopPropagation(); if (canEdit(element)) openEditor(element); }}>
+        <div data-element-id={element.id} className="sb-note sb-note--bookmark" style={{ background: element.color }}>
+          {element.ink?.length ? <svg className="sb-note__ink" viewBox={`0 0 ${INK_BOX.w} ${INK_BOX.h}`} preserveAspectRatio="none" aria-hidden="true">{element.ink.map((item, index) => <path key={index} d={item.d} stroke={item.c} strokeWidth={item.w} fill="none" strokeLinecap="round" strokeLinejoin="round" />)}</svg> : null}
+          {element.text ? <span className="sb-note__text">{element.text}</span> : null}
+          {!element.text && !element.ink?.length ? <span className="sb-note__text is-empty">Järjehoidja</span> : null}
+        </div>
+      </foreignObject>;
     }
     if (element.type === 'note' || element.type === 'text') {
       const isNote = element.type === 'note';
-      return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={isNote ? element.h : Math.max(element.h, textBox(element.text || '', element.fontSize || 18, 60, { width: element.w }).h)} onDoubleClick={(event) => { event.stopPropagation(); if (staff || !teacherMaterial(element)) setEditing({ id: element.id, text: element.text || '' }); }}>
-        <div data-element-id={element.id} className={isNote ? 'sb-note' : 'sb-text'} style={isNote ? { background: element.color } : { color: element.color, fontSize: element.fontSize || 18, fontFamily: fontCss(element.fontFamily) }}>{element.text || (isNote ? 'Topeltklõps, et kirjutada' : 'Tekst')}</div>
+      const runs = isNote ? null : spansOf(element);
+      const rich = runs && runs.some((span) => Object.keys(span).length > 1);
+      return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={isNote ? element.h : Math.max(element.h, textBox(element.text || '', element.fontSize || 18, 60, { width: element.w }).h)} onDoubleClick={(event) => { event.stopPropagation(); if (staff || !teacherMaterial(element)) openEditor(element); }}>
+        <div data-element-id={element.id} className={isNote ? 'sb-note' : 'sb-text'} style={isNote ? { background: element.color } : { color: element.color, fontSize: element.fontSize || 18, fontFamily: fontCss(element.fontFamily) }}>{rich
+          ? runs.map((span, index) => <span key={index} data-element-id={element.id} style={spanCss(span, element.fontSize || 18)}>{span.t}</span>)
+          : element.text || (isNote ? 'Topeltklõps, et kirjutada' : 'Tekst')}</div>
       </foreignObject>;
     }
-    if (element.type === 'image') return <image {...common} href={element.url} x={element.x} y={element.y} width={element.w} height={element.h} preserveAspectRatio="xMidYMid meet" />;
+    if (element.type === 'image') {
+      const picture = <image {...common} href={element.url} x={element.x} y={element.y} width={element.w} height={element.h} preserveAspectRatio="xMidYMid meet" />;
+      if (!element.credit && !element.sourceUrl) return picture;
+      // „ⓘ”: the licence, author and source of a picture from the internet, the same size at every zoom
+      const r = 9 / view.scale;
+      const badge = <g className="sb-credit" transform={`translate(${element.x + element.w - r * 1.4} ${element.y + element.h - r * 1.4})`}>
+        <title>{[element.credit, element.sourceUrl].filter(Boolean).join('\n')}</title>
+        <circle r={r} />
+        <text y={r * 0.42} fontSize={r * 1.3} textAnchor="middle">i</text>
+      </g>;
+      return <>{picture}{element.sourceUrl ? <a href={element.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`Pildi allikas: ${element.credit || element.sourceUrl}`} onPointerDown={(event) => event.stopPropagation()}>{badge}</a> : badge}</>;
+    }
     if (element.type === 'pdf') return <foreignObject {...common} x={element.x} y={element.y} width={Math.max(element.w, 160)} height={room ? Math.max(element.h, 120) : Math.max(Math.min(element.h, 120), 60)}>
       {room ? <div data-element-id={element.id} className="sb-pdf sb-pdf--page"><iframe title={`PDF: ${element.name || 'materjal'}`} src={`${element.url}#toolbar=0&navpanes=0&view=FitH`} /><span>{element.name || 'PDF'} · <a href={element.url} target="_blank" rel="noreferrer">Ava PDF</a></span></div>
         : <div data-element-id={element.id} className="sb-pdf"><strong>{element.name || 'PDF'}</strong><a href={element.url} target="_blank" rel="noreferrer">Ava PDF</a></div>}
@@ -823,11 +1311,13 @@ export default function StudentBoard({
   const chooseColor = (value) => {
     if (tool === 'note') { setNoteColor(value); return; }
     if (tool === 'marker') { setMarker(value); return; }
+    if (styleSelection({ c: value })) return;
     setColor(value);
-    restyle({ color: value });
+    if (editingText()) { restyle({ color: value }); return; }
+    if (tool === 'select') restyleSelected({ color: value });
   };
   const fontButtons = <div className="sb-style__fonts" role="group" aria-label="Kiri">{Object.entries(FONTS).map(([key, item]) => <button type="button" key={key} className={font === key ? 'is-active' : ''} aria-pressed={font === key} style={{ fontFamily: item.css }} onMouseDown={(event) => event.preventDefault()} onClick={() => pickFont(key)}>{item.label}</button>)}</div>;
-  const toolButton = ([key, label, Icon]) => <button type="button" key={key} className={tool === key ? 'is-active' : ''} aria-pressed={tool === key} aria-label={label} title={label} onClick={() => { setTool(key); setShapesOpen(false); if (key !== 'select') setSelected([]); }}><Icon size={room ? 20 : 18} /></button>;
+  const toolButton = ([key, label, Icon, hint]) => <button type="button" key={key} className={tool === key ? 'is-active' : ''} aria-pressed={tool === key} aria-label={label} title={hint || label} onClick={() => { setTool(key); setShapesOpen(false); if (key !== 'select') setSelected([]); }}><Icon size={room ? 20 : 18} /></button>;
   const zoomControls = <>
     <button type="button" aria-label="Vähenda" onClick={() => zoom(1 / 1.2)}><Minus size={16} /></button>
     <span className="sb-zoom">{Math.round(view.scale * 100)}%</span>
@@ -838,7 +1328,6 @@ export default function StudentBoard({
   const shownSelection = selectedElements.map((element) => (resizing?.id === element.id ? { ...element, ...resizing.patch } : element));
   const selectionBounds = tool === 'select' ? unionBounds(shownSelection) : null;
   const selectionBox = selectionBounds && moving ? { x1: selectionBounds.x1 + moving.dx, y1: selectionBounds.y1 + moving.dy, x2: selectionBounds.x2 + moving.dx, y2: selectionBounds.y2 + moving.dy } : selectionBounds;
-  const filling = onWorksheet && tool === 'fill';
   const mediaHover = (event) => {
     if (!onWorksheet || filling) { if (overMedia) setOverMedia(false); return; }
     const stack = globalThis.document?.elementsFromPoint?.(event.clientX, event.clientY) || [];
@@ -856,16 +1345,51 @@ export default function StudentBoard({
     if (audio.paused) audio.play?.()?.catch?.(() => {}); else audio.pause?.();
     return true;
   };
+  // „Vali ja täida” on a worksheet page: the layer is see-through (the sheet's fields take clicks and typing) except for
+  // the board's own parts the user may move — a teacher's material for a student, a locked one, lets clicks through too,
+  // and so does a highlighter line: it marks the sheet's text and must not cover the words and gaps under it (the eraser
+  // still removes it)
+  const pointerFor = (element) => (filling && movable(element) && canEdit(element) && !isMarker(element) ? 'auto' : undefined);
+  // a press on the sheet or beside it clears the selection; on the empty desk beside the sheet (mouse / pen) it draws a
+  // frame to select several, as on a plain page. Never a selection block for a press on the sheet itself.
+  const sheetPointerDown = (event) => {
+    if (!filling || (event.button !== undefined && event.button !== 0)) return;
+    if (event.target?.closest?.(BOARD_PART)) return;
+    if (event.target === event.currentTarget && event.pointerType !== 'touch' && !spaceHeld) {
+      const raw = screenToWorld(local(event), view);
+      gesture.current = { kind: 'marquee', start: raw, add: event.shiftKey, stage: true };
+      blockSelection();
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+      return;
+    }
+    if (selected.length && !event.shiftKey) setSelected([]);
+  };
+  const stageMarquee = (event) => {
+    if (!gesture.current?.stage) return;
+    if (event.type === 'pointermove') move(event); else up(event);
+  };
   const scrollbar = onWorksheet ? scrollbarFor(view, bounds, stageHeight) : null;
+  // reading view ⇄ board view: in the lesson room a button in the page tab bar (it never lies over the video windows)
+  const readingToggle = onWorksheet && reading ? <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('board')}
+    title={elements.length ? 'Tahvlivaade: tööleht koos õpetaja märkmetega' : 'Tahvlivaade: tööleht tahvlil'}>Tahvlivaade{elements.length && !room ? ' · õpetaja märkmed' : ''}</button> : null;
+  const boardToggle = onWorksheet && !reading && (narrow || tablet) ? <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('reading')} title="Lugemisvaade: tööleht ühe veeruna">Lugemisvaade</button> : null;
   const readingStage = <div ref={stageRef} className="sb-stage has-worksheet is-reading">
     <div className="sb-reading ws-narrow" data-testid="worksheet-reading"><SheetFlowContext.Provider value>{activeSheet?.content}</SheetFlowContext.Provider></div>
-    <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('board')}>Tahvlivaade{elements.length ? ' · õpetaja märkmed' : ''}</button>
+    {room ? null : readingToggle}
   </div>;
   const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
-    onPointerDownCapture={(event) => { if (!mediaDown(event)) navDown(event); }} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
-    {onWorksheet && (narrow || tablet) ? <button type="button" className="sb-reading-toggle" onClick={() => setViewChoice('reading')}>Lugemisvaade</button> : null}
-    {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
-    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling || overMedia ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
+    onDragOver={mediaDragOver} onDrop={mediaDrop}
+    onPointerDownCapture={(event) => { if (!mediaDown(event)) { sheetPointerDown(event); navDown(event); } }} onPointerMove={stageMarquee} onPointerUp={stageMarquee} onPointerCancel={stageMarquee} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
+    {room ? null : boardToggle}
+    {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }} onMouseUp={checkSelection} onTouchEnd={checkSelection}>
+      <BoardBookmarkContext.Provider value={sheetBookmarks}>{activeSheet.content}</BoardBookmarkContext.Provider>
+    </div> : null}
+    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={(filling && !grabbing) || overMedia ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => {
+      const point = screenToWorld(local(event), view);
+      const callout = byId.get(event.target?.closest?.('[data-element-id]')?.dataset?.elementId);
+      const hit = editableText(callout) ? callout : textAt(elements, point);
+      if (hit && (staff || !teacherMaterial(hit))) openEditor(hit);
+    }}>
       <defs>
         <pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern>
         <pattern id="sb-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#e4e7ec" strokeWidth="1" /></pattern>
@@ -880,9 +1404,9 @@ export default function StudentBoard({
           // the other side dragging it or typing into it right now
           const remoteShift = here.move?.ids.includes(element.id) ? here.move : null;
           const shift = moving?.ids.has(element.id) ? moving : remoteShift;
-          const typed = here.typing?.id === element.id && editing?.id !== element.id ? { text: here.typing.text } : null;
+          const typed = here.typing?.id === element.id && editing?.id !== element.id ? { text: here.typing.text, ...(here.typing.spans ? { spans: here.typing.spans } : {}) } : null;
           const shown = resizing?.id === element.id ? { ...element, ...resizing.patch } : typed ? { ...element, ...typed } : element;
-          return <g key={element.id} transform={shift ? `translate(${shift.dx} ${shift.dy})` : undefined}>{render(shown)}</g>;
+          return <g key={element.id} transform={shift ? `translate(${shift.dx} ${shift.dy})` : undefined} pointerEvents={pointerFor(element)}>{render(shown)}</g>;
         })}
         {here.draft ? <g key="__remote" className="sb-remote-draft" data-testid="remote-draft" pointerEvents="none">{render({ ...here.draft.draft, id: '__remote' })}</g> : null}
         {draft ? <g key="__draft">{render({ ...draft, id: draft.id || '__draft' })}</g> : null}
@@ -894,9 +1418,16 @@ export default function StudentBoard({
           <path d="M0 0 L0 16 L4.5 12 L7.5 19 L10 18 L7 11 L13 11 Z" />
           <text x="14" y="24">{live?.peerName || 'Teine'}</text>
         </g> : null}
-        {selectionBox ? <g className="sb-selection">
+        {selectionBox ? <g className="sb-selection" pointerEvents={filling ? 'auto' : undefined}>
           <rect x={selectionBox.x1 - 6 / view.scale} y={selectionBox.y1 - 6 / view.scale} width={selectionBox.x2 - selectionBox.x1 + 12 / view.scale} height={selectionBox.y2 - selectionBox.y1 + 12 / view.scale} fill="none" stroke="#4f7cff" strokeWidth={1.5 / view.scale} strokeDasharray={`${6 / view.scale} ${4 / view.scale}`} pointerEvents="none" />
-          {selectedElements.length === 1 && !moving ? <rect data-handle="se" aria-label="Muuda suurust" x={selectionBox.x2 + 6 / view.scale - 8 / view.scale} y={selectionBox.y2 + 6 / view.scale - 8 / view.scale} width={16 / view.scale} height={16 / view.scale} rx={4 / view.scale} fill="#fff" stroke="#4f7cff" strokeWidth={2 / view.scale} className="sb-handle" /> : null}
+          {selectedElements.length === 1 && !moving && isArrowLike(shownSelection[0]) ? (() => {
+            const shown = shownSelection[0];
+            const r = 7 / view.scale;
+            const mid = curveMiddle(shown);
+            const handle = (key, point, label) => <circle key={key} data-handle={key} aria-label={label} cx={point.x} cy={point.y} r={r} fill={key === 'bend' ? '#4f7cff' : '#fff'} stroke="#4f7cff" strokeWidth={2 / view.scale} className="sb-handle sb-handle--point" />;
+            return <>{handle('start', { x: shown.x, y: shown.y }, 'Nihuta algust')}{handle('end', { x: shown.x + shown.w, y: shown.y + shown.h }, 'Nihuta otsa')}{shown.shape !== 'callout' ? handle('bend', mid, 'Kõverda') : null}</>;
+          })() : null}
+          {selectedElements.length === 1 && !moving && !isArrowLike(shownSelection[0]) ? <rect data-handle="se" aria-label="Muuda suurust" x={selectionBox.x2 + 6 / view.scale - 8 / view.scale} y={selectionBox.y2 + 6 / view.scale - 8 / view.scale} width={16 / view.scale} height={16 / view.scale} rx={4 / view.scale} fill="#fff" stroke="#4f7cff" strokeWidth={2 / view.scale} className="sb-handle" /> : null}
         </g> : null}
         {marquee ? <rect className="sb-marquee" x={marquee.x1} y={marquee.y1} width={marquee.x2 - marquee.x1} height={marquee.y2 - marquee.y1} strokeWidth={1 / view.scale} pointerEvents="none" /> : null}
         {pointer && (pointer.pageId || '') === (pageId || '') ? <g className="sb-laser" data-testid="teacher-pointer" pointerEvents="none">
@@ -917,23 +1448,52 @@ export default function StudentBoard({
         onPointerMove={(event) => { const drag = scrollDrag.current; if (!drag) return; event.stopPropagation(); scrollTo(drag.scrolled + (event.clientY - drag.y) * drag.ratio); }}
         onPointerUp={() => { scrollDrag.current = null; }} onPointerCancel={() => { scrollDrag.current = null; }} />
     </div> : null}
-    {editingElement ? <textarea
+    {editingElement?.type === 'text' && editing.spans ? <>
+      <RichTextEditor
+        key={editing.id}
+        handle={richRef}
+        nodeRef={editorRef}
+        initialSpans={editing.spans}
+        baseSize={editingElement.fontSize || 18}
+        className="sb-editor sb-editor--text sb-editor--rich"
+        label="Tekst"
+        style={{ left: view.x + editingElement.x * view.scale, top: view.y + editingElement.y * view.scale, width: editBox.w * view.scale, minHeight: editBox.h * view.scale, fontSize: (editingElement.fontSize || 18) * view.scale, fontFamily: fontCss(editingElement.fontFamily), color: editingElement.color }}
+        onChange={(spans) => { const text = spans.map((span) => span.t).join(''); setEditing((current) => (current ? { ...current, text, spans } : current)); push?.('typing', typingMessage(livePage, editing.id, text, spans)); }}
+        onBlur={(event) => { if (event.relatedTarget?.closest?.('.sb-format, .sb-style, .sb-toolbar')) return; saveText(); }}
+      />
+      <FormatBar editor={richRef} colors={room ? ROOM_COLORS : COLORS} baseSize={editingElement.fontSize || 18} onWhole={restyle}
+        position={(() => {
+          // above the text; below it when the text is near the top of the board
+          const top = view.y + editingElement.y * view.scale;
+          const left = Math.max(8, view.x + editingElement.x * view.scale);
+          return top > 110 ? { left, top: top - 8, transform: 'translateY(-100%)' } : { left, top: top + editBox.h * view.scale + 8 };
+        })()} />
+    </> : editingElement ? <textarea
       ref={editorRef}
-      className={editBox ? 'sb-editor sb-editor--text' : 'sb-editor'}
-      aria-label={editingElement.type === 'note' ? 'Märkmepaberi tekst' : 'Tekst'}
+      className={editBox ? 'sb-editor sb-editor--text' : editingElement.type === 'shape' ? 'sb-editor sb-editor--callout' : 'sb-editor'}
+      aria-label={editingElement.type === 'note' ? 'Märkmepaberi tekst' : editingElement.type === 'shape' ? 'Viite tekst' : 'Tekst'}
       autoFocus
-      style={{ left: view.x + editingElement.x * view.scale, top: view.y + editingElement.y * view.scale, width: (editBox || editingElement).w * view.scale, height: (editBox || editingElement).h * view.scale, fontSize: (editingElement.type === 'note' ? 15 : editingElement.fontSize || 18) * view.scale, ...(editingElement.type === 'text' ? { fontFamily: fontCss(editingElement.fontFamily), color: editingElement.color } : {}) }}
+      style={editingElement.type === 'shape' ? (() => { const label = calloutBox({ ...editingElement, text: editing.text || 'Viide' }); return { left: view.x + label.x * view.scale, top: view.y + label.y * view.scale, width: Math.max(160, label.w) * view.scale, height: Math.max(label.h, 44) * view.scale, fontSize: CALLOUT_FONT * view.scale, color: editingElement.color }; })()
+        : { left: view.x + editingElement.x * view.scale, top: view.y + editingElement.y * view.scale, width: (editBox || editingElement).w * view.scale, height: (editBox || editingElement).h * view.scale, fontSize: (editingElement.type === 'note' ? 15 : editingElement.fontSize || 18) * view.scale, ...(editingElement.type === 'text' ? { fontFamily: fontCss(editingElement.fontFamily), color: editingElement.color } : {}) }}
       value={editing.text}
-      maxLength={editingElement.type === 'note' ? 2000 : 4000}
+      placeholder={editingElement.type === 'shape' ? 'Kirjuta viide…' : undefined}
+      maxLength={editingElement.type === 'note' ? 2000 : editingElement.type === 'shape' ? 500 : 4000}
       onChange={(event) => { setEditing({ ...editing, text: event.target.value }); push?.('typing', typingMessage(livePage, editing.id, event.target.value)); }}
       onBlur={saveText}
       onKeyDown={(event) => { if (event.key === 'Escape') event.currentTarget.blur(); }}
     /> : null}
+    {bookmark ? <BookmarkDialog key={bookmark.element?.id || bookmark.key || `${bookmark.x}:${bookmark.y}`} initial={bookmark.element || null} forStudent={notesStudentId} saving={bookmarkSaving}
+      anchor={bookmark.element?.anchor || bookmark.anchor || null} readOnly={Boolean(bookmark.element) && !canEdit(bookmark.element)}
+      onCancel={() => setBookmark(null)} onSave={saveBookmark} /> : null}
+    {selChip && !bookmark ? <button type="button" className="sb-anchor-chip" style={{ left: selChip.left, top: selChip.top }}
+      onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); }} onMouseDown={(event) => event.preventDefault()}
+      onClick={() => openAnchored(selChip.anchor)}><BookmarkPlus size={14} aria-hidden="true" /> Järjehoidja</button> : null}
     {selectionBox && !moving && !resizing ? <div className="sb-selbar" role="toolbar" aria-label="Valitud" style={{ left: Math.max(8, view.x + selectionBox.x1 * view.scale), top: Math.max(8, view.y + selectionBox.y1 * view.scale - 52) }}>
       <button type="button" aria-label="Kopeeri" title="Kopeeri (Ctrl+D)" onClick={duplicate}><Copy size={16} /></button>
       <button type="button" aria-label="Kustuta valitud" title="Kustuta (Delete)" onClick={deleteSelection}><Trash2 size={16} /></button>
     </div> : null}
-    {ready && !elements.length && !draft && !onWorksheet ? <div className="sb-empty">{room ? (staff ? 'Tühi tahvel. Lisa materjal nupust „Materjalid” või joonista ja kirjuta — õpilane näeb kõike kohe.' : 'Tühi tahvel. Kui õpetaja lisab materjali, näed seda siin. Võid ka ise joonistada ja kirjutada.') : 'Tühi tahvel: joonista, lisa märkmepaber või tekst. Õpetaja ja õpilane näevad muudatusi kohe.'}</div> : null}
+    {ready && lostSheet ? <div className="sb-empty sb-empty--sheet">{lostSheet}</div> : null}
+    {ready && !elements.length && !draft && !onWorksheet && !lostSheet ? <div className="sb-empty">{room ? (staff ? 'Tühi tahvel. Lisa materjal nupust „Materjalid” või joonista ja kirjuta — õpilane näeb kõike kohe.' : 'Tühi tahvel. Kui õpetaja lisab materjali, näed seda siin. Võid ka ise joonistada ja kirjutada.') : 'Tühi tahvel: joonista, lisa märkmepaber või tekst. Õpetaja ja õpilane näevad muudatusi kohe.'}</div> : null}
   </div>;
 
   if (room) {
@@ -942,27 +1502,31 @@ export default function StudentBoard({
     return (
       <div className="sb sb--room">
         {pageTabs('sb-room-pages')}
+        <BoardLanguageTools dictionaryFor={notesStudentId} user={user} staff={staff} />
         {stage}
         {error ? <p className="sb-room-error" role="alert">{error}</p> : null}
         {reading ? null : <div className="sb-zoombar" aria-label="Suum">{zoomControls}</div>}
         <div className="sb-dock" role="toolbar" aria-label="Tahvli tööriistad" hidden={reading}>
-          {onWorksheet ? toolButton(FILL_TOOL) : null}
-          {TOOLS.filter(([key]) => ['select', 'hand'].includes(key)).map(toolButton)}
+          {TOOLS.filter(([key]) => [POINTER_TOOL, 'hand'].includes(key)).map(toolButton)}
           {staff && onPointer ? toolButton(LASER_TOOL) : null}
           <span className="sb-dock__group">
             <button type="button" className={SHAPES.some(([key]) => key === tool) ? 'is-active' : ''} aria-label="Kujundid" aria-expanded={shapesOpen} title="Kujundid" onClick={() => setShapesOpen(!shapesOpen)}><ShapeIcon size={20} /></button>
             {shapesOpen ? <span className="sb-dock__menu" role="menu" aria-label="Kujundid">{SHAPES.map(toolButton)}</span> : null}
           </span>
-          {TOOLS.filter(([key]) => ['pen', 'marker', 'eraser', 'text', 'note'].includes(key)).map(toolButton)}
+          {TOOLS.filter(([key]) => ['pen', 'marker', 'eraser', 'text', 'note', 'bookmark'].includes(key)).map(toolButton)}
           {uploadImage ? <>
             <input ref={fileInput} className="sr-only" type="file" accept="image/*" aria-label="Lisa pilt tahvlile" onChange={(event) => { pickImage(event.target.files?.[0]); event.target.value = ''; }} />
             <button type="button" aria-label="Pilt" title={staff ? 'Lisa pilt' : 'Lisa foto (nt vihikust)'} disabled={uploading} onClick={() => fileInput.current?.click()}><ImagePlus size={20} /></button>
           </> : null}
+          {staff ? <button type="button" className={mediaOpen ? 'is-active' : ''} aria-label="Pildid" aria-pressed={mediaOpen} title="Pildid: otsi ja lohista tahvlile" onClick={() => setMediaOpen(!mediaOpen)}><Images size={20} /></button> : null}
           <button type="button" className={`sb-dock__more ${stylesOpen ? 'is-open' : ''}`} aria-label={stylesOpen ? 'Peida värvid' : 'Näita värve'} aria-pressed={stylesOpen} onClick={() => setStylesOpen(!stylesOpen)}><ChevronDown size={18} /></button>
         </div>
+        {staff && mediaOpen ? <Suspense fallback={<aside className="sb-media" aria-label="Pildid"><LoadingState inline className="sb-media__hint" label="Laen…" /></aside>}>
+          <MediaSearchPanel onPlace={(item) => placeMedia(item)} onClose={() => setMediaOpen(false)} placing={placing} {...(mediaBank ? { bank: mediaBank } : {})} />
+        </Suspense> : null}
         {stylesOpen && !reading ? <div className="sb-style" aria-label="Värv ja suurus">
           <div className="sb-style__colors">{palette.map((value) => <button type="button" key={value} className={`sb-color ${activeColor === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Värv ${value}`} aria-pressed={activeColor === value} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseColor(value)} />)}</div>
-          <label className="sb-style__width"><span className="sr-only">Joone paksus</span><input type="range" min="1" max="24" value={width} aria-label="Joone paksus" onChange={(event) => { setWidth(Number(event.target.value)); setSize(''); }} /></label>
+          <label className="sb-style__width"><span className="sr-only">Joone paksus</span><input type="range" min="1" max="24" value={width} aria-label="Joone paksus" onChange={(event) => pickWidth(Number(event.target.value))} /></label>
           <div className="sb-style__sizes" role="group" aria-label="Suurus">{Object.keys(SIZES).map((key) => <button type="button" key={key} className={size === key ? 'is-active' : ''} aria-pressed={size === key} onMouseDown={(event) => event.preventDefault()} onClick={() => pickSize(key)}>{key}</button>)}</div>
           {fontButtons}
           {onWorksheet || !service.setBackground ? null : <div className="sb-style__paper" role="group" aria-label="Taust">{BACKGROUNDS.map(([key, label]) => <button type="button" key={key} className={paper === key ? 'is-active' : ''} aria-pressed={paper === key} onClick={() => chooseBackground(key)}>{label}</button>)}</div>}
@@ -975,8 +1539,8 @@ export default function StudentBoard({
   return (
     <div className="sb">
       {pageTabs('sb-pages')}
+      <BoardLanguageTools dictionaryFor={notesStudentId} user={user} staff={staff} />
       <div className="sb-toolbar" role="toolbar" aria-label="Tahvli tööriistad">
-        {onWorksheet ? toolButton(FILL_TOOL) : null}
         {TOOLS.map(toolButton)}
         <span className="sb-sep" />
         {palette.map((value) => <button type="button" key={value} className={`sb-color ${activeColor === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Värv ${value}`} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseColor(value)} />)}

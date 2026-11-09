@@ -33,6 +33,7 @@ describe('TrashPage („Prügikast”, administrator 2026-11-03)', () => {
     expect(rows[1]).toHaveTextContent('Õpetaja');
     expect(within(rows[1]).getByRole('link', { name: 'Jelena Tamm' })).toHaveAttribute('href', '/teachers/t1');
     expect(rows[1]).toHaveTextContent('Peatatud: kaardil on eesootavad tunnid');
+    expect(rows[0]).not.toHaveTextContent('Peatatud');
     expect(screen.getByRole('list', { name: 'Anonüümitud kaardid' })).toHaveTextContent('Kustutatud õpilane #s9');
   });
 
@@ -74,6 +75,57 @@ describe('CardTrashDialog and CardTrashNotice', () => {
     fireEvent.click(screen.getByRole('button', { name: /Vii prügikasti/ }));
     await waitFor(() => expect(onDone).toHaveBeenCalledWith({ purgeAfter: expect.any(String) }));
     expect(service.trash).toHaveBeenCalledWith('student', 's1');
+  });
+
+  it('teacher with lessons ahead (2026-11-06): the preview lists what to give to another teacher; „Vii prügikasti” is disabled', async () => {
+    const service = {
+      trash: vi.fn(),
+      preview: vi.fn().mockResolvedValue({
+        outcome: 'blocked', purgeAfter: inDays(7), links: [{ collection: 'workSessions', label: 'Tööaeg', count: 3, finance: false }],
+        blockers: [
+          { code: 'future-lessons', count: 2, message: 'Õpetajal on 2 eesootavat tundi või tunnisarja. Anna need enne teisele õpetajale või tühista (Kalender).' },
+          { code: 'active-group', count: 1, message: 'Õpetaja juhendab aktiivset gruppi (B1 õhtu). Määra grupile teine õpetaja või arhiveeri grupp.' },
+        ],
+        lessons: [{ id: 'l1', date: '2026-11-20', time: '10:00', studentName: 'Mari', subject: 'Eesti keel', recurring: false }, { id: 'l2', weekday: 'esmaspäev', time: '17:00', studentName: 'Jaan', recurring: true }],
+        groups: [{ id: 'g1', name: 'B1 õhtu' }],
+      }),
+    };
+    render(<MemoryRouter><CardTrashDialog open kind="teacher" id="t1" name="Jelena" service={service} onClose={vi.fn()} /></MemoryRouter>);
+    const blocked = await screen.findByRole('alert', { name: 'Kustutada ei saa' });
+    expect(service.preview).toHaveBeenCalledWith('teacher', 't1');
+    expect(blocked).toHaveTextContent('2 eesootavat tundi');
+    const lessons = within(blocked).getByRole('list', { name: 'Eesootavad tunnid' });
+    expect(within(lessons).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['20.11.2026 10:00 · Mari · Eesti keel', 'iga esmaspäev 17:00 · Jaan (korduv)']);
+    expect(within(blocked).getByRole('list', { name: 'Aktiivsed grupid' })).toHaveTextContent('B1 õhtu');
+    expect(within(blocked).getByRole('link', { name: 'Ava kalender' })).toHaveAttribute('href', '/calendar');
+    expect(screen.getByRole('button', { name: /Vii prügikasti/ })).toBeDisabled();
+    expect(service.trash).not.toHaveBeenCalled();
+  });
+
+  it('student with invoices and payments: the preview lists them and says the history stays (anonymised, not deleted)', async () => {
+    const service = {
+      trash: vi.fn().mockResolvedValue({ purgeAfter: inDays(7) }),
+      preview: vi.fn().mockResolvedValue({ outcome: 'anonymise', purgeAfter: '2026-11-13T10:00:00.000Z', blockers: [], lessons: [], groups: [], links: [
+        { collection: 'invoices', label: 'Arved', count: 20, more: true, finance: true },
+        { collection: 'payments', label: 'Maksed', count: 3, finance: true },
+        { collection: 'lessons', label: 'Tunnid', count: 12, finance: false },
+      ] }),
+    };
+    const onDone = vi.fn();
+    render(<MemoryRouter><CardTrashDialog open kind="student" id="s1" name="Mari" service={service} onClose={vi.fn()} onDone={onDone} /></MemoryRouter>);
+    const links = await screen.findByRole('list', { name: 'Seotud andmed' });
+    expect(within(links).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Arved: 20+', 'Maksed: 3', 'Tunnid: 12']);
+    expect(screen.getByText(/arved, maksed ja muu finantsajalugu jäävad muutmata/)).toBeInTheDocument();
+    expect(screen.getByText(/lõplik kustutamine 13\.11\.2026/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Vii prügikasti/ }));
+    await waitFor(() => expect(onDone).toHaveBeenCalled());
+  });
+
+  it('an unpaid invoice: the server message „Kaardil on tasumata arveid — arhiveeri kaart” is shown, nothing is trashed', async () => {
+    const service = { trash: vi.fn(), preview: vi.fn().mockResolvedValue({ outcome: 'blocked', blockers: [{ code: 'open-invoices', count: 1, message: 'Kaardil on tasumata arveid (1, kokku 40,00 €) — arhiveeri kaart. Kustutada saab pärast arvete tasumist või tühistamist.' }], lessons: [], groups: [], links: [{ collection: 'invoices', label: 'Arved', count: 1, finance: true }] }) };
+    render(<MemoryRouter><CardTrashDialog open kind="student" id="s1" name="Mari" service={service} onClose={vi.fn()} /></MemoryRouter>);
+    expect(await screen.findByRole('alert', { name: 'Kustutada ei saa' })).toHaveTextContent('Kaardil on tasumata arveid (1, kokku 40,00 €) — arhiveeri kaart');
+    expect(screen.getByRole('button', { name: /Vii prügikasti/ })).toBeDisabled();
   });
 
   it('the teacher dialog says the teacher can no longer sign in', () => {

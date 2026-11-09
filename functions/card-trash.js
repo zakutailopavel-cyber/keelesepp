@@ -51,6 +51,12 @@ async function cardLessons(db, kind, id, card) {
   };
 }
 
+// a student card's invoices (an unpaid one stops the delete); a teacher has none
+async function cardInvoices(db, kind, id) {
+  if (kind !== "student") return [];
+  return (await docsOf(db.collection("invoices").where("studentId", "==", id))).map((doc) => ({ id: doc.id, ...doc.data() }));
+}
+
 // every record outside the audit collections that points at the card: [{ collection, field, count }]
 async function cardReferences(db, kind, id, card) {
   const out = [];
@@ -74,6 +80,20 @@ function audit(db, tx, docId, entry) {
   tx.set(db.collection("activityLog").doc(docId), entry);
 }
 
+/**
+ * The „Kustuta” window before anything is written (2026-11-06): why it is refused (with the lessons and groups to move
+ * first), what is linked to the card and whether the purge will delete or anonymise it. Reads only.
+ */
+async function previewTrash(db, { kind: rawKind, id: rawId, actor = {}, now = new Date() }) {
+  const kind = core.cleanKind(rawKind);
+  const id = core.cleanId(rawId);
+  const snap = await db.collection(COLLECTION[kind]).doc(id).get();
+  if (!snap.exists) throw core.cardError(404, "Kaarti ei leitud.");
+  const card = snap.data() || {};
+  const [lessons, invoices, references] = await Promise.all([cardLessons(db, kind, id, card), cardInvoices(db, kind, id), cardReferences(db, kind, id, card)]);
+  return core.trashPreview(kind, { id, card, ...lessons, invoices, references, today: appToday(now), actorUid: actor.uid, nowIso: now.toISOString() });
+}
+
 /** „Kustuta”: the card goes to the trash for 7 days (refused with the reasons while lessons are ahead). */
 async function trashCard(db, { kind: rawKind, id: rawId, actor = {}, now = new Date() }) {
   const kind = core.cleanKind(rawKind);
@@ -83,8 +103,8 @@ async function trashCard(db, { kind: rawKind, id: rawId, actor = {}, now = new D
   const first = await ref.get();
   if (!first.exists) throw core.cardError(404, "Kaarti ei leitud.");
   const card = first.data() || {};
-  const lessons = await cardLessons(db, kind, id, card);
-  const blockers = core.trashBlockers(kind, { id, card, ...lessons, today: appToday(now), actorUid: actor.uid });
+  const [lessons, invoices] = await Promise.all([cardLessons(db, kind, id, card), cardInvoices(db, kind, id)]);
+  const blockers = core.trashBlockers(kind, { id, card, ...lessons, invoices, today: appToday(now), actorUid: actor.uid });
   if (blockers.length) throw core.cardError(409, blockers.map((item) => item.message).join(" "), { blockers });
   return db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
@@ -132,8 +152,8 @@ async function purgeCard(db, { kind, id, FieldValue, now = new Date(), actor = {
   const card = first.data() || {};
   const early = core.purgeDecision({ card, now: nowIso, today: appToday(now) });
   if (early.action === "skip" || early.action === "wait") return { kind, id, ...early };
-  const [{ schedule, groups }, references] = await Promise.all([cardLessons(db, kind, id, card), cardReferences(db, kind, id, card)]);
-  const decision = core.purgeDecision({ card, references, schedule, groups, now: nowIso, today: appToday(now) });
+  const [{ schedule, groups }, references, invoices] = await Promise.all([cardLessons(db, kind, id, card), cardReferences(db, kind, id, card), cardInvoices(db, kind, id)]);
+  const decision = core.purgeDecision({ card, references, schedule, groups, invoices, now: nowIso, today: appToday(now) });
   const accounts = kind === "student"
     ? uniqueDocs([await docsOf(db.collection("users").where("linkedStudentIds", "array-contains", id))]).map((doc) => doc.id)
     : [];
@@ -186,4 +206,4 @@ async function purgeDueCards(db, { FieldValue, now = new Date(), max = 50 } = {}
   return { checkedAt: nowIso, deleted: count("delete"), anonymised: count("anonymise"), blocked: count("block"), errors: count("error"), results };
 }
 
-module.exports = { trashCard, restoreCard, purgeCard, purgeDueCards, cardReferences, cardLessons };
+module.exports = { previewTrash, trashCard, restoreCard, purgeCard, purgeDueCards, cardReferences, cardLessons };

@@ -10,10 +10,12 @@ import { examBlocks } from './blocks/exam.jsx';
 import { chart } from './blocks/chart.jsx';
 import { harnoBlocks } from './blocks/harno.jsx';
 import { kidsBlocks } from './blocks/kids.jsx';
+import { video } from './blocks/video.jsx';
 import { newId } from './schema.js';
+import { provideScoreChecker } from './storedScore.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
-export const BLOCKS = { text, notice, tip, image, vocab, wordstrip, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks };
+export const BLOCKS = { text, notice, tip, image, vocab, wordstrip, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, video, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks };
 
 export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Lastele', 'Kujundus'];
 
@@ -103,8 +105,20 @@ export function checkDocument(doc, answers = {}) {
   }));
   const speak = doc.blocks.filter((b) => b.type === 'speaking' && !isInLesson(b))
     .map((b) => ({ id: b.id, goal: b.goal, recorded: !!answers[`${b.id}:audioUrl`], seconds: answers[`${b.id}:seconds`] || 0 }));
-  const score = { correct, total, pct: total ? Math.round((correct / total) * 100) : 0, perGoal, ...(skipped.length ? { skippedBlocks: skipped.map((item) => item.id) } : {}) };
+  // answers whose task is not on this sheet (the sheet was changed after she answered): never a mistake, only reported
+  const unmatched = unmatchedAnswers(doc, answers).length;
+  const score = { correct, total, pct: total ? Math.round((correct / total) * 100) : 0, perGoal, ...(skipped.length ? { skippedBlocks: skipped.map((item) => item.id) } : {}), ...(unmatched ? { unmatched } : {}) };
   return { results, perGoal, speak, score, skipped };
+}
+
+// Filled answer keys („blockId:item”) whose block is not on the sheet. Scoring walks the sheet's blocks, so such an
+// answer is never counted (neither right nor wrong); the count tells the teacher that the sheet and the answers differ.
+export function unmatchedAnswers(doc, answers = {}) {
+  const ids = new Set((doc?.blocks || []).map((block) => String(block.id)));
+  return Object.keys(answers || {}).filter((key) => {
+    const at = key.indexOf(':');
+    return at > 0 && filled(answers[key]) && !key.endsWith(':error') && !ids.has(key.slice(0, at));
+  });
 }
 
 // How many answerable fields have an answer (scorable fields plus voice recordings).
@@ -127,3 +141,6 @@ export function answerProgress(doc, answers = {}) {
   }).length + speak.filter((x) => x.recorded).length;
   return { answered, total: keys.length + speak.length };
 }
+
+// storedScore.js re-checks old stored scores with these rules; it does not import this file (see there)
+provideScoreChecker(checkDocument);

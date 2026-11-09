@@ -3,6 +3,8 @@ import { liveLessonCallSignalsService } from '../../services/firebase/liveLesson
 import { liveLessonPresenceService, presenceIsFresh } from '../../services/firebase/liveLessonPresence.js';
 import { liveTurnService } from '../../services/firebase/liveTurn.js';
 import { openMedia } from './mobileMedia.js';
+import { callErrorKind, clientErrors, isPermissionDenied } from '../client-errors/clientErrorReporter.js';
+import { isScreenSlot, remoteShareActive, remoteShareStream, screenSlotTransceiver, shareMessage } from './screenShare.js';
 
 export const STUN_SERVERS = Object.freeze([
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
@@ -115,6 +117,15 @@ export function useLiveCall({
   const peerRef = useRef(null);
   const localStreamRef = useRef(null);
   const screenStreamRef = useRef(null);
+  // the screen slot: a second video transceiver for the shared screen (see screenShare.js); null on old clients
+  const screenSlotRef = useRef(null);
+  // whether the current own share went on the slot (true) or replaced the camera track (false, old clients)
+  const screenSharingSlotRef = useRef(false);
+  // what the other side shares: its announcement over the data channel, the slot track and whether it gets frames
+  const [remoteAnnounce, setRemoteAnnounce] = useState(null);
+  const [remoteSlot, setRemoteSlot] = useState({ stream: null, live: false });
+  const [remoteMain, setRemoteMain] = useState(null);
+  const [shareSlot, setShareSlot] = useState(true);
   const sessionIdRef = useRef('');
   const pendingOfferRef = useRef(null);
   const pendingCandidatesRef = useRef([]);
@@ -206,7 +217,10 @@ export function useLiveCall({
     channel.onmessage = (event) => {
       let message = null;
       try { message = JSON.parse(event.data); } catch { return; }
-      if (message && typeof message === 'object') roomListenerRef.current?.(message);
+      if (!message || typeof message !== 'object') return;
+      const share = shareMessage(message);
+      if (share) { setRemoteAnnounce(share); return; }
+      roomListenerRef.current?.(message);
     };
     if (channel.readyState === 'open') setRoomChannelOpen(true);
   }, []);
@@ -222,6 +236,10 @@ export function useLiveCall({
       try { channel.close?.(); } catch { /* already closed */ }
     }
     setRoomChannelOpen(false);
+    screenSlotRef.current = null;
+    setRemoteAnnounce(null);
+    setRemoteSlot({ stream: null, live: false });
+    setRemoteMain(null);
     const peer = peerRef.current;
     if (peer) {
       peer.ondatachannel = null;
@@ -284,14 +302,35 @@ export function useLiveCall({
     const cameraStream = localStreamRef.current;
     const screenStream = screenStreamRef.current;
     cameraStream?.getAudioTracks().forEach((track) => peer.addTrack(track, cameraStream));
-    const outboundVideoTrack = screenStream?.getVideoTracks?.()[0] || cameraStream?.getVideoTracks?.()[0];
-    if (outboundVideoTrack) peer.addTrack(outboundVideoTrack, screenStream || cameraStream);
+    const cameraTrack = cameraStream?.getVideoTracks?.()[0] || null;
+    const screenTrack = screenStream?.getVideoTracks?.()[0] || null;
+    if (role === 'teacher' && typeof peer.addTransceiver === 'function') {
+      // camera m-line first (an empty one without a camera, so the order is always camera, screen), then the slot
+      if (cameraTrack) peer.addTrack(cameraTrack, cameraStream);
+      else peer.addTransceiver('video', { direction: 'sendrecv' });
+      screenSlotRef.current = peer.addTransceiver(screenTrack || 'video', { direction: 'sendrecv' }) || null;
+    } else {
+      const outboundVideoTrack = screenTrack || cameraTrack;
+      if (outboundVideoTrack) peer.addTrack(outboundVideoTrack, screenTrack ? screenStream : cameraStream);
+    }
 
     if (role === 'teacher' && typeof peer.createDataChannel === 'function') {
       try { wireChannel(peer.createDataChannel('room')); } catch { /* call works without it */ }
     }
     peer.ondatachannel = (event) => { if (event.channel?.label === 'room') wireChannel(event.channel); };
     peer.ontrack = (event) => {
+      // the screen slot's track is the other side's shared screen, never part of the camera stream
+      if (isScreenSlot(peer, event.transceiver)) {
+        const track = event.track;
+        if (!track) return;
+        const stream = typeof globalThis.MediaStream === 'function' ? new globalThis.MediaStream([track]) : event.streams?.[0] || null;
+        const update = () => { if (peerRef.current === peer) setRemoteSlot({ stream, live: track.muted === false && track.readyState !== 'ended' }); };
+        track.addEventListener?.('mute', update);
+        track.addEventListener?.('unmute', update);
+        track.addEventListener?.('ended', update);
+        update();
+        return;
+      }
       // some mobile browsers send tracks without a stream: collect them into one
       let remoteStream = event.streams?.[0];
       if (!remoteStream && event.track && typeof globalThis.MediaStream === 'function') {
@@ -300,6 +339,7 @@ export function useLiveCall({
       }
       if (!remoteStream) return;
       remoteStreamRef.current = remoteStream;
+      setRemoteMain(remoteStream);
       const video = remoteVideoRef.current;
       if (video) {
         if (video.srcObject !== remoteStream) video.srcObject = remoteStream;
@@ -323,7 +363,10 @@ export function useLiveCall({
       } else if (next === 'connecting' || next === 'new') setStatus('connecting');
       else if (next === 'failed') {
         clearRecovery();
-        setStatus(scheduleRecovery(RECOVERY_DELAY_MS) ? 'reconnecting' : 'failed');
+        const retrying = scheduleRecovery(RECOVERY_DELAY_MS);
+        // reported once the automatic recoveries are used up (ICE / connection failed for good)
+        if (!retrying) clientErrors.report('call', `1:1 call connection failed (${peer.iceConnectionState || 'ice ?'}, ${role})`);
+        setStatus(retrying ? 'reconnecting' : 'failed');
       } else if (next === 'disconnected') {
         setStatus('reconnecting');
         scheduleRecovery(DISCONNECT_GRACE_MS);
@@ -368,6 +411,14 @@ export function useLiveCall({
     if (role !== 'student' || !localStreamRef.current) return;
     const peer = makePeer(signal.sessionId);
     await peer.setRemoteDescription(signalPayload(signal));
+    // the teacher's offer carries a screen slot: answer it as sendrecv, so this side can share its screen too
+    const slot = screenSlotTransceiver(peer);
+    if (slot) {
+      try { slot.direction = 'sendrecv'; } catch { /* read-only in an old browser: sharing falls back */ }
+      screenSlotRef.current = slot;
+      const screenTrack = screenStreamRef.current?.getVideoTracks?.()[0];
+      if (screenTrack && screenSharingSlotRef.current && slot.sender?.replaceTrack) await slot.sender.replaceTrack(screenTrack);
+    }
     await flushCandidates(signal.sessionId);
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
@@ -380,23 +431,31 @@ export function useLiveCall({
     if (!screenStream) return;
     const cameraStream = localStreamRef.current;
     const cameraTrack = cameraStream?.getVideoTracks?.()[0] || null;
-    const sender = peerRef.current?.getSenders?.().find((item) => item.track?.kind === 'video');
+    const slotSender = screenSlotRef.current?.sender;
     try {
-      if (sender?.replaceTrack) await sender.replaceTrack(cameraTrack);
+      if (screenSharingSlotRef.current) await slotSender?.replaceTrack?.(null);
+      else {
+        const sender = peerRef.current?.getSenders?.().find((item) => item.track?.kind === 'video' && item !== slotSender);
+        if (sender?.replaceTrack) await sender.replaceTrack(cameraTrack);
+      }
     } finally {
+      screenSharingSlotRef.current = false;
       stopScreenTracks();
       attachLocalStream(cameraStream);
     }
   }, [attachLocalStream, stopScreenTracks]);
 
   const startScreenShare = async () => {
-    if (role !== 'teacher') return;
+    if (screenStreamRef.current) return;
     setScreenBusy(true);
     setError('');
     try {
       if (!mediaDevices?.getDisplayMedia) throw new Error('Ekraani jagamine pole selles brauseris saadaval.');
       const peer = peerRef.current;
-      const sender = peer?.getSenders?.().find((item) => item.track?.kind === 'video');
+      const slotSender = screenSlotRef.current?.sender;
+      const useSlot = Boolean(slotSender?.replaceTrack);
+      // without a slot (old client on the other side): the screen replaces the camera track, as before
+      const sender = useSlot ? slotSender : peer?.getSenders?.().find((item) => item.track?.kind === 'video');
       if (!peer || !sender?.replaceTrack) throw new Error('Käivita enne videokõne.');
       const stream = await mediaDevices.getDisplayMedia({ video: true, audio: false });
       const track = stream.getVideoTracks?.()[0];
@@ -404,12 +463,17 @@ export function useLiveCall({
         stream.getTracks?.().forEach((item) => item.stop());
         throw new Error('Ekraani videorada ei leitud.');
       }
+      // text and slides: sharp letters before smooth motion
+      try { if ('contentHint' in track) track.contentHint = 'detail'; } catch { /* optional */ }
       screenStreamRef.current = stream;
       track.onended = () => {
         stopScreenShare().catch((nextError) => setError(nextError.message || 'Ekraani jagamist ei saanud lõpetada.'));
       };
       await sender.replaceTrack(track);
-      attachLocalStream(stream);
+      screenSharingSlotRef.current = useSlot;
+      setShareSlot(useSlot);
+      // with the slot the own camera stays in the self view; the old way shows what is sent
+      if (!useSlot) attachLocalStream(stream);
       setScreenSharing(true);
     } catch (nextError) {
       if (screenStreamRef.current) stopScreenTracks();
@@ -468,11 +532,23 @@ export function useLiveCall({
     return () => unsubscribe?.();
   }, [answerOffer, autoAnswer, flushCandidates, invitation.id, resetCall, role, signalService, user.uid]);
 
+  // the latest invitation status: a room that is no longer 'accepted' (closed, cancelled) gets no presence writes —
+  // the rules refuse them and every refusal would land in „Vead” (2026-11-04/05 reports)
+  const invitationStatusRef = useRef(invitation.status);
+  invitationStatusRef.current = invitation.status;
+
   useEffect(() => {
     let alive = true;
-    const reportPresence = () => presenceService.heartbeat(invitation.id, participant).catch((nextError) => {
-      if (alive) setError(nextError?.message || 'Kohalolekut ei saanud uuendada.');
-    });
+    let refused = false;
+    const roomOpen = () => !refused && (!invitationStatusRef.current || invitationStatusRef.current === 'accepted');
+    const reportPresence = () => {
+      if (!alive || !roomOpen()) return Promise.resolve();
+      return presenceService.heartbeat(invitation.id, participant).catch((nextError) => {
+        // refused = the lesson was closed meanwhile (or this user is not its participant): stop, no banner, no retries
+        if (isPermissionDenied(nextError)) { refused = true; return; }
+        if (alive) setError(nextError?.message || 'Kohalolekut ei saanud uuendada.');
+      });
+    };
     reportPresence();
     const heartbeatTimer = window.setInterval(reportPresence, 20_000);
     const freshnessTimer = window.setInterval(() => setPresenceNow(Date.now()), 5_000);
@@ -491,7 +567,7 @@ export function useLiveCall({
       window.clearInterval(freshnessTimer);
       document.removeEventListener('visibilitychange', onVisibility);
       unsubscribe?.();
-      presenceService.markOffline(invitation.id, participant).catch(() => {});
+      if (roomOpen()) presenceService.markOffline(invitation.id, participant)?.catch?.(() => {});
     };
   }, [invitation.id, participant, presenceService]);
 
@@ -561,6 +637,7 @@ export function useLiveCall({
       await sendOffer();
       setStatus('waiting');
     } catch (nextError) {
+      clientErrors.report(callErrorKind(nextError), nextError, { detail: '1:1 call start' });
       resetCall('failed', true);
       setError(nextError.message || 'Videokõnet ei saanud käivitada.');
     } finally {
@@ -581,6 +658,7 @@ export function useLiveCall({
       if (offer) await answerOffer(offer);
       else setStatus('waiting');
     } catch (nextError) {
+      clientErrors.report(callErrorKind(nextError), nextError, { detail: '1:1 call join' });
       resetCall('failed', true);
       setError(nextError.message || 'Videokõnega ei saanud liituda.');
     } finally {
@@ -669,16 +747,19 @@ export function useLiveCall({
       track.enabled = kind === 'audio' ? audioEnabled : videoEnabled;
       const old = kind === 'audio' ? current.getAudioTracks()[0] : current.getVideoTracks()[0];
       // while the screen is shared the video sender carries the screen; the camera change applies when sharing stops
-      const sender = peerRef.current?.getSenders?.().find((item) => item.track?.kind === kind);
-      if (sender?.replaceTrack && !(kind === 'video' && screenStreamRef.current)) await sender.replaceTrack(track);
+      const slotSender = screenSlotRef.current?.sender;
+      const sender = peerRef.current?.getSenders?.().find((item) => item.track?.kind === kind && item !== slotSender);
+      const cameraCarriesScreen = kind === 'video' && screenStreamRef.current && !screenSharingSlotRef.current;
+      if (sender?.replaceTrack && !cameraCarriesScreen) await sender.replaceTrack(track);
       const others = kind === 'audio' ? current.getVideoTracks() : current.getAudioTracks();
       const stream = new globalThis.MediaStream(kind === 'audio' ? [track, ...others] : [...others, track]);
       old?.stop();
       localStreamRef.current = stream;
-      if (!screenStreamRef.current) attachLocalStream(stream);
+      if (!screenStreamRef.current || screenSharingSlotRef.current) attachLocalStream(stream);
       reportStreams({ local: stream });
       refreshDevices();
     } catch (nextError) {
+      clientErrors.report(callErrorKind(nextError), nextError, { detail: 'device switch' });
       setError(nextError?.message ? `Seadet ei saanud vahetada: ${nextError.message}` : 'Seadet ei saanud vahetada.');
     } finally {
       setDeviceBusy(false);
@@ -695,6 +776,18 @@ export function useLiveCall({
     roomListenerRef.current = listener;
     return () => { if (roomListenerRef.current === listener) roomListenerRef.current = null; };
   }, []);
+
+  // tell the other side when a share starts or stops (again whenever the channel opens: reconnect, late join)
+  useEffect(() => {
+    if (roomChannelOpen) sendRoom({ t: 'screen', on: screenSharing, slot: screenSharing ? shareSlot : true });
+  }, [roomChannelOpen, screenSharing, shareSlot, sendRoom]);
+  const remoteSharing = remoteShareActive({ announced: remoteAnnounce, slotLive: remoteSlot.live });
+  const remoteScreen = useMemo(() => ({
+    active: remoteSharing,
+    stream: remoteSharing ? remoteShareStream({ announced: remoteAnnounce, slotStream: remoteSlot.stream, mainStream: remoteMain }) : null,
+    // old way: the camera stream carries the screen, so the camera window shows it too
+    replacesCamera: Boolean(remoteSharing && remoteAnnounce && !remoteAnnounce.slot),
+  }), [remoteAnnounce, remoteMain, remoteSharing, remoteSlot.stream]);
 
   const connected = status === 'connected';
   const canReconnect = role === 'teacher' && hasLocalMedia && ['failed', 'reconnecting'].includes(status);
@@ -715,5 +808,6 @@ export function useLiveCall({
     localVideoRef, remoteVideoRef, startTeacherCall, joinStudentCall, hangUp, toggleAudio, toggleVideo,
     startScreenShare, stopScreenShare, devices, selectedDevices: currentIds, switchDevice, deviceBusy,
     roomChannelOpen, sendRoom, onRoomMessage, localStream,
+    remoteScreen, canShareScreen: Boolean(mediaDevices?.getDisplayMedia),
   };
 }

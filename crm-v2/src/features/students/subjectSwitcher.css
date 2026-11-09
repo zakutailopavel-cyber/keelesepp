@@ -1,5 +1,5 @@
 .subject-switcher { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
-.subject-switcher button { border: 1px solid var(--border, #d8e2e9); border-radius: 999px; background: #fff; padding: 7px 14px; font-weight: 700; font-size: .88rem; color: var(--ink, #1f2d3d); cursor: pointer; }
-.subject-switcher button.is-active { background: var(--green, #087e6b); border-color: var(--green, #087e6b); color: #fff; }
+.subject-switcher button { border: 1px solid var(--border, #d8e2e9);border:1px solid var(--border, light-dark(#d8e2e9,#323e46)); border-radius: var(--radius-pill); background: var(--surface); padding: 7px 14px; font-weight: 700; font-size: .88rem; color: var(--ink, #1f2d3d);color:var(--ink, light-dark(#1f2d3d,#ccd5de)); cursor: pointer; }
+.subject-switcher button.is-active { background: var(--green); border-color: var(--green); color: #fff; }
 .subject-tracks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.subject-tracks span { padding: 3px 9px; border-radius: 999px; background: #eef5f3; color: #2d4a43; font-size: .78rem; font-weight: 700; }
+.subject-tracks span { padding: 3px 9px; border-radius: var(--radius-pill); background: #eef5f3;background:light-dark(#eef5f3,#181d23); color: #2d4a43;color:light-dark(#2d4a43,#bdccc7); font-size: .78rem; font-weight: 700; }

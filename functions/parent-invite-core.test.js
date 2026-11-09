@@ -1,7 +1,7 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { parentInviteInput, parentInvitePlan, parentCardPatch } = require("./parent-invite-core");
+const { linkCardRefusal, parentInviteInput, parentInvitePlan, parentCardPatch } = require("./parent-invite-core");
 const { composeInviteEmail } = require("./student-invite-core");
 
 test("name and e-mail are required; the e-mail is lower-cased; cards are unique and at most 10", () => {
@@ -22,12 +22,29 @@ test("an existing parent login is linked only to the cards it is not on yet", ()
   assert.deepEqual(plan, { action: "existing", uid: "mum", link: ["b"] });
 });
 
-test("never a staff login, never the child's own login, never an archived card", () => {
+test("never a staff login, never the child's own login, never a card in the trash", () => {
   assert.throws(() => parentInvitePlan({ cards: [{ id: "a" }], existing: { uid: "t" }, existingProfile: { role: "teacher" } }), /töötaja/);
   assert.throws(() => parentInvitePlan({ cards: [{ id: "a" }], existing: { uid: "t" }, existingProfile: { role: "parent", roles: ["admin"] } }), /töötaja/);
   assert.throws(() => parentInvitePlan({ cards: [{ id: "a", name: "Misha", studentUid: "kid" }], existing: { uid: "kid" }, existingProfile: { role: "student" } }), /Misha enda konto/);
-  assert.throws(() => parentInvitePlan({ cards: [{ id: "a", active: false }] }), { status: 404 });
+  assert.throws(() => parentInvitePlan({ cards: [{ id: "a", name: "Misha", active: false, deletedAt: "2026-11-05T10:00:00Z" }] }), { status: 409, message: /Misha” on prügikastis/ });
+  assert.throws(() => parentInvitePlan({ cards: [{ id: "a", active: false, purgedAt: "2026-11-01" }] }), { status: 409 });
+  assert.throws(() => parentInvitePlan({ cards: [{ id: "a", active: false, mergedInto: "b" }] }), /liidetud/);
   assert.throws(() => parentInvitePlan({ cards: [null] }), { status: 404 });
+});
+
+test("an archived card can be linked to a parent (Oleksiy 2026-11-06), new or existing login", () => {
+  assert.deepEqual(parentInvitePlan({ cards: [{ id: "a", name: "Misha", active: false }, { id: "b" }] }), { action: "create", link: ["a", "b"] });
+  assert.deepEqual(parentInvitePlan({ cards: [{ id: "a", active: false }], existing: { uid: "mum" }, existingProfile: { role: "parent" } }), { action: "existing", uid: "mum", link: ["a"] });
+});
+
+test("linkCardRefusal: parent accepts archived, refuses trash / merged / missing; a student login stays active-only", () => {
+  assert.equal(linkCardRefusal({ id: "a", active: false }, "parent"), null);
+  assert.equal(linkCardRefusal({ id: "a", active: true }, "student"), null);
+  assert.deepEqual(linkCardRefusal({ id: "a", active: false }, "student"), { status: 404, message: "Aktiivset õpilase kaarti ei leitud." });
+  assert.equal(linkCardRefusal({ id: "a", name: "Mari", deletedAt: "x" }, "parent").status, 409);
+  assert.equal(linkCardRefusal({ id: "a", name: "Mari", deletedAt: "x" }, "student").status, 409);
+  assert.equal(linkCardRefusal({ id: "a", mergedIntoStudentId: "b" }, "parent").status, 409);
+  assert.equal(linkCardRefusal(null, "parent").status, 404);
 });
 
 test("a card learns the parent's name and e-mail only where it has none", () => {

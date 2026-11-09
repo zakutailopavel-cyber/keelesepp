@@ -1,7 +1,13 @@
 import { Eraser } from 'lucide-react';
 import { useState } from 'react';
 import { Badge, Button, Card } from '../../components/ui/index.js';
-import { homeworkService, maintenanceService, messagesService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { maintenanceService } from '../../services/firebase/maintenance.js';
+import { messagesService } from '../../services/firebase/messages.js';
+import { scheduleService } from '../../services/firebase/schedule.js';
+import { studentsService } from '../../services/firebase/students.js';
+import { teachersService } from '../../services/firebase/teachers.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 
 import { findCleanup, OLD_DAYS } from './cleanupModel.js';
@@ -74,7 +80,7 @@ export default function DataCleanupPanel({ user, repositories = { students: stud
   });
 
   const run = async (key, question, task, done) => {
-    if (!globalThis.confirm(question)) return;
+    if (!(await askConfirm(question, key === 'conversations' ? { confirmLabel: 'Kustuta', danger: true } : { confirmLabel: 'Jätka' }))) return;
     setBusy(key); setError(''); setNotice('');
     try {
       await task();

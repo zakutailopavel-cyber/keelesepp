@@ -5,7 +5,7 @@ import { formatDue, hasUnreadReply, isAssignedTo, isNewForMe, isOverdue, scopeTa
 // The notification centre does not store notifications: every item is derived from its source record and disappears
 // when the source is handled (task done or opened, message read, work reviewed, invoice paid) — as in CRM v1.
 
-export const CATEGORY_LABEL = { task: 'Ülesanded', message: 'Sõnumid', homework: 'Kodutööd', lesson: 'Tunnid', student: 'Õpilased', invoice: 'Arved' };
+export const CATEGORY_LABEL = { task: 'Ülesanded', message: 'Sõnumid', homework: 'Kodutööd', lesson: 'Tunnid', student: 'Õpilased', invoice: 'Arved', system: 'Süsteem' };
 const SEVERITY_ORDER = { danger: 0, warning: 1, info: 2, success: 3 };
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
@@ -110,6 +110,84 @@ export function missingDataNotifications(submissions = []) {
     meta: item.byName ? `${item.byName}${item.byRole === 'parent' ? ' (lapsevanem)' : ''}` : 'puuduvad andmed',
     to: `/students?puuduvad=1&taidetud=${encodeURIComponent(item.id)}`,
   }));
+}
+
+// „Märkimata tunnid” for a teacher (owner 2026-11-09: a daily reminder inside the CRM, never an e-mail): one line of
+// the teacher's own past unmarked lessons (unmarkedLessonsService.reminder). The id carries the day, so the bell counts
+// it as new once a day while lessons stay unmarked; it disappears when all are marked.
+export function unmarkedNotifications(reminder, today = todayIso()) {
+  if (!reminder?.total) return [];
+  return [{
+    id: `unmarked:${today}`,
+    category: 'lesson',
+    severity: reminder.stale ? 'danger' : 'warning',
+    title: `${reminder.total} ${reminder.total === 1 ? 'tund' : 'tundi'} märkimata${reminder.oldestLabel ? ` (vanim ${reminder.oldestLabel})` : ''}`,
+    detail: 'Märkimata tund ei jõua arvele ega õpilase ajalukku. Märgi: toimus või puudus.',
+    meta: 'minu tunnid',
+    to: '/calendar/markimata',
+  }];
+}
+
+// „Süsteemi olek” (owner 2026-11-09, admin only, never an e-mail): from `systemHealth/current` and `/digest`, written by
+// the scheduled functions (functions/system-health-core.js). One item per incident (the id carries the incident), a
+// „works again” item for 24 h after it closes, a warning when the check itself has stopped, and the morning digest
+// „Eile N viga — vaata Vead” on its day when N > 0.
+const HEALTH_STALE_MS = 40 * 60 * 1000; // the check runs every 10 min
+const tallinnTime = (iso) => {
+  const at = Date.parse(iso);
+  if (!at) return '';
+  return new Intl.DateTimeFormat('et-EE', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Tallinn' }).format(new Date(at));
+};
+
+export function systemHealthNotifications({ current = null, digest = null } = {}, now = Date.now(), today = todayIso(new Date(now))) {
+  const items = [];
+  const incident = current?.incident && !current.incident.resolvedAt ? current.incident : null;
+  if (current?.status === 'down' && incident) {
+    items.push({
+      id: `health-down:${incident.id}`,
+      category: 'system',
+      severity: 'danger',
+      title: `Süsteem ei vasta: ${(incident.failingLabels || incident.failing || []).join(', ') || 'teadmata osa'}`,
+      detail: `Alates ${tallinnTime(incident.startedAt)}. Kontrollin iga 10 minuti järel; kui kõik vastab, tuleb teade „töötab jälle”.`,
+      meta: 'süsteemi olek',
+      to: '/vead',
+    });
+  } else if (current?.lastIncident?.resolvedAt && now - Date.parse(current.lastIncident.resolvedAt) < 24 * 60 * 60 * 1000) {
+    const last = current.lastIncident;
+    items.push({
+      id: `health-ok:${last.id}`,
+      category: 'system',
+      severity: 'success',
+      title: 'Süsteem töötab jälle',
+      detail: `${(last.failingLabels || last.failing || []).join(', ')} ei vastanud ${tallinnTime(last.startedAt)} – ${tallinnTime(last.resolvedAt)}`,
+      meta: 'süsteemi olek',
+      to: '/vead',
+    });
+  }
+  if (current?.checkedAt && now - Date.parse(current.checkedAt) > HEALTH_STALE_MS) {
+    items.push({
+      id: `health-stale:${today}`,
+      category: 'system',
+      severity: 'warning',
+      title: 'Süsteemi kontroll ei käi',
+      detail: `Viimane kontroll ${tallinnTime(current.checkedAt)}. Ajastatud funktsioon systemHealthTick ei tööta.`,
+      meta: 'süsteemi olek',
+      to: '/vead',
+    });
+  }
+  if (digest?.date === today && Number(digest.total) > 0) {
+    const top = digest.top?.[0];
+    items.push({
+      id: `errors-digest:${digest.date}`,
+      category: 'system',
+      severity: 'warning',
+      title: `Eile ${digest.total} viga — vaata Vead`,
+      detail: top ? `Kõige sagedasem: ${top.message} (${top.route}, ${top.count}×)` : '',
+      meta: digest.top?.length > 1 ? `${digest.top.length} eri viga tipus` : 'vigade kokkuvõte',
+      to: '/vead',
+    });
+  }
+  return items;
 }
 
 export function sortNotifications(items) {

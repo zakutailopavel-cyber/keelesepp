@@ -1,3 +1,5 @@
+import { arrowBounds, isArrowLike } from './arrows.js';
+
 // Pure geometry for the student board (same world coordinates as the CRM v1 board: pixels at 100 %, origin top-left).
 
 export const MIN_SCALE = 0.2;
@@ -39,6 +41,8 @@ export const textBoxOf = (element, text = element?.text || '', fontSize = elemen
 export function textAt(elements = [], point) {
   for (let index = elements.length - 1; index >= 0; index -= 1) {
     const element = elements[index];
+    // an anchored bookmark is a marker in the sheet's text (bookmarkAnchor.js), opened by its own click
+    if (element.anchor) continue;
     if ((element.type === 'text' || element.type === 'note')
       && point.x >= element.x && point.x <= element.x + element.w && point.y >= element.y && point.y <= element.y + element.h) return element;
   }
@@ -84,6 +88,7 @@ export function arrowHead(element, size = 14) {
 }
 
 export function elementBounds(element) {
+  if (isArrowLike(element)) return arrowBounds(element);
   if (element.type === 'stroke') {
     const xs = (element.points || []).map((point) => point.x);
     const ys = (element.points || []).map((point) => point.y);
@@ -120,6 +125,36 @@ export function sheetBoardTitle(item = {}) {
   return label && !title.toLocaleLowerCase('et').includes(label.toLocaleLowerCase('et')) ? `${title} · ${label}` : title;
 }
 export const worksheetPageTitle = (title) => `Tööleht: ${String(title || 'Tööleht').trim()}`.slice(0, 200);
+// stable page id of a worksheet title (FNV-1a), e.g. ws-3f2a9c1b: studentBoard.js addWorksheetPage keys the page by it
+export function worksheetPageId(title) {
+  let hash = 0x811c9dc5;
+  for (const char of String(title || '')) { hash ^= char.codePointAt(0); hash = Math.imul(hash, 0x01000193) >>> 0; }
+  return `ws-${hash.toString(16).padStart(8, '0')}`;
+}
+// the page titles a worksheet assignment may have on the board: the title with its phase, then the older one without
+// it (a sheet placed before the phase was part of the title keeps its old page)
+export function assignmentPageTitles(item = {}) {
+  const titles = [worksheetPageTitle(sheetBoardTitle(item)), worksheetPageTitle(item.title || item.worksheetDoc?.meta?.title || 'Tööleht')];
+  return [...new Set(titles)];
+}
+// a board sheet ({ id, title, legacyTitle } as the live room passes them): the same two titles
+const boardSheetPageTitles = (sheet = {}) => [...new Set([sheet.title, sheet.legacyTitle].filter(Boolean).map(worksheetPageTitle))];
+/**
+ * The worksheet behind a board page „Tööleht: …” (2026-11-04, Demjan: homework „Ava tahvlileht” opened an empty board).
+ * The page keeps only drawings; its sheet is found by the page id (the hash of the title) or the title. `sheets` are
+ * worksheet assignments, or board sheets with `boardSheet: true`. The title with the phase wins over the older title;
+ * among equals the newest sheet opened in a lesson (the order the lists already have: newest first).
+ */
+export function sheetForPage(page, sheets = [], { boardSheet = false } = {}) {
+  if (!page?.id && !page?.title) return null;
+  const titlesOf = boardSheet ? boardSheetPageTitles : assignmentPageTitles;
+  const matches = (title) => (page.id && page.id === worksheetPageId(title)) || (page.title && page.title === title);
+  for (const rank of [0, 1]) {
+    const found = (sheets || []).find((sheet) => { const title = titlesOf(sheet)[rank]; return title && matches(title); });
+    if (found) return found;
+  }
+  return null;
+}
 export function pageBounds(elements = [], margin = 40, base = PAGE) {
   const boxes = elements.map(elementBounds).filter(Boolean);
   const x1 = Math.min(0, ...boxes.map((box) => box.x1 - margin));
@@ -162,6 +197,18 @@ export function fitWidth(bounds, width, padding = 16) {
   if (!width) return { x: 0, y: 0, scale: 1 };
   const scale = clampScale((width - padding * 2) / (bounds.x2 - bounds.x1));
   return { scale, x: padding - bounds.x1 * scale, y: padding - bounds.y1 * scale };
+}
+// A worksheet on open and with „Sobita” (owner 2026-11-04: the sheet sat at the left): its width fills the free part of
+// the screen (left of the video tiles, `insetRight`), never larger than `maxScale`, and it stands in the middle of the
+// board — as far right as the video tiles allow. The top of the sheet at the top.
+export function fitSheet(bounds, width, { insetRight = 0, padding = 16, maxScale = 1.4 } = {}) {
+  if (!width) return { x: 0, y: 0, scale: 1 };
+  const free = Math.max(320, width - insetRight);
+  const w = Math.max(1, bounds.x2 - bounds.x1);
+  const scale = clampScale(Math.min(maxScale, (free - padding * 2) / w));
+  const shown = w * scale;
+  const x = Math.max(padding, Math.min((width - shown) / 2, free - padding - shown));
+  return { scale, x: x - bounds.x1 * scale, y: padding - bounds.y1 * scale };
 }
 // panning never pushes the sheet off the screen: at least `keep` pixels of it stay visible on every side
 export function clampView(view, bounds, width, height, keep = 80) {
@@ -207,7 +254,8 @@ export function teacherMaterial(element) {
 
 // anything not locked can be selected, moved and resized (lines too, since 2026-10-09)
 export function movable(element) {
-  return Boolean(element) && element.locked !== true;
+  // an anchored bookmark follows its word in the sheet, it is not dragged
+  return Boolean(element) && element.locked !== true && !element.anchor;
 }
 
 // Natural size of an image, so it keeps its proportions on the board (A4 portrait when it cannot be read).
@@ -227,6 +275,25 @@ export function wheelView(view, { deltaX = 0, deltaY = 0, ctrlKey = false, metaK
   const unit = deltaMode === 1 ? 16 : 1; // lines → pixels (Firefox)
   if (ctrlKey || metaKey) return zoomAt(view, Math.min(1.25, Math.max(0.8, Math.exp(-deltaY * unit * 0.01))), point);
   return { ...view, x: view.x - deltaX * unit, y: view.y - deltaY * unit };
+}
+
+// The stage never scrolls itself (StudentBoard): when the browser scrolled it (a focused answer field, the iPad
+// keyboard) the scroll is undone and the view moves instead. Owner 2026-11-04: the browser centred the field it focused,
+// so the student's task flew left and right. Now, with the focused field known (its screen rect after the scroll was
+// undone), the view moves only as far as the field needs to be in sight (`area`: the stage's part of the screen the
+// keyboard leaves free), in each axis on its own: a field already in sight never moves the sheet, sideways least of all.
+// Without a field, a sideways scroll is ignored and an up / down one is followed as before.
+// Returns the shift of the view { x, y } in screen pixels.
+const into = (lo, hi, min, max) => {
+  if (lo >= min && hi <= max) return 0;
+  if (hi - lo > max - min || lo < min) return min - lo; // too big to fit: its start in sight
+  return max - hi;
+};
+export function focusShift({ dy = 0, field = null, area = null, margin = 16 }) {
+  if (!field || !area) return { x: 0, y: -dy };
+  const box = { left: area.left + margin, right: area.right - margin, top: area.top + margin, bottom: area.bottom - margin };
+  if (box.right <= box.left || box.bottom <= box.top) return { x: 0, y: -dy };
+  return { x: into(field.left, field.right, box.left, box.right), y: into(field.top, field.bottom, box.top, box.bottom) };
 }
 
 // Two fingers: the board follows the fingers' centre and scales with their distance (from the view at the start).
@@ -273,8 +340,9 @@ export function resizePatch(element, dx, dy) {
     const ky = h / h0;
     return { points: (element.points || []).map((p) => ({ x: round2(box.x1 + (p.x - box.x1) * kx), y: round2(box.y1 + (p.y - box.y1) * ky) })) };
   }
-  if (element.type === 'shape' && (element.shape === 'arrow' || element.shape === 'line')) {
-    return { w: Math.round(element.w * (w / w0)), h: Math.round(element.h * (h / h0)) };
+  if (isArrowLike(element)) {
+    const k = Math.sqrt((w / w0) * (h / h0));
+    return { w: Math.round(element.w * (w / w0)), h: Math.round(element.h * (h / h0)), ...(element.bend ? { bend: Math.round(element.bend * k) } : {}) };
   }
   if (element.type === 'text') {
     // sideways: the lines re-wrap at the new width and the letters stay; down or diagonally: the letters grow with the box
@@ -308,3 +376,9 @@ export const MARKER_COLORS = ['#FDE047', '#86EFAC', '#F9A8D4', '#93C5FD'];
 export const markerColor = (hex) => `${String(hex).slice(0, 7)}66`;
 export const isMarker = (element) => element?.type === 'stroke' && /^#[0-9a-f]{8}$/i.test(String(element.color || ''));
 export const markerWidth = (penWidth = 4) => Math.min(40, Math.max(12, penWidth * 4));
+
+// One pointer tool (owner 2026-11-05: „нам нет смысла в двух одинаковых мышках”): „Vali ja täida” answers the worksheet
+// and selects / moves the board's own parts. The old „Täida töölehte” id `fill` is the same tool now.
+export const POINTER_TOOL = 'select';
+const TOOL_ALIASES = { fill: POINTER_TOOL };
+export const boardTool = (key) => TOOL_ALIASES[key] || key || POINTER_TOOL;

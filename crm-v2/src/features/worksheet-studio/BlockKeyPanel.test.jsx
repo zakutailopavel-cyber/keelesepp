@@ -11,6 +11,11 @@ import { SCHEMA } from './engine/schema.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 
+// a task's note floats next to it on document.body (FloatingNote), never inside the card; jsdom has no layout, so the
+// note is not placed on screen (visibility: hidden) and its parts are found with { hidden: true }
+const note = (id) => globalThis.document.querySelector(`.ws-float-note[data-for-block="${id}"]`);
+const buttonIn = (el, text) => [...el.querySelectorAll('button')].find((b) => text.test(b.textContent) || text.test(b.getAttribute('aria-label') || ''));
+
 const block = (id, type, data) => ({ id, type, width: 'half', tone: 'white', data });
 const doc = {
   schema: SCHEMA, id: 'd', meta: { title: 'Kõne infotelefonile' },
@@ -95,25 +100,28 @@ describe('live lesson: the teacher clicks a task and shares its answers', () => 
     expect(container.querySelector('.ws-block-key')).toBeNull();
     fireEvent.click(container.querySelector('.ws-page [data-block="g"]'));
     const card = container.querySelector('.ws-page [data-block="g"]');
-    const panel = within(card).getByRole('region', { name: 'Vastused: ülesanne 1' });
+    // the answers float next to the task: nothing is added inside the card, so the sheet keeps its layout
+    expect(card.querySelector('.ws-block-key')).toBeNull();
+    const panel = note('g').querySelector('[role="region"][aria-label="Vastused: ülesanne 1"]');
+    expect(panel).not.toBeNull();
     expect(panel).toHaveTextContent('infotelefonile / infoliinile');
     // the learner's own answer stays on the teacher's sheet
     expect(card.querySelector('input').value).toBe('infotelefonil');
-    fireEvent.click(within(panel).getByRole('button', { name: /Näita õpilasele/ }));
+    fireEvent.click(buttonIn(panel, /Näita õpilasele/));
     await waitFor(() => expect(repository.setWorksheetShown).toHaveBeenCalledWith({
       assignmentId: 'as-1', shown: ['g'], change: { blockIds: ['g'], on: true }, user: expect.objectContaining({ uid: 'teacher-1' }),
     }));
     // a click inside the panel does not move the learner's focus again
     expect(repository.setWorksheetLiveFocus).toHaveBeenCalledTimes(1);
     act(() => push({ ...base, liveShown: ['g'], liveShownBy: { g: { on: true, byName: 'Aleksei Merzin', at: '2026-10-26T10:05:00Z' } } }));
-    const shownPanel = within(container.querySelector('.ws-page [data-block="g"]')).getByRole('region');
+    const shownPanel = within(note('g')).getByRole('region', { hidden: true });
     expect(shownPanel).toHaveTextContent('Aleksei Merzin');
-    fireEvent.click(within(shownPanel).getByRole('button', { name: /Peida/ }));
+    fireEvent.click(buttonIn(shownPanel, /Peida/));
     await waitFor(() => expect(repository.setWorksheetShown).toHaveBeenLastCalledWith(expect.objectContaining({ shown: [], change: { blockIds: ['g'], on: false } })));
     // close with ×: the panel goes, the label „näha” stays for a shown task
-    fireEvent.click(screen.getByRole('button', { name: 'Sulge vastused' }));
-    expect(container.querySelector('.ws-block-key')).toBeNull();
-    expect(container.querySelector('.ws-page [data-block="g"]')).toHaveTextContent('Õiged vastused on õpilasele näha');
+    fireEvent.click(buttonIn(note('g'), /Sulge vastused/));
+    expect(globalThis.document.querySelector('.ws-block-key')).toBeNull();
+    expect(container.querySelector('.ws-page [data-block="g"] .ws-card-badge')).toHaveTextContent('Õiged vastused on õpilasele näha');
   });
 
   it('„Näita kõik vastused” shows every task that has answers; no share after the sheet is submitted', async () => {
@@ -133,8 +141,8 @@ describe('live lesson: the teacher clicks a task and shares its answers', () => 
     expect(call.change.blockIds).toEqual(['g', 'c', 't', 'm', 'o', 'dc', 'l']);
     act(() => push({ id: 'as-1', studentName: 'Mari', status: 'done', answers: {}, worksheetDoc: doc }));
     fireEvent.click(container.querySelector('.ws-page [data-block="c"]'));
-    expect(within(container.querySelector('.ws-page [data-block="c"]')).getByRole('region')).toHaveTextContent('kolm');
-    expect(screen.queryByRole('button', { name: /Näita õpilasele/ })).toBeNull();
+    expect(within(note('c')).getByRole('region', { hidden: true })).toHaveTextContent('kolm');
+    expect(buttonIn(note('c'), /Näita õpilasele/)).toBeUndefined();
     expect(screen.queryByRole('button', { name: /Näita kõik vastused/ })).toBeNull();
   });
 });
@@ -151,20 +159,21 @@ describe('the learner never gets the teacher key', () => {
     fireEvent.click(container.querySelector('.ws-page [data-block="g"]'));
     expect(container.querySelector('.ws-block-key')).toBeNull();
     act(() => push({ liveShown: ['g'], liveShownBy: { g: { on: true, byName: 'Aleksei', at: '2026-10-26T10:05:00Z' } } }));
-    const shown = container.querySelectorAll('.ws-page .ws-live-answers');
+    expect(container.querySelector('.ws-page .ws-live-answers')).toBeNull();
+    const shown = globalThis.document.querySelectorAll('.ws-float-note .ws-live-answers');
     expect(shown).toHaveLength(1);
-    expect(container.querySelector('.ws-page [data-block="g"] .ws-live-answers')).toHaveTextContent('infotelefonile');
+    expect(note('g').querySelector('.ws-live-answers')).toHaveTextContent('infotelefonile');
     // the own answer is kept and marked, not replaced
     const input = container.querySelector('.ws-page [data-block="g"] input');
     expect(input.value).toBe('infotelefonil');
     expect(input.className).toContain('is-bad');
     // nothing of the other tasks, no explanations, no listening script
-    expect(container.querySelector('.ws-page [data-block="c"] .ws-live-answers')).toBeNull();
+    expect(note('c')).toBeNull();
     expect(container.textContent).not.toContain('Kuhu? -le.');
     expect(container.textContent).not.toContain('Pood avatakse kell kümme.');
     expect(container.querySelector('.ws-block-key')).toBeNull();
     act(() => push({ liveShown: [] }));
-    expect(container.querySelector('.ws-live-answers')).toBeNull();
+    expect(globalThis.document.querySelector('.ws-live-answers')).toBeNull();
   });
 });
 
@@ -172,8 +181,8 @@ describe('homework review', () => {
   it('staff click a task to see its answers; without answerKey nothing opens', () => {
     const { container, rerender } = render(<DocWorksheetSubmissionPreview worksheetDoc={doc} answers={{ 't:0': 'true' }} answerKey />);
     fireEvent.click(container.querySelector('.ws-page [data-block="t"]'));
-    expect(within(container.querySelector('.ws-page [data-block="t"]')).getByRole('region')).toHaveTextContent('Vale');
-    expect(screen.queryByRole('button', { name: /Näita õpilasele/ })).toBeNull();
+    expect(within(note('t')).getByRole('region', { hidden: true })).toHaveTextContent('Vale');
+    expect(buttonIn(note('t'), /Näita õpilasele/)).toBeUndefined();
     rerender(<DocWorksheetSubmissionPreview worksheetDoc={doc} answers={{}} />);
     expect(container.querySelector('.ws-block-key')).toBeNull();
     fireEvent.click(container.querySelector('.ws-page [data-block="t"]'));

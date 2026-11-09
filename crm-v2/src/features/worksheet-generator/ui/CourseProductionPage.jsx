@@ -1,6 +1,8 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazyComponent } from '../../../app/lazyComponent.js';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { Button, Card, ErrorState, LoadingState, Modal, PageHeader } from '../../../components/ui/index.js';
+import { askConfirm } from '../../../components/ui/ConfirmHost.jsx';
 import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import { ROLES } from '../../../utils/roles.js';
 import { analyzeWorksheet } from '../../worksheet-studio/quality.js';
@@ -11,7 +13,7 @@ import { courseReadiness, GATE_LABEL } from '../admin/course/readiness.js';
 import { TEXTBOOK_SHEETS, TEXTBOOK_SHEET_ID } from '../admin/course/textbook/index.js';
 import { keysProblems } from '../../worksheet-studio/didactics/gates.js';
 
-const StudioSheetPreview = lazy(() => import('../../library/StudioSheetPreview.jsx'));
+const StudioSheetPreview = lazyComponent(() => import('../../library/StudioSheetPreview.jsx'));
 const MISSING = 'Töölehte ei leitud.';
 
 // „Kursuse tootmine”: the B1 / B2 course sheets written in code (admin/course/*), checked by the quality gate, previewed
@@ -68,7 +70,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
   }, [isAdmin, repository, textbookSheets]);
   const publishTextbook = async ({ lessonId, doc, book }) => {
     const current = textbookRecords[lessonId];
-    if (!window.confirm(`Avaldada ${lessonId}: Õpik („${book.title}”)?${current ? '\n\nNB! Olemasolev Õpik-leht asendatakse uue versiooniga.' : ''}`)) return;
+    if (!(await askConfirm(`Avaldada ${lessonId}: Õpik („${book.title}”)?${current ? '\n\nNB! Olemasolev Õpik-leht asendatakse uue versiooniga.' : ''}`, { confirmLabel: 'Avalda' }))) return;
     setBusy(`opik:${lessonId}`); setError('');
     try {
       const saved = await repository.publish({ lessonId, worksheetId: TEXTBOOK_SHEET_ID, worksheetDoc: doc, user, baseUpdatedAt: current?.worksheetDocUpdatedAt || '', role: 'focus', slot: 4, displayLabel: 'Õpik', source: 'manual' });
@@ -83,7 +85,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
     const phases = Object.keys(sheets[lessonId]);
     const replacing = phases.filter((p) => records[`${lessonId}:${p}`]);
     const text = `Avaldada ${lessonId}: ${phases.map((p) => PHASES[p].label).join(' + ')}?${replacing.length ? `\n\nNB! Olemasolev leht asendatakse uue versiooniga: ${replacing.map((p) => PHASES[p].label).join(', ')}.` : ''}`;
-    if (!window.confirm(text)) return;
+    if (!(await askConfirm(text, { confirmLabel: 'Avalda' }))) return;
     setBusy(lessonId); setError('');
     try {
       for (const phase of phases) {
@@ -98,7 +100,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
   };
 
   return (
-    <div className="page-stack">
+    <div className="page-stack" data-theme-scope="light">
       <PageHeader eyebrow="Õppevara · kursuse tootmine" title="Kursuse töölehed" description="Töölehed on kirjutatud koodis, läbivad kvaliteedikontrolli (konstruktori kontroll, taseme normid, vaheldus) ja avaldatakse tund haaval." />
       <Card>
         <h2 style={{ marginTop: 0 }}>Kursuse valmidus</h2>

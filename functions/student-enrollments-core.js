@@ -77,4 +77,13 @@ function cardSubject(student = {}) {
   return subjects.length === 1 ? subjects[0] : "";
 }
 
-module.exports = { subjectName, enrollmentOf, enrollmentsOf, mergeEnrollments, cardSubject, sameTrack };
+// the card's main subject: its own `subject` when it is one of its active tracks, else the first track's (its price and
+// billing are the card's own; further subjects may have their own in subjectPrices / subjectBilling). The same rule
+// as crm-v2 students/subjects.js mainSubject.
+function mainSubject(student = {}) {
+  const subjects = enrollmentsOf(student).filter((track) => track.active).map((track) => track.subject);
+  const own = subjectName(student.subject);
+  return subjects.includes(own) ? own : subjects[0] || own || DEFAULT_SUBJECT;
+}
+
+module.exports = { subjectName, enrollmentOf, enrollmentsOf, mergeEnrollments, cardSubject, sameTrack, mainSubject };

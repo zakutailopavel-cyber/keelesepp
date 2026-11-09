@@ -1,6 +1,6 @@
 import { Layers, Plus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Badge, Button, Card, Input, Select } from '../../components/ui/index.js';
+import { Badge, Button, Card, Input, Select, LoadingState } from '../../components/ui/index.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { studyDirectionsService } from '../../services/firebase/studyDirections.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -56,7 +56,7 @@ export default function StudyDirectionsCard({ user, service = studyDirectionsSer
       <h2>Õppesuunad</h2>
       <p className="settings-copy">Kooli õppesuundade loend: seda näed igal pool, kus valitakse õppeaine (õpilase kaart, „Õppesuunad”, uus laps, grupp). Arhiveeritud suund jääb vanadele kaartidele alles, aga uutele ei pakuta.</p>
       {fallback ? <p className="form-hint">Loendit pole veel salvestatud — kasutusel on vaikimisi suunad. Esimene salvestus salvestab kogu loendi.</p> : null}
-      {!list ? <p className="form-hint">Laen…</p> : <ul className="study-directions-card__list">
+      {!list ? <LoadingState inline className="form-hint" label="Laen…" /> : <ul className="study-directions-card__list">
         {list.map((item) => <li key={item.id} className={item.status === 'archived' ? 'is-archived' : ''}>
           <span className="student-directions__dot" style={item.color ? { background: item.color } : undefined} aria-hidden="true">{item.shortLabel || item.name.slice(0, 2).toUpperCase()}</span>
           <div><strong>{item.name}</strong><small>{item.levels.length ? `${item.levels[0]} … ${item.levels[item.levels.length - 1]}` : 'tasemeteta'}{item.aliases.length ? ` · ka: ${item.aliases.join(', ')}` : ''}{usage ? ` · ${usage.get(item.name) || 0} õpilast` : ''}</small></div>

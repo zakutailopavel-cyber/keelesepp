@@ -6,6 +6,7 @@
 import { PROGRAM_56 } from '../worksheet-generator/admin/course/kids/program56.js';
 import { PROGRAM_67 } from '../worksheet-generator/admin/course/kids/program67.js';
 import { PROGRAM_89 } from '../worksheet-generator/admin/course/kids/program89.js';
+import { SCHOOL_89 } from '../worksheet-generator/admin/course/kids/school89.js';
 
 export const KIDS_VERSION = '2026-10-28.1';
 const pad = (n) => String(n).padStart(3, '0');
@@ -44,22 +45,23 @@ function youngPlan(program, lesson, n) {
 }
 
 function schoolPlan(program, lesson, n) {
-  const [title, , questions] = lesson.reading;
+  const sheet = SCHOOL_89[n - 1];
+  const [title, , questions] = sheet.reading;
   return [
     `Курс: ${program.title} — воскресенье, ${program.minutes} минут, группа до 5 детей.`,
     `Урок ${n} из 12: ${lesson.title} (${lesson.ru}).`,
     `Цель урока: ${lesson.can}`,
     `Грамматика: ${lesson.grammar}.`,
     `Слова: ${lesson.words.join(', ')}.`,
-    'Материалы: лист 1 «Loeme» (текст и вопросы), лист 2 «Harjutame keelt», лист 3 «Kirjutame ja räägime» (письмо + выступление, дома — с родителями).',
+    `Материалы: лист 1 «Loeme» (слова, текст, вопросы, «Keelekast»), лист 2 «Harjutame keelt» (${sheet.practice.length} упражнений), лист 3 «Kirjutame ja räägime» (образец, план, письмо, выступление, записка родителям).`,
     '',
     `Ход урока (${program.minutes} мин):`,
-    `1. Разминка (5 мин): короткий разговор по теме — ${lesson.talk}`,
-    `2. Чтение (15 мин): текст «${title}» — сначала учитель читает вслух, потом дети по цепочке; ответы на вопросы (${questions.length}) и «Vali õige vastus».`,
-    `3. Грамматика (10 мин): ${lesson.grammar} — разобрать примеры в рамке «Märka», затем «Kirjuta lünka sobiv sõna».`,
-    '4. Порядок слов (5 мин): «Pane sõnad järjekorda» — читаем готовые предложения вслух.',
-    `5. Письмо (15 мин): ${lesson.write[0]} Слова-помощники: ${lesson.write[1].join(', ')}.`,
-    '6. Мини-выступление и итог (10 мин): каждый говорит около минуты по своему тексту, остальные задают один вопрос; учитель отмечает успехи.',
+    `1. Разминка (5 мин): вопросы «Enne lugemist» на листе 1 — ${sheet.warm.join(' ')}`,
+    '2. Слова (10 мин): «Tunni sõnad» — читаем слова и формы, перевод только как подсказка; «Ühenda sõna ja pilt».',
+    `3. Чтение (15 мин): текст «${title}» — сначала учитель читает вслух, потом дети по цепочке; ${questions.length} вопросов к тексту, «Õige või vale?» и «Vali õige vastus».`,
+    `4. Грамматика (10 мин): рамка «Keelekast» (${lesson.grammar}) — дети находят примеры в тексте; последнее задание листа 1 делаем вместе, затем первые 2–3 упражнения листа 2.`,
+    `5. Письмо (10 мин): лист 3 — читаем образец «${sheet.model[0]}», заполняем план, начинаем текст по «Lauseabi». ${lesson.write[0]}`,
+    '6. Мини-выступление и итог (10 мин): каждый говорит около минуты (вопросы на листе 3), остальные задают один вопрос; отмечаем «Kontrolli end». Дома: оставшиеся упражнения листа 2 и текст до конца.',
     '',
     `Домой (родителям): ${lesson.home}`,
     ...(lesson.celebration ? ['', 'Это праздничный урок: пригласить родителей, грамоты на листе 3 «TUNNISTUS».'] : []),

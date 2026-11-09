@@ -3,6 +3,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import LiveRoom from './LiveRoom.jsx';
 import { sampleDocument } from '../worksheet-studio/engine/sample.js';
+import { beforeAll as preloadBeforeAll } from 'vitest';
+import { preloadLiveClassroomParts } from './lazyParts.testkit.js';
+
+// the room's views and panels are lazy: load them once, so the tests wait for behaviour, not for module loading
+preloadBeforeAll(() => preloadLiveClassroomParts(), 60000);
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 
@@ -78,6 +83,7 @@ describe('LiveRoom', () => {
     const s = services();
     renderRoom('student', s);
     const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Pliiats' }));
     fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 });
     fireEvent.pointerMove(svg, { clientX: 60, clientY: 60 });
     fireEvent.pointerUp(svg, { clientX: 60, clientY: 60 });
@@ -95,6 +101,7 @@ describe('LiveRoom', () => {
     renderRoom('student', s);
     fireEvent.click(screen.getByRole('button', { name: 'XL' }));
     const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Pliiats' }));
     fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 });
     fireEvent.pointerMove(svg, { clientX: 60, clientY: 60 });
     fireEvent.pointerUp(svg, { clientX: 60, clientY: 60 });
@@ -128,6 +135,8 @@ describe('LiveRoom', () => {
     fireEvent.click(screen.getByRole('button', { name: /Materjalid/ }));
     const panel = screen.getByRole('region', { name: 'Materjalid' });
     await waitFor(() => expect(s.library.list).toHaveBeenCalled());
+    // the panel downloads when first opened (lazy): wait for it outside act()
+    await within(panel).findByRole('button', { name: /Leht\.pdf/ }, { timeout: 4000 });
     await act(async () => { fireEvent.click(await within(panel).findByRole('button', { name: /Leht\.pdf/ }, { timeout: 4000 })); });
     await waitFor(() => expect(s.board.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ type: 'pdf', url: 'https://files.example/leht.pdf', name: 'Leht.pdf' }), expect.objectContaining({ uid: 'teach' })));
     expect(await screen.findByRole('status')).toHaveTextContent('„Leht.pdf” on tahvlil.');
@@ -139,7 +148,9 @@ describe('LiveRoom', () => {
     act(() => s.pushSheet([{ id: 'a1', title: 'Minevik', status: 'assigned', studentId: 's-1', worksheetDoc: sampleDocument(), answers: {} }]));
     await waitFor(() => expect(s.board.addPage).toHaveBeenCalledWith('s-1', 'Tööleht: Minevik', 1, expect.objectContaining({ uid: 'teach' })));
     expect(await screen.findByRole('tab', { name: 'Tööleht: Minevik' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('button', { name: 'Täida töölehte' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Vali ja täida' })).toHaveAttribute('aria-pressed', 'true');
+    // one pointer in the dock: the old „Täida töölehte” button is gone
+    expect(screen.queryByRole('button', { name: 'Täida töölehte' })).toBeNull();
     expect(document.querySelector('.sb-underlay')).not.toBeNull();
     expect(document.querySelector('.lr-sheet')).toBeNull();
   });
@@ -169,7 +180,7 @@ describe('LiveRoom words', () => {
     renderRoom('teacher', services(), { wordsService });
     fireEvent.click(screen.getByRole('button', { name: /Sõnad/ }));
     const drawer = screen.getByRole('region', { name: 'Sõnad' });
-    fireEvent.change(within(drawer).getByLabelText('Sõna või väljend'), { target: { value: 'kass' } });
+    fireEvent.change(await within(drawer).findByLabelText('Sõna või väljend'), { target: { value: 'kass' } });
     fireEvent.click(within(drawer).getByRole('button', { name: 'Lisa sõnastikku' }));
     await waitFor(() => expect(wordsService.add).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's-1', invitationId: 'inv-1', word: 'kass' })));
   });
@@ -185,7 +196,7 @@ describe('LiveRoom homework', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Anna kodutöö' }));
     const drawer = screen.getByRole('region', { name: 'Kodutöö' });
-    fireEvent.click(within(drawer).getByRole('button', { name: /Korda tunni sõnu/ }));
+    fireEvent.click(await within(drawer).findByRole('button', { name: /Korda tunni sõnu/ }));
     fireEvent.click(within(drawer).getByRole('checkbox', { name: /Lisa tahvlileht „Tund 1”/ }));
     fireEvent.click(within(drawer).getByRole('button', { name: 'Anna kodutöö' }));
     await waitFor(() => expect(homeworkService.createFromLesson).toHaveBeenCalledWith(expect.objectContaining({
@@ -203,18 +214,21 @@ describe('LiveRoom lesson end', () => {
     const summaryService = { save: vi.fn(async () => ({})) };
     const wordsService = { subscribeForStudent: vi.fn((id, onData) => { onData([{ id: 'w1', invitationId: 'inv-1', word: 'kass' }, { id: 'w0', invitationId: 'old', word: 'vana' }]); return vi.fn(); }) };
     const homeworkService = { listForLesson: vi.fn(async () => [{ id: 'h1', task: 'Korda sõnu' }]) };
-    const props = renderRoom('teacher', s, { summaryService, wordsService, homeworkService });
+    const boardCopies = { save: vi.fn(async () => ['lb-inv-1-1']) };
+    const props = renderRoom('teacher', s, { summaryService, wordsService, homeworkService, boardCopies });
     fireEvent.click(screen.getByRole('tab', { name: 'Tund 1' }));
     fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
     const drawer = screen.getByRole('region', { name: 'Tunni lõpp' });
-    expect(within(drawer).getByText('kass')).toBeInTheDocument();
+    expect(await within(drawer).findByText('kass')).toBeInTheDocument();
     expect(within(drawer).queryByText(/vana/)).toBeNull();
     expect(await within(drawer).findByText('Korda sõnu')).toBeInTheDocument();
     fireEvent.change(within(drawer).getByLabelText(/Sõnum õpilasele/), { target: { value: 'Tubli!' } });
     fireEvent.click(within(drawer).getByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
     await waitFor(() => expect(props.onEndLesson).toHaveBeenCalledWith({ confirmed: true }));
     expect(summaryService.save).toHaveBeenCalledWith(expect.objectContaining({ note: 'Tubli!', pages: [{ id: 'p1', title: 'Tund 1' }], subject: 'Inglise keel', invitation: expect.objectContaining({ id: 'inv-1' }) }));
+    // „Tunni tahvlid”: the lesson page is copied read-only onto the student's board
+    expect(boardCopies.save).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's-1', sourceRoot: 'whiteboards', sourceId: 's-1', lessonKey: 'inv-1', pages: [{ id: 'p1', title: 'Tund 1' }] }));
   });
 
   it('a failed summary does not end the lesson but offers to end without it', async () => {
@@ -222,7 +236,7 @@ describe('LiveRoom lesson end', () => {
     const props = renderRoom('teacher', services(), { summaryService, wordsService: { subscribeForStudent: vi.fn(() => vi.fn()) }, homeworkService: { listForLesson: vi.fn(async () => []) } });
     fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
     expect(await screen.findByText(/Võrk puudub\. Võid tunni lõpetada ka ilma kokkuvõtteta/)).toBeInTheDocument();
     expect(props.onEndLesson).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Lõpeta ilma kokkuvõtteta' }));
@@ -255,5 +269,24 @@ describe('LiveRoom: the student’s pet', () => {
     renderRoom('student', services(), { petRepository });
     await waitFor(() => expect(petRepository.get).toHaveBeenCalled());
     expect(screen.queryByText(/on ka tunnis/)).toBeNull();
+  });
+
+  it('the teacher has the lesson plan and attendance (the student does not)', async () => {
+    const planService = { subscribe: vi.fn((key, onChange) => { onChange(null); return vi.fn(); }), save: vi.fn(async () => ({})) };
+    renderRoom('teacher', services(), { planService });
+    fireEvent.click(screen.getByRole('button', { name: 'Tunniplaan' }));
+    const drawer = screen.getByRole('region', { name: 'Tunniplaan' });
+    expect(within(drawer).getByText(/Plaan 60 min/)).toBeInTheDocument();
+    expect(within(drawer).getByRole('group', { name: 'Kohalolu: Julia' })).toBeInTheDocument();
+    expect(within(drawer).getByText(/Soovitus: Kohal/)).toBeInTheDocument();
+    expect(planService.subscribe).toHaveBeenCalledWith('inv-1', expect.any(Function), expect.any(Function));
+    expect(planService.save).not.toHaveBeenCalled();
+  });
+
+  it('a student never reads the plan', () => {
+    const planService = { subscribe: vi.fn(() => vi.fn()), save: vi.fn() };
+    renderRoom('student', services(), { planService });
+    expect(screen.queryByRole('button', { name: 'Tunniplaan' })).toBeNull();
+    expect(planService.subscribe).not.toHaveBeenCalled();
   });
 });

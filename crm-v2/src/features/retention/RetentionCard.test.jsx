@@ -16,4 +16,15 @@ describe('RetentionCard', () => {
     render(<MemoryRouter><RetentionCard students={[{ id: 's1', name: 'Mia', active: true }]} repository={{ lessons: vi.fn(async () => []), words: vi.fn(async () => []) }} /></MemoryRouter>);
     expect(await screen.findByText(/riskis õpilasi pole/)).toBeInTheDocument();
   });
+
+  it('hides „Pakett lõpeb” when the dashboard asks (lessons left are for the admin and the accountant only)', async () => {
+    const repository = { lessons: vi.fn(async () => []), words: vi.fn(async () => []) };
+    const student = { id: 's1', name: 'Mia', active: true, packageTotal: 10, packageUsed: 10 };
+    const { unmount } = render(<MemoryRouter><RetentionCard students={[student]} repository={repository} /></MemoryRouter>);
+    expect(await screen.findByText(/Pakett lõpeb/)).toBeInTheDocument();
+    unmount();
+    render(<MemoryRouter><RetentionCard students={[student]} repository={repository} showRenewals={false} /></MemoryRouter>);
+    expect(await screen.findByText(/riskis õpilasi pole/)).toBeInTheDocument();
+    expect(screen.queryByText(/Pakett lõpeb/)).not.toBeInTheDocument();
+  });
 });

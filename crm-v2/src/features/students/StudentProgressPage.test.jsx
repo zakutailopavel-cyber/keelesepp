@@ -22,14 +22,36 @@ const repositories = (list = students) => ({
 const renderPage = (data) => render(<MemoryRouter initialEntries={['/student/areng']}><AuthContext.Provider value={{ user: { uid: 'user-1', displayName: 'Mari', roles: ['student'] } }}><StudentProgressPage {...data} /></AuthContext.Provider></MemoryRouter>);
 
 describe('StudentProgressPage', () => {
-  it('holds what moved from the home page; the feedback lives on „Ülesanded”', async () => {
-        const data = repositories();
+  it('holds what moved from the home page; the feedback lives on „Ülesanded”; the older level card is gone', async () => {
+    const data = repositories();
     renderPage(data);
-    const growth = await screen.findByRole('region', { name: 'Minu areng' });
-    expect(within(growth).getByText('Rääkimine')).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Areng' })).toBeInTheDocument();
+    // owner 2026-11-04: the curve is the one progress card; the older „A1 → B1 · N% teest” card with skills is not shown
+    expect(screen.queryByRole('region', { name: 'Minu areng' })).toBeNull();
+    expect(screen.queryByText('Rääkimine')).toBeNull();
+    expect(screen.queryByText(/teest/)).toBeNull();
     expect(screen.queryByText('Viimased tulemused')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Õpetaja tagasiside/ })).toHaveAttribute('href', '/homework#vaadatud');
-    expect(data.catalogRepository.listCurriculum).toHaveBeenCalled();
+    // what only that card needed is not read any more
+    expect(data.catalogRepository.listCurriculum).not.toHaveBeenCalled();
+    expect(data.petRepository.lessonStats).not.toHaveBeenCalled();
+    expect(data.lessonRepository.listByStudent).not.toHaveBeenCalled();
+  });
+
+  it('„Sinu B1 keeleoskus” at the top of „Minu areng”: the same curve as the parents see', async () => {
+    const data = repositories([{ ...students[0], level: 'A2', targetLevel: 'B1' }]);
+    const goals = ['l1|g_read', 'l2|g_read'];
+    const sheet = (lesson, phase, day) => ({ id: `${lesson}-${phase}`, studentId: 'student-1', status: 'done', completedAt: `${day}T12:00:00Z`, worksheetDoc: { id: `ws_${lesson}_${phase}` }, score: { perGoal: { g_read: { ok: 9, total: 10 } } } });
+    data.homeworkRepository.listWorksheetAssignmentsByStudentIds.mockResolvedValue([sheet('l1', 'discover', '2026-10-05'), sheet('l1', 'practice', '2026-10-06')]);
+    const pointsService = { listForStudents: vi.fn().mockResolvedValue([{ id: 'p1', studentId: 'student-1', date: '2026-10-01', level: 'B1', percent: 40, kind: 'teacher', label: 'Algus' }]) };
+    renderPage({ ...data, pointsService, goalsLoader: vi.fn().mockResolvedValue(goals) });
+    const curve = await screen.findByRole('region', { name: 'Areng' });
+    expect(await within(curve).findByRole('heading', { name: /Sinu B1 keeleoskus/ })).toBeInTheDocument();
+    // 40 + 60 × 1 / 2 = 70 % now
+    expect(await within(curve).findByText('70 %', { selector: '.pf-now strong' })).toBeInTheDocument();
+    expect(pointsService.listForStudents).toHaveBeenCalledWith(['student-1']);
+    // it is the first card of the page
+    expect(document.querySelector('section[aria-label]')?.getAttribute('aria-label')).toBe('Areng');
   });
 
   it('an unlinked account gets the same safe message', async () => {

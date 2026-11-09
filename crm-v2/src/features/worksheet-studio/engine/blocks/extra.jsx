@@ -4,8 +4,11 @@ import { Line, Md } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
 import { norm, groupItems, splitList } from '../schema.js';
 import { useAssets } from '../assets.jsx';
+import { sameMeaningWords } from '../readingMatch.js';
 import { Text, Area, Rows, SentenceInput } from '../../editor/fields.jsx';
 import { SpeakPanel } from '../../editor/Speak.jsx';
+import VoiceRecorder, { canRecord } from '../../editor/VoiceRecorder.jsx';
+import { Mic } from 'lucide-react';
 import { AudioBar } from '../ui.jsx';
 
 // Second wave: dialogue, reading, listening, table and sorting into groups.
@@ -60,14 +63,8 @@ export const dialogue = {
 
 // ---------- reading ----------
 // reading checks understanding, not the case ending (owner 2026-10-27: a full right sentence was marked wrong):
-// every word of the right answer is in the learner's answer with the same stem („teisipäeval kell kümme” ≈
-// „Õde pakkus teisipäeva kella kümmet”)
-const stemOf = (word) => word.slice(0, Math.max(3, Math.ceil(word.length * 0.7)));
-export function sameMeaningWords(right, answer) {
-  const words = String(right).split(' ').filter((word) => word.length >= 4); // short words (see, ja, uue) say little
-  const given = String(answer).split(' ');
-  return words.length > 0 && words.every((word) => given.some((other) => other.startsWith(stemOf(word)) || word.startsWith(stemOf(other)) && other.length >= 3));
-}
+// open reading answers vs a model answer: key words in any case / inside a compound, ≥ 70 % of them (owner 2026-11-04)
+export { sameMeaningWords };
 
 export const reading = {
   type: 'reading', label: 'Lugemine + küsimused', group: 'Tekst ja heli', icon: 'BookOpenText', task: true, width: 'full', tone: 'cream',
@@ -116,15 +113,19 @@ export function AudioPick({ value, onChange }) {
   const input = useRef(null);
   const assets = useAssets();
   const [busy, setBusy] = useState(false);
+  const [recording, setRecording] = useState(false);
   return (
     <div className="ed-field">
       <span className="ed-label">Helifail</span>
       {value?.src ? <audio controls src={value.src} /> : <span className="ed-hint">Heli puudub.</span>}
+      {value?.recorded ? <span className="ed-hint">Õpetaja salvestatud hääl.</span> : null}
       <div className="ed-row">
         <button type="button" className="ed-btn" disabled={busy} onClick={() => input.current?.click()}>{busy ? 'Laadin…' : value?.src ? 'Vaheta heli' : 'Lisa heli'}</button>
+        {canRecord() ? <button type="button" className="ed-btn ghost" aria-expanded={recording} onClick={() => setRecording(!recording)}><Mic size={13} aria-hidden="true" /> Salvesta hääl</button> : null}
         {value?.src && <button type="button" className="ed-btn ghost" onClick={() => onChange(null)}>Eemalda</button>}
       </div>
-      <input ref={input} type="file" accept="audio/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; setBusy(true); try { onChange(await assets.audio(f)); } finally { setBusy(false); } }} />
+      {recording ? <VoiceRecorder onSave={(audio) => { onChange(audio); setRecording(false); }} onClose={() => setRecording(false)} /> : null}
+      <input ref={input} type="file" accept="audio/*" aria-label="Helifail" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; setBusy(true); try { onChange(await assets.audio(f)); } finally { setBusy(false); } }} />
     </div>
   );
 }

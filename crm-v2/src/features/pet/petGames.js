@@ -1,6 +1,6 @@
 import { publishedWorksheetDoc } from '../library/libraryModel.js';
 import { vocabPairs } from '../vocabulary/deckModel.js';
-import { clozeGaps } from '../worksheet-studio/engine/blocks/exam.jsx';
+import { clozeGaps } from '../worksheet-studio/engine/blocks/clozeGaps.js';
 import { TEXTBOOK_SHEET_ID } from '../../services/firebase/lessonWorksheets.js';
 
 // Pet mini-games on the learner's own topics: the material comes from the worksheets his teacher gave him (worksheetDoc

@@ -1,5 +1,7 @@
 import { groupCalendarEvents, occurrencesForDates, toIsoDate } from '../calendar/calendarView.js';
 import { itemSubject, mainSubject, subjectName, subjectsOf } from '../students/subjects.js';
+import { cardPayerEmail, firstEmail, linkedParentIds } from './invoicePayer.js';
+import { cardBillingMode, cardMonthlyMode, hasSubjectBilling, subjectBilling } from './subjectBilling.js';
 
 // Finance v2 §2: one invoice per student per month for the lessons planned in the calendar.
 // "current": invoiced at the start of the month. "advance": invoiced the month before. Both are due by the 10th (owner 2026-11-01).
@@ -123,26 +125,54 @@ function correctionFor({ student, plan, balance, previousLessons }) {
   };
 }
 
-// the student card: lessons left per subject (one line without a subject on a one-subject card)
+// the student card: lessons left per subject (one line without a subject on a one-subject card). A subject billed
+// „Pärast toimunud tunde” or by lesson packages has no monthly balance (owner 2026-11-06: the mode may differ per subject).
 export function studentLessonBalances({ student, plan, invoices = [], lessons = [], month }) {
-  if (!plan || plan.billingMode === 'actual' || plan.billingMode === 'package') return [];
+  if (!plan) return [];
   const subjects = subjectsOf(student);
   const main = mainSubject(student);
   const one = { student, plan, invoices, lessons, events: [], upto: month };
-  if (subjects.length < 2) { const balance = lessonBalance(one); return balance ? [{ subject: '', ...balance }] : []; }
+  if (subjects.length < 2) {
+    if (['actual', 'package'].includes(cardBillingMode(plan))) return [];
+    const balance = lessonBalance(one);
+    return balance ? [{ subject: '', ...balance }] : [];
+  }
+  const split = hasSubjectBilling(plan);
   return subjects.map((subject) => {
+    const billing = subjectBilling(plan, subject, main);
+    if (billing.billingMode === 'actual' || billing.billingMode === 'package') return null;
     const own = plan.subjectPrices?.[subject];
-    const balance = lessonBalance({ ...one, plan: own && subject !== main ? { ...plan, lessonMinutes: own.lessonMinutes || plan.lessonMinutes } : plan, subject, main });
+    const base = own && subject !== main ? { ...plan, lessonMinutes: own.lessonMinutes || plan.lessonMinutes } : plan;
+    const balance = lessonBalance({ ...one, plan: split ? { ...base, chargeNoShow: billing.chargeNoShow } : base, subject, main });
     return balance ? { subject, ...balance } : null;
   }).filter(Boolean);
 }
 
 // payer e-mail: the student card first, then the parent account linked to the card (Lapsevanemad)
+// (the same resolution the server stores and sends to: invoicePayer.js ↔ functions/invoice-payer-core.js)
 export function payerEmailOf(student, parents = []) {
-  const own = student.payerEmail || student.parentEmail || student.contactEmail || student.email || '';
+  const own = cardPayerEmail(student);
   if (own) return own;
-  const parentIds = [student.linkedParentId, student.parentUid, student.guardianUid].filter(Boolean);
-  return parents.find((parent) => parentIds.includes(parent.id) && parent.email)?.email || '';
+  const parentIds = linkedParentIds(student);
+  return parents.find((parent) => parentIds.includes(parent.id) && firstEmail(parent.email))?.email || '';
+}
+
+const NO_CORRECTION = { units: 0, note: '', noShows: [], unmarked: 0 };
+
+// one subject of a card with several: its lessons, its price (subjectPrices) and its own billing (subjectBilling)
+function subjectPart({ student, plan, subject, main, mode, mine, actualLessons, previousLessons, invoices, lessons, events, previousMonth, split }) {
+  const belongs = (item) => (itemSubject(item, student) || main) === subject;
+  const own = plan.subjectPrices?.[subject];
+  const priced = own && subject !== main ? { ...plan, lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan.lessonMinutes } : plan;
+  // per-subject billing (owner 2026-11-06): the subject's own no-show rule; a plan without it stays exactly as it was
+  const subjectPlan = split ? { ...priced, chargeNoShow: subjectBilling(plan, subject, main).chargeNoShow } : priced;
+  const balanced = mode !== 'actual' && mode !== 'package';
+  const held = mode === 'actual' ? actualLessons.filter((lesson) => belongs(lesson) && (!split || isChargeable(lesson, subjectPlan))) : mine.filter(belongs);
+  const units = round2(held.reduce((sum, event) => sum + unitsOf(event.duration, subjectPlan), 0));
+  const balance = balanced ? lessonBalance({ student, plan: subjectPlan, invoices, lessons, events, upto: previousMonth, subject, main }) : null;
+  const fix = mode !== 'actual' ? correctionFor({ student, plan: subjectPlan, balance, previousLessons: previousLessons.filter(belongs) }) : NO_CORRECTION;
+  const price = subjectPlan.lessonPriceCents || 0;
+  return { subject, plannedUnits: units, correction: fix, priceCents: price, minutes: subjectPlan.lessonMinutes || 60, lessonCount: held.length, totalCents: Math.round((units + fix.units) * price), balance };
 }
 
 export function monthlyBillingRows({ month, students = [], plans = [], schedule = [], groups = [], lessons = [], invoices = [], parents = [] }) {
@@ -157,34 +187,59 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
     .filter((student) => student.active !== false && !student.mergedIntoStudentId)
     .map((student) => {
       const plan = planByStudent.get(student.id) || null;
-      const mine = occurrences.filter((event) => event.studentId === student.id || (event.studentIds || []).includes(student.id));
-      const mode = plan?.billingMode === 'actual' ? 'actual' : plan?.billingMode === 'current' ? 'current' : plan?.billingMode === 'package' ? 'package' : 'advance';
-      const actualLessons = mode === 'actual' && plan ? lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${month}-`) && isChargeable(lesson, plan)) : [];
-      const plannedUnits = plan ? round2((mode === 'actual' ? actualLessons : mine).reduce((sum, event) => sum + unitsOf(event.duration, plan), 0)) : 0;
-      const previousLessons = lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${previousMonth}-`));
-      const balanced = plan && mode !== 'actual' && mode !== 'package';
-      const correction = plan && mode !== 'actual' ? correctionFor({ student, plan, balance: balanced ? lessonBalance({ student, plan, invoices, lessons, events, upto: previousMonth }) : null, previousLessons }) : { units: 0, note: '', noShows: [], unmarked: 0 };
-      const priceCents = plan?.lessonPriceCents || 0;
-      let totalCents = Math.round((plannedUnits + correction.units) * priceCents);
-      // several subjects (owner 2026-10-20): each its lessons, its price and its own line on the one invoice
       const subjects = subjectsOf(student);
       const main = mainSubject(student);
-      const subjectParts = plan && subjects.length > 1 && mode !== 'package' ? subjects.map((subject) => {
-        const belongs = (item) => (itemSubject(item, student) || main) === subject;
-        const own = plan.subjectPrices?.[subject];
-        const subjectPlan = own && subject !== main ? { ...plan, lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan.lessonMinutes } : plan;
-        const held = mode === 'actual' ? actualLessons.filter(belongs) : mine.filter(belongs);
-        const units = round2(held.reduce((sum, event) => sum + unitsOf(event.duration, subjectPlan), 0));
-        const fix = mode !== 'actual' ? correctionFor({ student, plan: subjectPlan, balance: balanced ? lessonBalance({ student, plan: subjectPlan, invoices, lessons, events, upto: previousMonth, subject, main }) : null, previousLessons: previousLessons.filter(belongs) }) : { units: 0, note: '', noShows: [], unmarked: 0 };
-        const price = subjectPlan.lessonPriceCents || 0;
-        return { subject, plannedUnits: units, correction: fix, priceCents: price, minutes: subjectPlan.lessonMinutes || 60, lessonCount: held.length, totalCents: Math.round((units + fix.units) * price) };
-      }).filter((part) => part.plannedUnits || part.correction.units) : null;
+      // the row's mode from its subjects' modes (subjectBilling.js); a plan without per-subject billing: the card's mode
+      const layout = cardMonthlyMode(plan, subjects, main);
+      const mode = layout.mode;
+      // per-subject billing on a card with several subjects: only the subjects billed monthly count on this row
+      const split = Boolean(plan) && subjects.length > 1 && hasSubjectBilling(plan);
+      const counts = (item) => !split || layout.monthlySubjects.includes(itemSubject(item, student) || main);
+      const mine = occurrences.filter((event) => (event.studentId === student.id || (event.studentIds || []).includes(student.id)) && counts(event));
+      const actualLessons = mode === 'actual' && plan ? lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${month}-`) && counts(lesson) && (split || isChargeable(lesson, plan))) : [];
+      const previousLessons = lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${previousMonth}-`) && counts(lesson));
+      const balanced = plan && mode !== 'actual' && mode !== 'package';
+      const shared = { student, plan, main, mode, mine, actualLessons, previousLessons, invoices, lessons, events, previousMonth, split };
+      let plannedUnits;
+      let correction;
+      let lessonsLeft;
+      let lessonCount;
+      let subjectParts = null;
+      if (split) {
+        // every subject by its own billing; the row is the sum of its monthly subjects
+        const parts = mode === 'package' || layout.mixedTiming ? [] : layout.monthlySubjects.map((subject) => subjectPart({ ...shared, subject }));
+        plannedUnits = round2(parts.reduce((sum, part) => sum + part.plannedUnits, 0));
+        correction = {
+          units: round2(parts.reduce((sum, part) => sum + part.correction.units, 0)),
+          note: parts.filter((part) => part.correction.note).map((part) => `${part.subject}: ${part.correction.note}`).join('; '),
+          noShows: parts.flatMap((part) => part.correction.noShows || []),
+          unmarked: round2(parts.reduce((sum, part) => sum + (part.correction.unmarked || 0), 0)),
+          studentId: student.id,
+        };
+        const balances = parts.map((part) => part.balance).filter(Boolean);
+        lessonsLeft = balanced && balances.length ? round2(balances.reduce((sum, balance) => sum + balance.left, 0)) : null;
+        lessonCount = parts.reduce((sum, part) => sum + part.lessonCount, 0);
+        subjectParts = parts.filter((part) => part.plannedUnits || part.correction.units).map(({ balance, ...part }) => part); // eslint-disable-line no-unused-vars
+      } else {
+        plannedUnits = plan ? round2((mode === 'actual' ? actualLessons : mine).reduce((sum, event) => sum + unitsOf(event.duration, plan), 0)) : 0;
+        correction = plan && mode !== 'actual' ? correctionFor({ student, plan, balance: balanced ? lessonBalance({ student, plan, invoices, lessons, events, upto: previousMonth }) : null, previousLessons }) : NO_CORRECTION;
+        lessonsLeft = balanced ? lessonBalance({ student, plan, invoices, lessons, events, upto: month })?.left ?? null : null;
+        lessonCount = mode === 'actual' ? actualLessons.length : mine.length;
+        // several subjects (owner 2026-10-20): each its lessons, its price and its own line on the one invoice
+        subjectParts = plan && subjects.length > 1 && mode !== 'package'
+          ? subjects.map((subject) => subjectPart({ ...shared, subject })).filter((part) => part.plannedUnits || part.correction.units).map(({ balance, ...part }) => part) // eslint-disable-line no-unused-vars
+          : null;
+      }
+      const priceCents = plan?.lessonPriceCents || 0;
+      let totalCents = Math.round((plannedUnits + correction.units) * priceCents);
       if (subjectParts) totalCents = subjectParts.reduce((sum, part) => sum + part.totalCents, 0);
       const existing = invoiceFor(student.id, month);
       let status = 'ready';
       if (existing) status = 'invoiced';
       // a lesson-package card pays by package invoices (Tunnipakett), its lessons take credits — never a monthly invoice
       else if (mode === 'package') status = 'package';
+      // „Pärast toimunud tunde” next to a subject billed ahead: one monthly invoice cannot hold both (subjectBilling.js)
+      else if (layout.mixedTiming) status = 'mixed-timing';
       else if (!plan || !priceCents || (subjectParts || []).some((part) => !part.priceCents)) status = 'no-price';
       else if (!plannedUnits && correction.units <= 0) status = 'no-lessons';
       else if (totalCents <= 0) status = 'nothing-to-pay';
@@ -192,13 +247,15 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
         student,
         plan,
         mode,
-        lessonCount: mode === 'actual' ? actualLessons.length : mine.length,
-        lessonsLeft: balanced ? lessonBalance({ student, plan, invoices, lessons, events, upto: month })?.left ?? null : null,
+        lessonCount,
+        lessonsLeft,
         plannedUnits,
         correction,
         priceCents,
-        totalCents,
+        totalCents: layout.mixedTiming ? 0 : totalCents,
         subjectParts,
+        // subjects of the card paid by lesson packages (no monthly line)
+        packageSubjects: subjects.length > 1 ? layout.packageSubjects : [],
         due: defaultDue(month, mode),
         payerEmail: payerEmailOf(student, parents),
         existing,

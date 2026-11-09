@@ -42,6 +42,18 @@ describe('CRM v2 hosting headers', () => {
     expect(policy).toContain('https://fonts.gstatic.com');
     expect(policy).toContain("frame-ancestors 'none'");
     expect(policy).not.toContain('unsafe-eval');
+    // the worksheet video block embeds YouTube (privacy mode) and Vimeo players
+    const frames = policy.split(';').map((part) => part.trim()).find((part) => part.startsWith('frame-src'));
+    expect(frames).toContain('https://www.youtube-nocookie.com');
+    expect(frames).toContain('https://player.vimeo.com');
+    expect(frames).not.toContain('https://www.youtube.com');
+    // „Pildid” on the live board: Wikimedia Commons search, its thumbnails and the copy into Storage
+    const part = (name) => policy.split(';').map((item) => item.trim()).find((item) => item.startsWith(name));
+    expect(part('connect-src')).toContain('https://commons.wikimedia.org');
+    for (const host of ['https://upload.wikimedia.org', 'https://thumb.wikimedia.org']) {
+      expect(part('img-src')).toContain(host);
+      expect(part('connect-src')).toContain(host);
+    }
   });
 
   // When crm.epkoolitus.ee points at v2, old v1 bookmarks and registration links must keep working on www.
