@@ -197,3 +197,21 @@ export function summarizeUnmarked(items = []) {
     teacher: items.filter((item) => item.kind === 'teacher').length,
   };
 }
+
+// ── Teacher's daily reminder (owner 2026-11-09: „ежедневное напоминание учителям о неотмеченных уроках — в CRM, НЕ
+// письмом”). Never an e-mail / SMS: the bell (NotificationCenter) and a once-a-day banner on the home page only.
+// It looks back REMINDER_DAYS (= the „Märkimata tunnid” page's 60 days), so the old backlog (owner: „308 неотмеченных —
+// пока не делаем”, nothing is bulk-marked) does not nag a teacher every morning, and the number matches the page the
+// reminder opens. The banner gives a day of grace: only lessons from before yesterday nudge.
+export const REMINDER_DAYS = REVIEW_DAYS;
+export const REMINDER_GRACE_DAYS = 1;
+const shortDate = (iso) => (/^\d{4}-\d{2}-\d{2}$/.test(String(iso || '')) ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}` : '');
+
+// items of findUnmarkedLessons (one teacher's) → { total, oldest, oldestLabel „DD.MM”, stale (older than the grace) }
+export function unmarkedReminder(items = [], today, { days = REMINDER_DAYS, graceDays = REMINDER_GRACE_DAYS } = {}) {
+  const from = shiftDate(today, -days);
+  const inWindow = items.filter((item) => item.occurrenceDate && item.occurrenceDate >= from && item.occurrenceDate < today);
+  const oldest = inWindow.reduce((first, item) => (!first || item.occurrenceDate < first ? item.occurrenceDate : first), '');
+  const graceFrom = shiftDate(today, -graceDays);
+  return { total: inWindow.length, oldest, oldestLabel: shortDate(oldest), stale: inWindow.filter((item) => item.occurrenceDate < graceFrom).length };
+}

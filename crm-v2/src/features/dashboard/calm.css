@@ -2,6 +2,14 @@
 .calm-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 0 0 18px; }
 .calm-head h1 { margin: 0; font: 800 1.55rem/1.2 Manrope, sans-serif; letter-spacing: -.03em; }
 .calm-head span { color: #667085; font-size: 1rem; }
+/* a teacher's once-a-day „Märkimata tunnid” nudge (UnmarkedNudge.jsx, owner 2026-11-09) */
+.calm-nudge { display: flex; align-items: center; gap: 10px; margin: -6px 0 16px; padding: 10px 12px 10px 14px; border: 1px solid #fedf89; border-radius: 12px; background: #fffaeb; color: #93370d; }
+.calm-nudge > svg { flex: 0 0 auto; }
+.calm-nudge a { flex: 1 1 auto; min-width: 0; color: inherit; font-size: .92rem; text-decoration: none; }
+.calm-nudge a b { white-space: nowrap; }
+.calm-nudge a:hover b { text-decoration: underline; }
+.calm-nudge__close { display: inline-flex; flex: 0 0 auto; padding: 6px; border: 0; border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
+.calm-nudge__close:hover { background: #fef0c7; }
 .calm-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 .calm-top--single { grid-template-columns: minmax(0, 720px); }
 .calm-card { padding: 18px 20px; }

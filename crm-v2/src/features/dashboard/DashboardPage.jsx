@@ -22,6 +22,8 @@ import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 import RetentionCard from '../retention/RetentionCard.jsx';
 import { recentlyScheduled } from '../retention/retentionRisk.js';
 import UnmarkedLessonsCard from '../calendar/UnmarkedLessonsCard.jsx';
+import { findUnmarkedLessons, unmarkedReminder } from '../calendar/unmarkedLessons.js';
+import UnmarkedNudge from './UnmarkedNudge.jsx';
 import { BalancePanel, CallsPanel, HomeworkPanel, LeadsPanel, TodayTimeline } from './today/TodayPanel.jsx';
 import { todayApi, useTodaySignals } from './today/useTodaySignals.js';
 import { tallinnDay } from './today/todayModel.js';
@@ -155,6 +157,7 @@ function AttentionCard({ attention, loading, onOpen }) {
 }
 
 function CalmDashboard({ data, user, repositories, now }) {
+  const { preview } = useAuth();
   const isAdmin = data.isAdmin;
   const canViewBalance = isAdmin || data.canViewFinance;
   const signals = useTodaySignals({
@@ -183,6 +186,12 @@ function CalmDashboard({ data, user, repositories, now }) {
     lessons: async () => journal || [],
     markHeld: repositories.unmarked?.markHeld || ((item, actor) => lessonsService.completeFromSchedule(item, actor, { status: 'Toimunud' })),
   }), [journal, repositories.unmarked]);
+  // a teacher's daily „Märkimata tunnid” nudge (owner 2026-11-09): the „Märkimata tunnid” page's logic on the journal
+  // and the calendar already read here, so it costs no extra read
+  const { teacherUid: ownUid, schedule: ownSchedule, current: today } = data;
+  const reminder = useMemo(() => (ownUid && journal
+    ? unmarkedReminder(findUnmarkedLessons({ schedule: ownSchedule, lessons: journal, today, teacherUid: ownUid }), today)
+    : null), [ownUid, ownSchedule, today, journal]);
   const seen = signals.data?.seen;
   const retentionRepository = useMemo(() => ({
     lessons: async () => journal || [],
@@ -254,6 +263,7 @@ function CalmDashboard({ data, user, repositories, now }) {
         <h1>Tere, {user.displayName?.split(' ')[0] || 'tagasi'}</h1>
         <span>· {dayLabel}</span>
       </header>
+      {data.teacherUid ? <UnmarkedNudge reminder={reminder} uid={data.teacherUid} today={data.current} disabled={Boolean(preview)} /> : null}
       {/* owner 2026-11-06: the numbers and the quick links stay at the top, as on the old home page */}
       {metrics.length ? <section className={`metric-grid calm-kpis calm-kpis--${metrics.length}`} aria-label="Numbrid">
         {metrics.map(({ icon: Icon, ...item }) => <Card as="article" className={`metric-card metric-card--${item.tone}`} key={item.label}>

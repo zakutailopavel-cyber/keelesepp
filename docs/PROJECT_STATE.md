@@ -9,6 +9,75 @@
 - No JS, data or rules changed.
 - Checks: `npm run build` ok; `npx vitest run src/components src/app src/styles` → 23 files, 90 passed; CSS-reading tests `answerFont`, `financeMonthCss` → 11 passed. No stylelint in the project; eslint covers JS only. No browser screenshot comparison.
 - Next safe step: pass 2 — radius literals → `--radius-*`, file by file with a look at each screen.
+## 2026-11-09 · agent/batched-release — the CRM is released in batches, not on every merge (Vercel cost)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/batched-release`.
+- Why: the Vercel bill went over the Pro credit. On 2026-11-05 build CPU was 4.6K minutes ($16.11) and deployment storage 1.43 TB ($4.77). There were ~730 production builds in a month, one per merge to main, and each uploaded a 365 MB dist (audio 276 MB).
+- Done:
+  - `crm-v2/scripts/vercel-ignore.sh` is the CRM project's `ignoreCommand` (`crm-v2/vercel.json`). `main` builds only when the commit message contains `[deploy]` or `[hotfix]`; agent/* previews stay skipped; other branches build as before.
+  - New `.github/workflows/release.yml` runs at 05:00 and 14:00 UTC and on „Run workflow”. If `crm-v2/` changed since the last `[deploy]`/`[hotfix]` commit, it pushes an empty `[deploy] Release …` commit to main, which Vercel builds.
+  - AGENTS.md documents the rule.
+  - The public website project (root `vercel.json`) is unchanged. Its upload is the small static site only, and `.vercelignore` would hide the script from it.
+- Hotfix: put `[hotfix]` in the PR title (the merge commit message carries it).
+- Checks: ran the ignore script by hand for main / main + `[hotfix]` / `[deploy]` / agent/x / another branch → 0 / 1 / 1 / 0 / 1. `hostingHeaders.test.js` passed. The workflow runs for the first time after merge.
+- Risk: a merge without `[deploy]` waits up to ~9 hours, or until someone presses „Run workflow”.
+- Next safe step: after the first scheduled run, check that Vercel built the release commit, and in the next weekly usage mail that build minutes dropped.
+## 2026-11-09 · agent/payroll-paid — one teacher-pay figure per month with a „paid out” mark (owner 2026-11-09)
+
+- Base: `origin/main` 83b5e45, checked 2026-11-09. Branch `agent/payroll-paid`, draft PR. Open PRs at start (#1062, #1133, #1135–#1141) not touched; #1135 changes `FinanceMonthPage.jsx` only.
+- Pay basis: „Väljamaksmisele” = approved work-time pay (`workSessions.payAmountCents`, rate snapshotted on approval) — the audited basis of the page. The school has one rate per teacher (`users.workHourlyRateCents`, € / h), no per-lesson rate, so lessons given × the same rate (`teacherLoad()` reused, read via `teacherLoadService.load({ lessonsOnly: true })`) is shown as „Tundide järgi (kontroll)”; a gap ≥ 5 € shows „Erinevus …”. Pending sessions are named („N kirjet ootab kinnitamist — need pole summas”). With no clock-in the mark form is prefilled with the lessons' estimate (editable).
+- Done: `/finance/payroll` per teacher: Programmis / Ootel / Kinnitatud / Antud tunde (count · h), „Väljamaksmisele”, the check, „Märgi makstuks” (amount, date, Pangaülekanne / Sularaha / Muu, note) → badge „Makstud 05.11 · 820,00 €” + „Tühista märge” (reason required). Month bar „Makstud / Maksmata” + „Laadi CSV” (Kuu; Õpetaja; Kinnitatud tunnid; Antud tunde tk / h; Väljamaksmisele; Tundide järgi; Makstud; Makstud kuupäev; Makseviis — BOM, „;”, decimal comma).
+- Data: new collection `teacherPayouts/{YYYY-MM}_{teacherUid}` { teacherUid, teacherName, month, status paid|cancelled, amountCents, paidAt, method, note, markedBy {uid,name}, markedAtIso, cancelledBy?, cancelledAtIso?, cancelReason?, history[] }. Written in a transaction with an `activityLog` line (`finance.teacher_payout_marked` / `_cancelled`) **without the amount** (activityLog is readable by teachers).
+- Rules (`firestore.rules`, not deployed): admin creates/updates only (fixed keys, id = month_teacherUid, own uid in markedBy / cancelledBy / last history line, amount int 1…10 000 000 cents, method in '', pank, sularaha, muu, a paid month cannot be marked again, undo changes only status / cancelled* / history with a reason ≥ 3, history append-only ≤ 100); admin + bookkeeper (`isFinance`) read; teacher never; delete never.
+- Files: `crm-v2/src/features/payroll/{payroll.js,PayrollPage.jsx,payroll.css,payroll.test.js,PayrollPage.test.jsx}`, new `crm-v2/src/services/firebase/teacherPayouts.js`, `crm-v2/src/services/firebase/teacherLoad.js` (`lessonsOnly`), `firestore.rules`, new `functions/teacher-payouts-rules-emulator.integration.js` (+ `functions/package.json` test:emulator), `ARCHITECTURE.md`.
+- Checks: `npx vitest run src/features/payroll src/features/teachers` → 7 files, 41 tests passed; full `npx vitest run` → 543 files passed (1 skipped), 4203 tests passed; `npx eslint --quiet` on touched files clean; `firebase emulators:exec --only auth,firestore` with the new test + invoice-notes test → 2/2 passed (Java 21).
+- Safe before deploy: the page reads the marks with a fallback — until the rules are deployed it shows „Väljamaksete märkeid ei õnnestunud lugeda” and hides „Märgi makstuks”; work time works as before.
+- Manual gate: owner deploys `firestore.rules`; not checked in the browser with real data (admin login needed).
+- Next safe step: owner deploys the rules, marks one October teacher paid and checks the CSV in Excel.
+## 2026-11-09 · agent/unmarked-reminders — teachers get a daily in-CRM reminder about their unmarked lessons (owner 2026-11-09)
+
+- Base: `origin/main` d5e1b0a, checked 2026-11-09. Branch `agent/unmarked-reminders`, draft PR #1143. Open PRs at start (#1062, #1133, #1135–#1141) not touched.
+- Owner: „a daily reminder to teachers about their unmarked lessons — an in-CRM notification, NOT an e-mail”. No e-mail / SMS anywhere; learner e-mails stay off.
+- Before: a teacher had no menu badge (the „Kalender” count is admin-only) and nothing in the bell. Only when they opened home: a „Vajab tähelepanu” line „N märkimata tundi” (365-day legacy `unmarkedLessons`) and the „Märkimata tunnid” tile; in the calendar a „Märkimata tunnid N” button.
+- Done (client only, no server write, no scheduled function): `unmarkedReminder(items, today)` in `features/calendar/unmarkedLessons.js` (REMINDER_DAYS = REVIEW_DAYS = 60, so the old backlog „308 — пока не делаем” does not nag and the number matches /calendar/markimata; nothing is bulk-marked) + `unmarkedLessonsService.reminder({ user })` (the page's own `load`, own lessons only, without Live evidence). Bell: `unmarkedNotifications` in `notificationModel.js` → „N tundi märkimata (vanim DD.MM)” → /calendar/markimata (a teacher's page shows only own lessons); id `unmarked:<day>` so the bell counts it as new once a day; re-read on panel open and on `UNMARKED_CHANGED_EVENT`. Teachers only; the admin keeps the school-wide count. Home: `features/dashboard/UnmarkedNudge.jsx` — once a day (localStorage `ks-unmarked-nudge:<uid>` = date, try/catch), dismissible, when own lessons from before yesterday are unmarked: „Sul on N märkimata tundi (vanim DD.MM). Märgi need 1 minutiga →”; computed from the journal and calendar the home page already reads (no extra read); not in the admin's preview. CSS `.calm-nudge` in `calm.css`.
+- Checks: `cd crm-v2 && npx vitest run src/components/layout src/features/notifications src/features/calendar src/features/dashboard` → 37 files, 283 tests passed (4 new); `npx vitest run src/services/firebase src/app` → 50 files, 259 passed; eslint clean on the touched files.
+- Limits: the home's „Vajab tähelepanu” line still counts 365 days (legacy), the nudge and the bell 60 days, so the numbers can differ for a teacher with an old backlog. Not looked at in a browser with real data.
+- Next safe step: owner opens the CRM as a teacher (preview shows the bell; the banner is hidden in preview) and checks the bell line and the link.
+
+## 2026-11-09 · agent/student-drawer — the student's full card opens beside the work (right-click), not on another page
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/student-drawer`.
+- Owner 2026-11-09: a right-click → student card should not take the admin away from the page.
+- Done:
+  - `components/studentDrawer/` adds `openStudentDrawer(id)`, `StudentDrawer.jsx` (lazy, mounted in `AppShell` next to the right-click menu for admin, teacher and finance) and CSS. The drawer slides in from the right; Escape, the backdrop or × closes it.
+  - The drawer has an „Ava täislehena” link. It closes itself when a link inside the card opens another page.
+  - `StudentProfilePage` gets `studentId` and `embedded` props. Embedded, its tabs and dialogs keep their query in local state, so the page under the drawer keeps its URL and filters, and the „Kõik õpilased” back link is hidden.
+  - Right-click menu (`entityRegistry.js`):
+    - student: „Ava kaart (siinsamas)” opens the drawer; the new „Ava kaart eraldi lehel” keeps the old navigation;
+    - every entity with a student (lesson, invoice, homework…): „Õpilase kaart (siinsamas)”;
+    - `EntityContextMenu` handles `kind: 'drawer'` and falls back to the page without a drawer.
+- Not done: the security headers (X-Frame-Options DENY, frame-ancestors 'none') were kept on purpose: no iframe.
+- Checks: `npx vitest run src/components src/features/students` → 42 files, all passed (+2 drawer tests, registry test updated); eslint clean; looked at 1440 px with the real card and demo data (lab page, removed). Switching tabs inside the drawer left the page URL unchanged.
+- Next safe step: the same drawer for a lesson and for an invoice.
+## 2026-11-09 · agent/lead-to-student — „Õppijaks” on a web lead opens a prefilled student card (stacked on agent/admin-quickfix)
+
+- Base: `origin/agent/admin-quickfix` (#1136), checked 2026-11-09. Branch `agent/lead-to-student`.
+- Before, „Õppijaks” only changed the lead's status, so the card had to be typed again.
+- Done:
+  - New `leads/leadToStudent.js` maps a lead to StudentForm fields: name, phone, parent + parentEmail or own email, level A1–C1, subject „… keel”. Tests in `leadToStudent.test.js`.
+  - `LeadsPage` „Õppijaks” saves the status, then goes to /students with `state.newStudent`. The details go in router state, never in the URL.
+  - `StudentsPage` opens `StudentForm` with it (new `initial` prop) and clears the router state. The prefill is dropped on close or save, and „Uus õpilane” opens an empty form.
+  - The card is saved only when the admin presses save; the duplicate warning in StudentForm still runs.
+- Checks: `npx vitest run src/features/leads src/features/students` → all passed (+4 tests); eslint clean.
+- Next safe step: link the created card back to the lead (`studentId` on the lead).
+## 2026-11-09 · agent/finance-cash-view — money in/out on the new finance page (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-cash-view`.
+- Before, money actually received, cash out, margin and debt age were only in „Vana vaade” (`FinancialAnalyticsPanel`).
+- Done: `FinanceMonthPage.jsx` (admin) shows the same panel folded under the overview as „Raha liikumine: laekumised, kulud, marginaal ja võlgade vanus”. It is built on demand with „Koosta analüüs”. „Ava” on a debt opens the invoice document. CSS in `financeMonth.css`; new test.
+- The backend `previewFinancialAnalytics` only reads (checked `functions/index.js`: no writes in it).
+- Checks: `npx vitest run src/features/finance` → 41 files, 274 passed; eslint clean.
+- Next safe step: one teacher-pay figure with a „paid out” mark (payroll vs teacher-load estimate).
 
 ## 2026-11-09 · agent/finance-debts-family — debts by age and by family (finance)
 

@@ -578,6 +578,12 @@ also creates a `workTimeAudit` snapshot. Closed shifts are pending until an admi
 approves them; approval snapshots the hourly rate and calculated pay so later rate changes do not
 rewrite prior payroll.
 
+Teacher payouts (owner 2026-11-09): `/finance/payroll` shows one figure per teacher-month, „Väljamaksmisele” =
+the approved session pay above; lessons given × the same `workHourlyRateCents` (`teachers/teacherLoad.js`) is shown
+next to it as a check (gap ≥ 5 € flagged). „Märgi makstuks” writes `teacherPayouts/{YYYY-MM}_{teacherUid}` from the
+browser (admin only; bookkeeper reads; never deleted; undo = status `cancelled`; append-only `history`) plus an
+`activityLog` line without the amount. A mark records a payment made elsewhere; it moves no money.
+
 Activity-log time is deliberately a capped estimate and remains separate from approved payroll.
 The scheduled `refreshSchoolAssistant` function derives owner-only alerts from invoices, tasks,
 work sessions and sanitized Google Calendar status. It runs without an external AI provider, so
