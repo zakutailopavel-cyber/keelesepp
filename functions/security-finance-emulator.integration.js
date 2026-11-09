@@ -143,6 +143,30 @@ test("invoice e-mails are for the administrator; a teacher sends none, not even 
   assert.equal(queue.status, 403, JSON.stringify(queue.body));
 });
 
+test("the invoice PDF: the administrator and the invoice's own family, never a teacher or another family", async () => {
+  requireSafeEmulatorEnvironment();
+  const teacher = await account("sec-pdf-teacher@example.com", { role: "teacher", roles: ["teacher"], displayName: "Pdf Teacher" });
+  const parent = await account("sec-pdf-parent@example.com", { role: "parent", roles: ["parent"] });
+  const stranger = await account("sec-pdf-stranger@example.com", { role: "parent", roles: ["parent"] });
+  await Promise.all([
+    db().collection("students").doc("sec-pdf-student").set({ name: "Pdf Student", linkedParentIds: [tokenUid(parent)], active: true }),
+    db().collection("invoices").doc("sec-pdf-invoice").set({ num: "KS-2026-990", studentId: "sec-pdf-student", studentName: "Pdf Student", amountCents: 2500, amount: 25, status: "Ootel", date: "2026-10-01", due: "2026-10-15", items: [{ description: "Keeletund", qty: 1, unitPrice: 25, amount: 25 }] }),
+  ]);
+  for (const [who, label] of [[teacher, "teacher"], [stranger, "another family"]]) {
+    const refused = await api("invoiceApi", who, "/pdf", { invoiceId: "sec-pdf-invoice" });
+    assert.equal(refused.status, 404, `${label}: ${JSON.stringify(refused.body)}`);
+    assert.equal(refused.body.contentBase64, undefined);
+  }
+  const missing = await api("invoiceApi", parent, "/pdf", { invoiceId: "sec-no-such-invoice" });
+  assert.equal(missing.status, 404, JSON.stringify(missing.body));
+  const own = await api("invoiceApi", parent, "/pdf", { invoiceId: "sec-pdf-invoice" });
+  assert.equal(own.status, 200, JSON.stringify(own.body));
+  assert.equal(own.body.contentType, "application/pdf");
+  assert.match(Buffer.from(own.body.contentBase64, "base64").subarray(0, 5).toString(), /^%PDF-/);
+  const boss = await api("invoiceApi", await adminToken(), "/pdf", { invoiceId: "sec-pdf-invoice" });
+  assert.equal(boss.status, 200, JSON.stringify(boss.body));
+});
+
 test("the status of a server-journal lesson changes only through the journal", async () => {
   requireSafeEmulatorEnvironment();
   const token = await adminToken();

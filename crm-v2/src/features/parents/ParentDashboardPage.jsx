@@ -32,6 +32,7 @@ import { ChildrenWordGrowth } from '../vocabulary/WordGrowthCard.jsx';
 import ChildSwitch, { childKeyOf } from './ChildSwitch.jsx';
 import { childSummary, isRealInvoice, moneyDue } from './parentHome.js';
 import NowLearningCard from './NowLearningCard.jsx';
+import InvoicePdfButton from './InvoicePdfButton.jsx';
 import UnpaidInvoicesNotice from './UnpaidInvoicesNotice.jsx';
 import './parentHome.css';
 
@@ -124,7 +125,7 @@ function ChildCards({ child, summary, upcoming, subjects, onlyOneSubject, lesson
   </div>;
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService, pointsService, goalsLoader, paymentsApi }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService, pointsService, goalsLoader, paymentsApi, invoicePdfApi, paymentClaims }) {
   const { user, preview } = useAuth();
   const location = useLocation();
   const [rescheduling, setRescheduling] = useState(null);
@@ -198,7 +199,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
   return <div className="page-content pd-page">
     {hello}
     {/* „Arve ootab tasumist” (owner 2026-11-09): unpaid invoices first, in the CRM only; invoice data, never a lesson balance */}
-    <UnpaidInvoicesNotice invoices={invoices} readOnly={Boolean(preview)} onOpenInvoices={openInvoices}
+    <UnpaidInvoicesNotice invoices={invoices} readOnly={Boolean(preview)} onOpenInvoices={openInvoices} {...(invoicePdfApi ? { pdfApi: invoicePdfApi } : {})} {...(paymentClaims ? { claimsRepository: paymentClaims } : {})}
       nameOf={(invoice) => (students.length > 1 ? (studentOf(invoice)?.name || invoice.studentName || '').trim().split(/\s+/)[0] : '')}
       {...(paymentsApi ? { api: paymentsApi } : {})} />
     {/* the parent's own question: an administrator's preview cannot answer it (as in the student's view) */}
@@ -240,7 +241,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
         <Card><div className="section-heading"><div><h2>Viimased arved<Ru>последние счета</Ru></h2></div></div>{familyInvoices.length ? <div className="simple-list parent-home-invoices">{familyInvoices.map((invoice) => {
           const open = invoiceBalanceCents(invoice);
           const overdue = isInvoiceOverdue(invoice);
-          return <div key={invoice.id}><div><strong>{invoice.num ? `Arve ${invoice.num}` : 'Arve'} · {money(invoice.amountCents ?? Math.round(Number(invoice.amount || 0) * 100))}</strong><span>{[studentOf(invoice)?.name || invoice.studentName, invoice.desc, invoice.due ? `maksetähtaeg ${day(invoice.due, { day: 'numeric', month: 'short', year: 'numeric' })}` : ''].filter(Boolean).join(' · ')}</span>{open ? <small className="parent-home-note">Tasumata {money(open)}</small> : null}</div><Badge tone={!open ? 'success' : overdue ? 'danger' : 'info'}>{!open ? 'Tasutud' : overdue ? 'Tähtaeg möödas' : 'Tasumata'}</Badge></div>;
+          return <div key={invoice.id}><div><strong>{invoice.num ? `Arve ${invoice.num}` : 'Arve'} · {money(invoice.amountCents ?? Math.round(Number(invoice.amount || 0) * 100))}</strong><span>{[studentOf(invoice)?.name || invoice.studentName, invoice.desc, invoice.due ? `maksetähtaeg ${day(invoice.due, { day: 'numeric', month: 'short', year: 'numeric' })}` : ''].filter(Boolean).join(' · ')}</span>{open ? <small className="parent-home-note">Tasumata {money(open)}</small> : null}{preview ? null : <InvoicePdfButton invoice={invoice} {...(invoicePdfApi ? { api: invoicePdfApi } : {})} />}</div><Badge tone={!open ? 'success' : overdue ? 'danger' : 'info'}>{!open ? 'Tasutud' : overdue ? 'Tähtaeg möödas' : 'Tasumata'}</Badge></div>;
         })}</div> : <EmptyState title="Arveid ei ole" />}</Card>
       </Section>
 

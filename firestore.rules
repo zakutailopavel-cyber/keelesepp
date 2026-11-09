@@ -1283,6 +1283,34 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // „Maksin ära” (owner 2026-11-09): the parent (or student) who owns an invoice says it was paid. Only a notice —
+    // the invoice, its payments and the books are untouched; the administrator checks the bank and adds the payment.
+    // One per invoice (id = invoice id), written once by its owner with the own uid and the server time, never edited.
+    // Only the administrator deletes it („Eemalda teade”: a mistaken notice; the parent can then send it again).
+    // The administrator and the bookkeeper read all; the owners read their own.
+    match /invoicePaymentClaims/{invoiceId} {
+      allow read: if isAdmin() || isFinance()
+        || (
+          exists(/databases/$(database)/documents/invoices/$(invoiceId))
+          && ownsInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
+        );
+      allow create: if signedIn()
+        && exists(/databases/$(database)/documents/invoices/$(invoiceId))
+        && ownsInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
+        && get(/databases/$(database)/documents/invoices/$(invoiceId)).data.get('status', '') != 'Tühistatud'
+        && request.resource.data.keys().hasOnly(['invoiceId', 'claimedByUid', 'claimedByName', 'claimedAt', 'note'])
+        && request.resource.data.keys().hasAll(['invoiceId', 'claimedByUid', 'claimedAt'])
+        && request.resource.data.invoiceId == invoiceId
+        && request.resource.data.claimedByUid == uid()
+        && request.resource.data.claimedAt == request.time
+        && request.resource.data.get('claimedByName', '') is string
+        && request.resource.data.get('claimedByName', '').size() <= 160
+        && request.resource.data.get('note', '') is string
+        && request.resource.data.get('note', '').size() <= 300;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     match /payments/{paymentId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
