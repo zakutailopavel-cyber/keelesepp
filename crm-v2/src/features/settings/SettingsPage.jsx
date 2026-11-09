@@ -1,4 +1,4 @@
-import { CalendarClock, CheckCircle2, Compass, Database, Eye, KeyRound, Save, ShieldAlert, ShieldCheck, UserRound } from 'lucide-react';
+import { BellRing, CalendarClock, CheckCircle2, Compass, Database, Eye, KeyRound, Save, ShieldAlert, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth, usePreviewNavigation } from '../../app/AuthContext.jsx';
@@ -11,6 +11,8 @@ import { parentsService } from '../../services/firebase/parents.js';
 import { authService } from '../../services/firebase/auth.js';
 import { studentsService } from '../../services/firebase/students.js';
 import PetSettingsCard from '../pet/PetSettingsCard.jsx';
+import DailyReminder from '../vocabulary/DailyReminder.jsx';
+import '../vocabulary/vocabulary.css';
 import GoogleCalendarCard from '../google-calendar/GoogleCalendarCard.jsx';
 import DataCleanupPanel from './DataCleanupPanel.jsx';
 import StudyDirectionsCard from './StudyDirectionsCard.jsx';
@@ -188,6 +190,8 @@ export default function SettingsPage({ parentRepository = parentsService, studen
     {tab === 'konto' ? <section className="settings-grid">
       <Card className="settings-profile-card"><div className="settings-icon"><UserRound /></div><h2>Minu andmed</h2><form className="settings-profile-form" onSubmit={save}><Input id="settings-name" label="Nimi" autoComplete="name" required maxLength="160" value={form.displayName} onChange={(event) => setForm({ ...form, displayName: event.target.value })} /><Input id="settings-phone" label="Telefon" type="tel" autoComplete="tel" maxLength="40" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /><Input id="settings-email" label="E-post" type="email" value={user.email} disabled /><p className="form-hint">E-posti või rolli muutmiseks pöördu administraatori poole.</p><Button type="submit" loading={saving}><Save size={17} /> Salvesta andmed</Button></form></Card>
       {hasAnyRole(user.roles, [ROLES.STUDENT]) && !preview ? <PetSettingsCard user={user} /> : null}
+      {/* the daily reminder of „Täna” (owner 2026-11-09: moved here from „Sõnad”) */}
+      {hasAnyRole(user.roles, [ROLES.STUDENT]) && !preview ? <Card><div className="settings-icon"><BellRing /></div><h2>Igapäevane meeldetuletus</h2><p className="settings-copy">Telefoni kalender tuletab iga päev meelde „Täna” 10 minutit.<span lang="ru"> · Напоминание в календаре телефона.</span></p><DailyReminder /></Card> : null}
       <Card><div className="settings-icon"><ShieldCheck /></div><h2>Ligipääs</h2><div className="detail-list"><div><dt>Kasutaja</dt><dd>{user.displayName}</dd></div><div><dt>E-post</dt><dd>{user.email}</dd></div><div><dt>Rollid</dt><dd>{roleLabels(user.roles)}</dd></div>{isStaff ? <div><dt>Konto UID</dt><dd className="mono">{user.uid}</dd></div> : null}</div></Card>
       <Card><div className="settings-icon"><KeyRound /></div><h2>Turvalisus</h2><p className="settings-copy">Parooli ei kuvata ega muudeta siin otse. Saadame turvalise taastamislingi ainult sinu konto e-posti aadressile.</p><Button variant="secondary" loading={resetting} onClick={resetPassword}>Saada parooli taastamise link</Button></Card>
     </section> : null}

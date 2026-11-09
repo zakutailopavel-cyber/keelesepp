@@ -23,6 +23,11 @@ describe('presence', () => {
     expect(nextPractice({ days: many }, { date: '2026-10-23', pct: 50 }).days).toHaveLength(60);
     expect(nextPractice({ days: many }, { date: '2026-10-23', pct: 50 }).days.at(-1)).toBe('2026-10-23');
   });
+
+  it('a „Minu vead” result keeps the „Täna” progress and XP on the same map', () => {
+    const today = { date: '2026-10-23', day: 20384, done: ['words'], xp: 7 };
+    expect(nextPractice({ today, xp: 40, learnDays: ['2026-10-23'] }, { date: '2026-10-23', pct: 50 })).toMatchObject({ today, xp: 40, learnDays: ['2026-10-23'], errorsPct: 50 });
+  });
 });
 
 describe('accountUid and lastSeenOf', () => {

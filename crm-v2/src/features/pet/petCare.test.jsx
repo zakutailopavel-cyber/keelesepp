@@ -2,7 +2,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import PetCard from './PetCard.jsx';
-import { careMood, feedingWords, gameRounds, lowestNeed, petNeeds } from './petCare.js';
+import { careMood, lowestNeed, petNeeds } from './petCare.js';
+import { feedingCards } from '../vocabulary/dailyReview.js';
 
 const NOW = new Date('2026-10-09T12:00:00Z').getTime();
 const hoursAgo = (n) => new Date(NOW - n * 3600000).toISOString();
@@ -48,51 +49,37 @@ describe('pet care model', () => {
     expect(careMood('sleep', { food: 0, energy: 0, joy: 0 })).toBe('sleep');
   });
 
-  it('feeds with at most three due words and builds a word game with three options', () => {
-    expect(feedingWords([word('a'), word('b', { dueAt: daysAgo(-2) }), word('c'), word('d'), word('e')], NOW).map((w) => w.id)).toEqual(['a', 'c', 'd']);
-    const rounds = gameRounds([word('a'), word('b'), word('c'), word('d'), word('e', { translation: '' })], () => 0.5);
-    expect(rounds).toHaveLength(4);
-    rounds.forEach((round) => {
-      expect(round.options).toHaveLength(3);
-      expect(round.options).toContain(round.answer);
-      expect(new Set(round.options).size).toBe(3);
-    });
-    expect(gameRounds([word('a'), word('b')])).toEqual([]);
+  it('feeds with at most three cards of his own due words, never his own sentences (one card UI, 2026-11-09)', () => {
+    const cards = feedingCards([word('a'), word('b', { dueAt: daysAgo(-2) }), word('c'), word('d'), word('e'), word('s', { translation: 'Sinu lause: x' })], { now: NOW });
+    expect(cards).toHaveLength(3);
+    expect(cards.every((card) => card.word && card.key && card.dir)).toBe(true);
+    expect(cards.some((card) => card.word.id === 's')).toBe(false);
   });
 });
 
 describe('PetCard care', () => {
-  it('a hungry pet asks for words and is fed by repeating them', async () => {
+  it('„Toida” is the same flashcards as „Sõnad” and moves the words on their schedule', async () => {
     const words = [word('a'), word('b'), word('c'), word('d')];
     const repository = { get: vi.fn().mockResolvedValue({ kind: 'siil', name: 'Okas' }), update: vi.fn(async ({ current, ...flags }) => ({ ...current, ...flags })) };
-    const wordsService = { review: vi.fn().mockResolvedValue({}) };
+    const wordsService = { rate: vi.fn().mockResolvedValue({}) };
     const { container } = render(<MemoryRouter><PetCard user={{ uid: 'u1' }} repository={repository} words={words} wordsService={wordsService} lessons={[{ date: new Date().toISOString().slice(0, 10) }]} /></MemoryRouter>);
-    expect(await screen.findByText(/Mul on kõht tühi\. Kas mäletad sõna/)).toBeInTheDocument();
     expect(container.querySelector('svg.pet.m-sad')).toBeNull();
-    expect(screen.getByRole('meter', { name: 'Kõht' })).toHaveAttribute('aria-valuenow', '0');
+    expect(await screen.findByRole('meter', { name: 'Kõht' })).toHaveAttribute('aria-valuenow', '0');
     fireEvent.click(screen.getByRole('button', { name: /Toida \(3 sõna\)/ }));
-    expect(screen.getByText('1 / 3')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Näita' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Teadsin' }));
-    await waitFor(() => expect(wordsService.review).toHaveBeenCalledWith(expect.objectContaining({ id: 'a' }), true));
+    expect(screen.getByLabelText('Kaardid')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Näita vastust' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Hea/ }));
+    await waitFor(() => expect(wordsService.rate).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(String) }), expect.objectContaining({ rating: 'good' })));
+    // the pet asks for nothing itself any more
+    expect(screen.queryByRole('button', { name: /Kordame|Mängime/ })).toBeNull();
   });
 
-  it('the word game cheers the pet up and stores only when it was played', async () => {
-    const words = [word('a', { dueAt: '2099-01-01' }), word('b', { dueAt: '2099-01-01' }), word('c', { dueAt: '2099-01-01' })];
-    const repository = { get: vi.fn().mockResolvedValue({ kind: 'kakk', name: 'Tark' }), update: vi.fn(async ({ current, ...flags }) => ({ ...current, ...flags })) };
+  it('„Paranda” is the practice lesson of his own sentences (both sources)', async () => {
+    const words = [word('s', { word: 'Ma lähen koju.', translation: 'Sinu lause: Ma lähen kodus.' })];
+    const repository = { get: vi.fn().mockResolvedValue({ kind: 'kakk', name: 'Tark' }), update: vi.fn(async ({ current, ...flags }) => ({ ...current, ...flags })), lessonStats: vi.fn().mockResolvedValue([{ practice: [{ said: 'Ta tuli kool.', corrected: 'Ta tuli kooli.' }] }]) };
     render(<MemoryRouter><PetCard user={{ uid: 'u1' }} repository={repository} words={words} /></MemoryRouter>);
-    expect(await screen.findByText('Mul on igav. Mängime sinu sõnadega?')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Toida/ })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: /^Mängi$/ }));
-    for (let i = 0; i < 3; i += 1) {
-      const options = screen.getByRole('group', { name: 'Vastused' }).querySelectorAll('button');
-      fireEvent.click(options[0]);
-      fireEvent.click(screen.getByRole('button', { name: 'Edasi' }));
-    }
-    expect(await screen.findByText(/Mäng läbi!/)).toBeInTheDocument();
-    await waitFor(() => expect(repository.update).toHaveBeenCalledWith(expect.objectContaining({ uid: 'u1', playedAt: expect.any(String) })));
-    fireEvent.click(screen.getByRole('button', { name: 'Sulge' }));
-    expect(await screen.findByRole('meter', { name: 'Rõõm' })).toHaveAttribute('aria-valuenow', '100');
+    fireEvent.click(await screen.findByRole('button', { name: /Paranda/ }));
+    expect(await screen.findByText('Paranda viga')).toBeInTheDocument();
   });
 
   it('parents and the staff preview see the needs without actions', async () => {
@@ -104,11 +91,8 @@ describe('PetCard care', () => {
 });
 
 describe('learning from the learner\'s own lesson sentences', () => {
-  it('„Paranda” rounds use the learner\'s sentences; the game also keeps joy up', async () => {
-    const { fixRounds, petNeeds: needsOf } = await import('./petCare.js');
-    const stats = [{ practice: [{ said: 'Mul on kaks vend.', corrected: 'Mul on kaks venda.' }, { said: 'Mul on kaks vend', corrected: 'Mul on kaks venda.' }] }];
-    const rounds = fixRounds(stats, () => 0.9);
-    expect(rounds).toEqual([{ answer: 'Mul on kaks venda.', options: ['Mul on kaks vend.', 'Mul on kaks venda.'] }]);
+  it('own lesson sentences keep joy playable', async () => {
+    const { petNeeds: needsOf } = await import('./petCare.js');
     expect(needsOf({ canFix: true, now: Date.parse('2026-10-10T10:00:00Z') }).canPlay).toBe(true);
     expect(needsOf({ canFix: true, now: Date.parse('2026-10-10T10:00:00Z') }).canWordGame).toBe(false);
   });

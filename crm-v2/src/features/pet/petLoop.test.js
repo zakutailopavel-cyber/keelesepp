@@ -1,16 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { petNeeds } from './petCare.js';
-import { dailySurprise, growthNews, isBackAfterAbsence, leftInWork, moodLabel, nextReward, petLevel, petRequest, requestDoneToday, requestWords, surpriseLines, thanksLine } from './petLoop.js';
+import { dailySurprise, growthNews, isBackAfterAbsence, leftInWork, moodLabel, nextReward, petLevel, playedToday, surpriseLines, thanksLine } from './petLoop.js';
 import { petProgress } from './petModel.js';
 
 describe('moodLabel', () => {
-  it('glad after today\'s request, proud of a great week, the low need it asks for, else calm; never sad', () => {
-    const request = { need: 'food' };
-    expect(moodLabel({ mood: 'calm', request, needs: { food: 10 }, done: true }).et).toBe('rõõmus');
-    expect(moodLabel({ mood: 'proud', request, needs: { food: 10 } }).et).toBe('uhke');
-    expect(moodLabel({ mood: 'calm', request, needs: { food: 10 } })).toMatchObject({ key: 'food', et: 'näljane', ru: 'голодный' });
-    expect(moodLabel({ mood: 'calm', request: { need: 'joy' }, needs: { joy: 5 } }).et).toBe('igavleb');
-    expect(moodLabel({ mood: 'calm', request, needs: { food: 80 } }).et).toBe('rahulik');
+  it('glad after today\'s learning, proud of a great week, else calm; never sad and never a need to fix (owner 2026-11-09)', () => {
+    expect(moodLabel({ mood: 'calm', done: true }).et).toBe('rõõmus');
+    expect(moodLabel({ mood: 'proud' }).et).toBe('uhke');
+    expect(moodLabel({ mood: 'calm' })).toMatchObject({ key: 'calm', et: 'rahulik', ru: 'спокоен' });
     expect(moodLabel({}).et).toBe('rahulik');
   });
 });
@@ -19,60 +16,33 @@ const NOW = new Date('2026-11-02T12:00:00').getTime();
 const today = '2026-11-02';
 const ago = (days) => new Date(NOW - days * 86400000).toISOString();
 const word = (id, extra = {}) => ({ id, word: id, translation: `t-${id}`, box: 1, reviews: 2, dueAt: ago(1), reviewedAt: ago(4), ...extra });
-const needs = (extra = {}) => ({ food: 100, energy: 100, joy: 100, dueWords: 0, openHomework: 0, canPlay: false, canWordGame: false, ...extra });
-const said = { practice: [{ said: 'Ma lähen kodus.', corrected: 'Ma lähen koju.' }] };
 
-describe('the one request', () => {
-  it('comes from the lowest need and names his own word', () => {
-    const request = petRequest({ needs: needs({ food: 10, joy: 60, dueWords: 3, canWordGame: true }), words: [word('koer'), word('kass'), word('maja')], now: NOW });
-    expect(request).toMatchObject({ need: 'food', kind: 'feed', button: 'Kordame 3 sõna' });
-    expect(request.text).toMatch(/Mul on kõht tühi\. Kas mäletad sõna „(koer|kass|maja)”\?/);
-    expect(request.hint).toMatch(/Я проголодался/);
+describe('the pet only rewards (owner 2026-11-09 „Täna”)', () => {
+  it('thanks after each step of „Täna” and at the end, in the language being learned with the Russian hint', () => {
+    expect(thanksLine('words').text).toBe('Aitäh! Sõnad on korratud.');
+    expect(thanksLine('sentences').text).toBe('Tubli! Laused tulevad juba paremini.');
+    expect(thanksLine('homework').text).toBe('Tubli! Ülesanne on tehtud.');
+    expect(thanksLine('finished')).toMatchObject({ text: 'Aitäh! Täna on kõik tehtud. Olen sinu üle uhke!', hint: 'Спасибо! Сегодня всё сделано. Я тобой горжусь!' });
+    expect(thanksLine('finished', 'en').text).toBe('Thank you! Everything is done today. I am proud of you!');
+    expect(thanksLine('something-else').text).toBe('Täna on mul kõik hästi. Aitäh!');
   });
 
-  it('asks for play when joy is the lowest, using his own sentence from a lesson when there is one', () => {
-    const request = petRequest({ needs: needs({ food: 90, joy: 5, dueWords: 3, canWordGame: true }), words: [word('koer')], stats: [said], now: NOW });
-    expect(request).toMatchObject({ need: 'joy', kind: 'fix' });
-    expect(request.text).toBe('Mäletan, tunnis ütlesid „Ma lähen kodus.”. Parandame koos?');
-    expect(petRequest({ needs: needs({ joy: 5, canWordGame: true }), now: NOW })).toMatchObject({ kind: 'game', text: 'Mul on igav. Mängime sinu sõnadega?' });
+  it('knows when it was played with today (Lemmik, any device)', () => {
+    expect(playedToday({ pet: { playedAt: ago(0) }, today })).toBe(true);
+    expect(playedToday({ pet: { playedAt: ago(1) }, today })).toBe(false);
+    expect(playedToday({ pet: null, today })).toBe(false);
   });
 
-  it('a need that is fine is asked for softly; a topic game when there are no words', () => {
-    expect(petRequest({ needs: needs({ joy: 70, canWordGame: true }), now: NOW }).text).toBe('Mängime sinu sõnadega?');
-    expect(petRequest({ needs: needs(), topics: [{ id: 'x', title: 'Minu pere' }], now: NOW })).toMatchObject({ kind: 'topic', text: 'Mängime teemal „Minu pere”?' });
-  });
-
-  it('homework is asked for only when nothing can be done here; with nothing at all there is no request', () => {
-    expect(petRequest({ needs: needs({ energy: 0, openHomework: 1, joy: 80, canWordGame: true }), now: NOW }).kind).toBe('game');
-    expect(petRequest({ needs: needs({ energy: 0, openHomework: 1 }), now: NOW })).toMatchObject({ kind: 'homework', to: '/homework' });
-    expect(petRequest({ needs: needs(), now: NOW })).toBeNull();
-  });
-
-  it('speaks the language being learned, with the Russian hint', () => {
-    const request = petRequest({ needs: needs({ joy: 5, canWordGame: true }), lang: 'en', now: NOW });
-    expect(request).toMatchObject({ lang: 'en', text: "I'm bored. Shall we play with your words?", hint: 'Мне скучно. Поиграем с твоими словами?' });
-  });
-
-  it('his own corrected sentences come first in a feeding', () => {
-    const cards = requestWords([word('a'), word('b'), word('c'), word('Ma lähen koju.', { translation: 'Sinu lause: x', box: 0 })], NOW);
-    expect(cards).toHaveLength(3);
-    expect(cards[0].word).toBe('Ma lähen koju.');
-  });
-
-  it('never asks twice a day: done by playing on any device or by repeating three words anywhere', () => {
-    expect(requestDoneToday({ pet: { playedAt: ago(0) }, today })).toBe(true);
-    expect(requestDoneToday({ pet: { playedAt: ago(1) }, today })).toBe(false);
-    expect(requestDoneToday({ pet: {}, words: [word('a', { reviewedAt: ago(0) }), word('b', { reviewedAt: ago(0) }), word('c', { reviewedAt: ago(0) })], today })).toBe(true);
-    expect(requestDoneToday({ pet: {}, words: [word('a', { reviewedAt: ago(0) })], today })).toBe(false);
-  });
-
-  it('after a feeding or a game the need is up at once (from the same data)', () => {
+  it('care needs still come from the same data (Lemmik)', () => {
     const words = [word('a'), word('b'), word('c')];
     expect(petNeeds({ words, now: NOW }).food).toBe(0);
     expect(petNeeds({ words: words.map((w) => ({ ...w, reviewedAt: ago(0) })), now: NOW }).food).toBe(100);
-    expect(petNeeds({ words: words.map((w) => ({ ...w, dueAt: ago(-3) })), now: NOW }).joy).toBe(0);
-    expect(petNeeds({ words: words.map((w) => ({ ...w, dueAt: ago(-3) })), playedAt: ago(0), now: NOW }).joy).toBe(100);
-    expect(thanksLine('feed').text).toBe('Aitäh! Nüüd on kõht täis.');
+  });
+
+  it('practice XP of „Täna” counts in the one level (capped per day elsewhere)', () => {
+    expect(petProgress({ practiceXp: 25, now: NOW }).xp).toBe(25);
+    expect(petLevel(petProgress({ practiceXp: 25, now: NOW }).xp)).toBe(3);
+    expect(petProgress({ practiceXp: -5, now: NOW }).xp).toBe(0);
   });
 });
 

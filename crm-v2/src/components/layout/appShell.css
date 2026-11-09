@@ -23,3 +23,33 @@
 .theme-menu__option:hover { background: var(--surface-soft); }
 .theme-menu__option.is-active { background: var(--green-soft); color: var(--green-text); }
 .theme-menu__option:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Collapsible desktop menu (useSidebarRail.js): „Ahenda menüü” shrinks the menu to a 76 px icon rail and the page takes the
+   freed width; hovering / focusing the rail slides the full menu out OVER the page (the page does not move). Phones (≤ 800 px)
+   keep the off-canvas menu — every rule below is desktop-only. Colours stay the sidebar's own (navy in both themes).
+   Motion: the global prefers-reduced-motion rule in index.css cuts these transitions to 0.01 ms. */
+@media (max-width: 800px) { .sidebar .sidebar-toggle { display: none; } }
+@media (min-width: 801px) {
+  .sidebar { transition: width .22s var(--ease-out), padding .22s var(--ease-out), box-shadow .22s var(--ease-out); }
+  .main-area { transition: margin-left .22s var(--ease-out); }
+  .sidebar .sidebar-toggle { display: inline-grid; place-items: center; width: 34px; height: 34px; margin-left: auto; flex: none; background: transparent; border-color: rgba(255, 255, 255, .12); color: #cbd5e1; box-shadow: none; }
+  .sidebar .sidebar-toggle:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+
+  .app-shell.is-collapsed .main-area { margin-left: 76px; }
+  .app-shell.is-collapsed .sidebar { overflow-x: hidden; }
+  .app-shell.is-collapsed .sidebar.is-peek { width: 284px; box-shadow: 24px 0 60px rgba(4, 14, 28, .38); }
+
+  /* the rail: icons only; the labels stay in the DOM (visually hidden), so every link keeps its accessible name */
+  .app-shell.is-collapsed .sidebar:not(.is-peek) { width: 76px; padding: 22px 12px; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .brand { flex-direction: column; gap: 10px; padding: 0 0 18px; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .sidebar-toggle { margin-left: 0; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) :is(.brand__text, .nav-label, .profile-chip__text) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) nav .nav-group,
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .theme-menu { display: none; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .nav-item { position: relative; justify-content: center; padding: 0; transform: none; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .nav-item .nav-count { position: absolute; top: 3px; right: 3px; min-width: 18px; height: 18px; padding: 0 5px; font-size: 10px; line-height: 18px; box-shadow: 0 0 0 2px #142538; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .profile-chip { flex-direction: column; gap: 8px; padding: 14px 0 0; }
+}
+@media (min-width: 801px) and (max-width: 1100px) {
+  .app-shell.is-collapsed .sidebar.is-peek { width: 264px; }
+}

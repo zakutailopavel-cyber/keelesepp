@@ -3,7 +3,7 @@
 // up to the daily cap, at most two of the student's own corrected sentences. Every answer moves the word's schedule
 // (studentWordsService.rate), so tomorrow's queue follows today's answers.
 import { deckFromWords } from './deckModel.js';
-import { buildQueue, DAILY_NEW } from './srs.js';
+import { buildQueue, DAILY_NEW, wordSrs } from './srs.js';
 import { localDate } from '../../utils/localDate.js';
 
 export { DAILY_NEW };
@@ -62,4 +62,25 @@ export function dailyPlan(words = [], { now = Date.now(), newPerDay = DAILY_NEW,
     // queue when it is shorter — as since 2026-10-23
     done: Math.min(5, queue.items.length + reviewedToday) > 0 && reviewedToday >= Math.min(5, queue.items.length + reviewedToday),
   };
+}
+
+// The pet's „Toida” (owner 2026-11-09: one card UI): the first FEED cards of today's queue, his own words only; when the
+// queue is empty, the due words by the summary fields (dailyWords) as plain et → meaning cards on their own schedule.
+export const FEED_CARDS = 3;
+export function feedingCards(words = [], { now = Date.now(), size = FEED_CARDS } = {}) {
+  const own = words.filter((word) => !isSentence(word));
+  const cards = dailyPlan(own, { now }).cards.slice(0, size);
+  if (cards.length) return cards;
+  return deckFromWords(dailyWords(own, { now, size })).map((card) => ({ ...card, key: `${card.id}:r`, dir: 'r', side: wordSrs(card.word, new Date(now)).r }));
+}
+
+// One answer on the spaced repetition schedule of his own word (course cards stay in memory). Never throws: practice goes on.
+export async function rateWord(service, words = [], item, rating, nextSide = null) {
+  if (!item?.word?.id || !service) return null;
+  const latest = words.find((word) => word.id === item.word.id) || item.word;
+  try {
+    if (typeof service.rate === 'function') return await service.rate(latest, { direction: item.dir || 'r', rating, nextSide });
+    if (typeof service.review === 'function') return await service.review(latest, rating !== 'again', item.dir || 'r');
+  } catch { /* the practice goes on */ }
+  return null;
 }

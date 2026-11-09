@@ -11,7 +11,7 @@ describe('application navigation roles', () => {
   });
 
   it('gives a pure student and a pure parent their own menu and keeps the full one for staff', () => {
-    expect(navigationFor(['student']).map((item) => item.label)).toEqual(['Täna', 'Ülesanded', 'Kursus', 'Sõnad', 'Suhtlus', 'Tahvel', 'Minu vead', 'Minu areng', 'Lemmik']);
+    expect(navigationFor(['student']).map((item) => item.label)).toEqual(['Täna', 'Harjuta', 'Ülesanded', 'Kursus', 'Sõnad', 'Suhtlus', 'Tahvel', 'Minu vead', 'Minu areng', 'Lemmik']);
     expect(navigationFor(['student'])).toBe(studentNavigation);
     expect(studentNavigation.map((item) => item.to)).toContain('/board');
     expect(navigationFor(['student', 'parent'])).toBe(navigation);

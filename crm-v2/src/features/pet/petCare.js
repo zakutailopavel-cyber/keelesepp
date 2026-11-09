@@ -1,7 +1,9 @@
 // Tamagotchi care: three needs that slowly run down and are filled only by learning.
 //   Kõht (food)   ← repeating words of „Minu sõnad” (3 fresh reviews = full; empties in 2 days)
 //   Energia       ← homework: full while nothing is open; open homework drains it from the last finished work
-//   Rõõm (joy)    ← an attended lesson (lasts a week) or today's request (`playedAt`, lasts 2 days; a game needs 3 words)
+//   Rõõm (joy)    ← an attended lesson (lasts a week) or playing in „Lemmik” (`playedAt`, lasts 2 days)
+// Since 2026-11-09 the care actions use the cabinet's one card UI (FlashcardSession) and the practice lesson
+// („Paranda”); the old word game (gameRounds), „Paranda” rounds (fixRounds) and the care phrases are gone.
 // A need is full when there is nothing to do for it (no words due, no open homework), so a student is never
 // punished for what the teacher did not give. The pet never dies; a low need only makes it ask.
 // Care never gives XP or stars (those come only from CRM data in petModel.js), so playing cannot be farmed.
@@ -11,7 +13,6 @@ import { isDue } from '../vocabulary/wordsModel.js';
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 export const FEED_WORDS = 3;
-export const GAME_ROUNDS = 4;
 export const LOW_NEED = 25;
 const FOOD_HOURS = 48;
 const ENERGY_DAYS = 5;
@@ -59,10 +60,6 @@ export function careMood(mood, needs) {
   return lowestNeed(needs) ? 'calm' : mood;
 }
 
-// words for feeding: the due ones first (oldest due first), at most FEED_WORDS
-export const feedingWords = (words = [], now = Date.now()) => words.filter((w) => isDue(w, now))
-  .sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt))).slice(0, FEED_WORDS);
-
 const playableWords = (words) => {
   const seen = new Set();
   return words.filter((w) => {
@@ -73,51 +70,3 @@ const playableWords = (words) => {
     return true;
   });
 };
-
-// The word game: GAME_ROUNDS questions „word → pick the translation (1 of 3)”. `random` is injectable for tests.
-export function gameRounds(words = [], random = Math.random) {
-  const pool = playableWords(words);
-  if (pool.length < 3) return [];
-  const shuffle = (list) => list.map((v) => [random(), v]).sort((a, b) => a[0] - b[0]).map(([, v]) => v);
-  return shuffle(pool).slice(0, GAME_ROUNDS).map((word) => ({
-    id: word.id,
-    word: word.word,
-    answer: word.translation,
-    options: shuffle([word.translation, ...shuffle(pool.filter((w) => w !== word)).slice(0, 2).map((w) => w.translation)]),
-  }));
-}
-
-const PHRASES = {
-  et: {
-    food: 'Mul on kõht tühi. Kordame kolm sõna?',
-    energy: 'Olen väsinud. Teeme ülesande ära?',
-    joy: 'Mul on igav. Mängime sõnamängu?',
-  },
-  ru: {
-    food: 'Я проголодался(ась). Повторим три слова?',
-    energy: 'Я устал(а). Сделаем домашку?',
-    joy: 'Мне скучно. Сыграем в игру со словами?',
-  },
-  en: {
-    food: "I'm hungry. Shall we repeat three words?",
-    energy: "I'm tired. Shall we do the homework?",
-    joy: "I'm bored. Shall we play the word game?",
-  },
-};
-
-export function careGreeting(need, lang = 'et') {
-  return { text: PHRASES[lang]?.[need] || PHRASES.et[need], hint: PHRASES.ru[need], lang };
-}
-
-// „Paranda”: the learner's own sentences from recent lessons (as said, and as the model corrected them) → rounds
-// „which one is right?”. `random` is injectable for tests.
-export function fixRounds(stats = [], random = Math.random) {
-  const seen = new Set();
-  const pairs = stats.flatMap((s) => s.practice || []).filter((p) => {
-    const key = String(p.corrected || '').toLocaleLowerCase('et');
-    if (!p.said || !p.corrected || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).slice(0, GAME_ROUNDS);
-  return pairs.map((p) => ({ answer: p.corrected, options: random() < 0.5 ? [p.corrected, p.said] : [p.said, p.corrected] }));
-}

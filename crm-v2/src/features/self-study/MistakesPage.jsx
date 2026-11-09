@@ -1,26 +1,33 @@
 import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { ArrowRight, Bookmark, Play, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
+import { lazyComponent } from '../../app/lazyComponent.js';
 import { Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { studentNotesService } from '../../services/firebase/studentNotes.js';
+import { petsService } from '../../services/firebase/pets.js';
 import { INK_BOX } from '../board/bookmarkModel.js';
 import { anchorLabel, quoteParts } from '../board/bookmarkAnchor.js';
 import { presenceService } from '../../services/firebase/presence.js';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
-import { buildReview, ownErrors } from './reviewModel.js';
+import { ownSentenceItems, ownSentencePairs } from '../practice/engine/ownSentences.js';
+import { rateWord } from '../vocabulary/dailyReview.js';
 import { readDone, saveDone } from './reviewStore.js';
-import ReviewDrill from './ReviewDrill.jsx';
 import './selfStudy.css';
+
+// the practice lesson (tiles, drag and drop) loads only when „Harjuta” is pressed
+const PracticeLesson = lazyComponent(() => import('../practice/PracticeLesson.jsx'));
+const DRILL_SIZE = 10;
 import { localDate } from '../../utils/localDate.js';
 
 /**
- * „Minu vead” (owner 2026-10-12: a student has four things to do — tasks, words, my mistakes, the pet): the sentences
- * the student said wrong in lessons (the teacher saves them with „Pärast tundi”, word cards „Sinu lause: …”). A short
- * drill — choose the right sentence, put it together — and the list „you said → right”.
+ * „Minu vead” (owner 2026-10-12; since 2026-11-09 a list under „Rohkem”, the daily practice is in „Täna”): the sentences
+ * the student said wrong in lessons — both sources in one list (the teacher's „Sinu lause” word cards and the corrected
+ * sentences of his recorded lessons, practice/engine/ownSentences.js). „Harjuta” runs the same practice lesson as „Täna”
+ * („Paranda viga”: build the right sentence); an answer moves a „Sinu lause” card on its schedule.
  */
 // a note from the board's „Järjehoidja / Kleebis”: handwriting (if any) and text on its paper colour
 function BoardNote({ note, canDelete, onDelete }) {
@@ -43,14 +50,22 @@ function BoardNote({ note, canDelete, onDelete }) {
   </article>;
 }
 
-export default function MistakesPage({ studentRepository = studentsService, wordsService = studentWordsService, practiceService = presenceService, notesService = studentNotesService }) {
+export default function MistakesPage({ studentRepository = studentsService, wordsService = studentWordsService, practiceService = presenceService, notesService = studentNotesService, petRepository = petsService }) {
   const { user, preview } = useAuth();
   const state = useAsyncData(async () => (preview?.studentId
     ? [await studentRepository.getById(preview.studentId)].filter(Boolean)
     : studentRepository.listSelf(user.uid)), [preview?.studentId, user.uid]);
   const students = useMemo(() => state.data || [], [state.data]);
   const words = useStudentWords(students.map((student) => student.id), wordsService);
-  const errors = useMemo(() => ownErrors(words), [words]);
+  // the corrected sentences of his recorded lessons (the pet's old „Paranda”), read once; a failed read leaves them out
+  const [stats, setStats] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    const load = preview?.studentId ? () => petRepository.lessonStatsForStudents?.([preview.studentId]) : () => petRepository.lessonStats?.(user?.uid);
+    Promise.resolve().then(load).then((list) => { if (alive) setStats(list || []); }).catch(() => {});
+    return () => { alive = false; };
+  }, [petRepository, preview?.studentId, user?.uid]);
+  const errors = useMemo(() => ownSentencePairs({ words, stats }), [words, stats]);
   // notes from lessons (the board's bookmarks), newest first; the same live, merged subscription as the words
   const noteList = useStudentWords(students.map((student) => student.id), notesService);
   const notes = useMemo(() => [...noteList].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))), [noteList]);
@@ -66,18 +81,24 @@ export default function MistakesPage({ studentRepository = studentsService, word
   if (state.loading) return <div className="page-content"><LoadingState label="Laen sinu vigu…" /></div>;
   if (state.error) return <div className="page-content"><ErrorState message={state.error.message || String(state.error)} onRetry={state.reload} /></div>;
   const today = localDate();
-  const start = () => setDrill({ run: Date.now(), tasks: buildReview({ errors, seed: Date.now() % 100000, size: 10 }) });
+  const start = () => setDrill({ run: Date.now(), items: ownSentenceItems(errors, { max: DRILL_SIZE, seed: Date.now() % 100000 }) });
+  const finish = (summary, results) => {
+    if (preview) return;
+    const pct = summary.total ? Math.round((summary.correct / summary.total) * 100) : 0;
+    setDone(saveDone(user?.uid, 'errors', { date: today, pct }));
+    // the teacher sees the result too (presence.js); a failed save keeps the result on this device
+    Promise.resolve().then(() => practiceService.savePractice(user?.uid, { date: today, pct })).catch(() => {});
+    results.forEach(({ item, verdict }) => {
+      const word = words.find((entry) => entry.id === item.wordId);
+      if (word) rateWord(wordsService, words, { word, dir: 'r' }, verdict === 'wrong' ? 'again' : 'good');
+    });
+  };
 
   if (drill) {
     return <div className="page-content">
-      <ReviewDrill key={drill.run} title="Minu vead" tasks={drill.tasks}
-        onFinish={(pct) => {
-          if (preview) return;
-          setDone(saveDone(user?.uid, 'errors', { date: today, pct }));
-          // the teacher sees the result too (presence.js); a failed save keeps the result on this device
-          Promise.resolve().then(() => practiceService.savePractice(user?.uid, { date: today, pct })).catch(() => {});
-        }}
-        onAgain={start} onClose={() => setDrill(null)} />
+      <Suspense fallback={<LoadingState label="Laen harjutust…" />}>
+        <PracticeLesson key={drill.run} items={drill.items} lang="ru" onExit={() => setDrill(null)} onRestart={start} onFinish={finish} />
+      </Suspense>
     </div>;
   }
 
@@ -86,11 +107,11 @@ export default function MistakesPage({ studentRepository = studentsService, word
   return <div className="page-content">
     <PageHeader title="Minu vead" description={<>Laused, mida ütlesid tunnis valesti. Harjuta neid, kuni need tulevad õigesti.<span lang="ru"> · Твои фразы с урока, которые можно потренировать.</span></>} />
     {errors.length ? <section className="ss-hero" aria-label="Harjuta vigu">
-      <div><span className="eyebrow">{last?.date === today ? `Täna tehtud · ${last.pct}%` : 'Harjuta'}</span><h2>{errors.length} lauset tundidest</h2><p>Vali õige lause ja pane lause kokku · umbes 5 minutit</p></div>
-      <Button onClick={start}><Play size={18} /> Alusta</Button>
+      <div><span className="eyebrow">{last?.date === today ? `Täna tehtud · ${last.pct}%` : 'Harjuta'}</span><h2>{errors.length} {errors.length === 1 ? 'lause' : 'lauset'} tundidest</h2><p>Pane õige lause kokku · umbes 5 minutit</p></div>
+      <Button onClick={start}><Play size={18} /> Harjuta</Button>
     </section> : null}
     <Card>
-      {errors.length ? <div className="simple-list">{errors.map((item) => <div key={item.corrected}>
+      {errors.length ? <div className="simple-list" aria-label="Sinu laused">{errors.map((item) => <div key={item.corrected}>
         <div><span className="ss-muted">{item.said}</span><strong><ArrowRight size={14} aria-hidden="true" /> {item.corrected}</strong></div>
       </div>)}</div> : <EmptyState title="Vigu veel ei ole" description="Pärast tundi lisab õpetaja siia laused, mida ütlesid valesti. Siis saad neid harjutada." />}
     </Card>

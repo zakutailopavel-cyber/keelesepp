@@ -1,9 +1,15 @@
 import { Gamepad2, Moon, Puzzle, SpellCheck, Utensils } from 'lucide-react';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { Link } from 'react-router-dom';
-import WordPractice from '../vocabulary/WordPractice.jsx';
+import { lazyComponent } from '../../app/lazyComponent.js';
+import FlashcardSession from '../vocabulary/FlashcardSession.jsx';
+import { feedingCards, rateWord } from '../vocabulary/dailyReview.js';
+import { ownSentenceItems, ownSentencePairs } from '../practice/engine/ownSentences.js';
 import PetGames from './PetGames.jsx';
-import { FEED_WORDS, feedingWords, fixRounds, gameRounds } from './petCare.js';
+import { FEED_WORDS } from './petCare.js';
+
+// the practice lesson (tiles, drag and drop) loads only when „Paranda” is opened
+const PracticeLesson = lazyComponent(() => import('../practice/PracticeLesson.jsx'));
 
 const NEEDS = [
   { key: 'food', label: 'Kõht', Icon: Utensils },
@@ -11,80 +17,18 @@ const NEEDS = [
   { key: 'joy', label: 'Rõõm', Icon: Gamepad2 },
 ];
 
-/** Word game: GAME_ROUNDS questions „word → translation”, nothing is written to the word list. */
-export function PetGame({ words, onDone, onClose }) {
-  const [rounds] = useState(() => gameRounds(words));
-  const [index, setIndex] = useState(0);
-  const [picked, setPicked] = useState('');
-  const [right, setRight] = useState(0);
-  const round = rounds[index];
-  if (!round) {
-    return <div className="vw-practice" role="status">
-      <p><strong>Mäng läbi!</strong> Õigeid vastuseid: {right} / {rounds.length}.</p>
-      <button type="button" className="vw-btn" onClick={onClose}>Sulge</button>
-    </div>;
-  }
-  const next = () => {
-    const ok = picked === round.answer;
-    const total = right + (ok ? 1 : 0);
-    setRight(total);
-    setPicked('');
-    setIndex(index + 1);
-    if (index + 1 === rounds.length) onDone?.(total);
-  };
-  return (
-    <div className="vw-practice pet-game" aria-label="Sõnamäng">
-      <small className="vw-muted">{index + 1} / {rounds.length} · Mis see on?</small>
-      <div className="vw-card"><strong>{round.word}</strong></div>
-      <div className="pet-game__options" role="group" aria-label="Vastused">
-        {round.options.map((option) => {
-          const state = picked ? (option === round.answer ? 'is-right' : option === picked ? 'is-wrong' : '') : '';
-          return <button type="button" key={option} className={`vw-btn ${state}`} disabled={Boolean(picked)} onClick={() => setPicked(option)}>{option}</button>;
-        })}
-      </div>
-      {picked ? <div className="vw-actions"><span role="status" className={picked === round.answer ? 'vw-right' : 'vw-wrong'}>{picked === round.answer ? 'Õige!' : `Õige: ${round.answer}`}</span><button type="button" className="vw-btn is-primary" onClick={next}>Edasi</button></div> : null}
-    </div>
-  );
-}
-
-/** „Paranda”: the learner's own sentences from his lessons — which one is right? Nothing is written but the play time. */
-export function PetFixGame({ stats, onDone, onClose }) {
-  const [rounds] = useState(() => fixRounds(stats));
-  const [index, setIndex] = useState(0);
-  const [picked, setPicked] = useState('');
-  const [right, setRight] = useState(0);
-  const round = rounds[index];
-  if (!round) {
-    return <div className="vw-practice" role="status">
-      <p><strong>Tubli!</strong> Õigeid vastuseid: {right} / {rounds.length}. Need olid sinu enda laused tunnist.</p>
-      <button type="button" className="vw-btn" onClick={onClose}>Sulge</button>
-    </div>;
-  }
-  const next = () => {
-    const total = right + (picked === round.answer ? 1 : 0);
-    setRight(total); setPicked(''); setIndex(index + 1);
-    if (index + 1 === rounds.length) onDone?.(total);
-  };
-  return (
-    <div className="vw-practice pet-game" aria-label="Paranda">
-      <small className="vw-muted">{index + 1} / {rounds.length} · Sa ütlesid tunnis midagi sellist. Kumb lause on õige?</small>
-      <div className="pet-game__options is-sentences" role="group" aria-label="Laused">
-        {round.options.map((option) => {
-          const state = picked ? (option === round.answer ? 'is-right' : option === picked ? 'is-wrong' : '') : '';
-          return <button type="button" key={option} className={`vw-btn ${state}`} disabled={Boolean(picked)} onClick={() => setPicked(option)}>{option}</button>;
-        })}
-      </div>
-      {picked ? <div className="vw-actions"><span role="status" className={picked === round.answer ? 'vw-right' : 'vw-wrong'}>{picked === round.answer ? 'Õige!' : `Õige: ${round.answer}`}</span><button type="button" className="vw-btn is-primary" onClick={next}>Edasi</button></div> : null}
-    </div>
-  );
-}
-
-/** The three needs with their care actions (read-only for parents and the staff preview). */
-export default function PetCare({ needs, words, wordsService, readOnly = false, onPlayed, stats = [], topics = [], kind = 'siil' }) {
-  const canFix = fixRounds(stats).length > 0;
+/**
+ * The three needs with their care actions (read-only for parents and the staff preview). One card UI (owner 2026-11-09):
+ * „Toida” is the same flashcards as „Sõnad” and „Täna” and moves the words on their schedule; „Paranda” is the same
+ * practice lesson as „Täna”, made of his own wrong sentences (both sources). The topic games stay games.
+ */
+export default function PetCare({ needs, words, wordsService, readOnly = false, onPlayed, stats = [], topics = [], kind = 'siil', language = '' }) {
+  const own = ownSentencePairs({ words, stats });
   const [mode, setMode] = useState('');
   const [feed, setFeed] = useState([]);
+  const [fix, setFix] = useState([]);
   const close = () => setMode('');
+  const played = () => { onPlayed?.(); };
   return (
     <div className="pet-care">
       <div className="pet-needs">
@@ -96,18 +40,16 @@ export default function PetCare({ needs, words, wordsService, readOnly = false, 
         ))}
       </div>
       {readOnly ? null : <>
-        {mode === 'feed' ? <WordPractice words={feed} service={wordsService} onClose={close} />
-          : mode === 'play' ? <PetGame words={words} onDone={onPlayed} onClose={close} />
-          : mode === 'fix' ? <PetFixGame stats={stats} onDone={onPlayed} onClose={close} />
+        {mode === 'feed' ? <FlashcardSession cards={feed} language={language} onRate={(item, rating, nextSide) => rateWord(wordsService, words, item, rating, nextSide)} onFinish={played} onClose={close} closeLabel="Valmis" />
+          : mode === 'fix' ? <Suspense fallback={null}><PracticeLesson items={fix} lang="ru" onExit={close} onFinish={(summary, results) => { played(); results.forEach(({ item, verdict }) => { const word = words.find((entry) => entry.id === item.wordId); if (word) rateWord(wordsService, words, { word, dir: 'r' }, verdict === 'wrong' ? 'again' : 'good'); }); }} /></Suspense>
           : mode === 'topics' ? <PetGames topics={topics} kind={kind} onDone={onPlayed} onClose={close} />
           : <div className="pet-care__actions">
-            <button type="button" className="pet-btn" disabled={!needs.dueWords} onClick={() => { setFeed(feedingWords(words)); setMode('feed'); }}>
+            <button type="button" className="pet-btn" disabled={!needs.dueWords} onClick={() => { setFeed(feedingCards(words)); setMode('feed'); }}>
               <Utensils size={14} aria-hidden="true" /> Toida ({Math.min(FEED_WORDS, needs.dueWords)} sõna)
             </button>
             {needs.openHomework ? <Link className="pet-btn" to="/homework"><Moon size={14} aria-hidden="true" /> Kodutöö ({needs.openHomework})</Link> : null}
-            {needs.canWordGame ?? needs.canPlay ? <button type="button" className="pet-btn" onClick={() => setMode('play')}><Gamepad2 size={14} aria-hidden="true" /> Mängi</button> : null}
             {topics.length ? <button type="button" className="pet-btn" onClick={() => setMode('topics')}><Puzzle size={14} aria-hidden="true" /> Teemamängud</button> : null}
-            {canFix ? <button type="button" className="pet-btn" onClick={() => setMode('fix')}><SpellCheck size={14} aria-hidden="true" /> Paranda</button> : null}
+            {own.length ? <button type="button" className="pet-btn" onClick={() => { setFix(ownSentenceItems(own, { seed: Date.now() })); setMode('fix'); }}><SpellCheck size={14} aria-hidden="true" /> Paranda</button> : null}
           </div>}
       </>}
     </div>
