@@ -1,5 +1,6 @@
 import { arrayUnion, collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { dismissalEntry, errorKey, feedbackEntry } from '../../features/lesson-recording/errorReview.js';
 
