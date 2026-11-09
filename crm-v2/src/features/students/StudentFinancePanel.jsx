@@ -1,13 +1,10 @@
-import { ArrowRight, CalendarClock, CircleCheck, Clock3, ReceiptText, WalletCards } from "lucide-react";
+import { ArrowRight, Clock3, ReceiptText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge, Card, EmptyState } from "../../components/ui/index.js";
+import MetricCard, { MoneyValue } from "../../components/charts/MetricCard.jsx";
 import { invoiceBalanceCents, isInvoiceOverdue } from "./studentFinance.js";
 import "./studentFinancePanel.css";
 
-const money = (cents) =>
-  new Intl.NumberFormat("et-EE", { style: "currency", currency: "EUR" }).format(
-    Number(cents || 0) / 100,
-  );
 const dateLabel = (value) =>
   value
     ? new Date(`${String(value).slice(0, 10)}T12:00:00`).toLocaleDateString("et-EE")
@@ -69,19 +66,20 @@ export default function StudentFinancePanel({ student, invoices = [] }) {
         </Link>
       </div>
 
+      {/* the same card style as Finantsid „Ülevaade” (components/charts/MetricCard), compact */}
       <div className="student-finance-metrics">
-        <div><span><ReceiptText size={18} /> Arveid</span><strong>{money(issuedCents)}</strong><small>{sorted.length} arvet kokku</small></div>
-        <div><span><CircleCheck size={18} /> Makstud</span><strong>{money(paidCents)}</strong><small>registreeritud laekumised</small></div>
-        <div><span><WalletCards size={18} /> Tasumata</span><strong>{money(balanceCents)}</strong><small>{overdueCount} tähtaja ületanud</small></div>
-        <div><span><CalendarClock size={18} /> Järgmine tähtaeg</span><strong>{dateLabel(nextDue)}</strong><small>{nextDue ? "avatud arvete põhjal" : "avatud arveid ei ole"}</small></div>
+        <MetricCard compact title="Arveldatud" cents={issuedCents} caption={`${sorted.length} ${sorted.length === 1 ? "arve" : "arvet"} kokku`} />
+        <MetricCard compact title="Makstud" cents={paidCents} caption="registreeritud laekumised" />
+        <MetricCard compact title="Tasumata" cents={balanceCents} className={overdueCount ? "student-finance-metrics__alert" : ""} caption={overdueCount ? `${overdueCount} tähtaja ületanud` : "tähtaja ületanud arveid ei ole"} />
+        <MetricCard compact title="Järgmine tähtaeg" value={dateLabel(nextDue)} caption={nextDue ? "avatud arvete põhjal" : "avatud arveid ei ole"} />
       </div>
 
       {sorted.length ? (
         <div className="student-invoice-history">
-          <div className="student-invoice-history__head"><span>Arve</span><span>Kuupäev</span><span>Summa</span><span>Jääk</span><span>Staatus</span></div>
+          <div className="student-invoice-history__head"><span>Arve</span><span>Kuupäev</span><span className="student-invoice-history__num">Summa</span><span className="student-invoice-history__num">Jääk</span><span>Staatus</span></div>
           {sorted.slice(0, 12).map((invoice) => {
             const status = statusMeta(invoice);
-            return <div key={invoice.id || invoiceNumber(invoice)}><strong>{invoiceNumber(invoice)}</strong><span>{dateLabel(invoice.date || invoice.createdAt)}</span><span>{money(invoiceAmountCents(invoice))}</span><span>{money(invoiceBalanceCents(invoice))}</span><Badge tone={status.tone}>{status.label}</Badge></div>;
+            return <div key={invoice.id || invoiceNumber(invoice)}><strong>{invoiceNumber(invoice)}</strong><span>{dateLabel(invoice.date || invoice.createdAt)}</span><span className="student-invoice-history__num"><MoneyValue cents={invoiceAmountCents(invoice)} /></span><span className="student-invoice-history__num"><MoneyValue cents={invoiceBalanceCents(invoice)} /></span><Badge tone={status.tone}>{status.label}</Badge></div>;
           })}
         </div>
       ) : (
