@@ -1,5 +1,5 @@
 /* „Õpi ise” (owner 2026-10-12): the course on one's own */
-.ss-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 6px 10px; border: 0; border-radius: 10px; background: transparent; color: #475467; font: inherit; font-weight: 700; cursor: pointer; }
+.ss-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 6px 10px; border: 0; border-radius: var(--radius-md); background: transparent; color: #475467; font: inherit; font-weight: 700; cursor: pointer; }
 .ss-back:hover { background: #f2f4f7; }
 .ss-hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; padding: 22px 24px; border-radius: 20px; background: linear-gradient(120deg, #1d4f91 0%, #3b6fd8 100%); color: #fff; box-shadow: 0 14px 34px rgba(29, 79, 145, .25); }
 .ss-hero .eyebrow { color: rgba(255,255,255,.8); }
@@ -10,7 +10,7 @@
 .ss-module summary { display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-weight: 700; cursor: pointer; }
 .ss-module summary small { margin-left: auto; color: #667085; font-weight: 600; }
 .ss-lessons { display: grid; gap: 6px; margin: 6px 0 4px 24px; }
-.ss-lesson { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; border: 1px solid #e4e7ec; border-radius: 12px; background: #fff; color: #182230; font: inherit; text-align: left; cursor: pointer; }
+.ss-lesson { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; border: 1px solid #e4e7ec; border-radius: var(--radius-lg); background: #fff; color: #182230; font: inherit; text-align: left; cursor: pointer; }
 .ss-lesson:hover { border-color: #84adff; background: #f5f8ff; }
 .ss-lesson > span:first-child { flex: 1; min-width: 0; }
 .ss-lesson.is-done { background: #f0faf6; border-color: #a6e3cc; }
@@ -19,26 +19,26 @@
 .ss-dots i.is-started { background: #f5b301; }
 .ss-dots i.is-done { background: #12b76a; }
 .ss-steps { display: grid; gap: 12px; max-width: 720px; }
-.ss-step { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid #e4e7ec; border-radius: 16px; background: #fff; }
-.ss-step__num { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: #eef4ff; color: #1d4f91; font-weight: 800; }
+.ss-step { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid #e4e7ec; border-radius: var(--radius-xl); background: #fff; }
+.ss-step__num { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-lg); background: #eef4ff; color: #1d4f91; font-weight: 800; }
 .ss-step div { display: grid; gap: 2px; }
 .ss-step small { color: #667085; }
 .ss-step.is-done { border-color: #a6e3cc; background: #f0faf6; }
 .ss-step.is-done .ss-step__num { background: #12b76a; color: #fff; }
 .ss-step.is-started { border-color: #f5c26b; background: #fffaf0; }
-.ss-btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border: 0; border-radius: 12px; background: #1d4f91; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.ss-btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border: 0; border-radius: var(--radius-lg); background: #1d4f91; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
 .ss-btn:disabled { opacity: .45; cursor: default; }
 @media (max-width: 560px) { .ss-lessons { margin-left: 0; } .ss-step { grid-template-columns: auto minmax(0, 1fr); } .ss-step .ss-btn { grid-column: 1 / -1; justify-content: center; } }
 
 /* „Kordamine” (owner 2026-10-12): one task at a time, big buttons, works on a phone */
 .ss-muted { margin: 4px 0 0; color: #667085; }
 .ss-lesson small { display: block; color: #667085; font-size: 13px; }
-.ss-badge { padding: 3px 10px; border-radius: 999px; background: #eef4ff; color: #1d4f91; font-size: 13px; font-weight: 700; }
+.ss-badge { padding: 3px 10px; border-radius: var(--radius-pill); background: #eef4ff; color: #1d4f91; font-size: 13px; font-weight: 700; }
 .ss-lesson.is-done .ss-badge { background: #12b76a; color: #fff; }
 .ss-btn--ghost { background: #f2f4f7; color: #344054; }
 .ss-drill { max-width: 640px; margin: 0 auto; padding: 22px 22px 26px; border: 1px solid #e4e7ec; border-radius: 22px; background: #fff; box-shadow: 0 10px 30px rgba(16, 24, 40, .06); }
 .ss-drill__top { display: flex; justify-content: space-between; gap: 12px; color: #475467; }
-.ss-drill__bar { height: 6px; margin: 10px 0 18px; border-radius: 999px; background: #f2f4f7; overflow: hidden; }
+.ss-drill__bar { height: 6px; margin: 10px 0 18px; border-radius: var(--radius-pill); background: #f2f4f7; overflow: hidden; }
 .ss-drill__bar i { display: block; height: 100%; background: #12b76a; transition: width .25s; }
 .ss-drill__label { margin: 0; color: #667085; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: .04em; }
 .ss-drill__ask { margin: 6px 0 18px; font-size: clamp(22px, 5vw, 30px); line-height: 1.2; }
@@ -70,18 +70,18 @@
 
 /* „Minu kursus” (StudentCoursePage) */
 .course-levels { display: flex; flex-wrap: wrap; gap: 6px; }
-.course-levels button { border: 1px solid #d0d5dd; background: #fff; border-radius: 999px; padding: 5px 12px; font: inherit; font-weight: 700; cursor: pointer; }
+.course-levels button { border: 1px solid #d0d5dd; background: #fff; border-radius: var(--radius-pill); padding: 5px 12px; font: inherit; font-weight: 700; cursor: pointer; }
 .course-levels button.is-active { background: #0b5c4d; border-color: #0b5c4d; color: #fff; }
 .course-next { display: grid; gap: 8px; justify-items: start; }
 .course-next h2 { margin: 0; }
 .course-module__head { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; }
 .course-module__head span { margin-left: auto; color: #667085; font-size: .85rem; }
 .course-lessons { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
-.course-lessons li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 12px; background: #f9fafb; }
+.course-lessons li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: var(--radius-lg); background: #f9fafb; }
 .course-lessons li.is-next { background: #ecfdf3; }
 .course-lesson__title { font-weight: 600; font-size: .9rem; }
 .course-phases { display: flex; flex-wrap: wrap; gap: 6px; }
-.course-phase { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e4e7ec; background: #fff; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: .8rem; cursor: pointer; }
+.course-phase { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e4e7ec; background: #fff; border-radius: var(--radius-pill); padding: 4px 10px; font: inherit; font-size: .8rem; cursor: pointer; }
 .course-phase:disabled { cursor: default; opacity: .6; }
 .course-phase.is-done { color: #067647; border-color: #abefc6; background: #ecfdf3; }
 .course-phase.is-started { color: #b54708; border-color: #fedf89; }
@@ -92,8 +92,8 @@
 .ss-notes { display: grid; gap: 10px; margin-top: 18px; }
 .ss-notes h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.1rem; }
 .ss-notes__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-.ss-note { display: grid; gap: 6px; padding: 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(28, 43, 58, .12); color: #1c2b3a; }
+.ss-note { display: grid; gap: 6px; padding: 12px; border-radius: var(--radius-md); box-shadow: 0 2px 8px rgba(28, 43, 58, .12); color: #1c2b3a; }
 .ss-note svg { width: 100%; height: auto; aspect-ratio: 320 / 200; }
 .ss-note p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .ss-note footer { display: flex; align-items: center; gap: 6px; font-size: .78rem; color: #475467; }
-.ss-note footer button { margin-left: auto; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 8px; background: rgba(255, 255, 255, .6); cursor: pointer; }
+.ss-note footer button { margin-left: auto; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: var(--radius-sm); background: rgba(255, 255, 255, .6); cursor: pointer; }

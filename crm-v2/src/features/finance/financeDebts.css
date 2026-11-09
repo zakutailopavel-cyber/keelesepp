@@ -17,7 +17,7 @@
 .finance-debts__credit-lines { display: grid; gap: 8px; margin: 16px 0; }
 .finance-debts__credit-lines p { margin: 0; color: #71807b; }
 .finance-debts__credit-lines label { display: block; }
-.finance-debts__credit-lines .finance-debts__credit-note { padding: 10px 12px; border-radius: 10px; background: #f5f7f5; }
+.finance-debts__credit-lines .finance-debts__credit-note { padding: 10px 12px; border-radius: var(--radius-md); background: #f5f7f5; }
 /* 375 px: each debt is a card — no sideways scrolling (PR #368) */
 @media (max-width: 680px) {
   .finance-debts__heading { align-items: stretch; flex-direction: column; padding: 20px 16px; }
@@ -30,14 +30,14 @@
   .finance-debts__actions .button { flex: 1 1 auto; justify-content: center; }
 }
 .finance-debts__whole-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.invoice-correction__summary { margin: 14px 0; padding: 12px 14px; border-radius: 10px; background: #f5f7f5; }
+.invoice-correction__summary { margin: 14px 0; padding: 12px 14px; border-radius: var(--radius-md); background: #f5f7f5; }
 .invoice-correction__summary ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; }
 .invoice-correction__hint { margin: 8px 0 0; color: #9a3b31; font-weight: 700; }
 .invoice-correction__confirm { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0; }
 /* age of the debts and the total per family (audit 2026-11-09) */
 .finance-debts__summary { display: grid; gap: 12px; padding: 0 26px 18px; }
 .finance-debts__ages { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.finance-debts__ages li { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; border: 1px solid #edf0ed; background: #f8faf9; }
+.finance-debts__ages li { display: grid; gap: 2px; padding: 12px 14px; border-radius: var(--radius-lg); border: 1px solid #edf0ed; background: #f8faf9; }
 .finance-debts__ages li span { color: #73817d; font-size: .74rem; font-weight: 800; text-transform: uppercase; }
 .finance-debts__ages li strong { font-size: 1.1rem; }
 .finance-debts__ages li small { color: #81908b; }
@@ -47,7 +47,7 @@
 .finance-debts__ages li.is-empty { opacity: .55; }
 .finance-debts__payers summary { cursor: pointer; font-weight: 800; color: #176553; padding: 6px 0; }
 .finance-debts__payers ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }
-.finance-debts__payers li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 9px 12px; border-radius: 10px; background: #f8faf9; }
+.finance-debts__payers li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 9px 12px; border-radius: var(--radius-md); background: #f8faf9; }
 .finance-debts__payers li small { display: block; color: #81908b; }
 .finance-debts__payers li > span:nth-child(2) { color: #73817d; font-size: .8rem; }
 @media (max-width: 680px) { .finance-debts__summary { padding: 0 16px 16px; } .finance-debts__ages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

@@ -6,17 +6,17 @@
 .rec-dot { width: 11px; height: 11px; border-radius: 50%; background: #f04438; box-shadow: 0 0 0 0 rgba(240,68,56,.5); animation: rec-pulse 1.4s infinite; display: inline-block; }
 @keyframes rec-pulse { 70% { box-shadow: 0 0 0 8px rgba(240,68,56,0); } 100% { box-shadow: 0 0 0 0 rgba(240,68,56,0); } }
 @media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
-.rec-indicator { display: inline-flex; gap: 8px; align-items: center; margin-top: 10px; padding: 6px 12px; border-radius: 999px; background: #fef3f2; color: #b42318; font-weight: 800; font-size: .85rem; }
+.rec-indicator { display: inline-flex; gap: 8px; align-items: center; margin-top: 10px; padding: 6px 12px; border-radius: var(--radius-pill); background: #fef3f2; color: #b42318; font-weight: 800; font-size: .85rem; }
 .modal.modal--transcript { width: min(900px, 96vw); }
 .transcript { display: grid; gap: 12px; }
 .transcript__tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
 .transcript__tools .field { flex: 1 1 220px; }
 .transcript__who { display: flex; gap: 4px; }
-.transcript__who button { border: 1px solid var(--border, #d0d5dd); background: #fff; border-radius: 999px; padding: 6px 12px; font-weight: 700; cursor: pointer; }
+.transcript__who button { border: 1px solid var(--border, #d0d5dd); background: #fff; border-radius: var(--radius-pill); padding: 6px 12px; font-weight: 700; cursor: pointer; }
 .transcript__who button[aria-pressed="true"] { background: #0b2a4f; color: #fff; border-color: #0b2a4f; }
 .transcript__stat { color: var(--muted); font-size: .82rem; }
 .transcript__lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 60vh; overflow: auto; }
-.transcript__lines li { display: grid; grid-template-columns: 48px 70px minmax(0, 1fr); gap: 8px; padding: 8px 10px; border-radius: 10px; background: #f8fafc; }
+.transcript__lines li { display: grid; grid-template-columns: 48px 70px minmax(0, 1fr); gap: 8px; padding: 8px 10px; border-radius: var(--radius-md); background: #f8fafc; }
 .transcript__lines li.is-student { background: #ecfdf3; }
 .transcript__lines time { color: var(--muted); font-size: .78rem; font-variant-numeric: tabular-nums; }
 .transcript__lines b { font-size: .8rem; }
@@ -26,7 +26,7 @@
 .lesson-rows__actions .button { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
 .lesson-analysis { display: grid; gap: 10px; margin-bottom: 14px; }
 .lesson-analysis__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 0; }
-.lesson-analysis__stats div { padding: 10px 12px; border: 1px solid var(--border, #e4e6f2); border-radius: 12px; }
+.lesson-analysis__stats div { padding: 10px 12px; border: 1px solid var(--border, #e4e6f2); border-radius: var(--radius-lg); }
 .lesson-analysis__stats dt { font-size: .78rem; color: var(--muted, #6b7091); }
 .lesson-analysis__stats dd { margin: 2px 0 0; font-weight: 700; }
 .lesson-analysis ul { margin: 4px 0 0; padding-left: 18px; }
@@ -46,16 +46,16 @@
 .lesson-ai header small { color: var(--muted, #6b7091); font-size: .75rem; }
 .lesson-ai p { margin: 0; }
 .lesson-ai__parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
-.lesson-ai__parts > div { padding: 8px 10px; border-radius: 10px; background: #fff; border: 1px solid var(--border, #e4e6f2); }
+.lesson-ai__parts > div { padding: 8px 10px; border-radius: var(--radius-md); background: #fff; border: 1px solid var(--border, #e4e6f2); }
 .lesson-ai__parts .is-good b { color: #067647; } .lesson-ai__parts .is-hard b { color: #b54708; } .lesson-ai__parts .is-next b { color: #175cd3; }
 .lesson-ai__parts ul { margin: 4px 0 0; padding-left: 18px; font-size: .9rem; }
 .lesson-ai__errors ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; }
-.lesson-ai__errors li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 8px; border-radius: 8px; background: #fff; }
+.lesson-ai__errors li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 8px; border-radius: var(--radius-sm); background: #fff; }
 .lesson-ai__errors time { color: var(--muted, #6b7091); font-size: .78rem; font-variant-numeric: tabular-nums; }
 .lesson-ai__errors s { color: #b42318; } .lesson-ai__errors ins { color: #067647; font-weight: 700; text-decoration: none; }
 .lesson-ai__errors small { color: #b54708; font-size: .72rem; }
 .lesson-rows__badges { display: inline-flex; flex-wrap: wrap; gap: 4px; }
-.lesson-ai__status { margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; background: #f2f4f7; color: #344054; font-size: .88rem; }
+.lesson-ai__status { margin: 0 0 10px; padding: 8px 12px; border-radius: var(--radius-md); background: #f2f4f7; color: #344054; font-size: .88rem; }
 .lesson-ai__status.is-running { background: #eff8ff; color: #175cd3; }
 .lesson-ai__status.is-running::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #2e90fa; animation: lesson-ai-pulse 1.2s infinite; vertical-align: 1px; }
 .lesson-ai__status.is-failed { background: #fef3f2; color: #b42318; }
@@ -63,9 +63,9 @@
 @media (prefers-reduced-motion: reduce) { .lesson-ai__status.is-running::before { animation: none; } }
 
 /* „Pärast tundi”: the learner's topics and the two next steps */
-.lesson-ai__after { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid #a6e3cc; border-radius: 12px; background: #f0faf6; }
+.lesson-ai__after { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid #a6e3cc; border-radius: var(--radius-lg); background: #f0faf6; }
 .lesson-ai__topics { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.lesson-ai__topics li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #fff; border: 1px solid #d0eadf; font-size: 13px; }
+.lesson-ai__topics li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-pill); background: #fff; border: 1px solid #d0eadf; font-size: 13px; }
 .lesson-ai__topics em { font-style: normal; color: #0b6b5a; font-weight: 700; }
 .lesson-ai__actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .lesson-ai__parent { display: grid; gap: 8px; margin-top: 8px; }
@@ -73,7 +73,7 @@
 /* „Areng tundide kaupa” (LessonTrendCard): one small line per number, then the table */
 .lesson-trend h2 { display: flex; align-items: center; gap: 8px; }
 .lesson-trend__tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 10px 0 14px; }
-.lesson-trend__tile { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--border, #e4e6f2); border-radius: 12px; min-width: 0; }
+.lesson-trend__tile { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--border, #e4e6f2); border-radius: var(--radius-lg); min-width: 0; }
 .lesson-trend__tile > span { font-size: .78rem; color: var(--muted, #667085); }
 .lesson-trend__tile strong { font-size: 1.25rem; color: #162033; font-variant-numeric: tabular-nums; }
 .lesson-trend__tile small { font-size: .74rem; color: var(--muted, #667085); }
@@ -93,7 +93,7 @@
 /* „Pole viga”: the teacher marks a flagged error as not an error */
 .lesson-ai__errors li.is-dismissed { opacity: .75; background: #f8fafc; }
 .lesson-ai__errors li.is-dismissed > span { text-decoration: line-through; text-decoration-color: #98a2b3; }
-.lesson-ai__notanerror { border: 1px solid var(--border, #d0d5dd); background: #fff; border-radius: 999px; padding: 2px 10px; font-size: .74rem; font-weight: 700; color: #344054; cursor: pointer; white-space: nowrap; }
+.lesson-ai__notanerror { border: 1px solid var(--border, #d0d5dd); background: #fff; border-radius: var(--radius-pill); padding: 2px 10px; font-size: .74rem; font-weight: 700; color: #344054; cursor: pointer; white-space: nowrap; }
 .lesson-ai__notanerror:hover { background: #f2f4f7; }
 .lesson-ai__dismiss-form { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: end; }
 .lesson-ai__dismiss-form .field { flex: 1 1 220px; }
@@ -102,15 +102,15 @@
 .lesson-ai__errors .lesson-ai__why { grid-column: 2 / -1; color: var(--muted, #667085); font-size: .74rem; }
 
 /* „Hetked” (LessonMoments.jsx): the teacher's marks from the room, the lesson's audio and its time line */
-.lesson-moments { display: grid; gap: 8px; margin: 10px 0; padding: 12px; border: 1px solid #e7e8f3; border-radius: 12px; background: #fbfbfe; }
+.lesson-moments { display: grid; gap: 8px; margin: 10px 0; padding: 12px; border: 1px solid #e7e8f3; border-radius: var(--radius-lg); background: #fbfbfe; }
 .lesson-moments header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .lesson-moments header small { color: var(--muted, #6b7091); }
 .lesson-moments__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.lesson-moments__list li { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 8px; border-radius: 8px; background: #fff; }
+.lesson-moments__list li { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 8px; border-radius: var(--radius-sm); background: #fff; }
 .lesson-moments__list time { color: var(--muted, #6b7091); font-size: .8rem; font-variant-numeric: tabular-nums; }
 .lesson-moments__list .is-empty { color: var(--muted, #6b7091); font-style: italic; }
 .lesson-moments__list small { color: var(--muted, #6b7091); font-size: .75rem; }
-.lesson-moments__jump { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid #d9dcec; border-radius: 999px; background: #fff; cursor: pointer; }
+.lesson-moments__jump { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid #d9dcec; border-radius: var(--radius-pill); background: #fff; cursor: pointer; }
 .lesson-moments__jump:hover { background: #eef0fa; }
 .lesson-moments__player { display: grid; gap: 8px; }
 .lesson-moments__player audio { width: 100%; }
@@ -124,7 +124,7 @@
 .lesson-moments__legend i.is-error { background: #e5484d; }
 
 /* „Koosta kodutöö vigadest” (ErrorHomework.jsx): the draft the teacher checks before sending */
-.error-homework { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid #c7d7fe; border-radius: 12px; background: #f5f8ff; }
+.error-homework { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid #c7d7fe; border-radius: var(--radius-lg); background: #f5f8ff; }
 .error-homework header { display: grid; gap: 2px; }
 .error-homework header small { color: var(--muted, #667085); }
 .error-homework__group h4 { margin: 0 0 6px; font-size: .9rem; }
