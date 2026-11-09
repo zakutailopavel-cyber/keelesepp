@@ -1,6 +1,7 @@
 import { Bot, Copy, KeyRound, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge, Button, Card, Input } from '../../components/ui/index.js';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { SHEET_BUILDER_URL, sheetBuilderKeysService } from '../../services/firebase/sheetBuilderKeys.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 
@@ -26,7 +27,7 @@ export default function SheetBuilderCard({ service = sheetBuilderKeysService }) 
     try { const made = await service.create(label); setFresh(made); await load(); } catch (err) { setError(firebaseErrorMessage(err)); } finally { setBusy(''); }
   };
   const revoke = async (item) => {
-    if (!globalThis.confirm(`Tühista võti „${item.label}”? GPT ei saa sellega enam lehti salvestada.`)) return;
+    if (!(await askConfirm(`Tühista võti „${item.label}”? GPT ei saa sellega enam lehti salvestada.`, { confirmLabel: 'Tühista võti', danger: true }))) return;
     setBusy(item.id); setError('');
     try { await service.revoke(item.id); await load(); } catch (err) { setError(firebaseErrorMessage(err)); } finally { setBusy(''); }
   };

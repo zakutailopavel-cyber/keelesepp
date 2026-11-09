@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../../components/ui/index.js';
+import { askConfirm } from '../../../components/ui/ConfirmHost.jsx';
 import { BLOCKS } from '../engine/registry.js';
 import { filterTemplates, PHASE_SHEETS, phaseLabel, targetLessons, TEMPLATE_KINDS } from '../sheetReuse.js';
 
@@ -104,7 +105,7 @@ export function TemplateDialog({ service, user, builtIns = [], lessonPage = fals
   }, [service]);
 
   const archive = async (template) => {
-    if (!globalThis.confirm(`Arhiveeri mall „${template.title}”? Seda ei näidata enam kellelegi.`)) return;
+    if (!(await askConfirm(`Arhiveeri mall „${template.title}”? Seda ei näidata enam kellelegi.`, { confirmLabel: 'Arhiveeri', danger: true }))) return;
     try {
       await service.archive(template.id, user);
       setList((items) => items.filter((item) => item.id !== template.id));

@@ -4,6 +4,7 @@ import { createBlock } from '../../worksheet-studio/engine/registry.js';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/AuthContext.jsx';
+import { askConfirm } from '../../../components/ui/ConfirmHost.jsx';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
 import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import { levelVocabularyService } from '../../../services/firebase/levelVocabulary.js';
@@ -55,7 +56,7 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
   const deps = () => ({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user, blockedSentences: (flags.data || []).map((f) => f.text) });
 
   const run = async (kind, task) => {
-    if (dirty && !globalThis.confirm(UNSAVED)) return;
+    if (dirty && !(await askConfirm(UNSAVED, { confirmLabel: 'Jätka', danger: true }))) return;
     setBusy(kind); setError(''); setNotice('');
     try {
       await task();
@@ -67,8 +68,8 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
     }
   };
 
-  const generate = () => {
-    if (!course.size && hasCore && !globalThis.confirm('Genereerimine loob kolmest põhitöölehest uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?')) return;
+  const generate = async () => {
+    if (!course.size && hasCore && !(await askConfirm('Genereerimine loob kolmest põhitöölehest uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?', { confirmLabel: 'Genereeri' }))) return;
     run('core', async () => {
       const { variant, docs = [] } = await generateCoreSheets({ ...deps(), onlyMissing: course.size > 0 });
       // the course's lesson rule (40–55 min a sheet): a short generated sheet is said to be an extra exercise
