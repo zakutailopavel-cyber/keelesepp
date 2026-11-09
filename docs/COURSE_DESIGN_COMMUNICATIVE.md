@@ -405,3 +405,9 @@ baseline `academicValueRound2Baseline.json`; round 1's gates and baseline are un
 | `av-fact-dup` | course (B1 + B2) | no key fact and no near-duplicate fact sentence (Jaccard ≥ 0.4 on 6-letter stems, ≥ 6 stems; numbers must overlap; 0.6 when only one side has a figure) in a second module |
 
 Round 2 also widens round 1's home-country cue (`HOME`) with the wordings above, so the opener gate accepts them.
+
+## 14. Design v3 „stations” (pilot, owner 2026-11-09)
+
+A module may opt in to independent 8–15-min stations instead of the three-phase template (B1 module 12 is the pilot);
+the contract, gates and skipped checks are in `docs/COURSE_DESIGN_STATIONS.md`. Modules without `design: 'v3-stations'` keep
+this file unchanged.

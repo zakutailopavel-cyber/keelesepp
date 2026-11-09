@@ -13,6 +13,7 @@ import { C1_LESSON_GOALS } from './c1/lessonGoals.js';
 import { EN_B2_LESSON_GOALS } from './en/b2/lessonGoals.js';
 import { withSheetLanguage } from './sheetLanguage.js';
 import { COURSE_NAMES, ENGLISH_COURSE_NAME } from '../../../curriculum/courseNames.js';
+import { STATIONS_DESIGN, teacherPage } from './stations.js';
 
 
 // display names by the target level (curriculum/courseNames.js, owner 2026-10-29): `label` = name · subtitle (admin
@@ -123,10 +124,18 @@ function withExplanations(blocks, explain) {
 // the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet where the sheet uses it, and
 // word strips (art/words) stand before the tasks that use those words;
 // listening blocks get their recorded audio (listeningAudio.json, tools/listening-audio)
+// design v3 „stations” (docs/COURSE_DESIGN_STATIONS.md) is opted in per module; the module's exam lesson keeps design v2
+// and the module's template (its exam parts are not stations)
+function lessonDesign(mod, lesson) {
+  if (mod.MODULE.design !== STATIONS_DESIGN) return { design: mod.MODULE.design, template: lesson.template || mod.MODULE.template };
+  return lesson.assessment ? { design: 'v2', template: lesson.template || mod.MODULE.template } : { design: STATIONS_DESIGN, template: '' };
+}
 export function buildCourseSheet(mod, lessonId, phase) {
   const lesson = mod.LESSONS[lessonId];
   if (!lesson?.[phase]) throw new Error(`${lessonId}: etappi ${phase} ei ole.`);
   const course = COURSES[mod.MODULE.course];
+  const { design, template } = lessonDesign(mod, lesson);
+  const stationLesson = design === STATIONS_DESIGN;
   return withWordStrips(withLessonArt({
     schema: 'keelesepp.worksheet/2',
     id: `ws_${lessonId}_${phase}`,
@@ -151,11 +160,13 @@ export function buildCourseSheet(mod, lessonId, phase) {
       // a check lesson (Kontroll): its Kasuta sheet is the exam's writing and speaking part (gates.js / depth.js)
       ...(lesson.assessment ? { assessment: true } : {}),
       // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): its own variety and depth norms
-      ...(mod.MODULE.design ? { design: mod.MODULE.design } : {}),
+      ...(design ? { design } : {}),
       // the sheet's language (default Estonian): Estonian-only checks (EKI word lists) skip other languages
       ...(mod.MODULE.language ? { language: mod.MODULE.language } : {}),
       // lesson template v3 (owner 2026-10-18, §11): 5–9 full tasks a sheet in a fixed lesson shape
-      ...(lesson.template || mod.MODULE.template ? { template: lesson.template || mod.MODULE.template } : {}),
+      ...(template ? { template } : {}),
+      // a station lesson's one teacher page (goal, stations with minutes, core 45-min path, alternative, short path, errors)
+      ...(stationLesson && lesson.teacherPage ? { teacherPage: teacherPage(lesson) } : {}),
       // the lesson's archetype and lead skills (docs/COURSE_FINAL_SHAPE_B1.md §4; blocks.js shape / withShapes): the
       // final-shape gates read them from the sheets
       ...(lesson.archetype ? { archetype: lesson.archetype } : {}),

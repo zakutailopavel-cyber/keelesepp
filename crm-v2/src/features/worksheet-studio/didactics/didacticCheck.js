@@ -7,6 +7,7 @@ import { groupItems } from '../engine/schema.js';
 import { BLOCKS } from '../engine/registry.js';
 import { HARNO, LEVELS, PHASE_TASKS, harnoFor, levelKey } from './levels.js';
 import { VOCABULARY_FOR, wordLevel } from './levelVocabulary.js';
+import { isStationSheet } from './stations.js';
 
 const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).filter(Boolean);
 // „Ma ärkan [hommikul|varakult] kell 7.” → the sentence as the learner will read it once solved
@@ -183,7 +184,9 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
   });
 
   // reading: length, number and kind of questions
-  tasks.filter((b) => b.type === 'reading').forEach((b) => {
+  // design v3 „stations” (docs/COURSE_DESIGN_STATIONS.md): every station has its own short input (≤ 120 words, checked by
+  // admin/course/stations.js), so the level's one long reading text is not a sheet norm there
+  tasks.filter((b) => b.type === 'reading' && !isStationSheet(doc)).forEach((b) => {
     const n = wordsIn(b.data?.passage);
     const [min, max] = norm.reading.words;
     add(`reading-len-${b.id}`, `${name(b)}: teksti pikkus`, n >= min && n <= max,
@@ -273,8 +276,11 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
   solvabilityChecks(tasks, { key, norm, name, add, english: doc?.meta?.language === 'en' });
 
   // instructions the learner reads alone
+  // the task's purpose line (admin/course/stations.js purpose(): „*who, for whom, what result*” before the instruction)
+  // is its own line, not part of the instruction the learner follows
+  const instructionOf = (b) => { const text = String(b.data?.instruction || ''); const lead = b.data?.purpose ? `*${b.data.purpose}*` : ''; return lead && text.startsWith(lead) ? text.slice(lead.length) : text; };
   tasks.forEach((b) => {
-    const n = wordsIn(b.data?.instruction);
+    const n = wordsIn(instructionOf(b));
     if (n > norm.instructionWords) add(`instruction-${b.id}`, `${name(b)}: juhise pikkus`, false, { detail: `${name(b)}: juhises on ${n} sõna — tasemel ${norm.label} kuni ~${norm.instructionWords}; ütle lühemalt.`, blockId: b.id });
   });
 
