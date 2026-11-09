@@ -1,6 +1,8 @@
-import { ArrowLeft, ArrowRight, BookOpenCheck, Check, ClipboardCheck, Layers, PencilLine, Puzzle, RotateCcw, Shuffle, Star, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpenCheck, ClipboardCheck, Layers, PencilLine, Puzzle, RotateCcw, Star } from 'lucide-react';
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { buildTest, checkAnswer, choices, learnedCount, learnStep, prompt, shuffle, startLearn } from './deckModel.js';
+import FlashcardSession from './FlashcardSession.jsx';
+import { wordSrs } from './srs.js';
 import { keyForms, useWordForms } from './wordForms.js';
 import { petReact } from '../pet/petEvents.js';
 import { languageToolsService } from '../../services/firebase/languageTools.js';
@@ -15,10 +17,11 @@ function Forms({ card }) {
 
 // The five ways to learn one deck (owner, 2026-10-10: like Quizlet). Each mode gets the deck, the direction
 // ('back' = the Estonian word is shown, the meaning is asked; 'front' = the other way) and two callbacks:
-// onResult(card, knew) for every answer (the student's own words move in their Leitner boxes), onMissed(cards) at the end.
+// onResult(card, knew, dir) for every answer (dir 'r' / 'p': the student's own words move on their spaced repetition
+// schedule, srs.js), onMissed(cards) at the end. „Kaardid” (2026-11-09) is the default: FlashcardSession on the schedule.
 export const STUDY_MODES = [
+  { id: 'cards', label: 'Kaardid', hint: 'Pööra ja hinda: Uuesti / Raske / Hea / Lihtne', icon: Layers },
   { id: 'learn', label: 'Õpi', hint: 'Valikvastused, siis kirjutamine', icon: BookOpenCheck },
-  { id: 'cards', label: 'Kaardid', hint: 'Pööra ja sorteeri', icon: Layers },
   { id: 'write', label: 'Kirjuta', hint: 'Kirjuta vastus ise', icon: PencilLine },
   { id: 'match', label: 'Sobita', hint: 'Leia paarid kiiresti', icon: Puzzle },
   { id: 'test', label: 'Test', hint: '10 küsimust', icon: ClipboardCheck },
@@ -58,50 +61,15 @@ function Progress({ value, total, label }) {
   return <div className="vs-progress" aria-label={label}><i style={{ width: `${total ? Math.round((value / total) * 100) : 0}%` }} /><span>{value}/{total}</span></div>;
 }
 
-function CardsMode({ deck, direction, onResult, onClose, onAddMissed }) {
-  const [order, setOrder] = useState(deck);
-  const [index, setIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [learning, setLearning] = useState([]);
-  const card = order[index];
-  const sort = (knew) => {
-    onResult?.(card, knew);
-    if (knew) petReact('correct');
-    if (!knew) setLearning((current) => [...current, card]);
-    setFlipped(false);
-    setIndex(index + 1);
-  };
-  if (!card) {
-    return <Done title={`Läbi! Tean ${order.length - learning.length}, õpin veel ${learning.length}.`} missed={learning} onAddMissed={onAddMissed} onClose={onClose}
-      onAgain={() => { setOrder(learning.length ? learning : deck); setIndex(0); setLearning([]); }} />;
-  }
-  const side = prompt(card, direction);
-  return (
-    <div className="vs-mode">
-      <CardKeys flip={() => setFlipped((value) => !value)} sort={sort} />
-      <Progress value={index} total={order.length} label="Kaardid" />
-      <button type="button" className={`vs-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(!flipped)} aria-label={flipped ? `Vastus: ${side.answer}` : `Küsimus: ${side.ask}. Vajuta, et pöörata`}>
-        <span>{flipped ? side.answer : side.ask}</span>
-        {(flipped ? side.answer : side.ask) === card.front ? <Forms card={card} /> : null}
-        <em>{flipped ? 'vastus' : 'vajuta, et pöörata'}</em>
-      </button>
-      <div className="vs-row">
-        <button type="button" className="vw-btn" disabled={!index} onClick={() => { setIndex(index - 1); setFlipped(false); }} aria-label="Eelmine kaart"><ArrowLeft size={16} /></button>
-        <button type="button" className="vw-btn is-warn" onClick={() => sort(false)}><X size={15} /> Õpin veel</button>
-        <button type="button" className="vw-btn is-primary" onClick={() => sort(true)}><Check size={15} /> Tean</button>
-        <button type="button" className="vw-btn" onClick={() => { setOrder(shuffle(order.slice(index)).concat()); setIndex(0); setFlipped(false); }} aria-label="Sega kaardid"><Shuffle size={16} /></button>
-      </div>
-    </div>
-  );
-}
-
-function CardKeys({ flip, sort }) {
-  useKeys((event) => {
-    if (event.key === ' ') { event.preventDefault(); flip(); }
-    if (event.key === '1') sort(false);
-    if (event.key === '2') sort(true);
-  }, [flip, sort]);
-  return <p className="vs-keys" aria-hidden="true">Tühik — pööra · 1 — õpin veel · 2 — tean</p>;
+// „Kaardid”: the daily queue (each card with its own direction and schedule) or the deck in the chosen direction; the
+// student's own words start from their stored schedule, course words from new (kept in memory only)
+function CardsMode({ deck, direction, queue, onRate, onClose, onAddMissed, language, nextDueAt }) {
+  const dictionary = useContext(FormsContext);
+  const cards = useMemo(() => queue || deck.map((card) => {
+    const dir = direction === 'back' ? 'r' : 'p';
+    return { ...card, key: `${card.id}:${dir}`, dir, side: card.word ? wordSrs(card.word)[dir] : null };
+  }), [queue, deck, direction]);
+  return <FlashcardSession cards={cards} dictionary={dictionary} language={language} onRate={onRate} onAddMissed={onAddMissed} onClose={onClose} nextDueAt={nextDueAt} />;
 }
 
 function AnswerField({ onSubmit, disabled }) {
@@ -291,35 +259,38 @@ function TestMode({ deck, direction, onResult, onClose, onAddMissed }) {
 
 const MODES = { cards: CardsMode, learn: LearnMode, write: WriteMode, match: MatchMode, test: TestMode };
 
-/** One deck: the modes as tabs on top (it opens in „Õpi”), the direction and the mode itself. */
-export default function StudySession({ deck, title, onResult, onAddMissed, onBack, onLearnDone, initialMode = '', formsService = languageToolsService }) {
-  const [mode, setMode] = useState(initialMode || (deck.length >= 4 ? 'learn' : 'cards'));
+/** One deck: the modes as tabs on top (it opens in „Kaardid”), the direction and the mode itself. `queue`: the daily
+ * spaced-repetition cards (each with `dir` and `side`), shown by „Kaardid” instead of the deck. */
+export default function StudySession({ deck, title, onResult, onRate, onAddMissed, onBack, onLearnDone, initialMode = '', queue = null, language = '', nextDueAt = '', formsService = languageToolsService }) {
+  const [mode, setMode] = useState(initialMode || 'cards');
   const [direction, setDirection] = useState('back');
   const Mode = MODES[mode];
   const dictionary = useWordForms(deck, formsService);
+  const fixedDirections = mode === 'cards' && Boolean(queue);
+  const result = (card, knew) => onResult?.(card, knew, direction === 'back' ? 'r' : 'p');
   return (
     <FormsContext.Provider value={dictionary}>
     <section className="vs-session" aria-label={`Õppimine: ${title}`}>
       <header className="vs-head">
         <button type="button" className="vw-btn is-ghost" onClick={onBack}><ArrowLeft size={15} /> Kogud</button>
-        <div className="vs-head__title"><strong>{title}</strong><small>{deck.length} kaarti</small></div>
-        <label className="vs-direction"><span>Küsin</span>
+        <div className="vs-head__title"><strong>{title}</strong><small>{queue && mode === 'cards' ? `${queue.length} kaarti täna` : `${deck.length} kaarti`}</small></div>
+        {fixedDirections ? null : <label className="vs-direction"><span>Küsin</span>
           <select value={direction} onChange={(event) => setDirection(event.target.value)} aria-label="Küsimuse suund">
             <option value="back">eesti keeles → tähendus</option>
             <option value="front">tähendus → eesti keeles</option>
           </select>
-        </label>
+        </label>}
       </header>
       <nav className="vs-tabs" aria-label="Õppimise viisid">
         {STUDY_MODES.map((item) => {
           const Icon = item.icon;
-          return <button type="button" key={item.id} aria-pressed={mode === item.id} className={mode === item.id ? 'is-active' : ''} disabled={item.id === 'match' && deck.length < 2} onClick={() => setMode(item.id)} title={item.hint}>
+          return <button type="button" key={item.id} aria-pressed={mode === item.id} className={mode === item.id ? 'is-active' : ''} disabled={(item.id === 'match' && deck.length < 2) || (item.id !== 'cards' && !deck.length)} onClick={() => setMode(item.id)} title={item.hint}>
             <Icon size={16} aria-hidden="true" />{item.label}
           </button>;
         })}
       </nav>
-      <div className="vs-stage">
-        {Mode ? <Mode key={`${mode}-${direction}`} deck={deck} direction={direction} onResult={onResult} onAddMissed={onAddMissed} onLearnDone={onLearnDone} onClose={() => setMode(mode === 'learn' ? 'cards' : 'learn')} /> : null}
+      <div className={`vs-stage ${mode === 'cards' ? 'has-fc' : ''}`}>
+        {Mode ? <Mode key={`${mode}-${direction}`} deck={deck} direction={direction} queue={queue} language={language} nextDueAt={nextDueAt} onResult={result} onRate={onRate} onAddMissed={onAddMissed} onLearnDone={onLearnDone} onClose={() => setMode(mode === 'cards' ? 'learn' : 'cards')} /> : null}
       </div>
     </section>
     </FormsContext.Provider>

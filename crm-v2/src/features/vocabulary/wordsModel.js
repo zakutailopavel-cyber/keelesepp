@@ -47,10 +47,13 @@ export function normalizeWord(id, data = {}) {
     dueAt: data.dueAt || data.createdAt || '',
     reviews: Number.isInteger(data.reviews) ? data.reviews : 0,
     reviewedAt: data.reviewedAt || '',
+    // spaced repetition state per direction (srs.js); absent on words not answered since 2026-11-09
+    ...(data.srs && typeof data.srs === 'object' ? { srs: data.srs } : {}),
   };
 }
 
-// knew → one box up (max 5); did not know → back to box 0, due now
+// The old Leitner step (knew → one box up, max 5; did not know → box 0). Kept for reference and old tests; the app
+// schedules with srs.js since 2026-11-09 (studentWordsService.review / rate).
 export function review(word, knew, now = new Date()) {
   const box = knew ? Math.min(5, (word.box || 0) + 1) : 0;
   return {
