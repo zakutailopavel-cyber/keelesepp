@@ -24,6 +24,8 @@ const PetCompanion = lazyComponent(() => import('../../features/pet/PetCompanion
 // student's or parent's first load (and the login page) does not carry the calendar, lesson and finance code they use
 const GlobalStudentSearch = lazyComponent(() => import('./GlobalStudentSearch.jsx'));
 const EntityContextMenu = lazyComponent(() => import('../EntityContextMenu.jsx'));
+// the student's full card in a side drawer over any page (studentDrawer.js); tiny until a card is opened
+const StudentDrawer = lazyComponent(() => import('../studentDrawer/StudentDrawer.jsx'));
 // a subscription whose service file downloads on first use; unsubscribing before it arrives starts nothing
 const lazySubscription = (load, method) => (...args) => {
   let stop = null;
@@ -88,7 +90,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
       {/* the right-click menu: staff and the accountant, each with their own actions (not in the admin's preview) */}
       {/* fallback={null} for this menu, the topbar search/notifications and the pet: small helper widgets around the
           page — a spinner there would flicker on every load; the page itself has its own loading view */}
-      {hasAnyRole(user.roles, ['admin', 'teacher', 'finance']) && !preview ? <Suspense fallback={null}><EntityContextMenu roles={user.roles} /></Suspense> : null}
+      {hasAnyRole(user.roles, ['admin', 'teacher', 'finance']) && !preview ? <Suspense fallback={null}><EntityContextMenu roles={user.roles} /><StudentDrawer /></Suspense> : null}
     <MissingDataGate enabled={gated} user={user} onSignOut={signOut} {...(missingData ? { service: missingData } : {})}>
     <div className="app-shell">
       <button className={`backdrop ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-label="Sulge menüü" />

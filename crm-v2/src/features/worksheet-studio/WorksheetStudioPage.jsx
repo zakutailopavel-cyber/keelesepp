@@ -4,6 +4,7 @@ import { lazyComponent } from '../../app/lazyComponent.js';
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Icons } from './icons.js';
+import { askConfirm, askText } from '../../components/ui/ConfirmHost.jsx';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
@@ -493,8 +494,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   };
   // „Uus mallist”: one sheet replaces this one in the editor (undoable); a lesson template also fills the empty phases
   const isLessonPage = Boolean(worksheetId) && !isNew;
-  const takeSheetTemplate = (templateDoc, title) => {
-    if (doc.blocks.length && !window.confirm(`Mall „${title}” asendab selle lehe sisu. Jätkata? (Saad tagasi ka „Võta tagasi” nupuga.)`)) return;
+  const takeSheetTemplate = async (templateDoc, title) => {
+    if (doc.blocks.length && !(await askConfirm(`Mall „${title}” asendab selle lehe sisu. Jätkata? (Saad tagasi ka „Võta tagasi” nupuga.)`, { confirmLabel: 'Asenda' }))) return;
     setPickTemplate(false);
     lastPush.current = 0;
     change(applySheetTemplate(templateDoc, doc)); setSelectedId(null);
@@ -509,7 +510,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       const current = plan.find((row) => row.action === 'current');
       const lines = plan.map((row) => `${row.label}: ${row.action === 'current' ? `see leht${doc.blocks.length ? ' (asendab sisu)' : ''}` : row.action === 'fill' ? 'uus mustand' : `jääb alles (${row.reason})`}`);
       if (!plan.some((row) => row.action !== 'skip')) { setSaveError('Mallis pole ühtegi lehte, mida saaks sellesse tundi panna: kõigil lehtedel on juba plokid.'); return; }
-      if (!window.confirm(`Mall „${template.title}”:\n${lines.join('\n')}\n\nMidagi ei avaldata. Jätkata?`)) return;
+      if (!(await askConfirm(`Mall „${template.title}”:\n${lines.join('\n')}\n\nMidagi ei avaldata. Jätkata?`, { confirmLabel: 'Kasuta malli' }))) return;
       setPickTemplate(false);
       const { done, failed } = await applyLessonTemplate({ repository: lessonSheets, lessonId, plan, existing, user });
       reuse?.forget?.(lessonId);
@@ -523,7 +524,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   // „Salvesta mallina”: this sheet, or the whole lesson (the latest draft of each phase sheet, this one as in the editor)
   const saveSheetTemplate = async () => {
     closeMenu();
-    const title = window.prompt('Malli nimi (näha kõigile õpetajatele):', doc.meta.title || 'Mall');
+    const title = await askText('Malli nimi (näha kõigile õpetajatele):', { initial: doc.meta.title || 'Mall', title: 'Salvesta mallina' });
     if (!title) return;
     try {
       const created = await sheetTemplates.create({ kind: 'sheet', title, sheets: [{ phase: worksheetId || '', doc }], user });
@@ -539,14 +540,14 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         const record = records.find((r) => (r.worksheetId || r.id) === p.id);
         return record?.worksheetDoc?.blocks?.length ? { phase: p.id, label: p.label, doc: record.worksheetDoc } : null;
       }).filter(Boolean);
-      const title = window.prompt(`Tunni malli nimi (${sheets.map((x) => x.label).join(', ')}; näha kõigile õpetajatele):`, doc.meta.title || 'Tunni mall');
+      const title = await askText(`Tunni malli nimi (${sheets.map((x) => x.label).join(', ')}; näha kõigile õpetajatele):`, { initial: doc.meta.title || 'Tunni mall', title: 'Salvesta tunni mallina' });
       if (!title) return;
       const created = await sheetTemplates.create({ kind: 'lesson', title, sheets, user });
       setNotice(`Tund salvestati mallina „${created.title}” (${sheets.length} lehte).`);
     } catch (error) { setSaveError(error.message || 'Malli ei saanud salvestada.'); }
   };
   const saveTemplate = async (block) => {
-    const title = window.prompt('Malli nimi (näha kõigile õpetajatele):', block.data?.title || BLOCKS[block.type]?.label || 'Mall');
+    const title = await askText('Malli nimi (näha kõigile õpetajatele):', { initial: block.data?.title || BLOCKS[block.type]?.label || 'Mall', title: 'Salvesta mallina' });
     if (!title) return;
     try {
       const created = await templates.create({ title, block, user });
@@ -557,7 +558,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     }
   };
   const removeTemplate = async (template) => {
-    if (!window.confirm(`Kustuta mall „${template.title}”?`)) return;
+    if (!(await askConfirm(`Kustuta mall „${template.title}”?`, { confirmLabel: 'Kustuta', danger: true }))) return;
     try {
       await templates.remove(template.id);
       setMyTemplates((list) => list.filter((item) => item.id !== template.id));
@@ -873,19 +874,19 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     closeMenu();
     const parsed = parseWorksheetFile(await file.text());
     if (!parsed) { setSaveError('See fail ei ole KeeleSepa tööleht (JSON). Tööleht jäi muutmata.'); return; }
-    if (doc.blocks.length && !window.confirm(`Fail „${parsed.meta?.title || 'tööleht'}” asendab praeguse sisu. Jätkata?`)) return;
+    if (doc.blocks.length && !(await askConfirm(`Fail „${parsed.meta?.title || 'tööleht'}” asendab praeguse sisu. Jätkata?`, { confirmLabel: 'Asenda' }))) return;
     setSaveError('');
     change({ ...parsed, id: doc.id }); setSelectedId(null);
   };
-  const loadSample = () => {
+  const loadSample = async () => {
     closeMenu();
-    if (doc.blocks.length && !window.confirm('Näidisleht asendab praeguse lehe sisu. Jätkata? (Saad tagasi ka „Võta tagasi” nupuga.)')) return;
+    if (doc.blocks.length && !(await askConfirm('Näidisleht asendab praeguse lehe sisu. Jätkata? (Saad tagasi ka „Võta tagasi” nupuga.)', { confirmLabel: 'Asenda' }))) return;
     lastPush.current = 0;
     change({ ...sampleDocument(), id: doc.id }); setSelectedId(null);
   };
-  const loadFormalLetter = () => {
+  const loadFormalLetter = async () => {
     closeMenu();
-    if (doc.blocks.length && !window.confirm('Mall „Kiri linnavalitsusele” asendab praeguse sisu. Jätkata?')) return;
+    if (doc.blocks.length && !(await askConfirm('Mall „Kiri linnavalitsusele” asendab praeguse sisu. Jätkata?', { confirmLabel: 'Asenda' }))) return;
     lastPush.current = 0;
     change({ ...formalLetterDocument(), id: doc.id }); setSelectedId(null);
   };
@@ -982,7 +983,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <div className="st-banner st-compare" role="region" aria-label={`Versioon ${comparing.version} võrreldes praegusega`}>
               <strong>Versioon {comparing.version} võrreldes praegusega:</strong>
               {rows.length ? <ul>{rows.map(({ block, state }) => <li key={block.id}><span>{state === 'removed' ? 'Kustutatud' : 'Muudetud'}: {block.data?.title || BLOCKS[block.type]?.label || 'plokk'}</span> <button type="button" className="st-btn" onClick={() => restoreTask(block)}>Too see ülesanne tagasi</button></li>)}</ul> : <span> ülesanded on samad.</span>}
-              <button type="button" className="st-btn" onClick={() => { if (window.confirm(`Taasta kogu versioon ${comparing.version} uue mustandina?`)) { change({ ...structuredClone(comparing.worksheetDoc), id: doc.id }); setVersions([]); setComparing(null); setNotice(`Versioon ${comparing.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>Taasta kogu leht</button>
+              <button type="button" className="st-btn" onClick={async () => { if (await askConfirm(`Taasta kogu versioon ${comparing.version} uue mustandina?`, { confirmLabel: 'Taasta' })) { change({ ...structuredClone(comparing.worksheetDoc), id: doc.id }); setVersions([]); setComparing(null); setNotice(`Versioon ${comparing.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>Taasta kogu leht</button>
             </div>
           );
         })()}

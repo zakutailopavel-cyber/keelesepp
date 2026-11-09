@@ -1,6 +1,7 @@
 import { MailCheck, RefreshCw, Send } from 'lucide-react';
 import { useState } from 'react';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { emailQueueService } from '../../services/firebase/emailQueue.js';
 import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
@@ -23,7 +24,7 @@ export default function EmailDeliveryPanel({ repository = emailQueueService, del
   const [switching, setSwitching] = useState(false);
   const [switchError, setSwitchError] = useState('');
   const switchReminders = async (autoEnabled) => {
-    if (autoEnabled && !globalThis.confirm('Lülitan automaatsed meeldetuletused sisse: igal hommikul kell 9 saadetakse lapsevanematele meeldetuletused tasumata ja tähtaja ületanud arvete kohta. Jätkata?')) return;
+    if (autoEnabled && !(await askConfirm('Lülitan automaatsed meeldetuletused sisse: igal hommikul kell 9 saadetakse lapsevanematele meeldetuletused tasumata ja tähtaja ületanud arvete kohta. Jätkata?', { confirmLabel: 'Lülita sisse' }))) return;
     setSwitching(true); setSwitchError('');
     try { await deliveryApi.reminderSettings(autoEnabled); reminders.reload(); } catch (error) { setSwitchError(error.message || 'Seadet ei saanud muuta.'); } finally { setSwitching(false); }
   };

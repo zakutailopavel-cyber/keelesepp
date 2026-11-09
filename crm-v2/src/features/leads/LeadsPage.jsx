@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { studentsService } from '../../services/firebase/students.js';
 import { websiteLeadsService } from '../../services/firebase/websiteLeads.js';
 import { leadStudentIds } from '../calendar/leadTimes.js';
+import { leadToStudent } from './leadToStudent.js';
 import './leads.css';
 import PollGrid from '../availability-poll/PollGrid.jsx';
 import { cellsOf, summaryOf } from '../availability-poll/pollModel.js';
@@ -25,6 +26,7 @@ function arrivedAt(value) {
 
 export default function LeadsPage({ service = websiteLeadsService, studentRepository = studentsService }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('open');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -36,8 +38,14 @@ export default function LeadsPage({ service = websiteLeadsService, studentReposi
   const changeStatus = async (lead, status) => {
     setBusy(lead.id);
     setError('');
+    let saved = false;
     // a failed save used to leave the button spinning back with no word: say it, the lead stays as it was
-    try { await service.updateStatus(lead.id, status, user); state.reload(); } catch (failure) { setError(`${lead.name || 'Päring'}: ei õnnestunud salvestada (${failure.message || 'viga'}). Proovi uuesti.`); } finally { setBusy(''); }
+    try { await service.updateStatus(lead.id, status, user); saved = true; state.reload(); } catch (failure) { setError(`${lead.name || 'Päring'}: ei õnnestunud salvestada (${failure.message || 'viga'}). Proovi uuesti.`); } finally { setBusy(''); }
+    return saved;
+  };
+  // „Õppijaks” used to change only the status: now it also opens the new student card filled from the lead
+  const convert = async (lead) => {
+    if (await changeStatus(lead, 'converted')) navigate('/students', { state: { newStudent: leadToStudent(lead) } });
   };
   return <div className="page-content leads-page">
     <PageHeader eyebrow="Müük" title="Veebipäringud" description="Kodulehe registreerumised ja tasemetesti tulemused ühes tööjärjekorras." />
@@ -62,7 +70,7 @@ export default function LeadsPage({ service = websiteLeadsService, studentReposi
         </div>
         <div className="lead-row__actions">
           {lead.status === 'new' ? <Button loading={busy === lead.id} data-entity-action="contacted" onClick={() => changeStatus(lead, 'contacted')}>Märgi kontakteerituks</Button> : null}
-          {!['converted', 'closed'].includes(lead.status) ? <Button variant="secondary" disabled={Boolean(busy)} data-entity-action="convert" onClick={() => changeStatus(lead, 'converted')}>Õppijaks</Button> : null}
+          {!['converted', 'closed'].includes(lead.status) ? <Button variant="secondary" disabled={Boolean(busy)} data-entity-action="convert" onClick={() => convert(lead)}>Õppijaks</Button> : null}
           {/* „Suletud”: no answer, not interested or a duplicate — the status existed, the button did not */}
           {!['converted', 'closed'].includes(lead.status) ? <Button variant="secondary" disabled={Boolean(busy)} data-entity-action="close" onClick={() => changeStatus(lead, 'closed')}>Sulge</Button> : null}
           {lead.status === 'closed' ? <Button variant="secondary" disabled={Boolean(busy)} data-entity-action="reopen" onClick={() => changeStatus(lead, 'contacted')}>Ava uuesti</Button> : null}

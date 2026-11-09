@@ -75,9 +75,15 @@ const PROFILE_TABS = [
 // the works tab opens the sheet viewer: downloaded when the tab is opened, not with every card
 const StudentWorksPanel = lazyComponent(() => import('./StudentWorksPanel.jsx'));
 
-export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi, progressApi }) {
-  const { studentId } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi, progressApi, studentId: shownId = '', embedded = false }) {
+  // `embedded` (owner 2026-11-09): the card opens in the side drawer over any page (StudentDrawer.jsx) — it gets the id
+  // as a prop and keeps its tabs in its own state, so the page under the drawer keeps its address and filters
+  const params = useParams();
+  const studentId = shownId || params.studentId;
+  const routedParams = useSearchParams();
+  const [localParams, setLocalParams] = useState(() => new globalThis.URLSearchParams());
+  const setLocal = useCallback((next) => setLocalParams((current) => new globalThis.URLSearchParams(typeof next === 'function' ? next(new globalThis.URLSearchParams(current)) : next)), []);
+  const [searchParams, setSearchParams] = embedded ? [localParams, setLocal] : routedParams;
   const auth = useContext(AuthContext);
   const previewNavigation = usePreviewNavigation();
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
@@ -167,7 +173,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
 
   return (
     <div className="page-content">
-      <Link className="back-link" to="/students"><ArrowLeft size={17} /> Kõik õpilased</Link>
+      {embedded ? null : <Link className="back-link" to="/students"><ArrowLeft size={17} /> Kõik õpilased</Link>}
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       {canAssignTeacher ? <CardTrashNotice kind="student" card={student} {...trashProps} onRestored={async () => { await refreshStudent(); setNotice('Õpilase kaart on prügikastist taastatud.'); }} /> : null}
       <header className="student-profile-hero">

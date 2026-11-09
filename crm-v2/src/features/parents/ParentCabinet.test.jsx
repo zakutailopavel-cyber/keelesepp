@@ -66,7 +66,10 @@ describe('„Minu pere” with the „Keeleoskus” curve (demo family)', () => 
 
       expect(screen.getByRole('region', { name: 'Järgmised tunnid' })).toHaveTextContent('Kadri Õpetaja');
       expect(screen.getByRole('region', { name: 'Kodutööd' })).toHaveTextContent('vaja teha');
-      expect(screen.getByRole('region', { name: 'Arved' })).toHaveTextContent('Tasumata 200,00');
+      expect(screen.getByRole('region', { name: 'Arved' })).toHaveTextContent('Tasumata 440,00');
+      // „Arve ootab tasumist” at the top: Sofia's late invoice first, then Aleksandr's; money only
+      const pay = screen.getByRole('region', { name: 'Tasumata arved' });
+      expect(within(pay).getAllByRole('listitem').map((line) => line.textContent)).toEqual([expect.stringMatching(/KS-2026-298.*tähtaeg möödus/), expect.stringMatching(/KS-2026-311.*tähtaeg \d/)]);
 
       const text = document.body.textContent;
       ['alles', 'Pakett', 'pakett', 'jääk', 'SALAJANE'].forEach((word) => expect(text).not.toContain(word));

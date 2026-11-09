@@ -96,3 +96,8 @@
 .finance-month-table__row .finance-note-line { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .72rem; color: #93370d; }
 .invoice-note-form { display: grid; gap: 10px; }
 .invoice-note-meta { margin: 0; font-size: .8rem; color: #667085; }
+/* „Raha liikumine” (audit 2026-11-09): the analytics of „Vana vaade”, folded under the overview */
+.finance-month-cash { margin: 0 0 18px; border: 1px solid var(--border, #dfe5ec); border-radius: 16px; background: #fff; }
+.finance-month-cash > summary { cursor: pointer; padding: 16px 20px; font-weight: 800; color: var(--ink, #17253a); list-style-position: inside; }
+.finance-month-cash[open] > summary { border-bottom: 1px solid var(--border, #dfe5ec); }
+.finance-month-cash .financial-analytics { border: 0; box-shadow: none; margin: 0; }

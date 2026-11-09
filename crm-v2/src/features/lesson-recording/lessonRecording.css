@@ -81,14 +81,14 @@
 .lesson-trend__tile small.is-bad { color: #b42318; }
 .lesson-trend__spark { width: 100%; height: 56px; overflow: visible; }
 .lesson-trend__base { stroke: #eef1ee; stroke-width: 1; }
-.lesson-trend__line { fill: none; stroke: var(--green, #226b5a); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.lesson-trend__dot { fill: var(--green, #226b5a); stroke: #fff; stroke-width: 2; }
+.lesson-trend__line { fill: none; stroke: var(--green); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lesson-trend__dot { fill: var(--green); stroke: #fff; stroke-width: 2; }
 .lesson-trend__none { color: var(--muted, #667085); font-size: .8rem; }
 .lesson-trend__table-wrap { overflow-x: auto; }
 .lesson-trend__table { width: 100%; border-collapse: collapse; font-size: .86rem; font-variant-numeric: tabular-nums; }
 .lesson-trend__table th, .lesson-trend__table td { padding: 7px 10px; border-bottom: 1px solid #eef0f3; text-align: left; white-space: nowrap; }
 .lesson-trend__table thead th { color: var(--muted, #667085); font-size: .72rem; font-weight: 700; }
-.lesson-trend__more { border: 0; background: none; color: var(--green, #226b5a); font-weight: 700; cursor: pointer; padding: 8px 0; }
+.lesson-trend__more { border: 0; background: none; color: var(--green); font-weight: 700; cursor: pointer; padding: 8px 0; }
 
 /* „Pole viga”: the teacher marks a flagged error as not an error */
 .lesson-ai__errors li.is-dismissed { opacity: .75; background: #f8fafc; }
