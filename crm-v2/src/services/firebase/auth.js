@@ -87,6 +87,8 @@ export function validatePassword(password, repeat) {
 
 // Server links the account to its student card(s) (creates a card for a new student,
 // matches a parent's children). Best effort: login must not fail because of it.
+// The answer is only { status, linkedStudentIds, createdStudentIds, reviewCount } (own cards and a count; the
+// possible-duplicate candidates are for the administrator only). No caller reads it today.
 async function bootstrapAccount(firebaseUser, profile) {
   if (['pending', 'rejected'].includes(profile?.approvalStatus)) return null;
   if (!firebaseUser || !SELF_ROLES.some((role) => profile?.role === role || profile?.roles?.includes?.(role))) return null;

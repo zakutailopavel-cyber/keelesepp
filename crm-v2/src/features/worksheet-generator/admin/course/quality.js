@@ -6,6 +6,7 @@ import { analyzeWorksheet } from '../../../worksheet-studio/quality.js';
 import { SHEET_MINUTES, blockMinutes, sheetMinutes } from '../../../worksheet-studio/didactics/timeEstimate.js';
 import { harnoFor } from '../../../worksheet-studio/didactics/levels.js';
 import BASELINE from './qualityBaseline.json';
+import { isStationSheet, stationProblems } from './stations.js';
 
 export const MIN_DIDACTIC_SCORE = 85;
 const FORM = ['gaps', 'wordforms', 'table', 'transformation', 'dictation', 'translation'];
@@ -59,6 +60,12 @@ export function sheetProblems(doc) {
     if (!(doc.blocks || []).some((b) => b.type === 'speaking')) out.push({ code: 'oral-empty', text: 'suuline tund: lehel pole rääkimisülesandeid' });
     return out;
   }
+  // design v3 „stations” (docs/COURSE_DESIGN_STATIONS.md): a sheet holds one or two independent stations, so the sheet's
+  // own shape (6–18 / 5–9 blocks, 40–55 min, ≥ 4–5 types, how it ends, the phase jobs of v3 / v4, a situation first in
+  // Kasuta, two productive types and a rubric in Kasuta) is replaced by the lesson's station rules (stations.js). Kept:
+  // the constructor's errors and level norms above, the one-to-one note of pair work, long texts in paragraphs and the
+  // picture's own questions.
+  if (isStationSheet(doc)) return [...out, ...fullerProblems(doc), ...oneToOneProblems(doc)];
   // a word strip is added to the sheet (art/wordStrips.js), it is not a block of the lesson's shape
   const n = doc.blocks.filter((b) => b.type !== 'wordstrip').length;
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
@@ -155,14 +162,17 @@ const V4_NOT_DISCOVER = ['errorfix', 'translation', 'dictation'];
 const GROUP_WORK = /paarili|paaris|\brühma(?:s|le|ga|töö)|\brühmas|\bgrupis|\bklassis|käi ringi|kursusekaaslas|vahetage|teised küsivad/i;
 const PAIR_TASKS = ['rolecards', 'speakcard'];
 const studentText = (b) => Object.entries(b.data || {}).filter(([k, v]) => typeof v === 'string' && !['explain', 'teacher', 'transcript'].includes(k)).map(([, v]) => v).join(' ');
+// a pair or group task says how it runs one-to-one (teach()); v4 and v3-stations sheets
+function oneToOneProblems(doc) {
+  const solo = tasks(doc).filter((b) => (PAIR_TASKS.includes(b.type) || GROUP_WORK.test(studentText(b))) && !String(b.data?.teacher || '').trim());
+  return solo.length ? [{ code: 'v4-one-to-one', text: `paaris- või rühmatöö ilma üks-ühele variandita (${solo.map((b) => b.id).join(', ')}): lisa teach(block, '…')` }] : [];
+}
 function v4Problems(doc, phase) {
-  const out = fullerProblems(doc);
+  const out = [...fullerProblems(doc), ...oneToOneProblems(doc)];
   const blocks = doc.blocks || [];
   const any = (list) => blocks.some((b) => list.includes(b.type));
   const need = (ok, code, text) => { if (!ok) out.push({ code, text }); };
   const drills = tasks(doc).filter((b) => DRILLS.includes(b.type));
-  const solo = tasks(doc).filter((b) => (PAIR_TASKS.includes(b.type) || GROUP_WORK.test(studentText(b))) && !String(b.data?.teacher || '').trim());
-  need(!solo.length, 'v4-one-to-one', `paaris- või rühmatöö ilma üks-ühele variandita (${solo.map((b) => b.id).join(', ')}): lisa teach(block, '…')`);
   if (phase === 'discover') {
     need(blocks.some((b) => b.data?.review), 'v4-review', 'Avasta: algab kordamisega „Mäletad?” (B.review)');
     need(any(['reading', 'dialogue', 'profiles', 'adsmatch', ...LISTENING]) || blocks.some((b) => b.data?.artId), 'v4-input', 'Avasta: sisend, mille üle mõelda (tekst, kuulamine, vestlus, pilt)');
@@ -216,8 +226,9 @@ export function moduleProblems(sheets) {
   for (const lessonId of Object.keys(sheets)) {
     for (const [phase, doc] of Object.entries(sheets[lessonId])) sheetProblems(doc).forEach((p) => out.push({ lessonId, phase, ...p }));
   }
-  // the parallel versions of a diagnostic check have the same structure on purpose: the module rules skip them
-  const lessonIds = Object.keys(sheets).filter((id) => !lessonDiagnostic(sheets[id]));
+  // the parallel versions of a diagnostic check have the same structure on purpose: the module rules skip them; a station
+  // lesson (v3-stations) is checked by its own variety rules (stations.js: openings, final kinds), not by sheet sequences
+  const lessonIds = Object.keys(sheets).filter((id) => !lessonDiagnostic(sheets[id]) && !Object.values(sheets[id]).some(isStationSheet));
   for (const lessonId of lessonIds) {
     const docs = Object.values(sheets[lessonId]);
     if (new Set(docs.map((d) => tasks(d).map((b) => b.type).join('|'))).size !== docs.length) out.push({ lessonId, phase: '*', code: 'phases-same', text: 'tunni etappidel on sama ülesannete jada' });
@@ -235,6 +246,7 @@ export function moduleProblems(sheets) {
   out.push(...harnoProblems(sheets));
   if (lessonIds.length) out.push(...varietyProblems(taught));
   out.push(...v4ModuleProblems(sheets));
+  out.push(...stationProblems(sheets));
   return out;
 }
 

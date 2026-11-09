@@ -1,0 +1,63 @@
+// Visual briefs of a2b1 module 12 (pilot of design v3 „stations”, docs/COURSE_DESIGN_STATIONS.md); images go to
+// crm-v2/public/textbook-art/b1/<lessonId>/<id>.webp per docs/TEXTBOOK_ART_BIBLE.md.
+// NOT yet in MODULES of art/textbookArt.js: no image exists, and the art test requires the file. Every station works
+// without a picture (the inputs are a chart, a timeline, cards and texts); a picture only adds the scene. Register the
+// file in MODULES when the images are generated and approved (art bible §9).
+export default [
+  {
+    id: 'a2b1-056-kasuta-1',
+    phase: 'transfer',
+    format: 'scene',
+    cast: ['Viktor', 'Sofia'],
+    scene: 'Farm yard in Kõrvemaa on Midsummer Day, late morning: Viktor with a scythe points at his watch, Sofia shows him a weather app on her phone; in the west a tall dark cloud rises over the bog, a wooden boardwalk sign „Raba 4 km”.',
+    accent: "the phone screen and the dark cloud's outline",
+    text: ['Raba 4 km'],
+    learningJob: 'decide when to start the bog walk: compare what Viktor wants with what the sky and the app show',
+    alt: 'Viktor tahab hiljem minna, Sofia näitab telefonis ilmaäppi, läänes kerkib tume pilv.',
+    caption: 'Pilt 1. Millal rappa minna?',
+    place: '056_t_talk',
+    prompts: ['Mida Viktor tahab ja mida näitab äpp?', 'Mis ilm on läänes tulemas?', 'Mis kell on sinu arvates parem minna ja miks?'],
+  },
+  {
+    id: 'a2b1-057-kasuta-1',
+    phase: 'transfer',
+    format: 'scene',
+    cast: ['Viktor'],
+    scene: 'Edge of a pine forest by a bog after a thunderstorm: Viktor and the grey neighbour Ülo look at a hand-drawn map spread on a car bonnet with six marked places (boardwalk, old hay barn, lake beach, farm, bus stop, kennel); an empty red dog lead hangs from the mirror.',
+    accent: 'the empty red dog lead and the map',
+    text: [],
+    learningJob: 'rank the places where to search for the lost dog and explain the order',
+    alt: 'Viktor ja naaber Ülo vaatavad kaarti, kust kadunud koera otsida; peeglil ripub tühi rihm.',
+    caption: 'Pilt 1. Kust Mukit otsida?',
+    place: '057_t_search',
+    prompts: ['Mis on juhtunud?', 'Millised kohad on kaardil?', 'Kust tasub sinu arvates kõigepealt otsida ja miks?'],
+  },
+  {
+    id: 'a2b1-058-kasuta-1',
+    phase: 'transfer',
+    format: 'scene',
+    cast: ['Viktor'],
+    scene: 'Viktor at his kitchen table on the phone with an insurance letter in his hand; through the window a birch lies on the sauna roof; on the table an open freezer list and a paper „Kahjuteade KK-2318”.',
+    accent: "the insurer's letter and the birch on the roof",
+    text: ['Kahjuteade KK-2318'],
+    learningJob: 'explain cause and result of the storm damage and argue against the insurer’s decision',
+    alt: 'Viktor helistab kindlustusse, aknast paistab sauna katusele kukkunud kask.',
+    caption: 'Pilt 1. Kindlustus ütles „ei”.',
+    place: '058_t_call',
+    prompts: ['Mis tormis juhtus?', 'Miks Viktor on pahane?', 'Mida peab Viktor kindlustusele ütlema?'],
+  },
+  {
+    id: 'a2b1-059-kasuta-1',
+    phase: 'transfer',
+    format: 'scene',
+    cast: ['Sofia'],
+    scene: 'Shared courtyard of two wooden houses in Kalamaja after a storm: neighbours at a garden table with three proposal sheets (compost box with beds, sharing shelf with bike rack, benches with flowers) and a jar labelled „300 €”; broken branches by the fence.',
+    accent: 'the jar „300 €” and the three proposal sheets',
+    text: ['300 €'],
+    learningJob: 'agree on one plan that fits the budget, giving opinion, reason and example',
+    alt: 'Naabrid arutavad hoovis kolme ettepanekut ja 300-eurost eelarvet.',
+    caption: 'Pilt 1. Mida 300 euroga teha?',
+    place: '059_t_meeting',
+    prompts: ['Mis on hoovis pärast tormi valesti?', 'Mida naabrid pakuvad?', 'Mis on sinu arvates parim plaan ja miks?'],
+  },
+];
