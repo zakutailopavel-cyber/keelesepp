@@ -84,7 +84,7 @@ function Face({ item, side, dictionary, language, voice, synth }) {
   );
 }
 
-function EndScreen({ session, missed, nextDueAt, onAgain, onClose, onAddMissed, now }) {
+function EndScreen({ session, missed, nextDueAt, onAgain, onClose, onAddMissed, onFinish, closeLabel, now }) {
   const stats = useMemo(() => sessionStats(session, now()), [session]); // eslint-disable-line react-hooks/exhaustive-deps
   const announced = useRef(false);
   useEffect(() => {
@@ -92,7 +92,8 @@ function EndScreen({ session, missed, nextDueAt, onAgain, onClose, onAddMissed, 
     announced.current = true;
     petReact('done');
     announcePractice({ kind: 'words', reviewed: stats.reviewed, correct: stats.correct, minutes: stats.minutes, cards: stats.cards, learned: stats.learned });
-  }, [stats]);
+    onFinish?.(stats);
+  }, [stats]); // eslint-disable-line react-hooks/exhaustive-deps
   const next = [stats.nextDue, nextDueAt].filter(Boolean).sort()[0] || '';
   const when = formatWhen(next, now());
   return (
@@ -110,7 +111,7 @@ function EndScreen({ session, missed, nextDueAt, onAgain, onClose, onAddMissed, 
       <div className="fc-done__actions">
         {onAddMissed && missed.some((item) => !item.word) ? <button type="button" className="vw-btn" onClick={() => onAddMissed(missed.filter((item) => !item.word))}><Star size={15} /> Lisa raskemad minu sõnadesse</button> : null}
         {missed.length ? <button type="button" className="vw-btn is-primary" onClick={onAgain}><RotateCcw size={15} /> Korda raskemaid</button> : null}
-        {onClose ? <button type="button" className="vw-btn" onClick={onClose}>Vali teine viis</button> : null}
+        {onClose ? <button type="button" className={`vw-btn ${closeLabel ? 'is-primary' : ''}`} onClick={onClose}>{closeLabel || 'Vali teine viis'}</button> : null}
       </div>
     </div>
   );
@@ -119,8 +120,9 @@ function EndScreen({ session, missed, nextDueAt, onAgain, onClose, onAddMissed, 
 /**
  * cards: [{ id, key, dir: 'r' | 'p', front, back, hint, word?, side?, example?, pos?, audio?, meanings? }]
  * onRate(item, rating, nextSide) after every answer (the page saves the student's own words; course words stay in memory).
+ * onFinish(stats) once at the end (after the practice event); closeLabel names the end screen's way on („Edasi” in „Täna”).
  */
-export default function FlashcardSession({ cards = [], dictionary = {}, language = '', onRate, onAddMissed, onClose, nextDueAt = '', now = () => new Date(), synth = globalThis.speechSynthesis }) {
+export default function FlashcardSession({ cards = [], dictionary = {}, language = '', onRate, onAddMissed, onClose, onFinish, closeLabel = '', nextDueAt = '', now = () => new Date(), synth = globalThis.speechSynthesis }) {
   const [session, setSession] = useState(() => startSession(cards, now()));
   const [flipped, setFlipped] = useState(false);
   const [drag, setDrag] = useState(null);
@@ -204,7 +206,7 @@ export default function FlashcardSession({ cards = [], dictionary = {}, language
   };
 
   if (!item) {
-    return <EndScreen session={session} missed={missed} nextDueAt={nextDueAt} now={now} onClose={onClose} onAddMissed={onAddMissed}
+    return <EndScreen session={session} missed={missed} nextDueAt={nextDueAt} now={now} onClose={onClose} onAddMissed={onAddMissed} onFinish={onFinish} closeLabel={closeLabel}
       onAgain={() => { setSession(startSession(missed.map(({ showAt, order, startState, ...rest }) => rest), now())); setFlipped(false); }} />; // eslint-disable-line no-unused-vars
   }
 

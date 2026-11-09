@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import PetLoop from './PetLoop.jsx';
-import { PET_QUIET_EVENT } from './petEvents.js';
 
 const ago = (days) => new Date(Date.now() - days * 86400000).toISOString();
 const word = (id, extra = {}) => ({ id, word: id, translation: `t-${id}`, box: 1, reviews: 2, dueAt: ago(1), reviewedAt: ago(4), ...extra });
@@ -15,49 +14,40 @@ const repository = (extra = {}) => ({
 const user = { uid: 'u1' };
 const pet = { kind: 'siil', name: 'Okki', playedAt: ago(5) };
 
-// the words live on the page, as with the real subscription
 function Page({ start, words: wordsProp, ...rest }) {
-  const [words, setWords] = useState(wordsProp);
-  const wordsService = { review: vi.fn(async (card) => { setWords((list) => list.map((w) => (w.id === card.id ? { ...w, reviewedAt: new Date().toISOString(), dueAt: ago(-3) } : w))); }) };
-  return <MemoryRouter><PetLoop user={user} studentId="s1" pet={start} words={words} wordsService={wordsService} assignments={[]} {...rest} /></MemoryRouter>;
+  const [words] = useState(wordsProp);
+  return <MemoryRouter><PetLoop user={user} studentId="s1" pet={start} words={words} assignments={[]} {...rest} /></MemoryRouter>;
 }
 
 describe('PetLoop', () => {
   beforeEach(() => { window.localStorage.clear?.(); });
 
-  it('one bubble, one button; one tap plays on the page; the pet is thankful and does not ask again today', async () => {
+  it('asks for nothing (owner 2026-11-09: „Täna” decides): no request button, no need bar; ready → „Alustame?”', () => {
     window.localStorage.setItem('ks-pet-loop-seen-u1', String(Date.now() - 3600000));
-    const repo = repository();
-    const quiet = [];
-    window.addEventListener(PET_QUIET_EVENT, (event) => quiet.push(event.detail));
-    render(<Page start={pet} words={[word('a'), word('b'), word('c')]} repository={repo} />);
-    expect(screen.getByText(/Mul on kõht tühi\. Kas mäletad sõna/)).toBeInTheDocument();
-    expect(screen.getByRole('meter', { name: 'Kõht' })).toHaveAttribute('aria-valuenow', '0');
-    fireEvent.click(screen.getByRole('button', { name: /Kordame 3 sõna/ }));
-    expect(quiet).toEqual([true]);
-    for (let i = 0; i < 3; i += 1) {
-      fireEvent.click(await screen.findByRole('button', { name: 'Näita' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Teadsin' }));
-    }
-    expect(await screen.findByText('Aitäh! Nüüd on kõht täis.')).toBeInTheDocument();
-    expect(screen.getByRole('meter', { name: 'Kõht' })).toHaveAttribute('aria-valuenow', '100');
-    expect(screen.queryByRole('button', { name: /Kordame/ })).toBeNull();
-    await waitFor(() => expect(repo.update).toHaveBeenCalledWith(expect.objectContaining({ playedAt: expect.any(String) })));
-    expect(quiet).toEqual([true, false]);
+    render(<Page start={pet} words={[word('a'), word('b'), word('c')]} repository={repository()} ready />);
+    expect(screen.getByText('Alustame? Mina olen kohe siin.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Kordame|Mängime|Parandame/ })).toBeNull();
+    expect(screen.queryByRole('meter', { name: 'Kõht' })).toBeNull();
   });
 
-  it('after today is done: content, no request, and a surprise from his data', () => {
-    render(<Page start={{ ...pet, playedAt: new Date().toISOString() }} words={[word('koer', { box: 3, reviewedAt: ago(1), dueAt: ago(-3) })]} repository={repository()} />);
-    expect(screen.getByText('Täna on mul kõik hästi. Aitäh!')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Kordame|Mängime|Parandame/ })).toBeNull();
+  it('reacts after a step of „Täna”, thanks at the end with a surprise from his data, shows the streak', () => {
+    const { rerender } = render(<Page start={pet} words={[word('koer', { box: 3, reviewedAt: ago(1), dueAt: ago(-3) })]} repository={repository()} reaction="words" streak={3} />);
+    expect(screen.getByRole('status')).toHaveTextContent('Aitäh! Sõnad on korratud.');
+    expect(screen.getByText(/3 päeva/)).toBeInTheDocument();
+    rerender(<Page start={pet} words={[word('koer', { box: 3, reviewedAt: ago(1), dueAt: ago(-3) })]} repository={repository()} reaction="finished" streak={3} />);
+    expect(screen.getByText('Aitäh! Täna on kõik tehtud. Olen sinu üle uhke!')).toBeInTheDocument();
     expect(screen.getByText(/Sõna „koer”/)).toBeInTheDocument();
+  });
+
+  it('the level counts the practice XP of „Täna”', () => {
+    render(<Page start={pet} words={[]} repository={repository()} practiceXp={25} />);
+    expect(screen.getByText('3. tase')).toBeInTheDocument();
   });
 
   it('after days away it is glad, without counting them or shaming', () => {
     window.localStorage.setItem('ks-pet-loop-seen-u1', String(Date.now() - 20 * 86400000));
     const { container } = render(<Page start={pet} words={[word('a'), word('b'), word('c')].map((w) => ({ ...w, reviewedAt: ago(20) }))} repository={repository()} lessons={[]} />);
-    expect(screen.getByText(/^Tore, et sa tagasi oled! Kas mäletad sõna/)).toBeInTheDocument();
-    expect(screen.queryByText(/kõht tühi/)).toBeNull();
+    expect(screen.getByText('Tore, et sa tagasi oled!')).toBeInTheDocument();
     expect(container.querySelector('svg.pet.m-happy')).not.toBeNull();
     expect(container.querySelector('svg.pet.m-sad')).toBeNull();
     expect(container.textContent).not.toMatch(/20|päeva/);

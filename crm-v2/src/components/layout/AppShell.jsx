@@ -1,4 +1,4 @@
-import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
+import { GraduationCap, LogOut, Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { Fragment, Suspense, useEffect, useMemo, useState } from 'react';
 import { lazyComponent } from '../../app/lazyComponent.js';
 import { NavLink, Outlet } from 'react-router-dom';
@@ -15,12 +15,15 @@ import { WhatsNewDialog } from '../../features/guide/WhatsNew.jsx';
 import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx';
 import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
 import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
+import useSidebarRail from './useSidebarRail.js';
 import './appShell.css';
 
 // students only (it renders nothing for anyone else), so nobody else downloads it
 // staff only
 const NotificationCenter = lazyComponent(() => import('./NotificationCenter.jsx'));
 const PetCompanion = lazyComponent(() => import('../../features/pet/PetCompanion.jsx'));
+// students only: practice XP of every finished word round / sentence lesson for the pet's level (features/practice/progress.js)
+const PracticeRecorder = lazyComponent(() => import('../../features/practice/PracticeRecorder.jsx'));
 // staff only: the student search, the right-click menu and the administrator's menu counts download for them only, so a
 // student's or parent's first load (and the login page) does not carry the calendar, lesson and finance code they use
 const GlobalStudentSearch = lazyComponent(() => import('./GlobalStudentSearch.jsx'));
@@ -43,6 +46,9 @@ function initials(name) {
 
 export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, unmarked = unmarkedLessonsService, announcements, missingData }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  // desktop: full menu or an icon rail that slides out on hover / focus (useSidebarRail.js); phones keep the off-canvas menu
+  const sidebar = useSidebarRail();
+  const railTitle = (label) => (sidebar.rail && !sidebar.peek ? label : undefined);
   const { user, signOut, preview } = useAuth();
   const previewNavigation = usePreviewNavigation();
   const visibleNavigation = useMemo(() => navigationFor(user.roles).filter((item) => hasAnyRole(user.roles, item.roles)), [user.roles]);
@@ -93,28 +99,29 @@ export default function AppShell({ approvals = accountApprovalsService, messages
           page — a spinner there would flicker on every load; the page itself has its own loading view */}
       {hasAnyRole(user.roles, ['admin', 'teacher', 'finance']) && !preview ? <Suspense fallback={null}><EntityContextMenu roles={user.roles} /><EntityDrawer roles={user.roles} /></Suspense> : null}
     <MissingDataGate enabled={gated} user={user} onSignOut={signOut} {...(missingData ? { service: missingData } : {})}>
-    <div className="app-shell">
+    <div className={`app-shell ${sidebar.rail ? 'is-collapsed' : ''}`}>
       <button className={`backdrop ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-label="Sulge menüü" />
-      <aside className={`sidebar ${menuOpen ? 'is-open' : ''}`}>
+      <aside className={`sidebar ${menuOpen ? 'is-open' : ''} ${sidebar.peek ? 'is-peek' : ''}`} {...sidebar.handlers}>
         <div className="brand">
           <div className="brand-mark"><GraduationCap size={22} /></div>
-          <div><strong>KeeleSepp</strong><span>EP Koolitus</span></div>
+          <div className="brand__text"><strong>KeeleSepp</strong><span>EP Koolitus</span></div>
+          <IconButton className="sidebar-toggle" label={sidebar.rail ? 'Laienda menüü' : 'Ahenda menüü'} aria-keyshortcuts="[" aria-expanded={!sidebar.rail} onClick={sidebar.toggle}>{sidebar.rail ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</IconButton>
           <IconButton className="mobile-only sidebar-close" label="Sulge menüü" onClick={() => setMenuOpen(false)}><X size={20} /></IconButton>
         </div>
         <nav aria-label="Põhinavigatsioon">
           {visibleNavigation.map(({ to, label, icon: Icon, end, group, hint }, index) => (
             <Fragment key={to}>
               {group && group !== visibleNavigation[index - 1]?.group ? <span className="nav-group">{group}</span> : null}
-              <NavLink to={to} end={end} data-tour={`nav-${to}`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-                <Icon size={19} /><span>{label}{hint ? <small className="nav-hint">{hint}</small> : null}</span>{badges[to] ? <b className="nav-count" aria-label={`${badges[to]} ${badgeLabel[to] || 'ootel'}`}>{badges[to]}</b> : null}
+              <NavLink to={to} end={end} data-tour={`nav-${to}`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title={railTitle(label)} onClick={() => { setMenuOpen(false); sidebar.onNavigate?.(); }}>
+                <Icon size={19} /><span className="nav-label">{label}{hint ? <small className="nav-hint">{hint}</small> : null}</span>{badges[to] ? <b className="nav-count" aria-label={`${badges[to]} ${badgeLabel[to] || 'ootel'}`}>{badges[to]}</b> : null}
               </NavLink>
             </Fragment>
           ))}
         </nav>
         <div className="sidebar-footer">
-          {showSettings ? <NavLink to={settingsNavigation.to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}><settingsNavigation.icon size={19} /><span>{settingsNavigation.label}</span></NavLink> : null}
+          {showSettings ? <NavLink to={settingsNavigation.to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title={railTitle(settingsNavigation.label)} onClick={sidebar.onNavigate}><settingsNavigation.icon size={19} /><span className="nav-label">{settingsNavigation.label}</span></NavLink> : null}
           <div className="profile-chip">
-            <div className="avatar">{initials(user.displayName)}</div>
+            <div className="avatar" title={railTitle(user.displayName)}>{initials(user.displayName)}</div>
             <div className="profile-chip__text"><strong>{user.displayName}</strong><span>{roleLabels(user.roles) || 'kasutaja'}</span></div>
             {/* in the admin's preview the choice stays the admin's own (no uid of the previewed person) */}
             <ThemeMenu uid={preview ? undefined : user.uid} />
@@ -135,7 +142,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
           {showNotifications ? <div className="topbar-actions"><Suspense fallback={null}><NotificationCenter user={user} /></Suspense></div> : null}
         </header>
         <div className={preview?.readOnly ? 'preview-surface preview-surface--readonly' : 'preview-surface'} onClickCapture={blockPreviewButtons} onSubmitCapture={(event) => { if (preview?.readOnly) { event.preventDefault(); event.stopPropagation(); } }}><Outlet /></div>
-        {user.roles?.includes('student') && !preview ? <Suspense fallback={null}><PetCompanion /></Suspense> : null}
+        {user.roles?.includes('student') && !preview ? <Suspense fallback={null}><PetCompanion /><PracticeRecorder /></Suspense> : null}
       </main>
     </div>
     </MissingDataGate>

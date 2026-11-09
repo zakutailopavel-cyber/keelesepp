@@ -1,6 +1,6 @@
-import { BookOpen, ChevronRight, GraduationCap, Play, Star } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { BookOpen, ChevronRight, GraduationCap, Star } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -17,18 +17,15 @@ import TopicsSection from './TopicsSection.jsx';
 import { loadWordsForLessons } from './lessonWords.js';
 import { isDue, sameWord } from './wordsModel.js';
 import { useStudentWords } from './useStudentWords.js';
-import { dailyPlan } from './dailyReview.js';
 import { nextReviewAt } from './srs.js';
-import { formatWhen } from './cardFace.js';
-import DailyReminder from './DailyReminder.jsx';
 import OwnWordsCard from './OwnWordsCard.jsx';
 import { useWordAudio, WORD_AUDIO_CREDIT } from './wordAudio.js';
 import './vocabulary.css';
 
 /**
- * Student „Sõnavara” (owner, 2026-10-10): learn words like in Quizlet. Decks: the student's own words (from lessons)
- * and the words of every course lesson (vocabulary lists and matching tasks of the published sheets); the lessons
- * the student has had come first, any lesson of a level can be opened.
+ * Student „Sõnad” (owner, 2026-10-10): learn words like in Quizlet. Since 2026-11-09 („Täna”) this is the LIBRARY — his
+ * own words, topics, lesson decks and the sentence analyser; the day's spaced repetition queue runs in „Täna” (/student),
+ * so the old „Täna” hero and the daily reminder (now in „Seaded”) are gone. An old link `?paev=1` opens „Täna”.
  */
 export default function VocabularyPage({
   studentRepository = studentsService,
@@ -72,21 +69,10 @@ export default function VocabularyPage({
   const modules = levels.find((entry) => entry.key === shownLevel)?.modules || [];
   const myDeck = useMemo(() => deckFromWords(words), [words]);
   const byLesson = useMemo(() => lessonDecks(words), [words]);
-  const dueDeck = useMemo(() => deckFromWords(words.filter((word) => isDue(word))), [words]);
-  // „Päeva 5 minutit”: one button, about ten cards (dailyReview.js); `?paev=1` (from the home page) starts it at once
-  // „Täna kordamiseks” (2026-11-09): the spaced repetition queue (srs.js) — due words, then new ones up to the daily cap
-  const daily = useMemo(() => dailyPlan(words), [words]);
   const nextDueAt = useMemo(() => nextReviewAt(words), [words]);
   const language = students[0]?.preferredLanguage || '';
-  const openDaily = () => setOpen({ key: 'daily', title: 'Täna kordamiseks', lessonId: '', deck: daily.deck, queue: daily.cards, mode: 'cards' });
-  const [params, setParams] = useSearchParams();
-  const startedDaily = useRef(false);
-  useEffect(() => {
-    if (params.get('paev') !== '1' || startedDaily.current || !daily.count) return;
-    startedDaily.current = true;
-    openDaily();
-    setParams((current) => { const next = new globalThis.URLSearchParams(current); next.delete('paev'); return next; }, { replace: true });
-  }, [params, daily.count]); // eslint-disable-line react-hooks/exhaustive-deps
+  // a daily reminder added before 2026-11-09 opens `?paev=1`: the day's cards are in „Täna” now
+  const [params] = useSearchParams();
 
   const openLesson = async (lesson) => {
     setNotice('');
@@ -127,12 +113,13 @@ export default function VocabularyPage({
     }
   };
 
+  if (params.get('paev') === '1') return <Navigate to="/student" replace />;
   if (state.loading) return <div className="page-content"><LoadingState label="Laen sõnavara…" /></div>;
   if (state.error) return <div className="page-content"><ErrorState message={state.error?.message || String(state.error)} onRetry={state.reload} /></div>;
 
   return (
     <div className="page-content vocabulary-page">
-      <PageHeader title="Sõnad" description={<>Siin õpid sõnu kaartidega: oma sõnu ja tundide sõnu.<span lang="ru"> · Учим слова по карточкам.</span></>} />
+      <PageHeader title="Sõnad" description={<>Sinu sõnad, teemad ja tundide sõnad. Tänased kaardid on lehel „Täna”.<span lang="ru"> · Твои слова и темы; карточки на сегодня — в «Täna».</span></>} />
       {notice ? <p className="vw-notice" role="status">{notice}</p> : null}
       {open ? (
         <Card>
@@ -144,19 +131,6 @@ export default function VocabularyPage({
         </Card>
       ) : (
         <div className="vocabulary-decks">
-          <section className="vd-hero" aria-label="Täna">
-            <div>
-              <span className="eyebrow">Täna</span>
-              <h2>{daily.count ? `Täna kordamiseks: ${daily.count}` : daily.done ? 'Tänane kordamine on tehtud!' : myDeck.length ? 'Kõik sõnad on korratud' : 'Alusta tundide sõnadest'}</h2>
-              <p>{daily.count ? [daily.due ? `${daily.due} kordamist` : '', daily.fresh ? `${daily.fresh} uut` : '', daily.forgotten ? `${daily.forgotten} ununeb` : ''].filter(Boolean).join(' · ')
-                : myDeck.length ? [daily.done ? 'Tubli!' : '', nextDueAt ? `Järgmine kordamine: ${formatWhen(nextDueAt)}.` : 'Harjuta veel või vali tunni sõnad allpool.'].filter(Boolean).join(' ')
-                  : 'Vali allpool tund ja õpi selle sõnu.'}</p>
-            </div>
-            {daily.count ? <button type="button" className="vd-hero__go" onClick={openDaily}><Play size={18} /> Alusta</button>
-              : dueDeck.length >= 2 ? <button type="button" className="vd-hero__go" onClick={() => setOpen({ key: 'due', title: 'Tänased sõnad', lessonId: '', deck: dueDeck, mode: 'cards' })}><Play size={18} /> Korda nüüd</button>
-              : myDeck.length >= 2 ? <button type="button" className="vd-hero__go is-soft" onClick={() => setOpen({ key: 'all', title: 'Minu sõnad', lessonId: '', deck: myDeck, mode: 'match' })}><Play size={18} /> Mängi paare</button> : null}
-          </section>
-          {!preview && myDeck.length ? <DailyReminder /> : null}
           <OwnWordsCard students={students} words={words} user={user} preview={Boolean(preview)} service={wordsService} {...(toolsService ? { toolsService } : {})} />
           <Card>
             <div className="section-heading"><div><span className="eyebrow">Lause lahti</span><h2>Võta lause lahti</h2></div></div>

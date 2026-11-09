@@ -5,12 +5,13 @@ import { dailyReminderIcs, REMINDER_TIMES } from './dailyReminder.js';
 const STORE = 'keelesepp.dailyReminder';
 const saved = () => { try { return globalThis.localStorage?.getItem(STORE) || ''; } catch { return ''; } };
 
-// „Tuleta mulle iga päev meelde”: downloads a daily repeating calendar event (dailyReminder.js) for the phone.
+// „Tuleta mulle iga päev meelde”: downloads a daily repeating calendar event (dailyReminder.js) for the phone. Since
+// 2026-11-09 it lives in „Seaded” and opens „Täna” (the event keeps its UID, so adding it again replaces the old one).
 export default function DailyReminder({ download = downloadFile }) {
   const [time, setTime] = useState(() => saved() || '19:00');
   const [added, setAdded] = useState(() => Boolean(saved()));
   const add = () => {
-    download('keelesepp-paeva-5-minutit.ics', dailyReminderIcs({ time, url: `${globalThis.location?.origin || ''}/student/sonavara?paev=1` }));
+    download('keelesepp-paeva-5-minutit.ics', dailyReminderIcs({ time, url: `${globalThis.location?.origin || ''}/student` }));
     try { globalThis.localStorage?.setItem(STORE, time); } catch { /* private mode */ }
     setAdded(true);
   };

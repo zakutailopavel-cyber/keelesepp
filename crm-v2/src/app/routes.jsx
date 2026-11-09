@@ -76,6 +76,8 @@ const MonologuePage = lazyComponent(() => import('../features/monologue/Monologu
 const MessagesPage = lazyComponent(() => import('../features/messages/MessagesPage.jsx'));
 const ParentDashboardPage = lazyComponent(() => import('../features/parents/ParentDashboardPage.jsx'));
 const StudentDashboardPage = lazyComponent(() => import('../features/students/StudentDashboardPage.jsx'));
+// „Harjuta” (owner 2026-11-09): the student's daily practice flow, its own tab after „Täna”
+const StudentPracticePage = lazyComponent(() => import('../features/students/StudentPracticePage.jsx'));
 const VocabularyPage = lazyComponent(() => import('../features/vocabulary/VocabularyPage.jsx'));
 const ClientErrorsPage = lazyComponent(() => import('../features/client-errors/ClientErrorsPage.jsx'));
 const SettingsPage = lazyComponent(() => import('../features/settings/SettingsPage.jsx'));
@@ -182,6 +184,7 @@ export default function AppRoutes() {
             <Route path="student/sonavara" element={staffPage(<VocabularyPage />)} />
             <Route path="student/lemmik" element={staffPage(<PetPage />)} />
             <Route path="student/vead" element={staffPage(<MistakesPage />)} />
+            <Route path="student/harjuta" element={staffPage(<StudentPracticePage />)} />
             {/* „Kuu monoloog” (owner 2026-11-04): opened from its task in „Ülesanded”, not from the home page */}
             <Route path="student/monoloog" element={staffPage(<MonologuePage />)} />
             {/* „Kordamine” became „Minu vead” (+ words in Sõnad), owner 2026-10-12 */}

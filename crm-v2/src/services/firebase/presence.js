@@ -1,10 +1,12 @@
 import { collection, doc, documentId, getDoc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { shareInFlight } from './shareInFlight.js';
+import { nextPracticeToday } from '../../features/practice/progress.js';
 
 // „Viimati sees” and the last „Minu vead” review on the account document (owner 2026-10-23: the teacher sees when the
 // student was in and whether he practises). The rules (validPresence) allow only the server's time for lastSeenAt and a
-// small practice map { errorsDate, errorsPct, days ≤ 60 }; staff read the account of a student they teach.
+// small practice map { errorsDate, errorsPct, days ≤ 60 } plus „Täna” (features/practice/progress.js: today, xp,
+// learnDays); staff read the account of a student they teach.
 export const SEEN_EVERY_MS = 6 * 3600000;
 export const PRACTICE_DAYS = 60;
 const SELF_ROLES = ['student', 'parent'];
@@ -21,8 +23,13 @@ export function shouldMarkSeen(user, now = Date.now()) {
 // the practice map after one more „Minu vead” review: the last result and the days practised (newest last)
 export function nextPractice(current = {}, { date, pct }) {
   const days = [...new Set([...(Array.isArray(current?.days) ? current.days : []), date])].filter((day) => /^\d{4}-\d{2}-\d{2}$/.test(day)).sort().slice(-PRACTICE_DAYS);
-  return { errorsDate: date, errorsPct: Math.max(0, Math.min(100, Math.round(Number(pct) || 0))), days };
+  // the „Täna” keys (today, xp, learnDays) stay as they are
+  const rest = current && typeof current === 'object' ? current : {};
+  return { ...rest, errorsDate: date, errorsPct: Math.max(0, Math.min(100, Math.round(Number(pct) || 0))), days };
 }
+
+// one write at a time from this browser, so a finished step and the XP of the same moment never overwrite each other
+let queue = Promise.resolve();
 
 // the student's own account on a card (or on any card of a person: StudentsPage groups cards)
 export function accountUid(student) {
@@ -51,6 +58,19 @@ export const presenceService = {
     const practice = nextPractice(snapshot.exists() ? snapshot.data().practice : {}, entry);
     await setDoc(doc(db, 'users', uid), { practice }, { merge: true });
     return practice;
+  },
+  // „Täna”: steps done today and practice XP (progress.js); read, merged and written back in order
+  saveToday(uid, update) {
+    if (!uid) return Promise.resolve(null);
+    const run = queue.then(async () => {
+      const { db } = requireFirebaseClient();
+      const snapshot = await getDoc(doc(db, 'users', uid));
+      const practice = nextPracticeToday(snapshot.exists() ? snapshot.data().practice : {}, update);
+      await setDoc(doc(db, 'users', uid), { practice }, { merge: true });
+      return practice;
+    });
+    queue = run.catch(() => null);
+    return run;
   },
   // many students at once (the students list, the dashboard): Map studentId → { lastSeenAt, practice }
   // two dashboard cards asking at once („Riskis õpilased”, „Täna”) share one read

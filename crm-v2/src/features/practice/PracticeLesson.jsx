@@ -19,8 +19,10 @@ const VERDICT = {
 const emptyDraft = () => ({ tiles: [], option: '', text: '' });
 
 // One practice lesson: item after item with immediate feedback, then one round of the items answered wrong, then the
-// result. Announces the result once (events.js) — nothing is stored.
-export default function PracticeLesson({ items, lang = 'ru', onExit, onRestart, now = () => Date.now() }) {
+// result. Announces the result once (events.js) — nothing is stored here. `onFinish(summary, results)` gets the first
+// answers ({ item, verdict }) — „Täna” ticks its step and moves the learner's own sentence cards on their schedule;
+// `onDone` is the result's „Valmis” (defaults to `onExit`, the ✕ of an unfinished lesson).
+export default function PracticeLesson({ items, lang = 'ru', onExit, onDone = onExit, onRestart, onFinish, doneLabel = 'Valmis', now = () => Date.now() }) {
   const [session, setSession] = useState(() => createSession(items));
   const [draft, setDraft] = useState(emptyDraft);
   const [feedback, setFeedback] = useState(null);
@@ -38,7 +40,8 @@ export default function PracticeLesson({ items, lang = 'ru', onExit, onRestart, 
     if (!summary || announced.current) return;
     announced.current = true;
     announcePractice({ kind: summary.kind, items: summary.total, correct: summary.correct, minutes: summary.minutes, grammarPoints: summary.grammarPoints });
-  }, [summary]);
+    onFinish?.(summary, session.log.filter((entry) => entry.phase === 'main').map((entry) => ({ item: session.items[entry.index], verdict: entry.verdict })));
+  }, [summary]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ready = input === 'tiles' ? draft.tiles.length > 0 : input === 'options' ? Boolean(draft.option) : draft.text.trim().length > 0;
   const check = useCallback(() => {
@@ -75,7 +78,7 @@ export default function PracticeLesson({ items, lang = 'ru', onExit, onRestart, 
     return () => window.removeEventListener('keydown', onKey);
   }, [done, feedback, next, check, input, item]);
 
-  if (done) return <LessonSummary summary={summary} lang={lang} onExit={onExit} onRestart={onRestart} />;
+  if (done) return <LessonSummary summary={summary} lang={lang} onExit={onDone} onRestart={onRestart} doneLabel={doneLabel} />;
   if (!item) return null;
 
   const filled = input === 'options' ? draft.option : input === 'type' && (item.type === 'form' || item.type === 'connector') ? draft.text : '';
@@ -131,7 +134,7 @@ function Feedback({ feedback, item, lang }) {
   );
 }
 
-export function LessonSummary({ summary, lang = 'ru', onExit, onRestart }) {
+export function LessonSummary({ summary, lang = 'ru', onExit, onRestart, doneLabel = 'Valmis' }) {
   const share = summary.total ? Math.round((summary.correct / summary.total) * 100) : 0;
   const praise = share >= 80 ? 'Väga hea!' : share >= 50 ? 'Hea töö!' : 'Harjutame veel!';
   const ru = share >= 80 ? 'Отлично!' : share >= 50 ? 'Хорошо!' : 'Потренируемся ещё!';
@@ -152,7 +155,7 @@ export function LessonSummary({ summary, lang = 'ru', onExit, onRestart }) {
       ) : null}
       <div className="pr-summary__actions">
         {onRestart ? <button type="button" className="pr-cta pr-cta--ghost" onClick={onRestart}>Uus harjutus</button> : null}
-        {onExit ? <button type="button" className="pr-cta" onClick={onExit}>Valmis</button> : null}
+        {onExit ? <button type="button" className="pr-cta" onClick={onExit}>{doneLabel}</button> : null}
       </div>
     </section>
   );

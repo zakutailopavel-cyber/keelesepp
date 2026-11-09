@@ -1,4 +1,4 @@
-import { BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, Trash2, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
+import { Dumbbell, BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, Trash2, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 // Grouped so the menu stays short on a laptop screen: own pages first, then teaching, people, communication and money.
@@ -31,6 +31,8 @@ export const navigation = [
 // lesson room needs no menu item. Parents and staff keep the menu above.
 export const studentNavigation = [
   { to: '/student', label: 'Täna', icon: GraduationCap, roles: ACCESS.STUDENT, end: true, hint: 'mida täna teha' },
+  // „Harjuta” (owner 2026-11-09): the day's practice in one flow — homework, words, sentences and grammar, the pet's reward
+  { to: '/student/harjuta', label: 'Harjuta', icon: Dumbbell, roles: ACCESS.STUDENT, hint: 'tänane harjutus' },
   { to: '/homework', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.STUDENT, hint: 'mida õpetaja andis' },
   { to: '/student/kursus', label: 'Kursus', icon: BookOpenCheck, roles: ACCESS.STUDENT, hint: 'kogu kursuse kaart' },
   { to: '/student/sonavara', label: 'Sõnad', icon: Languages, roles: ACCESS.STUDENT, hint: 'õpi sõnu kaartidega' },
