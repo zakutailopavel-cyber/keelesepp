@@ -12,6 +12,7 @@ export { getFirebaseClient, isFirebaseConfigured } from './client.js';
 export { groupsService } from './groups.js';
 export { invoicesService } from './invoices.js';
 export { invoiceNotesService } from './invoiceNotes.js';
+export { invoicePaymentClaimsService } from './invoicePaymentClaims.js';
 export { libraryService } from './library.js';
 export { liveLessonInvitationsService } from './liveLessonInvitations.js';
 export { liveGuestService } from './liveGuest.js';

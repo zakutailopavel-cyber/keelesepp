@@ -2,7 +2,7 @@ import { CalendarDays, CheckCircle2, ChevronRight, ClipboardList, MessageSquareT
 import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { Badge, Button, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
+import { Badge, Button, Card, EmptyState, ErrorState, Skeleton, SkeletonRow, SkeletonScreen } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
@@ -32,6 +32,7 @@ import { ChildrenWordGrowth } from '../vocabulary/WordGrowthCard.jsx';
 import ChildSwitch, { childKeyOf } from './ChildSwitch.jsx';
 import { childSummary, isRealInvoice, moneyDue } from './parentHome.js';
 import NowLearningCard from './NowLearningCard.jsx';
+import InvoicePdfButton from './InvoicePdfButton.jsx';
 import UnpaidInvoicesNotice from './UnpaidInvoicesNotice.jsx';
 import './parentHome.css';
 
@@ -52,6 +53,19 @@ const SHORT_DAY = { day: 'numeric', month: 'short' };
 
 function Ru({ children }) {
   return <span className="pd-ru" lang="ru"> · {children}</span>;
+}
+
+// while the first data loads: the greeting, the child's card (what the child learns now) beside the side cards
+// (next lessons, homework, invoices), and the collapsed sections below
+function ParentHomeSkeleton() {
+  return <SkeletonScreen className="page-content pd-page" label="Laen pere ülevaadet…">
+    <div><Skeleton lines={1} className="skeleton--heading" /><Skeleton lines={1} className="skeleton--sub" /></div>
+    <SkeletonRow kind="split">
+      <Skeleton variant="card" className="skeleton--tall" />
+      <div className="skeleton-screen"><Skeleton variant="card" /><Skeleton variant="card" /><Skeleton variant="card" /></div>
+    </SkeletonRow>
+    <Skeleton lines={3} />
+  </SkeletonScreen>;
 }
 
 // One of the quiet areas under the answer. It reads its data when first opened, so the first screen stays light.
@@ -124,7 +138,7 @@ function ChildCards({ child, summary, upcoming, subjects, onlyOneSubject, lesson
   </div>;
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService, pointsService, goalsLoader, paymentsApi }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, announcementService, boardCopiesService, pointsService, goalsLoader, paymentsApi, invoicePdfApi, paymentClaims }) {
   const { user, preview } = useAuth();
   const location = useLocation();
   const [rescheduling, setRescheduling] = useState(null);
@@ -151,7 +165,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
   const occurrences = useMemo(() => (state.data ? occurrencesForDates(state.data.schedule, nextDates) : []), [nextDates, state.data]);
 
-  if (state.loading) return <LoadingState label="Laen pere ülevaadet…" />;
+  if (state.loading) return <ParentHomeSkeleton />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const { students, studentRecords, invoices, lessons, homework, assignments, submissions } = state.data;
   const hello = <><h1 className="pd-hello">Tere, {user.displayName || 'lapsevanem'}!</h1><p className="pd-sub">{students.length > 1 ? 'Kuidas lastel läheb?' : 'Kuidas lapsel läheb?'}<Ru>{students.length > 1 ? 'как дела у детей?' : 'как дела у ребёнка?'}</Ru></p></>;
@@ -198,7 +212,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
   return <div className="page-content pd-page">
     {hello}
     {/* „Arve ootab tasumist” (owner 2026-11-09): unpaid invoices first, in the CRM only; invoice data, never a lesson balance */}
-    <UnpaidInvoicesNotice invoices={invoices} readOnly={Boolean(preview)} onOpenInvoices={openInvoices}
+    <UnpaidInvoicesNotice invoices={invoices} readOnly={Boolean(preview)} onOpenInvoices={openInvoices} {...(invoicePdfApi ? { pdfApi: invoicePdfApi } : {})} {...(paymentClaims ? { claimsRepository: paymentClaims } : {})}
       nameOf={(invoice) => (students.length > 1 ? (studentOf(invoice)?.name || invoice.studentName || '').trim().split(/\s+/)[0] : '')}
       {...(paymentsApi ? { api: paymentsApi } : {})} />
     {/* the parent's own question: an administrator's preview cannot answer it (as in the student's view) */}
@@ -240,7 +254,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
         <Card><div className="section-heading"><div><h2>Viimased arved<Ru>последние счета</Ru></h2></div></div>{familyInvoices.length ? <div className="simple-list parent-home-invoices">{familyInvoices.map((invoice) => {
           const open = invoiceBalanceCents(invoice);
           const overdue = isInvoiceOverdue(invoice);
-          return <div key={invoice.id}><div><strong>{invoice.num ? `Arve ${invoice.num}` : 'Arve'} · {money(invoice.amountCents ?? Math.round(Number(invoice.amount || 0) * 100))}</strong><span>{[studentOf(invoice)?.name || invoice.studentName, invoice.desc, invoice.due ? `maksetähtaeg ${day(invoice.due, { day: 'numeric', month: 'short', year: 'numeric' })}` : ''].filter(Boolean).join(' · ')}</span>{open ? <small className="parent-home-note">Tasumata {money(open)}</small> : null}</div><Badge tone={!open ? 'success' : overdue ? 'danger' : 'info'}>{!open ? 'Tasutud' : overdue ? 'Tähtaeg möödas' : 'Tasumata'}</Badge></div>;
+          return <div key={invoice.id}><div><strong>{invoice.num ? `Arve ${invoice.num}` : 'Arve'} · {money(invoice.amountCents ?? Math.round(Number(invoice.amount || 0) * 100))}</strong><span>{[studentOf(invoice)?.name || invoice.studentName, invoice.desc, invoice.due ? `maksetähtaeg ${day(invoice.due, { day: 'numeric', month: 'short', year: 'numeric' })}` : ''].filter(Boolean).join(' · ')}</span>{open ? <small className="parent-home-note">Tasumata {money(open)}</small> : null}{preview ? null : <InvoicePdfButton invoice={invoice} {...(invoicePdfApi ? { api: invoicePdfApi } : {})} />}</div><Badge tone={!open ? 'success' : overdue ? 'danger' : 'info'}>{!open ? 'Tasutud' : overdue ? 'Tähtaeg möödas' : 'Tasumata'}</Badge></div>;
         })}</div> : <EmptyState title="Arveid ei ole" />}</Card>
       </Section>
 

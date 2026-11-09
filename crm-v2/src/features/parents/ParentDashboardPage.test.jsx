@@ -6,6 +6,17 @@ import { shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import ParentDashboardPage from './ParentDashboardPage.jsx';
 
 describe('ParentDashboardPage', () => {
+  it('while the family loads: placeholder cards (no spinner) under one busy label', () => {
+    const studentRepository = { listOwned: vi.fn(() => new Promise(() => {})) };
+    const user = { uid: 'parent-1', displayName: 'Mari Ema', roles: ['parent'] };
+    const { container } = render(<MemoryRouter><AuthContext.Provider value={{ user }}><ParentDashboardPage studentRepository={studentRepository} /></AuthContext.Provider></MemoryRouter>);
+    const region = screen.getByRole('status');
+    expect(region).toHaveAttribute('aria-busy', 'true');
+    expect(region).toHaveTextContent('Laen pere ülevaadet…');
+    expect(container.querySelector('.state-spinner')).toBeNull();
+    expect(region.querySelector('.skeleton-row--split')).not.toBeNull();
+  });
+
   it('loads only explicitly owned students; the first screen answers: next lesson, what to do, feedback, money due', async () => {
     const today = toIsoDate();
     const studentRepository = { listOwned: vi.fn().mockResolvedValue([{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', targetLevel: 'A2', teacher: 'Õpetaja' }]) };

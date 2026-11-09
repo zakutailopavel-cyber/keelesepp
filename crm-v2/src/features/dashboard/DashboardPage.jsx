@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { useEntityChanged } from '../../components/entityDrawer/useEntityChanged.js';
-import { Card, ErrorState, LoadingState } from '../../components/ui/index.js';
+import { Card, ErrorState } from '../../components/ui/index.js';
+import DashboardSkeleton from './DashboardSkeleton.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService } from '../../services/firebase/groups.js';
 import { homeworkService } from '../../services/firebase/homework.js';
@@ -133,7 +134,7 @@ export default function DashboardPage({
   const { user } = useAuth();
   const state = useAsyncData(() => loadDashboardData(user, repositories, now), [repositories, user]);
 
-  if (state.loading) return <LoadingState label="Koostan töölauda…" />;
+  if (state.loading) return <DashboardSkeleton roles={user?.roles} />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   return <CalmDashboard data={state.data} user={user} repositories={repositories} now={now} />;
 }

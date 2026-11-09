@@ -2,7 +2,7 @@ import { CalendarClock, CalendarDays, Check, ChevronRight, Flame, Languages, Lis
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
+import { Card, EmptyState, ErrorState, Skeleton, SkeletonRow, SkeletonScreen } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
@@ -50,6 +50,19 @@ function dateLabel(value) {
 const firstName = (name) => String(name || '').trim().split(/\s+/)[0] || 'õpilane';
 const NOTE_ICON = { feedback: MessageSquareText, announcement: Megaphone, invoice: WalletCards, availability: CalendarClock };
 const SECTION_ICON = { tasks: ListTodo, words: Languages, mistakes: SpellCheck, boards: PenLine, progress: TrendingUp };
+
+// while the first data loads: the greeting, the next step beside the pet, and the „Minu õppimine” rows
+function StudentHomeSkeleton() {
+  return <SkeletonScreen className="page-content sh-page" label="Laen sinu õpinguid…">
+    <Skeleton lines={1} className="skeleton--heading" />
+    <SkeletonRow kind="split">
+      <Skeleton variant="card" className="skeleton--tall" />
+      <Skeleton variant="card" className="skeleton--tall" />
+    </SkeletonRow>
+    <Skeleton variant="card" />
+    <Skeleton lines={5} />
+  </SkeletonScreen>;
+}
 
 /** Unpaid invoice: one line; with card payments on, „Maksa” opens the existing payment card right here. */
 function InvoiceNote({ note, invoices, readOnly, api = linkpayApi }) {
@@ -133,7 +146,7 @@ export default function StudentDashboardPage({
     } catch { return; }
     petReact('streak');
   }, [pathDone, preview, today]);
-  if (state.loading) return <LoadingState label="Laen sinu õpinguid…" />;
+  if (state.loading) return <StudentHomeSkeleton />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
   const { students, submissions, invoices, sheets, pet } = state.data;

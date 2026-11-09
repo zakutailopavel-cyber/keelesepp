@@ -32,6 +32,20 @@ function renderPage(data, auth = {}) {
 }
 
 describe('StudentDashboardPage', () => {
+  it('while the first data loads: placeholder cards (no spinner) under one busy label, then the page', async () => {
+    const data = repositories();
+    let release;
+    data.studentRepository.listSelf = vi.fn(() => new Promise((resolve) => { release = () => resolve([{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', recordingConsent: true }]); }));
+    const { container } = renderPage(data);
+    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByText('Laen sinu õpinguid…')).toBeInTheDocument();
+    expect(container.querySelector('.state-spinner')).toBeNull();
+    expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(2);
+    release();
+    expect(await screen.findByRole('heading', { name: 'Tere, Mari!' })).toBeInTheDocument();
+    expect(screen.queryByText('Laen sinu õpinguid…')).not.toBeInTheDocument();
+  });
+
   it('first the greeting, one next step with one button and the next lesson; progress has moved away', async () => {
     const data = repositories();
     renderPage(data);

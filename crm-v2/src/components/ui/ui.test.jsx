@@ -5,7 +5,7 @@ import Input from './Input.jsx';
 import Modal from './Modal.jsx';
 import Select from './Select.jsx';
 import LoadingState from './LoadingState.jsx';
-import Skeleton from './Skeleton.jsx';
+import Skeleton, { SkeletonRow, SkeletonScreen } from './Skeleton.jsx';
 
 describe('shared UI safety and accessibility', () => {
   it('does not submit a form unless the button explicitly opts in', () => {
@@ -86,5 +86,14 @@ describe('loading states', () => {
     const skeleton = screen.getByTestId('skeleton');
     expect(skeleton).toHaveAttribute('aria-hidden', 'true');
     expect(skeleton.querySelectorAll('.skeleton__bar')).toHaveLength(4);
+  });
+
+  it('a skeleton screen is one busy status region that says its label once; the shapes are hidden', () => {
+    render(<SkeletonScreen label="Laen…"><SkeletonRow kind="split"><Skeleton variant="card" /><Skeleton variant="card" /></SkeletonRow></SkeletonScreen>);
+    const region = screen.getByRole('status');
+    expect(region).toHaveAttribute('aria-busy', 'true');
+    expect(region).toHaveTextContent(/^Laen…$/);
+    expect(region.querySelector('.skeleton-row--split')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getAllByTestId('skeleton')).toHaveLength(2);
   });
 });
