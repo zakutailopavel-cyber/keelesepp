@@ -61,15 +61,13 @@ describe('Sõnavara page', () => {
     expect(props.wordsService.review).not.toHaveBeenCalled();
   });
 
-  it('„Täna kordamiseks” starts the daily queue', async () => {
+  it('is the library now (owner 2026-11-09): no „Täna” hero and no daily reminder — the day\'s cards run in „Täna”', async () => {
     renderPage();
-    expect(await screen.findByRole('heading', { name: 'Täna kordamiseks: 2' })).toBeInTheDocument();
-    expect(screen.getByText('2 uut')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Alusta/ }));
-    expect(screen.getByRole('region', { name: 'Õppimine: Täna kordamiseks' })).toBeInTheDocument();
-    expect(screen.getByText('2 kaarti täna')).toBeInTheDocument();
-    expect(screen.queryByRole('combobox', { name: 'Küsimuse suund' })).toBeNull();
-    expect(screen.getByRole('button', { name: /Küsimus: kass/ })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Sõnad' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Täna' })).toBeNull();
+    expect(screen.queryByText(/Täna kordamiseks/)).toBeNull();
+    expect(screen.queryByRole('button', { name: /Lisa telefoni kalendrisse/ })).toBeNull();
+    expect(screen.getByText(/Tänased kaardid on lehel „Täna”/)).toBeInTheDocument();
   });
 
   it('missed course words can be kept in my words', async () => {

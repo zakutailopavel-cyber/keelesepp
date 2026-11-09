@@ -1,10 +1,9 @@
-// The pet's daily loop (owner 2026-11-01: „make the pet the reason to come back”): one request a day from its lowest
-// need, done in about a minute on the same page, a thank-you, a small surprise, and a reward that is always in sight.
-// Pure. Growth stays derived from real learning (petModel.js): nothing here gives XP or stars, and the loop's only
-// writes are `pet.playedAt` and buying an item with earned stars; the rest lives in the browser.
+// The pet on the home page „Täna” (owner 2026-11-01 „make the pet the reason to come back”; 2026-11-09 one daily flow):
+// it no longer asks for tasks of its own — nextStep.js decides what to do — the pet only REWARDS: it reacts after each
+// step of „Täna”, thanks at the end of the day, a small surprise, and a reward that is always in sight. Pure.
+// Growth is derived from real learning (petModel.js) plus the capped practice XP of „Täna” (practice/progress.js);
+// nothing here gives XP or stars.
 import { localDate } from '../../utils/localDate.js';
-import { dailyWords } from '../vocabulary/dailyReview.js';
-import { FEED_WORDS, LOW_NEED, feedingWords, fixRounds } from './petCare.js';
 import { PET_ITEMS, availableStars } from './petItems.js';
 import { roomContents } from './petRoom.js';
 
@@ -22,74 +21,34 @@ const dayOf = (value) => { const t = time(value); return t ? localDate(new Date(
 export const LEVEL_XP = 10;
 export const petLevel = (xp = 0) => Math.floor(Math.max(0, xp) / LEVEL_XP) + 1;
 
-// the cards of a feeding: his own sentences and the words he is forgetting first (dailyReview.js)
-export function requestWords(words = [], now = Date.now()) {
-  const list = dailyWords(words, { now, size: FEED_WORDS });
-  return list.length ? list : feedingWords(words, now);
-}
+// played with in Lemmik today (on any device)
+export const playedToday = ({ pet = null, today }) => dayOf(pet?.playedAt) === today;
 
-// Today's request is done: the pet was played with / fed (on any device) or three words were repeated anywhere today.
-export function requestDoneToday({ pet = null, words = [], today }) {
-  if (dayOf(pet?.playedAt) === today) return true;
-  return words.filter((word) => dayOf(word.reviewedAt) === today).length >= FEED_WORDS;
-}
-
-const LINES = {
-  foodLow: { et: (w) => (w ? `Mul on kõht tühi. Kas mäletad sõna „${w}”?` : 'Mul on kõht tühi. Kordame sinu lauset?'), en: (w) => (w ? `I'm hungry. Do you remember the word "${w}"?` : "I'm hungry. Shall we repeat your sentence?"), ru: (w) => (w ? `Я проголодался(ась). Помнишь слово «${w}»?` : 'Я проголодался(ась). Повторим твою фразу?') },
-  food: { et: (w) => (w ? `Kas mäletad sõna „${w}”? Kordame koos.` : 'Kordame koos sinu lauset?'), en: (w) => (w ? `Do you remember the word "${w}"? Let's repeat it together.` : "Shall we repeat your sentence together?"), ru: (w) => (w ? `Помнишь слово «${w}»? Повторим вместе.` : 'Повторим вместе твою фразу?') },
-  fix: { et: (s) => `Mäletan, tunnis ütlesid „${s}”. Parandame koos?`, en: (s) => `I remember: in the lesson you said "${s}". Shall we fix it together?`, ru: (s) => `Помню, на уроке ты сказал(а) «${s}». Исправим вместе?` },
-  gameLow: { et: () => 'Mul on igav. Mängime sinu sõnadega?', en: () => "I'm bored. Shall we play with your words?", ru: () => 'Мне скучно. Поиграем с твоими словами?' },
-  game: { et: () => 'Mängime sinu sõnadega?', en: () => 'Shall we play with your words?', ru: () => 'Поиграем с твоими словами?' },
-  topic: { et: (t) => `Mängime teemal „${t}”?`, en: (t) => `Shall we play with the topic "${t}"?`, ru: (t) => `Поиграем на тему «${t}»?` },
-  homework: { et: () => 'Olen väsinud. Teeme ülesande ära?', en: () => "I'm tired. Shall we do the homework?", ru: () => 'Я устал(а). Сделаем домашку?' },
-};
-const say = (line, lang, arg) => ({ text: LINES[line][lang](arg), hint: LINES[line].ru(arg), lang });
-
-// ONE request, from the lowest need that can be met here and now. Homework cannot be done in a minute on this page, so
-// it is asked for only when nothing else can be done (the home page's „Järgmine samm” already points to it).
-// `gentle`: right after a welcome back the pet does not start with its complaints.
-export function petRequest({ needs, words = [], stats = [], topics = [], lang = 'et', gentle = false, now = Date.now() }) {
-  if (!needs) return null;
-  const options = [];
-  if (needs.dueWords > 0) {
-    const cards = requestWords(words, now);
-    const named = cards.find((word) => !isSentence(word))?.word || '';
-    options.push({ need: 'food', value: needs.food, kind: 'feed', button: `Kordame ${Math.min(FEED_WORDS, cards.length)} sõna`, ...say(needs.food < LOW_NEED && !gentle ? 'foodLow' : 'food', lang, short(named, 30)) });
-  }
-  const said = stats.flatMap((stat) => stat.practice || []).find((pair) => pair.said && pair.corrected);
-  if (said && fixRounds(stats).length) options.push({ need: 'joy', value: needs.joy, kind: 'fix', button: 'Parandame', ...say('fix', lang, short(said.said)) });
-  else if (needs.canWordGame ?? needs.canPlay) options.push({ need: 'joy', value: needs.joy, kind: 'game', button: 'Mängime', ...say(needs.joy < LOW_NEED && !gentle ? 'gameLow' : 'game', lang) });
-  else if (topics.length) options.push({ need: 'joy', value: needs.joy, kind: 'topic', button: 'Mängime', ...say('topic', lang, short(topics[0].title, 30)) });
-  if (options.length) return options.sort((a, b) => a.value - b.value)[0];
-  if (needs.openHomework > 0) return { need: 'energy', value: needs.energy, kind: 'homework', button: 'Ava ülesanded', to: '/homework', ...say('homework', lang) };
-  return null;
-}
-
-// The pet's mood in one word for the home card („Tuju”): content after today's request, proud of a great week, else the
-// need it asks for when that need is low, else calm. Never sad or ashamed (owner 2026-11-01).
+// The pet's mood in one word for the home card („Tuju”): glad after today's learning, proud of a great week, else calm.
+// Never sad or ashamed (owner 2026-11-01).
 const MOODS = {
   glad: { et: 'rõõmus', ru: 'радуется' },
   proud: { et: 'uhke', ru: 'гордится' },
-  food: { et: 'näljane', ru: 'голодный' },
-  joy: { et: 'igavleb', ru: 'скучает' },
-  energy: { et: 'väsinud', ru: 'устал' },
   calm: { et: 'rahulik', ru: 'спокоен' },
 };
-export function moodLabel({ mood = 'calm', request = null, needs = null, done = false }) {
+export function moodLabel({ mood = 'calm', done = false }) {
   if (done || mood === 'happy') return { key: 'glad', ...MOODS.glad };
   if (mood === 'proud') return { key: 'proud', ...MOODS.proud };
-  if (request && needs && (needs[request.need] ?? 100) < LOW_NEED) return { key: request.need, ...MOODS[request.need] };
   return { key: 'calm', ...MOODS.calm };
 }
 
 const THANKS = {
-  food: { et: 'Aitäh! Nüüd on kõht täis.', en: 'Thank you! Now I am full.', ru: 'Спасибо! Теперь я сыт(а).' },
-  joy: { et: 'Aitäh! See oli tore!', en: 'Thank you! That was fun!', ru: 'Спасибо! Было здорово!' },
-  fix: { et: 'Aitäh! Nüüd tead, kuidas õigesti öelda.', en: 'Thank you! Now you know how to say it.', ru: 'Спасибо! Теперь ты знаешь, как сказать правильно.' },
+  words: { et: 'Aitäh! Sõnad on korratud.', en: 'Thank you! The words are done.', ru: 'Спасибо! Слова повторены.' },
+  sentences: { et: 'Tubli! Laused tulevad juba paremini.', en: 'Well done! Your sentences are getting better.', ru: 'Молодец! Фразы получаются всё лучше.' },
+  homework: { et: 'Tubli! Ülesanne on tehtud.', en: 'Well done! The task is done.', ru: 'Молодец! Задание сделано.' },
+  course: { et: 'Tubli! Üks samm kursusel edasi.', en: 'Well done! One more step in the course.', ru: 'Молодец! Ещё шаг по курсу.' },
+  finished: { et: 'Aitäh! Täna on kõik tehtud. Olen sinu üle uhke!', en: 'Thank you! Everything is done today. I am proud of you!', ru: 'Спасибо! Сегодня всё сделано. Я тобой горжусь!' },
+  ready: { et: 'Alustame? Mina olen kohe siin.', en: 'Shall we start? I am right here.', ru: 'Начнём? Я рядом.' },
   content: { et: 'Täna on mul kõik hästi. Aitäh!', en: 'I am fine today. Thank you!', ru: 'Сегодня у меня всё хорошо. Спасибо!' },
 };
+// what the pet says after a step of „Täna” (`kind` = the step's key), at the end (`finished`), or before the start
 export function thanksLine(kind, lang = 'et') {
-  const row = THANKS[kind === 'feed' ? 'food' : kind === 'fix' ? 'fix' : kind === 'game' || kind === 'topic' ? 'joy' : 'content'];
+  const row = THANKS[kind] || THANKS.content;
   return { text: row[lang] || row.et, hint: row.ru, lang };
 }
 

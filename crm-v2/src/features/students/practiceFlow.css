@@ -1,0 +1,51 @@
+/* „Harjuta” (PracticeFlow.jsx): layout only — the look is the cabinet's own Card / Button / Badge and tokens. */
+.pf { display: grid; gap: 14px; min-width: 0; }
+.pf h2 { margin: 0; }
+.pf-head { margin: 0; align-items: center; }
+.pf-meter { height: 8px; border-radius: var(--radius-pill); background: var(--gray-100); overflow: hidden; }
+.pf-meter i { display: block; height: 100%; border-radius: inherit; background: var(--green); transition: width .3s; }
+.pf-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.pf-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 56px; }
+.pf-list li + li { border-top: 1px solid var(--border-faint); }
+.pf-list__icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--gray-100); color: var(--green-text); }
+.pf-list li.is-done .pf-list__icon { background: var(--success-soft); color: var(--success-text); }
+.pf-list__text { display: grid; min-width: 0; }
+.pf-list__text small { overflow: hidden; color: var(--muted); font-size: .82rem; text-overflow: ellipsis; white-space: nowrap; }
+.pf-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.pf-actions p { margin: 0; }
+.pf-start { min-width: 220px; }
+.pf-live { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 12px 14px; border-radius: var(--radius-lg); background: var(--warning-soft); color: var(--ink); }
+.pf-live svg { color: var(--warning-text); }
+.pf-live strong, .pf-live small { display: block; }
+.pf-live small { color: var(--muted); }
+.pf-run__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pf-step { display: grid; gap: 12px; min-width: 0; }
+.pf-tasks { display: grid; margin: 0; padding: 0; list-style: none; }
+.pf-tasks li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 46px; }
+.pf-tasks li + li { border-top: 1px solid var(--border-faint); }
+.pf-tasks svg { color: var(--green-text); }
+.pf-tasks b { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.pf-moment { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 16px; align-items: center; }
+.pf-pet { display: block; width: 110px; }
+.pf-pet svg { display: block; width: 100%; height: auto; }
+.pf-pet--none { display: grid; place-items: center; height: 110px; border-radius: 50%; background: var(--green-soft); color: var(--green-text); }
+.pf-moment__talk { display: grid; gap: 12px; justify-items: start; min-width: 0; }
+.pf-bubble { padding: 10px 12px; border-radius: var(--radius-lg); }
+.pf-bubble p { margin: 0; font-weight: 600; }
+.pf-bubble small { display: block; margin-top: 2px; color: var(--muted); }
+.pf-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-badges .badge { display: inline-flex; align-items: center; gap: 4px; }
+@media (max-width: 560px) {
+  .pf-moment { grid-template-columns: 80px minmax(0, 1fr); }
+  .pf-pet { width: 80px; }
+  .pf-pet--none { height: 80px; }
+  .pf-actions .button { flex: 1 1 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .pf-meter i { transition: none; } }
+
+/* the page: the flow, then the pet (side by side on a wide screen) */
+.pf-page { display: grid; gap: 16px; align-items: start; }
+@media (min-width: 1100px) { .pf-page { grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); } }
+.pf-bubble p { font-family: inherit; font-size: 1rem; line-height: 1.35; }
+/* inside „Harjuta” the pet card's text links are buttons (owner 2026-11-09); the home page keeps its own look */
+.pf-page .pl__head a, .pf-page .pl__reward .link-button { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface); color: var(--ink); font-size: .85rem; font-weight: 700; text-decoration: none; }

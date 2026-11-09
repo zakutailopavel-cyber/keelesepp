@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { homeNotes, homeSections, lessonNow, newFeedback, nextStep, openWork } from './nextStep.js';
+import { homeNotes, homeSections, homeworkQueue, lessonNow, newFeedback, nextStep, openWork, todaySteps } from './nextStep.js';
 
 const NOW = new Date('2026-11-02T15:00:00').getTime();
 const today = '2026-11-02';
@@ -39,7 +39,7 @@ describe('nextStep priority', () => {
   });
 
   it('due words, then done', () => {
-    expect(nextStep({ today, now: NOW, words: [dueWord] })).toMatchObject({ key: 'review', button: 'Alusta' });
+    expect(nextStep({ today, now: NOW, words: [dueWord] })).toMatchObject({ key: 'review', button: 'Harjuta', to: '/student/harjuta' });
     expect(nextStep({ today, now: NOW })).toMatchObject({ key: 'done', to: '/student/kursus' });
     const reviewed = Array.from({ length: 5 }, (_, i) => ({ id: `w${i}`, word: `s${i}`, translation: 't', box: 2, reviews: 3, reviewedAt: `${today}T10:00:00.000Z`, dueAt: '2026-11-09T10:00:00.000Z' }));
     expect(nextStep({ today, now: NOW, words: reviewed }).key).toBe('done');
@@ -105,20 +105,6 @@ describe('nextStep: the full order (cabinet first screen, 2026-11-04)', () => {
   });
 });
 
-describe('homeSections', () => {
-  it('one row per section, counts only when something waits', () => {
-    const rows = homeSections({ today, now: NOW, homework: [{ id: 'a', task: 'Tee', status: 'Ootel' }], words: [dueWord, { id: 's', word: 'Ma lähen.', translation: 'Sinu lause: x', box: 0, reviews: 1 }] });
-    expect(rows.map((row) => row.key)).toEqual(['tasks', 'words', 'mistakes', 'boards', 'progress']);
-    expect(Object.fromEntries(rows.map((row) => [row.key, row.count]))).toMatchObject({ tasks: 1, mistakes: 1, boards: 0, progress: 0 });
-    expect(rows.find((row) => row.key === 'words').count).toBeGreaterThan(0);
-    expect(homeSections({ today, now: NOW }).every((row) => row.count === 0)).toBe(true);
-  });
-  it('the monthly monologue counts as one open task', () => {
-    const rows = homeSections({ today, now: NOW, tasks: [{ key: 'm', kind: 'monologue', state: 'todo', title: 'Kuu monoloog' }] });
-    expect(rows[0].count).toBe(1);
-  });
-});
-
 describe('openWork', () => {
   it('a homework carrying its sheet is one task, not two', () => {
     const list = openWork({ homework: [{ id: 'h', task: 'Täida leht', status: 'Ootel', worksheetAssignmentId: 's' }], assignments: [{ id: 's', title: 'Leht', status: 'new' }] });
@@ -167,3 +153,95 @@ describe('next step follows the order of the task list', () => {
   });
 });
 
+
+describe('todaySteps: the „Täna” flow (owner 2026-11-09)', () => {
+  const ownSentence = { id: 's1', word: 'Ma lähen kooli.', translation: 'Sinu lause: Ma lähen koolis.', box: 0, reviews: 0 };
+  const monologue = { key: 'monologue-s-2026-11', kind: 'monologue', state: 'todo', title: 'Kuu monoloog · november 2026', due: '2026-11-30', to: '/student/monoloog' };
+  const keys = (result, state) => result.steps.filter((step) => !state || step.state === state).map((step) => step.key);
+
+  it('orders homework → words → sentences → course and skips steps with nothing to do', () => {
+    const all = todaySteps({ today, now: NOW, homework: [{ id: 'h', task: 'Kirjuta', status: 'Ootel' }], words: [dueWord], sentences: { available: true, own: 0 }, selfStudent: true });
+    expect(keys(all)).toEqual(['homework', 'words', 'sentences', 'course']);
+    expect(keys(all, 'todo')).toEqual(['homework', 'words', 'sentences', 'course']);
+    const empty = todaySteps({ today, now: NOW });
+    expect(keys(empty, 'todo')).toEqual([]);
+    expect(keys(empty, 'empty')).toEqual(['homework', 'words', 'sentences']);
+    expect(empty.finished).toBe(false);
+    // the course step exists only on a self-study card
+    expect(keys(todaySteps({ today, now: NOW, words: [dueWord] }))).not.toContain('course');
+  });
+
+  it('ticks steps by what happened today or by the stored tick; all done → finished', () => {
+    const base = { today, now: NOW, homework: [{ id: 'h', task: 'Kirjuta', status: 'Ootel' }], words: [dueWord], sentences: { available: true, own: 0 } };
+    expect(keys(todaySteps({ ...base, done: ['words'] }), 'done')).toEqual(['words']);
+    const submitted = todaySteps({ ...base, homework: [], submissions: [{ completedAt: `${today}T12:00:00` }], done: ['words', 'sentences'] });
+    expect(keys(submitted, 'done')).toEqual(['homework', 'words', 'sentences']);
+    expect(submitted.finished).toBe(true);
+    expect(submitted.todo).toEqual([]);
+  });
+
+  it('own wrong sentences go to the sentences step, not to the word cards', () => {
+    const result = todaySteps({ today, now: NOW, words: [ownSentence], sentences: { available: false, own: 1 } });
+    expect(result.steps.find((step) => step.key === 'words').state).toBe('empty');
+    expect(result.steps.find((step) => step.key === 'sentences')).toMatchObject({ state: 'todo', detail: '1 sinu lause tunnist + harjutused' });
+  });
+
+  it('a lesson now is an interrupt above the steps', () => {
+    const result = todaySteps({ today, now: NOW, occurrences: [lesson('15:10')], words: [dueWord] });
+    expect(result.live).toMatchObject({ time: '15:10' });
+    expect(keys(result, 'todo')).toEqual(['words']);
+  });
+
+  it('the daily goal is about ten minutes and the estimate adds up the steps to do', () => {
+    const result = todaySteps({ today, now: NOW, words: [dueWord], sentences: { available: true, own: 0 } });
+    expect(result.goal).toBe(10);
+    expect(result.minutes).toBe(result.todo.reduce((sum, step) => sum + step.minutes, 0));
+  });
+
+  it('the monthly monologue is in the homework queue after due-soon work (the bug: it never showed when tasks were not passed)', () => {
+    const queue = homeworkQueue({ today, homework: [{ id: 'far', task: 'Kauge', due: '2026-11-20', status: 'Ootel' }, { id: 'old', task: 'Vana', due: '2026-10-30', status: 'Ootel' }, { id: 'soon', task: 'Homne', due: '2026-11-03', status: 'Ootel' }], tasks: [monologue] });
+    expect(queue.map((task) => task.kind)).toEqual(['overdue', 'due-soon', 'monologue', 'homework']);
+    expect(queue[2].to).toBe('/student/monoloog');
+    expect(todaySteps({ today, now: NOW, tasks: [monologue] }).steps[0]).toMatchObject({ key: 'homework', state: 'todo', to: '/student/monoloog' });
+    expect(nextStep({ today, now: NOW, tasks: [monologue] })).toMatchObject({ key: 'monologue', to: '/student/monoloog' });
+  });
+});
+
+describe('nextStep after the words: the sentence practice', () => {
+  it('comes after due words and before the self-study course; a ticked step is not next', () => {
+    expect(nextStep({ today, now: NOW, sentences: { available: true, own: 0 } }).key).toBe('sentences');
+    expect(nextStep({ today, now: NOW, words: [dueWord], sentences: { available: true, own: 0 } }).key).toBe('review');
+    expect(nextStep({ today, now: NOW, sentences: { available: true, own: 0 }, done: ['sentences'] }).key).toBe('done');
+    expect(nextStep({ today, now: NOW, words: [dueWord], done: ['words'] }).key).toBe('done');
+  });
+});
+
+describe('homeSections', () => {
+  it('one row per section, counts only when something waits; the words row leads to „Harjuta” while cards wait', () => {
+    const rows = homeSections({ today, now: NOW, homework: [{ id: 'a', task: 'Tee', status: 'Ootel' }], words: [dueWord, { id: 's', word: 'Ma lähen.', translation: 'Sinu lause: x', box: 0, reviews: 1 }] });
+    expect(rows.map((row) => row.key)).toEqual(['tasks', 'words', 'mistakes', 'boards', 'progress']);
+    expect(Object.fromEntries(rows.map((row) => [row.key, row.count]))).toMatchObject({ tasks: 1, mistakes: 1, boards: 0, progress: 0 });
+    expect(rows.find((row) => row.key === 'words')).toMatchObject({ to: '/student/harjuta' });
+    expect(homeSections({ today, now: NOW }).every((row) => row.count === 0)).toBe(true);
+  });
+  it('the monthly monologue counts as one open task; a stored tick marks words and sentences done', () => {
+    expect(homeSections({ today, now: NOW, tasks: [{ key: 'm', kind: 'monologue', state: 'todo', title: 'Kuu monoloog' }] })[0].count).toBe(1);
+    const rows = homeSections({ today, now: NOW, words: [dueWord], done: ['words', 'sentences'] });
+    expect(rows.find((row) => row.key === 'words')).toMatchObject({ done: true, count: 0 });
+    expect(rows.find((row) => row.key === 'mistakes').done).toBe(true);
+  });
+});
+
+describe('the homework time estimate', () => {
+  it('each task by its own estimate, else ~5 min, the step at most 10 min', () => {
+    const one = todaySteps({ today, now: NOW, homework: [{ id: 'a', task: 'Tee', status: 'Ootel' }] });
+    expect(one.steps[0].minutes).toBe(5);
+    const many = todaySteps({ today, now: NOW, homework: ['a', 'b', 'c'].map((id) => ({ id, task: id, status: 'Ootel' })) });
+    expect(many.steps[0].minutes).toBe(10);
+    const sheet = { id: 's', title: 'Leht', status: 'new', worksheetDoc: { blocks: [{ id: 'b', type: 'gaps', data: { text: 'Ma [olen] siin.' } }] } };
+    const own = todaySteps({ today, now: NOW, assignments: [sheet] }).steps[0];
+    expect(own.minutes).toBeGreaterThan(0);
+    expect(own.minutes).toBeLessThanOrEqual(10);
+    expect(todaySteps({ today, now: NOW }).steps[0].minutes).toBe(0);
+  });
+});

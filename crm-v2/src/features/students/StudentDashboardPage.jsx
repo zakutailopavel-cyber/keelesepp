@@ -16,10 +16,11 @@ import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
 import RescheduleDialog from './RescheduleDialog.jsx';
 import { readDone } from '../self-study/reviewStore.js';
 import PetLoop from '../pet/PetLoop.jsx';
-import { petProgress } from '../pet/petModel.js';
 import { nextLesson as firstLessonAhead } from '../pet/petLife.js';
-import { todayPath } from './todayPath.js';
-import { petReact } from '../pet/petEvents.js';
+import { studentMonologuesService } from '../../services/firebase/studentMonologues.js';
+import { monologueLevel, monologueTask } from '../monologue/monologueModel.js';
+import { sentencesAvailable } from '../practice/studentPractice.js';
+import { usePracticeProgress } from '../practice/usePracticeProgress.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from './studentFinance.js';
 import OpenInvoicesCard from '../payments/OpenInvoicesCard.jsx';
@@ -86,6 +87,8 @@ export default function StudentDashboardPage({
   invoiceRepository = invoicesService,
   lessonRepository = lessonsService,
   petRepository = petsService,
+  monologueRepository = studentMonologuesService,
+  practiceService,
   changeRequests = lessonChangeRequestsService,
   announcementService = announcementsService,
   consentService,
@@ -103,7 +106,9 @@ export default function StudentDashboardPage({
     const studentIds = students.map((student) => student.id);
     // a child's invoices are the business of the parent linked to the card: not even read for this page
     const ownInvoiceCards = students.filter((student) => !parentCardIds(student).some((id) => id !== user.uid)).map((student) => student.id);
-    const [pet, sheets, homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
+    // „Kuu monoloog” (bug fixed 2026-11-09: home never passed it to the decider): the card with an Estonian A2–C1 track
+    const monologueCard = students.find((student) => monologueLevel(student)) || null;
+    const [pet, sheets, homework, submissions, scheduleLists, invoiceLists, lessonLists, monologues] = await Promise.all([
       // staff in a preview see the same pet read-only, if the rules let them read it
       Promise.resolve().then(() => petRepository.get?.(user.uid)).catch(() => null),
       Promise.resolve().then(() => homeworkRepository.listWorksheetAssignmentsByStudentIds?.(studentIds) || []).catch(() => []),
@@ -112,9 +117,14 @@ export default function StudentDashboardPage({
       Promise.all(studentIds.map((studentId) => scheduleRepository.listByStudent(studentId))),
       Promise.all(ownInvoiceCards.map((studentId) => invoiceRepository.listByStudent(studentId))),
       Promise.all(studentIds.map((studentId) => lessonRepository.listByStudent(studentId))),
+      monologueCard && !preview ? Promise.resolve().then(() => monologueRepository?.listByStudent?.(monologueCard.id)).catch(() => null) : null,
     ]);
     const requests = await Promise.resolve().then(() => changeRequests?.listForStudents?.(studentIds) || []).catch(() => []);
-    return { pet: pet || null, sheets, students, homework, submissions, schedule: unique(scheduleLists.flat()), invoices: unique(invoiceLists.flat()), lessons: unique(lessonLists.flat()), requests };
+    const monologue = monologueCard && Array.isArray(monologues) ? monologueTask({ student: monologueCard, monologues }) : null;
+    return {
+      pet: pet || null, sheets, students, homework, submissions, schedule: unique(scheduleLists.flat()), invoices: unique(invoiceLists.flat()), lessons: unique(lessonLists.flat()), requests,
+      tasks: monologue ? [{ ...monologue, to: '/student/monoloog' }] : [],
+    };
   }, [homeworkRepository, invoiceRepository, lessonRepository, preview?.studentId, scheduleRepository, studentRepository, user.uid]);
 
   // the school's open announcements, after the page is drawn: a line appears if there is one (the gate shows them first)
@@ -130,22 +140,9 @@ export default function StudentDashboardPage({
   const words = useStudentWords((state.data?.students || []).map((student) => student.id), ...(wordsService ? [wordsService] : []));
   const today = toIsoDate();
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
-  // the whole day's path done → the walking pet shows a flame, once a day
+  // „Minu vead” practised today (this device or the account), and today's „Harjuta” progress (practice/progress.js)
   const reviewedToday = readDone(user?.uid).errors?.date === today || user?.profile?.practice?.errorsDate === today;
-  const pathDone = useMemo(() => {
-    if (!state.data) return false;
-    const steps = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, assignments: state.data.sheets, mistakesDoneToday: reviewedToday, today }).steps.filter((item) => !item.idle);
-    return steps.length > 0 && steps.every((item) => item.done);
-  }, [state.data, words, today, reviewedToday]);
-  useEffect(() => {
-    if (!pathDone || preview) return;
-    try {
-      const key = `ks-path-done-${today}`;
-      if (globalThis.localStorage?.getItem(key)) return;
-      globalThis.localStorage?.setItem(key, '1');
-    } catch { return; }
-    petReact('streak');
-  }, [pathDone, preview, today]);
+  const practice = usePracticeProgress(user, { readOnly: Boolean(preview), ...(practiceService ? { service: practiceService } : {}) });
   if (state.loading) return <StudentHomeSkeleton />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
@@ -166,13 +163,16 @@ export default function StudentDashboardPage({
   const nextRequest = requestFor(state.data.requests, lessonAhead);
   const cancelRequest = async () => { try { await changeRequests.cancel(nextRequest.id); } finally { state.reload(); } };
 
-  const step = nextStep({ occurrences, homework, assignments, words, today });
+  // the one decider (nextStep.js): with the monologue and practice; practice leads to the „Harjuta” tab
+  const tasks = state.data.tasks;
+  const sentences = sentencesAvailable({ student: students.find((student) => !student.isSelfStudent) || students[0], words });
+  const step = nextStep({ occurrences, homework, assignments, tasks, words, sentences, done: practice.today.done, today });
   // a wide screen has room for the open work itself under the next step (hidden on a phone, where the first screen stays one step)
-  const todo = openWork({ homework, assignments }).slice(0, 5);
-  const sections = homeSections({ homework, assignments, words, today, path: todayPath({ words, homework, submissions, assignments, mistakesDoneToday: reviewedToday, today }) });
+  const todo = openWork({ homework, assignments, tasks }).slice(0, 5);
+  const sections = homeSections({ homework, assignments, submissions, tasks, words, mistakesDoneToday: reviewedToday, done: practice.today.done, today });
   const upcoming = occurrences.filter((item) => item.status !== 'Tühistatud').slice(0, 5);
-  const progress = petProgress({ lessons: state.data.lessons, submissions, homework: state.data.homework, words });
-  const { streak } = progress;
+  // one progress meter: the pet's level counts the practice XP; the streak is days with a „Harjuta” step done
+  const { streak } = practice;
   const offerPet = !preview && !pet?.optedOut && !pet?.kind;
   const unpaid = invoices.filter((invoice) => invoice.status !== 'Tühistatud' && invoiceBalanceCents(invoice) > 0);
   const unpaidCents = unpaid.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
@@ -198,7 +198,7 @@ export default function StudentDashboardPage({
         </section> : null}
       </div>
       {pet?.kind && !pet.optedOut ? <PetLoop user={user} studentId={students[0].id} pet={pet} readOnly={Boolean(preview)} lessons={state.data.lessons} submissions={submissions} homework={state.data.homework} assignments={sheets} words={words} subject={chosen || students[0].subject || ''}
-        repository={petRepository} {...(wordsService ? { wordsService } : {})} /> : null}
+        practiceXp={practice.xp} streak={streak} ready={step.to === '/student/harjuta'} repository={petRepository} /> : null}
       {offerPet ? <Link className="sh-pet" to="/student/lemmik"><i style={{ display: 'grid', placeItems: 'center' }}><PawPrint size={40} aria-hidden="true" /></i><span><strong>Vali endale sõber</strong><small>Õppesõber kasvab koos sinuga</small></span></Link> : null}
     </div>
 

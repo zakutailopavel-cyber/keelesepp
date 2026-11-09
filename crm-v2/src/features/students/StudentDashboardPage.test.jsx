@@ -22,6 +22,8 @@ function repositories(students = [{ id: 'student-1', name: 'Mari', subject: 'Ees
     announcementService: { mine: vi.fn().mockResolvedValue({ pending: [], past: [] }) },
     paymentsApi: { config: vi.fn().mockResolvedValue({ enabled: false }) },
     wordsService: { subscribeForStudent: (id, onData) => { onData([]); return () => {}; } },
+    monologueRepository: { listByStudent: vi.fn().mockResolvedValue([]) },
+    practiceService: { saveToday: vi.fn(async () => null) },
     ...extra,
   };
 }
@@ -81,7 +83,7 @@ describe('StudentDashboardPage', () => {
     expect(within(sections).queryByText(/Mängi|sõber/)).not.toBeInTheDocument();
   });
 
-  it('the first screen is the next step first and the pet\'s one request with its mood, nothing else', async () => {
+  it('the first screen is the next step first and the pet with its mood — the pet asks for nothing of its own (2026-11-09)', async () => {
     const ago = (days) => new Date(Date.now() - days * 86400000).toISOString();
     const words = ['koer', 'kass', 'maja'].map((id) => ({ id, word: id, translation: `t-${id}`, box: 1, reviews: 2, dueAt: ago(1), reviewedAt: ago(4) }));
     const data = repositories(undefined, {
@@ -93,8 +95,8 @@ describe('StudentDashboardPage', () => {
     const hero = container.querySelector('.sh-hero');
     // the left column starts with the next step (the open work under it is shown only on a wide screen)
     expect([hero.querySelector('.sh-main').firstElementChild, hero.children[1]].map((node) => node.getAttribute('aria-label'))).toEqual(['Järgmine samm', 'Okki']);
-    await waitFor(() => expect(within(pet).getByText(/Tuju: näljane/)).toBeInTheDocument());
-    expect(within(pet).getByRole('button', { name: /Kordame 3 sõna/ })).toBeInTheDocument();
+    expect(within(pet).getByText(/Tuju:/)).toBeInTheDocument();
+    expect(within(pet).queryByRole('button', { name: /Kordame|Mängime|Parandame/ })).toBeNull();
     expect(within(hero).queryByText(/Järgmine tund:/)).not.toBeInTheDocument();
   });
 
@@ -134,7 +136,10 @@ describe('StudentDashboardPage', () => {
     await screen.findByRole('region', { name: 'Järgmine samm' });
     expect(screen.queryByRole('list', { name: 'Sulle on uudiseid' })).not.toBeInTheDocument();
     expect(container.querySelectorAll('.sh-sections li em')).toHaveLength(0);
-    expect(screen.getByText('Praegu on kõik tehtud')).toBeInTheDocument();
+    // nothing given by the teacher: the next step is the day's practice in „Harjuta”
+    const step = screen.getByRole('region', { name: 'Järgmine samm' });
+    expect(within(step).getByText('Laused ja grammatika')).toBeInTheDocument();
+    expect(within(step).getByRole('link', { name: /Harjuta/ })).toHaveAttribute('href', '/student/harjuta');
   });
 
   it('new teacher feedback and an open announcement get one line each; the teacher\'s text is not repeated or made up', async () => {
@@ -191,5 +196,28 @@ describe('StudentDashboardPage', () => {
     expect(screen.getByText(/Nime või e-posti põhjal profiili automaatselt ei seostata/)).toBeInTheDocument();
     expect(data.scheduleRepository.listByStudent).not.toHaveBeenCalled();
     expect(data.invoiceRepository.listByStudent).not.toHaveBeenCalled();
+  });
+
+  it('the monthly monologue is the next step when nothing is closer (bug: home never passed it to the decider)', async () => {
+    const data = repositories([{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A2', recordingConsent: true }], { invoiceRepository: { listByStudent: vi.fn().mockResolvedValue([]) } });
+    data.homeworkRepository.listByStudentIds.mockResolvedValue([]);
+    renderPage(data);
+    const step = await screen.findByRole('region', { name: 'Järgmine samm' });
+    expect(data.monologueRepository.listByStudent).toHaveBeenCalledWith('student-1');
+    expect(within(step).getByText(/Kuu monoloog/)).toBeInTheDocument();
+    expect(within(step).getByRole('link', { name: /Salvesta/ })).toHaveAttribute('href', '/student/monoloog');
+  });
+
+  it('due words make „Harjuta” the next step, and the words row leads there too', async () => {
+    const ago = (days) => new Date(Date.now() - days * 86400000).toISOString();
+    const words = ['koer', 'kass'].map((id) => ({ id, word: id, translation: 't-' + id, box: 1, reviews: 2, dueAt: ago(1), reviewedAt: ago(4) }));
+    const data = repositories(undefined, { wordsService: { subscribeForStudent: (id, onData) => { onData(words); return () => {}; } } });
+    data.homeworkRepository.listByStudentIds.mockResolvedValue([]);
+    renderPage(data);
+    const step = await screen.findByRole('region', { name: 'Järgmine samm' });
+    await waitFor(() => expect(within(step).getByText('Korda sõnu')).toBeInTheDocument());
+    expect(within(step).getByRole('link', { name: /Harjuta/ })).toHaveAttribute('href', '/student/harjuta');
+    const sections = screen.getByRole('region', { name: 'Minu õppimine' });
+    expect(within(sections).getByRole('link', { name: /Sõnad/ })).toHaveAttribute('href', '/student/harjuta');
   });
 });
