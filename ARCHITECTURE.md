@@ -757,6 +757,12 @@ changes are e-mailed only when staff changed `schedule` (learners can only ask) 
 no login) for opt-out and language; `emailLog` keeps counts without addresses. Contract for the planner
 (`plannerBatchId`) and all details: `docs/EMAIL_NOTIFICATIONS.md`.
 
+Teachers (2026-11-09): `weeklyUnmarkedLessonsDigest` (Mondays 08:00 Tallinn) e-mails each teacher his own past unmarked
+lessons since 2026-11-01 (the „Märkimata tunnid” page's set, `functions/teacher-unmarked-digest-core.js`, parity
+test against the crm-v2 function; active cards, with a teacher, open financial periods only) and leaves a bell notice; one marker per teacher and ISO week in
+`teacherUnmarkedDigests` (server writes, the teacher reads his own). Switch `emailSettings/teacherDigest` (default OFF),
+written only by `staffOperationsApi /teacher-digest/settings`. Details: `docs/EMAIL_NOTIFICATIONS.md` „Õpetajate nädalakiri”.
+
 ### Calendar
 
 `calendar-core.js` owns migration-safe schedule calculations:
