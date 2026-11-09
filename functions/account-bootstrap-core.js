@@ -248,7 +248,21 @@ function accountCardTeacher(profile = {}) {
   return uid ? { name: String(profile.assignedTeacher || "").trim(), uid } : { name: "", uid: "" };
 }
 
+// What the signing-in learner / parent gets back from /accounts/bootstrap: their own card ids and counts only. The
+// review candidates (other people's names, e-mails and card ids) stay for the administrator („Uued kontod”,
+// /accounts/reviews, /accounts/bootstrap-admin). Allow-list: a new field in the bootstrap result is not passed on.
+function publicBootstrapResult(result = {}) {
+  const ids = value => (Array.isArray(value) ? value.map(id => String(id || "")).filter(Boolean) : []);
+  return {
+    status: typeof result.status === "string" ? result.status : "",
+    linkedStudentIds: ids(result.linkedStudentIds),
+    createdStudentIds: ids(result.createdStudentIds),
+    reviewCount: Array.isArray(result.reviews) ? result.reviews.length : 0,
+  };
+}
+
 module.exports = {
+  publicBootstrapResult,
   accountCardTeacher,
   decidedReviewChildNames,
   reviewAlreadyDecided,

@@ -131,6 +131,7 @@ const {
   normalizeName: normalizeAccountName,
   planParentChildBootstrap,
   planStudentAccountBootstrap,
+  publicBootstrapResult,
 } = require("./account-bootstrap-core");
 const {
   lessonCompletionCounterDelta,
@@ -8397,7 +8398,8 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       const profileSnap = await db.collection("users").doc(decoded.uid).get();
       if (!profileSnap.exists) throw httpError(409, "Account profile is not ready");
       const result = await bootstrapCurrentAccount({ decoded, profile: profileSnap.data(), includeSelfStudent: req.body?.includeSelfStudent === true });
-      res.status(result.createdStudentIds?.length ? 201 : 200).json(result);
+      // the learner / parent never gets the review candidates (other people's cards): own ids and counts only
+      res.status(result.createdStudentIds?.length ? 201 : 200).json(publicBootstrapResult(result));
       return;
     }
     // Admin switches to a test student (owner, 2026-10-10): a one-time sign-in token for a student account whose card is
