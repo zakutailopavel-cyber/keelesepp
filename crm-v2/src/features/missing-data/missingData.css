@@ -10,8 +10,8 @@
 .missing-data__choices { display: flex; flex-wrap: wrap; gap: 8px; }
 .missing-data__choices legend { flex-basis: 100%; }
 .missing-data__choices > label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px; border: 1px solid #d6dee7; border-radius: 12px; cursor: pointer; font-weight: 600; background: #fff; }
-.missing-data__choices > label.is-picked { border-color: #087e6b; background: #f1faf7; }
-.missing-data__choices input { width: 18px; height: 18px; accent-color: #087e6b; }
+.missing-data__choices > label.is-picked { border-color: var(--green); background: #f1faf7; }
+.missing-data__choices input { width: 18px; height: 18px; accent-color: var(--green); }
 .missing-data__choices .missing-data__error { flex-basis: 100%; }
 .missing-data__times { overflow-x: auto; }
 .missing-data__error { font-weight: 600; font-size: .82rem; }
@@ -25,7 +25,7 @@
 .missing-panel { display: grid; gap: 14px; }
 .missing-panel__totals { display: flex; flex-wrap: wrap; gap: 8px; }
 .missing-panel__totals button { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid #d6dee7; border-radius: 999px; background: #fff; font: 600 .82rem inherit; cursor: pointer; }
-.missing-panel__totals button[aria-pressed="true"] { border-color: #087e6b; background: #f1faf7; color: #05584a; }
+.missing-panel__totals button[aria-pressed="true"] { border-color: var(--green); background: #f1faf7; color: #05584a; }
 .missing-panel__totals b { font-weight: 800; }
 .missing-panel__filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; align-items: end; }
 .missing-panel__summary { margin: 0; color: var(--muted); font-size: .86rem; }
@@ -43,7 +43,7 @@
 .missing-panel__filled h3 { margin: 0; font-size: .95rem; }
 .missing-panel__filled > ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .missing-panel__filled > ul > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; font-size: .84rem; }
-.missing-panel__filled > ul > li.is-focus { outline: 2px solid #087e6b; outline-offset: 3px; border-radius: 8px; }
+.missing-panel__filled > ul > li.is-focus { outline: 2px solid var(--green); outline-offset: 3px; border-radius: 8px; }
 .missing-panel__changes { margin: 2px 0 0; padding-left: 16px; color: #33475b; overflow-wrap: anywhere; display: block; }
 .missing-panel__changes li { display: list-item; }
 .modal--missing { width: min(860px, 100%); }
