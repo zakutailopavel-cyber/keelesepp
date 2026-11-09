@@ -2,10 +2,14 @@
 // „во всплывающих панелях, не уходя со страницы”): one path for „Tund toimus” / „Puudus”, the topic and note,
 // „Paranda märge” and „Kooli kulul”, so the drawer never books or bills a lesson differently from the calendar.
 
-// a lesson marked in the side drawer: the list under it („Märkimata tunnid”) takes the row away without a reload
-const markedListeners = new Set();
-export function announceLessonMarked(occurrenceId) { markedListeners.forEach((listener) => listener(occurrenceId)); }
-export function onLessonMarked(listener) { markedListeners.add(listener); return () => markedListeners.delete(listener); }
+import { announceEntityChanged, onEntityChanged } from '../../components/entityDrawer/entityDrawer.js';
+
+// a lesson marked in the side drawer: the list under it („Märkimata tunnid”) takes the row away without a reload, the
+// calendar and the dashboard read their journal again in place (entityDrawer.js `announceEntityChanged`)
+export function announceLessonMarked(occurrenceId) { announceEntityChanged('lesson', { occurrenceId: occurrenceId || '', change: 'marked' }); }
+// another change of a lesson's mark (fixed, removed, „Kooli kulul”, topic/note): the pages under the drawer reload
+export function announceLessonChanged(occurrenceId) { announceEntityChanged('lesson', { occurrenceId: occurrenceId || '', change: 'changed' }); }
+export function onLessonMarked(listener) { return onEntityChanged('lesson', (change) => { if (change.change === 'marked') listener(change.occurrenceId); }); }
 
 // a „Toimunud” mark whose „kooli kulul” step failed: the lesson is marked, the panel says what is left to do
 export class SchoolCoverError extends Error {

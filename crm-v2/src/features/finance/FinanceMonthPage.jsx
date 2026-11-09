@@ -56,6 +56,7 @@ import InvoiceAccountingDialog, { InvoiceAccountingButton } from './InvoiceAccou
 import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { lessonTokensService, owedCredits, tokenInvoiceStudentIds, tokenInvoiceUsageLines } from '../../services/firebase/lessonTokens.js';
+import { useEntityChanged } from '../../components/entityDrawer/useEntityChanged.js';
 import './financeMonth.css';
 import './manualInvoice.css';
 
@@ -123,6 +124,10 @@ export default function FinanceMonthPage({
   // „Sisemine märkus” of an invoice: administrator and bookkeeper (the rules allow exactly these two)
   const canNote = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.FINANCE]);
   const state = useFinanceData({ canManageFinance: canManage, invoiceRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, creditNoteRepository, auditRepository });
+  // a payment added in the side drawer (right-click → „Ava arve (siinsamas)”) or a lesson mark changed in a student's
+  // card there (the month's billable lessons): the month reads its data again in place — the list stays on screen
+  // („Uuendan andmeid…”), the view, filters and scroll are kept
+  useEntityChanged(['invoice', 'lesson'], () => { state.reload(); });
   // the lists open on this month (owner 2026-10-12: after the 10th the page opened on next month, empty, and the
   // invoices looked gone); preparing invoices opens on the billing month
   const [month, setMonth] = useState(() => (new globalThis.URLSearchParams(location.search).get('view') === 'prepare' ? defaultBillingMonth() : currentMonth()));

@@ -1,3 +1,13 @@
+## 2026-11-09 · agent/drawer-soft-refresh — the page under the side drawer updates in place after a mark or payment
+
+- Base: `origin/main` b1c6b0b, checked 2026-11-09. Branch `agent/drawer-soft-refresh`, draft PR.
+- Done: one change signal next to the drawer — `components/entityDrawer/entityDrawer.js` `announceEntityChanged(kind, data)` / `onEntityChanged(kinds, fn)`, React `useEntityChanged` (`useEntityChanged.js`). `lessonActions.js` `announceLessonMarked` / `onLessonMarked` now run on it (same behaviour), new `announceLessonChanged`.
+  - Senders: `LessonDrawerPanel` (mark → `marked`, also when „kooli kulul” failed after the mark; fix/remove mark, topic/note, „Kooli kulul” → `changed`), `InvoiceDrawerPanel` („Lisa makse” → `invoice` `payment`), `StudentLessonsPanel` (the student card, also in the drawer: mark changed → `changed`).
+  - Listeners (quiet `reload()`, data stays on screen, no `location.reload`, no remount): `CalendarPage` (lesson), dashboard `CalmDashboard` (lesson → `useTodaySignals().reload`, new; counts, tiles, nudge, open overview kept), `UnmarkedLessonsPage` (`changed` → reload; `marked` drops the row as before), `FinanceMonthPage` (invoice + lesson).
+  - Already fine before: „Märkimata tunnid” page and dashboard card for marks (`onLessonMarked`). Student profile: no lesson/invoice drawer opens from it (no such rows), nothing to refresh.
+- Checks: full `npx vitest run` → 553 files passed (1 skipped), 4259 tests passed, 12 skipped; eslint on touched files: 0 errors (only old warnings). New tests: `entityChanges.test.jsx`, cases in CalendarPage, DashboardPage, UnmarkedLessonsPage, FinanceMonthPage, LessonDrawerPanel, InvoiceDrawerPanel, StudentLessonsPanel tests. Not looked at in a browser.
+- Limits: a mark changed on the full student page (not in the drawer) also announces — harmless, nobody listens there. No data, rules or functions changed.
+- Next safe step: in the browser, Finantsid → right-click an invoice → „Lisa makse” → the row's status changes under the drawer without a jump.
 ## 2026-11-09 · agent/entity-drawers — a lesson and an invoice open in the same side drawer (right-click), stacked on #1142
 
 - Base: `origin/agent/student-drawer` (PR #1142, not merged yet); `origin/main` b313691 checked 2026-11-09. Branch `agent/entity-drawers`, draft PR stacked on #1142.

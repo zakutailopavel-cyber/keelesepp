@@ -26,3 +26,20 @@ export function onDrawer(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
+
+// What the drawer changed (a lesson marked, a payment added): the page under it updates its own data in place — no
+// location.reload, no remount, its filters and scroll stay. `kind` is the entity type ('lesson', 'invoice'); `data`
+// says what changed ({ occurrenceId, change: 'marked' | 'changed' } for a lesson, { invoiceId, change: 'payment' } for
+// an invoice). A page listens with `onEntityChanged(kinds, listener)` (React: `useEntityChanged`) and reloads quietly.
+const changeListeners = new Set();
+
+export function announceEntityChanged(kind, data = {}) {
+  const change = { kind, ...data };
+  changeListeners.forEach((entry) => { if (entry.kinds.includes(kind)) entry.listener(change); });
+}
+
+export function onEntityChanged(kinds, listener) {
+  const entry = { kinds: [].concat(kinds), listener };
+  changeListeners.add(entry);
+  return () => { changeListeners.delete(entry); };
+}

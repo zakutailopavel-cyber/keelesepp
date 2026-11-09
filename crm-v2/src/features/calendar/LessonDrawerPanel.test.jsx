@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import LessonDrawerPanel from './LessonDrawerPanel.jsx';
+import { onEntityChanged } from '../../components/entityDrawer/entityDrawer.js';
 import { onLessonMarked } from './lessonActions.js';
 
 const event = { id: 'e1', studentId: 's1', studentName: 'Mia vana', date: '2025-01-06', time: '10:00', duration: 60, teacher: 'Anna', teacherUid: 't1', status: 'Planeeritud', recurring: false };
@@ -49,6 +50,10 @@ describe('LessonDrawerPanel (the side drawer’s lesson)', () => {
 
   it('the administrator reads every lesson of the student and may set „Kooli kulul” on a held one', async () => {
     const repos = repositories({ lessons: [[record]], schedule: { ...event, status: 'Toimunud', lessonEntryId: 'L1' } });
+    const changes = [];
+    const stop = onEntityChanged('lesson', (change) => changes.push(change));
+    const marked = [];
+    const stopMarked = onLessonMarked((id) => marked.push(id));
     renderPanel(repos, { roles: ['admin'] });
     expect(await screen.findByText('Toimunud')).toBeInTheDocument();
     expect(repos.lessonRepository.listByStudent).toHaveBeenCalledWith('s1', {});
@@ -56,6 +61,10 @@ describe('LessonDrawerPanel (the side drawer’s lesson)', () => {
     fireEvent.change(screen.getByRole('textbox', { name: /Põhjus/ }), { target: { value: 'proovitund' } });
     fireEvent.click(screen.getByRole('button', { name: /Kinnita: kooli kulul/ }));
     await waitFor(() => expect(repos.financeRepository.setLessonBillingDisposition).toHaveBeenCalledWith('L1', 'school_covered', 'proovitund'));
+    // the page under the drawer is told a lesson changed (not „marked”: the „Märkimata tunnid” rows stay as they are)
+    await waitFor(() => expect(changes).toEqual([{ kind: 'lesson', occurrenceId: 'e1:2025-01-06', change: 'changed' }]));
+    stop(); stopMarked();
+    expect(marked).toEqual([]);
   });
 
   it('a lesson that is not there on that day, or a group lesson, sends to the calendar', async () => {

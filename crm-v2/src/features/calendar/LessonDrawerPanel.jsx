@@ -9,7 +9,7 @@ import { scheduleService } from '../../services/firebase/schedule.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { ROLES } from '../../utils/roles.js';
 import { occurrencesForDates, resolveOccurrenceRecord, toIsoDate, withCurrentStudentNames, withLessonSubjects } from './calendarView.js';
-import { announceLessonMarked, fixMarkError, fixOccurrenceMark, markOccurrence, schoolCoveredError } from './lessonActions.js';
+import { announceLessonChanged, announceLessonMarked, fixMarkError, fixOccurrenceMark, markOccurrence, schoolCoveredError } from './lessonActions.js';
 import LessonPanel from './LessonPanel.jsx';
 import { buildTopicCatalog, topicLine } from './lessonTopic.js';
 import './calendarV2.css';
@@ -62,9 +62,12 @@ export default function LessonDrawerPanel({ scheduleId, date, onClose, scheduleR
     setSaving(true); setError(''); setNotice('');
     try { await action(); await state.reload(); return true; } catch (problem) { if (problem?.marked) await state.reload(); setError(message(problem)); return false; } finally { setSaving(false); }
   };
+  // every saved change is announced: the page under the drawer reads its data again in place
+  const changed = (action) => async () => { const result = await action(); announceLessonChanged(item.occurrenceId); return result; };
   const repositories = { lessonRepository, financeRepository, libraryRepository };
   const onDone = (details) => run(async () => {
-    await markOccurrence(repositories, item, user, details, student);
+    // marked even when its „kooli kulul” step failed (SchoolCoverError.marked): the page under it is told either way
+    try { await markOccurrence(repositories, item, user, details, student); } catch (problem) { if (problem?.marked) announceLessonMarked(item.occurrenceId); throw problem; }
     announceLessonMarked(item.occurrenceId);
     setNotice(details.status === 'Toimunud' ? 'Tund märgiti toimunuks.' : 'Puudumine märgiti.');
   }, 'Salvestamine ebaõnnestus.');
@@ -85,9 +88,9 @@ export default function LessonDrawerPanel({ scheduleId, date, onClose, scheduleR
     today={toIsoDate()}
     onClose={onClose}
     onDone={onDone}
-    onUpdateDetails={lessonRepository.updateDetails ? (details) => run(() => lessonRepository.updateDetails(item.record, details, user), 'Muudatust ei saanud salvestada.') : undefined}
-    onChangeMark={(status) => run(() => fixOccurrenceMark(lessonRepository, item, user, 'change', status), '', fixMarkError)}
-    onRemoveMark={() => run(() => fixOccurrenceMark(lessonRepository, item, user, 'remove'), '', fixMarkError)}
-    onSchoolCovered={isAdmin ? (billingStatus, reason) => run(() => financeRepository.setLessonBillingDisposition(item.record.id, billingStatus, reason), '', schoolCoveredError) : undefined}
+    onUpdateDetails={lessonRepository.updateDetails ? (details) => run(changed(() => lessonRepository.updateDetails(item.record, details, user)), 'Muudatust ei saanud salvestada.') : undefined}
+    onChangeMark={(status) => run(changed(() => fixOccurrenceMark(lessonRepository, item, user, 'change', status)), '', fixMarkError)}
+    onRemoveMark={() => run(changed(() => fixOccurrenceMark(lessonRepository, item, user, 'remove')), '', fixMarkError)}
+    onSchoolCovered={isAdmin ? (billingStatus, reason) => run(changed(() => financeRepository.setLessonBillingDisposition(item.record.id, billingStatus, reason)), '', schoolCoveredError) : undefined}
   />;
 }

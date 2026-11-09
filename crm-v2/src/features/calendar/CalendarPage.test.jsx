@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, vi } from 'vitest';
 import CalendarPage from './CalendarPage.jsx';
+import { announceLessonChanged } from './lessonActions.js';
 import { shiftDate, toIsoDate } from './calendarView.js';
 
 // jsdom's PointerEvent drops clientX/clientY: without them a drag looks like a click
@@ -170,6 +171,19 @@ describe('calendar v2', () => {
     expect(screen.getByText(/Filtritele vastavaid tunde ei leitud/)).toBeInTheDocument();
     fireEvent.click(screen.getAllByRole('button', { name: 'Tühjenda filtrid' })[0]);
     expect(screen.getByLabelText('Otsi kalendrist')).toHaveValue('');
+  });
+
+  it('a lesson changed in the side drawer over the calendar: the journal is read again in place, the search stays', async () => {
+    const props = renderCalendar({ events: [lesson()] });
+    await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    fireEvent.change(screen.getByLabelText('Otsi kalendrist'), { target: { value: 'Mari' } });
+    act(() => { announceLessonChanged('schedule-1'); });
+    await waitFor(() => expect(props.lessonRepository.listForCalendar).toHaveBeenCalledTimes(2));
+    expect(props.scheduleRepository.list).toHaveBeenCalledTimes(2);
+    // the calendar never turned into „Laen kalendrit…”: the filter and the lesson are still on screen
+    expect(screen.getByLabelText('Otsi kalendrist')).toHaveValue('Mari');
+    expect(screen.queryByText('Laen kalendrit…')).not.toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /10:00 Mari Maas/ })).toBeInTheDocument();
   });
 
   it('a lesson that once came from Google Calendar is edited in KeeleSepp (one-way sync)', async () => {

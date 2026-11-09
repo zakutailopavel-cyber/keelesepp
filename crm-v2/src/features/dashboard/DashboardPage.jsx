@@ -2,6 +2,7 @@ import { ArrowUpRight, BookOpenCheck, CalendarDays, CheckCircle2, CircleAlert, G
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
+import { useEntityChanged } from '../../components/entityDrawer/useEntityChanged.js';
 import { Card, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService } from '../../services/firebase/groups.js';
@@ -176,6 +177,9 @@ function CalmDashboard({ data, user, repositories, now }) {
     ...(repositories.clientErrors ? { errorsService: repositories.clientErrors } : {}),
     now,
   });
+  // a lesson marked or fixed in the side drawer (right-click → „Ava tund (siinsamas)” or a student's card): the journal
+  // is read again in place — „Vajab tähelepanu”, the tiles and the open panel stay, only their numbers change
+  useEntityChanged('lesson', () => { signals.reload(); });
   const [panel, setPanel] = useState('');
   const panelRef = useRef(null);
   useEffect(() => { if (panel) panelRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }); }, [panel]);

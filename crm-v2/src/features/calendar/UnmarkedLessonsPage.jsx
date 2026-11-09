@@ -9,6 +9,7 @@ import { ROLES } from '../../utils/roles.js';
 import { toIsoDate } from './calendarView.js';
 import { REVIEW_DAYS, actionError, summarizeUnmarked } from './unmarkedLessons.js';
 import { onLessonMarked } from './lessonActions.js';
+import { useEntityChanged } from '../../components/entityDrawer/useEntityChanged.js';
 import './unmarkedLessons.css';
 
 const dayLabel = (iso) => new Intl.DateTimeFormat('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' }).format(new Date(`${iso}T12:00:00`));
@@ -49,6 +50,9 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
     const item = (state.data?.items || []).find((entry) => entry.occurrenceId === occurrenceId);
     return item ? new Map(current).set(occurrenceId, `${item.studentName || 'Õpilane'} ${dayLabel(item.occurrenceDate)}: märgitud paneelis`) : current;
   })), [state.data]);
+  // a mark fixed or removed in the drawer (a removed mark brings the lesson back): read the list again in place —
+  // the rows stay on screen, the filters are kept
+  useEntityChanged('lesson', (change) => { if (change.change !== 'marked') state.reload(); });
 
   const open = useMemo(() => (state.data?.items || []).filter((item) => !done.has(item.occurrenceId)), [state.data, done]);
   const teachers = useMemo(() => [...new Set(open.map((item) => item.teacher || 'Õpetaja määramata'))].sort((a, b) => a.localeCompare(b, 'et')), [open]);
