@@ -25,7 +25,7 @@ function validate(values) {
   return errors;
 }
 
-export default function StudentForm({ open, student, teachers = [], canAssignTeacher = false, defaultTeacher = '', showConsent = false, existingStudents = [], onClose, onSubmit }) {
+export default function StudentForm({ open, student, initial = null, teachers = [], canAssignTeacher = false, defaultTeacher = '', showConsent = false, existingStudents = [], onClose, onSubmit }) {
   const [values, setValues] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -35,11 +35,11 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
     if (open) {
       setValues(student
         ? { ...emptyForm, ...student, teacher: canonicalTeacherName(student.teacher), recordingConsent: student.recordingConsent === true }
-        : { ...emptyForm, teacher: canonicalTeacherName(defaultTeacher) });
+        : { ...emptyForm, ...(initial || {}), teacher: canonicalTeacherName(defaultTeacher) });
       setErrors({});
       setSubmitError('');
     }
-  }, [defaultTeacher, open, student]);
+  }, [defaultTeacher, initial, open, student]);
 
   const change = (event) => {
     const { name, value } = event.target;

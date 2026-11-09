@@ -2,6 +2,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { lazyComponent } from '../../../app/lazyComponent.js';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { Button, Card, ErrorState, LoadingState, Modal, PageHeader } from '../../../components/ui/index.js';
+import { askConfirm } from '../../../components/ui/ConfirmHost.jsx';
 import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import { ROLES } from '../../../utils/roles.js';
 import { analyzeWorksheet } from '../../worksheet-studio/quality.js';
@@ -69,7 +70,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
   }, [isAdmin, repository, textbookSheets]);
   const publishTextbook = async ({ lessonId, doc, book }) => {
     const current = textbookRecords[lessonId];
-    if (!window.confirm(`Avaldada ${lessonId}: Õpik („${book.title}”)?${current ? '\n\nNB! Olemasolev Õpik-leht asendatakse uue versiooniga.' : ''}`)) return;
+    if (!(await askConfirm(`Avaldada ${lessonId}: Õpik („${book.title}”)?${current ? '\n\nNB! Olemasolev Õpik-leht asendatakse uue versiooniga.' : ''}`, { confirmLabel: 'Avalda' }))) return;
     setBusy(`opik:${lessonId}`); setError('');
     try {
       const saved = await repository.publish({ lessonId, worksheetId: TEXTBOOK_SHEET_ID, worksheetDoc: doc, user, baseUpdatedAt: current?.worksheetDocUpdatedAt || '', role: 'focus', slot: 4, displayLabel: 'Õpik', source: 'manual' });
@@ -84,7 +85,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
     const phases = Object.keys(sheets[lessonId]);
     const replacing = phases.filter((p) => records[`${lessonId}:${p}`]);
     const text = `Avaldada ${lessonId}: ${phases.map((p) => PHASES[p].label).join(' + ')}?${replacing.length ? `\n\nNB! Olemasolev leht asendatakse uue versiooniga: ${replacing.map((p) => PHASES[p].label).join(', ')}.` : ''}`;
-    if (!window.confirm(text)) return;
+    if (!(await askConfirm(text, { confirmLabel: 'Avalda' }))) return;
     setBusy(lessonId); setError('');
     try {
       for (const phase of phases) {

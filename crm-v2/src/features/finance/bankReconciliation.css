@@ -17,7 +17,7 @@
 }
 .bank-reconciliation__metrics > span {
   align-items: center;
-  background: var(--surface-subtle, #f6f8fb);
+  background: var(--surface-subtle, var(--surface-soft));
   border: 1px solid var(--border);
   border-radius: 14px;
   color: var(--text-muted);
@@ -182,7 +182,7 @@
 .bank-feed__none { color: #667085; font-size: 13px; font-style: italic; }
 .bank-feed__reason { color: #667085; font-size: 12px; }
 .bank-feed__state { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.bank-feed__edit { border: 0; background: none; color: var(--primary, #087e6b); font-weight: 700; font-size: 12.5px; cursor: pointer; padding: 0; }
+.bank-feed__edit { border: 0; background: none; color: var(--primary, var(--green)); font-weight: 700; font-size: 12.5px; cursor: pointer; padding: 0; }
 .bank-feed__choose { grid-column: 2 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 8px; border-top: 1px dashed var(--border, #e4e7ec); }
 .bank-feed__choose[hidden] { display: none; }
 .bank-feed__row .bank-row-error { grid-column: 2 / -1; color: #b42318; }

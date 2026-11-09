@@ -11,6 +11,84 @@
 - Checks: `npx vitest run src/components src/features/calendar src/features/finance src/features/dashboard` → 86 files, 596 passed; full `npx vitest run` → 547 files passed, 4211 tests passed, 12 skipped (new: EntityDrawer, LessonDrawerPanel, InvoiceDrawerPanel, lessonActions, registry + context-menu cases); eslint --quiet clean on touched files. Not looked at in a browser with real data.
 - Limits: the page under the drawer is not reloaded after a mark/payment (except „Märkimata tunnid”); invoice „full page” link is just /finance (no deep link to the row); no deploy, no production writes.
 - Next safe step: review both PRs in the browser (dashboard „Täna” → right-click a lesson; Finantsid → right-click an invoice), merge #1142 first, then this one.
+## 2026-11-09 · agent/parent-pay-visible — „Arve ootab tasumist” at the top of the parent's home (parents, finance-adjacent UI)
+
+- Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/parent-pay-visible`, draft PR.
+- Owner 2026-11-09: parents must see unpaid invoices clearly inside the CRM, with NO e-mails (learner/parent e-mails stay off). 17 invoices are due 2026-11-10.
+- What existed: a small „Arved” card in the child's side column (family total „Tasumata … €”) and the collapsed „Arved” section (list + `OpenInvoicesCard` with „Maksa arve” via LHV LinkPay, only when `financeSettings/linkpay.enabled`). The invoice PDF (`invoiceApi /pdf`) is admin-only, so parents cannot open a PDF. Invoices carry `parentPaymentStatus/Method/SubmittedAt`, but there is no parent „Märkisin makstuks” UI and the rules let only admins write invoices — so nothing like that was added.
+- Done:
+  - `features/parents/UnpaidInvoicesNotice.jsx`: under the greeting, one line per unpaid invoice of the family — „Arve ootab tasumist · KS-… · 240,00 € · tähtaeg 10.11” (open balance); past due first and in red „tähtaeg möödus 06.11”; Russian hint; the child's first name when there are several children. Actions only the existing ones: „Maksa arve” (same LinkPay `startForInvoice`, only when enabled and not in admin preview) and „Vaata arveid” (opens the „Arved” section). Shows nothing when all is paid. Invoice data only, never a lesson balance.
+  - `ParentDashboardPage.jsx`: renders the notice; new optional `paymentsApi` prop (also passed to `OpenInvoicesCard`). Styles `.pd-pay*` in `parentHome.css`.
+  - Parent lab (`src/test/parentLab/demoFamily.js`): one overdue demo invoice and a fake payments API; `ParentCabinet.test.jsx` expects the new family total 440,00 and the two lines.
+- No data, rules, functions or e-mail changes.
+- Checks: `npx vitest run src/features/parents src/features/payments src/features/finance` → 52 files, 340 passed; eslint --quiet on touched files clean; parent lab looked at 375 px (no horizontal scroll) and 1280 px.
+- Next safe step: owner checks on a phone after deploy that a real parent sees the card; whether LinkPay is switched on decides if „Maksa arve” shows.
+## 2026-11-09 · agent/ui-confirm-finance — finance panels ask with the CRM dialog (finance)
+
+- Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/ui-confirm-finance`, draft PR. Sibling of `agent/ui-confirm-2` (non-finance, #1147).
+- Done: the last 2 browser `confirm` calls move to `askConfirm` (`components/ui/ConfirmHost.jsx`):
+  - `PaymentCheckPanel.jsx` „Tühista korduv” → red „Tühista makse”;
+  - `EmailDeliveryPanel.jsx` turning automatic reminders on → „Lülita sisse”.
+- No data, rules or finance logic changed.
+- Checks: `npx vitest run src/features/finance` → 42 files, 276 passed; eslint --quiet clean on both files.
+- Next safe step: after both PRs merge, searching `crm-v2/src` (tests excluded) for `globalThis.confirm(` / `window.prompt(` should find only ConfirmHost's own fallback.
+## 2026-11-09 · agent/ui-confirm-2 — the rest of the browser confirm/prompt boxes become the CRM dialog (studio, generator, settings, library)
+
+- Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/ui-confirm-2`, draft PR.
+- Done: 24 calls in 13 files moved to `askConfirm` / `askText` (`components/ui/ConfirmHost.jsx`, #1137); handlers made async.
+  - worksheet-studio: `WorksheetStudioPage.jsx` (7 confirm + 3 prompt → `askText`), `editor/ReuseDialogs.jsx`, `editorHistory.js` (unsaved-work guard on links: the click is stopped, and after „Lahku” it is repeated once on the same link).
+  - worksheet-generator: `AvastaUpgradePage`, `CourseProductionPage`, `LessonGeneratorBar`, `LessonWorksheetSet`, `Module1ThreePhasePage`.
+  - settings `SheetBuilderCard`, `DataCleanupPanel` (red „Kustuta” only for deleting conversations), library `LibraryPage`, `components/EntityContextMenu.jsx` (archive student).
+  - `danger: true` on delete / archive / revoke key / leave with unsaved work.
+- Left on purpose: `beforeunload` in `editorHistory.js` (reload / tab close) keeps the browser's own box: a page dialog cannot answer it synchronously. Finance `PaymentCheckPanel` / `EmailDeliveryPanel` go in their own PR `agent/ui-confirm-finance`.
+- Test change: `LibraryPage.test.jsx` waits for the busy button (the confirm now answers in a microtask).
+- Checks: `npx vitest run src/features/worksheet-studio src/features/worksheet-generator src/features/settings src/features/library src/components` → 172 files, 1848 passed, 12 skipped; eslint --quiet clean on touched files.
+- Next safe step: click through „Salvesta mallina” and leaving the studio with unsaved changes in the running app.
+## 2026-11-09 · agent/design-tokens-1 — one :root token block, old green gone (design audit)
+
+- Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/design-tokens-1`, draft PR.
+- Done:
+  - `styles/index.css`: the two `:root` blocks and the Polish 1 one are now one token block; the effective values were kept. New scale tokens `--radius-sm/md/lg/xl/pill`, `--shadow-sm/md/lg`, `--space-1..6` (not yet used by existing rules).
+  - Old green `#226b5a` / `rgba(34,107,90,…)` → `var(--green)` / `color-mix(…)`: 9 spots in `index.css`, `fieldHelp.css`, `lessonRecording.css`. This is the only visual change (focus outlines, teacher/conversation avatar, visual worksheet control border now use the current green).
+  - 101 one-to-one swaps of `#087e6b`, `#056454`, `#e8f6f2`, `#132238`, `#dfe5ec`, `#f6f8fb` for their variables in 15 CSS files (calendar, finance, homework, library, worksheet studio, …). `availabilityPoll.css` skipped (own scoped palette).
+  - `docs/DESIGN_TOKENS.md`: the tokens and the plan for the next passes (radius, shadows, remaining colours, then dark mode).
+- No JS, data or rules changed.
+- Checks: `npm run build` ok; `npx vitest run src/components src/app src/styles` → 23 files, 90 passed; CSS-reading tests `answerFont`, `financeMonthCss` → 11 passed. No stylelint in the project; eslint covers JS only. No browser screenshot comparison.
+- Next safe step: pass 2 — radius literals → `--radius-*`, file by file with a look at each screen.
+## 2026-11-09 · agent/batched-release — the CRM is released in batches, not on every merge (Vercel cost)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/batched-release`.
+- Why: the Vercel bill went over the Pro credit. On 2026-11-05 build CPU was 4.6K minutes ($16.11) and deployment storage 1.43 TB ($4.77). There were ~730 production builds in a month, one per merge to main, and each uploaded a 365 MB dist (audio 276 MB).
+- Done:
+  - `crm-v2/scripts/vercel-ignore.sh` is the CRM project's `ignoreCommand` (`crm-v2/vercel.json`). `main` builds only when the commit message contains `[deploy]` or `[hotfix]`; agent/* previews stay skipped; other branches build as before.
+  - New `.github/workflows/release.yml` runs at 05:00 and 14:00 UTC and on „Run workflow”. If `crm-v2/` changed since the last `[deploy]`/`[hotfix]` commit, it pushes an empty `[deploy] Release …` commit to main, which Vercel builds.
+  - AGENTS.md documents the rule.
+  - The public website project (root `vercel.json`) is unchanged. Its upload is the small static site only, and `.vercelignore` would hide the script from it.
+- Hotfix: put `[hotfix]` in the PR title (the merge commit message carries it).
+- Checks: ran the ignore script by hand for main / main + `[hotfix]` / `[deploy]` / agent/x / another branch → 0 / 1 / 1 / 0 / 1. `hostingHeaders.test.js` passed. The workflow runs for the first time after merge.
+- Risk: a merge without `[deploy]` waits up to ~9 hours, or until someone presses „Run workflow”.
+- Next safe step: after the first scheduled run, check that Vercel built the release commit, and in the next weekly usage mail that build minutes dropped.
+## 2026-11-09 · agent/payroll-paid — one teacher-pay figure per month with a „paid out” mark (owner 2026-11-09)
+
+- Base: `origin/main` 83b5e45, checked 2026-11-09. Branch `agent/payroll-paid`, draft PR. Open PRs at start (#1062, #1133, #1135–#1141) not touched; #1135 changes `FinanceMonthPage.jsx` only.
+- Pay basis: „Väljamaksmisele” = approved work-time pay (`workSessions.payAmountCents`, rate snapshotted on approval) — the audited basis of the page. The school has one rate per teacher (`users.workHourlyRateCents`, € / h), no per-lesson rate, so lessons given × the same rate (`teacherLoad()` reused, read via `teacherLoadService.load({ lessonsOnly: true })`) is shown as „Tundide järgi (kontroll)”; a gap ≥ 5 € shows „Erinevus …”. Pending sessions are named („N kirjet ootab kinnitamist — need pole summas”). With no clock-in the mark form is prefilled with the lessons' estimate (editable).
+- Done: `/finance/payroll` per teacher: Programmis / Ootel / Kinnitatud / Antud tunde (count · h), „Väljamaksmisele”, the check, „Märgi makstuks” (amount, date, Pangaülekanne / Sularaha / Muu, note) → badge „Makstud 05.11 · 820,00 €” + „Tühista märge” (reason required). Month bar „Makstud / Maksmata” + „Laadi CSV” (Kuu; Õpetaja; Kinnitatud tunnid; Antud tunde tk / h; Väljamaksmisele; Tundide järgi; Makstud; Makstud kuupäev; Makseviis — BOM, „;”, decimal comma).
+- Data: new collection `teacherPayouts/{YYYY-MM}_{teacherUid}` { teacherUid, teacherName, month, status paid|cancelled, amountCents, paidAt, method, note, markedBy {uid,name}, markedAtIso, cancelledBy?, cancelledAtIso?, cancelReason?, history[] }. Written in a transaction with an `activityLog` line (`finance.teacher_payout_marked` / `_cancelled`) **without the amount** (activityLog is readable by teachers).
+- Rules (`firestore.rules`, not deployed): admin creates/updates only (fixed keys, id = month_teacherUid, own uid in markedBy / cancelledBy / last history line, amount int 1…10 000 000 cents, method in '', pank, sularaha, muu, a paid month cannot be marked again, undo changes only status / cancelled* / history with a reason ≥ 3, history append-only ≤ 100); admin + bookkeeper (`isFinance`) read; teacher never; delete never.
+- Files: `crm-v2/src/features/payroll/{payroll.js,PayrollPage.jsx,payroll.css,payroll.test.js,PayrollPage.test.jsx}`, new `crm-v2/src/services/firebase/teacherPayouts.js`, `crm-v2/src/services/firebase/teacherLoad.js` (`lessonsOnly`), `firestore.rules`, new `functions/teacher-payouts-rules-emulator.integration.js` (+ `functions/package.json` test:emulator), `ARCHITECTURE.md`.
+- Checks: `npx vitest run src/features/payroll src/features/teachers` → 7 files, 41 tests passed; full `npx vitest run` → 543 files passed (1 skipped), 4203 tests passed; `npx eslint --quiet` on touched files clean; `firebase emulators:exec --only auth,firestore` with the new test + invoice-notes test → 2/2 passed (Java 21).
+- Safe before deploy: the page reads the marks with a fallback — until the rules are deployed it shows „Väljamaksete märkeid ei õnnestunud lugeda” and hides „Märgi makstuks”; work time works as before.
+- Manual gate: owner deploys `firestore.rules`; not checked in the browser with real data (admin login needed).
+- Next safe step: owner deploys the rules, marks one October teacher paid and checks the CSV in Excel.
+## 2026-11-09 · agent/unmarked-reminders — teachers get a daily in-CRM reminder about their unmarked lessons (owner 2026-11-09)
+
+- Base: `origin/main` d5e1b0a, checked 2026-11-09. Branch `agent/unmarked-reminders`, draft PR #1143. Open PRs at start (#1062, #1133, #1135–#1141) not touched.
+- Owner: „a daily reminder to teachers about their unmarked lessons — an in-CRM notification, NOT an e-mail”. No e-mail / SMS anywhere; learner e-mails stay off.
+- Before: a teacher had no menu badge (the „Kalender” count is admin-only) and nothing in the bell. Only when they opened home: a „Vajab tähelepanu” line „N märkimata tundi” (365-day legacy `unmarkedLessons`) and the „Märkimata tunnid” tile; in the calendar a „Märkimata tunnid N” button.
+- Done (client only, no server write, no scheduled function): `unmarkedReminder(items, today)` in `features/calendar/unmarkedLessons.js` (REMINDER_DAYS = REVIEW_DAYS = 60, so the old backlog „308 — пока не делаем” does not nag and the number matches /calendar/markimata; nothing is bulk-marked) + `unmarkedLessonsService.reminder({ user })` (the page's own `load`, own lessons only, without Live evidence). Bell: `unmarkedNotifications` in `notificationModel.js` → „N tundi märkimata (vanim DD.MM)” → /calendar/markimata (a teacher's page shows only own lessons); id `unmarked:<day>` so the bell counts it as new once a day; re-read on panel open and on `UNMARKED_CHANGED_EVENT`. Teachers only; the admin keeps the school-wide count. Home: `features/dashboard/UnmarkedNudge.jsx` — once a day (localStorage `ks-unmarked-nudge:<uid>` = date, try/catch), dismissible, when own lessons from before yesterday are unmarked: „Sul on N märkimata tundi (vanim DD.MM). Märgi need 1 minutiga →”; computed from the journal and calendar the home page already reads (no extra read); not in the admin's preview. CSS `.calm-nudge` in `calm.css`.
+- Checks: `cd crm-v2 && npx vitest run src/components/layout src/features/notifications src/features/calendar src/features/dashboard` → 37 files, 283 tests passed (4 new); `npx vitest run src/services/firebase src/app` → 50 files, 259 passed; eslint clean on the touched files.
+- Limits: the home's „Vajab tähelepanu” line still counts 365 days (legacy), the nudge and the bell 60 days, so the numbers can differ for a teacher with an old backlog. Not looked at in a browser with real data.
+- Next safe step: owner opens the CRM as a teacher (preview shows the bell; the banner is hidden in preview) and checks the bell line and the link.
 
 ## 2026-11-09 · agent/student-drawer — the student's full card opens beside the work (right-click), not on another page
 
@@ -27,6 +105,91 @@
 - Not done: the security headers (X-Frame-Options DENY, frame-ancestors 'none') were kept on purpose: no iframe.
 - Checks: `npx vitest run src/components src/features/students` → 42 files, all passed (+2 drawer tests, registry test updated); eslint clean; looked at 1440 px with the real card and demo data (lab page, removed). Switching tabs inside the drawer left the page URL unchanged.
 - Next safe step: the same drawer for a lesson and for an invoice.
+## 2026-11-09 · agent/lead-to-student — „Õppijaks” on a web lead opens a prefilled student card (stacked on agent/admin-quickfix)
+
+- Base: `origin/agent/admin-quickfix` (#1136), checked 2026-11-09. Branch `agent/lead-to-student`.
+- Before, „Õppijaks” only changed the lead's status, so the card had to be typed again.
+- Done:
+  - New `leads/leadToStudent.js` maps a lead to StudentForm fields: name, phone, parent + parentEmail or own email, level A1–C1, subject „… keel”. Tests in `leadToStudent.test.js`.
+  - `LeadsPage` „Õppijaks” saves the status, then goes to /students with `state.newStudent`. The details go in router state, never in the URL.
+  - `StudentsPage` opens `StudentForm` with it (new `initial` prop) and clears the router state. The prefill is dropped on close or save, and „Uus õpilane” opens an empty form.
+  - The card is saved only when the admin presses save; the duplicate warning in StudentForm still runs.
+- Checks: `npx vitest run src/features/leads src/features/students` → all passed (+4 tests); eslint clean.
+- Next safe step: link the created card back to the lead (`studentId` on the lead).
+## 2026-11-09 · agent/finance-cash-view — money in/out on the new finance page (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-cash-view`.
+- Before, money actually received, cash out, margin and debt age were only in „Vana vaade” (`FinancialAnalyticsPanel`).
+- Done: `FinanceMonthPage.jsx` (admin) shows the same panel folded under the overview as „Raha liikumine: laekumised, kulud, marginaal ja võlgade vanus”. It is built on demand with „Koosta analüüs”. „Ava” on a debt opens the invoice document. CSS in `financeMonth.css`; new test.
+- The backend `previewFinancialAnalytics` only reads (checked `functions/index.js`: no writes in it).
+- Checks: `npx vitest run src/features/finance` → 41 files, 274 passed; eslint clean.
+- Next safe step: one teacher-pay figure with a „paid out” mark (payroll vs teacher-load estimate).
+
+## 2026-11-09 · agent/finance-debts-family — debts by age and by family (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-debts-family`.
+- Before, the earlier-months debts were one row per invoice, with no total per payer and no age.
+- Done:
+  - `financeDebts.js`: `debtAgeBuckets` (due date ahead / 1–30 / 31–60 / over 60 days past due) and `debtsByPayer` (by payer e-mail, else name, else student; largest first, students named).
+  - `FinanceDebtsPanel.jsx`: four age tiles and a collapsible „Pere kaupa” list above the invoice table.
+  - Styles in `financeDebts.css`, with 2 columns on a phone.
+  - Test `financeDebtsAge.test.js`.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/finance` → 42 files, 275 passed; eslint clean; looked at 1280 px with demo data (temporary lab page, removed).
+- Next safe step: money received per month on the new finance page (now only in „Vana vaade”).
+
+## 2026-11-09 · agent/live-presence-leave — leaving a just-closed room no longer writes refused presence (live classroom)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/live-presence-leave`.
+- clientErrors had 5 × `Missing or insufficient permissions (set liveLessonInvitations/{id}/presence/{id})`, from teachers on /calendar and /live-classroom right after „Lõpeta tund”. `markOffline` read the invitation status from the local cache, which still said 'accepted', so the write was refused by the rules. It did not affect the lesson, but it filled „Vead”.
+- Done: `liveLessonPresence.js` reads the status with `getDocFromServer` and falls back to the cache when offline. Two new tests. No rules change.
+- Checks: `npx vitest run src/services/firebase/liveLessonPresence.test.js src/features/live-classroom` → 41 files, 256 passed.
+- Next safe step: watch „Vead” for presence errors over a week.
+
+## 2026-11-09 · agent/ui-confirm — the CRM's own confirm dialog instead of the browser's box (design audit)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/ui-confirm`.
+- Done:
+  - `components/ui/ConfirmHost.jsx` (+ `confirmHost.css`, test) is mounted once in `App.jsx`. `askConfirm(message, { confirmLabel, danger })` returns a Promise<boolean>; `askText(message)` returns a Promise<string|null>. Without a mounted host (unit tests) they fall back to `globalThis.confirm` / `prompt`, so existing tests that stub those keep working.
+  - Migrated 29 calls in 18 files to it: calendar (page, planner, unmarked, lesson panel), homework, live room (plan, group room, end lesson), student panels, groups, parents, tasks, mistakes, worksheet player, interactive lesson, board, monthly report.
+- Not migrated yet: worksheet-studio and worksheet-generator tools (content), and the finance panels `PaymentCheckPanel` / `EmailDeliveryPanel` (finance, a separate PR).
+- Checks: `npx vitest run` over the affected features plus components and app → 258 files, 1720 passed, +2 ConfirmHost tests; eslint clean apart from main's translateGuard test (fixed in #1134). Looked at the dialog in a temporary lab page (removed).
+- Next safe step: migrate the remaining 25 calls (studio, generator, finance) in their own PRs.
+
+## 2026-11-09 · agent/admin-quickfix — web leads can be closed and say when a save fails; no false „without a future lesson” alarms
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/admin-quickfix`.
+- Done:
+  - `LeadsPage.jsx`:
+    - a failed status save shows an error (it was `try/finally` and said nothing);
+    - new buttons „Sulge” (status closed) and „Ava uuesti”;
+    - new filter tab „Suletud”;
+    - new test `LeadsPage.test.jsx`.
+  - `DashboardPage.jsx`: if reading groups fails, the „Ilma tulevase tunnita” list is left out. Before, every group-only student showed as unplanned.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/leads src/features/dashboard src/features/calendar` → all passed (264 + 2 new); eslint clean.
+- Backlog: „Õppijaks” still only changes the status. It should open a new student card prefilled from the lead (M).
+- Next safe step: „Õppijaks” → create the student card from the lead.
+
+## 2026-11-09 · agent/finance-quickfix — the bookkeeper sees older debts; „Palgad” on the finance page (finance)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/finance-quickfix`.
+- Audit found:
+  - the home page counts overdue invoices from all months and links to `/finance?status=overdue`, but the earlier months' debts list was admin-only, so the bookkeeper saw „no debts this month”;
+  - `/finance/payroll` was linked only from „Vana vaade”.
+- Done:
+  - `FinanceMonthPage.jsx`: the bookkeeper (finance role, not admin) gets `FinanceDebtsPanel` without actions;
+  - `FinanceDebtsPanel.jsx`: hides „Impordi pank” / „Meeldetuletus” when no handler is passed and says „Ainult vaatamiseks”;
+  - an admin link „Palgad” to `/finance/payroll` in the finance header.
+- No data or rules changed.
+- Checks: `npx vitest run src/features/finance src/features/payroll src/features/dashboard` → 47 files, 316 passed (+1 read-only test); eslint clean.
+- Audit backlog (finance):
+  - money received per month and debt age exist only in „Vana vaade”;
+  - the payroll page and the teacher-load estimate are two sums, with no „paid out” mark;
+  - debts are not totalled per family;
+  - no reminder to teachers about unmarked lessons;
+  - bank import is CSV only.
+- Next safe step: total the debts per payer, with 30/60/90-day age, on the new finance page.
 
 ## 2026-11-09 · agent/ui-polish-1 — one focus ring, soft entrances, finger-sized targets (owner 2026-11-09: „pleasant, smooth, clear”)
 

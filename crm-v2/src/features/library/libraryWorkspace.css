@@ -348,7 +348,7 @@
 
 /* Õppevara v2: search + table of contents instead of folders */
 .lib2-search{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #d6dde5;border-radius:16px;padding:0 16px;min-height:58px;box-shadow:0 8px 24px rgba(16,35,57,.06);margin:4px 0 14px}
-.lib2-search:focus-within{border-color:#087e6b;box-shadow:0 0 0 4px rgba(8,126,107,.12)}
+.lib2-search:focus-within{border-color:var(--green);box-shadow:0 0 0 4px rgba(8,126,107,.12)}
 .lib2-search>svg{color:#667085;flex:none}
 .lib2-search input{flex:1;border:0;outline:0;background:transparent;font-size:1.05rem;min-width:0;height:54px}
 .lib2-search kbd{border:1px solid #d0d5dd;border-radius:6px;padding:1px 7px;color:#667085;font-size:.8rem;background:#f8fafc}
@@ -366,14 +366,14 @@
 .lib2-toc li button{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;text-align:left;border:0;background:transparent;border-radius:10px;padding:8px 10px;cursor:pointer;color:#344054;font-size:.88rem;line-height:1.35}
 .lib2-toc li button:hover{background:#f2f5f8}
 .lib2-toc li button.is-active{background:#e7f5f1;color:#0b5c4d;font-weight:700}
-.lib2-toc li button b{font-size:.72rem;color:#087e6b}
+.lib2-toc li button b{font-size:.72rem;color:var(--green)}
 .lib2-toc li button small{color:#98a2b3}
 .lib2-toc-select{display:none}
 .lib2-filters{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .lib2-sort{display:flex;align-items:center;gap:8px;font-size:.85rem;color:#667085}
 .lib2-sort select,.lib2-toc-select select{border:1.5px solid #d6dde5;border-radius:10px;padding:7px 10px;background:#fff;font-weight:600;color:#344054}
 .lib2-count{margin:12px 0 8px;color:#667085;font-size:.88rem}
-.lib2-count button{border:0;background:none;color:#087e6b;font-weight:700;cursor:pointer;padding:0}
+.lib2-count button{border:0;background:none;color:var(--green);font-weight:700;cursor:pointer;padding:0}
 .lib2-section h3{display:flex;align-items:center;gap:10px;margin:18px 0 8px;font:800 1rem Manrope,sans-serif;color:#14243a}
 .lib2-section h3 span{font-size:.72rem;background:#e7f5f1;color:#0b5c4d;border-radius:6px;padding:2px 7px}
 .lib2-section h3 small{color:#98a2b3;font-weight:600}
@@ -449,7 +449,7 @@
 .lib2-filters{justify-content:flex-start;align-items:center;gap:10px 16px}
 .lib2-filters .lib2-chips{margin:0}
 /* eye on a curriculum lesson: one tab per phase, the sheet below */
-.preview-phase-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.preview-phase-tabs button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid #d6dee7;border-radius:999px;background:#fff;color:#34445a;font:inherit;font-weight:700;cursor:pointer}.preview-phase-tabs button small{font-weight:600;color:#98a2b3}.preview-phase-tabs button.is-published svg{color:#087e6b}.preview-phase-tabs button.is-active{border-color:#087e6b;background:#ecf8f4;color:#0b4f43}
+.preview-phase-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.preview-phase-tabs button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid #d6dee7;border-radius:999px;background:#fff;color:#34445a;font:inherit;font-weight:700;cursor:pointer}.preview-phase-tabs button small{font-weight:600;color:#98a2b3}.preview-phase-tabs button.is-published svg{color:var(--green)}.preview-phase-tabs button.is-active{border-color:var(--green);background:#ecf8f4;color:#0b4f43}
 /* „Grammatika” at the top of a level: topics with their lessons and Õpik sheets (owner 2026-10-21) */
 
 /* „Grammatika” as a module section: a topic number column, then the usual row (owner 2026-10-21) */
@@ -462,6 +462,6 @@
 .lib2-subjects button{display:inline-flex;align-items:center;gap:7px;margin-bottom:-1.5px;padding:10px 16px;border:0;border-bottom:3px solid transparent;background:none;color:#475467;font:inherit;font-weight:700;font-size:1rem;cursor:pointer}
 .lib2-subjects button span{font-weight:600;color:#98a2b3;font-size:.8rem}
 .lib2-subjects button:hover{color:#14243a}
-.lib2-subjects button.is-active{color:#0b5c4d;border-bottom-color:#087e6b}
+.lib2-subjects button.is-active{color:#0b5c4d;border-bottom-color:var(--green)}
 .lib2-subjects button.is-active span{color:#3c8f80}
 @media(max-width:640px){.lib2-subjects{flex-wrap:nowrap;overflow-x:auto}.lib2-subjects button{flex:none;padding:9px 12px}}

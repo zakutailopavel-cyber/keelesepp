@@ -74,6 +74,54 @@
   color: var(--muted);
 }
 
+/* Väljamaksed (owner 2026-11-09): month paid / unpaid bar and one pay figure per teacher */
+.payroll-payouts-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.payroll-payouts-bar > span,
+.payroll-payout > span {
+  display: grid;
+  gap: 3px;
+}
+
+.payroll-payouts-bar small,
+.payroll-payout small {
+  color: var(--muted);
+}
+
+.payroll-payouts-bar > .button {
+  margin-left: auto;
+}
+
+.payroll-payout {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  padding: 16px 22px;
+}
+
+.payroll-payout__main strong {
+  font-size: 1.35rem;
+}
+
+.payroll-payout small.payroll-payout__warn {
+  align-items: center;
+  color: var(--danger, #b42318);
+  display: flex;
+  gap: 4px;
+}
+
+.payroll-payout__status {
+  justify-items: end;
+}
+
 .payroll-table th,
 .payroll-table td {
   white-space: nowrap;
@@ -149,6 +197,18 @@
 
   .payroll-review-form dl {
     grid-template-columns: 1fr;
+  }
+
+  .payroll-payout {
+    grid-template-columns: 1fr;
+  }
+
+  .payroll-payout__status {
+    justify-items: start;
+  }
+
+  .payroll-payouts-bar > .button {
+    margin-left: 0;
   }
 }
 

@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { CheckCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -71,7 +72,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
   const change = async (lesson, next) => {
     const current = markOf(lesson);
     if (next === current) return;
-    if (next === 'remove' && !globalThis.confirm('Eemalda tunni märge? Tund on siis jälle planeeritud ja seda ei arvestata arvel.')) return;
+    if (next === 'remove' && !(await askConfirm('Eemalda tunni märge? Tund on siis jälle planeeritud ja seda ei arvestata arvel.'))) return;
     setBusy(lesson.id); setError(''); setNotice('');
     try {
       const recurring = schedule.find((item) => item.id === lesson.scheduleId)?.recurring;

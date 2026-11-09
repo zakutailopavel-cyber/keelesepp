@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { ArrowRight, Bookmark, Play, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -47,8 +48,8 @@ export default function MistakesPage({ studentRepository = studentsService, word
   const noteList = useStudentWords(students.map((student) => student.id), notesService);
   const notes = useMemo(() => [...noteList].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))), [noteList]);
   const [noteError, setNoteError] = useState('');
-  const deleteNote = (note) => {
-    if (!globalThis.confirm('Kustutada see märge?')) return;
+  const deleteNote = async (note) => {
+    if (!(await askConfirm('Kustutada see märge?'))) return;
     setNoteError('');
     Promise.resolve().then(() => notesService.remove(note.id)).catch((error) => setNoteError(error?.message || 'Märget ei saanud kustutada.'));
   };

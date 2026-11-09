@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { studentsService } from '../../services/firebase/students.js';
 import { websiteLeadsService } from '../../services/firebase/websiteLeads.js';
 import { leadStudentIds } from '../calendar/leadTimes.js';
+import { leadToStudent } from './leadToStudent.js';
 import './leads.css';
 import PollGrid from '../availability-poll/PollGrid.jsx';
 import { cellsOf, summaryOf } from '../availability-poll/pollModel.js';
@@ -25,8 +26,10 @@ function arrivedAt(value) {
 
 export default function LeadsPage({ service = websiteLeadsService, studentRepository = studentsService }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('open');
   const [busy, setBusy] = useState('');
+  const [error, setError] = useState('');
   const state = useAsyncData(() => service.list(), [service]);
   // an /ajad answer from a student who already has a card: show the card (its times are used in the calendar)
   const studentsState = useAsyncData(() => studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true }).then((result) => result.items).catch(() => []), [studentRepository]);
@@ -34,13 +37,22 @@ export default function LeadsPage({ service = websiteLeadsService, studentReposi
   const leads = useMemo(() => (state.data || []).filter(lead => filter === 'all' || (filter === 'open' ? !['converted', 'closed'].includes(lead.status) : lead.status === filter)), [state.data, filter]);
   const changeStatus = async (lead, status) => {
     setBusy(lead.id);
-    try { await service.updateStatus(lead.id, status, user); state.reload(); } finally { setBusy(''); }
+    setError('');
+    let saved = false;
+    // a failed save used to leave the button spinning back with no word: say it, the lead stays as it was
+    try { await service.updateStatus(lead.id, status, user); saved = true; state.reload(); } catch (failure) { setError(`${lead.name || 'Päring'}: ei õnnestunud salvestada (${failure.message || 'viga'}). Proovi uuesti.`); } finally { setBusy(''); }
+    return saved;
+  };
+  // „Õppijaks” used to change only the status: now it also opens the new student card filled from the lead
+  const convert = async (lead) => {
+    if (await changeStatus(lead, 'converted')) navigate('/students', { state: { newStudent: leadToStudent(lead) } });
   };
   return <div className="page-content leads-page">
     <PageHeader eyebrow="Müük" title="Veebipäringud" description="Kodulehe registreerumised ja tasemetesti tulemused ühes tööjärjekorras." />
     <div className="leads-filters" role="tablist" aria-label="Päringute filter">
-      {[['open', 'Aktiivsed'], ['new', 'Uued'], ['contacted', 'Ühendust võetud'], ['converted', 'Õppijad'], ['all', 'Kõik']].map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={filter === id} className={filter === id ? 'is-active' : ''} onClick={() => setFilter(id)}>{label}</button>)}
+      {[['open', 'Aktiivsed'], ['new', 'Uued'], ['contacted', 'Ühendust võetud'], ['converted', 'Õppijad'], ['closed', 'Suletud'], ['all', 'Kõik']].map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={filter === id} className={filter === id ? 'is-active' : ''} onClick={() => setFilter(id)}>{label}</button>)}
     </div>
+    {error ? <p className="action-error" role="alert">{error}<button type="button" aria-label="Sulge teade" onClick={() => setError('')}>×</button></p> : null}
     {state.loading ? <LoadingState label="Laen päringuid…" /> : state.error ? <ErrorState message={state.error.message} onRetry={state.reload} /> : !leads.length ? <Card><EmptyState title="Selles vaates päringuid pole" description="Uued veebivormi ja tasemetesti päringud ilmuvad siia automaatselt." /></Card> : <div className="leads-list">
       {leads.map(lead => <Card key={lead.id} className="lead-row" data-entity="lead" data-lead-id={lead.id} data-email={lead.email || undefined} data-phone={lead.phone || undefined} data-entity-title={lead.name || undefined}>
         <div className="lead-row__main">
@@ -58,7 +70,10 @@ export default function LeadsPage({ service = websiteLeadsService, studentReposi
         </div>
         <div className="lead-row__actions">
           {lead.status === 'new' ? <Button loading={busy === lead.id} data-entity-action="contacted" onClick={() => changeStatus(lead, 'contacted')}>Märgi kontakteerituks</Button> : null}
-          {!['converted', 'closed'].includes(lead.status) ? <Button variant="secondary" disabled={Boolean(busy)} data-entity-action="convert" onClick={() => changeStatus(lead, 'converted')}>Õppijaks</Button> : null}
+          {!['converted', 'closed'].includes(lead.status) ? <Button variant="secondary" disabled={Boolean(busy)} data-entity-action="convert" onClick={() => convert(lead)}>Õppijaks</Button> : null}
+          {/* „Suletud”: no answer, not interested or a duplicate — the status existed, the button did not */}
+          {!['converted', 'closed'].includes(lead.status) ? <Button variant="secondary" disabled={Boolean(busy)} data-entity-action="close" onClick={() => changeStatus(lead, 'closed')}>Sulge</Button> : null}
+          {lead.status === 'closed' ? <Button variant="secondary" disabled={Boolean(busy)} data-entity-action="reopen" onClick={() => changeStatus(lead, 'contacted')}>Ava uuesti</Button> : null}
         </div>
       </Card>)}
     </div>}

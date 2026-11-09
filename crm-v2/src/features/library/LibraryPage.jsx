@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { curriculumInstallerService } from '../../services/firebase/curriculumInstaller.js';
 import { groupsService } from '../../services/firebase/groups.js';
@@ -346,7 +347,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   // sheets that pass the quality check (the generator loads only when used)
   const prepareModuleSheets = async (section) => {
     const lessons = items.filter((item) => item.withPhases && item.moduleKey === section.key).map((item) => ({ ...item.source, id: item.sourceId }));
-    if (!globalThis.confirm(`Valmistan mooduli „${section.label}” ette: loon puuduvad Avasta / Harjuta / Kasuta lehed, lisan tunni pildid ja avaldan lehed, mille kvaliteedikontrollis vigu ei ole. Olemasolevat sisu ei kustutata. Jätkata?`)) return;
+    if (!(await askConfirm(`Valmistan mooduli „${section.label}” ette: loon puuduvad Avasta / Harjuta / Kasuta lehed, lisan tunni pildid ja avaldan lehed, mille kvaliteedikontrollis vigu ei ole. Olemasolevat sisu ei kustutata. Jätkata?`, { confirmLabel: 'Valmista ette' }))) return;
     setInstallError('');
     setModuleDrafts({ key: section.key, text: 'Laen generaatorit…' });
     try {

@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -69,8 +70,8 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
     }
   }
   const mark = (item, status) => run(item, status, () => repository.mark(item, user, status), STATUS_LABEL[status], 'Märkimine ebaõnnestus.');
-  const cancel = (item) => {
-    if (!globalThis.confirm(item.recurring ? 'Tühistada ainult see tund? Järgmised jäävad alles.' : 'Kas tühistada see tund?')) return;
+  const cancel = async (item) => {
+    if (!(await askConfirm(item.recurring ? 'Tühistada ainult see tund? Järgmised jäävad alles.' : 'Kas tühistada see tund?'))) return;
     const event = (state.data?.schedule || []).find((entry) => entry.id === item.id) || item;
     run(item, 'cancel', () => repository.cancel(item, event), 'tühistatud', 'Tühistamine ebaõnnestus.');
   };
