@@ -69,6 +69,72 @@ describe('UnpaidInvoicesNotice', () => {
   });
 });
 
+describe('UnpaidInvoicesNotice · „Arve PDF” and „Maksin ära” (owner 2026-11-09)', () => {
+  const noClaims = () => ({ forInvoices: vi.fn().mockResolvedValue(new Map()), create: vi.fn() });
+
+  it('„Maksin ära” sends a notice with an optional note and then says „Teade saadetud, kontrollime” — not paid', async () => {
+    const claims = noClaims();
+    claims.create.mockResolvedValue({ id: 'i130', invoiceId: 'i130', claimedByUid: 'p1', note: 'LHV 08.11' });
+    const api = { config: vi.fn().mockResolvedValue({ enabled: true }), startForInvoice: vi.fn() };
+    render(<UnpaidInvoicesNotice invoices={[unpaid]} api={api} claimsRepository={claims} today={TODAY} />);
+    await waitFor(() => expect(claims.forInvoices).toHaveBeenCalledWith(['i130']));
+    fireEvent.click(screen.getByRole('button', { name: /Maksin ära/ }));
+    const form = screen.getByRole('form', { name: /Teade: arve KS-2026-130 on makstud/ });
+    expect(form).toHaveTextContent('Arve jääb tasumata, kuni kool näeb makset pangas.');
+    fireEvent.change(within(form).getByLabelText(/Märkus/), { target: { value: 'LHV 08.11' } });
+    fireEvent.click(within(form).getByRole('button', { name: 'Saada teade' }));
+    expect(await screen.findByText('Teade saadetud, kontrollime')).toBeInTheDocument();
+    expect(claims.create).toHaveBeenCalledWith('i130', 'LHV 08.11');
+    expect(screen.queryByRole('button', { name: /Maksin ära/ })).toBeNull();
+    // still in the list as unpaid; the card payment is not offered again to avoid paying twice
+    expect(screen.getByRole('region', { name: 'Tasumata arved' })).toHaveTextContent('Arve ootab tasumist · KS-2026-130');
+    expect(screen.queryByRole('button', { name: /Maksa arve/ })).toBeNull();
+  });
+
+  it('an invoice already claimed shows the notice instead of the button; „Loobu” closes the form without sending', async () => {
+    const claims = { forInvoices: vi.fn().mockResolvedValue(new Map([['i120', { id: 'i120' }]])), create: vi.fn() };
+    render(<UnpaidInvoicesNotice invoices={[unpaid, late]} api={off} claimsRepository={claims} today={TODAY} />);
+    const [first, second] = within(screen.getByRole('region', { name: 'Tasumata arved' })).getAllByRole('listitem');
+    expect(await within(first).findByText('Teade saadetud, kontrollime')).toBeInTheDocument();
+    expect(within(first).queryByRole('button', { name: /Maksin ära/ })).toBeNull();
+    fireEvent.click(within(second).getByRole('button', { name: /Maksin ära/ }));
+    fireEvent.click(within(second).getByRole('button', { name: 'Loobu' }));
+    expect(within(second).queryByRole('form')).toBeNull();
+    expect(claims.create).not.toHaveBeenCalled();
+  });
+
+  it('a refused send that another parent already made shows the notice; any other error is shown', async () => {
+    const claims = { forInvoices: vi.fn().mockResolvedValueOnce(new Map()).mockResolvedValueOnce(new Map()), create: vi.fn().mockRejectedValue(new Error('Missing or insufficient permissions.')) };
+    render(<UnpaidInvoicesNotice invoices={[unpaid]} api={off} claimsRepository={claims} today={TODAY} />);
+    await waitFor(() => expect(claims.forInvoices).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole('button', { name: /Maksin ära/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Saada teade' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Missing or insufficient permissions.');
+    claims.forInvoices.mockResolvedValueOnce(new Map([['i130', { id: 'i130' }]]));
+    fireEvent.click(screen.getByRole('button', { name: 'Saada teade' }));
+    expect(await screen.findByText('Teade saadetud, kontrollime')).toBeInTheDocument();
+  });
+
+  it('„Arve PDF” fetches the invoice document from the server and hands it to the browser', async () => {
+    const pdfApi = { pdf: vi.fn().mockResolvedValue({ filename: 'Arve KS-2026-130.pdf', contentType: 'application/pdf', contentBase64: 'JVBERi0=' }) };
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:invoice') });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+    const click = vi.spyOn(globalThis.HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    render(<UnpaidInvoicesNotice invoices={[unpaid]} api={off} pdfApi={pdfApi} claimsRepository={noClaims()} today={TODAY} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Arve KS-2026-130 PDF' }));
+    await waitFor(() => expect(click).toHaveBeenCalled());
+    expect(pdfApi.pdf).toHaveBeenCalledWith('i130');
+    click.mockRestore();
+  });
+
+  it('the administrator\'s preview has neither button', async () => {
+    const claims = noClaims();
+    render(<UnpaidInvoicesNotice invoices={[unpaid]} api={off} readOnly claimsRepository={claims} today={TODAY} />);
+    await waitFor(() => expect(claims.forInvoices).toHaveBeenCalled());
+    expect(screen.queryByRole('button', { name: /Maksin ära|PDF/ })).toBeNull();
+  });
+});
+
 describe('ParentDashboardPage · unpaid invoices', () => {
   const empty = { listByStudentIds: vi.fn().mockResolvedValue([]), listByStudent: vi.fn().mockResolvedValue([]) };
   const user = { uid: 'parent-1', displayName: 'Mari Ema', roles: ['parent'] };

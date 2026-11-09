@@ -51,3 +51,13 @@
 .finance-debts__payers li small { display: block; color: #81908b; }
 .finance-debts__payers li > span:nth-child(2) { color: #73817d; font-size: .8rem; }
 @media (max-width: 680px) { .finance-debts__summary { padding: 0 16px 16px; } .finance-debts__ages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* „Pere teatas „Maksin ära”” (owner 2026-11-09): a parent's notice, not a payment */
+.badge--warning { background: #fffaeb; color: #b54708; }
+.finance-debts__claims { display: grid; gap: 6px; margin: 0 26px 18px; padding: 12px 14px; border: 1px solid #fedf89; border-radius: 14px; background: #fffcf5; }
+.finance-debts__claims h3 { margin: 0; font-size: 1rem; }
+.finance-debts__claims p { margin: 0; color: #475467; font-size: .85rem; }
+.finance-debts__claims ul { display: grid; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
+.finance-debts__claims li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.finance-debts__claims small { flex-basis: 100%; color: #475467; }
+@media (max-width: 680px) { .finance-debts__claims { margin: 0 16px 16px; } }

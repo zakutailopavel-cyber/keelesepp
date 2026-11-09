@@ -48,4 +48,21 @@ describe('InvoiceDrawerPanel (the side drawer’s invoice)', () => {
     renderPanel({ invoiceRepository: { get: vi.fn(async () => null) }, deliveryRepository: { pdf: vi.fn() } });
     expect(await screen.findByText('Arvet ei leitud')).toBeInTheDocument();
   });
+
+  it('shows a family\'s „Maksin ära” notice on an unpaid invoice — still unpaid, the administrator checks the bank', async () => {
+    const claimsRepository = { get: vi.fn(async () => ({ id: 'i1', invoiceId: 'i1', claimedByName: 'Mia Ema', claimedAt: '2026-11-08T10:00:00.000Z', note: 'Swedbank' })) };
+    renderPanel({ invoiceRepository: { get: vi.fn(async () => invoice) }, deliveryRepository: { pdf: vi.fn(() => new Promise(() => {})) }, claimsRepository });
+    expect(await screen.findByText('Pere: makstud?')).toBeInTheDocument();
+    expect(screen.getByText(/Pere teatas maksest 08\.11\.2026 \(Mia Ema\) — „Swedbank”\. Kontrolli panka ja lisa makse\./)).toBeInTheDocument();
+    expect(screen.getByText('Osaliselt')).toBeInTheDocument();
+    expect(claimsRepository.get).toHaveBeenCalledWith('i1');
+  });
+
+  it('no notice when there is none or it cannot be read', async () => {
+    const claimsRepository = { get: vi.fn(async () => { throw new Error('Missing or insufficient permissions.'); }) };
+    renderPanel({ invoiceRepository: { get: vi.fn(async () => invoice) }, deliveryRepository: { pdf: vi.fn(() => new Promise(() => {})) }, claimsRepository });
+    expect(await screen.findByText('Arve 26-014')).toBeInTheDocument();
+    await waitFor(() => expect(claimsRepository.get).toHaveBeenCalled());
+    expect(screen.queryByText('Pere: makstud?')).toBeNull();
+  });
 });

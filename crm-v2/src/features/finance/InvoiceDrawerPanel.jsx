@@ -4,12 +4,14 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { financeApi, invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
+import { invoicePaymentClaimsService } from '../../services/firebase/invoicePaymentClaims.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
 import { base64DocumentBlob } from '../../services/firebase/paymentDocuments.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import { displayDate } from './finance.js';
 import { FINANCE_STATUS_LABELS, financeRowState } from './financeRows.js';
 import { invoiceShownEmail } from './invoicePayer.js';
+import PaymentClaimBadge, { paymentClaimTitle } from './PaymentClaimBadge.jsx';
 import PaymentDialog from './PaymentDialog.jsx';
 import { isOverpaymentRefusal, paymentRecordedNotice, recordPaymentWithAdvance } from './paymentEntry.js';
 
@@ -37,10 +39,12 @@ function InvoicePdf({ invoiceId, deliveryRepository }) {
  * and the same recording path as the month's list (PaymentDialog.jsx, paymentEntry.js). The accountant sees the
  * invoice; the payments and the PDF are the administrator's, as on the page.
  */
-export default function InvoiceDrawerPanel({ invoiceId, invoiceRepository = invoicesService, financeRepository = financeApi, deliveryRepository = invoiceDeliveryApi }) {
+export default function InvoiceDrawerPanel({ invoiceId, invoiceRepository = invoicesService, financeRepository = financeApi, deliveryRepository = invoiceDeliveryApi, claimsRepository = invoicePaymentClaimsService }) {
   const { user } = useAuth();
   const isAdmin = hasAnyRole(user?.roles || [], [ROLES.ADMIN]);
   const state = useAsyncData(() => invoiceRepository.get(invoiceId), [invoiceRepository, invoiceId]);
+  // „Maksin ära” from the parent's cabinet (owner 2026-11-09): a notice, not a payment; a refusal or none = no notice
+  const claimState = useAsyncData(() => Promise.resolve().then(() => claimsRepository.get(invoiceId)).catch(() => null), [claimsRepository, invoiceId]);
   const [paying, setPaying] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -79,6 +83,7 @@ export default function InvoiceDrawerPanel({ invoiceId, invoiceRepository = invo
       <p>{[invoice.payerName && invoice.payerName !== invoice.studentName ? `Maksja: ${invoice.payerName}` : '', email, invoice.subject].filter(Boolean).join(' · ')}</p>
     </header>
     {notice ? <p className="lp-hint" role="status">{notice}</p> : null}
+    {claimState.data ? <p className="lp-hint invoice-drawer__claim" data-payment-claim-note><PaymentClaimBadge claim={row.balanceCents > 0 ? claimState.data : null} /> {paymentClaimTitle(claimState.data, { stillOpen: row.balanceCents > 0 })}</p> : null}
     <dl className="invoice-drawer__sums">
       <div><dt>Summa</dt><dd>{money(row.amountCents)}</dd></div>
       <div><dt>Makstud</dt><dd>{money(row.paidCents)}</dd></div>

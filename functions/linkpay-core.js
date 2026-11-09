@@ -66,6 +66,23 @@ function ownsInvoice(invoice = {}, { uid = "", email = "", emailVerified = false
     .some(value => String(value || "").trim().toLowerCase() === mail);
 }
 
+// the rule's ownsStudentProfile(): the student's own account or a parent linked on the student card
+const STUDENT_LINK_FIELDS = ["linkedUserId", "studentUid", "linkedParentId", "parentUid", "guardianUid"];
+const STUDENT_LINK_LISTS = ["linkedUserIds", "linkedParentIds"];
+function ownsStudentCard(studentId, student, uid) {
+  if (!uid || !studentId || !student) return false;
+  if (studentId === uid) return true;
+  if (STUDENT_LINK_FIELDS.some(field => student[field] === uid)) return true;
+  return STUDENT_LINK_LISTS.some(field => Array.isArray(student[field]) && student[field].includes(uid));
+}
+
+// „Ava arve PDF” in the parent's cabinet (owner 2026-11-09): exactly who may read the invoice in Firestore
+// (rule ownsInvoice: the invoice's own owner fields or the linked student card) — never another family's invoice
+function ownsInvoiceDocument(invoice = {}, student = null, who = {}) {
+  if (ownsInvoice(invoice, who)) return true;
+  return Boolean(invoice.studentId) && ownsStudentCard(String(invoice.studentId), student, who.uid);
+}
+
 const FINAL_FAILED = new Set(["failed", "abandoned", "voided", "chargebacked"]);
 const cents = value => Math.round((Number(value) || 0) * 100);
 
@@ -90,5 +107,5 @@ const paymentRequestId = paymentReference => `linkpay_${String(paymentReference 
 
 module.exports = {
   ENVIRONMENTS, phpEncode, signedLinkpayUrl, amountString, openBalanceCents, unpayableReason, orderReference,
-  newPayCode, payCodeMatches, ownsInvoice, paymentVerdict, paymentRequestId,
+  newPayCode, payCodeMatches, ownsInvoice, ownsInvoiceDocument, paymentVerdict, paymentRequestId,
 };

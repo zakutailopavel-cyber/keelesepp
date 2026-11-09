@@ -442,6 +442,26 @@ async function requireAdminUser(req) {
   return actor;
 }
 
+// „Ava arve PDF” (owner 2026-11-09): the administrator, or whoever reads the invoice in Firestore as its owner (rule
+// ownsInvoice). Anyone else — teachers included — gets the same 404 as a missing invoice.
+async function requireInvoiceDocumentReader(req, invoiceId) {
+  const decoded = await requireFirebaseUser(req);
+  const snap = await db.collection("users").doc(decoded.uid).get();
+  const profile = snap.exists ? snap.data() : {};
+  if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+  const roles = collectTrustedRoles(profile, decoded);
+  if (isSuperAdmin(decoded) || roles.has("admin")) return;
+  if (!invoiceId) throw httpError(400, "invoiceId required");
+  const invoiceSnap = await db.collection("invoices").doc(String(invoiceId)).get();
+  const invoice = invoiceSnap.exists ? invoiceSnap.data() : null;
+  const student = invoice?.studentId ? await loadInvoiceStudent(invoice) : null;
+  const owner = invoice && linkpay.ownsInvoiceDocument(invoice, student, {
+    uid: decoded.uid, email: decoded.email, emailVerified: decoded.email_verified === true,
+    linkedStudentIds: Array.isArray(profile.linkedStudentIds) ? profile.linkedStudentIds : [],
+  });
+  if (!owner) throw httpError(404, "Arvet ei leitud.");
+}
+
 // the administrator or the bookkeeper (role finance is not a staff role, so requireStaffUser would refuse it)
 async function requireAccountingUser(req) {
   const decoded = await requireFirebaseUser(req);
@@ -9021,7 +9041,8 @@ exports.invoiceApi = functions
 
   try {
     if (path === "/pdf") {
-      await requireAdminUser(req);
+      // the administrator, or (owner 2026-11-09) the parent / student who owns the invoice — the same PDF as e-mailed
+      await requireInvoiceDocumentReader(req, req.body?.invoiceId);
       const result = await invoicePdf(req.body?.invoiceId);
       res.json({
         invoiceId: result.invoice.id,

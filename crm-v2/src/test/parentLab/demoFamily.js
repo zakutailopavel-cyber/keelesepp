@@ -137,6 +137,9 @@ export function demoRepositories(data) {
     consentService: { answerConsent: async () => ({}) },
     // card payments „on” so the lab shows „Maksa arve”; it never opens a bank page
     paymentsApi: { config: async () => ({ enabled: true }), startForInvoice: async () => { throw new Error('Demo: makset ei alustata.'); } },
+    // „Maksin ära” kept in memory only; „Arve PDF” never asks the server
+    paymentClaims: (() => { const claims = new Map(); return { forInvoices: async () => new Map(claims), create: async (invoiceId, note) => { const claim = { id: invoiceId, invoiceId, note, claimedAt: new Date().toISOString() }; claims.set(invoiceId, claim); return claim; } }; })(),
+    invoicePdfApi: { pdf: async () => { throw new Error('Demo: PDF-i ei looda.'); } },
     summaryService: { listForStudents: async () => [], subscribeForStudent: (id, onData) => { onData([]); return () => {}; } },
     boardCopiesService: { listForStudents: async () => [], subscribe: (id, onData) => { onData([]); return () => {}; } },
     // the student's own „Minu areng” (lab ?view=student)
