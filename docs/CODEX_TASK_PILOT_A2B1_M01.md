@@ -93,6 +93,12 @@ The task must pass the test „would a real person do this?”.
 - Every task must work in a **one-to-one** lesson by design. The teacher plays a role with a real reason to be in
   the conversation, for example the landlord, the doctor's receptionist or the friend who missed the message.
 
+**3.2a Role-plays: a goal, not a script** (owner feedback on the B1 m12 pilot, 2026-11-09: „ученик особо ничего
+не делает”). The learner's card gives the situation, the goal and 1–2 constraints, plus at most a short phrase bank.
+It never contains a numbered list of what to say. The teacher's card holds hidden information, 2–3 obstacles the
+learner must react to (a missing document, a partial offer, a refusal, a misunderstanding) and the success condition.
+The learner improvises; that is the point.
+
 **3.3 Variety.**
 - No two lessons of the module share the same first two stations or the same kind of final task.
 - Final tasks rotate between decide, plan, complain, advise, explain, negotiate and present.
@@ -143,6 +149,7 @@ Search your own output for these before you open the PR.
 | A ritual repetition | the same monologue at 2 / 1.5 / 1 minutes | One performance, then one improved version with feedback |
 | Drill stacking | 3 tasks on one notice board | One drill per input |
 | A decorative input | a long text that no task uses | Cut it |
+| A scripted role-play | learner card „1. Tervita … 2. Ütle … 3. Selgita …” | Goal + constraints for the learner; obstacles on the teacher's card |
 | A level mismatch | an A2 shop role play at C1 | Fit the B1 can-do |
 
 ## 5. Self-review — do this for every task, then write the result in the PR
