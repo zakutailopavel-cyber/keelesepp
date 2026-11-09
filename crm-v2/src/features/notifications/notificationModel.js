@@ -128,6 +128,23 @@ export function unmarkedNotifications(reminder, today = todayIso()) {
   }];
 }
 
+// The weekly „Märkimata tunnid” e-mail (owner 2026-11-09, Mondays 08:00, functions/teacher-unmarked-digest-*.js): the
+// same count in the bell for that week. From the teacher's own marker teacherUnmarkedDigests/{uid}_{week}; one item a
+// week (the id carries the week), also when the teacher has no verified e-mail address (status „no-email”).
+export function weeklyDigestNotifications(marker) {
+  if (!marker?.week || !(marker.total > 0)) return [];
+  const mailed = marker.status === 'sent';
+  return [{
+    id: `unmarked-week:${marker.week}`,
+    category: 'lesson',
+    severity: 'warning',
+    title: `Nädala kokkuvõte: ${marker.total} ${marker.total === 1 ? 'tund' : 'tundi'} märkimata`,
+    detail: `${mailed ? 'Saatsime nimekirja ka e-postiga. ' : ''}Tunnid alates 01.11.2026.`,
+    meta: `nädal ${String(marker.week).split('-W')[1] || marker.week}`,
+    to: '/calendar/markimata',
+  }];
+}
+
 // „Süsteemi olek” (owner 2026-11-09, admin only, never an e-mail): from `systemHealth/current` and `/digest`, written by
 // the scheduled functions (functions/system-health-core.js). One item per incident (the id carries the incident), a
 // „works again” item for 24 h after it closes, a warning when the check itself has stopped, and the morning digest

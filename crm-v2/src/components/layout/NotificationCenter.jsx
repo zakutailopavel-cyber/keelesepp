@@ -12,6 +12,7 @@ import { studentAvailabilityService } from '../../services/firebase/studentAvail
 import { missingDataService } from '../../services/firebase/missingData.js';
 import { systemHealthService } from '../../services/firebase/systemHealth.js';
 import { UNMARKED_CHANGED_EVENT, unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.js';
+import { teacherDigestService } from '../../services/firebase/teacherDigest.js';
 import {
   CATEGORY_LABEL,
   homeworkNotifications,
@@ -24,12 +25,13 @@ import {
   systemHealthNotifications,
   taskNotifications,
   unmarkedNotifications,
+  weeklyDigestNotifications,
 } from '../../features/notifications/notificationModel.js';
 import { useTasks } from '../../features/tasks/useTasks.js';
 import IconButton from '../ui/IconButton.jsx';
 import '../../features/notifications/notifications.css';
 
-const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService, availability: studentAvailabilityService, missingData: missingDataService, unmarked: unmarkedLessonsService, health: systemHealthService };
+const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService, availability: studentAvailabilityService, missingData: missingDataService, unmarked: unmarkedLessonsService, health: systemHealthService, weeklyDigest: teacherDigestService };
 const ICONS = { task: ListTodo, message: MessageSquareText, homework: BookOpenCheck, lesson: CalendarClock, student: UserRound, invoice: ReceiptText, system: Activity };
 const quiet = (promise) => Promise.resolve(promise).catch(() => []);
 
@@ -85,6 +87,9 @@ export default function NotificationCenter({ user, repositories = defaultReposit
     return () => globalThis.removeEventListener?.(UNMARKED_CHANGED_EVENT, onChange);
   }, [teacherOnly]);
   const unmarked = useAsyncData(() => (teacherOnly && repositories.unmarked?.reminder ? repositories.unmarked.reminder({ user }) : null), [user.uid, teacherOnly, repositories, refreshKey, unmarkedKey]);
+  // the Monday e-mail's count for this week (teacher's own marker; any teacher, also an admin who teaches)
+  const teaches = user.roles.includes('teacher');
+  const weeklyDigest = useAsyncData(() => (teaches && repositories.weeklyDigest?.thisWeek ? repositories.weeklyDigest.thisWeek({ user }) : null), [user.uid, teaches, repositories, refreshKey]);
 
   const items = useMemo(() => sortNotifications([
     ...(staff ? taskNotifications(tasks, user) : []),
@@ -95,8 +100,9 @@ export default function NotificationCenter({ user, repositories = defaultReposit
     ...(sources.data?.missingData || []),
     ...(sources.data?.health || []),
     ...unmarkedNotifications(unmarked.data),
+    ...weeklyDigestNotifications(weeklyDigest.data),
     ...invoiceNotifications(sources.data?.invoices || []),
-  ]), [sources.data, unmarked.data, staff, tasks, user]);
+  ]), [sources.data, unmarked.data, weeklyDigest.data, staff, tasks, user]);
   // the bell counts only what is new since the panel was last opened (remembered per user in this browser);
   // the panel itself still lists everything that needs attention
   const seenKey = `ks-notifications-seen:${user.uid}`;

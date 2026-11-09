@@ -4124,6 +4124,14 @@ service cloud.firestore {
       allow create, update: if isAdmin() && settingsId == 'learner' && learnerEmailSettingsOk(request.resource.data);
       allow delete: if false;
     }
+    // Weekly „Märkimata tunnid” e-mail to teachers (functions/teacher-unmarked-digest-service.js): one marker per
+    // teacher and ISO week, written only by the scheduled function. The teacher reads his own (the bell notice), the
+    // administrator all. Counts only (no names, no addresses).
+    match /teacherUnmarkedDigests/{markerId} {
+      allow get: if isAdmin() || (isStaff() && resource.data.teacherUid == uid());
+      allow list: if isAdmin();
+      allow create, update, delete: if false;
+    }
     match /emailLog/{entryId} {
       allow read: if isAdmin();
       allow write: if false;
