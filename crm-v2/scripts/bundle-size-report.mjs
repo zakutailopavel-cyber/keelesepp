@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
-const FIRST_LOAD_JS_KB = 340; // 311 KB when set (2026-11-01); KB here = 1024 bytes
+const FIRST_LOAD_JS_KB = 270; // 311 KB when set (2026-11-01), 240 KB after agent/bundle-split (2026-11-09); KB = 1024 bytes
 const FIRST_LOAD_CSS_KB = 80; // 72 KB when set: one CSS file, see src/app/eagerStyles.js
 
 const dist = process.argv[2] || 'dist';
