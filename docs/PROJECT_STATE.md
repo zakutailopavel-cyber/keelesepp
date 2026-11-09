@@ -1,3 +1,10 @@
+## 2026-11-09 · agent/dashboard-skeletons — the home pages show placeholder cards while their first data loads
+
+- Base: `origin/main` b1c6b0b, checked 2026-11-09. Branch `agent/dashboard-skeletons`, draft PR.
+- Done: `components/ui/Skeleton.jsx` gets `SkeletonScreen` (one busy `role="status"` region, the old label as `sr-only` text, shapes `aria-hidden`) and `SkeletonRow` (`kpis` / `tiles` / `split` / `halves`, one column under 760 px); styles in `loadingState.css` (the existing `prefers-reduced-motion` rule stops the shimmer). Used instead of the spinner on: staff home `DashboardPage` + `HomePage` Suspense fallback (`features/dashboard/DashboardSkeleton.jsx`: greeting, numbers as the role sees them — admin 4, teacher 3, accountant 1 —, „Vajab tähelepanu” + „Täna”, tiles), parent `ParentDashboardPage` (greeting, child card beside 3 side cards, sections), student `StudentDashboardPage` (greeting, next step beside the pet, rows). Labels unchanged („Koostan töölauda…”, „Laen pere ülevaadet…”, „Laen sinu õpinguid…”).
+- Not changed: the route-level „Laen…” while `/parent` and `/student` code downloads (`routes.jsx` `staffPage`), all other pages, no data or behaviour.
+- Checks: eslint on touched files clean; new tests in `ui.test.jsx`, `DashboardSkeleton.test.jsx`, DashboardPage / ParentDashboardPage / StudentDashboardPage tests; full `npx vitest run` → 553 files passed (1 skipped), 4257 tests passed, 12 skipped (an earlier run under machine load ~120 timed out 3 unrelated worksheet/live-room tests; they pass alone and in the rerun). Not looked at in a browser.
+- Next safe step: open `/`, `/parent`, `/student` on a slow connection (DevTools „Slow 4G”) and see that the cards land where the placeholders were.
 ## 2026-11-09 · agent/entity-drawers — a lesson and an invoice open in the same side drawer (right-click), stacked on #1142
 
 - Base: `origin/agent/student-drawer` (PR #1142, not merged yet); `origin/main` b313691 checked 2026-11-09. Branch `agent/entity-drawers`, draft PR stacked on #1142.

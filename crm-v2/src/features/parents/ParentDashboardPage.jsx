@@ -2,7 +2,7 @@ import { CalendarDays, CheckCircle2, ChevronRight, ClipboardList, MessageSquareT
 import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { Badge, Button, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
+import { Badge, Button, Card, EmptyState, ErrorState, Skeleton, SkeletonRow, SkeletonScreen } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
@@ -52,6 +52,19 @@ const SHORT_DAY = { day: 'numeric', month: 'short' };
 
 function Ru({ children }) {
   return <span className="pd-ru" lang="ru"> · {children}</span>;
+}
+
+// while the first data loads: the greeting, the child's card (what the child learns now) beside the side cards
+// (next lessons, homework, invoices), and the collapsed sections below
+function ParentHomeSkeleton() {
+  return <SkeletonScreen className="page-content pd-page" label="Laen pere ülevaadet…">
+    <div><Skeleton lines={1} className="skeleton--heading" /><Skeleton lines={1} className="skeleton--sub" /></div>
+    <SkeletonRow kind="split">
+      <Skeleton variant="card" className="skeleton--tall" />
+      <div className="skeleton-screen"><Skeleton variant="card" /><Skeleton variant="card" /><Skeleton variant="card" /></div>
+    </SkeletonRow>
+    <Skeleton lines={3} />
+  </SkeletonScreen>;
 }
 
 // One of the quiet areas under the answer. It reads its data when first opened, so the first screen stays light.
@@ -151,7 +164,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
   const occurrences = useMemo(() => (state.data ? occurrencesForDates(state.data.schedule, nextDates) : []), [nextDates, state.data]);
 
-  if (state.loading) return <LoadingState label="Laen pere ülevaadet…" />;
+  if (state.loading) return <ParentHomeSkeleton />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const { students, studentRecords, invoices, lessons, homework, assignments, submissions } = state.data;
   const hello = <><h1 className="pd-hello">Tere, {user.displayName || 'lapsevanem'}!</h1><p className="pd-sub">{students.length > 1 ? 'Kuidas lastel läheb?' : 'Kuidas lapsel läheb?'}<Ru>{students.length > 1 ? 'как дела у детей?' : 'как дела у ребёнка?'}</Ru></p></>;

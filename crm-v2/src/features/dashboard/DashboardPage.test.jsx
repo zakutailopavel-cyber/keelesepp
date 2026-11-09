@@ -39,6 +39,19 @@ const attention = () => screen.getByRole('region', { name: 'Vajab tähelepanu' }
 const ADMIN = { uid: 'admin-1', displayName: 'Pavel Zakutailo', roles: ['admin'] };
 
 describe('DashboardPage — calm home', () => {
+  it('while the first data loads: placeholder cards shaped like the page (no spinner), then the page', async () => {
+    const repo = repositories();
+    let release;
+    repo.students.list = vi.fn(() => new Promise((resolve) => { release = () => resolve({ items: [] }); }));
+    const { container } = renderDashboard(ADMIN, repo);
+    expect(screen.getByRole('status')).toHaveTextContent('Koostan töölauda…');
+    expect(container.querySelector('.state-spinner')).toBeNull();
+    expect(container.querySelector('.skeleton-row--kpis').children).toHaveLength(4);
+    release();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Tere, Pavel' })).toBeInTheDocument();
+    expect(screen.queryByText('Koostan töölauda…')).not.toBeInTheDocument();
+  });
+
   it('one-line greeting, no hero; nothing to do → „Kõik on korras ✓”', async () => {
     const { unmount } = renderDashboard(ADMIN, repositories());
     expect(await screen.findByRole('heading', { level: 1, name: 'Tere, Pavel' })).toBeInTheDocument();
