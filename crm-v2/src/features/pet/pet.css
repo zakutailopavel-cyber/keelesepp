@@ -301,3 +301,11 @@
   .pet-talk { position: static; width: auto; margin-bottom: 8px; box-shadow: none; }
   .pet-dock { position: static; display: block; margin: 0 16px 16px auto; }
 }
+
+/* Phones (375 px, 2026-11-09): pet buttons, „Muuda” and „Pane selga” big enough for a finger, prices readable. */
+@media (max-width: 640px) {
+  .pet-btn { min-height: 40px; }
+  .pet-home__edit { min-height: 40px; padding: 0 8px; }
+  .pl__reward .link-button { min-height: 40px; }
+  .pet-item__price { font-size: 12px; }
+}

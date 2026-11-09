@@ -1,3 +1,12 @@
+## 2026-11-09 · agent/student-phone-fit — student „Ülesanded”, „Sõnad” and „Minu lemmik” fit a 375 px phone (CSS only)
+
+- Base: `origin/main` b1c6b0b, checked 2026-11-09. Branch `agent/student-phone-fit`, draft PR.
+- Looked at 375×812 with fake data in a throwaway lab (not committed; every Firebase service stubbed, no sign-in, no network). Student home and worksheets were checked earlier and skipped.
+- „Ülesanded”: no problems found, no change.
+- „Sõnad” (`vocabulary/vocabulary.css`): „Sobita” made the whole page 691 px wide (auto-fill 150 px columns counted into the min width) and „Kirjuta” cut off „Kontrolli”; `.vs-mode` now has a `minmax(0, 1fr)` column, „Sobita” is two columns on phones with long words wrapping; the five ways wrap into two rows instead of a strip where „Sobita”/„Test” hid behind the edge; buttons and selects ≥ 40 px; the 11 px question label 12 px.
+- „Minu lemmik” (`pet/pet.css`): pet buttons (34 px), „Muuda” (23 px) and „Pane selga” (36 px) now ≥ 40 px on phones; wardrobe prices 12 px.
+- Checks: `npx vitest run src/features/vocabulary src/features/pet src/features/homework` → 45 files, 270 passed. Full `npx vitest run` on a busy machine: 547 passed, 5 files failed only by timeouts (worksheet-studio, studentWorksheetFlow, LiveRoom.wordTap, VocabularyPage); re-run alone they pass (also with this change). CSS only, so no eslint target. Lab after the fix: `scrollWidth` 375 on all 11 checked states.
+- Next safe step: owner opens „Sõnad” → a deck → „Sobita” on a real phone after deploy.
 ## 2026-11-09 · agent/entity-drawers — a lesson and an invoice open in the same side drawer (right-click), stacked on #1142
 
 - Base: `origin/agent/student-drawer` (PR #1142, not merged yet); `origin/main` b313691 checked 2026-11-09. Branch `agent/entity-drawers`, draft PR stacked on #1142.
