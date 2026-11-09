@@ -2097,18 +2097,16 @@ service cloud.firestore {
     }
     // spaced repetition (2026-11-09, docs/VOCABULARY_SRS.md): `srs: { v, r, p }`, one side per direction
     // (r = et → meaning, p = meaning → et); written by the student with the practice fields, never at create
+    // kept short: the update rule also runs ownsStudent() and the practice checks, and a request may evaluate at most
+    // 1000 expressions (the first, longer version hit that limit in the emulator)
     function studentWordSrsSideValid(side) {
       return side is map
         && side.keys().hasOnly(['state', 's', 'd', 'due', 'last', 'reps', 'lapses', 'step', 'intro'])
         && side.get('state', 'new') in ['new', 'learning', 'review', 'relearning']
-        && side.get('s', 0) is number && side.get('s', 0) >= 0 && side.get('s', 0) <= 100000
-        && side.get('d', 0) is number && side.get('d', 0) >= 0 && side.get('d', 0) <= 10
-        && side.get('due', '') is string && side.get('due', '').size() <= 40
-        && side.get('last', '') is string && side.get('last', '').size() <= 40
-        && side.get('reps', 0) is int && side.get('reps', 0) >= 0
-        && side.get('lapses', 0) is int && side.get('lapses', 0) >= 0
-        && side.get('step', 0) is int && side.get('step', 0) >= 0 && side.get('step', 0) <= 10
-        && side.get('intro', '') is string && side.get('intro', '').size() <= 10;
+        && side.get('s', 0) is number && side.get('d', 0) is number
+        && side.get('due', '').size() <= 40 && side.get('last', '').size() <= 40
+        && side.get('reps', 0) is int && side.get('lapses', 0) is int && side.get('step', 0) is int
+        && side.get('intro', '').size() <= 10;
     }
     function studentWordSrsValid(data) {
       return !('srs' in data) || (data.srs is map
