@@ -122,3 +122,44 @@ Visual briefs: `art/visuals/b1-module-12.js` (not registered in `textbookArt.js`
 
 Owner and a teacher run 2–3 pilot lessons; then decide whether the next modules move to v3-stations (one module per PR,
 same gates), and the UI agent shows `meta.teacherPage` in the CRM.
+
+## 6. Evidence rules (added 2026-11-10, from `A2B1_EVIDENCE.md`)
+
+Ten non-negotiable rules for every new or rebuilt module of the A2→B1 course. Each names its source; details,
+confidence and full references are in `A2B1_EVIDENCE.md` §2 (E-numbers). They add to §1, they do not replace it. No
+gate exists for them yet — authors and reviewers check them by hand until `stations.js` gets the checks.
+
+1. **Mediation every module.** ≥ 1 station where the learner passes on, explains or simplifies what a clear Estonian
+   text or speaker says, for someone who needs it (a relative, neighbour, colleague); a Russian source with Estonian
+   output is allowed when real, sentence translation is not. — CEFR CV 2018/2020 B1 „mediating a text /
+   communication”; PRÕK Lisa 1 § 2.4.3 grade 6 outcomes 13, 17.
+2. **Online interaction every module.** ≥ 1 station in a threaded written format (Stuudium / eKool, family chat,
+   e-mail with the ühistu or an office, local group post) where the learner replies to someone else's message, asks
+   for or gives a clarification. — CEFR CV B1 „written and online interaction”.
+3. **Four strands per module.** Meaning-focused input, meaning-focused output, language-focused learning and fluency
+   each take 20–30 % of the module's station minutes; the teacher page tags each station with its strand. — Nation
+   2007 (E2).
+4. **Fluency stations.** ≥ 2 per module: fully known content, time pressure, and a new addressee or channel (told to
+   the teacher, then as a shorter voice message to someone else). **Needs owner OK**: until then `st-repeat` forbids
+   the repeat, so do the time-pressure part only. — de Jong & Perfetti 2011; Bygate (E3).
+5. **Explicit form inside the task.** Each teaching lesson has one notice → rule → practice station (≤ 10 min) for
+   the module's I / P grammar item, and the final task cannot be done well without that item. — Norris & Ortega
+   2000; Spada & Tomita 2010 (E4).
+6. **Feedback protocol on the teacher page.** 2–3 feedback targets per lesson; on accuracy stations prompt first
+   (clarification request, repeat the error, elicit, metalinguistic clue), recast only if self-repair fails; during
+   fluency and final tasks no interruptions, ≤ 3 delayed points at the end; writing feedback on the same targets. —
+   Lyster & Saito 2010 (prompts d = 0.83 vs recasts 0.53); Li 2010; Integratsiooni SA *hea tava* (E5).
+7. **Homework = spaced retrieval.** The 10 minutes are retrieval (SRS cards both directions + mixed sentence
+   practice), ≥ 4 days a week; every active item is retrieved in ≥ 3 sessions over ≥ 2 weeks with a different example
+   sentence each time; no re-reading tasks as practice. — Kim & Webb 2022; Webb et al. 2020; Butowska-Buczyńska et
+   al. 2024 (E6).
+8. **Interleave and recycle.** Module checks and home sentence sets mix ≥ 3 grammar items incl. ≥ 1 from ≥ 2 modules
+   back; ≥ 60 % of the previous two modules' active words reappear in the module in new contexts. — Nakata & Suzuki
+   2019; Kim & Webb 2022 (E7, E9).
+9. **Readable input and a listening cycle.** ≥ 95 % of running words in every station text are known or glossed (exam
+   corners ≥ 90 %); every listening station runs predict → gist → verify → detail → one-line reflection. — Schmitt,
+   Jiang & Grabe 2011; Nation 2006; Vandergrift & Tafaghodtari 2010 (E8, E10).
+10. **Pronunciation for comprehensibility.** ≥ 2 micro-tasks (3–5 min) per module, perception before production, on
+    the features that change meaning for Russian speakers: quantity (Q2 vs Q3), õ / ö / ü, first-syllable stress, long
+    vowels in endings. — Lee, Jang & Plonsky 2015 (d = 0.89 / 0.80); Saito & Plonsky 2019; Meister & Meister 2012
+    (E11).
