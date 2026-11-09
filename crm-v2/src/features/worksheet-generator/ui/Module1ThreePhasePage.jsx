@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { Button, Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
+import { askConfirm } from '../../../components/ui/ConfirmHost.jsx';
 import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import { ROLES } from '../../../utils/roles.js';
 import { buildModule1Worksheet, MODULE1_LESSON_IDS, MODULE1_PHASES, module1VocabularyCycle } from '../admin/module1ThreePhase.js';
@@ -55,7 +56,7 @@ export default function Module1ThreePhasePage({ repository = lessonWorksheetsSer
   const publishLesson = async (lessonId) => {
     const lessonRows = rows.filter((row) => row.lessonId === lessonId);
     if (lessonRows.length !== 3 || lessonRows.some((row) => row.state === 'blocked') || publishing) return;
-    if (!window.confirm(`Avaldada ${lessonId}: Avasta + Harjuta + Kasuta? Kõik kolm kirjutatakse uue kvaliteedistandardi järgi uue versioonina.`)) return;
+    if (!(await askConfirm(`Avaldada ${lessonId}: Avasta + Harjuta + Kasuta? Kõik kolm kirjutatakse uue kvaliteedistandardi järgi uue versioonina.`, { confirmLabel: 'Avalda' }))) return;
     setPublishing(lessonId);
     setError('');
     const next = [...rows];

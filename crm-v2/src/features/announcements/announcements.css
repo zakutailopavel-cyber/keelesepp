@@ -2,7 +2,7 @@
 .announcement-gate { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; background: radial-gradient(1100px 380px at 50% -140px, #dff3ec 0%, transparent 70%), #f3f6f4; color: #142433; }
 .announcement-gate--loading { align-items: center; justify-content: center; gap: 10px; flex-direction: row; font-weight: 700; color: #5b6b79; }
 .announcement-gate__bar { flex: none; display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(255, 255, 255, .9); border-bottom: 1px solid #e1e7ec; }
-.announcement-gate__brand { display: inline-flex; align-items: center; gap: 7px; font: 800 1.05rem Manrope, sans-serif; color: #087e6b; }
+.announcement-gate__brand { display: inline-flex; align-items: center; gap: 7px; font: 800 1.05rem Manrope, sans-serif; color: var(--green); }
 .announcement-gate__count { font-size: .82rem; font-weight: 700; color: #5b6b79; }
 .announcement-gate__logout { margin-left: auto; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid #d7dfe8; border-radius: 10px; background: #fff; color: #203047; font: 700 .84rem inherit; cursor: pointer; }
 .announcement-gate__logout:hover { background: #f6f9fb; }
@@ -14,15 +14,15 @@
 .announcement-gate .poll-grid__day, .announcement-gate .poll-grid__corner { top: 0; }
 .announcement-text { display: grid; gap: 4px; font-size: 1.02rem; line-height: 1.55; overflow-wrap: anywhere; }
 .announcement-text p { margin: 0; }
-.announcement-text a { color: #087e6b; font-weight: 700; }
+.announcement-text a { color: var(--green); font-weight: 700; }
 .announcement-respond { display: grid; gap: 14px; padding-top: 14px; border-top: 1px solid #eef0f3; }
 .announcement-respond__text { display: grid; gap: 6px; font-weight: 700; font-size: .9rem; }
 .announcement-respond__text textarea { width: 100%; box-sizing: border-box; border: 1px solid #d6dee7; border-radius: 12px; padding: 11px 12px; font: inherit; font-weight: 400; line-height: 1.5; resize: vertical; }
 .announcement-respond__choices { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; }
 .announcement-respond__choices legend { font-weight: 700; font-size: .9rem; margin-bottom: 8px; padding: 0; }
 .announcement-respond__choices > label { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 8px 12px; border: 1px solid #d6dee7; border-radius: 12px; cursor: pointer; }
-.announcement-respond__choices > label.is-picked { border-color: #087e6b; background: #f1faf7; }
-.announcement-respond__choices input[type="radio"], .announcement-respond__choices input[type="checkbox"] { width: 20px; height: 20px; accent-color: #087e6b; }
+.announcement-respond__choices > label.is-picked { border-color: var(--green); background: #f1faf7; }
+.announcement-respond__choices input[type="radio"], .announcement-respond__choices input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--green); }
 .announcement-respond__other { display: grid; gap: 6px; font-weight: 700; font-size: .9rem; }
 .announcement-respond__other input { flex: 1; min-width: 0; min-height: 44px; border: 1px solid #d6dee7; border-radius: 12px; padding: 0 12px; font: inherit; font-weight: 400; }
 .announcement-respond__actions { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -50,8 +50,8 @@
 .announcement-form legend { font-weight: 800; font-size: .86rem; padding: 0 6px; }
 .announcement-form__chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .announcement-form__chips label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid #d6dee7; border-radius: 999px; font-size: .84rem; cursor: pointer; }
-.announcement-form__chips label.is-on { border-color: #087e6b; background: #f1faf7; color: #05584a; font-weight: 700; }
-.announcement-form__chips input { accent-color: #087e6b; }
+.announcement-form__chips label.is-on { border-color: var(--green); background: #f1faf7; color: #05584a; font-weight: 700; }
+.announcement-form__chips input { accent-color: var(--green); }
 .announcement-form__students { max-height: 220px; overflow: auto; display: grid; gap: 2px; border: 1px solid #eef0f3; border-radius: 10px; padding: 6px; }
 .announcement-form__students label { display: flex; gap: 8px; align-items: center; padding: 5px 6px; border-radius: 8px; font-size: .86rem; }
 .announcement-form__students label:hover { background: #f6f9fb; }

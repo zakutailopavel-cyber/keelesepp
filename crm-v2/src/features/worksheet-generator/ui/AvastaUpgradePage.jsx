@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { Button, Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
+import { askConfirm } from '../../../components/ui/ConfirmHost.jsx';
 import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import { ROLES } from '../../../utils/roles.js';
 import { AVASTA_MODULE1_IDS, upgradeAvastaModule1Document } from '../admin/avastaModule1.js';
@@ -52,7 +53,7 @@ function FixesCard({ repository, user }) {
   };
   const todo = (rows || []).filter((row) => row.record && row.updated.length);
   const publish = async () => {
-    if (!todo.length || !window.confirm(`Rakendada parandused ${todo.length} töölehele? Muudetakse ainult plokke, mis on samad mis enne kontrolli.`)) return;
+    if (!todo.length || !(await askConfirm(`Rakendada parandused ${todo.length} töölehele? Muudetakse ainult plokke, mis on samad mis enne kontrolli.`, { confirmLabel: 'Rakenda' }))) return;
     setBusy(true);
     setError('');
     try {
@@ -113,7 +114,7 @@ function ArtCard({ repository, user }) {
   };
   const todo = (rows || []).filter((row) => row.todo);
   const publish = async () => {
-    if (!todo.length || !window.confirm(`Lisada tunni pilt ${todo.length} Avasta lehele?`)) return;
+    if (!todo.length || !(await askConfirm(`Lisada tunni pilt ${todo.length} Avasta lehele?`, { confirmLabel: 'Lisa pildid' }))) return;
     setBusy(true);
     setError('');
     try {
@@ -193,7 +194,7 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
     const moduleRows = rows.filter((row) => row.moduleId === module.id);
     const blocked = moduleRows.filter((row) => row.state === 'blocked');
     if (moduleRows.length !== module.ids.length || blocked.length || applyingModule) return;
-    if (!window.confirm(`Avaldada Avasta töölehed ${module.ids[0]}–${module.ids.at(-1)}? Olemasolevad head plokid säilivad, puuduvad Avasta lehed luuakse. Harjuta/Kasuta ei muutu.`)) return;
+    if (!(await askConfirm(`Avaldada Avasta töölehed ${module.ids[0]}–${module.ids.at(-1)}? Olemasolevad head plokid säilivad, puuduvad Avasta lehed luuakse. Harjuta/Kasuta ei muutu.`, { confirmLabel: 'Avalda' }))) return;
     setApplyingModule(module.id);
     setError('');
     const next = [...rows];

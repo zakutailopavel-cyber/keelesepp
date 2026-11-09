@@ -1,0 +1,41 @@
+name: Release
+
+# Batched releases (owner 2026-11-09): Vercel builds main only for a „[deploy]” / „[hotfix]” commit
+# (crm-v2/scripts/vercel-ignore.sh). This job makes that release commit twice a day when the app changed since the last
+# release, and on request: GitHub → Actions → Release → „Run workflow”.
+on:
+  schedule:
+    - cron: '0 5 * * *'   # 07:00 Tallinn in winter (08:00 in summer)
+    - cron: '0 14 * * *'  # 16:00 Tallinn in winter
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 400
+          persist-credentials: false
+      - name: Release commit when the app changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          last=$(git log -1 --format=%H -E --grep='\[(deploy|hotfix)\]' || true)
+          if [ -n "$last" ]; then changed=$(git rev-list --count "$last"..HEAD -- crm-v2); else changed=1; fi
+          if [ "$changed" = "0" ]; then echo "Nothing new for the app since the last release."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "[deploy] Release $(date -u '+%Y-%m-%d %H:%M') UTC: ${changed} app commits"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main

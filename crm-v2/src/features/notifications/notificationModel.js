@@ -112,6 +112,22 @@ export function missingDataNotifications(submissions = []) {
   }));
 }
 
+// „Märkimata tunnid” for a teacher (owner 2026-11-09: a daily reminder inside the CRM, never an e-mail): one line of
+// the teacher's own past unmarked lessons (unmarkedLessonsService.reminder). The id carries the day, so the bell counts
+// it as new once a day while lessons stay unmarked; it disappears when all are marked.
+export function unmarkedNotifications(reminder, today = todayIso()) {
+  if (!reminder?.total) return [];
+  return [{
+    id: `unmarked:${today}`,
+    category: 'lesson',
+    severity: reminder.stale ? 'danger' : 'warning',
+    title: `${reminder.total} ${reminder.total === 1 ? 'tund' : 'tundi'} märkimata${reminder.oldestLabel ? ` (vanim ${reminder.oldestLabel})` : ''}`,
+    detail: 'Märkimata tund ei jõua arvele ega õpilase ajalukku. Märgi: toimus või puudus.',
+    meta: 'minu tunnid',
+    to: '/calendar/markimata',
+  }];
+}
+
 export function sortNotifications(items) {
   return [...items].sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9));
 }

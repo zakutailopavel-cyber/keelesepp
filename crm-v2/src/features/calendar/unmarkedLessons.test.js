@@ -1,4 +1,4 @@
-import { olderUnmarked, unmarkedLessons } from './unmarkedLessons.js';
+import { REMINDER_DAYS, olderUnmarked, unmarkedLessons, unmarkedReminder } from './unmarkedLessons.js';
 
 describe('Märkimata tunnid (owner 2026-10-23)', () => {
   const today = '2026-10-23';
@@ -35,5 +35,19 @@ describe('Märkimata tunnid (owner 2026-10-23)', () => {
     ];
     expect(unmarkedLessons({ schedule, lessons: [], today, teacherUid: 't1' }).map((item) => item.id)).toEqual(['a']);
     expect(unmarkedLessons({ schedule, lessons: [{ studentId: 's1', date: '2026-10-20' }], today, teacherUid: 't1' })).toEqual([]);
+  });
+});
+
+describe('teacher reminder (owner 2026-11-09: in the CRM, never an e-mail)', () => {
+  const today = '2026-11-09';
+  const at = (occurrenceDate) => ({ occurrenceId: occurrenceDate, occurrenceDate });
+  it('counts the last 60 days up to yesterday, names the oldest day, and only lessons from before yesterday nudge', () => {
+    expect(REMINDER_DAYS).toBe(60);
+    const items = [at('2026-11-09'), at('2026-11-08'), at('2026-11-07'), at('2026-10-20'), at('2026-09-10'), at('2026-08-01')];
+    // today is not past yet; 1 August is the old backlog beyond 60 days (owner: „308 неотмеченных — пока не делаем”)
+    expect(unmarkedReminder(items, today)).toEqual({ total: 4, oldest: '2026-09-10', oldestLabel: '10.09', stale: 3 });
+    // only yesterday's lesson: in the bell, but no nudge yet (a day of grace)
+    expect(unmarkedReminder([at('2026-11-08')], today)).toMatchObject({ total: 1, stale: 0 });
+    expect(unmarkedReminder([], today)).toEqual({ total: 0, oldest: '', oldestLabel: '', stale: 0 });
   });
 });
