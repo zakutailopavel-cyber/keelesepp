@@ -159,7 +159,7 @@
 
 .payroll-review-form dl div {
   background: #f8fafc;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   display: grid;
   gap: 4px;
   padding: 12px;

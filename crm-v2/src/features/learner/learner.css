@@ -6,7 +6,7 @@
 .ls-eyebrow { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #7a5af8; }
 .ls-icon { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #e4e6f2; border-radius: 50%; background: #fff; color: #475467; cursor: pointer; }
 .ls-signals { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.ls-signals li { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; font-size: .86rem; font-weight: 600; }
+.ls-signals li { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: var(--radius-md); font-size: .86rem; font-weight: 600; }
 .ls-signals li svg { flex: none; margin-top: 2px; }
 .ls-signals .is-warning { color: #93370d; background: #fffaeb; }
 .ls-signals .is-success { color: #05603a; background: #ecfdf3; }
@@ -19,8 +19,8 @@
 .ls-block h4 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: .9rem; }
 .ls-block h4 small { font-weight: 500; color: #667085; }
 .ls-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.ls-chips li { padding: 4px 10px; border-radius: 999px; background: #f4f3ff; color: #5925dc; font-size: .84rem; font-weight: 600; }
-.ls-action { justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 0; border-radius: 10px; background: #7a5af8; color: #fff; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; }
+.ls-chips li { padding: 4px 10px; border-radius: var(--radius-pill); background: #f4f3ff; color: #5925dc; font-size: .84rem; font-weight: 600; }
+.ls-action { justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 0; border-radius: var(--radius-md); background: #7a5af8; color: #fff; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; }
 .ls-action:disabled { opacity: .6; cursor: default; }
 .ls-sheets { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .ls-sheets > li > div { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; }
@@ -39,12 +39,12 @@
 .ms-head h3 { margin: 0; font-size: 1.05rem; }
 .ms-head h3 span { font-weight: 500; color: #667085; font-size: .85rem; }
 .ms-head small { color: #667085; }
-.ms-bar { display: block; height: 8px; border-radius: 999px; background: #f2f4f7; overflow: hidden; }
+.ms-bar { display: block; height: 8px; border-radius: var(--radius-pill); background: #f2f4f7; overflow: hidden; }
 .ms-bar b { display: block; height: 100%; background: #12b76a; }
 .ms-lesson { display: grid; gap: 4px; }
 .ms-lesson > strong { font-size: .86rem; }
 .ms-lesson ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.ms-lesson li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; border-radius: 10px; font-size: .84rem; background: #f9fafb; }
+.ms-lesson li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; border-radius: var(--radius-md); font-size: .84rem; background: #f9fafb; }
 .ms-lesson li em { flex: none; font-style: normal; font-weight: 700; }
 .ms-lesson li.is-mastered em { color: #067647; }
 .ms-lesson li.is-practise em { color: #b54708; }
@@ -52,7 +52,7 @@
 .ms-lesson li.is-todo em { color: #667085; }
 /* the learner's lights (owner 2026-11-04): a dot AND the word, never colour alone, no percentages */
 .ms-counts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
-.ms-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; background: #f4f6f5; font-size: .8rem; font-weight: 700; color: #1d2b26; }
+.ms-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: var(--radius-pill); background: #f4f6f5; font-size: .8rem; font-weight: 700; color: #1d2b26; }
 .ms-pill i, .ms-dot { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; }
 .ms-lights .ms-lesson li > span { display: inline-flex; align-items: baseline; gap: 8px; }
 .ms-lights .ms-lesson li em span { font-weight: 400; color: #667085; }

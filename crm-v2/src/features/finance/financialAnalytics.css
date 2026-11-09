@@ -24,7 +24,7 @@
   gap: 5px 9px;
   padding: 18px;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   background: #f8fafc;
 }
 .financial-analytics__metrics svg {
@@ -51,7 +51,7 @@
   align-items: center;
   gap: 18px;
   padding: 18px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   background: #f8fafc;
   border: 1px solid var(--border);
 }
@@ -68,7 +68,7 @@
 .analytics-forecast__progress {
   height: 10px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--border);
 }
 .analytics-forecast__progress span {
@@ -103,7 +103,7 @@
   display: grid;
   gap: 4px;
   padding: 12px;
-  border-radius: 13px;
+  border-radius: var(--radius-lg);
   background: #f8fafc;
 }
 .aged-debt-buckets small,
@@ -169,7 +169,7 @@
   padding: 30px;
   text-align: center;
   border: 1px dashed var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
 }
 .analytics-method {
   display: flex;

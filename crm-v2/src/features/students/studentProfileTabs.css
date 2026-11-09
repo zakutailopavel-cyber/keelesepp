@@ -5,7 +5,7 @@
   padding: 6px;
   overflow-x: auto;
   border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   background: var(--surface-subtle, #f8fafc);
 }
 
@@ -14,7 +14,7 @@
   min-height: 42px;
   padding: 10px 16px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   color: var(--text-muted, #667085);
   background: transparent;
   font: inherit;
@@ -61,15 +61,15 @@
 .student-lessons .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
 .student-lessons .section-heading h2 { margin: 0; }
 .student-lessons__hint { color: var(--muted); font-size: .82rem; }
-.student-lessons__unmarked { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff8e8; color: #6b4b0c; font-size: .88rem; }
+.student-lessons__unmarked { margin: 12px 0 0; padding: 10px 12px; border-radius: var(--radius-md); background: #fff8e8; color: #6b4b0c; font-size: .88rem; }
 .student-lessons__verified { display: inline-flex; align-items: center; gap: 4px; color: var(--green); font-size: .78rem; font-weight: 700; }
-.student-lessons__mark { height: 34px; border: 1px solid var(--border); border-radius: 999px; padding: 0 12px; font: inherit; font-size: .84rem; font-weight: 700; background: #fff; color: var(--ink); max-width: 100%; }
+.student-lessons__mark { height: 34px; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0 12px; font: inherit; font-size: .84rem; font-weight: 700; background: #fff; color: var(--ink); max-width: 100%; }
 .student-lessons__mark.tone-success { background: var(--green-soft); border-color: #b9dfd3; color: var(--green-dark); }
 .student-lessons__mark.tone-info { background: #eef4ff; border-color: #cfdcf5; color: #1d4f91; }
 .student-lessons__mark.tone-warning { background: #fff6e5; border-color: #f1d9a8; color: #7a5311; }
 .student-lessons__mark:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .student-lessons__more { margin-top: 12px; }
-.student-lessons__open { display: grid; gap: 2px; min-width: 0; text-align: left; border: 0; background: transparent; padding: 4px 6px; margin: -4px -6px; border-radius: 10px; font: inherit; color: inherit; cursor: pointer; }
+.student-lessons__open { display: grid; gap: 2px; min-width: 0; text-align: left; border: 0; background: transparent; padding: 4px 6px; margin: -4px -6px; border-radius: var(--radius-md); font: inherit; color: inherit; cursor: pointer; }
 .student-lessons__open:hover { background: var(--surface-soft); }
 .student-lessons__open:hover strong { color: var(--green-dark); }
 .student-lessons__open:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
@@ -112,6 +112,6 @@
 }
 .profile-track-add:hover { text-decoration: underline; }
 /* lesson length on the card (team 2026-10-29): minutes, double lessons stand out */
-.student-lessons__length { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: #eef1f4; color: #42536a; font-size: .74rem; font-weight: 700; vertical-align: middle; }
+.student-lessons__length { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: var(--radius-pill); background: #eef1f4; color: #42536a; font-size: .74rem; font-weight: 700; vertical-align: middle; }
 .student-lessons__length.is-double { background: #fff1e0; color: #b45309; }
 .student-lessons__total { color: #667085; font-size: .86rem; }

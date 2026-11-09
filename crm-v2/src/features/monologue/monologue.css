@@ -25,7 +25,7 @@
 .mono-note p { margin: 0 0 4px; font-size: .9rem; }
 .mono-note textarea { width: 100%; }
 .mono-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-.mono-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; padding: 12px; border: 1px solid #e4e6f2; border-radius: 12px; background: #fafbff; }
+.mono-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; padding: 12px; border: 1px solid #e4e6f2; border-radius: var(--radius-lg); background: #fafbff; }
 .mono-compare__side { display: grid; gap: 8px; align-content: start; min-width: 0; }
 .mono-analysis { flex-basis: 100%; font-size: .85rem; color: #475467; }
 .mono-details { margin: 6px 0 0; }

@@ -1,17 +1,17 @@
 /* „Prügikast”: the trash page and the notice on a trashed card */
 .trash-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.trash-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; }
+.trash-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); }
 .trash-row__who, .trash-row__when { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .trash-row__who a { color: inherit; }
 .trash-row__who small, .trash-row__when span { color: var(--muted); font-size: .84rem; }
 .trash-row__blocked { color: #b42318; font-weight: 600; }
-.card-trash-blocked { margin: 10px 0 0; padding: 10px 12px; border: 1px solid #fecdca; background: #fef3f2; color: #912018; border-radius: 10px; font-size: .9rem; display: grid; gap: 6px; }
+.card-trash-blocked { margin: 10px 0 0; padding: 10px 12px; border: 1px solid #fecdca; background: #fef3f2; color: #912018; border-radius: var(--radius-md); font-size: .9rem; display: grid; gap: 6px; }
 .card-trash-blocked ul, .card-trash-links ul { margin: 0; padding-left: 20px; display: grid; gap: 3px; }
 .card-trash-links { margin: 10px 0 0; font-size: .9rem; display: grid; gap: 6px; }
 .card-trash-links p { margin: 0; color: var(--muted); }
 .card-trash-items { max-height: 180px; overflow-y: auto; }
 .card-trash-rules { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 6px; color: var(--muted); font-size: .9rem; }
-.card-trash-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 18px; padding: 12px 14px; border: 1px solid #fecdca; background: #fef3f2; color: #912018; border-radius: 12px; font-size: .9rem; }
+.card-trash-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 18px; padding: 12px 14px; border: 1px solid #fecdca; background: #fef3f2; color: #912018; border-radius: var(--radius-lg); font-size: .9rem; }
 .card-trash-notice > span { flex: 1 1 280px; }
 .card-trash-notice .form-error { flex-basis: 100%; margin: 0; }
 @media (max-width: 720px) {

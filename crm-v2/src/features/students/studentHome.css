@@ -5,23 +5,23 @@
 .sh-hero { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
 .sh-hero > * { min-width: 0; }
 
-.sh-pet { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--border, #e4ece8); border-radius: 16px; background: #fff; color: inherit; text-decoration: none; }
-.sh-pet:hover { box-shadow: 0 8px 22px rgba(16, 35, 57, .08); }
+.sh-pet { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--border, #e4ece8); border-radius: var(--radius-xl); background: #fff; color: inherit; text-decoration: none; }
+.sh-pet:hover { box-shadow: var(--shadow-md); }
 .sh-pet strong { display: block; font-size: 1.02rem; }
 .sh-pet small { color: var(--muted); }
 
-.sh-step { display: grid; gap: 4px; padding: 16px 18px; border-radius: 16px; background: #0f5f4c; color: #fff; }
+.sh-step { display: grid; gap: 4px; padding: 16px 18px; border-radius: var(--radius-xl); background: #0f5f4c; color: #fff; }
 .sh-step small { opacity: .82; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .sh-step small span { font-weight: 400; letter-spacing: 0; text-transform: none; }
 .sh-step strong { font-size: 1.2rem; line-height: 1.25; overflow-wrap: anywhere; }
 .sh-step > span { font-size: .9rem; opacity: .92; }
-.sh-step a { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 8px; padding: 0 20px; border-radius: 12px; background: #fff; color: #0f5f4c; font-weight: 800; text-decoration: none; }
+.sh-step a { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 8px; padding: 0 20px; border-radius: var(--radius-lg); background: #fff; color: #0f5f4c; font-weight: 800; text-decoration: none; }
 .sh-step a:focus-visible { outline: 3px solid #f5c26b; outline-offset: 2px; }
 .sh-step.is-done { background: #eaf6f1; color: #123f33; }
 .sh-step.is-done a { background: #0f5f4c; color: #fff; }
 
 /* „Minu õppimine”: one short row per section, a small count, the timetable last */
-.sh-sections { padding: 12px 14px; border: 1px solid var(--border, #e4ece8); border-radius: 16px; background: #fff; }
+.sh-sections { padding: 12px 14px; border: 1px solid var(--border, #e4ece8); border-radius: var(--radius-xl); background: #fff; }
 .sh-sections__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
 .sh-sections__head h2 { margin: 0; font-size: .95rem; }
 .sh-sections__head h2 small { color: var(--muted); font-weight: 400; font-size: .78rem; }
@@ -32,7 +32,7 @@
 .sh-sections li a > svg { color: #0f5f4c; }
 .sh-sections li b { font-weight: 600; font-size: .95rem; white-space: nowrap; }
 .sh-sections li small { overflow: hidden; color: var(--muted); font-size: .8rem; text-overflow: ellipsis; white-space: nowrap; }
-.sh-sections li em { min-width: 24px; padding: 1px 8px; border-radius: 999px; background: #0f5f4c; color: #fff; font-size: .78rem; font-style: normal; font-weight: 800; text-align: center; }
+.sh-sections li em { min-width: 24px; padding: 1px 8px; border-radius: var(--radius-pill); background: #0f5f4c; color: #fff; font-size: .78rem; font-style: normal; font-weight: 800; text-align: center; }
 .sh-sections li.is-done small { color: #1f8a6d; }
 .sh-sections__done { color: #1f8a6d; }
 
@@ -81,7 +81,7 @@
   .sh-hero { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 18px; }
   .sh-step { padding: 22px 24px; }
   .sh-step strong { font-size: 1.45rem; }
-  .sh-todo { display: block; padding: 12px 16px; border: 1px solid var(--border, #e4ece8); border-radius: 16px; background: #fff; }
+  .sh-todo { display: block; padding: 12px 16px; border: 1px solid var(--border, #e4ece8); border-radius: var(--radius-xl); background: #fff; }
   .sh-todo h2 { margin: 0 0 2px; font-size: .95rem; }
   .sh-todo h2 small { color: var(--muted); font-weight: 400; font-size: .78rem; }
   .sh-todo ul { display: grid; margin: 0; padding: 0; list-style: none; }
