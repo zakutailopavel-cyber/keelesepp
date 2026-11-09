@@ -10,8 +10,15 @@
   - 2027 dates: written 20.04, oral 20–23.04, make-up 20.05; registration 4.01–5.02.
   
   Not verified: the B2 threshold, per-task item counts, the language-structure task types, whether the oral part is electronic, the effect of the transition to Estonian-language education. Added the persona Milana (9th grade), the 9th-grade route (~52 lessons, Sept → April), exam stations and own mocks (proposed `a2b1-pk9-1…3`, lesson ids unchanged), and how a teacher switches a learner.
-- Limits: blueprint is a draft until the owner decides (1) exam-ready / certificate threshold, (2) fast track and exam track, (3) the 9th-grade track (start, pace, own mocks vs EIS tests), (4) pilot learners, teachers and module order. Gaps named for UI: per-part Harno scores and rubric points not stored as numbers, no whole-task „mõttetu” flag, `meta.teacherPage` not shown, nowhere to store the feedback card (pilot uses lesson notes tagged `#a2b1-pilot`).
-- Next safe step: owner answers the 4 decisions in `docs/review/a2b1-blueprint-ru.md`; then a code PR adds `admin/course/b1/blueprint.js` + its gate, and M1–M2 are rebuilt as v3-stations reference modules.
+- Owner decisions 2026-11-10 (recorded in the blueprint's „Otsused / Decisions” section and the RU summary):
+  - (1) register for Harno at ≥ 70 % in every part of a full mock; the course certificate stays at 80 %;
+  - (2) adult fast track (entry ≥ 80 % → M5) and exam track (exam within 6 months → 2 lessons/week, exam tasks in the core);
+  - (3) our own three 9th-grade-format mocks (mock 1 by December 2026) plus the official EIS tests;
+  - (4) pilot learners, teachers and module order — **still open**.
+  
+  PR marked ready for review.
+- Limits: Gaps named for UI: per-part Harno scores and rubric points not stored as numbers, no whole-task „mõttetu” flag, `meta.teacherPage` not shown, nowhere to store the feedback card (pilot uses lesson notes tagged `#a2b1-pilot`).
+- Next safe step: owner names the pilot learners and teachers (decision 4); then a code PR adds `admin/course/b1/blueprint.js` + its gate, and M1–M2 are rebuilt as v3-stations reference modules.
 
 ## 2026-11-09 · agent/sidebar-collapse — desktop side menu collapses to an icon rail, slides out on hover
 

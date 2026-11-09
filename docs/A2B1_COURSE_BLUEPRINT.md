@@ -1,8 +1,17 @@
 # A2 → B1 course blueprint („Eesti keel B1”, lessons a2b1-001…090)
 
-Status: **draft contract, written before any lesson is rebuilt** (2026-11-10, branch `agent/a2b1-blueprint`). Approved
-by the owner → it becomes normative for every rebuilt B1 module. Russian summary for the owner:
-`docs/review/a2b1-blueprint-ru.md`.
+Status: **contract written before any lesson is rebuilt** (2026-11-10, branch `agent/a2b1-blueprint`). The owner
+decided 3 of 4 open points on 2026-11-10 (below). The blueprint is normative for every rebuilt B1 module. Russian summary
+for the owner: `docs/review/a2b1-blueprint-ru.md`.
+
+## Otsused / Decisions (owner, 2026-11-10)
+
+| # | Decision | Where it applies |
+|---|---|---|
+| 1 | **Decided.** Register for Harno at ≥ 70 % in **every** part of a full mock. The course certificate stays at **≥ 80 % in every part**. | §2.1, §5.2 |
+| 2 | **Decided.** Adult **fast track**: entry test 001 ≥ 80 % → start at module 5. **Exam track**: Harno exam within 6 months → 2 lessons a week, exam tasks in the core path. | §5.1 |
+| 3 | **Decided.** For the 9th-grade track we build **our own three mocks in the 9th-grade format**, in addition to the official EIS practice tests. Mock 1 is needed by **December 2026**. The route and pace of §8.3 stay as proposed; the owner did not decide them separately. | §8.3, §7.1 |
+| 4 | **Open.** Pilot learners and teachers, and the module order of §6.1 / §7.1. | §6.1, §7.1 |
 
 Owner 2026-11-10: „делай курс A2→B1 и начни с того, что делай не шаблонный курс, а очень чётко продуманный курс с
 чёткой целью того, чего мы хотим добиться, и потом это проверить.”
@@ -103,8 +112,8 @@ each part weighted to 25 points; pass = ≥ 60 of 100 **and no part at 0**.
 | Level of result | Rule | Meaning |
 |---|---|---|
 | Floor | ≥ 60 % in **every** part of the final 090 (W ≥ 12/20, L ≥ 18/30, R ≥ 20/33, S ≥ 12/20) | would pass Harno with every part safe |
-| Exam-ready (register the learner) | ≥ 70 % in every part in the full mock 089 **or** in two full mocks in a row [INF] | 10-point margin over the pass mark for exam-day stress — **owner decision 1** |
-| Course goal | ≥ 80 % in every part (= `COURSE_FINAL_SHAPE_B1.md` §6.5, owner's earlier target) | „hea” band starts at 76 % [H] |
+| Exam-ready (register the learner) | ≥ 70 % in every part of a full mock (060, 080 or 089) | 10-point margin over the pass mark for exam-day stress — **decided 2026-11-10 (decision 1)** |
+| Course goal and course certificate | ≥ 80 % in every part (= `COURSE_FINAL_SHAPE_B1.md` §6.5; certificate kept at 80 %, decided 2026-11-10) | „hea” band starts at 76 % [H] |
 
 Per-part requirement, not total: one weak part is the usual reason for failing, and Harno fails a 0 in any part [H].
 
@@ -156,7 +165,7 @@ what B1 output in Harno writing/speaking actually needs.
 90 lessons (72 teaching + 18 check / exam) × 45–60 min ≈ **68–90 contact hours**, plus 10 min of practice on ~5 days
 a week (≈ 40–60 h over the course) [INF]. At 2 lessons a week the course takes ~45 weeks; at 1 a week ~90 weeks.
 [INF] That is enough for a learner who meets Estonian daily (work, school) and starts at a solid A2; a learner without
-contact or at a weak A2 needs repeats or extra lessons. Hence the fast track and the exam track (**owner decision 2**,
+contact or at a weak A2 needs repeats or extra lessons. Hence the fast track and the exam track (**decided 2026-11-10, decision 2**,
 §5.1).
 
 ---
@@ -305,7 +314,7 @@ päriselt?” on the teacher page (not a sheet station).
 
 ### 5.1 Entry (keep a2b1-001)
 
-`a2b1-001` stays (four parts in Harno A2 form + grammar areas, `b1/module01.js`). Routing [INF] — **owner decision 2**:
+`a2b1-001` stays (four parts in Harno A2 form + grammar areas, `b1/module01.js`). Routing — fast track and exam track **decided 2026-11-10 (decision 2)**:
 - < 50 % in two or more parts → A2 course first;
 - 50–79 % → start at M1;
 - ≥ 80 % in every A2 part and the B1 grammar items ≥ 60 % → **fast track**: start at M5 after one review lesson of
@@ -363,7 +372,7 @@ no place to store the feedback card (§6.4). Until then the pilot records them a
 
 ### 6.1 Pilot cohort
 
-5–7 real learners, chosen by the owner (**owner decision 4**), covering the personas: 2 adults 1-to-1 online with an exam
+5–7 real learners, chosen by the owner (**decision 4, still open**), covering the personas: 2 adults 1-to-1 online with an exam
 goal (Olga), 1–2 teens 1-to-1 (Artjom), 1–2 9th-graders on the 9th-grade track from now to April 2027 (Milana), 1 small adult group of 3–4 (Sergei), 1 adult 1-to-1 at the school. Two teachers
 at least, one of them not the owner.
 
@@ -421,7 +430,7 @@ Learner (RU):
 
 ### 7.1 Order
 
-0. Owner approves this blueprint and the 4 decisions (`docs/review/a2b1-blueprint-ru.md`).
+0. Owner decisions 1–3 taken 2026-11-10; decision 4 (pilot) still open (`docs/review/a2b1-blueprint-ru.md`).
 1. **Blueprint as data + gate** (Claude, code PR): `admin/course/b1/blueprint.js` (per module: outcome, functions,
    Harno emphasis, grammar ids with I / P / R from §3.2, recycle list) and a test that a rebuilt module (`design:
    'v3-stations'`) tags its I / P grammar ids and recycles ≥ 2 listed items per lesson.
@@ -606,8 +615,6 @@ Mock thresholds: mock 1 ≥ 50, mock 2 ≥ 55, mock 3 ≥ 65 points [INF].
 
 **Production consequence.**
 - Before the December mock, the 9th-graders need a **9th-grade mock 1** (proposed as extra exam lessons `a2b1-pk9-1…3`
-  in the M18 file — the 90 lesson ids stay unchanged). Alternatively, the official EIS practice and sample tests are
-  used where they fit.
+  in the M18 file — the 90 lesson ids stay unchanged). **Decided 2026-11-10 (decision 3):** we build our own three
+  9th-grade mocks; the official EIS practice and sample tests are used in addition, in March.
 - The school versions of the finals of the priority modules (M5, M8, M12, M14–M17) come before the other modules' rebuild.
-- **Owner decision 3**: whether the 9th-grade track exists in this form — the start in grade 8 spring or September of
-  grade 9, 2 lessons a week, and our own 9th-grade mocks versus only the official EIS tests.
