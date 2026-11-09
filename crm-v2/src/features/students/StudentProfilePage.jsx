@@ -4,6 +4,7 @@ import '../board/board.css';
 import { Suspense, useCallback, useContext, useEffect, useState } from 'react';
 import { lazyComponent } from '../../app/lazyComponent.js';
 import MergeCardsModal from './MergeCardsModal.jsx';
+import MergeHistoryCard from './MergeHistoryCard.jsx';
 import EnrollmentManager from './EnrollmentManager.jsx';
 import StudentDirectionsCard from './StudentDirectionsCard.jsx';
 import StudentParentsCard from './StudentParentsCard.jsx';
@@ -75,7 +76,7 @@ const PROFILE_TABS = [
 // the works tab opens the sheet viewer: downloaded when the tab is opened, not with every card
 const StudentWorksPanel = lazyComponent(() => import('./StudentWorksPanel.jsx'));
 
-export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi, progressApi, studentId: shownId = '', embedded = false }) {
+export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, monologueApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi, trashApi, estimateApi, progressApi, mergeApi, studentId: shownId = '', embedded = false }) {
   // `embedded` (owner 2026-11-09): the card opens in the side drawer over any page (EntityDrawer.jsx) — it gets the id
   // as a prop and keeps its tabs in its own state, so the page under the drawer keeps its address and filters
   const params = useParams();
@@ -202,6 +203,8 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         </Modal>
       </header>
 
+      {/* „Ühendamised” + „Võta ühendamine tagasi” (2026-11-09): only on a card that was merged or took a merged card */}
+      {canAssignTeacher ? <MergeHistoryCard student={student} students={studentApi} {...(mergeApi ? { service: mergeApi } : {})} onUnmerged={() => load()} /> : null}
       <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Õpilase õppeained" />
       <nav className="student-profile-tabs" role="tablist" aria-label="Õpilase profiili jaotised">
         {visibleTabs.map((tab) => (
