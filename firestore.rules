@@ -1866,6 +1866,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // „Süsteemi olek” (owner 2026-11-09): `current` (health check every 10 min) and `digest` (07:00 error digest) are
+    // written only by the scheduled functions systemHealthTick / systemHealthDigest; only an admin reads them.
+    match /systemHealth/{docId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
     // „Õpi ise” (owner 2026-10-12): a student opens a course lesson's sheet on his own — only for his own card, as
     // 'self_study', unscored and new, with the sheet exactly as published in the course (nothing of his own in it)
     function selfStudySheet(data) {

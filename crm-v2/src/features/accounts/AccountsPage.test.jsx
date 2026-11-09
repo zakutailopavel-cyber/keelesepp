@@ -20,6 +20,12 @@ describe('new accounts page', () => {
     expect(notice).toHaveTextContent('Uuel kaardil pole õpetajat');
   });
 
+  it('says when the new card may belong to an existing card', async () => {
+    render(<AccountsPage service={service({ decide: vi.fn().mockResolvedValue({ approvalStatus: 'approved', linkedStudentIds: ['self_u1'], createdStudentIds: ['self_u1'], possibleExistingCount: 1, mailed: true }) })} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Kinnita/ }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Uus kaart võib kuuluda olemasolevale kaardile');
+  });
+
   it('lets the administrator assign the teacher when approving', async () => {
     const svc = service({ listTeachers: vi.fn(async () => [{ id: 't1', name: 'Mari Tamm' }, { id: 't2', name: 'Jaan Kask' }]) });
     render(<AccountsPage service={svc} />);

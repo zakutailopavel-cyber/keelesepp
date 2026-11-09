@@ -133,6 +133,8 @@ const {
   normalizeName: normalizeAccountName,
   planParentChildBootstrap,
   planStudentAccountBootstrap,
+  possibleExistingNotice,
+  reviewClosedByBootstrap,
 } = require("./account-bootstrap-core");
 const {
   lessonCompletionCounterDelta,
@@ -7238,6 +7240,7 @@ const LINK_REVIEW_REASONS = {
   parent_email_other_child_name: "Vanema e-postiga on teise nimega lapse kaart",
   email_on_child_card: "Sama e-post on lapse kaardil: kas see on lapsevanema konto? Siis seo lapsevanemana",
   possible_existing_card: "Sarnane kaart on juba olemas (ka mitteaktiivne): kas see on sama inimene?",
+  possible_existing_card_created: "Uus konto võib kuuluda olemasolevale kaardile: uus kaart on loodud, ava ühendamine, kui see on sama inimene",
 };
 
 // Administrator: registrations the automatic linking did not decide (possible duplicates). Shown in „Uued kontod”.
@@ -7247,7 +7250,16 @@ async function listAccountLinkReviews() {
   const uids = [...new Set(reviews.map(review => review.uid).filter(Boolean))];
   const profiles = new Map((await Promise.all(uids.map(uid => db.collection("users").doc(uid).get())))
     .filter(doc => doc.exists).map(doc => [doc.id, doc.data()]));
-  return reviews.map(review => {
+  // a notice about a created card that was merged away or removed meanwhile (merged in „Õpilased”) is no longer shown
+  const createdIds = [...new Set(reviews.map(review => review.createdStudentId).filter(Boolean))];
+  const createdCards = new Map((await Promise.all(createdIds.map(id => db.collection("students").doc(id).get())))
+    .map(doc => [doc.id, doc.exists ? doc.data() : null]));
+  const settled = review => {
+    if (!review.createdStudentId) return false;
+    const card = createdCards.get(review.createdStudentId);
+    return !card || Boolean(card.mergedIntoStudentId || card.mergedInto || card.deletedAt || card.purgedAt);
+  };
+  return reviews.filter(review => !settled(review)).map(review => {
     const profile = profiles.get(review.uid) || {};
     return {
       id: review.id,
@@ -7260,6 +7272,8 @@ async function listAccountLinkReviews() {
       reason: review.reason || "",
       reasonText: LINK_REVIEW_REASONS[review.reason] || review.reason || "",
       candidates: Array.isArray(review.candidates) ? review.candidates : [],
+      createdStudentId: review.createdStudentId || "",
+      createdStudentName: review.createdStudentName || "",
       detectedAt: review.lastDetectedAt || review.firstDetectedAt || "",
     };
   }).sort((a, b) => String(b.detectedAt).localeCompare(String(a.detectedAt)));
@@ -7341,6 +7355,7 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   const emailVerified = decoded.email_verified === true;
   const displayName = cleanText(profile.displayName || decoded.name || email || "Õpilane", 180);
   const childNames = accountChildNames(profile.childName);
+  const phone = cleanText(profile.phone || "", 40);
   const [studentSnap, accountReviewSnap] = await Promise.all([
     db.collection("students").get(),
     db.collection("accountLinkReviews").where("uid", "==", uid).get(),
@@ -7349,8 +7364,8 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   const existingReviews = new Map(accountReviewSnap.docs.map(doc => [doc.id, doc.data()]));
   const { name: preferredTeacher, uid: teacherUid } = accountCardTeacher(profile);
   const plans = [];
-  if (shouldBootstrapStudent) plans.push({ relationship: "student", ...planStudentAccountBootstrap({ uid, email, emailVerified, displayName, students }) });
-  if (isParent) planParentChildBootstrap({ uid, email, emailVerified, childNames, students, decidedChildNames: decidedReviewChildNames([...existingReviews.values()]) }).forEach(plan => plans.push({ relationship: "parent", ...plan }));
+  if (shouldBootstrapStudent) plans.push({ relationship: "student", ...planStudentAccountBootstrap({ uid, email, emailVerified, displayName, phone, students }) });
+  if (isParent) planParentChildBootstrap({ uid, email, emailVerified, displayName, phone, childNames, students, decidedChildNames: decidedReviewChildNames([...existingReviews.values()]) }).forEach(plan => plans.push({ relationship: "parent", ...plan }));
 
   const fingerprint = accountBootstrapKey(uid, [...roles].sort().join(","), childNames.map(name => name.toLowerCase()).sort().join("|"), email, includeSelfStudent ? "self" : "family");
   const auditRef = db.collection("activityLog").doc(`account-bootstrap-${fingerprint}`);
@@ -7358,6 +7373,8 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   const linkedStudentIds = [];
   const createdStudentIds = [];
   const reviews = [];
+  // created cards that may belong to an existing card: the administrator's notice, not a block (2026-11-09)
+  const notices = [];
   const batch = db.batch();
 
   plans.forEach(plan => {
@@ -7388,11 +7405,26 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
         ? `self_${uid}`
         : `parent_${uid}_${accountBootstrapKey(plan.childName || plan.student?.name).slice(0, 12)}`;
       const student = plan.student || {};
-      batch.set(db.collection("students").doc(studentId), bootstrapStudentCardData({
-        relationship: plan.relationship, uid, email, displayName, student, childName: plan.childName,
-        isParent, preferredTeacher, teacherUid, source: plan.source, nowIso,
-      }), { merge: true });
+      const notice = possibleExistingNotice(plan, studentId);
+      batch.set(db.collection("students").doc(studentId), {
+        ...bootstrapStudentCardData({
+          relationship: plan.relationship, uid, email, displayName, student, childName: plan.childName,
+          isParent, preferredTeacher, teacherUid, source: plan.source, nowIso,
+        }),
+        // read by „Võimalikud topeltkaardid” (duplicateCandidates.js) and the „Vajab otsust” notice
+        ...(notice ? { possibleExistingCardIds: notice.candidateStudentIds, possibleExistingCheckedAt: nowIso } : {}),
+      }, { merge: true });
       createdStudentIds.push(studentId);
+      if (notice) {
+        const reviewId = accountBootstrapKey(uid, notice.relationship, notice.childName, notice.reason);
+        if (!existingReviews.get(reviewId)?.resolvedBy) {
+          notices.push({ id: reviewId, studentId, candidateCount: notice.candidates.length });
+          batch.set(db.collection("accountLinkReviews").doc(reviewId), {
+            uid, email, displayName, ...notice, status: "pending",
+            firstDetectedAt: nowIso, lastDetectedAt: nowIso, updatedAt: nowIso,
+          }, { merge: true });
+        }
+      }
     } else if (plan.status === "link") {
       batch.set(db.collection("students").doc(studentId), plan.relationship === "student" ? {
         linkedUserId: uid,
@@ -7433,6 +7465,7 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
     linkedStudentIds: uniqueStudentIds,
     createdStudentIds,
     reviewIds: reviews.map(review => review.id),
+    possibleExistingNoticeIds: notices.map(notice => notice.id),
     createdAt: nowIso,
     fingerprint,
   }, { merge: false });
@@ -7445,7 +7478,7 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   let resolvedReviewCount = 0;
   pendingReviewSnap.docs.forEach(doc => {
     const review = doc.data();
-    if (review.status !== "pending") return;
+    if (review.status !== "pending" || !reviewClosedByBootstrap(review)) return;
     const candidateMatch = (review.candidateStudentIds || []).some(id => linkedIds.has(id));
     const studentLinked = review.relationship === "student" && linkedPlans.some(plan => plan.relationship === "student");
     const parentNameLinked = review.relationship === "parent" && linkedPlans.some(plan =>
@@ -7467,6 +7500,8 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
     linkedStudentIds: uniqueStudentIds,
     createdStudentIds,
     reviews,
+    // only a count: the candidate cards (other people's names) are for the administrator, never in this response
+    possibleExistingCount: notices.length,
     resolvedReviewCount,
   };
 }
@@ -8572,6 +8607,8 @@ async function convertParentToStudent({ actor, uid, studentId, requestId }) {
 exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120, memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  // „Süsteemi olek” (systemHealthTick): the function is deployed and starts; reads nothing, needs no sign-in
+  if (req.method === "GET" && req.path === "/health") { res.set("Cache-Control", "no-store"); res.status(200).json({ ok: true }); return; }
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST required" });
     return;
@@ -8950,8 +8987,26 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
           FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), keepName: cleanText(req.body?.keepName, 200), actor: actorSnapshot(actor), ...(typeof req.body?.keepActive === "boolean" ? { keepActive: req.body.keepActive } : {}),
           // everything moves (owner 2026-10-24); finance / schedule can still be left out explicitly
           apply: req.body?.apply === true, confirmed: req.body?.confirmed === true, includeFinance: req.body?.includeFinance !== false, includeSchedule: req.body?.includeSchedule !== false,
+          // „Kinnitan, et see on sama laps” (2026-11-09): required when the preview lists differentPerson signals
+          confirmedDifferences: req.body?.confirmedDifferences === true,
         }));
       } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
+      return;
+    }
+    // „Võta ühendamine tagasi” (2026-11-09, functions/student-merge.js unmergeStudentCards): preview, then apply with
+    // confirmed: true; reverses a merge from its record, deletes nothing. Administrators only (requireAdminUser above).
+    if (req.path === "/students/unmerge-cards") {
+      const { unmergeStudentCards } = require("./student-merge");
+      res.set("Cache-Control", "no-store");
+      try {
+        res.json(await unmergeStudentCards(db, {
+          FieldValue, sourceId: cleanText(req.body?.sourceId, 180), keepId: cleanText(req.body?.keepId, 180), actor: actorSnapshot(actor),
+          apply: req.body?.apply === true, confirmed: req.body?.confirmed === true,
+        }));
+      } catch (error) {
+        if (!error.status) throw error;
+        res.status(error.status).json({ error: error.message, ...(error.code ? { code: error.code } : {}) });
+      }
       return;
     }
     if (req.path === "/accounts/reviews") {
@@ -9013,7 +9068,7 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       const mailed = sendApprovalEmail
         ? await deliverApprovalEmailWithin(composeApprovedEmail(profile), { kind: "account-approved", uid: targetUid })
         : false;
-      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], reviewCount: linked?.reviews?.length || 0, mailed, mailPending: false });
+      res.json({ uid: targetUid, approvalStatus: update.approvalStatus, linkedStudentIds: linked?.linkedStudentIds || [], createdStudentIds: linked?.createdStudentIds || [], reviewCount: linked?.reviews?.length || 0, possibleExistingCount: linked?.possibleExistingCount || 0, mailed, mailPending: false });
       return;
     }
     if (req.path === "/accounts/bootstrap-admin") {
@@ -10553,6 +10608,8 @@ async function attachExpenseDocument({ actor, expenseId, document, requestId }) 
 exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  // „Süsteemi olek” (systemHealthTick): the function is deployed and starts; reads nothing, needs no sign-in
+  if (req.method === "GET" && req.path === "/health") { res.set("Cache-Control", "no-store"); res.status(200).json({ ok: true }); return; }
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST required" });
     return;
@@ -13223,6 +13280,53 @@ exports.purgeCardTrash = functions
   .onRun(async () => {
     const result = await require("./card-trash").purgeDueCards(db, { FieldValue });
     console.log("Card trash purged", { deleted: result.deleted, anonymised: result.anonymised, blocked: result.blocked, errors: result.errors });
+    return null;
+  });
+
+// ── SCHEDULED: „Süsteemi olek” — the admin learns about a breakage before the teachers do ─
+// Every 10 min: the CRM, the website and two main HTTP functions (GET /health). Result in `systemHealth/current`
+// (admin reads, only the server writes); 2 failed checks in a row open an incident, one answer from all closes it.
+// The CRM bell shows one admin notice per incident (crm-v2 notificationModel `systemHealthNotifications`). Nothing is
+// e-mailed. Pure logic: functions/system-health-core.js.
+exports.systemHealthTick = functions
+  .runWith({ timeoutSeconds: 60, memory: "256MB" })
+  .pubsub
+  .schedule("every 10 minutes")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const health = require("./system-health-core");
+    const targets = health.healthTargets(process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || "keelesepp-5136b");
+    const probed = await Promise.all(targets.map((target) => health.probeTarget(target)));
+    const results = Object.fromEntries(targets.map((target, index) => [target.id, probed[index]]));
+    const labels = Object.fromEntries(targets.map((target) => [target.id, target.label]));
+    const ref = db.collection("systemHealth").doc("current");
+    const before = await ref.get();
+    const { state, event } = health.nextHealthState(before.exists ? before.data() : null, results, new Date().toISOString(), labels);
+    await ref.set(state);
+    if (event) console.warn("System health changed", JSON.stringify({ event, failing: state.incident?.failingLabels || [] }));
+    return null;
+  });
+
+// 07:00: the last 24 h of „Vead” (`clientErrors`) → `systemHealth/digest`; the bell shows „Eile N viga — vaata Vead”
+// that day when N > 0. Failed function runs are not recorded in Firestore by this repo, so only client errors count.
+exports.systemHealthDigest = functions
+  .runWith({ timeoutSeconds: 120, memory: "256MB" })
+  .pubsub
+  .schedule("0 7 * * *")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const health = require("./system-health-core");
+    const now = new Date();
+    const { since } = health.digestWindow(now);
+    const snap = await db.collection("clientErrors").where("lastAt", ">=", admin.firestore.Timestamp.fromDate(since)).get();
+    const digest = health.digestClientErrors(snap.docs.map((doc) => doc.data()));
+    await db.collection("systemHealth").doc("digest").set({
+      date: localDate(now, APP_TIME_ZONE),
+      generatedAt: now.toISOString(),
+      since: since.toISOString(),
+      ...digest,
+    });
+    console.log("System health digest", { total: digest.total, occurrences: digest.occurrences });
     return null;
   });
 
