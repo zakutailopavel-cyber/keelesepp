@@ -35,16 +35,16 @@ export function companionHint({ now = Date.now(), invitation = null, next = null
   if (next && HOMEWORK_KEYS.includes(next.key)) {
     const late = next.key === 'overdue';
     return {
-      key: `next-${next.key}-${next.title}`, urgent: false, action: { label: 'Täna', to: '/student' },
+      key: `next-${next.key}-${next.title}`, urgent: false, action: { label: 'Ülesanded', to: next.to || '/homework' },
       text: en ? (late ? `"${next.title}" is late. Shall we do it now?` : `Next: "${next.title}". Shall we do it?`) : (late ? `„${next.title}” hilineb. Teeme kohe?` : `Järgmine: „${next.title}”. Teeme ära?`),
       hint: late ? `«${next.title}» просрочено. Сделаем сейчас?` : `Дальше: «${next.title}». Сделаем?`,
     };
   }
   if (next && ['review', 'sentences'].includes(next.key)) {
     return {
-      key: `next-${next.key}`, urgent: false, action: { label: 'Täna', to: '/student' },
-      text: en ? 'A few minutes of practice are waiting in "Täna".' : 'Sind ootab „Täna” lühike harjutus.',
-      hint: 'Тебя ждёт короткая тренировка в «Täna».',
+      key: `next-${next.key}`, urgent: false, action: { label: 'Harjuta', to: next.to || '/student/harjuta' },
+      text: en ? 'A few minutes of practice are waiting in "Harjuta".' : 'Sind ootab „Harjuta” lühike harjutus.',
+      hint: 'Тебя ждёт короткая тренировка в «Harjuta».',
     };
   }
   const tips = en ? [
@@ -74,6 +74,7 @@ export const TOUR_STEPS = [
   // phones: the menu is closed, so the tour points at the menu button instead of the items
   { target: '[data-tour="menu"]', text: 'Menüü on siin: tunnid, ülesanded, tund õpetajaga ja sõnumid.', hint: 'Меню здесь: уроки, домашки, урок с учителем и сообщения.' },
   { target: '[data-tour="nav-/student"]', text: 'Siin on „Täna”: mida täna teha, sinu tund ja mina.', hint: 'Здесь «Täna»: что сделать сегодня, твой урок и я.' },
+  { target: '[data-tour="nav-/student/harjuta"]', text: '„Harjuta”: tänane harjutus ühe nupuga — sõnad, laused ja ülesanded.', hint: '«Harjuta»: тренировка на сегодня одной кнопкой.' },
   { target: '[data-tour="nav-/homework"]', text: '„Ülesanded”: kõik, mida õpetaja sulle andis.', hint: '«Ülesanded»: всё, что задал учитель.' },
   { target: '[data-tour="nav-/student/vead"]', text: '„Minu vead”: laused tunnist, mida harjutame, kuni need tulevad õigesti.', hint: '«Minu vead»: фразы с урока, которые тренируем, пока не получится.' },
   { target: '[data-tour="nav-/student/lemmik"]', text: 'Siin elan mina! Kui õpetaja kutsub tundi, annan märku igal lehel.', hint: 'Здесь живу я! Когда учитель позовёт на урок, я дам знать на любой странице.' },

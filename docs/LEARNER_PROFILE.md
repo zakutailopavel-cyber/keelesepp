@@ -24,25 +24,27 @@ Each source loads on its own; one the user may not read (another teacher's journ
 
 ## Where the student sees it
 
-**Since agent/student-tana (owner 2026-11-09, „Täna”) — the current shape:** `/student` is ONE daily flow. The only
-decider is `features/students/nextStep.js` (`todaySteps` for the flow, `nextStep` for a single line; `todayPath.js`
-and `homeSections` are gone). Steps in order: a lesson now (an interrupt card „Ava tund”, not a step) → teacher homework
-(`homeworkQueue`: overdue, due soon, the monthly monologue, the rest) → words (the SRS daily queue of his own words,
-`FlashcardSession`) → „Laused ja grammatika” (one `PracticeLesson`: course items of the level he works towards and his
-current module, `practice/studentPractice.js`, plus up to three of his own wrong sentences from BOTH sources,
-`practice/engine/ownSentences.js`) → „Kursus” (self-study cards only). Empty steps are skipped; a step is ticked by real
-data (work submitted today, the day's cards answered) or by the stored tick. `TodayPanel.jsx` runs them with one button
-„Alusta tänast”; the pet reacts after each step and thanks at the end. First screen: the „Täna” card, today's lesson
-time, the pet card; teacher feedback / announcements / an unpaid invoice only as quiet lines below.
+**Since agent/student-tana (owner 2026-11-09) — the current shape:** the daily practice lives in its own tab
+**„Harjuta”** (`/student/harjuta`, `StudentPracticePage.jsx` + `PracticeFlow.jsx`, menu item right after „Täna”; the
+cabinet's own Card / Button / Badge look). The home „Täna” keeps its structure and look (one next-step card, the pet,
+„Minu õppimine” rows, the timetable); its next step and the words row lead into „Harjuta” when practice is next.
+The only decider is `features/students/nextStep.js` (`todaySteps` for Harjuta, `nextStep` for home's card and the walking
+pet's hint, `homeSections` for home's rows; `todayPath.js` is gone). Harjuta's steps in order: a lesson now (an
+interrupt „Ava tund”, not a step) → teacher homework (`homeworkQueue`: overdue, due soon, the monthly monologue, the
+rest) → words (the SRS daily queue of his own words, `FlashcardSession`) → „Laused ja grammatika” (one `PracticeLesson`:
+course items of the level he works towards and his current module, `practice/studentPractice.js`, plus up to three of
+his own wrong sentences from BOTH sources, `practice/engine/ownSentences.js`) → „Kursus” (self-study cards only).
+Empty steps are skipped; a step is ticked by real data (work submitted today, the day's cards answered) or by the
+stored tick; „Hiljem” puts one off for the browser session. The pet reacts after each step and thanks at the end.
+The monthly monologue now reaches the decider on home and in Harjuta (it was never passed before).
 Progress: `users/{uid}.practice.today { date, day, done, xp }`, `practice.xp`, `practice.learnDays`
 (`practice/progress.js`, `presence.saveToday`; rules `validPracticeToday`: ≤ 30 XP a day, total only grows by the
 day's gain, day never backwards nor > 1 day ahead of the server). XP = right word cards / sentence items from
 `announcePractice` (`PracticeRecorder` in AppShell), homework XP stays derived (`petModel.js`). One progress meter: the
 pet's level (`petProgress({ practiceXp })`); the streak = days in `learnDays`. The pet asks for nothing any more
 (`petRequest` removed); Lemmik keeps care, wardrobe and topic games, „Toida” uses `FlashcardSession` and „Paranda” the
-practice lesson. „Minu vead” is the merged list + the same practice lesson; „Sõnad” is the library (no „Täna” hero; the
-daily reminder is in „Seaded”). Menu: Täna · Ülesanded · Suhtlus · Rohkem (Sõnad, Minu vead, Kursus, Lemmik, Minu
-areng, Tahvel).
+practice lesson. „Minu vead” is the merged list + the same practice lesson; „Sõnad” is the library (no own „Täna”
+hero; the daily reminder is in „Seaded” and opens „Täna”).
 
 Earlier history:
 

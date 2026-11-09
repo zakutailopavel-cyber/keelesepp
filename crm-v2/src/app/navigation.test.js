@@ -11,10 +11,7 @@ describe('application navigation roles', () => {
   });
 
   it('gives a pure student and a pure parent their own menu and keeps the full one for staff', () => {
-    // owner 2026-11-09 „Täna”: Täna · Ülesanded · Suhtlus, then everything else under „Rohkem”
-    expect(navigationFor(['student']).map((item) => item.label)).toEqual(['Täna', 'Ülesanded', 'Suhtlus', 'Sõnad', 'Minu vead', 'Kursus', 'Lemmik', 'Minu areng', 'Tahvel']);
-    expect(studentNavigation.filter((item) => !item.group).map((item) => item.to)).toEqual(['/student', '/homework', '/messages']);
-    expect(new Set(studentNavigation.filter((item) => item.group).map((item) => item.group))).toEqual(new Set(['Rohkem']));
+    expect(navigationFor(['student']).map((item) => item.label)).toEqual(['Täna', 'Harjuta', 'Ülesanded', 'Kursus', 'Sõnad', 'Suhtlus', 'Tahvel', 'Minu vead', 'Minu areng', 'Lemmik']);
     expect(navigationFor(['student'])).toBe(studentNavigation);
     expect(studentNavigation.map((item) => item.to)).toContain('/board');
     expect(navigationFor(['student', 'parent'])).toBe(navigation);

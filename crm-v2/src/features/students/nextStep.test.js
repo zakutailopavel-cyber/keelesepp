@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { homeNotes, homeworkQueue, lessonNow, newFeedback, nextStep, openWork, todaySteps } from './nextStep.js';
+import { homeNotes, homeSections, homeworkQueue, lessonNow, newFeedback, nextStep, openWork, todaySteps } from './nextStep.js';
 
 const NOW = new Date('2026-11-02T15:00:00').getTime();
 const today = '2026-11-02';
@@ -39,7 +39,7 @@ describe('nextStep priority', () => {
   });
 
   it('due words, then done', () => {
-    expect(nextStep({ today, now: NOW, words: [dueWord] })).toMatchObject({ key: 'review', button: 'Alusta' });
+    expect(nextStep({ today, now: NOW, words: [dueWord] })).toMatchObject({ key: 'review', button: 'Harjuta', to: '/student/harjuta' });
     expect(nextStep({ today, now: NOW })).toMatchObject({ key: 'done', to: '/student/kursus' });
     const reviewed = Array.from({ length: 5 }, (_, i) => ({ id: `w${i}`, word: `s${i}`, translation: 't', box: 2, reviews: 3, reviewedAt: `${today}T10:00:00.000Z`, dueAt: '2026-11-09T10:00:00.000Z' }));
     expect(nextStep({ today, now: NOW, words: reviewed }).key).toBe('done');
@@ -213,5 +213,21 @@ describe('nextStep after the words: the sentence practice', () => {
     expect(nextStep({ today, now: NOW, words: [dueWord], sentences: { available: true, own: 0 } }).key).toBe('review');
     expect(nextStep({ today, now: NOW, sentences: { available: true, own: 0 }, done: ['sentences'] }).key).toBe('done');
     expect(nextStep({ today, now: NOW, words: [dueWord], done: ['words'] }).key).toBe('done');
+  });
+});
+
+describe('homeSections', () => {
+  it('one row per section, counts only when something waits; the words row leads to „Harjuta” while cards wait', () => {
+    const rows = homeSections({ today, now: NOW, homework: [{ id: 'a', task: 'Tee', status: 'Ootel' }], words: [dueWord, { id: 's', word: 'Ma lähen.', translation: 'Sinu lause: x', box: 0, reviews: 1 }] });
+    expect(rows.map((row) => row.key)).toEqual(['tasks', 'words', 'mistakes', 'boards', 'progress']);
+    expect(Object.fromEntries(rows.map((row) => [row.key, row.count]))).toMatchObject({ tasks: 1, mistakes: 1, boards: 0, progress: 0 });
+    expect(rows.find((row) => row.key === 'words')).toMatchObject({ to: '/student/harjuta' });
+    expect(homeSections({ today, now: NOW }).every((row) => row.count === 0)).toBe(true);
+  });
+  it('the monthly monologue counts as one open task; a stored tick marks words and sentences done', () => {
+    expect(homeSections({ today, now: NOW, tasks: [{ key: 'm', kind: 'monologue', state: 'todo', title: 'Kuu monoloog' }] })[0].count).toBe(1);
+    const rows = homeSections({ today, now: NOW, words: [dueWord], done: ['words', 'sentences'] });
+    expect(rows.find((row) => row.key === 'words')).toMatchObject({ done: true, count: 0 });
+    expect(rows.find((row) => row.key === 'mistakes').done).toBe(true);
   });
 });

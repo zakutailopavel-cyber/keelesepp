@@ -15,9 +15,9 @@ describe('companion hints', () => {
     const soon = { key: 'lesson', lesson: { time: '17:00' } };
     expect(companionHint({ ...base, next: soon, invitation: { id: 'i1', teacherName: 'Kati' } })).toMatchObject({ urgent: true, text: 'Kati kutsub sind tundi! Vajuta „Liitu tunniga”.' });
     expect(companionHint({ ...base, next: soon })).toMatchObject({ urgent: true, text: 'Tund algab 10 minuti pärast. Kutse ilmub siia.', action: { to: '/live-classroom' } });
-    expect(companionHint({ ...base, now: at(12, 0), next: { key: 'overdue', title: 'Minu pere' } })).toMatchObject({ urgent: false, text: '„Minu pere” hilineb. Teeme kohe?', action: { to: '/student' } });
+    expect(companionHint({ ...base, now: at(12, 0), next: { key: 'overdue', title: 'Minu pere', to: '/homework' } })).toMatchObject({ urgent: false, text: '„Minu pere” hilineb. Teeme kohe?', action: { to: '/homework' } });
     expect(companionHint({ ...base, now: at(12, 0), next: { key: 'due-soon', title: 'Minu pere' } }).text).toBe('Järgmine: „Minu pere”. Teeme ära?');
-    expect(companionHint({ ...base, now: at(12, 0), next: { key: 'review' } }).text).toBe('Sind ootab „Täna” lühike harjutus.');
+    expect(companionHint({ ...base, now: at(12, 0), next: { key: 'review', to: '/student/harjuta' } })).toMatchObject({ text: 'Sind ootab „Harjuta” lühike harjutus.', action: { to: '/student/harjuta' } });
     expect(companionHint({ now: at(12, 0), petName: 'Okas', tipIndex: 0, next: { key: 'done' } }).text).toBe('Tere! Mina olen Okas. Vajuta mulle, kui vajad abi.');
     expect(companionHint({ now: at(12, 0), petName: 'Okas', tipIndex: 0, lang: 'en' }).text).toBe("Hi! I'm Okas. Press me when you need help.");
   });

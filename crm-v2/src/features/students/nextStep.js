@@ -1,6 +1,7 @@
 // The ONE decider of what a student does next (owner 2026-11-09 „Täna”: one clear daily flow, so a student never wonders
-// what to do). Everything that asks „what now?” reads this file: the home page „Täna” (its steps and the one button),
-// the walking pet's hint (companionModel.js) and the pet on the home page (it only rewards, it asks for nothing).
+// what to do). Everything that asks „what now?” reads this file: the home page „Täna” (its one next-step card and the
+// section rows), the „Harjuta” tab (its steps and the one button) and the walking pet's hint (companionModel.js); the
+// pet itself only rewards, it asks for nothing.
 //
 // Today's steps, in this order (todaySteps):
 //   live       a lesson going on now or starting within SOON_MINUTES — an interrupt, not a step: „Ava tund”
@@ -23,6 +24,8 @@ import { toIsoDate } from '../calendar/calendarView.js';
 export const SOON_MINUTES = 30;
 export const DUE_SOON_DAYS = 2;
 export const STEP_ORDER = ['homework', 'words', 'sentences', 'course'];
+// „Harjuta” (owner 2026-11-09): the daily practice flow has its own tab; home's next step points there for practice
+export const PRACTICE_PATH = '/student/harjuta';
 const MINUTE = 60 * 1000;
 export const ERROR_PREFIX = 'Sinu lause:';
 const SENTENCE_MINUTES = 4;
@@ -140,14 +143,14 @@ export function todaySteps({
 
   const daily = dailyPlan(ownWords(words), { now, today });
   steps.push({
-    key: 'words', label: 'Sõnad', ru: 'слова', to: '/student/sonavara',
+    key: 'words', label: 'Sõnad', ru: 'слова', to: PRACTICE_PATH,
     state: ticked.has('words') || daily.done ? 'done' : daily.count ? 'todo' : daily.reviewedToday ? 'done' : 'empty',
     detail: daily.count ? [cardsText(daily.count), daily.forgotten ? `${daily.forgotten} ununeb` : ''].filter(Boolean).join(' · ') : daily.reviewedToday ? 'Korratud täna' : '',
     minutes: daily.count ? Math.max(1, Math.min(5, Math.round(daily.count * 0.4))) : 0,
   });
 
   steps.push({
-    key: 'sentences', label: 'Laused ja grammatika', ru: 'фразы и грамматика', to: '/student/vead',
+    key: 'sentences', label: 'Laused ja grammatika', ru: 'фразы и грамматика', to: PRACTICE_PATH,
     state: ticked.has('sentences') ? 'done' : sentences.available || sentences.own > 0 ? 'todo' : 'empty',
     detail: sentences.own > 0 ? `${sentences.own} ${sentences.own === 1 ? 'sinu lause' : 'sinu lauset'} tunnist + harjutused` : sentences.available ? 'Lühike harjutus sinu tasemel' : '',
     minutes: sentences.available || sentences.own > 0 ? SENTENCE_MINUTES : 0,
@@ -209,10 +212,10 @@ export function nextStep({ occurrences = [], homework = [], assignments = [], ta
   }
   const daily = dailyPlan(ownWords(words), { now, today });
   if (daily.count && !daily.done && !done.includes('words')) {
-    return { key: 'review', title: 'Korda sõnu', detail: `${cardsText(daily.count)}, umbes 5 minutit`, button: 'Alusta', to: '/student' };
+    return { key: 'review', title: 'Korda sõnu', detail: `${cardsText(daily.count)}, umbes 5 minutit`, button: 'Harjuta', to: PRACTICE_PATH };
   }
   if ((sentences.available || sentences.own > 0) && !done.includes('sentences')) {
-    return { key: 'sentences', title: 'Laused ja grammatika', detail: 'Lühike harjutus, umbes 4 minutit', button: 'Alusta', to: '/student' };
+    return { key: 'sentences', title: 'Laused ja grammatika', detail: 'Lühike harjutus, umbes 4 minutit', button: 'Harjuta', to: PRACTICE_PATH };
   }
   const course = selfStudyOpen(assignments);
   if (course) {
@@ -247,4 +250,26 @@ export function homeNotes({ feedback = [], announcements = [], unpaidCents = 0, 
   // the school has really asked (an open „Sobivad ajad” announcement), not merely „the times are empty”
   if (asked.length) notes.push({ key: 'availability', text: 'Kool küsib, millal sulle tund sobib', to: '/student/areng#sobivad-ajad' });
   return notes;
+}
+
+/**
+ * „Minu õppimine” under the home's first screen (owner 2026-11-01: the cabinet was overloaded): one short row per section
+ * with a small count instead of long blocks. Every section stays one tap away; a count appears only when it is not zero.
+ * Since 2026-11-09 the day's words are practised in „Harjuta” (one flow), so the words row leads there while cards wait.
+ */
+export function homeSections({ homework = [], assignments = [], submissions = [], tasks = [], words = [], mistakesDoneToday = false, done = [], today, now = Date.now() } = {}) {
+  const open = openWork({ homework, assignments, tasks }).length + (openMonologue(tasks) ? 1 : 0);
+  const daily = dailyPlan(ownWords(words), { now, today });
+  const mistakes = words.filter(isOwnSentence).length;
+  const workToday = workDoneToday({ homework, submissions, today });
+  const wordsDone = daily.done || done.includes('words');
+  const fixed = mistakesDoneToday || done.includes('sentences');
+  const own = words.length - mistakes;
+  return [
+    { key: 'tasks', label: 'Ülesanded', to: '/homework', count: open, detail: workToday ? 'tehtud täna' : open ? 'ootab tegemist' : 'mida õpetaja andis', done: workToday },
+    { key: 'words', label: 'Sõnad', to: daily.count && !wordsDone ? PRACTICE_PATH : '/student/sonavara', count: wordsDone ? 0 : daily.count, detail: wordsDone ? 'korratud täna' : daily.count ? 'kaarti kordamiseks' : own ? own + ' sõna' : 'lisa oma sõna', done: wordsDone },
+    { key: 'mistakes', label: 'Minu vead', to: '/student/vead', count: mistakes, detail: fixed ? 'harjutatud täna' : mistakes ? 'lauset tundidest' : 'märkmed tunnist', done: fixed },
+    { key: 'boards', label: 'Tunni tahvlid', to: '/board', count: 0, detail: 'tundide lehed', done: false },
+    { key: 'progress', label: 'Minu areng', to: '/student/areng', count: 0, detail: 'vaata, kuidas läheb', done: false },
+  ];
 }

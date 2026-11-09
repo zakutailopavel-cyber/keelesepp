@@ -1,4 +1,4 @@
-import { BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, Trash2, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
+import { Dumbbell, BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, Trash2, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 // Grouped so the menu stays short on a laptop screen: own pages first, then teaching, people, communication and money.
@@ -26,20 +26,21 @@ export const navigation = [
   { to: '/kassa', label: 'Kassa', icon: Wallet, roles: ACCESS.STAFF, group: 'Suhtlus ja raha' },
 ];
 
-// A student's own short menu (owner 2026-11-01: the cabinet was overloaded; 2026-11-09 „Täna”: one daily flow): „Täna”
-// runs the day's steps, „Ülesanded” and „Suhtlus” are what the teacher gave and said; everything else is a library under
-// „Rohkem”. The lesson invitation pops up on every page, so the lesson room needs no menu item. Parents and staff keep
-// their own menus.
+// A student's own short menu (owner 2026-11-01: the cabinet was overloaded): what he does every day first; the board,
+// his mistakes, his progress and the pet under a quieter group. The lesson invitation pops up on every page, so the
+// lesson room needs no menu item. Parents and staff keep the menu above.
 export const studentNavigation = [
-  { to: '/student', label: 'Täna', icon: GraduationCap, roles: ACCESS.STUDENT, end: true, hint: 'tänane õppimine' },
+  { to: '/student', label: 'Täna', icon: GraduationCap, roles: ACCESS.STUDENT, end: true, hint: 'mida täna teha' },
+  // „Harjuta” (owner 2026-11-09): the day's practice in one flow — homework, words, sentences and grammar, the pet's reward
+  { to: '/student/harjuta', label: 'Harjuta', icon: Dumbbell, roles: ACCESS.STUDENT, hint: 'tänane harjutus' },
   { to: '/homework', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.STUDENT, hint: 'mida õpetaja andis' },
+  { to: '/student/kursus', label: 'Kursus', icon: BookOpenCheck, roles: ACCESS.STUDENT, hint: 'kogu kursuse kaart' },
+  { to: '/student/sonavara', label: 'Sõnad', icon: Languages, roles: ACCESS.STUDENT, hint: 'õpi sõnu kaartidega' },
   { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.STUDENT, hint: 'kirjuta õpetajale' },
-  { to: '/student/sonavara', label: 'Sõnad', icon: Languages, roles: ACCESS.STUDENT, group: 'Rohkem', hint: 'sinu sõnad ja teemad' },
-  { to: '/student/vead', label: 'Minu vead', icon: SpellCheck, roles: ACCESS.STUDENT, group: 'Rohkem', hint: 'laused tunnist' },
-  { to: '/student/kursus', label: 'Kursus', icon: BookOpenCheck, roles: ACCESS.STUDENT, group: 'Rohkem', hint: 'kogu kursuse kaart' },
-  { to: '/student/lemmik', label: 'Lemmik', icon: PawPrint, roles: ACCESS.STUDENT, group: 'Rohkem', hint: 'mängud ja riidekapp' },
-  { to: '/student/areng', label: 'Minu areng', icon: TrendingUp, roles: ACCESS.STUDENT, group: 'Rohkem', hint: 'vaata, kuidas läheb' },
-  { to: '/board', label: 'Tahvel', icon: PenLine, roles: ACCESS.STUDENT, group: 'Rohkem', hint: 'tundide lehed' },
+  { to: '/board', label: 'Tahvel', icon: PenLine, roles: ACCESS.STUDENT, group: 'Veel', hint: 'tundide lehed, joonista ise' },
+  { to: '/student/vead', label: 'Minu vead', icon: SpellCheck, roles: ACCESS.STUDENT, group: 'Veel', hint: 'harjuta oma lauseid' },
+  { to: '/student/areng', label: 'Minu areng', icon: TrendingUp, roles: ACCESS.STUDENT, group: 'Veel', hint: 'vaata, kuidas läheb' },
+  { to: '/student/lemmik', label: 'Lemmik', icon: PawPrint, roles: ACCESS.STUDENT, group: 'Veel', hint: 'sinu õppesõber' },
 ];
 
 // A parent's menu (owner 2026-11-01): the same pages, the word a parent understands. „Ülesanded” is „Kodutööd” for staff only.
