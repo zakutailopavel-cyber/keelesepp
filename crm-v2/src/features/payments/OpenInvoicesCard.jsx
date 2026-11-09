@@ -23,7 +23,8 @@ export default function OpenInvoicesCard({ invoices = [], api = linkpayApi, go =
   }, [api]);
 
   const open = invoices
-    .filter((invoice) => invoice.status !== 'Tühistatud' && invoiceBalanceCents(invoice) > 0)
+    // an FIE invoice is paid only by bank transfer to the FIE account (the card merchant is the OÜ)
+    .filter((invoice) => invoice.status !== 'Tühistatud' && invoice.issuer !== 'fie' && invoiceBalanceCents(invoice) > 0)
     .sort((a, b) => String(a.due || '').localeCompare(String(b.due || '')));
   if (!enabled || !open.length) return null;
 

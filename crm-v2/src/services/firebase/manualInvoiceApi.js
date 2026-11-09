@@ -21,6 +21,9 @@ async function post(path, body = {}) {
   return data;
 }
 
+// „Arve väljastaja” (owner only): "company" | "fie"; absent = the card's default (the server decides and checks)
+const issuerOf = (issuer) => (issuer === 'company' || issuer === 'fie' ? { issuer } : {});
+
 export const manualInvoiceApi = {
   async listStudents() {
     const result = await post('/students');
@@ -37,11 +40,12 @@ export const manualInvoiceApi = {
       correctionNote: values.correctionNote || '',
       // one subject of a card with several: billed at that subject's price
       ...(values.subject ? { subject: values.subject } : {}),
+      ...issuerOf(values.issuer),
     });
   },
   // one invoice for the month's lessons of several cards of one payer (subjects of one student, children of a parent)
-  createMonthlyCombined({ month, due, items }) {
-    return post('/monthly-combined', { month, due, items });
+  createMonthlyCombined({ month, due, items, issuer }) {
+    return post('/monthly-combined', { month, due, items, ...issuerOf(issuer) });
   },
   // one manual charge for several cards of one payer: items [{ studentId, amount }]
   createCombined(values) {
@@ -51,19 +55,20 @@ export const manualInvoiceApi = {
       due: values.due,
       note: values.note || '',
       requestId: values.requestId || financeRequestId('manual_invoice'),
+      ...issuerOf(values.issuer),
     });
   },
   // lesson tokens: an invoice for N lessons at the card's plan price (the lessons reach the card after payment)
   // subject: the course the package is for (one of the card's subjects); its lessons only take from this package
-  createTokens({ studentId, lessons, due, note = '', requestId, subject = '' }) {
-    return post('/create-tokens', { studentId, lessons: Number(lessons), due, note, ...(subject ? { subject } : {}), requestId: requestId || financeRequestId('lesson_tokens') });
+  createTokens({ studentId, lessons, due, note = '', requestId, subject = '', issuer = '' }) {
+    return post('/create-tokens', { studentId, lessons: Number(lessons), due, note, ...(subject ? { subject } : {}), ...issuerOf(issuer), requestId: requestId || financeRequestId('lesson_tokens') });
   },
   // „Ühine tunnipakett”: ONE package invoice for the cards of one payer — items [{ studentId, subject, lessons }] (2–12);
   // every line is priced from its own card's plan, after payment every line becomes its own package on its own card
-  createTokensCombined({ items, due, note = '', requestId }) {
+  createTokensCombined({ items, due, note = '', requestId, issuer = '' }) {
     return post('/create-tokens-combined', {
       items: items.map((item) => ({ studentId: item.studentId, lessons: Number(item.lessons), ...(item.subject ? { subject: item.subject } : {}) })),
-      due, note, requestId: requestId || financeRequestId('lesson_tokens'),
+      due, note, ...issuerOf(issuer), requestId: requestId || financeRequestId('lesson_tokens'),
     });
   },
   create(values) {
@@ -74,6 +79,7 @@ export const manualInvoiceApi = {
       due: values.due,
       note: values.note || '',
       requestId: values.requestId || financeRequestId('manual_invoice'),
+      ...issuerOf(values.issuer),
     });
   },
   // afterSending: the invoice was already e-mailed (wrong address, wrong invoice); the admin confirmed it

@@ -24,9 +24,11 @@ function createBankStatementService({ db, httpError, actorSnapshot, cleanRequest
 
   // everything the matcher needs (the collections are small: a school's invoices, payments and bank lines)
   async function matchContext() {
-    const [invoices, payments, bankTransactions, purchaseInvoices, refunds, statementLines, rules] = await Promise.all(
+    const [allInvoices, payments, bankTransactions, purchaseInvoices, refunds, statementLines, rules] = await Promise.all(
       ["invoices", "payments", "bankTransactions", "purchaseInvoices", "refunds", "bankStatementLines", "bankRules"].map(all),
     );
+    // the company account's lines are matched only to company invoices (FIE invoices: the owner's own account)
+    const invoices = allInvoices.filter((invoice) => invoice.issuer !== "fie");
     const taken = new Set();
     statementLines.forEach((line) => {
       (line.paymentIds || []).forEach((id) => taken.add(id));

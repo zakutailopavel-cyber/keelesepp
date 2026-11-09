@@ -10,6 +10,9 @@ const { subjectName } = require('./student-enrollments-core');
 const { monthlyBillingBlocker, sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth } = require('./combined-invoice-core');
 const { tokenInvoiceInput, tokenInvoiceLines, tokenInvoiceSubject, combinedTokenInput } = require('./lesson-tokens-core');
 const { cardPayerEmail, firstEmail, linkedParentIds } = require('./invoice-payer-core');
+const { mainSubject } = require('./student-enrollments-core');
+const issuerCore = require('./invoice-issuer-core');
+const { readIssuerContext, subjectLine, manualCardLine, nextIssuerNumber } = require('./invoice-issuer');
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
@@ -86,6 +89,28 @@ async function requireFinanceUser(req) {
   };
 }
 
+// „Arve väljastaja” (owner 2026-11-09): FIE invoices are the owner's own; nobody else issues or sees them
+function isOwner(actor = {}) {
+  return SUPER_ADMIN_EMAILS.has(String(actor.email || '').toLowerCase());
+}
+
+function decide(fn, args) {
+  try {
+    return fn(args);
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+}
+
+// the issuer of a new invoice + its number from the issuer's own counter (all reads; the caller writes)
+async function issueFor(transaction, actor, { context, lines, requested, manual = false, todayIso }) {
+  const issuer = decide(manual ? issuerCore.decideManualIssuer : issuerCore.decideIssuer, { lines, requested, isOwner: isOwner(actor), ready: context.ready });
+  const number = await nextIssuerNumber(transaction, db, { issuer, todayIso });
+  return { issuer, fields: issuerCore.issuerFields(issuer, context.settings), ...number };
+}
+
+const auditCollection = (issuer) => db.collection(issuerCore.collectionFor('financialAudit', issuer));
+
 function cleanRequestId(value) {
   const requestId = String(value || '').trim();
   if (!/^[A-Za-z0-9_-]{12,120}$/.test(requestId)) throw httpError(400, 'Valid requestId required');
@@ -131,7 +156,6 @@ async function createManualInvoice({ actor, values, requestId }) {
   const invoiceRef = db.collection('invoices').doc(mutationId);
   const auditRef = db.collection('financialAudit').doc(mutationId);
   const studentRef = db.collection('students').doc(input.studentId);
-  const counterRef = db.collection('meta').doc('invoiceCounter');
   const nowIso = new Date().toISOString();
   const todayIso = appToday(nowIso);
 
@@ -144,28 +168,18 @@ async function createManualInvoice({ actor, values, requestId }) {
       return { invoice: { id: existing.id, ...existing.data() }, idempotent: true };
     }
 
-    const [studentSnap, counterSnap, dateLockSnap] = await Promise.all([
+    const [studentSnap, dateLockSnap, context] = await Promise.all([
       transaction.get(studentRef),
-      transaction.get(counterRef),
       transaction.get(db.collection('financialLockedDates').doc(todayIso)),
+      readIssuerContext(transaction, db, [input.studentId]),
     ]);
     if (!studentSnap.exists) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
 
-    let nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
-    let invoiceNum = '';
-    for (let attempt = 0; attempt < 50; attempt += 1) {
-      const candidate = `KS-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, '0')}`;
-      const collision = await transaction.get(db.collection('invoices').where('num', '==', candidate).limit(1));
-      if (collision.empty) {
-        invoiceNum = candidate;
-        break;
-      }
-      nextSequence += 1;
-    }
-    if (!invoiceNum) throw httpError(409, 'Invoice counter requires numbering repair');
+    const issued = await issueFor(transaction, actor, { context, manual: true, requested: values.issuer, todayIso, lines: [manualCardLine(context, studentSnap.data(), input.studentId)] });
+    const { invoiceNum } = issued;
 
-    const invoice = manualInvoiceRecord({
+    const base = manualInvoiceRecord({
       input,
       student: studentSnap.data(),
       invoiceNum,
@@ -175,9 +189,10 @@ async function createManualInvoice({ actor, values, requestId }) {
       signature,
       linkedAccountEmail: await linkedAccountEmail(transaction, studentSnap.data()),
     });
+    const invoice = { ...base, ...issued.fields };
     transaction.create(invoiceRef, invoice);
-    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
-    transaction.create(auditRef, {
+    issued.commit(transaction, nowIso);
+    transaction.create(issued.issuer === 'fie' ? auditCollection('fie').doc(mutationId) : auditRef, {
       entityType: 'invoice',
       entityId: mutationId,
       action: 'invoice.created_manual',
@@ -206,16 +221,15 @@ async function createMonthlyInvoice({ actor, values }) {
     throw httpError(400, error.message);
   }
   const baseInvoiceId = monthlyInvoiceId(input.studentId, input.month);
-  const counterRef = db.collection('meta').doc('invoiceCounter');
   const nowIso = new Date().toISOString();
   const todayIso = appToday(nowIso);
   return db.runTransaction(async (transaction) => {
-    const [studentSnap, planSnap, counterSnap, dateLockSnap, studentInvoicesSnap] = await Promise.all([
+    const [studentSnap, planSnap, dateLockSnap, studentInvoicesSnap, context] = await Promise.all([
       transaction.get(db.collection('students').doc(input.studentId)),
       transaction.get(db.collection('studentRevenuePlans').doc(input.studentId)),
-      transaction.get(counterRef),
       transaction.get(db.collection('financialLockedDates').doc(todayIso)),
       transaction.get(db.collection('invoices').where('studentId', '==', input.studentId)),
+      readIssuerContext(transaction, db, [input.studentId]),
     ]);
     // a combined invoice (several cards of one payer) may already bill this card for the month
     const combinedSnap = await transaction.get(db.collection('invoices').where('studentIds', 'array-contains', input.studentId));
@@ -244,18 +258,9 @@ async function createMonthlyInvoice({ actor, values }) {
     } catch (error) {
       throw httpError(400, error.message);
     }
-    let nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
-    let invoiceNum = '';
-    for (let attempt = 0; attempt < 50; attempt += 1) {
-      const candidate = `KS-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, '0')}`;
-      const collision = await transaction.get(db.collection('invoices').where('num', '==', candidate).limit(1));
-      if (collision.empty) {
-        invoiceNum = candidate;
-        break;
-      }
-      nextSequence += 1;
-    }
-    if (!invoiceNum) throw httpError(409, 'Invoice counter requires numbering repair');
+    const card = studentSnap.data();
+    const issued = await issueFor(transaction, actor, { context, requested: values.issuer, todayIso, lines: [subjectLine(context, card, input.studentId, priced.subject || mainSubject(card))] });
+    const { invoiceNum } = issued;
     const signature = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
     const base = manualInvoiceRecord({
       input: { studentId: input.studentId, description: priced.description, amountCents: priced.amountCents, amount: priced.amountCents / 100, due: input.due, note: input.correctionNote },
@@ -282,10 +287,11 @@ async function createMonthlyInvoice({ actor, values }) {
       plannedUnits: input.plannedUnits,
       correctionUnits: input.correctionUnits,
       ...(priced.subject ? { subject: priced.subject } : {}),
+      ...issued.fields,
     };
     transaction.create(invoiceRef, invoice);
-    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
-    transaction.create(db.collection('financialAudit').doc(invoiceId), {
+    issued.commit(transaction, nowIso);
+    transaction.create(auditCollection(issued.issuer).doc(invoiceId), {
       entityType: 'invoice',
       entityId: invoiceId,
       action: 'invoice.created_monthly',
@@ -302,18 +308,6 @@ async function createMonthlyInvoice({ actor, values }) {
     });
     return { invoice: { id: invoiceId, ...invoice }, idempotent: false };
   });
-}
-
-// the next free KS number inside the transaction (the same way as the one-card invoices)
-async function nextInvoiceNumber(transaction, counterSnap, todayIso) {
-  let nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
-  for (let attempt = 0; attempt < 50; attempt += 1) {
-    const candidate = `KS-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, '0')}`;
-    const collision = await transaction.get(db.collection('invoices').where('num', '==', candidate).limit(1));
-    if (collision.empty) return { invoiceNum: candidate, nextSequence };
-    nextSequence += 1;
-  }
-  throw httpError(409, 'Invoice counter requires numbering repair');
 }
 
 // One invoice for the month's lessons of several cards of one payer (functions/combined-invoice-core.js): the price
@@ -335,13 +329,12 @@ async function createCombinedMonthlyInvoice({ actor, values }) {
   // the same cards without subjects keep their old key (an invoice made before subjects is still found again)
   const keyParts = items.some((item) => item.subject) ? items.map((item) => `${item.studentId}#${item.subject}`) : ids;
   const key = crypto.createHash('sha256').update(`${month}|${[...keyParts].sort().join('|')}`).digest('hex').slice(0, 20);
-  const counterRef = db.collection('meta').doc('invoiceCounter');
   const nowIso = new Date().toISOString();
   const todayIso = appToday(nowIso);
   return db.runTransaction(async (transaction) => {
     const cardSnaps = await Promise.all(ids.map((id) => transaction.get(db.collection('students').doc(id))));
     const planSnaps = await Promise.all(ids.map((id) => transaction.get(db.collection('studentRevenuePlans').doc(id))));
-    const [counterSnap, dateLockSnap] = await Promise.all([transaction.get(counterRef), transaction.get(db.collection('financialLockedDates').doc(todayIso))]);
+    const [dateLockSnap, context] = await Promise.all([transaction.get(db.collection('financialLockedDates').doc(todayIso)), readIssuerContext(transaction, db, ids)]);
     const own = await transaction.get(db.collection('invoices').where('studentId', 'in', ids));
     const combinedOnes = await transaction.get(db.collection('invoices').where('studentIds', 'array-contains-any', ids));
     const missing = cardSnaps.find((snap) => !snap.exists);
@@ -359,31 +352,53 @@ async function createCombinedMonthlyInvoice({ actor, values }) {
     }
     const revision = existing.filter((doc) => doc.id.startsWith(`monthly_combined_${month}_${key}`)).length + 1;
     const invoiceId = revision === 1 ? `monthly_combined_${month}_${key}` : `monthly_combined_${month}_${key}-r${revision}`;
-    const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
+    const cardOf = (id) => cardSnaps[ids.indexOf(id)].data();
+    const lines = items.map((item) => subjectLine(context, cardOf(item.studentId), item.studentId, item.subject || mainSubject(cardOf(item.studentId))));
+    // „Arve väljastaja” (owner 2026-11-09): the owner's own subject lines of an FIE card and the other teachers' lines
+    // of the same family become two invoices made together — the company's (KS-) and the owner's FIE (FIE-)
+    const groups = issuerCore.monthlySplit({ lines, requested: values.issuer, isOwner: isOwner(actor) });
+    const issuedGroups = [];
+    for (const group of groups) {
+      const groupLines = group.indexes.map((index) => lines[index]);
+      const issued = group.issuer
+        ? await (async () => {
+          const issuer = decide(issuerCore.decideIssuer, { lines: groupLines, requested: group.issuer, isOwner: isOwner(actor), ready: context.ready });
+          return { issuer, fields: issuerCore.issuerFields(issuer, context.settings), ...(await nextIssuerNumber(transaction, db, { issuer, todayIso })) };
+        })()
+        : await issueFor(transaction, actor, { context, requested: values.issuer, todayIso, lines: groupLines });
+      issuedGroups.push({ ...group, issued, invoiceId: group.issuer === 'fie' && groups.length > 1 ? `${invoiceId}-fie` : invoiceId });
+    }
     const signature = crypto.createHash('sha256').update(JSON.stringify(inputs)).digest('hex');
     const payerAccountEmail = await linkedAccountEmail(transaction, cardSnaps[0].data());
-    let invoice;
-    try {
-      invoice = combinedMonthlyRecord({
-        month, due, invoiceNum, nowIso, actor, requestId: invoiceId, signature, linkedAccountEmail: payerAccountEmail,
-        parts: inputs.map((input, index) => {
-          const at = ids.indexOf(items[index].studentId);
-          return { card: { id: ids[at], ...cardSnaps[at].data() }, plan: planSnaps[at].exists ? planSnaps[at].data() : {}, subject: items[index].subject, plannedUnits: input.plannedUnits, correctionUnits: input.correctionUnits, correctionNote: input.correctionNote };
-        }),
-      });
-    } catch (error) {
-      throw httpError(error.status || 400, error.message);
-    }
-    invoice.monthRevision = revision;
-    transaction.create(db.collection('invoices').doc(invoiceId), invoice);
-    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
-    transaction.create(db.collection('financialAudit').doc(invoiceId), {
-      entityType: 'invoice', entityId: invoiceId, action: 'invoice.created_monthly_combined', invoiceId, invoiceNum,
-      studentId: ids[0], studentIds: ids, studentName: invoice.studentName, amountCents: invoice.amountCents, amount: invoice.amount,
-      actor, reason: `${month}: ${invoice.cardParts.map((part) => `${part.studentName} ${part.subject} ${part.plannedUnits}+${part.correctionUnits}`).join('; ')}`,
-      createdAt: nowIso, requestId: invoiceId,
+    const made = issuedGroups.map(({ indexes, issued, invoiceId: groupInvoiceId }) => {
+      let invoice;
+      try {
+        invoice = combinedMonthlyRecord({
+          month, due, invoiceNum: issued.invoiceNum, nowIso, actor, requestId: groupInvoiceId, signature, linkedAccountEmail: payerAccountEmail,
+          parts: indexes.map((index) => {
+            const input = inputs[index];
+            const at = ids.indexOf(items[index].studentId);
+            return { card: { id: ids[at], ...cardSnaps[at].data() }, plan: planSnaps[at].exists ? planSnaps[at].data() : {}, subject: items[index].subject, plannedUnits: input.plannedUnits, correctionUnits: input.correctionUnits, correctionNote: input.correctionNote };
+          }),
+        });
+      } catch (error) {
+        throw httpError(error.status || 400, error.message);
+      }
+      invoice.monthRevision = revision;
+      Object.assign(invoice, issued.fields);
+      return { invoiceId: groupInvoiceId, invoice, issued };
     });
-    return { invoice: { id: invoiceId, ...invoice }, idempotent: false };
+    made.forEach(({ invoiceId: groupInvoiceId, invoice, issued }) => {
+      transaction.create(db.collection('invoices').doc(groupInvoiceId), invoice);
+      issued.commit(transaction, nowIso);
+      transaction.create(auditCollection(issued.issuer).doc(groupInvoiceId), {
+        entityType: 'invoice', entityId: groupInvoiceId, action: 'invoice.created_monthly_combined', invoiceId: groupInvoiceId, invoiceNum: issued.invoiceNum,
+        studentId: ids[0], studentIds: ids, studentName: invoice.studentName, amountCents: invoice.amountCents, amount: invoice.amount,
+        actor, reason: `${month}: ${invoice.cardParts.map((part) => `${part.studentName} ${part.subject} ${part.plannedUnits}+${part.correctionUnits}`).join('; ')}`,
+        createdAt: nowIso, requestId: groupInvoiceId,
+      });
+    });
+    return { invoice: { id: made[0].invoiceId, ...made[0].invoice }, ...(made.length > 1 ? { invoices: made.map((item) => ({ id: item.invoiceId, ...item.invoice })) } : {}), idempotent: false };
   });
 }
 
@@ -402,7 +417,6 @@ async function createCombinedManualInvoice({ actor, values, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const signature = crypto.createHash('sha256').update(JSON.stringify({ ids, amounts, description: base.description, due: base.due, note: base.note })).digest('hex');
   const invoiceRef = db.collection('invoices').doc(mutationId);
-  const counterRef = db.collection('meta').doc('invoiceCounter');
   const nowIso = new Date().toISOString();
   const todayIso = appToday(nowIso);
   return db.runTransaction(async (transaction) => {
@@ -412,10 +426,11 @@ async function createCombinedManualInvoice({ actor, values, requestId }) {
       return { invoice: { id: existing.id, ...existing.data() }, idempotent: true };
     }
     const cardSnaps = await Promise.all(ids.map((id) => transaction.get(db.collection('students').doc(id))));
-    const [counterSnap, dateLockSnap] = await Promise.all([transaction.get(counterRef), transaction.get(db.collection('financialLockedDates').doc(todayIso))]);
+    const [dateLockSnap, context] = await Promise.all([transaction.get(db.collection('financialLockedDates').doc(todayIso)), readIssuerContext(transaction, db, ids)]);
     if (cardSnaps.some((snap) => !snap.exists)) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
-    const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
+    const issued = await issueFor(transaction, actor, { context, manual: true, requested: values.issuer, todayIso, lines: ids.map((id, index) => manualCardLine(context, cardSnaps[index].data(), id)) });
+    const { invoiceNum } = issued;
     const payerAccountEmail = await linkedAccountEmail(transaction, cardSnaps[0].data());
     let invoice;
     try {
@@ -426,9 +441,10 @@ async function createCombinedManualInvoice({ actor, values, requestId }) {
     } catch (error) {
       throw httpError(error.status || 400, error.message);
     }
+    Object.assign(invoice, issued.fields);
     transaction.create(invoiceRef, invoice);
-    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
-    transaction.create(db.collection('financialAudit').doc(mutationId), {
+    issued.commit(transaction, nowIso);
+    transaction.create(auditCollection(issued.issuer).doc(mutationId), {
       entityType: 'invoice', entityId: mutationId, action: 'invoice.created_manual_combined', invoiceId: mutationId, invoiceNum,
       studentId: ids[0], studentIds: ids, studentName: invoice.studentName, amountCents: invoice.amountCents, amount: invoice.amount,
       actor, reason: base.note || base.description, createdAt: nowIso, requestId: mutationId,
@@ -445,7 +461,6 @@ async function createTokenInvoice({ actor, values, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const signature = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
   const invoiceRef = db.collection('invoices').doc(mutationId);
-  const counterRef = db.collection('meta').doc('invoiceCounter');
   const nowIso = new Date().toISOString();
   const todayIso = appToday(nowIso);
   return db.runTransaction(async (transaction) => {
@@ -454,11 +469,11 @@ async function createTokenInvoice({ actor, values, requestId }) {
       if (existing.data().creationSignature !== signature) throw httpError(409, 'requestId already used for a different invoice');
       return { invoice: { id: existing.id, ...existing.data() }, idempotent: true };
     }
-    const [studentSnap, planSnap, counterSnap, dateLockSnap] = await Promise.all([
+    const [studentSnap, planSnap, dateLockSnap, context] = await Promise.all([
       transaction.get(db.collection('students').doc(input.studentId)),
       transaction.get(db.collection('studentRevenuePlans').doc(input.studentId)),
-      transaction.get(counterRef),
       transaction.get(db.collection('financialLockedDates').doc(todayIso)),
+      readIssuerContext(transaction, db, [input.studentId]),
     ]);
     if (!studentSnap.exists) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
@@ -471,7 +486,8 @@ async function createTokenInvoice({ actor, values, requestId }) {
       subject = tokenInvoiceSubject(input.subject, student);
       priced = tokenInvoiceLines({ lessons: input.lessons, plan: planForSubject(planSnap.exists ? planSnap.data() : {}, subject), subject: subject || String(student.subject || '').trim() });
     } catch (error) { throw httpError(error.status || 400, error.message); }
-    const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
+    const issued = await issueFor(transaction, actor, { context, requested: values.issuer, todayIso, lines: [subjectLine(context, student, input.studentId, subject || mainSubject(student))] });
+    const { invoiceNum } = issued;
     const base = manualInvoiceRecord({
       input: { studentId: input.studentId, description: priced.description, amountCents: priced.amountCents, amount: priced.amountCents / 100, due: input.due, note: input.note },
       student, invoiceNum, nowIso, actor, requestId: mutationId, signature,
@@ -489,10 +505,11 @@ async function createTokenInvoice({ actor, values, requestId }) {
       lessonMinutes: priced.minutes,
       tokenCredits: input.lessons,
       tokenStatus: 'pending',
+      ...issued.fields,
     };
     transaction.create(invoiceRef, invoice);
-    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
-    transaction.create(db.collection('financialAudit').doc(mutationId), {
+    issued.commit(transaction, nowIso);
+    transaction.create(auditCollection(issued.issuer).doc(mutationId), {
       entityType: 'invoice', entityId: mutationId, action: 'invoice.created_lesson_tokens', invoiceId: mutationId, invoiceNum,
       studentId: input.studentId, studentName: invoice.studentName, amountCents: priced.amountCents, amount: priced.amountCents / 100,
       tokenCredits: input.lessons, ...(subject ? { subject } : {}), actor, reason: input.note || priced.description, createdAt: nowIso, requestId: mutationId,
@@ -511,7 +528,6 @@ async function createCombinedTokenInvoice({ actor, values, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const signature = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
   const invoiceRef = db.collection('invoices').doc(mutationId);
-  const counterRef = db.collection('meta').doc('invoiceCounter');
   const ids = [...new Set(input.items.map((item) => item.studentId))];
   const nowIso = new Date().toISOString();
   const todayIso = appToday(nowIso);
@@ -523,10 +539,12 @@ async function createCombinedTokenInvoice({ actor, values, requestId }) {
     }
     const cardSnaps = await Promise.all(ids.map((id) => transaction.get(db.collection('students').doc(id))));
     const planSnaps = await Promise.all(ids.map((id) => transaction.get(db.collection('studentRevenuePlans').doc(id))));
-    const [counterSnap, dateLockSnap] = await Promise.all([transaction.get(counterRef), transaction.get(db.collection('financialLockedDates').doc(todayIso))]);
+    const [dateLockSnap, context] = await Promise.all([transaction.get(db.collection('financialLockedDates').doc(todayIso)), readIssuerContext(transaction, db, ids)]);
     if (cardSnaps.some((snap) => !snap.exists)) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
-    const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
+    const cardOf = (id) => cardSnaps[ids.indexOf(id)].data();
+    const issued = await issueFor(transaction, actor, { context, requested: values.issuer, todayIso, lines: input.items.map((item) => subjectLine(context, cardOf(item.studentId), item.studentId, item.subject || mainSubject(cardOf(item.studentId)))) });
+    const { invoiceNum } = issued;
     const payerAccountEmail = await linkedAccountEmail(transaction, cardSnaps[0].data());
     let invoice;
     try {
@@ -540,9 +558,10 @@ async function createCombinedTokenInvoice({ actor, values, requestId }) {
     } catch (error) {
       throw httpError(error.status || 400, error.message);
     }
+    Object.assign(invoice, issued.fields);
     transaction.create(invoiceRef, invoice);
-    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
-    transaction.create(db.collection('financialAudit').doc(mutationId), {
+    issued.commit(transaction, nowIso);
+    transaction.create(auditCollection(issued.issuer).doc(mutationId), {
       entityType: 'invoice', entityId: mutationId, action: 'invoice.created_lesson_tokens_combined', invoiceId: mutationId, invoiceNum,
       studentId: ids[0], studentIds: ids, studentName: invoice.studentName, amountCents: invoice.amountCents, amount: invoice.amount,
       tokenCredits: invoice.tokenCredits, actor,
@@ -561,19 +580,22 @@ async function cancelInvoice({ actor, invoiceId, reason, requestId, afterSending
   if (cleanReason.length < 10) throw httpError(400, 'Cancellation reason must have at least 10 characters');
   if (!actor.role.split(',').includes('admin')) throw httpError(403, 'Administrator access required');
   const invoiceRef = db.collection('invoices').doc(cleanInvoiceId);
-  const auditRef = db.collection('financialAudit').doc(mutationId);
   const nowIso = new Date().toISOString();
   return db.runTransaction(async transaction => {
+    const invoiceSnap = await transaction.get(invoiceRef);
+    if (!invoiceSnap.exists) throw httpError(404, 'Invoice not found');
+    const invoice = invoiceSnap.data();
+    // an FIE invoice is the owner's: anyone else gets the same 404 as a missing invoice; its audit is owner-only too
+    const fie = issuerCore.isFieInvoice(invoice);
+    if (fie && !isOwner(actor)) throw httpError(404, 'Invoice not found');
+    const auditRef = auditCollection(fie ? 'fie' : 'company').doc(mutationId);
     const existingAudit = await transaction.get(auditRef);
     if (existingAudit.exists) {
       if (existingAudit.data().action !== 'invoice.cancelled' || existingAudit.data().invoiceId !== cleanInvoiceId || existingAudit.data().reason !== cleanReason) throw httpError(409, 'requestId already used');
       return { invoiceId: cleanInvoiceId, idempotent: true };
     }
-    const invoiceSnap = await transaction.get(invoiceRef);
-    if (!invoiceSnap.exists) throw httpError(404, 'Invoice not found');
-    const invoice = invoiceSnap.data();
     const [paymentsSnap, creditNotesSnap, issueLockSnap, todayLockSnap] = await Promise.all([
-      transaction.get(db.collection('payments').where('invoiceId', '==', cleanInvoiceId)),
+      transaction.get(db.collection(issuerCore.collectionFor('payments', fie ? 'fie' : 'company')).where('invoiceId', '==', cleanInvoiceId)),
       transaction.get(db.collection('creditNotes').where('invoiceId', '==', cleanInvoiceId)),
       transaction.get(db.collection('financialLockedDates').doc(String(invoice.date || '').slice(0, 10))),
       transaction.get(db.collection('financialLockedDates').doc(appToday(nowIso))),

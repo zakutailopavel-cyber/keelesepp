@@ -16,6 +16,11 @@ function superAdminEmails() {
   return new Set(configured.length ? configured : defaultSuperAdminEmails);
 }
 
+// the owner (super admin e-mail): the only person who sees and issues FIE invoices (owner 2026-11-09)
+export function isOwnerEmail(email) {
+  return superAdminEmails().has(String(email || '').toLowerCase());
+}
+
 export function normalizeRoles(profile = {}, claims = {}, identity = {}) {
   // The Firestore profile is client-readable, so only its canonical `role`
   // field is accepted. Multi-role authorization must come from signed claims.

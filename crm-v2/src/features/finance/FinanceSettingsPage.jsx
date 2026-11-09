@@ -1,8 +1,10 @@
-import { ArrowLeft, BarChart3, CalendarClock, CreditCard, FileDigit, Mail, ScrollText } from 'lucide-react';
+import { ArrowLeft, BarChart3, CalendarClock, CreditCard, FileDigit, Landmark, Mail, ScrollText } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import LinkpaySettings from '../payments/LinkpaySettings.jsx';
 import FinancePage from './FinancePage.jsx';
+import FieSettings from './fie/FieSettings.jsx';
+import { useIsOwner } from './fie/useIsOwner.js';
 import { normalizeFinanceSettingsSection } from './financeSettingsNavigation.js';
 import './financeSettings.css';
 
@@ -14,8 +16,12 @@ const sections = [
   { id: 'kaardimaksed', label: 'Kaardimaksed', description: 'LHV LinkPay makselingid', icon: CreditCard },
   { id: 'audit', label: 'Audit', description: 'Muutmatu finantsajalugu', icon: ScrollText },
 ];
+// the owner's own FIE (owner 2026-11-09): only the owner sees this section
+const fieSection = { id: 'fie', label: 'FIE', description: 'Sinu FIE nimi ja konto', icon: Landmark };
 
 export default function FinanceSettingsPage(props) {
+  const isOwner = useIsOwner();
+  const shown = isOwner ? [...sections, fieSection] : sections;
   const [active, setActive] = useState(() => normalizeFinanceSettingsSection(window.location.hash.slice(1)));
   const select = (id) => {
     const next = normalizeFinanceSettingsSection(id);
@@ -29,9 +35,9 @@ export default function FinanceSettingsPage(props) {
         <Link className="button button--secondary" to="/finance"><ArrowLeft size={17} /> Tagasi kuu arveldusse</Link>
       </header>
       <nav className="finance-settings-nav" aria-label="Finantsseaded">
-        {sections.map(({ id, label, description, icon: Icon }) => <button key={id} type="button" className={active === id ? 'is-active' : ''} aria-pressed={active === id} onClick={() => select(id)}><Icon size={19} /><span><strong>{label}</strong><small>{description}</small></span></button>)}
+        {shown.map(({ id, label, description, icon: Icon }) => <button key={id} type="button" className={active === id ? 'is-active' : ''} aria-pressed={active === id} onClick={() => select(id)}><Icon size={19} /><span><strong>{label}</strong><small>{description}</small></span></button>)}
       </nav>
-      <section className="finance-settings-content">{active === 'kaardimaksed' ? <LinkpaySettings /> : <FinancePage key={active} {...props} section={active} />}</section>
+      <section className="finance-settings-content">{active === 'kaardimaksed' ? <LinkpaySettings /> : active === 'fie' ? (isOwner ? <FieSettings /> : null) : <FinancePage key={active} {...props} section={active} />}</section>
     </div>
   );
 }
