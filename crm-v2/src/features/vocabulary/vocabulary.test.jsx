@@ -1,7 +1,7 @@
 import { MemoryRouter } from 'react-router-dom';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import { cleanWord, formQuestion, isDue, practiceOrder, review, sameForm, sameWord } from './wordsModel.js';
+import { cleanWord, isDue, review, sameWord } from './wordsModel.js';
 import LessonWordsPanel from './LessonWordsPanel.jsx';
 import MyWordsCard from './MyWordsCard.jsx';
 
@@ -26,9 +26,7 @@ describe('wordsModel', () => {
     expect(review({ box: 5 }, true, now).box).toBe(5);
     expect(review({ box: 4 }, false, now)).toMatchObject({ box: 0, dueAt: now.toISOString() });
   });
-  it('practises due words, oldest first, and finds the same word ignoring case', () => {
-    const words = [w('later', { dueAt: '2026-10-09T00:00:00Z' }), w('b', { dueAt: '2026-10-03T00:00:00Z' }), w('a', { dueAt: '2026-10-02T00:00:00Z' })];
-    expect(practiceOrder(words, now.getTime()).map((item) => item.id)).toEqual(['a', 'b']);
+  it('knows a due word and finds the same word ignoring case', () => {
     expect(isDue({ dueAt: '' }, now.getTime())).toBe(true);
     expect(sameWord([w('Kass')], ' kass ')?.id).toBe('Kass');
     expect(cleanWord({ word: '  tere   päevast ', translation: 'x'.repeat(300) })).toEqual({ word: 'tere päevast', translation: 'x'.repeat(200), example: '', forms: '' });
@@ -61,19 +59,15 @@ describe('LessonWordsPanel', () => {
 });
 
 describe('MyWordsCard', () => {
-  it('practises the due words with flashcards and counts the result', async () => {
-    const service = fakeService([w('kass', { translation: 'кошка', example: 'Kass magab.' }), w('koer'), w('hiljem', { box: 3, dueAt: '2099-01-01T00:00:00Z' })]);
+  it('practises the due words with the same flashcards as „Sõnad” and moves them on their schedule', async () => {
+    const service = { ...fakeService([w('kass', { translation: 'кошка', example: 'Kass magab.' }), w('koer', { translation: 'собака' }), w('hiljem', { translation: 'позже', box: 3, dueAt: '2099-01-01T00:00:00Z', reviews: 3, reviewedAt: '2026-09-01T00:00:00Z' })]), rate: vi.fn(async () => ({})) };
     render(<MemoryRouter><MyWordsCard studentIds={['s-1']} service={service} /></MemoryRouter>);
     expect(screen.getByText('2 kordamiseks')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Harjuta (2)' }));
-    const deck = screen.getByLabelText('Sõnade kordamine');
-    fireEvent.click(within(deck).getByRole('button', { name: 'Näita' }));
-    const first = within(deck).getByText(/kass|koer/).textContent;
-    fireEvent.click(within(deck).getByRole('button', { name: 'Teadsin' }));
-    await waitFor(() => expect(service.review).toHaveBeenCalledWith(expect.objectContaining({ id: first }), true));
-    fireEvent.click(await screen.findByRole('button', { name: 'Näita' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Ei teadnud' }));
-    expect(await screen.findByText(/Teadsid 1 sõna, kordamiseks jäi 1/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Kaardid')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Näita vastust' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Hea/ }));
+    await waitFor(() => expect(service.rate).toHaveBeenCalledWith(expect.objectContaining({ id: expect.stringMatching(/kass|koer/) }), expect.objectContaining({ rating: 'good' })));
   });
 
   it('shows all words and hides practice in the admin preview', () => {
@@ -86,16 +80,6 @@ describe('MyWordsCard', () => {
 
 describe('word forms (TartuNLP + Ekilex through our server)', () => {
   const kass = { formItems: [{ code: 'SgN', label: 'ainsuse nimetav', value: 'kass' }, { code: 'SgG', label: 'ainsuse omastav', value: 'kassi' }, { code: 'PlP', label: 'mitmuse osastav', value: 'kasse' }] };
-
-  it('asks a form every other review, never the base form, and accepts listed variants', () => {
-    expect(formQuestion({ word: 'kass', reviews: 0, ...kass })).toBeNull();
-    expect(formQuestion({ word: 'kass', reviews: 1, ...kass }).code).toBe('SgG');
-    expect(formQuestion({ word: 'kass', reviews: 3, ...kass }).code).toBe('PlP');
-    expect(formQuestion({ word: 'kass', reviews: 1 })).toBeNull();
-    expect(sameForm(' Kassi ', 'kassi')).toBe(true);
-    expect(sameForm('jõge', 'jõge, jõe')).toBe(true);
-    expect(sameForm('', 'kassi')).toBe(false);
-  });
 
   it('the teacher fills translation and forms with one click and saves them with the word', async () => {
     const service = fakeService([]);
@@ -118,17 +102,5 @@ describe('word forms (TartuNLP + Ekilex through our server)', () => {
     expect(await screen.findByText(/EKI sõnastiku võti/)).toBeInTheDocument();
     fireEvent.blur(screen.getByLabelText('Sõna või väljend'));
     expect(toolsService.lookupWord).toHaveBeenCalledTimes(1);
-  });
-
-  it('a form question in practice: type, check, go on', async () => {
-    const service = fakeService([w('kass', { reviews: 1, translation: 'кошка', forms: 'kass, kassi, kassi, kasse', ...kass })]);
-    render(<MemoryRouter><MyWordsCard studentIds={['s-1']} service={service} /></MemoryRouter>);
-    fireEvent.click(screen.getByRole('button', { name: 'Harjuta (1)' }));
-    expect(screen.getByText('ainsuse omastav?')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Vorm: ainsuse omastav'), { target: { value: 'kassi' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Kontrolli' }));
-    expect(screen.getByText('Õige!')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Edasi' }));
-    await waitFor(() => expect(service.review).toHaveBeenCalledWith(expect.objectContaining({ id: 'kass' }), true));
   });
 });

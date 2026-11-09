@@ -15,8 +15,8 @@ export function dailyReminderIcs({ time = '19:00', url = '', today = localDate()
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//KeeleSepp//Paeva 5 minutit//ET', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
     `UID:keelesepp-paeva-5-minutit-${hours}${minutes}@keelesepp`, `DTSTAMP:${stamp(now)}`,
     `DTSTART:${day}T${hours}${minutes}00`, 'DURATION:PT5M', 'RRULE:FREQ=DAILY',
-    'SUMMARY:KeeleSepp: päeva 5 minutit', `DESCRIPTION:Korda tänased kaardid: ${url}`, ...(url ? [`URL:${url}`] : []),
-    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:KeeleSepp: päeva 5 minutit', 'TRIGGER:PT0M', 'END:VALARM',
+    'SUMMARY:KeeleSepp: Täna', `DESCRIPTION:Ava „Täna” ja vajuta „Alusta tänast”: ${url}`, ...(url ? [`URL:${url}`] : []),
+    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:KeeleSepp: Täna', 'TRIGGER:PT0M', 'END:VALARM',
     'END:VEVENT', 'END:VCALENDAR', '',
   ].join('\r\n');
 }

@@ -5,19 +5,23 @@ import { AuthContext } from '../../app/AuthContext.jsx';
 import MistakesPage from './MistakesPage.jsx';
 import { localDate } from '../../utils/localDate.js';
 
-const page = (words, profile = {}) => render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1', profile } }}>
+const page = (words, profile = {}, stats = []) => render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1', profile } }}>
   <MistakesPage studentRepository={{ listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari' }]) }}
+    petRepository={{ lessonStats: vi.fn().mockResolvedValue(stats) }}
     wordsService={{ subscribeForStudent: vi.fn((id, next) => { next(words); return () => {}; }) }} />
 </AuthContext.Provider></MemoryRouter>);
 
 describe('Minu vead', () => {
-  it('lists the student\'s own corrected sentences and starts a drill', async () => {
-    page([{ id: 'e1', word: 'Ma läksin panka', translation: 'Sinu lause: Mina läksin pank' }, { id: 'w', word: 'raha', translation: 'деньги' }]);
-    expect(await screen.findByText('1 lauset tundidest')).toBeInTheDocument();
-    expect(screen.getByText('Mina läksin pank')).toBeInTheDocument();
+  it('lists his own sentences from both sources (word cards and recorded lessons) and practises them in the practice lesson', async () => {
+    page([{ id: 'e1', word: 'Ma läksin panka', translation: 'Sinu lause: Mina läksin pank' }, { id: 'w', word: 'raha', translation: 'деньги' }], {},
+      [{ practice: [{ said: 'Ma läksin pank', corrected: 'Ma läksin panka' }, { said: 'Ta tuli eile kool', corrected: 'Ta tuli eile kooli' }] }]);
+    expect(await screen.findByText('Mina läksin pank')).toBeInTheDocument();
+    expect(await screen.findByText('2 lauset tundidest')).toBeInTheDocument();
+    expect(screen.getByText('Ta tuli eile kool')).toBeInTheDocument();
     expect(screen.queryByText('raha')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Alusta/ }));
-    expect(await screen.findByText('Milline lause on õige?')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Harjuta/ }));
+    expect(await screen.findByText('Paranda viga')).toBeInTheDocument();
+    expect(document.querySelector('.pr-source__text')?.textContent).toMatch(/Mina läksin pank|Ta tuli eile kool/);
   });
 
   it('shows the board\'s bookmarks as notes from lessons; the student deletes only his own', async () => {
@@ -28,7 +32,7 @@ describe('Minu vead', () => {
     const remove = vi.fn(async () => {});
     globalThis.confirm = vi.fn(() => true);
     render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1', profile: {} } }}>
-      <MistakesPage studentRepository={{ listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari' }]) }}
+      <MistakesPage studentRepository={{ listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari' }]) }} petRepository={{}}
         wordsService={{ subscribeForStudent: vi.fn((id, next) => { next([]); return () => {}; }) }}
         notesService={{ subscribeForStudent: vi.fn((id, next) => { next(notes); return () => {}; }), remove }} />
     </AuthContext.Provider></MemoryRouter>);
@@ -49,7 +53,7 @@ describe('Minu vead', () => {
       { id: 'n2', studentId: 's1', text: 'vana märge', ink: [], color: '#DCFCE7', pageTitle: 'Tahvel', byStaff: false, createdByUid: 'u1', createdAt: '2026-11-04T10:00:00Z', anchor: null },
     ];
     render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1', profile: {} } }}>
-      <MistakesPage studentRepository={{ listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari' }]) }}
+      <MistakesPage studentRepository={{ listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari' }]) }} petRepository={{}}
         wordsService={{ subscribeForStudent: vi.fn((id, next) => { next([]); return () => {}; }) }}
         notesService={{ subscribeForStudent: vi.fn((id, next) => { next(notes); return () => {}; }), remove: vi.fn() }} />
     </AuthContext.Provider></MemoryRouter>);

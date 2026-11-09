@@ -1,23 +1,38 @@
-// „Järgmine samm” on the student's home: exactly one thing to do, one button. Priority (owner 2026-11-01, extended
-// 2026-11-04 when the first screen of the cabinet was redone):
-//   1. a lesson going on now or starting within SOON_MINUTES („Ava tund”)
-//   2. overdue homework (the oldest deadline first)
-//   3. homework due within DUE_SOON_DAYS
-//   4. a lesson later today (its time; the button leads to „Tunniplaan” on the same page, where „Ei saa tulla?” is)
-//   5. the monthly monologue („Kuu monoloog”: a task-list row of kind 'monologue') not yet recorded this month
-//   6. other open homework (no deadline or a far one)
-//   7. words due for review (`studentWords` dueAt, vocabulary/dailyReview.js)
-//   8. a self-study lesson the learner started on „Kursus” and has not finished
-//   9. nothing left („Praegu on kõik tehtud”)
-// Pure: the page passes what it knows. `tasks` are extra rows of the task list (homework/taskList.js shape), e.g. the
-// monologue; they are handled by their `kind` and `state`, so home and „Ülesanded” never disagree.
+// The ONE decider of what a student does next (owner 2026-11-09 „Täna”: one clear daily flow, so a student never wonders
+// what to do). Everything that asks „what now?” reads this file: the home page „Täna” (its one next-step card and the
+// section rows), the „Harjuta” tab (its steps and the one button) and the walking pet's hint (companionModel.js); the
+// pet itself only rewards, it asks for nothing.
+//
+// Today's steps, in this order (todaySteps):
+//   live       a lesson going on now or starting within SOON_MINUTES — an interrupt, not a step: „Ava tund”
+//   homework   what the teacher gave (homework/taskList.js): overdue first, then due soon, the monthly monologue, the rest
+//   words      the spaced repetition queue of his own words (vocabulary/dailyReview.js)
+//   sentences  one practice lesson: course sentences and grammar of his level + his own wrong sentences (practice/)
+//   course     the self-study course („Kursus”), only on a self-study card (isSelfStudent)
+//   (pet)      the end of the day's flow: the pet thanks and shows the reward — not a step of its own
+// A step with nothing to do is „empty” and skipped. A step is done by what really happened today (work submitted, the
+// day's cards answered) or by the stored tick of „Täna” (practice/progress.js).
+//
+// nextStep() is the same order as one line (key, title, detail, button, to) for places that show a single thing.
+// Pure: the page passes what it knows. `tasks` are extra rows of the task list (the monologue, homework/taskList.js
+// shape), so home and „Ülesanded” never disagree.
 import { TASK_STATE, groupTasks, mergeTasks, taskCount } from '../homework/taskList.js';
 import { dailyPlan } from '../vocabulary/dailyReview.js';
+import { DAILY_GOAL_MINUTES } from '../practice/progress.js';
+import { toIsoDate } from '../calendar/calendarView.js';
 
 export const SOON_MINUTES = 30;
 export const DUE_SOON_DAYS = 2;
+export const STEP_ORDER = ['homework', 'words', 'sentences', 'course'];
+// „Harjuta” (owner 2026-11-09): the daily practice flow has its own tab; home's next step points there for practice
+export const PRACTICE_PATH = '/student/harjuta';
 const MINUTE = 60 * 1000;
-const ERROR_PREFIX = 'Sinu lause:';
+export const ERROR_PREFIX = 'Sinu lause:';
+const SENTENCE_MINUTES = 4;
+const COURSE_MINUTES = 10;
+// homework: each task by its own estimate (taskList minutes), else ~5 min; the step counts at most 10 min
+const TASK_MINUTES = 5;
+const HOMEWORK_MINUTES = 10;
 
 const clean = (value) => String(value ?? '').trim();
 const short = (text, max = 60) => { const t = clean(text); return t.length > max ? `${t.slice(0, max - 1)}…` : t; };
@@ -30,6 +45,9 @@ const addDays = (iso, days) => {
   date.setDate(date.getDate() + days);
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 };
+// a time from the server is UTC: the learner's own day (between midnight and 02:00 the UTC date is still yesterday)
+const dayOf = (value) => { const s = String(value || ''); if (s.length <= 10) return s; const d = new Date(s); return Number.isNaN(d.getTime()) ? s.slice(0, 10) : toIsoDate(d); };
+export const isOwnSentence = (word) => String(word?.translation || '').startsWith(ERROR_PREFIX);
 
 // the lesson going on now or starting within SOON_MINUTES (occurrences from calendarView)
 export function lessonNow(occurrences = [], now = Date.now()) {
@@ -48,10 +66,38 @@ export function lessonLaterToday(occurrences = [], today, now = Date.now()) {
 }
 
 // open work given by the teacher, the very list of „Ülesanded” (homework/taskList.js), so home and that page never
-// disagree; the monologue has its own place in the priority, so it is not counted here
+// disagree; the monologue has its own place in the order, so it is not counted here
 export function openWork({ homework = [], assignments = [], tasks = [] } = {}) {
   const extra = tasks.filter((task) => task && task.kind !== 'monologue');
-  return groupTasks([...mergeTasks({ homework, assignments }), ...extra]).todo.map((task) => ({ id: task.key, title: task.title, due: task.due }));
+  return groupTasks([...mergeTasks({ homework, assignments }), ...extra]).todo.map((task) => ({ id: task.key, title: task.title, due: task.due, minutes: task.minutes || 0 }));
+}
+
+const openMonologue = (tasks = []) => tasks.find((task) => task?.kind === 'monologue' && task.state === TASK_STATE.TODO) || null;
+
+/**
+ * The homework step's queue: overdue (oldest deadline first), due within DUE_SOON_DAYS, the monthly monologue, the rest
+ * in the order of „Tee nüüd”. Each: { id, title, due, minutes, to, kind: 'overdue' | 'due-soon' | 'monologue' | 'homework' }.
+ */
+export function homeworkQueue({ homework = [], assignments = [], tasks = [], today }) {
+  const work = openWork({ homework, assignments, tasks });
+  const soonDue = addDays(today, DUE_SOON_DAYS);
+  const byDue = (a, b) => a.due.localeCompare(b.due);
+  const overdue = work.filter((task) => task.due && task.due < today).sort(byDue);
+  const dueSoon = work.filter((task) => task.due && task.due >= today && task.due <= soonDue).sort(byDue);
+  const rest = work.filter((task) => !overdue.includes(task) && !dueSoon.includes(task));
+  const monologue = openMonologue(tasks);
+  return [
+    ...overdue.map((task) => ({ ...task, kind: 'overdue', to: '/homework' })),
+    ...dueSoon.map((task) => ({ ...task, kind: 'due-soon', to: '/homework' })),
+    ...(monologue ? [{ id: monologue.key, title: monologue.title || 'Kuu monoloog', due: monologue.due || '', minutes: 5, kind: 'monologue', to: monologue.to || '/homework' }] : []),
+    ...rest.map((task) => ({ ...task, kind: 'homework', to: '/homework' })),
+  ];
+}
+
+// work submitted or marked done today (the homework step is ticked by what really happened)
+export function workDoneToday({ homework = [], submissions = [], today }) {
+  return submissions.some((item) => dayOf(item.completedAt) === today)
+    || homework.some((item) => item.status === 'Tehtud' && dayOf(item.doneAt || item.submittedAt || item.updatedAt) === today);
 }
 
 // a self-study sheet the learner opened himself on „Kursus” and has not finished; the newest first
@@ -61,50 +107,117 @@ export function selfStudyOpen(assignments = []) {
     .filter((item) => item.source === 'self_study' && item.status !== 'done' && !item.completedAt)
     .sort((a, b) => stamp(b) - stamp(a))[0] || null;
 }
+const selfStudyDoneToday = (assignments = [], today) => assignments.some((item) => item.source === 'self_study' && dayOf(item.completedAt) === today);
+
+// the words step works on his own words; his own wrong sentences go to the sentences step
+export const ownWords = (words = []) => words.filter((word) => !isOwnSentence(word));
 
 const dayLabel = (iso) => {
   const date = new Date(`${iso}T12:00:00`);
   return Number.isNaN(date.getTime()) ? iso : date.toLocaleDateString('et-EE', { day: 'numeric', month: 'short' });
 };
 const lessonDetail = (lesson) => [lesson.teacher, `${lesson.duration || 60} min`].filter(Boolean).join(' · ');
+const cardsText = (n) => `${n} ${n === 1 ? 'kaart' : 'kaarti'}`;
 
-export function nextStep({ occurrences = [], homework = [], assignments = [], tasks = [], words = [], today, now = Date.now() }) {
+/**
+ * Today's flow. `sentences`: { available, own } — whether a practice lesson can be built for him (his level has course
+ * items, or he has own wrong sentences) and how many own sentences wait. `done`: step keys ticked today (progress.js).
+ * → { live, steps: [{ key, label, ru, detail, minutes, state: 'todo' | 'done' | 'empty', to, queue? }], todo, minutes,
+ *     goal, finished }
+ */
+export function todaySteps({
+  occurrences = [], homework = [], assignments = [], submissions = [], tasks = [], words = [], sentences = { available: false, own: 0 },
+  selfStudent = false, done = [], today, now = Date.now(),
+}) {
+  const ticked = new Set(done);
+  const live = lessonNow(occurrences, now);
+  const steps = [];
+
+  const queue = homeworkQueue({ homework, assignments, tasks, today });
+  const workToday = workDoneToday({ homework, submissions, today });
+  const late = queue.filter((task) => task.kind === 'overdue').length;
+  steps.push({
+    key: 'homework', label: 'Ülesanded', ru: 'задания', to: queue[0]?.to || '/homework', queue,
+    state: ticked.has('homework') || (workToday && !late) ? 'done' : queue.length ? 'todo' : 'empty',
+    detail: queue.length ? [short(queue[0].title, 48), queue[0].kind === 'overdue' ? `tähtaeg oli ${dayLabel(queue[0].due)}` : '', queue.length > 1 ? `kokku ${taskCount(queue.length)}` : ''].filter(Boolean).join(' · ') : workToday ? 'Tehtud täna' : '',
+    minutes: Math.min(HOMEWORK_MINUTES, queue.reduce((sum, task) => sum + (Number(task.minutes) > 0 ? Number(task.minutes) : TASK_MINUTES), 0)),
+  });
+
+  const daily = dailyPlan(ownWords(words), { now, today });
+  steps.push({
+    key: 'words', label: 'Sõnad', ru: 'слова', to: PRACTICE_PATH,
+    state: ticked.has('words') || daily.done ? 'done' : daily.count ? 'todo' : daily.reviewedToday ? 'done' : 'empty',
+    detail: daily.count ? [cardsText(daily.count), daily.forgotten ? `${daily.forgotten} ununeb` : ''].filter(Boolean).join(' · ') : daily.reviewedToday ? 'Korratud täna' : '',
+    minutes: daily.count ? Math.max(1, Math.min(5, Math.round(daily.count * 0.4))) : 0,
+  });
+
+  steps.push({
+    key: 'sentences', label: 'Laused ja grammatika', ru: 'фразы и грамматика', to: PRACTICE_PATH,
+    state: ticked.has('sentences') ? 'done' : sentences.available || sentences.own > 0 ? 'todo' : 'empty',
+    detail: sentences.own > 0 ? `${sentences.own} ${sentences.own === 1 ? 'sinu lause' : 'sinu lauset'} tunnist + harjutused` : sentences.available ? 'Lühike harjutus sinu tasemel' : '',
+    minutes: sentences.available || sentences.own > 0 ? SENTENCE_MINUTES : 0,
+  });
+
+  if (selfStudent) {
+    const open = selfStudyOpen(assignments);
+    steps.push({
+      key: 'course', label: 'Kursus', ru: 'курс', to: '/student/kursus',
+      state: ticked.has('course') || selfStudyDoneToday(assignments, today) ? 'done' : 'todo',
+      detail: open ? short(open.lessonTitle || open.title, 48) || 'Jätka alustatud tundi' : 'Järgmine tund kursusel',
+      minutes: COURSE_MINUTES,
+    });
+  }
+
+  const todo = steps.filter((step) => step.state === 'todo');
+  const active = steps.filter((step) => step.state !== 'empty');
+  return {
+    live: live ? { ...live, started: startOf(live) <= now } : null,
+    steps,
+    todo,
+    minutes: todo.reduce((sum, step) => sum + step.minutes, 0),
+    goal: DAILY_GOAL_MINUTES,
+    // all that could be done today is done (a day with nothing at all is not „finished”)
+    finished: active.length > 0 && todo.length === 0,
+  };
+}
+
+/** One line: the first thing to do now (the walking pet's hint and anything else that shows a single next step). */
+export function nextStep({ occurrences = [], homework = [], assignments = [], tasks = [], words = [], sentences = { available: false, own: 0 }, done = [], today, now = Date.now() }) {
   const soon = lessonNow(occurrences, now);
   if (soon) {
     const started = startOf(soon) <= now;
-    return { key: 'lesson', title: started ? 'Tund käib praegu' : `Tund algab kell ${soon.time}`, detail: lessonDetail(soon), button: 'Ava tund', to: '/live-classroom' };
+    return { key: 'lesson', title: started ? 'Tund käib praegu' : `Tund algab kell ${soon.time}`, detail: lessonDetail(soon), button: 'Ava tund', to: '/live-classroom', lesson: soon };
   }
-  const work = openWork({ homework, assignments, tasks });
+  const queue = homeworkQueue({ homework, assignments, tasks, today });
+  const work = queue.filter((task) => task.kind !== 'monologue');
   const more = work.length > 1 ? `kokku ${taskCount(work.length)}` : '';
-  const overdue = work.filter((task) => task.due && task.due < today).sort((a, b) => a.due.localeCompare(b.due));
-  if (overdue.length) {
-    return { key: 'overdue', title: short(overdue[0].title), detail: [`Tähtaeg oli ${dayLabel(overdue[0].due)}`, more].filter(Boolean).join(' · '), button: 'Tee ära', to: '/homework' };
-  }
-  const soonDue = addDays(today, DUE_SOON_DAYS);
-  const dueSoon = work.filter((task) => task.due && task.due <= soonDue).sort((a, b) => a.due.localeCompare(b.due));
-  if (dueSoon.length) {
-    const first = dueSoon[0];
-    const when = first.due === today ? 'Tähtaeg täna' : first.due === addDays(today, 1) ? 'Tähtaeg homme' : `Tähtaeg ${dayLabel(first.due)}`;
-    return { key: 'due-soon', title: short(first.title), detail: [when, more].filter(Boolean).join(' · '), button: 'Tee ära', to: '/homework' };
+  const first = (kind) => queue.find((task) => task.kind === kind);
+  const overdue = first('overdue');
+  if (overdue) return { key: 'overdue', title: short(overdue.title), detail: [`Tähtaeg oli ${dayLabel(overdue.due)}`, more].filter(Boolean).join(' · '), button: 'Tee ära', to: '/homework' };
+  const dueSoon = first('due-soon');
+  if (dueSoon) {
+    const when = dueSoon.due === today ? 'Tähtaeg täna' : dueSoon.due === addDays(today, 1) ? 'Tähtaeg homme' : `Tähtaeg ${dayLabel(dueSoon.due)}`;
+    return { key: 'due-soon', title: short(dueSoon.title), detail: [when, more].filter(Boolean).join(' · '), button: 'Tee ära', to: '/homework' };
   }
   const later = lessonLaterToday(occurrences, today, now);
-  if (later) {
-    return { key: 'lesson-today', title: `Täna kell ${later.time} on tund`, detail: lessonDetail(later), button: 'Vaata tunniplaani', to: '#tunniplaan' };
-  }
-  const monologue = tasks.find((task) => task?.kind === 'monologue' && task.state === TASK_STATE.TODO);
+  if (later) return { key: 'lesson-today', title: `Täna kell ${later.time} on tund`, detail: lessonDetail(later), button: 'Vaata tunniplaani', to: '#tunniplaan' };
+  const monologue = first('monologue');
   if (monologue) {
     const detail = [monologue.due ? `Tähtaeg ${dayLabel(monologue.due)}` : '', 'räägi 2 minutit'].filter(Boolean).join(' · ');
-    return { key: 'monologue', title: short(monologue.title) || 'Kuu monoloog', detail, button: 'Salvesta', to: monologue.to || '/homework' };
+    return { key: 'monologue', title: short(monologue.title) || 'Kuu monoloog', detail, button: 'Salvesta', to: monologue.to };
   }
-  if (work.length) {
-    const first = work[0]; // the order of „Tee nüüd”: without deadlines the oldest lesson first, not the last one given
-    const detail = [first.due ? `Tähtaeg ${dayLabel(first.due)}` : '', more].filter(Boolean).join(' · ') || 'Õpetaja andis selle sulle';
-    return { key: 'homework', title: short(first.title), detail, button: 'Tee ära', to: '/homework' };
+  const rest = first('homework');
+  if (rest) {
+    // the order of „Tee nüüd”: without deadlines the oldest lesson first, not the last one given
+    const detail = [rest.due ? `Tähtaeg ${dayLabel(rest.due)}` : '', more].filter(Boolean).join(' · ') || 'Õpetaja andis selle sulle';
+    return { key: 'homework', title: short(rest.title), detail, button: 'Tee ära', to: '/homework' };
   }
-  const daily = dailyPlan(words, { now, today });
-  if (daily.count && !daily.done) {
-    const cards = `${daily.count} ${daily.count === 1 ? 'kaart' : 'kaarti'}`;
-    return { key: 'review', title: 'Korda sõnu', detail: `${cards}, umbes 5 minutit`, button: 'Alusta', to: daily.count >= 2 ? '/student/sonavara?paev=1' : '/student/sonavara' };
+  const daily = dailyPlan(ownWords(words), { now, today });
+  if (daily.count && !daily.done && !done.includes('words')) {
+    return { key: 'review', title: 'Korda sõnu', detail: `${cardsText(daily.count)}, umbes 5 minutit`, button: 'Harjuta', to: PRACTICE_PATH };
+  }
+  if ((sentences.available || sentences.own > 0) && !done.includes('sentences')) {
+    return { key: 'sentences', title: 'Laused ja grammatika', detail: 'Lühike harjutus, umbes 4 minutit', button: 'Harjuta', to: PRACTICE_PATH };
   }
   const course = selfStudyOpen(assignments);
   if (course) {
@@ -126,7 +239,7 @@ export function newFeedback(submissions = [], seenAt = 0, now = Date.now()) {
   return submissions.filter((item) => item.reviewStatus === 'reviewed' && (item.teacherFeedback || item.teacherGrade) && (Date.parse(item.reviewedAt || '') || 0) > from);
 }
 
-// The quiet lines under the first screen: each appears only when there is something (never an empty block).
+// The quiet lines at the bottom of „Täna”: each appears only when there is something (never an empty block).
 export function homeNotes({ feedback = [], announcements = [], unpaidCents = 0, money = (cents) => String(cents) } = {}) {
   const notes = [];
   if (feedback.length) {
@@ -142,20 +255,22 @@ export function homeNotes({ feedback = [], announcements = [], unpaidCents = 0, 
 }
 
 /**
- * „Minu õppimine” under the first screen (owner 2026-11-01: the cabinet was overloaded): one short row per section with
- * a small count instead of long blocks. Every section stays one tap away; a count appears only when it is not zero.
- * `path` is todayPath(): its line for tasks, words and mistakes says what was done today.
+ * „Minu õppimine” under the home's first screen (owner 2026-11-01: the cabinet was overloaded): one short row per section
+ * with a small count instead of long blocks. Every section stays one tap away; a count appears only when it is not zero.
+ * Since 2026-11-09 the day's words are practised in „Harjuta” (one flow), so the words row leads there while cards wait.
  */
-export function homeSections({ homework = [], assignments = [], tasks = [], words = [], path = null, today, now = Date.now() } = {}) {
-  const step = (key) => path?.steps?.find((item) => item.key === key) || null;
-  const open = openWork({ homework, assignments, tasks }).length + tasks.filter((task) => task?.kind === 'monologue' && task.state === TASK_STATE.TODO).length;
-  const daily = dailyPlan(words, { now, today });
-  const mistakes = words.filter((word) => String(word.translation || '').startsWith(ERROR_PREFIX)).length;
+export function homeSections({ homework = [], assignments = [], submissions = [], tasks = [], words = [], mistakesDoneToday = false, done = [], today, now = Date.now() } = {}) {
+  const open = openWork({ homework, assignments, tasks }).length + (openMonologue(tasks) ? 1 : 0);
+  const daily = dailyPlan(ownWords(words), { now, today });
+  const mistakes = words.filter(isOwnSentence).length;
+  const workToday = workDoneToday({ homework, submissions, today });
+  const wordsDone = daily.done || done.includes('words');
+  const fixed = mistakesDoneToday || done.includes('sentences');
   const own = words.length - mistakes;
   return [
-    { key: 'tasks', label: 'Ülesanded', to: '/homework', count: open, detail: step('work')?.done ? 'tehtud täna' : open ? 'ootab tegemist' : 'mida õpetaja andis', done: Boolean(step('work')?.done) },
-    { key: 'words', label: 'Sõnad', to: '/student/sonavara', count: daily.done ? 0 : daily.count, detail: daily.done ? 'korratud täna' : daily.count ? 'kaarti kordamiseks' : own ? `${own} sõna` : 'lisa oma sõna', done: daily.done },
-    { key: 'mistakes', label: 'Minu vead', to: '/student/vead', count: mistakes, detail: step('mistakes')?.done ? 'harjutatud täna' : mistakes ? 'lauset tundidest' : 'märkmed tunnist', done: Boolean(step('mistakes')?.done) },
+    { key: 'tasks', label: 'Ülesanded', to: '/homework', count: open, detail: workToday ? 'tehtud täna' : open ? 'ootab tegemist' : 'mida õpetaja andis', done: workToday },
+    { key: 'words', label: 'Sõnad', to: daily.count && !wordsDone ? PRACTICE_PATH : '/student/sonavara', count: wordsDone ? 0 : daily.count, detail: wordsDone ? 'korratud täna' : daily.count ? 'kaarti kordamiseks' : own ? own + ' sõna' : 'lisa oma sõna', done: wordsDone },
+    { key: 'mistakes', label: 'Minu vead', to: '/student/vead', count: mistakes, detail: fixed ? 'harjutatud täna' : mistakes ? 'lauset tundidest' : 'märkmed tunnist', done: fixed },
     { key: 'boards', label: 'Tunni tahvlid', to: '/board', count: 0, detail: 'tundide lehed', done: false },
     { key: 'progress', label: 'Minu areng', to: '/student/areng', count: 0, detail: 'vaata, kuidas läheb', done: false },
   ];

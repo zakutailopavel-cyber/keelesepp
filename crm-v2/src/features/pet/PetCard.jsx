@@ -16,6 +16,7 @@ import { homeworkService } from '../../services/firebase/homework.js';
 import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
 import { roomSvg } from './petRoom.js';
 import { seasonalWear } from './petLife.js';
+import { usePracticeProgress } from '../practice/usePracticeProgress.js';
 import './pet.css';
 
 // Estonian: singular after 1, partitive otherwise (1 tund, 3 tundi)
@@ -77,6 +78,8 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
   const [mood, setMood] = useState('calm');
   const material = usePetMaterial({ uid: user?.uid, studentId, readOnly, lessons, repository, assignmentsService, courseSheets });
   const { speech, topics } = material;
+  // one progress meter (owner 2026-11-09): the level counts the „Täna” practice XP too; the streak is days with a step done
+  const { xp: practiceXp, streak } = usePracticeProgress(user, { readOnly });
   useEffect(() => {
     let alive = true;
     Promise.resolve().then(() => repository.get(user?.uid))
@@ -107,7 +110,7 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
     return <Card className="pet-card"><PetPicker initial={pet} onSave={save} onCancel={pet?.kind ? () => setEditing(false) : null} onDecline={pet?.kind ? null : decline} saving={saving} error={error} /></Card>;
   }
 
-  const progress = petProgress({ lessons, submissions, homework, words, speech });
+  const progress = petProgress({ lessons, submissions, homework, words, speech, practiceXp });
   const changeOutfit = async (next) => {
     const saved = await repository.updateOutfit({ uid: user.uid, current: pet, ...next });
     setPet(saved);
@@ -124,10 +127,10 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
         <div className="pet-page__room"><PetRoom progress={progress} pet={pet} mood={mood} /></div>
         <div className="pet-home__body">
           <PetLoop user={user} studentId={studentId} pet={pet} variant="page" readOnly={readOnly} lessons={lessons} submissions={submissions} homework={homework} words={words} subject={subject}
-            pendingHomework={pendingHomework} lessonToday={lessonToday} material={material} repository={repository} wordsService={wordsService} onPetChange={setPet} onMood={setMood} />
+            pendingHomework={pendingHomework} lessonToday={lessonToday} material={material} repository={repository} practiceXp={practiceXp} streak={streak} onPetChange={setPet} onMood={setMood} />
           <div className="pet-page__meta">
             <span>{STAGES[progress.stage]}</span>
-            {progress.streak ? <span className="pet-stat is-hot"><Flame size={14} aria-hidden="true" /> {count(progress.streak, 'päev', 'päeva')} järjest</span> : null}
+            {streak ? <span className="pet-stat is-hot"><Flame size={14} aria-hidden="true" /> {count(streak, 'päev', 'päeva')} järjest</span> : null}
             <span><Star size={14} aria-hidden="true" /> {progress.stars} tähte</span>
             <span>{count(progress.learnedWords, 'õpitud sõna', 'õpitud sõna')}</span>
             <span>{count(progress.lessons, 'tund', 'tundi')}</span>

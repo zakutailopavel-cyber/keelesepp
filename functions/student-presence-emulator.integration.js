@@ -58,6 +58,34 @@ test('last visit and the practice result on the own account only', async () => {
   assert.equal(await patch(other, learner.uid, 'practice', enc({ errorsDate: '2026-10-23', errorsPct: 10 })), 403);
 });
 
+// „Täna” (crm-v2/src/features/practice/progress.js): today's steps and practice XP, capped per day, only growing
+test('„Täna” progress: steps and XP within the day cap, never backwards', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const learner = await account('student');
+  const iso = (ms) => new Date(ms).toISOString().slice(0, 10);
+  const dayOf = (date) => Math.floor(Date.parse(`${date}T00:00:00Z`) / 86400000);
+  const date = iso(Date.now());
+  const day = dayOf(date);
+  const today = (extra = {}) => ({ date, day, done: ['words'], xp: 10, ...extra });
+  assert.equal(await patch(learner, learner.uid, 'practice', enc({ today: today(), xp: 10, learnDays: [date] })), 200);
+  // more XP than the day gained, over the cap, an unknown step, a far future day: refused
+  assert.equal(await patch(learner, learner.uid, 'practice', enc({ today: today({ xp: 15 }), xp: 30, learnDays: [date] })), 403);
+  assert.equal(await patch(learner, learner.uid, 'practice', enc({ today: today({ xp: 31 }), xp: 31, learnDays: [date] })), 403);
+  assert.equal(await patch(learner, learner.uid, 'practice', enc({ today: today({ done: ['words', 'stars'] }), xp: 10, learnDays: [date] })), 403);
+  const far = iso(Date.now() + 5 * 86400000);
+  assert.equal(await patch(learner, learner.uid, 'practice', enc({ today: { date: far, day: dayOf(far), done: [], xp: 30 }, xp: 40, learnDays: [date] })), 403);
+  // the total never goes down
+  assert.equal(await patch(learner, learner.uid, 'practice', enc({ today: today(), xp: 5, learnDays: [date] })), 403);
+  // a real gain within the cap: allowed; the old „Minu vead” keys still fit next to it
+  assert.equal(await patch(learner, learner.uid, 'practice', enc({ today: today({ done: ['words', 'sentences'], xp: 18 }), xp: 18, learnDays: [date], errorsDate: date, errorsPct: 70 })), 200);
+  const saved = (await admin.firestore().doc(`users/${learner.uid}`).get()).data().practice;
+  assert.equal(saved.xp, 18);
+  assert.deepEqual(saved.today.done, ['words', 'sentences']);
+  // an earlier day than the stored one: refused
+  const before = iso(Date.now() - 3 * 86400000);
+  assert.equal(await patch(learner, learner.uid, 'practice', enc({ today: { date: before, day: dayOf(before), done: [], xp: 30 }, xp: 48, learnDays: [date] })), 403);
+});
+
 test('staff read many accounts at once (the students list), a student cannot', async () => {
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
   const teacher = await account('teacher');

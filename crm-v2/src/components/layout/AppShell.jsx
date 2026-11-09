@@ -21,6 +21,8 @@ import './appShell.css';
 // staff only
 const NotificationCenter = lazyComponent(() => import('./NotificationCenter.jsx'));
 const PetCompanion = lazyComponent(() => import('../../features/pet/PetCompanion.jsx'));
+// students only: practice XP of every finished word round / sentence lesson for the pet's level (features/practice/progress.js)
+const PracticeRecorder = lazyComponent(() => import('../../features/practice/PracticeRecorder.jsx'));
 // staff only: the student search, the right-click menu and the administrator's menu counts download for them only, so a
 // student's or parent's first load (and the login page) does not carry the calendar, lesson and finance code they use
 const GlobalStudentSearch = lazyComponent(() => import('./GlobalStudentSearch.jsx'));
@@ -135,7 +137,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
           {showNotifications ? <div className="topbar-actions"><Suspense fallback={null}><NotificationCenter user={user} /></Suspense></div> : null}
         </header>
         <div className={preview?.readOnly ? 'preview-surface preview-surface--readonly' : 'preview-surface'} onClickCapture={blockPreviewButtons} onSubmitCapture={(event) => { if (preview?.readOnly) { event.preventDefault(); event.stopPropagation(); } }}><Outlet /></div>
-        {user.roles?.includes('student') && !preview ? <Suspense fallback={null}><PetCompanion /></Suspense> : null}
+        {user.roles?.includes('student') && !preview ? <Suspense fallback={null}><PetCompanion /><PracticeRecorder /></Suspense> : null}
       </main>
     </div>
     </MissingDataGate>

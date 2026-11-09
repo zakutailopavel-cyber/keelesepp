@@ -14,7 +14,7 @@ import { PAGE_HINTS, TOUR_STEPS, celebrationHint, companionHere, companionHint, 
 import { REACTIONS, dayPart, lifeLines, nextLesson, season, seasonalWear } from './petLife.js';
 import { PET_CELEBRATE_EVENT, PET_EVENT, PET_QUIET_EVENT, PET_REACT_EVENT } from './petEvents.js';
 import './pet.css';
-import { isHomeworkOpen } from '../homework/homeworkStatus.js';
+import { nextStep } from '../students/nextStep.js';
 
 const SIZE = 92;
 const store = {
@@ -120,7 +120,7 @@ export default function PetCompanion({
   const [celebration, setCelebration] = useState(null);
   const [seenPages, setSeenPages] = useState(() => new Set(Object.keys(PAGE_HINTS).filter((path) => store.get(`ks-pet-page-${uid}-${path}`) === '1')));
   const [invites, setInvites] = useState([]);
-  const [info, setInfo] = useState({ lessons: [], dueToday: 0, overdue: 0, lang: 'et' });
+  const [info, setInfo] = useState({ upcoming: [], homework: [], sheets: [], words: [], lang: 'et' });
   const [tick, setTick] = useState(() => nowProp || Date.now());
   const [tipIndex, setTipIndex] = useState(0);
   const [openHint, setOpenHint] = useState(null);
@@ -209,16 +209,11 @@ export default function PetCompanion({
       ]);
       const today = toIsoDate();
       const upcoming = occurrencesForDates(scheduleLists.flat(), Array.from({ length: 14 }, (_, i) => shiftDate(today, i)));
-      const lessons = upcoming.filter((l) => l.occurrenceDate === today);
       const [words, speech] = await Promise.all([
         ids[0] && wordsService?.listForStudent ? wordsService.listForStudent(ids[0]).catch(() => []) : [],
         pets.lessonStats ? Promise.resolve().then(() => pets.lessonStats(uid)).catch(() => []) : [],
       ]);
-      const open = [
-        ...hw.filter(isHomeworkOpen).map((h) => h.due),
-        ...sheets.filter((w) => w.status !== 'done').map((w) => w.dueDate),
-      ].filter(Boolean);
-      if (alive) setInfo({ loaded: true, upcoming, words, speech, lessons, dueToday: open.filter((d) => d === today).length, overdue: open.filter((d) => d < today).length, lang: /inglise|english/i.test(mine[0]?.subject || '') ? 'en' : 'et' });
+      if (alive) setInfo({ loaded: true, upcoming, words, speech, homework: hw, sheets: sheets || [], lang: /inglise|english/i.test(mine[0]?.subject || '') ? 'en' : 'et' });
     })().catch(() => {});
     return () => { alive = false; };
   }, [here, homework, isStudent, pet, pets, schedule, students, uid, wordsService]);
@@ -234,7 +229,9 @@ export default function PetCompanion({
 
   const invitation = useMemo(() => newestInvitation(invites.map((i) => normalizeInvitation(i.id, i, tick)), [INVITATION_STATUS.PENDING]), [invites, tick]);
   const personal = useMemo(() => (info.loaded ? lifeLines({ now: tick, lastSeenAt, lesson: nextLesson(info.upcoming, tick), speech: info.speech, words: info.words, lang: info.lang }) : []), [info, lastSeenAt, tick]);
-  const hint = companionHint({ now: tick, invitation, todayLessons: info.lessons, dueToday: info.dueToday, overdue: info.overdue, petName: pet?.name || '', tipIndex, lang: info.lang, personal });
+  // what to do next comes from the one decider (students/nextStep.js), the same as „Täna”
+  const next = useMemo(() => (info.loaded ? nextStep({ occurrences: info.upcoming, homework: info.homework, assignments: info.sheets, words: info.words, today: toIsoDate(new Date(tick)), now: tick }) : null), [info, tick]);
+  const hint = companionHint({ now: tick, invitation, next, petName: pet?.name || '', tipIndex, lang: info.lang, personal });
 
   const laneWidth = useCallback(() => Math.max(0, (laneRef.current?.clientWidth || 0) - SIZE - 16), []);
 

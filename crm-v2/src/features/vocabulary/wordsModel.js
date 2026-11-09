@@ -69,12 +69,6 @@ export function isDue(word, now = Date.now()) {
   return !Number.isFinite(due) || due <= now;
 }
 
-// due words first (the oldest due first), then the rest by box
-export function practiceOrder(words = [], now = Date.now()) {
-  return [...words].filter((word) => isDue(word, now))
-    .sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt)) || a.box - b.box);
-}
-
 export function newestFirst(words = []) {
   return [...words].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
 }
@@ -82,17 +76,4 @@ export function newestFirst(words = []) {
 export function sameWord(words = [], word = '') {
   const key = text(word, WORD_LIMITS.word).toLocaleLowerCase('et');
   return key ? words.find((item) => item.word.toLocaleLowerCase('et') === key) || null : null;
-}
-
-// A practice question for a word with forms: alternate between the meaning card and one of its forms
-// (the base form is not asked). Deterministic per word and review count, so a reload asks the same.
-export function formQuestion(word) {
-  const asked = (word?.formItems || []).filter((item) => item.code !== 'SgN' && item.code !== 'Sup' && item.value !== word.word);
-  if (!asked.length || (word.reviews || 0) % 2 === 0) return null;
-  return asked[Math.floor((word.reviews || 0) / 2) % asked.length];
-}
-
-export function sameForm(answer, expected) {
-  const norm = (value) => String(value || '').trim().toLocaleLowerCase('et').replace(/\s+/g, ' ');
-  return Boolean(norm(answer)) && norm(expected).split(/\s*[,/]\s*/).includes(norm(answer));
 }
