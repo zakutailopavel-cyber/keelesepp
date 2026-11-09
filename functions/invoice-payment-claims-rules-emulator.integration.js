@@ -1,7 +1,7 @@
 'use strict';
 // „Maksin ära” (invoicePaymentClaims/{invoiceId}, owner 2026-11-09) against the real Firestore rules: the parent who
 // owns the invoice (own parentUid or linked on the student card) writes it once with the own uid and the server time,
-// never edits or deletes it; another family, a teacher and a cancelled invoice are refused; the administrator and the
+// never edits or deletes it (only the administrator deletes it); another family, a teacher and a cancelled invoice are refused; the administrator and the
 // bookkeeper read every claim but cannot write one; the invoice itself is untouched.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -42,7 +42,7 @@ function write(who, id, data, { serverTime = true, exists } = {}) {
 const get = (who, path) => fetch(`${base()}/${path}`, { headers: { Authorization: `Bearer ${who.token}` } }).then((r) => r.status);
 const del = (who, id) => fetch(`${base()}/invoicePaymentClaims/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${who.token}` } }).then((r) => r.status);
 
-test('payment claims: the invoice owner writes once, staff read, nobody edits or deletes', async () => {
+test('payment claims: the invoice owner writes once, staff read, nobody edits, only the administrator deletes', async () => {
   safe();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
   const store = admin.firestore();
@@ -85,11 +85,17 @@ test('payment claims: the invoice owner writes once, staff read, nobody edits or
   assert.equal(await get(books, `invoicePaymentClaims/${viaCard}`), 200, 'bookkeeper reads');
   assert.equal(await get(cardParent, `invoicePaymentClaims/${id}`), 403, 'the card parent of another invoice does not read it');
   assert.equal(await del(parent, id), 403, 'the owner cannot delete');
-  assert.equal(await del(boss, id), 403, 'nobody deletes in the browser');
+  assert.equal(await del(books, id), 403, 'the bookkeeper cannot delete');
+  assert.equal(await del(teacher, id), 403, 'a teacher cannot delete');
 
   const saved = (await store.doc(`invoicePaymentClaims/${id}`).get()).data();
   assert.equal(saved.claimedByUid, parent.uid);
   assert.ok(saved.claimedAt && typeof saved.claimedAt.toDate === 'function', 'claimedAt is the server time');
+
+  // „Eemalda teade”: only the administrator clears a mistaken notice; the parent may then send it again
+  assert.equal(await del(boss, id), 200, 'the administrator deletes');
+  assert.equal((await store.doc(`invoicePaymentClaims/${id}`).get()).exists, false);
+  assert.equal(await write(parent, id, claim(id, parent.uid)), 200, 'after removal the owner can claim again');
   const after = (await store.doc(`invoices/${id}`).get()).data();
   assert.equal(after.status, 'Ootel', 'the invoice stays unpaid');
   assert.equal(after.paidAmountCents, 0);

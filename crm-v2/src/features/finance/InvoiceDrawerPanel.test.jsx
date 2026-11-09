@@ -58,6 +58,23 @@ describe('InvoiceDrawerPanel (the side drawer’s invoice)', () => {
     expect(claimsRepository.get).toHaveBeenCalledWith('i1');
   });
 
+  it('the administrator removes the notice after confirming; the accountant sees it without the button', async () => {
+    const claim = { id: 'i1', invoiceId: 'i1', claimedByName: 'Mia Ema', claimedAt: '2026-11-08T10:00:00.000Z' };
+    const claimsRepository = { get: vi.fn().mockResolvedValueOnce(claim).mockResolvedValue(null), remove: vi.fn().mockResolvedValue() };
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    const { unmount } = renderPanel({ invoiceRepository: { get: vi.fn(async () => invoice) }, deliveryRepository: { pdf: vi.fn(() => new Promise(() => {})) }, claimsRepository });
+    fireEvent.click(await screen.findByRole('button', { name: 'Eemalda teade' }));
+    await waitFor(() => expect(claimsRepository.remove).toHaveBeenCalledWith('i1'));
+    expect(confirm.mock.calls[0][0]).toContain('26-014');
+    expect(await screen.findByText('Pere teade eemaldati.')).toBeInTheDocument();
+    expect(screen.queryByText('Pere: makstud?')).toBeNull();
+    confirm.mockRestore();
+    unmount();
+    renderPanel({ invoiceRepository: { get: vi.fn(async () => invoice) }, deliveryRepository: { pdf: vi.fn() }, claimsRepository: { get: vi.fn(async () => claim), remove: vi.fn() } }, ['finance']);
+    expect(await screen.findByText('Pere: makstud?')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Eemalda teade' })).toBeNull();
+  });
+
   it('no notice when there is none or it cannot be read', async () => {
     const claimsRepository = { get: vi.fn(async () => { throw new Error('Missing or insufficient permissions.'); }) };
     renderPanel({ invoiceRepository: { get: vi.fn(async () => invoice) }, deliveryRepository: { pdf: vi.fn(() => new Promise(() => {})) }, claimsRepository });

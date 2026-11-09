@@ -1,6 +1,7 @@
-import { FileUp, History, Mail, Pencil, Trash2 } from 'lucide-react';
+import { FileUp, History, Mail, Pencil, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, Modal } from '../../components/ui/index.js';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { displayDate } from './finance.js';
 import { financeRowState, sortFinanceRows } from './financeRows.js';
 import { debtAgeBuckets, debtsByPayer, pastDueInvoices } from './financeDebts.js';
@@ -62,7 +63,7 @@ function DebtInvoiceEditDialog({ invoice, busy, error, canDue, canCredit, canCre
   </Modal>;
 }
 
-export default function FinanceDebtsPanel({ month, invoices, students, transactions, onAllocate, onReload, onRemind, onCancel, onCorrectDueDate, onCreditLessonLine, onCreditInFull, onCorrectInvoice, claimsRepository = invoicePaymentClaimsService }) {
+export default function FinanceDebtsPanel({ month, invoices, students, transactions, onAllocate, onReload, onRemind, onCancel, onCorrectDueDate, onCreditLessonLine, onCreditInFull, onCorrectInvoice, claimsRepository = invoicePaymentClaimsService, canRemoveClaims = false }) {
   const [importOpen, setImportOpen] = useState(false);
   const [editInvoice, setEditInvoice] = useState(null);
   const [editError, setEditError] = useState('');
@@ -83,6 +84,18 @@ export default function FinanceDebtsPanel({ month, invoices, students, transacti
     Promise.resolve().then(() => claimsRepository.list()).then((found) => live && setClaims(found instanceof Map ? found : new Map())).catch(() => {});
     return () => { live = false; };
   }, [claimsRepository]);
+  // „Eemalda teade” (administrator): a mistaken notice is deleted; the parent sees „Maksin ära” again
+  const removeClaim = async (invoice) => {
+    const label = invoice.num || invoice.number || '';
+    if (!(await askConfirm(`Eemaldada pere teade „Maksin ära” arvelt ${label}? Arve ja maksed ei muutu; pere saab teate uuesti saata.`, { confirmLabel: 'Eemalda teade', danger: true }))) return;
+    setBusy(`claim-${invoice.id}`); setNotice('');
+    try {
+      await claimsRepository.remove(invoice.id);
+      setClaims((current) => { const next = new Map(current); next.delete(invoice.id); return next; });
+      setNotice(`Pere teade arvelt ${label} eemaldati.`);
+    } catch (error) { setNotice(error.message || 'Teadet ei saanud eemaldada.'); }
+    finally { setBusy(''); }
+  };
   // every unpaid invoice a family says it has paid, of any month (also this month's, which are not in the list below)
   const claimed = useMemo(() => sortFinanceRows(invoices.filter((invoice) => invoice.status !== 'Tühistatud' && openPaymentClaim(claims, invoice, financeRowState(invoice).balanceCents)), 'dueDate'), [claims, invoices]);
   const remind = async (invoice) => {
@@ -129,7 +142,7 @@ export default function FinanceDebtsPanel({ month, invoices, students, transacti
       {claimed.length ? <section className="finance-debts__claims" aria-label="Pere teated: makstud">
         <h3>Pere teatas „Maksin ära” · {claimed.length}</h3>
         <p>Arve on veel tasumata: kontrolli pangast ja lisa makse (Arved → arve → „Lisa makse”). Teade ise arvet makstuks ei märgi.</p>
-        <ul>{claimed.map((invoice) => { const claim = claims.get(invoice.id); const label = invoice.num || invoice.number || ''; return <li key={invoice.id} data-entity="invoice" data-invoice-id={invoice.id} data-invoice-number={label || undefined} data-student-id={invoice.studentId || undefined}><PaymentClaimBadge claim={claim} /><span><b>{invoice.studentName || invoice.payerName || '—'}</b> · {label || '—'} · {money(financeRowState(invoice).balanceCents)}</span><small>{paymentClaimTitle(claim)}</small></li>; })}</ul>
+        <ul>{claimed.map((invoice) => { const claim = claims.get(invoice.id); const label = invoice.num || invoice.number || ''; return <li key={invoice.id} data-entity="invoice" data-invoice-id={invoice.id} data-invoice-number={label || undefined} data-student-id={invoice.studentId || undefined}><PaymentClaimBadge claim={claim} /><span><b>{invoice.studentName || invoice.payerName || '—'}</b> · {label || '—'} · {money(financeRowState(invoice).balanceCents)}</span><small>{paymentClaimTitle(claim)}</small>{canRemoveClaims ? <Button variant="secondary" loading={busy === `claim-${invoice.id}`} onClick={() => removeClaim(invoice)} aria-label={`Eemalda pere teade arvelt ${label}`}><X size={15} /> Eemalda teade</Button> : null}</li>; })}</ul>
       </section> : null}
       {debts.length ? <div className="finance-debts__summary">
         <ul className="finance-debts__ages" aria-label="Võlgade vanus">{ages.map((bucket) => <li key={bucket.id} className={`is-${bucket.id}${bucket.count ? '' : ' is-empty'}`}><span>{bucket.label}</span><strong>{money(bucket.cents)}</strong><small>{bucket.count} arvet</small></li>)}</ul>

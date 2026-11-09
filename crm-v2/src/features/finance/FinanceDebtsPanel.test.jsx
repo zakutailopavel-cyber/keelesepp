@@ -223,6 +223,28 @@ describe('FinanceDebtsPanel · „Maksin ära” from the parents (owner 2026-11
     expect(within(row).getByText(/^(Üle tähtaja|Tasumata)$/)).toBeInTheDocument();
   });
 
+  it('the administrator removes a mistaken notice after confirming; the accountant has no button', async () => {
+    const claims = new Map([['old', { id: 'old', invoiceId: 'old', claimedByName: 'Mari Ema', claimedAt: '2031-10-05T09:00:00.000Z' }]]);
+    const claimsRepository = { list: vi.fn().mockResolvedValue(claims), remove: vi.fn().mockResolvedValue() };
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true);
+    const { unmount } = render(<FinanceDebtsPanel canRemoveClaims month="2031-10" invoices={invoices} students={[]} onReload={vi.fn()} claimsRepository={claimsRepository} />);
+    const block = await screen.findByRole('region', { name: 'Pere teated: makstud' });
+    fireEvent.click(within(block).getByRole('button', { name: 'Eemalda pere teade arvelt AR-1' }));
+    await waitFor(() => expect(confirm).toHaveBeenCalledTimes(1));
+    expect(confirm.mock.calls[0][0]).toContain('Arve ja maksed ei muutu');
+    expect(claimsRepository.remove).not.toHaveBeenCalled();
+    fireEvent.click(within(block).getByRole('button', { name: 'Eemalda pere teade arvelt AR-1' }));
+    await waitFor(() => expect(claimsRepository.remove).toHaveBeenCalledWith('old'));
+    expect(await screen.findByText('Pere teade arvelt AR-1 eemaldati.')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Pere teated: makstud' })).toBeNull();
+    expect(screen.queryByText('Pere: makstud?')).toBeNull();
+    confirm.mockRestore();
+    unmount();
+    render(<FinanceDebtsPanel month="2031-10" invoices={invoices} students={[]} claimsRepository={{ list: vi.fn().mockResolvedValue(claims), remove: vi.fn() }} />);
+    expect(await screen.findByRole('region', { name: 'Pere teated: makstud' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Eemalda/ })).toBeNull();
+  });
+
   it('shows nothing extra without claims or when they cannot be read', async () => {
     const claimsRepository = { list: vi.fn().mockRejectedValue(new Error('Missing or insufficient permissions.')) };
     render(<FinanceDebtsPanel month="2031-10" invoices={invoices} students={[]} claimsRepository={claimsRepository} />);

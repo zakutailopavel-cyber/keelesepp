@@ -1,9 +1,9 @@
-import { collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 
 // „Maksin ära” (owner 2026-11-09): the parent who owns an invoice says it was paid. invoicePaymentClaims/{invoiceId} —
-// one per invoice, written once by its owner (own uid, server time, optional short note) and never edited or deleted in
-// the browser (firestore.rules). It is ONLY a notice: the invoice, its payments and the books stay untouched; the
+// one per invoice, written once by its owner (own uid, server time, optional short note), never edited; only the
+// administrator may delete it („Eemalda teade”, coordinator 2026-11-09) (firestore.rules). It is ONLY a notice: the invoice, its payments and the books stay untouched; the
 // administrator checks the bank and adds the payment. No e-mail or message is sent.
 export const PAYMENT_CLAIM_NOTE_MAX = 300;
 
@@ -50,6 +50,11 @@ export const invoicePaymentClaimsService = {
     const record = paymentClaimRecord(invoiceId, note, user?.uid ? user : (auth?.currentUser || {}));
     await setDoc(doc(db, 'invoicePaymentClaims', record.invoiceId), { ...record, claimedAt: serverTimestamp() });
     return { id: record.invoiceId, ...record, claimedAt: new Date().toISOString() };
+  },
+  // administrator only (rules): „Eemalda teade” clears a mistaken notice; the parent sees „Maksin ära” again
+  async remove(invoiceId) {
+    const { db } = requireFirebaseClient();
+    await deleteDoc(doc(db, 'invoicePaymentClaims', String(invoiceId)));
   },
 };
 

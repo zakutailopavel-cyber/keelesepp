@@ -1285,8 +1285,9 @@ service cloud.firestore {
 
     // „Maksin ära” (owner 2026-11-09): the parent (or student) who owns an invoice says it was paid. Only a notice —
     // the invoice, its payments and the books are untouched; the administrator checks the bank and adds the payment.
-    // One per invoice (id = invoice id), written once by its owner with the own uid and the server time, never edited
-    // or deleted by anyone in the browser. The administrator and the bookkeeper read all; the owners read their own.
+    // One per invoice (id = invoice id), written once by its owner with the own uid and the server time, never edited.
+    // Only the administrator deletes it („Eemalda teade”: a mistaken notice; the parent can then send it again).
+    // The administrator and the bookkeeper read all; the owners read their own.
     match /invoicePaymentClaims/{invoiceId} {
       allow read: if isAdmin() || isFinance()
         || (
@@ -1306,7 +1307,8 @@ service cloud.firestore {
         && request.resource.data.get('claimedByName', '').size() <= 160
         && request.resource.data.get('note', '') is string
         && request.resource.data.get('note', '').size() <= 300;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if isAdmin();
     }
 
     match /payments/{paymentId} {

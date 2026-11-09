@@ -1,6 +1,7 @@
 import { CreditCard, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { Badge, Button, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { financeApi, invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
@@ -64,6 +65,15 @@ export default function InvoiceDrawerPanel({ invoiceId, invoiceRepository = invo
   const email = invoiceShownEmail(invoice);
   const canPay = isAdmin && row.balanceCents > 0 && row.status !== 'cancelled';
 
+  // „Eemalda teade” (administrator): a mistaken „Maksin ära” notice is deleted; the parent can send it again
+  const removeClaim = async () => {
+    if (!(await askConfirm(`Eemaldada pere teade „Maksin ära” arvelt ${number}? Arve ja maksed ei muutu; pere saab teate uuesti saata.`, { confirmLabel: 'Eemalda teade', danger: true }))) return;
+    setBusy(true); setError(''); setNotice('');
+    try { await claimsRepository.remove(invoice.id); await claimState.reload(); setNotice('Pere teade eemaldati.'); }
+    catch (caught) { setError(caught.message || 'Teadet ei saanud eemaldada.'); }
+    finally { setBusy(false); }
+  };
+
   const recordPayment = async (form) => {
     setBusy(true); setError(''); setOverpaymentQuestion('');
     try {
@@ -83,7 +93,8 @@ export default function InvoiceDrawerPanel({ invoiceId, invoiceRepository = invo
       <p>{[invoice.payerName && invoice.payerName !== invoice.studentName ? `Maksja: ${invoice.payerName}` : '', email, invoice.subject].filter(Boolean).join(' · ')}</p>
     </header>
     {notice ? <p className="lp-hint" role="status">{notice}</p> : null}
-    {claimState.data ? <p className="lp-hint invoice-drawer__claim" data-payment-claim-note><PaymentClaimBadge claim={row.balanceCents > 0 ? claimState.data : null} /> {paymentClaimTitle(claimState.data, { stillOpen: row.balanceCents > 0 })}</p> : null}
+    {claimState.data ? <p className="lp-hint invoice-drawer__claim" data-payment-claim-note><PaymentClaimBadge claim={row.balanceCents > 0 ? claimState.data : null} /> {paymentClaimTitle(claimState.data, { stillOpen: row.balanceCents > 0 })}{isAdmin ? <> <Button variant="secondary" disabled={busy} onClick={removeClaim}>Eemalda teade</Button></> : null}</p> : null}
+    {error && !paying ? <p className="form-error" role="alert">{error}</p> : null}
     <dl className="invoice-drawer__sums">
       <div><dt>Summa</dt><dd>{money(row.amountCents)}</dd></div>
       <div><dt>Makstud</dt><dd>{money(row.paidCents)}</dd></div>
