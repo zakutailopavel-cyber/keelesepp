@@ -25,6 +25,15 @@
 .merge-cards__conflicts { margin: 8px 0; padding: 10px 12px; border-radius: var(--radius-lg); background: #fff7ed; border: 1px solid #fed7aa; }
 .merge-cards__conflicts ul { margin: 6px 0 0; padding-left: 18px; }
 .merge-cards__confirm { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; font-weight: 600; }
+/* „Need võivad olla kaks erinevat last” (2026-11-09): different-person signals before a merge */
+.merge-cards__danger { margin: 8px 0; padding: 12px 14px; border-radius: var(--radius-lg); background: #fef3f2; border: 2px solid #f04438; color: #7a271a; }
+.merge-cards__danger b { color: var(--danger, #b42318); font-size: 1rem; }
+.merge-cards__danger ul { margin: 6px 0; padding-left: 18px; }
+.merge-cards__danger p { margin: 6px 0 0; }
+.merge-cards__confirm--danger { color: var(--danger, #b42318); }
+.merge-history { display: grid; gap: 8px; }
+.merge-history__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 1px solid var(--border, #e5e7eb); border-radius: var(--radius-lg); }
+.merge-history__row small { display: block; color: var(--muted, #667085); }
 .merge-cards__preview ul { padding-left: 18px; }
 .duplicate-pair__cards { display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin: 8px 0; }
 .duplicate-pair__card { display: grid; gap: 2px; padding: 8px 10px; border-radius: var(--radius-md); background: #f8fafc; }
