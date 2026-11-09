@@ -199,6 +199,21 @@ test("arrows bend and carry heads, callouts a label, text styled runs, a bookmar
   assert.equal((await write("b-3", { ...bookmark, ink: Array.from({ length: 61 }, () => bookmark.ink[0]) })).status, 403, "≤ 60 strokes");
 });
 
+test("an anchored bookmark keeps the word or sentence it belongs to (2026-11-09)", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const base = `whiteboards/${ctx.studentId}/elements`;
+  const write = (id, data) => commit(ctx.studentToken, [createElement(`${base}/${id}`, ctx.studentUid, data)]);
+  const anchor = { kind: "sentence", quote: "„Tule siia!” ütles ema.", before: "", after: " Siis läks", sentence: "„Tule siia!” ütles ema.", blockId: "t-3", start: 0, end: 23 };
+  const pinned = { type: "note", x: 120, y: 40, w: 22, h: 22, text: "Kordan", color: "#FEF3C7", bookmark: true, ink: [], noteId: "n-2", anchor };
+  assert.equal((await write("ba-1", pinned)).status, 200);
+  const { bookmark: _flag, ...plainNote } = pinned; // eslint-disable-line no-unused-vars
+  assert.equal((await write("ba-2", plainNote)).status, 403, "only a bookmark is anchored");
+  assert.equal((await write("ba-3", { ...pinned, anchor: { ...anchor, kind: "page" } })).status, 403, "known kinds");
+  assert.equal((await write("ba-4", { ...pinned, anchor: { ...anchor, sentence: "x".repeat(601) } })).status, 403, "sentence ≤ 600");
+  assert.equal((await write("ba-5", { ...pinned, anchor: { ...anchor, start: "0" } })).status, 403, "offsets are numbers");
+});
+
 function pageWrite(path, uid, data, exists) {
   return {
     update: { name: documentName(path), fields: Object.fromEntries(Object.entries({ updatedByUid: uid, updatedByName: "Emulator", ...data }).map(([key, value]) => [key, encode(value)])) },

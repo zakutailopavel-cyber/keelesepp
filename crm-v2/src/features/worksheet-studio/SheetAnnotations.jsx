@@ -1,10 +1,11 @@
 /* global ResizeObserver, Highlight, CSS, setTimeout, clearTimeout */
-import { BookmarkPlus, Check, Loader2, MessageCircleWarning, StickyNote, Trash2, X } from 'lucide-react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Bookmark, BookmarkPlus, Check, Loader2, MessageCircleWarning, StickyNote, Trash2, X } from 'lucide-react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { HIGHLIGHT, fieldTextRects, fieldsOf, isSheetAnnotation, offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
 import { singleWord, correctedAnswer } from './annotationWords.js';
 import TextAnalysisPane, { ANALYSIS_MIN_WORDS, wordCount } from './TextAnalysisPane.jsx';
 import { correctionMarks } from './correctionMarks.js';
+import { BoardBookmarkContext } from '../board/bookmarkContext.js';
 import './sheetAnnotations.css';
 
 const nextFrame = (fn) => (globalThis.requestAnimationFrame ? globalThis.requestAnimationFrame(fn) : setTimeout(fn, 16));
@@ -35,6 +36,16 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
   const latest = useRef(annotations);
   useEffect(() => { latest.current = annotations; }, [annotations]);
   const list = useMemo(() => JSON.parse(listKey), [listKey]);
+  // on the lesson board: „Järjehoidja” on the selected text; the popup and the bookmark sheet never stay open together
+  const board = useContext(BoardBookmarkContext);
+  useEffect(() => board?.register?.(() => { setDraft(null); setOpen(''); }), [board]);
+  useEffect(() => { if (draft) board?.onPopup?.(); }, [draft ? `${draft.blockId}:${draft.start}:${draft.end}` : '', board]); // eslint-disable-line react-hooks/exhaustive-deps
+  const toBookmark = () => {
+    const { blockId, start, end } = draft;
+    setDraft(null); setWord(null);
+    globalThis.getSelection?.()?.removeAllRanges();
+    board.open({ blockId, start, end });
+  };
 
   const layout = useCallback(() => {
     const wrap = wrapRef.current;
@@ -214,6 +225,7 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
             <button type="button" aria-pressed={draft.color === 'note'} className={draft.color === 'note' ? 'on is-note' : ''} onClick={() => setDraft({ ...draft, color: 'note' })}>Märkus</button>
             {picked ? <button type="button" aria-pressed={draft.color === 'word'} className={draft.color === 'word' ? 'on is-word' : ''} onClick={() => setDraft({ ...draft, color: 'word' })}>Sõna</button> : null}
             {canAnalyse ? <button type="button" aria-pressed={draft.color === 'analysis'} className={draft.color === 'analysis' ? 'on is-analysis' : ''} onClick={() => setDraft({ ...draft, color: 'analysis' })}>Analüüs</button> : null}
+            {board?.open && draft.kind === 'text' ? <button type="button" className="sa-bookmark" title="Järjehoidja selle sõna või lause juurde (läheb õpilase „Minu vead” alla)" onClick={toBookmark}><Bookmark size={13} aria-hidden="true" /> Järjehoidja</button> : null}
           </div>
           {draft.color === 'analysis' ? <>
             <TextAnalysisPane text={draft.selectedText} level={analysis?.level || 'A2'} onMark={markCorrection} />
