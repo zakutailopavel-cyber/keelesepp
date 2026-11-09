@@ -20,7 +20,7 @@
 .sa-pop header button { margin-left: auto; border: 0; background: none; cursor: pointer; color: #667085; }
 .sa-pop p, .sa-composer p { margin: 4px 0; }
 .sa-quote { color: #475467; font-style: italic; }
-.sa-fix b { color: #087e6b; }
+.sa-fix b { color: var(--green); }
 .sa-remove { margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; border: 0; background: #fdecea; color: #b42318; border-radius: 8px; padding: 4px 8px; cursor: pointer; font-weight: 700; }
 .sa-colors { display: flex; gap: 4px; padding: 3px; background: #eef1f4; border-radius: 9px; }
 .sa-colors button { flex: 1; border: 0; background: transparent; border-radius: 7px; padding: 5px; font-weight: 700; cursor: pointer; color: #42536a; }
@@ -35,7 +35,7 @@
 .sa-hint { margin: 0 0 8px; color: #475467; font-size: 13px; }
 
 /* „Sõna” in the teacher's composer: the picked word, its three key forms and translation → the student's „Sõnad” */
-.sa-colors button.on.is-word { background: #087e6b; color: #fff; }
+.sa-colors button.on.is-word { background: var(--green); color: #fff; }
 .sa-headword { font-size: 15px; } .sa-headword span { color: #667085; font-size: 12px; margin-left: 4px; }
 .sa-forms { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; margin: 6px 0 0; padding: 0; }
 .sa-forms li { background: #eef7f4; color: #0b5e50; border-radius: 6px; padding: 2px 8px; font-weight: 700; }

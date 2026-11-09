@@ -1,14 +1,14 @@
 /* Worksheet Studio editor chrome, scoped to the page. */
 .ws-studio {
-  --st-bg: #f3f6f9; --st-panel: #fff; --st-field: #f6f8fb; --st-ink: #17253a; --st-muted: #627087; --st-line: #dfe5ec;
-  --st-accent: #087e6b; --st-accent-dark: #056454; --st-accent-soft: #e8f6f2; --st-navy: #132238; --st-danger: #b42318;
+  --st-bg: #f3f6f9; --st-panel: #fff; --st-field: var(--surface-soft); --st-ink: #17253a; --st-muted: #627087; --st-line: var(--border);
+  --st-accent: var(--green); --st-accent-dark: var(--green-dark); --st-accent-soft: var(--green-soft); --st-navy: var(--navy); --st-danger: #b42318;
   --st-shadow: 0 1px 2px rgba(16,35,57,.04), 0 5px 14px rgba(16,35,57,.05);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .ws-studio { --st-bg: #151b24; --st-panel: #1d2531; --st-field: #232c3a; --st-ink: #e6ebf1; --st-muted: #9aa6b6; --st-line: rgba(255,255,255,.1); --st-accent-soft: rgba(8,126,107,.18); }
 }
 .ws-studio .st-back { display: inline-flex; gap: 6px; align-items: center; font: 700 13px inherit; color: var(--st-ink); text-decoration: none; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--st-line); }
-.ws-studio .st-banner.st-variant { background: #e8f6f2; color: #0d4a3f; } .ws-studio .st-banner.st-variant.is-challenge { background: #f3ecfb; color: #4a2a73; }
+.ws-studio .st-banner.st-variant { background: var(--green-soft); color: #0d4a3f; } .ws-studio .st-banner.st-variant.is-challenge { background: #f3ecfb; color: #4a2a73; }
 .ws-studio .st-banner.st-variant b { margin-right: 4px; } .ws-studio .st-banner.st-variant a { color: inherit; font-weight: 700; }
 .ws-studio .st-banner { padding: 8px 14px; font-size: 13px; background: #fff4d6; color: #5a4310; border-bottom: 1px solid var(--st-line); }
 .ws-studio .st-banner.error { background: #fbe9e6; color: #8a2a1c; }
@@ -453,7 +453,7 @@ textarea.ed-input { resize: vertical; }
 .room-sheet-picker .ed-seg button{flex:1;border:0;background:transparent;color:#475467;border-radius:9px;padding:7px 8px;font-family:inherit;font-size:12.5px;font-weight:700;line-height:1.2;cursor:pointer}
 .room-sheet-picker .ed-seg button.is-active{background:#fff;color:#101828;box-shadow:0 1px 3px rgba(16,24,40,.12)}
 .room-sheet-picker .ed-input{width:100%;box-sizing:border-box;font-family:inherit;font-size:13.5px;font-weight:500;color:#101828;background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:8px 10px}
-.room-sheet-picker .ed-input:focus{outline:none;border-color:#087e6b;box-shadow:0 0 0 3px rgba(8,126,107,.15)}
+.room-sheet-picker .ed-input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(8,126,107,.15)}
 .room-sheet-picker__list{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:52vh;overflow:auto}
 .room-sheet-picker__list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid #eef0f3}
 .room-sheet-picker__list li span{display:grid;min-width:0}
@@ -566,7 +566,7 @@ textarea.ed-input { resize: vertical; }
 @media (max-width: 900px) { .ws-studio.ws-live .st-body.ws-live-body:has(.ws-live-tasks) { grid-template-columns: 1fr; } .ws-live-tasks { border-left: 0; border-top: 1px solid var(--st-line); } }
 .ws-live.is-embedded .ws-live-tasks { max-height: 75vh; }
 /* drag & drop (dnd-kit): the floating preview and the card being dragged */
-.st-drag-ghost { display: inline-flex; align-items: center; gap: 8px; max-width: 280px; padding: 10px 14px; border-radius: 12px; background: #132238; color: #fff; font: 700 13px 'DM Sans', system-ui, sans-serif; box-shadow: 0 18px 40px rgba(16, 35, 57, .35); transform: rotate(-1.5deg); cursor: grabbing; }
+.st-drag-ghost { display: inline-flex; align-items: center; gap: 8px; max-width: 280px; padding: 10px 14px; border-radius: 12px; background: var(--navy); color: #fff; font: 700 13px 'DM Sans', system-ui, sans-serif; box-shadow: 0 18px 40px rgba(16, 35, 57, .35); transform: rotate(-1.5deg); cursor: grabbing; }
 .st-drag-ghost span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ws-card.is-dragging { opacity: .35; }
 .st-block.is-dragging { opacity: .5; }
@@ -574,7 +574,7 @@ textarea.ed-input { resize: vertical; }
 .mode-edit .ws-card[data-block] { touch-action: manipulation; }
 /* ready-made styles and themes (inspector) */
 .ed-presets { display: flex; flex-wrap: wrap; gap: 5px; }
-.ed-preset { border: 1.5px solid transparent; border-radius: 8px; padding: 4px 9px; font: 700 12px 'DM Sans', system-ui, sans-serif; color: #132238; cursor: pointer; }
+.ed-preset { border: 1.5px solid transparent; border-radius: 8px; padding: 4px 9px; font: 700 12px 'DM Sans', system-ui, sans-serif; color: var(--navy); cursor: pointer; }
 .ed-preset.on { box-shadow: 0 0 0 2px #0f6e56; }
 
 /* ===== Studio skin (2026-10-09): one quiet top row, an icon rail with a drawer, the block's look on its dark bar,
@@ -876,15 +876,15 @@ textarea.ed-input { resize: vertical; }
 .ws-review-tools .sa-hint { margin-right: auto; }
 .ws-ansfont { position: relative; display: inline-flex; }
 .ws-ansfont-btn { min-width: 40px; height: 36px; padding: 0 10px; border: 1px solid #cfd8e3; border-radius: 10px; background: #fff; color: #17253a; font: 700 16px/1 'Nunito Sans', system-ui, sans-serif; cursor: pointer; }
-.ws-ansfont-btn:hover, .ws-ansfont-btn[aria-expanded='true'] { border-color: #087e6b; }
-.ws-ansfont-btn:focus-visible, .ws-ansfont-opt:focus-visible { outline: 2px solid #087e6b; outline-offset: 2px; }
-.ws-ansfont-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; display: grid; gap: 4px; width: 240px; padding: 10px; border: 1px solid #dfe5ec; border-radius: 12px; background: #fff; color: #17253a; box-shadow: 0 10px 30px rgba(15, 23, 42, .18); text-align: left; }
+.ws-ansfont-btn:hover, .ws-ansfont-btn[aria-expanded='true'] { border-color: var(--green); }
+.ws-ansfont-btn:focus-visible, .ws-ansfont-opt:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.ws-ansfont-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; display: grid; gap: 4px; width: 240px; padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: #fff; color: #17253a; box-shadow: 0 10px 30px rgba(15, 23, 42, .18); text-align: left; }
 .ws-ansfont.is-up .ws-ansfont-pop { top: auto; bottom: calc(100% + 6px); }
 .ws-ansfont-pop > b { font-size: 13px; padding: 0 4px 2px; }
 .ws-ansfont-pop > p { margin: 4px 4px 0; font-size: 12px; line-height: 1.35; color: #627087; }
 .ws-ansfont-opt { display: grid; gap: 1px; min-height: 44px; padding: 6px 10px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #1b4a8a; text-align: left; cursor: pointer; }
-.ws-ansfont-opt:hover { background: #f6f8fb; }
-.ws-ansfont-opt.is-on { border-color: #087e6b; background: #e8f6f2; }
+.ws-ansfont-opt:hover { background: var(--surface-soft); }
+.ws-ansfont-opt.is-on { border-color: var(--green); background: var(--green-soft); }
 .ws-ansfont-opt span { font: 600 17px/1.2 'Nunito Sans', system-ui, sans-serif; }
 .ws-ansfont-opt small { font: 400 12px/1.3 system-ui, sans-serif; color: #627087; }
 .ws-ansfont-opt.is-hand span { font: 700 22px/1.1 'Caveat', 'Bradley Hand', cursive; }

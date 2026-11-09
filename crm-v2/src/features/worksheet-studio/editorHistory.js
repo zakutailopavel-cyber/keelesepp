@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { BLOCKS } from './engine/registry.js';
 import { SCHEMA } from './engine/schema.js';
 
@@ -38,15 +39,25 @@ export function isTextTarget(target) {
 export function useUnsavedGuard(dirty, message = 'Töölehel on salvestamata muudatusi. Kas lahkud ilma salvestamata?') {
   const dirtyRef = useRef(dirty);
   useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
+  const passRef = useRef(null);
   useEffect(() => {
     const onClick = (event) => {
+      // the click repeated below after „Lahku”: let it through once
+      if (passRef.current && passRef.current === event.target?.closest?.('a[href]')) { passRef.current = null; return; }
       if (!dirtyRef.current || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const link = event.target?.closest?.('a[href]');
       if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
       const url = new URL(link.href, window.location.href);
       if (url.origin !== window.location.origin || url.pathname === window.location.pathname) return;
-      if (!window.confirm(message)) { event.preventDefault(); event.stopPropagation(); }
+      // our dialog answers later, so the click is stopped now and repeated on the link when the user agrees
+      event.preventDefault(); event.stopPropagation();
+      askConfirm(message, { confirmLabel: 'Lahku', cancelLabel: 'Jää lehele', danger: true }).then((leave) => {
+        if (!leave || !link.isConnected) return;
+        passRef.current = link;
+        link.click();
+      });
     };
+    // reload / tab close: the browser shows its own box, a page dialog cannot answer `beforeunload` (it must be synchronous)
     const onUnload = (event) => { if (dirtyRef.current) { event.preventDefault(); event.returnValue = ''; } };
     document.addEventListener('click', onClick, true);
     window.addEventListener('beforeunload', onUnload);

@@ -5,10 +5,10 @@
 /* a bigger touch target without a bigger circle */
 .field-help__button::after{content:'';position:absolute;inset:-12px}
 .field-help__button:hover,.field-help__button[aria-expanded="true"]{background:var(--green);border-color:var(--green);color:#fff}
-.field-help__button:focus-visible{outline:3px solid rgba(34,107,90,.25);outline-offset:2px}
+.field-help__button:focus-visible{outline:3px solid color-mix(in srgb,var(--green) 25%,transparent);outline-offset:2px}
 .field-help__popover{position:absolute;z-index:60;top:calc(100% + 8px);left:-8px;width:max-content;max-width:min(300px,calc(100vw - 32px));display:grid;gap:6px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;color:#162033;box-shadow:0 12px 30px rgba(15,23,42,.16);font-size:.84rem;font-weight:400;line-height:1.4;text-align:left;white-space:normal}
 .field-help__popover:focus{outline:none}
-.field-help__popover:focus-visible{outline:3px solid rgba(34,107,90,.25)}
+.field-help__popover:focus-visible{outline:3px solid color-mix(in srgb,var(--green) 25%,transparent)}
 .field-help__title{font-size:.8rem;font-weight:700;color:#344054}
 .field-help__example{color:#475467;background:#f2f4f7;border-radius:7px;padding:5px 8px}
 .field-help__example b{font-weight:700;color:#344054}
