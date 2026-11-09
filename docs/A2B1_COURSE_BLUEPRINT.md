@@ -13,6 +13,10 @@ module arc (§3), the lesson recipe (§4), assessment (§5), verification (§6) 
 **Sources and labels.** [H] Harno exam page https://harno.ee/eesti-keele-tasemeeksamid (B1 section re-read
 2026-11-10: parts, minutes, raw points, task formats, 60 % / no-0 pass rule, „citizenship requires at least B1”).
 [HB] the B1/B2 handbook *Iseseisev keelekasutaja* (2008) as summarised in `docs/HARNO_LEVEL_REQUIREMENTS.md`.
+[P9] Harno „Põhikooli lõpueksamid” https://harno.ee/pohikooli-lopueksamid (read 2026-11-10; page dated 08.09.2026).
+[E9] „Põhikooli eesti keele teise keelena lõpueksami eristuskiri” for 2026/2027 (Lisa 2, dated 31.08.2026) and
+[O9] „Suulise osa läbiviija tööjuhend”, both linked from https://projektid.edu.ee/spaces/THO/pages/390178894 (read
+2026-11-10). §8 covers the 9th-grade exam.
 [INF] our own design decision, not an official rule. Repo docs this file builds on and does **not** repeat:
 `HARNO_LEVEL_REQUIREMENTS.md` (exam facts), `COURSE_FINAL_SHAPE_B1.md` (task ids W1a…S2, rubrics, format schedule),
 `CEFR_A2_B1_LEARNING_STANDARD.md` (levelStage, recycling), `METHODOLOGY_STANDARD.md` (grammar inventory),
@@ -23,8 +27,10 @@ module arc (§3), the lesson recipe (§4), assessment (§5), verification (§6) 
 ## 1. Purpose, learners, exit profile
 
 **Purpose (one sentence).** A Russian-speaking learner who lives in Estonia and has a working A2 leaves the course able
-to handle the everyday, school, work and office situations of life in Estonia in Estonian **and** to pass the Harno B1
-exam — the level required for citizenship [H] and for many jobs.
+to handle the everyday, school, work and office situations of life in Estonia in Estonian **and** to get the B1
+certificate — through the Harno B1 exam (adults; the level required for citizenship [H] and for many jobs) or through
+the 9th-grade final exam in Estonian as a second language (pupils; it also gives the B1 certificate [P9]). One course,
+two exam tracks (§8).
 
 ### 1.1 Who it is for (personas)
 
@@ -33,6 +39,7 @@ exam — the level required for citizenship [H] and for many jobs.
 | **Olga, 38** | Shop / care / logistics worker in Tallinn or Narva; Russian at home; 1-to-1 online, 1 × 60 min a week, evenings, tired | Harno B1 for her job or citizenship within ~12 months; little time for homework | Exam formats early and often, 10-min homework she can do on the phone, work and office situations, speaking confidence |
 | **Artjom, 15** | Pupil in a school that is moving to Estonian-language teaching; 1-to-1 at the school after classes, 2 × 45 min | Follow lessons, talk to teachers, write school messages; later a B1 certificate | Teen contexts (school, hobbies, friends, part-time job) — never adult bureaucracy as the only option; short stations; gamified practice |
 | **Sergei, 52** | 25 years in Estonia, understands much, speaks with fixed errors; small group (3–4) at Laki 11b or 1-to-1 | Citizenship: Harno B1 | Accuracy on the forms he always gets wrong (object, cases after verbs, past forms), writing (he never writes), the phone role play |
+| **Milana, 15** | 9th grade in a Russian-medium school in Narva or Tallinn; 1-to-1 online or at the school, 2 × 45 min a week from September | **9th-grade final exam „eesti keel teise keelena”** (written part 20 April 2027, oral 20–23 April [P9]): ≥ 50 points to finish basic school, ≥ 60 for the B1 certificate [P9] | the 9th-grade exam's own formats (B1 + B2 tasks, 5 parts × 20 points [E9]), teen and school topics, a timeline that ends in April, not June (§8) |
 
 Out of scope: children under ~12 (they use `KIDS_GROUPS_PROGRAM.md`) and learners below A2 (entry test routes them to
 the A2 course, §5.1). Most lessons are one-to-one, so **every task works with the teacher as the only partner** (§4).
@@ -243,6 +250,7 @@ Current headers read from `b1/module01…18.js` (titles, canDo) on `main` a9824e
 | M13 vs M16 split clearly | both opinion / compromise | M13 = private practical conflicts and institutions (S2); M16 = public topics and news (S1b, media topic the B1 handbook adds [HB]) |
 | Offices and e-services get an outcome | spread across 054, 082, 083 | M11 (e-services, safe payment) and M17 (official letters, forms, institutions) — top need for Olga and Sergei |
 | Teen variant in every final task | adult contexts only in many finals (insurer, landlord, job) | Artjom: each final has a „Sinu variant” — the same function in a teen context (school, hobby, part-time job) |
+| Second exam track „9. klassi eksami rada” | the course trains only the adult Harno B1 formats | Milana: the 9th-grade exam has different parts and B2 tasks (§8); one course, an alternative exam station per module check, own mocks |
 | Lessons that do not serve the exit profile are replaced | e.g. a whole lesson for the recognition-only jussive (072 „Olgu peale!”), registering as a „living book” (067), a story evening run with another parent (069), a camp's day plan as the main context of 016 | recognition items get one station, not a lesson; contexts must be ones the personas meet |
 | Module check lesson is narrowed | most checks are full-length Harno form at ≥ 80 % | see §5.2: the module's taught format + its final task + its grammar; full form only in 020, 040 (A2 + B1 tasks), 060, 080, 089, 090 |
 | Kept as is | M12 pilot (v3 stations), entry test 001, mocks 060 / 080 / 089, final 090, the cast (`COURSE_CAST.md`) | already reviewed or tied to learner data |
@@ -303,7 +311,8 @@ päriselt?” on the teacher page (not a sheet station).
 - ≥ 80 % in every A2 part and the B1 grammar items ≥ 60 % → **fast track**: start at M5 after one review lesson of
   M1–4 grammar; M1–4 lessons stay open as homework;
 - **exam track** (Harno date within 6 months): keep the order, but each module's exam corner moves into the core path
-  and the learner does 2 lessons a week.
+  and the learner does 2 lessons a week;
+- **9th-grade track** (pupil takes the basic-school exam „eesti keel teise keelena”): route and timing in §8.3.
 
 The entry result is stored as the learner's start point (`progressPoints`, kind `teacher`, label „Algus”), so the level
 curve counts only what is learned after it (`PROGRESS_ESTIMATE.md`).
@@ -354,8 +363,8 @@ no place to store the feedback card (§6.4). Until then the pilot records them a
 
 ### 6.1 Pilot cohort
 
-5–7 real learners, chosen by the owner (**owner decision 3**), covering the personas: 2 adults 1-to-1 online with an exam
-goal (Olga), 1–2 teens 1-to-1 (Artjom), 1 small adult group of 3–4 (Sergei), 1 adult 1-to-1 at the school. Two teachers
+5–7 real learners, chosen by the owner (**owner decision 4**), covering the personas: 2 adults 1-to-1 online with an exam
+goal (Olga), 1–2 teens 1-to-1 (Artjom), 1–2 9th-graders on the 9th-grade track from now to April 2027 (Milana), 1 small adult group of 3–4 (Sergei), 1 adult 1-to-1 at the school. Two teachers
 at least, one of them not the owner.
 
 Which modules first: new and fast-track learners on rebuilt **M1–M2** (or M5); learners now near M12 on the **M12
@@ -412,13 +421,14 @@ Learner (RU):
 
 ### 7.1 Order
 
-0. Owner approves this blueprint and the 3 decisions (`docs/review/a2b1-blueprint-ru.md`).
+0. Owner approves this blueprint and the 4 decisions (`docs/review/a2b1-blueprint-ru.md`).
 1. **Blueprint as data + gate** (Claude, code PR): `admin/course/b1/blueprint.js` (per module: outcome, functions,
    Harno emphasis, grammar ids with I / P / R from §3.2, recycle list) and a test that a rebuilt module (`design:
    'v3-stations'`) tags its I / P grammar ids and recycles ≥ 2 listed items per lesson.
 2. **M1 and M2** rebuilt (reference modules; Claude) → **owner reviews both fully** (reads every teacher page and final
    station, runs one lesson with a real learner).
-3. **M13** (for the learners finishing the M12 pilot).
+3. **M13** (for the learners finishing the M12 pilot) and, for the 9th-graders, **9th-grade mock 1** before the
+   December mock date, then the school versions of the priority modules' finals (§8.3).
 4. **M3–M11** in order, then **M14–M18**; one module per PR, at most 2–3 open PRs (AGENTS.md). After the first two,
    the owner **samples**: one random lesson per module (teacher page + final station + one closed task) against the DoD.
 5. Pilot results (§6) feed back: a „fix” or „redo” goes before the next new module.
@@ -437,6 +447,167 @@ are realistic; the rest in December–January.
 4. Ids unchanged (module, lessons, goals); the M12 pilot style and the cast stay consistent.
 5. Facts checked with a source line; visual briefs for stations that gain from a picture (`TEXTBOOK_ART_BIBLE.md` §6).
 6. `cd crm-v2 && npx vitest run src/features/worksheet-generator` passes.
-7. A Russian „было → стало” page `docs/review/b1-mNN.md` for the owner (as `b1-m12-pilot.md`).
-8. One `docs/PROJECT_STATE.md` entry; draft PR; the owner (or sampling) says „ok” before the next module of the same
+7. 9th-grade track (§8.3): the final task has a school version, and the check has the 9th-grade exam station when the
+   module is on the 9th-grade route.
+8. A Russian „было → стало” page `docs/review/b1-mNN.md` for the owner (as `b1-m12-pilot.md`).
+9. One `docs/PROJECT_STATE.md` entry; draft PR; the owner (or sampling) says „ok” before the next module of the same
    writer is merged.
+
+---
+
+## 8. Two exam tracks: Harno B1 and the 9th-grade final exam
+
+Owner 2026-11-10: „в то же время есть и школьники, которые сдают экзамен в 9 классе”. Many of our teens take the
+basic-school final exam „eesti keel teise keelena” instead of the adult Harno B1 exam. **One course, two exam tracks:**
+the lessons, ids, grammar spiral and final tasks stay the same; what differs is the school version of some final tasks,
+the exam station in module checks, the mocks and the timeline.
+
+### 8.1 What was verified (2026-11-10)
+
+From [P9] (harno.ee, page dated 08.09.2026):
+- The exam may be chosen by pupils whose language of instruction is not Estonian, pupils in immersion classes and pupils
+  who learn Estonian as a second language. A pupil with a C1 certificate does not take it. A strong pupil may take it in
+  grade 7 or 8 after a B1 pre-test.
+- For all pupils of schools whose language of instruction is not Estonian, the exam is **combined with the B1-level
+  exam**: written work is marked at Harno; the oral part has two raters (a teacher of the pupil's own school and an
+  outside rater).
+- **50 points** are enough to finish basic school; **≥ 60 points** (≥ 60 % of the maximum) and no part at 0 give the
+  **B1 certificate** — the same language-level certificate, downloadable from EIS / eesti.ee. A B2 exam option has
+  existed since 2020/2021.
+- From spring 2027 the exam is an **e-exam** (on a computer, not paper).
+- 2027 dates: written part **20 April 2027**, oral part **20–23 April 2027**, make-up exam (written and oral) **20 May
+  2027**. Registration in EIS **4 January – 5 February**. No 2026 dates are on the page.
+- Basic school ends with three exams: Estonian or Estonian as a second language, mathematics, one optional exam.
+
+From [E9] (the 2026/2027 specification):
+- The exam measures **B1 and B2 combined; half of the tasks are B1-level, half B2-level**. The B1 or B2 certificate
+  depends on the average percentage reaching that level's threshold, and no part may be 0.
+- Five parts × **20 points = 100**: writing, listening, reading, language structure (keele struktuur), speaking.
+- Written part (in EIS): introduction 10 min; **I writing 70 min, 20 p, 2 tasks**; break 30 min; **II listening 50 min,
+  20 p, 5 tasks / 35 items** (each text heard twice); **III reading + language structure 95 min, 40 p, 7 tasks / 65
+  items**; written part 255 min, 80 p. **Oral part 24–26 min (for two pupils), 20 p.**
+- Writing: a **letter to a reader of ~100 words** and an **argument or summary of ~160 words on a given topic**, which
+  may require describing information from diagrams or pictures. Two raters; task fulfilment and content 0–5 + language
+  0–5.
+- Listening task types: 3-option multiple choice, true / false, 3-option question, short answer (gap from what is heard),
+  matching subheadings to parts of the recording. Texts: radio news, conversations, announcements, instructions,
+  interviews, overviews.
+- Reading and language-structure task types include 3-option multiple choice, answer-bank tasks, matching phrase parts,
+  matching a fitting sentence, and a formation task. (These table rows were partly unreadable in the PDF text; check
+  them against the official sample test before writing tasks.)
+- Texts are chosen to suit the pupils' age, education and interests; adapted authentic sources. **No topic list** is
+  published for the written part.
+- B1 outcomes for the pupil include communicating at school and outside it, describing experiences, dreams and plans,
+  giving short reasons, and basic knowledge of Estonian cultural history, age-appropriate books, films, TV and radio.
+
+From [O9] (the interviewer's guide), the oral part is a pair with an interviewer:
+- intro 2–3 min — the interviewer's themes are **hobbies and holidays, future plans, home place, family, education and
+  studies**;
+- task 1 **opinion** (4–5 min): a topic card, 30 s to read, the pupil answers in 3–4 sentences with a reason;
+- task 2 **conversation from an ad** (4–5 min): one pupil has the question card and „calls” about an ad, the other
+  answers from the answer card; then they swap;
+- task 3 **discussion** (6–7 min) on 1–2 topics from a topic sheet, with views and reasons;
+- task 4 **debate**: one pupil has pro arguments, the other contra, and they argue towards an agreement.
+
+**Not verified:**
+- the B2 threshold;
+- the item counts of each listening and reading task;
+- the exact language-structure task types;
+- whether the oral part is electronic. [P9] lists an „e-eksam suuline”, while [E9] says the oral part is run by an
+  interviewer and is not electronic.
+- how the move to Estonian-language education changes who takes this exam in 2027 and later. [P9] does not mention
+  it, the hm.ee pages I tried returned 404, and one eligibility line in [P9] refers to pupils who moved to the „eesti
+  keel” curriculum by 2023/2024.
+
+Re-check [P9] and [E9] each September, when the new specification is approved.
+
+### 8.2 Adult Harno B1 vs 9th-grade exam
+
+| | Harno B1 tasemeeksam [H] | 9th-grade „eesti keel teise keelena” [P9][E9][O9] | Same / different |
+|---|---|---|---|
+| Level | B1 only | B1 + B2 tasks, half each | **different** — pupils also meet B2 tasks |
+| Certificate | B1 at ≥ 60 %, no part 0 | B1 at ≥ 60 points, no part 0 (50 to finish school); B2 possible | same B1 certificate, rule nearly the same |
+| Parts | 4 × 25 weighted | 5 × 20 (language structure is its own part) | **different** |
+| Writing | 35 min: note ~50 w or questionnaire + story / letter ~100 w | 70 min: letter ~100 w + argument or summary ~160 w (may use a diagram) | the letter is the same; the 160-word argument and data description are **new** |
+| Listening | 30–35 min, 4 tasks, 30 items, heard twice | 50 min, 5 tasks, 35 items, heard twice; adds subheading matching | similar types, **longer** |
+| Reading | 50 min, 4 tasks, 33 items | reading + structure 95 min, 7 tasks, 65 items | **much longer**; structure tasks are separate |
+| Speaking | ~15 min pair: intro, topic questions + agreement, phone role play | 24–26 min pair: intro, opinion card, call about an ad, discussion, pro / contra debate | phone ≈ ad call and agreement ≈ debate; opinion and debate are **new** |
+| Mode | not stated in our sources | written part on a computer in EIS from 2027 | practise the 9th-grade exam on screen |
+| When | Harno sessions during the year | 20 April 2027 (+ make-up 20 May) | fixed date for the 9th-grade track |
+
+### 8.3 The 9th-grade track („9. klassi eksami rada”)
+
+**Who.** A pupil whose card has the target level B1 and who takes the basic-school exam „eesti keel teise keelena” in
+spring.
+
+**How a teacher switches a learner.** On the student card, the Estonian enrolment keeps the target level B1. Until a
+field exists, the teacher writes „Eksamirada: 9. klass, eksam 20.04.2027” in the student note. From then on the
+teacher:
+- picks the „9. kl” exam station in each module check;
+- uses the 9th-grade mocks instead of 060 / 080 / 089;
+- takes the school version of each final task.
+
+UI follow-up (not in this task): `enrollments[].examTrack: 'harno' | 'pk9'` + `examDate` on the student card, so that
+„Harjuta”, the teacher page and the progress card show the right station, mock and countdown.
+
+**Timeline backwards from 20 April [INF].**
+- From early September to mid-April is about 30 school weeks. Minus the school holidays that is about **26 teaching
+  weeks, so about 52 lessons at 2 a week**. The full 90-lesson course does not fit.
+- The track is realistic only if the pupil starts at A2+ (entry 001 ≥ 80 %, the fast-track rule of §5.1). A pupil at
+  a weak A2 should start in **the spring of grade 8**, or the goal becomes „50 points to finish school” with B1 as a
+  stretch.
+- A pupil starting now (mid-November 2026) has about 19 teaching weeks, about 38 lessons. That is enough for the
+  priority modules and the mocks only.
+
+**Route for a September start (≈ 50 lessons):**
+
+| Step | Lessons | What |
+|---|---|---|
+| Entry | 1 | 001 |
+| Priority modules (3 teaching lessons + check each) | 7 × 4 = 28 | M5 what happened, M8 school, M12 environment, M14 my story + Estonian culture, M15 plans (gymnasium or vocational school), M16 media and opinion, M17 texts and letters |
+| Short modules (2 teaching lessons, no separate check) | 6 × 2 = 12 | M3 home place (word formation with the adjective suffixes), M6 shop and café (the ad call), M7 health and sport, M10 class trip, M11 online shopping and safety, M13 school conflicts and class rules |
+| Homework only (Harjuta + the final task at home) | 0 | M2 friends and family, M9 summer job |
+| Skipped when entry ≥ 80 % | 0 | M1, M4; taken if entry is lower, which means an earlier start |
+| Mocks in 9th-grade form | 3 | December, February, late March; plus the official practice and sample tests in EIS in March, so the pupil knows the computer format |
+| Oral rehearsal | 2 | intro + the 4 oral tasks, timed (replaces M18) |
+| Buffer | ~4 | the weakest part after mock 2 |
+
+**School versions of the final tasks** use the oral intro themes [O9] and the B1 outcomes [E9]: hobbies and holidays,
+future plans, home place, family, school, Estonian culture, media. For example:
+- M8: a message to the class teacher;
+- M9: a summer job (for example the youth work camp, malev);
+- M10: planning a class trip;
+- M13: agreeing class rules;
+- M15: choosing a gymnasium or a vocational school;
+- M16: screen time and social media.
+
+**Exam stations for this track** (in module checks part A and in exam corners) [E9][O9]:
+
+| 9th-grade format | Close to (adult track) | Taught in |
+|---|---|---|
+| Letter ~100 words | W2b | M14, M17 |
+| Argument or summary ~160 words, from a chart (B2 task) | — (new) | M12 (chart), M16, M17 |
+| Listening: subheadings ↔ parts of the recording | — (new) | M10, M15 |
+| Listening: MC, true / false, short-answer gaps | L2, L4, L3 | M7, M12 |
+| Reading MC, answer bank, phrase-part matching | R2, R1, R4 | M8, M11, M17 |
+| Language structure: MC gaps, fitting sentence, formation task | R3a + word formation (new) | M3, M11, M14 |
+| Oral intro (hobbies, plans, home place, family, school) | S0 | M1 / M5 opening, every mock |
+| Oral 1: opinion card, 30 s to read, 3–4 sentences + reason | S1a | M8, M16 |
+| Oral 2: a call about an ad (question card / answer card) | S2 | M6, M10, M13 |
+| Oral 3: discussion on 1–2 topics | S1a / S1b | M12, M15 |
+| Oral 4: pro / contra debate towards an agreement | S1b (+ B2 debate) | M16, rehearsal |
+
+**Targets for this track:**
+- **≥ 60 points with no part at 0** (B1 certificate);
+- a safe ≥ 50 points even on a bad day (finishing school);
+- the B1-level tasks secure (≥ 70 %) before any time is spent on B2 tasks.
+
+Mock thresholds: mock 1 ≥ 50, mock 2 ≥ 55, mock 3 ≥ 65 points [INF].
+
+**Production consequence.**
+- Before the December mock, the 9th-graders need a **9th-grade mock 1** (proposed as extra exam lessons `a2b1-pk9-1…3`
+  in the M18 file — the 90 lesson ids stay unchanged). Alternatively, the official EIS practice and sample tests are
+  used where they fit.
+- The school versions of the finals of the priority modules (M5, M8, M12, M14–M17) come before the other modules' rebuild.
+- **Owner decision 3**: whether the 9th-grade track exists in this form — the start in grade 8 spring or September of
+  grade 9, 2 lessons a week, and our own 9th-grade mocks versus only the official EIS tests.
