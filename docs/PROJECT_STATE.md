@@ -1,3 +1,11 @@
+## 2026-11-09 · agent/bootstrap-no-leak — `/accounts/bootstrap` no longer returns other people's cards to the signing-in user · ⚠ functions changed, need deploy (`websiteLeadApi`)
+
+- Base: `origin/main` 260475c, checked 2026-11-09. Branch `agent/bootstrap-no-leak`, draft PR #1165 (separate from #1161).
+- Problem: the learner / parent route answered with the full bootstrap result, incl. `reviews[].candidates` (other students' names, e-mails, parent e-mails, card ids).
+- Done: `functions/account-bootstrap-core.js` `publicBootstrapResult` (allow-list: `status`, own `linkedStudentIds` / `createdStudentIds`, `reviewCount`); the `/accounts/bootstrap` route in `websiteLeadApi` (functions/index.js) sends only that. Staff routes unchanged (`/accounts/reviews`, `/accounts/bootstrap-admin`, approval). Client `crm-v2/src/services/firebase/auth.js` `bootstrapAccount` never read the body (comment only).
+- Checks: `cd functions && npm test` → 542/542 (new `account-bootstrap-public.test.js`: learner and parent responses contain no candidate names / e-mails / phones / card ids; the route uses the public result, the admin route keeps the full one); `npx vitest run src/features/auth src/services` → 40 files / 229 passed; eslint `auth.js` clean. No production, no deploy.
+- Merge note: #1161 adds `possibleExistingCount` to the full result; the allow-list drops it here (the client does not need it).
+- Next safe step: after deploy, sign in as a test student whose e-mail is on a test child card and check the network answer of `/accounts/bootstrap` has no `candidates`.
 ## 2026-11-04 · agent/new-address-laki — school address on the site: Laki 11b, 12915 Tallinn
 
 - Base: `main` 66af0c2, checked 2026-11-04. Owner: the school moves on Saturday 7.11; lessons on Sunday 8.11 are already at the new address (Laki 11b, II korrus, 71,2 m²).
