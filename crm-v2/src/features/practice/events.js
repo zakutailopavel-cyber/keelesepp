@@ -26,3 +26,6 @@ export function onPractice(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
+
+// the same signal under the name the exercise engine docs use (docs/PRACTICE_ENGINE.md)
+export const PRACTICE_EVENT = 'ks-practice-done';
