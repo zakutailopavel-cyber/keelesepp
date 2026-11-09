@@ -239,3 +239,11 @@ describe('„Ilma ajata” (owner 2026-10-27)', () => {
     expect(within(panel).getByRole('heading', { name: 'Ilma ajata (1)' })).toBeInTheDocument();
   });
 });
+
+describe('a web lead becomes a student', () => {
+  it('opens the new-card form filled from the lead', async () => {
+    render(<MemoryRouter initialEntries={[{ pathname: '/students', state: { newStudent: { name: 'Mia Lepp', parentName: 'Olga', parentEmail: 'olga@example.com', level: 'A2' } } }]}><StudentsPage service={{ list: async () => ({ items: [], cursor: null, hasMore: false }) }} actor={{ uid: 'admin', roles: ['admin'] }} /></MemoryRouter>);
+    expect(await screen.findByLabelText('Õpilase nimi *')).toHaveValue('Mia Lepp');
+    expect(screen.getByDisplayValue('olga@example.com')).toBeInTheDocument();
+  });
+});

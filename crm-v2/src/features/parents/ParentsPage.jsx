@@ -1,3 +1,4 @@
+import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { GitMerge, HeartHandshake, KeyRound, Mail, Pencil, Phone, Search, ShieldAlert, UserCheck, UserPlus, WalletCards } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -177,7 +178,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   };
 
   const linkStudent = async (student, force = false, { restore, confirmed = false } = {}) => {
-    if (force && !window.confirm(`Määrata ${student.name} sellele lapsevanemale? Olemasolev vanemaseos kirjutatakse üle ning sama lapse selgelt seotud õppekaardid viiakse kaasa.`)) return;
+    if (force && !(await askConfirm(`Määrata ${student.name} sellele lapsevanemale? Olemasolev vanemaseos kirjutatakse üle ning sama lapse selgelt seotud õppekaardid viiakse kaasa.`))) return;
     // an archived card: ask first „Taasta ja seo” / „Seo arhiveerituna”
     if (isArchivedCard(student) && !confirmed) { setActionError(''); setArchivedAsk({ id: student.id }); return; }
     setSaving(restore === undefined ? `link:${student.id}` : restore ? 'archived:restore' : 'archived:keep');
@@ -234,7 +235,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   };
 
   const mergeCluster = async (cluster) => {
-    const confirmed = window.confirm(`Arhiveerida ${cluster.duplicates.length} sama e-posti aadressiga duplikaati ja viia nende selged õpilaslingid kontole ${cluster.primary.displayName || cluster.primary.email}? Firebase Auth kontosid ei kustutata.`);
+    const confirmed = (await askConfirm(`Arhiveerida ${cluster.duplicates.length} sama e-posti aadressiga duplikaati ja viia nende selged õpilaslingid kontole ${cluster.primary.displayName || cluster.primary.email}? Firebase Auth kontosid ei kustutata.`));
     if (!confirmed) return;
     setSaving(`merge:${cluster.key}`);
     setActionError('');

@@ -15,7 +15,8 @@ import { hasAnyRole } from '../../utils/roles.js';
  *     offers a page the role cannot open;
  *   - `press`: clicks the row's own button marked `data-entity-action="<press>"` (the row's existing handler runs —
  *     no new back-end operation), shown only when that button is there and enabled;
- *   - `copy(d, record)`: copies a text; `kind: 'rename' | 'archive' | 'restore'`: the student card's own service calls.
+ *   - `copy(d, record)`: copies a text; `kind: 'rename' | 'archive' | 'restore'`: the student card's own service calls;
+ *     `kind: 'drawer'`: the student's full card in the side drawer over the current page (StudentDrawer.jsx).
  * `roles` (default: the type's roles) and the route's roles must both allow the user. `when(d, record)` hides an
  * action that does not apply. A new entity type is one entry here.
  */
@@ -42,7 +43,8 @@ const sheetRoute = (d) => (d.worksheetId ? '/library/lessons/:lessonId/worksheet
 const backFrom = (ctx) => (String(ctx?.pathname || '').startsWith('/library/worksheets/book') ? 'opik' : '');
 
 const studentLinks = [
-  { id: 'student-card', label: 'Ava õpilase kaart', icon: 'user', route: '/students/:studentId', when: (d) => Boolean(d.studentId), to: (d) => `/students/${enc(d.studentId)}` },
+  // the card opens in the side drawer over this page (owner 2026-11-09); the full page stays one click away inside it
+  { id: 'student-card', label: 'Õpilase kaart (siinsamas)', icon: 'user', route: '/students/:studentId', when: (d) => Boolean(d.studentId), kind: 'drawer' },
   { id: 'student-board', label: 'Ava tahvel', icon: 'board', route: '/board/:studentId', when: (d) => Boolean(d.studentId), to: (d) => `/board/${enc(d.studentId)}` },
   { id: 'student-write', label: 'Kirjuta õpilasele', icon: 'message', roles: STAFF, route: '/messages', when: (d) => Boolean(d.studentId), to: (d) => `/messages?student=${enc(d.studentId)}` },
 ];
@@ -55,7 +57,8 @@ export const ENTITY_TYPES = Object.freeze({
     title: (d, record) => record?.name || d.entityTitle || 'Õpilane',
     subtitle: (d, record) => (record ? [record.level, record.teacher, record.active === false ? 'arhiivis' : ''].filter(Boolean).join(' · ') : 'Laen…'),
     actions: [
-      { id: 'open', label: 'Ava kaart', icon: 'open', route: '/students/:studentId', to: (d) => `/students/${enc(d.studentId)}` },
+      { id: 'open', label: 'Ava kaart (siinsamas)', icon: 'user', route: '/students/:studentId', kind: 'drawer' },
+      { id: 'open-page', label: 'Ava kaart eraldi lehel', icon: 'open', route: '/students/:studentId', to: (d) => `/students/${enc(d.studentId)}` },
       { id: 'rename', label: 'Nimeta ümber', icon: 'rename', kind: 'rename', needsRecord: true },
       { id: 'edit', label: 'Muuda andmeid', icon: 'edit', route: '/students/:studentId', to: (d) => `/students/${enc(d.studentId)}?edit=1` },
       { id: 'write', label: 'Kirjuta', icon: 'message', route: '/messages', to: (d) => `/messages?student=${enc(d.studentId)}` },

@@ -10,3 +10,4 @@ export { default as LoadingState } from './LoadingState.jsx';
 export { default as Modal } from './Modal.jsx';
 export { default as PageHeader } from './PageHeader.jsx';
 export { default as Select } from './Select.jsx';
+export { default as ConfirmHost, askConfirm, askText } from './ConfirmHost.jsx';
