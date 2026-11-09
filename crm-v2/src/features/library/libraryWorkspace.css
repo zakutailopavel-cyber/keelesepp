@@ -102,7 +102,7 @@
 .library-breadcrumbs button {
   background: transparent;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   color: var(--muted);
   cursor: pointer;
   font-size: .76rem;
@@ -138,7 +138,7 @@
 .library-item {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 15px;
+  border-radius: var(--radius-xl);
   color: inherit;
   cursor: pointer;
   min-width: 0;
@@ -250,7 +250,7 @@
 
 .library-detail dl {
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0;
@@ -347,23 +347,23 @@
 }
 
 /* Õppevara v2: search + table of contents instead of folders */
-.lib2-search{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #d6dde5;border-radius:16px;padding:0 16px;min-height:58px;box-shadow:0 8px 24px rgba(16,35,57,.06);margin:4px 0 14px}
+.lib2-search{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #d6dde5;border-radius:var(--radius-xl);padding:0 16px;min-height:58px;box-shadow:0 8px 24px rgba(16,35,57,.06);margin:4px 0 14px}
 .lib2-search:focus-within{border-color:var(--green);box-shadow:0 0 0 4px rgba(8,126,107,.12)}
 .lib2-search>svg{color:#667085;flex:none}
 .lib2-search input{flex:1;border:0;outline:0;background:transparent;font-size:1.05rem;min-width:0;height:54px}
 .lib2-search kbd{border:1px solid #d0d5dd;border-radius:6px;padding:1px 7px;color:#667085;font-size:.8rem;background:#f8fafc}
-.lib2-clear{border:0;background:#eef1f4;border-radius:999px;width:28px;height:28px;display:grid;place-items:center;cursor:pointer;color:#42536a}
+.lib2-clear{border:0;background:#eef1f4;border-radius:var(--radius-pill);width:28px;height:28px;display:grid;place-items:center;cursor:pointer;color:#42536a}
 .lib2-levels,.lib2-chips{display:flex;gap:8px;flex-wrap:wrap}
 .lib2-levels{margin-bottom:16px}
-.lib2-levels button,.lib2-chips button{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #d6dde5;background:#fff;border-radius:999px;padding:7px 14px;font-weight:700;color:#344054;cursor:pointer;font-size:.9rem}
+.lib2-levels button,.lib2-chips button{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #d6dde5;background:#fff;border-radius:var(--radius-pill);padding:7px 14px;font-weight:700;color:#344054;cursor:pointer;font-size:.9rem}
 .lib2-levels button{font-size:1rem;padding:9px 18px}
 .lib2-levels button span,.lib2-chips button span{font-weight:600;color:#667085;font-size:.8rem}
 .lib2-levels button.is-active,.lib2-chips button.is-active{background:#14243a;border-color:#14243a;color:#fff}
 .lib2-levels button.is-active span,.lib2-chips button.is-active span{color:#c5d5e2}
 .lib2-body{display:grid;grid-template-columns:280px minmax(0,1fr);gap:22px;align-items:start}
-.lib2-toc{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow:auto;background:#fff;border:1px solid #e4e8ee;border-radius:16px;padding:10px}
+.lib2-toc{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow:auto;background:#fff;border:1px solid #e4e8ee;border-radius:var(--radius-xl);padding:10px}
 .lib2-toc ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
-.lib2-toc li button{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;text-align:left;border:0;background:transparent;border-radius:10px;padding:8px 10px;cursor:pointer;color:#344054;font-size:.88rem;line-height:1.35}
+.lib2-toc li button{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;text-align:left;border:0;background:transparent;border-radius:var(--radius-md);padding:8px 10px;cursor:pointer;color:#344054;font-size:.88rem;line-height:1.35}
 .lib2-toc li button:hover{background:#f2f5f8}
 .lib2-toc li button.is-active{background:#e7f5f1;color:#0b5c4d;font-weight:700}
 .lib2-toc li button b{font-size:.72rem;color:var(--green)}
@@ -371,7 +371,7 @@
 .lib2-toc-select{display:none}
 .lib2-filters{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .lib2-sort{display:flex;align-items:center;gap:8px;font-size:.85rem;color:#667085}
-.lib2-sort select,.lib2-toc-select select{border:1.5px solid #d6dde5;border-radius:10px;padding:7px 10px;background:#fff;font-weight:600;color:#344054}
+.lib2-sort select,.lib2-toc-select select{border:1.5px solid #d6dde5;border-radius:var(--radius-md);padding:7px 10px;background:#fff;font-weight:600;color:#344054}
 .lib2-count{margin:12px 0 8px;color:#667085;font-size:.88rem}
 .lib2-count button{border:0;background:none;color:var(--green);font-weight:700;cursor:pointer;padding:0}
 .lib2-section h3{display:flex;align-items:center;gap:10px;margin:18px 0 8px;font:800 1rem Manrope,sans-serif;color:#14243a}
@@ -383,7 +383,7 @@
 .lib2-row:hover{background:#fafbfc}
 .lib2-star{border:0;background:transparent;color:#c4ccd6;cursor:pointer;padding:4px;display:grid}
 .lib2-star.is-on{color:#e0a526}.lib2-star.is-on svg{fill:currentColor}
-.lib2-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#eef4ff;color:#3559c7}
+.lib2-icon{width:34px;height:34px;border-radius:var(--radius-md);display:grid;place-items:center;background:#eef4ff;color:#3559c7}
 .lib2-icon.tone-success{background:#e7f5f1;color:#0b5c4d}.lib2-icon.tone-danger{background:#fdecea;color:#b42318}.lib2-icon.tone-neutral{background:#f2f4f7;color:#475467}
 .lib2-main{display:grid;gap:2px;text-align:left;border:0;background:transparent;cursor:pointer;min-width:0;padding:2px 0}
 .lib2-main strong{font-size:.97rem;color:#14243a;overflow-wrap:anywhere}
@@ -395,7 +395,7 @@
 .lib2-actions{display:flex;gap:6px}
 /* Avasta / Harjuta / Kasuta on the lesson card: green = published, yellow = draft, grey = not made yet */
 .lib2-phases{grid-column:3 / -1;grid-row:2;display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:-4px}
-.lib2-phase{display:inline-flex;align-items:center;gap:5px;max-width:260px;padding:3px 10px;border-radius:999px;border:1px solid #d0d5dd;background:#f9fafb;color:#667085;font-size:.8rem;font-weight:700;text-decoration:none}
+.lib2-phase{display:inline-flex;align-items:center;gap:5px;max-width:260px;padding:3px 10px;border-radius:var(--radius-pill);border:1px solid #d0d5dd;background:#f9fafb;color:#667085;font-size:.8rem;font-weight:700;text-decoration:none}
 .lib2-phase small{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px;opacity:.85}
 .lib2-phase.is-published{background:#e7f5f1;border-color:#9fd8c8;color:#0b5c4d}
 .lib2-phase.is-draft{background:#fff8e1;border-color:#f3d37a;color:#8a5a00}
@@ -428,7 +428,7 @@
 
 /* lesson plan (what to do, what to teach, how the hour goes) keeps its lines */
 .library-detail__plan { white-space: pre-line; line-height: 1.55; max-height: 46vh; overflow: auto; }
-.lib2-module-drafts{margin-left:8px;border:1px solid #9fd8c8;background:#e7f5f1;color:#0b5c4d;border-radius:999px;padding:3px 10px;font-size:.76rem;font-weight:700;cursor:pointer}
+.lib2-module-drafts{margin-left:8px;border:1px solid #9fd8c8;background:#e7f5f1;color:#0b5c4d;border-radius:var(--radius-pill);padding:3px 10px;font-size:.76rem;font-weight:700;cursor:pointer}
 .lib2-module-drafts:disabled{opacity:.6;cursor:default}
 
 /* header: one primary „Loo uus”, tools in a menu */
@@ -436,8 +436,8 @@
 .lib2-menu{position:relative}
 .lib2-menu > summary{list-style:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .lib2-menu > summary::-webkit-details-marker{display:none}
-.lib2-menu__list{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:240px;display:grid;padding:6px;background:#fff;border:1px solid #e4e7ec;border-radius:12px;box-shadow:0 12px 30px rgba(16,24,40,.12)}
-.lib2-menu__list button{display:flex;align-items:center;gap:8px;text-align:left;border:0;background:transparent;padding:9px 10px;border-radius:8px;font:inherit;font-size:.9rem;color:#1d2939;cursor:pointer}
+.lib2-menu__list{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:240px;display:grid;padding:6px;background:#fff;border:1px solid #e4e7ec;border-radius:var(--radius-lg);box-shadow:0 12px 30px rgba(16,24,40,.12)}
+.lib2-menu__list button{display:flex;align-items:center;gap:8px;text-align:left;border:0;background:transparent;padding:9px 10px;border-radius:var(--radius-sm);font:inherit;font-size:.9rem;color:#1d2939;cursor:pointer}
 .lib2-menu__list button:hover{background:#f2f4f7}
 .lib2-menu__list button:disabled{opacity:.55;cursor:default}
 /* quieter row actions: icons + one outlined „Määra” */
@@ -449,7 +449,7 @@
 .lib2-filters{justify-content:flex-start;align-items:center;gap:10px 16px}
 .lib2-filters .lib2-chips{margin:0}
 /* eye on a curriculum lesson: one tab per phase, the sheet below */
-.preview-phase-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.preview-phase-tabs button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid #d6dee7;border-radius:999px;background:#fff;color:#34445a;font:inherit;font-weight:700;cursor:pointer}.preview-phase-tabs button small{font-weight:600;color:#98a2b3}.preview-phase-tabs button.is-published svg{color:var(--green)}.preview-phase-tabs button.is-active{border-color:var(--green);background:#ecf8f4;color:#0b4f43}
+.preview-phase-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.preview-phase-tabs button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid #d6dee7;border-radius:var(--radius-pill);background:#fff;color:#34445a;font:inherit;font-weight:700;cursor:pointer}.preview-phase-tabs button small{font-weight:600;color:#98a2b3}.preview-phase-tabs button.is-published svg{color:var(--green)}.preview-phase-tabs button.is-active{border-color:var(--green);background:#ecf8f4;color:#0b4f43}
 /* „Grammatika” at the top of a level: topics with their lessons and Õpik sheets (owner 2026-10-21) */
 
 /* „Grammatika” as a module section: a topic number column, then the usual row (owner 2026-10-21) */

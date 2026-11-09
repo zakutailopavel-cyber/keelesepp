@@ -146,7 +146,7 @@
   align-items: center;
   background: #fef3f2;
   border: 1px solid #fecdca;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   color: #b42318;
   display: flex;
   font-size: .86rem;

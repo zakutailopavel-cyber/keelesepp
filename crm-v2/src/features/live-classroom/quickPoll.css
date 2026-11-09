@@ -1,15 +1,15 @@
 /* „Kiirküsimus”: the teacher's drawer and the student's card over the board */
 .qp-panel { display: grid; gap: 12px; }
-.qp-modes { display: flex; gap: 4px; padding: 3px; border-radius: 12px; background: #eef0fa; }
+.qp-modes { display: flex; gap: 4px; padding: 3px; border-radius: var(--radius-lg); background: #eef0fa; }
 .qp-modes button { flex: 1; border: 0; border-radius: 9px; padding: 7px 10px; background: transparent; color: #344054; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .qp-modes button.is-active { background: #fff; color: #1849a9; box-shadow: 0 1px 4px rgba(30, 34, 70, .12); }
-.qp-form select { font: inherit; font-size: 15px; padding: 7px 10px; border: 1px solid #d0d5dd; border-radius: 8px; background: #fff; }
+.qp-form select { font: inherit; font-size: 15px; padding: 7px 10px; border: 1px solid #d0d5dd; border-radius: var(--radius-sm); background: #fff; }
 .qp-options { display: grid; gap: 6px; margin: 0; padding: 0; border: 0; }
 .qp-options legend { margin-bottom: 4px; font-size: 13px; color: #475467; }
 .qp-option { display: flex; align-items: center; gap: 6px; }
 .qp-option input[type="radio"] { width: 18px; height: 18px; accent-color: #16a34a; }
-.qp-option input:not([type]) { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 7px 10px; border: 1px solid #d0d5dd; border-radius: 8px; }
-.qp-now { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #f5f6fd; }
+.qp-option input:not([type]) { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 7px 10px; border: 1px solid #d0d5dd; border-radius: var(--radius-sm); }
+.qp-now { display: grid; gap: 4px; padding: 10px 12px; border-radius: var(--radius-lg); background: #f5f6fd; }
 .qp-now small { font-size: 12px; font-weight: 700; color: #6b7090; text-transform: uppercase; letter-spacing: .02em; }
 .qp-question { margin: 0; font-size: 17px; font-weight: 700; color: #1f2445; line-height: 1.35; }
 .qp-hint { margin: 0; font-size: 13px; color: #6b7090; }
@@ -21,7 +21,7 @@
 .qp-results__label { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: #344054; }
 .qp-results__count { grid-row: span 2; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
 .qp-results small { grid-column: 1; font-size: 12px; color: #667085; }
-.qp-bar { grid-column: 1; height: 8px; border-radius: 99px; background: #eef0fa; overflow: hidden; }
+.qp-bar { grid-column: 1; height: 8px; border-radius: var(--radius-pill); background: #eef0fa; overflow: hidden; }
 .qp-bar span { display: block; height: 100%; border-radius: inherit; background: #98a2d3; transition: width .3s ease; }
 .qp-results li.is-correct .qp-bar span { background: #16a34a; }
 .qp-results li.is-correct .qp-results__label { color: #15803d; }

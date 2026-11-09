@@ -7,6 +7,12 @@
 - „Minu lemmik” (`pet/pet.css`): pet buttons (34 px), „Muuda” (23 px) and „Pane selga” (36 px) now ≥ 40 px on phones; wardrobe prices 12 px.
 - Checks: `npx vitest run src/features/vocabulary src/features/pet src/features/homework` → 45 files, 270 passed. Full `npx vitest run` on a busy machine: 547 passed, 5 files failed only by timeouts (worksheet-studio, studentWorksheetFlow, LiveRoom.wordTap, VocabularyPage); re-run alone they pass (also with this change). CSS only, so no eslint target. Lab after the fix: `scrollWidth` 375 on all 11 checked states.
 - Next safe step: owner opens „Sõnad” → a deck → „Sobita” on a real phone after deploy.
+## 2026-11-09 · agent/design-tokens-2 — radius/shadow literals → tokens (design audit, pass 2)
+
+- Base: `origin/main` b1c6b0b, checked 2026-11-09. Branch `agent/design-tokens-2`, draft PR. Open PRs checked: only #1062 (address), no overlap.
+- Done: 643 `border-radius` values in 92 CSS files → `var(--radius-sm/md/lg/xl/pill)` (exact or ±1px; 99px pills → `pill`), 1 `box-shadow` → `var(--shadow-md)`. Worksheet-generator / worksheet-studio (sheet + print) and textbook CSS untouched. Pure refactor, no colour change. Details and what was left (14px, 9/11px, 50%, ≥18px, shadows of other colours) in `docs/DESIGN_TOKENS.md`.
+- Checks: full `npx vitest run` → 551 files passed, 1 failed by two 30 s timeouts in `WorksheetStudioPage.test.jsx` under full-suite load (that file alone: 24/24 passed; no CSS is read by it); `npx vite build` ✓; `npx eslint src` 0 errors. Not looked at in a browser.
+- Next safe step: decide the 14px radius (122 spots) screen by screen.
 ## 2026-11-09 · agent/entity-drawers — a lesson and an invoice open in the same side drawer (right-click), stacked on #1142
 
 - Base: `origin/agent/student-drawer` (PR #1142, not merged yet); `origin/main` b313691 checked 2026-11-09. Branch `agent/entity-drawers`, draft PR stacked on #1142.

@@ -38,7 +38,7 @@
 }
 .bank-import-preview {
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
 }
 .bank-import-preview__title,
@@ -159,7 +159,7 @@
 .bank-import-preview__counts{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.bank-row-split{color:#0b5f50;font-weight:700}
 /* the statement as a bank feed (owner 2026-10-21): one card per payment, a stripe by how sure the match is */
 .bank-import-preview__counts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.bank-import-preview__counts button { border: 1px solid var(--border, #e2e8f0); background: #fff; border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 700; color: var(--text, #1f2937); cursor: pointer; }
+.bank-import-preview__counts button { border: 1px solid var(--border, #e2e8f0); background: #fff; border-radius: var(--radius-pill); padding: 5px 12px; font-size: 12.5px; font-weight: 700; color: var(--text, #1f2937); cursor: pointer; }
 .bank-import-preview__counts button.is-sure { color: #067647; } .bank-import-preview__counts button.is-likely { color: #b54708; } .bank-import-preview__counts button.is-manual { color: #475467; }
 .bank-import-preview__counts button.is-on { background: #101828; border-color: #101828; color: #fff; }
 .bank-feed { display: grid; gap: 8px; padding: 12px; background: #f8fafc; max-height: 62vh; overflow: auto; }
@@ -176,7 +176,7 @@
 .bank-feed__amount { font: 800 17px Manrope, system-ui, sans-serif; color: #067647; text-align: right; white-space: nowrap; }
 .bank-feed__target { display: grid; gap: 4px; min-width: 0; }
 .bank-feed__invoices { display: flex; flex-wrap: wrap; gap: 5px; }
-.bank-feed__pill { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; background: #ecfdf3; color: #05603a; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.bank-feed__pill { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: var(--radius-pill); background: #ecfdf3; color: #05603a; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
 .bank-feed__row.is-likely .bank-feed__pill { background: #fffaeb; color: #93370d; }
 .bank-feed__pill.is-credit { background: #eff8ff; color: #175cd3; }
 .bank-feed__none { color: #667085; font-size: 13px; font-style: italic; }

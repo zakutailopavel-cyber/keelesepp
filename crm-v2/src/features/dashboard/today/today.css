@@ -1,7 +1,7 @@
 /* „Täna” lists on the home page (dashboard/today/TodayPanel.jsx; layout in dashboard/calm.css) */
 .today-lessons, .today-list, .today-calls, .today-reasons, .today-called ul { margin: 0; padding: 0; list-style: none; }
 .today-lessons { display: grid; gap: 2px; }
-.today-lessons > li { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; }
+.today-lessons > li { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 8px 10px; border-radius: var(--radius-lg); }
 .today-lessons > li:hover { background: #f9fafb; }
 .today-lessons > li.is-past, .today-lessons > li.is-cancelled { opacity: .62; }
 .today-lessons > li.is-now { background: #ecfdf3; }
@@ -12,7 +12,7 @@
 .today-list { display: grid; gap: 2px; }
 .today-list > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #f2f4f7; }
 .today-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.today-numbers div { padding: 10px 12px; border-radius: 12px; background: #f9fafb; }
+.today-numbers div { padding: 10px 12px; border-radius: var(--radius-lg); background: #f9fafb; }
 .today-numbers strong { display: block; font-size: 1.5rem; }
 .today-numbers small { color: #667085; font-size: .78rem; }
 .today-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
@@ -20,9 +20,9 @@
 .today-table th:not(:first-child), .today-table td:not(:first-child) { text-align: right; width: 72px; }
 .today-table th { color: #667085; font-weight: 600; font-size: .78rem; }
 .today-calls { display: grid; gap: 4px; }
-.today-calls > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid #f2f4f7; }
+.today-calls > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-lg); border: 1px solid #f2f4f7; }
 .today-reasons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.today-reasons li { padding: 2px 8px; border-radius: 999px; background: #fef3f2; color: #b42318; font-size: .76rem; }
+.today-reasons li { padding: 2px 8px; border-radius: var(--radius-pill); background: #fef3f2; color: #b42318; font-size: .76rem; }
 .today-call-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .today-call-form .field { min-width: 220px; margin: 0; }
 .today-called { margin-top: 10px; font-size: .85rem; }

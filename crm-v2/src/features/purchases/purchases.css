@@ -121,7 +121,7 @@
 .suppliers-panel__search {
   align-items: center;
   border: 1px solid #d0d5dd;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   display: flex;
   flex: 1 1 260px;
   gap: 6px;
@@ -144,7 +144,7 @@
 .suppliers-import {
   background: #f9fafb;
   border: 1px solid #d0d5dd;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   display: grid;
   gap: 10px;
   margin-bottom: 14px;
