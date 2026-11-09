@@ -19,7 +19,7 @@ export { FINAL_KINDS, fallbackLine, purpose, station } from './stationBlocks.js'
 
 export const ST = Object.freeze({
   stations: [4, 6], minutes: [8, 15], blocks: 16, textWords: 120, audioWords: 320, dialogueLines: [4, 8],
-  items: STATION_ITEMS, purposeWords: 6, dependsMax: 1, coreStations: 3, coreMinutes: [35, 50], errorsMin: 2, goalChars: 200,
+  items: STATION_ITEMS, purposeWords: 6, dependsMax: 1, coreStations: 3, coreMinutes: [35, 50], errorsMin: 2, goalChars: 200, scriptLines: 2,
 });
 
 const PHASES = ['discover', 'practice', 'transfer'];
@@ -57,7 +57,7 @@ export function teacherPage(lesson) {
   const stations = list.map((s) => ({
     n: s.n, title: s.title, minutes: s.minutes, sheet: PHASE_LABEL[s.phase], phase: s.phase,
     core: core.includes(s.n), alt: page.alt === s.n, final: s.final || '', needs: s.needs?.from || null,
-    tasks: s.blocks.filter(isTask).map((b) => ({ id: b.id, type: b.type, purpose: b.data?.purpose || '' })),
+    tasks: s.blocks.filter(isTask).map((b) => ({ id: b.id, type: b.type, purpose: b.data?.purpose || '', teacher: String(b.data?.teacher || '').trim() })),
   }));
   return {
     goal: String(page.goal || '').trim(), stations, core, alt: page.alt ?? null,
@@ -79,6 +79,7 @@ export function teacherPageText(page, title = '') {
     `Если мало времени: ${page.short}`,
     'Типичные ошибки:', ...page.errors.map((e) => `– ${e}`),
     ...(page.notes.length ? ['Заметки:', ...page.notes.map((e) => `– ${e}`)] : []),
+    ...page.stations.flatMap((s) => s.tasks.filter((t) => t.teacher).map((t) => `Карточка учителя (станция ${s.n}, ${t.id}): ${t.teacher}`)),
   ].join('\n');
 }
 
@@ -105,6 +106,12 @@ const isClosed = (b) => isTask(b) && closedItems(b) > 0;
 const GROUP = /(?:kolm|kolmelt|kolmele|mitu|mitmelt|kõigilt)\s+(?:inimes|kaaslas|õpilas|naabri)|kaaslastelt|klassikaaslas|kursusekaaslas|(?<!\p{L})rühma|(?<!\p{L})grupis|käi ringi|küsitle (?:kolme|mitut|kõiki)/iu;
 const REPEAT = /(?:kaks|kolm) korda|teist korda|teisel korral|uuesti|iga kord lühemalt|3\s*[-–]\s*2\s*[-–]\s*1|4\s*[-–]\s*3\s*[-–]\s*2/iu;
 const SPEAK = ['speaking', 'speakcard', 'rolecards'];
+// „Rollimäng: eesmärk, mitte stsenaarium”: the learner's role card gives the situation, the goal and constraints, never a
+// list of what to say; the teacher's card (teach() note) holds the hidden information, the obstacles and the success condition
+const SCRIPT_LINE = /^\s*(?:\d+[.)]\s*)?(?:Ütle|Küsi|Selgita|Tervita|Paku|Viita|Lepi|Räägi|Kirjelda|Vasta|Põhjenda|Palu|Nõua|Täna|Kinnita|Korda|Lõpeta|Alusta)(?!\p{L})/u;
+const learnerCard = (b) => (b.type === 'speakcard' ? String(b.data?.cardA?.items || '').split('\n')
+  : b.type === 'rolecards' ? String(b.data?.roleA || '').split(/\n|(?<=[.!?])\s+/) : []);
+export const scriptLines = (b) => learnerCard(b).filter((line) => SCRIPT_LINE.test(line)).length;
 // the student's text of a block without its purpose line (the purpose is checked on its own)
 const taskText = (b) => studentText({ ...b, data: { ...b.data, purpose: '' } });
 const inputWords = (b) => words(mainText(b));
@@ -155,6 +162,7 @@ export function lessonStationProblems(lessonId, phases) {
       const n = closedItems(b);
       if (n && b.type !== 'insertion' && (n < ST.items[0] || n > ST.items[1])) add(phase, 'st-items', `${b.id}: ${n} punkti (suletud ülesanne: ${ST.items.join('–')})`);
       if (GROUP.test(taskText(b))) add(phase, 'st-group', `${b.id}: rühmatöö või „küsi mitmelt” — tund on üks-ühele, õpetaja on partner päris põhjusega`);
+      if (scriptLines(b) > ST.scriptLines) add(phase, 'st-script', `${b.id}: õppija rollikaart on stsenaarium (${scriptLines(b)} rida „Ütle / Küsi / Selgita …”) — anna olukord, eesmärk ja piirangud; info ja takistused on õpetaja kaardil`);
       if (SPEAK.includes(b.type) && REPEAT.test(taskText(b))) add(phase, 'st-repeat', `${b.id}: sama monoloog uuesti („kaks korda”, „uuesti” …)`);
     }
   }

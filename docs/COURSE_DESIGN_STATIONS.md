@@ -34,6 +34,16 @@ This file is the contract for a module written with `MODULE.design: 'v3-stations
    number lives only inside a cast scene; a real fact has its source line). A station that would gain from a picture gets
    a brief (TEXTBOOK_ART_BIBLE.md §6); no station needs the picture to work.
 
+7. **Rollimäng: eesmärk, mitte stsenaarium** (owner 2026-11-09, PR #1179: „звонок в страховую слишком детален и заранее
+   прописан — ученик особо ничего не делает”). The learner's role card gives only the situation, the **goal** (what to
+   achieve) and 1–2 **constraints** (a missing document, a deadline), optionally a small phrase bank — never a numbered
+   list of what to say. The teacher's card (`teach()` note, also on the teacher page) holds the **hidden information**,
+   2–3 **obstacles** to bring in one at a time (asks for a document the learner lacks, offers a partial deal, claims a
+   missed deadline …) and the **success condition** (e.g. a written promise to re-check by a date, or a partial payout +
+   what to send). The learner improvises: explains cause → consequence, pushes back politely, agrees on next steps.
+   Gate `st-script`: a learner card (role card A, the caller's card of a phone card) with more than 2 lines starting with
+   a speech verb (Ütle, Küsi, Selgita, Tervita, Paku, Viita, Lepi, …) fails; teacher cards may be scripts.
+
 The three sheets (Avasta / Harjuta / Kasuta) stay — routes, homework, Live Classroom and Õpik are unchanged — but they are
 only containers: Avasta holds stations 1–2, Harjuta the next ones, Kasuta the final station (and in 058 the station it
 may depend on). The old grammar line, topic and exam-format coverage of the module stay.
@@ -71,6 +81,7 @@ them; unit tests `stations.test.js`):
 | `st-items` | closed tasks 5–8 items (sentence insertion excepted) |
 | `st-closed` | ≤ 1 closed task per station |
 | `st-group` | no group work / „ask several people” |
+| `st-script` | a learner's role card is situation + goal + constraints, not > 2 lines „Ütle / Küsi / Selgita …” |
 | `st-repeat` | no monologue said again („kaks korda”, „uuesti”, 3-2-1 …) in speaking tasks |
 | `st-blocks` | ≤ 16 blocks a lesson |
 | `st-final` | exactly one final station, on the Kasuta sheet |

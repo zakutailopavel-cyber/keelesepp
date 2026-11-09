@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { B, teach } from './blocks.js';
 import { FINAL_KINDS, NOT_TASKS, purpose, station } from './stationBlocks.js';
-import { ST, closedItems, lessonStationProblems, stationProblems, stationsOf, teacherPage, teacherPageText } from './stations.js';
+import { ST, closedItems, scriptLines, lessonStationProblems, stationProblems, stationsOf, teacherPage, teacherPageText } from './stations.js';
 import { sheetProblems } from './quality.js';
 import { BLOCKS } from '../../../worksheet-studio/engine/registry.js';
 import { depthProblems } from '../../../worksheet-studio/didactics/depth.js';
@@ -125,6 +125,17 @@ describe('station gates (stations.js)', () => {
     expect(codes(lessonStationProblems('x', sheets(lesson({ discover: [...l.discover.slice(0, 3), group] }))))).toContain('st-group');
     const again = teach(purpose(B.speaking('x_d_talk', 'Räägi.', 'Räägi sama lugu kaks korda: kolme ja kahe minutiga.', ['?'], [120, 180]), P), 'Üks-ühele: …');
     expect(codes(lessonStationProblems('x', sheets(lesson({ discover: [...l.discover.slice(0, 3), again] }))))).toContain('st-repeat');
+  });
+
+  it('a learner role card is a goal, not a script (the teacher card may be)', () => {
+    const l = lesson();
+    const script = teach(purpose(B.phoneCards('x_t_role', 'Helista.', 'Helista kindlustusse.', 'Olukord.', ['Klient', ['Tervita ja ütle oma nimi.', 'Selgita, mis juhtus.', 'Küsi, millal tuleb vastus.']], ['Teenindaja', ['Küsi nime.', 'Ütle, et otsus jääb.', 'Küsi tõendit.']]), P), 'Üks-ühele: …');
+    expect(scriptLines(script)).toBe(3);
+    expect(codes(lessonStationProblems('x', sheets(lesson({ transfer: [l.transfer[0], script] }))))).toContain('st-script');
+    const goal = teach(purpose(B.phoneCards('x_t_role', 'Helista.', 'Helista kindlustusse.', 'Olukord.', ['Klient', ['Olukord: toit läks halvaks.', 'Eesmärk: kindlustus vaatab otsuse üle.', 'Piirang: tõendit ei ole.']], ['Teenindaja', ['Küsi nime.', 'Ütle, et otsus jääb.', 'Küsi tõendit.']]), P), 'Üks-ühele: …');
+    expect(codes(lessonStationProblems('x', sheets(lesson({ transfer: [l.transfer[0], goal] }))))).not.toContain('st-script');
+    const roles = teach(purpose(B.rolecards('x_t_role', 'R.', 'R.', 'Ütle, mis kell. Paku kaks aega. Küsi, mis sobib.', 'B', [], []), P), 'Üks-ühele: …');
+    expect(scriptLines(roles)).toBe(3);
   });
 
   it('needs one final station on Kasuta and a complete teacher page', () => {

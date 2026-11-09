@@ -127,11 +127,11 @@ export const LESSONS = withShapes({
     transfer: [
       station(B.text('056_t_sit', 'Otsus: millal rappa?', 'Pere on jaanipäeval onu Viktori talus Kõrvemaal. Viktor tahab kõik viia rabamatkale: laudtee on neli kilomeetrit pikk ja matk kestab umbes kolm tundi. Rabas ei ole katust ega varju. Kaasa tulevad ka seitsmeaastane Mia ja vanaema Helgi. Viktor küsib sinult: mis kell minna? Vaata ilmaäppi, arutage Viktoriga ja kirjuta pere vestlusesse otsus.'), 5, 15, { final: 'decide' }),
       B.chart('056_t_app', 'Viktori ilmaäpp: Kõrvemaa, jaanipäev', { kind: 'bar', series: ['Temperatuur (kraadi)', 'Vihma võimalus (protsenti)'], rows: ['6–9 | 14 | 10', '9–12 | 18 | 10', '12–15 | 21 | 40', '15–18 | 19 | 80', '18–21 | 16 | 30'] }),
-      teach(purpose(B.rolecards('056_t_talk', 'Viktor tahab minna pärastlõunal.', 'A vaatab äppi, B on onu Viktor. Rääkige ja leppige kokku matka kellaaeg.',
-        'Sul on ilmaäpp. Ütle Viktorile, mis kell on äikese oht kõige suurem ja miks see rabas ohtlik on. Paku kaks võimalust ja küsi, mis talle sobib.',
-        'Sa oled Viktor. Hommikul kella kümneni niidad heina ja tahad minna kell üks. Sa muudad plaani ainult siis, kui kuuled head põhjust. Ütle ka, mida sa rajast tead: kahe kilomeetri pärast on vaatetorn, aga katust seal ei ole.',
-        ['Äpi järgi läheb pärastlõunal…', 'Kella kolme paiku oodatakse…', 'Aga kui me läheme…?'], ['Hommikul ma niidan…', 'Hea küll, kui…', 'Lepime kokku, et…']), 'Viktor tahab minna kell üks, sest hommikul niidab ta heina. Sina tead, mida äpp näitab, ja pead leidma aja, mil keegi ei jää rabas äikese kätte.'),
-      'Üks-ühele: õpetaja on Viktor ja jääb oma plaani juurde, kuni õpilane annab kaks head põhjust (äike 15–18, rabas pole varju). Kui õpilane pakub hommikut, meenutab Viktor heinategu — tuleb leida kompromiss (näiteks kell 10.30 ja tagasi enne kahte). Lõpus ütleb õpilane otsuse ühe lausega.'),
+      teach(purpose(B.rolecards('056_t_talk', 'Viktor tahab minna pärastlõunal.', 'Sina vaatad äppi, õpetaja on onu Viktor. Mida ja kuidas öelda, otsusta ise.',
+        'Olukord: matk kestab umbes kolm tundi, rabas ei ole katust ega varju, kaasas on Mia ja vanaema Helgi.\nSinu eesmärk: leppida Viktoriga kokku matka aeg, mil keegi ei jää rabas äikese kätte.\nPiirang: sina tead ainult seda, mida näitab äpp; Viktori plaane sa ei tea.',
+        'Viktori kaart on õpetajal: Viktoril on oma plaanid ja oma põhjused. Kuula, küsi ja leia kompromiss.',
+        ['Äpi järgi läheb pärastlõunal…', 'Kella kolme paiku oodatakse…', 'Aga kui me läheme…?'], ['Hommikul ma niidan…', 'Hea küll, kui…', 'Lepime kokku, et…']), 'Viktor tahab minna pärastlõunal ja küsib sinu arvamust. Sina tead, mida äpp näitab, ja pead leidma aja, mil keegi ei jää rabas äikese kätte.'),
+      'Üks-ühele, õpetaja kaart (Viktor). Varjatud info: hommikul kella kümneni niidad heina ja tahad minna kell üks; kahe kilomeetri pärast on vaatetorn, aga katust seal ei ole; Helgi kõnnib aeglaselt. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Hommikul ma ei saa, hein on vaja enne vihma ära niita!”; 2) „Need äpid eksivad niikuinii.”; 3) kui õpilane pakub kella 10.30: „Helgiga ei jõua me kolme tunniga tagasi.” Õnnestunud, kui: lepitakse kokku aeg (või lühem ring), mis lõpeb enne kella kolme, õpilane põhjendab seda äpi andmetega (äike 15–18, vihma võimalus 80) ja ütleb otsuse ühe lausega.'),
       tag(purpose(B.examWriting('056_t_message', 'Teade pere vestlusesse.', 'Kirjuta 50–70 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Pere vestlusgrupp „Jaanipäev Viktori juures”. Kõik ootavad otsust.',
         points: ['mis kell matk algab ja kus kohtutakse', 'miks just siis (ilm)', 'mida kaasa võtta', 'mis saab, kui ilm muutub'],
@@ -234,7 +234,7 @@ export const LESSONS = withShapes({
         'maantee bussipeatus',
         'Ülo koera kuut naabritalus',
       ], 'kolm kohta õiges järjekorras ja kes kuhu läheb'), 'Naaber Ülo tunneb raba ümbrust ja tuli appi. Enne pimedat jõuab läbi käia ainult kolm kohta, seega peate otsustama, kust kõigepealt otsida.'), { task: 'S12', level: 4 }),
-        'Üks-ühele: õpetaja on Ülo ja teab, et äikest kartev koer otsib kuiva ja varjulist kohta; ta toob selle välja ainult siis, kui õpilane küsib „Kuhu koer äikese ajal peitu läheb?”. Lõpus ütleb õpilane plaani kolme lausega (kõigepealt…, siis…, kui…).'),
+        'Üks-ühele, õpetaja kaart (Ülo). Varjatud info: äikest kartev koer otsib kuiva ja varjulist kohta; kell pool kolm nägi Ülo naine väikest pruuni koera heinaküüni juures (ütle ainult siis, kui õpilane küsib, kas keegi on Mukit näinud). Takistused: 1) Ülo tahab kõigepealt minna järve äärde („koerad armastavad vett”); 2) „Bussipeatus on mõttetu, sinna koer ei lähe.”; 3) „Mul on aega ainult tund.” Õnnestunud, kui: kolm kohta on järjekorras, heinaküün on esimeste seas, iga valik on põhjendatud ja on selge, kes kuhu läheb; õpilane ütleb plaani kolme lausega (kõigepealt…, siis…, kui…).'),
       tag(purpose(B.examWriting('057_t_post', 'Postitus küla gruppi.', 'Kirjuta 70–90 sõnaga. Kirjuta kõigist neljast punktist ja kasuta vähemalt kahte lauset sõnadega kui, enne kui või pärast seda, kui.', 'jutt', {
         situation: 'Küla grupp „Kõrvemaa elanikud”. Pealkiri: „Muki kadus äikese ajal rabas”.',
         points: ['mis juhtus ja millal', 'kus Mukit viimati nähti', 'milline Muki välja näeb ja mida ta kardab', 'mida teha, kui keegi ta leiab'],
@@ -315,7 +315,7 @@ export const LESSONS = withShapes({
         'Viktor küsib kindlustusest',
         'ajutine võrk kohe, korralik aed hiljem',
       ], 'kes parandab, kes maksab ja millal aed on korras'), 'Naabri kuusk kukkus Viktori aiale ja lambad võivad välja pääseda. Te peate täna kokku leppima, kes aia parandab ja kes maksab, et naabrid tülli ei läheks.'), { task: 'S03', level: 4 }),
-      'Üks-ühele: õpetaja on Ülo, kes on nõus maksma, aga ei taha ise tööd teha, sest tal on selg haige. Õpilane peab ütlema vähemalt kaks põhjust ja ühe tagajärje (… tõttu, seepärast, nii et). Lõpus kordab õpilane kokkulepet.'), 4, 10),
+      'Üks-ühele, õpetaja kaart (Ülo). Varjatud info: Ülol on selg haige, ta võib maksta materjali eest, aga ise tööd teha ei saa; tal on kuurist võtta vana võrk. Takistused: 1) „Kuusk kukkus tormi tõttu, see ei ole minu süü.”; 2) meister saab tulla alles kahe nädala pärast; 3) „Miks ma pean kõik kinni maksma?” Õnnestunud, kui: on kokku lepitud ajutine lahendus täna (lambad ei pääse välja), kes parandab aia, kes mida maksab ja millal; õpilane kasutab vähemalt kaks põhjust ja ühe tagajärje (… tõttu, seepärast, nii et) ja kordab kokkulepet.'), 4, 10),
     ],
     transfer: [
       station(tag(purpose(B.listening('058_t_damage', 'Viktori häälsõnum: kahjude nimekiri.', 'Kuula Viktori sõnumit kaks korda ja kirjuta nimekirja igasse lünka üks või kaks sõna või number.', [
@@ -339,22 +339,17 @@ export const LESSONS = withShapes({
       B.phrasebank('058_t_phrases', [
         ['Kaebus', ['Ma ei ole teie otsusega nõus, sest…', 'Lepingu järgi …', 'Palun vaadake otsus uuesti üle.']],
         ['Põhjus ja tagajärg', ['Tormi tõttu kadus elekter 30 tundi.', 'Elekter oli ära, seepärast läks toit halvaks.', 'Kuna vool tuli tagasi, …, nii et …']],
-        ['Kokkulepe', ['Mida ma pean veel saatma?', 'Millal ma vastuse saan?', 'Kas ma sain õigesti aru, et …?']],
+        ['Kokkulepe', ['Mul ei ole praegu …, aga ma saan saata …', 'Kas te saate otsuse üle vaadata enne …?', 'Mida ma pean veel saatma?', 'Kas ma sain õigesti aru, et …?']],
       ]),
-      teach(tag(purpose(B.phoneCards('058_t_call', 'Helista kindlustusse.', 'A on Viktor ja helistab kindlustusfirma Kodukaitse klienditeenindusse, B on klienditeenindaja Egle.', 'Kodukaitse keeldus hüvitamast sügavkülmiku toitu ja pumpa.', ['Viktor', [
-        'Tervita ja ütle, kes sa oled ja mis on kahjuteate number (KK-2318).',
-        'Ütle, milline otsus sulle ei sobi ja miks.',
-        'Selgita põhjust ja tagajärge: torm → elekter ära 30 tundi → toit ja pump.',
-        'Viita lepingule: katkestus kestis üle 24 tunni.',
-        'Lepi kokku, mida sa saadad ja millal tuleb uus vastus.',
-      ]], ['Klienditeenindaja Egle', [
-        'Küsi kahjuteate numbrit ja helistaja nime.',
-        'Ütle, et otsuse tegi kahjukäsitleja tormi kirjelduse põhjal.',
-        'Küsi, kas on tõend, et elekter oli ära üle 24 tunni.',
-        'Kui tõend on olemas, luba otsus üle vaadata.',
-        'Ütle, kuhu ja mis ajaks dokumendid saata.',
+      teach(tag(purpose(B.phoneCards('058_t_call', 'Helista kindlustusse.', 'Sina oled Viktor, õpetaja on klienditeenindaja Egle. Sinu kaardil on olukord, eesmärk ja piirangud — mida ja kuidas öelda, otsusta ise. Väljendid leiad kastist.', 'Kodukaitse keeldus hüvitamast sügavkülmiku toitu ja pumpa: „need ei ole tormikahjud”. Kahjuteate number on KK-2318.', ['Viktor', [
+        'Olukord: torm murdis liini, elektrit ei olnud 30 tundi; sügavkülmikus läks liha halvaks ja pump läks katki. Lepingu järgi hüvitatakse elektrikatkestuse kahju, kui katkestus kestis üle 24 tunni.',
+        'Eesmärk: kindlustus hüvitab ka toidu ja pumba — või lubab vähemalt otsuse kindlaks päevaks üle vaadata.',
+        'Piirang: sul on fotod ja kahjude nimekiri, aga elektriku kirjalikku hinnangut pumba kohta ei ole.',
+        'Piirang: vastust on vaja enne reedet, sest siis pead uue pumba ostma.',
+      ]], ['Klienditeenindaja Egle (õpetaja)', [
+        'Egle teab asju, mida sina ei tea. Tema kaart on õpetajal. Kuula hoolikalt ja reageeri.',
       ]]), 'Sina oled Viktor. Kindlustus keeldus osa kahju hüvitamast. Helista ja selgita põhjuse ja tagajärjega, miks toit ja pump on tormikahju; tulemus on uus otsus või selge kokkulepe, mida saata.'), { main: true }),
-      'Üks-ühele: õpetaja on Egle ja ei anna kohe järele: ta küsib vähemalt kaks korda „Miks te arvate, et see on tormikahju?”. Eesmärk: õpilane kasutab vähemalt nelja põhjuse või tagajärje sidet ja viitab lepingule. Lõpus kordab õpilane kokkulepet (mida saata, kuhu, mis ajaks).'),
+      'Üks-ühele, õpetaja kaart (Egle). Varjatud info: otsuse tegi kahjukäsitleja ainult tormi kirjelduse põhjal; ülevaatamiseks on vaja tõendit katkestuse pikkuse kohta (võrguettevõtte katkestusteade sobib) ja pumba kohta elektriku hinnangut; tavaline ülevaatus võtab 10 tööpäeva, kiiremini ainult siis, kui klient põhjendab. Takistused (ükshaaval, oota reaktsiooni): 1) „Kas teil on elektriku kirjalik hinnang pumba kohta?” — õpilasel seda pole; 2) „Toidu eest võime maksta, pumba eest mitte.” (osaline hüvitis); 3) „Kahjuteade tuli liiga hilja, tähtaeg oli 3 päeva.” — tegelikult saatis Viktor teate järgmisel hommikul, õpilane peab vastu vaidlema. Õnnestunud, kui: Egle lubab otsuse kirjalikult üle vaadata kindlaks päevaks (enne reedet) või lepitakse kokku osaline hüvitis ja mida, kuhu ja mis ajaks saata; õpilane seletab põhjuse ja tagajärje (vähemalt kolm sidet), vaidleb viisakalt vastu ja kordab kokkulepet. Ära loe õpilasele seda kaarti ette.'),
     ],
   },
 
@@ -419,7 +414,7 @@ export const LESSONS = withShapes({
         'Talgupäev on kohustuslik kõigile elanikele.',
         'Jagamisriiul trepikojas toob ainult rämpsu juurde.',
       ], [180, 240], ['Minu arvates…, sest…', 'Näiteks meie majas…', 'Jah, aga…']), 'Korteriühistu juhatuse liige Tiina valmistab koosolekut ette ja küsib iga elaniku arvamust. Tema märkmete järgi pannakse kokku koosoleku päevakord.'), { task: 'S11', fluency: true }),
-        'Üks-ühele: õpetaja on Tiina, kirjutab vastused päevakorra jaoks üles ja ütleb vahel vastupidise arvamuse („Aga kompost haiseb!”). Õpilane peab viisakalt nõustuma või vaidlema ja oma põhjuse ütlema.'),
+        'Üks-ühele, õpetaja kaart (Tiina). Tiina kirjutab vastused päevakorra jaoks üles. Takistused: 1) „Aga kompost haiseb!”; 2) „Kes selle eest maksab?”; 3) „Eelmine jagamisriiul oli kuu ajaga rämpsu täis.” Õnnestunud, kui: iga väite kohta on arvamus, põhjus ja näide ning õpilane reageerib vastuväitele viisakalt (nõustub osaliselt või vaidleb põhjendusega).'),
     ],
     practice: [
       station(purpose(B.categorize('059_p_sort', 'Mis kuhu käib?', 'Pane iga asi õigesse konteinerisse.', [
@@ -460,7 +455,7 @@ export const LESSONS = withShapes({
         'ainult jagamisriiul ilma rattahoidjata (40 €)',
         'talgupäeval kõik ise: oksad, aed, liivakast (0 €)',
       ], 'üks plaan, mis mahub 300 eurosse, ja kes mida teeb'), 'Valgevase 7 ja 3 elanikud peavad täna otsustama, mida 300 euro ja ühe talgupäevaga hoovis teha. Tulemus: üks plaan, mis mahub eelarvesse, ja kes mida teeb.'), { harno: 'S1b', main: true }),
-      'Eksaminurk (Harno B1 rääkimine 1b, kokkulepe ideekaardiga, ~4 min). Eksamil arutavad kaks õpilast ja jõuavad ühe otsuseni; hinnatakse, kas mõlemad ütlevad arvamuse, põhjendavad ja jõuavad kokkuleppele. Üks-ühele: õpetaja on naaber, kes eelistab pinke ja lilli, sest tal on raske kõndida ja ta tahab õues istuda — päris põhjus, mitte lihtsalt vastuvaidlemine. Lõpus kordab õpilane kokkulepet (mida, kui palju maksab, kes teeb). Hinda rääkimise skaala järgi (20 punkti).'),
+      'Eksaminurk (Harno B1 rääkimine 1b, kokkulepe ideekaardiga, ~4 min). Eksamil arutavad kaks õpilast ja jõuavad ühe otsuseni; hinnatakse, kas mõlemad ütlevad arvamuse, põhjendavad ja jõuavad kokkuleppele. Üks-ühele, õpetaja kaart (naaber). Varjatud info: sul on raske kõndida ja sa tahad õues istuda, seepärast eelistad pinke; talgupäeval saad aidata ainult lillede istutamisega. Takistused: 1) „Kompost toob rotid hoovi.”; 2) kui õpilase plaan ületab 300 eurot: „Aga see on ju rohkem kui meie raha!”; 3) „Kes peenraid suvel kastab?” Õnnestunud, kui: üks plaan mahub 300 eurosse, mõlema soov on arvesse võetud ja õpilane kordab kokkulepet (mida, kui palju maksab, kes teeb). Hinda rääkimise skaala järgi (20 punkti).'),
     ],
   },
 
