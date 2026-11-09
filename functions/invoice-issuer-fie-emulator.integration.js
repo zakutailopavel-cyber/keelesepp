@@ -63,6 +63,9 @@ test("FIE invoices end to end: owner-only settings, own number series, hidden fr
     db.doc("invoiceIssuers/fie").delete(),
   ]);
   const due = "2099-12-10";
+  // other emulator files count the company's invoice numbers from their own start: leave the counter as found
+  const counterBefore = await db.doc("meta/invoiceCounter").get();
+  t.after(() => (counterBefore.exists ? db.doc("meta/invoiceCounter").set(counterBefore.data()) : db.doc("meta/invoiceCounter").delete()));
 
   // nobody but the owner reaches the FIE routes; FIE is blocked until the name and IBAN are filled
   assert.equal((await call("financeApi", other, "/fie/settings")).status, 404);

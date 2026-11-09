@@ -388,7 +388,7 @@ them.
 `where('issuer', '==', 'company')` (a list rule must compare the stored field: with a default an unconstrained list
 would pass with the FIE invoices in it — checked in the emulator), or the family; create from the client only as a
 company invoice; update / delete of an FIE invoice only by the owner. New owner-only collections above, no client
-writes. Emulator test `functions/fie-issuer-rules-emulator.integration.js`.
+writes. Emulator test `functions/invoice-issuer-fie-rules-emulator.integration.js`.
 
 **Migration (before the rules go live):** old invoices have no `issuer`, so the company-only list of another
 administrator / the bookkeeper would miss them. `functions/tools/invoice-issuer-backfill.js` (dry run by default,
