@@ -1,7 +1,7 @@
-.accounts-tabs{display:inline-flex;gap:4px;padding:4px;border-radius:var(--radius-lg);background:#eef1f4;margin:4px 0 16px}
-.accounts-tabs button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font-weight:700;color:#42536a;cursor:pointer}
+.accounts-tabs{display:inline-flex;gap:4px;padding:4px;border-radius:var(--radius-lg);background:#eef1f4;background:light-dark(#eef1f4,#171c22);margin:4px 0 16px}
+.accounts-tabs button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font-weight:700;color:#42536a;color:light-dark(#42536a,#b9c2ce);cursor:pointer}
 .accounts-tabs button.is-active{background:#14243a;color:#fff}
-.accounts-notice{margin:0 0 14px;padding:12px 14px;border-radius:var(--radius-md);background:#e7f5f1;color:#0b5c4d;font-weight:600}
+.accounts-notice{margin:0 0 14px;padding:12px 14px;border-radius:var(--radius-md);background:#e7f5f1;background:light-dark(#e7f5f1,#09201b);color:#0b5c4d;color:light-dark(#0b5c4d,#8cd3c0);font-weight:600}
 .accounts-list{display:grid;gap:12px}
 .account-row{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:18px 20px}
 .account-row__main{display:grid;gap:4px;min-width:0}
@@ -10,19 +10,19 @@
 .account-row dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:6px 0 0;font-size:.86rem}
 .account-row dt{color:var(--muted)}.account-row dd{margin:0;font-weight:600}
 .account-row__actions{display:flex;gap:8px;align-items:center}
-.account-row__rejected{color:#b42318}
+.account-row__rejected{color:var(--danger-text)}
 @media(max-width:640px){.account-row__actions{width:100%}.account-row__actions .button{flex:1}}
 
 /* „Vajab otsust”: possible duplicate cards after a registration */
-.link-reviews { display: grid; gap: 12px; margin-bottom: 16px; border-color: #fedf89; }
+.link-reviews { display: grid; gap: 12px; margin-bottom: 16px; border-color: #fedf89;border-color:light-dark(#fedf89,#473a11); }
 .link-reviews__head { display: flex; align-items: center; gap: 8px; }
-.link-reviews__hint { margin: 0; font-size: 14px; color: #475467; }
-.link-review { display: grid; gap: 10px; padding: 12px; border: 1px solid #eaecf0; border-radius: var(--radius-md); }
+.link-reviews__hint { margin: 0; font-size: 14px; color: var(--gray-600); }
+.link-review { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--gray-200); border-radius: var(--radius-md); }
 .link-review__who { display: grid; gap: 2px; }
-.link-review__who small { color: #667085; }
-.link-review__reason { color: #b54708 !important; }
+.link-review__who small { color: var(--gray-500); }
+.link-review__reason { color: var(--warning-text) !important; }
 .link-review__candidates { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.link-review__candidates li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); background: #f9fafb; }
+.link-review__candidates li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--gray-50); }
 .link-review__candidates li span { display: grid; gap: 2px; }
-.link-review__candidates small { color: #667085; }
+.link-review__candidates small { color: var(--gray-500); }
 .link-review__actions { display: flex; flex-wrap: wrap; gap: 8px; }

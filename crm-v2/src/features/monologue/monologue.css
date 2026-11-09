@@ -1,11 +1,11 @@
 /* „Kuu monoloog”: the student's recording page and the staff card „Monoloogid” */
 .mono-page { display: grid; gap: 14px; max-width: 760px; }
 .mono-back { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; }
-.mono-prompt { padding: 14px 16px; border: 1px solid #e4e6f2; border-radius: 14px; background: #fafbff; }
+.mono-prompt { padding: 14px 16px; border: 1px solid #e4e6f2;border:1px solid light-dark(#e4e6f2,#363846); border-radius: 14px; background: #fafbff;background:light-dark(#fafbff,#1a2026); }
 .mono-prompt h2 { margin: 0 0 4px; font-size: 1.15rem; }
 .mono-prompt p { margin: 0; }
-.mono-prompt ul { margin: 10px 0 0; padding-left: 20px; color: #344054; }
-.mono-tip { margin-top: 10px !important; font-size: .88rem; color: #475467; }
+.mono-prompt ul { margin: 10px 0 0; padding-left: 20px; color: var(--gray-700); }
+.mono-tip { margin-top: 10px !important; font-size: .88rem; color: var(--gray-600); }
 .mono-done { display: grid; gap: 10px; justify-items: start; }
 .mono-done p { margin: 0; }
 .mono-page audio, .mono-card audio { width: 100%; max-width: 420px; }
@@ -17,18 +17,18 @@
 .mono-card { display: grid; gap: 10px; }
 .mono-card__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .mono-card__head h3 { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
-.mono-muted { color: #667085; font-size: .88rem; }
+.mono-muted { color: var(--gray-500); font-size: .88rem; }
 .mono-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-.mono-list > li { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid #eaecf0; }
+.mono-list > li { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--gray-200); }
 .mono-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-.mono-stats { display: inline-flex; flex-wrap: wrap; gap: 10px; font-variant-numeric: tabular-nums; color: #344054; font-size: .9rem; }
+.mono-stats { display: inline-flex; flex-wrap: wrap; gap: 10px; font-variant-numeric: tabular-nums; color: var(--gray-700); font-size: .9rem; }
 .mono-note p { margin: 0 0 4px; font-size: .9rem; }
 .mono-note textarea { width: 100%; }
 .mono-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-.mono-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; padding: 12px; border: 1px solid #e4e6f2; border-radius: var(--radius-lg); background: #fafbff; }
+.mono-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; padding: 12px; border: 1px solid #e4e6f2;border:1px solid light-dark(#e4e6f2,#363846); border-radius: var(--radius-lg); background: #fafbff;background:light-dark(#fafbff,#1a2026); }
 .mono-compare__side { display: grid; gap: 8px; align-content: start; min-width: 0; }
-.mono-analysis { flex-basis: 100%; font-size: .85rem; color: #475467; }
+.mono-analysis { flex-basis: 100%; font-size: .85rem; color: var(--gray-600); }
 .mono-details { margin: 6px 0 0; }
-.mono-details summary { cursor: pointer; font-size: .88rem; color: #344054; }
+.mono-details summary { cursor: pointer; font-size: .88rem; color: var(--gray-700); }
 .mono-errors { margin: 6px 0 0; padding-left: 18px; font-size: .86rem; }
 .mono-transcript { margin: 0; max-height: 180px; overflow: auto; font-size: .88rem; white-space: pre-wrap; }

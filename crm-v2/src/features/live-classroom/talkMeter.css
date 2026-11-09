@@ -1,28 +1,28 @@
 /* „Kõneaeg” (TalkMeter.jsx): the teacher's talk-time pill in the room's top bar */
 .tm { position: relative; display: inline-flex; }
-.tm-pill { gap: 6px; padding: 0 12px; color: #24294a; cursor: pointer; }
-.tm-pill:hover { background: #eef0fa; }
+.tm-pill { gap: 6px; padding: 0 12px; color: #24294a;color:light-dark(#24294a,#c8d1fc); cursor: pointer; }
+.tm-pill:hover { background: #eef0fa;background:light-dark(#eef0fa,#181a28); }
 .tm-pill b { font-variant-numeric: tabular-nums; min-width: 3.2ch; text-align: right; }
-.tm-bar { position: relative; width: 52px; height: 8px; overflow: visible; border-radius: var(--radius-pill); background: #e4e6f2; }
+.tm-bar { position: relative; width: 52px; height: 8px; overflow: visible; border-radius: var(--radius-pill); background: #e4e6f2;background:light-dark(#e4e6f2,#151627); }
 .tm-bar i { position: absolute; inset: 0 auto 0 0; border-radius: var(--radius-pill); background: #6b72a8; transition: width .6s ease; }
 .tm-bar s { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; border-radius: 1px; background: #24294a; text-decoration: none; }
 .tm-pill--good .tm-bar i { background: #2f9e5b; }
-.tm-pill--low { border-color: #f5c46b; background: #fff6e5; color: #8a4b00; }
+.tm-pill--low { border-color: #f5c46b; background: #fff6e5;background:light-dark(#fff6e5,#281b00); color: #8a4b00;color:light-dark(#8a4b00,#f1aa6f); }
 .tm-pill--low .tm-bar i { background: #e8930c; }
-.tm-box { position: absolute; top: calc(100% + 8px); left: 50%; z-index: 30; transform: translateX(-50%); display: grid; gap: 8px; width: 270px; padding: 12px; border: 1px solid #e7e8f3; border-radius: 14px; background: #fff; box-shadow: 0 14px 36px rgba(36, 41, 74, .18); font-size: .82rem; white-space: normal; color: #24294a; }
+.tm-box { position: absolute; top: calc(100% + 8px); left: 50%; z-index: 30; transform: translateX(-50%); display: grid; gap: 8px; width: 270px; padding: 12px; border: 1px solid #e7e8f3;border:1px solid light-dark(#e7e8f3,#363743); border-radius: 14px; background: var(--surface); box-shadow: 0 14px 36px rgba(36, 41, 74, .18); font-size: .82rem; white-space: normal; color: #24294a;color:light-dark(#24294a,#c8d1fc); }
 .tm-rows { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
 .tm-rows strong { font-variant-numeric: tabular-nums; text-align: right; }
 .tm-hint { padding: 6px 8px; border-radius: 9px; }
-.tm-hint--low { background: #fff6e5; color: #8a4b00; }
-.tm-hint--good { background: #eaf7ef; color: #1d6b3c; }
-.tm-box small { color: #6b6f8a; }
+.tm-hint--low { background: #fff6e5;background:light-dark(#fff6e5,#281b00); color: #8a4b00;color:light-dark(#8a4b00,#f1aa6f); }
+.tm-hint--good { background: #eaf7ef;background:light-dark(#eaf7ef,#0c2116); color: #1d6b3c;color:light-dark(#1d6b3c,#86d19c); }
+.tm-box small { color: #6b6f8a;color:light-dark(#6b6f8a,#b0b2bf); }
 /* group room: one row per student, the quietest marked */
 .tm-quiet { max-width: 12ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .74rem; font-weight: 600; }
 .tm-rows--group { grid-template-columns: 1fr auto auto; }
-.tm-rows__head { color: #6b6f8a; font-size: .74rem; }
+.tm-rows__head { color: #6b6f8a;color:light-dark(#6b6f8a,#b0b2bf); font-size: .74rem; }
 .tm-rows__head + .tm-rows__head { text-align: right; }
 .tm-row { display: contents; }
 .tm-row > span { min-width: 0; overflow-wrap: anywhere; }
-.tm-row.is-quiet > * { color: #8a4b00; font-weight: 600; }
+.tm-row.is-quiet > * { color: #8a4b00;color:light-dark(#8a4b00,#f1aa6f); font-weight: 600; }
 .tm-row.is-quiet small { font-weight: 400; }
 @media (max-width: 760px) { .tm-bar { width: 36px; } .tm-box { left: auto; right: 0; transform: none; } }

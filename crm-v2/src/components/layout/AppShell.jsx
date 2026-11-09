@@ -7,6 +7,7 @@ import { useAuth, usePreviewNavigation } from '../../app/AuthContext.jsx';
 import { hasAnyRole, roleLabels } from '../../utils/roles.js';
 import IconButton from '../ui/IconButton.jsx';
 import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
+import ThemeMenu from './ThemeMenu.jsx';
 import { messagesService } from '../../services/firebase/messages.js';
 import { clearTestSession, testSessionName } from '../../services/firebase/auth.js';
 import GuideBanner from '../../features/guide/GuideBanner.jsx';
@@ -115,6 +116,8 @@ export default function AppShell({ approvals = accountApprovalsService, messages
           <div className="profile-chip">
             <div className="avatar">{initials(user.displayName)}</div>
             <div className="profile-chip__text"><strong>{user.displayName}</strong><span>{roleLabels(user.roles) || 'kasutaja'}</span></div>
+            {/* in the admin's preview the choice stays the admin's own (no uid of the previewed person) */}
+            <ThemeMenu uid={preview ? undefined : user.uid} />
             <IconButton label="Logi välja" className="profile-chip__logout" onClick={signOut}><LogOut size={17} /></IconButton>
           </div>
         </div>

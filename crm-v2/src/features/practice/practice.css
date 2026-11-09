@@ -116,8 +116,8 @@
 .pr-stats dt{font-size:.78rem;color:var(--muted)}
 .pr-stats dd{margin:4px 0 0;font:800 1.2rem Manrope,sans-serif}
 .pr-points{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
-.pr-points li{padding:5px 10px;border-radius:var(--radius-pill);background:var(--green-soft);color:var(--pr-accent,var(--green));font-size:.8rem;font-weight:700}
-.pr-points li.is-missed{background:var(--warning-soft,#fffaeb);color:var(--warning-text,#b54708)}
+.pr-points li{padding:5px 10px;border-radius:var(--radius-pill);background:var(--green-soft);color:var(--pr-accent,var(--green-text));font-size:.8rem;font-weight:700}
+.pr-points li.is-missed{background:var(--warning-soft,var(--warning-soft));color:var(--warning-text,var(--warning-text))}
 .pr-summary__actions{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--space-2)}
 
 /* staff preview page */

@@ -10,11 +10,11 @@
 .cleanup-list input[type="checkbox"] { margin-top: 3px; accent-color: var(--green); }
 .cleanup-list span { display: grid; min-width: 0; }
 .cleanup-list small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cleanup-list select { height: 32px; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0 10px; font: inherit; font-size: .84rem; background: #fff; max-width: 220px; }
+.cleanup-list select { height: 32px; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0 10px; font: inherit; font-size: .84rem; background: var(--surface); max-width: 220px; }
 .cleanup-section > .button { justify-self: start; }
-.cleanup-ok { margin: 0; color: var(--green-dark); font-weight: 700; }
+.cleanup-ok { margin: 0; color: var(--green-text); font-weight: 700; }
 
 /* Seaded: the four tabs (owner 2026-10-26) */
-.settings-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: #fff; width: fit-content; max-width: 100%; }
+.settings-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); width: fit-content; max-width: 100%; }
 .settings-tabs button { border: 0; background: transparent; padding: 8px 14px; border-radius: 9px; font-weight: 700; color: var(--muted); cursor: pointer; }
 .settings-tabs button.is-active { background: var(--green); color: #fff; }

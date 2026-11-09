@@ -1,51 +1,51 @@
 /* „Minu pere” (owner 2026-11-01): the first screen answers „Как дела у ребёнка?” on a phone; everything else one tap away */
 .pd-page { max-width: 1120px; }
 .pd-hello { margin: 0 0 2px; font-size: 1.35rem; line-height: 1.2; overflow-wrap: anywhere; }
-.pd-sub { margin: 0 0 14px; color: var(--muted, #52635c); font-size: .92rem; }
-.pd-ru { color: var(--muted, #52635c); font-weight: 400; }
-.pd-card { display: grid; gap: 0; margin: 0 0 14px; border: 1px solid var(--border, #e4ece8); border-radius: var(--radius-xl); background: #fff; overflow: hidden; }
+.pd-sub { margin: 0 0 14px; color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .92rem; }
+.pd-ru { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-weight: 400; }
+.pd-card { display: grid; gap: 0; margin: 0 0 14px; border: 1px solid var(--border, #e4ece8);border:1px solid var(--border, light-dark(#e4ece8,#313a36)); border-radius: var(--radius-xl); background: var(--surface); overflow: hidden; }
 .pd-card__head { padding: 14px 16px 10px; }
 .pd-card__head h2 { margin: 0; font-size: 1.1rem; line-height: 1.25; }
-.pd-card__head p { margin: 2px 0 0; color: var(--muted, #52635c); font-size: .84rem; line-height: 1.35; }
-.pd-row { display: grid; gap: 3px; padding: 12px 16px; border-top: 1px solid #eef3f1; }
-.pd-row > small { color: var(--muted, #52635c); font-size: .76rem; font-weight: 700; letter-spacing: .02em; }
+.pd-card__head p { margin: 2px 0 0; color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .84rem; line-height: 1.35; }
+.pd-row { display: grid; gap: 3px; padding: 12px 16px; border-top: 1px solid #eef3f1;border-top:1px solid light-dark(#eef3f1,#2e353c); }
+.pd-row > small { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .76rem; font-weight: 700; letter-spacing: .02em; }
 .pd-row > small .pd-ru { font-weight: 400; }
 .pd-row strong { font-size: 1rem; line-height: 1.3; overflow-wrap: anywhere; }
-.pd-row p { margin: 0; font-size: .88rem; line-height: 1.4; color: #2c3e37; overflow-wrap: anywhere; }
-.pd-row .pd-muted { color: var(--muted, #52635c); font-size: .84rem; }
-.pd-late { color: #a8501a; font-weight: 700; }
-.pd-ok { display: inline-flex; align-items: center; gap: 5px; color: #0f5f4c; }
+.pd-row p { margin: 0; font-size: .88rem; line-height: 1.4; color: #2c3e37;color:light-dark(#2c3e37,#c6cfcb); overflow-wrap: anywhere; }
+.pd-row .pd-muted { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .84rem; }
+.pd-late { color: #a8501a;color:light-dark(#a8501a,#f99967); font-weight: 700; }
+.pd-ok { display: inline-flex; align-items: center; gap: 5px; color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); }
 .pd-tasks { display: grid; gap: 2px; margin: 4px 0 0; padding: 0; list-style: none; font-size: .88rem; line-height: 1.35; }
 .pd-tasks li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 10px; }
-.pd-tasks small { color: var(--muted, #52635c); }
-.pd-quote { padding: 8px 10px; border-radius: var(--radius-md); background: #f4f8f6; white-space: pre-line; }
-.pd-linkbtn { justify-self: start; min-height: 44px; padding: 0; border: 0; background: none; color: #0f5f4c; font: inherit; font-size: .88rem; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.pd-tasks small { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); }
+.pd-quote { padding: 8px 10px; border-radius: var(--radius-md); background: #f4f8f6;background:light-dark(#f4f8f6,#191e24); white-space: pre-line; }
+.pd-linkbtn { justify-self: start; min-height: 44px; padding: 0; border: 0; background: none; color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); font: inherit; font-size: .88rem; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .pd-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; justify-self: start; min-height: 44px; margin-top: 6px; padding: 0 20px; border-radius: var(--radius-lg); background: #0f5f4c; color: #fff; font-weight: 700; text-decoration: none; }
 .pd-action:focus-visible { outline: 3px solid #f5c26b; outline-offset: 2px; }
-.pd-money { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 12px; margin: 0 0 14px; padding: 8px 16px; border: 1px solid #f0dcc2; border-radius: 14px; background: #fff9f1; }
+.pd-money { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 12px; margin: 0 0 14px; padding: 8px 16px; border: 1px solid #f0dcc2;border:1px solid light-dark(#f0dcc2,#4f3714); border-radius: 14px; background: #fff9f1;background:light-dark(#fff9f1,#251d11); }
 .pd-money strong { display: block; font-size: 1rem; }
-.pd-money small { color: var(--muted, #52635c); font-size: .8rem; }
+.pd-money small { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .8rem; }
 .pd-sections { display: grid; gap: 8px; }
-.pd-section { border: 1px solid var(--border, #e4ece8); border-radius: 14px; background: #fff; scroll-margin-top: 84px; }
+.pd-section { border: 1px solid var(--border, #e4ece8);border:1px solid var(--border, light-dark(#e4ece8,#313a36)); border-radius: 14px; background: var(--surface); scroll-margin-top: 84px; }
 .pd-section__head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; min-height: 56px; padding: 8px 16px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .pd-section__head strong { display: block; font-size: .98rem; }
-.pd-section__head small { display: block; color: var(--muted, #52635c); font-size: .8rem; line-height: 1.3; }
-.pd-section__head svg { color: var(--muted, #52635c); transition: transform .15s; }
+.pd-section__head small { display: block; color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .8rem; line-height: 1.3; }
+.pd-section__head svg { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); transition: transform .15s; }
 .pd-section__head[aria-expanded="true"] svg { transform: rotate(90deg); }
 .pd-section__body { display: grid; gap: 14px; padding: 2px 12px 14px; }
 .pd-section__body .card { box-shadow: none; }
 .pd-section__body h3 { margin: 4px 4px 0; font-size: .92rem; }
 .pd-section__body .parent-home-grid, .pd-section__body > * { min-width: 0; }
-.pd-link-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 56px; padding: 8px 16px; border: 1px solid var(--border, #e4ece8); border-radius: 14px; background: #fff; color: inherit; text-decoration: none; }
+.pd-link-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 56px; padding: 8px 16px; border: 1px solid var(--border, #e4ece8);border:1px solid var(--border, light-dark(#e4ece8,#313a36)); border-radius: 14px; background: var(--surface); color: inherit; text-decoration: none; }
 .pd-link-row strong { display: block; font-size: .98rem; }
-.pd-link-row small { color: var(--muted, #52635c); font-size: .8rem; }
+.pd-link-row small { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .8rem; }
 @media (max-width: 640px) {
   .pd-action { width: 100%; }
 }
 /* 2026-11-04: the child's page — „Areng” and „Mida õpime praegu” first, short cards beside them on a wide screen */
 .pd-child { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 0 0 14px; }
 .pd-child__head h2 { margin: 0; font-size: 1.15rem; line-height: 1.25; overflow-wrap: anywhere; }
-.pd-child__head p { margin: 2px 0 0; color: var(--muted, #52635c); font-size: .86rem; line-height: 1.35; }
+.pd-child__head p { margin: 2px 0 0; color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .86rem; line-height: 1.35; }
 .pd-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .pd-main, .pd-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-content: start; min-width: 0; }
 .pd-side .pd-card { margin: 0; }
@@ -53,37 +53,37 @@
 .pd-main .pf-card { max-width: none; }
 .pd-side .pd-card .pd-row:first-child { border-top: 0; }
 .pd-row > small svg { vertical-align: -2px; }
-.pd-card--due { border-color: #f0dcc2; background: #fff9f1; }
+.pd-card--due { border-color: #f0dcc2;border-color:light-dark(#f0dcc2,#4f3714); background: #fff9f1;background:light-dark(#fff9f1,#251d11); }
 .pd-next { display: grid; gap: 0; margin: 2px 0 0; padding: 0; list-style: none; }
-.pd-next li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 10px; padding: 4px 0; border-top: 1px solid #f1f5f3; }
+.pd-next li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 10px; padding: 4px 0; border-top: 1px solid #f1f5f3;border-top:1px solid light-dark(#f1f5f3,#2d343b); }
 .pd-next li:first-child { border-top: 0; }
 .pd-next li > span { display: grid; min-width: 0; }
 .pd-next li > span strong { font-size: .95rem; }
-.pd-next li > span small { color: var(--muted, #52635c); font-size: .8rem; }
-.pd-next li em { color: var(--muted, #52635c); font-size: .8rem; font-style: normal; }
+.pd-next li > span small { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .8rem; }
+.pd-next li em { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .8rem; font-style: normal; }
 @media (min-width: 980px) {
   .pd-layout { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
 }
 /* „Arve ootab tasumist” (owner 2026-11-09): calm, clear, first on the page; red only for a missed due date */
-.pd-pay { display: grid; gap: 6px; margin: 0 0 14px; padding: 12px 14px 4px; border: 1px solid #f0dcc2; border-radius: var(--radius-xl); background: #fff9f1; }
-.pd-pay.is-overdue { border-color: #f3b4ac; background: #fff6f5; }
+.pd-pay { display: grid; gap: 6px; margin: 0 0 14px; padding: 12px 14px 4px; border: 1px solid #f0dcc2;border:1px solid light-dark(#f0dcc2,#4f3714); border-radius: var(--radius-xl); background: #fff9f1;background:light-dark(#fff9f1,#251d11); }
+.pd-pay.is-overdue { border-color: #f3b4ac; background: #fff6f5;background:light-dark(#fff6f5,#271b19); }
 .pd-pay__list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
-.pd-pay__list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 0; border-top: 1px solid #f3e7d6; }
+.pd-pay__list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 0; border-top: 1px solid #f3e7d6;border-top:1px solid light-dark(#f3e7d6,#443520); }
 .pd-pay__list li:first-child { border-top: 0; padding-top: 2px; }
-.pd-pay__list li > svg { flex: none; color: #a8501a; }
-.pd-pay__list li.is-overdue > svg { color: #b42318; }
+.pd-pay__list li > svg { flex: none; color: #a8501a;color:light-dark(#a8501a,#f99967); }
+.pd-pay__list li.is-overdue > svg { color: var(--danger-text); }
 .pd-pay__text { display: grid; flex: 1; gap: 2px; min-width: 0; }
 .pd-pay__text strong { font-size: .95rem; line-height: 1.35; overflow-wrap: anywhere; }
-.pd-pay__text small { color: var(--muted, #52635c); font-size: .8rem; }
-.pd-pay__late { color: #b42318; }
+.pd-pay__text small { color: var(--muted, #52635c);color:var(--muted, light-dark(#52635c,#b5bdba)); font-size: .8rem; }
+.pd-pay__late { color: var(--danger-text); }
 .pd-pay__btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-lg); background: #0f766e; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
 .pd-pay__btn:disabled { opacity: .5; cursor: default; }
 @media (max-width: 560px) { .pd-pay__btn { width: 100%; } }
 /* „Arve PDF” and „Maksin ära” (owner 2026-11-09): a quiet second row under the invoice line */
 .pd-pay__more { display: flex; flex-basis: 100%; flex-wrap: wrap; align-items: center; gap: 4px 18px; padding-left: 28px; }
 .pd-pay__more .pd-linkbtn { display: inline-flex; align-items: center; gap: 6px; }
-.pd-pay__claimed { display: inline-flex; align-items: center; gap: 6px; color: #0f5f4c; font-size: .88rem; font-weight: 700; }
-.pd-pay__claim { display: grid; flex-basis: 100%; gap: 6px; margin: 2px 0 4px 28px; padding: 10px 12px; border: 1px solid #f0dcc2; border-radius: var(--radius-lg); background: var(--surface); }
+.pd-pay__claimed { display: inline-flex; align-items: center; gap: 6px; color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); font-size: .88rem; font-weight: 700; }
+.pd-pay__claim { display: grid; flex-basis: 100%; gap: 6px; margin: 2px 0 4px 28px; padding: 10px 12px; border: 1px solid #f0dcc2;border:1px solid light-dark(#f0dcc2,#4f3714); border-radius: var(--radius-lg); background: var(--surface); }
 .pd-pay__claim p { margin: 0; font-size: .85rem; }
 .pd-pay__claim label { font-size: .82rem; font-weight: 700; }
 .pd-pay__claim textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); font: inherit; resize: vertical; }

@@ -138,7 +138,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
   };
 
   return (
-    <div className="page-content generator-set-page">
+    <div className="page-content generator-set-page" data-theme-scope="light">
       <Link className="generator-back" to="/library"><ArrowLeft size={16} /> Õppevara</Link>
       <PageHeader
         eyebrow="Tunni töölehed"

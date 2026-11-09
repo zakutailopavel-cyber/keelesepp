@@ -1,23 +1,23 @@
-.rec-panel { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 14px; margin-top: 12px; border-radius: 14px; border: 1px solid var(--border, #e4e7ec); background: #fff; }
-.rec-panel.is-on { border-color: #f04438; background: #fef3f2; }
+.rec-panel { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 14px; margin-top: 12px; border-radius: 14px; border: 1px solid var(--border, var(--border-cool)); background: var(--surface); }
+.rec-panel.is-on { border-color: #f04438; background: var(--danger-soft); }
 .rec-panel.is-off { color: var(--muted); font-size: .85rem; }
-.rec-panel strong { color: #b42318; font-variant-numeric: tabular-nums; }
+.rec-panel strong { color: var(--danger-text); font-variant-numeric: tabular-nums; }
 .rec-meta { color: var(--muted); font-size: .82rem; margin-right: auto; }
 .rec-dot { width: 11px; height: 11px; border-radius: 50%; background: #f04438; box-shadow: 0 0 0 0 rgba(240,68,56,.5); animation: rec-pulse 1.4s infinite; display: inline-block; }
 @keyframes rec-pulse { 70% { box-shadow: 0 0 0 8px rgba(240,68,56,0); } 100% { box-shadow: 0 0 0 0 rgba(240,68,56,0); } }
 @media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
-.rec-indicator { display: inline-flex; gap: 8px; align-items: center; margin-top: 10px; padding: 6px 12px; border-radius: var(--radius-pill); background: #fef3f2; color: #b42318; font-weight: 800; font-size: .85rem; }
+.rec-indicator { display: inline-flex; gap: 8px; align-items: center; margin-top: 10px; padding: 6px 12px; border-radius: var(--radius-pill); background: var(--danger-soft); color: var(--danger-text); font-weight: 800; font-size: .85rem; }
 .modal.modal--transcript { width: min(900px, 96vw); }
 .transcript { display: grid; gap: 12px; }
 .transcript__tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
 .transcript__tools .field { flex: 1 1 220px; }
 .transcript__who { display: flex; gap: 4px; }
-.transcript__who button { border: 1px solid var(--border, #d0d5dd); background: #fff; border-radius: var(--radius-pill); padding: 6px 12px; font-weight: 700; cursor: pointer; }
+.transcript__who button { border: 1px solid var(--border, var(--gray-300)); background: var(--surface); border-radius: var(--radius-pill); padding: 6px 12px; font-weight: 700; cursor: pointer; }
 .transcript__who button[aria-pressed="true"] { background: #0b2a4f; color: #fff; border-color: #0b2a4f; }
 .transcript__stat { color: var(--muted); font-size: .82rem; }
 .transcript__lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 60vh; overflow: auto; }
-.transcript__lines li { display: grid; grid-template-columns: 48px 70px minmax(0, 1fr); gap: 8px; padding: 8px 10px; border-radius: var(--radius-md); background: #f8fafc; }
-.transcript__lines li.is-student { background: #ecfdf3; }
+.transcript__lines li { display: grid; grid-template-columns: 48px 70px minmax(0, 1fr); gap: 8px; padding: 8px 10px; border-radius: var(--radius-md); background: var(--surface-alt); }
+.transcript__lines li.is-student { background: var(--success-soft); }
 .transcript__lines time { color: var(--muted); font-size: .78rem; font-variant-numeric: tabular-nums; }
 .transcript__lines b { font-size: .8rem; }
 .transcript__lines p { margin: 0; line-height: 1.45; }
@@ -26,14 +26,14 @@
 .lesson-rows__actions .button { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
 .lesson-analysis { display: grid; gap: 10px; margin-bottom: 14px; }
 .lesson-analysis__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 0; }
-.lesson-analysis__stats div { padding: 10px 12px; border: 1px solid var(--border, #e4e6f2); border-radius: var(--radius-lg); }
-.lesson-analysis__stats dt { font-size: .78rem; color: var(--muted, #6b7091); }
+.lesson-analysis__stats div { padding: 10px 12px; border: 1px solid var(--border, #e4e6f2);border:1px solid var(--border, light-dark(#e4e6f2,#363846)); border-radius: var(--radius-lg); }
+.lesson-analysis__stats dt { font-size: .78rem; color: var(--muted, #6b7091);color:var(--muted, light-dark(#6b7091,#aeb1c1)); }
 .lesson-analysis__stats dd { margin: 2px 0 0; font-weight: 700; }
 .lesson-analysis ul { margin: 4px 0 0; padding-left: 18px; }
 /* one lesson opened from the student card: the recording's text right under its row */
 .lesson-rows > .lesson-rows__item.is-inline { flex-wrap: wrap; }
 .lesson-rows__text { flex-basis: 100%; grid-column: 1 / -1; display: grid; gap: 12px; margin-top: 10px; }
-.transcript__lang { color: #667085; font-weight: 600; font-size: .7rem; }
+.transcript__lang { color: var(--gray-500); font-weight: 600; font-size: .7rem; }
 .transcript__tools { flex-wrap: wrap; }
 .rec-live { flex-basis: 100%; max-height: 50vh; overflow-y: auto; }
 
@@ -41,92 +41,92 @@
 .transcript__unsure { text-decoration: underline dotted #d97706; text-decoration-thickness: 2px; text-underline-offset: 3px; cursor: help; }
 
 /* AI analysis of a lesson (teacher only) */
-.lesson-ai { display: grid; gap: 10px; margin-bottom: 14px; padding: 12px 14px; border: 1px solid #ddd6fe; border-radius: 14px; background: #faf8ff; }
-.lesson-ai header { display: flex; align-items: center; gap: 6px; color: #5b21b6; }
-.lesson-ai header small { color: var(--muted, #6b7091); font-size: .75rem; }
+.lesson-ai { display: grid; gap: 10px; margin-bottom: 14px; padding: 12px 14px; border: 1px solid #ddd6fe;border:1px solid light-dark(#ddd6fe,#3f385b); border-radius: 14px; background: #faf8ff;background:light-dark(#faf8ff,#201c26); }
+.lesson-ai header { display: flex; align-items: center; gap: 6px; color: #5b21b6;color:light-dark(#5b21b6,#c3b6fb); }
+.lesson-ai header small { color: var(--muted, #6b7091);color:var(--muted, light-dark(#6b7091,#aeb1c1)); font-size: .75rem; }
 .lesson-ai p { margin: 0; }
 .lesson-ai__parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
-.lesson-ai__parts > div { padding: 8px 10px; border-radius: var(--radius-md); background: #fff; border: 1px solid var(--border, #e4e6f2); }
-.lesson-ai__parts .is-good b { color: #067647; } .lesson-ai__parts .is-hard b { color: #b54708; } .lesson-ai__parts .is-next b { color: #175cd3; }
+.lesson-ai__parts > div { padding: 8px 10px; border-radius: var(--radius-md); background: var(--surface); border: 1px solid var(--border, #e4e6f2);border:1px solid var(--border, light-dark(#e4e6f2,#363846)); }
+.lesson-ai__parts .is-good b { color: var(--success-text); } .lesson-ai__parts .is-hard b { color: var(--warning-text); } .lesson-ai__parts .is-next b { color: var(--info-text); }
 .lesson-ai__parts ul { margin: 4px 0 0; padding-left: 18px; font-size: .9rem; }
 .lesson-ai__errors ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; }
-.lesson-ai__errors li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 8px; border-radius: var(--radius-sm); background: #fff; }
-.lesson-ai__errors time { color: var(--muted, #6b7091); font-size: .78rem; font-variant-numeric: tabular-nums; }
-.lesson-ai__errors s { color: #b42318; } .lesson-ai__errors ins { color: #067647; font-weight: 700; text-decoration: none; }
-.lesson-ai__errors small { color: #b54708; font-size: .72rem; }
+.lesson-ai__errors li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 8px; border-radius: var(--radius-sm); background: var(--surface); }
+.lesson-ai__errors time { color: var(--muted, #6b7091);color:var(--muted, light-dark(#6b7091,#aeb1c1)); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.lesson-ai__errors s { color: var(--danger-text); } .lesson-ai__errors ins { color: var(--success-text); font-weight: 700; text-decoration: none; }
+.lesson-ai__errors small { color: var(--warning-text); font-size: .72rem; }
 .lesson-rows__badges { display: inline-flex; flex-wrap: wrap; gap: 4px; }
-.lesson-ai__status { margin: 0 0 10px; padding: 8px 12px; border-radius: var(--radius-md); background: #f2f4f7; color: #344054; font-size: .88rem; }
-.lesson-ai__status.is-running { background: #eff8ff; color: #175cd3; }
+.lesson-ai__status { margin: 0 0 10px; padding: 8px 12px; border-radius: var(--radius-md); background: var(--gray-100); color: var(--gray-700); font-size: .88rem; }
+.lesson-ai__status.is-running { background: #eff8ff;background:light-dark(#eff8ff,#121f29); color: var(--info-text); }
 .lesson-ai__status.is-running::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #2e90fa; animation: lesson-ai-pulse 1.2s infinite; vertical-align: 1px; }
-.lesson-ai__status.is-failed { background: #fef3f2; color: #b42318; }
+.lesson-ai__status.is-failed { background: var(--danger-soft); color: var(--danger-text); }
 @keyframes lesson-ai-pulse { 50% { opacity: .3; } }
 @media (prefers-reduced-motion: reduce) { .lesson-ai__status.is-running::before { animation: none; } }
 
 /* „Pärast tundi”: the learner's topics and the two next steps */
-.lesson-ai__after { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid #a6e3cc; border-radius: var(--radius-lg); background: #f0faf6; }
+.lesson-ai__after { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid #a6e3cc;border:1px solid light-dark(#a6e3cc,#1b4c3d); border-radius: var(--radius-lg); background: #f0faf6;background:light-dark(#f0faf6,#12211c); }
 .lesson-ai__topics { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.lesson-ai__topics li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-pill); background: #fff; border: 1px solid #d0eadf; font-size: 13px; }
-.lesson-ai__topics em { font-style: normal; color: #0b6b5a; font-weight: 700; }
+.lesson-ai__topics li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid #d0eadf;border:1px solid light-dark(#d0eadf,#204336); font-size: 13px; }
+.lesson-ai__topics em { font-style: normal; color: #0b6b5a;color:light-dark(#0b6b5a,#7ecfba); font-weight: 700; }
 .lesson-ai__actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .lesson-ai__parent { display: grid; gap: 8px; margin-top: 8px; }
 
 /* „Areng tundide kaupa” (LessonTrendCard): one small line per number, then the table */
 .lesson-trend h2 { display: flex; align-items: center; gap: 8px; }
 .lesson-trend__tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 10px 0 14px; }
-.lesson-trend__tile { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--border, #e4e6f2); border-radius: var(--radius-lg); min-width: 0; }
-.lesson-trend__tile > span { font-size: .78rem; color: var(--muted, #667085); }
-.lesson-trend__tile strong { font-size: 1.25rem; color: #162033; font-variant-numeric: tabular-nums; }
-.lesson-trend__tile small { font-size: .74rem; color: var(--muted, #667085); }
-.lesson-trend__tile small.is-good { color: #067647; }
-.lesson-trend__tile small.is-bad { color: #b42318; }
+.lesson-trend__tile { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--border, #e4e6f2);border:1px solid var(--border, light-dark(#e4e6f2,#363846)); border-radius: var(--radius-lg); min-width: 0; }
+.lesson-trend__tile > span { font-size: .78rem; color: var(--muted, var(--gray-500)); }
+.lesson-trend__tile strong { font-size: 1.25rem; color: #162033;color:light-dark(#162033,#d4dae6); font-variant-numeric: tabular-nums; }
+.lesson-trend__tile small { font-size: .74rem; color: var(--muted, var(--gray-500)); }
+.lesson-trend__tile small.is-good { color: var(--success-text); }
+.lesson-trend__tile small.is-bad { color: var(--danger-text); }
 .lesson-trend__spark { width: 100%; height: 56px; overflow: visible; }
-.lesson-trend__base { stroke: #eef1ee; stroke-width: 1; }
+.lesson-trend__base { stroke: #eef1ee;stroke:light-dark(#eef1ee,#2f353d); stroke-width: 1; }
 .lesson-trend__line { fill: none; stroke: var(--green); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.lesson-trend__dot { fill: var(--green); stroke: #fff; stroke-width: 2; }
-.lesson-trend__none { color: var(--muted, #667085); font-size: .8rem; }
+.lesson-trend__dot { fill: var(--green); stroke: #fff;stroke:light-dark(#fff,#282e36); stroke-width: 2; }
+.lesson-trend__none { color: var(--muted, var(--gray-500)); font-size: .8rem; }
 .lesson-trend__table-wrap { overflow-x: auto; }
 .lesson-trend__table { width: 100%; border-collapse: collapse; font-size: .86rem; font-variant-numeric: tabular-nums; }
-.lesson-trend__table th, .lesson-trend__table td { padding: 7px 10px; border-bottom: 1px solid #eef0f3; text-align: left; white-space: nowrap; }
-.lesson-trend__table thead th { color: var(--muted, #667085); font-size: .72rem; font-weight: 700; }
-.lesson-trend__more { border: 0; background: none; color: var(--green); font-weight: 700; cursor: pointer; padding: 8px 0; }
+.lesson-trend__table th, .lesson-trend__table td { padding: 7px 10px; border-bottom: 1px solid var(--border-faint); text-align: left; white-space: nowrap; }
+.lesson-trend__table thead th { color: var(--muted, var(--gray-500)); font-size: .72rem; font-weight: 700; }
+.lesson-trend__more { border: 0; background: none; color: var(--green-text); font-weight: 700; cursor: pointer; padding: 8px 0; }
 
 /* „Pole viga”: the teacher marks a flagged error as not an error */
-.lesson-ai__errors li.is-dismissed { opacity: .75; background: #f8fafc; }
-.lesson-ai__errors li.is-dismissed > span { text-decoration: line-through; text-decoration-color: #98a2b3; }
-.lesson-ai__notanerror { border: 1px solid var(--border, #d0d5dd); background: #fff; border-radius: var(--radius-pill); padding: 2px 10px; font-size: .74rem; font-weight: 700; color: #344054; cursor: pointer; white-space: nowrap; }
-.lesson-ai__notanerror:hover { background: #f2f4f7; }
+.lesson-ai__errors li.is-dismissed { opacity: .75; background: var(--surface-alt); }
+.lesson-ai__errors li.is-dismissed > span { text-decoration: line-through; text-decoration-color: var(--gray-400); }
+.lesson-ai__notanerror { border: 1px solid var(--border, var(--gray-300)); background: var(--surface); border-radius: var(--radius-pill); padding: 2px 10px; font-size: .74rem; font-weight: 700; color: var(--gray-700); cursor: pointer; white-space: nowrap; }
+.lesson-ai__notanerror:hover { background: var(--gray-100); }
 .lesson-ai__dismiss-form { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: end; }
 .lesson-ai__dismiss-form .field { flex: 1 1 220px; }
 .lesson-ai__dismissed { margin-top: 8px; }
-.lesson-ai__dismissed summary { cursor: pointer; font-size: .82rem; color: var(--muted, #667085); font-weight: 700; }
-.lesson-ai__errors .lesson-ai__why { grid-column: 2 / -1; color: var(--muted, #667085); font-size: .74rem; }
+.lesson-ai__dismissed summary { cursor: pointer; font-size: .82rem; color: var(--muted, var(--gray-500)); font-weight: 700; }
+.lesson-ai__errors .lesson-ai__why { grid-column: 2 / -1; color: var(--muted, var(--gray-500)); font-size: .74rem; }
 
 /* „Hetked” (LessonMoments.jsx): the teacher's marks from the room, the lesson's audio and its time line */
-.lesson-moments { display: grid; gap: 8px; margin: 10px 0; padding: 12px; border: 1px solid #e7e8f3; border-radius: var(--radius-lg); background: #fbfbfe; }
+.lesson-moments { display: grid; gap: 8px; margin: 10px 0; padding: 12px; border: 1px solid #e7e8f3;border:1px solid light-dark(#e7e8f3,#363743); border-radius: var(--radius-lg); background: #fbfbfe;background:light-dark(#fbfbfe,#1a2026); }
 .lesson-moments header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.lesson-moments header small { color: var(--muted, #6b7091); }
+.lesson-moments header small { color: var(--muted, #6b7091);color:var(--muted, light-dark(#6b7091,#aeb1c1)); }
 .lesson-moments__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.lesson-moments__list li { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 8px; border-radius: var(--radius-sm); background: #fff; }
-.lesson-moments__list time { color: var(--muted, #6b7091); font-size: .8rem; font-variant-numeric: tabular-nums; }
-.lesson-moments__list .is-empty { color: var(--muted, #6b7091); font-style: italic; }
-.lesson-moments__list small { color: var(--muted, #6b7091); font-size: .75rem; }
-.lesson-moments__jump { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid #d9dcec; border-radius: var(--radius-pill); background: #fff; cursor: pointer; }
-.lesson-moments__jump:hover { background: #eef0fa; }
+.lesson-moments__list li { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--surface); }
+.lesson-moments__list time { color: var(--muted, #6b7091);color:var(--muted, light-dark(#6b7091,#aeb1c1)); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.lesson-moments__list .is-empty { color: var(--muted, #6b7091);color:var(--muted, light-dark(#6b7091,#aeb1c1)); font-style: italic; }
+.lesson-moments__list small { color: var(--muted, #6b7091);color:var(--muted, light-dark(#6b7091,#aeb1c1)); font-size: .75rem; }
+.lesson-moments__jump { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid #d9dcec;border:1px solid light-dark(#d9dcec,#393c4f); border-radius: var(--radius-pill); background: var(--surface); cursor: pointer; }
+.lesson-moments__jump:hover { background: #eef0fa;background:light-dark(#eef0fa,#181a28); }
 .lesson-moments__player { display: grid; gap: 8px; }
 .lesson-moments__player audio { width: 100%; }
-.lesson-moments__line { position: relative; height: 18px; border-radius: 9px; background: #eceef6; }
+.lesson-moments__line { position: relative; height: 18px; border-radius: 9px; background: #eceef6;background:light-dark(#eceef6,#171a25); }
 .lesson-moments__mark { position: absolute; top: 2px; width: 10px; height: 14px; margin-left: -5px; padding: 0; border: 0; border-radius: 3px; cursor: pointer; }
 .lesson-moments__mark.is-error { width: 4px; margin-left: -2px; background: #e5484d; }
 .lesson-moments__mark.is-moment { background: #4f7cff; z-index: 1; }
-.lesson-moments__legend { display: flex; align-items: center; gap: 6px; color: var(--muted, #6b7091); font-size: .75rem; }
+.lesson-moments__legend { display: flex; align-items: center; gap: 6px; color: var(--muted, #6b7091);color:var(--muted, light-dark(#6b7091,#aeb1c1)); font-size: .75rem; }
 .lesson-moments__legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
 .lesson-moments__legend i.is-moment { background: #4f7cff; }
 .lesson-moments__legend i.is-error { background: #e5484d; }
 
 /* „Koosta kodutöö vigadest” (ErrorHomework.jsx): the draft the teacher checks before sending */
-.error-homework { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid #c7d7fe; border-radius: var(--radius-lg); background: #f5f8ff; }
+.error-homework { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid #c7d7fe;border:1px solid light-dark(#c7d7fe,#323f60); border-radius: var(--radius-lg); background: #f5f8ff;background:light-dark(#f5f8ff,#1a1e27); }
 .error-homework header { display: grid; gap: 2px; }
-.error-homework header small { color: var(--muted, #667085); }
+.error-homework header small { color: var(--muted, var(--gray-500)); }
 .error-homework__group h4 { margin: 0 0 6px; font-size: .9rem; }
 .error-homework__group ol { display: grid; gap: 8px; margin: 0; padding-left: 20px; }
 .error-homework__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; }

@@ -1,27 +1,27 @@
 .topbar-actions { display: flex; align-items: center; gap: 10px; }
 .nc { position: relative; }
-.nc-count { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: var(--radius-pill); background: #b42318; color: #fff; font-size: .7rem; font-weight: 800; line-height: 20px; text-align: center; box-shadow: 0 0 0 2px #fff; }
-.nc-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 40; width: min(420px, calc(100vw - 32px)); max-height: min(70vh, 620px); display: flex; flex-direction: column; border: 1px solid var(--border, #e4e7ec); border-radius: var(--radius-xl); background: #fff; box-shadow: 0 24px 60px rgba(16, 35, 57, .18); overflow: hidden; }
+.nc-count { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: var(--radius-pill); background: #b42318; color: #fff; font-size: .7rem; font-weight: 800; line-height: 20px; text-align: center; box-shadow: 0 0 0 2px #fff;box-shadow:0 0 0 2px light-dark(#fff,#1c2127); }
+.nc-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 40; width: min(420px, calc(100vw - 32px)); max-height: min(70vh, 620px); display: flex; flex-direction: column; border: 1px solid var(--border, var(--border-cool)); border-radius: var(--radius-xl); background: var(--surface); box-shadow: 0 24px 60px rgba(16, 35, 57, .18); overflow: hidden; }
 .nc-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 6px; }
 .nc-head strong { font-size: 1rem; }
 .nc-refresh { width: 34px; height: 34px; }
-.nc-filters { display: flex; gap: 6px; padding: 4px 14px 10px; overflow-x: auto; border-bottom: 1px solid var(--border, #e4e7ec); }
-.nc-filters button { flex: none; border: 1px solid var(--border, #e4e7ec); background: #fff; border-radius: var(--radius-pill); padding: 5px 11px; font-size: .8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.nc-filters button span { color: #667085; margin-left: 2px; }
+.nc-filters { display: flex; gap: 6px; padding: 4px 14px 10px; overflow-x: auto; border-bottom: 1px solid var(--border, var(--border-cool)); }
+.nc-filters button { flex: none; border: 1px solid var(--border, var(--border-cool)); background: var(--surface); border-radius: var(--radius-pill); padding: 5px 11px; font-size: .8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.nc-filters button span { color: var(--gray-500); margin-left: 2px; }
 .nc-filters button[aria-selected="true"] { background: #14243a; border-color: #14243a; color: #fff; }
 .nc-filters button[aria-selected="true"] span { color: #d0d5dd; }
 .nc-list { overflow-y: auto; padding: 6px; display: grid; gap: 2px; }
 .nc-item { display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 10px; border: 0; border-radius: var(--radius-lg); background: transparent; text-align: left; cursor: pointer; color: inherit; }
-.nc-item:hover, .nc-item:focus-visible { background: #f5f7fa; }
-.nc-icon { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-md); background: #eff8ff; color: #175cd3; }
-.nc-item--danger .nc-icon { background: #fef3f2; color: #b42318; }
-.nc-item--warning .nc-icon { background: #fffaeb; color: #b54708; }
-.nc-item--success .nc-icon { background: #ecfdf3; color: #067647; }
+.nc-item:hover, .nc-item:focus-visible { background: #f5f7fa;background:light-dark(#f5f7fa,#191e24); }
+.nc-icon { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-md); background: #eff8ff;background:light-dark(#eff8ff,#121f29); color: var(--info-text); }
+.nc-item--danger .nc-icon { background: var(--danger-soft); color: var(--danger-text); }
+.nc-item--warning .nc-icon { background: var(--warning-soft); color: var(--warning-text); }
+.nc-item--success .nc-icon { background: var(--success-soft); color: var(--success-text); }
 .nc-text { display: grid; gap: 2px; min-width: 0; }
 .nc-text strong { font-size: .88rem; }
-.nc-text span { font-size: .82rem; color: #344054; overflow-wrap: anywhere; }
-.nc-text small { font-size: .74rem; color: #667085; }
-.nc-empty { margin: 0; padding: 28px 16px; text-align: center; color: #667085; font-size: .88rem; }
+.nc-text span { font-size: .82rem; color: var(--gray-700); overflow-wrap: anywhere; }
+.nc-text small { font-size: .74rem; color: var(--gray-500); }
+.nc-empty { margin: 0; padding: 28px 16px; text-align: center; color: var(--gray-500); font-size: .88rem; }
 @media (max-width: 560px) {
   .nc-panel { position: fixed; top: 70px; right: 16px; left: 16px; width: auto; }
 }

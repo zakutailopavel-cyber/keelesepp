@@ -9,14 +9,14 @@
 .dc-card p{margin:0;line-height:1.5}
 .dc-muted{color:var(--muted);font-size:.9rem}
 .dc-summary{border-width:2px}
-.dc-summary--green{border-color:#7fd3b4;background:#effaf5}
-.dc-summary--green h2{color:var(--green-dark)}
-.dc-summary--yellow{border-color:#f5c96b;background:#fffaeb}
-.dc-summary--yellow h2{color:#92400e}
-.dc-summary--red{border-color:#f3a59d;background:#fff4f2}
-.dc-summary--red h2{color:var(--danger)}
+.dc-summary--green{border-color:#7fd3b4;background:#effaf5;background:light-dark(#effaf5,#10221b)}
+.dc-summary--green h2{color:var(--green-text)}
+.dc-summary--yellow{border-color:#f5c96b;background:var(--warning-soft)}
+.dc-summary--yellow h2{color:#92400e;color:light-dark(#92400e,#fea276)}
+.dc-summary--red{border-color:#f3a59d;background:#fff4f2;background:light-dark(#fff4f2,#281917)}
+.dc-summary--red h2{color:var(--danger-text)}
 .dc-issues{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.dc-issue{padding:10px 12px;border-radius:var(--radius-lg);background:#fff;border:1px solid var(--border);border-left-width:4px;line-height:1.45}
+.dc-issue{padding:10px 12px;border-radius:var(--radius-lg);background:var(--surface);border:1px solid var(--border);border-left-width:4px;line-height:1.45}
 .dc-issue--red{border-left-color:var(--danger)}
 .dc-issue--yellow{border-left-color:var(--amber)}
 .dc-issue--info{border-left-color:#94a3b8}
@@ -27,12 +27,12 @@
 .dc-row svg{flex:none;margin-top:2px}
 .dc-row span{display:grid;gap:2px;min-width:0}
 .dc-row small{color:var(--muted);overflow-wrap:anywhere}
-.dc-row--ok svg{color:var(--green)}
+.dc-row--ok svg{color:var(--green-text)}
 .dc-row--warn svg{color:var(--amber)}
-.dc-row--bad svg{color:var(--danger)}
+.dc-row--bad svg{color:var(--danger-text)}
 .dc-row--info svg{color:#94a3b8}
 .dc-video{position:relative;aspect-ratio:16/9;background:#101a2a;border-radius:14px;overflow:hidden;display:grid;place-items:center}
 .dc-video video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 .dc-video__empty{position:absolute;color:#cbd5e1;font-size:.9rem;padding:12px;text-align:center}
-.dc-meter{height:14px;border-radius:var(--radius-pill);background:#e8edf3;overflow:hidden}
+.dc-meter{height:14px;border-radius:var(--radius-pill);background:#e8edf3;background:light-dark(#e8edf3,#141b23);overflow:hidden}
 .dc-meter i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#4cc49f);transition:width .09s linear}

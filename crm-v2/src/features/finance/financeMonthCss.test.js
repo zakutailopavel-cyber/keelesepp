@@ -23,6 +23,6 @@ describe('finance month hero button rules', () => {
     const textRules = css.split('}').map((rule) => rule.trim()).filter((rule) => /\.finance-month-hero\s[^{]*[\s>](h1|p|\.eyebrow)\s*\{/.test(rule));
     expect(textRules.length).toBe(3);
     for (const rule of textRules) expect(rule).toMatch(/\.finance-month-hero\s*>\s*div\s*>/);
-    expect(css).toMatch(/\.finance-month-hero \.modal-backdrop \{ color: #162033; \}/);
+    expect(css).toMatch(/\.finance-month-hero \.modal-backdrop \{ color: #162033;/);
   });
 });
