@@ -29,6 +29,18 @@ describe('possible duplicate cards', () => {
     expect(duplicatePair({ id: 'a', name: 'Sofia', linkedUserId: 'u1' }, { id: 'b', name: 'S. T.', linkedUserIds: ['u1'] }).reasons.map((r) => r.code)).toEqual(['account']);
   });
 
+  it('a self-registered card marked by the sign-up linking pairs with the existing card (incident 2026-11-09)', () => {
+    const teacherCard = { id: 'card-stefania', name: 'Stefania ', parentName: 'Jelena Shabanova', linkedParentIds: ['p1'] };
+    const selfCard = { id: 'self_u1', name: 'Stefania Šabanova', linkedUserIds: ['u1'], possibleExistingCardIds: ['card-stefania'] };
+    // without the server's mark the pair was not proposed (no shared contact)
+    expect(duplicatePair(teacherCard, { ...selfCard, possibleExistingCardIds: [] })).toBeNull();
+    const pairs = duplicateCandidates([teacherCard, selfCard, { id: 'sister', name: 'Viktoria Shabanova', parentName: 'Jelena Shabanova' }]);
+    expect(pairs).toHaveLength(1);
+    expect(pairs[0].reasons.map((r) => r.code)).toContain('signup_match');
+    expect(pairs[0].confidence).toBe('high');
+    expect(duplicateCandidates([{ ...teacherCard, notDuplicateOf: ['self_u1'] }, selfCard])).toEqual([]);
+  });
+
   it('leaves out merged and dismissed cards and sorts the likeliest first; an archived card pairs with an active one', () => {
     const pairs = duplicateCandidates([
       { id: 'a', name: 'Maria', notDuplicateOf: ['b'] },

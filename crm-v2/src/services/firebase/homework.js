@@ -1,5 +1,6 @@
 import { limit, addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, runTransaction, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { shareInFlight } from './shareInFlight.js';
 import { studentsService } from './students.js';

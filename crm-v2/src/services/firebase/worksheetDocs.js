@@ -1,6 +1,7 @@
 /* global TextEncoder */
 import { collection, doc, getDoc, getDocs, query, where, runTransaction } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { convertLegacyWorksheet } from '../../features/worksheet-studio/engine/legacy.js';
 import { newDocument, SCHEMA } from '../../features/worksheet-studio/engine/schema.js';
