@@ -112,3 +112,24 @@ Hand-written packs stay as the gold standard and take precedence.
 (nouns/adjectives: nimetav, omastav, osastav; verbs: ma, da, 3rd person present) — 8661 words; the hand-checked
 generator lexicon wins; ambiguous lemmas (319) are left out. The student's study session (`vocabulary/wordForms.js`)
 shows them under the Estonian word; a word's own EKI line (saved with a double-click lookup) comes first.
+
+## Vabamorf audit and course words (2026-11-09)
+
+How the forms were checked and completed: Vabamorf C++ (github.com/Filosoft/vabamorf, commit `2d17173`, lexicon
+`dct/binary/et.dct`) was cloned and built **outside the repository** on a Mac (`apps/cmdline/project/unix/Makefile`,
+`make CC=clang++ FLAGS="-O2 -DNDEBUG -DUNIX -std=gnu++11 -pthread" HTTP_JSON_FLAGS= etsyn etana` — `-DUNIX` is needed on
+macOS, the httplib/jsoncpp tools are not), and run offline without `-guess`: `etsyn` for synthesis (sg g, sg p, da, b),
+`etana analyze` to check that a lemma is a base form. Vabamorf is LGPL: only its output is in the repository, no code,
+binaries or lexicon files.
+
+- Every `word-forms.json` entry (8661) was synthesised again: 8633 match, 19 ours is one of several Vabamorf forms,
+  2 differ (iga, miski), 7 unknown to Vabamorf. 59 entries Vabamorf agrees with are probably wrong on the card
+  (plural-only lemmas such as püksid → „püksi”; -nud/-tud adjectives such as väsinud → „väsinu”). Nothing was
+  overwritten: all of it is in `docs/review/word-forms-vabamorf-2026-11-09.md` for the owner / teacher.
+- Course words (`vocabulary/lessonWords/*.json`, noun/adj/verb, one word) without forms: 730. Added **623** where
+  Vabamorf gives exactly one form and `etana` reads the lemma as a base form; the list is kept in
+  `tools/lexicon/course-key-forms.json`, which `build_key_forms.py` merges back (never overriding) so a rebuild keeps
+  them. Not added and listed in the review file: 35 ambiguous (päike → päikese/päikse), 14 unknown, 17 plural-only,
+  30 participle adjectives, 3 not inflected, 8 not analysed as a base form.
+- Generator lexicon (`lexicon/forms.json`, 314 words, 7088 forms): 7061 identical; 14 differ only where `source.json`
+  pins `variants` (minema, pidama, jooksma, tee); 13 unknown (Daria, written regularly). Report only, no edits.

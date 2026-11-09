@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { announceEntityChanged } from '../../components/entityDrawer/entityDrawer.js';
 import FinanceMonthPage from './FinanceMonthPage.jsx';
@@ -8,6 +8,8 @@ import FinanceMonthPage from './FinanceMonthPage.jsx';
 vi.mock('./monthlyBilling.js', async (importOriginal) => ({ ...(await importOriginal()), defaultBillingMonth: () => '2031-10', currentMonth: () => '2031-10' }));
 vi.mock('./PricePrivacyBanner.jsx', () => ({ default: () => null }));
 vi.mock('./ManualInvoiceDialog.jsx', () => ({ default: () => <button type="button">Lisa arve</button> }));
+vi.mock('./fie/FiePanel.jsx', () => ({ default: () => <p>FIE plokk</p> }));
+vi.mock('./TokenInvoiceDialog.jsx', () => ({ default: () => <button type="button">Tunnipakett</button> }));
 vi.mock('./MonthlyInvoicePanel.jsx', () => ({ default: () => <section aria-label="Kuuarvete koostamine">Kuuarved</section> }));
 
 const emptyList = { list: vi.fn().mockResolvedValue([]) };
@@ -382,5 +384,84 @@ describe('FinanceMonthPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /Koosta analüüs/ }));
     expect(value.financeRepository.previewFinancialAnalytics).toHaveBeenCalled();
     expect(await screen.findAllByText(/1234,00/)).not.toHaveLength(0);
+  });
+
+  describe('the overview (Stripe-style, owner 2026-11-09)', () => {
+    afterEach(() => { globalThis.localStorage?.removeItem('keelesepp.financeMonth.unit'); });
+    const overviewInvoices = [
+      { id: 'i1', planMonth: '2031-10', studentId: 's1', studentName: 'Mari Maasikas', payerEmail: 'mari@x.ee', num: 'AR-31', amountCents: 10000, paidAmountCents: 0, due: '2020-10-01' },
+      { id: 'i2', planMonth: '2031-10', studentId: 's2', studentName: 'Jaan Tamm', num: 'AR-32', amountCents: 5000, paidAmountCents: 5000, paidAt: '2031-10-03', due: '2031-10-10', status: 'Makstud' },
+      { id: 'i0', planMonth: '2031-08', studentId: 's3', studentName: 'Eva Kask', num: 'AR-29', amountCents: 7000, paidAmountCents: 7000, paidAt: '2031-08-04', due: '2031-08-10', status: 'Makstud' },
+    ];
+    const card = (title) => screen.getByRole('heading', { name: title }).closest('article');
+
+    it('keeps every page action and link reachable', async () => {
+      renderPage(props());
+      await screen.findByRole('table', { name: 'Arved 2031-10' });
+      expect(screen.getByRole('button', { name: /Väljastatud arved 1/ })).toBeInTheDocument();
+      for (const [name, href] of [['Seaded', '/finance/seaded'], ['Raamatupidamine', '/finance/raamatupidamine'], ['INF 3', '/finance/inf3'], ['Palgad', '/finance/payroll'], ['Vana vaade', '/finance/vana']]) {
+        expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
+      }
+      expect(screen.getByRole('button', { name: 'Lisa arve' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Tunnipakett' })).toBeInTheDocument();
+      expect(screen.getAllByRole('tab').map((tab) => tab.id)).toEqual(['finance-tab-invoices', 'finance-tab-paid', 'finance-tab-unpaid', 'finance-tab-credits', 'finance-tab-prepare', 'finance-tab-check']);
+    });
+
+    it('shows the cards from the loaded invoices and „Vaata” opens the list behind them', async () => {
+      const value = props();
+      value.invoiceRepository.list.mockResolvedValue(overviewInvoices);
+      renderPage(value);
+      await screen.findByRole('table', { name: 'Arved 2031-10' });
+      expect(screen.getByRole('region', { name: 'Ülevaade · oktoober 2031' })).toBeInTheDocument();
+      expect(card('Arveldatud')).toHaveTextContent('150,00');
+      expect(card('Arveldatud')).toHaveTextContent('2 arvet');
+      expect(card('Tasumata')).toHaveTextContent('100,00');
+      expect(card('Üle tähtaja · täna')).toHaveTextContent('1 pere · 1 arve');
+      expect(card('Õpilasi arveldatud')).toHaveTextContent('2');
+      expect(card('Keskmine arve')).toHaveTextContent('75,00');
+      fireEvent.click(screen.getByRole('button', { name: 'Vaata üle tähtaja arveid' }));
+      expect(screen.getByRole('tab', { name: /Laekumata/ })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByLabelText('Olek')).toHaveValue('overdue');
+    });
+
+    it('Kvartal / Aasta: the list and the cards cover the whole period, the arrows step a period', async () => {
+      const value = props();
+      value.invoiceRepository.list.mockResolvedValue(overviewInvoices);
+      renderPage(value);
+      await screen.findByRole('table', { name: 'Arved 2031-10' });
+      expect(screen.queryByText('Eva Kask')).not.toBeInTheDocument();
+      fireEvent.click(within(screen.getByRole('group', { name: 'Perioodi pikkus' })).getByRole('button', { name: 'Kvartal' }));
+      expect(screen.getByRole('table', { name: 'Arved IV kvartal 2031' })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Eelmine kvartal' }));
+      const table = screen.getByRole('table', { name: 'Arved III kvartal 2031' });
+      expect(within(table).getByText('Eva Kask')).toBeInTheDocument();
+      expect(card('Arveldatud')).toHaveTextContent('70,00');
+      fireEvent.click(screen.getByRole('button', { name: 'Praegune kvartal' }));
+      expect(screen.getByRole('table', { name: 'Arved IV kvartal 2031' })).toBeInTheDocument();
+      fireEvent.click(within(screen.getByRole('group', { name: 'Perioodi pikkus' })).getByRole('button', { name: 'Aasta' }));
+      expect(within(screen.getByRole('table', { name: 'Arved 2031' })).getByText('Eva Kask')).toBeInTheDocument();
+      expect(card('Arveldatud')).toHaveTextContent('220,00');
+    });
+
+    it('the owner\'s FIE invoices stay out of every company figure', async () => {
+      const value = props();
+      value.invoiceRepository.list.mockResolvedValue(overviewInvoices);
+      value.invoiceRepository.listFie = vi.fn().mockResolvedValue([{ id: 'f1', issuer: 'fie', planMonth: '2031-10', studentId: 's9', studentName: 'FIE Õpilane', num: 'FIE-1', amountCents: 90000, paidAmountCents: 90000, paidAt: '2031-10-02', due: '2031-10-10' }]);
+      render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'o1', email: 'zakutailo.pavel@gmail.com', roles: ['admin'] } }}><FinanceMonthPage {...value} /></AuthContext.Provider></MemoryRouter>);
+      await screen.findByRole('table', { name: 'Arved 2031-10' });
+      await waitFor(() => expect(value.invoiceRepository.listFie).toHaveBeenCalled());
+      expect(screen.getByText('FIE plokk')).toBeInTheDocument();
+      expect(card('Arveldatud')).toHaveTextContent('150,00');
+      expect(card('Õpilasi arveldatud')).toHaveTextContent('2');
+      expect(screen.queryByText('FIE Õpilane')).not.toBeInTheDocument();
+    });
+
+    it('a row\'s student name opens the invoice (the PDF when no side drawer is mounted)', async () => {
+      const value = props();
+      renderPage(value);
+      const table = await screen.findByRole('table', { name: 'Arved 2031-10' });
+      fireEvent.click(within(table).getByRole('button', { name: 'Mari Maasikas' }));
+      await waitFor(() => expect(value.deliveryRepository.pdf).toHaveBeenCalledWith('i1'));
+    });
   });
 });
