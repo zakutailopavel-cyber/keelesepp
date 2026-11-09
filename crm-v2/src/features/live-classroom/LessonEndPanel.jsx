@@ -93,7 +93,9 @@ export default function LessonEndPanel({
       // ending without a summary never waits: the copy finishes in the background (the teacher's page stays open)
       Promise.resolve().then(copyBoard).catch(() => {});
     }
-    onEnd?.();
+    // the server marks the calendar lesson held when the room closes (functions/live-auto-mark.js) only on 'held': a
+    // lesson whose student was „Puudub” or whose box was unticked is left to the teacher (never a billable default)
+    onEnd?.({ endMark: markHeld && status !== 'Puudus_eta' ? 'held' : 'skip' });
   };
 
   return (

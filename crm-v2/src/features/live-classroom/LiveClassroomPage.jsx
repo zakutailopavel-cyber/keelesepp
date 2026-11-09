@@ -211,12 +211,14 @@ export default function LiveClassroomPage({
     }
   };
 
-  const closeRoom = async () => {
+  // endMark: the end panel's „märgi tund toimunuks” → the server marks the calendar lesson (functions/live-auto-mark.js)
+  const closeRoom = async (endMark = '') => {
     if (!activeInvitation) return;
     setSaving('close');
     setActionError('');
     try {
-      await invitationService.close(activeInvitation.id, user);
+      if (endMark) await invitationService.close(activeInvitation.id, user, { endMark });
+      else await invitationService.close(activeInvitation.id, user);
       // the lesson is over: open it in the calendar to mark it held (topic, homework) — the usual „Toimunud” flow
       if (isStaff) navigate(calendarPathAfterLesson(activeInvitation, timestampMillis(activeInvitation.respondedAt) || timestampMillis(activeInvitation.createdAt)), { replace: true });
       else setSearchParams({}, { replace: true });
@@ -258,7 +260,7 @@ export default function LiveClassroomPage({
     streams: callStreams,
     onLeave: leaveRoom,
     // the room's „Tunni lõpp” drawer already asked (and saved the summary); other callers still confirm
-    onEndLesson: async (options = {}) => { if (options.confirmed || (await askConfirm('Lõpetada tund? Tunniruum suletakse mõlemale ja kalendris avaneb tund märkimiseks.'))) closeRoom(); },
+    onEndLesson: async (options = {}) => { if (options.confirmed || (await askConfirm('Lõpetada tund? Tunniruum suletakse mõlemale ja kalendris avaneb tund märkimiseks.'))) closeRoom(options.endMark || ''); },
     ending: saving === 'close',
   });
   const worksheetProps = { ...(worksheetHomework ? { homework: worksheetHomework } : {}), ...(worksheetLibrary ? { library: worksheetLibrary } : {}) };

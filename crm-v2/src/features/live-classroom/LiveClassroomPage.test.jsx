@@ -211,7 +211,9 @@ describe('Live Classroom invitation lifecycle', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Rohkem' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Lõpeta tund' }));
     fireEvent.click(await within(screen.getByRole('region', { name: 'Tunni lõpp' })).findByRole('button', { name: 'Lõpeta ilma kokkuvõtteta' }));
-    await waitFor(() => expect(invitationService.close).toHaveBeenCalledWith('accepted-1', expect.objectContaining({ uid: 'teacher-1' })));
+    // the end panel tells the server whether to mark the calendar lesson: here the room's attendance has the student
+    // as not joined („Puudub”), so 'skip' — an absence is never written by the server
+    await waitFor(() => expect(invitationService.close).toHaveBeenCalledWith('accepted-1', expect.objectContaining({ uid: 'teacher-1' }), { endMark: 'skip' }));
     await waitFor(() => expect(screen.getByTestId('location')).not.toHaveTextContent('invitation='));
     // no calendar link for this room: the calendar opens filtered to the student to mark the lesson
     expect(screen.getByTestId('location')).toHaveTextContent('/calendar?student=s-1');

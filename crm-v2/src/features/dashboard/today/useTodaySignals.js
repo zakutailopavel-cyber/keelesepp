@@ -9,6 +9,7 @@ import { presenceService } from '../../../services/firebase/presence.js';
 import { clientErrorsService } from '../../../services/firebase/clientErrors.js';
 import { studentFollowupsService } from '../../../services/firebase/studentFollowups.js';
 import { unmarkedLessons } from '../../calendar/unmarkedLessons.js';
+import { unmarkedLessonsService } from '../../../services/firebase/unmarkedLessons.js';
 import { groupErrors, newInLastDay } from '../../client-errors/clientErrorsModel.js';
 import { CALL_WINDOW_DAYS, CALLED_DAYS, addDays, homeworkQueue, lessonsRunningOut, needsCall, newLeads, tallinnClock, todayLessons } from './todayModel.js';
 
@@ -24,6 +25,8 @@ export const todayApi = {
   worksheetsDue: (from, to) => homeworkService.listWorksheetAssignmentsDueBetween(from, to),
   followups: (from) => studentFollowupsService.listSince(from),
   addFollowup: (input, user) => studentFollowupsService.add(input, user),
+  // the exclusions of the ONE „märkimata” definition (archived cards, closed accounts, closed financial days)
+  markingContext: ({ user, isAdmin }) => unmarkedLessonsService.context({ user, isAdmin }),
 };
 
 // one source that fails leaves its own count out, never the whole page
@@ -33,10 +36,10 @@ const optional = (read, fallback = null) => Promise.resolve().then(read).catch((
 // narrow „Täna” reads, the error log); the panels reuse it, so opening one reads nothing more (except „Riskis
 // õpilased”, which adds the words). Role scoping as before (2026-11-04): the admin gets everything, a teacher the
 // journal of own lessons, the accountant only the lesson packages.
-export function useTodaySignals({ isAdmin = false, canViewLearning = false, canViewBalance = false, teacherUid = '', students = [], schedule = [], events = [], homework = [], submissions = [], invoices = [], today, repository = todayApi, errorsService = clientErrorsService, now = () => new Date() }) {
+export function useTodaySignals({ user = null, isAdmin = false, canViewLearning = false, canViewBalance = false, teacherUid = '', students = [], schedule = [], events = [], homework = [], submissions = [], invoices = [], today, repository = todayApi, errorsService = clientErrorsService, now = () => new Date() }) {
   const state = useAsyncData(async () => {
     const callFrom = addDays(today, -Math.max(CALL_WINDOW_DAYS, HOMEWORK_WINDOW_DAYS));
-    const [lessons, seen, plans, packages, owed, leads, worksheets, followups, errors] = await Promise.all([
+    const [lessons, seen, plans, packages, owed, leads, worksheets, followups, errors, context] = await Promise.all([
       canViewLearning ? optional(() => repository.lessons(isAdmin ? '' : teacherUid)) : null,
       isAdmin ? optional(() => repository.seen(students), new Map()) : new Map(),
       isAdmin ? optional(() => repository.plans()) : [],
@@ -46,15 +49,17 @@ export function useTodaySignals({ isAdmin = false, canViewLearning = false, canV
       isAdmin ? optional(() => repository.worksheetsDue(callFrom, addDays(today, -1))) : [],
       isAdmin ? optional(() => repository.followups(addDays(today, -CALLED_DAYS)), []) : [],
       isAdmin && errorsService?.listRecent ? optional(() => errorsService.listRecent({ days: 2 })) : null,
+      canViewLearning && repository.markingContext ? optional(() => repository.markingContext({ user: user || { uid: teacherUid }, isAdmin })) : null,
     ]);
-    return { lessons, seen, plans, packages, owed, leads, worksheets, followups, errors };
+    return { lessons, seen, plans, packages, owed, leads, worksheets, followups, errors, context };
   }, [repository, errorsService, today, isAdmin, canViewLearning, canViewBalance, teacherUid, students]);
   const [added, setAdded] = useState([]);
   const data = state.data;
   const clock = tallinnClock(now());
 
   const lessonsToday = useMemo(() => (canViewLearning ? todayLessons({ events, today, now: clock }) : []), [canViewLearning, events, today, clock]);
-  const unmarked = useMemo(() => (canViewLearning && data?.lessons ? unmarkedLessons({ schedule, lessons: data.lessons, today, teacherUid: isAdmin ? '' : teacherUid }) : null), [canViewLearning, data, schedule, today, teacherUid, isAdmin]);
+  // the ONE definition (calendar/unmarkedLessons.js markingSplit): the attention list, the tile and the nudge agree
+  const unmarked = useMemo(() => (canViewLearning && data?.lessons ? unmarkedLessons({ schedule, lessons: data.lessons, today, teacherUid: isAdmin ? '' : teacherUid, context: data.context || {} }) : null), [canViewLearning, data, schedule, today, teacherUid, isAdmin]);
   const queue = useMemo(() => (isAdmin && data ? homeworkQueue({ submissions, homework, worksheets: data.worksheets || [], students, today, windowDays: HOMEWORK_WINDOW_DAYS }) : null), [isAdmin, data, submissions, homework, students, today]);
   const runningOut = useMemo(() => (canViewBalance && data ? lessonsRunningOut({
     students: isAdmin ? students : [],

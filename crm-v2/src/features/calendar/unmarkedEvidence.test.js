@@ -33,27 +33,27 @@ describe('liveSessions', () => {
   });
 });
 
-describe('findUnmarkedLessons (last 60 days, up to yesterday)', () => {
+describe('findUnmarkedLessons (a rolling 60-day window here, to test the evidence rules; oldest first)', () => {
   it('a live session within ±3 h proves the lesson; one 4 h away does not', () => {
     const schedule = [one('a', '2026-10-20', '10:00'), one('b', '2026-10-22', '10:00')];
     const sessions = liveSessions({ summaries: [summary('i1', '2026-10-20T09:40:00.000Z'), summary('i2', '2026-10-22T11:30:00.000Z')] });
-    const items = findUnmarkedLessons({ schedule, sessions, today });
-    expect(kinds(items)).toEqual(['b:2026-10-22:teacher', 'a:2026-10-20:evidence']);
-    expect(items[1].evidence).toMatchObject({ time: '12:40' });
+    const items = findUnmarkedLessons({ days: 60, schedule, sessions, today });
+    expect(kinds(items)).toEqual(['a:2026-10-20:evidence', 'b:2026-10-22:teacher']);
+    expect(items[0].evidence).toMatchObject({ time: '12:40' });
   });
 
   it('the window works across midnight', () => {
     const schedule = [one('late', '2026-10-20', '23:30')];
     const sessions = liveSessions({ summaries: [summary('i1', '2026-10-20T22:10:00.000Z')] }); // 01:10 on the 21st
-    expect(kinds(findUnmarkedLessons({ schedule, sessions, today }))).toEqual(['late:2026-10-20:evidence']);
+    expect(kinds(findUnmarkedLessons({ days: 60, schedule, sessions, today }))).toEqual(['late:2026-10-20:evidence']);
   });
 
   it('weekly series: each past occurrence counts on its own, excluded dates and the future are left out', () => {
     const schedule = [{ id: 'w', studentId: 's1', studentName: 'Mia', teacherUid: 't1', recurring: true, day: 'Mon', startDate: '2026-10-19', time: '15:00', excludedDates: ['2026-10-26'], status: 'Planeeritud' }];
     const sessions = liveSessions({ recordings: [{ id: 'r1', invitationId: 'x', studentId: 's1', teacherUid: 't1', startedAt: '2026-11-02T13:01:00.000Z' }] });
-    const items = findUnmarkedLessons({ schedule, sessions, today });
-    expect(kinds(items)).toEqual(['w:2026-11-02:evidence', 'w:2026-10-19:teacher']);
-    expect(items[0].occurrenceId).toBe('w:2026-11-02');
+    const items = findUnmarkedLessons({ days: 60, schedule, sessions, today });
+    expect(kinds(items)).toEqual(['w:2026-10-19:teacher', 'w:2026-11-02:evidence']);
+    expect(items[1].occurrenceId).toBe('w:2026-11-02');
   });
 
   it('marked, cancelled, group, older than 60 days and today are not listed', () => {
@@ -65,20 +65,20 @@ describe('findUnmarkedLessons (last 60 days, up to yesterday)', () => {
       one('today', today, '08:00'),
     ];
     const lessons = [{ id: 'l1', scheduleId: 'marked', occurrenceDate: '2026-10-20', date: '2026-10-20', studentId: 's1', status: 'Toimunud' }];
-    expect(findUnmarkedLessons({ schedule, lessons, today })).toEqual([]);
+    expect(findUnmarkedLessons({ days: 60, schedule, lessons, today })).toEqual([]);
   });
 
   it('an older mark of that student at the same time (no schedule id) is this lesson\'s own mark', () => {
     const schedule = [one('a', '2026-10-20', '10:00')];
     const lessons = [{ id: 'old', studentId: 's1', teacherUid: 't1', date: '2026-10-20', time: '10:00', status: 'Toimunud' }];
-    expect(findUnmarkedLessons({ schedule, lessons, today })).toEqual([]);
+    expect(findUnmarkedLessons({ days: 60, schedule, lessons, today })).toEqual([]);
   });
 
   it('a leftover planned entry on a day with a marked lesson at another time is a likely duplicate; the session belongs to the marked one', () => {
     const schedule = [one('left', '2026-10-20', '10:00'), one('moved', '2026-10-20', '12:00')];
     const lessons = [{ id: 'l1', scheduleId: 'moved', occurrenceDate: '2026-10-20', date: '2026-10-20', time: '12:00', studentId: 's1', teacherUid: 't1', teacher: 'Anna', status: 'Toimunud' }];
     const sessions = liveSessions({ summaries: [summary('i1', '2026-10-20T09:00:00.000Z')] }); // 12:00, also within 3 h of 10:00
-    const items = findUnmarkedLessons({ schedule, lessons, sessions, today });
+    const items = findUnmarkedLessons({ days: 60, schedule, lessons, sessions, today });
     expect(kinds(items)).toEqual(['left:2026-10-20:duplicate']);
     expect(items[0].duplicateOf).toMatchObject({ source: 'lesson', time: '12:00', status: 'Toimunud' });
   });
@@ -87,26 +87,26 @@ describe('findUnmarkedLessons (last 60 days, up to yesterday)', () => {
     const schedule = [one('second', '2026-10-20', '16:00')];
     const lessons = [{ id: 'l1', scheduleId: 'first', date: '2026-10-20', time: '10:00', studentId: 's1', teacherUid: 't1', status: 'Toimunud' }];
     const sessions = liveSessions({ summaries: [summary('i1', '2026-10-20T07:00:00.000Z'), summary('i2', '2026-10-20T13:00:00.000Z')] });
-    expect(kinds(findUnmarkedLessons({ schedule, lessons, sessions, today }))).toEqual(['second:2026-10-20:evidence']);
+    expect(kinds(findUnmarkedLessons({ days: 60, schedule, lessons, sessions, today }))).toEqual(['second:2026-10-20:evidence']);
   });
 
   it('two unmarked entries and one session: the closer one gets it, the other is a duplicate of it', () => {
     const schedule = [one('near', '2026-10-20', '12:00'), one('far', '2026-10-20', '10:00')];
     const sessions = liveSessions({ summaries: [summary('i1', '2026-10-20T09:05:00.000Z')] }); // 12:05
-    const items = findUnmarkedLessons({ schedule, sessions, today });
-    expect(kinds(items)).toEqual(['near:2026-10-20:evidence', 'far:2026-10-20:duplicate']);
-    expect(items[1].duplicateOf).toMatchObject({ source: 'planned', time: '12:00' });
+    const items = findUnmarkedLessons({ days: 60, schedule, sessions, today });
+    expect(kinds(items)).toEqual(['far:2026-10-20:duplicate', 'near:2026-10-20:evidence']);
+    expect(items[0].duplicateOf).toMatchObject({ source: 'planned', time: '12:00' });
   });
 
   it('another teacher\'s session or another student\'s session is not evidence', () => {
     const schedule = [one('a', '2026-10-20', '10:00')];
     const sessions = liveSessions({ summaries: [summary('i1', '2026-10-20T07:00:00.000Z', { teacherUid: 't2' }), summary('i2', '2026-10-20T07:00:00.000Z', { studentId: 's2' })] });
-    expect(kinds(findUnmarkedLessons({ schedule, sessions, today }))).toEqual(['a:2026-10-20:teacher']);
+    expect(kinds(findUnmarkedLessons({ days: 60, schedule, sessions, today }))).toEqual(['a:2026-10-20:teacher']);
   });
 
   it('a teacher sees only his own lessons', () => {
     const schedule = [one('mine', '2026-10-20', '10:00'), one('theirs', '2026-10-20', '11:00', { teacherUid: 't2', studentId: 's2' })];
-    expect(findUnmarkedLessons({ schedule, today, teacherUid: 't1' }).map((item) => item.id)).toEqual(['mine']);
+    expect(findUnmarkedLessons({ days: 60, schedule, today, teacherUid: 't1' }).map((item) => item.id)).toEqual(['mine']);
   });
 
   it('summarizeUnmarked counts by suggestion', () => {

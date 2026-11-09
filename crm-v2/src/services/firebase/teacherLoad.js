@@ -8,7 +8,7 @@ import { studentsService } from './students.js';
 import { teacherAvailabilityService } from './teacherAvailability.js';
 import { teachersService } from './teachers.js';
 import { shiftDate } from '../../features/calendar/calendarView.js';
-import { REVIEW_DAYS } from '../../features/calendar/unmarkedLessons.js';
+import { MARKING_START } from '../../features/calendar/unmarkedLessons.js';
 import { SUBMISSION_LOOKBACK_DAYS } from '../../features/teachers/teacherLoad.js';
 
 // „Õpetajate koormus” (admin only): every read the page needs, read only. The admin's rules already allow all of it
@@ -40,7 +40,7 @@ export const teacherLoadService = {
   // lessonsOnly (payroll, owner 2026-11-09): the lesson counts and the pay estimate only — free time and waiting works
   // are not read
   async load({ period, today, lessonsOnly = false }) {
-    const journalFrom = [period.from, shiftDate(today, -REVIEW_DAYS)].sort()[0];
+    const journalFrom = [period.from, MARKING_START].sort()[0];
     const journalTo = [period.to, today].sort()[1];
     const reviewFrom = new Date(`${shiftDate(today, -SUBMISSION_LOOKBACK_DAYS)}T00:00:00Z`).toISOString();
     const settle = (promise, fallback) => promise.catch(() => fallback);

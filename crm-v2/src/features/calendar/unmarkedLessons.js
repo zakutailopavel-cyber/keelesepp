@@ -1,30 +1,83 @@
-// „Märkimata tunnid” (owner 2026-10-23: учителя не отмечают уроки — без журнала врут риск ухода, отчёты и „Õpilase
-// pilt”; monthly invoices count marks too): the calendar's past lessons of the last year that have no journal record
-// yet, weekly series included, so the teacher marks them held or missed in one click. The card says how many are older
-// than two weeks (a lesson used to fall off silently after 14 days) and how far back it looks. A cancelled lesson, a group lesson and a lesson already in the journal
-// (the record of completeFromSchedule, or any lesson of that student on that day) are left out.
+// „Märkimata tunnid” — ONE definition for every place that counts or lists unmarked lessons (calendar badge, the
+// page /calendar/markimata, the dashboard card and tile, the teacher's nudge and bell, „Õpetajate koormus”, the admin's
+// menu badge and the weekly e-mail digest). Owner 2026-11-09: a teacher marks a past lesson in ~10 seconds on a phone,
+// target < 20 open.
+//   window   — from MARKING_START (owner 2026-11-09: „забыть неотмеченные до 1.11 пока”) up to yesterday; today is
+//              never counted. Lessons before the start are not changed or deleted, only not counted (the admin sees
+//              them on the page under „Vanemad (enne 1.11)”).
+//   counted  — a past planned 1:1 lesson (weekly series included) without a journal record (findUnmarkedLessons).
+//   excluded — never shown to a teacher, never counted; the admin sees them under „Vajab admini” with a reason and a
+//              fix (markingSplit / exclusionReason): no teacher on the entry, the teacher's account is closed or gone,
+//              the student is archived, the day is in a closed financial period (financialLockedDates).
+// Pure: no Firebase (services/firebase/unmarkedLessons.js loads). Contract: docs/LESSON_MARKING.md.
 import { occurrencesForDates, shiftDate } from './calendarView.js';
 
-export const UNMARKED_DAYS = 365;
-export const RECENT_DAYS = 14;
+// the first day that counts; one constant (docs/LESSON_MARKING.md). Owner: admin-changeable later if needed.
+export const MARKING_START = '2026-11-01';
+// how far before MARKING_START the admin's „Vanemad” view looks
+export const OLDER_DAYS = 60;
 
-export function unmarkedLessons({ schedule = [], lessons = [], today, days = UNMARKED_DAYS, teacherUid = '' } = {}) {
-  const dates = Array.from({ length: days }, (_, index) => shiftDate(today, -(index + 1)));
-  const marked = new Set();
-  lessons.forEach((lesson) => {
-    if (lesson.scheduleId && (lesson.occurrenceDate || lesson.date)) marked.add(`${lesson.scheduleId}:${lesson.occurrenceDate || lesson.date}`);
-    if (lesson.studentId && lesson.date) marked.add(`${lesson.studentId}@${lesson.date}`);
-  });
-  return occurrencesForDates(schedule.filter((event) => !event.isGroup && event.studentId && (!teacherUid || !event.teacherUid || event.teacherUid === teacherUid)), dates)
-    .filter((item) => (item.status || 'Planeeritud') === 'Planeeritud')
-    .filter((item) => !marked.has(`${item.id}:${item.occurrenceDate}`) && !marked.has(`${item.studentId}@${item.occurrenceDate}`))
-    .sort((a, b) => `${b.occurrenceDate} ${b.time}`.localeCompare(`${a.occurrenceDate} ${a.time}`));
+const isoDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
+// the counted days, newest first: [from … yesterday] (or [from … to] when `to` is before yesterday)
+export function markingDates(today, { from = MARKING_START, to = '' } = {}) {
+  const yesterday = shiftDate(today, -1);
+  const last = isoDate(to) && to < yesterday ? to : yesterday;
+  const first = isoDate(from) ? from : MARKING_START;
+  const dates = [];
+  for (let date = last; date >= first && dates.length < 3660; date = shiftDate(date, -1)) dates.push(date);
+  return dates;
+}
+// the admin's „Vanemad (enne 1.11)” window: OLDER_DAYS before the start
+export const olderWindow = (start = MARKING_START) => ({ from: shiftDate(start, -OLDER_DAYS), to: shiftDate(start, -1) });
+// „1.11” for labels
+export const startLabel = (start = MARKING_START) => `${Number(start.slice(8, 10))}.${Number(start.slice(5, 7))}`;
+
+// ── exclusions („Vajab admini”) ───────────────────────────────────────────────────────────────────────────────────
+export const EXCLUSION_REASONS = Object.freeze({
+  'no-teacher': 'Tunnil pole õpetajat',
+  'teacher-gone': 'Õpetaja konto on suletud või eemaldatud',
+  'student-archived': 'Õpilane on arhiivis',
+  'period-closed': 'Finantsperiood on suletud',
+});
+const asSet = (value) => (value instanceof Set ? value : new Set(value || []));
+// context: { archivedStudentIds, staff (users docs: id, role, disabled, deletedAt, purgedAt), lockedDates }.
+// Only what is known excludes: without a staff list nobody is „gone”, a card not in the archive list counts.
+export function markingContext({ archivedStudentIds = [], staff = null, lockedDates = [] } = {}) {
+  const activeStaff = Array.isArray(staff) && staff.length
+    ? new Set(staff.filter((person) => !person.disabled && !person.deletedAt && !person.purgedAt && ['admin', 'teacher'].includes(person.role || 'teacher')).map((person) => person.id))
+    : null;
+  return { archived: asSet(archivedStudentIds), activeStaff, locked: asSet(lockedDates) };
+}
+export function exclusionReason(item, context = markingContext()) {
+  const ctx = context.archived ? context : markingContext(context);
+  if (!item.teacherUid) return 'no-teacher';
+  if (ctx.activeStaff && !ctx.activeStaff.has(item.teacherUid)) return 'teacher-gone';
+  if (item.studentId && ctx.archived.has(item.studentId)) return 'student-archived';
+  if (ctx.locked.has(item.occurrenceDate)) return 'period-closed';
+  return '';
 }
 
-// how many of the list are older than two weeks
-export function olderUnmarked(items = [], today) {
-  const from = shiftDate(today, -RECENT_DAYS);
-  return items.filter((item) => item.occurrenceDate < from).length;
+/**
+ * The unified list. → { items (counted, oldest first), adminItems (excluded, with `reason`; always empty in a
+ * teacher's view) }. `teacherUid` (a teacher's own view): only entries with exactly that teacher — an entry without a
+ * teacher is never shown to a teacher. `context`: see markingContext. Other arguments as findUnmarkedLessons.
+ */
+export function markingSplit({ schedule = [], lessons = [], sessions = [], today, teacherUid = '', context, from = MARKING_START, to = '' } = {}) {
+  const all = findUnmarkedLessons({ schedule, lessons, sessions, today, teacherUid, from, to });
+  const ctx = markingContext(context || {});
+  const items = [];
+  const adminItems = [];
+  all.forEach((item) => {
+    const reason = exclusionReason(item, ctx);
+    if (!reason) items.push(item);
+    else if (!teacherUid) adminItems.push({ ...item, reason });
+  });
+  return { items, adminItems };
+}
+
+// the counted list only (badges, the dashboard): the same rules, nothing else
+export function unmarkedLessons(args = {}) {
+  return markingSplit(args).items;
 }
 
 // ── „Märkimata tunnid” page (2026-11-04): unmarked past lessons with the Live Classroom's evidence ─────────────────
@@ -37,6 +90,7 @@ export function olderUnmarked(items = [], today) {
 //                 session) → „Tõenäoliselt topelt”, cancel through the calendar's own cancel path
 //   'teacher'   — nothing found → the teacher says: Toimus / Puudus (teatas) / Puudus (ei teatanud)
 // Pure: no Firebase, so the admin's morning digest can count with it too (services/firebase/unmarkedLessons.js loads).
+// REVIEW_DAYS: the old rolling window, used only by callers that pass `days` explicitly.
 export const REVIEW_DAYS = 60;
 export const EVIDENCE_WINDOW_MINUTES = 180;
 // a record of the same student that day within this many minutes (or without a time) is this lesson's own mark,
@@ -112,8 +166,9 @@ function distanceOf(minutesA, dateA, minutesB, dateB) {
 }
 const recordDate = (lesson) => lesson.occurrenceDate || lesson.date || '';
 
-export function findUnmarkedLessons({ schedule = [], lessons = [], sessions = [], today, days = REVIEW_DAYS, teacherUid = '' } = {}) {
-  const dates = Array.from({ length: days }, (_, index) => shiftDate(today, -(index + 1)));
+export function findUnmarkedLessons({ schedule = [], lessons = [], sessions = [], today, days = 0, from = MARKING_START, to = '', teacherUid = '' } = {}) {
+  // `days`: a rolling window (legacy callers); else [from … yesterday]
+  const dates = days > 0 ? Array.from({ length: days }, (_, index) => shiftDate(today, -(index + 1))) : markingDates(today, { from, to });
   const first = dates[dates.length - 1] || '';
   const linked = new Set();
   const byReference = new Set();
@@ -128,7 +183,8 @@ export function findUnmarkedLessons({ schedule = [], lessons = [], sessions = []
   });
   const ownReference = (item) => item.occurrenceStatuses?.[item.occurrenceDate]?.lessonEntryId
     || ((!item.recurring || (item.lessonOccurrenceDate || item.date) === item.occurrenceDate) ? item.lessonEntryId : '');
-  const unmarked = occurrencesForDates(schedule.filter((event) => !event.isGroup && event.studentId && (!teacherUid || !event.teacherUid || event.teacherUid === teacherUid)), dates)
+  // a teacher's view: exactly his entries (an entry without a teacher goes to the admin, never to every teacher)
+  const unmarked = occurrencesForDates(schedule.filter((event) => !event.isGroup && event.studentId && (!teacherUid || event.teacherUid === teacherUid)), dates)
     .filter((item) => (item.status || 'Planeeritud') === 'Planeeritud')
     .filter((item) => !linked.has(`${item.id}:${item.occurrenceDate}`) && !(ownReference(item) && byReference.has(ownReference(item))))
     .map((item) => ({ ...item, minutes: absoluteMinutes(item.occurrenceDate, item.time) }))
@@ -177,7 +233,8 @@ export function findUnmarkedLessons({ schedule = [], lessons = [], sessions = []
       return { ...item, kind: 'duplicate', evidence: null, duplicateOf: { source: 'planned', id: plannedTwin.occurrenceId, date: plannedTwin.occurrenceDate, time: plannedTwin.time || '', status: 'Planeeritud', teacher: plannedTwin.teacher || '' } };
     }
     return { ...item, kind: 'teacher', evidence: null, duplicateOf: null };
-  }).sort((a, b) => `${b.occurrenceDate} ${b.time}`.localeCompare(`${a.occurrenceDate} ${a.time}`));
+  // oldest first: the teacher works through the list from the top (owner 2026-11-09)
+  }).sort((a, b) => `${a.occurrenceDate} ${a.time}`.localeCompare(`${b.occurrenceDate} ${b.time}`));
 }
 
 // the calendar's message for a lesson the rules refuse (on an invoice / in a closed period)
@@ -200,18 +257,34 @@ export function summarizeUnmarked(items = []) {
 
 // ── Teacher's daily reminder (owner 2026-11-09: „ежедневное напоминание учителям о неотмеченных уроках — в CRM, НЕ
 // письмом”). Never an e-mail / SMS: the bell (NotificationCenter) and a once-a-day banner on the home page only.
-// It looks back REMINDER_DAYS (= the „Märkimata tunnid” page's 60 days), so the old backlog (owner: „308 неотмеченных —
-// пока не делаем”, nothing is bulk-marked) does not nag a teacher every morning, and the number matches the page the
-// reminder opens. The banner gives a day of grace: only lessons from before yesterday nudge.
+// It counts from MARKING_START (the same window as the page), so the old backlog does not nag a teacher every morning,
+// and the number matches the page the reminder opens. The banner gives a day of grace: only lessons from before
+// yesterday nudge. REMINDER_DAYS stays for older imports (= the old rolling window).
 export const REMINDER_DAYS = REVIEW_DAYS;
 export const REMINDER_GRACE_DAYS = 1;
 const shortDate = (iso) => (/^\d{4}-\d{2}-\d{2}$/.test(String(iso || '')) ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}` : '');
 
-// items of findUnmarkedLessons (one teacher's) → { total, oldest, oldestLabel „DD.MM”, stale (older than the grace) }
-export function unmarkedReminder(items = [], today, { days = REMINDER_DAYS, graceDays = REMINDER_GRACE_DAYS } = {}) {
-  const from = shiftDate(today, -days);
+// items of markingSplit (one teacher's) → { total, oldest, oldestLabel „DD.MM”, stale (older than the grace) }
+export function unmarkedReminder(items = [], today, { from = MARKING_START, graceDays = REMINDER_GRACE_DAYS } = {}) {
   const inWindow = items.filter((item) => item.occurrenceDate && item.occurrenceDate >= from && item.occurrenceDate < today);
   const oldest = inWindow.reduce((first, item) => (!first || item.occurrenceDate < first ? item.occurrenceDate : first), '');
   const graceFrom = shiftDate(today, -graceDays);
   return { total: inWindow.length, oldest, oldestLabel: shortDate(oldest), stale: inWindow.filter((item) => item.occurrenceDate < graceFrom).length };
+}
+
+// „Lõpeta sari” (admin, „Vajab admini”): a weekly series that runs on for an archived student or a closed teacher
+// account ends the day before its first listed occurrence, so those occurrences and all later ones go away. Nothing
+// is deleted; the old end date is kept for the undo. → the new endDate, or '' when the entry is not a series
+export function seriesEndDate(item, listed = []) {
+  if (!item?.recurring || !item.id) return '';
+  const first = [item, ...listed].filter((entry) => entry.id === item.id && entry.occurrenceDate)
+    .reduce((oldest, entry) => (!oldest || entry.occurrenceDate < oldest ? entry.occurrenceDate : oldest), '');
+  return first ? shiftDate(first, -1) : '';
+}
+
+// the page's day groups: [{ date, items }], oldest day first
+export function groupByDay(items = []) {
+  const days = new Map();
+  items.forEach((item) => days.set(item.occurrenceDate, [...(days.get(item.occurrenceDate) || []), item]));
+  return [...days.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, list]) => ({ date, items: list }));
 }
