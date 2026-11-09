@@ -91,7 +91,14 @@ grammarPoints, missed, minutes }`.
 - `PracticeLesson.jsx` — progress bar, prompt, answer, feedback panel (green / amber / red, rule line, grammar term
   in Estonian + learner's language), retry round, result ring; Enter checks / goes on, 1–9 picks an option, focus moves
   to „Edasi”.
-- `SentenceBuilder.jsx` (tiles are buttons, Backspace takes the last back), `AnswerInputs.jsx` (`OptionChoice`,
+- `SentenceBuilder.jsx` — tiles are buttons: a tap puts a bank tile at the end / takes a sentence tile back, Backspace
+  takes the last back. Drag and drop (`@dnd-kit/core` + `@dnd-kit/sortable`, MIT, only in the lazy practice chunk):
+  bank → a place in the sentence (before / after the tile it is dropped on, `tileDrop.js dropsAfter`), reorder within
+  the sentence, sentence → bank. Mouse starts after 6 px, touch after a 180 ms press (8 px tolerance) so the page still
+  scrolls; keyboard: Space lifts a sentence tile, arrows move, Space / Enter drops, Escape cancels (Enter alone stays the
+  tap); Estonian screen-reader instructions and announcements; reduced motion → no drop / sorting animation. Drop rules
+  are pure in `tileDrop.js`. The answer is still the tile indexes in sentence order, checked by `checkItem`.
+- `AnswerInputs.jsx` (`OptionChoice`,
   `TypedAnswer` with õ ä ö ü š ž buttons), `PracticeItem.jsx` (prompt, gap sentence, listen button).
 - `practice.css` — app tokens only (dark-theme tokens with light fallbacks), 44 px+ targets, reduced motion.
 - `PracticePreviewPage.jsx` — „Harjutuste eelvaade”, staff route `/library/harjutused` (`routes.jsx`: one lazy import +

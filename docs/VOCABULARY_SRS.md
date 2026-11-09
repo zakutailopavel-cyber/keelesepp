@@ -31,6 +31,37 @@ phase 3 (path, streak, XP, pet) are separate; this phase only exposes the hook f
   back in the same session; when nothing is due yet the earliest learning card is shown (learning ahead), never the same
   card twice in a row if another waits. A card leaves the session when its next time is further away.
 
+## Cross-check with ts-fsrs (2026-11-09)
+
+`srs.fsrs-crosscheck.test.js` compares `srs.js` with **ts-fsrs v5** (MIT, devDependency only — never in the app
+bundle; v6 needs Node 24). ts-fsrs v5 implements FSRS-6, so it is given our FSRS-4.5 weights + FSRS-5's short-term
+weights (`w17, w18`), `w19 = 0`, decay 0.5, retention 0.9, max 365 days, steps 1m/10m and 10m, no fuzz. Checked:
+forgetting curve, interval, initial stability, recall and forget stability over a grid of S × D × gap, same-day
+stability, and 400 seeded random rating sequences (> 3 000 answers: new / learning / review / relearning, lapses, gaps
+up to 500 days) — state, due time (to the ms), stability, difficulty, reps and lapses at every answer.
+
+Intended differences (each asserted in the test):
+
+1. „Raske” inside the steps lowers S by the FSRS-5 formula `S·e^(w17·(w18−1))`; FSRS-6 (ts-fsrs) never lowers S for
+   Raske/Hea/Lihtne on the same day.
+2. Post-lapse stability is capped at `S` (FSRS-4.5), not `S / e^(w17·w18)` (FSRS-5+).
+3. „Raske” in the steps: 5.5 min for a new card (Anki), then the current step × 1.5 (1.5 min / 15 min);
+   ts-fsrs always gives the rounded average of the first two steps (6 min).
+4. The first graduation with „Hea” is capped at 3 days (`FIRST_GOOD_MAX_DAYS`).
+5. „Lihtne” inside the steps lands at least one day after what „Hea” would give.
+6. Stability never below 0.1 (ts-fsrs: 0.001).
+7. Review intervals stay ≤ 365 days also after the Raske < Hea < Lihtne push (ts-fsrs can give 366).
+8. Difficulty is FSRS-4.5 (linear `D0(G) = w4 − (G−3)·w5`, mean reversion to `D0(3) = w4`) — it belongs to the
+   FSRS-4.5 weights; ts-fsrs v5 has FSRS-6 difficulty (exponential D0, linear damping, reversion to D0(4)), so D is
+   checked against the published FSRS-4.5 formulas instead.
+9. Learning / relearning steps use the same-day formula by state, also when answered on a later day (ts-fsrs decides
+   by elapsed days: a step answered a day later gets the long-term formula). Elapsed time is fractional days here,
+   calendar days in ts-fsrs (equal in the test, which reviews at whole days).
+
+Fixed by the cross-check: mean reversion used `D0(4)` (FSRS-5's target) with FSRS-4.5 weights — every answer pulled
+D ~0.04 too low; now `D0(3)`. And `intervalDays` rounded S = 2.5 / 6.5 … down to 2 / 6 by float error; now rounds
+half up like ts-fsrs. Stored sides keep their `s`/`d`; the next answer simply uses the corrected formula.
+
 ## Directions
 
 Each word has two independent sides: `r` = recognition (Estonian word → meaning) and `p` = production (meaning →

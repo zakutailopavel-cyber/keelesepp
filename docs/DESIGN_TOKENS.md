@@ -97,3 +97,13 @@ The worksheet studio (`.ws-studio`) keeps its own older dark skin, which follows
 **Known gaps**: inline `style={{}}` colours in JSX (a handful; `ArchivedLinkAsk` now uses `--warning-soft`), feature-local colour
 variables other than the calendar tones (e.g. pet `--outline`), and pages not looked at (live classroom room, library, accounting,
 pet) were converted by the same rule but not checked by eye.
+
+## Charts and metric cards (agent/finance-stripe-dashboard, 2026-11-09)
+
+No new `:root` tokens. `components/charts/charts.css` uses only existing tokens, with component-local variables in the chart
+scope: `--chart-line` (= `--green-text`, brighter in dark), `--chart-compare` (= `--gray-400`, dashed), `--chart-grid` (= `--border-faint`),
+`--chart-axis` (= `--gray-500`). Colour means state only: delta chips use `--success-*` / `--danger-*` (neutral = `--gray-100/600`),
+overdue ageing uses `--danger-text` mixed with `--surface`. Numbers: `font-variant-numeric: tabular-nums`; money via
+`components/charts/format.js` („1 234,56 €”) and `MoneyValue` (euro sign smaller and lighter). Hero figures use Manrope.
+The uPlot headline chart (canvas) cannot use `var()`: `UPlotComparisonChart.jsx` reads these four variables and `--surface`
+with `getComputedStyle` and redraws when `<html data-theme>` or the system scheme changes.

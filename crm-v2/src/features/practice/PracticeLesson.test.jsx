@@ -12,6 +12,8 @@ const build = {
 const form = { id: 'f', type: 'form', before: 'Markus puudus kolmest', after: '.', base: 'tund', answers: ['tunnist'], options: null, grammar: ['government'], explain: { et: 'Puuduma nõuab seestütlevat.' } };
 const choice = { id: 'c', type: 'connector', before: 'Ta õppis öösel,', after: 'oli ta väsinud.', answers: ['seepärast'], options: ['seepärast', 'sest', 'kuna'], grammar: ['connectors'], explain: { et: '' } };
 
+// the drag-and-drop live region (dnd-kit) is a status region too
+const feedbackStatus = () => screen.getAllByRole('status').find((el) => el.classList.contains('pr-feedback'));
 const tile = (name) => within(screen.getByRole('group', { name: 'Sõnad' })).getByRole('button', { name });
 
 describe('SentenceBuilder', () => {
@@ -42,7 +44,7 @@ describe('PracticeLesson', () => {
     expect(screen.getByRole('button', { name: 'Kontrolli' })).toBeDisabled();
     ['Kuna', 'päeval', 'pole', 'aega', 'Anna', 'õpib', 'õhtul'].forEach((w) => fireEvent.click(tile(w)));
     fireEvent.click(screen.getByRole('button', { name: 'Kontrolli' }));
-    const status = screen.getByRole('status');
+    const status = feedbackStatus();
     expect(status).toHaveTextContent('Õige vastus:');
     expect(status).toHaveTextContent('Kuna päeval pole aega, õpib Anna õhtul.');
     expect(status).toHaveTextContent('Pärast kuna-osa tuleb tegusõna.');
@@ -55,7 +57,7 @@ describe('PracticeLesson', () => {
     fireEvent.change(input, { target: { value: 'tunnist' } });
     expect(screen.getByLabelText('lünk: tunnist')).toBeInTheDocument();
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(screen.getByRole('status')).toHaveTextContent('Õige!');
+    expect(feedbackStatus()).toHaveTextContent('Õige!');
     fireEvent.click(screen.getByRole('button', { name: 'Edasi' }));
 
     // 3: options with the number key
@@ -68,7 +70,7 @@ describe('PracticeLesson', () => {
     expect(screen.getByText(/Kordame vigu/)).toBeInTheDocument();
     ['Kuna', 'päeval', 'pole', 'aega', 'õpib', 'Anna', 'õhtul'].forEach((w) => fireEvent.click(tile(w)));
     fireEvent.click(screen.getByRole('button', { name: 'Kontrolli' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Õige!');
+    expect(feedbackStatus()).toHaveTextContent('Õige!');
     fireEvent.click(screen.getByRole('button', { name: 'Edasi' }));
 
     expect(screen.getByRole('region', { name: 'Tulemus' })).toHaveTextContent('2 / 3');
@@ -84,7 +86,7 @@ describe('PracticeLesson', () => {
     render(<PracticeLesson items={[item]} lang="en" />);
     fireEvent.change(screen.getByRole('textbox', { name: 'Sinu vastus' }), { target: { value: 'tana' } });
     fireEvent.click(screen.getByRole('button', { name: 'Kontrolli' }));
-    const status = screen.getByRole('status');
+    const status = feedbackStatus();
     expect(status).toHaveTextContent('Peaaegu!');
     expect(status).toHaveTextContent('Check the letters õ, ä, ö, ü.');
     expect(status).toHaveTextContent('(ä)');

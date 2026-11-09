@@ -1,16 +1,15 @@
 .student-finance-panel { display: grid; gap: 22px; }
-.student-finance-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.student-finance-metrics > div { padding: 18px; border: 1px solid var(--border-color, #e5e7eb);border:1px solid var(--border-color, light-dark(#e5e7eb,#333a41)); border-radius: var(--radius-xl); background: var(--surface-subtle, var(--surface-alt)); }
-.student-finance-metrics span { display: flex; align-items: center; gap: 8px; color: var(--text-muted, var(--gray-500)); font-size: .85rem; }
-.student-finance-metrics strong { display: block; margin-top: 10px; font-size: 1.35rem; }
-.student-finance-metrics small { color: var(--text-muted, var(--gray-500)); }
+.student-finance-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.student-finance-metrics__alert .metric-tile__value > strong { color: var(--danger-text); }
+.student-invoice-history__num { justify-self: end; text-align: right; font-variant-numeric: tabular-nums; }
 .student-invoice-history { overflow-x: auto; }
 .student-invoice-history > div { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr; gap: 16px; align-items: center; min-width: 720px; padding: 13px 8px; border-bottom: 1px solid var(--border-color, #e5e7eb);border-bottom:1px solid var(--border-color, light-dark(#e5e7eb,#333a41)); }
-.student-invoice-history__head { color: var(--text-muted, var(--gray-500)); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.student-invoice-history__head { color: var(--text-muted, var(--gray-500)); font-size: .78rem; font-weight: 600; }
+.student-invoice-history > div > .badge { justify-self: start; }
 .student-finance-panel__footer { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
 .student-finance-panel__footer small { color: var(--text-muted, var(--gray-500)); }
 @media (max-width: 900px) { .student-finance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .student-finance-metrics { grid-template-columns: 1fr; } .student-finance-panel__footer { align-items: stretch; flex-direction: column; } }
+@media (max-width: 560px) { .student-finance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .student-finance-panel__footer { align-items: stretch; flex-direction: column; } }
 .billing-settings { display: grid; gap: 16px; }
 .billing-settings .eyebrow { display: inline-flex; align-items: center; gap: 6px; }
 .billing-settings__price { font-size: 1.25rem; }
