@@ -8,7 +8,7 @@ describe('Täna — four things to do', () => {
   it('tasks, words, my mistakes and the pet, each done by what the student really did today', () => {
     const path = todayPath({
       today, now,
-      words: [{ id: 'a', reviewedAt: '2026-10-12T08:00:00Z', dueAt: '2026-10-20' }, { id: 'b', dueAt: '2026-10-01' }, { id: 'e', word: 'Ma läksin panka', translation: 'Sinu lause: Mina läksin pank' }],
+      words: [{ id: 'a', word: 'kass', translation: 'кот', reviewedAt: '2026-10-12T08:00:00Z', dueAt: '2026-10-20' }, { id: 'b', word: 'koer', translation: 'пёс', dueAt: '2026-10-01' }, { id: 'e', word: 'Ma läksin panka', translation: 'Sinu lause: Mina läksin pank' }],
       homework: [{ id: 'h', task: 'Loe tekst', status: 'Ootel' }],
       assignments: [{ id: 's1', status: 'new' }, { id: 's2', status: 'done' }],
       pet: { kind: 'rebane', name: 'Lisa', playedAt: '2026-10-11T10:00:00Z' },

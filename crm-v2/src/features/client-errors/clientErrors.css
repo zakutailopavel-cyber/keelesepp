@@ -20,3 +20,21 @@
   .client-errors__numbers { align-items: flex-start; }
   .client-errors__actions { justify-content: flex-start; }
 }
+/* „Süsteemi olek” (SystemHealthCard): the scheduled health check's last result */
+.system-health { --sh: #12b76a; --sh-bg: #ecfdf3; display: grid; gap: 10px; margin: 0 0 18px; padding: 14px; border: 1px solid var(--border); border-left: 4px solid var(--sh); border-radius: var(--radius-lg); background: var(--surface, var(--surface)); }
+.system-health--down { --sh: #d92d20; --sh-bg: #fef3f2; background: var(--sh-bg); }
+.system-health--stale { --sh: #dc6803; --sh-bg: #fffaeb; }
+.system-health--unknown { --sh: #98a2b3; --sh-bg: #f2f4f7; }
+.system-health__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.system-health__head > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.system-health__dot { width: 14px; height: 14px; border-radius: 50%; background: var(--sh); box-shadow: 0 0 0 4px var(--sh-bg); flex: none; }
+.system-health__eyebrow { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.system-health__note, .system-health__checked, .system-health__last { color: var(--muted); font-size: .86rem; margin: 0; }
+.system-health__targets { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .86rem; }
+.system-health__targets li { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.system-health__targets li::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #12b76a; flex: none; align-self: center; }
+.system-health__targets li.is-down::before { background: #d92d20; }
+.system-health__targets small { color: var(--muted); overflow-wrap: anywhere; }
+.system-health__history { display: flex; gap: 2px; height: 14px; }
+.system-health__history span { flex: 1; max-width: 10px; border-radius: 2px; background: #a6f4c5;background:light-dark(#a6f4c5,#001c0c); }
+.system-health__history span.is-down { background: #d92d20; }

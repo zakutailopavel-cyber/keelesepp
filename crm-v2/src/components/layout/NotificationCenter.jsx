@@ -1,4 +1,4 @@
-import { Bell, BookOpenCheck, CalendarClock, CircleAlert, ListTodo, MessageSquareText, ReceiptText, RefreshCw, UserRound } from 'lucide-react';
+import { Activity, Bell, BookOpenCheck, CalendarClock, CircleAlert, ListTodo, MessageSquareText, ReceiptText, RefreshCw, UserRound } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -10,6 +10,7 @@ import { studentsService } from '../../services/firebase/students.js';
 import { tasksService } from '../../services/firebase/tasks.js';
 import { studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
 import { missingDataService } from '../../services/firebase/missingData.js';
+import { systemHealthService } from '../../services/firebase/systemHealth.js';
 import { UNMARKED_CHANGED_EVENT, unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.js';
 import {
   CATEGORY_LABEL,
@@ -20,6 +21,7 @@ import {
   missingDataNotifications,
   messageNotifications,
   sortNotifications,
+  systemHealthNotifications,
   taskNotifications,
   unmarkedNotifications,
 } from '../../features/notifications/notificationModel.js';
@@ -27,8 +29,8 @@ import { useTasks } from '../../features/tasks/useTasks.js';
 import IconButton from '../ui/IconButton.jsx';
 import '../../features/notifications/notifications.css';
 
-const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService, availability: studentAvailabilityService, missingData: missingDataService, unmarked: unmarkedLessonsService };
-const ICONS = { task: ListTodo, message: MessageSquareText, homework: BookOpenCheck, lesson: CalendarClock, student: UserRound, invoice: ReceiptText };
+const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService, availability: studentAvailabilityService, missingData: missingDataService, unmarked: unmarkedLessonsService, health: systemHealthService };
+const ICONS = { task: ListTodo, message: MessageSquareText, homework: BookOpenCheck, lesson: CalendarClock, student: UserRound, invoice: ReceiptText, system: Activity };
 const quiet = (promise) => Promise.resolve(promise).catch(() => []);
 
 async function loadSources(user, repositories) {
@@ -43,13 +45,14 @@ async function loadSources(user, repositories) {
     : { items: [] };
   const ids = studentResult.items.map((student) => student.id);
   const names = new Map(studentResult.items.map((student) => [student.id, student.name]));
-  const [messages, submissions, invoices, lessonRequests, availability, missingData] = await Promise.all([
+  const [messages, submissions, invoices, lessonRequests, availability, missingData, health] = await Promise.all([
     staff ? quiet(admin ? (repositories.messages.listUnread || repositories.messages.list).call(repositories.messages) : repositories.messages.listByStudentIds(ids)) : [],
     staff ? quiet(repositories.homework.listSubmissionsByStudentIds(ids)) : [],
     invoicesRead,
     staff && repositories.changeRequests?.listPending ? quiet(repositories.changeRequests.listPending({ teacherUid: user.uid, all: admin })) : [],
     admin && repositories.availability?.list ? quiet(repositories.availability.list()) : [],
     admin && repositories.missingData?.listUnreviewed ? quiet(repositories.missingData.listUnreviewed()) : [],
+    admin && repositories.health?.both ? Promise.resolve(repositories.health.both()).catch(() => null) : null,
   ]);
   return {
     messages,
@@ -58,6 +61,7 @@ async function loadSources(user, repositories) {
     lessonRequests,
     availability: availabilityNotifications(availability, names),
     missingData: missingDataNotifications(missingData),
+    health: health ? systemHealthNotifications(health) : [],
   };
 }
 
@@ -89,6 +93,7 @@ export default function NotificationCenter({ user, repositories = defaultReposit
     ...lessonChangeNotifications(sources.data?.lessonRequests || []),
     ...(sources.data?.availability || []),
     ...(sources.data?.missingData || []),
+    ...(sources.data?.health || []),
     ...unmarkedNotifications(unmarked.data),
     ...invoiceNotifications(sources.data?.invoices || []),
   ]), [sources.data, unmarked.data, staff, tasks, user]);

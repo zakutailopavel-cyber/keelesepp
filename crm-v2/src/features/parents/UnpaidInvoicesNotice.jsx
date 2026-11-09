@@ -61,7 +61,7 @@ export default function UnpaidInvoicesNotice({ invoices = [], nameOf = () => '',
   const sendClaim = async (invoice) => {
     setClaimBusy(true); setClaimError('');
     try {
-      const claim = await claimsRepository.create(invoice.id, claimNote);
+      const claim = await claimsRepository.create(invoice.id, claimNote, undefined, invoice);
       setClaims((current) => new Map(current).set(invoice.id, claim));
       setClaiming(''); setClaimNote('');
     } catch (caught) {
@@ -95,8 +95,10 @@ export default function UnpaidInvoicesNotice({ invoices = [], nameOf = () => '',
           <strong>{['Arve ootab tasumist', invoice.num || '', money(cents)].filter(Boolean).join(' · ')}
             {due ? <> · <span className={overdue ? 'pd-pay__late' : ''}>{overdue ? `tähtaeg möödus ${due}` : `tähtaeg ${due}`}</span></> : null}</strong>
           <small>{name ? `${name} · ` : ''}<span lang="ru">{overdue ? 'срок оплаты прошёл' : 'счёт ждёт оплаты'}</span></small>
+          {/* an FIE invoice (the owner's own FIE): bank transfer to the account on the invoice, no card payment */}
+          {invoice.issuer === 'fie' && invoice.issuerDetails?.iban ? <small className="pd-pay__iban">Pangaülekanne: {invoice.issuerDetails.name}, {invoice.issuerDetails.iban}</small> : null}
         </div>
-        {canPay && !readOnly && !claims.get(invoice.id) ? <button type="button" className="pd-pay__btn" disabled={Boolean(busy)} onClick={() => pay(invoice)}>
+        {canPay && invoice.issuer !== 'fie' && !readOnly && !claims.get(invoice.id) ? <button type="button" className="pd-pay__btn" disabled={Boolean(busy)} onClick={() => pay(invoice)}>
           <CreditCard size={16} aria-hidden="true" /> {busy === invoice.id ? 'Avan…' : 'Maksa arve'}
         </button> : null}
         <div className="pd-pay__more">

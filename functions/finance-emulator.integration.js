@@ -91,6 +91,7 @@ test("finance role can read invoices without gaining student or mutation access"
     }),
     db.collection("invoices").doc("finance-readable-invoice").set({
       num: "KS-FINANCE-1",
+      issuer: "company",
       studentId: "finance-private-student",
       amountCents: 10000,
       balanceDueCents: 10000,
@@ -113,7 +114,11 @@ test("finance role can read invoices without gaining student or mutation access"
     }),
   ]);
 
-  const invoiceList = await firestoreQueryRequest(financeToken, "invoices");
+  // „Arve väljastaja” (owner 2026-11-09): the bookkeeper lists company invoices only; an unconstrained list (that
+  // could contain the owner's FIE invoices) is refused
+  const unconstrained = await firestoreQueryRequest(financeToken, "invoices");
+  assert.equal(unconstrained.status, 403, JSON.stringify(unconstrained.body));
+  const invoiceList = await firestoreQueryRequest(financeToken, "invoices", "company", "issuer");
   assert.equal(invoiceList.status, 200, JSON.stringify(invoiceList.body));
   assert.ok(invoiceList.body.some(item => item.document?.name.endsWith("/invoices/finance-readable-invoice")));
 
@@ -244,7 +249,7 @@ async function firestoreCommitRequest(token, writes) {
   return { status: response.status, body: await response.json().catch(() => ({})) };
 }
 
-async function firestoreQueryRequest(token, collectionId, teacherUid) {
+async function firestoreQueryRequest(token, collectionId, teacherUid, field = "teacherUid") {
   const response = await fetch(
     `http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`,
     {
@@ -259,7 +264,7 @@ async function firestoreQueryRequest(token, collectionId, teacherUid) {
           ...(teacherUid ? {
             where: {
               fieldFilter: {
-                field: { fieldPath: "teacherUid" },
+                field: { fieldPath: field },
                 op: "EQUAL",
                 value: { stringValue: teacherUid },
               },
@@ -3482,7 +3487,11 @@ test("„Liida kaardid” over HTTP: admin only, preview writes nothing, apply n
   assert.equal((await db.collection("homework").doc("mc-hw").get()).data().studentId, "mc-src");
   const unconfirmed = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", apply: true });
   assert.equal(unconfirmed.status, 400, JSON.stringify(unconfirmed.body));
-  const applied = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", keepName: "Mari Tamm", apply: true, confirmed: true });
+  // Eesti keel vs Matemaatika with no shared teacher: a sign of two different children, so apply needs one more confirmation
+  const differences = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", keepName: "Mari Tamm", apply: true, confirmed: true });
+  assert.equal(differences.status, 409, JSON.stringify(differences.body));
+  assert.equal((await db.collection("homework").doc("mc-hw").get()).data().studentId, "mc-src");
+  const applied = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", keepName: "Mari Tamm", apply: true, confirmed: true, confirmedDifferences: true });
   assert.equal(applied.status, 200, JSON.stringify(applied.body));
   assert.equal((await db.collection("homework").doc("mc-hw").get()).data().studentId, "mc-keep");
   assert.equal((await db.collection("students").doc("mc-keep").get()).data().name, "Mari Tamm");

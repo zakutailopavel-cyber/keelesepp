@@ -57,6 +57,8 @@ import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { lessonTokensService, owedCredits, tokenInvoiceStudentIds, tokenInvoiceUsageLines } from '../../services/firebase/lessonTokens.js';
 import { useEntityChanged } from '../../components/entityDrawer/useEntityChanged.js';
+import FiePanel from './fie/FiePanel.jsx';
+import { useIsOwner } from './fie/useIsOwner.js';
 import './financeMonth.css';
 import './manualInvoice.css';
 
@@ -121,6 +123,8 @@ export default function FinanceMonthPage({
   const location = useLocation();
   const navigate = useNavigate();
   const canManage = hasAnyRole(user.roles, [ROLES.ADMIN]);
+  // „FIE” (owner 2026-11-09): the owner's own FIE invoices, apart from every company figure on this page
+  const isOwner = useIsOwner();
   // „Sisemine märkus” of an invoice: administrator and bookkeeper (the rules allow exactly these two)
   const canNote = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.FINANCE]);
   const state = useFinanceData({ canManageFinance: canManage, invoiceRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, creditNoteRepository, auditRepository });
@@ -192,6 +196,16 @@ export default function FinanceMonthPage({
   const noteWarning = ({ noteError } = {}) => (noteError ? ` Sisemist märkust ei saanud salvestada (${noteError}) — lisa see arvete nimekirjas märkuse ikoonist.` : '');
 
   const invoices = useMemo(() => state.data?.invoices || [], [state.data?.invoices]);
+  // the month's invoice preparation must know the owner's FIE invoices too (a card billed through the FIE this month
+  // is not offered again); every other figure on this page stays company-only
+  const [fieInvoices, setFieInvoices] = useState([]);
+  useEffect(() => {
+    if (!isOwner || !invoiceRepository.listFie) return undefined;
+    let live = true;
+    invoiceRepository.listFie().then((list) => { if (live) setFieInvoices(list); }).catch(() => {});
+    return () => { live = false; };
+  }, [isOwner, invoiceRepository, state.data?.invoices]);
+  const billingInvoices = useMemo(() => (fieInvoices.length ? [...invoices, ...fieInvoices] : invoices), [invoices, fieInvoices]);
   // the note's text joins the search (staff only: it is never written onto the invoice)
   const monthInvoices = useMemo(() => filterFinanceRows(invoices, { month }).filter((invoice) => invoice.status !== 'Tühistatud')
     .map((invoice) => (notes.get(invoice.id)?.text ? { ...invoice, internalNote: notes.get(invoice.id).text } : invoice)), [invoices, month, notes]);
@@ -318,6 +332,7 @@ export default function FinanceMonthPage({
       {canManage ? <FinanceDashboard user={user} plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
       {/* money actually in and out, margin and debt age (audit 2026-11-09: it lived only in „Vana vaade”); built on demand */}
       {canManage && financeRepository.previewFinancialAnalytics ? <details className="finance-month-cash"><summary>Raha liikumine: laekumised, kulud, marginaal ja võlgade vanus</summary><FinancialAnalyticsPanel onPreview={(chosen) => financeRepository.previewFinancialAnalytics(chosen)} onOpenInvoice={(invoiceId) => { const found = invoices.find((item) => item.id === invoiceId); if (found) openInvoiceForPrint(found); }} /></details> : null}
+      {isOwner ? <details className="finance-month-cash"><summary>FIE arved (ainult sulle, ettevõtte arvestusest väljas)</summary><FiePanel month={month} invoiceRepository={invoiceRepository.listFie ? invoiceRepository : invoicesService} /></details> : null}
 
       <div className="finance-month-switcher">
         <Button variant="secondary" aria-label="Eelmine kuu" onClick={() => setMonth(shiftMonth(month, -1))}><ArrowLeft size={17} /></Button>
@@ -339,7 +354,7 @@ export default function FinanceMonthPage({
       </section>
 
       <section ref={viewRef} id="finance-view-panel" className="finance-month-view" role="tabpanel" aria-labelledby={`finance-tab-${activeView}`}>
-      {activeView === 'prepare' && canManage ? <MonthlyInvoicePanel students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} invoices={invoices} user={user} month={month} onMonthChange={setMonth} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} deliveryApi={deliveryRepository} onChanged={state.reload} {...monthlyInvoiceProps} /> : null}
+      {activeView === 'prepare' && canManage ? <MonthlyInvoicePanel students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} invoices={billingInvoices} user={user} month={month} onMonthChange={setMonth} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} deliveryApi={deliveryRepository} onChanged={state.reload} {...monthlyInvoiceProps} /> : null}
 
       {activeView === 'check' && canManage ? <PaymentCheckPanel invoices={invoices} transactions={state.data.bankTransactions || []} students={state.data.students} financeRepository={financeRepository} {...(paymentRepository ? { paymentRepository } : {})} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onOpenCredits={() => selectView('credits', true)} onNotice={announce} tab={checkTab} onTabChange={setCheckTab} /> : null}
 

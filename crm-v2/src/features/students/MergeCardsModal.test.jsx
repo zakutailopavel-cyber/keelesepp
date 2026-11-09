@@ -132,4 +132,26 @@ describe('merge student cards', () => {
     expect(screen.getByText(/Matemaatika 25,00 € lisatakse aine hinnaks/)).toBeInTheDocument();
     expect(screen.getByText(/Pärast liitmist on kaardil õppesuunad/)).toHaveTextContent('Eesti keel (Pavel), Matemaatika (Yelyzaveta)');
   });
+
+  // incident 2026-11-09: two different girls named Stefania were merged
+  it('different-person signals: a red block and a second confirmation „Kinnitan, et see on sama laps” before merging', async () => {
+    const differentPerson = [
+      { code: 'grade', label: 'Erinev klass: 12. klass ja 10. klass' },
+      { code: 'subject_teacher', label: 'Erinevad ained ja õpetajad: Eesti keel (Pavel) ja Matemaatika (Yelyzaveta Lukiianchuk)' },
+    ];
+    const service = { mergeStudents: vi.fn(async ({ apply }) => preview({ applied: Boolean(apply), names: ['Stefania'], keepName: 'Stefania', conflicts: [], differentPerson, keep: { id: 'est', name: 'Stefania', accounts: [] }, source: { id: 'mat', name: 'Stefania', accounts: [] } })) };
+    const students = { list: vi.fn().mockResolvedValue({ items: [{ id: 'est', name: 'Stefania' }, { id: 'mat', name: 'Stefania' }] }) };
+    const onMerged = vi.fn();
+    render(<MergeCardsModal open initialSourceId="mat" student={{ id: 'est', name: 'Stefania' }} onClose={() => {}} onMerged={onMerged} service={service} students={students} />);
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Need võivad olla kaks erinevat last!');
+    expect(alert).toHaveTextContent('Erinev klass: 12. klass ja 10. klass');
+    expect(alert).toHaveTextContent('Matemaatika (Yelyzaveta Lukiianchuk)');
+    fireEvent.click(screen.getByRole('checkbox', { name: /Kontrollisin eelvaadet/ }));
+    expect(screen.getByRole('button', { name: 'Liida kaardid' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /Kinnitan, et see on sama laps/ }));
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Liida kaardid' })); });
+    expect(service.mergeStudents).toHaveBeenLastCalledWith({ keepId: 'est', sourceId: 'mat', apply: true, confirmed: true, confirmedDifferences: true });
+    expect(onMerged).toHaveBeenCalled();
+  });
 });

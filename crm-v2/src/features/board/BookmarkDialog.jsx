@@ -1,12 +1,26 @@
 import { Bookmark, Eraser, PenLine, Type, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { BOOKMARK_COLORS, INK_BOX, INK_COLORS, MAX_INK, bookmarkEmpty, cleanInk, inkPath } from './bookmarkModel.js';
+import { anchorLabel, quoteParts } from './bookmarkAnchor.js';
+
+// „Sõna: …” / „Lause: …” — what the bookmark is attached to (a word also shows its sentence, the word in bold)
+export function AnchorQuote({ anchor, className = 'sb-bookmark__quote' }) {
+  if (!anchor?.quote) return null;
+  const parts = anchor.kind === 'word' ? quoteParts(anchor) : [{ text: anchor.quote, quote: true }];
+  return <p className={className}>
+    <span className="sb-bookmark__quote-label">{anchorLabel(anchor)}:</span>{' '}
+    {anchor.kind === 'word' ? <><b>„{anchor.quote}”</b>{parts.length > 1 ? <span className="sb-bookmark__sentence"> — {parts.map((part, index) => (part.quote ? <b key={index}>{part.text}</b> : <span key={index}>{part.text}</span>))}</span> : null}</>
+      : <b>„{anchor.quote}”</b>}
+  </p>;
+}
 
 /**
  * „Järjehoidja / Kleebis”: a small sheet to write on by hand (pen, finger, stylus) or type. „Salvesta” hands
  * { text, ink, color } to `onSave`; the board stores it as a sticky sheet and as a note in the student's „Minu vead”.
+ * `anchor` (bookmarkAnchor.js): the word / sentence of the page it belongs to, shown at the top. `readOnly`: someone
+ * else's bookmark (a teacher's for the student) is only read.
  */
-export default function BookmarkDialog({ initial = null, onSave, onCancel, forStudent = '', saving = false }) {
+export default function BookmarkDialog({ initial = null, onSave, onCancel, forStudent = '', saving = false, anchor = null, readOnly = false }) {
   const [text, setText] = useState(initial?.text || '');
   const [ink, setInk] = useState(() => cleanInk(initial?.ink));
   const [color, setColor] = useState(initial?.color || BOOKMARK_COLORS[0]);
@@ -16,14 +30,14 @@ export default function BookmarkDialog({ initial = null, onSave, onCancel, forSt
   const pad = useRef(null);
   const typed = useRef(null);
   // „Trüki”: the caret goes straight into the sheet
-  useEffect(() => { if (mode === 'type') typed.current?.focus(); }, [mode]);
+  useEffect(() => { if (mode === 'type' && !readOnly) typed.current?.focus(); }, [mode, readOnly]);
   const stroke = useRef(null);
   const at = (event) => {
     const rect = pad.current.getBoundingClientRect();
     return { x: ((event.clientX - rect.left) / (rect.width || 1)) * INK_BOX.w, y: ((event.clientY - rect.top) / (rect.height || 1)) * INK_BOX.h };
   };
   const down = (event) => {
-    if (mode !== 'pen' || ink.length >= MAX_INK) return;
+    if (readOnly || mode !== 'pen' || ink.length >= MAX_INK) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     stroke.current = [at(event)];
@@ -46,18 +60,20 @@ export default function BookmarkDialog({ initial = null, onSave, onCancel, forSt
     if (d) setInk((current) => cleanInk([...current, { d, c: pen, w: 3 }]));
   };
   const empty = bookmarkEmpty({ text, ink });
-  return <div className="sb-bookmark" role="dialog" aria-label="Järjehoidja" onPointerDown={(event) => event.stopPropagation()} onWheel={(event) => event.stopPropagation()}>
+  // `data-letters-box`: the „õ ä ö ü” bar (LetterBar) goes beside the whole sheet, never over its paper colours
+  return <div className={`sb-bookmark ${readOnly ? 'is-readonly' : ''}`} role="dialog" aria-label="Järjehoidja" data-letters-box="" onPointerDown={(event) => event.stopPropagation()} onWheel={(event) => event.stopPropagation()}>
     <header>
       <Bookmark size={16} aria-hidden="true" />
       <strong>Järjehoidja</strong>
-      {forStudent ? <small>läheb ka „Minu vead” alla</small> : null}
+      {forStudent && !readOnly ? <small>läheb ka „Minu vead” alla</small> : null}
       <button type="button" className="sb-bookmark__close" aria-label="Sulge" onClick={onCancel}><X size={16} /></button>
     </header>
-    <div className="sb-bookmark__modes" role="group" aria-label="Kirjutamise viis">
+    <AnchorQuote anchor={anchor} />
+    {readOnly ? null : <div className="sb-bookmark__modes" role="group" aria-label="Kirjutamise viis">
       <button type="button" className={mode === 'pen' ? 'is-active' : ''} aria-pressed={mode === 'pen'} onClick={() => setMode('pen')}><PenLine size={14} /> Käega</button>
       <button type="button" className={mode === 'type' ? 'is-active' : ''} aria-pressed={mode === 'type'} onClick={() => setMode('type')}><Type size={14} /> Trüki</button>
       {mode === 'pen' ? <span className="sb-bookmark__inks">{INK_COLORS.map((value) => <button type="button" key={value} className={`sb-color ${pen === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Pliiats ${value}`} aria-pressed={pen === value} onClick={() => setPen(value)} />)}</span> : null}
-    </div>
+    </div>}
     <div className="sb-bookmark__sheet" style={{ background: color }}>
       <svg ref={pad} data-testid="bookmark-pad" className={mode === 'pen' ? 'is-pen' : ''} viewBox={`0 0 ${INK_BOX.w} ${INK_BOX.h}`} preserveAspectRatio="none"
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
@@ -65,10 +81,11 @@ export default function BookmarkDialog({ initial = null, onSave, onCancel, forSt
         {live ? <path d={live} stroke={pen} strokeWidth={3} fill="none" strokeLinecap="round" strokeLinejoin="round" /> : null}
       </svg>
       <textarea ref={typed} aria-label="Järjehoidja tekst" placeholder={mode === 'type' ? 'Kirjuta siia…' : ''} value={text} maxLength={2000}
-        className={mode === 'type' ? 'is-typing' : ''} readOnly={mode !== 'type'} tabIndex={mode === 'type' ? 0 : -1}
+        className={mode === 'type' && !readOnly ? 'is-typing' : ''} readOnly={readOnly || mode !== 'type'} tabIndex={mode === 'type' && !readOnly ? 0 : -1}
         onChange={(event) => setText(event.target.value)}
-        onKeyDown={(event) => { if (event.key === 'Escape') onCancel?.(); if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !empty) onSave?.({ text, ink, color }); }} />
+        onKeyDown={(event) => { if (event.key === 'Escape') onCancel?.(); if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !empty && !readOnly) onSave?.({ text, ink, color }); }} />
     </div>
+    {readOnly ? <footer><button type="button" className="sb-bookmark__cancel" onClick={onCancel}>Sulge</button></footer> : <>
     <div className="sb-bookmark__colors" role="group" aria-label="Paberi värv">
       {BOOKMARK_COLORS.map((value) => <button type="button" key={value} className={`sb-color ${color === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Paber ${value}`} aria-pressed={color === value} onClick={() => setColor(value)} />)}
       <button type="button" className="sb-bookmark__clear" disabled={!ink.length} onClick={() => setInk((current) => current.slice(0, -1))}><Eraser size={14} /> Võta joon tagasi</button>
@@ -77,5 +94,6 @@ export default function BookmarkDialog({ initial = null, onSave, onCancel, forSt
       <button type="button" className="sb-bookmark__cancel" onClick={onCancel}>Loobu</button>
       <button type="button" className="sb-bookmark__save" disabled={empty || saving} onClick={() => onSave?.({ text, ink, color })}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
     </footer>
+    </>}
   </div>;
 }

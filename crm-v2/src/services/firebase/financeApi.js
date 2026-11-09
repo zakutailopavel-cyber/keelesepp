@@ -83,6 +83,13 @@ async function postInvoice(path, body) {
 }
 
 export const financeApi = {
+  // „Arve väljastaja” (owner only, docs/ACCOUNTING.md „FIE arved”): the FIE's name + IBAN and the cards set to FIE
+  fieSettings(save = null) {
+    return post("/fie/settings", save ? { save: { name: save.name, iban: save.iban } } : {});
+  },
+  setStudentInvoiceIssuer(studentId, issuer) {
+    return post("/fie/student-issuer", { studentId, issuer });
+  },
   // Removes a lesson mark and reverses its package/counter bookkeeping (refused for invoiced lessons).
   deleteLessonJournal(lessonId) {
     return post("/lessons/journal/delete", { lessonId, requestId: financeRequestId("lesson-delete") });
@@ -244,6 +251,7 @@ export const financeApi = {
       description: values.description || "",
       paymentReference: values.paymentReference || "",
       requestId: values.requestId || financeRequestId("invoice"),
+      ...(values.issuer === "company" || values.issuer === "fie" ? { issuer: values.issuer } : {}),
     });
   },
   setLessonBillingDisposition(lessonId, billingStatus, reason) {

@@ -42,6 +42,25 @@ describe('Minu vead', () => {
     await vi.waitFor(() => expect(remove).toHaveBeenCalledWith('n2'));
   });
 
+  it('an anchored bookmark shows its word in bold inside the sentence, with the page (owner 2026-11-09)', async () => {
+    const notes = [
+      { id: 'n1', studentId: 's1', text: 'pealinn', ink: [], color: '#FEF3C7', pageTitle: 'Tööleht: Avasta', byStaff: false, createdByUid: 'u1', createdAt: '2026-11-09T10:00:00Z',
+        anchor: { kind: 'word', quote: 'Tallinnas', sentence: 'Mari elab Tallinnas.', before: '', after: '', blockId: 't1', start: 10, end: 19 } },
+      { id: 'n2', studentId: 's1', text: 'vana märge', ink: [], color: '#DCFCE7', pageTitle: 'Tahvel', byStaff: false, createdByUid: 'u1', createdAt: '2026-11-04T10:00:00Z', anchor: null },
+    ];
+    render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1', profile: {} } }}>
+      <MistakesPage studentRepository={{ listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari' }]) }}
+        wordsService={{ subscribeForStudent: vi.fn((id, next) => { next([]); return () => {}; }) }}
+        notesService={{ subscribeForStudent: vi.fn((id, next) => { next(notes); return () => {}; }), remove: vi.fn() }} />
+    </AuthContext.Provider></MemoryRouter>);
+    const quote = await screen.findByLabelText('Sõna: Tallinnas');
+    expect(quote).toHaveTextContent('Sõna · Tööleht: AvastaMari elab Tallinnas.');
+    expect(quote.querySelector('strong')).toHaveTextContent(/^Tallinnas$/);
+    expect(screen.getByText('pealinn')).toBeInTheDocument();
+    // an old free bookmark: no quote
+    expect(screen.getByText('vana märge').closest('article').querySelector('blockquote')).toBeNull();
+  });
+
   it('explains where mistakes come from when there are none', async () => {
     page([]);
     expect(await screen.findByText('Vigu veel ei ole')).toBeInTheDocument();

@@ -139,7 +139,8 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
 function LinkInvoiceDialog({ receipt, invoiceApi, busy, onClose, onLink }) {
   const invoices = useAsyncData(() => invoiceApi.listByStudent(receipt.studentId), [invoiceApi, receipt.studentId]);
   const [chosen, setChosen] = useState('');
-  const choices = invoiceChoices(invoices.data || [], receipt);
+  // the school's cash box never pays an FIE invoice (the owner's own FIE, 2026-11-09)
+  const choices = invoiceChoices((invoices.data || []).filter((invoice) => invoice.issuer !== 'fie'), receipt);
   return (
     <Modal open title={`Seo arvega: ${euro(receipt.amountCents)}`} onClose={onClose} footer={<><Button variant="secondary" onClick={onClose}>Loobu</Button><Button loading={busy} disabled={!chosen} onClick={() => onLink(chosen)}>Seo arvega</Button></>}>
       <p className="form-hint">{receipt.studentName} · sai {receipt.holderName} {receipt.receivedAt}. Arvele läheb makse „sularaha”; panga kontrolli seda ei vaja.</p>
