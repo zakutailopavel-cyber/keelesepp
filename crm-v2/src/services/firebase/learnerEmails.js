@@ -9,7 +9,8 @@ import { EMAIL_TYPES, normalizeEmailSettings } from '../../features/settings/lea
 const defaultApiUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi';
 const apiBase = () => String(import.meta.env.VITE_STAFF_OPERATIONS_API_URL || defaultApiUrl).replace(/\/$/, '');
 
-async function call(path, body = {}, { auth: withAuth = true } = {}) {
+// shared with services/firebase/teacherDigest.js
+export async function call(path, body = {}, { auth: withAuth = true } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (withAuth) {
     const { auth } = requireFirebaseClient();
