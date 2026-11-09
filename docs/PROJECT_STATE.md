@@ -1,3 +1,12 @@
+## 2026-11-09 · agent/ui-confirm-finance — finance panels ask with the CRM dialog (finance)
+
+- Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/ui-confirm-finance`, draft PR. Sibling of `agent/ui-confirm-2` (non-finance, #1147).
+- Done: the last 2 browser `confirm` calls move to `askConfirm` (`components/ui/ConfirmHost.jsx`):
+  - `PaymentCheckPanel.jsx` „Tühista korduv” → red „Tühista makse”;
+  - `EmailDeliveryPanel.jsx` turning automatic reminders on → „Lülita sisse”.
+- No data, rules or finance logic changed.
+- Checks: `npx vitest run src/features/finance` → 42 files, 276 passed; eslint --quiet clean on both files.
+- Next safe step: after both PRs merge, searching `crm-v2/src` (tests excluded) for `globalThis.confirm(` / `window.prompt(` should find only ConfirmHost's own fallback.
 ## 2026-11-09 · agent/ui-confirm-2 — the rest of the browser confirm/prompt boxes become the CRM dialog (studio, generator, settings, library)
 
 - Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/ui-confirm-2`, draft PR.
