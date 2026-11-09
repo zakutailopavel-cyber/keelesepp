@@ -91,6 +91,7 @@ test("finance role can read invoices without gaining student or mutation access"
     }),
     db.collection("invoices").doc("finance-readable-invoice").set({
       num: "KS-FINANCE-1",
+      issuer: "company",
       studentId: "finance-private-student",
       amountCents: 10000,
       balanceDueCents: 10000,
@@ -113,7 +114,11 @@ test("finance role can read invoices without gaining student or mutation access"
     }),
   ]);
 
-  const invoiceList = await firestoreQueryRequest(financeToken, "invoices");
+  // „Arve väljastaja” (owner 2026-11-09): the bookkeeper lists company invoices only; an unconstrained list (that
+  // could contain the owner's FIE invoices) is refused
+  const unconstrained = await firestoreQueryRequest(financeToken, "invoices");
+  assert.equal(unconstrained.status, 403, JSON.stringify(unconstrained.body));
+  const invoiceList = await firestoreQueryRequest(financeToken, "invoices", "company", "issuer");
   assert.equal(invoiceList.status, 200, JSON.stringify(invoiceList.body));
   assert.ok(invoiceList.body.some(item => item.document?.name.endsWith("/invoices/finance-readable-invoice")));
 
@@ -244,7 +249,7 @@ async function firestoreCommitRequest(token, writes) {
   return { status: response.status, body: await response.json().catch(() => ({})) };
 }
 
-async function firestoreQueryRequest(token, collectionId, teacherUid) {
+async function firestoreQueryRequest(token, collectionId, teacherUid, field = "teacherUid") {
   const response = await fetch(
     `http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`,
     {
@@ -259,7 +264,7 @@ async function firestoreQueryRequest(token, collectionId, teacherUid) {
           ...(teacherUid ? {
             where: {
               fieldFilter: {
-                field: { fieldPath: "teacherUid" },
+                field: { fieldPath: field },
                 op: "EQUAL",
                 value: { stringValue: teacherUid },
               },

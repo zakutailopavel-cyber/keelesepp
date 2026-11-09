@@ -326,6 +326,75 @@ automatic entry cannot be deleted and a rebuild would re-create it, so the mark 
 - **Not changed:** INF 3 (`inf3-core.js`) still counts these payments. Whether a payment made to the FIE belongs in the
   company's INF 3 is the accountant's decision; see PROJECT_STATE.
 
+## FIE arved — the owner's own sole proprietorship (owner 2026-11-09)
+
+Owner: „сделай так чтобы я мог выставлять счета на свой предпринимательский счёт для своих учеников и чтобы такие
+счета не шли в бухгалтерию”; „счёт FIE есть только у меня”; „для FIE в настройках только номер счёта и мои имя и
+фамилия”. Replaces the per-invoice „Ei kuulu raamatupidamisse” mark for the owner's FIE pupils from now on (the mark
+stays for old invoices).
+
+**Who.** Only the owner (the super admin e-mail, `isSuperAdmin` in functions, `superAdmin()` in the rules,
+`isOwnerEmail` in the CRM). Other administrators and the bookkeeper never see an FIE invoice, its payments, the FIE
+requisites or the per-student switch — enforced in `firestore.rules` and in every endpoint (same 404 as a missing
+invoice), not only in the UI. The family still sees its own FIE invoice (PDF, unpaid notice, „Maksin ära”).
+
+**Data.**
+
+- `invoices/{id}.issuer`: `"company"` (E&P Koolitus OÜ; an invoice WITHOUT the field is also the company's) or
+  `"fie"`; set by the functions when the invoice is made, never changed afterwards (rules: `issuer` / `issuerDetails`
+  are in `changesInvoiceFinancialSource`). An FIE invoice also stores `issuerDetails { name, iban }` — the snapshot
+  printed on its PDF and e-mail. Every new company invoice carries `issuer: "company"`.
+- Numbers: the company keeps `KS-YYYY-NNN` with `meta/invoiceCounter`; the FIE has its own `FIE-YYYY-NNN` with
+  `meta/invoiceCounterFie` (fixed prefix, not a setting). Each series is unique and sequential on its own
+  (`invoice-issuer.js nextIssuerNumber`, collision check per number). „Numeratsioon” repairs the KS series only.
+- `invoiceIssuers/fie { name, iban, ownerUid, updatedAt, updatedBy }` — Finantsid → Seaded → **FIE** (owner only):
+  the owner's first and last name and the IBAN (mod 97 checked), nothing else; `ownerUid` = the owner's account (who
+  „the owner as a teacher” is). Until both are filled FIE cannot be chosen.
+- `studentInvoiceIssuers/{studentId} { issuer, updatedAt, updatedByUid }` — the student card → Finants → **„Arve
+  väljastaja”** (owner only). Absent = E&P Koolitus OÜ (nothing changes for existing pupils). FIE can be set only for a
+  pupil the owner teaches (an active track with the owner's uid, or an old track whose teacher's first name is the
+  owner's).
+- `fiePayments`, `fieAudit`, `fieEmailQueue`, `fieInvoicePaymentClaims`: the FIE invoice's payments, audit records,
+  e-mail log and „Maksin ära” notices — the same shapes as `payments` / `financialAudit` / `emailQueue` /
+  `invoicePaymentClaims`, owner-only (the family reads its own notice).
+
+**Which issuer a new invoice gets** (`invoice-issuer-core.js decideIssuer`): per line, FIE only when the card is set to
+FIE AND the owner teaches that subject / lesson; other teachers' lines stay the company's — so no other teacher's
+payroll is ever on an FIE invoice. The owner may override per invoice („Arve väljastaja” in „Lisa arve”, „Tunnipakett”,
+from lessons): `fie` only for his own lessons, `company` always. A manual charge defaults to FIE only when every active
+track of the card is the owner's. A family's monthly invoice with the owner's FIE lines and other teachers' lines is
+made as TWO invoices in one go (company `monthly_combined_…`, FIE `monthly_combined_…-fie`, `monthlySplit`); anyone but
+the owner gets 403 for an FIE line („Selle õpilase arved koostab omanik”) instead of a silent company invoice. Lesson
+balances, packages and the monthly logic are unchanged; only the issuer differs.
+
+**What an FIE invoice is NOT part of:** the company's books (`accounting-core excludedSourceKeys` + `accountingSources`),
+„Pank” matching of the OÜ statement (`bank-statement-core matchLine`, `bank-statement.js matchContext`) and bank /
+advance / cash-box allocation (`allocateBankTransaction`, `applyPayerCredit`, cash receipts: 409), card payment
+(`linkpay-core unpayableReason`; no pay link on the PDF / e-mail, no „Maksa arve” button), credit notes / „Paranda” /
+overpayment to an advance (409 — cancel an unpaid FIE invoice and make a new one), period review / close / the
+accountant's export, „Raha liikumine” analytics (FIE invoices, the lessons on them and the plans of FIE cards are left
+out of the forecast), INF 3, „Andmete kvaliteet”, the admins' bell, „Ei kuulu raamatupidamisse” (409: never in the
+books anyway), internal notes (rules: no `invoiceNotes` on an FIE invoice) and every company list in the CRM
+(`invoicesService.list()` returns company invoices only, also for the owner). The owner sees FIE separately:
+Finantsid → **„FIE arved (ainult sulle…)”** (invoices, money received, debt; „Registreeri makse”, PDF).
+
+**Payments of an FIE invoice:** `/payments` (bank transfer to the FIE account or cash; cash goes to no company cash box)
+writes `fiePayments` + `fieAudit`; `/payments/void` finds an FIE payment in `fiePayments`. Batch reminders: the
+scheduled run and the owner include FIE invoices (e-mail logged in `fieEmailQueue`), another administrator's run skips
+them.
+
+**Firestore rules.** `invoices`: get = owner, or admin / bookkeeper when the invoice is the company's
+(`get('issuer','company') == 'company'`), or the family; **list** = owner, or admin / bookkeeper only with
+`where('issuer', '==', 'company')` (a list rule must compare the stored field: with a default an unconstrained list
+would pass with the FIE invoices in it — checked in the emulator), or the family; create from the client only as a
+company invoice; update / delete of an FIE invoice only by the owner. New owner-only collections above, no client
+writes. Emulator test `functions/fie-issuer-rules-emulator.integration.js`.
+
+**Migration (before the rules go live):** old invoices have no `issuer`, so the company-only list of another
+administrator / the bookkeeper would miss them. `functions/tools/invoice-issuer-backfill.js` (dry run by default,
+`--apply` with the owner's permission) adds `issuer: "company"` to invoices without the field — nothing else. Order:
+deploy functions → run the backfill → deploy rules + hosting.
+
 ## Payment guards and „Võimalikud topeltlaekumised” (October 2026 audit, 2026-11-03)
 
 - **Payment date.** The receipt (1010 or 1000 / 1200) is booked on the payment's `paidAt`. The payment dialogs

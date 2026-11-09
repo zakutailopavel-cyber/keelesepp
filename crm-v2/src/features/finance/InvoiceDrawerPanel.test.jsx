@@ -71,7 +71,7 @@ describe('InvoiceDrawerPanel (the side drawer’s invoice)', () => {
     const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
     const { unmount } = renderPanel({ invoiceRepository: { get: vi.fn(async () => invoice) }, deliveryRepository: { pdf: vi.fn(() => new Promise(() => {})) }, claimsRepository });
     fireEvent.click(await screen.findByRole('button', { name: 'Eemalda teade' }));
-    await waitFor(() => expect(claimsRepository.remove).toHaveBeenCalledWith('i1'));
+    await waitFor(() => expect(claimsRepository.remove).toHaveBeenCalledWith('i1', expect.objectContaining({ id: 'i1' })));
     expect(confirm.mock.calls[0][0]).toContain('26-014');
     expect(await screen.findByText('Pere teade eemaldati.')).toBeInTheDocument();
     expect(screen.queryByText('Pere: makstud?')).toBeNull();

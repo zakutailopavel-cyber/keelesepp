@@ -836,6 +836,12 @@ inside the open window (`role="alert"`), not behind it.
 - `curriculumLessons`, `exercises` — staff-authored learning sources.
 - `studyDirections` — the school's study directions; admin writes (no delete), staff and finance read.
 - `plannerBatches` — one record per „Kinnita ajakava” of the calendar's Planeerija `{ createdAt (server time), createdBy, lessonIds[], studentIds[], status: 'confirmed' }`; admin creates once and reads, nobody updates or deletes from the app (the server's schedule e-mail reads it). The created `schedule` entries carry `source: 'planner'` and `plannerBatchId`.
+- `invoices.issuer` — „Arve väljastaja” (owner 2026-11-09, docs/ACCOUNTING.md „FIE arved”): `company` (also when
+  absent) or `fie` (the owner's own sole proprietorship, `issuerDetails { name, iban }`, number series `FIE-` with
+  `meta/invoiceCounterFie`). FIE invoices: read by the owner (super admin) and the family only; a non-owner admin /
+  the bookkeeper must list with `where('issuer', '==', 'company')` (`services/firebase/invoices.js`). Owner-only,
+  server-written: `invoiceIssuers/fie`, `studentInvoiceIssuers/{studentId}`, `fiePayments`, `fieAudit`,
+  `fieEmailQueue`; `fieInvoicePaymentClaims` = „Maksin ära” on an FIE invoice (family writes, owner reads/deletes).
 - `studentCardMerges` — server-only run records of „Liida kaardid” (one per merged card); `students.mergedInto` marks the tombstone.
 - `students` / `users` trash fields `deletedAt`, `deletedBy`, `purgeAfter`, `trashState`, `purgeBlocked`, `purgedAt`,
   `anonymised` — „Prügikast”, written only by `staffOperationsApi /cards/*` and `purgeCardTrash` (see „Card trash”).

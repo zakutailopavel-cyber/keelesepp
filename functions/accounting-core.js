@@ -143,9 +143,11 @@ function exclusionScope(invoice, { payments = [], creditNotes = [], payerCredits
   return { sourceKeys, conflicts };
 }
 
-// the source keys of every excluded invoice: automaticEntries skips them on every sync
+// the source keys of every excluded invoice: automaticEntries skips them on every sync. An FIE invoice (the owner's
+// own sole proprietorship, `issuer: "fie"`, owner 2026-11-09) is never in the company's books.
+const outsideBooks = (invoice) => invoice.accountingExcluded === true || invoice.issuer === "fie";
 function excludedSourceKeys({ invoices = [], ...rest } = {}) {
-  return new Set(invoices.filter((invoice) => invoice.accountingExcluded === true).flatMap((invoice) => exclusionScope(invoice, rest).sourceKeys));
+  return new Set(invoices.filter(outsideBooks).flatMap((invoice) => exclusionScope(invoice, rest).sourceKeys));
 }
 
 // a bank payment that arrived on an invoice after it was excluded: the money is in the statement but outside the books.
@@ -236,7 +238,7 @@ function bankBooksRule({ invoices = [], payments = [], payerCredits = [], refund
   const waitingPayments = payments
     .filter((p) => !isVoidedPayment(p) && cents(p) > 0 && !before(paymentBookDate(p)) && !paymentBooked(p))
     .map((p) => ({ id: p.id, invoiceId: String(p.invoiceId || ""), invoiceNum: String(p.invoiceNum || ""), paidAt: paymentBookDate(p), amountCents: cents(p), method: String(p.method || ""), payerName: String(p.payerName || p.studentName || "") }));
-  const waitingInvoices = invoices.filter((i) => cents(i) > 0 && i.status !== "Tühistatud" && i.accountingExcluded !== true && !invoiceBooked(i)).length;
+  const waitingInvoices = invoices.filter((i) => cents(i) > 0 && i.status !== "Tühistatud" && !outsideBooks(i) && !invoiceBooked(i)).length;
   return { allows, firstBooked, invoiceBooked, paymentBooked, waiting: { payments: waitingPayments, invoices: waitingInvoices } };
 }
 
