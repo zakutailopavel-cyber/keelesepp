@@ -1,0 +1,38 @@
+/* „Ülevaade” of Finantsid (FinanceOverview.jsx): Stripe overview + Mercury calm. White surfaces, hairline borders, one
+   large figure, colour only for meaning. Tokens only (light and dark theme). */
+.fo { display: grid; gap: 16px; min-width: 0; }
+.fo-hero { display: grid; gap: 14px; min-width: 0; padding: 22px 24px 16px; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--surface); }
+.fo-hero__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; }
+.fo-hero__figure { display: grid; gap: 6px; min-width: 0; }
+.fo-hero__figure h2 { margin: 0; color: var(--gray-500); font: 600 .9rem/1.3 'DM Sans', system-ui, sans-serif; }
+.fo-hero__value { margin: 0; color: var(--ink); font: 700 clamp(2rem, 4.2vw, 2.75rem)/1.05 Manrope, 'DM Sans', sans-serif; letter-spacing: -.03em; }
+.fo-hero__value .money-value__symbol { font-size: .5em; letter-spacing: 0; }
+.fo-hero__empty { color: var(--gray-400); }
+.fo-hero__compare { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 2px 0 0; color: var(--gray-500); font-size: .84rem; }
+.fo-hero__compare b { color: var(--gray-700); font-weight: 600; }
+.fo-hero__legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 0; padding: 0; list-style: none; color: var(--gray-500); font-size: .8rem; }
+.fo-hero__legend li { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.fo-hero__legend li:first-letter { text-transform: uppercase; }
+.fo-hero__note { margin: 0; color: var(--gray-400); font-size: .75rem; }
+
+.fo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.fo-card--alert .metric-tile__value > strong { color: var(--danger-text); }
+.fo-age { display: grid; gap: 8px; margin-top: auto; }
+.fo-age__bar { display: flex; gap: 2px; height: 8px; overflow: hidden; border-radius: var(--radius-pill); background: var(--gray-100); }
+.fo-age__part { display: block; min-width: 4px; height: 100%; }
+.fo-age__part--d30 { background: color-mix(in srgb, var(--danger-text) 38%, var(--surface)); }
+.fo-age__part--d60 { background: color-mix(in srgb, var(--danger-text) 68%, var(--surface)); }
+.fo-age__part--older { background: var(--danger-text); }
+.fo-age__legend { display: grid; gap: 3px; margin: 0; padding: 0; list-style: none; color: var(--gray-500); font-size: .76rem; }
+.fo-age__legend li { display: flex; align-items: center; gap: 7px; }
+.fo-age__legend b { margin-left: auto; color: var(--gray-700); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fo-age__key { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+
+@media (max-width: 1100px) {
+  .fo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .fo-hero { padding: 18px 16px 12px; border-radius: var(--radius-lg); }
+  .fo-grid { grid-template-columns: 1fr; gap: 12px; }
+  .metric-tile { min-height: 0; }
+}
