@@ -28,7 +28,8 @@
     "lucide-react": "1.61.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-router-dom": "7.18.4"
+    "react-router-dom": "7.18.4",
+    "uplot": "1.6.32"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

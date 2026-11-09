@@ -32,6 +32,9 @@ function renderProfile({
   return apis;
 }
 
+// a money figure „1 234,56 €” whose number and euro sign are separate spans (MoneyValue)
+const moneyText = (text) => (_, element) => Boolean(element?.classList?.contains('money-value')) && element.textContent.replace(/\s/g, ' ') === text;
+
 describe('student profile tabs and role access', () => {
   it('the second subject\'s teacher opens the shared card, reads only their lessons and sees only their subject', async () => {
     const apis = renderProfile({
@@ -174,7 +177,7 @@ describe('student profile tabs and role access', () => {
     expect(screen.getByText('Osaliselt makstud')).toBeInTheDocument();
     expect(screen.getAllByText('Makstud').length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: /Loo arve/ })).toHaveAttribute('href', '/finance#kuuarved');
-    expect(within(finance).getAllByText('50,00 €').length).toBeGreaterThan(0);
+    expect(within(finance).getAllByText(moneyText('50,00 €')).length).toBeGreaterThan(0);
   });
 
   it('shows a clear empty finance state in the finance tab', async () => {
@@ -183,7 +186,8 @@ describe('student profile tabs and role access', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Finantsid' }));
 
     expect(await screen.findByText('Õpilasel ei ole veel arveid', {}, { timeout: 4000 })).toBeInTheDocument();
-    expect(screen.getAllByText('0,00 €')).toHaveLength(3);
+    // the summary cards show the euro sign in its own lighter span (components/charts/MetricCard)
+    expect(screen.getAllByText(moneyText('0,00 €'))).toHaveLength(3);
   });
 
   it('an admin sees „Teekond sihttasemeni” on the overview', async () => {
