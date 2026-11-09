@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach } from 'vitest';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { announceLessonChanged, announceLessonMarked } from './lessonActions.js';
@@ -6,41 +7,143 @@ import UnmarkedLessonsPage from './UnmarkedLessonsPage.jsx';
 
 const base = { studentId: 's1', teacherUid: 't1', teacher: 'Anna', time: '10:00', duration: 60, recurring: false, status: 'Planeeritud' };
 const items = [
-  { ...base, id: 'a', studentName: 'Mia', occurrenceDate: '2026-11-02', occurrenceId: 'a:2026-11-02', kind: 'evidence', evidence: { date: '2026-11-02', time: '10:03', endTime: '10:58', sources: ['summary'], teacherName: 'Anna' }, duplicateOf: null },
-  { ...base, id: 'b', studentName: 'Timur', occurrenceDate: '2026-10-30', occurrenceId: 'b:2026-10-30', kind: 'duplicate', evidence: null, duplicateOf: { source: 'lesson', time: '15:00', status: 'Toimunud', teacher: 'Anna' } },
-  { ...base, id: 'c', studentName: 'Ott', occurrenceDate: '2026-10-28', occurrenceId: 'c:2026-10-28', kind: 'teacher', evidence: null, duplicateOf: null },
+  { ...base, id: 'c', studentName: 'Ott', occurrenceDate: '2026-11-02', occurrenceId: 'c:2026-11-02', kind: 'teacher', evidence: null, duplicateOf: null },
+  { ...base, id: 'b', studentName: 'Timur', occurrenceDate: '2026-11-03', occurrenceId: 'b:2026-11-03', kind: 'duplicate', evidence: null, duplicateOf: { source: 'lesson', time: '15:00', status: 'Toimunud', teacher: 'Anna' } },
+  { ...base, id: 'a', studentName: 'Mia', occurrenceDate: '2026-11-04', occurrenceId: 'a:2026-11-04', kind: 'evidence', evidence: { date: '2026-11-04', time: '10:03', endTime: '10:58', sources: ['summary'], teacherName: 'Anna' }, duplicateOf: null },
+  { ...base, id: 'd', studentName: 'Liis', time: '12:00', occurrenceDate: '2026-11-04', occurrenceId: 'd:2026-11-04', kind: 'teacher', evidence: null, duplicateOf: null },
 ];
+const loaded = (extra = {}) => ({ items, adminItems: [], schedule: [], olderCount: 0, ...extra });
+const repo = (extra = {}) => ({ load: vi.fn(async () => loaded()), mark: vi.fn(async (item) => ({ id: `rec-${item.id}`, accountingSource: 'crm_v2' })), unmark: vi.fn(async () => {}), cancel: vi.fn(async () => {}), ...extra });
 
-function renderPage(repository, roles = ['admin']) {
+function renderPage(repository, roles = ['admin'], path = '/calendar/markimata') {
   const auth = { user: { uid: 'u1', displayName: 'Admin', roles }, signOut: vi.fn() };
-  return render(<AuthContext.Provider value={auth}><MemoryRouter><UnmarkedLessonsPage repository={repository} today="2026-11-04" /></MemoryRouter></AuthContext.Provider>);
+  return render(<AuthContext.Provider value={auth}><MemoryRouter initialEntries={[path]}><UnmarkedLessonsPage repository={repository} today="2026-11-05" /></MemoryRouter></AuthContext.Provider>);
 }
+const dayOf = (name) => screen.getByRole('region', { name: new RegExp(name, 'i') });
 
-describe('UnmarkedLessonsPage', () => {
-  it('shows each lesson with its evidence and suggestion and marks a proven one held', async () => {
-    const repository = { load: vi.fn(async () => ({ items, schedule: [] })), mark: vi.fn(async () => ({})), cancel: vi.fn() };
+describe('UnmarkedLessonsPage (phone-first, owner 2026-11-09)', () => {
+  afterEach(() => { vi.useRealTimers(); });
+  it('oldest day first, grouped by day; a tap marks through the calendar\'s path and offers a 5-second undo', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const repository = repo();
     renderPage(repository);
-    expect(await screen.findByText('Mia')).toBeInTheDocument();
-    expect(repository.load).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: true, today: '2026-11-04' }));
+    expect(await screen.findByText(/Mia/)).toBeInTheDocument();
+    expect(repository.load).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: true, today: '2026-11-05' }));
+    const days = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
+    expect(days.slice(0, 3).map((text) => text.replace(/\s*\d+$/, ''))).toEqual(['esmaspäev, 2. november', 'teisipäev, 3. november', 'kolmapäev, 4. november']);
     expect(screen.getByText(/Live-tund .* kell 10:03–10:58/)).toBeInTheDocument();
-    expect(screen.getByText(/juba märgitud tund: Toimunud kell 15:00/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Märgi toimunuks' }));
-    await waitFor(() => expect(repository.mark).toHaveBeenCalledWith(items[0], expect.objectContaining({ uid: 'u1' }), 'Toimunud'));
-    await waitFor(() => expect(screen.queryByText('Mia')).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Toimus: Mia' }));
+    await waitFor(() => expect(repository.mark).toHaveBeenCalledWith(items[2], expect.objectContaining({ uid: 'u1' }), 'Toimunud'));
+    await waitFor(() => expect(screen.queryByText(/^10:00 · Mia$/)).not.toBeInTheDocument());
+    const toast = document.querySelector('.qm-toast');
+    expect(toast.textContent).toMatch(/Mia .*: Toimus/);
+    fireEvent.click(within(toast).getByRole('button', { name: /Võta tagasi/ }));
+    await waitFor(() => expect(repository.unmark).toHaveBeenCalledWith({ id: 'rec-a', accountingSource: 'crm_v2' }, expect.anything(), { recurring: false }));
+    expect(await screen.findByText(/^10:00 · Mia$/)).toBeInTheDocument();
+    // the toast goes away by itself after 5 s
+    fireEvent.click(screen.getByRole('button', { name: 'Toimus: Ott' }));
+    await waitFor(() => expect(document.querySelector('.qm-toast')?.textContent).toMatch(/Ott .*: Toimus/));
+    await act(async () => {});
+    await act(async () => { vi.advanceTimersByTime(5100); });
+    expect(document.querySelector('.qm-toast')).toBeNull();
+    vi.useRealTimers();
   });
 
-  it('a lesson without evidence offers Toimus / Puudus (teatas) / Puudus (ei teatanud)', async () => {
-    const repository = { load: vi.fn(async () => ({ items, schedule: [] })), mark: vi.fn(async () => ({})), cancel: vi.fn() };
+  it('„Puudus ▾” opens the two absences; the billable one is never the default', async () => {
+    const repository = repo();
     renderPage(repository, ['teacher']);
-    await screen.findByText('Ott');
+    await screen.findByText(/Ott/);
     expect(repository.load).toHaveBeenCalledWith(expect.objectContaining({ isAdmin: false }));
-    fireEvent.click(screen.getByRole('button', { name: 'Puudus (ei teatanud)' }));
-    await waitFor(() => expect(repository.mark).toHaveBeenCalledWith(items[2], expect.anything(), 'Puudus_eta'));
+    fireEvent.click(screen.getByRole('button', { name: 'Puudus: Ott' }));
+    const menu = screen.getByRole('menu', { name: 'Puudus: Ott' });
+    fireEvent.click(within(menu).getByRole('menuitem', { name: /Ei teatanud/ }));
+    await waitFor(() => expect(repository.mark).toHaveBeenCalledWith(items[0], expect.anything(), 'Puudus_eta'));
+    // a teacher sees no Live / duplicate filters, no admin section
+    expect(screen.queryByRole('button', { name: /Live-tund leitud/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Vajab admini' })).not.toBeInTheDocument();
+  });
+
+  it('„Märgi kõik selle päeva tunnid toimunuks”: a confirm list, then one mark after another', async () => {
+    const order = [];
+    const repository = repo({ mark: vi.fn(async (item) => { order.push(item.id); return { id: `rec-${item.id}` }; }) });
+    renderPage(repository, ['teacher']);
+    await screen.findByText(/Liis/);
+    fireEvent.click(within(dayOf('kolmapäev, 4. november')).getByRole('button', { name: 'Märgi kõik selle päeva tunnid toimunuks' }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('list', { name: 'Märgitavad tunnid' }).textContent).toMatch(/Mia.*Liis/);
+    expect(repository.mark).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Märgi 2 tundi toimunuks' }));
+    await waitFor(() => expect(order).toEqual(['a', 'd']));
+    expect(repository.mark).toHaveBeenNthCalledWith(1, items[2], expect.anything(), 'Toimunud');
+    await waitFor(() => expect(screen.queryByText(/^12:00 · Liis$/)).not.toBeInTheDocument());
+  });
+
+  it('a bulk run stops at the first refusal and says so', async () => {
+    const repository = repo({ mark: vi.fn().mockRejectedValueOnce(Object.assign(new Error('denied'), { code: 'permission-denied' })) });
+    renderPage(repository, ['teacher']);
+    await screen.findByText(/Liis/);
+    fireEvent.click(within(dayOf('kolmapäev, 4. november')).getByRole('button', { name: 'Märgi kõik selle päeva tunnid toimunuks' }));
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Märgi 2 tundi/ }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/periood on suletud.*Ülejäänud jäid märkimata/);
+    expect(repository.mark).toHaveBeenCalledTimes(1);
+  });
+
+  it('admin: „Märgi Live-tunnid toimunuks” marks only the rows with Live evidence after the confirm', async () => {
+    const repository = repo();
+    renderPage(repository);
+    fireEvent.click(await screen.findByRole('button', { name: 'Märgi Live-tunnid toimunuks (1)' }));
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Märgi 1 tundi toimunuks' }));
+    await waitFor(() => expect(repository.mark).toHaveBeenCalledTimes(1));
+    expect(repository.mark).toHaveBeenCalledWith(items[2], expect.anything(), 'Toimunud');
+  });
+
+  it('admin: „Vajab admini” lists the excluded entries with the reason; „Lõpeta sari” asks, writes and can be undone', async () => {
+    const series = { ...base, id: 'w', studentName: 'Arhiivis Anu', recurring: true, endDate: '', occurrenceId: 'w:2026-11-02', occurrenceDate: '2026-11-02', reason: 'student-archived' };
+    const repository = repo({
+      load: vi.fn(async () => loaded({ adminItems: [series, { ...series, occurrenceId: 'w:2026-11-09', occurrenceDate: '2026-11-09' }, { ...base, id: 'n', studentName: 'Ilma õpetajata', teacherUid: '', teacher: '', occurrenceId: 'n:2026-11-03', occurrenceDate: '2026-11-03', reason: 'no-teacher' }], olderCount: 7, context: { staff: [{ id: 't9', role: 'teacher', displayName: 'Uus Õpetaja' }] } })),
+      endSeries: vi.fn(async () => ({ previous: '' })),
+      restoreSeriesEnd: vi.fn(async () => {}),
+      assignTeacher: vi.fn(async () => {}),
+    });
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    renderPage(repository);
+    const admin = await screen.findByRole('region', { name: 'Vajab admini' });
+    expect(within(admin).getByText('Õpilane on arhiivis')).toBeInTheDocument();
+    expect(within(admin).getByText('Tunnil pole õpetajat')).toBeInTheDocument();
+    expect(within(admin).getByText(/2 tundi/)).toBeInTheDocument();
+    fireEvent.click(within(admin).getByRole('button', { name: 'Lõpeta sari' }));
+    await waitFor(() => expect(repository.endSeries).toHaveBeenCalledWith(expect.objectContaining({ id: 'w' }), '2026-11-01', expect.anything()));
+    expect(confirm).toHaveBeenCalled();
+    fireEvent.click(await screen.findByRole('button', { name: /Võta tagasi/ }));
+    await waitFor(() => expect(repository.restoreSeriesEnd).toHaveBeenCalledWith(expect.objectContaining({ id: 'w' }), ''));
+    // „Määra õpetaja”
+    fireEvent.click(within(admin).getByRole('button', { name: 'Määra õpetaja' }));
+    fireEvent.change(within(screen.getByRole('dialog')).getByRole('combobox', { name: 'Õpetaja' }), { target: { value: 't9' } });
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(repository.assignTeacher).toHaveBeenCalledWith(expect.objectContaining({ id: 'n' }), { id: 't9', name: 'Uus Õpetaja' }));
+    // the older ones: a small link with the count
+    expect(screen.getByRole('link', { name: 'Vanemad (enne 1.11): 7' })).toBeInTheDocument();
+    confirm.mockRestore();
+  });
+
+  it('the rows show first, the Live evidence follows (two-step load)', async () => {
+    let finish;
+    const repository = repo({
+      load: vi.fn(async () => loaded({ items: items.map((item) => ({ ...item, kind: 'teacher', evidence: null })) })),
+      withEvidence: vi.fn(() => new Promise((resolve) => { finish = resolve; })),
+    });
+    renderPage(repository);
+    await screen.findByText(/Mia/);
+    expect(repository.load).toHaveBeenCalledWith(expect.objectContaining({ withEvidence: false }));
+    expect(screen.getByText('Otsin Live-tunde…')).toBeInTheDocument();
+    await act(async () => { finish(loaded()); });
+    expect(screen.getByText(/Live-tund .* kell 10:03–10:58/)).toBeInTheDocument();
+    expect(screen.queryByText('Otsin Live-tunde…')).not.toBeInTheDocument();
   });
 
   it('a likely duplicate is cancelled with the raw calendar entry after a confirmation', async () => {
-    const raw = { id: 'b', studentId: 's1', date: '2026-10-30', status: 'Planeeritud' };
-    const repository = { load: vi.fn(async () => ({ items, schedule: [raw] })), mark: vi.fn(), cancel: vi.fn(async () => {}) };
+    const raw = { id: 'b', studentId: 's1', date: '2026-11-03', status: 'Planeeritud' };
+    const repository = repo({ load: vi.fn(async () => loaded({ schedule: [raw] })) });
     const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
     renderPage(repository);
     fireEvent.click(await screen.findByRole('button', { name: 'Tühista' }));
@@ -49,34 +152,34 @@ describe('UnmarkedLessonsPage', () => {
   });
 
   it('shows the calendar\'s message when the rules refuse (invoice / closed period)', async () => {
-    const repository = { load: vi.fn(async () => ({ items, schedule: [] })), mark: vi.fn(async () => { throw Object.assign(new Error('denied'), { code: 'permission-denied' }); }), cancel: vi.fn() };
+    const repository = repo({ mark: vi.fn(async () => { throw Object.assign(new Error('denied'), { code: 'permission-denied' }); }) });
     renderPage(repository);
-    fireEvent.click(await screen.findByRole('button', { name: 'Märgi toimunuks' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Toimus: Mia' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('tund on arvel või periood on suletud');
-    expect(screen.getByText('Mia')).toBeInTheDocument();
+    expect(screen.getByText(/^10:00 · Mia$/)).toBeInTheDocument();
   });
 
-  it('filters by suggestion', async () => {
-    renderPage({ load: vi.fn(async () => ({ items, schedule: [] })), mark: vi.fn(), cancel: vi.fn() });
-    await screen.findByText('Mia');
+  it('filters by suggestion (admin)', async () => {
+    renderPage(repo());
+    await screen.findByText(/Mia/);
     fireEvent.click(screen.getByRole('button', { name: /Tõenäoliselt topelt/ }));
-    expect(screen.queryByText('Mia')).not.toBeInTheDocument();
-    expect(screen.getByText('Timur')).toBeInTheDocument();
+    expect(screen.queryByText(/Mia/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Timur/)).toBeInTheDocument();
   });
 
   it('the drawer: a mark drops the row at once; another change reads the list again in place, the filter stays', async () => {
-    const load = vi.fn().mockResolvedValueOnce({ items, schedule: [] }).mockResolvedValue({ items: items.filter((item) => item.id !== 'c'), schedule: [] });
-    renderPage({ load, mark: vi.fn(), cancel: vi.fn() });
-    await screen.findByText('Mia');
-    act(() => { announceLessonMarked('a:2026-11-02'); });
-    expect(screen.queryByText('Mia')).not.toBeInTheDocument();
+    const load = vi.fn().mockResolvedValueOnce(loaded()).mockResolvedValue(loaded({ items: items.filter((item) => item.id !== 'c') }));
+    renderPage(repo({ load }));
+    await screen.findByText(/Mia/);
+    act(() => { announceLessonMarked('a:2026-11-04'); });
+    expect(screen.queryByText(/^10:00 · Mia$/)).not.toBeInTheDocument();
     expect(load).toHaveBeenCalledTimes(1);
     const filter = screen.getByRole('button', { name: /Õpetaja otsustab/ });
     fireEvent.click(filter);
-    expect(screen.getByText('Ott')).toBeInTheDocument();
+    expect(screen.getByText(/Ott/)).toBeInTheDocument();
     act(() => { announceLessonChanged('c'); });
     await waitFor(() => expect(load).toHaveBeenCalledTimes(2));
-    await waitFor(() => expect(screen.queryByText('Ott')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText(/Ott/)).not.toBeInTheDocument());
     expect(filter).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByText('Otsin märkimata tunde…')).not.toBeInTheDocument();
   });

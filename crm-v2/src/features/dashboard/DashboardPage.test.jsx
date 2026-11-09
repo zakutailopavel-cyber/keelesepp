@@ -72,7 +72,7 @@ describe('DashboardPage — calm home', () => {
     const repo = repositories();
     repo.schedule.list.mockResolvedValue([
       { id: 'now', date: '2026-11-06', time: '12:30', duration: 45, studentId: 'student-1', studentName: 'Mari', teacher: 'Kati', status: 'Planeeritud' },
-      { id: 'old', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacher: 'Kati', status: 'Planeeritud' },
+      { id: 'old', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacher: 'Kati', teacherUid: 'teacher-1', status: 'Planeeritud' },
     ]);
     repo.homework.listSubmissionsByStudentIds = vi.fn(async () => [{ id: 'w1', studentId: 'student-1', reviewStatus: 'pending', completedAt: '2026-10-30T10:00:00Z' }]);
     repo.today.leads.mockResolvedValue([{ id: 'l1', status: 'new', name: 'Uus', createdAt: '2026-11-05T10:00:00Z' }]);
@@ -168,7 +168,9 @@ describe('DashboardPage — calm home', () => {
     const repo = repositories();
     repo.schedule.list.mockResolvedValue([
       { id: 'a', date: '2026-11-02', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacherUid: 'teacher-2', status: 'Planeeritud' },
+      // before 1.11 (MARKING_START, owner 2026-11-09) → not counted
       { id: 'b', date: '2026-10-28', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacherUid: 'teacher-2', status: 'Planeeritud' },
+      { id: 'e', date: '2026-11-04', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacherUid: 'teacher-2', status: 'Planeeritud' },
       // marked in the journal → not counted; somebody else's lesson → not counted
       { id: 'c', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacherUid: 'teacher-2', status: 'Planeeritud' },
       { id: 'd', date: '2026-11-03', time: '12:00', duration: 45, studentId: 'student-2', studentName: 'Jaan', teacherUid: 'other', status: 'Planeeritud' },
@@ -177,7 +179,7 @@ describe('DashboardPage — calm home', () => {
     const user = { uid: 'teacher-2', displayName: 'Kati Kask', roles: ['teacher'] };
     const { unmount } = renderDashboard(user, repo);
     const nudge = (await screen.findByText(/Märgi need 1 minutiga/)).closest('.calm-nudge');
-    expect(within(nudge).getByRole('link', { name: /Sul on 2 märkimata tundi \(vanim 28\.10\)\. Märgi need 1 minutiga →/ })).toHaveAttribute('href', '/calendar/markimata');
+    expect(within(nudge).getByRole('link', { name: /Sul on 2 märkimata tundi \(vanim 02\.11\)\. Märgi need 1 minutiga →/ })).toHaveAttribute('href', '/calendar/markimata');
     expect(window.localStorage.getItem('ks-unmarked-nudge:teacher-2')).toBe('2026-11-06');
     fireEvent.click(within(nudge).getByRole('button', { name: 'Peida meeldetuletus' }));
     expect(screen.queryByText(/Märgi need 1 minutiga/)).not.toBeInTheDocument();
@@ -192,7 +194,7 @@ describe('DashboardPage — calm home', () => {
 
   it('admin: no personal nudge (the school-wide count stays in the menu and the attention list)', async () => {
     const repo = repositories();
-    repo.schedule.list.mockResolvedValue([{ id: 'old', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', status: 'Planeeritud' }]);
+    repo.schedule.list.mockResolvedValue([{ id: 'old', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacherUid: 'teacher-1', status: 'Planeeritud' }]);
     renderDashboard(ADMIN, repo);
     await screen.findByRole('region', { name: 'Vajab tähelepanu' });
     await within(attention()).findByRole('link', { name: /1 märkimata tund/ });
@@ -201,7 +203,7 @@ describe('DashboardPage — calm home', () => {
 
   it('a lesson marked in the side drawer: the journal is read again in place, the count drops, the page stays', async () => {
     const repo = repositories();
-    repo.schedule.list.mockResolvedValue([{ id: 'old', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', status: 'Planeeritud' }]);
+    repo.schedule.list.mockResolvedValue([{ id: 'old', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacherUid: 'teacher-1', status: 'Planeeritud' }]);
     repo.today.lessons.mockResolvedValueOnce([]).mockResolvedValue([{ id: 'L1', scheduleId: 'old', studentId: 'student-1', date: '2026-11-03', time: '10:00', status: 'Toimunud' }]);
     renderDashboard(ADMIN, repo);
     await screen.findByRole('region', { name: 'Vajab tähelepanu' });

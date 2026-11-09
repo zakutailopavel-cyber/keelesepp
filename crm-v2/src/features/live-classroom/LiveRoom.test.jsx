@@ -225,7 +225,7 @@ describe('LiveRoom lesson end', () => {
     expect(await within(drawer).findByText('Korda sõnu')).toBeInTheDocument();
     fireEvent.change(within(drawer).getByLabelText(/Sõnum õpilasele/), { target: { value: 'Tubli!' } });
     fireEvent.click(within(drawer).getByRole('button', { name: 'Saada kokkuvõte ja lõpeta tund' }));
-    await waitFor(() => expect(props.onEndLesson).toHaveBeenCalledWith({ confirmed: true }));
+    await waitFor(() => expect(props.onEndLesson).toHaveBeenCalledWith({ confirmed: true, endMark: 'held' }));
     expect(summaryService.save).toHaveBeenCalledWith(expect.objectContaining({ note: 'Tubli!', pages: [{ id: 'p1', title: 'Tund 1' }], subject: 'Inglise keel', invitation: expect.objectContaining({ id: 'inv-1' }) }));
     // „Tunni tahvlid”: the lesson page is copied read-only onto the student's board
     expect(boardCopies.save).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's-1', sourceRoot: 'whiteboards', sourceId: 's-1', lessonKey: 'inv-1', pages: [{ id: 'p1', title: 'Tund 1' }] }));
@@ -240,7 +240,7 @@ describe('LiveRoom lesson end', () => {
     expect(await screen.findByText(/Võrk puudub\. Võid tunni lõpetada ka ilma kokkuvõtteta/)).toBeInTheDocument();
     expect(props.onEndLesson).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Lõpeta ilma kokkuvõtteta' }));
-    expect(props.onEndLesson).toHaveBeenCalledWith({ confirmed: true });
+    expect(props.onEndLesson).toHaveBeenCalledWith({ confirmed: true, endMark: 'held' });
   });
 });
 

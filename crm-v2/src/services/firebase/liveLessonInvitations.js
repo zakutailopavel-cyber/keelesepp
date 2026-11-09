@@ -56,7 +56,9 @@ export const liveLessonInvitationsService = {
   },
 
   // `roomKey`: a group room id when the student is invited into a group lesson (rules check the room's members)
-  async create({ student, title, roomKey = '' }, user) {
+  // `lesson`: { scheduleId, occurrenceDate } of the calendar lesson („Alusta tundi”) — the server marks it held when
+  // the room closes with „märgi toimunuks” (functions/live-auto-mark.js)
+  async create({ student, title, roomKey = '', lesson = null }, user) {
     if (!user?.uid || !user.roles?.some((role) => role === 'admin' || role === 'teacher')) throw new Error('Tunni saab alustada ainult õpetaja.');
     if (!student?.id || student.active === false) throw new Error('Vali aktiivne õpilane.');
     const studentUid = studentAccountUid(student);
@@ -81,6 +83,7 @@ export const liveLessonInvitationsService = {
       respondedAt: null,
       cancelledAt: null,
       closedAt: null,
+      ...(lesson?.scheduleId && /^\d{4}-\d{2}-\d{2}$/.test(lesson.occurrenceDate || '') ? { scheduleId: String(lesson.scheduleId).slice(0, 200), occurrenceDate: lesson.occurrenceDate } : {}),
     };
     const batch = writeBatch(db);
     batch.set(reference, payload);
@@ -137,7 +140,8 @@ export const liveLessonInvitationsService = {
     });
   },
 
-  async close(invitationId, user) {
+  // `endMark`: 'held' (the server marks the linked calendar lesson held) or 'skip'; left out → the server does nothing
+  async close(invitationId, user, { endMark = '' } = {}) {
     if (!user?.uid) throw new Error('Logi uuesti sisse.');
     const { db } = requireFirebaseClient();
     const reference = doc(db, 'liveLessonInvitations', invitationId);
@@ -147,7 +151,7 @@ export const liveLessonInvitationsService = {
       const invitation = normalizeInvitation(snapshot.id, snapshot.data());
       if (invitation.teacherUid !== user.uid && !user.roles?.includes('admin')) throw new Error('Ainult kutse saatnud õpetaja saab ooteruumi lõpetada.');
       if (invitation.status !== INVITATION_STATUS.ACCEPTED) throw new Error('Ainult vastu võetud ooteruumi saab lõpetada.');
-      transaction.update(reference, { status: INVITATION_STATUS.CLOSED, closedAt: serverTimestamp() });
+      transaction.update(reference, { status: INVITATION_STATUS.CLOSED, closedAt: serverTimestamp(), ...(['held', 'skip'].includes(endMark) ? { endMark } : {}) });
     });
   },
 };

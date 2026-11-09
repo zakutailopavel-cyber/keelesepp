@@ -1,4 +1,4 @@
-import { ArrowUpRight, BookOpenCheck, CalendarDays, CheckCircle2, CircleAlert, GraduationCap, MessageSquareText, ReceiptText, Users, X } from 'lucide-react';
+import { ArrowUpRight, BookOpenCheck, CalendarCheck, CalendarDays, CheckCircle2, CircleAlert, GraduationCap, MessageSquareText, ReceiptText, Users, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -24,7 +24,7 @@ import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 import RetentionCard from '../retention/RetentionCard.jsx';
 import { recentlyScheduled } from '../retention/retentionRisk.js';
 import UnmarkedLessonsCard from '../calendar/UnmarkedLessonsCard.jsx';
-import { findUnmarkedLessons, unmarkedReminder } from '../calendar/unmarkedLessons.js';
+import { unmarkedReminder } from '../calendar/unmarkedLessons.js';
 import UnmarkedNudge from './UnmarkedNudge.jsx';
 import { BalancePanel, CallsPanel, HomeworkPanel, LeadsPanel, TodayTimeline } from './today/TodayPanel.jsx';
 import { todayApi, useTodaySignals } from './today/useTodaySignals.js';
@@ -163,6 +163,7 @@ function CalmDashboard({ data, user, repositories, now }) {
   const isAdmin = data.isAdmin;
   const canViewBalance = isAdmin || data.canViewFinance;
   const signals = useTodaySignals({
+    user,
     isAdmin,
     canViewLearning: data.canViewLearning,
     canViewBalance,
@@ -193,10 +194,8 @@ function CalmDashboard({ data, user, repositories, now }) {
   }), [journal, repositories.unmarked]);
   // a teacher's daily „Märkimata tunnid” nudge (owner 2026-11-09): the „Märkimata tunnid” page's logic on the journal
   // and the calendar already read here, so it costs no extra read
-  const { teacherUid: ownUid, schedule: ownSchedule, current: today } = data;
-  const reminder = useMemo(() => (ownUid && journal
-    ? unmarkedReminder(findUnmarkedLessons({ schedule: ownSchedule, lessons: journal, today, teacherUid: ownUid }), today)
-    : null), [ownUid, ownSchedule, today, journal]);
+  const { teacherUid: ownUid, current: today } = data;
+  const reminder = useMemo(() => (ownUid && signals.unmarked ? unmarkedReminder(signals.unmarked, today) : null), [ownUid, today, signals.unmarked]);
   const seen = signals.data?.seen;
   const retentionRepository = useMemo(() => ({
     lessons: async () => journal || [],
@@ -239,7 +238,7 @@ function CalmDashboard({ data, user, repositories, now }) {
     ...(data.canViewLearning ? [
       { key: 'unmarked', title: 'Märkimata tunnid', meta: `${count(signals.unmarked?.length)} tundi`, ownHeading: Boolean(signals.unmarked?.length),
         render: () => (signals.unmarked && !signals.unmarked.length ? <p className="form-hint">Kõik tunnid on märgitud. <Link to="/calendar/markimata">Märkimata tunnid koos Live-tundidega →</Link></p>
-          : <UnmarkedLessonsCard schedule={data.schedule} today={data.current} teacherUid={data.teacherUid} user={user} repository={unmarkedRepository} />) },
+          : <UnmarkedLessonsCard schedule={data.schedule} today={data.current} teacherUid={data.teacherUid} user={user} repository={unmarkedRepository} context={signals.data?.context || {}} />) },
       { key: 'risk', title: 'Riskis õpilased', meta: 'Kes võib õppimise lõpetada', ownHeading: true,
         render: () => <RetentionCard students={data.activeStudents} unplanned={data.unplanned} scheduledIds={data.scheduledIds} overdueInvoices={data.overdue} teacherUid={data.teacherUid} showRenewals={false} repository={retentionRepository} /> },
       { key: 'unplanned', title: 'Ilma tulevase tunnita', meta: `${data.unplanned.length} õpilast`, to: '/calendar?unplanned=1' },
@@ -269,6 +268,8 @@ function CalmDashboard({ data, user, repositories, now }) {
         <span>· {dayLabel}</span>
       </header>
       {data.teacherUid ? <UnmarkedNudge reminder={reminder} uid={data.teacherUid} today={data.current} disabled={Boolean(preview)} /> : null}
+      {/* a teacher's direct way in on a phone (owner 2026-11-09): one big button, shown by CSS only on narrow screens */}
+      {data.teacherUid && signals.unmarked?.length ? <Link className="button button--primary calm-mark-cta" to="/calendar/markimata"><CalendarCheck size={18} aria-hidden="true" /> Märgi tunnid ({signals.unmarked.length})</Link> : null}
       {/* owner 2026-11-06: the numbers and the quick links stay at the top, as on the old home page */}
       {metrics.length ? <section className={`metric-grid calm-kpis calm-kpis--${metrics.length}`} aria-label="Numbrid">
         {metrics.map(({ icon: Icon, ...item }) => <Card as="article" className={`metric-card metric-card--${item.tone}`} key={item.label}>

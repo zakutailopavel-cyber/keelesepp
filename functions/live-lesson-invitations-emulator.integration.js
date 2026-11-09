@@ -742,3 +742,41 @@ test("only an administrator can watch a lesson; the participants answer only an 
   await ctx.db.collection("liveLessonInvitations").doc(invitationId).update({ status: "closed" });
   assert.equal((await firestoreCommitRequest(adminToken, [observerWrite(invitationId, adminUid)])).status, 403);
 });
+
+// Fast marking (owner 2026-11-09): the calendar link on create, the teacher's endMark on close, closed days readable
+test("invitation keeps the calendar lesson link; endMark only with the close; staff read the closed financial days", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seedUsersAndStudents("automark");
+  const linked = invitationCreateWrite("invite-linked", { teacherUid: ctx.teacherUid, studentId: ctx.ownStudentId, studentUid: ctx.studentUid });
+  linked.update.fields.scheduleId = { stringValue: "sched-1" };
+  linked.update.fields.occurrenceDate = { stringValue: "2026-11-09" };
+  const created = await firestoreCommitRequest(ctx.teacherToken, [linked]);
+  assert.equal(created.status, 200, JSON.stringify(created.body));
+
+  const badDate = invitationCreateWrite("invite-bad-date", { teacherUid: ctx.teacherUid, studentId: ctx.ownStudentId, studentUid: ctx.studentUid });
+  badDate.update.fields.occurrenceDate = { stringValue: "eile" };
+  assert.equal((await firestoreCommitRequest(ctx.teacherToken, [badDate])).status, 403);
+
+  // endMark while pending (with a cancel) is refused
+  const cancelWithMark = statusUpdateWrite("invite-linked", "cancelled", "cancelledAt");
+  cancelWithMark.update.fields.endMark = { stringValue: "held" };
+  cancelWithMark.updateMask.fieldPaths.push("endMark");
+  assert.equal((await firestoreCommitRequest(ctx.teacherToken, [cancelWithMark])).status, 403);
+
+  // accepted → closed with endMark 'held' is the teacher's; another value is refused
+  await ctx.db.collection("liveLessonInvitations").doc("invite-linked").set({ status: "accepted", respondedAt: new Date() }, { merge: true });
+  const wrongMark = statusUpdateWrite("invite-linked", "closed", "closedAt");
+  wrongMark.update.fields.endMark = { stringValue: "Puudus_eta" };
+  wrongMark.updateMask.fieldPaths.push("endMark");
+  assert.equal((await firestoreCommitRequest(ctx.teacherToken, [wrongMark])).status, 403);
+  const close = statusUpdateWrite("invite-linked", "closed", "closedAt");
+  close.update.fields.endMark = { stringValue: "held" };
+  close.updateMask.fieldPaths.push("endMark");
+  const closed = await firestoreCommitRequest(ctx.teacherToken, [close]);
+  assert.equal(closed.status, 200, JSON.stringify(closed.body));
+
+  await ctx.db.collection("financialLockedDates").doc("2026-10-15").set({ date: "2026-10-15", month: "2026-10" });
+  const readLock = async (token) => (await fetch(`http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents/financialLockedDates/2026-10-15`, { headers: { Authorization: `Bearer ${token}` } })).status;
+  assert.equal(await readLock(ctx.teacherToken), 200);
+  assert.equal(await readLock(ctx.studentToken), 403);
+});

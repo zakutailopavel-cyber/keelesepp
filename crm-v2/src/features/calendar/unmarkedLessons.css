@@ -1,22 +1,38 @@
-/* „Märkimata tunnid” page (calendar/UnmarkedLessonsPage) */
+/* „Märkimata tunnid” page (calendar/UnmarkedLessonsPage): phone-first, ≥ 44 px targets, grouped by day */
 .unmarked-page__filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
-.unmarked-chip { border: 1px solid var(--gray-300); background: var(--surface); border-radius: var(--radius-pill); padding: 4px 12px; font-size: .85rem; cursor: pointer; }
+.unmarked-page__total { font: 800 1rem Manrope, sans-serif; }
+.unmarked-chip { min-height: 36px; border: 1px solid var(--gray-300); background: var(--surface); color: inherit; border-radius: var(--radius-pill); padding: 4px 12px; font-size: .85rem; cursor: pointer; }
 .unmarked-chip span { color: var(--gray-500); margin-left: 2px; }
 .unmarked-chip.is-on { background: #101828; border-color: #101828; color: #fff; }
 .unmarked-chip.is-on span { color: #d0d5dd; }
-.unmarked-page__filters .cal2-select { margin-left: auto; }
-.unmarked-page__list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.unmarked-page__filters .cal2-select { margin-left: auto; min-height: 44px; }
+.unmarked-page__bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 4px 0 12px; }
+.unmarked-page__bulk .button { min-height: 44px; }
+.unmarked-page__bulk small { color: var(--gray-500); }
+.unmarked-day { margin-top: 14px; }
+.unmarked-day__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 4px 2px 6px; border-bottom: 1px solid var(--border, #e4e8ee); }
+.unmarked-day__head h2 { margin: 0; font: 800 .98rem Manrope, sans-serif; text-transform: capitalize; }
+.unmarked-day__head h2 span { margin-left: 4px; color: var(--gray-500); font-weight: 600; }
+.unmarked-day__all.button { min-height: 44px; font-size: .85rem; }
+.unmarked-page__list { display: grid; gap: 4px; margin: 6px 0 0; padding: 0; list-style: none; }
 .unmarked-row { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(200px, 1.4fr) auto; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-lg); border-left: 3px solid transparent; }
 .unmarked-row:hover { background: var(--gray-50); }
 .unmarked-row--evidence { border-left-color: #12b76a; }
 .unmarked-row--duplicate { border-left-color: #f04438; }
-.unmarked-row strong { display: block; font-size: .92rem; }
+.unmarked-row--admin { border-left-color: #f79009; }
+.unmarked-row strong { display: block; font-size: .95rem; }
 .unmarked-row small { display: block; color: var(--gray-500); font-size: .8rem; margin-top: 2px; }
 .unmarked-row__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; }
-.unmarked-row__actions .button { min-height: 32px; padding: 0 12px; font-size: .82rem; }
-.unmarked-row__actions a { font-size: .85rem; white-space: nowrap; }
+.unmarked-row__actions .button { min-height: 44px; padding: 0 14px; font-size: .88rem; }
+.unmarked-row__actions a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; font-size: .88rem; white-space: nowrap; }
+.unmarked-page__older { margin: 16px 0 0; font-size: .85rem; }
+.unmarked-admin { margin-top: 16px; }
+.unmarked-admin h2 { margin: 0 0 4px; font: 800 1.05rem Manrope, sans-serif; }
+.unmarked-admin h2 span { color: var(--gray-500); font-weight: 600; }
+.unmarked-confirm { max-height: 50vh; overflow: auto; margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; }
 @media (max-width: 760px) {
-  .unmarked-row { grid-template-columns: 1fr; gap: 6px; }
+  .unmarked-row { grid-template-columns: 1fr; gap: 6px; padding: 10px 4px; }
   .unmarked-row__actions { justify-content: flex-start; }
-  .unmarked-page__filters .cal2-select { margin-left: 0; }
+  .unmarked-page__filters .cal2-select { margin-left: 0; width: 100%; }
+  .unmarked-day__all.button { width: 100%; justify-content: center; }
 }

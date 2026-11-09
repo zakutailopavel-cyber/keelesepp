@@ -33,8 +33,8 @@ describe('teacherLoadService', () => {
   it('reads the journal and the handed-in works by date ranges only', async () => {
     const result = await teacherLoadService.load({ period: { from: '2026-11-01', to: '2026-11-30' }, today: '2026-11-04' });
     const lessons = calls.find((item) => item.name === 'lessons');
-    // the journal from 60 days back (unmarked lessons) to the period's end
-    expect(lessons.filters).toEqual([{ field: 'date', op: '>=', value: '2026-09-05' }, { field: 'date', op: '<=', value: '2026-11-30' }]);
+    // the journal from MARKING_START (unmarked lessons) or the period's start, whichever is first, to the period's end
+    expect(lessons.filters).toEqual([{ field: 'date', op: '>=', value: '2026-11-01' }, { field: 'date', op: '<=', value: '2026-11-30' }]);
     const sheets = calls.find((item) => item.name === 'worksheetAssignments');
     expect(sheets.filters).toEqual([{ field: 'completedAt', op: '>=', value: '2026-05-08T00:00:00.000Z' }]);
     expect(result.submissions.map((item) => item.id)).toEqual(['w-done', 'e1']); // a sheet not handed in is no review
