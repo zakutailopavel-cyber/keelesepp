@@ -234,7 +234,7 @@ describe('FinanceDebtsPanel · „Maksin ära” from the parents (owner 2026-11
     expect(confirm.mock.calls[0][0]).toContain('Arve ja maksed ei muutu');
     expect(claimsRepository.remove).not.toHaveBeenCalled();
     fireEvent.click(within(block).getByRole('button', { name: 'Eemalda pere teade arvelt AR-1' }));
-    await waitFor(() => expect(claimsRepository.remove).toHaveBeenCalledWith('old'));
+    await waitFor(() => expect(claimsRepository.remove).toHaveBeenCalledWith('old', expect.objectContaining({ id: 'old' })));
     expect(await screen.findByText('Pere teade arvelt AR-1 eemaldati.')).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Pere teated: makstud' })).toBeNull();
     expect(screen.queryByText('Pere: makstud?')).toBeNull();

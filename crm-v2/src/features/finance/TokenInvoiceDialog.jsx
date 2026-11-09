@@ -2,6 +2,7 @@ import { Coins, Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
+import IssuerSelect from './fie/IssuerSelect.jsx';
 import { lessonTokensService, subjectBalance } from '../../services/firebase/lessonTokens.js';
 import { studyDirectionsService } from '../../services/firebase/studyDirections.js';
 import { subjectsOf } from '../students/subjects.js';
@@ -35,6 +36,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
   const [rows, setRows] = useState(() => [newRow()]);
   const [due, setDue] = useState(dueDefault);
   const [note, setNote] = useState('');
+  const [issuer, setIssuer] = useState('');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   // the packages read per card: { [studentId]: packages | null }
@@ -99,8 +101,8 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
     try {
       // the note is internal: it goes to invoiceNotes, never onto the invoice the payer can read
       const { invoice } = combined
-        ? await api.createTokensCombined({ items: states.map((state) => ({ studentId: state.card.id, subject: state.subject, lessons: state.count })), due, note: '', requestId: id })
-        : await api.createTokens({ studentId: card.id, lessons: first.count, due, note: '', subject: first.subject, requestId: id });
+        ? await api.createTokensCombined({ items: states.map((state) => ({ studentId: state.card.id, subject: state.subject, lessons: state.count })), due, note: '', requestId: id, issuer })
+        : await api.createTokens({ studentId: card.id, lessons: first.count, due, note: '', subject: first.subject, requestId: id, issuer });
       const noted = await saveCreationNote(notesRepository, invoice, note);
       setBusy('');
       close();
@@ -186,6 +188,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
         </div> : null}
 
         <Input label="Maksetähtaeg" type="date" value={due} onChange={(event) => setDue(event.target.value)} />
+        <IssuerSelect id="token-invoice-issuer" value={issuer} onChange={setIssuer} />
         <Input label="Sisemine märkus (ainult töötajatele)" maxLength={INVOICE_NOTE_MAX} placeholder="Mille eest arve on — ei ilmu arvele ega e-kirja" value={note} onChange={(event) => setNote(event.target.value)} />
         <p className="form-grid__wide" role="status"><strong>Kokku: {!complete ? '—' : combined ? `${totalLessons} tundi, ${rows.length} rida = ${money(total)}` : `${first.count} × ${money(first.priceCents)} = ${money(total)}`}</strong><br />
           <span className="form-hint">{combined

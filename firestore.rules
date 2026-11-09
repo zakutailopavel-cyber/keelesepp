@@ -769,8 +769,20 @@ service cloud.firestore {
         'corrections',
         'correctionStatus',
         'overpaymentResolutionIds',
-        'lastOverpaymentResolvedAt'
+        'lastOverpaymentResolvedAt',
+        'issuer',
+        'issuerDetails'
       ]);
+    }
+
+    // „Arve väljastaja” (owner 2026-11-09, docs/ACCOUNTING.md „FIE arved”): an invoice of the owner's own sole
+    // proprietorship (`issuer: 'fie'`) is read only by the owner (superAdmin) and the family it belongs to — never by
+    // another administrator or the bookkeeper. An invoice without the field is the company's (a single get). A list
+    // query of a non-owner administrator / the bookkeeper must say where('issuer', '==', 'company') (crm-v2
+    // invoices.js): in a query an unconstrained field counts as absent, so `get('issuer', 'company')` would let an
+    // unconstrained list through with the FIE invoices in it — the list rule asks for the stored value itself.
+    function companyInvoice(data) {
+      return data.get('issuer', 'company') == 'company';
     }
 
     function changesLessonBillingSource() {
@@ -1243,14 +1255,26 @@ service cloud.firestore {
 
     match /invoices/{invoiceId} {
       // Teachers only mark lessons; money is the administrator's and the bookkeeper's (owner decision 2026-10-11).
-      allow read: if isAdmin() || isFinance() || ownsInvoice(resource.data);
-      // invoices are made by the finance functions (CRM v2); a direct create is left to the administrator (old haldus)
-      allow create: if isAdmin() && financialDateOpen(request.resource.data.get('date', ''));
+      // FIE invoices: the owner and the invoice's family only (companyInvoice above).
+      allow get: if superAdmin()
+        || ((isAdmin() || isFinance()) && companyInvoice(resource.data))
+        || ownsInvoice(resource.data);
+      allow list: if superAdmin()
+        || ((isAdmin() || isFinance()) && resource.data.issuer == 'company')
+        || ownsInvoice(resource.data);
+      // invoices are made by the finance functions (CRM v2); a direct create is left to the administrator (old haldus),
+      // and only as a company invoice (an FIE invoice comes only from the functions, with its own number series)
+      allow create: if isAdmin()
+        && request.resource.data.get('issuer', 'company') == 'company'
+        && !('issuerDetails' in request.resource.data)
+        && financialDateOpen(request.resource.data.get('date', ''));
       allow update: if isAdmin()
+        && (superAdmin() || companyInvoice(resource.data))
         && !changesInvoiceFinancialSource()
         && financialDateOpen(resource.data.get('date', ''))
         && financialDateOpen(request.resource.data.get('date', ''));
       allow delete: if isAdmin()
+        && (superAdmin() || companyInvoice(resource.data))
         && financialDateOpen(resource.data.get('date', ''))
         && (
           !resource.data.keys().hasAny(['paymentCount'])
@@ -1271,6 +1295,8 @@ service cloud.firestore {
       allow read: if isAdmin() || isFinance();
       allow create, update: if (isAdmin() || isFinance())
         && exists(/databases/$(database)/documents/invoices/$(invoiceId))
+        // no internal notes on an FIE invoice: this collection is read by every administrator and the bookkeeper
+        && companyInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
         && request.resource.data.keys().hasOnly(['invoiceId', 'text', 'updatedAt', 'updatedByUid', 'updatedByName'])
         && request.resource.data.invoiceId == invoiceId
         && request.resource.data.text is string
@@ -1297,6 +1323,8 @@ service cloud.firestore {
       allow create: if signedIn()
         && exists(/databases/$(database)/documents/invoices/$(invoiceId))
         && ownsInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
+        // an FIE invoice's notice goes to fieInvoicePaymentClaims (the owner's own)
+        && companyInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
         && get(/databases/$(database)/documents/invoices/$(invoiceId)).data.get('status', '') != 'Tühistatud'
         && request.resource.data.keys().hasOnly(['invoiceId', 'claimedByUid', 'claimedByName', 'claimedAt', 'note'])
         && request.resource.data.keys().hasAll(['invoiceId', 'claimedByUid', 'claimedAt'])
@@ -1309,6 +1337,54 @@ service cloud.firestore {
         && request.resource.data.get('note', '').size() <= 300;
       allow update: if false;
       allow delete: if isAdmin();
+    }
+
+    // „Maksin ära” on an FIE invoice: the same notice as invoicePaymentClaims, read only by the owner and the family
+    match /fieInvoicePaymentClaims/{invoiceId} {
+      allow read: if superAdmin()
+        || (
+          exists(/databases/$(database)/documents/invoices/$(invoiceId))
+          && ownsInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
+        );
+      allow create: if signedIn()
+        && exists(/databases/$(database)/documents/invoices/$(invoiceId))
+        && ownsInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
+        && get(/databases/$(database)/documents/invoices/$(invoiceId)).data.get('issuer', 'company') == 'fie'
+        && get(/databases/$(database)/documents/invoices/$(invoiceId)).data.get('status', '') != 'Tühistatud'
+        && request.resource.data.keys().hasOnly(['invoiceId', 'claimedByUid', 'claimedByName', 'claimedAt', 'note'])
+        && request.resource.data.keys().hasAll(['invoiceId', 'claimedByUid', 'claimedAt'])
+        && request.resource.data.invoiceId == invoiceId
+        && request.resource.data.claimedByUid == uid()
+        && request.resource.data.claimedAt == request.time
+        && request.resource.data.get('claimedByName', '') is string
+        && request.resource.data.get('claimedByName', '').size() <= 160
+        && request.resource.data.get('note', '') is string
+        && request.resource.data.get('note', '').size() <= 300;
+      allow update: if false;
+      allow delete: if superAdmin();
+    }
+
+    // the owner's FIE (owner 2026-11-09): requisites (invoiceIssuers/fie: name + IBAN), the cards' default issuer,
+    // FIE payments, audit and e-mail log — the owner only, written only by financeApi / invoiceApi
+    match /invoiceIssuers/{issuerId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
+    }
+    match /studentInvoiceIssuers/{studentId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
+    }
+    match /fiePayments/{paymentId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
+    }
+    match /fieAudit/{entryId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
+    }
+    match /fieEmailQueue/{entryId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
     }
 
     match /payments/{paymentId} {
@@ -1790,6 +1866,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // „Süsteemi olek” (owner 2026-11-09): `current` (health check every 10 min) and `digest` (07:00 error digest) are
+    // written only by the scheduled functions systemHealthTick / systemHealthDigest; only an admin reads them.
+    match /systemHealth/{docId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
     // „Õpi ise” (owner 2026-10-12): a student opens a course lesson's sheet on his own — only for his own card, as
     // 'self_study', unscored and new, with the sheet exactly as published in the course (nothing of his own in it)
     function selfStudySheet(data) {
@@ -2012,6 +2095,26 @@ service cloud.firestore {
         && data.get('source', '') is string && data.get('source', '').size() <= 40
         && data.get('checked', '') in ['', 'ok', 'suggest', 'unknown', 'unchecked'];
     }
+    // spaced repetition (2026-11-09, docs/VOCABULARY_SRS.md): `srs: { v, r, p }`, one side per direction
+    // (r = et → meaning, p = meaning → et); written by the student with the practice fields, never at create
+    // kept short: the update rule also runs ownsStudent() and the practice checks, and a request may evaluate at most
+    // 1000 expressions (the first, longer version hit that limit in the emulator)
+    function studentWordSrsSideValid(side) {
+      return side is map
+        && side.keys().hasOnly(['state', 's', 'd', 'due', 'last', 'reps', 'lapses', 'step', 'intro'])
+        && side.get('state', 'new') in ['new', 'learning', 'review', 'relearning']
+        && side.get('s', 0) is number && side.get('d', 0) is number
+        && side.get('due', '').size() <= 40 && side.get('last', '').size() <= 40
+        && side.get('reps', 0) is int && side.get('lapses', 0) is int && side.get('step', 0) is int
+        && side.get('intro', '').size() <= 10;
+    }
+    function studentWordSrsValid(data) {
+      return !('srs' in data) || (data.srs is map
+        && data.srs.keys().hasOnly(['v', 'r', 'p'])
+        && data.srs.get('v', 1) is int
+        && (!('r' in data.srs) || studentWordSrsSideValid(data.srs.r))
+        && (!('p' in data.srs) || studentWordSrsSideValid(data.srs.p)));
+    }
     match /studentWords/{wordId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       // staff in lessons; the student (or a linked parent) from the course decks of „Sõnavara” and „Lisa oma sõna”
@@ -2037,16 +2140,32 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['word', 'translation', 'example', 'forms', 'formItems', 'updatedAt', 'checked'])
           && studentWordTextValid(request.resource.data))
         || (ownsStudent(resource.data.studentId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['box', 'dueAt', 'reviewedAt', 'reviews'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['box', 'dueAt', 'reviewedAt', 'reviews', 'srs'])
           && request.resource.data.box is int && request.resource.data.box >= 0 && request.resource.data.box <= 5
           && request.resource.data.dueAt is string && request.resource.data.dueAt.size() <= 40
           && request.resource.data.get('reviewedAt', '') is string
-          && request.resource.data.get('reviews', 0) is int);
+          && request.resource.data.get('reviews', 0) is int
+          && studentWordSrsValid(request.resource.data));
       allow delete: if isStaff();
     }
 
     // The student's notes from lessons („Minu vead” → „Märkmed tunnist”), written from the board's „Järjehoidja / Kleebis”
     // by staff or the student / a linked parent (2026-11-04). The author or staff change and delete a note.
+    // An anchored bookmark (2026-11-09, crm-v2/src/features/board/bookmarkAnchor.js): the word / sentence of the page it
+    // belongs to — kind, quote, a little context, the sentence, the worksheet block and offsets. Same shape on the board
+    // element and on the note; it is set when the bookmark is made and never changed.
+    function bookmarkAnchorValid(a) {
+      return a is map
+        && a.keys().hasOnly(['kind', 'quote', 'before', 'after', 'sentence', 'blockId', 'start', 'end'])
+        && a.keys().hasAll(['kind', 'quote'])
+        && a.kind in ['word', 'sentence', 'phrase']
+        && a.quote is string && a.quote.size() > 0 && a.quote.size() <= 300
+        && a.get('before', '') is string && a.get('before', '').size() <= 40
+        && a.get('after', '') is string && a.get('after', '').size() <= 40
+        && a.get('sentence', '') is string && a.get('sentence', '').size() <= 600
+        && a.get('blockId', '') is string && a.get('blockId', '').size() <= 200
+        && a.get('start', 0) is int && a.get('end', 0) is int;
+    }
     function studentNoteFieldsValid(data) {
       return data.text is string && data.text.size() <= 2000
         && data.ink is list && data.ink.size() <= 60
@@ -2057,7 +2176,8 @@ service cloud.firestore {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create: if (isStaff() || ownsStudent(request.resource.data.studentId))
         && request.resource.data.keys().hasOnly(['studentId', 'kind', 'text', 'ink', 'color', 'pageId', 'pageTitle', 'byStaff',
-          'createdByUid', 'createdByName', 'createdAt', 'updatedAt'])
+          'createdByUid', 'createdByName', 'createdAt', 'updatedAt', 'anchor'])
+        && (!('anchor' in request.resource.data) || bookmarkAnchorValid(request.resource.data.anchor))
         && request.resource.data.keys().hasAll(['studentId', 'kind', 'text', 'ink', 'color', 'createdByUid', 'createdAt', 'updatedAt'])
         && request.resource.data.kind == 'board'
         && request.resource.data.createdByUid == uid()
@@ -3617,7 +3737,7 @@ service cloud.firestore {
         && (
           data.type != 'note'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'bookmark', 'ink', 'noteId', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'bookmark', 'ink', 'noteId', 'anchor', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.text is string
@@ -3627,6 +3747,8 @@ service cloud.firestore {
             && (!('bookmark' in data) || data.bookmark == true)
             && (!('ink' in data) || (data.ink is list && data.ink.size() <= 60))
             && (!('noteId' in data) || (data.noteId is string && data.noteId.size() <= 200))
+            // an anchored bookmark (2026-11-09): only on a bookmark, the word / sentence it belongs to
+            && (!('anchor' in data) || (data.get('bookmark', false) == true && bookmarkAnchorValid(data.anchor)))
           )
         )
         && (

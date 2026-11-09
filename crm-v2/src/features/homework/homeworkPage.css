@@ -1,8 +1,8 @@
 /* Kodutööd: search and filter in one slim row, the student's name first on each task (teachers scan by student) */
 .homework-toolbar { margin-bottom: 16px; }
 .homework-toolbar .list-toolbar { padding: 0; border: 0; background: transparent; grid-template-columns: minmax(0, 1fr) 200px; }
-.homework-toolbar .search-field { background: #fff; }
-.task-row > div > .task-student { font-size: .74rem; font-weight: 800; letter-spacing: .02em; color: var(--green); text-transform: uppercase; }
+.homework-toolbar .search-field { background: var(--surface); }
+.task-row > div > .task-student { font-size: .74rem; font-weight: 800; letter-spacing: .02em; color: var(--green-text); text-transform: uppercase; }
 .task-row .task-text { line-height: 1.35; }
 .task-due .badge { white-space: nowrap; }
 @media (max-width: 650px) { .homework-toolbar .list-toolbar { grid-template-columns: 1fr; } }

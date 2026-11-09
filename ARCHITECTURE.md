@@ -856,6 +856,12 @@ inside the open window (`role="alert"`), not behind it.
 - `curriculumLessons`, `exercises` — staff-authored learning sources.
 - `studyDirections` — the school's study directions; admin writes (no delete), staff and finance read.
 - `plannerBatches` — one record per „Kinnita ajakava” of the calendar's Planeerija `{ createdAt (server time), createdBy, lessonIds[], studentIds[], status: 'confirmed' }`; admin creates once and reads, nobody updates or deletes from the app (the server's schedule e-mail reads it). The created `schedule` entries carry `source: 'planner'` and `plannerBatchId`.
+- `invoices.issuer` — „Arve väljastaja” (owner 2026-11-09, docs/ACCOUNTING.md „FIE arved”): `company` (also when
+  absent) or `fie` (the owner's own sole proprietorship, `issuerDetails { name, iban }`, number series `FIE-` with
+  `meta/invoiceCounterFie`). FIE invoices: read by the owner (super admin) and the family only; a non-owner admin /
+  the bookkeeper must list with `where('issuer', '==', 'company')` (`services/firebase/invoices.js`). Owner-only,
+  server-written: `invoiceIssuers/fie`, `studentInvoiceIssuers/{studentId}`, `fiePayments`, `fieAudit`,
+  `fieEmailQueue`; `fieInvoicePaymentClaims` = „Maksin ära” on an FIE invoice (family writes, owner reads/deletes).
 - `studentCardMerges` — server-only run records of „Liida kaardid” (one per merged card); `students.mergedInto` marks the tombstone.
 - `students` / `users` trash fields `deletedAt`, `deletedBy`, `purgeAfter`, `trashState`, `purgeBlocked`, `purgedAt`,
   `anonymised` — „Prügikast”, written only by `staffOperationsApi /cards/*` and `purgeCardTrash` (see „Card trash”).
@@ -903,6 +909,16 @@ inside the open window (`role="alert"`), not behind it.
   user creates (a lesson-link guest only with a valid `liveGuestGrants` grant, as role `guest`); admin reads, sets
   `status` new / ack / fixed, deletes. Page `/vead` (Seaded → Tehniline), dashboard digest of new groups in 24 h.
   Never store document data, form contents, names, e-mails, tokens or query strings in it.
+- `systemHealth/{current|digest}` — „Süsteemi olek” (2026-11-09), server-written only (`allow write: if false`),
+  admin reads. `systemHealthTick` (every 10 min) GETs the CRM (`crm.epkoolitus.ee/login`, expects `id="root"`), the
+  website (`www.epkoolitus.ee`) and `financeApi/health` + `staffOperationsApi/health` (200 `{ ok: true }`, no
+  data, no sign-in) and writes `current`: `{ status ok|down, checkedAt, targets.{id}: { label, ok, httpStatus, ms,
+  error, failStreak, lastOkAt }, incident | null, lastIncident, history[≤ 48] }`. A target failing 2 checks in a
+  row opens one incident (`inc_<yyyymmddhhmmss>`); all targets answering closes it (pure logic:
+  `functions/system-health-core.js`). `systemHealthDigest` (07:00 Europe/Tallinn) writes `digest`: `{ date, total,
+  occurrences, groups, top[5] by message + route }` of `clientErrors` with `lastAt` in the last 24 h. No e-mail:
+  the admin's bell derives notices from both docs (`notificationModel.systemHealthNotifications`, category
+  „Süsteem”, id per incident / per day), the „Vead” page shows `SystemHealthCard`.
 - `schedule` — dated or recurring lesson intent plus additive occurrence exceptions with stable
   student ownership.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.

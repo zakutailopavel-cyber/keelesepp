@@ -35,3 +35,32 @@ describe('studentWordsService.addLessonWords', () => {
     expect(firestore.batch.commit).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('studentWordsService.rate / review (spaced repetition, 2026-11-09)', () => {
+  beforeEach(() => { vi.clearAllMocks(); });
+
+  it('writes only srs and the old summary fields, migrating a Leitner word lazily', async () => {
+    const word = { id: 'w1', word: 'kass', translation: 'кошка', box: 2, reviews: 3, dueAt: '2026-11-08T00:00:00Z', reviewedAt: '2026-11-05T00:00:00Z' };
+    const patch = await studentWordsService.rate(word, { direction: 'r', rating: 'good', now: new Date('2026-11-09T10:00:00Z') });
+    expect(firestore.updateDoc).toHaveBeenCalledWith('studentWords/w1', patch);
+    expect(Object.keys(patch).sort()).toEqual(['box', 'dueAt', 'reviewedAt', 'reviews', 'srs']);
+    expect(patch.srs).toMatchObject({ v: 1, r: { state: 'review' } });
+    expect(patch.reviews).toBe(4);
+  });
+
+  it('a plain knew / did not know answer is „Hea” / „Uuesti” on the given direction', async () => {
+    const patch = await studentWordsService.review({ id: 'w2', word: 'koer', box: 0, reviews: 0 }, false, 'p');
+    expect(patch.srs.p).toMatchObject({ state: 'learning', step: 0 });
+    expect(patch.box).toBe(0);
+  });
+
+  it('with rules that do not know `srs` yet it still saves the summary fields', async () => {
+    firestore.updateDoc.mockRejectedValueOnce(Object.assign(new Error('denied'), { code: 'permission-denied' }));
+    const patch = await studentWordsService.rate({ id: 'w3', word: 'maja', box: 1, reviews: 1 }, { rating: 'good' });
+    expect(firestore.updateDoc).toHaveBeenCalledTimes(2);
+    expect(patch).not.toHaveProperty('srs');
+    expect(Object.keys(firestore.updateDoc.mock.calls[1][1]).sort()).toEqual(['box', 'dueAt', 'reviewedAt', 'reviews']);
+    firestore.updateDoc.mockRejectedValueOnce(Object.assign(new Error('offline'), { code: 'unavailable' }));
+    await expect(studentWordsService.rate({ id: 'w4', word: 'auto' }, { rating: 'good' })).rejects.toThrow('offline');
+  });
+});

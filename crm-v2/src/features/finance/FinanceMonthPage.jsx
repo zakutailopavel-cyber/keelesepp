@@ -1,18 +1,14 @@
 import {
   AlertTriangle,
-  ArrowLeft,
-  ArrowRight,
   BookOpen,
-  CheckCircle2,
-  Clock3,
-  FilePlus2,
+  ChevronLeft,
+  ChevronRight,
   Printer,
   Mail,
   ReceiptText,
   Search,
   Send,
   Settings2,
-  ShieldCheck,
   Trash2,
   WalletCards,
 } from 'lucide-react';
@@ -20,6 +16,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, Select } from '../../components/ui/index.js';
+import { formatCount, formatMoney } from '../../components/charts/format.js';
+import { MoneyValue } from '../../components/charts/MetricCard.jsx';
+import { openDrawer } from '../../components/entityDrawer/entityDrawer.js';
 import { bankTransactionsService } from '../../services/firebase/bankTransactions.js';
 import { creditNotesService } from '../../services/firebase/creditNotes.js';
 import FinancialAnalyticsPanel from './FinancialAnalyticsPanel.jsx';
@@ -41,7 +40,9 @@ import TokenInvoiceDialog from './TokenInvoiceDialog.jsx';
 import { tokenInvoiceCreatedMessage } from './tokenInvoiceRows.js';
 import MonthlyInvoicePanel from './MonthlyInvoicePanel.jsx';
 import PricePrivacyBanner from './PricePrivacyBanner.jsx';
-import { currentMonth, defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
+import { currentMonth, defaultBillingMonth } from './monthlyBilling.js';
+import FinanceOverview from './FinanceOverview.jsx';
+import { PERIOD_UNITS, periodInvoices, periodLabel, periodRange, shiftPeriod } from './financeOverview.js';
 import { useFinanceData } from './useFinanceData.js';
 import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
 import FinanceDashboard from './FinanceDashboard.jsx';
@@ -57,10 +58,15 @@ import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { lessonTokensService, owedCredits, tokenInvoiceStudentIds, tokenInvoiceUsageLines } from '../../services/firebase/lessonTokens.js';
 import { useEntityChanged } from '../../components/entityDrawer/useEntityChanged.js';
+import FiePanel from './fie/FiePanel.jsx';
+import { useIsOwner } from './fie/useIsOwner.js';
 import './financeMonth.css';
 import './manualInvoice.css';
 
-const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
+const money = (cents) => formatMoney(cents);
+const UNIT_NAMES = { month: ['Eelmine kuu', 'Järgmine kuu', 'Praegune kuu'], quarter: ['Eelmine kvartal', 'Järgmine kvartal', 'Praegune kvartal'], year: ['Eelmine aasta', 'Järgmine aasta', 'Praegune aasta'] };
+const UNIT_STORE = 'keelesepp.financeMonth.unit';
+const unitAtStart = () => { try { const saved = globalThis.localStorage?.getItem(UNIT_STORE); return PERIOD_UNITS.some((item) => item.id === saved) ? saved : 'month'; } catch { return 'month'; } };
 const STATUS = FINANCE_STATUS_LABELS;
 // „check” (Kontroll, admin): invoices against payment records and the bank (owner 2026-10-15)
 const VIEWS = ['invoices', 'paid', 'unpaid', 'credits', 'prepare', 'check'];
@@ -121,6 +127,8 @@ export default function FinanceMonthPage({
   const location = useLocation();
   const navigate = useNavigate();
   const canManage = hasAnyRole(user.roles, [ROLES.ADMIN]);
+  // „FIE” (owner 2026-11-09): the owner's own FIE invoices, apart from every company figure on this page
+  const isOwner = useIsOwner();
   // „Sisemine märkus” of an invoice: administrator and bookkeeper (the rules allow exactly these two)
   const canNote = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.FINANCE]);
   const state = useFinanceData({ canManageFinance: canManage, invoiceRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, creditNoteRepository, auditRepository });
@@ -132,6 +140,13 @@ export default function FinanceMonthPage({
   // invoices looked gone); preparing invoices opens on the billing month
   const [month, setMonth] = useState(() => (new globalThis.URLSearchParams(location.search).get('view') === 'prepare' ? defaultBillingMonth() : currentMonth()));
   const preparedMonthSet = useRef(false);
+  // „Kuu / Kvartal / Aasta” (owner 2026-11-09, Stripe overview): the overview and the list show the period that holds `month`;
+  // preparing invoices keeps working on `month` itself
+  const [unit, setUnit] = useState(unitAtStart);
+  const range = useMemo(() => periodRange(unit, month), [unit, month]);
+  const rangeLabel = periodLabel(range);
+  const [today] = useState(() => new Date());
+  const chooseUnit = (next) => { setUnit(next); try { globalThis.localStorage?.setItem(UNIT_STORE, next); } catch { /* private mode */ } };
   const [status, setStatus] = useState(() => new globalThis.URLSearchParams(location.search).get('status') || 'all');
   const [activeView, setActiveView] = useState(() => {
     const params = new globalThis.URLSearchParams(location.search);
@@ -192,9 +207,19 @@ export default function FinanceMonthPage({
   const noteWarning = ({ noteError } = {}) => (noteError ? ` Sisemist märkust ei saanud salvestada (${noteError}) — lisa see arvete nimekirjas märkuse ikoonist.` : '');
 
   const invoices = useMemo(() => state.data?.invoices || [], [state.data?.invoices]);
+  // the month's invoice preparation must know the owner's FIE invoices too (a card billed through the FIE this month
+  // is not offered again); every other figure on this page stays company-only
+  const [fieInvoices, setFieInvoices] = useState([]);
+  useEffect(() => {
+    if (!isOwner || !invoiceRepository.listFie) return undefined;
+    let live = true;
+    invoiceRepository.listFie().then((list) => { if (live) setFieInvoices(list); }).catch(() => {});
+    return () => { live = false; };
+  }, [isOwner, invoiceRepository, state.data?.invoices]);
+  const billingInvoices = useMemo(() => (fieInvoices.length ? [...invoices, ...fieInvoices] : invoices), [invoices, fieInvoices]);
   // the note's text joins the search (staff only: it is never written onto the invoice)
-  const monthInvoices = useMemo(() => filterFinanceRows(invoices, { month }).filter((invoice) => invoice.status !== 'Tühistatud')
-    .map((invoice) => (notes.get(invoice.id)?.text ? { ...invoice, internalNote: notes.get(invoice.id).text } : invoice)), [invoices, month, notes]);
+  const monthInvoices = useMemo(() => periodInvoices(invoices, range)
+    .map((invoice) => (notes.get(invoice.id)?.text ? { ...invoice, internalNote: notes.get(invoice.id).text } : invoice)), [invoices, range, notes]);
   const summary = useMemo(() => summarizeFinanceRows(monthInvoices), [monthInvoices]);
   const rows = useMemo(() => sortFinanceRows(filterFinanceRows(monthInvoices.filter((invoice) => {
     const row = financeRowState(invoice);
@@ -206,7 +231,7 @@ export default function FinanceMonthPage({
   // those students owes (held after the packages were used up), shown on the student's newest token invoice
   const [tokenUsage, setTokenUsage] = useState({ packages: {}, owed: {} });
   // from the invoices, not monthInvoices: the notes arriving a moment later must not repeat these reads
-  const tokenInvoices = useMemo(() => filterFinanceRows(invoices, { month }).filter((invoice) => invoice.status !== 'Tühistatud' && invoice.billingMode === 'lesson_tokens_v1'), [invoices, month]);
+  const tokenInvoices = useMemo(() => periodInvoices(invoices, range).filter((invoice) => invoice.billingMode === 'lesson_tokens_v1'), [invoices, range]);
   useEffect(() => {
     if (!tokenInvoices.length || !tokensRepository?.packagesForInvoices) return undefined;
     let alive = true;
@@ -229,7 +254,8 @@ export default function FinanceMonthPage({
     });
     return new Set(Object.entries(newest).map(([studentId, invoice]) => `${invoice.id}|${studentId}`));
   }, [monthInvoices]);
-  const creditTotal = (state.data?.credits || []).reduce((sum, credit) => sum + creditAvailableCents(credit), 0);
+  const openCredits = (state.data?.credits || []).filter((credit) => creditAvailableCents(credit) > 0);
+  const creditTotal = openCredits.reduce((sum, credit) => sum + creditAvailableCents(credit), 0);
 
   const selectView = (view, scroll = false) => {
     setActiveView(view);
@@ -251,6 +277,13 @@ export default function FinanceMonthPage({
   const showIssuedInvoices = () => {
     selectView('invoices', true);
   };
+  // a card's „Vaata”: the list under the cards, optionally with a status filter (Üle tähtaja → overdue)
+  const openView = (view, withStatus) => { selectView(view, true); if (withStatus) setStatus(withStatus); };
+  // a row opens the invoice in the side drawer; a page without the drawer (tests, the lab) opens its PDF instead
+  const openInvoice = (invoice) => { if (!openDrawer({ kind: 'invoice', invoiceId: invoice.id })) openInvoiceForPrint(invoice); };
+  const [previousName, nextName, nowName] = UNIT_NAMES[unit] || UNIT_NAMES.month;
+  const nowAnchor = currentMonth();
+  const showingNow = periodRange(unit, nowAnchor).from === range.from;
 
   const announce = (value) => { setMessage(value); setError(''); };
   // lesson tokens: the paid package invoice → the card gets its lessons (the server checks the payment, once only)
@@ -309,53 +342,62 @@ export default function FinanceMonthPage({
     <div className="page-content finance-month-page">
       {state.loading ? <p className="page-refreshing" role="status">Uuendan andmeid…</p> : null}
       {showPrivacyBanner ? <PricePrivacyBanner /> : null}
-      <header className="finance-month-hero">
-        <div><span className="eyebrow">Finantsid</span><h1>Kuu arveldus</h1><p>Koosta arved, jälgi laekumisi ja lahenda erandid ühes vaates.</p></div>
-        <div className="finance-month-hero__actions"><Button variant="secondary" onClick={showIssuedInvoices}><ReceiptText size={17} /> Väljastatud arved <span className="finance-month-hero__count">{summary.count}</span></Button><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link>{canManage ? <Link className="button button--secondary" to="/finance/raamatupidamine"><BookOpen size={17} /> Raamatupidamine</Link> : null}{canManage ? <Link className="button button--secondary" to="/finance/inf3">INF 3</Link> : null}{canManage ? <Link className="button button--secondary" to="/finance/payroll"><WalletCards size={17} /> Palgad</Link> : null}<Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog studentCards={state.data.students} notesRepository={noteRepository} onCreated={async (invoice, extra = {}) => { rememberNote(invoice, extra); announce(`Arve loodi.${noteWarning(extra)}`); await state.reload(); }} /> : null}{canManage ? <TokenInvoiceDialog studentCards={state.data.students} plans={state.data.plans} notesRepository={noteRepository} onCreated={async (invoice, extra = {}) => { rememberNote(invoice, extra); announce(`${tokenInvoiceCreatedMessage(invoice)}${noteWarning(extra)}`); await state.reload(); }} /> : null}</div>
+      <header className="fm-header">
+        <div className="fm-header__title"><span className="eyebrow">Finantsid</span><h1>Ülevaade</h1><p>Arved, laekumised ja võlad ühes vaates.</p></div>
+        <div className="fm-header__actions">{canManage ? <TokenInvoiceDialog studentCards={state.data.students} plans={state.data.plans} notesRepository={noteRepository} onCreated={async (invoice, extra = {}) => { rememberNote(invoice, extra); announce(`${tokenInvoiceCreatedMessage(invoice)}${noteWarning(extra)}`); await state.reload(); }} /> : null}{canManage ? <ManualInvoiceDialog studentCards={state.data.students} notesRepository={noteRepository} onCreated={async (invoice, extra = {}) => { rememberNote(invoice, extra); announce(`Arve loodi.${noteWarning(extra)}`); await state.reload(); }} /> : null}</div>
       </header>
-
-      {/* „Ülevaade” (owner 2026-10-26): what the calendar's lessons earn — held and planned, not the invoices — administrators */}
-      {canManage ? <FinanceDashboard user={user} plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
-      {/* money actually in and out, margin and debt age (audit 2026-11-09: it lived only in „Vana vaade”); built on demand */}
-      {canManage && financeRepository.previewFinancialAnalytics ? <details className="finance-month-cash"><summary>Raha liikumine: laekumised, kulud, marginaal ja võlgade vanus</summary><FinancialAnalyticsPanel onPreview={(chosen) => financeRepository.previewFinancialAnalytics(chosen)} onOpenInvoice={(invoiceId) => { const found = invoices.find((item) => item.id === invoiceId); if (found) openInvoiceForPrint(found); }} /></details> : null}
-
-      <div className="finance-month-switcher">
-        <Button variant="secondary" aria-label="Eelmine kuu" onClick={() => setMonth(shiftMonth(month, -1))}><ArrowLeft size={17} /></Button>
-        <Input label="Arvelduskuu" type="month" value={month} onChange={(event) => setMonth(event.target.value)} />
-        <Button variant="secondary" aria-label="Järgmine kuu" onClick={() => setMonth(shiftMonth(month, 1))}><ArrowRight size={17} /></Button>
-      </div>
+      <nav className="fm-links" aria-label="Finantside lehed">
+        <button type="button" className="fm-link" onClick={showIssuedInvoices}><ReceiptText size={16} aria-hidden="true" /> Väljastatud arved <span className="fm-link__count">{summary.count}</span></button>
+        <Link className="fm-link" to="/finance/seaded"><Settings2 size={16} aria-hidden="true" /> Seaded</Link>
+        {canManage ? <Link className="fm-link" to="/finance/raamatupidamine"><BookOpen size={16} aria-hidden="true" /> Raamatupidamine</Link> : null}
+        {canManage ? <Link className="fm-link" to="/finance/inf3">INF 3</Link> : null}
+        {canManage ? <Link className="fm-link" to="/finance/payroll"><WalletCards size={16} aria-hidden="true" /> Palgad</Link> : null}
+        <Link className="fm-link" to="/finance/vana">Vana vaade</Link>
+      </nav>
 
       {message ? <div className="success-notice" role="status">{message}<button aria-label="Sulge teade" onClick={() => setMessage('')}>×</button></div> : null}
       {error && !paymentInvoice ? <div className="finance-month-alert" role="alert"><AlertTriangle size={18} />{error}</div> : null}
 
-      <section className="finance-month-metrics" role="tablist" aria-label="Finantside vaated">
+      <div className="fm-period" role="group" aria-label="Periood">
+        <div className="fm-seg" role="group" aria-label="Perioodi pikkus">{PERIOD_UNITS.map((item) => <button key={item.id} type="button" aria-pressed={unit === item.id} onClick={() => chooseUnit(item.id)}>{item.label}</button>)}</div>
+        <div className="fm-period__nav">
+          <button type="button" className="fm-icon" aria-label={previousName} onClick={() => setMonth(shiftPeriod(unit, month, -1))}><ChevronLeft size={18} /></button>
+          <span className="fm-period__label" aria-live="polite">{rangeLabel}</span>
+          <button type="button" className="fm-icon" aria-label={nextName} onClick={() => setMonth(shiftPeriod(unit, month, 1))}><ChevronRight size={18} /></button>
+        </div>
+        {showingNow ? null : <button type="button" className="fm-period__now" onClick={() => setMonth(nowAnchor)}>{nowName}</button>}
+      </div>
+
+      <FinanceOverview invoices={invoices} unit={unit} anchor={month} today={today} creditCents={creditTotal} creditCount={openCredits.length} onView={openView} />
+
+      <section className="fm-tabs" role="tablist" aria-label="Finantside vaated">
         {[
-          ['invoices', <ReceiptText size={18} />, 'Arveid', summary.count, `${money(summary.amountCents)} kokku`],
-          ['paid', <CheckCircle2 size={18} />, 'Laekunud', money(summary.paidCents), `${summary.byStatus.paid} täielikult makstud`],
-          ['unpaid', <Clock3 size={18} />, 'Laekumata', money(summary.balanceCents), `selle kuu arved · ${summary.byStatus.overdue} üle tähtaja`],
-          ['credits', <WalletCards size={18} />, 'Ette makstud', money(creditTotal), 'kantakse järgmisele arvele'],
-          ...(canManage ? [['prepare', <FilePlus2 size={18} />, 'Koosta arved', '', 'Kuuarvete ettevalmistus'], ['check', <ShieldCheck size={18} />, 'Kontroll', '', 'Arved ja maksed, pank']] : []),
-        ].map(([view, icon, label, value, caption], index) => <button key={view} ref={(node) => { tabRefs.current[index] = node; }} id={`finance-tab-${view}`} type="button" role="tab" aria-selected={activeView === view} aria-controls="finance-view-panel" tabIndex={activeView === view ? 0 : -1} className={`finance-month-metric ${['prepare', 'check'].includes(view) ? 'finance-month-metric--prepare' : ''}`} onClick={() => selectView(view)} onKeyDown={(event) => moveTab(event, index)}><span>{icon}{label}</span>{value !== '' ? <strong>{value}</strong> : null}<small>{caption}</small></button>)}
+          ['invoices', 'Arveid', formatCount(summary.count), `${money(summary.amountCents)} kokku`],
+          ['paid', 'Laekunud', money(summary.paidCents), `${summary.byStatus.paid} täielikult makstud`],
+          ['unpaid', 'Laekumata', money(summary.balanceCents), `${unit === 'month' ? 'selle kuu arved' : 'perioodi arved'} · ${summary.byStatus.overdue} üle tähtaja`],
+          ['credits', 'Ette makstud', money(creditTotal), 'kantakse järgmisele arvele'],
+          ...(canManage ? [['prepare', 'Koosta arved', '', 'Kuuarvete ettevalmistus'], ['check', 'Kontroll', '', 'Arved ja maksed, pank']] : []),
+        ].map(([view, label, value, caption], index) => <button key={view} ref={(node) => { tabRefs.current[index] = node; }} id={`finance-tab-${view}`} type="button" role="tab" aria-selected={activeView === view} aria-controls="finance-view-panel" tabIndex={activeView === view ? 0 : -1} className={`fm-tab ${['prepare', 'check'].includes(view) ? 'fm-tab--tool' : ''}`} onClick={() => selectView(view)} onKeyDown={(event) => moveTab(event, index)}><span className="fm-tab__label">{label}</span>{' '}{value !== '' ? <><strong className="fm-tab__value">{value}</strong>{' '}</> : null}<small>{caption}</small></button>)}
       </section>
 
       <section ref={viewRef} id="finance-view-panel" className="finance-month-view" role="tabpanel" aria-labelledby={`finance-tab-${activeView}`}>
-      {activeView === 'prepare' && canManage ? <MonthlyInvoicePanel students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} invoices={invoices} user={user} month={month} onMonthChange={setMonth} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} deliveryApi={deliveryRepository} onChanged={state.reload} {...monthlyInvoiceProps} /> : null}
+      {activeView === 'prepare' && canManage ? <MonthlyInvoicePanel students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} invoices={billingInvoices} user={user} month={month} onMonthChange={setMonth} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} deliveryApi={deliveryRepository} onChanged={state.reload} {...monthlyInvoiceProps} /> : null}
 
       {activeView === 'check' && canManage ? <PaymentCheckPanel invoices={invoices} transactions={state.data.bankTransactions || []} students={state.data.students} financeRepository={financeRepository} {...(paymentRepository ? { paymentRepository } : {})} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onOpenCredits={() => selectView('credits', true)} onNotice={announce} tab={checkTab} onTabChange={setCheckTab} /> : null}
 
       {activeView === 'credits' ? (canManage ? <AdvanceManagementPanel credits={state.data.credits || []} refunds={state.data.refunds || []} invoices={invoices} onApply={(creditId, invoiceId, amount, note) => financeRepository.applyPayerCredit(creditId, invoiceId, amount, note)} onRefund={(creditId, refund) => financeRepository.refundPayerCredit(creditId, refund)} onReload={state.reload} /> : <Card><EmptyState title="Ettemaksude haldamine" description="See vaade on administraatorile." /></Card>) : null}
 
       {['invoices', 'paid', 'unpaid'].includes(activeView) ? <Card className="finance-month-ledger">
-        <div className="finance-month-ledger__heading"><div><span className="eyebrow">{activeView === 'invoices' ? 'Arved' : activeView === 'paid' ? 'Laekunud' : 'Laekumata'}</span><h2>{activeView === 'invoices' ? 'Kuu arved ja maksed' : activeView === 'paid' ? 'Laekunud maksetega arved' : 'Kuu tasumata arved'}</h2></div><span>{rows.length} kirjet</span></div>
+        <div className="finance-month-ledger__heading"><div><span className="eyebrow">{activeView === 'invoices' ? 'Arved' : activeView === 'paid' ? 'Laekunud' : 'Laekumata'}</span><h2>{activeView === 'invoices' ? (unit === 'month' ? 'Kuu arved ja maksed' : 'Perioodi arved ja maksed') : activeView === 'paid' ? 'Laekunud maksetega arved' : (unit === 'month' ? 'Kuu tasumata arved' : 'Perioodi tasumata arved')}</h2></div><span>{rangeLabel} · {rows.length} kirjet</span></div>
         <div className="finance-month-filters">
           <Input label="Otsi" type="search" placeholder="Õpilane, maksja, arve number või märkus" value={query} onChange={(event) => setQuery(event.target.value)} icon={<Search size={17} />} />
           {activeView !== 'paid' ? <Select label="Olek" value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">Kõik olekud</option>{Object.entries(STATUS).filter(([value]) => activeView === 'invoices' || ['unpaid', 'partial', 'overdue', 'email-failed', 'no-show'].includes(value)).map(([value, [label]]) => <option key={value} value={value}>{label}</option>)}</Select> : null}
         </div>
-        {!rows.length ? <EmptyState title={activeView === 'paid' ? 'Laekunud makseid ei ole' : activeView === 'unpaid' ? 'Selle kuu võlgnevusi ei ole' : 'Selle kuu arveid ei ole'} description={activeView === 'invoices' ? 'Koosta arved eraldi vaates või vali teine kuu.' : 'Vali teine kuu või muuda filtrit.'} /> : <div className="finance-month-table" role="table" aria-label={`Arved ${month}`}>
-          <div className="finance-month-table__head" role="row"><span>Õpilane</span><span>Arve</span><span>Tähtaeg</span><span>Summa</span><span>Jääk</span><span>Olek</span><span>Tegevused</span></div>
+        {!rows.length ? <EmptyState title={activeView === 'paid' ? 'Laekunud makseid ei ole' : activeView === 'unpaid' ? 'Selle kuu võlgnevusi ei ole' : 'Selle kuu arveid ei ole'} description={activeView === 'invoices' ? 'Koosta arved eraldi vaates või vali teine kuu.' : 'Vali teine kuu või muuda filtrit.'} /> : <div className="finance-month-table" role="table" aria-label={`Arved ${unit === 'month' ? month : rangeLabel}`}>
+          <div className="finance-month-table__head" role="row"><span>Õpilane</span><span>Arve</span><span>Tähtaeg</span><span className="fm-num">Summa</span><span className="fm-num">Jääk</span><span>Olek</span><span>Tegevused</span></div>
           {rows.map((invoice) => { const row = financeRowState(invoice); const [label, tone] = STATUS[row.status]; return <div className="finance-month-table__row" role="row" key={invoice.id} data-entity="invoice" data-invoice-id={invoice.id} data-invoice-number={invoice.num || invoice.number || invoice.invoiceNumber || undefined} data-student-id={invoice.studentId || undefined} data-entity-title={[invoice.studentName || invoice.payerName, invoice.num || invoice.number || invoice.invoiceNumber].filter(Boolean).join(' · ') || undefined}>
-            <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{[invoice.subject, invoiceShownEmail(invoice)].filter(Boolean).join(' · ')}</small>{invoice.billingMode === 'lesson_tokens_v1' ? tokenInvoiceUsageLines(invoice, tokenUsage.packages[invoice.id], { owed: tokenUsage.owed[invoice.studentId] || 0, showOwed: newestTokenInvoice.has(`${invoice.id}|${invoice.studentId}`), owedBy: tokenUsage.owed, showOwedFor: (studentId) => newestTokenInvoice.has(`${invoice.id}|${studentId}`) }).map((line) => <small key={line} className="finance-tokens">{line}</small>) : null}{noteText(invoice) ? <small className="finance-note-line" title={noteText(invoice)}>Märkus: {noteText(invoice)}</small> : null}{canNote && invoice.accountingExcluded === true ? <small className="finance-note-line" title={invoice.accountingExcludedReason || ''}>Ei kuulu raamatupidamisse</small> : null}</span>
-            <span><span className="finance-month-table__num">{invoice.num || invoice.number || invoice.invoiceNumber || '—'}{canNote ? <InvoiceNoteButton invoice={invoice} note={notes.get(invoice.id)} onOpen={(item) => { setError(''); setNoteInvoice(item); }} /> : null}{canNote ? <InvoiceAccountingButton invoice={invoice} onOpen={setAccountingInvoice} /> : null}</span></span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span className="finance-month-table__state"><Badge tone={tone}>{label}</Badge>{(() => { const mail = invoiceEmailLine(invoice); return <small className={`finance-mail finance-mail--${mail.tone}`} title={mail.title || undefined}>✉ {mail.text}</small>; })()}</span>
+            <span><button type="button" className="fm-row-open" onClick={() => openInvoice(invoice)} title="Ava arve">{invoice.studentName || invoice.payerName || '—'}</button><small>{[invoice.subject, invoiceShownEmail(invoice)].filter(Boolean).join(' · ')}</small>{invoice.billingMode === 'lesson_tokens_v1' ? tokenInvoiceUsageLines(invoice, tokenUsage.packages[invoice.id], { owed: tokenUsage.owed[invoice.studentId] || 0, showOwed: newestTokenInvoice.has(`${invoice.id}|${invoice.studentId}`), owedBy: tokenUsage.owed, showOwedFor: (studentId) => newestTokenInvoice.has(`${invoice.id}|${studentId}`) }).map((line) => <small key={line} className="finance-tokens">{line}</small>) : null}{noteText(invoice) ? <small className="finance-note-line" title={noteText(invoice)}>Märkus: {noteText(invoice)}</small> : null}{canNote && invoice.accountingExcluded === true ? <small className="finance-note-line" title={invoice.accountingExcludedReason || ''}>Ei kuulu raamatupidamisse</small> : null}</span>
+            <span><span className="finance-month-table__num">{invoice.num || invoice.number || invoice.invoiceNumber || '—'}{canNote ? <InvoiceNoteButton invoice={invoice} note={notes.get(invoice.id)} onOpen={(item) => { setError(''); setNoteInvoice(item); }} /> : null}{canNote ? <InvoiceAccountingButton invoice={invoice} onOpen={setAccountingInvoice} /> : null}</span></span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span className="fm-num"><MoneyValue cents={row.amountCents} /></span><span className={`fm-num ${row.balanceCents ? 'fm-num--strong' : 'fm-num--zero'}`}><MoneyValue cents={row.balanceCents} /></span><span className="finance-month-table__state"><Badge tone={tone}>{label}</Badge>{(() => { const mail = invoiceEmailLine(invoice); return <small className={`finance-mail finance-mail--${mail.tone}`} title={mail.title || undefined}>✉ {mail.text}</small>; })()}</span>
             <span className="finance-month-table__actions">{canManage && invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus !== 'credited' && !row.balanceCents && row.status !== 'cancelled' ? <Button loading={actionBusy === `tokens-${invoice.id}`} data-entity-action="tokens" onClick={() => creditTokens(invoice)}>Lisa tunnid ({invoice.tokenCredits})</Button> : null}{canManage && row.balanceCents ? <Button variant="secondary" data-entity-action="payment" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} data-entity-action="print" onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} data-entity-action="send" onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.balanceCents > 0 && row.status !== 'cancelled' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} data-entity-action="remind" onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" data-entity-action="cancel" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
           </div>; })}
         </div>}
@@ -364,6 +406,12 @@ export default function FinanceMonthPage({
       {/* the bookkeeper: the same list, read-only (the home page's „overdue” link opened an empty month for her) */}
       {activeView === 'unpaid' && !canManage && canNote ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} /> : null}
       </section>
+
+      {/* more analysis, below the list: „Tulu ja prognoos” counts the calendar's lessons (owner 2026-10-26, administrators);
+          „Raha liikumine” is built on demand by the server (audit 2026-11-09); the owner's FIE block stays out of every company figure */}
+      {canManage ? <FinanceDashboard user={user} plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
+      {canManage && financeRepository.previewFinancialAnalytics ? <details className="finance-month-cash"><summary>Raha liikumine: laekumised, kulud, marginaal ja võlgade vanus</summary><FinancialAnalyticsPanel onPreview={(chosen) => financeRepository.previewFinancialAnalytics(chosen)} onOpenInvoice={(invoiceId) => { const found = invoices.find((item) => item.id === invoiceId); if (found) openInvoiceForPrint(found); }} /></details> : null}
+      {isOwner ? <details className="finance-month-cash"><summary>FIE arved (ainult sulle, ettevõtte arvestusest väljas)</summary><FiePanel month={month} invoiceRepository={invoiceRepository.listFie ? invoiceRepository : invoicesService} /></details> : null}
       <PaymentDialog key={paymentInvoice?.id ? `pay-${paymentInvoice.id}` : 'pay-closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} overpaymentQuestion={overpaymentQuestion} onDismissOverpayment={() => setOverpaymentQuestion('')} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); setOverpaymentQuestion(''); } }} onSubmit={recordPayment} />
       <CancelInvoiceDialog key={cancelInvoice?.id ? `cancel-${cancelInvoice.id}` : 'cancel-closed'} invoice={cancelInvoice} busy={cancelBusy} error={cancelInvoice ? error : ''} onClose={() => { if (!cancelBusy) { setCancelInvoice(null); setError(''); } }} onSubmit={confirmCancellation} />
       {noteInvoice ? <InvoiceNoteDialog key={`note-${noteInvoice.id}`} invoice={noteInvoice} note={notes.get(noteInvoice.id)} onClose={() => setNoteInvoice(null)} onSave={saveNote} /> : null}

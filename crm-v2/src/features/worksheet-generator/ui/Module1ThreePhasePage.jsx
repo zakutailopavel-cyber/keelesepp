@@ -92,7 +92,7 @@ export default function Module1ThreePhasePage({ repository = lessonWorksheetsSer
   if (loading) return <LoadingState label="Kontrollin mooduli 1 töölehti…" />;
 
   return (
-    <div className="page-stack">
+    <div className="page-stack" data-theme-scope="light">
       <PageHeader
         eyebrow="Õppevara · Eesti keel B1"
         title="Moodul 1 · Avasta + Harjuta + Kasuta"

@@ -18,8 +18,11 @@ import { loadWordsForLessons } from './lessonWords.js';
 import { isDue, sameWord } from './wordsModel.js';
 import { useStudentWords } from './useStudentWords.js';
 import { dailyPlan } from './dailyReview.js';
+import { nextReviewAt } from './srs.js';
+import { formatWhen } from './cardFace.js';
 import DailyReminder from './DailyReminder.jsx';
 import OwnWordsCard from './OwnWordsCard.jsx';
+import { useWordAudio, WORD_AUDIO_CREDIT } from './wordAudio.js';
 import './vocabulary.css';
 
 /**
@@ -52,6 +55,7 @@ export default function VocabularyPage({
   const [open, setOpen] = useState(null);
   const [level, setLevel] = useState('');
   const [notice, setNotice] = useState('');
+  const storedAudio = useWordAudio();
   const reviewed = useRef(new Set());
 
   const catalog = state.data?.catalog;
@@ -70,16 +74,19 @@ export default function VocabularyPage({
   const byLesson = useMemo(() => lessonDecks(words), [words]);
   const dueDeck = useMemo(() => deckFromWords(words.filter((word) => isDue(word))), [words]);
   // „Päeva 5 minutit”: one button, about ten cards (dailyReview.js); `?paev=1` (from the home page) starts it at once
+  // „Täna kordamiseks” (2026-11-09): the spaced repetition queue (srs.js) — due words, then new ones up to the daily cap
   const daily = useMemo(() => dailyPlan(words), [words]);
-  const openDaily = () => setOpen({ key: 'daily', title: 'Päeva 5 minutit', lessonId: '', deck: daily.deck, mode: daily.deck.length >= 4 ? 'learn' : 'cards' });
+  const nextDueAt = useMemo(() => nextReviewAt(words), [words]);
+  const language = students[0]?.preferredLanguage || '';
+  const openDaily = () => setOpen({ key: 'daily', title: 'Täna kordamiseks', lessonId: '', deck: daily.deck, queue: daily.cards, mode: 'cards' });
   const [params, setParams] = useSearchParams();
   const startedDaily = useRef(false);
   useEffect(() => {
-    if (params.get('paev') !== '1' || startedDaily.current || daily.deck.length < 2) return;
+    if (params.get('paev') !== '1' || startedDaily.current || !daily.count) return;
     startedDaily.current = true;
     openDaily();
     setParams((current) => { const next = new globalThis.URLSearchParams(current); next.delete('paev'); return next; }, { replace: true });
-  }, [params, daily.deck.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [params, daily.count]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openLesson = async (lesson) => {
     setNotice('');
@@ -92,11 +99,21 @@ export default function VocabularyPage({
     }
   };
 
-  // own words move in their Leitner boxes once per session; course cards are practice only
-  const onResult = async (card, knew) => {
-    if (!card.word || preview || reviewed.current.has(card.id)) return;
-    reviewed.current.add(card.id);
-    try { await wordsService.review(card.word, knew); } catch { /* the practice goes on */ }
+  // own words move on their spaced repetition schedule; course cards are practice only. The quiz modes count the first
+  // answer per word and direction in a session; the flashcards save every answer (the learning steps live on the word).
+  const latest = (word) => words.find((item) => item.id === word.id) || word;
+  const onResult = async (card, knew, dir = 'r') => {
+    const key = `${card.id}:${dir}`;
+    if (!card.word || preview || reviewed.current.has(key)) return;
+    reviewed.current.add(key);
+    try { await wordsService.review(latest(card.word), knew, dir); } catch { /* the practice goes on */ }
+  };
+  const onRate = async (item, rating, nextSide) => {
+    if (!item.word || preview) return;
+    try {
+      if (typeof wordsService.rate === 'function') await wordsService.rate(latest(item.word), { direction: item.dir, rating, nextSide });
+      else await wordsService.review(latest(item.word), rating !== 'again', item.dir);
+    } catch { /* the practice goes on */ }
   };
   const addMissed = async (cards) => {
     const studentId = students[0]?.id;
@@ -121,19 +138,22 @@ export default function VocabularyPage({
         <Card>
           {open.loading ? <LoadingState label="Laen tunni sõnu…" />
             : open.error ? <ErrorState message={open.error} onRetry={() => openLesson(catalog.byId.get(open.lessonId))} />
-              : open.deck.length < 2 ? <EmptyState title="Selles tunnis sõnu veel ei ole" description="Vali mõni teine tund." action={<button type="button" className="vw-btn" onClick={() => setOpen(null)}>Tagasi</button>} />
-                : <StudySession key={open.key || open.lessonId || 'mine'} initialMode={open.mode || ''} deck={open.deck} title={open.title} onResult={onResult} onAddMissed={preview ? undefined : addMissed} onBack={() => setOpen(null)} />}
+              : open.deck.length < (open.queue ? 1 : 2) ? <EmptyState title="Selles tunnis sõnu veel ei ole" description="Vali mõni teine tund." action={<button type="button" className="vw-btn" onClick={() => setOpen(null)}>Tagasi</button>} />
+                : <StudySession key={open.key || open.lessonId || 'mine'} initialMode={open.mode || ''} deck={open.deck} queue={open.queue || null} title={open.title} language={language} nextDueAt={nextDueAt}
+                  onResult={onResult} onRate={onRate} onAddMissed={preview ? undefined : addMissed} onBack={() => setOpen(null)} />}
         </Card>
       ) : (
         <div className="vocabulary-decks">
           <section className="vd-hero" aria-label="Täna">
             <div>
               <span className="eyebrow">Täna</span>
-              <h2>{daily.done ? 'Tänased 5 minutit on tehtud!' : daily.count >= 2 ? `Päeva 5 minutit: ${daily.count} kaarti` : myDeck.length ? 'Kõik sõnad on korratud' : 'Alusta tundide sõnadest'}</h2>
-              <p>{daily.count >= 2 && !daily.done ? [daily.forgotten ? `${daily.forgotten} ununeb` : '', daily.fresh ? `${daily.fresh} uut` : '', 'ülejäänud on kordamise aeg'].filter(Boolean).join(' · ') : daily.done ? 'Tubli! Homme ootavad uued kaardid.' : myDeck.length ? 'Tubli! Harjuta veel või vali tunni sõnad allpool.' : 'Vali allpool tund ja õpi selle sõnu.'}</p>
+              <h2>{daily.count ? `Täna kordamiseks: ${daily.count}` : daily.done ? 'Tänane kordamine on tehtud!' : myDeck.length ? 'Kõik sõnad on korratud' : 'Alusta tundide sõnadest'}</h2>
+              <p>{daily.count ? [daily.due ? `${daily.due} kordamist` : '', daily.fresh ? `${daily.fresh} uut` : '', daily.forgotten ? `${daily.forgotten} ununeb` : ''].filter(Boolean).join(' · ')
+                : myDeck.length ? [daily.done ? 'Tubli!' : '', nextDueAt ? `Järgmine kordamine: ${formatWhen(nextDueAt)}.` : 'Harjuta veel või vali tunni sõnad allpool.'].filter(Boolean).join(' ')
+                  : 'Vali allpool tund ja õpi selle sõnu.'}</p>
             </div>
-            {daily.count >= 2 && !daily.done ? <button type="button" className="vd-hero__go" onClick={openDaily}><Play size={18} /> Alusta</button>
-              : dueDeck.length >= 2 ? <button type="button" className="vd-hero__go" onClick={() => setOpen({ key: 'due', title: 'Tänased sõnad', lessonId: '', deck: dueDeck, mode: dueDeck.length >= 4 ? 'learn' : 'cards' })}><Play size={18} /> Korda nüüd</button>
+            {daily.count ? <button type="button" className="vd-hero__go" onClick={openDaily}><Play size={18} /> Alusta</button>
+              : dueDeck.length >= 2 ? <button type="button" className="vd-hero__go" onClick={() => setOpen({ key: 'due', title: 'Tänased sõnad', lessonId: '', deck: dueDeck, mode: 'cards' })}><Play size={18} /> Korda nüüd</button>
               : myDeck.length >= 2 ? <button type="button" className="vd-hero__go is-soft" onClick={() => setOpen({ key: 'all', title: 'Minu sõnad', lessonId: '', deck: myDeck, mode: 'match' })}><Play size={18} /> Mängi paare</button> : null}
           </section>
           {!preview && myDeck.length ? <DailyReminder /> : null}
@@ -183,6 +203,7 @@ export default function VocabularyPage({
               </details>
             )) : <EmptyState title="Kursuse tunde ei leitud" />}
           </Card>
+          {storedAudio ? <p className="vd-credit">{WORD_AUDIO_CREDIT}</p> : null}
         </div>
       )}
     </div>

@@ -235,7 +235,9 @@ const NONE = Object.freeze({ kind: "none", confidence: "none", reason: "" });
 //   "likely" | "none", reason, … }. Only "sure" is executed without a person (docs: the invoice number is in the
 // explanation, the bank's archive code is already in the CRM, or a typed payment of exactly this amount on that
 // invoice). The rest is a suggestion in „Kinnita vasted”.
-function matchLine(line, { invoices = [], payments = [], bankTransactions = [], purchaseInvoices = [], refunds = [], memory = new Map(), takenPaymentIds = new Set() } = {}) {
+function matchLine(line, { invoices: allInvoices = [], payments = [], bankTransactions = [], purchaseInvoices = [], refunds = [], memory = new Map(), takenPaymentIds = new Set() } = {}) {
+  // a line of the company account never pays an FIE invoice (the owner's own sole proprietorship, owner 2026-11-09)
+  const invoices = allInvoices.filter((inv) => inv.issuer !== "fie");
   if (line.currency && line.currency !== "EUR") return { ...NONE, reason: `valuuta ${line.currency}` };
   if (line.direction === "D") return matchOutgoing(line, { purchaseInvoices, refunds, takenPaymentIds });
 

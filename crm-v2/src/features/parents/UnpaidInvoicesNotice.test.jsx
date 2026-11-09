@@ -84,7 +84,7 @@ describe('UnpaidInvoicesNotice · „Arve PDF” and „Maksin ära” (owner 20
     fireEvent.change(within(form).getByLabelText(/Märkus/), { target: { value: 'LHV 08.11' } });
     fireEvent.click(within(form).getByRole('button', { name: 'Saada teade' }));
     expect(await screen.findByText('Teade saadetud, kontrollime')).toBeInTheDocument();
-    expect(claims.create).toHaveBeenCalledWith('i130', 'LHV 08.11');
+    expect(claims.create).toHaveBeenCalledWith('i130', 'LHV 08.11', undefined, expect.objectContaining({ id: 'i130' }));
     expect(screen.queryByRole('button', { name: /Maksin ära/ })).toBeNull();
     // still in the list as unpaid; the card payment is not offered again to avoid paying twice
     expect(screen.getByRole('region', { name: 'Tasumata arved' })).toHaveTextContent('Arve ootab tasumist · KS-2026-130');

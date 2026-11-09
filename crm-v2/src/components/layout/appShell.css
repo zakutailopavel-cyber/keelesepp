@@ -12,3 +12,14 @@
 
 /* a student's menu: one line under each item says what it is for */
 .nav-hint { display: block; margin-top: 1px; font-size: .72rem; font-weight: 400; line-height: 1.2; opacity: .72; white-space: normal; }
+
+/* „Teema” (ThemeMenu.jsx): a small button beside „Logi välja”, the three choices open upwards over the side menu */
+.theme-menu { position: relative; }
+.sidebar .profile-chip__theme { width: 36px; height: 36px; background: transparent; border-color: rgba(255, 255, 255, .12); color: #fff; box-shadow: none; }
+.sidebar .profile-chip__theme:hover { background: rgba(255, 255, 255, .08); }
+.theme-menu__panel { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 30; display: grid; gap: 2px; min-width: 168px; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-md); }
+.theme-menu__title { padding: 4px 8px 6px; color: var(--muted); font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.theme-menu__option { display: flex; align-items: center; gap: 9px; min-height: 38px; padding: 0 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); font-weight: 600; text-align: left; }
+.theme-menu__option:hover { background: var(--surface-soft); }
+.theme-menu__option.is-active { background: var(--green-soft); color: var(--green-text); }
+.theme-menu__option:focus-visible { outline: none; box-shadow: var(--focus-ring); }

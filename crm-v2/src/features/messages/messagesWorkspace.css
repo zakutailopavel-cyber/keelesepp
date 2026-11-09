@@ -30,7 +30,7 @@
 }
 
 .message-metric strong {
-  color: var(--navy);
+  color: var(--navy-text);
   font-family: Manrope, sans-serif;
   font-size: 1.15rem;
   line-height: 1;
@@ -54,7 +54,7 @@
 }
 
 .conversation-list {
-  background: #f8fafb;
+  background: #f8fafb;background:light-dark(#f8fafb,#1a1f25);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -76,16 +76,16 @@
 }
 
 .conversation-list__top strong {
-  color: var(--navy);
+  color: var(--navy-text);
   font-size: 1rem;
 }
 
 .conversation-list__top > svg {
-  color: var(--green);
+  color: var(--green-text);
 }
 
 .conversation-list .search-field {
-  background: #fff;
+  background: var(--surface);
   margin-bottom: 10px;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .channel-filter button {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   color: var(--muted);
@@ -118,8 +118,8 @@
 }
 
 .channel-filter button:hover {
-  border-color: #b9d9cf;
-  color: var(--green);
+  border-color: #b9d9cf;border-color:light-dark(#b9d9cf,#1f4d42);
+  color: var(--green-text);
 }
 
 .channel-filter button.is-active {
@@ -129,10 +129,10 @@
 }
 
 .new-conversation {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  color: var(--navy);
+  color: var(--navy-text);
   min-height: 40px;
   margin-bottom: 12px;
   padding: 0 10px;
@@ -163,22 +163,22 @@
 }
 
 .conversation:hover {
-  background: #fff;
-  border-color: #e3ebe8;
+  background: var(--surface);
+  border-color: #e3ebe8;border-color:light-dark(#e3ebe8,#313a37);
 }
 
 .conversation.active {
-  background: #fff;
-  border-color: #cfe2dc;
+  background: var(--surface);
+  border-color: #cfe2dc;border-color:light-dark(#cfe2dc,#2b433d);
   box-shadow: 0 5px 14px rgba(25, 52, 65, .07);
 }
 
 .conversation-avatar {
   align-items: center;
-  background: linear-gradient(145deg, #e7f4f0, #d7eee7);
-  border: 1px solid #cae5dd;
+  background: linear-gradient(145deg, #e7f4f0, #d7eee7);background:linear-gradient(145deg, light-dark(#e7f4f0,#0a201b), light-dark(#d7eee7,#001e17));
+  border: 1px solid #cae5dd;border:1px solid light-dark(#cae5dd,#20453c);
   border-radius: 11px;
-  color: var(--green);
+  color: var(--green-text);
   display: inline-flex;
   flex: 0 0 auto;
   font-size: .74rem;
@@ -193,7 +193,7 @@
 }
 
 .conversation strong {
-  color: var(--navy);
+  color: var(--navy-text);
   display: block;
   font-size: .82rem;
   overflow: hidden;
@@ -232,7 +232,7 @@
 }
 
 .conversation-read {
-  color: #98a2b3;
+  color: var(--gray-400);
 }
 
 .channel-dot {
@@ -263,7 +263,7 @@
 }
 
 .chat-panel {
-  background: #fff;
+  background: var(--surface);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
@@ -285,13 +285,14 @@
 }
 
 .chat-panel > header strong {
-  color: var(--navy);
+  color: var(--navy-text);
   display: block;
 }
 
 .message-stream {
   background:
     linear-gradient(rgba(247, 250, 249, .9), rgba(247, 250, 249, .9)),
+    radial-gradient(circle at 20% 10%, rgba(24, 147, 111, .08), transparent 30%);background:linear-gradient(light-dark(rgba(247, 250, 249, .9),rgba(26,31,37,0.9)), light-dark(rgba(247, 250, 249, .9),rgba(26,31,37,0.9))),
     radial-gradient(circle at 20% 10%, rgba(24, 147, 111, .08), transparent 30%);
   display: flex;
   flex-direction: column;
@@ -302,8 +303,8 @@
 
 .message {
   align-self: flex-start;
-  background: #fff;
-  border: 1px solid #e1e8e5;
+  background: var(--surface);
+  border: 1px solid #e1e8e5;border:1px solid light-dark(#e1e8e5,#333b38);
   border-radius: 14px 14px 14px 4px;
   box-shadow: 0 4px 12px rgba(25, 52, 65, .05);
   max-width: min(72%, 680px);
@@ -312,13 +313,13 @@
 
 .message.own {
   align-self: flex-end;
-  background: #eaf6f2;
-  border-color: #cfe6de;
+  background: #eaf6f2;background:light-dark(#eaf6f2,#0d201b);
+  border-color: #cfe6de;border-color:light-dark(#cfe6de,#25433a);
   border-radius: 14px 14px 4px 14px;
 }
 
 .message > span {
-  color: var(--green);
+  color: var(--green-text);
   display: block;
   font-size: .68rem;
   font-weight: 800;
@@ -326,7 +327,7 @@
 }
 
 .message p {
-  color: var(--navy);
+  color: var(--navy-text);
   font-size: .84rem;
   line-height: 1.48;
   margin: 0;
@@ -343,7 +344,7 @@
 
 .message-composer {
   align-items: flex-end;
-  background: #fff;
+  background: var(--surface);
   border-top: 1px solid var(--border);
   display: grid;
   gap: 10px;
@@ -352,7 +353,7 @@
 }
 
 .message-composer textarea {
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--gray-300);
   border-radius: 11px;
   font: inherit;
   min-height: 48px;

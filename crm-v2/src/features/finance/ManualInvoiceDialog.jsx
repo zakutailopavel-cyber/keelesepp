@@ -6,6 +6,7 @@ import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
 import { base64DocumentBlob } from '../../services/firebase/paymentDocuments.js';
 import { INVOICE_NOTE_MAX, invoiceNotesService, saveCreationNote } from '../../services/firebase/invoiceNotes.js';
 import { invoicePayerPreview } from './invoicePayer.js';
+import IssuerSelect from './fie/IssuerSelect.jsx';
 
 function nextDueDate() {
   const now = new Date();
@@ -313,6 +314,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             onChange={(event) => setForm({ ...form, due: event.target.value })}
             required
           />
+          <IssuerSelect id="manual-invoice-issuer" value={form.issuer || ''} onChange={(issuer) => setForm({ ...form, issuer })} />
           <div className="field form-grid__wide">
             <label className="field__label" htmlFor="manual-invoice-note">Sisemine märkus</label>
             <textarea

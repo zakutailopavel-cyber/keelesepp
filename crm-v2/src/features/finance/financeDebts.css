@@ -1,23 +1,23 @@
 .finance-debts { padding: 0; overflow: hidden; }
 .finance-debts__heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 22px; padding: 24px 26px; }
 .finance-debts__heading h2 { margin: 4px 0 5px; }
-.finance-debts__heading p { margin: 0; color: #71807b; }
+.finance-debts__heading p { margin: 0; color: #71807b;color:light-dark(#71807b,#a9b0ad); }
 .finance-debts__heading > div:last-child { display: flex; align-items: center; gap: 12px; }
-.finance-debts__heading > div:last-child > strong { color: #9a3b31; font-size: 1.55rem; }
-.finance-debts__notice { margin: 0 26px 16px; color: #176553; font-weight: 700; }
+.finance-debts__heading > div:last-child > strong { color: #9a3b31;color:light-dark(#9a3b31,#fe9d8f); font-size: 1.55rem; }
+.finance-debts__notice { margin: 0 26px 16px; color: #176553;color:light-dark(#176553,#87d0ba); font-weight: 700; }
 .finance-debts__table { overflow-x: auto; }
 .finance-debts__head, .finance-debts__row { display: grid; grid-template-columns: minmax(170px,1.4fr) 120px 120px 100px 130px minmax(250px,1fr); gap: 12px; align-items: center; min-width: 980px; padding: 13px 26px; }
-.finance-debts__head { color: #73817d; background: #f5f7f5; font-size: .75rem; font-weight: 800; text-transform: uppercase; }
-.finance-debts__row { border-top: 1px solid #edf0ed; }
+.finance-debts__head { color: #73817d;color:light-dark(#73817d,#a9afad); background: #f5f7f5;background:light-dark(#f5f7f5,#191e24); font-size: .75rem; font-weight: 800; text-transform: uppercase; }
+.finance-debts__row { border-top: 1px solid #edf0ed;border-top:1px solid light-dark(#edf0ed,#2f363d); }
 .finance-debts__row small { display: block; margin-top: 3px; color: #81908b; }
 .finance-debts__row .button { min-height: 34px; padding: 7px 10px; font-size: .78rem; }
 .finance-bank-modal.modal { width: min(1180px, 96vw); }
 .finance-bank-modal .bank-reconciliation { border: 0; box-shadow: none; padding: 0; }
 .finance-debts__actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .finance-debts__credit-lines { display: grid; gap: 8px; margin: 16px 0; }
-.finance-debts__credit-lines p { margin: 0; color: #71807b; }
+.finance-debts__credit-lines p { margin: 0; color: #71807b;color:light-dark(#71807b,#a9b0ad); }
 .finance-debts__credit-lines label { display: block; }
-.finance-debts__credit-lines .finance-debts__credit-note { padding: 10px 12px; border-radius: var(--radius-md); background: #f5f7f5; }
+.finance-debts__credit-lines .finance-debts__credit-note { padding: 10px 12px; border-radius: var(--radius-md); background: #f5f7f5;background:light-dark(#f5f7f5,#191e24); }
 /* 375 px: each debt is a card — no sideways scrolling (PR #368) */
 @media (max-width: 680px) {
   .finance-debts__heading { align-items: stretch; flex-direction: column; padding: 20px 16px; }
@@ -26,35 +26,35 @@
   .finance-debts__head { display: none; }
   .finance-debts__row { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; gap: 12px; padding: 18px 16px; }
   .finance-debts__row > span:first-child, .finance-debts__actions { grid-column: 1 / -1; }
-  .finance-debts__row > span[data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; color: #73817d; font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+  .finance-debts__row > span[data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; color: #73817d;color:light-dark(#73817d,#a9afad); font-size: .72rem; font-weight: 800; text-transform: uppercase; }
   .finance-debts__actions .button { flex: 1 1 auto; justify-content: center; }
 }
 .finance-debts__whole-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.invoice-correction__summary { margin: 14px 0; padding: 12px 14px; border-radius: var(--radius-md); background: #f5f7f5; }
+.invoice-correction__summary { margin: 14px 0; padding: 12px 14px; border-radius: var(--radius-md); background: #f5f7f5;background:light-dark(#f5f7f5,#191e24); }
 .invoice-correction__summary ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; }
-.invoice-correction__hint { margin: 8px 0 0; color: #9a3b31; font-weight: 700; }
+.invoice-correction__hint { margin: 8px 0 0; color: #9a3b31;color:light-dark(#9a3b31,#fe9d8f); font-weight: 700; }
 .invoice-correction__confirm { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0; }
 /* age of the debts and the total per family (audit 2026-11-09) */
 .finance-debts__summary { display: grid; gap: 12px; padding: 0 26px 18px; }
 .finance-debts__ages { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.finance-debts__ages li { display: grid; gap: 2px; padding: 12px 14px; border-radius: var(--radius-lg); border: 1px solid #edf0ed; background: #f8faf9; }
-.finance-debts__ages li span { color: #73817d; font-size: .74rem; font-weight: 800; text-transform: uppercase; }
+.finance-debts__ages li { display: grid; gap: 2px; padding: 12px 14px; border-radius: var(--radius-lg); border: 1px solid #edf0ed;border:1px solid light-dark(#edf0ed,#2f363d); background: #f8faf9;background:light-dark(#f8faf9,#1a1f25); }
+.finance-debts__ages li span { color: #73817d;color:light-dark(#73817d,#a9afad); font-size: .74rem; font-weight: 800; text-transform: uppercase; }
 .finance-debts__ages li strong { font-size: 1.1rem; }
 .finance-debts__ages li small { color: #81908b; }
-.finance-debts__ages li.is-d60 { border-color: #f6d9a8; background: #fffaf0; }
-.finance-debts__ages li.is-older { border-color: #f3c1bb; background: #fff5f4; }
-.finance-debts__ages li.is-older strong { color: #9a3b31; }
+.finance-debts__ages li.is-d60 { border-color: #f6d9a8;border-color:light-dark(#f6d9a8,#4e3a14); background: #fffaf0;background:light-dark(#fffaf0,#251e0f); }
+.finance-debts__ages li.is-older { border-color: #f3c1bb;border-color:light-dark(#f3c1bb,#613733); background: #fff5f4;background:light-dark(#fff5f4,#271a19); }
+.finance-debts__ages li.is-older strong { color: #9a3b31;color:light-dark(#9a3b31,#fe9d8f); }
 .finance-debts__ages li.is-empty { opacity: .55; }
-.finance-debts__payers summary { cursor: pointer; font-weight: 800; color: #176553; padding: 6px 0; }
+.finance-debts__payers summary { cursor: pointer; font-weight: 800; color: #176553;color:light-dark(#176553,#87d0ba); padding: 6px 0; }
 .finance-debts__payers ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }
-.finance-debts__payers li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 9px 12px; border-radius: var(--radius-md); background: #f8faf9; }
+.finance-debts__payers li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 9px 12px; border-radius: var(--radius-md); background: #f8faf9;background:light-dark(#f8faf9,#1a1f25); }
 .finance-debts__payers li small { display: block; color: #81908b; }
-.finance-debts__payers li > span:nth-child(2) { color: #73817d; font-size: .8rem; }
+.finance-debts__payers li > span:nth-child(2) { color: #73817d;color:light-dark(#73817d,#a9afad); font-size: .8rem; }
 @media (max-width: 680px) { .finance-debts__summary { padding: 0 16px 16px; } .finance-debts__ages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* „Pere teatas „Maksin ära”” (owner 2026-11-09): a parent's notice, not a payment */
-.badge--warning { background: #fffaeb; color: #b54708; }
-.finance-debts__claims { display: grid; gap: 6px; margin: 0 26px 18px; padding: 12px 14px; border: 1px solid #fedf89; border-radius: var(--radius-xl); background: #fffcf5; }
+.badge--warning { background: var(--warning-soft); color: var(--warning-text); }
+.finance-debts__claims { display: grid; gap: 6px; margin: 0 26px 18px; padding: 12px 14px; border: 1px solid #fedf89;border:1px solid light-dark(#fedf89,#473a11); border-radius: var(--radius-xl); background: #fffcf5;background:light-dark(#fffcf5,#231f15); }
 .finance-debts__claims h3 { margin: 0; font-size: 1rem; }
 .finance-debts__claims p { margin: 0; color: var(--muted); font-size: .85rem; }
 .finance-debts__claims ul { display: grid; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }

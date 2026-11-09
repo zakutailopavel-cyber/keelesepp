@@ -100,7 +100,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
   };
 
   return (
-    <div className="page-stack">
+    <div className="page-stack" data-theme-scope="light">
       <PageHeader eyebrow="Õppevara · kursuse tootmine" title="Kursuse töölehed" description="Töölehed on kirjutatud koodis, läbivad kvaliteedikontrolli (konstruktori kontroll, taseme normid, vaheldus) ja avaldatakse tund haaval." />
       <Card>
         <h2 style={{ marginTop: 0 }}>Kursuse valmidus</h2>
