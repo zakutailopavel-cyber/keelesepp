@@ -1,9 +1,10 @@
 import { CalendarCheck } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
+import { onLessonMarked } from './lessonActions.js';
 import { olderUnmarked, unmarkedLessons } from './unmarkedLessons.js';
 import '../retention/retention.css';
 
@@ -22,6 +23,8 @@ export default function UnmarkedLessonsCard({ schedule = [], teacherUid = '', to
   const [done, setDone] = useState(() => new Set());
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  // marked in the side drawer (right-click → „Ava tund (siinsamas)”, owner 2026-11-09): the row goes away here too
+  useEffect(() => onLessonMarked((occurrenceId) => setDone((current) => new Set(current).add(occurrenceId))), []);
   const all = useMemo(() => (state.data ? unmarkedLessons({ schedule, lessons: state.data, today, teacherUid }) : []), [state.data, schedule, today, teacherUid]);
   const items = useMemo(() => all.filter((item) => !done.has(item.occurrenceId)), [all, done]);
   if (!items.length) return null;
@@ -45,9 +48,9 @@ export default function UnmarkedLessonsCard({ schedule = [], teacherUid = '', to
     <p className="form-hint">Viimase aasta tunnid{older ? `, neist ${older} vanemad kui 2 nädalat` : ''}. Märgi need — muidu ei näe õpilase edenemine, aruanded ega kuuarved neid.</p>
     {error ? <p className="form-error" role="alert">{error}</p> : null}
     <ul className="unmarked-list">
-      {items.slice(0, limit).map((item) => <li key={item.occurrenceId}>
+      {items.slice(0, limit).map((item) => <li key={item.occurrenceId} data-entity="lesson" data-schedule-id={item.id} data-date={item.occurrenceDate} data-student-id={item.studentId || undefined} data-entity-title={`${item.time ? `${item.time} · ` : ''}${item.studentName || 'Tund'}`}>
         <div><strong>{item.studentName || 'Õpilane'}</strong><small>{dayLabel(item.occurrenceDate)}{item.time ? ` · ${item.time}` : ''}{teacherUid ? '' : ` · ${item.teacher || 'Õpetaja'}`}</small></div>
-        <button type="button" className="button button--primary" disabled={Boolean(busy)} onClick={() => markHeld(item)}>{busy === item.occurrenceId ? 'Märgin…' : 'Toimunud'}</button>
+        <button type="button" className="button button--primary" data-entity-action="done" disabled={Boolean(busy)} onClick={() => markHeld(item)}>{busy === item.occurrenceId ? 'Märgin…' : 'Toimunud'}</button>
         <Link to={calendarLessonPath(item)}>Muu…</Link>
       </li>)}
     </ul>

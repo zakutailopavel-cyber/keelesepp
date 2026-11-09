@@ -16,9 +16,12 @@ import { hasAnyRole } from '../../utils/roles.js';
  *   - `press`: clicks the row's own button marked `data-entity-action="<press>"` (the row's existing handler runs —
  *     no new back-end operation), shown only when that button is there and enabled;
  *   - `copy(d, record)`: copies a text; `kind: 'rename' | 'archive' | 'restore'`: the student card's own service calls;
- *     `kind: 'drawer'`: the student's full card in the side drawer over the current page (StudentDrawer.jsx).
+ *     `kind: 'drawer'`: a panel in the side drawer over the current page (EntityDrawer.jsx) — `drawer` names it
+ *     (`student` the full card, `lesson` one calendar lesson, `invoice` one invoice; owner 2026-11-09); `to` is the
+ *     entity's own page, opened instead when no drawer is mounted.
  * `roles` (default: the type's roles) and the route's roles must both allow the user. `when(d, record)` hides an
- * action that does not apply. A new entity type is one entry here.
+ * action that does not apply; `notOn` (a RegExp of the current path) hides it on a page that already does the same
+ * thing in place. A new entity type is one entry here.
  */
 
 const enc = encodeURIComponent;
@@ -44,7 +47,7 @@ const backFrom = (ctx) => (String(ctx?.pathname || '').startsWith('/library/work
 
 const studentLinks = [
   // the card opens in the side drawer over this page (owner 2026-11-09); the full page stays one click away inside it
-  { id: 'student-card', label: 'Õpilase kaart (siinsamas)', icon: 'user', route: '/students/:studentId', when: (d) => Boolean(d.studentId), kind: 'drawer' },
+  { id: 'student-card', label: 'Õpilase kaart (siinsamas)', icon: 'user', route: '/students/:studentId', when: (d) => Boolean(d.studentId), kind: 'drawer', drawer: 'student', to: (d) => `/students/${enc(d.studentId)}` },
   { id: 'student-board', label: 'Ava tahvel', icon: 'board', route: '/board/:studentId', when: (d) => Boolean(d.studentId), to: (d) => `/board/${enc(d.studentId)}` },
   { id: 'student-write', label: 'Kirjuta õpilasele', icon: 'message', roles: STAFF, route: '/messages', when: (d) => Boolean(d.studentId), to: (d) => `/messages?student=${enc(d.studentId)}` },
 ];
@@ -57,7 +60,7 @@ export const ENTITY_TYPES = Object.freeze({
     title: (d, record) => record?.name || d.entityTitle || 'Õpilane',
     subtitle: (d, record) => (record ? [record.level, record.teacher, record.active === false ? 'arhiivis' : ''].filter(Boolean).join(' · ') : 'Laen…'),
     actions: [
-      { id: 'open', label: 'Ava kaart (siinsamas)', icon: 'user', route: '/students/:studentId', kind: 'drawer' },
+      { id: 'open', label: 'Ava kaart (siinsamas)', icon: 'user', route: '/students/:studentId', kind: 'drawer', drawer: 'student', to: (d) => `/students/${enc(d.studentId)}` },
       { id: 'open-page', label: 'Ava kaart eraldi lehel', icon: 'open', route: '/students/:studentId', to: (d) => `/students/${enc(d.studentId)}` },
       { id: 'rename', label: 'Nimeta ümber', icon: 'rename', kind: 'rename', needsRecord: true },
       { id: 'edit', label: 'Muuda andmeid', icon: 'edit', route: '/students/:studentId', to: (d) => `/students/${enc(d.studentId)}?edit=1` },
@@ -103,6 +106,9 @@ export const ENTITY_TYPES = Object.freeze({
     roles: STAFF,
     actions: [
       { id: 'open', label: 'Ava tund', icon: 'open', press: 'open' },
+      // the lesson in the side drawer from any list (owner 2026-11-09); the calendar has its own panel in place.
+      // A group lesson's attendance stays in the calendar (no student on the element).
+      { id: 'drawer', label: 'Ava tund (siinsamas)', icon: 'view', route: '/calendar', kind: 'drawer', drawer: 'lesson', notOn: /^\/calendar\/?$/, when: (d) => Boolean(d.scheduleId && d.date && d.studentId), to: (d) => `/calendar?lesson=${enc(`${d.scheduleId}:${d.date}|${d.date}`)}` },
       { id: 'done', label: 'Märgi toimunuks', icon: 'check', press: 'done' },
       ...studentLinks,
       { id: 'student-lessons', label: 'Õpilase tunnid kalendris', icon: 'calendar', route: '/calendar', when: (d) => Boolean(d.studentId), to: (d) => `/calendar?student=${enc(d.studentId)}` },
@@ -113,6 +119,8 @@ export const ENTITY_TYPES = Object.freeze({
     label: 'Arve',
     roles: FINANCE,
     actions: [
+      // the invoice, its payments and (administrator) its PDF and „Lisa makse” in the side drawer (owner 2026-11-09)
+      { id: 'drawer', label: 'Ava arve (siinsamas)', icon: 'view', route: '/finance', kind: 'drawer', drawer: 'invoice', when: (d) => Boolean(d.invoiceId), to: () => '/finance' },
       { id: 'payment', label: 'Lisa makse', icon: 'money', press: 'payment' },
       { id: 'tokens', label: 'Lisa paketi tunnid', icon: 'check', press: 'tokens' },
       { id: 'print', label: 'Prindi / PDF', icon: 'print', press: 'print' },
@@ -240,10 +248,10 @@ function allowed(action, type, roles, data) {
 
 /**
  * The actions a user may use on an entity, in menu order. `roles` are the user's roles; `record` the loaded
- * document (a student); `element` the marked element (for `press` actions); `ctx.pathname` the current page.
+ * document (a student); `element` the marked element (for `press` actions); `pathname` the current page (`notOn`).
  * A student / parent gets nothing (their pages keep the browser's menu).
  */
-export function actionsFor(typeName, roles = [], data = {}, { record = null, element = null } = {}) {
+export function actionsFor(typeName, roles = [], data = {}, { record = null, element = null, pathname = '' } = {}) {
   const type = ENTITY_TYPES[typeName];
   if (!type || !roles?.length) return [];
   if (!hasAnyRole(roles, type.roles)) return [];
@@ -252,6 +260,7 @@ export function actionsFor(typeName, roles = [], data = {}, { record = null, ele
     if (!allowed(action, type, roles, data)) return false;
     if (action.when && !action.when(data, record)) return false;
     if (action.press && element && !pressTarget(element, action.press)) return false;
+    if (action.notOn && pathname && action.notOn.test(pathname)) return false;
     return true;
   });
 }

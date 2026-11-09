@@ -1,0 +1,34 @@
+/* the student's card, a lesson, an invoice beside the work (owner 2026-11-09) */
+@keyframes entity-drawer-in { from { transform: translateX(32px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes entity-drawer-fade { from { opacity: 0; } to { opacity: 1; } }
+.entity-drawer { position: fixed; inset: 0; z-index: 90; display: flex; justify-content: flex-end; background: rgba(15, 23, 42, .32); animation: entity-drawer-fade .18s ease-out; }
+.entity-drawer__panel { width: min(560px, 94vw); height: 100%; display: flex; flex-direction: column; background: var(--surface-soft, #f6f8fb); box-shadow: -24px 0 60px rgba(15, 23, 42, .22); animation: entity-drawer-in .24s cubic-bezier(.2, .8, .2, 1); outline: none; }
+.entity-drawer__panel.is-wide { width: min(1080px, 94vw); }
+.entity-drawer__bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 22px; border-bottom: 1px solid var(--border, #dfe5ec); background: #fff; }
+.entity-drawer__bar strong { flex: 1; font-size: .95rem; }
+.entity-drawer__full { display: inline-flex; align-items: center; gap: 6px; color: var(--green, #087e6b); font-weight: 700; font-size: .86rem; text-decoration: none; padding: 8px 10px; border-radius: 10px; }
+.entity-drawer__full:hover { background: var(--green-soft, #e8f6f2); }
+.entity-drawer__close { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--border, #dfe5ec); border-radius: 11px; background: #fff; color: inherit; }
+.entity-drawer__close:hover { background: #f2f4f7; }
+.entity-drawer__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+.entity-drawer__body .page-content { padding: 22px 24px 40px; max-width: none; }
+/* the calendar's own lesson panel, as a part of the drawer instead of a floating card (its × is the drawer's) */
+.entity-drawer .lp { position: static; inset: auto; width: auto; max-height: none; overflow: visible; border: 0; border-radius: 0; box-shadow: none; padding: 18px 22px 32px; z-index: auto; }
+.entity-drawer .lp-close { display: none; }
+.entity-drawer__note { margin: 18px 22px; }
+/* the invoice: sums, payments, the document */
+.invoice-drawer { display: grid; gap: 14px; padding: 18px 22px 32px; }
+.invoice-drawer__head h2 { margin: 2px 0 4px; font-size: 1.25rem; }
+.invoice-drawer__head p { margin: 0; color: var(--muted, #5b6675); font-size: .9rem; }
+.invoice-drawer__sums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; }
+.invoice-drawer__sums div { background: #fff; border: 1px solid var(--border, #dfe5ec); border-radius: 12px; padding: 10px 12px; }
+.invoice-drawer__sums dt { font-size: .76rem; color: var(--muted, #5b6675); }
+.invoice-drawer__sums dd { margin: 2px 0 0; font-weight: 800; }
+.invoice-drawer__dates { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; font-size: .86rem; color: var(--muted, #5b6675); }
+.invoice-drawer section { background: #fff; border: 1px solid var(--border, #dfe5ec); border-radius: 12px; padding: 12px 14px; }
+.invoice-drawer section h3 { margin: 0 0 8px; font-size: .9rem; }
+.invoice-drawer__payments { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: .88rem; }
+.invoice-drawer__payments li { display: flex; justify-content: space-between; gap: 12px; }
+.invoice-drawer__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.invoice-drawer__pdf { width: 100%; height: 70vh; min-height: 420px; border: 0; border-radius: 8px; background: #f2f4f7; }
+@media (max-width: 700px) { .entity-drawer__panel, .entity-drawer__panel.is-wide { width: 100vw; } .entity-drawer__body .page-content { padding: 16px 14px 32px; } .invoice-drawer__sums { grid-template-columns: 1fr 1fr; } }

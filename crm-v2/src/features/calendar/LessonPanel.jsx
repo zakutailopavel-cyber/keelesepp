@@ -224,9 +224,10 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
         </section>
       ) : null}
 
-      {(!done || orphanMark) && !item.isGroup && !googleOwned ? (
+      {/* the side drawer (owner 2026-11-09) passes no time / cancel handlers: those stay in the calendar */}
+      {(!done || orphanMark) && !item.isGroup && !googleOwned && (onEdit || onCancelLesson) ? (
         <footer className="lp-foot">
-          {!done ? <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button> : null}
+          {!done && onEdit ? <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button> : null}
           {!done && onSubstitute ? <Button variant="secondary" disabled={saving} aria-expanded={substitute !== null} onClick={() => setSubstitute(substitute === null ? '' : null)}><Repeat2 size={15} /> Asendab</Button> : null}
           {!done && onSubstitute && substitute !== null ? (
             <div className="lp-notes-edit lp-substitute-form" role="group" aria-label="Asendab">
@@ -240,7 +241,7 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
               <div className="lp-actions"><Button loading={saving} disabled={!substitute} onClick={async () => { const chosen = teachers.find((teacher) => teacher.id === substitute); if (chosen && await onSubstitute(chosen)) setSubstitute(null); }}>Kinnita asendus</Button><Button variant="secondary" disabled={saving} onClick={() => setSubstitute(null)}>Loobu</Button></div>
             </div>
           ) : null}
-          <Button variant="danger" disabled={saving} onClick={onCancelLesson}><XCircle size={15} /> Tühista tund</Button>
+          {onCancelLesson ? <Button variant="danger" disabled={saving} onClick={onCancelLesson}><XCircle size={15} /> Tühista tund</Button> : null}
           {onDeleteLesson ? <Button variant="danger" disabled={saving} onClick={onDeleteLesson}><Trash2 size={15} /> Kustuta</Button> : null}
           {onDeleteLesson ? <p className="lp-hint">„Tühista” — tund jääb ära. „Kustuta” — tund lisati kogemata (vale õpilane või päev).</p> : null}
         </footer>

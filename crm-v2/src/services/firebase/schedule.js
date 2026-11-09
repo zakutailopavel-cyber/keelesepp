@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { shareInFlight } from './shareInFlight.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
@@ -79,6 +79,12 @@ export const scheduleService = {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'schedule'), where('studentId', '==', studentId), ...(teacherUid ? [where('teacherUid', '==', teacherUid)] : [])));
     return sort(snapshot.docs.map((item) => normalizeScheduleEvent(item.id, item.data())));
+  },
+  // one entry (the side drawer's lesson panel, owner 2026-11-09); the rules decide as for the list (a teacher: own)
+  async get(id) {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDoc(doc(db, 'schedule', id));
+    return snapshot.exists() ? normalizeScheduleEvent(snapshot.id, snapshot.data()) : null;
   },
   async create(data) {
     const { db } = requireFirebaseClient();

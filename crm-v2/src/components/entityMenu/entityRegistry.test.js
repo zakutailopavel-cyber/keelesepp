@@ -69,6 +69,23 @@ describe('entity menu registry: who gets which actions', () => {
     }
   });
 
+  it('„Ava tund / arve (siinsamas)” open the side drawer where the role may open the page behind it (owner 2026-11-09)', () => {
+    const lesson = { scheduleId: 'e1', date: '2026-11-09', studentId: 's1' };
+    for (const roles of [['admin'], ['teacher']]) expect(ids('lesson', roles, lesson, { pathname: '/' })).toContain('drawer');
+    expect(ids('lesson', ['finance'], lesson)).toEqual([]);
+    // the calendar opens its own panel in place; „Märkimata tunnid” under it gets the drawer
+    expect(ids('lesson', ['admin'], lesson, { pathname: '/calendar' })).not.toContain('drawer');
+    expect(ids('lesson', ['admin'], lesson, { pathname: '/calendar/markimata' })).toContain('drawer');
+    // a group lesson (no student) stays in the calendar
+    expect(ids('lesson', ['admin'], { scheduleId: 'g1', date: '2026-11-09' })).not.toContain('drawer');
+    const open = actionsFor('lesson', ['teacher'], lesson).find((action) => action.id === 'drawer');
+    expect(open).toMatchObject({ kind: 'drawer', drawer: 'lesson' });
+    expect(open.to(lesson)).toBe(`/calendar?lesson=${encodeURIComponent('e1:2026-11-09|2026-11-09')}`);
+    for (const roles of [['admin'], ['finance']]) expect(ids('invoice', roles, { invoiceId: 'i1' })[0]).toBe('drawer');
+    expect(ids('invoice', ['teacher'], { invoiceId: 'i1' })).toEqual([]);
+    expect(actionsFor('student', ['teacher'], student, { record }).find((action) => action.id === 'open')).toMatchObject({ kind: 'drawer', drawer: 'student' });
+  });
+
   it('press actions appear only when the row has that button enabled', () => {
     const row = document.createElement('div');
     row.innerHTML = '<button data-entity-action="print">P</button><button data-entity-action="send" disabled>S</button>';

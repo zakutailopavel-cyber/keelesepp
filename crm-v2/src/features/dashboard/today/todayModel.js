@@ -43,6 +43,9 @@ export function todayLessons({ events = [], today, now = '00:00' }) {
     const phase = cancelled ? 'cancelled' : !item.time ? 'later' : end && end <= now ? 'past' : item.time <= now ? 'now' : 'later';
     return {
       key: item.occurrenceId,
+      // the schedule entry and its day: the right-click „Ava tund (siinsamas)” opens it in the side drawer
+      scheduleId: item.isGroup ? '' : item.id || '',
+      date: item.occurrenceDate,
       time: item.time || '',
       end,
       duration: Number(item.duration) || 60,
