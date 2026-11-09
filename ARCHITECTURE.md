@@ -883,6 +883,16 @@ inside the open window (`role="alert"`), not behind it.
   user creates (a lesson-link guest only with a valid `liveGuestGrants` grant, as role `guest`); admin reads, sets
   `status` new / ack / fixed, deletes. Page `/vead` (Seaded → Tehniline), dashboard digest of new groups in 24 h.
   Never store document data, form contents, names, e-mails, tokens or query strings in it.
+- `systemHealth/{current|digest}` — „Süsteemi olek” (2026-11-09), server-written only (`allow write: if false`),
+  admin reads. `systemHealthTick` (every 10 min) GETs the CRM (`crm.epkoolitus.ee/login`, expects `id="root"`), the
+  website (`www.epkoolitus.ee`) and `financeApi/health` + `staffOperationsApi/health` (200 `{ ok: true }`, no
+  data, no sign-in) and writes `current`: `{ status ok|down, checkedAt, targets.{id}: { label, ok, httpStatus, ms,
+  error, failStreak, lastOkAt }, incident | null, lastIncident, history[≤ 48] }`. A target failing 2 checks in a
+  row opens one incident (`inc_<yyyymmddhhmmss>`); all targets answering closes it (pure logic:
+  `functions/system-health-core.js`). `systemHealthDigest` (07:00 Europe/Tallinn) writes `digest`: `{ date, total,
+  occurrences, groups, top[5] by message + route }` of `clientErrors` with `lastAt` in the last 24 h. No e-mail:
+  the admin's bell derives notices from both docs (`notificationModel.systemHealthNotifications`, category
+  „Süsteem”, id per incident / per day), the „Vead” page shows `SystemHealthCard`.
 - `schedule` — dated or recurring lesson intent plus additive occurrence exceptions with stable
   student ownership.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.

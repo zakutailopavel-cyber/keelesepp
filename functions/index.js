@@ -8387,6 +8387,8 @@ async function convertParentToStudent({ actor, uid, studentId, requestId }) {
 exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120, memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  // „Süsteemi olek” (systemHealthTick): the function is deployed and starts; reads nothing, needs no sign-in
+  if (req.method === "GET" && req.path === "/health") { res.set("Cache-Control", "no-store"); res.status(200).json({ ok: true }); return; }
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST required" });
     return;
@@ -10362,6 +10364,8 @@ async function attachExpenseDocument({ actor, expenseId, document, requestId }) 
 exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  // „Süsteemi olek” (systemHealthTick): the function is deployed and starts; reads nothing, needs no sign-in
+  if (req.method === "GET" && req.path === "/health") { res.set("Cache-Control", "no-store"); res.status(200).json({ ok: true }); return; }
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST required" });
     return;
@@ -13019,6 +13023,53 @@ exports.purgeCardTrash = functions
   .onRun(async () => {
     const result = await require("./card-trash").purgeDueCards(db, { FieldValue });
     console.log("Card trash purged", { deleted: result.deleted, anonymised: result.anonymised, blocked: result.blocked, errors: result.errors });
+    return null;
+  });
+
+// ── SCHEDULED: „Süsteemi olek” — the admin learns about a breakage before the teachers do ─
+// Every 10 min: the CRM, the website and two main HTTP functions (GET /health). Result in `systemHealth/current`
+// (admin reads, only the server writes); 2 failed checks in a row open an incident, one answer from all closes it.
+// The CRM bell shows one admin notice per incident (crm-v2 notificationModel `systemHealthNotifications`). Nothing is
+// e-mailed. Pure logic: functions/system-health-core.js.
+exports.systemHealthTick = functions
+  .runWith({ timeoutSeconds: 60, memory: "256MB" })
+  .pubsub
+  .schedule("every 10 minutes")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const health = require("./system-health-core");
+    const targets = health.healthTargets(process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || "keelesepp-5136b");
+    const probed = await Promise.all(targets.map((target) => health.probeTarget(target)));
+    const results = Object.fromEntries(targets.map((target, index) => [target.id, probed[index]]));
+    const labels = Object.fromEntries(targets.map((target) => [target.id, target.label]));
+    const ref = db.collection("systemHealth").doc("current");
+    const before = await ref.get();
+    const { state, event } = health.nextHealthState(before.exists ? before.data() : null, results, new Date().toISOString(), labels);
+    await ref.set(state);
+    if (event) console.warn("System health changed", JSON.stringify({ event, failing: state.incident?.failingLabels || [] }));
+    return null;
+  });
+
+// 07:00: the last 24 h of „Vead” (`clientErrors`) → `systemHealth/digest`; the bell shows „Eile N viga — vaata Vead”
+// that day when N > 0. Failed function runs are not recorded in Firestore by this repo, so only client errors count.
+exports.systemHealthDigest = functions
+  .runWith({ timeoutSeconds: 120, memory: "256MB" })
+  .pubsub
+  .schedule("0 7 * * *")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const health = require("./system-health-core");
+    const now = new Date();
+    const { since } = health.digestWindow(now);
+    const snap = await db.collection("clientErrors").where("lastAt", ">=", admin.firestore.Timestamp.fromDate(since)).get();
+    const digest = health.digestClientErrors(snap.docs.map((doc) => doc.data()));
+    await db.collection("systemHealth").doc("digest").set({
+      date: localDate(now, APP_TIME_ZONE),
+      generatedAt: now.toISOString(),
+      since: since.toISOString(),
+      ...digest,
+    });
+    console.log("System health digest", { total: digest.total, occurrences: digest.occurrences });
     return null;
   });
 

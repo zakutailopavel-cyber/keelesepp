@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { clientErrorsService } from '../../services/firebase/clientErrors.js';
+import SystemHealthCard from './SystemHealthCard.jsx';
 import { KIND_LABELS, STATUS_LABELS, agoLabel, filterGroups, groupErrors } from './clientErrorsModel.js';
 import './clientErrors.css';
 
@@ -14,7 +15,7 @@ const ROLE_LABELS = { admin: 'admin', teacher: 'õpetaja', finance: 'raamatupida
  * fingerprint — how often, how many people, where, which browser. „Teada” / „Parandatud” mark the whole group.
  * The records hold no personal data: a uid, a role, a cleaned message and the page path.
  */
-export default function ClientErrorsPage({ service = clientErrorsService, now = () => Date.now() }) {
+export default function ClientErrorsPage({ service = clientErrorsService, healthService, now = () => Date.now() }) {
   const state = useAsyncData(() => service.listRecent({ days: 30 }), [service]);
   const [filter, setFilter] = useState('new');
   const [busy, setBusy] = useState('');
@@ -39,6 +40,7 @@ export default function ClientErrorsPage({ service = clientErrorsService, now = 
   return (
     <div className="page-content client-errors">
       {header}
+      <SystemHealthCard {...(healthService ? { service: healthService } : {})} now={now} />
       <nav className="settings-tabs" role="tablist" aria-label="Vigade olek">
         {FILTERS.map(([id, label]) => <button type="button" role="tab" key={id} aria-selected={filter === id} className={filter === id ? 'is-active' : ''} onClick={() => setFilter(id)}>{label} ({counts[id]})</button>)}
       </nav>
