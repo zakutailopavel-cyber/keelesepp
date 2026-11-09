@@ -10,6 +10,7 @@
 // whole course. The tags (block.tag: task, harno, level, fluency, main, topic) come from admin/course/blocks.js tag().
 import { blockMinutes } from './timeEstimate.js';
 import { isInLesson } from '../engine/inLesson.js';
+import { STATIONS_DESIGN } from './stations.js';
 import {
   ARCHETYPES, FORMAT_INTRO, FORMAT_INTRO_A2, FORMAT_INTRO_B2, FORMAT_INTRO_C1, FORMAT_INTRO_EN, FORMAT_PRACTICE, FORMAT_PRACTICE_A2, FORMAT_PRACTICE_B2, FORMAT_PRACTICE_C1, FORMAT_PRACTICE_EN, LEAD_PAIRS,
   TASK_CATALOGUE, TEACHING_ARCHETYPES, VARIANT_MIN, VARIANTS, VARIANTS_A2, VARIANTS_B2, VARIANTS_C1, VARIANTS_EN, examPartOf, harnoFamily, harnoFamilyA2, harnoFamilyB2, harnoFamilyC1, harnoFamilyEN, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
@@ -94,6 +95,8 @@ export function lessonsFromModules(modules, sheetsOf) {
       id, num: lessonNum(id), module: moduleNo(mod), moduleId: mod.MODULE.id,
       assessment: Boolean(meta.assessment), archetype: meta.archetype || source.archetype || '', lead: meta.lead || source.lead || null,
       canDo: meta.canDo || source.canDo || '', goals: meta.goals || {}, canDoGoal: source.canDoGoal || 'g_use', level: meta.level, sheets,
+      // design v3 „stations” (docs/COURSE_DESIGN_STATIONS.md): independent stations, the sheets are only their containers
+      stations: meta.design === STATIONS_DESIGN && !meta.assessment,
     };
   })).sort((a, b) => a.num - b.num);
 }
@@ -347,22 +350,26 @@ function goalProblems(lessons, out, P = PROFILES.b1) {
       else if (!skills.includes(skill)) out.push({ rule: 'V9', check: 'V9-cando-skill', lesson: l, phase: 'transfer', text: `„Ma oskan…” on ${skills.join('/')}, Kasuta põhiülesanne ${main.id} on ${skill}` });
     }
     // V10
+    // a station lesson (v3-stations): the sheets are containers of independent stations, any of which may be skipped —
+    // there is no ladder across a sheet and no „every sheet serves the can-do”; the final station and the teacher's core
+    // path carry the can-do (admin/course/stations.js st-final, st-teacher)
     PHASES.forEach((p) => {
-      if (!l.sheets[p]) return;
+      if (!l.sheets[p] || l.stations) return;
       if (!tasksOf(l.sheets[p]).some((b) => b.goal === l.canDoGoal)) out.push({ rule: 'V10', check: 'V10-goal', lesson: l, phase: p, text: `${PH[p]}: ükski ülesanne ei vii tunni oskuse (${l.canDoGoal}) poole` });
     });
     const practice = tasksOf(l.sheets.practice);
-    if (practice.length) {
+    if (practice.length && !l.stations) {
       const [first, last] = [practice[0], practice[practice.length - 1]];
       if (taskLevelOf(first) > 2 || taskLevelOf(last) < 3) out.push({ rule: 'V10', check: 'V10-ladder', lesson: l, phase: 'practice', text: `Harjuta: redel ${practice.map(taskLevelOf).join('-')} (esimene ≤ 2, viimane ≥ 3)` });
     }
     const transfer = tasksOf(l.sheets.transfer);
-    const low = transfer.filter((b) => taskLevelOf(b) <= 2);
+    // a station lesson's Kasuta sheet may hold an input station (a listening or reading) before the final one
+    const low = l.stations ? [] : transfer.filter((b) => taskLevelOf(b) <= 2);
     if (low.length) out.push({ rule: 'V10', check: 'V10-kasuta', lesson: l, phase: 'transfer', text: `Kasuta: tase ≤ 2 ülesanded (${low.map((b) => `${b.id} ${taskIdOf(b)}`).join(', ')})` });
     if (main && taskLevelOf(main) < 4) out.push({ rule: 'V10', check: 'V10-main-level', lesson: l, phase: 'transfer', text: `Kasuta põhiülesanne ${main.id} (${taskIdOf(main)}) on tasemel ${taskLevelOf(main)} (vaja 4: vaba kasutus)` });
     const discover = blocksOf(l.sheets.discover);
     const levels = new Set([...tasksOf(l.sheets.discover).map(taskLevelOf), ...(discover.some((b) => b.type === 'notice') ? [1] : [])]);
-    if (l.sheets.discover && (!levels.has(1) || !levels.has(3))) out.push({ rule: 'V10', check: 'V10-avasta', lesson: l, phase: 'discover', text: 'Avasta: vaja üht märkamisülesannet (tase 1) ja üht juhendatud kasutust (tase 3)' });
+    if (l.sheets.discover && !l.stations && (!levels.has(1) || !levels.has(3))) out.push({ rule: 'V10', check: 'V10-avasta', lesson: l, phase: 'discover', text: 'Avasta: vaja üht märkamisülesannet (tase 1) ja üht juhendatud kasutust (tase 3)' });
   });
 }
 
@@ -394,7 +401,8 @@ function strandProblems(lessons, out, P) {
     const corners = tasks.filter((x) => harnoOf(x.b));
     if (corners.length !== 1) out.push({ rule: 'V12', check: 'V12-corner', lesson: l, phase: '*', text: `eksaminurki ${corners.length} (täpselt 1: üks ülesanne tag(block, { harno }))` });
     const [lo, hi] = v12.cornerMinutes;
-    corners.filter((x) => x.min < lo || x.min > hi).forEach((x) => out.push({ rule: 'V12', check: 'V12-corner-minutes', lesson: l, phase: '*', text: `eksaminurk ${x.b.id} ≈ ${Math.round(x.min)} min (${lo}–${hi})` }));
+    // a station lesson: the corner is a station of 8–15 min by the author's timing (stations.js st-minutes)
+    corners.filter((x) => !l.stations && (x.min < lo || x.min > hi)).forEach((x) => out.push({ rule: 'V12', check: 'V12-corner-minutes', lesson: l, phase: '*', text: `eksaminurk ${x.b.id} ≈ ${Math.round(x.min)} min (${lo}–${hi})` }));
     const prev = list[i - 1];
     const prevCorner = prev && prev.module >= v12.fromModule ? lessonTasks(prev).map((x) => harnoOf(x.b)).find(Boolean) : null;
     if (corners.length && prevCorner && P.family(harnoOf(corners[0].b)) === P.family(prevCorner)) out.push({ rule: 'V12', check: 'V12-corner-repeat', lesson: l, phase: '*', text: `eksaminurk ${harnoOf(corners[0].b)} on sama vorm kui eelmises tunnis (${prev.id})` });
@@ -409,6 +417,8 @@ function reviewProblems(lessons, out) {
   const modules = new Set(lessons.map((l) => l.module));
   const list = teaching(lessons);
   list.forEach((l) => {
+    // a station lesson does not open with „Mäletad?”: every station starts from its own input, none from the last lesson
+    if (l.stations) return;
     const review = blocksOf(l.sheets.discover).find(isReview);
     if (!review) { out.push({ rule: 'V13', check: 'V13-review', lesson: l, phase: 'discover', text: 'Avasta ei alga kordamisega „Mäletad?” (B.review)' }); return; }
     const from = (review.data.from || []).filter(Boolean);
@@ -480,7 +490,8 @@ function speakingPlaceProblems(lessons, out, P) {
   const from = P.shape.v16.conditionalFrom;
   teaching(lessons).forEach((l) => {
     const all = PHASES.flatMap((p) => blocksOf(l.sheets[p]).map((b) => ({ b, phase: p })));
-    if (l.sheets.transfer && !blocksOf(l.sheets.transfer).some((b) => b.type === 'speaking' && !isInLesson(b))) {
+    // a station lesson ends in its final station (decide, plan, complain …), not in a fixed home recording
+    if (l.sheets.transfer && !l.stations && !blocksOf(l.sheets.transfer).some((b) => b.type === 'speaking' && !isInLesson(b))) {
       out.push({ rule: 'V16', check: 'V16-home-voice', lesson: l, phase: 'transfer', text: 'Kasuta: kodus salvestatav monoloog puudub (speaking-plokk, mis ei ole paaristöö)' });
     }
     if (!all.some(({ b }) => isInLesson(b))) out.push({ rule: 'V16', check: 'V16-in-lesson', lesson: l, phase: '*', text: 'tunnis ei ole ühtki paaris- või rolliülesannet (õpetaja on partner)' });

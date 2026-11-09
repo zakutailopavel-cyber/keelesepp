@@ -8,6 +8,7 @@
 // Pure: docs are { meta: { level, phase }, blocks: [{ id, type, data }] }; problems { gate, code, level, text, blocks }.
 import { depthProblems } from './depth.js';
 import { nativeStage } from './levels.js';
+import { isStationSheet } from './stations.js';
 import { bankItems, groupItems, strictNorm } from '../engine/schema.js';
 
 const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
@@ -107,7 +108,9 @@ export function levelProblems(doc) {
   const phase = doc?.meta?.phase;
   // Avasta and Kasuta start from a text of the level (Harno: every closed task works on a text)
   // the Kasuta sheet of a check lesson is the exam's writing part: it has no reading text of its own
-  if (phase === 'discover' || (phase === 'transfer' && !doc?.meta?.assessment)) {
+  // design v3 „stations”: every station has its own small input (≤ 120 words, docs/COURSE_DESIGN_STATIONS.md); the
+  // lesson's non-cast text of the level's length is checked by academicValue.js (av-voice, av-boltedon)
+  if ((phase === 'discover' || (phase === 'transfer' && !doc?.meta?.assessment)) && !isStationSheet(doc)) {
     // design v2: any input of that length starts the phase — a dialogue, people profiles or a gapped exam text too
     const inputs = doc?.meta?.design === 'v2' ? ['reading', 'listening', 'dialogue', 'profiles', 'cloze', 'formtext', 'insertion'] : ['reading', 'listening'];
     const inputText = (b) => (b.type === 'dialogue' ? (b.data?.lines || []).map((l) => l?.text).join(' ')
