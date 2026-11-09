@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, getDocs, query, runTransaction, where } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { validateWorksheetDoc, WorksheetConflictError } from './worksheetDocs.js';
 import { prepareImageFile } from '../../features/worksheet-studio/engine/image.js';
