@@ -88,9 +88,10 @@ describe('teacherLoad', () => {
     expect(row.pastUnmarked).toBe(3); // 5, 12, 19 Oct
   });
 
-  it('reuses findUnmarkedLessons for past lessons without a mark (60 days up to yesterday)', () => {
+  it('uses the ONE „märkimata” definition: from MARKING_START (1.11) up to yesterday', () => {
     const rows = run(periodRange('week', TODAY));
-    expect(rows.find((item) => item.id === 't1').unmarked).toBe(3); // Mondays 5, 12, 19 Oct
+    // the unmarked Mondays 5, 12, 19 Oct are before 1.11 (owner 2026-11-09: not counted for now)
+    expect(rows.find((item) => item.id === 't1').unmarked).toBe(0);
     expect(rows.find((item) => item.id === 't2').unmarked).toBe(0);
   });
 

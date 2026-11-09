@@ -420,11 +420,18 @@ drives "Uus ülesanne sulle" for tasks created in the last 14 days). The v2 bell
 overdue, due today), unread message, homework-awaiting-review and overdue-invoice items from their sources.
 
 „Õpetajate koormus” (`/teachers/koormus`, administrator only, 2026-11-04) is a read-only projection per teacher for a
-week or a month: lessons from `lessonFacts` (calendar + journal), unmarked lessons from `findUnmarkedLessons`, unbooked
+week or a month: lessons from `lessonFacts` (calendar + journal), unmarked lessons from `markingSplit` (the ONE „märkimata” definition, docs/LESSON_MARKING.md), unbooked
 free time from `teacherAvailability` (`effectiveSlots`, next 14 days), works waiting for a review (Kodutööd's rule) and
 a pay estimate by the „Ärinäitajad” rule (`workHourlyRateCents` × lessons given; no rate → „määramata”). It writes
 nothing and adds no collection; the journal and submissions are read by single-field date ranges
 (`features/teachers/teacherLoad.js`, `services/firebase/teacherLoad.js`).
+
+„Märkimata tunnid” / fast marking (2026-11-09): one definition (`features/calendar/unmarkedLessons.js` `markingSplit`:
+from `MARKING_START` 2026-11-01 up to yesterday, without archived students, closed teacher accounts, entries without a
+teacher and closed financial days — those go to the admin's „Vajab admini”), phone-first marking buttons
+(`QuickMarkButtons.jsx`) and the server-side Live Classroom mark (`functions/live-auto-mark.js`, trigger
+`autoMarkLiveLesson`). Every path writes the calendar's own `lessons/schedule_<id>_<date>_<student>` record
+(`accountingSource: 'crm_v2'`). Contract: `docs/LESSON_MARKING.md`.
 
 Single-student scheduled lessons use the existing server-owned lesson journal endpoint for one-click completion.
 The optional completion payload extends the same idempotent transaction: it records schedule attendance, creates a

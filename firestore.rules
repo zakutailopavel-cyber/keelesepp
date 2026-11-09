@@ -1480,8 +1480,11 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // a teacher reads the closed days too (owner 2026-11-09): „Märkimata tunnid” leaves a lesson of a closed period out
+    // of the teacher's list instead of offering a mark the rules would refuse (the documents hold the date, the month,
+    // the closure id and who closed it)
     match /financialLockedDates/{dateId} {
-      allow read: if isAdmin();
+      allow read: if isStaff();
       allow create, update, delete: if false;
     }
 
@@ -2703,8 +2706,18 @@ service cloud.firestore {
           'expiresAt',
           'respondedAt',
           'cancelledAt',
-          'closedAt'
+          'closedAt',
+          // the calendar lesson the room was started from („Alusta tundi”): the server marks it held when the room
+          // closes (functions/live-auto-mark.js); optional, older clients do not send it
+          'scheduleId',
+          'occurrenceDate'
         ])
+        && request.resource.data.get('scheduleId', '') is string
+        && request.resource.data.get('scheduleId', '').size() <= 200
+        && (
+          request.resource.data.get('occurrenceDate', '') == ''
+          || request.resource.data.get('occurrenceDate', '').matches('^\\d{4}-\\d{2}-\\d{2}$')
+        )
         && request.resource.data.teacherUid == uid()
         && teacherCanInviteStudent(request.resource.data.studentId)
         && studentAccountOwns(
@@ -2742,8 +2755,19 @@ service cloud.firestore {
           'status',
           'respondedAt',
           'cancelledAt',
-          'closedAt'
+          'closedAt',
+          'endMark'
         ])
+        // the teacher's „märgi tund toimunuks” on closing ('held' → the server marks the lesson, 'skip' → it does not);
+        // set only together with the close
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['endMark'])
+          || (
+            resource.data.status == 'accepted'
+            && request.resource.data.status == 'closed'
+            && request.resource.data.endMark in ['held', 'skip']
+          )
+        )
         && (
           (
             resource.data.status == 'pending'

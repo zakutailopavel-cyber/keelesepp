@@ -96,3 +96,6 @@ a.calm-tile { padding-right: 30px; }
   .calm-attention__go { display: none; }
   .calm-attention__list .today-start { padding: 5px 8px; font-size: .78rem; }
 }
+/* a teacher's „Märgi tunnid (N)” on a phone (owner 2026-11-09); the desktop has the nudge and the attention list */
+.calm-mark-cta.button { display: none; }
+@media (max-width: 760px) { .calm-mark-cta.button { display: flex; width: 100%; min-height: 52px; justify-content: center; margin: 0 0 14px; font-size: 1.02rem; } }
