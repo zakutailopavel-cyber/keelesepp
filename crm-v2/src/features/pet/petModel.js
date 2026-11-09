@@ -1,5 +1,6 @@
-// What the pet looks like and says, derived only from data the CRM already has (lessons, submitted work,
-// results per lesson goal). Nothing here can be "farmed": the student cannot write any of these inputs.
+// What the pet looks like and says, derived from data the CRM already has (lessons, submitted work, results per lesson
+// goal) plus the capped „Täna” practice XP. Nothing here can be "farmed": the student cannot write the CRM inputs, and
+// the practice XP is checked by the rules (≤ 30 a day, only growing).
 import { localDate } from '../../utils/localDate.js';
 
 export const PET_KINDS = ['siil', 'rebane', 'kakk', 'draakon'];
@@ -58,7 +59,9 @@ export function bestLearningStreak(activityTimes = [], now = Date.now()) {
   return best;
 }
 
-export function petProgress({ lessons = [], submissions = [], homework = [], words = [], speech = [], now = Date.now() }) {
+// practiceXp: the „Täna” practice XP stored on the account (practice/progress.js: right word cards and sentence items,
+// at most DAILY_XP_CAP a day) — the one progress meter of the cabinet is this pet's level
+export function petProgress({ lessons = [], submissions = [], homework = [], words = [], speech = [], practiceXp = 0, now = Date.now() }) {
   // only lessons the student actually attended feed the pet (absences 'Puudus_*' and cancellations do not)
   const held = lessons.filter((l) => isAttended(l) && time(l.date) && time(l.date) <= now);
   const done = submissions.filter((s) => s.status === 'done' || s.completedAt);
@@ -74,7 +77,8 @@ export function petProgress({ lessons = [], submissions = [], homework = [], wor
   const bestStreak = bestLearningStreak(activity, now);
   const xp = held.length * XP.lesson + done.length * XP.submission + goals * XP.goal
     + homeworkDone.length * XP.homework + learnedWords * XP.word + Math.min(STREAK_XP_CAP, (bestStreak >= 2 ? bestStreak : streak) * XP.streakDay)
-    + speech.reduce((sum, stat) => sum + speechXp(stat), 0);
+    + speech.reduce((sum, stat) => sum + speechXp(stat), 0)
+    + Math.max(0, Math.floor(Number(practiceXp) || 0));
   const stage = xp >= STAGE_AT[2] ? 3 : xp >= STAGE_AT[1] ? 2 : 1;
   const from = STAGE_AT[stage - 1];
   const to = STAGE_AT[stage] ?? null;
@@ -87,7 +91,7 @@ export function petProgress({ lessons = [], submissions = [], homework = [], wor
   else if (last && now - last <= 2 * DAY) mood = 'happy';
   else if (!last || now - last > 14 * DAY) mood = xp ? 'sleep' : 'calm';
   return {
-    xp, stage, mood, goals, lessons: held.length, submissions: done.length,
+    xp, practiceXp: Math.max(0, Math.floor(Number(practiceXp) || 0)), stage, mood, goals, lessons: held.length, submissions: done.length,
     homework: homeworkDone.length, learnedWords, streak, bestStreak, lastActivity: last, stars: Math.floor(xp / 5), speechLessons: speech.length,
     stageXp: xp - from, stageSize: to ? to - from : null,
     nextItem: stage === 1 ? 'sall' : stage === 2 ? 'lõpetaja müts' : null,

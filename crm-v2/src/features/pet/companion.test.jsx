@@ -10,13 +10,15 @@ import { petCelebrate, petQuiet } from './petEvents.js';
 const at = (h, m) => { const d = new Date(2026, 8, 29, h, m, 0); return d.getTime(); };
 
 describe('companion hints', () => {
-  it('puts a lesson invitation first, then a lesson that starts soon, then late and due homework', () => {
-    const base = { now: at(16, 50), petName: 'Okas', todayLessons: [{ time: '17:00' }], overdue: 2, dueToday: 1 };
-    expect(companionHint({ ...base, invitation: { id: 'i1', teacherName: 'Kati' } })).toMatchObject({ urgent: true, text: 'Kati kutsub sind tundi! Vajuta „Liitu tunniga”.' });
-    expect(companionHint(base)).toMatchObject({ urgent: true, text: 'Tund algab 10 minuti pärast. Kutse ilmub siia.', action: { to: '/live-classroom' } });
-    expect(companionHint({ ...base, now: at(12, 0) })).toMatchObject({ urgent: false, text: '2 ülesannet hilineb. Teeme kohe?', action: { to: '/homework' } });
-    expect(companionHint({ ...base, now: at(12, 0), overdue: 0 }).text).toBe('Täna on ülesande tähtaeg.');
-    expect(companionHint({ now: at(12, 0), petName: 'Okas', tipIndex: 0 }).text).toBe('Tere! Mina olen Okas. Vajuta mulle, kui vajad abi.');
+  it('puts a lesson invitation first, then what the one decider (nextStep) says: a lesson soon, late work, practice', () => {
+    const base = { now: at(16, 50), petName: 'Okas' };
+    const soon = { key: 'lesson', lesson: { time: '17:00' } };
+    expect(companionHint({ ...base, next: soon, invitation: { id: 'i1', teacherName: 'Kati' } })).toMatchObject({ urgent: true, text: 'Kati kutsub sind tundi! Vajuta „Liitu tunniga”.' });
+    expect(companionHint({ ...base, next: soon })).toMatchObject({ urgent: true, text: 'Tund algab 10 minuti pärast. Kutse ilmub siia.', action: { to: '/live-classroom' } });
+    expect(companionHint({ ...base, now: at(12, 0), next: { key: 'overdue', title: 'Minu pere' } })).toMatchObject({ urgent: false, text: '„Minu pere” hilineb. Teeme kohe?', action: { to: '/student' } });
+    expect(companionHint({ ...base, now: at(12, 0), next: { key: 'due-soon', title: 'Minu pere' } }).text).toBe('Järgmine: „Minu pere”. Teeme ära?');
+    expect(companionHint({ ...base, now: at(12, 0), next: { key: 'review' } }).text).toBe('Sind ootab „Täna” lühike harjutus.');
+    expect(companionHint({ now: at(12, 0), petName: 'Okas', tipIndex: 0, next: { key: 'done' } }).text).toBe('Tere! Mina olen Okas. Vajuta mulle, kui vajad abi.');
     expect(companionHint({ now: at(12, 0), petName: 'Okas', tipIndex: 0, lang: 'en' }).text).toBe("Hi! I'm Okas. Press me when you need help.");
   });
 });

@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { Badge, Card, EmptyState } from '../../components/ui/index.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { isDue, newestFirst } from './wordsModel.js';
-import WordPractice from './WordPractice.jsx';
+import FlashcardSession from './FlashcardSession.jsx';
+import { dailyPlan, rateWord } from './dailyReview.js';
 import './vocabulary.css';
 
-/** Student (and parent) dashboard card „Minu sõnad”: the words from lessons, practice with flashcards. */
+/** Student (and parent) dashboard card „Minu sõnad”: the words from lessons, practice with the same flashcards (SRS). */
 export default function MyWordsCard({ studentIds = [], service = studentWordsService, readOnly = false }) {
   const [byStudent, setByStudent] = useState({});
   const [error, setError] = useState('');
@@ -31,7 +32,7 @@ export default function MyWordsCard({ studentIds = [], service = studentWordsSer
       <div className="section-heading"><div><span className="eyebrow">Sõnavara</span><h2>Minu sõnad</h2></div>
         {words.length ? <Badge tone={due.length ? 'info' : 'success'}>{due.length ? `${due.length} kordamiseks` : 'Kõik korratud'}</Badge> : null}</div>
       {error ? <p className="vw-error" role="alert">{error}</p> : null}
-      {mode === 'practice' ? <WordPractice words={words} service={service} onClose={() => setMode('')} />
+      {mode === 'practice' ? <FlashcardSession cards={dailyPlan(words).cards} onRate={(item, rating, nextSide) => rateWord(service, words, item, rating, nextSide)} onClose={() => setMode('')} closeLabel="Valmis" />
         : words.length ? <>
           <div className="vw-actions">
             {readOnly ? null : <button type="button" className="vw-btn is-primary" disabled={!due.length} onClick={() => setMode('practice')}>Harjuta ({due.length})</button>}

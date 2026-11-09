@@ -107,6 +107,8 @@ grammarPoints, missed, minutes }`.
 
 ## Next steps
 
-1. Phase 3: put the lesson into the student cabinet (path, streak, XP, pet), store results and pass `studentHistory`.
+1. Done (agent/student-tana): the lesson is step „Laused ja grammatika” of the student's „Täna” (`studentPractice.js`,
+   own sentences `engine/ownSentences.js`, XP / streak `progress.js`, docs/LEARNER_PROFILE.md). Still to do: store
+   per-item results and pass `studentHistory` (weak grammar points).
 2. For students, precompute the items per course into a JSON file at build time instead of loading course modules.
 3. Course content: Russian/English rule lines (`explain.ru`) and more items for the gaps above.

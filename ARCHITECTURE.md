@@ -59,6 +59,15 @@ The one source is `crm-v2/src/features/curriculum/courseNames.js`; the course re
 fallback), „Minu kursus” and the textbook cover read it. Old badges stored in Firestore are shown under the new name
 by `courseBadge()` in `Sheet.jsx`. Display only: ids (`est-a2-b1-roadmap-v1`, `a2b1-…`, course keys) never change.
 
+### Student cabinet „Täna” (2026-11-09)
+
+The student's home `/student` is one daily flow with one button („Alusta tänast”). `features/students/nextStep.js` is the
+only place that decides what a student does next (home steps, the walking pet's hint); `TodayPanel.jsx` runs the steps
+(homework → words on SRS → one practice-engine lesson with his own wrong sentences → self-study course), the pet only
+rewards. Day progress and practice XP live on `users/{uid}.practice` (`today`, `xp`, `learnDays`; rules
+`validPracticeToday`, ≤ 30 XP a day). One card UI (`FlashcardSession`) and one practice UI (`PracticeLesson`) serve
+„Täna”, „Sõnad”, „Minu vead” and „Lemmik”. Details: docs/LEARNER_PROFILE.md „Where the student sees it”.
+
 ### Didactics library
 
 Teacher reference books and reusable methodical resources live in the separate `didacticLibrary` collection and

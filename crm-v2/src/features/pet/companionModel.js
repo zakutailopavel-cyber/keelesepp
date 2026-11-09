@@ -11,7 +11,10 @@ function minutesUntil(time, now) {
   return Math.round((d.getTime() - now) / MIN);
 }
 
-export function companionHint({ now = Date.now(), invitation = null, todayLessons = [], dueToday = 0, overdue = 0, petName = '', tipIndex = 0, lang = 'et', personal = [] }) {
+// `next`: students/nextStep.js — the one decider (owner 2026-11-09). The pet only says it in its own words: a lesson
+// about to start is urgent, homework is a gentle nudge, practice points to „Täna”; else a tip.
+const HOMEWORK_KEYS = ['overdue', 'due-soon', 'monologue', 'homework'];
+export function companionHint({ now = Date.now(), invitation = null, next = null, petName = '', tipIndex = 0, lang = 'et', personal = [] }) {
   const en = lang === 'en';
   if (invitation) {
     return {
@@ -20,30 +23,28 @@ export function companionHint({ now = Date.now(), invitation = null, todayLesson
       hint: `${invitation.teacherName || 'Учитель'} приглашает тебя на урок! Нажми «Liitu tunniga».`,
     };
   }
-  const soon = todayLessons
-    .map((l) => ({ ...l, inMin: minutesUntil(l.time, now) }))
-    .filter((l) => l.inMin !== null && l.inMin >= -5 && l.inMin <= 15)
-    .sort((a, b) => a.inMin - b.inMin)[0];
-  if (soon) {
-    const m = Math.max(0, soon.inMin);
+  const inMin = next?.key === 'lesson' && next.lesson ? minutesUntil(next.lesson.time, now) : null;
+  if (inMin !== null && inMin >= -5 && inMin <= 15) {
+    const m = Math.max(0, inMin);
     return {
-      key: `soon-${soon.time}`, urgent: true, action: { label: 'Live Classroom', to: '/live-classroom' },
+      key: `soon-${next.lesson.time}`, urgent: true, action: { label: 'Live Classroom', to: '/live-classroom' },
       text: m ? (en ? `Your lesson starts in ${m} min. The invitation will appear here.` : `Tund algab ${m} minuti pärast. Kutse ilmub siia.`) : (en ? 'Your lesson starts now. Wait for the invitation!' : 'Tund algab kohe. Oota kutset!'),
       hint: m ? `Урок через ${m} мин. Приглашение появится здесь.` : 'Урок начинается. Жди приглашение!',
     };
   }
-  if (overdue) {
+  if (next && HOMEWORK_KEYS.includes(next.key)) {
+    const late = next.key === 'overdue';
     return {
-      key: `overdue-${overdue}`, urgent: false, action: { label: 'Ülesanded', to: '/homework' },
-      text: en ? `${overdue} homework ${overdue === 1 ? 'task is' : 'tasks are'} late. Shall we do it now?` : `${overdue} ${overdue === 1 ? 'ülesanne' : 'ülesannet'} hilineb. Teeme kohe?`,
-      hint: `Просрочено заданий: ${overdue}. Сделаем сейчас?`,
+      key: `next-${next.key}-${next.title}`, urgent: false, action: { label: 'Täna', to: '/student' },
+      text: en ? (late ? `"${next.title}" is late. Shall we do it now?` : `Next: "${next.title}". Shall we do it?`) : (late ? `„${next.title}” hilineb. Teeme kohe?` : `Järgmine: „${next.title}”. Teeme ära?`),
+      hint: late ? `«${next.title}» просрочено. Сделаем сейчас?` : `Дальше: «${next.title}». Сделаем?`,
     };
   }
-  if (dueToday) {
+  if (next && ['review', 'sentences'].includes(next.key)) {
     return {
-      key: `due-${dueToday}`, urgent: false, action: { label: 'Ülesanded', to: '/homework' },
-      text: en ? 'Some homework is due today.' : 'Täna on ülesande tähtaeg.',
-      hint: 'Сегодня срок сдачи домашнего задания.',
+      key: `next-${next.key}`, urgent: false, action: { label: 'Täna', to: '/student' },
+      text: en ? 'A few minutes of practice are waiting in "Täna".' : 'Sind ootab „Täna” lühike harjutus.',
+      hint: 'Тебя ждёт короткая тренировка в «Täna».',
     };
   }
   const tips = en ? [
