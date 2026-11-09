@@ -207,7 +207,8 @@
   .vs-tabs { flex-wrap: wrap; overflow-x: visible; }
   .vs-tabs button { flex: 1 1 30%; min-width: 0; }
   .vs-match { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .vs-match button { min-height: 76px; font-size: 14px; }
+  /* long Estonian compounds („ühistranspordipilet”) fit whole instead of breaking mid-word */
+  .vs-match button { min-height: 76px; padding: 8px 6px; font-size: clamp(12px, 3.5vw, 14px); letter-spacing: -.01em; }
   .vs-tabs button { height: 40px; }
   .vs-direction select, .vd-level, .vd-reminder select { min-height: 40px; }
   .vw-btn { min-height: 40px; }
