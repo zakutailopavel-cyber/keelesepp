@@ -30,6 +30,8 @@ const MINUTE = 60 * 1000;
 export const ERROR_PREFIX = 'Sinu lause:';
 const SENTENCE_MINUTES = 4;
 const COURSE_MINUTES = 10;
+// homework: each task by its own estimate (taskList minutes), else ~5 min; the step counts at most 10 min
+const TASK_MINUTES = 5;
 const HOMEWORK_MINUTES = 10;
 
 const clean = (value) => String(value ?? '').trim();
@@ -138,7 +140,7 @@ export function todaySteps({
     key: 'homework', label: 'Ülesanded', ru: 'задания', to: queue[0]?.to || '/homework', queue,
     state: ticked.has('homework') || (workToday && !late) ? 'done' : queue.length ? 'todo' : 'empty',
     detail: queue.length ? [short(queue[0].title, 48), queue[0].kind === 'overdue' ? `tähtaeg oli ${dayLabel(queue[0].due)}` : '', queue.length > 1 ? `kokku ${taskCount(queue.length)}` : ''].filter(Boolean).join(' · ') : workToday ? 'Tehtud täna' : '',
-    minutes: queue.length ? Math.max(5, queue[0].minutes || HOMEWORK_MINUTES) : 0,
+    minutes: Math.min(HOMEWORK_MINUTES, queue.reduce((sum, task) => sum + (Number(task.minutes) > 0 ? Number(task.minutes) : TASK_MINUTES), 0)),
   });
 
   const daily = dailyPlan(ownWords(words), { now, today });

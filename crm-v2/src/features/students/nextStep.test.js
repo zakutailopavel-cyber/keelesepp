@@ -231,3 +231,17 @@ describe('homeSections', () => {
     expect(rows.find((row) => row.key === 'mistakes').done).toBe(true);
   });
 });
+
+describe('the homework time estimate', () => {
+  it('each task by its own estimate, else ~5 min, the step at most 10 min', () => {
+    const one = todaySteps({ today, now: NOW, homework: [{ id: 'a', task: 'Tee', status: 'Ootel' }] });
+    expect(one.steps[0].minutes).toBe(5);
+    const many = todaySteps({ today, now: NOW, homework: ['a', 'b', 'c'].map((id) => ({ id, task: id, status: 'Ootel' })) });
+    expect(many.steps[0].minutes).toBe(10);
+    const sheet = { id: 's', title: 'Leht', status: 'new', worksheetDoc: { blocks: [{ id: 'b', type: 'gaps', data: { text: 'Ma [olen] siin.' } }] } };
+    const own = todaySteps({ today, now: NOW, assignments: [sheet] }).steps[0];
+    expect(own.minutes).toBeGreaterThan(0);
+    expect(own.minutes).toBeLessThanOrEqual(10);
+    expect(todaySteps({ today, now: NOW }).steps[0].minutes).toBe(0);
+  });
+});

@@ -87,7 +87,7 @@ export default function StudentPracticePage({
         words={words} wordsService={wordsService} readOnly={Boolean(preview)} loadPractice={loadPractice}
         onTick={(key) => progress.save({ done: [key] })} onReact={setReaction} />
       {pet?.kind && !pet.optedOut ? <PetLoop user={user} studentId={students[0].id} pet={pet} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} assignments={sheets} words={words}
-        subject={main?.subject || ''} practiceXp={progress.xp} streak={progress.streak} reaction={reaction} ready={plan.todo.length > 0} repository={petRepository} /> : null}
+        subject={main?.subject || ''} practiceXp={progress.xp} streak={progress.streak} reaction={reaction === 'finished' ? '' : reaction} ready={plan.todo.length > 0} repository={petRepository} /> : null}
     </div>
   </div>;
 }

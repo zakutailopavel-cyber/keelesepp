@@ -124,4 +124,27 @@ describe('„Harjuta” — the daily practice tab', () => {
     expect(data.studentRepository.getById).toHaveBeenCalledWith('student-1');
     expect(screen.getByText('Vaade: siit ei salvestata midagi.')).toBeInTheDocument();
   });
+
+  it('the finished screen thanks once: the pet card below does not repeat the line', async () => {
+    const pet = { kind: 'siil', name: 'Okki', playedAt: ago(5) };
+    const data = repositories([{ id: 'student-1', name: 'Mari', subject: 'Inglise keel', level: 'B1' }], {
+      wordsService: wordsOf(dueWords),
+      petRepository: { get: vi.fn().mockResolvedValue(pet), lessonStats: vi.fn().mockResolvedValue([]), update: vi.fn(), publish: vi.fn().mockResolvedValue() },
+    });
+    data.homeworkRepository.listByStudentIds.mockResolvedValue([]);
+    renderPage(data);
+    const start = await screen.findByRole('region', { name: 'Harjuta' });
+    await waitFor(() => expect(start.querySelectorAll('.pf-list li')).toHaveLength(1));
+    fireEvent.click(within(start).getByRole('button', { name: /Alusta tänast/ }));
+    const flow = screen.getByRole('region', { name: 'Harjuta: Sõnad' });
+    for (let i = 0; i < 12 && within(flow).queryByRole('button', { name: 'Näita vastust' }); i += 1) {
+      fireEvent.click(within(flow).getByRole('button', { name: 'Näita vastust' }));
+      fireEvent.click(within(flow).getByRole('button', { name: /^Lihtne/ }));
+    }
+    fireEvent.click(within(flow).getByRole('button', { name: 'Edasi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lõpeta päev' }));
+    expect(screen.getByText('Täna on tehtud!')).toBeInTheDocument();
+    expect([...document.querySelectorAll("p")].filter((node) => node.textContent.includes("Everything is done today"))).toHaveLength(1);
+    expect(screen.getByRole('region', { name: 'Okki' })).toBeInTheDocument();
+  });
 });
