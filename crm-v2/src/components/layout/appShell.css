@@ -46,7 +46,23 @@
   .app-shell.is-collapsed .sidebar:not(.is-peek) { width: 76px; }
   .app-shell.is-collapsed .sidebar:not(.is-peek) :is(.brand__text, .nav-label, .profile-chip__text, nav .nav-group, .sidebar-toggle, .profile-chip__logout, .theme-menu) { opacity: 0; pointer-events: none; transition-delay: 0s; }
   .app-shell.is-collapsed .sidebar:not(.is-peek) .nav-item { position: relative; transform: none; }
-  .app-shell.is-collapsed .sidebar:not(.is-peek) .nav-item .nav-count { position: absolute; top: 3px; left: 30px; margin-left: 0; min-width: 18px; height: 18px; padding: 0 5px; font-size: 10px; line-height: 18px; box-shadow: 0 0 0 2px #142538; }
+  /* rail polish (owner 2026-11-10 „теперь она кривая”): headings collapse instead of leaving gaps, no scrollbars in the rail */
+  .sidebar nav .nav-group { overflow: hidden; max-height: 2em; transition: opacity .18s ease .06s, max-height .28s var(--rail-ease), margin .28s var(--rail-ease); }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) nav .nav-group { max-height: 0; margin-top: 0; margin-bottom: 0; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) nav { overflow-x: hidden; scrollbar-width: none; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) nav::-webkit-scrollbar { display: none; }
+  .sidebar nav { overflow-x: hidden; }
+  /* everything fits without scrolling in the rail: compact rows, the brand mark never squeezes */
+  .sidebar .brand-mark { flex: none; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) nav { gap: 2px; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .nav-item { min-height: 40px; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .brand { padding-bottom: 16px; }
+}
+@media (min-width: 801px) and (max-height: 860px) {
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .nav-item { min-height: 34px; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) nav { gap: 1px; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .brand { padding-bottom: 10px; }
+  .app-shell.is-collapsed .sidebar:not(.is-peek) .nav-item .nav-count { position: absolute; top: 2px; left: 22px; margin-left: 0; min-width: 18px; height: 18px; padding: 0 5px; font-size: 10px; line-height: 18px; box-shadow: 0 0 0 2px #142538; }
 }
 @media (min-width: 801px) and (max-width: 1100px) {
   .app-shell.is-collapsed .sidebar.is-peek { width: 264px; }

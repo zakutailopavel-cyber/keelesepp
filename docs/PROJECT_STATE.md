@@ -1,3 +1,34 @@
+## 2026-11-10 · agent/a2b1-blueprint — A2→B1 course blueprint (contract before rebuilding lessons) · docs only
+
+- Base: `origin/main` a9824ee, checked 2026-11-10. Branch `agent/a2b1-blueprint`, draft PR. Owner 2026-11-10: „делай курс A2→B1 … не шаблонный курс, а очень чётко продуманный курс с чёткой целью … и потом это проверить.”
+- Done: `docs/A2B1_COURSE_BLUEPRINT.md` — purpose, 3 personas, exit profile per skill mapped to Harno B1 parts and Estonian situations; measurable exit targets (≥ 60 % every part floor, 70 % exam-ready proposal, 80 % course goal; writing / speaking / vocabulary / grammar „must control” vs „recognise”); 18-module arc re-anchored to real-life final tasks inside the existing grammar slots (ids unchanged), grammar spiral table, changes vs current modules; v3-stations recipe for this course (must / never, one-to-one, homework 10 min „Harjuta” + one real task); assessment (entry 001 routing, module check A / B / C, mocks); CRM data per learner; pilot verification plan (cohort, metrics, weekly cadence, keep / fix / redo rules, 3-question feedback cards); production order and per-module DoD. `docs/review/a2b1-blueprint-ru.md` — Russian summary for the owner with 3 decisions.
+- Harno B1 facts checked against `docs/HARNO_LEVEL_REQUIREMENTS.md` and re-read on https://harno.ee/eesti-keele-tasemeeksamid (2026-11-10): parts, minutes, raw points, formats, 60 % / no-0 pass rule, citizenship = B1. No code, data or rules changed.
+- Checks: docs only, no tests run (no code touched).
+- Update (owner: „есть и школьники, которые сдают экзамен в 9 классе”): blueprint §8 „Two exam tracks”. Verified on harno.ee/pohikooli-lopueksamid (page dated 08.09.2026), the 2026/27 eristuskiri (31.08.2026) and the oral interviewer's guide (projektid.edu.ee THO 390178894):
+  - the 9th-grade exam is combined B1 + B2 (half the tasks each), 5 parts × 20 p, written part 255 min in EIS (e-exam from 2027), oral part 24–26 min with 4 tasks;
+  - 50 p to finish school, ≥ 60 p and no part at 0 → B1 certificate;
+  - 2027 dates: written 20.04, oral 20–23.04, make-up 20.05; registration 4.01–5.02.
+  
+  Not verified: the B2 threshold, per-task item counts, the language-structure task types, whether the oral part is electronic, the effect of the transition to Estonian-language education. Added the persona Milana (9th grade), the 9th-grade route (~52 lessons, Sept → April), exam stations and own mocks (proposed `a2b1-pk9-1…3`, lesson ids unchanged), and how a teacher switches a learner.
+- Owner decisions 2026-11-10 (recorded in the blueprint's „Otsused / Decisions” section and the RU summary):
+  - (1) register for Harno at ≥ 70 % in every part of a full mock; the course certificate stays at 80 %;
+  - (2) adult fast track (entry ≥ 80 % → M5) and exam track (exam within 6 months → 2 lessons/week, exam tasks in the core);
+  - (3) our own three 9th-grade-format mocks (mock 1 by December 2026) plus the official EIS tests;
+  - (4) pilot learners, teachers and module order — **still open**.
+  
+  PR marked ready for review.
+- Limits: Gaps named for UI: per-part Harno scores and rubric points not stored as numbers, no whole-task „mõttetu” flag, `meta.teacherPage` not shown, nowhere to store the feedback card (pilot uses lesson notes tagged `#a2b1-pilot`).
+- Next safe step: owner names the pilot learners and teachers (decision 4); then a code PR adds `admin/course/b1/blueprint.js` + its gate, and M1–M2 are rebuilt as v3-stations reference modules.
+
+## 2026-11-10 · agent/a2b1-evidence — A2→B1 evidence base (official + peer-reviewed) and 10 design rules · docs only
+
+- Base: `origin/main` 4e83ed1, checked 2026-11-10. Branch `agent/a2b1-evidence`, draft PR. Reads (does not change) `A2B1_COURSE_BLUEPRINT.md` from PR #1186.
+- Owner 2026-11-10: find current, reliable material on building an A2→B1 course that is as effective as possible.
+- Done: `docs/A2B1_EVIDENCE.md` (new): official frame (CEFR CV B1 online interaction + mediation, PRÕK Lisa 1 2023 § 2.4 — B1 by grade 6, **B2 by grade 9**; Integratsiooni SA *hea tava* + course volume; EKI Ekilex data CC BY 4.0), 13 research principles (E1–E13) with effect sizes, confidence and a design rule each; B1-outcome → module mapping; 10 proposed blueprint changes (mediation, online interaction, fluency strand, feedback protocol, listening cycle, pronunciation, vocabulary coverage / recycling ≥ 60 %, homework = spaced retrieval, time expectations, 9th-grade B2 tasks). `docs/COURSE_DESIGN_STATIONS.md` §6 (new, additions only): 10 non-negotiable evidence rules with sources. `docs/review/a2b1-evidence-ru.md`: 1-page Russian summary for the owner.
+- Sources: each claim labelled [read] / [sec] / [not re-checked]; the CoE PDF and chapter files returned 403, so CEFR B1 cells come from the CV Appendix 2 self-assessment table (pp. 167–170). Integratsiooni SA per-level A2→B1 hours could not be verified (only the 500 + 180 h total). No Estonian vocabulary-coverage study was found; the 95 % rule is labelled [INF].
+- Checks: docs only, no code changed; no tests run (not needed). No production data, no deploy. Firecrawl credits ran out during the research (paid external service, daily allowance).
+- Open (owner): (1) relax gate `st-repeat` for stations tagged fluency (shorter repeat to a new addressee) — otherwise rule 4 can only be done in part; (2) add B2 tasks to the 9th-grade track before Mock 1; (3) gates for rules 1–10 in `stations.js` are not written yet.
+- Next safe step: the blueprint agent adds the mediation / online-interaction / fluency columns to `A2B1_COURSE_BLUEPRINT.md` §3.1 and the feedback targets to the teacher page, after the owner answers (1).
 ## 2026-11-10 · agent/fast-marking — one „märkimata” definition from 1.11, phone-first marking, Live Classroom auto-mark on the server · ⚠ rules + functions need deploy
 
 - Base: `origin/main` 40d9450, checked 2026-11-09 (merged with a9824ee before push). Branch `agent/fast-marking`, draft PR. Owner goal: a teacher marks a past lesson in ~10 s on a phone, < 20 unmarked. Owner decision 2026-11-09: only lessons from **2026-11-01** count (`MARKING_START`); older ones are not changed, the admin sees them under „Vanemad (enne 1.11)”. Contract: `docs/LESSON_MARKING.md` (new); ARCHITECTURE.md paragraph.
