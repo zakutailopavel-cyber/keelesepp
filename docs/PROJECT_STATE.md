@@ -11,6 +11,17 @@
 - Checks: `npx vitest run src/components src/features/calendar src/features/finance src/features/dashboard` → 86 files, 596 passed; full `npx vitest run` → 547 files passed, 4211 tests passed, 12 skipped (new: EntityDrawer, LessonDrawerPanel, InvoiceDrawerPanel, lessonActions, registry + context-menu cases); eslint --quiet clean on touched files. Not looked at in a browser with real data.
 - Limits: the page under the drawer is not reloaded after a mark/payment (except „Märkimata tunnid”); invoice „full page” link is just /finance (no deep link to the row); no deploy, no production writes.
 - Next safe step: review both PRs in the browser (dashboard „Täna” → right-click a lesson; Finantsid → right-click an invoice), merge #1142 first, then this one.
+## 2026-11-09 · agent/loading-states — one calm loading look (design audit)
+
+- Base: `origin/main`, checked 2026-11-09. Branch `agent/loading-states`, draft PR.
+- Done:
+  - `components/ui/LoadingState.jsx`: spinner is `aria-hidden`, label announced with `aria-live="polite"`; new `inline` variant (one small muted line, keeps the old hint class via `className`) and `page` variant (full-screen, for public pages). New `components/ui/Skeleton.jsx` (`lines` / `card`, shimmer) exported from `components/ui/index.js`. Styles in `components/ui/loadingState.css` with the shared tokens; `prefers-reduced-motion` stops the spin and shimmer.
+  - 28 bare „Laen…” paragraphs in 26 files now use `LoadingState` (inline in cards and panels, block in `BookPage` / `WorksheetStudioPage`); wording unchanged.
+  - `app/routes.jsx`: `/ajad`, `/maksuandmed/:token`, `/e-kirjad/:token` use `publicPage()` — a full-screen „Laen… · Загрузка…” instead of a blank screen. The other `fallback={null}` (topbar search/notifications, context menu, pet, live-room hints and recorder, step control, inline rich editor) stay, each with a comment why.
+- Left as they were: „Laen…” inside buttons, `<option>`, row `<small>`, list `<li>` and texts mixed with an empty-state message (NotificationCenter, LessonPanel, StudentParentsCard).
+- No data, rules or behaviour changed. Two tests (`googleCalendar.test.jsx`, `ParentDashboardPage.test.jsx`) now look through all status regions, because inline loaders are status regions too. +4 tests in `ui.test.jsx`.
+- Checks: `cd crm-v2 && npx vitest run` → 546 files passed (1 skipped), 4207 tests passed, 12 skipped; `npx eslint src --quiet` clean. Not looked at in a browser.
+- Next safe step: use `Skeleton` on the busiest first screens (student and parent dashboards) instead of the spinner.
 ## 2026-11-09 · agent/parent-pay-visible — „Arve ootab tasumist” at the top of the parent's home (parents, finance-adjacent UI)
 
 - Base: `origin/main` 65ca26a, checked 2026-11-09. Branch `agent/parent-pay-visible`, draft PR.

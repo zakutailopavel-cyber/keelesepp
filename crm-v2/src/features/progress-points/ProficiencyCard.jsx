@@ -2,6 +2,7 @@ import ProficiencyChart from './ProficiencyChart.jsx';
 import { changeText, curveSummary, formatPercent, pointLabel } from './proficiencyCurve.js';
 import { useLevelCurve } from './useLevelCurve.js';
 import './proficiency.css';
+import { LoadingState } from '../../components/ui/index.js';
 
 const Ru = ({ children }) => <span className="pd-ru" lang="ru"> · {children}</span>;
 const WORDS = {
@@ -24,7 +25,7 @@ export function ProficiencyView({ curve, level = '', loading = false, audience =
     <h2>{title}{level ? <Ru>{words.ru(level)}</Ru> : null}</h2>
     {latest ? <p className="pf-now"><strong>{formatPercent(latest.percent)}</strong>{summary.change !== null ? <b className={summary.change >= 0 ? 'is-up' : 'is-down'}>{changeText(summary)}</b> : null}</p> : null}
   </header>;
-  if (loading) return <section className="pf-card" aria-label="Areng">{head}<p className="pf-empty">Laen…</p></section>;
+  if (loading) return <section className="pf-card" aria-label="Areng">{head}<LoadingState inline className="pf-empty" label="Laen…" /></section>;
   if (!line.length && !exams.length) return <section className="pf-card" aria-label="Areng">{head}
     <p className="pf-empty"><span>Andmeid veel pole.<Ru>данных пока нет</Ru></span><small>{words.empty}</small></p>
   </section>;

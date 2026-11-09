@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, EmptyState } from '../../components/ui/index.js';
+import { Card, EmptyState, LoadingState } from '../../components/ui/index.js';
 import { homeworkService as defaultHomework } from '../../services/firebase/homework.js';
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
@@ -42,7 +42,7 @@ function SummaryDetails({ summary, words, homeworkService, boardLink }) {
       <h4>Uued sõnad ({lessonWords.length})</h4>
       {lessonWords.length ? <ul className="vw-list">{lessonWords.map((item) => <li key={item.id}><span><strong>{item.word}</strong>{item.translation ? <> — {item.translation}</> : null}{item.forms ? <small className="vw-forms">{item.forms}</small> : null}</span></li>)}</ul> : <p className="vw-muted">Selles tunnis sõnu ei lisatud.</p>}
       <h4>Ülesanded</h4>
-      {homework === null ? <p className="vw-muted">Laen…</p> : homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span><strong>{item.task}</strong><small>{item.due ? `Tähtaeg ${displayDate(item.due)}` : 'Tähtajata'}</small></span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud.</p>}
+      {homework === null ? <LoadingState inline className="vw-muted" label="Laen…" /> : homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span><strong>{item.task}</strong><small>{item.due ? `Tähtaeg ${displayDate(item.due)}` : 'Tähtajata'}</small></span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud.</p>}
     </div>
   );
 }

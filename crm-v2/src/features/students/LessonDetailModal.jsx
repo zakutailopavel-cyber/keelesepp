@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Badge, Modal } from '../../components/ui/index.js';
+import { Badge, Modal, LoadingState } from '../../components/ui/index.js';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
@@ -83,7 +83,7 @@ export default function LessonDetailModal({
           </section>
         ) : null}
         {rows.length || recordings.error ? <LessonsCard rows={rows} studentId={student.id} loading={false} error={recordings.error} inline /> : null}
-        {recordings.loading ? <p className="form-hint">Laen tunni materjale…</p> : null}
+        {recordings.loading ? <LoadingState inline className="form-hint" label="Laen tunni materjale…" /> : null}
         {nothing ? <p className="form-hint">Selle päeva kohta pole kodutööd, kokkuvõtet, sõnu ega salvestist.</p> : null}
       </div>
     </Modal>

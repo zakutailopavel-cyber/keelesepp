@@ -1,6 +1,6 @@
 import { CalendarSync, RefreshCw, Unplug } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Badge, Button, Card } from '../../components/ui/index.js';
+import { Badge, Button, Card, LoadingState } from '../../components/ui/index.js';
 import { googleCalendarService } from '../../services/firebase/googleCalendar.js';
 import { describeConnection, formatSyncTime, syncResultMessage } from './googleCalendarModel.js';
 import './googleCalendar.css';
@@ -85,7 +85,7 @@ export default function GoogleCalendarCard({ user, repository = googleCalendarSe
       <h2 id="google-calendar">Google Calendar</h2>
       {notice ? <p className={notice.tone === 'error' ? 'form-error' : 'gcal-notice'} role={notice.tone === 'error' ? 'alert' : 'status'}>{notice.text}</p> : null}
       {loadError && !status ? <p className="form-error" role="alert">{loadError}</p> : null}
-      {!status && !loadError ? <p className="settings-copy">Laen ühenduse olekut…</p> : null}
+      {!status && !loadError ? <LoadingState inline className="settings-copy" label="Laen ühenduse olekut…" /> : null}
 
       {status && !status.connected ? (
         <>

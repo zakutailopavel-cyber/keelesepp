@@ -1,6 +1,6 @@
 import { Bot, Copy, KeyRound, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Badge, Button, Card, Input } from '../../components/ui/index.js';
+import { Badge, Button, Card, Input, LoadingState } from '../../components/ui/index.js';
 import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { SHEET_BUILDER_URL, sheetBuilderKeysService } from '../../services/firebase/sheetBuilderKeys.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -46,7 +46,7 @@ export default function SheetBuilderCard({ service = sheetBuilderKeysService }) 
       <Input id="sheet-builder-label" label="Võtme nimi" maxLength="60" value={label} onChange={(event) => setLabel(event.target.value)} />
       <Button loading={busy === 'create'} onClick={create}><KeyRound size={17} /> Loo uus võti</Button>
     </div>
-    {keys === null ? <p className="form-hint">Laen võtmeid…</p> : active.length ? <ul className="simple-list" aria-label="Kehtivad võtmed">{active.map((item) => <li key={item.id} className="integration-row">
+    {keys === null ? <LoadingState inline className="form-hint" label="Laen võtmeid…" /> : active.length ? <ul className="simple-list" aria-label="Kehtivad võtmed">{active.map((item) => <li key={item.id} className="integration-row">
       <div><strong>{item.label}</strong><span>{item.hint} · loodud {when(item.createdAt)}{item.createdByName ? ` (${item.createdByName})` : ''} · viimati kasutatud {when(item.lastUsedAt)}</span></div>
       <Badge tone="success">Kehtib</Badge>
       <Button variant="danger" loading={busy === item.id} onClick={() => revoke(item)}><Trash2 size={15} /> Tühista</Button>

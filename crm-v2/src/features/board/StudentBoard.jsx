@@ -3,7 +3,7 @@ import { ArrowLeftRight, ArrowUpRight, BookmarkPlus, ChevronDown, MessageSquareT
 import { Suspense, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { lazyComponent } from '../../app/lazyComponent.js';
 import { createPortal } from 'react-dom';
-import { Button } from '../../components/ui/index.js';
+import { Button, LoadingState } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitSheet, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView, focusShift,
   BACKGROUNDS, MARKER_COLORS, POINTER_TOOL, backgroundOf, boardTool, copyData, fitRect, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds, viewRect } from './boardModel.js';
@@ -1356,7 +1356,7 @@ export default function StudentBoard({
           {staff ? <button type="button" className={mediaOpen ? 'is-active' : ''} aria-label="Pildid" aria-pressed={mediaOpen} title="Pildid: otsi ja lohista tahvlile" onClick={() => setMediaOpen(!mediaOpen)}><Images size={20} /></button> : null}
           <button type="button" className={`sb-dock__more ${stylesOpen ? 'is-open' : ''}`} aria-label={stylesOpen ? 'Peida värvid' : 'Näita värve'} aria-pressed={stylesOpen} onClick={() => setStylesOpen(!stylesOpen)}><ChevronDown size={18} /></button>
         </div>
-        {staff && mediaOpen ? <Suspense fallback={<aside className="sb-media" aria-label="Pildid"><p className="sb-media__hint">Laen…</p></aside>}>
+        {staff && mediaOpen ? <Suspense fallback={<aside className="sb-media" aria-label="Pildid"><LoadingState inline className="sb-media__hint" label="Laen…" /></aside>}>
           <MediaSearchPanel onPlace={(item) => placeMedia(item)} onClose={() => setMediaOpen(false)} placing={placing} {...(mediaBank ? { bank: mediaBank } : {})} />
         </Suspense> : null}
         {stylesOpen && !reading ? <div className="sb-style" aria-label="Värv ja suurus">

@@ -79,6 +79,9 @@ const BoardPage = lazyComponent(() => import('../features/board/BoardPage.jsx'))
 const StudentCoursePage = lazyComponent(() => import('../features/self-study/StudentCoursePage.jsx'));
 const TeacherGuidePage = lazyComponent(() => import('../features/guide/TeacherGuidePage.jsx'));
 const staffPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen…" />}>{element}</Suspense></PageErrorBoundary>;
+// public links for parents and learners (no login, no app shell): a full-screen bilingual loading view instead of a
+// blank page while the page code downloads. No error boundary here on purpose — behaviour stays as it was.
+const publicPage = (element) => <Suspense fallback={<LoadingState page label="Laen… · Загрузка…" />}>{element}</Suspense>;
 const generatorPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense></PageErrorBoundary>;
 
 export default function AppRoutes() {
@@ -93,13 +96,13 @@ export default function AppRoutes() {
       {/* LHV LinkPay: public pay link from the invoice PDF / e-mail and the bank's return page */}
       <Route path="/maksa/:invoiceId" element={staffPage(<PayInvoicePage />)} />
       {/* „Sobivad ajad”: a public page the school sends to a learner to mark every hour that really suits a lesson */}
-      <Route path="/ajad" element={<Suspense fallback={null}><AvailabilityPollPage /></Suspense>} />
+      <Route path="/ajad" element={publicPage(<AvailabilityPollPage />)} />
       {/* parents' INF 3 form (docs/INF3.md): no login, a one-time link from the school */}
-      <Route path="/maksuandmed/:token" element={<Suspense fallback={null}><TaxFormPage /></Suspense>} />
+      <Route path="/maksuandmed/:token" element={publicPage(<TaxFormPage />)} />
       {/* „Seadme kontroll”: camera, microphone, speakers, network before the first lesson — no login (guests too) */}
       <Route path="/kontroll" element={staffPage(<DeviceCheckPage />)} />
       {/* e-mails to students and parents: turn them off or choose the language (docs/EMAIL_NOTIFICATIONS.md) */}
-      <Route path="/e-kirjad/:token" element={<Suspense fallback={null}><EmailPreferencesPage /></Suspense>} />
+      <Route path="/e-kirjad/:token" element={publicPage(<EmailPreferencesPage />)} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
         <Route element={<AppShell />}>
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}

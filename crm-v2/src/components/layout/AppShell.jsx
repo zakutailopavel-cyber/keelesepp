@@ -88,6 +88,8 @@ export default function AppShell({ approvals = accountApprovalsService, messages
   return (
     <AnnouncementGate enabled={gated} user={user} onSignOut={signOut} {...(announcements ? { service: announcements } : {})}>
       {/* the right-click menu: staff and the accountant, each with their own actions (not in the admin's preview) */}
+      {/* fallback={null} for this menu, the topbar search/notifications and the pet: small helper widgets around the
+          page — a spinner there would flicker on every load; the page itself has its own loading view */}
       {hasAnyRole(user.roles, ['admin', 'teacher', 'finance']) && !preview ? <Suspense fallback={null}><EntityContextMenu roles={user.roles} /><EntityDrawer roles={user.roles} /></Suspense> : null}
     <MissingDataGate enabled={gated} user={user} onSignOut={signOut} {...(missingData ? { service: missingData } : {})}>
     <div className="app-shell">

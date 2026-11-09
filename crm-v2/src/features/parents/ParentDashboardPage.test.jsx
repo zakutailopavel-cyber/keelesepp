@@ -25,7 +25,8 @@ describe('ParentDashboardPage', () => {
     expect(within(card).getByText('Õpi sõnad')).toBeInTheDocument();
     expect(within(card).getByRole('link', { name: /Vaata ülesandeid/ })).toHaveAttribute('href', '/homework');
     expect(card).toHaveTextContent('Tagasisidet veel ei ole');
-    expect(screen.getByRole('status')).toHaveTextContent('Tasumata 30,00');
+    // the announcement dialog's inline loader is a status region too
+    expect(screen.getAllByRole('status').map((el) => el.textContent).join(' ')).toContain('Tasumata 30,00');
     // none of the old technical tiles and words
     // („Kodutööd” is back as the card's name: owner 2026-11-04)
     ['Kõik oluline ühe pilguga', 'Õpilasi', 'õppesuund', 'Pooleli ülesanded'].forEach((word) => expect(document.body.textContent).not.toContain(word));

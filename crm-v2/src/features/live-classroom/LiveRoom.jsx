@@ -560,6 +560,7 @@ export default function LiveRoom({
           <div className="lr-stack" style={insetRight ? { right: insetRight } : undefined}>
             <CountdownBadge timer={timer} />
             {stageNotice}
+            {/* fallback={null}: hints are an optional overlay on the video stage — a spinner would cover the call */}
             {teacher && !guest ? <RoomPartBoundary label="Vihjeid"><Suspense fallback={null}><LessonHints invitation={invitation} lessons={recent.lessons} loading={recent.loading} hidden={call.screenSharing} onWarmup={() => { setMenu(''); setPanel('warmup'); }} /></Suspense></RoomPartBoundary> : null}
           </div>
           {!teacher && !guest ? <QuickPollCard quick={quick} timer={timer} /> : null}
@@ -625,6 +626,7 @@ export default function LiveRoom({
             </div>
           </div>
           <div className={panel === 'record' && teacher ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'record'}>
+            {/* RoomRecorder below keeps fallback={null}: it mounts while the drawer is still hidden (auto-recording) */}
             <header><strong>Tunni salvestamine</strong><IconButton label="Sulge salvestamine" onClick={() => setPanel('')}><X size={18} /></IconButton></header>
             <div className="lr-drawer__body">{teacher ? <><RoomPartBoundary label="Salvestust"><Suspense fallback={null}><RoomRecorder invitation={invitation} user={user} streams={streams} consent={consent} auto onStateChange={setRecState} subject={subject} {...(recordingService ? { service: recordingService } : {})} /></Suspense></RoomPartBoundary>{transcriber.known ? <p className={`lr-transcriber ${transcriber.online ? 'is-on' : 'is-off'}`} role="status">{transcriberLabel(transcriber)}</p> : null}</> : null}</div>
           </div>

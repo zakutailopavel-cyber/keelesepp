@@ -1,6 +1,7 @@
 import { FileImage, FileText, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { fileKind } from './roomMaterials.js';
+import { LoadingState } from '../../components/ui/index.js';
 
 // Õppevara image/PDF materials; „Tahvlile” puts one on the open board page (lesson room and teacher workspace).
 export default function MaterialsPanel({ library, onPlace }) {
@@ -25,7 +26,7 @@ export default function MaterialsPanel({ library, onPlace }) {
   return <div className="lr-materials">
     <label className="lr-search"><Search size={16} /><input aria-label="Otsi materjali" placeholder="Otsi materjali…" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
     <p className="lr-muted">Pilt või PDF läheb tahvlile — mõlemad saate selle peale kirjutada. Konstruktori töölehed avad nupust „Ülesanded”.</p>
-    {state.loading ? <p className="lr-muted">Laen materjale…</p> : null}
+    {state.loading ? <LoadingState inline className="lr-muted" label="Laen materjale…" /> : null}
     {state.error ? <p className="lr-error" role="alert">{state.error}</p> : null}
     {visible.map((lesson) => <article key={lesson.id} className="lr-material">
       <strong>{lesson.title || 'Materjal'}</strong>

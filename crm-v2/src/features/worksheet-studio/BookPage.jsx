@@ -87,6 +87,7 @@ const levelSpan = (lessons, level) => {
 import './engine/sheet.css';
 import './engine/sheetFlow.css';
 import './worksheetStudio.css';
+import { LoadingState } from '../../components/ui/index.js';
 
 const DRAFT_KEY = 'ks-worksheet-book-draft';
 
@@ -259,7 +260,7 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   const startPrint = () => { setForced(0); setPrinting(true); };
   const move = (i, dir) => { const j = i + dir; if (j < 0 || j >= ids.length) return; const n = [...ids]; [n[i], n[j]] = [n[j], n[i]]; setIds(n); };
 
-  if (state.loading) return <div className="page-content"><p className="ws-studio-loading">Laen töölehti…</p></div>;
+  if (state.loading) return <div className="page-content"><LoadingState label="Laen töölehti…" /></div>;
   if (state.error) return <div className="page-content"><div className="ws-studio-error" role="alert">{state.error} <Link to="/library">Tagasi Õppevarasse</Link></div></div>;
 
   return (

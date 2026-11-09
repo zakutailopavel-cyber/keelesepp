@@ -4,6 +4,7 @@ import { loadCourseLibrary, searchLibrary, SKILLS, suggestedTags } from './block
 import { lessonsToLoad, phaseEntries, standaloneEntries } from './sheetReuse.js';
 import { sheetReuseService } from '../../services/firebase/sheetReuse.js';
 import Sheet from './engine/Sheet.jsx';
+import { LoadingState } from '../../components/ui/index.js';
 
 const LEVEL_TAGS = ['a2', 'b1', 'b2', 'c1'];
 const PHASES = [['avasta', 'Avasta'], ['harjuta', 'Harjuta'], ['kasuta', 'Kasuta']];
@@ -90,7 +91,7 @@ export default function BlockLibraryPanel({ level = '', onInsert, load = loadCou
       <div className="st-bank__levels" role="group" aria-label="Etapp">{PHASES.map(([tag, label]) => chip(tag, label))}</div>
       {topics.length ? <div className="st-bank__levels" role="group" aria-label="Teemad">{topics.map((t) => chip(t))}</div> : null}
       {source === 'saved' ? <p className="ed-hint">Kõik eraldi lehed; tundide lehed (Avasta, Harjuta, Kasuta, Õpik) selle tunni ja nende tundide omad, mille nime kirjutad (nt „perekond”).{phaseNote.loading ? ` Laen ${phaseNote.loading} tunni lehti…` : ''}{phaseNote.more ? ` Veel ${phaseNote.more} tundi sobib — täpsusta otsingut.` : ''}</p> : null}
-      {loading ? <p className="ed-hint">{source === 'saved' ? 'Laen salvestatud lehti…' : 'Laen kursuse ülesandeid…'}</p> : error ? <p className="ed-hint" role="alert">{error}</p> : (
+      {loading ? <LoadingState inline className="ed-hint" label={source === 'saved' ? 'Laen salvestatud lehti…' : 'Laen kursuse ülesandeid…'} /> : error ? <p className="ed-hint" role="alert">{error}</p> : (
         <>
           <p className="ed-hint">{result.total} ülesannet{result.total > result.items.length ? ` (näitan ${result.items.length})` : ''}</p>
           {added ? <p className="ed-hint" role="status">{added}</p> : null}

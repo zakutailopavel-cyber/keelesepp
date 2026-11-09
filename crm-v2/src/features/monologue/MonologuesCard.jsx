@@ -1,6 +1,6 @@
 import { GitCompare, Mic, Pencil } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Card } from '../../components/ui/index.js';
+import { Button, Card, LoadingState } from '../../components/ui/index.js';
 import { studentMonologuesService } from '../../services/firebase/studentMonologues.js';
 import { clockLabel } from '../homework/voiceTask.js';
 import { NOTE_MAX, analysisFor, defaultPair, monologueLevel, monologueStats, monthLabel, promptById, promptForLevel } from './monologueModel.js';
@@ -141,7 +141,7 @@ export default function MonologuesCard({ student, user, service = studentMonolog
     <p className="form-hint">{prompt
       ? <>Kord kuus 2 minutit samal teemal: „{prompt.title}” (tase {level}). Õpilane näeb seda ülesannete all.</>
       : 'Kuu monoloog algab eesti keele tasemest A2 (kaardil on tase märkimata või madalam).'}</p>
-    {state.loading ? <p className="mono-muted">Laen…</p> : null}
+    {state.loading ? <LoadingState inline className="mono-muted" label="Laen…" /> : null}
     {state.error ? <p className="form-error" role="alert">{state.error} <button type="button" className="link-button" onClick={load}>Proovi uuesti</button></p> : null}
     {!state.loading && !state.error && !items.length ? <p className="mono-muted">Salvestusi veel pole.</p> : null}
     {comparing && items.length >= 2 ? <Compare items={items} service={service} /> : null}

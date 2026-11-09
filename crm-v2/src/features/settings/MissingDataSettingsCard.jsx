@@ -1,7 +1,7 @@
 import { ClipboardList, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card } from '../../components/ui/index.js';
+import { Button, Card, LoadingState } from '../../components/ui/index.js';
 import { DEFAULT_MISSING_SETTINGS, MISSING_ITEMS, missingDataService } from '../../services/firebase/missingData.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { ITEM_HINTS, ITEM_LABELS, MODE_LABELS } from '../missing-data/missingDataModel.js';
@@ -40,7 +40,7 @@ export default function MissingDataSettingsCard({ user, service = missingDataSer
       <div className="settings-icon"><ClipboardList /></div>
       <h2>Puuduvad andmed</h2>
       <p className="settings-copy">Mida küsida õpilaselt või lapsevanemalt kohe pärast sisselogimist (pärast „Teateid”), kui see kaardil puudub. „Kohustuslik” ei lase KeeleSeppa enne täitmist avada; „Soovi korral” küsitakse samas vormis, aga võib jätta tühjaks. Kontota õpilasi ja vanemaid näed <Link to="/students?puuduvad=1">Õpilased → Puuduvad andmed</Link>.</p>
-      {!items ? <p className="form-hint">Laen…</p> : (
+      {!items ? <LoadingState inline className="form-hint" label="Laen…" /> : (
         <div className="missing-settings__rows">
           {MISSING_ITEMS.map((item) => (
             <label key={item} className="missing-settings__row" htmlFor={`missing-setting-${item}`}>
