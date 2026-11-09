@@ -29,6 +29,7 @@ export const ROUTE_ACCESS = Object.freeze({
   '/library': ACCESS.STAFF,
   '/library/raamatukogu': ACCESS.STAFF,
   '/library/worksheet-generator': ACCESS.STAFF,
+  '/library/harjutused': ACCESS.STAFF,
   '/library/worksheet-generator/avasta-module-1': ACCESS.ADMIN,
   '/library/worksheet-generator/module-1-three-phase': ACCESS.ADMIN,
   '/library/worksheet-generator/course': ACCESS.ADMIN,
