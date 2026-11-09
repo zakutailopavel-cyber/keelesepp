@@ -11,6 +11,7 @@ function renderPage(overrides = {}) {
   const wordsService = {
     subscribeForStudent: vi.fn((id, onData) => { onData([{ id: 'w1', studentId: 's1', word: 'kass', translation: 'кошка', box: 0, dueAt: '' }, { id: 'w2', studentId: 's1', word: 'koer', translation: 'собака', box: 1, dueAt: '2999-01-01' }]); return vi.fn(); }),
     review: vi.fn().mockResolvedValue({}),
+    rate: vi.fn().mockResolvedValue({}),
     addOwn: vi.fn().mockResolvedValue({}),
   };
   const props = {
@@ -46,25 +47,44 @@ describe('Sõnavara page', () => {
     ['Kaardid', 'Õpi', 'Kirjuta', 'Sobita', 'Test'].forEach((name) => expect(screen.getByRole("button", { name: new RegExp(`^${name}$`) })).toBeInTheDocument());
   });
 
-  it('flashcards of my own words move them in their boxes once per session', async () => {
+  it('flashcards of my own words save every answer on the spaced repetition schedule', async () => {
     const props = renderPage();
     fireEvent.click(await screen.findByRole('button', { name: /Minu sõnad/ }));
-    fireEvent.click(screen.getByRole('button', { name: /^Kaardid/ }));
-    fireEvent.click(screen.getByRole('button', { name: /Tean/ }));
-    fireEvent.click(screen.getByRole('button', { name: /Õpin veel/ }));
-    await waitFor(() => expect(props.wordsService.review).toHaveBeenCalledTimes(2));
-    expect(screen.getByText(/Tean 1, õpin veel 1/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Kaardid/ })).toHaveAttribute('aria-pressed', 'true'); // the default way
+    fireEvent.click(screen.getByRole('button', { name: 'Näita vastust' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Hea/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Näita vastust' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Uuesti/ }));
+    await waitFor(() => expect(props.wordsService.rate).toHaveBeenCalledTimes(2));
+    expect(props.wordsService.rate).toHaveBeenCalledWith(expect.objectContaining({ word: expect.any(String) }), expect.objectContaining({ direction: 'r', rating: 'good', nextSide: expect.objectContaining({ state: 'learning', step: 1 }) }));
+    expect(props.wordsService.rate).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ rating: 'again' }));
+    expect(props.wordsService.review).not.toHaveBeenCalled();
+  });
+
+  it('„Täna kordamiseks” starts the daily queue', async () => {
+    renderPage();
+    expect(await screen.findByRole('heading', { name: 'Täna kordamiseks: 2' })).toBeInTheDocument();
+    expect(screen.getByText('2 uut')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Alusta/ }));
+    expect(screen.getByRole('region', { name: 'Õppimine: Täna kordamiseks' })).toBeInTheDocument();
+    expect(screen.getByText('2 kaarti täna')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Küsimuse suund' })).toBeNull();
+    expect(screen.getByRole('button', { name: /Küsimus: kass/ })).toBeInTheDocument();
   });
 
   it('missed course words can be kept in my words', async () => {
     const props = renderPage();
     fireEvent.click((await screen.findAllByRole('button', { name: /3\. Raha ja ost/ }))[0]);
-    fireEvent.click(await screen.findByRole('button', { name: /^Kaardid/ }));
-    for (let i = 0; i < 3; i += 1) fireEvent.click(screen.getByRole('button', { name: /Õpin veel/ }));
+    await screen.findByRole('button', { name: 'Näita vastust' });
+    for (const rating of ['Uuesti', 'Uuesti', 'Uuesti', 'Lihtne', 'Lihtne', 'Lihtne']) {
+      fireEvent.click(screen.getByRole('button', { name: 'Näita vastust' }));
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${rating}`) }));
+    }
     fireEvent.click(screen.getByRole('button', { name: /Lisa raskemad minu sõnadesse/ }));
     await waitFor(() => expect(props.wordsService.addOwn).toHaveBeenCalledTimes(3));
     expect(props.wordsService.addOwn).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1', word: expect.any(String), translation: expect.any(String) }));
     expect(props.wordsService.review).not.toHaveBeenCalled();
+    expect(props.wordsService.rate).not.toHaveBeenCalled();
   });
 });
 
@@ -87,8 +107,8 @@ describe('study modes', () => {
       fireEvent.click(screen.getByRole('button', { name: /Edasi/ }));
     }
     expect(screen.getByText('Valmis! Õigesti 3/4.')).toBeInTheDocument();
-    expect(onResult).toHaveBeenCalledWith(deck[0], true);
-    expect(onResult).toHaveBeenCalledWith(deck[1], false);
+    expect(onResult).toHaveBeenCalledWith(deck[0], true, 'p');
+    expect(onResult).toHaveBeenCalledWith(deck[1], false, 'p');
   });
 
   it('„Sobita” clears a pair when both sides are picked', () => {

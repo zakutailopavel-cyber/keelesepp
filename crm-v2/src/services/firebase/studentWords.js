@@ -1,6 +1,7 @@
 import { getDocs, collection, deleteDoc, doc, onSnapshot, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
-import { cleanWord, normalizeWord, review } from '../../features/vocabulary/wordsModel.js';
+import { cleanWord, normalizeWord } from '../../features/vocabulary/wordsModel.js';
+import { ratingPatch } from '../../features/vocabulary/srs.js';
 
 const CHECKS = ['ok', 'suggest', 'unknown', 'unchecked'];
 
@@ -129,10 +130,26 @@ export const studentWordsService = {
     await deleteDoc(doc(db, 'studentWords', id));
   },
 
-  async review(word, knew) {
+  // one answer of the student on spaced repetition (srs.js): direction 'r' (et → meaning) or 'p' (meaning → et),
+  // rating again / hard / good / easy; `nextSide` when the flashcard session already scheduled it. Writes `srs` and the
+  // old summary fields (box, dueAt, reviewedAt, reviews) — the rules allow the student exactly these keys.
+  async rate(word, { direction = 'r', rating = 'good', nextSide = null, now = new Date() } = {}) {
     const { db } = requireFirebaseClient();
-    const patch = review(word, knew);
-    await updateDoc(doc(db, 'studentWords', word.id), patch);
+    const patch = ratingPatch(word, direction, rating, now, nextSide);
+    try {
+      await updateDoc(doc(db, 'studentWords', word.id), patch);
+    } catch (error) {
+      // rules older than 2026-11-09 do not know `srs`: keep the summary fields, the schedule migrates again later
+      if (error?.code !== 'permission-denied') throw error;
+      const { srs, ...summary } = patch; // eslint-disable-line no-unused-vars
+      await updateDoc(doc(db, 'studentWords', word.id), summary);
+      return summary;
+    }
     return patch;
+  },
+
+  // a plain knew / did not know answer (the other study modes, „Minu sõnad” practice) on the same schedule
+  async review(word, knew, direction = 'r') {
+    return this.rate(word, { direction, rating: knew ? 'good' : 'again' });
   },
 };

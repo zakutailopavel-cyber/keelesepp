@@ -2095,6 +2095,26 @@ service cloud.firestore {
         && data.get('source', '') is string && data.get('source', '').size() <= 40
         && data.get('checked', '') in ['', 'ok', 'suggest', 'unknown', 'unchecked'];
     }
+    // spaced repetition (2026-11-09, docs/VOCABULARY_SRS.md): `srs: { v, r, p }`, one side per direction
+    // (r = et → meaning, p = meaning → et); written by the student with the practice fields, never at create
+    // kept short: the update rule also runs ownsStudent() and the practice checks, and a request may evaluate at most
+    // 1000 expressions (the first, longer version hit that limit in the emulator)
+    function studentWordSrsSideValid(side) {
+      return side is map
+        && side.keys().hasOnly(['state', 's', 'd', 'due', 'last', 'reps', 'lapses', 'step', 'intro'])
+        && side.get('state', 'new') in ['new', 'learning', 'review', 'relearning']
+        && side.get('s', 0) is number && side.get('d', 0) is number
+        && side.get('due', '').size() <= 40 && side.get('last', '').size() <= 40
+        && side.get('reps', 0) is int && side.get('lapses', 0) is int && side.get('step', 0) is int
+        && side.get('intro', '').size() <= 10;
+    }
+    function studentWordSrsValid(data) {
+      return !('srs' in data) || (data.srs is map
+        && data.srs.keys().hasOnly(['v', 'r', 'p'])
+        && data.srs.get('v', 1) is int
+        && (!('r' in data.srs) || studentWordSrsSideValid(data.srs.r))
+        && (!('p' in data.srs) || studentWordSrsSideValid(data.srs.p)));
+    }
     match /studentWords/{wordId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       // staff in lessons; the student (or a linked parent) from the course decks of „Sõnavara” and „Lisa oma sõna”
@@ -2120,11 +2140,12 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['word', 'translation', 'example', 'forms', 'formItems', 'updatedAt', 'checked'])
           && studentWordTextValid(request.resource.data))
         || (ownsStudent(resource.data.studentId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['box', 'dueAt', 'reviewedAt', 'reviews'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['box', 'dueAt', 'reviewedAt', 'reviews', 'srs'])
           && request.resource.data.box is int && request.resource.data.box >= 0 && request.resource.data.box <= 5
           && request.resource.data.dueAt is string && request.resource.data.dueAt.size() <= 40
           && request.resource.data.get('reviewedAt', '') is string
-          && request.resource.data.get('reviews', 0) is int);
+          && request.resource.data.get('reviews', 0) is int
+          && studentWordSrsValid(request.resource.data));
       allow delete: if isStaff();
     }
 
