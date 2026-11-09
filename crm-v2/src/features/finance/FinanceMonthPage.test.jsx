@@ -353,4 +353,14 @@ describe('FinanceMonthPage', () => {
     expect(await screen.findByRole('table', { name: 'Arved 2031-10' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /ei kuulu raamatupidamisse/ })).not.toBeInTheDocument();
   });
+
+  it('shows money in and out on demand for the administrator (it lived only in Vana vaade)', async () => {
+    const value = props();
+    value.financeRepository = { ...value.financeRepository, previewFinancialAnalytics: vi.fn().mockResolvedValue({ snapshot: { summary: { cashInflowCents: 123400, cashOutflowCents: 0, cashNetCents: 123400, marginCents: 0, revenueCents: 0, forecastCents: 0 }, breakdown: {}, agedDebt: { buckets: [], rows: [], totalCents: 0 }, trend: [] } }) };
+    renderPage(value);
+    fireEvent.click(await screen.findByText(/Raha liikumine/));
+    fireEvent.click(screen.getByRole('button', { name: /Koosta analüüs/ }));
+    expect(value.financeRepository.previewFinancialAnalytics).toHaveBeenCalled();
+    expect(await screen.findAllByText(/1234,00/)).not.toHaveLength(0);
+  });
 });

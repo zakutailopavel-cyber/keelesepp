@@ -149,6 +149,42 @@ describe('DashboardPage — calm home', () => {
     expect(screen.queryByRole('link', { name: /Finantsid/ })).not.toBeInTheDocument();
   });
 
+  it('teacher: own unmarked lessons from before yesterday → a dismissible nudge once a day (owner 2026-11-09, no e-mail)', async () => {
+    window.localStorage.removeItem('ks-unmarked-nudge:teacher-2');
+    const repo = repositories();
+    repo.schedule.list.mockResolvedValue([
+      { id: 'a', date: '2026-11-02', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacherUid: 'teacher-2', status: 'Planeeritud' },
+      { id: 'b', date: '2026-10-28', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacherUid: 'teacher-2', status: 'Planeeritud' },
+      // marked in the journal → not counted; somebody else's lesson → not counted
+      { id: 'c', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', teacherUid: 'teacher-2', status: 'Planeeritud' },
+      { id: 'd', date: '2026-11-03', time: '12:00', duration: 45, studentId: 'student-2', studentName: 'Jaan', teacherUid: 'other', status: 'Planeeritud' },
+    ]);
+    repo.today.lessons.mockResolvedValue([{ id: 'l1', scheduleId: 'c', date: '2026-11-03', studentId: 'student-1', status: 'Toimunud' }]);
+    const user = { uid: 'teacher-2', displayName: 'Kati Kask', roles: ['teacher'] };
+    const { unmount } = renderDashboard(user, repo);
+    const nudge = (await screen.findByText(/Märgi need 1 minutiga/)).closest('.calm-nudge');
+    expect(within(nudge).getByRole('link', { name: /Sul on 2 märkimata tundi \(vanim 28\.10\)\. Märgi need 1 minutiga →/ })).toHaveAttribute('href', '/calendar/markimata');
+    expect(window.localStorage.getItem('ks-unmarked-nudge:teacher-2')).toBe('2026-11-06');
+    fireEvent.click(within(nudge).getByRole('button', { name: 'Peida meeldetuletus' }));
+    expect(screen.queryByText(/Märgi need 1 minutiga/)).not.toBeInTheDocument();
+    unmount();
+    // the same day again: not shown (the attention list still counts them)
+    renderDashboard(user, repo);
+    await screen.findByRole('region', { name: 'Ülevaated' });
+    await waitFor(() => expect(repo.today.lessons).toHaveBeenCalledTimes(2));
+    await within(attention()).findByRole('link', { name: /2 märkimata tundi/ });
+    expect(screen.queryByText(/Märgi need 1 minutiga/)).not.toBeInTheDocument();
+  });
+
+  it('admin: no personal nudge (the school-wide count stays in the menu and the attention list)', async () => {
+    const repo = repositories();
+    repo.schedule.list.mockResolvedValue([{ id: 'old', date: '2026-11-03', time: '10:00', duration: 45, studentId: 'student-1', studentName: 'Mari', status: 'Planeeritud' }]);
+    renderDashboard(ADMIN, repo);
+    await screen.findByRole('region', { name: 'Vajab tähelepanu' });
+    await within(attention()).findByRole('link', { name: /1 märkimata tund/ });
+    expect(screen.queryByText(/Märgi need 1 minutiga/)).not.toBeInTheDocument();
+  });
+
   it('accountant: invoices and packages only; no lessons, no learning reads', async () => {
     const repo = repositories();
     repo.today.packages.mockResolvedValue([{ id: 'p1', studentId: 's9', studentName: 'Jaan', status: 'active', grantedCredits: 10, consumedCredits: 10, balanceCredits: 0 }]);

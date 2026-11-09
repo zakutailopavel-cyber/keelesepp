@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { studentsService } from '../services/firebase/students.js';
 import { askConfirm } from './ui/ConfirmHost.jsx';
 import { actionLabel, actionsFor, ENTITY_TYPES, entityAt, pressTarget } from './entityMenu/entityRegistry.js';
+import { openStudentDrawer } from './studentDrawer/studentDrawer.js';
 import './entityContextMenu.css';
 
 const ICONS = {
@@ -136,6 +137,7 @@ export default function EntityContextMenu({ roles = [], enabled = true, services
   const students = services.students;
 
   const choose = async (action) => {
+    if (action.kind === 'drawer') { close(); if (!openStudentDrawer(data.studentId)) navigate(`/students/${encodeURIComponent(data.studentId)}`); return; }
     if (action.to) { close(); navigate(action.to(data, { pathname })); return; }
     if (action.press) { const button = pressTarget(element, action.press); close(); button?.click(); return; }
     if (action.copy) { copy(action.copy(data, record)); return; }
