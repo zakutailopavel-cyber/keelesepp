@@ -8800,8 +8800,26 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
           FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), keepName: cleanText(req.body?.keepName, 200), actor: actorSnapshot(actor), ...(typeof req.body?.keepActive === "boolean" ? { keepActive: req.body.keepActive } : {}),
           // everything moves (owner 2026-10-24); finance / schedule can still be left out explicitly
           apply: req.body?.apply === true, confirmed: req.body?.confirmed === true, includeFinance: req.body?.includeFinance !== false, includeSchedule: req.body?.includeSchedule !== false,
+          // „Kinnitan, et see on sama laps” (2026-11-09): required when the preview lists differentPerson signals
+          confirmedDifferences: req.body?.confirmedDifferences === true,
         }));
       } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
+      return;
+    }
+    // „Võta ühendamine tagasi” (2026-11-09, functions/student-merge.js unmergeStudentCards): preview, then apply with
+    // confirmed: true; reverses a merge from its record, deletes nothing. Administrators only (requireAdminUser above).
+    if (req.path === "/students/unmerge-cards") {
+      const { unmergeStudentCards } = require("./student-merge");
+      res.set("Cache-Control", "no-store");
+      try {
+        res.json(await unmergeStudentCards(db, {
+          FieldValue, sourceId: cleanText(req.body?.sourceId, 180), keepId: cleanText(req.body?.keepId, 180), actor: actorSnapshot(actor),
+          apply: req.body?.apply === true, confirmed: req.body?.confirmed === true,
+        }));
+      } catch (error) {
+        if (!error.status) throw error;
+        res.status(error.status).json({ error: error.message, ...(error.code ? { code: error.code } : {}) });
+      }
       return;
     }
     if (req.path === "/accounts/reviews") {
