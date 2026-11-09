@@ -22,6 +22,10 @@ const named = (key) => ({ label: [COURSE_NAMES[key].name, COURSE_NAMES[key].subt
 export const COURSES = {
   a2: named('a2'),
   b1: named('b1'),
+  // „B1 noorkeele õppija” (owner 2026-11-10): the A2 → B1 course rebuilt for teens and the 9th-grade exam track
+  // (docs/A2B1_COURSE_BLUEPRINT.md §8), lesson design v3 stations; a separate course next to „Eesti keel B1”, so the
+  // learners of the current course keep their sheets. Staff see it in „Kursuse tootmine”; nobody is assigned to it.
+  b1noor: { label: 'B1 noorkeele õppija · noored ja 9. klass', name: 'B1 noorkeele õppija', badge: 'KeeleSepp · B1 noorkeele õppija' },
   b2: named('b2'),
   c1: named('c1'),
   // the course to the Harno C1 exam (docs/COURSE_FINAL_SHAPE_C1.md, docs/B2_C1_CURRICULUM.md); no modules yet

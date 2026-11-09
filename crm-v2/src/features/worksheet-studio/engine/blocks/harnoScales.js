@@ -105,7 +105,7 @@ export const examFor = (exam) => ALL_EXAMS[exam] || null;
 export const isEnglishExam = (exam) => examFor(exam)?.language === 'en';
 export const ENGLISH_EXAMS = [EN_STATE_EXAM, ...Object.keys(ENGLISH_EXAM_FORMATS)];
 // the course → the exam it leads to (courseSheet.js marks every exam-part header with it)
-export const COURSE_EXAM = { a2: 'A2', b1: 'B1', b2: 'B2', c1: 'C1', b2c1: 'C1', enb2: EN_STATE_EXAM };
+export const COURSE_EXAM = { a2: 'A2', b1: 'B1', b1noor: 'B1', b2: 'B2', c1: 'C1', b2c1: 'C1', enb2: EN_STATE_EXAM };
 
 // a part's header defaults at a level: { part, minutes, points (= raw, or the weighted points when raw is not
 // published), tasks }

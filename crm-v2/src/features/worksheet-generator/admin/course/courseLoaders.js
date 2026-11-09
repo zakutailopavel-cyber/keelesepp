@@ -2,6 +2,7 @@
 export const COURSE_LOADERS = {
   a2: () => import('./courseModules.a2.js'),
   b1: () => import('./courseModules.b1.js'),
+  b1noor: () => import('./courseModules.b1noor.js'),
   b2: () => import('./courseModules.b2.js'),
   c1: () => import('./courseModules.c1.js'),
   ek9: () => import('./courseModules.ek9.js'),
