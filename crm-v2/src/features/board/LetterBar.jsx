@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowBigUp, X } from 'lucide-react';
-import { LETTERS, barSpot, insertLetter, isLetterField, lettersHidden, rememberLettersHidden, upper } from './letters.js';
+import { LETTERS, barSpot, insertLetter, isLetterField, letterBox, lettersHidden, rememberLettersHidden, upper } from './letters.js';
 
 function screenBounds() {
   const vv = globalThis.visualViewport;
@@ -54,7 +54,7 @@ export default function LetterBar({ root, canHide = false }) {
     let last = null;
     const measure = () => {
       if (!field.isConnected) { setField(null); return; }
-      const rect = field.getBoundingClientRect();
+      const rect = letterBox(field).getBoundingClientRect();
       const bar = barRef.current;
       const size = { w: bar?.offsetWidth || 260, h: bar?.offsetHeight || 40 };
       const next = barSpot({ field: rect, size, bounds: screenBounds() });

@@ -75,6 +75,12 @@ export function barSpot({ field, size, bounds, gap = 6, margin = 6 }) {
   return { left, top: Math.round(Math.max(bounds.top + margin, bounds.bottom - margin - size.h)), side: 'inside' };
 }
 
+// what the bar is placed beside: a field inside a small dialog (the bookmark sheet, `data-letters-box`) → the whole
+// dialog, so the bar (or the folded „õ”) never lies over the dialog's own buttons (owner 2026-11-09 screenshot)
+export function letterBox(field) {
+  return field?.closest?.('[data-letters-box]') || field;
+}
+
 // the teacher can fold the bar on this device (remembered; a private window forgets)
 const HIDDEN_KEY = 'keelesepp.letterBar.hidden';
 export function lettersHidden(storage = globalThis.localStorage) {

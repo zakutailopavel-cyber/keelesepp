@@ -8,6 +8,7 @@ import { studentsService } from '../../services/firebase/students.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { studentNotesService } from '../../services/firebase/studentNotes.js';
 import { INK_BOX } from '../board/bookmarkModel.js';
+import { anchorLabel, quoteParts } from '../board/bookmarkAnchor.js';
 import { presenceService } from '../../services/firebase/presence.js';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
 import { buildReview, ownErrors } from './reviewModel.js';
@@ -24,7 +25,13 @@ import { localDate } from '../../utils/localDate.js';
 // a note from the board's „Järjehoidja / Kleebis”: handwriting (if any) and text on its paper colour
 function BoardNote({ note, canDelete, onDelete }) {
   const date = note.createdAt ? new Date(note.createdAt).toLocaleDateString('et-EE', { day: 'numeric', month: 'long' }) : '';
+  // an anchored bookmark (2026-11-09): the word or sentence it belongs to, in bold inside its sentence, and the page
+  const anchor = note.anchor;
   return <article className="ss-note" style={{ background: note.color }}>
+    {anchor ? <blockquote className="ss-note__quote" aria-label={`${anchorLabel(anchor)}: ${anchor.quote}`}>
+      <span className="ss-note__label">{anchorLabel(anchor)}{note.pageTitle ? ` · ${note.pageTitle}` : ''}</span>
+      <p>{quoteParts(anchor).map((part, index) => (part.quote ? <strong key={index}>{part.text}</strong> : <span key={index}>{part.text}</span>))}</p>
+    </blockquote> : null}
     {note.ink.length ? <svg viewBox={`0 0 ${INK_BOX.w} ${INK_BOX.h}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Käsitsi kirjutatud märge">
       {note.ink.map((item, index) => <path key={index} d={item.d} stroke={item.c} strokeWidth={item.w} fill="none" strokeLinecap="round" strokeLinejoin="round" />)}
     </svg> : null}

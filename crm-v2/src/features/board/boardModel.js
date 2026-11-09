@@ -41,6 +41,8 @@ export const textBoxOf = (element, text = element?.text || '', fontSize = elemen
 export function textAt(elements = [], point) {
   for (let index = elements.length - 1; index >= 0; index -= 1) {
     const element = elements[index];
+    // an anchored bookmark is a marker in the sheet's text (bookmarkAnchor.js), opened by its own click
+    if (element.anchor) continue;
     if ((element.type === 'text' || element.type === 'note')
       && point.x >= element.x && point.x <= element.x + element.w && point.y >= element.y && point.y <= element.y + element.h) return element;
   }
@@ -252,7 +254,8 @@ export function teacherMaterial(element) {
 
 // anything not locked can be selected, moved and resized (lines too, since 2026-10-09)
 export function movable(element) {
-  return Boolean(element) && element.locked !== true;
+  // an anchored bookmark follows its word in the sheet, it is not dragged
+  return Boolean(element) && element.locked !== true && !element.anchor;
 }
 
 // Natural size of an image, so it keeps its proportions on the board (A4 portrait when it cannot be read).

@@ -2,6 +2,9 @@
 // board `note` element marked `bookmark: true` with its handwriting in `ink`, and the same content is kept for the
 // student as a note in „Minu vead” (`studentNotes/{id}`, the element's `noteId`). The teacher's bookmarks go to the
 // student whose board it is.
+// An anchored bookmark (2026-11-09, bookmarkAnchor.js) also keeps `anchor`: the word / sentence of the page text it
+// belongs to. On the board it is a small marker at the end of the highlighted quote, not a sheet.
+import { cleanAnchor } from './bookmarkAnchor.js';
 
 // the sheet's own drawing area: handwriting is stored in these units and scaled to the sheet on the board
 export const INK_BOX = Object.freeze({ w: 320, h: 200 });
@@ -10,6 +13,8 @@ export const MAX_INK_PATH = 6000; // characters of one stroke's path
 export const BOOKMARK_COLORS = ['#FEF3C7', '#DCFCE7', '#DBEAFE', '#FCE7F3'];
 export const INK_COLORS = ['#1C2B3A', '#DC2626', '#2563EB', '#0F766E'];
 export const BOOKMARK_SIZE = Object.freeze({ w: 220, h: 170 });
+// an anchored bookmark's marker (board units; drawn the same size at every zoom)
+export const MARKER_SIZE = Object.freeze({ w: 22, h: 22 });
 const HEX = /^#[0-9a-f]{6}$/i;
 const r1 = (n) => Math.round(n * 10) / 10;
 
@@ -37,17 +42,27 @@ export const cleanNoteText = (text) => String(text || '').replace(/\r\n/g, '\n')
 export const bookmarkEmpty = ({ text = '', ink = [] } = {}) => !String(text).trim() && !cleanInk(ink).length;
 
 // the board element of a bookmark (new or changed)
-export function bookmarkElement({ x = 0, y = 0, text = '', ink = [], color = BOOKMARK_COLORS[0], noteId = '' } = {}) {
+export function bookmarkElement({ x = 0, y = 0, text = '', ink = [], color = BOOKMARK_COLORS[0], noteId = '', anchor = null } = {}) {
+  const pinned = cleanAnchor(anchor);
+  const size = pinned ? MARKER_SIZE : BOOKMARK_SIZE;
   return {
     type: 'note', bookmark: true,
-    x: Math.round(x), y: Math.round(y), w: BOOKMARK_SIZE.w, h: BOOKMARK_SIZE.h,
+    x: Math.round(x), y: Math.round(y), w: size.w, h: size.h,
     text: cleanNoteText(text), ink: cleanInk(ink), color: HEX.test(String(color)) ? color : BOOKMARK_COLORS[0],
     ...(noteId ? { noteId: String(noteId).slice(0, 200) } : {}),
+    ...(pinned ? { anchor: pinned } : {}),
   };
 }
 
+// the highlight of an anchored quote: a stronger shade of the paper colour (the paper itself is too pale on white)
+const TINTS = { '#FEF3C7': '#FDE68A', '#DCFCE7': '#BBF7D0', '#DBEAFE': '#BFDBFE', '#FCE7F3': '#FBCFE8' };
+export const anchorTint = (color) => TINTS[String(color || '').toUpperCase()] || TINTS[BOOKMARK_COLORS[0]];
+
+export const isAnchoredBookmark =(element) => isBookmark(element) && Boolean(element.anchor?.quote);
+
 // the student's note record („Minu vead” → „Märkmed tunnist”)
-export function noteRecord({ studentId, text = '', ink = [], color = BOOKMARK_COLORS[0], pageId = '', pageTitle = '', user = {}, staff = false, now = new Date().toISOString() }) {
+export function noteRecord({ studentId, text = '', ink = [], color = BOOKMARK_COLORS[0], pageId = '', pageTitle = '', user = {}, staff = false, anchor = null, now = new Date().toISOString() }) {
+  const pinned = cleanAnchor(anchor);
   return {
     studentId: String(studentId || ''),
     kind: 'board',
@@ -61,6 +76,7 @@ export function noteRecord({ studentId, text = '', ink = [], color = BOOKMARK_CO
     createdByName: String(user.displayName || user.email || '').slice(0, 160),
     createdAt: now,
     updatedAt: now,
+    ...(pinned ? { anchor: pinned } : {}),
   };
 }
 
@@ -78,6 +94,7 @@ export function normalizeNote(id, data = {}) {
     ink: cleanInk(data.ink),
     color: HEX.test(String(data.color || '')) ? data.color : BOOKMARK_COLORS[0],
     pageTitle: data.pageTitle || '',
+    anchor: cleanAnchor(data.anchor),
     byStaff: data.byStaff === true,
     createdByUid: data.createdByUid || '',
     createdByName: data.createdByName || '',
