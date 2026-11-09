@@ -276,3 +276,13 @@ html.sb-drawing :is(input, textarea, select, [contenteditable="true"], [contente
 .sb-bookmark__cancel { border: 1px solid #e4e6f0; background: #fff; }
 .sb-bookmark__save { border: 0; background: #4f7cff; color: #fff; }
 .sb-bookmark__save:disabled { opacity: .5; cursor: default; }
+/* an anchored bookmark (2026-11-09): what it belongs to, the quote highlighted in the sheet, its marker, the selection chip */
+.sb-bookmark__quote { margin: 0; padding: 6px 10px; border-left: 3px solid #d97706; border-radius: var(--radius-sm); background: #fffbeb; color: #1c2b3a; font-size: .86rem; line-height: 1.4; max-height: 6.5em; overflow: auto; -webkit-user-select: text; user-select: text; }
+.sb-bookmark__quote-label { color: #92400e; font-weight: 700; }
+.sb-bookmark__sentence { color: #475467; }
+.sb-anchor__mark { mix-blend-mode: multiply; opacity: .85; }
+.sb-anchor__pin { cursor: pointer; }
+.sb-anchor__pin:focus-visible { outline: 2px solid #4f7cff; }
+.sb-anchor-chip { position: absolute; z-index: 6; display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px; border: 1px solid #f59e0b; border-radius: var(--radius-pill); background: #fffbeb; color: #92400e; font-size: .82rem; font-weight: 700; box-shadow: 0 6px 18px rgba(30, 34, 70, .18); cursor: pointer; }
+@media (pointer: coarse) { .sb-anchor-chip { height: 40px; } }
+.sb-underlay .sa-colors .sa-bookmark { display: inline-flex; align-items: center; justify-content: center; gap: 4px; color: #92400e; }

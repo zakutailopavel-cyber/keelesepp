@@ -2047,6 +2047,21 @@ service cloud.firestore {
 
     // The student's notes from lessons („Minu vead” → „Märkmed tunnist”), written from the board's „Järjehoidja / Kleebis”
     // by staff or the student / a linked parent (2026-11-04). The author or staff change and delete a note.
+    // An anchored bookmark (2026-11-09, crm-v2/src/features/board/bookmarkAnchor.js): the word / sentence of the page it
+    // belongs to — kind, quote, a little context, the sentence, the worksheet block and offsets. Same shape on the board
+    // element and on the note; it is set when the bookmark is made and never changed.
+    function bookmarkAnchorValid(a) {
+      return a is map
+        && a.keys().hasOnly(['kind', 'quote', 'before', 'after', 'sentence', 'blockId', 'start', 'end'])
+        && a.keys().hasAll(['kind', 'quote'])
+        && a.kind in ['word', 'sentence', 'phrase']
+        && a.quote is string && a.quote.size() > 0 && a.quote.size() <= 300
+        && a.get('before', '') is string && a.get('before', '').size() <= 40
+        && a.get('after', '') is string && a.get('after', '').size() <= 40
+        && a.get('sentence', '') is string && a.get('sentence', '').size() <= 600
+        && a.get('blockId', '') is string && a.get('blockId', '').size() <= 200
+        && a.get('start', 0) is int && a.get('end', 0) is int;
+    }
     function studentNoteFieldsValid(data) {
       return data.text is string && data.text.size() <= 2000
         && data.ink is list && data.ink.size() <= 60
@@ -2057,7 +2072,8 @@ service cloud.firestore {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create: if (isStaff() || ownsStudent(request.resource.data.studentId))
         && request.resource.data.keys().hasOnly(['studentId', 'kind', 'text', 'ink', 'color', 'pageId', 'pageTitle', 'byStaff',
-          'createdByUid', 'createdByName', 'createdAt', 'updatedAt'])
+          'createdByUid', 'createdByName', 'createdAt', 'updatedAt', 'anchor'])
+        && (!('anchor' in request.resource.data) || bookmarkAnchorValid(request.resource.data.anchor))
         && request.resource.data.keys().hasAll(['studentId', 'kind', 'text', 'ink', 'color', 'createdByUid', 'createdAt', 'updatedAt'])
         && request.resource.data.kind == 'board'
         && request.resource.data.createdByUid == uid()
@@ -3617,7 +3633,7 @@ service cloud.firestore {
         && (
           data.type != 'note'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'bookmark', 'ink', 'noteId', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'text', 'color', 'bookmark', 'ink', 'noteId', 'anchor', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.text is string
@@ -3627,6 +3643,8 @@ service cloud.firestore {
             && (!('bookmark' in data) || data.bookmark == true)
             && (!('ink' in data) || (data.ink is list && data.ink.size() <= 60))
             && (!('noteId' in data) || (data.noteId is string && data.noteId.size() <= 200))
+            // an anchored bookmark (2026-11-09): only on a bookmark, the word / sentence it belongs to
+            && (!('anchor' in data) || (data.get('bookmark', false) == true && bookmarkAnchorValid(data.anchor)))
           )
         )
         && (

@@ -11,7 +11,9 @@ import { EMPTY_REMOTE, createThrottle, cursorMessage, draftMessage, dropStale, m
 import { SheetFlowContext } from '../worksheet-studio/sheetFlow.js';
 import { studentNotesService } from '../../services/firebase/studentNotes.js';
 import { ARROW_TOOLS, CALLOUT_FONT, arrowFromDrag, arrowHeads, arrowPathD, bendPatch, calloutBox, curveMiddle, endpointPatch, isArrowLike } from './arrows.js';
-import { INK_BOX, bookmarkElement, bookmarkEmpty, isBookmark, notePatch, noteRecord } from './bookmarkModel.js';
+import { INK_BOX, anchorTint, bookmarkElement, bookmarkEmpty, isAnchoredBookmark, isBookmark, notePatch, noteRecord } from './bookmarkModel.js';
+import { anchorFromOffsets, anchorFromPoint, anchorFromRange, anchorLabel, locateAnchor, spotOf } from './bookmarkAnchor.js';
+import { BoardBookmarkContext } from './bookmarkContext.js';
 import { spanCss, spansOf, textPatch } from './richText.js';
 import BookmarkDialog from './BookmarkDialog.jsx';
 import BoardLanguageTools from './BoardLanguageTools.jsx';
@@ -55,6 +57,9 @@ const BOARD_PART = '[data-element-id], [data-handle], .sb-selbar';
 const META = ['id', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision'];
 const plain = (element) => Object.fromEntries(Object.entries(element).filter(([key]) => !META.includes(key)));
 const HISTORY_LIMIT = 50;
+// „Järjehoidja” on a word: a press this long (ms) or a second tap this soon takes its whole sentence
+const LONG_PRESS = 550;
+const DOUBLE_TAP = 280;
 
 /**
  * The student's persistent board (and the v1 lesson pages), shared live by the student, parents and the teacher.
@@ -161,6 +166,13 @@ export default function StudentBoard({
   // the open bookmark sheet: { x, y } for a new one, or { element } to change one
   const [bookmark, setBookmark] = useState(null);
   const [bookmarkSaving, setBookmarkSaving] = useState(false);
+  // an anchored bookmark (owner 2026-11-09): „Järjehoidja” over a text selected in the sheet, the popups of the sheet
+  // (the teacher's „Märkus / Analüüs”) to close when a bookmark sheet opens, a word tapped with the tool waiting for a
+  // second tap (= its sentence)
+  const [selChip, setSelChip] = useState(null);
+  const sheetPopups = useRef(new Set());
+  const pendingWord = useRef(null);
+  const bookmarkSeq = useRef(0);
   // „Pildid” panel (teacher in the live room) and the result being put on the board
   const [mediaOpen, setMediaOpen] = useState(false);
   const [placing, setPlacing] = useState('');
@@ -592,7 +604,7 @@ export default function StudentBoard({
   // open a text, a note, a callout or a bookmark for writing
   const openEditor = (element) => {
     if (!element) return;
-    if (isBookmark(element)) { setBookmark({ element }); return; }
+    if (isBookmark(element)) { openBookmark({ element }); return; }
     setEditing({ id: element.id, text: element.text || '', ...(element.type === 'text' ? { spans: spansOf(element) } : {}) });
   };
   const editableText = (element) => element && (element.type === 'text' || element.type === 'note' || (element.type === 'shape' && element.shape === 'callout'));
@@ -680,8 +692,24 @@ export default function StudentBoard({
       gesture.current = { kind: 'shape', start: world };
     } else if (tool === 'bookmark') {
       const existing = textAt(elements, world);
-      if (isBookmark(existing) && canEdit(existing)) { setBookmark({ element: existing }); return; }
-      setBookmark({ x: world.x, y: world.y });
+      if (isBookmark(existing) && canEdit(existing)) { openBookmark({ element: existing }); return; }
+      // on a worksheet: the word under the pointer (a second tap or a long press: its whole sentence)
+      const word = onWorksheet ? textUnder(event.clientX, event.clientY) : null;
+      if (word) {
+        const waiting = pendingWord.current;
+        if (waiting && Math.hypot(waiting.x - event.clientX, waiting.y - event.clientY) < 16) {
+          globalThis.clearTimeout(waiting.timer);
+          pendingWord.current = null;
+          openAnchored(textUnder(event.clientX, event.clientY, true) || word);
+          return;
+        }
+        const press = { kind: 'anchor', word, x: event.clientX, y: event.clientY, done: false };
+        press.timer = globalThis.setTimeout(() => { press.done = true; openAnchored(textUnder(press.x, press.y, true) || word); }, LONG_PRESS);
+        gesture.current = press;
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        return;
+      }
+      openBookmark({ x: world.x, y: world.y });
       return;
     } else if (tool === 'note' || tool === 'text') {
       // the editor opens right away: the click must not move the focus back to the page (that closed the new, empty text)
@@ -710,6 +738,11 @@ export default function StudentBoard({
     }
     const current = gesture.current;
     if (!current) return;
+    if (current.kind === 'anchor') {
+      // the finger slid: no long press (the word is still taken on release)
+      if (Math.hypot(event.clientX - current.x, event.clientY - current.y) > 10) globalThis.clearTimeout(current.timer);
+      return;
+    }
     const screen = local(event);
     const raw = screenToWorld(screen, view);
     const world = clampPoint(raw, drawBounds);
@@ -752,6 +785,15 @@ export default function StudentBoard({
     // the other side keeps seeing the draft until the saved element has arrived
     const endDraft = () => push?.('d', draftMessage(livePage, null), { now: true });
     const endMove = () => push?.('move', moveMessage(livePage, [], 0, 0), { now: true });
+    if (current.kind === 'anchor') {
+      globalThis.clearTimeout(current.timer);
+      if (current.done) return;
+      // a short wait: a second tap on the same place takes the whole sentence
+      const waiting = { x: current.x, y: current.y };
+      waiting.timer = globalThis.setTimeout(() => { if (pendingWord.current === waiting) pendingWord.current = null; openAnchored(current.word); }, DOUBLE_TAP);
+      pendingWord.current = waiting;
+      return;
+    }
     if (current.kind === 'pen') {
       if (current.points.length > 1) add({ type: 'stroke', points: current.points, ...current.style }, 'Joont ei saanud salvestada.').finally(endDraft);
       else endDraft();
@@ -1006,17 +1048,117 @@ export default function StudentBoard({
     const box = element.type === 'text' ? measuredBox(element, value) : {};
     update(element, { text: value, ...box }, 'Teksti ei saanud salvestada.').finally(endTyping);
   };
+  // ── anchored bookmarks: a word or a sentence of the worksheet (bookmarkAnchor.js) ──
+  const openBookmark = (value) => {
+    sheetPopups.current.forEach((close) => { try { close(); } catch { /* gone */ } });
+    setSelChip(null);
+    setBookmark(value);
+  };
+  // the text under a screen point: the drawing layer lets the pointer through for the look-up
+  const textUnder = (x, y, sentence = false) => {
+    if (!underlayNode) return null;
+    const svg = svgRef.current;
+    const before = svg?.style.pointerEvents || '';
+    if (svg) svg.style.pointerEvents = 'none';
+    try { return anchorFromPoint(underlayNode, x, y, { sentence }); } finally { if (svg) svg.style.pointerEvents = before; }
+  };
+  const openAnchored = (anchor) => {
+    if (!anchor) return;
+    // the marker sits after the quote's last line; without a layout (hidden page) in the middle of the view
+    const spot = underlayNode ? spotOf(locateAnchor(underlayNode, anchor), underlayNode) : null;
+    const rect = svgRef.current?.getBoundingClientRect();
+    const pin = spot?.pin || screenToWorld({ x: (rect?.width || 800) / 2, y: (rect?.height || 600) / 3 }, view);
+    bookmarkSeq.current += 1;
+    globalThis.getSelection?.()?.removeAllRanges?.();
+    openBookmark({ x: pin.x, y: pin.y, anchor, key: `anchor-${bookmarkSeq.current}` });
+  };
+  const openAnchoredRef = useRef(openAnchored);
+  useLayoutEffect(() => { openAnchoredRef.current = openAnchored; });
+  const underlayRef = useRef(null);
+  useLayoutEffect(() => { underlayRef.current = underlayNode; }, [underlayNode]);
+  // for the sheet under the board (SheetAnnotations): its popup's „Järjehoidja”, and only one popup open at a time
+  const sheetBookmarks = useMemo(() => ({
+    open: (where) => openAnchoredRef.current(anchorFromOffsets(underlayRef.current, where || {})),
+    onPopup: () => { setSelChip(null); setBookmark((current) => (current ? null : current)); },
+    register: (close) => { sheetPopups.current.add(close); return () => sheetPopups.current.delete(close); },
+  }), []);
+  // a text selected in the sheet (a student, or where no popup of the sheet took it): a small „Järjehoidja” beside it
+  const checkSelection = (event) => {
+    const node = underlayNode;
+    if (!node) return;
+    const touch = event.changedTouches?.[0];
+    const at = { x: touch ? touch.clientX : event.clientX, y: touch ? touch.clientY : event.clientY };
+    globalThis.setTimeout(() => {
+      const doc = node.ownerDocument;
+      const selection = doc.getSelection?.();
+      if (!selection || selection.isCollapsed || !selection.rangeCount) return;
+      const active = doc.activeElement;
+      if (node.querySelector('.sa-composer') || (active && node.contains(active) && /^(INPUT|TEXTAREA)$/.test(active.tagName))) return;
+      const range = selection.getRangeAt(0);
+      const anchor = anchorFromRange(node, range);
+      if (!anchor) return;
+      const box = range.getBoundingClientRect?.();
+      // above the selection (the word card of a double-clicked word opens below it); below when there is no room
+      const point = box && box.width ? { x: box.left, y: box.top } : at;
+      const stage = node.parentElement?.getBoundingClientRect?.() || { left: 0, top: 0, width: 800 };
+      const above = (point.y || 0) - stage.top - 42;
+      setSelChip({ anchor, left: Math.max(8, Math.min((stage.width || 800) - 150, (point.x || 0) - stage.left)), top: above >= 8 ? above : (box && box.height ? box.bottom - stage.top + 8 : 8) });
+    }, 0);
+  };
+  useEffect(() => {
+    if (!selChip) return undefined;
+    const doc = globalThis.document;
+    const gone = () => { const selection = doc?.getSelection?.(); if (!selection || selection.isCollapsed) setSelChip(null); };
+    doc?.addEventListener('selectionchange', gone);
+    return () => doc?.removeEventListener('selectionchange', gone);
+  }, [selChip]);
+  useEffect(() => () => globalThis.clearTimeout(pendingWord.current?.timer), []);
+  // where the anchored bookmarks of this page are in the sheet now (board units): highlight boxes and the marker
+  const anchoredElements = useMemo(() => elements.filter(isAnchoredBookmark), [elements]);
+  const [anchorSpots, setAnchorSpots] = useState({});
+  useEffect(() => {
+    // (off a worksheet the markers use their stored place: `anchorSpots` is not read there)
+    if (!onWorksheet || !underlayNode || !anchoredElements.length) return undefined;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const next = {};
+      anchoredElements.forEach((element) => {
+        const spot = spotOf(locateAnchor(underlayNode, element.anchor), underlayNode);
+        if (spot) next[element.id] = spot;
+      });
+      setAnchorSpots((current) => (JSON.stringify(current) === JSON.stringify(next) ? current : next));
+    };
+    const later = () => { if (!frame) frame = globalThis.requestAnimationFrame ? globalThis.requestAnimationFrame(measure) : globalThis.setTimeout(measure, 16); };
+    measure();
+    const mutations = globalThis.MutationObserver ? new globalThis.MutationObserver(later) : null;
+    mutations?.observe(underlayNode, { childList: true, subtree: true, characterData: true });
+    const sizes = globalThis.ResizeObserver ? new globalThis.ResizeObserver(later) : null;
+    sizes?.observe(underlayNode);
+    return () => {
+      mutations?.disconnect(); sizes?.disconnect();
+      if (frame) { globalThis.cancelAnimationFrame?.(frame); globalThis.clearTimeout(frame); }
+    };
+  }, [onWorksheet, underlayNode, anchoredElements]);
+  // the marker opens the note (read only for what one may not change); the eraser removes it from the board
+  const pinDown = (event, element) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    event.stopPropagation(); event.preventDefault();
+    if (tool === 'eraser') { if (canEdit(element)) erase(element); return; }
+    openBookmark({ element });
+  };
   // „Järjehoidja / Kleebis”: the sheet on the board and the student's note in „Minu vead” (not on a group board)
   const notesStudentId = service.root === 'groupBoards' ? '' : studentId;
   const saveBookmark = async ({ text, ink, color: paper }) => {
     const current = bookmark;
-    if (!current || bookmarkEmpty({ text, ink })) return;
+    if (!current || bookmarkEmpty({ text, ink }) || (current.element && !canEdit(current.element))) return;
     setBookmarkSaving(true);
     const element = current.element || null;
+    const anchor = element?.anchor || current.anchor || null;
     let noteId = element?.noteId || '';
     let noteError = '';
     if (notesStudentId && noteService) {
-      const fresh = () => noteService.add(noteRecord({ studentId: notesStudentId, text, ink, color: paper, pageId: pageId || '', pageTitle: pageId ? pageTitle : 'Tahvel', user, staff }));
+      const fresh = () => noteService.add(noteRecord({ studentId: notesStudentId, text, ink, color: paper, pageId: pageId || '', pageTitle: pageId ? pageTitle : 'Tahvel', user, staff, anchor }));
       try {
         if (noteId) await noteService.update(noteId, notePatch({ text, ink, color: paper })).catch(fresh).then((id) => { if (typeof id === 'string') noteId = id; });
         else noteId = await fresh();
@@ -1024,10 +1166,10 @@ export default function StudentBoard({
         noteError = 'Järjehoidja on tahvlil, aga „Minu vead” alla ei saanud seda salvestada.';
       }
     }
-    const data = bookmarkElement({ x: element ? element.x : current.x, y: element ? element.y : current.y, text, ink, color: paper, noteId });
+    const data = bookmarkElement({ x: element ? element.x : current.x, y: element ? element.y : current.y, text, ink, color: paper, noteId, anchor });
     try {
       if (element) {
-        const { type, bookmark: mark, x, y, w, h, ...patch } = data; // eslint-disable-line no-unused-vars
+        const { type, bookmark: mark, x, y, w, h, anchor: kept, ...patch } = data; // eslint-disable-line no-unused-vars
         await update(element, patch, 'Järjehoidjat ei saanud salvestada.');
       } else if (!(await add(data, 'Järjehoidjat ei saanud lisada.'))) return;
       setBookmark(null);
@@ -1099,6 +1241,23 @@ export default function StudentBoard({
         </g>;
       }
       return <rect {...common} {...stroke} x={element.x} y={element.y} width={element.w} height={element.h} rx="4" />;
+    }
+    if (isAnchoredBookmark(element)) {
+      // the quote highlighted in the paper's colour, a small marker after it (the stored place when the text is not here)
+      const spot = onWorksheet ? anchorSpots[element.id] : null;
+      const pin = spot?.pin || { x: element.x, y: element.y };
+      const quote = element.anchor.quote.length > 60 ? `${element.anchor.quote.slice(0, 57)}…` : element.anchor.quote;
+      return <g {...common} className="sb-anchor">
+        {(spot?.rects || []).map((box, index) => <rect key={index} className="sb-anchor__mark" x={box.x} y={box.y} width={box.w} height={box.h} rx="2" fill={anchorTint(element.color)} pointerEvents="none" />)}
+        <g className="sb-anchor__pin" data-element-id={element.id} role="button" tabIndex={0} aria-label={`Järjehoidja: „${quote}”`} pointerEvents="auto"
+          transform={`translate(${pin.x} ${pin.y}) scale(${1 / (view.scale || 1)})`}
+          onPointerDown={(event) => pinDown(event, element)} onDoubleClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openBookmark({ element }); } }}>
+          <title>{`${anchorLabel(element.anchor)}: ${element.anchor.quote}`}</title>
+          <rect x="0" y="-15" width="14" height="17" rx="3" fill={anchorTint(element.color)} stroke="#b45309" strokeWidth="1.2" />
+          <path d="M4 -11.5h6v9.5l-3-2.3-3 2.3z" fill="#b45309" />
+        </g>
+      </g>;
     }
     if (isBookmark(element)) {
       return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={element.h} onDoubleClick={(event) => { event.stopPropagation(); if (canEdit(element)) openEditor(element); }}>
@@ -1222,7 +1381,9 @@ export default function StudentBoard({
     onDragOver={mediaDragOver} onDrop={mediaDrop}
     onPointerDownCapture={(event) => { if (!mediaDown(event)) { sheetPointerDown(event); navDown(event); } }} onPointerMove={stageMarquee} onPointerUp={stageMarquee} onPointerCancel={stageMarquee} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
     {room ? null : boardToggle}
-    {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
+    {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }} onMouseUp={checkSelection} onTouchEnd={checkSelection}>
+      <BoardBookmarkContext.Provider value={sheetBookmarks}>{activeSheet.content}</BoardBookmarkContext.Provider>
+    </div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={(filling && !grabbing) || overMedia ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => {
       const point = screenToWorld(local(event), view);
       const callout = byId.get(event.target?.closest?.('[data-element-id]')?.dataset?.elementId);
@@ -1321,8 +1482,12 @@ export default function StudentBoard({
       onBlur={saveText}
       onKeyDown={(event) => { if (event.key === 'Escape') event.currentTarget.blur(); }}
     /> : null}
-    {bookmark ? <BookmarkDialog key={bookmark.element?.id || `${bookmark.x}:${bookmark.y}`} initial={bookmark.element || null} forStudent={notesStudentId} saving={bookmarkSaving}
+    {bookmark ? <BookmarkDialog key={bookmark.element?.id || bookmark.key || `${bookmark.x}:${bookmark.y}`} initial={bookmark.element || null} forStudent={notesStudentId} saving={bookmarkSaving}
+      anchor={bookmark.element?.anchor || bookmark.anchor || null} readOnly={Boolean(bookmark.element) && !canEdit(bookmark.element)}
       onCancel={() => setBookmark(null)} onSave={saveBookmark} /> : null}
+    {selChip && !bookmark ? <button type="button" className="sb-anchor-chip" style={{ left: selChip.left, top: selChip.top }}
+      onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); }} onMouseDown={(event) => event.preventDefault()}
+      onClick={() => openAnchored(selChip.anchor)}><BookmarkPlus size={14} aria-hidden="true" /> Järjehoidja</button> : null}
     {selectionBox && !moving && !resizing ? <div className="sb-selbar" role="toolbar" aria-label="Valitud" style={{ left: Math.max(8, view.x + selectionBox.x1 * view.scale), top: Math.max(8, view.y + selectionBox.y1 * view.scale - 52) }}>
       <button type="button" aria-label="Kopeeri" title="Kopeeri (Ctrl+D)" onClick={duplicate}><Copy size={16} /></button>
       <button type="button" aria-label="Kustuta valitud" title="Kustuta (Delete)" onClick={deleteSelection}><Trash2 size={16} /></button>
