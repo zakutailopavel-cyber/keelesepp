@@ -25,7 +25,7 @@ import ChangeRequestsPanel from './ChangeRequestsPanel.jsx';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { isLessonKey, looseLessonKey, parseHeld, rememberLessonLink, rememberLessonTiming } from '../live-classroom/lessonLink.js';
 import { handoffFields, handoffTopic, takeLessonHandoff } from '../live-classroom/lessonHandoff.js';
-import { canQuickCompleteLesson } from './quickAttendance.js';
+import { canQuickCompleteLesson, isPastLesson, tallinnClock } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { LESSON_MARKS, LESSON_STATE_LABELS, datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, lessonState, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
@@ -34,7 +34,9 @@ import CalendarColors from './CalendarColors.jsx';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid, { LessonKindsLegend } from './TimeGrid.jsx';
 import { unplannedStudents } from './unplannedStudents.js';
-import { findUnmarkedLessons } from './unmarkedLessons.js';
+import { markingSplit } from './unmarkedLessons.js';
+import QuickMarkButtons, { MarkUndoToast } from './QuickMarkButtons.jsx';
+import { MARK_LABELS, useMarkUndo } from './quickMark.js';
 import { unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.js';
 import { DAY_IDS, bandsOn, cellStatus, paintSlot, setCellStatus, slotsOn } from './availabilityModel.js';
 import CellStatusMenu from './CellStatusMenu.jsx';
@@ -141,7 +143,7 @@ function RunOnce({ run }) {
   return null;
 }
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi, studentTimesRepository = studentAvailabilityService, leadsRepository = websiteLeadsService }) {
+export default function CalendarPage({ markingRepository = unmarkedLessonsService, scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi, studentTimesRepository = studentAvailabilityService, leadsRepository = websiteLeadsService }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -177,6 +179,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [deleteAsk, setDeleteAsk] = useState(null);
   const [undo, setUndo] = useState(null);
   const [quickCompleting, setQuickCompleting] = useState('');
+  // the phone agenda's „Toimus ✓ / Puudus ▾” (owner 2026-11-09): the lesson being marked and the 5-second undo
+  const [inlineBusy, setInlineBusy] = useState('');
+  const [markUndo, setMarkUndo] = useMarkUndo();
   // painting a teacher's green (free) / red (busy) windows
   const [paint, setPaint] = useState(null);
   const [paintSaving, setPaintSaving] = useState(false);
@@ -249,8 +254,14 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
 
   // the planner: students without „Sobivad ajad” get the times of their past lessons (computed when it opens)
   const learned = useMemo(() => (plannerOpen && state.data ? learnedTimes({ events: state.data[0] || [], lessons: state.data[3] || [], today: toIsoDate() }) : new Map()), [plannerOpen, state.data]);
-  // „Märkimata tunnid”: past lessons of the last 60 days without a mark (the page /calendar/markimata explains each)
-  const unmarkedCount = useMemo(() => (state.data ? findUnmarkedLessons({ schedule: state.data[0] || [], lessons: state.data[3] || [], today: toIsoDate(), teacherUid: teacherOnly ? user.uid : '' }).length : 0), [state.data, teacherOnly, user.uid]);
+  // „Märkimata tunnid”: the ONE definition (unmarkedLessons.js markingSplit: from MARKING_START up to yesterday, without
+  // archived students, closed teacher accounts, entries without a teacher and closed financial days)
+  const markingState = useAsyncData(() => (markingRepository?.context ? markingRepository.context({ user, isAdmin }).catch(() => null) : Promise.resolve(null)), [markingRepository, user.uid, isAdmin]);
+  const unmarkedCount = useMemo(() => {
+    if (!state.data) return 0;
+    const archivedStudentIds = [...(markingState.data?.archivedStudentIds || []), ...(state.data[4] || []).filter((student) => student.active === false).map((student) => student.id)];
+    return markingSplit({ schedule: state.data[0] || [], lessons: state.data[3] || [], today: toIsoDate(), teacherUid: teacherOnly ? user.uid : '', context: { ...(markingState.data || {}), archivedStudentIds } }).items.length;
+  }, [state.data, markingState.data, teacherOnly, user.uid]);
   // the admin's menu badge follows the calendar's own number (a lesson marked here lowers it at once)
   useEffect(() => {
     if (isAdmin && state.data) unmarkedLessonsService.notifyChanged(unmarkedCount);
@@ -319,6 +330,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const substitutes = (teacherState.data || []).filter((staff) => !staff.disabled && isTeacherAccount(staff)).map((staff) => ({ id: staff.id, name: staff.name }));
   const hasActiveFilters = Boolean(filters.search || filters.teacher || filters.student);
   const today = toIsoDate();
+  const nowClock = tallinnClock();
   const historyOf = (studentId) => lessonRecords.filter((lesson) => lesson.studentId === studentId && ['Toimunud', undefined, ''].includes(lesson.status)).sort((a, b) => `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`));
   const panelItem = panelKey ? occurrencesForDates(events, [panelKey.split('|')[1]]).map(withRecord).find((item) => item.occurrenceId === panelKey.split('|')[0]) || null : null;
   const autoMarkReady = Boolean(handoff && panelItem && !panelItem.isGroup && canQuickCompleteLesson(panelItem) && panelItem.occurrenceDate <= today && !libraryState.loading);
@@ -329,7 +341,13 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     setPanelSaving(true); setPanelError('');
     try {
       const suggestion = catalog ? suggestTopic(catalog, { studentLevel: studentMap.get(item.studentId)?.level || '', history: historyOf(item.studentId), plan: studentMap.get(item.studentId)?.studyPlan }) : null;
-      await lessonRepository.completeFromSchedule(item, user, handoffFields(topicFields(handoffTopic(catalog, from, suggestion), from.notes), from));
+      const fields = handoffFields(topicFields(handoffTopic(catalog, from, suggestion), from.notes), from);
+      const record = await lessonRepository.completeFromSchedule(item, user, fields);
+      // the server marked it already when the room closed (functions/live-auto-mark.js): the room's topic and note
+      // are added to that record here (the status stays as the server wrote it, „Paranda märge” changes it)
+      if (record?.liveAutoMarked && !record.topic && lessonRepository.updateDetails) {
+        await lessonRepository.updateDetails(record, { topic: fields.topic || '', topicLevel: fields.topicLevel || '', topicModule: fields.topicModule || '', topicLessonId: fields.topicLessonId || '', notes: fields.notes || record.notes || '' }, user).catch(() => null);
+      }
       setAutoMarked(from.status === 'Puudus_eta' ? `${item.occurrenceId}|absent` : item.occurrenceId);
       await state.reload();
     } catch (error) { setPanelError(`${error.message || 'Salvestamine ebaõnnestus.'} Märgi tund siin käsitsi.`); } finally { setPanelSaving(false); }
@@ -691,6 +709,21 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       await state.reload();
     } catch (error) { setActionError(error.message || 'Tunni arvestamine ebaõnnestus.'); } finally { setQuickCompleting(''); }
   };
+  // the phone agenda's inline „Toimus ✓” / „Puudus ▾”: the same path as quickDone (completeFromSchedule with the
+  // suggested topic), then a 5-second undo that removes the mark again (lessons.removeMark — „Paranda märge → Eemalda”)
+  const inlineMark = async (item, status) => {
+    if (inlineBusy) return;
+    setInlineBusy(`${item.occurrenceId}|${status}`); setActionError('');
+    try {
+      const suggestion = status === 'Toimunud' && catalog ? suggestTopic(catalog, { studentLevel: studentMap.get(item.studentId)?.level || '', history: historyOf(item.studentId), plan: studentMap.get(item.studentId)?.studyPlan }) : null;
+      const record = await lessonRepository.completeFromSchedule(item, user, { ...topicFields(suggestion), status });
+      const label = `${item.studentName || 'Õpilane'} ${item.time || ''}: ${MARK_LABELS[status]}`;
+      if (record?.id && lessonRepository.removeMark) {
+        setMarkUndo({ label, run: async () => { await lessonRepository.removeMark(record, user, { scheduleRecurring: Boolean(item.recurring) }); await state.reload(); } });
+      }
+      await state.reload();
+    } catch (error) { setActionError(fixMarkError(error)); } finally { setInlineBusy(''); }
+  };
   const substituteOccurrence = async (teacher) => {
     const item = panelItem;
     if (!item) return false;
@@ -752,7 +785,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     setStartingLive(true); setPanelError('');
     try {
       const title = `${item.subject || student.subject || 'Õppetund'} · ${item.time}`;
-      const invitation = await liveRepository.create({ student, title }, user);
+      // the link lets the server mark this lesson held when the room closes, on any device (functions/live-auto-mark.js)
+      const invitation = await liveRepository.create({ student, title, lesson: { scheduleId: item.id, occurrenceDate: item.occurrenceDate } }, user);
       rememberLessonLink(invitation.id, `${item.occurrenceId}|${item.occurrenceDate}`);
       rememberLessonTiming(invitation.id, { date: item.occurrenceDate, time: item.time, duration: item.duration });
       navigate(`/live-classroom?invitation=${encodeURIComponent(invitation.id)}`);
@@ -827,13 +861,21 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const agenda = (list) => (list.length ? <div className="cal-agenda">{[...new Set(list.map((item) => item.occurrenceDate))].map((date) => (
     <section key={date}>
       <h3 className={date === today ? 'is-today' : ''}>{new Date(`${date}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
-      {list.filter((item) => item.occurrenceDate === date).map((item) => (
-        <button type="button" className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher, tones)}`} key={item.occurrenceId} onClick={() => openPanel(item)}>
-          <time>{item.time}</time>
-          <span><strong>{item.online ? <Badge tone="info">veeb</Badge> : null} <SubjectTag subject={item.subject} />{item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
-          {lessonState(item) === 'planned' ? null : <Badge tone={{ done: 'success', absent: 'warning', cancelled: 'danger' }[lessonState(item)]}>{LESSON_STATE_LABELS[lessonState(item)]}</Badge>}
-        </button>
-      ))}
+      {list.filter((item) => item.occurrenceDate === date).map((item) => {
+        // a past planned lesson gets the buttons right in the row (owner 2026-11-09: marking in ~10 s on a phone)
+        const past = isPastLesson(item, today, nowClock);
+        const markable = past && canQuickCompleteLesson(item);
+        const groupOpen = past && item.isGroup && lessonState(item) === 'planned';
+        return <div className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher, tones)}${markable || groupOpen ? ' has-actions' : ''}`} key={item.occurrenceId}>
+          <button type="button" className="cal-agenda__open" onClick={() => openPanel(item)}>
+            <time>{item.time}</time>
+            <span><strong>{item.online ? <Badge tone="info">veeb</Badge> : null} <SubjectTag subject={item.subject} />{item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
+            {lessonState(item) === 'planned' ? (markable ? <Badge tone="warning">Märkimata</Badge> : null) : <Badge tone={{ done: 'success', absent: 'warning', cancelled: 'danger' }[lessonState(item)]}>{LESSON_STATE_LABELS[lessonState(item)]}</Badge>}
+          </button>
+          {markable ? <div className="cal-agenda__actions"><QuickMarkButtons item={item} busy={inlineBusy.startsWith(`${item.occurrenceId}|`) ? inlineBusy.split('|')[1] : ''} disabled={Boolean(inlineBusy)} onMark={inlineMark} /></div> : null}
+          {groupOpen ? <div className="cal-agenda__actions"><button type="button" className="qm__btn" onClick={() => openPanel(item)}>Kohalolu</button></div> : null}
+        </div>;
+      })}
     </section>
   ))}</div> : <EmptyState title={hasActiveFilters ? 'Filtritele vastavaid tunde ei leitud' : 'Valitud perioodil tunde ei ole'} action={hasActiveFilters ? <Button variant="secondary" onClick={() => setFilters(emptyFilters())}>Tühjenda filtrid</Button> : null} />);
 
@@ -854,11 +896,12 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         {teacherOnly || isAdmin ? <Button variant={plannerOpen ? 'primary' : 'secondary'} aria-pressed={plannerOpen} onClick={() => { setPlannerOpen((value) => !value); setPanelKey(''); }}><UsersRound size={17} /> Planeerija</Button> : null}
         {teacherOnly || isAdmin ? <Button variant={fitOpen ? 'primary' : 'secondary'} aria-pressed={fitOpen} onClick={() => setFitOpen((value) => !value)}><CalendarClock size={17} /> Sobivad ajad</Button> : null}
         {teacherOnly || isAdmin ? <Button variant={paint || (weekEditor && paintTeacher) ? 'primary' : 'secondary'} aria-pressed={Boolean(weekEditor && paintTeacher)} onClick={() => { setPaint(null); if (!paintTeacher) { setActionError('Vali enne õpetaja, kelle aegu soovid märkida.'); return; } setActionError(''); setWeekEditor(true); }}><CalendarRange size={17} /> {teacherOnly ? 'Minu ajad' : 'Õpetaja ajad'}</Button> : null}
-        {(teacherOnly || isAdmin) && unmarkedCount ? <Link className="button button--secondary cal2-unmarked-link" to="/calendar/markimata"><CalendarCheck size={17} /> Märkimata tunnid <b className="nav-count" aria-label={`${unmarkedCount} märkimata`}>{unmarkedCount}</b></Link> : null}
+        {(teacherOnly || isAdmin) && unmarkedCount && !narrow ? <Link className="button button--secondary cal2-unmarked-link" to="/calendar/markimata"><CalendarCheck size={17} /> Märkimata tunnid <b className="nav-count" aria-label={`${unmarkedCount} märkimata`}>{unmarkedCount}</b></Link> : null}
         <CalendarGoogleChip user={user} onSynced={state.reload} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} />
         <Button onClick={() => openCreate()}><Plus size={17} /> Lisa tund</Button>
       </div>
     </div>
+    {narrow && (teacherOnly || isAdmin) && unmarkedCount ? <Link className="button button--primary cal2-mark-cta" to="/calendar/markimata"><CalendarCheck size={18} /> Märgi tunnid ({unmarkedCount})</Link> : null}
     <ChangeRequestsPanel requests={changeRequestList} focusId={searchParams.get('request') || ''} busy={requestBusy} onAccept={acceptChangeRequest} onDecline={declineChangeRequest} onAbsent={absentChangeRequest} />
     <div className="calendar-filter-summary cal2-summary" aria-live="polite">
       <span><strong>{occurrences.length}</strong> tundi valitud perioodil</span>
@@ -1032,7 +1075,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           liveBlocked={panelItem.isGroup ? '' : !studentMap.get(panelItem.studentId) ? 'Õpilase kaarti ei leitud.' : studentAccountUid(studentMap.get(panelItem.studentId)) ? '' : 'Õpilasel pole veel sisselogimiskontot: seo konto õpilase kaardil, siis saab tunni alustada.'}
           today={today}
         >
-          <AdminNoteBox key={`note-${panelItem.occurrenceId}`} item={panelItem} notes={notesFor(notesState.data || [], panelItem)} canEdit={isAdmin} onSave={(value) => saveAdminNote(panelItem, value)} />
+          {/* a group lesson opens on the attendance (owner 2026-11-09: groups stay manual, but one tap away) */}
           {panelItem.isGroup ? (
             <div className="attendance-sheet lp-attendance">
               {panelMembers.length ? null : <p className="lp-hint">Selles tunnis ei ole õpilasi.</p>}
@@ -1042,10 +1085,12 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
               })}
             </div>
           ) : null}
+          <AdminNoteBox key={`note-${panelItem.occurrenceId}`} item={panelItem} notes={notesFor(notesState.data || [], panelItem)} canEdit={isAdmin} onSave={(value) => saveAdminNote(panelItem, value)} />
         </LessonPanel>
       ) : null}
     </div>
 
+    <MarkUndoToast undo={markUndo} onClose={() => setMarkUndo(null)} onError={(error) => setActionError(fixMarkError(error))} />
     {undo ? <div className="cal2-toast" role="status"><span>{undo.label}</span><button type="button" onClick={undoMove}><Undo2 size={15} /> Tühista</button><button type="button" aria-label="Sulge" onClick={() => setUndo(null)}><X size={15} /></button></div> : null}
 
     <Modal open={Boolean(moveAsk)} title={moveAsk?.item.recurring ? 'Korduv tund' : 'Tõsta tund?'} onClose={() => setMoveAsk(null)} footer={moveAsk?.item.recurring

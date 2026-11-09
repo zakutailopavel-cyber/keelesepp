@@ -708,7 +708,7 @@ describe('calendar v2', () => {
     fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
     fireEvent.click(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).getByRole('button', { name: /Alusta tundi/ }));
     await waitFor(() => expect(props.liveRepository.create).toHaveBeenCalledWith(
-      { student: expect.objectContaining({ id: 's1', studentUid: 'mari-user' }), title: 'Eesti keel · 10:00' },
+      { student: expect.objectContaining({ id: 's1', studentUid: 'mari-user' }), title: 'Eesti keel · 10:00', lesson: { scheduleId: 'schedule-1', occurrenceDate: today } },
       expect.objectContaining({ uid: 'admin-1' }),
     ));
     expect(await screen.findByText('live room ?invitation=inv-1')).toBeInTheDocument();

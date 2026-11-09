@@ -6,7 +6,7 @@
 // - lessons of the period: finance/businessReport.js lessonFacts (calendar + journal marks, weekly series, groups once
 //   per occurrence, one-off cancelled lessons); a weekly lesson cancelled only by `excludedDates` (the calendar's and
 //   „Märkimata tunnid”'s cancel path) is added here as cancelled, unless the date has a moved / cancelled child record;
-// - unmarked: features/calendar/unmarkedLessons.js findUnmarkedLessons (last 60 days up to yesterday, as /calendar/markimata);
+// - unmarked: features/calendar/unmarkedLessons.js markingSplit — the ONE definition (from MARKING_START up to yesterday, as /calendar/markimata);
 // - free time: features/calendar/availabilityModel.js effectiveSlots (a window for one date overrides the weekly ones);
 // - waiting reviews: the same rule as Kodutööd (a submitted worksheet / exercise without reviewStatus „reviewed”);
 // - pay: „Ärinäitajad” withTeacherPay — the staff account's `workHourlyRateCents` × minutes of lessons given (held,
@@ -15,7 +15,7 @@
 import { MISSED, lessonFacts, withTeacherPay } from '../finance/businessReport.js';
 import { monthDates } from '../finance/monthlyBilling.js';
 import { eventOccursOn, groupCalendarEvents, shiftDate, startOfWeek } from '../calendar/calendarView.js';
-import { findUnmarkedLessons, REVIEW_DAYS } from '../calendar/unmarkedLessons.js';
+import { markingSplit } from '../calendar/unmarkedLessons.js';
 import { effectiveSlots } from '../calendar/availabilityModel.js';
 import { toMinutes } from '../calendar/calendarGrid.js';
 import { isSameTeacher, teachesStudent } from '../../utils/teachers.js';
@@ -154,7 +154,7 @@ export function teacherLoad({ teachers = [], students = [], schedule = [], group
   const groupOnly = [...new Set(groups.flatMap((group) => group.students || []))].filter((id) => id && !known.has(id) && !others.some((item) => item.id === id));
   const everyone = [...students, ...others, ...groupOnly.map((id) => ({ id, active: false }))];
   const facts = [...lessonFacts({ from: period.from, to: period.to, today, students: everyone, schedule, groups, lessons }), ...excludedCancellations(schedule, period.from, period.to)];
-  const unmarked = findUnmarkedLessons({ schedule, lessons, today, days: REVIEW_DAYS });
+  const unmarked = markingSplit({ schedule, lessons, today, context: { staff: teachers, archivedStudentIds: others.map((item) => item.id) } }).items;
   const events = [...schedule, ...groupCalendarEvents(groups)];
   const reviews = waitingReviews({ submissions, students, teachers, today });
   const availabilityOf = new Map(availability.map((item) => [item.teacherUid || item.id, item]));

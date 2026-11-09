@@ -5,7 +5,7 @@ import { Card } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
 import { onLessonMarked } from './lessonActions.js';
-import { olderUnmarked, unmarkedLessons } from './unmarkedLessons.js';
+import { startLabel, unmarkedLessons } from './unmarkedLessons.js';
 import '../retention/retention.css';
 
 const api = {
@@ -15,17 +15,18 @@ const api = {
 const dayLabel = (iso) => new Intl.DateTimeFormat('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' }).format(new Date(`${iso}T12:00:00`));
 export const calendarLessonPath = (item) => `/calendar?lesson=${encodeURIComponent(`${item.occurrenceId}|${item.occurrenceDate}`)}`;
 
-// „Märkimata tunnid” on the dashboard: past lessons of the last year with no journal mark. Unmarked lessons make
+const NO_CONTEXT = {};
+// „Märkimata tunnid” on the dashboard: the ONE definition (unmarkedLessons.js markingSplit, from MARKING_START). Unmarked lessons make
 // the progress, retention and month reports wrong, so a held lesson is marked here in one click; an absence opens the
 // calendar, where its billing choice (Puudus_eta / Puudus_p) is made. Hidden when everything is marked.
-export default function UnmarkedLessonsCard({ schedule = [], teacherUid = '', today, user, repository = api, limit = 6 }) {
+export default function UnmarkedLessonsCard({ schedule = [], teacherUid = '', today, user, repository = api, limit = 6, context = NO_CONTEXT }) {
   const state = useAsyncData(() => Promise.resolve().then(() => repository.lessons(teacherUid)), [repository, teacherUid]);
   const [done, setDone] = useState(() => new Set());
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   // marked in the side drawer (right-click → „Ava tund (siinsamas)”, owner 2026-11-09): the row goes away here too
   useEffect(() => onLessonMarked((occurrenceId) => setDone((current) => new Set(current).add(occurrenceId))), []);
-  const all = useMemo(() => (state.data ? unmarkedLessons({ schedule, lessons: state.data, today, teacherUid }) : []), [state.data, schedule, today, teacherUid]);
+  const all = useMemo(() => (state.data ? unmarkedLessons({ schedule, lessons: state.data, today, teacherUid, context }) : []), [state.data, schedule, today, teacherUid, context]);
   const items = useMemo(() => all.filter((item) => !done.has(item.occurrenceId)), [all, done]);
   if (!items.length) return null;
 
@@ -42,10 +43,9 @@ export default function UnmarkedLessonsCard({ schedule = [], teacherUid = '', to
     }
   }
 
-  const older = olderUnmarked(items, today);
   return <Card className="retention-card unmarked-card">
     <div className="section-heading"><div><span className="eyebrow">Tunnipäevik</span><h2><CalendarCheck size={18} aria-hidden="true" /> {items.length} märkimata {items.length === 1 ? 'tund' : 'tundi'}</h2></div></div>
-    <p className="form-hint">Viimase aasta tunnid{older ? `, neist ${older} vanemad kui 2 nädalat` : ''}. Märgi need — muidu ei näe õpilase edenemine, aruanded ega kuuarved neid.</p>
+    <p className="form-hint">Tunnid alates {startLabel()} kuni eilseni. Märgi need — muidu ei näe õpilase edenemine, aruanded ega kuuarved neid.</p>
     {error ? <p className="form-error" role="alert">{error}</p> : null}
     <ul className="unmarked-list">
       {items.slice(0, limit).map((item) => <li key={item.occurrenceId} data-entity="lesson" data-schedule-id={item.id} data-date={item.occurrenceDate} data-student-id={item.studentId || undefined} data-entity-title={`${item.time ? `${item.time} · ` : ''}${item.studentName || 'Tund'}`}>
