@@ -99,7 +99,7 @@ export const LESSONS = withShapes({
     ],
     practice: [
       station(purpose(B.categorize('002_p_sound', 'Kooli või kooli?', 'Kuula õpetajat: kas „kooli” või „linna” on lühem või pikem? Pane lause veergu, siis loe.', [
-        ['Lühem: kelle? mille?', ['Kooli maja on suur.', 'Kooli söökla on esimesel korrusel.', 'Linna buss on tasuta.']],
+        ['Lühem: kelle? mille?', ['Kooli õu on suur.', 'Kooli söökla on esimesel korrusel.', 'Linna buss on tasuta.']],
         ['Pikem: kuhu?', ['Ma lähen hommikul kooli.', 'Milana kolis linna.', 'Pärast trenni tulen kooli tagasi.']],
       ], 'full', 'g_notice'), 'Eestlane kuuleb kohe, kas sa ütled „kooli maja” või „lähen kooli”. Harjutad hääldust, et sinu lause oleks õigesti mõistetav.'), 3, 8),
       station(teach(tag(purpose(B.speaking('002_p_fast', 'Kiire tutvumine vahetunnis.', 'Õpetaja on Robin: vasta kaks minutit kiiresti. Siis tee vanaemale 30-sekundiline häälsõnum esimesest päevast.', [
@@ -146,7 +146,7 @@ export const LESSONS = withShapes({
         ['Mida Milana neljapäeval pärast tunde teeb?', 'käib raamatukogus|teeb kodutööd|käib raamatukogus ja teeb kodutööd'],
         ['Kuhu läheb Milana reedel pärast tunde?', 'noortekeskusesse'],
         ['Kellega ta sinna läheb?', 'Artjomiga'],
-        ['Mis päeval on Milanal pärastlõunal kõige rohkem vaba aega?', 'neljapäeval|neljapäev'],
+        ['Mis koolipäeval lõpevad Milana tunnid kõige varem?', 'neljapäeval|neljapäev'],
       ]), 'Milana palus sul kiri enne saatmist üle lugeda. Artjom kutsub teda trenni, nii et leia ka, millal tal tegelikult vaba aega on.'), 1, 12),
       tag(B.vocab('003_d_vocab', 'Tunni sõnad.', ['aine — предмет', 'noortekeskus — молодёжный центр', 'raamatukogu — библиотека', 'vaba aeg — свободное время', 'algama — начинаться', 'tavaliselt — обычно', 'treener — тренер', 'võistkond — команда', 'proovitrenn — пробная тренировка', 'spordisaal — спортзал', 'nädal — неделя', 'sobima — подходить']), {}),
       station(B.notice('003_d_rule', 'Märka: kui lause algab ajaga', [
@@ -191,7 +191,7 @@ export const LESSONS = withShapes({
     transfer: [
       station(B.text('003_t_sit', 'Kas korvpall mahub nädalasse?', 'Proovitrenn läks hästi ja treener Raivo kutsub sind võistkonda. Trenn on kaks korda nädalas. Sinu nädal on juba täis: tunnid, kodutöö ja kodused asjad. Lepi treeneriga kokku, mis päevadel ja mis kell sa trenni tuled. Siis kirjuta oma uus nädal tabelisse. Sinu variant: kasuta oma päris tunniplaani ja oma päris trenni või ringi.'), 5, 15, { final: 'plan' }),
       teach(tag(purpose(B.rolecards('003_t_talk', 'Treener Raivo ja sinu nädal.', 'Õpetaja on treener Raivo. Mida ja kuidas öelda, otsusta ise.',
-        'Olukord: sinu tunniplaan on sinu ees; esmaspäeval ja kolmapäeval jõuad koju alles kell neli.\nSinu eesmärk: leppida kokku kaks trenni nädalas nii, et kodutöö ja pere asjad ei kannata.\nPiirang: laupäeva hommikul aitad emal ja pühapäeval ei saa sa enne kella kahtteist.',
+        'Olukord: sinu tunniplaan on sinu ees; esmaspäeval ja kolmapäeval jõuad koju alles kell neli.\nSinu eesmärk: leppida kokku kaks trenni nädalas nii, et kodutöö ja pere asjad ei kannata.\nPiirang: laupäeva hommikul aitad emal ja pühapäeval ei saa sa enne kella 12.',
         'Treeneri kaart on õpetajal: tal on oma ajad ja oma soovid.',
         ['Esmaspäeval mul ei sobi, sest…', 'Neljapäeval on mul aega pärast…', 'Kas trenn võiks olla…?', 'Siis lepime kokku, et…'], ['Meie trennid on…', 'Kas sulle sobib…?', 'Hea küll, siis…']), 'Treener tahab sind võistkonda, aga sinu nädal on juba täis. Lepid kokku kaks trenni, mis tegelikult sobivad.'), { main: true, level: 4 }),
       'Üks-ühele, õpetaja kaart (treener Raivo). Varjatud info: trenn võib olla esmaspäeval kell 16.30, teisipäeval kell 17, neljapäeval kell 15 või laupäeval kell 10; võistkond tahab, et uus mängija tuleks ka laupäeval. Takistused (ükshaaval): 1) „Kõige tähtsam trenn on laupäeva hommikul — kas tuled?”; 2) „Esmaspäeval kell 16.30 sobib ju, sa oled kell neli juba vaba!” (õpilane selgitab, miks ei sobi); 3) „Neljapäeval kell 15? Kas tunnid ei lõpe hiljem?” Õnnestunud, kui: lepitakse kokku kaks päeva ja kellaaega, õpilane põhjendab keeldumist (…, sest …) ja ütleb kokkuleppe ühe lausega, mis algab ajaga (Teisipäeval tulen ma…).'),
@@ -379,7 +379,7 @@ export const LESSONS = withShapes({
         'Esimesel päeval on [matk].',
         'Robootikaringis on veel [kolm|3] kohta.',
         'Lapsevanema luba tuleb saata [reedeks].',
-        'Luba saab teha [kodulehelt|kodulehel].',
+        'Loa vormi leiab [kodulehelt|kodulehel].',
       ]),
       B.examListen('005_p_radio', 'Kuulamine 2. Noortekeskuse teated.', 'Õpetaja loeb viis lühikest teadet kaks korda. Vali õige vastus.', 'choice', [
         'Teade üks.', 'Juhendaja: Täna on kunstiring ruumis kaks, mitte ruumis üks.',

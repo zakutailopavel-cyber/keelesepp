@@ -53,7 +53,7 @@ export const LESSONS = withShapes({
       ]), 'Milana läheb laupäeval Robini juurde ja tahab teada, keda ta seal kohtab. Loed Robini postitust, et kõik nimed selgeks saada.'), 1, 12),
       tag(B.vocab('006_d_vocab', 'Tunni sõnad.', ['pere — семья', 'vanemad — родители', 'vend — брат', 'õde — сестра', 'onu — дядя', 'tädi — тётя', 'vanaema — бабушка', 'nõbu — двоюродный брат или сестра', 'sugulane — родственник', 'sõber — друг', 'naaber — сосед', 'sünnipäev — день рождения']), {}),
       station(B.notice('006_d_rule', 'Märka: kelle? — omastav', [
-        'Kelle oma? **Robini** vend · **minu ema** õde · **Milana** kool · **kooli** maja (moodul 1)',
+        'Kelle oma? **Robini** vend · **minu ema** õde · **Milana** kool · **kooli** õu (moodul 1)',
         'Mõnel sõnal muutub tüvi: vend → **venna** · õde → **õe** · sõber → **sõbra** · naaber → **naabri** · nõbu → **nõo**',
         'Mõnel sõnal jääb sama: ema → **ema** · isa → **isa** · tädi → **tädi** · onu → **onu**',
         'Kaks omastavat järjest: **minu venna** tüdruksõber · **isa õe** poeg',
@@ -117,7 +117,7 @@ export const LESSONS = withShapes({
       notes: [
         'Четыре пряди: ст. 1 — слушание, ст. 2 — форма, ст. 3 — произношение, ст. 4 — продукция (игра «угадай», настоящий информационный пробел), ст. 5 — продукция.',
         'Обратная связь: на ст. 2 и 3 подсказка, потом модель; на ст. 4 и 5 не перебивать, в конце 2–3 пункта.',
-        'Факты ст. 4 (проверено 2026-11-10): Kelly Sildaru — бронза Олимпиады 2022 (слоупстайл); Ott Tänak — чемпион мира по ралли 2019; Alika — Eesti на Евровидении 2023; Arvo Pärt — композитор. Источник: ERR, Wikipedia.',
+        'Факты ст. 4 (общеизвестные, перед уроком можно сверить на ERR): Kelly Sildaru — бронза Олимпиады 2022 (слоупстайл); Ott Tänak — чемпион мира по ралли 2019; Alika — Эстония на Евровидении 2023; Arvo Pärt — композитор. Если ученик не знает этих людей, пусть выберет человека из своей школы или любимого блогера.',
         'Дом 10 + 1: «Harjuta» 10 минут ≥ 4 дней (слова + предложения: kes / mis, родительный падеж из урока 6, вопросы из модуля 1). Реальное задание на выбор: (а) описать по-эстонски трёх людей из своей школы предложениями с kes (без имён — пусть друг угадает); (б) прочитать на ERR Novaator или в школьной газете одну заметку о человеке и записать 2 предложения с kes.',
       ],
     },
@@ -173,7 +173,7 @@ export const LESSONS = withShapes({
         'Arvo Pärt — helilooja, kelle muusikat mängitakse üle maailma',
         'Või keegi sinu koolist, keda õpetaja ei tea',
       ], [60, 120], ['See on inimene, kes…', 'Ta teeb asja, mis…', 'Ta elab linnas, mis…']), 'Mängid õpetajaga äraarvamismängu. Õpetaja ei tea, kelle sa valisid, nii et pead inimest nii kirjeldama, et teda saab ära tunda.'),
-      'Päris infolõhe: õpetaja ei vaata, kelle õpilane valis, ja küsib kas-küsimusi („Kas see on keegi, kes laulab?”). Kui õpilane valib inimese oma koolist, on mäng veel ehtsam. Allikas: ERR, Wikipedia (kontrollitud 10.11.2026).'), 4, 10),
+      'Päris infolõhe: õpetaja ei vaata, kelle õpilane valis, ja küsib kas-küsimusi („Kas see on keegi, kes laulab?”). Kui õpilane valib inimese oma koolist või oma lemmikblogija, on mäng veel ehtsam.'), 4, 10),
     ],
     transfer: [
       station(B.text('007_t_sit', 'Tugiõpilane Dariale', 'Daria vajab tugiõpilast: vanemat õpilast, kes aitab tal esimestel kuudel koolis hakkama saada. Klassijuhataja Kaie peab homseks ühe valima ja küsib sinu nõu, sest sa tunned Dariat kõige paremini. Loe kolme kandidaadi kaarte ja soovita ühte. Sinu variant: keda sinu koolist sa soovitaksid uuele õpilasele ja miks?'), 5, 15, { final: 'decide' }),
@@ -236,8 +236,8 @@ export const LESSONS = withShapes({
       ], '', 'full', 'g_notice'), 'Robin teeb peo plaani ja kirjutab, kus mis on. Paned sõnad õigesse vormi, et keegi ei läheks valesse kohta.'),
     ],
     practice: [
-      station(teach(purpose(B.categorize('008_p_long', 'Pikk või lühike?', 'Kuula õpetajat: kas rasvane sõna on pikk või lühike? Pane lause veergu, siis loe.', [
-        ['Lühike: tule, sada, koli', ['Tule meile!', 'Sada eurot on palju.', 'Vana koli on keldris.']],
+      station(teach(purpose(B.categorize('008_p_long', 'Pikk või lühike?', 'Kuula õpetajat: kas lause esimene sõna on pikk või lühike? Pane lause veergu, siis loe.', [
+        ['Lühike: tule, sada, koli', ['Tule meile!', 'Sada eurot on palju.', 'Koli on keldris.']],
         ['Pikk: tuule, saada, kooli', ['Saada mulle kutse!', 'Tuule tõttu on pidu toas.', 'Kooli ees on park.']],
       ], 'full', 'g_notice'), 'Tule ja tuule, sada ja saada on eesti keeles eri sõnad. Harjutad pikkust, et sinu kutse ei läheks valesti.'),
       'Kõigepealt taju: õpetaja loeb paarid tule — tuule, sada — saada, koli — kooli ja õpilane näitab käega lühike / pikk. Siis loeb õpilane laused, õpetaja kuulab ainult pikkust.'), 3, 8),
