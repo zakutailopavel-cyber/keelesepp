@@ -769,8 +769,20 @@ service cloud.firestore {
         'corrections',
         'correctionStatus',
         'overpaymentResolutionIds',
-        'lastOverpaymentResolvedAt'
+        'lastOverpaymentResolvedAt',
+        'issuer',
+        'issuerDetails'
       ]);
+    }
+
+    // „Arve väljastaja” (owner 2026-11-09, docs/ACCOUNTING.md „FIE arved”): an invoice of the owner's own sole
+    // proprietorship (`issuer: 'fie'`) is read only by the owner (superAdmin) and the family it belongs to — never by
+    // another administrator or the bookkeeper. An invoice without the field is the company's (a single get). A list
+    // query of a non-owner administrator / the bookkeeper must say where('issuer', '==', 'company') (crm-v2
+    // invoices.js): in a query an unconstrained field counts as absent, so `get('issuer', 'company')` would let an
+    // unconstrained list through with the FIE invoices in it — the list rule asks for the stored value itself.
+    function companyInvoice(data) {
+      return data.get('issuer', 'company') == 'company';
     }
 
     function changesLessonBillingSource() {
@@ -1243,14 +1255,26 @@ service cloud.firestore {
 
     match /invoices/{invoiceId} {
       // Teachers only mark lessons; money is the administrator's and the bookkeeper's (owner decision 2026-10-11).
-      allow read: if isAdmin() || isFinance() || ownsInvoice(resource.data);
-      // invoices are made by the finance functions (CRM v2); a direct create is left to the administrator (old haldus)
-      allow create: if isAdmin() && financialDateOpen(request.resource.data.get('date', ''));
+      // FIE invoices: the owner and the invoice's family only (companyInvoice above).
+      allow get: if superAdmin()
+        || ((isAdmin() || isFinance()) && companyInvoice(resource.data))
+        || ownsInvoice(resource.data);
+      allow list: if superAdmin()
+        || ((isAdmin() || isFinance()) && resource.data.issuer == 'company')
+        || ownsInvoice(resource.data);
+      // invoices are made by the finance functions (CRM v2); a direct create is left to the administrator (old haldus),
+      // and only as a company invoice (an FIE invoice comes only from the functions, with its own number series)
+      allow create: if isAdmin()
+        && request.resource.data.get('issuer', 'company') == 'company'
+        && !('issuerDetails' in request.resource.data)
+        && financialDateOpen(request.resource.data.get('date', ''));
       allow update: if isAdmin()
+        && (superAdmin() || companyInvoice(resource.data))
         && !changesInvoiceFinancialSource()
         && financialDateOpen(resource.data.get('date', ''))
         && financialDateOpen(request.resource.data.get('date', ''));
       allow delete: if isAdmin()
+        && (superAdmin() || companyInvoice(resource.data))
         && financialDateOpen(resource.data.get('date', ''))
         && (
           !resource.data.keys().hasAny(['paymentCount'])
@@ -1271,6 +1295,8 @@ service cloud.firestore {
       allow read: if isAdmin() || isFinance();
       allow create, update: if (isAdmin() || isFinance())
         && exists(/databases/$(database)/documents/invoices/$(invoiceId))
+        // no internal notes on an FIE invoice: this collection is read by every administrator and the bookkeeper
+        && companyInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
         && request.resource.data.keys().hasOnly(['invoiceId', 'text', 'updatedAt', 'updatedByUid', 'updatedByName'])
         && request.resource.data.invoiceId == invoiceId
         && request.resource.data.text is string
@@ -1297,6 +1323,8 @@ service cloud.firestore {
       allow create: if signedIn()
         && exists(/databases/$(database)/documents/invoices/$(invoiceId))
         && ownsInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
+        // an FIE invoice's notice goes to fieInvoicePaymentClaims (the owner's own)
+        && companyInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
         && get(/databases/$(database)/documents/invoices/$(invoiceId)).data.get('status', '') != 'Tühistatud'
         && request.resource.data.keys().hasOnly(['invoiceId', 'claimedByUid', 'claimedByName', 'claimedAt', 'note'])
         && request.resource.data.keys().hasAll(['invoiceId', 'claimedByUid', 'claimedAt'])
@@ -1309,6 +1337,54 @@ service cloud.firestore {
         && request.resource.data.get('note', '').size() <= 300;
       allow update: if false;
       allow delete: if isAdmin();
+    }
+
+    // „Maksin ära” on an FIE invoice: the same notice as invoicePaymentClaims, read only by the owner and the family
+    match /fieInvoicePaymentClaims/{invoiceId} {
+      allow read: if superAdmin()
+        || (
+          exists(/databases/$(database)/documents/invoices/$(invoiceId))
+          && ownsInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
+        );
+      allow create: if signedIn()
+        && exists(/databases/$(database)/documents/invoices/$(invoiceId))
+        && ownsInvoice(get(/databases/$(database)/documents/invoices/$(invoiceId)).data)
+        && get(/databases/$(database)/documents/invoices/$(invoiceId)).data.get('issuer', 'company') == 'fie'
+        && get(/databases/$(database)/documents/invoices/$(invoiceId)).data.get('status', '') != 'Tühistatud'
+        && request.resource.data.keys().hasOnly(['invoiceId', 'claimedByUid', 'claimedByName', 'claimedAt', 'note'])
+        && request.resource.data.keys().hasAll(['invoiceId', 'claimedByUid', 'claimedAt'])
+        && request.resource.data.invoiceId == invoiceId
+        && request.resource.data.claimedByUid == uid()
+        && request.resource.data.claimedAt == request.time
+        && request.resource.data.get('claimedByName', '') is string
+        && request.resource.data.get('claimedByName', '').size() <= 160
+        && request.resource.data.get('note', '') is string
+        && request.resource.data.get('note', '').size() <= 300;
+      allow update: if false;
+      allow delete: if superAdmin();
+    }
+
+    // the owner's FIE (owner 2026-11-09): requisites (invoiceIssuers/fie: name + IBAN), the cards' default issuer,
+    // FIE payments, audit and e-mail log — the owner only, written only by financeApi / invoiceApi
+    match /invoiceIssuers/{issuerId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
+    }
+    match /studentInvoiceIssuers/{studentId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
+    }
+    match /fiePayments/{paymentId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
+    }
+    match /fieAudit/{entryId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
+    }
+    match /fieEmailQueue/{entryId} {
+      allow read: if superAdmin();
+      allow create, update, delete: if false;
     }
 
     match /payments/{paymentId} {

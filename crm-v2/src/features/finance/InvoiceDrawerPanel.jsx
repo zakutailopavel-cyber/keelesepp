@@ -70,7 +70,7 @@ export default function InvoiceDrawerPanel({ invoiceId, invoiceRepository = invo
   const removeClaim = async () => {
     if (!(await askConfirm(`Eemaldada pere teade „Maksin ära” arvelt ${number}? Arve ja maksed ei muutu; pere saab teate uuesti saata.`, { confirmLabel: 'Eemalda teade', danger: true }))) return;
     setBusy(true); setError(''); setNotice('');
-    try { await claimsRepository.remove(invoice.id); await claimState.reload(); setNotice('Pere teade eemaldati.'); }
+    try { await claimsRepository.remove(invoice.id, invoice); await claimState.reload(); setNotice('Pere teade eemaldati.'); }
     catch (caught) { setError(caught.message || 'Teadet ei saanud eemaldada.'); }
     finally { setBusy(false); }
   };

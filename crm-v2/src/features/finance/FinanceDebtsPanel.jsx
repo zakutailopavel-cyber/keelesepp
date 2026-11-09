@@ -90,7 +90,7 @@ export default function FinanceDebtsPanel({ month, invoices, students, transacti
     if (!(await askConfirm(`Eemaldada pere teade „Maksin ära” arvelt ${label}? Arve ja maksed ei muutu; pere saab teate uuesti saata.`, { confirmLabel: 'Eemalda teade', danger: true }))) return;
     setBusy(`claim-${invoice.id}`); setNotice('');
     try {
-      await claimsRepository.remove(invoice.id);
+      await claimsRepository.remove(invoice.id, invoice);
       setClaims((current) => { const next = new Map(current); next.delete(invoice.id); return next; });
       setNotice(`Pere teade arvelt ${label} eemaldati.`);
     } catch (error) { setNotice(error.message || 'Teadet ei saanud eemaldada.'); }
