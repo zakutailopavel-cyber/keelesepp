@@ -1,5 +1,6 @@
 /* global TextDecoder */
 import { getBytes, ref } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 
 export const LEVEL_VOCABULARY_STORAGE_PATH = 'eesti_soned.json';

@@ -1,5 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, runTransaction, serverTimestamp, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
 import { copyableElement, lessonCopyId } from '../../features/board/lessonBoards.js';

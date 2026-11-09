@@ -4,6 +4,7 @@ import { AuthContext } from './AuthContext.jsx';
 import { vi } from 'vitest';
 import AppRoutes from './routes.jsx';
 
+// the shell is a lazy file (shellPrefetch.js): the first render waits for it
 // only the routing is under test: pages and shell parts that talk to Firebase are stubbed
 vi.mock('../components/layout/LessonInvitationOverlay.jsx', () => ({ default: () => null }));
 vi.mock('../features/pet/PetCompanion.jsx', () => ({ default: () => null }));
@@ -26,12 +27,12 @@ function renderAt(roles) {
 describe('landing after sign-in', () => {
   it('sends a student from the start page to "Minu õpingud" instead of "Ligipääs puudub"', async () => {
     renderAt(['student']);
-    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent('/student'));
+    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent('/student'), { timeout: 15000 });
     expect(screen.queryByText('Ligipääs puudub')).toBeNull();
   });
 
   it('sends a parent to "Minu pere"', async () => {
     renderAt(['parent']);
-    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent('/parent'));
+    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent('/parent'), { timeout: 15000 });
   });
 });
