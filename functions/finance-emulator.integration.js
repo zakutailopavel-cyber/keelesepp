@@ -3482,7 +3482,11 @@ test("„Liida kaardid” over HTTP: admin only, preview writes nothing, apply n
   assert.equal((await db.collection("homework").doc("mc-hw").get()).data().studentId, "mc-src");
   const unconfirmed = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", apply: true });
   assert.equal(unconfirmed.status, 400, JSON.stringify(unconfirmed.body));
-  const applied = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", keepName: "Mari Tamm", apply: true, confirmed: true });
+  // Eesti keel vs Matemaatika with no shared teacher: a sign of two different children, so apply needs one more confirmation
+  const differences = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", keepName: "Mari Tamm", apply: true, confirmed: true });
+  assert.equal(differences.status, 409, JSON.stringify(differences.body));
+  assert.equal((await db.collection("homework").doc("mc-hw").get()).data().studentId, "mc-src");
+  const applied = await staffOperationsRequest(adminToken, "/students/merge-cards", { keepId: "mc-keep", sourceId: "mc-src", keepName: "Mari Tamm", apply: true, confirmed: true, confirmedDifferences: true });
   assert.equal(applied.status, 200, JSON.stringify(applied.body));
   assert.equal((await db.collection("homework").doc("mc-hw").get()).data().studentId, "mc-keep");
   assert.equal((await db.collection("students").doc("mc-keep").get()).data().name, "Mari Tamm");

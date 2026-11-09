@@ -513,6 +513,26 @@ enne liitmist” — its purge would anonymise the merged history. The dialog's 
 earlier name (`nameAliases`), e-mail, phone or parent (`duplicateCandidates.js matchesMergeSearch`); „Võimalikud
 topeltkaardid” also proposes two archived cards (after the pairs with an active card).
 
+Guard and undo (2026-11-09, after two different girls named Stefania were merged). The preview returns
+`differentPerson: [{ code, label }]` (`student-card-merge-core.js differentPersonSignals`): `surname` (both cards
+have one, same alphabet, no shared surname incl. `nameAliases`), `grade` (`grade` field / „N. klass” track levels with
+nothing in common), `parent` (parent uids, e-mails or names both present and disjoint), `subject_teacher` (both cards
+name subjects; no shared subject and no shared teacher), `birth_year` (`birthYear` / `birthDate` / `dateOfBirth` /
+isikukood). The dialog shows them in a red block and needs a second tick „Kinnitan, et see on sama laps”; the server
+refuses apply with 409 `code: different_person` unless `confirmedDifferences: true`. A moved lesson keeps its own
+subject; one without gets the other card's subject (`sourceLessonSubject`, also for archived / multi-subject cards).
+Every moved record writes `{ path, anchor, after, before, absent }` (or `{ kind: 'ids', hadKeep }` for `studentIds`)
+into `studentCardMerges/{oldId}/undo/*` in the same batch as the move (`runId`); the final transaction stores
+`undo: { version: 1, runId, cards: [kept, old], docs (per-card document marks, the added subject price), users
+[{ uid, hadKeep, hadSource }], copies }` on the operation and `mergeUndoVersion: 1` on the tombstone.
+„Võta ühendamine tagasi” (`MergeHistoryCard.jsx` on both cards → `/students/unmerge-cards` → `unmergeStudentCards`,
+admin only, preview then `confirmed: true`) restores each field only while it still holds the merge's value
+(`revertFields`; writes with a `lastUpdateTime` precondition); a field changed since is left and listed; documents
+copied to the kept card stay (listed for a manual check); records created on the kept card after the merge stay.
+Nothing is deleted. Then `studentCardMerges.status = 'unmerged'`, `activityLog/student-card-unmerge-{oldId}-{runId}`.
+Merges without the record answer 409 `code: legacy` („Vana ühendamine — tagasi võtmiseks pöördu administraatori
+poole”); the button is shown disabled with that hint.
+
 Parents (2026-10-24): a child may have several parent accounts (`linkedParentIds`; `linkedParentId` / `parentUid` is
 the main one) and parents without an account (`parentContacts: [{ name, email, phone }]`, plus the old
 `parentName` / `parentEmail`). The student card „Lapsevanemad” (`StudentParentsCard.jsx`, admin) links an existing

@@ -17,6 +17,7 @@ function linkedText(result, teacherUid = '') {
   const parts = ['Konto kinnitatud.'];
   if (result.reviewCount) parts.push('Sarnane õpilase kaart on juba olemas — vali allpool „Vajab otsust”, kas siduda või luua uus kaart.');
   else parts.push(linked ? `Seotud õpilase kaarte: ${linked}.` : 'Õpilase kaarti automaatselt ei leitud — seo see vajadusel õpilase kaardil.');
+  if (result.possibleExistingCount) parts.push('Uus kaart võib kuuluda olemasolevale kaardile — vaata allpool „Vajab otsust” ja ava vajadusel ühendamine.');
   if (result.createdStudentIds?.length && !teacherUid) parts.push('Uuel kaardil pole õpetajat: määra see õpilase kaardil.');
   if (result.mailed) parts.push('Inimesele saadeti e-kiri.');
   else if (result.mailPending) parts.push('E-kirja saatmine ei ole veel kinnitatud.');
