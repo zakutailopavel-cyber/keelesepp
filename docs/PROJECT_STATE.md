@@ -1,3 +1,12 @@
+## 2026-11-10 · agent/a2b1-blueprint — A2→B1 course blueprint (contract before rebuilding lessons) · docs only
+
+- Base: `origin/main` a9824ee, checked 2026-11-10. Branch `agent/a2b1-blueprint`, draft PR. Owner 2026-11-10: „делай курс A2→B1 … не шаблонный курс, а очень чётко продуманный курс с чёткой целью … и потом это проверить.”
+- Done: `docs/A2B1_COURSE_BLUEPRINT.md` — purpose, 3 personas, exit profile per skill mapped to Harno B1 parts and Estonian situations; measurable exit targets (≥ 60 % every part floor, 70 % exam-ready proposal, 80 % course goal; writing / speaking / vocabulary / grammar „must control” vs „recognise”); 18-module arc re-anchored to real-life final tasks inside the existing grammar slots (ids unchanged), grammar spiral table, changes vs current modules; v3-stations recipe for this course (must / never, one-to-one, homework 10 min „Harjuta” + one real task); assessment (entry 001 routing, module check A / B / C, mocks); CRM data per learner; pilot verification plan (cohort, metrics, weekly cadence, keep / fix / redo rules, 3-question feedback cards); production order and per-module DoD. `docs/review/a2b1-blueprint-ru.md` — Russian summary for the owner with 3 decisions.
+- Harno B1 facts checked against `docs/HARNO_LEVEL_REQUIREMENTS.md` and re-read on https://harno.ee/eesti-keele-tasemeeksamid (2026-11-10): parts, minutes, raw points, formats, 60 % / no-0 pass rule, citizenship = B1. No code, data or rules changed.
+- Checks: docs only, no tests run (no code touched).
+- Limits: blueprint is a draft until the owner decides (1) exam-ready / certificate threshold, (2) fast track and exam track, (3) pilot learners, teachers and module order. Gaps named for UI: per-part Harno scores and rubric points not stored as numbers, no whole-task „mõttetu” flag, `meta.teacherPage` not shown, nowhere to store the feedback card (pilot uses lesson notes tagged `#a2b1-pilot`).
+- Next safe step: owner answers the 3 decisions in `docs/review/a2b1-blueprint-ru.md`; then a code PR adds `admin/course/b1/blueprint.js` + its gate, and M1–M2 are rebuilt as v3-stations reference modules.
+
 ## 2026-11-09 · agent/sidebar-collapse — desktop side menu collapses to an icon rail, slides out on hover
 
 - Base: `origin/main` 40d9450, checked 2026-11-09. Branch `agent/sidebar-collapse`, draft PR. Owner 2026-11-09: „можно ли это сделать выезжающим блоком, чтобы экран был больше”. Kept clear of #1180 (no change to `navigation.js` item lists; AppShell edits avoid its two hunks).
