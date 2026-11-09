@@ -10,5 +10,17 @@
 .skeleton__bar{display:block;height:12px;border-radius:6px;background:linear-gradient(90deg,var(--border) 0%,#f2f4f7 50%,var(--border) 100%);background-size:200% 100%;animation:skeleton-shimmer 1.4s ease-in-out infinite}
 .skeleton__bar--title{height:16px;width:45%}
 .skeleton__bar--short{width:62%}
+.skeleton--heading{max-width:320px}.skeleton--heading .skeleton__bar{height:26px;border-radius:8px}
+.skeleton--sub{max-width:240px}
+.skeleton--tall{min-height:200px}
+.skeleton--tile{padding:14px}
+/* SkeletonScreen: a dashboard's first screen while its data loads */
+.skeleton-screen{display:grid;gap:16px;align-content:start}
+.skeleton-row{display:grid;gap:14px}
+.skeleton-row--kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.skeleton-row--tiles{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.skeleton-row--split{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.skeleton-row--halves{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:760px){.skeleton-row--split,.skeleton-row--halves{grid-template-columns:minmax(0,1fr)}}
 @keyframes skeleton-shimmer{from{background-position:100% 0}to{background-position:-100% 0}}
 @media(prefers-reduced-motion:reduce){.state-spinner,.skeleton__bar{animation:none!important}.skeleton__bar{background:var(--border)}}

@@ -15,3 +15,17 @@ export default function Skeleton({ lines = 3, variant = 'lines', className = '' 
     </div>
   );
 }
+
+// A whole first screen of placeholders (a dashboard while its first data loads). The shapes are hidden from screen
+// readers; the region is busy and says `label` once (the same words the spinner said). Lay the shapes out with
+// <SkeletonRow kind="kpis | split | halves | tiles"> so they sit roughly where the real cards will appear.
+export function SkeletonScreen({ label, className = '', children }) {
+  return <div className={['skeleton-screen', className].filter(Boolean).join(' ')} role="status" aria-live="polite" aria-busy="true">
+    <span className="sr-only">{label}</span>
+    {children}
+  </div>;
+}
+
+export function SkeletonRow({ kind = 'kpis', children }) {
+  return <div className={`skeleton-row skeleton-row--${kind}`} aria-hidden="true">{children}</div>;
+}
