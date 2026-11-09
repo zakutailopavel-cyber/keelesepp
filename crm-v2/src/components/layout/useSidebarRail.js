@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 // Phones (≤ 800 px, the breakpoint of index.css) keep the off-canvas menu: nothing here applies there.
 export const SIDEBAR_STORAGE_KEY = 'keelesepp.sidebar';
 export const DESKTOP_QUERY = '(min-width: 801px)';
-export const PEEK_DELAY_MS = 250;
+export const PEEK_DELAY_MS = 140;
 // without a saved choice: a laptop-size window (≤ 1280 px) starts with the rail, a wide screen with the full menu
 const COLLAPSED_BELOW_PX = 1280;
 

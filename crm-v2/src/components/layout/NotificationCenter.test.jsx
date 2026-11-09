@@ -47,6 +47,16 @@ describe('NotificationCenter', () => {
     expect(reminder).toHaveBeenCalledWith({ user: teacher });
   });
 
+  it('a teacher sees the week\'s Monday e-mail count once a week; nothing without a marker', async () => {
+    const teacher = { uid: 'bell-teacher-week', roles: ['teacher'] };
+    const thisWeek = vi.fn(async () => ({ week: '2026-W46', total: 12, status: 'sent', teacherUid: 'bell-teacher-week' }));
+    render(<MemoryRouter><NotificationCenter user={teacher} repositories={repositories({ weeklyDigest: { thisWeek } })} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /uut$/ }));
+    expect(await screen.findByRole('button', { name: /Nädala kokkuvõte: 12 tundi märkimata/ })).toBeInTheDocument();
+    expect(screen.getByText(/Saatsime nimekirja ka e-postiga\. Tunnid alates 01\.11\.2026\./)).toBeInTheDocument();
+    expect(thisWeek).toHaveBeenCalledWith({ user: teacher });
+  });
+
   it('an administrator keeps the school-wide count on „Kalender”: no own reminder is read', async () => {
     const reminder = vi.fn(async () => ({ total: 3, oldestLabel: '20.10', stale: 2 }));
     render(<MemoryRouter><NotificationCenter user={admin} repositories={repositories({ unmarked: { reminder } })} /></MemoryRouter>);
