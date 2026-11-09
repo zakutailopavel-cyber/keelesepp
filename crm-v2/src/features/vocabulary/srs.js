@@ -65,11 +65,13 @@ export function normalizeSide(side) {
 // ── FSRS formulas ──
 export const retrievability = (elapsedDays, stability) => (stability > 0 ? (1 + (FACTOR * Math.max(0, elapsedDays)) / stability) ** DECAY : 0);
 export function intervalDays(stability, retention = DESIRED_RETENTION) {
-  const days = (stability / FACTOR) * (retention ** (1 / DECAY) - 1);
+  // rounded to 8 digits first: the float error made S = 2.5 (exactly 2.5 days at 90 %) round down to 2
+  const days = round((stability / FACTOR) * (retention ** (1 / DECAY) - 1), 8);
   return clamp(Math.round(days), 1, MAX_INTERVAL_DAYS);
 }
 const initialDifficulty = (g) => clamp(W[4] - (g - 3) * W[5], 1, 10);
-const nextDifficulty = (d, g) => clamp(W[7] * initialDifficulty(4) + (1 - W[7]) * (d - W[6] * (g - 3)), 1, 10);
+// FSRS-4.5: mean reversion towards D0(3) = w4 (D0(4) is FSRS-5's target, which belongs to FSRS-5's own weights)
+const nextDifficulty = (d, g) => clamp(W[7] * initialDifficulty(3) + (1 - W[7]) * (d - W[6] * (g - 3)), 1, 10);
 const recallStability = (d, s, r, g) => s * (1 + Math.exp(W[8]) * (11 - d) * s ** -W[9] * (Math.exp(W[10] * (1 - r)) - 1)
   * (g === 2 ? W[15] : 1) * (g === 4 ? W[16] : 1));
 const forgetStability = (d, s, r) => Math.min(s, W[11] * d ** -W[12] * ((s + 1) ** W[13] - 1) * Math.exp(W[14] * (1 - r)));

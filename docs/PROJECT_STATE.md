@@ -1,3 +1,12 @@
+## 2026-11-09 · agent/fsrs-crosscheck — „Sõnad” SRS checked against ts-fsrs v5; two formula fixes
+
+- Base: `origin/main` 3d3acfd, checked 2026-11-09. Branch `agent/fsrs-crosscheck`, draft PR. Open PRs checked: none touch `features/vocabulary/srs.js`.
+- Done: `ts-fsrs` ^5.4.2 (MIT) as **devDependency only** (v6 needs Node 24); `vocabulary/srs.fsrs-crosscheck.test.js` — formula grid (curve, interval, initial / recall / forget / same-day stability) and 400 seeded rating sequences (> 3 000 answers; new, learning, review, relearning, lapses, gaps up to 500 days) compared at every answer: state, due to the ms, S, D, reps, lapses. Intended differences (FSRS-5 short-term Raske, FSRS-4.5 lapse cap, step minutes, 3-day first graduation, Lihtne +1 day, S ≥ 0.1, ≤ 365 days, FSRS-4.5 difficulty, state-based same-day formula) documented in `docs/VOCABULARY_SRS.md` „Cross-check with ts-fsrs” and asserted one by one.
+- Bugs fixed in `vocabulary/srs.js`: (1) difficulty mean reversion used D0(4) (FSRS-5) instead of FSRS-4.5's D0(3) = w4 — D drifted ~0.04 low per answer; (2) `intervalDays` rounded half-day stabilities down by float error (S 2.5 → 2 days, now 3). No stored data changed; next answers use the fixed formulas.
+- Checks: eslint on changed files clean; full `npx vitest run` → 574 files passed (1 skipped), 4415 tests; `npx vite build` OK, ts-fsrs not in `dist` (first-load JS 240.4 KB gzip).
+- Limits: weights are still FSRS-4.5 defaults (not fitted); ts-fsrs can't check FSRS-4.5 difficulty, so D is checked against the published formulas written into the test.
+- Next safe step: review the draft PR; later, if weights are ever fitted, re-run the cross-check with the fitted weights.
+
 ## 2026-11-09 · agent/tiles-dnd — practice word tiles: drag and drop (tap stays), staff preview only
 
 - Base: `origin/main` 3d3acfd, checked 2026-11-09. Branch `agent/tiles-dnd`, draft PR. Open PRs checked: none touch `features/practice`.
