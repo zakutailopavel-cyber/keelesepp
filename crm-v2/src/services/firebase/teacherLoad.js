@@ -37,7 +37,9 @@ async function submissionsSince(fromIso) {
 }
 
 export const teacherLoadService = {
-  async load({ period, today }) {
+  // lessonsOnly (payroll, owner 2026-11-09): the lesson counts and the pay estimate only — free time and waiting works
+  // are not read
+  async load({ period, today, lessonsOnly = false }) {
     const journalFrom = [period.from, shiftDate(today, -REVIEW_DAYS)].sort()[0];
     const journalTo = [period.to, today].sort()[1];
     const reviewFrom = new Date(`${shiftDate(today, -SUBMISSION_LOOKBACK_DAYS)}T00:00:00Z`).toISOString();
@@ -48,8 +50,8 @@ export const teacherLoadService = {
       scheduleService.list(),
       settle(groupsService.list({}), []),
       lessonsBetween(journalFrom, journalTo),
-      settle(teacherAvailabilityService.list(), []),
-      settle(submissionsSince(reviewFrom), null),
+      lessonsOnly ? [] : settle(teacherAvailabilityService.list(), []),
+      lessonsOnly ? [] : settle(submissionsSince(reviewFrom), null),
     ]);
     return { teachers, students: students.items || [], schedule, groups, lessons, availability, submissions: submissions || [], reviewsFailed: submissions === null };
   },

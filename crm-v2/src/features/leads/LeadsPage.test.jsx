@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import LeadsPage from './LeadsPage.jsx';
 
@@ -20,5 +20,17 @@ describe('LeadsPage', () => {
     renderPage(service);
     fireEvent.click(await screen.findByRole('button', { name: 'Õppijaks' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Mari Maasikas: ei õnnestunud salvestada');
+  });
+
+  it('„Õppijaks” marks the lead and opens the new card with its details (router state, not the URL)', async () => {
+    const service = { list: vi.fn().mockResolvedValue([{ ...lead, phone: '5551234' }]), updateStatus: vi.fn().mockResolvedValue({}) };
+    let seen = null;
+    function Students() { const location = useLocation(); seen = location; return <p>Õpilased</p>; }
+    render(<MemoryRouter initialEntries={['/leads']}><AuthContext.Provider value={{ user: { uid: 'a1', roles: ['admin'] } }}><Routes><Route path="/leads" element={<LeadsPage service={service} studentRepository={{ list: vi.fn().mockResolvedValue({ items: [] }) }} />} /><Route path="/students" element={<Students />} /></Routes></AuthContext.Provider></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Õppijaks' }));
+    expect(await screen.findByText('Õpilased')).toBeInTheDocument();
+    expect(service.updateStatus).toHaveBeenCalledWith('l1', 'converted', expect.anything());
+    expect(seen.search).toBe('');
+    expect(seen.state.newStudent).toEqual(expect.objectContaining({ name: 'Mari Maasikas', email: 'mari@example.com', phone: '5551234', level: 'A2', subject: 'Eesti keel' }));
   });
 });
