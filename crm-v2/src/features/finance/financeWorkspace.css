@@ -84,7 +84,7 @@
   display: grid;
   gap: 3px;
   border: 1px solid var(--border);
-  border-radius: 13px;
+  border-radius: var(--radius-lg);
   padding: 11px 12px;
   color: var(--navy);
   background: #fff;
@@ -179,7 +179,7 @@
 .invoice-lines > div:last-child {
   display: grid;
   border: 1px solid var(--border);
-  border-radius: 13px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -257,7 +257,7 @@
 .payment-documents button {
   max-width: 260px;
   border: 1px solid #c7dfd8;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: #f1f8f5;
   color: var(--green);
   padding: 6px 8px;
@@ -288,7 +288,7 @@
 
 .invoice-credit-notes > div:last-child {
   border: 1px solid var(--border);
-  border-radius: 13px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -349,7 +349,7 @@
   display: flex;
   align-items: flex-start;
   gap: 11px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 14px;
 }
 
@@ -389,7 +389,7 @@
 
 .numbering-groups section {
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 13px;
   display: grid;
   gap: 9px;
@@ -463,7 +463,7 @@
 .corrected-delivery-queue {
   margin-top: 14px;
   border: 1px solid #fedf89;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -509,7 +509,7 @@
   gap: 10px;
   padding: 12px 14px;
   border: 1px solid #fedf89;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: #fffaeb;
   color: #92400e;
 }
@@ -544,7 +544,7 @@
 .audit-month-input {
   width: 100%;
   border: 1px solid #d0d5dd;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: #fff;
   padding: 0 11px;
   color: var(--navy);
@@ -553,7 +553,7 @@
 .financial-audit-list {
   display: grid;
   border: 1px solid var(--border);
-  border-radius: 13px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -572,7 +572,7 @@
 .financial-audit-list article > i {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: #f1f8f5;
   color: var(--green);
   display: grid;
@@ -741,7 +741,7 @@
 .email-delivery-row span{display:grid;min-width:0}
 .email-delivery-row small{color:#667085;overflow-wrap:anywhere}
 .email-delivery-error{grid-column:2 / -1;color:#b42318 !important}
-.email-reminders{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;margin:8px 0;border:1px solid #d0d5dd}
+.email-reminders{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-lg);margin:8px 0;border:1px solid #d0d5dd}
 .email-reminders span{display:grid;gap:2px}
 .email-reminders small{color:#667085}
 .email-reminders.is-off{background:#f9fafb}

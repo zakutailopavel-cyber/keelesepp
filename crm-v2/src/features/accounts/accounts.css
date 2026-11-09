@@ -1,7 +1,7 @@
-.accounts-tabs{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:#eef1f4;margin:4px 0 16px}
+.accounts-tabs{display:inline-flex;gap:4px;padding:4px;border-radius:var(--radius-lg);background:#eef1f4;margin:4px 0 16px}
 .accounts-tabs button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font-weight:700;color:#42536a;cursor:pointer}
 .accounts-tabs button.is-active{background:#14243a;color:#fff}
-.accounts-notice{margin:0 0 14px;padding:12px 14px;border-radius:10px;background:#e7f5f1;color:#0b5c4d;font-weight:600}
+.accounts-notice{margin:0 0 14px;padding:12px 14px;border-radius:var(--radius-md);background:#e7f5f1;color:#0b5c4d;font-weight:600}
 .accounts-list{display:grid;gap:12px}
 .account-row{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:18px 20px}
 .account-row__main{display:grid;gap:4px;min-width:0}
@@ -17,12 +17,12 @@
 .link-reviews { display: grid; gap: 12px; margin-bottom: 16px; border-color: #fedf89; }
 .link-reviews__head { display: flex; align-items: center; gap: 8px; }
 .link-reviews__hint { margin: 0; font-size: 14px; color: #475467; }
-.link-review { display: grid; gap: 10px; padding: 12px; border: 1px solid #eaecf0; border-radius: 10px; }
+.link-review { display: grid; gap: 10px; padding: 12px; border: 1px solid #eaecf0; border-radius: var(--radius-md); }
 .link-review__who { display: grid; gap: 2px; }
 .link-review__who small { color: #667085; }
 .link-review__reason { color: #b54708 !important; }
 .link-review__candidates { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.link-review__candidates li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 8px; background: #f9fafb; }
+.link-review__candidates li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); background: #f9fafb; }
 .link-review__candidates li span { display: grid; gap: 2px; }
 .link-review__candidates small { color: #667085; }
 .link-review__actions { display: flex; flex-wrap: wrap; gap: 8px; }

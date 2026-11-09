@@ -16,7 +16,7 @@
 .cash-row__sum { font-weight: 800; text-align: right; }
 .cash-row__actions { display: flex; gap: 6px; justify-content: flex-end; }
 .cash-invoices { display: grid; gap: 8px; }
-.cash-invoices label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #dfe5e1; border-radius: 10px; cursor: pointer; }
+.cash-invoices label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #dfe5e1; border-radius: var(--radius-md); cursor: pointer; }
 .cash-invoices label.is-chosen { border-color: #0f6b4c; background: #f1f8f4; }
 .cash-invoices span { display: grid; }
 .cash-invoices small { color: #5b6b80; }

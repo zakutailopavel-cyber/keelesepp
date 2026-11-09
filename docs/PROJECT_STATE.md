@@ -8,6 +8,12 @@
 - Checks: full `npx vitest run` → 553 files passed (1 skipped), 4259 tests passed, 12 skipped; eslint on touched files: 0 errors (only old warnings). New tests: `entityChanges.test.jsx`, cases in CalendarPage, DashboardPage, UnmarkedLessonsPage, FinanceMonthPage, LessonDrawerPanel, InvoiceDrawerPanel, StudentLessonsPanel tests. Not looked at in a browser.
 - Limits: a mark changed on the full student page (not in the drawer) also announces — harmless, nobody listens there. No data, rules or functions changed.
 - Next safe step: in the browser, Finantsid → right-click an invoice → „Lisa makse” → the row's status changes under the drawer without a jump.
+## 2026-11-09 · agent/design-tokens-2 — radius/shadow literals → tokens (design audit, pass 2)
+
+- Base: `origin/main` b1c6b0b, checked 2026-11-09. Branch `agent/design-tokens-2`, draft PR. Open PRs checked: only #1062 (address), no overlap.
+- Done: 643 `border-radius` values in 92 CSS files → `var(--radius-sm/md/lg/xl/pill)` (exact or ±1px; 99px pills → `pill`), 1 `box-shadow` → `var(--shadow-md)`. Worksheet-generator / worksheet-studio (sheet + print) and textbook CSS untouched. Pure refactor, no colour change. Details and what was left (14px, 9/11px, 50%, ≥18px, shadows of other colours) in `docs/DESIGN_TOKENS.md`.
+- Checks: full `npx vitest run` → 551 files passed, 1 failed by two 30 s timeouts in `WorksheetStudioPage.test.jsx` under full-suite load (that file alone: 24/24 passed; no CSS is read by it); `npx vite build` ✓; `npx eslint src` 0 errors. Not looked at in a browser.
+- Next safe step: decide the 14px radius (122 spots) screen by screen.
 ## 2026-11-09 · agent/entity-drawers — a lesson and an invoice open in the same side drawer (right-click), stacked on #1142
 
 - Base: `origin/agent/student-drawer` (PR #1142, not merged yet); `origin/main` b313691 checked 2026-11-09. Branch `agent/entity-drawers`, draft PR stacked on #1142.
