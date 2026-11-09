@@ -108,7 +108,7 @@
 .channel-filter button {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--muted);
   cursor: pointer;
   flex: 0 0 auto;
@@ -131,7 +131,7 @@
 .new-conversation {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   color: var(--navy);
   min-height: 40px;
   margin-bottom: 12px;
@@ -151,7 +151,7 @@
   align-items: center;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   cursor: pointer;
   display: grid;
   gap: 10px;
@@ -221,7 +221,7 @@
 .conversation b {
   align-items: center;
   background: var(--green);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: #fff;
   display: inline-flex;
   font-size: .67rem;
@@ -236,7 +236,7 @@
 }
 
 .channel-dot {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: inline-block;
   flex: 0 0 auto;
   height: 7px;

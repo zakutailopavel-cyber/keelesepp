@@ -15,13 +15,13 @@
 .lt-card p { margin: 0; }
 .lt-new { display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 9px; background: #eaf6f1; color: #0f5f4c; font-size: .72rem; font-style: normal; font-weight: 700; vertical-align: 1px; }
 .lt-phase { display: flex; gap: 7px; align-items: baseline; font-size: .86rem; line-height: 1.35; }
-.lt-phase b { flex: none; padding: 0 6px; border-radius: 8px; background: #eaf6f1; color: #0f5f4c; font-size: .74rem; }
+.lt-phase b { flex: none; padding: 0 6px; border-radius: var(--radius-sm); background: #eaf6f1; color: #0f5f4c; font-size: .74rem; }
 .lt-phase strong { font-weight: 700; }
 .lt-goal { display: flex; gap: 6px; align-items: flex-start; color: #2c3e37; font-size: .86rem; line-height: 1.35; }
 .lt-goal svg { flex: none; margin-top: 2px; color: #0f5f4c; }
 .lt-goal span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .lt-teacher { font-size: .86rem; line-height: 1.35; overflow-wrap: anywhere; }
-.lt-feedback { padding: 8px 10px; border-radius: 10px; background: #f4f8f6; font-size: .9rem; line-height: 1.4; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.lt-feedback { padding: 8px 10px; border-radius: var(--radius-md); background: #f4f8f6; font-size: .9rem; line-height: 1.4; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .lt-facts { display: flex; flex-wrap: wrap; gap: 2px 12px; color: var(--muted, #52635c); font-size: .8rem; line-height: 1.4; }
 .lt-facts span { display: inline-flex; align-items: center; gap: 4px; }
 .lt-late { color: #a8501a; font-weight: 700; }

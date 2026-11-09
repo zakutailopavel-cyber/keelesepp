@@ -4,7 +4,7 @@
 .payment-check__heading p { margin: 0; color: #71807b; }
 .payment-check__heading > div:last-child { display: flex; align-items: center; gap: 10px; }
 .payment-check__summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0 26px 18px; }
-.payment-check__summary div { padding: 12px 14px; border-radius: 12px; background: #f5f7f5; }
+.payment-check__summary div { padding: 12px 14px; border-radius: var(--radius-lg); background: #f5f7f5; }
 .payment-check__summary dt { color: #73817d; font-size: .75rem; font-weight: 800; text-transform: uppercase; }
 .payment-check__summary dd { margin: 4px 0 0; font-size: 1.25rem; font-weight: 800; }
 .payment-check__notice { margin: 0 26px 14px; color: #176553; font-weight: 700; }
@@ -23,11 +23,11 @@
   .payment-check__actions { justify-content: flex-start; }
 }
 .payment-check__tabs { display: flex; gap: 8px; padding: 0 26px 14px; }
-.payment-check__tabs button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid #dfe5e1; border-radius: 999px; background: #fff; color: #44534e; font: inherit; font-weight: 700; cursor: pointer; }
+.payment-check__tabs button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid #dfe5e1; border-radius: var(--radius-pill); background: #fff; color: #44534e; font: inherit; font-weight: 700; cursor: pointer; }
 .payment-check__tabs button[aria-selected="true"] { border-color: #2f5d50; background: #2f5d50; color: #fff; }
 .payment-ledger { border-top: 1px solid #edf0ed; }
 .payment-ledger__filters { display: grid; grid-template-columns: minmax(220px, 1fr) 200px auto; align-items: end; gap: 14px; padding: 16px 26px; }
-.payment-ledger__filters .search-field { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #dfe5e1; border-radius: 12px; background: #fff; }
+.payment-ledger__filters .search-field { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #dfe5e1; border-radius: var(--radius-lg); background: #fff; }
 .payment-ledger__filters .search-field input { flex: 1; min-width: 0; border: 0; outline: 0; font: inherit; background: transparent; }
 .payment-ledger__total { display: grid; justify-items: end; margin: 0; color: #71807b; font-size: .82rem; }
 .payment-ledger__total strong { color: #176553; font-size: 1.2rem; }

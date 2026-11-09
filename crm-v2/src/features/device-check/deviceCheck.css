@@ -16,7 +16,7 @@
 .dc-summary--red{border-color:#f3a59d;background:#fff4f2}
 .dc-summary--red h2{color:var(--danger)}
 .dc-issues{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.dc-issue{padding:10px 12px;border-radius:12px;background:#fff;border:1px solid var(--border);border-left-width:4px;line-height:1.45}
+.dc-issue{padding:10px 12px;border-radius:var(--radius-lg);background:#fff;border:1px solid var(--border);border-left-width:4px;line-height:1.45}
 .dc-issue--red{border-left-color:var(--danger)}
 .dc-issue--yellow{border-left-color:var(--amber)}
 .dc-issue--info{border-left-color:#94a3b8}
@@ -34,5 +34,5 @@
 .dc-video{position:relative;aspect-ratio:16/9;background:#101a2a;border-radius:14px;overflow:hidden;display:grid;place-items:center}
 .dc-video video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 .dc-video__empty{position:absolute;color:#cbd5e1;font-size:.9rem;padding:12px;text-align:center}
-.dc-meter{height:14px;border-radius:999px;background:#e8edf3;overflow:hidden}
+.dc-meter{height:14px;border-radius:var(--radius-pill);background:#e8edf3;overflow:hidden}
 .dc-meter i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#4cc49f);transition:width .09s linear}

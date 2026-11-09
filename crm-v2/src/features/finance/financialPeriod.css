@@ -87,7 +87,7 @@
 .financial-period__result {
   align-items: center;
   border: 1px solid;
-  border-radius: 15px;
+  border-radius: var(--radius-xl);
   display: flex;
   gap: 18px;
   justify-content: space-between;
@@ -137,7 +137,7 @@
 }
 .financial-period__issues code {
   background: #f2f4f7;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   color: #475467;
   font-size: 11px;
   max-width: 170px;
@@ -188,7 +188,7 @@
 .period-close__checklist article {
   align-items: start;
   border: 1px solid;
-  border-radius: 13px;
+  border-radius: var(--radius-lg);
   display: grid;
   gap: 9px;
   grid-template-columns: auto 1fr;

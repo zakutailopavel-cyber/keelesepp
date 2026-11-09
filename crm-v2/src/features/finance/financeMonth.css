@@ -10,7 +10,7 @@
 .finance-month-hero .modal-backdrop { color: #162033; }
 .finance-month-hero__actions > .button--secondary { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.1); color: #fff; }
 .finance-month-hero__actions > .button { white-space: nowrap; }
-.finance-month-hero__count { display: inline-grid; min-width: 22px; min-height: 22px; padding: 0 6px; place-items: center; border-radius: 999px; background: rgba(255,255,255,.2); font-size: .72rem; }
+.finance-month-hero__count { display: inline-grid; min-width: 22px; min-height: 22px; padding: 0 6px; place-items: center; border-radius: var(--radius-pill); background: rgba(255,255,255,.2); font-size: .72rem; }
 .finance-month-switcher { display: flex; align-items: flex-end; justify-content: center; gap: 10px; }
 .finance-month-switcher .field { width: min(260px, 60vw); }
 .finance-month-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
@@ -52,7 +52,7 @@
   .finance-month-hero__actions > .button:first-child { grid-column: 1 / -1; }
   .finance-month-hero__actions > .button { width: 100%; }
   .finance-month-metrics { grid-template-columns: 1fr 1fr; gap: 9px; }
-  .finance-month-metric { padding: 15px; border-radius: 16px; }
+  .finance-month-metric { padding: 15px; border-radius: var(--radius-xl); }
   .finance-month-metric--prepare { padding: 12px 15px; }
   .finance-month-metrics span { font-size: .74rem; }
   .finance-month-metrics strong { font-size: 1.25rem; }
@@ -97,7 +97,7 @@
 .invoice-note-form { display: grid; gap: 10px; }
 .invoice-note-meta { margin: 0; font-size: .8rem; color: #667085; }
 /* „Raha liikumine” (audit 2026-11-09): the analytics of „Vana vaade”, folded under the overview */
-.finance-month-cash { margin: 0 0 18px; border: 1px solid var(--border, #dfe5ec); border-radius: 16px; background: #fff; }
+.finance-month-cash { margin: 0 0 18px; border: 1px solid var(--border, #dfe5ec); border-radius: var(--radius-xl); background: #fff; }
 .finance-month-cash > summary { cursor: pointer; padding: 16px 20px; font-weight: 800; color: var(--ink, #17253a); list-style-position: inside; }
 .finance-month-cash[open] > summary { border-bottom: 1px solid var(--border, #dfe5ec); }
 .finance-month-cash .financial-analytics { border: 0; box-shadow: none; margin: 0; }
