@@ -140,11 +140,13 @@ export default function MonthlyInvoicePanel({
         const [first] = group.rows;
         // a line per card and per subject: two subjects of one card are one invoice with two lines
         const items = invoiceItems(group.rows);
-        const { invoice } = items.length > 1
+        const result = items.length > 1
           ? await invoiceApi.createMonthlyCombined(combinedMonthlyPayload(group.rows, month))
           : await invoiceApi.createMonthly({ ...monthlyInvoicePayload(first, month), ...items[0] });
+        // the owner's FIE lines and the other teachers' lines of one family come back as two invoices (owner 2026-11-09)
+        const made = result.invoices || [result.invoice];
         done += 1;
-        if (send && first.payerEmail) { await deliveryApi.send(invoice.id); sent += 1; }
+        if (send && first.payerEmail) for (const invoice of made) { await deliveryApi.send(invoice.id); sent += 1; }
         setProgress(`Loodud ${done} / ${groups.length}${send ? `, saadetud ${sent}` : ''}`);
       }
       setProgress(`Valmis: ${done} arvet${send ? `, e-postiga saadetud ${sent}` : ''}.`);

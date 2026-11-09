@@ -53,6 +53,16 @@ test('student notes: teacher and student write, the author or staff change, outs
   assert.equal(await create(teacher, 'n3', note(teacher, { text: 'x'.repeat(2001) })), 403, 'text ≤ 2000');
   assert.equal(await create(teacher, 'n3', note(teacher, { ink: Array.from({ length: 61 }, () => ({ d: 'M1 1' })) })), 403, 'ink ≤ 60 strokes');
 
+  // an anchored bookmark (2026-11-09): the word / sentence of the page it belongs to
+  const anchor = { kind: 'word', quote: 'kassi', before: 'Mari näeb ', after: ' aias.', sentence: 'Mari näeb kassi aias.', blockId: 'b-1', start: 10, end: 15 };
+  assert.equal(await create(learner, 'na1', note(learner, { anchor })), 200, 'a note with its anchor');
+  assert.equal(await create(learner, 'na2', note(learner, { anchor: { ...anchor, kind: 'page' } })), 403, 'known kinds only');
+  assert.equal(await create(learner, 'na2', note(learner, { anchor: { ...anchor, quote: '' } })), 403, 'a quote is needed');
+  assert.equal(await create(learner, 'na2', note(learner, { anchor: { ...anchor, quote: 'x'.repeat(301) } })), 403, 'quote ≤ 300');
+  assert.equal(await create(learner, 'na2', note(learner, { anchor: { ...anchor, extra: 1 } })), 403, 'no extra anchor fields');
+  assert.equal(await create(learner, 'na2', note(learner, { anchor: 'kassi' })), 403, 'the anchor is a map');
+  assert.equal(await patch(learner, 'na1', { anchor: { ...anchor, quote: 'koera' } }), 403, 'the anchor is never changed');
+
   assert.equal(await read(learner, 'n1'), 200);
   assert.equal(await read(parent, 'n1'), 200);
   assert.equal(await read(stranger, 'n1'), 403);
