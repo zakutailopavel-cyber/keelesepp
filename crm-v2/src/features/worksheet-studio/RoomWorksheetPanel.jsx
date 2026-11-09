@@ -165,7 +165,7 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
         </div>
       ) : null}
       {error ? <div className="action-error" role="alert">{error}</div> : null}
-      {state.loading ? <p className="form-hint">Laen töölehti…</p> : tab === 'curriculum' ? (
+      {state.loading ? <LoadingState inline className="form-hint" label="Laen töölehti…" /> : tab === 'curriculum' ? (
         !found.length ? (
           <p className="form-hint">{activeLevel ? 'Sellel tasemel ei leitud.' : 'Midagi ei leitud.'}{elsewhere > 0 ? <> <button type="button" className="room-sheet-picker__more" onClick={() => setLevel('')}>Teistel tasemetel {elsewhere} {elsewhere === 1 ? 'tund' : 'tundi'} — näita</button></> : ''}</p>
         )
@@ -242,6 +242,7 @@ export default function RoomWorksheetPanel({ invitation, role, user, homework = 
       </div>
       {error ? <div className="action-error" role="alert">{error}</div> : null}
       {!showSheet && items?.length ? <p className="form-hint">Tahvlil: {items.map((item) => item.title || item.worksheetDoc?.meta?.title || 'Tööleht').join(' · ')}</p> : null}
+      {/* fallback={null}: a small optional control bar above the sheet; the sheet itself stays visible meanwhile */}
       {role === 'teacher' && current?.liveStep?.on ? <RoomPartBoundary label="Sammude juhtimist"><Suspense fallback={null}><RoomStepControl current={current} homework={homework} /></Suspense></RoomPartBoundary> : null}
       {role === 'teacher' ? <RoomWorksheetPicker studentId={invitation.studentId} studentName={invitation.studentName} roomKey={roomKey} note={invitation.title ? `Live Classroom: ${invitation.title}` : 'Live Classroom'} user={user} homework={homework} library={library} lessonWorksheets={lessonWorksheets} lessons={lessons} /> : null}
       {showSheet ? <RoomWorksheetContent current={current} role={role} homework={homework} /> : null}

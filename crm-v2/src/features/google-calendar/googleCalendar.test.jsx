@@ -105,7 +105,8 @@ describe('GoogleCalendarCard', () => {
   it('shows the result of the Google consent once and removes it from the address', async () => {
     window.history.replaceState({}, '', '/settings?gcal=connected');
     render(<GoogleCalendarCard user={user} repository={repository()} />);
-    expect(screen.getByRole('status')).toHaveTextContent('Google Calendar on ühendatud');
+    // the inline „Laen ühenduse olekut…” loader is a status region too
+    expect(screen.getAllByRole('status').map((el) => el.textContent).join(' ')).toContain('Google Calendar on ühendatud');
     expect(window.location.search).toBe('');
     window.history.replaceState({}, '', '/');
   });

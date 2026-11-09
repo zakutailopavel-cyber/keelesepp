@@ -56,6 +56,7 @@ import { addAlternative } from './engine/insights.js';
 import { formalLetterDocument } from './engine/templates.js';
 import { CopyMoveDialog, TemplateDialog } from './editor/ReuseDialogs.jsx';
 import { applyLessonTemplate, applySheetTemplate, lessonTemplatePlan, PHASE_SHEETS, phaseLabel } from './sheetReuse.js';
+import { LoadingState } from '../../components/ui/index.js';
 
 // „Uus mallist”: the hard-coded sheets stay available next to the templates staff saved
 const BUILT_IN_TEMPLATES = [
@@ -354,7 +355,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   }, [doc, focusBlockId]);
 
   if (loadError) return <div className="page-content"><div className="ws-studio-error" role="alert">{loadError} <Link to={backTo}>Tagasi: {backLabel}</Link></div></div>;
-  if (!doc) return <div className="page-content"><p className="ws-studio-loading">Laen töölehte…</p></div>;
+  if (!doc) return <div className="page-content"><LoadingState label="Laen töölehte…" /></div>;
 
   // Every change is undoable; quick successive edits (typing in the inspector) form one undo step.
   const change = (next) => {
@@ -1001,7 +1002,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               {leftTab === 'results' && !isNew ? <InsightsPanel lessonId={lessonId} doc={doc} load={loadResults} onSelect={(id) => setSelectedId(id)} onAddAlternative={addRightAnswer} />
               : leftTab === 'text' ? <TextToTasks onInsert={(blocks) => { insertBlocks(blocks); setNotice(`Tekstist lisati ${blocks.length} ülesannet. Vaata need üle.`); }} />
               : leftTab === 'sheet' ? <div className="st-sheetpanel"><SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} /></div>
-              : leftTab === 'library' ? <Suspense fallback={<p className="ed-hint">Laen kogu…</p>}><BlockLibraryPanel level={doc?.meta?.level || ''} currentLessonId={isLessonPage ? lessonId : ''} {...(reuse ? { saved: reuse } : {})} onInsert={(blocks, extra) => { insertBlocks(blocks, extra); setNotice('Kogust lisati ülesanne. Vaata see üle.'); }} /></Suspense>
+              : leftTab === 'library' ? <Suspense fallback={<LoadingState inline className="ed-hint" label="Laen kogu…" />}><BlockLibraryPanel level={doc?.meta?.level || ''} currentLessonId={isLessonPage ? lessonId : ''} {...(reuse ? { saved: reuse } : {})} onInsert={(blocks, extra) => { insertBlocks(blocks, extra); setNotice('Kogust lisati ülesanne. Vaata see üle.'); }} /></Suspense>
               : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
                 onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage} onAudio={pickBankAudio} onVideo={pickBankVideo}
                 onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Plus, RotateCcw, Trash2 } from 'lucide-react';
-import { Button } from '../../components/ui/index.js';
+import { Button, LoadingState } from '../../components/ui/index.js';
 import { homeworkService } from '../../services/firebase/homework.js';
 import { libraryService } from '../../services/firebase/library.js';
 import { WARMUP_MAX, pickWarmupItems, warmupWorksheet } from './warmup.js';
@@ -14,7 +14,7 @@ const dateLabel = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
 // (library.assign + openWorksheetInRoom), so the answers come to the teacher live and stay in the student's history.
 export default function WarmupPanel({ invitation, user, student = null, lessons = [], loading = false, error = '', library = libraryService, homework = homeworkService, onPlaced }) {
   const picked = useMemo(() => pickWarmupItems(lessons, { currentInvitationId: invitation.id }), [lessons, invitation.id]);
-  if (loading) return <p className="warmup-muted" role="status">Laen eelmisi tunde…</p>;
+  if (loading) return <LoadingState inline className="warmup-muted" label="Laen eelmisi tunde…" />;
   if (error) return <p className="action-error" role="alert">{error}</p>;
   if (!picked.latest) return <p className="warmup-muted">Sellel õpilasel pole veel analüüsitud tundi. Soojendus tehakse eelmise tunni salvestuse analüüsist.</p>;
   // a new pick (other lessons loaded) starts a fresh list; the teacher's edits live in the editor

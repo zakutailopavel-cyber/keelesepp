@@ -478,6 +478,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
           <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} running={running} />
         </div>
       ))}
+      {/* fallback={null}: the inline text editor floats over the text being edited, which stays on screen meanwhile */}
       {rich ? <Suspense fallback={null}><RichInlineEditor key={`${rich.blockId}:${rich.path.join('.')}`} rect={rich.rect} value={rich.value} multiline={rich.multiline} textStyle={rich.textStyle}
         onCommit={(next) => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); onEditText?.(rich.blockId, rich.path, next); }}
         onCancel={() => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); }} /></Suspense> : null}

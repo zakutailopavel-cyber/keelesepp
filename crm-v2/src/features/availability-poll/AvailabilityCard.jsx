@@ -1,6 +1,6 @@
 import { CalendarClock, Check, Pencil } from 'lucide-react';
 import { useState } from 'react';
-import { Badge, Button, Card } from '../../components/ui/index.js';
+import { Badge, Button, Card, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { needsReview, studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
 import PollGrid from './PollGrid.jsx';
@@ -70,7 +70,7 @@ export default function AvailabilityCard({ studentId, studentName = '', user, mo
         {changed ? <Badge tone="warning">Muutunud {when(saved.changedAt)}</Badge> : null}
         {canEdit && !editing ? <Button variant="secondary" onClick={() => { setNotice(''); setEditing({ cells, message: saved?.message || '', perWeek: perWeekDraft(saved?.perWeek, subjects) }); }}><Pencil size={15} /> {saved ? 'Muuda' : 'Märgi ajad'}{chosen ? ` (${short(chosen.monday)}–${short(chosen.sunday)})` : ''}</Button> : null}
       </div>
-      {state.loading ? <p className="form-hint">Laen…</p> : null}
+      {state.loading ? <LoadingState inline className="form-hint" label="Laen…" /> : null}
       {!state.loading && (saved || canEdit) ? <div className="availability-weeks" role="group" aria-label="Milline nädal">
         {[{ monday: '', label: 'Tavaline nädal' }, ...weeks.map((item, index) => ({ ...item, label: weekLabel(item, index) }))].map((item) => (
           <button type="button" key={item.monday || 'usual'} className={`availability-weeks__chip ${week === item.monday ? 'is-active' : ''} ${saved?.weeks?.[item.monday] ? 'is-own' : ''}`}

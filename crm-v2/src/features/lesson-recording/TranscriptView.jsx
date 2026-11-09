@@ -6,7 +6,7 @@ import { homeworkService } from '../../services/firebase/homework.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { cardsFromErrors, focusTopics, homeworkFromAnalysis, parentNoteFromAnalysis } from './afterLesson.js';
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
-import { Badge, Button, Card, EmptyState, Input, Modal } from '../../components/ui/index.js';
+import { Badge, Button, Card, EmptyState, Input, Modal, LoadingState } from '../../components/ui/index.js';
 import { RECORDING_STATUS, lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import { applyErrorReview, errorKey } from './errorReview.js';
 import { lessonAnalysis, wordDiff } from './lessonTimeline.js';
@@ -267,7 +267,7 @@ export default function LessonsCard({ rows, studentId, loading, error, onReload,
     <Card>
       <div className="section-heading"><div><span className="eyebrow">Live Classroom · ainult õpetajale</span><h2>Tunnid</h2></div>{onReload ? <Button variant="secondary" onClick={onReload}>Värskenda</Button> : null}</div>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
-      {loading ? <p className="form-hint">Laen…</p> : rows.length ? (
+      {loading ? <LoadingState inline className="form-hint" label="Laen…" /> : rows.length ? (
         <div className="simple-list lesson-rows">{rows.map((row) => {
           const r = row.recording;
           const status = r ? (STATUS[r.status] || STATUS.uploaded) : null;

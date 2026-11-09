@@ -1,7 +1,7 @@
 import { Check, Copy, ExternalLink, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Badge, Button, Input, Modal, Select } from '../../components/ui/index.js';
+import { Badge, Button, Input, Modal, Select, LoadingState } from '../../components/ui/index.js';
 import { missingDataService } from '../../services/firebase/missingData.js';
 import { ACCOUNT_LABELS, FIELD_NAMES, ITEM_LABELS, KIND_LABELS, filterRows, itemCounts } from './missingDataModel.js';
 import './missingData.css';
@@ -55,7 +55,7 @@ export default function MissingDataPanel({ open, onClose, user, focusSubmission 
   return (
     <Modal open={open} title="Puuduvad andmed" onClose={onClose} className="modal--missing">
       <div className="missing-panel">
-        {state.loading ? <p className="form-hint" role="status">Laen…</p> : null}
+        {state.loading ? <LoadingState inline className="form-hint" label="Laen…" /> : null}
         {state.error ? <p className="form-error" role="alert">{state.error}</p> : null}
 
         {state.submissions.length ? (
