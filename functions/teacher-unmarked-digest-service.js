@@ -2,7 +2,7 @@
 
 // Weekly „Märkimata tunnid” e-mail to teachers — loading, the weekly marker, sending (rules and texts:
 // teacher-unmarked-digest-core.js). Run by index.js `weeklyUnmarkedLessonsDigest` (Mondays 08:00 Tallinn); the
-// administrator switches it in Seaded (emailSettings/teacherDigest.weeklyUnmarked, no document = on) and can send
+// administrator switches it in Seaded (emailSettings/teacherDigest.weeklyUnmarked, no document = OFF) and can send
 // himself a test copy (staffOperationsApi /teacher-digest/test).
 //
 // Per teacher and ISO week one marker teacherUnmarkedDigests/{uid}_{YYYY-Www} (server-only writes; the teacher reads his

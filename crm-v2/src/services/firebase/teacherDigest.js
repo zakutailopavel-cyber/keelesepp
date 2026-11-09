@@ -5,7 +5,7 @@ import { teachersService } from './teachers.js';
 import { todayIso } from '../../features/tasks/taskModel.js';
 
 // Weekly „Märkimata tunnid” e-mail to teachers (functions/teacher-unmarked-digest-*.js, docs/EMAIL_NOTIFICATIONS.md
-// „Õpetajate nädalakiri”). The switch emailSettings/teacherDigest (no document = on) is read here by the administrator
+// „Õpetajate nädalakiri”). The switch emailSettings/teacherDigest (no document = OFF) is read here by the administrator
 // and written only by staffOperationsApi /teacher-digest/settings; the test copy goes through /teacher-digest/test.
 // The teacher reads his own marker teacherUnmarkedDigests/{uid}_{YYYY-Www} for the bell notice.
 
@@ -23,7 +23,7 @@ export const teacherDigestService = {
   async getSettings() {
     const { db } = requireFirebaseClient();
     const snapshot = await getDoc(doc(db, 'emailSettings', 'teacherDigest'));
-    return { weeklyUnmarked: !(snapshot.exists() && snapshot.data().weeklyUnmarked === false) };
+    return { weeklyUnmarked: snapshot.exists() && snapshot.data().weeklyUnmarked === true };
   },
   saveSettings({ weeklyUnmarked }) {
     return call('/teacher-digest/settings', { weeklyUnmarked: weeklyUnmarked === true });

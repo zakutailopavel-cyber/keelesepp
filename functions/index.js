@@ -13348,7 +13348,7 @@ exports.systemHealthDigest = functions
 // ── SCHEDULED: „Märkimata tunnid” weekly e-mail to every teacher (owner 2026-11-09) ─
 // Mondays 08:00 Tallinn: each teacher with past unmarked lessons (last 60 days, the CRM page's own definition) gets one
 // e-mail with the list + a bell notice (teacherUnmarkedDigests/{uid}_{week}); once per ISO week per teacher. Off in
-// Seaded (emailSettings/teacherDigest.weeklyUnmarked === false). Never to learners or parents.
+// Seaded (emailSettings/teacherDigest.weeklyUnmarked; no document = OFF until the admin switches it on). Never to learners or parents.
 // functions/teacher-unmarked-digest-core.js, -service.js; docs/EMAIL_NOTIFICATIONS.md „Õpetajate nädalakiri”.
 let teacherDigestService = null;
 function teacherDigest() {

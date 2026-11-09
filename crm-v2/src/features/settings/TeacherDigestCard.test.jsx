@@ -3,7 +3,7 @@ import TeacherDigestCard from './TeacherDigestCard.jsx';
 
 const admin = { uid: 'admin-1', roles: ['admin'], displayName: 'Owner', email: 'owner@example.com' };
 
-function makeService(stored = { weeklyUnmarked: true }) {
+function makeService(stored = { weeklyUnmarked: false }) {
   return {
     getSettings: vi.fn().mockResolvedValue(stored),
     saveSettings: vi.fn(async (value) => value),
@@ -13,16 +13,18 @@ function makeService(stored = { weeklyUnmarked: true }) {
 }
 
 describe('Seaded → Õpetajatele iganädalane märkimata tundide kiri', () => {
-  it('is on by default and can be switched off through the server', async () => {
+  it('is off by default; the admin switches it on (and off again) through the server', async () => {
     const service = makeService();
     render(<TeacherDigestCard user={admin} service={service} />);
     const toggle = await screen.findByLabelText('Õpetajatele iganädalane märkimata tundide kiri');
-    expect(toggle).toBeChecked();
-    expect(screen.getByText('sees')).toBeInTheDocument();
+    expect(toggle).not.toBeChecked();
+    expect(screen.getByText('väljas')).toBeInTheDocument();
     fireEvent.click(toggle);
+    expect(await screen.findByText('Nädalakiri on sees: järgmine esmaspäeval kell 08:00.')).toBeInTheDocument();
+    expect(service.saveSettings).toHaveBeenCalledWith({ weeklyUnmarked: true });
+    fireEvent.click(screen.getByLabelText('Õpetajatele iganädalane märkimata tundide kiri'));
     expect(await screen.findByText('Nädalakiri on välja lülitatud.')).toBeInTheDocument();
-    expect(service.saveSettings).toHaveBeenCalledWith({ weeklyUnmarked: false });
-    expect(screen.getByLabelText('Õpetajatele iganädalane märkimata tundide kiri')).not.toBeChecked();
+    expect(service.saveSettings).toHaveBeenLastCalledWith({ weeklyUnmarked: false });
   });
 
   it('sends a test copy of the chosen teacher\'s e-mail to the administrator only', async () => {

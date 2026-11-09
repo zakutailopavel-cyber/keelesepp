@@ -249,15 +249,19 @@ function composeDigestEmail({ teacher = {}, digest, cutoff = CUTOFF_DATE, pageUr
   const button = "Ava märkimata tunnid";
   const footer = "Saadame selle kirja esmaspäeviti, kui sul on märkimata tunde. KeeleSepp · E&P Koolitus OÜ";
 
-  const dayHtml = digest.days.map((day) => `<tr><td colspan="3" style="padding:12px 0 4px;font-weight:700;border-bottom:1px solid #e5e7eb">${esc(day.label)}</td></tr>${day.rows.map((row) => `<tr><td style="padding:4px 10px 4px 0;white-space:nowrap;vertical-align:top;color:#334155">${esc(row.time || "–")}</td><td style="padding:4px 10px 4px 0;vertical-align:top;font-weight:600">${esc(row.name)}</td><td style="padding:4px 0;vertical-align:top;color:#64748b">${esc(row.subject)}</td></tr>`).join("")}`).join("");
-  const html = `<div style="font-family:Arial,Helvetica,sans-serif;color:#1C2B3A;line-height:1.5;max-width:620px;font-size:15px">
-  <p style="margin:0 0 8px">${esc(greeting)}</p>
-  <p style="margin:0 0 12px">${esc(intro)}</p>
-  <table role="presentation" style="border-collapse:collapse;width:100%;margin:0 0 8px">${dayHtml}</table>
-  ${moreLine ? `<p style="margin:4px 0 8px;color:#334155">${esc(moreLine)}</p>` : ""}
-  <p style="margin:18px 0"><a href="${esc(pageUrl)}" style="display:inline-block;background:#2F5D50;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">${esc(button)}</a></p>
-  <p lang="ru" style="margin:0 0 12px;color:#334155;border-top:1px solid #e5e7eb;padding-top:10px">${esc(ruLine)}</p>
-  <p style="font-size:12px;color:#64748b;margin-top:18px">${esc(footer)}</p>
+  // phone mail clients (owner 2026-11-09: text was cut off at 420 px): fluid 100 % up to 600 px, fixed table layout so a
+  // long name never widens the page, every text block wraps (overflow-wrap / word-break for clients without the first)
+  const wrap = "overflow-wrap:break-word;word-wrap:break-word;word-break:break-word";
+  const p = (style, content, attrs = "") => `<p${attrs} style="margin:0;${style};${wrap}">${content}</p>`;
+  const dayHtml = digest.days.map((day) => `<tr><td colspan="3" style="padding:12px 0 4px;font-weight:700;border-bottom:1px solid #e5e7eb;${wrap}">${esc(day.label)}</td></tr>${day.rows.map((row) => `<tr><td style="padding:4px 6px 4px 0;vertical-align:top;color:#334155">${esc(row.time || "–")}</td><td style="padding:4px 8px 4px 0;vertical-align:top;font-weight:600;${wrap}">${esc(row.name)}</td><td style="padding:4px 0;vertical-align:top;color:#64748b;${wrap}">${esc(row.subject)}</td></tr>`).join("")}`).join("");
+  const html = `<div style="font-family:Arial,Helvetica,sans-serif;color:#1C2B3A;line-height:1.5;font-size:15px;width:100%;max-width:600px;box-sizing:border-box;${wrap}">
+  ${p("margin-bottom:8px", esc(greeting))}
+  ${p("margin-bottom:12px", esc(intro))}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;max-width:600px;table-layout:fixed;margin:0 0 8px"><colgroup><col style="width:52px"><col><col style="width:38%"></colgroup>${dayHtml}</table>
+  ${moreLine ? p("margin:4px 0 8px;color:#334155", esc(moreLine)) : ""}
+  ${p("margin:18px 0", `<a href="${esc(pageUrl)}" style="display:inline-block;max-width:100%;box-sizing:border-box;background:#2F5D50;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">${esc(button)}</a>`)}
+  ${p("margin-bottom:12px;color:#334155;border-top:1px solid #e5e7eb;padding-top:10px", esc(ruLine), ' lang="ru"')}
+  ${p("font-size:12px;color:#64748b;margin-top:18px", esc(footer))}
 </div>`;
   const text = [
     greeting,
@@ -278,9 +282,10 @@ function composeDigestEmail({ teacher = {}, digest, cutoff = CUTOFF_DATE, pageUr
 
 // ── settings and the weekly marker ────────────────────────────────────────────────────────────────────────────────
 
-// emailSettings/teacherDigest; no document = on (owner approved the weekly e-mail 2026-11-09)
+// emailSettings/teacherDigest; no document = OFF (owner 2026-11-09: he sees a real test e-mail first, then switches
+// it on in Seaded)
 function normalizeDigestSettings(raw = {}) {
-  return { weeklyUnmarked: raw?.weeklyUnmarked !== false };
+  return { weeklyUnmarked: raw?.weeklyUnmarked === true };
 }
 
 const markerId = (uid, week) => `${String(uid).replace(/[/\s]+/g, "_")}_${week}`;

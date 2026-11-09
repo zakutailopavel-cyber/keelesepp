@@ -202,6 +202,11 @@ test("e-mail: subject, rows, more, one button, Russian line, no older line, noth
   assert.equal((mail.html.match(/href="https:\/\/crm\.epkoolitus\.ee\/calendar\/markimata"/g) || []).length, 1, "one button");
   assert.equal((mail.html.match(/<a /g) || []).length, 1, "no other links");
   assert.match(mail.html, /lang="ru"/);
+  // phones: fluid up to 600 px, fixed table, wrapping text, no nowrap columns
+  assert.match(mail.html, /^<div style="[^"]*width:100%;max-width:600px/);
+  assert.match(mail.html, /table-layout:fixed/);
+  assert.ok(!mail.html.includes("white-space:nowrap"));
+  assert.equal((mail.html.match(/<p[^>]*overflow-wrap:break-word/g) || []).length, (mail.html.match(/<p[ >]/g) || []).length, "every paragraph wraps");
   assert.match(mail.text, /RU: у вас 33 неотмеченных урока с 01\.11\.2026/);
   assert.match(mail.text, /Ava märkimata tunnid: https:\/\/crm\.epkoolitus\.ee\/calendar\/markimata/);
   assert.match(mail.text, /esmaspäev 02\.11\.2026/);
@@ -215,9 +220,10 @@ test("e-mail: subject, rows, more, one button, Russian line, no older line, noth
   assert.ok(!one.text.includes("ja veel"));
 });
 
-test("settings default on; markers allow only a retry after a failure", () => {
-  assert.equal(core.normalizeDigestSettings(undefined).weeklyUnmarked, true);
-  assert.equal(core.normalizeDigestSettings({}).weeklyUnmarked, true);
+test("settings default OFF (owner sees a test e-mail first); markers allow only a retry after a failure", () => {
+  assert.equal(core.normalizeDigestSettings(undefined).weeklyUnmarked, false);
+  assert.equal(core.normalizeDigestSettings({}).weeklyUnmarked, false);
+  assert.equal(core.normalizeDigestSettings({ weeklyUnmarked: true }).weeklyUnmarked, true);
   assert.equal(core.normalizeDigestSettings({ weeklyUnmarked: false }).weeklyUnmarked, false);
   assert.equal(core.markerAllowsSend(null), true);
   for (const status of ["sending", "sent", "no-email"]) assert.equal(core.markerAllowsSend({ status, attempts: 1 }), false);
@@ -272,6 +278,7 @@ function seeded(extra = {}) {
     "students/s1": { name: "Mari Maasikas", subject: "Eesti keel", email: "mari@kool.ee", parentEmail: "ema@kool.ee" },
     "schedule/w1": weekly,
     "schedule/w3": { ...weekly, id: "w3", teacherUid: "t3", teacher: "Uus Õpetaja" },
+    "emailSettings/teacherDigest": { weeklyUnmarked: true },
     ...extra,
   });
 }
@@ -333,6 +340,10 @@ test("service: switched off → nothing; dry run → plan only, nothing written 
   const sent = [];
   const deliver = async (message) => { sent.push(message); return { status: "sent" }; };
   assert.deepEqual(await createTeacherDigestService({ db: off, auth: fakeAuth, deliver, now: monday, env: {} }).run(), { off: true, week: "2026-W46" });
+  const fresh = seeded();
+  fresh.store.delete("emailSettings/teacherDigest");
+  assert.deepEqual(await createTeacherDigestService({ db: fresh, auth: fakeAuth, deliver, now: monday, env: {} }).run(), { off: true, week: "2026-W46" }, "no settings document = off");
+  assert.equal(sent.length, 0);
 
   const db = seeded();
   const result = await createTeacherDigestService({ db, auth: fakeAuth, deliver, now: monday, env: { TEACHER_DIGEST_DRY_RUN: "1" } }).run();

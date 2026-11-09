@@ -4,7 +4,8 @@ import { Badge, Button, Card, LoadingState, Select } from '../../components/ui/i
 import { teacherDigestService } from '../../services/firebase/teacherDigest.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 
-// Seaded → „Õpetajatele iganädalane märkimata tundide kiri” (owner 2026-11-09, on by default): every Monday at 08:00
+// Seaded → „Õpetajatele iganädalane märkimata tundide kiri” (owner 2026-11-09, OFF until the admin has seen a test
+// e-mail and switches it on): every Monday at 08:00
 // each teacher with past unmarked lessons gets the list of his own (from 2026-11-01) by e-mail and in the bell. Learners
 // and parents never get it. The switch is written only by the server (/teacher-digest/settings); the test copy goes to
 // the administrator's own address only. functions/teacher-unmarked-digest-*.js, docs/EMAIL_NOTIFICATIONS.md.
@@ -18,7 +19,7 @@ export default function TeacherDigestCard({ user, service = teacherDigestService
 
   useEffect(() => {
     let alive = true;
-    service.getSettings().then((value) => { if (alive) setSettings(value); }).catch((err) => { if (alive) { setSettings({ weeklyUnmarked: true }); setError(firebaseErrorMessage(err)); } });
+    service.getSettings().then((value) => { if (alive) setSettings(value); }).catch((err) => { if (alive) { setSettings({ weeklyUnmarked: false }); setError(firebaseErrorMessage(err)); } });
     Promise.resolve(service.listTeachers?.()).then((list) => { if (alive) setTeachers(list || []); }).catch(() => {});
     return () => { alive = false; };
   }, [service]);
