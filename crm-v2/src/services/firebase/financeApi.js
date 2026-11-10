@@ -82,6 +82,11 @@ async function postInvoice(path, body) {
   return data;
 }
 
+// a calendar lesson as the server's lesson-cash routes name it (a marking row: id = the calendar entry)
+export function lessonCashKey(lesson = {}) {
+  return { scheduleId: lesson.scheduleId || lesson.id || "", occurrenceDate: lesson.occurrenceDate || lesson.date || "", studentId: lesson.studentId || "" };
+}
+
 export const financeApi = {
   // „Arve väljastaja” (owner only, docs/ACCOUNTING.md „FIE arved”): the FIE's name + IBAN and the cards set to FIE
   fieSettings(save = null) {
@@ -332,6 +337,19 @@ export const financeApi = {
   },
   voidCashEntry(entryId, reason) {
     return post("/cash/void", { entryId, reason });
+  },
+  // „Makstud sularahas” on a lesson (owner 2026-11-10): lesson = { scheduleId, occurrenceDate, studentId }
+  lessonCashInfo(lesson) {
+    return post("/cash/lesson/info", lessonCashKey(lesson));
+  },
+  lessonCashMine() {
+    return post("/cash/lesson/mine", {});
+  },
+  recordLessonCash(lesson, { amount, note = "" } = {}) {
+    return post("/cash/lesson", { ...lessonCashKey(lesson), amount, note });
+  },
+  undoLessonCash(lesson) {
+    return post("/cash/lesson/undo", lessonCashKey(lesson));
   },
   allocateBankTransaction(transaction) {
     const amount = Number(transaction.amountCents) / 100;

@@ -18,10 +18,22 @@ function tickIndexes(points, unit) {
 
 // The overview at the top of Finantsid (Stripe „Your overview” + Mercury): one large headline figure with its chart,
 // then a grid of metric cards. Figures: financeOverview.js. `onView(view, status)` opens the list under the cards.
-export default function FinanceOverview({ invoices = [], unit = 'month', anchor, today: todayProp, creditCents = 0, creditCount = 0, onView }) {
+// „Ülekanded” / „Sularaha” (owner 2026-11-10): extra lines of this period, only when `flows` is given (an admin —
+// financeOverview.js moneyFlows says what counts); the dashed line of the period before stays the total only
+const SPLIT_SERIES = Object.freeze([
+  { key: 'transfer', label: 'Ülekanded', tone: 'transfer' },
+  { key: 'cash', label: 'Sularaha', tone: 'cash' },
+]);
+const NO_SERIES = Object.freeze([]);
+
+// `flows` (admin): moneyFlows({ invoices, payments, cashEntries }); `cashHeld` (admin): { cents, people } in teachers'
+// hands now (Kassa), `onOpenCash` opens Kassa
+export default function FinanceOverview({ invoices = [], unit = 'month', anchor, today: todayProp, creditCents = 0, creditCount = 0, onView, flows = null, cashHeld = null, onOpenCash }) {
   const [firstRender] = useState(() => new Date());
   const today = todayProp || firstRender;
-  const model = useMemo(() => financeOverview({ invoices, unit, anchor, today }), [invoices, unit, anchor, today]);
+  const model = useMemo(() => financeOverview({ invoices, unit, anchor, today, flows }), [invoices, unit, anchor, today, flows]);
+  const split = model.received.split;
+  const series = split ? SPLIT_SERIES : NO_SERIES;
   const { received, metrics, deltas, trends, overdue } = model;
   const against = `${previousName(unit)}${model.toDate ? ' samal ajal' : ''}`;
   const trendName = TREND_NAME[unit] || TREND_NAME.month;
@@ -41,16 +53,24 @@ export default function FinanceOverview({ invoices = [], unit = 'month', anchor,
               <span>{compareName}: <b><MoneyValue cents={received.compareCents} /></b></span>
             </>}
           </p>
+          {split && !received.future ? <p className="fo-hero__split">
+            <span><i className="ac-key ac-key--transfer" aria-hidden="true" />Ülekanded <b>{formatMoney(split.transferCents, { decimals: 0 })}</b></span>
+            <span><i className="ac-key ac-key--cash" aria-hidden="true" />Sularaha <b>{formatMoney(split.cashCents, { decimals: 0 })}</b></span>
+            {split.otherCents ? <span title="Ettemaks arvele, muu makseviis või vana arve ilma makse kirjeta">Muu <b>{formatMoney(split.otherCents, { decimals: 0 })}</b></span> : null}
+          </p> : null}
         </div>
         <ul className="fo-hero__legend" aria-label="Joonise selgitus">
-          <li><i className="ac-key ac-key--value" aria-hidden="true" />{model.label}</li>
-          <li><i className="ac-key ac-key--compare" aria-hidden="true" />{model.beforeLabel}</li>
+          <li><i className="ac-key ac-key--value" aria-hidden="true" />{split ? `Kokku · ${model.label}` : model.label}</li>
+          {series.map((line) => <li key={line.key}><i className={`ac-key ac-key--${line.tone}`} aria-hidden="true" />{line.label}</li>)}
+          <li><i className="ac-key ac-key--compare" aria-hidden="true" />{split ? `Kokku · ${model.beforeLabel}` : model.beforeLabel}</li>
         </ul>
       </header>
-      <UPlotComparisonChart points={received.points} currentUntil={received.currentUntil} tickIndexes={ticks}
-        ariaLabel={`Laekunud raha kogusumma ${model.label}, võrdluseks ${model.beforeLabel}`} caption={`Laekunud · ${model.label}`}
-        valueLabel={model.label} compareLabel={model.beforeLabel} formatValue={formatMoney} formatAxis={formatMoneyShort} />
-      <p className="fo-hero__note">Laekumised maksekuupäeva järgi (kogusumma perioodi algusest). Ainult ettevõtte arved; FIE arved ei ole siin.</p>
+      <UPlotComparisonChart points={received.points} currentUntil={received.currentUntil} tickIndexes={ticks} series={series}
+        ariaLabel={`Laekunud raha kogusumma ${model.label}${split ? ', ülekanded ja sularaha eraldi' : ''}, võrdluseks ${model.beforeLabel}`} caption={`Laekunud · ${model.label}`}
+        valueLabel={split ? 'Kokku' : model.label} compareLabel={split ? `Kokku · ${model.beforeLabel}` : model.beforeLabel} formatValue={formatMoney} formatAxis={formatMoneyShort} />
+      <p className="fo-hero__note">{split
+        ? 'Laekumised maksekuupäeva järgi (kogusumma perioodi algusest). Ülekanded: pangamaksed ja LinkPay. Sularaha: sularahamaksed arvetel ja kassa raha, mis pole arvega seotud (ka „Makstud sularahas” tunni eest), selle päeva järgi, mil õpetaja selle sai. Ainult ettevõtte raha; FIE arved ei ole siin.'
+        : 'Laekumised maksekuupäeva järgi (kogusumma perioodi algusest). Ainult ettevõtte arved; FIE arved ei ole siin.'}</p>
     </article>
 
     <div className="fo-grid">
@@ -82,6 +102,9 @@ export default function FinanceOverview({ invoices = [], unit = 'month', anchor,
       <MetricCard title="Ette makstud" cents={creditCents}
         caption={creditCount ? `${plural(creditCount, 'avatud ettemaks', 'avatud ettemaksu')} · kantakse järgmisele arvele` : 'avatud ettemakse ei ole'}
         onView={() => onView?.('credits')} viewHint="Vaata ettemakseid" />
+      {cashHeld ? <MetricCard title="Õpetajate käes sularaha · täna" cents={cashHeld.cents}
+        caption={cashHeld.people ? `${plural(cashHeld.people, 'inimene', 'inimest')} · „Sain kätte” Kassas` : 'Kõik sularaha on sinu käes'}
+        onView={onOpenCash} viewLabel="Ava Kassa" viewHint="Ava Kassa" /> : null}
     </div>
   </section>;
 }

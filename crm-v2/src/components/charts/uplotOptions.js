@@ -19,18 +19,20 @@ export function withAlpha(color, alpha) {
   return value || `rgba(8,126,107,${alpha})`;
 }
 
-// [x, this period (null after today), the period before]
-export function uplotData(points = [], currentUntil = points.length - 1) {
+// [x, this period (null after today), the period before, …the extra lines of this period (null after today)]
+export function uplotData(points = [], currentUntil = points.length - 1, series = []) {
   return [
     points.map((_, index) => index),
     points.map((point, index) => (index <= currentUntil ? point.value || 0 : null)),
     points.map((point) => (point.compare === null || point.compare === undefined ? null : point.compare)),
+    ...series.map((line) => points.map((point, index) => (index <= currentUntil ? point[line.key] || 0 : null))),
   ];
 }
 
-// the uPlot options; `colors` = { line, compare, grid, axis, surface }, `spline` = uPlot.paths.spline (optional)
-export function uplotOptions({ points = [], currentUntil = points.length - 1, width = 640, height = 220, tickIndexes, formatAxis = String, colors = {}, spline, onCursor, valueLabel = 'See periood', compareLabel = 'Eelmine periood' }) {
-  const max = Math.max(1, ...points.map((point) => Math.max(point.value || 0, point.compare || 0)));
+// the uPlot options; `colors` = { line, compare, grid, axis, surface, [tone]: colour of an extra line },
+// `spline` = uPlot.paths.spline (optional), `series` = the extra lines ([{ key, label, tone }]): thinner, no area
+export function uplotOptions({ points = [], currentUntil = points.length - 1, width = 640, height = 220, tickIndexes, formatAxis = String, colors = {}, spline, onCursor, valueLabel = 'See periood', compareLabel = 'Eelmine periood', series = [] }) {
+  const max = Math.max(1, ...points.map((point) => Math.max(point.value || 0, point.compare || 0, ...series.map((line) => point[line.key] || 0))));
   const ticks = niceTicks(max, 3);
   const top = ticks[ticks.length - 1];
   const labels = tickIndexes || (points.length > 2 ? [0, Math.floor((points.length - 1) / 2), points.length - 1] : points.map((_, index) => index));
@@ -53,6 +55,7 @@ export function uplotOptions({ points = [], currentUntil = points.length - 1, wi
       {},
       { label: valueLabel, stroke: colors.line, width: 2, fill: withAlpha(colors.line, 0.09), paths: path, spanGaps: false, points: { show: false, size: 9, width: 2, stroke: colors.line, fill: colors.surface } },
       { label: compareLabel, stroke: colors.compare, width: 1.5, dash: [4, 4], paths: path, points: { show: false } },
+      ...series.map((line) => ({ label: line.label, stroke: colors[line.tone || line.key] || colors.axis, width: 1.75, paths: path, spanGaps: false, points: { show: false, size: 7, width: 2, stroke: colors[line.tone || line.key] || colors.axis, fill: colors.surface } })),
     ],
     hooks: {
       // today's point: a filled dot with a ring of the card colour where this period's line stops

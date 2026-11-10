@@ -4881,6 +4881,8 @@ async function allocateCashReceipt({ actor, receiptId, invoiceId }) {
   if (!snap.exists || snap.data().type !== "receipt") throw httpError(404, "Sularaha kirjet ei leitud.");
   const receipt = snap.data();
   if (receipt.status === "void") throw httpError(409, "Kirje on tühistatud.");
+  // owner 2026-11-10: cash a teacher took for a lesson does not go to the accountant — it never becomes an invoice payment
+  if (receipt.source === "lesson") throw httpError(409, "Tunni eest saadud sularaha ei seota arvega (see ei lähe raamatupidamisse).");
   if (receipt.status === "allocated" && receipt.invoiceId !== String(invoiceId || "")) throw httpError(409, "Raha on juba teise arvega seotud.");
   const result = await recordInvoicePayment({
     actor, invoiceId, amount: centsToAmount(receipt.amountCents), paidAt: receipt.receivedAt, method: "cash", reference: "Sularaha",
@@ -4903,12 +4905,145 @@ async function voidCashEntry({ actor, entryId, reason }) {
     if (entry.status === "void") return { entryId: ref.id, idempotent: true };
     if (entry.type === "receipt" && entry.status === "allocated") throw httpError(409, "Raha on arvega seotud: tühista kõigepealt makse.");
     transaction.set(ref, { status: "void", voidedAt: nowIso, voidedBy: actorSnapshot(actor), voidReason: cleanReason }, { merge: true });
-    transaction.create(db.collection("financialAudit").doc(`cashbox_void_${ref.id}`.slice(0, 150)), {
+    // a lesson's cash mark keeps its id when it is marked again after a void: each round has its own audit line
+    const round = Number(entry.revision) > 1 ? `_r${Number(entry.revision)}` : "";
+    transaction.create(db.collection("financialAudit").doc(`cashbox_void_${ref.id}${round}`.slice(0, 150)), {
       entityType: "cash", entityId: ref.id, action: "cash.voided", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
       actor: actorSnapshot(actor), reason: cleanReason, createdAt: nowIso,
     });
     return { entryId: ref.id, idempotent: false };
   });
+}
+
+// ---- „Makstud sularahas” on a lesson (owner 2026-11-10; cash-core.js lessonCashEntry, docs/ACCOUNTING.md „Sularaha”) ----
+// The teacher's lesson marking offers „Makstud sularahas”: one cash-box receipt per lesson, held by the teacher until
+// the admin presses „Sain kätte” (a handover). It is never linked to an invoice, so the accountant never sees it.
+const liveAutoMarkCore = require("./live-auto-mark-core");
+const { planForSubject } = require("./combined-invoice-core");
+
+function lessonCashKey(values = {}) {
+  const scheduleId = String(values.scheduleId || "").trim();
+  const studentId = String(values.studentId || "").trim();
+  const occurrenceDate = String(values.occurrenceDate || "").trim();
+  if (!scheduleId || !studentId || !/^\d{4}-\d{2}-\d{2}$/.test(occurrenceDate) || scheduleId.includes("/") || studentId.includes("/")) throw httpError(400, "Tunni seos on vigane.");
+  const lessonId = liveAutoMarkCore.lessonDocumentId(scheduleId, occurrenceDate, studentId);
+  return { scheduleId, studentId, occurrenceDate, lessonId, receiptId: cashCore.lessonCashId(lessonId) };
+}
+
+// everything the checks need, read inside a transaction (all reads first)
+async function readLessonCashContext(transaction, key) {
+  const [entrySnap, lessonSnap, studentSnap, receiptSnap, issuerSnap, fieSnap] = await Promise.all([
+    transaction.get(db.collection("schedule").doc(key.scheduleId)),
+    transaction.get(db.collection("lessons").doc(key.lessonId)),
+    transaction.get(db.collection("students").doc(key.studentId)),
+    transaction.get(db.collection("cashLedger").doc(key.receiptId)),
+    transaction.get(db.collection("studentInvoiceIssuers").doc(key.studentId)),
+    transaction.get(db.collection("invoiceIssuers").doc(issuerCore.FIE_SETTINGS_ID)),
+  ]);
+  const entry = entrySnap.exists ? entrySnap.data() : null;
+  const lesson = lessonSnap.exists ? lessonSnap.data() : null;
+  const teacherUid = cashCore.lessonTeacherUid({ entry: entry || {}, lesson });
+  // FIE only when the card bills through the owner's FIE and the owner taught this lesson (invoice-issuer.js lessonLine)
+  const fieOwner = fieSnap.exists ? String(fieSnap.data().ownerUid || "") : "";
+  const issuer = issuerSnap.exists && issuerSnap.data().issuer === "fie" && fieOwner && teacherUid === fieOwner ? "fie" : "company";
+  return {
+    entry, lesson, teacherUid, issuer,
+    occurs: entry ? liveAutoMarkCore.occursOn(entry, key.occurrenceDate) : false,
+    student: studentSnap.exists ? studentSnap.data() : null,
+    receipt: receiptSnap.exists ? { id: receiptSnap.id, ...receiptSnap.data() } : null,
+  };
+}
+
+// „Makstud sularahas” dialog: the default amount (the card's lesson price for the lesson's subject, scaled to the
+// lesson's length) and the current mark. Only the lesson's own teacher (or an admin) gets the price.
+async function lessonCashInfo({ actor, values = {} }) {
+  const who = cashActor(actor);
+  const key = lessonCashKey(values);
+  const context = await db.runTransaction(transaction => readLessonCashContext(transaction, key));
+  if (!context.entry) throw httpError(404, "Tundi ei leitud.");
+  if (!who.isAdmin && context.teacherUid !== who.uid) throw httpError(403, "See ei ole sinu tund.");
+  const planSnap = await db.collection("studentRevenuePlans").doc(key.studentId).get();
+  const subject = String((context.lesson && context.lesson.subject) || context.entry.subject || "");
+  const plan = planSnap.exists ? planForSubject(planSnap.data(), subject) : null;
+  const unitCents = plan ? Math.round(Number(plan.lessonPriceCents) || 0) : 0;
+  const minutes = Number((context.lesson && context.lesson.duration) || context.entry.duration) || Number(plan?.lessonMinutes) || 60;
+  const priceCents = unitCents > 0 ? Math.round(unitCents * (minutes / (Number(plan.lessonMinutes) || 60))) : 0;
+  const receipt = context.receipt && context.receipt.status !== "void" ? context.receipt : null;
+  return {
+    lessonId: key.lessonId,
+    priceCents,
+    subject,
+    fie: context.issuer === "fie",
+    mark: receipt ? { id: receipt.id, amountCents: receipt.amountCents, status: receipt.status, receivedAt: receipt.receivedAt, note: receipt.note || "", holderName: receipt.holderName || "" } : null,
+  };
+}
+
+async function recordLessonCash({ actor, values = {} }) {
+  const who = cashActor(actor);
+  const key = lessonCashKey(values);
+  const ref = db.collection("cashLedger").doc(key.receiptId);
+  const nowIso = new Date().toISOString();
+  return db.runTransaction(async transaction => {
+    const context = await readLessonCashContext(transaction, key);
+    const holderSnap = await transaction.get(db.collection("users").doc(who.uid));
+    if (context.receipt && context.receipt.status !== "void") {
+      if (context.receipt.createdBy?.uid !== who.uid && !who.isAdmin) throw httpError(409, "Selle tunni sularaha on juba märgitud.");
+      return { entry: context.receipt, idempotent: true };
+    }
+    const holder = { uid: who.uid, name: (holderSnap.exists && (holderSnap.data().displayName || holderSnap.data().email)) || who.name };
+    const entry = cashCore.lessonCashEntry({
+      actor: who, isAdmin: who.isAdmin, values: { ...values, scheduleId: key.scheduleId, occurrenceDate: key.occurrenceDate },
+      entry: context.entry, occurs: context.occurs, lesson: context.lesson, lessonId: key.lessonId, studentId: key.studentId,
+      student: context.student, issuer: context.issuer, holder, nowIso,
+    });
+    // marked again after a void: same id, next round (the void stays in financialAudit)
+    const revision = context.receipt ? (Number(context.receipt.revision) || 1) + 1 : 1;
+    transaction.set(ref, { ...entry, revision, requestId: ref.id });
+    transaction.create(db.collection("financialAudit").doc(`cashbox_${ref.id}${revision > 1 ? `_r${revision}` : ""}`.slice(0, 150)), {
+      entityType: "cash", entityId: ref.id, action: "cash.lesson_receipt", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
+      studentId: key.studentId, lessonId: key.lessonId, holderUid: holder.uid, actor: actorSnapshot(actor),
+      reason: entry.note || "Tund makstud sularahas", createdAt: nowIso, requestId: ref.id,
+    });
+    transaction.create(db.collection("activityLog").doc(), {
+      type: "lesson.cash_paid", label: `${entry.studentName || "Õpilane"}: tund makstud sularahas`, studentId: key.studentId, studentName: entry.studentName,
+      byUid: who.uid, byName: who.name, createdAt: nowIso, date: key.occurrenceDate, meta: { lessonId: key.lessonId, scheduleId: key.scheduleId, receiptId: ref.id },
+    });
+    return { entry: { id: ref.id, ...entry, revision }, idempotent: false };
+  });
+}
+
+async function undoLessonCash({ actor, values = {} }) {
+  const who = cashActor(actor);
+  const key = lessonCashKey(values);
+  const ref = db.collection("cashLedger").doc(key.receiptId);
+  const nowIso = new Date().toISOString();
+  return db.runTransaction(async transaction => {
+    const [snap, ledgerSnap] = await Promise.all([transaction.get(ref), transaction.get(db.collection("cashLedger"))]);
+    if (!snap.exists) throw httpError(404, "Märget ei leitud.");
+    const entry = snap.data();
+    if (entry.status === "void") return { entryId: ref.id, idempotent: true };
+    const balances = cashCore.cashBalances(ledgerSnap.docs.map(doc => doc.data()));
+    const refusal = cashCore.lessonCashUndoRefusal({ actor: who, isAdmin: who.isAdmin, entry, balanceCents: balances[entry.holderUid]?.cents || 0, nowIso });
+    if (refusal) throw httpError(refusal === "Märget ei leitud." ? 404 : 409, refusal);
+    const reason = cleanText(values.reason) || "Õpetaja võttis märke tagasi";
+    transaction.set(ref, { status: "void", voidedAt: nowIso, voidedBy: actorSnapshot(actor), voidReason: reason }, { merge: true });
+    const round = Number(entry.revision) > 1 ? `_r${Number(entry.revision)}` : "";
+    transaction.create(db.collection("financialAudit").doc(`cashbox_void_${ref.id}${round}`.slice(0, 150)), {
+      entityType: "cash", entityId: ref.id, action: "cash.voided", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
+      lessonId: key.lessonId, actor: actorSnapshot(actor), reason, createdAt: nowIso,
+    });
+    return { entryId: ref.id, idempotent: false };
+  });
+}
+
+// a teacher's own lesson-cash marks for the marking screens (lessonId → mark), no amounts of anyone else
+async function lessonCashMine({ actor }) {
+  const who = cashActor(actor);
+  const nowIso = new Date().toISOString();
+  const snap = await db.collection("cashLedger").get();
+  const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const balanceCents = cashCore.cashBalances(all)[who.uid]?.cents || 0;
+  return { marks: cashCore.lessonCashMarks(cashCore.visibleEntries(all, who), { uid: who.uid, isAdmin: who.isAdmin, balanceCents, nowIso }) };
 }
 
 // ---- „Arve väljastaja” settings (owner only; docs/ACCOUNTING.md „FIE arved”) ----
@@ -10683,6 +10818,24 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     if (req.path === "/cash/handover") {
       const result = await recordCashHandover({ actor: await requireStaffUser(req), values: req.body, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    // „Makstud sularahas” on a lesson (owner 2026-11-10): the lesson's teacher (or an admin) only — checked inside
+    if (req.path === "/cash/lesson/info") {
+      res.json(await lessonCashInfo({ actor: await requireStaffUser(req), values: req.body }));
+      return;
+    }
+    if (req.path === "/cash/lesson/mine") {
+      res.json(await lessonCashMine({ actor: await requireStaffUser(req) }));
+      return;
+    }
+    if (req.path === "/cash/lesson") {
+      const result = await recordLessonCash({ actor: await requireStaffUser(req), values: req.body });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/cash/lesson/undo") {
+      res.json(await undoLessonCash({ actor: await requireStaffUser(req), values: req.body }));
       return;
     }
     const actor = await requireAdminUser(req);

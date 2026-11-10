@@ -14,12 +14,12 @@ import './charts.css';
 // tickIndexes: which points get an x-axis label (default: first, middle, last)
 export default function AreaComparisonChart({
   points = [], currentUntil = points.length - 1, height = 220, ariaLabel, valueLabel = 'See periood', compareLabel = 'Eelmine periood',
-  formatValue = String, formatAxis = formatValue, tickIndexes, caption,
+  formatValue = String, formatAxis = formatValue, tickIndexes, caption, series = [],
 }) {
   const [ref, width] = useElementWidth(720);
   const [active, setActive] = useState(null);
   const top = 12; const bottom = 28; const right = 8;
-  const max = Math.max(1, ...points.map((point) => Math.max(point.value || 0, point.compare || 0)));
+  const max = Math.max(1, ...points.map((point) => Math.max(point.value || 0, point.compare || 0, ...series.map((line) => point[line.key] || 0))));
   const ticks = niceTicks(max, 3);
   const scaleTop = ticks[ticks.length - 1];
   const axisWidth = Math.max(38, ...ticks.map((tick) => String(formatAxis(tick)).length * 6.6 + 10));
@@ -32,6 +32,8 @@ export default function AreaComparisonChart({
   const base = top + plotH;
   const last = Math.min(currentUntil, points.length - 1);
   const current = last >= 0 ? points.slice(0, last + 1).map((point, index) => [x(index), y(point.value || 0)]) : [];
+  // extra lines of this period (series: „Ülekanded”, „Sularaha”), thinner, no area
+  const extras = series.map((line) => ({ ...line, path: last >= 0 ? points.slice(0, last + 1).map((point, index) => [x(index), y(point[line.key] || 0)]) : [] }));
   const compare = points.map((point, index) => (point.compare === null || point.compare === undefined ? null : [x(index), y(point.compare)])).filter(Boolean);
   const labels = tickIndexes || (points.length > 2 ? [0, Math.floor((points.length - 1) / 2), points.length - 1] : points.map((_, index) => index));
 
@@ -65,6 +67,7 @@ export default function AreaComparisonChart({
         {compare.length > 1 ? <path className="ac-chart__compare" d={smoothPath(compare)} /> : null}
         {current.length > 1 ? <path className="ac-chart__area" d={areaPath(current, base)} /> : null}
         {current.length > 1 ? <path className="ac-chart__line" d={smoothPath(current)} pathLength="1" /> : null}
+        {extras.map((line) => (line.path.length > 1 ? <path key={line.key} className={`ac-chart__extra ac-chart__extra--${line.tone || line.key}`} d={smoothPath(line.path)} /> : null))}
         {current.length ? <circle className="ac-chart__end" cx={current[current.length - 1][0]} cy={current[current.length - 1][1]} r="4" /> : null}
         {active !== null ? <g className="ac-chart__cross">
           <line x1={x(active)} x2={x(active)} y1={top} y2={base} />
@@ -73,10 +76,10 @@ export default function AreaComparisonChart({
         </g> : null}
       </svg>
       {/* beside the crosshair; a phone has no room beside it, the card sits centred above the plot instead */}
-      <ChartTip point={shown} showValue={shownValue !== null} valueLabel={valueLabel} compareLabel={compareLabel} formatValue={formatValue}
+      <ChartTip point={shown} showValue={shownValue !== null} valueLabel={valueLabel} compareLabel={compareLabel} formatValue={formatValue} series={series}
         className={width < 560 ? 'is-center' : tipLeft > 62 ? 'is-left' : ''} style={width < 560 ? undefined : { left: `${tipLeft}%` }} />
-      <span className="sr-only" aria-live="polite">{shown ? describePoint(shown, active, { last, valueLabel, compareLabel, formatValue }) : ''}</span>
+      <span className="sr-only" aria-live="polite">{shown ? describePoint(shown, active, { last, valueLabel, compareLabel, formatValue, series }) : ''}</span>
     </div>
-    <ChartTable points={points} last={last} caption={caption} valueLabel={valueLabel} compareLabel={compareLabel} formatValue={formatValue} />
+    <ChartTable points={points} last={last} caption={caption} valueLabel={valueLabel} compareLabel={compareLabel} formatValue={formatValue} series={series} />
   </div>;
 }

@@ -37,6 +37,9 @@ import { unplannedStudents } from './unplannedStudents.js';
 import { markingSplit } from './unmarkedLessons.js';
 import QuickMarkButtons, { MarkUndoToast } from './QuickMarkButtons.jsx';
 import { MARK_LABELS, useMarkUndo } from './quickMark.js';
+import LessonCashButton from '../cash/LessonCashButton.jsx';
+import { canMarkLessonCash, lessonCashLessonId } from '../cash/lessonCash.js';
+import { useLessonCashMarks } from '../cash/useLessonCashMarks.js';
 import { unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.js';
 import { DAY_IDS, bandsOn, cellStatus, paintSlot, setCellStatus, slotsOn } from './availabilityModel.js';
 import CellStatusMenu from './CellStatusMenu.jsx';
@@ -199,6 +202,8 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
   const [dragging, setDragging] = useState(null); // the lesson being dragged in the grid (its student's times show)
   const [plannerOpen, setPlannerOpen] = useState(() => searchParams.get('planeerija') === '1');
   const isAdmin = user.roles.includes(ROLES.ADMIN);
+  // „Makstud sularahas” on the phone agenda (owner 2026-11-10): the teacher's own lesson-cash marks
+  const [cashMarks, setCashMark] = useLessonCashMarks(financeRepository, Boolean(user?.uid));
   useEffect(() => {
     if (!changeRequests?.subscribePending || !user?.uid) return undefined;
     try { return changeRequests.subscribePending({ teacherUid: user.uid, all: isAdmin }, setChangeRequestList, () => setChangeRequestList([])); } catch { return undefined; }
@@ -866,13 +871,19 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
         const past = isPastLesson(item, today, nowClock);
         const markable = past && canQuickCompleteLesson(item);
         const groupOpen = past && item.isGroup && lessonState(item) === 'planned';
-        return <div className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher, tones)}${markable || groupOpen ? ' has-actions' : ''}`} key={item.occurrenceId}>
+        // „Makstud sularahas” (owner 2026-11-10): a past 1:1 lesson of the teacher's own, held or still unmarked
+        const cashable = past && canMarkLessonCash(item, { uid: user.uid, isAdmin });
+        const cashMark = cashable ? cashMarks[lessonCashLessonId(item)] || null : null;
+        return <div className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher, tones)}${markable || groupOpen || cashable ? ' has-actions' : ''}`} key={item.occurrenceId}>
           <button type="button" className="cal-agenda__open" onClick={() => openPanel(item)}>
             <time>{item.time}</time>
             <span><strong>{item.online ? <Badge tone="info">veeb</Badge> : null} <SubjectTag subject={item.subject} />{item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
             {lessonState(item) === 'planned' ? (markable ? <Badge tone="warning">Märkimata</Badge> : null) : <Badge tone={{ done: 'success', absent: 'warning', cancelled: 'danger' }[lessonState(item)]}>{LESSON_STATE_LABELS[lessonState(item)]}</Badge>}
           </button>
-          {markable ? <div className="cal-agenda__actions"><QuickMarkButtons item={item} busy={inlineBusy.startsWith(`${item.occurrenceId}|`) ? inlineBusy.split('|')[1] : ''} disabled={Boolean(inlineBusy)} onMark={inlineMark} /></div> : null}
+          {markable || cashable ? <div className="cal-agenda__actions">
+            {markable ? <QuickMarkButtons item={item} busy={inlineBusy.startsWith(`${item.occurrenceId}|`) ? inlineBusy.split('|')[1] : ''} disabled={Boolean(inlineBusy)} onMark={inlineMark} /> : null}
+            {cashable ? <LessonCashButton item={item} api={financeRepository} mark={cashMark} onChanged={setCashMark} alsoMark={markable ? inlineMark : null} disabled={Boolean(inlineBusy)} /> : null}
+          </div> : null}
           {groupOpen ? <div className="cal-agenda__actions"><button type="button" className="qm__btn" onClick={() => openPanel(item)}>Kohalolu</button></div> : null}
         </div>;
       })}

@@ -3976,6 +3976,94 @@ test("cash box: a teacher takes cash, hands it over, an admin links it to the in
   assert.equal(clientWrite.status, 403);
 });
 
+test("„Makstud sularahas”: a teacher marks own lesson paid in cash, undoes it, the admin gets it; never on an invoice", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const adminUid = tokenUid(adminToken);
+  const teacherToken = await createUserToken("lessoncash-teacher@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  const otherToken = await createUserToken("lessoncash-other@example.com");
+  const otherUid = tokenUid(otherToken);
+  const day = (offset) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Tallinn" }).format(new Date(Date.now() + offset * 86400000));
+  const lessonDay = day(-1);
+  const lesson = { scheduleId: "lessoncash-entry", studentId: "lessoncash-student", occurrenceDate: lessonDay };
+  await Promise.all([
+    db.collection("users").doc(adminUid).set({ role: "admin", displayName: "Pavel Admin", email: "zakutailo.pavel@gmail.com" }, { merge: true }),
+    db.collection("users").doc(teacherUid).set({ role: "teacher", displayName: "Lesson Teacher", email: "lessoncash-teacher@example.com" }),
+    db.collection("users").doc(otherUid).set({ role: "teacher", displayName: "Other Teacher", email: "lessoncash-other@example.com" }),
+    db.collection("students").doc("lessoncash-student").set({ name: "Sula Õpilane", parentName: "Sula Vanem", teacherUid, active: true }),
+    db.collection("studentRevenuePlans").doc("lessoncash-student").set({ studentId: "lessoncash-student", lessonPriceCents: 2400, lessonMinutes: 60, subjectPrices: { Matemaatika: { lessonPriceCents: 3000, lessonMinutes: 45 } }, active: true }),
+    db.collection("schedule").doc("lessoncash-entry").set({ date: lessonDay, studentId: "lessoncash-student", studentName: "Sula Õpilane", teacherUid, teacher: "Lesson Teacher", subject: "Eesti keel", time: "16:00", duration: 90, status: "Planeeritud" }),
+    db.collection("schedule").doc("lessoncash-future").set({ date: day(2), studentId: "lessoncash-student", teacherUid, subject: "Eesti keel", time: "16:00", duration: 60, status: "Planeeritud" }),
+  ]);
+
+  // only the lesson's teacher gets the default price (the card's price, 90 min of a 60 min price)
+  const foreignInfo = await financeRequest(otherToken, "/cash/lesson/info", lesson);
+  assert.equal(foreignInfo.status, 403, JSON.stringify(foreignInfo.body));
+  const info = await financeRequest(teacherToken, "/cash/lesson/info", lesson);
+  assert.equal(info.status, 200, JSON.stringify(info.body));
+  assert.equal(info.body.priceCents, 3600);
+  assert.equal(info.body.mark, null);
+
+  // another teacher, a future lesson: refused
+  const foreign = await financeRequest(otherToken, "/cash/lesson", { ...lesson, amount: 36 });
+  assert.equal(foreign.status, 403, JSON.stringify(foreign.body));
+  const future = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, scheduleId: "lessoncash-future", occurrenceDate: day(2), amount: 36 });
+  assert.equal(future.status, 400, JSON.stringify(future.body));
+
+  const marked = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, amount: "36", note: "isa maksis" });
+  assert.equal(marked.status, 201, JSON.stringify(marked.body));
+  const receiptId = marked.body.entry.id;
+  let receipt = (await db.collection("cashLedger").doc(receiptId).get()).data();
+  assert.equal(receipt.source, "lesson");
+  assert.equal(receipt.holderUid, teacherUid);
+  assert.equal(receipt.status, "open");
+  assert.equal(receipt.amountCents, 3600);
+  assert.equal(receipt.receivedAt, day(0));
+  const twice = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, amount: "36" });
+  assert.equal(twice.status, 200, JSON.stringify(twice.body));
+
+  // the teacher's own marks; the other teacher sees none
+  const mine = await financeRequest(teacherToken, "/cash/lesson/mine", {});
+  assert.equal(mine.body.marks[receipt.lessonId].canUndo, true);
+  const theirs = await financeRequest(otherToken, "/cash/lesson/mine", {});
+  assert.deepEqual(theirs.body.marks, {});
+
+  // same-day undo by the teacher, then marked again (same id, next round)
+  const otherUndo = await financeRequest(otherToken, "/cash/lesson/undo", lesson);
+  assert.equal(otherUndo.status, 409, JSON.stringify(otherUndo.body));
+  const undone = await financeRequest(teacherToken, "/cash/lesson/undo", lesson);
+  assert.equal(undone.status, 200, JSON.stringify(undone.body));
+  assert.equal((await db.collection("cashLedger").doc(receiptId).get()).data().status, "void");
+  const again = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, amount: "36" });
+  assert.equal(again.status, 201, JSON.stringify(again.body));
+  receipt = (await db.collection("cashLedger").doc(receiptId).get()).data();
+  assert.equal(receipt.revision, 2);
+  assert.equal(receipt.status, "open");
+
+  // lesson cash is never linked to an invoice (owner 2026-11-10: it does not go to the accountant)
+  await db.collection("invoices").doc("lessoncash-invoice").set({ num: "KS-LC-001", date: lessonDay, amountCents: 3600, amount: 36, balanceDueCents: 3600, balanceDue: 36, status: "Ootel", studentId: "lessoncash-student" });
+  const allocate = await financeRequest(adminToken, "/cash/allocate", { receiptId, invoiceId: "lessoncash-invoice" });
+  assert.equal(allocate.status, 409, JSON.stringify(allocate.body));
+
+  // „Sain kätte”: the admin takes the teacher's cash (a handover); after it the teacher can no longer undo
+  const taken = await financeRequest(adminToken, "/cash/handover", { fromUid: teacherUid, toUid: adminUid, amount: 36, requestId: "emulator_lessoncash_handover_0001" });
+  assert.equal(taken.status, 201, JSON.stringify(taken.body));
+  const late = await financeRequest(teacherToken, "/cash/lesson/undo", lesson);
+  assert.equal(late.status, 409, JSON.stringify(late.body));
+  const teacherSummary = await financeRequest(teacherToken, "/cash/summary", {});
+  assert.equal(teacherSummary.body.balances.length, 1);
+  assert.equal(teacherSummary.body.balances[0].cents, 0);
+
+  // clients never write the ledger directly, a teacher not even their own receipt
+  const teacherWrite = await firestoreDocumentRequest(teacherToken, "PATCH", `cashLedger/${receiptId}?updateMask.fieldPaths=status`, { fields: { status: { stringValue: "void" } } });
+  assert.equal(teacherWrite.status, 403);
+  const teacherRead = await firestoreDocumentRequest(teacherToken, "GET", `cashLedger/${receiptId}`);
+  assert.equal(teacherRead.status, 403);
+});
+
 test("„Kooli kulul”: an admin marks a package lesson as paid by the school and the credit comes back", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

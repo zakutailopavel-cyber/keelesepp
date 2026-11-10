@@ -16,11 +16,13 @@ const canvasAvailable = () => typeof globalThis.document !== 'undefined'
   && !/jsdom/i.test(globalThis.navigator?.userAgent || '')
   && typeof globalThis.HTMLCanvasElement !== 'undefined';
 
-function tokenColors(node) {
+function tokenColors(node, series = []) {
   const style = globalThis.getComputedStyle(node);
   const read = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
-  return { line: read('--chart-line', '#087e6b'), compare: read('--chart-compare', '#98a2b3'), grid: read('--chart-grid', '#eef0f3'), axis: read('--chart-axis', '#667085'), surface: read('--surface', '#fff') };
+  const extra = Object.fromEntries(series.map((line) => [line.tone || line.key, read(`--chart-${line.tone || line.key}`, '#667085')]));
+  return { ...extra, line: read('--chart-line', '#087e6b'), compare: read('--chart-compare', '#98a2b3'), grid: read('--chart-grid', '#eef0f3'), axis: read('--chart-axis', '#667085'), surface: read('--surface', '#fff') };
 }
+const NO_SERIES = [];
 
 // a number that changes whenever the light/dark theme changes (the „Teema” menu or the system setting)
 function useThemeVersion() {
@@ -53,7 +55,7 @@ export default function UPlotComparisonChart(props) {
 
 function CanvasChart({
   UPlot, points = [], currentUntil = points.length - 1, height = 220, ariaLabel, valueLabel = 'See periood', compareLabel = 'Eelmine periood',
-  formatValue = String, formatAxis = formatValue, tickIndexes, caption,
+  formatValue = String, formatAxis = formatValue, tickIndexes, caption, series = NO_SERIES,
 }) {
   const [ref, width] = useElementWidth(720);
   const plotRef = useRef(null);
@@ -67,16 +69,16 @@ function CanvasChart({
     const node = plotRef.current;
     if (!UPlot || !node || !ref.current) return undefined;
     const options = uplotOptions({
-      points, currentUntil, width, height, tickIndexes, formatAxis, valueLabel, compareLabel, colors: tokenColors(ref.current), spline: UPlot.paths?.spline,
+      points, currentUntil, width, height, tickIndexes, formatAxis, valueLabel, compareLabel, series, colors: tokenColors(ref.current, series), spline: UPlot.paths?.spline,
       onCursor: (index, chart) => {
         setActive(index);
         if (index !== null) setTipX(chart.over.offsetLeft + chart.valToPos(index, 'x'));
       },
     });
-    const chart = new UPlot(options, uplotData(points, currentUntil), node);
+    const chart = new UPlot(options, uplotData(points, currentUntil, series), node);
     chartRef.current = chart;
     return () => { chart.destroy(); chartRef.current = null; };
-  }, [UPlot, points, currentUntil, width, height, tickIndexes, formatAxis, valueLabel, compareLabel, theme, ref]);
+  }, [UPlot, points, currentUntil, width, height, tickIndexes, formatAxis, valueLabel, compareLabel, series, theme, ref]);
 
   const moveTo = (index) => {
     const chart = chartRef.current;
@@ -100,10 +102,10 @@ function CanvasChart({
     <div className="ac-chart__plot ac-chart__plot--canvas" tabIndex={points.length ? 0 : -1} role="group" aria-label={`${ariaLabel || valueLabel}. Nooleklahvid liiguvad punktide vahel.`}
       onKeyDown={keyDown} onBlur={() => moveTo(null)}>
       <div ref={plotRef} role="img" aria-label={ariaLabel || valueLabel} style={{ height }} />
-      <ChartTip point={shown} showValue={shown !== null && active <= last} valueLabel={valueLabel} compareLabel={compareLabel} formatValue={formatValue}
+      <ChartTip point={shown} showValue={shown !== null && active <= last} valueLabel={valueLabel} compareLabel={compareLabel} formatValue={formatValue} series={series}
         className={narrow ? 'is-center' : tipX > width * 0.62 ? 'is-left' : ''} style={narrow ? undefined : { left: `${tipX}px` }} />
-      <span className="sr-only" aria-live="polite">{shown ? describePoint(shown, active, { last, valueLabel, compareLabel, formatValue }) : ''}</span>
+      <span className="sr-only" aria-live="polite">{shown ? describePoint(shown, active, { last, valueLabel, compareLabel, formatValue, series }) : ''}</span>
     </div>
-    <ChartTable points={points} last={last} caption={caption} valueLabel={valueLabel} compareLabel={compareLabel} formatValue={formatValue} />
+    <ChartTable points={points} last={last} caption={caption} valueLabel={valueLabel} compareLabel={compareLabel} formatValue={formatValue} series={series} />
   </div>;
 }

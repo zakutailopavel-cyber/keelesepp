@@ -183,4 +183,31 @@ describe('UnmarkedLessonsPage (phone-first, owner 2026-11-09)', () => {
     expect(filter).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByText('Otsin märkimata tunde…')).not.toBeInTheDocument();
   });
+
+  it('„Makstud sularahas” (owner 2026-11-10): the lesson’s own teacher records cash and the lesson is marked held', async () => {
+    const repository = repo();
+    const cashApi = {
+      lessonCashMine: vi.fn().mockResolvedValue({ marks: {} }),
+      lessonCashInfo: vi.fn().mockResolvedValue({ priceCents: 2500, mark: null }),
+      recordLessonCash: vi.fn().mockResolvedValue({ entry: { id: 'lessoncash_c', amountCents: 2500, status: 'open' } }),
+    };
+    const auth = { user: { uid: 't1', displayName: 'Anna', roles: ['teacher'] }, signOut: vi.fn() };
+    render(<AuthContext.Provider value={auth}><MemoryRouter><UnmarkedLessonsPage repository={repository} cashApi={cashApi} today="2026-11-05" /></MemoryRouter></AuthContext.Provider>);
+    await screen.findByText(/Ott/);
+    // not on the probable duplicate
+    expect(screen.queryByRole('button', { name: 'Makstud sularahas: Timur' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Makstud sularahas: Ott' }));
+    await waitFor(() => expect(screen.getByLabelText('Summa (€)')).toHaveValue('25,00'));
+    fireEvent.click(screen.getByRole('button', { name: 'Märgi makstuks' }));
+    await waitFor(() => expect(cashApi.recordLessonCash).toHaveBeenCalledWith(items[0], { amount: '25.00', note: '' }));
+    await waitFor(() => expect(repository.mark).toHaveBeenCalledWith(items[0], expect.objectContaining({ uid: 't1' }), 'Toimunud'));
+  });
+
+  it('another teacher’s lesson gets no cash button', async () => {
+    const cashApi = { lessonCashMine: vi.fn().mockResolvedValue({ marks: {} }) };
+    const auth = { user: { uid: 't9', displayName: 'Muu', roles: ['teacher'] }, signOut: vi.fn() };
+    render(<AuthContext.Provider value={auth}><MemoryRouter><UnmarkedLessonsPage repository={repo()} cashApi={cashApi} today="2026-11-05" /></MemoryRouter></AuthContext.Provider>);
+    await screen.findByText(/Ott/);
+    expect(screen.queryByRole('button', { name: /Makstud sularahas/ })).not.toBeInTheDocument();
+  });
 });

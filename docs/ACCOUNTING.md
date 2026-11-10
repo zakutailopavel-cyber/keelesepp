@@ -559,6 +559,42 @@ creates after `since` is set, for documents dated on or after `since`.
 4. „Ootab panka”: typed payments without bank money — ask the administrator (FIE account, cash, a typo).
 5. „Kuu kontroll”: type the bank's closing balance, clear the red rows, then „Sulge periood kuni <month end>”.
 
+## Sularaha tunni eest — „Makstud sularahas” (owner 2026-11-10)
+
+**Owner decision 2026-11-10: this cash does NOT go to the accountant.** It is never linked to an invoice, so it never
+becomes a payment, never reaches the accounting sync, the bank-books review, the period close or any export. Only the
+owner / admin see it (Finantsid „Laekunud” and the card „Õpetajate käes sularaha”, Kassa). The accountant's logic was
+not changed at all.
+
+- **Teacher** (phone agenda in Kalender and „Märkimata tunnid”): „Sularahas” beside „Toimus ✓ / Puudus ▾” on a past
+  1:1 lesson of their own (held or still unmarked; not a group lesson, not a notified absence or a cancelled lesson).
+  The dialog takes the amount (default = the card's lesson price for the lesson's subject, scaled to the lesson's
+  length — `studentRevenuePlans` via `planForSubject`, returned only to the lesson's own teacher or an admin) and an
+  optional note; on an unmarked row „Tund toimus — märgi ka toimunuks” (default on) also marks it held through the
+  usual path. A marked lesson shows the sum („25,00 €”); the teacher can „Võta tagasi” the same day while the money is still
+  with them. The teacher never sees other teachers' cash or any finance totals (only their own „Sinu käes” in Kassa).
+- **Data** (`cashLedger`, server writes only — no `firestore.rules` change): an ordinary cash-box receipt with
+  `source: "lesson"`, id `lessoncash_<lesson document id>` (one per lesson; marked again after a void → same id,
+  `revision` + 1), `lessonId, scheduleId, occurrenceDate, subject, lessonTime, teacherUid, holderUid` (= the teacher),
+  `receivedAt` = the day it was marked, `status: "open"`. `financialAudit` `cashbox_<id>` (`cash.lesson_receipt`),
+  `activityLog` `lesson.cash_paid`.
+- **Server** (`functions/cash-core.js` `lessonCashEntry`, `lessonCashUndoRefusal`, `lessonCashMarks`;
+  `functions/index.js` financeApi, staff): `/cash/lesson/info`, `/cash/lesson`, `/cash/lesson/undo`,
+  `/cash/lesson/mine`. Refused: another teacher's lesson (403), a future lesson, a day the entry does not occur, a
+  student not in the lesson, a notified absence, an archived card, an FIE lesson (card billed through the FIE and
+  taught by the owner — the school's cash box never takes FIE money). `/cash/allocate` refuses `source: "lesson"`
+  (409). Undo by a teacher: own mark, same day, and the teacher's cash box still holds the amount.
+- **Hand-over:** the existing cash-box handover. Kassa (admin) → „Õpetajate käes sularaha” → „Sain kätte” = a handover
+  of that person's whole balance to the admin. After it the teacher can no longer undo.
+- **Chart:** Finantsid „Laekunud” (admin only) — total + „Ülekanded” (payments method bank / linkpay / card) +
+  „Sularaha” (payments method cash + open cash-box receipts, by `receivedAt`); a receipt linked to an invoice is counted
+  once, as its payment. The bookkeeper's view of the chart is unchanged.
+- **Invoices / lesson balance — not changed (TODO, owner decision needed).** A cash-paid lesson still counts as a held
+  lesson (lessons left −1) and still appears on the next monthly invoice if the card is billed monthly. The admin sees
+  the cash in Kassa with the lesson and decides by hand (e.g. a card paying cash per lesson should not get monthly
+  invoices). Excluding cash-paid lessons from invoice generation touches the monthly correction logic and the
+  accountant's sales documents, so it was left out of this change.
+
 ## Sisemine märkus (invoice internal note, team 2026-10-29)
 
 „Создать внутреннюю заметку к выставляемым счетам”: the administrator or the bookkeeper writes what exactly an invoice
