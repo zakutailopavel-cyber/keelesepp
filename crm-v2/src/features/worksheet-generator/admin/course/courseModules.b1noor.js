@@ -3,5 +3,6 @@
 // lesson design v3 stations; a separate course next to „Eesti keel B1” (courseModules.b1.js), assigned by hand only.
 import * as b1noorM01 from './b1noor/module01.js';
 import * as b1noorM02 from './b1noor/module02.js';
+import * as b1noorM03 from './b1noor/module03.js';
 
-export const MODULES = [b1noorM01, b1noorM02];
+export const MODULES = [b1noorM01, b1noorM02, b1noorM03];
