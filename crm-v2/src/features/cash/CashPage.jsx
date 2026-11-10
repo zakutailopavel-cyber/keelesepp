@@ -1,4 +1,4 @@
-import { ArrowRightLeft, HandCoins, Link2, Wallet, XCircle } from 'lucide-react';
+import { ArrowRightLeft, HandCoins, Link2, Pencil, Wallet, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -9,19 +9,21 @@ import { invoicesService } from '../../services/firebase/invoices.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { ROLES } from '../../utils/roles.js';
 import { entryDate, entryLine, euro, heldByOthers, invoiceChoices, isLessonCash, lessonLine, openReceipts, STATUS_LABEL, todayIso } from './cashModel.js';
+import { amountCents, amountText } from './lessonCash.js';
 import './cash.css';
 
-// „Kassa” (owner 2026-10-18): every staff member records the cash they took from a payer and hands it over to someone
-// else; an administrator sees every person's cash, links each receipt to the payer's invoice (a payment with method
-// „cash”) and voids a wrong entry. Teachers see only their own part; the server decides what each one sees.
+// „Kassa” (owner 2026-10-18; 2026-11-11: only the administrator and the accountant). The administrator sees every
+// person's cash, records cash and hand-overs („Sain kätte”), links a receipt to the payer's invoice (a payment with
+// method „cash”), corrects a lesson's cash amount and voids a wrong entry. The accountant (finance role) only reads.
+// Teachers never open it: their cash comes from „Toimus · makstud sularahas” on the lesson.
 export default function CashPage({ api = financeApi, studentApi = studentsService, invoiceApi = invoicesService }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const isAdmin = user.roles.includes(ROLES.ADMIN);
   const state = useAsyncData(async () => Promise.all([
     api.cashSummary(),
-    studentApi.list({ status: 'active', pageSize: 500, exhaustive: true, ...(isAdmin ? {} : { scopeTeacherUid: user.uid }) }),
-  ]), [api, studentApi, isAdmin, user.uid]);
+    isAdmin ? studentApi.list({ status: 'active', pageSize: 500, exhaustive: true }) : Promise.resolve({ items: [] }),
+  ]), [api, studentApi, isAdmin]);
   const [receipt, setReceipt] = useState(() => ({ studentId: searchParams.get('student') || '', amount: '', receivedAt: todayIso(), note: '', holderUid: '' }));
   const [handover, setHandover] = useState({ toUid: '', fromUid: '', amount: '', handedAt: todayIso(), note: '' });
   const [busy, setBusy] = useState('');
@@ -32,7 +34,6 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
   const [summary, students] = state.data || [{ entries: [], balances: [], people: [] }, { items: [] }];
   const studentItems = useMemo(() => [...(students?.items || [])].sort((a, b) => String(a.name).localeCompare(String(b.name), 'et')), [students]);
   const people = summary?.people || [];
-  const mine = (summary?.balances || []).find((row) => row.uid === user.uid)?.cents || 0;
 
   const run = async (key, action, done) => {
     setBusy(key); setError(''); setNotice('');
@@ -58,6 +59,14 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
     if (!reason.trim()) return;
     await run(`void-${entry.id}`, () => api.voidCashEntry(entry.id, reason), 'Kirje on tühistatud.');
   };
+  // the amount of a lesson's cash (the server took the card's price) corrected by the admin (owner 2026-11-11)
+  const fixAmount = async (entry) => {
+    const typed = globalThis.prompt?.(`Õige summa eurodes (praegu ${euro(entry.amountCents)}):`, amountText(entry.amountCents)) || '';
+    if (!typed.trim()) return;
+    const cents = amountCents(typed);
+    if (!cents) { setError('Kirjuta summa eurodes, nt 25 või 25,50.'); return; }
+    await run(`amount-${entry.id}`, () => api.correctLessonCashAmount(entry.id, (cents / 100).toFixed(2), 'Admin parandas summa'), `Summa on nüüd ${euro(cents)}.`);
+  };
 
   if (state.loading && !state.data) return <LoadingState label="Laen kassat…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
@@ -66,16 +75,15 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
   return (
     <div className="cash-page">
       {state.loading ? <p className="page-refreshing" role="status">Uuendan andmeid…</p> : null}
-      <PageHeader eyebrow="Raha" title="Kassa" description={isAdmin ? 'Kelle käes on sularaha, mis on veel arvega sidumata ja kes kellele raha andis.' : 'Märgi siia sularaha, mille said maksjalt, ja kellele selle edasi andsid.'} />
+      <PageHeader eyebrow="Raha" title="Kassa" description={isAdmin ? 'Kelle käes on sularaha, mis on veel arvega sidumata ja kes kellele raha andis.' : 'Kelle käes on sularaha ja kes kellele raha andis (ainult vaatamiseks).'} />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {notice ? <p className="form-hint cash-notice" role="status">{notice}</p> : null}
 
       <section className="cash-balances" aria-label="Kelle käes on raha">
-        {isAdmin ? (summary.balances.length ? summary.balances.map((row) => (
+        {summary.balances.length ? summary.balances.map((row) => (
           <Card key={row.uid} className="cash-balance"><Wallet size={18} aria-hidden="true" /><span>{row.name || 'Nimeta'}</span><strong>{euro(row.cents)}</strong></Card>
-        )) : <Card className="cash-balance"><Wallet size={18} aria-hidden="true" /><span>Kassa on tühi</span><strong>{euro(0)}</strong></Card>)
-          : <Card className="cash-balance"><Wallet size={18} aria-hidden="true" /><span>Sinu käes</span><strong>{euro(mine)}</strong></Card>}
-        {isAdmin && waiting.length ? <Card className="cash-balance is-todo"><Link2 size={18} aria-hidden="true" /><span>Arvega sidumata</span><strong>{waiting.length}</strong></Card> : null}
+        )) : <Card className="cash-balance"><Wallet size={18} aria-hidden="true" /><span>Kassa on tühi</span><strong>{euro(0)}</strong></Card>}
+        {waiting.length ? <Card className="cash-balance is-todo"><Link2 size={18} aria-hidden="true" /><span>Arvega sidumata</span><strong>{waiting.length}</strong></Card> : null}
       </section>
 
       {isAdmin ? <Card className="cash-held" as="section" aria-label="Õpetajate käes sularaha">
@@ -87,10 +95,10 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
             <Button variant="secondary" loading={busy === `collect-${row.uid}`} disabled={Boolean(busy)} onClick={() => collect(row)}><HandCoins size={15} aria-hidden="true" /> Sain kätte</Button>
           </li>)}
         </ul> : <p className="form-hint">Kellelgi teisel ei ole praegu sularaha käes.</p>}
-        <p className="form-hint">Tunni eest saadud sularaha („Makstud sularahas”) ei lähe raamatupidamisse ega seota arvega — seda näevad ainult admin ja omanik. Tund ise tuleb kuuarvelt maha.</p>
+        <p className="form-hint">Tunni eest saadud sularaha („Toimus · makstud sularahas”) ei lähe raamatupidamisse ega seota arvega. Tund ise tuleb kuuarvelt maha, tunnipaketist tundi ei võeta.</p>
       </Card> : null}
 
-      <div className="cash-forms">
+      {isAdmin ? <div className="cash-forms">
         <Card>
           <h2><HandCoins size={18} aria-hidden="true" /> Sain sularaha</h2>
           <form className="form-grid" onSubmit={saveReceipt}>
@@ -124,7 +132,7 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
             <Button type="submit" variant="secondary" loading={busy === 'handover'}><ArrowRightLeft size={16} /> Märgi üleantuks</Button>
           </form>
         </Card>
-      </div>
+      </div> : null}
 
       <Card className="cash-entries">
         <h2>Kirjed</h2>
@@ -141,6 +149,7 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
                   : <Badge tone="neutral">Kuuarvelt maha</Badge>) : STATUS_LABEL[entry.status] ? <Badge tone={entry.status === 'open' ? 'warning' : entry.status === 'void' ? 'neutral' : 'success'}>{STATUS_LABEL[entry.status]}</Badge> : null}</span>
                 <span role="cell" className="cash-row__actions">
                   {isAdmin && entry.type === 'receipt' && entry.status === 'open' && !isLessonCash(entry) ? <Button variant="secondary" onClick={() => setLinking(entry)}><Link2 size={15} /> Seo arvega</Button> : null}
+                  {isAdmin && isLessonCash(entry) && entry.status === 'open' ? <Button variant="secondary" aria-label="Paranda summa" title="Paranda summa" disabled={busy === `amount-${entry.id}`} onClick={() => fixAmount(entry)}><Pencil size={15} /></Button> : null}
                   {isAdmin && entry.status !== 'void' && !(entry.type === 'receipt' && entry.status === 'allocated') ? <Button variant="secondary" aria-label="Tühista kirje" title="Tühista kirje" disabled={busy === `void-${entry.id}`} onClick={() => voidEntry(entry)}><XCircle size={15} /></Button> : null}
                 </span>
               </div>

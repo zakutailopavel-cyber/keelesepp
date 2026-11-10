@@ -24,8 +24,29 @@ export function normalizeRevenuePlan(id, data = {}) {
     // billing per subject (owner 2026-11-06): { "Inglise keel": { billingMode, weeklyLessons, chargeNoShow } }, a
     // missing field = the card's value (finance/subjectBilling.js)
     subjectBilling: subjectBillingOf(data.subjectBilling),
+    cashSubjects: cashSubjectsOf(data.cashSubjects),
     active: data.active !== false,
   };
+}
+
+// „Maksab sularahas” (owner 2026-11-11): the subjects a card pays in cash at the lesson, ["*"] = every subject
+export function cashSubjectsOf(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map((item) => clean(item).replace(/\s+/g, ' ').slice(0, 80)).filter(Boolean))].slice(0, 9);
+}
+
+const sameName = (left, right) => clean(left).toLocaleLowerCase('et') === clean(right).toLocaleLowerCase('et');
+// the card's subjects that pay in cash, as the student card's form shows them (stored "*" = every subject)
+export function cashSubjectsOfPlan(plan, subjects = []) {
+  const stored = Array.isArray(plan?.cashSubjects) ? plan.cashSubjects : [];
+  if (stored.includes('*')) return [...subjects];
+  return subjects.filter((subject) => stored.some((name) => sameName(name, subject)));
+}
+// form → stored: a card with one subject → ["*"] (its lessons whatever their subject name), several → the names
+export function storedCashSubjects(chosen = [], subjects = []) {
+  const on = subjects.filter((subject) => chosen.includes(subject));
+  if (!on.length) return [];
+  return subjects.length === 1 ? ['*'] : on;
 }
 
 // the price of each further subject of the card (owner 2026-10-20): { "Matemaatika": { lessonPriceCents, lessonMinutes } };
@@ -193,6 +214,8 @@ export const revenuePlansService = {
       // written only when the form sends it (a card with own billing for a subject, or one that had it): a plan
       // without it bills every subject by the card's values, and saves keep working before the rules know the field
       ...(values.subjectBilling ? { subjectBilling: perSubject.billing } : {}),
+      // „Maksab sularahas” (owner 2026-11-11): ["*"] or subject names; the server reads it (functions/cash-core.js)
+      ...(Array.isArray(values.cashSubjects) ? { cashSubjects: cashSubjectsOf(values.cashSubjects) } : {}),
       ...terms,
     };
     // activityLog gets only that the plan changed — no price, rate, discount or terms (finance.* entries are read by

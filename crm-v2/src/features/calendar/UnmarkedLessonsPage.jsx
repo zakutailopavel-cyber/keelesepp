@@ -12,9 +12,8 @@ import { useEntityChanged } from '../../components/entityDrawer/useEntityChanged
 import QuickMarkButtons, { MarkUndoToast } from './QuickMarkButtons.jsx';
 import { MARK_LABELS, useMarkUndo } from './quickMark.js';
 import { financeApi } from '../../services/firebase/financeApi.js';
-import LessonCashButton from '../cash/LessonCashButton.jsx';
-import { canMarkLessonCash, lessonCashLessonId } from '../cash/lessonCash.js';
-import { useLessonCashMarks } from '../cash/useLessonCashMarks.js';
+import { canMarkLessonCash, euroShort, toimusUndo } from '../cash/lessonCash.js';
+import { useLessonCash } from '../cash/useLessonCashMarks.js';
 import './unmarkedLessons.css';
 
 const dayLabel = (iso) => new Intl.DateTimeFormat('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' }).format(new Date(`${iso}T12:00:00`));
@@ -61,8 +60,9 @@ function adminGroups(items = []) {
 export default function UnmarkedLessonsPage({ repository = unmarkedLessonsService, today = toIsoDate(), cashApi = financeApi }) {
   const { user } = useAuth();
   const isAdmin = Boolean(user?.roles?.includes(ROLES.ADMIN));
-  // „Makstud sularahas” (owner 2026-11-10): the lesson's own teacher (or an admin) marks cash taken for it
-  const [cashMarks, setCashMark] = useLessonCashMarks(cashApi, Boolean(cashApi));
+  // cash at the lesson (owner 2026-11-11): one flow with „Toimus” — a „Maksab sularahas” card's lesson is marked held
+  // and paid in one tap; any other lesson's undo strip offers „Maksis sularahas”
+  const cash = useLessonCash(cashApi, Boolean(cashApi));
   const [searchParams, setSearchParams] = useSearchParams();
   const older = isAdmin && searchParams.get('vanemad') === '1';
   const [state, setState] = useState({ loading: true, error: null, data: null, evidence: false });
@@ -127,11 +127,23 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
     setError('');
     try {
       const record = await markOne(item, status);
+      const unmark = async () => {
+        await repository.unmark(record, user, { recurring: item.recurring });
+        setDone((current) => { const next = new Map(current); next.delete(item.occurrenceId); return next; });
+      };
+      const cashable = cashApi && status === 'Toimunud' && canMarkLessonCash(item, { uid: user?.uid, isAdmin });
+      // a „Maksab sularahas” card: the same tap also records the cash (the server's amount)
+      let paidCents = 0;
+      if (cashable && cash.priceFor(item) > 0) {
+        try {
+          paidCents = await cash.record(item);
+          setDone((current) => new Map(current).set(item.occurrenceId, `${label(item, status)} · makstud sularahas ${euroShort(paidCents)}`));
+        } catch (problem) {
+          setError(`${item.studentName || 'Õpilane'} ${dayLabel(item.occurrenceDate)}: tund on märgitud, sularaha jäi märkimata — ${actionError(problem, 'proovi „Maksis sularahas”.')}`);
+        }
+      }
       if (record?.id && repository.unmark) {
-        setUndo({ label: label(item, status), run: async () => {
-          await repository.unmark(record, user, { recurring: item.recurring });
-          setDone((current) => { const next = new Map(current); next.delete(item.occurrenceId); return next; });
-        } });
+        setUndo(toimusUndo({ item, label: label(item, status), unmark, cash, paidCents, offerCash: Boolean(cashable) }));
       }
     } catch (problem) {
       setError(`${item.studentName || 'Õpilane'} ${dayLabel(item.occurrenceDate)}: ${actionError(problem, 'Märkimine ebaõnnestus.')}`);
@@ -253,11 +265,8 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
               </div> : null}
               <div className="unmarked-row__actions">
                 {item.kind === 'duplicate' ? <Button variant="danger" className="unmarked-row__cancel" loading={isBusy(item, 'cancel')} disabled={anyBusy} onClick={() => cancel(item)}>Tühista</Button> : null}
-                <QuickMarkButtons item={item} busy={rowBusy(item)} disabled={anyBusy} onMark={mark} />
-                {cashApi && item.kind !== 'duplicate' && canMarkLessonCash(item, { uid: user?.uid, isAdmin })
-                  ? <LessonCashButton item={item} api={cashApi} mark={cashMarks[lessonCashLessonId(item)] || null} onChanged={setCashMark} disabled={anyBusy}
-                    markFirst={(lesson) => repository.mark(lesson, user, 'Toimunud')}
-                    onDone={(lesson, cents) => setDone((current) => new Map(current).set(lesson.occurrenceId, `${label(lesson, 'Toimunud')}, makstud sularahas ${(cents / 100).toFixed(2).replace('.', ',')} €`))} /> : null}
+                <QuickMarkButtons item={item} busy={rowBusy(item)} disabled={anyBusy} onMark={mark}
+                  cashCents={cashApi && item.kind !== 'duplicate' && canMarkLessonCash(item, { uid: user?.uid, isAdmin }) ? cash.priceFor(item) : 0} />
                 <Link to={lessonPath(item)}>Ava</Link>
               </div>
             </li>)}
@@ -307,6 +316,6 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
         </select>
       </> : null}
     </Modal>
-    <MarkUndoToast undo={undo} onClose={() => setUndo(null)} onError={(problem) => setError(actionError(problem, 'Tagasivõtmine ebaõnnestus.'))} />
+    <MarkUndoToast undo={undo} onClose={() => setUndo(null)} onReplace={setUndo} onError={(problem) => setError(actionError(problem, 'Tagasivõtmine ebaõnnestus.'))} />
   </>;
 }

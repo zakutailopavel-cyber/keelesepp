@@ -141,3 +141,72 @@ test("an invoice of the lesson's month made before the cash: named on the receip
   assert.deepEqual(flag, { receiptId: "lessoncash_x", amountCents: 2500, at: lessonNow, byUid: "t1", invoicedBefore: ["KS-2026-120", "KS-2026-121"] });
   assert.deepEqual(lessonCashEntry(lessonArgs()).invoicedBefore, []);
 });
+
+// ---- owner 2026-11-11: „Maksab sularahas” card setting, server-side amount; review D1 ----
+const { cashSubjectsOf, lessonCashPayer, lessonCashPriceCents, lessonSettledRefusal, paysCashFor } = require("./cash-core");
+const { lessonIsBillable, buildLessonInvoiceLines, selectBillableLessons } = require("./finance-core");
+const { lessonTakesToken } = require("./lesson-tokens-core");
+
+test("cash payer: the card's cash subjects; '*' = every subject; names match ignoring case", () => {
+  assert.deepEqual(cashSubjectsOf(["Eesti keel", " eesti keel ", "", 5, "Eesti keel"]), ["Eesti keel", "eesti keel", "5"]);
+  assert.deepEqual(cashSubjectsOf("Eesti keel"), []);
+  assert.equal(paysCashFor({ cashSubjects: ["*"] }, "Matemaatika"), true);
+  assert.equal(paysCashFor({ cashSubjects: ["Inglise keel"] }, "inglise Keel"), true);
+  assert.equal(paysCashFor({ cashSubjects: ["Inglise keel"] }, "Eesti keel"), false);
+  assert.equal(paysCashFor({}, "Eesti keel"), false);
+  assert.equal(paysCashFor(null, "Eesti keel"), false);
+});
+
+test("cash amount: the subject's own price or the card's, scaled to the lesson's length; no price = 0", () => {
+  const plan = { lessonPriceCents: 2500, lessonMinutes: 60, subjectPrices: { Matemaatika: { lessonPriceCents: 3000, lessonMinutes: 45 } } };
+  assert.equal(lessonCashPriceCents(plan, "Eesti keel", 60), 2500);
+  assert.equal(lessonCashPriceCents(plan, "Eesti keel", 90), 3750);
+  assert.equal(lessonCashPriceCents(plan, "Eesti keel", 0), 2500);
+  assert.equal(lessonCashPriceCents(plan, "matemaatika", 45), 3000);
+  assert.equal(lessonCashPriceCents(plan, "Matemaatika", 90), 6000);
+  assert.equal(lessonCashPriceCents(null, "Eesti keel", 60), 0);
+  assert.equal(lessonCashPriceCents({ lessonMinutes: 60 }, "Eesti keel", 60), 0);
+  const payer = lessonCashPayer({ ...plan, cashSubjects: ["Matemaatika"] }, "Eesti keel");
+  assert.deepEqual(payer, { all: false, subjects: ["Matemaatika"], mainSubject: "Eesti keel", main: { unitCents: 2500, minutes: 60 }, prices: { Matemaatika: { unitCents: 3000, minutes: 45 } } });
+  assert.equal(lessonCashPayer(plan, "Eesti keel"), null);
+  assert.equal(lessonCashPayer({ ...plan, cashSubjects: ["*"] }, "Eesti keel").all, true);
+});
+
+test("lesson cash: the server's amount wins over a typed one; no price on the card = refused", () => {
+  assert.equal(lessonCashEntry(lessonArgs({ amountCents: 3750 })).amountCents, 3750);
+  assert.equal(lessonCashEntry(lessonArgs({ values: { ...lessonValues, amount: "999" }, amountCents: 2500 })).amountCents, 2500);
+  assert.throws(() => lessonCashEntry(lessonArgs({ amountCents: 0 })), /tunnihinda/);
+});
+
+test("D1: a lesson already invoiced, paid directly, free or paid by the school is not paid in cash again", () => {
+  const held = { status: "Toimunud", teacherUid: "t1" };
+  assert.equal(lessonSettledRefusal(held), "");
+  assert.equal(lessonSettledRefusal({ ...held, packageConsumptionStatus: "consumed", packageAccountingSource: "package_ledger_v1" }), "");
+  assert.match(lessonSettledRefusal({ ...held, invoiceId: "inv1" }), /arvel/);
+  assert.match(lessonSettledRefusal({ ...held, billingStatus: "invoiced" }), /arvel/);
+  assert.match(lessonSettledRefusal({ ...held, directPaymentId: "p1" }), /makstud/);
+  assert.match(lessonSettledRefusal({ ...held, billingStatus: "school_covered" }), /kooli kulul/);
+  assert.throws(() => lessonCashEntry(lessonArgs({ lesson: { ...held, invoiceId: "inv1" }, amountCents: 2500 })), /arvel/);
+});
+
+test("D1: a cash-paid lesson is not billable (per-lesson invoice, bank payment, advance); undone → billable again", () => {
+  const held = { id: "l1", date: "2026-11-09", status: "Toimunud", accountingSource: "crm_v2", studentId: "s1" };
+  const paid = { ...held, cashPaid: { receiptId: "lessoncash_l1", amountCents: 2500 } };
+  assert.equal(lessonIsBillable(held), true);
+  assert.equal(lessonIsBillable(paid), false);
+  assert.equal(lessonIsBillable({ ...paid, billingStatus: "late_cancel_billable" }), false);
+  // the per-lesson invoice: selection skips it, building lines refuses it
+  assert.deepEqual(selectBillableLessons([held, { ...paid, id: "l2" }]).map(lesson => lesson.id), ["l1"]);
+  assert.throws(() => buildLessonInvoiceLines([paid], 25), /not completed/);
+  // undo: the flag is removed → billable again
+  const { cashPaid: _cashPaid, ...undone } = paid;
+  assert.equal(lessonIsBillable(undone), true);
+});
+
+test("D1: a cash-paid lesson takes no package credit (held or charged no-show); undone → takes it again", () => {
+  const flag = { cashPaid: { receiptId: "lessoncash_l1", amountCents: 2500 } };
+  assert.equal(lessonTakesToken({ status: "Toimunud", ...flag }), false);
+  assert.equal(lessonTakesToken({ status: "Puudus_eta", ...flag }, { chargeNoShow: true }), false);
+  assert.equal(lessonTakesToken({ status: "Toimunud" }), true);
+  assert.equal(lessonTakesToken({ status: "Toimunud", cashPaid: {} }), true);
+});

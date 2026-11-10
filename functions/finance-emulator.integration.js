@@ -3926,25 +3926,39 @@ test("cash box: a teacher takes cash, hands it over, an admin links it to the in
     }),
   ]);
 
-  // a teacher of another student cannot record cash for this one
-  const foreign = await financeRequest(otherToken, "/cash/receipts", { studentId: "cash-student", amount: 60, receivedAt: "2026-10-15", requestId: "emulator_cash_foreign_0001" });
-  assert.equal(foreign.status, 403, JSON.stringify(foreign.body));
+  // owner 2026-11-11: Kassa is the admin's (and the accountant's, read only) — a teacher neither reads nor writes it
+  const teacherReceipt = await financeRequest(teacherToken, "/cash/receipts", { studentId: "cash-student", amount: 60, receivedAt: "2026-10-15", requestId: "emulator_cash_foreign_0001" });
+  assert.equal(teacherReceipt.status, 403, JSON.stringify(teacherReceipt.body));
+  const teacherSummary = await financeRequest(teacherToken, "/cash/summary", {});
+  assert.equal(teacherSummary.status, 403, JSON.stringify(teacherSummary.body));
+  const teacherHandover = await financeRequest(teacherToken, "/cash/handover", { toUid: adminUid, amount: 1, requestId: "emulator_cash_handover_teacher" });
+  assert.equal(teacherHandover.status, 403, JSON.stringify(teacherHandover.body));
 
-  const receipt = await financeRequest(teacherToken, "/cash/receipts", { studentId: "cash-student", amount: 60, receivedAt: "2026-10-15", note: "oktoober", requestId: "emulator_cash_receipt_0001" });
+  // the admin records cash the teacher took
+  const receipt = await financeRequest(adminToken, "/cash/receipts", { studentId: "cash-student", amount: 60, receivedAt: "2026-10-15", note: "oktoober", holderUid: teacherUid, requestId: "emulator_cash_receipt_0001" });
   assert.equal(receipt.status, 201, JSON.stringify(receipt.body));
-  const again = await financeRequest(teacherToken, "/cash/receipts", { studentId: "cash-student", amount: 60, receivedAt: "2026-10-15", requestId: "emulator_cash_receipt_0001" });
+  const again = await financeRequest(adminToken, "/cash/receipts", { studentId: "cash-student", amount: 60, receivedAt: "2026-10-15", holderUid: teacherUid, requestId: "emulator_cash_receipt_0001" });
   assert.equal(again.status, 200);
 
-  // the teacher sees only their part; cannot hand over more than they hold
-  let mine = await financeRequest(teacherToken, "/cash/summary", {});
-  assert.equal(mine.status, 200, JSON.stringify(mine.body));
-  assert.equal(mine.body.balances[0].cents, 6000);
-  const tooMuch = await financeRequest(teacherToken, "/cash/handover", { toUid: adminUid, amount: 70, requestId: "emulator_cash_handover_0000" });
+  // nobody hands over more than the person holds; „Sain kätte” = the teacher's cash to the admin
+  let summary = await financeRequest(adminToken, "/cash/summary", {});
+  assert.equal(summary.status, 200, JSON.stringify(summary.body));
+  assert.equal(summary.body.balances.find(row => row.uid === teacherUid).cents, 6000);
+  const tooMuch = await financeRequest(adminToken, "/cash/handover", { fromUid: teacherUid, toUid: adminUid, amount: 70, requestId: "emulator_cash_handover_0000" });
   assert.equal(tooMuch.status, 409, JSON.stringify(tooMuch.body));
-  const handover = await financeRequest(teacherToken, "/cash/handover", { toUid: adminUid, amount: 60, handedAt: "2026-10-16", requestId: "emulator_cash_handover_0001" });
+  const handover = await financeRequest(adminToken, "/cash/handover", { fromUid: teacherUid, toUid: adminUid, amount: 60, handedAt: "2026-10-16", requestId: "emulator_cash_handover_0001" });
   assert.equal(handover.status, 201, JSON.stringify(handover.body));
-  mine = await financeRequest(teacherToken, "/cash/summary", {});
-  assert.equal(mine.body.balances[0].cents, 0);
+  summary = await financeRequest(adminToken, "/cash/summary", {});
+  assert.equal(summary.body.balances.find(row => row.uid === teacherUid), undefined);
+  // the accountant (finance role) sees Kassa but writes nothing
+  const financeToken = await createUserToken("cash-finance@example.com");
+  await db.collection("users").doc(tokenUid(financeToken)).set({ role: "finance", displayName: "Cash Finance", email: "cash-finance@example.com" });
+  const financeSummary = await financeRequest(financeToken, "/cash/summary", {});
+  assert.equal(financeSummary.status, 200, JSON.stringify(financeSummary.body));
+  assert.equal(financeSummary.body.isAdmin, false);
+  assert.ok(financeSummary.body.entries.some(entry => entry.id === "emulator_cash_receipt_0001"));
+  const financeReceipt = await financeRequest(financeToken, "/cash/receipts", { studentId: "cash-student", amount: 1, requestId: "emulator_cash_finance_0001" });
+  assert.equal(financeReceipt.status, 403, JSON.stringify(financeReceipt.body));
 
   // the teacher cannot link money to an invoice; the admin can
   const teacherAllocate = await financeRequest(teacherToken, "/cash/allocate", { receiptId: "emulator_cash_receipt_0001", invoiceId: "cash-invoice" });
@@ -4021,7 +4035,8 @@ test("„Makstud sularahas”: a teacher marks own lesson paid in cash, undoes i
   // that month's monthly invoice already exists: it is named, never edited
   await db.collection("invoices").doc("lessoncash-before").set({ num: "KS-LC-000", planMonth: lessonDay.slice(0, 7), date: lessonDay, amountCents: 7200, amount: 72, balanceDueCents: 7200, balanceDue: 72, status: "Ootel", studentId: "lessoncash-student" });
 
-  const marked = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, amount: "36", note: "isa maksis" });
+  // owner 2026-11-11: the amount is the server's (the card's price for 90 min); a typed amount is ignored
+  const marked = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, amount: "1", note: "isa maksis" });
   assert.equal(marked.status, 201, JSON.stringify(marked.body));
   const receiptId = marked.body.entry.id;
   let receipt = (await db.collection("cashLedger").doc(receiptId).get()).data();
@@ -4089,9 +4104,11 @@ test("„Makstud sularahas”: a teacher marks own lesson paid in cash, undoes i
   assert.equal(taken.status, 201, JSON.stringify(taken.body));
   const late = await financeRequest(teacherToken, "/cash/lesson/undo", lesson);
   assert.equal(late.status, 409, JSON.stringify(late.body));
+  // owner 2026-11-11: the teacher never sees Kassa totals
   const teacherSummary = await financeRequest(teacherToken, "/cash/summary", {});
-  assert.equal(teacherSummary.body.balances.length, 1);
-  assert.equal(teacherSummary.body.balances[0].cents, 0);
+  assert.equal(teacherSummary.status, 403, JSON.stringify(teacherSummary.body));
+  const adminSummary = await financeRequest(adminToken, "/cash/summary", {});
+  assert.equal(adminSummary.body.balances.find(row => row.uid === teacherUid), undefined);
 
   // clients never write the ledger directly, a teacher not even their own receipt
   const teacherWrite = await firestoreDocumentRequest(teacherToken, "PATCH", `cashLedger/${receiptId}?updateMask.fieldPaths=status`, { fields: { status: { stringValue: "void" } } });
@@ -4104,6 +4121,116 @@ test("„Makstud sularahas”: a teacher marks own lesson paid in cash, undoes i
   assert.equal(adminVoid.status, 200, JSON.stringify(adminVoid.body));
   assert.equal((await lessonRef.get()).data().cashPaid, undefined);
   assert.ok((await db.collection("financialAudit").doc(`cashbox_void_${receiptId}_r2`).get()).exists);
+});
+
+test("„Toimus · makstud sularahas” (owner 2026-11-11): cash payer card, server amount, D1 in every billing mode", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const adminUid = tokenUid(adminToken);
+  const teacherToken = await createUserToken("cash2-teacher@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  const otherToken = await createUserToken("cash2-other@example.com");
+  const otherUid = tokenUid(otherToken);
+  const day = (offset) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Tallinn" }).format(new Date(Date.now() + offset * 86400000));
+  const lessonDay = day(-1);
+  await Promise.all([
+    db.collection("users").doc(adminUid).set({ role: "admin", roles: ["admin"], displayName: "Pavel Admin", email: "zakutailo.pavel@gmail.com" }, { merge: true }),
+    db.collection("users").doc(teacherUid).set({ role: "teacher", displayName: "Cash2 Teacher", email: "cash2-teacher@example.com" }),
+    db.collection("users").doc(otherUid).set({ role: "teacher", displayName: "Cash2 Other", email: "cash2-other@example.com" }),
+  ]);
+  const waitFor = async (read, check, label) => {
+    for (let i = 0; i < 60; i += 1) {
+      const value = await read();
+      if (check(value)) return value;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`timed out: ${label}`);
+  };
+  // one card per billing mode, a 60-minute lesson yesterday taught by the teacher
+  const card = async (studentId, billingMode, extra = {}) => {
+    await Promise.all([
+      db.collection("students").doc(studentId).set({ name: `Sula ${billingMode}`, subject: "Eesti keel", parentName: "Vanem", teacherUid, active: true }),
+      db.collection("studentRevenuePlans").doc(studentId).set({ studentId, studentName: `Sula ${billingMode}`, lessonPriceCents: 2500, lessonMinutes: 60, weeklyLessons: 1, billingMode, currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin", ...extra }),
+      db.collection("schedule").doc(`${studentId}-entry`).set({ date: lessonDay, studentId, studentName: `Sula ${billingMode}`, teacherUid, teacher: "Cash2 Teacher", subject: "Eesti keel", time: "15:00", duration: 60, status: "Planeeritud" }),
+    ]);
+    const key = { scheduleId: `${studentId}-entry`, studentId, occurrenceDate: lessonDay };
+    const ref = db.collection("lessons").doc(`schedule_${studentId}-entry_${lessonDay}_${studentId}`);
+    const hold = () => ref.set({ scheduleId: key.scheduleId, occurrenceDate: lessonDay, date: lessonDay, studentId, studentName: `Sula ${billingMode}`, teacherUid, teacher: "Cash2 Teacher", subject: "Eesti keel", duration: 60, status: "Toimunud", billingStatus: "unbilled", accountingSource: "crm_v2", createdAt: new Date().toISOString() });
+    return { key, ref, hold };
+  };
+
+  // the card setting „Maksab sularahas” → the teacher's screens learn it (only for their own students) with the price
+  const advance = await card("cash2-advance", "advance", { cashSubjects: ["*"] });
+  const mine = await financeRequest(teacherToken, "/cash/lesson/mine", {});
+  assert.equal(mine.status, 200, JSON.stringify(mine.body));
+  assert.equal(mine.body.payers["cash2-advance"].all, true);
+  assert.deepEqual(mine.body.payers["cash2-advance"].main, { unitCents: 2500, minutes: 60 });
+  const theirs = await financeRequest(otherToken, "/cash/lesson/mine", {});
+  assert.equal(theirs.body.payers["cash2-advance"], undefined);
+  const info = await financeRequest(teacherToken, "/cash/lesson/info", advance.key);
+  assert.equal(info.body.paysCash, true);
+  assert.equal(info.body.priceCents, 2500);
+
+  // monthly in advance: Toimus + cash in one flow; the lesson leaves billing; a typed amount is ignored
+  await advance.hold();
+  const paid = await financeRequest(teacherToken, "/cash/lesson", { ...advance.key, amount: "99" });
+  assert.equal(paid.status, 201, JSON.stringify(paid.body));
+  assert.equal(paid.body.entry.amountCents, 2500);
+  assert.equal((await advance.ref.get()).data().cashPaid.amountCents, 2500);
+  const perLesson = await financeRequest(adminToken, "/invoices/from-lessons", { studentId: "cash2-advance", lessonIds: [advance.ref.id], due: day(10), requestId: "emulator_cash2_invoice_advance" });
+  assert.equal(perLesson.status, 409, JSON.stringify(perLesson.body));
+  // Kassa: only the admin corrects the amount; the receipt and the lesson flag change together
+  const teacherFix = await financeRequest(teacherToken, "/cash/lesson/amount", { entryId: paid.body.entry.id, amount: "20" });
+  assert.equal(teacherFix.status, 403, JSON.stringify(teacherFix.body));
+  const fixed = await financeRequest(adminToken, "/cash/lesson/amount", { entryId: paid.body.entry.id, amount: "20", reason: "soodustus" });
+  assert.equal(fixed.status, 200, JSON.stringify(fixed.body));
+  assert.equal((await db.collection("cashLedger").doc(paid.body.entry.id).get()).data().amountCents, 2000);
+  assert.equal((await advance.ref.get()).data().cashPaid.amountCents, 2000);
+  // undo (the toast): billable again
+  const undone = await financeRequest(teacherToken, "/cash/lesson/undo", advance.key);
+  assert.equal(undone.status, 200, JSON.stringify(undone.body));
+  assert.equal((await advance.ref.get()).data().cashPaid, undefined);
+
+  // monthly after the lessons: cash-paid → no per-lesson invoice, no bank payment; undone → billable, invoiced; then
+  // an invoiced lesson cannot be paid in cash any more
+  const actual = await card("cash2-actual", "actual");
+  await actual.hold();
+  const rare = await financeRequest(teacherToken, "/cash/lesson", actual.key);
+  assert.equal(rare.status, 201, JSON.stringify(rare.body));
+  assert.equal(rare.body.entry.amountCents, 2500);
+  const bank = await financeRequest(adminToken, "/bank-transactions/allocate", {
+    externalId: "CASH2-BANK-001", paidAt: lessonDay, payerName: "Vanem", reference: "tund", amount: 25, allocations: [],
+    lessonAllocations: [{ lessonId: actual.ref.id, amount: 25 }], requestId: "emulator_cash2_bank_0001",
+  });
+  assert.equal(bank.status, 409, JSON.stringify(bank.body));
+  const refused = await financeRequest(adminToken, "/invoices/from-lessons", { studentId: "cash2-actual", lessonIds: [actual.ref.id], due: day(10), requestId: "emulator_cash2_invoice_actual_0" });
+  assert.equal(refused.status, 409, JSON.stringify(refused.body));
+  assert.equal((await financeRequest(teacherToken, "/cash/lesson/undo", actual.key)).status, 200);
+  const invoiced = await financeRequest(adminToken, "/invoices/from-lessons", { studentId: "cash2-actual", lessonIds: [actual.ref.id], due: day(10), requestId: "emulator_cash2_invoice_actual_1" });
+  assert.equal(invoiced.status, 201, JSON.stringify(invoiced.body));
+  const afterInvoice = await financeRequest(teacherToken, "/cash/lesson", actual.key);
+  assert.equal(afterInvoice.status, 409, JSON.stringify(afterInvoice.body));
+
+  // lesson package: the credit the held lesson took comes back when it is paid in cash, and is taken again on undo
+  const pack = await card("cash2-package", "package", { cashSubjects: ["Eesti keel"] });
+  const post = (fn, path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/${fn}${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const created = await post("manualInvoiceApi", "/create-tokens", { studentId: "cash2-package", lessons: 4, due: day(10), requestId: "cash2-tokens-0001" });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  await db.collection("invoices").doc("cash2-tokens-0001").set({ status: "Makstud", paymentStatus: "paid", paidAmountCents: 10000, balanceDueCents: 0 }, { merge: true });
+  assert.equal((await post("financeApi", "/invoices/tokens/credit", { invoiceId: "cash2-tokens-0001" })).status, 201);
+  const balance = async () => (await db.collection("studentPackages").doc("tokens_cash2-tokens-0001").get()).data()?.balanceCredits;
+  assert.equal(await balance(), 4);
+  await pack.hold();
+  await waitFor(balance, (value) => value === 3, "held package lesson consumed");
+  const packPaid = await financeRequest(teacherToken, "/cash/lesson", pack.key);
+  assert.equal(packPaid.status, 201, JSON.stringify(packPaid.body));
+  await waitFor(balance, (value) => value === 4, "cash-paid lesson gives the credit back");
+  assert.equal((await financeRequest(teacherToken, "/cash/lesson/undo", pack.key)).status, 200);
+  await waitFor(balance, (value) => value === 3, "undone cash takes the credit again");
 });
 
 test("„Kooli kulul”: an admin marks a package lesson as paid by the school and the credit comes back", async () => {

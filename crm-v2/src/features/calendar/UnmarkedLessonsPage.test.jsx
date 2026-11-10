@@ -44,7 +44,7 @@ describe('UnmarkedLessonsPage (phone-first, owner 2026-11-09)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Toimus: Ott' }));
     await waitFor(() => expect(document.querySelector('.qm-toast')?.textContent).toMatch(/Ott .*: Toimus/));
     await act(async () => {});
-    await act(async () => { vi.advanceTimersByTime(5100); });
+    await act(async () => { vi.advanceTimersByTime(8100); }); // the Toimus toast with „Maksis sularahas” stays 8 s (owner 2026-11-11)
     expect(document.querySelector('.qm-toast')).toBeNull();
     vi.useRealTimers();
   });
@@ -184,32 +184,48 @@ describe('UnmarkedLessonsPage (phone-first, owner 2026-11-09)', () => {
     expect(screen.queryByText('Otsin märkimata tunde…')).not.toBeInTheDocument();
   });
 
-  it('„Makstud sularahas” (owner 2026-11-10): the lesson’s own teacher records cash and the lesson is marked held', async () => {
+  it('„Maksab sularahas” card (owner 2026-11-11): one tap marks the lesson held and records the cash; undo reverts both', async () => {
     const repository = repo();
     const cashApi = {
-      lessonCashMine: vi.fn().mockResolvedValue({ marks: {} }),
-      lessonCashInfo: vi.fn().mockResolvedValue({ priceCents: 2500, mark: null }),
+      lessonCashMine: vi.fn().mockResolvedValue({ marks: {}, payers: { s1: { all: true, subjects: [], mainSubject: 'Eesti keel', main: { unitCents: 2500, minutes: 60 }, prices: {} } } }),
+      recordLessonCash: vi.fn().mockResolvedValue({ entry: { id: 'lessoncash_c', amountCents: 2500, status: 'open' } }),
+      undoLessonCash: vi.fn().mockResolvedValue({}),
+    };
+    const auth = { user: { uid: 't1', displayName: 'Anna', roles: ['teacher'] }, signOut: vi.fn() };
+    render(<AuthContext.Provider value={auth}><MemoryRouter><UnmarkedLessonsPage repository={repository} cashApi={cashApi} today="2026-11-05" /></MemoryRouter></AuthContext.Provider>);
+    // no separate cash buttons any more
+    await screen.findByText(/Ott/);
+    expect(screen.queryByRole('button', { name: /^Makstud sularahas/ })).not.toBeInTheDocument();
+    const button = await screen.findByRole('button', { name: 'Toimus · makstud sularahas 25 €: Ott' });
+    fireEvent.click(button);
+    await waitFor(() => expect(cashApi.recordLessonCash).toHaveBeenCalledWith(items[0]));
+    expect(repository.mark).toHaveBeenCalledWith(items[0], expect.objectContaining({ uid: 't1' }), 'Toimunud');
+    expect((await screen.findAllByText(/Ott .*: Toimus · makstud sularahas 25 €/)).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button', { name: /Võta tagasi/ }));
+    await waitFor(() => expect(repository.unmark).toHaveBeenCalled());
+    expect(cashApi.undoLessonCash).toHaveBeenCalledWith(items[0]);
+    expect(cashApi.undoLessonCash.mock.invocationCallOrder[0]).toBeLessThan(repository.unmark.mock.invocationCallOrder[0]);
+  });
+
+  it('other cards: plain „Toimus ✓”, then the undo strip offers „Maksis sularahas” (same server call)', async () => {
+    const repository = repo();
+    const cashApi = {
+      lessonCashMine: vi.fn().mockResolvedValue({ marks: {}, payers: {} }),
       recordLessonCash: vi.fn().mockResolvedValue({ entry: { id: 'lessoncash_c', amountCents: 2500, status: 'open' } }),
     };
     const auth = { user: { uid: 't1', displayName: 'Anna', roles: ['teacher'] }, signOut: vi.fn() };
     render(<AuthContext.Provider value={auth}><MemoryRouter><UnmarkedLessonsPage repository={repository} cashApi={cashApi} today="2026-11-05" /></MemoryRouter></AuthContext.Provider>);
-    await screen.findByText(/Ott/);
-    // not on the probable duplicate
-    expect(screen.queryByRole('button', { name: 'Makstud sularahas: Timur' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Makstud sularahas: Ott' }));
-    await waitFor(() => expect(screen.getByLabelText('Summa (€)')).toHaveValue('25,00'));
-    fireEvent.click(screen.getByRole('button', { name: 'Toimus ja makstud' }));
-    await waitFor(() => expect(cashApi.recordLessonCash).toHaveBeenCalledWith(items[0], { amount: '25.00', note: '' }));
-    await waitFor(() => expect(repository.mark).toHaveBeenCalledWith(items[0], expect.objectContaining({ uid: 't1' }), 'Toimunud'));
-    // the row leaves the list with what was done
-    await waitFor(() => expect(screen.getByText(/Ott .*: Toimus, makstud sularahas 25,00 €/)).toBeInTheDocument());
+    fireEvent.click(await screen.findByRole('button', { name: 'Toimus: Ott' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Maksis sularahas/ }));
+    await waitFor(() => expect(cashApi.recordLessonCash).toHaveBeenCalledWith(items[0]));
+    expect(await screen.findByText(/Toimus · makstud sularahas 25 €/)).toBeInTheDocument();
   });
 
-  it('another teacher’s lesson gets no cash button', async () => {
-    const cashApi = { lessonCashMine: vi.fn().mockResolvedValue({ marks: {} }) };
+  it('another teacher’s lesson: no cash in the tap or the strip', async () => {
+    const cashApi = { lessonCashMine: vi.fn().mockResolvedValue({ marks: {}, payers: { s1: { all: true, subjects: [], main: { unitCents: 2500, minutes: 60 }, prices: {} } } }) };
     const auth = { user: { uid: 't9', displayName: 'Muu', roles: ['teacher'] }, signOut: vi.fn() };
     render(<AuthContext.Provider value={auth}><MemoryRouter><UnmarkedLessonsPage repository={repo()} cashApi={cashApi} today="2026-11-05" /></MemoryRouter></AuthContext.Provider>);
     await screen.findByText(/Ott/);
-    expect(screen.queryByRole('button', { name: /Makstud sularahas/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /sularahas/ })).not.toBeInTheDocument();
   });
 });
