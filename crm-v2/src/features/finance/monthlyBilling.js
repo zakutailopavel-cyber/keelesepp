@@ -43,7 +43,13 @@ export function defaultDue(month, mode) {
 // lesson length in plan units (a 90 min lesson on a 60 min price = 1.5)
 const unitsOf = (minutes, plan) => (Number(minutes) || plan.lessonMinutes || 60) / (plan.lessonMinutes || 60);
 
+// „Makstud sularahas” (owner 2026-11-10): the teacher took cash for this lesson — the server's flag on the lesson
+// record (functions cash-core lessonCashFlag; only financeApi writes it). Undoing the cash mark removes it.
+export const isCashPaid = (lesson = {}) => Boolean(lesson.cashPaid && lesson.cashPaid.receiptId);
+
 export function isChargeable(lesson, plan) {
+  // paid in cash: held, the teacher's hour counts, never charged on an invoice (like a lesson not held)
+  if (isCashPaid(lesson)) return false;
   // „Kooli kulul”: held, the teacher's hour counts, the student is not charged (owner 2026-10-19)
   if (lesson.status === 'Toimunud') return lesson.billingStatus !== 'school_covered';
   if (lesson.status === 'Puudus_eta') return plan.chargeNoShow !== false && !lesson.billingWaived;
@@ -109,10 +115,12 @@ function correctionFor({ student, plan, balance, previousLessons }) {
   // held beyond what was paid is charged; paid beyond what was held comes off, except lessons that may still be marked as held
   const units = balance.used >= balance.paid ? round2(balance.used - balance.paid) : Math.min(0, round2(balance.used + balance.expected - balance.paid));
   const notified = previousLessons.filter((lesson) => lesson.status === 'Puudus_p').length;
-  const waived = previousLessons.filter((lesson) => lesson.status === 'Puudus_eta' && !isChargeable(lesson, plan)).length;
-  const covered = previousLessons.filter((lesson) => lesson.status === 'Toimunud' && lesson.billingStatus === 'school_covered').length;
+  const cash = previousLessons.filter(isCashPaid).length;
+  const waived = previousLessons.filter((lesson) => lesson.status === 'Puudus_eta' && !isCashPaid(lesson) && !isChargeable(lesson, plan)).length;
+  const covered = previousLessons.filter((lesson) => lesson.status === 'Toimunud' && !isCashPaid(lesson) && lesson.billingStatus === 'school_covered').length;
   const parts = [];
   if (notified) parts.push(`${notified} ette teatatud puudumist`);
+  if (cash) parts.push(`${cash} makstud sularahas`);
   if (covered) parts.push(`${covered} kooli kulul`);
   if (waived) parts.push(`${waived} erandit`);
   if (units && !parts.length) parts.push(units < 0 ? 'tunde toimus vähem' : 'lisatunnid');

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import LessonCashButton from './LessonCashButton.jsx';
-import { amountCents, canMarkLessonCash, lessonCashLessonId } from './lessonCash.js';
+import { amountCents, canMarkLessonCash, lessonCashLessonId, lessonCashSubtitle } from './lessonCash.js';
 import { heldByOthers, isLessonCash, lessonLine, openReceipts } from './cashModel.js';
 
 // „Makstud sularahas” (owner 2026-11-10; test data only)
@@ -37,26 +37,51 @@ describe('lessonCash helpers', () => {
 });
 
 describe('LessonCashButton', () => {
-  it('opens with the lesson price, saves the cash and marks the lesson held', async () => {
+  it('opens with the lesson price; on an unmarked row it marks the lesson held first, then saves the cash', async () => {
+    const order = [];
     const api = {
       lessonCashInfo: vi.fn().mockResolvedValue({ priceCents: 3600, mark: null }),
-      recordLessonCash: vi.fn().mockResolvedValue({ entry: { id: 'lessoncash_x', amountCents: 3000, status: 'open', receivedAt: '2026-11-10' } }),
+      recordLessonCash: vi.fn(async () => { order.push('cash'); return { entry: { id: 'lessoncash_x', amountCents: 3000, status: 'open', receivedAt: '2026-11-10' } }; }),
     };
     const onChanged = vi.fn();
-    const alsoMark = vi.fn().mockResolvedValue({});
-    render(<LessonCashButton item={item} api={api} onChanged={onChanged} alsoMark={alsoMark} />);
+    const onDone = vi.fn();
+    const markFirst = vi.fn(async () => { order.push('mark'); return {}; });
+    render(<LessonCashButton item={item} api={api} onChanged={onChanged} markFirst={markFirst} onDone={onDone} />);
     fireEvent.click(screen.getByRole('button', { name: 'Makstud sularahas: Test Õpilane' }));
     const amount = await screen.findByLabelText('Summa (€)');
     await waitFor(() => expect(amount).toHaveValue('36,00'));
     expect(api.lessonCashInfo).toHaveBeenCalledWith(item);
     expect(screen.getByText('Tunni hind: 36,00 €')).toBeInTheDocument();
+    expect(screen.getByText('Tund märgitakse ka toimunuks.')).toBeInTheDocument();
+    expect(screen.getByText(/Seda tundi kuuarvele ei panda/)).toBeInTheDocument();
     fireEvent.change(amount, { target: { value: '30' } });
     fireEvent.change(screen.getByLabelText('Märkus (valikuline)'), { target: { value: 'ema maksis' } });
-    expect(screen.getByLabelText(/Tund toimus/)).toBeChecked();
-    fireEvent.click(screen.getByRole('button', { name: 'Märgi makstuks' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Toimus ja makstud' }));
     await waitFor(() => expect(api.recordLessonCash).toHaveBeenCalledWith(item, { amount: '30.00', note: 'ema maksis' }));
-    await waitFor(() => expect(alsoMark).toHaveBeenCalledWith(item, 'Toimunud'));
+    expect(markFirst).toHaveBeenCalledWith(item);
+    expect(order).toEqual(['mark', 'cash']);
     expect(onChanged).toHaveBeenCalledWith('schedule_sch-1_2026-11-09_stu-1', expect.objectContaining({ amountCents: 3000, canUndo: true }));
+    expect(onDone).toHaveBeenCalledWith(item, 3000);
+  });
+
+  it('a refused mark stops before the cash; the subtitle has no stray separator', async () => {
+    const api = { lessonCashInfo: vi.fn().mockResolvedValue({ priceCents: 2500 }), recordLessonCash: vi.fn() };
+    const markFirst = vi.fn().mockRejectedValue(new Error('Periood on suletud.'));
+    render(<LessonCashButton item={item} api={api} markFirst={markFirst} />);
+    fireEvent.click(screen.getByRole('button', { name: /Makstud sularahas/ }));
+    await waitFor(() => expect(screen.getByLabelText('Summa (€)')).toHaveValue('25,00'));
+    const subtitle = document.querySelector('.lcash__lesson span').textContent;
+    expect(subtitle).toMatch(/^\S.*kell 16:00$/);
+    expect(subtitle).not.toMatch(/^·|·\s*$/);
+    fireEvent.click(screen.getByRole('button', { name: 'Toimus ja makstud' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Periood on suletud.');
+    expect(api.recordLessonCash).not.toHaveBeenCalled();
+  });
+
+  it('subtitle: day, time and subject only when present', () => {
+    expect(lessonCashSubtitle({ occurrenceDate: '2026-11-06' })).not.toContain('·');
+    expect(lessonCashSubtitle({ occurrenceDate: '2026-11-06', time: '16:00', subject: 'Eesti keel' })).toMatch(/kell 16:00 · Eesti keel$/);
+    expect(lessonCashSubtitle({})).toBe('');
   });
 
   it('refuses an empty amount; the server’s refusal is shown', async () => {

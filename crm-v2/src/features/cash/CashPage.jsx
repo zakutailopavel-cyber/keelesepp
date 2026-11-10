@@ -87,7 +87,7 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
             <Button variant="secondary" loading={busy === `collect-${row.uid}`} disabled={Boolean(busy)} onClick={() => collect(row)}><HandCoins size={15} aria-hidden="true" /> Sain kätte</Button>
           </li>)}
         </ul> : <p className="form-hint">Kellelgi teisel ei ole praegu sularaha käes.</p>}
-        <p className="form-hint">Tunni eest saadud sularaha („Makstud sularahas”) ei lähe arvele ega raamatupidamisse — seda näevad ainult admin ja omanik.</p>
+        <p className="form-hint">Tunni eest saadud sularaha („Makstud sularahas”) ei lähe raamatupidamisse ega seota arvega — seda näevad ainult admin ja omanik. Tund ise tuleb kuuarvelt maha.</p>
       </Card> : null}
 
       <div className="cash-forms">
@@ -136,7 +136,9 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
                 <span role="cell">{entry.type === 'handover' ? <Badge tone="neutral">üle antud</Badge> : isLessonCash(entry) ? <Badge tone="info">tunni eest</Badge> : <Badge tone="info">saadud</Badge>}</span>
                 <span role="cell" className="cash-row__what"><strong>{entryLine(entry)}</strong>{entry.type === 'receipt' ? <small>{isLessonCash(entry) ? `${lessonLine(entry)} · ` : ''}käes: {entry.holderName || '—'}{entry.note ? ` · ${entry.note}` : ''}</small> : entry.note ? <small>{entry.note}</small> : null}</span>
                 <span role="cell" className="cash-row__sum">{euro(entry.amountCents)}</span>
-                <span role="cell">{isLessonCash(entry) && entry.status === 'open' ? <Badge tone="neutral">Ei lähe arvele</Badge> : STATUS_LABEL[entry.status] ? <Badge tone={entry.status === 'open' ? 'warning' : entry.status === 'void' ? 'neutral' : 'success'}>{STATUS_LABEL[entry.status]}</Badge> : null}</span>
+                <span role="cell">{isLessonCash(entry) && entry.status === 'open' ? (entry.invoicedBefore?.length
+                  ? <Badge tone="warning" title="Selle kuu arve oli juba tehtud; seda ei muudetud. Kuuarve tasaarveldus võtab tunni järgmiselt arvelt maha, „pärast toimunud tunde” arve puhul kontrolli käsitsi.">Makstud sularahas pärast arvet {entry.invoicedBefore.map((invoice) => invoice.num || invoice.id).join(', ')}</Badge>
+                  : <Badge tone="neutral">Kuuarvelt maha</Badge>) : STATUS_LABEL[entry.status] ? <Badge tone={entry.status === 'open' ? 'warning' : entry.status === 'void' ? 'neutral' : 'success'}>{STATUS_LABEL[entry.status]}</Badge> : null}</span>
                 <span role="cell" className="cash-row__actions">
                   {isAdmin && entry.type === 'receipt' && entry.status === 'open' && !isLessonCash(entry) ? <Button variant="secondary" onClick={() => setLinking(entry)}><Link2 size={15} /> Seo arvega</Button> : null}
                   {isAdmin && entry.status !== 'void' && !(entry.type === 'receipt' && entry.status === 'allocated') ? <Button variant="secondary" aria-label="Tühista kirje" title="Tühista kirje" disabled={busy === `void-${entry.id}`} onClick={() => voidEntry(entry)}><XCircle size={15} /></Button> : null}

@@ -9,6 +9,14 @@ export function lessonCashLessonId(lesson = {}) {
   return `schedule_${scheduleId}_${occurrenceDate}_${studentId}`.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 240);
 }
 
+export const dayLabel = (iso) => (iso ? new Intl.DateTimeFormat('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' }).format(new Date(`${iso}T12:00:00`)) : '');
+
+// „N, 6.11 kell 16:00 · Eesti keel” — only the parts the lesson has (no stray separators)
+export function lessonCashSubtitle(item = {}) {
+  const day = dayLabel(item.occurrenceDate || item.date);
+  return [[day, item.time ? `kell ${item.time}` : ''].filter(Boolean).join(' '), item.subject || ''].filter(Boolean).join(' · ');
+}
+
 // „25”, „25,50”, „25.5 €” → cents; null when it is not a positive amount with at most two decimals
 export function amountCents(text) {
   const value = String(text ?? '').replace(/\s|€/g, '').replace(',', '.');

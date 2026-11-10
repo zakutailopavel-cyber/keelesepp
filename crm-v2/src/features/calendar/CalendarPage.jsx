@@ -882,7 +882,9 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
           </button>
           {markable || cashable ? <div className="cal-agenda__actions">
             {markable ? <QuickMarkButtons item={item} busy={inlineBusy.startsWith(`${item.occurrenceId}|`) ? inlineBusy.split('|')[1] : ''} disabled={Boolean(inlineBusy)} onMark={inlineMark} /> : null}
-            {cashable ? <LessonCashButton item={item} api={financeRepository} mark={cashMark} onChanged={setCashMark} alsoMark={markable ? inlineMark : null} disabled={Boolean(inlineBusy)} /> : null}
+            {cashable ? <LessonCashButton item={item} api={financeRepository} mark={cashMark} onChanged={setCashMark} disabled={Boolean(inlineBusy)}
+              markFirst={markable ? (lesson) => lessonRepository.completeFromSchedule(lesson, user, { status: 'Toimunud' }) : null}
+              onDone={markable ? () => state.reload() : null} /> : null}
           </div> : null}
           {groupOpen ? <div className="cal-agenda__actions"><button type="button" className="qm__btn" onClick={() => openPanel(item)}>Kohalolu</button></div> : null}
         </div>;

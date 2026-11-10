@@ -255,7 +255,9 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
                 {item.kind === 'duplicate' ? <Button variant="danger" className="unmarked-row__cancel" loading={isBusy(item, 'cancel')} disabled={anyBusy} onClick={() => cancel(item)}>Tühista</Button> : null}
                 <QuickMarkButtons item={item} busy={rowBusy(item)} disabled={anyBusy} onMark={mark} />
                 {cashApi && item.kind !== 'duplicate' && canMarkLessonCash(item, { uid: user?.uid, isAdmin })
-                  ? <LessonCashButton item={item} api={cashApi} mark={cashMarks[lessonCashLessonId(item)] || null} onChanged={setCashMark} alsoMark={mark} disabled={anyBusy} /> : null}
+                  ? <LessonCashButton item={item} api={cashApi} mark={cashMarks[lessonCashLessonId(item)] || null} onChanged={setCashMark} disabled={anyBusy}
+                    markFirst={(lesson) => repository.mark(lesson, user, 'Toimunud')}
+                    onDone={(lesson, cents) => setDone((current) => new Map(current).set(lesson.occurrenceId, `${label(lesson, 'Toimunud')}, makstud sularahas ${(cents / 100).toFixed(2).replace('.', ',')} €`))} /> : null}
                 <Link to={lessonPath(item)}>Ava</Link>
               </div>
             </li>)}

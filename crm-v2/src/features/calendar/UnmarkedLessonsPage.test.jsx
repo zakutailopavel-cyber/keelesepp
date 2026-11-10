@@ -198,9 +198,11 @@ describe('UnmarkedLessonsPage (phone-first, owner 2026-11-09)', () => {
     expect(screen.queryByRole('button', { name: 'Makstud sularahas: Timur' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Makstud sularahas: Ott' }));
     await waitFor(() => expect(screen.getByLabelText('Summa (€)')).toHaveValue('25,00'));
-    fireEvent.click(screen.getByRole('button', { name: 'Märgi makstuks' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Toimus ja makstud' }));
     await waitFor(() => expect(cashApi.recordLessonCash).toHaveBeenCalledWith(items[0], { amount: '25.00', note: '' }));
     await waitFor(() => expect(repository.mark).toHaveBeenCalledWith(items[0], expect.objectContaining({ uid: 't1' }), 'Toimunud'));
+    // the row leaves the list with what was done
+    await waitFor(() => expect(screen.getByText(/Ott .*: Toimus, makstud sularahas 25,00 €/)).toBeInTheDocument());
   });
 
   it('another teacher’s lesson gets no cash button', async () => {

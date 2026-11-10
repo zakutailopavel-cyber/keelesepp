@@ -4012,6 +4012,14 @@ test("„Makstud sularahas”: a teacher marks own lesson paid in cash, undoes i
   assert.equal(foreign.status, 403, JSON.stringify(foreign.body));
   const future = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, scheduleId: "lessoncash-future", occurrenceDate: day(2), amount: 36 });
   assert.equal(future.status, 400, JSON.stringify(future.body));
+  // owner 2026-11-10: the lesson leaves the monthly invoice through a flag on its record → it has to be marked first
+  const unmarked = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, amount: "36" });
+  assert.equal(unmarked.status, 409, JSON.stringify(unmarked.body));
+  const lessonDocId = `schedule_lessoncash-entry_${lessonDay}_lessoncash-student`;
+  const lessonRef = db.collection("lessons").doc(lessonDocId);
+  await lessonRef.set({ scheduleId: "lessoncash-entry", occurrenceDate: lessonDay, date: lessonDay, studentId: "lessoncash-student", studentName: "Sula Õpilane", teacherUid, teacher: "Lesson Teacher", subject: "Eesti keel", duration: 90, status: "Toimunud", accountingSource: "crm_v2", createdAt: new Date().toISOString() });
+  // that month's monthly invoice already exists: it is named, never edited
+  await db.collection("invoices").doc("lessoncash-before").set({ num: "KS-LC-000", planMonth: lessonDay.slice(0, 7), date: lessonDay, amountCents: 7200, amount: 72, balanceDueCents: 7200, balanceDue: 72, status: "Ootel", studentId: "lessoncash-student" });
 
   const marked = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, amount: "36", note: "isa maksis" });
   assert.equal(marked.status, 201, JSON.stringify(marked.body));
@@ -4022,8 +4030,32 @@ test("„Makstud sularahas”: a teacher marks own lesson paid in cash, undoes i
   assert.equal(receipt.status, "open");
   assert.equal(receipt.amountCents, 3600);
   assert.equal(receipt.receivedAt, day(0));
+  assert.deepEqual(receipt.invoicedBefore, [{ id: "lessoncash-before", num: "KS-LC-000" }]);
+  let flagged = (await lessonRef.get()).data();
+  assert.equal(flagged.cashPaid.receiptId, receiptId);
+  assert.deepEqual(flagged.cashPaid.invoicedBefore, ["KS-LC-000"]);
+  assert.equal(flagged.status, "Toimunud");
+  assert.equal((await db.collection("invoices").doc("lessoncash-before").get()).data().amountCents, 7200);
   const twice = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, amount: "36" });
   assert.equal(twice.status, 200, JSON.stringify(twice.body));
+
+  // rules: the flag is the server's; a cash-paid lesson keeps its mark and cannot be deleted from the browser
+  const lessonPath = `lessons/${lessonDocId}`;
+  const topicPatch = await firestoreDocumentRequest(teacherToken, "PATCH", `${lessonPath}?updateMask.fieldPaths=topic`, { fields: { topic: { stringValue: "Teema" } } });
+  assert.equal(topicPatch.status, 200, JSON.stringify(topicPatch.body));
+  const statusPatch = await firestoreDocumentRequest(teacherToken, "PATCH", `${lessonPath}?updateMask.fieldPaths=status`, { fields: { status: { stringValue: "Puudus_p" } } });
+  assert.equal(statusPatch.status, 403, JSON.stringify(statusPatch.body));
+  const flagPatch = await firestoreDocumentRequest(teacherToken, "PATCH", `${lessonPath}?updateMask.fieldPaths=cashPaid`, {});
+  assert.equal(flagPatch.status, 403, JSON.stringify(flagPatch.body));
+  const adminFlagPatch = await firestoreDocumentRequest(adminToken, "PATCH", `${lessonPath}?updateMask.fieldPaths=cashPaid`, {});
+  assert.equal(adminFlagPatch.status, 403, JSON.stringify(adminFlagPatch.body));
+  const teacherDelete = await firestoreDocumentRequest(teacherToken, "DELETE", lessonPath);
+  assert.equal(teacherDelete.status, 403, JSON.stringify(teacherDelete.body));
+  const forged = await firestoreDocumentRequest(teacherToken, "PATCH", `lessons/schedule_lessoncash-forged_${lessonDay}_lessoncash-student`, { fields: {
+    scheduleId: { stringValue: "lessoncash-forged" }, date: { stringValue: lessonDay }, studentId: { stringValue: "lessoncash-student" }, teacherUid: { stringValue: teacherUid },
+    status: { stringValue: "Toimunud" }, accountingSource: { stringValue: "crm_v2" }, cashPaid: { mapValue: { fields: { receiptId: { stringValue: "fake" } } } },
+  } });
+  assert.equal(forged.status, 403, JSON.stringify(forged.body));
 
   // the teacher's own marks; the other teacher sees none
   const mine = await financeRequest(teacherToken, "/cash/lesson/mine", {});
@@ -4037,11 +4069,15 @@ test("„Makstud sularahas”: a teacher marks own lesson paid in cash, undoes i
   const undone = await financeRequest(teacherToken, "/cash/lesson/undo", lesson);
   assert.equal(undone.status, 200, JSON.stringify(undone.body));
   assert.equal((await db.collection("cashLedger").doc(receiptId).get()).data().status, "void");
+  // undone: the lesson is billable again
+  assert.equal((await lessonRef.get()).data().cashPaid, undefined);
   const again = await financeRequest(teacherToken, "/cash/lesson", { ...lesson, amount: "36" });
   assert.equal(again.status, 201, JSON.stringify(again.body));
   receipt = (await db.collection("cashLedger").doc(receiptId).get()).data();
   assert.equal(receipt.revision, 2);
   assert.equal(receipt.status, "open");
+  flagged = (await lessonRef.get()).data();
+  assert.equal(flagged.cashPaid.receiptId, receiptId);
 
   // lesson cash is never linked to an invoice (owner 2026-11-10: it does not go to the accountant)
   await db.collection("invoices").doc("lessoncash-invoice").set({ num: "KS-LC-001", date: lessonDay, amountCents: 3600, amount: 36, balanceDueCents: 3600, balanceDue: 36, status: "Ootel", studentId: "lessoncash-student" });
@@ -4062,6 +4098,12 @@ test("„Makstud sularahas”: a teacher marks own lesson paid in cash, undoes i
   assert.equal(teacherWrite.status, 403);
   const teacherRead = await firestoreDocumentRequest(teacherToken, "GET", `cashLedger/${receiptId}`);
   assert.equal(teacherRead.status, 403);
+
+  // the admin voids the cash mark in Kassa: the lesson is billable again (second round → own audit line)
+  const adminVoid = await financeRequest(adminToken, "/cash/void", { entryId: receiptId, reason: "vale õpilane" });
+  assert.equal(adminVoid.status, 200, JSON.stringify(adminVoid.body));
+  assert.equal((await lessonRef.get()).data().cashPaid, undefined);
+  assert.ok((await db.collection("financialAudit").doc(`cashbox_void_${receiptId}_r2`).get()).exists);
 });
 
 test("„Kooli kulul”: an admin marks a package lesson as paid by the school and the credit comes back", async () => {

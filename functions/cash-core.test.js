@@ -55,13 +55,13 @@ test("a teacher sees only the entries where they hold, give or get money", () =>
 });
 
 // ---- „Makstud sularahas” on a lesson (owner 2026-11-10) ----
-const { lessonCashEntry, lessonCashId, lessonCashMarks, lessonCashUndoRefusal } = require("./cash-core");
+const { invoicesCoveringLesson, lessonCashEntry, lessonCashFlag, lessonCashId, lessonCashMarks, lessonCashUndoRefusal } = require("./cash-core");
 
 const lessonNow = "2026-11-10T09:00:00.000Z"; // 11:00 in Tallinn
 const scheduleEntry = { studentId: "s1", teacherUid: "t1", subject: "Eesti keel", time: "16:00", recurring: true, day: "Mon", startDate: "2026-09-07" };
 const lessonValues = { scheduleId: "sch1", occurrenceDate: "2026-11-09", amount: "25", note: "ema maksis" };
 const lessonArgs = (over = {}) => ({
-  actor: teacher, isAdmin: false, values: lessonValues, entry: scheduleEntry, occurs: true, lesson: null,
+  actor: teacher, isAdmin: false, values: lessonValues, entry: scheduleEntry, occurs: true, lesson: { status: "Toimunud", teacherUid: "t1", subject: "Eesti keel" },
   lessonId: "schedule_sch1_2026-11-09_s1", studentId: "s1", student, issuer: "company", holder: teacher, nowIso: lessonNow, ...over,
 });
 
@@ -83,7 +83,7 @@ test("lesson cash: another teacher, a foreign holder, a future or cancelled less
   assert.throws(() => lessonCashEntry(lessonArgs({ actor: { uid: "t2", name: "Anna" }, holder: { uid: "t2" } })), /sinu tund/);
   assert.throws(() => lessonCashEntry(lessonArgs({ holder: { uid: "a1", name: "Admin" } })), /ise sai/);
   assert.throws(() => lessonCashEntry(lessonArgs({ values: { ...lessonValues, occurrenceDate: "2026-11-11" } })), /ei ole veel toimunud/);
-  assert.throws(() => lessonCashEntry(lessonArgs({ occurs: false })), /ei olnud/);
+  assert.throws(() => lessonCashEntry(lessonArgs({ occurs: false, lesson: null })), /ei olnud/);
   assert.throws(() => lessonCashEntry(lessonArgs({ studentId: "s9" })), /ei ole selles tunnis/);
   assert.throws(() => lessonCashEntry(lessonArgs({ lesson: { status: "Puudus_p", teacherUid: "t1" } })), /teatas ette/);
   assert.throws(() => lessonCashEntry(lessonArgs({ issuer: "fie" })), /FIE/);
@@ -115,4 +115,29 @@ test("lesson cash marks: a teacher gets only their own, with canUndo; handed-ove
   marks = lessonCashMarks([mine, other, handover], { uid: "t1", isAdmin: false, balanceCents: cashBalances([mine, other, handover]).t1.cents, nowIso: lessonNow });
   assert.equal(marks["schedule_sch1_2026-11-09_s1"].canUndo, false);
   assert.equal(Object.keys(lessonCashMarks([{ ...mine, status: "void" }], { uid: "t1", isAdmin: false, nowIso: lessonNow })).length, 0);
+});
+
+test("lesson cash needs a marked lesson (the flag sits on the lesson record that monthly billing reads)", () => {
+  assert.throws(() => lessonCashEntry(lessonArgs({ lesson: null })), /Märgi tund enne toimunuks/);
+  assert.throws(() => lessonCashEntry(lessonArgs({ lesson: { status: "Tühistatud", teacherUid: "t1" } })), /Märgi tund enne toimunuks/);
+  assert.equal(lessonCashEntry(lessonArgs({ lesson: { status: "Puudus_eta", teacherUid: "t1" } })).status, "open");
+});
+
+test("an invoice of the lesson's month made before the cash: named on the receipt and the lesson flag, never edited", () => {
+  const invoices = [
+    { id: "m1", num: "KS-2026-120", planMonth: "2026-11", studentId: "s1", status: "Ootel" },
+    { id: "c1", num: "KS-2026-121", planMonth: "2026-11", studentIds: ["s9", "s1"], status: "Makstud" },
+    { id: "m1", num: "KS-2026-120", planMonth: "2026-11", studentId: "s1", status: "Ootel" }, // the same invoice from the second query
+    { id: "x1", num: "KS-2026-099", planMonth: "2026-11", studentId: "s1", status: "Tühistatud" },
+    { id: "o1", num: "KS-2026-090", planMonth: "2026-10", studentId: "s1", status: "Makstud" },
+    { id: "f1", num: "FIE-1", planMonth: "2026-11", studentId: "s1", issuer: "fie" },
+    { id: "t1", num: "KS-2026-100", studentId: "s1", status: "Ootel" }, // a package invoice: no month
+  ];
+  const covering = invoicesCoveringLesson(invoices, { studentId: "s1", occurrenceDate: "2026-11-09" });
+  assert.deepEqual(covering, [{ id: "m1", num: "KS-2026-120" }, { id: "c1", num: "KS-2026-121" }]);
+  const entry = lessonCashEntry(lessonArgs({ invoicedBefore: covering }));
+  assert.deepEqual(entry.invoicedBefore, covering);
+  const flag = lessonCashFlag("lessoncash_x", entry, lessonNow);
+  assert.deepEqual(flag, { receiptId: "lessoncash_x", amountCents: 2500, at: lessonNow, byUid: "t1", invoicedBefore: ["KS-2026-120", "KS-2026-121"] });
+  assert.deepEqual(lessonCashEntry(lessonArgs()).invoicedBefore, []);
 });

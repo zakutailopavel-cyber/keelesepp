@@ -135,7 +135,7 @@ function lessonTeacherUid({ entry = {}, lesson = null }) {
  * not cancelled); a teacher only for their own lesson and only as the holder; never an FIE card (the owner's private
  * sole-proprietor billing stays apart from the school's cash box).
  */
-function lessonCashEntry({ actor, isAdmin, values = {}, entry, occurs, lesson = null, lessonId, studentId, student, issuer = "company", holder, nowIso }) {
+function lessonCashEntry({ actor, isAdmin, values = {}, entry, occurs, lesson = null, lessonId, studentId, student, issuer = "company", holder, invoicedBefore = [], nowIso }) {
   const occurrenceDate = String(values.occurrenceDate || "");
   if (!ISO_DAY.test(occurrenceDate)) throw cashError("Tunni kuupäev on vigane.");
   if (occurrenceDate > appToday(nowIso)) throw cashError("Tund ei ole veel toimunud.");
@@ -150,6 +150,9 @@ function lessonCashEntry({ actor, isAdmin, values = {}, entry, occurs, lesson = 
   if (!isAdmin && teacherUid !== actor.uid) throw cashError("See ei ole sinu tund.", 403);
   if (!holder?.uid) throw cashError("Vali, kelle käes raha on.");
   if (!isAdmin && holder.uid !== actor.uid) throw cashError("Õpetaja märgib ainult raha, mille ta ise sai.", 403);
+  // owner 2026-11-10: a cash-paid lesson leaves the monthly invoice, so it must be a marked lesson (the flag sits on
+  // the lesson record that billing reads); the dialog marks it held first
+  if (!lesson || !CASH_PAYABLE_STATUSES.includes(lesson.status)) throw cashError("Märgi tund enne toimunuks.", 409);
   return {
     type: "receipt",
     source: "lesson",
@@ -171,9 +174,29 @@ function lessonCashEntry({ actor, isAdmin, values = {}, entry, occurs, lesson = 
     status: "open",
     invoiceId: null,
     paymentId: null,
+    // a monthly invoice of that month already existed: it is not edited — the admin sees „makstud sularahas pärast arvet”
+    invoicedBefore: invoicedBefore.slice(0, 5),
     createdAt: nowIso,
     createdBy: { uid: actor.uid, name: clean(actor.name, 120) },
   };
+}
+
+const CASH_PAYABLE_STATUSES = ["Toimunud", "Puudus_eta"];
+
+/** The company monthly invoices of the lesson's month that bill this card (not cancelled): [{ id, num }]. */
+function invoicesCoveringLesson(invoices = [], { studentId, occurrenceDate }) {
+  const month = String(occurrenceDate || "").slice(0, 7);
+  const seen = new Set();
+  return invoices
+    .filter((invoice) => invoice && invoice.status !== "Tühistatud" && invoice.issuer !== "fie" && String(invoice.planMonth || "") === month
+      && (invoice.studentId === studentId || (Array.isArray(invoice.studentIds) && invoice.studentIds.includes(studentId))))
+    .filter((invoice) => (seen.has(invoice.id) ? false : seen.add(invoice.id)))
+    .map((invoice) => ({ id: String(invoice.id), num: clean(invoice.num, 40) }));
+}
+
+/** The lesson record's flag (billing reads it: crm-v2 finance/monthlyBilling.js isChargeable). */
+function lessonCashFlag(receiptId, entry, nowIso) {
+  return { receiptId, amountCents: entry.amountCents, at: nowIso, byUid: entry.createdBy?.uid || "", invoicedBefore: (entry.invoicedBefore || []).map((invoice) => invoice.num || invoice.id) };
 }
 
 /**
@@ -207,6 +230,6 @@ function lessonCashMarks(entries = [], { uid, isAdmin, balanceCents = 0, nowIso 
 }
 
 module.exports = {
-  amountToCents, cashBalances, cashError, handoverEntry, lessonCashEntry, lessonCashId, lessonCashMarks, lessonCashUndoRefusal,
-  lessonTeacherUid, receiptEntry, studentTeacherUids, visibleEntries,
+  amountToCents, cashBalances, cashError, handoverEntry, invoicesCoveringLesson, lessonCashEntry, lessonCashFlag, lessonCashId, lessonCashMarks,
+  lessonCashUndoRefusal, lessonTeacherUid, receiptEntry, studentTeacherUids, visibleEntries,
 };

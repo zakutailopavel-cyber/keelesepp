@@ -65,11 +65,19 @@ describe('CashPage', () => {
     expect(held).toHaveTextContent('Oleksiy');
     expect(held).not.toHaveTextContent('Pavel');
     expect(screen.getByText(/tund 9\.11 kell 16:00 · Eesti keel/)).toBeInTheDocument();
-    expect(screen.getByText('Ei lähe arvele')).toBeInTheDocument();
+    expect(screen.getByText('Kuuarvelt maha')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Seo arvega/ })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /Sain kätte/ }));
     await waitFor(() => expect(api.recordCashHandover).toHaveBeenCalledWith(expect.objectContaining({ fromUid: 'teacher-1', toUid: 'admin-1', amount: '25.00' })));
     confirm.mockRestore();
+  });
+
+  it('cash marked after that month’s invoice was made: the invoice is not edited, the admin sees the flag', async () => {
+    const late = { ...receipt, id: 'lessoncash_2', source: 'lesson', occurrenceDate: '2026-11-03', amountCents: 2500, invoicedBefore: [{ id: 'monthly_2026-11_s1', num: 'KS-2026-120' }] };
+    const api = { cashSummary: vi.fn().mockResolvedValue({ isAdmin: true, entries: [late], balances: [], people }) };
+    renderPage({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { api, studentApi: { list: vi.fn().mockResolvedValue({ items: [] }) } });
+    expect(await screen.findByText('Makstud sularahas pärast arvet KS-2026-120')).toBeInTheDocument();
+    expect(screen.queryByText('Kuuarvelt maha')).toBeNull();
   });
 });
 

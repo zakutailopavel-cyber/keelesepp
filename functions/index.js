@@ -4904,7 +4904,10 @@ async function voidCashEntry({ actor, entryId, reason }) {
     const entry = snap.data();
     if (entry.status === "void") return { entryId: ref.id, idempotent: true };
     if (entry.type === "receipt" && entry.status === "allocated") throw httpError(409, "Raha on arvega seotud: tühista kõigepealt makse.");
+    // a lesson's cash mark voided by the admin: the lesson is billable again
+    const lessonSnap = entry.source === "lesson" && entry.lessonId ? await transaction.get(db.collection("lessons").doc(String(entry.lessonId))) : null;
     transaction.set(ref, { status: "void", voidedAt: nowIso, voidedBy: actorSnapshot(actor), voidReason: cleanReason }, { merge: true });
+    if (lessonSnap?.exists && lessonSnap.data().cashPaid?.receiptId === ref.id) transaction.update(lessonSnap.ref, { cashPaid: FieldValue.delete() });
     // a lesson's cash mark keeps its id when it is marked again after a void: each round has its own audit line
     const round = Number(entry.revision) > 1 ? `_r${Number(entry.revision)}` : "";
     transaction.create(db.collection("financialAudit").doc(`cashbox_void_${ref.id}${round}`.slice(0, 150)), {
@@ -4990,15 +4993,25 @@ async function recordLessonCash({ actor, values = {} }) {
       if (context.receipt.createdBy?.uid !== who.uid && !who.isAdmin) throw httpError(409, "Selle tunni sularaha on juba märgitud.");
       return { entry: context.receipt, idempotent: true };
     }
+    // the lesson leaves the monthly invoice (its flag): never in a closed period; an invoice of that month already made
+    // is not edited, the receipt names it („makstud sularahas pärast arvet”)
+    await assertFinancialDateOpen(transaction, key.occurrenceDate);
+    const [ownInvoices, sharedInvoices] = await Promise.all([
+      transaction.get(db.collection("invoices").where("studentId", "==", key.studentId)),
+      transaction.get(db.collection("invoices").where("studentIds", "array-contains", key.studentId)),
+    ]);
+    const invoicedBefore = cashCore.invoicesCoveringLesson([...ownInvoices.docs, ...sharedInvoices.docs].map(doc => ({ id: doc.id, ...doc.data() })), key);
     const holder = { uid: who.uid, name: (holderSnap.exists && (holderSnap.data().displayName || holderSnap.data().email)) || who.name };
     const entry = cashCore.lessonCashEntry({
       actor: who, isAdmin: who.isAdmin, values: { ...values, scheduleId: key.scheduleId, occurrenceDate: key.occurrenceDate },
       entry: context.entry, occurs: context.occurs, lesson: context.lesson, lessonId: key.lessonId, studentId: key.studentId,
-      student: context.student, issuer: context.issuer, holder, nowIso,
+      student: context.student, issuer: context.issuer, holder, invoicedBefore, nowIso,
     });
     // marked again after a void: same id, next round (the void stays in financialAudit)
     const revision = context.receipt ? (Number(context.receipt.revision) || 1) + 1 : 1;
     transaction.set(ref, { ...entry, revision, requestId: ref.id });
+    // the flag monthly billing reads (crm-v2 finance/monthlyBilling.js isChargeable); clients cannot write it (rules)
+    transaction.set(db.collection("lessons").doc(key.lessonId), { cashPaid: cashCore.lessonCashFlag(ref.id, entry, nowIso) }, { merge: true });
     transaction.create(db.collection("financialAudit").doc(`cashbox_${ref.id}${revision > 1 ? `_r${revision}` : ""}`.slice(0, 150)), {
       entityType: "cash", entityId: ref.id, action: "cash.lesson_receipt", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
       studentId: key.studentId, lessonId: key.lessonId, holderUid: holder.uid, actor: actorSnapshot(actor),
@@ -5018,7 +5031,7 @@ async function undoLessonCash({ actor, values = {} }) {
   const ref = db.collection("cashLedger").doc(key.receiptId);
   const nowIso = new Date().toISOString();
   return db.runTransaction(async transaction => {
-    const [snap, ledgerSnap] = await Promise.all([transaction.get(ref), transaction.get(db.collection("cashLedger"))]);
+    const [snap, ledgerSnap, lessonSnap] = await Promise.all([transaction.get(ref), transaction.get(db.collection("cashLedger")), transaction.get(db.collection("lessons").doc(key.lessonId))]);
     if (!snap.exists) throw httpError(404, "Märget ei leitud.");
     const entry = snap.data();
     if (entry.status === "void") return { entryId: ref.id, idempotent: true };
@@ -5027,6 +5040,8 @@ async function undoLessonCash({ actor, values = {} }) {
     if (refusal) throw httpError(refusal === "Märget ei leitud." ? 404 : 409, refusal);
     const reason = cleanText(values.reason) || "Õpetaja võttis märke tagasi";
     transaction.set(ref, { status: "void", voidedAt: nowIso, voidedBy: actorSnapshot(actor), voidReason: reason }, { merge: true });
+    // the lesson is billable again
+    if (lessonSnap.exists && lessonSnap.data().cashPaid?.receiptId === ref.id) transaction.update(lessonSnap.ref, { cashPaid: FieldValue.delete() });
     const round = Number(entry.revision) > 1 ? `_r${Number(entry.revision)}` : "";
     transaction.create(db.collection("financialAudit").doc(`cashbox_void_${ref.id}${round}`.slice(0, 150)), {
       entityType: "cash", entityId: ref.id, action: "cash.voided", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
