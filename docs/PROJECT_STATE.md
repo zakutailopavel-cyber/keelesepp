@@ -1,3 +1,11 @@
+## 2026-11-10 · agent/b1noor-audio — b1noor modules 1–3: listening audio (Neurokõne) · content + static files
+
+- Base: `origin/main` c44803a, checked 2026-11-10. Branch `agent/b1noor-audio`. Owner: „делай аудио для модулей 1–3”.
+- Done: `node tools/listening-audio/build.mjs --only b1noor-` → 18 MP3 in `crm-v2/public/audio/b1noor-0NN/`, 18 keys in `listeningAudio.json`; `MODULE.audio: 'pending'` removed from `b1noor/module01–03.js` (so `listeningAudio.test.js` now checks their hashes). `tools/listening-audio/plan.mjs`: teen names added to the voice gender lists (Milana, Vika, Alina, Karina, perenaine → female; Robin, Artjom, Timur, Marek, majandusjuhataja → male) — Robin's room video was planned with a female voice before.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/curriculum` → 85 files passed (1 skipped), 1240 tests passed.
+- Limits: synthetic voices; nobody listened to every file. The audio files are served from the app, so they work only after a `[deploy]` release; published Õppevara sheets get `data.audio` only after they are republished from fresh main (owner-run script, only sheets nobody edited by hand).
+- Next safe step: release, then republish the b1noor sheets with listening blocks.
+
 ## 2026-11-10 · agent/b1noor-teen-roles — b1noor modules 1–3: teen roles instead of adult ones (content only)
 
 - Base: `origin/main` dfffbb5, checked 2026-11-10. Branch `agent/b1noor-teen-roles`, draft PR. Owner feedback: some roles in „B1 noorkeele õppija” are adult (choosing / paying for a flat, calling the landlord). Topic „home”, grammar axis, exam task types, lesson ids, phases, stations and points unchanged.

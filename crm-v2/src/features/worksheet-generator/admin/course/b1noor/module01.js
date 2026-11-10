@@ -15,14 +15,13 @@
 // classmate), Daria (14, new from Ukraine), class teacher Kaie Lepp, robotics leader Toomas, coach Raivo; school „Kase kool”.
 // Real facts used: school lunch is free in basic school; Stuudium / eKool are the e-schools. Every number in the
 // lessons belongs to the cast's story.
-// Listening: no recordings yet (MODULE.audio 'pending'): the teacher reads the transcripts until
-// tools/listening-audio/build.mjs has made them.
+// Listening: recorded with Neurokõne (tools/listening-audio/build.mjs, listeningAudio.json); after a transcript edit run it again.
 import { B, tag, teach, why, withShapes } from '../blocks.js';
 import { purpose, station } from '../stationBlocks.js';
 
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
-export const MODULE = { id: 'b1noor-module-01', course: 'b1noor', title: 'Uus kool, uus algus', level: 'A2+', design: 'v3-stations', template: 'v4', audio: 'pending' };
+export const MODULE = { id: 'b1noor-module-01', course: 'b1noor', title: 'Uus kool, uus algus', level: 'A2+', design: 'v3-stations', template: 'v4' };
 
 // the grammar areas of the entry test (the teacher's key names one per item and the module of this course that teaches it)
 const AREA = {

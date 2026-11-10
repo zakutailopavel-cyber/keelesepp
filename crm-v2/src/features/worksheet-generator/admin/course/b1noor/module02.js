@@ -13,11 +13,11 @@
 // Cast as in module 1 (Milana, Robin, Artjom, Daria, Kertu, class teacher Kaie, coach Raivo); new: Robin's family
 // (brother Kevin, aunt Kersti, uncle Marek), Milana's brother Timur, the neighbour Jüri Tamm, peer mentors Liisa, Mart,
 // Karina. Real facts (007 station 4) carry their source; every other number belongs to the cast's story.
-// Listening: no recordings yet (MODULE.audio 'pending'): the teacher reads the transcripts.
+// Listening: recorded with Neurokõne (tools/listening-audio/build.mjs, listeningAudio.json); after a transcript edit run it again.
 import { B, tag, teach, why, withShapes } from '../blocks.js';
 import { purpose, station } from '../stationBlocks.js';
 
-export const MODULE = { id: 'b1noor-module-02', course: 'b1noor', title: 'Pere, sõbrad ja naabrid', level: 'A2+', design: 'v3-stations', template: 'v4', audio: 'pending' };
+export const MODULE = { id: 'b1noor-module-02', course: 'b1noor', title: 'Pere, sõbrad ja naabrid', level: 'A2+', design: 'v3-stations', template: 'v4' };
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 006 LUGU R→W: genitive, possession
