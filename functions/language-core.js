@@ -161,6 +161,72 @@ function paradigmHasForm(paradigms = [], term = "") {
   return (Array.isArray(paradigms) ? paradigms : []).some((p) => (p?.paradigmForms || p?.forms || []).some((f) => String(f?.value || "").toLocaleLowerCase("et") === key));
 }
 
+// The headword candidates are checked side by side (at most `concurrency` at once) but the answer keeps the old
+// priority: the first candidate in the original order whose worker returns a value wins. The answer is known as soon as
+// every earlier candidate has finished without a value; later candidates are then not started (`onDecided` lets the
+// caller abort the ones in flight). A worker that throws counts as „failed”: a later hit still wins, but `failedBefore`
+// tells the caller that an earlier, preferred candidate is unknown.
+// → { index, value, failedBefore, failed } (index -1 / value null when nobody had a value)
+function firstInOrder(items = [], worker, { concurrency = 4 } = {}) {
+  const list = Array.isArray(items) ? items : [];
+  const width = Math.max(1, Math.floor(concurrency) || 1);
+  return new Promise((resolve) => {
+    const outcome = new Array(list.length);
+    let next = 0;
+    let running = 0;
+    let done = false;
+    const decide = () => {
+      let failed = 0;
+      for (let i = 0; i < list.length; i += 1) {
+        const r = outcome[i];
+        if (!r) return false;
+        if (r.ok && r.value != null) { done = true; resolve({ index: i, value: r.value, failedBefore: failed, failed: failed > 0 }); return true; }
+        if (!r.ok) failed += 1;
+      }
+      done = true;
+      resolve({ index: -1, value: null, failedBefore: failed, failed: failed > 0 });
+      return true;
+    };
+    const launch = () => {
+      while (!done && next < list.length && running < width) {
+        const i = next;
+        next += 1;
+        running += 1;
+        Promise.resolve().then(() => worker(list[i], i)).then(
+          (value) => { outcome[i] = { ok: true, value }; },
+          () => { outcome[i] = { ok: false }; },
+        ).then(() => { running -= 1; if (!done && !decide()) launch(); });
+      }
+    };
+    if (!list.length) { decide(); return; }
+    launch();
+  });
+}
+
+const { AsyncResource } = require("node:async_hooks");
+
+// at most `size` tasks at once across all callers of one limiter (EKI politeness inside one server instance)
+function createLimiter(size = 8) {
+  let active = 0;
+  const queue = [];
+  const pump = () => {
+    while (active < size && queue.length) {
+      const { task, resolve, reject } = queue.shift();
+      active += 1;
+      Promise.resolve().then(task).then(resolve, reject).finally(() => { active -= 1; pump(); });
+    }
+  };
+  // a queued task runs in its caller's async context (its time budget), not in the one that freed the slot
+  return (task) => new Promise((resolve, reject) => { queue.push({ task: AsyncResource.bind(task), resolve, reject }); pump(); });
+}
+
+// a cached forms answer is still good: answers without `expiresAt` (found forms, older entries) never expire
+function cacheEntryFresh(entry, now = new Date()) {
+  if (!entry) return false;
+  if (!entry.expiresAt) return true;
+  return new Date(entry.expiresAt).getTime() > now.getTime();
+}
+
 // ── The student's own word („Lisa oma sõna”, owner 2026-11-04): spelling, base form, translation ──
 // POST /own-word { text, lang: et|en, tgt: ru|en|uk|et }: a word or a short phrase (≤ 60 characters, ≤ 4 words).
 const OWN_WORD_MAX = 60;
@@ -269,4 +335,5 @@ function nextQuota(state = {}, now = new Date(), limits = OWN_WORD_LIMITS) {
 
 module.exports = {
   ownWordRequest, editDistance, rankSuggestions, suggestionSearches, etlexWords, spellVerdict, correctedText, nextQuota, OWN_WORD_LIMITS, OWN_WORD_MAX,
-  threeKeyForms, keyFormsRequest, MAX_KEY_FORM_WORDS, evaluationRequest, summarizeEvaluation, LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor };
+  threeKeyForms, keyFormsRequest, MAX_KEY_FORM_WORDS, evaluationRequest, summarizeEvaluation, LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor,
+  firstInOrder, createLimiter, cacheEntryFresh };

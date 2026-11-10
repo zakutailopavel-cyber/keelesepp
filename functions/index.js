@@ -12488,11 +12488,15 @@ const languageBudget = new AsyncLocalStorage();
 
 async function fetchJsonWithin(url, options = {}) {
   const budget = languageBudget.getStore();
-  const left = budget?.until ? budget.until - Date.now() : LANGUAGE_TIMEOUT_MS;
+  const cap = budget?.requestMs ? Math.min(LANGUAGE_TIMEOUT_MS, budget.requestMs) : LANGUAGE_TIMEOUT_MS;
+  const left = budget?.until ? budget.until - Date.now() : cap;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), Math.max(1, Math.min(LANGUAGE_TIMEOUT_MS, left)));
+  const timer = setTimeout(() => controller.abort(), Math.max(1, Math.min(cap, left)));
+  // a caller that no longer needs the answer (the forms lookup decided on another candidate) cancels it
+  const stop = () => controller.abort();
+  budget?.signal?.addEventListener?.("abort", stop);
   try {
-    if (left <= 0) throw Object.assign(new Error("No time left"), { name: "AbortError" });
+    if (left <= 0 || budget?.signal?.aborted) throw Object.assign(new Error("No time left"), { name: "AbortError" });
     const response = await fetch(url, { ...options, signal: controller.signal });
     if (!response.ok) throw httpError(502, `Language service answered ${response.status}`);
     return await response.json();
@@ -12502,6 +12506,7 @@ async function fetchJsonWithin(url, options = {}) {
     throw httpError(502, error.name === "AbortError" ? "Language service did not answer in time" : "Language service unavailable");
   } finally {
     clearTimeout(timer);
+    budget?.signal?.removeEventListener?.("abort", stop);
   }
 }
 
@@ -12527,28 +12532,75 @@ async function translateText(input) {
   });
 }
 
+// Timing of /forms and /word (owner 2026-11-10, „kaua” took many seconds): the headword candidates (kaua → kaua, kau,
+// ka) were tried one after another, each an Ekilex search + paradigm with 8 s timeouts. Now up to `concurrency`
+// candidates run side by side (the first candidate in the old order with the clicked form still wins), each request
+// stops after `requestMs`, the whole lookup after `totalMs`, and at most `ekilexSlots` Ekilex requests run at once in
+// one instance. „No forms” is cached for `negativeDays`; a lookup that failed or ran out of time is remembered for
+// `failMinutes` so a repeated click answers at once (with the same error) instead of waiting again.
+const FORMS_TIMING = { concurrency: 4, requestMs: 4500, totalMs: 7000, ekilexSlots: 8, negativeDays: 30, failMinutes: 10 };
+let ekilexLimiter = null;
+function ekilexSlot(task) {
+  if (!ekilexLimiter) ekilexLimiter = require("./language-core").createLimiter(FORMS_TIMING.ekilexSlots);
+  return ekilexLimiter(task);
+}
+
 async function estonianWordForms(input) {
-  const { cleanTerm, cacheKey, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor } = require("./language-core");
+  const { cleanTerm, cacheKey, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor, firstInOrder, cacheEntryFresh } = require("./language-core");
   const term = cleanTerm(input?.word, 80);
   if (!term || /\s/.test(term)) throw httpError(400, "One Estonian word required");
   const apiKey = String(process.env.EKILEX_API_KEY || "").trim();
   if (!/^[0-9a-fA-F]{32}$/.test(apiKey)) return { word: term, available: false, forms: [], line: "" };
-  return cachedLanguageAnswer(cacheKey("forms2", term.toLocaleLowerCase("et")), async () => {
-    const headers = { "ekilex-api-key": apiKey };
-    // the clicked word may be inflected: try likely headwords until one's paradigm contains the clicked form
-    let word = null;
-    let paradigms = null;
-    for (const candidate of headwordCandidates(term)) {
-      const search = await fetchJsonWithin(`${EKILEX_URL}word/search/${encodeURIComponent(candidate)}/eki`, { headers });
+  // same key as before PR agent/forms-lookup-parallel, so every word already looked up stays cached
+  const ref = db.collection("languageCache").doc(cacheKey("forms2", term.toLocaleLowerCase("et")));
+  const cached = await ref.get();
+  if (cached.exists && cacheEntryFresh(cached.data())) {
+    const entry = cached.data();
+    if (entry.failed) throw httpError(504, "Language service did not answer in time");
+    return { ...entry.value, cached: true };
+  }
+  const outer = languageBudget.getStore();
+  const started = Date.now();
+  const until = Math.min(outer?.until || Infinity, started + FORMS_TIMING.totalMs);
+  const stop = new AbortController();
+  const trace = { failed: 0 };
+  const headers = { "ekilex-api-key": apiKey };
+  const ekilex = (path) => ekilexSlot(() => fetchJsonWithin(`${EKILEX_URL}${path}`, { headers }));
+  // the clicked word may be inflected: the first likely headword whose paradigm contains the clicked form
+  const lookup = await languageBudget.run({ until, requestMs: FORMS_TIMING.requestMs, signal: stop.signal, trace }, () =>
+    firstInOrder(headwordCandidates(term), async (candidate) => {
+      const search = await ekilex(`word/search/${encodeURIComponent(candidate)}/eki`);
       const hit = pickEkilexWord(search?.words, candidate);
-      if (!hit?.wordId || isProperFor(hit, term)) continue;
-      const details = await fetchJsonWithin(`${EKILEX_URL}paradigm/details/${encodeURIComponent(hit.wordId)}`, { headers });
-      if (paradigmHasForm(details, term)) { word = hit; paradigms = details; break; }
+      if (!hit?.wordId || isProperFor(hit, term)) return null;
+      const details = await ekilex(`paradigm/details/${encodeURIComponent(hit.wordId)}`);
+      return paradigmHasForm(details, term) ? { word: hit, paradigms: details } : null;
+    }, { concurrency: FORMS_TIMING.concurrency }));
+  stop.abort(); // the candidates still running are not needed any more
+  const now = new Date();
+  const log = (outcome) => console.log("forms answered", JSON.stringify({ ms: Date.now() - started, outcome, candidate: lookup.index, failed: lookup.failedBefore }));
+  if (lookup.failed && outer?.trace) outer.trace.failed += 1;
+  if (!lookup.value) {
+    if (lookup.failed) {
+      // EKI did not answer for some candidate: not „no forms” — remembered briefly (only when the lookup had its own
+      // full time, not a caller's shorter budget), then asked again
+      log("failed");
+      if (until === started + FORMS_TIMING.totalMs) await ref.set({ failed: true, createdAt: now.toISOString(), expiresAt: new Date(now.getTime() + FORMS_TIMING.failMinutes * 60000).toISOString() })
+        .catch((error) => console.warn("forms cache write failed", error.message));
+      throw httpError(504, "Language service did not answer in time");
     }
-    if (!word?.wordId) return { word: term, available: true, found: false, forms: [], line: "" };
-    const picked = keyFormsFromParadigms(paradigms);
-    return { word: term, headword: word.wordValue || term, available: true, found: picked.forms.length > 0, ...picked, line: formsLine(picked.forms), source: "EKI Ekilex (CC BY 4.0)" };
-  });
+    const value = { word: term, available: true, found: false, forms: [], line: "" };
+    log("none");
+    await ref.set({ value, createdAt: now.toISOString(), expiresAt: new Date(now.getTime() + FORMS_TIMING.negativeDays * 86400000).toISOString() })
+      .catch((error) => console.warn("forms cache write failed", error.message));
+    return value;
+  }
+  const { word, paradigms } = lookup.value;
+  const picked = keyFormsFromParadigms(paradigms);
+  const value = { word: term, headword: word.wordValue || term, available: true, found: picked.forms.length > 0, ...picked, line: formsLine(picked.forms), source: "EKI Ekilex (CC BY 4.0)" };
+  log("found");
+  // an earlier, preferred candidate did not answer: the answer is shown but not kept
+  if (!lookup.failed) await ref.set({ value, createdAt: now.toISOString() }).catch((error) => console.warn("forms cache write failed", error.message));
+  return value;
 }
 
 // Estonian speech for the constructor's listening tasks: the text goes to TartuNLP Neurokõne, the WAV comes back to the
