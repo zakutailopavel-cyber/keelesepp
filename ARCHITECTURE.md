@@ -373,7 +373,9 @@ prefilled with its rate and kept to the cent (even ≥ 25 €/h) until the admin
 stores `priceTerms`, `hourlyRateCents`, `discountReason` and `priceTermsChangedAt/By/ByUid`; firestore.rules check them
 (discount needs a non-blank reason, general carries none). A plan without `priceTerms` is shown by its price only
 (all at the standard rate → general, otherwise a discount with an empty reason) and is never re-priced: an untouched
-rate keeps its stored per-lesson cents. `activityLog` (readable by all staff) gets the terms, not the reason. The
+rate keeps its stored per-lesson cents. `activityLog` gets only that the plan changed (no price, subject prices,
+terms or reason; since 2026-11-11 finance.* / invoice.* / payment.* / expense.* / accounting.* entries are read by admin
+/ finance only, other entries by staff; old entries: `functions/tools/activity-price-redaction.js`, dry run). The
 Finantsid forecast form still edits the lesson price directly and leaves the terms as they are.
 
 #### Billing per subject (2026-11-06)

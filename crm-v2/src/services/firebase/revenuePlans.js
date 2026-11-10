@@ -195,9 +195,9 @@ export const revenuePlansService = {
       ...(values.subjectBilling ? { subjectBilling: perSubject.billing } : {}),
       ...terms,
     };
-    // activityLog is readable by all staff: it gets the terms only, never the discount reason or the rate.
-    // The price lives only here (admin / finance can read it). It is no longer copied to the student card,
-    // which teachers and parents can read.
+    // activityLog gets only that the plan changed — no price, rate, discount or terms (finance.* entries are read by
+    // admin / finance only since 2026-11-11, but older rules let every teacher read them). The price lives only here
+    // (admin / finance can read it). It is no longer copied to the student card, which teachers and parents can read.
     const batch = writeBatch(db);
     // mergeFields: every written field is replaced whole (a removed subject price really goes), the rest stays
     batch.set(doc(db, 'studentRevenuePlans', student.id), plan, { mergeFields: Object.keys(plan) });
@@ -209,7 +209,9 @@ export const revenuePlansService = {
       byRole: 'admin',
       createdAt: updatedAt,
       date: updatedAt.slice(0, 10),
-      meta: { studentId: student.id, studentName: student.name || '', lessonPriceCents: validation.lessonPriceCents, weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode, ...(values.subjectPrices ? { subjectPrices: subjects.prices } : {}), ...(values.subjectBilling ? { subjectBilling: perSubject.billing } : {}), ...(terms.priceTerms ? { priceTerms: terms.priceTerms } : {}) },
+      // no price, per-subject prices, per-subject billing or terms here (review 2026-11-11): the history of the
+      // price stays in the plan's own priceHistory, which only admin / finance read
+      meta: { studentId: student.id, studentName: student.name || '', weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode, ...(values.subjectPrices ? { subjectPricesChanged: true } : {}) },
     });
     await batch.commit();
     return normalizeRevenuePlan(student.id, plan);

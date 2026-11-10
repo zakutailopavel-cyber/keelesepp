@@ -64,8 +64,10 @@ describe('revenuePlansService', () => {
     expect(written).toMatchObject({ lessonPriceCents: 2000, priceTerms: 'discount', hourlyRateCents: 2000, discountReason: 'Kaks last', priceTermsChangedBy: 'Admin', priceTermsChangedByUid: 'admin-1' });
     expect(written.priceTermsChangedAt).toMatch(/^\d{4}-/);
     expect(options.mergeFields).toEqual(expect.arrayContaining(['priceTerms', 'discountReason', 'priceTermsChangedAt']));
-    expect(firestore.batch.set.mock.calls[1][1].meta).toMatchObject({ priceTerms: 'discount' });
-    expect(firestore.batch.set.mock.calls[1][1].meta.discountReason).toBeUndefined();
+    // activityLog: no price, rate, terms or reason (review 2026-11-11: every teacher could read the entry)
+    const meta = firestore.batch.set.mock.calls[1][1].meta;
+    expect(meta).toEqual({ studentId: 'student-1', studentName: 'Mari', weeklyLessons: 1, billingMode: expect.any(String) });
+    expect(JSON.stringify(firestore.batch.set.mock.calls[1][1])).not.toMatch(/2000|discount|Kaks last/);
   });
 
   it('refuses a discount without a reason and keeps the old terms when the form has none', async () => {

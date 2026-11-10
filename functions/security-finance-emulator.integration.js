@@ -195,7 +195,7 @@ test("two records of the same calendar lesson are not billed", async () => {
   assert.match(result.body.error, /duplicates another record/);
 });
 
-test("lesson tokens: the plan saves „Tunnipakett”; owed lessons are read by finance and the card's parent only", async () => {
+test("lesson tokens: the plan saves „Tunnipakett”; owed lessons are read by admin / finance only, not the card's parent", async () => {
   requireSafeEmulatorEnvironment();
   const adminUid = tokenUid(await adminToken());
   const plan = (billingMode) => ({ fields: {
@@ -215,10 +215,97 @@ test("lesson tokens: the plan saves „Tunnipakett”; owed lessons are read by 
     db().collection("students").doc("sec-tokens-student").set({ name: "Paketi Laps", parentUid: tokenUid(parent), active: true }),
     db().collection("lessonPackageStates").doc("sec-tokens-lesson").set({ lessonId: "sec-tokens-lesson", studentId: "sec-tokens-student", status: "needs_attention", lessonDate: "2026-10-28" }),
   ]);
-  for (const [who, token, expected] of [["parent", parent, 200], ["finance", finance, 200], ["other parent", other, 403], ["teacher", teacher, 403]]) {
+  // owner 2026-11-02: lessons left are seen by admin and the accountant only (review 2026-11-11: parents could read them)
+  for (const [who, token, expected] of [["parent", parent, 403], ["finance", finance, 200], ["other parent", other, 403], ["teacher", teacher, 403]]) {
     const read = await documentRequest(token, "GET", "lessonPackageStates/sec-tokens-lesson");
     assert.equal(read.status, expected, `${who}: ${JSON.stringify(read.body)}`);
   }
   const write = await documentRequest(parent, "PATCH", "lessonPackageStates/sec-tokens-lesson", { fields: { status: str("cleared") } });
   assert.equal(write.status, 403, JSON.stringify(write.body));
+});
+
+// Review 2026-11-11 (B1, B2, B6, B7): lesson prices in finance activity entries, lessons left for families, a lesson
+// created already billed, the invoice number counter.
+test("finance activity entries are read by admin / finance only; other entries by staff", async () => {
+  requireSafeEmulatorEnvironment();
+  const admin = await adminToken();
+  const teacher = await account("sec-act-teacher@example.com", { role: "teacher", roles: ["teacher"] });
+  const finance = await account("sec-act-finance@example.com", { role: "finance", roles: ["finance"] });
+  const parent = await account("sec-act-parent@example.com", { role: "parent", roles: ["parent"] });
+  await Promise.all([
+    db().collection("activityLog").doc("sec-act-plan").set({ type: "finance.revenue_plan_updated", label: "Plaan", meta: { lessonPriceCents: 2500 } }),
+    db().collection("activityLog").doc("sec-act-invoice").set({ type: "invoice.created", label: "Arve" }),
+    db().collection("activityLog").doc("sec-act-lesson").set({ type: "lesson.completed", label: "Tund" }),
+    db().collection("activityLog").doc("sec-act-untyped").set({ label: "Vana kirje" }),
+  ]);
+  const cases = [
+    ["teacher", teacher, "sec-act-plan", 403], ["teacher", teacher, "sec-act-invoice", 403], ["teacher", teacher, "sec-act-lesson", 200], ["teacher", teacher, "sec-act-untyped", 200],
+    ["finance", finance, "sec-act-plan", 200], ["finance", finance, "sec-act-invoice", 200], ["finance", finance, "sec-act-lesson", 403],
+    ["admin", admin, "sec-act-plan", 200], ["admin", admin, "sec-act-lesson", 200],
+    ["parent", parent, "sec-act-plan", 403], ["parent", parent, "sec-act-lesson", 403],
+  ];
+  for (const [who, token, id, expected] of cases) {
+    const read = await documentRequest(token, "GET", `activityLog/${id}`);
+    assert.equal(read.status, expected, `${who} ${id}: ${JSON.stringify(read.body)}`);
+  }
+});
+
+test("lesson packages and their ledger: admin / finance read them, the card's parent and student do not", async () => {
+  requireSafeEmulatorEnvironment();
+  const admin = await adminToken();
+  const parent = await account("sec-pkg-parent@example.com", { role: "parent", roles: ["parent"] });
+  const student = await account("sec-pkg-student@example.com", { role: "student", roles: ["student"] });
+  const finance = await account("sec-pkg-finance@example.com", { role: "finance", roles: ["finance"] });
+  await Promise.all([
+    db().collection("students").doc("sec-pkg-student").set({ name: "Paketi Õpilane", parentUid: tokenUid(parent), linkedUserId: tokenUid(student), active: true }),
+    db().collection("studentPackages").doc("sec-pkg-1").set({ studentId: "sec-pkg-student", balanceCredits: 3, status: "active" }),
+    db().collection("packageLedger").doc("sec-pkg-ledger-1").set({ studentId: "sec-pkg-student", creditsDelta: -1 }),
+  ]);
+  for (const path of ["studentPackages/sec-pkg-1", "packageLedger/sec-pkg-ledger-1"]) {
+    for (const [who, token, expected] of [["admin", admin, 200], ["finance", finance, 200], ["parent", parent, 403], ["student", student, 403]]) {
+      const read = await documentRequest(token, "GET", path);
+      assert.equal(read.status, expected, `${who} ${path}: ${JSON.stringify(read.body)}`);
+    }
+  }
+});
+
+test("a lesson cannot be created already billed, invoiced, paid, waived or checked", async () => {
+  requireSafeEmulatorEnvironment();
+  const admin = await adminToken();
+  const teacher = await account("sec-create-teacher@example.com", { role: "teacher", roles: ["teacher"], displayName: "Loo Õpetaja" });
+  const teacherUid = tokenUid(teacher);
+  const lesson = (extra = {}) => ({ fields: {
+    studentId: str("sec-create-student"), studentName: str("Mari"), teacherUid: str(teacherUid), teacher: str("Loo Õpetaja"),
+    date: str("2026-12-17"), status: str("Toimunud"), duration: { integerValue: "60" }, accountingSource: str("crm_v2"), ...extra,
+  } });
+  const forged = {
+    billingStatus: str("invoiced"), invoiceId: str("inv-1"), invoiceNum: str("KS-2026-001"), billedAmountCents: { integerValue: "2500" },
+    directPaymentId: str("pay-1"), creditNoteId: str("cn-1"), bankTransactionId: str("bank-1"),
+    billingWaived: { booleanValue: true }, verified: { booleanValue: true }, verifiedByUid: str(teacherUid),
+  };
+  for (const [key, value] of Object.entries(forged)) {
+    const created = await documentRequest(teacher, "PATCH", `lessons/sec-create-${key}`, lesson({ [key]: value }));
+    assert.equal(created.status, 403, `teacher with ${key}: ${JSON.stringify(created.body)}`);
+  }
+  const billedByAdmin = await documentRequest(admin, "PATCH", "lessons/sec-create-admin-billed", lesson({ invoiceId: str("inv-1") }));
+  assert.equal(billedByAdmin.status, 403, JSON.stringify(billedByAdmin.body));
+  const checkedByAdmin = await documentRequest(admin, "PATCH", "lessons/sec-create-admin-checked", lesson({ verified: { booleanValue: true } }));
+  assert.equal(checkedByAdmin.status, 200, JSON.stringify(checkedByAdmin.body));
+  const plain = await documentRequest(teacher, "PATCH", "lessons/sec-create-plain", lesson());
+  assert.equal(plain.status, 200, JSON.stringify(plain.body));
+});
+
+test("the invoice number counter: only the server writes it, admin / finance read it", async () => {
+  requireSafeEmulatorEnvironment();
+  const admin = await adminToken();
+  const teacher = await account("sec-counter-teacher@example.com", { role: "teacher", roles: ["teacher"] });
+  const finance = await account("sec-counter-finance@example.com", { role: "finance", roles: ["finance"] });
+  const before = await db().collection("meta").doc("invoiceCounter").get();
+  if (!before.exists) await db().collection("meta").doc("invoiceCounter").set({ seq: 0 });
+  for (const [who, token, expected] of [["admin", admin, 200], ["finance", finance, 200], ["teacher", teacher, 403]]) {
+    const read = await documentRequest(token, "GET", "meta/invoiceCounter");
+    assert.equal(read.status, expected, `${who} read: ${JSON.stringify(read.body)}`);
+    const write = await documentRequest(token, "PATCH", "meta/invoiceCounter?updateMask.fieldPaths=seq", { fields: { seq: { integerValue: "1" } } });
+    assert.equal(write.status, 403, `${who} write: ${JSON.stringify(write.body)}`);
+  }
 });
