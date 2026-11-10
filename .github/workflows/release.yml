@@ -2,7 +2,11 @@ name: Release
 
 # Batched releases (owner 2026-11-09): Vercel builds main only for a „[deploy]” / „[hotfix]” commit
 # (crm-v2/scripts/vercel-ignore.sh). This job makes that release commit twice a day when the app changed since the last
-# release, and on request: GitHub → Actions → Release → „Run workflow”.
+# release, and on request: GitHub → Actions → Release → „Run workflow” (or `gh workflow run release.yml`).
+# Gate (review I2, 2026-11-11): no release while the „CRM v2” checks (crm-v2.yml) of the newest app change on main are
+# red; while they still run, wait up to 25 min, then decide (.github/scripts/release-ci-gate.sh).
+# Not gated here: a merge whose own commit message carries „[deploy]” / „[hotfix]” — Vercel builds it at once
+# (crm-v2/scripts/vercel-ignore.sh), only the PR checks guard it. Safe hotfix: merge the PR, then run this workflow.
 on:
   schedule:
     - cron: '0 5 * * *'   # 07:00 Tallinn in winter (08:00 in summer)
@@ -19,22 +23,36 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 35
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           fetch-depth: 400
           persist-credentials: false
-      - name: Release commit when the app changed
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Did the app change since the last release?
+        id: changes
         run: |
           last=$(git log -1 --format=%H -E --grep='\[(deploy|hotfix)\]' || true)
           if [ -n "$last" ]; then changed=$(git rev-list --count "$last"..HEAD -- crm-v2); else changed=1; fi
-          if [ "$changed" = "0" ]; then echo "Nothing new for the app since the last release."; exit 0; fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          if [ "$changed" = "0" ]; then echo "Nothing new for the app since the last release."; fi
+      - name: CRM v2 checks must be green (waits up to 25 min while they run)
+        if: steps.changes.outputs.changed != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WAIT_MINUTES: '25'
+        run: bash .github/scripts/release-ci-gate.sh
+      - name: Release commit
+        if: steps.changes.outputs.changed != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          changed: ${{ steps.changes.outputs.changed }}
+        run: |
+          # pushes exactly the commit the gate checked; if main moved meanwhile the push is refused (not a fast-forward)
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit --allow-empty -m "[deploy] Release $(date -u '+%Y-%m-%d %H:%M') UTC: ${changed} app commits"
