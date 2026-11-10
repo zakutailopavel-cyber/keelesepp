@@ -47,6 +47,15 @@ export const languageToolsService = {
     if (src !== 'et') return post('/translate', { text: word, src, tgt }).then((data) => ({ word, translation: data.result || '', forms: { available: false, forms: [], line: '' } }));
     return post('/word', { word, tgt });
   },
+  // the two halves of /word as separate calls (staff only, same server cache): TartuNLP answers in well under a second,
+  // while EKI forms may try several headwords one after another — the word card shows the translation without waiting
+  translate({ text, src = 'et', tgt = 'ru' }) {
+    return post('/translate', { text, src, tgt }).then((data) => data.result || '');
+  },
+  // { word, headword, available, found, forms: [{ code, label, ru, value }], line }
+  wordForms({ word }) {
+    return post('/forms', { word });
+  },
   // the three key forms of words on a student's cards (EKI, cached on the server): { forms: { word: [a, b, c] } }
   keyForms(words = []) {
     return post('/key-forms', { words });
