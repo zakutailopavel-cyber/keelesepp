@@ -20,11 +20,11 @@
 // (majandusjuhataja) Peeter Rebane, hostel hostess Ülle. Every price, size and time belongs to the cast's story (the ads
 // are invented); the real things named are the streets (Pallasti, Akadeemia tee, Ehitajate tee) and the portals kv.ee /
 // city24.ee in the homework.
-// Listening: no recordings yet (MODULE.audio 'pending'): the teacher reads the transcripts.
+// Listening: recorded with Neurokõne (tools/listening-audio/build.mjs, listeningAudio.json); after a transcript edit run it again.
 import { B, tag, teach, why, withShapes } from '../blocks.js';
 import { purpose, station } from '../stationBlocks.js';
 
-export const MODULE = { id: 'b1noor-module-03', course: 'b1noor', title: 'Minu tuba, meie kodu', level: 'A2+', design: 'v3-stations', template: 'v4', audio: 'pending' };
+export const MODULE = { id: 'b1noor-module-03', course: 'b1noor', title: 'Minu tuba, meie kodu', level: 'A2+', design: 'v3-stations', template: 'v4' };
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 011 RÄÄK L→S: adjective suffixes, my room
