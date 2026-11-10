@@ -1,3 +1,12 @@
+## 2026-11-10 · agent/b1noor-teen-roles — b1noor modules 1–3: teen roles instead of adult ones (content only)
+
+- Base: `origin/main` dfffbb5, checked 2026-11-10. Branch `agent/b1noor-teen-roles`, draft PR. Owner feedback: some roles in „B1 noorkeele õppija” are adult (choosing / paying for a flat, calling the landlord). Topic „home”, grammar axis, exam task types, lesson ids, phases, stations and points unchanged.
+- Done (`admin/course/b1noor/module03.js`): 012 — the family moves, the mother decides about money; Daria argues which flat suits her (own room, minutes to school / training, floor, balcony); 700 € budget and utilities removed (flat cards, final, mediation, chat, vocab `kommunaalkulud` → `kaugusel`); + `lähemal / kaugemal kui` in the rule and one gap item. 014 — the fault moved to school: caretaker Peeter Rebane's voice message, school sentences in mis / mille, the final = class elder calls the caretaker about the cold classroom + W1b note in Stuudium (home variant: the teen mediates for a parent); landlord Andres Kuusk removed. 014 station 3 — only real words in the õ/ö/ü rows. 015 — „kommunaalkulud” → „kõik kulud” in one ad. Modules 1–2 audited: no adult roles, no changes (010 part B babysitter noted as borderline in the review).
+- Files: `module03.js`, `docs/review/b1noor-m01.md`, `-m02.md`, `-m03.md` („Подростковые роли (2026-11-10)”).
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator src/features/curriculum/b1noorCurriculum.test.js` → 75 files passed (1 skipped), 1202 tests passed.
+- Limits: not published to Firestore; sheets already published from b1noor module 3 keep the old text until republished. New Estonian text not checked by a native speaker.
+- Next safe step: owner reviews 012 / 014 in the PR, then republish b1noor module 3 sheets from fresh main.
+
 ## 2026-11-10 · agent/listening-transcript — listening tasks: „Näita teksti”, live „Näita õpilasele” · UI only, no rules deploy
 
 - Base: `origin/main` e980986, checked 2026-11-10. Branch `agent/listening-transcript`, PR (ready). Owner 2026-11-10 (screenshot of „Grete häälsõnum” in the Live Classroom): „надо ещё добавить, чтобы можно было сам текст тоже увидеть и показать”. No course content changed.
