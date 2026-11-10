@@ -47,6 +47,24 @@ describe('pet topic games', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
+  it('closing a game mid-round leaves no timer behind (the next round never fires after unmount)', () => {
+    vi.useFakeTimers();
+    try {
+      const topics = learnerTopics([{ id: 'a', status: 'new', worksheetDoc: doc, title: 'Mitmuse osastav' }]);
+      const onDone = vi.fn();
+      const { unmount } = render(<PetGames topics={topics} kind="siil" onDone={onDone} onClose={() => {}} />);
+      fireEvent.click(screen.getByRole('button', { name: /Kiire kontroll/ }));
+      fireEvent.click(screen.getByRole('button', { name: 'Õige' }));
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+      unmount();
+      expect(vi.getTimerCount()).toBe(0);
+      vi.advanceTimersByTime(60_000);
+      expect(onDone).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   const courseDoc = { meta: { title: 'Pere', level: 'A2' }, blocks: [
     { type: 'categorize', data: { groups: [{ name: 'Välimus', words: 'pikk, lühike, sale, prillidega' }, { name: 'Iseloom', words: 'sõbralik, rahulik, naljakas' }] } },
     { type: 'crossword', data: { rows: [{ clue: 'Minu ema ema', answer: 'vanaema' }, { clue: 'Poeg või tütar', answer: 'laps' }, { clue: 'Ema ja isa koos', answer: 'vanemad' }, { clue: 'kaks sõna', answer: 'ema isa' }] } },

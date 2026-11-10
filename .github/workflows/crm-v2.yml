@@ -1,18 +1,36 @@
 name: CRM v2
 
+# The one CI for the app (since 2026-11-11 also holds the former „CRM v2 CI” workflow, crm-v2-ci.yml, which ran the same
+# unit tests a second time and on main was usually cancelled). release.yml waits for this workflow to be green on main
+# before it makes a release commit (.github/scripts/release-ci-gate.sh) — keep its name, file name and the paths below
+# in sync with CI_PATHS there.
+
 on:
   pull_request:
     paths:
       - 'crm-v2/**'
+      - 'e2e/layout/**'
+      - 'e2e/playwright.layout.config.cjs'
+      - 'e2e/package.json'
+      - 'e2e/package-lock.json'
       - '.github/workflows/crm-v2.yml'
   push:
     branches: [main, crm-v2]
     paths:
       - 'crm-v2/**'
+      - 'e2e/layout/**'
+      - 'e2e/playwright.layout.config.cjs'
+      - 'e2e/package.json'
+      - 'e2e/package-lock.json'
       - '.github/workflows/crm-v2.yml'
 
 permissions:
   contents: read
+
+# A newer push to the same PR cancels the older run; on main every commit keeps its own run (the release gate reads it).
+concurrency:
+  group: crm-v2-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -34,6 +52,9 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm test
+      - name: Report bundle size (warning only)
+        continue-on-error: true
+        run: node scripts/bundle-size-report.mjs
 
   security-regression:
     runs-on: ubuntu-latest
@@ -56,3 +77,27 @@ jobs:
       - run: npm test
         working-directory: functions
       - run: npx --yes firebase-tools@15.22.3 emulators:exec --project demo-keelesepp-finance --only auth,firestore,functions "cd functions && npm run test:emulator"
+
+  sheet-layout:
+    # the student's phone view of a worksheet in a real browser (docs/WORKSHEET_PHONE_VIEW.md): no emulators, no network
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            crm-v2/package-lock.json
+            e2e/package-lock.json
+      - name: Install dependencies
+        run: npm --prefix crm-v2 ci && npm --prefix e2e ci
+      - name: Install the browser
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+      - name: Check every block at phone, tablet and desktop sizes
+        working-directory: e2e
+        run: npx playwright test -c playwright.layout.config.cjs

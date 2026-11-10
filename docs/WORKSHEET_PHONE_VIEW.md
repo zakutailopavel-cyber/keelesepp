@@ -40,7 +40,7 @@ Fields placed on a scanned page (`assignment.files`, `VisualWorksheetList`): the
 
 ## Checks
 
-- `cd e2e && npx playwright test -c playwright.layout.config.cjs`: the real player on a fake repository (`crm-v2/sheet-lab.html`, `src/test/sheetLab/`, vite dev only, not in the build). Fails on: wider than the screen, target under 44 px, field under 16 px, text under 14 px, zoom other than 1. At 360, 375, 430, 768, 812×375, all themes, compact, checked, real course sheets, template v3 copy, live reading page. Runs in CI (`crm-v2-ci.yml`, job `sheet-layout`). Chromium only. Set `LAYOUT_PORT` to reuse a running dev server.
+- `cd e2e && npx playwright test -c playwright.layout.config.cjs`: the real player on a fake repository (`crm-v2/sheet-lab.html`, `src/test/sheetLab/`, vite dev only, not in the build). Fails on: wider than the screen, target under 44 px, field under 16 px, text under 14 px, zoom other than 1. At 360, 375, 430, 768, 812×375, all themes, compact, checked, real course sheets, template v3 copy, live reading page. Runs in CI (`crm-v2.yml` „CRM v2”, job `sheet-layout`). Chromium only. Set `LAYOUT_PORT` to reuse a running dev server.
 - `engine/gradingPin.test.js`: marks, score and progress of real sheets are pinned to `main` before this work. A change there means grading changed, a decision for the owner.
 - `worksheet-studio/sheetFlow.test.jsx`: same answers as on A4 for every answerable block, tap paths, overlay list, keyboard arithmetic, save state.
 
