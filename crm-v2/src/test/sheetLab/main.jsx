@@ -13,7 +13,7 @@ import '../../styles/index.css';
 
 // A page outside the app (vite dev only, not in the production build) that opens the real student player with a real or
 // stress sheet and a fake repository. `e2e/layout` measures it; a person can open it too:
-//   /sheet-lab.html?set=catalogue&theme=selge&done=1&room=1
+//   /sheet-lab.html?set=catalogue&theme=selge&done=1&room=1   (&script=<blockId>: the teacher shows that listening text)
 const params = new URLSearchParams(globalThis.location.search);
 const user = { uid: 'lab-student', displayName: 'Mari Lab', roles: ['student'] };
 
@@ -49,6 +49,8 @@ function fakeRepository(pushers, assignment) {
     setWorksheetLiveFocus: async ({ blockId }) => push({ liveFocus: { blockId } }),
     setWorksheetShown: async ({ shown }) => push({ liveShown: shown }),
     setWorksheetLiveStep: async ({ on, open }) => push({ liveStep: { on, open } }),
+    // the text of a listening task shown to the learner (Näita õpilasele)
+    setWorksheetTranscript: async ({ blockId, on }) => push({ liveTranscripts: on ? [...new Set([...(live.liveTranscripts || []), blockId])] : (live.liveTranscripts || []).filter((id) => id !== blockId) }),
     saveSubmissionAnnotations: async () => {},
     saveWorksheetDraft: async (payload) => { log.drafts.push(payload); if (failing()) throw new Error('Võrgu viga'); },
     submitWorksheet: async (payload) => { log.submits.push(payload); },
@@ -114,6 +116,8 @@ async function start() {
     const density = params.get('density');
     assignment = { ...base, title: doc.meta?.title || base.title, worksheetDoc: { ...doc, meta: { ...doc.meta, ...(theme ? { theme } : {}), ...(density ? { density } : {}) } } };
   }
+  // &script=<blockId>: the teacher already shows the text of that listening task (assignment.liveTranscripts)
+  if (params.get('script')) assignment.liveTranscripts = params.get('script').split(',');
   const saved = params.get('answers');
   if (saved) assignment.answers = JSON.parse(saved);
   globalThis.__labDoc = assignment.worksheetDoc;

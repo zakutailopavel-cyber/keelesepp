@@ -77,6 +77,15 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     user,
   }));
   const showTask = (blockId, show) => setShown([blockId], show);
+  // the text of a listening task: the teacher reads it for herself and shows / hides it to the learner (transcript.js)
+  const canScript = typeof repository.setWorksheetTranscript === 'function';
+  const scripts = useMemo(() => assignment?.liveTranscripts || [], [assignment?.liveTranscripts]);
+  const transcripts = {
+    role: 'staff',
+    revealed: scripts,
+    busy,
+    onLive: canScript ? (blockId, on) => live(() => repository.setWorksheetTranscript({ assignmentId, blockId, on, user })) : null,
+  };
   const shownBy = assignment?.liveShownBy || null;
   // „Näita kõik vastused”: every task that has right answers
   const keyedIds = useMemo(() => stats.filter((s) => s.total).map((s) => s.id), [stats]);
@@ -137,7 +146,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
   const editBanner = editing ? <div className="st-banner" role="status">{editNote || 'Topeltklõpsa tekstil, mida tahad parandada (lünga õige vastus on nurksulgudes). Parandus läheb ainult selle õpilase lehele.'}</div> : null;
   const sheet = editing
     ? <Sheet doc={doc} mode="edit" onEditText={editText} />
-    : <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} blockPopovers={blockPopovers} blockBadges={blockBadges} />;
+    : <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} blockPopovers={blockPopovers} blockBadges={blockBadges} transcripts={transcripts} />;
 
   // marks go to the assignment; the student's player is subscribed and shows them at once
   // double-click a word: „Viga”, „Märkus” or „Sõna” (three key forms → the student's „Sõnad”); a corrected answer can go

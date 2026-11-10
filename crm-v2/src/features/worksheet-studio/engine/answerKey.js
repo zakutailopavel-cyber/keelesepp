@@ -74,7 +74,7 @@ function itemsOf(block) {
 function taskKey(b, num) {
   const why = lines(b.data?.explain);
   const items = itemsOf(b).filter((it) => it.answer || it.prompt).map((it, i) => ({ n: i + 1, ...it, why: why[i] || '' }));
-  // the listening script is for the teacher only (the editor says „õpilane ei näe”)
+  // the listening script: always in the teacher's key; the learner sees it only after checking (transcript.js)
   const transcript = String(b.data?.transcript || '').trim();
   return { id: b.id, num, type: b.type, title: b.data?.title || BLOCKS[b.type]?.label || b.type, instruction: b.data?.instruction || '', note: String(b.data?.teacher || '').trim(), transcript, items };
 }
@@ -82,7 +82,7 @@ function taskKey(b, num) {
 export function answerKeyOf(doc) {
   const blocks = doc?.blocks || [];
   const nums = numberTasks(blocks);
-  return blocks.filter((b) => BLOCKS[b.type]?.task).map((b) => taskKey(b, nums[b.id])).filter((t) => t.items.length || t.note);
+  return blocks.filter((b) => BLOCKS[b.type]?.task).map((b) => taskKey(b, nums[b.id])).filter((t) => t.items.length || t.note || t.transcript);
 }
 
 // the key of one task, numbered as on the sheet (the teacher clicks a task in a live or review view); null for a

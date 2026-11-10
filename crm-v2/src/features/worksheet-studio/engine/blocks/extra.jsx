@@ -10,6 +10,7 @@ import { SpeakPanel } from '../../editor/Speak.jsx';
 import VoiceRecorder, { canRecord } from '../../editor/VoiceRecorder.jsx';
 import { Mic } from 'lucide-react';
 import { AudioBar } from '../ui.jsx';
+import { ListenAudio, ListenTranscript } from '../ListenTranscript.jsx';
 
 // Second wave: dialogue, reading, listening, table and sorting into groups.
 
@@ -109,6 +110,8 @@ export const reading = {
 };
 
 // ---------- listening ----------
+// the text of the recording: the teacher sees it always, the learner after checking or when the teacher shows it
+export const TRANSCRIPT_HINT = 'Iga repliik eraldi real, kõneleja ees: „Grete: Tere!”. Õpetaja näeb teksti alati; õpilane pärast vastuste kontrolli või kui õpetaja tunnis näitab.';
 export function AudioPick({ value, onChange }) {
   const input = useRef(null);
   const assets = useAssets();
@@ -132,9 +135,10 @@ export function AudioPick({ value, onChange }) {
 export const listening = {
   type: 'listening', label: 'Kuulamine + küsimused', group: 'Tekst ja heli', icon: 'Headphones', task: true, width: 'half', tone: 'sky',
   create: () => ({ title: 'Kuula.', instruction: 'Kuula ja täida laused.', audio: null, sentences: 'Mari ärkab kell [seitse|7].\nTa joob [kohvi].', transcript: '' }),
-  View: ({ data, ctx }) => (
+  View: ({ data, ctx, id }) => (
     <div className="ws-listen">
-      {data.partOf ? null : data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive || ctx.review} label="Kuula" /> : <div className="ws-hint">Helifail puudub.</div>}
+      {data.partOf ? null : data.audio?.src ? <ListenAudio id={id} audio={data.audio} interactive={ctx.interactive || ctx.review} label="Kuula" /> : <div className="ws-hint">Helifail puudub.</div>}
+      <ListenTranscript id={id} type="listening" data={data} ctx={ctx} />
       <ol className="ws-gaps" start={(ctx.start || 0) + 1}>{String(data.sentences || '').split('\n').filter((l) => l.trim()).map((l, i) => <li key={i} data-edit={`sentences#${i}`}><GapText text={l} ctx={ctx} prefix={`${i}`} /></li>)}</ol>
     </div>
   ),
@@ -145,7 +149,7 @@ export const listening = {
     <>
       <AudioPick value={data.audio} onChange={(audio) => set({ audio })} />
       <Area label="Laused (lünk nurksulgudes)" rows={5} value={data.sentences} onChange={(v) => set({ sentences: v })} />
-      <Area label="Transkriptsioon õpetajale (õpilane ei näe)" rows={3} value={data.transcript} onChange={(v) => set({ transcript: v })} />
+      <Area label="Kuulamise tekst" rows={3} value={data.transcript} onChange={(v) => set({ transcript: v })} hint={TRANSCRIPT_HINT} />
       <SpeakPanel type="listening" data={data} set={set} />
     </>
   ),

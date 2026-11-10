@@ -20,6 +20,7 @@ import { themeClass, themedTone } from './look.js';
 import { SPLITTABLE, canSplit, itemCount, packPages, shiftKey, sliceBlock } from './pageSplit.js';
 import { focusNextField } from '../sheetFlow.js';
 import { answerFontClass, useAnswerFont } from '../answerFont.js';
+import { TranscriptContext, hasCheck, hasTranscript } from './transcript.js';
 
 // texts that may carry formatting (bold, colour, highlight) — they are rendered with <Md>
 const RICH_FIELDS = new Set(['instruction', 'text', 'passage']);
@@ -230,7 +231,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockPopovers = null, blockBadges = null, blockClasses = null, flow = false, running = null, lead = null }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockPopovers = null, blockBadges = null, blockClasses = null, flow = false, running = null, lead = null, transcripts = null }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   // „Kiri”: the viewer's own font for typed answers (answerFont.js); plain by default
@@ -253,6 +254,44 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   });
 
   const [hoverId, setHoverId] = useState(null);
+
+  // The text of the listening tasks (transcript.js, ListenTranscript.jsx). `transcripts` = { role: 'staff' | 'student',
+  // submitted, revealed: [blockId] (the teacher shows it in the live lesson), answersShown: [blockId], onLive, busy };
+  // without it the tasks show only the player. Open / closed and „played to the end” live here, so the measuring copy
+  // and the drawn card agree (the pages are packed again when a text opens).
+  const [scriptOpen, setScriptOpen] = useState({});
+  const [scriptEnded, setScriptEnded] = useState({});
+  const revealedKey = (transcripts?.revealed || []).join(',');
+  // a text the teacher shows (or hides) opens (or closes) on both screens: the viewer's own earlier choice gives way
+  const [seenRevealed, setSeenRevealed] = useState(revealedKey);
+  if (seenRevealed !== revealedKey) {
+    const before = new Set(seenRevealed ? seenRevealed.split(',') : []);
+    const now = new Set(revealedKey ? revealedKey.split(',') : []);
+    setSeenRevealed(revealedKey);
+    const changed = Object.keys(scriptOpen).filter((id) => before.has(id) !== now.has(id));
+    if (changed.length) setScriptOpen((open) => Object.fromEntries(Object.entries(open).filter(([id]) => !changed.includes(id))));
+  }
+  const scriptBlocks = useMemo(() => doc.blocks.filter((b) => hasTranscript(b.type, b.data)), [doc.blocks]);
+  const role = transcripts?.role || '';
+  const answersShownKey = (transcripts?.answersShown || []).join(',');
+  const transcriptValue = useMemo(() => {
+    if (!role || !scriptBlocks.length || mode === 'edit') return null;
+    const revealed = new Set(transcripts.revealed || []);
+    return {
+      role,
+      submitted: Boolean(transcripts.submitted),
+      revealed,
+      answersShown: new Set(transcripts.answersShown || []),
+      checks: new Set(scriptBlocks.filter((b) => hasCheck(BLOCKS[b.type], b.data)).map((b) => b.id)),
+      onLive: role === 'staff' ? transcripts.onLive || null : null,
+      busy: Boolean(transcripts.busy),
+      isOpen: (id) => (id in scriptOpen ? scriptOpen[id] : revealed.has(id)),
+      setOpen: (id, open) => setScriptOpen((all) => ({ ...all, [id]: open })),
+      ended: (id) => Boolean(scriptEnded[id]),
+      markEnded: (id) => setScriptEnded((all) => (all[id] ? all : { ...all, [id]: true })),
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the fields of `transcripts` are listed one by one
+  }, [role, scriptBlocks, mode, revealedKey, transcripts?.submitted, answersShownKey, transcripts?.onLive, transcripts?.busy, scriptOpen, scriptEnded]);
 
   // Notes that open on a task (the teacher's answer key, the right answers shown to the learner) float next to it
   // (FloatingNote), one at a time: the one the user opened, else the task being typed in, else the task the teacher
@@ -447,6 +486,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   // the column: every block in its order on one long page; nothing to measure, nothing to split
   if (flow) {
     return (
+      <TranscriptContext.Provider value={transcriptValue}>
       <div ref={rootRef} className={`ws-root is-flow mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)} ${fontClass}`} onKeyDown={mode === 'interactive' ? focusNextField : undefined} onFocus={popIds.length ? trackTyping : undefined}>
         <div className="ws-page">
           {lead}
@@ -454,10 +494,12 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
           <div className="ws-flow">{rows.map((row, i) => rowView(row, i))}</div>
         </div>
       </div>
+      </TranscriptContext.Provider>
     );
   }
 
   return (
+    <TranscriptContext.Provider value={transcriptValue}>
     <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)} ${fontClass}`} onFocus={popIds.length ? trackTyping : undefined} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
       {/* hidden measuring layer: a page of its own (same width, padding, font and theme as the real pages), grown to
           its content, so a row is measured exactly as it will be drawn */}
@@ -483,5 +525,6 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
         onCommit={(next) => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); onEditText?.(rich.blockId, rich.path, next); }}
         onCancel={() => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); }} /></Suspense> : null}
     </div>
+    </TranscriptContext.Provider>
   );
 }

@@ -1,4 +1,5 @@
 import { Eye, EyeOff, KeyRound, X } from 'lucide-react';
+import { TranscriptText } from './engine/ListenTranscript.jsx';
 
 const when = (iso) => (iso ? new Date(iso).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' }) : '');
 
@@ -32,7 +33,7 @@ export default function BlockKeyPanel({ task, shown = false, shownBy = null, bus
         </ol>
       ) : null}
       {task.note ? <p className="ws-block-key-note"><b>Õpetajale:</b> {task.note}</p> : null}
-      {task.transcript ? <details className="ws-block-key-script"><summary>Kuulamise tekst</summary><p>{task.transcript}</p></details> : null}
+      {task.transcript ? <details className="ws-block-key-script"><summary>Kuulamise tekst</summary><TranscriptText text={task.transcript} /></details> : null}
       {empty ? <p className="ws-block-key-note">See on avatud ülesanne: kindlat vastust pole, hinda õpilase vastust ise.</p> : null}
       {onShow && task.items.length ? (
         <div className="ws-block-key-actions">

@@ -76,6 +76,9 @@ const AUTOSAVE_RETRY_MS = 5000;
 export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false, board = false, wordService }) {
   const authUser = useContext(AuthContext)?.user || null;
   const isStudent = Boolean(authUser?.roles?.includes('student'));
+  // the text of a listening task: staff open it always; the learner (also a guest of the room) after checking it, or when
+  // the teacher shows it in the lesson (transcript.js)
+  const isStaff = !isStudent && Boolean(authUser?.roles?.some((role) => role === 'admin' || role === 'teacher'));
   // the teacher may correct a task during the live lesson: the sheet follows the assignment document
   const [doc, setDoc] = useState(assignment.worksheetDoc);
   const [answers, setAnswers] = useState(assignment.answers || {});
@@ -111,6 +114,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   // live lesson: the teacher opens tasks one by one and shows the right answers of a task
   const [liveStep, setLiveStep] = useState(assignment.liveStep || null);
   const [liveShown, setLiveShown] = useState(assignment.liveShown || []);
+  const [liveTranscripts, setLiveTranscripts] = useState(assignment.liveTranscripts || []);
   const [autosaved, setAutosaved] = useState('');
   // what the student is told about her work: saving, saved, or not saved (the autosave used to fail silently)
   const [saveState, setSaveState] = useState('idle');
@@ -163,6 +167,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       setTeacherMarks(next.annotations || []);
       setLiveStep(next.liveStep || null);
       setLiveShown(next.liveShown || []);
+      setLiveTranscripts(next.liveTranscripts || []);
     }, () => {});
   }, [review, repository, assignment.id]);
   useEffect(() => {
@@ -184,6 +189,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       return [b.id, { label: 'Õiged vastused', chip: 'Õiged vastused', content }];
     }));
   }, [doc, liveShown, review]);
+
+  const transcripts = useMemo(() => ({ role: isStaff ? 'staff' : 'student', submitted, revealed: liveTranscripts, answersShown: liveShown }), [isStaff, submitted, liveTranscripts, liveShown]);
 
   const saveDraft = async () => {
     setSavingDraft(true); setError('');
@@ -251,7 +258,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={zoomStyle}>
-          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockPopovers={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
+          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockPopovers={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} transcripts={transcripts} />
         </div>
         </SheetAnnotations>
       </div>
@@ -270,7 +277,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={zoomStyle}>
-          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockPopovers={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
+          <Sheet flow={flow} doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockPopovers={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} transcripts={transcripts} />
         </div>
         </SheetAnnotations>
       </div>
@@ -288,6 +295,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   return <Modal open title={assignment.title} onClose={onClose} className={`modal--worksheet modal--worksheet-doc ${flow ? 'modal--sheet-flow' : ''}`} footer={footer}>{body}</Modal>;
 }
 
+const STAFF_TRANSCRIPTS = { role: 'staff' };
+const SUBMITTED_TRANSCRIPTS = { role: 'student', submitted: true };
+
 // Teacher review inside the homework submission dialog: the sheet with the learner's answers and marks.
 // annotations: teacher marks on the sheet (SheetAnnotations); editable for staff.
 // answerKey: staff only — a click on a task shows its answers under it.
@@ -300,7 +310,7 @@ export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, anno
     <div className="st-canvas" ref={fitRef}>
       <SheetAnnotations annotations={annotations} editable={editable} onChange={onAnnotationsChange} analysis={editable ? { level: worksheetDoc?.meta?.level || 'A2' } : null}>
         <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} blockPopovers={teacherKey.notes} onPick={teacherKey.onPick} />
+          <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} blockPopovers={teacherKey.notes} onPick={teacherKey.onPick} transcripts={answerKey ? STAFF_TRANSCRIPTS : SUBMITTED_TRANSCRIPTS} />
         </div>
       </SheetAnnotations>
     </div>

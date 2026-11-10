@@ -69,6 +69,8 @@ const DEFAULT_TITLE = newDocument().meta.title;
 
 const MM = 3.7795;
 // the blocks whose editor has a sound (AudioPick): a sound from the bank goes into the selected one
+// the studio is a staff page: the text of a listening task opens with „Näita teksti” (not while editing)
+const STAFF_TRANSCRIPTS = { role: 'staff' };
 const AUDIO_BLOCKS = new Set(['listening', 'dialogue', 'reading', 'examlisten']);
 const draftKey = (id) => `ks-worksheet-author-draft:${id || 'new'}`;
 const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem(key) || 'null'); } catch { return null; } };
@@ -1037,7 +1039,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           <main className="st-canvas" ref={canvasRef}>
             {/* the answer key is a plain page at its own size, not the A4 sheet scaled to the canvas */}
             <div className="st-zoom" style={{ zoom: mode === 'key' ? 1 : scale }}>
-              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter}  />}
+              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} />}
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>

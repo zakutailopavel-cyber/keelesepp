@@ -606,6 +606,25 @@ export const homeworkService = {
       return next;
     });
   },
+  // Live lesson: the teacher shows / hides the text of a listening task to the learner („Näita õpilasele”). Staff-only
+  // fields like liveShown (the learner may write only answers / status; no rule change): liveTranscripts [blockId] and
+  // liveTranscriptsBy[blockId] = the last show / hide (who, when). From the stored list, so two quick clicks never undo
+  // each other. Answers and score are not touched.
+  async setWorksheetTranscript({ assignmentId, blockId, on, user = null }) {
+    if (!assignmentId || !blockId) throw new Error('Töölehte ei leitud.');
+    const { db } = requireFirebaseClient();
+    const ref = doc(db, 'worksheetAssignments', assignmentId);
+    const id = String(blockId);
+    const entry = { on: Boolean(on), byUid: user?.uid || '', byName: String(user?.displayName || user?.email || 'Õpetaja').slice(0, 160), at: new Date().toISOString() };
+    return runTransaction(db, async (transaction) => {
+      const current = (await transaction.get(ref)).data() || {};
+      const set = new Set((Array.isArray(current.liveTranscripts) ? current.liveTranscripts : []).map(String));
+      if (entry.on) set.add(id); else set.delete(id);
+      const liveTranscripts = [...set].slice(0, 200);
+      transaction.update(ref, { liveTranscripts, liveTranscriptsBy: { ...(current.liveTranscriptsBy || {}), [id]: entry } });
+      return liveTranscripts;
+    });
+  },
   // Live lesson: the teacher corrects a task on the student's copy of the sheet; the student's player is subscribed.
   // Only this assignment changes, not the library sheet (staff may update worksheetAssignments, no rule change).
   async saveWorksheetDoc({ assignmentId, worksheetDoc }) {

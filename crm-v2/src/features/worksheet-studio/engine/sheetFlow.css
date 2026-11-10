@@ -189,6 +189,12 @@
   .ws-narrow .ws-root .ws-audio-ico svg { width: 16px; height: 16px; }
   .ws-narrow .ws-root .ws-audio audio, .ws-narrow .ws-root .ws-rec audio { flex: 1 1 100%; width: 100%; min-width: 0; height: 48px; margin: 0; }
   .ws-narrow .ws-root .ws-audio.is-print svg { width: 22px; height: 22px; }
+  /* the text of a listening task: a finger-sized button, the text in the column's reading size */
+  .ws-narrow .ws-root .ws-script-btn { min-height: 44px; padding: 8px 14px; font-size: 15px; }
+  .ws-narrow .ws-root .ws-script-btn svg { width: 18px; height: 18px; }
+  .ws-narrow .ws-root .ws-script-state { font-size: 14px; }
+  .ws-narrow .ws-root .ws-script-text { padding: 10px 12px; border-radius: 10px; border-left-width: 4px; font-size: 16px; line-height: 1.5; }
+  .ws-narrow .ws-root .ws-script-text h4 { font-size: 13px; }
 
   /* ---- schemes ---- */
   .ws-narrow .ws-root .ws-dg2-pairs { grid-template-columns: minmax(0, 1fr); grid-template-rows: none !important; grid-auto-flow: row; gap: 8px; }
