@@ -53,7 +53,8 @@ test("word forms need the Ekilex key; with it: search → paradigm → key forms
     const result = await estonianWordForms({ word: "kass" });
     assert.equal(result.line, "kass, kassi, kassi, kasse");
     assert.equal(urls[0].url, "https://ekilex.ee/api/word/search/kass/eki");
-    assert.equal(urls[1].url, "https://ekilex.ee/api/paradigm/details/42");
+    // the candidates (kass, kas) are searched side by side; the paradigm of the hit follows
+    assert.ok(urls.some((u) => u.url === "https://ekilex.ee/api/paradigm/details/42"));
     assert.equal(urls[0].key, "0123456789abcdef0123456789abcdef");
     await assert.rejects(estonianWordForms({ word: "kaks sõna" }), /One Estonian word/);
   } finally { index.__set__("fetch", global.fetch); delete process.env.EKILEX_API_KEY; }
