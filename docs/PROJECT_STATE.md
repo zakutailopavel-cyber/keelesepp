@@ -1,3 +1,13 @@
+## 2026-11-10 · agent/word-popover-speed — teacher's „Sõna” card: translation no longer waits for EKI forms · UI only
+
+- Base: `origin/main` 8a9bd83, checked 2026-11-10. Branch `agent/word-popover-speed`, draft PR. Owner (screenshot, word „kaua”): why does the translation in the „Viga / Märkus / Sõna” popover take so long?
+- Cause: the card (`worksheet-studio/SheetAnnotations.jsx`, tools `liveWordTools.js`) called one `languageApi /word`, which answers only when **both** TartuNLP (≈0.15–0.4 s) and EKI Ekilex forms are done. Forms try headword candidates one after another (`kaua` → `kaua`, `kau`, `ka`; each = Ekilex search + paradigm, 8 s timeout each), so an uncached word waits several seconds; the lookup also started only after the „Sõna” tab was chosen, and nothing was cached in the browser. „Vorme ei leitud.” for „kaua” is expected: an adverb has no declension paradigm in Ekilex.
+- Done: `languageToolsService.translate` / `wordForms` (existing staff endpoints `/translate`, `/forms`, same server cache); `liveWordTools.lookup(word, { onTranslation, onForms })` asks both in parallel and keeps a session cache (300 words, a failed half is forgotten; `clearWordLookupCache`); the composer starts the lookup as soon as a single word is selected (also on „Viga”), shows the translation as soon as it comes („Otsin vorme…” / placeholder „Otsin tõlget…”), never overwrites a typed translation; „Lisa õpilase sõnadesse” waits only for the forms.
+- Files: `crm-v2/src/services/firebase/languageTools.js`, `crm-v2/src/features/worksheet-studio/{liveWordTools.js,SheetAnnotations.jsx,SheetAnnotations.test.jsx}`. No functions / rules change.
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-studio` → 80 files, 585 tests passed; `src/services` → 40 files, 236 passed; eslint on the 4 files: 0 problems.
+- Limits: a single-word selection marked as „Viga” now also asks the free TartuNLP/EKI once (cached on the server). Server side untouched: a cold start of the 1 GB `languageApi` (big `functions/index.js`) and the sequential EKI candidate loop still make the forms slow on the first lookup of a word; not measured in production (needs a signed-in staff token).
+- Next safe step: owner tries a double-click in a live lesson; if forms are still too slow, a separate server PR: try Ekilex candidates in parallel and/or `minInstances: 1` for `languageApi` (costs money — owner decision).
+
 ## 2026-11-10 · agent/b1noor-audio — b1noor modules 1–3: listening audio (Neurokõne) · content + static files
 
 - Base: `origin/main` c44803a, checked 2026-11-10. Branch `agent/b1noor-audio`. Owner: „делай аудио для модулей 1–3”.
