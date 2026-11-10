@@ -17,6 +17,7 @@
 // Pure: the page passes what it knows. `tasks` are extra rows of the task list (the monologue, homework/taskList.js
 // shape), so home and „Ülesanded” never disagree.
 import { TASK_STATE, groupTasks, mergeTasks, taskCount } from '../homework/taskList.js';
+import { isOldTask, pathQueue, taskLink } from '../homework/taskPath.js';
 import { dailyPlan } from '../vocabulary/dailyReview.js';
 import { DAILY_GOAL_MINUTES } from '../practice/progress.js';
 import { toIsoDate } from '../calendar/calendarView.js';
@@ -75,23 +76,29 @@ export function openWork({ homework = [], assignments = [], tasks = [] } = {}) {
 const openMonologue = (tasks = []) => tasks.find((task) => task?.kind === 'monologue' && task.state === TASK_STATE.TODO) || null;
 
 /**
- * The homework step's queue: overdue (oldest deadline first), due within DUE_SOON_DAYS, the monthly monologue, the rest
- * in the order of „Tee nüüd”. Each: { id, title, due, minutes, to, kind: 'overdue' | 'due-soon' | 'monologue' | 'homework' }.
+ * The homework step's queue, in the ONE order of open work (homework/taskPath.js pathQueue — the same as „Ülesanded”'s
+ * „Järgmine samm”): a started sheet, a deadline soon or missed lately, the monologue, the newest lesson, the rest, old
+ * work last. Each: { id, title, due, minutes, to, started, kind: 'overdue' | 'due-soon' | 'monologue' | 'homework' | 'old' }.
+ * `to` opens that very task (a sheet starts, word cards open in „Harjuta”). Work older than OLD_DAYS is 'old', not
+ * 'overdue': it is no alarm any more (owner 2026-11-10), only still doable.
  */
 export function homeworkQueue({ homework = [], assignments = [], tasks = [], today }) {
-  const work = openWork({ homework, assignments, tasks });
-  const soonDue = addDays(today, DUE_SOON_DAYS);
-  const byDue = (a, b) => a.due.localeCompare(b.due);
-  const overdue = work.filter((task) => task.due && task.due < today).sort(byDue);
-  const dueSoon = work.filter((task) => task.due && task.due >= today && task.due <= soonDue).sort(byDue);
-  const rest = work.filter((task) => !overdue.includes(task) && !dueSoon.includes(task));
   const monologue = openMonologue(tasks);
-  return [
-    ...overdue.map((task) => ({ ...task, kind: 'overdue', to: '/homework' })),
-    ...dueSoon.map((task) => ({ ...task, kind: 'due-soon', to: '/homework' })),
-    ...(monologue ? [{ id: monologue.key, title: monologue.title || 'Kuu monoloog', due: monologue.due || '', minutes: 5, kind: 'monologue', to: monologue.to || '/homework' }] : []),
-    ...rest.map((task) => ({ ...task, kind: 'homework', to: '/homework' })),
-  ];
+  const extra = tasks.filter((task) => task && task.kind !== 'monologue');
+  const all = [...mergeTasks({ homework, assignments }), ...extra, ...(monologue ? [monologue] : [])];
+  const soonDue = addDays(today, DUE_SOON_DAYS);
+  const kindOf = (task) => {
+    if (task.kind === 'monologue') return 'monologue';
+    if (isOldTask(task, today)) return 'old';
+    if (task.due && task.due < today) return 'overdue';
+    if (task.due && task.due <= soonDue) return 'due-soon';
+    return 'homework';
+  };
+  return pathQueue(all, today).map((task) => ({
+    id: task.key, title: task.kind === 'monologue' ? task.title || 'Kuu monoloog' : task.title, due: task.due || '',
+    minutes: task.kind === 'monologue' ? 5 : task.minutes || 0, kind: kindOf(task), started: Boolean(task.started),
+    to: task.kind === 'monologue' ? task.to || '/homework' : taskLink(task),
+  }));
 }
 
 // work submitted or marked done today (the homework step is ticked by what really happened)
@@ -192,12 +199,15 @@ export function nextStep({ occurrences = [], homework = [], assignments = [], ta
   const work = queue.filter((task) => task.kind !== 'monologue');
   const more = work.length > 1 ? `kokku ${taskCount(work.length)}` : '';
   const first = (kind) => queue.find((task) => task.kind === kind);
+  // finish what was begun (a sheet with answers, not old) — the first of the one order, as on „Ülesanded”
+  const begun = work[0]?.started && work[0].kind !== 'old' ? work[0] : null;
+  if (begun) return { key: 'homework', title: short(begun.title), detail: ['Alustasid seda', more].filter(Boolean).join(' · '), button: 'Jätka', to: begun.to };
   const overdue = first('overdue');
-  if (overdue) return { key: 'overdue', title: short(overdue.title), detail: [`Tähtaeg oli ${dayLabel(overdue.due)}`, more].filter(Boolean).join(' · '), button: 'Tee ära', to: '/homework' };
+  if (overdue) return { key: 'overdue', title: short(overdue.title), detail: [`Tähtaeg oli ${dayLabel(overdue.due)}`, more].filter(Boolean).join(' · '), button: 'Tee ära', to: overdue.to };
   const dueSoon = first('due-soon');
   if (dueSoon) {
     const when = dueSoon.due === today ? 'Tähtaeg täna' : dueSoon.due === addDays(today, 1) ? 'Tähtaeg homme' : `Tähtaeg ${dayLabel(dueSoon.due)}`;
-    return { key: 'due-soon', title: short(dueSoon.title), detail: [when, more].filter(Boolean).join(' · '), button: 'Tee ära', to: '/homework' };
+    return { key: 'due-soon', title: short(dueSoon.title), detail: [when, more].filter(Boolean).join(' · '), button: 'Tee ära', to: dueSoon.to };
   }
   const later = lessonLaterToday(occurrences, today, now);
   if (later) return { key: 'lesson-today', title: `Täna kell ${later.time} on tund`, detail: lessonDetail(later), button: 'Vaata tunniplaani', to: '#tunniplaan' };
@@ -206,11 +216,11 @@ export function nextStep({ occurrences = [], homework = [], assignments = [], ta
     const detail = [monologue.due ? `Tähtaeg ${dayLabel(monologue.due)}` : '', 'räägi 2 minutit'].filter(Boolean).join(' · ');
     return { key: 'monologue', title: short(monologue.title) || 'Kuu monoloog', detail, button: 'Salvesta', to: monologue.to };
   }
-  const rest = first('homework');
+  const rest = first('homework') || first('old');
   if (rest) {
-    // the order of „Tee nüüd”: without deadlines the oldest lesson first, not the last one given
-    const detail = [rest.due ? `Tähtaeg ${dayLabel(rest.due)}` : '', more].filter(Boolean).join(' · ') || 'Õpetaja andis selle sulle';
-    return { key: 'homework', title: short(rest.title), detail, button: 'Tee ära', to: '/homework' };
+    // the one order (taskPath.js): the newest lesson first; work older than two weeks last, still doable, no alarm
+    const detail = [rest.kind === 'old' ? 'Vanem ülesanne' : rest.due ? `Tähtaeg ${dayLabel(rest.due)}` : '', more].filter(Boolean).join(' · ') || 'Õpetaja andis selle sulle';
+    return { key: 'homework', title: short(rest.title), detail, button: 'Tee ära', to: rest.to };
   }
   const daily = dailyPlan(ownWords(words), { now, today });
   if (daily.count && !daily.done && !done.includes('words')) {

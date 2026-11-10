@@ -144,11 +144,12 @@ export default function PracticeFlow({
       <RunHead steps={active} current={step.key} onPause={() => setMode('overview')} />
       {step.key === 'homework' ? <div className="pf-step">
         <ul className="pf-tasks">{(step.queue || []).slice(0, 3).map((task) => <li key={task.id}>
-          <ListTodo size={17} aria-hidden="true" /><b>{task.title}</b>{task.due ? <Badge tone={task.kind === 'overdue' ? 'danger' : 'neutral'}>{task.kind === 'overdue' ? 'tähtaeg oli ' : 'tähtaeg '}{task.due.slice(8, 10)}.{task.due.slice(5, 7)}</Badge> : <span />}
+          <ListTodo size={17} aria-hidden="true" /><b>{task.title}</b>{task.kind === 'overdue' || task.kind === 'old' ? <Badge tone="neutral">hilinenud</Badge> : task.due ? <Badge tone="neutral">tähtaeg {task.due.slice(8, 10)}.{task.due.slice(5, 7)}</Badge> : <span />}
         </li>)}</ul>
         <p className="form-hint">Tee ülesanne ära ja tule tagasi — samm märgitakse ise tehtuks.</p>
         <div className="pf-actions">
-          <Link className="button button--primary" to={step.to}>Ava ülesanne <ChevronRight size={16} aria-hidden="true" /></Link>
+          {/* the first task of the one order opens itself (a sheet starts, word cards open here); the rest wait in „Ülesanded” */}
+          <Link className="button button--primary" to={step.to}>{step.queue?.[0]?.to?.startsWith('/student/harjuta') ? 'Ava kaardid' : 'Ava ülesanne'} <ChevronRight size={16} aria-hidden="true" /></Link>
           <Button variant="secondary" onClick={skip}><SkipForward size={16} aria-hidden="true" /> Hiljem</Button>
         </div>
       </div> : null}

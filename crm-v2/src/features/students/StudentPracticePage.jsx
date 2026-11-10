@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -22,6 +23,7 @@ import { hasWordAudio, loadWordAudio } from '../vocabulary/wordAudio.js';
 import { COURSE_LOADERS } from '../worksheet-generator/admin/course/courseLoaders.js';
 import { todaySteps } from './nextStep.js';
 import PracticeFlow from './PracticeFlow.jsx';
+import WordTaskCard from './WordTaskCard.jsx';
 
 /**
  * „Harjuta” (owner 2026-11-09): the student's daily practice in its own tab after „Täna” — one button runs homework,
@@ -55,6 +57,9 @@ export default function StudentPracticePage({
   const words = useStudentWords((state.data?.students || []).map((student) => student.id), wordsService);
   const progress = usePracticeProgress(user, { readOnly: Boolean(preview), ...(practiceService ? { service: practiceService } : {}) });
   const [reaction, setReaction] = useState('');
+  // „Ava kaardid” on a teacher's word task in „Ülesanded” (?kaardid=<homeworkId>): that task's cards first
+  const location = useLocation();
+  const wordTaskId = new globalThis.URLSearchParams(location.search).get('kaardid') || '';
 
   if (state.loading) return <div className="page-content"><LoadingState label="Laen tänast harjutust…" /></div>;
   if (state.error) return <div className="page-content"><ErrorState message={state.error.message} onRetry={state.reload} /></div>;
@@ -78,11 +83,14 @@ export default function StudentPracticePage({
     ]);
     return loadStudentPractice({ student: main, lessons, words, stats: stats || [], loaders: courseLoaders, seed: `${user.uid}|${today}`, canListen: (item) => hasWordAudio(fullSentence(item)) });
   };
+  const wordTask = wordTaskId ? homework.find((item) => item.id === wordTaskId) || null : null;
   const petStage = petProgress({ lessons, submissions, homework, words, practiceXp: progress.xp }).stage;
 
   return <div className="page-content">
     {header}
     <div className="pf-page">
+      {wordTask ? <WordTaskCard key={wordTask.id} homework={wordTask} words={words} language={main?.preferredLanguage || ''} wordsService={wordsService} repository={homeworkRepository}
+        readOnly={Boolean(preview)} onTick={(key) => progress.save({ done: [key] })} onDone={() => { setReaction('words'); state.reload(); }} /> : null}
       <PracticeFlow plan={plan} today={progress.today} streak={progress.streak} pet={pet} petStage={petStage} lang={langOf(main?.subject || '')} language={main?.preferredLanguage || ''}
         words={words} wordsService={wordsService} readOnly={Boolean(preview)} loadPractice={loadPractice}
         onTick={(key) => progress.save({ done: [key] })} onReact={setReaction} />

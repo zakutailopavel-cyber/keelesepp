@@ -55,7 +55,8 @@ describe('StudentDashboardPage', () => {
     const step = screen.getByRole('region', { name: 'Järgmine samm' });
     expect(within(step).getByText('Õpi sõnad')).toBeInTheDocument();
     expect(within(step).getAllByRole('link')).toHaveLength(1);
-    expect(within(step).getByRole('link', { name: /Tee ära/ })).toHaveAttribute('href', '/homework');
+    // „Õpi sõnad” is a word task: it opens its cards in „Harjuta” (owner 2026-11-10)
+    expect(within(step).getByRole('link', { name: /Tee ära/ })).toHaveAttribute('href', '/student/harjuta?kaardid=homework-1');
     expect(screen.getByText(/Järgmine tund:/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ei saa tulla?' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Minu areng/ })).toHaveAttribute('href', '/student/areng');

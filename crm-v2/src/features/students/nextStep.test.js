@@ -27,7 +27,7 @@ describe('nextStep priority', () => {
       { id: 'b', task: 'Vana töö', due: '2026-10-20', status: 'Ootel' },
       { id: 'c', task: 'Vanem, aga tehtud', due: '2026-10-01', status: 'Tehtud' },
     ] });
-    expect(step).toMatchObject({ key: 'overdue', title: 'Vana töö', to: '/homework' });
+    expect(step).toMatchObject({ key: 'overdue', title: 'Vana töö', to: '/homework?ava=homework-b' });
     expect(step.detail).toMatch(/^Tähtaeg oli .* kokku 2 ülesannet$/);
   });
 
@@ -83,7 +83,7 @@ describe('nextStep: the full order (cabinet first screen, 2026-11-04)', () => {
       nextStep({ ...base, assignments: [selfStudy] }),
     ];
     expect(steps.map((step) => [step.key, step.button, step.to])).toEqual([
-      ['due-soon', 'Tee ära', '/homework'],
+      ['due-soon', 'Tee ära', '/homework?ava=homework-soon'],
       ['lesson-today', 'Vaata tunniplaani', '#tunniplaan'],
       ['monologue', 'Salvesta', '/homework'],
       ['self-study', 'Jätka', '/student/kursus'],
@@ -243,5 +243,27 @@ describe('the homework time estimate', () => {
     expect(own.minutes).toBeGreaterThan(0);
     expect(own.minutes).toBeLessThanOrEqual(10);
     expect(todaySteps({ today, now: NOW }).steps[0].minutes).toBe(0);
+  });
+});
+
+describe('one order with „Ülesanded” (homework/taskPath.js, owner 2026-11-10)', () => {
+  const sheetOf = (id, extra = {}) => ({ id, studentId: 's', lessonId: 'b1-12', lessonTitle: 'Tervis', phase: 'discover', status: 'new', answers: {}, assignedAt: '2026-11-01T10:00:00Z', source: 'learning_library', ...extra });
+
+  it('a started sheet comes first and says „Jätka”, opening that very sheet', () => {
+    const step = nextStep({ today, now: NOW, assignments: [sheetOf('s1', { answers: { a: 'x' } })], homework: [{ id: 'late', task: 'Hiline', due: '2026-10-30', status: 'Ootel' }] });
+    expect(step).toMatchObject({ key: 'homework', title: 'Tervis', button: 'Jätka', to: '/homework?ava=sheet-s1' });
+  });
+
+  it('work older than two weeks is no alarm: kind „old”, last in the queue', () => {
+    const queue = homeworkQueue({ today, homework: [{ id: 'ammu', task: 'Ammune', due: '2026-10-01', status: 'Ootel' }, { id: 'uus', task: 'Uus', status: 'Ootel', date: '2026-11-01' }] });
+    expect(queue.map((task) => [task.id, task.kind])).toEqual([['homework-uus', 'homework'], ['homework-ammu', 'old']]);
+    const only = nextStep({ today, now: NOW, homework: [{ id: 'ammu', task: 'Ammune', due: '2026-10-01', status: 'Ootel' }] });
+    expect(only).toMatchObject({ key: 'homework', title: 'Ammune', button: 'Tee ära', to: '/homework?ava=homework-ammu' });
+    expect(only.detail).toBe('Vanem ülesanne');
+  });
+
+  it('a word-card task opens its cards in „Harjuta”', () => {
+    const [task] = homeworkQueue({ today, homework: [{ id: 'w', task: 'Korda tunni sõnu sõnakaartidega 10 minutit', status: 'Ootel' }] });
+    expect(task.to).toBe('/student/harjuta?kaardid=w');
   });
 });
