@@ -118,14 +118,14 @@ export const Check = () => (
 
 // The audio of a task: a player on screen (also on a checked sheet, to listen again), a note on paper (a printed
 // sheet cannot play).
-export function AudioBar({ audio, interactive, label = 'Kuula' }) {
+export function AudioBar({ audio, interactive, label = 'Kuula', onEnded }) {
   if (!audio?.src) return null;
   if (!interactive) return <div className="ws-audio is-print"><Headphones aria-hidden="true" /><span>{label}: õpetaja mängib salvestuse või loeb teksti ette.</span></div>;
   return (
     <div className="ws-audio">
       <span className="ws-audio-ico" aria-hidden="true"><Headphones /></span>
       <b>{label}</b>
-      <audio controls preload="metadata" src={audio.src} aria-label={label} />
+      <audio controls preload="metadata" src={audio.src} aria-label={label} onEnded={onEnded} />
     </div>
   );
 }

@@ -1074,6 +1074,14 @@ the homework review and a teacher's read-only player, a click on a task opens `B
 unchanged (only staff may write these keys). Known exposure, unchanged: the assignment's `worksheetDoc` snapshot that the
 learner reads holds the answer keys (gap brackets, `*` options, `explain`, `transcript`); the UI never shows them before a
 reveal, but a learner reading the raw document could. Moving keys server-side would be a separate change.
+Listening text (2026-11-10): `listening` / `examlisten` tasks with `data.transcript` get „Näita teksti / Peida tekst”
+under the player (`engine/transcript.js` rules + `engine/ListenTranscript.jsx`, state in `Sheet` via the `transcripts`
+prop and `TranscriptContext`). Staff (studio preview, library preview, read-only player, live view) open it always; the
+learner after the sheet is submitted or the task's answers were shown (`liveShown`), a task without answers after the
+audio played to the end once, or when the teacher shows it live: „Näita õpilasele / Peida õpilaselt” writes the staff-only
+`liveTranscripts [blockId]` + `liveTranscriptsBy[blockId]` (transaction, `homework.setWorksheetTranscript`); the learner's
+player gets it through the same `subscribeWorksheetAssignment`. Rules unchanged. Printed only when open; the „Õpetaja
+võti” view lists every transcript.
 
 The teacher opens a lesson worksheet set at `/library/lessons/:lessonId/worksheets`; supported profiles
 generate the three stable core drafts in parallel. Child routes adapt the same `WorksheetStudioPage` to

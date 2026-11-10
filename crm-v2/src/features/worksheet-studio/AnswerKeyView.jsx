@@ -1,6 +1,7 @@
 // „Õpetaja võti”: the teacher's answer key of the sheet — every task, the right answer of each item and, when the sheet
 // has it, why that answer is right (engine/answerKey.js), and how to run an open task (also one-to-one). Teachers only: the studio is not a student page.
 import { answerKeyOf } from './engine/answerKey.js';
+import { TranscriptText } from './engine/ListenTranscript.jsx';
 
 export default function AnswerKeyView({ doc }) {
   const tasks = answerKeyOf(doc);
@@ -19,6 +20,7 @@ export default function AnswerKeyView({ doc }) {
           <h3><b>{task.num}</b> {task.title}</h3>
           {task.instruction ? <p className="ws-key-instr">{task.instruction}</p> : null}
           {task.note ? <p className="ws-key-note"><b>Õpetajale:</b> {task.note}</p> : null}
+          {task.transcript ? <section className="ws-key-script" aria-label="Kuulamise tekst"><h4>Kuulamise tekst</h4><TranscriptText text={task.transcript} /></section> : null}
           {task.items.length ? <ol>
             {task.items.map((it) => (
               <li key={it.n}>

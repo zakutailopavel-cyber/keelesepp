@@ -7,6 +7,8 @@ import { expectedAnswer } from './errorText.js';
 //   liveShown [blockId]                      — tasks whose right answers the learner sees
 //   liveShownBy { blockId: { on, byUid, byName, at } } — the last show / hide per task (who, when)
 //   liveShownLog [{ on, blockIds, byUid, byName, at }]   — every show / hide (last 200); scores never change
+//   liveTranscripts [blockId]                — listening tasks whose text the learner sees (transcript.js)
+//   liveTranscriptsBy { blockId: { on, byUid, byName, at } } — the last show / hide of a text
 
 const isTask = (block) => Boolean(BLOCKS[block?.type]?.task);
 const filled = (value) => value !== undefined && value !== null && String(value).trim() !== '' && !(Array.isArray(value) && !value.length);

@@ -5,7 +5,8 @@ import { Headphones } from 'lucide-react';
 import { AudioBar, Line, Md, Photo } from '../ui.jsx';
 import { Area, ImagePick, Num, Rows, Select, Text } from '../../editor/fields.jsx';
 import { choice, match, plainText, truefalse } from './tasks.jsx';
-import { AudioPick } from './extra.jsx';
+import { AudioPick, TRANSCRIPT_HINT } from './extra.jsx';
+import { ListenAudio, ListenTranscript } from '../ListenTranscript.jsx';
 import { Recorder } from './productive.jsx';
 import { ENGLISH_EXAMS, EN_STATE_EXAM, EN_STATE_EXAM_DATA, EXAM_PART_DEFAULTS as EXAM_PARTS, HARNO_EXAMS, HARNO_LEVELS, HARNO_PASS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES, examFor, examPartDefaults, isEnglishExam } from './harnoScales.js';
 
@@ -143,8 +144,9 @@ export const examlisten = {
     const plays = Number(data.plays) || 2;
     return (
       <div className="ws-examlisten">
-        {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive || ctx.review} label={T(data).listen} />
+        {data.audio?.src ? <ListenAudio id={id} audio={data.audio} interactive={ctx.interactive || ctx.review} label={T(data).listen} />
           : <div className="ws-audio is-print ws-listen-note"><Headphones aria-hidden="true" /><span>{T(data).listenNote(plays, ctx.interactive)}</span></div>}
+        <ListenTranscript id={id} type="examlisten" data={data} ctx={ctx} lang={examLang(data)} />
         <Inner data={data} ctx={ctx} id={id} />
       </div>
     );
@@ -161,7 +163,7 @@ export const examlisten = {
         <Select label="Ülesande vorm" value={data.mode || 'choice'} onChange={(mode) => set({ mode })} options={[['choice', 'Valikvastused (Harno kuulamine 1–2)'], ['truefalse', 'Õige / vale (kuulamine 4)'], ['match', 'Seosta (kõneleja ↔ väide)']]} />
         <Num label="Mitu korda kuulatakse" value={data.plays} max={3} onChange={(plays) => set({ plays })} />
         <AudioPick value={data.audio} onChange={(audio) => set({ audio })} />
-        <Area label="Transkriptsioon õpetajale (õpilane ei näe)" rows={4} value={data.transcript} onChange={(transcript) => set({ transcript })} />
+        <Area label="Kuulamise tekst" rows={4} value={data.transcript} onChange={(transcript) => set({ transcript })} hint={TRANSCRIPT_HINT} />
         <Inner data={data} set={set} />
       </>
     );

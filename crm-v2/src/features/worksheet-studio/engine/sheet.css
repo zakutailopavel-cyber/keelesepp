@@ -206,6 +206,30 @@
 .ws-audio audio { flex: 1; min-width: 0; height: 9mm; margin: 0; }
 .ws-audio.is-print { border-radius: 3mm; padding: 2mm 3mm; font-size: 10.5pt; color: var(--ks-navy-2, #173a63); }
 .ws-audio.is-print svg { width: 5mm; height: 5mm; flex: none; color: var(--ks-green-2, #2f7d4c); }
+/* the text of a listening task (ListenTranscript.jsx): a button under the player, the text under it. Colours are the
+   app tokens; inside .ws-root they are the paper's light values in both themes (styles/index.css). */
+.ws-script { margin: 0 0 3mm; }
+.ws-script-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 2mm; }
+.ws-script-btn { display: inline-flex; align-items: center; gap: 1.5mm; min-height: 8mm; padding: 1mm 3mm; border-radius: 99px; border: .35mm solid var(--border, #dfe5ec); background: var(--surface, #fff); color: var(--navy-text, #132238); font: 700 10pt/1.2 inherit; cursor: pointer; }
+.ws-script-btn svg { width: 4.2mm; height: 4.2mm; flex: none; }
+.ws-script-btn:hover { border-color: var(--green, #087e6b); color: var(--green-text, #087e6b); }
+.ws-script-btn:focus-visible { outline: .6mm solid var(--green, #087e6b); outline-offset: .5mm; }
+.ws-script-btn.is-live { border-style: dashed; }
+.ws-script-btn.is-live.is-on { border-style: solid; border-color: var(--green, #087e6b); background: var(--green-soft, #e8f6f2); color: var(--green-text, #087e6b); }
+.ws-script-btn:disabled { opacity: .55; cursor: default; }
+.ws-script-state { display: inline-flex; align-items: center; gap: 1.2mm; font-size: 9.5pt; font-weight: 700; color: var(--green-text, #087e6b); }
+.ws-script-state svg { width: 4mm; height: 4mm; }
+.ws-script-text { margin-top: 2mm; padding: 2.5mm 3.5mm; border-radius: 2.5mm; border: .35mm solid var(--border, #dfe5ec); border-left: 1.2mm solid var(--green, #087e6b); background: var(--surface-soft, #f6f8fb); color: var(--ink, #17253a); font-size: 10.5pt; line-height: 1.45; }
+.ws-script-text h4 { margin: 0 0 1.5mm; font-size: 9.5pt; letter-spacing: .03em; text-transform: uppercase; color: var(--muted, #627087); }
+.ws-script-line { margin: 0; }
+.ws-script-line + .ws-script-line { margin-top: 1mm; }
+.ws-script-line.is-turn:not(:first-of-type) { margin-top: 2mm; }
+.ws-script-line b { color: var(--navy-text, #132238); }
+@media print {
+  .ws-script-bar { display: none; }
+  .ws-script-text { background: none; border-color: #999; border-left-color: #555; break-inside: avoid-page; }
+  .ws-script-line { break-inside: avoid; }
+}
 .ws-qr { background: rgba(255,255,255,.75); border-radius: 3mm; padding: 2mm 3mm; font-size: 11pt; margin-bottom: 2mm; }
 /* table */
 .ws-table { width: 100%; border-collapse: collapse; font-size: 12pt; background: rgba(255,255,255,.7); border-radius: 3mm; overflow: hidden; }

@@ -267,6 +267,21 @@ describe('homeworkService submissions', () => {
     expect(transaction.update.mock.calls[1][1].liveShownBy.a.on).toBe(false);
   });
 
+  it('shows / hides the text of a listening task from the stored list, recording who, without touching answers or score', async () => {
+    const stored = { liveTranscripts: ['a'], answers: { 'b:0': 'x' }, score: { pct: 50 } };
+    const transaction = { get: vi.fn().mockResolvedValue({ data: () => stored }), update: vi.fn() };
+    firestore.runTransaction.mockImplementation((_db, fn) => fn(transaction));
+    const user = { uid: 't1', displayName: 'Aleksei Merzin' };
+    expect(await homeworkService.setWorksheetTranscript({ assignmentId: 'as-1', blockId: 'b', on: true, user })).toEqual(['a', 'b']);
+    const [, written] = transaction.update.mock.calls[0];
+    expect(Object.keys(written).sort()).toEqual(['liveTranscripts', 'liveTranscriptsBy']);
+    expect(written.liveTranscriptsBy.b).toEqual({ on: true, byUid: 't1', byName: 'Aleksei Merzin', at: expect.any(String) });
+    stored.liveTranscripts = ['a', 'b'];
+    expect(await homeworkService.setWorksheetTranscript({ assignmentId: 'as-1', blockId: 'a', on: false, user })).toEqual(['b']);
+    expect(transaction.update.mock.calls[1][1].liveTranscriptsBy.a.on).toBe(false);
+    await expect(homeworkService.setWorksheetTranscript({ assignmentId: 'as-1', on: true })).rejects.toThrow();
+  });
+
   it('opens a worksheet in a live room and streams the room worksheets for one student', async () => {
     await homeworkService.openWorksheetInRoom({ assignmentId: 'as-1', roomKey: 'inv-1' });
     expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveRoomKey: 'inv-1', liveOpenedAt: expect.any(String) });
