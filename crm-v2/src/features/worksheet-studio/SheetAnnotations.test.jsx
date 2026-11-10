@@ -1,9 +1,9 @@
 /* global setTimeout */
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 import SheetAnnotations from './SheetAnnotations.jsx';
 import { correctedAnswer } from './annotationWords.js';
-import { liveWordTools, threeForms } from './liveWordTools.js';
+import { clearWordLookupCache, liveWordTools, threeForms } from './liveWordTools.js';
 import { offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -71,6 +71,7 @@ describe('SheetAnnotations', () => {
 });
 
 describe('word tools in the live lesson', () => {
+  beforeEach(() => clearWordLookupCache());
   const words = () => ({
     lookup: vi.fn().mockResolvedValue({ word: 'koer', translation: 'собака', forms: ['koer', 'koera', 'koera'], formItems: [] }),
     add: vi.fn().mockResolvedValue({ id: 'w1' }),
@@ -86,7 +87,7 @@ describe('word tools in the live lesson', () => {
     fireEvent.mouseUp(container.querySelector('b'));
     expect(screen.getByRole('button', { name: 'Sõna' })).toHaveAttribute('aria-pressed', 'true');
     expect(await screen.findByLabelText('Kolm põhivormi')).toHaveTextContent('koerkoerakoera');
-    expect(tools.lookup).toHaveBeenCalledWith('koer');
+    expect(tools.lookup).toHaveBeenCalledWith('koer', expect.any(Object));
     fireEvent.change(screen.getByLabelText('Tõlge'), { target: { value: 'пёс' } });
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Lisa õpilase sõnadesse/ })); });
     expect(tools.add).toHaveBeenCalledWith({ word: 'koer', translation: 'пёс', forms: 'koer, koera, koera', formItems: [] });
@@ -123,5 +124,49 @@ describe('word tools in the live lesson', () => {
     expect(await tools.add({ word: 'koer' })).toEqual({ already: true });
     await tools.addError({ said: 'Mul on koer', corrected: 'Mul on koera' });
     expect(service.add).toHaveBeenCalledWith({ studentId: 's1', invitationId: 'room', user: { uid: 't' }, word: 'Mul on koera', translation: 'Sinu lause: Mul on koer' });
+  });
+  it('shows the translation before the slow forms and asks once per word (owner 2026-11-10)', async () => {
+    let giveForms;
+    const lang = {
+      lookupWord: vi.fn(),
+      translate: vi.fn().mockResolvedValue('долго'),
+      wordForms: vi.fn(() => new Promise((resolve) => { giveForms = resolve; })),
+    };
+    const tools = liveWordTools({ studentId: 's1', user: { uid: 't' }, tools: lang, words: { add: vi.fn() } });
+    const { container } = render(<SheetAnnotations annotations={[]} editable onChange={vi.fn()} words={tools}>{page()}</SheetAnnotations>);
+    const bold = container.querySelector('b').firstChild;
+    const range = document.createRange(); range.setStart(bold, 0); range.setEnd(bold, 4);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+    fireEvent.mouseUp(container.querySelector('b'));
+    await flush();
+    expect(screen.getByLabelText('Tõlge')).toHaveValue('долго');
+    expect(screen.getByText(/Otsin vorme/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Lisa õpilase sõnadesse/ })).toBeDisabled();
+    await act(async () => { giveForms({ found: false, forms: [] }); });
+    expect(screen.getByText('Vorme ei leitud.')).toBeInTheDocument();
+    // the same word again: answered from the session cache, no new calls
+    await tools.lookup('Koer');
+    expect(lang.translate).toHaveBeenCalledTimes(1);
+    expect(lang.wordForms).toHaveBeenCalledTimes(1);
+    expect(lang.lookupWord).not.toHaveBeenCalled();
+  });
+
+  it('starts the lookup already on „Viga”, so „Sõna” opens ready', async () => {
+    const tools = { lookup: vi.fn().mockResolvedValue({ word: 'koer', translation: 'собака', forms: [], formItems: [] }), add: vi.fn(), addError: vi.fn() };
+    const { container } = render(<SheetAnnotations annotations={[]} editable onChange={vi.fn()} words={tools}>{page('koer')}</SheetAnnotations>);
+    fireEvent.mouseUp(container.querySelector('input.ws-line'));
+    await flush();
+    expect(screen.getByRole('button', { name: 'Viga' })).toHaveAttribute('aria-pressed', 'true');
+    expect(tools.lookup).toHaveBeenCalledWith('koer', expect.any(Object));
+    fireEvent.click(screen.getByRole('button', { name: 'Sõna' }));
+    expect(screen.getByLabelText('Tõlge')).toHaveValue('собака');
+  });
+
+  it('forgets a failed half so the next click asks again', async () => {
+    const lang = { lookupWord: vi.fn(), translate: vi.fn().mockRejectedValueOnce(new Error('x')).mockResolvedValue('кот'), wordForms: vi.fn().mockResolvedValue({ found: false, forms: [] }) };
+    const tools = liveWordTools({ studentId: 's1', user: { uid: 't' }, tools: lang, words: { add: vi.fn() } });
+    expect((await tools.lookup('kass')).translation).toBe('');
+    expect((await tools.lookup('kass')).translation).toBe('кот');
+    expect(lang.wordForms).toHaveBeenCalledTimes(1);
   });
 });

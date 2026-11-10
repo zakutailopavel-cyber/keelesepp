@@ -139,19 +139,24 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
     setError('');
   };
 
-  // „Sõna”: looked up once per picked word
+  // „Sõna”: looked up once per picked word, as soon as the composer opens (also on „Viga”, so the „Sõna” tab is ready);
+  // the translation and the forms arrive separately — a typed translation is never overwritten
   const [word, setWord] = useState(null);
   const picked = draft && words ? singleWord(draft.selectedText) : '';
   const canAnalyse = Boolean(analysis && draft && wordCount(draft.selectedText) >= ANALYSIS_MIN_WORDS);
   useEffect(() => {
-    if (!picked || draft?.color !== 'word') return undefined;
+    if (!picked) { setWord(null); return undefined; }
     let alive = true;
-    setWord({ asked: picked, loading: true });
-    Promise.resolve().then(() => words.lookup(picked))
-      .then((found) => { if (alive) setWord({ asked: picked, ...found, loading: false }); })
-      .catch((caught) => { if (alive) setWord({ asked: picked, word: picked, translation: '', forms: [], loading: false, error: caught.message || 'Sõna ei leitud.' }); });
+    const patch = (next) => { if (alive) setWord((prev) => (prev?.asked === picked ? { ...prev, ...next(prev) } : prev)); };
+    setWord({ asked: picked, word: picked, translation: '', forms: [], formItems: [], loading: true, trLoading: true });
+    Promise.resolve().then(() => words.lookup(picked, {
+      onTranslation: (translation) => patch((prev) => ({ trLoading: false, ...(prev.edited ? {} : { translation }) })),
+      onForms: (card) => patch(() => ({ word: card.word, forms: card.forms, formItems: card.formItems, loading: false })),
+    }))
+      .then((found) => patch((prev) => ({ word: found.word || picked, forms: found.forms || [], formItems: found.formItems || [], ...(prev.edited ? {} : { translation: found.translation || '' }), loading: false, trLoading: false })))
+      .catch((caught) => patch(() => ({ loading: false, trLoading: false, error: caught.message || 'Sõna ei leitud.' })));
     return () => { alive = false; };
-  }, [picked, draft?.color]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [picked]); // eslint-disable-line react-hooks/exhaustive-deps
   const addWord = async () => {
     setSaving(true); setError('');
     try {
@@ -231,11 +236,11 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
             <TextAnalysisPane text={draft.selectedText} level={analysis?.level || 'A2'} onMark={markCorrection} />
             {words?.addError ? <label className="sa-check"><input type="checkbox" checked={draft.toErrors !== false} onChange={(e) => setDraft({ ...draft, toErrors: e.target.checked })} /> Lisa vead õpilase „Minu vigadesse”</label> : null}
           </> : draft.color === 'word' ? <div className="sa-word-card" aria-live="polite">
-            {word?.loading ? <p className="sa-muted"><Loader2 size={14} className="spin" aria-hidden="true" /> Otsin vorme ja tõlget…</p> : null}
-            {word && !word.loading ? <>
+            {word ? <>
               <p className="sa-headword"><b>{word.word || picked}</b>{word.word && word.word !== picked ? <span> ← {picked}</span> : null}</p>
-              {(word.forms || []).length ? <ol className="sa-forms" aria-label="Kolm põhivormi">{word.forms.map((form, i) => <li key={i}>{form}</li>)}</ol> : <p className="sa-muted">Vorme ei leitud.</p>}
-              <input aria-label="Tõlge" placeholder="Tõlge" value={word.translation || ''} onChange={(e) => setWord({ ...word, translation: e.target.value })} />
+              {word.loading ? <p className="sa-muted"><Loader2 size={14} className="spin" aria-hidden="true" /> Otsin vorme…</p>
+                : (word.forms || []).length ? <ol className="sa-forms" aria-label="Kolm põhivormi">{word.forms.map((form, i) => <li key={i}>{form}</li>)}</ol> : <p className="sa-muted">Vorme ei leitud.</p>}
+              <input aria-label="Tõlge" placeholder={word.trLoading ? 'Otsin tõlget…' : 'Tõlge'} value={word.translation || ''} onChange={(e) => { const translation = e.target.value; setWord((prev) => ({ ...prev, translation, edited: true })); }} />
             </> : null}
           </div> : <>
             <p className="sa-quote">„{draft.selectedText || '(tühi vastus)'}”</p>
