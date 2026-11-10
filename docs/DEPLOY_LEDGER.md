@@ -25,7 +25,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 
 | Target | Live since | Commit | How verified |
 | --- | --- | --- | --- |
-| Firestore rules (`firestore.rules`) | 2026-11-10 17:01 | `6719bcf` (= main 2026-11-10) | live ruleset compared with main `6719bcf`: equal |
+| Firestore rules (`firestore.rules`) | 2026-11-10 19:18 | `8a37c40` (= main 2026-11-10) | live ruleset compared with main `8a37c40`: equal |
 | Storage rules (`storage.rules`) | not recorded | — | run `deploy-status.mjs` and fill in |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
 | Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-10 17:03 release commit | `6719bcf` `[deploy] Release 2026-11-10 17:03 UTC` | release commit on main; the Vercel production build itself not checked here |
@@ -36,13 +36,14 @@ Full deploy of all functions 2026-11-09 15:39 from main **(inferred)** `a80a749`
 
 | Function | Last deployed | Commit |
 | --- | --- | --- |
-| financeApi | 2026-11-10 17:03 | `9f171eb` (inferred; #1198 cash-and-transfers) |
+| financeApi | 2026-11-10 19:16 | `8a37c40` (#1202 cash in Toimus) |
+| syncLessonTokens | 2026-11-10 19:16 | `8a37c40` (#1202: cash-paid lesson takes no token) |
 | languageApi | 2026-11-10 16:30 | `b0b88d9` (inferred; #1196 forms-lookup-parallel) |
 | autoMarkLiveLesson | 2026-11-09 22:39 | `4e83ed1` (inferred; #1185 fast-marking) |
 | staffOperationsApi | 2026-11-09 22:12 | `68bb49b` (inferred; #1183 weekly-unmarked-teachers) |
 | weeklyUnmarkedLessonsDigest | 2026-11-09 22:12 | `68bb49b` (inferred; #1183) |
 | websiteLeadApi | 2026-11-09 20:42 | `000d45d` (inferred) |
-| gcalApi, interactiveLessonApi, invoiceApi, learnerEmailsTick, learningProfileEvidenceApi, learningSessionApi, lessonDraftsApi, linkpayApi, liveTurnApi, manualInvoiceApi, metaMessagingApi, notifyHomeworkCreated, notifyPendingAccount, purgeCardTrash, queueLearnerExerciseReviewEmail, queueLearnerScheduleEmail, queueLearnerWorksheetReviewEmail, refreshSchoolAssistant, sendInvoicePaymentReminders, sheetBuilderApi, syncAllCalendars, syncGroupToGoogleCalendar, syncLessonTokens, syncRoomBooking, syncScheduleToGoogle, systemHealthDigest, systemHealthTick, taxFormApi, teacherScopeMigrationApi | 2026-11-09 15:39 (full deploy) | `a80a749` (inferred) |
+| gcalApi, interactiveLessonApi, invoiceApi, learnerEmailsTick, learningProfileEvidenceApi, learningSessionApi, lessonDraftsApi, linkpayApi, liveTurnApi, manualInvoiceApi, metaMessagingApi, notifyHomeworkCreated, notifyPendingAccount, purgeCardTrash, queueLearnerExerciseReviewEmail, queueLearnerScheduleEmail, queueLearnerWorksheetReviewEmail, refreshSchoolAssistant, sendInvoicePaymentReminders, sheetBuilderApi, syncAllCalendars, syncGroupToGoogleCalendar, syncRoomBooking, syncScheduleToGoogle, systemHealthDigest, systemHealthTick, taxFormApi, teacherScopeMigrationApi | 2026-11-09 15:39 (full deploy) | `a80a749` (inferred) |
 
 A function changed on main after its row above is **not live** — compare with
 `git log --oneline <commit>..origin/main -- functions/` before telling anyone a server fix is out.
@@ -51,6 +52,8 @@ A function changed on main after its row above is **not live** — compare with
 
 Newest first. One line per deploy: date UTC · target(s) · commit · who · note.
 
+- 2026-11-10 19:18 · firestore:rules · `8a37c40` · Claude (owner OK) · privacy fixes #1200 + cash in Toimus #1202; verified equal to main
+- 2026-11-10 19:16 · functions:financeApi, functions:syncLessonTokens · `8a37c40` · Claude (owner OK) · cash in Toimus, server respects cashPaid (#1202). Note: the hosting release 19:13 went out ~5 min before these (rules API 503) — the release must wait for rules/functions deploys.
 - 2026-11-10 17:03 · functions:financeApi · `9f171eb` (inferred) · owner · cash for lessons (#1198)
 - 2026-11-10 17:01 · firestore:rules · `6719bcf` · owner · `lessons.cashPaid` (#1198); verified equal to main
 - 2026-11-10 16:30 · functions:languageApi · `b0b88d9` (inferred) · owner · EKI forms in parallel (#1196)
