@@ -1,3 +1,13 @@
+## 2026-11-10 · agent/fix-clean-relationship — `/data-quality/relink`: undefined `cleanRelationship` · ⚠ functions:staffOperationsApi needs deploy
+
+- Base: `origin/main` b0b88d9, checked 2026-11-10. Branch `agent/fix-clean-relationship`, draft PR. ESLint `no-undef`: `cleanRelationship` used in `functions/index.js` `relinkDataQualityRecord` but not defined there.
+- Cause: commit 4942391 (2026-11-06, „Parents: link an archived student…”) put the same `linkCardRefusal(…, cleanRelationship)` line into both `linkAccountToStudent` (where the variable exists) and `relinkDataQualityRecord` (where it does not). Since then every real `POST /data-quality/relink` (staffOperationsApi, admin) on an existing record threw `ReferenceError` → 500, nothing written. Not reached from the UI: no crm-v2 code or script calls `/data-quality/relink` (only `/data-quality/preview` and `/invoice-due`), so only direct API calls failed. Account linking, signup and parent invites were not affected.
+- Fix: the record check uses `linkCardRefusal(card, "student")` — a lesson / invoice / homework / worksheet assignment moves only to an active card (as before 06.11), and now also never to a card in the trash or merged away. No other helper was needed (`parent-invite-core.js` already has it).
+- Files: `functions/index.js` (1 line + comment), new `functions/data-quality-relink.test.js` (rewire, in-memory transaction).
+- Checks: new test fails on old main with `ReferenceError: cleanRelationship is not defined` (2/2) and passes with the fix; `cd functions && npm test` → 620/620 passed.
+- ⚠ Needs deploy: `firebase deploy --only functions:staffOperationsApi` (from fresh main after merge). Not deployed.
+- Next safe step: owner reviews and merges the PR; deploy `functions:staffOperationsApi` with the next functions release.
+
 ## 2026-11-10 · agent/forms-lookup-parallel — EKI word forms: candidates side by side, time limits, „no forms” cache · ⚠ functions:languageApi needs deploy
 
 - Base: `origin/main` 9685e6f (includes #1195), checked 2026-11-10. Branch `agent/forms-lookup-parallel`, draft PR. Follow-up of agent/word-popover-speed: forms for a new word („kaua”) took several seconds because `estonianWordForms` tried the headword candidates (kaua → kaua, kau, ka) one after another, each an Ekilex search + paradigm with 8 s timeouts.

@@ -7756,9 +7756,8 @@ async function relinkDataQualityRecord({ actor, entityType, entityId, studentId,
     ]);
     if (existingAudit.exists) return { idempotent: true, entityId: cleanEntityId, studentId: cleanStudentId };
     if (!entitySnap.exists) throw httpError(404, "Record not found");
-    // a parent may be linked to an archived card, never to one in the trash or merged away; a student's own login
-    // only to an active card (parent-invite-core.js linkCardRefusal, Oleksiy 2026-11-06)
-    const refusal = require("./parent-invite-core").linkCardRefusal(studentSnap.exists ? { id: studentSnap.id, ...studentSnap.data() } : null, cleanRelationship);
+    // a record moves only to an active card, never to one in the trash or merged away (linkCardRefusal as "student")
+    const refusal = require("./parent-invite-core").linkCardRefusal(studentSnap.exists ? { id: studentSnap.id, ...studentSnap.data() } : null, "student");
     if (refusal) throw httpError(refusal.status, refusal.message);
     const entity = entitySnap.data();
     if (type === "lesson" && entity.date) await assertFinancialDateOpen(transaction, entity.date);
