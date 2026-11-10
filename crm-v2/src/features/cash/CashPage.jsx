@@ -8,7 +8,7 @@ import { financeApi } from '../../services/firebase/financeApi.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
 import { studentsService } from '../../services/firebase/students.js';
 import { ROLES } from '../../utils/roles.js';
-import { entryDate, entryLine, euro, invoiceChoices, openReceipts, STATUS_LABEL, todayIso } from './cashModel.js';
+import { entryDate, entryLine, euro, heldByOthers, invoiceChoices, isLessonCash, lessonLine, openReceipts, STATUS_LABEL, todayIso } from './cashModel.js';
 import './cash.css';
 
 // „Kassa” (owner 2026-10-18): every staff member records the cash they took from a payer and hands it over to someone
@@ -48,6 +48,11 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
     const ok = await run('handover', () => api.recordCashHandover({ ...handover, ...(isAdmin && handover.fromUid ? {} : { fromUid: undefined }) }), 'Üleandmine on kirjas.');
     if (ok) setHandover({ ...handover, amount: '', note: '' });
   };
+  // „Sain kätte” (owner 2026-11-10): the admin got a teacher's cash — a handover of everything they hold to the admin
+  const collect = async (row) => {
+    if (!globalThis.confirm?.(`Said ${row.name || 'õpetajalt'} kätte ${euro(row.cents)}?`)) return;
+    await run(`collect-${row.uid}`, () => api.recordCashHandover({ fromUid: row.uid, toUid: user.uid, amount: (row.cents / 100).toFixed(2), handedAt: todayIso(), note: 'Sain kätte' }), `${row.name || 'Õpetaja'}: ${euro(row.cents)} on sinu käes.`);
+  };
   const voidEntry = async (entry) => {
     const reason = globalThis.prompt?.('Miks see kirje tühistatakse?') || '';
     if (!reason.trim()) return;
@@ -72,6 +77,18 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
           : <Card className="cash-balance"><Wallet size={18} aria-hidden="true" /><span>Sinu käes</span><strong>{euro(mine)}</strong></Card>}
         {isAdmin && waiting.length ? <Card className="cash-balance is-todo"><Link2 size={18} aria-hidden="true" /><span>Arvega sidumata</span><strong>{waiting.length}</strong></Card> : null}
       </section>
+
+      {isAdmin ? <Card className="cash-held" as="section" aria-label="Õpetajate käes sularaha">
+        <h2><Wallet size={18} aria-hidden="true" /> Õpetajate käes sularaha</h2>
+        {heldByOthers(summary.balances, user.uid).length ? <ul className="cash-held__list">
+          {heldByOthers(summary.balances, user.uid).map((row) => <li key={row.uid}>
+            <span>{row.name || 'Nimeta'}</span>
+            <strong>{euro(row.cents)}</strong>
+            <Button variant="secondary" loading={busy === `collect-${row.uid}`} disabled={Boolean(busy)} onClick={() => collect(row)}><HandCoins size={15} aria-hidden="true" /> Sain kätte</Button>
+          </li>)}
+        </ul> : <p className="form-hint">Kellelgi teisel ei ole praegu sularaha käes.</p>}
+        <p className="form-hint">Tunni eest saadud sularaha („Makstud sularahas”) ei lähe raamatupidamisse ega seota arvega — seda näevad ainult admin ja omanik. Tund ise tuleb kuuarvelt maha.</p>
+      </Card> : null}
 
       <div className="cash-forms">
         <Card>
@@ -116,12 +133,14 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
             {summary.entries.map((entry) => (
               <div role="row" key={entry.id} className={`cash-row is-${entry.status}`}>
                 <span role="cell">{entryDate(entry)}</span>
-                <span role="cell">{entry.type === 'handover' ? <Badge tone="neutral">üle antud</Badge> : <Badge tone="info">saadud</Badge>}</span>
-                <span role="cell" className="cash-row__what"><strong>{entryLine(entry)}</strong>{entry.type === 'receipt' ? <small>käes: {entry.holderName || '—'}{entry.note ? ` · ${entry.note}` : ''}</small> : entry.note ? <small>{entry.note}</small> : null}</span>
+                <span role="cell">{entry.type === 'handover' ? <Badge tone="neutral">üle antud</Badge> : isLessonCash(entry) ? <Badge tone="info">tunni eest</Badge> : <Badge tone="info">saadud</Badge>}</span>
+                <span role="cell" className="cash-row__what"><strong>{entryLine(entry)}</strong>{entry.type === 'receipt' ? <small>{isLessonCash(entry) ? `${lessonLine(entry)} · ` : ''}käes: {entry.holderName || '—'}{entry.note ? ` · ${entry.note}` : ''}</small> : entry.note ? <small>{entry.note}</small> : null}</span>
                 <span role="cell" className="cash-row__sum">{euro(entry.amountCents)}</span>
-                <span role="cell">{STATUS_LABEL[entry.status] ? <Badge tone={entry.status === 'open' ? 'warning' : entry.status === 'void' ? 'neutral' : 'success'}>{STATUS_LABEL[entry.status]}</Badge> : null}</span>
+                <span role="cell">{isLessonCash(entry) && entry.status === 'open' ? (entry.invoicedBefore?.length
+                  ? <Badge tone="warning" title="Selle kuu arve oli juba tehtud; seda ei muudetud. Kuuarve tasaarveldus võtab tunni järgmiselt arvelt maha, „pärast toimunud tunde” arve puhul kontrolli käsitsi.">Makstud sularahas pärast arvet {entry.invoicedBefore.map((invoice) => invoice.num || invoice.id).join(', ')}</Badge>
+                  : <Badge tone="neutral">Kuuarvelt maha</Badge>) : STATUS_LABEL[entry.status] ? <Badge tone={entry.status === 'open' ? 'warning' : entry.status === 'void' ? 'neutral' : 'success'}>{STATUS_LABEL[entry.status]}</Badge> : null}</span>
                 <span role="cell" className="cash-row__actions">
-                  {isAdmin && entry.type === 'receipt' && entry.status === 'open' ? <Button variant="secondary" onClick={() => setLinking(entry)}><Link2 size={15} /> Seo arvega</Button> : null}
+                  {isAdmin && entry.type === 'receipt' && entry.status === 'open' && !isLessonCash(entry) ? <Button variant="secondary" onClick={() => setLinking(entry)}><Link2 size={15} /> Seo arvega</Button> : null}
                   {isAdmin && entry.status !== 'void' && !(entry.type === 'receipt' && entry.status === 'allocated') ? <Button variant="secondary" aria-label="Tühista kirje" title="Tühista kirje" disabled={busy === `void-${entry.id}`} onClick={() => voidEntry(entry)}><XCircle size={15} /></Button> : null}
                 </span>
               </div>

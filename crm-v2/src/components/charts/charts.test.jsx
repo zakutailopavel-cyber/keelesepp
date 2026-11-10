@@ -126,6 +126,17 @@ describe('uPlot headline chart', () => {
     expect(uplotData(points, 1)).toEqual([[0, 1, 2], [0, 5000, null], [1000, 3000, 9000]]);
   });
 
+  it('extra lines of this period (Ülekanded / Sularaha): own columns, own token colour, stop at today', () => {
+    const split = points.map((point, index) => ({ ...point, transfer: index * 1000, cash: 500 }));
+    const series = [{ key: 'transfer', label: 'Ülekanded', tone: 'transfer' }, { key: 'cash', label: 'Sularaha', tone: 'cash' }];
+    expect(uplotData(split, 1, series).slice(3)).toEqual([[0, 1000, null], [500, 500, null]]);
+    const options = uplotOptions({ points: split, currentUntil: 1, series, colors: { line: '#087e6b', compare: '#98a2b3', transfer: '#175cd3', cash: '#b54708', axis: '#667085', surface: '#fff' } });
+    expect(options.series).toHaveLength(5);
+    expect(options.series[3]).toMatchObject({ label: 'Ülekanded', stroke: '#175cd3' });
+    expect(options.series[4]).toMatchObject({ label: 'Sularaha', stroke: '#b54708' });
+    expect(options.series[3].fill).toBeUndefined();
+  });
+
   it('options: token colours, round gridlines, labelled ticks, the end point only, dashed comparison', () => {
     const spline = vi.fn(() => 'spline-path');
     const options = uplotOptions({ points, currentUntil: 1, width: 500, height: 200, tickIndexes: [0, 2], formatAxis: (v) => `${v / 100} €`, colors: { line: '#087e6b', compare: '#98a2b3', grid: '#eef0f3', axis: '#667085', surface: '#fff' }, spline });

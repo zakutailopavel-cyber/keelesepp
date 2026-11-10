@@ -42,7 +42,10 @@ import MonthlyInvoicePanel from './MonthlyInvoicePanel.jsx';
 import PricePrivacyBanner from './PricePrivacyBanner.jsx';
 import { currentMonth, defaultBillingMonth } from './monthlyBilling.js';
 import FinanceOverview from './FinanceOverview.jsx';
-import { PERIOD_UNITS, periodInvoices, periodLabel, periodRange, shiftPeriod } from './financeOverview.js';
+import { PERIOD_UNITS, moneyFlows, periodInvoices, periodLabel, periodRange, shiftPeriod } from './financeOverview.js';
+import { useAsyncData } from '../../hooks/useAsyncData.js';
+import { paymentsService } from '../../services/firebase/payments.js';
+import { heldByOthers } from '../cash/cashModel.js';
 import { useFinanceData } from './useFinanceData.js';
 import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
 import FinanceDashboard from './FinanceDashboard.jsx';
@@ -132,10 +135,19 @@ export default function FinanceMonthPage({
   // „Sisemine märkus” of an invoice: administrator and bookkeeper (the rules allow exactly these two)
   const canNote = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.FINANCE]);
   const state = useFinanceData({ canManageFinance: canManage, invoiceRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, creditNoteRepository, auditRepository });
+  // „Ülekanded” / „Sularaha” under „Laekunud” (owner 2026-11-10): the admin only — the payment records (method) and the
+  // cash box. The bookkeeper never gets them (rules: payments and cashLedger are admin-only; lesson cash stays off the books).
+  const flowState = useAsyncData(async () => {
+    if (!canManage) return null;
+    const payments = paymentRepository || paymentsService;
+    if (!payments.listAll || !financeRepository.cashSummary) return null;
+    const [paymentList, cash] = await Promise.all([payments.listAll(), financeRepository.cashSummary().catch(() => null)]);
+    return { payments: paymentList || [], cash };
+  }, [canManage, paymentRepository, financeRepository]);
   // a payment added in the side drawer (right-click → „Ava arve (siinsamas)”) or a lesson mark changed in a student's
   // card there (the month's billable lessons): the month reads its data again in place — the list stays on screen
   // („Uuendan andmeid…”), the view, filters and scroll are kept
-  useEntityChanged(['invoice', 'lesson'], () => { state.reload(); });
+  useEntityChanged(['invoice', 'lesson'], () => { state.reload(); flowState.reload(); });
   // the lists open on this month (owner 2026-10-12: after the 10th the page opened on next month, empty, and the
   // invoices looked gone); preparing invoices opens on the billing month
   const [month, setMonth] = useState(() => (new globalThis.URLSearchParams(location.search).get('view') === 'prepare' ? defaultBillingMonth() : currentMonth()));
@@ -207,6 +219,12 @@ export default function FinanceMonthPage({
   const noteWarning = ({ noteError } = {}) => (noteError ? ` Sisemist märkust ei saanud salvestada (${noteError}) — lisa see arvete nimekirjas märkuse ikoonist.` : '');
 
   const invoices = useMemo(() => state.data?.invoices || [], [state.data?.invoices]);
+  const flows = useMemo(() => (flowState.data ? moneyFlows({ invoices, payments: flowState.data.payments, cashEntries: flowState.data.cash?.entries || [] }) : null), [flowState.data, invoices]);
+  const cashHeld = useMemo(() => {
+    if (!flowState.data?.cash) return null;
+    const others = heldByOthers(flowState.data.cash.balances || [], user.uid);
+    return { cents: others.reduce((sum, row) => sum + row.cents, 0), people: others.length };
+  }, [flowState.data, user.uid]);
   // the month's invoice preparation must know the owner's FIE invoices too (a card billed through the FIE this month
   // is not offered again); every other figure on this page stays company-only
   const [fieInvoices, setFieInvoices] = useState([]);
@@ -368,7 +386,8 @@ export default function FinanceMonthPage({
         {showingNow ? null : <button type="button" className="fm-period__now" onClick={() => setMonth(nowAnchor)}>{nowName}</button>}
       </div>
 
-      <FinanceOverview invoices={invoices} unit={unit} anchor={month} today={today} creditCents={creditTotal} creditCount={openCredits.length} onView={openView} />
+      <FinanceOverview invoices={invoices} unit={unit} anchor={month} today={today} creditCents={creditTotal} creditCount={openCredits.length} onView={openView}
+        flows={flows} cashHeld={cashHeld} onOpenCash={() => navigate('/kassa')} />
 
       <section className="fm-tabs" role="tablist" aria-label="Finantside vaated">
         {[

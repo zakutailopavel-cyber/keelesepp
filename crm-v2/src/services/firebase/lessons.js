@@ -21,6 +21,10 @@ function newestFirst(left, right) {
   return `${right.date || ''}:${right.id || ''}`.localeCompare(`${left.date || ''}:${left.id || ''}`);
 }
 
+// „Makstud sularahas” (owner 2026-11-10): the mark of a cash-paid lesson stays until the cash mark is taken back
+// (the rules refuse it too)
+const CASH_PAID_LOCKED = 'Tund on makstud sularahas: võta enne sularaha märge tagasi (või palu adminil see Kassas tühistada).';
+
 function accountingLessonId(source, occurrenceDate, studentId) {
   return `${source}_${occurrenceDate}_${studentId}`.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 240);
 }
@@ -103,6 +107,7 @@ export const lessonsService = {
     if (!record?.id) throw new Error('Tunni märget ei leitud.');
     if (!['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(status)) throw new Error('Vigane staatus.');
     if (record.invoiceId || record.billingStatus) throw new Error('Tund on juba arvel: paranda see Finantsides.');
+    if (record.cashPaid?.receiptId) throw new Error(CASH_PAID_LOCKED);
     // older marks (server lesson journal) carry counter / package bookkeeping that a plain status edit would skip:
     // the server reverses the old mark, then the lesson is marked again with the new status
     if (record.accountingSource !== 'crm_v2') {
@@ -170,6 +175,7 @@ export const lessonsService = {
   async removeMark(record, user, { scheduleRecurring = true } = {}) {
     if (!record?.id) throw new Error('Tunni märget ei leitud.');
     if (record.invoiceId || record.billingStatus) throw new Error('Tund on juba arvel: paranda see Finantsides.');
+    if (record.cashPaid?.receiptId) throw new Error(CASH_PAID_LOCKED);
     if (record.accountingSource !== 'crm_v2') {
       await financeApi.deleteLessonJournal(record.id);
       return;

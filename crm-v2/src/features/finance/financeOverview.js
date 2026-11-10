@@ -130,26 +130,67 @@ function cumulative(buckets, receipts) {
   });
 }
 
+// „Ülekanded” and „Sularaha” under „Laekunud” (owner 2026-11-10; admin only — the bookkeeper sees the total line as
+// before, and lesson cash never reaches the accountant). From the company's `payments` (FIE payments live apart in
+// fiePayments and never come here) and the cash box (`cashLedger`):
+// - Ülekanded: active payments with method bank (a bank-statement match, an LHV run or a transfer typed by hand),
+//   linkpay (a bank-link payment, the money lands on the bank account) or card;
+// - Sularaha: active payments with method cash (a cash-box receipt linked to an invoice, or a cash payment typed in
+//   Finantsid) + cash-box receipts that are still open — not linked to an invoice, e.g. „Makstud sularahas” of a
+//   lesson — on the day they were taken. A linked receipt is counted once, as its payment (status „allocated”).
+// What is in neither (an advance applied to an invoice — method credit —, other, and old invoices without a payment
+// record) stays only in the total.
+export const TRANSFER_METHODS = Object.freeze(['bank', 'linkpay', 'card']);
+const activePayment = (payment) => payment && payment.status !== 'void' && payment.status !== 'voided' && payment.issuer !== 'fie';
+const paymentCents = (payment) => Math.max(0, Math.round(Number(payment.amountCents ?? Number(payment.amount || 0) * 100) || 0));
+
+// Only payments of the company invoices on the page (not cancelled) count, and the total line then takes its days from
+// the same payment records (`paymentsByInvoice`), so the two lines never stand above the total.
+export function moneyFlows({ invoices = [], payments = [], cashEntries = [] } = {}) {
+  const dated = (list) => list.map((item) => ({ date: isoDay(item.date), cents: item.cents })).filter((item) => item.date && item.cents > 0);
+  const ids = new Set(invoices.filter((invoice) => invoice.status !== 'Tühistatud').map((invoice) => invoice.id));
+  const active = payments.filter((payment) => activePayment(payment) && ids.has(payment.invoiceId));
+  const paymentsByInvoice = new Map();
+  active.forEach((payment) => paymentsByInvoice.set(payment.invoiceId, [...(paymentsByInvoice.get(payment.invoiceId) || []), payment]));
+  return {
+    paymentsByInvoice,
+    transfers: dated(active.filter((payment) => TRANSFER_METHODS.includes(String(payment.method || 'bank'))).map((payment) => ({ date: payment.paidAt, cents: paymentCents(payment) }))),
+    cashPayments: dated(active.filter((payment) => payment.method === 'cash').map((payment) => ({ date: payment.paidAt, cents: paymentCents(payment) }))),
+    ledgerCash: dated(cashEntries.filter((entry) => entry && entry.type === 'receipt' && entry.status === 'open').map((entry) => ({ date: entry.receivedAt, cents: Math.round(Number(entry.amountCents) || 0) }))),
+  };
+}
+
 // „Laekunud”: money received in the period, day by day (month by month for a year) and summed up, beside the period
 // before at the same point. A period still running stops at today and is compared with the period before up to the
-// same day; a past period is compared in full.
-export function receivedSeries({ invoices = [], range, today = new Date() }) {
+// same day; a past period is compared in full. With `flows` (moneyFlows, admin) the cash box's open receipts are
+// money received too, and every point also carries `transfer` and `cash` (this period only).
+export function receivedSeries({ invoices = [], range, today = new Date(), flows = null }) {
   const todayIso = dayOf(today) || dayOf(new Date());
-  const receipts = invoices.flatMap((invoice) => invoiceReceipts(invoice, today));
+  const withPayments = flows?.paymentsByInvoice
+    ? invoices.map((invoice) => (Array.isArray(invoice.payments) || !flows.paymentsByInvoice.has(invoice.id) ? invoice : { ...invoice, payments: flows.paymentsByInvoice.get(invoice.id) }))
+    : invoices;
+  const receipts = [...withPayments.flatMap((invoice) => invoiceReceipts(invoice, today)), ...(flows?.ledgerCash || [])];
   const buckets = periodBuckets(range);
   const before = previousRange(range);
   const beforeBuckets = periodBuckets(before);
   const values = cumulative(buckets, receipts);
   const compare = cumulative(beforeBuckets, receipts);
+  const transfers = flows ? cumulative(buckets, flows.transfers) : null;
+  const cash = flows ? cumulative(buckets, [...flows.cashPayments, ...flows.ledgerCash]) : null;
   const lastBucket = buckets[buckets.length - 1];
   const currentUntil = todayIso < buckets[0].from ? -1 : todayIso > lastBucket.to ? buckets.length - 1 : buckets.findIndex((bucket) => todayIso >= bucket.from && todayIso <= bucket.to);
-  const points = buckets.map((bucket, index) => ({ key: bucket.key, ...bucketLabel(bucket, range.unit), value: values[index], compare: compare[Math.min(index, compare.length - 1)] }));
+  const points = buckets.map((bucket, index) => ({
+    key: bucket.key, ...bucketLabel(bucket, range.unit), value: values[index], compare: compare[Math.min(index, compare.length - 1)],
+    ...(flows ? { transfer: transfers[index], cash: cash[index] } : {}),
+  }));
   const totalCents = currentUntil >= 0 ? values[currentUntil] : 0;
   const running = currentUntil >= 0 && currentUntil < buckets.length - 1;
   const compareCents = running ? compare[Math.min(currentUntil, compare.length - 1)] : compare[compare.length - 1];
+  const split = flows && currentUntil >= 0 ? { transferCents: transfers[currentUntil], cashCents: cash[currentUntil] } : flows ? { transferCents: 0, cashCents: 0 } : null;
   return {
     points, currentUntil, totalCents, compareCents, compareFullCents: compare[compare.length - 1], running,
     future: currentUntil < 0, delta: currentUntil < 0 ? null : deltaPercent(totalCents, compareCents),
+    split: split ? { ...split, otherCents: Math.max(0, totalCents - split.transferCents - split.cashCents) } : null,
   };
 }
 
@@ -175,7 +216,7 @@ export function overdueNow(invoices = [], today = new Date()) {
 }
 
 // everything the overview shows for one period
-export function financeOverview({ invoices = [], unit = 'month', anchor, today = new Date() }) {
+export function financeOverview({ invoices = [], unit = 'month', anchor, today = new Date(), flows = null }) {
   const range = periodRange(unit, anchor);
   const before = previousRange(range);
   const now = invoiceMetrics(periodInvoices(invoices, range), today);
@@ -188,7 +229,7 @@ export function financeOverview({ invoices = [], unit = 'month', anchor, today =
   const trend = (pick) => metricTrend({ invoices, unit, anchor: range.from, pick, today });
   return {
     range, before, label: periodLabel(range), beforeLabel: periodLabel(before), toDate,
-    received: receivedSeries({ invoices, range, today }),
+    received: receivedSeries({ invoices, range, today, flows }),
     metrics: now, previous: was,
     deltas: {
       invoiced: deltaPercent(now.invoicedCents, was.invoicedCents),

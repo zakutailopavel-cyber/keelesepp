@@ -11,6 +11,10 @@ import { onLessonMarked } from './lessonActions.js';
 import { useEntityChanged } from '../../components/entityDrawer/useEntityChanged.js';
 import QuickMarkButtons, { MarkUndoToast } from './QuickMarkButtons.jsx';
 import { MARK_LABELS, useMarkUndo } from './quickMark.js';
+import { financeApi } from '../../services/firebase/financeApi.js';
+import LessonCashButton from '../cash/LessonCashButton.jsx';
+import { canMarkLessonCash, lessonCashLessonId } from '../cash/lessonCash.js';
+import { useLessonCashMarks } from '../cash/useLessonCashMarks.js';
 import './unmarkedLessons.css';
 
 const dayLabel = (iso) => new Intl.DateTimeFormat('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' }).format(new Date(`${iso}T12:00:00`));
@@ -54,9 +58,11 @@ function adminGroups(items = []) {
  * „Märgi Live-tunnid toimunuks”, „Vajab admini” (excluded entries with a reason and a fix) and the small
  * „Vanemad (enne 1.11)” link; a teacher only his own counted lessons.
  */
-export default function UnmarkedLessonsPage({ repository = unmarkedLessonsService, today = toIsoDate() }) {
+export default function UnmarkedLessonsPage({ repository = unmarkedLessonsService, today = toIsoDate(), cashApi = financeApi }) {
   const { user } = useAuth();
   const isAdmin = Boolean(user?.roles?.includes(ROLES.ADMIN));
+  // „Makstud sularahas” (owner 2026-11-10): the lesson's own teacher (or an admin) marks cash taken for it
+  const [cashMarks, setCashMark] = useLessonCashMarks(cashApi, Boolean(cashApi));
   const [searchParams, setSearchParams] = useSearchParams();
   const older = isAdmin && searchParams.get('vanemad') === '1';
   const [state, setState] = useState({ loading: true, error: null, data: null, evidence: false });
@@ -248,6 +254,10 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
               <div className="unmarked-row__actions">
                 {item.kind === 'duplicate' ? <Button variant="danger" className="unmarked-row__cancel" loading={isBusy(item, 'cancel')} disabled={anyBusy} onClick={() => cancel(item)}>Tühista</Button> : null}
                 <QuickMarkButtons item={item} busy={rowBusy(item)} disabled={anyBusy} onMark={mark} />
+                {cashApi && item.kind !== 'duplicate' && canMarkLessonCash(item, { uid: user?.uid, isAdmin })
+                  ? <LessonCashButton item={item} api={cashApi} mark={cashMarks[lessonCashLessonId(item)] || null} onChanged={setCashMark} disabled={anyBusy}
+                    markFirst={(lesson) => repository.mark(lesson, user, 'Toimunud')}
+                    onDone={(lesson, cents) => setDone((current) => new Map(current).set(lesson.occurrenceId, `${label(lesson, 'Toimunud')}, makstud sularahas ${(cents / 100).toFixed(2).replace('.', ',')} €`))} /> : null}
                 <Link to={lessonPath(item)}>Ava</Link>
               </div>
             </li>)}

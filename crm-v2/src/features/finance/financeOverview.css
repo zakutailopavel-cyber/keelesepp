@@ -10,6 +10,9 @@
 .fo-hero__empty { color: var(--gray-400); }
 .fo-hero__compare { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 2px 0 0; color: var(--gray-500); font-size: .84rem; }
 .fo-hero__compare b { color: var(--gray-700); font-weight: 600; }
+.fo-hero__split { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; color: var(--gray-500); font-size: .84rem; }
+.fo-hero__split span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.fo-hero__split b { color: var(--gray-700); font-weight: 600; font-variant-numeric: tabular-nums; }
 .fo-hero__legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 0; padding: 0; list-style: none; color: var(--gray-500); font-size: .8rem; }
 .fo-hero__legend li { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .fo-hero__legend li:first-letter { text-transform: uppercase; }

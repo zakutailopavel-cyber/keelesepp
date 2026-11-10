@@ -50,6 +50,35 @@ describe('CashPage', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /Seo arvega/ }).at(-1));
     await waitFor(() => expect(api.allocateCashReceipt).toHaveBeenCalledWith('r1', 'inv-1'));
   });
+
+  it('„Õpetajate käes sularaha”: lesson cash is not linked to an invoice; „Sain kätte” takes a teacher’s cash (owner 2026-11-10)', async () => {
+    const lessonReceipt = { ...receipt, id: 'lessoncash_1', source: 'lesson', occurrenceDate: '2026-11-09', lessonTime: '16:00', subject: 'Eesti keel', amountCents: 2500 };
+    const api = {
+      cashSummary: vi.fn().mockResolvedValue({ isAdmin: true, entries: [lessonReceipt], balances: [{ uid: 'teacher-1', name: 'Oleksiy', cents: 2500 }, { uid: 'admin-1', name: 'Pavel', cents: 1000 }], people }),
+      recordCashHandover: vi.fn().mockResolvedValue({}),
+      allocateCashReceipt: vi.fn(),
+    };
+    const studentApi = { list: vi.fn().mockResolvedValue({ items: [] }) };
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    renderPage({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { api, studentApi });
+    const held = await screen.findByRole('region', { name: 'Õpetajate käes sularaha' });
+    expect(held).toHaveTextContent('Oleksiy');
+    expect(held).not.toHaveTextContent('Pavel');
+    expect(screen.getByText(/tund 9\.11 kell 16:00 · Eesti keel/)).toBeInTheDocument();
+    expect(screen.getByText('Kuuarvelt maha')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Seo arvega/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Sain kätte/ }));
+    await waitFor(() => expect(api.recordCashHandover).toHaveBeenCalledWith(expect.objectContaining({ fromUid: 'teacher-1', toUid: 'admin-1', amount: '25.00' })));
+    confirm.mockRestore();
+  });
+
+  it('cash marked after that month’s invoice was made: the invoice is not edited, the admin sees the flag', async () => {
+    const late = { ...receipt, id: 'lessoncash_2', source: 'lesson', occurrenceDate: '2026-11-03', amountCents: 2500, invoicedBefore: [{ id: 'monthly_2026-11_s1', num: 'KS-2026-120' }] };
+    const api = { cashSummary: vi.fn().mockResolvedValue({ isAdmin: true, entries: [late], balances: [], people }) };
+    renderPage({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { api, studentApi: { list: vi.fn().mockResolvedValue({ items: [] }) } });
+    expect(await screen.findByText('Makstud sularahas pärast arvet KS-2026-120')).toBeInTheDocument();
+    expect(screen.queryByText('Kuuarvelt maha')).toBeNull();
+  });
 });
 
 describe('cash model', () => {

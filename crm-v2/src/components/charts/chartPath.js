@@ -46,8 +46,10 @@ export function areaPath(points, base) {
 export const hasCompare = (point) => point.compare !== null && point.compare !== undefined;
 
 // „2. november, november 50 €, oktoober 30 €” — what the live region says for a point
-export function describePoint(point, index, { last, valueLabel, compareLabel, formatValue }) {
-  return [point.longLabel || point.label, index <= last ? `${valueLabel} ${formatValue(point.value || 0)}` : '', hasCompare(point) ? `${compareLabel} ${formatValue(point.compare)}` : ''].filter(Boolean).join(', ');
+// `series`: extra lines of this period ([{ key, label }], the value is point[key]) — „Ülekanded”, „Sularaha”
+export function describePoint(point, index, { last, valueLabel, compareLabel, formatValue, series = [] }) {
+  const extra = index <= last ? series.map((line) => `${line.label} ${formatValue(point[line.key] || 0)}`) : [];
+  return [point.longLabel || point.label, index <= last ? `${valueLabel} ${formatValue(point.value || 0)}` : '', ...extra, hasCompare(point) ? `${compareLabel} ${formatValue(point.compare)}` : ''].filter(Boolean).join(', ');
 }
 
 // the arrow keys of a focusable chart: the next index, or null (Escape → 'clear')

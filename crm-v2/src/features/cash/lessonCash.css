@@ -1,0 +1,12 @@
+/* „Makstud sularahas” (LessonCashButton.jsx): beside the marking buttons, ≥ 44 px, tokens only (dark theme follows) */
+.lcash { display: inline-flex; }
+.lcash__btn { display: inline-flex; align-items: center; gap: 6px; color: var(--warning-text); border-color: color-mix(in srgb, var(--warning-text) 45%, var(--border)); }
+.lcash__btn.is-marked { background: var(--warning-soft); }
+.lcash__lesson { display: grid; gap: 2px; margin: 0 0 12px; color: var(--gray-600); }
+.lcash__lesson strong { color: var(--ink); }
+.lcash__form { display: grid; gap: 10px; }
+.lcash__price { margin-top: -6px; color: var(--gray-500); }
+.lcash__held { margin: 0; font-weight: 600; }
+.lcash__sum { margin: 0 0 8px; font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.lcash__sum small { margin-left: 8px; color: var(--gray-500); font-size: .85rem; font-weight: 500; }
+.lcash-modal input { font-size: 16px; }

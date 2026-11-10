@@ -22,6 +22,15 @@
 .ac-chart__tip-row strong { margin-left: auto; padding-left: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
 .ac-key { display: inline-block; flex: none; width: 12px; height: 0; border-top: 2px solid var(--chart-line, var(--green-text)); }
 .ac-key--compare { border-top: 2px dashed var(--chart-compare, var(--gray-400)); }
+/* extra lines of this period (owner 2026-11-10: „Ülekanded”, „Sularaha” under „Laekunud”): the app's blue and amber
+   text tokens — both have a light and a dark value, both keep ≥ 3:1 against the card in either theme */
+.ac-chart { --chart-transfer: var(--info-text); --chart-cash: var(--warning-text); }
+.ac-chart__extra { fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.ac-chart__extra--transfer { stroke: var(--chart-transfer); }
+.ac-chart__extra--cash { stroke: var(--chart-cash); }
+.ac-key--transfer { border-top-color: var(--chart-transfer, var(--info-text)); }
+.ac-key--cash { border-top-color: var(--chart-cash, var(--warning-text)); }
+.ac-chart__tip-row--sub { padding-left: 8px; font-size: .74rem; }
 /* the uPlot (canvas) version of the headline chart: its overlay keeps our crosshair colour and the font */
 .ac-chart__plot--canvas .uplot { font-family: inherit; }
 .ac-chart__plot--canvas .u-over { cursor: crosshair; }

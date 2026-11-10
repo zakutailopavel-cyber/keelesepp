@@ -811,7 +811,9 @@ service cloud.firestore {
         'directPaidAt',
         'bankTransactionId',
         'sourceCreditId',
-        'financialUpdatedAt'
+        'financialUpdatedAt',
+        // „Makstud sularahas” (owner 2026-11-10): written and cleared only by financeApi /cash/lesson(/undo)
+        'cashPaid'
       ]);
     }
 
@@ -1217,6 +1219,8 @@ service cloud.firestore {
       allow read: if isAdmin() || (resource == null && isStaff()) || teacherCanRead(resource.data) || ownsStudent(resource.data.studentId);
       allow create: if (isAdmin() || teacherCanCreate(request.resource.data))
         && createsNoLessonPackageSource()
+        // „Makstud sularahas”: only the server marks a lesson paid in cash
+        && !request.resource.data.keys().hasAny(['cashPaid'])
         && financialDateOpen(request.resource.data.get('date', ''));
       allow update: if (isAdmin() || teacherCanUpdate(resource.data, request.resource.data))
         && financialDateOpen(resource.data.get('date', ''))
@@ -1242,10 +1246,13 @@ service cloud.firestore {
               !resource.data.keys().hasAny(['billingStatus'])
               || resource.data.billingStatus == ''
             )
+            // a lesson paid in cash keeps its mark until the cash mark is taken back (financeApi /cash/lesson/undo)
+            && !resource.data.keys().hasAny(['cashPaid'])
           )
         );
       allow delete: if (isAdmin() || teacherCanUpdate(resource.data, resource.data))
         && financialDateOpen(resource.data.get('date', ''))
+        && !resource.data.keys().hasAny(['cashPaid'])
         && (
           !resource.data.keys().hasAny(['invoiceId'])
           || resource.data.invoiceId == ''

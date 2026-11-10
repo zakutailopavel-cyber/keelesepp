@@ -93,4 +93,11 @@ describe('lessonsService accounting', () => {
     await expect(lessonsService.removeMark({ id: 'inv-1', invoiceId: 'A-1' }, {})).rejects.toThrow('arvel');
     await expect(lessonsService.changeMark({ id: 'inv-1', billingStatus: 'invoiced' }, 'Puudus_p', {})).rejects.toThrow('arvel');
   });
+
+  it('a lesson paid in cash keeps its mark until the cash mark is taken back (owner 2026-11-10)', async () => {
+    const record = { id: 'cash-1', accountingSource: 'crm_v2', status: 'Toimunud', cashPaid: { receiptId: 'lessoncash_cash-1' } };
+    await expect(lessonsService.changeMark(record, 'Puudus_p', {})).rejects.toThrow('makstud sularahas');
+    await expect(lessonsService.removeMark(record, {})).rejects.toThrow('makstud sularahas');
+    expect(financeApi.deleteLessonJournal).not.toHaveBeenCalledWith('cash-1');
+  });
 });
