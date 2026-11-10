@@ -1,13 +1,14 @@
 // „B1 noorkeele õppija” (course key b1noor), module 3 „Minu tuba, meie kodu” (b1noor-011…015), stage A2+, lesson
 // design v3 stations (docs/COURSE_DESIGN_STATIONS.md §1–§6, the 10 evidence rules of A2B1_EVIDENCE.md). Teen version of
 // the blueprint's module 3 „Kodu ja üürileandja” (docs/A2B1_COURSE_BLUEPRINT.md §3.1): describe and compare homes, choose
-// a flat from ads with the family, report a fault by phone and in writing, ask when it will be fixed; Harno emphasis R
+// a flat from ads with the family (the teen argues for his / her own needs; money stays the parents' matter), report a
+// fault at school by phone and in writing, ask when it will be fixed; Harno emphasis R
 // (signs, ads → R1); 9th-grade track (§8.3): home place, the language-structure formation task with adjective suffixes.
 // Lesson ids and the a2b1 lessons they stand for (the same slot of the grammar spiral):
 //   b1noor-011 ≈ a2b1-011  RÄÄK L→S „Minu tuba” — final: advise (Artjom's dark new room, 100 €)
-//   b1noor-012 ≈ a2b1-012  PROB R→S „Uus kodu kuulutusest” — final: decide (choose one of three flats with Daria's mother)
+//   b1noor-012 ≈ a2b1-012  PROB R→S „Uus kodu kuulutusest” — final: decide (argue with Daria's mother which flat suits Daria: own room, minutes to school / training)
 //   b1noor-013 ≈ a2b1-013  LUGU R→W „Kolimispäev” — final: plan (Kertu's grandmother moves in: what goes where, who carries)
-//   b1noor-014 ≈ a2b1-014  PROB L→S „Midagi on katki!” — final: complain (the cold radiator: call the owner + a written note)
+//   b1noor-014 ≈ a2b1-014  PROB L→S „Midagi on katki!” — final: complain (the cold classroom radiator: the class elder calls the school caretaker + a Stuudium note)
 //   b1noor-015 = a2b1-015  module check: R1 ads + the 9th-grade formation task, the final task in a new situation (the
 //                          class-trip hostel), local cases, suffixes, mis / mille + module 1–2 items, words
 // Grammar (blueprint §3.2, module 3): local cases and direction (kus? kuhu? kust?, short illative tuppa / kappi / kööki) — I
@@ -15,7 +16,7 @@
 // 014); comparison (suurem kui, kõige …) — R (012); recycled: genitive + postposition (module 2), present tense, negation
 // and questions (module 1).
 // Cast as in modules 1–2 (Milana, Robin, Artjom, Daria, Kertu, class teacher Kaie); new: Artjom's brother Maksim, Daria's
-// mother Olena and sister Vika (5), the cat Murka, flat owners Malle Sepp and Andres Kuusk, school caretaker
+// mother Olena and sister Vika (5), the cat Murka, flat owner Malle Sepp, school caretaker
 // (majandusjuhataja) Peeter Rebane, hostel hostess Ülle. Every price, size and time belongs to the cast's story (the ads
 // are invented); the real things named are the streets (Pallasti, Akadeemia tee, Ehitajate tee) and the portals kv.ee /
 // city24.ee in the homework.
@@ -110,9 +111,9 @@ export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 012 PROB R→S: mis / mille, comparison, ads
   'b1noor-012': {
     title: 'Uus kodu kuulutusest',
-    canDo: 'Ma loen korterikuulutusi, seletan neid lihtsalt teistele ja valin perega sobiva korteri.',
+    canDo: 'Ma loen korterikuulutusi, seletan neid lihtsalt teistele ja põhjendan, milline korter sobib mulle kõige paremini.',
     teacherPage: {
-      goal: 'Ученик читает объявления о квартирах, простыми словами объясняет их маме и вместе с ней выбирает квартиру, сравнивая (odavam kui, kõige …) и описывая (korter, mis / mille …).',
+      goal: 'Ученик читает объявления, объясняет их маме и доказывает, какая квартира подходит ему (своя комната, минуты до школы), сравнивая (lähemal kui, kõige …) и с mis / mille.',
       core: [1, 2, 5], alt: 3,
       short: 'Станция 2 (10 мин) → станция 5 (15 мин). Объявления (ст. 1) — дома; ст. 3 и 4 — в следующий раз.',
       errors: [
@@ -122,8 +123,8 @@ export const LESSONS = withShapes({
       ],
       notes: [
         'Четыре пряди: ст. 1 — чтение (Harno R1), ст. 2 — форма, ст. 3 — медиация (продукция), ст. 4 — онлайн-переписка, ст. 5 — продукция (решение).',
-        'Медиация (ст. 3): мама Дарьи читает по-эстонски медленно. Ученик объясняет сокращения и условия своими словами; если «мама» не понимает, сказать по-другому, а не громче.',
-        'Онлайн (ст. 4): ответ хозяйке в чате портала и уточняющий вопрос. Учитель-хозяйка отвечает: кошка можно, если она спокойная, но залог 1,5 месячной платы.',
+        'Медиация (ст. 3): мама Дарьи читает по-эстонски медленно. Ученик объясняет сокращения и условия своими словами; если «мама» не понимает, сказать по-другому, а не громче. Деньги решают родители — в финале это не критерий ученика (его критерии: своя комната, минуты до школы и тренировки, этаж, балкон).',
+        'Онлайн (ст. 4): мама говорит по-русски, что ответить, ученик пишет хозяйке по-эстонски в чате портала и задаёт свой вопрос (велосипед, балкон, своя комната). Учитель-хозяйка отвечает: кошка можно, если спокойная, но залог больше — ученик передаёт это маме одной фразой.',
         'Обратная связь: на ст. 2 подсказка, потом модель; на ст. 3 и 5 не перебивать, 2–3 пункта в конце.',
         'Дом 10 + 1: «Harjuta» 10 минут ≥ 4 дней (слова + предложения: mis / mille, сравнение, суффиксы из урока 11, родительный + послелог из модуля 2). Реальное задание на выбор: (а) найти на kv.ee или city24.ee два объявления и сравнить их в 4 предложениях; (б) объяснить дома одному человеку (можно по-русски) одно эстонское объявление о квартире.',
       ],
@@ -142,12 +143,13 @@ export const LESSONS = withShapes({
         ['Robini tädi Kersti tahab rõduga korterit mere lähedal.', 'D'],
         ['Vanaema ei saa trepist käia, aga tahab kolmetoalist korterit.', 'A'],
         ['Mareki pere tahab võimalikult suurt ja odavat korterit.', 'E'],
-      ]), 'Daria pere peab detsembriks kolima ja sõbrad otsivad ka kodu. Leiad igaühele korteri, mis sobib tema soovide ja rahaga.'), { harno: 'R1' }), 1, 12),
-      tag(B.vocab('012_d_vocab', 'Tunni sõnad.', ['kuulutus — объявление', 'üür — арендная плата', 'odav — дешёвый', 'omanik — хозяин', 'tagatisraha — залог', 'kommunaalkulud — коммунальные платежи', 'rõdu — балкон', 'lift — лифт', 'korrus — этаж', 'lähedal — близко', 'lemmikloom — домашнее животное', 'kolima — переезжать']), {}),
+      ]), 'Daria pere peab detsembriks kolima ja sõbrad otsivad ka kodu. Leiad igaühele korteri, mis sobib tema soovidega.'), { harno: 'R1' }), 1, 12),
+      tag(B.vocab('012_d_vocab', 'Tunni sõnad.', ['kuulutus — объявление', 'üür — арендная плата', 'odav — дешёвый', 'omanik — хозяин', 'tagatisraha — залог', 'kaugusel — на расстоянии', 'rõdu — балкон', 'lift — лифт', 'korrus — этаж', 'lähedal — близко', 'lemmikloom — домашнее животное', 'kolima — переезжать']), {}),
       station(B.notice('012_d_rule', 'Märka: korter, mis… / mille… ja võrdlemine', [
         '**mis** — korter, **mis** on viiendal korrusel (moodul 2)',
         '**mille** — mille oma?: korter, **mille** rõdu on hoovi poole',
         'Võrdle: suur → **suurem kui** · odav → **odavam kui** · kallis → **kallim kui** · hea → **parem kui**',
+        'Kui kaugel?: lähedal → **lähemal kui** · kaugel → **kaugemal kui** — kool on Lasnamäelt **lähemal kui** Õismäelt',
         '**Kõige** + võrdlusvorm: **kõige odavam** korter · **kõige suurem** tuba',
       ], 'full'), 2, 10),
       purpose(B.gaps('012_d_compare', 'Milline korter?', 'Kirjuta sulgudes olev sõna õiges vormis või vali mis / mille.', [
@@ -155,32 +157,33 @@ export const LESSONS = withShapes({
         'Nõmme maja on [kallim] (kallis) kui Lasnamäe korter.',
         'Mustamäe korter on kõige [odavam] (odav), aga see on väike.',
         'Õismäe korteris on kõige [rohkem] (palju) ruumi.',
+        'Lasnamäelt on kool [lähemal] (lähedal) kui Mustamäelt.',
         'Me otsime korterit, [mis] (mis / mille) on kooli lähedal.',
         'Kalamaja korter, [mille] (mis / mille) rõdu on hoovi poole, on vaikne.',
-      ], '', 'full', 'g_notice'), 'Daria teeb emale korterite võrdluse. Paned sõnad õigesse vormi, et ema näeks kohe, mis on parem ja mis odavam.'),
+      ], '', 'full', 'g_notice'), 'Daria teeb korterite võrdluse. Paned sõnad õigesse vormi, et ema näeks kohe, mis on suurem ja kust on kool lähemal.'),
     ],
     practice: [
-      station(B.text('012_p_ad', 'Kuulutus, millest ema aru ei saa', 'Üürile anda 3-toaline korter Lasnamäel, Pallasti tänaval. 62 m², korrus 5/9, lift. Üür 650 € kuus + kommunaalkulud (talvel u 200 €). Tagatisraha: ühe kuu üür. Vaba alates 1. detsembrist. Ainult lemmikloomadeta perele. Kool, lasteaed ja pood on 5 minuti kaugusel. Omanik Malle Sepp.'), 3, 12),
+      station(B.text('012_p_ad', 'Kuulutus, millest ema aru ei saa', 'Üürile anda 3-toaline korter Lasnamäel, Pallasti tänaval. 62 m², korrus 5/9, lift. Üür 650 € kuus. Tagatisraha: ühe kuu üür. Vaba alates 1. detsembrist. Ainult lemmikloomadeta perele. Kool, lasteaed ja pood on 5 minuti kaugusel, bussipeatus on maja ees. Keldris on rattaruum. Omanik Malle Sepp.'), 3, 12),
       teach(purpose(B.speaking('012_p_explain', 'Seleta emale.', 'Õpetaja on Daria ema Olena, kes loeb eesti keelt veel aeglaselt. Seleta kuulutust lihtsate sõnadega.', [
-        'Mida tähendab „5/9”?', 'Kas 650 eurot on kõik, mida me maksame?', 'Mis on tagatisraha?', 'Millal me saame sisse kolida?', 'Kas meie kass Murka võib kaasa tulla?', 'Kui kaugel on Vika lasteaed?',
-      ], [90, 150], ['See tähendab, et…', 'Teiste sõnadega…', 'Lisaks tuleb maksta…', 'Kuulutuses on kirjas, et…']), 'Daria ema tahab täna omanikule vastata, aga kõik sõnad pole talle selged. Seletad kuulutuse lihtsalt, et ema saaks otsustada.'),
-      'Vahendamine, õpetaja on Olena: küsi „Mida see tähendab?” sõnade „tagatisraha”, „kommunaalkulud”, „lemmikloomadeta” kohta — õpilane seletab teiste sõnadega, ei tõlgi sõna-sõnalt. Õnnestunud, kui ema teab: korrus 5 üheksast, talvel kokku umbes 850 € kuus, tagatisraha 650 €, kolida saab 1. detsembril ja kassi kuulutuse järgi ei lubata.'),
-      station(B.text('012_p_chat', 'Omaniku sõnum portaalis', 'Tere! Aitäh huvi eest. Korterit saab vaadata laupäeval kell 12 või pühapäeval kell 17. Mitu inimest hakkab korteris elama? Kas teil on lemmikloomi? Kas te saate maksta tagatisraha enne kolimist? Malle Sepp'), 4, 10),
-      teach(purpose(B.writing('012_p_reply', 'Vastus omanikule.', 'Kirjuta Daria ema nimel 3–5 lausega: millal tulete vaatama ja kes elama hakkab. Vasta ausalt kassi kohta ja küsi üks asi, mis kuulutuses jäi ebaselgeks.', [3, 5], ['laupäeval', 'pühapäeval', 'kass'], 1), 'Omanik valib üürniku sõnumite järgi. Kirjutad viisaka ja selge vastuse, et pere saaks korterit vaatama minna.'),
-      'Veebisuhtlus: õpetaja on Malle Sepp ja vastab õpilase küsimusele kirjalikult: kass võib tulla, kui ta on rahulik, aga siis on tagatisraha poolteist kuu üüri; kommunaalkulud on talvel umbes 200 €. Õnnestunud, kui vastuses on aeg, inimeste arv, aus vastus kassi kohta ja üks selge täpsustav küsimus.'),
+        'Mida tähendab „5/9”?', 'Mis on tagatisraha?', 'Millal me saame sisse kolida?', 'Kas meie kass Murka võib kaasa tulla?', 'Kui kaugel on sinu kool ja Vika lasteaed?', 'Kuhu sa seal oma ratta paned?',
+      ], [90, 150], ['See tähendab, et…', 'Teiste sõnadega…', 'Kuulutuses on kirjas, et…', 'Minu jaoks on hea, et…']), 'Daria ema tahab täna omanikule vastata, aga kõik sõnad pole talle selged. Seletad kuulutuse lihtsalt, et ema saaks otsustada.'),
+      'Vahendamine, õpetaja on Olena: küsi „Mida see tähendab?” sõnade „tagatisraha”, „lemmikloomadeta”, „rattaruum” kohta — õpilane seletab teiste sõnadega (võib ka vene keeles), ei tõlgi sõna-sõnalt. Õnnestunud, kui ema teab: korrus 5 üheksast ja lift on olemas, tagatisraha on ühe kuu üür ja see tuleb hiljem tagasi, kolida saab 1. detsembril, kassi kuulutuse järgi ei lubata, kool ja lasteaed on 5 minuti kaugusel, ratta saab panna keldrisse. Raha üle otsustab ema — õpilane ainult seletab.'),
+      station(B.text('012_p_chat', 'Omaniku sõnum portaalis', 'Tere! Aitäh huvi eest. Korterit saab vaadata laupäeval kell 12 või pühapäeval kell 17. Mitu inimest hakkab korteris elama? Kas teil on lemmikloomi? Malle Sepp'), 4, 10),
+      teach(purpose(B.writing('012_p_reply', 'Vastus omanikule.', 'Ema ütleb sulle vene keeles, mida vastata, sina kirjutad eesti keeles 3–5 lausega: millal tulete vaatama ja kes elama hakkab. Vasta ausalt kassi kohta ja küsi üks asi, mis on sulle endale tähtis (rattaruum, rõdu, sinu tuba).', [3, 5], ['laupäeval', 'pühapäeval', 'kass'], 1), 'Ema kirjutab eesti keeles aeglaselt ja palub sinu abi. Kirjutad viisaka ja selge vastuse, et pere saaks korterit vaatama minna.'),
+      'Veebisuhtlus: õpetaja on Malle Sepp ja vastab õpilase küsimusele kirjalikult (nt „Jah, keldris on rattaruum.”) ja lisab: kass võib tulla, kui ta on rahulik, aga siis on tagatisraha suurem. Õpilane annab selle emale ühe lausega edasi. Õnnestunud, kui vastuses on aeg, inimeste arv, aus vastus kassi kohta ja üks selge küsimus.'),
     ],
     transfer: [
-      station(B.text('012_t_sit', 'Kolm korterit, üks otsus', 'Laupäeval vaatasid Daria ja ema kolme korterit. Nüüd tuleb üks valida, sest 1. detsembril peab ajutisest korterist välja kolima. Ema saab maksta kuni 700 eurot kuus koos kommunaalkuludega. Loe kaarte ja lepi emaga kokku, milline korter võtta. Sinu variant: millise korteri või maja valiksid oma perele ja miks?'), 5, 15, { final: 'decide' }),
-      purpose(B.profiles('012_t_flats', 'Kolm korterit.', 'Loe kaarte. Võrdle hinda koos kommunaalkuludega.', [
-        ['Lasnamäe, Pallasti tänav', ['3 tuba, 62 m², 5. korrus, lift', 'üür 650 € + talvel u 200 €', 'kool ja lasteaed on lähedal', 'lemmikloom ainult suurema tagatisrahaga'], ''],
-        ['Mustamäe, Akadeemia tee', ['2 tuba, 48 m², 1. korrus', 'üür 520 € + talvel u 150 €', 'kooli sõidab bussiga 25 minutit', 'akna all on lärmakas tänav'], ''],
-        ['Õismäe, Ehitajate tee', ['3 tuba, 70 m², 9. korrus', 'üür 600 € + talvel u 180 €', 'lift on remondis detsembri lõpuni', 'rõdu ja päikeseline köök'], ''],
-      ]), 'Ema peab täna õhtul omanikule vastama. Loed kaarte, et oma valikut numbritega põhjendada.'),
+      station(B.text('012_t_sit', 'Kolm korterit, üks otsus', 'Laupäeval vaatasid Daria, ema ja Vika kolme korterit. 1. detsembril peab pere ajutisest korterist välja kolima. Ema ütleb: „Raha on minu mure, kõik kolm sobivad. Aga sina elad seal ka — kus sul oleks parem?” Sina oled Daria: mõtle oma toale, koolile, trennile ja sõpradele, loe kaarte ja veena ema. Sinu variant: milline korter või maja sobiks sulle endale ja miks?'), 5, 15, { final: 'decide' }),
+      purpose(B.profiles('012_t_flats', 'Kolm korterit.', 'Loe kaarte. Võrdle, kas sul on oma tuba ja mitu minutit on kooli ja trenni.', [
+        ['Lasnamäe, Pallasti tänav', ['3 tuba, 62 m², 5. korrus, lift', 'sul on oma tuba (9 m²), aken hoovi poole', 'kooli 5 minutit jala', 'trenni 40 minutit kahe bussiga'], ''],
+        ['Mustamäe, Akadeemia tee', ['2 tuba, 48 m², 1. korrus', 'oma tuba ei ole: jagad tuba Vikaga', 'kooli 25 minutit bussiga', 'spordihall on 5 minuti kaugusel, aga akna all on lärmakas tänav'], ''],
+        ['Õismäe, Ehitajate tee', ['3 tuba, 70 m², 9. korrus', 'sul on oma tuba (12 m²) rõduga', 'kooli 35 minutit bussiga, Kertu elab samas majas', 'lift on remondis detsembri lõpuni'], ''],
+      ]), 'Ema küsib täna õhtul sinu arvamust. Loed kaarte, et oma valikut minutite ja faktidega põhjendada.'),
       teach(tag(purpose(B.rolecards('012_t_choose', 'Milline korter?', 'Õpetaja on Daria ema Olena. Mida ja kuidas öelda, otsusta ise.',
-        'Olukord: sina oled Daria; ema tahab täna õhtul ühele omanikule vastata.\nSinu eesmärk: vali emaga üks korter ja põhjenda valikut kahe võrdlusega (odavam kui…, kõige…) ja ühe mis- või mille-lausega.\nPiirang: ema otsustab ainult siis, kui raha jätkub ka talvel.',
+        'Olukord: sina oled Daria; ema tahab täna õhtul ühele omanikule vastata ja küsib, kus sinul oleks parem elada.\nSinu eesmärk: veena ema, milline korter sobib sulle kõige paremini; põhjenda kahe võrdlusega (lähemal kui…, suurem kui…, kõige…) ja ühe mis- või mille-lausega.\nPiirang: ema mõtleb kogu pere peale — ka Vika ja kassi Murka peale.',
         'Ema kaart on õpetajal: tal on oma mure ja üks uudis.',
-        ['… on odavam kui…', 'Kõige parem on…, sest…', 'Korter, mille…', 'Aga mis siis, kui…?'], ['Ma ei tea…', 'Aga raha?', 'Hea küll, siis…']), 'Ema ei saa üksi otsustada ja usaldab sinu arvamust. Valite koos korteri, mille eest pere jõuab ka talvel maksta.'), { main: true, level: 4 }),
-      'Üks-ühele, õpetaja kaart (ema Olena). Varjatud info: ema sai jaanuarist uue töö Lasnamäel; Vika lasteaed on praegu Mustamäel; kass Murka tuleb kindlasti kaasa; eelarve 700 € kuus. Takistused (ükshaaval): 1) „Lasnamäe on talvel ju 850 eurot — see on liiga kallis!”; 2) „Õismäel on lift remondis, ja Vika on alles viie-aastane.”; 3) „Mustamäel on aknad tänava poole — kas sa saad seal magada?” Õnnestunud, kui: valitakse üks korter, õpilane kasutab kahte võrdlust ja ühte mis- või mille-lauset, arvestab hinda koos kommunaalkuludega ja vastab vähemalt ühele vastuväitele (Mustamäe mahub eelarvesse; Lasnamäe ainult siis, kui üüri saab alla kaubelda).'),
+        ['… on lähemal kui…', 'Kõige parem on…, sest…', 'Korter, mille…', 'Aga mis siis, kui…?'], ['Ma ei tea…', 'Aga Vika?', 'Hea küll, siis…']), 'Ema otsustab ise, aga tahab teada, kus sul oleks hea elada ja õppida. Põhjendad oma valikut nii, et ema arvestab sinu soove.'), { main: true, level: 4 }),
+      'Üks-ühele, õpetaja kaart (ema Olena). Varjatud info: ema sai jaanuarist uue töö Lasnamäel; Vika lasteaed on praegu Mustamäel; kass Murka tuleb kindlasti kaasa. Raha üle otsustab ema, sellest õpilane rääkima ei pea. Takistused (ükshaaval): 1) „Õismäel on sul rõduga tuba, aga kooli sõidad 35 minutit — kas sa jõuad hommikul?”; 2) „Õismäel on lift remondis, ja Vika on alles viie-aastane.”; 3) „Mustamäel on trenn lähedal, aga sa jagad tuba Vikaga — kus sa kodutöid teed?” Õnnestunud, kui: õpilane valib ühe korteri, kasutab kahte võrdlust ja ühte mis- või mille-lauset, põhjendab oma vajadustega (oma tuba, minutid kooli ja trenni, korrus, rõdu) ja vastab vähemalt ühele vastuväitele, mõeldes ka Vika peale.'),
     ],
   },
 
@@ -253,7 +256,7 @@ export const LESSONS = withShapes({
     title: 'Midagi on katki!',
     canDo: 'Ma teatan telefonis ja kirjalikult, mis on kodus või koolis katki, ja lepin kokku, millal see parandatakse.',
     teacherPage: {
-      goal: 'Ученик сообщает по телефону и письменно о поломке дома или в школе (что, где, с каких пор, что уже пробовали) и договаривается, когда починят.',
+      goal: 'Ученик как староста класса сообщает завхозу по телефону и в Stuudium о поломке в школе (что, где, с каких пор, что пробовали) и договаривается, когда починят.',
       core: [2, 4, 6], alt: 5,
       short: 'Станция 2 (10 мин) → станция 6 (15 мин, только звонок). Аудио (ст. 1) и гласные (ст. 3) — дома или в следующий раз.',
       errors: [
@@ -262,55 +265,56 @@ export const LESSONS = withShapes({
         '«külm» и «kolm», «köök» и «kook» — из-за гласных собеседник не понимает, что сломано (ст. 3).',
       ],
       notes: [
-        'Четыре пряди: ст. 1 — слушание, ст. 2 — форма, ст. 3 — произношение, ст. 4 — онлайн-переписка, ст. 5 — беглость, ст. 6 — продукция (звонок + записка, Harno W1b).',
+        'Четыре пряди: ст. 1 — слушание, ст. 2 — форма, ст. 3 — произношение, ст. 4 — онлайн-переписка, ст. 5 — беглость, ст. 6 — продукция (звонок завхозу + записка, Harno W1b).',
+        'Роль подростка: ученик не звонит арендодателю сам. Финал — школа (староста класса, холодный класс). «Sinu variant» дома: ученик помогает маме или папе объяснить поломку хозяину по-эстонски (медиация).',
         'Онлайн (ст. 4): ответ завхозу в Stuudium на уточняющие вопросы и своё предложение времени.',
         'Обратная связь: на ст. 2 и 3 подсказка, потом модель; на ст. 5 и 6 не перебивать, в конце 2–3 пункта по целям; записку ученик сначала проверяет сам по 4 пунктам.',
         'Дом 10 + 1: «Harjuta» 10 минут ≥ 4 дней (смешанно: mis / mille, отрицание из модуля 1, kus / kuhu / kust из урока 13, сравнение из урока 12). Реальное задание на выбор: (а) найти дома или в школе одну вещь, которая не работает, и написать о ней 3 предложения (что, где, с каких пор); (б) прочитать одно объявление в подъезде или в школе о ремонте и сказать одним предложением, что оно сообщает.',
       ],
     },
     discover: [
-      station(teach(purpose(B.listening('014_d_owner', 'Omaniku häälsõnum.', 'Enne kuulamist arva vastused. Õpetaja loeb kaks korda, sina kirjuta lünka üks sõna või number.', [
-        'Andres: Tere, siin Andres Kuusk, teie korteri omanik. Sain teie sõnumi kätte.',
-        'Andres: Kui Daria toas on radiaator külm, siis keerake kõigepealt radiaatori nuppu paremale, viie peale.',
-        'Andres: Kui see ei aita, tulen ise neljapäeval pärast kella kuut ja lasen radiaatorist õhu välja.',
-        'Andres: Köögikraani pärast ärge muretsege. Torumees tuleb reedel hommikul kell kümme.',
-        'Andres: Kui reedel kedagi kodus ei ole, jätke võti naabrile, korterisse kaksteist.',
-        'Andres: Kui midagi veel katki läheb, saatke mulle parem sõnum, mitte e-kiri. Head õhtut!',
+      station(teach(purpose(B.listening('014_d_owner', 'Majandusjuhataja häälsõnum.', 'Enne kuulamist arva vastused. Õpetaja loeb kaks korda, sina kirjuta lünka üks sõna või number.', [
+        'Peeter: Tere, siin Peeter Rebane, kooli majandusjuhataja. Sain teie klassi sõnumi kätte.',
+        'Peeter: Kui teie klassis on radiaator külm, siis keerake kõigepealt radiaatori nuppu paremale, viie peale.',
+        'Peeter: Kui see ei aita, tulen ise neljapäeval pärast kuuendat tundi ja lasen radiaatorist õhu välja.',
+        'Peeter: Tüdrukute WC kraani pärast ärge muretsege. Torumees tuleb reedel hommikul kell kümme.',
+        'Peeter: Torumees vaatab reedel ka teie radiaatorit. Jätke klassi võti hommikul kantseleisse.',
+        'Peeter: Kui midagi veel katki läheb, kirjutage mulle parem Stuudiumis, mitte e-kirja. Head päeva!',
       ], [
         'Radiaatori nuppu tuleb keerata [paremale].',
-        'Omanik tuleb ise [neljapäeval].',
-        'Ta tuleb pärast kella [kuut|6|18].',
+        'Majandusjuhataja tuleb ise [neljapäeval].',
+        'Ta tuleb pärast [kuuendat|6.] tundi.',
         'Torumees tuleb [reedel] hommikul.',
-        'Võtme võib jätta [naabrile].',
-        'Omanikule on parem saata [sõnum].',
-      ]), 'Daria ema on tööl ja palus sul omaniku sõnumit kuulata. Kirjutad üles, mida teha ja millal keegi tuleb.'),
-      'Kuulamise tsükkel: ennusta (mis võib uues korteris katki olla?) → esimene kuulamine: kas omanik on rahulik või pahane? → võrdle → teine kuulamine: lüngad → üks rida „mis aitas / mis jäi kuulmata”.'), 1, 10),
-      tag(B.vocab('014_d_vocab', 'Tunni sõnad.', ['katki — сломан', 'parandama — чинить', 'radiaator — батарея', 'kraan — кран', 'tilkuma — капать', 'torumees — сантехник', 'omanik — хозяин', 'võti — ключ', 'lukk — замок', 'pistikupesa — розетка', 'majandusjuhataja — завхоз', 'teatama — сообщать']), {}),
+        'Klassi võtme võib jätta [kantseleisse].',
+        'Majandusjuhatajale on parem kirjutada [Stuudiumis].',
+      ]), 'Klassijuhataja Kaie on koolitusel ja palus sul kui klassivanemal majandusjuhataja sõnumit kuulata. Kirjutad üles, mida teha ja millal keegi tuleb.'),
+      'Kuulamise tsükkel: ennusta (mis võib koolis katki olla?) → esimene kuulamine: kas majandusjuhataja on rahulik või pahane? → võrdle → teine kuulamine: lüngad → üks rida „mis aitas / mis jäi kuulmata”.'), 1, 10),
+      tag(B.vocab('014_d_vocab', 'Tunni sõnad.', ['katki — сломан', 'parandama — чинить', 'radiaator — батарея', 'kraan — кран', 'tilkuma — капать', 'torumees — сантехник', 'klassivanem — староста класса', 'võti — ключ', 'lukk — замок', 'pistikupesa — розетка', 'majandusjuhataja — завхоз', 'teatama — сообщать']), {}),
       station(B.notice('014_d_rule', 'Märka: mis on katki?', [
         'Asi, **mis** ei tööta: kraan, **mis** tilgub · lamp, **mis** ei põle',
         'Asi, **mille** osa on katki: kapp, **mille** uks ei lähe kinni (moodul 2: mille oma?)',
         'Eitus (moodul 1): radiaator **ei soojenda** · lukk **ei avane** · kraan **ei tilgu** enam',
-        'Kus ja kui kaua: **Daria toas** · **köögis** · **esmaspäevast** saadik · juba **kolm päeva**',
+        'Kus ja kui kaua: **meie klassis** · **koridoris** · **esmaspäevast** saadik · juba **kolm päeva**',
       ], 'full'), 2, 10),
       purpose(B.transformation('014_d_report', 'Mis on katki?', 'Tee kahest lausest üks. Kasuta antud sõna.', [
-        ['Köögis on kraan. Kraan tilgub.', 'mis', 'Köögis on kraan, mis tilgub.'],
-        ['Daria toas on radiaator. Radiaator on külm.', 'mis', 'Daria toas on radiaator, mis on külm.'],
+        ['WC-s on kraan. Kraan tilgub.', 'mis', 'WC-s on kraan, mis tilgub.'],
+        ['Meie klassis on radiaator. Radiaator on külm.', 'mis', 'Meie klassis on radiaator, mis on külm.'],
         ['Mul on kapp. Kapi uks ei lähe kinni.', 'mille', 'Mul on kapp, mille uks ei lähe kinni.'],
         ['Klassis on projektor. Projektor ei tööta.', 'mis', 'Klassis on projektor, mis ei tööta.'],
-        ['Meil on välisuks. Ukse lukk ei avane.', 'mille', 'Meil on välisuks, mille lukk ei avane.'],
-        ['Esikus on lamp. Lamp ei põle.', 'mis', 'Esikus on lamp, mis ei põle.'],
-      ]), 'Daria ema teeb omanikule nimekirja, mis korteris katki on. Teed laused lühemaks ja selgemaks, et omanik saaks kohe aru.'),
+        ['Spordisaalis on uks. Ukse lukk ei avane.', 'mille', 'Spordisaalis on uks, mille lukk ei avane.'],
+        ['Koridoris on lamp. Lamp ei põle.', 'mis', 'Koridoris on lamp, mis ei põle.'],
+      ]), 'Klassivanemana teed majandusjuhatajale nimekirja, mis koolis katki on. Teed laused lühemaks ja selgemaks, et ta saaks kohe aru.'),
     ],
     practice: [
       station(teach(purpose(B.choice('014_p_vowels', 'Õ, ö või ü?', 'Õpetaja ütleb igast reast ühe sõna. Vali sõna, mida kuulsid, siis ütle see ise.', [
-        ['Rida 1: mis sõna õpetaja ütleb?', 'köök', 'kõõk', 'kook'],
-        ['Rida 2: mis sõna õpetaja ütleb?', 'üür', 'õõr', 'uur'],
-        ['Rida 3: mis sõna õpetaja ütleb?', 'põrand', 'pörand', 'pürand'],
-        ['Rida 4: mis sõna õpetaja ütleb?', 'rõdu', 'rödu', 'rüdu'],
-        ['Rida 5: mis sõna õpetaja ütleb?', 'külm', 'kõlm', 'kolm'],
-        ['Rida 6: mis sõna õpetaja ütleb?', 'küla', 'kõla', 'kola'],
-      ], 'full', 'g_notice'), 'Kui ütled telefonis „kolm” asemel „külm”, ei saa omanik aru, mis lahti on. Harjutad õ, ö ja ü kuulmist ja hääldamist.'),
-      'Kõigepealt taju: õpetaja ütleb igast reast esimese (õige) sõna, õpilane valib. Siis ütleb õpetaja reast kõik kolm ja õpilane kordab ainult õiget. Paarid külm — kolm, köök — kook, küla — kola on päris sõnad: tähendus muutub.'), 3, 8),
+        ['Rida 1: mis sõna õpetaja ütleb?', 'köök', 'kook', 'kõik'],
+        ['Rida 2: mis sõna õpetaja ütleb?', 'külm', 'kolm', 'kelm'],
+        ['Rida 3: mis sõna õpetaja ütleb?', 'küla', 'kõla', 'kola'],
+        ['Rida 4: mis sõna õpetaja ütleb?', 'süda', 'sõda', 'sada'],
+        ['Rida 5: mis sõna õpetaja ütleb?', 'töö', 'too', 'tee'],
+        ['Rida 6: mis sõna õpetaja ütleb?', 'süü', 'suu', 'soo'],
+      ], 'full', 'g_notice'), 'Kui ütled telefonis „kolm” asemel „külm”, ei saa majandusjuhataja aru, mis lahti on. Harjutad õ, ö ja ü kuulmist ja hääldamist.'),
+      'Kõigepealt taju: õpetaja ütleb igast reast esimese (õige) sõna, õpilane valib. Siis ütleb õpetaja reast kõik kolm ja õpilane kordab ainult õiget. Kõik valikud on päris sõnad, tähendus muutub: külm — kolm, köök — kook, küla — kõla — kola, süda — sõda, töö — too, süü — suu. Kui sõna on võõras (kelm, kõla, süü), ütle tähendus vene keeles.'), 3, 8),
       station(B.text('014_p_thread', 'Stuudiumi sõnumid', [
         'Milana → majandusjuhataja Peeter Rebane: Tere! Minu kapi uks teisel korrusel ei lähe kinni ja lukk ei tööta. Kas seda saab parandada? Milana, 9. b',
         'Peeter Rebane: Tere, Milana! Aitäh, et teatasid. Mis on kapi number? Kas katki on uks või lukk või mõlemad? Kas kapis on praegu sinu asjad? Ma saan tulla homme pärast kolmandat tundi.',
@@ -324,17 +328,17 @@ export const LESSONS = withShapes({
       'Õpetaja on sõber. Lugu võib olla päris või väljamõeldud (kodus või koolis). Ladusus: küsi kiiresti, ära paranda. Häälsõnum on uus kuulaja (klass) ja uus eesmärk (ainult see, mida teised peavad teadma), mitte sama jutt lühemalt.'), 5, 10),
     ],
     transfer: [
-      station(B.text('014_t_sit', 'Radiaator on külm', 'On november ja väljas on viis kraadi külma. Daria toas on radiaator juba kolm päeva külm, kuigi teistes tubades on soe. Omanik Andres lubas neljapäeval tulla, aga ei tulnud. Ema on tööl ja palub sul omanikule helistada ning pärast kõnet kokkulepe sõnumiga kirja panna. Sinu variant: teata millestki, mis sinu kodus või koolis päriselt katki on.'), 6, 15, { final: 'complain' }),
-      teach(tag(purpose(B.rolecards('014_t_call', 'Kõne omanikule.', 'Õpetaja on omanik Andres. Mida ja kuidas öelda, otsusta ise.',
-        'Olukord: Daria toas on radiaator kolm päeva külm; omanik lubas neljapäeval tulla, aga ei tulnud.\nSinu eesmärk: seleta täpselt, mis on katki ja kus, mida te juba proovisite, ja lepi kokku kindel aeg, millal see parandatakse.\nPiirang: kodus on keegi ainult pärast kella 16; naaber korterist 12 on reisil.',
-        'Omaniku kaart on õpetajal: tal on oma vabandused ja üks lahendus.',
-        ['Daria toas on radiaator, mis…', 'Me juba proovisime…', 'Kas te saaksite…?', 'Lepime kokku, et…'], ['Ah jaa, vabandust…', 'Kas te nuppu keerasite?', 'Ma ei saa enne…']), 'Toas on külm ja Daria ei saa seal magada. Seletad omanikule probleemi nii, et lepite kokku kindla aja.'), { main: true, level: 4 }),
-      'Üks-ühele, õpetaja kaart (omanik Andres). Varjatud info: unustas neljapäeva ära; torumees saab tulla alles esmaspäeval kell 12; täna kell 19 saab ta tuua elektriradiaatori. Takistused (ükshaaval): 1) „Kas te nuppu keerasite? Viie peale?”; 2) „Torumees saab tulla alles esmaspäeval kell 12.”; 3) „Kas keegi on esmaspäeval kell 12 kodus?” Õnnestunud, kui: õpilane ütleb, mis on katki, kus ja kui kaua (mis-lause), mida juba proovisid, saab kindla aja ja ajutise lahenduse (elektriradiaator) ning kordab lõpus kokkuleppe.'),
-      tag(purpose(B.examWriting('014_t_note', 'Sõnum omanikule.', 'Kirjuta 40–60 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
-        situation: 'Pärast kõnet kirjutad omanik Andresele sõnumi, et kokkulepe jääks kirja.',
-        points: ['mis on katki ja kus', 'mida te juba proovisite', 'mis kell keegi kodus on', 'mida omanik lubas teha ja millal'],
-        words: [40, 60], opening: 'Tere, Andres!',
-      }), 'Kui kokkulepe on kirjas, ei saa seda enam unustada. Kirjutad sõnumi, millest on näha, mis on katki ja mida omanik lubas.'), { harno: 'W1b' }),
+      station(B.text('014_t_sit', 'Radiaator on külm', 'On november ja väljas on viis kraadi külma. Teie klassis (ruum 21) on radiaator juba kolm päeva külm, kuigi koridoris on soe, ja tunnis istutakse jopedega. Majandusjuhataja Peeter lubas neljapäeval tulla, aga ei tulnud. Klassijuhataja Kaie on koolitusel ja palub sul kui klassivanemal Peetrile helistada ning pärast kõnet kokkulepe Stuudiumis kirja panna. Sinu variant: teata millestki, mis sinu koolis päriselt katki on, või aita emal või isal eesti keeles seletada, mis kodus katki on.'), 6, 15, { final: 'complain' }),
+      teach(tag(purpose(B.rolecards('014_t_call', 'Kõne majandusjuhatajale.', 'Õpetaja on majandusjuhataja Peeter. Mida ja kuidas öelda, otsusta ise.',
+        'Olukord: sinu klassis (ruum 21) on radiaator kolm päeva külm; Peeter lubas neljapäeval tulla, aga ei tulnud.\nSinu eesmärk: seleta täpselt, mis on katki ja kus, mida te juba proovisite, ja lepi kokku kindel aeg, millal see parandatakse.\nPiirang: homme on ruumis 21 kontrolltöö; klass on tühi ainult enne kella 8.15 ja pärast kella 14.',
+        'Majandusjuhataja kaart on õpetajal: tal on oma vabandused ja üks lahendus.',
+        ['Meie klassis on radiaator, mis…', 'Me juba proovisime…', 'Kas te saaksite…?', 'Lepime kokku, et…'], ['Ah jaa, vabandust…', 'Kas te nuppu keerasite?', 'Ma ei saa enne…']), 'Klassis on nii külm, et keegi ei saa keskenduda. Seletad majandusjuhatajale probleemi nii, et lepite kokku kindla aja.'), { main: true, level: 4 }),
+      'Üks-ühele, õpetaja kaart (majandusjuhataja Peeter). Varjatud info: unustas neljapäeva ära; torumees saab tulla alles esmaspäeval kell 12 (siis on klassis tund); täna pärast tunde saab ta tuua klassi kaks elektriradiaatorit, homme võib klass olla ka ruumis 25. Takistused (ükshaaval): 1) „Kas te nuppu keerasite? Viie peale?”; 2) „Torumees saab tulla alles esmaspäeval kell 12.”; 3) „Esmaspäeval kell 12 on teil ju tund — kas see sobib?” Õnnestunud, kui: õpilane ütleb, mis on katki, kus ja kui kaua (mis-lause), mida juba proovisid, saab kindla aja ja ajutise lahenduse (elektriradiaator või teine klass) ning kordab lõpus kokkuleppe.'),
+      tag(purpose(B.examWriting('014_t_note', 'Sõnum majandusjuhatajale.', 'Kirjuta 40–60 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
+        situation: 'Pärast kõnet kirjutad Stuudiumis majandusjuhataja Peeter Rebasele sõnumi, et kokkulepe jääks kirja.',
+        points: ['mis on katki ja kus', 'mida te juba proovisite', 'millal klass on tühi', 'mida majandusjuhataja lubas teha ja millal'],
+        words: [40, 60], opening: 'Tere!',
+      }), 'Kui kokkulepe on kirjas, ei saa seda enam unustada. Kirjutad sõnumi, millest on näha, mis on katki ja mida majandusjuhataja lubas.'), { harno: 'W1b' }),
     ],
   },
 
@@ -353,7 +357,7 @@ export const LESSONS = withShapes({
       B.examPart('015_d_part', 'R', { part: 'Osa A ja C. Lugemine, keel ja sõnad', minutes: 40, points: 44, tasks: 6, target: 70, note: 'Sõnaraamatut ei kasuta.' }),
       B.vocab('015_d_vocab', 'Kontrolli sõnad.', ['kontroll — проверка', 'eesmärk — цель', 'klassireis — классная поездка', 'hostel — хостел', 'vastuvõtt — ресепшен', 'tekk — одеяло']),
       tag(B.adsmatch('015_d_ads', 'Osa A. Lugemine 1. Kuulutused.', 'Millist kuulutust (A–F) vajab iga inimene? Kirjuta täht. Üks kuulutus võib sobida kahele.', [
-        ['Tuba üliõpilasele', 'Tuba kesklinna lähedal, köök ja dušš koridoris. 250 € kuus, kommunaalkulud on hinna sees.'],
+        ['Tuba üliõpilasele', 'Tuba kesklinna lähedal, köök ja dušš koridoris. 250 € kuus, kõik kulud on hinna sees.'],
         ['Kolimisabi', 'Kaks tugevat noormeest ja kaubik. Tallinnas 40 € tund. Tassime ka 5. korrusele trepist.'],
         ['Müüa kirjutuslaud', 'Valge ja praktiline, kolme sahtliga. Sobib väikesesse tuppa. 25 €, järele tulla Nõmmele.'],
         ['Torumees 24/7', 'Tilkuv kraan või külm radiaator? Tulen samal päeval, ka nädalavahetusel.'],
