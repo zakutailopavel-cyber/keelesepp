@@ -817,6 +817,38 @@ service cloud.firestore {
       ]);
     }
 
+    // the same keys as changesLessonBillingSource (except cashPaid, checked on its own): no lesson is created already
+    // billed, invoiced, credited or paid — only the server (Admin SDK) writes them
+    function createsNoLessonBillingSource() {
+      return !request.resource.data.keys().hasAny([
+        'billingStatus',
+        'invoiceId',
+        'invoiceNum',
+        'invoiceLineIndex',
+        'billedAmount',
+        'billedAmountCents',
+        'pricingSource',
+        'billedTariffId',
+        'billedTariffName',
+        'billedTariffAssignmentId',
+        'invoicedAt',
+        'billingUpdatedAt',
+        'billingDispositionReason',
+        'billingUpdatedBy',
+        'creditNoteId',
+        'creditNoteNum',
+        'creditedAt',
+        'creditReason',
+        'directPaymentId',
+        'directPaymentAmount',
+        'directPaymentAmountCents',
+        'directPaidAt',
+        'bankTransactionId',
+        'sourceCreditId',
+        'financialUpdatedAt'
+      ]);
+    }
+
     function changesLessonBillingBasis() {
       return request.resource.data.diff(resource.data).affectedKeys().hasAny([
         'studentId',
@@ -1221,6 +1253,10 @@ service cloud.firestore {
         && createsNoLessonPackageSource()
         // „Makstud sularahas”: only the server marks a lesson paid in cash
         && !request.resource.data.keys().hasAny(['cashPaid'])
+        // the billing fields that an update may not change may not be preset on create either (review 2026-11-11);
+        // „don't charge” and „held and checked” are admin decisions on create as on update
+        && createsNoLessonBillingSource()
+        && (isAdmin() || !request.resource.data.keys().hasAny(['billingWaived', 'billingWaivedBy', 'billingWaivedAt', 'verified', 'verifiedAt', 'verifiedByUid', 'verifiedByName']))
         && financialDateOpen(request.resource.data.get('date', ''));
       allow update: if (isAdmin() || teacherCanUpdate(resource.data, request.resource.data))
         && financialDateOpen(resource.data.get('date', ''))
@@ -1711,21 +1747,22 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
-    // lesson tokens (functions/lesson-tokens-core.js): finance and the card's own student / parent see the balance
+    // lesson tokens (functions/lesson-tokens-core.js): only admin and finance see the balance — owner 2026-11-02:
+    // lessons left are not shown to students or parents (no student / parent read, review 2026-11-11)
     match /studentPackages/{packageId} {
-      allow read: if isAdmin() || isFinance() || ownsStudent(resource.data.studentId);
+      allow read: if isAdmin() || isFinance();
       allow create, update, delete: if false;
     }
 
     match /packageLedger/{entryId} {
-      allow read: if isAdmin() || isFinance() || ownsStudent(resource.data.studentId);
+      allow read: if isAdmin() || isFinance();
       allow create, update, delete: if false;
     }
 
-    // finance and the card's own student / parent read it too: a lesson held with no credits left is owed (status
-    // needs_attention) and the package views count it (docs/LESSON_TOKENS.md)
+    // admin and finance only: a lesson held with no credits left is owed (status needs_attention) and the package
+    // views count it (docs/LESSON_TOKENS.md); students / parents never read lessons left (owner 2026-11-02)
     match /lessonPackageStates/{lessonId} {
-      allow read: if isAdmin() || isFinance() || ownsStudent(resource.data.studentId);
+      allow read: if isAdmin() || isFinance();
       allow create, update, delete: if false;
     }
 
@@ -3274,8 +3311,11 @@ service cloud.firestore {
       }
     }
 
+    // the company's invoice number counter: only financeApi (Admin SDK) moves it (review 2026-11-11: any teacher could
+    // overwrite it); admin / finance may read it
     match /meta/invoiceCounter {
-      allow read, write: if isStaff();
+      allow read: if isAdmin() || isFinance();
+      allow write: if false;
     }
 
     // „Õppesuunad” (owner 2026-10-24: „самому ставить учебные направления”): the school's list of study directions,
@@ -3550,8 +3590,16 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // finance entries (finance.* / invoice.* / payment.* / expense.* / accounting.*) are read by admin / finance only
+    // (review 2026-11-11: old finance.revenue_plan_updated entries carry lesson prices); the rest by staff. No client
+    // lists activityLog; a staff query must not return a finance entry (rules are not filters).
+    function financeActivity(data) {
+      return data.get('type', '') is string
+        && data.get('type', '').matches('^(finance|invoice|payment|expense|accounting)[.].*');
+    }
+
     match /activityLog/{entryId} {
-      allow read: if isStaff();
+      allow read: if isAdmin() || (isFinance() && financeActivity(resource.data)) || (isStaff() && !financeActivity(resource.data));
       allow create: if signedIn()
         && request.resource.data.byUid == uid()
         && request.resource.data.type is string
