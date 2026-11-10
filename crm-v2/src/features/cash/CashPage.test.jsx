@@ -13,27 +13,34 @@ function renderPage(user, props) {
 }
 
 describe('CashPage', () => {
-  it('a teacher records cash from their student and hands it over (owner 2026-10-18)', async () => {
+  it('the accountant (finance role) only reads Kassa (owner 2026-11-11)', async () => {
+    const api = { cashSummary: vi.fn().mockResolvedValue({ isAdmin: false, entries: [receipt], balances: [{ uid: 'teacher-1', name: 'Oleksiy', cents: 6000 }], people }) };
+    const studentApi = { list: vi.fn() };
+    renderPage({ uid: 'fin-1', displayName: 'Raamatupidaja', roles: ['finance'] }, { api, studentApi });
+    expect(await screen.findByText('60,00 €', { selector: 'strong' })).toBeInTheDocument();
+    expect(studentApi.list).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /Märgi saaduks|Märgi üleantuks|Seo arvega|Sain kätte/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Tühista kirje' })).toBeNull();
+  });
+
+  it('the admin records cash and a hand-over', async () => {
     const api = {
-      cashSummary: vi.fn().mockResolvedValue({ isAdmin: false, entries: [receipt], balances: [{ uid: 'teacher-1', name: 'Oleksiy', cents: 6000 }], people }),
+      cashSummary: vi.fn().mockResolvedValue({ isAdmin: true, entries: [receipt], balances: [{ uid: 'teacher-1', name: 'Oleksiy', cents: 6000 }], people }),
       recordCashReceipt: vi.fn().mockResolvedValue({}),
       recordCashHandover: vi.fn().mockResolvedValue({}),
     };
     const studentApi = { list: vi.fn().mockResolvedValue({ items: [{ id: 's1', name: 'Mia', parentName: 'Kati', payerMethod: 'cash' }] }) };
-    renderPage({ uid: 'teacher-1', displayName: 'Oleksiy', roles: ['teacher'] }, { api, studentApi });
-    expect(await screen.findByText('60,00 €', { selector: 'strong' })).toBeInTheDocument();
-    expect(studentApi.list).toHaveBeenCalledWith(expect.objectContaining({ scopeTeacherUid: 'teacher-1' }));
-    expect(screen.queryByText('Seo arvega')).toBeNull();
-    expect(screen.queryByLabelText('Kelle käes raha on')).toBeNull();
+    renderPage({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { api, studentApi });
+    expect(await screen.findAllByText('60,00 €', { selector: 'strong' })).not.toHaveLength(0);
 
     fireEvent.change(screen.getAllByLabelText('Summa (€)')[0], { target: { value: '45' } });
     fireEvent.click(screen.getByRole('button', { name: /Märgi saaduks/ }));
     await waitFor(() => expect(api.recordCashReceipt).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1', amount: '45', holderUid: undefined })));
 
-    fireEvent.change(await screen.findByLabelText('Kellele'), { target: { value: 'admin-1' } });
+    fireEvent.change(await screen.findByLabelText('Kellele'), { target: { value: 'teacher-1' } });
     fireEvent.change(screen.getAllByLabelText('Summa (€)')[1], { target: { value: '60' } });
     fireEvent.click(screen.getByRole('button', { name: /Märgi üleantuks/ }));
-    await waitFor(() => expect(api.recordCashHandover).toHaveBeenCalledWith(expect.objectContaining({ toUid: 'admin-1', amount: '60' })));
+    await waitFor(() => expect(api.recordCashHandover).toHaveBeenCalledWith(expect.objectContaining({ toUid: 'teacher-1', amount: '60' })));
   });
 
   it('an administrator links an open receipt to the payer invoice', async () => {
@@ -78,6 +85,16 @@ describe('CashPage', () => {
     renderPage({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { api, studentApi: { list: vi.fn().mockResolvedValue({ items: [] }) } });
     expect(await screen.findByText('Makstud sularahas pärast arvet KS-2026-120')).toBeInTheDocument();
     expect(screen.queryByText('Kuuarvelt maha')).toBeNull();
+  });
+
+  it('the admin corrects a lesson’s cash amount (owner 2026-11-11)', async () => {
+    const lessonReceipt = { ...receipt, id: 'lessoncash_3', source: 'lesson', occurrenceDate: '2026-11-09', amountCents: 2500 };
+    const api = { cashSummary: vi.fn().mockResolvedValue({ isAdmin: true, entries: [lessonReceipt], balances: [], people }), correctLessonCashAmount: vi.fn().mockResolvedValue({}) };
+    const prompt = vi.spyOn(globalThis, 'prompt').mockReturnValue('20');
+    renderPage({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, { api, studentApi: { list: vi.fn().mockResolvedValue({ items: [] }) } });
+    fireEvent.click(await screen.findByRole('button', { name: 'Paranda summa' }));
+    await waitFor(() => expect(api.correctLessonCashAmount).toHaveBeenCalledWith('lessoncash_3', '20.00', expect.any(String)));
+    prompt.mockRestore();
   });
 });
 

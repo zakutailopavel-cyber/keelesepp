@@ -41,7 +41,8 @@ export const ROUTE_ACCESS = Object.freeze({
   '/library/lessons/:lessonId/worksheets/:worksheetId': ACCESS.STAFF,
   '/library/worksheets/:lessonId': ACCESS.STAFF,
   '/parents': ACCESS.STAFF,
-  '/kassa': ACCESS.STAFF,
+  // owner 2026-11-11: Kassa only for the admin and the accountant (finance role, read only)
+  '/kassa': ACCESS.FINANCE,
   '/live-classroom': ACCESS.LIVE_CLASSROOM,
   '/live-classroom/vaatle/:invitationId': ACCESS.ADMIN,
   '/teachers': ACCESS.ADMIN,

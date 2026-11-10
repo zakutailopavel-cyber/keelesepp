@@ -134,7 +134,6 @@ export default function AppRoutes() {
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
             <Route path="library/worksheets/:lessonId" element={generatorPage(<WorksheetStudioPage />)} />
             <Route path="parents" element={staffPage(<ParentsPage />)} />
-            <Route path="kassa" element={staffPage(<CashPage />)} />
             <Route path="board/:studentId" element={staffPage(<BoardPage />)} />
             <Route path="leads" element={staffPage(<LeadsPage />)} />
           </Route>
@@ -195,6 +194,8 @@ export default function AppRoutes() {
             <Route path="finance" element={staffPage(<FinanceMonthPage />)} />
             <Route path="finance/seaded" element={staffPage(<FinanceSettingsPage />)} />
             <Route path="finance/vana" element={staffPage(<FinanceWorkspacePage />)} />
+            {/* „Kassa” (owner 2026-11-11): admin + accountant (read only); teachers never see it */}
+            <Route path="kassa" element={staffPage(<CashPage />)} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
             <Route path="finance/payroll" element={staffPage(<PayrollPage />)} />

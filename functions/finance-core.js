@@ -1268,6 +1268,9 @@ function creditAfterRefund(credit = {}, refundAmountCents, nowIso) {
 
 function lessonIsBillable(lesson = {}) {
   if (String(lesson.invoiceId || "").trim() || lesson.billingStatus === "invoiced") return false;
+  // paid in cash at the lesson (functions/cash-core.js, owner 2026-11-10, review D1 2026-11-11): never on a per-lesson
+  // invoice, never paid by a bank payment or an advance; undoing the cash mark removes the flag → billable again
+  if (lesson.cashPaid && lesson.cashPaid.receiptId) return false;
   if (lesson.packageAccountingSource === "package_ledger_v1") return false;
   if (lesson.packageConsumptionStatus === "consumed") return false;
   if (lesson.billingStatus === "late_cancel_billable") return true;

@@ -23,7 +23,7 @@ export const navigation = [
   { to: '/leads', label: 'Päringud', icon: Inbox, roles: ACCESS.LEADS, group: 'Suhtlus ja raha' },
   { to: '/kampaaniad', label: 'Kampaaniad', icon: Megaphone, roles: ACCESS.ADMIN, group: 'Suhtlus ja raha' },
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
-  { to: '/kassa', label: 'Kassa', icon: Wallet, roles: ACCESS.STAFF, group: 'Suhtlus ja raha' },
+  { to: '/kassa', label: 'Kassa', icon: Wallet, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
 ];
 
 // A student's own short menu (owner 2026-11-01: the cabinet was overloaded): what he does every day first; the board,

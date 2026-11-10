@@ -135,7 +135,7 @@ function lessonTeacherUid({ entry = {}, lesson = null }) {
  * not cancelled); a teacher only for their own lesson and only as the holder; never an FIE card (the owner's private
  * sole-proprietor billing stays apart from the school's cash box).
  */
-function lessonCashEntry({ actor, isAdmin, values = {}, entry, occurs, lesson = null, lessonId, studentId, student, issuer = "company", holder, invoicedBefore = [], nowIso }) {
+function lessonCashEntry({ actor, isAdmin, values = {}, entry, occurs, lesson = null, lessonId, studentId, student, issuer = "company", holder, invoicedBefore = [], amountCents = null, nowIso }) {
   const occurrenceDate = String(values.occurrenceDate || "");
   if (!ISO_DAY.test(occurrenceDate)) throw cashError("Tunni kuupäev on vigane.");
   if (occurrenceDate > appToday(nowIso)) throw cashError("Tund ei ole veel toimunud.");
@@ -153,6 +153,11 @@ function lessonCashEntry({ actor, isAdmin, values = {}, entry, occurs, lesson = 
   // owner 2026-11-10: a cash-paid lesson leaves the monthly invoice, so it must be a marked lesson (the flag sits on
   // the lesson record that billing reads); the dialog marks it held first
   if (!lesson || !CASH_PAYABLE_STATUSES.includes(lesson.status)) throw cashError("Märgi tund enne toimunuks.", 409);
+  // D1 (review 2026-11-11): a lesson already billed or settled another way is not paid in cash a second time
+  const settled = lessonSettledRefusal(lesson);
+  if (settled) throw cashError(settled, 409);
+  // owner 2026-11-11: the amount is the card's lesson price (the server computes it; the teacher cannot change it)
+  if (amountCents !== null && !(Number(amountCents) > 0)) throw cashError("Õpilase kaardil pole selle aine tunnihinda. Palu adminil hind lisada.", 409);
   return {
     type: "receipt",
     source: "lesson",
@@ -164,7 +169,7 @@ function lessonCashEntry({ actor, isAdmin, values = {}, entry, occurs, lesson = 
     teacherUid,
     holderUid: holder.uid,
     holderName: clean(holder.name, 120),
-    amountCents: amountToCents(values.amount),
+    amountCents: amountCents !== null ? Math.round(Number(amountCents)) : amountToCents(values.amount),
     // the day the teacher marked it: on the owner's chart the money counts from this day
     receivedAt: appToday(nowIso),
     studentId: String(studentId),
@@ -182,6 +187,66 @@ function lessonCashEntry({ actor, isAdmin, values = {}, entry, occurs, lesson = 
 }
 
 const CASH_PAYABLE_STATUSES = ["Toimunud", "Puudus_eta"];
+
+/** Why a marked lesson cannot be paid in cash: already on a per-lesson invoice, paid directly, free / written off / paid
+ * by the school. '' = it can. A package lesson can: the credit it took comes back (lesson-tokens-core lessonTakesToken). */
+function lessonSettledRefusal(lesson = {}) {
+  if (String(lesson.invoiceId || "").trim() || lesson.billingStatus === "invoiced") return "Tund on juba arvel — sularahas seda ei märgita.";
+  if (lesson.directPaymentId || lesson.billingStatus === "paid_directly") return "Tund on juba makstud.";
+  if (["free", "written_off", "school_covered", "cancelled_on_time"].includes(lesson.billingStatus)) return "Tund on tasuta või kooli kulul — selle eest sularaha ei märgita.";
+  return "";
+}
+
+// ---- „Maksab sularahas” on the student card (owner 2026-11-11) ----
+// studentRevenuePlans/<card>.cashSubjects: the subjects this card pays in cash at the lesson — ["*"] = every subject
+// (a card with one subject), else subject names. For such a lesson the teacher's „Toimus” is „Toimus · makstud
+// sularahas 25 €”: one tap marks it held and records the cash. Admin-only field (firestore.rules); a plan without it =
+// nobody pays in cash (the „Maksis sularahas” action after „Toimus” still works for a rare cash payment).
+const sameSubject = (left, right) => clean(left, 80).toLocaleLowerCase("et") === clean(right, 80).toLocaleLowerCase("et");
+
+function cashSubjectsOf(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map(item => clean(item, 80)).filter(Boolean))].slice(0, 9);
+}
+
+/** Does this card pay this subject's lessons in cash? */
+function paysCashFor(plan = {}, subject = "") {
+  const subjects = cashSubjectsOf(plan && plan.cashSubjects);
+  return subjects.includes("*") || subjects.some(item => sameSubject(item, subject));
+}
+
+/** The plan's price for one subject: its own (subjectPrices, key as written, else ignoring case) or the card's. */
+function subjectPrice(plan = {}, subject = "") {
+  const prices = plan && plan.subjectPrices && typeof plan.subjectPrices === "object" ? plan.subjectPrices : {};
+  const key = subject && Object.prototype.hasOwnProperty.call(prices, subject) ? subject : subject ? Object.keys(prices).find(item => sameSubject(item, subject)) : "";
+  const own = key && prices[key] && Number(prices[key].lessonPriceCents) > 0 ? prices[key] : null;
+  const unitCents = Math.round(Number(own ? own.lessonPriceCents : plan.lessonPriceCents) || 0);
+  const minutes = Number(own ? own.lessonMinutes || plan.lessonMinutes : plan.lessonMinutes) || 60;
+  return { unitCents: Math.max(0, unitCents), minutes };
+}
+
+/** The cash a lesson costs: the subject's price scaled to the lesson's length (90 min of a 60-min price = 1.5×). */
+function lessonCashPriceCents(plan, subject = "", lessonMinutes = 0) {
+  if (!plan) return 0;
+  const price = subjectPrice(plan, subject);
+  if (!price.unitCents) return 0;
+  const minutes = Number(lessonMinutes) || price.minutes;
+  return Math.round(price.unitCents * (minutes / price.minutes));
+}
+
+/** What the teacher's marking screens need about one cash-paying card (sent only for the teacher's own students). */
+function lessonCashPayer(plan = {}, mainSubjectName = "") {
+  const subjects = cashSubjectsOf(plan && plan.cashSubjects);
+  if (!subjects.length) return null;
+  const prices = plan.subjectPrices && typeof plan.subjectPrices === "object" ? plan.subjectPrices : {};
+  return {
+    all: subjects.includes("*"),
+    subjects: subjects.filter(item => item !== "*"),
+    mainSubject: clean(mainSubjectName, 80),
+    main: subjectPrice(plan, ""),
+    prices: Object.fromEntries(Object.keys(prices).slice(0, 9).map(subject => [subject, subjectPrice(plan, subject)])),
+  };
+}
 
 /** The company monthly invoices of the lesson's month that bill this card (not cancelled): [{ id, num }]. */
 function invoicesCoveringLesson(invoices = [], { studentId, occurrenceDate }) {
@@ -230,6 +295,7 @@ function lessonCashMarks(entries = [], { uid, isAdmin, balanceCents = 0, nowIso 
 }
 
 module.exports = {
-  amountToCents, cashBalances, cashError, handoverEntry, invoicesCoveringLesson, lessonCashEntry, lessonCashFlag, lessonCashId, lessonCashMarks,
-  lessonCashUndoRefusal, lessonTeacherUid, receiptEntry, studentTeacherUids, visibleEntries,
+  amountToCents, cashBalances, cashError, cashSubjectsOf, handoverEntry, invoicesCoveringLesson, lessonCashEntry, lessonCashFlag, lessonCashId,
+  lessonCashMarks, lessonCashPayer, lessonCashPriceCents, lessonCashUndoRefusal, lessonSettledRefusal, lessonTeacherUid, paysCashFor, receiptEntry,
+  studentTeacherUids, visibleEntries,
 };

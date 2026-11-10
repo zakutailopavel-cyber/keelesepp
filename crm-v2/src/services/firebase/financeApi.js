@@ -345,11 +345,16 @@ export const financeApi = {
   lessonCashMine() {
     return post("/cash/lesson/mine", {});
   },
-  recordLessonCash(lesson, { amount, note = "" } = {}) {
-    return post("/cash/lesson", { ...lessonCashKey(lesson), amount, note });
+  // owner 2026-11-11: the amount is the server's (the card's price for this subject and length), never typed
+  recordLessonCash(lesson) {
+    return post("/cash/lesson", lessonCashKey(lesson));
   },
   undoLessonCash(lesson) {
     return post("/cash/lesson/undo", lessonCashKey(lesson));
+  },
+  // Kassa (admin): correct the amount of a lesson's cash mark
+  correctLessonCashAmount(entryId, amount, reason = "") {
+    return post("/cash/lesson/amount", { entryId, amount, reason });
   },
   allocateBankTransaction(transaction) {
     const amount = Number(transaction.amountCents) / 100;

@@ -9,7 +9,8 @@ export function useMarkUndo(ms = 5000) {
   const [undo, setUndo] = useState(null);
   useEffect(() => {
     if (!undo) return undefined;
-    const timer = globalThis.setTimeout(() => setUndo(null), ms);
+    // a toast with a second step („Maksis sularahas”, owner 2026-11-11) stays a little longer (undo.ms)
+    const timer = globalThis.setTimeout(() => setUndo(null), undo.ms || ms);
     return () => globalThis.clearTimeout(timer);
   }, [undo, ms]);
   return [undo, setUndo];

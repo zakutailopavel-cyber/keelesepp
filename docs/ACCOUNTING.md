@@ -559,21 +559,31 @@ creates after `since` is set, for documents dated on or after `since`.
 4. „Ootab panka”: typed payments without bank money — ask the administrator (FIE account, cash, a typo).
 5. „Kuu kontroll”: type the bank's closing balance, clear the red rows, then „Sulge periood kuni <month end>”.
 
-## Sularaha tunni eest — „Makstud sularahas” (owner 2026-11-10)
+## Sularaha tunni eest — „Toimus · makstud sularahas” (owner 2026-11-10, one flow since 2026-11-11)
 
-**Owner decision 2026-11-10: this cash does NOT go to the accountant.** It is never linked to an invoice, so it never
-becomes a payment, never reaches the accounting sync, the bank-books review, the period close or any export. Only the
-owner / admin see it (Finantsid „Laekunud” and the card „Õpetajate käes sularaha”, Kassa). The accountant's logic was
-not changed at all.
+**Owner decision 2026-11-10: this cash does NOT go to the accountant's books.** It is never linked to an invoice, so it
+never becomes a payment, never reaches the accounting sync, the bank-books review, the period close or any export.
+**Owner 2026-11-11: Kassa is seen only by the admin and the accountant** (finance role, read only: `/kassa` route,
+menu and `/cash/summary` = admin + finance; `/cash/receipts`, `/cash/handover`, `/cash/allocate`, `/cash/void`,
+`/cash/lesson/amount` = admin). Teachers never open Kassa and see no cash totals.
 
-- **Teacher** (phone agenda in Kalender and „Märkimata tunnid”): „Sularahas” beside „Toimus ✓ / Puudus ▾” on a past
-  1:1 lesson of their own (held or still unmarked; not a group lesson, not a notified absence or a cancelled lesson).
-  The dialog takes the amount (default = the card's lesson price for the lesson's subject, scaled to the lesson's
-  length — `studentRevenuePlans` via `planForSubject`, returned only to the lesson's own teacher or an admin) and an
-  optional note; on an unmarked row the button reads „Toimus ja makstud” and marks the lesson held first through the
-  usual path (the cash needs a marked lesson, see below). A marked lesson shows the sum („25,00 €”); the teacher can
-  „Võta tagasi” the same day while the money is still with them (then the lesson is billable again). The teacher
-  never sees other teachers' cash or any finance totals (only their own „Sinu käes” in Kassa).
+- **Student card (admin):** Arveldus → per subject tab „Maksab sularahas” → `studentRevenuePlans/<card>.cashSubjects`
+  (`["*"]` on a card with one subject = all its lessons, else subject names; rules: list ≤ 9; only admins write plans).
+- **Teacher** (phone agenda in Kalender and „Märkimata tunnid”, `QuickMarkButtons`): for a „Maksab sularahas” card the
+  one tap is **„Toimus · makstud sularahas 25 €”** — the lesson is marked held through the usual path, then the cash is
+  recorded (`/cash/lesson`). The amount is always the server's: the card's price for the lesson's subject
+  (`subjectPrices`, else the card's) scaled to the lesson's length (`cash-core lessonCashPriceCents`); a typed amount
+  is ignored; no price on the card → 409. `/cash/lesson/mine` returns `payers` (only cards the teacher teaches; an
+  admin all) so the button can show the sum. Any other lesson: „Toimus ✓” as before; the undo strip after it (8 s)
+  offers **„Maksis sularahas”** (same server call, same fixed amount). „Võta tagasi” in the strip takes back the cash
+  first, then the mark. There are no separate cash buttons any more (the old „Sularahas” / „Toimus ja makstud” dialog
+  is gone). A paid lesson shows „sularahas 25 €” in the agenda. Teacher undo: same day, while the money is still with
+  them; later only the admin (Kassa: void, or „Paranda summa” = `/cash/lesson/amount`, receipt + lesson flag + audit).
+- **Review D1 (2026-11-11), the server respects `cashPaid`:** `finance-core lessonIsBillable` → false (so never on a
+  per-lesson invoice, never paid by a bank payment's lesson allocation or by an advance), `lesson-tokens-core
+  lessonTakesToken` → false (a package credit the lesson took comes back; `syncLessonTokens` watches the flag, undo
+  takes the credit again). `/cash/lesson` refuses a lesson already on a per-lesson invoice, paid directly, free /
+  written off / „Kooli kulul” (`lessonSettledRefusal`). crm-v2 `lessonAccounting.lessonIsBillable` mirrors it.
 - **Data:** (1) `cashLedger` (server writes only): an ordinary cash-box receipt with `source: "lesson"`, id
   `lessoncash_<lesson document id>` (one per lesson; marked again after a void → same id, `revision` + 1),
   `lessonId, scheduleId, occurrenceDate, subject, lessonTime, teacherUid, holderUid` (= the teacher), `receivedAt` = the
@@ -602,8 +612,8 @@ not changed at all.
   (1 makstud sularahas)”) and lessons left stay; billed after the lessons (`actual`) it is not on the invoice. Undo →
   chargeable again. **An invoice already made is never edited:** the receipt / flag name it, Kassa shows „Makstud
   sularahas pärast arvet KS-…” (billed ahead the next correction still takes it off; billed after the lessons the admin
-  fixes it by hand, e.g. a credit line). Lesson packages (`lesson-tokens-core lessonTakesToken`) are not changed: a
-  cash-paid package lesson still takes a credit. The accountant's books logic is unchanged (the monthly invoice is an
+  fixes it by hand, e.g. a credit line). Lesson packages: since 2026-11-11 (review D1) a cash-paid package lesson
+  takes no credit (see above). The accountant's books logic is unchanged (the monthly invoice is an
   ordinary sales document with fewer units).
 
 ## Sisemine märkus (invoice internal note, team 2026-10-29)
