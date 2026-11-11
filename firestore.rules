@@ -1520,8 +1520,20 @@ service cloud.firestore {
     match /taxFormTokens/{token} {
       allow read, create, update, delete: if false;
     }
-    // cash box (functions/cash-core.js): written only by financeApi; teachers see their own part through /cash/summary
+    // cash box (functions/cash-core.js): written only by financeApi. „Minu kassa” (owner 2026-11-11): a teacher reads
+    // only the entries where they hold, give or get the money (a query must filter on holderUid / fromUid / toUid =
+    // their uid); the whole box (every holder, totals) stays admin-only here and admin + accountant via /cash/summary.
     match /cashLedger/{entryId} {
+      allow read: if isAdmin()
+        || (isStaff() && (
+          resource.data.get('holderUid', '') == uid()
+          || resource.data.get('fromUid', '') == uid()
+          || resource.data.get('toUid', '') == uid()
+        ));
+      allow create, update, delete: if false;
+    }
+    // „Kassa vastuvõtjad” (cashSettings/receivers): written only by financeApi /cash/settings (admin)
+    match /cashSettings/{settingId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }

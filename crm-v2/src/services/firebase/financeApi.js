@@ -326,6 +326,23 @@ export const financeApi = {
   cashSummary() {
     return post("/cash/summary", {});
   },
+  // „Minu kassa” (owner 2026-11-11): own cash, hand-over to a cash receiver, the receiver's answer
+  cashMine() {
+    return post("/cash/mine", {});
+  },
+  requestCashHandover({ toUid, itemIds = [], note = "", requestId } = {}) {
+    return post("/cash/handover/request", { toUid, itemIds, note, requestId: requestId || financeRequestId("cash_handover_request") });
+  },
+  answerCashHandover(entryId, decision, note = "") {
+    return post("/cash/handover/answer", { entryId, decision, note });
+  },
+  cancelCashHandover(entryId) {
+    return post("/cash/handover/cancel", { entryId });
+  },
+  // Kassa → „Kassa vastuvõtjad” (admin): read, or save { uids }
+  cashReceiverSettings(save = null) {
+    return post("/cash/settings", save ? { save } : {});
+  },
   recordCashReceipt(values) {
     return post("/cash/receipts", { ...values, requestId: values.requestId || financeRequestId("cash_receipt") });
   },

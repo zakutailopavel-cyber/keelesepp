@@ -74,4 +74,29 @@ describe('application shell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sulge' }));
     expect(screen.getByText('Dialoog suletud')).toBeInTheDocument();
   });
+
+  // „Minu kassa” (owner 2026-11-11): hidden until the teacher ever had cash or has a hand-over to answer
+  it('shows „Minu kassa” only to a teacher with cash; the admin gets the waiting count on Kassa', async () => {
+    const shell = (roles, entries, pending = 0) => render(
+      <AuthContext.Provider value={{ user: { uid: 'u1', displayName: 'X', roles }, signOut: vi.fn() }}>
+        <MemoryRouter initialEntries={['/']}><Routes><Route path="*" element={<AppShell approvals={{}} messages={{}} unmarked={{}}
+          cashBox={{ ownEntries: vi.fn().mockResolvedValue(entries) }}
+          cashPending={{ subscribePendingIncoming: vi.fn((uid, onItems) => { onItems(Array.from({ length: pending }, (_, index) => ({ id: `h${index}` }))); return () => {}; }) }} />}>
+          <Route path="*" element={<LocationProbe />} /></Route></Routes></MemoryRouter>
+      </AuthContext.Provider>,
+    );
+    let view = shell(['teacher'], []);
+    await Promise.resolve();
+    expect(screen.queryByRole('link', { name: /Minu kassa/ })).toBeNull();
+    view.unmount();
+    view = shell(['teacher'], [{ id: 'r1', type: 'receipt', holderUid: 'u1', amountCents: 2500, status: 'open' }]);
+    expect(await screen.findByRole('link', { name: /Minu kassa/ })).toHaveAttribute('href', '/kassa/minu');
+    view.unmount();
+    view = shell(['teacher'], [], 1);
+    expect(await screen.findByLabelText('1 ootab sinu kinnitust')).toBeInTheDocument();
+    view.unmount();
+    shell(['admin'], [], 2);
+    expect(screen.queryByRole('link', { name: /Minu kassa/ })).toBeNull();
+    expect(screen.getByLabelText('2 ootab sinu kinnitust')).toHaveTextContent('2');
+  });
 });

@@ -4113,8 +4113,11 @@ test("„Makstud sularahas”: a teacher marks own lesson paid in cash, undoes i
   // clients never write the ledger directly, a teacher not even their own receipt
   const teacherWrite = await firestoreDocumentRequest(teacherToken, "PATCH", `cashLedger/${receiptId}?updateMask.fieldPaths=status`, { fields: { status: { stringValue: "void" } } });
   assert.equal(teacherWrite.status, 403);
+  // „Minu kassa” (owner 2026-11-11): the teacher reads their own entry, another teacher does not
   const teacherRead = await firestoreDocumentRequest(teacherToken, "GET", `cashLedger/${receiptId}`);
-  assert.equal(teacherRead.status, 403);
+  assert.equal(teacherRead.status, 200, JSON.stringify(teacherRead.body));
+  const otherRead = await firestoreDocumentRequest(otherToken, "GET", `cashLedger/${receiptId}`);
+  assert.equal(otherRead.status, 403);
 
   // the admin voids the cash mark in Kassa: the lesson is billable again (second round → own audit line)
   const adminVoid = await financeRequest(adminToken, "/cash/void", { entryId: receiptId, reason: "vale õpilane" });
@@ -5102,5 +5105,188 @@ test("Pangapõhine raamatupidamine: LHV import → sure matches paid with the ba
     assert.equal(balance.status, 200, JSON.stringify(balance.body));
   } finally {
     await db.collection("accountingSettings").doc("bankBooks").delete();
+  }
+});
+
+// „Minu kassa” (owner 2026-11-11): a teacher's own cash box, a hand-over to a listed receiver that waits for „Sain kätte”
+async function tokenForUid(uid, email) {
+  try { await admin.auth().createUser({ uid, email, password: "emulator-only-password" }); } catch (error) { if (error.code !== "auth/uid-already-exists" && error.code !== "auth/email-already-exists") throw error; }
+  const response = await fetch(`http://${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-key`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password: "emulator-only-password", returnSecureToken: true }),
+  });
+  const body = await response.json();
+  if (!response.ok || !body.idToken) throw new Error(`Unable to sign in ${email}: ${response.status} ${JSON.stringify(body)}`);
+  return body.idToken;
+}
+
+test("„Minu kassa”: teacher hands cash to a listed receiver, receiver confirms or refuses, rules keep everyone to their own", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const adminUid = tokenUid(adminToken);
+  const oleksiyUid = "FVHgmNemulatorOleksiy";
+  const oleksiyToken = await tokenForUid(oleksiyUid, "box-oleksiy@example.com");
+  const teacherToken = await createUserToken("box-teacher@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  const otherToken = await createUserToken("box-other@example.com");
+  const otherUid = tokenUid(otherToken);
+  const financeToken = await createUserToken("box-finance@example.com");
+  const day = (offset) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Tallinn" }).format(new Date(Date.now() + offset * 86400000));
+  const lessonDay = day(-1);
+  const lessonIds = ["a", "b", "c"].map((key) => `schedule_box-${key}_${lessonDay}_box-student`);
+  await db.collection("cashSettings").doc("receivers").delete();
+  await Promise.all([
+    db.collection("users").doc(adminUid).set({ role: "admin", displayName: "Pavel Admin", email: "zakutailo.pavel@gmail.com" }, { merge: true }),
+    db.collection("users").doc(oleksiyUid).set({ role: "admin", displayName: "Oleksiy Skoryk", email: "box-oleksiy@example.com" }),
+    db.collection("users").doc(teacherUid).set({ role: "teacher", displayName: "Box Teacher", email: "box-teacher@example.com" }),
+    db.collection("users").doc(otherUid).set({ role: "teacher", displayName: "Box Other", email: "box-other@example.com" }),
+    db.collection("users").doc(tokenUid(financeToken)).set({ role: "finance", displayName: "Box Finance", email: "box-finance@example.com" }),
+    db.collection("students").doc("box-student").set({ name: "Kassa Õpilane", parentName: "Kassa Vanem", teacherUid, active: true }),
+    db.collection("studentRevenuePlans").doc("box-student").set({ studentId: "box-student", lessonPriceCents: 2500, lessonMinutes: 60, active: true }),
+    ...["a", "b", "c"].map((key, index) => db.collection("schedule").doc(`box-${key}`).set({ date: lessonDay, studentId: "box-student", studentName: "Kassa Õpilane", teacherUid, teacher: "Box Teacher", subject: "Eesti keel", time: `1${index}:00`, duration: 60, status: "Planeeritud" })),
+    ...["a", "b", "c"].map((key, index) => db.collection("lessons").doc(lessonIds[index]).set({ scheduleId: `box-${key}`, occurrenceDate: lessonDay, date: lessonDay, studentId: "box-student", studentName: "Kassa Õpilane", teacherUid, teacher: "Box Teacher", subject: "Eesti keel", duration: 60, status: "Toimunud", accountingSource: "crm_v2", createdAt: new Date().toISOString() })),
+  ]);
+  const lessonKey = (key) => ({ scheduleId: `box-${key}`, studentId: "box-student", occurrenceDate: lessonDay });
+  for (const key of ["a", "b", "c"]) {
+    const marked = await financeRequest(teacherToken, "/cash/lesson", lessonKey(key));
+    assert.equal(marked.status, 201, JSON.stringify(marked.body));
+  }
+  const receiptA = `lessoncash_${lessonIds[0]}`;
+  const receiptB = `lessoncash_${lessonIds[1]}`;
+
+  // the teacher's own box: 75 € on hand, three entries, receivers by default = the FVHgmN admin (the owner's real uid is not in the emulator)
+  let mine = await financeRequest(teacherToken, "/cash/mine", {});
+  assert.equal(mine.status, 200, JSON.stringify(mine.body));
+  assert.equal(mine.body.onHandCents, 7500);
+  assert.equal(mine.body.availableCents, 7500);
+  assert.equal(mine.body.items.length, 3);
+  assert.deepEqual(mine.body.receivers.map((row) => row.uid), [oleksiyUid]);
+  assert.equal((await financeRequest(otherToken, "/cash/mine", {})).body.onHandCents, 0);
+
+  // receivers are a setting: only the admin saves them (teacher 403), only active staff
+  const teacherSettings = await financeRequest(teacherToken, "/cash/settings", { save: { uids: [teacherUid] } });
+  assert.equal(teacherSettings.status, 403, JSON.stringify(teacherSettings.body));
+  const badSettings = await financeRequest(adminToken, "/cash/settings", { save: { uids: ["no-such-user"] } });
+  assert.equal(badSettings.status, 400, JSON.stringify(badSettings.body));
+  const saved = await financeRequest(adminToken, "/cash/settings", { save: { uids: [adminUid, oleksiyUid] } });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  assert.deepEqual(saved.body.receivers.map((row) => row.uid), [adminUid, oleksiyUid]);
+  const settingsRead = await firestoreDocumentRequest(teacherToken, "GET", "cashSettings/receivers");
+  assert.equal(settingsRead.status, 403);
+  const settingsWrite = await firestoreDocumentRequest(adminToken, "PATCH", "cashSettings/receivers", { fields: { uids: { arrayValue: { values: [{ stringValue: teacherUid }] } } } });
+  assert.equal(settingsWrite.status, 403);
+
+  // a hand-over: only to a listed receiver; one entry first (25 €) to Oleksiy
+  const toStranger = await financeRequest(teacherToken, "/cash/handover/request", { toUid: otherUid, requestId: "emulator_box_handover_000" });
+  assert.equal(toStranger.status, 409, JSON.stringify(toStranger.body));
+  const first = await financeRequest(teacherToken, "/cash/handover/request", { toUid: oleksiyUid, itemIds: [receiptA], note: "esmaspäeval", requestId: "emulator_box_handover_001" });
+  assert.equal(first.status, 201, JSON.stringify(first.body));
+  assert.equal(first.body.entry.status, "pending");
+  assert.equal(first.body.entry.amountCents, 2500);
+  mine = (await financeRequest(teacherToken, "/cash/mine", {})).body;
+  assert.equal(mine.onHandCents, 7500);
+  assert.equal(mine.pendingOutCents, 2500);
+  assert.equal(mine.availableCents, 5000);
+  assert.equal(mine.handovers[0].status, "pending");
+
+  // the receipt in a pending hand-over: the teacher cannot undo it, the admin cannot void it before the hand-over
+  const undoPending = await financeRequest(teacherToken, "/cash/lesson/undo", lessonKey("a"));
+  assert.equal(undoPending.status, 409, JSON.stringify(undoPending.body));
+  const voidPending = await financeRequest(adminToken, "/cash/void", { entryId: receiptA, reason: "proov" });
+  assert.equal(voidPending.status, 409, JSON.stringify(voidPending.body));
+  // the other lessons can still be undone the same day
+  assert.equal((await financeRequest(teacherToken, "/cash/lesson/mine", {})).body.marks[lessonIds[1]].canUndo, true);
+  assert.equal((await financeRequest(teacherToken, "/cash/lesson/mine", {})).body.marks[lessonIds[0]].canUndo, false);
+
+  // only Oleksiy answers: the teacher, another teacher and Pavel (also an admin) get 403
+  for (const token of [teacherToken, otherToken, adminToken]) {
+    const wrong = await financeRequest(token, "/cash/handover/answer", { entryId: "emulator_box_handover_001", decision: "confirm" });
+    assert.equal(wrong.status, 403, JSON.stringify(wrong.body));
+  }
+  const oleksiyBox = (await financeRequest(oleksiyToken, "/cash/mine", {})).body;
+  assert.deepEqual(oleksiyBox.incoming.map((row) => row.id), ["emulator_box_handover_001"]);
+  assert.equal(oleksiyBox.isReceiver, true);
+  const confirmed = await financeRequest(oleksiyToken, "/cash/handover/answer", { entryId: "emulator_box_handover_001", decision: "confirm" });
+  assert.equal(confirmed.status, 200, JSON.stringify(confirmed.body));
+  assert.equal(confirmed.body.status, "active");
+  assert.equal((await financeRequest(oleksiyToken, "/cash/handover/answer", { entryId: "emulator_box_handover_001", decision: "confirm" })).body.idempotent, true);
+  assert.equal((await financeRequest(oleksiyToken, "/cash/handover/answer", { entryId: "emulator_box_handover_001", decision: "reject", note: "x" })).status, 409);
+  assert.ok((await db.collection("financialAudit").doc("cashbox_answer_emulator_box_handover_001").get()).exists);
+  mine = (await financeRequest(teacherToken, "/cash/mine", {})).body;
+  assert.equal(mine.onHandCents, 5000);
+  assert.equal((await financeRequest(oleksiyToken, "/cash/mine", {})).body.onHandCents, 2500);
+  // confirmed: still no undo for the teacher; the admin may correct
+  assert.equal((await financeRequest(teacherToken, "/cash/lesson/undo", lessonKey("a"))).status, 409);
+
+  // the rest (50 €) to Pavel: cannot be given twice while pending; „Ei saanud” gives it back to the teacher
+  const second = await financeRequest(teacherToken, "/cash/handover/request", { toUid: adminUid, requestId: "emulator_box_handover_002" });
+  assert.equal(second.status, 201, JSON.stringify(second.body));
+  assert.equal(second.body.entry.amountCents, 5000);
+  const twice = await financeRequest(teacherToken, "/cash/handover/request", { toUid: oleksiyUid, requestId: "emulator_box_handover_003" });
+  assert.equal(twice.status, 409, JSON.stringify(twice.body));
+  const noNote = await financeRequest(adminToken, "/cash/handover/answer", { entryId: "emulator_box_handover_002", decision: "reject" });
+  assert.equal(noNote.status, 400, JSON.stringify(noNote.body));
+  const refused = await financeRequest(adminToken, "/cash/handover/answer", { entryId: "emulator_box_handover_002", decision: "reject", note: "sain ainult 25 €" });
+  assert.equal(refused.body.status, "rejected");
+  mine = (await financeRequest(teacherToken, "/cash/mine", {})).body;
+  assert.equal(mine.availableCents, 5000);
+  assert.equal(mine.handovers.find((row) => row.id === "emulator_box_handover_002").rejectNote, "sain ainult 25 €");
+
+  // a new hand-over to the wrong person: the teacher takes it back while it waits; then hands it to Pavel, who confirms
+  const wrongOne = await financeRequest(teacherToken, "/cash/handover/request", { toUid: oleksiyUid, itemIds: [receiptB], requestId: "emulator_box_handover_004" });
+  assert.equal(wrongOne.status, 201, JSON.stringify(wrongOne.body));
+  assert.equal((await financeRequest(otherToken, "/cash/handover/cancel", { entryId: "emulator_box_handover_004" })).status, 403);
+  const cancelled = await financeRequest(teacherToken, "/cash/handover/cancel", { entryId: "emulator_box_handover_004" });
+  assert.equal(cancelled.status, 200, JSON.stringify(cancelled.body));
+  const toPavel = await financeRequest(teacherToken, "/cash/handover/request", { toUid: adminUid, requestId: "emulator_box_handover_005" });
+  assert.equal(toPavel.body.entry.amountCents, 5000);
+  assert.equal((await financeRequest(teacherToken, "/cash/handover/cancel", { entryId: "emulator_box_handover_001" })).status, 409);
+
+  // the receiver hands on: Oleksiy → Pavel, Pavel confirms
+  const onward = await financeRequest(oleksiyToken, "/cash/handover/request", { toUid: adminUid, requestId: "emulator_box_handover_006" });
+  assert.equal(onward.status, 201, JSON.stringify(onward.body));
+  assert.equal(onward.body.entry.amountCents, 2500);
+  assert.equal((await financeRequest(adminToken, "/cash/handover/answer", { entryId: "emulator_box_handover_006", decision: "confirm" })).status, 200);
+  assert.equal((await financeRequest(oleksiyToken, "/cash/mine", {})).body.onHandCents, 0);
+
+  // Kassa (admin): pending shows on the teacher's row; the admin's direct „Sain kätte” cannot take what waits for Pavel
+  let summary = (await financeRequest(adminToken, "/cash/summary", {})).body;
+  const row = summary.balances.find((item) => item.uid === teacherUid);
+  assert.equal(row.cents, 5000);
+  assert.equal(row.pendingOutCents, 5000);
+  assert.deepEqual(summary.receivers.map((item) => item.uid), [adminUid, oleksiyUid]);
+  const direct = await financeRequest(adminToken, "/cash/handover", { fromUid: teacherUid, toUid: adminUid, amount: 50, requestId: "emulator_box_direct_0001" });
+  assert.equal(direct.status, 409, JSON.stringify(direct.body));
+  assert.equal((await financeRequest(adminToken, "/cash/handover/answer", { entryId: "emulator_box_handover_005", decision: "confirm" })).status, 200);
+  summary = (await financeRequest(adminToken, "/cash/summary", {})).body;
+  assert.equal(summary.balances.find((item) => item.uid === teacherUid), undefined);
+  // a teacher who left still shows with their balance
+  await db.collection("cashLedger").doc("emulator_box_left_receipt").set({ type: "receipt", holderUid: otherUid, holderName: "Box Other", amountCents: 1000, receivedAt: lessonDay, status: "open", createdAt: new Date().toISOString() });
+  await db.collection("users").doc(otherUid).set({ disabled: true }, { merge: true });
+  summary = (await financeRequest(adminToken, "/cash/summary", {})).body;
+  assert.equal(summary.balances.find((item) => item.uid === otherUid).inactive, true);
+  // the accountant reads Kassa (read only) and cannot answer or save receivers
+  const financeSummary = await financeRequest(financeToken, "/cash/summary", {});
+  assert.equal(financeSummary.status, 200, JSON.stringify(financeSummary.body));
+  assert.equal((await financeRequest(financeToken, "/cash/settings", {})).status, 403);
+
+  // rules: a teacher reads their own entries by query, never another person's, never the whole ledger, never writes
+  const ownQuery = await firestoreFieldQueryRequest(teacherToken, "cashLedger", "holderUid", "EQUAL", { stringValue: teacherUid });
+  assert.equal(ownQuery.status, 200, JSON.stringify(ownQuery.body));
+  assert.equal(ownQuery.body.filter((item) => item.document).length, 3);
+  const ownHandovers = await firestoreFieldQueryRequest(teacherToken, "cashLedger", "fromUid", "EQUAL", { stringValue: teacherUid });
+  assert.equal(ownHandovers.status, 200, JSON.stringify(ownHandovers.body));
+  const foreignQuery = await firestoreFieldQueryRequest(teacherToken, "cashLedger", "holderUid", "EQUAL", { stringValue: oleksiyUid });
+  assert.equal(foreignQuery.status, 403, JSON.stringify(foreignQuery.body));
+  const wholeLedger = await firestoreQueryRequest(teacherToken, "cashLedger");
+  assert.equal(wholeLedger.status, 403, JSON.stringify(wholeLedger.body));
+  const confirmByWrite = await firestoreDocumentRequest(oleksiyToken, "PATCH", "cashLedger/emulator_box_handover_004?updateMask.fieldPaths=status", { fields: { status: { stringValue: "active" } } });
+  assert.equal(confirmByWrite.status, 403);
+  const forgeHandover = await firestoreDocumentRequest(teacherToken, "PATCH", "cashLedger/emulator_box_forged", { fields: { type: { stringValue: "handover" }, fromUid: { stringValue: teacherUid }, toUid: { stringValue: adminUid }, status: { stringValue: "active" } } });
+  assert.equal(forgeHandover.status, 403);
+  // every step is audited
+  for (const id of ["cashbox_emulator_box_handover_001", "cashbox_answer_emulator_box_handover_002", "cashbox_void_emulator_box_handover_004"]) {
+    assert.ok((await db.collection("financialAudit").doc(id).get()).exists, id);
   }
 });

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { announceCashBoxChange } from '../../services/firebase/cashBox.js';
 import { cashPayerPriceCents, lessonCashLessonId } from './lessonCash.js';
 
 // Cash at the lesson for the marking screens (owner 2026-11-11: one flow with „Toimus”). Server-side
@@ -27,11 +28,13 @@ export function useLessonCash(api, enabled = true) {
     const result = await api.recordLessonCash(item);
     const entry = result?.entry || {};
     setMark(lessonCashLessonId(item), { id: entry.id, amountCents: entry.amountCents, status: entry.status || 'open', receivedAt: entry.receivedAt, canUndo: true });
+    announceCashBoxChange();
     return Number(entry.amountCents) || 0;
   }, [api, setMark]);
   const undo = useCallback(async (item) => {
     await api.undoLessonCash(item);
     setMark(lessonCashLessonId(item), null);
+    announceCashBoxChange();
   }, [api, setMark]);
   return useMemo(() => ({ marks: state.marks, priceFor, record, undo }), [state.marks, priceFor, record, undo]);
 }

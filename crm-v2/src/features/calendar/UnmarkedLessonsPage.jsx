@@ -14,6 +14,7 @@ import { MARK_LABELS, useMarkUndo } from './quickMark.js';
 import { financeApi } from '../../services/firebase/financeApi.js';
 import { canMarkLessonCash, euroShort, toimusUndo } from '../cash/lessonCash.js';
 import { useLessonCash } from '../cash/useLessonCashMarks.js';
+import CashOnHandLine from '../cash/CashOnHandLine.jsx';
 import './unmarkedLessons.css';
 
 const dayLabel = (iso) => new Intl.DateTimeFormat('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' }).format(new Date(`${iso}T12:00:00`));
@@ -57,7 +58,7 @@ function adminGroups(items = []) {
  * „Märgi Live-tunnid toimunuks”, „Vajab admini” (excluded entries with a reason and a fix) and the small
  * „Vanemad (enne 1.11)” link; a teacher only his own counted lessons.
  */
-export default function UnmarkedLessonsPage({ repository = unmarkedLessonsService, today = toIsoDate(), cashApi = financeApi }) {
+export default function UnmarkedLessonsPage({ repository = unmarkedLessonsService, today = toIsoDate(), cashApi = financeApi, cashBox }) {
   const { user } = useAuth();
   const isAdmin = Boolean(user?.roles?.includes(ROLES.ADMIN));
   // cash at the lesson (owner 2026-11-11): one flow with „Toimus” — a „Maksab sularahas” card's lesson is marked held
@@ -225,6 +226,8 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
 
   return <>
     {header}
+    {/* „Minu kassa” (owner 2026-11-11): „Sinu käes sularaha: 50 € · Anna üle” for a teacher with cash on hand */}
+    {!isAdmin && cashApi ? <CashOnHandLine uid={user?.uid} service={cashBox} /> : null}
     <Card className="unmarked-page">
       <div className="unmarked-page__filters" role="group" aria-label="Näita">
         {isAdmin ? KINDS.map((option) => {
