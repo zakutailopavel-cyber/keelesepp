@@ -232,6 +232,28 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
 - Book (`/library/worksheets/book`): the settings panel folds (`ks-book-side`); „Muuda” opens the sheet on the screen in
   the same tab, „← Õpik” returns to the same place (`bookPlace.js`, `sessionStorage ks-book-return`).
 
+## Picture inside a text, picture frames (2026-11-11, agent/opik-layout)
+
+- Data (optional, backward compatible): text block `data.figure = { mode: 'float', img, caption, alt, side: left |
+  right | center, width: 20–100 (% of the text column), at: paragraph index, shape: rect | rounded | circle | oval,
+  border: none | ink | lime, locked }`; picture block `data.shape`, `data.border`. Model and checks:
+  `engine/figureFloat.js` (`normalizeFigure`, `figureProblem` used by `validateWorksheetDoc`); drawing / tools:
+  `engine/FloatFigure.jsx`; inspector: `editor/FigureFields.jsx`.
+- Layout is flow, not coordinates: CSS float + `shape-outside` (circle / ellipse / rounded inset; a caption keeps the
+  wrap rectangular), frames by `border-radius` and a border. A text block is never split by `pageSplit.js`, so the
+  picture stays with its text on one page; print uses the same CSS without the tools. The phone column
+  (`sheetFlow.css`) stacks it above its paragraph; a tablet column (≥ 560 px container) wraps again (≥ ⅓ width).
+- Editing: inspector „Pilt teksti sees” (picture, caption, alt, side, width, paragraph, shape, border, lock, remove);
+  on the sheet ✥ drags it (third of the column → side, height → paragraph), the corner drags its width (snaps to 25 /
+  33 / 50 / 100, else 5 %), 🔓 locks it (no move / resize tools; text editing unaffected). Buttons of 36 px (44 px on
+  touch) whatever the page's zoom; each change is one undo step (`Sheet onPatch` → `ctx.patch`). The picture block's
+  bar has „Teksti sisse” (into the next or previous text block without a picture). Tapping the picture is not a text
+  edit; its caption is (`inlineEdit.findEditable` skips `[data-noedit]` and the figure's text).
+- Later („phase 3”, the Õpik only): `figure.mode: 'free'` with `{ page, xMm, yMm, wMm, hMm, z }` and `shape: 'polygon'`
+  with `points`, allowed only on a sheet with `meta.layout: 'fixed'` (an absolutely positioned A4 page). Today
+  `figureProblem` refuses unknown modes on save and `normalizeFigure` draws any unknown mode as `float`, so adding the
+  mode later breaks no flow sheet and no older reader.
+
 ## Not in this slice
 
 1. (done in slice 2)

@@ -252,8 +252,15 @@
   .ws-narrow .ws-root .ws-wordlist { gap: 4px 12px; }
   .ws-narrow .ws-root .ws-lettergrid { width: 100%; overflow-x: auto; }
 
+  /* a picture inside a text: on a phone it stands above its paragraph, full width, no wrap (figureFloat.js) */
+  .ws-narrow .ws-root .ws-ffig { float: none; width: auto !important; max-width: 420px; margin: 0 auto 10px; shape-outside: none; }
+  .ws-narrow .ws-root .ws-ffig.shape-circle { max-width: 260px; }
+
   /* ---- room on a tablet ---- */
   @container (min-width: 560px) {
+    /* a tablet's column has room for the wrap again (at least a third of the column for the picture) */
+    .ws-narrow .ws-root .ws-ffig.is-left { float: left; width: max(33%, var(--ffig-w, 33%)) !important; margin: 2px 14px 8px 0; }
+    .ws-narrow .ws-root .ws-ffig.is-right { float: right; width: max(33%, var(--ffig-w, 33%)) !important; margin: 2px 0 8px 14px; }
     .ws-narrow .ws-root .ws-figure { max-width: 480px; margin-inline: auto; }
     .ws-narrow .ws-root .ws-speak.has-img > .ws-photo { max-width: 420px; }
     .ws-narrow .ws-root .ws-coloring-pic { max-width: 420px; }

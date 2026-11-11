@@ -30,10 +30,20 @@ export function setPath(value, path, next) {
 }
 
 // From the double-clicked element up to `boundary`: the first element whose whole text maps to exactly one path.
+// the text an element shows, without a picture standing inside it (a text block's figure: its caption and tools)
+function shownText(el) {
+  if (!el.querySelector?.('.ws-ffig') || el.closest?.('.ws-ffig')) return el.textContent;
+  const copy = el.cloneNode(true);
+  copy.querySelectorAll('.ws-ffig').forEach((node) => node.remove());
+  return copy.textContent;
+}
+
 export function findEditable(target, boundary, data) {
+  // the picture itself and its tools are not text (its caption is)
+  if (target?.closest?.('[data-noedit], .ws-ffig-handle')) return null;
   for (let el = target; el && el !== boundary && el.nodeType === 1; el = el.parentElement) {
     if (el.matches('input, textarea, select, button, svg, svg *')) return null;
-    const text = el.textContent;
+    const text = shownText(el);
     if (!norm(text)) continue;
     const paths = textPaths(data, text);
     if (paths.length === 1) return { el, path: paths[0], text: norm(text) };
