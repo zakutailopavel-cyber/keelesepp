@@ -49,3 +49,12 @@
 .pf-bubble p { font-family: inherit; font-size: 1rem; line-height: 1.35; }
 /* inside „Harjuta” the pet card's text links are buttons (owner 2026-11-09); the home page keeps its own look */
 .pf-page .pl__head a, .pf-page .pl__reward .link-button { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--surface); color: var(--ink); font-size: .85rem; font-weight: 700; text-decoration: none; }
+
+/* the teacher's next task under the practice (2026-11-11): a card of its own, not a step */
+.pf-task { gap: 10px; }
+.pf-task__row { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: center; }
+.pf-task__row b { overflow-wrap: anywhere; }
+.pf-task .eyebrow { font-size: .7rem; }
+.pf-task .eyebrow span { font-weight: 400; letter-spacing: 0; text-transform: none; }
+.pf-column { display: grid; gap: 16px; align-items: start; min-width: 0; }
+.pf-task .pf-list__text small { white-space: normal; }

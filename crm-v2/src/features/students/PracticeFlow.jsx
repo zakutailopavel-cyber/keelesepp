@@ -9,13 +9,13 @@ import { petSvg } from '../pet/petArt.js';
 import { thanksLine } from '../pet/petLoop.js';
 import { seasonalWear } from '../pet/petLife.js';
 import { petReact } from '../pet/petEvents.js';
-import { ownWords } from './nextStep.js';
+import { ownWords, PRACTICE_PATH } from './nextStep.js';
 import './practiceFlow.css';
 
 // the practice lesson (tiles, drag and drop) loads when the sentences step starts, not with the page
 const PracticeLesson = lazyComponent(() => import('../practice/PracticeLesson.jsx'));
 
-const ICON = { homework: ListTodo, words: Languages, sentences: MessageSquareQuote, course: GraduationCap };
+const ICON = { words: Languages, sentences: MessageSquareQuote, course: GraduationCap };
 const skipKey = (date) => `ks-harjuta-skip-${date}`;
 const readSkipped = (date) => { try { return JSON.parse(globalThis.sessionStorage?.getItem(skipKey(date)) || '[]'); } catch { return []; } };
 const writeSkipped = (date, list) => { try { globalThis.sessionStorage?.setItem(skipKey(date), JSON.stringify(list)); } catch { /* private mode */ } };
@@ -47,6 +47,29 @@ function RunHead({ steps, current, onPause }) {
     <div><span className="eyebrow">Samm {index + 1} / {steps.length}</span><h2>{step?.label}</h2></div>
     <Button variant="secondary" onClick={onPause}><Pause size={16} aria-hidden="true" /> Paus</Button>
   </header>;
+}
+
+/**
+ * The teacher's next task under the day's practice (owner + review 2026-11-11): not a step of the flow, one card with one
+ * way in — the same task „Ülesanded” shows as „Järgmine samm” (plan.task from todaySteps). A word task opens its cards.
+ */
+export function TeacherTaskCard({ task, hidden = false }) {
+  if (!task || hidden) return null;
+  const words = task.to?.startsWith(PRACTICE_PATH);
+  return <Card className="pf pf-task" aria-label="Õpetaja ülesanne">
+    <div className="pf-task__row">
+      <span className="pf-list__icon">{words ? <Languages size={16} aria-hidden="true" /> : <ListTodo size={16} aria-hidden="true" />}</span>
+      <span className="pf-list__text">
+        <span className="eyebrow">Õpetaja ülesanne <span lang="ru">· задание учителя</span></span>
+        <b>{task.title}</b>
+        <small>{task.detail}</small>
+      </span>
+    </div>
+    <div className="pf-actions">
+      <Link className="button button--secondary" to={task.to}>{words ? 'Ava kaardid' : task.started ? 'Jätka' : 'Ava ülesanne'} <ChevronRight size={16} aria-hidden="true" /></Link>
+      {task.count > 1 ? <Link className="button button--secondary" to="/homework">Kõik ülesanded ({task.count})</Link> : null}
+    </div>
+  </Card>;
 }
 
 /**
@@ -142,16 +165,6 @@ export default function PracticeFlow({
   if (shownMode === 'run' && step) {
     return <Card className="pf pf--run" aria-label={`Harjuta: ${step.label}`}>
       <RunHead steps={active} current={step.key} onPause={() => setMode('overview')} />
-      {step.key === 'homework' ? <div className="pf-step">
-        <ul className="pf-tasks">{(step.queue || []).slice(0, 3).map((task) => <li key={task.id}>
-          <ListTodo size={17} aria-hidden="true" /><b>{task.title}</b>{task.due ? <Badge tone={task.kind === 'overdue' ? 'danger' : 'neutral'}>{task.kind === 'overdue' ? 'tähtaeg oli ' : 'tähtaeg '}{task.due.slice(8, 10)}.{task.due.slice(5, 7)}</Badge> : <span />}
-        </li>)}</ul>
-        <p className="form-hint">Tee ülesanne ära ja tule tagasi — samm märgitakse ise tehtuks.</p>
-        <div className="pf-actions">
-          <Link className="button button--primary" to={step.to}>Ava ülesanne <ChevronRight size={16} aria-hidden="true" /></Link>
-          <Button variant="secondary" onClick={skip}><SkipForward size={16} aria-hidden="true" /> Hiljem</Button>
-        </div>
-      </div> : null}
       {step.key === 'words' ? <div className="pf-step">
         {cards?.length ? <FlashcardSession key={`words-${today.date}`} cards={cards} language={language}
           onRate={readOnly ? undefined : (item, rating, nextSide) => rateWord(wordsService, words, item, rating, nextSide)}
