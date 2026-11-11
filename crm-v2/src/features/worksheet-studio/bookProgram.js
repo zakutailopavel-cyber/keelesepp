@@ -250,3 +250,11 @@ export function tocPages(rows, perPage = TOC_ROWS) {
   if (page.length || !pages.length) pages.push(page);
   return pages;
 }
+
+// the Õpik pages waiting for the admin, newest first (lesson summary `worksheetPhases.opik.review`)
+export function pendingTextbookChanges(lessons = []) {
+  return lessons
+    .filter((lesson) => lesson?.worksheetPhases?.opik?.review === 'pending')
+    .map((lesson) => ({ lessonId: lesson.id, title: lesson.worksheetPhases.opik.title || lesson.title || lesson.id, by: lesson.worksheetPhases.opik.reviewBy || '', at: lesson.worksheetPhases.opik.reviewAt || '' }))
+    .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+}

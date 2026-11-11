@@ -3652,6 +3652,19 @@ service cloud.firestore {
           && get(userPath(uid())).data.get('linkedStudentIds', []).size() > 0);
     }
 
+    // a teacher's save of the Õpik page: a draft waiting for the admin („Ootab avaldamist”); what students see (the
+    // published copy) stays exactly as it was, and only an admin can mark a change turned down
+    function opikTeacherSave() {
+      let next = request.resource.data;
+      let before = resource == null ? {} : resource.data;
+      return next.get('worksheetDocStatus', 'draft') == 'draft'
+        && next.get('publishedWorksheetDoc', null) == before.get('publishedWorksheetDoc', null)
+        && next.get('publishedWorksheetDocVersion', null) == before.get('publishedWorksheetDocVersion', null)
+        && next.get('publishedWorksheetDocUpdatedAt', null) == before.get('publishedWorksheetDocUpdatedAt', null)
+        && next.get('review', {}).get('state', 'pending') == 'pending'
+        && next.get('review', {}).get('byUid', uid()) == uid();
+    }
+
     match /curriculumLessons/{lessonId} {
       allow read: if courseReader();
       allow write: if isStaff();
@@ -3660,7 +3673,10 @@ service cloud.firestore {
       // The legacy worksheetDoc fields on the lesson stay a separate contract.
       match /worksheets/{worksheetId} {
         allow read: if courseReader();
-        allow create, update, delete: if isStaff();
+        // „Õpik” (owner 2026-11-11): teachers edit and save the textbook page, only an admin publishes it to students
+        // or turns a change down. The other sheets (Avasta / Harjuta / Kasuta, focus sheets) stay staff-published.
+        allow create, update: if isStaff() && (worksheetId != 'opik' || isAdmin() || opikTeacherSave());
+        allow delete: if isStaff() && (worksheetId != 'opik' || isAdmin());
       }
     }
 
