@@ -25,7 +25,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 
 | Target | Live since | Commit | How verified |
 | --- | --- | --- | --- |
-| Firestore rules (`firestore.rules`) | 2026-11-10 19:18 | `8a37c40` (= main 2026-11-10) | live ruleset compared with main `8a37c40`: equal |
+| Firestore rules (`firestore.rules`) | 2026-11-11 12:35 | `21b204b` (= main 2026-11-11) | live ruleset compared with main `21b204b`: equal |
 | Storage rules (`storage.rules`) | not recorded | — | run `deploy-status.mjs` and fill in |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
 | Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-10 17:03 release commit | `6719bcf` `[deploy] Release 2026-11-10 17:03 UTC` | release commit on main; the Vercel production build itself not checked here |
@@ -36,7 +36,7 @@ Full deploy of all functions 2026-11-09 15:39 from main **(inferred)** `a80a749`
 
 | Function | Last deployed | Commit |
 | --- | --- | --- |
-| financeApi | 2026-11-10 19:16 | `8a37c40` (#1202 cash in Toimus) |
+| financeApi | 2026-11-11 12:3x | `21b204b` (#1204 teacher cash box) |
 | syncLessonTokens | 2026-11-10 19:16 | `8a37c40` (#1202: cash-paid lesson takes no token) |
 | languageApi | 2026-11-10 16:30 | `b0b88d9` (inferred; #1196 forms-lookup-parallel) |
 | autoMarkLiveLesson | 2026-11-09 22:39 | `4e83ed1` (inferred; #1185 fast-marking) |
@@ -52,6 +52,7 @@ A function changed on main after its row above is **not live** — compare with
 
 Newest first. One line per deploy: date UTC · target(s) · commit · who · note.
 
+- 2026-11-11 12:35 · firestore:rules + functions:financeApi · `21b204b` · Claude (owner OK) · teacher cash box „Minu kassa” + hand-over (#1204); rules verified equal to main; hosting released after (12:43)
 - 2026-11-10 19:18 · firestore:rules · `8a37c40` · Claude (owner OK) · privacy fixes #1200 + cash in Toimus #1202; verified equal to main
 - 2026-11-10 19:16 · functions:financeApi, functions:syncLessonTokens · `8a37c40` · Claude (owner OK) · cash in Toimus, server respects cashPaid (#1202). Note: the hosting release 19:13 went out ~5 min before these (rules API 503) — the release must wait for rules/functions deploys.
 - 2026-11-10 17:03 · functions:financeApi · `9f171eb` (inferred) · owner · cash for lessons (#1198)
