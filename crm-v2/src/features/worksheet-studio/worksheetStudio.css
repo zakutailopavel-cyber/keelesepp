@@ -908,6 +908,24 @@ textarea.ed-input { resize: vertical; }
 .ws-flow-bar .ws-ansfont-btn { height: 32px; min-width: 36px; }
 @media print { .ws-ansfont { display: none !important; } }
 
+/* ===== „Õpik”: teachers save, the admin publishes (owner 2026-11-11; LessonWorksheetStudioPage ReviewBanner) ===== */
+.ws-studio .st-review { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0; border-radius: 0; background: #eef4ff; color: #1d3f72; border: 0; border-bottom: 1px solid var(--st-line); }
+.ws-studio .st-review.is-pending { background: #fff7e6; color: #7a4b00; }
+.ws-studio .st-review.is-rejected { background: #fff0ee; color: #a9281f; }
+.ws-studio .st-review-hint { font-size: 12px; opacity: .85; }
+.ws-studio .st-publish-lock { background: #fff7e6; color: #7a4b00; white-space: nowrap; }
+.ws-book-waiting > summary em { font-style: normal; font-weight: 800; padding: 0 6px; border-radius: 99px; background: #fde7c2; color: #7a4b00; }
+.ws-book-waiting .st-menu { right: 0; left: auto; min-width: 280px; max-height: 60vh; overflow: auto; }
+.ws-book-waiting .st-menu a { display: grid; gap: 2px; padding: 8px 10px; border-radius: 8px; color: inherit; text-decoration: none; min-height: 44px; }
+.ws-book-waiting .st-menu a:hover { background: var(--st-field, #f2f4f7); }
+.ws-book-waiting .st-menu small { color: var(--st-muted); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ws-studio .st-review { background: #142033; color: #b9d3ff; }
+  :root:not([data-theme="light"]) .ws-studio .st-review.is-pending, :root:not([data-theme="light"]) .ws-studio .st-publish-lock { background: #2a2110; color: #f5c66b; }
+  :root:not([data-theme="light"]) .ws-studio .st-review.is-rejected { background: #2a1614; color: #fc9e90; }
+  :root:not([data-theme="light"]) .ws-book-waiting > summary em { background: #3a2b10; color: #f5c66b; }
+}
+
 /* ===== The constructor on a tablet (owner 2026-11-11: „editing the Õpik is awkward, especially on a tablet”;
    editor/touchEditing.js). A finger: targets of 44 px, no hover, the keyboard over the lower ~40 % of the screen. ===== */
 @media screen {

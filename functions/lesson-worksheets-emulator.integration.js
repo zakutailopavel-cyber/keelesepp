@@ -103,6 +103,37 @@ test('lesson worksheet child records and versions obey the real rules', async (t
     assert.equal(await patch(learner, `${versionPath}_learner`, { lessonId, worksheetId: 'practice', version: 1 }), 403);
   });
 
+  // „Õpik” (owner 2026-11-11): a teacher edits and saves the textbook page; only an admin publishes or turns it down
+  await t.test('Õpik: teacher saves a waiting draft, cannot publish, touch the published copy, reject or delete', async () => {
+    const admin1 = await account('admin');
+    const opikPath = `curriculumLessons/${lessonId}/worksheets/opik`;
+    const published = { ...worksheetDoc, id: `ws_${lessonId}_opik`, meta: { ...worksheetDoc.meta, title: 'Õpik' } };
+    const base = { ...record, worksheetId: 'opik', role: 'focus', slot: 4, displayLabel: 'Õpik', title: 'Õpik', source: 'manual' };
+    const live = { publishedWorksheetDoc: published, publishedWorksheetDocVersion: 1, publishedWorksheetDocUpdatedAt: '2026-11-01T10:00:00Z' };
+    // only the admin creates the published page
+    assert.equal(await patch(teacher, opikPath, { ...base, ...live, worksheetDocStatus: 'published', worksheetDoc: published }), 403);
+    assert.equal(await patch(admin1, opikPath, { ...base, ...live, worksheetDocStatus: 'published', worksheetDoc: published }), 200);
+    const edited = { ...published, meta: { ...published.meta, title: 'Õpik (parandatud)' } };
+    const pending = { state: 'pending', byUid: teacher.uid, byName: 'Õpetaja', at: '2026-11-11T10:00:00Z' };
+    // the teacher's save: a draft waiting for the admin, the published copy unchanged
+    assert.equal(await patch(teacher, opikPath, { ...base, ...live, worksheetDoc: edited, worksheetDocStatus: 'draft', worksheetDocVersion: 2, review: pending }), 200);
+    // …but not published by the teacher, not a changed published copy, not someone else's name, not „rejected”
+    assert.equal(await patch(teacher, opikPath, { ...base, ...live, worksheetDoc: edited, worksheetDocStatus: 'published', review: pending }), 403);
+    assert.equal(await patch(teacher, opikPath, { ...base, ...live, publishedWorksheetDoc: edited, worksheetDoc: edited, worksheetDocStatus: 'draft', review: pending }), 403);
+    assert.equal(await patch(teacher, opikPath, { ...base, ...live, publishedWorksheetDocVersion: 2, worksheetDocStatus: 'draft', review: pending }), 403);
+    assert.equal(await patch(teacher, opikPath, { ...base, ...live, worksheetDocStatus: 'draft', review: { ...pending, byUid: admin1.uid } }), 403);
+    assert.equal(await patch(teacher, opikPath, { ...base, ...live, worksheetDocStatus: 'draft', review: { ...pending, state: 'rejected', note: 'ei' } }), 403);
+    assert.equal(await remove(teacher, opikPath), 403);
+    const stored = (await db.doc(opikPath).get()).data();
+    assert.equal(stored.publishedWorksheetDoc.meta.title, 'Õpik');
+    assert.equal(stored.worksheetDoc.meta.title, 'Õpik (parandatud)');
+    // the admin turns it down with a note, then publishes the fixed page
+    assert.equal(await patch(admin1, opikPath, { review: { ...pending, state: 'rejected', note: 'Tabel on vale.', rejectedBy: admin1.uid } }), 200);
+    assert.equal(await patch(admin1, opikPath, { ...base, publishedWorksheetDoc: edited, publishedWorksheetDocVersion: 3, publishedWorksheetDocUpdatedAt: '2026-11-11T11:00:00Z', worksheetDoc: edited, worksheetDocStatus: 'published', review: null }), 200);
+    // the other sheets stay as before: a teacher publishes Harjuta
+    assert.equal(await patch(teacher, childPath, { worksheetDocStatus: 'published', publishedWorksheetDoc: worksheetDoc, publishedWorksheetDocVersion: 1 }), 200);
+  });
+
   await t.test('legacy lesson fields were not changed by child writes', async () => {
     const lesson = (await db.doc(`curriculumLessons/${lessonId}`).get()).data();
     assert.deepEqual(lesson.worksheetDoc, { legacy: true });

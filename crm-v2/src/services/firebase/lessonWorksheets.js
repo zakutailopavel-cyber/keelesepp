@@ -33,8 +33,16 @@ export function phaseSummary(record) {
     version: Number(record?.worksheetDocVersion) || 0,
     publishedVersion: Number(record?.publishedWorksheetDocVersion) || 0,
     updatedAt: String(record?.worksheetDocUpdatedAt || record?.updatedAt || ''),
+    // the Õpik page's review („Ootab avaldamist” / turned down), so the admin's list needs no sheet reads
+    ...(record?.review?.state ? { review: record.review.state, reviewBy: String(record.review.byName || ''), reviewAt: String(record.review.at || '') } : {}),
   };
 }
+
+// „Õpik” (owner 2026-11-11): teachers edit and „Salvesta”, only an admin „Avalda”-s. A saved change waits for the admin
+// („Ootab avaldamist”); the admin publishes it or turns it down with a note back to the teacher. firestore.rules
+// (`opikTeacherSave`) holds the same line for everyone who is not an admin.
+export const needsPublishApproval = (worksheetId) => worksheetId === TEXTBOOK_SHEET_ID;
+export const canPublishSheet = (worksheetId, user) => !needsPublishApproval(worksheetId) || Boolean(user?.roles?.includes?.('admin'));
 
 function userName(user) {
   return user?.displayName || user?.email || '';
@@ -136,6 +144,8 @@ async function persist({
         publishedWorksheetDocVersion: version,
         publishedWorksheetDocUpdatedAt: now,
       } : {}),
+      // a saved Õpik draft waits for the admin; publishing clears it
+      ...(needsPublishApproval(worksheetId) && normalizedStatus === 'draft' ? { review: { state: 'pending', byUid: user?.uid || '', byName: userName(user), at: now } } : {}),
     };
     const versionRef = doc(db, 'worksheetVersions', `${lessonId}_${worksheetId}_studio_v${version}`);
     transaction.set(worksheet, record);
@@ -259,6 +269,30 @@ export const lessonWorksheetsService = {
 
   publish(input) {
     return persist({ ...input, status: 'published' });
+  },
+
+  // admin: a waiting Õpik change is turned down with a note for the teacher; the draft stays for the teacher to fix, the
+  // students keep the published page
+  async rejectReview({ lessonId, worksheetId, note, user, baseUpdatedAt = '' }) {
+    assertIdentity(lessonId, worksheetId);
+    if (!needsPublishApproval(worksheetId)) throw new Error('Seda lehte ei avaldata kinnitusega.');
+    const text = String(note || '').trim();
+    if (text.length < 3 || text.length > 1000) throw new Error('Kirjuta õpetajale lühike põhjus (3–1000 märki).');
+    const { db } = requireFirebaseClient();
+    const { lesson, worksheet } = refs(db, lessonId, worksheetId);
+    const now = new Date().toISOString();
+    return runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(worksheet);
+      if (!snapshot.exists()) throw new Error('Töölehte ei leitud.');
+      const current = snapshot.data();
+      if (baseUpdatedAt && baseUpdatedAt !== current.worksheetDocUpdatedAt) throw new LessonWorksheetConflictError();
+      if (current.review?.state !== 'pending') throw new Error('Sellel lehel pole ootavat muudatust.');
+      const review = { ...current.review, state: 'rejected', note: text, rejectedBy: user?.uid || '', rejectedByName: userName(user), rejectedAt: now };
+      const record = { ...current, review, updatedAt: now, updatedBy: user?.uid || '' };
+      transaction.set(worksheet, record);
+      transaction.set(lesson, { worksheetPhases: { [worksheetId]: phaseSummary(record) } }, { merge: true });
+      return record;
+    });
   },
 
   async listVersions(lessonId, worksheetId) {
