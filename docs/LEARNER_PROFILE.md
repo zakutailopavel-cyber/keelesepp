@@ -42,6 +42,9 @@ words — „sõnakaart…”, „korda / õpi / harjuta … sõn…”, „по
 (`studentWords.invitationId`), else today's queue; the finished session sets the homework to „Tehtud” (the same status
 write the student's own „Tehtud” does — no rules change), „Tehtud” / „Lisa vastus” stay as quiet links. Lab:
 `/tasks-lab.html` (fake data, `src/test/tasksLab/`).
+Since 2026-11-11 (owner + review): „Harjuta” starts with words, then sentences (the 10-minute habit) — homework is no
+step of it; the teacher's next task (`todaySteps().task`, the same as „Järgmine samm”) is a separate card under the
+practice. Home „Täna” `nextStep`: lesson now → words → sentences → teacher work → self-study.
 
 **Since agent/student-tana (owner 2026-11-09) — the current shape:** the daily practice lives in its own tab
 **„Harjuta”** (`/student/harjuta`, `StudentPracticePage.jsx` + `PracticeFlow.jsx`, menu item right after „Täna”; the

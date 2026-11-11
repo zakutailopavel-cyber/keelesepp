@@ -43,26 +43,28 @@ describe('„Harjuta” — the daily practice tab', () => {
     const data = repositories(undefined, { wordsService: wordsOf(dueWords) });
     renderPage(data);
     const flow = await screen.findByRole('region', { name: 'Harjuta' });
-    await waitFor(() => expect([...flow.querySelectorAll('.pf-list b')].map((node) => node.textContent)).toEqual(['Ülesanded', 'Sõnad', 'Laused ja grammatika']));
+    // the practice starts with words, never with homework (owner + review 2026-11-11)
+    await waitFor(() => expect([...flow.querySelectorAll('.pf-list b')].map((node) => node.textContent)).toEqual(['Sõnad', 'Laused ja grammatika']));
     expect(within(flow).getAllByRole('button')).toHaveLength(1);
     expect(within(flow).getByRole('button', { name: /Alusta tänast/ })).toHaveClass('button', 'button--primary');
     expect(flow.querySelector('.link-button')).toBeNull();
     expect(data.courseLoaders.a2).not.toHaveBeenCalled();
     expect(data.petRepository.lessonStats).not.toHaveBeenCalled();
+    // the teacher's next task: a separate card below the practice, opening that very task
+    const task = screen.getByRole('region', { name: 'Õpetaja ülesanne' });
+    expect(task).toHaveTextContent('Õpi sõnad');
+    expect(within(task).getByRole('link', { name: /Ava kaardid/ })).toHaveAttribute('href', '/student/harjuta?kaardid=homework-1');
+    expect(flow.compareDocumentPosition(task) & globalThis.Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('„Alusta tänast” runs homework (later), words, sentences; each is ticked, the pet reacts, the day ends with its thanks', async () => {
+  it('„Alusta tänast” runs words, then sentences; each is ticked, the pet reacts, the day ends with its thanks', async () => {
     const data = repositories(undefined, { wordsService: wordsOf([...dueWords, ownSentence]) });
     renderPage(data);
     const start = await screen.findByRole('region', { name: 'Harjuta' });
-    await waitFor(() => expect(start.querySelectorAll('.pf-list li')).toHaveLength(3));
+    await waitFor(() => expect(start.querySelectorAll('.pf-list li')).toHaveLength(2));
     fireEvent.click(within(start).getByRole('button', { name: /Alusta tänast/ }));
-    let flow = screen.getByRole('region', { name: 'Harjuta: Ülesanded' });
-    expect(within(flow).getByText('Samm 1 / 3')).toBeInTheDocument();
-    // „Õpi sõnad” is a word task: its cards open here (owner 2026-11-10)
-    expect(within(flow).getByRole('link', { name: /Ava kaardid/ })).toHaveAttribute('href', '/student/harjuta?kaardid=homework-1');
-    fireEvent.click(within(flow).getByRole('button', { name: /Hiljem/ }));
-    flow = screen.getByRole('region', { name: 'Harjuta: Sõnad' });
+    const flow = screen.getByRole('region', { name: 'Harjuta: Sõnad' });
+    expect(within(flow).getByText('Samm 1 / 2')).toBeInTheDocument();
     for (let i = 0; i < 12 && within(flow).queryByRole('button', { name: 'Näita vastust' }); i += 1) {
       fireEvent.click(within(flow).getByRole('button', { name: 'Näita vastust' }));
       fireEvent.click(within(flow).getByRole('button', { name: /^Lihtne/ }));
@@ -86,7 +88,9 @@ describe('„Harjuta” — the daily practice tab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Valmis' }));
     const overview = screen.getByRole('region', { name: 'Harjuta' });
     expect(doneSteps(overview)).toEqual(['Sõnad', 'Laused ja grammatika']);
-    expect(within(overview).getByRole('button', { name: /Tee ka edasilükatud/ })).toBeInTheDocument();
+    expect(within(overview).getByRole('heading', { name: 'Kõik on tehtud!' })).toBeInTheDocument();
+    // the open homework does not undo the finished day; it waits in its own card
+    expect(screen.getByRole('region', { name: 'Õpetaja ülesanne' })).toHaveTextContent('Õpi sõnad');
   });
 
   it('steps with nothing to do are skipped; English without own sentences → nothing to practise', async () => {

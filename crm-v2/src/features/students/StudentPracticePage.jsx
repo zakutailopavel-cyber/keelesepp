@@ -22,7 +22,7 @@ import { useStudentWords } from '../vocabulary/useStudentWords.js';
 import { hasWordAudio, loadWordAudio } from '../vocabulary/wordAudio.js';
 import { COURSE_LOADERS } from '../worksheet-generator/admin/course/courseLoaders.js';
 import { todaySteps } from './nextStep.js';
-import PracticeFlow from './PracticeFlow.jsx';
+import PracticeFlow, { TeacherTaskCard } from './PracticeFlow.jsx';
 import WordTaskCard from './WordTaskCard.jsx';
 
 /**
@@ -64,7 +64,7 @@ export default function StudentPracticePage({
   if (state.loading) return <div className="page-content"><LoadingState label="Laen tänast harjutust…" /></div>;
   if (state.error) return <div className="page-content"><ErrorState message={state.error.message} onRetry={state.reload} /></div>;
   const { students, pet, sheets, homework, submissions, lessons, tasks } = state.data;
-  const header = <PageHeader title="Harjuta" description={<>Tänane harjutus ühe nupuga: ülesanded, sõnad, laused.<span lang="ru"> · Тренировка на сегодня.</span></>} />;
+  const header = <PageHeader title="Harjuta" description={<>Tänane harjutus ühe nupuga: sõnad ja laused. Õpetaja ülesanne on all.<span lang="ru"> · Тренировка на сегодня; задание учителя — ниже.</span></>} />;
   if (!students.length) return <div className="page-content">{header}<Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril siduda õpilase kaart sinu kontoga." /></Card></div>;
 
   const today = toIsoDate();
@@ -89,11 +89,15 @@ export default function StudentPracticePage({
   return <div className="page-content">
     {header}
     <div className="pf-page">
-      {wordTask ? <WordTaskCard key={wordTask.id} homework={wordTask} words={words} language={main?.preferredLanguage || ''} wordsService={wordsService} repository={homeworkRepository}
-        readOnly={Boolean(preview)} onTick={(key) => progress.save({ done: [key] })} onDone={() => { setReaction('words'); state.reload(); }} /> : null}
-      <PracticeFlow plan={plan} today={progress.today} streak={progress.streak} pet={pet} petStage={petStage} lang={langOf(main?.subject || '')} language={main?.preferredLanguage || ''}
-        words={words} wordsService={wordsService} readOnly={Boolean(preview)} loadPractice={loadPractice}
-        onTick={(key) => progress.save({ done: [key] })} onReact={setReaction} />
+      <div className="pf-column">
+        {wordTask ? <WordTaskCard key={wordTask.id} homework={wordTask} words={words} language={main?.preferredLanguage || ''} wordsService={wordsService} repository={homeworkRepository}
+          readOnly={Boolean(preview)} onTick={(key) => progress.save({ done: [key] })} onDone={() => { setReaction('words'); state.reload(); }} /> : null}
+        <PracticeFlow plan={plan} today={progress.today} streak={progress.streak} pet={pet} petStage={petStage} lang={langOf(main?.subject || '')} language={main?.preferredLanguage || ''}
+          words={words} wordsService={wordsService} readOnly={Boolean(preview)} loadPractice={loadPractice}
+          onTick={(key) => progress.save({ done: [key] })} onReact={setReaction} />
+        {/* the teacher's next task: after the practice, never its first step (owner + review 2026-11-11) */}
+        <TeacherTaskCard task={plan.task} hidden={Boolean(wordTask && plan.task?.id === `homework-${wordTask.id}`)} />
+      </div>
       {pet?.kind && !pet.optedOut ? <PetLoop user={user} studentId={students[0].id} pet={pet} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} assignments={sheets} words={words}
         subject={main?.subject || ''} practiceXp={progress.xp} streak={progress.streak} reaction={reaction === 'finished' ? '' : reaction} ready={plan.todo.length > 0} repository={petRepository} /> : null}
     </div>

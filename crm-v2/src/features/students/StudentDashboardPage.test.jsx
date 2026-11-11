@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import StudentDashboardPage from './StudentDashboardPage.jsx';
@@ -28,12 +28,16 @@ function repositories(students = [{ id: 'student-1', name: 'Mari', subject: 'Ees
   };
 }
 
+// the day's practice already done in this browser: home's next step then turns to the teacher's work (owner + review 2026-11-11)
+const practiceDone = () => window.localStorage.setItem('ks-tana-user-1', JSON.stringify({ today: { date: today, done: ['words', 'sentences'], xp: 0 } }));
+
 function renderPage(data, auth = {}) {
   const user = { uid: 'user-1', displayName: 'Mari Õpilane', roles: ['student'] };
   return render(<MemoryRouter><AuthContext.Provider value={{ user, ...auth }}><StudentDashboardPage {...data} /></AuthContext.Provider></MemoryRouter>);
 }
 
 describe('StudentDashboardPage', () => {
+  beforeEach(() => window.localStorage.clear());
   it('while the first data loads: placeholder cards (no spinner) under one busy label, then the page', async () => {
     const data = repositories();
     let release;
@@ -50,6 +54,7 @@ describe('StudentDashboardPage', () => {
 
   it('first the greeting, one next step with one button and the next lesson; progress has moved away', async () => {
     const data = repositories();
+    practiceDone();
     renderPage(data);
     expect(await screen.findByRole('heading', { name: 'Tere, Mari!' })).toBeInTheDocument();
     const step = screen.getByRole('region', { name: 'Järgmine samm' });
@@ -107,6 +112,7 @@ describe('StudentDashboardPage', () => {
       scheduleRepository: { listByStudent: vi.fn().mockResolvedValue([{ id: 'schedule-1', studentId: 'student-1', teacher: 'Tiina', date: today, time: '23:59', duration: 60, status: 'Planeeritud' }]) },
     });
     data.homeworkRepository.listByStudentIds.mockResolvedValue([]);
+    practiceDone();
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(`${today}T10:00:00`));
     try {
@@ -202,6 +208,7 @@ describe('StudentDashboardPage', () => {
   it('the monthly monologue is the next step when nothing is closer (bug: home never passed it to the decider)', async () => {
     const data = repositories([{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A2', recordingConsent: true }], { invoiceRepository: { listByStudent: vi.fn().mockResolvedValue([]) } });
     data.homeworkRepository.listByStudentIds.mockResolvedValue([]);
+    practiceDone();
     renderPage(data);
     const step = await screen.findByRole('region', { name: 'Järgmine samm' });
     expect(data.monologueRepository.listByStudent).toHaveBeenCalledWith('student-1');
