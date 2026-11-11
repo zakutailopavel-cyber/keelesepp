@@ -104,8 +104,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const setCanvas = useCallback((node) => { canvasRef.current = node; fitRef(node); }, [fitRef]);
 
   const review = submitted || readOnly;
-  // a teacher opening the learner's sheet read-only clicks a task to see its answers
-  const teacherKey = useTeacherKey(doc, readOnly && !isStudent);
+  // a teacher opening the learner's sheet read-only clicks a task to see its answers; a parent opening the child's
+  // sheet read-only never gets the key (staff only)
+  const teacherKey = useTeacherKey(doc, readOnly && isStaff);
   const checked = useMemo(() => (submitted ? checkDocument(doc, answers) : null), [doc, answers, submitted]);
   const progress = useMemo(() => answerProgress(doc, answers), [doc, answers]);
 

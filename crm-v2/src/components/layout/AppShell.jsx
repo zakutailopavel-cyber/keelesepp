@@ -16,6 +16,7 @@ import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx'
 import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
 import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import useSidebarRail from './useSidebarRail.js';
+import { useMyCashTotals } from '../../features/cash/useMyCashTotals.js';
 import './appShell.css';
 
 // students only (it renders nothing for anyone else), so nobody else downloads it
@@ -39,19 +40,35 @@ const lazySubscription = (load, method) => (...args) => {
 };
 const accountApprovalsService = { subscribePendingCount: lazySubscription(() => import('../../services/firebase/accountApprovals.js').then((m) => m.accountApprovalsService), 'subscribePendingCount') };
 const unmarkedLessonsService = { subscribeCount: lazySubscription(() => import('../../services/firebase/unmarkedLessons.js').then((m) => m.unmarkedLessonsService), 'subscribeCount') };
+// „Minu kassa” (owner 2026-11-11): hand-overs that wait for this person's „Sain kätte” (badge on Kassa / Minu kassa)
+const cashPendingService = { subscribePendingIncoming: lazySubscription(() => import('../../services/firebase/cashBox.js').then((m) => m.cashBoxService), 'subscribePendingIncoming') };
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
-export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, unmarked = unmarkedLessonsService, announcements, missingData }) {
+export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, unmarked = unmarkedLessonsService, cashPending = cashPendingService, cashBox, announcements, missingData }) {
   const [menuOpen, setMenuOpen] = useState(false);
   // desktop: full menu or an icon rail that slides out on hover / focus (useSidebarRail.js); phones keep the off-canvas menu
   const sidebar = useSidebarRail();
   const railTitle = (label) => (sidebar.rail && !sidebar.peek ? label : undefined);
   const { user, signOut, preview } = useAuth();
   const previewNavigation = usePreviewNavigation();
-  const visibleNavigation = useMemo(() => navigationFor(user.roles).filter((item) => hasAnyRole(user.roles, item.roles)), [user.roles]);
+  // „Minu kassa” (owner 2026-11-11): a teacher sees it only once they ever had cash or have a hand-over to answer; an
+  // admin has Kassa (with their own cash in it)
+  const teacherOnly = hasAnyRole(user.roles, ['teacher']) && !hasAnyRole(user.roles, ['admin']);
+  const myCash = useMyCashTotals(user.uid, { enabled: teacherOnly, ...(cashBox ? { service: cashBox } : {}) });
+  const [cashToConfirm, setCashToConfirm] = useState(0);
+  const staffAccount = hasAnyRole(user.roles, ['admin', 'teacher']);
+  useEffect(() => {
+    if (!staffAccount || !user.uid || !cashPending?.subscribePendingIncoming) return undefined;
+    try { return cashPending.subscribePendingIncoming(user.uid, (items) => setCashToConfirm(items.length), () => setCashToConfirm(0)); } catch { return undefined; }
+  }, [cashPending, staffAccount, user.uid]);
+  const flags = { myCash: teacherOnly && (Boolean(myCash?.ever) || cashToConfirm > 0) };
+  const visibleNavigation = useMemo(() => navigationFor(user.roles)
+    .filter((item) => hasAnyRole(user.roles, item.roles) && (!item.onlyWith || flags[item.onlyWith])),
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- flags is rebuilt each render from the one boolean below
+  [user.roles, flags.myCash]);
   const showSettings = hasAnyRole(user.roles, settingsNavigation.roles);
   const canSearchStudents = hasAnyRole(user.roles, ['admin', 'teacher']);
   const showNotifications = hasAnyRole(user.roles, ['admin', 'teacher', 'finance']);
@@ -76,8 +93,8 @@ export default function AppShell({ approvals = accountApprovalsService, messages
     try { return unmarked.subscribeCount({ user, isAdmin: true }, setUnmarkedLessons); } catch { return undefined; }
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the user object changes identity; uid is the key
   }, [unmarked, isAdmin, user.uid]);
-  const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0, '/calendar': isAdmin ? unmarkedLessons : 0 };
-  const badgeLabel = { '/messages': 'lugemata', '/calendar': 'märkimata tundi' };
+  const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0, '/calendar': isAdmin ? unmarkedLessons : 0, '/kassa': isAdmin ? cashToConfirm : 0, '/kassa/minu': teacherOnly ? cashToConfirm : 0 };
+  const badgeLabel = { '/messages': 'lugemata', '/calendar': 'märkimata tundi', '/kassa': 'ootab sinu kinnitust', '/kassa/minu': 'ootab sinu kinnitust' };
   const blockPreviewButtons = (event) => {
     if (!preview?.readOnly) return;
     // only closing a dialog is let through: it changes nothing, and a dialog that cannot be closed covers the page

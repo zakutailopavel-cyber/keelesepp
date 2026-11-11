@@ -37,9 +37,8 @@ import { unplannedStudents } from './unplannedStudents.js';
 import { markingSplit } from './unmarkedLessons.js';
 import QuickMarkButtons, { MarkUndoToast } from './QuickMarkButtons.jsx';
 import { MARK_LABELS, useMarkUndo } from './quickMark.js';
-import LessonCashButton from '../cash/LessonCashButton.jsx';
-import { canMarkLessonCash, lessonCashLessonId } from '../cash/lessonCash.js';
-import { useLessonCashMarks } from '../cash/useLessonCashMarks.js';
+import { canMarkLessonCash, euroShort, lessonCashLessonId, toimusUndo } from '../cash/lessonCash.js';
+import { useLessonCash } from '../cash/useLessonCashMarks.js';
 import { unmarkedLessonsService } from '../../services/firebase/unmarkedLessons.js';
 import { DAY_IDS, bandsOn, cellStatus, paintSlot, setCellStatus, slotsOn } from './availabilityModel.js';
 import CellStatusMenu from './CellStatusMenu.jsx';
@@ -203,7 +202,8 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
   const [plannerOpen, setPlannerOpen] = useState(() => searchParams.get('planeerija') === '1');
   const isAdmin = user.roles.includes(ROLES.ADMIN);
   // „Makstud sularahas” on the phone agenda (owner 2026-11-10): the teacher's own lesson-cash marks
-  const [cashMarks, setCashMark] = useLessonCashMarks(financeRepository, Boolean(user?.uid));
+  // cash at the lesson (owner 2026-11-11): one flow with „Toimus” (features/cash/lessonCash.js toimusUndo)
+  const cash = useLessonCash(financeRepository, Boolean(user?.uid));
   useEffect(() => {
     if (!changeRequests?.subscribePending || !user?.uid) return undefined;
     try { return changeRequests.subscribePending({ teacherUid: user.uid, all: isAdmin }, setChangeRequestList, () => setChangeRequestList([])); } catch { return undefined; }
@@ -723,8 +723,15 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
       const suggestion = status === 'Toimunud' && catalog ? suggestTopic(catalog, { studentLevel: studentMap.get(item.studentId)?.level || '', history: historyOf(item.studentId), plan: studentMap.get(item.studentId)?.studyPlan }) : null;
       const record = await lessonRepository.completeFromSchedule(item, user, { ...topicFields(suggestion), status });
       const label = `${item.studentName || 'Õpilane'} ${item.time || ''}: ${MARK_LABELS[status]}`;
+      const cashable = status === 'Toimunud' && canMarkLessonCash(item, { uid: user.uid, isAdmin });
+      // a „Maksab sularahas” card: the same tap records the cash (the server's amount for this subject and length)
+      let paidCents = 0;
+      if (cashable && cash.priceFor(item) > 0) {
+        try { paidCents = await cash.record(item); } catch (error) { setActionError(`Tund on märgitud, sularaha jäi märkimata: ${error.message || 'proovi „Maksis sularahas”.'}`); }
+      }
       if (record?.id && lessonRepository.removeMark) {
-        setMarkUndo({ label, run: async () => { await lessonRepository.removeMark(record, user, { scheduleRecurring: Boolean(item.recurring) }); await state.reload(); } });
+        const unmark = async () => { await lessonRepository.removeMark(record, user, { scheduleRecurring: Boolean(item.recurring) }); await state.reload(); };
+        setMarkUndo(toimusUndo({ item, label, unmark, cash, paidCents, offerCash: cashable }));
       }
       await state.reload();
     } catch (error) { setActionError(fixMarkError(error)); } finally { setInlineBusy(''); }
@@ -871,20 +878,19 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
         const past = isPastLesson(item, today, nowClock);
         const markable = past && canQuickCompleteLesson(item);
         const groupOpen = past && item.isGroup && lessonState(item) === 'planned';
-        // „Makstud sularahas” (owner 2026-11-10): a past 1:1 lesson of the teacher's own, held or still unmarked
-        const cashable = past && canMarkLessonCash(item, { uid: user.uid, isAdmin });
-        const cashMark = cashable ? cashMarks[lessonCashLessonId(item)] || null : null;
-        return <div className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher, tones)}${markable || groupOpen || cashable ? ' has-actions' : ''}`} key={item.occurrenceId}>
+        // cash at the lesson (owner 2026-11-11): a „Maksab sularahas” card's „Toimus” records the cash too; a paid
+        // lesson shows the sum (no separate cash button any more)
+        const cashCents = markable && canMarkLessonCash(item, { uid: user.uid, isAdmin }) ? cash.priceFor(item) : 0;
+        const cashMark = past ? cash.marks[lessonCashLessonId(item)] || null : null;
+        return <div className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher, tones)}${markable || groupOpen ? ' has-actions' : ''}`} key={item.occurrenceId}>
           <button type="button" className="cal-agenda__open" onClick={() => openPanel(item)}>
             <time>{item.time}</time>
             <span><strong>{item.online ? <Badge tone="info">veeb</Badge> : null} <SubjectTag subject={item.subject} />{item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
             {lessonState(item) === 'planned' ? (markable ? <Badge tone="warning">Märkimata</Badge> : null) : <Badge tone={{ done: 'success', absent: 'warning', cancelled: 'danger' }[lessonState(item)]}>{LESSON_STATE_LABELS[lessonState(item)]}</Badge>}
+            {cashMark && lessonState(item) !== 'planned' ? <Badge tone="info">sularahas {euroShort(cashMark.amountCents)}</Badge> : null}
           </button>
-          {markable || cashable ? <div className="cal-agenda__actions">
-            {markable ? <QuickMarkButtons item={item} busy={inlineBusy.startsWith(`${item.occurrenceId}|`) ? inlineBusy.split('|')[1] : ''} disabled={Boolean(inlineBusy)} onMark={inlineMark} /> : null}
-            {cashable ? <LessonCashButton item={item} api={financeRepository} mark={cashMark} onChanged={setCashMark} disabled={Boolean(inlineBusy)}
-              markFirst={markable ? (lesson) => lessonRepository.completeFromSchedule(lesson, user, { status: 'Toimunud' }) : null}
-              onDone={markable ? () => state.reload() : null} /> : null}
+          {markable ? <div className="cal-agenda__actions">
+            <QuickMarkButtons item={item} busy={inlineBusy.startsWith(`${item.occurrenceId}|`) ? inlineBusy.split('|')[1] : ''} disabled={Boolean(inlineBusy)} onMark={inlineMark} cashCents={cashCents} />
           </div> : null}
           {groupOpen ? <div className="cal-agenda__actions"><button type="button" className="qm__btn" onClick={() => openPanel(item)}>Kohalolu</button></div> : null}
         </div>;
@@ -1103,7 +1109,7 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
       ) : null}
     </div>
 
-    <MarkUndoToast undo={markUndo} onClose={() => setMarkUndo(null)} onError={(error) => setActionError(fixMarkError(error))} />
+    <MarkUndoToast undo={markUndo} onClose={() => setMarkUndo(null)} onReplace={setMarkUndo} onError={(error) => setActionError(fixMarkError(error))} />
     {undo ? <div className="cal2-toast" role="status"><span>{undo.label}</span><button type="button" onClick={undoMove}><Undo2 size={15} /> Tühista</button><button type="button" aria-label="Sulge" onClick={() => setUndo(null)}><X size={15} /></button></div> : null}
 
     <Modal open={Boolean(moveAsk)} title={moveAsk?.item.recurring ? 'Korduv tund' : 'Tõsta tund?'} onClose={() => setMoveAsk(null)} footer={moveAsk?.item.recurring

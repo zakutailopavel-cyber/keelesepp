@@ -1,5 +1,7 @@
 export function lessonIsBillable(lesson = {}) {
   if (String(lesson.invoiceId || '').trim() || lesson.billingStatus === 'invoiced') return false;
+  // paid in cash at the lesson (server flag, functions/finance-core.js lessonIsBillable — review D1 2026-11-11)
+  if (lesson.cashPaid?.receiptId) return false;
   if (lesson.packageAccountingSource === 'package_ledger_v1' || lesson.packageConsumptionStatus === 'consumed') return false;
   if (lesson.billingStatus === 'late_cancel_billable') return true;
   return lesson.status === 'Toimunud' && (!lesson.billingStatus || lesson.billingStatus === 'unbilled');

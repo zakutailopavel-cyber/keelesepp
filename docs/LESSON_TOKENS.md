@@ -40,8 +40,9 @@ the package is used up — how many lessons are owed (to be invoiced and paid).
    - finance month view: under a token invoice „Tunnipakett · 8 tundi · peetud 5 · alles 3” (or „läbi”), before
      crediting „tunnid lisatakse pärast makset”; the student's newest token invoice of the month adds „võlg N tundi
      (uus arve)”.
-   - parent / student dashboard: the compact card with one line „Paketist alles N tundi” or „Pakett on läbi · N tundi
-     ootab tasumist”.
+   - parent / student: nothing. Owner 2026-11-02: lessons left are seen only by admin and the accountant; since the
+     review 2026-11-11 the rules no longer let the card's student / parent read packages, ledger or owed lessons (the
+     compact `LessonTokensCard` line is not mounted anywhere for them).
 
 ## One subject per package (Oleksiy 2026-11-03)
 
@@ -100,7 +101,7 @@ one number, one PDF, one e-mail, one payment — like the combined monthly / man
   runs its own backlog (`consumeTokenBacklog`: its card's lessons since the invoice date and owed lessons, of its subject).
   Response: `studentPackage` (first), `studentPackages`, `backlog { consumed, packages: [{ studentPackageId, studentId,
   consumed }] }`.
-- **Views**: student card „Tunnipakett”, parent / student line and Täna „Makstud tunnid lõppevad” read packages by
+- **Views**: student card „Tunnipakett” (finance tab, admin / finance) and Täna „Makstud tunnid lõppevad” read packages by
   `studentId`, so every line appears on its own card. Finance month view: `tokenInvoiceUsageLines` — „Ühine tunnipakett ·
   N tundi” and a line per card and subject („Mari · Eesti keel: 8 tundi · peetud 1 · alles 7”); owed lessons of a card
   once, on its newest token invoice (a combined invoice counts for each of its cards). `packagesForInvoices` returns an
@@ -146,9 +147,9 @@ linked automatically (no invoice reference is stored).
   lesson journal call the sync a second time after such a restore). An owed lesson owes its credits; the views count
   owed credits. A single credit left in an older package is not split with the next package: a 2-credit lesson takes a
   package with ≥ 2 left, the single credit waits for a 1-credit lesson or a correction.
-- `lessonPackageStates`: read by admin, finance and the card's own student / parent (the owed lessons); written only by
-  the server.
-- `studentPackages` / `packageLedger`: read by admin, finance and the card's own student / parent; written only by the server.
+- `lessonPackageStates`: read by admin and finance only (the owed lessons); written only by the server.
+- `studentPackages` / `packageLedger`: read by admin and finance only (not the card's student / parent since 2026-11-11);
+  written only by the server.
 - A credited token invoice cannot be cancelled (correct the package: financeApi `/student-packages/adjust`).
 
 ## Open owner questions

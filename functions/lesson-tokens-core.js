@@ -150,6 +150,9 @@ function tokenPackageRecord({ invoice, invoiceId, student = {}, issuedAt, nowIso
 // A held lesson the school pays itself („Kooli kulul”, owner 2026-10-19) takes no credit: the teacher's hour counts, the
 // student pays nothing; a credit it already took comes back.
 function lessonTakesToken(lesson = {}, plan = {}) {
+  // paid in cash at the lesson (owner 2026-11-10, review D1 2026-11-11): no credit; a credit it took comes back, and
+  // undoing the cash mark (the flag goes) takes it again
+  if (lesson.cashPaid && lesson.cashPaid.receiptId) return false;
   if (lesson.status === 'Toimunud') return lesson.billingStatus !== 'school_covered';
   if (lesson.status === 'Puudus_eta') return plan.chargeNoShow !== false && !lesson.billingWaived;
   return false;

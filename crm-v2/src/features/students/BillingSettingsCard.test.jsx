@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import BillingSettingsCard from './BillingSettingsCard.jsx';
+import { cashSubjectsOfPlan, storedCashSubjects } from '../../services/firebase/revenuePlans.js';
 
 const plan = { lessonPriceCents: 2500, lessonMinutes: 60, weeklyLessons: 2, billingMode: 'current', chargeNoShow: true, priceHistory: [{ lessonPriceCents: 2200, lessonMinutes: 60, validFrom: '', validTo: '2026-09-01' }] };
 const save = () => act(async () => { fireEvent.click(screen.getByRole('button', { name: /Salvesta/ })); });
@@ -245,6 +246,32 @@ describe('BillingSettingsCard', () => {
       fireEvent.click(screen.getByRole('tab', { name: /Inglise keel/ }));
       expect(screen.getByLabelText('Arveldus')).toBeDisabled();
       expect(screen.queryByRole('button', { name: /sama mis kaardil/ })).toBeNull();
+    });
+  });
+
+  describe('„Maksab sularahas” (owner 2026-11-11)', () => {
+    it('one subject: the tick stores ["*"]; untick removes it; a plan without it sends nothing', async () => {
+      const onSave = vi.fn().mockResolvedValue({});
+      const { unmount } = render(<BillingSettingsCard student={{ id: 's1', name: 'Mari' }} plan={plan} canEdit onSave={onSave} />);
+      await save();
+      expect(onSave.mock.calls[0][0]).not.toHaveProperty('cashSubjects');
+      fireEvent.click(screen.getByRole('checkbox', { name: /Maksab sularahas/ }));
+      await save();
+      expect(onSave.mock.calls[1][0].cashSubjects).toEqual(['*']);
+      unmount();
+      render(<BillingSettingsCard student={{ id: 's1', name: 'Mari' }} plan={{ ...plan, cashSubjects: ['*'] }} canEdit onSave={onSave} />);
+      expect(screen.getByRole('checkbox', { name: /Maksab sularahas/ })).toBeChecked();
+      fireEvent.click(screen.getByRole('checkbox', { name: /Maksab sularahas/ }));
+      await save();
+      expect(onSave.mock.calls[2][0].cashSubjects).toEqual([]);
+    });
+
+    it('several subjects: per subject, stored by name', () => {
+      expect(cashSubjectsOfPlan({ cashSubjects: ['*'] }, ['Eesti keel', 'Matemaatika'])).toEqual(['Eesti keel', 'Matemaatika']);
+      expect(cashSubjectsOfPlan({ cashSubjects: ['matemaatika'] }, ['Eesti keel', 'Matemaatika'])).toEqual(['Matemaatika']);
+      expect(storedCashSubjects(['Matemaatika'], ['Eesti keel', 'Matemaatika'])).toEqual(['Matemaatika']);
+      expect(storedCashSubjects(['Eesti keel'], ['Eesti keel'])).toEqual(['*']);
+      expect(storedCashSubjects([], ['Eesti keel'])).toEqual([]);
     });
   });
 });

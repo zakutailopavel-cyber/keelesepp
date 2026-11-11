@@ -6,6 +6,20 @@ import './pet.css';
 
 const TRUTH_SECONDS = 7;
 
+// timers that die with the game: a round's „next” must not fire after the learner closed the game (or a test ended)
+function useLater() {
+  const timers = useRef(new Set());
+  useEffect(() => {
+    const live = timers.current;
+    return () => { live.forEach((id) => clearTimeout(id)); live.clear(); };
+  }, []);
+  return (fn, ms) => {
+    const id = setTimeout(() => { timers.current.delete(id); fn(); }, ms);
+    timers.current.add(id);
+    return id;
+  };
+}
+
 function Pet({ kind, mood }) {
   return <span className="pg-pet" aria-hidden="true" dangerouslySetInnerHTML={{ __html: petSvg(kind, mood, 2) }} />;
 }
@@ -22,6 +36,7 @@ function Finish({ kind, right, total, moves = 0, onAgain, onClose }) {
 
 // „Püüa sõna”: three words fall; click the one that fits before it lands
 function CatchGame({ rounds, kind, onEnd }) {
+  const later = useLater();
   const [i, setI] = useState(0);
   const [right, setRight] = useState(0);
   const [picked, setPicked] = useState(null); // { option, ok } | { missed: true }
@@ -29,7 +44,7 @@ function CatchGame({ rounds, kind, onEnd }) {
   const next = (ok) => {
     const total = right + (ok ? 1 : 0);
     setRight(total);
-    setTimeout(() => { setPicked(null); if (i + 1 >= rounds.length) onEnd(total); else setI(i + 1); }, ok ? 900 : 1600);
+    later(() => { setPicked(null); if (i + 1 >= rounds.length) onEnd(total); else setI(i + 1); }, ok ? 900 : 1600);
   };
   const pick = (option) => { if (picked) return; const ok = option === round.answer; setPicked({ option, ok }); next(ok); };
   const landed = (option) => { if (picked || option !== round.answer) return; setPicked({ missed: true }); next(false); };
@@ -54,6 +69,7 @@ function CatchGame({ rounds, kind, onEnd }) {
 
 // „Paarid”: memory cards
 function PairsGame({ cards, onEnd }) {
+  const later = useLater();
   const [open, setOpen] = useState([]);
   const [found, setFound] = useState([]);
   const [moves, setMoves] = useState(0);
@@ -68,8 +84,8 @@ function PairsGame({ cards, onEnd }) {
     if (a.pair === b.pair) {
       const all = [...found, a.pair];
       setFound(all); setOpen([]);
-      if (all.length === pairs) setTimeout(() => onEnd(pairs, moves + 1), 700);
-    } else setTimeout(() => setOpen([]), 900);
+      if (all.length === pairs) later(() => onEnd(pairs, moves + 1), 700);
+    } else later(() => setOpen([]), 900);
   };
   return (
     <div className="pg-game" aria-label="Paarid">
@@ -86,6 +102,7 @@ function PairsGame({ cards, onEnd }) {
 
 // „Lauseehitus”: tap the words in order
 function OrderGame({ rounds, onEnd }) {
+  const later = useLater();
   const [i, setI] = useState(0);
   const [line, setLine] = useState([]);
   const [right, setRight] = useState(0);
@@ -97,7 +114,7 @@ function OrderGame({ rounds, onEnd }) {
     setChecked(ok);
     const total = right + (ok ? 1 : 0);
     setRight(total);
-    setTimeout(() => { setChecked(null); setLine([]); if (i + 1 >= rounds.length) onEnd(total); else setI(i + 1); }, ok ? 900 : 2200);
+    later(() => { setChecked(null); setLine([]); if (i + 1 >= rounds.length) onEnd(total); else setI(i + 1); }, ok ? 900 : 2200);
   };
   return (
     <div className="pg-game" aria-label="Lauseehitus">
@@ -114,6 +131,7 @@ function OrderGame({ rounds, onEnd }) {
 
 // „Kiire kontroll”: right or wrong before the bar runs out
 function TruthGame({ rounds, kind, onEnd }) {
+  const later = useLater();
   const [i, setI] = useState(0);
   const [right, setRight] = useState(0);
   const [answer, setAnswer] = useState(null); // { ok, timeout }
@@ -124,7 +142,7 @@ function TruthGame({ rounds, kind, onEnd }) {
     setAnswer({ ok, timeout });
     const total = right + (ok ? 1 : 0);
     setRight(total);
-    setTimeout(() => { setAnswer(null); if (i + 1 >= rounds.length) onEnd(total); else setI(i + 1); }, ok ? 800 : 1800);
+    later(() => { setAnswer(null); if (i + 1 >= rounds.length) onEnd(total); else setI(i + 1); }, ok ? 800 : 1800);
   };
   useEffect(() => {
     timer.current = setTimeout(() => done(false, true), TRUTH_SECONDS * 1000);
@@ -147,6 +165,7 @@ function TruthGame({ rounds, kind, onEnd }) {
 
 // „Sorteeri”: one word at a time; the learner drops it into a basket, the pet in the middle reacts
 function SortGame({ round, kind, onEnd }) {
+  const later = useLater();
   const [i, setI] = useState(0);
   const [right, setRight] = useState(0);
   const [placed, setPlaced] = useState(null); // { basket, ok }
@@ -159,7 +178,7 @@ function SortGame({ round, kind, onEnd }) {
     if (ok) setCounts((c) => ({ ...c, [basket]: (c[basket] || 0) + 1 }));
     const total = right + (ok ? 1 : 0);
     setRight(total);
-    setTimeout(() => { setPlaced(null); if (i + 1 >= round.words.length) onEnd(total); else setI(i + 1); }, ok ? 700 : 1600);
+    later(() => { setPlaced(null); if (i + 1 >= round.words.length) onEnd(total); else setI(i + 1); }, ok ? 700 : 1600);
   };
   return (
     <div className="pg-game" aria-label="Sorteeri">
@@ -184,6 +203,7 @@ function SortGame({ round, kind, onEnd }) {
 // „Arva sõna”: a kind hangman — every wrong letter makes the pet a bit sadder; 6 misses and the word is shown
 const MISSES = 6;
 function GuessGame({ rounds, kind, onEnd }) {
+  const later = useLater();
   const [i, setI] = useState(0);
   const [right, setRight] = useState(0);
   const [tried, setTried] = useState([]);
@@ -194,7 +214,7 @@ function GuessGame({ rounds, kind, onEnd }) {
     setOver(won ? 'won' : 'lost');
     const total = right + (won ? 1 : 0);
     setRight(total);
-    setTimeout(() => { setOver(null); setTried([]); if (i + 1 >= rounds.length) onEnd(total); else setI(i + 1); }, won ? 1100 : 2200);
+    later(() => { setOver(null); setTried([]); if (i + 1 >= rounds.length) onEnd(total); else setI(i + 1); }, won ? 1100 : 2200);
   };
   const press = (ch) => {
     if (over || tried.includes(ch)) return;

@@ -1,0 +1,73 @@
+/* „Minu kassa” (features/cash/MyCashPage + MyCashParts): phone first, ≥ 44 px targets, light + dark through tokens */
+.my-cash { display: grid; gap: 14px; }
+.my-cash__notice { margin: 0; }
+.my-cash-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; padding: 16px; }
+.my-cash-summary__sum { display: grid; gap: 2px; min-width: 0; }
+.my-cash-summary__sum span { font-size: .85rem; color: var(--muted); }
+.my-cash-summary__sum strong { font: 800 1.9rem/1.1 Manrope, sans-serif; color: var(--ink); font-variant-numeric: tabular-nums; }
+.my-cash-summary__sum small { color: var(--warning-text); font-weight: 700; font-size: .82rem; }
+.my-cash-summary .button { min-height: 48px; }
+
+.my-cash-incoming { padding: 14px 16px; border-left: 4px solid var(--warning-text); }
+.my-cash-incoming h2, .my-cash-list h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font: 800 1.02rem Manrope, sans-serif; }
+.my-cash-incoming ul, .my-cash-list ul { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.my-cash-incoming li { display: grid; gap: 8px; padding: 10px 0; border-top: 1px solid var(--border-faint); }
+.my-cash-incoming li:first-child { border-top: 0; }
+.my-cash-incoming__what { display: grid; gap: 2px; }
+.my-cash-incoming__what small { color: var(--muted); }
+.my-cash-incoming__buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.my-cash-incoming__buttons .button { min-height: 44px; flex: 1 1 140px; }
+.my-cash-incoming__refuse { display: grid; gap: 8px; }
+
+.my-cash-list { padding: 14px 16px; }
+.my-cash-list li { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto auto; align-items: center; gap: 4px 12px; padding: 9px 0; border-top: 1px solid var(--border-faint); }
+.my-cash-list li:first-child { border-top: 0; }
+.my-cash-list li.is-void { opacity: .55; }
+.my-cash-list__date { color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.my-cash-list__what { display: grid; min-width: 0; overflow-wrap: anywhere; }
+.my-cash-list__what small { color: var(--muted); font-size: .8rem; }
+.my-cash-list strong { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.my-cash-list strong small { color: var(--muted); font-weight: 600; }
+.my-cash-list__state { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.my-cash-list__undo.button { min-height: 40px; min-width: 40px; padding: 0 10px; }
+.my-cash-list li > :nth-child(3):last-child { grid-column: 3 / 5; }
+
+.my-cash-dialog__form { display: grid; gap: 14px; }
+.my-cash-dialog__form fieldset { display: grid; gap: 6px; margin: 0; padding: 0; border: 0; }
+.my-cash-dialog__form legend { margin-bottom: 6px; font-weight: 800; }
+.my-cash-choice { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; }
+.my-cash-choice.is-chosen { border-color: var(--green); background: var(--green-soft); }
+.my-cash-choice input { width: 18px; height: 18px; accent-color: var(--green); }
+.my-cash-pick { display: grid; gap: 4px; margin: 0; padding: 0 0 0 8px; list-style: none; max-height: 40vh; overflow: auto; }
+.my-cash-pick label { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 44px; padding: 6px 4px; cursor: pointer; }
+.my-cash-pick input { width: 18px; height: 18px; accent-color: var(--green); }
+.my-cash-pick span { display: grid; min-width: 0; }
+.my-cash-pick small { color: var(--muted); }
+.my-cash-pick b { font-variant-numeric: tabular-nums; }
+
+/* the one-line reminder on the teacher's dashboard and „Märkimata tunnid” */
+.cash-on-hand-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+.cash-on-hand-line svg { color: var(--green-text); flex: none; }
+.cash-on-hand-line span { min-width: 0; }
+.cash-on-hand-line small { color: var(--warning-text); font-weight: 700; }
+.cash-on-hand-line a { display: inline-flex; align-items: center; min-height: 44px; margin-left: auto; font-weight: 800; }
+
+/* Kassa (admin): receivers' setting */
+.cash-receivers ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; padding: 0; list-style: none; }
+.cash-receivers li { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 2px 4px 2px 12px; border: 1px solid var(--border); border-radius: var(--radius-pill); }
+.cash-receivers li .icon-button { width: 36px; height: 36px; border: 0; }
+.cash-receivers__add { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.cash-receivers__add .field { flex: 1 1 200px; margin: 0; }
+.cash-receivers__add .button { min-height: 44px; }
+.cash-held__list small { display: block; color: var(--warning-text); font-weight: 700; font-size: .78rem; }
+
+@media (max-width: 560px) {
+  .my-cash-summary .button { width: 100%; }
+  .my-cash-list li { grid-template-columns: minmax(0, 1fr) auto; }
+  .my-cash-list__date { grid-column: 1 / -1; font-size: .8rem; }
+  .my-cash-list__state { grid-column: 1 / -1; justify-content: flex-start; }
+  .my-cash-list li > :nth-child(3):last-child { grid-column: auto; }
+}
+.cash-receivers__title { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 1.05rem; }
+/* the app has no global warning badge tone (badge--warning is used in Kassa too): give it one here */
+.my-cash .badge--warning, .cash-page .badge--warning { background: var(--warning-soft); color: var(--warning-text); }

@@ -2,7 +2,7 @@ import { Check, Lock, WalletCards } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Card, FieldHelp, Input, Select } from '../../components/ui/index.js';
 import {
-  BILLING_MODES, BILLING_MODE_HELP, LESSON_MINUTES, NO_SHOW_HELP, WEEKLY_LESSONS_HELP, validateRevenuePlan, validateSubjectBilling,
+  BILLING_MODES, BILLING_MODE_HELP, LESSON_MINUTES, NO_SHOW_HELP, WEEKLY_LESSONS_HELP, cashSubjectsOfPlan, storedCashSubjects, validateRevenuePlan, validateSubjectBilling,
 } from '../../services/firebase/revenuePlans.js';
 import { cardMonthlyMode, subjectBilling } from '../finance/subjectBilling.js';
 import {
@@ -21,6 +21,8 @@ const MODE_SHORT = { advance: 'Kuu ette', actual: 'Pärast toimunud tunde', curr
 const modeLabel = (id) => BILLING_MODES.find((mode) => mode.id === id)?.label || id;
 const weeklyText = (value) => String(value || '').replace('.', ',');
 const NO_SHOW_TEXT = 'Ette teatamata puudumine on tasuline (erandi saab teha tunni juures)';
+const CASH_HELP = 'Õpetaja nupp „Toimus” muutub nupuks „Toimus · makstud sularahas”: üks puudutus märgib tunni toimunuks ja raha õpetaja kätte. '
+  + 'Summa on selle aine tunni hind tunni pikkuse järgi (õpetaja seda muuta ei saa; vale summa parandad Kassas). Tund tuleb kuuarvelt maha, tunnipaketist tundi ei võeta. Raha ei lähe raamatupidamisse.';
 const slug = (text) => String(text).toLocaleLowerCase('et').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-');
 
 // the stored plan, or the old card field (before the price moved to the private plan) read as a 60-minute price
@@ -29,6 +31,7 @@ function pricedPlan(plan, student) {
   const cardCents = Math.round((Number(String(student?.lessonPrice ?? '').replace(',', '.')) || 0) * 100);
   return cardCents > 0 ? { ...(plan || {}), lessonPriceCents: cardCents, lessonMinutes: plan?.lessonMinutes || 60 } : plan;
 }
+
 
 function formOf(plan, student) {
   const priced = pricedPlan(plan, student);
@@ -50,6 +53,8 @@ function formOf(plan, student) {
     billingMode: plan?.billingMode || 'advance',
     chargeNoShow: plan ? plan.chargeNoShow !== false : true,
     validFrom: today(),
+    // „Maksab sularahas” (owner 2026-11-11): the subjects paid in cash at the lesson (stored ["*"] = every subject)
+    cashSubjects: cashSubjectsOfPlan(plan, subjectsOf(student || {})),
     // billing per subject (owner 2026-11-06): a further subject's own mode / weekly lessons / no-show rule; '' or null =
     // „Sama mis kaardil” (the card's value, which the main subject's tab edits)
     subjectBilling: Object.fromEntries(extra.map((subject) => {
@@ -126,6 +131,8 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
       // per-subject billing: sent when a subject has its own or had it (then the emptied map removes it); a card without
       // any keeps its plan without the field (bills exactly as before)
       ...(Object.keys(billingValues).length || Object.keys(plan?.subjectBilling || {}).length ? { subjectBilling: billingValues } : {}),
+      // „Maksab sularahas”: sent when a subject pays in cash or did (the emptied list removes it)
+      ...(form.cashSubjects.length || (plan?.cashSubjects || []).length ? { cashSubjects: storedCashSubjects(form.cashSubjects, subjects) } : {}),
       ...(Object.keys(form.subjects).length || Object.keys(plan?.subjectPrices || {}).length ? { subjectPrices: Object.fromEntries(Object.entries(prices.subjectPrices).map(([subject, own]) => [subject, { lessonPrice: String(own.lessonPriceCents / 100), lessonMinutes: String(own.lessonMinutes) }])) } : {}),
     };
     const check = terms.valid ? validateRevenuePlan(values) : { valid: false, errors: {} };
@@ -245,6 +252,11 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
       </p>}
       {tab.isMain && staleMainPrice ? <p className="billing-settings__changed" role="note">Selle aine jaoks on salvestatud ka vana eraldi hind {priceLine(staleMainPrice.lessonPriceCents, staleMainPrice.lessonMinutes || 60)}: kuuarve võtab ülal oleva hinna, tunnipakett vana. „Salvesta” jätab alles ainult ülal oleva hinna.</p> : null}
       {billingFields(subject)}
+      <div className="billing-settings__check" data-billing-cash={subject}>
+        <label><input type="checkbox" checked={form.cashSubjects.includes(subject)} disabled={!canEdit}
+          onChange={(e) => set({ cashSubjects: e.target.checked ? [...form.cashSubjects, subject] : form.cashSubjects.filter((name) => name !== subject) })} /> Maksab sularahas{many ? ` (${subject})` : ''}</label>
+        <FieldHelp label="Maksab sularahas" text={CASH_HELP} />
+      </div>
     </div>;
   };
 

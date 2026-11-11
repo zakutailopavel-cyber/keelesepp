@@ -26,6 +26,7 @@ import { recentlyScheduled } from '../retention/retentionRisk.js';
 import UnmarkedLessonsCard from '../calendar/UnmarkedLessonsCard.jsx';
 import { unmarkedReminder } from '../calendar/unmarkedLessons.js';
 import UnmarkedNudge from './UnmarkedNudge.jsx';
+import CashOnHandLine from '../cash/CashOnHandLine.jsx';
 import { BalancePanel, CallsPanel, HomeworkPanel, LeadsPanel, TodayTimeline } from './today/TodayPanel.jsx';
 import { todayApi, useTodaySignals } from './today/useTodaySignals.js';
 import { tallinnDay } from './today/todayModel.js';
@@ -268,6 +269,8 @@ function CalmDashboard({ data, user, repositories, now }) {
         <span>· {dayLabel}</span>
       </header>
       {data.teacherUid ? <UnmarkedNudge reminder={reminder} uid={data.teacherUid} today={data.current} disabled={Boolean(preview)} /> : null}
+      {/* „Minu kassa” (owner 2026-11-11): the teacher's own cash on hand, one line, only when there is some */}
+      {data.teacherUid ? <CashOnHandLine uid={data.teacherUid} service={repositories.cashBox} /> : null}
       {/* a teacher's direct way in on a phone (owner 2026-11-09): one big button, shown by CSS only on narrow screens */}
       {data.teacherUid && signals.unmarked?.length ? <Link className="button button--primary calm-mark-cta" to="/calendar/markimata"><CalendarCheck size={18} aria-hidden="true" /> Märgi tunnid ({signals.unmarked.length})</Link> : null}
       {/* owner 2026-11-06: the numbers and the quick links stay at the top, as on the old home page */}

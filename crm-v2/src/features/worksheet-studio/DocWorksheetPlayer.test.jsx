@@ -163,3 +163,27 @@ describe('a submitted sheet\'s wrong sentences become the student\'s cards (owne
     })));
   });
 });
+
+describe('answer key in a read-only sheet: staff only (review 2026-11-11, B4)', () => {
+  const renderAs = async (roles) => {
+    const { AuthContext } = await import('../../app/AuthContext.jsx');
+    return render(<AuthContext.Provider value={{ user: { uid: 'u1', roles } }}>
+      <DocWorksheetPlayer assignment={assignment({ status: 'done', answers: { 'tf:0': 'false', 'tf:1': 'true' } })} repository={repo()} readOnly inline />
+    </AuthContext.Provider>);
+  };
+  const tfCard = (container) => [...container.querySelectorAll('.ws-page .ws-card')].find((card) => !card.closest('.ws-measure') && card.textContent.includes('Õige või vale?'));
+
+  // the floating key itself needs a real layout (FloatingNote); a task that can be clicked for its key is „pickable”
+  it.each([['teacher'], ['admin']])('%s: a task can be clicked for its answers', async (role) => {
+    const { container } = await renderAs([role]);
+    expect(tfCard(container).className).toContain('pickable');
+  });
+
+  it.each([['parent'], ['student'], ['finance']])('%s opening the sheet read-only gets no answer key', async (role) => {
+    const { container } = await renderAs([role]);
+    const card = tfCard(container);
+    expect(card.className).not.toContain('pickable');
+    fireEvent.click(card);
+    expect(container.querySelector('.ws-block-key')).toBeNull();
+  });
+});

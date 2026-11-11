@@ -48,6 +48,7 @@ const BookPage = lazyComponent(() => import('../features/worksheet-studio/BookPa
 const LiveWorksheetPage = lazyComponent(() => import('../features/worksheet-studio/LiveWorksheetPage.jsx'));
 const ParentsPage = lazyComponent(() => import('../features/parents/ParentsPage.jsx'));
 const CashPage = lazyComponent(() => import('../features/cash/CashPage.jsx'));
+const MyCashPage = lazyComponent(() => import('../features/cash/MyCashPage.jsx'));
 const PayrollPage = lazyComponent(() => import('../features/payroll/PayrollPage.jsx'));
 const StudentsPage = lazyComponent(() => import('../features/students/StudentsPage.jsx'));
 const StudentProfilePage = lazyComponent(() => import('../features/students/StudentProfilePage.jsx'));
@@ -121,6 +122,8 @@ export default function AppRoutes() {
             <Route path="students/:studentId/worksheets/:lessonId" element={generatorPage(<StudentWorksheetStudioPage />)} />
             <Route path="calendar" element={staffPage(<CalendarPage />)} />
             <Route path="calendar/markimata" element={staffPage(<UnmarkedLessonsPage />)} />
+            {/* „Minu kassa” (owner 2026-11-11): a staff member's own cash only; the full Kassa stays admin + accountant */}
+            <Route path="kassa/minu" element={staffPage(<MyCashPage />)} />
             <Route path="tasks" element={staffPage(<TasksPage />)} />
             <Route path="groups" element={staffPage(<GroupsPage />)} />
             <Route path="library" element={staffPage(<LibraryPage />)} />
@@ -134,7 +137,6 @@ export default function AppRoutes() {
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
             <Route path="library/worksheets/:lessonId" element={generatorPage(<WorksheetStudioPage />)} />
             <Route path="parents" element={staffPage(<ParentsPage />)} />
-            <Route path="kassa" element={staffPage(<CashPage />)} />
             <Route path="board/:studentId" element={staffPage(<BoardPage />)} />
             <Route path="leads" element={staffPage(<LeadsPage />)} />
           </Route>
@@ -195,6 +197,8 @@ export default function AppRoutes() {
             <Route path="finance" element={staffPage(<FinanceMonthPage />)} />
             <Route path="finance/seaded" element={staffPage(<FinanceSettingsPage />)} />
             <Route path="finance/vana" element={staffPage(<FinanceWorkspacePage />)} />
+            {/* „Kassa” (owner 2026-11-11): admin + accountant (read only); teachers never see it */}
+            <Route path="kassa" element={staffPage(<CashPage />)} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
             <Route path="finance/payroll" element={staffPage(<PayrollPage />)} />

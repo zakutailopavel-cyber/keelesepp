@@ -5,7 +5,7 @@ import { formatDue, hasUnreadReply, isAssignedTo, isNewForMe, isOverdue, scopeTa
 // The notification centre does not store notifications: every item is derived from its source record and disappears
 // when the source is handled (task done or opened, message read, work reviewed, invoice paid) — as in CRM v1.
 
-export const CATEGORY_LABEL = { task: 'Ülesanded', message: 'Sõnumid', homework: 'Kodutööd', lesson: 'Tunnid', student: 'Õpilased', invoice: 'Arved', system: 'Süsteem' };
+export const CATEGORY_LABEL = { task: 'Ülesanded', message: 'Sõnumid', homework: 'Kodutööd', lesson: 'Tunnid', student: 'Õpilased', invoice: 'Arved', cash: 'Sularaha', system: 'Süsteem' };
 const SEVERITY_ORDER = { danger: 0, warning: 1, info: 2, success: 3 };
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
@@ -109,6 +109,20 @@ export function missingDataNotifications(submissions = []) {
     detail: [...new Set(item.changes.map((change) => FIELD_NAMES[change.field] || change.field))].join(', '),
     meta: item.byName ? `${item.byName}${item.byRole === 'parent' ? ' (lapsevanem)' : ''}` : 'puuduvad andmed',
     to: `/students?puuduvad=1&taidetud=${encodeURIComponent(item.id)}`,
+  }));
+}
+
+// „Minu kassa” (owner 2026-11-11): a colleague says they handed this person cash — it waits for „Sain kätte”. An
+// admin answers in Kassa, anyone else in „Minu kassa”. Gone once answered.
+export function cashHandoverNotifications(items = [], { isAdmin = false } = {}) {
+  return items.filter((item) => item.status === 'pending').map((item) => ({
+    id: `cash-handover:${item.id}`,
+    category: 'cash',
+    severity: 'warning',
+    title: `${item.fromName || 'Kolleeg'} andis sulle sularaha ${money(Number(item.amountCents) || 0)}`,
+    detail: 'Kinnita „Sain kätte” või „Ei saanud”.',
+    meta: item.handedAt ? formatDue(item.handedAt) : 'ootab kinnitust',
+    to: isAdmin ? '/kassa' : '/kassa/minu',
   }));
 }
 
