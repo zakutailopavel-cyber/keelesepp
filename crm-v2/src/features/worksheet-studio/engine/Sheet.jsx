@@ -231,7 +231,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockPopovers = null, blockBadges = null, blockClasses = null, flow = false, running = null, lead = null, transcripts = null }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockPopovers = null, blockBadges = null, blockClasses = null, flow = false, running = null, lead = null, transcripts = null, onPatch = null }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   // „Kiri”: the viewer's own font for typed answers (answerFont.js); plain by default
@@ -251,6 +251,8 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     state: (k) => (showAnswers ? results[`${id}:${k}`] : undefined),
     focus,
     setFocus: (bid, v) => setFocusState((f) => ({ ...f, [bid]: v })),
+    // the constructor: a block changes its own data from the sheet (a picture in a text dragged or resized), undoable
+    patch: mode === 'edit' && onPatch ? (dataPatch) => onPatch(id, dataPatch) : null,
   });
 
   const [hoverId, setHoverId] = useState(null);

@@ -1062,3 +1062,39 @@ button.ws-pt { cursor: pointer; }
   .ws-video-screen { display: none; }
   .ws-video-paper.is-print-only { display: flex; }
 }
+
+/* ===== A picture inside a text, the text wrapping around it; picture frames (figureFloat.js, FloatFigure.jsx;
+   owner 2026-11-11). Screen and paper alike; the phone column stacks it (sheetFlow.css). ===== */
+.ws-textblock.has-figure::after { content: ''; display: block; clear: both; }
+.ws-ffig { position: relative; margin: .6mm 0 2mm; break-inside: avoid; shape-margin: 3mm; }
+.ws-ffig.is-left { float: left; margin-right: 4mm; }
+.ws-ffig.is-right { float: right; margin-left: 4mm; }
+.ws-ffig.is-center { clear: both; margin: 1mm auto 3mm; }
+.ws-ffig figcaption { font-size: 10pt; color: var(--ks-muted); text-align: center; margin-top: 1.2mm; }
+/* the text follows the picture's outline (a caption keeps the wrap rectangular, or the caption would be cut) */
+.ws-ffig.shape-circle:not(.has-caption) { shape-outside: circle(50%); }
+.ws-ffig.shape-oval:not(.has-caption) { shape-outside: ellipse(50% 50%); }
+.ws-ffig.shape-rounded:not(.has-caption) { shape-outside: inset(0 round 4mm); }
+.ws-root :is(.ws-ffig, .ws-figure).shape-rounded .ws-photo { border-radius: 4mm; }
+.ws-root :is(.ws-ffig, .ws-figure).shape-circle .ws-photo { border-radius: 50%; }
+.ws-root :is(.ws-ffig, .ws-figure).shape-oval .ws-photo { border-radius: 50% / 50%; }
+/* the textbook's line (docs/TEXTBOOK_ART_BIBLE.md: black line, white, one lime accent) */
+.ws-root :is(.ws-ffig, .ws-figure).border-ink .ws-photo { border: .6mm solid var(--ks-ink); }
+.ws-root :is(.ws-ffig, .ws-figure).border-lime .ws-photo { border: 1mm solid #c6f432; }
+/* the constructor's tools on the picture: a finger's size on the screen whatever the page's zoom (--st-scale) */
+.ws-ffig-handle { position: absolute; z-index: 4; display: none; place-items: center; width: calc(36px / var(--st-scale, 1)); height: calc(36px / var(--st-scale, 1)); padding: 0; border: 0; border-radius: 50%; background: #111827; color: #fff; font: 700 calc(16px / var(--st-scale, 1)) / 1 system-ui, sans-serif; box-shadow: 0 4px 12px rgba(17, 24, 39, .3); cursor: pointer; touch-action: none; }
+.mode-edit .ws-card.selected .ws-ffig-handle, .mode-edit .ws-card:hover .ws-ffig-handle, .ws-ffig-handle:focus-visible { display: grid; }
+.ws-ffig-handle.is-move { left: 2mm; top: 2mm; cursor: grab; }
+.ws-ffig-handle.is-lock { right: 2mm; top: 2mm; background: #fff; color: #111827; }
+.ws-ffig-handle.is-size { right: -2mm; bottom: -2mm; cursor: nwse-resize; }
+.ws-ffig.is-right .ws-ffig-handle.is-size { right: auto; left: -2mm; cursor: nesw-resize; }
+.ws-ffig.is-locked .ws-ffig-handle.is-lock { display: grid; background: #fff7e6; }
+/* a round picture: the tools sit on the picture, not in the corners the text flows into */
+.ws-ffig:is(.shape-circle, .shape-oval) .ws-ffig-handle.is-move { left: calc(50% - 1mm - 36px / var(--st-scale, 1)); top: 4mm; }
+.ws-ffig:is(.shape-circle, .shape-oval) .ws-ffig-handle.is-lock { right: auto; left: calc(50% + 1mm); top: 4mm; }
+@media (pointer: coarse) {
+  .ws-ffig:is(.shape-circle, .shape-oval) .ws-ffig-handle.is-move { left: calc(50% - 1mm - 44px / var(--st-scale, 1)); }
+}
+.ws-ffig[data-size]::after { content: attr(data-size); position: absolute; left: 50%; bottom: 2mm; transform: translateX(-50%); padding: 1mm 2mm; border-radius: 2mm; background: #111827; color: #fff; font: 700 10pt system-ui, sans-serif; }
+@media (pointer: coarse) { .ws-ffig-handle { width: calc(44px / var(--st-scale, 1)); height: calc(44px / var(--st-scale, 1)); } }
+@media print { .ws-ffig-handle { display: none !important; } .ws-ffig[data-size]::after { display: none; } }

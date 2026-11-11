@@ -6,6 +6,7 @@ import { requireFirebaseClient } from './client.js';
 import { convertLegacyWorksheet } from '../../features/worksheet-studio/engine/legacy.js';
 import { newDocument, SCHEMA } from '../../features/worksheet-studio/engine/schema.js';
 import { BLOCKS } from '../../features/worksheet-studio/engine/registry.js';
+import { figureProblem } from '../../features/worksheet-studio/engine/figureFloat.js';
 import { prepareImageFile } from '../../features/worksheet-studio/engine/image.js';
 import { MAX_VIDEO_BYTES } from '../../features/worksheet-studio/engine/video.js';
 
@@ -29,6 +30,9 @@ export function validateWorksheetDoc(document) {
   if (document.blocks.length > MAX_BLOCKS) throw new Error(`Töölehel võib olla kuni ${MAX_BLOCKS} plokki.`);
   const unknown = document.blocks.find((block) => !BLOCKS[block?.type]);
   if (unknown) throw new Error(`Tundmatu ploki tüüp: ${unknown?.type}`);
+  // a picture's frame and a picture inside a text (figureFloat.js); old sheets have neither
+  const figure = document.blocks.map(figureProblem).find(Boolean);
+  if (figure) throw new Error(figure);
   const json = JSON.stringify(document);
   // photos must be uploaded files, never inline data, or the document would exceed Firestore limits
   if (json.includes('"data:')) throw new Error('Mõni foto või heli ei ole veel üles laaditud. Lisa see uuesti.');

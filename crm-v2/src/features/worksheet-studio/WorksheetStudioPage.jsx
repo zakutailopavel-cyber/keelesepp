@@ -44,6 +44,7 @@ import './engine/sheet.css';
 import './engine/sheetFlow.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
+import { newFigure } from './engine/figureFloat.js';
 import { MARK_KINDS, addMark } from './engine/marksModel.js';
 import { VARIANTS, makeVariant } from './engine/variants.js';
 import { setPath } from './engine/inlineEdit.js';
@@ -457,6 +458,14 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       setRegenerating(false);
     }
   };
+  // a block's own data changed on the sheet (a picture in a text moved, resized or locked): one undo step
+  const patchBlockData = (id, patch) => {
+    const block = doc.blocks.find((b) => b.id === id);
+    if (!block) return;
+    lastPush.current = 0;
+    updateBlock({ ...block, data: { ...block.data, ...patch } });
+    setSelectedId(id);
+  };
   const resizeBlock = (id, patch) => {
     const block = doc.blocks.find((b) => b.id === id);
     if (!block) return;
@@ -766,6 +775,23 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   // „Määra õpilastele” opens Õppevara with the published sheet; the block bar's „Määra” sends one task of it (&plokk=)
   const canAssign = allowAssign && !isNew && worksheetStatus === 'published' && !dirty;
   const assignUrl = `/library?assign=${encodeURIComponent(lessonId)}${worksheetId ? `&leht=${encodeURIComponent(worksheetId)}` : ''}`;
+  // „Teksti sisse”: a picture block next to a text block (the next one, else the one before) becomes that text's picture
+  const wrapTarget = (block) => {
+    if (block.type !== 'image') return null;
+    const i = doc.blocks.findIndex((b) => b.id === block.id);
+    return [doc.blocks[i + 1], doc.blocks[i - 1]].find((b) => b?.type === 'text' && !b.data?.figure) || null;
+  };
+  const wrapIntoText = (block) => {
+    const target = wrapTarget(block);
+    if (!target) return;
+    const before = doc.blocks.indexOf(target) < doc.blocks.indexOf(block);
+    const d = block.data || {};
+    const figure = { ...newFigure(d.img || null), caption: d.caption || '', alt: d.alt || '', shape: d.shape || 'rect', border: d.border || 'none', at: before ? Math.max(0, String(target.data?.text || '').split(/\n{2,}/).length - 1) : 0 };
+    lastPush.current = 0;
+    setBlocks(doc.blocks.filter((b) => b.id !== block.id).map((b) => (b.id === target.id ? { ...b, data: { ...b.data, figure } } : b)));
+    setSelectedId(target.id);
+    setNotice('Pilt on teksti sees. Lohista seda ✥-st, laius nurgast, 🔓 lukustab. „Võta tagasi” toob ploki tagasi.');
+  };
   const renderToolbar = (block) => {
     const index = doc.blocks.findIndex((b) => b.id === block.id);
     const flipping = variants?.blockId === block.id;
@@ -777,6 +803,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           onStyleAll={() => { setBlocks(styleSameType(doc.blocks, block)); setNotice(`Sama stiil kõigil „${BLOCKS[block.type]?.label || 'sama tüüpi'}” plokkidel.`); }} />
         <span className="ws-bar-sep" aria-hidden="true" />
         <button type="button" onClick={() => { setSelectedId(block.id); setPanelOpen(true); }} title="Ploki sisu ja ülesande seaded"><Icons.SlidersHorizontal aria-hidden="true" /> Sisu</button>
+        {wrapTarget(block) ? <button type="button" onClick={() => wrapIntoText(block)} title="Pane pilt kõrvaloleva teksti sisse — tekst voolab pildi ümber"><Icons.WrapText aria-hidden="true" /> Teksti sisse</button> : null}
         <button type="button" onClick={() => duplicateBlock(block.id)} title="Kopeeri (Ctrl+D)" aria-label="Kopeeri"><Icons.Copy aria-hidden="true" /></button>
         {reuse && !privateFor ? <button type="button" onClick={() => setCopying(block)} title="Kopeeri või teisalda tunni teisele lehele" aria-label="Teisalda või kopeeri teisele lehele…"><Icons.FolderInput aria-hidden="true" /></button> : null}
         {canAssign && BLOCKS[block.type]?.task ? <button type="button" onClick={() => navigate(`${assignUrl}&plokk=${encodeURIComponent(block.id)}`)} title="Määra ainult see ülesanne õpilastele"><Icons.Send aria-hidden="true" /> Määra</button> : null}
@@ -1070,7 +1097,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           <main className={`st-canvas ${columnView ? 'ws-narrow' : ''}`} ref={canvasRef}>
             {/* the answer key is a plain page at its own size, not the A4 sheet scaled to the canvas */}
             <div className="st-zoom" style={{ zoom: mode === 'key' || columnView ? 1 : scale, '--st-scale': mode === 'key' || columnView ? 1 : scale }}>
-              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={columnView ? undefined : resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} flow={columnView} />}
+              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={columnView ? undefined : resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} flow={columnView} onPatch={patchBlockData} />}
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>

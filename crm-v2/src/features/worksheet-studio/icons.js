@@ -3,6 +3,7 @@
 // of every page, the student's too (owner 2026-10-13: speed on a phone).
 import {
   ALargeSmall,
+  WrapText,
   ArrowDown,
   ArrowDownUp,
   ArrowLeft,
@@ -102,6 +103,7 @@ import {
 
 export const Icons = {
   ALargeSmall,
+  WrapText,
   ArrowDown,
   ArrowDownUp,
   ArrowLeft,
