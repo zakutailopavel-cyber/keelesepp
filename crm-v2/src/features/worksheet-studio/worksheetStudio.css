@@ -913,7 +913,11 @@ textarea.ed-input { resize: vertical; }
 @media screen {
   /* „Suur tekst”: the sheet as one column (sheetFlow.css `ws-narrow` on the canvas) — the A4 paper parts stay hidden */
   .ws-studio .st-canvas.ws-narrow { padding: 12px; }
-  .ws-studio .st-canvas.ws-narrow .st-zoom { width: auto; }
+  /* the column's page takes the column's width. Stronger than `.ws-studio .st-zoom { width: fit-content }` above on
+     purpose: the studio now loads sheetFlow.css too, so the order of the two files is no longer fixed, and with
+     fit-content the student's column (an inline-size container) collapsed to 0 px on a phone */
+  .ws-studio .st-canvas.ws-narrow .st-zoom, .ws-studio.ws-narrow .st-zoom, .ws-narrow .ws-studio .st-zoom { width: auto; }
+  .ws-studio.ws-narrow .st-evidence { margin: 8px 6px; font-size: 15px; }
   /* the page always takes the last (widest) column, also while the block drawer is closed */
   .st-skin .st-body > .st-canvas { grid-column: -2 / -1; }
   .st-skin .st-actions .st-btn { white-space: nowrap; }
