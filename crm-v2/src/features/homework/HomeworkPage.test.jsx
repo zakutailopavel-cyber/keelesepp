@@ -88,7 +88,7 @@ describe('HomeworkPage: finishing and closing tasks', () => {
     const data = repositories([], [], [{ id: 'h3', studentId: 'student-1', studentName: 'Mari', task: 'Õpi sõnad', status: 'Ootel', due: today }]);
     renderPage({ uid: 'parent-user-1', displayName: 'Ema', roles: ['parent'] }, data);
     expect(await screen.findByRole('heading', { name: /Vaja teha/ })).toBeInTheDocument();
-    expect(screen.getByText('Õpi sõnad')).toBeInTheDocument();
+    expect(screen.getAllByText('Õpi sõnad').length).toBeGreaterThan(0);
     expect(screen.queryByRole('heading', { name: /Tee nüüd/ })).not.toBeInTheDocument();
     expect(data.repository.listWorksheetAssignmentsByStudentIds).toHaveBeenCalledWith(['student-1']);
     expect(screen.queryByRole('button', { name: /^Tehtud$/ })).not.toBeInTheDocument();
@@ -187,7 +187,9 @@ describe('HomeworkPage', () => {
     const data = repositories([reviewed]);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
 
-    expect(await screen.findByRole('heading', { name: /Õpetaja vaatas üle/ })).toBeInTheDocument();
+    // done work is folded under „Tehtud” (new feedback opens it by itself; here an earlier visit has seen it)
+    const fold = await screen.findByRole('button', { name: /^Tehtud \(1\)/ });
+    if (fold.getAttribute('aria-expanded') !== 'true') fireEvent.click(fold);
     fireEvent.click(await screen.findByRole('button', { name: 'Vaata tagasisidet' }));
     const dialog = screen.getByRole('dialog', { name: 'Pere tööleht' });
     expect(dialog).toHaveTextContent('Harjuta veel käändeid.');
@@ -208,7 +210,7 @@ describe('HomeworkPage', () => {
         { id: 'choice-1', type: 'choice', questions: [{ q: 'Kus Mari elab?', opts: ['Tallinnas', 'Tartus'], correct: 0 }] },
       ] },
     };
-    const data = repositories([], [assignment]);
+    const data = repositories([], [assignment], []);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Alusta' }));
@@ -277,6 +279,7 @@ describe('HomeworkPage', () => {
     const completedExercise = { id: 'homework-exercise', studentId: 'student-1', studentName: 'Mari', task: 'Tegusõnad', status: 'Tehtud', isExercise: true, exerciseId: 'exercise-1', exerciseTitle: 'Tegusõnad' };
     const data = repositories([], [], [completedExercise]);
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
+    fireEvent.click(await screen.findByRole('button', { name: /^Tehtud \(1\)/ }));
     await screen.findByText('Tegusõnad');
     expect(screen.queryByRole('button', { name: /Võta tagasi/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Alusta/ })).not.toBeInTheDocument();
@@ -297,15 +300,19 @@ describe('HomeworkPage', () => {
     expect(screen.queryByRole('button', { name: /Esita tööleht/ })).toBeNull();
   });
 
-  it('a started sheet says „Jätka”, a late one comes first and says so', async () => {
+  it('a started sheet says „Jätka” and leads; a long-late one waits folded under „Vanad ülesanded”, gently', async () => {
     const started = { id: 'a-3', studentId: 'student-1', studentName: 'Mari', title: 'Pooleli leht', status: 'in_progress', dueDate: '2099-01-01', answers: { 'b1:0': 'x' }, worksheetDoc: sampleDocument() };
     const late = { id: 'a-4', studentId: 'student-1', studentName: 'Mari', title: 'Hiline leht', status: 'new', dueDate: '2000-01-01', answers: {}, worksheetDoc: sampleDocument() };
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, repositories([], [started, late], []));
-    expect(await screen.findByRole('button', { name: 'Jätka' })).toBeInTheDocument();
-    const cards = screen.getAllByRole('article');
-    expect(cards[0]).toHaveTextContent('Hiline leht');
-    expect(cards[0]).toHaveTextContent(/Tähtaeg oli \d+ päeva tagasi/);
-    expect(cards[1]).toHaveTextContent('Pooleli leht');
+    const next = await screen.findByRole('region', { name: 'Järgmine samm' });
+    expect(next).toHaveTextContent('Pooleli leht');
+    expect(within(next).getByRole('button', { name: 'Jätka' })).toBeInTheDocument();
+    expect(screen.queryByText('Hiline leht')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Vanad ülesanded \(1\)/ }));
+    const lateStep = screen.getByRole('article', { name: 'Hiline leht' });
+    expect(lateStep).toHaveTextContent('hilinenud');
+    expect(lateStep).not.toHaveTextContent(/Tähtaeg oli/);
+    expect(within(lateStep).getByRole('button', { name: 'Alusta' })).toBeInTheDocument();
     expect(screen.queryByText(/õpilast/)).toBeNull();
   });
 
