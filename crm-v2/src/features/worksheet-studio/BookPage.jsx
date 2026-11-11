@@ -1,9 +1,10 @@
-import { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { memo, useCallback, useContext, useEffect, useMemo, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../app/AuthContext.jsx';
 import { Icons } from './icons.js';
 import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
 import { libraryService } from '../../services/firebase/library.js';
-import { assembleTextbook, BOOK_PHASES, bookContents, programLevels, programModules, programProgress, publishedPhaseDoc, sheetEditorPath, tocPages } from './bookProgram.js';
+import { assembleTextbook, BOOK_PHASES, pendingTextbookChanges, bookContents, programLevels, programModules, programProgress, publishedPhaseDoc, sheetEditorPath, tocPages } from './bookProgram.js';
 import Sheet from './engine/Sheet.jsx';
 import { BOOK_THEME, Contents, Cover, LessonHead, ModuleOpener, ReviewPage, WordsPage } from './BookPages.jsx';
 import { loadBookExtras } from './bookExtras.js';
@@ -97,6 +98,7 @@ import { LoadingState } from '../../components/ui/index.js';
 
 const DRAFT_KEY = 'ks-worksheet-book-draft';
 
+
 const norm = (v) => String(v || '').toLocaleLowerCase('et').normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 function readDraft() {
@@ -134,6 +136,9 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   const [counts, setCounts] = useState({});
   const [fitRef, scale] = useFitScale();
   const navigate = useNavigate();
+  // the admin's list of waiting Õpik changes; the book itself needs no signed-in user (tests, print)
+  const user = useContext(AuthContext)?.user || null;
+  const isAdmin = Boolean(user?.roles?.includes?.('admin'));
   // the settings on the left fold away so the book gets the width (owner 2026-11-11); a tablet starts with them folded
   const [sideOpen, setSideOpen] = useState(() => initialSideOpen(screenMatches(TABLET_QUERY)));
   const toggleSide = () => setSideOpen((open) => { rememberSideOpen(!open); return !open; });
@@ -297,6 +302,9 @@ export default function BookPage({ repository = libraryService, worksheetReposit
     const item = sheetItems.find((sheet) => sheet.id === place?.id);
     if (item) editHere(item);
   };
+  // „Õpiku muudatused ootavad” (owner 2026-11-11): the Õpik pages teachers changed and saved, for the admin to publish
+  // or turn down — from the lesson summaries already loaded (no sheet reads)
+  const waiting = isAdmin ? pendingTextbookChanges(state.all) : [];
   if (state.loading) return <div className="page-content"><LoadingState label="Laen töölehti…" /></div>;
   if (state.error) return <div className="page-content"><div className="ws-studio-error" role="alert">{state.error} <Link to="/library">Tagasi Õppevarasse</Link></div></div>;
 
@@ -310,6 +318,18 @@ export default function BookPage({ repository = libraryService, worksheetReposit
           {[['program', 'Õppekava järgi'], ['manual', 'Vali käsitsi']].map(([m, l]) => <button type="button" role="tab" key={m} aria-pressed={mode === m} onClick={() => setMode(m)}>{l}</button>)}
         </div>
         <div className="st-actions">
+          {waiting.length ? (
+            <details className="st-more ws-book-waiting">
+              <summary className="st-btn"><Icons.CircleAlert size={16} aria-hidden="true" /> Õpiku muudatused ootavad <em>{waiting.length}</em></summary>
+              <div className="st-menu">
+                {waiting.map((item) => (
+                  <Link key={item.lessonId} to={`/library/lessons/${encodeURIComponent(item.lessonId)}/worksheets/opik?tagasi=opik`}>
+                    <b>{item.title}</b><small>{[item.by, item.at ? new Date(item.at).toLocaleString('et-EE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''].filter(Boolean).join(' · ')}</small>
+                  </Link>
+                ))}
+              </div>
+            </details>
+          ) : null}
           <button type="button" className="st-btn ws-book-muuda" disabled={!sheetItems.length || printing} onClick={editInView} title="Ava ekraanil olev leht redaktoris. Pärast „Salvesta” / „Avalda” viib „← Õpik” samale kohale tagasi."><Icons.PenLine size={16} aria-hidden="true" /> Muuda</button>
           <button type="button" className="st-btn primary" disabled={!items.length || printing} title={sheetItems.length > 40 ? 'Enne printimist joonistatakse kõik lehed — suure õpiku puhul võtab see aega' : undefined} onClick={startPrint}>{printing ? `Valmistan… ${Math.min(forced, sheetItems.length)}/${sheetItems.length}` : 'PDF / Prindi'}</button>
         </div>

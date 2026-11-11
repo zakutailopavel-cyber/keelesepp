@@ -30,7 +30,7 @@ import {
   subjectFacets,
   subjectOfLevel,
 } from './libraryModel.js';
-import { publishedPhaseDoc } from '../worksheet-studio/bookProgram.js';
+import { pendingTextbookChanges, publishedPhaseDoc } from '../worksheet-studio/bookProgram.js';
 import MaterialPreview from './MaterialPreview.jsx';
 import { grammarTopics } from './grammarIndex.js';
 import MaterialEditor from './MaterialEditor.jsx';
@@ -312,6 +312,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
 
   // admin: write the lesson plan into every installed curriculum lesson that does not have one yet
   const isAdmin = user.roles.includes(ROLES.ADMIN);
+  const textbookWaiting = isAdmin ? pendingTextbookChanges(state.data?.curriculumLessons || []).length : 0;
   const plansMissing = (state.data?.curriculumLessons || []).filter((lesson) => /^(a2|a2b1|b1b2)-\d{3}$|^est-c1-\d{3}$/.test(String(lesson.id || '')) && lesson.descriptionSource !== 'lesson-plan-v1').length;
   const refreshLessonPlans = async () => {
     setRefreshingPlans(true);
@@ -423,7 +424,8 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         eyebrow="Õppetöö"
         title="Õppevara"
         actions={<>
-          <Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button>
+          {/* admin: the Õpik pages teachers changed wait for „Avalda” (owner 2026-11-11) — the list is in the book */}
+          <Button variant="secondary" onClick={() => navigate('/library/worksheets/book')} title={isAdmin && textbookWaiting ? `${textbookWaiting} õpiku muudatust ootab avaldamist` : undefined}><BookCopy size={17} /> Õpik{isAdmin && textbookWaiting ? <span className="badge badge--danger" aria-label={`${textbookWaiting} ootab avaldamist`}>{textbookWaiting}</span> : null}</Button>
           <Button variant="secondary" onClick={() => navigate('/library/raamatukogu')}><Library size={17} /> Raamatukogu</Button>
           <details className="lib2-menu">
             <summary className="button button--primary"><Plus size={17} /> Loo uus <ChevronDown size={15} /></summary>

@@ -116,7 +116,7 @@ function PaletteItem({ id, onClick, title, theme = '', children }) {
   );
 }
 
-export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, sheetTemplates = worksheetSheetTemplatesService, reuse = sheetReuseService, lessonSheets = lessonWorksheetsService, mediaBank = mediaBankService, speech = languageToolsService, resultsSource = homeworkService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, sheetTemplates = worksheetSheetTemplatesService, reuse = sheetReuseService, lessonSheets = lessonWorksheetsService, mediaBank = mediaBankService, speech = languageToolsService, resultsSource = homeworkService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit', publishLock = null }) {
   // worksheetId: the lesson's Avasta / Harjuta / Kasuta sheet (/library/lessons/:lessonId/worksheets/:worksheetId)
   const { lessonId, worksheetId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
@@ -1007,7 +1007,10 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <button type="button" className="st-btn st-icon" onClick={toggleFocus} aria-pressed={focus} title={focus ? 'Näita CRM-i menüüd' : 'Konstruktor kogu aknas'} aria-label={focus ? 'Näita menüüd' : 'Täisekraan'}>{focus ? <Icons.Minimize2 size={16} aria-hidden="true" /> : <Icons.Maximize2 size={16} aria-hidden="true" />}</button>
             <button type="button" className="st-btn" disabled={saving || (!dirty && !isNew)} onClick={() => save('draft')}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
             {canAssign ? <Link className="st-btn" to={assignUrl}>Määra õpilastele</Link> : null}
-            <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>{privateFor ? 'Määra õpilasele' : 'Avalda'}</button>
+            {/* `publishLock` (the Õpik page for a teacher, owner 2026-11-11): „Salvesta” sends the change to the admin, who publishes */}
+            {publishLock
+              ? <span className="st-chip st-publish-lock" title={publishLock.title}>{publishLock.label}</span>
+              : <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>{privateFor ? 'Määra õpilasele' : 'Avalda'}</button>}
           </div>
         </header>
         {renderTop ? renderTop({
@@ -1015,6 +1018,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           doc,
           insertBlocks,
           // a generated sheet shown in the editor first: nothing is saved until „Salvesta” (or autosave), Ctrl+Z undoes it
+          // the Õpik review: the admin sees the waiting change against what students see now (the versions comparison)
+          compareWith: (entry) => setComparing(entry),
           replaceDocument: (next, nextGeneration) => {
             change({ ...next, id: doc.id });
             if (nextGeneration) setGeneration(nextGeneration);
@@ -1037,6 +1042,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               <strong>Versioon {comparing.version} võrreldes praegusega:</strong>
               {rows.length ? <ul>{rows.map(({ block, state }) => <li key={block.id}><span>{state === 'removed' ? 'Kustutatud' : 'Muudetud'}: {block.data?.title || BLOCKS[block.type]?.label || 'plokk'}</span> <button type="button" className="st-btn" onClick={() => restoreTask(block)}>Too see ülesanne tagasi</button></li>)}</ul> : <span> ülesanded on samad.</span>}
               <button type="button" className="st-btn" onClick={async () => { if (await askConfirm(`Taasta kogu versioon ${comparing.version} uue mustandina?`, { confirmLabel: 'Taasta' })) { change({ ...structuredClone(comparing.worksheetDoc), id: doc.id }); setVersions([]); setComparing(null); setNotice(`Versioon ${comparing.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>Taasta kogu leht</button>
+              <button type="button" className="st-btn" onClick={() => setComparing(null)}>Sulge võrdlus</button>
             </div>
           );
         })()}

@@ -24,6 +24,28 @@ Each source loads on its own; one the user may not read (another teacher's journ
 
 ## Where the student sees it
 
+**Since agent/ulesanded-path (owner 2026-11-10 „делай Ülesanded как дуалинго”) — „Ülesanded” is a path:**
+`homework/LearnerTasksPage.jsx` + the pure model `homework/taskPath.js` (on top of `taskList.js mergeTasks`, data and
+actions unchanged). On top ONE „Järgmine samm” (the home's green `.sh-step` card, one big button, „umbes N min”); below
+„Sinu tee”: one node per lesson (a lesson's Avasta / Harjuta / Kasuta sheets are one node, 1/3 · 2/3 · 3/3 with a meter,
+the teacher's words once per lesson; free homework given in the same Live Classroom lesson — same `invitationId` —
+stands in that node; anything else is its own small node). Newest lesson first (lessons given together: course order).
+Work whose deadline (else the day it was given) is more than `OLD_DAYS` = 14 days ago folds into „Vanad ülesanded (N)”
+— still doable, a gentle „hilinenud” label instead of the red „Tähtaeg oli N päeva tagasi”; done work folds into
+„Tehtud (N)” with the teacher's real grade / comment (opens by itself when there is new feedback). The ONE order of open
+work is `pathQueue` (started sheet → deadline within 2 days or missed in the last 14 → the monologue → newest lesson,
+Avasta first → the rest → old), and `nextStep.js homeworkQueue` uses the same order, so „Täna”, „Harjuta” and
+„Ülesanded” name the same next task; their `to` opens that very task (`/homework?ava=<taskKey>` starts the sheet).
+Word-card tasks (`isWordTask`: structured `homework.kind|practice === 'words'` if ever written, else the teacher's
+words — „sõnakaart…”, „korda / õpi / harjuta … sõn…”, „повтори слова”) get „Ava kaardid” →
+`/student/harjuta?kaardid=<homeworkId>` (`students/WordTaskCard.jsx`): the cards of that lesson's words
+(`studentWords.invitationId`), else today's queue; the finished session sets the homework to „Tehtud” (the same status
+write the student's own „Tehtud” does — no rules change), „Tehtud” / „Lisa vastus” stay as quiet links. Lab:
+`/tasks-lab.html` (fake data, `src/test/tasksLab/`).
+Since 2026-11-11 (owner + review): „Harjuta” starts with words, then sentences (the 10-minute habit) — homework is no
+step of it; the teacher's next task (`todaySteps().task`, the same as „Järgmine samm”) is a separate card under the
+practice. Home „Täna” `nextStep`: lesson now → words → sentences → teacher work → self-study.
+
 **Since agent/student-tana (owner 2026-11-09) — the current shape:** the daily practice lives in its own tab
 **„Harjuta”** (`/student/harjuta`, `StudentPracticePage.jsx` + `PracticeFlow.jsx`, menu item right after „Täna”; the
 cabinet's own Card / Button / Badge look). The home „Täna” keeps its structure and look (one next-step card, the pet,

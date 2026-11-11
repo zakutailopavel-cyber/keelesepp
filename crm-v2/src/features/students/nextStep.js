@@ -3,9 +3,10 @@
 // section rows), the „Harjuta” tab (its steps and the one button) and the walking pet's hint (companionModel.js); the
 // pet itself only rewards, it asks for nothing.
 //
-// Today's steps, in this order (todaySteps):
+// Today's steps, in this order (todaySteps). Since 2026-11-11 (owner + review): the daily practice is the 10-minute
+// habit and starts with words, never with an overdue homework; the teacher's next task is a separate card (`task`)
+// next to the steps, in the one order of homework/taskPath.js — the same task „Ülesanded” shows as „Järgmine samm”.
 //   live       a lesson going on now or starting within SOON_MINUTES — an interrupt, not a step: „Ava tund”
-//   homework   what the teacher gave (homework/taskList.js): overdue first, then due soon, the monthly monologue, the rest
 //   words      the spaced repetition queue of his own words (vocabulary/dailyReview.js)
 //   sentences  one practice lesson: course sentences and grammar of his level + his own wrong sentences (practice/)
 //   course     the self-study course („Kursus”), only on a self-study card (isSelfStudent)
@@ -16,7 +17,8 @@
 // nextStep() is the same order as one line (key, title, detail, button, to) for places that show a single thing.
 // Pure: the page passes what it knows. `tasks` are extra rows of the task list (the monologue, homework/taskList.js
 // shape), so home and „Ülesanded” never disagree.
-import { TASK_STATE, groupTasks, mergeTasks, taskCount } from '../homework/taskList.js';
+import { PHASES, TASK_STATE, groupTasks, mergeTasks, taskCount } from '../homework/taskList.js';
+import { isOldTask, pathQueue, taskLink } from '../homework/taskPath.js';
 import { dailyPlan } from '../vocabulary/dailyReview.js';
 import { DAILY_GOAL_MINUTES } from '../practice/progress.js';
 import { toIsoDate } from '../calendar/calendarView.js';
@@ -30,9 +32,8 @@ const MINUTE = 60 * 1000;
 export const ERROR_PREFIX = 'Sinu lause:';
 const SENTENCE_MINUTES = 4;
 const COURSE_MINUTES = 10;
-// homework: each task by its own estimate (taskList minutes), else ~5 min; the step counts at most 10 min
+// a teacher task without its own estimate: about 5 minutes
 const TASK_MINUTES = 5;
-const HOMEWORK_MINUTES = 10;
 
 const clean = (value) => String(value ?? '').trim();
 const short = (text, max = 60) => { const t = clean(text); return t.length > max ? `${t.slice(0, max - 1)}…` : t; };
@@ -75,23 +76,29 @@ export function openWork({ homework = [], assignments = [], tasks = [] } = {}) {
 const openMonologue = (tasks = []) => tasks.find((task) => task?.kind === 'monologue' && task.state === TASK_STATE.TODO) || null;
 
 /**
- * The homework step's queue: overdue (oldest deadline first), due within DUE_SOON_DAYS, the monthly monologue, the rest
- * in the order of „Tee nüüd”. Each: { id, title, due, minutes, to, kind: 'overdue' | 'due-soon' | 'monologue' | 'homework' }.
+ * The homework step's queue, in the ONE order of open work (homework/taskPath.js pathQueue — the same as „Ülesanded”'s
+ * „Järgmine samm”): a started sheet, a deadline soon or missed lately, the monologue, the newest lesson, the rest, old
+ * work last. Each: { id, title, due, minutes, to, started, kind: 'overdue' | 'due-soon' | 'monologue' | 'homework' | 'old' }.
+ * `to` opens that very task (a sheet starts, word cards open in „Harjuta”). Work older than OLD_DAYS is 'old', not
+ * 'overdue': it is no alarm any more (owner 2026-11-10), only still doable.
  */
 export function homeworkQueue({ homework = [], assignments = [], tasks = [], today }) {
-  const work = openWork({ homework, assignments, tasks });
-  const soonDue = addDays(today, DUE_SOON_DAYS);
-  const byDue = (a, b) => a.due.localeCompare(b.due);
-  const overdue = work.filter((task) => task.due && task.due < today).sort(byDue);
-  const dueSoon = work.filter((task) => task.due && task.due >= today && task.due <= soonDue).sort(byDue);
-  const rest = work.filter((task) => !overdue.includes(task) && !dueSoon.includes(task));
   const monologue = openMonologue(tasks);
-  return [
-    ...overdue.map((task) => ({ ...task, kind: 'overdue', to: '/homework' })),
-    ...dueSoon.map((task) => ({ ...task, kind: 'due-soon', to: '/homework' })),
-    ...(monologue ? [{ id: monologue.key, title: monologue.title || 'Kuu monoloog', due: monologue.due || '', minutes: 5, kind: 'monologue', to: monologue.to || '/homework' }] : []),
-    ...rest.map((task) => ({ ...task, kind: 'homework', to: '/homework' })),
-  ];
+  const extra = tasks.filter((task) => task && task.kind !== 'monologue');
+  const all = [...mergeTasks({ homework, assignments }), ...extra, ...(monologue ? [monologue] : [])];
+  const soonDue = addDays(today, DUE_SOON_DAYS);
+  const kindOf = (task) => {
+    if (task.kind === 'monologue') return 'monologue';
+    if (isOldTask(task, today)) return 'old';
+    if (task.due && task.due < today) return 'overdue';
+    if (task.due && task.due <= soonDue) return 'due-soon';
+    return 'homework';
+  };
+  return pathQueue(all, today).map((task) => ({
+    id: task.key, title: task.kind === 'monologue' ? task.title || 'Kuu monoloog' : task.title, due: task.due || '',
+    minutes: task.kind === 'monologue' ? 5 : task.minutes || 0, kind: kindOf(task), started: Boolean(task.started), phase: task.phase || '',
+    to: task.kind === 'monologue' ? task.to || '/homework' : taskLink(task),
+  }));
 }
 
 // work submitted or marked done today (the homework step is ticked by what really happened)
@@ -122,26 +129,27 @@ const cardsText = (n) => `${n} ${n === 1 ? 'kaart' : 'kaarti'}`;
 /**
  * Today's flow. `sentences`: { available, own } — whether a practice lesson can be built for him (his level has course
  * items, or he has own wrong sentences) and how many own sentences wait. `done`: step keys ticked today (progress.js).
- * → { live, steps: [{ key, label, ru, detail, minutes, state: 'todo' | 'done' | 'empty', to, queue? }], todo, minutes,
- *     goal, finished }
+ * → { live, steps: [{ key, label, ru, detail, minutes, state: 'todo' | 'done' | 'empty', to }], todo, minutes,
+ *     goal, finished, task (the teacher's next task — not a step — or null: { id, title, detail, to, minutes, kind, count }),
+ *     queue (all open teacher work in the one order) }
  */
 export function todaySteps({
-  occurrences = [], homework = [], assignments = [], submissions = [], tasks = [], words = [], sentences = { available: false, own: 0 },
+  occurrences = [], homework = [], assignments = [], tasks = [], words = [], sentences = { available: false, own: 0 },
   selfStudent = false, done = [], today, now = Date.now(),
 }) {
   const ticked = new Set(done);
   const live = lessonNow(occurrences, now);
   const steps = [];
 
+  // the teacher's next task: a card of its own, not step 1 (old work > OLD_DAYS stays in „Vanad ülesanded”)
   const queue = homeworkQueue({ homework, assignments, tasks, today });
-  const workToday = workDoneToday({ homework, submissions, today });
-  const late = queue.filter((task) => task.kind === 'overdue').length;
-  steps.push({
-    key: 'homework', label: 'Ülesanded', ru: 'задания', to: queue[0]?.to || '/homework', queue,
-    state: ticked.has('homework') || (workToday && !late) ? 'done' : queue.length ? 'todo' : 'empty',
-    detail: queue.length ? [short(queue[0].title, 48), queue[0].kind === 'overdue' ? `tähtaeg oli ${dayLabel(queue[0].due)}` : '', queue.length > 1 ? `kokku ${taskCount(queue.length)}` : ''].filter(Boolean).join(' · ') : workToday ? 'Tehtud täna' : '',
-    minutes: Math.min(HOMEWORK_MINUTES, queue.reduce((sum, task) => sum + (Number(task.minutes) > 0 ? Number(task.minutes) : TASK_MINUTES), 0)),
-  });
+  const fresh = queue.filter((item) => item.kind !== 'old');
+  const first = fresh[0] || null;
+  const task = first ? {
+    ...first,
+    count: fresh.length,
+    detail: [PHASES[first.phase]?.step ? `${PHASES[first.phase].label} ${PHASES[first.phase].step}/3` : '', first.started ? 'alustatud' : '', first.kind === 'overdue' ? 'hilinenud' : first.due ? `tähtaeg ${dayLabel(first.due)}` : '', `umbes ${Number(first.minutes) > 0 ? first.minutes : TASK_MINUTES} min`].filter(Boolean).join(' · '),
+  } : null;
 
   const daily = dailyPlan(ownWords(words), { now, today });
   steps.push({
@@ -178,6 +186,8 @@ export function todaySteps({
     goal: DAILY_GOAL_MINUTES,
     // all that could be done today is done (a day with nothing at all is not „finished”)
     finished: active.length > 0 && todo.length === 0,
+    task,
+    queue,
   };
 }
 
@@ -192,12 +202,23 @@ export function nextStep({ occurrences = [], homework = [], assignments = [], ta
   const work = queue.filter((task) => task.kind !== 'monologue');
   const more = work.length > 1 ? `kokku ${taskCount(work.length)}` : '';
   const first = (kind) => queue.find((task) => task.kind === kind);
+  // the daily practice first (owner + review 2026-11-11: the 10-minute habit, never an overdue homework as the opener)
+  const daily = dailyPlan(ownWords(words), { now, today });
+  if (daily.count && !daily.done && !done.includes('words')) {
+    return { key: 'review', title: 'Korda sõnu', detail: `${cardsText(daily.count)}, umbes 5 minutit`, button: 'Harjuta', to: PRACTICE_PATH };
+  }
+  if ((sentences.available || sentences.own > 0) && !done.includes('sentences')) {
+    return { key: 'sentences', title: 'Laused ja grammatika', detail: 'Lühike harjutus, umbes 4 minutit', button: 'Harjuta', to: PRACTICE_PATH };
+  }
+  // finish what was begun (a sheet with answers, not old) — the first of the one order, as on „Ülesanded”
+  const begun = work[0]?.started && work[0].kind !== 'old' ? work[0] : null;
+  if (begun) return { key: 'homework', title: short(begun.title), detail: ['Alustasid seda', more].filter(Boolean).join(' · '), button: 'Jätka', to: begun.to };
   const overdue = first('overdue');
-  if (overdue) return { key: 'overdue', title: short(overdue.title), detail: [`Tähtaeg oli ${dayLabel(overdue.due)}`, more].filter(Boolean).join(' · '), button: 'Tee ära', to: '/homework' };
+  if (overdue) return { key: 'overdue', title: short(overdue.title), detail: [`Tähtaeg oli ${dayLabel(overdue.due)}`, more].filter(Boolean).join(' · '), button: 'Tee ära', to: overdue.to };
   const dueSoon = first('due-soon');
   if (dueSoon) {
     const when = dueSoon.due === today ? 'Tähtaeg täna' : dueSoon.due === addDays(today, 1) ? 'Tähtaeg homme' : `Tähtaeg ${dayLabel(dueSoon.due)}`;
-    return { key: 'due-soon', title: short(dueSoon.title), detail: [when, more].filter(Boolean).join(' · '), button: 'Tee ära', to: '/homework' };
+    return { key: 'due-soon', title: short(dueSoon.title), detail: [when, more].filter(Boolean).join(' · '), button: 'Tee ära', to: dueSoon.to };
   }
   const later = lessonLaterToday(occurrences, today, now);
   if (later) return { key: 'lesson-today', title: `Täna kell ${later.time} on tund`, detail: lessonDetail(later), button: 'Vaata tunniplaani', to: '#tunniplaan' };
@@ -206,18 +227,11 @@ export function nextStep({ occurrences = [], homework = [], assignments = [], ta
     const detail = [monologue.due ? `Tähtaeg ${dayLabel(monologue.due)}` : '', 'räägi 2 minutit'].filter(Boolean).join(' · ');
     return { key: 'monologue', title: short(monologue.title) || 'Kuu monoloog', detail, button: 'Salvesta', to: monologue.to };
   }
-  const rest = first('homework');
+  const rest = first('homework') || first('old');
   if (rest) {
-    // the order of „Tee nüüd”: without deadlines the oldest lesson first, not the last one given
-    const detail = [rest.due ? `Tähtaeg ${dayLabel(rest.due)}` : '', more].filter(Boolean).join(' · ') || 'Õpetaja andis selle sulle';
-    return { key: 'homework', title: short(rest.title), detail, button: 'Tee ära', to: '/homework' };
-  }
-  const daily = dailyPlan(ownWords(words), { now, today });
-  if (daily.count && !daily.done && !done.includes('words')) {
-    return { key: 'review', title: 'Korda sõnu', detail: `${cardsText(daily.count)}, umbes 5 minutit`, button: 'Harjuta', to: PRACTICE_PATH };
-  }
-  if ((sentences.available || sentences.own > 0) && !done.includes('sentences')) {
-    return { key: 'sentences', title: 'Laused ja grammatika', detail: 'Lühike harjutus, umbes 4 minutit', button: 'Harjuta', to: PRACTICE_PATH };
+    // the one order (taskPath.js): the newest lesson first; work older than two weeks last, still doable, no alarm
+    const detail = [rest.kind === 'old' ? 'Vanem ülesanne' : rest.due ? `Tähtaeg ${dayLabel(rest.due)}` : '', more].filter(Boolean).join(' · ') || 'Õpetaja andis selle sulle';
+    return { key: 'homework', title: short(rest.title), detail, button: 'Tee ära', to: rest.to };
   }
   const course = selfStudyOpen(assignments);
   if (course) {

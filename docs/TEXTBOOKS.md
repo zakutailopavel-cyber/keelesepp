@@ -14,6 +14,11 @@ lesson that teaches the same grammar, next to Avasta / Harjuta / Kasuta. Those t
 - Publishing: „Kursuse tootmine” → section „Õpik” → „Avalda” (with a confirmation). It writes
   `curriculumLessons/{lesson}/worksheets/opik` (role `focus`, slot 4) and the summary `worksheetPhases.opik`. Only the
   answer key is checked; the textbook's content is not measured against our lesson norms.
+- Editing (owner 2026-11-11): teachers edit an Õpik page in the lesson constructor (or „Muuda” in the book) and press
+  „Salvesta”; the change waits („Ootab avaldamist”, `review` on the worksheet record and `worksheetPhases.opik.review`)
+  while students keep the published page. Only an admin presses „Avalda” or „Lükka tagasi” (a note the teacher sees on
+  the page). The admin's list: book page „Õpiku muudatused ootavad”, count on Õppevara's „Õpik” button. Enforced by
+  `firestore.rules` `opikTeacherSave()`.
 - Õppevara:
   - the chip „Õpik” appears only on lessons that have one, and is not counted in the filters or the module progress;
   - assignment offers it, unticked by default;

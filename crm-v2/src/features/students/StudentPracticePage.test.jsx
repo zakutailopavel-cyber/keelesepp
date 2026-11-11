@@ -43,25 +43,28 @@ describe('„Harjuta” — the daily practice tab', () => {
     const data = repositories(undefined, { wordsService: wordsOf(dueWords) });
     renderPage(data);
     const flow = await screen.findByRole('region', { name: 'Harjuta' });
-    await waitFor(() => expect([...flow.querySelectorAll('.pf-list b')].map((node) => node.textContent)).toEqual(['Ülesanded', 'Sõnad', 'Laused ja grammatika']));
+    // the practice starts with words, never with homework (owner + review 2026-11-11)
+    await waitFor(() => expect([...flow.querySelectorAll('.pf-list b')].map((node) => node.textContent)).toEqual(['Sõnad', 'Laused ja grammatika']));
     expect(within(flow).getAllByRole('button')).toHaveLength(1);
     expect(within(flow).getByRole('button', { name: /Alusta tänast/ })).toHaveClass('button', 'button--primary');
     expect(flow.querySelector('.link-button')).toBeNull();
     expect(data.courseLoaders.a2).not.toHaveBeenCalled();
     expect(data.petRepository.lessonStats).not.toHaveBeenCalled();
+    // the teacher's next task: a separate card below the practice, opening that very task
+    const task = screen.getByRole('region', { name: 'Õpetaja ülesanne' });
+    expect(task).toHaveTextContent('Õpi sõnad');
+    expect(within(task).getByRole('link', { name: /Ava kaardid/ })).toHaveAttribute('href', '/student/harjuta?kaardid=homework-1');
+    expect(flow.compareDocumentPosition(task) & globalThis.Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('„Alusta tänast” runs homework (later), words, sentences; each is ticked, the pet reacts, the day ends with its thanks', async () => {
+  it('„Alusta tänast” runs words, then sentences; each is ticked, the pet reacts, the day ends with its thanks', async () => {
     const data = repositories(undefined, { wordsService: wordsOf([...dueWords, ownSentence]) });
     renderPage(data);
     const start = await screen.findByRole('region', { name: 'Harjuta' });
-    await waitFor(() => expect(start.querySelectorAll('.pf-list li')).toHaveLength(3));
+    await waitFor(() => expect(start.querySelectorAll('.pf-list li')).toHaveLength(2));
     fireEvent.click(within(start).getByRole('button', { name: /Alusta tänast/ }));
-    let flow = screen.getByRole('region', { name: 'Harjuta: Ülesanded' });
-    expect(within(flow).getByText('Samm 1 / 3')).toBeInTheDocument();
-    expect(within(flow).getByRole('link', { name: /Ava ülesanne/ })).toHaveAttribute('href', '/homework');
-    fireEvent.click(within(flow).getByRole('button', { name: /Hiljem/ }));
-    flow = screen.getByRole('region', { name: 'Harjuta: Sõnad' });
+    const flow = screen.getByRole('region', { name: 'Harjuta: Sõnad' });
+    expect(within(flow).getByText('Samm 1 / 2')).toBeInTheDocument();
     for (let i = 0; i < 12 && within(flow).queryByRole('button', { name: 'Näita vastust' }); i += 1) {
       fireEvent.click(within(flow).getByRole('button', { name: 'Näita vastust' }));
       fireEvent.click(within(flow).getByRole('button', { name: /^Lihtne/ }));
@@ -85,7 +88,9 @@ describe('„Harjuta” — the daily practice tab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Valmis' }));
     const overview = screen.getByRole('region', { name: 'Harjuta' });
     expect(doneSteps(overview)).toEqual(['Sõnad', 'Laused ja grammatika']);
-    expect(within(overview).getByRole('button', { name: /Tee ka edasilükatud/ })).toBeInTheDocument();
+    expect(within(overview).getByRole('heading', { name: 'Kõik on tehtud!' })).toBeInTheDocument();
+    // the open homework does not undo the finished day; it waits in its own card
+    expect(screen.getByRole('region', { name: 'Õpetaja ülesanne' })).toHaveTextContent('Õpi sõnad');
   });
 
   it('steps with nothing to do are skipped; English without own sentences → nothing to practise', async () => {
@@ -146,5 +151,58 @@ describe('„Harjuta” — the daily practice tab', () => {
     expect(screen.getByText('Täna on tehtud!')).toBeInTheDocument();
     expect([...document.querySelectorAll("p")].filter((node) => node.textContent.includes("Everything is done today"))).toHaveLength(1);
     expect(screen.getByRole('region', { name: 'Okki' })).toBeInTheDocument();
+  });
+
+  describe('a teacher\'s word task opened from „Ülesanded” (?kaardid=, owner 2026-11-10)', () => {
+    const lessonWords = ['valutama', 'retsept'].map((id) => ({ id, word: id, translation: `t-${id}`, invitationId: 'inv-1', box: 0, reviews: 0, createdAt: ago(1) }));
+    const wordTask = { id: 'hw-w', studentId: 'student-1', task: 'Korda tunni sõnu sõnakaartidega 10 minutit', status: 'Ootel', invitationId: 'inv-1' };
+    const openTask = (data, auth) => render(<MemoryRouter initialEntries={['/student/harjuta?kaardid=hw-w']}><AuthContext.Provider value={{ user: { uid: 'user-1', displayName: 'Mari', roles: ['student'] }, ...auth }}><StudentPracticePage {...data} /></AuthContext.Provider></MemoryRouter>);
+    const answerAll = (card) => {
+      for (let i = 0; i < 12 && within(card).queryByRole('button', { name: 'Näita vastust' }); i += 1) {
+        fireEvent.click(within(card).getByRole('button', { name: 'Näita vastust' }));
+        fireEvent.click(within(card).getByRole('button', { name: /^Lihtne/ }));
+      }
+    };
+
+    it('runs that lesson\'s words; the finished session marks the task done (the same „Tehtud” as on „Ülesanded”)', async () => {
+      const data = repositories(undefined, { wordsService: wordsOf([...lessonWords, ...dueWords]) });
+      data.homeworkRepository.listByStudentIds.mockResolvedValue([wordTask]);
+      data.homeworkRepository.setStatus = vi.fn().mockResolvedValue(undefined);
+      openTask(data);
+      const card = await screen.findByRole('region', { name: 'Õpetaja ülesanne' });
+      expect(card).toHaveTextContent('Korda tunni sõnu sõnakaartidega 10 minutit');
+      await waitFor(() => expect(within(card).getByRole('button', { name: 'Näita vastust' })).toBeInTheDocument());
+      expect(card).not.toHaveTextContent('kordame sinu tänaseid kaarte');
+      answerAll(card);
+      await waitFor(() => expect(data.homeworkRepository.setStatus).toHaveBeenCalledWith('hw-w', 'Tehtud'));
+      expect(data.wordsService.rate.mock.calls.map(([word]) => word.id).every((id) => ['valutama', 'retsept'].includes(id))).toBe(true);
+      // lesson words are not today's queue: the words step is not ticked by this
+      expect(data.practiceService.saveToday).not.toHaveBeenCalledWith('user-1', expect.objectContaining({ done: ['words'] }));
+    });
+
+    it('no words of that lesson: today\'s cards, and the day\'s words step is ticked too', async () => {
+      const data = repositories(undefined, { wordsService: wordsOf(dueWords) });
+      data.homeworkRepository.listByStudentIds.mockResolvedValue([wordTask]);
+      data.homeworkRepository.setStatus = vi.fn().mockResolvedValue(undefined);
+      openTask(data);
+      const card = await screen.findByRole('region', { name: 'Õpetaja ülesanne' });
+      await waitFor(() => expect(card).toHaveTextContent('kordame sinu tänaseid kaarte'));
+      answerAll(card);
+      await waitFor(() => expect(data.homeworkRepository.setStatus).toHaveBeenCalledWith('hw-w', 'Tehtud'));
+      await waitFor(() => expect(data.practiceService.saveToday).toHaveBeenCalledWith('user-1', expect.objectContaining({ done: ['words'] })));
+    });
+
+    it('in the staff preview it practises and saves nothing', async () => {
+      const data = repositories(undefined, { wordsService: wordsOf(lessonWords) });
+      data.homeworkRepository.listByStudentIds.mockResolvedValue([wordTask]);
+      data.homeworkRepository.setStatus = vi.fn();
+      openTask(data, { preview: { studentId: 'student-1' } });
+      const card = await screen.findByRole('region', { name: 'Õpetaja ülesanne' });
+      await waitFor(() => expect(within(card).getByRole('button', { name: 'Näita vastust' })).toBeInTheDocument());
+      answerAll(card);
+      expect(await within(card).findByText(/Vaade: siit ei salvestata midagi/)).toBeInTheDocument();
+      expect(data.homeworkRepository.setStatus).not.toHaveBeenCalled();
+      expect(data.wordsService.rate).not.toHaveBeenCalled();
+    });
   });
 });

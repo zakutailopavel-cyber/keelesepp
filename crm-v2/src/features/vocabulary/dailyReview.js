@@ -84,3 +84,17 @@ export async function rateWord(service, words = [], item, rating, nextSide = nul
   } catch { /* the practice goes on */ }
   return null;
 }
+
+/**
+ * A teacher's word task („Korda tunni sõnu sõnakaartidega”, homework/taskPath.js isWordTask) opened in „Harjuta”: the
+ * cards of the words added in that lesson (`invitationId`) — the ones due or new first, else all of them once; without
+ * such words, today's queue. → { cards, source: 'lesson' | 'daily' }
+ */
+export function lessonWordCards(words = [], invitationId = '', { now = Date.now() } = {}) {
+  const own = words.filter((word) => !isSentence(word));
+  const lesson = invitationId ? own.filter((word) => word.invitationId === invitationId) : [];
+  if (!lesson.length) return { cards: dailyPlan(own, { now }).cards, source: 'daily' };
+  const due = dailyPlan(lesson, { now, newPerDay: lesson.length * 2 }).cards;
+  if (due.length) return { cards: due, source: 'lesson' };
+  return { cards: deckFromWords(lesson).map((card) => ({ ...card, key: `${card.id}:r`, dir: 'r', side: wordSrs(card.word, new Date(now)).r })), source: 'lesson' };
+}
