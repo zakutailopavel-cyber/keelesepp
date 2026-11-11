@@ -5125,7 +5125,7 @@ test("„Minu kassa”: teacher hands cash to a listed receiver, receiver confir
   const db = admin.firestore();
   const adminToken = await createAdminToken();
   const adminUid = tokenUid(adminToken);
-  const oleksiyUid = "FVHgmNemulatorOleksiy";
+  const oleksiyUid = "FVHgmNRM0hPFtbeb1ifELilcaWm1";
   const oleksiyToken = await tokenForUid(oleksiyUid, "box-oleksiy@example.com");
   const teacherToken = await createUserToken("box-teacher@example.com");
   const teacherUid = tokenUid(teacherToken);
@@ -5155,7 +5155,7 @@ test("„Minu kassa”: teacher hands cash to a listed receiver, receiver confir
   const receiptA = `lessoncash_${lessonIds[0]}`;
   const receiptB = `lessoncash_${lessonIds[1]}`;
 
-  // the teacher's own box: 75 € on hand, three entries, receivers by default = the FVHgmN admin (the owner's real uid is not in the emulator)
+  // the teacher's own box: 75 € on hand, three entries, receivers by default = Oleksiy's exact uid (the owner's real uid is not in the emulator)
   let mine = await financeRequest(teacherToken, "/cash/mine", {});
   assert.equal(mine.status, 200, JSON.stringify(mine.body));
   assert.equal(mine.body.onHandCents, 7500);

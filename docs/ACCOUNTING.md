@@ -581,7 +581,7 @@ menu and `/cash/summary` = admin + finance; `/cash/receipts`, `/cash/handover`, 
   `remaining` per entry.
 - **Receivers** („Kassa vastuvõtjad”): `cashSettings/receivers { uids, updatedAt, updatedBy }`, written only by
   financeApi `/cash/settings` (admin; audit `cash.receivers_updated`). No document = defaults: owner uid
-  `2ai5mVQCmjSGjsy7t53JrqKgZdX2` + an **admin** whose uid starts with `FVHgmN` (Oleksiy). Only active staff are offered.
+  `2ai5mVQCmjSGjsy7t53JrqKgZdX2` + Oleksiy Skoryk `FVHgmNRM0hPFtbeb1ifELilcaWm1`. Only active staff are offered.
 - **Server** (financeApi, staff; checks inside): `/cash/mine` (own view `myCashView` + receivers, nobody else's data),
   `/cash/handover/request` (own cash only, listed receiver only, everything available or chosen entries, 0 € → 409,
   what is pending cannot be given twice; audit `cash.handover_requested`), `/cash/handover/answer` (only the addressed

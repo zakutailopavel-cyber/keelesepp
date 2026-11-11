@@ -308,9 +308,8 @@ function lessonCashMarks(entries = [], { uid, isAdmin, balanceCents, remaining =
 
 // ---- „Minu kassa” — a person's own cash and hand-overs to a cash receiver (owner 2026-11-11) ----
 // The receivers („Kassa vastuvõtjad”) are a setting: cashSettings/receivers { uids: [...] }, written by an admin through
-// financeApi /cash/settings. No document yet = the defaults: the owner and the administrator whose account id starts
-// with FVHgmN (Oleksiy; matched only among users with role admin, so no other account can fall into it).
-const DEFAULT_CASH_RECEIVERS = Object.freeze({ uids: Object.freeze(["2ai5mVQCmjSGjsy7t53JrqKgZdX2"]), adminUidPrefixes: Object.freeze(["FVHgmN"]) });
+// financeApi /cash/settings. No document yet = the defaults: the owner (Pavel Zakutailo) and Oleksiy Skoryk.
+const DEFAULT_CASH_RECEIVERS = Object.freeze({ uids: Object.freeze(["2ai5mVQCmjSGjsy7t53JrqKgZdX2", "FVHgmNRM0hPFtbeb1ifELilcaWm1"]) });
 const MAX_RECEIVERS = 10;
 const MAX_HANDOVER_ITEMS = 400;
 
@@ -372,8 +371,7 @@ function cashReceivers({ settings = null, people = [] } = {}) {
   const saved = settings && Array.isArray(settings.uids) ? settings.uids.map(String) : null;
   const chosen = saved
     ? saved.map((uid) => active.find((person) => person.uid === uid)).filter(Boolean)
-    : active.filter((person) => DEFAULT_CASH_RECEIVERS.uids.includes(person.uid)
-      || (person.isAdmin && DEFAULT_CASH_RECEIVERS.adminUidPrefixes.some((prefix) => person.uid.startsWith(prefix))));
+    : DEFAULT_CASH_RECEIVERS.uids.map((uid) => active.find((person) => person.uid === uid)).filter(Boolean);
   const seen = new Set();
   return chosen.filter((person) => (seen.has(person.uid) ? false : seen.add(person.uid)))
     .map((person) => ({ uid: person.uid, name: clean(person.name, 120), isAdmin: Boolean(person.isAdmin) }));

@@ -44,15 +44,16 @@ test("cashPosition: on hand, waiting for the receiver, still available; named it
   assert.deepEqual(position.items.map((item) => item.id), ["h1"]);
 });
 
-test("receivers: the saved list, else the owner + the FVHgmN admin; only active staff", () => {
+test("receivers: the saved list, else the owner + Oleksiy (exact uids); only active staff", () => {
   const people = [
     { uid: "2ai5mVQCmjSGjsy7t53JrqKgZdX2", name: "Pavel Zakutailo", isAdmin: true },
     { uid: "FVHgmNabc", name: "Oleksiy Skoryk", isAdmin: true },
-    { uid: "FVHgmNteacher", name: "Not admin", isAdmin: false },
+    { uid: "FVHgmNteacher", name: "Same prefix, not default", isAdmin: true },
+    { uid: "FVHgmNRM0hPFtbeb1ifELilcaWm1", name: "Oleksiy Skoryk", isAdmin: true },
     { uid: "t1", name: "Mari" },
     { uid: "gone", name: "Left", active: false },
   ];
-  assert.deepEqual(core.cashReceivers({ people }).map((row) => row.uid), ["2ai5mVQCmjSGjsy7t53JrqKgZdX2", "FVHgmNabc"]);
+  assert.deepEqual(core.cashReceivers({ people }).map((row) => row.uid), ["2ai5mVQCmjSGjsy7t53JrqKgZdX2", "FVHgmNRM0hPFtbeb1ifELilcaWm1"]);
   assert.deepEqual(core.cashReceivers({ settings: { uids: ["t1", "gone", "FVHgmNabc", "t1"] }, people }).map((row) => row.uid), ["t1", "FVHgmNabc"]);
   assert.deepEqual(core.cleanReceiverUids(["t1", "t1", "FVHgmNabc"], people), ["t1", "FVHgmNabc"]);
   assert.throws(() => core.cleanReceiverUids([], people), /vähemalt üks/);
