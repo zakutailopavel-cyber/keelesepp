@@ -477,22 +477,45 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     el.addEventListener('blur', finish);
   };
 
+  // Touch (owner 2026-11-11: „editing the Õpik on a tablet is awkward”): a double tap zooms the page on a tablet, so a
+  // finger edits with two single taps — the first selects the block (its bar and settings), a second tap on a text of
+  // the selected block (or on the sheet's title) opens the same in-place editor a double click opens with a mouse.
+  const pointerKind = useRef('mouse');
+  const notePointer = (event) => { pointerKind.current = event.pointerType || 'mouse'; };
+  const tapToEdit = (event) => {
+    if (mode !== 'edit' || !onEditText || pointerKind.current === 'mouse') return;
+    if (event.target.closest?.('button, input, select, textarea, a, [role="toolbar"], .ws-resize, [contenteditable]')) return;
+    const card = event.target.closest?.('[data-block]');
+    if (card ? card.dataset.block !== selectedId : !event.target.closest?.('.ws-hdr, .ws-title')) return;
+    // the on-screen keyboard takes the lower ~40 %: a text below the middle first moves up, then the editor opens on it
+    const view = globalThis.visualViewport?.height || globalThis.innerHeight || 0;
+    const box = event.target.getBoundingClientRect?.();
+    if (view && box && box.bottom > view * 0.55) event.target.scrollIntoView?.({ block: 'start' });
+    editInline(event);
+  };
+  const editProps = mode === 'edit' ? { onPointerDownCapture: notePointer, onClickCapture: tapToEdit, onDoubleClick: editInline } : {};
+
   const rowView = (row, key, measuring = false, part = null) => (
     <div className="ws-row" key={key}>
       {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} pop={measuring ? null : popFor(b.id)} badge={blockBadges?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} flow={flow} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} part={part} entity={!measuring} />; })}
     </div>
   );
 
+  const richEditor = rich ? <Suspense fallback={null}><RichInlineEditor key={`${rich.blockId}:${rich.path.join('.')}`} rect={rich.rect} value={rich.value} multiline={rich.multiline} textStyle={rich.textStyle}
+    onCommit={(next) => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); onEditText?.(rich.blockId, rich.path, next); }}
+    onCancel={() => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); }} /></Suspense> : null;
+
   // the column: every block in its order on one long page; nothing to measure, nothing to split
   if (flow) {
     return (
       <TranscriptContext.Provider value={transcriptValue}>
-      <div ref={rootRef} className={`ws-root is-flow mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)} ${fontClass}`} onKeyDown={mode === 'interactive' ? focusNextField : undefined} onFocus={popIds.length ? trackTyping : undefined}>
+      <div ref={rootRef} className={`ws-root is-flow mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)} ${fontClass}`} onKeyDown={mode === 'interactive' ? focusNextField : undefined} onFocus={popIds.length ? trackTyping : undefined} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} {...editProps}>
         <div className="ws-page">
           {lead}
           <Header meta={doc.meta} />
           <div className="ws-flow">{rows.map((row, i) => rowView(row, i))}</div>
         </div>
+        {richEditor}
       </div>
       </TranscriptContext.Provider>
     );
@@ -500,7 +523,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   return (
     <TranscriptContext.Provider value={transcriptValue}>
-    <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)} ${fontClass}`} onFocus={popIds.length ? trackTyping : undefined} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
+    <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)} ${fontClass}`} onFocus={popIds.length ? trackTyping : undefined} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} {...editProps}>
       {/* hidden measuring layer: a page of its own (same width, padding, font and theme as the real pages), grown to
           its content, so a row is measured exactly as it will be drawn */}
       <div className="ws-measure" ref={measureRef} aria-hidden="true"><div className="ws-page-measure">
@@ -521,9 +544,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
         </div>
       ))}
       {/* fallback={null}: the inline text editor floats over the text being edited, which stays on screen meanwhile */}
-      {rich ? <Suspense fallback={null}><RichInlineEditor key={`${rich.blockId}:${rich.path.join('.')}`} rect={rich.rect} value={rich.value} multiline={rich.multiline} textStyle={rich.textStyle}
-        onCommit={(next) => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); onEditText?.(rich.blockId, rich.path, next); }}
-        onCancel={() => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); }} /></Suspense> : null}
+      {richEditor}
     </div>
     </TranscriptContext.Provider>
   );

@@ -17,6 +17,8 @@ import { buildReviewSheet } from '../../worksheet-studio/reviewSheet.js';
 import { CORE_SHEETS, courseSheetIds, generateCoreSheets, generateFocusSheet, previewCoreSheet } from './lessonGeneration.js';
 import '../generator.css';
 
+// the textbook sheet's id (admin/course/textbook TEXTBOOK_SHEET_ID; not imported: that file carries the books)
+const TEXTBOOK_SHEET_ID = 'opik';
 const UNSAVED = 'Töölehel on salvestamata muudatusi. Genereerimine laadib uue mustandi ja need muudatused lähevad kaotsi. Jätkata?';
 
 // Lesson worksheets and the generator in one strip at the top of the worksheet constructor:
@@ -51,6 +53,9 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
   const course = courseSheetIds(sheets, lessonId);
   const missingCore = CORE_SHEETS.filter(({ id }) => !ids.has(id));
   const onCourseSheet = course.has(worksheetId);
+  // the „Õpik” sheet is the textbook 1:1 (docs/TEXTBOOKS.md): nothing to generate there, so its strip is only the lesson's
+  // sheets — one short row, more of a tablet's screen left for the page (owner 2026-11-11)
+  const onTextbook = worksheetId === TEXTBOOK_SHEET_ID;
   const selectedFocusId = focusId || profile?.focuses?.[0]?.id || '';
   const sheetPath = (id) => `/library/lessons/${encodeURIComponent(lessonId)}/worksheets/${encodeURIComponent(id)}`;
   const deps = () => ({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user, blockedSentences: (flags.data || []).map((f) => f.text) });
@@ -149,7 +154,7 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
         })}
       </nav>
       <div className="lgb-actions">
-        {profile ? (
+        {onTextbook ? null : profile ? (
           <>
             <select aria-label="Töölehtede raskus" value={difficulty} onChange={(event) => setDifficulty(event.target.value)} disabled={Boolean(busy)}><option value="support">Support</option><option value="core">Core</option><option value="challenge">Challenge</option></select>
             {course.size ? <span className="lgb-course" title="Kursuse lehed on terved tunnid; generaator neid ei asenda.">Kursuse lehed · generaator teeb lisalehe</span> : null}
@@ -165,8 +170,8 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
             </details>
           </>
         ) : course.size ? null : <span className="lgb-muted">Generaator pole selle tunni jaoks valmis</span>}
-        {course.size ? <button type="button" className="st-btn" onClick={() => makeReview()} disabled={Boolean(busy)} title="Selle ja eelmiste tundide kursuse ülesanded, 40–50 min"><Sparkles size={15} aria-hidden="true" /> {busy === 'review' ? 'Koostan…' : 'Kordamisleht'}</button> : null}
-        {words.length && onInsertBlocks ? (
+        {course.size && !onTextbook ? <button type="button" className="st-btn" onClick={() => makeReview()} disabled={Boolean(busy)} title="Selle ja eelmiste tundide kursuse ülesanded, 40–50 min"><Sparkles size={15} aria-hidden="true" /> {busy === 'review' ? 'Koostan…' : 'Kordamisleht'}</button> : null}
+        {words.length && onInsertBlocks && !onTextbook ? (
           <details className="st-more lgb-focus">
             <summary className="st-btn"><BookA size={15} aria-hidden="true" /> Tunni sõnad ▾</summary>
             <div className="st-menu">
@@ -175,7 +180,7 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
             </div>
           </details>
         ) : null}
-        {art.length && onInsertBlocks ? <button type="button" className="st-btn" onClick={insertArt} title={art.map((visual) => visual.caption || visual.id).join('\n')}><ImageIcon size={15} aria-hidden="true" /> Lisa tunni pilt{art.length > 1 ? ` (${art.length})` : ''}</button> : null}
+        {art.length && onInsertBlocks && !onTextbook ? <button type="button" className="st-btn" onClick={insertArt} title={art.map((visual) => visual.caption || visual.id).join('\n')}><ImageIcon size={15} aria-hidden="true" /> Lisa tunni pilt{art.length > 1 ? ` (${art.length})` : ''}</button> : null}
         <Link className="st-btn" to={`/library/lessons/${encodeURIComponent(lessonId)}/worksheets`} title="Generaatori sisu ja katvus"><Settings2 size={15} aria-hidden="true" /> Seaded</Link>
       </div>
       {error ? <span className="lgb-error" role="alert">{error}</span> : null}

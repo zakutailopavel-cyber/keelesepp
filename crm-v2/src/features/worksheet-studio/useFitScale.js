@@ -13,7 +13,12 @@ export function useFitScale() {
   const [scale, setScale] = useState(1);
   useEffect(() => {
     if (!el || typeof ResizeObserver === 'undefined') return undefined;
-    const fit = () => setScale(Math.max(0.3, Math.min(1, (el.clientWidth - 40) / (270 * MM))));
+    // the canvas's side padding stays free (a wide padding made the page run past it and scroll sideways)
+    const fit = () => {
+      const css = globalThis.getComputedStyle?.(el);
+      const sides = css ? (parseFloat(css.paddingLeft) || 0) + (parseFloat(css.paddingRight) || 0) : 0;
+      setScale(Math.max(0.3, Math.min(1, (el.clientWidth - Math.max(40, sides + 4)) / (270 * MM))));
+    };
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);

@@ -184,7 +184,8 @@ export const table = {
       <table className="ws-table">
         <thead><tr>{heads.map((h, i) => <th key={i}>{h}</th>)}</tr></thead>
         <tbody>{rows.map((r, ri) => (
-          <tr key={ri}>{heads.map((_, ci) => {
+          // data-edit: in the constructor a tap / double click on a row edits its source line („a | [b] | c”) in place
+          <tr key={ri} data-edit={`rows#${ri}`}>{heads.map((_, ci) => {
             const c = r[ci] || '';
             const key = `${ri}.${ci}`;
             // data-label: the column's name, shown above the cell when a phone stacks the table

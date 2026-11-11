@@ -2,6 +2,7 @@
 // One named list instead of `import * as Icons from 'lucide-react'`, which put all ~1500 icons into the first download
 // of every page, the student's too (owner 2026-10-13: speed on a phone).
 import {
+  ALargeSmall,
   ArrowDown,
   ArrowDownUp,
   ArrowLeft,
@@ -63,6 +64,8 @@ import {
   Network,
   Palette,
   PanelsTopLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   PenLine,
   PenTool,
   Pencil,
@@ -98,6 +101,7 @@ import {
 } from 'lucide-react';
 
 export const Icons = {
+  ALargeSmall,
   ArrowDown,
   ArrowDownUp,
   ArrowLeft,
@@ -159,6 +163,8 @@ export const Icons = {
   Network,
   Palette,
   PanelsTopLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   PenLine,
   PenTool,
   Pencil,
