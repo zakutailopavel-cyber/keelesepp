@@ -221,6 +221,17 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   `updatedAt`; delete denied. Emulator test `functions/worksheet-sheet-templates-emulator.integration.js` (in
   `npm run test:emulator`). Needs `firebase deploy --only firestore:rules` before templates can be saved.
 
+## Tablet editing and the Õpik book (2026-11-11, agent/opik-edit-tablet)
+
+- Touch / pen: the first tap selects a block, a second tap on its text opens the in-place editor (a mouse keeps the
+  double click). Table rows are edited as their source line (`data-edit="rows#i"`).
+- „Suur tekst” (Aa in the top bar): the sheet as the `sheetFlow.css` column at 16 px; default on for touch tablets and
+  screens under 1024 px (`editor/touchEditing.js`, `localStorage ks-studio-column`). The A4 view stays for layout.
+- Tablet (`(max-width: 1180px), (pointer: coarse)`): drawer starts closed; block settings are a bottom sheet lifted over
+  the on-screen keyboard (`--st-kb`); 44 px targets; inputs 16 px. On the Õpik sheet the generator strip shows only tabs.
+- Book (`/library/worksheets/book`): the settings panel folds (`ks-book-side`); „Muuda” opens the sheet on the screen in
+  the same tab, „← Õpik” returns to the same place (`bookPlace.js`, `sessionStorage ks-book-return`).
+
 ## Not in this slice
 
 1. (done in slice 2)

@@ -40,6 +40,8 @@ import { withHeight, withSpan } from './engine/layout.js';
 import GoalEvidence from './GoalEvidence.jsx';
 import { applyPrintA4 } from './printPage.js';
 import './engine/sheet.css';
+// „Suur tekst” draws the sheet as the phone / tablet column
+import './engine/sheetFlow.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
 import { MARK_KINDS, addMark } from './engine/marksModel.js';
@@ -57,6 +59,7 @@ import { formalLetterDocument } from './engine/templates.js';
 import { CopyMoveDialog, TemplateDialog } from './editor/ReuseDialogs.jsx';
 import { applyLessonTemplate, applySheetTemplate, lessonTemplatePlan, PHASE_SHEETS, phaseLabel } from './sheetReuse.js';
 import { LoadingState } from '../../components/ui/index.js';
+import { TABLET_QUERY, initialColumnView, rememberColumnView, screenMatches, useKeyboardSafeArea } from './editor/touchEditing.js';
 
 // „Uus mallist”: the hard-coded sheets stay available next to the templates staff saved
 const BUILT_IN_TEMPLATES = [
@@ -144,7 +147,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [original, setOriginal] = useState([]);
   const [leftTab, setLeftTab] = useState('blocks');
   // the left drawer (blocks, bank, sheet, results) opens from the icon rail; a second click on the icon closes it
-  const [leftOpen, setLeftOpen] = useState(true);
+  // on a tablet it starts closed, so the page gets the screen's width (editor/touchEditing.js)
+  const [leftOpen, setLeftOpen] = useState(() => !screenMatches(TABLET_QUERY));
+  // „Suur tekst”: edit the sheet as one column at its real text size (a tablet) instead of the shrunken A4 page
+  const [column, setColumn] = useState(initialColumnView);
+  const toggleColumn = () => setColumn((value) => { rememberColumnView(!value); return !value; });
+  const studioRef = useRef(null);
   // the selected block's content panel; closed with ×, opened again with „Sisu” on the block's bar
   const [panelOpen, setPanelOpen] = useState(true);
   // the selected block's settings float next to it (no fixed right column); the side can be switched
@@ -182,6 +190,13 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       },
     });
   }, [selectedId, doc?.blocks, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  // a tablet: the block's settings open as a sheet over the lower half of the screen — a block tapped there moves up
+  useEffect(() => {
+    if (!selectedId || !panelOpen || mode !== 'edit' || !screenMatches(TABLET_QUERY)) return;
+    const id = globalThis.CSS?.escape ? globalThis.CSS.escape(selectedId) : selectedId;
+    const card = globalThis.document?.querySelector(`.st-canvas [data-block="${id}"]`);
+    if (card && card.getBoundingClientRect().top > (globalThis.innerHeight || 0) * 0.42) card.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+  }, [selectedId, panelOpen, mode]);
   // hidden until placed, or it flashes in the top-left corner for a moment
   const popStyle = { ...floatingStyles, opacity: isPositioned ? 1 : 0 };
   const [cut, setCut] = useState({ busy: false, error: '' });
@@ -212,6 +227,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [focus, setFocus] = useState(() => { try { return window.localStorage.getItem('ks-studio-focus') !== 'off'; } catch { return true; } });
   const toggleFocus = () => setFocus((value) => { try { window.localStorage.setItem('ks-studio-focus', value ? 'off' : 'on'); } catch { /* storage may be disabled */ } return !value; });
   useUnsavedGuard(dirty);
+  useKeyboardSafeArea(studioRef, doc !== null);
   // the EKI level vocabularies for the didactic check, loaded lazily (≈290 kB)
   const [levelForms, setLevelForms] = useState(null);
   // only the vocabulary levels the sheet's level may use (A2: A1 + A2)
@@ -305,7 +321,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   useEffect(() => {
     const el = canvasRef.current;
     if (!el || typeof ResizeObserver === 'undefined') return undefined;
-    const fit = () => setScale(Math.max(0.3, Math.min(1, (el.clientWidth - 32) / (270 * MM))));
+    // the canvas's own side padding is left free, or the page runs a few px past it and the canvas scrolls sideways
+    const fit = () => {
+      const css = globalThis.getComputedStyle?.(el);
+      const sides = css ? (parseFloat(css.paddingLeft) || 0) + (parseFloat(css.paddingRight) || 0) : 0;
+      setScale(Math.max(0.3, Math.min(1, (el.clientWidth - Math.max(32, sides + 4)) / (270 * MM))));
+    };
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
@@ -893,6 +914,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     change({ ...formalLetterDocument(), id: doc.id }); setSelectedId(null);
   };
 
+  const columnView = column && mode === 'edit';
+  const touchHint = screenMatches('(pointer: coarse)');
   const statusText = saving ? 'salvestan…' : dirty ? 'salvestamata' : savedAt ? `salvestatud ${new Date(savedAt).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })}` : worksheetStatus === 'published' ? 'avaldatud' : 'mustand';
   const showResults = !isNew && typeof resultsSource?.listWorksheetResults === 'function';
   // the icon rail: one click opens the drawer on that tab, a click on the open tab closes it
@@ -909,7 +932,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
 
   return (
     <AssetContext.Provider value={assets}>
-      <div className={`ws-studio st-skin mode-${mode} ${focus ? 'is-focus' : ''}`}>
+      <div ref={studioRef} className={`ws-studio st-skin mode-${mode} ${focus ? 'is-focus' : ''} ${mode === 'edit' && selected && panelOpen ? 'has-panel' : ''} ${columnView ? 'is-column' : ''}`}>
         <header className="st-bar">
           <Link className="st-back" to={backTo} title={backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : backLabel} aria-label={backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : backLabel}><Icons.ArrowLeft size={18} aria-hidden="true" /></Link>
           <div className="st-title"><span className="st-kicker">Töölehe konstruktor</span><b title={doc.meta.title}>{doc.meta.title}</b><span className={`st-status ${dirty ? 'is-dirty' : ''}`}>{statusText}{version ? ` · v${version}` : ''}</span></div>
@@ -924,7 +947,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             {mode === 'interactive' && <button type="button" className="st-btn primary" onClick={check}>Kontrolli vastuseid</button>}
             {mode === 'interactive' && <button type="button" className="st-btn" onClick={() => { setAnswers({}); setResults({}); setEvidence(null); }}>Tühjenda</button>}
             <details className={`st-quality ${quality.ready ? 'ready' : ''}`}>
-              <summary className="st-chip" title="Kvaliteedikontroll">{quality.ready ? <Icons.CircleCheck size={15} aria-hidden="true" /> : <Icons.CircleAlert size={15} aria-hidden="true" />}<span>{quality.ready ? 'Avaldamiseks valmis' : `${quality.errors.length} viga · ${quality.warnings.length} hoiatust`}</span>{quality.tips.length ? <em>{quality.tips.length}</em> : null}</summary>
+              <summary className="st-chip" title="Kvaliteedikontroll">{quality.ready ? <Icons.CircleCheck size={15} aria-hidden="true" /> : <Icons.CircleAlert size={15} aria-hidden="true" />}<span className="st-chip-text">{quality.ready ? 'Avaldamiseks valmis' : `${quality.errors.length} viga · ${quality.warnings.length} hoiatust`}</span>{quality.tips.length ? <em>{quality.tips.length}</em> : null}</summary>
               <div className="st-quality-pop">
                 <b>{quality.ready ? `Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : 'Kvaliteedikontroll'}</b>
                 {quality.didactics ? <p className="st-didactic"><span>Didaktika · tase {quality.didactics.label}</span><b>{quality.didactics.score}%</b><i style={{ width: `${quality.didactics.score}%` }} /></p> : null}
@@ -932,6 +955,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                 {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}><button type="button" className="st-issue" onClick={() => showIssue(issue)}>{issue.text}</button></li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
               </div>
             </details>
+            {mode === 'edit' && <button type="button" className="st-btn st-icon st-column-toggle" aria-pressed={column} aria-label="Suur tekst" onClick={toggleColumn} title={column ? 'Lehe plokid ühes veerus, tekst loetavas suuruses. Vajuta, et näha A4 lehte nagu trükis.' : 'Näita lehte ühes veerus suure tekstiga (tahvel)'}><Icons.ALargeSmall size={18} aria-hidden="true" /></button>}
             {mode === 'edit' && <span className="st-group-btns">
               <button type="button" className="st-btn st-icon" disabled={!history.past.length} onClick={undo} title="Võta tagasi (Ctrl+Z)" aria-label="Võta tagasi"><Icons.Undo2 size={16} /></button>
               <button type="button" className="st-btn st-icon" disabled={!history.future.length} onClick={redo} title="Tee uuesti (Ctrl+Shift+Z)" aria-label="Tee uuesti"><Icons.Redo2 size={16} /></button>
@@ -1008,7 +1032,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
                 onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage} onAudio={pickBankAudio} onVideo={pickBankVideo}
                 onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />
-              : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint" title="Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc."><Icons.MousePointerClick size={14} aria-hidden="true" /> Lohista plokk lehele. Topeltklõps lehel muudab teksti.</p>{myTemplates.length ? (
+              : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint" title="Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc."><Icons.MousePointerClick size={14} aria-hidden="true" /> {touchHint ? 'Puuduta plokki, et see lisada. Lehel: puuduta plokki, siis selle teksti, et teksti muuta.' : 'Lohista plokk lehele. Topeltklõps lehel muudab teksti.'}</p>{myTemplates.length ? (
                 <div className="st-group st-templates">
                   <div className="st-group-title">Mallid</div>
                   <ul>{myTemplates.filter((t) => !paletteQuery || t.title.toLowerCase().includes(paletteQuery.toLowerCase())).map((t) => (
@@ -1036,10 +1060,11 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             </aside>
           )}
 
-          <main className="st-canvas" ref={canvasRef}>
+          {/* „Suur tekst”: the column of sheetFlow.css (`ws-narrow`), the same blocks at their real text size */}
+          <main className={`st-canvas ${columnView ? 'ws-narrow' : ''}`} ref={canvasRef}>
             {/* the answer key is a plain page at its own size, not the A4 sheet scaled to the canvas */}
-            <div className="st-zoom" style={{ zoom: mode === 'key' ? 1 : scale }}>
-              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} />}
+            <div className="st-zoom" style={{ zoom: mode === 'key' || columnView ? 1 : scale, '--st-scale': mode === 'key' || columnView ? 1 : scale }}>
+              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={columnView ? undefined : resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} flow={columnView} />}
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>

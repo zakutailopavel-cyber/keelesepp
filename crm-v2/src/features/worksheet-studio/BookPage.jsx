@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Icons } from './icons.js';
 import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheets.js';
 import { libraryService } from '../../services/firebase/library.js';
@@ -8,6 +8,8 @@ import Sheet from './engine/Sheet.jsx';
 import { BOOK_THEME, Contents, Cover, LessonHead, ModuleOpener, ReviewPage, WordsPage } from './BookPages.jsx';
 import { loadBookExtras } from './bookExtras.js';
 import { useScreenFlow } from './sheetFlow.js';
+import { initialSideOpen, rememberBookPlace, rememberSideOpen, scrollToBookPlace, sheetInView, takeBookPlace } from './bookPlace.js';
+import { TABLET_QUERY, screenMatches } from './editor/touchEditing.js';
 
 // A book holds hundreds of sheets: a sheet redraws only when its own props change (its first page number), not on
 // every page count another sheet reports (a B1 book of 270 sheets froze the browser, 2026-10-13).
@@ -20,7 +22,7 @@ const PAGE_MM = 392; // a 270 × 381.86 mm sheet page on screen plus the gap bet
 // a phone shows the book as the student's column (docs/WORKSHEET_PHONE_VIEW.md); a tablet keeps the A4 pages
 const BOOK_FLOW_QUERY = '(max-width: 760px)';
 const SHEET_IDS = new Set(BOOK_PHASES.map((phase) => phase.id));
-function BookItem({ item, page, pages, force, rootRef, onPageCount, onEdit, uniform, flow }) {
+function BookItem({ item, page, pages, force, rootRef, onPageCount, onEdit, onEditHere, uniform, flow }) {
   const ref = useRef(null);
   const [seen, setSeen] = useState(() => typeof globalThis.IntersectionObserver === 'undefined');
   useEffect(() => {
@@ -39,8 +41,12 @@ function BookItem({ item, page, pages, force, rootRef, onPageCount, onEdit, unif
   const lead = useMemo(() => (item.lesson ? <LessonHead lesson={item.lesson} module={item.module} sheetCanDo={sheetCanDo} /> : null), [item.lesson, item.module, sheetCanDo]);
   // data-entity / data-lesson-id / data-worksheet-id: the marks another tool's right-click menu attaches to
   return (
-    <div className={`ws-book-item${item.lesson ? ' is-lesson-start' : ''}`} ref={ref} data-entity="sheet" data-lesson-id={item.lessonId || item.id} data-worksheet-id={SHEET_IDS.has(item.phase) ? item.phase : undefined}>
-      <Link className="st-btn ws-book-edit" to={sheetEditorPath(item)} target="_blank" rel="noopener" title="Avaneb uues vahelehel. Õpikusse jõuab muudatus pärast „Avalda”." onClick={onEdit}>
+    <div className={`ws-book-item${item.lesson ? ' is-lesson-start' : ''}`} ref={ref} data-book-item={item.id} data-entity="sheet" data-lesson-id={item.lessonId || item.id} data-worksheet-id={SHEET_IDS.has(item.phase) ? item.phase : undefined}>
+      <Link className="st-btn ws-book-edit" to={sheetEditorPath(item)} target="_blank" rel="noopener" title="Avaneb uues vahelehel. Õpikusse jõuab muudatus pärast „Avalda”." onClick={(event) => {
+        // a tablet: the same tab (a new tab is awkward there), and „← Õpik” comes back to this sheet
+        if (onEditHere && screenMatches('(hover: none)')) { event.preventDefault(); onEditHere(item); return; }
+        onEdit?.();
+      }}>
         <Icons.PenLine size={15} aria-hidden="true" /> Muuda lehte<span className="sr-only">: {item.title}</span>
       </Link>
       {seen || force
@@ -127,6 +133,12 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   const [query, setQuery] = useState('');
   const [counts, setCounts] = useState({});
   const [fitRef, scale] = useFitScale();
+  const navigate = useNavigate();
+  // the settings on the left fold away so the book gets the width (owner 2026-11-11); a tablet starts with them folded
+  const [sideOpen, setSideOpen] = useState(() => initialSideOpen(screenMatches(TABLET_QUERY)));
+  const toggleSide = () => setSideOpen((open) => { rememberSideOpen(!open); return !open; });
+  // the place in the book to come back to after „Muuda” (bookPlace.js)
+  const [returnPlace, setReturnPlace] = useState(takeBookPlace);
   // the scrolling canvas: sheets near its visible part are drawn (BookItem)
   const canvasRef = useRef(null);
   const canvasNode = useCallback((node) => { canvasRef.current = node; fitRef(node); }, [fitRef]);
@@ -236,6 +248,20 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   const firstSheetPage = {};
   for (const item of sheetItems) if (!(item.lessonId in firstSheetPage)) firstSheetPage[item.lessonId] = pageById[item.id];
   const wordsPageOf = (module) => pageById[`${module.key}:words`];
+  // back from „Muuda”: the same sheet and place once the book is there; again shortly after, as the sheets near it are
+  // drawn and grow (a scroll by the teacher meanwhile wins)
+  const placeReady = Boolean(returnPlace) && items.some((item) => item.id === returnPlace?.id);
+  useEffect(() => {
+    if (!placeReady) return undefined;
+    const canvas = canvasRef.current;
+    let moved = false;
+    const stop = () => { moved = true; };
+    canvas?.addEventListener('touchstart', stop, { passive: true });
+    canvas?.addEventListener('wheel', stop, { passive: true });
+    const timers = [0, 350, 900, 1800].map((ms) => globalThis.setTimeout(() => { if (!moved) scrollToBookPlace(canvas, returnPlace); }, ms));
+    const done = globalThis.setTimeout(() => setReturnPlace(null), 2000);
+    return () => { timers.forEach((t) => globalThis.clearTimeout(t)); globalThis.clearTimeout(done); canvas?.removeEventListener('touchstart', stop); canvas?.removeEventListener('wheel', stop); };
+  }, [placeReady]); // eslint-disable-line react-hooks/exhaustive-deps
   // the sheets report their page counts while they lay out; applied once per frame (pageCounter below)
   const [counter] = useState(() => pageCounter(setCounts));
   useEffect(() => () => counter.cancel(), [counter]);
@@ -260,23 +286,36 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   const startPrint = () => { setForced(0); setPrinting(true); };
   const move = (i, dir) => { const j = i + dir; if (j < 0 || j >= ids.length) return; const n = [...ids]; [n[i], n[j]] = [n[j], n[i]]; setIds(n); };
 
+  // „Muuda”: the sheet on the screen (or the one tapped) opens in its editor in this tab; the place is kept for the way back
+  const editHere = (item) => {
+    const place = sheetInView(canvasRef.current);
+    rememberBookPlace({ id: item.id, offset: place?.id === item.id ? place.offset : 0 });
+    navigate(sheetEditorPath(item));
+  };
+  const editInView = () => {
+    const place = sheetInView(canvasRef.current);
+    const item = sheetItems.find((sheet) => sheet.id === place?.id);
+    if (item) editHere(item);
+  };
   if (state.loading) return <div className="page-content"><LoadingState label="Laen töölehti…" /></div>;
   if (state.error) return <div className="page-content"><div className="ws-studio-error" role="alert">{state.error} <Link to="/library">Tagasi Õppevarasse</Link></div></div>;
 
   return (
-    <div className={`ws-studio ws-book-studio${flow ? ' ws-narrow ws-book-narrow' : ''}`}>
+    <div className={`ws-studio ws-book-studio${flow ? ' ws-narrow ws-book-narrow' : ''}${sideOpen ? '' : ' is-side-closed'}`}>
       <header className="st-bar">
         <Link className="st-back" to="/library"><Icons.ArrowLeft size={16} /> Õppevara</Link>
+        <button type="button" className="st-btn st-icon ws-book-side-toggle" aria-expanded={sideOpen} aria-controls="ws-book-side" onClick={toggleSide} title={sideOpen ? 'Peida seaded — õpiku leht saab kogu laiuse' : 'Näita õpiku seadeid'} aria-label={sideOpen ? 'Peida seaded' : 'Näita seadeid'}>{sideOpen ? <Icons.PanelLeftClose size={18} aria-hidden="true" /> : <Icons.PanelLeftOpen size={18} aria-hidden="true" />}</button>
         <div className="st-title"><b>Õpik töölehtedest</b><span>{sheetItems.length} töölehte · {totalPages} lk</span></div>
         <div className="st-seg" role="tablist" aria-label="Õpiku koostamise viis">
           {[['program', 'Õppekava järgi'], ['manual', 'Vali käsitsi']].map(([m, l]) => <button type="button" role="tab" key={m} aria-pressed={mode === m} onClick={() => setMode(m)}>{l}</button>)}
         </div>
         <div className="st-actions">
+          <button type="button" className="st-btn ws-book-muuda" disabled={!sheetItems.length || printing} onClick={editInView} title="Ava ekraanil olev leht redaktoris. Pärast „Salvesta” / „Avalda” viib „← Õpik” samale kohale tagasi."><Icons.PenLine size={16} aria-hidden="true" /> Muuda</button>
           <button type="button" className="st-btn primary" disabled={!items.length || printing} title={sheetItems.length > 40 ? 'Enne printimist joonistatakse kõik lehed — suure õpiku puhul võtab see aega' : undefined} onClick={startPrint}>{printing ? `Valmistan… ${Math.min(forced, sheetItems.length)}/${sheetItems.length}` : 'PDF / Prindi'}</button>
         </div>
       </header>
       <div className="st-body">
-        <aside className="st-palette ws-book-side" aria-label="Õpiku koostamine">
+        {sideOpen ? <aside className="st-palette ws-book-side" id="ws-book-side" aria-label="Õpiku koostamine">
           <div className="st-group-title">Õpik</div>
           <label className="ed-field"><span>Pealkiri</span><input className="ed-input" value={book.title} onChange={(e) => setBook({ ...book, title: e.target.value })} placeholder="Eesti keel A2" /></label>
           <label className="ed-field"><span>Alapealkiri</span><input className="ed-input" value={book.subtitle} onChange={(e) => setBook({ ...book, subtitle: e.target.value })} /></label>
@@ -324,7 +363,7 @@ export default function BookPage({ repository = libraryService, worksheetReposit
             </button>
           ))}
           </> : null}
-        </aside>
+        </aside> : null}
         <main className="st-canvas" ref={canvasNode}>
           <div className="st-zoom ws-book" style={{ zoom: flow ? 1 : scale }}>
             <Cover book={book} stats={mode === 'program' && programBuilt && built.modules.length ? `${built.modules.length} moodulit · ${built.modules.reduce((n, m) => n + m.lessons.length, 0)} tundi` : ''} />
@@ -335,7 +374,7 @@ export default function BookPage({ repository = libraryService, worksheetReposit
               if (item.kind === 'words') return <WordsPage key={item.id} item={item} course={courseName} page={page} />;
               if (item.kind === 'review') return <ReviewPage key={item.id} item={item} course={courseName} page={page} wordsPage={wordsPageOf(item.module)} />;
               const index = sheetItems.indexOf(item);
-              return <BookItem key={item.id} item={item} page={page} pages={counts[item.id] || 2} force={printing && index < forced} rootRef={flow ? null : canvasRef} onPageCount={counter.setter(item.id)} onEdit={() => edited.current.add(item.lessonId || item.id)} uniform={mode === 'program' ? program.uniform : false} flow={flow} />;
+              return <BookItem key={item.id} item={item} page={page} pages={counts[item.id] || 2} force={printing && index < forced} rootRef={flow ? null : canvasRef} onPageCount={counter.setter(item.id)} onEdit={() => edited.current.add(item.lessonId || item.id)} onEditHere={editHere} uniform={mode === 'program' ? program.uniform : false} flow={flow} />;
             })}
             {printing ? <p className="ws-studio-loading">Valmistan printimiseks… {Math.min(forced, sheetItems.length)}/{sheetItems.length} lehte</p> : null}
           </div>
