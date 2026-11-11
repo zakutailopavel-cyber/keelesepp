@@ -1,4 +1,4 @@
-import { Dumbbell, BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, Trash2, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
+import { Dumbbell, BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HandCoins, HeartHandshake, Inbox, Languages, Layers3, TrendingUp, LayoutDashboard, LibraryBig, ListTodo, Megaphone, MessageSquareText, PenLine, Settings, Trash2, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 // Grouped so the menu stays short on a laptop screen: own pages first, then teaching, people, communication and money.
@@ -24,6 +24,8 @@ export const navigation = [
   { to: '/kampaaniad', label: 'Kampaaniad', icon: Megaphone, roles: ACCESS.ADMIN, group: 'Suhtlus ja raha' },
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
   { to: '/kassa', label: 'Kassa', icon: Wallet, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
+  // „Minu kassa” (owner 2026-11-11): only for a teacher who ever had cash or has a hand-over to answer (AppShell `onlyWith`)
+  { to: '/kassa/minu', label: 'Minu kassa', icon: HandCoins, roles: ACCESS.STAFF, group: 'Suhtlus ja raha', onlyWith: 'myCash' },
 ];
 
 // A student's own short menu (owner 2026-11-01: the cabinet was overloaded): what he does every day first; the board,

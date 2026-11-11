@@ -9,7 +9,7 @@ export const todayIso = () => {
 
 export const entryDate = (entry) => entry.receivedAt || entry.handedAt || String(entry.createdAt || '').slice(0, 10);
 
-export const STATUS_LABEL = { open: 'Arveta', allocated: 'Arvega seotud', void: 'Tühistatud', active: '' };
+export const STATUS_LABEL = { open: 'Arveta', allocated: 'Arvega seotud', void: 'Tühistatud', active: '', pending: 'Ootab kinnitust', rejected: 'Ei saanud kätte' };
 
 // a receipt still waiting for its invoice: the admin's to-do in the cash box. Cash taken for a lesson („Makstud
 // sularahas”, `source: "lesson"`) is never linked to an invoice (owner 2026-11-10: it does not go to the accountant).

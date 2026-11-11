@@ -565,7 +565,43 @@ creates after `since` is set, for documents dated on or after `since`.
 never becomes a payment, never reaches the accounting sync, the bank-books review, the period close or any export.
 **Owner 2026-11-11: Kassa is seen only by the admin and the accountant** (finance role, read only: `/kassa` route,
 menu and `/cash/summary` = admin + finance; `/cash/receipts`, `/cash/handover`, `/cash/allocate`, `/cash/void`,
-`/cash/lesson/amount` = admin). Teachers never open Kassa and see no cash totals.
+`/cash/lesson/amount` = admin). Teachers never open Kassa and see no cash totals — they have „Minu kassa” (below).
+
+### „Minu kassa” — teacher's own cash and hand-over to a receiver (owner 2026-11-11)
+
+„сделаем кассу для учителей, они могут принять наличку, потом передать мне или Олексию”. Same `cashLedger` model, extended:
+
+- **Hand-over states:** `handover.status` = `pending` („ootab kinnitust”) → `active` (receiver pressed „Sain kätte”) or
+  `rejected` („Ei saanud”, note required, money stays with the giver) or `void` (giver took it back while pending, or the
+  admin voided it). Only `active` (and old entries without status) move money (`cash-core handoverCounts`,
+  `cashBalances`). A pending hand-over names its entries: `items: [{ id, cents }]`.
+- **Position** (`cash-core cashPosition`): incoming = own receipts + confirmed hand-overs received; outgoing = own active +
+  pending hand-overs (named items first, then amount-only ones such as the admin's „Sain kätte”, oldest money first).
+  `onHandCents` (officially with them), `pendingOutCents`, `availableCents` (= on hand − pending; what can still be given),
+  `remaining` per entry.
+- **Receivers** („Kassa vastuvõtjad”): `cashSettings/receivers { uids, updatedAt, updatedBy }`, written only by
+  financeApi `/cash/settings` (admin; audit `cash.receivers_updated`). No document = defaults: owner uid
+  `2ai5mVQCmjSGjsy7t53JrqKgZdX2` + Oleksiy Skoryk `FVHgmNRM0hPFtbeb1ifELilcaWm1`. Only active staff are offered.
+- **Server** (financeApi, staff; checks inside): `/cash/mine` (own view `myCashView` + receivers, nobody else's data),
+  `/cash/handover/request` (own cash only, listed receiver only, everything available or chosen entries, 0 € → 409,
+  what is pending cannot be given twice; audit `cash.handover_requested`), `/cash/handover/answer` (only the addressed
+  receiver — not even another admin; `confirm` / `reject` + note; audit `cashbox_answer_<id>`), `/cash/handover/cancel`
+  (giver, while pending; audit `cash.handover_cancelled`). The admin's direct `/cash/handover` („Sain kätte” in Kassa)
+  can take only `availableCents`. `/cash/void` refuses a receipt inside a pending hand-over (void the hand-over first).
+- **Undo of a lesson-cash mark** (`/cash/lesson/undo`): a teacher no longer can once any of the receipt is in a hand-over,
+  pending or confirmed (`lessonCashUndoRefusal remainingCents`); the admin still can (Kassa void / amount fix).
+- **Rules:** `cashLedger` read = admin, or staff for entries where `holderUid` / `fromUid` / `toUid` is their uid (queries
+  must filter on one of them); writes: nobody. `cashSettings`: read admin, write nobody.
+- **UI:** `/kassa/minu` (`MyCashPage`, ACCESS.STAFF): „Sinu käes 75 € · sellest 25 € ootab kinnitust”, „Andsin raha üle”
+  dialog (receiver radio, „Kõik, mis on käes” or „Valin kirjed”), „Käes, üle andmata”, „Minu üleandmised” (status,
+  refusal note, take back while pending), „Ootab sinu kinnitust” for a receiver, „Said kolleegidelt”. Menu item only for a
+  teacher who ever had a cash entry or has a hand-over to answer (`AppShell onlyWith: 'myCash'`, client reads of own
+  entries). Badge „ootab sinu kinnitust”: on Kassa for an admin, on Minu kassa for a teacher (live query `toUid == me,
+  status == pending`); bell item category „Sularaha”. „Sinu käes sularaha: 50 € · Anna üle” line on the teacher's
+  dashboard and „Märkimata tunnid” (`CashOnHandLine`). Kassa (admin): „Ootab sinu kinnitust”, „Minu käes” + hand-over
+  (e.g. Oleksiy → Pavel), „Kassa vastuvõtjad” editor, teacher rows show „X € ootab kinnitust” and „lahkunud” for a
+  disabled account (balance kept).
+- **Accountant:** unchanged — reads Kassa (sees pending / rejected hand-overs with their status); no books entry.
 
 - **Student card (admin):** Arveldus → per subject tab „Maksab sularahas” → `studentRevenuePlans/<card>.cashSubjects`
   (`["*"]` on a card with one subject = all its lessons, else subject names; rules: list ≤ 9; only admins write plans).
@@ -602,7 +638,8 @@ menu and `/cash/summary` = admin + finance; `/cash/receipts`, `/cash/handover`, 
   other Kassa receipts (owner 2026-11-10). Undo by a teacher: own mark, same day, and the teacher's cash box still holds
   the amount. Undo and the admin's `/cash/void` remove the lesson's `cashPaid` in the same transaction.
 - **Hand-over:** the existing cash-box handover. Kassa (admin) → „Õpetajate käes sularaha” → „Sain kätte” = a handover
-  of that person's whole balance to the admin. After it the teacher can no longer undo.
+  of that person's available balance to the admin. Since 2026-11-11 the teacher can also hand it over themselves
+  („Minu kassa” above). After any hand-over of it the teacher can no longer undo.
 - **Chart:** Finantsid „Laekunud” (admin only) — total + „Ülekanded” (payments method bank / linkpay / card) +
   „Sularaha” (payments method cash + open cash-box receipts, by `receivedAt`); a receipt linked to an invoice is counted
   once, as its payment. The bookkeeper's view of the chart is unchanged.
