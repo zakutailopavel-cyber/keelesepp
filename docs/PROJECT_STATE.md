@@ -1,3 +1,9 @@
+## 2026-11-12 · agent/fix-series-weekday — a weekly series moved in „Muuda tundi” follows the new weekday (Fable T1) · crm-v2 only, no rules / functions / data change
+
+- Base `origin/main` b8861b8, checked 2026-11-12. Cause: `payload()` in `crm-v2/src/services/firebase/schedule.js` kept `current.day` because the form never sends `day`, so the series' `startDate` moved but the weekday stayed → false „märkimata tunnid”. Now a passed `date` sets `day` (`'Sun'…'Sat'`, parsed at local noon); an explicit `day` still wins; no date → old day. Existing docs with a wrong `day` are not repaired (re-saving the lesson fixes it).
+- Checks: new test in `schedule.test.js` (failed before, passes after); `npx vitest run src/services src/features/calendar` → 73 files, 500 tests passed; `npm run lint` 0 errors.
+- Next safe step: owner merges; then moves one weekly series to another weekday and checks the calendar and „Märkimata tunnid”.
+
 ## 2026-11-11 · agent/opik-layout — picture inside a text (wrap, width, shapes, frame, lock, touch drag) · crm-v2 only, no deploy of rules / functions
 
 - Base: `agent/opik-edit-tablet` (PR #1206, incl. 24a3d86) on `origin/main` b479c4e, checked 2026-11-11. Branch `agent/opik-layout`, draft PR stacked on #1206. Owner 2026-11-11: teachers lay out the Õpik themselves — pictures inside text with wrap, width, shapes, frame, lock, touch on iPad; must survive page split, print, phone, dark theme, autosave / versions, schema check; model ready for a later free-layout phase for the Õpik only.
