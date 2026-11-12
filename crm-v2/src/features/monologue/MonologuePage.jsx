@@ -12,6 +12,7 @@ import { MONOLOGUE_SECONDS, monologueLevel, monthLabel, monthOf, promptById, pro
 import '../homework/learnerTasks.css';
 import '../homework/reviewLayout.css';
 import './monologue.css';
+import { announcePractice } from '../practice/events.js';
 
 function Recording({ item, service, label }) {
   const [url, setUrl] = useState('');
@@ -70,6 +71,7 @@ export default function MonologuePage({ studentRepository = studentsService, ser
     setBusy(true); setError('');
     try {
       await service.submit({ student, uid: user.uid, month, level, blob: file, seconds, existing: current });
+      announcePractice({ kind: 'monologue' }); // the day streak (Fable U2)
       setRecording(false);
       setSent(true);
       await state.reload();

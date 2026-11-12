@@ -7,6 +7,7 @@ import { feedingCards, rateWord } from '../vocabulary/dailyReview.js';
 import { ownSentenceItems, ownSentencePairs } from '../practice/engine/ownSentences.js';
 import PetGames from './PetGames.jsx';
 import { FEED_WORDS } from './petCare.js';
+import { announcePractice } from '../practice/events.js';
 
 // the practice lesson (tiles, drag and drop) loads only when „Paranda” is opened
 const PracticeLesson = lazyComponent(() => import('../practice/PracticeLesson.jsx'));
@@ -42,7 +43,7 @@ export default function PetCare({ needs, words, wordsService, readOnly = false, 
       {readOnly ? null : <>
         {mode === 'feed' ? <FlashcardSession cards={feed} language={language} onRate={(item, rating, nextSide) => rateWord(wordsService, words, item, rating, nextSide)} onFinish={played} onClose={close} closeLabel="Valmis" />
           : mode === 'fix' ? <Suspense fallback={null}><PracticeLesson items={fix} lang="ru" onExit={close} onFinish={(summary, results) => { played(); results.forEach(({ item, verdict }) => { const word = words.find((entry) => entry.id === item.wordId); if (word) rateWord(wordsService, words, { word, dir: 'r' }, verdict === 'wrong' ? 'again' : 'good'); }); }} /></Suspense>
-          : mode === 'topics' ? <PetGames topics={topics} kind={kind} onDone={onPlayed} onClose={close} />
+          : mode === 'topics' ? <PetGames topics={topics} kind={kind} onDone={(score) => { announcePractice({ kind: 'pet', correct: score }); onPlayed?.(); }} onClose={close} />
           : <div className="pet-care__actions">
             <button type="button" className="pet-btn" disabled={!needs.dueWords} onClick={() => { setFeed(feedingCards(words)); setMode('feed'); }}>
               <Utensils size={14} aria-hidden="true" /> Toida ({Math.min(FEED_WORDS, needs.dueWords)} sõna)

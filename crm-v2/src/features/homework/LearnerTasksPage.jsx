@@ -31,6 +31,7 @@ import './interactiveLesson.css';
 import '../students/practiceFlow.css';
 import '../students/studentHome.css';
 import './learnerTasks.css';
+import { announcePractice } from '../practice/events.js';
 
 const shortDay = (value) => { const date = new Date(value); return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('et-EE', { day: 'numeric', month: 'short' }); };
 const stepId = (task) => `t-${String(task.key).replace(/[^\w-]/g, '_')}`;
@@ -331,6 +332,7 @@ export default function LearnerTasksPage({ repository = homeworkService, student
     try {
       if (withAnswer && repository.submitAnswer) await repository.submitAnswer({ item, ...withAnswer });
       else await repository.setStatus(item.id, 'Tehtud');
+      announcePractice({ kind: 'homework' }); // the day streak (Fable U2); only a student's account records it
       setAnswering(null);
       // one click without an answer: a written task would reach the teacher empty, so offer a way back
       setReopenable(withAnswer ? null : item);

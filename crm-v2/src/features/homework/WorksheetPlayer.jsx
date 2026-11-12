@@ -4,6 +4,7 @@ import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import DocWorksheetPlayer, { FlowBar } from '../worksheet-studio/DocWorksheetPlayer.jsx';
 import { useFlowKeyboard, useScreenFlow } from '../worksheet-studio/sheetFlow.js';
 import { petCelebrate } from '../pet/petEvents.js';
+import { announcePractice } from '../practice/events.js';
 import {
   answerKey,
   blockTitle,
@@ -182,6 +183,7 @@ function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClo
         calculateVisualWorksheetResult(assignment.files || [], answers),
       );
       await repository.submitWorksheet({ assignmentId: assignment.id, answers, ...result });
+      announcePractice({ kind: 'worksheet' }); // the day streak (Fable U2); no XP: homework XP comes from the records
       setScore(result.score); setSubmitted(true); onSubmitted?.(); petCelebrate({ xp: 15 });
     } catch (submitError) { setError(submitError.message || 'Töölehe esitamine ebaõnnestus.'); }
     finally { setSaving(false); }

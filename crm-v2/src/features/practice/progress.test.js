@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DAILY_XP_CAP, LEARN_DAYS, dayNumber, learnStreak, newerPractice, nextPracticeToday, readLocalPractice, todayOf, writeLocalPractice, xpOf } from './progress.js';
+import { DAILY_XP_CAP, countsAsLearnDay, LEARN_DAYS, dayNumber, learnStreak, newerPractice, nextPracticeToday, readLocalPractice, todayOf, writeLocalPractice, xpOf } from './progress.js';
 
 const date = '2026-11-09';
 
@@ -75,5 +75,51 @@ describe('browser copy', () => {
     expect(merged.today.done).toEqual(['words', 'sentences']);
     expect(merged.errorsPct).toBe(50);
     expect(readLocalPractice('x', { getItem: () => { throw new Error('private'); } })).toEqual({});
+  });
+});
+
+describe('any finished practice keeps the day streak (Fable U2)', () => {
+  it('counts every finished kind, but not an empty word or sentence round', () => {
+    ['worksheet', 'exercise', 'lesson', 'homework', 'pet', 'monologue'].forEach((kind) => expect(countsAsLearnDay({ kind })).toBe(true));
+    expect(countsAsLearnDay({ kind: 'words', reviewed: 4, correct: 0 })).toBe(true);
+    expect(countsAsLearnDay({ kind: 'grammar', items: 6, correct: 0 })).toBe(true);
+    expect(countsAsLearnDay({ kind: 'words', reviewed: 0, correct: 0 })).toBe(false);
+    expect(countsAsLearnDay({ kind: 'sentences', items: 0 })).toBe(false);
+    expect(countsAsLearnDay({})).toBe(false);
+  });
+
+  it('a learned day without a step or XP is in learnDays; the steps and XP stay as they were', () => {
+    const before = { xp: 40, today: { date, day: dayNumber(date), done: ['words'], xp: 12 }, learnDays: ['2026-11-08'] };
+    const next = nextPracticeToday(before, { date, learned: true });
+    expect(next.learnDays).toEqual(['2026-11-08', date]);
+    expect(next.today).toEqual(before.today);
+    expect(next.xp).toBe(40);
+  });
+
+  it('several sources on the same day are one day', () => {
+    let practice = {};
+    practice = nextPracticeToday(practice, { date, learned: true }); // a worksheet
+    practice = nextPracticeToday(practice, { date, learned: true }); // a pet game
+    practice = nextPracticeToday(practice, { date, xp: 5, learned: true }); // a word round
+    practice = nextPracticeToday(practice, { date, done: ['sentences'] }); // a „Harjuta” step
+    expect(practice.learnDays).toEqual([date]);
+    expect(practice.xp).toBe(5);
+    expect(learnStreak(practice.learnDays, date)).toBe(1);
+  });
+
+  it('different sources on following days make a streak; a gap day breaks it', () => {
+    let practice = {};
+    practice = nextPracticeToday(practice, { date: '2026-11-05', learned: true }); // worksheet
+    practice = nextPracticeToday(practice, { date: '2026-11-07', learned: true }); // pet game
+    practice = nextPracticeToday(practice, { date: '2026-11-08', done: ['words'] }); // Harjuta
+    practice = nextPracticeToday(practice, { date, learned: true }); // homework „Tehtud”
+    expect(practice.learnDays).toEqual(['2026-11-05', '2026-11-07', '2026-11-08', date]);
+    expect(learnStreak(practice.learnDays, date)).toBe(3);
+    expect(learnStreak(practice.learnDays, '2026-11-10')).toBe(3); // not lost before the day is over
+    expect(learnStreak(practice.learnDays, '2026-11-11')).toBe(0);
+  });
+
+  it('XP alone without a finished round does not add a day (learned is what counts)', () => {
+    expect(nextPracticeToday({}, { date, xp: 3 }).learnDays).toEqual([]);
   });
 });
