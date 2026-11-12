@@ -37,6 +37,10 @@ function openBalanceCents(invoice = {}) {
 function unpayableReason(invoice) {
   if (!invoice) return "Arvet ei leitud.";
   if (invoice.status === "Tühistatud") return "Arve on tühistatud.";
+  // fully credited (Fable Д6): nothing to pay; a corrected one names the invoice that replaced it
+  if (invoice.status === "Krediteeritud" || ["fully_credited", "corrected"].includes(invoice.correctionStatus)) {
+    return invoice.correctedBy?.invoiceNum ? `Arve on krediteeritud. Tasuda tuleb arve ${invoice.correctedBy.invoiceNum}.` : "Arve on krediteeritud.";
+  }
   // the card merchant is E&P Koolitus OÜ: an FIE invoice is paid only by bank transfer to the FIE account
   if (invoice.issuer === "fie") return "Selle arve saab tasuda ainult pangaülekandega arvel toodud kontole.";
   if (openBalanceCents(invoice) <= 0) return "Arve on juba tasutud.";

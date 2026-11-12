@@ -163,3 +163,41 @@ test("entryKeysOf: the entries that book a line's money", () => {
   assert.deepEqual(core.entryKeysOf({ paymentIds: ["p1"], creditIds: ["c1"] }), ["payment:p1", "credit:c1"]);
   assert.deepEqual(core.entryKeysOf({ purchase: { invoiceId: "i", paymentId: "p" } }), ["purchase-payment:i:p"]);
 });
+
+// Fable review 2026-11-11 Д6: a credited invoice never takes the money of a bank line
+test("matchLine: a credited invoice named in the explanation → its replacement, only as a suggestion", () => {
+  const old = invoice({ status: "Krediteeritud", correctionStatus: "corrected", balanceDueCents: 0, correctedBy: { invoiceId: "inv2", invoiceNum: "KS-2026-120" } });
+  const replacement = invoice({ id: "inv2", num: "KS-2026-120", paymentReference: "KS-2026-120", status: "Ootel" });
+  const match = core.matchLine(line({ explanation: "KS-2026-085" }), { invoices: [old, replacement] });
+  assert.equal(match.kind, "allocate");
+  assert.equal(match.confidence, "likely");
+  assert.deepEqual(match.allocations.map((a) => [a.invoiceId, a.amountCents]), [["inv2", 15000]]);
+  assert.equal(match.creditStudentId, "");
+  assert.match(match.reason, /KS-2026-120/);
+  assert.match(match.reason, /krediteeritud KS-2026-085/);
+});
+
+test("matchLine: a credited invoice without a replacement → left for a person, never an advance", () => {
+  const credited = invoice({ status: "Krediteeritud", correctionStatus: "fully_credited", balanceDueCents: 0 });
+  const match = core.matchLine(line({ explanation: "KS-2026-085" }), { invoices: [credited] });
+  assert.equal(match.kind, "none");
+  assert.match(match.reason, /krediteeritud arve KS-2026-085/);
+  // also when the replacement was itself cancelled
+  const corrected = invoice({ status: "Krediteeritud", correctionStatus: "corrected", correctedBy: { invoiceId: "inv2" } });
+  const cancelled = invoice({ id: "inv2", num: "KS-2026-120", status: "Tühistatud" });
+  assert.equal(core.matchLine(line({ explanation: "KS-2026-085" }), { invoices: [corrected, cancelled] }).kind, "none");
+});
+
+test("matchLine: a credited invoice is not a candidate by payer name and amount either", () => {
+  // bad data from before the fix: a credited invoice back in „Ootel” with a balance
+  const credited = invoice({ status: "Ootel", correctionStatus: "fully_credited", balanceDueCents: 15000 });
+  assert.equal(core.invoiceBalanceCents(credited), 0);
+  assert.equal(core.matchLine(line({ explanation: "tunnid" }), { invoices: [credited] }).kind, "none");
+});
+
+test("matchLine: a partially credited invoice is still an open invoice", () => {
+  const partial = invoice({ status: "Ootel", correctionStatus: "partially_credited", balanceDueCents: 15000 });
+  const match = core.matchLine(line({ explanation: "KS-2026-085" }), { invoices: [partial] });
+  assert.equal(match.kind, "allocate");
+  assert.equal(match.confidence, "sure");
+});

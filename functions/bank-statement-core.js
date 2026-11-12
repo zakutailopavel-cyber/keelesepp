@@ -186,8 +186,21 @@ const centsOf = (record, field = "amount") => {
   return Number.isFinite(amount) ? Math.round(amount * 100) : 0;
 };
 
+// fully credited („Krediteeritud”, or replaced by a corrected invoice): owes nothing, takes no payment (Fable Д6)
+const isFullyCredited = (invoice = {}) => invoice.status === "Krediteeritud" || ["fully_credited", "corrected"].includes(invoice.correctionStatus);
+
+// a credited invoice → the live invoice that replaced it (correctedBy, followed through repeated corrections), or null
+function replacementInvoice(invoice, invoiceById) {
+  let current = invoice;
+  for (let step = 0; step < 5 && current && isFullyCredited(current); step += 1) {
+    const nextId = current.correctedBy?.invoiceId;
+    current = nextId ? invoiceById.get(nextId) : null;
+  }
+  return current && current.status !== "Tühistatud" && !isFullyCredited(current) ? current : null;
+}
+
 function invoiceBalanceCents(invoice = {}) {
-  if (invoice.status === "Tühistatud") return 0;
+  if (invoice.status === "Tühistatud" || isFullyCredited(invoice)) return 0;
   if (Number.isFinite(Number(invoice.balanceDueCents))) return Math.max(0, Number(invoice.balanceDueCents));
   if (Number.isFinite(Number(invoice.amountCents))) return Math.max(0, Number(invoice.amountCents) - (Number(invoice.paidAmountCents) || 0));
   return Math.max(0, Math.round(((Number(invoice.amount) || 0) - (Number(invoice.paidAmount) || 0)) * 100));
@@ -251,28 +264,44 @@ function matchLine(line, { invoices: allInvoices = [], payments = [], bankTransa
   if (legacy.length) return { kind: "payments", confidence: "sure", reason: "makse on sellest pangareast juba sisestatud", paymentIds: legacy.map((p) => p.id) };
 
   const free = (p) => isUnlinkedTypedPayment(p) && !takenPaymentIds.has(p.id);
-  const open = invoices.filter((inv) => inv.status !== "Tühistatud");
-  const byNum = new Map(open.map((inv) => [normalizedInvoiceNum(inv.num), inv]));
+  const notCancelled = invoices.filter((inv) => inv.status !== "Tühistatud");
+  // a fully credited invoice bills nothing: never a candidate for the money (Fable Д6)
+  const open = notCancelled.filter((inv) => !isFullyCredited(inv));
+  const byNum = new Map(notCancelled.map((inv) => [normalizedInvoiceNum(inv.num), inv]));
   const text = `${line.explanation} ${line.referenceNumber}`;
-  const named = [...new Set([
+  const namedAll = [...new Set([
     ...invoiceNumbersIn(text).map((num) => byNum.get(num)).filter(Boolean),
-    ...(line.referenceNumber ? open.filter((inv) => inv.paymentReference && String(inv.paymentReference) === line.referenceNumber) : []),
+    ...(line.referenceNumber ? notCancelled.filter((inv) => inv.paymentReference && String(inv.paymentReference) === line.referenceNumber) : []),
   ])];
+  // the payer used the number of a credited invoice: the money goes to the invoice that replaced it (a person confirms),
+  // or — no replacement — the line stays for a person to decide; it never becomes an advance on its own
+  const creditedNamed = namedAll.filter(isFullyCredited);
+  const invoiceByIdAll = new Map(invoices.map((inv) => [inv.id, inv]));
+  const replacements = creditedNamed.map((inv) => replacementInvoice(inv, invoiceByIdAll)).filter(Boolean);
+  const named = [...new Set([...namedAll.filter((inv) => !isFullyCredited(inv)), ...replacements])];
+  if (creditedNamed.length && !named.length) {
+    return { ...NONE, reason: `selgituses krediteeritud arve ${creditedNamed.map((inv) => inv.num).join(", ")} — vali arve käsitsi` };
+  }
+  const redirectNote = creditedNamed.length
+    ? ` (selgituses krediteeritud ${creditedNamed.map((inv) => inv.num).join(", ")}${replacements.length ? " — asendusarve" : ""})`
+    : "";
+  // a credited invoice in the explanation makes the match only a suggestion: a person confirms where the money goes
+  const sureUnlessRedirected = creditedNamed.length ? "likely" : "sure";
 
   // 2. invoices named in the explanation (number or the invoice's reference number)
   if (named.length) {
-    const nums = named.map((inv) => inv.num).join(", ");
+    const nums = `${named.map((inv) => inv.num).join(", ")}${redirectNote}`;
     const typed = payments.filter((p) => free(p) && named.some((inv) => inv.id === p.invoiceId));
     const exactTyped = typed.filter((p) => centsOf(p) === line.amountCents);
     if (exactTyped.length) {
       const nearest = [...exactTyped].sort((a, b) => Math.abs(daysBetween(paymentDate(a), line.date)) - Math.abs(daysBetween(paymentDate(b), line.date)))[0];
-      return { kind: "payments", confidence: "sure", reason: `${nums}: käsitsi sisestatud makse ${centsLabel(line.amountCents)} saab panga kuupäeva`, paymentIds: [nearest.id] };
+      return { kind: "payments", confidence: sureUnlessRedirected, reason: `${nums}: käsitsi sisestatud makse ${centsLabel(line.amountCents)} saab panga kuupäeva`, paymentIds: [nearest.id] };
     }
     const typedSum = typed.reduce((n, p) => n + centsOf(p), 0);
-    if (typed.length > 1 && typedSum === line.amountCents) return { kind: "payments", confidence: "sure", reason: `${nums}: ${typed.length} käsitsi sisestatud makset kokku täpselt`, paymentIds: typed.map((p) => p.id) };
+    if (typed.length > 1 && typedSum === line.amountCents) return { kind: "payments", confidence: sureUnlessRedirected, reason: `${nums}: ${typed.length} käsitsi sisestatud makset kokku täpselt`, paymentIds: typed.map((p) => p.id) };
     const balance = named.reduce((n, inv) => n + invoiceBalanceCents(inv), 0);
     const allocations = allocationsFor(named, line.amountCents);
-    if (balance >= line.amountCents && allocations.length) return { kind: "allocate", confidence: "sure", reason: `arve number selgituses: ${nums}`, allocations, creditStudentId: "" };
+    if (balance >= line.amountCents && allocations.length) return { kind: "allocate", confidence: sureUnlessRedirected, reason: `arve number selgituses: ${nums}`, allocations, creditStudentId: "" };
     // more money than is open: a payment typed with another amount, an invoice already paid, or a real overpayment
     const studentId = named[0].studentId || "";
     return { kind: "allocate", confidence: "likely", reason: balance ? `${nums}: laekus ${centsLabel(line.amountCents)}, avatud ${centsLabel(balance)} — ülejääk ettemaksuks` : `${nums} on juba makstud — kontrolli, kas makse on topelt; raha läheks ettemaksuks`, allocations, creditStudentId: studentId };
@@ -406,6 +435,7 @@ module.exports = {
   csvRows,
   ibanKey,
   invoiceBalanceCents,
+  isFullyCredited,
   invoiceNumbersIn,
   isUnlinkedTypedPayment,
   lineIdOf,

@@ -1448,6 +1448,31 @@ function selectBillableLessons(lessons = [], lessonsSinceInvoice) {
     .sort((a, b) => `${a.date || ""}:${a.id || ""}`.localeCompare(`${b.date || ""}:${b.id || ""}`));
 }
 
+// A fully credited invoice („Krediteeritud”: credited in full, or replaced by a corrected invoice — invoice-correction-core.js)
+// bills nothing any more: like a cancelled one it never takes a payment, never blocks its month and is never reminded
+// (Fable review 2026-11-11 Д4/Д6). A partially credited invoice (lesson lines credited one by one) still has money due
+// and stays an ordinary open invoice.
+const FULL_CREDIT_STATUSES = new Set(["fully_credited", "corrected"]);
+function invoiceIsFullyCredited(invoice = {}) {
+  return Boolean(invoice) && (invoice.status === "Krediteeritud" || FULL_CREDIT_STATUSES.has(invoice.correctionStatus));
+}
+
+// why this invoice cannot take a payment because it is credited ("" = not credited); names the replacement invoice
+// when the credited one was corrected, so the person moves the money there
+function creditedInvoicePaymentError(invoice = {}) {
+  if (!invoiceIsFullyCredited(invoice)) return "";
+  const label = invoice.num ? `Arve ${invoice.num}` : "Arve";
+  const replacement = invoice.correctedBy?.invoiceNum || "";
+  return replacement
+    ? `${label} on krediteeritud ja asendatud arvega ${replacement}. Seo makse arvega ${replacement}.`
+    : `${label} on krediteeritud — sellele arvele makset ei registreerita.`;
+}
+
+// cancelled or fully credited: no longer a live invoice
+function invoiceIsVoidOrCredited(invoice = {}) {
+  return Boolean(invoice) && (invoice.status === "Tühistatud" || invoiceIsFullyCredited(invoice));
+}
+
 function invoiceFinancialPatch(invoice, payments, nowIso) {
   const amountCents = invoiceAmountCents(invoice);
   const paidAmountCents = activePaymentTotalCents(payments);
@@ -1480,6 +1505,13 @@ function invoiceFinancialPatch(invoice, payments, nowIso) {
       : null,
     parentPaymentStatus: balanceDueCents === 0 && amountCents > 0 ? "confirmed" : "pending",
     financialUpdatedAt: nowIso,
+    // a fully credited invoice stays „Krediteeritud” whatever happens to its payments (a void, an overpayment
+    // moved to the advance): it never goes back to „Ootel” and into the reminders (Д6)
+    ...(invoiceIsFullyCredited(invoice) ? {
+      status: "Krediteeritud",
+      paymentStatus: paidAmountCents > 0 ? paymentStatus : "credited",
+      parentPaymentStatus: "credited",
+    } : {}),
   };
 }
 
@@ -1494,6 +1526,9 @@ module.exports = {
   invoiceAfterLessonCredit,
   invoiceOriginalAmountCents,
   invoiceFinancialPatch,
+  creditedInvoicePaymentError,
+  invoiceIsFullyCredited,
+  invoiceIsVoidOrCredited,
   lessonBillingDispositionPatch,
   lessonIsBillable,
   normalizeAllocations,
