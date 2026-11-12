@@ -49,6 +49,16 @@ describe('UnmarkedLessonsPage (phone-first, owner 2026-11-09)', () => {
     vi.useRealTimers();
   });
 
+  it('a lesson someone else had marked already: no „Võta tagasi” that would remove their mark (Fable T6)', async () => {
+    const repository = repo({ mark: vi.fn(async (item) => ({ id: `rec-${item.id}`, accountingSource: 'crm_v2', alreadyMarked: true })) });
+    renderPage(repository);
+    fireEvent.click(await screen.findByRole('button', { name: 'Toimus: Mia' }));
+    await waitFor(() => expect(repository.mark).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByText(/^10:00 · Mia$/)).not.toBeInTheDocument());
+    expect(document.querySelector('.qm-toast')).toBeNull();
+    expect(repository.unmark).not.toHaveBeenCalled();
+  });
+
   it('„Puudus ▾” opens the two absences; the billable one is never the default', async () => {
     const repository = repo();
     renderPage(repository, ['teacher']);
