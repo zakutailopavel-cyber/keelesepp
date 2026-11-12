@@ -67,7 +67,9 @@ const {
   creditAfterRestoration,
   financialPeriodReviewSnapshot,
   invoiceAfterLessonCredit,
+  creditedInvoicePaymentError,
   invoiceFinancialPatch,
+  invoiceIsFullyCredited,
   invoiceOriginalAmountCents,
   lessonBillingDispositionPatch,
   lessonIsBillable,
@@ -143,6 +145,7 @@ const {
   normalizedLessonStatus,
   scheduleStatusForLesson,
   isRecurringSchedule,
+  lessonRemovalPlan,
   stableLessonDocumentId,
 } = require("./lesson-record-core");
 const { planTeacherScopeBackfill } = require("./teacher-scope-core");
@@ -1139,6 +1142,9 @@ async function syncLessonPackageConsumption({
   actor,
   lessonId,
   requestId,
+  // deleteLessonJournal has already checked that this actor may remove the lesson (the deleted lesson's state may not
+  // carry the teacher, so the check below could refuse the teacher who just removed it)
+  actorAlreadyAuthorized = false,
 }) {
   const mutationId = cleanRequestId(requestId);
   const cleanLessonId = String(lessonId || "").trim();
@@ -1195,7 +1201,7 @@ async function syncLessonPackageConsumption({
       plan = planForSubjectBilling(cardPlan, lessonSubject(lesson, card), mainSubject(card));
       billedMonthly = plan.billingMode !== "package";
     }
-    if (!lessonActorCanWrite(actor, { lesson })) {
+    if (!actorAlreadyAuthorized && !lessonActorCanWrite(actor, { lesson })) {
       throw httpError(403, "Lesson belongs to another teacher");
     }
     const state = stateSnap.exists ? stateSnap.data() : {};
@@ -1914,7 +1920,31 @@ async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, value
   return saved;
 }
 
+// Removes a lesson mark (the lesson is planned again). A lesson that took a package credit (or is owed one) is removed
+// too (Fable review T2, 2026-11-12): the credit comes back through the package ledger right after
+// (syncLessonPackageConsumption on the deleted lesson: a `lesson_restoration` entry, or the owed state cleared).
 async function deleteLessonJournal({ actor, lessonId, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const result = await deleteLessonJournalEntry({ actor, lessonId, requestId: mutationId });
+  if (!result.packageMovement) return result;
+  try {
+    const packageSync = await syncLessonPackageConsumption({
+      actor,
+      lessonId: result.lessonId,
+      requestId: `${mutationId.slice(0, 110)}_package`,
+      actorAlreadyAuthorized: true,
+    });
+    return { ...result, packageSync: { status: packageSync.status, changed: Boolean(packageSync.changed), balanceAfter: packageSync.balanceAfter ?? null } };
+  } catch (error) {
+    // 404: the lesson tokens trigger (syncLessonTokens, CRM v2 marks) already gave the credit back
+    if (error.status === 404) return { ...result, packageSync: { status: "already_settled", changed: false, balanceAfter: null } };
+    // the mark is removed; the credit is still out — syncLessonTokens / an admin sync gives it back (logged, shown)
+    console.error(`Lesson ${result.lessonId} removed but its package credit was not restored:`, error.message);
+    return { ...result, packageSync: { status: "needs_attention", changed: false, reason: error.message } };
+  }
+}
+
+async function deleteLessonJournalEntry({ actor, lessonId, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanLessonId = String(lessonId || "").trim();
   if (!cleanLessonId || cleanLessonId.includes("/")) throw httpError(400, "Valid lessonId required");
@@ -1940,6 +1970,9 @@ async function deleteLessonJournal({ actor, lessonId, requestId }) {
     }
     if (!lessonSnap.exists) throw httpError(404, "Lesson not found");
     const lesson = lessonSnap.data();
+    const packageStateRef = db.collection("lessonPackageStates").doc(cleanLessonId);
+    const packageStateSnap = await transaction.get(packageStateRef);
+    const packageState = packageStateSnap.exists ? packageStateSnap.data() : {};
     const studentRef = lesson.studentId && lesson.studentId !== "ext"
       ? db.collection("students").doc(lesson.studentId)
       : null;
@@ -1955,18 +1988,12 @@ async function deleteLessonJournal({ actor, lessonId, requestId }) {
     if (!lessonActorCanWrite(actor, { lesson, schedule, student })) {
       throw httpError(403, "Lesson belongs to another teacher");
     }
-    if (lesson.invoiceId || lesson.billingStatus) {
-      throw httpError(409, "Lesson has a financial status and cannot be deleted");
-    }
-    if (["consumed", "needs_attention"].includes(lesson.packageConsumptionStatus)) {
-      throw httpError(409, "Lesson package movement must be resolved before deletion");
-    }
+    // invoiced / paid in cash: refused; a package credit taken (or owed) goes back through the ledger after this
+    // transaction (deleteLessonJournal); CRM v2 marks never moved the card's legacy counters (lesson-record-core)
+    const plan = lessonRemovalPlan(lesson, packageState, scheduleSnap?.exists ? schedule : null);
+    if (plan.refusal) throw httpError(plan.refusal.status, plan.refusal.message);
     await assertFinancialDateOpen(transaction, lesson.date);
-
-    const counterDelta = lesson.status === "Toimunud"
-      && lesson.packageAccountingSource !== "package_ledger_v1"
-      ? -1
-      : 0;
+    const { packageMovement, counterDelta } = plan;
     if (studentRef && studentSnap?.exists && counterDelta) {
       transaction.set(studentRef, {
         packageUsed: Math.max(0, (Number(student.packageUsed) || 0) + counterDelta),
@@ -1974,7 +2001,7 @@ async function deleteLessonJournal({ actor, lessonId, requestId }) {
         lessonAccountingUpdatedAt: nowIso,
       }, { merge: true });
     }
-    if (scheduleRef && scheduleSnap?.exists) {
+    if (scheduleRef && plan.touchSchedule) {
       if (isRecurringSchedule(schedule) && lesson.date) {
         const occurrenceStatuses = { ...(schedule.occurrenceStatuses || {}) };
         delete occurrenceStatuses[lesson.date];
@@ -1994,6 +2021,7 @@ async function deleteLessonJournal({ actor, lessonId, requestId }) {
       lessonId: cleanLessonId,
       scheduleId: lesson.scheduleId || "",
       counterDelta,
+      packageMovement,
     };
     transaction.create(auditRef, {
       entityType: "lesson",
@@ -2005,10 +2033,25 @@ async function deleteLessonJournal({ actor, lessonId, requestId }) {
       lessonStatus: lesson.status || "",
       scheduleId: lesson.scheduleId || "",
       actor: actorData,
-      reason: "Unbilled diary entry deleted",
+      reason: packageMovement ? "Unbilled diary entry deleted; its package credit movement is reversed through the ledger" : "Unbilled diary entry deleted",
       createdAt: nowIso,
       requestId: mutationId,
     });
+    // the same activity line as a mark removed in the calendar (crm-v2 lessons.removeMark)
+    if (lesson.accountingSource === "crm_v2") {
+      transaction.set(db.collection("activityLog").doc(), {
+        type: "lesson.mark_removed",
+        label: `${lesson.studentName || "Õpilane"} tunni märge eemaldatud`,
+        studentId: lesson.studentId || "",
+        studentName: lesson.studentName || "",
+        byUid: actorData.uid || "",
+        byName: actorData.name || "",
+        byRole: actorData.role || "",
+        createdAt: nowIso,
+        date: lesson.date || "",
+        meta: { lessonId: cleanLessonId, scheduleId: lesson.scheduleId || "", from: lesson.status || "", packageMovement },
+      });
+    }
     transaction.create(requestRef, {
       creationSignature: signature,
       requestId: mutationId,
@@ -3150,6 +3193,8 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
     const invoice = invoiceSnap.data();
     if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot receive payments");
+    // a fully credited invoice owes nothing: a payment would put it back to „Ootel” and into the reminders (Д6)
+    if (invoiceIsFullyCredited(invoice)) throw httpError(409, creditedInvoicePaymentError(invoice));
     const payments = await activeInvoicePayments(transaction, invoiceRef.id, fie ? "fie" : "company");
     const guard = !entryGuards ? null : paymentGuards.assertPaymentAllowed({
       invoice, payments, amountCents, paidAt: paymentDate, method: cleanText(method, 40) || "bank", nowIso, allowOverpayment,
@@ -4292,6 +4337,7 @@ async function allocateBankTransaction({
       // the company's bank money and advances never pay an FIE invoice (owner 2026-11-09)
       assertCompanyInvoice(actor, snap.data(), "Ettevõtte raha ei saa siduda FIE arvega — FIE arve makstakse FIE kontole.");
       if (snap.data().status === "Tühistatud") throw httpError(409, `Invoice ${sortedAllocations[index].invoiceId} is cancelled`);
+      if (invoiceIsFullyCredited(snap.data())) throw httpError(409, creditedInvoicePaymentError(snap.data()));
     });
     const lessonRefs = sortedLessonAllocations.map(allocation =>
       db.collection("lessons").doc(allocation.lessonId),
@@ -4597,6 +4643,7 @@ async function applyPayerCredit({ actor, creditId, allocations, lessonAllocation
       // the company's bank money and advances never pay an FIE invoice (owner 2026-11-09)
       assertCompanyInvoice(actor, snap.data(), "Ettevõtte raha ei saa siduda FIE arvega — FIE arve makstakse FIE kontole.");
       if (snap.data().status === "Tühistatud") throw httpError(409, `Invoice ${sortedAllocations[index].invoiceId} is cancelled`);
+      if (invoiceIsFullyCredited(snap.data())) throw httpError(409, creditedInvoicePaymentError(snap.data()));
     });
     if (credit.studentId) {
       invoiceSnaps.forEach((snap, index) => {
@@ -6380,6 +6427,8 @@ async function sendCreditNoteMessage(creditNoteId, { actor = null } = {}) {
 
 function shouldSendDue10Reminder(invoice, todayIso, force = false) {
   if (invoice.status === "Makstud") return false;
+  // a credited invoice is never reminded, even one a payment put back to „Ootel” before the Д6 fix
+  if (invoiceIsFullyCredited(invoice)) return false;
   if (force) return true;
   const day = Number(todayIso.slice(8, 10));
   const due = String(invoice.due || "");
@@ -6393,6 +6442,7 @@ function shouldSendDue10Reminder(invoice, todayIso, force = false) {
 
 function shouldSendOverdueReminder(invoice, todayIso, force = false) {
   if (invoice.status === "Makstud") return false;
+  if (invoiceIsFullyCredited(invoice)) return false;
   if (force) return true;
   const due = String(invoice.due || "");
   if (!due || due >= todayIso) return false;

@@ -3,6 +3,7 @@ import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
 import { shareInFlight } from './shareInFlight.js';
+import { SAVE_OFFLINE_MESSAGE, SUBMIT_OFFLINE_MESSAGE, withWriteTimeout } from './offlineWrite.js';
 import { studentsService } from './students.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
 import { paperMeasured, paperWorkPayload } from '../../features/homework/paperWork.js';
@@ -634,17 +635,32 @@ export const homeworkService = {
     await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { worksheetDoc, worksheetEditedAt: updatedAt });
     return { worksheetDoc, worksheetEditedAt: updatedAt };
   },
+  // Autosave and „Salvesta”. In a transaction, so a sheet already submitted (from another device or an old tab) is never
+  // turned back to 'in_progress' with older answers (Fable review U5): nothing is written then and `skipped` says so.
+  // Without network it fails after WRITE_TIMEOUT_MS instead of waiting forever (U4). A transaction is never queued
+  // offline, so an old draft cannot land after a later submit.
   async saveWorksheetDraft({ assignmentId, answers }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');
     const { db } = requireFirebaseClient();
+    const ref = doc(db, 'worksheetAssignments', assignmentId);
     const updatedAt = new Date().toISOString();
     const payload = { status: 'in_progress', answers: answers || {}, updatedAt };
-    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), payload);
-    return payload;
+    return withWriteTimeout(runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      if (!snapshot.exists()) throw new Error('Töölehte ei leitud.');
+      const current = snapshot.data() || {};
+      if (current.status === 'done') return { status: 'done', answers: current.answers || {}, score: current.score || null, completedAt: current.completedAt || '', skipped: true };
+      transaction.update(ref, payload);
+      return payload;
+    }), { message: SAVE_OFFLINE_MESSAGE });
   },
+  // „Esita tööleht”. A transaction: a sheet already submitted is not submitted again (a retry after a slow network, a
+  // second device); the stored result comes back with `alreadyDone`. Without network the call fails after
+  // WRITE_TIMEOUT_MS with a clear message (U4); the error's `pending` settles if the write still lands.
   async submitWorksheet({ assignmentId, answers, score, errorLog }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');
     const { db } = requireFirebaseClient();
+    const ref = doc(db, 'worksheetAssignments', assignmentId);
     const completedAt = new Date().toISOString();
     const payload = {
       status: 'done',
@@ -655,18 +671,27 @@ export const homeworkService = {
       seenByTeacher: false,
       updatedAt: completedAt,
     };
-    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), payload);
-    // a homework task that pointed at this worksheet (given in the lesson) is done with it
-    try {
-      const assignment = await getDoc(doc(db, 'worksheetAssignments', assignmentId));
-      const studentId = assignment.data()?.studentId;
-      if (studentId) {
-        const linked = await getDocs(query(collection(db, 'homework'), where('studentId', '==', studentId), where('worksheetAssignmentId', '==', assignmentId)));
-        await Promise.all(linked.docs.filter((item) => item.data().status !== 'Tehtud')
-          .map((item) => updateDoc(item.ref, { status: 'Tehtud', submittedAt: completedAt, updatedAt: completedAt })));
+    const committed = runTransaction(db, async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      if (!snapshot.exists()) throw new Error('Töölehte ei leitud.');
+      const current = snapshot.data() || {};
+      if (current.status === 'done') {
+        return { status: 'done', answers: current.answers || {}, score: current.score || null, errorLog: current.errorLog || [], completedAt: current.completedAt || '', alreadyDone: true };
       }
-    } catch { /* the worksheet itself is submitted; the task can still be marked by hand */ }
-    return payload;
+      transaction.update(ref, payload);
+      return { ...payload, studentId: current.studentId || '' };
+    });
+    // a homework task that pointed at this worksheet (given in the lesson) is done with it — also when the write lands
+    // only after the timeout below
+    const linking = committed.then(async ({ studentId }) => {
+      if (!studentId) return;
+      const linked = await getDocs(query(collection(db, 'homework'), where('studentId', '==', studentId), where('worksheetAssignmentId', '==', assignmentId)));
+      await Promise.all(linked.docs.filter((item) => item.data().status !== 'Tehtud')
+        .map((item) => updateDoc(item.ref, { status: 'Tehtud', submittedAt: completedAt, updatedAt: completedAt })));
+    }).catch(() => { /* the worksheet itself is submitted; the task can still be marked by hand */ });
+    const { studentId: _studentId, ...stored } = await withWriteTimeout(committed, { message: SUBMIT_OFFLINE_MESSAGE });
+    await withWriteTimeout(linking).catch(() => {});
+    return stored;
   },
   async saveSelfAssessment({ assignmentId, difficulty, comment }) {
     const value = Number(difficulty);

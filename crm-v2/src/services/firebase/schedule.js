@@ -11,6 +11,10 @@ function sort(items) {
   return items.sort((a, b) => `${a.date || a.startDate || '9999'} ${a.time || ''}`.localeCompare(`${b.date || b.startDate || '9999'} ${b.time || ''}`, 'et'));
 }
 
+const DAY_IDS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// 'YYYY-MM-DD' → 'Mon'…, parsed at local noon so the weekday cannot shift with the time zone
+const dayOfDate = (date) => (/^\d{4}-\d{2}-\d{2}$/.test(date) ? DAY_IDS[new Date(`${date}T12:00:00`).getDay()] : '');
+
 export function payload(data, current = {}) {
   const now = new Date().toISOString();
   const date = String(data.date || current.date || '').trim();
@@ -20,7 +24,8 @@ export function payload(data, current = {}) {
     ...data,
     teacher: canonicalTeacherName(data.teacher || current.teacher),
     date,
-    day: data.day || current.day || ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${date}T12:00:00`).getDay()],
+    // a new date moves the weekday too (a weekly series follows its new start date); an explicit day still wins
+    day: data.day || dayOfDate(String(data.date || '').trim()) || current.day || dayOfDate(date),
     time: String(data.time || current.time || '09:00'),
     duration: Math.max(5, Number(data.duration || current.duration || 60)),
     recurring,

@@ -143,7 +143,8 @@ export default function UnmarkedLessonsPage({ repository = unmarkedLessonsServic
           setError(`${item.studentName || 'Õpilane'} ${dayLabel(item.occurrenceDate)}: tund on märgitud, sularaha jäi märkimata — ${actionError(problem, 'proovi „Maksis sularahas”.')}`);
         }
       }
-      if (record?.id && repository.unmark) {
+      // a lesson someone else had marked already (record.alreadyMarked): no undo that would remove their mark (T6)
+      if (record?.id && !record.alreadyMarked && repository.unmark) {
         setUndo(toimusUndo({ item, label: label(item, status), unmark, cash, paidCents, offerCash: Boolean(cashable) }));
       }
     } catch (problem) {

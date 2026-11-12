@@ -111,3 +111,13 @@ test('per-subject billing: a package subject gets no monthly line; actual next t
   assert.equal(ok.amountCents, 4 * 2000 + 2 * 1800);
   assert.throws(() => combinedMonthlyRecord({ ...base, parts: [{ card: kid, plan, subject: 'Eesti keel', plannedUnits: 4, correctionUnits: 0 }, { card: kid, plan, subject: 'Inglise keel', plannedUnits: 4, correctionUnits: 0 }] }), { status: 400, message: /tunnipaketiga/ });
 });
+
+test('a cancelled or fully credited invoice does not bill the card for the month (Fable Д4); a partially credited one does', () => {
+  const base = { studentId: 'en', planMonth: '2026-10' };
+  assert.equal(billsCardForMonth({ ...base, status: 'Ootel' }, 'en', '2026-10'), true);
+  assert.equal(billsCardForMonth({ ...base, status: 'Tühistatud' }, 'en', '2026-10'), false);
+  assert.equal(billsCardForMonth({ ...base, status: 'Krediteeritud', correctionStatus: 'fully_credited' }, 'en', '2026-10'), false);
+  assert.equal(billsCardForMonth({ ...base, status: 'Krediteeritud', correctionStatus: 'corrected' }, 'en', '2026-10'), false);
+  assert.equal(billsCardForMonth({ ...base, status: 'Ootel', correctionStatus: 'partially_credited' }, 'en', '2026-10'), true);
+  assert.equal(billsCardForMonth({ combined: true, studentIds: ['en', 'et'], planMonth: '2026-10', status: 'Krediteeritud' }, 'et', '2026-10'), false);
+});
