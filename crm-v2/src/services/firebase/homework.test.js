@@ -148,11 +148,70 @@ describe('homeworkService submissions', () => {
     ]);
   });
 
-  it('submits answers on the original assignment and flags them for teacher review', async () => {
-    await homeworkService.submitWorksheet({ assignmentId: 'assignment-1', answers: { 'fill-1_0': 'ema' }, score: { correct: 1, total: 1, pct: 100 }, errorLog: [] });
-    expect(firestore.updateDoc).toHaveBeenCalledWith('firebase-db:worksheetAssignments:assignment-1', expect.objectContaining({
+  const stored = (data) => ({ exists: () => Boolean(data), data: () => data });
+  const inTransaction = (data) => {
+    const transaction = { get: vi.fn().mockResolvedValue(stored(data)), update: vi.fn() };
+    firestore.runTransaction.mockImplementation((_db, fn) => fn(transaction));
+    return transaction;
+  };
+
+  it('submits answers on the original assignment, flags them for teacher review and closes the linked task', async () => {
+    const transaction = inTransaction({ studentId: 'student-1', status: 'in_progress' });
+    const linkedRef = { id: 'hw-1' };
+    firestore.getDocs.mockResolvedValue({ docs: [{ ref: linkedRef, data: () => ({ status: 'Ootel' }) }] });
+    const result = await homeworkService.submitWorksheet({ assignmentId: 'assignment-1', answers: { 'fill-1_0': 'ema' }, score: { correct: 1, total: 1, pct: 100 }, errorLog: [] });
+    expect(transaction.update).toHaveBeenCalledWith('firebase-db:worksheetAssignments:assignment-1', expect.objectContaining({
       status: 'done', answers: { 'fill-1_0': 'ema' }, score: { correct: 1, total: 1, pct: 100 }, seenByTeacher: false,
     }));
+    expect(result).toMatchObject({ status: 'done' });
+    expect(result.studentId).toBeUndefined();
+    expect(firestore.updateDoc).toHaveBeenCalledWith(linkedRef, expect.objectContaining({ status: 'Tehtud' }));
+  });
+
+  it('a sheet already submitted is not submitted again: the stored result comes back (U4 retry, U5 second device)', async () => {
+    const transaction = inTransaction({ studentId: 'student-1', status: 'done', answers: { a: '1' }, score: { pct: 100 }, completedAt: '2026-11-12T10:00:00Z' });
+    const result = await homeworkService.submitWorksheet({ assignmentId: 'assignment-1', answers: { a: '2' }, score: { pct: 0 }, errorLog: [] });
+    expect(transaction.update).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ status: 'done', answers: { a: '1' }, score: { pct: 100 }, alreadyDone: true });
+  });
+
+  it('an autosave never turns a submitted sheet back to in progress (U5)', async () => {
+    const transaction = inTransaction({ studentId: 'student-1', status: 'done', answers: { a: '1' }, score: { pct: 100 } });
+    const result = await homeworkService.saveWorksheetDraft({ assignmentId: 'assignment-1', answers: { a: 'old' } });
+    expect(transaction.update).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ status: 'done', answers: { a: '1' }, skipped: true });
+    const open = inTransaction({ studentId: 'student-1', status: 'new' });
+    await expect(homeworkService.saveWorksheetDraft({ assignmentId: 'assignment-1', answers: { a: 'new' } })).resolves.toMatchObject({ status: 'in_progress', answers: { a: 'new' } });
+    expect(open.update).toHaveBeenCalledWith('firebase-db:worksheetAssignments:assignment-1', expect.objectContaining({ status: 'in_progress', answers: { a: 'new' } }));
+  });
+
+  it('without network the submit gives up after 8 seconds with a clear message; the write may still land (U4)', async () => {
+    vi.useFakeTimers();
+    try {
+      let land;
+      firestore.runTransaction.mockImplementation(() => new Promise((resolve) => { land = resolve; }));
+      const submitting = homeworkService.submitWorksheet({ assignmentId: 'assignment-1', answers: {}, score: null, errorLog: [] });
+      const outcome = submitting.then(() => null, (error) => error);
+      await vi.advanceTimersByTimeAsync(7900);
+      expect(await Promise.race([outcome, Promise.resolve('waiting')])).toBe('waiting');
+      await vi.advanceTimersByTimeAsync(200);
+      const error = await outcome;
+      expect(error.code).toBe('keelesepp/offline');
+      expect(error.message).toMatch(/^Võrku pole – tööleht jäi esitamata/);
+      land({ status: 'done' });
+      await expect(error.pending).resolves.toMatchObject({ status: 'done' });
+      // the draft fails the same way instead of spinning
+      const drafting = homeworkService.saveWorksheetDraft({ assignmentId: 'assignment-1', answers: {} }).catch((e) => e);
+      await vi.advanceTimersByTimeAsync(8000);
+      expect((await drafting).message).toMatch(/^Võrku pole – ei salvestunud/);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it('a Firebase network error is told as no network, other errors stay as they are', async () => {
+    firestore.runTransaction.mockRejectedValueOnce(Object.assign(new Error('Failed to get document because the client is offline.'), { code: 'unavailable' }));
+    await expect(homeworkService.submitWorksheet({ assignmentId: 'assignment-1', answers: {} })).rejects.toMatchObject({ code: 'keelesepp/offline' });
+    firestore.runTransaction.mockRejectedValueOnce(Object.assign(new Error('Missing or insufficient permissions.'), { code: 'permission-denied' }));
+    await expect(homeworkService.submitWorksheet({ assignmentId: 'assignment-1', answers: {} })).rejects.toMatchObject({ code: 'permission-denied' });
   });
 
   it('stores a bounded student self-assessment on the same assignment', async () => {

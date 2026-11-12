@@ -22,6 +22,13 @@ if (typeof window !== 'undefined' && window.document) {
 // so retaining a prior document makes accessible queries target stale UI.
 afterEach(() => {
   cleanup();
+  // the worksheet players keep a device copy of the answers (localAnswers.js); many tests reuse the same assignment id
+  try {
+    const storage = globalThis.localStorage;
+    const keys = [];
+    for (let i = 0; i < (storage?.length || 0); i += 1) keys.push(storage.key(i));
+    keys.filter((key) => String(key).startsWith('keelesepp.worksheetAnswers.')).forEach((key) => storage.removeItem(key));
+  } catch { /* no storage in this environment */ }
 });
 
 // Tests never call our production servers (2026-10-14: every test run woke the live TURN function in production —
