@@ -7,6 +7,11 @@
 - **⚠ Deploy (owner):** `firebase deploy --only functions:financeApi` before the site release (log in `docs/DEPLOY_LEDGER.md`). Without it the site falls back to the old server, which still refuses, now with an Estonian message.
 - Limits: if the ledger restore after the delete fails, the mark is gone and the credit is logged as `needs_attention` in the response (for a CRM v2 mark `syncLessonTokens` also tries on the delete; an older journal mark needs an admin sync). Not tried on production data.
 - Next safe step: owner merges, deploys `functions:financeApi`, then a teacher marks a package student „Toimus” and taps „Võta tagasi” after 3 s — the package balance in Finantsid comes back.
+## 2026-11-12 · agent/fix-series-weekday — a weekly series moved in „Muuda tundi” follows the new weekday (Fable T1) · crm-v2 only, no rules / functions / data change
+
+- Base `origin/main` b8861b8, checked 2026-11-12. Cause: `payload()` in `crm-v2/src/services/firebase/schedule.js` kept `current.day` because the form never sends `day`, so the series' `startDate` moved but the weekday stayed → false „märkimata tunnid”. Now a passed `date` sets `day` (`'Sun'…'Sat'`, parsed at local noon); an explicit `day` still wins; no date → old day. Existing docs with a wrong `day` are not repaired (re-saving the lesson fixes it).
+- Checks: new test in `schedule.test.js` (failed before, passes after); `npx vitest run src/services src/features/calendar` → 73 files, 500 tests passed; `npm run lint` 0 errors.
+- Next safe step: owner merges; then moves one weekly series to another weekday and checks the calendar and „Märkimata tunnid”.
 
 ## 2026-11-11 · agent/opik-layout — picture inside a text (wrap, width, shapes, frame, lock, touch drag) · crm-v2 only, no deploy of rules / functions
 
