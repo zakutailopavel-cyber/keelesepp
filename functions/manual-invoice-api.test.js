@@ -129,3 +129,78 @@ test('a card already on a combined invoice for the month is not billed again by 
     assert.equal(writes.length, 0);
   } finally { restore(); }
 });
+
+// Fable review 2026-11-11 Д4: a fully credited monthly invoice does not block the month
+function monthlyDb(invoiceDocs, writes, combinedDocs = []) {
+  return {
+    collection(name) {
+      return { doc: (id) => ({ collection: name, id }), where: (field, operator, value) => ({ collection: name, field, operator, value, limit: () => ({ collection: name, field, operator, value }) }) };
+    },
+    async runTransaction(callback) {
+      return callback({
+        async get(target) {
+          if (target.collection === 'students') return { exists: true, data: () => ({ name: 'Mari', parentEmail: 'mari@example.ee' }) };
+          if (target.collection === 'studentRevenuePlans') return { exists: true, data: () => ({ lessonPriceCents: 2500, lessonMinutes: 60 }) };
+          if (target.collection === 'meta') return { exists: true, data: () => ({ seq: 84 }) };
+          if (target.collection === 'invoices' && target.field === 'studentId') return { docs: invoiceDocs };
+          if (target.collection === 'invoices' && target.field === 'studentIds') return { docs: combinedDocs };
+          if (target.collection === 'invoices' && target.field === 'num') return { empty: true };
+          return { exists: false };
+        },
+        create: (target, value) => writes.push({ type: 'create', target, value }),
+        set: (target, value) => writes.push({ type: 'set', target, value }),
+      });
+    },
+  };
+}
+const monthlyValues = { studentId: 's1', month: '2026-10', due: '2026-10-10', plannedUnits: 4 };
+
+test('a fully credited monthly invoice does not block the month: a new revision is made', async () => {
+  const writes = [];
+  const credited = { id: 'monthly_s1_2026-10', data: () => ({ studentId: 's1', planMonth: '2026-10', status: 'Krediteeritud', correctionStatus: 'fully_credited', num: 'KS-2026-080' }) };
+  const restore = api.__set__('db', monthlyDb([credited], writes));
+  try {
+    const result = await api.createMonthlyInvoice({ actor: { uid: 'admin', role: 'admin' }, values: monthlyValues });
+    assert.equal(result.idempotent, false);
+    assert.equal(result.invoice.id, 'monthly_s1_2026-10-r2');
+    assert.equal(result.invoice.monthRevision, 2);
+    assert.equal(result.invoice.status, 'Ootel');
+    assert.equal(writes[0].target.id, 'monthly_s1_2026-10-r2');
+  } finally { restore(); }
+});
+
+test('a corrected monthly invoice: its replacement (same planMonth) is the month\'s invoice, nothing new is made', async () => {
+  const writes = [];
+  const old = { id: 'monthly_s1_2026-10', data: () => ({ studentId: 's1', planMonth: '2026-10', status: 'Krediteeritud', correctionStatus: 'corrected', num: 'KS-2026-080', correctedBy: { invoiceId: 'corr1', invoiceNum: 'KS-2026-090' } }) };
+  const replacement = { id: 'corr1', data: () => ({ studentId: 's1', planMonth: '2026-10', status: 'Ootel', num: 'KS-2026-090' }) };
+  const restore = api.__set__('db', monthlyDb([old, replacement], writes));
+  try {
+    const result = await api.createMonthlyInvoice({ actor: { uid: 'admin', role: 'admin' }, values: monthlyValues });
+    assert.equal(result.idempotent, true);
+    assert.equal(result.invoice.num, 'KS-2026-090');
+    assert.equal(writes.length, 0);
+  } finally { restore(); }
+});
+
+test('a partially credited monthly invoice still is the month\'s invoice', async () => {
+  const writes = [];
+  const partial = { id: 'monthly_s1_2026-10', data: () => ({ studentId: 's1', planMonth: '2026-10', status: 'Ootel', correctionStatus: 'partially_credited', num: 'KS-2026-080' }) };
+  const restore = api.__set__('db', monthlyDb([partial], writes));
+  try {
+    const result = await api.createMonthlyInvoice({ actor: { uid: 'admin', role: 'admin' }, values: monthlyValues });
+    assert.equal(result.idempotent, true);
+    assert.equal(result.invoice.num, 'KS-2026-080');
+    assert.equal(writes.length, 0);
+  } finally { restore(); }
+});
+
+test('a fully credited combined invoice does not hold the card for the month', async () => {
+  const writes = [];
+  const combined = { id: 'monthly_combined_2026-10_abc', data: () => ({ combined: true, studentId: 's0', studentIds: ['s0', 's1'], planMonth: '2026-10', status: 'Krediteeritud', correctionStatus: 'fully_credited', num: 'KS-2026-070' }) };
+  const restore = api.__set__('db', monthlyDb([], writes, [combined]));
+  try {
+    const result = await api.createMonthlyInvoice({ actor: { uid: 'admin', role: 'admin' }, values: monthlyValues });
+    assert.equal(result.idempotent, false);
+    assert.equal(result.invoice.id, 'monthly_s1_2026-10');
+  } finally { restore(); }
+});

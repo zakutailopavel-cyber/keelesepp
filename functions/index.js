@@ -67,7 +67,9 @@ const {
   creditAfterRestoration,
   financialPeriodReviewSnapshot,
   invoiceAfterLessonCredit,
+  creditedInvoicePaymentError,
   invoiceFinancialPatch,
+  invoiceIsFullyCredited,
   invoiceOriginalAmountCents,
   lessonBillingDispositionPatch,
   lessonIsBillable,
@@ -3150,6 +3152,8 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
     const invoice = invoiceSnap.data();
     if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot receive payments");
+    // a fully credited invoice owes nothing: a payment would put it back to „Ootel” and into the reminders (Д6)
+    if (invoiceIsFullyCredited(invoice)) throw httpError(409, creditedInvoicePaymentError(invoice));
     const payments = await activeInvoicePayments(transaction, invoiceRef.id, fie ? "fie" : "company");
     const guard = !entryGuards ? null : paymentGuards.assertPaymentAllowed({
       invoice, payments, amountCents, paidAt: paymentDate, method: cleanText(method, 40) || "bank", nowIso, allowOverpayment,
@@ -4292,6 +4296,7 @@ async function allocateBankTransaction({
       // the company's bank money and advances never pay an FIE invoice (owner 2026-11-09)
       assertCompanyInvoice(actor, snap.data(), "Ettevõtte raha ei saa siduda FIE arvega — FIE arve makstakse FIE kontole.");
       if (snap.data().status === "Tühistatud") throw httpError(409, `Invoice ${sortedAllocations[index].invoiceId} is cancelled`);
+      if (invoiceIsFullyCredited(snap.data())) throw httpError(409, creditedInvoicePaymentError(snap.data()));
     });
     const lessonRefs = sortedLessonAllocations.map(allocation =>
       db.collection("lessons").doc(allocation.lessonId),
@@ -4597,6 +4602,7 @@ async function applyPayerCredit({ actor, creditId, allocations, lessonAllocation
       // the company's bank money and advances never pay an FIE invoice (owner 2026-11-09)
       assertCompanyInvoice(actor, snap.data(), "Ettevõtte raha ei saa siduda FIE arvega — FIE arve makstakse FIE kontole.");
       if (snap.data().status === "Tühistatud") throw httpError(409, `Invoice ${sortedAllocations[index].invoiceId} is cancelled`);
+      if (invoiceIsFullyCredited(snap.data())) throw httpError(409, creditedInvoicePaymentError(snap.data()));
     });
     if (credit.studentId) {
       invoiceSnaps.forEach((snap, index) => {
@@ -6380,6 +6386,8 @@ async function sendCreditNoteMessage(creditNoteId, { actor = null } = {}) {
 
 function shouldSendDue10Reminder(invoice, todayIso, force = false) {
   if (invoice.status === "Makstud") return false;
+  // a credited invoice is never reminded, even one a payment put back to „Ootel” before the Д6 fix
+  if (invoiceIsFullyCredited(invoice)) return false;
   if (force) return true;
   const day = Number(todayIso.slice(8, 10));
   const due = String(invoice.due || "");
@@ -6393,6 +6401,7 @@ function shouldSendDue10Reminder(invoice, todayIso, force = false) {
 
 function shouldSendOverdueReminder(invoice, todayIso, force = false) {
   if (invoice.status === "Makstud") return false;
+  if (invoiceIsFullyCredited(invoice)) return false;
   if (force) return true;
   const due = String(invoice.due || "");
   if (!due || due >= todayIso) return false;

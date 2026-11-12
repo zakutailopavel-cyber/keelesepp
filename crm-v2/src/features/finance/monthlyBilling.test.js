@@ -185,4 +185,36 @@ describe('lessons left (owner 2026-11-01)', () => {
     expect(row('2031-11', { lessons: [held('2031-10-01')], invoices: [{ ...october, status: 'Krediteeritud' }] }).correction.units).toBe(0);
     expect(row('2031-11', { lessons: [held('2031-10-01')], invoices: [{ ...october, status: 'Tühistatud' }] }).lessonsLeft).toBe(null);
   });
+
+  // Fable review 2026-11-11 Д4: a fully credited monthly invoice does not block its month
+  it('a fully credited monthly invoice leaves its month open, like a cancelled one', () => {
+    const credited = { ...october, id: 'monthly_b_2031-10', status: 'Krediteeritud', correctionStatus: 'fully_credited' };
+    const octoberRow = row('2031-10', { invoices: [credited] });
+    expect(octoberRow.existing).toBeUndefined();
+    expect(octoberRow.status).not.toBe('invoiced');
+    expect(octoberRow.lessonsLeft).toBe(null);
+    // only the status on an old record is enough
+    expect(row('2031-10', { invoices: [{ ...october, status: 'Krediteeritud' }] }).existing).toBeUndefined();
+    // the re-issued October revision is the month's invoice and pays the lessons
+    const reissued = { ...october, id: 'monthly_b_2031-10-r2', monthRevision: 2, status: 'Ootel' };
+    expect(row('2031-10', { invoices: [credited, reissued] }).existing.id).toBe('monthly_b_2031-10-r2');
+    const lessons = ['2031-10-01', '2031-10-08'].map(held);
+    expect(row('2031-11', { lessons, invoices: [credited, reissued] }).correction.units).toBe(-2);
+  });
+
+  it('a corrected invoice (credited + replacement) is billed by its replacement', () => {
+    const old = { ...october, id: 'monthly_b_2031-10', status: 'Krediteeritud', correctionStatus: 'corrected', correctedBy: { invoiceId: 'new1', invoiceNum: 'KS-2031-200' } };
+    const replacement = { ...october, id: 'new1', num: 'KS-2031-200', status: 'Ootel', correctionOf: { invoiceId: 'monthly_b_2031-10' } };
+    expect(row('2031-10', { invoices: [old, replacement] }).existing.id).toBe('new1');
+    expect(row('2031-10', { invoices: [old, replacement] }).status).toBe('invoiced');
+    // the replacement's 4 lessons count: 2 held, 2 come off November (before: the credited one was found first and nothing counted)
+    const lessons = ['2031-10-01', '2031-10-08'].map(held);
+    expect(row('2031-11', { lessons, invoices: [old, replacement] }).correction.units).toBe(-2);
+  });
+
+  it('a partially credited invoice still bills its month', () => {
+    const partial = { ...october, status: 'Ootel', correctionStatus: 'partially_credited', creditedAmountCents: 2000 };
+    expect(row('2031-10', { invoices: [partial] }).status).toBe('invoiced');
+    expect(row('2031-10', { invoices: [partial] }).lessonsLeft).toBe(4);
+  });
 });

@@ -11,6 +11,7 @@ const { monthlyBillingBlocker, sameCardsInput, monthlyItemsInput, planForSubject
 const { tokenInvoiceInput, tokenInvoiceLines, tokenInvoiceSubject, combinedTokenInput } = require('./lesson-tokens-core');
 const { cardPayerEmail, firstEmail, linkedParentIds } = require('./invoice-payer-core');
 const { mainSubject } = require('./student-enrollments-core');
+const { invoiceIsVoidOrCredited } = require('./finance-core');
 const issuerCore = require('./invoice-issuer-core');
 const { readIssuerContext, subjectLine, manualCardLine, nextIssuerNumber } = require('./invoice-issuer');
 
@@ -236,7 +237,9 @@ async function createMonthlyInvoice({ actor, values }) {
     const inCombined = combinedSnap.docs.find(doc => doc.data().combined && billsCardForMonth(doc.data(), input.studentId, input.month));
     if (inCombined) return { invoice: { id: inCombined.id, ...inCombined.data() }, idempotent: true };
     const monthInvoices = studentInvoicesSnap.docs.filter(doc => doc.data().planMonth === input.month);
-    const activeInvoice = monthInvoices.find(doc => doc.data().status !== 'Tühistatud');
+    // cancelled and fully credited („Krediteeritud”) revisions do not block the month (Fable Д4); a corrected invoice's
+    // replacement keeps the planMonth and stays the month's active invoice
+    const activeInvoice = monthInvoices.find(doc => !invoiceIsVoidOrCredited(doc.data()));
     if (activeInvoice) return { invoice: { id: activeInvoice.id, ...activeInvoice.data() }, idempotent: true };
     const revision = monthInvoices.length + 1;
     const invoiceId = revision === 1 ? baseInvoiceId : `${baseInvoiceId}-r${revision}`;
@@ -341,7 +344,7 @@ async function createCombinedMonthlyInvoice({ actor, values }) {
     if (missing) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
     const existing = [...own.docs, ...combinedOnes.docs];
-    const sameCombined = existing.find((doc) => doc.id.startsWith(`monthly_combined_${month}_${key}`) && doc.data().status !== 'Tühistatud');
+    const sameCombined = existing.find((doc) => doc.id.startsWith(`monthly_combined_${month}_${key}`) && !invoiceIsVoidOrCredited(doc.data()));
     if (sameCombined) return { invoice: { id: sameCombined.id, ...sameCombined.data() }, idempotent: true };
     for (const id of ids) {
       const billed = existing.find((doc) => billsCardForMonth(doc.data(), id, month));
