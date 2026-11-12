@@ -28,7 +28,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 | Firestore rules (`firestore.rules`) | 2026-11-11 15:32 | `8a9cb61` (= main 2026-11-11) | live ruleset compared with main `8a9cb61`: equal |
 | Storage rules (`storage.rules`) | not recorded | — | run `deploy-status.mjs` and fill in |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
-| Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-10 17:03 release commit | `6719bcf` `[deploy] Release 2026-11-10 17:03 UTC` | release commit on main; the Vercel production build itself not checked here |
+| Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-12 10:40 release commit | `d533e19` `[deploy] Release 2026-11-12 10:40 UTC` | release commit on main; Vercel status success |
 
 ## Cloud Functions
 
@@ -36,14 +36,15 @@ Full deploy of all functions 2026-11-09 15:39 from main **(inferred)** `a80a749`
 
 | Function | Last deployed | Commit |
 | --- | --- | --- |
-| financeApi | 2026-11-11 12:3x | `21b204b` (#1204 teacher cash box) |
+| financeApi | 2026-11-12 10:27 | `f372e75` (#1212 unmark package lesson, #1213 credited invoices) |
+| invoiceApi, linkpayApi, manualInvoiceApi, sendInvoicePaymentReminders | 2026-11-12 10:27 | `f372e75` (#1213 credited invoices don't block the month / take payments) |
 | syncLessonTokens | 2026-11-10 19:16 | `8a37c40` (#1202: cash-paid lesson takes no token) |
 | languageApi | 2026-11-10 16:30 | `b0b88d9` (inferred; #1196 forms-lookup-parallel) |
 | autoMarkLiveLesson | 2026-11-09 22:39 | `4e83ed1` (inferred; #1185 fast-marking) |
 | staffOperationsApi | 2026-11-09 22:12 | `68bb49b` (inferred; #1183 weekly-unmarked-teachers) |
 | weeklyUnmarkedLessonsDigest | 2026-11-09 22:12 | `68bb49b` (inferred; #1183) |
 | websiteLeadApi | 2026-11-09 20:42 | `000d45d` (inferred) |
-| gcalApi, interactiveLessonApi, invoiceApi, learnerEmailsTick, learningProfileEvidenceApi, learningSessionApi, lessonDraftsApi, linkpayApi, liveTurnApi, manualInvoiceApi, metaMessagingApi, notifyHomeworkCreated, notifyPendingAccount, purgeCardTrash, queueLearnerExerciseReviewEmail, queueLearnerScheduleEmail, queueLearnerWorksheetReviewEmail, refreshSchoolAssistant, sendInvoicePaymentReminders, sheetBuilderApi, syncAllCalendars, syncGroupToGoogleCalendar, syncRoomBooking, syncScheduleToGoogle, systemHealthDigest, systemHealthTick, taxFormApi, teacherScopeMigrationApi | 2026-11-09 15:39 (full deploy) | `a80a749` (inferred) |
+| gcalApi, interactiveLessonApi, learnerEmailsTick, learningProfileEvidenceApi, learningSessionApi, lessonDraftsApi, liveTurnApi, metaMessagingApi, notifyHomeworkCreated, notifyPendingAccount, purgeCardTrash, queueLearnerExerciseReviewEmail, queueLearnerScheduleEmail, queueLearnerWorksheetReviewEmail, refreshSchoolAssistant, sheetBuilderApi, syncAllCalendars, syncGroupToGoogleCalendar, syncRoomBooking, syncScheduleToGoogle, systemHealthDigest, systemHealthTick, taxFormApi, teacherScopeMigrationApi | 2026-11-09 15:39 (full deploy) | `a80a749` (inferred) |
 
 A function changed on main after its row above is **not live** — compare with
 `git log --oneline <commit>..origin/main -- functions/` before telling anyone a server fix is out.
@@ -52,6 +53,7 @@ A function changed on main after its row above is **not live** — compare with
 
 Newest first. One line per deploy: date UTC · target(s) · commit · who · note.
 
+- 2026-11-12 10:27 · functions:financeApi,invoiceApi,linkpayApi,manualInvoiceApi,sendInvoicePaymentReminders · `f372e75` · Claude (owner OK) · Fable fixes T2 (#1212) and D4/D6 (#1213); „Deploy complete”; rules unchanged; hosting released after with #1210, #1211, #1214
 - 2026-11-11 15:32 · firestore:rules · `8a9cb61` · Claude (owner OK) · Õpik: teachers save, only admin publishes (#1207); verified equal to main; hosting released 19:04 after GitHub runner outage (sheet-layout job) — layout suite run locally 31/31
 - 2026-11-11 12:35 · firestore:rules + functions:financeApi · `21b204b` · Claude (owner OK) · teacher cash box „Minu kassa” + hand-over (#1204); rules verified equal to main; hosting released after (12:43)
 - 2026-11-10 19:18 · firestore:rules · `8a37c40` · Claude (owner OK) · privacy fixes #1200 + cash in Toimus #1202; verified equal to main
