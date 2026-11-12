@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import { evaluateExercise, exerciseProgress, exerciseTypeLabel, parseExerciseFill } from './exercisePlayer.js';
 import { petCelebrate, petQuiet } from '../pet/petEvents.js';
+import { announcePractice } from '../practice/events.js';
 
 function options(question) { return question.options || question.opts || []; }
 function questionText(question) { return question.question || question.q || question.prompt || 'Küsimus'; }
@@ -41,6 +42,7 @@ export default function ExercisePlayer({ exercise, homework, repository, user, o
     try {
       const nextResult = evaluateExercise(exercise, answers);
       await repository.submitExerciseResult({ exercise, homework, result: nextResult, user });
+      announcePractice({ kind: 'exercise' }); // the day streak (Fable U2)
       setResult(nextResult); setSubmitted(true); onCompleted?.(); petCelebrate({ xp: 15 });
     } catch (submitError) { setError(submitError.message || 'Tulemuse salvestamine ebaõnnestus.'); }
     finally { setSaving(false); }

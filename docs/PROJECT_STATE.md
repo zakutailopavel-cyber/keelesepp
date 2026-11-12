@@ -1,3 +1,11 @@
+## 2026-11-12 · agent/fix-streak-any-practice — any finished practice keeps the day streak (Fable review U2) · crm-v2 only, no rules / functions change
+
+- Base: `origin/main` b8861b8, checked 2026-11-12. Branch `agent/fix-streak-any-practice`, draft PR. Before: `practice.learnDays` (the streak) grew only when a „Harjuta” step was ticked (`done` keys), so a submitted worksheet, a task „Tehtud”, a pet game or a word round elsewhere with 0 XP did not count.
+- Now: `progress.js` `countsAsLearnDay(event)` + `nextPracticeToday({ learned })` (adds today's local date once to `learnDays`, steps / XP unchanged). `PracticeRecorder` (students only, not in staff preview) saves `{ xp, learned }` for every announced practice. New `announcePractice` after a successful save in `WorksheetPlayer`, `DocWorksheetPlayer` (student only), `ExercisePlayer`, `InteractiveLessonPlayer`, `HomeworkPage` / `LearnerTasksPage` (task „Tehtud” / answer), `PetCare` (topic games), `MonologuePage`. `homework.js` untouched. XP unchanged: those kinds give 0 XP (`xpOf`), homework XP stays derived from records.
+- Rules: the write is the same `users/{uid}.practice` map `validPresence` / `validPracticeToday` already allow (learnDays list ≤ 60; today.day / xp unchanged) — no `firestore.rules` change, no deploy beyond hosting.
+- Checks: `npx vitest run src/features/practice src/features/students src/features/homework src/features/pet src/features/monologue src/features/worksheet-studio` → 157 files, 1133 tests passed; eslint on touched files 0 errors.
+- Limits: Live Classroom / the lesson itself and Õpik reading are not practice events; a worksheet submitted while offline-failed is not counted (only after a successful save).
+- Next safe step: owner reviews and merges the PR; a student submits a worksheet and sees the streak in „Harjuta” / pet card for today.
 ## 2026-11-12 · agent/fix-offline-submit — worksheet submit without network fails clearly and keeps the answers (Fable review U4 + U5) · crm-v2 only, no rules / functions / data change
 
 - Base: `origin/main` b8861b8, checked 2026-11-12. Branch `agent/fix-offline-submit`, draft PR.

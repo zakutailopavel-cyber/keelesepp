@@ -5,6 +5,7 @@ import { Badge, Button, LoadingState, Modal } from '../../components/ui/index.js
 import { interactiveAssignmentsService } from '../../services/firebase/interactiveAssignments.js';
 import { ASSIGNMENT_STATUS_LABEL, RESPONSE_KIND_LABEL, answerText, inlineGapParts, missingRequired, progress } from './interactiveLessonModel.js';
 import './interactiveLesson.css';
+import { announcePractice } from '../practice/events.js';
 
 const draftKey = (uid, id) => `keelesepp.interactive.${uid}.${id}`;
 function readDraft(uid, record) {
@@ -110,6 +111,7 @@ export default function InteractiveLessonPlayer({ assignmentId, user, staff = fa
     if (!(await askConfirm('Saata vastused õpetajale? Pärast saatmist neid enam muuta ei saa.'))) return;
     run('submit', async () => {
       await repository.submit(record, answers, activity.id);
+      announcePractice({ kind: 'lesson' }); // the day streak (Fable U2)
       clearDraft(user.uid, record.id);
       await load();
       setMessage('Vastused saadeti õpetajale.');

@@ -25,6 +25,7 @@ import { rightAnswers, shownResults, stepView } from './engine/liveLesson.js';
 import { blockAnswerKey } from './engine/answerKey.js';
 import BlockKeyPanel from './BlockKeyPanel.jsx';
 import AnswerFontMenu from './AnswerFontMenu.jsx';
+import { announcePractice } from '../practice/events.js';
 
 // A teacher's read-only look at a sheet: a click on a task opens its answers under it (never for a learner).
 function useTeacherKey(doc, enabled) {
@@ -240,6 +241,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     clearLocalAnswers(assignment.id);
     // already submitted (a second device, or the first try landed late): show what is stored, no second celebration
     if (saved?.alreadyDone) { adopt.current(saved); onSubmitted?.(); return; }
+    if (isStudent && !readOnly) announcePractice({ kind: 'worksheet' }); // the day streak (Fable U2)
     // the student's wrong sentences come back as his review cards („Minu vead”, „Päeva 5 minutit”)
     if (isStudent && !readOnly) {
       const cards = errorCards(doc, errorLog);

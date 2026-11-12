@@ -6,6 +6,7 @@ import { clearLocalAnswers, saveLocalAnswers, startAnswers } from '../worksheet-
 import { browserOffline, isOfflineError, SAVE_OFFLINE_MESSAGE, SUBMIT_OFFLINE_MESSAGE } from '../../services/firebase/offlineWrite.js';
 import { useFlowKeyboard, useScreenFlow } from '../worksheet-studio/sheetFlow.js';
 import { petCelebrate } from '../pet/petEvents.js';
+import { announcePractice } from '../practice/events.js';
 import {
   answerKey,
   blockTitle,
@@ -195,6 +196,7 @@ function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClo
     finished.current = true;
     clearLocalAnswers(assignment.id);
     if (saved?.alreadyDone) { showStored(saved); onSubmitted?.(); return; }
+    announcePractice({ kind: 'worksheet' }); // the day streak (Fable U2); no XP: homework XP comes from the records
     setScore(result.score); setSubmitted(true); setError(''); onSubmitted?.(); petCelebrate({ xp: 15 });
   };
 

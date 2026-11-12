@@ -29,6 +29,7 @@ import { quickFeedback, suggestedGrade } from './reviewTemplates.js';
 import { QUICK_MIN_GRADE, dueLabel, isOverdue, selfCompleted, sortHomework, staleHomework } from './homeworkFlow.js';
 import { localDate } from '../../utils/localDate.js';
 import { displayDate } from '../finance/finance.js';
+import { announcePractice } from '../practice/events.js';
 
 const blank = { studentId: '', task: '', due: localDate(), voice: false, prompts: '' };
 
@@ -190,6 +191,7 @@ function StaffHomeworkPage({ repository = homeworkService, studentRepository = s
     try {
       if (withAnswer && repository.submitAnswer) await repository.submitAnswer({ item, ...withAnswer });
       else await repository.setStatus(item.id, 'Tehtud');
+      announcePractice({ kind: 'homework' }); // the day streak (Fable U2); only a student's account records it
       setAnswering(null);
       // one click without an answer: a written task would reach the teacher empty, so offer a way back
       setReopenable(withAnswer ? null : item);
