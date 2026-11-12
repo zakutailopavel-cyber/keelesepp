@@ -11,6 +11,7 @@ const { monthlyInvoiceLines, monthLabel } = require('./monthly-invoice-core');
 const { subjectName, enrollmentsOf, mainSubject } = require('./student-enrollments-core');
 const { cardMonthlyMode, hasSubjectBilling, subjectBilling } = require('./subject-billing-core');
 const { tokenInvoiceLines, tokenInvoiceSubject, tokenSubjectKey } = require('./lesson-tokens-core');
+const { invoiceIsVoidOrCredited } = require('./finance-core');
 
 const clean = (value, max = 160) => String(value || '').trim().slice(0, max);
 const fail = (status, message) => Object.assign(new Error(message), { status });
@@ -194,8 +195,10 @@ function combinedTokenRecord({ due, note = '', parts, invoiceNum, nowIso, actor,
 }
 
 // does this invoice already bill the card for the month (an own monthly invoice or a part of a combined one)?
+// a cancelled or fully credited one does not (Fable Д4): the month can be billed again; a corrected invoice's
+// replacement keeps the planMonth, so it still blocks
 function billsCardForMonth(invoice = {}, cardId, month) {
-  if (invoice.status === 'Tühistatud' || invoice.planMonth !== month) return false;
+  if (invoiceIsVoidOrCredited(invoice) || invoice.planMonth !== month) return false;
   return invoice.studentId === cardId || (Array.isArray(invoice.studentIds) && invoice.studentIds.includes(cardId));
 }
 

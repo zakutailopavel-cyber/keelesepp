@@ -74,3 +74,10 @@ test("only a settled payment with the same reference, currency and amount counts
   assert.equal(core.paymentVerdict({ payment_state: "waiting_for_3ds_response", order_reference: "KS-1-a" }, attempt).status, "pending");
   assert.equal(core.paymentRequestId("abc123def456/x"), "linkpay_abc123def456x");
 });
+
+test("a credited invoice cannot be paid by card (Fable Д6); a corrected one names its replacement", () => {
+  assert.equal(core.unpayableReason({ status: "Krediteeritud", balanceDueCents: 0 }), "Arve on krediteeritud.");
+  assert.equal(core.unpayableReason({ status: "Ootel", correctionStatus: "fully_credited", balanceDueCents: 9000 }), "Arve on krediteeritud.");
+  assert.match(core.unpayableReason({ status: "Krediteeritud", correctionStatus: "corrected", correctedBy: { invoiceNum: "KS-2026-120" } }), /KS-2026-120/);
+  assert.equal(core.unpayableReason({ status: "Ootel", correctionStatus: "partially_credited", balanceDueCents: 9000 }), "");
+});

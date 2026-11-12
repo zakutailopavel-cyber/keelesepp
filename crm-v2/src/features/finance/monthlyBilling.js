@@ -59,8 +59,16 @@ export function isChargeable(lesson, plan) {
 // a card's invoice for a month: its own, or its part of a combined invoice (several cards of one payer) — then the
 // part's units, so next month's difference is counted per card
 // with a subject (a card with several): only that subject's part; an invoice from before subjects is the main one's
+// cancelled or fully credited („Krediteeritud”, or replaced by a corrected invoice): it bills nothing, so the month is
+// open again (Fable Д4; the same rule as functions/finance-core.js invoiceIsVoidOrCredited). A corrected invoice's
+// replacement keeps the planMonth and is the month's invoice. A partially credited invoice still bills the month.
+export function invoiceBillsNothing(invoice = {}) {
+  return invoice.status === 'Tühistatud' || invoice.status === 'Krediteeritud'
+    || ['fully_credited', 'corrected'].includes(invoice.correctionStatus);
+}
+
 function invoiceForCard(invoices, studentId, forMonth, subject = '', main = '') {
-  const found = invoices.find((invoice) => invoice.planMonth === forMonth && invoice.status !== 'Tühistatud'
+  const found = invoices.find((invoice) => invoice.planMonth === forMonth && !invoiceBillsNothing(invoice)
     && (invoice.studentId === studentId || (Array.isArray(invoice.studentIds) && invoice.studentIds.includes(studentId))));
   if (!found) return found;
   if (subject) {
@@ -89,7 +97,7 @@ function lessonBalance({ student, plan, invoices, lessons, events, upto, subject
   let paid = 0;
   months.forEach((month) => {
     const invoice = invoiceForCard(invoices, student.id, month, subject, main);
-    if (!invoice || invoice.status === 'Krediteeritud') return;
+    if (!invoice) return;
     paid += (Number(invoice.plannedUnits) || 0) + (start ? Number(invoice.correctionUnits) || 0 : 0);
     if (!start) start = month;
   });

@@ -1115,3 +1115,46 @@ test("a lesson that takes two credits needs a package with two and moves the bal
   assert.equal(restored.balanceAfter, 4);
   assert.throws(() => packageBalanceAfterLessonMovement({ balanceCredits: 1, consumedCredits: 0 }, "consume", "2026-10-20T10:00:00.000Z", 2), /insufficient/);
 });
+
+// Fable review 2026-11-11 Д4/Д6: a fully credited invoice bills nothing and takes no payment
+test("a fully credited invoice: credited in full or corrected, not a partial credit", () => {
+  const { invoiceIsFullyCredited, invoiceIsVoidOrCredited } = require("./finance-core");
+  assert.equal(invoiceIsFullyCredited({ status: "Krediteeritud" }), true);
+  assert.equal(invoiceIsFullyCredited({ status: "Ootel", correctionStatus: "fully_credited" }), true);
+  assert.equal(invoiceIsFullyCredited({ status: "Krediteeritud", correctionStatus: "corrected" }), true);
+  assert.equal(invoiceIsFullyCredited({ status: "Ootel", correctionStatus: "partially_credited" }), false);
+  assert.equal(invoiceIsFullyCredited({ status: "Tühistatud" }), false);
+  assert.equal(invoiceIsVoidOrCredited({ status: "Tühistatud" }), true);
+  assert.equal(invoiceIsVoidOrCredited({ status: "Krediteeritud" }), true);
+  assert.equal(invoiceIsVoidOrCredited({ status: "Makstud", correctionStatus: "partially_credited" }), false);
+});
+
+test("a payment on a credited invoice is refused with the replacement's number when there is one", () => {
+  const { creditedInvoicePaymentError } = require("./finance-core");
+  assert.equal(creditedInvoicePaymentError({ status: "Ootel", num: "KS-2026-085" }), "");
+  assert.equal(creditedInvoicePaymentError({ status: "Ootel", correctionStatus: "partially_credited" }), "");
+  assert.match(creditedInvoicePaymentError({ status: "Krediteeritud", num: "KS-2026-085" }), /^Arve KS-2026-085 on krediteeritud/);
+  const corrected = creditedInvoicePaymentError({ status: "Krediteeritud", num: "KS-2026-085", correctionStatus: "corrected", correctedBy: { invoiceId: "x", invoiceNum: "KS-2026-120" } });
+  assert.match(corrected, /asendatud arvega KS-2026-120/);
+});
+
+test("a fully credited invoice stays „Krediteeritud” when its payments change; it never goes back to „Ootel”", () => {
+  const nowIso = "2026-11-12T10:00:00.000Z";
+  const credited = { status: "Krediteeritud", correctionStatus: "fully_credited", amountCents: 9000, amount: 90, effectiveAmountCents: 0, creditedAmountCents: 9000 };
+  const none = invoiceFinancialPatch(credited, [], nowIso);
+  assert.equal(none.status, "Krediteeritud");
+  assert.equal(none.paymentStatus, "credited");
+  assert.equal(none.parentPaymentStatus, "credited");
+  assert.equal(none.balanceDueCents, 0);
+  // money still on it (an overpayment waiting to move to the advance): the status stays, the payment state shows it
+  const overpaid = invoiceFinancialPatch(credited, [{ status: "active", amountCents: 9000 }], nowIso);
+  assert.equal(overpaid.status, "Krediteeritud");
+  assert.equal(overpaid.paymentStatus, "overpaid");
+  assert.equal(overpaid.overpaidAmountCents, 9000);
+  // a partially credited invoice is an ordinary open invoice
+  const partial = invoiceFinancialPatch({ status: "Ootel", correctionStatus: "partially_credited", amountCents: 9000, effectiveAmountCents: 6000 }, [], nowIso);
+  assert.equal(partial.status, "Ootel");
+  assert.equal(partial.paymentStatus, "unpaid");
+  assert.equal(partial.balanceDueCents, 6000);
+  assert.equal(invoiceFinancialPatch({ status: "Ootel", correctionStatus: "partially_credited", amountCents: 9000, effectiveAmountCents: 6000 }, [{ status: "active", amountCents: 6000 }], nowIso).status, "Makstud");
+});
