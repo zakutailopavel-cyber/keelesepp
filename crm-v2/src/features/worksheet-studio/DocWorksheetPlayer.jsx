@@ -1,9 +1,11 @@
 import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 /* global fetch, setTimeout, clearTimeout */
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
+import { browserOffline, isOfflineError, SAVE_OFFLINE_MESSAGE, SUBMIT_OFFLINE_MESSAGE } from '../../services/firebase/offlineWrite.js';
+import { cleanAnswers, clearLocalAnswers, saveLocalAnswers, startAnswers } from './localAnswers.js';
 import { errorCards } from './engine/errorCards.js';
 import { copyWithMark, markLabel, OWNER, watermarkStyle } from './contentMark.js';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
@@ -81,7 +83,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const isStaff = !isStudent && Boolean(authUser?.roles?.some((role) => role === 'admin' || role === 'teacher'));
   // the teacher may correct a task during the live lesson: the sheet follows the assignment document
   const [doc, setDoc] = useState(assignment.worksheetDoc);
-  const [answers, setAnswers] = useState(assignment.answers || {});
+  // the device copy of the answers (localAnswers.js) when it is newer than the stored ones: saved again below
+  const [start] = useState(() => startAnswers(assignment, { readOnly }));
+  const [answers, setAnswers] = useState(start.answers);
   const [submitted, setSubmitted] = useState(assignment.status === 'done');
   // an old stored score that counted unanswered or unmatched tasks as wrong is shown checked again (storedScore.js)
   const [score, setScore] = useState(() => effectiveScore({ score: assignment.score, worksheetDoc: assignment.worksheetDoc, answers: assignment.answers, status: assignment.status }).score);
@@ -121,7 +125,10 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const [saveState, setSaveState] = useState('idle');
   const [retry, setRetry] = useState(0);
   useFlowKeyboard(flow && !review);
-  const edited = useRef(false);
+  // a restored device copy counts as the learner's own edit: autosaved, never replaced by the older stored answers
+  const edited = useRef(start.restored);
+  // the submit was finished once (a late write after a timeout and a retry both report success)
+  const finished = useRef(false);
 
   // double-click a word: forms + translation, and the word goes into the learner's own word list
   const words = useWordLookup({ studentId: assignment.studentId, enabled: !readOnly, ...(wordService ? { service: wordService } : {}) });
@@ -141,6 +148,22 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const submitting = useRef(false);
   const lastSaveRun = useRef(0);
   const retryTimer = useRef(null);
+  // the sheet was submitted elsewhere (another device, an old tab) or a late write landed: show the submitted work and
+  // stop autosaving (Fable review U5)
+  // (a ref: the autosave and the subscription below do not restart when the teacher corrects the sheet)
+  const adopt = useRef(() => {});
+  useLayoutEffect(() => {
+    adopt.current = (stored) => {
+      clearLocalAnswers(assignment.id);
+      if (stored.answers && typeof stored.answers === 'object') setAnswers(stored.answers);
+      setScore(effectiveScore({ score: stored.score, worksheetDoc: doc, answers: stored.answers, status: 'done' }).score);
+      setSubmitted(true);
+    };
+  }, [assignment.id, doc]);
+  // every change is kept on the device too, so no network never loses the work
+  useEffect(() => {
+    if (!review && edited.current) saveLocalAnswers(assignment.id, answers);
+  }, [answers, review, assignment.id]);
   useEffect(() => {
     if (review || !edited.current) return undefined;
     const wait = Math.max(AUTOSAVE_MIN_DELAY_MS, AUTOSAVE_EVERY_MS - (Date.now() - lastAutosave.current));
@@ -148,9 +171,11 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     const timer = setTimeout(() => {
       if (submitting.current) return;
       lastAutosave.current = Date.now();
-      const clean = Object.fromEntries(Object.entries(answers).filter(([k, v]) => !k.endsWith(':error') && !(typeof v === 'string' && v.startsWith('blob:'))));
+      const clean = cleanAnswers(answers);
       repository.saveWorksheetDraft({ assignmentId: assignment.id, answers: clean })
-        .then(() => { setAutosaved(new Date().toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })); setSaveState((state) => (lastSaveRun.current === run ? 'saved' : state)); })
+        .then((saved) => {
+          if (saved?.skipped && saved.status === 'done') { if (!submitting.current) adopt.current(saved); return; }
+          setAutosaved(new Date().toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })); setSaveState((state) => (lastSaveRun.current === run ? 'saved' : state)); })
         .catch(() => { setAutosaved(''); if (lastSaveRun.current === run) { setSaveState('failed'); retryTimer.current = setTimeout(() => setRetry((n) => n + 1), AUTOSAVE_RETRY_MS); } });
     }, wait);
     return () => { clearTimeout(timer); clearTimeout(retryTimer.current); };
@@ -161,6 +186,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     if (typeof repository.subscribeWorksheetAssignment !== 'function') return undefined;
     return repository.subscribeWorksheetAssignment(assignment.id, (next) => {
       if (next.worksheetDoc?.blocks) setDoc(next.worksheetDoc);
+      // submitted from another device or an old tab: this copy shows the submitted work and stops autosaving (U5)
+      if (!review && next.status === 'done') adopt.current(next);
       // opened from an older copy (a list loaded before the last autosave): start from the stored answers, never
       // autosave the old, emptier ones over them; once the student types, her own answers lead
       if (!review && !edited.current && next.answers && typeof next.answers === 'object') setAnswers(next.answers);
@@ -196,30 +223,51 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const saveDraft = async () => {
     setSavingDraft(true); setError('');
     try {
+      // no network: say so at once (the answers are on this device), do not wait for the upload or the write
+      if (browserOffline()) throw new Error(SAVE_OFFLINE_MESSAGE);
       const stored = await persistRecordings({ doc, answers, assignment, repository });
-      await repository.saveWorksheetDraft({ assignmentId: assignment.id, answers: stored });
+      const saved = await repository.saveWorksheetDraft({ assignmentId: assignment.id, answers: stored });
+      if (saved?.skipped && saved.status === 'done') { adopt.current(saved); onSubmitted?.(); return; }
       setAnswers(stored); setDraftSaved(true); setSaveState('saved'); onSubmitted?.();
     } catch (saveError) { setError(saveError.message || 'Töölehe salvestamine ebaõnnestus.'); }
     finally { setSavingDraft(false); }
+  };
+
+  // What a successful submit does, once: also when the write lands only after the timeout and a retry succeeds too.
+  const finishSubmit = ({ stored, result, errorLog, saved }) => {
+    if (finished.current) return;
+    finished.current = true;
+    clearLocalAnswers(assignment.id);
+    // already submitted (a second device, or the first try landed late): show what is stored, no second celebration
+    if (saved?.alreadyDone) { adopt.current(saved); onSubmitted?.(); return; }
+    // the student's wrong sentences come back as his review cards („Minu vead”, „Päeva 5 minutit”)
+    if (isStudent && !readOnly) {
+      const cards = errorCards(doc, errorLog);
+      if (cards.length) Promise.resolve().then(() => (wordService || studentWordsService).addSheetErrors?.({ studentId: assignment.studentId, cards, user: authUser })).catch(() => {});
+    }
+    setAnswers(stored); setScore(result.score); setSubmitted(true); setError(''); onSubmitted?.();
+    const goals = Object.entries(result.perGoal || {}).filter(([id, g]) => id !== '_none' && g.total > 0 && g.ok === g.total).length;
+    petCelebrate({ xp: 15 + goals * 5, goals });
   };
 
   const submit = async () => {
     if (progress.answered < progress.total && !(await askConfirm(`Vastatud ${progress.answered}/${progress.total}. Kas esitad töölehe ikkagi?`))) return;
     setSaving(true); setError(''); submitting.current = true;
     try {
+      // no network: say so at once (the answers are on this device), do not wait for the upload or the write
+      if (browserOffline()) throw new Error(SUBMIT_OFFLINE_MESSAGE);
       const stored = await persistRecordings({ doc, answers, assignment, repository });
       const result = checkDocument(doc, stored);
       const errorLog = Object.entries(result.results).filter(([, v]) => v === 'bad').slice(0, 20)
         .map(([key]) => ({ key, answer: String(stored[key] ?? '') }));
-      await repository.submitWorksheet({ assignmentId: assignment.id, answers: stored, score: result.score, errorLog });
-      // the student's wrong sentences come back as his review cards („Minu vead”, „Päeva 5 minutit”)
-      if (isStudent && !readOnly) {
-        const cards = errorCards(doc, errorLog);
-        if (cards.length) Promise.resolve().then(() => (wordService || studentWordsService).addSheetErrors?.({ studentId: assignment.studentId, cards, user: authUser })).catch(() => {});
+      try {
+        const saved = await repository.submitWorksheet({ assignmentId: assignment.id, answers: stored, score: result.score, errorLog });
+        finishSubmit({ stored, result, errorLog, saved });
+      } catch (writeError) {
+        // the write timed out but may still land: then the sheet is submitted after all
+        if (isOfflineError(writeError) && writeError.pending) writeError.pending.then((saved) => finishSubmit({ stored, result, errorLog, saved })).catch(() => {});
+        throw writeError;
       }
-      setAnswers(stored); setScore(result.score); setSubmitted(true); onSubmitted?.();
-      const goals = Object.entries(result.perGoal || {}).filter(([id, g]) => id !== '_none' && g.total > 0 && g.ok === g.total).length;
-      petCelebrate({ xp: 15 + goals * 5, goals });
     } catch (submitError) { submitting.current = false; setError(submitError.message || 'Töölehe esitamine ebaõnnestus.'); }
     finally { setSaving(false); }
   };

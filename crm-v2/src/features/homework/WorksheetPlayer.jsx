@@ -1,7 +1,9 @@
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import DocWorksheetPlayer, { FlowBar } from '../worksheet-studio/DocWorksheetPlayer.jsx';
+import { clearLocalAnswers, saveLocalAnswers, startAnswers } from '../worksheet-studio/localAnswers.js';
+import { browserOffline, isOfflineError, SAVE_OFFLINE_MESSAGE, SUBMIT_OFFLINE_MESSAGE } from '../../services/firebase/offlineWrite.js';
 import { useFlowKeyboard, useScreenFlow } from '../worksheet-studio/sheetFlow.js';
 import { petCelebrate } from '../pet/petEvents.js';
 import {
@@ -142,8 +144,10 @@ export function VisualWorksheetSubmissionPreview({ files = [], answers = {} }) {
 function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted }) {
   const blocks = useMemo(() => assignment.worksheetData?.blocks || [], [assignment]);
   const visualPages = useMemo(() => visualWorksheetPages(assignment.files || []), [assignment]);
-  const [answers, setRawAnswers] = useState(assignment.answers || {});
+  // the device copy of the answers (localAnswers.js) when it is newer than the stored ones
+  const [answers, setRawAnswers] = useState(() => startAnswers(assignment, { readOnly }).answers);
   const [submitted, setSubmitted] = useState(assignment.status === 'done');
+  const finished = useRef(false);
   const [score, setScore] = useState(assignment.score || null);
   const [saving, setSaving] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
@@ -153,7 +157,11 @@ function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClo
   const [comment, setComment] = useState(assignment.selfAssessment?.comment || '');
   const [assessmentSaved, setAssessmentSaved] = useState(Boolean(assignment.selfAssessment));
   // this old player has no autosave: „Salvestatud” is true only until the next answer
-  const setAnswers = (update) => { setRawAnswers(update); setDraftSaved(false); };
+  // every change is also kept on this device: no network never loses the work
+  const setAnswers = (update) => {
+    setRawAnswers((current) => { const next = typeof update === 'function' ? update(current) : update; saveLocalAnswers(assignment.id, next); return next; });
+    setDraftSaved(false);
+  };
   const flow = useScreenFlow();
   useFlowKeyboard(flow && !submitted && !readOnly);
   const structuredProgress = useMemo(() => worksheetProgress(blocks, answers), [answers, blocks]);
@@ -167,22 +175,45 @@ function LegacyWorksheetPlayer({ assignment, repository, readOnly = false, onClo
   const saveDraft = async () => {
     setSavingDraft(true); setError('');
     try {
-      await repository.saveWorksheetDraft({ assignmentId: assignment.id, answers });
+      if (browserOffline()) throw new Error(SAVE_OFFLINE_MESSAGE);
+      const saved = await repository.saveWorksheetDraft({ assignmentId: assignment.id, answers });
+      // already submitted elsewhere: show the submitted work (Fable review U5)
+      if (saved?.skipped && saved.status === 'done') { showStored(saved); onSubmitted?.(); return; }
       setDraftSaved(true); onSubmitted?.();
     } catch (saveError) { setError(saveError.message || 'Töölehe salvestamine ebaõnnestus.'); }
     finally { setSavingDraft(false); }
+  };
+
+  const showStored = (saved) => {
+    clearLocalAnswers(assignment.id);
+    if (saved.answers && typeof saved.answers === 'object') setRawAnswers(saved.answers);
+    setScore(saved.score || null); setSubmitted(true);
+  };
+  // once: a write that lands after the timeout and a successful retry both report success
+  const finishSubmit = (result, saved) => {
+    if (finished.current) return;
+    finished.current = true;
+    clearLocalAnswers(assignment.id);
+    if (saved?.alreadyDone) { showStored(saved); onSubmitted?.(); return; }
+    setScore(result.score); setSubmitted(true); setError(''); onSubmitted?.(); petCelebrate({ xp: 15 });
   };
 
   const submit = async () => {
     if (!progress.complete) { setError(`Täida kõik vastused (${progress.answered}/${progress.total}).`); return; }
     setSaving(true); setError('');
     try {
+      if (browserOffline()) throw new Error(SUBMIT_OFFLINE_MESSAGE);
       const result = mergeWorksheetResults(
         calculateWorksheetResult(blocks, answers),
         calculateVisualWorksheetResult(assignment.files || [], answers),
       );
-      await repository.submitWorksheet({ assignmentId: assignment.id, answers, ...result });
-      setScore(result.score); setSubmitted(true); onSubmitted?.(); petCelebrate({ xp: 15 });
+      try {
+        finishSubmit(result, await repository.submitWorksheet({ assignmentId: assignment.id, answers, ...result }));
+      } catch (writeError) {
+        // timed out without network, but may still land: then the sheet is submitted after all
+        if (isOfflineError(writeError) && writeError.pending) writeError.pending.then((saved) => finishSubmit(result, saved)).catch(() => {});
+        throw writeError;
+      }
     } catch (submitError) { setError(submitError.message || 'Töölehe esitamine ebaõnnestus.'); }
     finally { setSaving(false); }
   };
