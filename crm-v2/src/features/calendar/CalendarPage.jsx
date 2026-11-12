@@ -729,7 +729,7 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
       if (cashable && cash.priceFor(item) > 0) {
         try { paidCents = await cash.record(item); } catch (error) { setActionError(`Tund on märgitud, sularaha jäi märkimata: ${error.message || 'proovi „Maksis sularahas”.'}`); }
       }
-      if (record?.id && lessonRepository.removeMark) {
+      if (record?.id && !record.alreadyMarked && lessonRepository.removeMark) {
         const unmark = async () => { await lessonRepository.removeMark(record, user, { scheduleRecurring: Boolean(item.recurring) }); await state.reload(); };
         setMarkUndo(toimusUndo({ item, label, unmark, cash, paidCents, offerCash: cashable }));
       }

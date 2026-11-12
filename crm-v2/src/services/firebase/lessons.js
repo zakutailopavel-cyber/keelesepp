@@ -25,6 +25,30 @@ function newestFirst(left, right) {
 // (the rules refuse it too)
 const CASH_PAID_LOCKED = 'Tund on makstud sularahas: võta enne sularaha märge tagasi (või palu adminil see Kassas tühistada).';
 
+// a lesson that took (or owes) a package credit: the rules keep it from a direct delete, the server removes it and gives
+// the credit back through the package ledger (financeApi.deleteLessonJournal, Fable review T2 2026-11-12)
+export function lessonHasPackageMovement(record = {}) {
+  return ['consumed', 'needs_attention'].includes(record.packageConsumptionStatus || '');
+}
+
+const isPermissionDenied = (error) => ['permission-denied', 'firestore/permission-denied'].includes(error?.code);
+
+// the server's refusals of /lessons/journal/delete in the teacher's words
+export function removeMarkServerError(error) {
+  const text = String(error?.message || '');
+  if (/financial status/i.test(text)) return Object.assign(new Error('Tund on juba arvel: paranda see Finantsides.'), { cause: error });
+  if (/paid in cash/i.test(text)) return Object.assign(new Error(CASH_PAID_LOCKED), { cause: error });
+  if (/period .* is closed/i.test(text)) return Object.assign(new Error('Selle kuu finantsperiood on suletud: märget saab muuta ainult admin Finantsides.'), { cause: error });
+  if (/another teacher/i.test(text)) return Object.assign(new Error('See tund kuulub teisele õpetajale: märget saab eemaldada tema või admin.'), { cause: error });
+  if (/package movement must be resolved/i.test(text)) return Object.assign(new Error('Tund on tunnipaketist maha arvatud ja server ei saanud märget veel eemaldada. Palu adminil märge eemaldada.'), { cause: error });
+  if (/not found/i.test(text)) return Object.assign(new Error('Tunni märget enam ei ole (keegi eemaldas selle juba).'), { cause: error });
+  return error;
+}
+
+async function removeMarkOnServer(record) {
+  try { return await financeApi.deleteLessonJournal(record.id); } catch (error) { throw removeMarkServerError(error); }
+}
+
 function accountingLessonId(source, occurrenceDate, studentId) {
   return `${source}_${occurrenceDate}_${studentId}`.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 240);
 }
@@ -60,7 +84,9 @@ export const lessonsService = {
     const lessonRef = doc(db, 'lessons', id);
     return runTransaction(db, async (batch) => {
       const existing = await batch.get(lessonRef);
-      if (existing.exists()) return normalizeLesson(existing.id, existing.data());
+      // already marked (another tab, another person, the Live room): that mark is returned as it is, flagged, so a
+      // caller never offers „Võta tagasi” for a mark this tap did not write (Fable review T6)
+      if (existing.exists()) return { ...normalizeLesson(existing.id, existing.data()), alreadyMarked: true };
       const createdAt = new Date().toISOString();
       const value = {
         scheduleId: event.id,
@@ -176,8 +202,9 @@ export const lessonsService = {
     if (!record?.id) throw new Error('Tunni märget ei leitud.');
     if (record.invoiceId || record.billingStatus) throw new Error('Tund on juba arvel: paranda see Finantsides.');
     if (record.cashPaid?.receiptId) throw new Error(CASH_PAID_LOCKED);
-    if (record.accountingSource !== 'crm_v2') {
-      await financeApi.deleteLessonJournal(record.id);
+    // older marks, and a mark that took a package credit (the server ledger gives the credit back)
+    if (record.accountingSource !== 'crm_v2' || lessonHasPackageMovement(record)) {
+      await removeMarkOnServer(record);
       return;
     }
     const { db } = requireFirebaseClient();
@@ -190,7 +217,14 @@ export const lessonsService = {
       byUid: user?.uid || '', byName: user?.displayName || user?.email || '', byRole: user?.roles?.[0] || '', createdAt: now, date: record.date || '',
       meta: { lessonId: record.id, scheduleId: record.scheduleId || '', from: record.status || '' },
     });
-    await batch.commit();
+    try {
+      await batch.commit();
+    } catch (error) {
+      // the record in hand is older than the lesson: the server took a package credit after the mark (lesson tokens),
+      // and the rules keep such a lesson from a direct delete — the server removes it and gives the credit back
+      if (!isPermissionDenied(error)) throw error;
+      await removeMarkOnServer(record);
+    }
   },
   // a teacher passes their uid: with teacher scope enforced the rules let a teacher read only their own entries
   async listByStudent(studentId, { teacherUid = '' } = {}) {

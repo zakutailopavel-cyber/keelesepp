@@ -57,9 +57,32 @@ function lessonMutationSignature({ lessonId, scheduleId, lesson, completion }) {
   })).digest("hex");
 }
 
+// What removing a lesson mark does (deleteLessonJournal, Fable review T2 2026-11-12). → { refusal, packageMovement,
+// counterDelta, touchSchedule }. `refusal` (status + message) when it may not be removed; `packageMovement` when the
+// lesson took a package credit (or is owed one): the credit comes back through the package ledger after the delete
+// (syncLessonPackageConsumption), never by editing a balance here. CRM v2 marks never moved the card's legacy counters
+// (counterDelta 0), and a CRM v2 mark of a weekly series lives only in the lesson (the series is left alone).
+const PACKAGE_MOVED = new Set(["consumed", "needs_attention"]);
+function lessonRemovalPlan(lesson = {}, packageState = {}, schedule = null) {
+  if (lesson.invoiceId || lesson.billingStatus) {
+    return { refusal: { status: 409, message: "Lesson has a financial status and cannot be deleted" } };
+  }
+  if (lesson.cashPaid && lesson.cashPaid.receiptId) {
+    return { refusal: { status: 409, message: "Lesson is paid in cash: take back the cash mark first" } };
+  }
+  const crmV2 = lesson.accountingSource === "crm_v2";
+  return {
+    refusal: null,
+    packageMovement: PACKAGE_MOVED.has(packageState?.status) || PACKAGE_MOVED.has(lesson.packageConsumptionStatus),
+    counterDelta: lesson.status === "Toimunud" && lesson.packageAccountingSource !== "package_ledger_v1" && !crmV2 ? -1 : 0,
+    touchSchedule: Boolean(schedule) && !(crmV2 && isRecurringSchedule(schedule)),
+  };
+}
+
 module.exports = {
   LESSON_STATUSES,
   isRecurringSchedule,
+  lessonRemovalPlan,
   lessonCompletionCounterDelta,
   lessonMutationSignature,
   normalizedLessonStatus,
