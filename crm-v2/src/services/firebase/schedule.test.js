@@ -22,3 +22,16 @@ describe('schedule payload source', () => {
     expect(payload({ date: '2026-11-02' }).source).toBe('keelesepp-crm-v2');
   });
 });
+
+describe('schedule payload weekday', () => {
+  const series = { id: 's1', recurring: true, date: '2026-11-02', startDate: '2026-11-02', day: 'Mon', time: '10:00' };
+  it('a new date of a weekly series moves its weekday (Fable T1)', () => {
+    const value = payload({ date: '2026-11-05', time: '10:00' }, series);
+    expect(value).toMatchObject({ startDate: '2026-11-05', date: '2026-11-05', day: 'Thu' });
+  });
+  it('keeps the stored weekday when no date is passed, and an explicit day wins', () => {
+    expect(payload({ time: '11:00' }, series).day).toBe('Mon');
+    expect(payload({ date: '2026-11-05', day: 'Fri' }, series).day).toBe('Fri');
+    expect(payload({ date: '2026-11-08' }).day).toBe('Sun');
+  });
+});
