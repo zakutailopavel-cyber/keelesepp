@@ -2481,6 +2481,75 @@ test("completed lessons consume one package credit and reversals append restorat
     "lessonPackageStates/lesson-package-cycle",
   );
   assert.equal(nonAdminStateRead.status, 403, JSON.stringify(nonAdminStateRead.body));
+
+  // Fable review T2: the rules keep a package-consumed lesson from a direct delete; the server removes it and the
+  // credit comes back through the ledger. Another teacher may not; its own teacher may.
+  const otherTeacherToken = await createUserToken("package-other-teacher@example.com");
+  await db.collection("users").doc(tokenUid(otherTeacherToken)).set({ role: "teacher", displayName: "Other Package Teacher", email: "package-other-teacher@example.com" });
+  const foreignDelete = await financeRequest(otherTeacherToken, "/lessons/journal/delete", { lessonId: "lesson-package-cycle", requestId: "emulator_lesson_package_delete_foreign_0001" });
+  assert.equal(foreignDelete.status, 403, JSON.stringify(foreignDelete.body));
+  const packageDeletePayload = { lessonId: "lesson-package-cycle", requestId: "emulator_lesson_package_delete_0001" };
+  const packageDelete = await financeRequest(teacherToken, "/lessons/journal/delete", packageDeletePayload);
+  assert.equal(packageDelete.status, 201, JSON.stringify(packageDelete.body));
+  assert.equal(packageDelete.body.deleted, true);
+  assert.equal(packageDelete.body.packageMovement, true);
+  assert.equal(packageDelete.body.packageSync.status, "restored");
+  assert.equal(packageDelete.body.packageSync.balanceAfter, 1);
+  const [deletedLessonSnap, afterDeletePackageSnap, afterDeleteStateSnap, deleteAuditSnap, afterDeleteStudentSnap] = await Promise.all([
+    db.collection("lessons").doc("lesson-package-cycle").get(),
+    db.collection("studentPackages").doc(issuePayload.requestId).get(),
+    db.collection("lessonPackageStates").doc("lesson-package-cycle").get(),
+    db.collection("financialAudit").doc(packageDeletePayload.requestId).get(),
+    db.collection("students").doc("student-package-lesson").get(),
+  ]);
+  assert.equal(deletedLessonSnap.exists, false);
+  assert.equal(afterDeletePackageSnap.data().balanceCredits, 1);
+  assert.equal(afterDeleteStateSnap.data().status, "restored");
+  assert.equal(deleteAuditSnap.data().action, "lesson.deleted");
+  assert.equal(deleteAuditSnap.data().actor.role, "teacher");
+  const restoreEntry = await db.collection("packageLedger").doc(afterDeleteStateSnap.data().restorationEntryId).get();
+  assert.equal(restoreEntry.data().entryType, "lesson_restoration");
+  assert.equal(restoreEntry.data().creditsDelta, 1);
+  assert.equal(restoreEntry.data().restoresLedgerEntryId, secondCycle.body.ledgerEntryId);
+  // the legacy counters are not touched by a ledger lesson
+  assert.equal(afterDeleteStudentSnap.data().packageUsed, 2);
+  const packageDeleteRetry = await financeRequest(teacherToken, "/lessons/journal/delete", packageDeletePayload);
+  assert.equal(packageDeleteRetry.status, 200, JSON.stringify(packageDeleteRetry.body));
+  assert.equal(packageDeleteRetry.body.idempotent, true);
+  assert.equal((await db.collection("studentPackages").doc(issuePayload.requestId).get()).data().balanceCredits, 1);
+
+  // an owed lesson (no credits when held) is removed and is no longer owed
+  const owedDelete = await financeRequest(adminToken, "/lessons/journal/delete", { lessonId: "lesson-package-no-credit", requestId: "emulator_lesson_package_delete_owed_0001" });
+  assert.equal(owedDelete.status, 201, JSON.stringify(owedDelete.body));
+  assert.equal(owedDelete.body.packageSync.status, "cleared");
+  assert.equal((await db.collection("lessons").doc("lesson-package-no-credit").get()).exists, false);
+  assert.equal((await db.collection("lessonPackageStates").doc("lesson-package-no-credit").get()).data().status, "cleared");
+
+  // the calendar path (CRM v2 mark): the lesson tokens trigger takes the credit, „Võta tagasi” goes to the server
+  const waitFor = async (check) => {
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      if (await check()) return true;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    return false;
+  };
+  const stateOf = async (id) => (await db.collection("lessonPackageStates").doc(id).get()).data()?.status || "";
+  await db.collection("lessons").doc("lesson-package-crm-v2").set({
+    studentId: "student-package-lesson", studentName: "Lesson Package Student", teacher: "Package Teacher", teacherUid: teacherClaims.user_id,
+    date: "2026-07-29", status: "Toimunud", duration: 60, accountingSource: "crm_v2",
+  });
+  assert.equal(await waitFor(async () => (await stateOf("lesson-package-crm-v2")) === "consumed"), true, "the trigger takes the credit");
+  assert.equal((await db.collection("studentPackages").doc(issuePayload.requestId).get()).data().balanceCredits, 0);
+  const crmDelete = await financeRequest(teacherToken, "/lessons/journal/delete", { lessonId: "lesson-package-crm-v2", requestId: "emulator_lesson_package_delete_crm_0001" });
+  assert.equal(crmDelete.status, 201, JSON.stringify(crmDelete.body));
+  assert.equal(crmDelete.body.counterDelta, 0);
+  assert.equal((await db.collection("lessons").doc("lesson-package-crm-v2").get()).exists, false);
+  assert.equal(await waitFor(async () => (await stateOf("lesson-package-crm-v2")) === "restored"), true, "the credit comes back");
+  // given back once, whether the server call or the trigger got there first
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  assert.equal((await db.collection("studentPackages").doc(issuePayload.requestId).get()).data().balanceCredits, 1);
+  const crmActivity = await db.collection("activityLog").where("meta.lessonId", "==", "lesson-package-crm-v2").get();
+  assert.equal(crmActivity.docs.some((item) => item.data().type === "lesson.mark_removed"), true);
 });
 
 test("Live Classroom keeps the teacher desk private and scopes student interaction", async () => {
