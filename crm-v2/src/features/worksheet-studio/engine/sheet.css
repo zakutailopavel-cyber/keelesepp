@@ -1065,7 +1065,7 @@ button.ws-pt { cursor: pointer; }
 
 /* ===== A picture inside a text, the text wrapping around it; picture frames (figureFloat.js, FloatFigure.jsx;
    owner 2026-11-11). Screen and paper alike; the phone column stacks it (sheetFlow.css). ===== */
-.ws-textblock.has-figure::after { content: ''; display: block; clear: both; }
+[data-figure-column].has-figure::after { content: ''; display: block; clear: both; }
 .ws-ffig { position: relative; margin: .6mm 0 2mm; break-inside: avoid; shape-margin: 3mm; }
 .ws-ffig.is-left { float: left; margin-right: 4mm; }
 .ws-ffig.is-right { float: right; margin-left: 4mm; }

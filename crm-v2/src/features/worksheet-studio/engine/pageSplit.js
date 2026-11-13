@@ -41,6 +41,10 @@ export const SPLITTABLE = Object.freeze({
           passage: ps.slice(Math.min(from, n), Math.min(to, n)).join('\n\n'),
           questions: qs.slice(Math.max(0, from - n), Math.max(0, to - n)).join('\n'),
           audio: from === 0 ? d.audio : null,
+          // pictures in the text (figureFloat.js): the part draws those of its own paragraphs; the list stays whole so
+          // a change made on a part is stored against the whole text
+          figureFrom: Math.min(from, n),
+          figureLast: to >= n,
         },
         start: Math.max(0, from - n),
       };

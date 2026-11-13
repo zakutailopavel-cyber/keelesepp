@@ -6,6 +6,11 @@
 //     border: 'none' | 'ink' | 'lime', locked: boolean }
 // The standalone picture block (`image`) takes the same `shape` / `border` for its frame.
 //
+// Several pictures (2026-11-13): `data.figures` = up to MAX_FIGURES such objects, each before its own paragraph. An
+// older block with one `data.figure` reads as a list of one (`figuresOf`); the constructor writes `figures` and clears
+// `figure` the first time the pictures change (`figuresPatch`). Blocks that take pictures: the text block (`text`) and
+// the reading text (`reading`, field `passage`) — FIGURE_TEXT names the field the paragraphs come from.
+//
 // Flow, not coordinates: the picture moves with its paragraph, so page splitting (pageSplit.js — a text block is never
 // split), print, the phone column (stacked above the text) and the dark theme need nothing special.
 //
@@ -20,6 +25,9 @@ export const FIGURE_BORDERS = Object.freeze(['none', 'ink', 'lime']);
 export const FIGURE_WIDTHS = Object.freeze([25, 33, 50, 100]);
 export const FIGURE_MODES = Object.freeze(['float']);
 export const MIN_WIDTH = 20;
+export const MAX_FIGURES = 3;
+// block type → the field whose paragraphs (blank line = new paragraph) the pictures stand between
+export const FIGURE_TEXT = Object.freeze({ text: 'text', reading: 'passage' });
 export const MAX_WIDTH = 100;
 
 export const SIDE_LABEL = { left: 'Vasakul', right: 'Paremal', center: 'Keskel' };
@@ -36,6 +44,20 @@ export function snapWidth(value) {
 
 // a new picture in a text: on the right, a third of the column, before the first paragraph
 export const newFigure = (img = null) => ({ mode: 'float', img, caption: '', alt: '', side: 'right', width: 33, at: 0, shape: 'rect', border: 'none', locked: false });
+
+const isFigure = (value) => !!value && typeof value === 'object' && !Array.isArray(value);
+// the pictures of a block: `figures` when it is a list, else the older single `figure`
+export function figuresOf(data) {
+  if (Array.isArray(data?.figures)) return data.figures.filter(isFigure).slice(0, MAX_FIGURES);
+  return isFigure(data?.figure) ? [data.figure] : [];
+}
+// the data patch that stores a list of pictures (the older single field is cleared)
+export const figuresPatch = (list) => ({ figures: list.length ? list.slice(0, MAX_FIGURES) : null, figure: null });
+// the paragraphs pictures stand between; the reading text drops empty ones (as it draws them)
+export const figureParagraphs = (type, data) => {
+  const all = String(data?.[FIGURE_TEXT[type] || 'text'] || '').split(/\n{2,}/);
+  return type === 'reading' ? all.filter((p) => p.trim()) : all;
+};
 
 // the stored figure, made safe to draw: unknown values fall back, unknown modes draw as 'float'
 export function normalizeFigure(figure) {
@@ -77,7 +99,15 @@ export function figureProblem(block) {
   const data = block?.data || {};
   if (data.shape !== undefined && !FIGURE_SHAPES.includes(data.shape)) return 'Pildi kuju on tundmatu.';
   if (data.border !== undefined && !FIGURE_BORDERS.includes(data.border)) return 'Pildi raam on tundmatu.';
-  const figure = data.figure;
+  if (data.figures !== undefined && data.figures !== null) {
+    if (!Array.isArray(data.figures)) return 'Teksti pildid on vigased.';
+    if (data.figures.length > MAX_FIGURES) return `Tekstis võib olla kuni ${MAX_FIGURES} pilti.`;
+    const problem = data.figures.map(oneFigureProblem).find(Boolean);
+    if (problem) return problem;
+  }
+  return oneFigureProblem(data.figure);
+}
+function oneFigureProblem(figure) {
   if (figure === undefined || figure === null) return '';
   if (typeof figure !== 'object' || Array.isArray(figure)) return 'Teksti pilt on vigane.';
   if (figure.mode !== undefined && !FIGURE_MODES.includes(figure.mode)) return 'Teksti pildi paigutus on tundmatu.';

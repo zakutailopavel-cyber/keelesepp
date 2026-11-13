@@ -44,7 +44,7 @@ import './engine/sheet.css';
 import './engine/sheetFlow.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
-import { newFigure } from './engine/figureFloat.js';
+import { FIGURE_TEXT, MAX_FIGURES, figureParagraphs, figuresOf, figuresPatch, newFigure } from './engine/figureFloat.js';
 import { MARK_KINDS, addMark } from './engine/marksModel.js';
 import { VARIANTS, makeVariant } from './engine/variants.js';
 import { setPath } from './engine/inlineEdit.js';
@@ -775,20 +775,22 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   // „Määra õpilastele” opens Õppevara with the published sheet; the block bar's „Määra” sends one task of it (&plokk=)
   const canAssign = allowAssign && !isNew && worksheetStatus === 'published' && !dirty;
   const assignUrl = `/library?assign=${encodeURIComponent(lessonId)}${worksheetId ? `&leht=${encodeURIComponent(worksheetId)}` : ''}`;
-  // „Teksti sisse”: a picture block next to a text block (the next one, else the one before) becomes that text's picture
+  // „Teksti sisse”: a picture block next to a text or a reading text (the next one, else the one before) becomes one of
+  // its pictures (up to MAX_FIGURES)
   const wrapTarget = (block) => {
     if (block.type !== 'image') return null;
     const i = doc.blocks.findIndex((b) => b.id === block.id);
-    return [doc.blocks[i + 1], doc.blocks[i - 1]].find((b) => b?.type === 'text' && !b.data?.figure) || null;
+    return [doc.blocks[i + 1], doc.blocks[i - 1]].find((b) => b && FIGURE_TEXT[b.type] && figuresOf(b.data).length < MAX_FIGURES) || null;
   };
   const wrapIntoText = (block) => {
     const target = wrapTarget(block);
     if (!target) return;
     const before = doc.blocks.indexOf(target) < doc.blocks.indexOf(block);
     const d = block.data || {};
-    const figure = { ...newFigure(d.img || null), caption: d.caption || '', alt: d.alt || '', shape: d.shape || 'rect', border: d.border || 'none', at: before ? Math.max(0, String(target.data?.text || '').split(/\n{2,}/).length - 1) : 0 };
+    const figures = figuresOf(target.data);
+    const figure = { ...newFigure(d.img || null), caption: d.caption || '', alt: d.alt || '', shape: d.shape || 'rect', border: d.border || 'none', side: figures.length % 2 ? 'left' : 'right', at: before ? Math.max(0, figureParagraphs(target.type, target.data).length - 1) : 0 };
     lastPush.current = 0;
-    setBlocks(doc.blocks.filter((b) => b.id !== block.id).map((b) => (b.id === target.id ? { ...b, data: { ...b.data, figure } } : b)));
+    setBlocks(doc.blocks.filter((b) => b.id !== block.id).map((b) => (b.id === target.id ? { ...b, data: { ...b.data, ...figuresPatch([...figures, figure]) } } : b)));
     setSelectedId(target.id);
     setNotice('Pilt on teksti sees. Lohista seda ✥-st, laius nurgast, 🔓 lukustab. „Võta tagasi” toob ploki tagasi.');
   };

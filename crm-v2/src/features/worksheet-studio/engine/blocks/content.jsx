@@ -3,7 +3,7 @@ import { Photo, Md, Bulb, Speech } from '../ui.jsx';
 import { splitList } from '../schema.js';
 import { altText } from '../image.js';
 import { Text, Area, ImagePick, Select, Rows } from '../../editor/fields.jsx';
-import FloatFigure from '../FloatFigure.jsx';
+import { FigureFlow } from '../FloatFigure.jsx';
 import { frameClass, shapeAspect } from '../figureFloat.js';
 import { FrameFields, TextFigureFields } from '../../editor/FigureFields.jsx';
 
@@ -11,18 +11,10 @@ import { FrameFields, TextFigureFields } from '../../editor/FigureFields.jsx';
 export const text = {
   type: 'text', label: 'Tekst / juhis', group: 'Kujundus', icon: 'Type', task: false, width: 'full', tone: 'white',
   create: () => ({ heading: '', text: 'Kirjuta siia selgitus või juhis.' }),
-  // `data.figure` (optional): a picture the text wraps around, before paragraph `figure.at` (figureFloat.js)
-  View: ({ data, ctx }) => {
-    const paragraphs = String(data.text || '').split(/\n{2,}/);
-    const at = data.figure ? Math.min(Math.max(0, Number(data.figure.at) || 0), paragraphs.length - 1) : -1;
-    const figure = data.figure ? <FloatFigure key="figure" figure={data.figure} onChange={ctx?.patch ? (next) => ctx.patch({ figure: next }) : null} /> : null;
-    return (
-      <div className={`ws-textblock${figure ? ' has-figure' : ''}`}>
-        {data.heading && <h4>{data.heading}</h4>}
-        {paragraphs.map((p, i) => [i === at ? figure : null, <p key={i}><Md text={p} /></p>])}
-      </div>
-    );
-  },
+  // `data.figures` (optional, older: `data.figure`): pictures the text wraps around, each before paragraph `at` (figureFloat.js)
+  View: ({ data, ctx }) => (
+    <FigureFlow className="ws-textblock" heading={data.heading ? <h4>{data.heading}</h4> : null} paragraphs={String(data.text || '').split(/\n{2,}/)} data={data} patch={ctx?.patch || null} />
+  ),
   Editor: ({ data, set }) => (
     <>
       <Text label="Pealkiri (valikuline)" value={data.heading} onChange={(v) => set({ heading: v })} />
