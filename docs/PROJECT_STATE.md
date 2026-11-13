@@ -1,3 +1,11 @@
+## 2026-11-13 · agent/a2-l05-vaba-paev — A2 lisatund „Vaba päev: läksin, tulin, sain” (a2-l05) · content only
+
+- Base `origin/main` (after #1215). Owner asked for a strong past-tense lesson with the irregular verbs, theme „free day”, A2→B1, for Aleksandr Smirnov (card `self_ZoQ8…`). His sheets a2-l01…l04 / a2-076 still show *tulesin, *minesin, *saamasin, *jõisin, *tegesin, *ei läksin and that he did not get the „Jah → ei” task.
+- New lesson `a2-l05` in `admin/course/a2/lihtminevik.js` (supplement, 3 full sheets): 12 exceptions learnt through the ta-form (ta tuli → ma tulin), a Russian line in the rule, his own mistakes as the „Mitte nii!” gaps, Jah → ei with an example, two listenings (Neurokõne, `public/audio/a2-l05/`), Kasuta = reply to a classmate who missed the zoo day (7–9 sentences with kõigepealt / siis / pärast seda / lõpuks — the B1 step). `a2/lessonGoals.js` entry. All Estonian words checked with Vabamorf (no unknown words).
+- Published to production (create-only, owner request): `curriculumLessons/a2-l05` + 3 worksheets + `worksheetVersions/a2-l05_*_studio_v1`. Not assigned to anyone.
+- Checks: `npx vitest run src/features/worksheet-generator` → 75 files passed, 1203 tests passed (quality gates incl. strict module, listening audio hash).
+- Next safe step: the teacher assigns a2-l05 Avasta to Aleksandr, then Harjuta a few days later, Kasuta in the lesson.
+
 ## 2026-11-12 · agent/fix-streak-any-practice — any finished practice keeps the day streak (Fable review U2) · crm-v2 only, no rules / functions change
 
 - Base: `origin/main` b8861b8, checked 2026-11-12. Branch `agent/fix-streak-any-practice`, draft PR. Before: `practice.learnDays` (the streak) grew only when a „Harjuta” step was ticked (`done` keys), so a submitted worksheet, a task „Tehtud”, a pet game or a word round elsewhere with 0 XP did not count.

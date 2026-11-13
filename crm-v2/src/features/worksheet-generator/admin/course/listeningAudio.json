@@ -1314,6 +1314,16 @@
     "seconds": 42.2,
     "hash": "73939f85dccc68acba21d6a3a1de4d7f206445f7"
   },
+  "a2-l05:l05_d_voice": {
+    "src": "/audio/a2-l05/l05_d_voice.mp3",
+    "seconds": 60.2,
+    "hash": "cb8ca11c60421e90fc879be9de6dc10c96783b2e"
+  },
+  "a2-l05:l05_p_call": {
+    "src": "/audio/a2-l05/l05_p_call.mp3",
+    "seconds": 44.1,
+    "hash": "3bdffef07179feafc770318e1525b8c271df658b"
+  },
   "a2b1-001:001_p_clips": {
     "src": "/audio/a2b1-001/001_p_clips.mp3",
     "seconds": 94.4,
