@@ -44,6 +44,8 @@ import './engine/sheet.css';
 import './engine/sheetFlow.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
+import { KIND_LABEL as FREE_KIND_LABEL, MAX_ITEMS as MAX_FREE, freeItemsOf, moveItem, newFreeItem, restack } from './engine/freeLayer.js';
+import FreeFields from './editor/FreeFields.jsx';
 import { FIGURE_TEXT, MAX_FIGURES, figureParagraphs, figuresOf, figuresPatch, newFigure } from './engine/figureFloat.js';
 import { MARK_KINDS, addMark } from './engine/marksModel.js';
 import { VARIANTS, makeVariant } from './engine/variants.js';
@@ -141,6 +143,10 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [saveError, setSaveError] = useState('');
   const [mode, setMode] = useState(initialMode);
   const [selectedId, setSelectedId] = useState(null);
+  // „Vaba kiht” (Õpik only): the selected free item of the page (engine/freeLayer.js); a block and a free item are
+  // never selected at the same time
+  const [selectedFreeId, setSelectedFreeId] = useState(null);
+  const [pageCount, setPageCount] = useState(1);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState({});
   const [evidence, setEvidence] = useState(null);
@@ -167,7 +173,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   // Floating UI: the panel sits beside the page at the height of the selected block (a virtual reference = the page's
   // left / right edges and the block's top / bottom), flips to the other side when there is no room, follows scrolling
   const { refs, floatingStyles, isPositioned } = useFloating({
-    open: Boolean(selectedId),
+    open: Boolean(selectedId || selectedFreeId),
     strategy: 'fixed',
     placement: popSide === 'right' ? 'right-start' : 'left-start',
     middleware: [
@@ -179,7 +185,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     whileElementsMounted: autoUpdate,
   });
   useLayoutEffect(() => {
-    const card = selectedId ? globalThis.document?.querySelector(`.ws-page [data-block="${selectedId}"]`) : null;
+    const card = selectedId ? globalThis.document?.querySelector(`.ws-page [data-block="${selectedId}"]`)
+      : selectedFreeId ? globalThis.document?.querySelector(`.ws-page [data-free="${selectedFreeId}"]`) : null;
     if (!card) { refs.setPositionReference(null); return; }
     const page = card.closest('.ws-page') || card;
     refs.setPositionReference({
@@ -190,7 +197,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         return { x: p.left, y: c.top, left: p.left, right: p.right, top: c.top, bottom: c.bottom, width: p.width, height: c.height };
       },
     });
-  }, [selectedId, doc?.blocks, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedId, selectedFreeId, doc?.blocks, doc?.free, mode]); // eslint-disable-line react-hooks/exhaustive-deps
   // a tablet: the block's settings open as a sheet over the lower half of the screen — a block tapped there moves up
   useEffect(() => {
     if (!selectedId || !panelOpen || mode !== 'edit' || !screenMatches(TABLET_QUERY)) return;
@@ -394,6 +401,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     lastPush.current = 0;
     setDoc(step.doc); setHistory(step.history); setDirty(true); setNotice('');
     if (!step.doc.blocks.some((b) => b.id === selectedId)) setSelectedId(null);
+    if (!(step.doc.free || []).some((f) => f?.id === selectedFreeId)) setSelectedFreeId(null);
   };
   const redo = () => {
     const step = redoHistory(history, doc);
@@ -401,11 +409,48 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     lastPush.current = 0;
     setDoc(step.doc); setHistory(step.history); setDirty(true); setNotice('');
     if (!step.doc.blocks.some((b) => b.id === selectedId)) setSelectedId(null);
+    if (!(step.doc.free || []).some((f) => f?.id === selectedFreeId)) setSelectedFreeId(null);
   };
   const closeMenu = () => { if (menuRef.current) menuRef.current.open = false; };
   const setBlocks = (blocks) => change({ ...doc, blocks });
   const selected = doc.blocks.find((b) => b.id === selectedId);
   const updateBlock = (nb) => setBlocks(doc.blocks.map((b) => (b.id === nb.id ? nb : b)));
+  // the free layer (Õpik): add / change / restack / copy / delete; every change is one undoable change of doc.free
+  const freeItems = freeItemsOf(doc);
+  const selectedFree = freeItems.find((item) => item.id === selectedFreeId) || null;
+  const canFree = worksheetId === 'opik' || freeItems.length > 0;
+  const setFree = (items) => change({ ...doc, free: items.length ? items : null });
+  const selectBlock = (id) => { setSelectedId(id); if (id) setSelectedFreeId(null); };
+  const selectFree = (id) => { setSelectedFreeId(id); setSelectedId(null); setPanelOpen(true); };
+  const changeFree = (id, next) => { lastPush.current = 0; setFree(freeItems.map((item) => (item.id === id ? { ...item, ...next } : item))); };
+  const patchFree = (patch) => selectedFree && setFree(freeItems.map((item) => (item.id === selectedFree.id ? { ...item, ...patch } : item)));
+  // a new item goes on the page in the middle of the screen
+  const pageInView = () => {
+    const pages = [...(canvasRef.current?.querySelectorAll('.ws-page') || [])];
+    const mid = (globalThis.innerHeight || 0) / 2;
+    const index = pages.findIndex((page) => { const r = page.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; });
+    return Math.max(0, index);
+  };
+  const addFree = (kind) => {
+    if (freeItems.length >= MAX_FREE) { setNotice(`Vabas kihis võib olla kuni ${MAX_FREE} elementi.`); return; }
+    const item = newFreeItem(kind, pageInView(), freeItems);
+    lastPush.current = 0;
+    setFree([...freeItems, item]);
+    lastPush.current = 0; // the next edit of it is its own undo step
+    selectFree(item.id);
+    setNotice('Lohista element lehel paika, suurus nurgast. Plokid selle alt ei liigu.');
+  };
+  const duplicateFree = () => {
+    if (!selectedFree || freeItems.length >= MAX_FREE) return;
+    const copy = { ...moveItem(selectedFree, 6, 6), id: newFreeItem(selectedFree.kind).id, z: Math.max(...freeItems.map((i) => i.z)) + 1, locked: false };
+    lastPush.current = 0;
+    setFree([...freeItems, copy]);
+    lastPush.current = 0;
+    selectFree(copy.id);
+  };
+  const deleteFree = () => { if (!selectedFree) return; lastPush.current = 0; setFree(freeItems.filter((item) => item.id !== selectedFree.id)); setSelectedFreeId(null); };
+  const restackFree = (how) => { if (!selectedFree) return; lastPush.current = 0; setFree(restack(freeItems, selectedFree.id, how)); };
+  const freeEdit = { selectedId: selectedFreeId, onSelect: selectFree, onChange: changeFree };
   // text changed directly on the sheet: a block field, or the sheet header when blockId is null
   const editText = (blockId, path, text) => {
     if (!blockId) { change({ ...doc, meta: setPath(doc.meta, path, text) }); return; }
@@ -835,6 +880,15 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     if (mode !== 'edit' || isTextTarget(event.target)) return;
     if ((event.ctrlKey || event.metaKey) && key === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
     if ((event.ctrlKey || event.metaKey) && key === 'y') { event.preventDefault(); redo(); return; }
+    if ((key === 'delete' || key === 'backspace') && selectedFree && !selectedFree.locked) { event.preventDefault(); deleteFree(); return; }
+    if ((event.ctrlKey || event.metaKey) && key === 'd' && selectedFree) { event.preventDefault(); duplicateFree(); return; }
+    if (key === 'escape' && selectedFreeId) { setSelectedFreeId(null); return; }
+    if (!event.ctrlKey && !event.metaKey && key.startsWith('arrow') && selectedFree && !selectedFree.locked) {
+      event.preventDefault();
+      const step = event.shiftKey ? 10 : 1;
+      changeFree(selectedFree.id, moveItem(selectedFree, key === 'arrowleft' ? -step : key === 'arrowright' ? step : 0, key === 'arrowup' ? -step : key === 'arrowdown' ? step : 0));
+      return;
+    }
     if ((key === 'delete' || key === 'backspace') && selectedId) { event.preventDefault(); deleteBlock(selectedId); return; }
     if ((event.ctrlKey || event.metaKey) && key === 'd' && selectedId) { event.preventDefault(); duplicateBlock(selectedId); return; }
     if (event.altKey && (key === 'arrowup' || key === 'arrowdown') && selectedId) { event.preventDefault(); moveBlock(selectedId, key === 'arrowup' ? -1 : 1); return; }
@@ -1067,7 +1121,17 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
                 onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage} onAudio={pickBankAudio} onVideo={pickBankVideo}
                 onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />
-              : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint" title="Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc."><Icons.MousePointerClick size={14} aria-hidden="true" /> {touchHint ? 'Puuduta plokki, et see lisada. Lehel: puuduta plokki, siis selle teksti, et teksti muuta.' : 'Lohista plokk lehele. Topeltklõps lehel muudab teksti.'}</p>{myTemplates.length ? (
+              : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint" title="Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc."><Icons.MousePointerClick size={14} aria-hidden="true" /> {touchHint ? 'Puuduta plokki, et see lisada. Lehel: puuduta plokki, siis selle teksti, et teksti muuta.' : 'Lohista plokk lehele. Topeltklõps lehel muudab teksti.'}</p>{canFree ? (
+                <div className="st-group st-free">
+                  <div className="st-group-title">Vaba kiht (Õpik)</div>
+                  <p className="st-palette-hint">Pane pilt, kujund või tekst ükskõik kuhu lehel — kihiti üksteise peale.</p>
+                  <div className="st-free-add">
+                    <button type="button" className="ed-btn" onClick={() => addFree('image')}><Icons.Image size={14} aria-hidden="true" /> Pilt</button>
+                    <button type="button" className="ed-btn" onClick={() => addFree('shape')}><Icons.Circle size={14} aria-hidden="true" /> Kujund</button>
+                    <button type="button" className="ed-btn" onClick={() => addFree('text')}><Icons.Type size={14} aria-hidden="true" /> Tekstikast</button>
+                  </div>
+                </div>
+              ) : null}{myTemplates.length ? (
                 <div className="st-group st-templates">
                   <div className="st-group-title">Mallid</div>
                   <ul>{myTemplates.filter((t) => !paletteQuery || t.title.toLowerCase().includes(paletteQuery.toLowerCase())).map((t) => (
@@ -1099,11 +1163,22 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           <main className={`st-canvas ${columnView ? 'ws-narrow' : ''}`} ref={canvasRef}>
             {/* the answer key is a plain page at its own size, not the A4 sheet scaled to the canvas */}
             <div className="st-zoom" style={{ zoom: mode === 'key' || columnView ? 1 : scale, '--st-scale': mode === 'key' || columnView ? 1 : scale }}>
-              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={columnView ? undefined : resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} flow={columnView} onPatch={patchBlockData} />}
+              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={(id) => { selectBlock(id); if (!id) setSelectedFreeId(null); }} dnd dropHint={dropHint} onResize={columnView ? undefined : resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} flow={columnView} onPatch={patchBlockData} freeEdit={freeEdit} onPageCount={setPageCount} />}
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>
 
+          {mode === 'edit' && selectedFree && panelOpen ? (
+            <aside ref={refs.setFloating} className={`st-inspector is-floating is-${popSide}`} aria-label="Vaba elemendi seaded" style={popStyle} onClick={(e) => e.stopPropagation()}>
+              <div className="st-pop-head"><b>Vaba kiht · {FREE_KIND_LABEL[selectedFree.kind]}</b>
+                <button type="button" className="ed-btn" onClick={() => setPopSide(popSide === 'right' ? 'left' : 'right')} title="Vii paneel teisele poole" aria-label="Vii paneel teisele poole"><Icons.ArrowLeftRight size={15} aria-hidden="true" /></button>
+                <button type="button" className="ed-btn" onClick={() => setPanelOpen(false)} aria-label="Sulge seaded"><Icons.X size={15} aria-hidden="true" /></button>
+              </div>
+              <FreeFields key={selectedFree.id} item={selectedFree} pages={pageCount} set={patchFree}
+                onLayer={restackFree}
+                onDuplicate={duplicateFree} onDelete={deleteFree} />
+            </aside>
+          ) : null}
           {mode === 'edit' && (
             selected && panelOpen ? <aside ref={refs.setFloating} className={`st-inspector is-floating is-${popSide}`} aria-label="Seaded" style={popStyle} onClick={(e) => e.stopPropagation()}>
               <div className="st-pop-head"><b>{BLOCKS[selected.type]?.label || 'Plokk'}</b>

@@ -1,5 +1,7 @@
 /* global ResizeObserver */
 import { IN_LESSON_LABEL, isInLesson } from './inLesson.js';
+import FreeLayer, { FreeFlow } from './FreeLayer.jsx';
+import { flowItems, freeItemsOf, itemsOnPage } from './freeLayer.js';
 import { Suspense, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { lazyComponent } from '../../../app/lazyComponent.js';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
@@ -231,13 +233,15 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockPopovers = null, blockBadges = null, blockClasses = null, flow = false, running = null, lead = null, transcripts = null, onPatch = null }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockPopovers = null, blockBadges = null, blockClasses = null, flow = false, running = null, lead = null, transcripts = null, onPatch = null, freeEdit = null }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   // „Kiri”: the viewer's own font for typed answers (answerFont.js); plain by default
   const [answerFont] = useAnswerFont();
   const fontClass = answerFontClass(answerFont);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
+  // „Vaba kiht” (freeLayer.js): pictures, shapes and text boxes placed freely on the pages
+  const freeItems = useMemo(() => freeItemsOf(doc), [doc]);
   const [focus, setFocusState] = useState({});
   const interactive = mode === 'interactive';
   const showAnswers = mode === 'interactive' || mode === 'review';
@@ -516,6 +520,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
           {lead}
           <Header meta={doc.meta} />
           <div className="ws-flow">{rows.map((row, i) => rowView(row, i))}</div>
+          <FreeFlow items={flowItems(freeItems)} />
         </div>
         {richEditor}
       </div>
@@ -543,6 +548,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
           {mode === 'edit' && idxs.length === 0 && (dnd ? <EmptyDrop /> : <div className="ws-empty">Lisa vasakult esimene plokk.</div>)}
           {dnd && mode === 'edit' && idxs.length > 0 ? <PageTailDrop page={p} lastId={lastBlockOf(rows, idxs)} /> : null}
           <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} running={running} />
+          <FreeLayer items={itemsOnPage(freeItems, p, pages.length)} edit={mode === 'edit' ? freeEdit : null} />
         </div>
       ))}
       {/* fallback={null}: the inline text editor floats over the text being edited, which stays on screen meanwhile */}

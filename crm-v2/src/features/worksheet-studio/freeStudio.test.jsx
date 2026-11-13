@@ -1,0 +1,52 @@
+// „Vaba kiht” in the constructor (2026-11-13): only the Õpik sheet offers it; an added item opens its settings, a
+// change is one undo step, save carries doc.free, Delete removes the selected item.
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { vi } from 'vitest';
+import { AuthContext } from '../../app/AuthContext.jsx';
+import WorksheetStudioPage from './WorksheetStudioPage.jsx';
+import { sampleDocument } from './engine/sample.js';
+
+vi.setConfig({ testTimeout: 20_000 });
+globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
+const store = new Map();
+Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k), clear: () => store.clear() } });
+
+const doc = () => ({ ...sampleDocument(), blocks: [{ id: 'txt', type: 'text', data: { text: 'Üks.' } }] });
+const open = (sheet) => {
+  const save = vi.fn().mockResolvedValue({ id: 'lesson-1', created: false, title: 'Leht', version: 2 });
+  const repository = { load: vi.fn().mockResolvedValue({ document: doc(), source: 'worksheetDoc', lesson: { id: 'lesson-1' } }), save, uploadImage: vi.fn(), uploadAudio: vi.fn() };
+  const view = render(
+    <MemoryRouter initialEntries={[`/library/lessons/lesson-1/worksheets/${sheet}`]}>
+      <AuthContext.Provider value={{ user: { uid: 't', roles: ['admin'] } }}>
+        <Routes><Route path="/library/lessons/:lessonId/worksheets/:worksheetId" element={<WorksheetStudioPage repository={repository} templates={{ list: vi.fn().mockResolvedValue([]) }} mediaBank={{ list: vi.fn().mockResolvedValue([]), save: vi.fn() }} />} /></Routes>
+      </AuthContext.Provider>
+    </MemoryRouter>,
+  );
+  return { ...view, save };
+};
+
+it('Harjuta has no free layer', async () => {
+  const { container } = open('practice');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  expect(screen.queryByText('Vaba kiht (Õpik)')).toBeNull();
+});
+
+it('Õpik: „Tekstikast” adds a box with its settings; a setting is undoable; save carries it; Delete removes it', async () => {
+  const { container, save } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Tekstikast/ }));
+  const box = () => container.querySelector('.ws-page .ws-free [data-free]');
+  const boxText = () => box().querySelector('.ws-free-text').textContent;
+  expect(boxText()).toBe('Kirjuta siia');
+  const panel = screen.getByRole('complementary', { name: 'Vaba elemendi seaded' });
+  fireEvent.change(panel.querySelector('textarea'), { target: { value: 'Tere, Õpik!' } });
+  expect(boxText()).toBe('Tere, Õpik!');
+  fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+  await waitFor(() => expect(save).toHaveBeenCalled());
+  expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ kind: 'text', text: 'Tere, Õpik!', page: 0 })]);
+  fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
+  expect(boxText()).toBe('Kirjuta siia');
+  fireEvent.keyDown(window, { key: 'Delete' });
+  expect(box()).toBeNull();
+});

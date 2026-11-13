@@ -258,10 +258,28 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   paragraphs and stores a change against the whole text. „Teksti sisse” works into a text or reading text that has
   fewer than 3 pictures (a second picture goes to the left, by the last paragraph when the text is above). Notice / tip /
   dialogue blocks take no picture yet.
-- Later („phase 3”, the Õpik only): `figure.mode: 'free'` with `{ page, xMm, yMm, wMm, hMm, z }` and `shape: 'polygon'`
-  with `points`, allowed only on a sheet with `meta.layout: 'fixed'` (an absolutely positioned A4 page). Today
-  `figureProblem` refuses unknown modes on save and `normalizeFigure` draws any unknown mode as `float`, so adding the
-  mode later breaks no flow sheet and no older reader.
+- Phase 3 is built as a separate free layer (below), not as `figure.mode: 'free'`; `figureProblem` still refuses
+  unknown figure modes.
+
+## „Vaba kiht” — free layer of the Õpik page (2026-11-13, agent/opik-free-layer)
+
+- Data (optional, backward compatible): `doc.free = [{ id, kind: image | shape | text, page, x, y, w, h (mm on the
+  270 mm design page), z, rotate, locked, img, alt, shape: rect | rounded | circle | oval, fill: none | lime | cream |
+  sky | peach | navy, border: none | ink | lime, text (≤ 600), size (pt), bold }]`, ≤ 40 items. Model and checks:
+  `engine/freeLayer.js` (`normalizeFreeItem`, `itemsOnPage`, `flowItems`, `moveItem`, `resizeItem`, `restack`,
+  `freeProblem` used by `validateWorksheetDoc`).
+- Drawing: `engine/FreeLayer.jsx` — an absolute layer over each `.ws-page` (`Sheet.jsx`), items in mm, so print, zoom
+  and the book draw the same; an item of a missing page stands on the last page. The blocks do not move out of its
+  way (decoration / illustration on top). Outside the constructor the items take no pointer (answer fields under
+  them stay usable). Phone column (`flow`): pictures and text boxes after the blocks in page / top order, shapes left
+  out (`FreeFlow`, `.ws-free-flow` order 3).
+- Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
+  already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
+  middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures
+  and circles keep proportions); arrows nudge 1 mm (Shift 10), Delete removes, Ctrl+D copies, Esc deselects. Settings
+  `editor/FreeFields.jsx` (picture / alt, text / size / bold, shape, colour, frame, page, turn, layer: Kõige peale /
+  Üles / Alla / Kõige alla, lock, copy, delete) in the same floating panel as a block's. Each change is one undo step.
+
 
 ## Not in this slice
 
