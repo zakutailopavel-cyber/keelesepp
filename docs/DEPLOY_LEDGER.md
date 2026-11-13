@@ -28,7 +28,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 | Firestore rules (`firestore.rules`) | 2026-11-11 15:32 | `8a9cb61` (= main 2026-11-11) | live ruleset compared with main `8a9cb61`: equal |
 | Storage rules (`storage.rules`) | not recorded | — | run `deploy-status.mjs` and fill in |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
-| Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-13 18:41 release commit | `4770aae` `[deploy] Release 2026-11-13 18:41 UTC` | release commit on main; Vercel status success |
+| Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-13 19:38 release commit | `f412447` `[deploy] Release 2026-11-13 19:38 UTC` | release commit on main; Vercel status success |
 
 ## Cloud Functions
 
@@ -53,6 +53,7 @@ A function changed on main after its row above is **not live** — compare with
 
 Newest first. One line per deploy: date UTC · target(s) · commit · who · note.
 
+- 2026-11-13 19:38 · hosting (release.yml) · `f412447` · Claude (owner OK) · Õpik free layer: lines and arrows (#1221); no rules / functions change; Vercel success
 - 2026-11-13 18:41 · hosting (release.yml) · `4770aae` · Claude (owner OK) · editor: up to 3 pictures in a text / reading text (#1218), Õpik „Vaba kiht” (#1219); no rules / functions change; Vercel success
 - 2026-11-13 13:50 · hosting (release.yml) · `df8797f` · Claude (owner OK) · A2 lesson a2-l05 with its listening audio (#1216); Vercel success, audio URL 200
 - 2026-11-12 10:27 · functions:financeApi,invoiceApi,linkpayApi,manualInvoiceApi,sendInvoicePaymentReminders · `f372e75` · Claude (owner OK) · Fable fixes T2 (#1212) and D4/D6 (#1213); „Deploy complete”; rules unchanged; hosting released after with #1210, #1211, #1214
