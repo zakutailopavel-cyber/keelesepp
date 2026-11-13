@@ -1,7 +1,7 @@
 // Settings of one item of the free layer (engine/freeLayer.js): what it shows, its shape and colour, its page, size,
 // turn, layer, lock; copy and delete. Every change goes through `set(patch)` → one undoable change of `doc.free`.
 import { Area, ImagePick, Num, Select, Text } from './fields.jsx';
-import { FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, KIND_LABEL } from '../engine/freeLayer.js';
+import { FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, HEADS_LABEL, KIND_LABEL, LINE_COLORS, LINE_COLOR_LABEL, LINE_HEADS, LINE_STROKES } from '../engine/freeLayer.js';
 
 const SHAPE_LABEL = { rect: 'Ristkülik', rounded: 'Ümarad nurgad', circle: 'Ring', oval: 'Ovaal' };
 const BORDER_LABEL = { none: 'Ilma raamita', ink: 'Must joon', lime: 'Laimiroheline joon' };
@@ -12,7 +12,7 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
   const guard = (patch) => { if (!locked) set(patch); };
   return (
     <div className="ed-free">
-      <p className="ed-hint">{KIND_LABEL[item.kind]} vabas kihis: lohista lehel, suurus nurgast. Plokid selle alt ei liigu.</p>
+      <p className="ed-hint">{item.kind === 'line' ? 'Joon vabas kihis: lohista joont, et liigutada; rohelised täpid otstes muudavad suunda ja pikkust.' : `${KIND_LABEL[item.kind]} vabas kihis: lohista lehel, suurus nurgast.`} Plokid selle alt ei liigu.</p>
       {item.kind === 'image' ? <>
         <ImagePick value={item.img} aspect="orig" allowAspect={false} onChange={(img) => {
           const ratio = img?.width && img?.height ? img.height / img.width : 0;
@@ -25,11 +25,18 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
         <Num label="Kirja suurus (pt)" value={item.size} min={8} max={60} onChange={(v) => set({ size: Number(v) || 14 })} />
         <label className="ed-check"><input type="checkbox" checked={item.bold} onChange={(e) => set({ bold: e.target.checked })} /> Paks kiri</label>
       </> : null}
-      <Select label="Kuju" value={item.shape} onChange={(v) => guard({ shape: v })} options={FREE_SHAPES.map((k) => [k, SHAPE_LABEL[k]])} />
-      {item.kind !== 'image' ? <Select label="Värv" value={item.fill} onChange={(v) => set({ fill: v })} options={FREE_FILLS.map((k) => [k, FILL_LABEL[k]])} /> : null}
-      <Select label="Raam" value={item.border} onChange={(v) => set({ border: v })} options={FREE_BORDERS.map((k) => [k, BORDER_LABEL[k]])} />
+      {item.kind === 'line' ? <>
+        <Select label="Otsad" value={item.heads} onChange={(v) => set({ heads: v })} options={LINE_HEADS.map((k) => [k, HEADS_LABEL[k]])} />
+        <Select label="Värv" value={item.color} onChange={(v) => set({ color: v })} options={LINE_COLORS.map((k) => [k, LINE_COLOR_LABEL[k]])} />
+        <Select label="Paksus" value={String(item.stroke)} onChange={(v) => set({ stroke: Number(v) })} options={[...new Set([...LINE_STROKES, item.stroke])].sort((a, b) => a - b).map((w) => [String(w), `${String(w).replace('.', ',')} mm`])} />
+        <label className="ed-check"><input type="checkbox" checked={item.dash} onChange={(e) => set({ dash: e.target.checked })} /> Kriipsjoon</label>
+      </> : <>
+        <Select label="Kuju" value={item.shape} onChange={(v) => guard({ shape: v })} options={FREE_SHAPES.map((k) => [k, SHAPE_LABEL[k]])} />
+        {item.kind !== 'image' ? <Select label="Värv" value={item.fill} onChange={(v) => set({ fill: v })} options={FREE_FILLS.map((k) => [k, FILL_LABEL[k]])} /> : null}
+        <Select label="Raam" value={item.border} onChange={(v) => set({ border: v })} options={FREE_BORDERS.map((k) => [k, BORDER_LABEL[k]])} />
+      </>}
       {pages > 1 ? <Select label="Leht" value={String(Math.min(item.page, pages - 1))} onChange={(v) => guard({ page: Number(v) })} options={Array.from({ length: pages }, (_, i) => [String(i), `${i + 1}. leht`])} /> : null}
-      <Select label="Pööra" value={String(item.rotate || 0)} onChange={(v) => guard({ rotate: Number(v) })} options={[...new Set([...TURNS, item.rotate || 0])].sort((a, b) => a - b).map((d) => [String(d), d ? `${d}°` : 'Otse'])} />
+      {item.kind === 'line' ? null : <Select label="Pööra" value={String(item.rotate || 0)} onChange={(v) => guard({ rotate: Number(v) })} options={[...new Set([...TURNS, item.rotate || 0])].sort((a, b) => a - b).map((d) => [String(d), d ? `${d}°` : 'Otse'])} />}
       <div className="ed-free-layer" role="group" aria-label="Kiht">
         <span className="ed-label">Kiht</span>
         <button type="button" className="ed-btn" onClick={() => onLayer('top')}>Kõige peale</button>

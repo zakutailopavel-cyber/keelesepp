@@ -273,6 +273,10 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   way (decoration / illustration on top). Outside the constructor the items take no pointer (answer fields under
   them stay usable). Phone column (`flow`): pictures and text boxes after the blocks in page / top order, shapes left
   out (`FreeFlow`, `.ws-free-flow` order 3).
+- Lines and arrows (2026-11-13, agent/opik-free-lines): `kind: 'line'` with two ends `x, y` → `x2, y2` (mm, kept on the
+  page) instead of a box, `color: ink | navy | green | lime | red`, `stroke` (mm), `heads: none | end | both`, `dash`.
+  Drawn as an 8 mm strip turned around its start with an SVG in mm (`LineItem`); dragging the strip moves both ends,
+  the two round handles move one end (`moveEnd`). Lines are left out of the phone column. Palette: „Joon”, „Nool”.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures

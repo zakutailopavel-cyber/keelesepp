@@ -4,7 +4,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 import Sheet from './Sheet.jsx';
 import { sampleDocument } from './sample.js';
-import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, moveItem, newFreeItem, normalizeFreeItem, resizeItem, restack } from './freeLayer.js';
+import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, resizeItem, restack } from './freeLayer.js';
 import { validateWorksheetDoc } from '../../../services/firebase/worksheetDocs.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -114,5 +114,52 @@ describe('drawing and editing on the page', () => {
     const items = [...container.querySelectorAll('.ws-free-flow > div')];
     expect(items.map((n) => n.className.split(' ')[1])).toEqual(['is-text', 'is-image']);
     expect(container.querySelector('.ws-free')).toBeNull();
+  });
+});
+
+describe('lines and arrows (2026-11-13)', () => {
+  const line = (patch) => ({ id: 'l1', kind: 'line', page: 0, x: 10, y: 20, x2: 70, y2: 100, z: 1, color: 'ink', stroke: 1, heads: 'end', ...patch });
+
+  it('model: ends stay on the page; a move keeps the length; an end moves alone; the phone leaves lines out', () => {
+    expect(newFreeItem('line', 0, [], { heads: 'end' })).toMatchObject({ kind: 'line', heads: 'end', color: 'ink', x2: 190 });
+    expect(normalizeFreeItem(line({ x: -5, x2: 999, color: 'gold', heads: 'x' }))).toMatchObject({ x: 0, x2: PAGE_W, color: 'ink', heads: 'none' });
+    expect(lineGeom(line({ x: 0, y: 0, x2: 30, y2: 40 }))).toEqual({ length: 50, angle: expect.closeTo(53.13, 1) });
+    expect(moveItem(normalizeFreeItem(line({})), -50, 0)).toMatchObject({ x: 0, x2: 60, y: 20, y2: 100 });
+    expect(moveEnd(normalizeFreeItem(line({})), 'end', 5, -10)).toMatchObject({ x: 10, y: 20, x2: 75, y2: 90 });
+    expect(moveEnd(normalizeFreeItem(line({})), 'start', -50, 0)).toMatchObject({ x: 0, x2: 70 });
+    expect(flowItems([normalizeFreeItem(line({}))])).toEqual([]);
+  });
+
+  it('schema: a line needs both ends and known colour / heads', () => {
+    expect(freeProblem({ free: [line({})] })).toBe('');
+    expect(freeProblem({ free: [line({ x2: undefined })] })).toMatch(/asukoht/);
+    expect(freeProblem({ free: [line({ color: 'gold' })] })).toMatch(/värv/);
+    expect(freeProblem({ free: [line({ heads: 'three' })] })).toMatch(/otsad/);
+  });
+
+  it('draws as a turned strip with an arrow head; both heads; dashed', () => {
+    const { container, rerender } = render(<Sheet doc={docWith([line({ x: 0, y: 0, x2: 30, y2: 40 })])} mode="print" />);
+    const node = container.querySelector('[data-free="l1"]');
+    expect(node.style.width).toBe('50mm');
+    expect(node.style.transform).toMatch(/^rotate\(53\.1/);
+    expect(node.querySelectorAll('polygon')).toHaveLength(1);
+    rerender(<Sheet doc={docWith([line({ heads: 'both', dash: true })])} mode="print" />);
+    expect(container.querySelectorAll('[data-free="l1"] polygon')).toHaveLength(2);
+    expect(container.querySelector('[data-free="l1"] line').getAttribute('stroke-dasharray')).toBe('3 2');
+    expect(container.querySelector('.ws-free-end')).toBeNull();
+  });
+
+  it('edit: dragging an end moves only that end; dragging the line moves both', () => {
+    const onChange = vi.fn();
+    const { container } = render(<Sheet doc={docWith([line({})])} mode="edit" freeEdit={{ selectedId: 'l1', onSelect: () => {}, onChange }} />);
+    container.querySelector('.ws-page').getBoundingClientRect = () => ({ left: 0, top: 0, width: 540, height: 760, right: 540, bottom: 760 });
+    const end = container.querySelector('.ws-free-end.is-end');
+    fireEvent.pointerDown(end, { clientX: 0, clientY: 0, pointerId: 1 });
+    fireEvent.pointerUp(end, { clientX: 20, clientY: -20, pointerId: 1 });
+    expect(onChange).toHaveBeenLastCalledWith('l1', expect.objectContaining({ x: 10, y: 20, x2: 80, y2: 90 }));
+    const body = container.querySelector('[data-free="l1"]');
+    fireEvent.pointerDown(body, { clientX: 0, clientY: 0, pointerId: 2 });
+    fireEvent.pointerUp(body, { clientX: 10, clientY: 10, pointerId: 2 });
+    expect(onChange).toHaveBeenLastCalledWith('l1', expect.objectContaining({ x: 15, y: 25, x2: 75, y2: 105 }));
   });
 });
