@@ -7,6 +7,7 @@ import { convertLegacyWorksheet } from '../../features/worksheet-studio/engine/l
 import { newDocument, SCHEMA } from '../../features/worksheet-studio/engine/schema.js';
 import { BLOCKS } from '../../features/worksheet-studio/engine/registry.js';
 import { figureProblem } from '../../features/worksheet-studio/engine/figureFloat.js';
+import { freeProblem } from '../../features/worksheet-studio/engine/freeLayer.js';
 import { prepareImageFile } from '../../features/worksheet-studio/engine/image.js';
 import { MAX_VIDEO_BYTES } from '../../features/worksheet-studio/engine/video.js';
 
@@ -33,6 +34,9 @@ export function validateWorksheetDoc(document) {
   // a picture's frame and a picture inside a text (figureFloat.js); old sheets have neither
   const figure = document.blocks.map(figureProblem).find(Boolean);
   if (figure) throw new Error(figure);
+  // the Õpik's free layer (freeLayer.js): optional, old sheets have none
+  const free = freeProblem(document);
+  if (free) throw new Error(free);
   const json = JSON.stringify(document);
   // photos must be uploaded files, never inline data, or the document would exceed Firestore limits
   if (json.includes('"data:')) throw new Error('Mõni foto või heli ei ole veel üles laaditud. Lisa see uuesti.');

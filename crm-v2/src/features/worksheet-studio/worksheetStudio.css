@@ -974,3 +974,9 @@ textarea.ed-input { resize: vertical; }
   .ws-toolbar select { min-height: calc(40px / var(--st-scale, 1)); font-size: calc(14px / var(--st-scale, 1)); }
   .ws-insert { width: calc(40px / var(--st-scale, 1)); height: calc(40px / var(--st-scale, 1)); line-height: calc(40px / var(--st-scale, 1)); font-size: calc(22px / var(--st-scale, 1)); }
 }
+
+/* free layer settings (editor/FreeFields.jsx) */
+.ed-free-layer, .ed-free-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+.ed-free-layer .ed-label { width: 100%; }
+.ed-btn.ed-danger { color: #b42318; border-color: #f3c3bd; }
+.st-free-add { display: flex; flex-wrap: wrap; gap: 6px; }
