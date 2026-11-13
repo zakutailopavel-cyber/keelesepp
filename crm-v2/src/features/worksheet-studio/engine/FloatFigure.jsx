@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { Photo } from './ui.jsx';
-import { dropPlace, frameClass, normalizeFigure, shapeAspect, snapWidth } from './figureFloat.js';
+import { Photo, Md } from './ui.jsx';
+import { dropPlace, figuresOf, figuresPatch, frameClass, normalizeFigure, shapeAspect, snapWidth } from './figureFloat.js';
 
 // A picture inside a text block (figureFloat.js). In the constructor, unless locked: a grip to drag it to the other
 // side / another paragraph, a corner to drag its width, a lock. All three are buttons of a finger's size (44 px on the
@@ -19,7 +19,7 @@ export default function FloatFigure({ figure: stored, onChange = null }) {
     event.preventDefault();
     event.stopPropagation();
     const el = ref.current;
-    const column = el?.closest('.ws-textblock');
+    const column = el?.closest('[data-figure-column]');
     if (!el || !column) return;
     const start = { x: event.clientX, y: event.clientY, fig: el.getBoundingClientRect(), col: column.getBoundingClientRect(), column };
     const target = event.currentTarget;
@@ -71,5 +71,28 @@ export default function FloatFigure({ figure: stored, onChange = null }) {
       {live ? <button type="button" className="ws-ffig-handle is-size" aria-label="Muuda pildi laiust" title="Lohista nurgast: pildi laius" onPointerDown={startResize} onClick={stop}>⤡</button> : null}
       {editable ? <button type="button" className="ws-ffig-handle is-lock" aria-pressed={figure.locked} aria-label={figure.locked ? 'Ava pildi lukk' : 'Lukusta pilt'} title={figure.locked ? 'Pilt on lukus: asukoht ja suurus ei muutu. Vajuta, et avada.' : 'Lukusta: pildi asukoht ja suurus jäävad paika, kui teksti muudad'} onPointerDown={stop} onClick={(e) => { e.stopPropagation(); update({ locked: !figure.locked }); }}>{figure.locked ? '🔒' : '🔓'}</button> : null}
     </figure>
+  );
+}
+
+// A text column with its pictures (the text block, the reading text). `paragraphs` = the paragraphs drawn; `offset` =
+// the paragraph index of the first one in the whole text (a reading split over two pages draws a part, pageSplit.js),
+// so a part shows only its own pictures and a change is stored against the whole text. A picture whose paragraph is
+// gone (text shortened) stands before the last paragraph. `patch` = ctx.patch of the constructor, else null.
+export function FigureFlow({ className, heading = null, paragraphs, data, patch = null, offset = 0, last = true }) {
+  const figures = figuresOf(data);
+  const count = paragraphs.length;
+  const placed = figures.map((figure, index) => {
+    const at = Math.max(0, Math.floor(Number(figure.at) || 0)) - offset;
+    return { figure, index, at: last ? Math.min(at, count - 1) : at };
+  }).filter((f) => f.at >= 0 && f.at < count);
+  const change = (index, next) => patch?.(figuresPatch(figures.map((f, i) => (i === index ? { ...next, at: (Number(next.at) || 0) + offset } : f))));
+  const draw = ({ figure, index, at }) => (
+    <FloatFigure key={`figure-${index}`} figure={{ ...figure, at }} onChange={patch ? (next) => change(index, next) : null} />
+  );
+  return (
+    <div className={`${className}${placed.length ? ' has-figure' : ''}`} data-figure-column="">
+      {heading}
+      {paragraphs.map((p, i) => [...placed.filter((f) => f.at === i).map(draw), <p key={i}><Md text={p} /></p>])}
+    </div>
   );
 }

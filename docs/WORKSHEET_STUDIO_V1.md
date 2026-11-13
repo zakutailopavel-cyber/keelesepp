@@ -249,6 +249,15 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   touch) whatever the page's zoom; each change is one undo step (`Sheet onPatch` → `ctx.patch`). The picture block's
   bar has „Teksti sisse” (into the next or previous text block without a picture). Tapping the picture is not a text
   edit; its caption is (`inlineEdit.findEditable` skips `[data-noedit]` and the figure's text).
+- Several pictures and the reading text (2026-11-13, agent/figure-everywhere): `data.figures` = up to 3 such objects
+  (`MAX_FIGURES`), each before its own paragraph; a block with the older single `data.figure` reads as a list of one
+  (`figuresOf`), and the first change writes `figures` and sets `figure: null` (`figuresPatch`). Blocks that take
+  pictures: `text` (field `text`) and `reading` (field `passage`, empty paragraphs dropped) — `FIGURE_TEXT`. Both draw
+  through `FigureFlow` (`engine/FloatFigure.jsx`, column marked `data-figure-column`). A reading split over two pages
+  (`pageSplit.js`) keeps the whole list and gets `figureFrom` / `figureLast`: a part draws only the pictures of its own
+  paragraphs and stores a change against the whole text. „Teksti sisse” works into a text or reading text that has
+  fewer than 3 pictures (a second picture goes to the left, by the last paragraph when the text is above). Notice / tip /
+  dialogue blocks take no picture yet.
 - Later („phase 3”, the Õpik only): `figure.mode: 'free'` with `{ page, xMm, yMm, wMm, hMm, z }` and `shape: 'polygon'`
   with `points`, allowed only on a sheet with `meta.layout: 'fixed'` (an absolutely positioned A4 page). Today
   `figureProblem` refuses unknown modes on save and `normalizeFigure` draws any unknown mode as `float`, so adding the

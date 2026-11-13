@@ -6,7 +6,8 @@ import Sheet from './Sheet.jsx';
 import FloatFigure from './FloatFigure.jsx';
 import { sampleDocument } from './sample.js';
 import { BLOCKS } from './registry.js';
-import { dropPlace, figureProblem, frameClass, newFigure, normalizeFigure, shapeAspect, snapWidth } from './figureFloat.js';
+import { MAX_FIGURES, dropPlace, figureParagraphs, figureProblem, figuresOf, figuresPatch, frameClass, newFigure, normalizeFigure, shapeAspect, snapWidth } from './figureFloat.js';
+import { SPLITTABLE } from './pageSplit.js';
 import { findEditable } from './inlineEdit.js';
 import { validateWorksheetDoc } from '../../../services/firebase/worksheetDocs.js';
 
@@ -113,14 +114,14 @@ describe('editing the picture', () => {
     const tools = () => [...container.querySelectorAll('.ws-page .ws-ffig-handle')].map((el) => el.getAttribute('aria-label'));
     expect(tools()).toEqual(['Lohista pilt teise kohta', 'Muuda pildi laiust', 'Lukusta pilt']);
     fireEvent.click(screen.getAllByRole('button', { name: 'Lukusta pilt' })[0]);
-    expect(onPatch).toHaveBeenCalledWith('txt', { figure: expect.objectContaining({ locked: true, side: 'right' }) });
+    expect(onPatch).toHaveBeenCalledWith('txt', { figures: [expect.objectContaining({ locked: true, side: 'right', at: 0 })], figure: null });
     rerender(<Sheet doc={docWith(textBlock({ ...newFigure(img), locked: true }))} mode="edit" selectedId="txt" onSelect={() => {}} onPatch={onPatch} />);
     expect(tools()).toEqual(['Ava pildi lukk']);
   });
 
   it('dragging the corner sets the width; dragging the grip moves it to the other side', () => {
     const onChange = vi.fn();
-    const { container } = render(<div className="ws-textblock"><FloatFigure figure={newFigure(img)} onChange={onChange} /><p>Üks.</p></div>);
+    const { container } = render(<div className="ws-textblock" data-figure-column=""><FloatFigure figure={newFigure(img)} onChange={onChange} /><p>Üks.</p></div>);
     const column = container.querySelector('.ws-textblock');
     const figure = container.querySelector('.ws-ffig');
     column.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, right: 1000, bottom: 600, height: 600 });
@@ -151,10 +152,73 @@ describe('editing the picture', () => {
     const Editor = BLOCKS.text.Editor;
     const { rerender } = render(<Editor data={{ text: 'Üks.\n\nKaks.' }} set={set} />);
     fireEvent.click(screen.getByRole('button', { name: /Lisa pilt teksti sisse/ }));
-    expect(set).toHaveBeenLastCalledWith({ figure: expect.objectContaining({ mode: 'float', side: 'right', width: 33 }) });
+    expect(set).toHaveBeenLastCalledWith({ figures: [expect.objectContaining({ mode: 'float', side: 'right', width: 33 })], figure: null });
     rerender(<Editor data={{ text: 'Üks.\n\nKaks.', figure: newFigure(img) }} set={set} />);
     expect(screen.getByRole('option', { name: '2. lõik' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Eemalda pilt tekstist' }));
-    expect(set).toHaveBeenLastCalledWith({ figure: null });
+    expect(set).toHaveBeenLastCalledWith({ figures: null, figure: null });
+  });
+});
+
+describe('several pictures and the reading text (2026-11-13)', () => {
+  const fig = (patch) => ({ ...newFigure(img), ...patch });
+  it('figuresOf reads the list, else the older single picture; figuresPatch clears the older field', () => {
+    expect(figuresOf({})).toEqual([]);
+    expect(figuresOf({ figure: fig({ at: 1 }) })).toHaveLength(1);
+    expect(figuresOf({ figure: fig(), figures: [fig({ at: 0 }), fig({ at: 2 })] }).map((f) => f.at)).toEqual([0, 2]);
+    expect(figuresOf({ figures: [fig(), fig(), fig(), fig()] })).toHaveLength(MAX_FIGURES);
+    expect(figuresPatch([])).toEqual({ figures: null, figure: null });
+    expect(figureParagraphs('reading', { passage: 'Üks.\n\n\n\n  \n\nKaks.' })).toEqual(['Üks.', 'Kaks.']);
+  });
+
+  it('schema: a list of up to three valid pictures passes; more, a bad one or a non-list is refused', () => {
+    const block = (figures) => ({ id: 'r', type: 'reading', data: { passage: 'A.', questions: '', figures } });
+    expect(figureProblem(block([fig(), fig({ side: 'left' })]))).toBe('');
+    expect(figureProblem(block(null))).toBe('');
+    expect(figureProblem(block([fig(), fig(), fig(), fig()]))).toMatch(/kuni 3/);
+    expect(figureProblem(block([fig(), fig({ shape: 'star' })]))).toMatch(/kuju/);
+    expect(figureProblem(block({}))).toMatch(/vigased/);
+  });
+
+  it('two pictures in a text: each before its own paragraph; moving the second keeps the first', () => {
+    const onPatch = vi.fn();
+    const block = { id: 'txt', type: 'text', data: { text: 'Üks.\n\nKaks.\n\nKolm.', figures: [fig({ at: 0, caption: 'A' }), fig({ at: 2, side: 'left', caption: 'B' })] } };
+    const { container } = render(<Sheet doc={docWith(block)} mode="edit" selectedId="txt" onSelect={() => {}} onPatch={onPatch} />);
+    const column = container.querySelector('.ws-page .ws-textblock');
+    expect(column.className).toContain('has-figure');
+    expect([...column.children].map((el) => el.tagName === 'FIGURE' ? `F:${el.querySelector('figcaption').textContent}` : el.textContent)).toEqual(['F:A', 'Üks.', 'Kaks.', 'F:B', 'Kolm.']);
+    fireEvent.click(column.querySelectorAll('.ws-ffig-handle.is-lock')[1]);
+    expect(onPatch).toHaveBeenLastCalledWith('txt', { figures: [expect.objectContaining({ caption: 'A', locked: false }), expect.objectContaining({ caption: 'B', locked: true, at: 2 })], figure: null });
+  });
+
+  it('the reading text takes pictures; a split part draws only its own and stores a change against the whole text', () => {
+    const onPatch = vi.fn();
+    const data = { passageTitle: 'Mari', passage: 'P1.\n\nP2.\n\nP3.\n\nP4.', questions: 'Q? [a]', figures: [fig({ at: 0, caption: 'A' }), fig({ at: 3, caption: 'B' })] };
+    const whole = render(<Sheet doc={docWith({ id: 'rd', type: 'reading', data })} mode="print" />);
+    expect([...whole.container.querySelectorAll('.ws-page .ws-passage figcaption')].map((el) => el.textContent)).toEqual(['A', 'B']);
+    whole.unmount();
+    const part = SPLITTABLE.reading.slice(data, 2, 5).data;
+    expect(part).toMatchObject({ passage: 'P3.\n\nP4.', figureFrom: 2, figureLast: true });
+    const View = BLOCKS.reading.View;
+    const ctx = { get: () => undefined, set: () => {}, state: () => undefined, patch: (p) => onPatch('rd', p) };
+    const { container } = render(<View data={part} ctx={ctx} />);
+    const passage = container.querySelector('.ws-passage');
+    expect([...passage.children].map((el) => el.tagName === 'FIGURE' ? 'F' : el.textContent)).toEqual(['P3.', 'F', 'P4.']);
+    fireEvent.click(passage.querySelector('.ws-ffig-handle.is-lock'));
+    expect(onPatch).toHaveBeenLastCalledWith('rd', { figures: [expect.objectContaining({ caption: 'A', at: 0 }), expect.objectContaining({ caption: 'B', at: 3, locked: true })], figure: null });
+    const first = SPLITTABLE.reading.slice(data, 0, 2).data;
+    expect(first).toMatchObject({ figureFrom: 0, figureLast: false });
+  });
+
+  it('the reading inspector adds pictures up to three; the second goes left by the next paragraph', () => {
+    const set = vi.fn();
+    const Editor = BLOCKS.reading.Editor;
+    const data = { passage: 'Üks.\n\nKaks.', questions: '', figures: [fig({ at: 0 })] };
+    const { rerender } = render(<Editor data={data} set={set} />);
+    fireEvent.click(screen.getByRole('button', { name: /Lisa veel üks pilt/ }));
+    expect(set).toHaveBeenLastCalledWith({ figures: [expect.objectContaining({ at: 0 }), expect.objectContaining({ side: 'left', at: 1 })], figure: null });
+    rerender(<Editor data={{ ...data, figures: [fig(), fig(), fig()] }} set={set} />);
+    expect(screen.queryByRole('button', { name: /Lisa .*pilt/ })).toBeNull();
+    expect(screen.getByText(/rohkem ei mahu/)).toBeInTheDocument();
   });
 });

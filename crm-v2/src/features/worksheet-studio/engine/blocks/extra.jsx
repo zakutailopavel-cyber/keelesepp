@@ -11,6 +11,8 @@ import VoiceRecorder, { canRecord } from '../../editor/VoiceRecorder.jsx';
 import { Mic } from 'lucide-react';
 import { AudioBar } from '../ui.jsx';
 import { ListenAudio, ListenTranscript } from '../ListenTranscript.jsx';
+import { FigureFlow } from '../FloatFigure.jsx';
+import { TextFigureFields } from '../../editor/FigureFields.jsx';
 
 // Second wave: dialogue, reading, listening, table and sorting into groups.
 
@@ -73,7 +75,7 @@ export const reading = {
   View: ({ data, ctx }) => (
     <div className="ws-reading">
       {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive || ctx.review} label="Kuula teksti" /> : null}
-      <div className="ws-passage">{data.passageTitle && <h4>{data.passageTitle}</h4>}{String(data.passage || '').split(/\n{2,}/).filter((p) => p.trim()).map((p, i) => <p key={i}><Md text={p} /></p>)}</div>
+      <FigureFlow className="ws-passage" heading={data.passageTitle ? <h4>{data.passageTitle}</h4> : null} paragraphs={String(data.passage || '').split(/\n{2,}/).filter((p) => p.trim())} data={data} patch={ctx.patch || null} offset={data.figureFrom || 0} last={data.figureLast !== false} />
       <ol className="ws-rq" start={(ctx.start || 0) + 1}>
         {String(data.questions || '').split('\n').filter((q) => q.trim()).map((q, i) => {
           const m = q.match(/^(.*?)\s*\[([^\]]*)\]\s*$/);
@@ -102,6 +104,7 @@ export const reading = {
     <>
       <Text label="Teksti pealkiri" value={data.passageTitle} onChange={(v) => set({ passageTitle: v })} />
       <Area label="Tekst" rows={8} value={data.passage} onChange={(v) => set({ passage: v })} hint="Tühi rida = uus lõik." />
+      <TextFigureFields type="reading" data={data} set={set} />
       <AudioPick value={data.audio} onChange={(audio) => set({ audio })} />
       <SpeakPanel type="reading" data={data} set={set} />
       <Area label="Küsimused (iga rida eraldi)" rows={5} value={data.questions} onChange={(v) => set({ questions: v })} hint="Õige vastus rea lõpus nurksulgudes: Mis kell? [seitse|7]. Ilma sulgudeta küsimust hindab õpetaja." />
