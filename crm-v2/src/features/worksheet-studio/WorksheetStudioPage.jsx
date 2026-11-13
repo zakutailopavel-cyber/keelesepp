@@ -431,9 +431,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     const index = pages.findIndex((page) => { const r = page.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; });
     return Math.max(0, index);
   };
-  const addFree = (kind) => {
+  const addFree = (kind, patch = {}) => {
     if (freeItems.length >= MAX_FREE) { setNotice(`Vabas kihis võib olla kuni ${MAX_FREE} elementi.`); return; }
-    const item = newFreeItem(kind, pageInView(), freeItems);
+    const item = newFreeItem(kind, pageInView(), freeItems, patch);
     lastPush.current = 0;
     setFree([...freeItems, item]);
     lastPush.current = 0; // the next edit of it is its own undo step
@@ -1124,11 +1124,13 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint" title="Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc."><Icons.MousePointerClick size={14} aria-hidden="true" /> {touchHint ? 'Puuduta plokki, et see lisada. Lehel: puuduta plokki, siis selle teksti, et teksti muuta.' : 'Lohista plokk lehele. Topeltklõps lehel muudab teksti.'}</p>{canFree ? (
                 <div className="st-group st-free">
                   <div className="st-group-title">Vaba kiht (Õpik)</div>
-                  <p className="st-palette-hint">Pane pilt, kujund või tekst ükskõik kuhu lehel — kihiti üksteise peale.</p>
+                  <p className="st-palette-hint">Pane pilt, kujund, tekst, joon või nool ükskõik kuhu lehel — kihiti üksteise peale.</p>
                   <div className="st-free-add">
                     <button type="button" className="ed-btn" onClick={() => addFree('image')}><Icons.Image size={14} aria-hidden="true" /> Pilt</button>
                     <button type="button" className="ed-btn" onClick={() => addFree('shape')}><Icons.Circle size={14} aria-hidden="true" /> Kujund</button>
                     <button type="button" className="ed-btn" onClick={() => addFree('text')}><Icons.Type size={14} aria-hidden="true" /> Tekstikast</button>
+                    <button type="button" className="ed-btn" onClick={() => addFree('line')}><Icons.Minus size={14} aria-hidden="true" /> Joon</button>
+                    <button type="button" className="ed-btn" onClick={() => addFree('line', { heads: 'end' })}><Icons.MoveRight size={14} aria-hidden="true" /> Nool</button>
                   </div>
                 </div>
               ) : null}{myTemplates.length ? (

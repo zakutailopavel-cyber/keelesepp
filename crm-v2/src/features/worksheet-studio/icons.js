@@ -4,6 +4,8 @@
 import {
   ALargeSmall,
   WrapText,
+  Minus,
+  MoveRight,
   ArrowDown,
   ArrowDownUp,
   ArrowLeft,
@@ -104,6 +106,8 @@ import {
 export const Icons = {
   ALargeSmall,
   WrapText,
+  Minus,
+  MoveRight,
   ArrowDown,
   ArrowDownUp,
   ArrowLeft,

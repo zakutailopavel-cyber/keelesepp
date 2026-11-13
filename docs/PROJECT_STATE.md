@@ -1,3 +1,11 @@
+## 2026-11-13 · agent/opik-free-lines — Õpik „Vaba kiht”: lines and arrows · crm-v2 only, no rules / functions / data change
+
+- Base `origin/main` bf760a4, checked 2026-11-13. Owner 2026-11-13: „да, делай стрелки и линии”.
+- Done: free-layer `kind: 'line'` (ends `x,y → x2,y2`, colour, thickness, heads none / end / both, dashed) in `engine/freeLayer.js` (`lineGeom`, `moveEnd`, line-aware `moveItem` / `normalizeFreeItem` / `freeProblem`), `engine/FreeLayer.jsx` (`LineItem`, `LineArt`), `editor/FreeFields.jsx` (Otsad / Värv / Paksus / Kriipsjoon), palette „Joon” / „Nool” (`WorksheetStudioPage.jsx`, icons Minus / MoveRight), CSS in `engine/sheet.css`. Contract in `docs/WORKSHEET_STUDIO_V1.md`.
+- Checks: `freeLayer.test.jsx` +4 (model, schema, drawing, end / body drag), `freeStudio.test.jsx` +1 („Nool” → both heads → save). Same 7-area vitest run → 278 files passed (1 skipped), 2705 tests passed; eslint changed files 0 errors. Lab 1366×1024 (temporary, not committed): green arrow, red dashed two-headed arrow, thick navy line; mouse drag of the end handle re-aimed the arrow (99.7 mm, 77.6°).
+- Limits: straight lines only (no curves / elbows); not tried on a real iPad.
+- Next safe step: owner adds „Nool” on an Õpik page, drags its green end dots, saves; admin publishes.
+
 ## 2026-11-13 · agent/opik-free-layer — Õpik phase 3: „Vaba kiht” (pictures, shapes, text boxes anywhere on the page, in layers) · crm-v2 only, no rules / functions / data change
 
 - Base `origin/main` after #1218, checked 2026-11-13. Owner 2026-11-11 (phase 3 of the Õpik editor) and 2026-11-13 („продолжай улучшать редактор… больше возможностей для красивого оформления”).

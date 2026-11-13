@@ -50,3 +50,17 @@ it('Õpik: „Tekstikast” adds a box with its settings; a setting is undoable;
   fireEvent.keyDown(window, { key: 'Delete' });
   expect(box()).toBeNull();
 });
+
+it('Õpik: „Nool” adds an arrow; its settings change the heads; save carries the line', async () => {
+  const { container, save } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Nool/ }));
+  const arrow = () => container.querySelector('.ws-page .ws-free [data-free]');
+  expect(arrow().querySelectorAll('polygon')).toHaveLength(1);
+  const panel = screen.getByRole('complementary', { name: 'Vaba elemendi seaded' });
+  fireEvent.change(panel.querySelector('select'), { target: { value: 'both' } });
+  expect(arrow().querySelectorAll('polygon')).toHaveLength(2);
+  fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+  await waitFor(() => expect(save).toHaveBeenCalled());
+  expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ kind: 'line', heads: 'both', x2: 190 })]);
+});

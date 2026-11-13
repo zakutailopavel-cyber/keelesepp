@@ -1132,3 +1132,12 @@ button.ws-pt { cursor: pointer; }
 .ws-free-flowitem.is-image > img { display: block; max-width: 100%; height: auto; }
 .ws-free-flowitem.is-text { justify-self: stretch; }
 .ws-free-flowitem.is-image { width: min(100%, 110mm); }
+/* a line / arrow of the free layer: a strip turned around its start, the SVG inside in mm (FreeLayer.jsx LineItem) */
+.ws-free-item.is-line { display: block; overflow: visible; transform-origin: 0 50%; background: none; }
+.ws-free-line { display: block; overflow: visible; }
+.mode-edit .ws-free-item.is-line:hover, .mode-edit .ws-free-item.is-line.is-selected { outline: none; background: rgba(58, 125, 92, .14); border-radius: 4mm; }
+.ws-free-end { position: absolute; top: 50%; width: calc(28px / var(--st-scale, 1)); height: calc(28px / var(--st-scale, 1)); margin: calc(-14px / var(--st-scale, 1)) 0 0 calc(-14px / var(--st-scale, 1)); padding: 0; border: calc(3px / var(--st-scale, 1)) solid #fff; border-radius: 50%; background: #3a7d5c; box-shadow: 0 2px 8px rgba(17, 24, 39, .35); cursor: crosshair; touch-action: none; }
+.ws-free-end.is-start { left: 0; }
+.ws-free-end.is-end { left: 100%; }
+@media (pointer: coarse) { .ws-free-end { width: calc(44px / var(--st-scale, 1)); height: calc(44px / var(--st-scale, 1)); margin: calc(-22px / var(--st-scale, 1)) 0 0 calc(-22px / var(--st-scale, 1)); } }
+@media print { .ws-free-end { display: none !important; } }

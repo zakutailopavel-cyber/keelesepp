@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Md } from './ui.jsx';
 import { objectPosition } from './image.js';
-import { PAGE_W, moveItem, resizeItem } from './freeLayer.js';
+import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, resizeItem } from './freeLayer.js';
 
 // „Vaba kiht” on one A4 page (freeLayer.js). Positions are mm on the 270 mm design page, so print, zoom and the book
 // draw it the same. In the constructor (`edit`): a tap selects, a drag moves, the corner resizes (pictures and circles
@@ -78,13 +78,95 @@ function FreeItem({ item, editable, selected, onSelect, onChange }) {
   );
 }
 
+// A line / arrow: a strip as long as the line, turned by its angle around its start; the SVG inside is in mm. The
+// strip is 8 mm high so a finger can take it; the ends are round handles (edit mode, selected, not locked).
+const HIT = 8;
+const lineStyle = (item) => {
+  const { length, angle } = lineGeom(item);
+  return { left: mm(item.x), top: mm(item.y - HIT / 2), width: mm(Math.max(length, 0.1)), height: mm(HIT), transform: `rotate(${angle}deg)` };
+};
+function LineArt({ item }) {
+  const { length } = lineGeom(item);
+  const color = LINE_COLOR_VALUE[item.color] || LINE_COLOR_VALUE.ink;
+  const head = Math.max(2.5, item.stroke * 3 + 1.5);
+  const mid = HIT / 2;
+  const startAt = item.heads === 'both' ? head * 0.8 : 0;
+  const endAt = item.heads === 'none' ? length : Math.max(startAt, length - head * 0.8);
+  const arrow = (tip, dir) => <polygon points={`${tip},${mid} ${tip - dir * head},${mid - head * 0.55} ${tip - dir * head},${mid + head * 0.55}`} fill={color} />;
+  return (
+    <svg className="ws-free-line" width={mm(Math.max(length, 0.1))} height={mm(HIT)} viewBox={`0 0 ${Math.max(length, 0.1)} ${HIT}`} aria-hidden="true">
+      <line x1={startAt} y1={mid} x2={endAt} y2={mid} stroke={color} strokeWidth={item.stroke} strokeLinecap={item.dash ? 'butt' : 'round'} strokeDasharray={item.dash ? `${item.stroke * 3} ${item.stroke * 2}` : undefined} />
+      {item.heads !== 'none' ? arrow(length, 1) : null}
+      {item.heads === 'both' ? arrow(0, -1) : null}
+    </svg>
+  );
+}
+
+function LineItem({ item, editable, selected, onSelect, onChange }) {
+  const ref = useRef(null);
+  const live = editable && !item.locked;
+  const drag = (event, part) => {
+    if (!editable) return;
+    event.stopPropagation();
+    onSelect?.(item.id);
+    if (!live) return;
+    event.preventDefault();
+    const el = ref.current;
+    const page = el?.closest('.ws-page');
+    if (!el || !page) return;
+    const perPx = PAGE_W / Math.max(1, page.getBoundingClientRect().width);
+    const start = { x: event.clientX, y: event.clientY };
+    const target = event.currentTarget;
+    target.setPointerCapture?.(event.pointerId);
+    const next = (e) => {
+      const dx = (e.clientX - start.x) * perPx;
+      const dy = (e.clientY - start.y) * perPx;
+      return part === 'move' ? moveItem(item, dx, dy) : moveEnd(item, part, dx, dy);
+    };
+    const show = (n) => Object.assign(el.style, lineStyle(n));
+    const onMove = (e) => show(next(e));
+    const onUp = (e) => {
+      target.removeEventListener('pointermove', onMove);
+      target.removeEventListener('pointerup', onUp);
+      target.removeEventListener('pointercancel', onUp);
+      show(item);
+      if (e.type !== 'pointerup' || Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) < 4) return;
+      onChange?.(item.id, next(e));
+    };
+    target.addEventListener('pointermove', onMove);
+    target.addEventListener('pointerup', onUp);
+    target.addEventListener('pointercancel', onUp);
+  };
+  return (
+    <div
+      ref={ref}
+      className={['ws-free-item', 'is-line', selected ? 'is-selected' : '', item.locked ? 'is-locked' : ''].filter(Boolean).join(' ')}
+      data-free={item.id}
+      style={{ ...lineStyle(item), zIndex: 5 + item.z }}
+      onPointerDown={editable ? (e) => drag(e, 'move') : undefined}
+      onClick={editable ? (e) => e.stopPropagation() : undefined}
+      onDoubleClick={editable ? (e) => e.stopPropagation() : undefined}
+      role={editable ? 'button' : undefined}
+      aria-label={editable ? (item.heads === 'none' ? 'Vaba element: joon' : 'Vaba element: nool') : undefined}
+      aria-pressed={editable ? selected : undefined}
+    >
+      <LineArt item={item} />
+      {live && selected ? <>
+        <button type="button" className="ws-free-end is-start" aria-label="Lohista joone algust" onPointerDown={(e) => drag(e, 'start')} onClick={(e) => e.stopPropagation()} />
+        <button type="button" className="ws-free-end is-end" aria-label="Lohista joone lõppu" onPointerDown={(e) => drag(e, 'end')} onClick={(e) => e.stopPropagation()} />
+      </> : null}
+    </div>
+  );
+}
+
 // the layer of one page: `items` = freeLayer.itemsOnPage(...); `edit` = { selectedId, onSelect, onChange } or null
 export default function FreeLayer({ items, edit = null }) {
   if (!items.length) return null;
   return (
     <div className="ws-free" data-noedit="">
-      {items.map((item) => (
-        <FreeItem key={item.id} item={item} editable={Boolean(edit)} selected={edit?.selectedId === item.id} onSelect={edit?.onSelect} onChange={edit?.onChange} />
+      {items.map((item) => (item.kind === 'line'
+        ? <LineItem key={item.id} item={item} editable={Boolean(edit)} selected={edit?.selectedId === item.id} onSelect={edit?.onSelect} onChange={edit?.onChange} />
+        : <FreeItem key={item.id} item={item} editable={Boolean(edit)} selected={edit?.selectedId === item.id} onSelect={edit?.onSelect} onChange={edit?.onChange} />
       ))}
     </div>
   );
