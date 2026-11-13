@@ -1,3 +1,10 @@
+## 2026-11-13 · agent/forms-lookup-test-deterministic — forms lookup test „stops at totalMs” in virtual time · test only, no deploy
+
+- Base `origin/main` 0316d10 (after #1216), checked 2026-11-13. Branch `agent/forms-lookup-test-deterministic`, draft PR. The test (from #1196) failed in CI `security-regression` on #1216 (run 43433947698), a content-only PR: real timers, 40 ms fake requests, „< 160 ms” and „< 4 calls” depend on how busy the machine is.
+- `functions/forms-lookup.test.js`: that test now runs on node:test mock timers (`setTimeout` + `Date`), driven 1 ms at a time by the new `settleInVirtualTime(t, promise, limitMs)`; `index.__set__({ setTimeout, clearTimeout, Date })` because rewire copied the real globals into `index.js` at load (reverted with `t.after`). Stronger than before: 504, ends at 100–101 virtual ms (totalMs 100), searches at exactly 0 / 40 / 80 ms, exactly 3 calls. `functions/index.js` unchanged; other timing tests in the file still use real timers.
+- Checks: `cd functions && npm test` → 658/658 pass; the test 10/10 under 8 busy CPU loops; with totalMs raised to 100000 it fails („expected 504, got an answer”).
+- Next safe step: owner merges; if another test in `forms-lookup.test.js` flakes, move it to `settleInVirtualTime` the same way.
+
 ## 2026-11-13 · agent/a2-l05-vaba-paev — A2 lisatund „Vaba päev: läksin, tulin, sain” (a2-l05) · content only
 
 - Base `origin/main` (after #1215). Owner asked for a strong past-tense lesson with the irregular verbs, theme „free day”, A2→B1, for Aleksandr Smirnov (card `self_ZoQ8…`). His sheets a2-l01…l04 / a2-076 still show *tulesin, *minesin, *saamasin, *jõisin, *tegesin, *ei läksin and that he did not get the „Jah → ei” task.

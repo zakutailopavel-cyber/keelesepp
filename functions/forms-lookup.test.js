@@ -236,15 +236,35 @@ test("a hanging Ekilex: each request stops at requestMs, the lookup ends with 50
   });
 });
 
-test("the whole lookup stops at totalMs even when every single request is still within requestMs", async () => {
-  // raamatukogus → 4 candidates, concurrency 1: each search 40 ms (< requestMs) but four in a row pass totalMs
+// Virtual time (node:test mock timers for setTimeout and Date; index.js must get them via __set__): the promise is driven 1 ms at a time, all pending
+// promise callbacks run between ticks (setImmediate stays real). Returns how it settled and the virtual time it took,
+// so a timing test does not depend on how busy the CI machine is.
+async function settleInVirtualTime(t, promise, limitMs) {
+  const flush = () => new Promise((resolve) => setImmediate(resolve));
+  const t0 = Date.now();
+  let settled = null;
+  promise.then((value) => { settled = { value, at: Date.now() - t0 }; }, (error) => { settled = { error, at: Date.now() - t0 }; });
+  await flush();
+  for (let ms = 0; !settled && ms < limitMs; ms += 1) { t.mock.timers.tick(1); await flush(); }
+  assert.ok(settled, `not settled within ${limitMs} virtual ms`);
+  return settled;
+}
+
+test("the whole lookup stops at totalMs even when every single request is still within requestMs", async (t) => {
+  // raamatukogus → 4 candidates, concurrency 1: each search 40 ms (< requestMs) but four in a row pass totalMs.
+  // Searches start at 0, 40 and 80 ms; the third is cut at 100 ms by the lookup's limit, the fourth never goes out.
+  t.mock.timers.enable({ apis: ["setTimeout", "Date"], now: Date.parse("2026-11-13T12:00:00Z") });
+  // rewire copied the real globals into index.js when it loaded: point them at the mocked ones for this test
+  const revert = index.__set__({ setTimeout, clearTimeout, Date });
+  t.after(revert);
   const fake = fakeEkilex({ delay: () => 40 });
   await withFakes(fake, async () => {
     Object.assign(timing, { concurrency: 1, requestMs: 1000, totalMs: 100 });
-    const t0 = Date.now();
-    await assert.rejects(estonianWordForms({ word: "raamatukogus" }), (error) => error.status === 504);
-    assert.ok(Date.now() - t0 < 160, `took ${Date.now() - t0} ms`);
-    assert.ok(fake.calls.length < 4);
+    const result = await settleInVirtualTime(t, estonianWordForms({ word: "raamatukogus" }), 2000);
+    assert.equal(result.error?.status, 504, `expected 504, got ${result.error?.status ?? "an answer"}`);
+    assert.ok(result.at >= 100 && result.at <= 101, `ended at ${result.at} virtual ms, totalMs is 100`);
+    assert.deepEqual(fake.calls.map((c) => c.at - fake.calls[0].at), [0, 40, 80]);
+    assert.equal(fake.calls.length, 3, "the fourth candidate is never asked");
   });
 });
 
