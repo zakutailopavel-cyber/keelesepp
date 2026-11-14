@@ -982,5 +982,6 @@ textarea.ed-input { resize: vertical; }
 .ed-btn.ed-danger { color: #b42318; border-color: #f3c3bd; }
 .st-free-add { display: flex; flex-wrap: wrap; gap: 6px; }
 .st-free-multi { margin-top: 8px; }
+.st-free-presets-title { margin-top: 10px; }
 .st-canvas.is-free-multi .ws-page { touch-action: none; cursor: crosshair; }
 .ws-studio .st-free-multi[aria-pressed="true"] { background: var(--st-navy, #0b2a4f); color: #fff; border-color: var(--st-navy, #0b2a4f); }

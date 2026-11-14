@@ -44,7 +44,7 @@ import './engine/sheet.css';
 import './engine/sheetFlow.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
-import { KIND_LABEL as FREE_KIND_LABEL, MAX_ITEMS as MAX_FREE, CLIP_KEY as FREE_CLIP_KEY, PAGE_W as FREE_PAGE_W, alignMany, clipOf, copyToPages, pasteClip, freeItemsOf, itemsInFrame, moveItem, moveMany, newFreeItem, restack, restackMany, spreadMany } from './engine/freeLayer.js';
+import { KIND_LABEL as FREE_KIND_LABEL, MAX_ITEMS as MAX_FREE, CLIP_KEY as FREE_CLIP_KEY, PRESET_KEYS as FREE_PRESETS, PRESET_LABEL as FREE_PRESET_LABEL, presetItems, PAGE_W as FREE_PAGE_W, alignMany, clipOf, copyToPages, pasteClip, freeItemsOf, itemsInFrame, moveItem, moveMany, newFreeItem, restack, restackMany, spreadMany } from './engine/freeLayer.js';
 import FreeFields, { FreeGroupFields } from './editor/FreeFields.jsx';
 import { FIGURE_TEXT, MAX_FIGURES, figureParagraphs, figuresOf, figuresPatch, newFigure } from './engine/figureFloat.js';
 import { MARK_KINDS, addMark } from './engine/marksModel.js';
@@ -149,6 +149,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   // more free items selected with it (Shift / Ctrl + tap, or „Vali mitu” on a touch screen)
   const [extraFreeIds, setExtraFreeIds] = useState([]);
   const [multiTap, setMultiTap] = useState(false);
+  // „Muuda tausta”: the back layer (items behind the blocks) comes over the blocks to be moved and sized
+  const [backFront, setBackFront] = useState(false);
   // how many free items wait on the free-layer clipboard (kept in the browser, shared by all lessons)
   const [clipCount, setClipCount] = useState(() => { try { return JSON.parse(globalThis.localStorage?.getItem(FREE_CLIP_KEY) || '[]').length || 0; } catch { return 0; } });
   const [pageCount, setPageCount] = useState(1);
@@ -554,7 +556,16 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   };
   const deleteFree = () => { if (!selectedFree) return; lastPush.current = 0; setFree(freeItems.filter((item) => item.id !== selectedFree.id)); clearFree(); };
   const restackFree = (how) => { if (!selectedFree) return; lastPush.current = 0; setFree(restack(freeItems, selectedFree.id, how)); };
-  const freeEdit = { selectedId: selectedFreeId, selectedIds: freeSel, multi: multiTap, onSelect: selectFree, onChange: changeFree, onMoveMany: moveGroup };
+  const addPreset = (key) => {
+    const made = presetItems(key, pageInView(), freeItems);
+    if (!made.length) { setNotice(`Vabas kihis võib olla kuni ${MAX_FREE} elementi.`); return; }
+    groupChange([...freeItems, ...made]);
+    lastPush.current = 0;
+    selectMany(made.map((it) => it.id));
+    setNotice('Kujundus on lehel ja valitud: lohista see paika, siis vali üks element ja muuda (pildil „Vaheta foto”, tekstil topeltklõps).');
+  };
+  const behindGroup = (on) => groupChange(freeItems.map((it) => (freeSel.includes(it.id) ? { ...it, behind: on } : it)));
+  const freeEdit = { selectedId: selectedFreeId, selectedIds: freeSel, multi: multiTap, backFront, onSelect: selectFree, onChange: changeFree, onMoveMany: moveGroup };
   // text changed directly on the sheet: a block field, or the sheet header when blockId is null
   const editText = (blockId, path, text) => {
     if (!blockId) { change({ ...doc, meta: setPath(doc.meta, path, text) }); return; }
@@ -1252,7 +1263,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                     <button type="button" className="ed-btn" onClick={() => addFree('text', { shape: 'burst', fill: 'lime', text: 'Uus!', x: 105, w: 60, h: 60, size: 16, font: 'head' })}><Icons.Sparkles size={14} aria-hidden="true" /> Kleeps</button>
                     <button type="button" className="ed-btn" onClick={() => addFree('text', { shape: 'ribbon', fill: 'navy', text: 'Pealkiri', x: 65, w: 140, h: 24, size: 16, font: 'head', align: 'center' })}><Icons.Bookmark size={14} aria-hidden="true" /> Lint</button>
                   </div>
+                  <div className="st-group-title st-free-presets-title">Valmis kujundused</div>
+                  <div className="st-free-add st-free-presets">
+                    {FREE_PRESETS.map((key) => <button key={key} type="button" className="ed-btn" onClick={() => addPreset(key)}>{FREE_PRESET_LABEL[key]}</button>)}
+                  </div>
                   <button type="button" className="ed-btn st-free-multi" aria-pressed={multiTap} onClick={() => setMultiTap(!multiTap)} title="Sees olles lisab iga puudutus elemendi valikusse ja lohistus lehel joonistab valikuraami (arvutis: Shift + klõps, Shift + lohista)"><Icons.SquareDashed size={14} aria-hidden="true" /> Vali mitu{multiTap ? ': sees' : ''}</button>
+                  {freeItems.some((it) => it.behind) ? <button type="button" className="ed-btn st-free-multi" aria-pressed={backFront} onClick={() => setBackFront(!backFront)} title="Teksti taga olevad elemendid tulevad plokkide peale, et neid liigutada; uuesti vajutades lähevad tagasi"><Icons.Layers size={14} aria-hidden="true" /> Muuda tausta{backFront ? ': sees' : ''}</button> : null}
                   {clipCount ? <button type="button" className="ed-btn st-free-multi" onClick={pasteFree} title="Kleebi lõikelaualt lehele, mis on ekraani keskel (Ctrl+V)"><Icons.ClipboardPaste size={14} aria-hidden="true" /> Kleebi ({clipCount})</button> : null}
                 </div>
               ) : null}{myTemplates.length ? (
@@ -1298,7 +1314,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                 <button type="button" className="ed-btn" onClick={() => setPopSide(popSide === 'right' ? 'left' : 'right')} title="Vii paneel teisele poole" aria-label="Vii paneel teisele poole"><Icons.ArrowLeftRight size={15} aria-hidden="true" /></button>
                 <button type="button" className="ed-btn" onClick={() => setPanelOpen(false)} aria-label="Sulge seaded"><Icons.X size={15} aria-hidden="true" /></button>
               </div>
-              {freeGroup.length ? <FreeGroupFields items={freeGroup} pages={pageCount} onToPage={copyFreeToPage} onClip={clipFree} onAlign={alignGroup} onSpread={spreadGroup} onLayer={restackGroup} onDuplicate={duplicateGroup} onDelete={deleteGroup} onClear={clearFree} />
+              {freeGroup.length ? <FreeGroupFields items={freeGroup} pages={pageCount} onBehind={behindGroup} onToPage={copyFreeToPage} onClip={clipFree} onAlign={alignGroup} onSpread={spreadGroup} onLayer={restackGroup} onDuplicate={duplicateGroup} onDelete={deleteGroup} onClear={clearFree} />
                 : <FreeFields key={selectedFree.id} item={selectedFree} pages={pageCount} set={patchFree}
                   onLayer={restackFree}
                   onDuplicate={duplicateFree} onDelete={deleteFree} onToPage={copyFreeToPage} onClip={clipFree} />}
