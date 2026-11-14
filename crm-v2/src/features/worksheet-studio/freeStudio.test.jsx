@@ -186,3 +186,14 @@ it('Õpik: „Lõikelauale” keeps the box in the browser; „Kleebi” puts a 
   expect(second.container.querySelectorAll('.ws-page .ws-free [data-free]')).toHaveLength(1);
   store.clear();
 });
+
+it('Õpik: „Jutumull” adds a speech bubble; its tail turns from the settings', async () => {
+  const { container, save } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Jutumull/ }));
+  expect(container.querySelector('.ws-page .ws-free [data-free] .ws-free-text').textContent).toBe('Tere!');
+  fireEvent.change(screen.getByLabelText('Mulli saba'), { target: { value: 'tl' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+  await waitFor(() => expect(save).toHaveBeenCalled());
+  expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ kind: 'text', shape: 'bubble', tail: 'tl', fill: 'white', border: 'ink' })]);
+});

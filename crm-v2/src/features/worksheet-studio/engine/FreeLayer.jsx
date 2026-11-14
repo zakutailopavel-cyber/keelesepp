@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Md } from './ui.jsx';
 import { objectPosition } from './image.js';
-import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, lookStyle, resizeItem, snapItem, textStyle } from './freeLayer.js';
+import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, lookStyle, resizeItem, snapItem, textStyle, BORDER_VALUE, FILL_VALUE, SHAPE_ART, isDrawn, tailTransform } from './freeLayer.js';
 
 // „Vaba kiht” on one A4 page (freeLayer.js). Positions are mm on the 270 mm design page, so print, zoom and the book
 // draw it the same. In the constructor (`edit`): a tap selects, a drag moves, the corner resizes (pictures and circles
@@ -29,7 +29,24 @@ function showGuides(layer, guides = []) {
   }
 }
 
+// a drawn shape behind the text (bubble, star, burst, ribbon)
+function ShapeArt({ item }) {
+  const art = SHAPE_ART[item.shape];
+  if (!art) return null;
+  const frame = BORDER_VALUE[item.border];
+  const paint = { fill: FILL_VALUE[item.fill] || 'none', stroke: frame ? frame.color : 'none', strokeWidth: frame ? `${frame.width}mm` : 0, vectorEffect: 'non-scaling-stroke', strokeLinejoin: 'round' };
+  const outline = art.d ? <path d={art.d} style={paint} /> : <polygon points={art.points} style={paint} />;
+  return (
+    <svg className="ws-free-art" viewBox="0 0 100 100" preserveAspectRatio={art.stretch ? 'none' : 'xMidYMid meet'} aria-hidden="true">
+      {item.shape === 'bubble' ? <g transform={tailTransform(item.tail)}>{outline}</g> : outline}
+    </svg>
+  );
+}
+
 function FreeContent({ item }) {
+  if (isDrawn(item)) {
+    return <><ShapeArt item={item} />{item.kind === 'text' ? <div className={`ws-free-body tail-${item.tail || 'bl'}`}><div className="ws-free-text" style={textStyle(item)}><Md text={item.text} /></div></div> : null}</>;
+  }
   if (item.kind === 'image') {
     return item.img?.src
       ? <img src={item.img.src} alt={item.alt || ''} style={{ objectPosition: objectPosition(item.img) }} draggable={false} />
@@ -137,7 +154,7 @@ function FreeItem({ item, others = [], editable, selected, single = true, group 
     target.addEventListener('pointerup', onUp);
     target.addEventListener('pointercancel', onUp);
   };
-  const classes = ['ws-free-item', `is-${item.kind}`, typing ? 'is-typing' : '', `shape-${item.shape}`, `fill-${item.fill}`, `border-${item.border}`, selected ? 'is-selected' : '', item.locked ? 'is-locked' : ''].filter(Boolean).join(' ');
+  const classes = ['ws-free-item', `is-${item.kind}`, isDrawn(item) ? 'is-drawn' : '', typing ? 'is-typing' : '', `shape-${item.shape}`, `fill-${item.fill}`, `border-${item.border}`, selected ? 'is-selected' : '', item.locked ? 'is-locked' : ''].filter(Boolean).join(' ');
   return (
     <div
       ref={ref}
@@ -151,7 +168,7 @@ function FreeItem({ item, others = [], editable, selected, single = true, group 
       aria-label={editable && !typing ? `Vaba element: ${item.kind === 'text' ? item.text.slice(0, 40) : item.kind === 'image' ? 'pilt' : 'kujund'}` : undefined}
       aria-pressed={editable && !typing ? selected : undefined}
     >
-      {typing ? <TextEditor item={item} onDone={doneTyping} /> : <FreeContent item={item} />}
+      {typing ? <>{isDrawn(item) ? <ShapeArt item={item} /> : null}<TextEditor item={item} onDone={doneTyping} /></> : <FreeContent item={item} />}
       {live && selected && single && !typing ? <button type="button" className="ws-free-size" aria-label="Muuda suurust" title="Lohista: suurus" onPointerDown={(e) => drag(e, 'size')} onClick={(e) => e.stopPropagation()}>⤡</button> : null}
     </div>
   );
@@ -286,7 +303,7 @@ export function FreeFlow({ items }) {
   return (
     <div className="ws-free-flow">
       {items.map((item) => (
-        <div key={item.id} className={`ws-free-flowitem is-${item.kind} shape-${item.shape} fill-${item.fill} border-${item.border}`} style={lookStyle(item)}>
+        <div key={item.id} className={`ws-free-flowitem is-${item.kind} ${isDrawn(item) ? 'is-drawn' : ''} shape-${item.shape} fill-${item.fill} border-${item.border}`} style={lookStyle(item)}>
           <FreeContent item={item} />
         </div>
       ))}

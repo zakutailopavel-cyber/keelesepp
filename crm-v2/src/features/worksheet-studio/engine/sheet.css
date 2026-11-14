@@ -1120,6 +1120,7 @@ button.ws-pt { cursor: pointer; }
 .ws-free-item.shape-circle .ws-free-text, .ws-free-item.shape-oval .ws-free-text { text-align: center; padding: 3mm 5mm; }
 .ws-free-item.is-image > img, .ws-free-item.is-image .ws-free-empty { overflow: hidden; }
 .ws-free-item.is-image:is(.shape-rounded, .shape-circle, .shape-oval) > img { border-radius: inherit; }
+:is(.ws-free-item, .ws-free-flowitem).fill-white { background: #fff; }
 :is(.ws-free-item, .ws-free-flowitem).fill-lime { background: #c6f432; }
 :is(.ws-free-item, .ws-free-flowitem).fill-cream { background: #fbf6e9; }
 :is(.ws-free-item, .ws-free-flowitem).fill-sky { background: #e3f1fb; }
@@ -1128,6 +1129,19 @@ button.ws-pt { cursor: pointer; }
 :is(.ws-free-item, .ws-free-flowitem).fill-navy .ws-free-text { color: #fff; }
 :is(.ws-free-item, .ws-free-flowitem).border-ink { border: .6mm solid var(--ks-ink, #111827); }
 :is(.ws-free-item, .ws-free-flowitem).border-lime { border: 1mm solid #c6f432; }
+/* drawn shapes: the SVG carries fill and frame; the box itself stays bare */
+.ws-free-item.is-drawn { background: none; border: 0; border-radius: 0; }
+.ws-free-art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.ws-free-item.is-drawn .ws-free-body { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: grid; }
+.ws-free-item.shape-bubble .ws-free-body.tail-bl, .ws-free-item.shape-bubble .ws-free-body.tail-br { bottom: 20%; }
+.ws-free-item.shape-bubble .ws-free-body.tail-tl, .ws-free-item.shape-bubble .ws-free-body.tail-tr { top: 20%; }
+.ws-free-item.shape-ribbon .ws-free-body { left: 12%; right: 12%; top: 12%; bottom: 12%; }
+.ws-free-item:is(.shape-star, .shape-burst) .ws-free-body { left: 25%; right: 25%; top: 28%; bottom: 25%; }
+.ws-free-item.is-drawn .ws-free-text { text-align: center; position: relative; }
+.ws-free-item.is-drawn.fill-navy .ws-free-text { color: #fff; }
+.ws-free-item.is-drawn .ws-free-input { position: relative; }
+.ws-free-flowitem.is-drawn { background: #fbf6e9; border-radius: 4mm; }
+.ws-free-flowitem.is-drawn .ws-free-art { display: none; }
 .mode-edit .ws-free-item:hover { outline: .4mm dashed #3a7d5c; outline-offset: .6mm; }
 .mode-edit .ws-free-item.is-selected { outline: .6mm solid #3a7d5c; outline-offset: .8mm; }
 .ws-free-size { position: absolute; right: calc(-18px / var(--st-scale, 1)); bottom: calc(-18px / var(--st-scale, 1)); width: calc(36px / var(--st-scale, 1)); height: calc(36px / var(--st-scale, 1)); display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: #111827; color: #fff; font: 700 calc(16px / var(--st-scale, 1)) / 1 system-ui, sans-serif; box-shadow: 0 4px 12px rgba(17, 24, 39, .3); cursor: nwse-resize; touch-action: none; }
