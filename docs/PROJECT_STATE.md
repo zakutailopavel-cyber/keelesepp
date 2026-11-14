@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-crop — Õpik „Vaba kiht”: crop a picture in its frame (zoom + pan) · crm-v2 only, no rules / functions change
+
+- Base `origin/main` after #1234, checked 2026-11-14. Owner 2026-11-14: „да, делай кадрирование фото”.
+- Done: `MIN_ZOOM` / `MAX_ZOOM`, `clampZoom`, `cropStyle`, `panFocus`, normalize + `freeProblem` for `zoom` in `engine/freeLayer.js`; crop mode on the sheet (double click, drag, − / +, „Valmis”) and `.ws-free-crop` wrapper in `engine/FreeLayer.jsx`; „Suurendus” slider and „Tühista kadreerimine” in `editor/FreeFields.jsx`; CSS in `engine/sheet.css` (crop tools hidden in print; phone column keeps the frame's ratio). Contract in `docs/WORKSHEET_STUDIO_V1.md`.
+- Checks: `freeLayer.test.jsx` +2. Same 7-area vitest run (`--maxWorkers=3`) → 278 files passed (1 skipped), 2731 tests passed; eslint changed files 0 errors. Lab with a real textbook picture: double click → crop mode, 4 × „+” → 200 %, drag → focus 59 / 46 stored, frame stayed at 30 / 70; headless render showed the zoomed photo clipped in a rounded and a round frame.
+- Limits: zoom only from the centre of focus (no free rectangle); not tried on a real iPad.
+- Next safe step: owner double-clicks a photo on an Õpik page, zooms in and drags it.
+
 ## 2026-11-14 · agent/free-shapes — Õpik „Vaba kiht”: speech bubble, star, sticker, ribbon · crm-v2 only, no rules / functions change
 
 - Base `origin/main` 7323450, checked 2026-11-14. Owner 2026-11-14: „продолжай улучшать редактор”.

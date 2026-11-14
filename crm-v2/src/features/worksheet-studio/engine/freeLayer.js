@@ -63,6 +63,27 @@ export const TEXT_ALIGN_LABEL = { left: 'Vasakul', center: 'Keskel', right: 'Par
 export const TEXT_COLOR_LABEL = { auto: 'Automaatne', ink: 'Must', navy: 'Tumesinine', green: 'Roheline', red: 'Punane', white: 'Valge' };
 const TEXT_COLOR_VALUE = { ink: '#1f2d3d', navy: '#0b2a4f', green: '#267743', red: '#c0392b', white: '#ffffff' };
 const TEXT_FONT_VALUE = { head: 'var(--font-head)', hand: 'var(--font-hand)' };
+// Cropping a picture (2026-11-14): `zoom` 1…4 enlarges the photo inside its frame around its focus point
+// (`img.focus` x / y in %, the part that stays in view). Nothing is cut from the file: the frame only shows part of it.
+export const MIN_ZOOM = 1;
+export const MAX_ZOOM = 4;
+export const clampZoom = (value) => Math.round(clamp(num(value, 1), MIN_ZOOM, MAX_ZOOM) * 100) / 100;
+// the picture's look in its frame: focus as object-position and zoom origin
+export function cropStyle(item) {
+  const fx = clamp(num(item.img?.focus?.x, 50), 0, 100);
+  const fy = clamp(num(item.img?.focus?.y, 50), 0, 100);
+  const zoom = clampZoom(item.zoom);
+  return { objectPosition: `${fx}% ${fy}%`, transformOrigin: `${fx}% ${fy}%`, ...(zoom > 1 ? { transform: `scale(${zoom})` } : {}) };
+}
+// a drag of (dxPct, dyPct) % of the frame while cropping: the photo follows the finger, slower when zoomed in
+export function panFocus(item, dxPct, dyPct) {
+  const zoom = clampZoom(item.zoom);
+  const f = item.img?.focus || { x: 50, y: 50 };
+  const x = Math.round(clamp(num(f.x, 50) - dxPct / zoom, 0, 100));
+  const y = Math.round(clamp(num(f.y, 50) - dyPct / zoom, 0, 100));
+  return { ...item, img: { ...item.img, focus: { x, y } } };
+}
+
 // the inline look of a text box's letters (FreeLayer.jsx: on the page, while typing, in the phone column)
 export function textStyle(item) {
   const style = { fontSize: `${item.size}pt`, fontWeight: item.bold ? 800 : 400 };
@@ -109,6 +130,7 @@ export function normalizeFreeItem(item) {
     locked: item.locked === true,
     shape: (item.kind === 'image' ? IMAGE_SHAPES : FREE_SHAPES).includes(item.shape) ? item.shape : 'rect',
     tail: TAILS.includes(item.tail) ? item.tail : 'bl',
+    zoom: clampZoom(item.zoom),
     fill: FREE_FILLS.includes(item.fill) ? item.fill : 'none',
     border: FREE_BORDERS.includes(item.border) ? item.border : 'none',
     text: String(item.text || ''),
@@ -354,6 +376,7 @@ export function freeProblem(doc) {
     if (item.align !== undefined && item.align !== null && !TEXT_ALIGNS.includes(item.align)) return 'Teksti joondus on tundmatu.';
     if (item.heads !== undefined && !LINE_HEADS.includes(item.heads)) return 'Joone otsad on tundmatud.';
     if (item.shape !== undefined && !FREE_SHAPES.includes(item.shape)) return 'Vaba kihi kujund on tundmatu.';
+    if (item.zoom !== undefined && !(Number(item.zoom) >= MIN_ZOOM && Number(item.zoom) <= MAX_ZOOM)) return 'Pildi suurendus on vigane (1–4).';
     if (item.tail !== undefined && !TAILS.includes(item.tail)) return 'Mulli saba asend on tundmatu.';
     if (item.fill !== undefined && !FREE_FILLS.includes(item.fill)) return 'Vaba kihi värv on tundmatu.';
     if (item.border !== undefined && !FREE_BORDERS.includes(item.border)) return 'Vaba kihi raam on tundmatu.';

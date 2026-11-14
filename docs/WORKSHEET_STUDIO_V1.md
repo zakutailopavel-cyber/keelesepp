@@ -314,6 +314,11 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   SVG outline (`SHAPE_ART`, `ShapeArt`) in the item's fill and frame colours; the text sits in the body (bubble: 80 %,
   star / burst: the middle, ribbon: between the notches). New fill `white`. Palette: „Jutumull”, „Kleeps”, „Lint”.
   The phone column shows drawn text boxes as a plain cream box.
+- Cropping a picture (2026-11-14, agent/free-crop): optional `zoom` 1…4 on an image item; the photo is enlarged in
+  its frame around `img.focus` (`cropStyle`: object-position + transform-origin + scale, inside `.ws-free-crop` with
+  overflow hidden). Double click on the picture → crop mode (`is-cropping`): a drag pans the focus (`panFocus`, one
+  undo step), − / + zoom by 25 %, „Valmis” / Esc / Enter ends; the frame itself does not move. Settings: „Suurendus”
+  slider, „Tühista kadreerimine”. Nothing is cut from the file. The phone column keeps the frame's proportions.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures
