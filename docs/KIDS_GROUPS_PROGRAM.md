@@ -62,33 +62,48 @@ Goal: Laps loeb umbes 150-sõnalist teksti ja vastab küsimustele, kirjutab 5–
 | 11 | Projekt: minu lemmikloom või hobi | Laps koostab plakati ja valmistab ette 1-minutilise esitluse. | projekt, plakat, esitlus, pilt, pealkiri, fakt, sest, aga, huvitav, tutvustama |
 | 12 | Esitlus vanematele | Laps esitleb oma projekti vanematele, vastab küsimustele ja hindab oma edusamme. | esitlus, küsimus, vastus, publik, aplaus, tubli, õppisin, oskan, tänan, tunnistus |
 
-## Vestlusklubi 10–12-aastastele (A1–A2) — 2 × 45 min söögipausiga, Klubi 10–12 a
+## Vestlusklubi 10–12-aastastele (A1–A2) — 20 kohtumist, 2 × 45 min söögipausiga, Klubi 10–12 a
 
-Owner 2026-11-15: a speaking club for ~11-year-olds starts on 16.11 — programme, printable cards, vocabulary and topics,
-opened and printed by the teacher on the site. Content: `kids/club11.js` (CLUB_11), sheets `kids/sheets.js` clubLesson,
-teacher's plan `kidsCurriculum.js` clubPlan (lesson 1 · snack · lesson 2). Records `k11-001…012`, level „Klubi 10–12 a”
-(Õppevara → Lastele).
-Each sheet opens with a textbook opener on the Õpik free layer (children in circles with speech bubbles, ribbon, burst, word pictures). Sheets per meeting: 1 „Kaardid” (print and cut: 12 word cards with pictures, 8 question cards, role cards A/B, extra cards —
-identity cards, menu, weather, quiz …), 2 „Tund 1: räägime” (words with Russian, „Räägime nii”, dialogue with gaps,
-question ↔ answer, gaps, „Leia keegi, kes …”, the snack box at the end), 3 „Tund 2: mängime ja esineme” (word order, crossword
-Russian → Estonian, plan + one-minute talk, parents' note, „Ma oskan”, certificate on 012).
+Owner 2026-11-15: a speaking club for ~11-year-olds (start 16.11); then „5 модулей по 4 урока, урок = одна встреча 2 по 45”,
+each meeting checked separately three times (methodology + visual). Content: `kids/club/module1…5.js` (composed by
+`kids/club11.js`, field reference there); sheets `kids/sheets.js` clubLesson + clubOpeners; teacher's plan
+`kidsCurriculum.js` clubPlan (lesson 1 · snack · lesson 2, Russian, minute by minute; project meetings: 12 min talks).
+Records `k11-001…020`, level „Klubi 10–12 a”, modules `k11-module-01…05`; meeting 4 of a module = Projekt
+(roadmapTag „Projekt”), meeting 20 = Pidu with parents.
+Sheets per meeting (each opens with a textbook opener on the Õpik free layer: the club children in circles with speech
+bubbles, ribbon „TUND 1 / TUND 2 · 45 min”, burst with the meeting number, word pictures):
+1 „Kaardid” — print and cut: question cards, extra cards (identity, menu, weather, price lists, stations …), word cards
+with pictures, „Veel sõnu”, role cards A/B with an information gap;
+2 „Tund 1: räägime” — words with Russian, „Räägime nii”, dialogue with gaps, question ↔ answer, gaps, „Leia keegi,
+kes / kellel …”, the snack box at the end (lesson 1 → snack → lesson 2);
+3 „Tund 2: mängime ja esineme” — crossword (Russian → Estonian), word order (one natural order each), plan + one-minute
+talk, „Ma oskan” and the parents' note side by side, certificate on 020.
+Pictures: kids-art (new: cake, gift, glasses, school, newspaper, film, money) and A2 word pictures (`a2:kook` is köök!).
 
-| # | Teema | Laps oskab |
-|---|---|---|
-| 1 | Tere! Mina olen … | Laps tutvustab ennast (nimi, vanus, kool, klass, elukoht, mis talle meeldib) ja küsib samu küsimusi teiselt. |
-| 2 | Minu pere ja lemmikloom | Laps räägib oma perest ja lemmikloomast ning küsib teiselt: Kas sul on …? |
-| 3 | Kool ja koolipäev | Laps räägib oma koolipäevast ja lemmikainest ning palub klassis asja: Kas sul on …? Palun anna … |
-| 4 | Hobid ja vaba aeg | Laps räägib oma hobidest ja trennist, küsib teiselt ja kutsub sõbra kaasa. |
-| 5 | Toit ja kohvik | Laps räägib, mis talle maitseb, tellib kohvikus süüa ja küsib hinda. |
-| 6 | Talv ja jõulud | Laps räägib talvest ja jõuludest oma peres, soovib häid pühi ja ütleb, mida ta soovib. |
-| 7 | Riided ja ilm | Laps kirjeldab ilma ja oma riideid ning ütleb, mida ta paneb selga. |
-| 8 | Minu linn ja tee | Laps räägib oma linnast ja kodu ümbrusest, küsib ja juhatab teed. |
-| 9 | Sport ja tervis | Laps nimetab kehaosi, räägib spordist ja ütleb, mis tal valutab. |
-| 10 | Filmid, mängud ja telefon | Laps räägib filmidest, mängudest ja telefonist, ütleb oma arvamuse ja räägib, mida ta eile vaatas või mängis. |
-| 11 | Reisime Eestis | Laps räägib, kus ta on käinud ja kuhu ta tahab sõita, ostab pileti ja küsib, mis kell rong või buss läheb. |
-| 12 | Klubi pidu: viktoriin ja esinemine | Laps esitleb ennast ja oma teemat vanematele, vastab küsimustele ja mängib viktoriini kõigi teemade peale. |
+| # | Moodul | Kohtumine | Laps oskab |
+|---|---|---|---|
+| 1 | 1 Mina ja minu inimesed | Tere! Mina olen … | Laps tutvustab ennast (nimi, vanus, kool, klass, elukoht, mis talle meeldib) ja küsib samu küsimusi teiselt. |
+| 2 | 1 Mina ja minu inimesed | Minu pere ja lemmikloom | Laps räägib oma perest ja lemmikloomast ning küsib teiselt: Kas sul on …? |
+| 3 | 1 Mina ja minu inimesed | Minu sõber | Laps kirjeldab sõbra välimust ja iseloomu ning arvab ära, kellest teine räägib. |
+| 4 | 1 Mina ja minu inimesed | Projekt: See olen mina | Laps teeb plakati „See olen mina” ja esitleb seda: nimi, pere, lemmikloom, sõber, hobi; vastab teiste küsimustele. |
+| 5 | 2 Talv ja pühad | Riided ja ilm | Laps kirjeldab ilma ja oma riideid ning ütleb, mida ta paneb selga. |
+| 6 | 2 Talv ja pühad | Talv ja jõulud | Laps räägib talvest, jõuludest ja uuest aastast oma peres, soovib häid pühi ja ütleb, mida ta soovib. |
+| 7 | 2 Talv ja pühad | Sünnipäev ja kingitused | Laps kutsub sõbra sünnipäevale, soovib õnne, räägib kingitustest ja ütleb, mis kuus on tema sünnipäev. |
+| 8 | 2 Talv ja pühad | Projekt: Klubi talvepidu | Laps valmistab koos teistega klubi talvepeo (kutse, menüü, mäng, esinemine), kordab mooduli sõnu ja esineb peol. |
+| 9 | 3 Minu päev | Kool ja koolipäev | Laps räägib oma koolipäevast ja lemmikainest ning palub klassis asja. |
+| 10 | 3 Minu päev | Minu päev ja kell | Laps räägib oma päevast kellaaegadega ja küsib: Mis kell sa ärkad? |
+| 11 | 3 Minu päev | Hobid ja vaba aeg | Laps räägib oma hobidest ja trennist, küsib teiselt ja kutsub sõbra kaasa. |
+| 12 | 3 Minu päev | Projekt: Klubi ajaleht | Laps teeb klubikaaslasega intervjuu, räägib temast (ta ärkab, ta käib …) ja kirjutab loo klubi ajalehte. |
+| 13 | 4 Söök ja linn | Toit ja kohvik | Laps räägib, mis talle maitseb, tellib kohvikus süüa ja küsib hinda. |
+| 14 | 4 Söök ja linn | Poes: hinnad ja raha | Laps ostab poes või turul, küsib hinda, ütleb, kui palju ta tahab (kilo, karp), ja ütleb hindu eurodes. |
+| 15 | 4 Söök ja linn | Minu linn ja tee | Laps räägib oma linnast ja kodu ümbrusest, küsib ja juhatab teed. |
+| 16 | 4 Söök ja linn | Projekt: Linnamäng | Laps mängib klassis linnamängu: küsib ja juhatab teed, ostab ja tellib eesti keeles ning räägib, mida meeskond tegi. |
+| 17 | 5 Tervis, meedia ja reisid | Sport ja tervis | Laps nimetab kehaosi, räägib spordist ja ütleb, mis tal valutab. |
+| 18 | 5 Tervis, meedia ja reisid | Filmid, mängud ja telefon | Laps räägib filmidest, mängudest ja telefonist, ütleb oma arvamuse ja räägib, mida ta eile vaatas või mängis. |
+| 19 | 5 Tervis, meedia ja reisid | Reisime Eestis | Laps räägib, kus ta on käinud ja kuhu ta tahab sõita, ostab pileti ja küsib, mis kell rong või buss läheb. |
+| 20 | 5 Tervis, meedia ja reisid | Klubi pidu ja viktoriin | Laps esitleb ennast ja oma teemat vanematele, vastab küsimustele ja mängib viktoriini kõigil klubi teemadel. |
 
 ## Production
 
 - `curriculumLessons/k56-001…012, k67-001…012, k89-001…012` and their three sheets (published) — installed 2026-10-28 with create-only records.
-- `curriculumLessons/k11-001…012` and their three sheets (published) — installed 2026-11-15 with create-only records.
+- `curriculumLessons/k11-001…020` and their three sheets (published) — 001…012 installed 2026-11-15 (create-only), rewritten the same day to the 5-module order before any use (no assignments, no teacher edits); 013…020 created.

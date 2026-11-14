@@ -25,14 +25,14 @@ export const MODULE_1 = {
       questions: ['Mis su nimi on?', 'Kui vana sa oled?', 'Kus sa elad?', 'Mis koolis ja mis klassis sa käid?', 'Mis keeli sa räägid?', 'Kas sul on vend või õde?', 'Mis sulle meeldib teha?', 'Mis on sinu lemmikvärv?'],
       find: ['on üksteist aastat vana', 'käib viiendas klassis', 'räägib kolme keelt', 'elab majas', 'mängib arvutimänge', 'oskab ujuda', 'on sündinud talvel', 'armastab šokolaadi'],
       roles: ['Uus õpilane', 'Klassi tuleb uus õpilane. Tutvuge.', [
-        'Sa oled uus õpilane Robin: 12 aastat vana, tulid Pärnust, elad nüüd Tallinnas, räägid kolme keelt, sulle meeldib jalgpall. Tutvusta ennast ja küsi uue sõbra kohta.',
+        'Sa oled uus õpilane Robin: 12 aastat vana, tulid Pärnust, elad nüüd Tallinnas, räägid kolme keelt, sulle meeldib jalgpall. Tutvusta ennast ja küsi ka uuelt sõbralt.',
         ['Tere! Minu nimi on …', 'Ma olen … aastat vana.', 'Mulle meeldib …', 'Ja sina? Mis sulle meeldib?'],
       ], [
         'Sa oled selle klassi õpilane Mia: 11 aastat vana, elad kooli lähedal, sulle meeldib joonistada. Küsi uuelt õpilaselt neli küsimust ja räägi ka endast. Lõpus ütle klassile kaks fakti tema kohta.',
         ['Tere! Mis su nimi on?', 'Kui vana sa oled?', 'Kus sa elad?', 'Mis keeli sa räägid?'],
       ]],
       extra: ['Uus mina: tegelaskaardid', 'Võta kaart. Sa oled nüüd see inimene. Tutvusta ennast: „Tere! Minu nimi on …”', [
-        ['Mia', ['11 aastat vana', 'elab Tartus', 'käib 5. klassis', 'meeldib ujuda']],
+        ['Emma', ['11 aastat vana', 'elab Tartus', 'käib 5. klassis', 'meeldib ujuda']],
         ['Robin', ['12 aastat vana', 'elab Pärnus', 'käib 6. klassis', 'meeldib jalgpall']],
         ['Liisa', ['10 aastat vana', 'elab Narvas', 'käib 4. klassis', 'meeldib joonistada']],
         ['Karl', ['11 aastat vana', 'elab Tallinnas', 'käib 5. klassis', 'meeldib mängida arvutimänge']],
@@ -45,12 +45,12 @@ export const MODULE_1 = {
         ['A', 'Kus sa [elad]?'], ['B', 'Ma elan Pärnus. Mulle [meeldib] jalgpall.'],
       ],
       gaps: ['Minu [nimi] on Karl.', 'Ma [olen] üksteist aastat vana.', 'Ma [elan] Tallinnas.', 'Ma [käin] viiendas klassis.', 'Mulle [meeldib] joonistada.'],
-      order: ['Minu nimi on Liisa.', 'Ma räägin kolme keelt.', 'Mulle meeldib joonistada.'],
+      order: ['Mis keeli sa räägid?', 'Ma räägin kolme keelt.', 'Mulle meeldib joonistada.'],
       cross: [['друг', 'sõber'], ['имя', 'nimi'], ['мальчик', 'poiss'], ['девочка', 'tüdruk'], ['язык', 'keel'], ['школа', 'kool']],
       snack: ['Mis sulle maitseb?'],
       plan: ['Minu nimi on …', 'Ma olen … aastat vana.', 'Ma elan …', 'Ma käin … klassis.', 'Ma räägin … keelt.', 'Mulle meeldib …'],
       talk: 'Tutvusta ennast umbes üks minut: nimi, vanus, kus sa elad, mis klassis sa käid, mis keeli sa räägid, mis sulle meeldib.',
-      game1: '«Мяч-знакомство» (15 мин): дети стоят в кругу, у учителя мягкий мяч и стопка карточек вопросов (лист 1). Учитель бросает мяч и спрашивает: «Mis su nimi on?» Кто поймал — отвечает полным предложением («Minu nimi on …»), берёт следующую карточку и, бросая мяч, задаёт вопрос другому. Второй круг — быстрее: «Kiiremini!» Третий круг: поймавший сначала повторяет ответ предыдущего: «Ta elab Narvas.»',
+      game1: '«Мяч-знакомство»: дети стоят в кругу, у учителя мягкий мяч и стопка карточек вопросов (лист 1). Учитель бросает мяч и спрашивает: «Mis su nimi on?» Кто поймал — отвечает полным предложением («Minu nimi on …»), берёт следующую карточку и, бросая мяч, задаёт вопрос другому. Второй круг — быстрее: «Kiiremini!» Третий круг: поймавший сначала повторяет ответ предыдущего: «Ta elab Narvas.»',
       game2: 'Сначала 2 пары разыгрывают «Uus õpilane» перед группой (6 мин). Затем «Uus mina» (9 мин): каждый тянет карточку героя (лист 1), не показывает её, ходит по классу и знакомится с тремя детьми как этот герой. В конце учитель спрашивает: «Kes on Robin? Kus ta elab?» — дети отвечают по памяти: «Sasha on Robin! Ta elab Pärnus.»',
       home: 'Ребёнок знакомится по-эстонски с вами: имя, возраст, школа, что нравится. Спросите 3 вопроса с карточек и попросите отвечать полным предложением.',
       self: ['Ma ütlen oma nime, vanuse ja kus ma elan.', 'Ma küsin teiselt: Mis su nimi on? Kui vana sa oled?', 'Ma räägin endast ühe minuti.'],
@@ -75,12 +75,12 @@ export const MODULE_1 = {
       ],
       questions: ['Kui suur on sinu pere?', 'Kas sul on vend või õde?', 'Kui vana on sinu vend või õde?', 'Kus elab sinu vanaema?', 'Kas sul on lemmikloom?', 'Mis su lemmiklooma nimi on?', 'Mida te perega nädalavahetusel teete?', 'Kes teeb sinu peres süüa?'],
       findTitle: 'Leia keegi, kellel …',
-      find: ['on koer', 'on kass', 'on noorem vend', 'on vanem õde', 'ei ole lemmiklooma', 'vanaema elab teises linnas', 'on suur pere (viis või rohkem inimest)', 'on kala või lind'],
+      find: ['on koer', 'on kass', 'on noorem vend', 'on vanem õde', 'ei ole lemmiklooma', 'on vanaema teises linnas', 'on suur pere (viis või rohkem inimest)', 'on kala või lind'],
       roles: ['Lemmikloomapoes', 'Sa tahad osta lemmiklooma. Poes on koer, kass, jänes, kala ja lind.', [
         'Sa oled ostja. Sul on 50 eurot ja väike korter. Küsi: mis loomad poes on, kui vana loom on, mida ta sööb, kui palju ta maksab. Vali üks loom ja ütle, miks.',
         ['Tere! Mis loomad teil on?', 'Kui vana see koer on?', 'Mida ta sööb?', 'Kui palju ta maksab?', 'Ma võtan …'],
       ], [
-        'Sa töötad lemmikloomapoes. Vasta ostjale ja soovita ühte looma. Koer: 1 aasta, suur, sööb liha, 100 €. Kass: 6 kuud, joob piima, 40 €. Jänes: 1 aasta, sööb porgandit, 30 €. Kala: 5 €.',
+        'Sa töötad lemmikloomapoes. Vasta ostjale ja soovita ühte looma. Koer: 1 aasta, suur, sööb liha, 100 €. Kass: 6 kuud, väike, 40 €. Jänes: 1 aasta, sööb porgandit, 30 €. Lind: laulab, 20 €. Kala: 5 €.',
         ['Tere! Meil on …', 'See koer on üks aasta vana.', 'Ta sööb …', 'Ta on väga sõbralik.'],
       ]],
       extra: ['Minu lemmikloom: loomakaardid', 'Võta kaart ja räägi loomast: „Mul on koer. Tema nimi on Muri. Ta on …”', [
@@ -100,8 +100,8 @@ export const MODULE_1 = {
       cross: [['мама', 'ema'], ['папа', 'isa'], ['брат', 'vend'], ['собака', 'koer'], ['кошка', 'kass'], ['рыба', 'kala']],
       snack: ['Kas sa tahad juua?', 'Jah, palun vett.'],
       plan: ['Minu peres on …', 'Minu ema / isa …', 'Mul on … vend / õde.', 'Mul on lemmikloom … / Mul ei ole lemmiklooma.', 'Minu lemmikloom on … (milline?)', 'Nädalavahetusel me …'],
-      talk: 'Joonista oma pere ja räägi umbes üks minut: kes on sinu peres, kui vanad nad on, kas sul on lemmikloom.',
-      game1: '«Правда или неправда?» (15 мин): карточки слов (лист 1) лежат картинкой вверх. Ребёнок берёт карточку и говорит о себе предложение — правду или неправду: «Mul on vend.» / «Mul ei ole koera.» Группа может задать 2 вопроса («Mis su venna nimi on? Kui vana ta on?»), потом решает: «See on tõsi!» или «See ei ole tõsi!» Кто угадал — получает очко; кто обманул всех — тоже очко.',
+      talk: 'Räägi umbes üks minut oma perest: kes on sinu peres, kui vanad nad on, kas sul on lemmikloom ja milline ta on.',
+      game1: '«Правда или неправда?»: карточки слов (лист 1) лежат картинкой вверх. Ребёнок берёт карточку и говорит о себе предложение — правду или неправду: «Mul on vend.» / «Mul ei ole koera.» Группа может задать 2 вопроса («Mis su venna nimi on? Kui vana ta on?»), потом решает: «See on tõsi!» или «See ei ole tõsi!» Кто угадал — получает очко; кто обманул всех — тоже очко.',
       game2: '«Lemmikloomapoes» (8 мин): все пары одновременно играют по карточкам ролей; продавец не показывает свою карточку. Покупатель в конце говорит группе: «Ma võtan kassi, sest …». Потом «Мой питомец» (7 мин): ребёнок берёт карточку животного и рассказывает: «Mul on koer. Tema nimi on Muri. Ta on …», остальные задают 2 вопроса.',
       home: 'Ребёнок показывает семейное фото или рисунок и рассказывает по-эстонски, кто есть кто: «See on minu ema. Tema nimi on …».',
       self: ['Ma räägin oma perest: Mul on … / Mul ei ole …', 'Ma küsin: Kas sul on lemmikloom?', 'Ma kirjeldan looma: suur, väike, naljakas.'],
@@ -127,11 +127,11 @@ export const MODULE_1 = {
       findTitle: 'Leia keegi, kellel …',
       find: ['on pikad juuksed', 'on sinised silmad', 'on prillid', 'on parim sõber teises klassis', 'on sõber teises linnas', 'on sama lemmikvärv nagu sinul', 'on lühikesed juuksed', 'on täna seljas midagi punast'],
       roles: ['Kadunud sõber', 'Pargis on suur pidu. Laps ei leia oma sõpra.', [
-        'Sa ei leia oma sõpra. Võta salaja üks tegelaskaart (Anna, Oskar …) — see on sinu sõber. Kirjelda teda turvatöötajale: juuksed, silmad, prillid, milline ta on.',
-        ['Vabandust, ma otsin oma sõpra!', 'Ta on üksteist aastat vana.', 'Tal on … juuksed ja … silmad.', 'Ta on … ja …'],
+        'Sa ei leia oma sõpra. Vaata laual olevaid tegelaskaarte (Anna, Oskar …) ja vali salaja üks — see on sinu sõber. Kirjelda teda turvatöötajale: juuksed, silmad, prillid, milline ta on.',
+        ['Vabandust, ma otsin oma sõpra!', 'Tal on … juuksed ja … silmad.', 'Tal on prillid. / Tal ei ole prille.', 'Ta on … ja …'],
       ], [
         'Sa oled turvatöötaja. Tegelaskaardid on laual. Küsi vähemalt neli küsimust, siis näita ühte kaarti: „Kas see on tema?” Nime ära küsi!',
-        ['Kui vana ta on?', 'Mis värvi juuksed tal on?', 'Kas tal on prillid?', 'Kas see on tema?'],
+        ['Mis värvi juuksed tal on?', 'Kas ta on pikk või lühike?', 'Kas tal on prillid?', 'Kas see on tema?'],
       ]],
       extra: ['Kes see on? Tegelaskaardid', 'Vali salaja üks kaart ja kirjelda inimest. Teised arvavad, kes see on.', [
         ['Anna', ['pikad heledad juuksed', 'sinised silmad', 'prillid', 'rõõmus ja tark']],
@@ -152,7 +152,7 @@ export const MODULE_1 = {
       snack: ['Mis sinu sõbrale maitseb?'],
       plan: ['Minu sõbra nimi on …', 'Ta on … aastat vana.', 'Ta on … (pikk, lühike)', 'Tal on … juuksed ja … silmad.', 'Ta on … (sõbralik, rõõmus, tark)', 'Me teeme koos …'],
       talk: 'Räägi umbes üks minut oma sõbrast: kes ta on, milline ta välja näeb, milline ta on ja mida te koos teete.',
-      game1: '«Kõik, kellel …» (15 мин, игра с движением): дети сидят на стульях в кругу, стульев на один меньше. Водящий в центре говорит: «Kõik, kellel on prillid, vahetavad kohti!» — все, у кого есть очки, меняются местами, водящий занимает свободный стул. Кто остался без стула — новый водящий. Учитель начинает сам (pikad juuksed, sinised silmad, midagi punast seljas). Если признак ни у кого нет — водящий говорит новую фразу.',
+      game1: '«Kõik, kellel …» (игра с движением): дети сидят на стульях в кругу, стульев на один меньше. Водящий в центре говорит: «Kõik, kellel on prillid, vahetavad kohti!» — все, у кого есть очки, меняются местами, водящий занимает свободный стул. Кто остался без стула — новый водящий. Учитель начинает сам (pikad juuksed, sinised silmad, midagi punast seljas). Если такого признака ни у кого нет, водящий называет другой.',
       game2: '«Угадай героя» (7 мин): 6 карточек героев (лист 1) лежат на столе. Ребёнок тайно выбирает одного, остальные задают только вопросы «да/нет»: «Kas tal on prillid? Kas ta on pikk?» — кто угадал за 4 вопроса, выбирает следующим. Потом «Kadunud sõber» (8 мин): 2–3 пары играют по карточкам ролей перед группой.',
       home: 'Ребёнок описывает по-эстонски одного члена семьи или друга по фото: «Tal on … juuksed, ta on …». Вы угадываете, кто это.',
       self: ['Ma kirjeldan sõbra välimust: Tal on …', 'Ma ütlen, milline ta on: sõbralik, naljakas …', 'Ma küsin: Milline ta on?'],
@@ -177,10 +177,10 @@ export const MODULE_1 = {
       questions: ['Mis su nimi on?', 'Kui vana sa oled?', 'Kas sul on vend või õde?', 'Kas sul on lemmikloom?', 'Milline on sinu sõber?', 'Mis värvi juuksed sul on?', 'Mis sulle meeldib teha?', 'Mis on sinu lemmikvärv?'],
       find: ['elab samas linnaosas nagu sina', 'on peres kõige noorem laps', 'tahab lemmiklooma', 'kannab prille', 'mängib jalgpalli', 'joonistab hästi', 'on sündinud suvel', 'teab kõigi klubi laste nimesid'],
       roles: ['Laagris: uus toakaaslane', 'Suvelaagris on kaks uut last ühes toas. Küsige teineteiselt ja leidke kolm asja, mis on teil sarnased.', [
-        'Sa oled Karl: 11 aastat vana, elad Tallinnas. Peres on ema, isa ja õde. Sul on koer Muri. Sulle meeldib jalgpall ja joonistada.',
+        'Sa oled Karl: 11 aastat vana, elad Tallinnas. Peres on ema, isa ja õde. Sul on koer Muri. Sulle meeldib mängida jalgpalli ja joonistada.',
         ['Tere! Mina olen Karl. Ja sina?', 'Kes on sinu peres?', 'Kas sul on lemmikloom?', 'Mis sulle meeldib teha?', 'Mulle ka!'],
       ], [
-        'Sa oled Oskar: 11 aastat vana, elad Narvas. Peres on ema, vend ja õde. Sul on kass Miisu. Sulle meeldib jalgpall ja lugeda.',
+        'Sa oled Oskar: 11 aastat vana, elad Narvas. Peres on ema, vend ja õde. Sul on kass Miisu. Sulle meeldib mängida jalgpalli ja lugeda.',
         ['Mina olen Oskar. Ma olen …', 'Minu peres on …', 'Mul on kass. Tema nimi on …', 'Mulle meeldib …', 'Mulle ka!'],
       ]],
       extra: ['Plakati osad', 'Lõika kaardid välja ja kleebi oma plakatile. Kirjuta iga kaardi juurde 1–2 lauset.', [

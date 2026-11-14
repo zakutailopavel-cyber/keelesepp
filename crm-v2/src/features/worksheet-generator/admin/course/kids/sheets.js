@@ -249,6 +249,7 @@ function clubOpeners(id, lesson, n) {
   };
 }
 
+const half = (b) => ({ ...b, width: 'half', span: 6 });
 // extra cards: short cards in one row (≤ 4) or a 4-column grid; cards with longer lines in 2–3 roomier columns
 const extraColumns = (list) => {
   const short = Math.max(...list.flatMap(([, facts]) => facts.map((x) => x.length))) <= 20;
@@ -280,7 +281,7 @@ function clubLesson(program, lesson, index) {
     B.dialogue(`${id}_p_dialogue`, 'Loe dialoogi paarilisega ja kirjuta puuduvad sõnad.', 'Loe kõigepealt koos õpetajaga. Siis loe rollides: A ja B. Lõpuks räägi sama oma andmetega.', 'A', 'B', lesson.dialogue, 'g_use'),
     B.match(`${id}_p_match`, 'Ühenda küsimus ja vastus.', 'Loe küsimust. Mis vastus sobib? Ühenda.', lesson.phrases.slice(0, 5), 'full', 'g_read'),
     B.gaps(`${id}_p_gaps`, 'Kirjuta lünka sobiv sõna.', 'Vali sõna kastist. Loe lause valjusti.', lesson.gaps, gapsBank, 'full', 'g_notice'),
-    B.table(`${id}_p_find`, lesson.findTitle || 'Leia keegi, kes …', 'Käi klassis ringi ja küsi: „Kas sa …?” Kui sõber ütleb „Jah!”, kirjuta tema nimi. Küsi igalt sõbralt ainult üks küsimus.', `${/kellel/.test(lesson.findTitle || '') ? 'Kellel …?' : 'Kes …?'}, Nimi`, lesson.find.map((f) => `… ${f} | `), 'g_use'),
+    B.table(`${id}_p_find`, lesson.findTitle || 'Leia keegi, kes …', `Käi klassis ringi ja küsi: „${/kellel/.test(lesson.findTitle || '') ? 'Kas sul on …' : 'Kas sa …'}?” Kui sõber ütleb „Jah!”, kirjuta tema nimi. Küsi igalt sõbralt ainult üks küsimus.`, `${/kellel/.test(lesson.findTitle || '') ? 'Kellel …?' : 'Kes …?'}, Nimi`, lesson.find.map((f) => `… ${f} | `), 'g_use'),
     // lesson 1 ends with the snack: 10–15 minutes in Estonian (owner 2026-11-15: урок → перекус → урок)
     B.phrasebank(`${id}_p_snack`, [['Söögipaus (10–15 min): laua taga', CLUB_SNACK.slice(0, 3)], ['Küsi ja paku', [...CLUB_SNACK.slice(3), ...lesson.snack]]]),
   ];
@@ -289,9 +290,11 @@ function clubLesson(program, lesson, index) {
     B.crossword(`${id}_t_cross`, 'Ristsõna: tunni sõnad.', 'Loe vene sõna ja kirjuta see eesti keeles ruutudesse.', lesson.cross, 'full', 'g_vocab'),
     B.wordorder(`${id}_t_order`, 'Pane sõnad järjekorda.', 'Kirjuta lause õiges järjekorras ja loe see valjusti.', lesson.order, 'full', 'g_notice'),
     B.planning(`${id}_t_plan`, 'Valmista ette oma minut.', 'Lõpeta iga lause paari sõnaga. Need on sinu märksõnad rääkimiseks.', lesson.plan, 1),
-    B.speaking(`${id}_t_talk`, 'Räägi umbes üks minut.', lesson.talk, lesson.plan, [45, 75], 'Räägi tervete lausetega. Vaata oma plaani, aga ära loe seda ette. Kuulajad küsivad lõpus ühe küsimuse.'),
-    B.selfcheck(`${id}_t_self`, lesson.self, 'Tubli töö!', 'Ma oskan'),
-    parentsNote(`${id}_t_parents`, { ...lesson, words: lesson.words.map(([w]) => w), phrases: lesson.phrases.slice(0, 4).map(([q, a]) => `${q} — ${a}`) }),
+    // the plan is right above: the talk keeps a short checklist instead of repeating it
+    B.speaking(`${id}_t_talk`, 'Räägi umbes üks minut.', lesson.talk, ['Räägin tervete lausetega.', 'Vaatan oma plaani, aga ei loe seda ette.', 'Vastan ühele kuulaja küsimusele.'], [45, 75]),
+    // „Ma oskan” and the parents' note side by side: sheet 3 stays on two pages
+    half(B.selfcheck(`${id}_t_self`, lesson.self, 'Tubli töö!', 'Ma oskan')),
+    half(parentsNote(`${id}_t_parents`, { ...lesson, words: lesson.words.map(([w]) => w), phrases: lesson.phrases.slice(0, 2).map(([q, a]) => `${q} — ${a}`) })),
     ...(lesson.celebration ? [certificate(`${id}_t_cert`, program)] : []),
   ];
   return { discover, practice, transfer, free: open.free };

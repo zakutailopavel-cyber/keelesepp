@@ -1,3 +1,12 @@
+## 2026-11-15 · agent/kids-club-modules — Vestlusklubi 10–12 a: 5 modules × 4 meetings, three review rounds · content + kids art + one CSS rule, no rules / functions change
+
+- Base: `origin/main` a353bff (release of #1240), checked 2026-11-15. Owner: „первые 5 модулей по 4 урока, урок = одна встреча 2 по 45, потом проверить каждый урок отдельно и улучшить методологически и визуально, и ещё 2 раза так же”.
+- Done: content split into `kids/club/module1…5.js` (composed by `club11.js`; lessons carry module / inModule); 8 new meetings (Minu sõber, Sünnipäev ja kingitused, Minu päev ja kell, Poes: hinnad ja raha, four project meetings). Three review rounds, each meeting separately (rounds 1–2 by module reviewers, round 3 by fresh reviewers): Estonian forms, information-gap role cards, recycling, varied games across the course, timings, pictures. Shared: sheet 1 order (questions → extra → word cards → „Veel sõnu” → roles), smaller opener, adaptive extra-card columns, crossword before word order, talk without repeating the plan, „Ma oskan” + parents' note side by side, „Kas sul on …?” for kellel tables, vocab commas; `clubPlan` per module / project / party timings; records per module (`k11-module-0N`, roadmapTag Projekt); 7 new kids-art pictures (cake, gift, glasses, school, newspaper, film, money); `sheet.css` smaller pictures in 4-column card grids.
+- Checks: `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/curriculum src/features/library src/features/worksheet-studio` → 176 files passed (1 skipped), 1975 tests passed; eslint 0 errors; all 60 sheets rendered in the sheet lab: sheet 3 two pages (020: three, certificate), sheet 2 three pages, sheet 1 2–3 pages.
+- Production: k11-001…012 rewritten in place to the new order (checked first: no assignments, no teacher edits), k11-013…020 created.
+- Limits: word order accepts one order (sentences chosen for that); Estonian not yet read by a native teacher in class; some card sheets keep white space where a card block cannot split across pages.
+- Next safe step: the teacher runs meeting 1 and reports what to change.
+
 ## 2026-11-15 · agent/kids-club-11 — Vestlusklubi 10–12 a (A1–A2): 12 meetings, cards to print, teacher's plan · content + library tab, no rules / functions change
 
 - Base `origin/main` 4474576 (#1238), checked 2026-11-15. Owner 2026-11-15: a speaking club for ~11-year-olds starts on 16.11 (two lessons of 45 min with a snack); programme, printable cards, vocabulary and topics on the site.
