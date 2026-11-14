@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Md } from './ui.jsx';
 import { objectPosition } from './image.js';
 import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, resizeItem } from './freeLayer.js';
@@ -19,13 +19,54 @@ function FreeContent({ item }) {
   return null;
 }
 
+// A text box typed in on the sheet itself (2026-11-14): a double tap / click — or a tap on a box that is already
+// selected — opens a textarea in the box with the same size of letters; leaving it (tap elsewhere, Ctrl+Enter) keeps
+// the text as one undo step, Esc gives the old text back. The text stays Markdown (*kaldkiri*, **paks**).
+function TextEditor({ item, onDone }) {
+  const [value, setValue] = useState(item.text);
+  const box = useRef(null);
+  const cancelled = useRef(false);
+  useEffect(() => { const el = box.current; if (el) { el.focus(); el.select(); } }, []);
+  const finish = () => onDone(cancelled.current ? null : value.slice(0, 600));
+  return (
+    <textarea
+      ref={box}
+      className="ws-free-input"
+      aria-label="Tekstikasti tekst"
+      value={value}
+      maxLength={600}
+      style={{ fontSize: `${item.size}pt`, fontWeight: item.bold ? 800 : 400 }}
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={finish}
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        e.stopPropagation();
+        if (e.key === 'Escape') { e.preventDefault(); cancelled.current = true; e.currentTarget.blur(); }
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.currentTarget.blur(); }
+      }}
+    />
+  );
+}
+
 function FreeItem({ item, editable, selected, onSelect, onChange }) {
   const ref = useRef(null);
   const live = editable && !item.locked;
+  const [typing, setTyping] = useState(false);
+  const canType = editable && item.kind === 'text';
+  // another item selected → stop typing (adjusting state while rendering, not in an effect)
+  const [shownSelected, setShownSelected] = useState(selected);
+  if (shownSelected !== selected) { setShownSelected(selected); if (!selected) setTyping(false); }
+  const doneTyping = (text) => {
+    setTyping(false);
+    if (text !== null && text !== item.text) onChange?.(item.id, { ...item, text });
+  };
   // one pointer drag: the item follows by a CSS transform, the stored value changes once at the end
   const drag = (event, kind) => {
-    if (!editable) return;
+    if (!editable || typing) return;
     event.stopPropagation();
+    const wasSelected = selected;
     onSelect?.(item.id);
     if (!live) return;
     event.preventDefault();
@@ -50,7 +91,11 @@ function FreeItem({ item, editable, selected, onSelect, onChange }) {
       target.removeEventListener('pointerup', onUp);
       target.removeEventListener('pointercancel', onUp);
       el.style.left = mm(item.x); el.style.top = mm(item.y); el.style.width = mm(item.w); el.style.height = mm(item.h);
-      if (e.type !== 'pointerup' || Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) < 4) return;
+      if (e.type !== 'pointerup') return;
+      if (Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) < 4) {
+        if (kind === 'move' && wasSelected && canType) setTyping(true); // a second tap on a selected text box: type
+        return;
+      }
       const n = next(e);
       onChange?.(item.id, n);
     };
@@ -58,7 +103,7 @@ function FreeItem({ item, editable, selected, onSelect, onChange }) {
     target.addEventListener('pointerup', onUp);
     target.addEventListener('pointercancel', onUp);
   };
-  const classes = ['ws-free-item', `is-${item.kind}`, `shape-${item.shape}`, `fill-${item.fill}`, `border-${item.border}`, selected ? 'is-selected' : '', item.locked ? 'is-locked' : ''].filter(Boolean).join(' ');
+  const classes = ['ws-free-item', `is-${item.kind}`, typing ? 'is-typing' : '', `shape-${item.shape}`, `fill-${item.fill}`, `border-${item.border}`, selected ? 'is-selected' : '', item.locked ? 'is-locked' : ''].filter(Boolean).join(' ');
   return (
     <div
       ref={ref}
@@ -67,13 +112,13 @@ function FreeItem({ item, editable, selected, onSelect, onChange }) {
       style={{ left: mm(item.x), top: mm(item.y), width: mm(item.w), height: mm(item.h), zIndex: 5 + item.z, transform: item.rotate ? `rotate(${item.rotate}deg)` : undefined }}
       onPointerDown={editable ? (e) => drag(e, 'move') : undefined}
       onClick={editable ? (e) => e.stopPropagation() : undefined}
-      onDoubleClick={editable ? (e) => e.stopPropagation() : undefined}
-      role={editable ? 'button' : undefined}
-      aria-label={editable ? `Vaba element: ${item.kind === 'text' ? item.text.slice(0, 40) : item.kind === 'image' ? 'pilt' : 'kujund'}` : undefined}
-      aria-pressed={editable ? selected : undefined}
+      onDoubleClick={editable ? (e) => { e.stopPropagation(); if (canType) { onSelect?.(item.id); setTyping(true); } } : undefined}
+      role={editable && !typing ? 'button' : undefined}
+      aria-label={editable && !typing ? `Vaba element: ${item.kind === 'text' ? item.text.slice(0, 40) : item.kind === 'image' ? 'pilt' : 'kujund'}` : undefined}
+      aria-pressed={editable && !typing ? selected : undefined}
     >
-      <FreeContent item={item} />
-      {live && selected ? <button type="button" className="ws-free-size" aria-label="Muuda suurust" title="Lohista: suurus" onPointerDown={(e) => drag(e, 'size')} onClick={(e) => e.stopPropagation()}>⤡</button> : null}
+      {typing ? <TextEditor item={item} onDone={doneTyping} /> : <FreeContent item={item} />}
+      {live && selected && !typing ? <button type="button" className="ws-free-size" aria-label="Muuda suurust" title="Lohista: suurus" onPointerDown={(e) => drag(e, 'size')} onClick={(e) => e.stopPropagation()}>⤡</button> : null}
     </div>
   );
 }

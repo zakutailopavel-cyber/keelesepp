@@ -277,6 +277,10 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   page) instead of a box, `color: ink | navy | green | lime | red`, `stroke` (mm), `heads: none | end | both`, `dash`.
   Drawn as an 8 mm strip turned around its start with an SVG in mm (`LineItem`); dragging the strip moves both ends,
   the two round handles move one end (`moveEnd`). Lines are left out of the phone column. Palette: „Joon”, „Nool”.
+- Text typed on the sheet (2026-11-14, agent/free-text-inline): a double click on a text box, or one more tap on a
+  selected one, opens a textarea in the box (`TextEditor` in `engine/FreeLayer.jsx`, same letter size, ≤ 600 marks,
+  Markdown kept). Leaving it (tap elsewhere, Ctrl/Cmd+Enter) writes the text as one undo step; Esc gives the old text
+  back; keys typed there never reach the constructor's shortcuts. Works on a locked box too (lock = place and size).
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures
