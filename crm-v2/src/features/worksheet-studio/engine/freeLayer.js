@@ -91,6 +91,8 @@ export function normalizeFreeItem(item) {
     text: String(item.text || ''),
     size: clamp(num(item.size, 14), 8, 60),
     bold: item.bold === true,
+    opacity: clamp(num(item.opacity, 1), 0.2, 1),
+    shadow: item.shadow === true,
     font: TEXT_FONTS.includes(item.font) ? item.font : 'body',
     align: TEXT_ALIGNS.includes(item.align) ? item.align : undefined,
     color: item.kind === 'text' && TEXT_COLORS.includes(item.color) ? item.color : 'auto',
@@ -112,6 +114,8 @@ function normalizeLine(item) {
     stroke: clamp(num(item.stroke, 1), 0.3, 4),
     heads: LINE_HEADS.includes(item.heads) ? item.heads : 'none',
     dash: item.dash === true,
+    opacity: clamp(num(item.opacity, 1), 0.2, 1),
+    shadow: item.shadow === true,
   };
 }
 // a line's length and angle (degrees) on the page
@@ -175,6 +179,31 @@ export function snapItem(item, others = [], threshold = SNAP_MM) {
   return { item: moved, guides };
 }
 
+// „Lehel”: one tap puts the item at the page's middle or against a margin (returns the patch to store)
+export const PLACES = Object.freeze(['left', 'centerX', 'right', 'top', 'centerY', 'bottom']);
+export const PLACE_LABEL = { left: 'Vasakule', centerX: 'Keskele ↔', right: 'Paremale', top: 'Üles', centerY: 'Keskele ↕', bottom: 'Alla' };
+export function placeOnPage(item, how) {
+  const line = item.kind === 'line';
+  const x0 = line ? Math.min(item.x, item.x2) : item.x;
+  const y0 = line ? Math.min(item.y, item.y2) : item.y;
+  const w = line ? Math.abs(item.x2 - item.x) : item.w;
+  const h = line ? Math.abs(item.y2 - item.y) : item.h;
+  const target = { left: [PAGE_X[1], null], centerX: [(PAGE_W - w) / 2, null], right: [PAGE_W - PAGE_X[1] - w, null],
+    top: [null, PAGE_Y[1]], centerY: [null, (PAGE_H - h) / 2], bottom: [null, PAGE_H - 9 - h] }[how];
+  if (!target) return {};
+  const dx = target[0] === null ? 0 : target[0] - x0;
+  const dy = target[1] === null ? 0 : target[1] - y0;
+  const moved = moveItem(item, dx, dy);
+  return line ? { x: moved.x, y: moved.y, x2: moved.x2, y2: moved.y2 } : { x: moved.x, y: moved.y };
+}
+
+// see-through and shadow (2026-11-14): `opacity` 0.2…1 (missing = 1), `shadow` true / missing
+export const OPACITIES = Object.freeze([1, 0.8, 0.6, 0.4, 0.2]);
+export const lookStyle = (item) => ({
+  ...(item.opacity !== undefined && item.opacity < 1 ? { opacity: item.opacity } : {}),
+  ...(item.shadow ? { filter: 'drop-shadow(0 1.2mm 1.6mm rgba(15, 30, 50, 0.28))' } : {}),
+});
+
 // resize from the bottom-right corner; `keep` keeps the proportions (pictures, circles)
 export function resizeItem(item, dw, dh, keep = false) {
   let w = clamp(item.w + dw, MIN_SIZE, PAGE_W);
@@ -217,6 +246,7 @@ export function freeProblem(doc) {
     if (item.shape !== undefined && !FREE_SHAPES.includes(item.shape)) return 'Vaba kihi kujund on tundmatu.';
     if (item.fill !== undefined && !FREE_FILLS.includes(item.fill)) return 'Vaba kihi värv on tundmatu.';
     if (item.border !== undefined && !FREE_BORDERS.includes(item.border)) return 'Vaba kihi raam on tundmatu.';
+    if (item.opacity !== undefined && !(Number(item.opacity) >= 0.2 && Number(item.opacity) <= 1)) return 'Läbipaistvus on vigane.';
     if (String(item.text || '').length > 600) return 'Tekstikasti tekst on liiga pikk (kuni 600 märki).';
   }
   return '';

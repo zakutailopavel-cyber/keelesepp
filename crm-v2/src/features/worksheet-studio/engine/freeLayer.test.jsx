@@ -4,7 +4,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 import Sheet from './Sheet.jsx';
 import { sampleDocument } from './sample.js';
-import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, resizeItem, restack, snapItem, textStyle } from './freeLayer.js';
+import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, placeOnPage, resizeItem, restack, snapItem, textStyle } from './freeLayer.js';
 import { validateWorksheetDoc } from '../../../services/firebase/worksheetDocs.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -220,5 +220,28 @@ describe('snapping while dragging (2026-11-14)', () => {
     fireEvent.pointerDown(node, { clientX: 0, clientY: 0, pointerId: 2 });
     fireEvent.pointerUp(node, { clientX: 207, clientY: 0, pointerId: 2, altKey: true });
     expect(onChange).toHaveBeenLastCalledWith('f1', expect.objectContaining({ x: 113.5 }));
+  });
+});
+
+describe('place on the page, see-through, shadow (2026-11-14)', () => {
+  it('one tap puts a box or a line at the middle or a margin', () => {
+    const box = item({ x: 30, y: 40, w: 40, h: 20 });
+    expect(placeOnPage(box, 'centerX')).toEqual({ x: 115, y: 40 });
+    expect(placeOnPage(box, 'right')).toEqual({ x: 221, y: 40 });
+    expect(placeOnPage(box, 'top')).toEqual({ x: 30, y: 11 });
+    expect(placeOnPage(box, 'bottom')).toEqual({ x: 30, y: 352.9 });
+    expect(placeOnPage({ id: 'l', kind: 'line', x: 100, y: 50, x2: 40, y2: 50 }, 'left')).toEqual({ x: 69, y: 50, x2: 9, y2: 50 });
+  });
+
+  it('opacity and shadow: safe values, drawn on the item, checked before save', () => {
+    expect(normalizeFreeItem(item({ opacity: 0.05 })).opacity).toBe(0.2);
+    expect(normalizeFreeItem(item({})).opacity).toBe(1);
+    expect(freeProblem({ free: [item({ opacity: 2 })] })).toMatch(/Läbipaistvus/);
+    expect(freeProblem({ free: [item({ opacity: 0.6, shadow: true })] })).toBe('');
+    const { container } = render(<Sheet doc={docWith([item({ id: 's', opacity: 0.6, shadow: true }), item({ id: 'p' })])} mode="print" />);
+    const shaded = container.querySelector('[data-free="s"]');
+    expect(shaded.style.opacity).toBe('0.6');
+    expect(shaded.style.filter).toContain('drop-shadow');
+    expect(container.querySelector('[data-free="p"]').style.opacity).toBe('');
   });
 });

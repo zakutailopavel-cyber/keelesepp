@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-place — Õpik „Vaba kiht”: place on the page, see-through, shadow · crm-v2 only, no rules / functions change
+
+- Base `origin/main` after #1226, checked 2026-11-14. Owner 2026-11-14: „продолжай улучшать редактор”.
+- Done: `placeOnPage` / `PLACES`, `OPACITIES`, `lookStyle`, normalize + `freeProblem` for `opacity` / `shadow` in `engine/freeLayer.js`; drawn in `engine/FreeLayer.jsx` (page, line, phone column); settings „Lehel” buttons, „Läbipaistvus”, „Vari” in `editor/FreeFields.jsx`. Contract in `docs/WORKSHEET_STUDIO_V1.md`.
+- Checks: `freeLayer.test.jsx` +2, `freeStudio.test.jsx` +1. Same 7-area vitest run → 278 files passed (1 skipped), 2714 tests passed; eslint changed files 0 problems.
+- Limits: not tried on a real iPad.
+- Next safe step: owner puts a picture „Keskele ↔” on an Õpik page and turns on „Vari”.
+
 ## 2026-11-14 · agent/free-snap — Õpik „Vaba kiht”: snapping with guide lines · crm-v2 only, no rules / functions / data change
 
 - Base `origin/main` ce788fb, checked 2026-11-14. Owner 2026-11-14: „продолжай улучшать редактор”.

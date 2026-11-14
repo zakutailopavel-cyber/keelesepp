@@ -107,3 +107,16 @@ it('Õpik: a text box gets a hand font, centre alignment and a colour from its s
   await waitFor(() => expect(save).toHaveBeenCalled());
   expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ kind: 'text', font: 'hand', align: 'center', color: 'navy' })]);
 });
+
+it('Õpik: „Keskele ↔” centres the selected box on the page; see-through is a setting', async () => {
+  const { container, save } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Tekstikast/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Paremale' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Keskele ↔' }));
+  fireEvent.change(screen.getByLabelText('Läbipaistvus'), { target: { value: '0.6' } });
+  expect(container.querySelector('.ws-page .ws-free [data-free]').style.opacity).toBe('0.6');
+  fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+  await waitFor(() => expect(save).toHaveBeenCalled());
+  expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ x: 75, opacity: 0.6 })]);
+});

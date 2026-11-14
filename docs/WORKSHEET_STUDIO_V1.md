@@ -289,6 +289,10 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   or middle (a line: its ends) onto the page edge, margin (9 / 11 mm) or middle, or onto another item's edge or middle
   on the same page, within `SNAP_MM` = 2 mm; a pink guide (`.ws-free-guide`, never printed) shows it during the drag
   only. Alt while dragging = no snapping. Resizing and the arrow keys do not snap. No data change.
+- „Lehel”, see-through, shadow (2026-11-14, agent/free-place): settings buttons Vasakule / Keskele ↔ / Paremale /
+  Üles / Keskele ↕ / Alla (`placeOnPage`: page middle or margins 9 / 11 / 9 mm; lines move both ends); optional
+  `opacity` 0.2…1 („Läbipaistvus”) and `shadow` („Vari”, a soft drop shadow) on every kind, drawn by `lookStyle`
+  on the page and in the phone column; `freeProblem` refuses an opacity outside 0.2…1.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures
