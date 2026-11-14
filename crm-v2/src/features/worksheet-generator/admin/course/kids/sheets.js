@@ -225,10 +225,9 @@ function clubOpeners(id, lesson, n) {
     f(`${key}_a`, 'text', { x: 112, y: top + 44, w: 104, h: 30, shape: 'bubble', tail: 'br', fill: 'lime', border: 'none', text: a, size: 13, bold: false, align: 'center', z: z0 + 1 }),
   ];
   const discover = [
-    f(`${id}_fd_panel`, 'shape', { x: 9, y: TOP, w: 252, h: 110, shape: 'rounded', fill: 'sky', border: 'none', behind: true, opacity: 0.6 }),
+    f(`${id}_fd_panel`, 'shape', { x: 9, y: TOP, w: 252, h: 82, shape: 'rounded', fill: 'sky', border: 'none', behind: true, opacity: 0.6 }),
     f(`${id}_fd_num`, 'text', { x: 222, y: TOP - 18, w: 42, h: 42, shape: 'burst', fill: 'lime', border: 'none', text: `${n}`, size: 24, font: 'head', align: 'center', z: 5 }),
     ...kids(`${id}_fd`, TOP, q1, a1, 2),
-    f(`${id}_fd_can`, 'text', { x: 18, y: TOP + 84, w: 234, h: 20, shape: 'rounded', fill: 'cream', border: 'none', text: `**Täna:** ${lesson.can}`, size: 11, bold: false, z: 2 }),
   ];
   const practice = [
     f(`${id}_fp_panel`, 'shape', { x: 9, y: TOP, w: 252, h: 66, shape: 'rounded', fill: 'cream', border: 'none', behind: true }),
@@ -245,7 +244,7 @@ function clubOpeners(id, lesson, n) {
     ...kids(`${id}_ft`, TOP + 4, q2, a2, 2),
   ];
   return {
-    blocks: { discover: reserve(`${id}_d_open`, 112), practice: reserve(`${id}_p_open`, 68), transfer: reserve(`${id}_t_open`, 86) },
+    blocks: { discover: reserve(`${id}_d_open`, 84), practice: reserve(`${id}_p_open`, 68), transfer: reserve(`${id}_t_open`, 86) },
     free: { discover, practice, transfer },
   };
 }
@@ -258,16 +257,19 @@ function clubLesson(program, lesson, index) {
   const open = clubOpeners(id, lesson, index + 1);
   const discover = [
     open.blocks.discover,
-    B.tip(`${id}_d_how`, 'Õpetajale: kuidas kaarte kasutada', ['Prindi see leht (soovitavalt paksule paberile) ja lõika kaardid joont mööda välja.', 'Sõnakaardid — tund 1, küsimuste kaardid — tund 1 ja 2, rollikaardid ja lisakaardid — tund 2.'], 'full'),
-    cards(`${id}_d_words`, 'Sõnakaardid', 'Näita pilti — laps ütleb sõna ja lause. Pööra kaart — kes mäletab?', lesson.words.map(([word, ru, pic]) => [word, [ru], picOf(pic)]), 4, 'g_vocab'),
+    // page 1 under the opener: the question cards and the extra cards (short), then the word cards on page 2
     cards(`${id}_d_questions`, 'Küsimuste kaardid', 'Võta kaart, loe küsimus ette ja küsi sõbralt. Sõber vastab terve lausega ja küsib järgmise.', lesson.questions.map((q, i) => [`Küsimus ${i + 1}`, [q]]), 2, 'g_read'),
-    B.rolecards(`${id}_d_roles`, `Rollikaardid: ${roleTitle}`, `${situation} Lõika kaardid pooleks: üks võtab rolli A, teine rolli B.`, roleA, roleB, phrasesA, phrasesB),
     cards(`${id}_d_extra`, extraTitle, extraInstruction, extraCards.map(([name, facts]) => [name, facts]), extraCards.length % 3 === 0 && extraCards.length > 4 ? 3 : 2),
+    // word cards with pictures, then the words without a picture as small cards
+    cards(`${id}_d_words`, 'Sõnakaardid', 'Näita pilti — laps ütleb sõna ja lause. Pööra kaart — kes mäletab?', lesson.words.filter(([, , pic]) => pic).map(([word, ru, pic]) => [word, [ru], picOf(pic)]), 4, 'g_vocab'),
+    ...(lesson.words.some(([, , pic]) => !pic) ? [cards(`${id}_d_more`, 'Veel sõnu', 'Lõika välja. Laps loeb sõna ja ütleb sellega lause.', lesson.words.filter(([, , pic]) => !pic).map(([word, ru]) => [word, [ru]]), 4, 'g_vocab')] : []),
+    B.rolecards(`${id}_d_roles`, `Rollikaardid: ${roleTitle}`, `${situation} Lõika kaardid pooleks: üks võtab rolli A, teine rolli B.`, roleA, roleB, phrasesA, phrasesB),
+    B.tip(`${id}_d_how`, 'Õpetajale: kuidas kaarte kasutada', ['Prindi see leht (soovitavalt paksule paberile) ja lõika kaardid joont mööda välja.', 'Sõnakaardid — tund 1, küsimuste kaardid — tund 1 ja 2, rollikaardid ja lisakaardid — tund 2.'], 'full'),
   ];
   const gapsBank = lesson.bank || answersOf(lesson.gaps);
   const practice = [
     open.blocks.practice,
-    B.vocab(`${id}_p_words`, 'Tunni sõnad · слова урока', lesson.words.map(([word, ru]) => `${word} — ${ru}`).join('\n'), '2'),
+    B.vocab(`${id}_p_words`, 'Tunni sõnad · слова урока', lesson.words.map(([word, ru]) => `${word} — ${ru.replace(/\s*,\s*/g, ' / ')}`).join('\n'), '2'),
     B.notice(`${id}_p_focus`, `Räägime nii: ${lesson.focus}`, lesson.phrases.map(([q, a]) => `**${q}** — ${a}`), 'full', 'g_notice'),
     B.dialogue(`${id}_p_dialogue`, 'Loe dialoogi paarilisega ja kirjuta puuduvad sõnad.', 'Loe kõigepealt koos õpetajaga. Siis loe rollides: A ja B. Lõpuks räägi sama oma andmetega.', 'A', 'B', lesson.dialogue, 'g_use'),
     B.match(`${id}_p_match`, 'Ühenda küsimus ja vastus.', 'Loe küsimust. Mis vastus sobib? Ühenda.', lesson.phrases.slice(0, 5), 'full', 'g_read'),
@@ -278,8 +280,8 @@ function clubLesson(program, lesson, index) {
   ];
   const transfer = [
     open.blocks.transfer,
-    B.wordorder(`${id}_t_order`, 'Pane sõnad järjekorda.', 'Kirjuta lause õiges järjekorras ja loe see valjusti.', lesson.order, 'full', 'g_notice'),
     B.crossword(`${id}_t_cross`, 'Ristsõna: tunni sõnad.', 'Loe vene sõna ja kirjuta see eesti keeles ruutudesse.', lesson.cross, 'full', 'g_vocab'),
+    B.wordorder(`${id}_t_order`, 'Pane sõnad järjekorda.', 'Kirjuta lause õiges järjekorras ja loe see valjusti.', lesson.order, 'full', 'g_notice'),
     B.planning(`${id}_t_plan`, 'Valmista ette oma minut.', 'Lõpeta iga lause paari sõnaga. Need on sinu märksõnad rääkimiseks.', lesson.plan, 1),
     B.speaking(`${id}_t_talk`, 'Räägi umbes üks minut.', lesson.talk, lesson.plan, [45, 75], 'Räägi tervete lausetega. Vaata oma plaani, aga ära loe seda ette. Kuulajad küsivad lõpus ühe küsimuse.'),
     parentsNote(`${id}_t_parents`, { ...lesson, words: lesson.words.map(([w]) => w), phrases: lesson.phrases.slice(0, 4).map(([q, a]) => `${q} — ${a}`) }),
