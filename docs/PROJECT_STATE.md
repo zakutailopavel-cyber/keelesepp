@@ -1,3 +1,13 @@
+## 2026-11-15 · agent/kids-club-11 — Vestlusklubi 10–12 a (A1–A2): 12 meetings, cards to print, teacher's plan · content + library tab, no rules / functions change
+
+- Base `origin/main` 4474576 (#1238), checked 2026-11-15. Owner 2026-11-15: a speaking club for ~11-year-olds starts on 16.11 (two lessons of 45 min with a snack); programme, printable cards, vocabulary and topics on the site.
+- Done: `kids/club11.js` (12 meetings: words with Russian and pictures, phrases, 8 question cards, „Leia keegi, kes …”, role cards, extra cards, dialogue, gaps, word order, crossword, snack phrases, talk plan, games, parents' note); `kids/sheets.js` clubLesson + `CLUB_PHASES` (1 Kaardid / 2 Tund 1: räägime / 3 Tund 2: mängime ja esineme) in `KIDS_MODULES`; `kidsCurriculum.js` clubPlan (lesson 1 · snack · lesson 2, Russian); `libraryModel.js` subject „Lastele” also for „Klubi 10–12 a”; sheet lab opens kids sheets (`course:k11-001:discover`). Cards use existing blocks (`profiles`, `rolecards`) — no new block, so no sheet-kit / functions change. Doc: `docs/KIDS_GROUPS_PROGRAM.md`.
+- Checks: `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/curriculum src/features/library src/features/worksheet-studio/sheetKit.test.js` → 90 files passed (1 skipped), 1298 tests passed; eslint 0 errors. Headless Chrome: k11-001 and k11-002 sheets render on A4 (cards 4 per row with pictures, question cards, role cards).
+- Textbook look (owner: „курс должен выглядеть как учебник, используем новые блоки”): every club sheet opens with a reserved first block (`minHeightMm`) and an Õpik free-layer opener on it (`doc.free`, via new optional `lesson.free[phase]` in `courseSheet.js`): panel behind, the club children (kids-art boy / girl) in circles with speech bubbles, ribbon „TUND 1 / TUND 2 · 45 min”, burst with the meeting number, picture circles of the words. Order lesson 1 → snack → lesson 2: the snack box is the last block of sheet 2. `TOP = 102` mm (measured in the sheet lab). Studio + generator suites: 176 files, 1975 tests passed.
+- Production: after release, 12 records `curriculumLessons/k11-001…012` + 36 sheets created create-only (never overwrites).
+- Limits: Estonian texts not read by a native teacher; cards are cut along the card borders (no dashed cut marks).
+- Next safe step: the teacher prints k11-001 „Kaardid” and sheets 2–3 before the first meeting and tells what to change.
+
 ## 2026-11-14 · agent/free-behind — Õpik „Vaba kiht”: items behind the text, ready textbook layouts · crm-v2 only, no rules / functions change
 
 - Base `origin/main` after #1236, checked 2026-11-14. Owner 2026-11-14: „то, что действительно позволит делать страницы учебника … потом занимаемся самим курсом”.
