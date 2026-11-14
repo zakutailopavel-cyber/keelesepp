@@ -1,7 +1,7 @@
 // Settings of one item of the free layer (engine/freeLayer.js): what it shows, its shape and colour, its page, size,
 // turn, layer, lock; copy and delete. Every change goes through `set(patch)` → one undoable change of `doc.free`.
 import { Area, ImagePick, Num, Select, Text } from './fields.jsx';
-import { TEXT_ALIGNS, TEXT_ALIGN_LABEL, TEXT_COLORS, TEXT_COLOR_LABEL, TEXT_FONTS, TEXT_FONT_LABEL, FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, HEADS_LABEL, KIND_LABEL, LINE_COLORS, LINE_COLOR_LABEL, LINE_HEADS, LINE_STROKES } from '../engine/freeLayer.js';
+import { OPACITIES, PLACES, PLACE_LABEL, placeOnPage, TEXT_ALIGNS, TEXT_ALIGN_LABEL, TEXT_COLORS, TEXT_COLOR_LABEL, TEXT_FONTS, TEXT_FONT_LABEL, FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, HEADS_LABEL, KIND_LABEL, LINE_COLORS, LINE_COLOR_LABEL, LINE_HEADS, LINE_STROKES } from '../engine/freeLayer.js';
 
 const SHAPE_LABEL = { rect: 'Ristkülik', rounded: 'Ümarad nurgad', circle: 'Ring', oval: 'Ovaal' };
 const BORDER_LABEL = { none: 'Ilma raamita', ink: 'Must joon', lime: 'Laimiroheline joon' };
@@ -46,6 +46,12 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
       </>}
       {pages > 1 ? <Select label="Leht" value={String(Math.min(item.page, pages - 1))} onChange={(v) => guard({ page: Number(v) })} options={Array.from({ length: pages }, (_, i) => [String(i), `${i + 1}. leht`])} /> : null}
       {item.kind === 'line' ? null : <Select label="Pööra" value={String(item.rotate || 0)} onChange={(v) => guard({ rotate: Number(v) })} options={[...new Set([...TURNS, item.rotate || 0])].sort((a, b) => a - b).map((d) => [String(d), d ? `${d}°` : 'Otse'])} />}
+      <div className="ed-free-layer" role="group" aria-label="Lehel">
+        <span className="ed-label">Lehel</span>
+        {PLACES.map((how) => <button key={how} type="button" className="ed-btn" disabled={locked} onClick={() => guard(placeOnPage(item, how))}>{PLACE_LABEL[how]}</button>)}
+      </div>
+      <Select label="Läbipaistvus" value={String(item.opacity ?? 1)} onChange={(v) => set({ opacity: Number(v) })} options={[...new Set([...OPACITIES, item.opacity ?? 1])].sort((a, b) => b - a).map((o) => [String(o), o === 1 ? 'Ei ole (100 %)' : `${Math.round(o * 100)} %`])} />
+      <label className="ed-check"><input type="checkbox" checked={item.shadow === true} onChange={(e) => set({ shadow: e.target.checked })} /> Vari</label>
       <div className="ed-free-layer" role="group" aria-label="Kiht">
         <span className="ed-label">Kiht</span>
         <button type="button" className="ed-btn" onClick={() => onLayer('top')}>Kõige peale</button>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Md } from './ui.jsx';
 import { objectPosition } from './image.js';
-import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, resizeItem, snapItem, textStyle } from './freeLayer.js';
+import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, lookStyle, resizeItem, snapItem, textStyle } from './freeLayer.js';
 
 // „Vaba kiht” on one A4 page (freeLayer.js). Positions are mm on the 270 mm design page, so print, zoom and the book
 // draw it the same. In the constructor (`edit`): a tap selects, a drag moves, the corner resizes (pictures and circles
@@ -128,7 +128,7 @@ function FreeItem({ item, others = [], editable, selected, onSelect, onChange })
       ref={ref}
       className={classes}
       data-free={item.id}
-      style={{ left: mm(item.x), top: mm(item.y), width: mm(item.w), height: mm(item.h), zIndex: 5 + item.z, transform: item.rotate ? `rotate(${item.rotate}deg)` : undefined }}
+      style={{ left: mm(item.x), top: mm(item.y), width: mm(item.w), height: mm(item.h), zIndex: 5 + item.z, transform: item.rotate ? `rotate(${item.rotate}deg)` : undefined, ...lookStyle(item) }}
       onPointerDown={editable ? (e) => drag(e, 'move') : undefined}
       onClick={editable ? (e) => e.stopPropagation() : undefined}
       onDoubleClick={editable ? (e) => { e.stopPropagation(); if (canType) { onSelect?.(item.id); setTyping(true); } } : undefined}
@@ -213,7 +213,7 @@ function LineItem({ item, others = [], editable, selected, onSelect, onChange })
       ref={ref}
       className={['ws-free-item', 'is-line', selected ? 'is-selected' : '', item.locked ? 'is-locked' : ''].filter(Boolean).join(' ')}
       data-free={item.id}
-      style={{ ...lineStyle(item), zIndex: 5 + item.z }}
+      style={{ ...lineStyle(item), zIndex: 5 + item.z, ...lookStyle(item) }}
       onPointerDown={editable ? (e) => drag(e, 'move') : undefined}
       onClick={editable ? (e) => e.stopPropagation() : undefined}
       onDoubleClick={editable ? (e) => e.stopPropagation() : undefined}
@@ -249,7 +249,7 @@ export function FreeFlow({ items }) {
   return (
     <div className="ws-free-flow">
       {items.map((item) => (
-        <div key={item.id} className={`ws-free-flowitem is-${item.kind} shape-${item.shape} fill-${item.fill} border-${item.border}`}>
+        <div key={item.id} className={`ws-free-flowitem is-${item.kind} shape-${item.shape} fill-${item.fill} border-${item.border}`} style={lookStyle(item)}>
           <FreeContent item={item} />
         </div>
       ))}
