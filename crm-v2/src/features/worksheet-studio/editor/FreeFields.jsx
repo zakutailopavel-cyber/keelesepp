@@ -73,7 +73,7 @@ export function FreeGroupFields({ items, onAlign, onSpread, onLayer, onDuplicate
   const locked = items.filter((it) => it.locked).length;
   return (
     <div className="ed-free">
-      <p className="ed-hint">{items.length} elementi valitud. Lohista üht neist — liiguvad kõik; nooled nihutavad kõiki. Shift / Ctrl + klõps lisab või eemaldab.{locked ? ` Lukustatud (${locked}) jäävad paigale.` : ''}</p>
+      <p className="ed-hint">{items.length} elementi valitud. Lohista üht neist — liiguvad kõik; nooled nihutavad kõiki. Shift / Ctrl + klõps lisab või eemaldab; Shift + lohistus lehel joonistab valikuraami.{locked ? ` Lukustatud (${locked}) jäävad paigale.` : ''}</p>
       <div className="ed-free-layer" role="group" aria-label="Joonda omavahel">
         <span className="ed-label">Joonda omavahel</span>
         {GROUP_ALIGNS.map((how) => <button key={how} type="button" className="ed-btn" onClick={() => onAlign(how)}>{GROUP_ALIGN_LABEL[how]}</button>)}

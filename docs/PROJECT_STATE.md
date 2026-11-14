@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-frame — Õpik „Vaba kiht”: selection frame · crm-v2 only, no rules / functions / data change
+
+- Base `origin/main` after #1230, checked 2026-11-14. Owner 2026-11-14: „да, делай выделение рамкой”.
+- Done: `itemsInFrame` in `engine/freeLayer.js`; studio `startFrame` (Shift + drag, „Vali mitu” drag, or a drag from the bare page) in `WorksheetStudioPage.jsx`; CSS `.ws-free-band` (`engine/sheet.css`), touch / cursor rule (`worksheetStudio.css`); group hint in `editor/FreeFields.jsx`. Contract in `docs/WORKSHEET_STUDIO_V1.md`.
+- Checks: `freeLayer.test.jsx` +1, `freeStudio.test.jsx` +1. Same 7-area vitest run (`--maxWorkers=3`, the Mac was busy) → 278 files passed (1 skipped), 2723 tests passed; eslint changed files 0 errors. Lab: the real studio with a mock repository at 1366×900 — Shift + drag showed the frame, caught the text box and the circle, left the third item out, panel „2 valitud”.
+- Limits: frame catches items it touches (not only fully inside); not tried on a real iPad.
+- Next safe step: owner Shift-drags over two items on an Õpik page.
+
 ## 2026-11-14 · agent/free-multi — Õpik „Vaba kiht”: select several items, move / align / spread them together · crm-v2 only, no rules / functions / data change
 
 - Base `origin/main` after #1228, checked 2026-11-14. Owner 2026-11-14: „да, делай выделение нескольких элементов”.
