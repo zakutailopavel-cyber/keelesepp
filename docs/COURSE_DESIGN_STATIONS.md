@@ -118,6 +118,12 @@ sauna roof; 30 hours without electricity; deductible 100 €; 15 degrees on Mids
 Visual briefs: `art/visuals/b1-module-12.js` (not registered in `textbookArt.js` until the images exist). Owner summary:
 `docs/review/b1-m12-pilot.md`.
 
+**B2 module 1** (`admin/course/b2/module01.js`, lessons b1b2-001…004, 2026-11-14) is the second station module: 001 the
+B1 entry diagnostic as six stations (final: plan, W13 letter), 002 advise (W05 guide text), 003 decide (S17 argument
+cards), 004 negotiate (S17 learning-plan talk); the check 005 is unchanged. Owner summary: `docs/review/b2-m01-stations.md`.
+B2 `av-article` (one 500–600-word article a module) cannot live in a station (`st-input` ≤ 120 words): the module's
+article is the check lesson's reading (005, owner 2026-11-14). Open: that length is over the B1+ sheet reading norm (≤ 500).
+
 ## 5. Next
 
 Owner and a teacher run 2–3 pilot lessons; then decide whether the next modules move to v3-stations (one module per PR,

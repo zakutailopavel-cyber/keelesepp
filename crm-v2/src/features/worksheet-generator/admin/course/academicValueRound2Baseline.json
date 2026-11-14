@@ -131,13 +131,6 @@
   "a2b1-085|practice|av-fact-dup",
   "a2b1-086|discover|av-fact-dup"
  ],
- "b1b2-module-01": [
-  "*|*|av-homecountry",
-  "*|*|av-kasuta2",
-  "*|*|av-retell2",
-  "b1b2-001|discover|av-opener-numbers",
-  "b1b2-004|*|av-boltedon"
- ],
  "b1b2-module-02": [
   "*|*|av-homecountry",
   "*|*|av-kasuta2",
@@ -163,7 +156,6 @@
  "course:b2": [
   "*|*|av-thinkvary",
   "*|*|av-thinkvary",
-  "b1b2-002|transfer|av-fact-dup",
   "b1b2-005|practice|av-fact-dup",
   "b1b2-005|practice|av-fact-dup",
   "b1b2-007|practice|av-fact-dup",
