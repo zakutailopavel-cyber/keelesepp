@@ -4,7 +4,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 import Sheet from './Sheet.jsx';
 import { sampleDocument } from './sample.js';
-import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, alignMany, moveMany, placeOnPage, resizeItem, restack, restackMany, snapItem, spreadMany, textStyle } from './freeLayer.js';
+import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, alignMany, itemsInFrame, moveMany, placeOnPage, resizeItem, restack, restackMany, snapItem, spreadMany, textStyle } from './freeLayer.js';
 import { validateWorksheetDoc } from '../../../services/firebase/worksheetDocs.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -305,4 +305,13 @@ describe('several items at once (2026-11-14)', () => {
     fireEvent.pointerUp(node('b'), { clientX: 0, clientY: 0, pointerId: 3 });
     expect(onSelect).toHaveBeenLastCalledWith('b');
   });
+});
+
+it('a selection frame catches the items of its page it touches (2026-11-14)', () => {
+  const list = [item({ id: 'a', x: 10, y: 10, w: 20, h: 20 }), item({ id: 'b', x: 100, y: 100, w: 20, h: 20 }), item({ id: 'p2', page: 1, x: 10, y: 10, w: 20, h: 20 }),
+    { id: 'l', kind: 'line', page: 0, x: 50, y: 60, x2: 90, y2: 40, z: 1 }];
+  expect(itemsInFrame(list, 0, 2, { x0: 35, y0: 70, x1: 0, y1: 0 })).toEqual(['a']);
+  expect(itemsInFrame(list, 0, 2, { x0: 25, y0: 25, x1: 60, y1: 50 }).sort()).toEqual(['a', 'l']);
+  expect(itemsInFrame(list, 1, 2, { x0: 0, y0: 0, x1: 50, y1: 50 })).toEqual(['p2']);
+  expect(itemsInFrame(list, 0, 1, { x0: 0, y0: 0, x1: 45, y1: 45 }).sort()).toEqual(['a', 'p2']); // page 2 is gone: its items stand on the last
 });

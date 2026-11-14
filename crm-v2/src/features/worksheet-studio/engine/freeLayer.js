@@ -211,6 +211,14 @@ export const boxOf = (item) => (item.kind === 'line'
   : { x0: item.x, y0: item.y, x1: item.x + item.w, y1: item.y + item.h });
 export const GROUP_ALIGNS = Object.freeze(['left', 'centerX', 'right', 'top', 'centerY', 'bottom']);
 export const GROUP_ALIGN_LABEL = { left: 'Vasakud servad', centerX: 'Keskjoon ↕', right: 'Paremad servad', top: 'Ülemised servad', centerY: 'Keskjoon ↔', bottom: 'Alumised servad' };
+// a frame drawn on page `page` (mm, any corner order) catches every item of that page it touches
+export function itemsInFrame(items, page, pages, frame) {
+  const f = { x0: Math.min(frame.x0, frame.x1), x1: Math.max(frame.x0, frame.x1), y0: Math.min(frame.y0, frame.y1), y1: Math.max(frame.y0, frame.y1) };
+  return itemsOnPage(items, page, pages).filter((it) => {
+    const b = boxOf(it);
+    return b.x0 <= f.x1 && b.x1 >= f.x0 && b.y0 <= f.y1 && b.y1 >= f.y0;
+  }).map((it) => it.id);
+}
 // move every selected, unlocked item by (dx, dy) mm
 export const moveMany = (items, ids, dx, dy) => items.map((it) => (ids.includes(it.id) && !it.locked ? moveItem(it, dx, dy) : it));
 // line the selected items up with each other (their common box)

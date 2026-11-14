@@ -153,3 +153,19 @@ it('Õpik: „Vali mitu” makes a tap add to the selection', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Tühista valik' }));
   expect(screen.queryByRole('complementary', { name: 'Vaba elemendi seaded' })).toBeNull();
 });
+
+it('Õpik: Shift + drag on the page draws a frame that selects the boxes it touches', async () => {
+  const { container } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Tekstikast/ }));
+  fireEvent.click(screen.getByRole('button', { name: /Kujund/ }));
+  fireEvent.keyDown(window, { key: 'Escape' });
+  const page = container.querySelector('.ws-page');
+  page.getBoundingClientRect = () => ({ left: 0, top: 0, width: 270, height: 381.86, right: 270, bottom: 381.86 });
+  fireEvent.pointerDown(page, { clientX: 1, clientY: 1, button: 0, shiftKey: true, pointerId: 1 });
+  expect(page.querySelector('.ws-free-band')).not.toBeNull();
+  fireEvent.pointerMove(window, { clientX: 269, clientY: 300, pointerId: 1 });
+  fireEvent.pointerUp(window, { clientX: 269, clientY: 300, pointerId: 1 });
+  expect(page.querySelector('.ws-free-band')).toBeNull();
+  expect(screen.getByRole('complementary', { name: 'Vaba elemendi seaded' }).textContent).toContain('2 valitud');
+});

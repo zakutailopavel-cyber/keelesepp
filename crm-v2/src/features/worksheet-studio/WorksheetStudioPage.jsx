@@ -44,7 +44,7 @@ import './engine/sheet.css';
 import './engine/sheetFlow.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
-import { KIND_LABEL as FREE_KIND_LABEL, MAX_ITEMS as MAX_FREE, alignMany, freeItemsOf, moveItem, moveMany, newFreeItem, restack, restackMany, spreadMany } from './engine/freeLayer.js';
+import { KIND_LABEL as FREE_KIND_LABEL, MAX_ITEMS as MAX_FREE, PAGE_W as FREE_PAGE_W, alignMany, freeItemsOf, itemsInFrame, moveItem, moveMany, newFreeItem, restack, restackMany, spreadMany } from './engine/freeLayer.js';
 import FreeFields, { FreeGroupFields } from './editor/FreeFields.jsx';
 import { FIGURE_TEXT, MAX_FIGURES, figureParagraphs, figuresOf, figuresPatch, newFigure } from './engine/figureFloat.js';
 import { MARK_KINDS, addMark } from './engine/marksModel.js';
@@ -438,6 +438,44 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       return;
     }
     setSelectedFreeId(id); setExtraFreeIds([]);
+  };
+  // Selection frame (2026-11-14): Shift + drag on the page (or any drag with „Vali mitu” on, or a drag that starts on
+  // the bare page) draws a frame; every free item of that page it touches joins the selection.
+  const startFrame = (event) => {
+    if (mode !== 'edit' || !canFree || event.button > 0 || isTextTarget(event.target)) return;
+    const page = event.target.closest?.('.ws-page');
+    if (!page || event.target.closest('[data-free], button, a, input, select, textarea, [contenteditable="true"]')) return;
+    if (!(event.shiftKey || multiTap || event.target === page)) return;
+    event.preventDefault(); event.stopPropagation();
+    const pages = [...(canvasRef.current?.querySelectorAll('.ws-page') || [])];
+    const pageIndex = pages.indexOf(page);
+    const rect = page.getBoundingClientRect();
+    const perPx = FREE_PAGE_W / Math.max(1, rect.width);
+    const at = (e) => ({ x: (e.clientX - rect.left) * perPx, y: (e.clientY - rect.top) * perPx });
+    const start = at(event);
+    const band = globalThis.document.createElement('div');
+    band.className = 'ws-free-band';
+    page.appendChild(band);
+    const draw = (end) => Object.assign(band.style, { left: `${Math.min(start.x, end.x)}mm`, top: `${Math.min(start.y, end.y)}mm`, width: `${Math.abs(end.x - start.x)}mm`, height: `${Math.abs(end.y - start.y)}mm` });
+    draw(start);
+    const onMove = (e) => draw(at(e));
+    const onUp = (e) => {
+      globalThis.removeEventListener('pointermove', onMove);
+      globalThis.removeEventListener('pointerup', onUp);
+      globalThis.removeEventListener('pointercancel', onUp);
+      band.remove();
+      if (e.type !== 'pointerup') return;
+      const end = at(e);
+      if (Math.abs(end.x - start.x) + Math.abs(end.y - start.y) < 2) return; // a tap, not a frame
+      const caught = itemsInFrame(freeItems, pageIndex, pages.length, { x0: start.x, y0: start.y, x1: end.x, y1: end.y });
+      if (!caught.length) return;
+      const all = [...freeSel, ...caught.filter((id) => !freeSel.includes(id))];
+      setSelectedId(null); setPanelOpen(true);
+      setSelectedFreeId(all[0]); setExtraFreeIds(all.slice(1));
+    };
+    globalThis.addEventListener('pointermove', onMove);
+    globalThis.addEventListener('pointerup', onUp);
+    globalThis.addEventListener('pointercancel', onUp);
   };
   const groupChange = (items) => { lastPush.current = 0; setFree(items); };
   const moveGroup = (dx, dy) => groupChange(moveMany(freeItems, freeSel, dx, dy));
@@ -1179,7 +1217,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                     <button type="button" className="ed-btn" onClick={() => addFree('line')}><Icons.Minus size={14} aria-hidden="true" /> Joon</button>
                     <button type="button" className="ed-btn" onClick={() => addFree('line', { heads: 'end' })}><Icons.MoveRight size={14} aria-hidden="true" /> Nool</button>
                   </div>
-                  <button type="button" className="ed-btn st-free-multi" aria-pressed={multiTap} onClick={() => setMultiTap(!multiTap)} title="Sees olles lisab iga puudutus elemendi valikusse (arvutis: Shift + klõps)"><Icons.SquareDashed size={14} aria-hidden="true" /> Vali mitu{multiTap ? ': sees' : ''}</button>
+                  <button type="button" className="ed-btn st-free-multi" aria-pressed={multiTap} onClick={() => setMultiTap(!multiTap)} title="Sees olles lisab iga puudutus elemendi valikusse ja lohistus lehel joonistab valikuraami (arvutis: Shift + klõps, Shift + lohista)"><Icons.SquareDashed size={14} aria-hidden="true" /> Vali mitu{multiTap ? ': sees' : ''}</button>
                 </div>
               ) : null}{myTemplates.length ? (
                 <div className="st-group st-templates">
@@ -1210,7 +1248,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           )}
 
           {/* „Suur tekst”: the column of sheetFlow.css (`ws-narrow`), the same blocks at their real text size */}
-          <main className={`st-canvas ${columnView ? 'ws-narrow' : ''}`} ref={canvasRef}>
+          <main className={`st-canvas ${columnView ? 'ws-narrow' : ''} ${multiTap && canFree && mode === 'edit' ? 'is-free-multi' : ''}`} ref={canvasRef} onPointerDownCapture={columnView ? undefined : startFrame}>
             {/* the answer key is a plain page at its own size, not the A4 sheet scaled to the canvas */}
             <div className="st-zoom" style={{ zoom: mode === 'key' || columnView ? 1 : scale, '--st-scale': mode === 'key' || columnView ? 1 : scale }}>
               {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={(id) => { selectBlock(id); if (!id) clearFree(); }} dnd dropHint={dropHint} onResize={columnView ? undefined : resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} flow={columnView} onPatch={patchBlockData} freeEdit={freeEdit} onPageCount={setPageCount} />}

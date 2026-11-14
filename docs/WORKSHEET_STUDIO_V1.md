@@ -299,6 +299,10 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   selects it alone. Arrows / Delete / Ctrl+D / Esc act on the whole selection. Panel `FreeGroupFields`: „Joonda
   omavahel” (`alignMany`: edges / middles of the common box), „Võrdsed vahed” for 3+ (`spreadMany`), layer top /
   bottom keeping order (`restackMany`), copy all, delete all, unselect. Locked items stay put. No data change.
+- Selection frame (2026-11-14, agent/free-frame): Shift + drag on a page, any drag on a page while „Vali mitu” is on
+  (the page then takes the finger instead of scrolling), or a drag that starts on the bare page draws a pink dashed
+  frame (`.ws-free-band`, studio `startFrame`, pointerdown capture on the canvas); every free item of that page it
+  touches joins the selection (`itemsInFrame`). A tap (< 2 mm) is not a frame. Not in the phone column view.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures
