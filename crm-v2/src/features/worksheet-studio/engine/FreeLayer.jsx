@@ -1,13 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { Md } from './ui.jsx';
 import { objectPosition } from './image.js';
-import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, resizeItem, textStyle } from './freeLayer.js';
+import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, resizeItem, snapItem, textStyle } from './freeLayer.js';
 
 // „Vaba kiht” on one A4 page (freeLayer.js). Positions are mm on the 270 mm design page, so print, zoom and the book
 // draw it the same. In the constructor (`edit`): a tap selects, a drag moves, the corner resizes (pictures and circles
 // keep their proportions), each finished drag is one undo step (`onChange(id, next)`). A locked item can only be
 // selected (to open its lock). Buttons are of a finger's size whatever the page's zoom (sheet.css .ws-free-*).
 const mm = (value) => `${value}mm`;
+
+// the thin guide lines of a snap, drawn straight into the page's layer during a drag (no React redraw per move)
+function showGuides(layer, guides = []) {
+  if (!layer) return;
+  layer.querySelectorAll('.ws-free-guide').forEach((node) => node.remove());
+  for (const guide of guides) {
+    const node = document.createElement('div');
+    node.className = `ws-free-guide is-${guide.axis}`;
+    node.style[guide.axis === 'x' ? 'left' : 'top'] = mm(guide.at);
+    layer.appendChild(node);
+  }
+}
 
 function FreeContent({ item }) {
   if (item.kind === 'image') {
@@ -50,7 +62,7 @@ function TextEditor({ item, onDone }) {
   );
 }
 
-function FreeItem({ item, editable, selected, onSelect, onChange }) {
+function FreeItem({ item, others = [], editable, selected, onSelect, onChange }) {
   const ref = useRef(null);
   const live = editable && !item.locked;
   const [typing, setTyping] = useState(false);
@@ -72,6 +84,7 @@ function FreeItem({ item, editable, selected, onSelect, onChange }) {
     event.preventDefault();
     const el = ref.current;
     const page = el?.closest('.ws-page');
+    const layer = el?.closest('.ws-free');
     if (!el || !page) return;
     const perPx = PAGE_W / Math.max(1, page.getBoundingClientRect().width);
     const start = { x: event.clientX, y: event.clientY };
@@ -80,7 +93,11 @@ function FreeItem({ item, editable, selected, onSelect, onChange }) {
     const next = (e) => {
       const dx = (e.clientX - start.x) * perPx;
       const dy = (e.clientY - start.y) * perPx;
-      return kind === 'move' ? moveItem(item, dx, dy) : resizeItem(item, dx, dy, item.kind === 'image' || item.shape === 'circle');
+      if (kind !== 'move') return resizeItem(item, dx, dy, item.kind === 'image' || item.shape === 'circle');
+      const moved = moveItem(item, dx, dy);
+      const snap = e.altKey ? { item: moved, guides: [] } : snapItem(moved, others);
+      showGuides(layer, snap.guides);
+      return snap.item;
     };
     const onMove = (e) => {
       const n = next(e);
@@ -91,12 +108,14 @@ function FreeItem({ item, editable, selected, onSelect, onChange }) {
       target.removeEventListener('pointerup', onUp);
       target.removeEventListener('pointercancel', onUp);
       el.style.left = mm(item.x); el.style.top = mm(item.y); el.style.width = mm(item.w); el.style.height = mm(item.h);
-      if (e.type !== 'pointerup') return;
+      if (e.type !== 'pointerup') { showGuides(layer); return; }
       if (Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) < 4) {
+        showGuides(layer);
         if (kind === 'move' && wasSelected && canType) setTyping(true); // a second tap on a selected text box: type
         return;
       }
       const n = next(e);
+      showGuides(layer);
       onChange?.(item.id, n);
     };
     target.addEventListener('pointermove', onMove);
@@ -147,7 +166,7 @@ function LineArt({ item }) {
   );
 }
 
-function LineItem({ item, editable, selected, onSelect, onChange }) {
+function LineItem({ item, others = [], editable, selected, onSelect, onChange }) {
   const ref = useRef(null);
   const live = editable && !item.locked;
   const drag = (event, part) => {
@@ -158,6 +177,7 @@ function LineItem({ item, editable, selected, onSelect, onChange }) {
     event.preventDefault();
     const el = ref.current;
     const page = el?.closest('.ws-page');
+    const layer = el?.closest('.ws-free');
     if (!el || !page) return;
     const perPx = PAGE_W / Math.max(1, page.getBoundingClientRect().width);
     const start = { x: event.clientX, y: event.clientY };
@@ -166,7 +186,11 @@ function LineItem({ item, editable, selected, onSelect, onChange }) {
     const next = (e) => {
       const dx = (e.clientX - start.x) * perPx;
       const dy = (e.clientY - start.y) * perPx;
-      return part === 'move' ? moveItem(item, dx, dy) : moveEnd(item, part, dx, dy);
+      if (part !== 'move') return moveEnd(item, part, dx, dy);
+      const moved = moveItem(item, dx, dy);
+      const snap = e.altKey ? { item: moved, guides: [] } : snapItem(moved, others);
+      showGuides(layer, snap.guides);
+      return snap.item;
     };
     const show = (n) => Object.assign(el.style, lineStyle(n));
     const onMove = (e) => show(next(e));
@@ -175,8 +199,10 @@ function LineItem({ item, editable, selected, onSelect, onChange }) {
       target.removeEventListener('pointerup', onUp);
       target.removeEventListener('pointercancel', onUp);
       show(item);
-      if (e.type !== 'pointerup' || Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) < 4) return;
-      onChange?.(item.id, next(e));
+      if (e.type !== 'pointerup' || Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) < 4) { showGuides(layer); return; }
+      const n = next(e);
+      showGuides(layer);
+      onChange?.(item.id, n);
     };
     target.addEventListener('pointermove', onMove);
     target.addEventListener('pointerup', onUp);
@@ -210,8 +236,8 @@ export default function FreeLayer({ items, edit = null }) {
   return (
     <div className="ws-free" data-noedit="">
       {items.map((item) => (item.kind === 'line'
-        ? <LineItem key={item.id} item={item} editable={Boolean(edit)} selected={edit?.selectedId === item.id} onSelect={edit?.onSelect} onChange={edit?.onChange} />
-        : <FreeItem key={item.id} item={item} editable={Boolean(edit)} selected={edit?.selectedId === item.id} onSelect={edit?.onSelect} onChange={edit?.onChange} />
+        ? <LineItem key={item.id} item={item} others={edit ? items.filter((o) => o.id !== item.id) : undefined} editable={Boolean(edit)} selected={edit?.selectedId === item.id} onSelect={edit?.onSelect} onChange={edit?.onChange} />
+        : <FreeItem key={item.id} item={item} others={edit ? items.filter((o) => o.id !== item.id) : undefined} editable={Boolean(edit)} selected={edit?.selectedId === item.id} onSelect={edit?.onSelect} onChange={edit?.onChange} />
       ))}
     </div>
   );

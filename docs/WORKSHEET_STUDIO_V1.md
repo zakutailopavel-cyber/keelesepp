@@ -285,6 +285,10 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   Caveat), `align: left | center | right` (missing: left, a circle or oval centres), `color: auto | ink | navy | green |
   red | white` (auto: white on navy, ink elsewhere). One inline style `textStyle(item)` (freeLayer.js) draws the page,
   the typing box and the phone column alike; `freeProblem` refuses unknown values. Settings: Kiri, Joondus, Teksti värv.
+- Snapping (2026-11-14, agent/free-snap): while an item or a line is dragged, `snapItem(item, others)` pulls its edge
+  or middle (a line: its ends) onto the page edge, margin (9 / 11 mm) or middle, or onto another item's edge or middle
+  on the same page, within `SNAP_MM` = 2 mm; a pink guide (`.ws-free-guide`, never printed) shows it during the drag
+  only. Alt while dragging = no snapping. Resizing and the arrow keys do not snap. No data change.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures
