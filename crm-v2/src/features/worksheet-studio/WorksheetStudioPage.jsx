@@ -44,7 +44,7 @@ import './engine/sheet.css';
 import './engine/sheetFlow.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
-import { KIND_LABEL as FREE_KIND_LABEL, MAX_ITEMS as MAX_FREE, PAGE_W as FREE_PAGE_W, alignMany, freeItemsOf, itemsInFrame, moveItem, moveMany, newFreeItem, restack, restackMany, spreadMany } from './engine/freeLayer.js';
+import { KIND_LABEL as FREE_KIND_LABEL, MAX_ITEMS as MAX_FREE, CLIP_KEY as FREE_CLIP_KEY, PAGE_W as FREE_PAGE_W, alignMany, clipOf, copyToPages, pasteClip, freeItemsOf, itemsInFrame, moveItem, moveMany, newFreeItem, restack, restackMany, spreadMany } from './engine/freeLayer.js';
 import FreeFields, { FreeGroupFields } from './editor/FreeFields.jsx';
 import { FIGURE_TEXT, MAX_FIGURES, figureParagraphs, figuresOf, figuresPatch, newFigure } from './engine/figureFloat.js';
 import { MARK_KINDS, addMark } from './engine/marksModel.js';
@@ -149,6 +149,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   // more free items selected with it (Shift / Ctrl + tap, or „Vali mitu” on a touch screen)
   const [extraFreeIds, setExtraFreeIds] = useState([]);
   const [multiTap, setMultiTap] = useState(false);
+  // how many free items wait on the free-layer clipboard (kept in the browser, shared by all lessons)
+  const [clipCount, setClipCount] = useState(() => { try { return JSON.parse(globalThis.localStorage?.getItem(FREE_CLIP_KEY) || '[]').length || 0; } catch { return 0; } });
   const [pageCount, setPageCount] = useState(1);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState({});
@@ -513,6 +515,34 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     lastPush.current = 0; // the next edit of it is its own undo step
     selectFree(item.id);
     setNotice('Lohista element lehel paika, suurus nurgast. Plokid selle alt ei liigu.');
+  };
+  // copies on other pages of this sheet; the clipboard for another page or another lesson's Õpik
+  const selectMany = (ids) => { if (!ids.length) return; setSelectedId(null); setPanelOpen(true); setSelectedFreeId(ids[0]); setExtraFreeIds(ids.slice(1)); };
+  const copyFreeToPage = (to) => {
+    const made = copyToPages(freeItems, freeSel, to, pageCount);
+    if (!made.ids.length) { setNotice(`Vabas kihis võib olla kuni ${MAX_FREE} elementi.`); return; }
+    groupChange(made.items);
+    lastPush.current = 0;
+    selectMany(made.ids);
+    setNotice(`${made.ids.length === 1 ? 'Koopia on' : `${made.ids.length} koopiat on`} ${to === 'all' ? 'teistel lehtedel' : `${to + 1}. lehel`} samas kohas.${made.full ? ` Kõik ei mahtunud: kuni ${MAX_FREE} elementi.` : ''}`);
+  };
+  const clipFree = () => {
+    const clip = clipOf(freeItems, freeSel);
+    if (!clip.length) return;
+    try { globalThis.localStorage?.setItem(FREE_CLIP_KEY, JSON.stringify(clip)); } catch { setNotice('Lõikelauale ei saanud kopeerida (brauser ei luba).'); return; }
+    setClipCount(clip.length);
+    setNotice(`${clip.length === 1 ? 'Element' : `${clip.length} elementi`} lõikelaual. Kleebi: vali leht ja vajuta „Kleebi” (või Ctrl+V) — ka teise tunni Õpikus.`);
+  };
+  const pasteFree = () => {
+    let clip = [];
+    try { clip = JSON.parse(globalThis.localStorage?.getItem(FREE_CLIP_KEY) || '[]'); } catch { clip = []; }
+    if (!Array.isArray(clip) || !clip.length) { setNotice('Lõikelaud on tühi.'); return; }
+    const made = pasteClip(freeItems, clip, pageInView());
+    if (!made.ids.length) { setNotice(`Vabas kihis võib olla kuni ${MAX_FREE} elementi.`); return; }
+    groupChange(made.items);
+    lastPush.current = 0;
+    selectMany(made.ids);
+    setNotice(made.full ? `Kõik ei mahtunud: vabas kihis võib olla kuni ${MAX_FREE} elementi.` : 'Kleebitud lehele, mis on ekraani keskel.');
   };
   const duplicateFree = () => {
     if (!selectedFree || freeItems.length >= MAX_FREE) return;
@@ -954,6 +984,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     if (mode !== 'edit' || isTextTarget(event.target)) return;
     if ((event.ctrlKey || event.metaKey) && key === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
     if ((event.ctrlKey || event.metaKey) && key === 'y') { event.preventDefault(); redo(); return; }
+    if ((event.ctrlKey || event.metaKey) && key === 'c' && freeSel.length && !globalThis.getSelection?.()?.toString()) { event.preventDefault(); clipFree(); return; }
+    if ((event.ctrlKey || event.metaKey) && key === 'v' && canFree && clipCount) { event.preventDefault(); pasteFree(); return; }
     if (freeGroup.length) {
       if (key === 'delete' || key === 'backspace') { event.preventDefault(); deleteGroup(); return; }
       if ((event.ctrlKey || event.metaKey) && key === 'd') { event.preventDefault(); duplicateGroup(); return; }
@@ -1218,6 +1250,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                     <button type="button" className="ed-btn" onClick={() => addFree('line', { heads: 'end' })}><Icons.MoveRight size={14} aria-hidden="true" /> Nool</button>
                   </div>
                   <button type="button" className="ed-btn st-free-multi" aria-pressed={multiTap} onClick={() => setMultiTap(!multiTap)} title="Sees olles lisab iga puudutus elemendi valikusse ja lohistus lehel joonistab valikuraami (arvutis: Shift + klõps, Shift + lohista)"><Icons.SquareDashed size={14} aria-hidden="true" /> Vali mitu{multiTap ? ': sees' : ''}</button>
+                  {clipCount ? <button type="button" className="ed-btn st-free-multi" onClick={pasteFree} title="Kleebi lõikelaualt lehele, mis on ekraani keskel (Ctrl+V)"><Icons.ClipboardPaste size={14} aria-hidden="true" /> Kleebi ({clipCount})</button> : null}
                 </div>
               ) : null}{myTemplates.length ? (
                 <div className="st-group st-templates">
@@ -1262,10 +1295,10 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                 <button type="button" className="ed-btn" onClick={() => setPopSide(popSide === 'right' ? 'left' : 'right')} title="Vii paneel teisele poole" aria-label="Vii paneel teisele poole"><Icons.ArrowLeftRight size={15} aria-hidden="true" /></button>
                 <button type="button" className="ed-btn" onClick={() => setPanelOpen(false)} aria-label="Sulge seaded"><Icons.X size={15} aria-hidden="true" /></button>
               </div>
-              {freeGroup.length ? <FreeGroupFields items={freeGroup} onAlign={alignGroup} onSpread={spreadGroup} onLayer={restackGroup} onDuplicate={duplicateGroup} onDelete={deleteGroup} onClear={clearFree} />
+              {freeGroup.length ? <FreeGroupFields items={freeGroup} pages={pageCount} onToPage={copyFreeToPage} onClip={clipFree} onAlign={alignGroup} onSpread={spreadGroup} onLayer={restackGroup} onDuplicate={duplicateGroup} onDelete={deleteGroup} onClear={clearFree} />
                 : <FreeFields key={selectedFree.id} item={selectedFree} pages={pageCount} set={patchFree}
                   onLayer={restackFree}
-                  onDuplicate={duplicateFree} onDelete={deleteFree} />}
+                  onDuplicate={duplicateFree} onDelete={deleteFree} onToPage={copyFreeToPage} onClip={clipFree} />}
             </aside>
           ) : null}
           {mode === 'edit' && (

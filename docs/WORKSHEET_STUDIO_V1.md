@@ -303,6 +303,12 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   (the page then takes the finger instead of scrolling), or a drag that starts on the bare page draws a pink dashed
   frame (`.ws-free-band`, studio `startFrame`, pointerdown capture on the canvas); every free item of that page it
   touches joins the selection (`itemsInFrame`). A tap (< 2 mm) is not a frame. Not in the phone column view.
+- Copies to other pages and the clipboard (2026-11-14, agent/free-copy-page): settings „Kopeeri samasse kohta lehele”
+  1. / 2. / … / „Kõikidele lehtedele” (`copyToPages`: same place and look, on top, unlocked, new ids, ≤ MAX_ITEMS).
+  „Lõikelauale” / Ctrl+C keeps the selection without ids / page / layer / lock in the browser (`localStorage`
+  `ks.freeLayerClipboard`, `clipOf`); „Kleebi (N)” in the palette / Ctrl+V pastes it on the page in the middle of the
+  screen (`pasteClip`, normalized; shifted 6 mm when the same things already stand there) — also in another lesson's
+  Õpik. The clipboard is per browser, not shared between devices.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures
