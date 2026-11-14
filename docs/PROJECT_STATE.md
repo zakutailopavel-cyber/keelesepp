@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-copy-page — Õpik „Vaba kiht”: copy to another page, clipboard between lessons · crm-v2 only, no rules / functions / data change
+
+- Base `origin/main` after #1231, checked 2026-11-14. Owner 2026-11-14: „да, делай копирование на другую страницу”.
+- Done: `copyToPages`, `CLIP_KEY`, `clipOf`, `pasteClip` in `engine/freeLayer.js`; „Kopeeri samasse kohta lehele” and „Lõikelauale” in `editor/FreeFields.jsx` (single and group); studio `copyFreeToPage`, `clipFree`, `pasteFree`, Ctrl+C / Ctrl+V, palette „Kleebi (N)` in `WorksheetStudioPage.jsx`. Contract in `docs/WORKSHEET_STUDIO_V1.md`.
+- Checks: `freeLayer.test.jsx` +2, `freeStudio.test.jsx` +1. Same 7-area vitest run (`--maxWorkers=3`) → 278 files passed (1 skipped), 2726 tests passed; eslint changed files 0 errors.
+- Limits: the clipboard lives in one browser (iPad and Mac don't share it); page buttons show only on sheets with 2+ pages; not tried on a real iPad.
+- Next safe step: owner copies a picture to „Kõikidele lehtedele” on a long Õpik page.
+
 ## 2026-11-14 · agent/free-frame — Õpik „Vaba kiht”: selection frame · crm-v2 only, no rules / functions / data change
 
 - Base `origin/main` after #1230, checked 2026-11-14. Owner 2026-11-14: „да, делай выделение рамкой”.

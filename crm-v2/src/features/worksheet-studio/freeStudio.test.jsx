@@ -169,3 +169,20 @@ it('Õpik: Shift + drag on the page draws a frame that selects the boxes it touc
   expect(page.querySelector('.ws-free-band')).toBeNull();
   expect(screen.getByRole('complementary', { name: 'Vaba elemendi seaded' }).textContent).toContain('2 valitud');
 });
+
+it('Õpik: „Lõikelauale” keeps the box in the browser; „Kleebi” puts a copy on the sheet (also in another lesson)', async () => {
+  store.clear();
+  const first = open('opik');
+  await waitFor(() => expect(first.container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Tekstikast/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Lõikelauale' }));
+  expect(JSON.parse(store.get('ks.freeLayerClipboard'))).toEqual([expect.objectContaining({ kind: 'text', text: 'Kirjuta siia' })]);
+  fireEvent.click(screen.getByRole('button', { name: /Kleebi \(1\)/ }));
+  expect(first.container.querySelectorAll('.ws-page .ws-free [data-free]')).toHaveLength(2);
+  first.unmount();
+  const second = open('opik');
+  await waitFor(() => expect(second.container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Kleebi \(1\)/ }));
+  expect(second.container.querySelectorAll('.ws-page .ws-free [data-free]')).toHaveLength(1);
+  store.clear();
+});

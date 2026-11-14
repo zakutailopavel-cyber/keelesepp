@@ -211,6 +211,37 @@ export const boxOf = (item) => (item.kind === 'line'
   : { x0: item.x, y0: item.y, x1: item.x + item.w, y1: item.y + item.h });
 export const GROUP_ALIGNS = Object.freeze(['left', 'centerX', 'right', 'top', 'centerY', 'bottom']);
 export const GROUP_ALIGN_LABEL = { left: 'Vasakud servad', centerX: 'Keskjoon ↕', right: 'Paremad servad', top: 'Ülemised servad', centerY: 'Keskjoon ↔', bottom: 'Alumised servad' };
+// Copies to other pages (2026-11-14): the chosen items, same place and look, on page `to` ('all' = every other
+// page), on top of the layers, unlocked, new ids. Returns the new list and the copies' ids; nothing past MAX_ITEMS.
+export function copyToPages(items, ids, to, pages) {
+  const last = Math.max(0, pages - 1);
+  const chosen = items.filter((it) => ids.includes(it.id)).sort((a, b) => a.z - b.z);
+  const targets = (from) => (to === 'all' ? Array.from({ length: pages }, (_, i) => i).filter((p) => p !== from) : [to]);
+  let z = items.reduce((top, it) => Math.max(top, num(it.z)), 0);
+  const copies = [];
+  for (const it of chosen) {
+    for (const page of targets(Math.min(it.page, last))) {
+      if (items.length + copies.length >= MAX_ITEMS) break;
+      copies.push({ ...it, id: newFreeId(), page, z: (z += 1), locked: false });
+    }
+  }
+  return { items: [...items, ...copies], ids: copies.map((c) => c.id), full: copies.length < chosen.length * (to === 'all' ? Math.max(0, pages - 1) : 1) };
+}
+// the clipboard of the free layer: kept in the browser so it can be pasted into another lesson's Õpik too
+export const CLIP_KEY = 'ks.freeLayerClipboard';
+export const clipOf = (items, ids) => items.filter((it) => ids.includes(it.id)).sort((a, b) => a.z - b.z).map((it) => { const rest = { ...it }; delete rest.id; delete rest.page; delete rest.z; delete rest.locked; return rest; });
+// paste the clipboard on page `page`; if the same things already stand there, the copies shift by 6 mm to show
+export function pasteClip(items, clip, page) {
+  let z = items.reduce((top, it) => Math.max(top, num(it.z)), 0);
+  const same = clip.every((c) => items.some((it) => it.page === page && it.kind === c.kind && it.x === c.x && it.y === c.y));
+  const room = Math.max(0, MAX_ITEMS - items.length);
+  const copies = clip.slice(0, room).map((c) => {
+    const base = normalizeFreeItem({ ...c, id: newFreeId(), page, z: (z += 1), locked: false });
+    return base && same ? moveItem(base, 6, 6) : base;
+  }).filter(Boolean);
+  return { items: [...items, ...copies], ids: copies.map((c) => c.id), full: copies.length < clip.length };
+}
+
 // a frame drawn on page `page` (mm, any corner order) catches every item of that page it touches
 export function itemsInFrame(items, page, pages, frame) {
   const f = { x0: Math.min(frame.x0, frame.x1), x1: Math.max(frame.x0, frame.x1), y0: Math.min(frame.y0, frame.y1), y1: Math.max(frame.y0, frame.y1) };

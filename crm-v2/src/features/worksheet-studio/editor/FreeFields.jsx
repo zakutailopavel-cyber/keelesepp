@@ -7,7 +7,7 @@ const SHAPE_LABEL = { rect: 'Ristkülik', rounded: 'Ümarad nurgad', circle: 'Ri
 const BORDER_LABEL = { none: 'Ilma raamita', ink: 'Must joon', lime: 'Laimiroheline joon' };
 const TURNS = [-15, -10, -5, -3, 0, 3, 5, 10, 15, 90, -90];
 
-export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate, onDelete }) {
+export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate, onDelete, onToPage, onClip }) {
   const locked = item.locked === true;
   const guard = (patch) => { if (!locked) set(patch); };
   return (
@@ -60,8 +60,10 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
         <button type="button" className="ed-btn" onClick={() => onLayer('bottom')}>Kõige alla</button>
       </div>
       <label className="ed-check"><input type="checkbox" checked={locked} onChange={(e) => set({ locked: e.target.checked })} /> Lukusta (asukoht ja suurus ei muutu)</label>
+      <CopyToPage pages={pages} onToPage={onToPage} />
       <div className="ed-free-actions">
         <button type="button" className="ed-btn" onClick={onDuplicate}>Kopeeri</button>
+        <button type="button" className="ed-btn" onClick={onClip} title="Kopeeri lõikelauale, et kleepida teisele lehele või teise tunni Õpikusse (Ctrl+C / Ctrl+V)">Lõikelauale</button>
         <button type="button" className="ed-btn ed-danger" onClick={onDelete}>Kustuta</button>
       </div>
     </div>
@@ -69,7 +71,7 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
 }
 
 // Several items selected (2026-11-14): line them up with each other, equal gaps, layer, copy, delete, unselect.
-export function FreeGroupFields({ items, onAlign, onSpread, onLayer, onDuplicate, onDelete, onClear }) {
+export function FreeGroupFields({ items, pages = 1, onAlign, onSpread, onLayer, onDuplicate, onDelete, onClear, onToPage, onClip }) {
   const locked = items.filter((it) => it.locked).length;
   return (
     <div className="ed-free">
@@ -90,11 +92,25 @@ export function FreeGroupFields({ items, onAlign, onSpread, onLayer, onDuplicate
         <button type="button" className="ed-btn" onClick={() => onLayer('top')}>Kõige peale</button>
         <button type="button" className="ed-btn" onClick={() => onLayer('bottom')}>Kõige alla</button>
       </div>
+      <CopyToPage pages={pages} onToPage={onToPage} />
       <div className="ed-free-actions">
         <button type="button" className="ed-btn" onClick={onDuplicate}>Kopeeri kõik</button>
+        <button type="button" className="ed-btn" onClick={onClip} title="Kopeeri lõikelauale, et kleepida teisele lehele või teise tunni Õpikusse (Ctrl+C / Ctrl+V)">Lõikelauale</button>
         <button type="button" className="ed-btn ed-danger" onClick={onDelete}>Kustuta kõik</button>
         <button type="button" className="ed-btn" onClick={onClear}>Tühista valik</button>
       </div>
+    </div>
+  );
+}
+
+// „Kopeeri lehele”: the same thing at the same place on another page, or on every other page (a page frame, a header)
+function CopyToPage({ pages, onToPage }) {
+  if (!onToPage || pages < 2) return null;
+  return (
+    <div className="ed-free-layer" role="group" aria-label="Kopeeri lehele">
+      <span className="ed-label">Kopeeri samasse kohta lehele</span>
+      {Array.from({ length: pages }, (_, i) => <button key={i} type="button" className="ed-btn" onClick={() => onToPage(i)}>{i + 1}.</button>)}
+      <button type="button" className="ed-btn" onClick={() => onToPage('all')}>Kõikidele lehtedele</button>
     </div>
   );
 }

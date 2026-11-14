@@ -315,3 +315,33 @@ it('a selection frame catches the items of its page it touches (2026-11-14)', ()
   expect(itemsInFrame(list, 1, 2, { x0: 0, y0: 0, x1: 50, y1: 50 })).toEqual(['p2']);
   expect(itemsInFrame(list, 0, 1, { x0: 0, y0: 0, x1: 45, y1: 45 }).sort()).toEqual(['a', 'p2']); // page 2 is gone: its items stand on the last
 });
+
+describe('copy to other pages and the clipboard (2026-11-14)', () => {
+  it('copies keep place and look on the target page, on top, unlocked, with new ids', async () => {
+    const { copyToPages } = await import('./freeLayer.js');
+    const list = [item({ id: 'a', x: 10, y: 20, z: 1, locked: true }), item({ id: 'b', page: 1, x: 50, y: 60, z: 2 })];
+    const one = copyToPages(list, ['a'], 2, 3);
+    expect(one.items).toHaveLength(3);
+    expect(one.items[2]).toMatchObject({ page: 2, x: 10, y: 20, z: 3, locked: false, fill: 'lime' });
+    expect(one.ids).toEqual([one.items[2].id]);
+    expect(one.items[2].id).not.toBe('a');
+    const all = copyToPages(list, ['a', 'b'], 'all', 3);
+    expect(all.items.slice(2).map((it) => it.page).sort()).toEqual([0, 1, 2, 2]);
+    const full = copyToPages(Array.from({ length: 39 }, (_, i) => item({ id: `i${i}` })), ['i0'], 'all', 4);
+    expect(full.ids).toHaveLength(1);
+    expect(full.full).toBe(true);
+  });
+
+  it('the clipboard leaves out ids / page / layer; a paste lands on the page, shifted if the same things stand there', async () => {
+    const { clipOf, pasteClip } = await import('./freeLayer.js');
+    const list = [item({ id: 'a', x: 10, y: 20, z: 1 }), item({ id: 'b', x: 80, y: 20, z: 2, locked: true })];
+    const clip = clipOf(list, ['a', 'b']);
+    expect(clip[0]).not.toHaveProperty('id');
+    expect(clip[1]).not.toHaveProperty('locked');
+    const here = pasteClip(list, clip, 0);
+    expect(here.items.slice(2)).toEqual([expect.objectContaining({ x: 16, y: 26, page: 0, z: 3 }), expect.objectContaining({ x: 86, y: 26, z: 4, locked: false })]);
+    const other = pasteClip([], clip, 1);
+    expect(other.items).toEqual([expect.objectContaining({ x: 10, y: 20, page: 1 }), expect.objectContaining({ x: 80, page: 1 })]);
+    expect(pasteClip([], [{ kind: 'bogus' }], 0).ids).toEqual([]);
+  });
+});
