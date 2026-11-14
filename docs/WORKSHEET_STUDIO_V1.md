@@ -319,6 +319,14 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   overflow hidden). Double click on the picture → crop mode (`is-cropping`): a drag pans the focus (`panFocus`, one
   undo step), − / + zoom by 25 %, „Valmis” / Esc / Enter ends; the frame itself does not move. Settings: „Suurendus”
   slider, „Tühista kadreerimine”. Nothing is cut from the file. The phone column keeps the frame's proportions.
+- „Teksti taha” (2026-11-14, agent/free-behind): optional `behind: true` draws the item in a back layer
+  (`.ws-free.is-behind`, z-index −1 inside the page, which is `isolation: isolate`) under the blocks — a coloured
+  panel behind tasks, a photo behind a title. Settings checkbox „Teksti taha”; group buttons „Teksti taha / ette”.
+  Palette toggle „Muuda tausta” (only when the sheet has back items) lifts the back layer over the blocks
+  (`is-lifted`, pink dashed outlines) to move and size it; off again puts it back.
+- Ready layouts (2026-11-14, agent/free-behind): palette „Valmis kujundused” — Peatüki avaleht, Dialoog (2 tegelast),
+  Sõnapildid 3 × 2, Taustapaneel teksti taha, Pea meeles! (`presetItems(key, page, items)`, ≤ MAX_ITEMS). The set
+  lands on the page in view, selected together; pictures are empty frames to fill.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures

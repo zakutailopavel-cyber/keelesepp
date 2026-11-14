@@ -66,6 +66,7 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
         <button type="button" className="ed-btn" onClick={() => onLayer('down')}>Alla</button>
         <button type="button" className="ed-btn" onClick={() => onLayer('bottom')}>Kõige alla</button>
       </div>
+      <label className="ed-check"><input type="checkbox" checked={item.behind === true} onChange={(e) => set({ behind: e.target.checked })} /> Teksti taha (taust: plokid on selle peal)</label>
       <label className="ed-check"><input type="checkbox" checked={locked} onChange={(e) => set({ locked: e.target.checked })} /> Lukusta (asukoht ja suurus ei muutu)</label>
       <CopyToPage pages={pages} onToPage={onToPage} />
       <div className="ed-free-actions">
@@ -78,7 +79,7 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
 }
 
 // Several items selected (2026-11-14): line them up with each other, equal gaps, layer, copy, delete, unselect.
-export function FreeGroupFields({ items, pages = 1, onAlign, onSpread, onLayer, onDuplicate, onDelete, onClear, onToPage, onClip }) {
+export function FreeGroupFields({ items, pages = 1, onBehind, onAlign, onSpread, onLayer, onDuplicate, onDelete, onClear, onToPage, onClip }) {
   const locked = items.filter((it) => it.locked).length;
   return (
     <div className="ed-free">
@@ -98,6 +99,8 @@ export function FreeGroupFields({ items, pages = 1, onAlign, onSpread, onLayer, 
         <span className="ed-label">Kiht</span>
         <button type="button" className="ed-btn" onClick={() => onLayer('top')}>Kõige peale</button>
         <button type="button" className="ed-btn" onClick={() => onLayer('bottom')}>Kõige alla</button>
+        {onBehind ? <button type="button" className="ed-btn" onClick={() => onBehind(true)}>Teksti taha</button> : null}
+        {onBehind ? <button type="button" className="ed-btn" onClick={() => onBehind(false)}>Teksti ette</button> : null}
       </div>
       <CopyToPage pages={pages} onToPage={onToPage} />
       <div className="ed-free-actions">

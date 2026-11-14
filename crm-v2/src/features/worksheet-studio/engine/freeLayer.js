@@ -128,6 +128,7 @@ export function normalizeFreeItem(item) {
     z: Math.floor(num(item.z)),
     rotate: clamp(num(item.rotate), -180, 180),
     locked: item.locked === true,
+    behind: item.behind === true,
     shape: (item.kind === 'image' ? IMAGE_SHAPES : FREE_SHAPES).includes(item.shape) ? item.shape : 'rect',
     tail: TAILS.includes(item.tail) ? item.tail : 'bl',
     zoom: clampZoom(item.zoom),
@@ -155,6 +156,7 @@ function normalizeLine(item) {
     page: Math.max(0, Math.floor(num(item.page))),
     z: Math.floor(num(item.z)),
     locked: item.locked === true,
+    behind: item.behind === true,
     color: LINE_COLORS.includes(item.color) ? item.color : 'ink',
     stroke: clamp(num(item.stroke, 1), 0.3, 4),
     heads: LINE_HEADS.includes(item.heads) ? item.heads : 'none',
@@ -173,6 +175,8 @@ export function moveEnd(item, end, dx, dy) {
 
 export const freeItemsOf = (doc) => (Array.isArray(doc?.free) ? doc.free.map(normalizeFreeItem).filter(Boolean) : []);
 
+// „Teksti taha” (2026-11-14): `behind: true` puts an item under the blocks — a coloured panel behind a task, a photo
+// behind the title, a watermark. The constructor lifts the back layer over the blocks while „Muuda tausta” is on.
 // the items drawn on page `page` of `pages`, bottom layer first (a missing page → the last one)
 export function itemsOnPage(items, page, pages) {
   const last = Math.max(0, pages - 1);
@@ -384,4 +388,52 @@ export function freeProblem(doc) {
     if (String(item.text || '').length > 600) return 'Tekstikasti tekst on liiga pikk (kuni 600 märki).';
   }
   return '';
+}
+
+// Ready layouts for a textbook page (2026-11-14): one tap puts a set of free items on the page, selected together, to
+// be moved and filled in (pictures are empty frames to fill with „Vaheta foto”). Measures are mm on the design page.
+export const PRESET_LABEL = {
+  opener: 'Peatüki avaleht',
+  dialogue: 'Dialoog (2 tegelast)',
+  words: 'Sõnapildid 3 × 2',
+  panel: 'Taustapaneel teksti taha',
+  remember: 'Pea meeles!',
+};
+const PRESETS = {
+  opener: [
+    ['image', { x: 9, y: 85, w: 252, h: 150, shape: 'rounded' }],
+    ['text', { shape: 'ribbon', fill: 'navy', text: 'Peatüki pealkiri', x: 45, y: 222, w: 180, h: 28, size: 20, font: 'head', align: 'center' }],
+    ['text', { shape: 'burst', fill: 'lime', text: '1. peatükk', x: 205, y: 72, w: 55, h: 55, size: 13, font: 'head' }],
+    ['text', { shape: 'rounded', fill: 'cream', text: 'Selles peatükis õpid …', x: 9, y: 258, w: 252, h: 22, size: 13, bold: false }],
+  ],
+  dialogue: [
+    ['image', { x: 12, y: 130, w: 45, h: 45, shape: 'circle' }],
+    ['text', { shape: 'bubble', tail: 'bl', fill: 'white', border: 'ink', text: 'Tere! Kuidas läheb?', bold: false, x: 40, y: 92, w: 95, h: 40, align: 'center' }],
+    ['image', { x: 213, y: 130, w: 45, h: 45, shape: 'circle' }],
+    ['text', { shape: 'bubble', tail: 'br', fill: 'sky', border: 'none', text: 'Hästi, aitäh! Ja sinul?', bold: false, x: 135, y: 92, w: 95, h: 40, align: 'center' }],
+  ],
+  words: [0, 1, 2, 3, 4, 5].flatMap((i) => {
+    const x = 9 + (i % 3) * 86;
+    const y = 90 + Math.floor(i / 3) * 78;
+    return [
+      ['image', { x, y, w: 80, h: 56, shape: 'rounded' }],
+      ['text', { shape: 'rect', fill: 'none', text: 'sõna', bold: true, x, y: y + 57, w: 80, h: 14, size: 13, align: 'center' }],
+    ];
+  }),
+  panel: [
+    ['shape', { shape: 'rounded', fill: 'sky', x: 5, y: 85, w: 260, h: 120, behind: true }],
+  ],
+  remember: [
+    ['shape', { shape: 'rounded', fill: 'cream', border: 'lime', x: 15, y: 140, w: 240, h: 70, behind: true }],
+    ['text', { shape: 'ribbon', fill: 'lime', text: 'Pea meeles!', x: 20, y: 132, w: 70, h: 16, size: 13, font: 'head', align: 'center' }],
+  ],
+};
+export const PRESET_KEYS = Object.freeze(Object.keys(PRESETS));
+// the new items of layout `key` on page `page` (on top of `items`), or [] when they would not fit
+export function presetItems(key, page, items) {
+  const parts = PRESETS[key];
+  if (!parts || items.length + parts.length > MAX_ITEMS) return [];
+  const made = [];
+  for (const [kind, patch] of parts) made.push(newFreeItem(kind, page, [...items, ...made], patch));
+  return made;
 }

@@ -197,3 +197,24 @@ it('Õpik: „Jutumull” adds a speech bubble; its tail turns from the settings
   await waitFor(() => expect(save).toHaveBeenCalled());
   expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ kind: 'text', shape: 'bubble', tail: 'tl', fill: 'white', border: 'ink' })]);
 });
+
+it('Õpik: „Teksti taha” puts a box behind the blocks; „Muuda tausta” lifts the back layer to edit it', async () => {
+  const { container, save } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Kujund/ }));
+  fireEvent.click(screen.getByLabelText(/Teksti taha/));
+  expect(container.querySelector('.ws-free.is-behind [data-free]')).not.toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: /Muuda tausta/ }));
+  expect(container.querySelector('.ws-free.is-behind').className).toContain('is-lifted');
+  fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+  await waitFor(() => expect(save).toHaveBeenCalled());
+  expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ kind: 'shape', behind: true })]);
+});
+
+it('Õpik: „Dialoog” puts two characters with bubbles on the page, selected together', async () => {
+  const { container } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: 'Dialoog (2 tegelast)' }));
+  expect(container.querySelectorAll('.ws-page .ws-free [data-free]')).toHaveLength(4);
+  expect(screen.getByRole('complementary', { name: 'Vaba elemendi seaded' }).textContent).toContain('4 valitud');
+});

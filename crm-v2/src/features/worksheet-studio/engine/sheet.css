@@ -1101,6 +1101,10 @@ button.ws-pt { cursor: pointer; }
 
 /* ---- „Vaba kiht”: pictures, shapes and text boxes placed freely on an Õpik page (freeLayer.js, FreeLayer.jsx) ---- */
 .ws-free { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.ws-page { isolation: isolate; }
+.ws-free.is-behind { z-index: -1; }
+.ws-free.is-behind.is-lifted { z-index: 4; }
+.mode-edit .ws-free.is-behind.is-lifted .ws-free-item { outline: .4mm dashed #e0368a; outline-offset: .4mm; }
 .ws-free-band { position: absolute; z-index: 1000; pointer-events: none; border: 0.4mm dashed #e0368a; background: rgba(224, 54, 138, 0.08); box-sizing: border-box; }
 .ws-free-guide { position: absolute; z-index: 999; pointer-events: none; background: #e0368a; }
 .ws-free-guide.is-x { top: 0; bottom: 0; width: 0.35mm; margin-left: -0.175mm; }

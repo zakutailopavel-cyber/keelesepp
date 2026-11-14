@@ -311,25 +311,29 @@ function LineItem({ item, others = [], editable, selected, single = true, group 
 export default function FreeLayer({ items, edit = null }) {
   if (!items.length) return null;
   const ids = edit ? (edit.selectedIds || (edit.selectedId ? [edit.selectedId] : [])) : [];
+  const draw = (item) => {
+    const chosen = ids.includes(item.id);
+    const props = {
+      item,
+      others: edit ? items.filter((o) => o.id !== item.id && !ids.includes(o.id)) : undefined,
+      editable: Boolean(edit),
+      selected: chosen,
+      single: ids.length <= 1,
+      group: chosen && ids.length > 1 ? ids.filter((id) => id !== item.id) : [],
+      multi: Boolean(edit?.multi),
+      onSelect: edit?.onSelect,
+      onChange: edit?.onChange,
+      onMoveMany: edit?.onMoveMany,
+    };
+    return item.kind === 'line' ? <LineItem key={item.id} {...props} /> : <FreeItem key={item.id} {...props} />;
+  };
+  const back = items.filter((item) => item.behind);
+  const front = items.filter((item) => !item.behind);
   return (
-    <div className="ws-free" data-noedit="">
-      {items.map((item) => {
-        const chosen = ids.includes(item.id);
-        const props = {
-          item,
-          others: edit ? items.filter((o) => o.id !== item.id && !ids.includes(o.id)) : undefined,
-          editable: Boolean(edit),
-          selected: chosen,
-          single: ids.length <= 1,
-          group: chosen && ids.length > 1 ? ids.filter((id) => id !== item.id) : [],
-          multi: Boolean(edit?.multi),
-          onSelect: edit?.onSelect,
-          onChange: edit?.onChange,
-          onMoveMany: edit?.onMoveMany,
-        };
-        return item.kind === 'line' ? <LineItem key={item.id} {...props} /> : <FreeItem key={item.id} {...props} />;
-      })}
-    </div>
+    <>
+      {back.length ? <div className={`ws-free is-behind${edit?.backFront ? ' is-lifted' : ''}`} data-noedit="">{back.map(draw)}</div> : null}
+      {front.length ? <div className="ws-free" data-noedit="">{front.map(draw)}</div> : null}
+    </>
   );
 }
 

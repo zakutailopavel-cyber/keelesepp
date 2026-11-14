@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-behind — Õpik „Vaba kiht”: items behind the text, ready textbook layouts · crm-v2 only, no rules / functions change
+
+- Base `origin/main` after #1236, checked 2026-11-14. Owner 2026-11-14: „то, что действительно позволит делать страницы учебника … потом занимаемся самим курсом”.
+- Done: `behind` on free items (normalize; back layer in `engine/FreeLayer.jsx`; `.ws-page { isolation: isolate }`, `.ws-free.is-behind` / `.is-lifted` in `engine/sheet.css`); settings „Teksti taha”, group „Teksti taha / ette” (`editor/FreeFields.jsx`); palette „Muuda tausta” toggle and „Valmis kujundused” (`PRESET_KEYS`, `PRESET_LABEL`, `presetItems` in `engine/freeLayer.js`; `WorksheetStudioPage.jsx`; icon `Layers`). Contract in `docs/WORKSHEET_STUDIO_V1.md`.
+- Checks: `freeLayer.test.jsx` +2, `freeStudio.test.jsx` +2. Same 7-area vitest run (`--maxWorkers=3`) → 278 files passed (1 skipped), 2735 tests passed; eslint changed files 0 errors. Lab (headless Chrome): sky panel and lime circle behind the sample tasks, a burst in front; the five layouts rendered below the page header.
+- Limits: a back item covered by blocks is reached through „Muuda tausta” or the selection frame; layouts are placed for a page with the sheet header; not tried on a real iPad.
+- Next safe step: owner makes one Õpik chapter opener with „Peatüki avaleht” and a photo.
+
 ## 2026-11-14 · agent/free-crop — Õpik „Vaba kiht”: crop a picture in its frame (zoom + pan) · crm-v2 only, no rules / functions change
 
 - Base `origin/main` after #1234, checked 2026-11-14. Owner 2026-11-14: „да, делай кадрирование фото”.

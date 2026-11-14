@@ -401,3 +401,28 @@ describe('cropping a picture (2026-11-14)', () => {
     expect(node.className).not.toContain('is-cropping');
   });
 });
+
+it('„Teksti taha”: items with behind go to a back layer under the blocks; the constructor can lift it (2026-11-14)', () => {
+  const free = [item({ id: 'back', behind: true, fill: 'sky' }), item({ id: 'front' })];
+  expect(normalizeFreeItem(free[0]).behind).toBe(true);
+  expect(normalizeFreeItem(free[1]).behind).toBe(false);
+  const { container, rerender } = render(<Sheet doc={docWith(free)} mode="print" />);
+  expect(container.querySelector('.ws-free.is-behind [data-free="back"]')).not.toBeNull();
+  expect(container.querySelector('.ws-free:not(.is-behind) [data-free="front"]')).not.toBeNull();
+  rerender(<Sheet doc={docWith(free)} mode="edit" freeEdit={{ selectedId: null, backFront: true, onSelect: vi.fn(), onChange: vi.fn() }} />);
+  expect(container.querySelector('.ws-free.is-behind').className).toContain('is-lifted');
+});
+
+it('ready layouts: every layout makes valid items on the page, on top; too many → nothing (2026-11-14)', async () => {
+  const { PRESET_KEYS, presetItems } = await import('./freeLayer.js');
+  for (const key of PRESET_KEYS) {
+    const made = presetItems(key, 1, [item({ id: 'old', z: 7 })]);
+    expect(made.length).toBeGreaterThan(0);
+    expect(made.every((it) => it.page === 1 && it.z > 7)).toBe(true);
+    expect(freeProblem({ free: made })).toBe('');
+  }
+  expect(presetItems('words', 0, []).filter((it) => it.kind === 'image')).toHaveLength(6);
+  expect(presetItems('panel', 0, [])[0].behind).toBe(true);
+  expect(presetItems('words', 0, Array.from({ length: 35 }, (_, i) => item({ id: `i${i}` })))).toEqual([]);
+  expect(presetItems('nope', 0, [])).toEqual([]);
+});
