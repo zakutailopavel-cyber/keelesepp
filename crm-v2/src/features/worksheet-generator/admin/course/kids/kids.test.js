@@ -10,9 +10,9 @@ import fs from 'node:fs';
 
 describe('children’s courses 5–6, 6–7, 8–9 and the speaking club 10–12', () => {
   it('three courses of 12 lessons, each with three sheets', () => {
-    expect(KIDS_PROGRAMS.map((p) => p.lessons.length)).toEqual([12, 12, 12, 12]);
+    expect(KIDS_PROGRAMS.map((p) => p.lessons.length)).toEqual([12, 12, 12, 20]);
     KIDS_MODULES.forEach((mod) => {
-      expect(Object.keys(mod.LESSONS)).toHaveLength(12);
+      expect(Object.keys(mod.LESSONS)).toHaveLength(mod.MODULE.id.startsWith('k11') ? 20 : 12);
       Object.values(mod.LESSONS).forEach((lesson) => ['discover', 'practice', 'transfer'].forEach((p) => expect(lesson[p].length, `${lesson.title} ${p}`).toBeGreaterThanOrEqual(3)));
     });
   });

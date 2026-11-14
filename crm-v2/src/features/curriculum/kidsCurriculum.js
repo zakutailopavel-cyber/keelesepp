@@ -76,7 +76,8 @@ function clubPlan(program, lesson, n) {
   const [extraTitle] = lesson.extra;
   return [
     `Курс: ${program.title} — 2 урока по 45 минут с перекусом между ними, группа детей ~11 лет, уровень A1–A2.`,
-    `Встреча ${n} из 12: ${lesson.title} (${lesson.ru}).`,
+    `Модуль ${lesson.module} «${lesson.moduleTitle}», встреча ${lesson.inModule} из 4 (всего ${n} из ${program.lessons.length}): ${lesson.title} (${lesson.ru}).`,
+    ...(lesson.inModule === 4 && !lesson.celebration ? ['Это встреча-проект модуля: повторение всего модуля и общий проект. Подготовить: листы А3, клей, фломастеры, ножницы.'] : []),
     `Цель: ${lesson.can}`,
     `Речевой фокус: ${lesson.focus}.`,
     `Слова: ${lesson.words.map(([w, ru]) => `${w} (${ru})`).join(', ')}.`,
@@ -116,6 +117,7 @@ export function kidsCurriculumRecords() {
     const number = index + 1;
     const id = `${program.id}-${pad(number)}`;
     const celebration = Boolean(lesson.celebration);
+    const project = !celebration && lesson.inModule === 4;
     return {
       id,
       type: 'lesson',
@@ -125,19 +127,20 @@ export function kidsCurriculumRecords() {
       subject: 'Eesti keel',
       level: program.level,
       levelStage: program.level,
-      topic: `01. ${program.title}`,
+      topic: lesson.module ? `${String(lesson.module).padStart(2, '0')}. ${lesson.moduleTitle}` : `01. ${program.title}`,
       order: number,
       curriculumId: `kids-${program.id}-v1`,
       curriculumTitle: `KeeleSepp lastele: ${program.title}`,
       roadmapLessonId: id,
       roadmapLessonNumber: number,
-      roadmapModuleId: `${program.id}-module-01`,
-      roadmapModuleNumber: 1,
-      roadmapModuleTitle: program.title,
-      roadmapModuleGoal: program.goal,
-      roadmapKind: celebration ? 'check' : 'theme',
-      roadmapTag: celebration ? 'Pidu' : 'Teema',
-      lessonTypeLabel: celebration ? 'Pidu' : 'Teema',
+      // the speaking club has five modules of four meetings (lesson.module); the Sunday groups one module
+      roadmapModuleId: `${program.id}-module-${String(lesson.module || 1).padStart(2, '0')}`,
+      roadmapModuleNumber: lesson.module || 1,
+      roadmapModuleTitle: lesson.moduleTitle || program.title,
+      roadmapModuleGoal: lesson.moduleGoal || program.goal,
+      roadmapKind: celebration ? 'check' : project ? 'project' : 'theme',
+      roadmapTag: celebration ? 'Pidu' : project ? 'Projekt' : 'Teema',
+      lessonTypeLabel: celebration ? 'Pidu' : project ? 'Projekt' : 'Teema',
       goal: lesson.can,
       languageFocus: lesson.grammar || lesson.focus || wordsOf(lesson).slice(0, 6).join(', '),
       contactMinutes: program.minutes,
