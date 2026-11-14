@@ -68,9 +68,9 @@ Owner 2026-11-15: a speaking club for ~11-year-olds starts on 16.11 — programm
 opened and printed by the teacher on the site. Content: `kids/club11.js` (CLUB_11), sheets `kids/sheets.js` clubLesson,
 teacher's plan `kidsCurriculum.js` clubPlan (lesson 1 · snack · lesson 2). Records `k11-001…012`, level „Klubi 10–12 a”
 (Õppevara → Lastele).
-Sheets per meeting: 1 „Kaardid” (print and cut: 12 word cards with pictures, 8 question cards, role cards A/B, extra cards —
+Each sheet opens with a textbook opener on the Õpik free layer (children in circles with speech bubbles, ribbon, burst, word pictures). Sheets per meeting: 1 „Kaardid” (print and cut: 12 word cards with pictures, 8 question cards, role cards A/B, extra cards —
 identity cards, menu, weather, quiz …), 2 „Tund 1: räägime” (words with Russian, „Räägime nii”, dialogue with gaps,
-question ↔ answer, gaps, „Leia keegi, kes …”), 3 „Tund 2: mängime ja esineme” (snack phrases, word order, crossword
+question ↔ answer, gaps, „Leia keegi, kes …”, the snack box at the end), 3 „Tund 2: mängime ja esineme” (word order, crossword
 Russian → Estonian, plan + one-minute talk, parents' note, „Ma oskan”, certificate on 012).
 
 | # | Teema | Laps oskab |

@@ -96,8 +96,15 @@ describe('children’s courses 5–6, 6–7, 8–9 and the speaking club 10–12
       expect(words.data.people.length, lessonId).toBe(12);
       expect(words.data.people.filter((p) => p.img?.src).length, `${lessonId} pictures`).toBeGreaterThanOrEqual(6);
       expect(discover.blocks.find((b) => b.id.endsWith('_d_questions')).data.people.length, lessonId).toBe(8);
-      expect(types(practice), lessonId).toEqual(expect.arrayContaining(['vocab', 'dialogue', 'match', 'gaps', 'table']));
-      expect(types(transfer), lessonId).toEqual(expect.arrayContaining(['phrasebank', 'wordorder', 'crossword', 'planning', 'speaking', 'selfcheck']));
+      expect(types(practice), lessonId).toEqual(expect.arrayContaining(['vocab', 'dialogue', 'match', 'gaps', 'table', 'phrasebank']));
+      // textbook openers on the free layer, inside the reserved first block (lesson → snack → lesson)
+      [discover, practice, transfer].forEach((doc) => {
+        expect(doc.blocks[0].minHeightMm, lessonId).toBeGreaterThan(60);
+        expect(doc.free.length, lessonId).toBeGreaterThanOrEqual(5);
+        expect(doc.free.every((it) => it.page === 0 && it.y >= 75 && it.y + (it.h || 0) <= 102 + doc.blocks[0].minHeightMm + 2), lessonId).toBe(true);
+      });
+      expect(practice.blocks.at(-1).type, lessonId).toBe('phrasebank');
+      expect(types(transfer), lessonId).toEqual(expect.arrayContaining(['wordorder', 'crossword', 'planning', 'speaking', 'selfcheck']));
     });
   });
 });

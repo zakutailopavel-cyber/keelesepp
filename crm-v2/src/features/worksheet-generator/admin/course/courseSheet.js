@@ -182,6 +182,9 @@ export function buildCourseSheet(mod, lessonId, phase) {
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
     blocks: withSheetLanguage(withHarnoExam(withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN), mod.MODULE.course), mod.MODULE.language),
+    // the Õpik free layer (engine/freeLayer.js) a lesson may carry per phase: `free: { discover: [items] }` (the speaking
+    // club's textbook openers, kids/sheets.js)
+    ...(lesson.free?.[phase]?.length ? { free: lesson.free[phase] } : {}),
   }, lessonId, phase), lessonId, phase, undefined, Object.keys(mod.LESSONS));
 }
 
