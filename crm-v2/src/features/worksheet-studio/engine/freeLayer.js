@@ -7,7 +7,9 @@
 //                 z: layer (higher = on top), rotate: −180…180, locked,
 //                 img (image), shape: rect | rounded | circle | oval (image / shape / text box),
 //                 fill: none | lime | cream | sky | peach | navy (shape / text box), border: none | ink | lime,
-//                 text, size (pt, text box), bold (text box) }]
+//                 text, size (pt, text box), bold (text box),
+//                 font: body | head | hand, align: left | center | right, color: auto | ink | navy | green | red | white
+//                 (text box, 2026-11-14; missing = body / left (a circle or oval: centre) / auto = white on navy) }]
 // A line / arrow (kind 'line', 2026-11-13) has two ends instead of a box: x, y (start) and x2, y2 (end), plus
 //   color: ink | navy | green | lime | red, stroke (mm), heads: none | end | both, dash.
 // The flowing blocks do not move out of its way: the layer is decoration and illustration on top of the page (a
@@ -30,6 +32,23 @@ export const HEADS_LABEL = { none: 'Ilma noolteta', end: 'Nool lõpus', both: 'N
 export const FREE_SHAPES = Object.freeze(['rect', 'rounded', 'circle', 'oval']);
 export const FREE_FILLS = Object.freeze(['none', 'lime', 'cream', 'sky', 'peach', 'navy']);
 export const FREE_BORDERS = Object.freeze(['none', 'ink', 'lime']);
+
+export const TEXT_FONTS = Object.freeze(['body', 'head', 'hand']);
+export const TEXT_ALIGNS = Object.freeze(['left', 'center', 'right']);
+export const TEXT_COLORS = Object.freeze(['auto', 'ink', 'navy', 'green', 'red', 'white']);
+export const TEXT_FONT_LABEL = { body: 'Tavaline', head: 'Pealkiri (ümar)', hand: 'Käekiri' };
+export const TEXT_ALIGN_LABEL = { left: 'Vasakul', center: 'Keskel', right: 'Paremal' };
+export const TEXT_COLOR_LABEL = { auto: 'Automaatne', ink: 'Must', navy: 'Tumesinine', green: 'Roheline', red: 'Punane', white: 'Valge' };
+const TEXT_COLOR_VALUE = { ink: '#1f2d3d', navy: '#0b2a4f', green: '#267743', red: '#c0392b', white: '#ffffff' };
+const TEXT_FONT_VALUE = { head: 'var(--font-head)', hand: 'var(--font-hand)' };
+// the inline look of a text box's letters (FreeLayer.jsx: on the page, while typing, in the phone column)
+export function textStyle(item) {
+  const style = { fontSize: `${item.size}pt`, fontWeight: item.bold ? 800 : 400 };
+  if (TEXT_FONT_VALUE[item.font]) style.fontFamily = TEXT_FONT_VALUE[item.font];
+  if (TEXT_ALIGNS.includes(item.align)) style.textAlign = item.align;
+  if (TEXT_COLOR_VALUE[item.color]) style.color = TEXT_COLOR_VALUE[item.color];
+  return style;
+}
 
 export const KIND_LABEL = { image: 'Pilt', shape: 'Kujund', text: 'Tekstikast', line: 'Joon / nool' };
 export const FILL_LABEL = { none: 'Läbipaistev', lime: 'Laimiroheline', cream: 'Kreem', sky: 'Helesinine', peach: 'Virsik', navy: 'Tumesinine' };
@@ -72,6 +91,9 @@ export function normalizeFreeItem(item) {
     text: String(item.text || ''),
     size: clamp(num(item.size, 14), 8, 60),
     bold: item.bold === true,
+    font: TEXT_FONTS.includes(item.font) ? item.font : 'body',
+    align: TEXT_ALIGNS.includes(item.align) ? item.align : undefined,
+    color: item.kind === 'text' && TEXT_COLORS.includes(item.color) ? item.color : 'auto',
   };
 }
 
@@ -156,7 +178,10 @@ export function freeProblem(doc) {
     ids.add(item.id);
     const coords = item.kind === 'line' ? [item.x, item.y, item.x2, item.y2] : [item.x, item.y, item.w, item.h];
     if (!coords.every((v) => v !== null && v !== '' && Number.isFinite(Number(v)))) return 'Vaba kihi elemendi asukoht on vigane.';
-    if (item.color !== undefined && !LINE_COLORS.includes(item.color)) return 'Joone värv on tundmatu.';
+    if (item.kind === 'line' && item.color !== undefined && !LINE_COLORS.includes(item.color)) return 'Joone värv on tundmatu.';
+    if (item.kind === 'text' && item.color !== undefined && !TEXT_COLORS.includes(item.color)) return 'Teksti värv on tundmatu.';
+    if (item.font !== undefined && !TEXT_FONTS.includes(item.font)) return 'Teksti kiri on tundmatu.';
+    if (item.align !== undefined && item.align !== null && !TEXT_ALIGNS.includes(item.align)) return 'Teksti joondus on tundmatu.';
     if (item.heads !== undefined && !LINE_HEADS.includes(item.heads)) return 'Joone otsad on tundmatud.';
     if (item.shape !== undefined && !FREE_SHAPES.includes(item.shape)) return 'Vaba kihi kujund on tundmatu.';
     if (item.fill !== undefined && !FREE_FILLS.includes(item.fill)) return 'Vaba kihi värv on tundmatu.';

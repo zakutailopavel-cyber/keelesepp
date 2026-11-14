@@ -89,3 +89,21 @@ it('Õpik: a double click types in the text box on the sheet; leaving keeps it (
   fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
   expect(boxText()).toBe('Kirjuta siia');
 });
+
+it('Õpik: a text box gets a hand font, centre alignment and a colour from its settings', async () => {
+  const { container, save } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Tekstikast/ }));
+  const panel = screen.getByRole('complementary', { name: 'Vaba elemendi seaded' });
+  fireEvent.change(screen.getByLabelText('Kiri'), { target: { value: 'hand' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Keskel' }));
+  fireEvent.change(screen.getByLabelText('Teksti värv'), { target: { value: 'navy' } });
+  expect(screen.getByRole('button', { name: 'Keskel' }).getAttribute('aria-pressed')).toBe('true');
+  const text = container.querySelector('.ws-page .ws-free-text');
+  expect(text.style.fontFamily).toBe('var(--font-hand)');
+  expect(text.style.textAlign).toBe('center');
+  expect(panel).not.toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+  await waitFor(() => expect(save).toHaveBeenCalled());
+  expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ kind: 'text', font: 'hand', align: 'center', color: 'navy' })]);
+});

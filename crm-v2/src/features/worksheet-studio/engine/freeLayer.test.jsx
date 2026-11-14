@@ -4,7 +4,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 import Sheet from './Sheet.jsx';
 import { sampleDocument } from './sample.js';
-import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, resizeItem, restack } from './freeLayer.js';
+import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, resizeItem, restack, textStyle } from './freeLayer.js';
 import { validateWorksheetDoc } from '../../../services/firebase/worksheetDocs.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -161,5 +161,28 @@ describe('lines and arrows (2026-11-13)', () => {
     fireEvent.pointerDown(body, { clientX: 0, clientY: 0, pointerId: 2 });
     fireEvent.pointerUp(body, { clientX: 10, clientY: 10, pointerId: 2 });
     expect(onChange).toHaveBeenLastCalledWith('l1', expect.objectContaining({ x: 15, y: 25, x2: 75, y2: 105 }));
+  });
+});
+
+describe('text box letters (2026-11-14)', () => {
+  it('font, alignment and colour: safe defaults, inline look, schema check', () => {
+    const plain = normalizeFreeItem(item({ kind: 'text', text: 'A', font: 'comic', align: 'justify', color: 'pink' }));
+    expect(plain).toMatchObject({ font: 'body', align: undefined, color: 'auto' });
+    expect(textStyle({ ...plain, size: 14, bold: false })).toEqual({ fontSize: '14pt', fontWeight: 400 });
+    expect(textStyle({ size: 20, bold: true, font: 'hand', align: 'center', color: 'red' })).toEqual({ fontSize: '20pt', fontWeight: 800, fontFamily: 'var(--font-hand)', textAlign: 'center', color: '#c0392b' });
+    expect(freeProblem({ free: [item({ kind: 'text', text: 'A', font: 'head', align: 'right', color: 'white' })] })).toBe('');
+    expect(freeProblem({ free: [item({ kind: 'text', text: 'A', font: 'comic' })] })).toMatch(/kiri/);
+    expect(freeProblem({ free: [item({ kind: 'text', text: 'A', color: 'pink' })] })).toMatch(/värv/);
+    expect(freeProblem({ free: [item({ kind: 'text', text: 'A', align: 'justify' })] })).toMatch(/joondus/);
+    expect(freeProblem({ free: [{ id: 'l', kind: 'line', x: 1, y: 1, x2: 9, y2: 9, color: 'white' }] })).toMatch(/Joone värv/);
+  });
+
+  it('draws the chosen letters on the page and in the phone column', () => {
+    const free = [item({ kind: 'text', text: 'Tere!', size: 16, font: 'head', align: 'right', color: 'green' })];
+    const { container } = render(<Sheet doc={docWith(free)} mode="print" />);
+    const text = container.querySelector('.ws-page .ws-free-text');
+    expect(text.style.fontFamily).toBe('var(--font-head)');
+    expect(text.style.textAlign).toBe('right');
+    expect(text.style.color).toBe('rgb(38, 119, 67)');
   });
 });

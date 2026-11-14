@@ -978,5 +978,6 @@ textarea.ed-input { resize: vertical; }
 /* free layer settings (editor/FreeFields.jsx) */
 .ed-free-layer, .ed-free-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
 .ed-free-layer .ed-label { width: 100%; }
+.ed-free-layer .ed-btn[aria-pressed="true"] { background: var(--st-navy, #0b2a4f); color: #fff; border-color: var(--st-navy, #0b2a4f); }
 .ed-btn.ed-danger { color: #b42318; border-color: #f3c3bd; }
 .st-free-add { display: flex; flex-wrap: wrap; gap: 6px; }
