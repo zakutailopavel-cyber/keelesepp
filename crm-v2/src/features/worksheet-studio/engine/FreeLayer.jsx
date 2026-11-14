@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Md } from './ui.jsx';
-import { objectPosition } from './image.js';
-import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, lookStyle, resizeItem, snapItem, textStyle, BORDER_VALUE, FILL_VALUE, SHAPE_ART, isDrawn, tailTransform } from './freeLayer.js';
+import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, lookStyle, resizeItem, snapItem, textStyle, BORDER_VALUE, FILL_VALUE, MAX_ZOOM, MIN_ZOOM, clampZoom, cropStyle, panFocus, SHAPE_ART, isDrawn, tailTransform } from './freeLayer.js';
 
 // „Vaba kiht” on one A4 page (freeLayer.js). Positions are mm on the 270 mm design page, so print, zoom and the book
 // draw it the same. In the constructor (`edit`): a tap selects, a drag moves, the corner resizes (pictures and circles
@@ -49,7 +48,7 @@ function FreeContent({ item }) {
   }
   if (item.kind === 'image') {
     return item.img?.src
-      ? <img src={item.img.src} alt={item.alt || ''} style={{ objectPosition: objectPosition(item.img) }} draggable={false} />
+      ? <div className="ws-free-crop"><img src={item.img.src} alt={item.alt || ''} style={cropStyle(item)} draggable={false} /></div>
       : <div className="ws-free-empty">Pilt</div>;
   }
   if (item.kind === 'text') return <div className="ws-free-text" style={textStyle(item)}><Md text={item.text} /></div>;
@@ -92,9 +91,36 @@ function FreeItem({ item, others = [], editable, selected, single = true, group 
   const live = editable && !item.locked;
   const [typing, setTyping] = useState(false);
   const canType = editable && item.kind === 'text';
+  // cropping a picture on the sheet: a drag moves the photo in its frame, − / + zoom, „Valmis” or Esc ends
+  const [cropping, setCropping] = useState(false);
+  const canCrop = editable && item.kind === 'image' && Boolean(item.img?.src);
+  const zoomBy = (step) => onChange?.(item.id, { ...item, zoom: clampZoom((item.zoom || 1) + step) });
+  const pan = (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    const el = ref.current;
+    const img = el?.querySelector('.ws-free-crop img');
+    if (!el || !img) return;
+    const box = el.getBoundingClientRect();
+    const start = { x: event.clientX, y: event.clientY };
+    const target = event.currentTarget;
+    target.setPointerCapture?.(event.pointerId);
+    const next = (e) => panFocus(item, ((e.clientX - start.x) / Math.max(1, box.width)) * 100, ((e.clientY - start.y) / Math.max(1, box.height)) * 100);
+    const onMove = (e) => Object.assign(img.style, cropStyle(next(e)));
+    const onUp = (e) => {
+      target.removeEventListener('pointermove', onMove);
+      target.removeEventListener('pointerup', onUp);
+      target.removeEventListener('pointercancel', onUp);
+      Object.assign(img.style, cropStyle(item));
+      if (e.type === 'pointerup' && Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) >= 2) onChange?.(item.id, next(e));
+    };
+    target.addEventListener('pointermove', onMove);
+    target.addEventListener('pointerup', onUp);
+    target.addEventListener('pointercancel', onUp);
+  };
   // another item selected → stop typing (adjusting state while rendering, not in an effect)
   const [shownSelected, setShownSelected] = useState(selected);
-  if (shownSelected !== selected) { setShownSelected(selected); if (!selected) setTyping(false); }
+  if (shownSelected !== selected) { setShownSelected(selected); if (!selected) { setTyping(false); setCropping(false); } }
   const doneTyping = (text) => {
     setTyping(false);
     if (text !== null && text !== item.text) onChange?.(item.id, { ...item, text });
@@ -102,6 +128,7 @@ function FreeItem({ item, others = [], editable, selected, single = true, group 
   // one pointer drag: the item follows by a CSS transform, the stored value changes once at the end
   const drag = (event, kind) => {
     if (!editable || typing) return;
+    if (cropping && kind === 'move') { pan(event); return; }
     event.stopPropagation();
     // Shift / Ctrl / ⌘ or „Vali mitu”: the tap adds the item to the selection (or takes it out)
     if (kind === 'move' && (multi || event.shiftKey || event.metaKey || event.ctrlKey)) { event.preventDefault(); onSelect?.(item.id, true); return; }
@@ -154,7 +181,7 @@ function FreeItem({ item, others = [], editable, selected, single = true, group 
     target.addEventListener('pointerup', onUp);
     target.addEventListener('pointercancel', onUp);
   };
-  const classes = ['ws-free-item', `is-${item.kind}`, isDrawn(item) ? 'is-drawn' : '', typing ? 'is-typing' : '', `shape-${item.shape}`, `fill-${item.fill}`, `border-${item.border}`, selected ? 'is-selected' : '', item.locked ? 'is-locked' : ''].filter(Boolean).join(' ');
+  const classes = ['ws-free-item', `is-${item.kind}`, cropping ? 'is-cropping' : '', isDrawn(item) ? 'is-drawn' : '', typing ? 'is-typing' : '', `shape-${item.shape}`, `fill-${item.fill}`, `border-${item.border}`, selected ? 'is-selected' : '', item.locked ? 'is-locked' : ''].filter(Boolean).join(' ');
   return (
     <div
       ref={ref}
@@ -163,13 +190,22 @@ function FreeItem({ item, others = [], editable, selected, single = true, group 
       style={{ left: mm(item.x), top: mm(item.y), width: mm(item.w), height: mm(item.h), zIndex: 5 + item.z, transform: item.rotate ? `rotate(${item.rotate}deg)` : undefined, ...lookStyle(item) }}
       onPointerDown={editable ? (e) => drag(e, 'move') : undefined}
       onClick={editable ? (e) => e.stopPropagation() : undefined}
-      onDoubleClick={editable ? (e) => { e.stopPropagation(); if (canType) { onSelect?.(item.id); setTyping(true); } } : undefined}
+      onDoubleClick={editable ? (e) => { e.stopPropagation(); if (canType) { onSelect?.(item.id); setTyping(true); } if (canCrop && !cropping) { onSelect?.(item.id); setCropping(true); } } : undefined}
+      onKeyDown={cropping ? (e) => { if (e.key === 'Escape' || e.key === 'Enter') { e.stopPropagation(); setCropping(false); } } : undefined}
       role={editable && !typing ? 'button' : undefined}
       aria-label={editable && !typing ? `Vaba element: ${item.kind === 'text' ? item.text.slice(0, 40) : item.kind === 'image' ? 'pilt' : 'kujund'}` : undefined}
       aria-pressed={editable && !typing ? selected : undefined}
     >
       {typing ? <>{isDrawn(item) ? <ShapeArt item={item} /> : null}<TextEditor item={item} onDone={doneTyping} /></> : <FreeContent item={item} />}
-      {live && selected && single && !typing ? <button type="button" className="ws-free-size" aria-label="Muuda suurust" title="Lohista: suurus" onPointerDown={(e) => drag(e, 'size')} onClick={(e) => e.stopPropagation()}>⤡</button> : null}
+      {cropping ? (
+        <div className="ws-free-croptools" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
+          <button type="button" aria-label="Vähenda" disabled={(item.zoom || 1) <= MIN_ZOOM} onClick={() => zoomBy(-0.25)}>−</button>
+          <span>{Math.round((item.zoom || 1) * 100)} %</span>
+          <button type="button" aria-label="Suurenda" disabled={(item.zoom || 1) >= MAX_ZOOM} onClick={() => zoomBy(0.25)}>+</button>
+          <button type="button" className="is-done" onClick={() => setCropping(false)}>Valmis</button>
+        </div>
+      ) : null}
+      {live && selected && single && !typing && !cropping ? <button type="button" className="ws-free-size" aria-label="Muuda suurust" title="Lohista: suurus" onPointerDown={(e) => drag(e, 'size')} onClick={(e) => e.stopPropagation()}>⤡</button> : null}
     </div>
   );
 }
@@ -303,7 +339,7 @@ export function FreeFlow({ items }) {
   return (
     <div className="ws-free-flow">
       {items.map((item) => (
-        <div key={item.id} className={`ws-free-flowitem is-${item.kind} ${isDrawn(item) ? 'is-drawn' : ''} shape-${item.shape} fill-${item.fill} border-${item.border}`} style={lookStyle(item)}>
+        <div key={item.id} className={`ws-free-flowitem is-${item.kind} ${isDrawn(item) ? 'is-drawn' : ''} shape-${item.shape} fill-${item.fill} border-${item.border}`} style={{ ...lookStyle(item), ...(item.kind === 'image' ? { aspectRatio: `${item.w} / ${item.h}` } : {}) }}>
           <FreeContent item={item} />
         </div>
       ))}

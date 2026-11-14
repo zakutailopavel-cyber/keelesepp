@@ -4,7 +4,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 import Sheet from './Sheet.jsx';
 import { sampleDocument } from './sample.js';
-import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, alignMany, itemsInFrame, moveMany, placeOnPage, resizeItem, restack, restackMany, snapItem, spreadMany, textStyle } from './freeLayer.js';
+import { MAX_ITEMS, PAGE_W, cropStyle, panFocus, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, alignMany, itemsInFrame, moveMany, placeOnPage, resizeItem, restack, restackMany, snapItem, spreadMany, textStyle } from './freeLayer.js';
 import { validateWorksheetDoc } from '../../../services/firebase/worksheetDocs.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -365,5 +365,39 @@ describe('drawn shapes (2026-11-14)', () => {
     expect(bubble.querySelector('path').style.stroke).toBe('rgb(17, 24, 39)');
     expect(bubble.querySelector('.ws-free-body.tail-br .ws-free-text').textContent).toBe('Tere!');
     expect(container.querySelector('[data-free="s"] polygon').getAttribute('points').split(' ')).toHaveLength(10);
+  });
+});
+
+describe('cropping a picture (2026-11-14)', () => {
+  const photo = (patch) => item({ id: 'p', kind: 'image', img: { ...img, focus: { x: 30, y: 40 } }, shape: 'rect', ...patch });
+
+  it('zoom 1…4 around the focus point; a pan moves the focus, slower when zoomed; the file stays whole', () => {
+    expect(cropStyle(photo({ zoom: 2 }))).toEqual({ objectPosition: '30% 40%', transformOrigin: '30% 40%', transform: 'scale(2)' });
+    expect(cropStyle(photo({}))).toEqual({ objectPosition: '30% 40%', transformOrigin: '30% 40%' });
+    expect(normalizeFreeItem(photo({ zoom: 9 })).zoom).toBe(4);
+    expect(panFocus(photo({ zoom: 2 }), 20, -10).img).toEqual({ ...img, focus: { x: 20, y: 45 } });
+    expect(panFocus(photo({}), 90, 0).img.focus.x).toBe(0);
+    expect(freeProblem({ free: [photo({ zoom: 0.5 })] })).toMatch(/suurendus/);
+    expect(freeProblem({ free: [photo({ zoom: 2.5 })] })).toBe('');
+  });
+
+  it('a double click starts cropping: a drag pans the photo (one change), + zooms, „Valmis” ends; the frame does not move', () => {
+    const onChange = vi.fn();
+    const { container } = render(<Sheet doc={docWith([photo({ zoom: 2 })])} mode="edit" freeEdit={{ selectedId: 'p', onSelect: vi.fn(), onChange }} />);
+    const node = container.querySelector('[data-free="p"]');
+    node.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 150, right: 200, bottom: 150 });
+    expect(node.querySelector('.ws-free-crop img').style.transform).toBe('scale(2)');
+    fireEvent.doubleClick(node);
+    expect(node.className).toContain('is-cropping');
+    expect(node.querySelector('.ws-free-size')).toBeNull();
+    fireEvent.pointerDown(node, { clientX: 100, clientY: 100, pointerId: 1 });
+    fireEvent.pointerMove(node, { clientX: 140, clientY: 100, pointerId: 1 });
+    expect(node.querySelector('.ws-free-crop img').style.objectPosition).toBe('20% 40%');
+    fireEvent.pointerUp(node, { clientX: 140, clientY: 100, pointerId: 1 });
+    expect(onChange).toHaveBeenLastCalledWith('p', expect.objectContaining({ x: 10, y: 20, img: expect.objectContaining({ focus: { x: 20, y: 40 } }) }));
+    fireEvent.click(node.querySelector('[aria-label="Suurenda"]'));
+    expect(onChange).toHaveBeenLastCalledWith('p', expect.objectContaining({ zoom: 2.25 }));
+    fireEvent.click(node.querySelector('.ws-free-croptools .is-done'));
+    expect(node.className).not.toContain('is-cropping');
   });
 });

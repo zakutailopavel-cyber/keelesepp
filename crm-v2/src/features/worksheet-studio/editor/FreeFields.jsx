@@ -18,6 +18,12 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
           const ratio = img?.width && img?.height ? img.height / img.width : 0;
           set(ratio ? { img, h: Math.round(item.w * ratio * 10) / 10 } : { img });
         }} />
+        {item.img?.src ? <>
+          <label className="ed-field"><span className="ed-label">Suurendus (kadreerimine): {Math.round((item.zoom || 1) * 100)} %</span>
+            <input type="range" min="1" max="4" step="0.05" value={item.zoom || 1} aria-label="Suurendus" onChange={(e) => set({ zoom: Number(e.target.value) })} /></label>
+          <p className="ed-hint">Topeltklõps pildil lehel: lohista fotot raamis, − / + suurendab. Fail ise jääb terveks.</p>
+          {(item.zoom || 1) > 1 || (item.img?.focus?.x ?? 50) !== 50 || (item.img?.focus?.y ?? 50) !== 50 ? <button type="button" className="ed-btn" onClick={() => set({ zoom: 1, img: { ...item.img, focus: { x: 50, y: 50 } } })}>Tühista kadreerimine</button> : null}
+        </> : null}
         <Text label="Alt-tekst" value={item.alt || ''} onChange={(v) => set({ alt: v })} placeholder="Mida pildil näha on?" />
       </> : null}
       {item.kind === 'text' ? <>
