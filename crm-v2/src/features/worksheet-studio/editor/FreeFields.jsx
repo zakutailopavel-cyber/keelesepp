@@ -12,7 +12,7 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
   const guard = (patch) => { if (!locked) set(patch); };
   return (
     <div className="ed-free">
-      <p className="ed-hint">{item.kind === 'line' ? 'Joon vabas kihis: lohista joont, et liigutada; rohelised täpid otstes muudavad suunda ja pikkust.' : `${KIND_LABEL[item.kind]} vabas kihis: lohista lehel, suurus nurgast.`} Plokid selle alt ei liigu.</p>
+      <p className="ed-hint">{item.kind === 'line' ? 'Joon vabas kihis: lohista joont, et liigutada; rohelised täpid otstes muudavad suunda ja pikkust.' : `${KIND_LABEL[item.kind]} vabas kihis: lohista lehel, suurus nurgast.${item.kind === 'text' ? ' Teksti saab muuta ka otse lehel: topeltklõps (või veel üks puudutus valitud kastil).' : ''}`} Plokid selle alt ei liigu.</p>
       {item.kind === 'image' ? <>
         <ImagePick value={item.img} aspect="orig" allowAspect={false} onChange={(img) => {
           const ratio = img?.width && img?.height ? img.height / img.width : 0;

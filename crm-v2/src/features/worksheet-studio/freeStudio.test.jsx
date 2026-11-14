@@ -64,3 +64,28 @@ it('Õpik: „Nool” adds an arrow; its settings change the heads; save carries
   await waitFor(() => expect(save).toHaveBeenCalled());
   expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ kind: 'line', heads: 'both', x2: 190 })]);
 });
+
+it('Õpik: a double click types in the text box on the sheet; leaving keeps it (one undo step), Esc gives the old text back', async () => {
+  const { container } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Tekstikast/ }));
+  const box = () => container.querySelector('.ws-page .ws-free [data-free]');
+  const boxText = () => box().querySelector('.ws-free-text').textContent;
+  fireEvent.doubleClick(box());
+  const input = screen.getByRole('textbox', { name: 'Tekstikasti tekst' });
+  expect(input.value).toBe('Kirjuta siia');
+  expect(box().querySelector('.ws-free-size')).toBeNull();
+  fireEvent.change(input, { target: { value: 'Otse lehel' } });
+  fireEvent.keyDown(input, { key: 'Delete' });
+  expect(box()).not.toBeNull();
+  fireEvent.blur(input);
+  expect(boxText()).toBe('Otse lehel');
+  expect(screen.getByRole('complementary', { name: 'Vaba elemendi seaded' }).querySelector('textarea').value).toBe('Otse lehel');
+  fireEvent.doubleClick(box());
+  const again = screen.getByRole('textbox', { name: 'Tekstikasti tekst' });
+  fireEvent.change(again, { target: { value: 'Ei jää' } });
+  fireEvent.keyDown(again, { key: 'Escape' });
+  expect(boxText()).toBe('Otse lehel');
+  fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
+  expect(boxText()).toBe('Kirjuta siia');
+});

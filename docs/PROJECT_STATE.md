@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-text-inline — Õpik „Vaba kiht”: text box typed on the sheet · crm-v2 only, no rules / functions / data change
+
+- Base `origin/main` e98c8ec, checked 2026-11-14. Owner 2026-11-14: „да, делай правку текста прямо на листе”.
+- Done: `engine/FreeLayer.jsx` `TextEditor` — double click (or a second tap on the selected box) types in the text box itself; leave / Ctrl+Enter keeps it (one undo step), Esc cancels. Hint in `editor/FreeFields.jsx`, CSS `.ws-free-input` in `engine/sheet.css`, contract line in `docs/WORKSHEET_STUDIO_V1.md`. No data shape change.
+- Checks: `freeStudio.test.jsx` +1 (double click → type → blur keeps, Delete inside doesn't remove the box, Esc cancels, undo). Same 7-area vitest run → 278 files passed (1 skipped), 2706 tests passed; eslint changed files 0 errors. Lab 800×600 (temporary, not committed): tap, tap again, typed „Tere, **Õpik**!”, click away → box shows bold „Õpik”, stored text Markdown.
+- Limits: plain textarea while typing (Markdown stars visible until done); not tried on a real iPad.
+- Next safe step: owner double-clicks a „Tekstikast” on an Õpik page, types, clicks away, saves.
+
 ## 2026-11-13 · agent/opik-free-lines — Õpik „Vaba kiht”: lines and arrows · crm-v2 only, no rules / functions / data change
 
 - Base `origin/main` bf760a4, checked 2026-11-13. Owner 2026-11-13: „да, делай стрелки и линии”.
