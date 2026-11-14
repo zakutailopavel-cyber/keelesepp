@@ -4,7 +4,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 import Sheet from './Sheet.jsx';
 import { sampleDocument } from './sample.js';
-import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, resizeItem, restack, textStyle } from './freeLayer.js';
+import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, resizeItem, restack, snapItem, textStyle } from './freeLayer.js';
 import { validateWorksheetDoc } from '../../../services/firebase/worksheetDocs.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -184,5 +184,41 @@ describe('text box letters (2026-11-14)', () => {
     expect(text.style.fontFamily).toBe('var(--font-head)');
     expect(text.style.textAlign).toBe('right');
     expect(text.style.color).toBe('rgb(38, 119, 67)');
+  });
+});
+
+describe('snapping while dragging (2026-11-14)', () => {
+  it('jumps onto the page middle, margins and other items; far away nothing changes', () => {
+    const near = snapItem(item({ x: 113.6, y: 50, w: 40, h: 30 }));
+    expect(near.item.x).toBe(115);
+    expect(near.guides).toEqual([{ axis: 'x', at: 135 }]);
+    const other = item({ id: 'o', x: 200, y: 100, w: 30, h: 30 });
+    const top = snapItem(item({ x: 20, y: 101.5, w: 40, h: 20 }), [other]);
+    expect(top.item.y).toBe(100);
+    expect(top.guides).toEqual([{ axis: 'y', at: 100 }]);
+    const margin = snapItem(item({ x: 10.2, y: 60, w: 40, h: 20 }));
+    expect(margin.item.x).toBe(9);
+    const far = item({ x: 40, y: 60, w: 40, h: 20 });
+    expect(snapItem(far, [other])).toEqual({ item: far, guides: [] });
+    const line = snapItem({ id: 'l', kind: 'line', x: 136, y: 50, x2: 180, y2: 80 });
+    expect(line.item).toMatchObject({ x: 135, x2: 179 });
+  });
+
+  it('a drag shows a guide while it snaps, stores the snapped place and leaves no guide; Alt drags freely', () => {
+    const onChange = vi.fn();
+    const free = [item({ id: 'f1', x: 10, y: 20, w: 40, h: 30 })];
+    const { container } = render(<Sheet doc={docWith(free)} mode="edit" freeEdit={{ selectedId: 'f1', onSelect: vi.fn(), onChange }} />);
+    container.querySelector('.ws-page').getBoundingClientRect = () => ({ left: 0, top: 0, width: 540, height: 760, right: 540, bottom: 760 });
+    const node = container.querySelector('[data-free="f1"]');
+    fireEvent.pointerDown(node, { clientX: 0, clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(node, { clientX: 207, clientY: 0, pointerId: 1 });
+    expect(container.querySelector('.ws-free-guide.is-x').style.left).toBe('135mm');
+    expect(node.style.left).toBe('115mm');
+    fireEvent.pointerUp(node, { clientX: 207, clientY: 0, pointerId: 1 });
+    expect(onChange).toHaveBeenLastCalledWith('f1', expect.objectContaining({ x: 115, y: 20 }));
+    expect(container.querySelector('.ws-free-guide')).toBeNull();
+    fireEvent.pointerDown(node, { clientX: 0, clientY: 0, pointerId: 2 });
+    fireEvent.pointerUp(node, { clientX: 207, clientY: 0, pointerId: 2, altKey: true });
+    expect(onChange).toHaveBeenLastCalledWith('f1', expect.objectContaining({ x: 113.5 }));
   });
 });

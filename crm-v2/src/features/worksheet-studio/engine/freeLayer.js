@@ -144,6 +144,37 @@ export function moveItem(item, dx, dy) {
   }
   return { ...item, x: round(clamp(item.x + dx, -item.w / 2, PAGE_W - item.w / 2)), y: round(clamp(item.y + dy, -item.h / 2, PAGE_H - item.h / 2)) };
 }
+// Snapping while dragging (2026-11-14): an item that comes within SNAP_MM of the page's edge, margin or middle, or of
+// another item's edge or middle on the same page, jumps onto it; `guides` are the lines to show ({ axis: 'x' | 'y',
+// at: mm }). Lines snap by their ends. Alt while dragging = no snapping.
+export const SNAP_MM = 2;
+const PAGE_X = [0, 9, PAGE_W / 2, PAGE_W - 9, PAGE_W];
+const PAGE_Y = [0, 11, PAGE_H / 2, PAGE_H - 9, PAGE_H];
+const edgesX = (it) => (it.kind === 'line' ? [it.x, it.x2] : [it.x, it.x + it.w / 2, it.x + it.w]);
+const edgesY = (it) => (it.kind === 'line' ? [it.y, it.y2] : [it.y, it.y + it.h / 2, it.y + it.h]);
+function nearest(edges, targets, threshold) {
+  let found = null;
+  for (const edge of edges) {
+    for (const at of targets) {
+      const d = at - edge;
+      if (Math.abs(d) <= threshold && (!found || Math.abs(d) < Math.abs(found.d))) found = { d, at };
+    }
+  }
+  return found;
+}
+export function snapItem(item, others = [], threshold = SNAP_MM) {
+  const xs = [...PAGE_X, ...others.flatMap(edgesX)];
+  const ys = [...PAGE_Y, ...others.flatMap(edgesY)];
+  const sx = nearest(edgesX(item), xs, threshold);
+  const sy = nearest(edgesY(item), ys, threshold);
+  if (!sx && !sy) return { item, guides: [] };
+  const moved = moveItem(item, sx ? sx.d : 0, sy ? sy.d : 0);
+  const guides = [];
+  if (sx) guides.push({ axis: 'x', at: round(sx.at) });
+  if (sy) guides.push({ axis: 'y', at: round(sy.at) });
+  return { item: moved, guides };
+}
+
 // resize from the bottom-right corner; `keep` keeps the proportions (pictures, circles)
 export function resizeItem(item, dw, dh, keep = false) {
   let w = clamp(item.w + dw, MIN_SIZE, PAGE_W);

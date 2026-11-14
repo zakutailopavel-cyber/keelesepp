@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-snap — Õpik „Vaba kiht”: snapping with guide lines · crm-v2 only, no rules / functions / data change
+
+- Base `origin/main` ce788fb, checked 2026-11-14. Owner 2026-11-14: „продолжай улучшать редактор”.
+- Done: `snapItem` / `SNAP_MM` in `engine/freeLayer.js`; `engine/FreeLayer.jsx` snaps a dragged item or line to the page edge / margin / middle and to other items on the page, draws pink guides straight into the layer during the drag (Alt = free drag); CSS `.ws-free-guide` in `engine/sheet.css` (hidden in print). Contract in `docs/WORKSHEET_STUDIO_V1.md`.
+- Checks: `freeLayer.test.jsx` +2 (model, drag with guide / Alt). Same 7-area vitest run → 278 files passed (1 skipped), 2711 tests passed; eslint changed files 0 errors. Lab (temporary, not committed): a box dragged near the page middle showed the guide at 135 mm, stored x 95 (box 40 mm), guide gone after release.
+- Limits: resize and arrow keys don't snap; not tried on a real iPad.
+- Next safe step: owner drags a picture to the middle of an Õpik page and sees it stop on the pink line.
+
 ## 2026-11-14 · agent/free-text-style — Õpik „Vaba kiht”: text box font, alignment, colour · crm-v2 only, no rules / functions change
 
 - Base `origin/main` after #1224, checked 2026-11-14. Owner 2026-11-14: „продолжай улучшать редактор”.
