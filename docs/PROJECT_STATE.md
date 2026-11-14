@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-text-style — Õpik „Vaba kiht”: text box font, alignment, colour · crm-v2 only, no rules / functions change
+
+- Base `origin/main` after #1224, checked 2026-11-14. Owner 2026-11-14: „продолжай улучшать редактор”.
+- Done: optional text-box fields `font` / `align` / `color` (`engine/freeLayer.js` constants, `textStyle`, normalize, `freeProblem`), drawn by `engine/FreeLayer.jsx`; settings Kiri / Joondus / Teksti värv in `editor/FreeFields.jsx`; pressed-button style in `worksheetStudio.css`. Contract in `docs/WORKSHEET_STUDIO_V1.md`. Old boxes draw as before.
+- Checks: `freeLayer.test.jsx` +2, `freeStudio.test.jsx` +1. Same 7-area vitest run → 278 files passed (1 skipped), 2709 tests passed; eslint changed files 0 errors. Lab (temporary, not committed): five boxes — plain left, green rounded heading centred, red hand-font right, white on navy (auto), circle centred.
+- Limits: one look per box (no mixed fonts inside a box); not tried on a real iPad.
+- Next safe step: owner picks „Käekiri” for a text box on an Õpik page and saves.
+
 ## 2026-11-14 · agent/free-text-inline — Õpik „Vaba kiht”: text box typed on the sheet · crm-v2 only, no rules / functions / data change
 
 - Base `origin/main` e98c8ec, checked 2026-11-14. Owner 2026-11-14: „да, делай правку текста прямо на листе”.

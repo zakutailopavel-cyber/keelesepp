@@ -281,6 +281,10 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   selected one, opens a textarea in the box (`TextEditor` in `engine/FreeLayer.jsx`, same letter size, ≤ 600 marks,
   Markdown kept). Leaving it (tap elsewhere, Ctrl/Cmd+Enter) writes the text as one undo step; Esc gives the old text
   back; keys typed there never reach the constructor's shortcuts. Works on a locked box too (lock = place and size).
+- Text box letters (2026-11-14, agent/free-text-style): optional `font: body | head | hand` (Nunito Sans / Nunito /
+  Caveat), `align: left | center | right` (missing: left, a circle or oval centres), `color: auto | ink | navy | green |
+  red | white` (auto: white on navy, ink elsewhere). One inline style `textStyle(item)` (freeLayer.js) draws the page,
+  the typing box and the phone column alike; `freeProblem` refuses unknown values. Settings: Kiri, Joondus, Teksti värv.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures

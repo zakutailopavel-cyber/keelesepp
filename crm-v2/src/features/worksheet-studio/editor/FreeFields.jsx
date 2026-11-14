@@ -1,7 +1,7 @@
 // Settings of one item of the free layer (engine/freeLayer.js): what it shows, its shape and colour, its page, size,
 // turn, layer, lock; copy and delete. Every change goes through `set(patch)` → one undoable change of `doc.free`.
 import { Area, ImagePick, Num, Select, Text } from './fields.jsx';
-import { FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, HEADS_LABEL, KIND_LABEL, LINE_COLORS, LINE_COLOR_LABEL, LINE_HEADS, LINE_STROKES } from '../engine/freeLayer.js';
+import { TEXT_ALIGNS, TEXT_ALIGN_LABEL, TEXT_COLORS, TEXT_COLOR_LABEL, TEXT_FONTS, TEXT_FONT_LABEL, FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, HEADS_LABEL, KIND_LABEL, LINE_COLORS, LINE_COLOR_LABEL, LINE_HEADS, LINE_STROKES } from '../engine/freeLayer.js';
 
 const SHAPE_LABEL = { rect: 'Ristkülik', rounded: 'Ümarad nurgad', circle: 'Ring', oval: 'Ovaal' };
 const BORDER_LABEL = { none: 'Ilma raamita', ink: 'Must joon', lime: 'Laimiroheline joon' };
@@ -24,6 +24,15 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
         <Area label="Tekst" rows={3} value={item.text} onChange={(v) => set({ text: v.slice(0, 600) })} hint="*kaldkiri* ja **paks** tärnide vahel" />
         <Num label="Kirja suurus (pt)" value={item.size} min={8} max={60} onChange={(v) => set({ size: Number(v) || 14 })} />
         <label className="ed-check"><input type="checkbox" checked={item.bold} onChange={(e) => set({ bold: e.target.checked })} /> Paks kiri</label>
+        <Select label="Kiri" value={item.font || 'body'} onChange={(v) => set({ font: v })} options={TEXT_FONTS.map((k) => [k, TEXT_FONT_LABEL[k]])} />
+        <div className="ed-free-layer" role="group" aria-label="Joondus">
+          <span className="ed-label">Joondus</span>
+          {TEXT_ALIGNS.map((k) => {
+            const on = (item.align || (item.shape === 'circle' || item.shape === 'oval' ? 'center' : 'left')) === k;
+            return <button key={k} type="button" className="ed-btn" aria-pressed={on} onClick={() => set({ align: k })}>{TEXT_ALIGN_LABEL[k]}</button>;
+          })}
+        </div>
+        <Select label="Teksti värv" value={item.color || 'auto'} onChange={(v) => set({ color: v })} options={TEXT_COLORS.map((k) => [k, TEXT_COLOR_LABEL[k]])} />
       </> : null}
       {item.kind === 'line' ? <>
         <Select label="Otsad" value={item.heads} onChange={(v) => set({ heads: v })} options={LINE_HEADS.map((k) => [k, HEADS_LABEL[k]])} />

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Md } from './ui.jsx';
 import { objectPosition } from './image.js';
-import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, resizeItem } from './freeLayer.js';
+import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, resizeItem, textStyle } from './freeLayer.js';
 
 // „Vaba kiht” on one A4 page (freeLayer.js). Positions are mm on the 270 mm design page, so print, zoom and the book
 // draw it the same. In the constructor (`edit`): a tap selects, a drag moves, the corner resizes (pictures and circles
@@ -15,7 +15,7 @@ function FreeContent({ item }) {
       ? <img src={item.img.src} alt={item.alt || ''} style={{ objectPosition: objectPosition(item.img) }} draggable={false} />
       : <div className="ws-free-empty">Pilt</div>;
   }
-  if (item.kind === 'text') return <div className="ws-free-text" style={{ fontSize: `${item.size}pt`, fontWeight: item.bold ? 800 : 400 }}><Md text={item.text} /></div>;
+  if (item.kind === 'text') return <div className="ws-free-text" style={textStyle(item)}><Md text={item.text} /></div>;
   return null;
 }
 
@@ -35,7 +35,7 @@ function TextEditor({ item, onDone }) {
       aria-label="Tekstikasti tekst"
       value={value}
       maxLength={600}
-      style={{ fontSize: `${item.size}pt`, fontWeight: item.bold ? 800 : 400 }}
+      style={textStyle(item)}
       onChange={(e) => setValue(e.target.value)}
       onBlur={finish}
       onPointerDown={(e) => e.stopPropagation()}
