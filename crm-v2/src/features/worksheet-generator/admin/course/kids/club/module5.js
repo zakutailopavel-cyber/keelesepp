@@ -25,10 +25,10 @@ export const MODULE_5 = {
       questions: ['Mis spordiala sulle meeldib?', 'Kas sa jooksed kiiresti?', 'Mitu tundi sa öösel magad?', 'Mida sa teed, kui oled haige?', 'Kas sa sööd tervislikult?', 'Kes on sinu lemmiksportlane?', 'Kas sa käid iga päev õues?', 'Mida sa teed hommikul enne kooli?'],
       find: ['oskab seista ühel jalal 20 sekundit', 'jooksis sel nädalal', 'magab öösel üle 9 tunni', 'joob iga päev vett', 'sõidab jalgrattaga', 'mängib korvpalli', 'teeb hommikuti võimlemist', 'oskab hüppenööriga hüpata'],
       roles: ['Arsti juures', 'Laps on haige ja tuleb arsti juurde. Arst ei tea, mis valutab — patsient ei tea, mida teha.', [
-        'Sa oled patsient. Sinu mure: pea valutab, kõht valutab natuke, palavik on 38. Haige oled sa eilsest. Ütle seda arstile ainult siis, kui ta küsib. Lõpus korda, mida arst ütles.',
-        ['Tere, doktor!', 'Mul valutab …', 'Mul on palavik … kraadi.', 'Mida ma pean tegema?'],
+        'Sa oled patsient. Sul valutab pea ja natuke kõht. Sul on palavik: 38 kraadi. Sa oled haige eilsest saadik. Ütle seda arstile ainult siis, kui ta küsib. Lõpus korda, mida arst ütles.',
+        ['Tere, doktor!', 'Mul valutab …', 'Mul on palavik.', 'Mida ma pean tegema?'],
       ], [
-        'Sa oled arst. Küsi: Mis valutab? Kas on palavik? Mis päevast? Siis anna nõu: palavik — puhka kaks päeva kodus; pea valutab — maga palju; kõht valutab — joo teed, ära söö kommi; mine apteeki.',
+        'Sa oled arst. Küsi: Mis valutab? Kas sul on palavik? Kui kaua sa oled haige olnud? Siis anna nõu: palavik — puhka kaks päeva kodus; pea valutab — maga palju; kõht valutab — joo teed, ära söö kommi; mine apteeki.',
         ['Tere! Mis sul viga on?', 'Kas sul on palavik?', 'Puhka kaks päeva kodus.', 'Joo palju teed. Saa terveks!'],
       ]],
       extra: ['Liikumiskaardid', 'Võta kaart, loe käsk ette — kõik teevad! (Õpetaja ütleb …)', [
@@ -42,13 +42,13 @@ export const MODULE_5 = {
       ],
       gaps: ['Mul valutab [pea].', 'Kas sul on [palavik]?', 'Mulle meeldib [korvpall].', 'Ma [jooksen] väga kiiresti.', 'Mine [arsti] juurde!'],
       bank: ['pea', 'palavik', 'korvpall', 'jooksen', 'arsti'],
-      order: ['Mul valutab kõht.', 'Mulle meeldib jalgpall.', 'Puhka kodus ja joo teed.'],
+      order: ['Mul valutab kõht.', 'Mis sul viga on?', 'Kas sul on palavik?'],
       cross: [['голова', 'pea'], ['рука', 'käsi'], ['нога', 'jalg'], ['спина', 'selg'], ['врач', 'arst'], ['мяч', 'pall']],
       snack: ['Mis on tervislik suupiste?', 'Õun on tervislik!'],
       plan: ['Minu lemmikspordiala on …', 'Ma käin … trennis / mängin …', 'Hommikul ma …', 'Ma magan … tundi.', 'Kui ma olen haige, siis ma …', 'Tervislik on …'],
       talk: 'Räägi umbes üks minut spordist ja tervisest: mis spordiala sulle meeldib, mida sa teed, et olla terve.',
-      game1: '«Õpetaja ütleb» (как «Саймон говорит»): учитель говорит «Õpetaja ütleb: puuduta pead!» — дети делают; без «Õpetaja ütleb» — не делать. Потом команды подают дети с карточек движений.',
-      game2: '«У врача»: пары по ролевым карточкам; «пациент» рассказывает о болезни только на вопросы врача и в конце повторяет совет («Ma pean puhkama ja teed jooma»). Потом пары меняются ролями, и новый пациент придумывает болезнь сам: показывает жестом, где болит, класс угадывает: «Sul valutab selg!»',
+      game1: '«Õpetaja ütleb» (как «Саймон говорит», 15 мин): все стоят. Учитель говорит «Õpetaja ütleb: puuduta pead!» — дети делают; команду без слов «Õpetaja ütleb» выполнять нельзя, кто ошибся — садится и дальше подаёт команды вместе с учителем. Через 5 минут ведущими становятся дети: по очереди тянут карточку движений (лист 1) и командуют («Õpetaja ütleb: hüppa viis korda!»). В конце: учитель показывает на часть тела, дети хором: «Pea! Selg! Jalg!»',
+      game2: '«У врача» (15 мин): пары по ролевым карточкам «Arsti juures», 2–3 пары по очереди перед классом; «пациент» рассказывает о болезни только на вопросы врача и в конце повторяет совет («Ma pean puhkama ja teed jooma»). Потом пары меняются ролями, и новый пациент придумывает болезнь сам: показывает жестом, где болит, класс угадывает: «Sul valutab selg!»',
       home: 'Сделайте вместе утреннюю зарядку по-эстонски: ребёнок подаёт команды («Hüppa! Tõsta käed!»), вы выполняете.',
       self: ['Ma nimetan kehaosi.', 'Ma ütlen: Mul valutab …', 'Ma räägin oma lemmikspordist.'],
     },
@@ -59,7 +59,7 @@ export const MODULE_5 = {
       focus: 'Minu arvates on see huvitav / igav / naljakas · Eile ma vaatasin / mängisin',
       words: [
         ['kino', 'кино', 'a2:kino'], ['mäng', 'игра', 'a2:mang'], ['muusika', 'музыка', 'a2:muusika'], ['kontsert', 'концерт', 'a2:kontsert'],
-        ['raamat', 'книга', 'book'], ['telefon', 'телефон', 'a2:telefoninumber'], ['film', 'фильм'], ['multifilm', 'мультфильм'],
+        ['raamat', 'книга', 'book'], ['telefon', 'телефон', 'a2:telefoninumber'], ['film', 'фильм', 'film'], ['multifilm', 'мультфильм', 'film'],
         ['arvutimäng', 'компьютерная игра'], ['huvitav', 'интересный'], ['igav', 'скучный'], ['naljakas', 'смешной'],
       ],
       phrases: [
@@ -72,12 +72,12 @@ export const MODULE_5 = {
       ],
       questions: ['Mis on sinu lemmikfilm?', 'Mis mänge sa mängid?', 'Kui kaua sa päevas telefonis oled?', 'Mida sa eile vaatasid?', 'Kes on sinu lemmiklaulja?', 'Mis on parem: raamat või film?', 'Kas sulle meeldivad lauamängud?', 'Mis on kõige naljakam multifilm?'],
       find: ['vaatas eile filmi', 'mängib arvutimänge iga päev', 'käis sel kuul kinos', 'kuulab muusikat iga päev', 'loeb koomikseid', 'oskab videot teha', 'mängib lauamänge perega', 'ei mängi arvutimänge'],
-      roles: ['Lähme kinno!', 'Üks sõber teab kinokava, teine teab oma päeva. Leppige kokku: mis film, mis kell, kus kohtute.', [
-        'Sa tahad laupäeval kinno minna. Kinokava: multifilm kell 12, seiklusfilm kell 16. Pilet maksab 6 eurot. Kutsu sõpra, räägi filmidest ja küsi, mis kell ta saab.',
-        ['Kas sa tuled laupäeval kinno?', 'Kinos on multifilm ja seiklusfilm.', 'Mis film sulle meeldib?', 'Kohtume kell … kino ees.'],
+      roles: ['Raamatukogus: vali film', 'Laps otsib raamatukogust filmi, mida vaadata õhtul väikese õega. Ainult raamatukoguhoidja teab, mis filmid on.', [
+        'Sa oled laps. Sinu õde on 7-aastane. Talle meeldivad loomad ja naljakad filmid. Hirmsad filmid talle ei meeldi. Film võib olla kuni üks tund pikk. Küsi filmide kohta ja vali üks.',
+        ['Tere! Ma otsin filmi oma õele.', 'Millest see film räägib?', 'Kas see on naljakas või hirmus?', 'Kui pikk see film on?', 'Ma võtan selle, aitäh!'],
       ], [
-        'Sõber kutsub sind kinno. Sa ei tea kinokava — küsi! Laupäeval kell 11–13 on sul trenn, kell 18 läheb pere vanaema juurde. Sul on 10 eurot. Ütle oma arvamus filmidest.',
-        ['Hea mõte! Mis filmid on?', 'Mis kell? Kui palju pilet maksab?', 'Kell 12 ma ei saa, mul on trenn.', 'Minu arvates on seiklusfilm huvitavam.', 'Olgu, kohtume!'],
+        'Sa oled raamatukoguhoidja. Sul on neli filmi: „Kass ja koer” (multifilm, naljakas, 50 min); „Öö metsas” (hirmus film, 90 min); „Kosmosereis” (seiklusfilm, 2 tundi); „Väike hobune” (multifilm, ilus, 40 min, natuke kurb). Küsi, kellele film on ja mis talle meeldib.',
+        ['Tere! Kellele sa filmi otsid?', 'Mis talle meeldib?', 'See film on naljakas, seal on kass ja koer.', 'See film on hirmus, see ei sobi väikesele lapsele.', 'Head vaatamist!'],
       ]],
       extra: ['Arvamuskaardid', 'Võta kaart ja ütle oma arvamus: „Minu arvates on … huvitav, sest …”', [
         ['Multifilm', ['huvitav? igav?', 'naljakas?']], ['Arvutimäng', ['hea? halb?', 'kui kaua mängid?']], ['Raamat', ['huvitav? igav?', 'mis raamat?']],
@@ -90,13 +90,13 @@ export const MODULE_5 = {
       ],
       gaps: ['Eile ma [vaatasin] filmi.', 'Minu [arvates] on see mäng huvitav.', 'See film oli väga [naljakas].', 'Ma [mängin] lauamänge perega.', 'Kas sa tuled minuga [kinno]?'],
       bank: ['vaatasin', 'arvates', 'naljakas', 'mängin', 'kinno'],
-      order: ['Minu lemmikfilm on naljakas.', 'Eile ma mängisin arvutimängu.', 'Kas sa tuled minuga kinno?'],
+      order: ['Minu lemmikfilm on naljakas.', 'Mis on sinu lemmikfilm?', 'Kas sa mängid arvutimänge?'],
       cross: [['игра', 'mäng'], ['кино', 'kino'], ['фильм', 'film'], ['музыка', 'muusika'], ['скучный', 'igav'], ['книга', 'raamat']],
       snack: ['Kas sa tahad popkorni?', 'Kas sa sööd kinos popkorni?'],
       plan: ['Minu lemmikfilm / lemmikmäng on …', 'See on … (huvitav, naljakas)', 'Ma vaatan / mängin … (millal?)', 'Eile ma …', 'Ma olen telefonis … päevas.', 'Minu arvates …'],
       talk: 'Räägi umbes üks minut oma lemmikfilmist, -mängust või -raamatust: mis see on, millest see räägib, miks see sulle meeldib.',
-      game1: '«Угадай фильм»: ребёнок описывает мультфильм или игру тремя предложениями («Seal on kass ja hiir. Nad on sõbrad…»), остальные угадывают название.',
-      game2: '«Моё мнение»: дети тянут карточки мнений и спорят: «Minu arvates on raamat parem, sest …» — «Ei, minu arvates on film parem!» Потом ролевая игра «Идём в кино».',
+      game1: '«Алиас: фильмы и игры» (15 мин): две команды. Каждый ребёнок пишет на 2 бумажках название известного мультфильма, фильма или игры; бумажки в шапке. Ребёнок тянет бумажку и за 1 минуту объясняет своей команде по-эстонски, не называя слов из названия: «See on multifilm. Seal on kass ja hiir. See on naljakas.» Угадали — 1 очко. Учитель следит за таймером и пишет счёт на доске.',
+      game2: '«Моё мнение» (5 мин): ребёнок тянет карточку мнений и говорит «Minu arvates on … huvitav / igav, sest …», следующий отвечает «Minu arvates ka» или «Ei, minu arvates …». Потом ролевая игра «В библиотеке» (10 мин): 2–3 пары по очереди; ребёнок выбирает фильм для сестры, остальные слушают и в конце говорят, какой фильм он выбрал и почему.',
       home: 'Посмотрите вместе короткий мультфильм на эстонском (ERR Lasteekraan) и попросите ребёнка рассказать по-эстонски, что было и понравилось ли.',
       self: ['Ma räägin oma lemmikfilmist või mängust.', 'Ma ütlen oma arvamuse: Minu arvates …', 'Ma räägin, mida ma eile tegin: vaatasin, mängisin.'],
     },
@@ -121,7 +121,7 @@ export const MODULE_5 = {
       questions: ['Kus sa suvel käisid?', 'Mis on Eesti kõige ilusam koht?', 'Kas sa oled saarel käinud?', 'Millega sulle meeldib sõita?', 'Kuhu sa tahaksid sõita?', 'Mida sa võtad reisile kaasa?', 'Kas sa ujusid suvel meres?', 'Mis Eesti linnades sa oled käinud?'],
       find: ['on käinud Tartus', 'ujus suvel meres', 'on sõitnud lennukiga', 'on käinud Saaremaal', 'käis suvel maal', 'on käinud teises riigis', 'sõitis sel aastal rongiga', 'oskab nimetada viis Eesti linna'],
       roles: ['Jaamas', 'Reisija on jaamas ja tahab sõita Tartusse. Ainult kassapidaja teab rongiaegu ja hindu.', [
-        'Sa oled reisija. Sul on 12 eurot. Sa tahad olla Tartus enne kella 13, sest kell 13 algab AHHAA keskuses show. Osta pilet. Küsi, mis kell rong läheb, kui palju pilet maksab ja millal rong Tartus on.',
+        'Sa oled reisija. Sul on 12 eurot. Sa tahad olla Tartus enne kella 13, sest kell 13 ootab sind sõber AHHAA keskuse ees. Osta pilet. Küsi, mis kell rong läheb, kui palju pilet maksab ja millal rong Tartus on.',
         ['Tere! Üks pilet Tartusse, palun.', 'Mis kell rong läheb?', 'Kui palju see maksab?', 'Millal rong Tartus on?'],
       ], [
         'Sa töötad jaamas kassas. Rongid Tartusse: kell 10.15 (Tartus 12.20, pilet 10 eurot) ja kell 12.30 (Tartus 14.35, pilet 8 eurot). Küsi, kuhu reisija sõidab ja mis kell ta tahab sõita.',
@@ -129,7 +129,7 @@ export const MODULE_5 = {
       ]],
       extra: ['Eesti kohad', 'Võta kaart ja räägi: „Ma tahaksin sõita …, sest seal on …”', [
         ['Tallinn', ['pealinn', 'vanalinn', 'meri']], ['Tartu', ['ülikool', 'AHHAA teaduskeskus', 'Emajõgi']], ['Pärnu', ['suvepealinn', 'rand', 'meri']],
-        ['Saaremaa', ['suurim saar', 'Kuressaare loss', 'tuuleveskid']], ['Narva', ['Narva linnus', 'jõgi', 'piir']], ['Otepää', ['talvepealinn', 'suusatamine', 'mäed']],
+        ['Saaremaa', ['suurim saar', 'Kuressaare linnus', 'tuuleveskid']], ['Narva', ['Narva linnus', 'jõgi', 'piir']], ['Otepää', ['talvepealinn', 'suusatamine', 'mäed']],
       ]],
       dialogue: [
         ['A', 'Kus sa [suvel] käisid?'], ['B', 'Ma käisin Saaremaal.'],
@@ -138,13 +138,13 @@ export const MODULE_5 = {
       ],
       gaps: ['Ma käisin suvel [Pärnus].', 'Üks [pilet] Tartusse, palun!', 'Mis kell [rong] läheb?', 'Ma tahaksin sõita [Saaremaale].', 'Me ujusime [meres].'],
       bank: ['Pärnus', 'pilet', 'rong', 'Saaremaale', 'meres'],
-      order: ['Ma käisin suvel Tartus.', 'Üks pilet Pärnusse, palun.', 'Mis kell rong läheb?'],
+      order: ['Kuhu sa tahaksid sõita?', 'Üks pilet Pärnusse, palun.', 'Mis kell rong läheb?'],
       cross: [['поезд', 'rong'], ['билет', 'pilet'], ['море', 'meri'], ['остров', 'saar'], ['чемодан', 'kohver'], ['лес', 'mets']],
       snack: ['Mida sa reisile kaasa võtad?', 'Võileiva ja õuna!'],
       plan: ['Suvel ma käisin …', 'Me sõitsime … (millega?)', 'Seal oli …', 'Mulle meeldis …', 'Järgmisel suvel ma tahaksin sõita …', 'Ma võtan kaasa …'],
       talk: 'Räägi umbes üks minut oma reisist: kus sa käisid, millega te sõitsite, mida te tegite, mis sulle meeldis. Või räägi, kuhu sa tahaksid sõita.',
-      game1: '«Собираю чемодан»: «Ma sõidan Pärnusse ja võtan kaasa …» — каждый повторяет и добавляет вещь. Затем карта Эстонии: дети показывают города и говорят «Ma käisin …» / «Ma ei ole käinud …».',
-      game2: '«На вокзале»: ролевая игра по карточкам (кассир — пассажир). Потом «Реклама города»: пары берут карточку места и за минуту «продают» поездку: «Sõitke Tartusse, seal on …».',
+      game1: '«Путешествие по Эстонии» — настольная игра (15 мин): учитель заранее рисует на листе А3 контур Эстонии и маршрут Tallinn → Narva → Otepää → Tartu → Pärnu → Saaremaa → Tallinn, фишки и кубик. Команды по 2–3 ребёнка бросают кубик и двигаются; приехав в город, ребёнок говорит две фразы: «Ma sõidan Tartusse rongiga. Nüüd ma olen Tartus.» (куда? → -sse, где? → -s). Ошибка — стоишь на месте. Кто первым вернулся в Таллинн — выиграл.',
+      game2: '«На вокзале» (8 мин): 2–3 пары по ролевым карточкам «Jaamas» (кассир — пассажир); пассажир в конце говорит классу, какой поезд выбрал и почему. Затем «Реклама города» (7 мин): пары берут карточку места «Eesti kohad» и за минуту «продают» поездку: «Sõitke Pärnusse! Seal on rand ja meri.» Класс голосует, куда поехать.',
       home: 'Посмотрите вместе карту Эстонии; ребёнок показывает 5 городов и рассказывает по-эстонски, где он был и куда хочет поехать.',
       self: ['Ma räägin, kus ma käisin.', 'Ma ostan pileti: Üks pilet …, palun!', 'Ma ütlen, kuhu ma tahaksin sõita.'],
     },
@@ -155,7 +155,7 @@ export const MODULE_5 = {
       focus: 'Klubis ma õppisin … · Mulle meeldis kõige rohkem … · Kordame kõiki teemasid',
       words: [
         ['ema', 'мама', 'mother'], ['sõber', 'друг', 'a2:sober'], ['koer', 'собака', 'dog'], ['jope', 'куртка', 'jacket'],
-        ['lumememm', 'снеговик', 'snowman'], ['õhupall', 'воздушный шар', 'balloons'], ['kell', 'часы', 'clock'], ['hobi', 'хобби', 'a2:hobi'],
+        ['lumememm', 'снеговик', 'snowman'], ['kingitus', 'подарок', 'gift'], ['kell', 'часы', 'clock'], ['hobi', 'хобби', 'a2:hobi'],
         ['leib', 'хлеб', 'bread'], ['apteek', 'аптека', 'a2:apteek'], ['kino', 'кино', 'a2:kino'], ['rong', 'поезд', 'train'],
       ],
       phrases: [
@@ -168,14 +168,14 @@ export const MODULE_5 = {
       ],
       questions: ['Kas sul on vend või õde?', 'Millal on sinu sünnipäev?', 'Mis ilm täna on?', 'Mis kell sa hommikul ärkad?', 'Mida sa vabal ajal teed?', 'Mis sulle kohvikus maitseb?', 'Mis on sinu lemmikfilm?', 'Kuhu sa tahaksid sõita?'],
       find: ['on sündinud talvel', 'on pere kõige noorem laps', 'ärkab enne kella seitset', 'oskab nimetada kümme toitu', 'oskab teed juhatada', 'käis sel aastal kinos', 'oskab ühe minuti endast rääkida', 'tahab järgmisel aastal klubis jätkata'],
-      roles: ['Raadiointervjuu', 'Klubi raadio teeb intervjuu klubi õpilasega.', [
-        'Sa oled raadio reporter. Tervita, küsi viis küsimust: nimi, vanus, hobi, lemmiktoit, mida ta klubis õppis. Kirjuta vastused üles ja räägi lõpus vanematele: „Tema nimi on …, talle meeldib …”',
-        ['Tere! Täna on meil külas …', 'Mis su nimi on?', 'Mida sa vabal ajal teed?', 'Mida sa klubis õppisid?', 'Suur aitäh!'],
+      roles: ['Klubi näitus: giid ja külaline', 'Klassis on näitus: plakatid „See olen mina”, talvepeo kutse, klubi ajaleht ja linna kaart. Giid teab, mis need on, külaline ei tea.', [
+        'Sa oled giid. Näita külalisele kahte asja näitusel. Ütle, mis see on, millal te selle tegite ja mis seal on. Küsi lõpus: „Mis teile kõige rohkem meeldib?”',
+        ['Tere tulemast! See on meie …', 'Me tegime selle talvel / kevadel.', 'Siin on …', 'Mis teile kõige rohkem meeldib?'],
       ], [
-        'Sa oled klubi õpilane. Vasta reporteri küsimustele tervete lausetega. Räägi ka üks asi, mida reporter ei küsinud: sinu lemmikkoht Eestis või lemmikfilm.',
-        ['Tere! Minu nimi on …', 'Mulle meeldib …', 'Klubis ma õppisin …', 'Aitäh!'],
+        'Sa oled külaline (ema, isa või vanaema). Sa ei tea midagi klubist. Küsi giidilt kolm küsimust ja ütle lõpus, mis sulle meeldis.',
+        ['Mis see on?', 'Kes selle tegi?', 'Mida te klubis tegite?', 'Mulle meeldib see plakat!'],
       ]],
-      extra: ['Viktoriini kaardid', 'Võistkonnad võtavad kordamööda kaardi. Õige vastus = 1 punkt!', [
+      extra: ['Klubi mälumäng', 'Võistkonnad valivad kordamööda teema. Õige vastus = 1 punkt!', [
         ['Pere', ['Mis on „бабушка” eesti keeles?', '(vanaema)']], ['Kool', ['Nimeta kolm asja seljakotis.', '(vihik, pliiats, raamat …)']],
         ['Toit', ['Kuidas tellida kohvikus teed?', '(Üks tee, palun!)']], ['Talv', ['Mida sa ütled 24. detsembril?', '(Häid jõule!)']],
         ['Ilm', ['Mida panna selga, kui sajab vihma?', '(jope, vihmavari)']], ['Linn', ['Kuidas küsida teed?', '(Vabandust, kus on …?)']],
@@ -189,13 +189,13 @@ export const MODULE_5 = {
       ],
       gaps: ['Minu [nimi] on Robin.', 'Mulle [meeldib] jalgpall.', 'Mulle [maitseb] pitsa.', 'Suvel ma [käisin] Pärnus.', 'Klubis ma [õppisin] palju uusi sõnu.'],
       bank: ['nimi', 'meeldib', 'maitseb', 'käisin', 'õppisin'],
-      order: ['Klubis ma õppisin palju.', 'Mulle meeldisid mängud.', 'Aitäh, et kuulasite!'],
+      order: ['Minu nimi on Sofia.', 'Kas teil on küsimusi?', 'Aitäh, et kuulasite!'],
       cross: [['друг', 'sõber'], ['собака', 'koer'], ['куртка', 'jope'], ['часы', 'kell'], ['хлеб', 'leib'], ['поезд', 'rong']],
       snack: ['Paku vanematele: „Palun, võtke!”', 'Kas te soovite teed või kohvi?'],
       plan: ['Tere! Minu nimi on …', 'Ma olen … aastat vana ja käin … klassis.', 'Mulle meeldib …', 'Minu teema on … (pere, hobi, reis …)', 'Klubis ma õppisin …', 'Aitäh, et kuulasite!'],
       talk: 'Esine vanematele umbes ühe minuti: tutvusta ennast ja räägi oma lemmikteemast klubis. Vasta ühele küsimusele.',
-      game1: '«Викторина» по всему курсу: две команды по очереди тянут карточку (9 карточек, лист 1, по всем модулям); вопрос вслух читает ребёнок другой команды. Правильный ответ — 1 очко, ещё +1 очко, если ответивший добавит предложение о себе («Mina ärkan kell seitse»). Счёт на доске, ведёт учитель.',
-      game2: '«Выступление для родителей»: каждый говорит одну минуту по плану (лист 3), родители задают по одному вопросу. Затем интервью «радио клуба» и вручение грамот.',
+      game1: '«Mälumäng» по всему курсу (15 мин, ещё без родителей): 9 карточек «Klubi mälumäng» (лист 1) лежат на столе темой вверх, сеткой 3×3. Две команды по очереди выбирают тему («Me valime: Talv!»), вопрос вслух читает ребёнок другой команды. Правильный ответ полным предложением — 1 очко, +1 очко, если ответивший добавит предложение о себе («Ma ärkan kell seitse»). Счёт на доске. Последние 3 минуты — каждый один раз шёпотом репетирует с соседом начало своей минуты для родителей.',
+      game2: '(«Mälumäng» уже был в уроке 1, здесь — только выставка.) Родители пришли к перекусу и остаются на урок 2: в «Найди того, кто…» и с карточками вопросов дети спрашивают и родителей. «Klubi näitus» (15 мин): заранее разложить на столах проекты модулей 1–4 — плакаты «See olen mina», приглашение на зимний праздник, газету клуба, карту города. Каждый ребёнок — гид: ведёт своего родителя к двум проектам и рассказывает по ролевой карточке («See on meie ajaleht. Me tegime selle …»); родитель — гость, задаёт вопросы с карточки B. Потом минута рассказа каждого перед всеми, родители задают по одному вопросу; в конце — грамоты (лист 3, «TUNNISTUS») и общее фото.',
       home: 'Похвалите ребёнка и повесьте грамоту. Спросите по-эстонски: «Mida sa klubis õppisid? Mis sulle kõige rohkem meeldis?»',
       self: ['Ma räägin ühe minuti endast.', 'Ma küsin ja vastan kõigil klubi teemadel.', 'Ma esinen vanematele.'],
       celebration: true,
