@@ -99,4 +99,12 @@ describe('vocabulary level (EKI lists)', () => {
     expect(issue.text).not.toMatch(/mari/i);
     expect(didacticCheck(doc).issues.find((i) => i.code === 'did-vocabulary')).toBeUndefined();
   });
+
+  it('a B2-course check lesson may read the Harno B2 article (≤ 650 sheet words); a teaching sheet keeps 250–500', () => {
+    const passage = Array.from({ length: 560 }, (_, n) => (n % 12 === 11 ? 'sõna.' : 'sõna')).join(' ');
+    const read = task('reading', { passage, questions: 'Miks autor nii arvab?' });
+    const len = (meta) => didacticCheck({ meta: { level: 'B1+', ...meta }, blocks: [read] }).issues.some((x) => String(x.code).includes('did-reading-len'));
+    expect(len({ assessment: true })).toBe(false);
+    expect(len({})).toBe(true);
+  });
 });

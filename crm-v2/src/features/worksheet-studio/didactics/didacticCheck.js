@@ -188,7 +188,10 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
   // admin/course/stations.js), so the level's one long reading text is not a sheet norm there
   tasks.filter((b) => b.type === 'reading' && !isStationSheet(doc)).forEach((b) => {
     const n = wordsIn(b.data?.passage);
-    const [min, max] = norm.reading.words;
+    const [min, levelMax] = norm.reading.words;
+    // a check lesson of the B2 course (B1+ / B2- / B2) reads the Harno B2 opinion article: 500–600 words of text, and the
+    // sheet count adds paragraph letters and numbers (owner 2026-11-14, b1b2-005 holds the module's article)
+    const max = doc?.meta?.assessment && ['B1+', 'B2-', 'B2'].includes(key) ? Math.max(levelMax, 650) : levelMax;
     add(`reading-len-${b.id}`, `${name(b)}: teksti pikkus`, n >= min && n <= max,
       { detail: `${name(b)}: tekstis on ${n} sõna, tasemel ${norm.label} sobib ${min}–${max}.`, severity: 'warning', blockId: b.id });
     const q = lines(b.data?.questions);

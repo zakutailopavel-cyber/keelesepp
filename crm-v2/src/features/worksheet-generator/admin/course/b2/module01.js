@@ -77,13 +77,13 @@ export const LESSONS = withShapes({
       tag(B.vocab('001_d_vocab', 'Tunni sõnad.', ['eesmärk — цель', 'oskus — навык', 'tugevus — сильная сторона', 'nõrkus — слабое место', 'võimalus — возможность', 'projektijuht — руководитель проекта', 'läbirääkimised — переговоры', 'diagnostika — диагностика', 'tingimus — условие', 'palve — просьба']), { topic: ['projektijuht', 'diagnostika'] }),
       teach(tag(purpose(B.choice('001_d_sounds', 'Kas kuuled vahet?', 'Õpetaja ütleb igast paarist ühe sõna. Vali sõna, mida kuulsid. Siis ütle mõlemad sõnad ise.', [
         ['Esimene rida: õpetaja ütleb ühe sõna. Millise sõna sa kuulsid?', 'saada', 'sada', 'saata'],
-        ['Teine rida: õpetaja ütleb ühe sõna. Millise sõna sa kuulsid?', 'kooli', 'koli', 'kolli'],
+        ['Teine rida: õpetaja ütleb ühe sõna. Millise sõna sa kuulsid?', 'tulle', 'tule', 'tuule'],
         ['Kolmas rida: õpetaja ütleb ühe sõna. Millise sõna sa kuulsid?', 'lina', 'linna', 'Liina'],
         ['Neljas rida: õpetaja ütleb ühe sõna. Millise sõna sa kuulsid?', 'tüli', 'tuli', 'tõi'],
-        ['Viies rida: õpetaja ütleb ühe sõna. Millise sõna sa kuulsid?', 'töö', 'too', 'tõu'],
-        ['Kuues rida: õpetaja ütleb ühe sõna. Millise sõna sa kuulsid?', 'mõtte', 'mõte', 'mõõde'],
+        ['Viies rida: õpetaja ütleb ühe sõna. Millise sõna sa kuulsid?', 'süda', 'sõda', 'sada'],
+        ['Kuues rida: õpetaja ütleb ühe sõna. Millise sõna sa kuulsid?', 'lõppu', 'lõpu', 'lõbu'],
       ], 'full', 'g_listen'), 'Maret kontrollib diagnostikas ka hääldust: kas sa kuuled lühikest ja pikka häälikut ning õ, ö ja ü vahet. Nii teab ta, mida tundides harjutada.'), { task: 'L01' }),
-      'Üks-ühele: loe igast reast võtmesõna (1 saada, 2 kooli, 3 lina, 4 tüli, 5 töö, 6 mõtte) üks kord tavalises tempos, ilma rõhutamata. Pärast valikut ütleb õpilane rea kõik sõnad ise; märgi kaardile, kas pikkus (lühike, pikk, ülipikk) ja õ / ö / ü tulevad välja. Kokku 4 minutit.'),
+      'Üks-ühele: loe igast reast võtmesõna (1 saada, 2 tulle, 3 lina, 4 tüli, 5 süda, 6 lõppu) üks kord tavalises tempos, ilma rõhutamata. Pärast valikut ütleb õpilane rea kõik sõnad ise; märgi kaardile, kas pikkus (lühike, pikk, ülipikk) ja õ / ö / ü tulevad välja. Kokku 4 minutit.'),
       inLesson(teach(tag(purpose(B.speaking('001_d_talk', 'Diagnostika suuline osa.', 'Õpetaja on Maret, sinu vestluskaaslane. Vasta igale küsimusele järjest ja ilma pikkade pausideta: arvamus, põhjus ja näide. Kokku räägid umbes neli minutit.', [
         'Mida sa praegu tööl või koolis teed ja kus sa eesti keelt kasutad?',
         'Milline keeleoskus on sinu tugevus ja milline nõrkus? Too näide.',
