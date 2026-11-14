@@ -7,6 +7,7 @@ import { PROGRAM_56 } from '../worksheet-generator/admin/course/kids/program56.j
 import { PROGRAM_67 } from '../worksheet-generator/admin/course/kids/program67.js';
 import { PROGRAM_89 } from '../worksheet-generator/admin/course/kids/program89.js';
 import { SCHOOL_89 } from '../worksheet-generator/admin/course/kids/school89.js';
+import { CLUB_11 } from '../worksheet-generator/admin/course/kids/club11.js';
 
 export const KIDS_VERSION = '2026-10-28.1';
 const pad = (n) => String(n).padStart(3, '0');
@@ -68,10 +69,46 @@ function schoolPlan(program, lesson, n) {
   ].join('\n');
 }
 
+
+// the speaking club 10–12 (owner 2026-11-15): one meeting = lesson 1 (45 min) + snack + lesson 2 (45 min)
+function clubPlan(program, lesson, n) {
+  const [roleTitle] = lesson.roles;
+  const [extraTitle] = lesson.extra;
+  return [
+    `Курс: ${program.title} — 2 урока по 45 минут с перекусом между ними, группа детей ~11 лет, уровень A1–A2.`,
+    `Встреча ${n} из 12: ${lesson.title} (${lesson.ru}).`,
+    `Цель: ${lesson.can}`,
+    `Речевой фокус: ${lesson.focus}.`,
+    `Слова: ${lesson.words.map(([w, ru]) => `${w} (${ru})`).join(', ')}.`,
+    'Материалы: лист 1 «Kaardid» — распечатать заранее (лучше на плотной бумаге) и разрезать; листы 2 и 3 — по одному на ребёнка; мягкий мяч, таймер, ножницы.',
+    'Правило клуба: дети говорят больше учителя. Учитель говорит по-эстонски, по-русски — только короткая подсказка. Ошибки не прерываем: в конце урока повторяем 2–3 правильные фразы.',
+    '',
+    'УРОК 1 (45 мин):',
+    '1. Круг и разминка (5 мин): «Tere! Kuidas läheb?» — каждый отвечает и задаёт вопрос соседу. С 2-й встречи — 2 вопроса с карточек прошлой встречи.',
+    `2. Новые слова (10 мин): карточки слов (лист 1) — показать картинку, назвать 2–3 раза, дети повторяют хором и по одному; игра «Что пропало?» (убрать одну карточку). Дети говорят предложение со словом: ${lesson.phrases[0][1]}`,
+    `3. Фразы и диалог (10 мин): рамка «Räägime nii» на листе 2 — учитель задаёт вопрос, дети отвечают по образцу; диалог читаем в ролях A/B, вписываем пропуски, затем пары говорят тот же диалог о себе.`,
+    `4. Игра (15 мин): ${lesson.game1}`,
+    '5. Короткие задания листа 2 (5 мин): «Ühenda küsimus ja vastus» и «Kirjuta lünka» — вместе, вслух.',
+    '',
+    `ПЕРЕКУС (10–15 мин): говорим только по-эстонски — фразы в рамке «Söögipausil» (лист 3): ${[...lesson.snack].join(' ')} Учитель хвалит тех, кто попросил по-эстонски.`,
+    '',
+    'УРОК 2 (45 мин):',
+    `1. «${lesson.findTitle || 'Leia keegi, kes …'}» (10 мин): лист 2, таблица — дети ходят по классу и спрашивают «Kas sa …?», записывают имена; потом каждый рассказывает: «Mia oskab ujuda».`,
+    `2. Карточки вопросов (10 мин): дети тянут карточку, задают вопрос соседу, тот отвечает полным предложением и тянет следующую.`,
+    `3. Ролевая игра и игра (15 мин): «${roleTitle}» по карточкам ролей (2–3 пары по очереди, остальные слушают и задают 1 вопрос) и «${extraTitle}». ${lesson.game2}`,
+    `4. Минута рассказа (8 мин): лист 3 — план из 6 строк, затем каждый говорит около минуты (таймер). ${lesson.talk}`,
+    '5. Итог (2 мин): «Ma oskan» на листе 3 — каждый отмечает, что умеет; лист 3 с запиской для родителей — домой.',
+    '',
+    `Домой (родителям): ${lesson.home}`,
+    ...(lesson.celebration ? ['', 'Это праздничная встреча: пригласить родителей, подготовить грамоты (на листе 3 «TUNNISTUS»), кофе/чай для родителей во время перекуса — дети угощают по-эстонски.'] : []),
+  ].join('\n');
+}
+
 export const KIDS_COURSES = [
   { program: PROGRAM_56, plan: youngPlan },
   { program: PROGRAM_67, plan: youngPlan },
   { program: PROGRAM_89, plan: schoolPlan },
+  { program: CLUB_11, plan: clubPlan },
 ];
 
 export function kidsCurriculumRecords() {
@@ -102,7 +139,7 @@ export function kidsCurriculumRecords() {
       roadmapTag: celebration ? 'Pidu' : 'Teema',
       lessonTypeLabel: celebration ? 'Pidu' : 'Teema',
       goal: lesson.can,
-      languageFocus: lesson.grammar || wordsOf(lesson).slice(0, 6).join(', '),
+      languageFocus: lesson.grammar || lesson.focus || wordsOf(lesson).slice(0, 6).join(', '),
       contactMinutes: program.minutes,
       roadmapVersion: KIDS_VERSION,
       roadmapManaged: true,

@@ -8,9 +8,9 @@ import { COLORING_PICTURES } from '../../../../worksheet-studio/engine/blocks/ki
 import { coloringKey } from '../../../../worksheet-studio/engine/blocks/kids.jsx';
 import fs from 'node:fs';
 
-describe('children’s courses 5–6, 6–7, 8–9', () => {
+describe('children’s courses 5–6, 6–7, 8–9 and the speaking club 10–12', () => {
   it('three courses of 12 lessons, each with three sheets', () => {
-    expect(KIDS_PROGRAMS.map((p) => p.lessons.length)).toEqual([12, 12, 12]);
+    expect(KIDS_PROGRAMS.map((p) => p.lessons.length)).toEqual([12, 12, 12, 12]);
     KIDS_MODULES.forEach((mod) => {
       expect(Object.keys(mod.LESSONS)).toHaveLength(12);
       Object.values(mod.LESSONS).forEach((lesson) => ['discover', 'practice', 'transfer'].forEach((p) => expect(lesson[p].length, `${lesson.title} ${p}`).toBeGreaterThanOrEqual(3)));
@@ -84,5 +84,20 @@ describe('children’s courses 5–6, 6–7, 8–9', () => {
         images.forEach((img) => expect(fs.existsSync(`public${img.src}`), img.src).toBe(true));
       });
     })));
+  });
+
+  it('speaking club 10–12: cards to print, lesson 1, lesson 2 (owner 2026-11-15)', () => {
+    const mod = KIDS_MODULES.find((m) => m.MODULE.id === 'k11-module-01');
+    Object.entries(moduleSheets(mod)).forEach(([lessonId, { discover, practice, transfer }]) => {
+      expect(discover.meta.displayLabel).toBe('1 Kaardid');
+      const types = (doc) => doc.blocks.map((b) => b.type);
+      expect(types(discover), lessonId).toEqual(expect.arrayContaining(['profiles', 'rolecards']));
+      const words = discover.blocks.find((b) => b.id.endsWith('_d_words'));
+      expect(words.data.people.length, lessonId).toBe(12);
+      expect(words.data.people.filter((p) => p.img?.src).length, `${lessonId} pictures`).toBeGreaterThanOrEqual(6);
+      expect(discover.blocks.find((b) => b.id.endsWith('_d_questions')).data.people.length, lessonId).toBe(8);
+      expect(types(practice), lessonId).toEqual(expect.arrayContaining(['vocab', 'dialogue', 'match', 'gaps', 'table']));
+      expect(types(transfer), lessonId).toEqual(expect.arrayContaining(['phrasebank', 'wordorder', 'crossword', 'planning', 'speaking', 'selfcheck']));
+    });
   });
 });

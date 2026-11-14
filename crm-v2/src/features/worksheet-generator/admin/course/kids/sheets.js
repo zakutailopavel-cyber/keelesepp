@@ -13,6 +13,7 @@ import { PROGRAM_56 } from './program56.js';
 import { PROGRAM_67 } from './program67.js';
 import { PROGRAM_89 } from './program89.js';
 import { SCHOOL_89 } from './school89.js';
+import { CLUB_11, CLUB_SNACK } from './club11.js';
 
 const pad = (n) => String(n).padStart(3, '0');
 const block = (id, type, tone, goal, data, width = 'full') => ({ id, type, width, span: width === 'full' ? 12 : 6, tone, goal, data });
@@ -183,17 +184,71 @@ function schoolLesson(program, lesson, index) {
   return { discover, practice, transfer };
 }
 
+
+// The speaking club 10–12 (owner 2026-11-15): one meeting = two lessons of 45 minutes with a snack between them. Content
+// in club11.js. Sheet 1 is printed and cut (cards), sheet 2 is lesson 1, sheet 3 is lesson 2 (and home).
+export const CLUB_PHASES = {
+  discover: { label: '1 Kaardid', slot: 1, subtitle: 'Prindi ja lõika: sõnakaardid, küsimused ja rollid tunniks.' },
+  practice: { label: '2 Tund 1: räägime', slot: 2, subtitle: 'Sõnad, küsimused ja vastused, dialoog ja „Leia keegi, kes …”.' },
+  transfer: { label: '3 Tund 2: mängime ja esineme', slot: 3, subtitle: 'Söögipaus eesti keeles, mängud ja minut rääkimist.' },
+};
+const CLUB_GOALS = {
+  g_vocab: 'Laps teab ja ütleb tunni sõnu.',
+  g_read: 'Laps saab aru küsimusest ja vastab.',
+  g_notice: 'Laps kasutab tunni fraase õiges vormis.',
+  g_use: 'Laps räägib: küsib, vastab, peab dialoogi ja räägib minuti.',
+};
+const picOf = (pic) => (!pic ? null : pic.startsWith('a2:') ? { src: `/textbook-art/words/a2/${pic.slice(3)}.webp` } : art(pic));
+const cards = (id, title, instruction, people, columns, goal = 'g_use') => block(id, 'profiles', 'white', goal, {
+  title, instruction, columns: String(columns),
+  people: people.map(([name, facts, img]) => ({ img: img || null, name, facts: (facts || []).join('\n'), sentences: '' })),
+});
+
+function clubLesson(program, lesson, index) {
+  const id = lessonIdOf(program, index).replace(/-/g, '_');
+  const [roleTitle, situation, [roleA, phrasesA], [roleB, phrasesB]] = lesson.roles;
+  const [extraTitle, extraInstruction, extraCards] = lesson.extra;
+  const answersOf = (sentences) => sentences.flatMap((x) => [...x.matchAll(/\[([^\]|]+)/g)].map((m) => m[1]));
+  const discover = [
+    B.tip(`${id}_d_how`, 'Õpetajale: kuidas kaarte kasutada', ['Prindi see leht (soovitavalt paksule paberile) ja lõika kaardid joont mööda välja.', 'Sõnakaardid — tund 1, küsimuste kaardid — tund 1 ja 2, rollikaardid ja lisakaardid — tund 2.'], 'full'),
+    cards(`${id}_d_words`, 'Sõnakaardid', 'Näita pilti — laps ütleb sõna ja lause. Pööra kaart — kes mäletab?', lesson.words.map(([word, ru, pic]) => [word, [ru], picOf(pic)]), 4, 'g_vocab'),
+    cards(`${id}_d_questions`, 'Küsimuste kaardid', 'Võta kaart, loe küsimus ette ja küsi sõbralt. Sõber vastab terve lausega ja küsib järgmise.', lesson.questions.map((q, i) => [`Küsimus ${i + 1}`, [q]]), 2, 'g_read'),
+    B.rolecards(`${id}_d_roles`, `Rollikaardid: ${roleTitle}`, `${situation} Lõika kaardid pooleks: üks võtab rolli A, teine rolli B.`, roleA, roleB, phrasesA, phrasesB),
+    cards(`${id}_d_extra`, extraTitle, extraInstruction, extraCards.map(([name, facts]) => [name, facts]), extraCards.length % 3 === 0 && extraCards.length > 4 ? 3 : 2),
+  ];
+  const gapsBank = lesson.bank || answersOf(lesson.gaps);
+  const practice = [
+    B.vocab(`${id}_p_words`, 'Tunni sõnad · слова урока', lesson.words.map(([word, ru]) => `${word} — ${ru}`).join('\n'), '2'),
+    B.notice(`${id}_p_focus`, `Räägime nii: ${lesson.focus}`, lesson.phrases.map(([q, a]) => `**${q}** — ${a}`), 'full', 'g_notice'),
+    B.dialogue(`${id}_p_dialogue`, 'Loe dialoogi paarilisega ja kirjuta puuduvad sõnad.', 'Loe kõigepealt koos õpetajaga. Siis loe rollides: A ja B. Lõpuks räägi sama oma andmetega.', 'A', 'B', lesson.dialogue, 'g_use'),
+    B.match(`${id}_p_match`, 'Ühenda küsimus ja vastus.', 'Loe küsimust. Mis vastus sobib? Ühenda.', lesson.phrases.slice(0, 5), 'full', 'g_read'),
+    B.gaps(`${id}_p_gaps`, 'Kirjuta lünka sobiv sõna.', 'Vali sõna kastist. Loe lause valjusti.', lesson.gaps, gapsBank, 'full', 'g_notice'),
+    B.table(`${id}_p_find`, lesson.findTitle || 'Leia keegi, kes …', 'Käi klassis ringi ja küsi: „Kas sa …?” Kui sõber ütleb „Jah!”, kirjuta tema nimi. Küsi igalt sõbralt ainult üks küsimus.', `${/kellel/.test(lesson.findTitle || '') ? 'Kellel …?' : 'Kes …?'}, Nimi`, lesson.find.map((f) => `… ${f} | `), 'g_use'),
+  ];
+  const transfer = [
+    B.phrasebank(`${id}_t_snack`, [['Söögipausil: laua taga', CLUB_SNACK.slice(0, 3)], ['Küsi ja paku', [...CLUB_SNACK.slice(3), ...lesson.snack]]]),
+    B.wordorder(`${id}_t_order`, 'Pane sõnad järjekorda.', 'Kirjuta lause õiges järjekorras ja loe see valjusti.', lesson.order, 'full', 'g_notice'),
+    B.crossword(`${id}_t_cross`, 'Ristsõna: tunni sõnad.', 'Loe vene sõna ja kirjuta see eesti keeles ruutudesse.', lesson.cross, 'full', 'g_vocab'),
+    B.planning(`${id}_t_plan`, 'Valmista ette oma minut.', 'Lõpeta iga lause paari sõnaga. Need on sinu märksõnad rääkimiseks.', lesson.plan, 1),
+    B.speaking(`${id}_t_talk`, 'Räägi umbes üks minut.', lesson.talk, lesson.plan, [45, 75], 'Räägi tervete lausetega. Vaata oma plaani, aga ära loe seda ette. Kuulajad küsivad lõpus ühe küsimuse.'),
+    parentsNote(`${id}_t_parents`, { ...lesson, words: lesson.words.map(([w]) => w), phrases: lesson.phrases.slice(0, 4).map(([q, a]) => `${q} — ${a}`) }),
+    ...(lesson.celebration ? [certificate(`${id}_t_cert`, program)] : []),
+    B.selfcheck(`${id}_t_self`, lesson.self, 'Tubli töö!', 'Ma oskan'),
+  ];
+  return { discover, practice, transfer };
+}
+
 function moduleOf(program, build, phases = KIDS_PHASES, goals = KIDS_GOALS) {
   return {
     MODULE: { id: `${program.id}-module-01`, course: 'kids', title: program.title, level: program.level, supplement: true, phases },
     LESSONS: Object.fromEntries(program.lessons.map((lesson, index) => [lessonIdOf(program, index), {
       title: lesson.title, canDo: lesson.can, level: program.level, goals,
       // the 8–9 sheets are full lessons (owner 2026-11-06); the younger groups' sheets stay short
-      ...(build === schoolLesson ? {} : { shortSheet: true }),
+      ...(build === schoolLesson || build === clubLesson ? {} : { shortSheet: true }),
       ...build(program, lesson, index),
     }])),
   };
 }
 
-export const KIDS_PROGRAMS = [PROGRAM_56, PROGRAM_67, PROGRAM_89];
-export const KIDS_MODULES = [moduleOf(PROGRAM_56, youngLesson), moduleOf(PROGRAM_67, youngLesson), moduleOf(PROGRAM_89, schoolLesson, SCHOOL_PHASES, SCHOOL_GOALS)];
+export const KIDS_PROGRAMS = [PROGRAM_56, PROGRAM_67, PROGRAM_89, CLUB_11];
+export const KIDS_MODULES = [moduleOf(PROGRAM_56, youngLesson), moduleOf(PROGRAM_67, youngLesson), moduleOf(PROGRAM_89, schoolLesson, SCHOOL_PHASES, SCHOOL_GOALS), moduleOf(CLUB_11, clubLesson, CLUB_PHASES, CLUB_GOALS)];
