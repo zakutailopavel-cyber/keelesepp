@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-shapes — Õpik „Vaba kiht”: speech bubble, star, sticker, ribbon · crm-v2 only, no rules / functions change
+
+- Base `origin/main` 7323450, checked 2026-11-14. Owner 2026-11-14: „продолжай улучшать редактор”.
+- Done: shapes `bubble` (tail in four corners), `star`, `burst`, `ribbon` and fill `white` in `engine/freeLayer.js` (`SVG_SHAPES`, `IMAGE_SHAPES`, `TAILS`, `SHAPE_ART`, `isDrawn`, normalize / `freeProblem`; `newFreeItem` takes a patch for every kind); SVG drawing in `engine/FreeLayer.jsx`; „Mulli saba” in `editor/FreeFields.jsx`; palette „Jutumull” / „Kleeps” / „Lint”; CSS in `engine/sheet.css`. Contract in `docs/WORKSHEET_STUDIO_V1.md`.
+- Checks: `freeLayer.test.jsx` +2 (one old assertion now uses an unknown shape), `freeStudio.test.jsx` +1. Same 7-area vitest run (`--maxWorkers=3`) → 278 files passed (1 skipped), 2729 tests passed; eslint changed files 0 errors. Lab (temporary, headless Chrome screenshot): bubble with frame, sky bubble with the tail top-right, lime burst „Uus!”, peach star, navy ribbon „Pealkiri”.
+- Limits: shapes do not hold pictures; the phone column shows them as plain boxes; not tried on a real iPad.
+- Next safe step: owner adds „Jutumull” beside a picture on an Õpik page and writes a line of dialogue.
+
 ## 2026-11-14 · agent/free-copy-page — Õpik „Vaba kiht”: copy to another page, clipboard between lessons · crm-v2 only, no rules / functions / data change
 
 - Base `origin/main` after #1231, checked 2026-11-14. Owner 2026-11-14: „да, делай копирование на другую страницу”.

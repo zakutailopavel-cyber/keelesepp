@@ -55,7 +55,7 @@ describe('freeLayer model', () => {
     expect(freeProblem({ free: [item({ fill: 'gold' })] })).toMatch(/värv/);
     expect(freeProblem({ free: [item({ x: 'a' })] })).toMatch(/asukoht/);
     expect(freeProblem({ free: Array.from({ length: MAX_ITEMS + 1 }, (_, i) => item({ id: `f${i}` })) })).toMatch(/kuni 40/);
-    expect(() => validateWorksheetDoc(docWith([item({ shape: 'star' })]))).toThrow(/kujund/);
+    expect(() => validateWorksheetDoc(docWith([item({ shape: 'hexagon' })]))).toThrow(/kujund/);
   });
 });
 
@@ -343,5 +343,27 @@ describe('copy to other pages and the clipboard (2026-11-14)', () => {
     const other = pasteClip([], clip, 1);
     expect(other.items).toEqual([expect.objectContaining({ x: 10, y: 20, page: 1 }), expect.objectContaining({ x: 80, page: 1 })]);
     expect(pasteClip([], [{ kind: 'bogus' }], 0).ids).toEqual([]);
+  });
+});
+
+describe('drawn shapes (2026-11-14)', () => {
+  it('bubble, star, burst, ribbon: kept for shapes and text boxes, not for pictures; the tail is checked', () => {
+    expect(normalizeFreeItem(item({ kind: 'text', text: 'Tere', shape: 'bubble', tail: 'tr' }))).toMatchObject({ shape: 'bubble', tail: 'tr' });
+    expect(normalizeFreeItem(item({ kind: 'text', text: 'Tere', shape: 'bubble', tail: 'up' })).tail).toBe('bl');
+    expect(normalizeFreeItem(item({ kind: 'image', img, shape: 'star' })).shape).toBe('rect');
+    expect(freeProblem({ free: [item({ shape: 'burst', fill: 'white' })] })).toBe('');
+    expect(freeProblem({ free: [item({ shape: 'bubble', tail: 'up' })] })).toMatch(/saba/);
+  });
+
+  it('draws the outline as SVG in the fill and frame colours; the text sits in the bubble body', () => {
+    const free = [item({ id: 'b', kind: 'text', text: 'Tere!', shape: 'bubble', tail: 'br', fill: 'white', border: 'ink' }), item({ id: 's', shape: 'star', fill: 'lime' })];
+    const { container } = render(<Sheet doc={docWith(free)} mode="print" />);
+    const bubble = container.querySelector('[data-free="b"]');
+    expect(bubble.className).toContain('is-drawn');
+    expect(bubble.querySelector('svg.ws-free-art g').getAttribute('transform')).toBe('translate(100 0) scale(-1 1)');
+    expect(bubble.querySelector('path').style.fill).toBe('rgb(255, 255, 255)');
+    expect(bubble.querySelector('path').style.stroke).toBe('rgb(17, 24, 39)');
+    expect(bubble.querySelector('.ws-free-body.tail-br .ws-free-text').textContent).toBe('Tere!');
+    expect(container.querySelector('[data-free="s"] polygon').getAttribute('points').split(' ')).toHaveLength(10);
   });
 });

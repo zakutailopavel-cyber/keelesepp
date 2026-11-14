@@ -309,6 +309,11 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   `ks.freeLayerClipboard`, `clipOf`); „Kleebi (N)” in the palette / Ctrl+V pastes it on the page in the middle of the
   screen (`pasteClip`, normalized; shifted 6 mm when the same things already stand there) — also in another lesson's
   Õpik. The clipboard is per browser, not shared between devices.
+- Drawn shapes (2026-11-14, agent/free-shapes): `shape` also `bubble | star | burst | ribbon` for shapes and text boxes
+  (pictures keep rect / rounded / circle / oval, `IMAGE_SHAPES`); a bubble has `tail: bl | br | tl | tr`. Drawn as an
+  SVG outline (`SHAPE_ART`, `ShapeArt`) in the item's fill and frame colours; the text sits in the body (bubble: 80 %,
+  star / burst: the middle, ribbon: between the notches). New fill `white`. Palette: „Jutumull”, „Kleeps”, „Lint”.
+  The phone column shows drawn text boxes as a plain cream box.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures

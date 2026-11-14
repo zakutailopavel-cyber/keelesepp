@@ -1,9 +1,9 @@
 // Settings of one item of the free layer (engine/freeLayer.js): what it shows, its shape and colour, its page, size,
 // turn, layer, lock; copy and delete. Every change goes through `set(patch)` → one undoable change of `doc.free`.
 import { Area, ImagePick, Num, Select, Text } from './fields.jsx';
-import { GROUP_ALIGNS, GROUP_ALIGN_LABEL, OPACITIES, PLACES, PLACE_LABEL, placeOnPage, TEXT_ALIGNS, TEXT_ALIGN_LABEL, TEXT_COLORS, TEXT_COLOR_LABEL, TEXT_FONTS, TEXT_FONT_LABEL, FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, HEADS_LABEL, KIND_LABEL, LINE_COLORS, LINE_COLOR_LABEL, LINE_HEADS, LINE_STROKES } from '../engine/freeLayer.js';
+import { IMAGE_SHAPES, TAILS, TAIL_LABEL, GROUP_ALIGNS, GROUP_ALIGN_LABEL, OPACITIES, PLACES, PLACE_LABEL, placeOnPage, TEXT_ALIGNS, TEXT_ALIGN_LABEL, TEXT_COLORS, TEXT_COLOR_LABEL, TEXT_FONTS, TEXT_FONT_LABEL, FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, HEADS_LABEL, KIND_LABEL, LINE_COLORS, LINE_COLOR_LABEL, LINE_HEADS, LINE_STROKES } from '../engine/freeLayer.js';
 
-const SHAPE_LABEL = { rect: 'Ristkülik', rounded: 'Ümarad nurgad', circle: 'Ring', oval: 'Ovaal' };
+const SHAPE_LABEL = { rect: 'Ristkülik', rounded: 'Ümarad nurgad', circle: 'Ring', oval: 'Ovaal', bubble: 'Jutumull', star: 'Täht', burst: 'Kleeps (sakiline)', ribbon: 'Lint' };
 const BORDER_LABEL = { none: 'Ilma raamita', ink: 'Must joon', lime: 'Laimiroheline joon' };
 const TURNS = [-15, -10, -5, -3, 0, 3, 5, 10, 15, 90, -90];
 
@@ -40,7 +40,8 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
         <Select label="Paksus" value={String(item.stroke)} onChange={(v) => set({ stroke: Number(v) })} options={[...new Set([...LINE_STROKES, item.stroke])].sort((a, b) => a - b).map((w) => [String(w), `${String(w).replace('.', ',')} mm`])} />
         <label className="ed-check"><input type="checkbox" checked={item.dash} onChange={(e) => set({ dash: e.target.checked })} /> Kriipsjoon</label>
       </> : <>
-        <Select label="Kuju" value={item.shape} onChange={(v) => guard({ shape: v })} options={FREE_SHAPES.map((k) => [k, SHAPE_LABEL[k]])} />
+        <Select label="Kuju" value={item.shape} onChange={(v) => guard({ shape: v })} options={(item.kind === 'image' ? IMAGE_SHAPES : FREE_SHAPES).map((k) => [k, SHAPE_LABEL[k]])} />
+        {item.shape === 'bubble' && item.kind !== 'image' ? <Select label="Mulli saba" value={item.tail || 'bl'} onChange={(v) => set({ tail: v })} options={TAILS.map((k) => [k, TAIL_LABEL[k]])} /> : null}
         {item.kind !== 'image' ? <Select label="Värv" value={item.fill} onChange={(v) => set({ fill: v })} options={FREE_FILLS.map((k) => [k, FILL_LABEL[k]])} /> : null}
         <Select label="Raam" value={item.border} onChange={(v) => set({ border: v })} options={FREE_BORDERS.map((k) => [k, BORDER_LABEL[k]])} />
       </>}

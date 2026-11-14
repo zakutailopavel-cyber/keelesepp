@@ -29,8 +29,30 @@ export const LINE_HEADS = Object.freeze(['none', 'end', 'both']);
 export const LINE_COLOR_LABEL = { ink: 'Must', navy: 'Tumesinine', green: 'Roheline', lime: 'Laimiroheline', red: 'Punane' };
 export const LINE_COLOR_VALUE = { ink: '#111827', navy: '#1d2b4a', green: '#3a7d5c', lime: '#a3d10f', red: '#c0392b' };
 export const HEADS_LABEL = { none: 'Ilma noolteta', end: 'Nool lõpus', both: 'Nool mõlemas otsas' };
-export const FREE_SHAPES = Object.freeze(['rect', 'rounded', 'circle', 'oval']);
-export const FREE_FILLS = Object.freeze(['none', 'lime', 'cream', 'sky', 'peach', 'navy']);
+export const FREE_SHAPES = Object.freeze(['rect', 'rounded', 'circle', 'oval', 'bubble', 'star', 'burst', 'ribbon']);
+// Drawn shapes (2026-11-14): a speech bubble (tail in a corner: `tail` bl | br | tl | tr), a star, a sticker burst,
+// a ribbon — an SVG behind the text, in the item's fill and frame colours. Shapes and text boxes only, not pictures.
+export const SVG_SHAPES = Object.freeze(['bubble', 'star', 'burst', 'ribbon']);
+export const IMAGE_SHAPES = Object.freeze(['rect', 'rounded', 'circle', 'oval']);
+export const TAILS = Object.freeze(['bl', 'br', 'tl', 'tr']);
+export const TAIL_LABEL = { bl: 'All vasakul', br: 'All paremal', tl: 'Üleval vasakul', tr: 'Üleval paremal' };
+export const FILL_VALUE = { none: 'none', white: '#ffffff', lime: '#c6f432', cream: '#fbf6e9', sky: '#e3f1fb', peach: '#fde8dc', navy: '#1d2b4a' };
+export const BORDER_VALUE = { none: null, ink: { color: '#111827', width: 0.6 }, lime: { color: '#c6f432', width: 1 } };
+const starPoints = (n, inner) => Array.from({ length: n * 2 }, (_, i) => {
+  const r = i % 2 ? inner : 50;
+  const a = (Math.PI * i) / n - Math.PI / 2;
+  return `${Math.round((50 + r * Math.cos(a)) * 10) / 10},${Math.round((50 + r * Math.sin(a)) * 10) / 10}`;
+}).join(' ');
+// the outline in a 100 × 100 box (a bubble's body is the top 80 %, its tail the rest; turned for the other corners)
+export const SHAPE_ART = {
+  bubble: { d: 'M10 0 H90 Q100 0 100 10 V70 Q100 80 90 80 H38 L16 100 L22 80 H10 Q0 80 0 70 V10 Q0 0 10 0 Z', stretch: true },
+  star: { points: starPoints(5, 21), stretch: false },
+  burst: { points: starPoints(14, 41), stretch: false },
+  ribbon: { d: 'M0 12 H100 L88 50 L100 88 H0 L12 50 Z', stretch: true },
+};
+export const isDrawn = (item) => item.kind !== 'image' && SVG_SHAPES.includes(item.shape);
+export const tailTransform = (tail) => ({ bl: '', br: 'translate(100 0) scale(-1 1)', tl: 'translate(0 100) scale(1 -1)', tr: 'translate(100 100) scale(-1 -1)' }[tail] || '');
+export const FREE_FILLS = Object.freeze(['none', 'white', 'lime', 'cream', 'sky', 'peach', 'navy']);
 export const FREE_BORDERS = Object.freeze(['none', 'ink', 'lime']);
 
 export const TEXT_FONTS = Object.freeze(['body', 'head', 'hand']);
@@ -51,7 +73,7 @@ export function textStyle(item) {
 }
 
 export const KIND_LABEL = { image: 'Pilt', shape: 'Kujund', text: 'Tekstikast', line: 'Joon / nool' };
-export const FILL_LABEL = { none: 'Läbipaistev', lime: 'Laimiroheline', cream: 'Kreem', sky: 'Helesinine', peach: 'Virsik', navy: 'Tumesinine' };
+export const FILL_LABEL = { none: 'Läbipaistev', white: 'Valge', lime: 'Laimiroheline', cream: 'Kreem', sky: 'Helesinine', peach: 'Virsik', navy: 'Tumesinine' };
 
 const num = (value, fallback = 0) => (Number.isFinite(Number(value)) ? Number(value) : fallback);
 const round = (value) => Math.round(value * 10) / 10;
@@ -64,10 +86,10 @@ const newFreeId = () => `f_${Date.now().toString(36)}${(counter++).toString(36)}
 export function newFreeItem(kind, page = 0, items = [], patch = {}) {
   const z = items.reduce((top, item) => Math.max(top, num(item.z)), 0) + 1;
   const base = { id: newFreeId(), kind, page: Math.max(0, Math.floor(num(page))), z, rotate: 0, locked: false };
-  if (kind === 'image') return { ...base, x: 85, y: 120, w: 100, h: 75, img: null, shape: 'rect', border: 'none' };
-  if (kind === 'shape') return { ...base, x: 95, y: 150, w: 80, h: 80, shape: 'circle', fill: 'lime', border: 'none' };
+  if (kind === 'image') return { ...base, x: 85, y: 120, w: 100, h: 75, img: null, shape: 'rect', border: 'none', ...patch };
+  if (kind === 'shape') return { ...base, x: 95, y: 150, w: 80, h: 80, shape: 'circle', fill: 'lime', border: 'none', ...patch };
   if (kind === 'line') return { ...base, x: 80, y: 150, x2: 190, y2: 150, color: 'ink', stroke: 1, heads: 'none', dash: false, ...patch };
-  return { ...base, x: 75, y: 160, w: 120, h: 30, text: 'Kirjuta siia', size: 14, bold: true, shape: 'rounded', fill: 'cream', border: 'none' };
+  return { ...base, x: 75, y: 160, w: 120, h: 30, text: 'Kirjuta siia', size: 14, bold: true, shape: 'rounded', fill: 'cream', border: 'none', ...patch };
 }
 
 // a stored item made safe to draw: known values only, inside the page
@@ -85,7 +107,8 @@ export function normalizeFreeItem(item) {
     z: Math.floor(num(item.z)),
     rotate: clamp(num(item.rotate), -180, 180),
     locked: item.locked === true,
-    shape: FREE_SHAPES.includes(item.shape) ? item.shape : 'rect',
+    shape: (item.kind === 'image' ? IMAGE_SHAPES : FREE_SHAPES).includes(item.shape) ? item.shape : 'rect',
+    tail: TAILS.includes(item.tail) ? item.tail : 'bl',
     fill: FREE_FILLS.includes(item.fill) ? item.fill : 'none',
     border: FREE_BORDERS.includes(item.border) ? item.border : 'none',
     text: String(item.text || ''),
@@ -331,6 +354,7 @@ export function freeProblem(doc) {
     if (item.align !== undefined && item.align !== null && !TEXT_ALIGNS.includes(item.align)) return 'Teksti joondus on tundmatu.';
     if (item.heads !== undefined && !LINE_HEADS.includes(item.heads)) return 'Joone otsad on tundmatud.';
     if (item.shape !== undefined && !FREE_SHAPES.includes(item.shape)) return 'Vaba kihi kujund on tundmatu.';
+    if (item.tail !== undefined && !TAILS.includes(item.tail)) return 'Mulli saba asend on tundmatu.';
     if (item.fill !== undefined && !FREE_FILLS.includes(item.fill)) return 'Vaba kihi värv on tundmatu.';
     if (item.border !== undefined && !FREE_BORDERS.includes(item.border)) return 'Vaba kihi raam on tundmatu.';
     if (item.opacity !== undefined && !(Number(item.opacity) >= 0.2 && Number(item.opacity) <= 1)) return 'Läbipaistvus on vigane.';
