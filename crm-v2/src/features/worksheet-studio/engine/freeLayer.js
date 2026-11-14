@@ -204,6 +204,54 @@ export const lookStyle = (item) => ({
   ...(item.shadow ? { filter: 'drop-shadow(0 1.2mm 1.6mm rgba(15, 30, 50, 0.28))' } : {}),
 });
 
+// Several items at once (2026-11-14): Shift / Ctrl / ⌘ + tap (or „Vali mitu”) adds an item to the selection; a drag,
+// the arrow keys, align, spread, layer, copy and delete then act on all of them. Locked items stay where they are.
+export const boxOf = (item) => (item.kind === 'line'
+  ? { x0: Math.min(item.x, item.x2), y0: Math.min(item.y, item.y2), x1: Math.max(item.x, item.x2), y1: Math.max(item.y, item.y2) }
+  : { x0: item.x, y0: item.y, x1: item.x + item.w, y1: item.y + item.h });
+export const GROUP_ALIGNS = Object.freeze(['left', 'centerX', 'right', 'top', 'centerY', 'bottom']);
+export const GROUP_ALIGN_LABEL = { left: 'Vasakud servad', centerX: 'Keskjoon ↕', right: 'Paremad servad', top: 'Ülemised servad', centerY: 'Keskjoon ↔', bottom: 'Alumised servad' };
+// move every selected, unlocked item by (dx, dy) mm
+export const moveMany = (items, ids, dx, dy) => items.map((it) => (ids.includes(it.id) && !it.locked ? moveItem(it, dx, dy) : it));
+// line the selected items up with each other (their common box)
+export function alignMany(items, ids, how) {
+  const chosen = items.filter((it) => ids.includes(it.id));
+  if (chosen.length < 2) return items;
+  const boxes = chosen.map(boxOf);
+  const all = { x0: Math.min(...boxes.map((b) => b.x0)), y0: Math.min(...boxes.map((b) => b.y0)), x1: Math.max(...boxes.map((b) => b.x1)), y1: Math.max(...boxes.map((b) => b.y1)) };
+  return items.map((it) => {
+    if (!ids.includes(it.id) || it.locked) return it;
+    const b = boxOf(it);
+    const dx = how === 'left' ? all.x0 - b.x0 : how === 'right' ? all.x1 - b.x1 : how === 'centerX' ? (all.x0 + all.x1) / 2 - (b.x0 + b.x1) / 2 : 0;
+    const dy = how === 'top' ? all.y0 - b.y0 : how === 'bottom' ? all.y1 - b.y1 : how === 'centerY' ? (all.y0 + all.y1) / 2 - (b.y0 + b.y1) / 2 : 0;
+    return moveItem(it, dx, dy);
+  });
+}
+// equal gaps between three or more selected items, the first and the last stay (`axis`: 'x' | 'y')
+export function spreadMany(items, ids, axis) {
+  const chosen = items.filter((it) => ids.includes(it.id)).map((it) => ({ it, b: boxOf(it) }));
+  if (chosen.length < 3) return items;
+  const lo = axis === 'x' ? 'x0' : 'y0';
+  const hi = axis === 'x' ? 'x1' : 'y1';
+  chosen.sort((a, b) => a.b[lo] - b.b[lo]);
+  const span = chosen[chosen.length - 1].b[hi] - chosen[0].b[lo];
+  const filled = chosen.reduce((sum, c) => sum + (c.b[hi] - c.b[lo]), 0);
+  const gap = (span - filled) / (chosen.length - 1);
+  const moved = {};
+  let at = chosen[0].b[lo];
+  for (const c of chosen) {
+    const d = at - c.b[lo];
+    moved[c.it.id] = c.it.locked ? c.it : moveItem(c.it, axis === 'x' ? d : 0, axis === 'y' ? d : 0);
+    at += c.b[hi] - c.b[lo] + gap;
+  }
+  return items.map((it) => moved[it.id] || it);
+}
+// the selection to the top / bottom of the layers, keeping its own order
+export function restackMany(items, ids, how) {
+  const order = items.filter((it) => ids.includes(it.id)).sort((a, b) => (how === 'bottom' ? b.z - a.z : a.z - b.z));
+  return order.reduce((list, it) => restack(list, it.id, how), items);
+}
+
 // resize from the bottom-right corner; `keep` keeps the proportions (pictures, circles)
 export function resizeItem(item, dw, dh, keep = false) {
   let w = clamp(item.w + dw, MIN_SIZE, PAGE_W);

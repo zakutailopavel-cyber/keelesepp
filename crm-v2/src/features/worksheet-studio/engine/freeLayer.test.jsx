@@ -4,7 +4,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 import Sheet from './Sheet.jsx';
 import { sampleDocument } from './sample.js';
-import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, placeOnPage, resizeItem, restack, snapItem, textStyle } from './freeLayer.js';
+import { MAX_ITEMS, PAGE_W, flowItems, freeItemsOf, freeProblem, itemsOnPage, lineGeom, moveEnd, moveItem, newFreeItem, normalizeFreeItem, alignMany, moveMany, placeOnPage, resizeItem, restack, restackMany, snapItem, spreadMany, textStyle } from './freeLayer.js';
 import { validateWorksheetDoc } from '../../../services/firebase/worksheetDocs.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -243,5 +243,66 @@ describe('place on the page, see-through, shadow (2026-11-14)', () => {
     expect(shaded.style.opacity).toBe('0.6');
     expect(shaded.style.filter).toContain('drop-shadow');
     expect(container.querySelector('[data-free="p"]').style.opacity).toBe('');
+  });
+});
+
+describe('several items at once (2026-11-14)', () => {
+  const a = item({ id: 'a', x: 10, y: 10, w: 20, h: 20, z: 1 });
+  const b = item({ id: 'b', x: 50, y: 30, w: 40, h: 10, z: 2 });
+  const c = item({ id: 'c', x: 150, y: 60, w: 20, h: 30, z: 3 });
+  const l = { id: 'l', kind: 'line', x: 100, y: 100, x2: 120, y2: 80, z: 4 };
+  const lock = item({ id: 'k', x: 200, y: 5, w: 10, h: 10, z: 5, locked: true });
+  const all = [a, b, c, l, lock];
+  const byId = (list) => Object.fromEntries(list.map((it) => [it.id, it]));
+
+  it('moves the chosen ones together; a locked one stays', () => {
+    const moved = byId(moveMany(all, ['a', 'l', 'k'], 5, -2));
+    expect(moved.a).toMatchObject({ x: 15, y: 8 });
+    expect(moved.l).toMatchObject({ x: 105, y: 98, x2: 125, y2: 78 });
+    expect(moved.k).toMatchObject({ x: 200, y: 5 });
+    expect(moved.b).toBe(b);
+  });
+
+  it('aligns to the common box: left edges, middles, bottoms; lines by their box', () => {
+    expect(byId(alignMany(all, ['a', 'b', 'c'], 'left'))).toMatchObject({ a: { x: 10 }, b: { x: 10 }, c: { x: 10 } });
+    expect(byId(alignMany(all, ['a', 'b', 'c'], 'centerY'))).toMatchObject({ a: { y: 40 }, b: { y: 45 }, c: { y: 35 } });
+    expect(byId(alignMany(all, ['a', 'l'], 'bottom'))).toMatchObject({ a: { y: 80 }, l: { y: 100, y2: 80 } });
+    expect(byId(alignMany(all, ['a', 'k'], 'right')).k).toMatchObject({ x: 200 });
+    expect(alignMany(all, ['a'], 'left')).toBe(all);
+  });
+
+  it('equal gaps: the first and last stay, the middle one moves', () => {
+    const spread = byId(spreadMany(all, ['a', 'b', 'c'], 'x'));
+    expect(spread.a.x).toBe(10);
+    expect(spread.c.x).toBe(150);
+    expect(spread.b.x).toBe(70); // span 10…170 = 160, filled 80, two gaps of 40: a ends 30 → b starts 70
+  });
+
+  it('layers: the group goes to the top keeping its own order', () => {
+    const z = byId(restackMany(all, ['a', 'b'], 'top'));
+    expect(z.a.z).toBeLessThan(z.b.z);
+    expect(z.a.z).toBeGreaterThan(z.k.z);
+  });
+
+  it('on the page: Shift + tap adds; dragging one moves the group as one change', () => {
+    const onSelect = vi.fn();
+    const onMoveMany = vi.fn();
+    const onChange = vi.fn();
+    const { container } = render(<Sheet doc={docWith([a, b, c])} mode="edit" freeEdit={{ selectedId: 'a', selectedIds: ['a', 'b'], onSelect, onChange, onMoveMany }} />);
+    container.querySelector('.ws-page').getBoundingClientRect = () => ({ left: 0, top: 0, width: 540, height: 760, right: 540, bottom: 760 });
+    const node = (id) => container.querySelector(`[data-free="${id}"]`);
+    expect(node('a').querySelector('.ws-free-size')).toBeNull();
+    fireEvent.pointerDown(node('c'), { clientX: 0, clientY: 0, pointerId: 1, shiftKey: true });
+    expect(onSelect).toHaveBeenLastCalledWith('c', true);
+    fireEvent.pointerDown(node('a'), { clientX: 0, clientY: 0, pointerId: 2 });
+    fireEvent.pointerMove(node('a'), { clientX: 30, clientY: 20, pointerId: 2 });
+    expect(node('b').style.translate).toBe('15mm 10mm');
+    fireEvent.pointerUp(node('a'), { clientX: 30, clientY: 20, pointerId: 2 });
+    expect(onMoveMany).toHaveBeenCalledWith(15, 10);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(node('b').style.translate).toBe('');
+    fireEvent.pointerDown(node('b'), { clientX: 0, clientY: 0, pointerId: 3 });
+    fireEvent.pointerUp(node('b'), { clientX: 0, clientY: 0, pointerId: 3 });
+    expect(onSelect).toHaveBeenLastCalledWith('b');
   });
 });

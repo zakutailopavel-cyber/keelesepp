@@ -981,3 +981,5 @@ textarea.ed-input { resize: vertical; }
 .ed-free-layer .ed-btn[aria-pressed="true"] { background: var(--st-navy, #0b2a4f); color: #fff; border-color: var(--st-navy, #0b2a4f); }
 .ed-btn.ed-danger { color: #b42318; border-color: #f3c3bd; }
 .st-free-add { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-free-multi { margin-top: 8px; }
+.ws-studio .st-free-multi[aria-pressed="true"] { background: var(--st-navy, #0b2a4f); color: #fff; border-color: var(--st-navy, #0b2a4f); }
