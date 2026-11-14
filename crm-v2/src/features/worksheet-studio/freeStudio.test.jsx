@@ -120,3 +120,36 @@ it('Õpik: „Keskele ↔” centres the selected box on the page; see-through i
   await waitFor(() => expect(save).toHaveBeenCalled());
   expect(save.mock.calls[0][0].document.free).toEqual([expect.objectContaining({ x: 75, opacity: 0.6 })]);
 });
+
+it('Õpik: Shift + tap selects two boxes; the group panel aligns them, Delete removes both, undo brings them back', async () => {
+  const { container, save } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Tekstikast/ }));
+  fireEvent.click(screen.getByRole('button', { name: /Kujund/ }));
+  const nodes = () => [...container.querySelectorAll('.ws-page .ws-free [data-free]')];
+  fireEvent.pointerDown(nodes()[0], { clientX: 0, clientY: 0, pointerId: 1, shiftKey: true });
+  const panel = screen.getByRole('complementary', { name: 'Vaba elemendi seaded' });
+  expect(panel.textContent).toContain('2 valitud');
+  fireEvent.click(screen.getByRole('button', { name: 'Vasakud servad' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+  await waitFor(() => expect(save).toHaveBeenCalled());
+  const xs = save.mock.calls[0][0].document.free.map((f) => f.x);
+  expect(xs[0]).toBe(xs[1]);
+  fireEvent.keyDown(window, { key: 'Delete' });
+  expect(nodes()).toHaveLength(0);
+  fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
+  expect(nodes()).toHaveLength(2);
+});
+
+it('Õpik: „Vali mitu” makes a tap add to the selection', async () => {
+  const { container } = open('opik');
+  await waitFor(() => expect(container.querySelector('.ws-page [data-block="txt"]')).not.toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: /Tekstikast/ }));
+  fireEvent.click(screen.getByRole('button', { name: /Kujund/ }));
+  fireEvent.click(screen.getByRole('button', { name: /Vali mitu/ }));
+  const nodes = [...container.querySelectorAll('.ws-page .ws-free [data-free]')];
+  fireEvent.pointerDown(nodes[0], { clientX: 0, clientY: 0, pointerId: 1 });
+  expect(screen.getByRole('complementary', { name: 'Vaba elemendi seaded' }).textContent).toContain('2 valitud');
+  fireEvent.click(screen.getByRole('button', { name: 'Tühista valik' }));
+  expect(screen.queryByRole('complementary', { name: 'Vaba elemendi seaded' })).toBeNull();
+});

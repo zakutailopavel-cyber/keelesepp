@@ -1,7 +1,7 @@
 // Settings of one item of the free layer (engine/freeLayer.js): what it shows, its shape and colour, its page, size,
 // turn, layer, lock; copy and delete. Every change goes through `set(patch)` → one undoable change of `doc.free`.
 import { Area, ImagePick, Num, Select, Text } from './fields.jsx';
-import { OPACITIES, PLACES, PLACE_LABEL, placeOnPage, TEXT_ALIGNS, TEXT_ALIGN_LABEL, TEXT_COLORS, TEXT_COLOR_LABEL, TEXT_FONTS, TEXT_FONT_LABEL, FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, HEADS_LABEL, KIND_LABEL, LINE_COLORS, LINE_COLOR_LABEL, LINE_HEADS, LINE_STROKES } from '../engine/freeLayer.js';
+import { GROUP_ALIGNS, GROUP_ALIGN_LABEL, OPACITIES, PLACES, PLACE_LABEL, placeOnPage, TEXT_ALIGNS, TEXT_ALIGN_LABEL, TEXT_COLORS, TEXT_COLOR_LABEL, TEXT_FONTS, TEXT_FONT_LABEL, FILL_LABEL, FREE_BORDERS, FREE_FILLS, FREE_SHAPES, HEADS_LABEL, KIND_LABEL, LINE_COLORS, LINE_COLOR_LABEL, LINE_HEADS, LINE_STROKES } from '../engine/freeLayer.js';
 
 const SHAPE_LABEL = { rect: 'Ristkülik', rounded: 'Ümarad nurgad', circle: 'Ring', oval: 'Ovaal' };
 const BORDER_LABEL = { none: 'Ilma raamita', ink: 'Must joon', lime: 'Laimiroheline joon' };
@@ -63,6 +63,37 @@ export default function FreeFields({ item, pages = 1, set, onLayer, onDuplicate,
       <div className="ed-free-actions">
         <button type="button" className="ed-btn" onClick={onDuplicate}>Kopeeri</button>
         <button type="button" className="ed-btn ed-danger" onClick={onDelete}>Kustuta</button>
+      </div>
+    </div>
+  );
+}
+
+// Several items selected (2026-11-14): line them up with each other, equal gaps, layer, copy, delete, unselect.
+export function FreeGroupFields({ items, onAlign, onSpread, onLayer, onDuplicate, onDelete, onClear }) {
+  const locked = items.filter((it) => it.locked).length;
+  return (
+    <div className="ed-free">
+      <p className="ed-hint">{items.length} elementi valitud. Lohista üht neist — liiguvad kõik; nooled nihutavad kõiki. Shift / Ctrl + klõps lisab või eemaldab.{locked ? ` Lukustatud (${locked}) jäävad paigale.` : ''}</p>
+      <div className="ed-free-layer" role="group" aria-label="Joonda omavahel">
+        <span className="ed-label">Joonda omavahel</span>
+        {GROUP_ALIGNS.map((how) => <button key={how} type="button" className="ed-btn" onClick={() => onAlign(how)}>{GROUP_ALIGN_LABEL[how]}</button>)}
+      </div>
+      {items.length >= 3 ? (
+        <div className="ed-free-layer" role="group" aria-label="Võrdsed vahed">
+          <span className="ed-label">Võrdsed vahed</span>
+          <button type="button" className="ed-btn" onClick={() => onSpread('x')}>Rõhtsalt ↔</button>
+          <button type="button" className="ed-btn" onClick={() => onSpread('y')}>Püstiselt ↕</button>
+        </div>
+      ) : null}
+      <div className="ed-free-layer" role="group" aria-label="Kiht">
+        <span className="ed-label">Kiht</span>
+        <button type="button" className="ed-btn" onClick={() => onLayer('top')}>Kõige peale</button>
+        <button type="button" className="ed-btn" onClick={() => onLayer('bottom')}>Kõige alla</button>
+      </div>
+      <div className="ed-free-actions">
+        <button type="button" className="ed-btn" onClick={onDuplicate}>Kopeeri kõik</button>
+        <button type="button" className="ed-btn ed-danger" onClick={onDelete}>Kustuta kõik</button>
+        <button type="button" className="ed-btn" onClick={onClear}>Tühista valik</button>
       </div>
     </div>
   );

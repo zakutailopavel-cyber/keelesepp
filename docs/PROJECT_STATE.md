@@ -1,3 +1,11 @@
+## 2026-11-14 · agent/free-multi — Õpik „Vaba kiht”: select several items, move / align / spread them together · crm-v2 only, no rules / functions / data change
+
+- Base `origin/main` after #1228, checked 2026-11-14. Owner 2026-11-14: „да, делай выделение нескольких элементов”.
+- Done: `boxOf`, `moveMany`, `alignMany`, `spreadMany`, `restackMany` in `engine/freeLayer.js`; group drag + additive tap in `engine/FreeLayer.jsx`; `FreeGroupFields` in `editor/FreeFields.jsx`; studio selection state, keyboard, palette toggle „Vali mitu” in `WorksheetStudioPage.jsx`; CSS in `worksheetStudio.css`. Contract in `docs/WORKSHEET_STUDIO_V1.md`.
+- Checks: `freeLayer.test.jsx` +5, `freeStudio.test.jsx` +2. Same 7-area vitest run → 278 files passed (1 skipped), 2721 tests passed; eslint changed files 0 errors (no new warnings). Lab (temporary): three selected items (rotated box, circle, arrow) dragged together, all stored with the same shift.
+- Limits: no rubber-band (drag a frame) selection; group resize / rotate not offered; not tried on a real iPad.
+- Next safe step: owner Shift-clicks two items on an Õpik page and presses „Vasakud servad”.
+
 ## 2026-11-14 · agent/free-place — Õpik „Vaba kiht”: place on the page, see-through, shadow · crm-v2 only, no rules / functions change
 
 - Base `origin/main` after #1226, checked 2026-11-14. Owner 2026-11-14: „продолжай улучшать редактор”.

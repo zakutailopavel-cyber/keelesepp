@@ -44,8 +44,8 @@ import './engine/sheet.css';
 import './engine/sheetFlow.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
-import { KIND_LABEL as FREE_KIND_LABEL, MAX_ITEMS as MAX_FREE, freeItemsOf, moveItem, newFreeItem, restack } from './engine/freeLayer.js';
-import FreeFields from './editor/FreeFields.jsx';
+import { KIND_LABEL as FREE_KIND_LABEL, MAX_ITEMS as MAX_FREE, alignMany, freeItemsOf, moveItem, moveMany, newFreeItem, restack, restackMany, spreadMany } from './engine/freeLayer.js';
+import FreeFields, { FreeGroupFields } from './editor/FreeFields.jsx';
 import { FIGURE_TEXT, MAX_FIGURES, figureParagraphs, figuresOf, figuresPatch, newFigure } from './engine/figureFloat.js';
 import { MARK_KINDS, addMark } from './engine/marksModel.js';
 import { VARIANTS, makeVariant } from './engine/variants.js';
@@ -146,6 +146,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   // „Vaba kiht” (Õpik only): the selected free item of the page (engine/freeLayer.js); a block and a free item are
   // never selected at the same time
   const [selectedFreeId, setSelectedFreeId] = useState(null);
+  // more free items selected with it (Shift / Ctrl + tap, or „Vali mitu” on a touch screen)
+  const [extraFreeIds, setExtraFreeIds] = useState([]);
+  const [multiTap, setMultiTap] = useState(false);
   const [pageCount, setPageCount] = useState(1);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState({});
@@ -401,7 +404,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     lastPush.current = 0;
     setDoc(step.doc); setHistory(step.history); setDirty(true); setNotice('');
     if (!step.doc.blocks.some((b) => b.id === selectedId)) setSelectedId(null);
-    if (!(step.doc.free || []).some((f) => f?.id === selectedFreeId)) setSelectedFreeId(null);
+    if (!(step.doc.free || []).some((f) => f?.id === selectedFreeId)) clearFree();
+    else setExtraFreeIds(extraFreeIds.filter((id) => (step.doc.free || []).some((f) => f?.id === id)));
   };
   const redo = () => {
     const step = redoHistory(history, doc);
@@ -409,7 +413,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     lastPush.current = 0;
     setDoc(step.doc); setHistory(step.history); setDirty(true); setNotice('');
     if (!step.doc.blocks.some((b) => b.id === selectedId)) setSelectedId(null);
-    if (!(step.doc.free || []).some((f) => f?.id === selectedFreeId)) setSelectedFreeId(null);
+    if (!(step.doc.free || []).some((f) => f?.id === selectedFreeId)) clearFree();
+    else setExtraFreeIds(extraFreeIds.filter((id) => (step.doc.free || []).some((f) => f?.id === id)));
   };
   const closeMenu = () => { if (menuRef.current) menuRef.current.open = false; };
   const setBlocks = (blocks) => change({ ...doc, blocks });
@@ -420,8 +425,39 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const selectedFree = freeItems.find((item) => item.id === selectedFreeId) || null;
   const canFree = worksheetId === 'opik' || freeItems.length > 0;
   const setFree = (items) => change({ ...doc, free: items.length ? items : null });
-  const selectBlock = (id) => { setSelectedId(id); if (id) setSelectedFreeId(null); };
-  const selectFree = (id) => { setSelectedFreeId(id); setSelectedId(null); setPanelOpen(true); };
+  const freeSel = selectedFreeId ? [selectedFreeId, ...extraFreeIds.filter((id) => id !== selectedFreeId && freeItems.some((it) => it.id === id))] : [];
+  const freeGroup = freeSel.length > 1 ? freeItems.filter((it) => freeSel.includes(it.id)) : [];
+  function clearFree() { setSelectedFreeId(null); setExtraFreeIds([]); }
+  const selectBlock = (id) => { setSelectedId(id); if (id) clearFree(); };
+  // `additive`: add the item to the selection, or take it out if it is in
+  const selectFree = (id, additive = false) => {
+    setSelectedId(null); setPanelOpen(true);
+    if (additive && selectedFreeId) {
+      if (freeSel.includes(id)) { const rest = freeSel.filter((x) => x !== id); setSelectedFreeId(rest[0] || null); setExtraFreeIds(rest.slice(1)); }
+      else setExtraFreeIds([...freeSel.slice(1), id]);
+      return;
+    }
+    setSelectedFreeId(id); setExtraFreeIds([]);
+  };
+  const groupChange = (items) => { lastPush.current = 0; setFree(items); };
+  const moveGroup = (dx, dy) => groupChange(moveMany(freeItems, freeSel, dx, dy));
+  const alignGroup = (how) => groupChange(alignMany(freeItems, freeSel, how));
+  const spreadGroup = (axis) => groupChange(spreadMany(freeItems, freeSel, axis));
+  const restackGroup = (how) => groupChange(restackMany(freeItems, freeSel, how));
+  const duplicateGroup = () => {
+    if (freeItems.length + freeGroup.length > MAX_FREE) { setNotice(`Vabas kihis võib olla kuni ${MAX_FREE} elementi.`); return; }
+    let top = Math.max(...freeItems.map((i) => i.z));
+    const copies = [...freeGroup].sort((a, b) => a.z - b.z).map((it) => ({ ...moveItem(it, 6, 6), id: newFreeItem(it.kind).id, z: (top += 1), locked: false }));
+    groupChange([...freeItems, ...copies]);
+    lastPush.current = 0;
+    setSelectedFreeId(copies[0].id); setExtraFreeIds(copies.slice(1).map((c) => c.id));
+  };
+  const deleteGroup = () => {
+    const gone = freeGroup.filter((it) => !it.locked).map((it) => it.id);
+    groupChange(freeItems.filter((it) => !gone.includes(it.id)));
+    const kept = freeSel.filter((id) => !gone.includes(id));
+    setSelectedFreeId(kept[0] || null); setExtraFreeIds(kept.slice(1));
+  };
   const changeFree = (id, next) => { lastPush.current = 0; setFree(freeItems.map((item) => (item.id === id ? { ...item, ...next } : item))); };
   const patchFree = (patch) => selectedFree && setFree(freeItems.map((item) => (item.id === selectedFree.id ? { ...item, ...patch } : item)));
   // a new item goes on the page in the middle of the screen
@@ -448,9 +484,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     lastPush.current = 0;
     selectFree(copy.id);
   };
-  const deleteFree = () => { if (!selectedFree) return; lastPush.current = 0; setFree(freeItems.filter((item) => item.id !== selectedFree.id)); setSelectedFreeId(null); };
+  const deleteFree = () => { if (!selectedFree) return; lastPush.current = 0; setFree(freeItems.filter((item) => item.id !== selectedFree.id)); clearFree(); };
   const restackFree = (how) => { if (!selectedFree) return; lastPush.current = 0; setFree(restack(freeItems, selectedFree.id, how)); };
-  const freeEdit = { selectedId: selectedFreeId, onSelect: selectFree, onChange: changeFree };
+  const freeEdit = { selectedId: selectedFreeId, selectedIds: freeSel, multi: multiTap, onSelect: selectFree, onChange: changeFree, onMoveMany: moveGroup };
   // text changed directly on the sheet: a block field, or the sheet header when blockId is null
   const editText = (blockId, path, text) => {
     if (!blockId) { change({ ...doc, meta: setPath(doc.meta, path, text) }); return; }
@@ -880,9 +916,20 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     if (mode !== 'edit' || isTextTarget(event.target)) return;
     if ((event.ctrlKey || event.metaKey) && key === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
     if ((event.ctrlKey || event.metaKey) && key === 'y') { event.preventDefault(); redo(); return; }
+    if (freeGroup.length) {
+      if (key === 'delete' || key === 'backspace') { event.preventDefault(); deleteGroup(); return; }
+      if ((event.ctrlKey || event.metaKey) && key === 'd') { event.preventDefault(); duplicateGroup(); return; }
+      if (key === 'escape') { clearFree(); return; }
+      if (!event.ctrlKey && !event.metaKey && key.startsWith('arrow')) {
+        event.preventDefault();
+        const step = event.shiftKey ? 10 : 1;
+        moveGroup(key === 'arrowleft' ? -step : key === 'arrowright' ? step : 0, key === 'arrowup' ? -step : key === 'arrowdown' ? step : 0);
+        return;
+      }
+    }
     if ((key === 'delete' || key === 'backspace') && selectedFree && !selectedFree.locked) { event.preventDefault(); deleteFree(); return; }
     if ((event.ctrlKey || event.metaKey) && key === 'd' && selectedFree) { event.preventDefault(); duplicateFree(); return; }
-    if (key === 'escape' && selectedFreeId) { setSelectedFreeId(null); return; }
+    if (key === 'escape' && selectedFreeId) { clearFree(); return; }
     if (!event.ctrlKey && !event.metaKey && key.startsWith('arrow') && selectedFree && !selectedFree.locked) {
       event.preventDefault();
       const step = event.shiftKey ? 10 : 1;
@@ -1132,6 +1179,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                     <button type="button" className="ed-btn" onClick={() => addFree('line')}><Icons.Minus size={14} aria-hidden="true" /> Joon</button>
                     <button type="button" className="ed-btn" onClick={() => addFree('line', { heads: 'end' })}><Icons.MoveRight size={14} aria-hidden="true" /> Nool</button>
                   </div>
+                  <button type="button" className="ed-btn st-free-multi" aria-pressed={multiTap} onClick={() => setMultiTap(!multiTap)} title="Sees olles lisab iga puudutus elemendi valikusse (arvutis: Shift + klõps)"><Icons.SquareDashed size={14} aria-hidden="true" /> Vali mitu{multiTap ? ': sees' : ''}</button>
                 </div>
               ) : null}{myTemplates.length ? (
                 <div className="st-group st-templates">
@@ -1165,20 +1213,21 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           <main className={`st-canvas ${columnView ? 'ws-narrow' : ''}`} ref={canvasRef}>
             {/* the answer key is a plain page at its own size, not the A4 sheet scaled to the canvas */}
             <div className="st-zoom" style={{ zoom: mode === 'key' || columnView ? 1 : scale, '--st-scale': mode === 'key' || columnView ? 1 : scale }}>
-              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={(id) => { selectBlock(id); if (!id) setSelectedFreeId(null); }} dnd dropHint={dropHint} onResize={columnView ? undefined : resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} flow={columnView} onPatch={patchBlockData} freeEdit={freeEdit} onPageCount={setPageCount} />}
+              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={(id) => { selectBlock(id); if (!id) clearFree(); }} dnd dropHint={dropHint} onResize={columnView ? undefined : resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} transcripts={STAFF_TRANSCRIPTS} flow={columnView} onPatch={patchBlockData} freeEdit={freeEdit} onPageCount={setPageCount} />}
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>
 
           {mode === 'edit' && selectedFree && panelOpen ? (
             <aside ref={refs.setFloating} className={`st-inspector is-floating is-${popSide}`} aria-label="Vaba elemendi seaded" style={popStyle} onClick={(e) => e.stopPropagation()}>
-              <div className="st-pop-head"><b>Vaba kiht · {FREE_KIND_LABEL[selectedFree.kind]}</b>
+              <div className="st-pop-head"><b>Vaba kiht · {freeGroup.length ? `${freeGroup.length} valitud` : FREE_KIND_LABEL[selectedFree.kind]}</b>
                 <button type="button" className="ed-btn" onClick={() => setPopSide(popSide === 'right' ? 'left' : 'right')} title="Vii paneel teisele poole" aria-label="Vii paneel teisele poole"><Icons.ArrowLeftRight size={15} aria-hidden="true" /></button>
                 <button type="button" className="ed-btn" onClick={() => setPanelOpen(false)} aria-label="Sulge seaded"><Icons.X size={15} aria-hidden="true" /></button>
               </div>
-              <FreeFields key={selectedFree.id} item={selectedFree} pages={pageCount} set={patchFree}
-                onLayer={restackFree}
-                onDuplicate={duplicateFree} onDelete={deleteFree} />
+              {freeGroup.length ? <FreeGroupFields items={freeGroup} onAlign={alignGroup} onSpread={spreadGroup} onLayer={restackGroup} onDuplicate={duplicateGroup} onDelete={deleteGroup} onClear={clearFree} />
+                : <FreeFields key={selectedFree.id} item={selectedFree} pages={pageCount} set={patchFree}
+                  onLayer={restackFree}
+                  onDuplicate={duplicateFree} onDelete={deleteFree} />}
             </aside>
           ) : null}
           {mode === 'edit' && (

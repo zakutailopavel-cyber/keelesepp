@@ -9,6 +9,14 @@ import { LINE_COLOR_VALUE, PAGE_W, lineGeom, moveEnd, moveItem, lookStyle, resiz
 // selected (to open its lock). Buttons are of a finger's size whatever the page's zoom (sheet.css .ws-free-*).
 const mm = (value) => `${value}mm`;
 
+// a group drag: the other selected items follow by a CSS translate (on any page), cleared at the end
+function followGroup(ids, dx, dy) {
+  for (const id of ids) {
+    const node = globalThis.document?.querySelector(`.ws-page [data-free="${id}"]`);
+    if (node && !node.classList.contains('is-locked')) node.style.translate = dx || dy ? `${dx}mm ${dy}mm` : '';
+  }
+}
+
 // the thin guide lines of a snap, drawn straight into the page's layer during a drag (no React redraw per move)
 function showGuides(layer, guides = []) {
   if (!layer) return;
@@ -62,7 +70,7 @@ function TextEditor({ item, onDone }) {
   );
 }
 
-function FreeItem({ item, others = [], editable, selected, onSelect, onChange }) {
+function FreeItem({ item, others = [], editable, selected, single = true, group = [], multi = false, onSelect, onChange, onMoveMany }) {
   const ref = useRef(null);
   const live = editable && !item.locked;
   const [typing, setTyping] = useState(false);
@@ -78,8 +86,11 @@ function FreeItem({ item, others = [], editable, selected, onSelect, onChange })
   const drag = (event, kind) => {
     if (!editable || typing) return;
     event.stopPropagation();
-    const wasSelected = selected;
-    onSelect?.(item.id);
+    // Shift / Ctrl / ⌘ or „Vali mitu”: the tap adds the item to the selection (or takes it out)
+    if (kind === 'move' && (multi || event.shiftKey || event.metaKey || event.ctrlKey)) { event.preventDefault(); onSelect?.(item.id, true); return; }
+    const inGroup = kind === 'move' && group.length > 0;
+    const wasSelected = selected && single;
+    if (!inGroup) onSelect?.(item.id);
     if (!live) return;
     event.preventDefault();
     const el = ref.current;
@@ -102,21 +113,25 @@ function FreeItem({ item, others = [], editable, selected, onSelect, onChange })
     const onMove = (e) => {
       const n = next(e);
       el.style.left = mm(n.x); el.style.top = mm(n.y); el.style.width = mm(n.w); el.style.height = mm(n.h);
+      if (inGroup) followGroup(group, n.x - item.x, n.y - item.y);
     };
     const onUp = (e) => {
       target.removeEventListener('pointermove', onMove);
       target.removeEventListener('pointerup', onUp);
       target.removeEventListener('pointercancel', onUp);
       el.style.left = mm(item.x); el.style.top = mm(item.y); el.style.width = mm(item.w); el.style.height = mm(item.h);
+      if (inGroup) followGroup(group, 0, 0);
       if (e.type !== 'pointerup') { showGuides(layer); return; }
       if (Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) < 4) {
         showGuides(layer);
-        if (kind === 'move' && wasSelected && canType) setTyping(true); // a second tap on a selected text box: type
+        if (inGroup) onSelect?.(item.id); // a tap in a group: only this one
+        else if (kind === 'move' && wasSelected && canType) setTyping(true); // a second tap on a selected text box: type
         return;
       }
       const n = next(e);
       showGuides(layer);
-      onChange?.(item.id, n);
+      if (inGroup) onMoveMany?.(n.x - item.x, n.y - item.y);
+      else onChange?.(item.id, n);
     };
     target.addEventListener('pointermove', onMove);
     target.addEventListener('pointerup', onUp);
@@ -137,7 +152,7 @@ function FreeItem({ item, others = [], editable, selected, onSelect, onChange })
       aria-pressed={editable && !typing ? selected : undefined}
     >
       {typing ? <TextEditor item={item} onDone={doneTyping} /> : <FreeContent item={item} />}
-      {live && selected && !typing ? <button type="button" className="ws-free-size" aria-label="Muuda suurust" title="Lohista: suurus" onPointerDown={(e) => drag(e, 'size')} onClick={(e) => e.stopPropagation()}>⤡</button> : null}
+      {live && selected && single && !typing ? <button type="button" className="ws-free-size" aria-label="Muuda suurust" title="Lohista: suurus" onPointerDown={(e) => drag(e, 'size')} onClick={(e) => e.stopPropagation()}>⤡</button> : null}
     </div>
   );
 }
@@ -166,13 +181,15 @@ function LineArt({ item }) {
   );
 }
 
-function LineItem({ item, others = [], editable, selected, onSelect, onChange }) {
+function LineItem({ item, others = [], editable, selected, single = true, group = [], multi = false, onSelect, onChange, onMoveMany }) {
   const ref = useRef(null);
   const live = editable && !item.locked;
   const drag = (event, part) => {
     if (!editable) return;
     event.stopPropagation();
-    onSelect?.(item.id);
+    if (part === 'move' && (multi || event.shiftKey || event.metaKey || event.ctrlKey)) { event.preventDefault(); onSelect?.(item.id, true); return; }
+    const inGroup = part === 'move' && group.length > 0;
+    if (!inGroup) onSelect?.(item.id);
     if (!live) return;
     event.preventDefault();
     const el = ref.current;
@@ -193,16 +210,22 @@ function LineItem({ item, others = [], editable, selected, onSelect, onChange })
       return snap.item;
     };
     const show = (n) => Object.assign(el.style, lineStyle(n));
-    const onMove = (e) => show(next(e));
+    const onMove = (e) => { const n = next(e); show(n); if (inGroup) followGroup(group, n.x - item.x, n.y - item.y); };
     const onUp = (e) => {
       target.removeEventListener('pointermove', onMove);
       target.removeEventListener('pointerup', onUp);
       target.removeEventListener('pointercancel', onUp);
       show(item);
-      if (e.type !== 'pointerup' || Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) < 4) { showGuides(layer); return; }
+      if (inGroup) followGroup(group, 0, 0);
+      if (e.type !== 'pointerup' || Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) < 4) {
+        showGuides(layer);
+        if (e.type === 'pointerup' && inGroup) onSelect?.(item.id);
+        return;
+      }
       const n = next(e);
       showGuides(layer);
-      onChange?.(item.id, n);
+      if (inGroup) onMoveMany?.(n.x - item.x, n.y - item.y);
+      else onChange?.(item.id, n);
     };
     target.addEventListener('pointermove', onMove);
     target.addEventListener('pointerup', onUp);
@@ -222,7 +245,7 @@ function LineItem({ item, others = [], editable, selected, onSelect, onChange })
       aria-pressed={editable ? selected : undefined}
     >
       <LineArt item={item} />
-      {live && selected ? <>
+      {live && selected && single ? <>
         <button type="button" className="ws-free-end is-start" aria-label="Lohista joone algust" onPointerDown={(e) => drag(e, 'start')} onClick={(e) => e.stopPropagation()} />
         <button type="button" className="ws-free-end is-end" aria-label="Lohista joone lõppu" onPointerDown={(e) => drag(e, 'end')} onClick={(e) => e.stopPropagation()} />
       </> : null}
@@ -230,15 +253,29 @@ function LineItem({ item, others = [], editable, selected, onSelect, onChange })
   );
 }
 
-// the layer of one page: `items` = freeLayer.itemsOnPage(...); `edit` = { selectedId, onSelect, onChange } or null
+// the layer of one page: `items` = freeLayer.itemsOnPage(...); `edit` = { selectedId, selectedIds, multi, onSelect(id,
+// additive), onChange(id, next), onMoveMany(dx, dy) } or null
 export default function FreeLayer({ items, edit = null }) {
   if (!items.length) return null;
+  const ids = edit ? (edit.selectedIds || (edit.selectedId ? [edit.selectedId] : [])) : [];
   return (
     <div className="ws-free" data-noedit="">
-      {items.map((item) => (item.kind === 'line'
-        ? <LineItem key={item.id} item={item} others={edit ? items.filter((o) => o.id !== item.id) : undefined} editable={Boolean(edit)} selected={edit?.selectedId === item.id} onSelect={edit?.onSelect} onChange={edit?.onChange} />
-        : <FreeItem key={item.id} item={item} others={edit ? items.filter((o) => o.id !== item.id) : undefined} editable={Boolean(edit)} selected={edit?.selectedId === item.id} onSelect={edit?.onSelect} onChange={edit?.onChange} />
-      ))}
+      {items.map((item) => {
+        const chosen = ids.includes(item.id);
+        const props = {
+          item,
+          others: edit ? items.filter((o) => o.id !== item.id && !ids.includes(o.id)) : undefined,
+          editable: Boolean(edit),
+          selected: chosen,
+          single: ids.length <= 1,
+          group: chosen && ids.length > 1 ? ids.filter((id) => id !== item.id) : [],
+          multi: Boolean(edit?.multi),
+          onSelect: edit?.onSelect,
+          onChange: edit?.onChange,
+          onMoveMany: edit?.onMoveMany,
+        };
+        return item.kind === 'line' ? <LineItem key={item.id} {...props} /> : <FreeItem key={item.id} {...props} />;
+      })}
     </div>
   );
 }

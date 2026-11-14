@@ -293,6 +293,12 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   Üles / Keskele ↕ / Alla (`placeOnPage`: page middle or margins 9 / 11 / 9 mm; lines move both ends); optional
   `opacity` 0.2…1 („Läbipaistvus”) and `shadow` („Vari”, a soft drop shadow) on every kind, drawn by `lookStyle`
   on the page and in the phone column; `freeProblem` refuses an opacity outside 0.2…1.
+- Several items at once (2026-11-14, agent/free-multi): Shift / Ctrl / ⌘ + tap, or the palette toggle „Vali mitu”
+  (touch), adds an item to the selection or takes it out (studio state `selectedFreeId` + `extraFreeIds`). Dragging
+  one selected item moves all (others follow by CSS `translate`, one undo step `moveMany`); a tap on one of them
+  selects it alone. Arrows / Delete / Ctrl+D / Esc act on the whole selection. Panel `FreeGroupFields`: „Joonda
+  omavahel” (`alignMany`: edges / middles of the common box), „Võrdsed vahed” for 3+ (`spreadMany`), layer top /
+  bottom keeping order (`restackMany`), copy all, delete all, unselect. Locked items stay put. No data change.
 - Constructor (`WorksheetStudioPage.jsx`): only on the Õpik sheet (`worksheetId === 'opik'`, or any sheet that
   already has a layer) the palette shows „Vaba kiht (Õpik)”: Pilt / Kujund / Tekstikast (added on the page in the
   middle of the screen, selected, settings open). On the sheet: tap selects, drag moves, the corner resizes (pictures
