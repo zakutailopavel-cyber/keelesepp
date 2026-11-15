@@ -74,13 +74,15 @@ function schoolPlan(program, lesson, n) {
 function clubPlan(program, lesson, n) {
   const [roleTitle] = lesson.roles;
   const [extraTitle] = lesson.extra;
+  const project = lesson.inModule === 4;
   return [
     `Курс: ${program.title} — 2 урока по 45 минут с перекусом между ними, группа детей ~11 лет, уровень A1–A2.`,
-    `Встреча ${n} из 12: ${lesson.title} (${lesson.ru}).`,
+    `Модуль ${lesson.module} «${lesson.moduleTitle}», встреча ${lesson.inModule} из 4 (всего ${n} из ${program.lessons.length}): ${lesson.title} (${lesson.ru}).`,
+    ...(lesson.inModule === 4 && !lesson.celebration ? ['Это встреча-проект модуля: повторение всего модуля и общий проект. Подготовить: листы А3, клей, фломастеры, ножницы.'] : []),
     `Цель: ${lesson.can}`,
     `Речевой фокус: ${lesson.focus}.`,
     `Слова: ${lesson.words.map(([w, ru]) => `${w} (${ru})`).join(', ')}.`,
-    'Материалы: лист 1 «Kaardid» — распечатать заранее (лучше на плотной бумаге) и разрезать; листы 2 и 3 — по одному на ребёнка; мягкий мяч, таймер, ножницы.',
+    'Материалы: лист 1 «Kaardid» — распечатать заранее (лучше на плотной бумаге) и разрезать по рамкам (карточки слов — урок 1, вопросы — уроки 1 и 2, ролевые и дополнительные — урок 2); листы 2 и 3 — по одному на ребёнка; мягкий мяч, таймер, ножницы.',
     'Правило клуба: дети говорят больше учителя. Учитель говорит по-эстонски, по-русски — только короткая подсказка. Ошибки не прерываем: в конце урока повторяем 2–3 правильные фразы.',
     '',
     'УРОК 1 (45 мин):',
@@ -93,10 +95,10 @@ function clubPlan(program, lesson, n) {
     `ПЕРЕКУС (10–15 мин): говорим только по-эстонски — фразы в рамке «Söögipaus» в конце листа 2: ${[...lesson.snack].join(' ')} Учитель хвалит тех, кто попросил по-эстонски.`,
     '',
     'УРОК 2 (45 мин):',
-    `1. «${lesson.findTitle || 'Leia keegi, kes …'}» (10 мин): лист 2, таблица — дети ходят по классу и спрашивают «Kas sa …?», записывают имена; потом каждый рассказывает: «Mia oskab ujuda».`,
-    `2. Карточки вопросов (10 мин): дети тянут карточку, задают вопрос соседу, тот отвечает полным предложением и тянет следующую.`,
-    `3. Ролевая игра и игра (15 мин): «${roleTitle}» по карточкам ролей (2–3 пары по очереди, остальные слушают и задают 1 вопрос) и «${extraTitle}». ${lesson.game2}`,
-    `4. Минута рассказа (8 мин): лист 3 — план из 6 строк, затем каждый говорит около минуты (таймер). ${lesson.talk}`,
+    `1. «${lesson.findTitle || 'Leia keegi, kes …'}» (10 мин): лист 2, таблица — дети ходят по классу и спрашивают «Kas sa …?», записывают имена; потом каждый рассказывает об одном однокласснике полным предложением (по строке таблицы).`,
+    `2. Карточки вопросов (${lesson.celebration ? 3 : project ? 6 : 10} мин): дети тянут карточку, задают вопрос соседу, тот отвечает полным предложением и тянет следующую.`,
+    `3. Ролевая игра и игра (15 мин; карточки «${roleTitle}» и «${extraTitle}» с листа 1): ${lesson.game2}`,
+    `4. Минута рассказа (${lesson.celebration ? 15 : project ? 12 : 8} мин): лист 3 — план из 6 строк, затем каждый говорит около минуты (таймер)${project ? ', на встрече-проекте — с готовым продуктом в руках, остальные задают по вопросу' : ''}. ${lesson.talk}`,
     '5. Итог (2 мин): «Ma oskan» на листе 3 — каждый отмечает, что умеет; лист 3 с запиской для родителей — домой.',
     '',
     `Домой (родителям): ${lesson.home}`,
@@ -116,6 +118,7 @@ export function kidsCurriculumRecords() {
     const number = index + 1;
     const id = `${program.id}-${pad(number)}`;
     const celebration = Boolean(lesson.celebration);
+    const project = !celebration && lesson.inModule === 4;
     return {
       id,
       type: 'lesson',
@@ -125,19 +128,20 @@ export function kidsCurriculumRecords() {
       subject: 'Eesti keel',
       level: program.level,
       levelStage: program.level,
-      topic: `01. ${program.title}`,
+      topic: lesson.module ? `${String(lesson.module).padStart(2, '0')}. ${lesson.moduleTitle}` : `01. ${program.title}`,
       order: number,
       curriculumId: `kids-${program.id}-v1`,
       curriculumTitle: `KeeleSepp lastele: ${program.title}`,
       roadmapLessonId: id,
       roadmapLessonNumber: number,
-      roadmapModuleId: `${program.id}-module-01`,
-      roadmapModuleNumber: 1,
-      roadmapModuleTitle: program.title,
-      roadmapModuleGoal: program.goal,
-      roadmapKind: celebration ? 'check' : 'theme',
-      roadmapTag: celebration ? 'Pidu' : 'Teema',
-      lessonTypeLabel: celebration ? 'Pidu' : 'Teema',
+      // the speaking club has five modules of four meetings (lesson.module); the Sunday groups one module
+      roadmapModuleId: `${program.id}-module-${String(lesson.module || 1).padStart(2, '0')}`,
+      roadmapModuleNumber: lesson.module || 1,
+      roadmapModuleTitle: lesson.moduleTitle || program.title,
+      roadmapModuleGoal: lesson.moduleGoal || program.goal,
+      roadmapKind: celebration ? 'check' : project ? 'project' : 'theme',
+      roadmapTag: celebration ? 'Pidu' : project ? 'Projekt' : 'Teema',
+      lessonTypeLabel: celebration ? 'Pidu' : project ? 'Projekt' : 'Teema',
       goal: lesson.can,
       languageFocus: lesson.grammar || lesson.focus || wordsOf(lesson).slice(0, 6).join(', '),
       contactMinutes: program.minutes,

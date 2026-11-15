@@ -668,6 +668,8 @@
 .ws-profiles { display: grid; gap: 3mm; }
 .ws-profile { border: .3mm solid var(--ks-line); border-radius: 3mm; padding: 2.5mm; background: rgba(255,255,255,.75); display: flex; flex-direction: column; gap: 1.5mm; min-width: 0; }
 .ws-profile > .ws-photo { width: 62%; align-self: center; border-radius: 50%; }
+/* four cards a row (the club's word cards): a smaller picture, so two rows fit under the page opener */
+.ws-profiles[style*="repeat(4"] .ws-profile > .ws-photo { width: 50%; }
 .ws-profile-name { text-align: center; font: 900 11.5pt var(--font-head); color: var(--ks-navy); text-transform: uppercase; letter-spacing: .4pt; }
 .ws-profile-facts { margin: 0; padding-left: 4.5mm; font-size: .9em; }
 .ws-profile-sentences { margin: 0; padding-left: 5mm; font-size: .9em; display: grid; gap: 1.2mm; }

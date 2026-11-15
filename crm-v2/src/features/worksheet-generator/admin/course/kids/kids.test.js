@@ -10,9 +10,9 @@ import fs from 'node:fs';
 
 describe('children’s courses 5–6, 6–7, 8–9 and the speaking club 10–12', () => {
   it('three courses of 12 lessons, each with three sheets', () => {
-    expect(KIDS_PROGRAMS.map((p) => p.lessons.length)).toEqual([12, 12, 12, 12]);
+    expect(KIDS_PROGRAMS.map((p) => p.lessons.length)).toEqual([12, 12, 12, 20]);
     KIDS_MODULES.forEach((mod) => {
-      expect(Object.keys(mod.LESSONS)).toHaveLength(12);
+      expect(Object.keys(mod.LESSONS)).toHaveLength(mod.MODULE.id.startsWith('k11') ? 20 : 12);
       Object.values(mod.LESSONS).forEach((lesson) => ['discover', 'practice', 'transfer'].forEach((p) => expect(lesson[p].length, `${lesson.title} ${p}`).toBeGreaterThanOrEqual(3)));
     });
   });
@@ -93,7 +93,7 @@ describe('children’s courses 5–6, 6–7, 8–9 and the speaking club 10–12
       const types = (doc) => doc.blocks.map((b) => b.type);
       expect(types(discover), lessonId).toEqual(expect.arrayContaining(['profiles', 'rolecards']));
       const words = discover.blocks.find((b) => b.id.endsWith('_d_words'));
-      expect(words.data.people.length, lessonId).toBe(12);
+      expect(words.data.people.length + (discover.blocks.find((b) => b.id.endsWith('_d_more'))?.data.people.length || 0), lessonId).toBe(12);
       expect(words.data.people.filter((p) => p.img?.src).length, `${lessonId} pictures`).toBeGreaterThanOrEqual(6);
       expect(discover.blocks.find((b) => b.id.endsWith('_d_questions')).data.people.length, lessonId).toBe(8);
       expect(types(practice), lessonId).toEqual(expect.arrayContaining(['vocab', 'dialogue', 'match', 'gaps', 'table', 'phrasebank']));
