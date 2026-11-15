@@ -1,3 +1,12 @@
+## 2026-11-16 · agent/kids-club-feedback1 — Vestlusklubi 10–12 a: teacher feedback after meeting 1 · content + sheets, no rules / functions change
+
+- Base: `origin/main` ee59b99 (#1242), checked 2026-11-16. Teacher after meeting 1: pair speaking worked best and took the most time; sentences were hard at first, then better; the picture words were too easy; the written tasks of sheet 2 were done very fast → more speaking, harder words.
+- Done (all 20 meetings, `kids/club/module1…5.js`): `words2` 8 harder words, `frames` 4 sentence builders (sest / aga / siis), `pair` information-gap pair task, gaps rewritten with the harder words, 3 crossword answers from them, last 2 question cards need „sest”, one longer word-order sentence, game1 with the new words. `kids/sheets.js`: sheet 1 + „Raskemad sõnad” explain-it cards + „Paaristöö” A/B cards; sheet 2 + harder-word list, „Lauseehitaja”, pair answer table, question ↔ answer matching removed; the snack box and „Leia keegi, kes …” moved to the start of sheet 3 (where lesson 2 begins). `clubPlan`: lesson 1 new timings (words 8, frames 8, dialogue + gaps 7, game 10, pair 7) and 4 backup speaking games. Docs: `KIDS_GROUPS_PROGRAM.md`.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/curriculum` → all passed except 3 studio UI timeouts under load, which pass when run alone (10/10); eslint clean; sheet lab: sheet 1 three pages (cards), sheet 2 two pages (87–88 % of page 2), sheet 3 three pages (30–69 % of page 3).
+- Production: after merge, the 20 club records are updated in place only where the sheet is unchanged since our publish (sync script checks author and version).
+- Limits: word order keeps one intended order; Estonian checked by the writers, not yet by a native teacher in class.
+- Next safe step: the teacher runs meeting 2 with the new sheets and reports.
+
 ## 2026-11-15 · agent/kids-club-modules — Vestlusklubi 10–12 a: 5 modules × 4 meetings, three review rounds · content + kids art + one CSS rule, no rules / functions change
 
 - Base: `origin/main` a353bff (release of #1240), checked 2026-11-15. Owner: „первые 5 модулей по 4 урока, урок = одна встреча 2 по 45, потом проверить каждый урок отдельно и улучшить методологически и визуально, и ещё 2 раза так же”.

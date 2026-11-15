@@ -80,6 +80,14 @@ kes / kellel …”, the snack box at the end (lesson 1 → snack → lesson 2);
 talk, „Ma oskan” and the parents' note side by side, certificate on 020.
 Pictures: kids-art (new: cake, gift, glasses, school, newspaper, film, money) and A2 word pictures (`a2:kook` is köök!).
 
+Teacher feedback after meeting 1 (2026-11-16): the pair speaking tasks worked best and took the most time; building a
+sentence was hard at first, then better; the picture words were too easy; the written tasks of sheet 2 went very fast.
+Changes in every meeting: `words2` — 8 harder words („Raskemad sõnad”: explain-it cards on sheet 1, list on sheet 2,
+used in the gaps and the crossword); `frames` — 4 sentence builders with sest / aga / siis („Lauseehitaja”, said in
+pairs); `pair` — an information-gap pair task (A/B cards on sheet 1, answer table on sheet 2); question ↔ answer
+matching removed; the last 2 question cards need an answer with „sest”; the teacher's plan has new lesson-1 timings
+and 4 backup speaking games without writing (Seleta sõna, Kuum tool, Lauseahel, 20 küsimust).
+
 | # | Moodul | Kohtumine | Laps oskab |
 |---|---|---|---|
 | 1 | 1 Mina ja minu inimesed | Tere! Mina olen … | Laps tutvustab ennast (nimi, vanus, kool, klass, elukoht, mis talle meeldib) ja küsib samu küsimusi teiselt. |
