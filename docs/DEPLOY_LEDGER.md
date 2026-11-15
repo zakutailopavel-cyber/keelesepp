@@ -28,7 +28,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 | Firestore rules (`firestore.rules`) | 2026-11-11 15:32 | `8a9cb61` (= main 2026-11-11) | live ruleset compared with main `8a9cb61`: equal |
 | Storage rules (`storage.rules`) | not recorded | — | run `deploy-status.mjs` and fill in |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
-| Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-15 00:18 release commit | `7ab4a91` `[deploy] Release 2026-11-15 00:18 UTC` | release commit on main; Vercel status success |
+| Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-15 11:59 release commit | `dbdf512` `[deploy] Release 2026-11-15 11:59 UTC` | release commit on main; Vercel status success |
 
 ## Cloud Functions
 
@@ -64,6 +64,7 @@ Newest first. One line per deploy: date UTC · target(s) · commit · who · not
 - 2026-11-14 14:50 · hosting (release.yml) · `1738c4d` · Claude (owner OK) · Õpik free layer: behind the text, ready layouts (#1237); no rules / functions change; Vercel success
 - 2026-11-14 23:35 · hosting (release.yml) · `a353bff` · Claude (owner OK) · Vestlusklubi 10–12 a, 12 meetings (#1240); no rules / functions change; Vercel success
 - 2026-11-15 00:18 · hosting (release.yml) · `7ab4a91` · Claude (owner OK) · Vestlusklubi 10–12 a: 5 modules × 4 meetings, three review rounds (#1241); no rules / functions change; Vercel success. Data: curriculumLessons k11-001…012 updated, k11-013…020 created (no assignments existed)
+- 2026-11-15 11:59 · hosting (release.yml) · `dbdf512` · Claude (owner asked to apply the teacher's feedback) · Vestlusklubi: harder words, sentence frames, pair tasks (#1243); no rules / functions change; Vercel success. Data: curriculumLessons k11-001…020 sheets updated in place (checked first: last version was ours, no teacher edits)
 - 2026-11-13 18:41 · hosting (release.yml) · `4770aae` · Claude (owner OK) · editor: up to 3 pictures in a text / reading text (#1218), Õpik „Vaba kiht” (#1219); no rules / functions change; Vercel success
 - 2026-11-13 13:50 · hosting (release.yml) · `df8797f` · Claude (owner OK) · A2 lesson a2-l05 with its listening audio (#1216); Vercel success, audio URL 200
 - 2026-11-12 10:27 · functions:financeApi,invoiceApi,linkpayApi,manualInvoiceApi,sendInvoicePaymentReminders · `f372e75` · Claude (owner OK) · Fable fixes T2 (#1212) and D4/D6 (#1213); „Deploy complete”; rules unchanged; hosting released after with #1210, #1211, #1214
