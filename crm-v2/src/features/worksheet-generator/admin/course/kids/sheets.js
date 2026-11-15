@@ -189,8 +189,8 @@ function schoolLesson(program, lesson, index) {
 // in club11.js. Sheet 1 is printed and cut (cards), sheet 2 is lesson 1, sheet 3 is lesson 2 (and home).
 export const CLUB_PHASES = {
   discover: { label: '1 Kaardid', slot: 1, subtitle: 'Prindi ja lõika: sõnakaardid, küsimused ja rollid tunniks.' },
-  practice: { label: '2 Tund 1: räägime', slot: 2, subtitle: 'Sõnad, küsimused ja vastused, dialoog, „Leia keegi, kes …” ja söögipaus.' },
-  transfer: { label: '3 Tund 2: mängime ja esineme', slot: 3, subtitle: 'Pärast söögipausi: mängud, rollid ja minut rääkimist.' },
+  practice: { label: '2 Tund 1: räägime', slot: 2, subtitle: 'Sõnad, lauseehitaja, dialoog, lüngad ja paaristöö.' },
+  transfer: { label: '3 Tund 2: mängime ja esineme', slot: 3, subtitle: 'Söögipausi fraasid, „Leia keegi, kes …”, mängud, rollid ja minut rääkimist.' },
 };
 const CLUB_GOALS = {
   g_vocab: 'Laps teab ja ütleb tunni sõnu.',
@@ -261,6 +261,7 @@ function clubLesson(program, lesson, index) {
   const id = lessonIdOf(program, index).replace(/-/g, '_');
   const [roleTitle, situation, [roleA, phrasesA], [roleB, phrasesB]] = lesson.roles;
   const [extraTitle, extraInstruction, extraCards] = lesson.extra;
+  const [pairTitle, pairSituation, [pairA, pairPhrasesA], [pairB, pairPhrasesB]] = lesson.pair;
   const answersOf = (sentences) => sentences.flatMap((x) => [...x.matchAll(/\[([^\]|]+)/g)].map((m) => m[1]));
   const open = clubOpeners(id, lesson, index + 1);
   const discover = [
@@ -271,22 +272,30 @@ function clubLesson(program, lesson, index) {
     // word cards with pictures, then the words without a picture as small cards
     cards(`${id}_d_words`, 'Sõnakaardid', 'Näita pilti — laps ütleb sõna ja lause. Pööra kaart — kes mäletab?', lesson.words.filter(([, , pic]) => pic).map(([word, ru, pic]) => [word, [ru], picOf(pic)]), 4, 'g_vocab'),
     ...(lesson.words.some(([, , pic]) => !pic) ? [cards(`${id}_d_more`, 'Veel sõnu', 'Lõika välja. Laps loeb sõna ja ütleb sellega lause.', lesson.words.filter(([, , pic]) => !pic).map(([word, ru]) => [word, [ru]]), 4, 'g_vocab')] : []),
+    // teacher 2026-11-16: the picture words were too easy — 8 harder words of the topic as „explain it” cards
+    cards(`${id}_d_hard`, 'Raskemad sõnad', 'Lõika välja. Võta kaart ja seleta sõna eesti keeles, aga ära ütle sõna ennast. Kes arvab ära, saab kaardi.', lesson.words2.map(([word, ru]) => [word, [ru]]), 4, 'g_vocab'),
+    // teacher 2026-11-16: the pair work worked best — an information-gap pair task on top of the role play
+    B.rolecards(`${id}_d_pair`, `Paaristöö: ${pairTitle}`, `${pairSituation} Lõika kaardid pooleks. Ära näita oma kaarti paarilisele!`, pairA, pairB, pairPhrasesA, pairPhrasesB),
     B.rolecards(`${id}_d_roles`, `Rollikaardid: ${roleTitle}`, `${situation} Lõika kaardid pooleks: üks võtab rolli A, teine rolli B.`, roleA, roleB, phrasesA, phrasesB),
   ];
   const gapsBank = lesson.bank || answersOf(lesson.gaps);
   const practice = [
     open.blocks.practice,
     B.vocab(`${id}_p_words`, 'Tunni sõnad · слова урока', lesson.words.map(([word, ru]) => `${word} — ${ru.replace(/\s*,\s*/g, ' / ')}`).join('\n'), '2'),
+    B.vocab(`${id}_p_words2`, 'Raskemad sõnad · слова посложнее', lesson.words2.map(([word, ru]) => `${word} — ${ru.replace(/\s*,\s*/g, ' / ')}`).join('\n'), '2'),
     B.notice(`${id}_p_focus`, `Räägime nii: ${lesson.focus}`, lesson.phrases.map(([q, a]) => `**${q}** — ${a}`), 'full', 'g_notice'),
+    // teacher 2026-11-16: building a sentence was hard at first — sentence frames with sest / aga / siis, said in pairs
+    B.notice(`${id}_p_frames`, 'Lauseehitaja: räägi pikemalt', [...lesson.frames.map((x) => `**${x}**`), 'Paarilisega: ütle iga mudeliga üks lause endast. Paariline kordab ja ütleb oma lause.'], 'full', 'g_use'),
     B.dialogue(`${id}_p_dialogue`, 'Loe dialoogi paarilisega ja kirjuta puuduvad sõnad.', 'Loe kõigepealt koos õpetajaga. Siis loe rollides: A ja B. Lõpuks räägi sama oma andmetega.', 'A', 'B', lesson.dialogue, 'g_use'),
-    B.match(`${id}_p_match`, 'Ühenda küsimus ja vastus.', 'Loe küsimust. Mis vastus sobib? Ühenda.', lesson.phrases.slice(0, 5), 'full', 'g_read'),
     B.gaps(`${id}_p_gaps`, 'Kirjuta lünka sobiv sõna.', 'Vali sõna kastist. Loe lause valjusti.', lesson.gaps, gapsBank, 'full', 'g_notice'),
-    B.table(`${id}_p_find`, lesson.findTitle || 'Leia keegi, kes …', `Käi klassis ringi ja küsi: „${/kellel/.test(lesson.findTitle || '') ? 'Kas sul on …' : 'Kas sa …'}?” Kui sõber ütleb „Jah!”, kirjuta tema nimi. Küsi igalt sõbralt ainult üks küsimus.`, `${/kellel/.test(lesson.findTitle || '') ? 'Kellel …?' : 'Kes …?'}, Nimi`, lesson.find.map((f) => `… ${f} | `), 'g_use'),
-    // lesson 1 ends with the snack: 10–15 minutes in Estonian (owner 2026-11-15: урок → перекус → урок)
-    B.phrasebank(`${id}_p_snack`, [['Söögipaus (10–15 min): laua taga', CLUB_SNACK.slice(0, 3)], ['Küsi ja paku', [...CLUB_SNACK.slice(3), ...lesson.snack]]]),
+    B.table(`${id}_p_pair`, `Paaristöö: ${pairTitle}`, 'Võta lehelt 1 kaart A või B. Ära näita kaarti! Küsi paariliselt ja kirjuta vastused. Siis vahetage: nüüd küsib tema.', 'Minu küsimus, Paarilise vastus', ['1. | ', '2. | ', '3. | ', '4. | '], 'g_use'),
   ];
   const transfer = [
     open.blocks.transfer,
+    // the snack between the lessons opens sheet 3: 10–15 minutes in Estonian (owner 2026-11-15: урок → перекус → урок)
+    B.phrasebank(`${id}_t_snack`, [['Söögipaus (10–15 min): laua taga', CLUB_SNACK.slice(0, 3)], ['Küsi ja paku', [...CLUB_SNACK.slice(3), ...lesson.snack]]]),
+    // lesson 2 starts with „Leia keegi, kes …” (teacher's plan step 1)
+    B.table(`${id}_t_find`, lesson.findTitle || 'Leia keegi, kes …', `Käi klassis ringi ja küsi: „${/kellel/.test(lesson.findTitle || '') ? 'Kas sul on …' : 'Kas sa …'}?” Kui sõber ütleb „Jah!”, kirjuta tema nimi. Küsi igalt sõbralt ainult üks küsimus.`, `${/kellel/.test(lesson.findTitle || '') ? 'Kellel …?' : 'Kes …?'}, Nimi`, lesson.find.map((f) => `… ${f} | `), 'g_use'),
     B.crossword(`${id}_t_cross`, 'Ristsõna: tunni sõnad.', 'Loe vene sõna ja kirjuta see eesti keeles ruutudesse.', lesson.cross, 'full', 'g_vocab'),
     B.wordorder(`${id}_t_order`, 'Pane sõnad järjekorda.', 'Kirjuta lause õiges järjekorras ja loe see valjusti.', lesson.order, 'full', 'g_notice'),
     B.planning(`${id}_t_plan`, 'Valmista ette oma minut.', 'Lõpeta iga lause paari sõnaga. Need on sinu märksõnad rääkimiseks.', lesson.plan, 1),

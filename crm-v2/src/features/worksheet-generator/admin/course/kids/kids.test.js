@@ -96,14 +96,22 @@ describe('children’s courses 5–6, 6–7, 8–9 and the speaking club 10–12
       expect(words.data.people.length + (discover.blocks.find((b) => b.id.endsWith('_d_more'))?.data.people.length || 0), lessonId).toBe(12);
       expect(words.data.people.filter((p) => p.img?.src).length, `${lessonId} pictures`).toBeGreaterThanOrEqual(6);
       expect(discover.blocks.find((b) => b.id.endsWith('_d_questions')).data.people.length, lessonId).toBe(8);
-      expect(types(practice), lessonId).toEqual(expect.arrayContaining(['vocab', 'dialogue', 'match', 'gaps', 'table', 'phrasebank']));
+      expect(types(practice), lessonId).toEqual(expect.arrayContaining(['vocab', 'dialogue', 'gaps', 'table']));
+      // teacher 2026-11-16: harder words, sentence frames and an information-gap pair task (cards on sheet 1, answers on sheet 2)
+      expect(discover.blocks.find((b) => b.id.endsWith('_d_hard')).data.people.length, lessonId).toBe(8);
+      expect(discover.blocks.some((b) => b.id.endsWith('_d_pair') && b.type === 'rolecards'), lessonId).toBe(true);
+      expect(practice.blocks.some((b) => b.id.endsWith('_p_frames')), lessonId).toBe(true);
+      expect(practice.blocks.some((b) => b.id.endsWith('_p_pair')), lessonId).toBe(true);
+      const hard = discover.blocks.find((b) => b.id.endsWith('_d_hard')).data.people.map((p) => p.name);
+      const gapText = practice.blocks.find((b) => b.id.endsWith('_p_gaps')).data;
+      expect(hard.filter((w) => JSON.stringify(gapText).includes(w.slice(0, Math.max(3, w.length - 3)))).length, `${lessonId} harder words in the gaps`).toBeGreaterThanOrEqual(2);
       // textbook openers on the free layer, inside the reserved first block (lesson → snack → lesson)
       [discover, practice, transfer].forEach((doc) => {
         expect(doc.blocks[0].minHeightMm, lessonId).toBeGreaterThan(60);
         expect(doc.free.length, lessonId).toBeGreaterThanOrEqual(5);
         expect(doc.free.every((it) => it.page === 0 && it.y >= 75 && it.y + (it.h || 0) <= 102 + doc.blocks[0].minHeightMm + 2), lessonId).toBe(true);
       });
-      expect(practice.blocks.at(-1).type, lessonId).toBe('phrasebank');
+      expect(transfer.blocks[1].type, lessonId).toBe('phrasebank'); // the snack between the lessons opens sheet 3
       expect(types(transfer), lessonId).toEqual(expect.arrayContaining(['wordorder', 'crossword', 'planning', 'speaking', 'selfcheck']));
     });
   });

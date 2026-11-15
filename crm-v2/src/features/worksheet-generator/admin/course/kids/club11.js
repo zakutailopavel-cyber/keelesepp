@@ -14,7 +14,9 @@
 //
 // Fields: words [[word, Russian, picture]] — picture 'dog' = public/kids-art/dog.svg, 'a2:sober' =
 // public/textbook-art/words/a2/sober.webp; phrases [[question, answer]] (the model answers); questions — 8 question
-// cards; find — 8 lines of „Leia keegi, kes …”; roles [title, situation, [roleA, phrasesA], [roleB, phrasesB]];
+// cards (the last 2 need an answer with „sest”); words2 — 8 harder words [word, Russian] (teacher 2026-11-16: the
+// picture words were too easy); frames — 4 sentence builders (sest / aga / siis); pair — an information-gap pair task,
+// same shape as roles; find — 8 lines of „Leia keegi, kes …”; roles [title, situation, [roleA, phrasesA], [roleB, phrasesB]];
 // extra [title, instruction, [[name, facts]]] — more cards (identity cards, a menu …); dialogue [[A|B, text with
 // [gap]]]; gaps — sentences with [answer] (bank = the answers); order — sentences for word order; cross [[Russian clue,
 // answer]]; snack — the snack phrases of the meeting; plan — the plan of the talk; talk — the one-minute talk;

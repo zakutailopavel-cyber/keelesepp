@@ -14,6 +14,10 @@ export const MODULE_3 = {
         ['raamat', 'книга', 'book'], ['käärid', 'ножницы', 'scissors'], ['kell', 'часы', 'clock'], ['tool', 'стул', 'chair'],
         ['õpetaja', 'учитель', 'a2:opetaja'], ['õpilane', 'ученик', 'a2:opilane'], ['tund', 'урок'], ['vahetund', 'перемена'],
       ],
+      words2: [
+        ['tunniplaan', 'расписание уроков'], ['kodutöö', 'домашнее задание'], ['klassikaaslane', 'одноклассник'], ['hinne', 'оценка'],
+        ['raske', 'трудный'], ['huvitav', 'интересный'], ['õppima', 'учиться, учить'], ['unustama', 'забывать'],
+      ],
       phrases: [
         ['Mis on sinu lemmikaine?', 'Kunst, sest see on lõbus!'],
         ['Mis tunnid sul täna on?', 'Matemaatika, eesti keel ja kunst.'],
@@ -22,7 +26,8 @@ export const MODULE_3 = {
         ['Kas sul on pliiats?', 'Jah, palun! / Vabandust, mul ei ole.'],
         ['Kas ma võin välja minna?', 'Jah, võid.'],
       ],
-      questions: ['Mis kell sinu kool algab?', 'Mis on sinu lemmikaine? Miks?', 'Mis aine on sinu jaoks kõige raskem?', 'Mida sa vahetunnis teed?', 'Mida sa koolis lõunaks sööd?', 'Mitu tundi sul täna oli?', 'Kas sul on palju kodutöid?', 'Mis on sinu seljakotis?'],
+      frames: ['Minu lemmikaine on …, sest see on huvitav.', 'Minu jaoks on … raske, aga … on lihtne.', 'Kõigepealt on mul …, siis …', 'Ma unustasin koju …, aga mul on …'],
+      questions: ['Mis kell sinu kool algab?', 'Mis on sinu lemmikaine? Miks?', 'Mis aine on sinu jaoks kõige raskem?', 'Mida sa vahetunnis teed?', 'Mida sa koolis lõunaks sööd?', 'Mitu tundi sul täna oli?', 'Miks on vaja koolis käia?', 'Kumb on parem: pikk vahetund või lühem koolipäev? Miks?'],
       find: ['armastab matemaatikat', 'sõidab kooli bussiga', 'käib kooli jala', 'mängib vahetunnis palli', 'õpib koolis inglise keelt', 'kannab sinist seljakotti', 'sööb koolis iga päev lõunat', 'armastab kehalist kasvatust'],
       roles: ['Unustasin pinali koju!', 'Tund algab kohe. Ühel õpilasel ei ole pinalit.', [
         'Sa unustasid pinali koju. Sul on vaja pliiatsit, kustutuskummi ja joonlauda. Küsi klassikaaslaselt. Ütle, mis värvi pliiatsit sa tahad. Ütle aitäh.',
@@ -30,6 +35,13 @@ export const MODULE_3 = {
       ], [
         'Sul on pinalis punane pliiats, sinine pliiats ja joonlaud. Kustutuskummi sul ei ole. Anna, mis sul on. Küsi, mis värvi pliiatsit ta tahab.',
         ['Jah, palun!', 'Mis värvi pliiatsit sa tahad: punast või sinist?', 'Vabandust, kustutuskummi mul ei ole.', 'Pole tänu väärt!'],
+      ]],
+      pair: ['Kaks kooli', 'Te käite eri koolides ja tahate teada, milline on sõbra koolipäev.', [
+        'Sa käid Tallinna koolis. Kool algab kell 8.00, täna on sul 5 tundi. Kõige raskem aine on matemaatika. Kodutöö: lugeda raamatut. Küsi sõbra kooli kohta ja kirjuta vastused.',
+        ['Mis kell sinu kool algab?', 'Mitu tundi sul täna on?', 'Mis aine on sinu jaoks kõige raskem?', 'Mis kodutöö sul on?'],
+      ], [
+        'Sa käid Tartu koolis. Kool algab kell 8.30, täna on sul 6 tundi. Kõige raskem aine on inglise keel. Kodutöö: kirjutada lugu. Küsi sõbra kooli kohta ja kirjuta vastused.',
+        ['Kas sinu kool algab ka kell kaheksa?', 'Kas sul on täna palju tunde?', 'Mis aine on sulle raske?', 'Kas sul on kodutöö?'],
       ]],
       extra: ['Minu tunniplaan', 'Võta kaart, ära näita seda sõbrale. Sõber küsib: „Mis tunnid sul … on? Mis on esimene tund?” Vasta kaardi järgi.', [
         ['Esmaspäev', ['eesti keel', 'matemaatika', 'kunst', 'kehaline kasvatus']],
@@ -42,14 +54,14 @@ export const MODULE_3 = {
         ['A', 'Kell üheksa. Mis on sinu [lemmikaine]?'], ['B', 'Kunst, sest mulle meeldib joonistada.'],
         ['A', 'Mida sa [vahetunnis] teed?'], ['B', 'Ma mängin sõpradega palli.'],
       ],
-      gaps: ['Kool [algab] kell kaheksa.', 'Minu [lemmikaine] on kunst.', 'Vahetunnis ma [mängin] palli.', 'Kas sul on [pliiats]?', 'Täna on mul viis [tundi].'],
-      bank: ['algab', 'lemmikaine', 'mängin', 'pliiats', 'tundi'],
-      order: ['Kas sul on pliiats?', 'Mis on sinu lemmikaine?', 'Minu seljakott on sinine.'],
-      cross: [['рюкзак', 'seljakott'], ['тетрадь', 'vihik'], ['карандаш', 'pliiats'], ['ножницы', 'käärid'], ['урок', 'tund'], ['школа', 'kool']],
+      gaps: ['Ma [unustasin] oma matemaatika vihiku täna koju.', 'Meie uues [tunniplaanis] on esmaspäeval kaks kunstitundi.', 'Matemaatika on minu jaoks [raske], aga väga huvitav.', 'Ma sain eesti keele kontrolltöö eest hea [hinde].', 'Kool [algab] meil kell kaheksa ja lõpeb kell kaks.'],
+      bank: ['unustasin', 'tunniplaanis', 'raske', 'hinde', 'algab', 'õpetaja'],
+      order: ['Mis on sinu lemmikaine?', 'Kas sul on pliiats?', 'Matemaatika on raske, aga kunst on lihtne.'],
+      cross: [['рюкзак', 'seljakott'], ['расписание уроков', 'tunniplaan'], ['одноклассник', 'klassikaaslane'], ['ножницы', 'käärid'], ['урок', 'tund'], ['оценка', 'hinne']],
       snack: ['Mis sul täna koolis lõunaks oli?'],
       plan: ['Minu kool on …', 'Kool algab kell …', 'Täna on mul …, … ja …', 'Minu lemmikaine on …, sest …', 'Vahetunnis ma …', 'Pärast kooli ma …'],
       talk: 'Räägi umbes üks minut oma koolipäevast: mis kell kool algab, mis tunnid sul on, mis on sinu lemmikaine ja miks, mida sa vahetunnis teed.',
-      game1: '«Что в рюкзаке?» (10 мин): учитель кладёт в рюкзак настоящие вещи (карандаш, тетрадь, ножницы, книгу) и карточки слов. Ребёнок с закрытыми глазами берёт одну вещь и говорит: «See on pliiats.» Затем спрашивает соседа: «Kas sul on käärid?» — сосед проверяет свой пенал: «Jah, mul on käärid. / Ei, mul ei ole.» Затем «Любимый предмет» (5 мин): учитель пишет на доске 5–6 предметов (kunst, matemaatika, eesti keel, kehaline kasvatus …), каждый встаёт к своему предмету и говорит: «Minu lemmikaine on kunst, sest see on lõbus.» Учитель спрашивает: «Mis on kõige populaarsem aine?» — группа считает по-эстонски.',
+      game1: '«Что в рюкзаке?» (10 мин): учитель кладёт в рюкзак настоящие вещи (карандаш, тетрадь, ножницы, книгу) и карточки слов. Ребёнок с закрытыми глазами берёт одну вещь и говорит: «See on pliiats.» Затем спрашивает соседа: «Kas sul on käärid?» — сосед проверяет свой пенал: «Jah, mul on käärid. / Ei, mul ei ole.» Затем «Любимый предмет» (5 мин): учитель пишет на доске 5–6 предметов (kunst, matemaatika, eesti keel, kehaline kasvatus …), каждый встаёт к своему предмету и говорит: «Minu lemmikaine on kunst, sest see on huvitav. Matemaatika on raske.» Учитель спрашивает: «Mis on kõige populaarsem aine?» — группа считает по-эстонски.',
       game2: '«Расписание» (7 мин): каждый берёт карточку дня (лист 1) и не показывает её. Пары спрашивают: «Mis tunnid sul … on? Mis on esimene tund?» и записывают ответ; потом меняются карточками. Ролевая игра «Забыл пенал» (8 мин): у Б настоящий пенал с красным и синим карандашом и линейкой, ластика нет; А просит по-эстонски, Б даёт только то, что есть. Пары меняются ролями.',
       home: 'Каждый день после школы спрашивайте по-эстонски: «Mis tunnid sul täna olid? Mis oli kõige huvitavam?» — ребёнок отвечает 2–3 предложениями.',
       self: ['Ma räägin oma koolipäevast.', 'Ma ütlen, mis on minu lemmikaine ja miks.', 'Ma palun klassis asja: Kas sul on …?'],
@@ -64,6 +76,10 @@ export const MODULE_3 = {
         ['õhtu', 'вечер', 'a2:ohtu'], ['kellaaeg', 'время (на часах)', 'a2:kellaaeg'], ['sööma', 'есть', 'a2:sooma'], ['kell', 'часы', 'clock'],
         ['voodi', 'кровать', 'bed'], ['hambahari', 'зубная щётка', 'toothbrush'], ['pesema', 'мыть'], ['kodutöö', 'домашнее задание'],
       ],
+      words2: [
+        ['hommikusöök', 'завтрак'], ['õhtusöök', 'ужин'], ['riietuma', 'одеваться'], ['kiirustama', 'спешить'],
+        ['hilinema', 'опаздывать'], ['väsinud', 'усталый'], ['tavaliselt', 'обычно'], ['nädalavahetus', 'выходные'],
+      ],
       phrases: [
         ['Mis kell sa ärkad?', 'Ma ärkan kell seitse.'],
         ['Mis kell on?', 'Kell on pool kaheksa.'],
@@ -72,7 +88,8 @@ export const MODULE_3 = {
         ['Mida sa õhtul teed?', 'Õhtul ma teen kodutöid ja loen.'],
         ['Mis kell sa magama lähed?', 'Ma lähen magama kell kümme.'],
       ],
-      questions: ['Mis kell sa ärkad?', 'Mida sa hommikul sööd?', 'Mis kell sa kooli lähed?', 'Mis kell sa koju tuled?', 'Millal sa kodutöid teed?', 'Mida sa õhtul teed?', 'Mis kell sa magama lähed?', 'Mis on päeva kõige parem aeg? Miks?'],
+      frames: ['Kõigepealt ma …, siis ma …', 'Tavaliselt ma ärkan kell …, aga laupäeval …', 'Pärast hommikusööki ma …', 'Õhtul olen ma väsinud, sest …'],
+      questions: ['Mis kell sa ärkad?', 'Mida sa hommikul sööd?', 'Mis kell sa kooli lähed?', 'Mis kell sa koju tuled?', 'Millal sa kodutöid teed?', 'Mida sa õhtul teed?', 'Miks on hommikul raske ärgata?', 'Kumb on parem: hommik või õhtu? Miks?'],
       find: ['ärkab enne kella seitset', 'käib hommikul duši all', 'sööb hommikul putru', 'joob hommikul kakaod', 'teeb kodutöid kohe pärast kooli', 'vaatab õhtul telerit', 'läheb magama pärast kella kümmet', 'ärkab nädalavahetusel hilja'],
       roles: ['Leiame vaba aja', 'Kaks sõpra tahavad täna kokku saada.', [
         'Kool lõpeb kell 14.00, kell 15.00–16.00 on trenn, kell 18.00 õhtusöök. Küsi sõbra päeva kohta ja leidke ühine vaba aeg.',
@@ -80,6 +97,13 @@ export const MODULE_3 = {
       ], [
         'Kool lõpeb kell 13.00, kell 14.00–15.00 on muusikakool, kell 16.00 kodutööd, kell 17.00 oled vaba. Vasta sõbrale ja paku aega.',
         ['Minu kool lõpeb kell …', 'Kell … ma ei saa, mul on …', 'Kell … ma olen vaba.', 'Olgu, kohtume!'],
+      ]],
+      pair: ['Tomi päev', 'Teil on mõlemal Tomi päevakava, aga mõned kellaajad on puudu.', [
+        'Sa tead Tomi päeva: ta ärkab kell 7.00, riietub ?, läheb kooli kell 8.00, teeb kodutööd ?, sööb õhtusööki kell 18.00, läheb magama ?. Küsi sõbralt puuduvad kellaajad ja kirjuta need.',
+        ['Mis kell Tom riietub?', 'Millal ta kodutööd teeb?', 'Mis kell ta magama läheb?', 'Ta ärkab kell seitse.'],
+      ], [
+        'Sa tead Tomi päeva: ta ärkab ?, riietub kell 7.30, läheb kooli ?, teeb kodutööd kell 16.00, sööb õhtusööki ?, läheb magama kell 21.30. Küsi sõbralt puuduvad kellaajad ja kirjuta need.',
+        ['Mis kell Tom ärkab?', 'Millal ta kooli läheb?', 'Mis kell ta õhtusööki sööb?', 'Ta läheb magama kell pool kümme.'],
       ]],
       extra: ['Kellakaardid', 'Võta kaart. Ütle kellaaeg ja mida sa sel ajal teed: „Ma ärkan kell seitse.”', [
         ['7.00', ['kell seitse', 'ärkan']], ['7.30', ['pool kaheksa', 'söön hommikusööki']], ['8.00', ['kell kaheksa', 'lähen kooli']],
@@ -90,13 +114,13 @@ export const MODULE_3 = {
         ['A', 'Kell pool seitse. Mida sa [hommikul] teed?'], ['B', 'Ma pesen hambaid ja söön putru.'],
         ['A', 'Mis kell sa [magama] lähed?'], ['B', 'Kell kümme.'],
       ],
-      gaps: ['Ma [ärkan] kell seitse.', 'Kell on [pool] kaheksa.', 'Hommikul ma [pesen] hambaid.', 'Õhtul ma teen [kodutöid].', 'Ma lähen [magama] kell kümme.'],
-      order: ['Mis kell sa ärkad?', 'Kell on pool kaheksa.', 'Ma pesen hambaid.'],
-      cross: [['утро', 'hommik'], ['вечер', 'õhtu'], ['день', 'päev'], ['кровать', 'voodi'], ['часы', 'kell'], ['спать', 'magama']],
+      gaps: ['Ma söön [hommikusööki] tavaliselt kell pool kaheksa.', 'Hommikul ma [pesen] nägu ja hambaid vannitoas.', 'Ma pean [kiirustama], sest kool algab kell kaheksa.', 'Õhtul olen ma väga [väsinud] ja lähen vara magama.', '[Nädalavahetusel] ärkan ma alles kell kümme.'],
+      order: ['Mis kell sa ärkad?', 'Kell on pool kaheksa.', 'Ma olen väsinud, aga ma ei saa magada.'],
+      cross: [['утро', 'hommik'], ['вечер', 'õhtu'], ['завтрак', 'hommikusöök'], ['спешить', 'kiirustama'], ['выходные', 'nädalavahetus'], ['спать', 'magama']],
       snack: ['Mida sa hommikul sõid?', 'Mis kell meil söögipaus lõpeb?'],
       plan: ['Ma ärkan kell …', 'Hommikul ma …', 'Ma lähen kooli kell …', 'Pärast kooli ma …', 'Õhtul ma …', 'Ma lähen magama kell …'],
       talk: 'Räägi umbes üks minut oma tavalisest päevast kellaaegadega: hommikust õhtuni. Kasuta sõna „siis”: Ma ärkan kell seitse, siis ma …',
-      game1: '«Живые часы»: учитель рисует время на доске, дети называют: «Kell on pool kolm.» Затем пары: один показывает руками стрелки, другой называет время (5 мин). Финал — соревнование двух команд: учитель говорит «Kell on pool üheksa!», первый ребёнок команды бежит и рисует стрелки на часах на доске; верно — очко. Повторяем со встречи 1: «Mis kell kool algab?»',
+      game1: '«Живые часы»: учитель рисует время на доске, дети называют: «Kell on pool kolm.» Затем пары: один показывает руками стрелки, другой называет время (5 мин). Финал — соревнование двух команд: учитель говорит «Kell on pool üheksa!», первый ребёнок команды бежит и рисует стрелки на часах на доске; верно — очко. Затем команда добавляет действие: «Kell seitse ma riietun. Kell kaheksa ma kiirustan kooli.»',
       game2: '«Мой день по карточкам» (5 мин): группа раскладывает 6 карточек времени (лист 1) по порядку, каждый берёт одну и говорит: «Kell seitse. Ma ärkan.» Ролевая игра «Найдём свободное время» (10 мин): у А и Б разное расписание, карточки не показывать; общий свободный час — 17.00, пара находит его только вопросами и говорит учителю: «Me kohtume kell viis!»',
       home: 'Попросите ребёнка несколько раз за день сказать по-эстонски, который час и что он делает: «Kell on kuus, ma söön õhtust».',
       self: ['Ma ütlen kellaaja: kell seitse, pool kaheksa.', 'Ma räägin oma päevast hommikust õhtuni.', 'Ma küsin: Mis kell sa …?'],
@@ -111,6 +135,10 @@ export const MODULE_3 = {
         ['mäng', 'игра', 'a2:mang'], ['raamat', 'книга', 'book'], ['pall', 'мяч', 'ball'], ['ujuma', 'плавать'],
         ['laulma', 'петь', 'a2:kontsert'], ['joonistama', 'рисовать'], ['tantsima', 'танцевать'], ['trenn', 'тренировка'],
       ],
+      words2: [
+        ['uisutama', 'кататься на коньках'], ['pildistama', 'фотографировать'], ['pill', 'музыкальный инструмент'], ['treener', 'тренер'],
+        ['võistlus', 'соревнование'], ['harjutama', 'тренироваться, упражняться'], ['igav', 'скучный'], ['põnev', 'захватывающий'],
+      ],
       phrases: [
         ['Mida sa vabal ajal teed?', 'Ma mängin jalgpalli.'],
         ['Mis sulle meeldib teha?', 'Mulle meeldib joonistada.'],
@@ -119,7 +147,8 @@ export const MODULE_3 = {
         ['Kas sa tuled minuga ujuma?', 'Jah, hea mõte! / Vabandust, ma ei saa.'],
         ['Mis päeval ja mis kell sul trenn on?', 'Teisipäeval kell neli.'],
       ],
-      questions: ['Mida sa vabal ajal teed?', 'Kas sa käid trennis? Mitu korda nädalas?', 'Kas sa oskad ujuda?', 'Kas sa mängid mõnda pilli?', 'Mis on sinu lemmikmäng?', 'Mida sa teed nädalavahetusel?', 'Mida sa tahaksid õppida?', 'Kas sulle meeldib lugeda? Mida?'],
+      frames: ['Mulle meeldib …, sest see on põnev.', 'Mulle ei meeldi …, sest see on igav.', 'Ma oskan …, aga ma ei oska …', 'Kui mul on vaba aega, siis ma …'],
+      questions: ['Mida sa vabal ajal teed?', 'Kas sa käid trennis? Mitu korda nädalas?', 'Kas sa oskad ujuda?', 'Kas sa mängid mõnda pilli?', 'Mis on sinu lemmikmäng?', 'Mida sa teed nädalavahetusel?', 'Milline sport on sinu arvates kõige põnevam? Miks?', 'Mis on sinu arvates igav? Miks?'],
       find: ['käib ujumas', 'mängib klaverit või kitarri', 'oskab rattaga sõita', 'loeb praegu raamatut', 'käib tantsutrennis', 'mängib malet', 'oskab uisutada', 'käib trennis kolm korda nädalas'],
       roles: ['Uus trenn', 'Laps tahab minna korvpallitrenni. Ta helistab treenerile.', [
         'Sa tahad minna korvpallitrenni. Küsi treenerilt: mis päeval ja mis kell on trenn, kus see on, kui palju see maksab ja mida kaasa võtta. Ütle oma nimi ja vanus.',
@@ -127,6 +156,13 @@ export const MODULE_3 = {
       ], [
         'Sa oled korvpallitreener. Trenn on teisipäeval ja neljapäeval kell 16.00 spordihallis. Üks kuu maksab 30 eurot. Kaasa: spordiriided ja pudel vett. Küsi lapse nime ja vanust.',
         ['Tere! Mis su nimi on?', 'Kui vana sa oled?', 'Kas sa oskad korvpalli mängida?', 'Võta kaasa spordiriided ja pudel vett.'],
+      ]],
+      pair: ['Sõprade hobid', 'Te teate eri sõprade hobisid. Küsige teineteiselt.', [
+        'Sa tead: Mari mängib klaverit ja harjutab iga päev. Jaan käib uisutamas, laupäeval on tal võistlus. Sa ei tea Liisi ja Karli hobisid. Küsi sõbralt ja kirjuta vastused.',
+        ['Mis on Liisi hobi?', 'Kui tihti ta seda teeb?', 'Mida Karl vabal ajal teeb?', 'Mari mängib klaverit.'],
+      ], [
+        'Sa tead: Liis pildistab igal nädalavahetusel loodust. Karl käib korvpallitrennis kolm korda nädalas. Sa ei tea Mari ja Jaani hobisid. Küsi sõbralt ja kirjuta vastused.',
+        ['Mis on Mari hobi?', 'Kui tihti ta harjutab?', 'Mida Jaan vabal ajal teeb?', 'Millal tal võistlus on?'],
       ]],
       extra: ['Kutse: tule minuga!', 'Võta kaart ja kutsu sõpra kaasa: ütle, kuhu, mis päeval ja mis kell. Sõber ütleb jah või ei ja miks.', [
         ['Liuväli', ['laupäeval kell 15.00', '„Kas sa tuled minuga uisutama?”']],
@@ -139,14 +175,14 @@ export const MODULE_3 = {
         ['A', 'Mina käin [ujumistrennis]. Kas sa oskad ujuda?'], ['B', 'Jah, natuke [oskan].'],
         ['A', 'Kas sa [tuled] laupäeval minuga ujuma?'], ['B', 'Jah, hea mõte! Mis kell?'],
       ],
-      gaps: ['Mulle meeldib [joonistada].', 'Kas sa käid [trennis]?', 'Kas sa [oskad] ujuda?', 'Vabal ajal ma [loen] raamatuid.', 'Trenn on kaks [korda] nädalas.'],
-      bank: ['joonistada', 'trennis', 'oskad', 'loen', 'korda'],
-      order: ['Mulle meeldib ujuda.', 'Ma käin tantsutrennis.', 'Kas sa oskad laulda?'],
-      cross: [['музыка', 'muusika'], ['кино', 'kino'], ['игра', 'mäng'], ['спорт', 'sport'], ['хобби', 'hobi'], ['мяч', 'pall']],
+      gaps: ['Mulle meeldib [pildistada] loodust ja oma sõpru.', 'Jaan käib talvel liuväljal [uisutamas] kaks korda nädalas.', 'Ma [harjutan] klaverit iga päev pool tundi.', 'Kas sa [oskad] mängida mõnda pilli?', 'Laupäeval on meil spordihallis suur [võistlus].'],
+      bank: ['pildistada', 'uisutamas', 'harjutan', 'oskad', 'võistlus', 'igav'],
+      order: ['Mulle meeldib ujuda.', 'Kas sa oskad laulda?', 'Ma oskan ujuda, aga ma ei oska uisutada.'],
+      cross: [['музыка', 'muusika'], ['кататься на коньках', 'uisutama'], ['тренер', 'treener'], ['спорт', 'sport'], ['хобби', 'hobi'], ['соревнование', 'võistlus']],
       snack: ['Mis sulle rohkem maitseb: kook või puuvili?'],
       plan: ['Minu hobi on …', 'Ma teen seda … (millal? kus?)', 'Ma käin … trennis.', 'Ma oskan …', 'Ma tahaksin õppida …', 'Mulle meeldib see, sest …'],
       talk: 'Räägi umbes üks minut oma hobist: mis see on, millal ja kus sa seda teed, miks see sulle meeldib. Näita ka, kuidas seda tehakse!',
-      game1: '«Пантомима» (10 мин): ребёнок тянет карточку слова (ujuma, laulma, tantsima, pall …) и показывает хобби без слов, остальные угадывают по-эстонски: «Sa ujud!», «Sa mängid jalgpalli!» Кто угадал — говорит «Mulle meeldib ka ujuda. / Mulle ei meeldi ujuda.» и показывает следующий. Затем «Ma oskan!» (5 мин): учитель говорит «Ma oskan ujuda!» — кто тоже умеет, встаёт и говорит «Mina ka!».',
+      game1: '«Пантомима» (10 мин): ребёнок тянет карточку слова (uisutama, pildistama, harjutama pilli, ujuma …) и показывает хобби без слов, остальные угадывают по-эстонски: «Sa uisutad!», «Sa pildistad!» Кто угадал — говорит «Mulle meeldib ka uisutada, sest see on põnev. / Mulle ei meeldi, see on igav.» и показывает следующий. Затем «Ma oskan!» (5 мин): учитель говорит «Ma oskan ujuda!» — кто тоже умеет, встаёт и говорит «Mina ka!».',
       game2: '«Приглашение» (5 мин): каждый берёт карточку приглашения и зовёт двух детей (куда, в какой день, во сколько). Друг соглашается или отказывается и объясняет почему («Vabandust, mul on kell viis trenn»). Ролевая игра «Звонок тренеру» (10 мин): пары сидят спиной друг к другу, как по телефону; А записывает день, время, место, цену и что взять с собой, затем говорит группе: «Trenn on teisipäeval kell neli.»',
       home: 'Ребёнок рассказывает о своём хобби по-эстонски и показывает, как это делается. Спросите: «Mida sa tahaksid veel proovida?»',
       self: ['Ma ütlen: Mulle meeldib ujuda / joonistada.', 'Ma küsin: Kas sa käid trennis?', 'Ma kutsun sõbra: Kas sa tuled minuga …?'],
@@ -161,6 +197,10 @@ export const MODULE_3 = {
         ['õhtu', 'вечер', 'a2:ohtu'], ['trenn', 'тренировка', 'a2:sport'], ['intervjuu', 'интервью', 'a2:raakima'], ['ajaleht', 'газета', 'newspaper'],
         ['lemmikaine', 'любимый предмет'], ['kool', 'школа'], ['päevik', 'дневник (записи)'], ['ajakirjanik', 'журналист'],
       ],
+      words2: [
+        ['uudis', 'новость'], ['artikkel', 'статья'], ['pealkiri', 'заголовок'], ['fakt', 'факт'],
+        ['vastus', 'ответ'], ['klubikaaslane', 'товарищ по клубу'], ['naljakas', 'смешной'], ['üllatav', 'удивительный'],
+      ],
       phrases: [
         ['Mis on tema lemmikaine?', 'Tema lemmikaine on kunst.'],
         ['Mis kell ta ärkab?', 'Ta ärkab kell seitse.'],
@@ -169,7 +209,8 @@ export const MODULE_3 = {
         ['Mida ta vabal ajal teeb?', 'Ta käib tantsutrennis.'],
         ['Aitäh intervjuu eest!', 'Pole tänu väärt!'],
       ],
-      questions: ['Mis on sinu lemmikaine?', 'Mis kell su kool algab?', 'Mis kell sa ärkad?', 'Mida sa pärast kooli teed?', 'Mis on sinu hobi?', 'Kas sa käid trennis? Mis päeval?', 'Mida sa nädalavahetusel teed?', 'Mis on sinu päeva kõige toredam hetk?'],
+      frames: ['Huvitav fakt: ta …', 'Tema lemmikaine on …, sest …', 'Ta ärkab kell …, aga nädalavahetusel …', 'Minu arvates on see uudis …, sest …'],
+      questions: ['Mis on sinu lemmikaine?', 'Mis kell su kool algab?', 'Mis kell sa ärkad?', 'Mida sa pärast kooli teed?', 'Mis on sinu hobi?', 'Kas sa käid trennis? Mis päeval?', 'Kas sa tahaksid saada ajakirjanikuks? Miks?', 'Millist uudist tahaksid sa ajalehest lugeda? Miks?'],
       find: ['ärkab enne kella seitset', 'armastab kunsti', 'käib kaks korda nädalas trennis', 'mängib mõnda pilli', 'loeb õhtul raamatut', 'tuleb koju enne kella kolme', 'tahab saada ajakirjanikuks', 'oskab hästi pildistada'],
       roles: ['Kelle päevik?', 'Klassist leiti päevik, aga nime ei ole. Kelle päevik see on?', [
         'Sa leidsid päeviku: „Ärkan kell 6.45. Lemmikaine: kunst. Pärast kooli: tantsutrenn. Õhtul joonistan.” Ära näita kaarti! Vasta detektiivile ta-vormis.',
@@ -177,6 +218,13 @@ export const MODULE_3 = {
       ], [
         'Sa oled detektiiv. Mia: 7.30, kunst, ujumine. Mark: 6.45, matemaatika, tantsutrenn. Liis: 6.45, kunst, tantsutrenn. Küsi ta-vormis ja leia, kelle päevik see on.',
         ['Mis kell ta ärkab?', 'Mis on tema lemmikaine?', 'Mida ta pärast kooli teeb?', 'See on … päevik!'],
+      ]],
+      pair: ['Kaks ajakirjanikku', 'Te teete teineteisega intervjuu klubi ajalehe jaoks.', [
+        'Sa oled Sofia. Sa ärkad kell 6.30, sinu lemmikaine on kunst, sa käid tantsutrennis. Naljakas fakt: sul on kolm kassi. Küsi Danielilt ja kirjuta tema kohta 3 lauset ta-vormis.',
+        ['Mis kell sa ärkad?', 'Mida sa vabal ajal teed?', 'Kas sul on mõni naljakas fakt?', 'Daniel ärkab kell …'],
+      ], [
+        'Sa oled Daniel. Sa ärkad kell 7.15, sinu lemmikaine on matemaatika, sa mängid kitarri. Üllatav fakt: sa oled käinud Jaapanis. Küsi Sofialt ja kirjuta tema kohta 3 lauset ta-vormis.',
+        ['Mis kell sa ärkad?', 'Mida sa pärast kooli teed?', 'Kas sul on mõni üllatav fakt?', 'Sofia käib …'],
       ]],
       extra: ['Ajalehe rubriigid', 'Iga paar võtab ühe rubriigi, kirjutab 3–4 lauset ja joonistab pildi.', [
         ['INTERVJUU', ['Kes ta on?', 'Mis talle meeldib?']],
@@ -191,9 +239,9 @@ export const MODULE_3 = {
         ['A', 'Mis on sinu [lemmikaine]?'], ['B', 'Kunst, sest mulle meeldib joonistada.'],
         ['A', 'Mida sa vabal ajal [teed]?'], ['B', 'Ma käin ujumistrennis.'],
       ],
-      gaps: ['Ta [ärkab] kell seitse.', 'Tema [lemmikaine] on kunst.', 'Ta [käib] ujumistrennis.', 'Ta [mängib] kitarri.', '[Aitäh] intervjuu eest!'],
-      order: ['Mis on tema lemmikaine?', 'Mis kell ta ärkab?', 'Ta käib ujumistrennis.'],
-      cross: [['часы', 'kell'], ['дневник', 'päevik'], ['газета', 'ajaleht'], ['утро', 'hommik'], ['вечер', 'õhtu'], ['хобби', 'hobi']],
+      gaps: ['Minu [klubikaaslane] ärkab iga päev kell seitse.', 'Täna on ajalehes üks väga huvitav [uudis].', 'Ma kirjutan oma artiklile lühikese ja naljaka [pealkirja].', 'Ta [käib] kaks korda nädalas ujumistrennis.', 'Huvitav [fakt]: tema lemmikaine on matemaatika.'],
+      order: ['Mis on tema lemmikaine?', 'Mis kell ta ärkab?', 'Ta oskab joonistada, aga ta ei oska laulda.'],
+      cross: [['новость', 'uudis'], ['дневник', 'päevik'], ['газета', 'ajaleht'], ['статья', 'artikkel'], ['заголовок', 'pealkiri'], ['хобби', 'hobi']],
       snack: ['Mis sulle kõige rohkem maitseb?', 'Mis talle maitseb?'],
       plan: ['Minu klubikaaslase nimi on …', 'Ta on … aastat vana.', 'Tema lemmikaine on …', 'Ta ärkab kell …', 'Vabal ajal ta …', 'Huvitav fakt: ta …'],
       talk: 'Räägi umbes üks minut oma klubikaaslasest intervjuu põhjal: kes ta on, mis on tema lemmikaine, milline on tema päev ja mis on tema hobi (ta ärkab, ta käib …).',
