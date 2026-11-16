@@ -1,7 +1,8 @@
-// Õppevara records of the mathematics course (math/sheets.js, owner 2026-11-16). The level „12. klass matemaatika
-// kitsas” puts them under Õppevara → Matemaatika (library/libraryModel.js subjectOfLevel). The description is the
-// teacher's plan in Russian (the owner's working language), the sheets are Estonian.
-import { KITSAS_12 } from '../worksheet-generator/admin/course/math/kitsas12.js';
+// Õppevara records of the mathematics course (math/sheets.js, owner 2026-11-16): one record per lesson of every program
+// in MATH_PROGRAMS (mk12 exam prep, mk10 grade 10). A level with „matemaatika” („12. klass matemaatika kitsas”,
+// „10. klass matemaatika kitsas”) puts them under Õppevara → Matemaatika (library/libraryModel.js subjectOfLevel).
+// The description is the teacher's plan in Russian (the owner's working language), the sheets are Estonian.
+import { MATH_PROGRAMS } from '../worksheet-generator/admin/course/math/sheets.js';
 
 export const MATH_VERSION = '2026-11-16.2';
 const pad = (n) => String(n).padStart(3, '0');
@@ -53,8 +54,39 @@ function mockPlan(program, mock, n, k) {
   ].join('\n');
 }
 
+// a school-course lesson (program.plan 'course', kitsas10.js): built step by step; a „Kordamine ja kontrolltöö” lesson
+// ends with a 45-minute test
+const isTest = (lesson) => /^Kordamine ja kontrolltöö/.test(lesson.title);
+function coursePlan(program, lesson, n) {
+  const test = isTest(lesson);
+  return [
+    `Курс: ${program.title} — гимназия, узкая математика (kitsas), занятие ${program.minutes} минут.`,
+    `Тема ${n} из ${program.lessons.length}: ${lesson.title} (${lesson.ru}). Курс программы GRÕK: ${lesson.course}.`,
+    `Цель: ${lesson.can}`,
+    `Связь с экзаменом: ${lesson.exam}`,
+    'Материалы: лист 1 «Teooria ja näited», лист 2 «Harjutame», лист 3 «Kontrollülesanne»; простой калькулятор (без графиков и памяти), ручка, тетрадь в клетку.',
+    '',
+    `Ход занятия (${program.minutes} мин):`,
+    ...(test ? [
+      '1. Повторение (20 мин): лист 1 — формулы курса; ученик говорит, где какую формулу применять.',
+      `2. Разминка (20 мин): лист 2, ${lesson.practice.length} задания — короткие задачи на все темы курса; разбираем ошибки.`,
+      `3. Контрольная работа (45 мин): лист 3, ${pointsOf(lesson.examTask)} баллов — без помощи учителя, с полной записью решения; проверяем по ключу: балл за каждый правильный шаг.`,
+      '4. Итог (5 мин): «Kontrolli end»; что не получилось — в план следующих занятий.',
+    ] : [
+      '1. Разминка (10 мин): 2–3 устных вопроса по прошлой теме; проверка домашнего задания.',
+      '2. Теория (20 мин): лист 1 — формулы и правила, учитель объясняет на доске. Русская подсказка — для понимания, термины говорим по-эстонски.',
+      '3. Разобранный пример (10 мин): ученик объясняет каждый шаг своими словами.',
+      `4. Практика (30 мин): лист 2, ${lesson.practice.length} задания от простого к сложному — ученик решает, учитель смотрит решение по шагам, а не только ответ.`,
+      `5. Большая задача (15 мин): лист 3, ${pointsOf(lesson.examTask)} баллов — с полной записью решения; проверяем по ключу.`,
+      '6. Итог (5 мин): «Kontrolli end»; что было трудно — повторить на следующем занятии.',
+    ]),
+    '',
+    test ? 'Домой: исправить ошибки контрольной работы.' : 'Домой: задания листа 2, которые не успели, и выучить формулы темы.',
+  ].join('\n');
+}
+
 export function mathCurriculumRecords() {
-  return [KITSAS_12].flatMap((program) => [
+  return MATH_PROGRAMS.flatMap((program) => [
     ...program.lessons.map((lesson, index) => ({ lesson, index, mock: false })),
     ...(program.mocks || []).map((lesson, k) => ({ lesson, index: program.lessons.length + k, mock: true, k: k + 1 })),
   ].map(({ lesson, index, mock, k }) => {
@@ -62,12 +94,14 @@ export function mathCurriculumRecords() {
     const id = `${program.id}-${pad(number)}`;
     const kind = mock
       ? { roadmapKind: 'check', roadmapTag: 'Proovieksam', lessonTypeLabel: 'Proovieksam', languageFocus: 'Proovieksam: I osa 120 min (4 × 5 p + 3 × 10 p), II osa 150 min (5 × 10 p), kokku 100 p.', contactMinutes: MOCK_PART1_MINUTES + MOCK_PART2_MINUTES }
-      : { roadmapKind: 'theme', roadmapTag: 'Teema', lessonTypeLabel: 'Teema', languageFocus: `Kursus ${lesson.course}: ${lesson.exam}`, contactMinutes: program.minutes };
+      : isTest(lesson)
+        ? { roadmapKind: 'check', roadmapTag: 'Kontrolltöö', lessonTypeLabel: 'Kontrolltöö', languageFocus: `Kursus ${lesson.course}: ${lesson.exam}`, contactMinutes: program.minutes }
+        : { roadmapKind: 'theme', roadmapTag: 'Teema', lessonTypeLabel: 'Teema', languageFocus: `Kursus ${lesson.course}: ${lesson.exam}`, contactMinutes: program.minutes };
     return {
       id,
       type: 'lesson',
       title: lesson.title,
-      description: mock ? mockPlan(program, lesson, number, k) : examPlan(program, lesson, number),
+      description: mock ? mockPlan(program, lesson, number, k) : program.plan === 'course' ? coursePlan(program, lesson, number) : examPlan(program, lesson, number),
       descriptionSource: 'lesson-plan-v1',
       subject: 'Matemaatika',
       level: program.level,

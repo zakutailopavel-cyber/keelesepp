@@ -1,3 +1,42 @@
+## 2026-11-16 · agent/math-kitsas-10 — Matemaatika kitsas 10. klass (mk10, 26 lessons, courses I–III) · content + wiring, no rules / functions / data change
+
+- Base: `origin/main` 77ccf81 (#1250, mk12 mocks), checked 2026-11-16. The PR is a draft. Owner 2026-11-16: „срочно
+  делаем курс по математике с 10 по 12 класс”. Grade 11 (IV–VI) comes in a later PR.
+- Done:
+  - `math/kitsas10.js` `KITSAS_10` (id `mk10`, level „10. klass matemaatika kitsas”, sheet level „Kitsas 10”, 90 min)
+    has 26 lessons `mk10-001…026`: course I has 8 lessons + a test, course II 8 + a test, course III 7 + a test. Each
+    test is a 25 p „Kordamine ja kontrolltöö” lesson;
+  - every lesson has theory with formulas, a Russian hint, a worked example (14 with a graph; 6 larger tasks have a blank grid), 4 practice tasks with
+    keys and LaTeX solutions, and a larger task (5 or 10 p). Every task is our own;
+  - `math/sheets.js`:
+    - `MATH_PROGRAMS = [KITSAS_12, KITSAS_10]`;
+    - `MODULE.phases = { ...MATH_PHASES, ...program.phases }`, so mk10's sheet 3 reads „3 Kontrollülesanne”;
+    - mk12 ids and sheets are unchanged;
+  - `mathCurriculum.js`:
+    - makes records for every program in `MATH_PROGRAMS`;
+    - `program.plan === 'course'` gives a school-lesson plan in Russian (a test lesson gets a 45-minute test plan);
+    - the test lessons are `roadmapKind: 'check'` with the tag „Kontrolltöö”;
+  - docs: new `docs/MATH_KITSAS_10_12.md` (placement, lesson list, wiring); `MATH_RIIGIEKSAM_KITSAS.md` points to it.
+- Checks:
+  - `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum
+    src/features/library` → 181 files passed (1 skipped), 2018 tests passed;
+  - with the default workers, 2–5 heavy studio UI tests (`WorksheetStudioPage`, `freeStudio`) hit the 20 s timeout
+    because the machine was under load. They pass alone, and they do not touch math;
+  - `npx eslint` on the changed files is clean;
+  - new `math/kitsas10.test.js` checks:
+    - three sheets per lesson, and unique lesson and block ids across modules;
+    - points 5/10, tests 20–30 p, a test every 6–8 lessons;
+    - every key form is accepted and wrong answers are rejected;
+    - every formula renders in KaTeX and every graph formula compiles;
+    - all trigonometric and decimal keys are recomputed in JS;
+    - the records sit under Matemaatika;
+  - `math.test.js` mk12 record assertions now filter to `mk12-`.
+- Limits:
+  - nothing is published: the 26 records and 78 sheets need a create-only script with the owner's yes;
+  - not viewed in the sheet lab: the browser pane uses another checkout's launch config;
+  - placement of courses I–III in grade 10 is our decision (okmv gives only course numbers).
+- Next safe step: owner OK → merge + release; then publish mk10 create-only, then grade 11 (`mk11`, courses IV–VI).
+
 ## 2026-11-16 · agent/math-kitsas-mocks — Matemaatika kitsas: three full mock exams (mk12-015…017) · content + one courseSheet line, no rules / functions / data change
 
 - Base: `origin/main` ba20010 (release after #1249), checked 2026-11-16.

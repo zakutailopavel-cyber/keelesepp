@@ -1,4 +1,5 @@
-// The mathematics course as course modules (owner 2026-11-16): every lesson of math/kitsas12.js becomes three sheets
+// The mathematics course as course modules (owner 2026-11-16): every lesson of math/kitsas12.js (and kitsas10.js)
+// becomes three sheets
 //   discover „1 Teooria ja näited” — formulas to know, a short Russian hint, a worked example (with a graph);
 //   practice „2 Harjutame” — scored tasks (block „Matemaatika ülesanne”): a final answer per part, the worked solution
 //     in the key;
@@ -9,6 +10,7 @@
 // Not in COURSE_MODULES (like kids/sheets.js): the Estonian-language gates do not judge a maths sheet. The sheet lab
 // opens it with set=course:mk12-001:practice.
 import { KITSAS_12 } from './kitsas12.js';
+import { KITSAS_10 } from './kitsas10.js';
 
 const pad = (n) => String(n).padStart(3, '0');
 const block = (id, type, tone, goal, data, width = 'full') => ({ id, type, width, span: width === 'full' ? 12 : 6, tone, goal, data });
@@ -115,7 +117,7 @@ function mockSheets(program, mock, index) {
 function moduleOf(program) {
   const mocks = program.mocks || [];
   return {
-    MODULE: { id: `${program.id}-module-01`, course: 'math', title: program.title, level: program.sheetLevel, supplement: true, phases: MATH_PHASES },
+    MODULE: { id: `${program.id}-module-01`, course: 'math', title: program.title, level: program.sheetLevel, supplement: true, phases: { ...MATH_PHASES, ...program.phases } },
     LESSONS: Object.fromEntries([
       ...program.lessons.map((lesson, index) => [mathLessonId(program, index), {
         title: lesson.title, canDo: lesson.can, level: program.sheetLevel, goals: MATH_GOALS,
@@ -132,5 +134,6 @@ function moduleOf(program) {
   };
 }
 
-export const MATH_PROGRAMS = [KITSAS_12];
+// every math program; mathCurriculum.js makes the library records of each (kitsas10.js: grade 10, kitsas12.js: exam prep)
+export const MATH_PROGRAMS = [KITSAS_12, KITSAS_10];
 export const MATH_MODULES = MATH_PROGRAMS.map(moduleOf);
