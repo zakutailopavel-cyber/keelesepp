@@ -985,3 +985,19 @@ textarea.ed-input { resize: vertical; }
 .st-free-presets-title { margin-top: 10px; }
 .st-canvas.is-free-multi .ws-page { touch-action: none; cursor: crosshair; }
 .ws-studio .st-free-multi[aria-pressed="true"] { background: var(--st-navy, #0b2a4f); color: #fff; border-color: var(--st-navy, #0b2a4f); }
+
+/* „Vead ja selgitused” after hand-in (MistakesPanel.jsx, engine/mistakes.js) */
+.ws-mistakes { margin: 0 20px 16px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); display: grid; gap: 12px; }
+.ws-mistakes > header { display: flex; align-items: center; gap: 10px; }
+.ws-mistakes > header > svg { color: var(--amber); flex: 0 0 auto; }
+.ws-mistakes > header > div { display: grid; gap: 3px; }
+.ws-mistakes > header span { color: var(--muted); font-size: .8rem; }
+.ws-mistakes-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.ws-mistakes-task { display: block; margin-bottom: 6px; font: 800 .9rem Manrope, sans-serif; }
+.ws-mistakes-list ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.ws-mistake { display: grid; gap: 4px; padding: 10px 12px; border-left: 3px solid var(--danger-text); border-radius: 8px; background: var(--surface-alt); line-height: 1.5; }
+.ws-mistake-prompt { color: var(--muted); }
+.ws-mistake-given { color: var(--danger-text); }
+.ws-mistake-right { color: var(--success-text); font-weight: 700; }
+.ws-mistake-why { color: var(--text, inherit); }
+@media (max-width: 700px) { .ws-mistakes { margin: 0 14px 14px; } }

@@ -1,3 +1,33 @@
+## 2026-11-16 · agent/learner-mistakes — after hand-in the learner sees her mistakes, the right answer and why · UI only, no rules / functions / data change
+
+- Base: `origin/main` 2b6a699 (#1248), checked 2026-11-16. Owner 2026-11-16: „надо чтобы ученик после сдачи видел свои балл / ошибки и объяснения что не так”.
+- Done:
+  - `engine/mistakes.js` `mistakesOf(doc, answers, results)` lists per task every wrong answer with what she wrote, the
+    right answer and why (`data.explain` / a math part's worked solution, mapped by p<i> or by the n-th scoring key);
+  - it also gives the math points of the auto-checked parts;
+  - `MistakesPanel.jsx` „Vead ja selgitused” sits under the sheet after hand-in (`DocWorksheetPlayer`, not for staff
+    reading a sheet: they have the key);
+  - the same panel is in the learner's view of a checked submission (`DocWorksheetSubmissionPreview explain`,
+    SubmissionReviewModal for non-staff);
+  - the result banner adds „· x/y punkti” when the sheet has math tasks.
+- Security: nothing new reaches the device. The sheet with its answers is already the learner's copy
+  (worksheetAssignments read rule, transcript.js); no rule change.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio src/features/homework/studentWorksheetFlow.test.jsx` → 91 files,
+    700 tests passed;
+  - new `engine/mistakes.test.js`;
+  - the flow test asserts the panel;
+  - checked in the sheet lab: mk12-001 transfer with a wrong a) shows „50% · 1/2 õiget · 2/5 punkti” and the
+    explanation with formulas.
+- Also today: mk12-001…014 published create-only to production (14 records + 42 published sheets, script
+  `publish-mk12.cjs` from a clean origin/main export).
+- Limits:
+  - a key item is matched to a wrong answer only when the task's scoring keys and key items line up; otherwise the
+    panel shows what she wrote and the right answer without „Miks”;
+  - math sheets: goal g_exam reads „… ja kirjutab lahenduskäigu” in first person as „Ma lahendan … ja kirjutab” —
+    fix the text with the mock-exam PR and update the 14 published sheets.
+- Next safe step: owner OK → merge + release; then the three kitsas mock exams (mk12-015…017).
+
 ## 2026-11-16 · agent/math-kitsas-exam — Matemaatika kitsas riigieksam: 14 topic lessons (mk12-001…014) · content + sheet lab, no rules / functions / data change
 
 - Base: `origin/main` 72bc9e0 (#1247 merged), checked 2026-11-16. Owner 2026-11-16: „начинай модуль экзамена”.
