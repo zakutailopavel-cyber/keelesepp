@@ -4,6 +4,8 @@ Owner 2026-11-16: „срочно делаем курс по математик�
 riigieksam prep (grade 12) first, then the grade 10–11 kitsas courses, then lai. The sheets are in Estonian with short
 Russian hints, as lessons on the site (Õppevara → Matemaatika) and in print.
 
+The school-year courses (grade 10 `mk10`, later grade 11) are in `docs/MATH_KITSAS_10_12.md`.
+
 ## The exam (Harno, 2027 spec of 31.08.2026, same in substance as 2026)
 
 - **Dates:** 19.05.2027 at 10:00; resit 02.06.2027. The exam is written on paper.

@@ -80,7 +80,7 @@ describe('math kitsas riigieksam module', () => {
   });
 
   it('library records sit under Õppevara → Matemaatika', () => {
-    const records = mathCurriculumRecords();
+    const records = mathCurriculumRecords().filter((r) => r.id.startsWith('mk12-'));
     expect(records.map((r) => r.id)).toEqual(ids);
     for (const r of records) {
       expect(subjectOfLevel(r.level)).toBe('ma');
