@@ -1,3 +1,28 @@
+## 2026-11-16 · agent/math-kitsas-exam — Matemaatika kitsas riigieksam: 14 topic lessons (mk12-001…014) · content + sheet lab, no rules / functions / data change
+
+- Base: `origin/main` 72bc9e0 (#1247 merged), checked 2026-11-16. Owner 2026-11-16: „начинай модуль экзамена”.
+- Done:
+  - `math/kitsas12.js`: 14 lessons, one per recurring task type of the kitsas exam, all of them our own tasks;
+  - `math/sheets.js` (`MATH_MODULES`, outside COURSE_MODULES): 3 sheets per lesson (theory + RU hint + worked example
+    and graph / 4 scored practice tasks / one exam-form task of 5 or 10 p);
+  - `curriculum/mathCurriculum.js`: records with the Russian teacher plan, level „12. klass matemaatika kitsas”;
+  - `COURSES.math` in courseSheet.js;
+  - the sheet lab loads MATH_MODULES;
+  - the graph's left margin is widened so the y labels are no longer clipped at xmin = 0;
+  - `docs/MATH_RIIGIEKSAM_KITSAS.md` holds the exam facts and the course contract.
+- Checks:
+  - `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum src/features/library src/test`
+    → 179 files, 1998 tests passed;
+  - new `math/math.test.js` covers the sheets building, unique ids, exam points = 5/10, every part with a solution,
+    each key accepted and a wrong answer rejected, graph formulas, the recomputed numeric keys, and the records under Matemaatika;
+  - the sheets were viewed in the sheet lab.
+- Limits:
+  - nothing is published yet: the Õppevara records need a create-only script with the owner's yes;
+  - no mock exams yet (next PR);
+  - the student does not yet see the worked solutions after hand-in (owner 2026-11-16 asked for it, separate UI PR).
+- Next safe step: owner OK → merge; publish mk12-001…014 create-only; then a UI PR for score + mistakes + explanations
+  after hand-in.
+
 ## 2026-11-16 · agent/math-formulas — Matemaatika: formulas on sheets + blocks „Matemaatika ülesanne” and „Koordinaattasand” · crm-v2 only (+ regenerated sheet-kit), no rules / functions / data change
 
 - Base: `origin/main` b337ac5, checked 2026-11-16. Owner 2026-11-16: „срочно делаем курс по математике с 10 по 12 класс и экзамены”; kitsas first, then lai; Estonian with Russian hints; riigieksam prep first; lessons on the site + print. This PR is only the sheet engine; the course content comes in separate PRs.

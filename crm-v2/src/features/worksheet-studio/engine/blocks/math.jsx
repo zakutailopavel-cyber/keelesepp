@@ -170,7 +170,7 @@ function GraphSvg({ data }) {
   const errors = fns.filter((f) => f.error);
   return (
     <>
-      <svg className="ws-graph-svg" viewBox={`-14 -10 ${W + 28} ${height + 24}`} role="img" aria-label={`Koordinaattasand${fns.length ? `: ${fns.map((f) => f.src).join(', ')}` : ''}`}>
+      <svg className="ws-graph-svg" viewBox={`-28 -10 ${W + 42} ${height + 24}`} role="img" aria-label={`Koordinaattasand${fns.length ? `: ${fns.map((f) => f.src).join(', ')}` : ''}`}>
         {grid.map(([kind, v]) => (kind === 'v'
           ? <line key={`v${v}`} x1={sx(v)} x2={sx(v)} y1={0} y2={height} stroke="#d5dce3" strokeWidth="0.6" />
           : <line key={`h${v}`} x1={0} x2={W} y1={sy(v)} y2={sy(v)} stroke="#d5dce3" strokeWidth="0.6" />))}
