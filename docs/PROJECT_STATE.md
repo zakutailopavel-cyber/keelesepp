@@ -38,6 +38,48 @@
 - Checks: course report 4/5 READY (001–004 READY; 005 Harjuta: B1+ reading norm 250–500, the sheet counts 560 incl. numbers, labels and source); `ACADEMIC_REPORT` PASS; `ACADEMIC_ROUND2_REPORT` PASS (module left `academicValueRound2Baseline.json`, also one `course:b2` fact-dup); language check 0 unknown lower-case words (4 internal `station.final` keys in `language-allow.txt`); finalShape, stations, lessonGoals, listeningGoal, listeningAudio, gradingPin pass; full run see the PR.
 - Limits: the B1+ sheet reading norm (≤ 500, counting numbers and the source) and B2 `av-article` (≥ 500, letters only) cannot both hold for one text — 005 is not READY until the owner allows the Harno B2 R1 length in a B2 check lesson. Pictures (`art/visuals/b2-module-01.js`) unchanged and still fit.
 - Next safe step: owner decides the 005 reading-length norm; then a teacher runs 001 one-to-one.
+## 2026-11-17 · agent/math-lai-11 — Matemaatika lai 11. klass (ml11, 39 lessons, courses VI–X) · content + wiring, no rules / functions / data change
+
+- Base: `origin/main` 4bf2d95 (2026-11-16), checked 2026-11-17. Draft PR, not merged. In parallel: #1257 (ml10) also
+  creates `docs/MATH_LAI_10_11.md` and appends to `MATH_PROGRAMS` — on conflict keep both programs and both doc sections.
+- Done: `math/lai11.js` `LAI_11` (id `ml11`, level „11. klass matemaatika lai”, sheet level „Lai 11”, 90 min, sheet 3
+  „3 Kontrollülesanne”): VI 8 + test, VII 6 + test, VIII 6 + test, IX 7 + test, X 7 + test; theory marked
+  *valemilehel*/*pähe*; `sheets.js` appends `LAI_11`; `mathCurriculum.js` coursePlan is track-aware (kitsas text
+  unchanged); `math/lai11.test.js`; doc `docs/MATH_LAI_10_11.md` „Program ml11”.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum
+  src/features/library --maxWorkers=3` → 186 files passed (1 skipped), 2073 tests passed (12 skipped); eslint on the
+  changed files clean.
+- Limits: no visual look at the sheets in the browser; `MATH_VERSION` not bumped (new records only); sheet-kit not
+  rebuilt (no block change). Nothing is published.
+- Next safe step: owner OK → merge (after #1257, resolve the one-line `MATH_PROGRAMS` conflict), then publish ml11
+  records create-only.
+## 2026-11-17 · agent/math-lai-10 — Matemaatika lai 10. klass (ml10, 40 lessons, courses I–V) · content + small wiring, no rules / functions / data change
+
+- Base: `origin/main` 4bf2d95 (release 2026-11-16 19:25 UTC), checked 2026-11-17. Draft PR, not merged. A parallel PR
+  builds grade 11 lai (`ml11`): it also appends to `MATH_PROGRAMS` and adds its section to `docs/MATH_LAI_10_11.md` —
+  a conflict there is one line, keep both.
+- Done:
+  - new `math/lai10.js` `LAI_10` (id `ml10`, level „10. klass matemaatika lai”, sheet level „Lai 10”, 90 min, sheet 3
+    „3 Kontrollülesanne”, `track: 'lai'`, `formulaSheetRu`): 40 lessons `ml10-001…040`, GRÕK lai I–V, 7 topic lessons +
+    a 25 p „Kordamine ja kontrolltöö” per course. Every theory line marked *valemilehel* / *pähe*; proofs, parameters,
+    derivations of the sum and double-angle formulas, the sine-rule ambiguous case, line / circle equations. 19 graphs,
+    8 example figures, 6 exam figures, 5 blank grids; every task our own. Trig equations and arcus functions are left to
+    course VIII (`ml11`), as okmv places them;
+  - `math/sheets.js`: `MATH_PROGRAMS = [KITSAS_12, KITSAS_10, KITSAS_11, LAI_12, LAI_10]` (additive);
+  - `mathCurriculum.js` `coursePlan`: a lai program says „широкая математика (lai)” and names its formula sheet; kitsas
+    text unchanged; `MATH_VERSION` not bumped (new records only);
+  - new `math/lai10.test.js` (13 tests); new `docs/MATH_LAI_10_11.md` (placement, program ml10, lesson table, checks).
+- Checks:
+  - `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum`
+    → 183 files passed (1 skipped), 2024 tests passed (12 skipped); `src/features/library` → 3 files, 50 tests passed;
+  - `npx eslint` on the changed files is clean; `npm run build:sheet-kit` leaves `functions/generated/sheet-kit.cjs`
+    unchanged (content is not in the kit);
+  - sheet lab (`/sheet-lab.html?set=course:ml10-0NN:<phase>`, local vite): lessons 7, 25, 31, 35 open, 0 KaTeX errors,
+    graphs and figures drawn.
+- Limits: nothing is published (40 records + 120 sheets need the create-only script with the owner's yes); word keys
+  (`jah`, `puudub`, `romb`, `cosα`…) match only their listed forms; only a few sheets were looked at in the browser.
+- Next safe step: owner OK → merge; then publish the ml10 records create-only.
+
 ## 2026-11-16 · agent/math-kitsas-11 — Matemaatika kitsas 11. klass (mk11, 26 lessons, courses IV–VI) · content + wiring, no rules / functions / data change
 
 - Base: `origin/main` 4c7bc7b (#1251), checked 2026-11-16. Draft PR, not merged. Open in parallel: #1253 (lai exam,
