@@ -1,3 +1,31 @@
+## 2026-11-16 · agent/math-geometry-block — new block „Geomeetriline joonis” (geofigure) for the math course · UI + sheet kit, no rules / functions logic / data change
+
+- Base: `origin/main` 61c8c46 (#1249), checked 2026-11-16. Draft PR, not merged.
+- Done:
+  - `engine/blocks/geofigureModel.js` (pure geometry) + `engine/blocks/geofigure.jsx` (view, editor): type `geofigure`,
+    group „Matemaatika”, `task: false`, width half. Exam-style SVG, viewBox 360 wide, black lines, one green accent
+    `#267743`, light tint only; labels 13–14 px (ticks 11 px); caption through `Md` (KaTeX);
+  - kinds: `triangle` (solved to scale from 3 sides / 2 sides + angle / side + 2 angles; contradicting data → default
+    triangle + hint), `circle` (radius, diameter, chord, central angle, sector), `solid` (cuboid, prism 3/4, pyramid 4
+    in cabinet projection with dashed hidden edges; cylinder, cone, sphere in front view; measure labels and an
+    optional highlighted right triangle), `polygon` (from `A(0;0) B(4;0) C(4;3)`, grid and axes, lengths, right-angle marks);
+  - registered in `BLOCKS` (58 blocks), added to `NOT_TASKS`, 7 figures in the `set=math` lab, sheet kit rebuilt.
+- Data format (for course files): see the head of `geofigureModel.js` and the PR description. A measure label is
+  `''`/false = hidden, `true` = drawn without text, a string = drawn with that text.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio src/features/worksheet-generator src/test` → 1916 passed, 4 timed out
+    under load (WorksheetStudioPage, freeStudio, LessonWorksheetStudioPage.review); those 3 files alone → 41/41 passed;
+  - new `blocks/geofigure.test.jsx` 12 tests;
+  - eslint on the changed files clean;
+  - e2e layout `playwright.layout.config.cjs` → 31 passed;
+  - looked at `/sheet-lab.html?set=math` on desktop and at 375 px: no sideways scroll.
+- Limits:
+  - label positions are heuristic (no collision solver): many labels on a small figure can touch;
+  - cone side lines go to the ends of the base diameter, not to the exact tangent points;
+  - the pyramid is quadrilateral only;
+  - SVG labels are plain text with italics and `_x` indices, not KaTeX.
+- Next safe step: owner OK → merge; then the content agent uses `geofigure` in the geometry lessons of the math course.
+
 ## 2026-11-16 · agent/learner-mistakes — after hand-in the learner sees her mistakes, the right answer and why · UI only, no rules / functions / data change
 
 - Base: `origin/main` 2b6a699 (#1248), checked 2026-11-16. Owner 2026-11-16: „надо чтобы ученик после сдачи видел свои балл / ошибки и объяснения что не так”.
