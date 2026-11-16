@@ -1,3 +1,15 @@
+## 2026-11-16 · agent/hotfix-graph-stepy — „Koordinaattasand”: a y-step of 0 drew a grey band · engine only, no rules / functions / data change
+
+- Base: `origin/main` after #1251, checked 2026-11-16. Found by the lai agent (#1253): `math/sheets.js` gave graphs `stepY: 0`, and the block drew a grid line every 0.01. This put a grey band over the blank answer grids and several graphs of the published mk12 sheets, which are assigned to a learner.
+- Done:
+  - `engine/blocks/math.jsx`: a step ≤ 0 now means the default (x: 1, y: the x step), so the published sheets render right without republishing;
+  - regression test in `blocks/math.test.jsx`;
+  - sheet-kit rebuilt.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio/engine/blocks/math.test.jsx src/features/worksheet-generator/admin/course/math` → 34 passed;
+  - the sheet lab mk12-007 transfer grid went from 412 lines to 24.
+- Next safe step: owner OK → merge + release.
+
 ## 2026-11-16 · agent/math-geometry-block — new block „Geomeetriline joonis” (geofigure) for the math course · UI + sheet kit, no rules / functions logic / data change
 
 - Base: `origin/main` 61c8c46 (#1249), checked 2026-11-16. Draft PR, not merged.
