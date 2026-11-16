@@ -1180,13 +1180,15 @@ button.ws-pt { cursor: pointer; }
 
 /* formulas (math.jsx, KaTeX): inline ones follow the text size; $$…$$ sits on its own centred line */
 .ws-math .katex { font-size: 1.08em; }
+/* an uppercase task title must not turn γ into Γ: formulas keep their own letter case */
+.ws-math { text-transform: none; }
 .ws-math--display { display: block; margin: 6px 0; text-align: center; overflow-x: auto; overflow-y: hidden; }
 .ws-math--display .katex-display { margin: 0; }
 
 /* „Matemaatika ülesanne” (blocks/math.jsx): exam-booklet look — parts with points, squared paper for the solution */
 .ws-mathtask { position: relative; }
-.ws-math-total { position: absolute; top: -2px; right: 0; font-weight: 800; color: #0b2a4f; border: 1.5px solid #0b2a4f; border-radius: 6px; padding: 0 6px; font-size: 0.9em; }
-.ws-math-context { margin: 0 0 6px; padding-right: 48px; }
+.ws-math-total { display: table; margin: 0 0 4px auto; font-weight: 800; color: #0b2a4f; border: 1.5px solid #0b2a4f; border-radius: 6px; padding: 0 6px; font-size: 0.9em; }
+.ws-math-context { margin: 0 0 6px; }
 .ws-math-parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .ws-math-q { display: flex; gap: 6px; align-items: baseline; }
 .ws-math-letter { color: #267743; min-width: 1.6em; }
