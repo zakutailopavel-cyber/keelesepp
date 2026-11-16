@@ -74,4 +74,8 @@ describe('coordinate plane', () => {
   it('reads points with a semicolon', () => {
     expect(parsePoints('A(1; 2)\nB(-0,5;3)')).toEqual([{ name: 'A', x: 1, y: 2 }, { name: 'B', x: -0.5, y: 3 }]);
   });
+  it('a step of 0 draws the default grid, not a line every 0.01 (hotfix 2026-11-16)', () => {
+    const html = renderToStaticMarkup(<graph.View data={{ ...graph.create(), xmin: -2, xmax: 7, ymin: -1, ymax: 10, step: 1, stepY: 0, blank: true }} />);
+    expect((html.match(/<line/g) || []).length).toBeLessThan(40);
+  });
 });
