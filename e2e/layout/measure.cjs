@@ -44,7 +44,8 @@ function measureInPage() {
     }
     const walker = document.createTreeWalker(card, 4);
     for (let t = walker.nextNode(); t; t = walker.nextNode()) {
-      if (!t.data.trim() || !t.parentElement || !visible(t.parentElement) || t.parentElement.closest('svg, option, .ws-marks, small')) continue;
+      // exponents and indices inside a formula (KaTeX .mtight) are smaller by design, like <small>
+      if (!t.data.trim() || !t.parentElement || !visible(t.parentElement) || t.parentElement.closest('svg, option, .ws-marks, small, .katex .mtight')) continue;
       const f = parseFloat(getComputedStyle(t.parentElement).fontSize) * zoomOf(t.parentElement);
       out.minTextFont = out.minTextFont === null ? f : Math.min(out.minTextFont, f);
     }
