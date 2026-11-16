@@ -41,6 +41,9 @@ export const COURSES = {
   enb2: named('enB2'),
   // the Sunday children's groups 5–6, 6–7, 8–9 (kids/sheets.js; not in COURSE_MODULES: adult level gates do not apply)
   kids: { label: 'Lasterühmad 5–9 a', name: 'Lasterühmad 5–9 a', badge: 'KeeleSepp lastele' },
+  // mathematics (math/sheets.js, owner 2026-11-16): the kitsas state exam first; not in COURSE_MODULES — the Estonian
+  // language gates do not apply to a maths sheet
+  math: { label: 'Matemaatika 10.–12. klass', name: 'Matemaatika', badge: 'KeeleSepp' },
 };
 
 export const PHASES = {

@@ -35,9 +35,10 @@ async function loadDoc(set) {
     }
     throw new Error(`${lessonId} v3: not in the archive`);
   }
-  // the children's courses (kids/sheets.js) are not in COURSE_MODULES
+  // the children's courses (kids/sheets.js) and mathematics (math/sheets.js) are not in COURSE_MODULES
   const { KIDS_MODULES } = await import('../../features/worksheet-generator/admin/course/kids/sheets.js');
-  const mod = [...COURSE_MODULES, ...KIDS_MODULES].find((item) => item.LESSONS?.[lessonId]);
+  const { MATH_MODULES } = await import('../../features/worksheet-generator/admin/course/math/sheets.js');
+  const mod = [...COURSE_MODULES, ...KIDS_MODULES, ...MATH_MODULES].find((item) => item.LESSONS?.[lessonId]);
   if (!mod) throw new Error(`${lessonId}: no such lesson`);
   return buildCourseSheet(mod, lessonId, phase);
 }
