@@ -54,17 +54,17 @@ function mockPlan(program, mock, n, k) {
   ].join('\n');
 }
 
-// a school-course lesson (program.plan 'course', kitsas10.js): built step by step; a „Kordamine ja kontrolltöö” lesson
+// a school-course lesson (program.plan 'course', kitsas10.js; lai11.js adds program.track 'lai' and its formula sheet): built step by step; a „Kordamine ja kontrolltöö” lesson
 // ends with a 45-minute test
 const isTest = (lesson) => /^Kordamine ja kontrolltöö/.test(lesson.title);
 function coursePlan(program, lesson, n) {
   const test = isTest(lesson);
   return [
-    `Курс: ${program.title} — гимназия, узкая математика (kitsas), занятие ${program.minutes} минут.`,
+    `Курс: ${program.title} — гимназия, ${program.track === 'lai' ? 'широкая математика (lai)' : 'узкая математика (kitsas)'}, занятие ${program.minutes} минут.`,
     `Тема ${n} из ${program.lessons.length}: ${lesson.title} (${lesson.ru}). Курс программы GRÕK: ${lesson.course}.`,
     `Цель: ${lesson.can}`,
     `Связь с экзаменом: ${lesson.exam}`,
-    'Материалы: лист 1 «Teooria ja näited», лист 2 «Harjutame», лист 3 «Kontrollülesanne»; простой калькулятор (без графиков и памяти), ручка, тетрадь в клетку.',
+    `Материалы: лист 1 «Teooria ja näited», лист 2 «Harjutame», лист 3 «Kontrollülesanne»; простой калькулятор (без графиков и памяти), ручка, тетрадь в клетку${program.formulaSheetRu ? `, ${program.formulaSheetRu}` : ''}.`,
     '',
     `Ход занятия (${program.minutes} мин):`,
     ...(test ? [
