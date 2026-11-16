@@ -13,6 +13,32 @@
   rebuilt (no block change). Nothing is published.
 - Next safe step: owner OK → merge (after #1257, resolve the one-line `MATH_PROGRAMS` conflict), then publish ml11
   records create-only.
+## 2026-11-17 · agent/math-lai-10 — Matemaatika lai 10. klass (ml10, 40 lessons, courses I–V) · content + small wiring, no rules / functions / data change
+
+- Base: `origin/main` 4bf2d95 (release 2026-11-16 19:25 UTC), checked 2026-11-17. Draft PR, not merged. A parallel PR
+  builds grade 11 lai (`ml11`): it also appends to `MATH_PROGRAMS` and adds its section to `docs/MATH_LAI_10_11.md` —
+  a conflict there is one line, keep both.
+- Done:
+  - new `math/lai10.js` `LAI_10` (id `ml10`, level „10. klass matemaatika lai”, sheet level „Lai 10”, 90 min, sheet 3
+    „3 Kontrollülesanne”, `track: 'lai'`, `formulaSheetRu`): 40 lessons `ml10-001…040`, GRÕK lai I–V, 7 topic lessons +
+    a 25 p „Kordamine ja kontrolltöö” per course. Every theory line marked *valemilehel* / *pähe*; proofs, parameters,
+    derivations of the sum and double-angle formulas, the sine-rule ambiguous case, line / circle equations. 19 graphs,
+    8 example figures, 6 exam figures, 5 blank grids; every task our own. Trig equations and arcus functions are left to
+    course VIII (`ml11`), as okmv places them;
+  - `math/sheets.js`: `MATH_PROGRAMS = [KITSAS_12, KITSAS_10, KITSAS_11, LAI_12, LAI_10]` (additive);
+  - `mathCurriculum.js` `coursePlan`: a lai program says „широкая математика (lai)” and names its formula sheet; kitsas
+    text unchanged; `MATH_VERSION` not bumped (new records only);
+  - new `math/lai10.test.js` (13 tests); new `docs/MATH_LAI_10_11.md` (placement, program ml10, lesson table, checks).
+- Checks:
+  - `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum`
+    → 183 files passed (1 skipped), 2024 tests passed (12 skipped); `src/features/library` → 3 files, 50 tests passed;
+  - `npx eslint` on the changed files is clean; `npm run build:sheet-kit` leaves `functions/generated/sheet-kit.cjs`
+    unchanged (content is not in the kit);
+  - sheet lab (`/sheet-lab.html?set=course:ml10-0NN:<phase>`, local vite): lessons 7, 25, 31, 35 open, 0 KaTeX errors,
+    graphs and figures drawn.
+- Limits: nothing is published (40 records + 120 sheets need the create-only script with the owner's yes); word keys
+  (`jah`, `puudub`, `romb`, `cosα`…) match only their listed forms; only a few sheets were looked at in the browser.
+- Next safe step: owner OK → merge; then publish the ml10 records create-only.
 
 ## 2026-11-16 · agent/math-kitsas-11 — Matemaatika kitsas 11. klass (mk11, 26 lessons, courses IV–VI) · content + wiring, no rules / functions / data change
 

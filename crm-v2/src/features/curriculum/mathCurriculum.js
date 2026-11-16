@@ -1,5 +1,6 @@
 // Õppevara records of the mathematics course (math/sheets.js, owner 2026-11-16): one record per lesson of every program
-// in MATH_PROGRAMS (mk12 kitsas exam prep, mk10 grade 10, ml12 lai exam prep: program.track and formulaSheetRu). A level with „matemaatika” („12. klass matemaatika kitsas”,
+// in MATH_PROGRAMS (mk12 kitsas exam prep, mk10 / mk11 kitsas grades 10–11, ml12 lai exam prep, ml10 lai grade 10:
+// program.track and formulaSheetRu). A level with „matemaatika” („12. klass matemaatika kitsas”,
 // „10. klass matemaatika kitsas”) puts them under Õppevara → Matemaatika (library/libraryModel.js subjectOfLevel).
 // The description is the teacher's plan in Russian (the owner's working language), the sheets are Estonian.
 import { MATH_PROGRAMS } from '../worksheet-generator/admin/course/math/sheets.js';
@@ -54,8 +55,8 @@ function mockPlan(program, mock, n, k) {
   ].join('\n');
 }
 
-// a school-course lesson (program.plan 'course', kitsas10.js; lai11.js adds program.track 'lai' and its formula sheet): built step by step; a „Kordamine ja kontrolltöö” lesson
-// ends with a 45-minute test
+// a school-course lesson (program.plan 'course', kitsas10.js, lai10.js): built step by step; a „Kordamine ja kontrolltöö”
+// lesson ends with a 45-minute test. A lai program (track 'lai') names the broad track and its formula sheet.
 const isTest = (lesson) => /^Kordamine ja kontrolltöö/.test(lesson.title);
 function coursePlan(program, lesson, n) {
   const test = isTest(lesson);
@@ -64,7 +65,7 @@ function coursePlan(program, lesson, n) {
     `Тема ${n} из ${program.lessons.length}: ${lesson.title} (${lesson.ru}). Курс программы GRÕK: ${lesson.course}.`,
     `Цель: ${lesson.can}`,
     `Связь с экзаменом: ${lesson.exam}`,
-    `Материалы: лист 1 «Teooria ja näited», лист 2 «Harjutame», лист 3 «Kontrollülesanne»; простой калькулятор (без графиков и памяти), ручка, тетрадь в клетку${program.formulaSheetRu ? `, ${program.formulaSheetRu}` : ''}.`,
+    `Материалы: лист 1 «Teooria ja näited», лист 2 «Harjutame», лист 3 «Kontrollülesanne»; простой калькулятор (без графиков и памяти), ручка, тетрадь в клетку${program.formulaSheetRu ? `; ${program.formulaSheetRu} — в теории помечено, что на листе (valemilehel), а что учить наизусть (pähe)` : ''}.`,
     '',
     `Ход занятия (${program.minutes} мин):`,
     ...(test ? [
