@@ -41,6 +41,9 @@ export const COURSES = {
   enb2: named('enB2'),
   // the Sunday children's groups 5–6, 6–7, 8–9 (kids/sheets.js; not in COURSE_MODULES: adult level gates do not apply)
   kids: { label: 'Lasterühmad 5–9 a', name: 'Lasterühmad 5–9 a', badge: 'KeeleSepp lastele' },
+  // mathematics (math/sheets.js, owner 2026-11-16): the kitsas state exam first; not in COURSE_MODULES — the Estonian
+  // language gates do not apply to a maths sheet
+  math: { label: 'Matemaatika 10.–12. klass', name: 'Matemaatika', badge: 'KeeleSepp' },
 };
 
 export const PHASES = {
@@ -145,13 +148,14 @@ export function buildCourseSheet(mod, lessonId, phase) {
     id: `ws_${lessonId}_${phase}`,
     meta: {
       title: lesson.title,
-      subtitle: (mod.MODULE.phases?.[phase] || PHASES[phase]).subtitle,
+      // a lesson may carry its own phase labels (a mock exam, math/sheets.js MOCK_PHASES) before the module's
+      subtitle: (lesson.phases?.[phase] || mod.MODULE.phases?.[phase] || PHASES[phase]).subtitle,
       level: lesson.level || mod.MODULE.level,
       module: mod.MODULE.title,
       canDo: LESSON_GOALS[lessonId]?.canDo || lesson.canDo,
       goals: LESSON_GOALS[lessonId]?.goals || lesson.goals || GOALS,
       phase,
-      displayLabel: (mod.MODULE.phases?.[phase] || PHASES[phase]).label,
+      displayLabel: (lesson.phases?.[phase] || mod.MODULE.phases?.[phase] || PHASES[phase]).label,
       // modules written before the 40–55 min rule are marked until they are expanded (docs/B1_B2_COURSE_PRODUCTION.md)
       // a lesson may mark its own short sheets: `shortSheet: true` (every phase) or a list of phases — a spaced-review sheet
       // or a short use task of a supplement (a2/lihtminevik.js), 10–30 min by design
@@ -182,6 +186,9 @@ export function buildCourseSheet(mod, lessonId, phase) {
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
     blocks: withSheetLanguage(withHarnoExam(withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN), mod.MODULE.course), mod.MODULE.language),
+    // the Õpik free layer (engine/freeLayer.js) a lesson may carry per phase: `free: { discover: [items] }` (the speaking
+    // club's textbook openers, kids/sheets.js)
+    ...(lesson.free?.[phase]?.length ? { free: lesson.free[phase] } : {}),
   }, lessonId, phase), lessonId, phase, undefined, Object.keys(mod.LESSONS));
 }
 

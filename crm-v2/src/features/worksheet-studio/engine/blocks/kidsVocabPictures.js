@@ -382,4 +382,70 @@ export const VOCAB_PICTURES = {
     regions: [{ name: 'süda', at: [150, 150], shapes: [P('M150 260 C60 200 40 150 40 110 C40 70 70 50 100 50 C125 50 142 66 150 84 C158 66 175 50 200 50 C230 50 260 70 260 110 C260 150 240 200 150 260 Z')] }],
     lines: [],
   },
+  // the speaking club 10–12 (owner 2026-11-15): pictures the club's word cards were missing
+  cake: {
+    label: 'Kook', words: ['kook', 'tort'],
+    regions: [
+      { name: 'alumine kiht', at: [150, 235], shapes: [['r', 60, 185, 180, 85, 12]] },
+      { name: 'ülemine kiht', at: [150, 160], shapes: [['r', 90, 130, 120, 55, 10]] },
+      { name: 'küünlad', at: [150, 108], shapes: [['r', 118, 88, 14, 42, 3], ['r', 168, 88, 14, 42, 3]] },
+      { name: 'leegid', at: [125, 72], shapes: [P('M125 84 C114 72 120 62 125 54 C130 62 136 72 125 84 Z'), P('M175 84 C164 72 170 62 175 54 C180 62 186 72 175 84 Z')] },
+    ],
+    lines: ['M60 208 C80 226 100 196 120 212 C140 228 160 196 180 212 C200 228 220 196 240 208'],
+  },
+  gift: {
+    label: 'Kingitus', words: ['kingitus'],
+    regions: [
+      { name: 'karp', at: [100, 220], shapes: [['r', 70, 150, 160, 120, 6]] },
+      { name: 'kaas', at: [100, 135], shapes: [['r', 58, 118, 184, 36, 6]] },
+      { name: 'pael', at: [150, 210], shapes: [['r', 138, 118, 24, 152]] },
+      { name: 'lips', at: [120, 96], shapes: [['e', 124, 98, 28, 16], ['e', 176, 98, 28, 16]] },
+    ],
+    lines: [],
+  },
+  glasses: {
+    label: 'Prillid', words: ['prillid'],
+    regions: [
+      { name: 'vasak klaas', at: [100, 155], shapes: [['c', 100, 155, 44]] },
+      { name: 'parem klaas', at: [200, 155], shapes: [['c', 200, 155, 44]] },
+    ],
+    lines: ['M144 150 C148 136 152 136 156 150', 'M56 146 L22 124', 'M244 146 L278 124'],
+  },
+  school: {
+    label: 'Kool', words: ['kool'],
+    regions: [
+      { name: 'katus', at: [150, 105], shapes: [P('M36 140 L150 62 L264 140 Z')] },
+      { name: 'maja', at: [100, 250], shapes: [['r', 50, 140, 200, 140]] },
+      { name: 'uks', at: [150, 250], shapes: [['r', 128, 212, 44, 68, 4]] },
+      { name: 'aknad', at: [90, 178], shapes: [['r', 70, 160, 40, 34, 3], ['r', 190, 160, 40, 34, 3], ['r', 70, 222, 40, 34, 3], ['r', 190, 222, 40, 34, 3]] },
+      { name: 'kell', at: [150, 112], shapes: [['c', 150, 112, 16]] },
+    ],
+    lines: ['M150 112 L150 102', 'M150 112 L158 116'],
+  },
+  newspaper: {
+    label: 'Ajaleht', words: ['ajaleht'],
+    regions: [
+      { name: 'leht', at: [200, 240], shapes: [['r', 60, 55, 180, 200, 6]] },
+      { name: 'pealkiri', at: [150, 88], shapes: [['r', 80, 75, 140, 26, 3]] },
+      { name: 'pilt', at: [108, 145], shapes: [['r', 80, 118, 58, 52, 3]] },
+    ],
+    lines: ['M152 122 L220 122', 'M152 138 L220 138', 'M152 154 L220 154', 'M80 190 L220 190', 'M80 206 L220 206', 'M80 222 L190 222'],
+  },
+  film: {
+    label: 'Film', words: ['film', 'kino'],
+    regions: [
+      { name: 'tahvel', at: [150, 210], shapes: [['r', 60, 140, 180, 120, 8]] },
+      { name: 'klapp', at: [150, 112], shapes: [P('M60 128 L232 92 L240 122 L66 140 Z')] },
+    ],
+    lines: ['M100 120 L112 134', 'M140 112 L152 128', 'M180 104 L192 120', 'M216 97 L226 112', 'M80 180 L220 180', 'M80 210 L180 210'],
+  },
+  money: {
+    label: 'Raha', words: ['raha', 'euro'],
+    regions: [
+      { name: 'rahatäht', at: [110, 120], shapes: [['r', 40, 70, 170, 100, 8]] },
+      { name: 'münt', at: [200, 205], shapes: [['c', 200, 205, 48]] },
+      { name: 'väike münt', at: [105, 228], shapes: [['c', 105, 228, 32]] },
+    ],
+    lines: ['M125 95 C105 95 100 145 125 145', 'M98 112 L122 112', 'M98 128 L122 128', 'M60 90 L72 90', 'M178 150 L190 150', 'M168 205 a32 32 0 1 0 64 0 a32 32 0 1 0 -64 0', 'M85 228 a20 20 0 1 0 40 0 a20 20 0 1 0 -40 0'],
+  },
 };

@@ -121,7 +121,7 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
         <div className="ws-ch">
           <div className="ws-num" style={{ background: accent || tone.badge }}>{num}</div>
           <div>
-            <h3>{LookIcon ? <LookIcon className="ws-look-icon" aria-hidden="true" /> : null}{d.title}{d.titleMore ? <span> {d.titleMore}</span> : null}{continued ? <span className="ws-cont"> (järg)</span> : null}</h3>
+            <h3>{LookIcon ? <LookIcon className="ws-look-icon" aria-hidden="true" /> : null}{/* a title stays plain text (edited in place on the sheet) unless it holds a formula */}{String(d.title || '').includes('$') ? <Md text={d.title} /> : d.title}{d.titleMore ? <span> {d.titleMore}</span> : null}{continued ? <span className="ws-cont"> (järg)</span> : null}</h3>
             {d.instruction && !continued && <p><Md text={d.instruction} /></p>}
             {isInLesson(block) && !continued ? <p className="ws-inlesson">👥 {IN_LESSON_LABEL}</p> : null}
           </div>

@@ -185,7 +185,7 @@ export const table = {
     const input = (key, width) => <Line interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={width} label="Lahter" />;
     return (
       <table className="ws-table">
-        <thead><tr>{heads.map((h, i) => <th key={i}>{h}</th>)}</tr></thead>
+        <thead><tr>{heads.map((h, i) => <th key={i}><Md text={h} /></th>)}</tr></thead>
         <tbody>{rows.map((r, ri) => (
           // data-edit: in the constructor a tap / double click on a row edits its source line („a | [b] | c”) in place
           <tr key={ri} data-edit={`rows#${ri}`}>{heads.map((_, ci) => {

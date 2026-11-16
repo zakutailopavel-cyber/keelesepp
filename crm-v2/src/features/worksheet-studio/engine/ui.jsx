@@ -1,4 +1,5 @@
 import { MARK_COLORS, MARK_TOKEN } from './richText.js';
+import { MATH_TOKEN, MathTex, isMath } from './math.jsx';
 import { aspectRatioOf, objectPosition } from './image.js';
 import { Headphones } from 'lucide-react';
 
@@ -61,6 +62,15 @@ export function Line({ value, onChange, onFocus, interactive, state, width, labe
 }
 
 export function Md({ text }) {
+  // $…$ / $$…$$ = a formula (math.jsx), split off first so * ^ _ inside LaTeX never read as emphasis
+  const src = String(text || '');
+  if (src.includes('$')) {
+    return src.split(MATH_TOKEN).map((p, i) => (isMath(p) ? <MathTex key={i} part={p} /> : p ? <MdMarks key={i} text={p} /> : null));
+  }
+  return <MdMarks text={src} />;
+}
+
+function MdMarks({ text }) {
   // Learner-safe inline emphasis. {{term}} = curriculum keyword highlight; *italic*, **bold**, ***both***, ~~struck~~, ==highlight==,
   // {red}colour{/red} (richText.js; written by the on-sheet editor).
   const parts = String(text || '').split(MARK_TOKEN);

@@ -127,7 +127,10 @@ describe('student flow: every answerable block in the real homework screens', ()
     wrongIds.forEach((id) => expect(sent.errorLog.some((e) => e.key.startsWith(`${id}:`)), `error logged for ${id}`).toBe(true));
 
     // the student sees the result and ✓ / ✗ per item
-    expect(await screen.findByText(`${result.score.pct}% · ${result.score.correct}/${result.score.total} õiget`)).toBeInTheDocument();
+    // the math tasks of the catalogue add their points after it (· x/y punkti, engine/mistakes.js)
+    expect(await screen.findByText((text) => text.startsWith(`${result.score.pct}% · ${result.score.correct}/${result.score.total} õiget`))).toBeInTheDocument();
+    // the learner sees her mistakes with the right answer (owner 2026-11-16)
+    if (result.score.correct < result.score.total) expect(screen.getByRole('region', { name: 'Vead ja selgitused' })).toBeInTheDocument();
     expect(screen.getByText('Esitatud')).toBeInTheDocument();
     blocks.forEach((b) => {
       const card = cardOf(b.id)();

@@ -73,7 +73,7 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
           {/* a learner came for the teacher's words: they stand first, also on a phone */}
           {!staff && current.reviewStatus === 'reviewed' ? <section className="returned-feedback"><div><MessageSquare size={20} /><strong>Õpetaja tagasiside</strong>{current.teacherGrade ? <Badge tone="success">Hinne {current.teacherGrade}</Badge> : null}</div><p>{current.teacherFeedback || 'Õpetaja jättis tööle hinde ilma kommentaarita.'}</p><small>{current.reviewedByName ? `${current.reviewedByName} · ` : ''}{formatDate(current.reviewedAt)}</small></section> : null}
           {paper ? <PaperParts data={current.source} /> : worksheetDoc?.blocks?.length
-            ? <DocWorksheetSubmissionPreview worksheetDoc={worksheetDoc} answers={current.answers || {}} annotations={current.annotations || []} editable={staff} answerKey={staff} onAnnotationsChange={saveAnnotations} />
+            ? <DocWorksheetSubmissionPreview worksheetDoc={worksheetDoc} answers={current.answers || {}} annotations={current.annotations || []} editable={staff} answerKey={staff} explain={!staff} onAnnotationsChange={saveAnnotations} />
             : <>
               {current.submissionKind === 'worksheet' ? <section><h3>{staff ? 'Tööleht vastustega' : 'Vastused'}</h3><VisualWorksheetSubmissionPreview files={current.source?.files || []} answers={current.answers || {}} /></section> : null}
               <section><h3>{staff ? 'Õpilase vastused' : 'Vastused'}</h3><AnswerList answers={current.answers} /></section>

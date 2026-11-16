@@ -8,6 +8,7 @@ import { RoomWorksheetContent } from '../../features/worksheet-studio/RoomWorksh
 import { sampleDocument } from '../../features/worksheet-studio/engine/sample.js';
 import { convertLegacyWorksheet } from '../../features/worksheet-studio/engine/legacy.js';
 import { catalogueBlocks } from './catalogue.js';
+import { mathBlocks } from './mathSample.js';
 import { overlayFiles, legacyWorksheetData, personalDoc } from './samples.js';
 import '../../styles/index.css';
 
@@ -20,6 +21,7 @@ const user = { uid: 'lab-student', displayName: 'Mari Lab', roles: ['student'] }
 async function loadDoc(set) {
   if (set === 'catalogue') return { ...sampleDocument(), id: 'lab-catalogue', blocks: catalogueBlocks() };
   if (set === 'sample') return sampleDocument();
+  if (set === 'math') return { ...sampleDocument(), id: 'lab-math', meta: { ...sampleDocument().meta, title: 'Matemaatika: ruutfunktsioon' }, blocks: mathBlocks() };
   if (set === 'personal') return personalDoc();
   if (set === 'legacy-converted') return convertLegacyWorksheet(legacyWorksheetData(), { title: 'Vana tööleht', level: 'A2' });
   // course:<lessonId>:<phase>[:v3]: a real course sheet; v3: the archived template v3 file, the copy old assignments hold
@@ -33,7 +35,10 @@ async function loadDoc(set) {
     }
     throw new Error(`${lessonId} v3: not in the archive`);
   }
-  const mod = COURSE_MODULES.find((item) => item.LESSONS?.[lessonId]);
+  // the children's courses (kids/sheets.js) and mathematics (math/sheets.js) are not in COURSE_MODULES
+  const { KIDS_MODULES } = await import('../../features/worksheet-generator/admin/course/kids/sheets.js');
+  const { MATH_MODULES } = await import('../../features/worksheet-generator/admin/course/math/sheets.js');
+  const mod = [...COURSE_MODULES, ...KIDS_MODULES, ...MATH_MODULES].find((item) => item.LESSONS?.[lessonId]);
   if (!mod) throw new Error(`${lessonId}: no such lesson`);
   return buildCourseSheet(mod, lessonId, phase);
 }

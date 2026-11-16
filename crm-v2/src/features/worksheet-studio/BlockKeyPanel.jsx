@@ -1,5 +1,6 @@
 import { Eye, EyeOff, KeyRound, X } from 'lucide-react';
 import { TranscriptText } from './engine/ListenTranscript.jsx';
+import { Md } from './engine/ui.jsx';
 
 const when = (iso) => (iso ? new Date(iso).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' }) : '');
 
@@ -25,9 +26,9 @@ export default function BlockKeyPanel({ task, shown = false, shownBy = null, bus
         <ol className="ws-block-key-items">
           {task.items.map((it) => (
             <li key={it.n}>
-              {it.prompt ? <span className="ws-key-prompt">{it.prompt}</span> : null}
-              <span className="ws-key-answer">{it.answer || '—'}</span>
-              {it.why ? <span className="ws-key-why">{it.why}</span> : null}
+              {it.prompt ? <span className="ws-key-prompt"><Md text={it.prompt} /></span> : null}
+              <span className="ws-key-answer">{it.answer ? <Md text={it.answer} /> : '—'}</span>
+              {it.why ? <span className="ws-key-why"><Md text={it.why} /></span> : null}
             </li>
           ))}
         </ol>

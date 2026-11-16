@@ -7,6 +7,284 @@
 - Checks: course report 4/5 READY (001–004 READY; 005 Harjuta: B1+ reading norm 250–500, the sheet counts 560 incl. numbers, labels and source); `ACADEMIC_REPORT` PASS; `ACADEMIC_ROUND2_REPORT` PASS (module left `academicValueRound2Baseline.json`, also one `course:b2` fact-dup); language check 0 unknown lower-case words (4 internal `station.final` keys in `language-allow.txt`); finalShape, stations, lessonGoals, listeningGoal, listeningAudio, gradingPin pass; full run see the PR.
 - Limits: the B1+ sheet reading norm (≤ 500, counting numbers and the source) and B2 `av-article` (≥ 500, letters only) cannot both hold for one text — 005 is not READY until the owner allows the Harno B2 R1 length in a B2 check lesson. Pictures (`art/visuals/b2-module-01.js`) unchanged and still fit.
 - Next safe step: owner decides the 005 reading-length norm; then a teacher runs 001 one-to-one.
+## 2026-11-16 · agent/math-kitsas-11 — Matemaatika kitsas 11. klass (mk11, 26 lessons, courses IV–VI) · content + wiring, no rules / functions / data change
+
+- Base: `origin/main` 4c7bc7b (#1251), checked 2026-11-16. Draft PR, not merged. Open in parallel: #1253 (lai exam,
+  also adds to `MATH_PROGRAMS`) and #1254 (graph stepY hotfix) — a conflict in `sheets.js` is one line, keep both programs.
+- Done:
+  - `math/kitsas11.js` `KITSAS_11` (id `mk11`, level „11. klass matemaatika kitsas”, sheet level „Kitsas 11”, 90 min,
+    sheet 3 „3 Kontrollülesanne”): 26 lessons `mk11-001…026`; IV „Tõenäosus ja statistika” 8 + test, V „Funktsioonid”
+    7 + test, VI „Jadad. Funktsiooni tuletis” 8 + test; tests are 25 p „Kordamine ja kontrolltöö” lessons;
+  - every lesson: theory with formulas, Russian hint, worked example (18 with a graph), 4 practice tasks with keys and
+    LaTeX solutions, a larger task (5 or 10 p; 9 with a blank grid). All tasks our own; every graph has a positive `stepY`;
+  - `math/sheets.js`: `MATH_PROGRAMS = [KITSAS_12, KITSAS_10, KITSAS_11]` (additive; `mathCurriculum.js` unchanged and
+    makes the mk11 records by itself);
+  - `math/kitsas11.test.js` (12 tests): shape, ids, points and test rhythm, every key form accepted and wrong answers
+    rejected, KaTeX, graph formulas, positive steps, all decimal keys recomputed, library records under Matemaatika;
+  - `docs/MATH_KITSAS_10_12.md`: mk11 lesson table and choices.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum
+  src/features/library --maxWorkers=3` → 184 files, 2042 passed, 12 skipped; eslint on the changed files clean.
+- Limits: no visual look at the sheets in the browser; `MATH_VERSION` not bumped (new records only). Nothing is in
+  production; publishing is a create-only script from a clean `origin/main`, only with the owner's yes.
+- Next safe step: owner OK → merge; then publish the mk11 records create-only.
+## 2026-11-16 · agent/math-lai-mocks — Matemaatika lai: three mock exams (ml12-021…023) · content + small wiring, no rules / functions / data change
+
+- Base: stacked on #1253 (`agent/math-lai-exam`, cb5c0e8, still open); `origin/main` 94d497e checked 2026-11-16. Draft PR.
+- Done:
+  - new `math/lai12mocks.js` `LAI_12_MOCKS`: three full 2027-format papers (I osa 4 × 5 + 3 × 10 p, II osa 5 × 10 p =
+    100 p) on the lai task positions 1–12 (probability, system, simplification, inequality, function investigation,
+    sequences, triangle, trig in radians, tangent and area, analytic geometry, logs / models, stereometry), varied per
+    mock; exp/log/trig derivatives, integrals, volumes of revolution, sections. Every task is our own; every part has
+    points, a key where one exists and a LaTeX solution; task 7 and 12 have `geofigure` figures, drawing tasks blank grids;
+  - `lai12.js`: `mocks: LAI_12_MOCKS`, `formulaSheet` (Estonian name of the lai sheet);
+  - `math/sheets.js` (additive): a mock task's `figure` → `geofigure` block before the task; the exam rules line uses
+    `program.formulaSheet` (kitsas text unchanged);
+  - `mathCurriculum.js` (additive): the mock plan uses `program.track`, `program.formulaSheetRu` and the program's own
+    lesson range (kitsas text unchanged); `MATH_VERSION` not bumped;
+  - `lai12.test.js`: topic-lesson checks skip the mocks; new `lai12mocks.test.js`;
+  - docs: `docs/MATH_RIIGIEKSAM_LAI.md` „Mock exams” table.
+- Checks:
+  - `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum`
+    → 181 files passed (1 skipped), 1998 tests passed (12 skipped);
+  - `lai12mocks.test.js`: points per task and 50 + 50 = 100, phase labels, lai formula-sheet line, figures and blank
+    grids (stepY > 0), KaTeX on every formula, every key form accepted and wrong answers rejected, every numeric key
+    recomputed in JS, records („Proovieksam”, check, Russian lai plan); kitsas mock plan unchanged;
+  - `npx eslint` on the changed files is clean;
+  - sheet lab (`/sheet-lab.html?set=course:ml12-021:discover`, `ml12-023:practice`): figures, grids and formulas render,
+    no KaTeX errors.
+- Limits: nothing is published (23 lai records + 69 sheets need the create-only script with the owner's yes); the
+  figure of task 7 can fall on the next printed page after its task (same pagination as the lessons); the kitsas and
+  grade-11 work in parallel touches `sheets.js` / `mathCurriculum.js` — edits here are small and additive.
+- Next safe step: merge #1253 first, then rebase this PR on `main` and mark it ready after the owner's look.
+
+## 2026-11-16 · agent/math-lai-exam — Matemaatika lai riigieksam (ml12, 20 lessons) · content + wiring, no rules / functions / data change
+
+- Base: `origin/main` 4c7bc7b (#1251, geofigure block), checked 2026-11-16. The PR is a draft.
+- Done:
+  - `math/lai12.js` `LAI_12` (id `ml12`, level „12. klass matemaatika lai”, sheet level „Lai”, 90 min): 20 lessons
+    `ml12-001…020`, one per recurring lai task type (format from the 2027 spec, the 2026 lai marking scheme and the
+    2026 correspondence table). Each lesson has theory with every formula marked *valemilehel* or *pähe*, a Russian
+    hint that says what is on the lai formula sheet, a worked example (9 graphs, 2 geometry figures; 3 exam figures, 2 blank grids), 4 practice tasks
+    with keys and LaTeX solutions and one exam task: 5 p for tasks 1–4 (6 lessons), 10 p for tasks 5–12 (14 lessons).
+    `slots` name the exam tasks a lesson trains; all 12 are covered. Every task is our own;
+  - `math/sheets.js`: `MATH_PROGRAMS = [KITSAS_12, KITSAS_10, LAI_12]`; `example.figure` / `examTask.figure` →
+    `geofigure` blocks (exam figure full width before the task); `graph()` defaults `stepY` to `step` (a missing
+    `stepY` used to be stored as 0 → the engine drew a line every 0.01; kitsas graphs and blank grids get the fix);
+  - `mathCurriculum.js`: `program.track` and `program.formulaSheetRu` in the topic-lesson plan (kitsas text unchanged);
+  - docs: new `docs/MATH_RIIGIEKSAM_LAI.md` (format, 2026 paper by task, formula-sheet facts, course → task → lesson
+    table, sources, copyright).
+- Checks:
+  - `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum
+    src/features/library` → 183 files passed (1 skipped), 2040 tests passed;
+  - new `lai12.test.js`: three sheets per lesson, unique block ids across all math modules, exam points by slot and
+    slot coverage 1–12, theory marks, every key form accepted and wrong answers rejected, drawing parts with a blank grid,
+    figures, graph formulas, KaTeX on every formula, numeric keys recomputed in JS, records under Matemaatika;
+  - `npx eslint` on the changed files is clean;
+  - sheet lab (`/sheet-lab.html?set=course:ml12-0NN:<phase>`): lessons 10, 15, 16, 18, 19, 20 viewed.
+- Limits:
+  - nothing is published: the 20 records and 60 sheets need a create-only script with the owner's yes;
+  - only one lai paper (2026) was available as a format reference; the topic mix of other years is from the spec and
+    the course outcomes;
+  - the Estonian convention „kumer” = f'' < 0 follows the 2026 marking scheme.
+- Next safe step: owner OK → mark ready, merge + release; then the lai mock exams (`ml12-021…023`).
+## 2026-11-16 · agent/hotfix-graph-stepy — „Koordinaattasand”: a y-step of 0 drew a grey band · engine only, no rules / functions / data change
+
+- Base: `origin/main` after #1251, checked 2026-11-16. Found by the lai agent (#1253): `math/sheets.js` gave graphs `stepY: 0`, and the block drew a grid line every 0.01. This put a grey band over the blank answer grids and several graphs of the published mk12 sheets, which are assigned to a learner.
+- Done:
+  - `engine/blocks/math.jsx`: a step ≤ 0 now means the default (x: 1, y: the x step), so the published sheets render right without republishing;
+  - regression test in `blocks/math.test.jsx`;
+  - sheet-kit rebuilt.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio/engine/blocks/math.test.jsx src/features/worksheet-generator/admin/course/math` → 34 passed;
+  - the sheet lab mk12-007 transfer grid went from 412 lines to 24.
+- Next safe step: owner OK → merge + release.
+
+## 2026-11-16 · agent/math-geometry-block — new block „Geomeetriline joonis” (geofigure) for the math course · UI + sheet kit, no rules / functions logic / data change
+
+- Base: `origin/main` 61c8c46 (#1249), checked 2026-11-16. Draft PR, not merged.
+- Done:
+  - `engine/blocks/geofigureModel.js` (pure geometry) + `engine/blocks/geofigure.jsx` (view, editor): type `geofigure`,
+    group „Matemaatika”, `task: false`, width half. Exam-style SVG, viewBox 360 wide, black lines, one green accent
+    `#267743`, light tint only; labels 13–14 px (ticks 11 px); caption through `Md` (KaTeX);
+  - kinds: `triangle` (solved to scale from 3 sides / 2 sides + angle / side + 2 angles; contradicting data → default
+    triangle + hint), `circle` (radius, diameter, chord, central angle, sector), `solid` (cuboid, prism 3/4, pyramid 4
+    in cabinet projection with dashed hidden edges; cylinder, cone, sphere in front view; measure labels and an
+    optional highlighted right triangle), `polygon` (from `A(0;0) B(4;0) C(4;3)`, grid and axes, lengths, right-angle marks);
+  - registered in `BLOCKS` (58 blocks), added to `NOT_TASKS`, 7 figures in the `set=math` lab, sheet kit rebuilt.
+- Data format (for course files): see the head of `geofigureModel.js` and the PR description. A measure label is
+  `''`/false = hidden, `true` = drawn without text, a string = drawn with that text.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio src/features/worksheet-generator src/test` → 1916 passed, 4 timed out
+    under load (WorksheetStudioPage, freeStudio, LessonWorksheetStudioPage.review); those 3 files alone → 41/41 passed;
+  - new `blocks/geofigure.test.jsx` 12 tests;
+  - eslint on the changed files clean;
+  - e2e layout `playwright.layout.config.cjs` → 31 passed;
+  - looked at `/sheet-lab.html?set=math` on desktop and at 375 px: no sideways scroll.
+- Limits:
+  - label positions are heuristic (no collision solver): many labels on a small figure can touch;
+  - cone side lines go to the ends of the base diameter, not to the exact tangent points;
+  - the pyramid is quadrilateral only;
+  - SVG labels are plain text with italics and `_x` indices, not KaTeX.
+- Next safe step: owner OK → merge; then the content agent uses `geofigure` in the geometry lessons of the math course.
+## 2026-11-16 · agent/math-kitsas-10 — Matemaatika kitsas 10. klass (mk10, 26 lessons, courses I–III) · content + wiring, no rules / functions / data change
+
+- Base: `origin/main` 77ccf81 (#1250, mk12 mocks), checked 2026-11-16. The PR is a draft. Owner 2026-11-16: „срочно
+  делаем курс по математике с 10 по 12 класс”. Grade 11 (IV–VI) comes in a later PR.
+- Done:
+  - `math/kitsas10.js` `KITSAS_10` (id `mk10`, level „10. klass matemaatika kitsas”, sheet level „Kitsas 10”, 90 min)
+    has 26 lessons `mk10-001…026`: course I has 8 lessons + a test, course II 8 + a test, course III 7 + a test. Each
+    test is a 25 p „Kordamine ja kontrolltöö” lesson;
+  - every lesson has theory with formulas, a Russian hint, a worked example (14 with a graph; 6 larger tasks have a blank grid), 4 practice tasks with
+    keys and LaTeX solutions, and a larger task (5 or 10 p). Every task is our own;
+  - `math/sheets.js`:
+    - `MATH_PROGRAMS = [KITSAS_12, KITSAS_10]`;
+    - `MODULE.phases = { ...MATH_PHASES, ...program.phases }`, so mk10's sheet 3 reads „3 Kontrollülesanne”;
+    - mk12 ids and sheets are unchanged;
+  - `mathCurriculum.js`:
+    - makes records for every program in `MATH_PROGRAMS`;
+    - `program.plan === 'course'` gives a school-lesson plan in Russian (a test lesson gets a 45-minute test plan);
+    - the test lessons are `roadmapKind: 'check'` with the tag „Kontrolltöö”;
+  - docs: new `docs/MATH_KITSAS_10_12.md` (placement, lesson list, wiring); `MATH_RIIGIEKSAM_KITSAS.md` points to it.
+- Checks:
+  - `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum
+    src/features/library` → 181 files passed (1 skipped), 2018 tests passed;
+  - with the default workers, 2–5 heavy studio UI tests (`WorksheetStudioPage`, `freeStudio`) hit the 20 s timeout
+    because the machine was under load. They pass alone, and they do not touch math;
+  - `npx eslint` on the changed files is clean;
+  - new `math/kitsas10.test.js` checks:
+    - three sheets per lesson, and unique lesson and block ids across modules;
+    - points 5/10, tests 20–30 p, a test every 6–8 lessons;
+    - every key form is accepted and wrong answers are rejected;
+    - every formula renders in KaTeX and every graph formula compiles;
+    - all trigonometric and decimal keys are recomputed in JS;
+    - the records sit under Matemaatika;
+  - `math.test.js` mk12 record assertions now filter to `mk12-`.
+- Limits:
+  - nothing is published: the 26 records and 78 sheets need a create-only script with the owner's yes;
+  - not viewed in the sheet lab: the browser pane uses another checkout's launch config;
+  - placement of courses I–III in grade 10 is our decision (okmv gives only course numbers).
+- Next safe step: owner OK → merge + release; then publish mk10 create-only, then grade 11 (`mk11`, courses IV–VI).
+
+## 2026-11-16 · agent/math-kitsas-mocks — Matemaatika kitsas: three full mock exams (mk12-015…017) · content + one courseSheet line, no rules / functions / data change
+
+- Base: `origin/main` ba20010 (release after #1249), checked 2026-11-16.
+- Done:
+  - `math/kitsas12mocks.js`: three full mock exams in the 2027 format. Each has I osa = tasks 1–7 (5, 5, 5, 5, 10, 10, 10 p)
+    and II osa = tasks 8–12 (5 × 10 p), 100 p in all. Every task is our own and every part has a key and a worked
+    solution in LaTeX. Drawing parts get blank grids;
+  - `math/sheets.js`: mock sheets „1 I osa (120 min)” / „2 II osa (150 min)” / „3 Eneseanalüüs”. The last one holds
+    points per task, „Hindamine” (grade bands marked as orientation only) and „Kontrolli end”;
+  - `MOCK_PHASES` per lesson: `buildCourseSheet` now reads `lesson.phases` before `MODULE.phases`, and no other lesson
+    has `phases`;
+  - goal `g_exam` now reads „Õpilane lahendab eksamiülesande samm-sammult.”;
+  - `mathCurriculum.js`: 3 more records with `roadmapKind: 'check'` and tag „Proovieksam”, level „12. klass matemaatika
+    kitsas”, contactMinutes 270, a Russian plan (timing, rules, scoring by steps). `MATH_VERSION` is 2026-11-16.2;
+  - `docs/MATH_RIIGIEKSAM_KITSAS.md` has the mock table.
+- Checks:
+  - `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum` → 177 files
+    passed (1 skipped), 1957 tests passed;
+  - `npx eslint` on the changed files is clean;
+  - new tests: points per task and sum 100, phase labels (mock and topic lessons), grids, recomputed numeric keys,
+    KaTeX renders every mock formula, every key form accepted and a wrong answer rejected;
+  - not viewed in the sheet lab: the browser pane could not open localhost.
+- Limits:
+  - nothing is published. The 3 mock records and their 9 sheets need a create-only script with the owner's yes;
+  - the 14 published topic lessons still show the old g_exam text until their sheets are republished (owner's yes);
+  - the grade bands are a school orientation, not a Harno scale.
+- Next safe step: owner OK → merge + release; then publish mk12-015…017 create-only and republish the g_exam text of
+  mk12-001…014.
+
+## 2026-11-16 · agent/learner-mistakes — after hand-in the learner sees her mistakes, the right answer and why · UI only, no rules / functions / data change
+
+- Base: `origin/main` 2b6a699 (#1248), checked 2026-11-16. Owner 2026-11-16: „надо чтобы ученик после сдачи видел свои балл / ошибки и объяснения что не так”.
+- Done:
+  - `engine/mistakes.js` `mistakesOf(doc, answers, results)` lists per task every wrong answer with what she wrote, the
+    right answer and why (`data.explain` / a math part's worked solution, mapped by p<i> or by the n-th scoring key);
+  - it also gives the math points of the auto-checked parts;
+  - `MistakesPanel.jsx` „Vead ja selgitused” sits under the sheet after hand-in (`DocWorksheetPlayer`, not for staff
+    reading a sheet: they have the key);
+  - the same panel is in the learner's view of a checked submission (`DocWorksheetSubmissionPreview explain`,
+    SubmissionReviewModal for non-staff);
+  - the result banner adds „· x/y punkti” when the sheet has math tasks.
+- Security: nothing new reaches the device. The sheet with its answers is already the learner's copy
+  (worksheetAssignments read rule, transcript.js); no rule change.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio src/features/homework/studentWorksheetFlow.test.jsx` → 91 files,
+    700 tests passed;
+  - new `engine/mistakes.test.js`;
+  - the flow test asserts the panel;
+  - checked in the sheet lab: mk12-001 transfer with a wrong a) shows „50% · 1/2 õiget · 2/5 punkti” and the
+    explanation with formulas.
+- Also today: mk12-001…014 published create-only to production (14 records + 42 published sheets, script
+  `publish-mk12.cjs` from a clean origin/main export).
+- Limits:
+  - a key item is matched to a wrong answer only when the task's scoring keys and key items line up; otherwise the
+    panel shows what she wrote and the right answer without „Miks”;
+  - math sheets: goal g_exam reads „… ja kirjutab lahenduskäigu” in first person as „Ma lahendan … ja kirjutab” —
+    fix the text with the mock-exam PR and update the 14 published sheets.
+- Next safe step: owner OK → merge + release; then the three kitsas mock exams (mk12-015…017).
+
+## 2026-11-16 · agent/math-kitsas-exam — Matemaatika kitsas riigieksam: 14 topic lessons (mk12-001…014) · content + sheet lab, no rules / functions / data change
+
+- Base: `origin/main` 72bc9e0 (#1247 merged), checked 2026-11-16. Owner 2026-11-16: „начинай модуль экзамена”.
+- Done:
+  - `math/kitsas12.js`: 14 lessons, one per recurring task type of the kitsas exam, all of them our own tasks;
+  - `math/sheets.js` (`MATH_MODULES`, outside COURSE_MODULES): 3 sheets per lesson (theory + RU hint + worked example
+    and graph / 4 scored practice tasks / one exam-form task of 5 or 10 p);
+  - `curriculum/mathCurriculum.js`: records with the Russian teacher plan, level „12. klass matemaatika kitsas”;
+  - `COURSES.math` in courseSheet.js;
+  - the sheet lab loads MATH_MODULES;
+  - the graph's left margin is widened so the y labels are no longer clipped at xmin = 0;
+  - `docs/MATH_RIIGIEKSAM_KITSAS.md` holds the exam facts and the course contract.
+- Checks:
+  - `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum src/features/library src/test`
+    → 179 files, 1998 tests passed;
+  - new `math/math.test.js` covers the sheets building, unique ids, exam points = 5/10, every part with a solution,
+    each key accepted and a wrong answer rejected, graph formulas, the recomputed numeric keys, and the records under Matemaatika;
+  - the sheets were viewed in the sheet lab.
+- Limits:
+  - nothing is published yet: the Õppevara records need a create-only script with the owner's yes;
+  - no mock exams yet (next PR);
+  - the student does not yet see the worked solutions after hand-in (owner 2026-11-16 asked for it, separate UI PR).
+- Next safe step: owner OK → merge; publish mk12-001…014 create-only; then a UI PR for score + mistakes + explanations
+  after hand-in.
+
+## 2026-11-16 · agent/math-formulas — Matemaatika: formulas on sheets + blocks „Matemaatika ülesanne” and „Koordinaattasand” · crm-v2 only (+ regenerated sheet-kit), no rules / functions / data change
+
+- Base: `origin/main` b337ac5, checked 2026-11-16. Owner 2026-11-16: „срочно делаем курс по математике с 10 по 12 класс и экзамены”; kitsas first, then lai; Estonian with Russian hints; riigieksam prep first; lessons on the site + print. This PR is only the sheet engine; the course content comes in separate PRs.
+- Done: KaTeX 0.19.1 (`engine/math.jsx`): `$…$` inline and `$$…$$` centred formulas in every text that passes through `<Md>` (also choice options, table headers, task titles that contain `$`, the teacher key). `stripMarks` drops the dollars. New group „Matemaatika” with `mathtask` (situation, parts a) b) c) with points, squared / lined solution space, „Vastus:” line checked as mathematics by `mathExpr.sameMathAnswer`, worked solution only in the teacher key via `def.keyItems`) and `graph` (coordinate plane from formulas: graphs, points `A(1; 2)`, segments, shaded area `f | g; a; b`, degrees for trig, empty grid). Safe formula parser without eval (`engine/mathExpr.js`). Lab page `/sheet-lab.html?set=math`.
+- Public contracts: block types `mathtask` / `graph` (registry 57 types), answer keys `p0…pN`, `answerKey.js` honours `def.keyItems` and an item's own `why`.
+- Checks: `npx vitest run src/features/worksheet-studio src/features/worksheet-generator src/test` → all passed except one studio UI test that times out under full load and passes alone; new `engine/math.test.jsx`, `engine/blocks/math.test.jsx`; roundtrip case for `mathtask`; eslint clean (warnings only); sheet lab checked in the browser (formulas, task, parabola with area, sin/cos in degrees, empty grid).
+- Limits: `$` now always starts a formula in sheet text (no existing course text contains `$`); no geometry-figure block yet (triangles, solids — next); formulas are typed as LaTeX in the editor, no visual formula editor; functions/generated/sheet-kit.cjs grew by KaTeX (connector only).
+- Next safe step: owner OK → merge; then the kitsas riigieksam module (Harno 2027 format: 4×5 p + 3×10 p, II osa 5×10 p).
+
+## 2026-11-16 · agent/kids-club-feedback1 — Vestlusklubi 10–12 a: teacher feedback after meeting 1 · content + sheets, no rules / functions change
+
+- Base: `origin/main` ee59b99 (#1242), checked 2026-11-16. Teacher after meeting 1: pair speaking worked best and took the most time; sentences were hard at first, then better; the picture words were too easy; the written tasks of sheet 2 were done very fast → more speaking, harder words.
+- Done (all 20 meetings, `kids/club/module1…5.js`): `words2` 8 harder words, `frames` 4 sentence builders (sest / aga / siis), `pair` information-gap pair task, gaps rewritten with the harder words, 3 crossword answers from them, last 2 question cards need „sest”, one longer word-order sentence, game1 with the new words. `kids/sheets.js`: sheet 1 + „Raskemad sõnad” explain-it cards + „Paaristöö” A/B cards; sheet 2 + harder-word list, „Lauseehitaja”, pair answer table, question ↔ answer matching removed; the snack box and „Leia keegi, kes …” moved to the start of sheet 3 (where lesson 2 begins). `clubPlan`: lesson 1 new timings (words 8, frames 8, dialogue + gaps 7, game 10, pair 7) and 4 backup speaking games. Docs: `KIDS_GROUPS_PROGRAM.md`.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/curriculum` → all passed except 3 studio UI timeouts under load, which pass when run alone (10/10); eslint clean; sheet lab: sheet 1 three pages (cards), sheet 2 two pages (87–88 % of page 2), sheet 3 three pages (30–69 % of page 3).
+- Production: after merge, the 20 club records are updated in place only where the sheet is unchanged since our publish (sync script checks author and version).
+- Limits: word order keeps one intended order; Estonian checked by the writers, not yet by a native teacher in class.
+- Next safe step: the teacher runs meeting 2 with the new sheets and reports.
+
+## 2026-11-15 · agent/kids-club-modules — Vestlusklubi 10–12 a: 5 modules × 4 meetings, three review rounds · content + kids art + one CSS rule, no rules / functions change
+
+- Base: `origin/main` a353bff (release of #1240), checked 2026-11-15. Owner: „первые 5 модулей по 4 урока, урок = одна встреча 2 по 45, потом проверить каждый урок отдельно и улучшить методологически и визуально, и ещё 2 раза так же”.
+- Done: content split into `kids/club/module1…5.js` (composed by `club11.js`; lessons carry module / inModule); 8 new meetings (Minu sõber, Sünnipäev ja kingitused, Minu päev ja kell, Poes: hinnad ja raha, four project meetings). Three review rounds, each meeting separately (rounds 1–2 by module reviewers, round 3 by fresh reviewers): Estonian forms, information-gap role cards, recycling, varied games across the course, timings, pictures. Shared: sheet 1 order (questions → extra → word cards → „Veel sõnu” → roles), smaller opener, adaptive extra-card columns, crossword before word order, talk without repeating the plan, „Ma oskan” + parents' note side by side, „Kas sul on …?” for kellel tables, vocab commas; `clubPlan` per module / project / party timings; records per module (`k11-module-0N`, roadmapTag Projekt); 7 new kids-art pictures (cake, gift, glasses, school, newspaper, film, money); `sheet.css` smaller pictures in 4-column card grids.
+- Checks: `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/curriculum src/features/library src/features/worksheet-studio` → 176 files passed (1 skipped), 1975 tests passed; eslint 0 errors; all 60 sheets rendered in the sheet lab: sheet 3 two pages (020: three, certificate), sheet 2 three pages, sheet 1 2–3 pages.
+- Production: k11-001…012 rewritten in place to the new order (checked first: no assignments, no teacher edits), k11-013…020 created.
+- Limits: word order accepts one order (sentences chosen for that); Estonian not yet read by a native teacher in class; some card sheets keep white space where a card block cannot split across pages.
+- Next safe step: the teacher runs meeting 1 and reports what to change.
+
+## 2026-11-15 · agent/kids-club-11 — Vestlusklubi 10–12 a (A1–A2): 12 meetings, cards to print, teacher's plan · content + library tab, no rules / functions change
+
+- Base `origin/main` 4474576 (#1238), checked 2026-11-15. Owner 2026-11-15: a speaking club for ~11-year-olds starts on 16.11 (two lessons of 45 min with a snack); programme, printable cards, vocabulary and topics on the site.
+- Done: `kids/club11.js` (12 meetings: words with Russian and pictures, phrases, 8 question cards, „Leia keegi, kes …”, role cards, extra cards, dialogue, gaps, word order, crossword, snack phrases, talk plan, games, parents' note); `kids/sheets.js` clubLesson + `CLUB_PHASES` (1 Kaardid / 2 Tund 1: räägime / 3 Tund 2: mängime ja esineme) in `KIDS_MODULES`; `kidsCurriculum.js` clubPlan (lesson 1 · snack · lesson 2, Russian); `libraryModel.js` subject „Lastele” also for „Klubi 10–12 a”; sheet lab opens kids sheets (`course:k11-001:discover`). Cards use existing blocks (`profiles`, `rolecards`) — no new block, so no sheet-kit / functions change. Doc: `docs/KIDS_GROUPS_PROGRAM.md`.
+- Checks: `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/curriculum src/features/library src/features/worksheet-studio/sheetKit.test.js` → 90 files passed (1 skipped), 1298 tests passed; eslint 0 errors. Headless Chrome: k11-001 and k11-002 sheets render on A4 (cards 4 per row with pictures, question cards, role cards).
+- Textbook look (owner: „курс должен выглядеть как учебник, используем новые блоки”): every club sheet opens with a reserved first block (`minHeightMm`) and an Õpik free-layer opener on it (`doc.free`, via new optional `lesson.free[phase]` in `courseSheet.js`): panel behind, the club children (kids-art boy / girl) in circles with speech bubbles, ribbon „TUND 1 / TUND 2 · 45 min”, burst with the meeting number, picture circles of the words. Order lesson 1 → snack → lesson 2: the snack box is the last block of sheet 2. `TOP = 102` mm (measured in the sheet lab). Studio + generator suites: 176 files, 1975 tests passed.
+- Production: after release, 12 records `curriculumLessons/k11-001…012` + 36 sheets created create-only (never overwrites).
+- Limits: Estonian texts not read by a native teacher; cards are cut along the card borders (no dashed cut marks).
+- Next safe step: the teacher prints k11-001 „Kaardid” and sheets 2–3 before the first meeting and tells what to change.
 
 ## 2026-11-14 · agent/free-behind — Õpik „Vaba kiht”: items behind the text, ready textbook layouts · crm-v2 only, no rules / functions change
 

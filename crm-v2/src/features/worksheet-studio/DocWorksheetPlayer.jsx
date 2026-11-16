@@ -24,6 +24,8 @@ import { useWordLookup } from './WordLookup.jsx';
 import { rightAnswers, shownResults, stepView } from './engine/liveLesson.js';
 import { blockAnswerKey } from './engine/answerKey.js';
 import BlockKeyPanel from './BlockKeyPanel.jsx';
+import MistakesPanel from './MistakesPanel.jsx';
+import { mistakesOf } from './engine/mistakes.js';
 import AnswerFontMenu from './AnswerFontMenu.jsx';
 import { announcePractice } from '../practice/events.js';
 
@@ -114,6 +116,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const teacherKey = useTeacherKey(doc, readOnly && isStaff);
   const checked = useMemo(() => (submitted ? checkDocument(doc, answers) : null), [doc, answers, submitted]);
   const progress = useMemo(() => answerProgress(doc, answers), [doc, answers]);
+  // after hand-in the learner (and a parent) sees her mistakes with the right answer and why (engine/mistakes.js);
+  // a teacher reading the sheet has the key on a click instead
+  const mistakes = useMemo(() => (checked && !(readOnly && isStaff) ? mistakesOf(doc, answers, checked.results) : null), [checked, readOnly, isStaff, doc, answers]);
 
   const [focusId, setFocusId] = useState(assignment.liveFocus?.blockId || '');
   const [teacherMarks, setTeacherMarks] = useState(assignment.annotations || []);
@@ -302,7 +307,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {flowBar}
       <header><div><span className="eyebrow">{assignment.subject || 'Õppetöö'} · {assignment.level || doc.meta?.level || 'Tööleht'}</span><p>{assignment.topic || assignment.note || doc.meta?.canDo || 'Õpetaja määratud tööleht'}</p></div><div className="ws-player-tools"><AnswerFontMenu />{submitted ? <Badge tone="success">Esitatud</Badge> : readOnly ? <Badge tone="neutral">Ainult vaatamiseks</Badge> : <Badge tone="info">Täitmisel</Badge>}</div></header>
       {assignment.note ? <div className="worksheet-note"><strong>Õpetaja märkus</strong><p>{assignment.note}</p></div> : null}
-      {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
+      {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget{mistakes?.points ? ` · ${mistakes.points.got}/${mistakes.points.max} punkti` : ''}</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {readOnly && !submitted ? <div className="worksheet-readonly"><Clock3 size={19} /><p>Õpilane ei ole seda töölehte veel esitanud.</p></div> : null}
       {stepped.hidden > 0 ? <div className="ws-live-wait" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
@@ -313,6 +318,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
         </div>
         </SheetAnnotations>
       </div>
+      <MistakesPanel mistakes={mistakes} />
       {checked ? <GoalEvidence doc={doc} evidence={checked} learner /> : null}
       {words.popup}
       {markLine}
@@ -352,7 +358,8 @@ const SUBMITTED_TRANSCRIPTS = { role: 'student', submitted: true };
 // Teacher review inside the homework submission dialog: the sheet with the learner's answers and marks.
 // annotations: teacher marks on the sheet (SheetAnnotations); editable for staff.
 // answerKey: staff only — a click on a task shows its answers under it.
-export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, annotations = [], editable = false, onAnnotationsChange, answerKey = false }) {
+// explain: the learner's own look at a checked sheet — her mistakes with the right answer and why (MistakesPanel)
+export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, annotations = [], editable = false, onAnnotationsChange, answerKey = false, explain = false }) {
   const [fitRef, scale] = useFitScale();
   const teacherKey = useTeacherKey(worksheetDoc, answerKey);
   const checked = useMemo(() => checkDocument(worksheetDoc, answers), [worksheetDoc, answers]);
@@ -365,6 +372,7 @@ export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, anno
         </div>
       </SheetAnnotations>
     </div>
+    {explain ? <MistakesPanel mistakes={mistakesOf(worksheetDoc, answers, checked.results)} /> : null}
     <GoalEvidence doc={worksheetDoc} evidence={checked} learner />
   </div>;
 }
