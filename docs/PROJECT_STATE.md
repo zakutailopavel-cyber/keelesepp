@@ -1,3 +1,18 @@
+## 2026-11-17 · agent/math-lai-11 — Matemaatika lai 11. klass (ml11, 39 lessons, courses VI–X) · content + wiring, no rules / functions / data change
+
+- Base: `origin/main` 4bf2d95 (2026-11-16), checked 2026-11-17. Draft PR, not merged. In parallel: #1257 (ml10) also
+  creates `docs/MATH_LAI_10_11.md` and appends to `MATH_PROGRAMS` — on conflict keep both programs and both doc sections.
+- Done: `math/lai11.js` `LAI_11` (id `ml11`, level „11. klass matemaatika lai”, sheet level „Lai 11”, 90 min, sheet 3
+  „3 Kontrollülesanne”): VI 8 + test, VII 6 + test, VIII 6 + test, IX 7 + test, X 7 + test; theory marked
+  *valemilehel*/*pähe*; `sheets.js` appends `LAI_11`; `mathCurriculum.js` coursePlan is track-aware (kitsas text
+  unchanged); `math/lai11.test.js`; doc `docs/MATH_LAI_10_11.md` „Program ml11”.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum
+  src/features/library --maxWorkers=3` → 186 files passed (1 skipped), 2073 tests passed (12 skipped); eslint on the
+  changed files clean.
+- Limits: no visual look at the sheets in the browser; `MATH_VERSION` not bumped (new records only); sheet-kit not
+  rebuilt (no block change). Nothing is published.
+- Next safe step: owner OK → merge (after #1257, resolve the one-line `MATH_PROGRAMS` conflict), then publish ml11
+  records create-only.
 ## 2026-11-17 · agent/math-lai-10 — Matemaatika lai 10. klass (ml10, 40 lessons, courses I–V) · content + small wiring, no rules / functions / data change
 
 - Base: `origin/main` 4bf2d95 (release 2026-11-16 19:25 UTC), checked 2026-11-17. Draft PR, not merged. A parallel PR
