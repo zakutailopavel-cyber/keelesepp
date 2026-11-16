@@ -148,13 +148,14 @@ export function buildCourseSheet(mod, lessonId, phase) {
     id: `ws_${lessonId}_${phase}`,
     meta: {
       title: lesson.title,
-      subtitle: (mod.MODULE.phases?.[phase] || PHASES[phase]).subtitle,
+      // a lesson may carry its own phase labels (a mock exam, math/sheets.js MOCK_PHASES) before the module's
+      subtitle: (lesson.phases?.[phase] || mod.MODULE.phases?.[phase] || PHASES[phase]).subtitle,
       level: lesson.level || mod.MODULE.level,
       module: mod.MODULE.title,
       canDo: LESSON_GOALS[lessonId]?.canDo || lesson.canDo,
       goals: LESSON_GOALS[lessonId]?.goals || lesson.goals || GOALS,
       phase,
-      displayLabel: (mod.MODULE.phases?.[phase] || PHASES[phase]).label,
+      displayLabel: (lesson.phases?.[phase] || mod.MODULE.phases?.[phase] || PHASES[phase]).label,
       // modules written before the 40–55 min rule are marked until they are expanded (docs/B1_B2_COURSE_PRODUCTION.md)
       // a lesson may mark its own short sheets: `shortSheet: true` (every phase) or a list of phases — a spaced-review sheet
       // or a short use task of a supplement (a2/lihtminevik.js), 10–30 min by design
