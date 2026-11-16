@@ -10,6 +10,8 @@
 // several right forms are separated by |, several answers by ; (engine/mathExpr.js sameMathAnswer).
 // `figure` is a „Geomeetriline joonis” (geofigure) block: the exam-style triangle or solid.
 
+import { LAI_12_MOCKS } from './lai12mocks.js';
+
 const r = String.raw;
 
 export const LAI_12 = {
@@ -23,6 +25,10 @@ export const LAI_12 = {
   // the teacher's plan (mathCurriculum.js): the track and what the lai formula sheet holds
   track: 'lai',
   formulaSheetRu: 'лист формул lai (на нём тригонометрия, формулы приведения, таблица производных и таблица интегралов)',
+  // the mock exams' rules line (math/sheets.js) names the lai sheet
+  formulaSheet: 'laia kursuse valemileht (trigonomeetria, tuletiste ja integraalide tabel)',
+  // three full mock exams after the topic lessons (ml12-021…023, lai12mocks.js)
+  mocks: LAI_12_MOCKS,
   lessons: [
     {
       title: 'Astmed, juured ja avaldised',

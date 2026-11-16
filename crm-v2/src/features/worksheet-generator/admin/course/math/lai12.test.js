@@ -9,7 +9,8 @@ import { mathCurriculumRecords } from '../../../../curriculum/mathCurriculum.js'
 import { subjectOfLevel } from '../../../../library/libraryModel.js';
 
 const mod = MATH_MODULES.find((m) => m.MODULE.id === 'ml12-module-01');
-const ids = Object.keys(mod.LESSONS);
+// the topic lessons ml12-001…020; the mock exams ml12-021…023 are checked in lai12mocks.test.js
+const ids = Object.keys(mod.LESSONS).filter((id) => !mod.LESSONS[id].mock);
 const PHASES = ['discover', 'practice', 'transfer'];
 const points = (task) => task.parts.reduce((sum, [, p]) => sum + p, 0);
 const tasksOf = (id, phase) => mod.LESSONS[id][phase].filter((b) => b.type === 'mathtask');
@@ -238,7 +239,7 @@ describe('math lai riigieksam module (ml12)', () => {
   });
 
   it('library records sit under Õppevara → Matemaatika as the lai course', () => {
-    const records = mathCurriculumRecords().filter((r) => r.id.startsWith('ml12-'));
+    const records = mathCurriculumRecords().filter((r) => ids.includes(r.id));
     expect(records.map((r) => r.id)).toEqual(ids);
     for (const r of records) {
       expect(r.level).toBe('12. klass matemaatika lai');
