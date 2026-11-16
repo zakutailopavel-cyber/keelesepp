@@ -123,6 +123,7 @@ B1 entry diagnostic as six stations (final: plan, W13 letter), 002 advise (W05 g
 cards), 004 negotiate (S17 learning-plan talk); the check 005 is unchanged. Owner summary: `docs/review/b2-m01-stations.md`.
 B2 `av-article` (one 500–600-word article a module) cannot live in a station (`st-input` ≤ 120 words): the module's
 article is the check lesson's reading (005, owner 2026-11-14). Open: that length is over the B1+ sheet reading norm (≤ 500).
+Since 2026-11-17 the module is the sample of design v4 „task-based” (§7): same stations and gates, no storyline.
 
 ## 5. Next
 
@@ -169,3 +170,68 @@ gate exists for them yet — authors and reviewers check them by hand until `sta
     the features that change meaning for Russian speakers: quantity (Q2 vs Q3), õ / ö / ü, first-syllable stress, long
     vowels in endings. — Lee, Jang & Plonsky 2015 (d = 0.89 / 0.80); Saito & Plonsky 2019; Meister & Meister 2012
     (E11).
+
+## 7. v4 — task-based (TBLT), owner 2026-11-17
+
+Owner: „учебные планы б1 и б2 слишком скучные, однообразные и все завязаны на какой-то истории; она может и имеет место
+быть, но моментами это слишком точечно.” Measured: Sofia ≈ 750 mentions in `b2/module*.js` and ≈ 1300 in `b1/`; the same
+people (docs/COURSE_CAST.md) in every lesson; every lesson the same template. The owner chose task-based learning. v4 runs
+on the v3 station engine (§1–§3 and every gate stay); it changes what a module and a lesson are about.
+Sample: B1→B2 module 1 (`b2/module01.js`, b1b2-001…005); owner summary `docs/review/b2-m01-tasks.md`.
+
+### 7.1 Rules
+
+1. **A module = one real goal in Estonia that the learner reaches for himself**, written as „Ma oskan …” (module 1: „Ma
+   oskan oma B2-tee ise käima panna: näitan, mida oskan, võrdlen oma päeva Eesti andmetega, võtan seisukoha ja lepin
+   õppimise aja tööandjaga kokku”). Tasks speak to the learner about his job, town, week, opinion and plans („Kirjuta oma
+   tööandjale …”, „Räägi oma nädalast …”), never „write to Eha”. A learner without a job gets a real alternative in the
+   same task (module 1: the language school, a family member).
+2. **Every lesson has a different format** (`format` on the lesson object), and no two neighbouring lessons share one.
+   Menu (`format` value):
+   | value | format | the learner … |
+   |---|---|---|
+   | `case` | real case to solve | gets a real problem with documents and decides what to do |
+   | `debate` | debate with a vote | chooses a side, argues with facts, votes and justifies the vote |
+   | `quest` | quest / route | goes through checkpoints; each gives one piece of the result |
+   | `facts` | news or fact analysis | works with real Estonian data (our own text, a chart, a law) and compares it with his life |
+   | `infogap` | information-gap talk | has one half of the information, the teacher the other (two role cards) |
+   | `project` | mini-project | makes a product: an ad, a CV, a guide, a mini-podcast |
+   | `game` | game / competition | plays against the teacher (one-to-one): a quiz, a guessing game, a race |
+   | `exam` | short Harno-format exam | the module check (lesson 5) |
+   A lesson may hold a second format inside one station (module 1, 002: a guessing game inside fact analysis).
+3. **Real Estonia**: real facts with a source line, real places, services and document types (announcement, form, letter
+   to an institution, timetable, rental contract, info line, forum thread …), culture and everyday phrases. Texts are our
+   own, based on facts; never copied articles, never Harno tasks (past papers only as a format reference). An invented
+   school, course or price is fine as a scenario („Keelekool Sõna”), never presented as real data.
+4. **Grammar by discovery**: the form is seen in a live text first, noticed in a short rule card (`notice`), practised in
+   one task, and needed in the final task; spiralled across modules.
+5. **The module ends with the learner's own product + a short Harno-format exam** (lesson 5). The product collects the
+   lessons' outputs (module 1: „Minu B2-plaan” card in 005 Kasuta, presented as the S16 one-minute talk). Every
+   auto-checked item has an explanation (`export const EXPLAIN = { blockId: [one line per key item] }`), because after
+   hand-in the learner sees the score, the mistakes and why (`worksheet-studio/engine/mistakes.js`).
+6. **Speaking**: pair work in the lesson (the teacher is the partner with a real reason), voice recording at home. No
+   dictation at B1–C1.
+7. **Characters are colour only** (docs/COURSE_CAST.md): at most an occasional model dialogue or a forum name; never the
+   backbone of a lesson, never the addressee of the learner's task. Module 1 names none of the cast in 001–004.
+
+### 7.2 The learner-first checklist (owner: „представь себя учеником”)
+
+For every task, decide as the learner (an adult in Estonia, B1, wants B2 for work, the exam or life):
+- Is the instruction clear in one reading? Does he know what to produce, how long, and how it is judged?
+- Is there a model or a phrase bank when the form is new?
+- Is it worth his time — would a real person do this (purpose line)? Is it about his real life?
+- Is it interesting: a decision, a vote, a game, a real fact he did not know?
+- Can he do it if he has no job, no family, no car? Give the alternative in the task itself.
+- After hand-in, will he understand his mistake (explanation line)?
+Write the decisions taken this way into the module's review doc.
+
+### 7.3 Checks
+
+- All v3 gates (§3) and the course gates (course report READY, academic value 1 and 2, final shape, didactic checks,
+  noDictation, listening audio).
+- `b2/module01.tasks.test.js` (module 1; copy it for the next v4 module): the format menu and no two neighbours alike;
+  cast mentions in learner-facing text ≤ 3 a lesson and ≤ 6 a module; every final task addresses the learner („sinu /
+  oma …”); every scored item explained, one EXPLAIN line per key item.
+- Format of each lesson is still also an archetype (`withShapes`, COURSE_FINAL_SHAPE_B2.md §4): module 1 keeps LUGU /
+  KUUL / AVAS / PROB / EKS; `format` is the learner-facing shape, the archetype the skill path.
+

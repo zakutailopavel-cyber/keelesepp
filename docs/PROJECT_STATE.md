@@ -1,3 +1,34 @@
+## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1 as the task-based (TBLT) sample · content only, no UI / rules / functions / data change
+
+- Base: `origin/agent/b1b2-m01-stations` (PR #1239, draft) merged with `origin/main` f8ab587, checked 2026-11-17. This PR
+  supersedes #1239 (not closed here). Owner 2026-11-17: B1/B2 plans too boring, monotonous and tied to one story; he
+  approved task-based learning (TBLT).
+- Done:
+  - `b2/module01.js`: the v3 station engine stays (`design: 'v3-stations'`, every gate); the storyline is gone. Module
+    goal for the learner („Ma oskan oma B2-tee ise käima panna …”), every lesson a different `format`: 001 quest
+    „Diagnostikarada” (final plan: W13 letter to the learner's own employer, or the language school), 002 facts + a
+    guessing game (Statistikaamet, töölepingu seadus; final advise: W05 text for a newcomer to Estonia), 003 debate with a
+    vote on the four-day week (Iceland 2015–2019, UK 2022 with sources; final decide S17), 004 information gap (learner's
+    week vs the teacher's three courses, S05) and the study-plan negotiation with his own manager (S17), 005 exam + the
+    module product „Minu B2-plaan” (planning card + the S16 one-minute talk). Cast mentions in the module file 220 → 0.
+  - `export const EXPLAIN` — one „why” line for each of the 228 scored items of 001–005 (shown after hand-in,
+    `engine/mistakes.js`).
+  - Audio (TartuNLP, pre-generated): new `001_p_call` (school info line), `002_p_poll` (radio poll), `003_p_lecture`
+    (the attention lecture with „Lektor”); removed `002_d_markus`, `002_p_gert`, `003_p_hendrik` (mp3 + manifest).
+  - `b2/lessonGoals.js` 001–004: canDo and goal texts (same goal keys and tags, so `gradingPin` is unchanged).
+  - `art/visuals/b2-module-01.js`: alt, caption, prompts without cast names (pictures unchanged).
+  - New test `b2/module01.tasks.test.js`: format menu, no two neighbouring lessons alike, cast ≤ 3 a lesson / ≤ 6 a module
+    in learner-facing text, final task addresses the learner, every scored item explained.
+  - Docs: `docs/COURSE_DESIGN_STATIONS.md` §7 „v4 — task-based (TBLT)” (rules, format menu, learner-first checklist,
+    characters), `docs/COURSE_CAST.md` (cast = occasional colour), owner summary `docs/review/b2-m01-tasks.md` (Russian).
+- Checks: course report b1b2-module-01 5/5 READY; language check (EstNLTK 1.7.5) 0 unknown lower-case words;
+  `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` green (see the PR for the count); eslint
+  clean on the changed files; sheets 001–005 looked at in the sheet lab (local vite).
+- Limits: `b2/module05.js` 023_d_review still asks about the old team-day choice of module 1 (another module, not
+  touched); in 003 Kasuta the debate card block moves to page 2 (normal pagination). Nothing published.
+- Next safe step: the owner reads `docs/review/b2-m01-tasks.md` and a teacher runs 002 or 003 one-to-one; if the approach
+  holds, module 2 is rewritten by §7 in its own PR.
+
 ## 2026-11-14 · agent/b1b2-m01-stations — B1→B2 module 1 as stations (v3) · content only, no UI / rules / functions / data change
 
 - Base `origin/main` 4474576, checked 2026-11-14. Owner 2026-11-14: B2 module 1 into the station design of the B1 module 12 pilot (`docs/COURSE_DESIGN_STATIONS.md`).
