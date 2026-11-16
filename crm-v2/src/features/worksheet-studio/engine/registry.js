@@ -12,11 +12,12 @@ import { harnoBlocks } from './blocks/harno.jsx';
 import { kidsBlocks } from './blocks/kids.jsx';
 import { video } from './blocks/video.jsx';
 import { mathBlocks } from './blocks/math.jsx';
+import { geofigure } from './blocks/geofigure.jsx';
 import { newId } from './schema.js';
 import { provideScoreChecker } from './storedScore.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
-export const BLOCKS = { text, notice, tip, image, vocab, wordstrip, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, video, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks, ...mathBlocks };
+export const BLOCKS = { text, notice, tip, image, vocab, wordstrip, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, video, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks, ...mathBlocks, geofigure };
 
 export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Lastele', 'Matemaatika', 'Kujundus'];
 

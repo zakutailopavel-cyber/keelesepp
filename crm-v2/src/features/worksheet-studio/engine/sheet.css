@@ -1207,3 +1207,13 @@ button.ws-pt { cursor: pointer; }
 .ws-graph-axis { font-size: 11px; font-style: italic; fill: #0b2a4f; font-family: Georgia, serif; }
 .ws-graph-label { font-size: 11px; font-weight: 800; fill: #0b2a4f; font-family: Nunito, sans-serif; }
 .ws-graph figcaption { text-align: center; font-size: 0.92em; color: #5b6b7b; margin-top: 2px; }
+
+/* „Geomeetriline joonis” (blocks/geofigure.jsx): exam-style figure, black lines, one green accent */
+.ws-geo { margin: 0; }
+.ws-geo-svg { width: 100%; max-width: 420px; height: auto; display: block; margin: 0 auto; }
+.ws-geo-label { font-size: 13px; fill: #1a1a1a; font-family: Georgia, 'Times New Roman', serif; font-variant-numeric: lining-nums; }
+.ws-geo-label--vertex { font-size: 14px; font-weight: 700; }
+.ws-geo-label--tick { font-size: 11px; fill: #5b6b7b; font-family: Nunito, sans-serif; }
+.ws-geo-label--axis { font-size: 13px; font-style: italic; fill: #0b2a4f; }
+.ws-geo figcaption { text-align: center; font-size: 0.92em; color: #5b6b7b; margin-top: 2px; }
+.ed-geo-measure { display: grid; gap: 4px; min-width: 120px; }
