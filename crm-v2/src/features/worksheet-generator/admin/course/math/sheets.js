@@ -4,7 +4,7 @@
 //   practice „2 Harjutame” — scored tasks (block „Matemaatika ülesanne”): a final answer per part, the worked solution
 //     in the key;
 //   transfer „3 Eksamiülesanne” — one task in the exam's own form and points, squared paper, „Kontrolli end”.
-// After the topic lessons come the mock exams (program.mocks, kitsas12mocks.js) with their own phase labels:
+// After the topic lessons come the mock exams (program.mocks, kitsas12mocks.js, lai12mocks.js) with their own phase labels:
 //   discover „1 I osa (120 min)” — tasks 1–7 (4 × 5 p + 3 × 10 p); practice „2 II osa (150 min)” — tasks 8–12 (5 × 10 p);
 //   transfer „3 Eneseanalüüs” — points per task, the grade bands (an orientation only) and „Kontrolli end”.
 // Not in COURSE_MODULES (like kids/sheets.js): the Estonian-language gates do not judge a maths sheet. The sheet lab
@@ -78,9 +78,10 @@ function lessonSheets(program, lesson, index) {
 }
 
 export const mockPoints = (task) => task.parts.reduce((sum, [, p]) => sum + Number(p || 0), 0);
-const EXAM_RULES = [
+// program.formulaSheet names the formula sheet of a track (lai12.js); kitsas keeps its own text
+const examRules = (program) => [
   'Kirjuta iga ülesande juurde kogu lahenduskäik: punkte antakse iga õige sammu eest, ainult vastuse eest vähe.',
-  'Lubatud on lihtne kalkulaator (mitte graafiline ega programmeeritav), pastakas ja kitsa kursuse valemileht (trigonomeetria ja tuletised).',
+  `Lubatud on lihtne kalkulaator (mitte graafiline ega programmeeritav), pastakas ja ${program.formulaSheet || 'kitsa kursuse valemileht (trigonomeetria ja tuletised)'}.`,
   'Ümarda alles lõpus ja kirjuta vastusele ühik.',
 ].join('\n');
 // the grade bands are a school orientation only: the riigieksam itself gives 0–100 points (pass ≥ 1 p)
@@ -100,16 +101,18 @@ function mockSheets(program, mock, index) {
   const examTask = (task, n, phase) => {
     const points = mockPoints(task);
     return [
+      // a triangle or solid task (lai12mocks.js): the figure comes first, like on the paper
+      ...(task.figure ? [figure(`${id}_${phase}_${n}_figure`, task.figure, 'g_exam', 'full')] : []),
       mathtask(`${id}_${phase}_${n}`, { ...task, title: `${n}. ülesanne (${points} punkti)`, instruction: 'Kirjuta kogu lahenduskäik.' }, 'g_exam'),
       ...(task.grid ? [graph(`${id}_${phase}_${n}_grid`, { ...task.grid, caption: `${n}. ülesanne: joonesta siia.` }, 'g_exam', 'half')] : []),
     ];
   };
   const discover = [
-    block(`${id}_d_rules`, 'tip', 'white', '', { title: 'Eksami juhend', text: `I osa: 120 minutit, ülesanded 1–7 (4 × 5 p ja 3 × 10 p). Seejärel 45-minutiline vaheaeg.\n${EXAM_RULES}` }),
+    block(`${id}_d_rules`, 'tip', 'white', '', { title: 'Eksami juhend', text: `I osa: 120 minutit, ülesanded 1–7 (4 × 5 p ja 3 × 10 p). Seejärel 45-minutiline vaheaeg.\n${examRules(program)}` }),
     ...mock.part1.flatMap((task, k) => examTask(task, k + 1, 'd')),
   ];
   const practice = [
-    block(`${id}_p_rules`, 'tip', 'white', '', { title: 'Eksami juhend', text: `II osa: 150 minutit, ülesanded 8–12 (igaüks 10 p).\n${EXAM_RULES}` }),
+    block(`${id}_p_rules`, 'tip', 'white', '', { title: 'Eksami juhend', text: `II osa: 150 minutit, ülesanded 8–12 (igaüks 10 p).\n${examRules(program)}` }),
     ...mock.part2.flatMap((task, k) => examTask(task, mock.part1.length + k + 1, 'p')),
   ];
   const transfer = [

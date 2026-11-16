@@ -3,8 +3,8 @@
 Owner 2026-11-16: „срочно делаем курс по математике с 10 по 12 класс и экзамены”. The kitsas exam course is done
 (`docs/MATH_RIIGIEKSAM_KITSAS.md`, `mk12-001…017`). This is its broad-track counterpart: `ml12-001…020`, one lesson per
 recurring lai exam task type, in `crm-v2/src/features/worksheet-generator/admin/course/math/lai12.js`. The sheet shape,
-the part format and the records are the same as kitsas (see the kitsas contract, „Sheet contract”). Mock exams for lai
-come in a later PR.
+the part format and the records are the same as kitsas (see the kitsas contract, „Sheet contract”). Three full mock exams
+follow as `ml12-021…023` (`lai12mocks.js`, „Mock exams” below).
 
 ## The exam (Harno, 2027 spec of 31.08.2026)
 
@@ -105,10 +105,40 @@ Points of the exam tasks: 6 lessons × 5 p, 14 lessons × 10 p.
 - **Records:** level „12. klass matemaatika lai” → Õppevara → Matemaatika; sheet level box „Lai”; `curriculumId`
   `math-ml12-v1`; `roadmapKind: 'theme'`.
 
+## Mock exams (`ml12-021…023`, `math/lai12mocks.js`)
+
+Three full papers in the 2027 format, built like the kitsas mocks (`kitsas12mocks.js`): per-lesson phase labels
+„1 I osa (120 min)” (tasks 1–7, 4 × 5 p + 3 × 10 p = 50 p), „2 II osa (150 min)” (tasks 8–12, 5 × 10 p = 50 p) and
+„3 Eneseanalüüs” (points per task, the orientation grade bands, „Kontrolli end”). Records: `roadmapKind: 'check'`, tag
+and type „Proovieksam”, 270 contact minutes, Russian plan „полный формат госэкзамена lai 2027” with the lai formula
+sheet and a review pointer to `ml12-001…020`. New, additive: a mock task may have `figure` (a `geofigure` block before
+the task, full width — used for every task 7 and 12) and the exam rules line names `program.formulaSheet` (lai: „laia
+kursuse valemileht …”; kitsas keeps its text). Blank grids get a positive `stepY` (default = `step`).
+
+| Task | P | Proovieksam 1 (`ml12-021`) | Proovieksam 2 (`ml12-022`) | Proovieksam 3 (`ml12-023`) |
+|---|---|---|---|---|
+| I-1 | 5 | combinations: 3 balls of 3 colours | binomial: 6 free throws, E(X) | random variable max of two dice, E(X) |
+| I-2 | 5 | system: mixing 20 % and 50 % solutions | system: boat with / against the current | system of 3 unknowns: café prices |
+| I-3 | 5 | roots: (√a/(√a−√b) − …)·…; x^{3/2} − 8 | negative powers ab/(a+b); logarithm value | a³ − 8 quotient; powers 2ⁿ |
+| I-4 | 5 | rational inequality, integer count | log inequality base 0,5; exponential with 2ˣ | rectangle area ≥ 50 cm²; shortest diagonal |
+| I-5 | 10 | (x² − 3)eˣ: zeros, f′, extrema, range on a segment | ln x / x: f′, maximum, f″ inflection | (x² + 3)/(x − 1): f′, extrema, segment |
+| I-6 | 10 | arithmetic → geometric (two cases), infinite sum, n | two runners: arithmetic vs geometric, crossover day | nested squares: infinite area and perimeter sums |
+| I-7 | 10 | sine rule: lake buoy, height, median (figure) | cosine rule: plot 110°, height, walking time (figure) | three sides: angle, area, R, r, unwatered % (figure) |
+| II-8 | 10 | 2cos²x + 3 sin x − 3 = 0 and f′ = 0 on [0; 2π] | sum formulas identity, equation, inequality, slope | cos 2x = cos x, graphs (rad grid), inequality |
+| II-9 | 10 | tangent of eˣ, area, parallel tangent (grid) | tangent of 4 − x², area, volume of revolution (grid) | tangent of √x, area, volume of revolution (grid) |
+| II-10 | 10 | circle through A, B with centre on a line, tangent | parallelogram: D, angle by vectors, area, line BD | triangle: line AB, altitude, foot, area, angle |
+| II-11 | 10 | drug model 12e^{−0,2t}: time, half-life, C′ | log₂ functions: domain, equation, intersection, inequality | bacteria N₀e^{kt}: k, time to 100 000, N′(3) |
+| II-12 | 10 | cone: height, angle, volume, net sector, inscribed sphere | triangular prism with section ABC₁ | regular pyramid with 60° edge angle |
+
+Every task is our own. Every part has points, a final answer where one exists (drawings and „show that” parts are
+judged by the teacher) and a step-by-step LaTeX solution. `lai12mocks.test.js` checks the points (50 + 50 = 100), the
+phase labels, figures and blank grids, KaTeX, every key form and wrong answers, every numeric key recomputed in JS and
+the records.
+
 ## Copyright
 
 Harno past papers may be used for practice; commercial use needs Harno's written permission. **Every task in
-`lai12.js` is our own.** The 2026 lai marking scheme and correspondence table were used only to fix the format, the
+`lai12.js` and `lai12mocks.js` is our own.** The 2026 lai marking scheme and correspondence table were used only to fix the format, the
 points and the task types.
 
 ## Sources
@@ -129,5 +159,5 @@ records sit under Matemaatika with the lai plan.
 
 ## Publishing
 
-Nothing is published by this PR. A create-only script (owner's yes) writes the 20 records and their 60 sheets and never
+Nothing is published by this PR. A create-only script (owner's yes) writes the 23 records and their 69 sheets and never
 overwrites an existing record.

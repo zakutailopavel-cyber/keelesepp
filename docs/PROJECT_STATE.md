@@ -1,3 +1,33 @@
+## 2026-11-16 · agent/math-lai-mocks — Matemaatika lai: three mock exams (ml12-021…023) · content + small wiring, no rules / functions / data change
+
+- Base: stacked on #1253 (`agent/math-lai-exam`, cb5c0e8, still open); `origin/main` 94d497e checked 2026-11-16. Draft PR.
+- Done:
+  - new `math/lai12mocks.js` `LAI_12_MOCKS`: three full 2027-format papers (I osa 4 × 5 + 3 × 10 p, II osa 5 × 10 p =
+    100 p) on the lai task positions 1–12 (probability, system, simplification, inequality, function investigation,
+    sequences, triangle, trig in radians, tangent and area, analytic geometry, logs / models, stereometry), varied per
+    mock; exp/log/trig derivatives, integrals, volumes of revolution, sections. Every task is our own; every part has
+    points, a key where one exists and a LaTeX solution; task 7 and 12 have `geofigure` figures, drawing tasks blank grids;
+  - `lai12.js`: `mocks: LAI_12_MOCKS`, `formulaSheet` (Estonian name of the lai sheet);
+  - `math/sheets.js` (additive): a mock task's `figure` → `geofigure` block before the task; the exam rules line uses
+    `program.formulaSheet` (kitsas text unchanged);
+  - `mathCurriculum.js` (additive): the mock plan uses `program.track`, `program.formulaSheetRu` and the program's own
+    lesson range (kitsas text unchanged); `MATH_VERSION` not bumped;
+  - `lai12.test.js`: topic-lesson checks skip the mocks; new `lai12mocks.test.js`;
+  - docs: `docs/MATH_RIIGIEKSAM_LAI.md` „Mock exams” table.
+- Checks:
+  - `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum`
+    → 181 files passed (1 skipped), 1998 tests passed (12 skipped);
+  - `lai12mocks.test.js`: points per task and 50 + 50 = 100, phase labels, lai formula-sheet line, figures and blank
+    grids (stepY > 0), KaTeX on every formula, every key form accepted and wrong answers rejected, every numeric key
+    recomputed in JS, records („Proovieksam”, check, Russian lai plan); kitsas mock plan unchanged;
+  - `npx eslint` on the changed files is clean;
+  - sheet lab (`/sheet-lab.html?set=course:ml12-021:discover`, `ml12-023:practice`): figures, grids and formulas render,
+    no KaTeX errors.
+- Limits: nothing is published (23 lai records + 69 sheets need the create-only script with the owner's yes); the
+  figure of task 7 can fall on the next printed page after its task (same pagination as the lessons); the kitsas and
+  grade-11 work in parallel touches `sheets.js` / `mathCurriculum.js` — edits here are small and additive.
+- Next safe step: merge #1253 first, then rebase this PR on `main` and mark it ready after the owner's look.
+
 ## 2026-11-16 · agent/math-lai-exam — Matemaatika lai riigieksam (ml12, 20 lessons) · content + wiring, no rules / functions / data change
 
 - Base: `origin/main` 4c7bc7b (#1251, geofigure block), checked 2026-11-16. The PR is a draft.
