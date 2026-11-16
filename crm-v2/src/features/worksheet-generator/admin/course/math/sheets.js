@@ -11,6 +11,7 @@
 // opens it with set=course:mk12-001:practice.
 import { KITSAS_12 } from './kitsas12.js';
 import { KITSAS_10 } from './kitsas10.js';
+import { KITSAS_11 } from './kitsas11.js';
 import { LAI_12 } from './lai12.js';
 
 const pad = (n) => String(n).padStart(3, '0');
@@ -146,7 +147,7 @@ function moduleOf(program) {
   };
 }
 
-// every math program; mathCurriculum.js makes the library records of each (kitsas10.js: grade 10, kitsas12.js: exam prep,
-// lai12.js: lai exam prep)
-export const MATH_PROGRAMS = [KITSAS_12, KITSAS_10, LAI_12];
+// every math program; mathCurriculum.js makes the library records of each (kitsas10.js: grade 10, kitsas11.js: grade 11,
+// kitsas12.js: exam prep, lai12.js: lai exam prep)
+export const MATH_PROGRAMS = [KITSAS_12, KITSAS_10, KITSAS_11, LAI_12];
 export const MATH_MODULES = MATH_PROGRAMS.map(moduleOf);

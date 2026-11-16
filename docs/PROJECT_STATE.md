@@ -1,3 +1,23 @@
+## 2026-11-16 · agent/math-kitsas-11 — Matemaatika kitsas 11. klass (mk11, 26 lessons, courses IV–VI) · content + wiring, no rules / functions / data change
+
+- Base: `origin/main` 4c7bc7b (#1251), checked 2026-11-16. Draft PR, not merged. Open in parallel: #1253 (lai exam,
+  also adds to `MATH_PROGRAMS`) and #1254 (graph stepY hotfix) — a conflict in `sheets.js` is one line, keep both programs.
+- Done:
+  - `math/kitsas11.js` `KITSAS_11` (id `mk11`, level „11. klass matemaatika kitsas”, sheet level „Kitsas 11”, 90 min,
+    sheet 3 „3 Kontrollülesanne”): 26 lessons `mk11-001…026`; IV „Tõenäosus ja statistika” 8 + test, V „Funktsioonid”
+    7 + test, VI „Jadad. Funktsiooni tuletis” 8 + test; tests are 25 p „Kordamine ja kontrolltöö” lessons;
+  - every lesson: theory with formulas, Russian hint, worked example (18 with a graph), 4 practice tasks with keys and
+    LaTeX solutions, a larger task (5 or 10 p; 9 with a blank grid). All tasks our own; every graph has a positive `stepY`;
+  - `math/sheets.js`: `MATH_PROGRAMS = [KITSAS_12, KITSAS_10, KITSAS_11]` (additive; `mathCurriculum.js` unchanged and
+    makes the mk11 records by itself);
+  - `math/kitsas11.test.js` (12 tests): shape, ids, points and test rhythm, every key form accepted and wrong answers
+    rejected, KaTeX, graph formulas, positive steps, all decimal keys recomputed, library records under Matemaatika;
+  - `docs/MATH_KITSAS_10_12.md`: mk11 lesson table and choices.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum
+  src/features/library --maxWorkers=3` → 184 files, 2042 passed, 12 skipped; eslint on the changed files clean.
+- Limits: no visual look at the sheets in the browser; `MATH_VERSION` not bumped (new records only). Nothing is in
+  production; publishing is a create-only script from a clean `origin/main`, only with the owner's yes.
+- Next safe step: owner OK → merge; then publish the mk11 records create-only.
 ## 2026-11-16 · agent/math-lai-mocks — Matemaatika lai: three mock exams (ml12-021…023) · content + small wiring, no rules / functions / data change
 
 - Base: stacked on #1253 (`agent/math-lai-exam`, cb5c0e8, still open); `origin/main` 94d497e checked 2026-11-16. Draft PR.
