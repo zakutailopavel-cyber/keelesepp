@@ -43,7 +43,38 @@ The lessons are `mk12-001…014`, written in `crm-v2/src/features/worksheet-gene
 | 13 | Ruumilised kehad | VIII | 10 p |
 | 14 | Tekstülesanded võrrandi ja süsteemiga | I | 10 p |
 
-Next come three mock exams (`mk12-015…017`) in the full 2027 format: Part I = 4×5 p + 3×10 p, Part II = 5×10 p.
+## Mock exams (`mk12-015…017`)
+
+Three full papers in the 2027 format, written in `math/kitsas12mocks.js` (`KITSAS_12.mocks`). All tasks are our own,
+with realistic contexts; every part has a key (forms with `|`, several answers with `;`) and a worked solution.
+
+- **Sheets** (per-lesson phase labels `MOCK_PHASES`; `buildCourseSheet` reads `lesson.phases` before `MODULE.phases`):
+  - discover „1 I osa (120 min)”: an „Eksami juhend” tip and tasks 1–7 of 5, 5, 5, 5, 10, 10, 10 p;
+  - practice „2 II osa (150 min)”: the tip and tasks 8–12 of 10 p each;
+  - transfer „3 Eneseanalüüs”: „Minu punktid” (topic and points of every task, total /100), „Hindamine” with school
+    grade bands that are **only an orientation** (the riigieksam gives 0–100 points, pass ≥ 1 p), and „Kontrolli end”.
+- A task is `{ topic, context, parts, grid? }`. The title on the sheet is „N. ülesanne (P punkti)”; the topic is shown
+  only on the analysis sheet. A drawing part has a blank `graph` grid right after its task.
+- **Records** (`mathCurriculum.js`): `roadmapKind: 'check'`, tag and type „Proovieksam”, contactMinutes 270, Russian
+  plan with timing (120 + 45 + 150 min, or the two parts on two lessons), exam rules and scoring by steps.
+
+| # | Proovieksam 1 (mk12-015) | Proovieksam 2 (mk12-016) | Proovieksam 3 (mk12-017) |
+|---|---|---|---|
+| 1 (5 p) | lihtsustamine | lihtsustamine + astmed | lihtsustamine + astmed |
+| 2 (5 p) | protsendid | võrratused | log- ja juurvõrrand |
+| 3 (5 p) | eksponent- ja log-võrrand | protsendid + eksponentvõrrand | protsendid |
+| 4 (5 p) | tõenäosus | statistika | statistika + tõenäosus |
+| 5 (10 p) | võrratus + juurvõrrand | võrrandisüsteem (tekst) | vektorid ja sirge |
+| 6 (10 p) | vektorid ja sirge | sin/cos graafik kraadides | võrrand (tekst) |
+| 7 (10 p) | aritmeetiline jada | vektorid ja sirge | aritm. + geom. jada |
+| 8 (10 p) | sin/cos graafik | geomeetriline jada | sin/cos (vaateratas) |
+| 9 (10 p) | kolmnurk (cos- ja sin-teoreem) | kolmnurk (cos-teoreem) | kolmnurk (siinusteoreem) |
+| 10 (10 p) | kuupfunktsioon + puutuja | kuupfunktsioon + puutuja | kuupfunktsioon + paralleelsed puutujad |
+| 11 (10 p) | parabool + pindala | parabool + pindala | parabool + pindala |
+| 12 (10 p) | silinder | püramiid | koonus (trigonomeetriaga) |
+
+`math.test.js` checks the points per task (sum 100), the phase labels, the grids, recomputes the numeric keys, renders
+every formula with KaTeX and checks that every key form is accepted and a wrong answer rejected.
 
 ## Sheet contract (`math/sheets.js`)
 

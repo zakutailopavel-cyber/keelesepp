@@ -6,6 +6,8 @@
 // Text is Markdown + $…$ formulas (KaTeX, engine/math.jsx); r`…` keeps the backslashes of LaTeX.
 // A part: [text, points, answer, solution, rows?] — answer '' means the teacher judges it (a drawing, an explanation);
 // several right forms are separated by |, several answers by ; (engine/mathExpr.js sameMathAnswer).
+import { KITSAS_12_MOCKS } from './kitsas12mocks.js';
+
 const r = String.raw;
 
 export const KITSAS_12 = {
@@ -16,6 +18,8 @@ export const KITSAS_12 = {
   sheetLevel: 'Kitsas',
   minutes: 90,
   goal: 'Õpilane lahendab kitsa matemaatika riigieksami kõiki ülesandetüüpe ja kirjutab lahenduse samm-sammult.',
+  // three full mock exams after the topic lessons (mk12-015…017, kitsas12mocks.js)
+  mocks: KITSAS_12_MOCKS,
   lessons: [
     {
       title: 'Avaldiste lihtsustamine',

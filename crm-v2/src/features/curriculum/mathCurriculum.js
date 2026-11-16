@@ -3,7 +3,7 @@
 // teacher's plan in Russian (the owner's working language), the sheets are Estonian.
 import { KITSAS_12 } from '../worksheet-generator/admin/course/math/kitsas12.js';
 
-export const MATH_VERSION = '2026-11-16.1';
+export const MATH_VERSION = '2026-11-16.2';
 const pad = (n) => String(n).padStart(3, '0');
 const pointsOf = (task) => task.parts.reduce((sum, [, points]) => sum + Number(points || 0), 0);
 
@@ -27,15 +27,47 @@ function examPlan(program, lesson, n) {
   ].join('\n');
 }
 
+// a mock exam (kitsas12mocks.js): the whole paper in exam conditions, then the analysis
+const MOCK_PART1_MINUTES = 120;
+const MOCK_PART2_MINUTES = 150;
+const MOCK_BREAK_MINUTES = 45;
+function mockPlan(program, mock, n, k) {
+  const tasks = [...mock.part1, ...mock.part2];
+  const p1 = mock.part1.reduce((sum, task) => sum + pointsOf(task), 0);
+  const p2 = mock.part2.reduce((sum, task) => sum + pointsOf(task), 0);
+  return [
+    `Курс: ${program.title} — пробный экзамен ${k} из ${program.mocks.length} (занятие ${n}), полный формат госэкзамена kitsas 2027.`,
+    `Цель: ${mock.can}`,
+    `Формат: I osa — ${MOCK_PART1_MINUTES} мин, задачи 1–${mock.part1.length} (${p1} баллов: 4 × 5 + 3 × 10); перерыв ${MOCK_BREAK_MINUTES} мин; II osa — ${MOCK_PART2_MINUTES} мин, задачи ${mock.part1.length + 1}–${tasks.length} (${p2} баллов: 5 × 10). Всего ${p1 + p2} баллов.`,
+    `Темы: ${tasks.map((task, i) => `${i + 1}) ${task.topic} — ${pointsOf(task)} б.`).join('; ')}.`,
+    'Материалы: лист 1 «I osa», лист 2 «II osa», лист 3 «Eneseanalüüs»; простой калькулятор (без графиков и памяти), ручка, лист формул kitsas (только тригонометрия и таблица производных). Телефоны сданы.',
+    '',
+    'Ход:',
+    `1. Перед стартом (5 мин): правила как на экзамене — пишем полный ход решения, ответы с единицами, округляем в конце; учитель засекает ${MOCK_PART1_MINUTES} мин.`,
+    `2. I osa (${MOCK_PART1_MINUTES} мин) — без подсказок. Если занятие короче, I osa — на одном занятии (или дома с таймером), II osa (${MOCK_PART2_MINUTES} мин) — на следующем; не делить одну часть на куски.`,
+    `3. II osa (${MOCK_PART2_MINUTES} мин) — после перерыва ${MOCK_BREAK_MINUTES} мин или на отдельном занятии, тоже без подсказок.`,
+    '4. Проверка по шагам: в ключе у каждой части есть баллы и решение; балл ставится за каждый верный шаг, ответ без решения — как правило, лишь часть баллов; верный ход с вычислительной ошибкой — баллы за верные шаги. Чертежи и объяснения (часть без ответа в ключе) оценивает учитель.',
+    '5. Разбор (следующее занятие, 45–90 мин): лист 3 — ученик вносит баллы по задачам, отмечает 2 самые слабые темы; повторяем их по урокам mk12-001…014.',
+    '',
+    'Оценки на листе 3 — только ориентир (школьная шкала); на самом госэкзамене результат — баллы 0–100, сдан при ≥ 1 балле.',
+  ].join('\n');
+}
+
 export function mathCurriculumRecords() {
-  return [KITSAS_12].flatMap((program) => program.lessons.map((lesson, index) => {
+  return [KITSAS_12].flatMap((program) => [
+    ...program.lessons.map((lesson, index) => ({ lesson, index, mock: false })),
+    ...(program.mocks || []).map((lesson, k) => ({ lesson, index: program.lessons.length + k, mock: true, k: k + 1 })),
+  ].map(({ lesson, index, mock, k }) => {
     const number = index + 1;
     const id = `${program.id}-${pad(number)}`;
+    const kind = mock
+      ? { roadmapKind: 'check', roadmapTag: 'Proovieksam', lessonTypeLabel: 'Proovieksam', languageFocus: 'Proovieksam: I osa 120 min (4 × 5 p + 3 × 10 p), II osa 150 min (5 × 10 p), kokku 100 p.', contactMinutes: MOCK_PART1_MINUTES + MOCK_PART2_MINUTES }
+      : { roadmapKind: 'theme', roadmapTag: 'Teema', lessonTypeLabel: 'Teema', languageFocus: `Kursus ${lesson.course}: ${lesson.exam}`, contactMinutes: program.minutes };
     return {
       id,
       type: 'lesson',
       title: lesson.title,
-      description: examPlan(program, lesson, number),
+      description: mock ? mockPlan(program, lesson, number, k) : examPlan(program, lesson, number),
       descriptionSource: 'lesson-plan-v1',
       subject: 'Matemaatika',
       level: program.level,
@@ -50,12 +82,8 @@ export function mathCurriculumRecords() {
       roadmapModuleNumber: 1,
       roadmapModuleTitle: program.title,
       roadmapModuleGoal: program.goal,
-      roadmapKind: 'theme',
-      roadmapTag: 'Teema',
-      lessonTypeLabel: 'Teema',
       goal: lesson.can,
-      languageFocus: `Kursus ${lesson.course}: ${lesson.exam}`,
-      contactMinutes: program.minutes,
+      ...kind,
       roadmapVersion: MATH_VERSION,
       roadmapManaged: true,
     };
