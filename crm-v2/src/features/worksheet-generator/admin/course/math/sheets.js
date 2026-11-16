@@ -1,4 +1,4 @@
-// The mathematics course as course modules (owner 2026-11-16): every lesson of math/kitsas12.js (and kitsas10.js)
+// The mathematics course as course modules (owner 2026-11-16): every lesson of math/kitsas12.js (and kitsas10.js, lai12.js)
 // becomes three sheets
 //   discover „1 Teooria ja näited” — formulas to know, a short Russian hint, a worked example (with a graph);
 //   practice „2 Harjutame” — scored tasks (block „Matemaatika ülesanne”): a final answer per part, the worked solution
@@ -11,6 +11,7 @@
 // opens it with set=course:mk12-001:practice.
 import { KITSAS_12 } from './kitsas12.js';
 import { KITSAS_10 } from './kitsas10.js';
+import { LAI_12 } from './lai12.js';
 
 const pad = (n) => String(n).padStart(3, '0');
 const block = (id, type, tone, goal, data, width = 'full') => ({ id, type, width, span: width === 'full' ? 12 : 6, tone, goal, data });
@@ -45,22 +46,30 @@ const mathtask = (id, task, goal) => block(id, 'mathtask', 'white', goal, {
   answerLine: true,
 });
 const graph = (id, g, goal = 'g_theory', width = 'full') => block(id, 'graph', 'white', goal, {
-  caption: '', fns: '', points: '', segments: '', shade: '', step: 1, stepY: 0, labelEvery: 1, angle: 'rad', blank: false, ...g,
+  caption: '', fns: '', points: '', segments: '', shade: '', step: 1, labelEvery: 1, angle: 'rad', blank: false, ...g,
+  // the y step defaults to the x step: a stored 0 made the engine draw a line every 0.01 (a grey band of ticks)
+  stepY: g.stepY || g.step || 1,
 }, width);
+// a „Geomeetriline joonis” (geofigure): the exam-style triangle or solid of a lesson (lai12.js)
+const figure = (id, f, goal = 'g_theory', width = 'half') => block(id, 'geofigure', 'white', goal, { caption: '', ...f }, width);
 
 function lessonSheets(program, lesson, index) {
   const id = mathLessonId(program, index);
   const ex = lesson.example;
+  const visual = ex.graph || ex.figure;
   const discover = [
-    block(`${id}_d_theory`, 'notice', 'white', 'g_theory', { title: 'Valemid ja reeglid', lines: lesson.theory.join('\n') }, ex.graph ? 'full' : 'half'),
-    block(`${id}_d_ru`, 'tip', 'white', '', { title: 'Подсказка по-русски', text: lesson.ru_hint.join('\n') }, ex.graph ? 'full' : 'half'),
-    block(`${id}_d_example`, 'notice', 'white', 'g_skill', { title: 'Lahendatud näide', lines: [`Ülesanne: ${ex.task}`, ...ex.steps].join('\n') }, ex.graph ? 'half' : 'full'),
+    block(`${id}_d_theory`, 'notice', 'white', 'g_theory', { title: 'Valemid ja reeglid', lines: lesson.theory.join('\n') }, visual ? 'full' : 'half'),
+    block(`${id}_d_ru`, 'tip', 'white', '', { title: 'Подсказка по-русски', text: lesson.ru_hint.join('\n') }, visual ? 'full' : 'half'),
+    block(`${id}_d_example`, 'notice', 'white', 'g_skill', { title: 'Lahendatud näide', lines: [`Ülesanne: ${ex.task}`, ...ex.steps].join('\n') }, visual ? 'half' : 'full'),
     ...(ex.graph ? [graph(`${id}_d_graph`, ex.graph, 'g_skill', 'half')] : []),
+    ...(ex.figure ? [figure(`${id}_d_figure`, ex.figure, 'g_skill')] : []),
     block(`${id}_d_exam`, 'tip', 'white', '', { title: 'Riigieksamil', text: `${lesson.exam}\nKursus: ${lesson.course}.` }),
   ];
   const practice = lesson.practice.map((task, k) => mathtask(`${id}_p_${k + 1}`, task, 'g_skill'));
   const t = lesson.examTask;
   const transfer = [
+    // the exam's figure comes first, like on the paper (the task refers to it)
+    ...(t.figure ? [figure(`${id}_t_figure`, t.figure, 'g_exam', 'full')] : []),
     mathtask(`${id}_t_exam`, { ...t, instruction: 'Kirjuta kogu lahenduskäik: punkte saab iga õige sammu eest.' }, 'g_exam'),
     ...(t.grid ? [graph(`${id}_t_grid`, { ...t.grid, caption: 'Joonesta siia.' }, 'g_exam', 'half')] : []),
     block(`${id}_t_self`, 'selfcheck', 'sky', '', { title: 'Kontrolli end.', titleMore: 'Kas ma oskan?', instruction: 'Märgi, mida juba oskad.', items: lesson.self.join('\n'), stamp: 'Tubli töö!' }, t.grid ? 'half' : 'full'),
@@ -134,6 +143,7 @@ function moduleOf(program) {
   };
 }
 
-// every math program; mathCurriculum.js makes the library records of each (kitsas10.js: grade 10, kitsas12.js: exam prep)
-export const MATH_PROGRAMS = [KITSAS_12, KITSAS_10];
+// every math program; mathCurriculum.js makes the library records of each (kitsas10.js: grade 10, kitsas12.js: exam prep,
+// lai12.js: lai exam prep)
+export const MATH_PROGRAMS = [KITSAS_12, KITSAS_10, LAI_12];
 export const MATH_MODULES = MATH_PROGRAMS.map(moduleOf);

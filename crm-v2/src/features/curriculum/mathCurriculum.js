@@ -1,5 +1,5 @@
 // Õppevara records of the mathematics course (math/sheets.js, owner 2026-11-16): one record per lesson of every program
-// in MATH_PROGRAMS (mk12 exam prep, mk10 grade 10). A level with „matemaatika” („12. klass matemaatika kitsas”,
+// in MATH_PROGRAMS (mk12 kitsas exam prep, mk10 grade 10, ml12 lai exam prep: program.track and formulaSheetRu). A level with „matemaatika” („12. klass matemaatika kitsas”,
 // „10. klass matemaatika kitsas”) puts them under Õppevara → Matemaatika (library/libraryModel.js subjectOfLevel).
 // The description is the teacher's plan in Russian (the owner's working language), the sheets are Estonian.
 import { MATH_PROGRAMS } from '../worksheet-generator/admin/course/math/sheets.js';
@@ -10,11 +10,11 @@ const pointsOf = (task) => task.parts.reduce((sum, [, points]) => sum + Number(p
 
 function examPlan(program, lesson, n) {
   return [
-    `Курс: ${program.title} — подготовка к государственному экзамену по математике (kitsas), занятие ${program.minutes} минут.`,
+    `Курс: ${program.title} — подготовка к государственному экзамену по математике (${program.track || 'kitsas'}), занятие ${program.minutes} минут.`,
     `Тема ${n} из ${program.lessons.length}: ${lesson.title} (${lesson.ru}). Курс программы: ${lesson.course}.`,
     `Цель: ${lesson.can}`,
     `На экзамене: ${lesson.exam}`,
-    'Материалы: лист 1 «Teooria ja näited», лист 2 «Harjutame», лист 3 «Eksamiülesanne»; простой калькулятор (без графиков и памяти), ручка; лист формул kitsas (на нём только тригонометрия и таблица производных).',
+    `Материалы: лист 1 «Teooria ja näited», лист 2 «Harjutame», лист 3 «Eksamiülesanne»; простой калькулятор (без графиков и памяти), ручка; ${program.formulaSheetRu || 'лист формул kitsas (на нём только тригонометрия и таблица производных)'}.`,
     '',
     `Ход занятия (${program.minutes} мин):`,
     '1. Разминка (10 мин): 2–3 устных вопроса по прошлой теме; проверка домашнего задания.',
