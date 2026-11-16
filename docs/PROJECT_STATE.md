@@ -22,7 +22,8 @@
   - Docs: `docs/COURSE_DESIGN_STATIONS.md` §7 „v4 — task-based (TBLT)” (rules, format menu, learner-first checklist,
     characters), `docs/COURSE_CAST.md` (cast = occasional colour), owner summary `docs/review/b2-m01-tasks.md` (Russian).
 - Checks: course report b1b2-module-01 5/5 READY; language check (EstNLTK 1.7.5) 0 unknown lower-case words;
-  `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` green (see the PR for the count); eslint
+  `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` → 174 files passed (1 skipped),
+  2000 tests passed (12 skipped); curriculum, library, self-study, vocabulary, students → 75 files, 456 tests passed; eslint
   clean on the changed files; sheets 001–005 looked at in the sheet lab (local vite).
 - Limits: `b2/module05.js` 023_d_review still asks about the old team-day choice of module 1 (another module, not
   touched); in 003 Kasuta the debate card block moves to page 2 (normal pagination). Nothing published.
