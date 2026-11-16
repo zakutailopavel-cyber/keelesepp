@@ -18,6 +18,7 @@ export const EXPECTED = [
   'dialogue', 'reading', 'listening', 'table', 'categorize', 'wordorder', 'writing', 'wordforms', 'errorfix',
   'transformation', 'dictation', 'translation', 'crossword', 'planning', 'guidedletter', 'rubric', 'diagram',
   'adsmatch', 'examlisten', 'examwriting', 'examrubric', 'coloring', 'counting', 'letterhunt', 'video',
+  'mathtask',
 ];
 
 export const doc = (blocks) => ({ ...sampleDocument(), blocks });
@@ -85,6 +86,7 @@ export const CASES = {
     right: () => ({ 0: '2', 1: '1', 2: '3' }),
   },
   clock: { right: () => ({ 0: 'Kell on seitse.', 1: 'pool üheksa', 2: '12.00' }) },
+  mathtask: { right: () => ({ p0: 'x = 3; x = 1', p1: '(2; -1)' }) },
   cloze: {
     drive: (card, block, { wrong = false } = {}) => {
       [...card().querySelectorAll('select.ws-cloze-sel')].forEach((sel, gi) => {

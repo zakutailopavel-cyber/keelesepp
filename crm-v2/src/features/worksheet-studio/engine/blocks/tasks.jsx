@@ -109,7 +109,7 @@ export const choice = {
                 const toggle = () => ctx.set(key, multi ? (on ? cur.filter((x) => x !== oi) : [...cur, oi]) : oi);
                 return (
                   <button type="button" key={oi} className={`ws-opt ${on ? 'on' : ''} ${ctx.state(key) && on ? 'is-' + ctx.state(key) : ''}`} disabled={!ctx.interactive} onClick={toggle}>
-                    <span className={multi ? 'ws-box' : 'ws-dot'} />{opt.text}
+                    <span className={multi ? 'ws-box' : 'ws-dot'} /><Md text={opt.text} />
                   </button>
                 );
               })}
