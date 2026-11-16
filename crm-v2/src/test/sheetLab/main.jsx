@@ -8,6 +8,7 @@ import { RoomWorksheetContent } from '../../features/worksheet-studio/RoomWorksh
 import { sampleDocument } from '../../features/worksheet-studio/engine/sample.js';
 import { convertLegacyWorksheet } from '../../features/worksheet-studio/engine/legacy.js';
 import { catalogueBlocks } from './catalogue.js';
+import { mathBlocks } from './mathSample.js';
 import { overlayFiles, legacyWorksheetData, personalDoc } from './samples.js';
 import '../../styles/index.css';
 
@@ -20,6 +21,7 @@ const user = { uid: 'lab-student', displayName: 'Mari Lab', roles: ['student'] }
 async function loadDoc(set) {
   if (set === 'catalogue') return { ...sampleDocument(), id: 'lab-catalogue', blocks: catalogueBlocks() };
   if (set === 'sample') return sampleDocument();
+  if (set === 'math') return { ...sampleDocument(), id: 'lab-math', meta: { ...sampleDocument().meta, title: 'Matemaatika: ruutfunktsioon' }, blocks: mathBlocks() };
   if (set === 'personal') return personalDoc();
   if (set === 'legacy-converted') return convertLegacyWorksheet(legacyWorksheetData(), { title: 'Vana tööleht', level: 'A2' });
   // course:<lessonId>:<phase>[:v3]: a real course sheet; v3: the archived template v3 file, the copy old assignments hold

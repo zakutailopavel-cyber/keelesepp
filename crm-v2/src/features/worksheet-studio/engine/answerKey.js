@@ -17,6 +17,8 @@ const perGap = (answers, source) => answers.map(({ key, accept }) => ({ prompt: 
 function itemsOf(block) {
   const d = block.data || {};
   const def = BLOCKS[block.type];
+  // a block that lists its own key items (math task: prompt, answer and the worked solution per part)
+  if (typeof def?.keyItems === 'function') return def.keyItems(d, block);
   switch (block.type) {
     case 'gaps': {
       const byLine = new Map();
@@ -73,7 +75,7 @@ function itemsOf(block) {
 // partner (docs/METHODOLOGY_STANDARD.md §3); course files: teach(block, note)
 function taskKey(b, num) {
   const why = lines(b.data?.explain);
-  const items = itemsOf(b).filter((it) => it.answer || it.prompt).map((it, i) => ({ n: i + 1, ...it, why: why[i] || '' }));
+  const items = itemsOf(b).filter((it) => it.answer || it.prompt).map((it, i) => ({ n: i + 1, ...it, why: why[i] || it.why || '' }));
   // the listening script: always in the teacher's key; the learner sees it only after checking (transcript.js)
   const transcript = String(b.data?.transcript || '').trim();
   return { id: b.id, num, type: b.type, title: b.data?.title || BLOCKS[b.type]?.label || b.type, instruction: b.data?.instruction || '', note: String(b.data?.teacher || '').trim(), transcript, items };

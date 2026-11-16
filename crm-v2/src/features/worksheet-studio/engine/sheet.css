@@ -1177,3 +1177,31 @@ button.ws-pt { cursor: pointer; }
 .ws-free-end.is-end { left: 100%; }
 @media (pointer: coarse) { .ws-free-end { width: calc(44px / var(--st-scale, 1)); height: calc(44px / var(--st-scale, 1)); margin: calc(-22px / var(--st-scale, 1)) 0 0 calc(-22px / var(--st-scale, 1)); } }
 @media print { .ws-free-end { display: none !important; } }
+
+/* formulas (math.jsx, KaTeX): inline ones follow the text size; $$…$$ sits on its own centred line */
+.ws-math .katex { font-size: 1.08em; }
+.ws-math--display { display: block; margin: 6px 0; text-align: center; overflow-x: auto; overflow-y: hidden; }
+.ws-math--display .katex-display { margin: 0; }
+
+/* „Matemaatika ülesanne” (blocks/math.jsx): exam-booklet look — parts with points, squared paper for the solution */
+.ws-mathtask { position: relative; }
+.ws-math-total { position: absolute; top: -2px; right: 0; font-weight: 800; color: #0b2a4f; border: 1.5px solid #0b2a4f; border-radius: 6px; padding: 0 6px; font-size: 0.9em; }
+.ws-math-context { margin: 0 0 6px; padding-right: 48px; }
+.ws-math-parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ws-math-q { display: flex; gap: 6px; align-items: baseline; }
+.ws-math-letter { color: #267743; min-width: 1.6em; }
+.ws-math-text { flex: 1; }
+.ws-math-pts { color: #5b6b7b; font-size: 0.9em; white-space: nowrap; }
+.ws-math-space { margin: 4px 0 2px; border: 1px solid #c9d3dc; border-radius: 4px; }
+.ws-math-space--grid { background-image: linear-gradient(#e3e9ee 1px, transparent 1px), linear-gradient(90deg, #e3e9ee 1px, transparent 1px); background-size: 5mm 5mm; }
+.ws-math-space--lines { background-image: linear-gradient(transparent calc(7.5mm - 1px), #c9d3dc 1px); background-size: 100% 7.5mm; border: 0; }
+.ws-math-answer { display: flex; gap: 8px; align-items: baseline; font-weight: 700; }
+@media print { .ws-math-space--grid, .ws-math-space--lines { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+
+/* „Koordinaattasand” */
+.ws-graph { margin: 0; }
+.ws-graph-svg { width: 100%; height: auto; display: block; }
+.ws-graph-tick { font-size: 9px; fill: #5b6b7b; font-family: Nunito, sans-serif; }
+.ws-graph-axis { font-size: 11px; font-style: italic; fill: #0b2a4f; font-family: Georgia, serif; }
+.ws-graph-label { font-size: 11px; font-weight: 800; fill: #0b2a4f; font-family: Nunito, sans-serif; }
+.ws-graph figcaption { text-align: center; font-size: 0.92em; color: #5b6b7b; margin-top: 2px; }

@@ -13,6 +13,7 @@ export const MARK_TOKEN = new RegExp(`(\\{\\{[^{}]+\\}\\}|\\{(?:${COLOR_NAMES})\
 // the visible text without the markup (search, matching the sheet text to the data)
 export function stripMarks(text) {
   return String(text ?? '')
+    .replace(/\$\$([^$]+)\$\$|\$([^$\n]+)\$/g, (_, d, i) => d ?? i)
     .replace(new RegExp(`\\{(?:${COLOR_NAMES})\\}([\\s\\S]+?)\\{\\/(?:${COLOR_NAMES})\\}`, 'g'), '$1')
     .replace(/\*\*\*([^*]+)\*\*\*/g, '$1')
     .replace(/\*\*([^*]+)\*\*/g, '$1')

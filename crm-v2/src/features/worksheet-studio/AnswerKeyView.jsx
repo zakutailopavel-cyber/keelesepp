@@ -2,6 +2,7 @@
 // has it, why that answer is right (engine/answerKey.js), and how to run an open task (also one-to-one). Teachers only: the studio is not a student page.
 import { answerKeyOf } from './engine/answerKey.js';
 import { TranscriptText } from './engine/ListenTranscript.jsx';
+import { Md } from './engine/ui.jsx';
 
 export default function AnswerKeyView({ doc }) {
   const tasks = answerKeyOf(doc);
@@ -24,9 +25,9 @@ export default function AnswerKeyView({ doc }) {
           {task.items.length ? <ol>
             {task.items.map((it) => (
               <li key={it.n}>
-                {it.prompt ? <span className="ws-key-prompt">{it.prompt}</span> : null}
-                <span className="ws-key-answer">{it.answer || '—'}</span>
-                {it.why ? <span className="ws-key-why">{it.why}</span> : null}
+                {it.prompt ? <span className="ws-key-prompt"><Md text={it.prompt} /></span> : null}
+                <span className="ws-key-answer">{it.answer ? <Md text={it.answer} /> : '—'}</span>
+                {it.why ? <span className="ws-key-why"><Md text={it.why} /></span> : null}
               </li>
             ))}
           </ol> : null}
