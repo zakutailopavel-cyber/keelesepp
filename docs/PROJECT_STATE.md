@@ -18,6 +18,78 @@
 - Limits: no visual look at the sheets in the browser; `MATH_VERSION` not bumped (new records only). Nothing is in
   production; publishing is a create-only script from a clean `origin/main`, only with the owner's yes.
 - Next safe step: owner OK → merge; then publish the mk11 records create-only.
+## 2026-11-16 · agent/math-lai-mocks — Matemaatika lai: three mock exams (ml12-021…023) · content + small wiring, no rules / functions / data change
+
+- Base: stacked on #1253 (`agent/math-lai-exam`, cb5c0e8, still open); `origin/main` 94d497e checked 2026-11-16. Draft PR.
+- Done:
+  - new `math/lai12mocks.js` `LAI_12_MOCKS`: three full 2027-format papers (I osa 4 × 5 + 3 × 10 p, II osa 5 × 10 p =
+    100 p) on the lai task positions 1–12 (probability, system, simplification, inequality, function investigation,
+    sequences, triangle, trig in radians, tangent and area, analytic geometry, logs / models, stereometry), varied per
+    mock; exp/log/trig derivatives, integrals, volumes of revolution, sections. Every task is our own; every part has
+    points, a key where one exists and a LaTeX solution; task 7 and 12 have `geofigure` figures, drawing tasks blank grids;
+  - `lai12.js`: `mocks: LAI_12_MOCKS`, `formulaSheet` (Estonian name of the lai sheet);
+  - `math/sheets.js` (additive): a mock task's `figure` → `geofigure` block before the task; the exam rules line uses
+    `program.formulaSheet` (kitsas text unchanged);
+  - `mathCurriculum.js` (additive): the mock plan uses `program.track`, `program.formulaSheetRu` and the program's own
+    lesson range (kitsas text unchanged); `MATH_VERSION` not bumped;
+  - `lai12.test.js`: topic-lesson checks skip the mocks; new `lai12mocks.test.js`;
+  - docs: `docs/MATH_RIIGIEKSAM_LAI.md` „Mock exams” table.
+- Checks:
+  - `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum`
+    → 181 files passed (1 skipped), 1998 tests passed (12 skipped);
+  - `lai12mocks.test.js`: points per task and 50 + 50 = 100, phase labels, lai formula-sheet line, figures and blank
+    grids (stepY > 0), KaTeX on every formula, every key form accepted and wrong answers rejected, every numeric key
+    recomputed in JS, records („Proovieksam”, check, Russian lai plan); kitsas mock plan unchanged;
+  - `npx eslint` on the changed files is clean;
+  - sheet lab (`/sheet-lab.html?set=course:ml12-021:discover`, `ml12-023:practice`): figures, grids and formulas render,
+    no KaTeX errors.
+- Limits: nothing is published (23 lai records + 69 sheets need the create-only script with the owner's yes); the
+  figure of task 7 can fall on the next printed page after its task (same pagination as the lessons); the kitsas and
+  grade-11 work in parallel touches `sheets.js` / `mathCurriculum.js` — edits here are small and additive.
+- Next safe step: merge #1253 first, then rebase this PR on `main` and mark it ready after the owner's look.
+
+## 2026-11-16 · agent/math-lai-exam — Matemaatika lai riigieksam (ml12, 20 lessons) · content + wiring, no rules / functions / data change
+
+- Base: `origin/main` 4c7bc7b (#1251, geofigure block), checked 2026-11-16. The PR is a draft.
+- Done:
+  - `math/lai12.js` `LAI_12` (id `ml12`, level „12. klass matemaatika lai”, sheet level „Lai”, 90 min): 20 lessons
+    `ml12-001…020`, one per recurring lai task type (format from the 2027 spec, the 2026 lai marking scheme and the
+    2026 correspondence table). Each lesson has theory with every formula marked *valemilehel* or *pähe*, a Russian
+    hint that says what is on the lai formula sheet, a worked example (9 graphs, 2 geometry figures; 3 exam figures, 2 blank grids), 4 practice tasks
+    with keys and LaTeX solutions and one exam task: 5 p for tasks 1–4 (6 lessons), 10 p for tasks 5–12 (14 lessons).
+    `slots` name the exam tasks a lesson trains; all 12 are covered. Every task is our own;
+  - `math/sheets.js`: `MATH_PROGRAMS = [KITSAS_12, KITSAS_10, LAI_12]`; `example.figure` / `examTask.figure` →
+    `geofigure` blocks (exam figure full width before the task); `graph()` defaults `stepY` to `step` (a missing
+    `stepY` used to be stored as 0 → the engine drew a line every 0.01; kitsas graphs and blank grids get the fix);
+  - `mathCurriculum.js`: `program.track` and `program.formulaSheetRu` in the topic-lesson plan (kitsas text unchanged);
+  - docs: new `docs/MATH_RIIGIEKSAM_LAI.md` (format, 2026 paper by task, formula-sheet facts, course → task → lesson
+    table, sources, copyright).
+- Checks:
+  - `npx vitest run --maxWorkers=3 src/features/worksheet-generator src/features/worksheet-studio src/features/curriculum
+    src/features/library` → 183 files passed (1 skipped), 2040 tests passed;
+  - new `lai12.test.js`: three sheets per lesson, unique block ids across all math modules, exam points by slot and
+    slot coverage 1–12, theory marks, every key form accepted and wrong answers rejected, drawing parts with a blank grid,
+    figures, graph formulas, KaTeX on every formula, numeric keys recomputed in JS, records under Matemaatika;
+  - `npx eslint` on the changed files is clean;
+  - sheet lab (`/sheet-lab.html?set=course:ml12-0NN:<phase>`): lessons 10, 15, 16, 18, 19, 20 viewed.
+- Limits:
+  - nothing is published: the 20 records and 60 sheets need a create-only script with the owner's yes;
+  - only one lai paper (2026) was available as a format reference; the topic mix of other years is from the spec and
+    the course outcomes;
+  - the Estonian convention „kumer” = f'' < 0 follows the 2026 marking scheme.
+- Next safe step: owner OK → mark ready, merge + release; then the lai mock exams (`ml12-021…023`).
+## 2026-11-16 · agent/hotfix-graph-stepy — „Koordinaattasand”: a y-step of 0 drew a grey band · engine only, no rules / functions / data change
+
+- Base: `origin/main` after #1251, checked 2026-11-16. Found by the lai agent (#1253): `math/sheets.js` gave graphs `stepY: 0`, and the block drew a grid line every 0.01. This put a grey band over the blank answer grids and several graphs of the published mk12 sheets, which are assigned to a learner.
+- Done:
+  - `engine/blocks/math.jsx`: a step ≤ 0 now means the default (x: 1, y: the x step), so the published sheets render right without republishing;
+  - regression test in `blocks/math.test.jsx`;
+  - sheet-kit rebuilt.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio/engine/blocks/math.test.jsx src/features/worksheet-generator/admin/course/math` → 34 passed;
+  - the sheet lab mk12-007 transfer grid went from 412 lines to 24.
+- Next safe step: owner OK → merge + release.
+
 ## 2026-11-16 · agent/math-geometry-block — new block „Geomeetriline joonis” (geofigure) for the math course · UI + sheet kit, no rules / functions logic / data change
 
 - Base: `origin/main` 61c8c46 (#1249), checked 2026-11-16. Draft PR, not merged.

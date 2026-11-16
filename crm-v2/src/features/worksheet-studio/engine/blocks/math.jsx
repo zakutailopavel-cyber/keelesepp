@@ -141,8 +141,11 @@ export function curvePaths(f, box, sx, sy, steps = 400) {
 function GraphSvg({ data }) {
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const box = graphBox(data);
-  const step = Math.max(0.01, num(data.step, 1));
-  const stepY = Math.max(0.01, num(data.stepY, step));
+  // a step of 0 or less (an empty field saved as 0, course files with stepY: 0) means „the default”, never a line every
+  // 0.01 — that drew a grey band over published sheets (hotfix 2026-11-16)
+  const positive = (v, fallback) => { const n = num(v, fallback); return n > 0 ? Math.max(0.01, n) : fallback; };
+  const step = positive(data.step, 1);
+  const stepY = positive(data.stepY, step);
   // equal units on both axes (a circle stays round) unless that makes the plane too flat or too tall (degrees on x)
   const H = Math.round((W * (box.ymax - box.ymin) * (step / stepY)) / (box.xmax - box.xmin));
   const height = Math.min(Math.max(H, 140), 520);

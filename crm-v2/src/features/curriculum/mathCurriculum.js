@@ -1,5 +1,5 @@
 // Õppevara records of the mathematics course (math/sheets.js, owner 2026-11-16): one record per lesson of every program
-// in MATH_PROGRAMS (mk12 exam prep, mk10 grade 10). A level with „matemaatika” („12. klass matemaatika kitsas”,
+// in MATH_PROGRAMS (mk12 kitsas exam prep, mk10 grade 10, ml12 lai exam prep: program.track and formulaSheetRu). A level with „matemaatika” („12. klass matemaatika kitsas”,
 // „10. klass matemaatika kitsas”) puts them under Õppevara → Matemaatika (library/libraryModel.js subjectOfLevel).
 // The description is the teacher's plan in Russian (the owner's working language), the sheets are Estonian.
 import { MATH_PROGRAMS } from '../worksheet-generator/admin/course/math/sheets.js';
@@ -10,11 +10,11 @@ const pointsOf = (task) => task.parts.reduce((sum, [, points]) => sum + Number(p
 
 function examPlan(program, lesson, n) {
   return [
-    `Курс: ${program.title} — подготовка к государственному экзамену по математике (kitsas), занятие ${program.minutes} минут.`,
+    `Курс: ${program.title} — подготовка к государственному экзамену по математике (${program.track || 'kitsas'}), занятие ${program.minutes} минут.`,
     `Тема ${n} из ${program.lessons.length}: ${lesson.title} (${lesson.ru}). Курс программы: ${lesson.course}.`,
     `Цель: ${lesson.can}`,
     `На экзамене: ${lesson.exam}`,
-    'Материалы: лист 1 «Teooria ja näited», лист 2 «Harjutame», лист 3 «Eksamiülesanne»; простой калькулятор (без графиков и памяти), ручка; лист формул kitsas (на нём только тригонометрия и таблица производных).',
+    `Материалы: лист 1 «Teooria ja näited», лист 2 «Harjutame», лист 3 «Eksamiülesanne»; простой калькулятор (без графиков и памяти), ручка; ${program.formulaSheetRu || 'лист формул kitsas (на нём только тригонометрия и таблица производных)'}.`,
     '',
     `Ход занятия (${program.minutes} мин):`,
     '1. Разминка (10 мин): 2–3 устных вопроса по прошлой теме; проверка домашнего задания.',
@@ -28,7 +28,7 @@ function examPlan(program, lesson, n) {
   ].join('\n');
 }
 
-// a mock exam (kitsas12mocks.js): the whole paper in exam conditions, then the analysis
+// a mock exam (kitsas12mocks.js, lai12mocks.js: program.track, formulaSheetRu): the whole paper in exam conditions, then the analysis
 const MOCK_PART1_MINUTES = 120;
 const MOCK_PART2_MINUTES = 150;
 const MOCK_BREAK_MINUTES = 45;
@@ -37,18 +37,18 @@ function mockPlan(program, mock, n, k) {
   const p1 = mock.part1.reduce((sum, task) => sum + pointsOf(task), 0);
   const p2 = mock.part2.reduce((sum, task) => sum + pointsOf(task), 0);
   return [
-    `Курс: ${program.title} — пробный экзамен ${k} из ${program.mocks.length} (занятие ${n}), полный формат госэкзамена kitsas 2027.`,
+    `Курс: ${program.title} — пробный экзамен ${k} из ${program.mocks.length} (занятие ${n}), полный формат госэкзамена ${program.track || 'kitsas'} 2027.`,
     `Цель: ${mock.can}`,
     `Формат: I osa — ${MOCK_PART1_MINUTES} мин, задачи 1–${mock.part1.length} (${p1} баллов: 4 × 5 + 3 × 10); перерыв ${MOCK_BREAK_MINUTES} мин; II osa — ${MOCK_PART2_MINUTES} мин, задачи ${mock.part1.length + 1}–${tasks.length} (${p2} баллов: 5 × 10). Всего ${p1 + p2} баллов.`,
     `Темы: ${tasks.map((task, i) => `${i + 1}) ${task.topic} — ${pointsOf(task)} б.`).join('; ')}.`,
-    'Материалы: лист 1 «I osa», лист 2 «II osa», лист 3 «Eneseanalüüs»; простой калькулятор (без графиков и памяти), ручка, лист формул kitsas (только тригонометрия и таблица производных). Телефоны сданы.',
+    `Материалы: лист 1 «I osa», лист 2 «II osa», лист 3 «Eneseanalüüs»; простой калькулятор (без графиков и памяти), ручка, ${program.formulaSheetRu || 'лист формул kitsas (только тригонометрия и таблица производных)'}. Телефоны сданы.`,
     '',
     'Ход:',
     `1. Перед стартом (5 мин): правила как на экзамене — пишем полный ход решения, ответы с единицами, округляем в конце; учитель засекает ${MOCK_PART1_MINUTES} мин.`,
     `2. I osa (${MOCK_PART1_MINUTES} мин) — без подсказок. Если занятие короче, I osa — на одном занятии (или дома с таймером), II osa (${MOCK_PART2_MINUTES} мин) — на следующем; не делить одну часть на куски.`,
     `3. II osa (${MOCK_PART2_MINUTES} мин) — после перерыва ${MOCK_BREAK_MINUTES} мин или на отдельном занятии, тоже без подсказок.`,
     '4. Проверка по шагам: в ключе у каждой части есть баллы и решение; балл ставится за каждый верный шаг, ответ без решения — как правило, лишь часть баллов; верный ход с вычислительной ошибкой — баллы за верные шаги. Чертежи и объяснения (часть без ответа в ключе) оценивает учитель.',
-    '5. Разбор (следующее занятие, 45–90 мин): лист 3 — ученик вносит баллы по задачам, отмечает 2 самые слабые темы; повторяем их по урокам mk12-001…014.',
+    `5. Разбор (следующее занятие, 45–90 мин): лист 3 — ученик вносит баллы по задачам, отмечает 2 самые слабые темы; повторяем их по урокам ${program.id}-001…${pad(program.lessons.length)}.`,
     '',
     'Оценки на листе 3 — только ориентир (школьная шкала); на самом госэкзамене результат — баллы 0–100, сдан при ≥ 1 балле.',
   ].join('\n');

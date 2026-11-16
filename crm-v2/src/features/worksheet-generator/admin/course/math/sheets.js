@@ -1,10 +1,10 @@
-// The mathematics course as course modules (owner 2026-11-16): every lesson of math/kitsas12.js (and kitsas10.js)
+// The mathematics course as course modules (owner 2026-11-16): every lesson of math/kitsas12.js (and kitsas10.js, lai12.js)
 // becomes three sheets
 //   discover „1 Teooria ja näited” — formulas to know, a short Russian hint, a worked example (with a graph);
 //   practice „2 Harjutame” — scored tasks (block „Matemaatika ülesanne”): a final answer per part, the worked solution
 //     in the key;
 //   transfer „3 Eksamiülesanne” — one task in the exam's own form and points, squared paper, „Kontrolli end”.
-// After the topic lessons come the mock exams (program.mocks, kitsas12mocks.js) with their own phase labels:
+// After the topic lessons come the mock exams (program.mocks, kitsas12mocks.js, lai12mocks.js) with their own phase labels:
 //   discover „1 I osa (120 min)” — tasks 1–7 (4 × 5 p + 3 × 10 p); practice „2 II osa (150 min)” — tasks 8–12 (5 × 10 p);
 //   transfer „3 Eneseanalüüs” — points per task, the grade bands (an orientation only) and „Kontrolli end”.
 // Not in COURSE_MODULES (like kids/sheets.js): the Estonian-language gates do not judge a maths sheet. The sheet lab
@@ -12,6 +12,7 @@
 import { KITSAS_12 } from './kitsas12.js';
 import { KITSAS_10 } from './kitsas10.js';
 import { KITSAS_11 } from './kitsas11.js';
+import { LAI_12 } from './lai12.js';
 
 const pad = (n) => String(n).padStart(3, '0');
 const block = (id, type, tone, goal, data, width = 'full') => ({ id, type, width, span: width === 'full' ? 12 : 6, tone, goal, data });
@@ -46,22 +47,30 @@ const mathtask = (id, task, goal) => block(id, 'mathtask', 'white', goal, {
   answerLine: true,
 });
 const graph = (id, g, goal = 'g_theory', width = 'full') => block(id, 'graph', 'white', goal, {
-  caption: '', fns: '', points: '', segments: '', shade: '', step: 1, stepY: 0, labelEvery: 1, angle: 'rad', blank: false, ...g,
+  caption: '', fns: '', points: '', segments: '', shade: '', step: 1, labelEvery: 1, angle: 'rad', blank: false, ...g,
+  // the y step defaults to the x step: a stored 0 made the engine draw a line every 0.01 (a grey band of ticks)
+  stepY: g.stepY || g.step || 1,
 }, width);
+// a „Geomeetriline joonis” (geofigure): the exam-style triangle or solid of a lesson (lai12.js)
+const figure = (id, f, goal = 'g_theory', width = 'half') => block(id, 'geofigure', 'white', goal, { caption: '', ...f }, width);
 
 function lessonSheets(program, lesson, index) {
   const id = mathLessonId(program, index);
   const ex = lesson.example;
+  const visual = ex.graph || ex.figure;
   const discover = [
-    block(`${id}_d_theory`, 'notice', 'white', 'g_theory', { title: 'Valemid ja reeglid', lines: lesson.theory.join('\n') }, ex.graph ? 'full' : 'half'),
-    block(`${id}_d_ru`, 'tip', 'white', '', { title: 'Подсказка по-русски', text: lesson.ru_hint.join('\n') }, ex.graph ? 'full' : 'half'),
-    block(`${id}_d_example`, 'notice', 'white', 'g_skill', { title: 'Lahendatud näide', lines: [`Ülesanne: ${ex.task}`, ...ex.steps].join('\n') }, ex.graph ? 'half' : 'full'),
+    block(`${id}_d_theory`, 'notice', 'white', 'g_theory', { title: 'Valemid ja reeglid', lines: lesson.theory.join('\n') }, visual ? 'full' : 'half'),
+    block(`${id}_d_ru`, 'tip', 'white', '', { title: 'Подсказка по-русски', text: lesson.ru_hint.join('\n') }, visual ? 'full' : 'half'),
+    block(`${id}_d_example`, 'notice', 'white', 'g_skill', { title: 'Lahendatud näide', lines: [`Ülesanne: ${ex.task}`, ...ex.steps].join('\n') }, visual ? 'half' : 'full'),
     ...(ex.graph ? [graph(`${id}_d_graph`, ex.graph, 'g_skill', 'half')] : []),
+    ...(ex.figure ? [figure(`${id}_d_figure`, ex.figure, 'g_skill')] : []),
     block(`${id}_d_exam`, 'tip', 'white', '', { title: 'Riigieksamil', text: `${lesson.exam}\nKursus: ${lesson.course}.` }),
   ];
   const practice = lesson.practice.map((task, k) => mathtask(`${id}_p_${k + 1}`, task, 'g_skill'));
   const t = lesson.examTask;
   const transfer = [
+    // the exam's figure comes first, like on the paper (the task refers to it)
+    ...(t.figure ? [figure(`${id}_t_figure`, t.figure, 'g_exam', 'full')] : []),
     mathtask(`${id}_t_exam`, { ...t, instruction: 'Kirjuta kogu lahenduskäik: punkte saab iga õige sammu eest.' }, 'g_exam'),
     ...(t.grid ? [graph(`${id}_t_grid`, { ...t.grid, caption: 'Joonesta siia.' }, 'g_exam', 'half')] : []),
     block(`${id}_t_self`, 'selfcheck', 'sky', '', { title: 'Kontrolli end.', titleMore: 'Kas ma oskan?', instruction: 'Märgi, mida juba oskad.', items: lesson.self.join('\n'), stamp: 'Tubli töö!' }, t.grid ? 'half' : 'full'),
@@ -70,9 +79,10 @@ function lessonSheets(program, lesson, index) {
 }
 
 export const mockPoints = (task) => task.parts.reduce((sum, [, p]) => sum + Number(p || 0), 0);
-const EXAM_RULES = [
+// program.formulaSheet names the formula sheet of a track (lai12.js); kitsas keeps its own text
+const examRules = (program) => [
   'Kirjuta iga ülesande juurde kogu lahenduskäik: punkte antakse iga õige sammu eest, ainult vastuse eest vähe.',
-  'Lubatud on lihtne kalkulaator (mitte graafiline ega programmeeritav), pastakas ja kitsa kursuse valemileht (trigonomeetria ja tuletised).',
+  `Lubatud on lihtne kalkulaator (mitte graafiline ega programmeeritav), pastakas ja ${program.formulaSheet || 'kitsa kursuse valemileht (trigonomeetria ja tuletised)'}.`,
   'Ümarda alles lõpus ja kirjuta vastusele ühik.',
 ].join('\n');
 // the grade bands are a school orientation only: the riigieksam itself gives 0–100 points (pass ≥ 1 p)
@@ -92,16 +102,18 @@ function mockSheets(program, mock, index) {
   const examTask = (task, n, phase) => {
     const points = mockPoints(task);
     return [
+      // a triangle or solid task (lai12mocks.js): the figure comes first, like on the paper
+      ...(task.figure ? [figure(`${id}_${phase}_${n}_figure`, task.figure, 'g_exam', 'full')] : []),
       mathtask(`${id}_${phase}_${n}`, { ...task, title: `${n}. ülesanne (${points} punkti)`, instruction: 'Kirjuta kogu lahenduskäik.' }, 'g_exam'),
       ...(task.grid ? [graph(`${id}_${phase}_${n}_grid`, { ...task.grid, caption: `${n}. ülesanne: joonesta siia.` }, 'g_exam', 'half')] : []),
     ];
   };
   const discover = [
-    block(`${id}_d_rules`, 'tip', 'white', '', { title: 'Eksami juhend', text: `I osa: 120 minutit, ülesanded 1–7 (4 × 5 p ja 3 × 10 p). Seejärel 45-minutiline vaheaeg.\n${EXAM_RULES}` }),
+    block(`${id}_d_rules`, 'tip', 'white', '', { title: 'Eksami juhend', text: `I osa: 120 minutit, ülesanded 1–7 (4 × 5 p ja 3 × 10 p). Seejärel 45-minutiline vaheaeg.\n${examRules(program)}` }),
     ...mock.part1.flatMap((task, k) => examTask(task, k + 1, 'd')),
   ];
   const practice = [
-    block(`${id}_p_rules`, 'tip', 'white', '', { title: 'Eksami juhend', text: `II osa: 150 minutit, ülesanded 8–12 (igaüks 10 p).\n${EXAM_RULES}` }),
+    block(`${id}_p_rules`, 'tip', 'white', '', { title: 'Eksami juhend', text: `II osa: 150 minutit, ülesanded 8–12 (igaüks 10 p).\n${examRules(program)}` }),
     ...mock.part2.flatMap((task, k) => examTask(task, mock.part1.length + k + 1, 'p')),
   ];
   const transfer = [
@@ -136,6 +148,6 @@ function moduleOf(program) {
 }
 
 // every math program; mathCurriculum.js makes the library records of each (kitsas10.js: grade 10, kitsas11.js: grade 11,
-// kitsas12.js: exam prep)
-export const MATH_PROGRAMS = [KITSAS_12, KITSAS_10, KITSAS_11];
+// kitsas12.js: exam prep, lai12.js: lai exam prep)
+export const MATH_PROGRAMS = [KITSAS_12, KITSAS_10, KITSAS_11, LAI_12];
 export const MATH_MODULES = MATH_PROGRAMS.map(moduleOf);
