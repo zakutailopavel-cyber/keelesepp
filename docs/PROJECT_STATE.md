@@ -1,3 +1,21 @@
+## 2026-11-17 · agent/b1b2-m04-tasks — B1→B2 module 4, round 2: real v4 module exam, adjective government, all sheets read · content only
+
+- Base: `origin/main` 20f104d merged (nothing new), checked 2026-11-17. PR #1262 (draft). Module 2 → PR #1263, module 3 → PR #1261.
+- Done: 020 rewritten as the module's Harno B2 exam (own texts and sources): reading sheet (opinion article „Miks me ei
+  küsi arstilt üle?” ≈ 520 words = the module's B2 article; R1, R2a, R3 tenant's letter cloze on object / ma-da /
+  government, R4 sentence bank), listening + language sheet (4 notices incl. a bank scam warning, tenant adviser
+  interview L3 + L4, message fixes and rephrasing), writing + speaking (W1 letter to the GP centre, W2b rent or buy, S1
+  „Minu lahendatud mure”, S2 cards); `phases` labels per exam lesson; `shortSheet: ['discover', 'practice']` because the
+  sheet estimator counts the reading and the twice-heard interview at ≈ 20 min while the Harno headers time them at 45;
+  EXPLAIN for every item. Adjective government in 018 (rule line, Oleg's letter 018_p_fix, introduction success
+  condition, exit, homework) and 019 (rule, 019_p_steps), spiralled into 020. Weakest task per lesson replaced:
+  016_d_think → 016_d_friend, 017_p_note (mum's questions), 018_p_tourney → 018_p_fix, 019_p_fix → 019_p_steps. All 15
+  sheets read in the sheet lab (fixes: 017 picture question, 017 notice quote, 018 rule duplicates, 020 subtitles, R3
+  option). New audio 020_p_notes, 020_p_listen (TartuNLP).
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case; `npx vitest run src/features` 539 files / 4502 tests
+  passed; eslint clean.
+- Next safe step: owner reads „Раунд 2” in `docs/review/b2-m04-tasks.md`.
+
 ## 2026-11-17 · agent/b1b2-m04-tasks — B1→B2 module 4 task-based (v4) · content only, no UI / rules / functions / data writes
 
 - Base: `origin/main` 20f104d (release 2026-11-17 07:41 UTC), checked 2026-11-17. Draft PR „B1→B2 module 4: task-based

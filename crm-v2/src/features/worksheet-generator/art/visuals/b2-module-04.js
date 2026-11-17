@@ -33,7 +33,7 @@ export default [
     learningJob: "seletada arsti nõuandeid pereliikmele edasi ja kontrollida, kas ta sai aru",
     alt: "Arsti vastuvõtul seletab noor naine eakale mehele arsti juttu; laual on ravimikarp ja sammude skeem.",
     caption: "Pilt 1. Arsti juures: kes kellele mida seletab?",
-    prompts: ["Kes on pildil arst, kes patsient ja kes seletab?", "Mida peab mees pärast vastuvõttu tegema? Arva laual oleva skeemi järgi.", "Kas sina oled kellelegi arsti juures tõlkinud või seletanud? Mis oli raske?"],
+    prompts: ["Kes on pildil arst, kes patsient ja kes seletab?", "Mida peab mees pärast vastuvõttu tegema? Arva laual oleva skeemi järgi.", "Mida küsiksid sina arstilt, kui istuksid selle mehe kõrval?"],
   },
   {
     id: "b1b2-018-avasta-1",

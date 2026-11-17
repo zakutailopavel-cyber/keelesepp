@@ -2586,13 +2586,13 @@
   },
   "b1b2-020:020_p_listen": {
     "src": "/audio/b1b2-020/020_p_listen.mp3",
-    "seconds": 128.2,
-    "hash": "5d153f7544efcc4c164f2352921060b99b80fe47"
+    "seconds": 92.6,
+    "hash": "6870765ba5c202408df70fbdeff62f46bcb51078"
   },
   "b1b2-020:020_p_notes": {
     "src": "/audio/b1b2-020/020_p_notes.mp3",
-    "seconds": 36.4,
-    "hash": "31c86f736669b100e13c8c85f365e8554702451b"
+    "seconds": 43.4,
+    "hash": "eb50e822023bf89dd346a13ef981badf18708849"
   },
   "b1b2-021:021_p_club": {
     "src": "/audio/b1b2-021/021_p_club.mp3",
