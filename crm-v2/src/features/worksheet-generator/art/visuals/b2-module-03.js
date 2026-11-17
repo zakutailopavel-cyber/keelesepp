@@ -50,8 +50,9 @@ export default [
     learningJob: "panna oma elu sündmused ajajoonele ja öelda enneminevikuga, mis oli juhtunud enne",
     alt: "Inimene jutustab ajajoone abil oma teest eesti keeleni.",
     caption: "Pilt 1. Elu ajajoon: mis oli enne, mis pärast.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Millised etapid on ajajoonel? Mis juhtus kõigepealt?", "Mis oli juba juhtunud, kui ta esimest korda esines?", "Milline oleks sinu ajajoone esimene ja viimane punkt?"],
+    // the questions beside the picture (owner 2026-10-18); until the planned TV-tower picture exists (PLANNED below),
+    // every question is answerable from this picture
+    prompts: ["Nimeta ajajoone etapid järjekorras: mis oli esimene ja mis viimane?", "Mida oli see inimene juba teinud, kui ta esimest korda esines? Ütle kaks asja: „Ta oli juba …”", "Milline oleks sinu ajajoone esimene ja viimane punkt?"],
   },
   {
     id: "b1b2-014-avasta-1",
@@ -67,5 +68,25 @@ export default [
     caption: "Pilt 1. Kas seda päringut tohib kinnitada?",
     // the questions beside the picture (owner 2026-10-18)
     prompts: ["Mida inimene telefonis kinnitab? Kas sina kinnitaksid päringut, mida sa ise ei alustanud?", "Milliseid turvareegleid sina järgid?", "Kas sa oled kunagi midagi kinnitanud või maksnud ja hiljem kahetsenud?"],
+  },
+];
+
+// Planned picture (round 2, 2026-11-17): a new 013 image that fits the lesson's case, per docs/TEXTBOOK_ART_BIBLE.md
+// (line art, one lime accent, no cast). When public/textbook-art/b2/b1b2-013/b1b2-013-avasta-1.webp is redrawn from this
+// brief, replace the 013 entry above with it; art/textbookArt.test.js needs the file, so the brief waits here until then.
+// Tone (owner's coordinator 2026-11-17): waiting and time, not a fight — no aimed weapons, no violence, no flags.
+export const PLANNED = [
+  {
+    id: "b1b2-013-avasta-1",
+    phase: "discover",
+    format: "scene",
+    cast: [],
+    scene: "Tallinna teletorn augustiöösel 1991, vaade alt: torn tõuseb tumeda taeva poole, ülemise korruse aknad põlevad. Torni jalamil seisab rahulikult hulk tavalisi eri vanuses inimesi (hallis): üks kuulab väikest raadiot, kaks räägivad omavahel, üks vaatab kella. Tee ääres seisab sõjaväe veoauto, selle juures kaks sõdurit hallis, relvad õlal. Ees hõljuvad väikesed teemaesemed: tikutoos, vana taskuraadio ja kalendrileht „21. august”.",
+    accent: "the lit windows at the top of the tower",
+    text: ["21. august"],
+    learningJob: "panna sündmused ajajoonele ja öelda enneminevikuga, mis oli juhtunud enne (kaitsjad olid end üles lukustanud, inimesed olid torni juurde tulnud)",
+    alt: "Teletorn öösel, ülemised aknad põlevad; all ootavad inimesed ja seisab sõjaväe veoauto.",
+    caption: "Pilt 1. Teletorn, 21. august 1991.",
+    prompts: ["Mis kellaaeg võiks pildil olla ja kust sa seda näed?", "Mis oli juba juhtunud, kui inimesed torni juurde tulid? Vaata ülemisi aknaid ja ütle: „Selleks ajaks olid …”", "Mida kuulab mees raadiost? Mida kuulis või nägi sinu pere tol ajal raadiost või telerist?"],
   },
 ];

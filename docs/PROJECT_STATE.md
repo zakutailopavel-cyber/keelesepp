@@ -1,3 +1,18 @@
+## 2026-11-17 · agent/b1b2-m03-tasks — B1→B2 module 3, round 2 · content only
+
+- Base: `origin/main` 20f104d (fetched again, nothing new). Draft PR #1261. Module 2 v4 is PR #1263 (open).
+- Done: 015 exam written fresh in Harno B2 form on real Estonia and the module's content (song festival time line and
+  article ≈ 520 words, kroon → euro cloze, learner stories, 5 announcements + choir interview: new TartuNLP audio
+  `015_p_news`, `015_p_listen`), no named character, product „Minu lugu” kept, EXPLAIN for every item; 011 station 4 one
+  job (model-story audio moved to homework); 013 tone (family memories, no judgement) and picture prompts answerable from
+  the current image, planned TV-tower brief in `art/visuals/b2-module-03.js` (`PLANNED`, not in the default list until
+  the file exists); weakest task replaced in 011 (decision questions), 012 (Q/A chat), 013 (learners' time lines), 014
+  (family-chat message). No module-3 reference to the old module 2 story; recycling of PR #1263's module-2 words 43 %.
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case; `npx vitest run src/features/worksheet-generator
+  src/features/worksheet-studio src/features/vocabulary` 198 files / 2159 tests passed; eslint clean; sheet lab 011 Kasuta,
+  015 Avasta + Harjuta read. Review: `docs/review/b2-m03-tasks.md` „Раунд 2”.
+- Next safe step: owner reads round 2; re-run `admin/course` tests after #1263 merges.
+
 ## 2026-11-17 · agent/b1b2-m03-tasks — B1→B2 module 3 task-based (v4) · content only, no UI / rules / functions / data writes
 
 - Base: `origin/main` 20f104d (release 2026-11-17 07:41 UTC), checked 2026-11-17. Draft PR „B1→B2 module 3: task-based
