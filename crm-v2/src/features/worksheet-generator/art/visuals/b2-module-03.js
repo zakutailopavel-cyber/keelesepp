@@ -50,6 +50,8 @@ export default [
     learningJob: "panna oma elu sündmused ajajoonele ja öelda enneminevikuga, mis oli juhtunud enne",
     alt: "Inimene jutustab ajajoone abil oma teest eesti keeleni.",
     caption: "Pilt 1. Elu ajajoon: mis oli enne, mis pärast.",
+    // a personal time line: it stands after the case (cards, radio), where the learner turns to his own time line
+    place: "013_d_know",
     // the questions beside the picture (owner 2026-10-18); until the planned TV-tower picture exists (PLANNED below),
     // every question is answerable from this picture
     prompts: ["Nimeta ajajoone etapid järjekorras: mis oli esimene ja mis viimane?", "Mida oli see inimene juba teinud, kui ta esimest korda esines? Ütle kaks asja: „Ta oli juba …”", "Milline oleks sinu ajajoone esimene ja viimane punkt?"],
