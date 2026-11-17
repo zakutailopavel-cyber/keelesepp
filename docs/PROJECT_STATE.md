@@ -1,3 +1,31 @@
+## 2026-11-17 · agent/b1b2-m03-tasks — B1→B2 module 3 task-based (v4) · content only, no UI / rules / functions / data writes
+
+- Base: `origin/main` 20f104d (release 2026-11-17 07:41 UTC), checked 2026-11-17. Draft PR „B1→B2 module 3: task-based
+  (v4)”, not merged. Modules 2 and 4 are rebuilt in parallel by other agents (shared files may conflict).
+- Done: `b2/module03.js` rebuilt by §7 of `docs/COURSE_DESIGN_STATIONS.md` (`design: 'v3-stations'`, lesson `format`s):
+  011 game „Mis oli sinu lapsepõlve pühadelaual?” (family, lihtminevik, topic opener on the Estonian table at min 15, family
+  food story for a library collection), 012 infogap „Kas sa oled kunagi rabas käinud?” (nature, täisminevik vs lihtminevik,
+  radio + call to a hike leader), 013 case „Teletorn, 21. august 1991: mis oli juhtunud enne?” (culture, enneminevik,
+  shuffled case cards + history-minute radio, explain to a child), 014 project „Viga, millest ma õppisin” (money, three pasts
+  + oleksin pidanud, Pangaliit 2025 chart + scam-call audio, warning story told in 2 min, S1). Each: 4 stations 52–57 min,
+  „Kui aega jääb” 10–12 min, minute plan 80–82, exit check + „Ma oskan …” + „Kodutöö”; cast 0. 015 exam kept (Helgi →
+  Ingrid, memory article 509 words for `av-article`), `format: 'exam'`, product card „Minu lugu” + S1 talk at the story
+  evening. EXPLAIN for every scored item of 011–015.
+- Data: `b2/lessonGoals.js` 011–015 texts (g_vocab dropped from 011–014 as in module 1, old tags removed);
+  `vocabulary/lessonWords/b1b2.json` 011–014; `data/keelesepp-b1-b2-roadmap-01.json` titles 011–014 (ids unchanged);
+  `b2/module05.js` 021/022, `module06.js` 027, `module07.js` 033 review items about old module-3 story replaced (ids kept).
+- Audio (TartuNLP): new 011_t_model, 012_d_radio, 013_d_radio, 014_d_call; removed 011_d_voice, 011_p_clips, 012_d_anna,
+  013_p_call, 014_d_interview, 014_t_voice (+ `listeningAudio.json`). Pictures: 011 ← a2b1-010, 013 ← b1b2-077, 014 ←
+  b1b2-058 copied, briefs retargeted in `art/visuals/b2-module-03.js` (cast-free text). `language-allow.txt`: `explain`.
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; `npx vitest run src/features/worksheet-generator
+  src/features/worksheet-studio src/features/vocabulary` → 198 files passed (1 skipped), 2159 tests passed (12 skipped);
+  eslint clean on changed files; all 15 sheets read in the sheet lab (fixed: 014 „Ma oskan” alone on a page, 012 picture
+  before the hook, „Ingrid” case forms). Learner test (4 learners) + methodologist: `docs/review/b2-m03-tasks.md`.
+- Limits: methodGaps recycling (≥ 30 % of module 2 words) is 34 % against the current module 2 — re-run after the new
+  module 2 merges. The impersonal past (tehti) is now only in 015. 013 picture is a life time line, not the 1991 tower.
+- Next safe step: owner reads `docs/review/b2-m03-tasks.md`; after merge of modules 2/3/4, re-run
+  `npx vitest run src/features/worksheet-generator/admin/course`.
+
 ## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1, round 3: „Kui aega jääb”, pictures, module 5 review item · content + small v4 gate change
 
 - Base: `origin/main` f8ab587 (merged, nothing new), checked 2026-11-17. PR #1259 (draft). Owner approved round 2.

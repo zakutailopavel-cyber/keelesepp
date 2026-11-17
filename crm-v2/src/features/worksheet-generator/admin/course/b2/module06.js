@@ -183,7 +183,7 @@ export const LESSONS = withShapes({
     title: 'Hea töökoht',
     canDo: 'Ma loen töökuulutusi ja pakkumisi, järjestan hea töökoha kriteeriumid ja räägin, millise pakkumise valiksin ja miks.',
     discover: [
-      B.review('027_d_review', [['Kellena töötab Sofia märtsini ja kelleks ta märtsis loodetavasti määratakse?', 'b1b2-026'], ['Moodul 3: Artur või Maarja — kumb sobis projekti paremini ja miks?', 'b1b2-012'], 'Ütle kolm lauset enda kohta: lapsena…, noorena…, praegu töötan…']),
+      B.review('027_d_review', [['Kellena töötab Sofia märtsini ja kelleks ta märtsis loodetavasti määratakse?', 'b1b2-026'], ['Moodul 3: kas oled kunagi Eestis matkal või rabas käinud? Millal ja kus see oli?', 'b1b2-012'], 'Ütle kolm lauset enda kohta: lapsena…, noorena…, praegu töötan…']),
       B.text('027_d_hook', 'Karjäärimess Tartus', 'Gert vajab Tartu lattu kaksteist töötajat, kuid head inimesed ei tule ise. Seepärast läks Tuul Logistika laupäeval Tartu karjäärimessile. Stendi juures olid Liis ja Anna, Sofia tuli neile appi. Vaata pilti: Anna ja Liis järjestavad kaarte. Kumb on töötaja jaoks tähtsam, palk või paindlik tööaeg? Külastajate küsimustest selgus kiiresti, mida inimesed tööandjalt ootavad.'),
       tag(B.listening('027_d_fair', 'Messi stendi juures.', 'Kuula vestlusi kaks korda. Kirjuta lünka üks kuni kolm sõna.', [
         'Liis: Tere! Tuul Logistika avab mais Tartus uue lao. Otsime laotöötajaid, tõstukijuhte ja ühte planeerijat.',

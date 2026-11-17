@@ -71,3 +71,4 @@ decide
 plan
 advise
 negotiate
+explain
