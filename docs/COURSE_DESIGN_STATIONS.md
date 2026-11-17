@@ -124,6 +124,11 @@ cards), 004 negotiate (S17 learning-plan talk); the check 005 is unchanged. Owne
 B2 `av-article` (one 500–600-word article a module) cannot live in a station (`st-input` ≤ 120 words): the module's
 article is the check lesson's reading (005, owner 2026-11-14). Open: that length is over the B1+ sheet reading norm (≤ 500).
 Since 2026-11-17 the module is the sample of design v4 „task-based” (§7): same stations and gates, no storyline.
+**B2 module 2** (`b2/module02.js`, 006–010, 2026-11-17) is the second v4 module: 006 game (town, kus/kuhu/kust, R3
+corner), 007 infogap (health, polite conditional, S1 home talk), 008 case (money, cause/effect complaint, L3 corner),
+009 project (neighbours, plan B, S2 cards); 010 the short Harno check + „Minu linna abikaart”. Owner summary:
+`docs/review/b2-m02-tasks.md`. Learnt for the next modules: a station lesson needs one non-opener text of ≥ 150 words
+(av-voice) — in practice a listening or a gapped chat; a big writing task as the exam corner breaks V12 washback (≤ 25 %).
 
 ## 5. Next
 
@@ -260,8 +265,18 @@ formats: is every task at the right level, does each lesson move the learner mea
 | `depth.js` short tasks, `didacticCheck.js` items and order | ≥ 5 items; controlled before free | the exit check is exempt |
 | `didacticCheck.js` speaking length | level band (B1 120–240 s) | the home 1-minute talk (`data.home`) is exempt |
 | `finalShape.js` V4 caps and type shares, V15 Kasuta drills, V11 strands | every task | the exit check, the home task and the extension are not the lesson body (V3 formats and V9 goals still count them); V11 leaves out only the extension |
+| `finalShape.js` V11 strands, V12 washback | every task's minutes | the long writing marked `homeTask()` (the „Kodus” card: the class plans and writes the first sentences, the text is homework) has 0 lesson minutes; it still counts as the lesson's exam corner, so a W1 corner on it is allowed (round 3, 2026-11-17) |
+| `stations.js` `st-items` / `st-closed`, `didacticCheck.js` items | a chat (`dialogue`) always counted as a closed task of 1 item (the bracket of the JSON array) | gaps are counted in the line texts: a chat without gaps is an input |
+| `academicValue.js` `av-voice`, `av-boltedon` | a cast-free text of ≥ 150 words (B1+) besides the opener and fact boxes | one substantial input besides the hook (stations 2–4): a text, chat or the opener of ≥ 120 words, or a recording of ≥ 60 s (≈ 110 words); not a fact box, no cast (`V4_INPUT`) |
+| `didacticCheck.js` sentence length | every task sentence, choice questions included | a short listening row (choice / true-false of goal `g_listen`) is left out |
 
-Tests: `admin/course/v4Gates.test.js` (the gates above), `admin/course/v4Tasks.test.js` (every v4 module: one extension of
+Why the last four (owner OK 2026-11-17, found while building module 2): the old rules made authors bend lessons — a
+shortened homework text to keep the input share, a W1 corner moved off the complaint, a 150-word text that no station may
+hold, padded listening rows. The v4 input rule keeps the old aim (every lesson has one real text or recording to work on,
+not only the hook) at the station's own size; 60 s is the shortest recording that still carries a gist and details.
+Older v2 / v3 modules are untouched: the full B1 + B2 course report (36 modules) is identical before and after.
+
+Tests: `admin/course/v4Gates.test.js` (the gates above; round 3 adds one test per change, each with the unchanged v3 result), `admin/course/v4Tasks.test.js` (every v4 module: one extension of
 10–15 min in the minute plan, core + extension ≤ 90; format menu and
 no two neighbours alike; topics, work ≤ 1; hook ≤ 80 words with a response; no text > 150 words in the first 15 minutes;
 ≤ 1 text > 250 words a lesson; ≥ 3 input kinds; 4 stations ≤ 75 min; exit check + „Ma oskan” + home talk + homework

@@ -7,7 +7,7 @@ import { groupItems } from '../engine/schema.js';
 import { BLOCKS } from '../engine/registry.js';
 import { HARNO, LEVELS, PHASE_TASKS, harnoFor, levelKey } from './levels.js';
 import { VOCABULARY_FOR, wordLevel } from './levelVocabulary.js';
-import { isExitCheck, isStationSheet } from './stations.js';
+import { dialogueGaps, isExitCheck, isListeningRow, isStationSheet, isTaskDesign } from './stations.js';
 
 const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).filter(Boolean);
 // „Ma ärkan [hommikul|varakult] kell 7.” → the sentence as the learner will read it once solved
@@ -161,7 +161,15 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
   const name = (b) => `${tasks.indexOf(b) + 1}. ${BLOCKS[b.type]?.label || b.type}`;
 
   // sentence length over all tasks
-  const measured = tasks.map((b) => ({ b, ...measureBlock(b) }));
+  // design v4 (docs/COURSE_DESIGN_STATIONS.md §7.3): a short listening row is not a sentence of the level, and a chat
+  // without gaps is an input, not a closed task
+  const v4 = isTaskDesign(doc);
+  const measured = tasks.map((b) => {
+    const m = measureBlock(b);
+    if (v4 && isListeningRow(b)) return { b, ...m, sentences: [] };
+    if (v4 && b.type === 'dialogue') return { b, ...m, items: dialogueGaps(b.data) };
+    return { b, ...m };
+  });
   const all = measured.flatMap((m) => m.sentences);
   if (all.length >= 3) {
     const avg = all.reduce((n, x) => n + wordsIn(x), 0) / all.length;
