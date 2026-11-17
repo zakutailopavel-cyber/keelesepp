@@ -21,7 +21,13 @@
 - Curriculum records: `b1noorCurriculum.js` uses `teacherPage.goal` in the Russian plan; the B1→B2 course (`b1b2-*`)
   records come from `data/keelesepp-b1-b2-roadmap-01.json` (goal / focus / practice / success) and do not include the
   teacher page — not changed here.
-- Checks: see the PR (vitest `src/features`, eslint on changed files, sheet lab screenshots).
+- Checks: `npx vitest run src/features` → 537 files passed (1 skipped), 4469 tests passed (12 skipped); new
+  `TeacherPagePanel.test.jsx` 8 tests (staff render, student / parent / no user → nothing, missing fields, live view
+  page + board, learner player); `npx eslint` on changed files: 0 errors (3 react-refresh warnings for the exported
+  helpers). Sheet lab (local vite) `?set=course:a2b1-058:discover&role=teacher&room=1` shows the panel on the board;
+  with #1259's files overlaid temporarily (not committed) `course:b1b2-002` shows hook + 6-row minute plan; the same
+  sheet as student (`room=1`, no role) has no panel and no teacher text. Library editor not opened in a browser (needs
+  Firebase login); covered by the same component.
 - Limits: the open / closed state is not remembered; the teacher page appears only on sheets built after
   courseSheet.js added `meta.teacherPage` (stations / v4 lessons) and published to production.
 - Next safe step: owner looks at the panel in the PR preview → merge; then (optional) decide whether the teacher page
