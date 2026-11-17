@@ -1,0 +1,34 @@
+/* „Õpetaja leht” (TeacherPagePanel.jsx): the lesson's teacher page next to the sheet, staff only, never printed */
+.tp-panel { max-width: 800px; margin: 8px auto; background: var(--st-panel, var(--surface, #fff)); color: var(--st-ink, inherit); border: 1px solid var(--st-line, var(--border)); border-radius: 14px; font-size: 13px; line-height: 1.45; }
+.tp-panel > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 9px 14px; cursor: pointer; list-style: none; }
+.tp-panel > summary::-webkit-details-marker { display: none; }
+.tp-panel > summary::before { content: '▸'; color: var(--st-muted, var(--text-muted)); transition: transform .15s; }
+.tp-panel[open] > summary::before { transform: rotate(90deg); }
+.tp-panel > summary:focus-visible { outline: 2px solid var(--st-accent, var(--green)); outline-offset: 2px; border-radius: 14px; }
+.tp-title { font: 800 14px 'Manrope', 'DM Sans', sans-serif; letter-spacing: -.01em; }
+.tp-meta { color: var(--st-muted, var(--text-muted)); font-size: 12px; }
+.tp-private { margin-left: auto; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--st-accent-soft, var(--green-soft)); color: var(--st-accent-dark, var(--green-dark)); }
+.tp-body { padding: 2px 14px 12px; display: grid; gap: 10px; max-height: min(60vh, 640px); overflow: auto; }
+.tp-goal { margin: 0; }
+.tp-section h5 { margin: 0 0 4px; font: 800 12px 'Manrope', 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: .04em; color: var(--st-muted, var(--text-muted)); }
+.tp-section p { margin: 0; }
+.tp-hook { padding: 10px 12px; border-left: 4px solid var(--st-accent, var(--green)); background: var(--st-accent-soft, var(--green-soft)); border-radius: 0 10px 10px 0; }
+.tp-hook p { font-size: 14px; font-weight: 600; }
+.tp-plan { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.tp-plan li { display: grid; grid-template-columns: 64px 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dashed var(--st-line, var(--border)); }
+.tp-plan li:last-child { border-bottom: 0; }
+.tp-time { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--st-accent-dark, var(--green-dark)); white-space: nowrap; }
+.tp-list { margin: 0; padding-left: 18px; }
+.tp-stations { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.tp-stations li.is-core b { color: var(--st-accent-dark, var(--green-dark)); }
+.tp-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 6px; }
+.tp-tags span { font-size: 11px; padding: 0 6px; border-radius: 999px; border: 1px solid var(--st-line, var(--border)); color: var(--st-muted, var(--text-muted)); }
+.tp-tags span.is-core { border-color: var(--st-accent, var(--green)); color: var(--st-accent-dark, var(--green-dark)); }
+/* inside the studio's top strip: no auto-centering, flush with the banners */
+.ws-studio .tp-panel.is-top { max-width: none; margin: 6px 14px; flex-shrink: 0; }
+.ws-studio .tp-panel.is-top .tp-body { max-height: 42vh; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tp-time, :root:not([data-theme="light"]) .tp-private { color: #7fd6c2; }
+}
+:root[data-theme="dark"] .tp-time, :root[data-theme="dark"] .tp-private { color: #7fd6c2; }
+@media print { .tp-panel { display: none !important; } }

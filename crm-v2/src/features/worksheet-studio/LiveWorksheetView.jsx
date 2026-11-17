@@ -5,6 +5,7 @@ import { homeworkService } from '../../services/firebase/homework.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';
+import TeacherPagePanel from './TeacherPagePanel.jsx';
 import LiveTaskPanel from './LiveTaskPanel.jsx';
 import BlockKeyPanel from './BlockKeyPanel.jsx';
 import { blockAnswerKey } from './engine/answerKey.js';
@@ -179,6 +180,8 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
         <header className="st-bar"><div className="st-title"><b>Otse tunnis: {assignment.studentName || 'õpilane'}</b><span>{doc.meta?.title}</span></div>{editToggle}{liveStats}</header>
         {editBanner}
         {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
+        {/* the lesson's teacher page (hook, minute plan, plan B …) under the sheet, open: the teacher glances at it */}
+        <TeacherPagePanel page={doc.meta?.teacherPage} user={user} defaultOpen />
         <GoalEvidence doc={doc} evidence={checked} title="Tunni eesmärgid praegu" />
         {canStep ? <LiveTaskPanel stats={stats} step={step} shown={shown} busy={busy} done={done} onStep={toggleStep} onOpen={openTask} onShow={showTask} onShowAll={keyedIds.length ? showAll : null} /> : null}
       </div>
@@ -201,6 +204,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
       {editBanner}
       <div className="st-banner">Klõpsa ülesandel: see süttib õpilase lehel ja leht kerib selleni. Topeltklõps sõnal: viga, märkus või sõna õpilase sõnavarasse (kolm põhivormi ja tõlge).</div>
       {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
+      <TeacherPagePanel page={doc.meta?.teacherPage} user={user} className="is-top" />
       <div className="st-body ws-live-body">
         <main className="st-canvas" ref={fitRef}>
           <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks} words={words} analysis={{ level: doc?.meta?.level || 'A2' }}>

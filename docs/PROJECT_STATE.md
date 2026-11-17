@@ -1,3 +1,32 @@
+## 2026-11-17 · agent/teacher-page-panel — „Õpetaja leht” panel: the lesson's teacher page for staff · UI only, no rules / functions / data change
+
+- Base: `origin/main` f8ab587 (release 2026-11-16 23:06 UTC), checked 2026-11-17. Draft PR, not merged. Read together
+  with open #1259 (`agent/b1b2-m01-tasks`), which adds v4 fields `hook`, `plan`, `sources`, `groups` to `teacherPage()`;
+  the panel renders them already and shows any other text field under its own key, so no follow-up is needed.
+- Done: new `worksheet-studio/TeacherPagePanel.jsx` (+ `teacherPagePanel.css`, tests): a collapsible „Õpetaja leht”
+  from `meta.teacherPage` (stations.js `teacherPage()`): goal, the hook („Konks — mida öelda”, highlighted), the minute
+  plan as a timeline (`0–4: …` → time column), stations with tags (põhitee / varu / lõpp / vajab jaama N), plan B
+  (`short`), typical errors, answer sources, small group, notes, teacher cards of the tasks. Rendered only for
+  admin / teacher (`ACCESS.STAFF`, from AuthContext or a `user` prop); nothing when the page is missing or empty;
+  `display: none` in print. Placed in: (1) library sheet editor `/library/lessons/<ID>/worksheets/<phase>`
+  (`LessonWorksheetStudioPage` top strip, closed by default); (2) the teacher's live view `LiveWorksheetView` — the
+  Live Classroom board (under the sheet, open) and `/library/worksheets/live/:id` (top, closed).
+- Privacy finding: the learner's copy DOES carry `meta.teacherPage`. Library / Live Classroom assignments copy the
+  published sheet (`library.js` assign), self-study copies it and `firestore.rules` require it to equal the published
+  doc exactly, and students who are `courseReader()` can read `curriculumLessons/*/worksheets` directly. So stripping
+  on assignment would not hide it and would break the self-study rule; nothing is stripped. The student player
+  (`DocWorksheetPlayer`) and `Sheet` never render meta.teacherPage (test). The content is the lesson plan in Russian —
+  the same sheet already holds all answers (transcript.js note). Real hiding would need a server-side split of the
+  teacher page out of the published doc (content pipeline + rules), an owner decision.
+- Curriculum records: `b1noorCurriculum.js` uses `teacherPage.goal` in the Russian plan; the B1→B2 course (`b1b2-*`)
+  records come from `data/keelesepp-b1-b2-roadmap-01.json` (goal / focus / practice / success) and do not include the
+  teacher page — not changed here.
+- Checks: see the PR (vitest `src/features`, eslint on changed files, sheet lab screenshots).
+- Limits: the open / closed state is not remembered; the teacher page appears only on sheets built after
+  courseSheet.js added `meta.teacherPage` (stations / v4 lessons) and published to production.
+- Next safe step: owner looks at the panel in the PR preview → merge; then (optional) decide whether the teacher page
+  should move out of the student-readable published doc.
+
 ## 2026-11-17 · agent/math-lai-11 — Matemaatika lai 11. klass (ml11, 39 lessons, courses VI–X) · content + wiring, no rules / functions / data change
 
 - Base: `origin/main` 4bf2d95 (2026-11-16), checked 2026-11-17. Draft PR, not merged. In parallel: #1257 (ml10) also
