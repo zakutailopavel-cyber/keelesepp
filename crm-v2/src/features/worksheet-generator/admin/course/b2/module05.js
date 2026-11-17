@@ -452,7 +452,7 @@ export const LESSONS = withShapes({
     title: 'Kahe lahenduse võrdlemine',
     canDo: 'Ma kirjutan Kalamaja Lehele umbes 180-sõnalise arvamusloo: võrdlen kahte lahendust (vähemalt kaks eelist ja kaks puudust), vastan vastuargumendile ja teen põhjendatud valiku.',
     discover: [
-      B.review('024_d_review', [['Mida otsustas Tuul Logistika meeskond tööaja kohta? Kes mille eest vastutab?', 'b1b2-023'], ['Moodul 2: kas Jaan ja Kadri otsustasid korteri üürida või osta? Too kummagi variandi üks eelis.', 'b1b2-006'], 'Ütle viisakalt, et oled kolleegiga eri meelt. Kasuta sõna „kuigi”.']),
+      B.review('024_d_review', [['Mida otsustas Tuul Logistika meeskond tööaja kohta? Kes mille eest vastutab?', 'b1b2-023'], ['Moodul 2: kuhu sa oma linnas lähed, kui pass on kadunud, ja kust saad hiljem valmis dokumendi?', 'b1b2-006'], 'Ütle viisakalt, et oled kolleegiga eri meelt. Kasuta sõna „kuigi”.']),
       B.text('024_d_hook', 'Kaks lahendust', 'Vaata pilti: Anna ja Jaan võrdlevad autot ja bussi nelja kriteeriumi järgi: hind, aeg, mugavus ja keskkond. Samamoodi võrdleb linn Kalamajas kahte lahendust: uut trammiliini ja odavamat bussirada. Linnaplaneerija Siret tutvustas mõlemat varianti Kalamaja raamatukogus infoõhtul. Sofia kuulas ja tegi märkmeid, sest 10. detsembril toimub samas suur avalik arutelu.'),
       tag(B.listening('024_d_lecture', 'Eksaminurk: linnaplaneerija ettekanne (Harno B2 kuulamine 3).', 'Kuula infoõhtu ettekannet kaks korda ja täida Sofia märkmete lüngad: enamasti on vaja arvu, aega või hinda (1–3 sõna).', [
         'Siret: Head kalamajalased, tere õhtust! Täna võrdleme kahte lahendust, kuidas teie linnaosa ühistransporti parandada.',

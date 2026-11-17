@@ -1,3 +1,64 @@
+## 2026-11-17 · agent/b1b2-m02-tasks — round 3: four v4 gate rules (owner OK) + module 2 lessons without gate bends · gates + content
+
+- Base: `origin/main` 20f104d (merged, nothing new; module 3 / 4 PRs #1261 / #1262 still open), checked 2026-11-17. PR #1263 (draft).
+- Gates, v4 only (`meta.format` station lessons): (1) a writing task marked `homeTask()` has 0 lesson minutes in V11 /
+  V12 and may be the W1 corner (`isHomeWriting`); (2) a gap-free `dialogue` is not a closed task (`dialogueGaps`, in
+  `stations.js` st-items / st-closed and `didacticCheck.js`); (3) av-voice / av-boltedon → one input besides the hook of
+  ≥ 120 words or ≥ 60 s audio (`V4_INPUT`, `academicValue.js hasV4Input`); (4) g_listen choice / true-false rows out
+  of the sentence-length check (`isListeningRow`). Files: `worksheet-studio/didactics/{stations,didacticCheck,finalShape}.js`,
+  `admin/course/{stations,academicValue}.js`; tests in `admin/course/v4Gates.test.js` (4 new, each with the v3 result);
+  `docs/COURSE_DESIGN_STATIONS.md` §7.3 rows. Full B1 + B2 report (36 modules) identical before / after the gate change.
+- Module 2: long writings are homework (`homeTask`); 008 corner back to W1, counter role-play into the core, extension
+  writes the letter's start; gate-only fluency tags removed; 009 language focus = „Meie maja plaan B” table (own
+  sentences with kui / sel juhul / selle asemel, et). Review: `docs/review/b2-m02-tasks.md` „Раунд 3”.
+- Checks: module report 5/5; B1 + B2 180/180 READY; EstNLTK 0; 198 files / 2163 tests green; eslint clean; sheet lab.
+- Note for module 3 / 4 agents: when merging, keep both the module 4 „exam sheet timed by Harno part headers” rule and
+  these four.
+- Next safe step: owner reviews PR #1263; a teacher runs 008 or 009.
+
+## 2026-11-17 · agent/b1b2-m02-tasks — B1→B2 module 2, round 2: new exam 010, documents in 007/008, gate compromises undone · content only
+
+- Base: `origin/main` 20f104d (merged, nothing new), checked 2026-11-17. PR #1263 (draft).
+- Done: 010 rebuilt as a real v4 module check in Harno B2 form on the module's content (review sheet with a forum
+  thread, R1 article „Kaebus ei ole tüli” ≈ 530 words, R2a, R3 letter to the district, R4 plan-B guide; L1 six clips
+  played once, L3 info hour, L4 two-guest interview; W1 complaint answering the management company's letter, W2b; S1
+  „Minu linna abikaart”, S2 cards), EXPLAIN for every scored item, new audio 010_p_clips / 010_p_listen / 010_p_tf,
+  010_p_notes removed. 007: booking screen (R08) at station 4; guide back to 120–150 words. 008: receipt and warranty
+  terms at station 4; language focus = a friend's complaint draft with 7 gaps (replaces sentence-pair joins). Sound
+  rows in 006 / 007 are the teacher's sentences with a gap. `b2/lessonGoals.js` 010 goals and tags.
+- Gate issues found (not changed, described in `docs/review/b2-m02-tasks.md` „Раунд 2”): V11 / V12 count the homework
+  writing as lesson time; a gap-free `dialogue` counts as a 1-item closed task; av-voice ≥ 150 words vs st-input ≤ 120.
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; worksheet-generator + worksheet-studio +
+  vocabulary 198 files passed, 2159 tests; eslint clean; 007, 008 and all 010 sheets re-read in the sheet lab.
+- Next safe step: owner reads „Раунд 2” and decides the four gate proposals; a teacher runs 007 or 009.
+
+## 2026-11-17 · agent/b1b2-m02-tasks — B1→B2 module 2 task-based (v4) · content only, no UI / rules / functions / data writes
+
+- Base: `origin/main` 20f104d (release 2026-11-17 07:41 UTC), checked 2026-11-17. Draft PR „B1→B2 module 2: task-based (v4)”.
+  Modules 3 and 4 are being rebuilt in parallel by other agents (not touched here).
+- Done: `b2/module02.js` 006–009 rebuilt in design v4 like module 1 (`MODULE.design: 'v3-stations'`, exactly 4 stations,
+  51–57 of 90 min, hook ≤ 80 words, „Kui aega jääb” 10–12 min, exit check + „Ma oskan …” + homework card, teacher page
+  with hook / minute plan / sources / groups). 006 game „Kuhu sa lähed, kui pass on kadunud?” (town; topic opener
+  ≈ 330 words at minute 15; R3 corner), 007 infogap „Kas ma saaksin aja juba täna?” (health; S1 home talk), 008 case
+  „Kolm kuud ja katki — kas kaebad?” (money; L3 radio corner; W13 complaint), 009 project „Homme pole vett — mis on sinu
+  plaan B?” (neighbours; S2 cards). Grammar: kus/kuhu/kust → conditional requests → cause/effect → kui / sel juhul /
+  selle asemel. Cast: 0 (old Mets-family storyline removed). 010 kept as the short Harno check, cast-free, R1 article
+  ≈ 560 words (av-article), R3 points 9 → 8 (8 gaps), product „Minu linna abikaart” + S1 talk with it. EXPLAIN for
+  every scored item of the module (incl. 010). Facts with sources (eesti.ee 14 days — the old „30 days” was wrong;
+  Tervisekassa, 1220, 1247, TTJA, kriis.ee).
+- Also changed: `b2/lessonGoals.js` 006–010 texts (keys kept; 009 tags dropped with the old audio);
+  `vocabulary/lessonWords/b1b2.json` 006–009; `data/keelesepp-b1-b2-roadmap-01.json` titles 006–009 (ids kept);
+  `art/visuals/b2-module-02.js` alt / captions / prompts cast-free (same pictures); `b2/module05.js` 024_d_review item
+  now asks about lesson 006 (id kept); `listeningAudio.json` + `public/audio`: new 006_t_voice, 007_d_call,
+  008_d_radio, 008_t_shop (TartuNLP), 6 old recordings removed; `academicValueRound2Baseline.json` module 2 entries
+  removed (fixed); `tools/course-audit/language-allow.txt` + complain, explain (internal final kinds).
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; `npx vitest run src/features/worksheet-generator
+  src/features/worksheet-studio src/features/vocabulary` 198 files passed (1 skipped), 2159 tests passed (12 skipped);
+  v4Tasks / v4Gates cover module 2; eslint clean on changed JS; all 15 sheets read in the sheet lab (local vite).
+- Limits: modules 3 and 4 still have „Mäletad?” items about the old module 2 story (their agents rewrite them);
+  nothing published; library titles change after the owner's publish.
+- Next safe step: owner reads `docs/review/b2-m02-tasks.md`; a teacher runs 007 or 009 one-to-one.
+
 ## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1, round 3: „Kui aega jääb”, pictures, module 5 review item · content + small v4 gate change
 
 - Base: `origin/main` f8ab587 (merged, nothing new), checked 2026-11-17. PR #1259 (draft). Owner approved round 2.

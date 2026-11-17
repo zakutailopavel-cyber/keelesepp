@@ -33,6 +33,7 @@
 // profile 'enb2': opener B1+ 250–350 / B2- and B2 300–450 words, article 450–600 words, the examiner's set is the state
 // exam's monologue (a talk of at least 1 min 45 s + the examiner's questions).
 import { REQUIRED_TOPICS, TOPIC_MAP, topicName } from './academicTopics.js';
+import { V4_INPUT, isTaskDesign } from '../../../worksheet-studio/didactics/stations.js';
 
 export const AV = Object.freeze({
   // minimum words of a non-cast text by the sheet's level stage
@@ -189,6 +190,26 @@ export function isVoiceText(b, doc) {
   if (b.type === 'chart') return hasSource(b, lang);
   return words(mainText(b, lang)) >= voiceMin(doc);
 }
+// design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7.3, owner OK 2026-11-17): station texts are capped at 120 words,
+// so the „text from outside the story ≥ 150 words besides the opener” of av-voice / av-boltedon cannot live in a station.
+// A v4 lesson instead has one substantial input besides the hook (station 1): a text, chat or opener of ≥ 120 words, or a
+// recording of ≥ 60 s (≈ 110 words), not a fact box and without the cast. The opener counts: in v4 it stands behind the
+// hook with its own tasks, which is what the old rule wanted (no bolted-on page).
+const AUDIO_TYPES_AV = ['listening', 'examlisten'];
+export const isV4Lesson = (phases) => Object.values(phases || {}).some(isTaskDesign);
+export function hasV4Input(phases, lang = 'et') {
+  let n = 0;
+  for (const phase of ['discover', 'practice', 'transfer']) {
+    for (const b of blocksOf(phases?.[phase])) {
+      if (b.data?.station) n = b.data.station.n;
+      if (n <= 1 || !INPUT.includes(b.type) || b.type === 'chart' || b.data?.review || b.data?.know || b.type === 'tip') continue;
+      if (hasCast(studentText(b), lang)) continue;
+      const min = AUDIO_TYPES_AV.includes(b.type) ? V4_INPUT.audioWords : V4_INPUT.textWords;
+      if (words(mainText(b, lang)) >= min) return true;
+    }
+  }
+  return false;
+}
 // a speaking question wider than the episode: an opinion / comparison cue, no cast name
 export const opinionQuestions = (b, lang = 'et') => (SPEAKING.includes(b.type) ? sentences(studentText(b)).filter((s) => lex(lang).opinion.test(s) && !hasCast(s, lang)) : []);
 const isKnow = (b, lang = 'et') => Boolean(b.data?.know || b.data?.opener) || (INPUT.includes(b.type) && !hasCast(studentText(b), lang) && hasSource(b, lang));
@@ -210,7 +231,7 @@ export function lessonAcademicProblems(lessonId, phases) {
   if (!isTeachingLesson(phases)) return out;
   const all = docs.flatMap(([phase, doc]) => blocksOf(doc).map((b) => ({ b, doc, phase })));
   if (!docs.some(([, doc]) => String(doc?.meta?.canDo || '').trim())) add('*', 'av-goal', 'tunnil pole sõnastatud eesmärki (canDo)');
-  if (!all.some(({ b, doc }) => isVoiceText(b, doc))) {
+  if (isV4Lesson(phases) ? !hasV4Input(phases, lang) : !all.some(({ b, doc }) => isVoiceText(b, doc))) {
     const min = voiceMin(docs[0]?.[1]);
     add('*', 'av-voice', `tunnis pole ühtki teksti väljastpoolt tegelaste lugu (artikkel, intervjuu, ekspert, foorum, uudis, infograafik, ilukirjandus, populaarteadus; ≥ ${min} sõna, tegelaste nimedeta)`);
   }
@@ -465,7 +486,7 @@ export function isMainText(b, doc) {
 export function lessonRound2Problems(lessonId, phases) {
   if (!isTeachingLesson(phases)) return [];
   const docs = Object.entries(phases || {});
-  if (docs.some(([, doc]) => blocksOf(doc).some((b) => isMainText(b, doc)))) return [];
+  if (isV4Lesson(phases) ? hasV4Input(phases, sheetLang(docs[0]?.[1])) : docs.some(([, doc]) => blocksOf(doc).some((b) => isMainText(b, doc)))) return [];
   return [{ lessonId, phase: '*', code: 'av-boltedon', text: `tunnis pole põhiteksti väljastpoolt tegelaste lugu (≥ ${voiceMin(docs[0]?.[1])} sõna; „Kas teadsid?” kast, nõuanne, graafik ega teema avaleht ei loe — tegelaste episood + faktikast ei ole tund)` }];
 }
 
