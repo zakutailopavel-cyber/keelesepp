@@ -56,7 +56,7 @@ export const LESSONS = withShapes({
     title: 'Seisukoha väljendamine',
     canDo: 'Ma räägin avalikul arutelul 2–3 minutit oma seisukohast: näitan, kui kindel ma olen (kindlasti, ilmselt, vaevalt), toon kaks põhjust ja ühe kahtluse ning teen ettepaneku.',
     discover: [
-      B.review('021_d_review', [['Moodul 4: mida pidi Taavi oma esimesel nädalal tegema ja mida ei tohtinud ta ise otsustada?', 'b1b2-019'], ['Moodul 3: keda valisid Sofia ja Liis vestluspäeval projektiassistendiks? Miks just teda?', 'b1b2-012'], 'Milline reegel on sinu töökohas või kodus kohustuslik? Kas see on sinu arvates õige?']),
+      B.review('021_d_review', [['Moodul 4: mida teed esimesena, kui rahakott koos ID-kaardiga kaob? Kellele teatad?', 'b1b2-019'], ['Moodul 3: keda valisid Sofia ja Liis vestluspäeval projektiassistendiks? Miks just teda?', 'b1b2-012'], 'Milline reegel on sinu töökohas või kodus kohustuslik? Kas see on sinu arvates õige?']),
       // the module's topic opener (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2, topic map B2 row 5: keel + ühiskond):
       // cast-free, story-led, sourced; it replaces the goal text 021_d_goal, whose storyline moved into 021_d_read
       B.topicOpener('021_d_open', 'Teema avaleht: kes otsustab, milline on eesti keel?', [

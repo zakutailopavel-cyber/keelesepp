@@ -124,6 +124,8 @@ cards), 004 negotiate (S17 learning-plan talk); the check 005 is unchanged. Owne
 B2 `av-article` (one 500–600-word article a module) cannot live in a station (`st-input` ≤ 120 words): the module's
 article is the check lesson's reading (005, owner 2026-11-14). Open: that length is over the B1+ sheet reading norm (≤ 500).
 Since 2026-11-17 the module is the sample of design v4 „task-based” (§7): same stations and gates, no storyline.
+**B2 module 4** (`b2/module04.js`, 016–019, 2026-11-17) is the second v4 module and the first grammar module in v4: case
+(complain) → infogap (explain) → game (present) → project (plan); owner summary `docs/review/b2-m04-tasks.md`.
 
 ## 5. Next
 

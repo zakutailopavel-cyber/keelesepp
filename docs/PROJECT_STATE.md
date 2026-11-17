@@ -1,3 +1,40 @@
+## 2026-11-17 · agent/b1b2-m04-tasks — B1→B2 module 4 task-based (v4) · content only, no UI / rules / functions / data writes
+
+- Base: `origin/main` 20f104d (release 2026-11-17 07:41 UTC), checked 2026-11-17. Draft PR „B1→B2 module 4: task-based
+  (v4)”. Modules 2 and 3 are rebuilt in parallel by other agents (expect conflicts in `b2/lessonGoals.js`,
+  `listeningAudio.json`, `lessonWords/b1b2.json`, `data/keelesepp-b1-b2-roadmap-02.json`, this file).
+- Done: `b2/module04.js` rebuilt to design v4 (§7) on the sample of module 1; `MODULE.design` v2 → `v3-stations`.
+  016 case „Kas tagatisraha tuleb tagasi?” (home: deposit after moving out; total / partial object; final complain, W13
+  letter to the landlord), 017 infogap „Mida arst täpselt ütles?” (health: call to 1220, the doctor's note explained to
+  mum; ma- / da-infinitive; final explain), 018 game „Mille vastu sa huvi tunned?” (free time: radio, neighbours' chat,
+  introduce yourself to an organiser; government; final present), 019 project „Rahakott kadus — mida teha esimese tunni
+  jooksul?” (lost wallet / keys / document, own SOS plan; all three forms in one sentence; final plan). Exactly 4 stations
+  (52–57 min) + „Kui aega jääb” (10–12 min) each, hook ≤ 80 words, one long text in the module (opener 016 station 2,
+  min 15), exit check + „Ma oskan …” + home voice + „Kodutöö” card, teacher pages with hook / minute plan / sources /
+  groups / plan B. Cast 0. EXPLAIN for every scored item, 020 included. 020: exam kept (Harno parts and points unchanged),
+  `format: 'exam'`, Kadri → Katrin (cast name), product card `020_t_product` „Minu lahendatud mure” + S1 talk on it,
+  `020_p_read` lengthened to the module's B2 article (two paragraphs G–H, task 2 now A–H; old items and keys unchanged).
+- Facts (sources in the files): Eurostat EU-SILC 2025, Maa- ja Ruumiamet 2025, Statistikaamet pay 2025, võlaõigusseadus
+  § 308 (deposit ≤ 3 months' rent, 3 parts) and § 334 lg 2 (ordinary wear) — read in Riigi Teataja; 1220 hours and
+  languages (Tervisekassa / terviseportaal); first song festival 1869 Tartu; a document taken to the police loses its
+  validity (ERR, PPA).
+- Data: `b2/lessonGoals.js` 016–019 texts (keys kept; 016 keeps g_vocab / g_read / g_listen / g_notice / g_use for its
+  Õpik sheet), tags; `vocabulary/lessonWords/b1b2.json` 016–019; roadmap-02 titles 016–019 (ids unchanged);
+  `academicValueRound2Baseline.json` module 4 left the baseline; `tools/course-audit/language-allow.txt` + complain /
+  explain (station.final keys). Review items in `b2/module05–08.js` (021, 026, 028, 029, 032, 036, 037 `_d_review`)
+  now ask about the new lessons (ids kept).
+- Art: `art/visuals/b2-module-04.js` cast-free learner text and `place`; 016 and 017 pictures replaced by existing C1
+  images (`est-c1-023-kasuta-1` handover, `est-c1-051-kasuta-1` doctor's visit) copied over the lesson files.
+- Audio (TartuNLP, free): new 016_p_done, 016_t_voice (new script), 017_d_call, 018_d_radio, 019_d_voice; removed
+  016_d_lunch, 017_p_listen, 019_d_calls, 019_p_listen.
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; `npx vitest run src/features` → 539 files passed
+  (1 skipped), 4502 tests passed (12 skipped), incl. v4Tasks / v4Gates for module 4; eslint clean on the changed JS;
+  sheets read in the sheet lab (016 D / T, 017 T, 018 D / T, 019 D / T) — fixed the doctor's note and the chat printing on
+  one line, 019 picture place.
+- Limits: nothing published; library titles change after the owner's publish. Module 16 still tells its own Ilze /
+  Silva story. Not listened to by a human; Estonian not checked by a native speaker.
+- Next safe step: owner reads `docs/review/b2-m04-tasks.md`; a teacher runs 016 or 018.
+
 ## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1, round 3: „Kui aega jääb”, pictures, module 5 review item · content + small v4 gate change
 
 - Base: `origin/main` f8ab587 (merged, nothing new), checked 2026-11-17. PR #1259 (draft). Owner approved round 2.
