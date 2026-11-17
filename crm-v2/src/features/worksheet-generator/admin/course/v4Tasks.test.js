@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { COURSE_MODULES, buildCourseSheet } from './registry.js';
 import { castNames, words } from './academicValue.js';
-import { stationsOf } from './stations.js';
+import { EXTENSION_MINUTES, stationsOf } from './stations.js';
 import { answerKeyOf, explainedShare } from '../../../worksheet-studio/engine/answerKey.js';
 
 const TASK_FORMATS = ['case', 'debate', 'quest', 'facts', 'infogap', 'project', 'game', 'exam'];
@@ -14,7 +14,7 @@ const TOPICS = ['languages', 'home', 'work', 'freetime', 'money', 'health', 'tow
 // the B1 / B2 cast beyond academicValue.js castNames (docs/COURSE_CAST.md), with case endings
 const MORE_CAST = /(?<!\p{L})(?:Eha|Maret|Laura|Gert|Hendrik|Jelena|Kristjan|Krista|Ülle)(?:i|a|e)?(?:t|le|ga|l|lt|s|st|sse|ni|na|ks|ta)?(?!\p{L})/gu;
 const PHASES = ['discover', 'practice', 'transfer'];
-const HIDDEN = new Set(['teacher', 'explain', 'transcript', 'audio', 'station', 'purpose', 'instruction', 'title', 'heading', 'img', 'aspect', 'bubble', 'tipTitle', 'opener', 'source', 'know', 'exit', 'home']);
+const HIDDEN = new Set(['teacher', 'explain', 'transcript', 'audio', 'station', 'purpose', 'instruction', 'title', 'heading', 'img', 'aspect', 'bubble', 'tipTitle', 'opener', 'source', 'know', 'exit', 'home', 'extension']);
 // what the learner must read to answer (the title, the one-line instruction and the purpose line are not counted)
 const material = (b) => Object.entries(b.data || {}).filter(([k, v]) => !HIDDEN.has(k) && typeof v === 'string').map(([, v]) => v).join(' ');
 const TEXTS = ['text', 'reading', 'insertion', 'cloze', 'profiles'];
@@ -82,6 +82,21 @@ describe.each(V4.map((m) => [m.MODULE.id, m]))('design v4 task-based: %s', (_, m
       const list = stations(id);
       expect(list.length, id).toBe(4);
       expect(list.reduce((n, s) => n + s.minutes, 0), id).toBeLessThanOrEqual(75);
+    }
+  });
+
+  it('extension: one optional „Kui aega jääb” task of 10–15 min a lesson, open (not a drill), in the minute plan; core + extension ≤ 90 min', () => {
+    for (const id of teaching) {
+      const ext = Object.values(sheets[id]).flatMap((d) => d.blocks).filter((b) => b.data?.extension);
+      expect(ext.length, `${id} extension`).toBe(1);
+      const [b] = ext;
+      expect(b.data.extension.minutes, id).toBeGreaterThanOrEqual(EXTENSION_MINUTES[0]);
+      expect(b.data.extension.minutes, id).toBeLessThanOrEqual(EXTENSION_MINUTES[1]);
+      expect(/^Kui aega jääb/.test(b.data.title) && Boolean(b.data.purpose), `${id} title and purpose`).toBe(true);
+      expect(['speaking', 'rolecards', 'speakcard', 'writing'].includes(b.type), `${id} ${b.type}: a task, not a drill`).toBe(true);
+      const core = stations(id).reduce((n, s) => n + s.minutes, 0);
+      expect(core + b.data.extension.minutes, id).toBeLessThanOrEqual(90);
+      expect(sheets[id].discover.meta.teacherPage.plan.some((line) => /Kui aega jääb/.test(line)), `${id} minute plan`).toBe(true);
     }
   });
 

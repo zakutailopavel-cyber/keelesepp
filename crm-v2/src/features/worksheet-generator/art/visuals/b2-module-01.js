@@ -19,16 +19,18 @@ export default [
   {
     id: "b1b2-002-avasta-1",
     phase: "discover",
-    format: "sequence",
-    cast: ["Anna"],
-    scene: "Ühe töötava inimese neljapäev kulgeb ärkamisest ja kohvist lapse kooliks aitamise, bussis lugemise, töömeili ja lõuna kaudu rahuliku õhtuni.",
-    accent: "the continuous story timeline",
+    format: "scene",
+    cast: ["Anna", "Markus"],
+    // 2026-11-17 (v4, round 3): the old day timeline did not serve a housework lesson; the image is reused from
+    // est-c1-003-avasta-1 (same scene: a kitchen, the dishwasher and a chore table), copied to this lesson's folder
+    scene: "Koduköögis seisavad naine ja mees nõudepesumasina juures ning hoiavad ühiste kodutööde tabelit. Mõttemullides arvab kumbki, et nõusid peseb tavaliselt tema; tabel teeb ütlemata ootuse selgeks kokkuleppeks.",
+    accent: "the shared chore table that turns two different expectations into one agreement",
     text: [],
-    learningJob: "siduda päeva tegevused ajamarkerite, põhjuste ja tunnetega terviklikuks looks",
-    alt: "Ühe töötava inimese tavalise neljapäeva sündmused moodustavad ühe katkematu ajajoone.",
-    caption: "Pilt 1. Üks tavaline päev sidusa loona.",
+    learningJob: "kirjeldada, kes kodus mida teeb, märgata erinevaid ootusi ja põhjendada kodutööde jagamist sidesõnadega",
+    alt: "Naine ja mees köögis kodutööde tabeliga; mõttemullides peseb kumbki nõusid ise.",
+    caption: "Pilt 1. Kes meil nõusid peseb?",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Kirjelda pildil olevat päeva: mis juhtub kõigepealt, seejärel ja lõpuks?", "Millal on sellel inimesel kiire ja millal rahulik? Miks?", "Mille poolest erineb sinu tavaline päev pildil olevast päevast?"],
+    prompts: ["Mida kumbki mõttemullis arvab ja miks nad tabeli tegid?", "Kes peseb teie kodus nõusid ja kes koristab? Kas see on võrdselt jagatud?", "Kas kodutööde tabel aitab või tekitab tüli? Põhjenda sõnaga kuna või kuigi."],
   },
   {
     id: "b1b2-003-avasta-1",
@@ -40,9 +42,9 @@ export default [
     text: [],
     learningJob: "eristada sagedust, toimumisaega ja kestust ning paigutada need lausesse",
     alt: "Sageduse, aja ja kestuse ikoonid kolmeks jagatud ajakettal.",
-    caption: "Pilt 1. Sagedus, aeg ja kestus.",
+    caption: "Pilt 1. Minu nädal: kui tihti, millal, kui kaua?",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida näitavad plaanis nooled, kalendripunkt ja riba?", "Ütle iga märgi kohta üks lause oma nädalast: kui tihti, millal, kui kaua.", "Milline sinu tegevus kordub nädalas kõige sagedamini?"],
+    prompts: ["Mida näitavad plaanis nooled, kalendripunkt ja riba?", "Ütle iga märgi kohta üks lause oma nädalast: kui tihti, millal, kui kaua.", "Kalendris on üks päev märgitud. Millise päeva jätaksid vabaks, kui töötaksid neli päeva nädalas?"],
   },
   {
     id: "b1b2-004-avasta-1",
@@ -56,7 +58,7 @@ export default [
     alt: "Kaalul on ühe inimese haiglatöö ja puhkus ning teise inimese paindlik töö ja nädalavahetuse üritused.",
     caption: "Pilt 1. Kaks vastandlikku nädalarütmi.",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Kumma inimese nädalarütm on kiirem? Miks?", "Mis on nende argipäevas sarnast ja mis erinevat?", "Kumma nädal sobiks sulle õppimiseks rohkem? Põhjenda."],
+    prompts: ["Kumma inimese nädalarütm on kiirem? Miks?", "Kumma inimese nädalavahetus on vabam? Võrdle: … on … kui …", "Kumma nädal sobiks sulle õppimiseks rohkem? Põhjenda."],
   },
   {
     id: "b1b2-005-avasta-1",

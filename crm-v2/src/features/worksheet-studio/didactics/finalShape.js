@@ -105,9 +105,10 @@ export function lessonsFromModules(modules, sheetsOf) {
 const blocksOf = (doc) => (doc?.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId);
 export const tasksOf = (doc) => blocksOf(doc).filter(isFinalShapeTask);
 // design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7): the exit check (data.exit, 2–3 quick items) closes the lesson
-// and the home task (data.home, the 1-minute voice message) follows it. Both train the lesson's goals (V9) and count as
+// and the home task (data.home, the 1-minute voice message) follows it; the optional extension (data.extension, „Kui
+// aega jääb”) is extra time. All three train the lesson's goals (V9) and count as
 // formats (V3), but they are not the lesson body: no catalogue cap, type share or Kasuta drill rule (V4, V15) counts them.
-const body = (b) => !b.data?.exit && !b.data?.home;
+const body = (b) => !b.data?.exit && !b.data?.home && !b.data?.extension;
 const lessonTasks = (lesson) => PHASES.flatMap((p) => tasksOf(lesson.sheets[p]).map((b) => ({ b, phase: p })));
 const ids = (doc) => tasksOf(doc).map(taskIdOf);
 const minutesOf = (b, doc) => blockMinutes(b, doc?.meta?.level, doc?.meta?.design, doc?.meta?.template);
@@ -393,7 +394,8 @@ function strandProblems(lessons, out, P) {
   const v12 = P.shape.v12;
   const list = teaching(lessons);
   list.forEach((l, i) => {
-    const tasks = lessonTasks(l).map(({ b, phase }) => ({ b, min: minutesOf(b, l.sheets[phase]) }));
+    // the v4 extension „Kui aega jääb” is optional time, not part of the lesson's strand balance
+    const tasks = lessonTasks(l).filter(({ b }) => !b.data?.extension).map(({ b, phase }) => ({ b, min: minutesOf(b, l.sheets[phase]) }));
     const notices = PHASES.flatMap((p) => blocksOf(l.sheets[p]).filter((b) => b.type === 'notice').map((b) => ({ b, min: minutesOf(b, l.sheets[p]) })));
     const all = [...tasks, ...notices];
     const total = all.reduce((n, x) => n + x.min, 0) || 1;

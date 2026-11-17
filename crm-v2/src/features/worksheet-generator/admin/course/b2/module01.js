@@ -17,7 +17,7 @@
 // is in 001 station 2, after a 15-minute hook and pre-task and pre-taught words. The course's cast is not used.
 // Ids of reused recordings stay (001_p_call, 004_p_expert) although the blocks moved to another sheet.
 import { B, tag, teach, withShapes } from '../blocks.js';
-import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
+import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
 const inLesson = (block) => ({ ...block, inLesson: true });
@@ -55,8 +55,10 @@ export const LESSONS = withShapes({
         '15–30: пункт 2 — слова до чтения (2 мин), вопрос-прогноз «Кто сейчас делает дома больше: мужчины или женщины?», чтение, 6 вопросов',
         '30–42: пункт 3 — вежливая просьба: заметить → правило → 7 фраз',
         '42–57: пункт 4 — автоответчик школы, план письма и 2 первых предложения',
-        '57–62: проверка на выходе (3 фразы) и «Ma oskan …»; домашнее задание',
-        '62–90: запас: разбор ошибок, один вопрос «Mõtle kaasa» из текста, начало письма',
+        '57–67: «Kui aega jääb» — ролевая игра: звонок в школу (по желанию)',
+        '67–75: проверка на выходе (3 фразы), «Ma oskan …», разбор 3 ошибок',
+        '75–82: домашнее задание: что дома, как записать 1 минуту, где слова',
+        '82–90: запас (вопрос «Mõtle kaasa» из текста)',
       ],
       sources: 'Текст пункта 2 — Статистикаамет (исследование времени 2019–2021, перепись 2021), источники под текстом. Школа «Keelekool Sõna», цены и время — учебный сценарий, не реальные данные.',
       groups: 'Пункт 1 — в парах: один спрашивает, другой отвечает, потом смена; вы слушаете по очереди. Звуки: один читает пару, другой выбирает. Пункты 2–4 каждый делает сам, план письма сравнивают в паре.',
@@ -145,6 +147,11 @@ export const LESSONS = withShapes({
       ]), 'Märkmed lähevad sinu kalendrisse: aeg, hind ja mida kaasa võtta.'), { task: 'L10' }), 4, 15, { final: 'plan' }),
       teach(tag(purpose(B.letter('001_t_mail', 'Kiri keelekoolile: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: kiri lõpuni (kursus, aeg, kaks viisakat palvet).', 'Lugupeetud keelekooli administraator!', 'Lugupidamisega\n(sinu nimi)', [120, 150]), 'Kool vastab sinu kirjale: koht kursusel ja sobiv maksmise viis.'), { task: 'W13', main: true }),
       'Kodutöö. Järgmises tunnis loe kiri kui administraator ja vasta suuliselt („Teile sobiks …, aga …”). Tagasiside: tingiv kõneviis palvetes, pöördumine ja lõpp, plaan on selge.'),
+      extension(teach(tag(purpose(B.rolecards('001_t_more', 'Rollimäng: helista keelekooli', 'Helista administraatorile ja registreeru kursusele viisakalt.',
+        'Olukord: kirja asemel helistad keelekooli.\nSinu eesmärk: saada koht B2-kursusel ja sobiv diagnostika aeg.\nPiirang: päeval oled tööl või kodus ametis; raha maksad kahes osas.',
+        'Administraatori kaart on õpetajal: vabad ajad ja üks probleem.',
+        ['Kas te saaksite …?', 'Ma sooviksin …', 'Kas oleks võimalik …?'], ['Kahjuks …', 'Meil on vaba …', 'Kas teile sobiks …?']), 'Telefonis ei näe sa teise nägu: viisakus on ainult sõnades.'), { task: 'S04', level: 4 }),
+      'Kui aega jääb (10 min). Õpetaja on administraator. Varjatud info: neljapäeva kella viie aeg on täis, vaba on teisipäeval kell 17.30; kahes osas maksmine on lubatud ainult siis, kui esimene osa tuleb enne kursuse algust. Õnnestunud, kui õpilane kasutab vähemalt kolme viisakat vormi ja lepib aja ning makse kokku.'), 10),
       tag(exitCheck(purpose(B.gaps('001_t_exit', 'Kontrolli end: kolm palvet.', 'Kirjuta sulgudes olev sõna viisakas vormis.', [
         '[Kas te saaksite] mulle diagnostika aja ka e-postiga saata? (kas te saate)',
         'Ma [sooviksin] registreeruda jaanuaris algavale B2-kursusele. (soovin)',
@@ -175,8 +182,11 @@ export const LESSONS = withShapes({
         '10–22: пункт 2 — слова (1 мин), прогноз «кто готовит у других?», радио-опрос дважды, верно / неверно',
         '22–34: пункт 3 — союзы: заметить в фразах из радио → правило → график → 8 предложений',
         '34–49: пункт 4 — голосовое подруги, план ответа и 2 первых предложения',
-        '49–54: проверка на выходе (3 союза) и «Ma oskan …»; домашнее задание',
-        '54–90: запас: обсуждение графика («Почему?»), ошибки, начало ответа',
+        '49–59: «Kui aega jääb» — мини-дебаты «таблица дел: помогает или ссорит?»',
+        '59–67: проверка на выходе (3 союза), «Ma oskan …», разбор 3 ошибок',
+        '67–75: обсуждение графика («Почему так изменилось?»)',
+        '75–82: домашнее задание: ответ Кристиине, запись 1 минуты, слова',
+        '82–90: запас',
       ],
       sources: 'Ответы игры: Статистикаамет, исследование времени 2019–2021 (20.12.2022 и 17.01.2023) — см. карточку к пункту 1. График — тот же источник. Радио-опрос и голосовое — учебные тексты, не реальные люди.',
       groups: 'Игра: каждый пишет свои числа, ближайший получает очко. Радио — каждый сам, проверка в паре. Пункт 4: план в паре («что посоветуешь ты?»), предложения каждый пишет сам.',
@@ -264,6 +274,12 @@ export const LESSONS = withShapes({
         words: [110, 140],
       }), 'Kristiina proovib sinu nõuandeid järgmisel nädalal oma peres.'), { main: true, task: 'W05' }),
       'Kodutöö. Järgmises tunnis loe vastus kui Kristiina ja küsi üks täpsustav küsimus („Aga kui mees töötab õhtuti?”). Tagasiside: kuus eri sidesõna, tegusõna koht, kaks selget nõuannet.'),
+      extension(teach(tag(purpose(B.speaking('002_t_more', 'Mini-väitlus: kodutööde tabel külmkapil', 'Vali pool: tabel aitab või tabel tekitab tüli. Too kaks põhjust ja üks näide.', [
+        'Miks tabel aitab või ei aita?',
+        'Mis juhtub, kui keegi oma korra vahele jätab?',
+        'Mida teeksid sina oma kodus teisiti?',
+      ], [120, 180], ['Kuna …, siis …', 'Kuigi …', 'Seetõttu …']), 'Mini-väitlus näitab, kas oskad oma seisukohta sidesõnadega põhjendada.'), { task: 'S11', fluency: true }),
+      'Kui aega jääb (10 min). Õpetaja võtab vastupidise poole ja ütleb ühe vastuargumendi („Tabel on nagu kontoris, kodu ei ole firma!”). Lõpus ütleb kumbki, mis teise argumendis oli kõige tugevam.'), 10),
       tag(exitCheck(purpose(B.gaps('002_t_exit', 'Kontrolli end: kolm sidesõna.', 'Vali igasse lünka sidesõna. Üks jääb üle.', [
         '[Kuna] meil on kaks väikest last, on meie hommikud alati kiired.',
         'Mees teeb õhtul kogu perele süüa, [seetõttu] on mul aega trenniks.',
@@ -294,8 +310,10 @@ export const LESSONS = withShapes({
         '10–25: пункт 2 — слова (1 мин), блог работника: 6 предложений на место',
         '25–37: пункт 3 — время и частота: заметить → правило → 7 исправлений, чтение вслух (ударение)',
         '37–52: пункт 4 — карточки аргументов, дебаты, голосование',
-        '52–57: проверка на выходе и «Ma oskan …»; домашнее задание',
-        '57–90: запас: ошибки из дебатов, второй раунд дебатов с другой стороной (если хочет)',
+        '52–64: «Kui aega jääb» — игра «Mis muutuks?» (профессии, 30 секунд)',
+        '64–72: проверка на выходе, «Ma oskan …», 3 ошибки из дебатов',
+        '72–80: домашнее задание: выступление 1 минута, 5 предложений, слова',
+        '80–90: запас',
       ],
       sources: 'Карточки: Autonomy и Alda, отчёт об опытах в Исландии (2021) — сокращённые часы (35–36 вместо 40), около 2500 участников; Autonomy, результаты британского пилота (2023) — 61 фирма, 56 продолжили. Блог — учебный текст.',
       groups: 'Голосование — все сразу, руки. Дебаты: две команды по 1–2 человека, вы ведёте время и голосуете последним. В 1:1 вы берёте сторону, которую ученик не выбрал.',
@@ -364,6 +382,11 @@ export const LESSONS = withShapes({
         'Õpetaja kaitseb teist poolt, tal on oma argumendid ja üks küsimus sulle.',
         ['Esiteks…, teiseks…', 'Näiteks minu nädalas…', 'Kuigi…, on…', 'Ma hääletan poolt / vastu, sest…'], ['Ma ei ole päris nõus, sest…', 'Mul on ettepanek: …', 'Sinu argument veenis mind, sest…']), 'Tulemus: sinu selge hääl ja lause, mis seda põhjendab.'), { task: 'S17', main: true }),
       'Õpetaja kaart: kaitse poolt, mida õpilane ei valinud. Varjatud info: Islandil lühendati tunde, mitte ei antud vaba reedet; Suurbritannia firmad olid vabatahtlikud ja enamasti kontorid. Takistused ükshaaval: 1) „Kes töötab reedel haiglas või bussis?”; 2) „Islandil ei olnud see päris neljapäevane nädal — kas see on sama asi?”; 3) „Kas sinu töökoht või pere jaksaks seda?” Õnnestunud, kui: kolm argumenti, vähemalt kaks näidet või fakti, vastus sinu argumendile, kolm ajaväljendit tegusõnaga teisel kohal, hääl ühe lausega. Hääleta lõpus ka ise.'),
+      extension(teach(tag(purpose(B.speaking('003_t_more', 'Mäng: mis muutuks?', 'Õpetaja ütleb ameti. Sul on 30 sekundit: kuidas see töö neljapäevase nädalaga käiks?', [
+        'õde, bussijuht, õpetaja, kokk, programmeerija, müüja',
+        'Alusta ajaväljendiga: Reedeti …, Kord nädalas …, Esmaspäeviti …',
+      ], [120, 180], ['Reedeti …', 'Kord nädalas …', 'Siis peaks …']), 'Kiire mäng harjutab ajaväljendit ja tegusõna teisel kohal ilma ettevalmistuseta.'), { task: 'S14', fluency: true }),
+      'Kui aega jääb (10–12 min). Ütle üks amet korraga, hoia aega (30 s). Iga õige ajaväljend + tegusõna teisel kohal = punkt; pärast kuut ametit vahetage: õpilane ütleb ameti, õpetaja räägib.'), 12),
       tag(exitCheck(purpose(B.gaps('003_t_exit', 'Kontrolli end: aeg ja sõnajärg.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
         'Kolmapäeviti [käin] ma pärast tööd alati ujumas. (käima)',
         'Mu vend töötab ehitusel [kaheksa tundi] päevas, vahel rohkem. (kaheksa tund)',
@@ -395,8 +418,11 @@ export const LESSONS = withShapes({
         '10–22: пункт 2 — слова (1 мин), прогноз «вечерний или субботний курс?», радио дважды, 6 вопросов',
         '22–34: пункт 3 — сравнение: заметить → правило → 7 исправлений',
         '34–49: пункт 4 — объявление школы, разговор-договорённость с «членом семьи»',
-        '49–54: проверка на выходе и «Ma oskan …»; домашнее задание',
-        '54–90: запас: итог договорённости в трёх строках, ошибки, начало письма в школу',
+        '49–59: «Kui aega jääb» — игра «Kumb on parem?» (20 секунд на пару)',
+        '59–67: проверка на выходе, «Ma oskan …», итог договорённости в трёх строках',
+        '67–75: начало письма в школу (2 предложения)',
+        '75–82: домашнее задание: письмо, запись 1 минуты, слова',
+        '82–90: запас',
       ],
       sources: 'Радио: учебное интервью с консультантом по образованию взрослых (вымышленное лицо, советы общие). Объявление школы — учебный сценарий. Учебный отпуск в «Kas teadsid?» — закон об обучении взрослых, Eurydice.',
       groups: 'Пункт 1 — в парах. Пункт 4: пары «ученик — член семьи» с карточкой, которую вы дадите второму; вы ходите и слушаете. В 1:1 член семьи — вы.',
@@ -461,6 +487,11 @@ export const LESSONS = withShapes({
         'Pereliikme kaart on õpetajal: pere plaanid, eelarve ja üks mure.',
         ['Võrreldes laupäevase kursusega…', 'Mul on üks palve: …', 'Kas oleks võimalik, et sina …?', 'Kas me suudame sellest kinni pidada?'], ['Teisipäeviti on mul trenn.', 'Kui palju see maksab?', 'Hea, aga siis …']), 'Tulemus: kursus ja kolmerealine kokkulepe, mida pere toetab.'), { task: 'S05', main: true, level: 4 }),
       'Õpetaja kaart (pereliige; kui õpilane elab üksi, siis korterikaaslane või sõber). Ütle ainult seda, mida küsitakse. Varjatud info: teisipäeviti on sul õhtune vahetus ja auto on sinuga; neljapäeval kell 18 peab keegi lapse trenni viima; talvel on kursuse eelarve kuni 450 eurot, kui tööandja ei maksa; laupäeva hommikul tuleb vanaema külla. Takistused ükshaaval: 1) „Teisipäeval on auto minuga — kuidas sa linna saad?”; 2) „Laupäeval tuleb vanaema!”; 3) „480 eurot on meile praegu palju.” Õnnestunud, kui: õpilane küsib vähemalt neli küsimust, võrdleb kursusi vähemalt kolmes punktis (aeg, hind, väsimus), pakub kompromissi ja sõnastab kokkuleppe kolme reaga (kursus, kes mida teeb, millal kontrollime).'),
+      extension(teach(tag(purpose(B.speaking('004_t_more', 'Mäng: kumb on parem?', 'Õpetaja nimetab kaks võimalust. Võrdle 20 sekundiga kolmes punktis ja vali.', [
+        'buss või jalgratas; raamat või äpp; hommik või õhtu',
+        'veebikursus või klassiruum; üksi või paaris; kallis või odav kursus',
+      ], [120, 180], ['… on … kui …', 'Võrreldes …-ga …', 'Kõige parem on …']), 'Kiire võrdlemine teeb vormid kallim kui, kõige parem ja võrreldes …-ga automaatseks.'), { task: 'S12', fluency: true }),
+      'Kui aega jääb (10 min). Üks paar korraga, hoia aega (20 s). Iga õige võrdlusvorm = punkt. Lõpus võrdleb õpilane sinu kahte paari ja sina tema omi.'), 10),
       tag(exitCheck(purpose(B.gaps('004_t_exit', 'Kontrolli end: kolm võrdlust.', 'Vaata kuulutust ja kirjuta sulgudes olev sõna õiges vormis.', [
         'Kuulutuse järgi on argipäeva õhtukursus [kallim] kui laupäevane kursus. (kallis)',
         'Kolmest kursusest on hinna poolest veebikursus kõige [odavam]. (odav)',

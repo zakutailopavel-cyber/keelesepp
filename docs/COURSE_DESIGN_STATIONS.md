@@ -193,6 +193,10 @@ to `meta.format`, which switches on the v4 gates). Sample: B1→B2 module 1 (`b2
 3. **Exactly 4 stations**, each with a stated time and a concrete outcome; station minutes ≤ 75 of a 90-minute lesson
    (room for slack and the homework talk). Typical split: 1 hook + pre-task (Avasta, 10–15 min) · 2 input + task
    (Avasta, 12–15) · 3 language focus (Harjuta, 12) · 4 product + exit check (Kasuta, 15).
+3a. **One optional extension „Kui aega jääb”** (10–15 min) per lesson, on Kasuta after the product and before the exit
+   check: a meaningful task on the topic (a role-play variant, a mini-debate, a quick game), never a drill
+   (`extension(block, minutes)`). The teacher's minute plan, extension included, adds up to about 80–85 of 90 minutes;
+   the 4 core stations stay ≤ 75. The extension is outside the lesson's strand balance and catalogue caps (V4, V11, V15).
 4. **Hook first, 3–5 minutes.** Station 1 holds ≤ 80 words of material and needs an answer from the learner within the
    first minute: a personal question, a picture, a claim to agree or disagree with, a vote or a guessing game.
 5. **Input after the hook**, varied across the module (audio, chart or picture, short text ≤ 150 words, dialogue, real-life
@@ -220,14 +224,17 @@ to `meta.format`, which switches on the v4 gates). Sample: B1→B2 module 1 (`b2
     learner who cannot record says it at the next lesson), the lesson's words (vocabulary/lessonWords/<course>.json →
     Sõnavara → Teemad → „Harjuta”; keep that file in step with the vocabulary boxes) and a „Kodutöö” card listing all
     three (`B.phrasebank`).
-13. **Exit check every lesson**: 2–3 quick scored items (`exitCheck(…)`, Kasuta) + „Ma oskan …” self-rating
+13. **Pictures serve the task**: a lesson's picture must fit its topic and come with questions the learner can answer
+    (TEXTBOOK_ART_BIBLE, LESSON_SCENE_STANDARD); reuse a fitting existing image (copy it to the lesson's folder and
+    retarget the brief) before ordering a new one.
+14. **Exit check every lesson**: 2–3 quick scored items (`exitCheck(…)`, Kasuta) + „Ma oskan …” self-rating
     (`B.selfcheck`). Every scored item of the module has an explanation (`export const EXPLAIN`), shown to the learner
     after hand-in (`engine/mistakes.js`).
-14. **Characters** (docs/COURSE_CAST.md): at most one short model line in the whole module, and only if it helps.
-15. **Teacher page** (`teacherPage`): goal, `hook` (what to say), `plan` (minute plan), `core` / `alt`, `short` (plan B for
+15. **Characters** (docs/COURSE_CAST.md): at most one short model line in the whole module, and only if it helps.
+16. **Teacher page** (`teacherPage`): goal, `hook` (what to say), `plan` (minute plan), `core` / `alt`, `short` (plan B for
     a tired or weak learner: what to skip), `errors`, `sources` (where the answers come from), `groups` (how a mini-group
     of 2–4 runs it; in 1:1 the teacher is the partner), role cards in the `teach()` notes.
-16. Real Estonia, own texts, real facts with a source; speaking in pairs in class, voice at home; no dictation at B1–C1.
+17. Real Estonia, own texts, real facts with a source; speaking in pairs in class, voice at home; no dictation at B1–C1.
 
 ### 7.2 The learner test (mandatory before a module PR)
 
@@ -252,9 +259,10 @@ formats: is every task at the right level, does each lesson move the learner mea
 | `academicValue.js` `av-record` | ≤ 2 home recordings a module | one a v4 lesson |
 | `depth.js` short tasks, `didacticCheck.js` items and order | ≥ 5 items; controlled before free | the exit check is exempt |
 | `didacticCheck.js` speaking length | level band (B1 120–240 s) | the home 1-minute talk (`data.home`) is exempt |
-| `finalShape.js` V4 caps and type shares, V15 Kasuta drills | every task | the exit check and the home task are not the lesson body (V3 formats and V9 goals still count them) |
+| `finalShape.js` V4 caps and type shares, V15 Kasuta drills, V11 strands | every task | the exit check, the home task and the extension are not the lesson body (V3 formats and V9 goals still count them); V11 leaves out only the extension |
 
-Tests: `admin/course/v4Gates.test.js` (the gates above), `admin/course/v4Tasks.test.js` (every v4 module: format menu and
+Tests: `admin/course/v4Gates.test.js` (the gates above), `admin/course/v4Tasks.test.js` (every v4 module: one extension of
+10–15 min in the minute plan, core + extension ≤ 90; format menu and
 no two neighbours alike; topics, work ≤ 1; hook ≤ 80 words with a response; no text > 150 words in the first 15 minutes;
 ≤ 1 text > 250 words a lesson; ≥ 3 input kinds; 4 stations ≤ 75 min; exit check + „Ma oskan” + home talk + homework
 card; cast ≤ 2 mentions a module; final task addresses the learner; teacher page complete; every scored item explained).

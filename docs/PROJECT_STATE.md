@@ -1,3 +1,17 @@
+## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1, round 3: „Kui aega jääb”, pictures, module 5 review item · content + small v4 gate change
+
+- Base: `origin/main` f8ab587 (merged, nothing new), checked 2026-11-17. PR #1259 (draft). Owner approved round 2.
+- Done: an optional extension „Kui aega jääb” (10–15 min, `stationBlocks.js extension()`) in 001–004 (role-play call to
+  the school, mini-debate on a chore table, „Mis muutuks?” job game, „Kumb on parem?” comparison game); teacher minute
+  plans now 80–82 of 90 min; `finalShape.js` leaves the extension out of V4 / V15 and V11. 002 picture replaced by the
+  existing C1 kitchen / chore-table image (`textbook-art/b2/b1b2-002/…webp`, brief retargeted in
+  `art/visuals/b2-module-01.js`), prompts of 003 and 004 retargeted. `b2/module05.js` 023_d_review now asks about the
+  four-day-week vote (owner allowed this one item; ids kept). „Ma oskan” no longer alone on a printed page.
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; worksheet-generator + worksheet-studio 175 files
+  passed (1 skipped), 2014 tests passed (12 skipped); eslint clean; Kasuta sheets 001–004 and 002 Avasta re-checked in
+  the sheet lab.
+- Next safe step: unchanged — a teacher runs 002 or 003; then module 2 by §7.
+
 ## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1 as the task-based (TBLT) sample, round 2 · content + v4 gates, no UI / rules / functions / data writes
 
 - Base: `origin/agent/b1b2-m01-stations` (PR #1239) merged with `origin/main` f8ab587, checked 2026-11-17. PR #1259 (draft)

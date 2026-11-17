@@ -41,6 +41,14 @@ export function homeTask(block) {
   return { ...block, data: { ...block.data, home: true } };
 }
 
+// design v4: the lesson's optional extension „Kui aega jääb” (10–15 min, owner 2026-11-17 round 3): a meaningful task on
+// the topic for a lesson that runs faster than planned; not one of the 4 core stations, so their ≤ 75 min stay
+export const EXTENSION_MINUTES = Object.freeze([10, 15]);
+export function extension(block, minutes) {
+  const title = String(block.data?.title || '').trim();
+  return { ...block, data: { ...block.data, title: `Kui aega jääb · ${title} · ${minutes} min`, extension: { minutes } } };
+}
+
 // stored for the gates and the teacher page, shown in italics before the instruction
 export function purpose(block, text) {
   if (NOT_TASKS.has(block.type)) throw new Error(`${block.id}: eesmärgirida on ülesande omadus`);

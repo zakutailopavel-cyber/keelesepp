@@ -15,7 +15,7 @@ import { mainText, studentText, words } from './academicValue.js';
 import { EXIT_ITEMS, FINAL_KINDS, NOT_TASKS } from './stationBlocks.js';
 
 export { STATIONS_DESIGN, isStationSheet } from '../../../worksheet-studio/didactics/stations.js';
-export { EXIT_ITEMS, FINAL_KINDS, exitCheck, fallbackLine, homeTask, purpose, station } from './stationBlocks.js';
+export { EXIT_ITEMS, EXTENSION_MINUTES, FINAL_KINDS, exitCheck, extension, fallbackLine, homeTask, purpose, station } from './stationBlocks.js';
 export { isTaskDesign } from '../../../worksheet-studio/didactics/stations.js';
 
 export const ST = Object.freeze({
