@@ -1,5 +1,14 @@
 # Course cast (B1 course, template v4)
 
+**Since 2026-11-17 the cast is occasional colour only** (owner: „всё завязано на какой-то истории … моментами это слишком
+точечно”; design v4 „task-based”, docs/COURSE_DESIGN_STATIONS.md §7). A module is built around a real goal the learner
+reaches for himself; a character may appear at most once a module, in one short model line, and only if it helps —
+never as the backbone of a lesson and never as the addressee of the learner's task („write to Eha” → „write to your
+employer”). A v4 module keeps cast mentions in learner-facing text at ≤ 2 (one model line; module 1 has none; check
+`admin/course/v4Tasks.test.js`). Modules not yet rewritten still use the world below; when a v4 module drops
+a story fact that a later module refers to, note it in the review doc (module 1: the team-day choice asked in
+`b2/module05.js` 023_d_review).
+
 The same people appear across the B1 modules, so a learner follows one world (docs/METHODOLOGY_STANDARD.md §3).
 Keep facts consistent; add new facts here when a module adds them.
 
@@ -285,7 +294,8 @@ Keep facts consistent; add new facts here when a module adds them.
   the kitchen and the results are fictional.
 - **B2 module 1 (one year later):** Sofia passed B1; Liis offers her the lead of the new Tartu warehouse project if she
   reaches B2 by March; trainee **Laura**; warehouse shift leader **Gert**; team coach **Hendrik Ilves**; Markus
-  photographs weddings at weekends; Jelena has a son.
+  photographs weddings at weekends; Jelena has a son. *Since 2026-11-17 (v4 task-based) these facts are no longer in
+  the module's lessons; they stay only as background for modules that still refer to them (the B2 finale).*
 - **B2 modules 2–5:** Jaan and Kadri move from Männi 8 to an old flat in Nõmme (Vahtra 5, housing association head
   **Eda**); district official **Ingrid**; estate agent **Evelin**; builder **Rando**; bank adviser **Allan**; Kase kool
   board chair **Marje Lepp**; debate-club host **Hannes**; Ruslan has a 2-year-old daughter; Tiina is 73 (house built

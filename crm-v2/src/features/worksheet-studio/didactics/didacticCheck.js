@@ -7,7 +7,7 @@ import { groupItems } from '../engine/schema.js';
 import { BLOCKS } from '../engine/registry.js';
 import { HARNO, LEVELS, PHASE_TASKS, harnoFor, levelKey } from './levels.js';
 import { VOCABULARY_FOR, wordLevel } from './levelVocabulary.js';
-import { isStationSheet } from './stations.js';
+import { isExitCheck, isStationSheet } from './stations.js';
 
 const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).filter(Boolean);
 // „Ma ärkan [hommikul|varakult] kell 7.” → the sentence as the learner will read it once solved
@@ -175,7 +175,8 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
   }
 
   // items per closed task
-  measured.filter((m) => m.items && !PHASE_TASKS.productive.includes(m.b.type) && m.b.type !== 'reading').forEach(({ b, items }) => {
+  // design v4: the lesson's exit check (2–3 quick items, docs/COURSE_DESIGN_STATIONS.md §7) is short on purpose
+  measured.filter((m) => m.items && !PHASE_TASKS.productive.includes(m.b.type) && m.b.type !== 'reading' && !isExitCheck(m.b)).forEach(({ b, items }) => {
     const [min, rawMax] = norm.items;
     // sorting words into groups is quick per word: only the minimum counts
     const max = b.type === 'categorize' ? Infinity : rawMax;
@@ -188,7 +189,10 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
   // admin/course/stations.js), so the level's one long reading text is not a sheet norm there
   tasks.filter((b) => b.type === 'reading' && !isStationSheet(doc)).forEach((b) => {
     const n = wordsIn(b.data?.passage);
-    const [min, max] = norm.reading.words;
+    const [min, levelMax] = norm.reading.words;
+    // a check lesson of the B2 course (B1+ / B2- / B2) reads the Harno B2 opinion article: 500–600 words of text, and the
+    // sheet count adds paragraph letters and numbers (owner 2026-11-14, b1b2-005 holds the module's article)
+    const max = doc?.meta?.assessment && ['B1+', 'B2-', 'B2'].includes(key) ? Math.max(levelMax, 650) : levelMax;
     add(`reading-len-${b.id}`, `${name(b)}: teksti pikkus`, n >= min && n <= max,
       { detail: `${name(b)}: tekstis on ${n} sõna, tasemel ${norm.label} sobib ${min}–${max}.`, severity: 'warning', blockId: b.id });
     const q = lines(b.data?.questions);
@@ -213,7 +217,9 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
     add(`letter-${b.id}`, `${name(b)}: kirja pikkus`, lo >= want[0] * 0.8 && hi <= want[1] * 1.2,
       { detail: `${name(b)}: ${lo}–${hi} sõna, tasemel ${norm.label} sobib ${want[0]}–${want[1]}.`, blockId: b.id });
   });
-  tasks.filter((b) => b.type === 'speaking').forEach((b) => {
+  // a v4 home task (data.home: the 1-minute voice message after the lesson) is the Harno B2 one-minute talk, not the
+  // level's in-class monologue
+  tasks.filter((b) => b.type === 'speaking' && !b.data?.home).forEach((b) => {
     const [lo, hi] = norm.speaking;
     const min = Number(b.data?.minSec) || 0; const max = Number(b.data?.maxSec) || min;
     add(`speaking-${b.id}`, `${name(b)}: rääkimise aeg`, min >= lo * 0.75 && max <= hi * 1.25,
@@ -248,9 +254,11 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
     if (phase === 'full' || phase === 'transfer') add('productive', 'Lehel on rääkimine või kirjutamine', productive.length > 0,
       { detail: 'lehel pole rääkimist ega kirjutamist — lisa „Räägi”, „Rollikaardid” või „Kirjuta”, et õpilane kasutaks keelt ise.', severity: advanced ? 'warning' : 'tip' });
     const firstProductive = tasks.findIndex((b) => PHASE_TASKS.productive.includes(b.type));
-    const lastControlled = tasks.map((b) => PHASE_TASKS.controlled.includes(b.type)).lastIndexOf(true);
+    // the v4 exit check closes the lesson after the product on purpose: it is not the controlled practice the order means
+    const controlled = (b) => PHASE_TASKS.controlled.includes(b.type) && !isExitCheck(b);
+    const lastControlled = tasks.map(controlled).lastIndexOf(true);
     if (firstProductive >= 0 && lastControlled >= 0) {
-      add('progression', 'Järjestus: kõigepealt harjutamine, siis kasutamine', firstProductive > tasks.findIndex((b) => PHASE_TASKS.controlled.includes(b.type)),
+      add('progression', 'Järjestus: kõigepealt harjutamine, siis kasutamine', firstProductive > tasks.findIndex(controlled),
         { detail: 'iseseisev rääkimine/kirjutamine on enne kontrollitud harjutamist. Pane harjutused ette, kasutamine lõppu.' });
     }
   }

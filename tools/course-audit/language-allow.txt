@@ -66,3 +66,8 @@ vadja
 vepsa
 # B2 module 5 (EKI ÕS / Sõnaveeb, käänamatu täiendsõna: võro keel): the South Estonian language in the opener and texts
 võro
+# station design v3 (stationBlocks.js FINAL_KINDS): the final task kind is an internal value in data.station.final, read by language.py but not shown to learners
+decide
+plan
+advise
+negotiate

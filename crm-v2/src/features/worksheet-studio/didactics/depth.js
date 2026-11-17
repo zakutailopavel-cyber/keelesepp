@@ -6,7 +6,7 @@
 import { blockMinutes } from './timeEstimate.js';
 import { nativeStage } from './levels.js';
 import { groupItems } from '../engine/schema.js';
-import { STATION_ITEMS, isStationSheet } from './stations.js';
+import { STATION_ITEMS, isExitCheck, isStationSheet } from './stations.js';
 
 // closed, checked tasks and how their items are counted
 const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
@@ -99,7 +99,7 @@ export function depthProblems(doc) {
   const stations = isStationSheet(doc);
   const minItems = stations ? STATION_ITEMS[0] : doc?.meta?.design === 'v2' && !v3 ? V2_ITEMS : norm.items;
   // a sentence-insertion text has the exam's 5–8 gaps
-  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && b.type !== 'insertion' && ITEMS[b.type](b.data || {}) < minItems);
+  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && b.type !== 'insertion' && !(stations && isExitCheck(b)) && ITEMS[b.type](b.data || {}) < minItems);
   if (short.length) out.push({ code: 'short-tasks', level: 'warning', text: `${short.length} ülesannet alla ${minItems} punkti (${level})`, blocks: short.map((b) => b.id) });
 
   // Kasuta (transfer) is for using the language: writing, speaking, role play carry it; the exercises only prepare

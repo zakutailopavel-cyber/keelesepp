@@ -1,3 +1,59 @@
+## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1, round 3: „Kui aega jääb”, pictures, module 5 review item · content + small v4 gate change
+
+- Base: `origin/main` f8ab587 (merged, nothing new), checked 2026-11-17. PR #1259 (draft). Owner approved round 2.
+- Done: an optional extension „Kui aega jääb” (10–15 min, `stationBlocks.js extension()`) in 001–004 (role-play call to
+  the school, mini-debate on a chore table, „Mis muutuks?” job game, „Kumb on parem?” comparison game); teacher minute
+  plans now 80–82 of 90 min; `finalShape.js` leaves the extension out of V4 / V15 and V11. 002 picture replaced by the
+  existing C1 kitchen / chore-table image (`textbook-art/b2/b1b2-002/…webp`, brief retargeted in
+  `art/visuals/b2-module-01.js`), prompts of 003 and 004 retargeted. `b2/module05.js` 023_d_review now asks about the
+  four-day-week vote (owner allowed this one item; ids kept). „Ma oskan” no longer alone on a printed page.
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; worksheet-generator + worksheet-studio 175 files
+  passed (1 skipped), 2014 tests passed (12 skipped); eslint clean; Kasuta sheets 001–004 and 002 Avasta re-checked in
+  the sheet lab.
+- Next safe step: unchanged — a teacher runs 002 or 003; then module 2 by §7.
+
+## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1 as the task-based (TBLT) sample, round 2 · content + v4 gates, no UI / rules / functions / data writes
+
+- Base: `origin/agent/b1b2-m01-stations` (PR #1239) merged with `origin/main` f8ab587, checked 2026-11-17. PR #1259 (draft)
+  supersedes #1239 (not closed here). Owner review of round 1: 7/10; round 2 answers it.
+- Done:
+  - `b2/module01.js` 001–004 rebuilt to the v4 arc: exactly 4 stations (49–57 of 90 min), hook first (≤ 80 words, the
+    learner speaks in minute 1), input, language focus by discovery, product in class (plan + first sentences), exit
+    check (2–3 scored items) + „Ma oskan …”, homework card (long writing, 1-minute talk at home, the lesson's words).
+    Lessons: 001 quest „Mitu keelt on sinu päevas?” (languages, request to a language school), 002 facts + game „Kes teeb
+    kodus mida?” (home, reply to a friend), 003 debate „Neli päeva tööd — kas see sobiks Eestile?” (the only work
+    lesson), 004 infogap „Õhtul või laupäeval — millal sina jõuad õppida?” (free time and money, week plan with a family
+    member); grammar subtitle under each title (`phases`). One long text in the module (the opener, 001 station 2, min
+    15). Real minimal-pair rows; no copy-the-word tasks. Cast: 0. EXPLAIN for every scored item.
+  - Audio (TartuNLP): new `002_d_poll`, `002_t_voice`, `003_d_radio`; removed `002_p_poll`, `002_p_office`,
+    `003_p_lecture`; `001_p_call`, `004_p_expert` reused.
+  - v4 gates (old designs unchanged): `courseSheet.js` copies `lesson.format` to `meta.format`; `stationBlocks.js`
+    `exitCheck`, `homeTask`; `stations.js` exactly 4 stations, `st-load` ≤ 75 min, `st-exit`, exit exempt from
+    `st-items` / `st-closed`, self-check one a lesson, teacher page needs hook / plan / sources (+ shown in the text);
+    `academicValue.js` av-record one a v4 lesson; `depth.js` / `didacticCheck.js` exit and home-talk exemptions;
+    `finalShape.js` exit / home not in V4 caps, type shares, V15 drills.
+  - Tests: `admin/course/v4Tasks.test.js` (12, every v4 module), `admin/course/v4Gates.test.js` (6); the round-1
+    `b2/module01.tasks.test.js` is folded into them.
+  - Data: `b2/lessonGoals.js` texts (same keys and tags); `vocabulary/lessonWords/b1b2.json` 001–004 words;
+    `data/keelesepp-b1-b2-roadmap-01.json` titles 001–004 (ids unchanged; the library shows them after a publish).
+  - Docs: `docs/COURSE_DESIGN_STATIONS.md` §7 rewritten as mandatory rules (arc, hook, long texts, load, topics,
+    titles, homework, exit check, teacher page, learner test, gate table); `docs/COURSE_CAST.md` (≤ 1 model line a
+    module); owner summary `docs/review/b2-m01-tasks.md` (table, four learners, methodologist).
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; `npx vitest run src/features` → 538 files passed
+  (1 skipped), 4480 tests passed (12 skipped); eslint clean on the changed files; all 15 sheets opened in the sheet lab.
+- Limits: `b2/module05.js` 023_d_review asks about module 1's old team day; in 002 / 003 Kasuta the „Ma oskan” card
+  prints on its own page; nothing published.
+- Next safe step: owner reads `docs/review/b2-m01-tasks.md` and a teacher runs 002 or 003; then module 2 by §7.
+
+## 2026-11-14 · agent/b1b2-m01-stations — B1→B2 module 1 as stations (v3) · content only, no UI / rules / functions / data change
+
+- Base `origin/main` 4474576, checked 2026-11-14. Owner 2026-11-14: B2 module 1 into the station design of the B1 module 12 pilot (`docs/COURSE_DESIGN_STATIONS.md`).
+- Done: `b2/module01.js` `MODULE.design: 'v3-stations'`; lessons b1b2-001…004 are 5–6 independent stations each (11–12 blocks, was 22–25), purpose line on every task, `teacherPage` in Russian with feedback targets; finals plan (001 W13 letter to Eha Org) / advise (002 W05 guide text) / decide (003 S17 debate) / negotiate (004 S17 learning-plan talk); no dependent station. 005 unchanged. Evidence rules: mediation + team chat (003), family chat (004), notice → practice station per lesson, pronunciation 001 (perception) and 003 (production). Opener cut to 7 numbers; new cast-free audio 002_p_office, 004_p_expert (TartuNLP); removed audio 001_d_anna, 004_p_radio, 004_t_liis. `b2/lessonGoals.js` 001–004 (g_listen tags of 001/002 kept). Review: `docs/review/b2-m01-stations.md`; one line in `docs/COURSE_DESIGN_STATIONS.md` §4.
+- Story facts kept: Liis's Tartu (Ringtee) offer and B2 by March, Keelekool Sõna / Maret, Eha Org, Laura (logistics, University of Tartu), Gert's night shift, Hendrik Ilves, Jelena's son, team day choice (module 5 refers to it), Markus's weekend weddings, Helgi teacher in Tartu, 80 % company share, two work-time hours.
+- Owner decisions 2026-11-14: (1) the 005 article „Ajapuudus – meie aja haigus?” lengthened 429 → 509 words (gate count; old sentences, facts, sources, tasks and keys unchanged) so `av-article` passes; (2) `gradingPin.golden.js` b2m01 / b2v3 regenerated for b1b2-001…004 (15 hashes, pct of every sheet unchanged — the lesson goal sets changed).
+- Checks: course report 4/5 READY (001–004 READY; 005 Harjuta: B1+ reading norm 250–500, the sheet counts 560 incl. numbers, labels and source); `ACADEMIC_REPORT` PASS; `ACADEMIC_ROUND2_REPORT` PASS (module left `academicValueRound2Baseline.json`, also one `course:b2` fact-dup); language check 0 unknown lower-case words (4 internal `station.final` keys in `language-allow.txt`); finalShape, stations, lessonGoals, listeningGoal, listeningAudio, gradingPin pass; full run see the PR.
+- Limits: the B1+ sheet reading norm (≤ 500, counting numbers and the source) and B2 `av-article` (≥ 500, letters only) cannot both hold for one text — 005 is not READY until the owner allows the Harno B2 R1 length in a B2 check lesson. Pictures (`art/visuals/b2-module-01.js`) unchanged and still fit.
+- Next safe step: owner decides the 005 reading-length norm; then a teacher runs 001 one-to-one.
 ## 2026-11-17 · agent/teacher-page-panel — „Õpetaja leht” panel: the lesson's teacher page for staff · UI only, no rules / functions / data change
 
 - Base: `origin/main` f8ab587 (release 2026-11-16 23:06 UTC), checked 2026-11-17. Draft PR, not merged. Read together

@@ -118,6 +118,13 @@ sauna roof; 30 hours without electricity; deductible 100 €; 15 degrees on Mids
 Visual briefs: `art/visuals/b1-module-12.js` (not registered in `textbookArt.js` until the images exist). Owner summary:
 `docs/review/b1-m12-pilot.md`.
 
+**B2 module 1** (`admin/course/b2/module01.js`, lessons b1b2-001…004, 2026-11-14) is the second station module: 001 the
+B1 entry diagnostic as six stations (final: plan, W13 letter), 002 advise (W05 guide text), 003 decide (S17 argument
+cards), 004 negotiate (S17 learning-plan talk); the check 005 is unchanged. Owner summary: `docs/review/b2-m01-stations.md`.
+B2 `av-article` (one 500–600-word article a module) cannot live in a station (`st-input` ≤ 120 words): the module's
+article is the check lesson's reading (005, owner 2026-11-14). Open: that length is over the B1+ sheet reading norm (≤ 500).
+Since 2026-11-17 the module is the sample of design v4 „task-based” (§7): same stations and gates, no storyline.
+
 ## 5. Next
 
 Owner and a teacher run 2–3 pilot lessons; then decide whether the next modules move to v3-stations (one module per PR,
@@ -163,3 +170,101 @@ gate exists for them yet — authors and reviewers check them by hand until `sta
     the features that change meaning for Russian speakers: quantity (Q2 vs Q3), õ / ö / ü, first-syllable stress, long
     vowels in endings. — Lee, Jang & Plonsky 2015 (d = 0.89 / 0.80); Saito & Plonsky 2019; Meister & Meister 2012
     (E11).
+
+
+## 7. v4 — task-based (TBLT), owner 2026-11-17 — mandatory for every new or rebuilt module
+
+Owner: „учебные планы б1 и б2 слишком скучные, однообразные и все завязаны на какой-то истории; она может и имеет место
+быть, но моментами это слишком точечно.” Measured: Sofia ≈ 750 mentions in `b2/module*.js` and ≈ 1300 in `b1/`; the same
+people (docs/COURSE_CAST.md) in every lesson; one template everywhere. The owner chose task-based learning. Review of the
+first sample (7/10): „long texts must not be the first task everywhere” — the rules below came from it.
+v4 runs on the v3 station engine (§1–§3 stay); a module opts in by giving each lesson a `format` (courseSheet.js copies it
+to `meta.format`, which switches on the v4 gates). Sample: B1→B2 module 1 (`b2/module01.js`); owner summary
+`docs/review/b2-m01-tasks.md`.
+
+### 7.1 The module and the lesson
+
+1. **A module = one real goal in Estonia that the learner reaches for himself** („Ma oskan …”; module 1: „Ma oskan oma
+   B2-tee ise käima panna”). Tasks speak to the learner about his life; a learner without a job gets a real alternative
+   in the same task (the language school, a family member, a flatmate).
+2. **Lesson arc (Willis):** hook → pre-task (his own experience and words) → input → task (+ oral report) → language
+   focus (notice in the input → rule card → use) → product (in class: the plan and the first sentences) → exit check.
+   The written product comes after the language focus on purpose, so that the learner uses the form he just noticed.
+3. **Exactly 4 stations**, each with a stated time and a concrete outcome; station minutes ≤ 75 of a 90-minute lesson
+   (room for slack and the homework talk). Typical split: 1 hook + pre-task (Avasta, 10–15 min) · 2 input + task
+   (Avasta, 12–15) · 3 language focus (Harjuta, 12) · 4 product + exit check (Kasuta, 15).
+3a. **One optional extension „Kui aega jääb”** (10–15 min) per lesson, on Kasuta after the product and before the exit
+   check: a meaningful task on the topic (a role-play variant, a mini-debate, a quick game), never a drill
+   (`extension(block, minutes)`). The teacher's minute plan, extension included, adds up to about 80–85 of 90 minutes;
+   the 4 core stations stay ≤ 75. The extension is outside the lesson's strand balance and catalogue caps (V4, V11, V15).
+4. **Hook first, 3–5 minutes.** Station 1 holds ≤ 80 words of material and needs an answer from the learner within the
+   first minute: a personal question, a picture, a claim to agree or disagree with, a vote or a guessing game.
+5. **Input after the hook**, varied across the module (audio, chart or picture, short text ≤ 150 words, dialogue, real-life
+   document: announcement, info line, voice message, forum post, price list).
+6. **Long texts:** at most one text over 250 words a lesson, only where the task needs it, never in the first 15 minutes,
+   always after a pre-task and pre-taught words. The module's topic opener (§13 of COURSE_DESIGN_COMMUNICATIVE) is that
+   text in lesson 1 or 2 — module 1 puts it in 001 station 2, after a 15-minute hook. The exam lesson keeps the Harno
+   lengths.
+7. **One format and one everyday topic a lesson; no two neighbours alike.** Formats (`format`): `case` (real case),
+   `debate` (debate with a vote), `quest` (route of checkpoints), `facts` (news or fact analysis), `infogap` (two role
+   cards), `project` (mini-project with a product), `game` (competition with the teacher), `exam` (Harno-format check).
+   Topics (`topic`): languages, home, family, neighbours, town, free time, money, health, learning, culture, nature,
+   work — **work at most once a module**.
+8. **Titles** make the learner want to open the lesson („Neli päeva tööd — kas see sobiks Eestile?”); the grammar goes
+   in the small subtitle (`phases` with the grammar line). Ids and goal keys stay; the roadmap file
+   (`data/keelesepp-b1-b2-roadmap-NN.json`) gets the same titles; the library shows them after the owner's publish.
+9. **Instructions are one line** (what to do) plus the purpose line (what you get). Teacher-only details (who the teacher
+   plays, hidden information, obstacles) go to the teacher's card (`teach()`) and the teacher page.
+10. **No mechanical tasks.** No „find the word and copy it”; every item needs a decision, an opinion, a comparison or
+    personal language. Questions are what a real person would ask. Pronunciation rows: every distractor differs from
+    the key word by one sound (sada / saada / saata; kala / kõla / küla).
+11. **Grammar by discovery**: the notice card quotes the station 2 input first, then the rule; the product needs the form.
+12. **Homework every lesson** (Kasuta, after the product): the long writing (120–150-word letter or text; in class only
+    the plan and the first two sentences), a 1-minute voice message (`homeTask(B.speaking(…))`, recorded at home; a
+    learner who cannot record says it at the next lesson), the lesson's words (vocabulary/lessonWords/<course>.json →
+    Sõnavara → Teemad → „Harjuta”; keep that file in step with the vocabulary boxes) and a „Kodutöö” card listing all
+    three (`B.phrasebank`).
+13. **Pictures serve the task**: a lesson's picture must fit its topic and come with questions the learner can answer
+    (TEXTBOOK_ART_BIBLE, LESSON_SCENE_STANDARD); reuse a fitting existing image (copy it to the lesson's folder and
+    retarget the brief) before ordering a new one.
+14. **Exit check every lesson**: 2–3 quick scored items (`exitCheck(…)`, Kasuta) + „Ma oskan …” self-rating
+    (`B.selfcheck`). Every scored item of the module has an explanation (`export const EXPLAIN`), shown to the learner
+    after hand-in (`engine/mistakes.js`).
+15. **Characters** (docs/COURSE_CAST.md): at most one short model line in the whole module, and only if it helps.
+16. **Teacher page** (`teacherPage`): goal, `hook` (what to say), `plan` (minute plan), `core` / `alt`, `short` (plan B for
+    a tired or weak learner: what to skip), `errors`, `sources` (where the answers come from), `groups` (how a mini-group
+    of 2–4 runs it; in 1:1 the teacher is the partner), role cards in the `teach()` notes.
+17. Real Estonia, own texts, real facts with a source; speaking in pairs in class, voice at home; no dictation at B1–C1.
+
+### 7.2 The learner test (mandatory before a module PR)
+
+Walk through every lesson as four learners and write their honest notes into the module's review doc, then fix what they
+found: (a) a 35-year-old Russian-speaking shift lead in Narva who comes after work, tired; (b) a 22-year-old university
+student; (c) a 60-year-old pensioner who wants the citizenship exam; (d) a mother on parental leave. For each: where is
+he bored, confused or tired, what would he skip, does every task fit his life (job / no job, family / alone), can he do
+the homework (time, recording). Then a strict methodologist pass against the CEFR B1→B2 descriptors and the Harno B2
+formats: is every task at the right level, does each lesson move the learner measurably toward B2 (the exit check and
+„Ma oskan …” show it).
+
+### 7.3 Gates (changed for v4 only; v2 / v3 modules keep the old rules)
+
+| where | rule | v4 change |
+|---|---|---|
+| `stations.js` `st-stations` | 4–6 stations | exactly 4 |
+| `stations.js` `st-load` (new) | — | station minutes ≤ 75 |
+| `stations.js` `st-exit` (new) | — | one exit check (2–3 items) and one self-check on Kasuta |
+| `stations.js` `st-items`, `st-closed` | closed tasks 5–8 items, ≤ 1 a station | the exit check is exempt (its own 2–3 rule) |
+| `stations.js` `st-selfcheck` | ≤ 1 self-check a module | one a v4 lesson |
+| `stations.js` `st-teacher` | goal, core, alt, short, errors | + hook, plan, sources |
+| `academicValue.js` `av-record` | ≤ 2 home recordings a module | one a v4 lesson |
+| `depth.js` short tasks, `didacticCheck.js` items and order | ≥ 5 items; controlled before free | the exit check is exempt |
+| `didacticCheck.js` speaking length | level band (B1 120–240 s) | the home 1-minute talk (`data.home`) is exempt |
+| `finalShape.js` V4 caps and type shares, V15 Kasuta drills, V11 strands | every task | the exit check, the home task and the extension are not the lesson body (V3 formats and V9 goals still count them); V11 leaves out only the extension |
+
+Tests: `admin/course/v4Gates.test.js` (the gates above), `admin/course/v4Tasks.test.js` (every v4 module: one extension of
+10–15 min in the minute plan, core + extension ≤ 90; format menu and
+no two neighbours alike; topics, work ≤ 1; hook ≤ 80 words with a response; no text > 150 words in the first 15 minutes;
+≤ 1 text > 250 words a lesson; ≥ 3 input kinds; 4 stations ≤ 75 min; exit check + „Ma oskan” + home talk + homework
+card; cast ≤ 2 mentions a module; final task addresses the learner; teacher page complete; every scored item explained).
+No gate forced a long text early: the topic opener may sit in lesson 1 or 2 anywhere on Avasta, and `st-input` caps
+station texts at 120 words; module 1 only had to move the opener behind the hook.

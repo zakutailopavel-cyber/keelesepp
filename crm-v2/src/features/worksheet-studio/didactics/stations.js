@@ -6,3 +6,7 @@ export const STATIONS_DESIGN = 'v3-stations';
 export const isStationSheet = (doc) => doc?.meta?.design === STATIONS_DESIGN && !doc?.meta?.assessment;
 // closed tasks of a station lesson have 5–8 items (a reason to exist, not a quota)
 export const STATION_ITEMS = Object.freeze([5, 8]);
+// design v4 „task-based” (owner 2026-11-17) runs on the station sheets and adds `meta.format`; its exit check (data.exit,
+// 2–3 items) is exempt from the item minimum
+export const isTaskDesign = (doc) => isStationSheet(doc) && Boolean(doc?.meta?.format);
+export const isExitCheck = (b) => Boolean(b?.data?.exit);
