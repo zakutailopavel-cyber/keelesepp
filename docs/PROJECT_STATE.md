@@ -11,7 +11,16 @@
 - Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case; `npx vitest run src/features/worksheet-generator
   src/features/worksheet-studio src/features/vocabulary` 198 files / 2159 tests passed; eslint clean; sheet lab 011 Kasuta,
   015 Avasta + Harjuta read. Review: `docs/review/b2-m03-tasks.md` „Раунд 2”.
-- Next safe step: owner reads round 2; re-run `admin/course` tests after #1263 merges.
+- Merged `origin/main` 2d34468 (#1263, module 2 + four v4 gate rules); conflicts in `lessonGoals.js`,
+  `lessonWords/b1b2.json`, the roadmap JSON and `language-allow.txt` resolved line by line (main + module 3 lines 011–015).
+  With the new rules: the four long writings are `homeTask()` (the in-class start is its own short writing in 011, 012,
+  013), the family-chat message in 014 is tagged as writing again (was R08 for the input share), the history minute in 013
+  is heard once (Harno L1). Facts checked against sources (laulupidu.ee, Estonian World, ECB / Eesti Pank, ERR,
+  Kliimaministeerium); unverifiable details removed.
+- Checks after the merge: module 3 5/5 READY; all B1 + B2 modules 180/180 READY; module-2 word reuse 40 % (methodGaps
+  green); `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary` 198 files
+  / 2176 tests passed; eslint clean; EstNLTK 0 unknown lower-case words.
+- Next safe step: owner reads round 2; module 4 (#1262) merges after this PR.
 
 ## 2026-11-17 · agent/b1b2-m03-tasks — B1→B2 module 3 task-based (v4) · content only, no UI / rules / functions / data writes
 

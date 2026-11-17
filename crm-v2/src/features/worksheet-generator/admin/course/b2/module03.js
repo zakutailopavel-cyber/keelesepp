@@ -130,18 +130,17 @@ export const LESSONS = withShapes({
         ['Esimesel õhtul ma ei saasin magada, sest külas oli nii vaikne.', 'Esimesel õhtul ma ei saanud magada, sest külas oli nii vaikne.|Esimesel õhtul ei saanud ma magada, sest külas oli nii vaikne.'],
         ['Hommikul me söösime putru ja jõime sooja piima.', 'Hommikul me sõime putru ja jõime sooja piima.|Hommikul sõime me putru ja jõime sooja piima.|Hommikul sõime putru ja jõime sooja piima.'],
         ['Vanaisa toos aiast köögivilju ja metsast seeni.', 'Vanaisa tõi aiast köögivilju ja metsast seeni.'],
-        ['Vanaema kasvatis põllul kartulit ja kapsast.', 'Vanaema kasvatas põllul kartulit ja kapsast.'],
-        ['Mu linnasõbrad ei uskusid, et me tegime ise võid.', 'Mu linnasõbrad ei uskunud, et me tegime ise võid.'],
         ['Kui ma esimest korda Eestisse tulisin, proovisin kohe kama.', 'Kui ma esimest korda Eestisse tulin, proovisin kohe kama.|Kui ma esimest korda Eestisse tulin, proovisin ma kohe kama.'],
       ], 'full', 'g_notice'), 'Õige vorm teeb loo selgeks: kuulaja teab, et see juhtus ja on läbi.'),
     ],
     transfer: [
       station(B.text('011_t_call', 'Kuulutus: raamatukogu kogub perede toidulugusid', 'Linnaraamatukogu koostab kogumikku „Toit, mis meenutab kodu”. Kirjutage eesti keeles 120–150 sõna: mis toitu teie peres tehti ja kes seda tegi, üks mälestus ühest korrast ja miks see toit on teile tähtis. Lisage lühike retsept.\n\nLugu võib tuua raamatukogu teenindusletti või saata e-postiga. Tähtaeg on 15. detsember. Lugu avaldame ainult teie nõusolekul.'), 4, 15, { final: 'present' }),
-      teach(tag(purpose(B.examWriting('011_t_story', 'Minu pere toidulugu: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: lugu lõpuni, 120–150 sõna, sündmused lihtminevikus.', 'jutt', {
+      tag(purpose(B.writing('011_t_start', 'Tunnis: loo algus.', 'Räägi plaan õpetajale, siis kirjuta loo algus: neli kuni viis lauset lihtminevikus.', [4, 5], [], 0, 'g_use'), 'Kui algus on tunnis valmis, on kodus lihtne edasi kirjutada.'), { task: 'W05', level: 3 }),
+      teach(tag(homeTask(purpose(B.examWriting('011_t_story', 'Minu pere toidulugu: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: lugu lõpuni, 120–150 sõna, sündmused lihtminevikus.', 'jutt', {
         situation: 'Lugu raamatukogu kogumikku „Toit, mis meenutab kodu”: sinu pere toit ja üks kord, mis jäi meelde.',
         points: ['mis toitu teie peres tehti ja kes seda tegi', 'üks kord, mis jäi meelde: mis juhtus?', 'miks see toit on sulle tähtis', 'lühike retsept või nõuanne'],
         words: [120, 150],
-      }), 'Sinu lugu võib jõuda kogumikku ja lugude õhtule.'), { task: 'W05', main: true }),
+      }), 'Sinu lugu võib jõuda kogumikku ja lugude õhtule.')), { task: 'W05', main: true }),
       'Kodutöö. Järgmises tunnis loeb õpilane loo ette; sina küsid ühe küsimuse („Mis siis edasi juhtus?”). Tagasiside: lihtmineviku vormid (eriti läksin, tegin, sõin, tõin), eitus ei + -nud, tegusõna teisel kohal.'),
       extension(teach(tag(purpose(B.speaking('011_t_more', 'Mäng: kaks tõde ja üks vale', 'Ütle kolm lauset oma lapsepõlve toidust või esimesest päevast Eestis. Üks lause on vale. Õpetaja arvab, milline.', [
         'Mida sa lapsena sõid või jõid ja kes seda tegi?',
@@ -249,14 +248,14 @@ export const LESSONS = withShapes({
         'Rein: Pärast matka vaadake end hoolikalt üle. Puukentsefaliidi vastu saab vaktsineerida, sellest tasub perearstiga rääkida.',
         'Saatejuht: Aitäh, Rein!',
       ], [
-        'Algajale soovitab matkajuht alustada [lühikesest rajast|lühikesest].',
-        'Esimest korda käis matkajuht rabas [koolipoisina].',
-        'Soomaa on rahvuspark aastast [1993].',
-        'Kevadist üleujutust kutsutakse Soomaal [viiendaks aastaajaks].',
-        'Lahemaa oli Nõukogude Liidu esimene [rahvuspark].',
-        'Telkida ja lõket teha tohib ainult [tähistatud kohas|selleks tähistatud kohas].',
-        'Pärast seda, kui ta oli eksinud, võtab matkajuht alati kaasa [paberkaardi].',
-        'Puukentsefaliidi vastu soovitab matkajuht end [vaktsineerida|lasta vaktsineerida].',
+        'Inimesele, kes pole kunagi rabas käinud, soovitab matkajuht alustada [lühikesest rajast|lühikesest].',
+        'Matkajuht ise käis esimest korda rabas siis, kui ta oli veel [koolipoiss].',
+        'Pärnu ja Viljandi lähedal asuv Soomaa on rahvuspark juba aastast [1993].',
+        'Kevadist suurvett ja üleujutust kutsutakse Soomaal rahva seas [viiendaks aastaajaks].',
+        'Põhja-Eestis asuv Lahemaa oli Nõukogude Liidu kõige esimene [rahvuspark].',
+        'Metsas telkida ja lõket teha tohib matkaja ainult [tähistatud kohas|selleks tähistatud kohas].',
+        'Pärast seda, kui ta oli kord eksinud, võtab matkajuht alati kaasa [paberkaardi].',
+        'Puukentsefaliidi vastu soovitab matkajuht enne suve end [vaktsineerida|lasta vaktsineerida].',
       ], 'g_listen'), 'Asjatundja nõu aitab sul esimese rabamatka ohutult ette võtta.'), { voice: 'interview', task: 'L04', harno: 'L3' }),
     ],
     practice: [
@@ -286,7 +285,8 @@ export const LESSONS = withShapes({
         ['Kas ma pean ennast ette registreerima?', 'Ma olen … käinud, aga ma pole kunagi …', 'Eelmisel suvel ma …', 'Kas ma võin täpsustada: …?'], ['Kas olete varem rabas käinud?', 'Kas teil on kummikud?', 'Alternatiiv on lühem rada.', 'Sel juhul soovitan …']), 'Tulemus: selge kokkulepe — tead, kas matk sobib sulle ja mida kaasa võtta.'), { task: 'S05', main: true, level: 4 }),
       'Õpetaja kaart (matkajuht Kaia). Ütle ainult seda, mida küsitakse. Varjatud info: 7 km rada on praegu märg, vaja on kummikuid; perele ja algajale on 3 km laudtee, kus saab ka lapsega; puugid on aktiivsed; bussi ei ole, autoga saab tulla koos teistega. Küsi õpilaselt: „Kas olete varem rabas käinud? Millal?”, „Kas olete kunagi 7 km järjest kõndinud?” Takistused ükshaaval: 1) „7 km matkale on kohad täis — kas 3 km sobiks?”; 2) „Kas teil on kummikud?”; 3) „Kuidas te parklasse jõuate?” Õnnestunud, kui õpilane räägib oma kogemusest (täisminevik) ja ühest kindlast korrast (lihtminevik), küsib vähemalt kolm küsimust ning lepib kokku raja, aja ja varustuse.'),
       B.know('012_t_know', 'Looduslikus rabas kasvab turbakiht keskmiselt ainult umbes 0,9 millimeetrit aastas. Meetri paksune turbakiht on seega tekkinud rohkem kui tuhande aasta jooksul. Laudteed ehitatakse selleks, et matkajad ei tallaks õrna samblavaipa katki.', 'Kliimaministeerium, „Turvas pakub huvi ka meditsiinitööstusele” (2021); Tartu Ülikool, õppematerjal „Turvas”', 'Kas teadsid? Raba kasvab aeglaselt'),
-      tag(purpose(B.letter('012_t_reply', 'Vastus matkajuhile: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: vastus lõpuni — sinu kogemus, üks kindel kord ja kaks küsimust.', 'Tere, Kaia!', 'Parimate soovidega\n(sinu nimi)', [120, 150]), 'Matkajuht paneb sinu nime nimekirja, kui vastus on selge.'), { task: 'W08' }),
+      tag(purpose(B.writing('012_t_start', 'Tunnis: vastuse algus.', 'Pärast kõnet kirjuta matkajuhile vastuse kaks-kolm esimest lauset: sinu kogemus ja üks kindel kord.', [2, 3], [], 0, 'g_use'), 'Kõne järel on kõik veel meeles: algus on kohe kirjas.'), { task: 'W08', level: 3 }),
+      tag(homeTask(purpose(B.letter('012_t_reply', 'Vastus matkajuhile: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: vastus lõpuni — sinu kogemus, üks kindel kord ja kaks küsimust.', 'Tere, Kaia!', 'Parimate soovidega\n(sinu nimi)', [120, 150]), 'Matkajuht paneb sinu nime nimekirja, kui vastus on selge.')), { task: 'W08' }),
       extension(teach(tag(purpose(B.speaking('012_t_more', 'Mäng: mina pole kunagi …', 'Ütle lause „Mina pole kunagi …”. Kui õpetaja on seda teinud, saab tema punkti ja jutustab, millal see juhtus. Siis vahetate.', [
         'Mina pole kunagi … (saun, raba, meri, seened, virmalised, laulupidu …)',
         'Kes on seda teinud, ütleb: „Mina olen! … aastal ma …”',
@@ -320,7 +320,7 @@ export const LESSONS = withShapes({
       plan: [
         '0–4: крючок — что случилось 20 августа 1991, ученик предполагает',
         '4–10: пункт 1 — где ты или твоя семья были в 1991 (или самое раннее воспоминание)',
-        '10–25: пункт 2 — слова (2 мин), 5 карточек дела → ajajoon устно, радио «ajaloominut» дважды, 8 вопросов «что было раньше?»',
+        '10–25: пункт 2 — слова (2 мин), 5 карточек дела → ajajoon устно, радио «ajaloominut» один раз, как новости (карточки помогают), 8 вопросов «что было раньше?»',
         '25–37: пункт 3 — enneminevik: заметить → правило → 7 пар событий в одно предложение; ударение (3 мин)',
         '37–52: пункт 4 — вопрос ребёнка, план объяснения и 2 первых предложения',
         '52–64: «Kui aega jääb» — моя ajajoon: «Mis oli selleks ajaks juba juhtunud?» (по желанию)',
@@ -357,7 +357,7 @@ export const LESSONS = withShapes({
         ['D · Moskva', ['Moskvas püüti võimu haarata.', 'Telerist näidati terve päeva balletti „Luikede järv”.'], []],
         ['E · Teletorn, hommik', ['Nõukogude langevarjurid tulid teletorni juurde.', 'Kaitsjad olid end juba torni ülemistesse ruumidesse lukustanud.'], []],
       ], '3'), 'Kaardid aitavad sul teada saada, mis neil päevadel juhtus, ja seda ka teistele rääkida.'),
-      tag(purpose(B.examListen('013_d_radio', 'Raadio ajaloominut: august 1991', 'Kuula kaks korda ja vali õige vastus.', 'choice', [
+      tag(purpose(B.examListen('013_d_radio', 'Raadio ajaloominut: august 1991', 'Kuula üks kord nagu uudiseid ja vali õige vastus. Kaardid aitavad.', 'choice', [
         'Tere! Siin on raadio ajaloominut. Täna räägime sellest, kuidas Eesti 1991. aasta augustis oma iseseisvuse taastas.',
         '19. augustil püüti Moskvas võimu haarata. Nõukogude Liidu telerist näidati terve päeva balletti „Luikede järv”. Keegi ei teadnud, mis järgmisel päeval juhtub.',
         '20. augusti hilisõhtul, kell 23.03, võttis Eesti Ülemnõukogu vastu otsuse Eesti riiklikust iseseisvusest. Poolt hääletas 69 saadikut. Otsuse järgi ei olnud Eesti enam Nõukogude Liidu osa, vaid jälle iseseisev riik.',
@@ -375,7 +375,7 @@ export const LESSONS = withShapes({
         ['Mida näidati 19. augustil terve päeva Nõukogude Liidu telerist?', 'balletti „Luikede järv”', 'uudiseid Moskvast', 'filmi Tallinna teletornist'],
         ['Mis on 20. august tänapäeval Eestis?', 'riigipüha, taasiseseisvumispäev', 'tavaline tööpäev', 'teletorni sünnipäev'],
         ['Mis juhtus 22. augustil 1991 ja kes tegi seda esimesena?', 'Island tunnustas esimese riigina Eesti iseseisvust', 'Nõukogude Liit tunnustas Eesti iseseisvust', 'teletorn avati külastajatele'],
-      ], 'g_read', 2), 'Kui tead, mis oli juhtunud enne, saad loost õigesti aru ja oskad seda edasi rääkida.'), { voice: 'news', task: 'L02', harno: 'L1' }),
+      ], 'g_read', 1), 'Kui tead, mis oli juhtunud enne, saad loost õigesti aru ja oskad seda edasi rääkida.'), { voice: 'news', task: 'L02', harno: 'L1' }),
       B.know('013_d_know', 'Tallinna teletorn avati 11. juulil 1980. See on 314 meetrit kõrge ja oli valmimisel Eesti kõrgeim ehitis. Tornis on ajaloonäitus, kus saab kuulata ka 1991. aasta augustisündmuste lugu.', 'Tallinna Teletorn, teletorn.ee („Ajalugu”)'),
     ],
     practice: [
@@ -399,11 +399,12 @@ export const LESSONS = withShapes({
     ],
     transfer: [
       station(B.text('013_t_ask', 'Laps küsib', 'Sõbra kümneaastasel lapsel (või sinu lapselapsel) on palve: „Räägi mulle, miks me 20. augustil koolis ei käi. Mis siis juhtus?” Ta tahab lühikest ja selget vastust, mis juhtus — ja kuulda ka sinu pere mälestust sellest ajast.'), 4, 15, { final: 'explain' }),
-      teach(tag(purpose(B.examWriting('013_t_explain', 'Selgitus lapsele: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: 120–150 sõna lihtsate lausetega; mis oli juhtunud enne ja mis juhtus pärast. Kasuta sõnu iseseisvus, Ülemnõukogu, riigipööre, langevarjur, lukustama.', 'vastus', {
+      tag(purpose(B.writing('013_t_start', 'Tunnis: selgituse algus.', 'Räägi plaan õpetajale, siis kirjuta selgituse kaks-kolm esimest lauset lapsele arusaadavalt.', [2, 3], [], 0, 'g_use'), 'Esimesed laused näitavad, kas laps saab aru, mis juhtus enne ja mis pärast.'), { task: 'W12', level: 3 }),
+      teach(tag(homeTask(purpose(B.examWriting('013_t_explain', 'Selgitus lapsele: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: 120–150 sõna lihtsate lausetega; mis oli juhtunud enne ja mis juhtus pärast. Kasuta sõnu iseseisvus, Ülemnõukogu, riigipööre, langevarjur, lukustama.', 'vastus', {
         situation: 'Selgitus kümneaastasele lapsele: miks 20. august on Eestis riigipüha.',
         points: ['mis juhtus 20. ja 21. augustil 1991', 'mis oli juhtunud enne (Moskva)', 'mis juhtus pärast (Island, teised riigid)', 'sinu või sinu pere mälestus sellest ajast (või sinu elu ajajoon)'],
         words: [120, 150],
-      }), 'Sinu selgitus aitab lapsel mõista, mis tol päeval juhtus ja miks see on riigipüha.'), { task: 'W12', main: true, level: 4 }),
+      }), 'Sinu selgitus aitab lapsel mõista, mis tol päeval juhtus ja miks see on riigipüha.')), { task: 'W12', main: true, level: 4 }),
       'Kodutöö. Järgmises tunnis ole sina laps ja küsi üks küsimus („Mis juhtus enne?” või „Mida su pere tol ajal tegi?”). Tagasiside: enneminevik varasema sündmuse jaoks, lihtsad laused lapsele, pere mälestus lõpus. Ära hinda mälestust ega vaidle selle üle.'),
       extension(teach(tag(purpose(B.speaking('013_t_more', 'Minu ajajoon', 'Joonista oma elu ajajoon viie punktiga. Õpetaja küsib: „Mis oli selleks ajaks juba juhtunud, kui …?”', [
         'Viis punkti: sünd, kool, õpingud või esimene töö, kolimine, eesti keele algus.',
@@ -470,7 +471,7 @@ export const LESSONS = withShapes({
       'Üks-ühele: räägi enne ise lühidalt üks oma viga (nt keeleviga, mis tegi kõigile nalja). Ära paranda; lõpus küsi: „Mis oli enne juhtunud?”')),
       station(tag(B.vocab('014_d_vocab', 'Tunni sõnad.', ['petis — мошенник', 'pettus — обман', 'kahju — ущерб', 'turvaosakond — отдел безопасности', 'kinnitama — подтверждать', 'kahtlane — подозрительный', 'toru ära panema — положить трубку', 'järeldus — вывод', 'kahetsema — сожалеть', 'sellest ajast saadik — с тех пор']), { topic: ['turvaosakond'] }), 2, 15),
       B.chart('014_d_chart', 'Pettused Eestis 2025: kui palju raha inimesed kaotasid', { kind: 'bar', unit: 'mln €', series: ['2025'], rows: ['Telefonipettused | 11,5', 'Investeerimispettused | 6,3', 'Ettevõtete pettused | 2,7', 'Müügipettused | 1,7'], source: 'Eesti Pangaliit, „Pettuste ennetamine” (pangaliit.ee): 2025. aastal langes pettuse ohvriks 3685 inimest, kahju kokku ligi 31 miljonit eurot' }),
-      tag(purpose(B.writing('014_d_chartq', 'Sõnum pere jututuppa.', 'Kirjuta graafiku põhjal 2–3 lauset: üks arv, mis sind üllatas, ja üks hoiatus oma perele.', [2, 3], [], 0, 'g_read'), 'Arvud teevad hoiatuse usutavaks: su pere näeb, et pettus on päris oht.'), { task: 'R08', level: 3 }),
+      tag(purpose(B.writing('014_d_chartq', 'Sõnum pere jututuppa.', 'Kirjuta graafiku põhjal 2–3 lauset: üks arv, mis sind üllatas, ja üks hoiatus oma perele.', [2, 3], [], 0, 'g_read'), 'Arvud teevad hoiatuse usutavaks: su pere näeb, et pettus on päris oht.'), { task: 'W02', level: 3 }),
       teach(tag(purpose(B.listening('014_d_call', 'Kõne „pangast”: kus on pettus?', 'Kuula kaks korda ja kirjuta lünka 1–2 sõna. Siis ütle, mis oli kahtlane.', [
         'Kuller: Tere! Teile on pakk, aga aadressis on viga. Saatsin teile lingi, palun kinnitage seal oma andmed. Kui te seda täna ei tee, saadetakse pakk tagasi.',
         'Klient: Hästi, ma vaatan.',
@@ -530,11 +531,11 @@ export const LESSONS = withShapes({
         'Sellest ajast saadik [olen] ma alati ise pangale helistanud. (olema)',
       ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas loo vormid on käes.')), {}),
       purpose(B.selfcheck('014_t_self', ['Ma jutustan oma veast viie sammuga: taust, sündmus, mis oli enne, õppetund, mida oleksin teinud teisiti.', 'Ma valin loos õige mineviku vormi.', 'Ma väljendan kahetsust: oleksin pidanud, ei oleks teinud.', 'Ma tunnen ära kahtlase kõne märgid (vale „turvaosakond”, kiirustamine, saladus) ja hoiatan teisi telefonipettuse eest.'], 'Lugu hoiatab', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(purpose(B.examWriting('014_t_story', 'Kodus: hoiatuslugu kirjalikult.', 'Tunnis rääkisid; kodus kirjuta sama lugu pere või maja jututuppa, 120–150 sõna, ja lisa üks nõuanne.', 'jutt', {
+      tag(homeTask(purpose(B.examWriting('014_t_story', 'Kodus: hoiatuslugu kirjalikult.', 'Tunnis rääkisid; kodus kirjuta sama lugu pere või maja jututuppa, 120–150 sõna, ja lisa üks nõuanne.', 'jutt', {
         situation: 'Postitus pere või maja jututuppa: sinu viga ja mida teised sellest õppida võiksid.',
         points: ['taust ja mis juhtus', 'mis oli juhtunud enne', 'mida oled sellest õppinud', 'mida oleksid pidanud tegema teisiti ja üks nõuanne'],
         words: [120, 150],
-      }), 'Kirjalik lugu jääb jututuppa alles ja hoiatab ka neid, kes kõnet ei kuulnud.'), { task: 'W04' }),
+      }), 'Kirjalik lugu jääb jututuppa alles ja hoiatab ka neid, kes kõnet ei kuulnud.')), { task: 'W04' }),
       tag(homeTask(purpose(B.speaking('014_t_home', 'Kodus: hoiatuslugu 1 minutiga.', 'Salvesta 1 minut: sinu viga ja mida oleksid pidanud tegema teisiti.', [
         'Mis juhtus ja mis oli enne?',
         'Mida oled sellest õppinud?',
@@ -772,8 +773,6 @@ export const EXPLAIN = {
     'Eitus: ei + -nud kõigis isikutes: ma ei saanud.',
     'sööma → me sõime: tüvi muutub (söö- → sõi-).',
     'tooma → ta tõi: nagu sõi ja jõi.',
-    'kasvatama → ta kasvatas: -s-lihtminevik (nagu ootas).',
-    'Eitus: ei + -nud ka mitmuses: nad ei uskunud (mitte „ei uskusid”).',
     'tulema → ma tulin: i-lihtminevik, ilma -s-ita.',
   ],
   '011_t_model': [
