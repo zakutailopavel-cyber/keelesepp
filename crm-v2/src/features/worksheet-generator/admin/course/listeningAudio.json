@@ -2499,15 +2499,20 @@
     "seconds": 42.4,
     "hash": "a0924492c7a10ceb97276a41f32351ba08e53231"
   },
+  "b1b2-010:010_p_clips": {
+    "src": "/audio/b1b2-010/010_p_clips.mp3",
+    "seconds": 74.4,
+    "hash": "f616feaff011f7e5cdfbc84bb782fb8ed1e04e3c"
+  },
   "b1b2-010:010_p_listen": {
     "src": "/audio/b1b2-010/010_p_listen.mp3",
-    "seconds": 120.2,
-    "hash": "170821fa1f3e50c80d3413b7e5f8c2e1fa8d53fa"
+    "seconds": 80.7,
+    "hash": "862de306df7521e0a6d12962dd3238809e5346a6"
   },
-  "b1b2-010:010_p_notes": {
-    "src": "/audio/b1b2-010/010_p_notes.mp3",
-    "seconds": 39,
-    "hash": "ab38f3375d6d4e63c2dfa5e76b22b5a00a6c4b24"
+  "b1b2-010:010_p_tf": {
+    "src": "/audio/b1b2-010/010_p_tf.mp3",
+    "seconds": 92.5,
+    "hash": "74456a3daf174336ff6fdc5fca0587389637ef26"
   },
   "b1b2-011:011_d_voice": {
     "src": "/audio/b1b2-011/011_d_voice.mp3",

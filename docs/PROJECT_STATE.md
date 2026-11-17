@@ -1,3 +1,19 @@
+## 2026-11-17 · agent/b1b2-m02-tasks — B1→B2 module 2, round 2: new exam 010, documents in 007/008, gate compromises undone · content only
+
+- Base: `origin/main` 20f104d (merged, nothing new), checked 2026-11-17. PR #1263 (draft).
+- Done: 010 rebuilt as a real v4 module check in Harno B2 form on the module's content (review sheet with a forum
+  thread, R1 article „Kaebus ei ole tüli” ≈ 530 words, R2a, R3 letter to the district, R4 plan-B guide; L1 six clips
+  played once, L3 info hour, L4 two-guest interview; W1 complaint answering the management company's letter, W2b; S1
+  „Minu linna abikaart”, S2 cards), EXPLAIN for every scored item, new audio 010_p_clips / 010_p_listen / 010_p_tf,
+  010_p_notes removed. 007: booking screen (R08) at station 4; guide back to 120–150 words. 008: receipt and warranty
+  terms at station 4; language focus = a friend's complaint draft with 7 gaps (replaces sentence-pair joins). Sound
+  rows in 006 / 007 are the teacher's sentences with a gap. `b2/lessonGoals.js` 010 goals and tags.
+- Gate issues found (not changed, described in `docs/review/b2-m02-tasks.md` „Раунд 2”): V11 / V12 count the homework
+  writing as lesson time; a gap-free `dialogue` counts as a 1-item closed task; av-voice ≥ 150 words vs st-input ≤ 120.
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; worksheet-generator + worksheet-studio +
+  vocabulary 198 files passed, 2159 tests; eslint clean; 007, 008 and all 010 sheets re-read in the sheet lab.
+- Next safe step: owner reads „Раунд 2” and decides the four gate proposals; a teacher runs 007 or 009.
+
 ## 2026-11-17 · agent/b1b2-m02-tasks — B1→B2 module 2 task-based (v4) · content only, no UI / rules / functions / data writes
 
 - Base: `origin/main` 20f104d (release 2026-11-17 07:41 UTC), checked 2026-11-17. Draft PR „B1→B2 module 2: task-based (v4)”.
