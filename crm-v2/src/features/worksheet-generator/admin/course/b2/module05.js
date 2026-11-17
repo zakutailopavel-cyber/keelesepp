@@ -56,7 +56,7 @@ export const LESSONS = withShapes({
     title: 'Seisukoha väljendamine',
     canDo: 'Ma räägin avalikul arutelul 2–3 minutit oma seisukohast: näitan, kui kindel ma olen (kindlasti, ilmselt, vaevalt), toon kaks põhjust ja ühe kahtluse ning teen ettepaneku.',
     discover: [
-      B.review('021_d_review', [['Moodul 4: mida pidi Taavi oma esimesel nädalal tegema ja mida ei tohtinud ta ise otsustada?', 'b1b2-019'], ['Moodul 3: keda valisid Sofia ja Liis vestluspäeval projektiassistendiks? Miks just teda?', 'b1b2-012'], 'Milline reegel on sinu töökohas või kodus kohustuslik? Kas see on sinu arvates õige?']),
+      B.review('021_d_review', [['Moodul 4: mida pidi Taavi oma esimesel nädalal tegema ja mida ei tohtinud ta ise otsustada?', 'b1b2-019'], ['Moodul 3: mida oled Eesti looduses juba kogenud ja mida pole veel proovinud? Millal see oli?', 'b1b2-012'], 'Milline reegel on sinu töökohas või kodus kohustuslik? Kas see on sinu arvates õige?']),
       // the module's topic opener (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2, topic map B2 row 5: keel + ühiskond):
       // cast-free, story-led, sourced; it replaces the goal text 021_d_goal, whose storyline moved into 021_d_read
       B.topicOpener('021_d_open', 'Teema avaleht: kes otsustab, milline on eesti keel?', [
@@ -171,7 +171,7 @@ export const LESSONS = withShapes({
     title: 'Põhjus → näide → järeldus',
     canDo: 'Ma kirjutan linnaplaneerijale maja nimel 140–160-sõnalise poolametliku kirja, kus on kaks täielikku argumenti (põhjus → näide → järeldus) ja vastus naabri murele.',
     discover: [
-      B.review('022_d_review', [['Mida arvas Jaan koolivormist ja kas ta muutis arutelu lõpuks oma arvamust?', 'b1b2-021'], ['Moodul 3: miks nõudis Sofia bussifirmalt raha tagasi ja kuidas ta oma nõuet põhjendas?', 'b1b2-011'], 'Ütle sama mõte kolmel moel: kindlalt, tõenäoliselt ja kahtlevalt.']),
+      B.review('022_d_review', [['Mida arvas Jaan koolivormist ja kas ta muutis arutelu lõpuks oma arvamust?', 'b1b2-021'], ['Moodul 3: mis oli sinu lapsepõlve pühadelaual? Jutusta kahe lausega lihtminevikus.', 'b1b2-011'], 'Ütle sama mõte kolmel moel: kindlalt, tõenäoliselt ja kahtlevalt.']),
       B.text('022_d_hook', 'Arutelukohviku teine õhtu', 'Täna arutatakse arutelukohvikus Anna pakutud teemat: „Ühistransport peaks olema tasuta kõigile, ka linnakülalistele.” Anna elab Sauel ja sõidab tööle autoga, Viktor tuleb Kõrvemaalt linna bussiga. Enne õhtut kohtusid nad Balti jaama bussipeatuses. Vaata pilti: nad ehitavad argumendisilda. Sild kannab ainult siis, kui kõik neli osa on paigas: seisukoht, põhjus, näide ja järeldus.'),
       B.listening('022_d_stop', 'Bussipeatuses.', 'Kuula Anna ja Viktori vestlust kaks korda. Kirjuta lünka üks kuni kolm sõna.', [
         'Anna: Viktor, tere! Kas sa tuled ka täna arutelukohvikusse?',

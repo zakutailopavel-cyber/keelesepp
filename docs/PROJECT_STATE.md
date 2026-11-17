@@ -1,3 +1,54 @@
+## 2026-11-17 · agent/b1b2-m03-tasks — B1→B2 module 3, round 2 · content only
+
+- Base: `origin/main` 20f104d (fetched again, nothing new). Draft PR #1261. Module 2 v4 is PR #1263 (open).
+- Done: 015 exam written fresh in Harno B2 form on real Estonia and the module's content (song festival time line and
+  article ≈ 520 words, kroon → euro cloze, learner stories, 5 announcements + choir interview: new TartuNLP audio
+  `015_p_news`, `015_p_listen`), no named character, product „Minu lugu” kept, EXPLAIN for every item; 011 station 4 one
+  job (model-story audio moved to homework); 013 tone (family memories, no judgement) and picture prompts answerable from
+  the current image, planned TV-tower brief in `art/visuals/b2-module-03.js` (`PLANNED`, not in the default list until
+  the file exists); weakest task replaced in 011 (decision questions), 012 (Q/A chat), 013 (learners' time lines), 014
+  (family-chat message). No module-3 reference to the old module 2 story; recycling of PR #1263's module-2 words 43 %.
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case; `npx vitest run src/features/worksheet-generator
+  src/features/worksheet-studio src/features/vocabulary` 198 files / 2159 tests passed; eslint clean; sheet lab 011 Kasuta,
+  015 Avasta + Harjuta read. Review: `docs/review/b2-m03-tasks.md` „Раунд 2”.
+- Merged `origin/main` 2d34468 (#1263, module 2 + four v4 gate rules); conflicts in `lessonGoals.js`,
+  `lessonWords/b1b2.json`, the roadmap JSON and `language-allow.txt` resolved line by line (main + module 3 lines 011–015).
+  With the new rules: the four long writings are `homeTask()` (the in-class start is its own short writing in 011, 012,
+  013), the family-chat message in 014 is tagged as writing again (was R08 for the input share), the history minute in 013
+  is heard once (Harno L1). Facts checked against sources (laulupidu.ee, Estonian World, ECB / Eesti Pank, ERR,
+  Kliimaministeerium); unverifiable details removed.
+- Checks after the merge: module 3 5/5 READY; all B1 + B2 modules 180/180 READY; module-2 word reuse 40 % (methodGaps
+  green); `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary` 198 files
+  / 2176 tests passed; eslint clean; EstNLTK 0 unknown lower-case words.
+- Next safe step: owner reads round 2; module 4 (#1262) merges after this PR.
+
+## 2026-11-17 · agent/b1b2-m03-tasks — B1→B2 module 3 task-based (v4) · content only, no UI / rules / functions / data writes
+
+- Base: `origin/main` 20f104d (release 2026-11-17 07:41 UTC), checked 2026-11-17. Draft PR „B1→B2 module 3: task-based
+  (v4)”, not merged. Modules 2 and 4 are rebuilt in parallel by other agents (shared files may conflict).
+- Done: `b2/module03.js` rebuilt by §7 of `docs/COURSE_DESIGN_STATIONS.md` (`design: 'v3-stations'`, lesson `format`s):
+  011 game „Mis oli sinu lapsepõlve pühadelaual?” (family, lihtminevik, topic opener on the Estonian table at min 15, family
+  food story for a library collection), 012 infogap „Kas sa oled kunagi rabas käinud?” (nature, täisminevik vs lihtminevik,
+  radio + call to a hike leader), 013 case „Teletorn, 21. august 1991: mis oli juhtunud enne?” (culture, enneminevik,
+  shuffled case cards + history-minute radio, explain to a child), 014 project „Viga, millest ma õppisin” (money, three pasts
+  + oleksin pidanud, Pangaliit 2025 chart + scam-call audio, warning story told in 2 min, S1). Each: 4 stations 52–57 min,
+  „Kui aega jääb” 10–12 min, minute plan 80–82, exit check + „Ma oskan …” + „Kodutöö”; cast 0. 015 exam kept (Helgi →
+  Ingrid, memory article 509 words for `av-article`), `format: 'exam'`, product card „Minu lugu” + S1 talk at the story
+  evening. EXPLAIN for every scored item of 011–015.
+- Data: `b2/lessonGoals.js` 011–015 texts (g_vocab dropped from 011–014 as in module 1, old tags removed);
+  `vocabulary/lessonWords/b1b2.json` 011–014; `data/keelesepp-b1-b2-roadmap-01.json` titles 011–014 (ids unchanged);
+  `b2/module05.js` 021/022, `module06.js` 027, `module07.js` 033 review items about old module-3 story replaced (ids kept).
+- Audio (TartuNLP): new 011_t_model, 012_d_radio, 013_d_radio, 014_d_call; removed 011_d_voice, 011_p_clips, 012_d_anna,
+  013_p_call, 014_d_interview, 014_t_voice (+ `listeningAudio.json`). Pictures: 011 ← a2b1-010, 013 ← b1b2-077, 014 ←
+  b1b2-058 copied, briefs retargeted in `art/visuals/b2-module-03.js` (cast-free text). `language-allow.txt`: `explain`.
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; `npx vitest run src/features/worksheet-generator
+  src/features/worksheet-studio src/features/vocabulary` → 198 files passed (1 skipped), 2159 tests passed (12 skipped);
+  eslint clean on changed files; all 15 sheets read in the sheet lab (fixed: 014 „Ma oskan” alone on a page, 012 picture
+  before the hook, „Ingrid” case forms). Learner test (4 learners) + methodologist: `docs/review/b2-m03-tasks.md`.
+- Limits: methodGaps recycling (≥ 30 % of module 2 words) is 34 % against the current module 2 — re-run after the new
+  module 2 merges. The impersonal past (tehti) is now only in 015. 013 picture is a life time line, not the 1991 tower.
+- Next safe step: owner reads `docs/review/b2-m03-tasks.md`; after merge of modules 2/3/4, re-run
+  `npx vitest run src/features/worksheet-generator/admin/course`.
 ## 2026-11-17 · agent/b1b2-m02-tasks — round 3: four v4 gate rules (owner OK) + module 2 lessons without gate bends · gates + content
 
 - Base: `origin/main` 20f104d (merged, nothing new; module 3 / 4 PRs #1261 / #1262 still open), checked 2026-11-17. PR #1263 (draft).
