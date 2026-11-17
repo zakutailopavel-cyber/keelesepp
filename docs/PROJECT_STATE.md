@@ -1,3 +1,30 @@
+## 2026-11-17 · agent/b1b2-m02-tasks — B1→B2 module 2 task-based (v4) · content only, no UI / rules / functions / data writes
+
+- Base: `origin/main` 20f104d (release 2026-11-17 07:41 UTC), checked 2026-11-17. Draft PR „B1→B2 module 2: task-based (v4)”.
+  Modules 3 and 4 are being rebuilt in parallel by other agents (not touched here).
+- Done: `b2/module02.js` 006–009 rebuilt in design v4 like module 1 (`MODULE.design: 'v3-stations'`, exactly 4 stations,
+  51–57 of 90 min, hook ≤ 80 words, „Kui aega jääb” 10–12 min, exit check + „Ma oskan …” + homework card, teacher page
+  with hook / minute plan / sources / groups). 006 game „Kuhu sa lähed, kui pass on kadunud?” (town; topic opener
+  ≈ 330 words at minute 15; R3 corner), 007 infogap „Kas ma saaksin aja juba täna?” (health; S1 home talk), 008 case
+  „Kolm kuud ja katki — kas kaebad?” (money; L3 radio corner; W13 complaint), 009 project „Homme pole vett — mis on sinu
+  plaan B?” (neighbours; S2 cards). Grammar: kus/kuhu/kust → conditional requests → cause/effect → kui / sel juhul /
+  selle asemel. Cast: 0 (old Mets-family storyline removed). 010 kept as the short Harno check, cast-free, R1 article
+  ≈ 560 words (av-article), R3 points 9 → 8 (8 gaps), product „Minu linna abikaart” + S1 talk with it. EXPLAIN for
+  every scored item of the module (incl. 010). Facts with sources (eesti.ee 14 days — the old „30 days” was wrong;
+  Tervisekassa, 1220, 1247, TTJA, kriis.ee).
+- Also changed: `b2/lessonGoals.js` 006–010 texts (keys kept; 009 tags dropped with the old audio);
+  `vocabulary/lessonWords/b1b2.json` 006–009; `data/keelesepp-b1-b2-roadmap-01.json` titles 006–009 (ids kept);
+  `art/visuals/b2-module-02.js` alt / captions / prompts cast-free (same pictures); `b2/module05.js` 024_d_review item
+  now asks about lesson 006 (id kept); `listeningAudio.json` + `public/audio`: new 006_t_voice, 007_d_call,
+  008_d_radio, 008_t_shop (TartuNLP), 6 old recordings removed; `academicValueRound2Baseline.json` module 2 entries
+  removed (fixed); `tools/course-audit/language-allow.txt` + complain, explain (internal final kinds).
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; `npx vitest run src/features/worksheet-generator
+  src/features/worksheet-studio src/features/vocabulary` 198 files passed (1 skipped), 2159 tests passed (12 skipped);
+  v4Tasks / v4Gates cover module 2; eslint clean on changed JS; all 15 sheets read in the sheet lab (local vite).
+- Limits: modules 3 and 4 still have „Mäletad?” items about the old module 2 story (their agents rewrite them);
+  nothing published; library titles change after the owner's publish.
+- Next safe step: owner reads `docs/review/b2-m02-tasks.md`; a teacher runs 007 or 009 one-to-one.
+
 ## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1, round 3: „Kui aega jääb”, pictures, module 5 review item · content + small v4 gate change
 
 - Base: `origin/main` f8ab587 (merged, nothing new), checked 2026-11-17. PR #1259 (draft). Owner approved round 2.

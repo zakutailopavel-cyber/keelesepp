@@ -124,6 +124,11 @@ cards), 004 negotiate (S17 learning-plan talk); the check 005 is unchanged. Owne
 B2 `av-article` (one 500–600-word article a module) cannot live in a station (`st-input` ≤ 120 words): the module's
 article is the check lesson's reading (005, owner 2026-11-14). Open: that length is over the B1+ sheet reading norm (≤ 500).
 Since 2026-11-17 the module is the sample of design v4 „task-based” (§7): same stations and gates, no storyline.
+**B2 module 2** (`b2/module02.js`, 006–010, 2026-11-17) is the second v4 module: 006 game (town, kus/kuhu/kust, R3
+corner), 007 infogap (health, polite conditional, S1 home talk), 008 case (money, cause/effect complaint, L3 corner),
+009 project (neighbours, plan B, S2 cards); 010 the short Harno check + „Minu linna abikaart”. Owner summary:
+`docs/review/b2-m02-tasks.md`. Learnt for the next modules: a station lesson needs one non-opener text of ≥ 150 words
+(av-voice) — in practice a listening or a gapped chat; a big writing task as the exam corner breaks V12 washback (≤ 25 %).
 
 ## 5. Next
 
