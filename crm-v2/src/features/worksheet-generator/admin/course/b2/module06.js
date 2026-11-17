@@ -51,7 +51,7 @@ export const LESSONS = withShapes({
     title: 'Töökoht ja vastutus',
     canDo: 'Ma räägin oma tööst ja vastutusest (töötan …na, vastutan … eest) ja lepin uue kolleegiga kokku, millise ülesande ta võtab ja mis on tähtaeg.',
     discover: [
-      B.review('026_d_review', [['Moodul 5: kuidas ütled viisakalt, et sa ei ole kolleegiga nõus? Kasuta sõnu „kuigi” või „siiski”.', 'b1b2-025'], ['Moodul 4: kelle poole pöördud, kui kaotad korteri võtmed? Mida pead kohe tegema?', 'b1b2-019'], 'Kui kindel sa oled, et sinu töö muutub viie aasta jooksul? Kasuta sõnu „kindlasti”, „ilmselt” või „vaevalt”.']),
+      B.review('026_d_review', [['Moodul 5: kuidas ütled viisakalt, et sa ei ole kolleegiga nõus? Kasuta sõnu „kuigi” või „siiski”.', 'b1b2-025'], ['Moodul 4: mida pead pärast pikka rongi hilinemist alles hoidma ja kellele kaebuse esitama?', 'b1b2-019'], 'Kui kindel sa oled, et sinu töö muutub viie aasta jooksul? Kasuta sõnu „kindlasti”, „ilmselt” või „vaevalt”.']),
       // the module's topic opener (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2): cast-free, story-led, sourced; it replaces
       // the goal text 026_d_goal, whose storyline and module goal moved into the instruction of 026_d_read
       B.topicOpener('026_d_open', 'Teema avaleht: kellena Eesti töötab?', [
@@ -442,7 +442,7 @@ export const LESSONS = withShapes({
     title: 'Kaugtöö või kontor?',
     canDo: 'Ma kirjutan partnerfirmale umbes 140-sõnalise poolametliku vastuse: tänan, ütlen oma seisukoha tema ettepaneku kohta, pakun kohtumise aja ja esitan küsimuse.',
     discover: [
-      B.review('029_d_review', [['Kuidas ütled süüdistuse ümber faktiks? Too näide Gerti ja Markuse tülist.', 'b1b2-028'], ['Moodul 4: mida ütles arst või õde viimati sulle või su lähedasele? Mida tuli teha ja mida ei tohtinud?', 'b1b2-017'], 'Mis on fakt, mõju, tunne ja ettepanek? Too igaühe kohta üks lause.']),
+      B.review('029_d_review', [['Kuidas ütled süüdistuse ümber faktiks? Too näide Gerti ja Markuse tülist.', 'b1b2-028'], ['Moodul 4: mida pidi laps kooli õppekäigule kaasa võtma ja mida ei tohtinud ta teha?', 'b1b2-017'], 'Mis on fakt, mõju, tunne ja ettepanek? Too igaühe kohta üks lause.']),
       B.text('029_d_hook', 'Arenguvestlus', 'Märtsi alguses oli Sofial esimene arenguvestlus projektijuhina. Liis andis talle tagasisidet ja küsis, kuidas ta töökoormusega toime tuleb. Sofia sõidab kolm korda nädalas Tallinnast Tartusse ja tagasi. Vaata pilti: Anna töötab sageli kodus, Liis eelistab kontorit. Kumb sobiks Sofia meeskonnale? Vestluse lõpus palus Liis, et Sofia esitaks juhtkonnale ettepaneku hübriidtöö kohta.'),
       tag(B.listening('029_d_listen', 'Arenguvestlus.', 'Kuula Sofia ja Liisi arenguvestlust kaks korda. Pane tähele arve ja aegu ning kirjuta need lünka.', [
         'Liis: Sofia, sa oled nüüd viis kuud projektijuhina töötanud. Kuidas sa ise oma tööd hindad?',

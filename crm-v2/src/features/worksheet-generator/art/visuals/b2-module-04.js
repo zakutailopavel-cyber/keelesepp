@@ -23,18 +23,19 @@ export default [
     id: "b1b2-017-avasta-1",
     phase: "discover",
     format: "scene",
-    cast: ["Viktor", "Liis", "Anna"],
-    // 2026-11-17 (v4): the old infinitive-fork picture did not serve a doctor's-visit lesson; the image is reused from
-    // est-c1-051-kasuta-1 (a relative explains the doctor's words to an older man), copied to this lesson's folder
-    scene: "Arsti vastuvõtul räägib eakas mees oma valust, noor naine seletab talle arsti juttu lihtsamalt ja arst kuulab. Laual on küsimuste leht, ravimikarp ja järgmiste sammude skeem ilma nähtava tekstita.",
-    accent: "the three-question preparation card between patient and doctor",
+    cast: ["Sofia", "Jaan"],
+    // 2026-11-17 (v4, round 3: 017 moved from the doctor to a school note): the image is reused from est-c1-034-kasuta-1
+    // (two parents compare a rumour on the phone with the school's official notice), copied to this lesson's folder
+    scene: "Kaks lapsevanemat istuvad köögilaua taga: üks loeb telefonist vanemate vestluse sõnumit, teine hoiab käes kooli ametlikku teadet; nende vahel on linnuke, mis näitab, et nad kontrollivad infot.",
+    accent: "the official school notice beside the rumour on the phone",
     text: [],
     place: "017_d_talk",
-    learningJob: "seletada arsti nõuandeid pereliikmele edasi ja kontrollida, kas ta sai aru",
-    alt: "Arsti vastuvõtul seletab noor naine eakale mehele arsti juttu; laual on ravimikarp ja sammude skeem.",
-    caption: "Pilt 1. Arsti juures: kes kellele mida seletab?",
-    prompts: ["Kes on pildil arst, kes patsient ja kes seletab?", "Mida peab mees pärast vastuvõttu tegema? Arva laual oleva skeemi järgi.", "Mida küsiksid sina arstilt, kui istuksid selle mehe kõrval?"],
+    learningJob: "eristada kooli ametlikku teadet kuulujutust ja seletada teate sisu pereliikmele",
+    alt: "Kaks lapsevanemat võrdlevad telefoni sõnumit ja kooli ametlikku teadet.",
+    caption: "Pilt 1. Mida kool täpselt kirjutas?",
+    prompts: ["Mida need kaks inimest võrdlevad: telefoni sõnumit või kooli ametlikku teadet?", "Kumb on usaldusväärsem ja miks?", "Kust sina saad kooli, lasteaia või ameti infot ja kes sinu peres seda loeb?"],
   },
+
   {
     id: "b1b2-018-avasta-1",
     phase: "discover",
@@ -52,17 +53,20 @@ export default [
   {
     id: "b1b2-019-kasuta-1",
     phase: "transfer",
-    format: "sequence",
-    cast: ["Markus", "Liis"],
-    scene: "Mees avastab enne reisi, et pass on kadunud, teatab kaotusest, pöördub teeninduslauda, saab ajutise dokumendi ja jõuab laevale.",
-    accent: "the emergency solution route",
+    format: "scene",
+    cast: ["Sofia", "Viktor"],
+    // 2026-11-17 (v4, round 3: 019 moved from lost documents to a cancelled trip): the image is reused from
+    // est-c1-062-kasuta-1 (a cancelled train: a replacement bus, a bed and a message on a decision board), copied here
+    scene: "Raudteejaamas on rong tühistatud. Noor naine osutab otsustustahvlil asendusbussile, mille kõrval on voodi (majutus) ja sõnumimull; eakas mees hoiab piletit.",
+    accent: "the decision board: replacement bus, accommodation, message",
     text: [],
     place: "019_t_explain",
-    learningJob: "koostada kadunud dokumendi korral samm-sammuline plaan sihitise, tegevusnime ja rektsiooniga",
-    alt: "Mees lahendab kadunud passi probleemi samm-sammult ja jõuab uue dokumendiga laevale.",
-    caption: "Pilt 1. Kadunud dokument: samm-sammult lahenduseni.",
-    prompts: ["Mis probleem mehel enne reisi tekkis?", "Milliseid samme ta astus? Kasuta vorme: pidi …, pöördus … poole, teatas …", "Mis oleks sinu esimene samm, kui dokument kaoks?"],
+    learningJob: "koostada ärajäänud reisi korral samm-sammuline plaan B sihitise, tegevusnime ja rektsiooniga",
+    alt: "Jaamas osutab noor naine eakale mehele asendusbussile; tahvlil on ka majutus ja sõnum.",
+    caption: "Pilt 1. Rong jäi ära: asendusbuss, majutus, sõnum.",
+    prompts: ["Mis jaamas juhtus ja mida tahvel pakub?", "Mida peab eakas mees nüüd tegema? Kasuta vorme: peab …, tuleb …, pöörduma … poole.", "Kellele sina kõigepealt teataksid, kui sinu rong jääks ära?"],
   },
+
   {
     id: "b1b2-020-avasta-1",
     phase: "discover",

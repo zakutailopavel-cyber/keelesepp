@@ -262,8 +262,9 @@ formats: is every task at the right level, does each lesson move the learner mea
 | `depth.js` short tasks, `didacticCheck.js` items and order | ≥ 5 items; controlled before free | the exit check is exempt |
 | `didacticCheck.js` speaking length | level band (B1 120–240 s) | the home 1-minute talk (`data.home`) is exempt |
 | `finalShape.js` V4 caps and type shares, V15 Kasuta drills, V11 strands | every task | the exit check, the home task and the extension are not the lesson body (V3 formats and V9 goals still count them); V11 leaves out only the extension |
+| `timeEstimate.js` sheet minutes, `depth.js` exercise minutes (`quality.js` 40–55 min, `thin`) | the block estimate | an exam lesson's sheet (`meta.format: 'exam'`, assessment) with timed `B.examPart` headers is timed by them: the header minutes of its parts + the estimate of the blocks before the first header (an intro, the module's language part); for exercise minutes only the R and L parts count (`isHarnoTimedSheet`, `harnoTimedMinutes`); older designs unchanged |
 
-Tests: `admin/course/v4Gates.test.js` (the gates above), `admin/course/v4Tasks.test.js` (every v4 module: one extension of
+Tests: `admin/course/v4Gates.test.js` (the gates above, incl. the Harno-timed exam sheet), `admin/course/v4Tasks.test.js` (every v4 module: one extension of
 10–15 min in the minute plan, core + extension ≤ 90; format menu and
 no two neighbours alike; topics, work ≤ 1; hook ≤ 80 words with a response; no text > 150 words in the first 15 minutes;
 ≤ 1 text > 250 words a lesson; ≥ 3 input kinds; 4 stations ≤ 75 min; exit check + „Ma oskan” + home talk + homework

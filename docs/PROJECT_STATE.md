@@ -1,3 +1,22 @@
+## 2026-11-17 · agent/b1b2-m04-tasks — B1→B2 module 4, round 3: no topic overlap with module 2, Harno-timed exam sheets · content + one v4 gate rule
+
+- Base: `origin/main` 20f104d (checked 2026-11-17). PR #1262 (draft). Module 2 → PR #1263 (006 lost passport, 007 doctor), module 3 → PR #1261.
+- Done: 017 „Mida kool täpselt kirjutas?” (school trip voicemail, kindergarten notice, grandma infogap; ma-/da-infinitive;
+  child Eva, Mia is cast) and 019 „Rong jäi ära — mida teha esimese tunni jooksul?” (EU rail passenger rights from Your
+  Europe, four voicemails, plan B, grandma's first train trip; object + infinitive + government) replace the doctor and
+  lost-documents lessons; ids and goal keys kept. 020: article „Miks me ei loe peenikest kirja?”, train notice, W1 rail
+  complaint, language part on the new content; EXPLAIN updated. Pictures: est-c1-034 (017) and est-c1-062 (019) copied
+  over the lesson files; new TartuNLP audio 017_d_call, 019_d_voice, 020_p_notes; lessonGoals, lesson words, roadmap-02
+  titles, review items in modules 5, 6, 8 follow.
+- Gate rule (v4 only): `worksheet-studio/didactics/timeEstimate.js isHarnoTimedSheet` / `harnoTimedMinutes` — a v4 exam
+  sheet (`meta.format: 'exam'`, assessment, timed `B.examPart`) is timed by its Harno part headers + the estimate of
+  the blocks before the first header; `depth.js` counts only the R / L parts as exercise time; `sheetMinutes` uses it.
+  `shortSheet` removed from 020. Test in `v4Gates.test.js`; row in `docs/COURSE_DESIGN_STATIONS.md` §7.3. Older modules
+  (no `meta.format`) unchanged. `tools/course-audit/language-allow.txt` + eKool / eKoolis.
+- Checks: course report 5/5 READY (020: 46 / 43 / 78 min); EstNLTK 0 unknown lower-case; `npx vitest run src/features`
+  539 files / 4503 tests passed; eslint clean; 017, 019, 020 sheets re-read in the sheet lab.
+- Next safe step: owner reads „Раунд 3” in `docs/review/b2-m04-tasks.md`.
+
 ## 2026-11-17 · agent/b1b2-m04-tasks — B1→B2 module 4, round 2: real v4 module exam, adjective government, all sheets read · content only
 
 - Base: `origin/main` 20f104d merged (nothing new), checked 2026-11-17. PR #1262 (draft). Module 2 → PR #1263, module 3 → PR #1261.

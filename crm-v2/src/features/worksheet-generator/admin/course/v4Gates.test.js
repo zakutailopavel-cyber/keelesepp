@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { B, teach } from './blocks.js';
 import { exitCheck, purpose, station } from './stationBlocks.js';
 import { ST, lessonStationProblems, stationProblems, teacherPage } from './stations.js';
+import { harnoTimedMinutes, isHarnoTimedSheet, sheetMinutes } from '../../../worksheet-studio/didactics/timeEstimate.js';
+import { depthProblems } from '../../../worksheet-studio/didactics/depth.js';
 
 const P = 'Sinu naaber küsib nõu ja vajab vastust täna õhtul.';
 function lesson({ exit = true, page = true, extra = false } = {}) {
@@ -65,5 +67,24 @@ describe('design v4 task-based station gates', () => {
     expect(codes(stationProblems({ a: sheets(lesson(), {}), b: sheets(lesson(), {}) }))).toContain('st-selfcheck');
     expect(ST.taskMinutes).toBe(75);
     expect(teacherPage(lesson()).totalMinutes).toBeLessThanOrEqual(ST.taskMinutes);
+  });
+
+  it('times a v4 exam sheet by its Harno part headers; an older exam sheet keeps the block estimate', () => {
+    const blocks = [
+      B.tip('e_d_how', 'Eksam', 'Lugemine kestab 45 minutit.'),
+      B.choice('e_d_lang', 'Keeleosa.', 'Vali õige vorm.', [['Pean …', 'minema', 'minna'], ['Tuleb …', 'minna', 'minema'], ['Ei tohi …', 'minna', 'minema'], ['Hakkan …', 'minema', 'minna'], ['Võid …', 'minna', 'minema']]),
+      { ...B.examPart('e_d_rpart', 'R', { minutes: 45, points: 30, tasks: 4 }), goal: 'g_read' },
+      B.choice('e_d_mc', 'Osa 1.', 'Vali õige vastus.', [['Mis on teksti mõte?', 'küsi üle', 'ära küsi', 'oota'], ['Kes aitab?', 'apteeker', 'naaber', 'keegi'], ['Millal?', 'kohe', 'homme', 'kunagi'], ['Kus?', 'jaamas', 'kodus', 'tööl'], ['Miks?', 'tõend', 'hääl', 'raha']]),
+    ];
+    const v4 = { meta: { format: 'exam', assessment: true, phase: 'discover', level: 'B1+', template: 'v4' }, blocks };
+    const old = { meta: { assessment: true, phase: 'discover', level: 'B1+', template: 'v4' }, blocks };
+    expect(isHarnoTimedSheet(v4)).toBe(true);
+    expect(isHarnoTimedSheet(old)).toBe(false);
+    // the header's 45 minutes + the estimate of the blocks before it (the intro and the language part)
+    expect(harnoTimedMinutes(v4)).toBeGreaterThan(45);
+    expect(sheetMinutes(v4)).toBeGreaterThanOrEqual(45);
+    expect(sheetMinutes(old)).toBeLessThan(20);
+    expect(depthProblems(v4).map((p) => p.code)).not.toContain('thin');
+    expect(depthProblems(old).map((p) => p.code)).toContain('thin');
   });
 });
