@@ -1,3 +1,21 @@
+## 2026-11-17 · agent/b1b2-m02-tasks — round 3: four v4 gate rules (owner OK) + module 2 lessons without gate bends · gates + content
+
+- Base: `origin/main` 20f104d (merged, nothing new; module 3 / 4 PRs #1261 / #1262 still open), checked 2026-11-17. PR #1263 (draft).
+- Gates, v4 only (`meta.format` station lessons): (1) a writing task marked `homeTask()` has 0 lesson minutes in V11 /
+  V12 and may be the W1 corner (`isHomeWriting`); (2) a gap-free `dialogue` is not a closed task (`dialogueGaps`, in
+  `stations.js` st-items / st-closed and `didacticCheck.js`); (3) av-voice / av-boltedon → one input besides the hook of
+  ≥ 120 words or ≥ 60 s audio (`V4_INPUT`, `academicValue.js hasV4Input`); (4) g_listen choice / true-false rows out
+  of the sentence-length check (`isListeningRow`). Files: `worksheet-studio/didactics/{stations,didacticCheck,finalShape}.js`,
+  `admin/course/{stations,academicValue}.js`; tests in `admin/course/v4Gates.test.js` (4 new, each with the v3 result);
+  `docs/COURSE_DESIGN_STATIONS.md` §7.3 rows. Full B1 + B2 report (36 modules) identical before / after the gate change.
+- Module 2: long writings are homework (`homeTask`); 008 corner back to W1, counter role-play into the core, extension
+  writes the letter's start; gate-only fluency tags removed; 009 language focus = „Meie maja plaan B” table (own
+  sentences with kui / sel juhul / selle asemel, et). Review: `docs/review/b2-m02-tasks.md` „Раунд 3”.
+- Checks: module report 5/5; B1 + B2 180/180 READY; EstNLTK 0; 198 files / 2163 tests green; eslint clean; sheet lab.
+- Note for module 3 / 4 agents: when merging, keep both the module 4 „exam sheet timed by Harno part headers” rule and
+  these four.
+- Next safe step: owner reviews PR #1263; a teacher runs 008 or 009.
+
 ## 2026-11-17 · agent/b1b2-m02-tasks — B1→B2 module 2, round 2: new exam 010, documents in 007/008, gate compromises undone · content only
 
 - Base: `origin/main` 20f104d (merged, nothing new), checked 2026-11-17. PR #1263 (draft).

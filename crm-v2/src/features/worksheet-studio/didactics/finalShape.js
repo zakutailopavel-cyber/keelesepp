@@ -10,7 +10,7 @@
 // whole course. The tags (block.tag: task, harno, level, fluency, main, topic) come from admin/course/blocks.js tag().
 import { blockMinutes } from './timeEstimate.js';
 import { isInLesson } from '../engine/inLesson.js';
-import { STATIONS_DESIGN } from './stations.js';
+import { STATIONS_DESIGN, isHomeWriting } from './stations.js';
 import {
   ARCHETYPES, FORMAT_INTRO, FORMAT_INTRO_A2, FORMAT_INTRO_B2, FORMAT_INTRO_C1, FORMAT_INTRO_EN, FORMAT_PRACTICE, FORMAT_PRACTICE_A2, FORMAT_PRACTICE_B2, FORMAT_PRACTICE_C1, FORMAT_PRACTICE_EN, LEAD_PAIRS,
   TASK_CATALOGUE, TEACHING_ARCHETYPES, VARIANT_MIN, VARIANTS, VARIANTS_A2, VARIANTS_B2, VARIANTS_C1, VARIANTS_EN, examPartOf, harnoFamily, harnoFamilyA2, harnoFamilyB2, harnoFamilyC1, harnoFamilyEN, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
@@ -97,6 +97,8 @@ export function lessonsFromModules(modules, sheetsOf) {
       canDo: meta.canDo || source.canDo || '', goals: meta.goals || {}, canDoGoal: source.canDoGoal || 'g_use', level: meta.level, sheets,
       // design v3 „stations” (docs/COURSE_DESIGN_STATIONS.md): independent stations, the sheets are only their containers
       stations: meta.design === STATIONS_DESIGN && !meta.assessment,
+      // design v4 „task-based” (§7): a station lesson with a format
+      task: meta.design === STATIONS_DESIGN && !meta.assessment && Boolean(meta.format),
     };
   })).sort((a, b) => a.num - b.num);
 }
@@ -395,7 +397,10 @@ function strandProblems(lessons, out, P) {
   const list = teaching(lessons);
   list.forEach((l, i) => {
     // the v4 extension „Kui aega jääb” is optional time, not part of the lesson's strand balance
-    const tasks = lessonTasks(l).filter(({ b }) => !b.data?.extension).map(({ b, phase }) => ({ b, min: minutesOf(b, l.sheets[phase]) }));
+    // design v4 (docs/COURSE_DESIGN_STATIONS.md §7.3): the long writing the class only plans and starts (homework) is not
+    // lesson time; it still counts as the lesson's exam corner (V12), with 0 minutes
+    const homeOut = (b) => l.task && isHomeWriting(b);
+    const tasks = lessonTasks(l).filter(({ b }) => !b.data?.extension).map(({ b, phase }) => ({ b, min: homeOut(b) ? 0 : minutesOf(b, l.sheets[phase]) }));
     const notices = PHASES.flatMap((p) => blocksOf(l.sheets[p]).filter((b) => b.type === 'notice').map((b) => ({ b, min: minutesOf(b, l.sheets[p]) })));
     const all = [...tasks, ...notices];
     const total = all.reduce((n, x) => n + x.min, 0) || 1;
