@@ -5,6 +5,7 @@ import { useAuth } from '../../../app/AuthContext.jsx';
 import { askText } from '../../../components/ui/ConfirmHost.jsx';
 import { worksheetDocsService } from '../../../services/firebase/worksheetDocs.js';
 import WorksheetStudioPage from '../../worksheet-studio/WorksheetStudioPage.jsx';
+import TeacherPagePanel from '../../worksheet-studio/TeacherPagePanel.jsx';
 import { newDocument } from '../../worksheet-studio/engine/schema.js';
 import { regenerateTask, regenerateTaskOptions } from '../engine/regenerate.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
@@ -138,6 +139,8 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
       renderTop={({ dirty, doc, replaceDocument, insertBlocks, compareWith }) => (<>
         {approval ? <ReviewBanner review={review} admin={isAdmin} published={published} busy={rejecting} onCompare={() => compareWith?.(published)} onReject={reject} /> : null}
         {aiDraft ? <p className="st-banner st-banner--ai" role="note"><b>KeeleSepp AI</b> koostas selle mustandi{aiDraft.note ? ` · allikas: ${aiDraft.note}` : ''}{aiDraft.savedAt ? ` · ${new Date(aiDraft.savedAt).toLocaleString('et-EE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : ''}. Vaata üle ja vajuta „Avalda” — enne seda õpilased seda ei näe.</p> : null}
+        {/* „Õpetaja leht” of a stations / task-based lesson (meta.teacherPage): staff only, closed until opened */}
+        <TeacherPagePanel page={doc?.meta?.teacherPage} user={user} className="is-top" />
         <LessonGeneratorBar
           doc={doc}
           lessonId={lessonId}
