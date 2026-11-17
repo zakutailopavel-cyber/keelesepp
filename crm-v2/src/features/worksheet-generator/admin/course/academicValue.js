@@ -17,7 +17,7 @@
 //                  entry test): body B1 200–350 / B2 300–450 words, no cast names, a source line, 3–4 questions, one of
 //                  them comparing Estonia with the learner's home country
 //     av-retell    3-2-1 / 4-3-2 retelling at most AV.retellMax a module
-//     av-record    „record it at home” speaking tasks at most AV.recordMax a module
+//     av-record    „record it at home” speaking tasks at most AV.recordMax a module (design v4: one a lesson)
 //     av-kasuta    the module's Kasuta sheets do not all follow voicemail → phone call → letter
 //     av-examiner  an examiner-style question set: one speaking block with 6–8 questions, ≥ 2 of them asking an opinion
 //                  or a reason, no cast names (B2: with the one-minute talk, „1 minut”)
@@ -255,8 +255,15 @@ export function moduleAcademicProblems(sheets, { profile = 'b1' } = {}) {
   // variety caps
   const retell = entries.filter(({ b }) => SPEAKING.includes(b.type) && x.retell.test(askedText(b)));
   if (retell.length > AV.retellMax) add('av-retell', `3-2-1 / 4-3-2 ümberjutustus ${retell.length} korda (${retell.map(({ b }) => b.id).join(', ')}; kuni ${AV.retellMax} moodulis)`);
-  const record = entries.filter(({ b }) => SPEAKING.includes(b.type) && x.record.test(askedText(b)));
+  // design v4 „task-based” (meta.format, docs/COURSE_DESIGN_STATIONS.md §7): every lesson ends with a 1-minute voice
+  // recording at home (owner rule: pair speaking in the lesson, voice at home) — one a lesson, not ≤ 2 a module
+  const recordAll = entries.filter(({ b }) => SPEAKING.includes(b.type) && x.record.test(askedText(b)));
+  const record = recordAll.filter(({ doc }) => !doc?.meta?.format);
   if (record.length > AV.recordMax) add('av-record', `„salvesta kodus” ${record.length} korda (${record.map(({ b }) => b.id).join(', ')}; kuni ${AV.recordMax} moodulis)`);
+  ids.forEach((id) => {
+    const own = recordAll.filter((e) => e.id === id && e.doc?.meta?.format);
+    if (own.length > 1) add('av-record', `v4: „salvesta kodus” ${own.length} korda tunnis (${own.map(({ b }) => b.id).join(', ')}; üks tunnis)`, id);
+  });
   const kasuta = ids.filter((id) => isTeachingLesson(sheets[id]) && sheets[id].transfer).map((id) => sheets[id].transfer);
   const chain = (doc) => {
     const bs = blocksOf(doc);

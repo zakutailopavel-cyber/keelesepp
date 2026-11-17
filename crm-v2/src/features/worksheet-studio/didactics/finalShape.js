@@ -104,6 +104,10 @@ export function lessonsFromModules(modules, sheetsOf) {
 // ---------- helpers ----------
 const blocksOf = (doc) => (doc?.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId);
 export const tasksOf = (doc) => blocksOf(doc).filter(isFinalShapeTask);
+// design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7): the exit check (data.exit, 2–3 quick items) closes the lesson
+// and the home task (data.home, the 1-minute voice message) follows it. Both train the lesson's goals (V9) and count as
+// formats (V3), but they are not the lesson body: no catalogue cap, type share or Kasuta drill rule (V4, V15) counts them.
+const body = (b) => !b.data?.exit && !b.data?.home;
 const lessonTasks = (lesson) => PHASES.flatMap((p) => tasksOf(lesson.sheets[p]).map((b) => ({ b, phase: p })));
 const ids = (doc) => tasksOf(doc).map(taskIdOf);
 const minutesOf = (b, doc) => blockMinutes(b, doc?.meta?.level, doc?.meta?.design, doc?.meta?.template);
@@ -151,11 +155,15 @@ function sequenceProblems(lessons, out) {
 function moduleVarietyProblems(lessons, out, P) {
   for (const [, list] of Object.entries(byModule(teaching(lessons)))) {
     const first = list[0];
-    const tasks = list.flatMap((l) => lessonTasks(l).map((x) => x.b));
+    const all = list.flatMap((l) => lessonTasks(l).map((x) => x.b));
+    const tasks = all.filter(body);
     const notices = list.flatMap((l) => PHASES.flatMap((p) => blocksOf(l.sheets[p]).filter((b) => b.type === 'notice')));
     const count = {};
     [...tasks.map(taskIdOf), ...notices.map(() => 'G01')].forEach((id) => { count[id] = (count[id] || 0) + 1; });
-    const distinct = Object.keys(count);
+    // formats present in the module (V3) include the exit check and the home task
+    const present = {};
+    [...all.map(taskIdOf), ...notices.map(() => 'G01')].forEach((id) => { present[id] = (present[id] || 0) + 1; });
+    const distinct = Object.keys(present);
     const at = { lesson: first, moduleOnly: true, phase: '*' };
     if (distinct.length < FINAL_SHAPE.v3.distinct) out.push({ rule: 'V3', check: 'V3-distinct', ...at, text: `moodulis ${distinct.length} erinevat ülesandetüüpi (vähemalt ${FINAL_SHAPE.v3.distinct})` });
     for (const skill of ['R', 'L', 'W', 'S']) {
@@ -166,7 +174,7 @@ function moduleVarietyProblems(lessons, out, P) {
     if (g < FINAL_SHAPE.v3.language) out.push({ rule: 'V3', check: 'V3-skill-G', ...at, text: `moodulis ${g} eri keeleülesannet (vähemalt ${FINAL_SHAPE.v3.language})` });
     Object.entries(TASK_CATALOGUE).forEach(([id, t]) => {
       const min = P.min[id];
-      if (min && (count[id] || 0) < min) out.push({ rule: 'V3', check: `V3-min-${id}`, ...at, text: `${id} ${t.name}: moodulis ${count[id] || 0} (vähemalt ${min})` });
+      if (min && (present[id] || 0) < min) out.push({ rule: 'V3', check: `V3-min-${id}`, ...at, text: `${id} ${t.name}: moodulis ${present[id] || 0} (vähemalt ${min})` });
       if (t.max !== null && (count[id] || 0) > t.max) out.push({ rule: 'V4', check: `V4-max-${id}`, ...at, text: `${id} ${t.name}: moodulis ${count[id]} (kuni ${t.max})` });
     });
     const total = tasks.length || 1;
@@ -459,14 +467,14 @@ const DRILL_IDS = ['G03', 'G05', 'G06', 'G07', 'G09', 'G10', 'G13'];
 function capProblems(lessons, out) {
   Object.entries(byModule(teaching(lessons))).forEach(([, list]) => {
     const types = {};
-    list.forEach((l) => lessonTasks(l).forEach(({ b }) => { types[b.type] = (types[b.type] || 0) + 1; }));
+    list.forEach((l) => lessonTasks(l).filter(({ b }) => body(b)).forEach(({ b }) => { types[b.type] = (types[b.type] || 0) + 1; }));
     Object.entries(FINAL_SHAPE.v15).forEach(([type, max]) => {
       if ((types[type] || 0) > max) out.push({ rule: 'V15', check: `V15-${type}`, lesson: list[0], moduleOnly: true, phase: '*', text: `moodulis ${types[type]} × ${type} (kuni ${max})` });
     });
     list.forEach((l) => {
-      const drills = tasksOf(l.sheets.transfer).filter((b) => skillOf(taskIdOf(b)) === 'G');
+      const drills = tasksOf(l.sheets.transfer).filter((b) => body(b) && skillOf(taskIdOf(b)) === 'G');
       if (drills.length) out.push({ rule: 'V15', check: 'V15-kasuta', lesson: l, phase: 'transfer', text: `Kasuta: keeleharjutus (${drills.map((b) => `${b.id} ${taskIdOf(b)}`).join(', ')}) — siin on olukord ja tulemus` });
-      const seen = lessonTasks(l).map(({ b }) => taskIdOf(b)).filter((id) => DRILL_IDS.includes(id));
+      const seen = lessonTasks(l).filter(({ b }) => body(b)).map(({ b }) => taskIdOf(b)).filter((id) => DRILL_IDS.includes(id));
       const twice = [...new Set(seen.filter((id, k) => seen.indexOf(id) !== k))];
       if (twice.length) out.push({ rule: 'V15', check: 'V15-lesson', lesson: l, phase: '*', text: `sama vormiharjutus tunnis mitu korda (${twice.join(', ')})` });
     });

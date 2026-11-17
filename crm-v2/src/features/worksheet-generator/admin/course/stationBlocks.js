@@ -28,6 +28,19 @@ export function station(block, n, minutes, { final = '', needs = null } = {}) {
   return { ...block, data };
 }
 
+// design v4: the lesson's exit check (docs/COURSE_DESIGN_STATIONS.md §7) — 2–3 quick scored items at the end of Kasuta;
+// it is exempt from the 5–8 item rule and from „one closed task per station”
+export const EXIT_ITEMS = Object.freeze([2, 3]);
+export function exitCheck(block) {
+  return { ...block, data: { ...block.data, exit: true } };
+}
+
+// design v4: a task done at home after the lesson (the 1-minute voice message): the level's in-class speaking length
+// (B1 120–240 s) does not apply to it — the Harno B2 talk is one minute
+export function homeTask(block) {
+  return { ...block, data: { ...block.data, home: true } };
+}
+
 // stored for the gates and the teacher page, shown in italics before the instruction
 export function purpose(block, text) {
   if (NOT_TASKS.has(block.type)) throw new Error(`${block.id}: eesmärgirida on ülesande omadus`);

@@ -2,10 +2,10 @@
 
 **Since 2026-11-17 the cast is occasional colour only** (owner: „всё завязано на какой-то истории … моментами это слишком
 точечно”; design v4 „task-based”, docs/COURSE_DESIGN_STATIONS.md §7). A module is built around a real goal the learner
-reaches for himself; a character may appear in an occasional model dialogue, a forum name or a picture, but never as the
-backbone of a lesson and never as the addressee of the learner's task („write to Eha” → „write to your employer”). A
-rewritten module keeps cast mentions in learner-facing text at ≤ 3 a lesson and ≤ 6 a module (module 1 has none in
-001–004; check `b2/module01.tasks.test.js`). Modules not yet rewritten still use the world below; when a v4 module drops
+reaches for himself; a character may appear at most once a module, in one short model line, and only if it helps —
+never as the backbone of a lesson and never as the addressee of the learner's task („write to Eha” → „write to your
+employer”). A v4 module keeps cast mentions in learner-facing text at ≤ 2 (one model line; module 1 has none; check
+`admin/course/v4Tasks.test.js`). Modules not yet rewritten still use the world below; when a v4 module drops
 a story fact that a later module refers to, note it in the review doc (module 1: the team-day choice asked in
 `b2/module05.js` 023_d_review).
 

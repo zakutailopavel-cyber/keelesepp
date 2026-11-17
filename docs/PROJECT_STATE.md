@@ -1,34 +1,35 @@
-## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1 as the task-based (TBLT) sample · content only, no UI / rules / functions / data change
+## 2026-11-17 · agent/b1b2-m01-tasks — B1→B2 module 1 as the task-based (TBLT) sample, round 2 · content + v4 gates, no UI / rules / functions / data writes
 
-- Base: `origin/agent/b1b2-m01-stations` (PR #1239, draft) merged with `origin/main` f8ab587, checked 2026-11-17. This PR
-  supersedes #1239 (not closed here). Owner 2026-11-17: B1/B2 plans too boring, monotonous and tied to one story; he
-  approved task-based learning (TBLT).
+- Base: `origin/agent/b1b2-m01-stations` (PR #1239) merged with `origin/main` f8ab587, checked 2026-11-17. PR #1259 (draft)
+  supersedes #1239 (not closed here). Owner review of round 1: 7/10; round 2 answers it.
 - Done:
-  - `b2/module01.js`: the v3 station engine stays (`design: 'v3-stations'`, every gate); the storyline is gone. Module
-    goal for the learner („Ma oskan oma B2-tee ise käima panna …”), every lesson a different `format`: 001 quest
-    „Diagnostikarada” (final plan: W13 letter to the learner's own employer, or the language school), 002 facts + a
-    guessing game (Statistikaamet, töölepingu seadus; final advise: W05 text for a newcomer to Estonia), 003 debate with a
-    vote on the four-day week (Iceland 2015–2019, UK 2022 with sources; final decide S17), 004 information gap (learner's
-    week vs the teacher's three courses, S05) and the study-plan negotiation with his own manager (S17), 005 exam + the
-    module product „Minu B2-plaan” (planning card + the S16 one-minute talk). Cast mentions in the module file 220 → 0.
-  - `export const EXPLAIN` — one „why” line for each of the 228 scored items of 001–005 (shown after hand-in,
-    `engine/mistakes.js`).
-  - Audio (TartuNLP, pre-generated): new `001_p_call` (school info line), `002_p_poll` (radio poll), `003_p_lecture`
-    (the attention lecture with „Lektor”); removed `002_d_markus`, `002_p_gert`, `003_p_hendrik` (mp3 + manifest).
-  - `b2/lessonGoals.js` 001–004: canDo and goal texts (same goal keys and tags, so `gradingPin` is unchanged).
-  - `art/visuals/b2-module-01.js`: alt, caption, prompts without cast names (pictures unchanged).
-  - New test `b2/module01.tasks.test.js`: format menu, no two neighbouring lessons alike, cast ≤ 3 a lesson / ≤ 6 a module
-    in learner-facing text, final task addresses the learner, every scored item explained.
-  - Docs: `docs/COURSE_DESIGN_STATIONS.md` §7 „v4 — task-based (TBLT)” (rules, format menu, learner-first checklist,
-    characters), `docs/COURSE_CAST.md` (cast = occasional colour), owner summary `docs/review/b2-m01-tasks.md` (Russian).
-- Checks: course report b1b2-module-01 5/5 READY; language check (EstNLTK 1.7.5) 0 unknown lower-case words;
-  `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` → 174 files passed (1 skipped),
-  2000 tests passed (12 skipped); curriculum, library, self-study, vocabulary, students → 75 files, 456 tests passed; eslint
-  clean on the changed files; sheets 001–005 looked at in the sheet lab (local vite).
-- Limits: `b2/module05.js` 023_d_review still asks about the old team-day choice of module 1 (another module, not
-  touched); in 003 Kasuta the debate card block moves to page 2 (normal pagination). Nothing published.
-- Next safe step: the owner reads `docs/review/b2-m01-tasks.md` and a teacher runs 002 or 003 one-to-one; if the approach
-  holds, module 2 is rewritten by §7 in its own PR.
+  - `b2/module01.js` 001–004 rebuilt to the v4 arc: exactly 4 stations (49–57 of 90 min), hook first (≤ 80 words, the
+    learner speaks in minute 1), input, language focus by discovery, product in class (plan + first sentences), exit
+    check (2–3 scored items) + „Ma oskan …”, homework card (long writing, 1-minute talk at home, the lesson's words).
+    Lessons: 001 quest „Mitu keelt on sinu päevas?” (languages, request to a language school), 002 facts + game „Kes teeb
+    kodus mida?” (home, reply to a friend), 003 debate „Neli päeva tööd — kas see sobiks Eestile?” (the only work
+    lesson), 004 infogap „Õhtul või laupäeval — millal sina jõuad õppida?” (free time and money, week plan with a family
+    member); grammar subtitle under each title (`phases`). One long text in the module (the opener, 001 station 2, min
+    15). Real minimal-pair rows; no copy-the-word tasks. Cast: 0. EXPLAIN for every scored item.
+  - Audio (TartuNLP): new `002_d_poll`, `002_t_voice`, `003_d_radio`; removed `002_p_poll`, `002_p_office`,
+    `003_p_lecture`; `001_p_call`, `004_p_expert` reused.
+  - v4 gates (old designs unchanged): `courseSheet.js` copies `lesson.format` to `meta.format`; `stationBlocks.js`
+    `exitCheck`, `homeTask`; `stations.js` exactly 4 stations, `st-load` ≤ 75 min, `st-exit`, exit exempt from
+    `st-items` / `st-closed`, self-check one a lesson, teacher page needs hook / plan / sources (+ shown in the text);
+    `academicValue.js` av-record one a v4 lesson; `depth.js` / `didacticCheck.js` exit and home-talk exemptions;
+    `finalShape.js` exit / home not in V4 caps, type shares, V15 drills.
+  - Tests: `admin/course/v4Tasks.test.js` (12, every v4 module), `admin/course/v4Gates.test.js` (6); the round-1
+    `b2/module01.tasks.test.js` is folded into them.
+  - Data: `b2/lessonGoals.js` texts (same keys and tags); `vocabulary/lessonWords/b1b2.json` 001–004 words;
+    `data/keelesepp-b1-b2-roadmap-01.json` titles 001–004 (ids unchanged; the library shows them after a publish).
+  - Docs: `docs/COURSE_DESIGN_STATIONS.md` §7 rewritten as mandatory rules (arc, hook, long texts, load, topics,
+    titles, homework, exit check, teacher page, learner test, gate table); `docs/COURSE_CAST.md` (≤ 1 model line a
+    module); owner summary `docs/review/b2-m01-tasks.md` (table, four learners, methodologist).
+- Checks: course report 5/5 READY; EstNLTK 0 unknown lower-case words; `npx vitest run src/features` → 538 files passed
+  (1 skipped), 4480 tests passed (12 skipped); eslint clean on the changed files; all 15 sheets opened in the sheet lab.
+- Limits: `b2/module05.js` 023_d_review asks about module 1's old team day; in 002 / 003 Kasuta the „Ma oskan” card
+  prints on its own page; nothing published.
+- Next safe step: owner reads `docs/review/b2-m01-tasks.md` and a teacher runs 002 or 003; then module 2 by §7.
 
 ## 2026-11-14 · agent/b1b2-m01-stations — B1→B2 module 1 as stations (v3) · content only, no UI / rules / functions / data change
 

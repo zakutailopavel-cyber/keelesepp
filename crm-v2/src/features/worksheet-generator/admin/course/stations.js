@@ -10,16 +10,20 @@
 // errors }`. courseSheet.js puts the built teacher page on every sheet of the lesson (meta.teacherPage); the gates below
 // read only the built sheets. Opt-in per module: MODULE.design: 'v3-stations' (the module's exam lessons keep v2 / v4).
 import { ITEMS } from '../../../worksheet-studio/didactics/depth.js';
-import { STATION_ITEMS, isStationSheet } from '../../../worksheet-studio/didactics/stations.js';
+import { STATION_ITEMS, isExitCheck, isStationSheet, isTaskDesign } from '../../../worksheet-studio/didactics/stations.js';
 import { mainText, studentText, words } from './academicValue.js';
-import { FINAL_KINDS, NOT_TASKS } from './stationBlocks.js';
+import { EXIT_ITEMS, FINAL_KINDS, NOT_TASKS } from './stationBlocks.js';
 
 export { STATIONS_DESIGN, isStationSheet } from '../../../worksheet-studio/didactics/stations.js';
-export { FINAL_KINDS, fallbackLine, purpose, station } from './stationBlocks.js';
+export { EXIT_ITEMS, FINAL_KINDS, exitCheck, fallbackLine, homeTask, purpose, station } from './stationBlocks.js';
+export { isTaskDesign } from '../../../worksheet-studio/didactics/stations.js';
 
 export const ST = Object.freeze({
   stations: [4, 6], minutes: [8, 15], blocks: 16, textWords: 120, audioWords: 320, dialogueLines: [4, 8],
-  items: STATION_ITEMS, purposeWords: 6, dependsMax: 1, coreStations: 3, coreMinutes: [35, 50], errorsMin: 2, goalChars: 200, scriptLines: 2,
+  items: STATION_ITEMS, purposeWords: 6,
+  // design v4 „task-based” (§7, owner 2026-11-17): exactly 4 stations, ≤ 75 station minutes of a 90-min lesson (room for the
+  // hook, the exit check and slack), one exit check (2–3 items) + one self-check on Kasuta
+  taskStations: [4, 4], taskMinutes: 75, dependsMax: 1, coreStations: 3, coreMinutes: [35, 50], errorsMin: 2, goalChars: 200, scriptLines: 2,
 });
 
 const PHASES = ['discover', 'practice', 'transfer'];
@@ -64,6 +68,8 @@ export function teacherPage(lesson) {
     coreMinutes: stations.filter((s) => s.core).reduce((n, s) => n + s.minutes, 0),
     totalMinutes: stations.reduce((n, s) => n + s.minutes, 0),
     short: String(page.short || '').trim(), errors: (page.errors || []).map(String), notes: (page.notes || []).map(String),
+    // design v4: what to say in the hook, the minute plan, where the answers come from, how a small group runs it
+    hook: String(page.hook || '').trim(), plan: (page.plan || []).map(String), sources: String(page.sources || '').trim(), groups: String(page.groups || '').trim(),
   };
 }
 
@@ -74,11 +80,15 @@ export function teacherPageText(page, title = '') {
   return [
     title ? `Страница учителя: ${title}` : 'Страница учителя',
     `Цель: ${page.goal}`,
+    ...(page.hook ? [`Крючок (что сказать): ${page.hook}`] : []),
+    ...(page.plan?.length ? ['План по минутам:', ...page.plan.map((e) => `– ${e}`)] : []),
     'Станции:', ...page.stations.map(row),
     `Ядро на 45 минут: станции ${page.core.join(', ')} (${page.coreMinutes} мин). Альтернатива: станция ${page.alt}.`,
     `Если мало времени: ${page.short}`,
     'Типичные ошибки:', ...page.errors.map((e) => `– ${e}`),
     ...(page.notes.length ? ['Заметки:', ...page.notes.map((e) => `– ${e}`)] : []),
+    ...(page.sources ? [`Источники ответов: ${page.sources}`] : []),
+    ...(page.groups ? [`Мини-группа: ${page.groups}`] : []),
     ...page.stations.flatMap((s) => s.tasks.filter((t) => t.teacher).map((t) => `Карточка учителя (станция ${s.n}, ${t.id}): ${t.teacher}`)),
   ].join('\n');
 }
@@ -122,8 +132,11 @@ export function lessonStationProblems(lessonId, phases) {
   const out = [];
   const add = (phase, code, text) => out.push({ lessonId, phase, code, text });
   const list = stationsOf(phases);
-  const [lo, hi] = ST.stations;
-  if (list.length < lo || list.length > hi) add('*', 'st-stations', `${list.length} jaama (v3-stations: ${lo}–${hi})`);
+  const v4 = docs.some(([, d]) => isTaskDesign(d));
+  const [lo, hi] = v4 ? ST.taskStations : ST.stations;
+  if (list.length < lo || list.length > hi) add('*', 'st-stations', `${list.length} jaama (${v4 ? 'v4 task-based' : 'v3-stations'}: ${lo}–${hi})`);
+  const load = list.reduce((n, s) => n + (Number(s.minutes) || 0), 0);
+  if (v4 && load > ST.taskMinutes) add('*', 'st-load', `jaamad kokku ${load} min (v4: kuni ${ST.taskMinutes} min 90-minutilisest tunnist)`);
   (list.orphans || []).forEach((o) => add(o.phase, 'st-stations', `${o.id}: plokk enne lehe esimest jaama — iga leht algab jaamaga (station())`));
   list.forEach((s, i) => { if (s.n !== i + 1) add(s.phase, 'st-stations', `jaam ${s.n} on ${i + 1}. kohal — jaamad on nummerdatud järjest`); });
   const blocks = docs.flatMap(([, d]) => own(d));
@@ -142,7 +155,7 @@ export function lessonStationProblems(lessonId, phases) {
   for (const s of list) {
     const [mlo, mhi] = ST.minutes;
     if (!(s.minutes >= mlo && s.minutes <= mhi)) add(s.phase, 'st-minutes', `jaam ${s.n} „${s.title}”: ${s.minutes} min (${mlo}–${mhi})`);
-    const closed = s.blocks.filter(isClosed);
+    const closed = s.blocks.filter((b) => isClosed(b) && !(v4 && isExitCheck(b)));
     if (closed.length > 1) add(s.phase, 'st-closed', `jaam ${s.n}: ${closed.length} suletud ülesannet (${closed.map((b) => b.id).join(', ')}; kuni 1 ühe sisendi kohta)`);
     for (const b of s.blocks) {
       if (b.data?.opener) continue; // the module's front page (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2) is its own genre
@@ -160,11 +173,20 @@ export function lessonStationProblems(lessonId, phases) {
       const p = String(b.data?.purpose || '').trim();
       if (p.split(/\s+/).filter(Boolean).length < ST.purposeWords) add(phase, 'st-purpose', `${b.id}: eesmärgirida puudub või on liiga lühike (purpose(block, 'kes, kellele, mis tulemus'))`);
       const n = closedItems(b);
-      if (n && b.type !== 'insertion' && (n < ST.items[0] || n > ST.items[1])) add(phase, 'st-items', `${b.id}: ${n} punkti (suletud ülesanne: ${ST.items.join('–')})`);
+      if (v4 && isExitCheck(b)) {
+        if (phase !== 'transfer' || n < EXIT_ITEMS[0] || n > EXIT_ITEMS[1]) add(phase, 'st-exit', `${b.id}: väljumiskontroll on Kasuta lehel ja sellel on ${EXIT_ITEMS.join('–')} punkti (praegu ${n})`);
+      } else if (n && b.type !== 'insertion' && (n < ST.items[0] || n > ST.items[1])) add(phase, 'st-items', `${b.id}: ${n} punkti (suletud ülesanne: ${ST.items.join('–')})`);
       if (GROUP.test(taskText(b))) add(phase, 'st-group', `${b.id}: rühmatöö või „küsi mitmelt” — tund on üks-ühele, õpetaja on partner päris põhjusega`);
       if (scriptLines(b) > ST.scriptLines) add(phase, 'st-script', `${b.id}: õppija rollikaart on stsenaarium (${scriptLines(b)} rida „Ütle / Küsi / Selgita …”) — anna olukord, eesmärk ja piirangud; info ja takistused on õpetaja kaardil`);
       if (SPEAK.includes(b.type) && REPEAT.test(taskText(b))) add(phase, 'st-repeat', `${b.id}: sama monoloog uuesti („kaks korda”, „uuesti” …)`);
     }
+  }
+
+  if (v4) {
+    const transfer = own(phases.transfer);
+    const exits = docs.flatMap(([, d]) => own(d)).filter(isExitCheck);
+    if (exits.length !== 1 || !transfer.some(isExitCheck)) add('transfer', 'st-exit', `väljumiskontrolle ${exits.length} (v4: täpselt 1, Kasuta lehel: exitCheck(…))`);
+    if (transfer.filter((b) => b.type === 'selfcheck').length !== 1) add('transfer', 'st-exit', 'v4: Kasuta lõpus on üks enesehinnang „Ma oskan …” (B.selfcheck)');
   }
 
   const finals = list.filter((s) => s.final);
@@ -183,6 +205,7 @@ export function lessonStationProblems(lessonId, phases) {
     if (finals.length === 1 && !core.includes(finals[0].n)) add('*', 'st-teacher', `lõpujaam ${finals[0].n} kuulub põhiteele`);
     if (!page.short) add('*', 'st-teacher', '„kui aega on vähe” tee puudub');
     if ((page.errors || []).length < ST.errorsMin) add('*', 'st-teacher', `tüüpvigu ${(page.errors || []).length} (vähemalt ${ST.errorsMin})`);
+    if (v4 && !(page.hook && page.plan?.length && page.sources)) add('*', 'st-teacher', 'v4: õpetaja lehel on konks (hook), minutiplaan (plan) ja vastuste allikad (sources)');
   }
   return out;
 }
@@ -210,7 +233,7 @@ export function stationProblems(sheets) {
     else if (kind) kinds.set(kind, id);
   });
   // a self-check at most once a module
-  const checks = ids.reduce((n, id) => n + Object.values(sheets[id]).reduce((m, d) => m + own(d).filter((b) => b.type === 'selfcheck').length, 0), 0);
+  const checks = ids.filter((id) => !Object.values(sheets[id]).some(isTaskDesign)).reduce((n, id) => n + Object.values(sheets[id]).reduce((m, d) => m + own(d).filter((b) => b.type === 'selfcheck').length, 0), 0);
   if (checks > 1) add('st-selfcheck', `enesehinnang ${checks} korda moodulis (v3-stations: kuni 1)`);
   return out;
 }
