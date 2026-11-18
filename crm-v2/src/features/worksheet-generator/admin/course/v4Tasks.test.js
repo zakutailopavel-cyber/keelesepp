@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { COURSE_MODULES, buildCourseSheet } from './registry.js';
 import { castNames, words } from './academicValue.js';
-import { EXTENSION_MINUTES, stationsOf } from './stations.js';
+import { EXTENSION_MINUTES, stationsOf, v4TopicProblems } from './stations.js';
 import { answerKeyOf, explainedShare } from '../../../worksheet-studio/engine/answerKey.js';
 
 const TASK_FORMATS = ['case', 'debate', 'quest', 'facts', 'infogap', 'project', 'game', 'exam'];
@@ -39,11 +39,11 @@ describe.each(V4.map((m) => [m.MODULE.id, m]))('design v4 task-based: %s', (_, m
     expect(new Set(teaching.map((id) => mod.LESSONS[id].format)).size).toBe(teaching.length);
   });
 
-  it('topics: one everyday topic a teaching lesson, all different, work at most once', () => {
+  it('topics: one everyday topic a teaching lesson, all different, work at most once (a themed module: its theme with a different sub-topic each)', () => {
     const topics = teaching.map((id) => mod.LESSONS[id].topic);
     topics.forEach((t, i) => expect(TOPICS, teaching[i]).toContain(t));
-    expect(new Set(topics).size).toBe(topics.length);
-    expect(topics.filter((t) => t === 'work').length).toBeLessThanOrEqual(1);
+    expect(v4TopicProblems(mod.MODULE, mod.LESSONS)).toEqual([]);
+    if (!mod.MODULE.theme) expect(topics.filter((t) => t === 'work').length).toBeLessThanOrEqual(1);
   });
 
   it('hook first: station 1 of every teaching lesson is ≤ 80 words of material and asks for a learner response', () => {

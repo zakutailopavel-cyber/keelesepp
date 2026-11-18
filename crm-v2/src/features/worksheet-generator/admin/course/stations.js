@@ -239,3 +239,26 @@ export function stationProblems(sheets) {
   if (checks > 1) add('st-selfcheck', `enesehinnang ${checks} korda moodulis (v3-stations: kuni 1)`);
   return out;
 }
+
+// ---------- v4 topics (§7.1 rule 7, §7.3) ----------
+// One everyday topic a teaching lesson, all different, work at most once a module. A themed module (MODULE.theme, owner
+// 2026-11-18: module 6 „Tööelu” is about work in every lesson) may give its theme's topic to several lessons; each of
+// them then names its own sub-topic (`subtopic`), all different, so the module still varies (job search, contract,
+// colleagues, own business …). Every other topic still comes once; work stays ≤ 1 unless it is the theme.
+export const V4_TOPICS = Object.freeze(['languages', 'home', 'work', 'freetime', 'money', 'health', 'town', 'neighbours', 'family', 'learning', 'culture', 'nature']);
+export function v4TopicProblems(module, lessons) {
+  const theme = module?.theme || '';
+  const out = [];
+  const teaching = Object.entries(lessons || {}).filter(([, l]) => !l.assessment);
+  if (theme && !V4_TOPICS.includes(theme)) out.push(`mooduli teema ${theme} ei ole loendis`);
+  teaching.forEach(([id, l]) => { if (!V4_TOPICS.includes(l.topic)) out.push(`${id}: teema ${l.topic || '—'} ei ole loendis`); });
+  const others = teaching.filter(([, l]) => !theme || l.topic !== theme).map(([, l]) => l.topic);
+  const twice = others.filter((t, i) => others.indexOf(t) !== i);
+  if (twice.length) out.push(`sama teema mitmes tunnis: ${[...new Set(twice)].join(', ')}`);
+  const themed = teaching.filter(([, l]) => theme && l.topic === theme);
+  themed.filter(([, l]) => !l.subtopic).forEach(([id]) => out.push(`${id}: mooduli teema tunnil puudub alateema (subtopic)`));
+  const subs = themed.map(([, l]) => l.subtopic).filter(Boolean);
+  const subTwice = subs.filter((t, i) => subs.indexOf(t) !== i);
+  if (subTwice.length) out.push(`sama alateema mitmes tunnis: ${[...new Set(subTwice)].join(', ')}`);
+  return out;
+}
