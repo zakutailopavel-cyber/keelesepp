@@ -1,3 +1,33 @@
+## 2026-11-18 · agent/exam-9kl-e-eksam — 9. klassi e-eksam: format, engine gaps, B1 mock 1 (draft)
+
+- Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „9. klassi e-eksam: format, engine gaps, mock 1
+  (draft)” (link in the PR list). Content zone only: no UI / engine code, not merged, not published, no deploy, no
+  production writes.
+- Asked (owner 2026-11-18, screenshots of Harno's EIS sample test): „вот это новый экзамен который будет”; then „и такие
+  же задания сделай в курсе у нас, чтобы давать пробник B1 ученикам”.
+- `docs/EXAM_9KL_E_EKSAM.md` (new): the format contract of the computer-based 9th-grade exam (parts and minutes, every
+  task type with instruction pattern, items, extras, example 0, interaction), verified against the [E9] specification
+  2026/27 (PDF text from projektid.edu.ee) — 35 listening and 65 reading / structure items match; §4 the engine gap
+  table for the UI PR (exam timer + exam key `E9`, plays limit, per-clip audio, speaker match, drag into a dialogue /
+  running text, example 0 in cloze / formtext / insertion, pie chart, genre „kokkuvõte”, 9th-grade scales, part points)
+  with the block ids that wait for each piece. Blueprint §8.1 points to it.
+- Mock 1 „B1 proovieksam (e-eksami vormis) 1” — `admin/course/b1/eeksam.js` (supplement `a2b1-eeksam-01`, last in
+  `courseModules.b1.js`), one lesson per part so a teacher can assign it to any B1 learner: `a2b1-ee1-w` Kirjutamine
+  (W1 letter with notes, W2 chart summary, 9th-grade rubrics), `a2b1-ee1-l` Kuulamine (5 tasks / 35 items),
+  `a2b1-ee1-r` Lugemine ja struktuur (7 tasks / 65 items), `a2b1-ee1-s` Suuline osa with the teacher (teacher card on
+  every task, rubric). „Why” for every auto-checked item: `b1/eeksamKey.js`.
+- E-exam task types in the course (no module rebuilt): `b1/eeksamHarjutus.js`, three short supplement sheets placed
+  after module 7 (`a2b1-ee-p-l` listening), 11 (`a2b1-ee-p-r` reading + structure) and 12 (`a2b1-ee-p-w` writing), each
+  with its „why” lines. `b1/lessonGoals.js`: g_listen entries for `a2b1-ee1-l` and `a2b1-ee-p-l`.
+- Audio: TartuNLP Neurokõne via `tools/listening-audio/build.mjs --only a2b1-ee` (free, owner-approved pre-generation):
+  8 new MP3 files (crm-v2/public/audio/a2b1-ee1-l, a2b1-ee-p-l; 3.2 MB; 38–170 s each), 0 errors; manifest updated.
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 178 files / 2088 tests passed, 12 skipped (a first run under load had 10 UI-studio tests time out at 20–30 s; the rerun was green); new `b1/eeksam.test.js` (35 / 65 items, transcripts, teacher cards, one „why” per scored item); the course quality gate passes for the 4 new supplement modules with no baseline entries; eslint on the changed files clean.
+- Limits: item 0 of each task stands in its instruction (B1 level norm; §4); 1.1 shows all statements as options;
+  1.3 clips share one audio file; drag tasks are letter dropdowns or tap-to-place gaps; bar chart instead of pie; the
+  sheets were not opened in the sheet lab in this session.
+- Next safe step: owner reviews the four mock sheets and the three practice sheets in „Kursuse tootmine” and merges;
+  then the UI PR builds §4 of `EXAM_9KL_E_EKSAM.md` and the waiting block ids move to the new interactions.
+
 ## 2026-11-18 · agent/b1b2-k04-tyypsonad — B2 „Käänete kordamine”: k04 „Käänded 4: tüüpsõnad (muuttüübid)”
 
 - Base: `origin/main` cd0e70a (#1264 merge), checked 2026-11-18. Draft PR „Käänded 4: tüüpsõnad (b1b2-k04)” (link in the
