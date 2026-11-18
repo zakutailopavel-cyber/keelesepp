@@ -134,6 +134,9 @@ corner), 007 infogap (health, polite conditional, S1 home talk), 008 case (money
 **B2 module 6** (`b2/module06.js`, 026–029, 2026-11-18) is the first themed v4 module (`MODULE.theme: 'work'`): quest
 (job search, present) → facts (the contract, advise) → infogap (a colleague, negotiate) → project (own business, plan);
 030 the Harno-form check + „Minu tööelu kaart”; owner summary `docs/review/b2-m06-tasks.md`.
+**B2 module 7** (`b2/module07.js`, 031–034, 2026-11-18): education from the learner's side — case (school choice after
+grade 9, advise) → facts (learning myths, explain) → debate (a new profession at 45, decide) → quest (who pays, plan);
+035 the module exam + „Minu õpitee järgmine samm”; owner summary `docs/review/b2-m07-tasks.md`.
 
 ## 5. Next
 
