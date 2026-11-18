@@ -5163,7 +5163,9 @@ async function readLessonCashContext(transaction, key) {
   const minutes = Number((lesson && lesson.duration) || (entry && entry.duration)) || 0;
   return {
     entry, lesson, teacherUid, issuer, student, plan, subject,
-    priceCents: cashCore.lessonCashPriceCents(plan, subject, minutes),
+    // a group lesson (groupId on the lesson record) at the subject's group price (2026-11-18, direction-format-core)
+    priceCents: cashCore.lessonCashPriceCents(plan, subject, minutes, lessonFormat(lesson || entry || {})),
+    priceFallback: cashCore.directionCashPrice(plan || {}, subject, lessonFormat(lesson || entry || {})).fallback,
     occurs: entry ? liveAutoMarkCore.occursOn(entry, key.occurrenceDate) : false,
     receipt: receiptSnap.exists ? { id: receiptSnap.id, ...receiptSnap.data() } : null,
   };
@@ -5181,6 +5183,8 @@ async function lessonCashInfo({ actor, values = {} }) {
   return {
     lessonId: key.lessonId,
     priceCents: context.priceCents,
+    // a group lesson without a group price is priced at the individual price: the admin is told (2026-11-18)
+    ...(who.isAdmin && context.priceFallback ? { groupPriceMissing: true } : {}),
     subject: context.subject,
     paysCash: cashCore.paysCashFor(context.plan || {}, context.subject),
     fie: context.issuer === "fie",

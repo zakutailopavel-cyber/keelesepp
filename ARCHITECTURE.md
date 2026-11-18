@@ -417,9 +417,16 @@ tokens follow the direction + format. One card may hold Eesti keel individually 
   and teacher are two tracks: `enrollmentKey` adds `|group` for a group track only (individual keys unchanged); the
   server's `student-enrollments-core sameTrack` keeps them apart in a card merge. No rules change (enrollments are free
   form in `students`).
-- **Price**: `studentRevenuePlans.groupPrices = { "<subject>": { lessonPriceCents, lessonMinutes } }` (≤ 8, admin
-  writes, finance reads — firestore.rules `groupPrices` map ≤ 8). The individual price stays `subjectPrices[subject]` /
-  the card's price and is the fallback. Group price is an own hourly rate + length in Arveldus (no price terms / reason).
+- **Price**: `studentRevenuePlans.groupPrices = { "<subject>": { lessonPriceCents, lessonMinutes, weeklyLessons? } }`
+  (≤ 8; only an admin — the owner is one — writes it, finance reads, teachers / parents / students neither: firestore.rules
+  `groupPrices` map ≤ 8 + the plan's admin-only write, emulator-tested). The individual price stays `subjectPrices[subject]`
+  / the card's price and is the fallback (`lessonPriceCents: 0` = no group price). Owner 2026-11-18: the group price is a
+  plain hourly rate + length in Arveldus — no price terms and no discount reason, also below 25 €/h. `weeklyLessons` =
+  group lessons per week, for the revenue forecast only (the card's „Tunde nädalas” counts the individual lessons).
+- **Billing (owner 2026-11-18)**: groups are billed month to month — group lessons go on the normal monthly invoice as a
+  line „<aine> · grupp”. There is no billing mode per format: `subjectBilling` stays per subject (a subject on packages
+  takes package credits for its group lessons too). Group packages stay in the code but the UI does not push them: the
+  Tunnipakett dialog offers „Vorm” only for a subject that is itself on lesson packages.
 - **Matching**: a lesson with `groupId` (a calendar group's attendance record, `groups.setAttendance`) or an event with
   `isGroup` is a group lesson (`lessonFormat`); every other lesson is individual.
 - **One rule, two copies**: `crm-v2/src/features/students/directionFormat.js` (browser) and
@@ -441,9 +448,18 @@ tokens follow the direction + format. One card may hold Eesti keel individually 
 - **UI**: „Õppesuunad” window — segmented control „Vorm” (Individuaalne / Grupp), optional „Kalendrigrupp”; the same
   subject + teacher + format is refused once. Badges in „Õppesuunad” card, window, Tunnipakett table. Arveldus — a
   „Grupp” block (rate + length) in the subject's tab. Lab page: `crm-v2/directions-lab.html` (dev only, fake data).
-- **Not split yet** (still the subject's individual price for group lessons): revenue forecast, calendar revenue
-  (`financeDashboard.noShowCharged`), the teacher's cash amount (`cash-core`), per-subject billing mode (`subjectBilling`
-  is per subject, not per format), and a card merge does not copy `groupPrices`.
+- **Forecast, calendar revenue, cash, merge** (owner 2026-11-18, same fallback and warning):
+  - revenue forecast (`subjectBilling.js` / `subject-billing-core.js` `groupForecast` inside `weeklyForecastCents`,
+    Finantsid `revenueForecast` + server `financial-analytics-core`): `weeklyLessons` × the group price; no group price →
+    the individual price, the forecast row warns („grupi hind puudub — prognoos individuaalse hinnaga”);
+  - calendar revenue (`financeDashboard.js lessonPrice`): a group lesson at the group price; none → individual, the month
+    counts `groupNoPrice` (only for subjects split by format) and the chart detail says so;
+  - teacher's cash amount (`cash-core lessonCashPriceCents(plan, subject, minutes, format)` / `directionCashPrice`,
+    `/cash/lesson/info` → `groupPriceMissing` for the admin). Today a group lesson cannot be marked as paid in cash at all
+    (`lessonCash.js canMarkLessonCash` refuses group rows; the route needs a schedule entry), so this is the rule for when
+    it can. Cash stays admin-view only and never reaches the accountant's books (unchanged);
+  - card merge (`student-card-merge-core groupPricesMerge`): the other card's group prices join the kept plan for the
+    subjects it has none for; a different price for the same subject is a conflict (`group_price`, the kept one stays).
 
 ### Staff operations
 

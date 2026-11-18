@@ -70,9 +70,20 @@ describe('format badges and prices', () => {
     expect(document.querySelector('[data-billing-group-price="Eesti keel"]')).toHaveTextContent('Grupi hind määramata');
     fireEvent.change(screen.getByLabelText('Grupi tunnitasu (€ / h)'), { target: { value: '12' } });
     fireEvent.change(screen.getByLabelText('Grupitunni pikkus'), { target: { value: '90' } });
+    fireEvent.change(screen.getByLabelText('Grupitunde nädalas (prognoos)'), { target: { value: '1' } });
     expect(nb(document.querySelector('[data-billing-group-price="Eesti keel"]').textContent)).toContain('18,00 € / 90 min');
+    // owner 2026-11-18: groups are billed monthly; a plain hourly rate below 25 €/h needs no discount reason
+    expect(screen.getByText(/Grupp arveldatakse kuuarvega/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Soodustuse põhjus')).toBeNull();
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Salvesta/ })); });
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ groupPrices: { 'Eesti keel': { lessonPrice: '18', lessonMinutes: '90' } } }));
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ priceTerms: 'general', discountReason: '', groupPrices: { 'Eesti keel': { lessonPrice: '18', lessonMinutes: '90', weeklyLessons: '1' } } }));
+  });
+
+  it('the group price is admin-only: without edit rights (finance role) the fields are read-only', () => {
+    render(<BillingSettingsCard student={both} plan={{ lessonPriceCents: 2500, lessonMinutes: 60, weeklyLessons: 2, billingMode: 'advance', groupPrices: { 'Eesti keel': { lessonPriceCents: 1200, lessonMinutes: 60 } } }} canEdit={false} onSave={vi.fn()} />);
+    expect(screen.getByLabelText('Grupi tunnitasu (€ / h)')).toBeDisabled();
+    expect(screen.getByLabelText('Grupitunde nädalas (prognoos)')).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /Salvesta/ })).toBeNull();
   });
 
   it('a card without a group direction never sends groupPrices (the plan stays as it was)', async () => {
@@ -95,9 +106,17 @@ describe('lesson packages per format', () => {
     expect(within(screen.getByRole('table')).getByText('Individuaalne')).toBeInTheDocument();
   });
 
-  it('the dialog offers „Vorm” for a subject with a group direction; a group package is sent with format group at the group price', async () => {
+  it('groups are billed monthly: a monthly subject offers no group package in the dialog', () => {
+    const plans = [{ studentId: 's1', lessonPriceCents: 2500, lessonMinutes: 60, billingMode: 'advance', groupPrices: { 'Eesti keel': { lessonPriceCents: 1200, lessonMinutes: 60 } } }];
+    render(<TokenInvoiceDialog studentCards={[both]} plans={plans} api={{}} tokensApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} directionsService={{ list: vi.fn().mockResolvedValue([]) }} />);
+    fireEvent.click(screen.getByRole('button', { name: /Tunnipakett/ }));
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 's1' } });
+    expect(screen.queryByLabelText('Vorm')).toBeNull();
+  });
+
+  it('a subject on packages with a group direction offers „Vorm”; a group package is sent with format group at the group price', async () => {
     const api = { createTokens: vi.fn().mockResolvedValue({ invoice: { id: 'inv', num: 'KS-9' } }), createTokensCombined: vi.fn() };
-    const plans = [{ studentId: 's1', lessonPriceCents: 2500, lessonMinutes: 60, groupPrices: { 'Eesti keel': { lessonPriceCents: 1200, lessonMinutes: 60 } } }];
+    const plans = [{ studentId: 's1', lessonPriceCents: 2500, lessonMinutes: 60, billingMode: 'package', groupPrices: { 'Eesti keel': { lessonPriceCents: 1200, lessonMinutes: 60 } } }];
     render(<TokenInvoiceDialog studentCards={[both]} plans={plans} api={api} tokensApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} directionsService={{ list: vi.fn().mockResolvedValue([]) }} notesRepository={{ saveCreationNote: vi.fn() }} />);
     fireEvent.click(screen.getByRole('button', { name: /Tunnipakett/ }));
     fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 's1' } });
@@ -109,7 +128,7 @@ describe('lesson packages per format', () => {
   });
 
   it('a group package without a group price warns before the invoice is made', () => {
-    const plans = [{ studentId: 's1', lessonPriceCents: 2500, lessonMinutes: 60 }];
+    const plans = [{ studentId: 's1', lessonPriceCents: 2500, lessonMinutes: 60, billingMode: 'package' }];
     render(<TokenInvoiceDialog studentCards={[both]} plans={plans} api={{}} tokensApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} directionsService={{ list: vi.fn().mockResolvedValue([]) }} />);
     fireEvent.click(screen.getByRole('button', { name: /Tunnipakett/ }));
     fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 's1' } });

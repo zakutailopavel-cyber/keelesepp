@@ -217,7 +217,7 @@ test('full merge: groups, per-card documents, board, parents union, chosen name,
     linkedParentIds: ['par-2'], parentName: 'Isa', parentEmail: 'isa@example.com', parentPhone: '5550000', contactNotes: 'teisipäeviti', skillMap: { reading: 3 } });
   await store.doc('users/par-2').set({ role: 'parent', linkedStudentIds: [sourceId] });
   await store.doc(`studentRevenuePlans/${keepId}`).set({ studentId: keepId, lessonPriceCents: 2000, lessonMinutes: 60, active: true });
-  await store.doc(`studentRevenuePlans/${sourceId}`).set({ studentId: sourceId, lessonPriceCents: 2500, lessonMinutes: 45, active: true });
+  await store.doc(`studentRevenuePlans/${sourceId}`).set({ studentId: sourceId, lessonPriceCents: 2500, lessonMinutes: 45, active: true, groupPrices: { "Eesti keel": { lessonPriceCents: 1200, lessonMinutes: 90 } } });
   await store.doc(`studentAvailability/${sourceId}`).set({ studentId: sourceId, slots: ['Mon-18:00'] });
   await store.doc(`whiteboards/${sourceId}`).set({ schemaVersion: 2 });
   await store.doc(`whiteboards/${sourceId}/elements/e1`).set({ kind: 'line' });
@@ -252,6 +252,8 @@ test('full merge: groups, per-card documents, board, parents union, chosen name,
   const plan = (await store.doc(`studentRevenuePlans/${keepId}`).get()).data();
   assert.equal(plan.lessonPriceCents, 2000);
   assert.deepEqual(plan.subjectPrices['Eesti keel'], { lessonPriceCents: 2500, lessonMinutes: 45 });
+  // the other card's group price comes along (2026-11-18)
+  assert.deepEqual(plan.groupPrices, { "Eesti keel": { lessonPriceCents: 1200, lessonMinutes: 90 } });
   const oldPlan = (await store.doc(`studentRevenuePlans/${sourceId}`).get()).data();
   assert.equal(oldPlan.lessonPriceCents, 2500, 'old plan kept, amount unchanged');
   assert.equal(oldPlan.active, false);

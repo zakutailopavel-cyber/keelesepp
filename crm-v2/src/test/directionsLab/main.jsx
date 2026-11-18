@@ -26,7 +26,7 @@ const student = {
 const plan = {
   lessonPriceCents: 2500, lessonMinutes: 60, weeklyLessons: 3, billingMode: 'advance', chargeNoShow: true, priceTerms: 'general', hourlyRateCents: 2500,
   subjectPrices: { Matemaatika: { lessonPriceCents: 2500, lessonMinutes: 60 } },
-  ...(params.get('price') === 'none' ? {} : { groupPrices: { 'Eesti keel': { lessonPriceCents: 1800, lessonMinutes: 90 } } }),
+  ...(params.get('price') === 'none' ? {} : { groupPrices: { 'Eesti keel': { lessonPriceCents: 1800, lessonMinutes: 90, weeklyLessons: 1 } } }),
 };
 const day = (offset) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
 const schedule = [{ id: 'w1', subject: 'Eesti keel', recurring: true, day: 'Wed', startDate: day(-60), time: '15:00' }];

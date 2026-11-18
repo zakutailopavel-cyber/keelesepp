@@ -1,3 +1,30 @@
+## 2026-11-18 · agent/direction-format-group — round 2: owner decisions applied (PR #1264)
+
+- Base: merged `origin/main` e9fad9f (#1262) into the branch, checked 2026-11-18. Draft PR #1264, not merged, not deployed.
+- Owner decisions: (1) group price = plain hourly rate, no discount reason, admin only (UI: only the admin's Arveldus
+  edits; rules: plan write admin-only — emulator asserts teacher / parent / student / finance get 403 on write, the three
+  non-staff roles 403 on read); (2) groups billed monthly, line „<aine> · grupp”, no billing mode per format; the
+  Tunnipakett dialog offers „Vorm” only for a subject on lesson packages, the package warning no longer suggests a group
+  package; (3) revenue forecast (`groupPrices[subject].weeklyLessons` × group price, field „Grupitunde nädalas
+  (prognoos)”), calendar revenue (`financeDashboard lessonPrice`, `groupNoPrice`) and the teacher's cash amount
+  (`cash-core directionCashPrice`) use the group price with the individual fallback + warning; a card merge copies
+  `groupPrices` (`student-card-merge-core groupPricesMerge`, conflict `group_price`); (4) `tools/direction-format-report.js`
+  stays read-only, the owner runs it after the deploy.
+- Files (round 2): crm-v2 `students/{BillingSettingsCard, LessonTokensCard, directionFormat.js}`, `finance/{finance.js,
+  FinancePage.jsx, financeDashboard.js, FinanceDashboard.jsx, subjectBilling.js, tokenInvoiceRows.js}`,
+  `services/firebase/revenuePlans.js` (`groupPricesOf`, `validateGroupPrices`), lab; functions `subject-billing-core.js`,
+  `cash-core.js`, `index.js` (cash info), `student-card-merge-core.js`, `student-merge.js`; tests
+  `finance/groupPricing.test.js`, `direction-format-core.test.js`, `finance-emulator.integration.js`,
+  `student-merge-emulator.integration.js`.
+- Checks: `cd crm-v2 && npx vitest run src/features src/services` 585 files / 4812 tests passed (12 skipped); `cd functions
+  && node --test` 669/669; emulator (Java 21) 24/24 (rules incl. group-price roles, 5 lesson-token tests, monthly /
+  combined, merge incl. groupPrices copy, cash box) + 3/3 lesson-cash tests; eslint 0 errors (14 old warnings). Lab
+  screenshots re-taken.
+- Limit: a group lesson still cannot be marked „makstud sularahas” at all (group rows are refused); the cash rule is ready.
+- Deploy order: `firestore.rules` → functions (financeApi, manualInvoiceApi, syncLessonTokens, staffOperationsApi; a
+  full functions deploy is simplest because shared modules changed) → „Deploy complete” in DEPLOY_LEDGER → site release.
+- Next safe step: owner merges #1264; deploy as above; then `node tools/direction-format-report.js` (read-only).
+
 ## 2026-11-18 · agent/direction-format-group — „Õppesuunad: individuaalne / grupp” · student card + finance (rules + functions)
 
 - Base: `origin/main` b0fda14 (release 2026-11-17 09:54 UTC), checked 2026-11-18. Draft PR #1264 „Õppesuunad: individuaalne /

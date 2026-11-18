@@ -157,8 +157,10 @@ linked automatically (no invoice reference is stored).
 „Õppesuunad: individuaalne / grupp” (ARCHITECTURE.md „Direction format”): a card may take Eesti keel individually and
 in a calendar group; each direction has its own price and its own lessons left.
 
-- **Invoice**: the „Tunnipakett” dialog shows „Vorm” (Individuaalne / Grupp) when the subject has a group direction or
-  a group price (`directionFormat.js formatsFor`). A group line sends `format: 'group'` (`/create-tokens`, and per item in
+- **Owner 2026-11-18**: groups are billed month to month (group lessons on the normal monthly invoice, line „<aine> ·
+  grupp”). Group packages stay in the code for a subject that is on packages, but the UI does not push them.
+- **Invoice**: the „Tunnipakett” dialog shows „Vorm” (Individuaalne / Grupp) only when the subject is itself on lesson
+  packages and has a group direction or a group price (`tokenInvoiceRows.js tokenRowState`, `directionFormat.js formatsFor`). A group line sends `format: 'group'` (`/create-tokens`, and per item in
   `/create-tokens-combined`; one family invoice may hold Eesti keel and Eesti keel · grupp). The server prices it with
   `combined-invoice-core planForDirection` (`groupPrices[subject]`, none → the individual price; the dialog warns „Grupi
   hind puudub …” before it is made), the line reads „Tunnipakett (Eesti keel · grupp): N × min × €”, the invoice /
@@ -173,8 +175,8 @@ in a calendar group; each direction has its own price and its own lessons left.
     (`not_applicable`, takes nothing, owes nothing).
   A group package's backlog („Lisa tunnid”) takes only group lessons (`tokenBacklogLessonIds format`).
 - **Views** (admin / finance only, as before): the Tunnipakett table shows a format badge next to the subject; a group
-  direction without a group package shows „Eesti keel · grupp: grupi tunnipaketti pole — grupitunnid võetakse
-  individuaalsest paketist”. `subjectBalance(packages, subject, format)` counts what a lesson of that format can take.
+  direction without a group package shows „Eesti keel · grupp: grupi tunnipaketti pole — grupitunnid võetakse selle aine
+  individuaalsest paketist. Grupid arveldatakse tavaliselt kuuarvega”. `subjectBalance(packages, subject, format)` counts what a lesson of that format can take.
   Parents and students still see nothing.
 - Tests: `functions/direction-format-core.test.js`, `finance-emulator.integration.js` („lesson tokens: a group package
   pays only the group lessons of its subject …”), `crm-v2/src/features/students/directionFormat.ui.test.jsx`.

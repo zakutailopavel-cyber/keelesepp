@@ -212,6 +212,15 @@ test("finance role can read invoices without gaining student or mutation access"
   assert.equal((await planWithGroupPrices({ integerValue: "1200" })).status, 403, "groupPrices must be a map");
   const financeGroupWrite = await firestoreDocumentRequest(financeToken, "PATCH", "studentRevenuePlans/admin-forecast-student?updateMask.fieldPaths=groupPrices", { fields: { groupPrices: groupMap(1) } });
   assert.equal(financeGroupWrite.status, 403, "the finance role cannot change group prices");
+  // only an admin (the owner is one) sets a group price: a teacher, a parent or a student cannot write or read the plan
+  for (const [email, role] of [["group-price-teacher@example.com", "teacher"], ["group-price-parent@example.com", "parent"], ["group-price-student@example.com", "student"]]) {
+    const token = await createUserToken(email);
+    await db.collection("users").doc(tokenUid(token)).set({ role, roles: [role], email });
+    const write = await firestoreDocumentRequest(token, "PATCH", "studentRevenuePlans/admin-forecast-student?updateMask.fieldPaths=groupPrices", { fields: { groupPrices: groupMap(1) } });
+    assert.equal(write.status, 403, `${role} cannot change group prices`);
+    const read = await firestoreDocumentRequest(token, "GET", "studentRevenuePlans/admin-forecast-student");
+    assert.equal(read.status, 403, `${role} cannot read the plan`);
+  }
   // price terms (2026-10-29): general = standard rate, no reason; discount = own rate + a reason of 1–300 characters
   const planWithTerms = (priceTerms, discountReason, hourlyRateCents = 2000) => firestoreDocumentRequest(adminToken, "PATCH", "studentRevenuePlans/admin-forecast-student", {
     fields: {

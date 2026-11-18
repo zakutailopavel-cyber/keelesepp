@@ -22,7 +22,7 @@ export function normalizeRevenuePlan(id, data = {}) {
     priceHistory: Array.isArray(data.priceHistory) ? data.priceHistory : [],
     subjectPrices: subjectPricesOf(data.subjectPrices),
     // the group price of a subject (2026-11-18, students/directionFormat.js): { "Eesti keel": { lessonPriceCents, lessonMinutes } }
-    groupPrices: subjectPricesOf(data.groupPrices),
+    groupPrices: groupPricesOf(data.groupPrices),
     // billing per subject (owner 2026-11-06): { "Inglise keel": { billingMode, weeklyLessons, chargeNoShow } }, a
     // missing field = the card's value (finance/subjectBilling.js)
     subjectBilling: subjectBillingOf(data.subjectBilling),
@@ -70,6 +70,42 @@ export function validateSubjectPrices(values = {}) {
     const price = Number(text.replace(',', '.'));
     if (!Number.isFinite(price) || price <= 0 || price > 10000) { errors[subject] = 'Sisesta tunni hind vahemikus 0,01–10 000 eurot.'; return; }
     prices[subject] = { lessonPriceCents: Math.round(price * 100), lessonMinutes: LESSON_MINUTES.includes(Number(entry?.lessonMinutes)) ? Number(entry.lessonMinutes) : 60 };
+  });
+  return { valid: Object.keys(errors).length === 0, errors, prices };
+}
+
+// „Individuaalne / Grupp” (2026-11-18): { "Eesti keel": { lessonPriceCents, lessonMinutes, weeklyLessons? } } — the group
+// price of a subject (0 = none: group lessons are billed at the individual price, with a warning) and the group lessons
+// per week for the revenue forecast. Only an admin writes it (firestore.rules studentRevenuePlans).
+export function groupPricesOf(value) {
+  if (!value || typeof value !== 'object') return {};
+  return Object.fromEntries(Object.entries(value).slice(0, 8).map(([subject, entry]) => {
+    const weekly = Math.round(Math.max(0, Number(entry?.weeklyLessons) || 0) * 100) / 100;
+    return [clean(subject), {
+      lessonPriceCents: Math.max(0, Math.round(Number(entry?.lessonPriceCents) || 0)),
+      lessonMinutes: LESSON_MINUTES.includes(Number(entry?.lessonMinutes)) ? Number(entry.lessonMinutes) : 60,
+      ...(weekly ? { weeklyLessons: weekly } : {}),
+    }];
+  }).filter(([subject, entry]) => subject && (entry.lessonPriceCents > 0 || entry.weeklyLessons)));
+}
+
+// form values { "Eesti keel": { lessonPrice: "18", lessonMinutes: "90", weeklyLessons: "1" } } → stored group prices
+export function validateGroupPrices(values = {}) {
+  const errors = {};
+  const prices = {};
+  Object.entries(values || {}).forEach(([subject, entry]) => {
+    const priceText = String(entry?.lessonPrice ?? '').trim();
+    const weeklyText = String(entry?.weeklyLessons ?? '').trim();
+    if (!priceText && !weeklyText) return;
+    const price = priceText ? Number(priceText.replace(',', '.')) : 0;
+    if (priceText && (!Number.isFinite(price) || price <= 0 || price > 10000)) { errors[subject] = 'Sisesta grupitunni hind vahemikus 0,01–10 000 eurot.'; return; }
+    const weekly = weeklyText ? Number(weeklyText.replace(',', '.')) : 0;
+    if (weeklyText && (!Number.isFinite(weekly) || weekly < 0 || weekly > 50)) { errors[subject] = 'Sisesta grupitunde nädalas 0–50.'; return; }
+    prices[subject] = {
+      lessonPriceCents: Math.round(price * 100),
+      lessonMinutes: LESSON_MINUTES.includes(Number(entry?.lessonMinutes)) ? Number(entry.lessonMinutes) : 60,
+      ...(weekly ? { weeklyLessons: Math.round(weekly * 100) / 100 } : {}),
+    };
   });
   return { valid: Object.keys(errors).length === 0, errors, prices };
 }
@@ -190,7 +226,7 @@ export const revenuePlansService = {
     if (!subjects.valid) throw new Error(Object.values(subjects.errors)[0]);
     const perSubject = validateSubjectBilling(values.subjectBilling);
     if (!perSubject.valid) throw new Error(Object.values(perSubject.errors)[0]);
-    const group = validateSubjectPrices(values.groupPrices);
+    const group = validateGroupPrices(values.groupPrices);
     if (!group.valid) throw new Error(Object.values(group.errors)[0]);
     const updatedAt = new Date().toISOString();
     const updatedBy = user.displayName || user.email || '';

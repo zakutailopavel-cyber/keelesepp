@@ -74,7 +74,7 @@ export function trackFormat(track = {}, { student = {}, groups = [] } = {}) {
 // price. Inferred groups do NOT split: a card nobody touched bills exactly as before.
 export function groupSubjects(student = {}, plan = null) {
   const fromTracks = tracksOf(student).filter((track) => isOpen(track) && track.format === 'group').map((track) => trackSubject(track, student));
-  const fromPrices = Object.keys(plan?.groupPrices || {}).filter((subject) => groupPriceOf(plan, subject));
+  const fromPrices = Object.keys(plan?.groupPrices || {});
   const out = [];
   [...fromTracks, ...fromPrices].forEach((subject) => { if (!out.some((item) => low(item) === low(subject))) out.push(subject); });
   return out;

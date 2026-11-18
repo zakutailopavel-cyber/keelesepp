@@ -99,9 +99,42 @@ function profilePatch(keep = {}, source = {}) {
 // the card's own price is its main subject's; further subjects may have their own in subjectPrices
 const mainSubjectOf = mainSubject;
 
+// „Individuaalne / Grupp” (2026-11-18): the other card's group prices (studentRevenuePlans.groupPrices) join the kept
+// card's plan for the subjects it has none for; a subject both have keeps the kept card's (a different one is a
+// conflict, nothing changes). → { patch: { groupPrices } | null, added: [subject], conflicts: [{ subject, keepCents, sourceCents }] }
+function groupPricesMerge({ keepPlan = null, sourcePlan = null } = {}) {
+  const source = sourcePlan && sourcePlan.groupPrices && typeof sourcePlan.groupPrices === "object" ? sourcePlan.groupPrices : {};
+  const kept = keepPlan && keepPlan.groupPrices && typeof keepPlan.groupPrices === "object" ? keepPlan.groupPrices : {};
+  const added = [];
+  const conflicts = [];
+  const next = { ...kept };
+  for (const [subject, entry] of Object.entries(source)) {
+    if (!entry || typeof entry !== "object") continue;
+    const key = Object.keys(kept).find((name) => lower(name) === lower(subject));
+    if (key === undefined) {
+      if (Object.keys(next).length >= 8) continue;
+      next[subject] = entry;
+      added.push(subject);
+      continue;
+    }
+    const keepCents = Number(kept[key] && kept[key].lessonPriceCents) || 0;
+    const sourceCents = Number(entry.lessonPriceCents) || 0;
+    if (sourceCents && keepCents !== sourceCents) conflicts.push({ subject: key, keepCents, sourceCents });
+  }
+  return { patch: added.length ? { groupPrices: next } : null, added, conflicts };
+}
+
 // the other card's price joins the kept card's plan as the price of its subject; amounts are never changed. Returns
 // { action: 'none' | 'copy' | 'addSubjectPrice' | 'same' | 'conflict', patch, subject, keepCents, sourceCents }
+// plus `group` (groupPricesMerge) when both cards have a plan
 function revenuePlanMerge({ keep = {}, source = {}, keepPlan = null, sourcePlan = null }) {
+  const result = revenuePlanPriceMerge({ keep, source, keepPlan, sourcePlan });
+  if (!keepPlan || !sourcePlan || result.action === "copy") return result;
+  const group = groupPricesMerge({ keepPlan, sourcePlan });
+  return group.patch || group.conflicts.length ? { ...result, group } : result;
+}
+
+function revenuePlanPriceMerge({ keep = {}, source = {}, keepPlan = null, sourcePlan = null }) {
   if (!sourcePlan || sourcePlan.active === false && !sourcePlan.lessonPriceCents) return { action: "none" };
   const subject = cardSubject(source) || mainSubjectOf(source);
   if (!keepPlan) return { action: "copy", subject };
@@ -151,6 +184,7 @@ function mergeConflicts({ keep = {}, source = {}, parents, plan, singletons = []
   if (clean(keep.name) && clean(source.name) && lower(keep.name) !== lower(source.name)) out.push({ code: "name", label: `Erinevad nimed: „${clean(keep.name)}” ja „${clean(source.name)}” — vali, kumb jääb` });
   if (parents?.differ) out.push({ code: "parents", label: "Kaartidel on erinevad lapsevanemad — mõlemad jäävad lapsega seotuks" });
   if (plan?.action === "conflict") out.push({ code: "price", label: `${plan.subject}: kaks hinda (${euro(plan.keepCents)} jääb, ${euro(plan.sourceCents)} teiselt kaardilt ei tule üle)` });
+  for (const item of plan?.group?.conflicts || []) out.push({ code: "group_price", label: `${item.subject} · grupp: kaks grupi hinda (${euro(item.keepCents)} jääb, ${euro(item.sourceCents)} teiselt kaardilt ei tule üle)` });
   const keepTracks = enrollmentsOf(keep);
   for (const track of enrollmentsOf(source)) {
     const twin = keepTracks.find((t) => lower(t.subject) === lower(track.subject));
@@ -359,7 +393,7 @@ function normalizedInput({ keepId, sourceId, keepName } = {}) {
   return { keepId: keep, sourceId: source, keepName: clean(keepName) };
 }
 
-module.exports = {
+module.exports = { groupPricesMerge,
   AUDIT, FINANCE, SCHEDULE, DOC_KEYED, NEVER, DOC_LABELS,
   kindOf, accountIds, parentIds, parentContactsOf, mergeParents, profilePatch, mainSubjectOf, revenuePlanMerge, mergeConflicts, normalizedInput, ids,
   resultActive, sourceForTracks,

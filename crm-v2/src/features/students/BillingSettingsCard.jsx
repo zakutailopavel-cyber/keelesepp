@@ -25,8 +25,9 @@ const weeklyText = (value) => String(value || '').replace('.', ',');
 const NO_SHOW_TEXT = 'Ette teatamata puudumine on tasuline (erandi saab teha tunni juures)';
 const CASH_HELP = 'Õpetaja nupp „Toimus” muutub nupuks „Toimus · makstud sularahas”: üks puudutus märgib tunni toimunuks ja raha õpetaja kätte. '
   + 'Summa on selle aine tunni hind tunni pikkuse järgi (õpetaja seda muuta ei saa; vale summa parandad Kassas). Tund tuleb kuuarvelt maha, tunnipaketist tundi ei võeta. Raha ei lähe raamatupidamisse.';
-const GROUP_PRICE_HELP = 'Grupitund on kalendrigrupi tund. Kui grupi hinda pole, arveldatakse grupitunnid selle aine individuaalse hinnaga ja arvete juures näed hoiatust. '
-  + 'Grupi hind ei sõltu hinnatingimustest (soodustus kehtib individuaalsele hinnale).';
+const GROUP_PRICE_HELP = 'Grupitund on kalendrigrupi tund. Grupid arveldatakse kuuarvega: grupitunnid tulevad tavalisele kuuarvele eraldi reale „<aine> · grupp” selle hinnaga. '
+  + 'Kui grupi hinda pole, arveldatakse grupitunnid aine individuaalse hinnaga ja arvete juures näed hoiatust. Grupi hind on lihtsalt tunnitasu: soodustuse põhjust pole vaja ka alla 25 € / h. '
+  + '„Grupitunde nädalas” läheb ainult tuluprognoosi (kaardi „Tunde nädalas” loeb individuaalseid tunde).';
 const slug = (text) => String(text).toLocaleLowerCase('et').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-');
 
 // the stored plan, or the old card field (before the price moved to the private plan) read as a 60-minute price
@@ -73,7 +74,9 @@ function formOf(plan, student) {
     // as an hourly rate + lesson length; an untouched stored price keeps its cents exactly
     groupPrices: Object.fromEntries(groupSubjects(student || {}, plan).map((subject) => {
       const own = groupPriceOf(plan, subject);
-      return [subject, own ? { rate: centsText(hourlyCentsFromLesson(own.lessonPriceCents, own.lessonMinutes)), lessonMinutes: String(own.lessonMinutes), storedCents: own.lessonPriceCents } : { rate: '', lessonMinutes: '60', storedCents: 0 }];
+      const key = Object.keys(plan?.groupPrices || {}).find((name) => name.toLocaleLowerCase('et') === subject.toLocaleLowerCase('et'));
+      const weekly = weeklyText(key ? plan.groupPrices[key].weeklyLessons || '' : '');
+      return [subject, own ? { rate: centsText(hourlyCentsFromLesson(own.lessonPriceCents, own.lessonMinutes)), lessonMinutes: String(own.lessonMinutes), storedCents: own.lessonPriceCents, weeklyLessons: weekly } : { rate: '', lessonMinutes: '60', storedCents: 0, weeklyLessons: weekly }];
     })),
     // further subjects of the card (owner 2026-10-20): the same choices plus „sama kui kaardil” and the standard rate
     subjects: Object.fromEntries(extra.map((subject) => {
@@ -110,19 +113,21 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
   const set = (patch) => { setForm((current) => ({ ...current, ...patch })); setMessage(''); };
   const setSubject = (subject, patch) => set({ subjects: { ...form.subjects, [subject]: { ...form.subjects[subject], ...patch } } });
   const setGroupPrice = (subject, patch) => set({ groupPrices: { ...form.groupPrices, [subject]: { ...form.groupPrices[subject], ...patch } } });
-  // the group prices as the plan stores them: { subject: { lessonPrice, lessonMinutes } } (revenuePlans validateSubjectPrices)
+  // the group prices as the plan stores them: { subject: { lessonPrice, lessonMinutes, weeklyLessons } }
+  // (revenuePlans validateGroupPrices); a plain hourly rate, no price terms or discount reason (owner 2026-11-18)
   const groupValues = () => {
     const errors = {};
     const values = {};
     Object.entries(form.groupPrices || {}).forEach(([subject, row]) => {
       const text = String(row.rate || '').trim();
-      if (!text) return;
+      const weekly = String(row.weeklyLessons || '').trim();
+      if (!text && !weekly) return;
       const was = initial.groupPrices?.[subject];
       const kept = was?.storedCents && text === was.rate && String(row.lessonMinutes) === String(was.lessonMinutes);
       const hourly = parseRateCents(text);
-      if (!kept && (!hourly || hourly > 1000000)) { errors[`group:${subject}`] = 'Sisesta grupi tunnitasu eurodes, nt 12 või 12,50.'; return; }
-      const cents = kept ? was.storedCents : lessonCentsFromHourly(hourly, row.lessonMinutes);
-      values[subject] = { lessonPrice: String(cents / 100), lessonMinutes: String(row.lessonMinutes || '60') };
+      if (text && !kept && (!hourly || hourly > 1000000)) { errors[`group:${subject}`] = 'Sisesta grupi tunnitasu eurodes, nt 12 või 12,50.'; return; }
+      const cents = !text ? 0 : kept ? was.storedCents : lessonCentsFromHourly(hourly, row.lessonMinutes);
+      values[subject] = { lessonPrice: cents ? String(cents / 100) : '', lessonMinutes: String(row.lessonMinutes || '60'), weeklyLessons: weekly };
     });
     return { errors, values };
   };
@@ -267,6 +272,8 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
       <Select label="Grupitunni pikkus" value={String(row.lessonMinutes || '60')} disabled={!canEdit} onChange={(e) => setGroupPrice(subject, { lessonMinutes: e.target.value })}>
         {LESSON_MINUTES.map((minutes) => <option key={minutes} value={minutes}>{minutes} min</option>)}
       </Select>
+      <Input label="Grupitunde nädalas (prognoos)" inputMode="decimal" placeholder="nt 2" value={row.weeklyLessons || ''} disabled={!canEdit} onChange={(e) => setGroupPrice(subject, { weeklyLessons: e.target.value })} />
+      <p className="billing-settings__billing-note billing-settings__group-note" role="note">Grupp arveldatakse kuuarvega: grupitunnid tulevad tavalisele kuuarvele reale „{subject} · grupp”.</p>
       <p className="billing-settings__lesson-price" data-billing-group-price={subject}>
         {String(row.rate || '').trim() && cents
           ? <>Grupitunni hind: <strong>{priceLine(cents, Number(row.lessonMinutes) || 60)}</strong></>

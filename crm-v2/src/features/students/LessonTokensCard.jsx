@@ -53,7 +53,7 @@ export default function LessonTokensCard({ student, service = lessonTokensServic
             <td>{row.usedUp ? 'läbi' : row.left}</td>
           </tr>)}</tbody>
         </table>
-        {gaps.length ? <p className="direction-format-warning" role="note">{gaps.map((subject) => `${subject} · grupp`).join(', ')}: grupi tunnipaketti pole — grupitunnid võetakse individuaalsest paketist. Loo grupi tunnipakett: Finantsid → Tunnipakett, vorm „Grupp”.</p> : null}
+        {gaps.length ? <p className="direction-format-warning" role="note">{gaps.map((subject) => `${subject} · grupp`).join(', ')}: grupi tunnipaketti pole — grupitunnid võetakse selle aine individuaalsest paketist. Grupid arveldatakse tavaliselt kuuarvega (Finantsid → Arveldus).</p> : null}
         {account.owed ? <p className="form-error" role="status">Pakett on läbi: ilma paketita peetud {account.owedLessons.map((item) => `${dateOf(item.lessonDate)}${item.subject ? ` ${item.subject}` : ''}${Number(item.credits) > 1 ? ` (${item.credits} tundi)` : ''}`).join(', ')} — võlg {tunde(account.owed)}. Saada uus tunnipaketi arve — makstud pakett katab need esimesena.</p> : null}
       </>}
       {!compact && state.ledger.length ? <ul className="simple-list lesson-tokens-card__ledger" aria-label="Tunnipaketi liikumised">

@@ -143,3 +143,32 @@ test('the browser copy (crm-v2 directionFormat.js) answers the same', async () =
   const groups = [{ id: 'g1', subject: 'Eesti keel', students: ['s1', 's2'] }];
   assert.deepEqual(client.legacyGroupCandidates(students, groups), core.legacyGroupCandidates(students, groups));
 });
+
+test('owner 2026-11-18: forecast, cash and card merge use the group price (fallback = individual price)', async () => {
+  const billing = require('./subject-billing-core');
+  const cash = require('./cash-core');
+  const merge = require('./student-card-merge-core');
+  const client = await import(pathToFileURL(path.join(__dirname, '../crm-v2/src/features/finance/subjectBilling.js')).href);
+  // forecast: group lessons per week × the group price; no price → the individual price, listed as a fallback
+  const withWeekly = { lessonPriceCents: 2500, weeklyLessons: 1, groupPrices: { 'Eesti keel': { lessonPriceCents: 1200, weeklyLessons: 2 }, Matemaatika: { lessonPriceCents: 0, weeklyLessons: 1 } } };
+  assert.deepEqual(billing.groupForecast(withWeekly), { weeklyCents: 2 * 1200 + 2500, fallbackSubjects: ['Matemaatika'] });
+  assert.equal(billing.weeklyForecastCents(withWeekly), 2500 + 2400 + 2500);
+  assert.deepEqual(client.groupForecast(withWeekly), billing.groupForecast(withWeekly));
+  assert.equal(client.weeklyForecastCents(withWeekly), billing.weeklyForecastCents(withWeekly));
+  assert.equal(billing.weeklyForecastCents(legacyPlan), 0); // no weeklyLessons, no groups: as before
+  // cash: a group lesson at the group price for its length; none → individual price, fallback
+  assert.equal(cash.lessonCashPriceCents(plan, 'Eesti keel', 90, 'group'), 1200);
+  assert.equal(cash.lessonCashPriceCents(plan, 'Eesti keel', 60, 'individual'), 2500);
+  assert.equal(cash.lessonCashPriceCents(legacyPlan, 'Eesti keel', 60, 'group'), 2500);
+  assert.equal(cash.directionCashPrice(legacyPlan, 'Eesti keel', 'group').fallback, true);
+  assert.equal(cash.lessonCashPriceCents(plan, 'Eesti keel', 60), 2500); // the old call is unchanged
+  // merge: the other card's group prices join the kept plan; a different price for the same subject is a conflict
+  const keep = { subject: 'Eesti keel' };
+  const both = merge.revenuePlanMerge({ keep, source: { subject: 'Eesti keel' }, keepPlan: { lessonPriceCents: 2500, groupPrices: { 'Eesti keel': { lessonPriceCents: 1500 } } }, sourcePlan: { lessonPriceCents: 2500, groupPrices: { 'eesti keel': { lessonPriceCents: 1200 }, Matemaatika: { lessonPriceCents: 1000, lessonMinutes: 45 } } } });
+  assert.equal(both.action, 'same');
+  assert.deepEqual(both.group.patch, { groupPrices: { 'Eesti keel': { lessonPriceCents: 1500 }, Matemaatika: { lessonPriceCents: 1000, lessonMinutes: 45 } } });
+  assert.deepEqual(both.group.conflicts, [{ subject: 'Eesti keel', keepCents: 1500, sourceCents: 1200 }]);
+  assert.ok(merge.mergeConflicts({ keep, source: keep, plan: both, singletons: [], pets: {}, activeAfter: true }).some((item) => item.code === 'group_price'));
+  // without group prices nothing is added (old merges unchanged)
+  assert.equal('group' in merge.revenuePlanMerge({ keep, source: { subject: 'Matemaatika' }, keepPlan: { lessonPriceCents: 2000 }, sourcePlan: { lessonPriceCents: 2500 } }), false);
+});

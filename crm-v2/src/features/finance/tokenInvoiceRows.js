@@ -1,4 +1,5 @@
-import { subjectsOf } from '../students/subjects.js';
+import { mainSubject, subjectsOf } from '../students/subjects.js';
+import { subjectBilling } from './subjectBilling.js';
 import { payerKey } from './monthlyBilling.js';
 import { formatsFor, planForFormat, subjectFormatLabel } from '../students/directionFormat.js';
 
@@ -19,9 +20,11 @@ export function tokenRowState(row, { cards = [], plans = [], schoolSubjects = []
   // the card's subjects; a card that names none (every track ended) is offered the school's subjects
   const subjects = ownSubjects.length ? ownSubjects : schoolSubjects;
   const subject = subjects.includes(row.pickedSubject) ? row.pickedSubject : ownSubjects.length === 1 ? ownSubjects[0] : '';
-  // „Individuaalne / Grupp” (2026-11-18): a subject with a group direction (or a group price) offers both formats; the
-  // package of a group line pays only that subject's group lessons
-  const formats = card && subject ? formatsFor(card, plan, subject) : ['individual'];
+  // „Individuaalne / Grupp” (2026-11-18): groups are billed by the monthly invoice (owner): a group package is offered
+  // only for a subject that is itself on lesson packages and has a group direction (or a group price); its package
+  // pays only that subject's group lessons. Default: individual.
+  const onPackages = Boolean(card && subject && plan) && subjectBilling(plan, subject, mainSubject(card)).billingMode === 'package';
+  const formats = onPackages ? formatsFor(card, plan, subject) : ['individual'];
   const format = formats.includes(row.pickedFormat) ? row.pickedFormat : 'individual';
   // no total before the subject is chosen: each subject may have its own price
   const { priceCents, minutes, fallback } = subject ? tokenPlanPrice(plan, subject, format) : { priceCents: 0, minutes: 60, fallback: false };
