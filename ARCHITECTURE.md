@@ -407,6 +407,44 @@ of the month, due the next month) and „Kuu ette” / „Jooksev kuu” (the mo
 the card form refuses that combination and the monthly row shows „Arveldusviisid ei sobi”; packages combine with any.
 A card merge brings the other card's billing as `subjectBilling[its subject]` when it differs from the kept card's.
 
+#### Direction format: individuaalne / grupp (2026-11-18)
+
+Team request (#student_card, owner forwarded): a study direction is „Individuaalne” or „Grupp”, and price and lesson
+tokens follow the direction + format. One card may hold Eesti keel individually AND Eesti keel in a group.
+
+- **Enrollment** (`students/{id}.enrollments[i]`): `format: 'group' | 'individual'` (absent = individual — every track
+  made before), a group track may name its calendar group `groupId`. The group and the individual track of one subject
+  and teacher are two tracks: `enrollmentKey` adds `|group` for a group track only (individual keys unchanged); the
+  server's `student-enrollments-core sameTrack` keeps them apart in a card merge. No rules change (enrollments are free
+  form in `students`).
+- **Price**: `studentRevenuePlans.groupPrices = { "<subject>": { lessonPriceCents, lessonMinutes } }` (≤ 8, admin
+  writes, finance reads — firestore.rules `groupPrices` map ≤ 8). The individual price stays `subjectPrices[subject]` /
+  the card's price and is the fallback. Group price is an own hourly rate + length in Arveldus (no price terms / reason).
+- **Matching**: a lesson with `groupId` (a calendar group's attendance record, `groups.setAttendance`) or an event with
+  `isGroup` is a group lesson (`lessonFormat`); every other lesson is individual.
+- **One rule, two copies**: `crm-v2/src/features/students/directionFormat.js` (browser) and
+  `functions/direction-format-core.js` (server), compared in `functions/direction-format-core.test.js`.
+  `planForFormat(individualPlan, plan, subject, format)` → `{ plan, fallback }`: a group line takes `groupPrices`, none →
+  the individual price with `fallback: true`.
+- **Which subjects split** (`groupSubjects`): a stored open group track or a stored group price. A card without them is
+  billed exactly as before (golden test unchanged). A legacy track without `format` is shown as „Grupp?” when the card
+  is a member of an active calendar group of that subject and has no other track of it (`trackFormat` inferred) — display
+  only; it never splits billing. `functions/tools/direction-format-report.js` counts those read-only.
+- **Monthly invoice** (`monthlyBilling.js subjectPart(format)`, server `combined-invoice-core planForDirection`,
+  `monthlyItemsInput`): a split subject has an individual and a group part; the group item carries `format: 'group'`,
+  is priced at the group price and its line reads „Eesti keel · grupp: …”; `cardParts[i].format` / the one-card invoice
+  `format` record it. A part / invoice without `format` is individual. Balances per direction: group lessons dated before
+  the first month with a group line (`firstGroupMonth`, else the billed month) count on the individual balance, because
+  the old subject invoices paid them. A group part without a group price is billed at the individual price and the
+  monthly row shows `formatWarnings` („Eesti keel · grupp: grupi hind puudub …”).
+- **Tokens**: see docs/LESSON_TOKENS.md „Individual / group packages”.
+- **UI**: „Õppesuunad” window — segmented control „Vorm” (Individuaalne / Grupp), optional „Kalendrigrupp”; the same
+  subject + teacher + format is refused once. Badges in „Õppesuunad” card, window, Tunnipakett table. Arveldus — a
+  „Grupp” block (rate + length) in the subject's tab. Lab page: `crm-v2/directions-lab.html` (dev only, fake data).
+- **Not split yet** (still the subject's individual price for group lessons): revenue forecast, calendar revenue
+  (`financeDashboard.noShowCharged`), the teacher's cash amount (`cash-core`), per-subject billing mode (`subjectBilling`
+  is per subject, not per format), and a card merge does not copy `groupPrices`.
+
 ### Staff operations
 
 Teacher-facing navigation is task-oriented. `haldus.html` is the daily start surface and keeps the common

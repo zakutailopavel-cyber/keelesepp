@@ -1,4 +1,4 @@
-import { groupStudentPeople, hasDuplicateStudent, matchesStudentFilters, normalizeStudent, sortStudents, studentProfileKey } from './students.js';
+import { enrollmentKey, groupStudentPeople, hasDuplicateStudent, matchesStudentFilters, normalizeStudent, sortStudents, studentProfileKey } from './students.js';
 
 describe('students service mapping', () => {
   it('preserves legacy fields and normalizes missing values', () => {
@@ -85,5 +85,16 @@ describe('teacher change keeps the study track in step', () => {
     const two = [{ subject: 'Eesti keel', teacher: 'Pavel Zakutailo', teacherUid: 'pav', level: 'A1', targetLevel: 'B1' }, { subject: 'Inglise keel', teacher: 'Elena Zakutailo', teacherUid: 'ele', level: 'A2', targetLevel: 'B1' }];
     expect(withMainTrack(two, current, { level: 'B1', targetLevel: 'B2' })).toEqual([{ ...two[0], level: 'B1', targetLevel: 'B2' }, two[1]]);
     expect(withMainTrack(two, current, {})).toBeNull();
+  });
+});
+
+describe('direction format on enrollments (2026-11-18)', () => {
+  it('keeps a group track next to the individual one of the same subject and teacher; legacy keys are unchanged', () => {
+    expect(enrollmentKey({ subject: 'Eesti keel', teacher: 'Mart' })).toBe('eesti keel|mart');
+    expect(enrollmentKey({ subject: 'Eesti keel', teacher: 'Mart', format: 'individual' })).toBe('eesti keel|mart');
+    expect(enrollmentKey({ subject: 'Eesti keel', teacher: 'Mart', format: 'group' })).toBe('eesti keel|mart|group');
+    const student = normalizeStudent('s1', { name: 'Mari', subject: 'Eesti keel', enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel' }, { subject: 'Eesti keel', teacher: 'Pavel', format: 'group', groupId: 'g1' }] });
+    expect(student.enrollments.map((item) => [item.format || '', item.groupId || ''])).toEqual([['', ''], ['group', 'g1']]);
+    expect(new Set(student.enrollments.map((item) => item.id)).size).toBe(2);
   });
 });

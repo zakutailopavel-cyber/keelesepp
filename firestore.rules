@@ -1653,6 +1653,7 @@ service cloud.firestore {
           'validFrom',
           'priceHistory',
           'subjectPrices',
+          'groupPrices',
           'subjectBilling',
           'cashSubjects',
           'priceTerms',
@@ -1679,6 +1680,9 @@ service cloud.firestore {
           && request.resource.data.priceTermsChangedByUid is string))
         // the price of a second subject of the card (owner 2026-10-20): { "Matemaatika": { lessonPriceCents, lessonMinutes } }
         && (!('subjectPrices' in request.resource.data) || (request.resource.data.subjectPrices is map && request.resource.data.subjectPrices.size() <= 8))
+        // the group price of a subject (2026-11-18, „Õppesuunad: individuaalne / grupp”): { "Eesti keel": { lessonPriceCents,
+        // lessonMinutes } }; a group lesson without it is billed at the subject's individual price (direction-format-core.js)
+        && (!('groupPrices' in request.resource.data) || (request.resource.data.groupPrices is map && request.resource.data.groupPrices.size() <= 8))
         // billing per subject (owner 2026-11-06): { "Inglise keel": { billingMode, weeklyLessons, chargeNoShow } }; a field
         // left out is the card's value. The invoices read it with functions/subject-billing-core.js (invalid values = card's)
         && (!('subjectBilling' in request.resource.data) || (request.resource.data.subjectBilling is map && request.resource.data.subjectBilling.size() <= 8))

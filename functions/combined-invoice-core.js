@@ -12,6 +12,7 @@ const { subjectName, enrollmentsOf, mainSubject } = require('./student-enrollmen
 const { cardMonthlyMode, hasSubjectBilling, subjectBilling } = require('./subject-billing-core');
 const { tokenInvoiceLines, tokenInvoiceSubject, tokenSubjectKey } = require('./lesson-tokens-core');
 const { invoiceIsVoidOrCredited } = require('./finance-core');
+const { planForFormat, requestedFormat, subjectFormatLabel } = require('./direction-format-core');
 
 const clean = (value, max = 160) => String(value || '').trim().slice(0, max);
 const fail = (status, message) => Object.assign(new Error(message), { status });
@@ -36,8 +37,9 @@ function sameCardsInput(items = []) {
 // line) → [{ studentId, subject }]; a card may come twice with different subjects
 function monthlyItemsInput(items = []) {
   if (!Array.isArray(items) || items.length < 2 || items.length > 12) throw fail(400, 'Ühisarvele vali 2–12 rida.');
-  const list = items.map((item) => ({ studentId: clean(item?.studentId), subject: subjectName(item?.subject) }));
-  const keys = list.map((item) => `${item.studentId}|${item.subject}`);
+  // a group direction's line (2026-11-18) carries format 'group'; the individual line of the same subject is another line
+  const list = items.map((item) => ({ studentId: clean(item?.studentId), subject: subjectName(item?.subject), ...(requestedFormat(item?.format) ? { format: 'group' } : {}) }));
+  const keys = list.map((item) => `${item.studentId}|${item.subject}|${item.format || ''}`);
   if (list.some((item) => !item.studentId) || new Set(keys).size !== keys.length) throw fail(400, 'Iga kaart ja õppeaine võib ühisarvel olla üks kord.');
   return list;
 }
@@ -47,6 +49,13 @@ function planForSubject(plan = {}, subject = '') {
   const own = subject && plan.subjectPrices && typeof plan.subjectPrices === 'object' ? plan.subjectPrices[subject] : null;
   if (!own) return plan;
   return { ...plan, lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan.lessonMinutes };
+}
+
+// the price of one direction (subject + format, 2026-11-18): a group line takes groupPrices[subject]; without it the
+// subject's individual price (planForSubject) — the browser warns the admin before the invoice is made
+// (crm-v2 monthlyBilling.js formatWarnings, tokenInvoiceRows.js). An individual / legacy line is planForSubject as before.
+function planForDirection(plan = {}, subject = '', format = '') {
+  return planForFormat(planForSubject(plan, subject), plan, subject, format).plan;
 }
 
 // Billing per subject (owner 2026-11-06, subject-billing-core.js): why this card / subject gets no monthly invoice line
@@ -104,17 +113,19 @@ function combinedMonthlyRecord({ month, due, parts, invoiceNum, nowIso, actor, r
     if (blocked) throw fail(400, blocked);
     let priced;
     try {
-      const subjectPlan = part.subject ? planForSubject(part.plan || {}, part.subject) : (part.plan || {});
+      const subjectPlan = part.subject ? planForDirection(part.plan || {}, part.subject, part.format) : (part.plan || {});
       // a subject that is not a language is billed as „Tunnid”, not „Keeletunnid”
       const title = part.subject && !/keel/i.test(part.subject) ? 'Tunnid' : '';
       priced = monthlyInvoiceLines({ month, plannedUnits: part.plannedUnits, correctionUnits: part.correctionUnits, correctionNote: part.correctionNote, title }, subjectPlan);
     } catch (error) {
       throw fail(400, `${lineLabel(part.card, true, part.subject)}: ${error.message === 'Lesson price missing' ? 'tunnihind puudub' : 'summa peab olema positiivne'}`);
     }
-    const label = lineLabel(part.card, many, part.subject);
+    const format = part.subject ? requestedFormat(part.format) : '';
+    const label = lineLabel(part.card, many, part.subject ? subjectFormatLabel(part.subject, format) : '');
     const subject = subjectOf(part.card, part.subject);
-    priced.lines.forEach((line) => lines.push({ ...line, description: label ? `${label}: ${line.description}` : line.description, studentId: part.card.id, studentName: clean(part.card.name), subject }));
-    cardParts.push({ studentId: part.card.id, studentName: clean(part.card.name), subject, plannedUnits: part.plannedUnits, correctionUnits: part.correctionUnits, priceCents: priced.priceCents, minutes: priced.minutes, amountCents: priced.amountCents });
+    const formatField = format ? { format } : {};
+    priced.lines.forEach((line) => lines.push({ ...line, description: label ? `${label}: ${line.description}` : line.description, studentId: part.card.id, studentName: clean(part.card.name), subject, ...formatField }));
+    cardParts.push({ studentId: part.card.id, studentName: clean(part.card.name), subject, ...formatField, plannedUnits: part.plannedUnits, correctionUnits: part.correctionUnits, priceCents: priced.priceCents, minutes: priced.minutes, amountCents: priced.amountCents });
   }
   const fields = combinedFields(cards, lines, cardParts);
   const base = manualInvoiceRecord({
@@ -166,16 +177,18 @@ function combinedTokenRecord({ due, note = '', parts, invoiceNum, nowIso, actor,
     let priced;
     try {
       subject = tokenInvoiceSubject(part.subject, part.card);
-      priced = tokenInvoiceLines({ lessons: part.lessons, plan: planForSubject(part.plan || {}, subject), subject: subject || clean(part.card.subject, 80) });
+      priced = tokenInvoiceLines({ lessons: part.lessons, plan: planForDirection(part.plan || {}, subject, part.format), subject: subject || clean(part.card.subject, 80), format: part.format });
     } catch (error) {
       throw fail(error.status || 400, `${lineLabel(part.card, true, part.subject)}: ${error.message}`);
     }
-    const key = `${part.card.id}|${tokenSubjectKey(subject)}`;
+    const format = requestedFormat(part.format);
+    const key = `${part.card.id}|${tokenSubjectKey(subject)}|${format}`;
     if (seen.has(key)) throw fail(400, 'Iga õpilane ja aine võib ühisel tunnipaketil olla üks kord.');
     seen.add(key);
     const studentName = clean(part.card.name);
-    priced.lines.forEach((line) => lines.push({ ...line, description: many ? `${studentName} · ${line.description}` : line.description, studentId: part.card.id, studentName, subject, tokenCredits: part.lessons }));
-    cardParts.push({ studentId: part.card.id, studentName, subject, tokenCredits: part.lessons, priceCents: priced.priceCents, minutes: priced.minutes, amountCents: priced.amountCents });
+    const formatField = format ? { format } : {};
+    priced.lines.forEach((line) => lines.push({ ...line, description: many ? `${studentName} · ${line.description}` : line.description, studentId: part.card.id, studentName, subject, ...formatField, tokenCredits: part.lessons }));
+    cardParts.push({ studentId: part.card.id, studentName, subject, ...formatField, tokenCredits: part.lessons, priceCents: priced.priceCents, minutes: priced.minutes, amountCents: priced.amountCents });
   }
   const fields = combinedFields(cards, lines, cardParts);
   const credits = cardParts.reduce((sum, part) => sum + part.tokenCredits, 0);
@@ -203,4 +216,4 @@ function billsCardForMonth(invoice = {}, cardId, month) {
 }
 
 module.exports = {
-  monthlyBillingBlocker, payerKey, sameCardsInput, monthlyItemsInput, planForSubject, checkOnePayer, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth };
+  monthlyBillingBlocker, payerKey, sameCardsInput, monthlyItemsInput, planForSubject, planForDirection, checkOnePayer, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth };

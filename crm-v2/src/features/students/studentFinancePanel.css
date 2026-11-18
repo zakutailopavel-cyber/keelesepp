@@ -67,3 +67,7 @@
 .billing-settings__inherited .button, .billing-settings__back { min-height: 34px; padding: 0 12px; justify-self: start; }
 .billing-settings__mixed { grid-column: 1 / -1; margin: 0; }
 @media (max-width: 760px) { .billing-settings__billing { grid-template-columns: 1fr; } }
+/* „Individuaalne / Grupp” (2026-11-18): the group price of a subject inside its tab */
+.billing-settings__group { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; align-items: end; padding: 12px; border-radius: var(--radius-md); background: var(--surface-subtle, var(--surface-alt)); }
+.billing-settings__group-title { grid-column: 1 / -1; margin: 0; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+@media (max-width: 760px) { .billing-settings__group { grid-template-columns: 1fr; } }

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Badge, Card, EmptyState } from '../../components/ui/index.js';
-import { lessonTokensService, tokenAccount, tokenLine } from '../../services/firebase/lessonTokens.js';
+import { groupPackageGaps, lessonTokensService, tokenAccount, tokenLine } from '../../services/firebase/lessonTokens.js';
+import { groupSubjects } from './directionFormat.js';
+import { FormatBadge } from './DirectionFormat.jsx';
 import './lessonTokens.css';
 
 const ENTRY = { grant: 'Pakett lisatud', lesson_consumption: 'Tund', lesson_restoration: 'Tund tagastatud', adjustment_credit: 'Parandus +', adjustment_debit: 'Parandus −' };
@@ -30,6 +32,9 @@ export default function LessonTokensCard({ student, service = lessonTokensServic
   const [tone, label] = BADGE[account.state] || [];
   // packages for one subject (2026-11-03): the column shows which lessons each package pays
   const bySubject = account.rows.some((row) => row.subject);
+  // „Individuaalne / Grupp” (2026-11-18): a group direction without a group package — its lessons take individual ones
+  const gaps = compact ? [] : groupPackageGaps(state.packages, groupSubjects(student));
+  const byFormat = account.rows.some((row) => row.format === 'group') || gaps.length > 0;
   return <Card className="lesson-tokens-card">
     <div className="section-heading"><div><span className="eyebrow">Tunnipakett{compact && student.name ? ` · ${student.name}` : ''}</span><h2>{account.left} tundi alles</h2></div>
       {label ? <Badge tone={tone}>{label}</Badge> : null}</div>
@@ -41,18 +46,19 @@ export default function LessonTokensCard({ student, service = lessonTokensServic
           <thead><tr><th scope="col">Arve</th>{bySubject ? <th scope="col">Aine</th> : null}<th scope="col">Alates</th><th scope="col">Ostetud</th><th scope="col">Peetud</th><th scope="col">Alles</th></tr></thead>
           <tbody>{account.rows.map((row) => <tr key={row.id}>
             <td>{row.invoiceNum || row.invoiceId || <span title={row.name}>arveta pakett</span>}</td>
-            {bySubject ? <td>{row.subject || 'kõik ained'}</td> : null}
+            {bySubject ? <td>{row.subject || 'kõik ained'}{byFormat ? <> <FormatBadge format={row.format} /></> : null}</td> : null}
             <td>{dateOf(row.issuedAt)}</td>
             <td>{row.bought}{row.corrected ? <small> ({row.corrected > 0 ? '+' : ''}{row.corrected} parandus)</small> : null}</td>
             <td>{row.held}</td>
             <td>{row.usedUp ? 'läbi' : row.left}</td>
           </tr>)}</tbody>
         </table>
+        {gaps.length ? <p className="direction-format-warning" role="note">{gaps.map((subject) => `${subject} · grupp`).join(', ')}: grupi tunnipaketti pole — grupitunnid võetakse individuaalsest paketist. Loo grupi tunnipakett: Finantsid → Tunnipakett, vorm „Grupp”.</p> : null}
         {account.owed ? <p className="form-error" role="status">Pakett on läbi: ilma paketita peetud {account.owedLessons.map((item) => `${dateOf(item.lessonDate)}${item.subject ? ` ${item.subject}` : ''}${Number(item.credits) > 1 ? ` (${item.credits} tundi)` : ''}`).join(', ')} — võlg {tunde(account.owed)}. Saada uus tunnipaketi arve — makstud pakett katab need esimesena.</p> : null}
       </>}
       {!compact && state.ledger.length ? <ul className="simple-list lesson-tokens-card__ledger" aria-label="Tunnipaketi liikumised">
         {state.ledger.slice(0, 12).map((entry) => <li key={entry.id}>
-          <span><strong>{ENTRY[entry.entryType] || entry.entryType}</strong><small>{[dateOf(entry.lessonDate || entry.createdAt), entry.lessonTopic, entry.sourceInvoiceNum ? `arve ${entry.sourceInvoiceNum}` : ''].filter(Boolean).join(' · ')}</small></span>
+          <span><strong>{ENTRY[entry.entryType] || entry.entryType}</strong><small>{[dateOf(entry.lessonDate || entry.createdAt), entry.lessonTopic, entry.sourceInvoiceNum ? `arve ${entry.sourceInvoiceNum}` : '', entry.formatFallback ? 'grupitund individuaalsest paketist' : ''].filter(Boolean).join(' · ')}</small></span>
           <Badge tone={entry.creditsDelta > 0 ? 'success' : 'neutral'}>{entry.creditsDelta > 0 ? `+${entry.creditsDelta}` : entry.creditsDelta} → {entry.balanceAfter}</Badge>
         </li>)}
       </ul> : null}

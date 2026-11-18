@@ -1,10 +1,12 @@
 import { Layers, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge, Button, Card } from '../../components/ui/index.js';
 import { enrollmentKey } from '../../services/firebase/students.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 import { directionRows, priceLabel, statusPatch } from './studentDirectionsModel.js';
+import { groupsService } from '../../services/firebase/groups.js';
+import { FormatBadge } from './DirectionFormat.jsx';
 import './directions.css';
 
 const day = (iso) => (iso ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}` : '');
@@ -12,10 +14,20 @@ const day = (iso) => (iso ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}` : '');
 // „Õppesuunad” on the student card (owner 2026-10-24): every direction the learner attends, with its teacher, level,
 // price and whether lessons are planned ahead; the administrator pauses, ends or resumes one here and edits it in
 // the „Õppesuunad” window
-export default function StudentDirectionsCard({ student, schedule = [], lessons = [], plan = null, directions = [], canEdit = false, canViewFinance = false, service, onEdit, onChanged, today }) {
+// „Individuaalne / Grupp” (2026-11-18): a badge per direction; a track without a stored format shows „Grupp?” when the
+// card is in a calendar group of that subject (staff only: the groups are read for the administrator)
+export default function StudentDirectionsCard({ student, schedule = [], lessons = [], plan = null, directions = [], groups: givenGroups, groupService = groupsService, canEdit = false, canViewFinance = false, service, onEdit, onChanged, today }) {
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
-  const rows = directionRows({ student, schedule, lessons, plan, directions, ...(today ? { today } : {}) });
+  const [loadedGroups, setLoadedGroups] = useState([]);
+  useEffect(() => {
+    if (givenGroups || !canEdit) return undefined;
+    let alive = true;
+    Promise.resolve().then(() => groupService.list()).then((list) => { if (alive) setLoadedGroups(Array.isArray(list) ? list : []); }).catch(() => {});
+    return () => { alive = false; };
+  }, [canEdit, givenGroups, groupService]);
+  const groups = givenGroups || loadedGroups;
+  const rows = directionRows({ student, schedule, lessons, plan, directions, groups, ...(today ? { today } : {}) });
 
   const setStatus = async (row, value) => {
     setBusy(`${row.id}:${value}`); setError('');
@@ -33,10 +45,10 @@ export default function StudentDirectionsCard({ student, schedule = [], lessons 
           <li key={row.id} className={`student-directions__row is-${row.state}`}>
             <span className="student-directions__dot" style={row.color ? { background: row.color } : undefined} aria-hidden="true">{row.shortLabel || row.subject.slice(0, 2).toUpperCase()}</span>
             <div className="student-directions__main">
-              <strong>{row.subject}{row.known ? '' : <small className="student-directions__unknown"> (pole loendis)</small>}</strong>
+              <span className="student-directions__title"><strong>{row.subject}{row.known ? '' : <small className="student-directions__unknown"> (pole loendis)</small>}</strong> <FormatBadge format={row.format} inferred={row.formatInferred} />{row.format === 'group' && row.groupId && groups.some((group) => group.id === row.groupId) ? <small>{groups.find((group) => group.id === row.groupId).name}</small> : null}</span>
               <span>{canonicalTeacherName(row.teacher) || 'õpetaja määramata'}{row.level ? ` · ${row.level}` : ''}{row.targetLevel ? ` → ${row.targetLevel}` : ''}</span>
               <span className="student-directions__when">{row.next ? (row.next.weekly ? `Iga nädal${row.next.time ? ` kell ${row.next.time}` : ''}` : `Järgmine tund ${day(row.next.date)}${row.next.time ? ` kell ${row.next.time}` : ''}${row.upcomingCount > 1 ? ` · ${row.upcomingCount} tundi 8 nädala jooksul` : ''}`) : row.lastLesson ? `Viimane tund ${day(row.lastLesson)}` : 'Tunde pole olnud'}</span>
-              {canViewFinance ? <span className={row.price.kind === 'none' ? 'student-directions__price is-missing' : 'student-directions__price'}>Hind: {priceLabel(row.price)}</span> : null}
+              {canViewFinance ? <span className={row.price.kind === 'none' || row.price.kind === 'fallback' ? 'student-directions__price is-missing' : 'student-directions__price'}>{row.format === 'group' ? 'Grupi hind' : 'Hind'}: {priceLabel(row.price)}</span> : null}
             </div>
             <div className="student-directions__side">
               <Badge tone={row.tone}>{row.stateLabel}</Badge>

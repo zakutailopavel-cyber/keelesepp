@@ -7,10 +7,12 @@ import {
 import { cardMonthlyMode, subjectBilling } from '../finance/subjectBilling.js';
 import {
   CUSTOM_RATE, DISCOUNT_HOURLY_RATES_CENTS, DISCOUNT_REASON_MAX, GENERAL_RATE, LEGACY_REASON_PLACEHOLDER, PRICE_TERMS,
-  SAME_RATE, STANDARD_HOURLY_RATE_CENTS, billedSubjectPrice, hourlyCentsFromLesson, lessonPricesFromTerms, priceTermsOf,
+  SAME_RATE, STANDARD_HOURLY_RATE_CENTS, billedSubjectPrice, centsText, hourlyCentsFromLesson, lessonCentsFromHourly, lessonPricesFromTerms, parseRateCents, priceTermsOf,
   rateChoiceOf, rateLabel, validatePriceTerms,
 } from '../finance/priceTerms.js';
 import { mainSubject, subjectsOf } from './subjects.js';
+import { groupPriceOf, groupSubjects } from './directionFormat.js';
+import { FormatBadge } from './DirectionFormat.jsx';
 import { displayDate } from '../finance/finance.js';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
@@ -23,6 +25,8 @@ const weeklyText = (value) => String(value || '').replace('.', ',');
 const NO_SHOW_TEXT = 'Ette teatamata puudumine on tasuline (erandi saab teha tunni juures)';
 const CASH_HELP = 'Õpetaja nupp „Toimus” muutub nupuks „Toimus · makstud sularahas”: üks puudutus märgib tunni toimunuks ja raha õpetaja kätte. '
   + 'Summa on selle aine tunni hind tunni pikkuse järgi (õpetaja seda muuta ei saa; vale summa parandad Kassas). Tund tuleb kuuarvelt maha, tunnipaketist tundi ei võeta. Raha ei lähe raamatupidamisse.';
+const GROUP_PRICE_HELP = 'Grupitund on kalendrigrupi tund. Kui grupi hinda pole, arveldatakse grupitunnid selle aine individuaalse hinnaga ja arvete juures näed hoiatust. '
+  + 'Grupi hind ei sõltu hinnatingimustest (soodustus kehtib individuaalsele hinnale).';
 const slug = (text) => String(text).toLocaleLowerCase('et').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-');
 
 // the stored plan, or the old card field (before the price moved to the private plan) read as a 60-minute price
@@ -65,6 +69,12 @@ function formOf(plan, student) {
         chargeNoShow: billing.own.chargeNoShow ? billing.chargeNoShow : null,
       }];
     })),
+    // „Individuaalne / Grupp” (2026-11-18): the group price of a subject with a group direction (or a stored one), typed
+    // as an hourly rate + lesson length; an untouched stored price keeps its cents exactly
+    groupPrices: Object.fromEntries(groupSubjects(student || {}, plan).map((subject) => {
+      const own = groupPriceOf(plan, subject);
+      return [subject, own ? { rate: centsText(hourlyCentsFromLesson(own.lessonPriceCents, own.lessonMinutes)), lessonMinutes: String(own.lessonMinutes), storedCents: own.lessonPriceCents } : { rate: '', lessonMinutes: '60', storedCents: 0 }];
+    })),
     // further subjects of the card (owner 2026-10-20): the same choices plus „sama kui kaardil” and the standard rate
     subjects: Object.fromEntries(extra.map((subject) => {
       const own = priced?.subjectPrices?.[subject];
@@ -99,6 +109,23 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
   const general = form.priceTerms === 'general';
   const set = (patch) => { setForm((current) => ({ ...current, ...patch })); setMessage(''); };
   const setSubject = (subject, patch) => set({ subjects: { ...form.subjects, [subject]: { ...form.subjects[subject], ...patch } } });
+  const setGroupPrice = (subject, patch) => set({ groupPrices: { ...form.groupPrices, [subject]: { ...form.groupPrices[subject], ...patch } } });
+  // the group prices as the plan stores them: { subject: { lessonPrice, lessonMinutes } } (revenuePlans validateSubjectPrices)
+  const groupValues = () => {
+    const errors = {};
+    const values = {};
+    Object.entries(form.groupPrices || {}).forEach(([subject, row]) => {
+      const text = String(row.rate || '').trim();
+      if (!text) return;
+      const was = initial.groupPrices?.[subject];
+      const kept = was?.storedCents && text === was.rate && String(row.lessonMinutes) === String(was.lessonMinutes);
+      const hourly = parseRateCents(text);
+      if (!kept && (!hourly || hourly > 1000000)) { errors[`group:${subject}`] = 'Sisesta grupi tunnitasu eurodes, nt 12 või 12,50.'; return; }
+      const cents = kept ? was.storedCents : lessonCentsFromHourly(hourly, row.lessonMinutes);
+      values[subject] = { lessonPrice: String(cents / 100), lessonMinutes: String(row.lessonMinutes || '60') };
+    });
+    return { errors, values };
+  };
   const setBilling = (subject, patch) => set({ subjectBilling: { ...form.subjectBilling, [subject]: { ...form.subjectBilling[subject], ...patch } } });
   // the overrides the form holds now, as the plan will store them (empty fields = the card's value)
   const billingValues = Object.fromEntries(Object.entries(form.subjectBilling || {}).map(([subject, row]) => [subject, {
@@ -115,7 +142,8 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
     // a rate error sits in a subject's tab: show the first such tab
     const billingCheck = validateSubjectBilling(billingValues);
     const billingErrors = Object.fromEntries(Object.entries(billingCheck.errors).map(([subject, text]) => [`billing:${subject}`, text]));
-    const wrong = subjects.find((subject) => (subject === main ? terms.errors.hourlyRate : terms.errors[`subject:${subject}`] || billingErrors[`billing:${subject}`]));
+    const group = groupValues();
+    const wrong = subjects.find((subject) => (subject === main ? terms.errors.hourlyRate : terms.errors[`subject:${subject}`] || billingErrors[`billing:${subject}`]) || group.errors[`group:${subject}`]);
     if (wrong) setActiveSubject(wrong);
     const values = {
       lessonPrice: String(prices.lessonPriceCents / 100),
@@ -133,13 +161,15 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
       ...(Object.keys(billingValues).length || Object.keys(plan?.subjectBilling || {}).length ? { subjectBilling: billingValues } : {}),
       // „Maksab sularahas”: sent when a subject pays in cash or did (the emptied list removes it)
       ...(form.cashSubjects.length || (plan?.cashSubjects || []).length ? { cashSubjects: storedCashSubjects(form.cashSubjects, subjects) } : {}),
+      // group prices: sent when the card has a group direction or had a group price (the emptied map removes it)
+      ...(Object.keys(form.groupPrices || {}).length || Object.keys(plan?.groupPrices || {}).length ? { groupPrices: group.values } : {}),
       ...(Object.keys(form.subjects).length || Object.keys(plan?.subjectPrices || {}).length ? { subjectPrices: Object.fromEntries(Object.entries(prices.subjectPrices).map(([subject, own]) => [subject, { lessonPrice: String(own.lessonPriceCents / 100), lessonMinutes: String(own.lessonMinutes) }])) } : {}),
     };
     const check = terms.valid ? validateRevenuePlan(values) : { valid: false, errors: {} };
     const mixed = layout.mixedTiming ? { mixedTiming: '„Pärast toimunud tunde” ja „Kuu ette” / „Jooksev kuu” ei saa olla ühel kaardil koos: kuuarve on üks. Vali ainetele sama viis või ühele tunnipakett.' } : {};
-    setErrors({ ...terms.errors, ...billingErrors, ...mixed, ...(check.errors.weeklyLessons ? { weeklyLessons: check.errors.weeklyLessons } : {}) });
+    setErrors({ ...terms.errors, ...billingErrors, ...group.errors, ...mixed, ...(check.errors.weeklyLessons ? { weeklyLessons: check.errors.weeklyLessons } : {}) });
     if (check.errors.weeklyLessons && !wrong) setActiveSubject(main);
-    if (!terms.valid || !check.valid || !billingCheck.valid || layout.mixedTiming) return;
+    if (!terms.valid || !check.valid || !billingCheck.valid || layout.mixedTiming || Object.keys(group.errors).length) return;
     setSaving(true);
     try { await onSave(values); setMessage('Arveldusseaded salvestatud.'); }
     catch (error) { setErrors({ form: error.message || 'Salvestamine ebaõnnestus.' }); }
@@ -160,12 +190,12 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
   // (lessonPriceCents / lessonMinutes), a further subject's are its subjectPrices entry
   const cardPrice = { lessonPriceCents: prices.lessonPriceCents, lessonMinutes: Number(form.lessonMinutes) || 60 };
   const subjectTab = (subject) => {
-    if (subject === main) return { row: form, was: initial, patch: set, isMain: true, error: errors.hourlyRate || errors.weeklyLessons, price: cardPrice, fallback: false };
+    if (subject === main) return { row: form, was: initial, patch: set, isMain: true, error: errors.hourlyRate || errors.weeklyLessons || errors[`group:${subject}`], price: cardPrice, fallback: false };
     const own = prices.subjectPrices[subject];
     const row = form.subjects[subject] || {};
     // „Kaardi hind”: billed at the card's rate (left unwritten, or written at that rate by its own length)
     const same = !general && (row.hourlyRate ?? SAME_RATE) === SAME_RATE;
-    return { row, was: initial.subjects[subject] || {}, patch: (patch) => setSubject(subject, patch), isMain: false, error: errors[`subject:${subject}`] || errors[`billing:${subject}`], price: own || cardPrice, fallback: same || !own };
+    return { row, was: initial.subjects[subject] || {}, patch: (patch) => setSubject(subject, patch), isMain: false, error: errors[`subject:${subject}`] || errors[`billing:${subject}`] || errors[`group:${subject}`], price: own || cardPrice, fallback: same || !own };
   };
   const shownSubject = subjects.includes(activeSubject) ? activeSubject : subjects[0];
   const focusTab = (index) => {
@@ -222,6 +252,29 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
     </div>;
   };
 
+  // „Grupp” of this subject (2026-11-18): its own price per lesson; the individual price above is the fallback
+  const groupSection = (subject, tab) => {
+    const row = form.groupPrices?.[subject];
+    if (!row) return null;
+    const id = `group-rate-${slug(subject)}`;
+    const hourly = parseRateCents(row.rate);
+    const was = initial.groupPrices?.[subject];
+    const kept = was?.storedCents && String(row.rate).trim() === was.rate && String(row.lessonMinutes) === String(was.lessonMinutes);
+    const cents = kept ? was.storedCents : lessonCentsFromHourly(hourly, row.lessonMinutes);
+    return <div className="billing-settings__group" data-billing-group={subject}>
+      <p className="billing-settings__group-title"><FormatBadge format="group" /> {subject} · grupp <FieldHelp label="Grupi hind" text={GROUP_PRICE_HELP} /></p>
+      <Input id={id} label="Grupi tunnitasu (€ / h)" inputMode="decimal" placeholder="nt 12" value={row.rate} error={errors[`group:${subject}`]} disabled={!canEdit} onChange={(e) => setGroupPrice(subject, { rate: e.target.value })} />
+      <Select label="Grupitunni pikkus" value={String(row.lessonMinutes || '60')} disabled={!canEdit} onChange={(e) => setGroupPrice(subject, { lessonMinutes: e.target.value })}>
+        {LESSON_MINUTES.map((minutes) => <option key={minutes} value={minutes}>{minutes} min</option>)}
+      </Select>
+      <p className="billing-settings__lesson-price" data-billing-group-price={subject}>
+        {String(row.rate || '').trim() && cents
+          ? <>Grupitunni hind: <strong>{priceLine(cents, Number(row.lessonMinutes) || 60)}</strong></>
+          : <strong className="billing-settings__missing">Grupi hind määramata — grupitunnid arveldatakse individuaalse hinnaga{tab.price.lessonPriceCents ? ` (${priceLine(tab.price.lessonPriceCents, tab.price.lessonMinutes)})` : ''}</strong>}
+      </p>
+    </div>;
+  };
+
   const tabPanel = (subject) => {
     const tab = subjectTab(subject);
     const choice = tab.row.hourlyRate ?? SAME_RATE;
@@ -250,6 +303,7 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
           : <>Tunni hind: <strong>{priceLine(lesson, tab.price.lessonMinutes)}</strong> · tunnitasu {rateLabel(hourlyCentsFromLesson(lesson, tab.price.lessonMinutes))}</>}
         {tab.fallback && canEdit ? <> <Button type="button" variant="secondary" onClick={() => tab.patch({ hourlyRate: CUSTOM_RATE, customRate: '' })}>Määra oma hind</Button></> : null}
       </p>}
+      {groupSection(subject, tab)}
       {tab.isMain && staleMainPrice ? <p className="billing-settings__changed" role="note">Selle aine jaoks on salvestatud ka vana eraldi hind {priceLine(staleMainPrice.lessonPriceCents, staleMainPrice.lessonMinutes || 60)}: kuuarve võtab ülal oleva hinna, tunnipakett vana. „Salvesta” jätab alles ainult ülal oleva hinna.</p> : null}
       {billingFields(subject)}
       <div className="billing-settings__check" data-billing-cash={subject}>
@@ -269,6 +323,10 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
             const billed = billedSubjectPrice(plan, subject, main);
             return <li key={subject}>{subject}: <strong>{priceLine(billed.lessonPriceCents, billed.lessonMinutes)}</strong>{billed.fallback ? ' (kaardi hind)' : ''}</li>;
           })}</ul> : <strong className="billing-settings__price">{priceLine(plan.lessonPriceCents, plan.lessonMinutes || 60)}</strong>}
+          {groupSubjects(student || {}, plan).length ? <ul className="billing-settings__saved" aria-label="Grupi hinnad">{groupSubjects(student || {}, plan).map((subject) => {
+            const own = groupPriceOf(plan, subject);
+            return <li key={subject}>{subject} · grupp: {own ? <strong>{priceLine(own.lessonPriceCents, own.lessonMinutes)}</strong> : <span className="billing-settings__missing">grupi hind puudub</span>}</li>;
+          })}</ul> : null}
           <span className={`billing-settings__terms billing-settings__terms--${savedTerms.priceTerms}`}>{savedTerms.priceTerms === 'general' ? `Üldtingimused · ${STANDARD_TEXT}` : 'Soodustus'}</span>
         </div> : <span className="billing-settings__missing">Hind määramata</span>}
       </div>

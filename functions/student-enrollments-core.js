@@ -33,6 +33,9 @@ function enrollmentOf(value = {}, fallback = {}) {
     active: value.active !== false,
     // „Paus” / „Lõpetanud” set by the administrator (2026-10-24); a paused track stays active, an ended one does not
     ...(["paused", "ended"].includes(clean(value.status)) ? { status: clean(value.status) } : {}),
+    // „Individuaalne / Grupp” (2026-11-18, direction-format-core.js): only a group track stores its format (and may name
+    // its calendar group); a track without one is individual, as every track before
+    ...(clean(value.format) === "group" ? { format: "group", ...(clean(value.groupId) ? { groupId: clean(value.groupId) } : {}) } : clean(value.format) === "individual" ? { format: "individual" } : {}),
   };
 }
 
@@ -46,6 +49,8 @@ function enrollmentsOf(student = {}) {
 const firstName = (value) => lower(value).split(/\s+/)[0] || "";
 function sameTrack(a, b) {
   if (lower(a.subject) !== lower(b.subject)) return false;
+  // the group and the individual direction of one subject are two tracks (2026-11-18)
+  if ((a.format === "group") !== (b.format === "group")) return false;
   if (a.teacherUid && b.teacherUid) return a.teacherUid === b.teacherUid;
   if (!a.teacher || !b.teacher) return true;
   return firstName(a.teacher) === firstName(b.teacher);

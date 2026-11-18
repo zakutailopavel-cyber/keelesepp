@@ -40,6 +40,8 @@ export const manualInvoiceApi = {
       correctionNote: values.correctionNote || '',
       // one subject of a card with several: billed at that subject's price
       ...(values.subject ? { subject: values.subject } : {}),
+      // a group direction's line (2026-11-18): the subject's group price, „Eesti keel · grupp”
+      ...(values.subject && values.format === 'group' ? { format: 'group' } : {}),
       ...issuerOf(values.issuer),
     });
   },
@@ -60,14 +62,15 @@ export const manualInvoiceApi = {
   },
   // lesson tokens: an invoice for N lessons at the card's plan price (the lessons reach the card after payment)
   // subject: the course the package is for (one of the card's subjects); its lessons only take from this package
-  createTokens({ studentId, lessons, due, note = '', requestId, subject = '', issuer = '' }) {
-    return post('/create-tokens', { studentId, lessons: Number(lessons), due, note, ...(subject ? { subject } : {}), ...issuerOf(issuer), requestId: requestId || financeRequestId('lesson_tokens') });
+  // format 'group' (2026-11-18): the package pays only the group lessons of the subject
+  createTokens({ studentId, lessons, due, note = '', requestId, subject = '', format = '', issuer = '' }) {
+    return post('/create-tokens', { studentId, lessons: Number(lessons), due, note, ...(subject ? { subject } : {}), ...(subject && format === 'group' ? { format: 'group' } : {}), ...issuerOf(issuer), requestId: requestId || financeRequestId('lesson_tokens') });
   },
   // „Ühine tunnipakett”: ONE package invoice for the cards of one payer — items [{ studentId, subject, lessons }] (2–12);
   // every line is priced from its own card's plan, after payment every line becomes its own package on its own card
   createTokensCombined({ items, due, note = '', requestId, issuer = '' }) {
     return post('/create-tokens-combined', {
-      items: items.map((item) => ({ studentId: item.studentId, lessons: Number(item.lessons), ...(item.subject ? { subject: item.subject } : {}) })),
+      items: items.map((item) => ({ studentId: item.studentId, lessons: Number(item.lessons), ...(item.subject ? { subject: item.subject } : {}), ...(item.subject && item.format === 'group' ? { format: 'group' } : {}) })),
       due, note, ...issuerOf(issuer), requestId: requestId || financeRequestId('lesson_tokens'),
     });
   },

@@ -25,7 +25,8 @@ const nodemailer = require("nodemailer");
 const { runInvoiceReminderBatch } = require("./invoice-reminder-batch-core");
 const { hasSubjectBilling, planForSubjectBilling } = require("./subject-billing-core");
 const { mainSubject } = require("./student-enrollments-core");
-const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, tokenInvoiceParts, isCombinedTokenInvoice, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject, packageTiersForLesson } = require("./lesson-tokens-core");
+const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, tokenInvoiceParts, isCombinedTokenInvoice, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds, tokenSubjectKey, lessonSubject } = require("./lesson-tokens-core");
+const { lessonFormat, packageTiersForFormat } = require("./direction-format-core");
 const crypto = require("crypto");
 const {
   buildCreditNotePdf,
@@ -1077,6 +1078,7 @@ async function creditInvoiceTokens({ actor, invoiceId }) {
         ...(combined ? { sourceInvoiceLine: part.index } : {}),
         creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
         ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
+        ...(studentPackage.tokenFormat ? { tokenFormat: studentPackage.tokenFormat } : {}),
         reason: `Paid lesson package invoice ${invoice.num || cleanInvoiceId}${combined ? ` line ${part.index + 1}` : ""}`, actor: actorData, createdAt: nowIso, requestId: packageId,
       });
       transaction.create(db.collection(issuerCore.collectionFor("financialAudit", issuerCore.invoiceIssuer(invoice))).doc(`credit_${packageId}`.slice(0, 150)), {
@@ -1085,6 +1087,7 @@ async function creditInvoiceTokens({ actor, invoiceId }) {
         invoiceId: cleanInvoiceId, invoiceNum: invoice.num || "", creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
         ...(combined ? { sourceInvoiceLine: part.index } : {}),
         ...(studentPackage.tokenSubject ? { tokenSubject: studentPackage.tokenSubject } : {}),
+        ...(studentPackage.tokenFormat ? { tokenFormat: studentPackage.tokenFormat } : {}),
         actor: actorData, reason: "Lesson package credited after payment", createdAt: nowIso, requestId: packageId,
       });
       return { id: packageId, ...studentPackage };
@@ -1120,8 +1123,9 @@ async function consumeTokenBacklog(studentPackage) {
   const card = studentSnap?.exists ? studentSnap.data() : {};
   const states = new Map(statesSnap.docs.map(doc => [doc.id, doc.data()]));
   const owedLessonIds = statesSnap.docs.filter(doc => doc.data().status === "needs_attention").map(doc => doc.id);
-  const lessons = lessonsSnap.docs.map(doc => ({ id: doc.id, date: doc.data().date, ...(subjectKey ? { subjectKey: tokenSubjectKey(lessonSubject(doc.data(), card)) } : {}) }));
-  const lessonIds = tokenBacklogLessonIds({ lessons, issuedAt: studentPackage.issuedAt, owedLessonIds, subjectKey });
+  // a group direction's package (tokenFormat 'group', 2026-11-18) takes only group lessons
+  const lessons = lessonsSnap.docs.map(doc => ({ id: doc.id, date: doc.data().date, format: lessonFormat(doc.data()), ...(subjectKey ? { subjectKey: tokenSubjectKey(lessonSubject(doc.data(), card)) } : {}) }));
+  const lessonIds = tokenBacklogLessonIds({ lessons, issuedAt: studentPackage.issuedAt, owedLessonIds, subjectKey, format: studentPackage.tokenFormat || "" });
   let consumed = 0;
   for (const lessonId of lessonIds) {
     if (states.get(lessonId)?.status === "consumed") continue;
@@ -1290,7 +1294,10 @@ async function syncLessonPackageConsumption({
       const subjectScoped = packages.some(item => String(item.tokenSubject || "").trim());
       const studentSnap = subjectScoped ? await transaction.get(db.collection("students").doc(cleanStudentId)) : null;
       const subject = subjectScoped ? lessonSubject(lesson, studentSnap?.exists ? studentSnap.data() : {}) : "";
-      const tiers = packageTiersForLesson(packages, tokenSubjectKey(subject));
+      // individual / group (2026-11-18, direction-format-core packageTiersForFormat): with a group package on the card a
+      // group lesson takes its subject's group packages and an individual lesson never does; a card without group
+      // packages takes exactly as before. formatFallback: a group lesson paid from an individual package (no group one).
+      const { tiers, fallback: formatFallback } = packageTiersForFormat(packages, tokenSubjectKey(subject), lessonFormat(lesson));
       if (!tiers) {
         // the card's packages are all for other subjects: this subject is not on packages (nothing taken, nothing owed)
         const result = {
@@ -1392,6 +1399,8 @@ async function syncLessonPackageConsumption({
         balanceBefore: movement.balanceBefore,
         balanceAfter: movement.balanceAfter,
         reason: lessonCredits === 1 ? "Completed lesson consumed one package credit" : `Completed lesson consumed ${lessonCredits} package credits`,
+        // a group lesson paid from an individual package: the card has no group package of that subject (2026-11-18)
+        ...(formatFallback ? { formatFallback: true } : {}),
         actor: actorData,
         createdAt: nowIso,
         requestId: mutationId,

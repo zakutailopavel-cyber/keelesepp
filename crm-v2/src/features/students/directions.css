@@ -50,3 +50,19 @@
 .duplicate-pair__facts > div { display: grid; grid-template-columns: 7.5em 1fr; gap: 6px; }
 .duplicate-pair__facts dt { color: var(--muted, var(--gray-500)); }
 .duplicate-pair__facts dd { margin: 0; overflow-wrap: anywhere; }
+/* „Individuaalne / Grupp” (2026-11-18): the format of a direction — segmented control and badge */
+.direction-format-switch { grid-column: 1 / -1; border: 0; padding: 0; margin: 0; min-width: 0; }
+.direction-format-switch legend { font-weight: 600; margin-bottom: 6px; font-size: .9rem; }
+.direction-format-switch [role="radiogroup"] { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border, light-dark(#e5e7eb,#333a41)); border-radius: var(--radius-lg); overflow: hidden; }
+.direction-format-switch label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; cursor: pointer; }
+.direction-format-switch label + label { border-left: 1px solid var(--border, light-dark(#e5e7eb,#333a41)); }
+.direction-format-switch label.is-active { background: var(--surface-subtle, var(--gray-100)); font-weight: 700; }
+.direction-format-switch input:focus-visible { outline: 2px solid var(--green, #16a34a); outline-offset: 2px; }
+.direction-format-badge { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: var(--radius-pill); font-size: .75rem; font-weight: 700; line-height: 1.5; background: var(--surface-alt); color: var(--gray-700); border: 1px solid var(--border, light-dark(#e5e7eb,#333a41)); white-space: nowrap; }
+.direction-format-badge.is-group { background: #eef4ff; background: light-dark(#eef4ff,#172338); color: #1f3a6e; color: light-dark(#1f3a6e,#a9c1f5); border-color: #c7d7fe; border-color: light-dark(#c7d7fe,#2b3f66); }
+.student-directions__title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.student-directions__main .student-directions__title { color: inherit; font-size: inherit; }
+.student-directions__main .direction-format-badge { font-size: .75rem; color: var(--gray-700); }
+.student-directions__main .direction-format-badge.is-group { color: #1f3a6e; color: light-dark(#1f3a6e,#a9c1f5); }
+.direction-format-hint { grid-column: 1 / -1; margin: 0; font-size: .85rem; color: var(--warning-text, #b45309); }
+.direction-format-warning { margin: 8px 0 0; padding: 8px 10px; border-radius: var(--radius-md); background: #fff7ed; background: light-dark(#fff7ed,#271c0c); border: 1px solid #fed7aa; border: 1px solid light-dark(#fed7aa,#513716); color: var(--warning-text, #92400e); font-size: .88rem; }

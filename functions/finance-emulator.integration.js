@@ -197,6 +197,21 @@ test("finance role can read invoices without gaining student or mutation access"
   assert.equal((await planWithSubjects({ stringValue: "package" })).status, 403, "subjectBilling must be a map");
   const financeSubjectsWrite = await firestoreDocumentRequest(financeToken, "PATCH", "studentRevenuePlans/admin-forecast-student?updateMask.fieldPaths=subjectBilling", { fields: { subjectBilling: subjectMap(1) } });
   assert.equal(financeSubjectsWrite.status, 403, "the finance role cannot change per-subject billing");
+  // group price per subject (2026-11-18, „Õppesuunad: individuaalne / grupp”): groupPrices is a map of at most 8 subjects
+  const planWithGroupPrices = (groupPrices) => firestoreDocumentRequest(adminToken, "PATCH", "studentRevenuePlans/admin-forecast-student", {
+    fields: {
+      studentId: { stringValue: "admin-forecast-student" }, studentName: { stringValue: "Admin Forecast Student" },
+      lessonPriceCents: { integerValue: "2500" }, weeklyLessons: { doubleValue: 1 }, currency: { stringValue: "EUR" },
+      active: { booleanValue: true }, updatedAt: { stringValue: "2026-11-18T12:00:00.000Z" }, updatedBy: { stringValue: "Admin" },
+      updatedByUid: { stringValue: tokenUid(adminToken) }, billingMode: { stringValue: "advance" }, groupPrices,
+    },
+  });
+  const groupMap = (count) => ({ mapValue: { fields: Object.fromEntries(Array.from({ length: count }, (_, index) => [`Aine ${index}`, { mapValue: { fields: { lessonPriceCents: { integerValue: "1200" }, lessonMinutes: { integerValue: "60" } } } }])) } });
+  assert.equal((await planWithGroupPrices(groupMap(1))).status, 200, "groupPrices map");
+  assert.equal((await planWithGroupPrices(groupMap(9))).status, 403, "more than 8 group prices");
+  assert.equal((await planWithGroupPrices({ integerValue: "1200" })).status, 403, "groupPrices must be a map");
+  const financeGroupWrite = await firestoreDocumentRequest(financeToken, "PATCH", "studentRevenuePlans/admin-forecast-student?updateMask.fieldPaths=groupPrices", { fields: { groupPrices: groupMap(1) } });
+  assert.equal(financeGroupWrite.status, 403, "the finance role cannot change group prices");
   // price terms (2026-10-29): general = standard rate, no reason; discount = own rate + a reason of 1–300 characters
   const planWithTerms = (priceTerms, discountReason, hourlyRateCents = 2000) => firestoreDocumentRequest(adminToken, "PATCH", "studentRevenuePlans/admin-forecast-student", {
     fields: {
@@ -3864,6 +3879,59 @@ test("lesson tokens: a package for one subject pays only that subject's lessons 
   assert.notEqual(await stateOf("tokens-subject-est-1"), "consumed");
   assert.notEqual(await stateOf("tokens-subject-est-1"), "needs_attention");
   assert.equal((await packageRef.get()).data().balanceCredits, 3);
+});
+
+test("lesson tokens: a group package pays only the group lessons of its subject (individual / grupp, 2026-11-18)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const studentId = "tokens-format-student";
+  await Promise.all([
+    db.collection("students").doc(studentId).set({
+      name: "Grupi Õpilane", subject: "Eesti keel", active: true, parentName: "Grupi Ema", parentEmail: "grupp@example.com",
+      enrollments: [{ subject: "Eesti keel", teacher: "Pavel", teacherUid: "t-est" }, { subject: "Eesti keel", teacher: "Pavel", teacherUid: "t-est", format: "group", groupId: "g-format" }],
+    }),
+    db.collection("studentRevenuePlans").doc(studentId).set({ studentId, studentName: "Grupi Õpilane", lessonPriceCents: 2500, lessonMinutes: 60, groupPrices: { "Eesti keel": { lessonPriceCents: 1500, lessonMinutes: 90 } }, weeklyLessons: 2, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const post = (fn, path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/${fn}${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const waitFor = async (read, check, label) => {
+    for (let i = 0; i < 60; i += 1) {
+      const value = await read();
+      if (check(value)) return value;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`timed out: ${label}`);
+  };
+  const pay = (id, cents) => db.collection("invoices").doc(id).set({ date: "2031-11-01", status: "Makstud", paymentStatus: "paid", paidAmountCents: cents, balanceDueCents: 0 }, { merge: true });
+
+  // one family invoice: Eesti keel individually (25 €) and in the group (15 € / 90 min), each line its own package
+  const created = await post("manualInvoiceApi", "/create-tokens-combined", { items: [{ studentId, subject: "Eesti keel", lessons: 2 }, { studentId, subject: "Eesti keel", format: "group", lessons: 3 }], due: "2031-12-31", requestId: "tokens-format-both" });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.deepEqual(created.body.invoice.lines.map((line) => line.description), ["Tunnipakett (Eesti keel): 2 × 60 min × 25,00 €", "Tunnipakett (Eesti keel · grupp): 3 × 90 min × 15,00 €"]);
+  assert.equal(created.body.invoice.amountCents, 2 * 2500 + 3 * 1500);
+  await pay("tokens-format-both", 9500);
+  const credited = await post("financeApi", "/invoices/tokens/credit", { invoiceId: "tokens-format-both" });
+  assert.equal(credited.status, 201, JSON.stringify(credited.body));
+  const individualRef = db.collection("studentPackages").doc("tokens_tokens-format-both_0");
+  const groupRef = db.collection("studentPackages").doc("tokens_tokens-format-both_1");
+  assert.equal((await individualRef.get()).data().tokenFormat, undefined);
+  assert.equal((await groupRef.get()).data().tokenFormat, "group");
+
+  const stateOf = async (lessonId) => (await db.collection("lessonPackageStates").doc(lessonId).get()).data();
+  const held = (id, date, extra) => db.collection("lessons").doc(id).set({ studentId, studentName: "Grupi Õpilane", date, status: "Toimunud", accountingSource: "crm_v2", teacherUid: "t-est", teacher: "Pavel", subject: "Eesti keel", ...extra });
+  // a calendar group's lesson takes from the group package, an individual lesson from the individual one
+  await held("tokens-format-group-1", "2031-11-03", { groupId: "g-format", duration: 90 });
+  const groupState = await waitFor(() => stateOf("tokens-format-group-1"), (s) => s?.status === "consumed", "group lesson consumed");
+  assert.equal(groupState.studentPackageId, "tokens_tokens-format-both_1");
+  await held("tokens-format-ind-1", "2031-11-04", { duration: 60 });
+  const individualState = await waitFor(() => stateOf("tokens-format-ind-1"), (s) => s?.status === "consumed", "individual lesson consumed");
+  assert.equal(individualState.studentPackageId, "tokens_tokens-format-both_0");
+  assert.equal((await groupRef.get()).data().balanceCredits, 2);
+  assert.equal((await individualRef.get()).data().balanceCredits, 1);
 });
 
 test("lesson tokens: one package invoice for a family, a package per line on its own card (owner 2026-11-04)", async () => {

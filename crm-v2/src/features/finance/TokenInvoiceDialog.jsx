@@ -20,7 +20,7 @@ const newRequestId = () => `lesson_tokens_${Date.now()}_${Math.random().toString
 const PRESETS = [4, 8, 9, 12];
 const dueDefault = () => `${defaultBillingMonth()}-10`;
 let rowSeq = 0;
-const newRow = (studentId = '') => ({ key: `row-${(rowSeq += 1)}`, studentId, pickedSubject: '', lessons: 8 });
+const newRow = (studentId = '') => ({ key: `row-${(rowSeq += 1)}`, studentId, pickedSubject: '', pickedFormat: 'individual', lessons: 8 });
 
 // „Tunnipakett” (owner 2026-10-14): an invoice for N lessons at the card's price. The parent pays; the administrator
 // then presses „Lisa tunnid” on the paid invoice and the card gets N lessons; every held lesson takes one.
@@ -69,7 +69,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
   const priceMissing = states.some((state) => state.card && tokenRowPriceView(state).status === 'missing');
 
   // the lessons left that this subject's lessons can take (shown only for the card it was read for)
-  const balanceOf = (state) => (state.card && state.subject && loaded[state.card.id] ? subjectBalance(loaded[state.card.id], state.subject) : null);
+  const balanceOf = (state) => (state.card && state.subject && loaded[state.card.id] ? subjectBalance(loaded[state.card.id], state.subject, state.format) : null);
   const studentIdsKey = [...new Set(rows.map((row) => row.studentId).filter(Boolean))].sort().join('|');
   useEffect(() => {
     if (!studentIdsKey) return undefined;
@@ -101,8 +101,8 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
     try {
       // the note is internal: it goes to invoiceNotes, never onto the invoice the payer can read
       const { invoice } = combined
-        ? await api.createTokensCombined({ items: states.map((state) => ({ studentId: state.card.id, subject: state.subject, lessons: state.count })), due, note: '', requestId: id, issuer })
-        : await api.createTokens({ studentId: card.id, lessons: first.count, due, note: '', subject: first.subject, requestId: id, issuer });
+        ? await api.createTokensCombined({ items: states.map((state) => ({ studentId: state.card.id, subject: state.subject, ...(state.format === 'group' ? { format: 'group' } : {}), lessons: state.count })), due, note: '', requestId: id, issuer })
+        : await api.createTokens({ studentId: card.id, lessons: first.count, due, note: '', subject: first.subject, ...(first.format === 'group' ? { format: 'group' } : {}), requestId: id, issuer });
       const noted = await saveCreationNote(notesRepository, invoice, note);
       setBusy('');
       close();
@@ -113,19 +113,27 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
     }
   };
 
-  const subjectSelect = (row, state, label) => (state.card ? <Select className="form-grid__wide" label={label} value={state.subject} onChange={(event) => updateRow(row.key, { pickedSubject: event.target.value })}>
-    {state.subjects.length === 1 && state.ownSubjects.length === 1 ? null : <option value="">{`Vali aine (${state.subjects.length})`}</option>}
-    {state.subjects.map((item) => <option key={item} value={item}>{item}</option>)}
-  </Select> : null);
+  const subjectSelect = (row, state, label) => (state.card ? <>
+    <Select className="form-grid__wide" label={label} value={state.subject} onChange={(event) => updateRow(row.key, { pickedSubject: event.target.value, pickedFormat: 'individual' })}>
+      {state.subjects.length === 1 && state.ownSubjects.length === 1 ? null : <option value="">{`Vali aine (${state.subjects.length})`}</option>}
+      {state.subjects.map((item) => <option key={item} value={item}>{item}</option>)}
+    </Select>
+    {/* „Individuaalne / Grupp” (2026-11-18): only when the subject has a group direction or a group price */}
+    {state.formats.length > 1 ? <Select className="form-grid__wide" label={label.replace(/^Aine/, 'Vorm').replace(' (kursus)', '')} value={state.format} onChange={(event) => updateRow(row.key, { pickedFormat: event.target.value })}>
+      <option value="individual">Individuaalne</option>
+      <option value="group">Grupp — pakett ainult grupitundidele</option>
+    </Select> : null}
+  </> : null);
   // „Tunnihind” for control (Oleksiy 2026-11-06): the price per hour, the lesson length and price when not 60 min, and
   // „N tundi × hind = summa” — all from the server's per-lesson price (tokenInvoiceRows.js tokenPlanPrice)
   const priceBlock = (state, index) => {
     if (!state.card) return null;
     const view = tokenRowPriceView(state);
-    const subject = state.subject ? ` (${state.subject})` : '';
+    const subject = state.label ? ` (${state.label})` : '';
     if (view.status === 'no-subject') return <p className="form-hint form-grid__wide" data-token-price={index + 1}>Tunnihind: vali aine</p>;
     if (view.status === 'missing') return <p className="action-error form-grid__wide" data-token-price={index + 1}>{state.subject}: {view.warning}</p>;
     return <p className="form-hint form-grid__wide" data-token-price={index + 1}>
+      {view.warning ? <><span className="action-error" role="note">{state.label}: {view.warning}</span><br /></> : null}
       <strong>{view.hourly}</strong>{subject}
       {view.lesson ? <> · {view.lesson}</> : null}
       {view.amount ? <><br />{index || combined ? `Rida ${index + 1}: ` : ''}{view.amount}</> : null}
@@ -149,7 +157,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
         {subjectSelect(rows[0], first, 'Aine (kursus)')}
         {card ? <p className="form-hint form-grid__wide">
           Maksja: <strong>{payer}</strong>{payerEmail ? ` · ${payerEmail}` : ' · Arvel pole saaja e-posti'}
-          {firstBalance !== null ? <> · Praegu paketis ({first.subject}): <strong>{firstBalance} tundi</strong></> : null}
+          {firstBalance !== null ? <> · Praegu paketis ({first.label || first.subject}): <strong>{firstBalance} tundi</strong></> : null}
         </p> : null}
         <div className="field form-grid__wide">
           <span className="field__label">Tundide arv</span>

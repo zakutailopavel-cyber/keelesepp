@@ -21,6 +21,8 @@ export function normalizeRevenuePlan(id, data = {}) {
     validFrom: clean(data.validFrom),
     priceHistory: Array.isArray(data.priceHistory) ? data.priceHistory : [],
     subjectPrices: subjectPricesOf(data.subjectPrices),
+    // the group price of a subject (2026-11-18, students/directionFormat.js): { "Eesti keel": { lessonPriceCents, lessonMinutes } }
+    groupPrices: subjectPricesOf(data.groupPrices),
     // billing per subject (owner 2026-11-06): { "Inglise keel": { billingMode, weeklyLessons, chargeNoShow } }, a
     // missing field = the card's value (finance/subjectBilling.js)
     subjectBilling: subjectBillingOf(data.subjectBilling),
@@ -188,6 +190,8 @@ export const revenuePlansService = {
     if (!subjects.valid) throw new Error(Object.values(subjects.errors)[0]);
     const perSubject = validateSubjectBilling(values.subjectBilling);
     if (!perSubject.valid) throw new Error(Object.values(perSubject.errors)[0]);
+    const group = validateSubjectPrices(values.groupPrices);
+    if (!group.valid) throw new Error(Object.values(group.errors)[0]);
     const updatedAt = new Date().toISOString();
     const updatedBy = user.displayName || user.email || '';
     const terms = priceTermsRecord(values, previous, { at: updatedAt, name: updatedBy, uid: user.uid });
@@ -214,6 +218,9 @@ export const revenuePlansService = {
       // written only when the form sends it (a card with own billing for a subject, or one that had it): a plan
       // without it bills every subject by the card's values, and saves keep working before the rules know the field
       ...(values.subjectBilling ? { subjectBilling: perSubject.billing } : {}),
+      // group prices (2026-11-18): written only when the form sends them (a card with a group direction, or one that had
+      // a group price); a plan without them bills every lesson as before
+      ...(values.groupPrices ? { groupPrices: group.prices } : {}),
       // „Maksab sularahas” (owner 2026-11-11): ["*"] or subject names; the server reads it (functions/cash-core.js)
       ...(Array.isArray(values.cashSubjects) ? { cashSubjects: cashSubjectsOf(values.cashSubjects) } : {}),
       ...terms,
@@ -234,7 +241,7 @@ export const revenuePlansService = {
       date: updatedAt.slice(0, 10),
       // no price, per-subject prices, per-subject billing or terms here (review 2026-11-11): the history of the
       // price stays in the plan's own priceHistory, which only admin / finance read
-      meta: { studentId: student.id, studentName: student.name || '', weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode, ...(values.subjectPrices ? { subjectPricesChanged: true } : {}) },
+      meta: { studentId: student.id, studentName: student.name || '', weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode, ...(values.subjectPrices ? { subjectPricesChanged: true } : {}), ...(values.groupPrices ? { groupPricesChanged: true } : {}) },
     });
     await batch.commit();
     return normalizeRevenuePlan(student.id, plan);

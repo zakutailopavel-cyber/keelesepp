@@ -34,8 +34,11 @@ function normalizedEnrollment(value = {}, fallback = {}) {
   const teacherUid = cleanText(value.teacherUid || fallback.teacherUid);
   const level = cleanText(value.level || fallback.level);
   const targetLevel = cleanText(value.targetLevel || fallback.targetLevel);
+  // „Individuaalne / Grupp” (2026-11-18, features/students/directionFormat.js): only a group track stores its format and
+  // optionally its calendar group; a track without one is individual (every track before)
+  const group = cleanText(value.format) === 'group';
   return {
-    id: cleanText(value.id) || [subject, teacherUid || teacher, level, targetLevel].join('|').toLocaleLowerCase('et'),
+    id: cleanText(value.id) || [subject, teacherUid || teacher, level, targetLevel, ...(group ? ['group'] : [])].join('|').toLocaleLowerCase('et'),
     subject,
     teacher,
     teacherUid,
@@ -44,6 +47,8 @@ function normalizedEnrollment(value = {}, fallback = {}) {
     // „Paus” keeps the track (and the teacher's access); „Lõpetanud” closes it (owner 2026-10-24)
     active: value.active !== false && value.status !== 'ended',
     ...(['paused', 'ended'].includes(value.status) ? { status: value.status } : {}),
+    // an explicit „Individuaalne” is kept too: the administrator's choice beats the „Grupp?” read from a calendar group
+    ...(group ? { format: 'group', ...(cleanText(value.groupId) ? { groupId: cleanText(value.groupId) } : {}) } : cleanText(value.format) === 'individual' ? { format: 'individual' } : {}),
   };
 }
 
@@ -66,7 +71,8 @@ export function withMainTrackTeacher(stored, current, teacher, teacherUid) {
 
 export function enrollmentKey(value = {}) {
   const enrollment = normalizedEnrollment(value);
-  return [enrollment.subject, enrollment.teacherUid || enrollment.teacher].map((item) => cleanText(item).toLocaleLowerCase('et')).join('|');
+  // the group direction of a subject is another track than the individual one (an individual key is as before)
+  return [enrollment.subject, enrollment.teacherUid || enrollment.teacher, ...(enrollment.format === 'group' ? ['group'] : [])].map((item) => cleanText(item).toLocaleLowerCase('et')).join('|');
 }
 
 export function studentPersonKey(student = {}) {

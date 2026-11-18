@@ -5,6 +5,7 @@ import { occurrencesForDates } from '../../calendar/calendarView.js';
 import { monthDates, studentLessonBalances } from '../../finance/monthlyBilling.js';
 import { isHomeworkOpen } from '../../homework/homeworkStatus.js';
 import { itemSubject, mainSubject } from '../../students/subjects.js';
+import { lessonFormat } from '../../students/directionFormat.js';
 import { lastSeenOf } from '../../../services/firebase/presence.js';
 import { tokenAccount } from '../../../services/firebase/lessonTokens.js';
 
@@ -124,9 +125,10 @@ export function lessonsRunningOut({ students = [], plans = [], invoices = [], le
     const ahead = occurrencesForDates(events.filter((event) => event.studentId === student.id || (event.studentIds || []).includes(student.id)), rest)
       .filter((item) => (item.status || 'Planeeritud') === 'Planeeritud' && !markedDays.has(item.occurrenceDate));
     balances.forEach((balance) => {
-      const planned = ahead.filter((item) => !balance.subject || (itemSubject(item, student) || main) === balance.subject).length;
+      // a subject split by format (2026-11-18): the group direction counts the calendar group's lessons, the other the rest
+      const planned = ahead.filter((item) => (!balance.subject || (itemSubject(item, student) || main) === balance.subject) && (!balance.format || lessonFormat(item) === balance.format)).length;
       if (balance.left > 0 && balance.left >= planned) return;
-      result.push({ key: `month:${student.id}:${balance.subject}`, studentId: student.id, studentName: student.name || 'Õpilane', subject: balance.subject, kind: 'month', left: balance.left, planned, owed: 0 });
+      result.push({ key: `month:${student.id}:${balance.subject}${balance.format ? `:${balance.format}` : ''}`, studentId: student.id, studentName: student.name || 'Õpilane', subject: balance.label || balance.subject, kind: 'month', left: balance.left, planned, owed: 0 });
     });
   });
   const byStudent = new Map();

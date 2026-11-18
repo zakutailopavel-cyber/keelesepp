@@ -3,6 +3,7 @@
 import { occurrencesForDates, shiftDate } from '../calendar/calendarView.js';
 import { findDirection } from './studyDirections.js';
 import { itemSubject, mainSubject, subjectName } from './subjects.js';
+import { groupPriceOf, lessonFormat, trackFormat } from './directionFormat.js';
 import { localDate } from '../../utils/localDate.js';
 
 const clean = (value) => String(value ?? '').trim();
@@ -37,14 +38,26 @@ export function subjectPrice(plan, subject, student) {
   return { kind: subject === mainSubject(student) ? 'card' : 'same', cents: plan.lessonPriceCents, minutes: plan.lessonMinutes || 60 };
 }
 
+// the price of one direction (subject + format, 2026-11-18): a group direction has the subject's group price; without
+// one its lessons are billed at the individual price (kind 'fallback' — shown as a warning)
+export function directionPrice(plan, subject, student, format = 'individual') {
+  const individual = subjectPrice(plan, subject, student);
+  if (format !== 'group' || (individual.kind === 'none' && !groupPriceOf(plan, subject))) return individual;
+  if (!plan || plan.active === false) return { kind: 'none' };
+  const own = groupPriceOf(plan, subject);
+  if (own) return { kind: 'group', cents: own.lessonPriceCents, minutes: own.lessonMinutes };
+  return individual.kind === 'none' ? individual : { ...individual, kind: 'fallback' };
+}
+
 export function priceLabel(price) {
   const euro = (cents) => `${(cents / 100).toFixed(2).replace('.', ',')} €`;
   if (!price || price.kind === 'none') return 'hind määramata';
   if (price.kind === 'same') return `${euro(price.cents)} / ${price.minutes} min (kaardi hind)`;
+  if (price.kind === 'fallback') return `${euro(price.cents)} / ${price.minutes} min (grupi hind puudub — arvel individuaalne hind)`;
   return `${euro(price.cents)} / ${price.minutes} min`;
 }
 
-export function directionRows({ student = {}, schedule = [], lessons = [], plan = null, directions = [], today = localDate() } = {}) {
+export function directionRows({ student = {}, schedule = [], lessons = [], plan = null, directions = [], groups = [], today = localDate() } = {}) {
   const tracks = Array.isArray(student.enrollments) && student.enrollments.length ? student.enrollments : [student];
   const dates = Array.from({ length: AHEAD_DAYS }, (_, index) => shiftDate(today, index));
   const ahead = [
@@ -56,8 +69,13 @@ export function directionRows({ student = {}, schedule = [], lessons = [], plan 
     const subject = subjectName(track.subject || student.subject) || 'Eesti keel';
     const status = trackStatus(track);
     // the same subject with two teachers: each track counts its own teacher's lessons
-    const twins = tracks.filter((t) => t && (subjectName(t.subject || student.subject) || 'Eesti keel') === subject).length > 1;
-    const mine = (item) => itemSubject(item, student) === subject && (!twins || !track.teacherUid || item.teacherUid === track.teacherUid);
+    const sameSubject = tracks.filter((t) => t && (subjectName(t.subject || student.subject) || 'Eesti keel') === subject);
+    const read = trackFormat(track, { student, groups });
+    // the same subject in both formats (2026-11-18): each direction counts its own lessons (a calendar group's lesson
+    // is a group lesson); the same subject with two teachers: each its own teacher's
+    const bothFormats = new Set(sameSubject.map((t) => trackFormat(t, { student, groups }).format)).size > 1;
+    const twins = sameSubject.length > 1 && !bothFormats;
+    const mine = (item) => itemSubject(item, student) === subject && (!bothFormats || lessonFormat(item) === read.format) && (!twins || !track.teacherUid || item.teacherUid === track.teacherUid);
     const upcoming = ahead.filter(mine);
     const held = lessons.filter((lesson) => mine(lesson) && (lesson.date || '') <= today && (!lesson.status || lesson.status === 'Toimunud')).map((lesson) => lesson.date).filter(Boolean).sort();
     const next = upcoming.find((item) => item.occurrenceDate) || upcoming[0] || null;
@@ -67,6 +85,9 @@ export function directionRows({ student = {}, schedule = [], lessons = [], plan 
       id: clean(track.id) || subject,
       track,
       subject,
+      format: read.format,
+      formatInferred: read.inferred,
+      groupId: read.groupId,
       teacher: clean(track.teacher || (tracks.length === 1 ? student.teacher : '')),
       level: clean(track.level || (tracks.length === 1 ? student.level : '')),
       targetLevel: clean(track.targetLevel || (tracks.length === 1 ? student.targetLevel : '')),
@@ -77,7 +98,7 @@ export function directionRows({ student = {}, schedule = [], lessons = [], plan 
       next: next ? { date: next.occurrenceDate || '', time: clean(next.time), weekly: Boolean(next.weekly) } : null,
       upcomingCount: upcoming.filter((item) => item.occurrenceDate).length,
       lastLesson: held[held.length - 1] || '',
-      price: subjectPrice(plan, subject, student),
+      price: directionPrice(plan, subject, student, read.format),
       color: direction?.color || '',
       shortLabel: direction?.shortLabel || '',
       known: Boolean(direction),

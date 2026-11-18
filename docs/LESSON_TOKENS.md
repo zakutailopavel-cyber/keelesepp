@@ -152,6 +152,33 @@ linked automatically (no invoice reference is stored).
   written only by the server.
 - A credited token invoice cannot be cancelled (correct the package: financeApi `/student-packages/adjust`).
 
+## Individual / group packages (team 2026-11-18)
+
+„Õppesuunad: individuaalne / grupp” (ARCHITECTURE.md „Direction format”): a card may take Eesti keel individually and
+in a calendar group; each direction has its own price and its own lessons left.
+
+- **Invoice**: the „Tunnipakett” dialog shows „Vorm” (Individuaalne / Grupp) when the subject has a group direction or
+  a group price (`directionFormat.js formatsFor`). A group line sends `format: 'group'` (`/create-tokens`, and per item in
+  `/create-tokens-combined`; one family invoice may hold Eesti keel and Eesti keel · grupp). The server prices it with
+  `combined-invoice-core planForDirection` (`groupPrices[subject]`, none → the individual price; the dialog warns „Grupi
+  hind puudub …” before it is made), the line reads „Tunnipakett (Eesti keel · grupp): N × min × €”, the invoice /
+  `cardParts[i]` store `format: 'group'`. `lesson-tokens-core tokenInvoiceInput` keeps only `'group'`.
+- **Package**: `tokenPackageRecord` writes `tokenFormat: 'group'` (with `tokenSubject`); the grant ledger entry and the
+  audit carry it. A package without `tokenFormat` is individual — every package made before.
+- **Consumption** (`direction-format-core packageTiersForFormat`, in `syncLessonPackageConsumption`):
+  - no group package on the card → exactly the old tiers (subject packages, then the shared pool);
+  - a group lesson (`groupId`) → its subject's group packages; none → the old tiers without group packages, and the
+    consumption ledger entry gets `formatFallback: true` (Tunnipakett shows „grupitund individuaalsest paketist”);
+  - an individual lesson → the old tiers without group packages; only group packages on the card → not on packages
+    (`not_applicable`, takes nothing, owes nothing).
+  A group package's backlog („Lisa tunnid”) takes only group lessons (`tokenBacklogLessonIds format`).
+- **Views** (admin / finance only, as before): the Tunnipakett table shows a format badge next to the subject; a group
+  direction without a group package shows „Eesti keel · grupp: grupi tunnipaketti pole — grupitunnid võetakse
+  individuaalsest paketist”. `subjectBalance(packages, subject, format)` counts what a lesson of that format can take.
+  Parents and students still see nothing.
+- Tests: `functions/direction-format-core.test.js`, `finance-emulator.integration.js` („lesson tokens: a group package
+  pays only the group lessons of its subject …”), `crm-v2/src/features/students/directionFormat.ui.test.jsx`.
+
 ## Open owner questions
 
 Answered 2026-10-29: a double lesson is 120 min = 2 credits (rule above). Kept at the defaults for now: unused credits
