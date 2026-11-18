@@ -83,3 +83,7 @@ mist
 ksite
 # B2 module 7: the Töötukassa career site minukarjaar.ee named as a source
 minukarjaar
+# B2 module 10: suffixes named in the word-formation notices (-dus, -likkus, -matu)
+dus
+likkus
+matu

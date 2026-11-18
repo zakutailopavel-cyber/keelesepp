@@ -137,6 +137,12 @@ corner), 007 infogap (health, polite conditional, S1 home talk), 008 case (money
 **B2 module 7** (`b2/module07.js`, 031–034, 2026-11-18): education from the learner's side — case (school choice after
 grade 9, advise) → facts (learning myths, explain) → debate (a new profession at 45, decide) → quest (who pays, plan);
 035 the module exam + „Minu õpitee järgmine samm”; owner summary `docs/review/b2-m07-tasks.md`.
+**B2 module 10** (`b2/module10.js`, 046–049, 2026-11-19, stage B2-): relationships from the learner's side — facts
+(friends and loneliness, present) → case (money a friend does not return, explain) → infogap (noise and the house chat,
+the learner mediates, advise) → game (one family summer, negotiate); 050 the module exam + „Minu kokkuleppe kaart”;
+owner summary `docs/review/b2-m10-tasks.md`. Learnt: at B2- every Kasuta sheet needs one speaking task of ≥ 180 s (the
+extension is the natural place), choice questions must be ≥ ~9 words on average (only the questions are measured), and
+at most half of the Kasuta sheets may mention a phone call or a voice message (av-kasuta2).
 
 ## 5. Next
 
