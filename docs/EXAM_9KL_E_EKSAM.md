@@ -120,9 +120,11 @@ discussion on 1–2 topics; pro / contra debate towards an agreement. Marked 0�
 
 **Status 2026-11-18:** built in PR #1270 (fields: `docs/E_EXAM_ENGINE.md` §2) and mock 1 uses it — exam key `E9` with
 the locking timer, item 0 in every task, heard twice, `speakers`, clip table, `chat` / `chips`, `hint: 'inside'`, letter
-card, pie chart, `kokkuvote`, E9W / E9S, part points. Still open: one audio file per clip (1.3, audio tool), subheading
-matching (mock 2), 2.5 by drag, paging one task per screen, the mock's total over its four sheets. The table below is the
-original analysis.
+card, pie chart, `kokkuvote`, E9W / E9S, part points. Since PR „E-eksam: pidev leht ekraanil, 2.5 numbrid, klipipõhine
+heli”: exam sheets are one continuous page on screen, 2.5 is numbered and dragged (`adsmatch` `layout: 'chips'`), and the
+audio tool makes one file per clip from `questions[i].script` (E_EXAM_ENGINE.md §2.1) — mock 1's 1.3 still has to be
+split per clip (content TODO). Still open: subheading matching (mock 2), paging one task per screen, the mock's total
+over its four sheets. The table below is the original analysis.
 
 „Block now” = what our mocks use today. „Waits” = the block ids that should move to the new interaction. Blocks are in
 `crm-v2/src/features/worksheet-studio/engine/blocks/*`; the course builders in `admin/course/blocks.js`.

@@ -1,3 +1,31 @@
+## 2026-11-18 · agent/e-exam-polish — E-eksam: pidev leht ekraanil, 2.5 numbrid, klipipõhine heli
+
+- Base: `origin/main` 2655c72 (#1267 merge), checked 2026-11-18. Draft PR „E-eksam: pidev leht ekraanil, 2.5 numbrid,
+  klipipõhine heli”. Not merged, no deploy, no rules / functions change, no production writes, no TTS call made.
+- Done (UI follow-up of #1270 after reading mock 1 as a student, `docs/E_EXAM_ENGINE.md` §1, §2, §2.1):
+  - exam sheets (`meta.exam`) on screen are one continuous A4-wide page (`examMode.js onScreenContinuous`, Sheet.jsx
+    `is-continuous`): no blank area after the part header, the W2 chart right above its task; print redraws A4 pages
+    on `beforeprint`; on paper a chart of an exam sheet keeps with the task after it (`keepsWithNext` → `packPages`), the
+    pie is at most 62 mm high (mock 1 W prints on 4 pages, chart with task 2);
+  - 2.5 `adsmatch`: numbered rows 0, 1 … n on an exam sheet; new `layout: 'chips'` (endings dragged / tapped from a bank,
+    answer stays the letter); mock 1 `ee1_r_25` uses it (one line in `b1/eeksam.js`);
+  - per-clip audio: `questions[i].script` → `tools/listening-audio` builds `<blockId>_<i>.mp3`, key
+    `lessonId:blockId#i`, `withListeningAudio` sets `questions[i].audio`; no existing file changes (plan dry run: 700
+    items, 0 stale). Mock 1's 1.3 keeps one transcript → content TODO in `E_EXAM_ENGINE.md` §2.1 and `b1/eeksam.js`;
+  - seen while reading: the pie's labels were cut / 6 px on a phone → shares big beside the slices, names + shares in
+    the legend (phone only); the E9W / E9S rubric said „80 %” under a part header with 60 % → 60 % (`rubricShare`).
+- Files: `worksheet-studio/engine/{Sheet.jsx, examMode.js, examSheet.css, sheet.css, blocks/harno.jsx, blocks/chart.jsx,
+  examPolish.test.jsx}`, `admin/course/{listeningAudio.js, listeningAudio.test.js, b1/eeksam.js}`,
+  `tools/listening-audio/{plan.mjs, build.mjs, README.md}`, `e2e/layout/sheets.spec.cjs`, docs `E_EXAM_ENGINE.md`,
+  `EXAM_9KL_E_EKSAM.md`.
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-studio src/features/worksheet-generator` 182 files, 2168
+  passed / 12 skipped; eslint on the changed files clean; `cd e2e && npx playwright test -c playwright.layout.config.cjs`
+  40 passed (2 new e-exam tests). Screens before / after at 1280 and 375 px in the PR.
+- Limits: the oral sheet `a2b1-ee1-s` is not an exam sheet (no `meta.exam`), so it stays A4-paged on screen; rubrics are
+  still clickable by the learner on the written sheets (as on lesson sheets).
+- Next safe step: content agent splits mock 1's `T13` into `questions[i].script` and runs
+  `node tools/listening-audio/build.mjs --only a2b1-ee1-l:ee1_l_13`.
+
 ## 2026-11-18 · agent/exam-9kl-e-eksam — mock 1 switched to the e-exam engine (PR #1267, round 2)
 
 - Base: merged `origin/main` efbac8b (#1270 e-exam engine, modules 5–7) into the branch, 2026-11-18. Draft PR #1267, not

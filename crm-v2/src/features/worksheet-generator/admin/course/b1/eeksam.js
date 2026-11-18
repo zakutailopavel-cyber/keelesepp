@@ -14,7 +14,9 @@
 // Every text is written for KeeleSepp; nothing is copied from Harno. Real facts carry their source; the people in the
 // recordings are invented.
 // Listening: recorded with Neurokõne (tools/listening-audio/build.mjs, listeningAudio.json); after a transcript edit run
-// it again. 1.3 has one recording for its eight clips (one file per clip: EXAM_9KL_E_EKSAM.md §4, still to do).
+// it again. 1.3 has one recording for its eight clips. TODO (content): the audio tool now makes one file per clip when
+// each question carries its spoken text `script` — split T13 per clip as docs/E_EXAM_ENGINE.md §2.1 says, then run
+// `node tools/listening-audio/build.mjs --only a2b1-ee1-l:ee1_l_13`.
 import { B, teach } from '../blocks.js';
 import { RUBRIC_SCALES } from '../../../../worksheet-studio/engine/blocks/harnoScales.js';
 
@@ -282,7 +284,8 @@ const READING = [
     '',
     'Õhtul koju jõudes olin väsinud, [[kuid väga õnnelik]]. Nüüd käin varjupaigas igal laupäeval. Kusti leidis kuu aega hiljem uue pere, [[mis tegi mind ühtaegu kurvaks ja rõõmsaks]].',
   ], ['et koerad ei vaja jalutamist', 'kuigi ma ei tahtnud sinna üldse minna']), 'chips')),
-  example(B.adsmatch('ee1_r_25', '2.5. Lõpeta laused.', 'Üks lause lõpp jääb üle. Esimene lause on näidis ja see on juba ära märgitud. *Vastamiseks vali vastuste pangast sobiv lause lõpp.*', [
+  // 2.5: the endings are dragged (or tapped) from the bank into the gap after each beginning, as in EIS
+  example(withData(B.adsmatch('ee1_r_25', '2.5. Lõpeta laused.', 'Üks lause lõpp jääb üle. Esimene lause on näidis ja see on juba ära märgitud. *Vastamiseks vali vastuste pangast sobiv lause lõpp.*', [
     ['', 'sest bussipiletit ei ole enam vaja osta.'],
     ['', 'kus autojuht ei pruugi ratturit märgata.'],
     ['', 'kas ma ei karda autode vahel sõita.'],
@@ -307,7 +310,7 @@ const READING = [
     ['Linn võiks ehitada rohkem rattateid, …', 'I'],
     ['Kõige ohtlikum on ristmikul, …', 'B'],
     ['Soovitan rattaga sõitmist kõigile, …', 'F'],
-  ], 'g_notice')),
+  ], 'g_notice'), { layout: 'chips' })),
   example(B.cloze('ee1_r_26', '2.6. Loe teksti ja vali lünka sobiv sõna.', 'Esimene lünk on näidis ja seal on õige vastus ära valitud. *Vajuta lüngale, vali seejärel sobiv vastus ja vajuta sellele.*', 'Lahtede maa', [
     'Lahemaa rahvuspark {*asub|asuvad|asuma} Põhja-Eestis, Tallinnast umbes {*tunnise|tunni|tunniga} autosõidu kaugusel. Rahvuspark {*loodi|lõi|loob} 1971. aastal ja see oli Eesti {*esimene|esimest|esimesena} rahvuspark.',
     '',

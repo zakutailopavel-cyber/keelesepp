@@ -19,6 +19,19 @@ export { START_KEY, formatClock, isMetaKey, playLimit, playsKey } from './metaKe
 // an exam sheet: the sheet names the exam whose format it follows
 export const isExamSheet = (doc) => Boolean(doc?.meta?.exam);
 
+// On screen (the learner's player and the teacher's check) an exam sheet is one continuous A4-wide page: the real
+// e-exam is a scrolling screen, and A4 page breaks left a large blank area after a part header and split the W2 chart
+// from its task (owner 2026-11-18). Print and the constructor keep A4 pages.
+export const onScreenContinuous = (doc, mode) => isExamSheet(doc) && (mode === 'interactive' || mode === 'review');
+
+// Rows that must start on the same printed page as the row after them (pageSplit.js packPages keepWithNext): a word
+// strip and the task under it (every sheet); on an exam sheet also a chart and the task that asks about it (W2).
+export const keepsWithNext = (doc, row, next) => {
+  const type = row?.[0]?.type;
+  if (type === 'wordstrip') return true;
+  return Boolean(next?.length) && isExamSheet(doc) && type === 'chart';
+};
+
 // the part header that locks the sheet when its time is over
 export function examLockBlock(doc) {
   return (doc?.blocks || []).find((b) => b.type === 'exampart' && b.data?.lock && Number(b.data?.minutes) > 0) || null;

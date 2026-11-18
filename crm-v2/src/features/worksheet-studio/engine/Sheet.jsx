@@ -2,12 +2,13 @@
 import { IN_LESSON_LABEL, isInLesson } from './inLesson.js';
 import FreeLayer, { FreeFlow } from './FreeLayer.jsx';
 import { flowItems, freeItemsOf, itemsOnPage } from './freeLayer.js';
-import { Suspense, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { lazyComponent } from '../../../app/lazyComponent.js';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { dragId, dropId, lastBlockOf } from './dragIds.js';
 import { BLOCKS, exampleAnswers, numberTasks } from './registry.js';
-import { isExamSheet } from './examMode.js';
+import { isExamSheet, keepsWithNext, onScreenContinuous } from './examMode.js';
 import { TONES } from './schema.js';
 import { Md, Target } from './ui.jsx';
 import { COLUMNS, rowsOf, snapSpan, spanOf } from './layout.js';
@@ -369,6 +370,23 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     flip.current = { key: orderKey, rects };
   });
 
+  // An exam sheet on screen is one continuous A4-wide page (examMode.js onScreenContinuous): no page breaks and page
+  // footers between the tasks. Printing redraws it as A4 pages first (beforeprint), so paper keeps its pagination.
+  const [printing, setPrinting] = useState(false);
+  const continuous = onScreenContinuous(doc, mode) && !printing;
+  const continuousCapable = onScreenContinuous(doc, mode);
+  useEffect(() => {
+    if (!continuousCapable) return undefined;
+    const before = () => flushSync(() => setPrinting(true));
+    const after = () => setPrinting(false);
+    globalThis.addEventListener?.('beforeprint', before);
+    globalThis.addEventListener?.('afterprint', after);
+    return () => {
+      globalThis.removeEventListener?.('beforeprint', before);
+      globalThis.removeEventListener?.('afterprint', after);
+    };
+  }, [continuousCapable]);
+
   // --- pagination: measure rows in a hidden layer, then pack them into A4 pages ---
   const rows = useMemo(() => rowsOf(doc.blocks), [doc.blocks]);
   const measureRef = useRef(null);
@@ -376,6 +394,8 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   // pages whose content is taller than A4 (one very long reading): they grow instead of clipping the text
   const [tallPages, setTallPages] = useState([]);
   useLayoutEffect(() => {
+    // a continuous page needs no measuring (shownPages below)
+    if (continuous) return undefined;
     const el = measureRef.current;
     if (!el) return undefined;
     const run = () => {
@@ -391,7 +411,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
       // edited by its line number in the whole block
       const measured = rowEls.map((r, i) => {
         const h = r.offsetHeight / mm;
-        const row = { h, breakBefore: Boolean(rows[i]?.[0]?.pageBreakBefore), keepWithNext: rows[i]?.[0]?.type === 'wordstrip' };
+        const row = { h, breakBefore: Boolean(rows[i]?.[0]?.pageBreakBefore), keepWithNext: keepsWithNext({ meta: doc.meta }, rows[i], rows[i + 1]) };
         const block = rows[i]?.length === 1 ? rows[i][0] : null;
         if (!block || !canSplit(block, mode)) return row;
         const spec = SPLITTABLE[block.type];
@@ -416,9 +436,12 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     const ro = new ResizeObserver(run);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [rows, doc.meta, mode, flow, fontClass]);
+  }, [rows, doc.meta, mode, flow, fontClass, continuous]);
 
-  useLayoutEffect(() => { onPageCount?.(pages.length); }, [pages.length, onPageCount]);
+  // the continuous screen page: every row on one page that grows with its tasks
+  const shownPages = useMemo(() => (continuous ? [rows.map((_, i) => i)] : pages), [continuous, rows, pages]);
+  const shownTall = continuous ? [true] : tallPages;
+  useLayoutEffect(() => { onPageCount?.(shownPages.length); }, [shownPages.length, onPageCount]);
 
   // Edit mode: double-click a text on the sheet to change it in place (Enter or click away saves, Esc cancels).
   const editInline = (event) => {
@@ -539,22 +562,22 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)} ${fontClass}`} onFocus={popIds.length ? trackTyping : undefined} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} {...editProps}>
       {/* hidden measuring layer: a page of its own (same width, padding, font and theme as the real pages), grown to
           its content, so a row is measured exactly as it will be drawn */}
-      <div className="ws-measure" ref={measureRef} aria-hidden="true"><div className="ws-page-measure">
+      {continuous ? null : <div className="ws-measure" ref={measureRef} aria-hidden="true"><div className="ws-page-measure">
         <div className="ws-measure-head">{running ? <RunHead meta={doc.meta} running={running} /> : null}{lead}<Header meta={doc.meta} /></div>
         {rows.map((row, i) => <div className="ws-measure-row" key={i}>{rowView(row, i, true)}</div>)}
         {rows.map((row, i) => (row.length === 1 && SPLITTABLE[row[0].type]?.stacked && canSplit(row[0], mode)
           ? <div className="ws-measure-stack" data-row={i} key={`s${i}`}>{rowView(row, `s${i}`, true, { from: 0, to: itemCount(row[0]) })}</div> : null))}
-      </div></div>
-      {pages.map((idxs, p) => (
-        <div className={`ws-page${tallPages[p] ? ' is-tall' : ''}`} key={p}>
+      </div></div>}
+      {shownPages.map((idxs, p) => (
+        <div className={`ws-page${shownTall[p] ? ' is-tall' : ''}${continuous ? ' is-continuous' : ''}`} key={p}>
           {p === 0
             ? <>{running ? <RunHead meta={doc.meta} running={running} /> : null}{lead}<Header key={`head:${rev}`} meta={doc.meta} /></>
             : <RunHead meta={doc.meta} running={running} />}
           <div className="ws-flow">{idxs.map((e) => (typeof e === 'number' ? rows[e] && rowView(rows[e], e) : rows[e.row] && rowView(rows[e.row], `${e.row}:${e.from}`, false, e)))}</div>
           {mode === 'edit' && idxs.length === 0 && (dnd ? <EmptyDrop /> : <div className="ws-empty">Lisa vasakult esimene plokk.</div>)}
           {dnd && mode === 'edit' && idxs.length > 0 ? <PageTailDrop page={p} lastId={lastBlockOf(rows, idxs)} /> : null}
-          <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} running={running} />
-          <FreeLayer items={itemsOnPage(freeItems, p, pages.length)} edit={mode === 'edit' ? freeEdit : null} />
+          <Footer meta={doc.meta} page={p + 1} pages={shownPages.length} bookPage={startPage ? startPage + p : undefined} running={running} />
+          <FreeLayer items={itemsOnPage(freeItems, p, shownPages.length)} edit={mode === 'edit' ? freeEdit : null} />
         </div>
       ))}
       {/* fallback={null}: the inline text editor floats over the text being edited, which stays on screen meanwhile */}
