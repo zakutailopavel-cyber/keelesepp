@@ -95,10 +95,10 @@ export const LESSONS = withShapes({
       'Üks-ühele: räägi ka ise lühidalt oma esimesest tööst. Ära paranda; lõpus ütle üks sõna, mida õpilane vajas. Kui õpilane ei tööta: „Kellena sa oled vabatahtlikult, suvel või kodus tegutsenud?” (lapsehoidja, abiline, vabatahtlik, hooldaja).')),
       station(tag(B.vocab('026_d_vocab', 'Enne lugemist: sõnad.', ['tööotsija — ищущий работу', 'kuulutus — объявление', 'kandideerima — подавать заявку на должность', 'ametikoht — должность', 'kogemus — опыт', 'töötus — безработица', 'karjäärinõustaja — карьерный консультант', 'kaaskiri — сопроводительное письмо', 'vestlus — беседа', 'katseaeg — испытательный срок']), { topic: ['kaaskiri', 'karjäärinõustaja'] }), 2, 15),
       B.topicOpener('026_d_open', 'Moodul 6. Töö Eestis: kuidas leida ja kuidas hoida?', [
-        'Töö ei ole ainult palk. Töö annab päevale rütmi, toob uusi tuttavaid ja aitab keelt harjutada. Samas ei ole töö leidmine alati lihtne. Statistikaameti andmetel oli 2026. aasta kolmandas kvartalis Eestis töötuse määr 7,9 protsenti. Kõige raskem on sageli neil, kes otsivad esimest tööd, kes on pärast pikka pausi tööle naasmas või kes tahavad ametit vahetada. Seepärast on tööotsijal kasulik teada, mida ta juba oskab ja kuidas seda teistele näidata.',
+        'Töö ei ole ainult palk. Töö annab päevale rütmi, toob uusi tuttavaid ja aitab keelt harjutada. Samas ei ole töö leidmine alati lihtne. Statistikaameti andmetel oli 2026. aasta kolmandas kvartalis Eestis töötuse määr 7,9 protsenti. Tõenäoliselt on kõige raskem neil, kes otsivad esimest tööd, kes on pärast pikka pausi tööle naasmas või kes tahavad ametit vahetada. Seepärast on tööotsijal kasulik teada, mida ta juba oskab ja kuidas seda teistele näidata.',
         'Kuidas tööd leida? Enamik töökuulutusi on internetis: tööportaalides, firmade kodulehtedel ja töötukassa iseteeninduses. Paljud töökohad täidetakse aga tuttavate kaudu, enne kui kuulutus üldse ilmub. Seepärast tasub oma soovist rääkida sõpradele, endistele kolleegidele ja naabritele. Töökuulutuses on tavaliselt kirjas ametikoht, ülesanded, nõuded, tööaeg ja palk. Kui palka ei ole kirjas, võib seda töövestlusel julgelt küsida. Kes ei tea, kust alustada, võib pöörduda töötukassa poole. Töötukassa karjäärinõustamine on tasuta kõigile: töötutele ja töötavatele, õppijatele ja ka pensioniealistele.',
         'Kandideerimiseks on tavaliselt vaja CV-d ja kaaskirja. CV on lühike, enamasti üks või kaks lehekülge. Töökogemus kirjutatakse alates viimasest töökohast: aeg, ametikoht, tööandja ja peamised ülesanded. Kaaskirjas selgitad, miks just see töö sind huvitab ja mida sa tööandjale pakud. Ka vabatahtlik töö, suvetöö, praktika ja kodus lähedase eest hoolitsemine on kogemus, mida võib kirja panna. Kes on kasvatanud lapsi või hooldanud vanemaid, oskab sageli planeerida ja rahulikuks jääda. Hea CV on lühike ja aus: ära kirjuta oskust, mida sul ei ole, aga ära unusta ka seda, mida sa tõesti oskad.',
-        'Kui kuulutus sobib, kutsutakse sind töövestlusele. Sageli on esimene küsimus „Rääkige endast”. Hea vastus kestab üks-kaks minutit: kes sa oled, kellena oled töötanud, mida oskad ja miks soovid just seda tööd. Tasub rääkida konkreetsete näidetega: mitte „ma olen täpne”, vaid „vahetuse vanemana vastutasin selle eest, et kaup läks õigel ajal välja”. Pärast vestlust tasub küsida, millal otsus tehakse, ja mõni päev hiljem viisakalt meelde tuletada, kui vastust ei ole tulnud.',
+        'Kui kuulutus sobib, kutsutakse sind töövestlusele. Sageli on esimene küsimus „Rääkige endast”. Hea vastus kestab üks-kaks minutit: kes sa oled, kellena oled töötanud, mida oskad ja miks soovid just seda tööd. Vaevalt jääb tööandjale meelde lause „ma olen täpne”, seepärast tasub rääkida konkreetsete näidetega: mitte üldiselt, vaid „vahetuse vanemana vastutasin selle eest, et kaup läks õigel ajal välja”. Pärast vestlust tasub küsida, millal otsus tehakse, ja mõni päev hiljem viisakalt meelde tuletada, kui vastust ei ole tulnud.',
         'Selles moodulis käid tööelu tee algusest lõpuni: räägid oma kogemusest, kontrollid töölepingut, lahendad tüli kolleegiga ja kaalud, kas sinu oskusest saaks väike äri.',
       ], 'Statistikaamet, „Töötuse määr oli kolmandas kvartalis 7,9%” (2026); Eesti Töötukassa, karjäärinõustamine', [
         'Kas sa oled kunagi CV-d või kaaskirja kirjutanud? Mis oli kõige raskem?',
@@ -244,7 +244,7 @@ export const LESSONS = withShapes({
         'Haigushüvitis on juristi sõnul [seitsekümmend|70] protsenti keskmisest töötasust.',
         'Ümbrikupalga pealt ei maksta [makse|maksusid], seega kannatavad hüvitis ja pension.',
         'Tööinspektsiooni juristid nõustavad töötajaid telefoni ja e-kirja teel [tasuta].',
-      ], 'g_listen'), 'Raadio kontrollib sinu oletusi ja annab faktid, mida vajad sõbrale nõu andes.'), { voice: 'interview', task: 'L04', harno: 'L3' }),
+      ], 'g_listen'), 'Raadio kontrollib sinu oletusi ja annab faktid, mida vajad sõbrale nõu andes.'), { voice: 'interview', task: 'L04' }),
     ],
     practice: [
       station(B.notice('027_p_notice', 'Märka: kumb on parem?', [
@@ -253,6 +253,7 @@ export const LESSONS = withShapes({
         '**Ülivõrre**: **kõige** + keskvõrre: **kõige kindlam**, **kõige parem** (ilma „kui”-ta).',
         'Võrdsus: **sama** + algvorm + **kui**: Palk on **sama suur kui** eelmisel aastal. Eitus: Uus leping ei ole **nii kindel kui** vana.',
         '**eelistama** mida (osastav) **millele** (alaleütlev): Tööle sõites eelistan **bussi autole**.',
+        'Vastand: A palk on suurem, **seevastu** B katseaeg on lühem. **Erinevalt** pakkumisest A on B leping kirjalik.',
       ], 'full'), 3, 12),
       teach(tag(purpose(B.gaps('027_p_offers', 'Kaks pakkumist: võrdle.', 'Sõber sai kaks tööpakkumist. Kirjuta lünka võrdlus, mis sobib andmetega.', [
         'Palk: A 1200 €, B 1100 €. Pakkumises A on palk [suurem|kõrgem] kui pakkumises B.',
@@ -263,7 +264,7 @@ export const LESSONS = withShapes({
         'Asukoht: A on 3 km, B 12 km kaugusel. A on kodule [lähemal] kui B.',
         'Palgapäev: A-s kord kahe kuu jooksul, B-s kord kuus. B-s makstakse palka [sagedamini|tihedamini] kui A-s.',
         'Kolmas sõber sai pakkumise C, kus katseaeg on kaks kuud. Kolmest pakkumisest on C katseaeg [kõige lühem|lühim].',
-      ], '', 'full', 'g_notice'), 'Kui võrdlus on täpne, näeb sõber kohe, kumb pakkumine on tema jaoks parem.'), { task: 'G13' }),
+      ], '', 'full', 'g_notice'), 'Kui võrdlus on täpne, näeb sõber kohe, kumb pakkumine on tema jaoks parem.'), { task: 'G13', harno: 'R3' }),
       'Pärast lünki küsi: „Kumma lepingu allkirjastaksid sina ja miks?” Õpilane vastab kahe võrdlusega (… on lühem kui …, kõige olulisem on …). Kui ta ütleb „parem nagu”, küsi: „Parem kui … või parem nagu …?”'),
       B.know('027_p_know', ['Puhkust ei planeerita viimasel minutil: tööandja koostab iga aasta kohta puhkuste ajakava ja teeb selle töötajatele teatavaks aasta esimese kvartali jooksul. Kes tahab suvel puhata, räägib sellest juba talvel. Töösuhete küsimustele leiab vastuseid ka Tööinspektsiooni portaalist Tööelu.'], 'töölepingu seadus § 69 (Riigi Teataja); Tööinspektsioon, Tööelu portaal, „Puhkuse ajakava”', 'Kas teadsid? Puhkuste ajakava'),
     ],
@@ -342,7 +343,7 @@ export const LESSONS = withShapes({
       ],
     },
     discover: [
-      station(B.text('028_d_hook', 'Kas oled nõus?', '„Parem on vaikida kui kolleegiga tülli minna.” Kas oled nõus, ei ole nõus või oleneb? Ütle üks põhjus oma elust.'), 1, 12),
+      station(B.text('028_d_hook', 'Kas oled nõus?', '„Parem on vaikida kui kolleegiga tülli minna.” Kas oled nõus, osaliselt nõus või ei ole nõus? Ütle üks põhjus oma elust.'), 1, 12),
       inLesson(teach(tag(purpose(B.speaking('028_d_talk', 'Kui keegi ei tee oma osa.', 'Vasta ja too näide tööst, koolist või kodust.', [
         'Millal pidid sina kellegi teise töö ära tegema? Mida sa tegid?',
         'Kas ütled probleemist pigem otse või kirjutad sõnumi? Miks?',
@@ -374,7 +375,7 @@ export const LESSONS = withShapes({
         'Vestlusest: süüdistus — Sa jääd **alati** hiljaks. · fakt — **Esmaspäeval, teisipäeval ja neljapäeval** tulid sa alles kell 8.15. · roll — **Vahetuse vanemana** pean ma vastutama … · palve — **Kas me saaksime** homme rääkida?',
         '**1. Fakt**: millal, mitu korda, mis kell — mitte **alati, kunagi, üldse**.',
         '**2. Mõju**: mis juhtus — **Seetõttu** pidid kaks inimest kolm veokit tühjaks laadima.',
-        '**3. Mina-sõnum**: minu tunne või mure — **Mul on raske**, kui … · **Ma muretsen**, et …',
+        '**3. Mina-sõnum**: minu tunne või mure — **Mul on raske**, kui … · **Ma muretsen**, et … · **Ma kahtlen**, kas …',
         '**4. Ettepanek**: tingiv kõneviis — **Kas me saaksime** …? **Võib-olla** võiksid … Hea ettepanek on **kompromiss**: kumbki annab natuke järele ja **pinge** kaob.',
         '**Kellena sa räägid?** Olev kääne: **kolleegina**, **vahetuse vanemana**, **sõbrana**, **uue töötajana**: Ütlen seda **sõbrana**, mitte ülemusena.',
       ], 'full'), 3, 12),
@@ -401,7 +402,7 @@ export const LESSONS = withShapes({
       extension(teach(tag(purpose(B.rolecards('028_t_more', 'Rollimäng: juhi juures.', 'Kokkulepe ei pidanud. Räägi juhiga ja palu abi, ilma kolleegi süüdistamata.',
         'Olukord: kolleegiga tehtud kokkulepe ei ole kaks nädalat pidanud ja meeskonnas on pinge.\nSinu eesmärk: juht teab fakte ja te lepite kokku järgmise sammu.\nPiirang: sa ei taha, et kolleeg saaks karistuse.',
         'Juhi kaart on õpetajal.',
-        ['Kolleegina pöördun teie poole, sest …', 'Faktid on sellised: …', 'Ma ei taha kedagi süüdistada, aga …'], ['Miks te kohe ei tulnud?', 'Mida te ise ette paneksite?']), 'Juht saab aidata ainult siis, kui ta teab fakte, mitte kuulujutte.'), { task: 'S10', level: 4 }),
+        ['Kolleegina pöördun teie poole, sest …', 'Faktid on sellised: …', 'Ma ei taha vaielda ega kedagi süüdistada, aga …'], ['Miks te kohe ei tulnud?', 'Mida te ise ette paneksite?']), 'Juht saab aidata ainult siis, kui ta teab fakte, mitte kuulujutte.'), { task: 'S10', level: 4 }),
       'Kui aega jääb (12 min). Sina oled juht. Varjatud info: sa tead, et bussigraafik muutus; vahetuse algust saab nihutada 15 minutit, aga ainult kogu vahetusel. Takistused: 1) „Miks te kohe ei tulnud?” 2) „Kas te tahate, et ma annan talle hoiatuse?” Õnnestunud, kui õpilane ütleb faktid, ei süüdista ja nõustub lahendusega või pakub oma.'), 12),
       tag(exitCheck(purpose(B.gaps('028_t_exit', 'Kontrolli end: roll ja muutus.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
         'Ütlen seda sulle praegu [kolleegina], mitte ülemusena, sest tahan aidata. (kolleeg)',
@@ -497,7 +498,7 @@ export const LESSONS = withShapes({
         'Intervjuus kuulsid nelja sidendit: **ühelt poolt … teiselt poolt**, **kuigi**, **samas** ja **siiski**. Võrdle oma valikuid reegliga.',
         '**Ühelt poolt … teiselt poolt** — kaks külge: **Ühelt poolt on** see lihtne, **teiselt poolt maksad** kogu summalt. Pärast „ühelt poolt” ja „teiselt poolt” on tegusõna **teisel kohal**.',
         '**Kuigi** + kõrvallause, siis koma: **Kuigi** tulu on väike, proovin. Ilma „aga”-ta!',
-        '**Siiski** — ikkagi, vaatamata sellele: Ilm oli halb. **Siiski läks** laat hästi.',
+        '**Siiski** / **ometi** — ikkagi, vaatamata sellele: Ilm oli halb. **Siiski läks** laat hästi.',
         '**Samas** — toob teise poole: Kodus töötada on mugav. **Samas on** raske end tööle sundida.',
       ], 'full'),
     ],
@@ -524,7 +525,7 @@ export const LESSONS = withShapes({
       teach(tag(purpose(B.rolecards('029_t_pitch', 'Esitle oma plaani.', 'Räägi umbes 2 minutit oma ideest kaardi järgi ja vasta kuulaja kahele küsimusele.',
         'Olukord: räägid oma ideest pangatöötajale või sõbrale, kes võiks olla sinu esimene klient.\nSinu eesmärk: ta saab aru, mida sa pakud, ja usub, et plaan töötab.\nPiirang: sul on alguses vähe raha.',
         'Kuulaja kaart on õpetajal: kaks küsimust ja üks kahtlus.',
-        ['Minu idee on …', 'Ühelt poolt …, teiselt poolt …', 'Kuigi …, …', 'Minu esimene samm on …'], ['Kui palju sa kuus teenida loodad?', 'Miks just ettevõtluskonto või FIE?', 'Kas see ei ole lihtsalt hobi?']), 'Tulemus: plaan, mida keegi teine on kuulnud ja mille esimene samm on selge.'), { task: 'S18', level: 4 }),
+        ['Minu idee on …', 'Ühelt poolt …, teiselt poolt …', 'Kuigi …, …', 'Ilmselt on alguses …', 'Minu esimene samm on …'], ['Kui palju sa kuus teenida loodad?', 'Miks just ettevõtluskonto või FIE?', 'Kas see ei ole lihtsalt hobi?']), 'Tulemus: plaan, mida keegi teine on kuulnud ja mille esimene samm on selge.'), { task: 'S18', level: 4 }),
       'Õpetaja kaart: sina oled pangatöötaja (või sõber). Kuula segamata. Küsi: 1) „Kui palju sa kuus teenida loodad ja kui palju kulub materjalile?” 2) „Miks just ettevõtluskonto või FIE?” Kahtlus: „Kas see ei ole lihtsalt hobi?” Õnnestunud, kui õpilane räägib umbes 2 minutit, kasutab vähemalt kolm sidendit (ühelt poolt … teiselt poolt, kuigi, siiski, samas) õigesti ja nimetab konkreetse esimese sammu.'),
       extension(teach(tag(purpose(B.speaking('029_t_more', 'Minidebatt: kas hobi peaks jääma hobiks?', 'Õpetaja võtab ühe poole, sina teise. Kumbki ütleb kaks argumenti, siis hääletate.', [
         'Poolt: hobi rõõm kaob, kui sellest saab kohustus.',

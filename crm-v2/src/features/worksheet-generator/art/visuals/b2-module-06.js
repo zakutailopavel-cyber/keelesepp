@@ -17,7 +17,7 @@ export default [
     learningJob: "kirjeldada tööotsimise samme (kuulutus, CV, töövestlus, uus töö) ja oma teed tööni",
     alt: "Mees loeb töökuulutust, saadab CV, käib töövestlusel ja alustab kohvikus uut tööd.",
     caption: "Pilt 1. Kuulutusest esimese tööpäevani.",
-    prompts: ["Mis on selle mehe tee neli sammu?", "Kellena ta enne töötas ja kelleks ta sai?", "Millise sammu oled sina juba teinud ja milline on veel ees?"],
+    prompts: ["Mis on selle mehe teekonna neli sammu?", "Kellena ta enne töötas ja kelleks ta sai?", "Millise sammu oled sina juba teinud ja milline on veel ees?"],
   },
   {
     id: "b1b2-027-avasta-1",
