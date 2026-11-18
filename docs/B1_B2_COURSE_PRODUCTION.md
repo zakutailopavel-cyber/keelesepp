@@ -133,6 +133,9 @@ kordamine”, tunnid `b1b2-k01…k04`; k01–k03 ainult Harjuta, k04 Avasta-teoo
   konstruktori vead, taseme normid ja vastused kehtivad. Paralleelvariandid (A = algmõõtmine, B = kordusmõõtmine) on sama
   ülesehitusega. Iga ülesanne kannab oma eesmärki (`g_kus`, `g_koht`, `g_lopp` tunni `lessonGoals.js`-is) — mängija
   tulemus „Tulemus tunni eesmärkide kaupa” näitab iga osaoskuse punktid eraldi.
+  Etappide loend (`diagnostic: ['transfer']`) teeb mõõtmiseks ainult need lehed — näidis: A2 `a2/kontrolltoo.js`
+  tund `a2-kt01` (kooli kontrolltöö kordamine: Teooria = `theory`, Harjuta, Proovitöö = suletud ülesannetega
+  proovikontrolltöö 6 × 8 punkti). Mõõtmislehel ei nõua taseme norm rääkimist ega kirjutamist (`didacticCheck.js`).
 
 ## 7. Järjekord
 

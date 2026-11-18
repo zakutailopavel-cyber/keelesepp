@@ -1,3 +1,28 @@
+## 2026-11-18 · agent/a2-kt01-demjan — A2 kordamine „Kontrolltöö 1” (a2-kt01) for a school test on 19.11
+
+- Base: `origin/main` 6400034 (Release 2026-11-18 15:26 UTC), checked 2026-11-18. Draft PR „A2 kordamine: kontrolltöö 1
+  (minevik, mitmuse omastav, vaatamisväärsused)”. Not merged, not published, no deploy, no production writes.
+- Done: new A2 supplement `admin/course/a2/kontrolltoo.js` (MODULE `a2-kontrolltoo-01`, lesson `a2-kt01`, no course
+  cast, Russian help in rules and words) for an 8th-grade learner's school test „Kontrolltöö nr 1” (lihtminevik,
+  täisminevik, mitmuse omastav, vaatamisväärsused: minema kuhu / käima kus / tulema kust / soovitama mida, küsimused).
+  Teooria (`theory: ['discover']`): rule card + table to fill per topic, two 8-item checks. Harjuta (`shortSheet`): 9
+  graded tasks. Proovitöö (`diagnostic: ['transfer']`): mock test, 6 closed tasks × 8 = 48 points, grade scale on the
+  sheet. Every scored item has its „why” (`EXPLAIN`, shown after hand-in). Own phase labels (`lesson.phases`).
+- Also changed: `courseSheet.js` — `diagnostic` may be a list of phases (old `true` unchanged); `worksheet-studio/
+  didactics/didacticCheck.js` — the „needs speaking or writing” norm skips `meta.diagnostic` sheets; `courseModules.a2.js`,
+  `a2/lessonGoals.js` (goals g_minevik, g_omastav, g_koht, g_kysimus, g_read, g_use), `strictModules.json`, new
+  `kontrolltoo.test.js`, `docs/B1_B2_COURSE_PRODUCTION.md` (phase-list diagnostic).
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 178 files / 2090 tests passed
+  (strict module gate for `a2-kontrolltoo-01` included); eslint clean on the changed files; the three sheets read in the
+  sheet lab (`/sheet-lab.html?set=course:a2-kt01:<discover|practice|transfer>`), explanations visible with `&done=1`.
+- Limits: the school textbook pages were not available, the topics are covered in general; forms checked by hand
+  (no Vabamorf run, not checked by a native speaker); „mitme … nimi” in the teacher's list read as plural genitive before
+  a noun (linnade nimed).
+- Data needed after merge (owner): `curriculumLessons/a2-kt01` record like `a2-k01` (A2 curriculum, `roadmapModuleTitle`
+  „Kontrolltöö 1 (kordamine)”, no `roadmapModuleNumber`), then publish the three sheets.
+- Next safe step: owner reviews and merges; creates the record and publishes; teacher assigns Teooria + Harjuta today
+  and Proovitöö before the test.
+
 ## 2026-11-18 · agent/b1b2-m05-tasks — B1→B2 module 5 „Arvamus ja põhjendamine” task-based (v4)
 
 - Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „B1→B2 module 5: task-based (v4)”. Content

@@ -161,8 +161,9 @@ export function buildCourseSheet(mod, lessonId, phase) {
       // or a short use task of a supplement (a2/lihtminevik.js), 10–30 min by design
       ...(mod.MODULE.shortSheets || lesson.shortSheet === true || (Array.isArray(lesson.shortSheet) && lesson.shortSheet.includes(phase)) ? { shortSheet: true } : {}),
       // a diagnostic check (`diagnostic: true`, a2/kohakaanded.js): closed scored tasks, a baseline and a parallel re-test;
-      // quality.js skips the lesson-shape rules for it
-      ...(lesson.diagnostic ? { diagnostic: true, shortSheet: true } : {}),
+      // quality.js skips the lesson-shape rules for it. A list of phases marks only those sheets (a mock test as the
+      // Kasuta sheet of a review pack, a2/kontrolltoo.js: `diagnostic: ['transfer']`)
+      ...(lesson.diagnostic === true || (Array.isArray(lesson.diagnostic) && lesson.diagnostic.includes(phase)) ? { diagnostic: true, shortSheet: true } : {}),
       // a speaking lesson (`oral: true`, suuline.js): one sheet, five claims on the same scheme; quality.js skips the lesson-shape rules
       ...(lesson.oral ? { oral: true, shortSheet: true } : {}),
       // a theory sheet (`theory: ['discover']`, b2/kaanded.js b1b2-k04): an explanation to read alone and come back to, a
