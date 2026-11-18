@@ -79,7 +79,7 @@ export const TOPIC_MAP = Object.freeze({
     'b1b2-module-03': m('toit', ['kultuur', 'ajalugu'], 'Toit ja toidukultuur: kuidas eestlaste toidulaud on muutunud'),
     'b1b2-module-04': m('kodu', ['ymbruskond'], 'Eluase: üürida või osta, renoveerimine, elamine maal ja linnas'),
     'b1b2-module-05': m('keel', ['yhiskond'], 'Keel ja identiteet: eesti keele tulevik, mitmekeelsus, keelepoliitika'),
-    'b1b2-module-06': m('majandus', ['suhted', 'igapaevaelu'], 'Tööelu muutumine: kaugtöö, töö ja pere, tööturg'),
+    'b1b2-module-06': m('majandus', ['suhted', 'igapaevaelu'], 'Tööelu: töö otsimine, leping ja õigused, kolleegid, oma väike äri'),
     'b1b2-module-07': m('haridus', ['keel'], 'Haridus: koolireformid, elukestev õpe, tehisintellekt koolis'),
     'b1b2-module-08': m('reisimine', ['kultuur', 'kohad'], 'Reisimine ja kultuurierinevused: turism, ületurism, kultuurišokk'),
     'b1b2-module-09': m('tervis', ['toit'], 'Tervis ja eluviis: toitumine, liikumine, vaimne tervis'),
