@@ -18,5 +18,8 @@ import * as b1m16 from './b1/module16.js';
 import * as b1m17 from './b1/module17.js';
 import * as b1m18 from './b1/module18.js';
 import * as b1suuline from './b1/suuline.js';
+import * as b1eeksam from './b1/eeksam.js';
+// the e-exam task types, each right after the module of its exam station (b1/eeksamHarjutus.js)
+import { E_EXAM_LISTENING, E_EXAM_READING, E_EXAM_WRITING } from './b1/eeksamHarjutus.js';
 
-export const MODULES = [b1m01, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b1suuline];
+export const MODULES = [b1m01, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, E_EXAM_LISTENING, b1m08, b1m09, b1m10, b1m11, E_EXAM_READING, b1m12, E_EXAM_WRITING, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b1suuline, b1eeksam];

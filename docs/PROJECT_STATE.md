@@ -1,3 +1,58 @@
+## 2026-11-18 · agent/exam-9kl-e-eksam — mock 1 switched to the e-exam engine (PR #1267, round 2)
+
+- Base: merged `origin/main` efbac8b (#1270 e-exam engine, modules 5–7) into the branch, 2026-11-18. Draft PR #1267, not
+  merged, not published, no deploy.
+- Mock 1 (`admin/course/b1/eeksam.js`) now uses the engine of PR #1270 (`docs/E_EXAM_ENGINE.md` §2): lesson flag
+  `exam: 'E9'` on the three written parts; part header `B.examPart(…, { exam: 'E9', lock: true })` with the official
+  minutes (70 / 50 / 95) and points; every listening task heard twice (`plays: 2, lockPlays: true, playGap: 10`); 1.1
+  `mode: 'speakers'`; 1.3 clip table with a situation per clip; 2.1 `layout: 'chat'`; 2.2 / 2.4 `layout: 'chips'`; 2.7
+  `hint: 'inside'`; W1 letter card with margin notes + `about: 'u 100 sõna'`; W2 pie chart + genre `kokkuvote`; rubrics
+  E9W / E9S.
+- Exact item counts of the sample with a solved item 0 in every task (`opts.example`): listening 6 + 7 + 7 + 7 + 8 = 35,
+  reading / structure 5 + 13 + 7 + 10 + 10 + 10 + 10 = 65. The filler blocks (strategy lists, notes, reflection,
+  self-checks, plan box) are gone. `eeksamKey.js` has a „why” for every scored item incl. item 0. Transcripts unchanged,
+  so the recordings stay valid.
+- Tests: `course.test.js` — the B1 course's exam-part headers must name B1 except on an exam sheet of another format
+  (`meta.exam`); `b1/eeksam.test.js` checks 35 / 65, `meta.exam`, item 0 in every scored task, heard twice, one „why” per
+  scored item.
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 179 files / 2152
+  tests passed, 12 skipped; eslint on `admin/course/b1` + `course.test.js` clean. Sheet lab (`/sheet-lab.html?set=course:
+  a2b1-ee1-<w|l|r|s>:discover`, student view) read at 1280 and 375 px with Playwright, screen by screen (99 screenshots,
+  no horizontal overflow, no console errors): counters 0/6, 0/35, 0/65; speakers, chat, chips, letter card, pie chart and
+  „Kuulamisi jäänud 2 / 2” render.
+- Seen, for the UI: the A4 paging of the player leaves a large blank area after the part header and puts the W2 chart and
+  its task on different pages; 2.5 rows have no item numbers (0, 1 …) and use dropdowns.
+- Next safe step: owner merges #1267 and publishes the four mock sheets; then one audio file per clip for 1.3.
+
+## 2026-11-18 · agent/exam-9kl-e-eksam — 9. klassi e-eksam: format, engine gaps, B1 mock 1 (draft)
+
+- Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „9. klassi e-eksam: format, engine gaps, mock 1
+  (draft)” (link in the PR list). Content zone only: no UI / engine code, not merged, not published, no deploy, no
+  production writes.
+- Asked (owner 2026-11-18, screenshots of Harno's EIS sample test): „вот это новый экзамен который будет”; then „и такие
+  же задания сделай в курсе у нас, чтобы давать пробник B1 ученикам”.
+- `docs/EXAM_9KL_E_EKSAM.md` (new): the format contract of the computer-based 9th-grade exam (parts and minutes, every
+  task type with instruction pattern, items, extras, example 0, interaction), verified against the [E9] specification
+  2026/27 (PDF text from projektid.edu.ee) — 35 listening and 65 reading / structure items match; §4 the engine gap
+  table for the UI PR (exam timer + exam key `E9`, plays limit, per-clip audio, speaker match, drag into a dialogue /
+  running text, example 0 in cloze / formtext / insertion, pie chart, genre „kokkuvõte”, 9th-grade scales, part points)
+  with the block ids that wait for each piece. Blueprint §8.1 points to it.
+- Mock 1 „B1 proovieksam (e-eksami vormis) 1” — `admin/course/b1/eeksam.js` (supplement `a2b1-eeksam-01`, last in
+  `courseModules.b1.js`), one lesson per part so a teacher can assign it to any B1 learner: `a2b1-ee1-w` Kirjutamine
+  (W1 letter with notes, W2 chart summary, 9th-grade rubrics), `a2b1-ee1-l` Kuulamine (5 tasks / 35 items),
+  `a2b1-ee1-r` Lugemine ja struktuur (7 tasks / 65 items), `a2b1-ee1-s` Suuline osa with the teacher (teacher card on
+  every task, rubric). „Why” for every auto-checked item: `b1/eeksamKey.js`.
+- E-exam task types in the course (no module rebuilt): `b1/eeksamHarjutus.js`, three short supplement sheets placed
+  after module 7 (`a2b1-ee-p-l` listening), 11 (`a2b1-ee-p-r` reading + structure) and 12 (`a2b1-ee-p-w` writing), each
+  with its „why” lines. `b1/lessonGoals.js`: g_listen entries for `a2b1-ee1-l` and `a2b1-ee-p-l`.
+- Audio: TartuNLP Neurokõne via `tools/listening-audio/build.mjs --only a2b1-ee` (free, owner-approved pre-generation):
+  8 new MP3 files (crm-v2/public/audio/a2b1-ee1-l, a2b1-ee-p-l; 3.2 MB; 38–170 s each), 0 errors; manifest updated.
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 178 files / 2088 tests passed, 12 skipped (a first run under load had 10 UI-studio tests time out at 20–30 s; the rerun was green); new `b1/eeksam.test.js` (35 / 65 items, transcripts, teacher cards, one „why” per scored item); the course quality gate passes for the 4 new supplement modules with no baseline entries; eslint on the changed files clean.
+- Limits: item 0 of each task stands in its instruction (B1 level norm; §4); 1.1 shows all statements as options;
+  1.3 clips share one audio file; drag tasks are letter dropdowns or tap-to-place gaps; bar chart instead of pie; the
+  sheets were not opened in the sheet lab in this session.
+- Next safe step: owner reviews the four mock sheets and the three practice sheets in „Kursuse tootmine” and merges;
+  then the UI PR builds §4 of `EXAM_9KL_E_EKSAM.md` and the waiting block ids move to the new interactions.
 ## 2026-11-18 · agent/a2-kt01-demjan — A2 kordamine „Kontrolltöö 1” (a2-kt01) for a school test on 19.11
 
 - Base: `origin/main` 6400034 (Release 2026-11-18 15:26 UTC), checked 2026-11-18. Draft PR „A2 kordamine: kontrolltöö 1

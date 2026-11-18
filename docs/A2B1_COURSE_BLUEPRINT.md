@@ -530,6 +530,12 @@ From [O9] (the interviewer's guide), the oral part is a pair with an interviewer
 
 Re-check [P9] and [E9] each September, when the new specification is approved.
 
+**Update 2026-11-18:** the item counts per task, the task types and the screens of the e-exam were checked against
+Harno's sample test in EIS and the [E9] PDF text — the format contract, the engine gaps and our mocks are in
+`EXAM_9KL_E_EKSAM.md`. Mock 1 is built as a B1 mock any teacher can assign („B1 proovieksam (e-eksami vormis) 1”,
+`admin/course/b1/eeksam.js`), and the task types are practised on three short sheets after modules 7, 11 and 12
+(`b1/eeksamHarjutus.js`) instead of the proposed `a2b1-pk9-1…3` lessons in the M18 file.
+
 ### 8.2 Adult Harno B1 vs 9th-grade exam
 
 | | Harno B1 tasemeeksam [H] | 9th-grade „eesti keel teise keelena” [P9][E9][O9] | Same / different |
