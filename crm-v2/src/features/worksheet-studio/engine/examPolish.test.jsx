@@ -119,3 +119,21 @@ describe('the e-exam rubric shows the exam\'s own target', () => {
     expect(container.querySelector('.ws-examrubric-total').textContent).toMatch(/vähemalt 6 \(60 %\)/);
   });
 });
+
+describe('exam rubric points are the teacher\'s', () => {
+  const block = { id: 'rb', type: 'examrubric', data: { title: 'Hindamine', scale: 'E9W', criteria: [{ name: 'Sisu', max: 5 }, { name: 'Keel', max: 5 }] } };
+  const sheet = (role) => render(<Sheet doc={doc([block], '')} mode="interactive" answers={{ 'rb:0': 4 }} setAnswer={() => {}} transcripts={role ? { role } : null} />);
+  it('a learner (exam or lesson sheet) sees the criteria and the scale read-only, with the given points', () => {
+    for (const role of ['student', null]) {
+      const { container, unmount } = sheet(role);
+      expect(container.querySelectorAll('.ws-page .ws-examrubric button')).toHaveLength(0);
+      expect(container.querySelectorAll('.ws-page .ws-examrubric .ws-pt')).toHaveLength(12);
+      expect(container.querySelector('.ws-page .ws-examrubric .ws-pt.on').textContent).toBe('4');
+      unmount();
+    }
+  });
+  it('staff click the points', () => {
+    const { container } = sheet('staff');
+    expect(container.querySelectorAll('.ws-page .ws-examrubric button.ws-pt')).toHaveLength(12);
+  });
+});

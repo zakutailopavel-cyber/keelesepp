@@ -25,7 +25,7 @@ Rule: **every option defaults off.** A sheet without these fields renders and sc
   teacher check, `mode` `interactive` or `review`): no A4 page breaks, page footers or running heads between the tasks,
   one footer at the end (`.ws-page.is-continuous`). The phone's column (`flow`) is unchanged. **Print keeps A4 pages**:
   on `beforeprint` Sheet.jsx draws the pages again, `afterprint` goes back. The constructor (`edit`) and the print view
-  stay paged.
+  stay paged. Mock 1's oral sheet `a2b1-ee1-s` is an exam sheet too (`oral: true, exam: 'E9'`).
 - **Keep with next on paper** (`examMode.js keepsWithNext`, used by `pageSplit.js packPages`): a word strip (every sheet,
   as before) and, on an exam sheet, a `chart` start on the same page as the task after it when both fit. A pie is drawn at
   most 62 mm high so the W2 chart and its task fit on one page (mock 1: 4 printed pages instead of 5).
@@ -40,6 +40,7 @@ Rule: **every option defaults off.** A sheet without these fields renders and sc
 | Heard twice | `examlisten`, `listening` | `plays: 2, lockPlays: true`, optional `playGap` (seconds before the next play starts by itself, default 10; 0 = learner presses play). One play button, no pause / seek, „Kuulamisi jäänud: 1 / 2”. Count stored as `<blockId>:$plays` (per clip `$plays.<i>`). Staff and a checked sheet play freely. |
 | 1.3 clips | `examlisten` mode `choice` | `questions[i].situation` („Kuuled telefonisõnumit.”) and optional `questions[i].audio` ({ src }) → table number · situation (+ own player) · question. **Per-clip recordings:** give each question its spoken text `questions[i].script` (see §2.1); the audio tool then builds one file per clip and the course builder puts it into `questions[i].audio`. |
 | 2.5 endings | `adsmatch` | On an exam sheet the rows are numbered 0 (example), 1 … n like the other tasks (`.ws-ads-num`; a lesson sheet stays as before). `layout: 'chips'`: the ads are the endings in a bank „Lause lõpud”, dragged / tapped into the gap after each beginning (bankDrop.jsx DropTask; a trailing „…” of the beginning is dropped). The answer stays the ending's letter, so key, scoring and mistakes are unchanged. |
+| Rubric points | `examrubric` | Only staff give points (`ctx.staff`: the host's role `transcripts.role === 'staff'` — player for teacher / admin, studio, live board); a learner sees the criteria and the scale read-only, on every sheet. Self-assessment is `rubric` / `selfcheck` (checklists), unchanged. |
 | Rubric target | `examrubric` | `scale: 'E9W' \| 'E9S'` shows the e-exam's 60 % (`rubricShare`), like the part header; every other scale keeps the course's 80 %. |
 | 1.1 speakers | `examlisten` mode `speakers` | `topic`, `claims: [text …]` (lettered A, B …), `speakers: [{ name, img?, answer: 'D' }]`. Row per speaker (photo or initials), letter dropdown, a letter used by another speaker is disabled; statement table beside (above on a phone). `opts.example` → speaker 0 solved. `explain`: one line per speaker (incl. 0). |
 | 2.1 chat | `insertion` | `layout: 'chat'`; `passage` one line per turn „**Nimi:** text”, a taken-out reply is the whole line „**Nimi:** [[reply]]”; `extra` = extra replies. Bank beside (sticky under the chat on a phone). |
@@ -65,11 +66,10 @@ mode `choice` whose questions carry `script`:
 - Keep `transcript` as the whole text (all clips, for the teacher's „Tekst”); it is not recorded when the clips are.
 - Run `node tools/listening-audio/build.mjs --only <lessonId>:<blockId>` (only changed clips are built; TartuNLP, free,
   pre-generated once). `listeningAudio.test.js` checks every clip file and hash.
-- Mock 1 `ee1_l_13`: **TODO (content agent)** — split `T13` into the 8 clips: question i gets the clip's lines from „Näidis.
-  Kuulete …” / „Esimene lõik. …” up to the next clip header (e.g. question 1: `'Esimene lõik. Kuulete telefonisõnumit.\n
-  Registraator: Tere! Siin Kase hambaravi. …'`), keep `transcript: T13.join('\n')`, then run the build for
-  `a2b1-ee1-l:ee1_l_13` and delete the old `a2b1-ee1-l:ee1_l_13` entry and file (the test „no recordings of blocks that no
-  longer exist” asks for it).
+- Mock 1 `ee1_l_13`: done — `b1/eeksam.js T13_CLIPS` cuts `T13` at its clip headers („Näidis. …”, „Esimene lõik. …”),
+  word for word; 8 files `public/audio/a2b1-ee1-l/ee1_l_13_0…7.mp3` (17–25 s each), the old whole-block file is removed.
+- A clip's script is read with every „Name:” as a speaker, also when the clip has only one (`segmentsOf(…, { clip })`),
+  so the label is never spoken.
 
 Mistakes after hand-in (`engine/mistakes.js`, MistakesPanel) work for all of these: speakers show „B — statement”, drag
 tasks the chosen chip text, with the right answer and the `explain` line.
@@ -81,7 +81,7 @@ tasks the chosen chip text, with the right answer and the `explain` line.
 | Part header + timer, lock, save at 0; E9 key; not overwritten by `withHarnoExam` | DONE |
 | Item 0 solved in cloze, formtext, insertion; exam-sheet exemption from the „example” norm | DONE |
 | Audio heard twice (`lockPlays`) | DONE |
-| One audio per clip (1.3) | DONE in the engine and the audio tool (`questions[i].script`, §2.1); mock 1's `ee1_l_13` still has one transcript: TODO content |
+| One audio per clip (1.3) | DONE (engine, audio tool `questions[i].script`, §2.1; mock 1 recorded per clip) |
 | Speakers ↔ statements A–I | DONE |
 | Subheading ↔ part of recording | TODO (same form with `parts`) |
 | Drag replies into a dialogue (2.1) | DONE (`layout: 'chat'`) |

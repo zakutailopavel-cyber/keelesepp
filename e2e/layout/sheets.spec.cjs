@@ -280,6 +280,24 @@ test.describe('e-exam sheets', () => {
     await page.evaluate(() => globalThis.dispatchEvent(new Event('beforeprint')));
     await expect.poll(() => page.locator('.ws-page').count()).toBeGreaterThan(1);
   });
+  test('the oral part (mock 1) is one continuous page too; the learner cannot give rubric points', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await open(page, 'set=course:a2b1-ee1-s:discover');
+    expect(await page.locator('.ws-page').count()).toBe(1);
+    const rubric = page.locator('.ws-page [data-block="ee1_s_rubric"]');
+    expect(await rubric.locator('.ws-pt').count()).toBe(22);
+    expect(await rubric.locator('button').count()).toBe(0);
+    await expect(rubric.locator('.ws-examrubric-total')).toContainText('vähemalt 12 (60 %)');
+  });
+  test('1.3: every clip has its own player (mock 1)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await open(page, 'set=course:a2b1-ee1-l:discover');
+    const clips = page.locator('.ws-page [data-block="ee1_l_13"] .ws-clip');
+    expect(await clips.count()).toBe(8);
+    for (let i = 0; i < 8; i += 1) expect(await clips.nth(i).locator('.ws-clip-sit button, .ws-clip-sit audio').count(), `clip ${i}`).toBeGreaterThan(0);
+    const srcs = await page.evaluate(() => [...document.querySelectorAll('.ws-page [data-block="ee1_l_13"] .ws-clip audio')].map((a) => a.getAttribute('src')));
+    expect(srcs.filter((s) => /ee1_l_13_\d\.mp3$/.test(s || '')).length).toBe(8);
+  });
   test('2.5: numbered sentence beginnings, an ending tapped into the gap (mock 1, phone)', async ({ browser }) => {
     const context = await browser.newContext(phone(375));
     const page = await context.newPage();

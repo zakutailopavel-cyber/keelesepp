@@ -44,7 +44,9 @@ export function chunks(text, max = 280) {
 }
 
 // transcript → [{ text, voice, newTurn }]
-export function segmentsOf(transcript, seed = 0) {
+// `clip`: a short clip's script (e-exam 1.3, questions[i].script) — every „Name:” there is a speaker, even when the clip
+// has only one speaker, so the label is never read aloud
+export function segmentsOf(transcript, seed = 0, { clip = false } = {}) {
   const lines = String(transcript || '').split('\n').map((l) => l.trim()).filter(Boolean);
   const parsed = lines.map((line) => {
     const m = line.match(LABEL);
@@ -53,7 +55,7 @@ export function segmentsOf(transcript, seed = 0) {
   });
   // one labelled line in a plain text is a narrator's phrase („Müüja ütles: …”), not a dialogue
   const labelled = parsed.filter((p) => p.label);
-  if (labelled.length < 2) parsed.forEach((p) => { if (p.label) { p.text = `${p.label}: ${p.text}`; p.label = ''; } });
+  if (labelled.length < 2 && !clip) parsed.forEach((p) => { if (p.label) { p.text = `${p.label}: ${p.text}`; p.label = ''; } });
   // „Linnavolinik” … „Volinik”, „Kolleeg Anne” … „Anne” are one person
   const canon = new Map();
   for (const p of parsed.filter((x) => x.label)) {
@@ -99,14 +101,14 @@ export async function listeningPlan() {
         for (const block of lesson[phase] || []) {
           if (!['listening', 'examlisten'].includes(block.type)) continue;
           const level = lesson.level || mod.MODULE.level;
-          const item = (key, src, text) => {
+          const item = (key, src, text, clip = false) => {
             const hash = sha1(text);
-            return { key, src, course: mod.MODULE.course, lessonId, phase, blockId: block.id, level, speed: speedFor(level), hash, segments: segmentsOf(text, parseInt(hash.slice(0, 6), 16)) };
+            return { key, src, course: mod.MODULE.course, lessonId, phase, blockId: block.id, level, speed: speedFor(level), hash, segments: segmentsOf(text, parseInt(hash.slice(0, 6), 16), { clip }) };
           };
           // short clips (e-exam 1.3): questions[i].script → one file per clip, none for the whole block
           const clips = clipScripts(block);
           if (clips.length) {
-            clips.forEach(({ i, script }) => plan.push({ ...item(clipKey(lessonId, block.id, i), clipSrc(lessonId, block.id, i), script), clip: i }));
+            clips.forEach(({ i, script }) => plan.push({ ...item(clipKey(lessonId, block.id, i), clipSrc(lessonId, block.id, i), script, true), clip: i }));
             continue;
           }
           // the gap-sentence listening and the exam listening (Harno L1, L2, L4) carry a recording

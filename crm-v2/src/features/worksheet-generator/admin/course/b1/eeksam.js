@@ -14,9 +14,7 @@
 // Every text is written for KeeleSepp; nothing is copied from Harno. Real facts carry their source; the people in the
 // recordings are invented.
 // Listening: recorded with Neurokõne (tools/listening-audio/build.mjs, listeningAudio.json); after a transcript edit run
-// it again. 1.3 has one recording for its eight clips. TODO (content): the audio tool now makes one file per clip when
-// each question carries its spoken text `script` — split T13 per clip as docs/E_EXAM_ENGINE.md §2.1 says, then run
-// `node tools/listening-audio/build.mjs --only a2b1-ee1-l:ee1_l_13`.
+// it again. 1.3 has one recording per clip (`questions[i].script`, T13_CLIPS; docs/E_EXAM_ENGINE.md §2.1).
 import { B, teach } from '../blocks.js';
 import { RUBRIC_SCALES } from '../../../../worksheet-studio/engine/blocks/harnoScales.js';
 
@@ -123,6 +121,11 @@ const T13 = [
   'Seitsmes lõik. Kuulete raadioreklaami.',
   'Diktor: Kas sul on kapis riideid, mida sa enam ei kanna? Too need laupäeval kultuurimaja hoovi vahetusturule! Iga toodud asja eest saad märgi ja märgi eest võid võtta endale midagi teiste toodud asjadest. Raha ei ole vaja. Katkised riided palume koju jätta.',
 ];
+// one recording per clip (docs/E_EXAM_ENGINE.md §2.1): clip i is T13 from its header line („Näidis. …”, „Esimene lõik.
+// …”) up to the next one, word for word; the whole T13 stays the block's transcript for the teacher
+const CLIP_HEAD = /^(Näidis|Esimene lõik|Teine lõik|Kolmas lõik|Neljas lõik|Viies lõik|Kuues lõik|Seitsmes lõik)\./;
+const T13_HEADS = T13.map((line, i) => (CLIP_HEAD.test(line) ? i : -1)).filter((i) => i >= 0);
+export const T13_CLIPS = T13_HEADS.map((from, k) => T13.slice(from, T13_HEADS[k + 1] ?? T13.length).join('\n'));
 const L13_SITUATIONS = ['Kuuled katkendit raadiouudisest.', 'Kuuled telefonisõnumit.', 'Kuuled teadaannet kaubanduskeskuses.', 'Kuuled kahe sõbra vestlust.', 'Kuuled ilmateadet.', 'Kuuled intervjuud noore ettevõtjaga.', 'Kuuled katkendit loengust.', 'Kuuled raadioreklaami.'];
 const L13 = B.examListen('ee1_l_13', '1.3. Kuula kõnelõike ja vasta küsimustele.', 'Igale küsimusele on üks õige vastus. Kõige esimene kõnelõik on näidis ja selle vastus on juba märgitud. Iga lõiku kuuled kaks korda. *Vastamiseks vajuta nupule sobiva vastuse ees.*', 'choice', T13, [
   ['Mida arvab linnavalitsus uutest rattaparklatest?', 'Rattakohti on ikka liiga vähe.', 'Rattaparklad on liiga kallid.', 'Rongiga sõidetakse varasemast vähem.'],
@@ -159,7 +162,7 @@ const LISTENING = [
     ['Kust saavad päästjad raha paadi ja varustuse ostmiseks?', 'Annetustest ja valla toetusest.', 'Nad maksavad kõik ise.', 'Raha annab riik.'],
     ['Mida arvab Kertu kümneaastane poeg ema vabatahtlikust tööst?', 'Ta on uhke, et ema on päästja.', 'Ta tahab ka ise päästjaks saada.', 'Ta ei ole rahul, et ema on tihti ära.'],
   ], 'g_listen'))),
-  twice(example({ ...L13, data: { ...L13.data, questions: L13.data.questions.map((q, i) => ({ situation: L13_SITUATIONS[i], ...q })) } })),
+  twice(example({ ...L13, data: { ...L13.data, questions: L13.data.questions.map((q, i) => ({ situation: L13_SITUATIONS[i], ...q, script: T13_CLIPS[i] })) } })),
   twice(example(B.examListen('ee1_l_14', '1.4. Kuula intervjuud ja otsusta, kas väide on õige või vale.', 'Kuula raadiointervjuud talgupäeva korraldajaga. Näidis on tähistatud 0-ga. Intervjuud kuuled kaks korda. *Vastamiseks vajuta sobivale nupule.*', 'truefalse', [
     'Saatejuht: Tere tulemast saatesse! Täna on külas Anu, kes korraldab oma vallas talgupäeva juba kümnendat aastat. Anu, kuidas see kõik alguse sai?',
     'Anu: Eestis sai talgute laine alguse 2008. aastal, kui toimus suur koristusaktsioon „Teeme ära”. Ühel maipäeval tuli metsadest ja teeäärtest prügi korjama umbes viiskümmend tuhat inimest ja viie tunniga koguti kokku umbes kümme tuhat tonni prügi. Mina olin siis kaheteistaastane ja käisin koos isaga. Mäletan, et leidsime metsast isegi vana diivani.',
@@ -375,7 +378,8 @@ export const LESSONS = {
   'a2b1-ee1-s': {
     title: `${TITLE} · Suuline osa`,
     canDo: 'Ma räägin endast, avaldan põhjendatud arvamust, küsin kuulutuse kohta infot ja arutlen, kuni jõuame ühisele otsusele.',
-    oral: true,
+    // an exam sheet too (meta.exam): one continuous page on screen like the written parts, the e-exam's 60 % rubric
+    oral: true, exam: 'E9',
     goals: { g_use: 'Õpilane räägib endast, avaldab ja põhjendab arvamust, küsib ja annab infot ning arutleb, kuni jõutakse ühisele otsusele.' },
     phases: part('Suuline osa (õpetajaga, umbes 15 min)', 'Tehakse koos õpetajaga, mitte arvutis: sissejuhatus ja kolm ülesannet, 20 punkti.'),
     discover: ORAL,

@@ -421,6 +421,9 @@ export const examrubric = {
     const got = criteria.reduce((n, _, i) => n + (Number(ctx.get(`${i}`)) || 0), 0);
     const anyGiven = criteria.some((_, i) => ctx.get(`${i}`) !== undefined && ctx.get(`${i}`) !== '');
     const share = rubricShare(data.scale);
+    // the points are the teacher's: only staff click them; the learner sees the criteria and the scale read-only
+    // (self-assessment is the checklist blocks `rubric` / `selfcheck`, not this one)
+    const canScore = Boolean(ctx.interactive && ctx.staff);
     return (
       <div className="ws-examrubric">
         <table>
@@ -430,7 +433,7 @@ export const examrubric = {
                 <th scope="row"><b>{c.name}</b>{c.hint ? <small>{c.hint}</small> : null}</th>
                 <td>{Array.from({ length: (Number(c.max) || 0) + 1 }, (_, p) => {
                   const on = ctx.get(`${i}`) === p;
-                  return ctx.interactive
+                  return canScore
                     ? <button type="button" key={p} className={`ws-pt ${on ? 'on' : ''}`} aria-label={`${c.name}: ${p} ${T(data).points}`} aria-pressed={on} onClick={() => ctx.set(`${i}`, p)}>{p}</button>
                     : <span key={p} className={`ws-pt ${on ? 'on' : ''}`}>{p}</span>;
                 })}</td>

@@ -256,6 +256,8 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     flow,
     exam: examSheet,
     review: mode === 'review',
+    // a teacher or admin looks (the player's role, the studio): the points of an exam rubric are theirs to give
+    staff: transcripts?.role === 'staff',
     // answers are only shown to the learner (and in teacher review); print and edit stay blank
     get: (k) => (showAnswers ? answers[`${id}:${k}`] : undefined),
     set: (k, v) => setAnswer?.(`${id}:${k}`, v),
