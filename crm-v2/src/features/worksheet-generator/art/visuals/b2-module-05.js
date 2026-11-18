@@ -1,74 +1,68 @@
 // Visual briefs of b1b2 module 05; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// Learner-facing text (alt, caption, prompts) without the course cast since 2026-11-18 (task-based module 5, docs/COURSE_CAST.md);
+// the `cast` field still records who the generated picture shows. Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// 2026-11-18 (v4): the module's topics changed (clock change, Christmas tree, screen time, the trip to work). Fitting existing
+// pictures were copied into the lesson folders and retargeted; 022 (the Christmas tree debate) has no fitting picture yet,
+// so it has none (a new brief needs the owner's order; the old „argument bridge” picture of the bus stop is removed).
 export default [
   {
     id: "b1b2-021-avasta-1",
     phase: "discover",
     format: "scene",
-    cast: ["Sofia", "Jaan"],
-    scene: "Täiskasvanute aruteluring Eesti kooli aulas. Sofia ja Jaan seisavad vastakuti ning esitavad erinevaid seisukohti kohustusliku koolivormi kohta. Nende vahel ripub lihtne koolivormi jakk; Sofia osutab jakile küsivalt, Jaan põhjendab oma arvamust avatud käega. Laual on kaks tühja märkmelehte, mis aitavad võrrelda seisukohta, põhjendust ja näidet.",
-    accent: "the school uniform jacket between Sofia and Jaan",
+    cast: ["Anna", "Markus"],
+    // reused from a2b1-033-kasuta-1 (a tired man on his bed, a woman gives sleep advice in six icons), copied here: the
+    // clock change lesson starts with the learner's own sleep
+    scene: "Väsinud mees istub voodi serval tööriietes, käsi põse all. Naine annab talle sõnadeta plaani abil nõu: pane telefon ära, joo vähem kohvi, jaluta, joo vett, loe ja maga.",
+    accent: "the phone-away card",
     text: [],
-    learningJob: "võrrelda kaht vastandlikku seisukohta ning sõnastada kummagi arvamus, põhjendus ja näide",
-    alt: "Sofia ja Jaan arutavad kooli aulas kohustusliku koolivormi poolt- ja vastuargumente.",
-    caption: "Pilt 1. Kaks seisukohta koolivormi kohta.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Millised kaks seisukohta Sofia ja Jaan koolivormi kohta esitavad?", "Milline argument tundub sulle tugevam? Miks?", "Kas sinu koolis oli koolivorm? Mida sa sellest arvasid?"],
+    place: "021_d_talk",
+    learningJob: "rääkida, kuidas kella keeramine und mõjutab, ja öelda, kui kindel ollakse nõuande toimimises",
+    alt: "Väsinud mees istub voodil, naine annab talle kuus nõuannet parema une jaoks.",
+    caption: "Pilt 1. Esmaspäev pärast kella keeramist.",
+    prompts: ["Miks on mees pildil sinu arvates nii väsinud?", "Milline kuuest nõuandest aitaks pärast kella keeramist kindlasti, milline vaevalt?", "Mida teed sina, kui uni on pärast kella keeramist sassis?"],
   },
   {
-    id: "b1b2-022-avasta-1",
-    phase: "discover",
+    id: "b1b2-023-kasuta-1",
+    phase: "transfer",
     format: "scene",
-    cast: ["Anna", "Viktor"],
-    scene: "Tallinna bussipeatuse juures arutavad Anna ja Viktor tasuta ühistransporti. Nende ees laual on neljast tugevast osast koosnev lihtne sillamudel: seisukoht, põhjus, näide ja järeldus on kujutatud ilma tekstita nelja omavahel seotud plokina. Anna asetab viimase ploki paika, Viktor kontrollib, kas sild kannab väikest bussimudelit.",
-    accent: "the four-part argument bridge",
+    cast: ["Jaan", "Sofia"],
+    // reused from est-c1-037-kasuta-1 (two people weigh a phone ban; a compromise in the middle of the board), copied here:
+    // the screen time case ends in a family compromise
+    scene: "Kaks inimest kaaluvad telefonireegleid. Tahvlil on ühel pool keelu kasu, teisel pool turvalisus ja vajadus; keskel ühendab neid kompromiss: hoiukoht, telefonivaba aeg ja erand.",
+    accent: "the compromise in the middle of the board",
     text: [],
-    learningJob: "järjestada seisukoht, põhjus, näide ja järeldus terviklikuks argumendiks",
-    alt: "Anna ja Viktor ehitavad bussipeatuses neljaosalist argumendisilda tasuta ühistranspordi teemal.",
-    caption: "Pilt 1. Terviklik argument kannab nagu sild.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Millest koosneb pildil olev sild? Mida iga osa tähendab?", "Milline osa teeb argumendi kõige tugevamaks?", "Ehita oma argument tasuta ühistranspordi kohta neljast osast."],
-  },
-  {
-    id: "b1b2-023-avasta-1",
-    phase: "discover",
-    format: "scene",
-    cast: ["Liis", "Markus"],
-    scene: "Töökoha väikeses koosolekuruumis arutavad Liis ja Markus erinevaid ideid. Liis kuulab rahulikult ja hoiab avatud peopesa, Markus vastab viisakalt ning osutab kahele erinevale lahenduskaardile. Nende kehakeel näitab, et nad ei nõustu, kuid püüavad teineteist mõista.",
-    accent: "the two contrasting solution cards",
-    text: [],
-    learningJob: "tõlgendada viisakat kehakeelt ning moodustada nõustumise või mittenõustumise vastus",
-    alt: "Liis ja Markus vaidlevad koosolekul viisakalt ning kuulavad teineteise erinevaid seisukohti.",
-    caption: "Pilt 1. Erinev arvamus, lugupidav vestlus.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Kuidas Liis ja Markus pildil teineteisega suhtlevad?", "Mis näitab, et nad vaidlevad viisakalt?", "Kuidas sina ütled kolleegile viisakalt, et oled eri meelt?"],
+    place: "023_t_council",
+    learningJob: "tunnistada teise poole muret, vaielda viisakalt vastu ja pakkuda kompromissi",
+    alt: "Kaks inimest arutavad tahvli ees telefonireegleid; keskel on kompromiss: hoiukast ja telefonivaba aeg.",
+    caption: "Pilt 1. Keeld, vabadus või kompromiss?",
+    prompts: ["Mis on tahvli vasakul ja mis paremal poolel?", "Milline lahendus on keskel ja miks on see kompromiss?", "Millise reegli paneksid sina oma pere tahvlile? Kuigi …, siiski …"],
   },
   {
     id: "b1b2-024-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Anna", "Jaan"],
-    scene: "Pärnu lähedal kodu ees võrdlevad Anna ja Jaan pere kahte liikumislahendust. Vasakul on lihtne auto, paremal bussipeatus ja buss; nende vahel seisab nelja kaaluvihiga võrdluskaal, mis tähistab hinda, aega, mugavust ja keskkonda ilma sõnadeta. Anna kontrollib kaalu, Jaan teeb põhjendatud valiku.",
+    scene: "Pärnu lähedal kodu ees võrdlevad kaks inimest pere kahte liikumislahendust. Vasakul on lihtne auto, paremal bussipeatus ja buss; nende vahel seisab nelja kaaluvihiga võrdluskaal, mis tähistab hinda, aega, mugavust ja keskkonda ilma sõnadeta.",
     accent: "the four-weight comparison scale",
     text: [],
+    place: "024_d_radio",
     learningJob: "võrrelda autot ja ühistransporti nelja kriteeriumi järgi ning põhjendada valikut",
-    alt: "Anna ja Jaan võrdlevad auto ja ühistranspordi hinda, aega, mugavust ning keskkonnamõju.",
-    caption: "Pilt 1. Kaks lahendust nelja kriteeriumi järgi.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida Anna ja Jaan pildil võrdlevad?", "Mis on auto ja bussi plussid ning miinused nende jaoks?", "Mida sina valiksid oma pere jaoks ja miks?"],
+    alt: "Kaks inimest võrdlevad kaalul auto ja bussi hinda, aega, mugavust ja keskkonnamõju.",
+    caption: "Pilt 1. Auto või buss: mis kaalub rohkem?",
+    prompts: ["Mida need kaks inimest kaalul võrdlevad?", "Mis on võrreldes bussiga auto eelis ja mis puudus?", "Kumma poole sinu kaal kalduks ja miks?"],
   },
   {
     id: "b1b2-025-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Sofia", "Markus"],
-    scene: "Kohaliku noortekeskuse avalik arutelu. Sofia ja Markus võrdlevad kahte linnaprojekti: ühel pool on väike staadionimudel, teisel pool raamatukogumudel. Nende vahel on üks keskne otsustahvel nelja ühendatud sümboliga, mis meenutavad seisukohta, põhjust, näidet ja järeldust, kuid tahvlil ei ole sõnu.",
+    scene: "Kohaliku noortekeskuse avalik arutelu. Kaks inimest võrdlevad kahte projekti: ühel pool on väike staadionimudel, teisel pool raamatukogumudel. Nende vahel on üks keskne otsustahvel nelja ühendatud sümboliga, mis meenutavad seisukohta, põhjust, näidet ja järeldust, kuid tahvlil ei ole sõnu.",
     accent: "the central argument decision board",
     text: [],
-    learningJob: "valida staadioni ja raamatukogu vahel ning esitada terviklik põhjendatud argument",
-    alt: "Sofia ja Markus võrdlevad noortekeskuse arutelul uue staadioni ja raamatukogu projekte.",
-    caption: "Pilt 1. Milline projekt saab tugevama argumendi?",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliseid kahte projekti noortekeskuses võrreldakse?", "Mis on kummagi projekti tugevad küljed?", "Kumma projekti poolt sina hääletaksid ja miks?"],
+    place: "025_t_debate",
+    learningJob: "valida spordihoone ja raamatukogu vahel ning esitada terviklik põhjendatud argument",
+    alt: "Kaks inimest võrdlevad avalikul arutelul spordihoone ja raamatukogu projekti.",
+    caption: "Pilt 1. Spordihall või raamatukogu?",
+    prompts: ["Milliseid kahte projekti siin võrreldakse?", "Mis on võrreldes spordihalliga raamatukogu eelis?", "Kumma poolt sina hääletaksid ja miks?"],
   },
 ];
