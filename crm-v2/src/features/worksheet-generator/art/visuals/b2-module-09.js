@@ -1,74 +1,88 @@
 // Visual briefs of b1b2 module 09; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// Learner-facing text (alt, caption, prompts) without the course cast since 2026-11-19 (task-based module 9,
+// docs/COURSE_CAST.md); the `cast` field still records who the generated picture shows. The same five pictures, retargeted
+// to the new lessons (the food label, the pharmacy, movement or rest, the 8-week plan, the exam letter); no new picture was
+// needed. Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by
+// KeeleSeppArt/import_art.py.
 export default [
   {
     id: "b1b2-041-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Markus", "Jaan"],
-    scene: "Töökoha tervisekuu koosolekul valivad Markus ja Jaan kumbki ühe väikese harjumuse. Laual on hallid une, vee, toidu ja telefonipausi kaardid; Markus tõstab esile keskse igapäevase kõnni kaardi ning Jaan osutab sellelt energia ja parema enesetunde sümbolini viivale noolele.",
+    // 2026-11-19 (v4): the same picture (habit cards: sleep, water, food, a phone pause; the daily-walk card with an
+    // arrow to energy), retargeted from a workplace health month to cause and effect before the chart summary
+    scene: "Laual on hallid une, vee, toidu ja telefonipausi kaardid; üks inimene tõstab esile keskse igapäevase kõnni kaardi ja teine osutab sellelt energia ja parema enesetunde sümbolini viivale noolele.",
     accent: "the daily-walk habit card and its cause-effect arrow",
     text: [],
-    learningJob: "valida üks realistlik terviseharjumus ning selgitada selle põhjust ja oodatavat mõju",
-    alt: "Markus ja Jaan seovad tervisekuu väikese harjumuse selle oodatava mõjuga.",
-    caption: "Pilt 1. Väike harjumus, nähtav mõju.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliseid harjumusi Markus ja Jaan tervisekuu koosolekul valivad?", "Mida näitab nool kõnni kaardilt energia sümbolini?", "Millise ühe väikese harjumuse valiksid sina järgmiseks kuuks ja miks?"],
+    place: "041_t_chart",
+    learningJob: "siduda harjumus ja selle tagajärg (tänu millele, mille tõttu) enne kokkuvõtet joonisest",
+    alt: "Laual on harjumuste kaardid; nool viib kõnni kaardilt energia ja parema enesetunde märgini.",
+    caption: "Pilt 1. Harjumus → tagajärg.",
+    prompts: ["Milliseid harjumusi kaardid laual näitavad?", "Mida näitab nool kõnni kaardilt energia märgini? Ütle see tänu-lausega.", "Milline sinu toiduharjumus mõjub sinu enesetundele kõige rohkem ja miks?"],
   },
   {
     id: "b1b2-042-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Anna", "Viktor"],
-    scene: "Kortermaja ühises puhkenurgas kuulab Anna väsinud ja üksildast Viktorit. Nende vahel on üks valikukaart kolme realistliku võimalusega ilma tekstita: lühike turvaline jalutuskäik, telefonikõne tütrele ja pensionäride klubi kohvilaud. Anna pakub nõu avatud peopesaga, Viktor valib talle sobiva esimese sammu.",
+    // 2026-11-19 (v4): the same picture (a younger woman offers an older, tired man a choice card with three realistic
+    // first steps), retargeted from neighbourly advice to the soft advice for an older relative in the info gap
+    scene: "Kortermaja puhkenurgas kuulab noorem naine väsinud vanemat meest. Nende vahel on valikukaart kolme realistliku võimalusega ilma tekstita: lühike jalutuskäik, telefonikõne ja kohvilaud sõpradega. Naine pakub nõu avatud peopesaga, mees valib ise esimese sammu.",
     accent: "the gentle-advice choice card",
     text: [],
-    learningJob: "moodustada viisakas tingivas kõneviisis nõuanne ja põhjendada, miks see on realistlik",
-    alt: "Anna pakub Viktorile kolm viisakat ja realistlikku võimalust väsimuse ning üksilduse leevendamiseks.",
-    caption: "Pilt 1. Pehme nõuanne jätab inimesele valiku.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Miks on Viktor väsinud ja üksildane?", "Millised kolm võimalust on valikukaardil?", "Millist esimest sammu soovitaksid sina Viktorile ja miks?"],
+    place: "042_t_gap",
+    learningJob: "anda vanemale pereliikmele pehmet nõu tingiva kõneviisiga ja jätta valik talle",
+    alt: "Noorem naine pakub vanemale mehele kaardil kolm võimalust ja laseb tal ise valida.",
+    caption: "Pilt 1. Pehme nõuanne jätab valiku.",
+    prompts: ["Kuidas naine nõu annab: käsuga või pakkumisega? Mis seda näitab?", "Miks on hea, et valikuid on kolm?", "Mida ütleksid sina tädile, kes ei taha apteeki ise minna? Alusta: „Sa võiksid …”"],
   },
   {
     id: "b1b2-043-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Anna", "Markus"],
-    scene: "Vaikses kohvikunurgas räägib Markus Annale läbipõlemise ohust. Laual on hallid sümbolid kolme projekti, ületundide, nädalavahetuse e-kirjade ja kadunud sõprade aja kohta. Anna aitab need koondada kesksele teostatavate muudatuste kaardile, kus on töökoormuse jagamine, piiratud tööaeg ja taastav kohtumine.",
+    // 2026-11-19 (v4): the same picture (a café corner: grey symbols of overload are gathered into one card of feasible
+    // changes), retargeted from burnout at work to the compromise at the end of the movement-or-rest debate
+    scene: "Vaikses kohvikunurgas räägivad kaks inimest väsimusest. Laual on hallid sümbolid pikkade päevade, hilise e-kirja ja kadunud vaba aja kohta; need koondatakse kesksele kaardile, kus on mõned teostatavad muudatused.",
     accent: "the feasible change-plan card",
     text: [],
-    learningJob: "analüüsida stressi mitut põhjust, valida teostatavad muutused ja põhjendada nende prioriteeti",
-    alt: "Anna ja Markus seovad läbipõlemise põhjused teostatava muudatuste plaaniga.",
-    caption: "Pilt 1. Mitmest stressipõhjusest teostatava plaanini.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mis näitab, et Markusel on läbipõlemise oht?", "Milliseid muudatusi Anna aitab tal valida?", "Mida teeksid sina, kui kolleeg oleks samas olukorras?"],
+    place: "043_t_debate",
+    learningJob: "leida väitluse lõpus kompromiss: mida väsinud inimene pigem teeb ja millest loobub",
+    alt: "Kaks inimest koondavad väsimuse põhjused laual ühele teostatavate muudatuste kaardile.",
+    caption: "Pilt 1. Väsimusest kompromissini.",
+    prompts: ["Mis väsitab laua ääres istuvat inimest? Mida sümbolid näitavad?", "Milline muudatus kaardil on kõige realistlikum? Ütle: „Pigem … kui …”", "Mis oleks sinu kompromiss trenni ja puhkuse vahel?"],
   },
   {
     id: "b1b2-044-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Markus", "Jaan"],
-    scene: "Spordikeskuse nõustamislauas koostavad Markus ja Jaan kolme kuu elustiiliplaani. Hallid algseisundi kaardid näitavad pikka istumist, hilist magamaminekut ja kiirtoitu; nende juurest viib üks keskne samm-sammuline rada kõnni, regulaarse une ja koduse toiduni ning lõpuks energilisema enesetundeni.",
-    accent: "the connected three-month lifestyle route",
+    // 2026-11-19 (v4): the same picture (from long sitting, late nights and fast food a step-by-step route leads to
+    // walking, regular sleep, home food and more energy), next to the radio interview on how a habit forms
+    scene: "Nõustamislaua juures koostavad kaks inimest kolme kuu plaani. Hallid algseisu kaardid näitavad pikka istumist, hilist magamaminekut ja kiirtoitu; nende juurest viib samm-sammuline rada kõnni, regulaarse une ja koduse toiduni ning lõpuks energilisema enesetundeni.",
+    accent: "the connected step-by-step lifestyle route",
     text: [],
-    learningJob: "siduda algseisund, eesmärk, konkreetsed tegevused, ajakava ja oodatav tulemus üheks plaaniks",
-    alt: "Markus ja Jaan ühendavad halvad harjumused kolme kuu elustiiliplaaniga.",
-    caption: "Pilt 1. Nimekirjast seotud elustiiliplaanini.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milline on algseis ja milline on eesmärk pildil?", "Miks on rada jagatud väikesteks sammudeks?", "Milline samm oleks sinu enda elus kõige raskem?"],
+    place: "044_d_radio",
+    learningJob: "siduda algseis, eesmärk, väikesed sammud ja oodatav tulemus üheks plaaniks",
+    alt: "Rada viib istumise, hilise une ja kiirtoidu kaartidelt väikeste sammude kaudu parema enesetundeni.",
+    caption: "Pilt 1. Väikeste sammudega harjumuseni.",
+    prompts: ["Milline on algseis ja milline on eesmärk pildil?", "Miks on rada jagatud väikesteks sammudeks? Kontrolli raadiost.", "Milline samm oleks sinu enda elus kõige raskem ja mis aitaks?"],
   },
   {
     id: "b1b2-045-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Anna", "Jaan"],
-    scene: "Kohaliku ajalehe toimetuses arutavad Anna ja Jaan nõuandeveeru lugejakirja. Hall olukorrakaart näitab õpetaja töö-, pere- ja kodukoormust; selle kõrval on keskne vastusekaart, mis ühendab empaatilise kuulamise, ühe realistliku muudatuse ja selle põhjenduse. Anna esitleb vastust, Jaan kontrollib, kas nõuanne sobib inimese olukorraga.",
-    accent: "the situation-specific advice response card",
+    // 2026-11-19 (v4): the same picture (an editorial desk: a situation card and an answer card that fits the reader's
+    // situation), next to the exam letter to the housing association
+    scene: "Toimetuse laual arutavad kaks inimest lugejakirja. Hall olukorrakaart näitab inimese töö-, pere- ja kodukoormust; selle kõrval on keskne vastusekaart, mis ühendab kuulamise, ühe realistliku muudatuse ja selle põhjenduse.",
+    accent: "the situation-specific response card",
     text: [],
-    learningJob: "anda pehme ja realistlik nõuanne, mis lähtub inimese konkreetsest olukorrast ning selgitab mõju",
-    alt: "Anna ja Jaan koostavad ülekoormatud õpetajale olukorraga sobiva nõuande.",
-    caption: "Pilt 1. Hea nõuanne sobib inimese tegeliku olukorraga.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Millest räägib lugejakiri, mida Anna ja Jaan arutavad?", "Mida tähendavad vastusekaardi kolm osa?", "Mida vastaksid sina ülekoormatud õpetajale?"],
+    place: "045_t_letter",
+    learningJob: "kirjutada kiri, mis arvestab adressaadi olukorda: seisukoht, põhjus, mure ja ettepanek",
+    alt: "Kaks inimest koostavad laua taga vastust, mis sobib lugeja olukorraga.",
+    caption: "Pilt 1. Hea kiri arvestab lugejaga.",
+    prompts: ["Mida näitavad kaks kaarti laual?", "Mida peab hea kiri ühistu juhatusele sisaldama?", "Mis on sinu ettepanek oma maja hoovi jaoks?"],
   },
 ];
