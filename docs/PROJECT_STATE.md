@@ -21,9 +21,42 @@
   src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet` 212 files,
   2385 passed / 12 skipped (studio UI tests timed out once under machine load, pass alone); eslint clean; EstNLTK 0
   unknown lower-case; all 15 sheets read in the sheet lab (headless Chromium, 1280 px), fixes in the review doc.
-- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker; module-9 word recycling
-  (≥ 30 %) is measured against the old module 9 and must be re-checked when module 9's rebuild merges.
+- Merged origin/main with modules 8 (#1276) and 9 (#1278): 036–045 theirs, 046–050 ours (lessonGoals, lesson words);
+  module 11 review keeps both (module 9 and module 10 items); allow list and plan.mjs both sides. 046_d_talk S01 → S12
+  (V2: 044 Avasta also opens with S01). Reuse of the new module 9 words 30.6 % (≥ 30 %). After merge: vitest
+  worksheet-generator / -studio / vocabulary / pet green, EstNLTK 0 unknown, eslint clean.
+- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker.
 - Next safe step: owner reads `docs/review/b2-m10-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-046:discover` …).
+## 2026-11-19 · agent/b1b2-m09-tasks — B1→B2 module 9 „Tervis ja eluviis” in v4 task-based design · content only
+
+- Base: `origin/main` 4d0e6fe (#1275 merge), checked 2026-11-18; merged up to fed002f (#1273) before push. Draft PR
+  „B1→B2 module 9: task-based (v4)” (link in the PR list). Not merged, not published, no deploy, no production writes.
+  Modules 8 and 10 are rebuilt in parallel by other agents (expect conflicts in lessonGoals.js, lessonWords/b1b2.json,
+  listeningAudio.json, roadmap-03, language-allow.txt — keep both sides).
+- Merged origin/main with module 8 (#1276), 2026-11-19: lessonGoals / lesson words / roadmap-03 036–040 from main, 041–045 ours; module-8 word reuse 34 % (woven into 041–044); 041 talk task S07 → S09 (V2: 039 starts with S07). After merge: 36/36 modules 5/5 READY, vitest 211 files / 2398 tests, eslint clean, EstNLTK 0 unknown.
+- Done: `b2/module09.js` rewritten (no storyline, no cast; themed module `theme: 'health'`, level B2- as the roadmap's
+  B1+/B2-): 041 facts „Mida sinu ostukorv sinust räägib?” (cause/effect; opener with TAI 2026 numbers, food label, shop
+  voicemail, two muesli labels, family negotiation), 042 infogap „Kas apteeker teab paremini kui internet?” (soft advice;
+  pharmacist radio L2, aunt's voicemail, pharmacy card, 1220, flu jab in pharmacies), 043 debate „Õhtul väsinud: trenn
+  või diivan?” (pigem … kui, selle asemel et, mida … seda; TAI movement facts, two radio guests, compromise + vote), 044
+  project „Kaheksa nädalat: üks muutus, mis jääb püsima” (selleks et, et + conditional, translative; Lally 2010 interview
+  L3, module product „Minu 8 nädala muutus”), 045 new module exam in Harno B2 form (sauna article R1/R2a, R3 form text,
+  R4 insertion, reply to the author, language part, L1 notes, L3, L4, W1 housing-association letter, W2a HBSC chart, S1
+  product talk, S2 front-of-pack grade cards). Ids, goal keys and archetypes kept; EXPLAIN for every scored item.
+- Also: `b2/lessonGoals.js` 041–045, `lessonWords/b1b2.json` 041–045, roadmap-03 titles, `academicTopics.js` text,
+  `art/visuals/b2-module-09.js` (same five pictures, no cast text, `place` per lesson), review questions about module 9
+  in modules 11 (051) and 13 (064) (ids kept), module 13 `064_d_vocab` topic tag „toidujäätmed” (was known only from the
+  old module 9), TartuNLP audio: 7 files new / rebuilt, 6 old removed; language-allow + agri, kcal.
+- Checks: course report 5/5 READY for module 9 and all 36 B1 / B2 modules; `npx vitest run src/features/worksheet-generator
+  src/features/worksheet-studio src/features/vocabulary src/features/pet` 211 files / 2385 tests passed (12 skipped);
+  eslint clean (admin/course/b2, art/visuals); EstNLTK 0 unknown lower-case words; all 15 sheets opened in the sheet lab
+  (1280 px, Playwright) and read as a learner — fixed: markdown bold not rendered on label cards, rule cards that gave
+  away gap answers on the same sheet (043, 044), a „teacher reads” instruction (041).
+- Gate notes for the owner (`docs/review/b2-m09-tasks.md`): didacticCheck counts all answer variants of a row as one
+  sentence (so rows keep 1–2 variants at B2-); the B2- recognition cap forces R3 as a form text on the exam (as module 5).
+- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker; pharmacy / flu-jab rules
+  and TAI numbers dated 2025–2026; module 10's ≥ 30 % reuse of module 9 words must be re-checked after its rebuild.
+- Next safe step: owner reads `docs/review/b2-m09-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-041:discover` …).
 ## 2026-11-18 · agent/b1b2-m08-tasks — B1→B2 module 8 „Reisimine ja kultuur” in v4 task-based design · content only
 
 - Base: `origin/main` 4d0e6fe (#1275), re-checked fed002f (#1273) 2026-11-18. Draft PR „B1→B2 module 8: task-based (v4)”

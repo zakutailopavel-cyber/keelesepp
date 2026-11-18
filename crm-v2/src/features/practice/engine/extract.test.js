@@ -79,6 +79,39 @@ describe('extractCourseItems — only items with verified answers', () => {
   });
 });
 
+describe('design v4 lessons (no word-order blocks)', () => {
+  const v4 = [MOD('m9', 9, {
+    'b1b2-041': {
+      title: 'Neli', format: 'facts',
+      practice: [
+        B.notice('n9', 'Jaam 3 · Märka: miks ja mis siis? · 12 min', ['…']),
+        B.transformation('t9', 'Harjumus ja tagajärg.', 'Seo kaks lauset üheks antud sõnaga.', [
+          ['Ma joon õhtul kohvi. Ma ei saa magama.', 'tõttu', 'Õhtuse kohvi tõttu ei saa ma magama.|Õhtuse kohvi tõttu ma ei saa magama.'],
+          // one order only, or two that differ just by a capital letter: no build item (the key does not cover order)
+          ['Ta loeb silte. Ta ostab vähem soola.', 'seetõttu', 'Ta loeb silte, seetõttu ostab ta vähem soola.|Ta loeb silte. Seetõttu ostab ta vähem soola.'],
+          ['Vend magab vähe. Ta on väsinud.', 'tõttu', 'Vähese une tõttu on vend väsinud.'],
+        ]),
+      ],
+    },
+  })];
+  const items = extractCourseItems('b2', v4);
+  it('builds a tile sentence from a transformation whose key lists two orders of the same words', () => {
+    const builds = items.filter((it) => it.type === 'build');
+    expect(builds.map((it) => it.id)).toEqual(['b1b2-041/t9/b0']);
+    expect(builds[0].orders).toHaveLength(2);
+    expect(builds[0].grammar).toContain('word-order');
+    for (const order of builds[0].orders) expect(checkItem(builds[0], { tiles: order }).verdict).toBe('correct');
+    expect(checkItem(builds[0], { tiles: ['ma', 'Õhtuse', 'kohvi', 'tõttu', 'ei', 'saa', 'magama'] }).verdict).not.toBe('correct');
+  });
+  it('the station card title gives the rule line without „Jaam 3 ·” and the minutes', () => {
+    expect(items[0].explain.et).toBe('Miks ja mis siis?');
+  });
+  it('a lesson without `format` keeps the old behaviour (no build from transformations)', () => {
+    const old = extractCourseItems('b2', [{ ...v4[0], LESSONS: { 'b1b2-041': { ...v4[0].LESSONS['b1b2-041'], format: undefined } } }]);
+    expect(old.filter((it) => it.type === 'build')).toEqual([]);
+  });
+});
+
 describe('the real course files', () => {
   const COURSES = ['a2', 'b1', 'b2', 'c1'];
   it.each(COURSES)('%s: items are checkable and the plan coverage is reported', async (c) => {

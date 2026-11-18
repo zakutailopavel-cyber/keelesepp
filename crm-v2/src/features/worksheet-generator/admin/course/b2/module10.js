@@ -97,7 +97,7 @@ export const LESSONS = withShapes({
         'Kuidas sa oma kõige vanema sõbraga tuttavaks said ja kuidas te üksteist toetate?',
         'Mis on sõbras sulle kõige tähtsam — ausus, otsekohesus või muu — ja mis häirib?',
         'Kas täiskasvanuna on uusi sõpru raskem leida? Miks?',
-      ], [150, 210], ['Minu sõber on …: näiteks kord …', 'Mulle on kõige tähtsam …', 'Mind häirib, kui …']), 'Sinu enda sõbrad annavad tunni faktidele esimese võrdluse.'), { task: 'S01', fluency: true }),
+      ], [150, 210], ['Minu sõber on …: näiteks kord …', 'Mulle on kõige tähtsam …', 'Mind häirib, kui …']), 'Sinu enda sõbrad annavad tunni faktidele esimese võrdluse.'), { task: 'S12', fluency: true }),
       'Üks-ühele: räägi ka ise lühidalt oma sõbrast. Ära paranda; lõpus ütle üks omadussõna, mida õpilane vajas ja ei teadnud. Kui õpilane ütleb, et tal pole sõpru: „Kellega sa viimati pikalt rääkisid? Mis inimene ta on?”')),
       station(tag(B.vocab('046_d_vocab', 'Enne lugemist: sõnad.', ['usaldusväärne — надёжный', 'tähelepanelik — внимательный', 'aus — честный', 'kannatlik — терпеливый', 'hooliv — заботливый', 'üksildus — одиночество', 'tuttav — знакомый', 'usaldus — доверие', 'aega veetma — проводить время', 'toetama — поддерживать']), { topic: ['üksildus'] }), 2, 15),
       B.topicOpener('046_d_open', 'Moodul 10. Sõbrad ja üksildus: mida ütlevad uuringud?', [

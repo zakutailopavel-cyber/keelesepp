@@ -87,3 +87,6 @@ minukarjaar
 dus
 likkus
 matu
+# B2 module 9: the source site agri.ee and the label unit kcal (energy per 100 g on a food label)
+agri
+kcal
