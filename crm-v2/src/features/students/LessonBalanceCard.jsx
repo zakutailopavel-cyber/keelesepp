@@ -11,8 +11,8 @@ export default function LessonBalanceCard({ student, plan, invoices, lessons, mo
   return <Card>
     <div className="section-heading"><div><span className="eyebrow">Kuuarved</span><h2>Tunde alles</h2></div></div>
     <ul className="simple-list" aria-label="Tunde alles">
-      {balances.map((balance) => <li key={balance.subject || 'all'}>
-        <span><strong>{balance.subject ? `${balance.subject}: ` : ''}{num(balance.left)}</strong><small>Arvetega makstud {num(balance.paid)} · peetud {num(balance.used)} · alates {balance.start}</small></span>
+      {balances.map((balance) => <li key={`${balance.subject || 'all'}|${balance.format || ''}`}>
+        <span><strong>{balance.label || balance.subject ? `${balance.label || balance.subject}: ` : ''}{num(balance.left)}</strong><small>Arvetega makstud {num(balance.paid)} · peetud {num(balance.used)} · alates {balance.start}</small></span>
       </li>)}
     </ul>
     <p className="form-hint">Alles olevad tunnid arvestatakse järgmise kuuarve summast maha.</p>

@@ -1,3 +1,59 @@
+## 2026-11-18 · agent/direction-format-group — round 2: owner decisions applied (PR #1264)
+
+- Base: merged `origin/main` e9fad9f (#1262) into the branch, checked 2026-11-18. Draft PR #1264, not merged, not deployed.
+- Owner decisions: (1) group price = plain hourly rate, no discount reason, admin only (UI: only the admin's Arveldus
+  edits; rules: plan write admin-only — emulator asserts teacher / parent / student / finance get 403 on write, the three
+  non-staff roles 403 on read); (2) groups billed monthly, line „<aine> · grupp”, no billing mode per format; the
+  Tunnipakett dialog offers „Vorm” only for a subject on lesson packages, the package warning no longer suggests a group
+  package; (3) revenue forecast (`groupPrices[subject].weeklyLessons` × group price, field „Grupitunde nädalas
+  (prognoos)”), calendar revenue (`financeDashboard lessonPrice`, `groupNoPrice`) and the teacher's cash amount
+  (`cash-core directionCashPrice`) use the group price with the individual fallback + warning; a card merge copies
+  `groupPrices` (`student-card-merge-core groupPricesMerge`, conflict `group_price`); (4) `tools/direction-format-report.js`
+  stays read-only, the owner runs it after the deploy.
+- Files (round 2): crm-v2 `students/{BillingSettingsCard, LessonTokensCard, directionFormat.js}`, `finance/{finance.js,
+  FinancePage.jsx, financeDashboard.js, FinanceDashboard.jsx, subjectBilling.js, tokenInvoiceRows.js}`,
+  `services/firebase/revenuePlans.js` (`groupPricesOf`, `validateGroupPrices`), lab; functions `subject-billing-core.js`,
+  `cash-core.js`, `index.js` (cash info), `student-card-merge-core.js`, `student-merge.js`; tests
+  `finance/groupPricing.test.js`, `direction-format-core.test.js`, `finance-emulator.integration.js`,
+  `student-merge-emulator.integration.js`.
+- Checks: `cd crm-v2 && npx vitest run src/features src/services` 585 files / 4812 tests passed (12 skipped); `cd functions
+  && node --test` 669/669; emulator (Java 21) 24/24 (rules incl. group-price roles, 5 lesson-token tests, monthly /
+  combined, merge incl. groupPrices copy, cash box) + 3/3 lesson-cash tests; eslint 0 errors (14 old warnings). Lab
+  screenshots re-taken.
+- Limit: a group lesson still cannot be marked „makstud sularahas” at all (group rows are refused); the cash rule is ready.
+- Deploy order: `firestore.rules` → functions (financeApi, manualInvoiceApi, syncLessonTokens, staffOperationsApi; a
+  full functions deploy is simplest because shared modules changed) → „Deploy complete” in DEPLOY_LEDGER → site release.
+- Next safe step: owner merges #1264; deploy as above; then `node tools/direction-format-report.js` (read-only).
+
+## 2026-11-18 · agent/direction-format-group — „Õppesuunad: individuaalne / grupp” · student card + finance (rules + functions)
+
+- Base: `origin/main` b0fda14 (release 2026-11-17 09:54 UTC), checked 2026-11-18. Draft PR #1264 „Õppesuunad: individuaalne /
+  grupp — eraldi hind ja tunnid”, not merged. Team request 2026-11-18 (#improvement #student_card #high_priority).
+- Done: a direction has `format` (`enrollments[i].format: 'group'`, optional `groupId`; absent = individual). Group
+  price `studentRevenuePlans.groupPrices[subject]`; group package `tokenFormat: 'group'`. A lesson with `groupId` is a
+  group lesson: monthly invoices bill it on its own line „Eesti keel · grupp” at the group price, it takes its subject's
+  group package; no group price / package → the old price / package with a warning (monthly row `formatWarnings`,
+  dialog, Tunnipakett card, ledger `formatFallback`). Cards without a stored group track / group price bill exactly as
+  before (golden test unchanged). Legacy tracks show „Grupp?” when the card is in a calendar group of that subject
+  (display only). Contract: ARCHITECTURE.md „Direction format”, docs/LESSON_TOKENS.md „Individual / group packages”.
+- Files: crm-v2 `students/{directionFormat.js, DirectionFormat.jsx, EnrollmentManager, StudentDirectionsCard,
+  studentDirectionsModel, BillingSettingsCard, LessonTokensCard, LessonBalanceCard, directions.css,
+  studentFinancePanel.css}`, `finance/{monthlyBilling, tokenInvoiceRows, TokenInvoiceDialog, MonthlyInvoicePanel}`,
+  `dashboard/today/todayModel.js`, `services/firebase/{students, revenuePlans, lessonTokens, manualInvoiceApi}.js`, lab
+  `crm-v2/directions-lab.html`; functions `direction-format-core.js` (new), `lesson-tokens-core.js`,
+  `combined-invoice-core.js`, `manual-invoice-api.js`, `index.js` (token trigger + backlog), `student-enrollments-core.js`,
+  `tools/direction-format-report.js` (new, read-only), `tools/activity-price-redaction.js` (keeps `groupPricesChanged`);
+  `firestore.rules` (`studentRevenuePlans.groupPrices` map ≤ 8).
+- Checks: `cd crm-v2 && npx vitest run src/features src/services` 584 files / 4791 tests passed (12 skipped); `cd functions && node --test` 668/668; emulator
+  (Java 21): „finance role can read invoices …” (incl. new groupPrices rule asserts), 5 „lesson tokens” tests incl. the
+  new group-package test, 14 monthly / combined / merge tests — all pass; eslint clean on changed files (old warnings
+  only). Lab screenshots: card, Arveldus group price, Tunnipakett warning, „Õppesuunad” window.
+- Deploy gate: needs `firestore.rules` + functions deploy BEFORE the site release (deploy-before-release); not deployed.
+- Limits: revenue forecast, calendar revenue, teacher's cash amount and per-subject billing mode are still per subject
+  (group lessons at the individual price there); a card merge does not copy `groupPrices`; the count of legacy „Grupp?”
+  tracks needs `functions/tools/direction-format-report.js` (read-only) on production — not run.
+- Next safe step: owner reads the PR's Russian summary and answers its questions; then rules + functions deploy, release.
+
 ## 2026-11-18 · agent/b1b2-m04-tasks — B1→B2 module 4, round 4: merged main (modules 2, 3), new v4 rules applied · content only
 
 - Base: `origin/main` 8be70eb (modules 2 #1263 and 3 #1261 merged), checked 2026-11-18. PR #1262 (draft).

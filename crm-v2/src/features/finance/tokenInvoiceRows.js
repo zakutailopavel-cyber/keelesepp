@@ -1,5 +1,7 @@
-import { subjectsOf } from '../students/subjects.js';
+import { mainSubject, subjectsOf } from '../students/subjects.js';
+import { subjectBilling } from './subjectBilling.js';
 import { payerKey } from './monthlyBilling.js';
+import { formatsFor, planForFormat, subjectFormatLabel } from '../students/directionFormat.js';
 
 // The lines of the „Tunnipakett” dialog (TokenInvoiceDialog.jsx). „Ühine tunnipakett” (owner 2026-11-04): several lines
 // of one payer become ONE invoice (manualInvoiceApi /create-tokens-combined); the server checks the same rules
@@ -18,26 +20,37 @@ export function tokenRowState(row, { cards = [], plans = [], schoolSubjects = []
   // the card's subjects; a card that names none (every track ended) is offered the school's subjects
   const subjects = ownSubjects.length ? ownSubjects : schoolSubjects;
   const subject = subjects.includes(row.pickedSubject) ? row.pickedSubject : ownSubjects.length === 1 ? ownSubjects[0] : '';
+  // „Individuaalne / Grupp” (2026-11-18): groups are billed by the monthly invoice (owner): a group package is offered
+  // only for a subject that is itself on lesson packages and has a group direction (or a group price); its package
+  // pays only that subject's group lessons. Default: individual.
+  const onPackages = Boolean(card && subject && plan) && subjectBilling(plan, subject, mainSubject(card)).billingMode === 'package';
+  const formats = onPackages ? formatsFor(card, plan, subject) : ['individual'];
+  const format = formats.includes(row.pickedFormat) ? row.pickedFormat : 'individual';
   // no total before the subject is chosen: each subject may have its own price
-  const { priceCents, minutes } = subject ? tokenPlanPrice(plan, subject) : { priceCents: 0, minutes: 60 };
+  const { priceCents, minutes, fallback } = subject ? tokenPlanPrice(plan, subject, format) : { priceCents: 0, minutes: 60, fallback: false };
   const count = Math.max(0, Math.floor(Number(row.lessons) || 0));
-  return { card, ownSubjects, subjects, subject, priceCents, minutes, count, amountCents: priceCents * count };
+  return { card, ownSubjects, subjects, subject, formats, format, label: subject ? subjectFormatLabel(subject, format) : '', priceFallback: Boolean(fallback), priceCents, minutes, count, amountCents: priceCents * count };
 }
 
 // the price of one lesson exactly as the server takes it (functions/combined-invoice-core.js planForSubject →
 // functions/lesson-tokens-core.js tokenInvoiceLines): the subject's own entry in subjectPrices replaces the card's
 // price (its minutes fall back to the card's), the price is rounded to whole cents, no minutes = 60
-export function tokenPlanPrice(plan, subject = '') {
+// format 'group' (functions/combined-invoice-core.js planForDirection): the subject's group price; without one the
+// individual price (fallback: true — the dialog warns)
+export function tokenPlanPrice(plan, subject = '', format = 'individual') {
   const own = subject && plan?.subjectPrices && typeof plan.subjectPrices === 'object' ? plan.subjectPrices[subject] : null;
-  const source = own ? { lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan?.lessonMinutes } : plan || {};
+  const individual = own ? { lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan?.lessonMinutes } : plan || {};
+  const { plan: source, fallback } = subject ? planForFormat(individual, plan || {}, subject, format) : { plan: individual, fallback: false };
   return {
     priceCents: Math.max(0, Math.round(Number(source.lessonPriceCents) || 0)),
     minutes: Number(source.lessonMinutes) || 60,
+    ...(fallback ? { fallback: true } : {}),
   };
 }
 
 export const tokenMoney = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
 export const TOKEN_PRICE_MISSING = 'Hind määramata — lisa see õpilase kaardil (Finantsid → Arveldus)';
+export const TOKEN_GROUP_PRICE_MISSING = 'Grupi hind puudub — pakett arveldatakse individuaalse hinnaga. Määra grupi hind õpilase kaardil (Finantsid → Arveldus).';
 
 // „Tunnihind” for control (Oleksiy 2026-11-06): the server's price is per lesson; the price per hour is derived from it
 // (price × 60 / minutes, rounded to cents) and is shown only — the invoice is always lessons × the lesson price
@@ -47,6 +60,7 @@ export function tokenRowPriceView(state = {}) {
   const hourlyCents = Math.round((state.priceCents * 60) / state.minutes);
   return {
     status: 'ok',
+    ...(state.priceFallback ? { warning: TOKEN_GROUP_PRICE_MISSING } : {}),
     hourlyCents,
     hourly: `Tunnihind: ${tokenMoney(hourlyCents)} / h`,
     lesson: state.minutes === 60 ? '' : `Tund ${state.minutes} min = ${tokenMoney(state.priceCents)}`,
@@ -64,7 +78,7 @@ export function tokenRowsError(states = []) {
     if (state.count < 1 || state.count > 100) return `${label}Tundide arv peab olema 1–100.`;
   }
   if (new Set(states.map((state) => payerKey(state.card))).size > 1) return MIXED_PAYER_MESSAGE;
-  const keys = states.map((state) => `${state.card.id}|${state.subject}`);
+  const keys = states.map((state) => `${state.card.id}|${state.subject}|${state.format || 'individual'}`);
   if (new Set(keys).size !== keys.length) return 'Iga õpilane ja aine võib ühisel tunnipaketil olla üks kord.';
   return '';
 }

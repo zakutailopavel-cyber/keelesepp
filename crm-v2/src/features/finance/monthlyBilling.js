@@ -2,6 +2,7 @@ import { groupCalendarEvents, occurrencesForDates, toIsoDate } from '../calendar
 import { itemSubject, mainSubject, subjectName, subjectsOf } from '../students/subjects.js';
 import { cardPayerEmail, firstEmail, linkedParentIds } from './invoicePayer.js';
 import { cardBillingMode, cardMonthlyMode, hasSubjectBilling, subjectBilling } from './subjectBilling.js';
+import { formatOf, groupSubjects, lessonFormat, planForFormat, subjectFormatLabel } from '../students/directionFormat.js';
 
 // Finance v2 §2: one invoice per student per month for the lessons planned in the calendar.
 // "current": invoiced at the start of the month. "advance": invoiced the month before. Both are due by the 10th (owner 2026-11-01).
@@ -67,13 +68,16 @@ export function invoiceBillsNothing(invoice = {}) {
     || ['fully_credited', 'corrected'].includes(invoice.correctionStatus);
 }
 
-function invoiceForCard(invoices, studentId, forMonth, subject = '', main = '') {
+// format ('individual' | 'group', a subject split by „Õppesuunad: individuaalne / grupp”): only that direction's
+// part; an invoice or part without a format is individual (every invoice made before 2026-11-18)
+function invoiceForCard(invoices, studentId, forMonth, subject = '', main = '', format = '') {
   const found = invoices.find((invoice) => invoice.planMonth === forMonth && !invoiceBillsNothing(invoice)
     && (invoice.studentId === studentId || (Array.isArray(invoice.studentIds) && invoice.studentIds.includes(studentId))));
   if (!found) return found;
+  const sameFormat = (item) => !format || formatOf(item.format) === format;
   if (subject) {
-    if (!found.combined) return subjectName(found.subject) === subject || (!found.subject && subject === main) ? found : null;
-    const parts = (found.cardParts || []).filter((item) => item.studentId === studentId);
+    if (!found.combined) return (subjectName(found.subject) === subject || (!found.subject && subject === main)) && sameFormat(found) ? found : null;
+    const parts = (found.cardParts || []).filter((item) => item.studentId === studentId && sameFormat(item));
     const part = parts.find((item) => subjectName(item.subject) === subject) || (subject === main ? parts.find((item) => !item.subject) : null);
     return part ? { ...found, plannedUnits: part.plannedUnits || 0, correctionUnits: part.correctionUnits || 0, amountCents: part.amountCents ?? found.amountCents, partOfCombined: true } : null;
   }
@@ -88,15 +92,17 @@ function invoiceForCard(invoices, studentId, forMonth, subject = '', main = '') 
 // A month without an invoice (holiday, or the correction covered it) keeps the balance. Lessons of the calendar not marked
 // yet (`expected`) are not taken off the next invoice: a teacher who has not marked a lesson must not make it free.
 // null: no monthly invoice yet.
-function lessonBalance({ student, plan, invoices, lessons, events, upto, subject = '', main = '' }) {
-  const belongs = (item) => !subject || (itemSubject(item, student) || main) === subject;
+// format + groupStart (a subject split by format): the direction's own lessons. A group lesson before groupStart (the
+// first month with a group line for the subject) was paid by the subject's old invoices, so it counts as individual.
+function lessonBalance({ student, plan, invoices, lessons, events, upto, subject = '', main = '', format = '', groupStart = '' }) {
+  const belongs = (item) => (!subject || (itemSubject(item, student) || main) === subject) && (!format || directionFormatOf(item, groupStart) === format);
   const months = [...new Set(invoices
     .filter((invoice) => invoice.planMonth && invoice.planMonth <= upto && (invoice.studentId === student.id || (invoice.studentIds || []).includes(student.id)))
     .map((invoice) => invoice.planMonth))].sort();
   let start = '';
   let paid = 0;
   months.forEach((month) => {
-    const invoice = invoiceForCard(invoices, student.id, month, subject, main);
+    const invoice = invoiceForCard(invoices, student.id, month, subject, main, format);
     if (!invoice) return;
     paid += (Number(invoice.plannedUnits) || 0) + (start ? Number(invoice.correctionUnits) || 0 : 0);
     if (!start) start = month;
@@ -117,6 +123,27 @@ function lessonBalance({ student, plan, invoices, lessons, events, upto, subject
   const expected = waiting.reduce((sum, item) => sum + unitsOf(item.duration, plan), 0);
   return { start, paid: round2(paid), used: round2(used), expected: round2(expected), left: round2(paid - used) };
 }
+
+// the direction a lesson / event is billed in: a group lesson from groupStart on is the group direction, every other
+// lesson (and a group lesson the subject's old invoices paid) the individual one
+function directionFormatOf(item = {}, groupStart = '') {
+  if (lessonFormat(item) !== 'group') return 'individual';
+  const date = String(item.occurrenceDate || item.date || '');
+  return groupStart && date && date.slice(0, 7) >= groupStart ? 'group' : 'individual';
+}
+
+// the first month a group line of this subject was invoiced for the card ('' = never)
+function firstGroupMonth(invoices = [], studentId, subject) {
+  const months = invoices.filter((invoice) => invoice.planMonth && !invoiceBillsNothing(invoice)).flatMap((invoice) => {
+    if (!invoice.combined) return invoice.studentId === studentId && subjectName(invoice.subject) === subject && formatOf(invoice.format) === 'group' ? [invoice.planMonth] : [];
+    return (invoice.cardParts || []).some((part) => part.studentId === studentId && subjectName(part.subject) === subject && formatOf(part.format) === 'group') ? [invoice.planMonth] : [];
+  }).sort();
+  return months[0] || '';
+}
+
+// the formats a subject of the card is billed in: ['individual', 'group'] when the card has a stored group direction or
+// a group price for it (students/directionFormat.js groupSubjects), else [''] = the subject as one, exactly as before
+const formatsOfSubject = (formatSubjects, subject) => (formatSubjects.some((item) => subjectName(item) === subjectName(subject)) ? ['individual', 'group'] : ['']);
 
 function correctionFor({ student, plan, balance, previousLessons }) {
   if (!balance) return { units: 0, note: '', noShows: [], unmarked: 0 };
@@ -148,7 +175,8 @@ export function studentLessonBalances({ student, plan, invoices = [], lessons = 
   const subjects = subjectsOf(student);
   const main = mainSubject(student);
   const one = { student, plan, invoices, lessons, events: [], upto: month };
-  if (subjects.length < 2) {
+  const formatSubjects = groupSubjects(student, plan);
+  if (subjects.length < 2 && !formatSubjects.length) {
     if (['actual', 'package'].includes(cardBillingMode(plan))) return [];
     const balance = lessonBalance(one);
     return balance ? [{ subject: '', ...balance }] : [];
@@ -159,9 +187,14 @@ export function studentLessonBalances({ student, plan, invoices = [], lessons = 
     if (billing.billingMode === 'actual' || billing.billingMode === 'package') return null;
     const own = plan.subjectPrices?.[subject];
     const base = own && subject !== main ? { ...plan, lessonMinutes: own.lessonMinutes || plan.lessonMinutes } : plan;
-    const balance = lessonBalance({ ...one, plan: split ? { ...base, chargeNoShow: billing.chargeNoShow } : base, subject, main });
-    return balance ? { subject, ...balance } : null;
-  }).filter(Boolean);
+    const groupStart = firstGroupMonth(invoices, student.id, subject);
+    // a subject split by format (2026-11-18): a balance per direction, the group one counted by its own lesson length
+    return formatsOfSubject(formatSubjects, subject).map((format) => {
+      const priced = format === 'group' ? planForFormat(base, plan, subject, 'group').plan : base;
+      const balance = lessonBalance({ ...one, plan: split ? { ...priced, chargeNoShow: billing.chargeNoShow } : priced, subject, main, ...(format ? { format, groupStart } : {}) });
+      return balance ? { subject, ...(format ? { format, label: subjectFormatLabel(subject, format) } : {}), ...balance } : null;
+    });
+  }).flat().filter(Boolean);
 }
 
 // payer e-mail: the student card first, then the parent account linked to the card (Lapsevanemad)
@@ -176,20 +209,34 @@ export function payerEmailOf(student, parents = []) {
 const NO_CORRECTION = { units: 0, note: '', noShows: [], unmarked: 0 };
 
 // one subject of a card with several: its lessons, its price (subjectPrices) and its own billing (subjectBilling)
-function subjectPart({ student, plan, subject, main, mode, mine, actualLessons, previousLessons, invoices, lessons, events, previousMonth, split }) {
-  const belongs = (item) => (itemSubject(item, student) || main) === subject;
+// format ('individual' | 'group', 2026-11-18): one direction of a subject split by format — its lessons (lessonFormat:
+// a calendar group's lesson is a group lesson), its price (groupPrices; none → the individual price and priceFallback)
+// and its own balance. '' = the subject as one, exactly as before.
+function subjectPart({ student, plan, subject, main, mode, mine, actualLessons, previousLessons, invoices, lessons, events, previousMonth, split, month = '', format = '' }) {
+  const groupStart = format ? (firstGroupMonth(invoices, student.id, subject) || month) : '';
+  const belongs = (item) => (itemSubject(item, student) || main) === subject && (!format || directionFormatOf(item, groupStart) === format);
   const own = plan.subjectPrices?.[subject];
-  const priced = own && subject !== main ? { ...plan, lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan.lessonMinutes } : plan;
+  const individual = own && subject !== main ? { ...plan, lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan.lessonMinutes } : plan;
+  const direction = planForFormat(individual, plan, subject, format || 'individual');
+  const priced = direction.plan;
   // per-subject billing (owner 2026-11-06): the subject's own no-show rule; a plan without it stays exactly as it was
   const subjectPlan = split ? { ...priced, chargeNoShow: subjectBilling(plan, subject, main).chargeNoShow } : priced;
   const balanced = mode !== 'actual' && mode !== 'package';
   const held = mode === 'actual' ? actualLessons.filter((lesson) => belongs(lesson) && (!split || isChargeable(lesson, subjectPlan))) : mine.filter(belongs);
   const units = round2(held.reduce((sum, event) => sum + unitsOf(event.duration, subjectPlan), 0));
-  const balance = balanced ? lessonBalance({ student, plan: subjectPlan, invoices, lessons, events, upto: previousMonth, subject, main }) : null;
+  const balance = balanced ? lessonBalance({ student, plan: subjectPlan, invoices, lessons, events, upto: previousMonth, subject, main, ...(format ? { format, groupStart } : {}) }) : null;
   const fix = mode !== 'actual' ? correctionFor({ student, plan: subjectPlan, balance, previousLessons: previousLessons.filter(belongs) }) : NO_CORRECTION;
   const price = subjectPlan.lessonPriceCents || 0;
-  return { subject, plannedUnits: units, correction: fix, priceCents: price, minutes: subjectPlan.lessonMinutes || 60, lessonCount: held.length, totalCents: Math.round((units + fix.units) * price), balance };
+  return {
+    subject,
+    ...(format ? { format, label: subjectFormatLabel(subject, format) } : {}),
+    // a group line without a group price is billed at the individual price: the admin sees a warning (formatWarnings)
+    ...(direction.fallback ? { priceFallback: true } : {}),
+    plannedUnits: units, correction: fix, priceCents: price, minutes: subjectPlan.lessonMinutes || 60, lessonCount: held.length, totalCents: Math.round((units + fix.units) * price), balance,
+  };
 }
+
+export const GROUP_PRICE_MISSING = 'grupi hind puudub — grupitunnid arveldatakse individuaalse hinnaga. Määra grupi hind: õpilase kaart → Finantsid → Arveldus.';
 
 export function monthlyBillingRows({ month, students = [], plans = [], schedule = [], groups = [], lessons = [], invoices = [], parents = [] }) {
   const dates = monthDates(month);
@@ -215,7 +262,11 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
       const actualLessons = mode === 'actual' && plan ? lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${month}-`) && counts(lesson) && (split || isChargeable(lesson, plan))) : [];
       const previousLessons = lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${previousMonth}-`) && counts(lesson));
       const balanced = plan && mode !== 'actual' && mode !== 'package';
-      const shared = { student, plan, main, mode, mine, actualLessons, previousLessons, invoices, lessons, events, previousMonth, split };
+      const shared = { student, plan, main, mode, mine, actualLessons, previousLessons, invoices, lessons, events, previousMonth, split, month };
+      // „Õppesuunad: individuaalne / grupp” (2026-11-18): a subject with a stored group direction or a group price is
+      // billed as two directions; a card without them is billed exactly as before
+      const formatSubjects = plan ? groupSubjects(student, plan) : [];
+      const directionParts = (subject) => formatsOfSubject(formatSubjects, subject).map((format) => subjectPart({ ...shared, subject, format }));
       let plannedUnits;
       let correction;
       let lessonsLeft;
@@ -223,11 +274,11 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
       let subjectParts = null;
       if (split) {
         // every subject by its own billing; the row is the sum of its monthly subjects
-        const parts = mode === 'package' || layout.mixedTiming ? [] : layout.monthlySubjects.map((subject) => subjectPart({ ...shared, subject }));
+        const parts = mode === 'package' || layout.mixedTiming ? [] : layout.monthlySubjects.flatMap(directionParts);
         plannedUnits = round2(parts.reduce((sum, part) => sum + part.plannedUnits, 0));
         correction = {
           units: round2(parts.reduce((sum, part) => sum + part.correction.units, 0)),
-          note: parts.filter((part) => part.correction.note).map((part) => `${part.subject}: ${part.correction.note}`).join('; '),
+          note: parts.filter((part) => part.correction.note).map((part) => `${part.label || part.subject}: ${part.correction.note}`).join('; '),
           noShows: parts.flatMap((part) => part.correction.noShows || []),
           unmarked: round2(parts.reduce((sum, part) => sum + (part.correction.unmarked || 0), 0)),
           studentId: student.id,
@@ -242,8 +293,8 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
         lessonsLeft = balanced ? lessonBalance({ student, plan, invoices, lessons, events, upto: month })?.left ?? null : null;
         lessonCount = mode === 'actual' ? actualLessons.length : mine.length;
         // several subjects (owner 2026-10-20): each its lessons, its price and its own line on the one invoice
-        subjectParts = plan && subjects.length > 1 && mode !== 'package'
-          ? subjects.map((subject) => subjectPart({ ...shared, subject })).filter((part) => part.plannedUnits || part.correction.units).map(({ balance, ...part }) => part) // eslint-disable-line no-unused-vars
+        subjectParts = plan && (subjects.length > 1 || formatSubjects.length) && mode !== 'package'
+          ? subjects.flatMap(directionParts).filter((part) => part.plannedUnits || part.correction.units).map(({ balance, ...part }) => part) // eslint-disable-line no-unused-vars
           : null;
       }
       const priceCents = plan?.lessonPriceCents || 0;
@@ -259,10 +310,13 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
       else if (!plan || !priceCents || (subjectParts || []).some((part) => !part.priceCents)) status = 'no-price';
       else if (!plannedUnits && correction.units <= 0) status = 'no-lessons';
       else if (totalCents <= 0) status = 'nothing-to-pay';
+      // group lines billed at the individual price (no group price): never silently — the row says so
+      const formatWarnings = (subjectParts || []).filter((part) => part.priceFallback && (part.plannedUnits || part.correction.units)).map((part) => `${part.label}: ${GROUP_PRICE_MISSING}`);
       return {
         student,
         plan,
         mode,
+        formatWarnings,
         lessonCount,
         lessonsLeft,
         plannedUnits,
@@ -315,10 +369,12 @@ export function invoiceGroups(rows = [], combine = true) {
 }
 
 // one item per card, or per subject of a card with several (then the item names its subject)
+// a group direction's part names its format: the server prices it at the group price, „Eesti keel · grupp”
+const formatField = (part) => (part?.format === 'group' ? { format: 'group' } : {});
 export function invoiceItems(rows = []) {
   return rows.flatMap((row) => (row.subjectParts?.length > 1
-    ? row.subjectParts.map((part) => ({ studentId: row.student.id, subject: part.subject, plannedUnits: part.plannedUnits, correctionUnits: part.correction.units, correctionNote: part.correction.note }))
-    : [{ studentId: row.student.id, ...(row.subjectParts?.length === 1 ? { subject: row.subjectParts[0].subject } : {}), plannedUnits: row.subjectParts?.[0]?.plannedUnits ?? row.plannedUnits, correctionUnits: row.subjectParts?.[0]?.correction.units ?? row.correction.units, correctionNote: row.subjectParts?.[0]?.correction.note ?? row.correction.note }]));
+    ? row.subjectParts.map((part) => ({ studentId: row.student.id, subject: part.subject, ...formatField(part), plannedUnits: part.plannedUnits, correctionUnits: part.correction.units, correctionNote: part.correction.note }))
+    : [{ studentId: row.student.id, ...(row.subjectParts?.length === 1 ? { subject: row.subjectParts[0].subject, ...formatField(row.subjectParts[0]) } : {}), plannedUnits: row.subjectParts?.[0]?.plannedUnits ?? row.plannedUnits, correctionUnits: row.subjectParts?.[0]?.correction.units ?? row.correction.units, correctionNote: row.subjectParts?.[0]?.correction.note ?? row.correction.note }]));
 }
 
 export function combinedMonthlyPayload(rows, month, due = rows[0]?.due) {

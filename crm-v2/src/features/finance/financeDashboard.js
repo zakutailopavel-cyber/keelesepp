@@ -6,6 +6,7 @@ import { monthDates, shiftMonth } from './monthlyBilling.js';
 import { groupCalendarEvents, occurrencesForDates } from '../calendar/calendarView.js';
 import { itemSubject, mainSubject } from '../students/subjects.js';
 import { subjectBilling } from './subjectBilling.js';
+import { lessonFormat, planForFormat, splitsFormat } from '../students/directionFormat.js';
 
 export const HISTORY_MONTHS = 12;
 export const FORECAST_MONTHS = 3;
@@ -30,14 +31,21 @@ const NOT_HELD = new Set(['Tühistatud', 'Puudus_p']);
 const MARKED_TODAY = new Set(['Toimunud', 'Puudus_eta']);
 
 // a lesson's price for a student: the subject's own price when it has one, the length in the plan's units
-export function lessonPriceCents(item, student, plan) {
-  if (!plan) return 0;
+// a group lesson (2026-11-18, students/directionFormat.js): the subject's group price; none → the individual price
+export function lessonPrice(item, student, plan) {
+  if (!plan) return { cents: 0, groupFallback: false };
   const main = mainSubject(student);
   const subject = itemSubject(item, student) || main;
   const own = subject !== main ? plan.subjectPrices?.[subject] : null;
-  const price = own?.lessonPriceCents || plan.lessonPriceCents || 0;
-  const minutes = own?.lessonMinutes || plan.lessonMinutes || 60;
-  return Math.round(((Number(item.duration) || minutes) / minutes) * price);
+  const individual = { lessonPriceCents: own?.lessonPriceCents || plan.lessonPriceCents || 0, lessonMinutes: own?.lessonMinutes || plan.lessonMinutes || 60 };
+  const direction = planForFormat(individual, plan, subject, lessonFormat(item));
+  const price = direction.plan.lessonPriceCents || 0;
+  const minutes = direction.plan.lessonMinutes || 60;
+  // warned like the monthly invoice: only a subject split by format (a stored group track or group price)
+  return { cents: Math.round(((Number(item.duration) || minutes) / minutes) * price), groupFallback: direction.fallback && splitsFormat(student, plan, subject) };
+}
+export function lessonPriceCents(item, student, plan) {
+  return lessonPrice(item, student, plan).cents;
 }
 
 // is a no-show without notice of this lesson charged: its subject's own rule, else the card's (finance/subjectBilling.js)
@@ -63,7 +71,7 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
   // a no-show follows its subject's rule (subjectBilling, owner 2026-11-06), else the card's
   const charged = (status, plan, record, item, student) => status === 'Toimunud' ? record?.billingStatus !== 'school_covered' : status === 'Puudus_eta' ? noShowCharged(plan, item, student) && !record?.billingWaived : false;
   return months.map((month) => {
-    const row = { month, heldCents: 0, heldLessons: 0, unmarkedLessons: 0, plannedCents: 0, plannedLessons: 0, noPrice: 0 };
+    const row = { month, heldCents: 0, heldLessons: 0, unmarkedLessons: 0, plannedCents: 0, plannedLessons: 0, noPrice: 0, groupNoPrice: 0 };
     const seen = new Set();
     occurrencesForDates(events, monthDates(month)).forEach((item) => {
       const ids = item.isGroup ? item.studentIds || [] : [item.studentId];
@@ -73,8 +81,9 @@ export function lessonRevenue({ months = [], today, students = [], plans = [], s
         if (!student) return;
         const record = journal.get(`${item.id}:${item.occurrenceDate}`) || journal.get(`${studentId}@${item.occurrenceDate}`);
         if (record) seen.add(record.id || `${studentId}@${item.occurrenceDate}`);
-        const cents = lessonPriceCents(item, student, plan);
+        const { cents, groupFallback } = lessonPrice(item, student, plan);
         if (!cents) { row.noPrice += 1; return; }
+        if (groupFallback) row.groupNoPrice += 1;
         const status = record?.status || item.status || 'Planeeritud';
         if (item.occurrenceDate >= today && !(item.occurrenceDate === today && MARKED_TODAY.has(status))) {
           if (!NOT_HELD.has(status)) { row.plannedCents += cents; row.plannedLessons += 1; }
@@ -115,6 +124,7 @@ export function lessonSummary({ rows = [], current } = {}) {
     nextMonth: future[0] || null,
     forecastCents: future.reduce((sum, row) => sum + row.plannedCents, 0),
     noPrice: now.noPrice || 0,
+    groupNoPrice: now.groupNoPrice || 0,
   };
 }
 
@@ -143,6 +153,7 @@ export function periodSummary({ rows = [], current, months = 1 } = {}) {
     unmarkedLessons: sum(window, 'unmarkedLessons'),
     aheadCents: sum(ahead, 'plannedCents'), aheadLessons: sum(ahead, 'plannedLessons'), aheadMonths: ahead.length,
     noPrice: sum(window, 'noPrice'),
+    groupNoPrice: sum(window, 'groupNoPrice'),
   };
 }
 

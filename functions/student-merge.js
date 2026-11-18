@@ -158,7 +158,7 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
     waiting: plan.filter((p) => !moving.includes(p)).map(({ collection, field, count, kind }) => ({ collection, field, count, kind })),
     skipped: skipped.map(({ collection, count, reason }) => ({ collection, count, reason })),
     documents: singletons.map(({ collection, action }) => ({ collection, action, label: core.DOC_LABELS[collection] || collection })),
-    price: { action: price.action, subject: price.subject || "", keepCents: price.keepCents || 0, sourceCents: price.sourceCents || 0 },
+    price: { action: price.action, subject: price.subject || "", keepCents: price.keepCents || 0, sourceCents: price.sourceCents || 0, ...(price.group ? { groupAdded: price.group.added, groupConflicts: price.group.conflicts.map((item) => item.subject) } : {}) },
     subcollections,
     accountLinks: userLinks?.size || 0,
     subjects: tracks.enrollments.map(({ subject, teacher, level }) => ({ subject, teacher, level })),
@@ -242,11 +242,13 @@ async function mergeStudentCards(db, { FieldValue, keepId: rawKeep, sourceId: ra
       cardDocs.push(core.undoEntry(fromRef.path, item.sourceData, mark));
       await fromRef.set(mark, { merge: true });
     }
-    if (price.action === "addSubjectPrice") {
+    // the other card's subject price and its group prices (2026-11-18) join the kept card's plan
+    const planPatch = { ...(price.action === "addSubjectPrice" ? price.patch : {}), ...(price.group?.patch || {}) };
+    if (Object.keys(planPatch).length) {
       const planRef = db.collection("studentRevenuePlans").doc(keepId);
       const planNow = await planRef.get();
-      cardDocs.push(core.undoEntry(planRef.path, planNow.exists ? planNow.data() : {}, price.patch));
-      await planRef.set({ ...price.patch, updatedAt: nowIso }, { merge: true });
+      cardDocs.push(core.undoEntry(planRef.path, planNow.exists ? planNow.data() : {}, planPatch));
+      await planRef.set({ ...planPatch, updatedAt: nowIso }, { merge: true });
     }
     // subcollections of the old card (if any) are copied as they are
     for (const sub of subcollections) {

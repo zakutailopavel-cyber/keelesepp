@@ -833,6 +833,7 @@ export default function FinancePage({
                   <tr key={row.studentId}>
                     <td>
                       <strong>{row.studentName}</strong>
+                      {row.groupFallback?.length ? <small className="action-error" role="note" data-forecast-group-warning={row.studentId}>{row.groupFallback.map((subject) => `${subject} · grupp`).join(', ')}: grupi hind puudub — prognoos individuaalse hinnaga</small> : null}
                     </td>
                     <td>{money(row.lessonPriceCents)}</td>
                     <td>{row.weeklyLessons}</td>

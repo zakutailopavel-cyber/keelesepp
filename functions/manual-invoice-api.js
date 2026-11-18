@@ -7,10 +7,11 @@ const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-co
 const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('./monthly-invoice-core');
 const { invoiceCancellationError, wasSent } = require('./invoice-cancellation-core');
 const { subjectName } = require('./student-enrollments-core');
-const { monthlyBillingBlocker, sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth } = require('./combined-invoice-core');
+const { monthlyBillingBlocker, sameCardsInput, monthlyItemsInput, planForDirection, combinedMonthlyRecord, combinedManualRecord, combinedTokenRecord, billsCardForMonth } = require('./combined-invoice-core');
 const { tokenInvoiceInput, tokenInvoiceLines, tokenInvoiceSubject, combinedTokenInput } = require('./lesson-tokens-core');
 const { cardPayerEmail, firstEmail, linkedParentIds } = require('./invoice-payer-core');
 const { mainSubject } = require('./student-enrollments-core');
+const { requestedFormat, subjectFormatLabel } = require('./direction-format-core');
 const { invoiceIsVoidOrCredited } = require('./finance-core');
 const issuerCore = require('./invoice-issuer-core');
 const { readIssuerContext, subjectLine, manualCardLine, nextIssuerNumber } = require('./invoice-issuer');
@@ -255,9 +256,11 @@ async function createMonthlyInvoice({ actor, values }) {
     try {
       // one subject of a card with several (owner 2026-10-20): that subject's price, its name on the invoice
       const subject = subjectName(values.subject);
+      // a group direction's line (2026-11-18, direction-format-core.js): the subject's group price, „Eesti keel · grupp”
+      const format = subject ? requestedFormat(values.format) : '';
       const title = subject && !/keel/i.test(subject) ? 'Tunnid' : '';
-      priced = monthlyInvoiceLines({ ...input, title }, planForSubject(planSnap.exists ? planSnap.data() : {}, subject));
-      if (subject) priced = { ...priced, subject, lines: priced.lines.map((line) => ({ ...line, description: `${subject}: ${line.description}`, subject })) };
+      priced = monthlyInvoiceLines({ ...input, title }, planForDirection(planSnap.exists ? planSnap.data() : {}, subject, format));
+      if (subject) priced = { ...priced, subject, ...(format ? { format } : {}), lines: priced.lines.map((line) => ({ ...line, description: `${subjectFormatLabel(subject, format)}: ${line.description}`, subject, ...(format ? { format } : {}) })) };
     } catch (error) {
       throw httpError(400, error.message);
     }
@@ -290,6 +293,7 @@ async function createMonthlyInvoice({ actor, values }) {
       plannedUnits: input.plannedUnits,
       correctionUnits: input.correctionUnits,
       ...(priced.subject ? { subject: priced.subject } : {}),
+      ...(priced.format ? { format: priced.format } : {}),
       ...issued.fields,
     };
     transaction.create(invoiceRef, invoice);
@@ -330,7 +334,7 @@ async function createCombinedMonthlyInvoice({ actor, values }) {
   const month = inputs[0].month;
   const due = inputs[0].due;
   // the same cards without subjects keep their old key (an invoice made before subjects is still found again)
-  const keyParts = items.some((item) => item.subject) ? items.map((item) => `${item.studentId}#${item.subject}`) : ids;
+  const keyParts = items.some((item) => item.subject) ? items.map((item) => `${item.studentId}#${item.subject}${item.format ? `#${item.format}` : ''}`) : ids;
   const key = crypto.createHash('sha256').update(`${month}|${[...keyParts].sort().join('|')}`).digest('hex').slice(0, 20);
   const nowIso = new Date().toISOString();
   const todayIso = appToday(nowIso);
@@ -381,7 +385,7 @@ async function createCombinedMonthlyInvoice({ actor, values }) {
           parts: indexes.map((index) => {
             const input = inputs[index];
             const at = ids.indexOf(items[index].studentId);
-            return { card: { id: ids[at], ...cardSnaps[at].data() }, plan: planSnaps[at].exists ? planSnaps[at].data() : {}, subject: items[index].subject, plannedUnits: input.plannedUnits, correctionUnits: input.correctionUnits, correctionNote: input.correctionNote };
+            return { card: { id: ids[at], ...cardSnaps[at].data() }, plan: planSnaps[at].exists ? planSnaps[at].data() : {}, subject: items[index].subject, format: items[index].format || '', plannedUnits: input.plannedUnits, correctionUnits: input.correctionUnits, correctionNote: input.correctionNote };
           }),
         });
       } catch (error) {
@@ -487,7 +491,7 @@ async function createTokenInvoice({ actor, values, requestId }) {
     let subject;
     try {
       subject = tokenInvoiceSubject(input.subject, student);
-      priced = tokenInvoiceLines({ lessons: input.lessons, plan: planForSubject(planSnap.exists ? planSnap.data() : {}, subject), subject: subject || String(student.subject || '').trim() });
+      priced = tokenInvoiceLines({ lessons: input.lessons, plan: planForDirection(planSnap.exists ? planSnap.data() : {}, subject, subject ? input.format : ''), subject: subject || String(student.subject || '').trim(), format: subject ? input.format : '' });
     } catch (error) { throw httpError(error.status || 400, error.message); }
     const issued = await issueFor(transaction, actor, { context, requested: values.issuer, todayIso, lines: [subjectLine(context, student, input.studentId, subject || mainSubject(student))] });
     const { invoiceNum } = issued;
@@ -500,6 +504,8 @@ async function createTokenInvoice({ actor, values, requestId }) {
       ...base,
       lines: priced.lines,
       ...(subject ? { subject } : {}),
+      // a group direction's package (2026-11-18): its package pays only group lessons (tokenFormat)
+      ...(subject && input.format ? { format: input.format } : {}),
       billingMode: 'lesson_tokens_v1',
       pricingMode: 'plan',
       lessonCount: input.lessons,
@@ -555,7 +561,7 @@ async function createCombinedTokenInvoice({ actor, values, requestId }) {
         due: input.due, note: input.note, invoiceNum, nowIso, actor, requestId: mutationId, signature, linkedAccountEmail: payerAccountEmail,
         parts: input.items.map((item) => {
           const at = ids.indexOf(item.studentId);
-          return { card: { id: ids[at], ...cardSnaps[at].data() }, plan: planSnaps[at].exists ? planSnaps[at].data() : {}, subject: item.subject || '', lessons: item.lessons };
+          return { card: { id: ids[at], ...cardSnaps[at].data() }, plan: planSnaps[at].exists ? planSnaps[at].data() : {}, subject: item.subject || '', format: item.format || '', lessons: item.lessons };
         }),
       });
     } catch (error) {

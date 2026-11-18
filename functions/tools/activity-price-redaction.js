@@ -17,7 +17,7 @@
 // Running it again is harmless (the second run finds nothing to write).
 
 const TYPE = "finance.revenue_plan_updated";
-const KEPT_META_KEYS = ["studentId", "studentName", "weeklyLessons", "billingMode", "subjectPricesChanged", "redactedAt", "redactedBy"];
+const KEPT_META_KEYS = ["studentId", "studentName", "weeklyLessons", "billingMode", "subjectPricesChanged", "groupPricesChanged", "redactedAt", "redactedBy"];
 
 // entries: [{ id, type, meta }] → [{ id, remove: [metaKey…], subjectPricesChanged }]
 function redactionPlan(entries = []) {

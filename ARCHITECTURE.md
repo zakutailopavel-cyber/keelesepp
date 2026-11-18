@@ -407,6 +407,60 @@ of the month, due the next month) and „Kuu ette” / „Jooksev kuu” (the mo
 the card form refuses that combination and the monthly row shows „Arveldusviisid ei sobi”; packages combine with any.
 A card merge brings the other card's billing as `subjectBilling[its subject]` when it differs from the kept card's.
 
+#### Direction format: individuaalne / grupp (2026-11-18)
+
+Team request (#student_card, owner forwarded): a study direction is „Individuaalne” or „Grupp”, and price and lesson
+tokens follow the direction + format. One card may hold Eesti keel individually AND Eesti keel in a group.
+
+- **Enrollment** (`students/{id}.enrollments[i]`): `format: 'group' | 'individual'` (absent = individual — every track
+  made before), a group track may name its calendar group `groupId`. The group and the individual track of one subject
+  and teacher are two tracks: `enrollmentKey` adds `|group` for a group track only (individual keys unchanged); the
+  server's `student-enrollments-core sameTrack` keeps them apart in a card merge. No rules change (enrollments are free
+  form in `students`).
+- **Price**: `studentRevenuePlans.groupPrices = { "<subject>": { lessonPriceCents, lessonMinutes, weeklyLessons? } }`
+  (≤ 8; only an admin — the owner is one — writes it, finance reads, teachers / parents / students neither: firestore.rules
+  `groupPrices` map ≤ 8 + the plan's admin-only write, emulator-tested). The individual price stays `subjectPrices[subject]`
+  / the card's price and is the fallback (`lessonPriceCents: 0` = no group price). Owner 2026-11-18: the group price is a
+  plain hourly rate + length in Arveldus — no price terms and no discount reason, also below 25 €/h. `weeklyLessons` =
+  group lessons per week, for the revenue forecast only (the card's „Tunde nädalas” counts the individual lessons).
+- **Billing (owner 2026-11-18)**: groups are billed month to month — group lessons go on the normal monthly invoice as a
+  line „<aine> · grupp”. There is no billing mode per format: `subjectBilling` stays per subject (a subject on packages
+  takes package credits for its group lessons too). Group packages stay in the code but the UI does not push them: the
+  Tunnipakett dialog offers „Vorm” only for a subject that is itself on lesson packages.
+- **Matching**: a lesson with `groupId` (a calendar group's attendance record, `groups.setAttendance`) or an event with
+  `isGroup` is a group lesson (`lessonFormat`); every other lesson is individual.
+- **One rule, two copies**: `crm-v2/src/features/students/directionFormat.js` (browser) and
+  `functions/direction-format-core.js` (server), compared in `functions/direction-format-core.test.js`.
+  `planForFormat(individualPlan, plan, subject, format)` → `{ plan, fallback }`: a group line takes `groupPrices`, none →
+  the individual price with `fallback: true`.
+- **Which subjects split** (`groupSubjects`): a stored open group track or a stored group price. A card without them is
+  billed exactly as before (golden test unchanged). A legacy track without `format` is shown as „Grupp?” when the card
+  is a member of an active calendar group of that subject and has no other track of it (`trackFormat` inferred) — display
+  only; it never splits billing. `functions/tools/direction-format-report.js` counts those read-only.
+- **Monthly invoice** (`monthlyBilling.js subjectPart(format)`, server `combined-invoice-core planForDirection`,
+  `monthlyItemsInput`): a split subject has an individual and a group part; the group item carries `format: 'group'`,
+  is priced at the group price and its line reads „Eesti keel · grupp: …”; `cardParts[i].format` / the one-card invoice
+  `format` record it. A part / invoice without `format` is individual. Balances per direction: group lessons dated before
+  the first month with a group line (`firstGroupMonth`, else the billed month) count on the individual balance, because
+  the old subject invoices paid them. A group part without a group price is billed at the individual price and the
+  monthly row shows `formatWarnings` („Eesti keel · grupp: grupi hind puudub …”).
+- **Tokens**: see docs/LESSON_TOKENS.md „Individual / group packages”.
+- **UI**: „Õppesuunad” window — segmented control „Vorm” (Individuaalne / Grupp), optional „Kalendrigrupp”; the same
+  subject + teacher + format is refused once. Badges in „Õppesuunad” card, window, Tunnipakett table. Arveldus — a
+  „Grupp” block (rate + length) in the subject's tab. Lab page: `crm-v2/directions-lab.html` (dev only, fake data).
+- **Forecast, calendar revenue, cash, merge** (owner 2026-11-18, same fallback and warning):
+  - revenue forecast (`subjectBilling.js` / `subject-billing-core.js` `groupForecast` inside `weeklyForecastCents`,
+    Finantsid `revenueForecast` + server `financial-analytics-core`): `weeklyLessons` × the group price; no group price →
+    the individual price, the forecast row warns („grupi hind puudub — prognoos individuaalse hinnaga”);
+  - calendar revenue (`financeDashboard.js lessonPrice`): a group lesson at the group price; none → individual, the month
+    counts `groupNoPrice` (only for subjects split by format) and the chart detail says so;
+  - teacher's cash amount (`cash-core lessonCashPriceCents(plan, subject, minutes, format)` / `directionCashPrice`,
+    `/cash/lesson/info` → `groupPriceMissing` for the admin). Today a group lesson cannot be marked as paid in cash at all
+    (`lessonCash.js canMarkLessonCash` refuses group rows; the route needs a schedule entry), so this is the rule for when
+    it can. Cash stays admin-view only and never reaches the accountant's books (unchanged);
+  - card merge (`student-card-merge-core groupPricesMerge`): the other card's group prices join the kept plan for the
+    subjects it has none for; a different price for the same subject is a conflict (`group_price`, the kept one stays).
+
 ### Staff operations
 
 Teacher-facing navigation is task-oriented. `haldus.html` is the daily start surface and keeps the common

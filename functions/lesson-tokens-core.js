@@ -11,6 +11,10 @@ const { subjectName, enrollmentsOf } = require('./student-enrollments-core');
 const clean = (value, max = 300) => String(value || '').trim().slice(0, max);
 const fail = (status, message) => Object.assign(new Error(message), { status });
 const euros = (cents) => (cents / 100).toFixed(2).replace('.', ',');
+// „Õppesuunad: individuaalne / grupp” (2026-11-18, direction-format-core.js): a package of a group direction carries
+// format 'group'; '' = individual (and every package made before)
+const groupFormat = (value) => (String(value || '').trim() === 'group' ? 'group' : '');
+const formatSuffix = (value) => (groupFormat(value) ? ' · grupp' : '');
 
 function tokenInvoiceInput(values = {}) {
   const studentId = clean(values.studentId, 160);
@@ -20,16 +24,17 @@ function tokenInvoiceInput(values = {}) {
   const due = clean(values.due, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(due) || Number.isNaN(new Date(`${due}T12:00:00Z`).getTime())) throw fail(400, 'Lisa maksetähtaeg.');
   const subject = subjectName(clean(values.subject, 80));
-  return { studentId, lessons, due, note: clean(values.note, 500), ...(subject ? { subject } : {}) };
+  const format = groupFormat(values.format);
+  return { studentId, lessons, due, note: clean(values.note, 500), ...(subject ? { subject } : {}), ...(format ? { format } : {}) };
 }
 
 // the price comes from the card's private plan, never from the request
-function tokenInvoiceLines({ lessons, plan = {}, subject = '' }) {
+function tokenInvoiceLines({ lessons, plan = {}, subject = '', format = '' }) {
   const priceCents = Math.max(0, Math.round(Number(plan.lessonPriceCents) || 0));
   if (!priceCents) throw fail(400, 'Õpilasel puudub tunnihind: määra see õpilase kaardil (Finantsid → Arveldus).');
   const minutes = Number(plan.lessonMinutes) || 60;
   const amountCents = lessons * priceCents;
-  const label = subject ? `Tunnipakett (${subject})` : 'Tunnipakett';
+  const label = subject ? `Tunnipakett (${subject}${formatSuffix(format)})` : 'Tunnipakett';
   return {
     priceCents,
     minutes,
@@ -79,13 +84,13 @@ function tokenInvoiceParts(invoiceId, invoice = {}) {
   if (!isCombinedTokenInvoice(invoice)) {
     return [{
       index: 0, packageId: tokenPackageId(invoiceId), studentId: invoice.studentId, studentName: invoice.studentName || '',
-      subject: invoice.subject || '', tokenCredits: Number(invoice.tokenCredits) || 0,
+      subject: invoice.subject || '', tokenCredits: Number(invoice.tokenCredits) || 0, ...(groupFormat(invoice.format) ? { format: 'group' } : {}),
       amountCents: Number(invoice.amountCents) || 0, priceCents: Number(invoice.lessonPriceCents) || 0, combined: false,
     }];
   }
   return invoice.cardParts.map((part, index) => ({
     index, packageId: tokenPartPackageId(invoiceId, index), studentId: part.studentId, studentName: part.studentName || '',
-    subject: part.subject || '', tokenCredits: Number(part.tokenCredits) || 0,
+    subject: part.subject || '', tokenCredits: Number(part.tokenCredits) || 0, ...(groupFormat(part.format) ? { format: 'group' } : {}),
     amountCents: Number(part.amountCents) || 0, priceCents: Number(part.priceCents) || 0, combined: true,
   }));
 }
@@ -95,13 +100,13 @@ function tokenInvoiceParts(invoiceId, invoice = {}) {
 function combinedTokenInput(values = {}) {
   const items = values.items;
   if (!Array.isArray(items) || items.length < 2 || items.length > 12) throw fail(400, 'Ühisele tunnipaketile vali 2–12 rida.');
-  const lines = items.map((item) => tokenInvoiceInput({ studentId: item?.studentId, lessons: item?.lessons, subject: item?.subject, due: values.due }));
-  const keys = lines.map((line) => `${line.studentId}|${tokenSubjectKey(line.subject)}`);
+  const lines = items.map((item) => tokenInvoiceInput({ studentId: item?.studentId, lessons: item?.lessons, subject: item?.subject, format: item?.format, due: values.due }));
+  const keys = lines.map((line) => `${line.studentId}|${tokenSubjectKey(line.subject)}|${line.format || ''}`);
   if (new Set(keys).size !== keys.length) throw fail(400, 'Iga õpilane ja aine võib ühisel tunnipaketil olla üks kord.');
   return {
     due: lines[0].due,
     note: clean(values.note, 500),
-    items: lines.map(({ studentId, lessons, subject }) => ({ studentId, lessons, ...(subject ? { subject } : {}) })),
+    items: lines.map(({ studentId, lessons, subject, format }) => ({ studentId, lessons, ...(subject ? { subject } : {}), ...(format ? { format } : {}) })),
   };
 }
 
@@ -110,6 +115,7 @@ function tokenPackageRecord({ invoice, invoiceId, student = {}, issuedAt, nowIso
   const credits = part ? part.tokenCredits : (Number(invoice.tokenCredits) || 0);
   const amountCents = part ? part.amountCents : (Number(invoice.amountCents) || 0);
   const subject = part ? part.subject : invoice.subject;
+  const format = groupFormat(part ? part.format : invoice.format);
   return {
     studentId: part ? part.studentId : invoice.studentId,
     studentName: student.name || (part && part.studentName) || invoice.studentName || '—',
@@ -138,6 +144,8 @@ function tokenPackageRecord({ invoice, invoiceId, student = {}, issuedAt, nowIso
     // the subject whose lessons this package pays (owner bug 2026-11-03); only invoices made with a chosen subject have
     // one. A package without tokenSubject is the shared pool: it pays every lesson of the card, as before.
     ...(subjectName(subject) ? { tokenSubject: subjectName(subject) } : {}),
+    // a group direction's package (2026-11-18): pays only the group lessons of tokenSubject (direction-format-core.js)
+    ...(format && subjectName(subject) ? { tokenFormat: format } : {}),
     createdAt: nowIso,
     createdBy: actor,
     updatedAt: nowIso,
@@ -188,10 +196,11 @@ function packageForOwedLesson(packages = [], { enabled = OWED_LESSONS_TAKE_NEXT_
 // the lessons a newly credited package takes, oldest first: every lesson since the invoice date (held while the payment
 // was on its way) and every owed lesson of the card, whatever its date. lessons: [{ id, date }]; owedLessonIds: ids.
 // subjectKey (a package of one subject): only the lessons of that subject (lessons then carry their own subjectKey).
-function tokenBacklogLessonIds({ lessons = [], issuedAt = '', owedLessonIds = [], owedFirst = OWED_LESSONS_TAKE_NEXT_PACKAGE, subjectKey = '' } = {}) {
+// format 'group' (a group direction's package): only group lessons (lessons then carry their own format)
+function tokenBacklogLessonIds({ lessons = [], issuedAt = '', owedLessonIds = [], owedFirst = OWED_LESSONS_TAKE_NEXT_PACKAGE, subjectKey = '', format = '' } = {}) {
   const owed = new Set(owedFirst ? owedLessonIds : []);
   return lessons
-    .filter((lesson) => lesson && lesson.id && (!subjectKey || lesson.subjectKey === subjectKey) && (owed.has(lesson.id) || String(lesson.date || '') >= String(issuedAt || '')))
+    .filter((lesson) => lesson && lesson.id && (!subjectKey || lesson.subjectKey === subjectKey) && (!groupFormat(format) || lesson.format === 'group') && (owed.has(lesson.id) || String(lesson.date || '') >= String(issuedAt || '')))
     .sort((a, b) => `${a.date || ''}:${a.id}`.localeCompare(`${b.date || ''}:${b.id}`))
     .map((lesson) => lesson.id);
 }

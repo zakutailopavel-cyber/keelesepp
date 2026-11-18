@@ -16,6 +16,7 @@
 // giver). Pending and rejected hand-overs never count in a balance; a pending one can no longer be given again.
 
 const { appToday } = require("./local-date-core");
+const { planForFormat } = require("./direction-format-core");
 
 function cashError(message, status = 400) {
   return Object.assign(new Error(message), { status });
@@ -234,10 +235,19 @@ function subjectPrice(plan = {}, subject = "") {
   return { unitCents: Math.max(0, unitCents), minutes };
 }
 
-/** The cash a lesson costs: the subject's price scaled to the lesson's length (90 min of a 60-min price = 1.5×). */
-function lessonCashPriceCents(plan, subject = "", lessonMinutes = 0) {
+/** The price of one direction (2026-11-18, direction-format-core.js): a group lesson takes the subject's group price,
+ *  none → the individual price (fallback: true — the admin's Kassa shows a warning). */
+function directionCashPrice(plan = {}, subject = "", format = "individual") {
+  const individual = subjectPrice(plan, subject);
+  const direction = planForFormat({ lessonPriceCents: individual.unitCents, lessonMinutes: individual.minutes }, plan, subject, format);
+  return { unitCents: Math.max(0, Math.round(Number(direction.plan.lessonPriceCents) || 0)), minutes: Number(direction.plan.lessonMinutes) || 60, fallback: direction.fallback };
+}
+
+/** The cash a lesson costs: the subject's price scaled to the lesson's length (90 min of a 60-min price = 1.5×).
+ *  format 'group' (2026-11-18): the subject's group price, else the individual one. */
+function lessonCashPriceCents(plan, subject = "", lessonMinutes = 0, format = "individual") {
   if (!plan) return 0;
-  const price = subjectPrice(plan, subject);
+  const price = directionCashPrice(plan, subject, format);
   if (!price.unitCents) return 0;
   const minutes = Number(lessonMinutes) || price.minutes;
   return Math.round(price.unitCents * (minutes / price.minutes));
@@ -476,6 +486,6 @@ module.exports = {
   DEFAULT_CASH_RECEIVERS, cashPosition, cashReceivers, cleanReceiverUids, handoverAnswerPatch, handoverCancelRefusal, handoverCounts,
   handoverRequestEntry, myCashView,
   amountToCents, cashBalances, cashError, cashSubjectsOf, handoverEntry, invoicesCoveringLesson, lessonCashEntry, lessonCashFlag, lessonCashId,
-  lessonCashMarks, lessonCashPayer, lessonCashPriceCents, lessonCashUndoRefusal, lessonSettledRefusal, lessonTeacherUid, paysCashFor, receiptEntry,
+  directionCashPrice, lessonCashMarks, lessonCashPayer, lessonCashPriceCents, lessonCashUndoRefusal, lessonSettledRefusal, lessonTeacherUid, paysCashFor, receiptEntry,
   studentTeacherUids, visibleEntries,
 };

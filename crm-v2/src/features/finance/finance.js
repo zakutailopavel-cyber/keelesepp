@@ -1,5 +1,5 @@
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
-import { weeklyForecastCents } from './subjectBilling.js';
+import { groupForecast, weeklyForecastCents } from './subjectBilling.js';
 
 export function invoiceAmountCents(invoice = {}) {
   if (Number.isFinite(Number(invoice.amountCents))) return Math.max(0, Number(invoice.amountCents));
@@ -34,11 +34,14 @@ export function displayDate(value) {
 }
 
 export function revenueForecast(plans = []) {
-  const rows = plans.filter((plan) => plan.active !== false && Number(plan.lessonPriceCents) > 0 && Number(plan.weeklyLessons) > 0).map((plan) => {
-    // card price × lessons per week, plus further subjects with their own lessons per week (owner 2026-11-06)
+  // a card with only group lessons per week (2026-11-18) is in the forecast too
+  const rows = plans.filter((plan) => plan.active !== false && Number(plan.lessonPriceCents) > 0 && (Number(plan.weeklyLessons) > 0 || groupForecast(plan).weeklyCents > 0)).map((plan) => {
+    // card price × lessons per week, plus further subjects with their own lessons per week (owner 2026-11-06), plus
+    // group lessons per week at the group price (2026-11-18; no group price → the individual one, groupFallback)
     const weeklyCents = Math.round(weeklyForecastCents(plan));
     return {
       ...plan,
+      groupFallback: groupForecast(plan).fallbackSubjects,
       weeklyCents,
       monthlyCents: Math.round(weeklyCents * 52 / 12),
       annualCents: weeklyCents * 52,

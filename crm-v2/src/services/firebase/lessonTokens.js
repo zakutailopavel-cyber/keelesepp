@@ -31,10 +31,30 @@ export function tokenSubjectKey(subject) {
   return (SUBJECT_ALIASES[low] || low).toLocaleLowerCase('et').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
 }
 // the lessons left that a lesson of this subject can take: its own subject's packages and the packages without a subject
-export function subjectBalance(packages = [], subject = '') {
+// format 'group' (2026-11-18, functions/direction-format-core.js packageTiersForFormat): with a group package on the
+// card a group lesson takes only its subject's group packages (none → the individual ones) and an individual lesson
+// never takes a group package; a card without group packages counts exactly as before
+export const isGroupPackage = (item) => item?.tokenFormat === 'group';
+export function subjectBalance(packages = [], subject = '', format = '') {
   const key = tokenSubjectKey(subject);
-  return packages.filter((item) => item?.status === 'active' && (!tokenSubjectKey(item.tokenSubject) || tokenSubjectKey(item.tokenSubject) === key))
-    .reduce((n, item) => n + num(item.balanceCredits), 0);
+  const active = packages.filter((item) => item?.status === 'active');
+  const sum = (list) => list.reduce((n, item) => n + num(item.balanceCredits), 0);
+  const individual = active.filter((item) => !isGroupPackage(item) && (!tokenSubjectKey(item.tokenSubject) || tokenSubjectKey(item.tokenSubject) === key));
+  if (!packages.some(isGroupPackage)) return sum(individual);
+  if (format === 'group') {
+    const own = packages.filter((item) => isGroupPackage(item) && tokenSubjectKey(item.tokenSubject) === key);
+    return own.length ? sum(own.filter((item) => item.status === 'active')) : sum(individual);
+  }
+  return sum(individual);
+}
+
+// the subjects whose group lessons are paid from individual packages: the card has a stored group direction of the
+// subject and packages, but no group package of it (the admin sees a warning; the server marks such a ledger entry
+// formatFallback)
+export function groupPackageGaps(packages = [], groupSubjectNames = []) {
+  const counted = packages.filter((item) => COUNTED.has(item?.status));
+  if (!counted.length) return [];
+  return groupSubjectNames.filter((subject) => !counted.some((item) => isGroupPackage(item) && tokenSubjectKey(item.tokenSubject) === tokenSubjectKey(subject)));
 }
 
 export function tokenSummary(packages = []) {
@@ -81,6 +101,8 @@ export function tokenAccount({ packages = [], owed = [] } = {}) {
         name: item.packageProductName || '',
         // '' = paid any lesson of the card (packages before 2026-11-03 or a card without a subject)
         subject: String(item.tokenSubject || '').trim(),
+        // 'group' = pays only the group lessons of its subject (2026-11-18); '' = individual / every package before
+        format: isGroupPackage(item) ? 'group' : '',
         bought,
         held,
         left,

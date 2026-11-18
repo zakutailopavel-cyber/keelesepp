@@ -116,5 +116,26 @@ export function weeklyForecastCents(plan) {
       const price = Math.max(0, Number(key && prices[key] && prices[key].lessonPriceCents) || 0) || Math.max(0, Number(plan.lessonPriceCents) || 0);
       return sum + price * override.weeklyLessons;
     }, 0);
-  return card + extra;
+  return card + extra + groupForecast(plan).weeklyCents;
+}
+
+// „Individuaalne / Grupp” (2026-11-18): group lessons per week of a subject (studentRevenuePlans.groupPrices[subject]
+// .weeklyLessons, entered in Arveldus next to the group price) × the group price; no group price → the subject's
+// individual price (fallback, the forecast warns). The card's „Tunde nädalas” counts the individual lessons only.
+// → { weeklyCents, fallbackSubjects }
+export function groupForecast(plan) {
+  const groups = plan && plan.groupPrices && typeof plan.groupPrices === 'object' ? plan.groupPrices : {};
+  const prices = plan && plan.subjectPrices && typeof plan.subjectPrices === 'object' ? plan.subjectPrices : {};
+  const fallbackSubjects = [];
+  const weeklyCents = Object.entries(groups).reduce((sum, [subject, entry]) => {
+    const weekly = Math.max(0, Number(entry && entry.weeklyLessons) || 0);
+    if (!weekly) return sum;
+    const own = Math.max(0, Math.round(Number(entry && entry.lessonPriceCents) || 0));
+    if (own) return sum + own * weekly;
+    fallbackSubjects.push(subject);
+    const key = Object.keys(prices).find((item) => sameSubject(item, subject));
+    const individual = Math.max(0, Number(key && prices[key] && prices[key].lessonPriceCents) || 0) || Math.max(0, Number(plan.lessonPriceCents) || 0);
+    return sum + individual * weekly;
+  }, 0);
+  return { weeklyCents, fallbackSubjects };
 }
