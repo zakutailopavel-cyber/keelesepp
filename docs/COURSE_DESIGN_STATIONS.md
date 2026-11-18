@@ -144,6 +144,11 @@ owner summary `docs/review/b2-m10-tasks.md`. Learnt: at B2- every Kasuta sheet n
 extension is the natural place), choice questions must be ≥ ~9 words on average (only the questions are measured), and
 at most half of the Kasuta sheets may mention a phone call or a voice message (av-kasuta2).
 
+**B2 module 8** (`b2/module08.js`, 036–039, 2026-11-18): travel and culture from the learner's side — project (a weekend
+on 200 €, negotiate) → infogap (a cancelled flight and a late suitcase, EU rules, complain) → game (customs and culture
+shock, explain) → case (a guest in summer: festival or museum, advise); 040 Vahehindamine 2 in Harno B2 form + „Minu
+soovitus külalisele”; owner summary `docs/review/b2-m08-tasks.md`.
+
 ## 5. Next
 
 Owner and a teacher run 2–3 pilot lessons; then decide whether the next modules move to v3-stations (one module per PR,

@@ -332,7 +332,7 @@ export const LESSONS = withShapes({
     title: 'Tarbijaprobleem',
     canDo: 'Ma loen tarbija õigustest ja kirjutan poele 140–160-sõnalise vastuskirja: kirjeldan fakte, viitan tõenditele ja tingimustele ning esitan viisaka nõude, ka kui pood esialgu keeldub.',
     discover: [
-      B.review('053_d_review', [['Millise reklaamipaketi Jaan kohvikule valis ja milliseid tingimusi ta kohtumisel üle kontrollis?', 'b1b2-052'], ['Mida nõudis Sofia oma kaebuses reisifirmale ja kuidas ta seda põhjendas?', 'b1b2-037'], 'Ütle kesksõnaga: „summa, mis maksti eile” ja „pakkumine, mis kehtib ainult täna”.']),
+      B.review('053_d_review', [['Millise reklaamipaketi Jaan kohvikule valis ja milliseid tingimusi ta kohtumisel üle kontrollis?', 'b1b2-052'], ['Moodul 8: mida nõuaksid lennufirmalt, kui su lend tühistatakse, ja kuidas sa seda põhjendaksid?', 'b1b2-037'], 'Ütle kesksõnaga: „summa, mis maksti eile” ja „pakkumine, mis kehtib ainult täna”.']),
       B.text('053_d_hook', 'Kõne klienditeenindusse', 'Kadri ja Jaan arutasid Kokk Plussi makset pikalt. Kadri oli pettunud, et Jaan ei olnud tingimusi lugenud, Jaanil oli piinlik. Lõpuks leppisid nad kokku, et Jaan helistab firmasse ja nõuab raha tagasi. Tellimuse tühistas ta juba eile, kuid rakendust ei olnud ta pärast prooviperioodi kordagi avanud. Loe, kuidas kõne läheb. Märka, kuidas Jaan oma nõuet viisakalt sõnastab ja kuidas teenindaja tingimustele viitab.'),
       B.dialogue('053_d_call', 'Jaan helistab „Kokk Plussi”.', 'Loe Jaani kõnet klienditeenindusse. Kirjuta igasse lünka üks sõna, mis sobib nii sisu kui ka vormi poolest.', 'Hanna', 'Jaan', [
         ['A', 'Kokk Pluss, klienditeenindus, Hanna kuuleb. Kuidas saan teid aidata?'],
