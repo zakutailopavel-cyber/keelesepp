@@ -19,6 +19,7 @@
   eslint); all 15 sheets read in the sheet lab.
 - Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker; facts dated 2025–2026
   (study leave, tax limit, free courses) may change.
+- Merged origin/main e59bb44 (modules 5 #1269, 6 #1271): both sides kept; module-6 word reuse ≥ 30 %; 033 corner → L3 (course needs ≥ 4 L3 corners); course report 36/36 modules 5/5 READY, vitest 199 files / 2235 tests green, eslint clean, EstNLTK 0 unknown.
 - Next safe step: owner reads `docs/review/b2-m07-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-031:discover` …).
 ## 2026-11-18 · agent/b1b2-m06-tasks — B1→B2 module 6 „Tööelu” task-based (v4) + themed-module topic rule · content + one v4 gate rule
 

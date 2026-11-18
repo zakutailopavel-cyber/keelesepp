@@ -92,7 +92,7 @@ export const LESSONS = withShapes({
         'Kus ja kui kaua sa koolis käisid? Mis sulle seal meeldis?',
         'Kas sinu otsus pärast põhikooli oli õige? Mida teeksid täna teisiti?',
         'Mis on Eesti koolis teisiti kui koolis, kus õppisid sina või sinu lapsed?',
-      ], [150, 210], ['Ma õppisin …', 'Otsus sõltus …', 'Ma huvitusin …']), 'Sinu enda koolitee annab tunni juhtumile esimese näite.'), { task: 'S02', fluency: true }),
+      ], [150, 210], ['Ma õppisin …', 'Otsus sõltus …', 'Ma huvitusin …']), 'Sinu enda koolitee annab tunni juhtumile esimese näite.'), { task: 'S07', fluency: true }),
       'Üks-ühele: räägi ka ise lühidalt oma koolist. Ära paranda; lõpus ütle üks sõna, mida õpilane vajas ja ei teadnud. Kui õpilasel on lapsed: „Mis koolis su laps käib ja mida ta pärast 9. klassi teha tahab?”')),
       station(tag(B.vocab('031_d_vocab', 'Enne lugemist: sõnad.', ['põhikool — основная школа (1–9 кл.)', 'gümnaasium — гимназия (10–12 кл.)', 'kutsekool — профессиональное училище', 'keskharidus — среднее образование', 'õppimiskohustus — обязанность учиться', 'kandideerima — поступать (подавать документы)', 'eriala — специальность', 'kõrgkool — высшее учебное заведение', 'huvituma — интересоваться', 'sõltuma — зависеть']), { topic: ['õppimiskohustus', 'keskharidus', 'kutsekool'] }), 2, 15),
       B.topicOpener('031_d_open', 'Moodul 7. Eesti koolitee: mis saab pärast 9. klassi?', [
@@ -368,7 +368,7 @@ export const LESSONS = withShapes({
         'Kersti sõnul oli täiskasvanuna õppimises kõige raskem asi [julgus].',
         'Uues töös haiglas aitas Kerstit kõige rohkem tema [elukogemus].',
         'Aleksei soovitab nõustaja juurde minna, sest karjäärinõustamine on [tasuta].',
-      ], 'g_listen'), 'Kahe inimese päris kogemus annab väitluseks näite.'), { voice: 'interview', task: 'L04' }),
+      ], 'g_listen'), 'Kahe inimese päris kogemus annab väitluseks näite.'), { voice: 'interview', task: 'L04', harno: 'L3' }),
     ],
     practice: [
       station(B.notice('033_p_notice', 'Märka: kui …, siis …', [
@@ -405,15 +405,15 @@ export const LESSONS = withShapes({
         ['Mida arvab Tatjana nüüd sellest, et ta õppima läks?', 'Ta ei kahetse, et ta seda proovis.', 'Ta kahetseb väga, et ta seda proovis.', 'Ta ei taha enam kunagi õppida.'],
       ], 'g_listen'), 'Kaks kuulajat annavad väitluse kummalegi poolele päris näite.'), { voice: 'interview', task: 'L02' }), 4, 15, { final: 'decide' }),
       tag(purpose(B.profiles('033_t_cards', 'Kaart A: poolt.', 'Loe poolt-argumente. Kui oled poolt, vali kolm ja tõmba neile joon alla; kui vastu, mõtle, mida neile vastata.', [
-        ['Poolt', ['2025. aastal õppis nelja nädala jooksul kursusel või koolis peaaegu iga neljas 25–64-aastane; aasta jooksul õppis tööl, kodus või sõpradega ligi kaks kolmandikku.', 'Töötukassa karjäärinõustamine on tasuta kõigile, kes seda soovivad.', 'Riik pakub 2027. aasta lõpuni tasuta tööalaseid koolitusi umbes 33 000 inimesele.', 'Elukogemus aitab uues töös, näiteks rahulikult inimestega rääkida.', 'Uus valdkond võib anda paindlikuma tööaja ja paremad töötingimused.', 'Allikas: Statistikaamet (2025); Töötukassa; Haridus- ja Teadusministeerium (12.10.2026).'], []],
+        ['Poolt', ['2025. aastal õppis nelja nädala jooksul kursusel või koolis peaaegu iga neljas 25–64-aastane; aasta jooksul õppis tööl, kodus või sõpradega ligi kaks kolmandikku.', 'Töötukassa karjäärinõustamine on tasuta kõigile, kes seda soovivad.', 'Riik pakub 2027. aasta lõpuni tasuta tööalaseid koolitusi umbes 33 000 inimesele.', 'Elukogemus aitab uues töös, näiteks rahulikult inimestega rääkida.', 'Uus valdkond võib anda paindlikuma tööaja ja paremad töötingimused.', 'Uus tööleping võib tuua parema palga ja pikema puhkuse.', 'Allikas: Statistikaamet (2025); Töötukassa; Haridus- ja Teadusministeerium (12.10.2026).'], []],
       ], '1', 'g_read'), 'Kaart annab väitluseks faktid, mitte ainult tunded.'), { task: 'R01' }),
       tag(purpose(B.profiles('033_t_cons', 'Kaart B: vastu.', 'Loe vastuargumente. Kui oled vastu, vali kolm ja tõmba neile joon alla; kui poolt, mõtle, mida neile vastata.', [
-        ['Vastu', ['Õppimise ajal võib pere sissetulek mitmeks aastaks väheneda.', 'Töö ja pere kõrvalt jääb õppimiseks vähe aega ja und.', 'Noorte kõrval õppides on vaja palju julgust ja kannatust.', 'Töö, pere ja õppimise vahel on raske tasakaalu leida.', 'Pensionini on umbes kakskümmend aastat — kas see tasub ära?', 'Sinu enda või tuttava näide: …'], []],
+        ['Vastu', ['Õppimise ajal võib pere sissetulek mitmeks aastaks väheneda ja kodus tekib pinge.', 'Töö ja pere kõrvalt jääb õppimiseks vähe aega ja und.', 'Noorte kõrval õppides on vaja palju julgust ja kannatust.', 'Töö, pere ja õppimise vahel on raske tasakaalu leida.', 'Pensionini on umbes kakskümmend aastat — kas see tasub ära?', 'Sinu enda või tuttava näide: …'], []],
       ], '1', 'g_read'), 'Kui tead teise poole argumente, oskad neile väitluses kohe vastata.'), { task: 'R05' }),
       teach(tag(purpose(B.rolecards('033_t_debate', 'Väitlus ja hääletus.', 'Kas 45-aastaselt tasub uut ametit õppida? Vali pool, õpetaja kaitseb teist. Kumbki toob kolm argumenti ja küsib ühe küsimuse. Lõpus hääletate.',
         'Olukord: saate „Teine algus” kuulajate väitlus: kas 45-aastaselt tasub uut ametit õppida?\nSinu eesmärk: kaitsta oma poolt kolme argumendi ja näitega, vastata vastuargumendile ja põhjendada lõpus oma häält.\nTingimus: vähemalt üks argument on oletus kui-lausega („Kui inimene õpiks …, saaks ta …”), üks näide tuleb sinu enda või sinu tuttava elust.',
         'Õpetaja kaitseb teist poolt; tal on oma argumendid ja üks küsimus sulle.',
-        ['Ühelt poolt …, teiselt poolt …', 'Kui inimene õpiks …, saaks ta …', 'Statistikaameti andmetel …', 'Ma hääletan poolt / vastu, sest …'], ['Ma ei ole päris nõus, sest …', 'Aga mis siis, kui …?', 'Sinu argument veenis mind, sest …']), 'Tulemus: sinu selge hääl ja lause, mis seda põhjendab.'), { task: 'S17', main: true, harno: 'S2' }),
+        ['Ühelt poolt …, teiselt poolt …', 'Kui inimene õpiks …, saaks ta …', 'Selle mõju perele on …', 'Statistikaameti andmetel …', 'Ma hääletan poolt / vastu, sest …'], ['Ma ei ole päris nõus, sest …', 'Aga mis siis, kui …?', 'Sinu argument veenis mind, sest …']), 'Tulemus: sinu selge hääl ja lause, mis seda põhjendab.'), { task: 'S17', main: true }),
       'Õpetaja kaart: kaitse poolt, mida õpilane ei valinud. Takistused ükshaaval: 1) „Kes maksab arved, kui pereema õpib?” 2) „Kui ta 50-aastaselt lõpetab, kas keegi võtab ta tööle?” 3) „Kas sinu tuttavate seas on keegi, kellel see õnnestus või ei õnnestunud?” Õnnestunud, kui: kolm argumenti, vähemalt kaks fakti või näidet (saatest, kuulajatelt või kaardilt), vastus sinu küsimusele, vähemalt kaks kui-lauset tingivas kõneviisis ja hääl ühe lausega. Hääleta lõpus ka ise. Ära paranda väitluse ajal; kolm märkust lõpus.'),
       extension(teach(tag(purpose(B.rolecards('033_t_more', 'Rollimäng: sina oled karjäärinõustaja', 'Küsi Svetlanalt tema oskuste ja huvide kohta ning paku talle kaks sammu.',
         'Olukord: Svetlana tuli Töötukassa karjäärinõustamisele ja ei tea, kas õppida raamatupidajaks.\nSinu eesmärk: saada teada tema oskused, huvid ja piirangud ning pakkuda kaks realistlikku sammu.\nPiirang: aega on kümme minutit; otsuse teeb Svetlana ise.',
@@ -476,7 +476,7 @@ export const LESSONS = withShapes({
       inLesson(teach(tag(purpose(B.speaking('034_d_talk', 'Õppimine ja raha.', 'Vasta ja too näide oma elust.', [
         'Mis on kõige kallim kursus või kool, mille eest sina või su pere on maksnud? Kas see tasus ära?',
         'Kas sinu kodumaal maksab täiskasvanu õppimise eest riik, tööandja või inimene ise? Mis sa arvad, mis on õige?',
-      ], [150, 210], ['Ma maksin …', 'Minu eest maksis …', 'See tasus ära, sest …']), 'Sinu kogemus näitab, mida sa juba tead ja mida pead veel teada saama.'), { task: 'S07', fluency: true }),
+      ], [150, 210], ['Ma maksin …', 'Minu eest maksis …', 'See tasus ära, sest …']), 'Sinu kogemus näitab, mida sa juba tead ja mida pead veel teada saama.'), { task: 'S02', fluency: true }),
       'Üks-ühele: räägi ka ise lühidalt. Ära paranda. Kui õpilane ei tööta: „Kas sinu pere maksis sinu või sinu lapse kooli, kursuse või huviringi eest?”')),
       station(tag(B.vocab('034_d_vocab', 'Enne lugemist: sõnad.', ['õppepuhkus — учебный отпуск', 'koolitus — обучение (курсы)', 'koolituskulu — расходы на обучение', 'tuludeklaratsioon — налоговая декларация', 'maha arvama — вычитать', 'tööandja — работодатель', 'taotlus — заявление', 'taotlema — подавать заявление', 'teatama — сообщать', 'tasuta — бесплатно']), { topic: ['õppepuhkus', 'koolituskulu'] }), 2, 15),
       purpose(B.dialogue('034_d_chat', 'Kontrollpunkt 2: töökaaslaste vestlus.', 'Loe vestlust: kes võiks Marina kursuse eest maksta?', 'Marina', 'Toomas', [
@@ -535,7 +535,7 @@ export const LESSONS = withShapes({
       extension(teach(tag(purpose(B.rolecards('034_t_more', 'Rollimäng: räägi juhiga', 'Räägi juhiga ja lepi kokku õppepuhkus ning see, kes maksab kursuse eest.',
         'Olukord: tahad märtsis minna viieks päevaks kursusele, mis on seotud sinu tööga; töökoormus on suur.\nSinu eesmärk: saada õppepuhkus ja vähemalt osa kursuse hinnast tööandjalt.\nPiirang: märts on firmas kiire kuu.',
         'Juhi kaart on õpetajal: tema mured ja üks pakkumine.',
-        ['Seaduse järgi on mul õigus …', 'Kas oleks võimalik …?', 'Kursuse lõpetamise järel saaksin …'], ['Märtsis on meil …', 'Kui sa …, siis firma võiks …', 'Ma pean seda arutama …']), 'Juhiga kokkulepe säästab sind pikast kirjavahetusest.'), { task: 'S03', level: 4 }),
+        ['Seaduse järgi on mul õigus …', 'Kas oleks võimalik …?', 'Kursuse lõpetamise järel saaksin …', 'Ma pakun kompromissi: …'], ['Märtsis on meil …', 'Kui sa …, siis firma võiks …', 'Ma pean seda arutama …']), 'Juhiga kokkulepe säästab sind pikast kirjavahetusest.'), { task: 'S03', level: 4 }),
       'Kui aega jääb (12 min). Sina oled juht. Varjatud info: firma eelarves on koolituseks 500 eurot inimese kohta; märtsis on aastaaruanne; sa ei tea, et õppepuhkus on seaduses. Takistused ükshaaval: 1) „Märtsis ei saa keegi puhkusele minna.” (Tööandja võib õppepuhkuse edasi lükata ainult töökorraldusliku hädavajaduse korral.) 2) „Miks peaks firma sinu kursuse eest maksma?” 3) Paku: firma maksab poole, kui jääd firmasse veel aastaks. Õnnestunud, kui õpilane viitab seadusele (30 päeva, 20 päeva palgaga), pakub kompromissi, kasutab vähemalt kaks -mine-sõna (kursuse lõpetamise järel, õppimise ajal) ja lepib kokku kuupäevad ja summa.'), 12),
       tag(exitCheck(purpose(B.gaps('034_t_exit', 'Kontrolli end: kolm ametlikku sõna.', 'Kirjuta sulgudes olev tegusõna -mine- või -ja-sõnaks õiges vormis.', [
         'Õppepuhkuse [taotlemine] võttis veebis aega ainult viis minutit. (taotlema)',
@@ -543,7 +543,7 @@ export const LESSONS = withShapes({
         'Järgmisel nädalal räägin oma plaanist Töötukassa [nõustajaga]. (nõustama)',
       ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas -mine- ja -ja-sõnad on käes.')), {}),
       purpose(B.selfcheck('034_t_self', ['Ma räägin, mida ma tahaksin õppida ja kes selle eest maksaks.', 'Ma leian vestlusest ja kaartidelt, mis mulle õppides kuulub: õppepuhkus, maksutagastus, tasuta kursused.', 'Ma saan aru -mine- ja -ja-sõnadest ja ütlen ametliku lause lihtsalt.', 'Ma kirjutan tööandjale õppepuhkuse taotluse.'], 'Rada läbitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      teach(tag(homeTask(purpose(B.letter('034_t_letter', 'Õppepuhkuse taotlus: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: kiri tööandjale lõpuni — mida ja millal õpid, miks see on tööga seotud, mitu päeva õppepuhkust soovid ja kas firma võiks kursuse eest maksta. Kui sa ei tööta, kirjuta Töötukassa karjäärinõustajale ja palu kohtumist.', 'Lugupeetud …!', 'Lugupidamisega\n(sinu nimi)', [120, 150]), 'Juht loeb sinu kirja ja otsustab, kas ja kuidas firma sinu õppimist toetab.')), { task: 'W13', main: true, harno: 'W1' }),
+      teach(tag(homeTask(purpose(B.letter('034_t_letter', 'Õppepuhkuse taotlus: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: kiri tööandjale lõpuni — mida ja millal õpid, miks see on tööga seotud, kuidas see aitab sind sinu ametikohal, mitu päeva õppepuhkust soovid ja mis ettepaneku teed kursuse hinna kohta. Kui sa ei tööta, kirjuta Töötukassa karjäärinõustajale ja palu kohtumist.', 'Lugupeetud …!', 'Lugupidamisega\n(sinu nimi)', [120, 150]), 'Juht loeb sinu kirja ja otsustab, kas ja kuidas firma sinu õppimist toetab.')), { task: 'W13', main: true, harno: 'W1' }),
       'Kodutöö. Järgmises tunnis loe kiri kui juht ja vasta suuliselt („Märtsis on meil küll kiire, aga …”). Tagasiside: -mine-sõnad (õppimise ajal, kursuse lõpetamise järel), viisakas palve tingivas kõneviisis (Kas oleks võimalik …?), selged kuupäevad ja summa.'),
       tag(homeTask(purpose(B.speaking('034_t_home', 'Kodus: sõnavõtt (1 minut).', 'Salvesta 1 minut nagu koosolekul: sinu õpitee järgmine samm.', [
         'Mida, kus ja millal sa õpid?',
@@ -631,7 +631,7 @@ export const LESSONS = withShapes({
         ['Ma olen väga mures poja hinnete eest.', 'Ma olen väga mures poja hinnete pärast.|Olen väga mures poja hinnete pärast.'],
         ['Valmistun eksamile juba kolm nädalat.', 'Valmistun eksamiks juba kolm nädalat.|Ma valmistun eksamiks juba kolm nädalat.'],
       ]),
-      B.transformation('035_p_trans', 'Keeleosa B: ütle teisiti (6 punkti).', 'Ütle sama mõte teisiti, kasutades antud sõnu.', [
+      B.transformation('035_p_trans', 'Keeleosa B: ütle teisiti (6 punkti).', 'Väljenda iga lause mõtet antud sõnade abil.', [
         ['Väidetakse, et kohv aitab õppida.', 'aitavat', 'Kohv aitavat õppida.'],
         ['Mul ei ole diplomit, seepärast ei saa ma seda tööd.', 'kui mul oleks', 'Kui mul oleks diplom, saaksin ma selle töö.|Kui mul oleks diplom, saaksin selle töö.'],
         ['Taotluse esitamine toimub veebis.', 'saad esitada', 'Taotluse saad esitada veebis.|Sa saad taotluse esitada veebis.|Taotluse saad veebis esitada.|Sa saad taotluse veebis esitada.'],
