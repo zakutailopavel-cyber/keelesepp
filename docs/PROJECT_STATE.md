@@ -20,6 +20,38 @@
   §2); per-clip audio files, subheading matching, paging per task and the four-part total are not done.
 - Next safe step: owner / main session review the PR; after merge the content agent switches mock 1 (`exam: 'E9'`,
   `lock`, `lockPlays`, `layout`, `opts.example`, item 0 back into the data and EXPLAIN).
+## 2026-11-18 · agent/b1b2-m06-tasks — B1→B2 module 6 „Tööelu” task-based (v4) + themed-module topic rule · content + one v4 gate rule
+
+- Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „B1→B2 module 6: task-based (v4)” (link in the
+  PR list). Not merged, not published, no deploy, no production writes. Modules 5 and 7 are rebuilt in parallel by other
+  agents: expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, roadmap-02, §7 — keep both.
+- Done (`admin/course/b2/module06.js`, lessons b1b2-026…030, ids and goal keys kept; old v2 Sofia / Tartu-warehouse story
+  gone): 026 quest „Kellena sa end viie aasta pärast näed?” (job search, CV, interview; olev / saav kääne), 027 facts „Kas
+  sa kirjutaksid sellele lepingule alla?” (töölepingu seadus, sick pay, envelope wage; comparison; advise a friend), 028
+  infogap „Kolleeg hilineb jälle — kuidas sellest rääkida?” (fact not blame, role in -na; work / study / home situation),
+  029 project „Kas sinu oskusest saaks väike äri?” (ettevõtluskonto vs FIE; ühelt poolt … teiselt poolt, kuigi, siiski,
+  samas), 030 new Harno-form check + „Minu tööelu kaart” (S1). Facts checked on Riigi Teataja, tervisekassa.ee, eesti.ee,
+  emta.ee, ti.ee, stat.ee (sources on every teacher page). Module level B1+ (as the roadmap's levelStage; was B2-).
+- Gate rule (owner brief): `MODULE.theme` — a themed module may give its theme to several lessons, each with its own
+  `subtopic`, all different; without a theme „every topic once, work ≤ 1” stays (`stations.js v4TopicProblems`, used by
+  `v4Tasks.test.js`; cases in `v4Gates.test.js`; §7.1 rule 7 and §7.3 row in COURSE_DESIGN_STATIONS.md).
+- Also: lessonGoals 026–030 (026 has no g_listen: its recording trains the form), lesson words 026–030, roadmap-02 titles
+  and texts, visuals b2-module-06 (026 picture reused from a2b1-045, others retargeted, no cast), TartuNLP audio 026_p_paths,
+  027_d_radio, 029_d_baker, 030_p_notes, 030_p_listen (5 old removed; plan.mjs knows Oksana / Valentina as female),
+  review questions about module 6 in modules 7 (031), 8 (038), 9 (041), academicTopics text.
+- Checks: course report 5/5 READY for module 6 and all 36 B1 / B2 modules; EstNLTK 0 unknown lower-case;
+  `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary` 199 files /
+  2209 tests passed (two studio UI files timed out once under machine load, pass alone); eslint clean on changed files;
+  all 15 sheets opened in the sheet lab (1280 px, Playwright) and read as a learner — fixed: rule cards that gave away
+  gap / choice answers on the same page (026, 029), the sick-pay chart that answered the radio gaps (027, removed), one-line
+  contract and situation cards (027, 028), an exit item copyable from an ad (026).
+- Owner summary (Russian): `docs/review/b2-m06-tasks.md`. Open: module 7's ≥ 30 % recycling of module 6 words must be
+  re-checked when module 7's rebuild merges; voices synthetic, Estonian not checked by a native speaker.
+- Merge of main with module 5 (#1269): both sides kept (lessonGoals / lesson words / roadmap 021–025 theirs, 026–030
+  ours; 031_d_review theirs for module 5 + ours for module 6); module 5 words woven in (recycling ≥ 30 %); 027 exam
+  corner L3 → R3 (course V6 needs ≥ 4 R3 corners). After merge: 36/36 modules 5/5 READY; vitest 199 files / 2222 tests
+  passed; eslint clean; EstNLTK 0 unknown.
+- Next safe step: owner reads `docs/review/b2-m06-tasks.md` and the draft PR, gives review notes or merges.
 ## 2026-11-18 · agent/b1b2-m05-tasks — B1→B2 module 5 „Arvamus ja põhjendamine” task-based (v4)
 
 - Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „B1→B2 module 5: task-based (v4)”. Content
