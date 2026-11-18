@@ -51,7 +51,7 @@ export const LESSONS = withShapes({
     title: 'Töökoht ja vastutus',
     canDo: 'Ma räägin oma tööst ja vastutusest (töötan …na, vastutan … eest) ja lepin uue kolleegiga kokku, millise ülesande ta võtab ja mis on tähtaeg.',
     discover: [
-      B.review('026_d_review', [['Moodul 5: kuidas ütled viisakalt, et sa ei ole kolleegiga nõus? Kasuta sõnu „kuigi” või „siiski”.', 'b1b2-025'], ['Moodul 4: mida pidi uus kolleeg Taavi oma esimesel nädalal tegema ja kelle poole ta probleemiga pöördus?', 'b1b2-019'], 'Kui kindel sa oled, et sinu töö muutub viie aasta jooksul? Kasuta sõnu „kindlasti”, „ilmselt” või „vaevalt”.']),
+      B.review('026_d_review', [['Moodul 5: kuidas ütled viisakalt, et sa ei ole kolleegiga nõus? Kasuta sõnu „kuigi” või „siiski”.', 'b1b2-025'], ['Moodul 4: mida pead pärast pikka rongi hilinemist alles hoidma ja kellele kaebuse esitama?', 'b1b2-019'], 'Kui kindel sa oled, et sinu töö muutub viie aasta jooksul? Kasuta sõnu „kindlasti”, „ilmselt” või „vaevalt”.']),
       // the module's topic opener (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2): cast-free, story-led, sourced; it replaces
       // the goal text 026_d_goal, whose storyline and module goal moved into the instruction of 026_d_read
       B.topicOpener('026_d_open', 'Teema avaleht: kellena Eesti töötab?', [
@@ -290,7 +290,7 @@ export const LESSONS = withShapes({
     title: 'Konflikt tööl',
     canDo: 'Ma kirjeldan töökonflikti faktidega, mitte süüdistustega, ja kirjutan juhile umbes 180-sõnalise kokkuvõtte ületundide arvudest koos kahe lahendusega.',
     discover: [
-      B.review('028_d_review', [['Millise pakkumise valis sinu arvates Laura ja miks? Mis oli talle tähtsam kui palk?', 'b1b2-027'], ['Moodul 4: mille üle kaebasid lapsevanemad koolilõunat ja kuidas Kaire ja Jaan lahenduse leidsid?', 'b1b2-018'], 'Paranda: „Valeri tahab saada vahetusevanemana.” Miks on see vale?']),
+      B.review('028_d_review', [['Millise pakkumise valis sinu arvates Laura ja miks? Mis oli talle tähtsam kui palk?', 'b1b2-027'], ['Moodul 4: mille vastu sa vabal ajal huvi tunned ja milles tahaksid osaleda?', 'b1b2-018'], 'Paranda: „Valeri tahab saada vahetusevanemana.” Miks on see vale?']),
       B.text('028_d_hook', 'Esmaspäeva hommik', 'Tartu lao projektis on tekkinud pinge. Igal esmaspäeval peab Markus saatma Tallinna lattu nädala tarneplaani. Selle järgi valmistab Gerti vahetus ette riiulid ja tõstukid, mis Tartusse saadetakse. Viimasel kolmel esmaspäeval tuli plaan alles pärastlõunal ja Gerti inimesed pidid tegema ületunde. Täna hommikul läks projekti vestlusgrupis tuliseks. Sofia luges sõnumeid projektijuhina ja mõtles, mida teha.'),
       B.dialogue('028_d_chat', 'Projekti vestlusgrupp.', 'Loe Gerti ja Markuse sõnumeid. Märka, kus on fakt ja kus süüdistus.', 'Gert', 'Markus', [
         ['A', 'Markus, kus on tarneplaan? Kell on juba üksteist. Sa jääd alati hiljaks!'],
@@ -442,7 +442,7 @@ export const LESSONS = withShapes({
     title: 'Kaugtöö või kontor?',
     canDo: 'Ma kirjutan partnerfirmale umbes 140-sõnalise poolametliku vastuse: tänan, ütlen oma seisukoha tema ettepaneku kohta, pakun kohtumise aja ja esitan küsimuse.',
     discover: [
-      B.review('029_d_review', [['Kuidas ütled süüdistuse ümber faktiks? Too näide Gerti ja Markuse tülist.', 'b1b2-028'], ['Moodul 4: Liis jäi haigeks — kas meeskond sõitis Riiga või tegi videokõne? Miks?', 'b1b2-017'], 'Mis on fakt, mõju, tunne ja ettepanek? Too igaühe kohta üks lause.']),
+      B.review('029_d_review', [['Kuidas ütled süüdistuse ümber faktiks? Too näide Gerti ja Markuse tülist.', 'b1b2-028'], ['Moodul 4: mida pidi laps kooli õppekäigule kaasa võtma ja mida ei tohtinud ta teha?', 'b1b2-017'], 'Mis on fakt, mõju, tunne ja ettepanek? Too igaühe kohta üks lause.']),
       B.text('029_d_hook', 'Arenguvestlus', 'Märtsi alguses oli Sofial esimene arenguvestlus projektijuhina. Liis andis talle tagasisidet ja küsis, kuidas ta töökoormusega toime tuleb. Sofia sõidab kolm korda nädalas Tallinnast Tartusse ja tagasi. Vaata pilti: Anna töötab sageli kodus, Liis eelistab kontorit. Kumb sobiks Sofia meeskonnale? Vestluse lõpus palus Liis, et Sofia esitaks juhtkonnale ettepaneku hübriidtöö kohta.'),
       tag(B.listening('029_d_listen', 'Arenguvestlus.', 'Kuula Sofia ja Liisi arenguvestlust kaks korda. Pane tähele arve ja aegu ning kirjuta need lünka.', [
         'Liis: Sofia, sa oled nüüd viis kuud projektijuhina töötanud. Kuidas sa ise oma tööd hindad?',

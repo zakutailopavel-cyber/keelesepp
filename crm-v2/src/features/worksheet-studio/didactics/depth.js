@@ -3,7 +3,7 @@
 // The older checks look at the structure (block count, task types, estimated minutes); a sheet passed them with a few
 // five-item tasks because speaking and writing blocks filled the minutes. These rules look at the work itself.
 // Pure: { meta: { level, phase }, blocks: [{ type, data }] } → [{ code, level: 'error' | 'warning', text }].
-import { blockMinutes } from './timeEstimate.js';
+import { blockMinutes, harnoTimedMinutes, isHarnoTimedSheet } from './timeEstimate.js';
 import { nativeStage } from './levels.js';
 import { groupItems } from '../engine/schema.js';
 import { STATION_ITEMS, isExitCheck, isStationSheet } from './stations.js';
@@ -110,7 +110,10 @@ export function depthProblems(doc) {
   // a short sheet (meta.shortSheet: a 10–20 min spaced-review sheet or a short use task, admin/course registry.js) is
   // short on purpose: its minutes are not a lesson's; item counts and sentence lengths still apply
   const shortSheet = Boolean(doc?.meta?.shortSheet) || stations;
-  const exercise = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + blockMinutes(b, doc?.meta?.level || level, '', doc?.meta?.template), 0);
+  // design v4 (§7.3): an exam sheet is timed by its Harno part headers; its reading and listening parts are exercise time
+  const harnoTimed = isHarnoTimedSheet(doc);
+  const exercise = harnoTimed ? harnoTimedMinutes(doc, { skills: ['R', 'L'], include: (b) => !OPEN.has(b.type) })
+    : blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + blockMinutes(b, doc?.meta?.level || level, '', doc?.meta?.template), 0);
   if (!shortSheet && exercise < exerciseMin) out.push({ code: 'thin', level: 'error', text: `harjutusi ≈ ${Math.round(exercise)} min (vähemalt ${exerciseMin}; rääkimine ja kirjutamine ei loe)` });
 
   // aloud with the teacher: a recognised item goes in ~9 s, a whole sentence written or rebuilt in ~25 s; a text is
@@ -118,7 +121,7 @@ export function depthProblems(doc) {
   const liveRate = (type) => (SENTENCE_WRITING.includes(type) || type === 'wordorder' ? 0.4 : 0.15);
   // a text task (forms or sentences in a text) is read at the learner's pace like any text
   const TEXT_TASKS = ['formtext', 'insertion'];
-  const live = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + (ITEMS[b.type] && !TEXT_TASKS.includes(b.type) ? ITEMS[b.type](b.data || {}) * liveRate(b.type) : blockMinutes(b, doc?.meta?.level || level, '', doc?.meta?.template)), 0);
+  const live = harnoTimed ? exercise : blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + (ITEMS[b.type] && !TEXT_TASKS.includes(b.type) ? ITEMS[b.type](b.data || {}) * liveRate(b.type) : blockMinutes(b, doc?.meta?.level || level, '', doc?.meta?.template)), 0);
   if (!shortSheet && live < liveMin) out.push({ code: 'live-fast', level: 'warning', text: `tunnis koos õpetajaga ≈ ${Math.round(live)} min harjutusi (vähemalt ${liveMin})` });
 
   const sentences = blocks.flatMap(taskSentences).filter(Boolean);

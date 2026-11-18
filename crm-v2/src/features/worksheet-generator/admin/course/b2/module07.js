@@ -174,7 +174,7 @@ export const LESSONS = withShapes({
     title: 'Mis teeb õppimise tõhusaks?',
     canDo: 'Ma räägin meeskonna koosolekul 1–2 minutit õppimisviisidest: põhjendan kolme soovitust ja ütlen, mis tulemust need annavad.',
     discover: [
-      B.review('032_d_review', [['Mida lepiti kokku Oskari arenguvestlusel: eesmärk, harjumus ja tagasiside?', 'b1b2-031'], ['Moodul 4: millest sa rääkisid oma 1-minutilises sõnavõtus meeskonna koosolekul?', 'b1b2-018'], 'Lõpeta lause: „Ma huvitun …, aga mul on raske keskenduda …”.']),
+      B.review('032_d_review', [['Mida lepiti kokku Oskari arenguvestlusel: eesmärk, harjumus ja tagasiside?', 'b1b2-031'], ['Moodul 4: kuidas sa end klubi või ürituse korraldajale tutvustasid? Mille üle oled uhke?', 'b1b2-018'], 'Lõpeta lause: „Ma huvitun …, aga mul on raske keskenduda …”.']),
       B.text('032_d_hook', 'Kuus nädalat eksamini', 'Sofia B2-eksamini on jäänud kuus nädalat. Ta loeb õpikut õhtuti kaks korda läbi, kuid järgmisel päeval on pool unustatud. Keelekooli õpetaja Maret andis kursusele kodutöö: uuri, millised õppimisviisid on tõhusad, ja põhjenda oma valikut. Sofia helistas oma emale Helgile, kes on õpetanud lapsi üle kolmekümne viie aasta. Maret soovitas lugeda ka üht ajalehe arvamuslugu tehisarust õppimises. Vaata pilti: Sofia ja Liis võrdlevad raamatukogus kahte õppimisviisi. Kumb annab parema tulemuse?'),
       tag(B.listening('032_d_call', 'Telefonikõne emaga: Sofia märkmed.', 'Sofia teeb kõne ajal märkmeid. Kuula kõnet kaks korda ja täida tema märkmed ühe kuni kolme sõnaga.', [
         'Helgi: Tere, Sofia! Kuidas õppimine läheb?',

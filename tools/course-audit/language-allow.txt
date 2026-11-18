@@ -73,3 +73,6 @@ advise
 negotiate
 complain
 explain
+# B2 module 4 (017): the e-school diary brand eKool (product name, lower-case e)
+eKool
+eKoolis
