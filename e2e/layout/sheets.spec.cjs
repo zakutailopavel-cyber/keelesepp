@@ -208,6 +208,28 @@ test.describe('e-exam sheets', () => {
       await context.close();
     });
   }
+  test('every statement, speaker row, chat turn and chip can be scrolled to, clear of the sticky bars (phone)', async ({ browser }) => {
+    const context = await browser.newContext(phone(375));
+    const page = await context.newPage();
+    for (const [set, id, sel] of [['eexam-l', 'ee_l_11', '.ws-speakers-claims tr, .ws-speaker'], ['eexam-r', 'ee_r_21', '.ws-chat-turn:visible, .ws-dropchip:visible']]) {
+      await open(page, `set=${set}`);
+      const items = page.locator(`.ws-page [data-block="${id}"]`).locator(sel);
+      const covered = [];
+      for (let i = 0; i < await items.count(); i += 1) {
+        const free = await items.nth(i).evaluate(async (el) => {
+          el.scrollIntoView({ block: 'nearest' });
+          await new Promise((r) => { setTimeout(r, 60); });
+          const box = el.getBoundingClientRect();
+          const hit = document.elementFromPoint(box.left + box.width / 2, box.top + Math.min(box.height / 2, 12));
+          return Boolean(hit && el.contains(hit));
+        });
+        if (!free) covered.push(i);
+      }
+      expect(await items.count()).toBeGreaterThan(10);
+      expect(covered).toEqual([]);
+    }
+    await context.close();
+  });
   test('tap a chip, then a gap (phone)', async ({ browser }) => {
     const context = await browser.newContext(phone(375));
     const page = await context.newPage();

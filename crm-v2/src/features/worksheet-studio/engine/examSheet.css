@@ -157,7 +157,12 @@ button.ws-dropchip { cursor: grab; touch-action: manipulation; user-select: none
   .ws-narrow .ws-root .ws-dropgap { min-height: 44px; min-width: 88px; padding: 6px 8px; border-width: 1.5px; border-radius: 6px; vertical-align: middle; }
   .ws-narrow .ws-root .ws-dropgap.is-wide { min-width: 0; display: flex; width: 100%; margin: 4px 0; }
   .ws-narrow .ws-root .ws-drop-text p { line-height: 2.4; }
-  .ws-narrow .ws-root .ws-dropbank { position: sticky; bottom: 0; z-index: 5; max-height: 42vh; overflow-y: auto; padding: 8px; border-radius: 8px; box-shadow: 0 -4px 12px rgba(16, 35, 57, .1); }
+  /* the bank stays in sight at the bottom while the text scrolls; a turn or gap brought into view (keyboard focus,
+     scrollIntoView) stops above it, not under it */
+  .ws-narrow .ws-root .ws-drop :is(.ws-chat-turn, .ws-dropgap, .ws-drop-text p) { scroll-margin-bottom: calc(36vh + 16px); }
+  /* …and never under the thin top bar (progress, clock) */
+  .ws-narrow .ws-root :is(.ws-speaker, .ws-speakers-claims tr, .ws-clip, .ws-chat-turn, .ws-dropgap, .ws-dropchip, .ws-letter-row) { scroll-margin-top: 64px; }
+  .ws-narrow .ws-root .ws-dropbank { position: sticky; bottom: 0; z-index: 5; max-height: 36vh; overflow-y: auto; padding: 8px; border-radius: 8px; box-shadow: 0 -4px 12px rgba(16, 35, 57, .1); }
   .ws-narrow .ws-root .ws-dropbank-chips { gap: 6px; }
   .ws-narrow .ws-root .ws-chat-grid, .ws-narrow .ws-root .ws-speakers-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .ws-narrow .ws-root .ws-chat-grid .ws-dropbank { top: auto; }
