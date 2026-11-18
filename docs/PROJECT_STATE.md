@@ -26,8 +26,11 @@
   intentional (suffixes -eid/-se/-ste, syllable splits ka-na, wrong forms as distractors or traps: kalat, liiged, naiset,
   taskude; „sonaveeb”). Both sheets read in the sheet lab at 1280 and 375 px (fixed: Sõnaveeb steps as a full-width
   notice, a clearer last summary row, a typo).
-- Found, not fixed here (k01, published): `k01_p_forms` writes alternatives as `[tube|tubasid]` inside a table, but a
-  table splits cells on `|`; the rows tuba, maja, pood show „[tube” as text with no field. Table cells take `/`.
+- Fixed in the same PR (coordinator): a table splits cells on `|`, so alternatives written `[tube|tubasid]` broke the cell
+  (the learner saw „[tube” with no field). 44 rows in 11 files had it — b2/kaanded.js k01 (tuba, maja, pood; k02 / k03
+  tables were fine), a2 012 / 099, b2 023 / 029 / 048 / 061 / 063, c1 005 / 006 / 008 / 013 / 023 — now `[tube/tubasid]`.
+  New `admin/course/tableCells.test.js` fails when any course table cell has unbalanced brackets. Published copies of
+  these sheets keep the old cells until they are republished (owner's yes).
 - Next safe step: owner reviews the two k04 sheets (sheet lab `?set=course:b1b2-k04:discover` / `:practice`) and merges;
   then, with the owner's yes, create `curriculumLessons/b1b2-k04` and publish its two sheets like k01–k03.
 

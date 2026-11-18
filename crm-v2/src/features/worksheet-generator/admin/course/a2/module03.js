@@ -180,8 +180,8 @@ export const LESSONS = withShapes({
         'Tund **algab** kell 8, **lõpeb** kell 8.45 ja **kestab** 45 minutit.',
       ], 'full'),
       B.table('012_d_rule', 'Leia reegel.', 'Kirjuta kella vormid tabelisse. Vaata kasti „Märka”.', 'Kell, Kella …st (alates), Kella …ni (kuni), Enne kella …', [
-        'üks | [ühest] | [üheni] | [üht|ühte]', 'kaks | [kahest] | [kaheni] | [kahte]', 'kolm | [kolmest] | [kolmeni] | [kolme]', 'neli | [neljast] | [neljani] | [nelja]',
-        'viis | [viiest] | [viieni] | [viit|viite]', 'kuus | [kuuest] | [kuueni] | [kuut]', 'seitse | [seitsmest] | [seitsmeni] | [seitset]', 'kaheksa | [kaheksast] | [kaheksani] | [kaheksat]',
+        'üks | [ühest] | [üheni] | [üht/ühte]', 'kaks | [kahest] | [kaheni] | [kahte]', 'kolm | [kolmest] | [kolmeni] | [kolme]', 'neli | [neljast] | [neljani] | [nelja]',
+        'viis | [viiest] | [viieni] | [viit/viite]', 'kuus | [kuuest] | [kuueni] | [kuut]', 'seitse | [seitsmest] | [seitsmeni] | [seitset]', 'kaheksa | [kaheksast] | [kaheksani] | [kaheksat]',
       ], 'g_notice'),
       tag(B.vocab('012_d_vocab', 'Tunni sõnad.', ['kell — часы / время', 'pool — половина', 'veerand — четверть', 'kolmveerand — без четверти', 'algama — начинаться', 'lõppema — заканчиваться', 'kestma — длиться', 'alates — начиная с', 'kuni — до', 'avatud — открыто']), { topic: ['veerand', 'kolmveerand'] }),
       teach(tag(B.speaking('012_d_432', 'Minu päev kellaaegadega.', 'Räägi kuulajale oma päevast kolm korda: 2, siis 1,5 ja lõpuks 1 minut.', ['Mis kell sinu päev algab?', 'Mis kellast mis kellani sa töötad või õpid?', 'Kui kaua sa sõidad tööle või kooli?', 'Mida sa teed pärast kella viit?', 'Mis kell on sinu peres õhtusöök?'], [60, 120], ['Kella …st kuni …ni', 'See kestab …', 'Enne kella … ma …']), { task: 'S08' }),

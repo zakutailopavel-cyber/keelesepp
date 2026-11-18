@@ -32,14 +32,14 @@ export const LESSONS = {
       B.vocab('k01_p_vocab', 'Tunni sõnad.', ['naaber — сосед', 'korter — квартира', 'korrus — этаж', 'tänav — улица', 'kolima — переезжать', 'trepikoda — подъезд', 'hoov — двор', 'remont — ремонт']),
       B.table('k01_p_forms', 'Leia vormid.', 'Kirjuta puuduvad vormid. Nimetav ja omastav on antud.', 'Nimetav, Omastav, Osastav, Mitmuse omastav, Mitmuse osastav', [
         'raamat | raamatu | [raamatut] | [raamatute] | [raamatuid]',
-        'tuba | toa | [tuba] | [tubade] | [tube|tubasid]',
+        'tuba | toa | [tuba] | [tubade] | [tube/tubasid]',
         'laps | lapse | [last] | [laste] | [lapsi]',
         'naaber | naabri | [naabrit] | [naabrite] | [naabreid]',
         'inimene | inimese | [inimest] | [inimeste] | [inimesi]',
         'korter | korteri | [korterit] | [korterite] | [kortereid]',
-        'maja | maja | [maja] | [majade] | [maju|majasid]',
+        'maja | maja | [maja] | [majade] | [maju/majasid]',
         'võti | võtme | [võtit] | [võtmete] | [võtmeid]',
-        'pood | poe | [poodi] | [poodide] | [poode|poodisid]',
+        'pood | poe | [poodi] | [poodide] | [poode/poodisid]',
         'aken | akna | [akent] | [akende] | [aknaid]',
       ], 'g_notice'),
       B.cloze('k01_p_move', 'Vali sobiv vorm.', 'Kadri kirjutab Helgile kolimisest. Vali igasse lünka sobiv variant.', 'Kolimispäev Vahtra tänaval', [

@@ -477,12 +477,12 @@ export const LESSONS = withShapes({
       ]), { task: 'L10' }),
       B.notice('029_d_notice', 'Märka: tasakaal ja roll', ['**Ühelt poolt** … **teiselt poolt** …: **Ühelt poolt** olen rahul, **teiselt poolt** olen väsinud.', '**Kuigi** + kõrvallause, siis koma ja pealause: **Kuigi** projekt on tähtis, **ei tohi** sa läbi põleda.', '**Samas** / **siiski** toob vastupidise mõtte: Anna tulemused on head. **Samas on** laos palju probleeme.', '**Seetõttu** / **seepärast** toob järelduse: **Seepärast pakun** hübriidtööd.', 'Olev kääne ettepanekus: hübriidtöö **katseprojektina** · **esimese sammuna** · **kompromissina** (= millena?).', 'Võrdle: Sofia **töötab** projektijuhina (olek). ↔ Märtsis **määratakse** ta alaliselt projektijuhiks (muutus).'], 'full'),
       B.table('029_d_table', 'Kodus või kohapeal?', 'Täida tabel vestluse põhjal.', 'Teema, Kodus (kaugtöö), Kohapeal (ladu või kontor)', [
-        'aeg | ei kulu aega [sõidule|bussisõidule] | bussis kulub [kaks ja pool tundi|2,5 tundi] ühes suunas',
+        'aeg | ei kulu aega [sõidule/bussisõidule] | bussis kulub [kaks ja pool tundi/2,5 tundi] ühes suunas',
         'tulemused | Anna tulemused on [head] | uues laos on alguses palju [probleeme]',
-        'töö | e-kirjadele saab vastata [kodus|ka kodus] | laoprobleeme saab lahendada [kohapeal]',
+        'töö | e-kirjadele saab vastata [kodus/ka kodus] | laoprobleeme saab lahendada [kohapeal]',
         'meeskond | sobib [kontoritöötajatele] | [laotöötajad] töötavad edasi kohapeal',
-        'tervis | väiksem oht [läbi põleda] | [viiskümmend|50] tundi nädalas on liiga palju',
-        'otsus | Sofia pakub hübriidtööd [katseprojektina] | otsuse teeb [juhtkond|juhtkonna koosolek]',
+        'tervis | väiksem oht [läbi põleda] | [viiskümmend/50] tundi nädalas on liiga palju',
+        'otsus | Sofia pakub hübriidtööd [katseprojektina] | otsuse teeb [juhtkond/juhtkonna koosolek]',
       ], 'g_vocab'),
       B.match('029_d_link', 'Ühelt poolt, teiselt poolt.', 'Ühenda lause algus ja lõpp.', [
         ['Ühelt poolt säästab kaugtöö sõiduaega,', 'teiselt poolt jääb kolleegidega vähem kontakti.'],
