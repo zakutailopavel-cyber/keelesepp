@@ -59,7 +59,7 @@ export const LESSONS = withShapes({
     title: 'Eelarve ja ostuotsus',
     canDo: 'Ma võrdlen ostuvariante vähemalt nelja kriteeriumi järgi (hind, kvaliteet, kulud aja jooksul, vajadus) ja kirjutan tarnijale 140–160-sõnalise poolametliku kirja, milles põhjendan valikut ja küsin tingimuste kohta.',
     discover: [
-      B.review('051_d_review', [['Milles lepiti Vahtra 5 lepituskoosolekul kokku ja kes lubas mida teha?', 'b1b2-049'], ['Kuidas esitles Jaan hoolekogule kooliköögi uut menüüd ja milliseid küsimusi vanemad esitasid?', 'b1b2-044'], 'Mis on sinu arvates hea kompromiss pere rahaasjades?']),
+      B.review('051_d_review', [['Milles lepiti Vahtra 5 lepituskoosolekul kokku ja kes lubas mida teha?', 'b1b2-049'], ['Moodul 9: millise kaheksa nädala muutuse sa endale plaanisid ja kas see on püsima jäänud?', 'b1b2-044'], 'Mis on sinu arvates hea kompromiss pere rahaasjades?']),
       // the module's topic opener (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2, round 2 §13.9: ≤ 8 numbers, questions of
       // four kinds): cast-free, story-led, sourced; it replaces the goal text 051_d_goal, whose storyline and module goal
       // moved into the instruction of 051_d_read

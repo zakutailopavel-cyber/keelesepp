@@ -17,6 +17,11 @@ const STYLE_REWRITE = /selgemaks|täpsemaks|täpsem\b|konstruktiivse|konkreetse|
 const MAX_TILES = 16;
 const MAX_TYPED_WORDS = 30;
 const MAX_GAP_WORDS = 4;
+// design v4 lessons (docs/COURSE_DESIGN_STATIONS.md §7, a lesson with `format`) have no word-order blocks: their
+// tile-building practice comes from the grammar transformations whose key lists two or more orders of the same words —
+// the right sentence built from its own tiles, checked against every order the author accepted. A few per block.
+const V4_BUILDS_PER_BLOCK = 3;
+const MIN_BUILD_TILES = 4;
 
 const clean = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
 const lines = (v) => String(v || '').split('\n').map(clean).filter(Boolean);
@@ -33,7 +38,9 @@ function cueOf(instruction) {
 // a notice that is a module summary or a text model is no rule line
 const NOT_A_RULE = /kokkuvõte|\btekst|sõnavara|\bsõnad\b|näidis|plaan/i;
 function ruleOf(notice) {
-  const title = stripMarks(notice?.data?.title || '').replace(/^märka[:!.]?\s*/i, '');
+  // a v4 station card's title carries „Jaam N · … · NN min” (stationBlocks.js station()): the rule is the middle part
+  const raw = stripMarks(notice?.data?.station?.title || notice?.data?.title || '').replace(/^jaam \d+ · /i, '').replace(/ · \d+ min$/i, '');
+  const title = raw.replace(/^märka[:!.]?\s*/i, '');
   if (NOT_A_RULE.test(title)) return '';
   return title ? title.charAt(0).toUpperCase() + title.slice(1) : '';
 }
@@ -107,7 +114,7 @@ function makeContext(course, mod, moduleIndex, lessonId, lesson, phase) {
   };
 }
 
-function blockItems(ctx, block, notice) {
+function blockItems(ctx, block, notice, { v4 = false } = {}) {
   const d = block.data || {};
   const instruction = clean(d.instruction);
   if (OPEN_TASK.test(instruction) || OPEN_TASK.test(d.title || '')) return [];
@@ -153,6 +160,20 @@ function blockItems(ctx, block, notice) {
           sentence: answers[0], grammar: sameBag(from, answers[0]) ? withPoint(grammarAt(i), 'word-order') : grammarAt(i),
         }));
       });
+      if (v4 && block.type === 'transformation') {
+        out.filter((it) => it.type === 'transform').filter((it) => {
+          // the author listed more than one order of the same words: the key covers the order question, not only the form
+          const tiles = it.orders[0] || [];
+          const distinct = new Set(it.orders.map((o) => o.join(' ').toLocaleLowerCase('et')));
+          return distinct.size >= 2 && tiles.length >= MIN_BUILD_TILES && tiles.length <= MAX_TILES;
+        }).slice(0, V4_BUILDS_PER_BLOCK).forEach((it) => {
+          const i = it.source.index;
+          out.push(base(`b${i}`, {
+            type: 'build', tiles: it.orders[0], orders: it.orders, answers: it.orders.map((o) => o.join(' ')), sentence: it.sentence,
+            grammar: withPoint(it.grammar, 'word-order'), explain: it.explain,
+          }));
+        });
+      }
       break;
     case 'wordforms':
       (d.rows || []).forEach((row, i) => {
@@ -245,7 +266,7 @@ export function extractCourseItems(course, modules) {
         let notice = null;
         (lesson?.[phase] || []).forEach((block) => {
           if (block?.type === 'notice') { notice = block; return; }
-          items.push(...blockItems(makeContext(course, mod, moduleIndex, lessonId, lesson, phase), block, notice));
+          items.push(...blockItems(makeContext(course, mod, moduleIndex, lessonId, lesson, phase), block, notice, { v4: Boolean(lesson?.format) }));
         });
       });
     });
