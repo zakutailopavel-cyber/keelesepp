@@ -7,6 +7,7 @@ import { lazyComponent } from '../../../app/lazyComponent.js';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { dragId, dropId, lastBlockOf } from './dragIds.js';
 import { BLOCKS, exampleAnswers, numberTasks } from './registry.js';
+import { isExamSheet } from './examMode.js';
 import { TONES } from './schema.js';
 import { Md, Target } from './ui.jsx';
 import { COLUMNS, rowsOf, snapSpan, spanOf } from './layout.js';
@@ -89,7 +90,8 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
   const addLabel = mode === 'edit' && selected && onAddItem ? addItemLabel(block) : null;
   // the tools show on hover as well as on the selected block
   const active = mode === 'edit' && (selected || hovered);
-  // the solved example is read-only and shown in every mode (edit, print, student)
+  // the solved example is read-only and shown in every mode (edit, print, student); on an exam sheet (meta.exam) it is
+  // item 0 and the items count from 1 after it, as in the e-exam (engine/examMode.js)
   const blockCtx = hasExample || opts.shuffle || opts.keepOrder ? {
     ...base,
     shuffle: Boolean(opts.shuffle),
@@ -97,6 +99,8 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
     get: (k) => (k in example ? example[k] : base.get(k)),
     set: (k, v) => { if (!(k in example)) base.set(k, v); },
     state: (k) => (k in example ? undefined : base.state(k)),
+    isExample: (k) => k in example,
+    ...(hasExample && whole.exam ? { numFrom: 0 } : {}),
   } : base;
   // data-entity / data-block-id: the marks other tools attach to (the book's right-click menu); not on the hidden
   // measuring copy, so a lookup by block id finds the drawn card
@@ -245,9 +249,11 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   const [focus, setFocusState] = useState({});
   const interactive = mode === 'interactive';
   const showAnswers = mode === 'interactive' || mode === 'review';
+  const examSheet = isExamSheet(doc);
   const ctx = (id) => ({
     interactive,
     flow,
+    exam: examSheet,
     review: mode === 'review',
     // answers are only shown to the learner (and in teacher review); print and edit stay blank
     get: (k) => (showAnswers ? answers[`${id}:${k}`] : undefined),

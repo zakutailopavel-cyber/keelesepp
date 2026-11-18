@@ -4,7 +4,23 @@
 //   rows:   „2015 | 62 | 8 | 3” — one category per line, then one value per series
 // Values may use a decimal comma. Pure helpers here, the SVG in chart.jsx.
 
-export const CHART_KINDS = [['bar', 'Tulpdiagramm'], ['line', 'Joondiagramm']];
+export const CHART_KINDS = [['bar', 'Tulpdiagramm'], ['line', 'Joondiagramm'], ['pie', 'Sektordiagramm']];
+// a pie (the 9th-grade e-exam's W2 summary) has one value per row, 2–8 slices
+export const MAX_SLICES = 8;
+
+// the slices of a pie: [{ label, value, share (0–1), from, to (angles in turns) }] from the first value of each row;
+// a row without a value or with a value ≤ 0 is left out
+export function pieSlices(data = {}) {
+  const rows = chartRows(data).map((row) => ({ label: row.label, value: row.values[0] })).filter((row) => row.value !== null && row.value > 0).slice(0, MAX_SLICES);
+  const sum = rows.reduce((n, row) => n + row.value, 0);
+  let at = 0;
+  return rows.map((row) => {
+    const share = sum ? row.value / sum : 0;
+    const slice = { ...row, share, from: at, to: at + share };
+    at += share;
+    return slice;
+  });
+}
 export const MAX_SERIES = 4;
 export const MAX_ROWS = 10;
 

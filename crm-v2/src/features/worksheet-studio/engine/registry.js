@@ -15,6 +15,7 @@ import { mathBlocks } from './blocks/math.jsx';
 import { geofigure } from './blocks/geofigure.jsx';
 import { newId } from './schema.js';
 import { provideScoreChecker } from './storedScore.js';
+import { isMetaKey } from './metaKeys.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
 export const BLOCKS = { text, notice, tip, image, vocab, wordstrip, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, video, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks, ...mathBlocks, geofigure };
@@ -65,7 +66,8 @@ export function numberTasks(blocks) {
 // картину”). `block.ungraded` (Inspector „Ei hinnata”) keeps a block out of the score always, and so does a pair task
 // done in the lesson (engine/inLesson.js).
 const filled = (value) => value !== undefined && value !== null && String(value).trim() !== '';
-export const blockAnswered = (block, answers = {}) => Object.keys(answers).some((key) => key.startsWith(`${block.id}:`) && filled(answers[key]));
+// a bookkeeping value (metaKeys.js: the part's clock, the plays of a recording) is no answer
+export const blockAnswered = (block, answers = {}) => Object.keys(answers).some((key) => key.startsWith(`${block.id}:`) && !isMetaKey(key) && filled(answers[key]));
 
 export function scoreDocument(doc, answers = {}) {
   const perBlock = {};
@@ -119,7 +121,7 @@ export function unmatchedAnswers(doc, answers = {}) {
   const ids = new Set((doc?.blocks || []).map((block) => String(block.id)));
   return Object.keys(answers || {}).filter((key) => {
     const at = key.indexOf(':');
-    return at > 0 && filled(answers[key]) && !key.endsWith(':error') && !ids.has(key.slice(0, at));
+    return at > 0 && filled(answers[key]) && !key.endsWith(':error') && !isMetaKey(key) && !ids.has(key.slice(0, at));
   });
 }
 

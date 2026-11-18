@@ -6,6 +6,8 @@ export const WRITING_GENRES = {
   kusimustik: 'Küsimustik', teade: 'Teade / sõnum', kutse: 'Kutse või kaart', kiri: 'Isiklik kiri', jutt: 'Jutt etteantud pealkirjaga', vastus: 'Vastus kirjale',
   // the English state exam (docs/COURSE_FINAL_SHAPE_EN_B2.md §3.1): EW1 a letter (120 words), EW2 a report or an essay (200 words)
   letter: 'Letter', report: 'Report', essay: 'Essay',
+  // the 9th-grade e-exam (docs/EXAM_9KL_E_EKSAM.md §3): W2 is a summary of a chart or an argument
+  kokkuvote: 'Kokkuvõte', arutlus: 'Arutlus',
 };
 // Harno does not publish its internal per-criterion split for B1; these criteria are our inference (documented in
 // COURSE_FINAL_SHAPE_B1.md §2.4) and keep a module exam on the same raw scale as the real exam.
@@ -46,6 +48,16 @@ export const RUBRIC_SCALES = {
     { name: 'Vocabulary', max: 5, hint: 'range and accuracy for the topic' },
     { name: 'Grammar', max: 5, hint: 'range and accuracy; errors do not block understanding' },
     { name: 'Fluency and pronunciation', max: 5, hint: 'speaks without long pauses; pronunciation is clear' },
+  ] },
+  // the 9th-grade e-exam (eristuskiri 2026/27 §6.1): a writing task 2 × 0–5 = 10 by two raters; speaking one holistic
+  // 0–10 per rater, two raters → 20
+  E9W: { label: 'E-eksam: kirjutamisülesanne (10 p)', criteria: [
+    { name: 'Ülesande täitmine ja sisu', max: 5, hint: 'kõik punktid on kirjas ja arendatud; pikkus vastab nõudele; vorm sobib' },
+    { name: 'Keelekasutus', max: 5, hint: 'sõnavara, grammatika, õigekiri, lauseehitus, sidusus; vead ei sega mõistmist' },
+  ] },
+  E9S: { label: 'E-eksam: suuline osa (20 p)', criteria: [
+    { name: 'Hindaja 1 (terviklik hinnang)', max: 10, hint: 'ülesande täitmine, info vahetamine, sõnavara ja grammatika, arusaadavus' },
+    { name: 'Hindaja 2 (terviklik hinnang)', max: 10, hint: 'teine hindaja (õpetaja) samal skaalal' },
   ] },
   // IELTS writing and speaking: four criteria, each a band 0–9 (examFormats.js)
   ...IELTS_RUBRICS,
@@ -96,11 +108,27 @@ export const EN_STATE_EXAM_DATA = Object.freeze({
     S: { part: 'Speaking', number: 'IV', minutes: 15, raw: 20, weighted: 20, tasks: 2, turnSec: 105 },
   },
 });
+// The basic-school final exam „eesti keel teise keelena” as a computer-based e-exam (EIS, from spring 2027; Harno
+// eristuskiri 2026/27 Lisa 2, docs/EXAM_9KL_E_EKSAM.md §1–2): B1 and B2 combined, every skill 20 points, reading and
+// language structure together 40. The written part is on the computer (W 70 min, L 50 min / 35 items, R 95 min / 65
+// items, all key-marked but writing); speaking is with an interviewer (24–26 min in pairs). Certificate: B1 at ≥ 60 % of
+// the total and no part at 0 points (B2's threshold is not published). `items`: the scored items the part's points are
+// converted from (engine/examMode.js partScore).
+export const E9_EXAM = 'E9';
+export const E9_RULE = Object.freeze({ levels: [['B1', 0.6]], noZeroPart: true });
+export const E9_EXAM_DATA = Object.freeze({
+  total: 100, language: 'et', name: '9. klassi e-eksam (eesti keel teise keelena)', rule: E9_RULE, parts: {
+    W: { part: 'Kirjutamine', number: 'I', minutes: 70, raw: 20, weighted: 20, tasks: 2, words: [100, 160] },
+    L: { part: 'Kuulamine', number: 'II', minutes: 50, raw: 20, weighted: 20, tasks: 5, items: 35 },
+    R: { part: 'Lugemine ja keele struktuur', number: 'III', minutes: 95, raw: 40, weighted: 40, tasks: 7, items: 65 },
+    S: { part: 'Suuline osa', number: 'IV', minutes: 26, from: 24, raw: 20, weighted: 20, tasks: 3 },
+  },
+});
 // a Harno exam of the Estonian course levels (A2 … C1) is listed in HARNO_LEVELS; the English state exam is an exam
-// of its own (examFor / COURSE_EXAM), not a level of the Estonian exams
+// of its own (examFor / COURSE_EXAM), not a level of the Estonian exams; the 9th-grade e-exam neither
 export const HARNO_LEVELS = Object.keys(HARNO_EXAMS);
 // …and the international English exams of the English B2 course (examFormats.js: IELTS, TOEFL iBT, Cambridge B2 First)
-const ALL_EXAMS = { ...HARNO_EXAMS, [EN_STATE_EXAM]: EN_STATE_EXAM_DATA, ...ENGLISH_EXAM_FORMATS };
+const ALL_EXAMS = { ...HARNO_EXAMS, [EN_STATE_EXAM]: EN_STATE_EXAM_DATA, [E9_EXAM]: E9_EXAM_DATA, ...ENGLISH_EXAM_FORMATS };
 export const examFor = (exam) => ALL_EXAMS[exam] || null;
 export const isEnglishExam = (exam) => examFor(exam)?.language === 'en';
 export const ENGLISH_EXAMS = [EN_STATE_EXAM, ...Object.keys(ENGLISH_EXAM_FORMATS)];

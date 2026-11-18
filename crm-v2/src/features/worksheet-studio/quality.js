@@ -25,7 +25,13 @@ export function analyzeWorksheet(document, { forms = null } = {}) {
     if (block.type === 'dictation' && !rows(d.sentences).length) issues.push({ level: 'error', code: `${block.id}:sentences`, text: `${name}: etteütluse tekst puudub.` });
     if (block.type === 'adsmatch' && !(d.situations || []).every((x) => String(x.answer || '').split(/[|,/]/).map((l) => l.trim().toUpperCase()).filter(Boolean).every((l) => 'ABCDEFGHIJKLMN'.indexOf(l) >= 0 && 'ABCDEFGHIJKLMN'.indexOf(l) < (d.ads || []).length) && String(x.answer || '').trim())) issues.push({ level: 'error', code: `${block.id}:answers`, text: `${name}: igal olukorral peab olema olemasoleva kuulutuse täht.` });
     if (block.type === 'examlisten' && (d.mode || 'choice') === 'choice' && !(d.questions || []).every((q) => String(q.options || '').includes('*'))) issues.push({ level: 'error', code: `${block.id}:answers`, text: `${name}: märgi igas küsimuses õige vastus tärniga.` });
-    if (block.type === 'examlisten' && !d.audio?.src) issues.push({ level: 'warning', code: `${block.id}:audio`, text: `${name}: helifail puudub. Õpetaja saab teksti ise ette lugeda.` });
+    // the e-exam's speakers ↔ statements: every speaker has a letter of a statement, and no letter twice
+    if (block.type === 'examlisten' && d.mode === 'speakers') {
+      const letters = (d.speakers || []).map((s) => String(s.answer || '').trim().toUpperCase());
+      const valid = letters.every((l) => l && 'ABCDEFGHIJKLMNOP'.indexOf(l) >= 0 && 'ABCDEFGHIJKLMNOP'.indexOf(l) < (d.claims || []).length);
+      if (!(d.speakers || []).length || !valid || new Set(letters).size !== letters.length) issues.push({ level: 'error', code: `${block.id}:answers`, text: `${name}: igal kõnelejal peab olema oma väite täht (iga täht üks kord).` });
+    }
+    if (block.type === 'examlisten' && !d.audio?.src && !(d.questions || []).some((q) => q.audio?.src)) issues.push({ level: 'warning', code: `${block.id}:audio`, text: `${name}: helifail puudub. Õpetaja saab teksti ise ette lugeda.` });
     if (block.type === 'listening' && !d.audio?.src) issues.push({ level: 'warning', code: `${block.id}:audio`, text: `${name}: helifail puudub. Õpetaja saab teksti ise ette lugeda.` });
     if (block.type === 'diagram' && !diagramHasContent(d)) issues.push({ level: 'error', code: `${block.id}:nodes`, text: `${name}: skeemil pole ühtegi kasti.` });
     if (block.type === 'video' && !d.file?.src && !String(d.url || '').trim()) issues.push({ level: 'warning', code: `${block.id}:video`, text: `${name}: video link või fail puudub.` });

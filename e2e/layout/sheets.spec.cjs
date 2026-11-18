@@ -195,3 +195,57 @@ test.describe('filling in on a phone', () => {
     expect(Number(ink.split(' ')[0].split(',')[0])).toBeGreaterThan(360);
   });
 });
+
+// the 9th-grade e-exam's interactions (docs/E_EXAM_ENGINE.md): they fit a phone, a chip goes into a gap by tapping (phone)
+// and by dragging (mouse), and a part whose time is over is locked and handed in by itself
+test.describe('e-exam sheets', () => {
+  for (const set of ['eexam-w', 'eexam-l', 'eexam-r']) {
+    test(`${set} fits a phone`, async ({ browser }) => {
+      const context = await browser.newContext(phone(375));
+      const page = await context.newPage();
+      await open(page, `set=${set}`);
+      expect(breaks(await page.evaluate(`(${measureInPage.toString()})()`))).toEqual([]);
+      await context.close();
+    });
+  }
+  test('tap a chip, then a gap (phone)', async ({ browser }) => {
+    const context = await browser.newContext(phone(375));
+    const page = await context.newPage();
+    await open(page, 'set=eexam-r');
+    const card = page.locator('.ws-page [data-block="ee_r_22"]');
+    await expect(card.locator('[data-drop-gap="0"]')).toBeDisabled();
+    await card.locator('button.ws-dropchip', { hasText: 'kõrval' }).tap();
+    await card.locator('[data-drop-gap="3"]').tap();
+    await expect(card.locator('[data-drop-gap="3"]')).toContainText('kõrval');
+    await expect(card.locator('button.ws-dropchip', { hasText: 'kõrval' })).toBeHidden();
+    await card.locator('[data-drop-gap="3"]').tap();
+    await expect(card.locator('button.ws-dropchip', { hasText: 'kõrval' })).toBeVisible();
+    await context.close();
+  });
+  test('drag a reply into the conversation (mouse)', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await open(page, 'set=eexam-r');
+    const card = page.locator('.ws-page [data-block="ee_r_21"]');
+    const chip = card.locator('button.ws-dropchip', { hasText: 'Hea mõte' });
+    await chip.scrollIntoViewIfNeeded();
+    const from = await chip.boundingBox();
+    const to = await card.locator('[data-drop-gap="1"]').boundingBox();
+    await page.mouse.move(from.x + 10, from.y + 8);
+    await page.mouse.down();
+    await page.mouse.move(from.x + 40, from.y + 30, { steps: 4 });
+    await page.mouse.move(to.x + 20, to.y + to.height / 2, { steps: 8 });
+    await page.mouse.up();
+    await expect(card.locator('[data-drop-gap="1"]')).toContainText('Hea mõte');
+    await page.waitForTimeout(900);
+    const answers = await page.evaluate(() => globalThis.__lab.log.drafts.at(-1).answers);
+    expect(answers['ee_r_21:1']).toBe(1);
+    expect(Number(answers['ee_r_part:$startedAt'])).toBeGreaterThan(0);
+  });
+  test('a part whose time is over is locked and handed in', async ({ page }) => {
+    const answers = { 'ee_r_part:$startedAt': Date.now() - 96 * 60000, 'ee_r_26:1': 0 };
+    await open(page, `set=eexam-r&answers=${encodeURIComponent(JSON.stringify(answers))}`);
+    await expect.poll(() => page.evaluate(() => globalThis.__lab.log.submits.length), { timeout: 10000 }).toBe(1);
+    await expect(page.locator('.worksheet-result')).toContainText('punkti');
+    expect(await page.locator('.ws-page button.ws-dropchip').count()).toBe(0);
+  });
+});
