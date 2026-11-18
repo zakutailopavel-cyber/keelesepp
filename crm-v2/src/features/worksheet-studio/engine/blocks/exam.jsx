@@ -3,9 +3,10 @@ import { Fragment } from 'react';
 import { Line, Md } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
 import { norm } from '../schema.js';
-import { Area, Text } from '../../editor/fields.jsx';
+import { Area, Select, Text } from '../../editor/fields.jsx';
 import { plainText, seededShuffle } from './tasks.jsx';
 import { clozeGaps } from './clozeGaps.js';
+import { ChatSlots, ChipsText } from './bankDrop.jsx';
 
 // clozeGaps lives in clozeGaps.js (the pet's games read it without the block views); kept exported here
 export { clozeGaps };
@@ -28,7 +29,7 @@ const LONG_OPTION = 24;
 
 // review: the option the learner chose (its index may be 0), with its mark; print: an empty line
 const chosenOption = (options, value) => (value === undefined || value === null || value === '' ? null : options.find((o) => o.oi === Number(value)) || null);
-const ClozeGap = ({ n, chosen, state }) => <span className={`ws-cloze-gap ${chosen && state ? 'is-' + state : ''}`}>({n}) {chosen ? <b>{chosen.text}</b> : '________'}</span>;
+const ClozeGap = ({ n, chosen, state, example = false }) => <span className={`ws-cloze-gap ${chosen && state ? 'is-' + state : ''}${example ? ' is-example' : ''}`}>({n}) {chosen ? <b>{chosen.text}</b> : '________'}</span>;
 
 export const cloze = {
   type: 'cloze', label: 'Valiklünktekst (eksam)', group: 'Grammatika ja sõnavara', icon: 'TextSelect', task: true, width: 'full', tone: 'cream',
@@ -39,6 +40,8 @@ export const cloze = {
   View: ({ data, ctx, id }) => {
     const gaps = clozeGaps(data.passage);
     const shown = gaps.map((opts, gi) => (ctx.keepOrder ? opts : seededShuffle(opts, `${id}:${gi}`)));
+    // the number of a gap: from 1, or from 0 on an exam sheet whose first gap is the solved example
+    const first = ctx.numFrom ?? 1;
     return (
       <div className="ws-cloze">
         <div className="ws-passage">
@@ -49,22 +52,28 @@ export const cloze = {
               const gi = piece.gap;
               const key = `${gi}`;
               const state = ctx.state(key);
-              return ctx.interactive ? (
-                <select key={k} className={`ws-cloze-sel ${state ? 'is-' + state : ''}`} value={ctx.get(key) ?? ''} onChange={(e) => ctx.set(key, e.target.value === '' ? '' : Number(e.target.value))} aria-label={`Lünk ${gi + 1}`}>
-                  <option value="">({gi + 1})</option>
+              const example = Boolean(ctx.isExample?.(key));
+              return ctx.interactive && !example ? (
+                <select key={k} className={`ws-cloze-sel ${state ? 'is-' + state : ''}`} value={ctx.get(key) ?? ''} onChange={(e) => ctx.set(key, e.target.value === '' ? '' : Number(e.target.value))} aria-label={`Lünk ${gi + first}`}>
+                  <option value="">({gi + first})</option>
                   {shown[gi].map((o) => <option key={o.oi} value={o.oi}>{o.text}</option>)}
                 </select>
-              ) : <ClozeGap key={k} n={gi + 1} chosen={chosenOption(gaps[gi], ctx.get(key))} state={state} />;
+              ) : <ClozeGap key={k} n={gi + first} chosen={chosenOption(gaps[gi], ctx.get(key))} state={example ? undefined : state} example={example} />;
             })}</p>
           ))}
         </div>
         {!ctx.interactive ? (
-          <ol className={`ws-cloze-options${shown.some((opts) => opts.some((o) => o.text.length > LONG_OPTION)) ? ' is-long' : ''}`}>
+          <ol className={`ws-cloze-options${shown.some((opts) => opts.some((o) => o.text.length > LONG_OPTION)) ? ' is-long' : ''}`} start={first === 0 ? 0 : undefined}>
             {shown.map((opts, gi) => <li key={gi}>{opts.map((o, k) => <span key={o.oi}><i className="ws-dot" /> {LETTERS[k]}) {o.text}</span>)}</li>)}
           </ol>
         ) : null}
       </div>
     );
+  },
+  // the first gap shown solved as an example („Näide”)
+  example: (data) => {
+    const right = clozeGaps(data.passage)[0]?.find((o) => o.correct);
+    return right ? { 0: right.oi } : {};
   },
   answers: (data) => clozeGaps(data.passage).map((opts, gi) => ({ key: `${gi}`, accept: opts.filter((o) => o.correct).map((o) => o.text) })),
   answerText: (data, key, value) => chosenOption(clozeGaps(data.passage)[Number(key)] || [], value)?.text || '',
@@ -99,20 +108,39 @@ export const formtext = {
     title: 'Pane sõnad õigesse vormi.', instruction: 'Kirjuta sulgudes olev sõna lünka sellises vormis, nagu tekst nõuab.', passageTitle: 'Kolimine',
     passage: 'Eelmisel kuul [kolisime] (kolima) uude korterisse. Kõige raskem oli [raamatute] (raamat) pakkimine.\n\nNüüd elame [kesklinnas] (kesklinn) ja käime tööl jala.',
   }),
-  View: ({ data, ctx }) => (
-    <div className="ws-cloze ws-formtext">
-      <div className="ws-passage">
-        {data.passageTitle ? <h4>{data.passageTitle}</h4> : null}
-        {formParts(data.passage).map((para, pi) => (
-          <p key={pi}>{para.map((piece, k) => {
-            if (!('gap' in piece)) return <Fragment key={k}><Md text={piece.text} /></Fragment>;
-            const key = `${piece.gap}`;
-            return <span key={k} className="ws-formtext-gap"><b>({piece.gap + 1})</b><Line interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={gapWidth(piece.accept, '26mm')} label={`Lünk ${piece.gap + 1}`} className="ws-gapline" /> ({piece.base})</span>;
-          })}</p>
-        ))}
+  // data.hint 'inside' (the e-exam's 2.7): the base form stands greyed inside the empty box (the field's placeholder; on
+  // paper in the line), not after it
+  View: ({ data, ctx }) => {
+    const first = ctx.numFrom ?? 1;
+    const inside = data.hint === 'inside';
+    return (
+      <div className={`ws-cloze ws-formtext${inside ? ' is-hint-inside' : ''}`}>
+        <div className="ws-passage">
+          {data.passageTitle ? <h4>{data.passageTitle}</h4> : null}
+          {formParts(data.passage).map((para, pi) => (
+            <p key={pi}>{para.map((piece, k) => {
+              if (!('gap' in piece)) return <Fragment key={k}><Md text={piece.text} /></Fragment>;
+              const key = `${piece.gap}`;
+              const n = piece.gap + first;
+              const example = Boolean(ctx.isExample?.(key));
+              if (inside) {
+                const value = ctx.get(key);
+                const box = ctx.interactive && !example
+                  ? <Line interactive value={value} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={gapWidth([...piece.accept, piece.base], '26mm')} label={`Lünk ${n} (${piece.base})`} placeholder={piece.base} className="ws-gapline" />
+                  : <span className={`ws-formbox ${value ? 'is-filled' : ''} ${!example && ctx.state(key) ? 'is-' + ctx.state(key) : ''}`}>{value || <i>{piece.base}</i>}</span>;
+                return <span key={k} className={`ws-formtext-gap${example ? ' is-example' : ''}`} title={piece.base}><b>({n})</b>{box}</span>;
+              }
+              return <span key={k} className={`ws-formtext-gap${example ? ' is-example' : ''}`}><b>({n})</b><Line interactive={ctx.interactive && !example} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={example ? undefined : ctx.state(key)} width={gapWidth(piece.accept, '26mm')} label={`Lünk ${n}`} className="ws-gapline" /> ({piece.base})</span>;
+            })}</p>
+          ))}
+        </div>
       </div>
-    </div>
-  ),
+    );
+  },
+  example: (data) => {
+    const g = formGaps(data.passage)[0];
+    return g?.accept?.[0] ? { 0: g.accept[0] } : {};
+  },
   answers: (data) => formGaps(data.passage).map((g, gi) => ({ key: `${gi}`, accept: g.accept })),
   score: (data, get) => formGaps(data.passage).map((g, gi) => ({ key: `${gi}`, ok: g.accept.map(norm).includes(norm(get(`${gi}`))) })),
   Editor: ({ data, set }) => (
@@ -120,6 +148,7 @@ export const formtext = {
       <Text label="Teksti pealkiri" value={data.passageTitle} onChange={(passageTitle) => set({ passageTitle })} />
       <Area label="Tekst: [õige vorm|teine õige] (algvorm)" rows={10} value={data.passage} onChange={(passage) => set({ passage })} />
       <span className="ed-hint">Näide: Eile [käisin] (käima) poes. Lõigud tühja reaga.</span>
+      <Select label="Algvorm" value={data.hint || ''} onChange={(hint) => set({ hint })} options={[['', 'Lünga järel sulgudes'], ['inside', 'Hallilt lünga sees (e-eksam)']]} />
     </>
   ),
 };
@@ -143,8 +172,16 @@ export const insertion = {
     extra: 'Raamatukogu ehitamine maksis kaks korda vähem, kui plaaniti.',
   }),
   View: ({ data, ctx, id }) => {
-    const { options } = sentenceList(data);
+    const { options, gapsList } = sentenceList(data);
     const shown = seededShuffle(options, id);
+    // the e-exam's drag layouts (bankDrop.jsx): words / text parts into the running text, replies into a conversation
+    if (data.layout === 'chips' || data.layout === 'chat') {
+      const keys = gapsList.map((_, gi) => `${gi}`);
+      if (data.layout === 'chat') return <ChatSlots data={data} ctx={ctx} options={shown} keys={keys} />;
+      // the e-exam lists a word bank in alphabetical order (data.bankOrder 'mixed': mixed by the block id)
+      const bank = data.bankOrder === 'mixed' ? shown : [...options].sort((a, b) => plainText(a.text).localeCompare(plainText(b.text), 'et'));
+      return <ChipsText data={data} ctx={ctx} options={bank} keys={keys} />;
+    }
     const letter = (oi) => LETTERS_UP[shown.findIndex((o) => o.oi === oi)] || '';
     let n = -1;
     return (
@@ -158,12 +195,14 @@ export const insertion = {
               const key = `${n}`;
               const state = ctx.state(key);
               const value = ctx.get(key);
-              return ctx.interactive ? (
-                <select key={k} className={`ws-cloze-sel ${state ? 'is-' + state : ''}`} value={value ?? ''} onChange={(e) => ctx.set(key, e.target.value === '' ? '' : Number(e.target.value))} aria-label={`Lünk ${n + 1}`}>
-                  <option value="">({n + 1})</option>
+              const example = Boolean(ctx.isExample?.(key));
+              const num = n + (ctx.numFrom ?? 1);
+              return ctx.interactive && !example ? (
+                <select key={k} className={`ws-cloze-sel ${state ? 'is-' + state : ''}`} value={value ?? ''} onChange={(e) => ctx.set(key, e.target.value === '' ? '' : Number(e.target.value))} aria-label={`Lünk ${num}`}>
+                  <option value="">({num})</option>
                   {shown.map((o, li) => <option key={o.oi} value={o.oi} label={ctx.flow ? `${LETTERS_UP[li]}. ${plainText(o.text)}` : undefined}>{LETTERS_UP[li]}</option>)}
                 </select>
-              ) : <span key={k} className={`ws-cloze-gap ${value !== undefined && value !== '' && state ? 'is-' + state : ''}`}>({n + 1}) {value !== undefined && value !== '' ? <b>{letter(Number(value))}</b> : '____'}</span>;
+              ) : <span key={k} className={`ws-cloze-gap ${value !== undefined && value !== '' && state && !example ? 'is-' + state : ''}${example ? ' is-example' : ''}`}>({num}) {value !== undefined && value !== '' ? <b>{letter(Number(value))}</b> : '____'}</span>;
             })}</p>
           ))}
         </div>
@@ -176,11 +215,15 @@ export const insertion = {
   answers: (data) => sentenceList(data).gapsList.map((text, gi) => ({ key: `${gi}`, accept: [text] })),
   answerText: (data, key, value) => chosenOption(sentenceList(data).options, value)?.text || '',
   score: (data, get) => sentenceList(data).gapsList.map((_, gi) => ({ key: `${gi}`, ok: get(`${gi}`) !== undefined && get(`${gi}`) !== '' && Number(get(`${gi}`)) === gi })),
+  // the first gap shown solved as an example: the first taken-out part in its place
+  example: (data) => (sentenceList(data).gapsList.length ? { 0: 0 } : {}),
   Editor: ({ data, set }) => (
     <>
       <Text label="Teksti pealkiri" value={data.passageTitle} onChange={(passageTitle) => set({ passageTitle })} />
       <Area label="Terve tekst, välja võetud laused [[topeltsulgudes]]" rows={10} value={data.passage} onChange={(passage) => set({ passage })} />
       <Area label="Üleliigsed laused (igaüks eraldi real)" rows={3} value={data.extra} onChange={(extra) => set({ extra })} />
+      <Select label="Kuidas vastatakse" value={data.layout || ''} onChange={(layout) => set({ layout })} options={[['', 'Tähe valik lünga juures (A–H)'], ['chips', 'Lohista sõna / tekstiosa tekstis lünka (e-eksam 2.2, 2.4)'], ['chat', 'Lohista repliik vestlusesse (e-eksam 2.1)']]} />
+      {data.layout === 'chat' ? <span className="ed-hint">Vestlus: iga repliik eraldi real kujul „**Nimi:** tekst”; välja võetud repliik „**Nimi:** [[repliik]]”.</span> : null}
     </>
   ),
 };

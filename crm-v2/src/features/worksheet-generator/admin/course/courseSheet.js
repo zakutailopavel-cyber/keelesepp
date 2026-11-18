@@ -171,6 +171,9 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(Array.isArray(lesson.theory) && lesson.theory.includes(phase) ? { theory: true, shortSheet: true } : {}),
       // a check lesson (Kontroll): its Kasuta sheet is the exam's writing and speaking part (gates.js / depth.js)
       ...(lesson.assessment ? { assessment: true } : {}),
+      // an exam sheet (`exam: 'E9'`, the 9th-grade e-exam mocks, docs/EXAM_9KL_E_EKSAM.md): the real exam's format —
+      // item 0 numbered 0, and the lesson norms that would bend the format are not checked (engine/examMode.js)
+      ...(lesson.exam ? { exam: lesson.exam } : {}),
       // design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7): the lesson's format; its presence switches on the v4 station rules
       ...(lesson.format ? { format: lesson.format } : {}),
       // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): its own variety and depth norms

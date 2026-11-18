@@ -5,6 +5,7 @@ import { groupItems } from '../engine/schema.js';
 // speaking amounts, scaffolding (word bank, solved example), recognition vs production, instruction length.
 // Returns { level, label, checks[], score, issues[] } — issues never block publishing (warning / tip only).
 import { BLOCKS } from '../engine/registry.js';
+import { isExamSheet } from '../engine/examMode.js';
 import { HARNO, LEVELS, PHASE_TASKS, harnoFor, levelKey } from './levels.js';
 import { VOCABULARY_FOR, wordLevel } from './levelVocabulary.js';
 import { dialogueGaps, isExitCheck, isListeningRow, isStationSheet, isTaskDesign } from './stations.js';
@@ -130,7 +131,8 @@ export function measureBlock(block) {
     // Harno R1: the situations are the items (the ads are short notices, not task sentences)
     case 'adsmatch': (d.situations || []).forEach((x) => s.push(x.text)); items = (d.situations || []).length; break;
     // exam listening: like its choice / true-false / matching items
-    case 'examlisten': (d.questions || []).forEach((q) => s.push(q.q)); (d.statements || []).forEach((st) => s.push(st.text)); items = (d.questions || []).length + (d.statements || []).length + (d.pairs || []).length; break;
+    // (mode 'speakers': one answer per speaker, the statements are the options)
+    case 'examlisten': (d.questions || []).forEach((q) => s.push(q.q)); (d.statements || []).forEach((st) => s.push(st.text)); items = (d.questions || []).length + (d.statements || []).length + (d.pairs || []).length + (d.mode === 'speakers' ? (d.speakers || []).length : 0); break;
     default: break;
   }
   return { sentences: s.filter((x) => wordsIn(x) >= 2), items };
@@ -147,6 +149,13 @@ export function sheetPhase(doc) {
   return found.length === 1 ? found[0] : 'full';
 }
 
+// An exam sheet (meta.exam, engine/examMode.js isExamSheet — the 9th-grade e-exam mocks, docs/EXAM_9KL_E_EKSAM.md) is the
+// real exam's format, which the owner wants exactly (2026-11-18): 6–13 items a task, item 0 solved, word banks, only
+// closed tasks on the listening and reading parts, B1 and B2 texts side by side, the exam's own instructions. The lesson
+// norms of the level that would bend it are not checked there; the solvability checks (enough options, no give-away
+// answer, …) and the constructor's own errors still are. Older sheets (no meta.exam) are checked as before.
+export const EXAM_EXEMPT = ['items', 'example', 'bank', 'closed-share', 'productive', 'progression', 'instruction', 'reading-len', 'reading-inf', 'sentence-avg', 'sentence-max', 'vocabulary'];
+
 // `forms`: the EKI level vocabularies (levelVocabulary.js loadLevelForms); without them the vocabulary is not checked
 export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhase(doc), forms = null } = {}) {
   const key = levelKey(level);
@@ -154,7 +163,11 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
   const tasks = (doc?.blocks || []).filter((b) => BLOCKS[b.type]?.task);
   const checks = [];
   const issues = [];
+  // an exam sheet follows the real exam's format, not the lesson norms of its level (EXAM_EXEMPT below)
+  const exam = isExamSheet(doc);
   const add = (code, label, ok, { detail = '', severity = 'tip', blockId = '' } = {}) => {
+    const rule = blockId && code.endsWith(`-${blockId}`) ? code.slice(0, -(blockId.length + 1)) : code;
+    if (exam && EXAM_EXEMPT.includes(rule)) return;
     checks.push({ code, label, ok, detail, blockId });
     if (!ok) issues.push({ level: severity, code: blockId ? `${blockId}:did-${code}` : `did-${code}`, text: `Tase ${norm.label}: ${detail || label}` });
   };

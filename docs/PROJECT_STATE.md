@@ -23,6 +23,28 @@
 - Next safe step: owner reviews and merges; creates the record and publishes; teacher assigns Teooria + Harjuta today
   and Proovitöö before the test.
 
+## 2026-11-18 · agent/e-exam-engine — worksheet engine for the 9th-grade e-exam format (UI + engine)
+
+- Base: `origin/main` a5f152f (#1266), checked 2026-11-18. Draft PR „E-eksami vorm: taimer, kaks kuulamist, lohistamine
+  tekstis, näidis 0, sektordiagramm”. Not merged, no deploy, no production writes, no firestore.rules / functions change
+  (the clock start and the play counts are plain keys in `assignment.answers`).
+- Goal: the engine gaps of `docs/EXAM_9KL_E_EKSAM.md` §4 (content PR #1267), so mock 1 can follow the real format.
+- Built (every option off by default; API and gap status in the new `docs/E_EXAM_ENGINE.md`): exam sheet flag
+  `meta.exam = 'E9'` (item 0 numbered 0, lesson norms exempt: `didacticCheck.js EXAM_EXEMPT`, `quality.js` skips the
+  lesson shape); E9 exam key in `harnoScales.js` (+ genres kokkuvõte / arutlus, rubric scales E9W / E9S); `exampart.lock`
+  exam clock (start kept as `<id>:$startedAt`, sticky clock, lock + auto hand-in at 0, staff not locked) in
+  `DocWorksheetPlayer.jsx`; part points 35 → 20 / 65 → 40 in the result; `lockPlays` limited player (`LimitedAudio`,
+  `$plays`); examlisten clip table (`questions[i].situation/audio`) and mode `speakers` (`blocks/speakers.jsx`);
+  insertion layouts `chips` and `chat` (drag / tap / keyboard, `blocks/bankDrop.jsx`); `opts.example` for cloze,
+  formtext, insertion; formtext `hint: 'inside'`; examwriting `letter` card with margin notes and `about` counter; chart
+  kind `pie`. Meta keys (`:$…`) never count as answers (`registry.js`). CSS in `engine/examSheet.css`.
+- Checks: `npx vitest run src/features` (see PR body for the exact count); new `engine/examMode.test.jsx` 22 tests;
+  eslint clean on the touched files (warnings only, pre-existing); e2e `-g "e-exam"` 6 passed (phone 375 layout of three
+  lab sheets, tap and mouse drag, auto hand-in after the time). Screenshots desktop + 375 in the PR.
+- Limits: the mock's content still uses the old blocks until the content agent switches it (fields in E_EXAM_ENGINE.md
+  §2); per-clip audio files, subheading matching, paging per task and the four-part total are not done.
+- Next safe step: owner / main session review the PR; after merge the content agent switches mock 1 (`exam: 'E9'`,
+  `lock`, `lockPlays`, `layout`, `opts.example`, item 0 back into the data and EXPLAIN).
 ## 2026-11-18 · agent/b1b2-m07-tasks — B1→B2 module 7 „Haridus ja õppimine” in v4 task-based design · content only
 
 - Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „B1→B2 module 7: task-based (v4)” (link in the

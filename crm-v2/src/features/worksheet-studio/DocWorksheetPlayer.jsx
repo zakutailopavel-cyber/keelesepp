@@ -28,6 +28,8 @@ import MistakesPanel from './MistakesPanel.jsx';
 import { mistakesOf } from './engine/mistakes.js';
 import AnswerFontMenu from './AnswerFontMenu.jsx';
 import { announcePractice } from '../practice/events.js';
+import { START_KEY, examLockBlock, formatClock, partScore } from './engine/examMode.js';
+import { useSecondsLeft } from './engine/blocks/harno.jsx';
 
 // A teacher's read-only look at a sheet: a click on a task opens its answers under it (never for a learner).
 function useTeacherKey(doc, enabled) {
@@ -67,6 +69,30 @@ export function FlowBar({ answered, total, state = 'idle', time = '', saved = fa
       <span className={`ws-flow-save is-${state}`} role={state === 'failed' ? 'alert' : undefined}>{text}</span>
       {tools}
     </div>
+  );
+}
+
+// The exam part's clock over the sheet (exam mode, engine/examMode.js): sticky, red in the last 5 minutes
+export function ExamClockBar({ left, preview = false, over = false }) {
+  const low = typeof left === 'number' && left <= 300;
+  return (
+    <div className={`ws-exam-clock ${low ? 'is-low' : ''} ${over ? 'is-over' : ''}`} role="timer" aria-live={low ? 'polite' : 'off'}>
+      <Clock3 size={16} aria-hidden="true" />
+      <span>{over ? 'Aeg on läbi' : <>Aega jäänud <b>{formatClock(left ?? 0)}</b></>}</span>
+      {preview ? <small>eelvaade: õpetajale leht ei lukustu</small> : null}
+    </div>
+  );
+}
+
+// the part's points in the result (35 items → 20 p, 65 → 40 p; engine/examMode.js partScore)
+const decimal = (n) => String(n).replace('.', ',');
+export function PartPoints({ part }) {
+  const [, share] = part.rule?.levels?.[0] || [];
+  return (
+    <span className="ws-part-points">
+      <b>{part.part || 'Osa'}: {decimal(part.points)} / {part.max} punkti</b> ({part.correct}/{part.items} õiget)
+      {share ? ` · B1-taseme tunnistuseks on vaja vähemalt ${Math.round(share * 100)} % kogu eksami punktidest ja ükski osa ei tohi olla 0 punkti.` : ''}
+    </span>
   );
 }
 
@@ -110,7 +136,16 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const zoomStyle = flow ? undefined : { zoom: scale };
   const setCanvas = useCallback((node) => { canvasRef.current = node; fitRef(node); }, [fitRef]);
 
-  const review = submitted || readOnly;
+  // Exam mode (an exam part header with `lock`, engine/examMode.js): the learner starts the part's clock (or her first
+  // answer does); the start is kept with the answers, so a reload goes on counting; at 0 the sheet locks and is handed
+  // in. Staff previewing the sheet and a read-only look see no lock.
+  const lockBlock = useMemo(() => examLockBlock(doc), [doc]);
+  const lockOn = Boolean(lockBlock) && !readOnly && !isStaff;
+  const startKey = lockBlock ? `${lockBlock.id}:${START_KEY}` : '';
+  const startedAt = lockBlock ? Number(answers[startKey]) || 0 : 0;
+  const secondsLeft = useSecondsLeft(lockBlock && startedAt && !submitted ? startedAt + Number(lockBlock.data.minutes) * 60000 : 0);
+  const timeUp = lockOn && secondsLeft === 0;
+  const review = submitted || readOnly || timeUp;
   // a teacher opening the learner's sheet read-only clicks a task to see its answers; a parent opening the child's
   // sheet read-only never gets the key (staff only)
   const teacherKey = useTeacherKey(doc, readOnly && isStaff);
@@ -138,7 +173,12 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 
   // double-click a word: forms + translation, and the word goes into the learner's own word list
   const words = useWordLookup({ studentId: assignment.studentId, enabled: !readOnly, ...(wordService ? { service: wordService } : {}) });
-  const setAnswer = (key, value) => { edited.current = true; setAnswers((a) => ({ ...a, [key]: value })); setDraftSaved(false); setSaveState('saving'); };
+  // in exam mode the first answer (or a play of a recording) starts the part's clock if the learner did not press start
+  const setAnswer = (key, value) => {
+    edited.current = true;
+    setAnswers((a) => ({ ...a, [key]: value, ...(lockOn && startKey && !a[startKey] && key !== startKey ? { [startKey]: Date.now() } : {}) }));
+    setDraftSaved(false); setSaveState('saving');
+  };
 
   // the cabinet pet stays silent while a worksheet is open; it celebrates after the student is back
   useEffect(() => {
@@ -257,8 +297,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     petCelebrate({ xp: 15 + goals * 5, goals });
   };
 
-  const submit = async () => {
-    if (progress.answered < progress.total && !(await askConfirm(`Vastatud ${progress.answered}/${progress.total}. Kas esitad töölehe ikkagi?`))) return;
+  // `auto`: the exam part's time is over — handed in as it is, without asking
+  const submit = async ({ auto = false } = {}) => {
+    if (!auto && progress.answered < progress.total && !(await askConfirm(`Vastatud ${progress.answered}/${progress.total}. Kas esitad töölehe ikkagi?`))) return;
     setSaving(true); setError(''); submitting.current = true;
     try {
       // no network: say so at once (the answers are on this device), do not wait for the upload or the write
@@ -279,6 +320,15 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     finally { setSaving(false); }
   };
 
+  // the exam part's time is over: hand in once (a failed hand-in leaves the „Esita” button, the answers stay locked)
+  const handedIn = useRef(false);
+  useEffect(() => {
+    if (!timeUp || submitted || handedIn.current) return;
+    handedIn.current = true;
+    submit({ auto: true });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- once, when the time runs out
+  }, [timeUp, submitted]);
+
   const saveAssessment = async () => {
     setSaving(true); setError('');
     try { await repository.saveSelfAssessment({ assignmentId: assignment.id, difficulty, comment }); setAssessmentSaved(true); onSubmitted?.(); }
@@ -286,11 +336,17 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     finally { setSaving(false); }
   };
 
-  const footer = !review
+  const footer = timeUp && !submitted
+    ? <><span className="worksheet-progress">Aeg on läbi · vastuseid enam muuta ei saa</span><Button loading={saving} onClick={() => submit({ auto: true })}><Send size={17} /> Esita tööleht</Button></>
+    : !review
     ? <>{flow ? null : <span className="worksheet-progress">{progress.answered}/{progress.total} vastust{saveState === 'failed' ? ' · ei salvestunud, proovin uuesti' : draftSaved ? ' · Salvestatud' : autosaved ? ` · automaatselt salvestatud ${autosaved}` : ''}</span>}<Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button>{onClose && !flow ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null}<Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
     : onClose ? <>{flow ? <AnswerFontMenu className="is-up" /> : null}<Button variant="secondary" onClick={onClose}>Sulge</Button></> : null;
   // „Kiri” (AnswerFontMenu): in the header on a page, in the thin top bar of a phone's column (its header is hidden)
-  const flowBar = flow && !review ? <FlowBar answered={progress.answered} total={progress.total} state={saveState} time={autosaved} saved={draftSaved} tools={<AnswerFontMenu />} /> : null;
+  // the exam part's clock, always in sight (sticky); a teacher's preview shows it without the lock
+  const clockOn = Boolean(lockBlock) && !readOnly && !submitted && Boolean(startedAt);
+  const examClock = clockOn ? <ExamClockBar left={secondsLeft} preview={isStaff} over={timeUp} /> : null;
+  const flowBar = flow && !review ? <FlowBar answered={progress.answered} total={progress.total} state={saveState} time={autosaved} saved={draftSaved} tools={<>{examClock}<AnswerFontMenu /></>} /> : null;
+  const part = useMemo(() => (submitted && score ? partScore(doc, answers) : null), [submitted, score, doc, answers]);
 
   // whose screen: a student's sheet carries his name as a faint watermark and on copied text (staff see none)
   const mark = markLabel(useContext(AuthContext)?.user);
@@ -305,9 +361,11 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const body = (
     <article className={`worksheet-player ws-studio ws-doc-player ${inline ? 'is-inline' : ''} ${mark ? 'is-marked' : ''} ${flow ? 'ws-narrow' : ''}`} style={watermarkStyle(mark)} onCopy={onCopy}>
       {flowBar}
+      {flow ? null : examClock}
       <header><div><span className="eyebrow">{assignment.subject || 'Õppetöö'} · {assignment.level || doc.meta?.level || 'Tööleht'}</span><p>{assignment.topic || assignment.note || doc.meta?.canDo || 'Õpetaja määratud tööleht'}</p></div><div className="ws-player-tools"><AnswerFontMenu />{submitted ? <Badge tone="success">Esitatud</Badge> : readOnly ? <Badge tone="neutral">Ainult vaatamiseks</Badge> : <Badge tone="info">Täitmisel</Badge>}</div></header>
       {assignment.note ? <div className="worksheet-note"><strong>Õpetaja märkus</strong><p>{assignment.note}</p></div> : null}
-      {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget{mistakes?.points ? ` · ${mistakes.points.got}/${mistakes.points.max} punkti` : ''}</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
+      {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget{mistakes?.points ? ` · ${mistakes.points.got}/${mistakes.points.max} punkti` : ''}</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span>{part ? <PartPoints part={part} /> : null}</div></div> : null}
+      {timeUp && !submitted ? <div className="worksheet-readonly ws-exam-over" role="alert"><Clock3 size={19} /><p>Aeg on läbi. Vastused on lukus{saving ? ' ja esitatakse…' : '.'}</p></div> : null}
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {readOnly && !submitted ? <div className="worksheet-readonly"><Clock3 size={19} /><p>Õpilane ei ole seda töölehte veel esitanud.</p></div> : null}
       {stepped.hidden > 0 ? <div className="ws-live-wait" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
