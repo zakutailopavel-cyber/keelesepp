@@ -285,7 +285,7 @@ export const LESSONS = {
         'turist | turisti | [turistide]',
         'kirik | kirikut | [kirikute]',
         'inimene | inimest | [inimeste]',
-        'muuseum | muuseumi | [muuseumide]',
+        'muuseum | muuseumi | [muuseumide/muuseumite]',
         'tänav | tänavat | [tänavate]',
       ], 'g_omastav'),
       B.gaps('kt01_t_sights', 'Vaatamisväärsused (8 p).', 'Kirjuta sõna õiges vormis. Sõna ja küsimus on sulgudes.', [
