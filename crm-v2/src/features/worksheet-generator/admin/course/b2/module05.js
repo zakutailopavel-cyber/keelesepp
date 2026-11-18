@@ -335,7 +335,7 @@ export const LESSONS = withShapes({
         'Ma pakun, et arutame. | Ma [pakuksin], et arutame.',
         'Ma eelistan lühemaid päevi. | Ma [eelistaksin] lühemaid päevi.',
         'Kas me võime seda arutada? | Kas me [võiksime] seda arutada?',
-        'Kas see pole mõistlikum? | Kas see [poleks|ei oleks] mõistlikum?',
+        'Kas see pole mõistlikum? | Kas see [poleks/ei oleks] mõistlikum?',
         'Ma täpsustan enne koosolekut. | Ma [täpsustaksin] enne koosolekut.',
         'Me teeme tööd keskendunumalt. | Me [teeksime] tööd keskendunumalt.',
         'Ma olen kohe poolt. | Ma [oleksin] kohe poolt.',

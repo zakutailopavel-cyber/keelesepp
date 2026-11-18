@@ -387,7 +387,7 @@ export const LESSONS = withShapes({
       B.notice('048_d_notice', 'Märka: kaudne kõne.', ['**ütles / kirjutas / väitis, et** + tavaline lause: „Ma ei maga.” → Valdur **ütles, et** ta **ei maga**.', 'Isik muutub: „**Mu** arst ütles…” → Valdur ütles, et **tema** arst ütles…', '**küsis, kas** (jah / ei küsimus): „Kas saaksime rääkida?” → Jaan **küsis, kas** nad saaksid rääkida.', '**küsis, miks / millal / kes**: Valdur küsis, **miks** müra algab nii vara.', '**palus, et** + tingiv kõneviis: Valdur **palus, et** ühistu **teeks** reeglid. = Valdur **palus** ühistul reeglid **teha**. · **palus mitte** + da-tegevusnimi', '**Kaudne kõneviis -vat** (kõneleja ei vastuta sõnade tõesuse eest): Jaan **olevat** valmis midagi muutma. Valdur **ei olevat** maganud.', 'Vahendaja verbid: **väitis** (teine ei pruugi nõustuda) · **tunnistas** (oma viga) · **süüdistas** · **kaebas** · **lubas** · **ähvardas**'], 'full'),
       B.table('048_d_rule', 'Leia reegel: kuidas edasi anda?', 'Kirjuta puuduv osa kaudses kõnes. Vaata, mis muutub: isik, aeg või kõneviis.', 'Otsekõne, Kaudne kõne', [
         '„Ma ei maga juba kolm nädalat.” (Valdur) | Valdur ütles, et ta [ei maga] juba kolm nädalat.',
-        '„Mul on vaja korralikku und.” (Valdur) | Valdur ütles, et [tal|temal] on vaja korralikku und.',
+        '„Mul on vaja korralikku und.” (Valdur) | Valdur ütles, et [tal/temal] on vaja korralikku und.',
         '„Kas saaksime kõik koos rääkida?” (Jaan) | Jaan küsis, [kas] nad saaksid kõik koos rääkida.',
         '„Miks sa mu tervitusele ei vasta?” (Jaan) | Jaan küsis, [miks] Valdur tema tervitusele ei vasta.',
         '„Tehke majale vaikuse reeglid!” (Valdur) | Valdur palus, et ühistu [teeks] majale vaikuse reeglid.',
@@ -395,7 +395,7 @@ export const LESSONS = withShapes({
         '„Ma olen valmis midagi muutma.” (Jaan Kadri sõnul) | Jaan [olevat] valmis midagi muutma.',
         '„Ma pöördun linnavalitsusse.” (Valdur) | Valdur ähvardas, et ta [pöördub] linnavalitsusse.',
         '„Ma ei teadnud, et mikser kostab alla.” (Jaan) | Jaan tunnistas, et ta [ei teadnud], et mikser kostab alla.',
-        '„Ma helistan homme uuesti.” (eile, Eda) | Eda lubas, et ta helistab [täna|järgmisel päeval] uuesti.',
+        '„Ma helistan homme uuesti.” (eile, Eda) | Eda lubas, et ta helistab [täna/järgmisel päeval] uuesti.',
       ]),
       B.categorize('048_d_verbs', 'Mida verb näitab?', 'Mida vahendaja verbiga ütleb? Pane iga verb sobivasse rühma.', [
         ['Neutraalne', ['ütles', 'märkis', 'lisas', 'selgitas', 'vastas']],

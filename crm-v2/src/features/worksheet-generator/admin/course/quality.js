@@ -36,6 +36,11 @@ export const isDiagnostic = (doc) => Boolean(doc?.meta?.diagnostic);
 // a speaking lesson (meta.oral, suuline.js): the same scheme on five claims on purpose, one sheet of speaking tasks plus a
 // written homework. The lesson-shape rules do not apply either; the constructor's errors and the level norms still do.
 export const isOral = (doc) => Boolean(doc?.meta?.oral);
+// a theory sheet (meta.theory, b2/kaanded.js b1b2-k04 Avasta): an explanation the learner reads alone and comes back to —
+// a block per declension type (an example table with one row to fill), the rules, a summary table. It keeps the phase's
+// jobs, the constructor's errors, the level norms and the keys; it may have up to V3.theoryBlocks blocks, and its example
+// tables are reference, not drills: the lesson's drill balance and „a drill type once a lesson” count the other sheets.
+export const isTheory = (doc) => Boolean(doc?.meta?.theory);
 const lessonDiagnostic = (phases) => Object.values(phases || {}).some((doc) => isDiagnostic(doc) || isOral(doc));
 const overlap = (a, b) => { const A = typeSet(a); const Bs = typeSet(b); const inter = [...A].filter((t) => Bs.has(t)).length; return inter / Math.max(1, new Set([...A, ...Bs]).size); };
 
@@ -73,7 +78,8 @@ export function sheetProblems(doc) {
   const v3 = fullerTemplate(doc.meta) && !doc.meta?.assessment;
   const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId && !b.data?.review).length;
   // a sheet is a whole lesson (owner 2026-10-10: 60 min lesson, 40–55 min of work on the sheet)
-  if (v3 ? own < V3.blocks[0] || own > V3.blocks[1] : n < 6 || n > 18) out.push({ code: 'length', text: v3 ? `${own} plokki (v3: ${V3.blocks[0]}–${V3.blocks[1]})` : `${n} plokki (lubatud 6–18)` });
+  const maxOwn = isTheory(doc) ? V3.theoryBlocks : V3.blocks[1];
+  if (v3 ? own < V3.blocks[0] || own > maxOwn : n < 6 || n > 18) out.push({ code: 'length', text: v3 ? `${own} plokki (${isTheory(doc) ? 'teooria' : 'v3'}: ${V3.blocks[0]}–${maxOwn})` : `${n} plokki (lubatud 6–18)` });
   const minutes = sheetMinutes(doc);
   // an exam lesson's sheet is the exam part itself (Harno's written part takes 2–3 hours): no upper bound there
   const maxMinutes = doc.meta?.assessment ? Infinity : SHEET_MINUTES.max;
@@ -111,7 +117,7 @@ export function sheetProblems(doc) {
 // Lesson template v3 (§11): every phase has its fixed jobs — Avasta: a text to think about, the language noticed in it,
 // one full language task, a conversation; Harjuta: the exam's text tasks and a monologue; Kasuta: a situation with
 // arguments, a speech, a letter or an essay, a rubric.
-export const V3 = { blocks: [5, 9], types: 4, moduleTypes: 12, neighbour: 0.85, drillShare: 0.4, useShare: 0.25 };
+export const V3 = { blocks: [5, 9], theoryBlocks: 16, types: 4, moduleTypes: 12, neighbour: 0.85, drillShare: 0.4, useShare: 0.25 };
 const V3_EXAM_TEXT = ['insertion', 'listening', 'choice', 'manymatch', 'truefalse'];
 function fullerProblems(doc) {
   const out = [];
@@ -202,7 +208,7 @@ export function v4ModuleProblems(sheets) {
   if (!lessons.length) return out;
   const count = {};
   for (const [lessonId, phases] of lessons) {
-    const types = Object.values(phases).flatMap((d) => tasks(d).map((b) => b.type));
+    const types = Object.values(phases).filter((d) => !isTheory(d)).flatMap((d) => tasks(d).map((b) => b.type));
     types.forEach((t) => { count[t] = (count[t] || 0) + 1; });
     const twice = [...new Set(types.filter((t, i) => DRILLS.includes(t) && types.indexOf(t) !== i))];
     if (twice.length) out.push({ lessonId, phase: '*', code: 'v4-lesson-repeat', text: `sama harjutus tunni mitmes etapis (${twice.join(', ')})` });
@@ -290,7 +296,7 @@ const DRILL = [...FORM, ...SENTENCE, 'choice', 'match', 'manymatch', 'categorize
 export function balanceProblems(sheets) {
   const out = [];
   for (const [lessonId, phases] of Object.entries(sheets)) {
-    const docs = Object.values(phases);
+    const docs = Object.values(phases).filter((d) => !isTheory(d));
     if (docs.some((d) => d.meta?.assessment || isDiagnostic(d)) || !docs.some((d) => fullerTemplate(d.meta))) continue;
     const minutes = (pick) => docs.reduce((n, d) => n + (d.blocks || []).filter(pick).reduce((m, b) => m + blockMinutes(b, d.meta?.level, d.meta?.design, d.meta?.template), 0), 0);
     const all = minutes(() => true) || 1;

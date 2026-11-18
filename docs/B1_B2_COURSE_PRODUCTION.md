@@ -107,7 +107,7 @@ Leht avaldatakse ainult siis, kui:
 
 Kui õpetaja vajab ühe grammatikateema kohta lisa-kodutööd, mida kursuse tunnid vormiharjutusena ei paku, tuleb see
 eraldi failina `admin/course/<kursus>/<teema>.js`, `MODULE.supplement: true` (näidis: `b2/kaanded.js`, B2 „Käänete
-kordamine”, tunnid `b1b2-k01…k03`, ainult Harjuta). Lisaharjutus ei ole õpitee moodul:
+kordamine”, tunnid `b1b2-k01…k04`; k01–k03 ainult Harjuta, k04 Avasta-teooria + Harjuta). Lisaharjutus ei ole õpitee moodul:
 
 - lehed läbivad kõik lehe reeglid (v4, sügavus, tase, võtmed) ja moodul on `strictModules.json`-is;
 - mooduli eksamikatte (kuulamine, eksamipikkune tekst; `harnoProblems`, `v4ModuleProblems`) ja kursuse kordamise
@@ -119,6 +119,13 @@ kordamine”, tunnid `b1b2-k01…k03`, ainult Harjuta). Lisaharjutus ei ole õpi
   `shortSheet: true` (kõik etapid) või etappide loend (`['transfer']`) annab lehele `meta.shortSheet`. Sellisel lehel ei
   kehti terve tunni 40–55 min ega sügavuse minutinormid (`depth.js` thin / live-fast); punktide arv ülesandes, lause
   pikkus ja kõik teised reeglid kehtivad. Mõeldud hajutatud kordamiseks (sama teema mõne päeva tagant).
+- Teoorialeht (näidis: B2 `b2/kaanded.js` tund `b1b2-k04` „Käänded 4: tüüpsõnad”, owner 2026-11-18: „сначала теория,
+  потом практика”): tunni `theory: ['discover']` annab Avasta lehele `meta.theory` + `meta.shortSheet`. Õppija loeb lehte
+  üksi ja tuleb selle juurde tagasi: iga teema osa (näiteks iga muuttüüp) on oma plokk — näidistabel ühe täidetava reaga,
+  kuidas ära tunda ja tüüpiline lõks —, lõpus kokkuvõttetabel („spikker”) ja „Kontrolli end”. Lehel võib olla kuni
+  `V3.theoryBlocks` (16) plokki ja 40–55 min norm ei kehti; Avasta kohustused (Mäletad?, sisend, märkamine, vestlus),
+  konstruktori vead, taseme normid ja võtmed kehtivad. Teoorialehe näidistabelid ei ole tunni harjutused: tunni
+  harjutuste osakaal (`v3-drill`) ja „üks harjutustüüp tunnis” (`v4-lesson-repeat`) loevad ainult teisi lehti.
 - Diagnostiline kontroll (näidis: A2 `a2/kohakaanded.js`, tunnid `a2-k01` / `a2-k02`, „Kus? Kuhu? Kust? — kontroll A / B”):
   tunni `diagnostic: true` annab lehele `meta.diagnostic` + `meta.shortSheet`. Leht on mõõtmine, mitte tund: ainult
   suletud, automaatselt kontrollitavad ülesanded (rääkimine / kirjutamine → viga `diagnostic-open`); tunni kuju reeglid

@@ -165,6 +165,9 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(lesson.diagnostic ? { diagnostic: true, shortSheet: true } : {}),
       // a speaking lesson (`oral: true`, suuline.js): one sheet, five claims on the same scheme; quality.js skips the lesson-shape rules
       ...(lesson.oral ? { oral: true, shortSheet: true } : {}),
+      // a theory sheet (`theory: ['discover']`, b2/kaanded.js b1b2-k04): an explanation to read alone and come back to, a
+      // block per type and a summary table; quality.js allows it more blocks and no 40–55 min norm
+      ...(Array.isArray(lesson.theory) && lesson.theory.includes(phase) ? { theory: true, shortSheet: true } : {}),
       // a check lesson (Kontroll): its Kasuta sheet is the exam's writing and speaking part (gates.js / depth.js)
       ...(lesson.assessment ? { assessment: true } : {}),
       // design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7): the lesson's format; its presence switches on the v4 station rules

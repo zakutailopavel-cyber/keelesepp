@@ -1,3 +1,39 @@
+## 2026-11-18 · agent/b1b2-k04-tyypsonad — B2 „Käänete kordamine”: k04 „Käänded 4: tüüpsõnad (muuttüübid)”
+
+- Base: `origin/main` cd0e70a (#1264 merge), checked 2026-11-18. Draft PR „Käänded 4: tüüpsõnad (b1b2-k04)” (link in the
+  PR list). Content + a small gate rule (theory sheet). Not merged, not published, no deploy, no production writes.
+- Asked (owner 2026-11-18, for a B1 learner working through k01/k02): „тема грамматики, типовые склонения”; then
+  „theory first, then practice”. Question answered: how do I find the omastav and osastav, singular and plural, of a word
+  I see in its base form?
+- Built in `admin/course/b2/kaanded.js` lesson `b1b2-k04` (no storyline, neutral words), goals in `b2/lessonGoals.js`:
+  - Avasta = theory sheet (`theory: ['discover']`): Mäletad? (k01), reading „Kolm vormi on võti” (three base forms, pl
+    nom = gen + -d, pl gen / part from the sg partitive, muuttüüp / tüüpsõna, astmevaheldus; Russian terms), eight type
+    tables (maa, kana, kõne/auto, õpetaja, raamat, inimene/rahvus, tuba/pank, liige/uus: how to recognise, 3–5 examples
+    with sg nom/gen/part + pl gen/part, the trap, one row to fill), notice „Astmevaheldus” (tuba–toa, sõda–sõja,
+    pank–panga, kook–koogi, pood–poe), how to read Sõnaveeb's „Sõnavormid” table (checked on sonaveeb.ee 2026-11-18),
+    10 check questions, a talk, the „Spikker” summary table, Kontrolli end.
+  - Harjuta: rule notice, vocab (RU), sort 19 words by type, table of three base forms + pl nom (10 words with their
+    tüüpsõna), pl gen / part (10), cloze „Üürile anda kahetoaline korter” (10), formtext „Uus kodu, uus tänav” (10),
+    speaking about home and town, writing 8–10 sentences about her flat, things and town.
+  - Every scored item has its „why” (`EXPLAIN`, 18 tasks). Every form checked against EKI Sõnaveeb data (api.sonapi.ee
+    mirror of Sõnaveeb + Vabamorf); variants as in ÕS (maid ~ maasid, tube ~ tubasid …) are accepted.
+- Gate rule: `courseSheet.js` lesson flag `theory` → `meta.theory` + `shortSheet`; `quality.js` `isTheory`: up to
+  `V3.theoryBlocks` (16) blocks; its example tables are left out of `v3-drill` and `v4-lesson-repeat`
+  (`quality.test.js`; docs/B1_B2_COURSE_PRODUCTION.md §6 „Lisaharjutused”).
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator src/features/worksheet-studio` — see the PR
+  (177+ files passed, 0 failed); `npx eslint src/features/worksheet-generator/admin/course --quiet` clean; module
+  `b1b2-kaanded-01` moduleReport 0 problems; EstNLTK `tools/course-audit/language.py`: 31 unknown lower-case, all
+  intentional (suffixes -eid/-se/-ste, syllable splits ka-na, wrong forms as distractors or traps: kalat, liiged, naiset,
+  taskude; „sonaveeb”). Both sheets read in the sheet lab at 1280 and 375 px (fixed: Sõnaveeb steps as a full-width
+  notice, a clearer last summary row, a typo).
+- Fixed in the same PR (coordinator): a table splits cells on `|`, so alternatives written `[tube|tubasid]` broke the cell
+  (the learner saw „[tube” with no field). 44 rows in 11 files had it — b2/kaanded.js k01 (tuba, maja, pood; k02 / k03
+  tables were fine), a2 012 / 099, b2 023 / 029 / 048 / 061 / 063, c1 005 / 006 / 008 / 013 / 023 — now `[tube/tubasid]`.
+  New `admin/course/tableCells.test.js` fails when any course table cell has unbalanced brackets. Published copies of
+  these sheets keep the old cells until they are republished (owner's yes).
+- Next safe step: owner reviews the two k04 sheets (sheet lab `?set=course:b1b2-k04:discover` / `:practice`) and merges;
+  then, with the owner's yes, create `curriculumLessons/b1b2-k04` and publish its two sheets like k01–k03.
+
 ## 2026-11-18 · agent/direction-format-group — round 2: owner decisions applied (PR #1264)
 
 - Base: merged `origin/main` e9fad9f (#1262) into the branch, checked 2026-11-18. Draft PR #1264, not merged, not deployed.

@@ -46,6 +46,20 @@ describe('a diagnostic check (meta.diagnostic: closed scored tasks, parallel ver
   });
 });
 
+describe('a theory sheet (meta.theory: a block per type to read alone, b2/kaanded.js b1b2-k04)', () => {
+  const table = (id) => ({ id, type: 'table', data: { title: 'Tüüp.', instruction: 'Täida lüngad.', headers: 'Nimetav, Omastav', rows: 'maa | maa\ntee | [tee]' } });
+  const sheet = (theory) => ({ meta: { level: 'B1+', phase: 'discover', template: 'v4', design: 'v2', shortSheet: true, ...(theory ? { theory: true } : {}) }, blocks: Array.from({ length: 12 }, (_, i) => table(`t${i}`)) });
+  it('may hold more blocks than a lesson sheet, up to 16', () => {
+    expect(sheetProblems(sheet(true)).map((p) => p.code)).not.toContain('length');
+    expect(sheetProblems(sheet(false)).map((p) => p.code)).toContain('length');
+  });
+  it('its example tables are not the lesson’s drills', () => {
+    const practice = { meta: { level: 'B1+', phase: 'practice', template: 'v4', design: 'v2' }, blocks: [table('p')] };
+    expect(v4ModuleProblems({ k: { discover: sheet(true), practice } }).map((p) => p.code)).not.toContain('v4-lesson-repeat');
+    expect(v4ModuleProblems({ k: { discover: sheet(false), practice } }).map((p) => p.code)).toContain('v4-lesson-repeat');
+  });
+});
+
 describe('quality baseline', () => {
   it('locks only problems that are not known; a fixed problem is reported', () => {
     const known = { lessonId: 'x-1', phase: 'practice', code: 'norm', check: 'did-choice-length-c1', text: '' };
