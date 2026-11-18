@@ -1,6 +1,6 @@
 import { act, fireEvent, render } from '@testing-library/react';
 import Sheet, { SheetCard } from './Sheet.jsx';
-import { checkDocument } from './registry.js';
+import { BLOCKS, answerProgress, checkDocument } from './registry.js';
 import { keepsWithNext, onScreenContinuous } from './examMode.js';
 import { packPages } from './pageSplit.js';
 import { rubricShare } from './blocks/harno.jsx';
@@ -135,5 +135,15 @@ describe('exam rubric points are the teacher\'s', () => {
   it('staff click the points', () => {
     const { container } = sheet('staff');
     expect(container.querySelectorAll('.ws-page .ws-examrubric button.ws-pt')).toHaveLength(12);
+  });
+});
+
+describe('the learner\'s „n/N vastust” leaves out the teacher\'s rubric points', () => {
+  it('a writing task with an exam rubric is all answered once the text is written', () => {
+    const rb = { id: 'rb', type: 'examrubric', data: { title: 'Hindamine', scale: 'E9W', criteria: [{ name: 'Sisu', max: 5 }, { name: 'Keel', max: 5 }] } };
+    const w = { id: 'w', type: 'examwriting', data: { title: '1. ülesanne', situation: 'Kirjuta.' } };
+    const d = doc([w, rb]);
+    const keys = BLOCKS.examwriting.answerKeys(w.data);
+    expect(answerProgress(d, Object.fromEntries(keys.map((k) => [`w:${k}`, 'Tere, Kris! Käisin muuseumiööl.'])))).toEqual({ answered: keys.length, total: keys.length });
   });
 });

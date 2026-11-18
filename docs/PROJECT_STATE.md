@@ -17,6 +17,11 @@
   - `examrubric` points: staff only (`ctx.staff` from `transcripts.role`), learners see the criteria read-only on every
     sheet (the self-assessment blocks `rubric` / `selfcheck` stay clickable); the oral sheet `a2b1-ee1-s` is an exam
     sheet (`exam: 'E9'`), one continuous page;
+  - round 3 (CI after merging main): `examrubric` is `staffOnly` → its keys leave the learner's „n/N vastust”
+    (`registry.js answerProgress`; before, a sheet with a rubric could never reach N/N for the learner). Grading pin:
+    b1m03 a2b1-011…015/transfer hashes moved for `progress` only (marks, correct/total, pct unchanged; noted in
+    `gradingPin.golden.js`). `homework/studentWorksheetFlow.test.jsx`: the student sees the rubric read-only, the
+    teacher gives the points in her own player;
   - seen while reading: the pie's labels were cut / 6 px on a phone → shares big beside the slices, names + shares in
     the legend (phone only); the E9W / E9S rubric said „80 %” under a part header with 60 % → 60 % (`rubricShare`).
 - Files: `worksheet-studio/engine/{Sheet.jsx, examMode.js, examSheet.css, sheet.css, blocks/harno.jsx, blocks/chart.jsx,

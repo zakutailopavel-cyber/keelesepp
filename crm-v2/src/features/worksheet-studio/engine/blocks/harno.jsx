@@ -414,6 +414,8 @@ export const rubricShare = (scale) => (scale === 'E9W' || scale === 'E9S' ? E9_R
 export const rubricTotal = (criteria = []) => criteria.reduce((n, c) => n + (Number(c.max) || 0), 0);
 export const examrubric = {
   type: 'examrubric', label: 'Hindamisjuhend (eksami skaala)', group: 'Kõne ja kirjutamine', icon: 'ClipboardCheck', task: true, width: 'full', tone: 'white',
+  // its answers (the points) are the teacher's: not asked of the learner, not in her „n/N vastust” (registry answerProgress)
+  staffOnly: true,
   create: () => ({ title: 'Hindamine.', instruction: 'Märgi iga kriteeriumi punktid.', scale: 'W2', criteria: RUBRIC_SCALES.W2.criteria }),
   View: ({ data, ctx }) => {
     const criteria = data.criteria || [];
