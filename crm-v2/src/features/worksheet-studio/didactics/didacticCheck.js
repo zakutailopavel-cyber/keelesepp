@@ -272,7 +272,8 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
       { detail: `${closed} ülesannet ${tasks.length}-st on äratundmine (õige/vale, ühendamine, valik). Tasemel ${norm.label} peaks õpilane rohkem ise moodustama.`, severity: 'warning' });
     const productive = tasks.filter((b) => PHASE_TASKS.productive.includes(b.type));
     const advanced = ['A2+', 'B1-', 'B1', 'B1+', 'B2-', 'B2', 'C1'].includes(key) || phase === 'transfer';
-    if (phase === 'full' || phase === 'transfer') add('productive', 'Lehel on rääkimine või kirjutamine', productive.length > 0,
+    // a diagnostic check or mock test (meta.diagnostic, admin/course/quality.js) is closed and scored by the player on purpose
+    if ((phase === 'full' || phase === 'transfer') && !doc?.meta?.diagnostic) add('productive', 'Lehel on rääkimine või kirjutamine', productive.length > 0,
       { detail: 'lehel pole rääkimist ega kirjutamist — lisa „Räägi”, „Rollikaardid” või „Kirjuta”, et õpilane kasutaks keelt ise.', severity: advanced ? 'warning' : 'tip' });
     const firstProductive = tasks.findIndex((b) => PHASE_TASKS.productive.includes(b.type));
     // the v4 exit check closes the lesson after the product on purpose: it is not the controlled practice the order means

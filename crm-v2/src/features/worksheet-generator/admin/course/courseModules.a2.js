@@ -22,5 +22,6 @@ import * as a2m20 from './a2/module20.js';
 import * as a2lihtminevik from './a2/lihtminevik.js';
 import * as a2kohakaanded from './a2/kohakaanded.js';
 import * as a2suuline from './a2/suuline.js';
+import * as a2kontrolltoo from './a2/kontrolltoo.js';
 
-export const MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, a2lihtminevik, a2kohakaanded, a2suuline];
+export const MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, a2lihtminevik, a2kohakaanded, a2suuline, a2kontrolltoo];
