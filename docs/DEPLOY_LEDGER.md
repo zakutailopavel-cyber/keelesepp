@@ -25,7 +25,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 
 | Target | Live since | Commit | How verified |
 | --- | --- | --- | --- |
-| Firestore rules (`firestore.rules`) | 2026-11-11 15:32 | `8a9cb61` (= main 2026-11-11) | live ruleset compared with main `8a9cb61`: equal |
+| Firestore rules (`firestore.rules`) | 2026-11-18 08:13 | `cd0e70a` (#1264 Õppesuunad individuaalne / grupp: `groupPrices`) | live ruleset compared with main `cd0e70a`: equal |
 | Storage rules (`storage.rules`) | not recorded | — | run `deploy-status.mjs` and fill in |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
 | Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-15 11:59 release commit | `dbdf512` `[deploy] Release 2026-11-15 11:59 UTC` | release commit on main; Vercel status success |
@@ -36,6 +36,7 @@ Full deploy of all functions 2026-11-09 15:39 from main **(inferred)** `a80a749`
 
 | Function | Last deployed | Commit |
 | --- | --- | --- |
+| financeApi, invoiceApi, linkpayApi, manualInvoiceApi, sendInvoicePaymentReminders, syncLessonTokens, staffOperationsApi | 2026-11-18 13:2x | `cd0e70a` (#1264 Õppesuunad individuaalne / grupp — group price, group packages, card merge) |
 | financeApi | 2026-11-12 10:27 | `f372e75` (#1212 unmark package lesson, #1213 credited invoices) |
 | invoiceApi, linkpayApi, manualInvoiceApi, sendInvoicePaymentReminders | 2026-11-12 10:27 | `f372e75` (#1213 credited invoices don't block the month / take payments) |
 | syncLessonTokens | 2026-11-10 19:16 | `8a37c40` (#1202: cash-paid lesson takes no token) |
@@ -52,6 +53,11 @@ A function changed on main after its row above is **not live** — compare with
 ## Log
 
 Newest first. One line per deploy: date UTC · target(s) · commit · who · note.
+
+- 2026-11-18 13:31 · hosting (release.yml) · `9d7c925` · Claude (owner OK) · #1264 group / individual directions UI, #1265 k04 + table-cell fix, B1→B2 modules 3–4; after the rules + functions below; Vercel success
+- 2026-11-18 13:2x · functions financeApi, invoiceApi, linkpayApi, manualInvoiceApi, sendInvoicePaymentReminders, syncLessonTokens, staffOperationsApi · `cd0e70a` · Claude (owner OK, owner re-logged firebase) · #1264; „Deploy complete”. First attempt earlier the same day failed on expired CLI credentials (nothing deployed); release.yml was disabled meanwhile and re-enabled after
+- 2026-11-18 08:13 · Firestore rules · `cd0e70a` · Claude (owner OK) · #1264 `studentRevenuePlans.groupPrices`; two transient 409/503 errors before success; live = repo verified
+- 2026-11-18 07:59 · hosting (release.yml) · `b54b56b` · Claude (owner OK) · B1→B2 modules 3–4 audio; the earlier release commit `b0fda14` (2026-11-17 09:54) got no Vercel build — check Vercel deployments after every release
 
 - 2026-11-13 19:38 · hosting (release.yml) · `f412447` · Claude (owner OK) · Õpik free layer: lines and arrows (#1221); no rules / functions change; Vercel success
 - 2026-11-14 08:30 · hosting (release.yml) · `9b8eb19` · Claude (owner OK) · Õpik free layer: text box typed on the sheet (#1223); no rules / functions change; Vercel success
