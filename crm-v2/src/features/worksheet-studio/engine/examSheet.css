@@ -1,0 +1,187 @@
+/* ===== The e-exam's interactions (docs/E_EXAM_ENGINE.md): solved item 0, recordings heard a set number of times, speakers
+   ↔ statements, drag into a text and into a conversation, the letter with margin notes, the pie chart and the part's
+   clock. Page sizes in mm like sheet.css; the phone's column (`.ws-narrow`) in px at the end. Every rule is scoped to a
+   class that only the new options produce, so the sheets without them look as before. ===== */
+.ws-root {
+  --ws-chart-1: var(--ks-navy); --ws-chart-2: #e8892b; --ws-chart-3: #9aa7b4; --ws-chart-4: #f2c230;
+  --ws-chart-5: var(--ks-green); --ws-chart-6: #7a4fa0; --ws-chart-7: #c2412d; --ws-chart-8: #5fb3d6;
+  --ws-example: #eef1f4;
+}
+.ws-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---- solved example (item 0) ---- */
+.ws-root .is-example { opacity: .62; }
+.ws-root .is-example :is(select, button, input) { pointer-events: none; }
+.ws-cloze-gap.is-example b, .ws-formtext-gap.is-example .ws-formbox { background: var(--ws-example); border-radius: 1mm; padding: 0 1mm; }
+
+/* ---- a recording heard a set number of times ---- */
+.ws-audio.is-limited { flex-wrap: wrap; row-gap: 1mm; }
+.ws-plays-btn { display: inline-flex; align-items: center; gap: 1.2mm; flex: none; font: 800 11pt var(--font-body, sans-serif); color: #fff; background: var(--ks-navy-2); border: 0; border-radius: 99px; padding: 1.4mm 3.6mm; cursor: pointer; }
+.ws-plays-btn svg { width: 4mm; height: 4mm; }
+.ws-plays-btn:disabled { background: var(--ks-line); cursor: default; }
+.ws-plays-track { flex: 1 1 20mm; min-width: 12mm; height: 1.6mm; border-radius: 99px; background: rgba(23, 58, 99, .12); overflow: hidden; }
+.ws-plays-track i { display: block; height: 100%; background: var(--ks-green-2); }
+.ws-plays-time { flex: none; font: 700 9.5pt var(--font-body, sans-serif); font-variant-numeric: tabular-nums; color: var(--ks-muted); }
+.ws-plays-left { flex: none; font: 800 9.5pt var(--font-body, sans-serif); color: var(--ks-navy-2); }
+.ws-plays-left.is-none { color: var(--ks-muted); }
+.ws-audio.is-limited audio { display: none; }
+
+/* ---- 1.3: clips — number · situation (+ its recording) · question ---- */
+.ws-clips { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.6mm; }
+.ws-clip { display: grid; grid-template-columns: 13mm minmax(0, 1fr) minmax(0, 1.35fr); gap: 3mm; padding: 2mm 2.4mm; border-radius: 2mm; background: rgba(255, 255, 255, .72); break-inside: avoid; }
+.ws-clip-num { font: 800 11pt var(--font-head); color: var(--ks-navy); }
+.ws-clip.is-example .ws-clip-num { font-style: italic; }
+.ws-clip-sit p { margin: 0 0 1.2mm; font-weight: 700; }
+.ws-clip-q .ws-choice { list-style: none; padding: 0; margin: 0; }
+.ws-clip-q .ws-choice > li::marker { content: ''; }
+.ws-clip .ws-audio { margin: 0; }
+/* each clip's question is a list of its own: the sheet's „Näide” mark of a first item belongs to clip 0 only */
+.ws-card.has-example .ws-clips .ws-choice > li:first-child { opacity: 1; }
+.ws-card.has-example .ws-clips .ws-choice > li:first-child::before { content: none; display: none; }
+.ws-card.has-example .ws-clips .ws-clip.is-example .ws-q::before { content: 'Näide'; display: inline-block; margin: 0 1.5mm 0 0; font: 700 2.3mm/1 inherit; letter-spacing: .04em; text-transform: uppercase; color: #fff; background: #2f7d4c; border-radius: 1mm; padding: .6mm 1.2mm; }
+
+/* ---- 1.1: speakers ↔ statements A–I ---- */
+.ws-speakers-topic { margin: 0 0 2mm; }
+.ws-speakers-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.25fr); gap: 5mm; align-items: start; }
+.ws-speakers-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.4mm; }
+.ws-speaker { display: grid; grid-template-columns: minmax(0, 1fr) 12mm 17mm; align-items: center; gap: 2.4mm; padding: 1.2mm 2mm; border-radius: 2mm; background: rgba(255, 255, 255, .72); }
+.ws-speaker-label { display: grid; line-height: 1.2; }
+.ws-speaker-label small { color: var(--ks-muted); font-size: .85em; }
+.ws-speaker-face { width: 12mm; height: 12mm; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #dfe7ef; color: var(--ks-navy-2); font: 800 11pt var(--font-head); }
+.ws-speaker-face img { width: 100%; height: 100%; object-fit: cover; }
+.ws-speaker-face i { font-style: normal; }
+.ws-speaker .ws-letterbox { width: 12mm; }
+.ws-speaker-sel { width: 100%; padding: .8mm 1mm; }
+.ws-speakers-claims { width: 100%; border-collapse: collapse; background: #fff; font-size: .95em; }
+.ws-speakers-claims th, .ws-speakers-claims td { border: .3mm solid var(--ks-ink); padding: 1mm 2mm; }
+.ws-speakers-claims th { width: 7mm; text-align: center; font-weight: 800; }
+.ws-speakers-claims td { text-align: center; }
+.ws-speakers-claims tr.is-example td { font-style: italic; }
+
+/* ---- 2.1 / 2.2 / 2.4: drag from a bank ---- */
+.ws-drop-text p { line-height: 2.05; }
+.ws-dropgap { display: inline-flex; align-items: baseline; gap: 1mm; min-width: 22mm; min-height: 6.5mm; margin: 0 .6mm; padding: .2mm 1.6mm; vertical-align: baseline; font: inherit; color: var(--ks-navy); text-align: left; background: #fff; border: .35mm dashed var(--ks-line); border-radius: 1.2mm; }
+.ws-dropgap.is-wide { min-width: 48mm; }
+.ws-dropgap.is-filled { border-style: solid; border-color: var(--ks-navy-2); font-weight: 700; }
+button.ws-dropgap { cursor: pointer; }
+button.ws-dropgap.is-filled { cursor: grab; }
+.ws-dropgap.is-ready { border-color: var(--ks-green-2); background: #f2faf4; }
+.ws-dropgap.is-over { border-color: var(--ks-green-2); background: #dff2e5; box-shadow: 0 0 0 .6mm rgba(47, 125, 76, .25); }
+.ws-dropgap.is-ok { border-color: var(--ok); background: #ecfdf3; }
+.ws-dropgap.is-bad { border-color: var(--bad); background: #fef3f2; }
+.ws-dropgap.is-example { background: var(--ws-example); border-style: solid; }
+.ws-dropgap-n { flex: none; font-size: .78em; font-weight: 800; color: var(--ks-muted); }
+.ws-dropgap-dots { color: var(--ks-line); }
+.ws-dropbank { margin-top: 3mm; padding: 2mm 2.4mm; border: .3mm solid rgba(23, 58, 99, .2); border-radius: 2mm; background: rgba(255, 255, 255, .85); }
+.ws-dropbank.is-over { border-color: var(--ks-green-2); background: #f2faf4; }
+.ws-dropbank-title { display: block; margin-bottom: 1.4mm; font: 800 10pt var(--font-head); color: var(--ks-navy); }
+.ws-dropbank-chips { display: flex; flex-wrap: wrap; gap: 1.6mm; }
+.ws-dropchip { display: inline-block; max-width: 100%; padding: .9mm 2.2mm; font: 700 11pt var(--font-body, sans-serif); text-align: left; color: var(--ks-navy); background: #fff; border: .35mm solid var(--ks-ink); border-radius: 1mm; }
+button.ws-dropchip { cursor: grab; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.ws-dropchip.is-picked { background: var(--ks-navy-2); color: #fff; border-color: var(--ks-navy-2); }
+.ws-dropchip.is-dragging { opacity: .4; }
+.mode-interactive .ws-dropchip.is-used { display: none; }
+.ws-dropchip.is-used { opacity: .45; text-decoration: line-through; }
+.ws-drop.is-dragging, .ws-drop.is-dragging * { cursor: grabbing; }
+.ws-dropghost { position: fixed; z-index: 10000; pointer-events: none; transform: translate(-50%, -125%); padding: 6px 12px; border-radius: 6px; background: #173a63; color: #fff; font: 700 15px/1.25 'DM Sans', system-ui, sans-serif; box-shadow: 0 6px 18px rgba(16, 35, 57, .3); max-width: 70vw; }
+
+/* the conversation: the first speaker left, the replies (slots) right, the bank beside */
+.ws-chat-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 4mm; align-items: start; }
+.ws-chat-grid .ws-dropbank { margin-top: 0; position: sticky; top: 2mm; }
+.ws-chat { display: grid; gap: 1.6mm; }
+.ws-chat h4 { margin: 0 0 1mm; }
+.ws-chat-turn { max-width: 88%; padding: 1.6mm 2.4mm; border-radius: 2.4mm; }
+.ws-chat-turn.is-a { justify-self: start; background: #cfe3f6; border-bottom-left-radius: .6mm; }
+.ws-chat-turn.is-b { justify-self: end; background: #fff; border: .3mm solid rgba(23, 58, 99, .2); border-bottom-right-radius: .6mm; }
+.ws-chat-turn.is-slot { width: 88%; }
+.ws-chat-who { display: block; font-size: .85em; color: var(--ks-navy-2); }
+.ws-chat-turn .ws-dropgap { display: flex; width: 100%; min-height: 9mm; margin: .6mm 0 0; }
+
+/* ---- 2.7: the base form greyed inside the box ---- */
+.ws-formtext.is-hint-inside .ws-gapline::placeholder { color: var(--ks-line); font-style: italic; opacity: 1; }
+.ws-formbox { display: inline-block; min-width: 24mm; padding: 0 1.4mm; border: .3mm solid var(--ks-line); border-radius: 1mm; background: #fff; vertical-align: baseline; }
+.ws-formbox i { color: var(--ks-line); }
+.ws-formbox.is-ok { border-color: var(--ok); } .ws-formbox.is-bad { border-color: var(--bad); }
+
+/* ---- W1: the friend's e-mail with notes in the margin ---- */
+.ws-letter { margin: 2mm 0; display: grid; gap: 0; }
+.ws-letter-mail { border: .35mm solid var(--ks-navy-2); border-bottom: 0; border-radius: 1.6mm 1.6mm 0 0; overflow: hidden; margin: 0 34mm; }
+.ws-letter-bar { padding: .8mm 2.4mm; background: #4aa8e0; color: #fff; font: 800 10pt var(--font-head); }
+.ws-letter-subject { padding: 1mm 2.4mm; background: #f3f6f9; font-size: .92em; }
+.ws-letter-body { display: grid; }
+.ws-letter-row { display: grid; grid-template-columns: 34mm minmax(0, 1fr) 34mm; align-items: center; }
+.ws-letter-text { grid-column: 2; margin: 0; padding: .6mm 2.4mm; border-left: .35mm solid var(--ks-navy-2); border-right: .35mm solid var(--ks-navy-2); background: #fff; }
+.ws-letter-row:last-child .ws-letter-text { border-bottom: .35mm solid var(--ks-navy-2); border-radius: 0 0 1.6mm 1.6mm; }
+.ws-letter-note { grid-row: 1; display: flex; align-items: center; font-size: .9em; line-height: 1.2; }
+.ws-letter-row.is-right .ws-letter-note { grid-column: 3; flex-direction: row; padding-left: 0; }
+.ws-letter-row.is-left .ws-letter-note { grid-column: 1; flex-direction: row-reverse; text-align: right; }
+.ws-letter-note b { padding: 1mm 1.6mm; border: .3mm solid var(--ks-line); background: #fff; border-radius: 1mm; }
+.ws-letter-arrow { position: relative; flex: none; width: 7mm; height: 0; border-top: .35mm solid var(--ks-ink); }
+.ws-letter-row.is-right .ws-letter-arrow::before { content: ''; position: absolute; left: -.4mm; top: -1.25mm; border: 1.1mm solid transparent; border-right: 1.6mm solid var(--ks-ink); border-left: 0; }
+.ws-letter-row.is-left .ws-letter-arrow::before { content: ''; position: absolute; right: -.4mm; top: -1.25mm; border: 1.1mm solid transparent; border-left: 1.6mm solid var(--ks-ink); border-right: 0; }
+
+/* ---- pie chart (chart kind 'pie') ---- */
+.ws-pie-slice :is(path, circle) { stroke: #fff; stroke-width: 2; }
+.ws-pie-lead { fill: none; stroke: var(--ks-muted); stroke-width: 1; }
+.ws-pie-slice.is-s0 :is(path, circle), .ws-pie-key.is-s0 { fill: var(--ws-chart-1); background: var(--ws-chart-1); }
+.ws-pie-slice.is-s1 :is(path, circle), .ws-pie-key.is-s1 { fill: var(--ws-chart-2); background: var(--ws-chart-2); }
+.ws-pie-slice.is-s2 :is(path, circle), .ws-pie-key.is-s2 { fill: var(--ws-chart-3); background: var(--ws-chart-3); }
+.ws-pie-slice.is-s3 :is(path, circle), .ws-pie-key.is-s3 { fill: var(--ws-chart-4); background: var(--ws-chart-4); }
+.ws-pie-slice.is-s4 :is(path, circle), .ws-pie-key.is-s4 { fill: var(--ws-chart-5); background: var(--ws-chart-5); }
+.ws-pie-slice.is-s5 :is(path, circle), .ws-pie-key.is-s5 { fill: var(--ws-chart-6); background: var(--ws-chart-6); }
+.ws-pie-slice.is-s6 :is(path, circle), .ws-pie-key.is-s6 { fill: var(--ws-chart-7); background: var(--ws-chart-7); }
+.ws-pie-slice.is-s7 :is(path, circle), .ws-pie-key.is-s7 { fill: var(--ws-chart-8); background: var(--ws-chart-8); }
+.ws-chart.is-pie .ws-chart-legend { justify-content: center; }
+@media print {
+  .ws-pie, .ws-pie-key, .ws-speaker-face, .ws-chat-turn, .ws-letter-bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ws-plays-btn, .ws-plays-track, .ws-plays-time { display: none; }
+}
+
+/* ---- the exam part's clock (player) ---- */
+.ws-exam-start { margin-top: 1mm; }
+.ws-exam-clock { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 8px; width: max-content; max-width: 100%; margin: 0 auto 8px; padding: 6px 14px; border-radius: 99px; background: #fff; border: 1px solid #c9d6e3; color: #173a63; font: 700 15px/1.2 'DM Sans', system-ui, sans-serif; box-shadow: 0 2px 8px rgba(16, 35, 57, .12); }
+.ws-exam-clock b { font-variant-numeric: tabular-nums; font-size: 17px; }
+.ws-exam-clock small { font-weight: 600; color: #52606d; }
+.ws-exam-clock.is-low { border-color: #c2412d; color: #c2412d; }
+.ws-exam-clock.is-over { background: #fef3f2; border-color: #c2412d; color: #c2412d; }
+.ws-flow-bar .ws-exam-clock { position: static; margin: 0; padding: 2px 10px; box-shadow: none; font-size: 14px; }
+.ws-flow-bar .ws-exam-clock small { display: none; }
+.ws-part-points { display: block; margin-top: 4px; font-size: 14px; }
+
+/* ---- the phone's column ---- */
+@media screen {
+  .ws-narrow .ws-root :is(.ws-dropchip, .ws-dropgap, .ws-plays-btn, .ws-plays-left, .ws-plays-time, .ws-chat-who, .ws-letter-note, .ws-speaker-label, .ws-clip-num, .ws-dropbank-title) { font-size: 16px; line-height: 1.35; }
+  .ws-narrow .ws-root :is(.ws-letter-bar, .ws-letter-subject, .ws-letter-text) { font-size: 16px; line-height: 1.4; }
+  .ws-narrow .ws-root .ws-dropgap-n { font-size: 14px; }
+  .ws-narrow .ws-root .ws-dropchip { min-height: 44px; padding: 8px 12px; border-width: 1px; border-radius: 6px; }
+  .ws-narrow .ws-root .ws-dropgap { min-height: 44px; min-width: 88px; padding: 6px 8px; border-width: 1.5px; border-radius: 6px; vertical-align: middle; }
+  .ws-narrow .ws-root .ws-dropgap.is-wide { min-width: 0; display: flex; width: 100%; margin: 4px 0; }
+  .ws-narrow .ws-root .ws-drop-text p { line-height: 2.4; }
+  /* the bank stays in sight at the bottom while the text scrolls; a turn or gap brought into view (keyboard focus,
+     scrollIntoView) stops above it, not under it */
+  .ws-narrow .ws-root .ws-drop :is(.ws-chat-turn, .ws-dropgap, .ws-drop-text p) { scroll-margin-bottom: calc(36vh + 16px); }
+  /* …and never under the thin top bar (progress, clock) */
+  .ws-narrow .ws-root :is(.ws-speaker, .ws-speakers-claims tr, .ws-clip, .ws-chat-turn, .ws-dropgap, .ws-dropchip, .ws-letter-row) { scroll-margin-top: 64px; }
+  .ws-narrow .ws-root .ws-dropbank { position: sticky; bottom: 0; z-index: 5; max-height: 36vh; overflow-y: auto; padding: 8px; border-radius: 8px; box-shadow: 0 -4px 12px rgba(16, 35, 57, .1); }
+  .ws-narrow .ws-root .ws-dropbank-chips { gap: 6px; }
+  .ws-narrow .ws-root .ws-chat-grid, .ws-narrow .ws-root .ws-speakers-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .ws-narrow .ws-root .ws-chat-grid .ws-dropbank { top: auto; }
+  .ws-narrow .ws-root .ws-chat-turn { max-width: 94%; padding: 8px 10px; border-radius: 10px; }
+  .ws-narrow .ws-root .ws-chat-turn.is-slot { width: 94%; }
+  .ws-narrow .ws-root .ws-speakers-claims { order: -1; }
+  .ws-narrow .ws-root .ws-speakers-claims :is(th, td) { padding: 6px 8px; font-size: 16px; border-width: 1px; }
+  .ws-narrow .ws-root .ws-speaker { grid-template-columns: minmax(0, 1fr) 44px 84px; gap: 10px; padding: 6px 8px; }
+  .ws-narrow .ws-root .ws-speaker-face { width: 44px; height: 44px; font-size: 16px; }
+  .ws-narrow .ws-root .ws-speaker-sel { min-height: 44px; font-size: 16px; }
+  .ws-narrow .ws-root .ws-clip { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 8px 10px; }
+  .ws-narrow .ws-root .ws-plays-btn { min-height: 44px; padding: 8px 16px; }
+  .ws-narrow .ws-root .ws-plays-btn svg { width: 18px; height: 18px; }
+  .ws-narrow .ws-root .ws-letter-mail { margin: 0; }
+  .ws-narrow .ws-root .ws-letter-row { grid-template-columns: minmax(0, 1fr); }
+  .ws-narrow .ws-root .ws-letter-text { grid-column: 1; padding: 4px 10px; border-width: 1px; }
+  .ws-narrow .ws-root .ws-letter-note { grid-column: 1 !important; grid-row: 2; flex-direction: row !important; justify-content: flex-end; text-align: left !important; margin: 2px 0 6px; }
+  .ws-narrow .ws-root .ws-letter-arrow { width: 0; border-top: 0; }
+  .ws-narrow .ws-root .ws-letter-arrow::before { display: none; }
+  .ws-narrow .ws-root .ws-letter-note b::before { content: '↑ '; }
+  .ws-narrow .ws-root .ws-formbox { min-width: 88px; }
+}

@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { B, tag, teach } from './blocks.js';
 import { exitCheck, homeTask, purpose, station } from './stationBlocks.js';
-import { ST, lessonStationProblems, stationProblems, teacherPage } from './stations.js';
+import { ST, lessonStationProblems, stationProblems, teacherPage, v4TopicProblems } from './stations.js';
 import { harnoTimedMinutes, isHarnoTimedSheet, sheetMinutes } from '../../../worksheet-studio/didactics/timeEstimate.js';
 import { depthProblems } from '../../../worksheet-studio/didactics/depth.js';
 import { lessonAcademicProblems, lessonRound2Problems } from './academicValue.js';
@@ -146,5 +146,28 @@ describe('design v4 gate adjustments (v3 / v2 unchanged)', () => {
     expect(isListeningRow(rows)).toBe(true);
     expect(avg('quest')).toEqual([]);
     expect(avg('').length).toBe(1);
+  });
+});
+
+// owner 2026-11-18 (module 6 „Tööelu”): a module with a declared theme may be about that theme in every lesson, but each
+// lesson names its own sub-topic; a module without a theme keeps „every topic once, work at most once”
+describe('design v4 topics: a themed module (MODULE.theme)', () => {
+  const L = (topic, subtopic) => ({ topic, ...(subtopic ? { subtopic } : {}) });
+  const exam = { 'x-005': { topic: '', assessment: true } };
+  it('keeps the old rule without a theme: two work lessons fail, four different topics pass', () => {
+    expect(v4TopicProblems({}, { a: L('work'), b: L('home'), c: L('work'), d: L('health'), ...exam })).toEqual(['sama teema mitmes tunnis: work']);
+    expect(v4TopicProblems({}, { a: L('work'), b: L('home'), c: L('money'), d: L('health'), ...exam })).toEqual([]);
+  });
+  it('allows the theme in every lesson when each has its own sub-topic', () => {
+    const lessons = { a: L('work', 'job-search'), b: L('work', 'rights'), c: L('work', 'colleagues'), d: L('work', 'own-business'), ...exam };
+    expect(v4TopicProblems({ theme: 'work' }, lessons)).toEqual([]);
+    // the same lessons without the theme: work four times
+    expect(v4TopicProblems({}, lessons)).toEqual(['sama teema mitmes tunnis: work']);
+  });
+  it('wants a sub-topic on every themed lesson, all different; other topics still once', () => {
+    expect(v4TopicProblems({ theme: 'work' }, { a: L('work', 'rights'), b: L('work'), c: L('home'), d: L('home') }))
+      .toEqual(['sama teema mitmes tunnis: home', 'b: mooduli teema tunnil puudub alateema (subtopic)']);
+    expect(v4TopicProblems({ theme: 'work' }, { a: L('work', 'rights'), b: L('work', 'rights') })).toEqual(['sama alateema mitmes tunnis: rights']);
+    expect(v4TopicProblems({ theme: 'space' }, { a: L('work', 'x') })).toEqual(['mooduli teema space ei ole loendis']);
   });
 });

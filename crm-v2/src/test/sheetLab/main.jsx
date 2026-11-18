@@ -10,6 +10,7 @@ import { convertLegacyWorksheet } from '../../features/worksheet-studio/engine/l
 import { catalogueBlocks } from './catalogue.js';
 import { mathBlocks } from './mathSample.js';
 import { overlayFiles, legacyWorksheetData, personalDoc } from './samples.js';
+import { examSheets } from './examSample.js';
 import '../../styles/index.css';
 
 // A page outside the app (vite dev only, not in the production build) that opens the real student player with a real or
@@ -23,6 +24,8 @@ async function loadDoc(set) {
   if (set === 'sample') return sampleDocument();
   if (set === 'math') return { ...sampleDocument(), id: 'lab-math', meta: { ...sampleDocument().meta, title: 'Matemaatika: ruutfunktsioon' }, blocks: mathBlocks() };
   if (set === 'personal') return personalDoc();
+  // the e-exam's interactions (docs/E_EXAM_ENGINE.md): eexam-w | eexam-l | eexam-r
+  if (examSheets[set]) return examSheets[set]();
   if (set === 'legacy-converted') return convertLegacyWorksheet(legacyWorksheetData(), { title: 'Vana tööleht', level: 'A2' });
   // course:<lessonId>:<phase>[:v3]: a real course sheet; v3: the archived template v3 file, the copy old assignments hold
   const [, lessonId, phase, old] = set.split(':');

@@ -1,74 +1,84 @@
 // Visual briefs of b1b2 module 07; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// Learner-facing text (alt, caption, prompts) without the course cast since 2026-11-18 (task-based module 7,
+// docs/COURSE_CAST.md); the `cast` field still records who the generated picture shows. Briefs and pictures made by Codex
+// (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
 export default [
   {
     id: "b1b2-031-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Anna", "Sofia"],
-    scene: "Täiskasvanute eesti keele kursuse õpinurgas liiguvad Anna ja Sofia mööda väikestest astmetest koosnevat õpiteed. Anna märgib esimese tehtud sammu harjumuskaardil, Sofia asetab järgmise väikese sõnakaardi rajale. Tee viib nähtava eesmärgi poole ning rõhutab regulaarseid väikseid samme, mitte üht suurt hüpet.",
-    accent: "the small-step learning path",
+    // 2026-11-18 (v4): the same picture, retargeted from „motivation in small steps” to the school path after grade 9:
+    // a teenager with a backpack and an adult lay out the steps to a goal flag
+    scene: "Teismeline seljakotiga ja täiskasvanu panevad laual kaartidest raja kokku: esimene samm on märgitud linnukesega, rada viib lipuga eesmärgini.",
+    accent: "the small-step path towards the goal flag",
     text: [],
-    learningJob: "seostada selge eesmärk, regulaarne harjumus ja tagasiside püsiva motivatsiooniga",
-    alt: "Anna ja Sofia ehitavad väikestest regulaarsetest sammudest õpiteed.",
-    caption: "Pilt 1. Motivatsioon kasvab väikeste sammudega.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida Anna ja Sofia õpiteel teevad?", "Miks koosneb tee väikestest astmetest, mitte ühest suurest hüppest?", "Milline väike samm aitab sind keele õppimisel iga päev?"],
+    place: "031_d_read",
+    learningJob: "rääkida noore koolitee sammudest pärast põhikooli ja sellest, kes aitab otsustada",
+    alt: "Teismeline ja täiskasvanu panevad laual kokku sammudest raja, mis viib lipuga eesmärgini.",
+    caption: "Pilt 1. Samm-sammult: mis saab pärast 9. klassi?",
+    prompts: ["Mida need kaks inimest laual teevad ja mis on raja lõpus?", "Milline võiks olla noore esimene samm pärast põhikooli: avatud uste päev, nõustaja või midagi muud?", "Kes aitas sinul 15-aastaselt otsustada ja kes aitab sinu peres praegu?"],
   },
   {
     id: "b1b2-032-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Sofia", "Liis"],
-    scene: "Raamatukogu õppelaual võrdlevad Sofia ja Liis kahte õppimisviisi. Vasakul on mitu korda avatud ja alla joonitud raamat, paremal suletud raamat ning küsimuskaartide komplekt, mille abil Sofia meenutab õpitut ilma vihjeta. Liis osutab küsimuskaartidelt edasi selgele tulemuse märgile.",
+    scene: "Raamatukogu õppelaual on vasakul mitu korda avatud ja alla joonitud raamat, paremal suletud raamat ning küsimuskaartide komplekt, mille abil noor naine meenutab õpitut ilma vihjeta. Teine naine osutab küsimuskaartidelt edasi selgele tulemuse märgile.",
     accent: "the self-testing question-card set",
     text: [],
-    learningJob: "võrrelda ülelugemist ja enesekontrolli ning selgitada, miks aktiivne meenutamine on tõhusam",
-    alt: "Sofia ja Liis võrdlevad raamatukogus ülelugemist ning enesekontrolli.",
-    caption: "Pilt 1. Milline õppimisviis annab parema tulemuse?",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliseid kahte õppimisviisi Sofia ja Liis võrdlevad?", "Miks viivad küsimuskaardid parema tulemuseni kui raamatu ülelugemine?", "Kuidas sina eksamiks õpid ja kas see töötab?"],
+    place: "032_d_radio",
+    learningJob: "võrrelda ülelugemist ja enda kontrollimist ning öelda, kumb jätab rohkem meelde",
+    alt: "Laual on alla joonitud raamat ja küsimuskaardid; üks inimene kontrollib end kaartidega.",
+    caption: "Pilt 1. Raamat lahti või raamat kinni?",
+    prompts: ["Mida teeb noor naine küsimuskaartidega ja miks on raamat kinni?", "Kumb aitab sinu arvates rohkem: üle lugeda või end kaartidega kontrollida? Kontrolli raadiost.", "Kuidas sina õpid sõnu: raamat lahti või kinni?"],
   },
   {
     id: "b1b2-033-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Anna", "Liis"],
-    scene: "Kooli nõupidamisruumis analüüsivad Anna ja Liis arvamuslugu numbriliste hinnete ning sõnalise tagasiside kohta. Kesksel dokumenditahvlil on kolm eristatavat, kuid ilma tekstita kihti: ülemine põhimõtte sümbol, keskmised argumendikaardid ja alumine tasakaalustatud seisukoha kaal. Anna leiab kihid, Liis kontrollib seoseid.",
-    accent: "the three-layer analysis board",
+    // 2026-11-18 (v4): the old picture (an opinion piece on grades) did not serve a lesson on a new profession; the image
+    // is reused from est-c1-041-kasuta-1 (career counselling: the bridge of transferable skills between two professions),
+    // copied to this lesson's folder
+    scene: "Karjäärinõustamisel paigutab naine oma senised oskused uue ameti kaardile. Laual on kaks kõrvutist oskuste rada ning nende vahel ülekantavate oskuste sild.",
+    accent: "the bridge of transferable skills between the two career paths",
     text: [],
-    learningJob: "eristada haridustekstis põhimõtet, argumente ja autori seisukohta ning teha kokkuvõte",
-    alt: "Anna ja Liis leiavad haridustekstist põhimõtte, argumendid ja autori seisukoha.",
-    caption: "Pilt 1. Arvamusloo kolm analüüsikihti.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Millest räägib arvamuslugu, mida Anna ja Liis analüüsivad?", "Mida tähendavad tahvli kolm kihti?", "Kas sina eelistad numbrilist hinnet või sõnalist tagasisidet? Miks?"],
+    place: "033_d_podcast",
+    learningJob: "rääkida, milliseid oskusi saab vanast ametist uude kaasa võtta ja kes aitab ametit vahetada",
+    alt: "Karjäärinõustaja ja klient ühendavad laual kahe ameti oskuste rajad sillaga.",
+    caption: "Pilt 1. Mida saab vanast ametist uude kaasa võtta?",
+    prompts: ["Mida need kaks inimest laual teevad ja mis on nende vahel olev sild?", "Millise oskuse saaks kassapidaja raamatupidaja töösse kaasa võtta?", "Millise oma oskuse võtaksid sina uude ametisse kaasa?"],
   },
   {
     id: "b1b2-034-avasta-1",
     phase: "discover",
     format: "scene",
-    cast: ["Anna", "Liis"],
-    scene: "Kooli raamatukogu õpinurgas esitavad Anna ja Liis ettepanekut ruumi parandamiseks. Kesksel ettepanekutahvlil on ilma tekstita neli seotud osa: probleemina täis töökohad, põhjustena müra ja suletud uks, lahendusena avaram õpiruum ning mõjuna rahulikult õppivad inimesed. Anna kirjeldab probleemi, Liis näitab lahendusest mõjuni viivat seost.",
-    accent: "the four-part proposal board",
+    cast: ["Anna", "Markus"],
+    // 2026-11-18 (v4): the old picture (a library study corner proposal) did not serve a lesson on who pays for learning;
+    // the image is reused from est-c1-031-kasuta-1 (time and money lead to training, then a schedule, a certificate and
+    // results), copied to this lesson's folder
+    scene: "Kaks töökaaslast vaatavad tahvlit: liivakell ja mündid viivad koolituseni ning sealt kalendri, tunnistuse ja tulemuseni. Mees märgib kalendrisse õppimise nädala.",
+    accent: "the path from time and money to training and results",
     text: [],
-    learningJob: "järjestada ettepaneku probleem, põhjused, lahendused ja oodatav mõju",
-    alt: "Anna ja Liis esitavad raamatukogu õpiruumi parandamiseks neljaosalise ettepaneku.",
-    caption: "Pilt 1. Probleemist põhjendatud ettepanekuni.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milline probleem on raamatukogu õpinurgas?", "Kuidas viib Liisa näidatud seos lahenduselt mõjuni?", "Mida muudaksid sina oma kooli või töökoha õpiruumis?"],
+    place: "034_d_route",
+    learningJob: "rääkida, kust tulevad õppimiseks aeg ja raha ning mida koolitus annab",
+    alt: "Kaks inimest vaatavad tahvlit, kus aeg ja raha viivad koolituse, kalendri, tunnistuse ja tulemuseni.",
+    caption: "Pilt 1. Aeg + raha = õppimine?",
+    prompts: ["Mida tähendavad tahvlil liivakell ja mündid?", "Mida märgib mees kalendrisse ja kellega ta peab enne rääkima?", "Kust tuleksid sinu järgmise kursuse jaoks aeg ja raha?"],
   },
   {
     id: "b1b2-035-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Liis", "Markus"],
-    scene: "Ettevõtte juhtkonna koosolekul esitavad Liis ja Markus järgmise aasta koolitusplaani. Nende vahel oleval tegevustahvlil seostuvad töötajate tegeliku vajaduse, sobiva tööaja, praktilise koolituse ja hilisema rakendamise sümbolid üheks selgeks rajaks. Liis osutab vajadustele, Markus näitab oodatavat tulemust.",
-    accent: "the connected workplace training plan",
+    scene: "Koosolekul esitavad kaks inimest õppimise plaani. Tahvlil seostuvad vajaduse, sobiva aja, koolituse ja hilisema kasutamise sümbolid üheks rajaks; kuulajad istuvad laua taga.",
+    accent: "the connected learning plan",
     text: [],
-    learningJob: "koostada töötajate vajadustest lähtuv põhjendatud koolitusettepanek ja selgitada selle mõju",
-    alt: "Liis ja Markus esitavad juhtkonnale praktilise koolitusplaani.",
-    caption: "Pilt 1. Vajadusest toimiva koolitusplaanini.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida Liis ja Markus juhtkonnale esitavad?", "Millised sammud on tegevustahvlil ja miks just selles järjekorras?", "Millist koolitust vajaksid sina oma töös kõige rohkem?"],
+    place: "035_t_present",
+    learningJob: "esitleda oma õpitee järgmist sammu: vajadus, aeg, õppimine ja kasu",
+    alt: "Kaks inimest esitlevad koosolekul nelja sammuga õppimise plaani.",
+    caption: "Pilt 1. Minu õpitee järgmine samm koosolekul.",
+    prompts: ["Mis neli sammu on tahvlil ja miks just selles järjekorras?", "Mida võiks kuulaja esinejalt küsida?", "Mis on sinu plaanis esimene samm?"],
   },
 ];

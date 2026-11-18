@@ -27,6 +27,108 @@
   sheets were not opened in the sheet lab in this session.
 - Next safe step: owner reviews the four mock sheets and the three practice sheets in „Kursuse tootmine” and merges;
   then the UI PR builds §4 of `EXAM_9KL_E_EKSAM.md` and the waiting block ids move to the new interactions.
+## 2026-11-18 · agent/e-exam-engine — worksheet engine for the 9th-grade e-exam format (UI + engine)
+
+- Base: `origin/main` a5f152f (#1266), checked 2026-11-18. Draft PR „E-eksami vorm: taimer, kaks kuulamist, lohistamine
+  tekstis, näidis 0, sektordiagramm”. Not merged, no deploy, no production writes, no firestore.rules / functions change
+  (the clock start and the play counts are plain keys in `assignment.answers`).
+- Goal: the engine gaps of `docs/EXAM_9KL_E_EKSAM.md` §4 (content PR #1267), so mock 1 can follow the real format.
+- Built (every option off by default; API and gap status in the new `docs/E_EXAM_ENGINE.md`): exam sheet flag
+  `meta.exam = 'E9'` (item 0 numbered 0, lesson norms exempt: `didacticCheck.js EXAM_EXEMPT`, `quality.js` skips the
+  lesson shape); E9 exam key in `harnoScales.js` (+ genres kokkuvõte / arutlus, rubric scales E9W / E9S); `exampart.lock`
+  exam clock (start kept as `<id>:$startedAt`, sticky clock, lock + auto hand-in at 0, staff not locked) in
+  `DocWorksheetPlayer.jsx`; part points 35 → 20 / 65 → 40 in the result; `lockPlays` limited player (`LimitedAudio`,
+  `$plays`); examlisten clip table (`questions[i].situation/audio`) and mode `speakers` (`blocks/speakers.jsx`);
+  insertion layouts `chips` and `chat` (drag / tap / keyboard, `blocks/bankDrop.jsx`); `opts.example` for cloze,
+  formtext, insertion; formtext `hint: 'inside'`; examwriting `letter` card with margin notes and `about` counter; chart
+  kind `pie`. Meta keys (`:$…`) never count as answers (`registry.js`). CSS in `engine/examSheet.css`.
+- Checks: `npx vitest run src/features` (see PR body for the exact count); new `engine/examMode.test.jsx` 22 tests;
+  eslint clean on the touched files (warnings only, pre-existing); e2e `-g "e-exam"` 6 passed (phone 375 layout of three
+  lab sheets, tap and mouse drag, auto hand-in after the time). Screenshots desktop + 375 in the PR.
+- Limits: the mock's content still uses the old blocks until the content agent switches it (fields in E_EXAM_ENGINE.md
+  §2); per-clip audio files, subheading matching, paging per task and the four-part total are not done.
+- Next safe step: owner / main session review the PR; after merge the content agent switches mock 1 (`exam: 'E9'`,
+  `lock`, `lockPlays`, `layout`, `opts.example`, item 0 back into the data and EXPLAIN).
+## 2026-11-18 · agent/b1b2-m07-tasks — B1→B2 module 7 „Haridus ja õppimine” in v4 task-based design · content only
+
+- Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „B1→B2 module 7: task-based (v4)” (link in the
+  PR list). Not merged, not published, no deploy, no production writes. Modules 5 and 6 are rebuilt in parallel by other
+  agents (expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, language-allow.txt — keep both).
+- Done: `b2/module07.js` rewritten (no storyline, no cast): 031 case „Gümnaasium või kutsekool — kes otsustab?”
+  (rektsioon; topic opener on the Estonian school path, õppimiskohustus since 2025, Statistikaamet 71 / 25 %), 032 facts
+  „Kas sa oled visuaalne õppija? Müüdid ja tõde õppimisest” (quotative + sources; Pashler 2008, Dunlosky 2013), 033 debate
+  „Uus amet 45-aastaselt — julge samm või hilja?” (conditional in kui-clauses; podcast, listeners' calls, Tõetamm 23,8 %),
+  034 quest „Kes maksab sinu õppimise eest?” (-mine / -ja; TäKS § 13 study leave, EMTA training costs, Töötukassa, HTM
+  free courses, Integratsiooni SA), 035 new module exam in Harno B2 form (R1–R4, language part, L notices / L3 / L4, W1,
+  W2a chart, S1 product talk, S2 cards). MODULE.level B2- → B1+ (as the roadmap's levelStage). Ids, goal keys and
+  archetypes kept; EXPLAIN for every scored item.
+- Also: `b2/lessonGoals.js` 031–035, `lessonWords/b1b2.json` 031–035, roadmap-03 titles, `art/visuals/b2-module-07.js`
+  (no cast in learner text; 033 / 034 pictures copied from est-c1-041 / est-c1-031), review questions about module 7 in
+  modules 8, 9, 10, 11 (ids kept), audio: 6 new TartuNLP files, 3 old removed; language-allow + suffixes and minukarjaar;
+  docs/COURSE_DESIGN_STATIONS.md §4 line; owner summary `docs/review/b2-m07-tasks.md` (Russian, four learners).
+- Checks: see the PR body (course report, v4 tests, EstNLTK, vitest worksheet-generator / worksheet-studio / vocabulary,
+  eslint); all 15 sheets read in the sheet lab.
+- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker; facts dated 2025–2026
+  (study leave, tax limit, free courses) may change.
+- Merged origin/main e59bb44 (modules 5 #1269, 6 #1271): both sides kept; module-6 word reuse ≥ 30 %; 033 corner → L3 (course needs ≥ 4 L3 corners); course report 36/36 modules 5/5 READY, vitest 199 files / 2235 tests green, eslint clean, EstNLTK 0 unknown.
+- Next safe step: owner reads `docs/review/b2-m07-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-031:discover` …).
+## 2026-11-18 · agent/b1b2-m06-tasks — B1→B2 module 6 „Tööelu” task-based (v4) + themed-module topic rule · content + one v4 gate rule
+
+- Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „B1→B2 module 6: task-based (v4)” (link in the
+  PR list). Not merged, not published, no deploy, no production writes. Modules 5 and 7 are rebuilt in parallel by other
+  agents: expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, roadmap-02, §7 — keep both.
+- Done (`admin/course/b2/module06.js`, lessons b1b2-026…030, ids and goal keys kept; old v2 Sofia / Tartu-warehouse story
+  gone): 026 quest „Kellena sa end viie aasta pärast näed?” (job search, CV, interview; olev / saav kääne), 027 facts „Kas
+  sa kirjutaksid sellele lepingule alla?” (töölepingu seadus, sick pay, envelope wage; comparison; advise a friend), 028
+  infogap „Kolleeg hilineb jälle — kuidas sellest rääkida?” (fact not blame, role in -na; work / study / home situation),
+  029 project „Kas sinu oskusest saaks väike äri?” (ettevõtluskonto vs FIE; ühelt poolt … teiselt poolt, kuigi, siiski,
+  samas), 030 new Harno-form check + „Minu tööelu kaart” (S1). Facts checked on Riigi Teataja, tervisekassa.ee, eesti.ee,
+  emta.ee, ti.ee, stat.ee (sources on every teacher page). Module level B1+ (as the roadmap's levelStage; was B2-).
+- Gate rule (owner brief): `MODULE.theme` — a themed module may give its theme to several lessons, each with its own
+  `subtopic`, all different; without a theme „every topic once, work ≤ 1” stays (`stations.js v4TopicProblems`, used by
+  `v4Tasks.test.js`; cases in `v4Gates.test.js`; §7.1 rule 7 and §7.3 row in COURSE_DESIGN_STATIONS.md).
+- Also: lessonGoals 026–030 (026 has no g_listen: its recording trains the form), lesson words 026–030, roadmap-02 titles
+  and texts, visuals b2-module-06 (026 picture reused from a2b1-045, others retargeted, no cast), TartuNLP audio 026_p_paths,
+  027_d_radio, 029_d_baker, 030_p_notes, 030_p_listen (5 old removed; plan.mjs knows Oksana / Valentina as female),
+  review questions about module 6 in modules 7 (031), 8 (038), 9 (041), academicTopics text.
+- Checks: course report 5/5 READY for module 6 and all 36 B1 / B2 modules; EstNLTK 0 unknown lower-case;
+  `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary` 199 files /
+  2209 tests passed (two studio UI files timed out once under machine load, pass alone); eslint clean on changed files;
+  all 15 sheets opened in the sheet lab (1280 px, Playwright) and read as a learner — fixed: rule cards that gave away
+  gap / choice answers on the same page (026, 029), the sick-pay chart that answered the radio gaps (027, removed), one-line
+  contract and situation cards (027, 028), an exit item copyable from an ad (026).
+- Owner summary (Russian): `docs/review/b2-m06-tasks.md`. Open: module 7's ≥ 30 % recycling of module 6 words must be
+  re-checked when module 7's rebuild merges; voices synthetic, Estonian not checked by a native speaker.
+- Merge of main with module 5 (#1269): both sides kept (lessonGoals / lesson words / roadmap 021–025 theirs, 026–030
+  ours; 031_d_review theirs for module 5 + ours for module 6); module 5 words woven in (recycling ≥ 30 %); 027 exam
+  corner L3 → R3 (course V6 needs ≥ 4 R3 corners). After merge: 36/36 modules 5/5 READY; vitest 199 files / 2222 tests
+  passed; eslint clean; EstNLTK 0 unknown.
+- Next safe step: owner reads `docs/review/b2-m06-tasks.md` and the draft PR, gives review notes or merges.
+## 2026-11-18 · agent/b1b2-m05-tasks — B1→B2 module 5 „Arvamus ja põhjendamine” task-based (v4)
+
+- Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „B1→B2 module 5: task-based (v4)”. Content
+  only; not merged, not published, no deploy, no production writes. Modules 6 and 7 are rebuilt in parallel PRs.
+- Done: `b2/module05.js` rewritten in design v4 (`docs/COURSE_DESIGN_STATIONS.md` §7) without the debate-club storyline
+  and the course cast: 021 facts „Kas kella keeramine lõpeb kunagi?” (certainty words), 022 debate „Päris kuusk või
+  kunstkuusk?” (connectors, verb second), 023 case „Mitu tundi ekraani on lapsele liiga palju?” (kuigi / siiski,
+  softening conditional), 024 project „Auto, buss või jalgsi: mis sinu teekond tegelikult maksab?” (comparison), 025 a new
+  Harno B2 module exam „Kontroll 5 — minu seisukoht” with the module product „Minu seisukoht” as S1. Facts checked on the
+  web (EU clock-change survey and vote, ERR 2018 / 2026, Carbon Trust, RMK price list 2025, WHO 2019, Statistikaamet
+  commuting 2003 / 2023). Owner summary in Russian: `docs/review/b2-m05-tasks.md`.
+- Also changed: `b2/lessonGoals.js` (021–025 canDo and goals; g_listen only in 025), `vocabulary/lessonWords/b1b2.json`
+  (021–025), `data/keelesepp-b1-b2-roadmap-02.json` (titles), `art/visuals/b2-module-05.js` + `public/textbook-art/b2/
+  b1b2-021|023` (reused pictures from a2b1-033 and est-c1-037; 022 has none; old 022 / 023 avasta images removed),
+  `listeningAudio.json` + `public/audio/b1b2-021…025` (6 new TartuNLP recordings, 5 old removed), review questions
+  „Moodul 5: …” in `b2/module07.js` (031, 034), `module08.js` (039), `module09.js` (044) — ids kept,
+  `academicValueRound2Baseline.json` regenerated (module 5's and module 3's fixed entries left it).
+- Checks: course report 5/5 READY for module 5 and for every B1→B2 and A2→B1 module; `npx vitest run
+  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary` 199 files / 2206 tests passed;
+  eslint clean on the changed files; EstNLTK 0 unknown lower-case words; all 15 sheets read in the sheet lab
+  (`/sheet-lab.html?set=course:b1b2-02N:<phase>`), fixes listed in the review doc.
+- Limits: synthetic voices not checked by a human ear; Estonian not checked by a native speaker; lesson 022 has no
+  picture (needs a new brief if the owner wants one); conflicts expected with the module 6 / 7 PRs in shared files
+  (lessonGoals, lessonWords, roadmap, module07 review questions) — keep both sides.
+- Next safe step: owner reviews the PR and the 15 sheets; after merge, publish module 5 with the owner's yes.
 
 ## 2026-11-18 · agent/b1b2-k04-tyypsonad — B2 „Käänete kordamine”: k04 „Käänded 4: tüüpsõnad (muuttüübid)”
 

@@ -131,6 +131,12 @@ corner), 007 infogap (health, polite conditional, S1 home talk), 008 case (money
 (av-voice) — in practice a listening or a gapped chat; a big writing task as the exam corner breaks V12 washback (≤ 25 %).
 **B2 module 4** (`b2/module04.js`, 016–019, 2026-11-17) is the second v4 module and the first grammar module in v4: case
 (complain) → infogap (explain) → game (present) → project (plan); owner summary `docs/review/b2-m04-tasks.md`.
+**B2 module 6** (`b2/module06.js`, 026–029, 2026-11-18) is the first themed v4 module (`MODULE.theme: 'work'`): quest
+(job search, present) → facts (the contract, advise) → infogap (a colleague, negotiate) → project (own business, plan);
+030 the Harno-form check + „Minu tööelu kaart”; owner summary `docs/review/b2-m06-tasks.md`.
+**B2 module 7** (`b2/module07.js`, 031–034, 2026-11-18): education from the learner's side — case (school choice after
+grade 9, advise) → facts (learning myths, explain) → debate (a new profession at 45, decide) → quest (who pays, plan);
+035 the module exam + „Minu õpitee järgmine samm”; owner summary `docs/review/b2-m07-tasks.md`.
 
 ## 5. Next
 
@@ -216,7 +222,10 @@ to `meta.format`, which switches on the v4 gates). Sample: B1→B2 module 1 (`b2
    `debate` (debate with a vote), `quest` (route of checkpoints), `facts` (news or fact analysis), `infogap` (two role
    cards), `project` (mini-project with a product), `game` (competition with the teacher), `exam` (Harno-format check).
    Topics (`topic`): languages, home, family, neighbours, town, free time, money, health, learning, culture, nature,
-   work — **work at most once a module**.
+   work — **work at most once a module**. A **themed module** (`MODULE.theme`, e.g. `'work'` for B1→B2 module 6
+   „Tööelu”, owner 2026-11-18) may give its theme to every lesson; each such lesson then names its own sub-topic
+   (`subtopic`, all different — module 6: job search, rights and the contract, colleagues, own business), every other
+   topic still comes once, and a learner without a job gets a real alternative in each task (`v4TopicProblems`, §7.3).
 8. **Titles** make the learner want to open the lesson („Neli päeva tööd — kas see sobiks Eestile?”); the grammar goes
    in the small subtitle (`phases` with the grammar line). Ids and goal keys stay; the roadmap file
    (`data/keelesepp-b1-b2-roadmap-NN.json`) gets the same titles; the library shows them after the owner's publish.
@@ -272,6 +281,7 @@ formats: is every task at the right level, does each lesson move the learner mea
 | `stations.js` `st-items` / `st-closed`, `didacticCheck.js` items | a chat (`dialogue`) always counted as a closed task of 1 item (the bracket of the JSON array) | gaps are counted in the line texts: a chat without gaps is an input |
 | `academicValue.js` `av-voice`, `av-boltedon` | a cast-free text of ≥ 150 words (B1+) besides the opener and fact boxes | one substantial input besides the hook (stations 2–4): a text, chat or the opener of ≥ 120 words, or a recording of ≥ 60 s (≈ 110 words); not a fact box, no cast (`V4_INPUT`) |
 | `didacticCheck.js` sentence length | every task sentence, choice questions included | a short listening row (choice / true-false of goal `g_listen`) is left out |
+| `stations.js` `v4TopicProblems` (run by `v4Tasks.test.js`) | one topic a teaching lesson, all different, work ≤ 1 a module | a module with `MODULE.theme` may give the theme to several lessons when each has its own `subtopic` (all different); other topics still once; without a theme nothing changes (owner 2026-11-18, module 6 „Tööelu”) |
 
 Why the last four (owner OK 2026-11-17, found while building module 2): the old rules made authors bend lessons — a
 shortened homework text to keep the input share, a W1 corner moved off the complaint, a 150-word text that no station may
@@ -281,7 +291,8 @@ Older v2 / v3 modules are untouched: the full B1 + B2 course report (36 modules)
 
 Tests: `admin/course/v4Gates.test.js` (the gates above; round 3 adds one test per change, each with the unchanged v3 result; module 4 adds the Harno-timed exam sheet), `admin/course/v4Tasks.test.js` (every v4 module: one extension of
 10–15 min in the minute plan, core + extension ≤ 90; format menu and
-no two neighbours alike; topics, work ≤ 1; hook ≤ 80 words with a response; no text > 150 words in the first 15 minutes;
+no two neighbours alike; topics, work ≤ 1 or a themed module's sub-topics all different (`v4Gates.test.js` holds the
+themed-module cases); hook ≤ 80 words with a response; no text > 150 words in the first 15 minutes;
 ≤ 1 text > 250 words a lesson; ≥ 3 input kinds; 4 stations ≤ 75 min; exit check + „Ma oskan” + home talk + homework
 card; cast ≤ 2 mentions a module; final task addresses the learner; teacher page complete; every scored item explained).
 No gate forced a long text early: the topic opener may sit in lesson 1 or 2 anywhere on Avasta, and `st-input` caps

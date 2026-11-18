@@ -76,3 +76,10 @@ explain
 # B2 module 4 (017): the e-school diary brand eKool (product name, lower-case e)
 eKool
 eKoolis
+# B2 module 7: suffixes bolded or named in the grammar notices (õpp**ija**, omastav -mise / osastav -mist, te …-ksite)
+ija
+mise
+mist
+ksite
+# B2 module 7: the Töötukassa career site minukarjaar.ee named as a source
+minukarjaar

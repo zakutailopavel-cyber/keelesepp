@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- block definitions are plain objects that carry View/Editor components */
 import { Area, Select, Text } from '../../editor/fields.jsx';
-import { CHART_KINDS, MAX_ROWS, MAX_SERIES, chartRows, chartScale, chartSeries, formatValue } from './chartModel.js';
+import { CHART_KINDS, MAX_ROWS, MAX_SERIES, chartRows, chartScale, chartSeries, formatValue, pieSlices } from './chartModel.js';
 
 // „Andmediagramm” (owner 2026-10-18): the input of a data summary — Harno C1 writing task 1 asks for a ~180-word
 // summary of a diagram or graph. Not a task by itself: the learner writes about it in the next block. Drawn as SVG in
@@ -63,6 +63,46 @@ function ChartSvg({ data }) {
   );
 }
 
+// „Sektordiagramm” (the 9th-grade e-exam's W2 summary, docs/EXAM_9KL_E_EKSAM.md §3): one value per row, the slices in
+// the sheet's chart colours (CSS tokens --ws-chart-1 … 8 in sheet.css, so a theme may change them), each slice labelled
+// outside with its name and share, so the chart reads the same printed in black and white; the legend under it.
+const PIE = { w: 640, h: 300, r: 108 };
+const point = (turn, radius) => {
+  const a = turn * 2 * Math.PI - Math.PI / 2;
+  return [PIE.w / 2 + radius * Math.cos(a), PIE.h / 2 + radius * Math.sin(a)];
+};
+const pct = (slice, data) => (data.unit === '%' ? `${formatValue(slice.value)} %` : `${formatValue(Math.round(slice.share * 1000) / 10)} %`);
+function PieSvg({ data }) {
+  const slices = pieSlices(data);
+  const label = `${data.chartTitle || 'Sektordiagramm'}: ${slices.map((s) => `${s.label} ${pct(s, data)}`).join('; ')}`;
+  return (
+    <div className="ws-chart-scroll">
+      <svg className="ws-chart-svg ws-pie" viewBox={`0 0 ${PIE.w} ${PIE.h}`} role="img" aria-label={label}>
+        {slices.map((s, i) => {
+          const whole = s.to - s.from >= 0.9999;
+          const [x1, y1] = point(s.from, PIE.r);
+          const [x2, y2] = point(s.to, PIE.r);
+          const large = s.to - s.from > 0.5 ? 1 : 0;
+          const path = whole ? null : `M ${PIE.w / 2} ${PIE.h / 2} L ${x1} ${y1} A ${PIE.r} ${PIE.r} 0 ${large} 1 ${x2} ${y2} Z`;
+          const mid = (s.from + s.to) / 2;
+          const [ex, ey] = point(mid, PIE.r + 4);
+          const [lx, ly] = point(mid, PIE.r + 22);
+          const right = lx >= PIE.w / 2;
+          const tx = lx + (right ? 8 : -8);
+          return (
+            <g key={i} className={`ws-pie-slice is-s${i % 8}`}>
+              {whole ? <circle cx={PIE.w / 2} cy={PIE.h / 2} r={PIE.r} /> : <path d={path} />}
+              <polyline className="ws-pie-lead" points={`${ex},${ey} ${lx},${ly} ${tx},${ly}`} />
+              <text className="ws-chart-cat" x={tx + (right ? 3 : -3)} y={ly - 2} textAnchor={right ? 'start' : 'end'}>{s.label}</text>
+              <text className="ws-chart-value" x={tx + (right ? 3 : -3)} y={ly + 12} textAnchor={right ? 'start' : 'end'}>{pct(s, data)}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
 export const chart = {
   type: 'chart', label: 'Andmediagramm (tulbad, joon)', group: 'Skeemid', icon: 'ChartColumn', task: false, width: 'full', tone: 'white',
   create: () => ({
@@ -72,6 +112,16 @@ export const chart = {
   }),
   View: ({ data }) => {
     const series = chartSeries(data);
+    if (data.kind === 'pie') {
+      return (
+        <figure className="ws-chart is-pie">
+          {data.chartTitle ? <figcaption className="ws-chart-title">{data.chartTitle}</figcaption> : null}
+          <PieSvg data={data} />
+          <ul className="ws-chart-legend">{pieSlices(data).map((s, i) => <li key={i}><i className={`ws-pie-key is-s${i % 8}`} />{s.label}</li>)}</ul>
+          {data.source ? <p className="ws-chart-source">{data.source}</p> : null}
+        </figure>
+      );
+    }
     return (
       <figure className="ws-chart">
         {data.chartTitle ? <figcaption className="ws-chart-title">{data.chartTitle}</figcaption> : null}
@@ -84,7 +134,8 @@ export const chart = {
   Editor: ({ data, set }) => (
     <>
       <Text label="Diagrammi pealkiri" value={data.chartTitle} onChange={(chartTitle) => set({ chartTitle })} />
-      <Select label="Kuju" value={data.kind === 'line' ? 'line' : 'bar'} onChange={(kind) => set({ kind })} options={CHART_KINDS} />
+      <Select label="Kuju" value={['line', 'pie'].includes(data.kind) ? data.kind : 'bar'} onChange={(kind) => set({ kind })} options={CHART_KINDS} />
+      {data.kind === 'pie' ? <span className="ed-hint">Sektordiagramm: iga rida „silt | väärtus” (üks väärtus, 2–8 sektorit); read jäta tühjaks.</span> : null}
       <Text label={`Read (kuni ${MAX_SERIES}, komaga)`} value={data.series} onChange={(series) => set({ series })} placeholder="Paberraamat, E-raamat" />
       <Area label={`Andmed (iga rida: silt | väärtus | väärtus …, kuni ${MAX_ROWS} rida)`} rows={6} value={data.rows} onChange={(rows) => set({ rows })} hint="Näide: 2020 | 55 | 15. Koma või punkt kümnendmurrus." />
       <Text label="Ühik (valikuline)" value={data.unit} onChange={(unit) => set({ unit })} placeholder="%" />
