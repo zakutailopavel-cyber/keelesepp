@@ -138,6 +138,11 @@ corner), 007 infogap (health, polite conditional, S1 home talk), 008 case (money
 grade 9, advise) → facts (learning myths, explain) → debate (a new profession at 45, decide) → quest (who pays, plan);
 035 the module exam + „Minu õpitee järgmine samm”; owner summary `docs/review/b2-m07-tasks.md`.
 
+**B2 module 8** (`b2/module08.js`, 036–039, 2026-11-18): travel and culture from the learner's side — project (a weekend
+on 200 €, negotiate) → infogap (a cancelled flight and a late suitcase, EU rules, complain) → game (customs and culture
+shock, explain) → case (a guest in summer: festival or museum, advise); 040 Vahehindamine 2 in Harno B2 form + „Minu
+soovitus külalisele”; owner summary `docs/review/b2-m08-tasks.md`.
+
 ## 5. Next
 
 Owner and a teacher run 2–3 pilot lessons; then decide whether the next modules move to v3-stations (one module per PR,

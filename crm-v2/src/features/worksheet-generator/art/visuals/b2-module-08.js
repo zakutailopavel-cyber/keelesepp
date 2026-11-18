@@ -1,74 +1,81 @@
 // Visual briefs of b1b2 module 08; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// Learner-facing text (alt, caption, prompts) without the course cast since 2026-11-18 (task-based module 8,
+// docs/COURSE_CAST.md); the `cast` field still records who the generated picture shows. The same five pictures,
+// retargeted to the new lessons (no new image needed). Briefs and pictures made by Codex (built-in image generation) per
+// docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
 export default [
   {
     id: "b1b2-036-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Anna", "Sofia", "Jaan"],
-    scene: "Kolm sõpra planeerivad köögilaua ääres nädalast reisi. Anna võrdleb eelarvet, Sofia näitab matkarada ja Jaan majutusvõimalust; laua keskel on lihtne kaart, mille üks marsruut ühendab linna, ranna ja mäed. Kõrval on hallid lennuki, rongi ja majutuse sümbolid, mis näitavad reisi kompromisse.",
-    accent: "the chosen route connecting city, beach and mountains",
+    // 2026-11-18 (v4): the same picture, retargeted from the family club's trip to the learner's own weekend plan
+    scene: "Kolm inimest planeerivad köögilaua ääres reisi. Üks võrdleb eelarvet, teine näitab matkarada ja kolmas majutust; laua keskel on lihtne kaart, mille üks marsruut ühendab linna, ranna ja metsa. Kõrval on hallid bussi, praami ja majutuse sümbolid.",
+    accent: "the chosen route connecting city, beach and forest",
     text: [],
-    learningJob: "võrrelda sihtkoha, transpordi, majutuse ja tegevuste variante ning põhjendada ühist valikut",
-    alt: "Anna, Sofia ja Jaan lepivad kaardi ääres kokku reisi marsruudi ning eelarve.",
-    caption: "Pilt 1. Ühine reisiplaan sünnib kompromissidest.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida Anna, Sofia ja Jaan köögilaua ääres planeerivad?", "Milliseid kompromisse näitavad lennuki, rongi ja majutuse sümbolid?", "Kuidas sina reisi planeerides eelarve, mugavuse ja huvide vahel valid?"],
+    place: "036_d_read",
+    learningJob: "võrrelda sihtkohta, transporti, majutust ja hinda ning leppida kokku ühine plaan",
+    alt: "Kolm inimest panevad köögilaua ääres kaardi järgi kokku reisi marsruudi ja eelarve.",
+    caption: "Pilt 1. Ühine reisiplaan sünnib kompromissist.",
+    prompts: ["Mida need kolm inimest köögilaua ääres planeerivad?", "Kes neist mõtleb rahale, kes majutusele ja kes matkale? Mis on nende kompromiss?", "Kes sinu peres või sõprade seas reisi planeerib ja kes maksab?"],
   },
   {
     id: "b1b2-037-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Anna", "Liis"],
-    scene: "Rooma üürikorteris helistab Anna broneerimisportaali klienditeenindajale Liisile. Anna kõrval on nähtavad kolm probleemi: räpane laud, katkise ühenduse sümbol ruuteril ja kaks ühesugust kaardimakse märget ilma tekstita. Telefoni kõrval on keskne kliendigarantii lahenduskaart, millele Liis osutab ekraanilt.",
+    // 2026-11-18 (v4): the same picture (a rented flat that is not as described), now beside the extension role-play
+    scene: "Üürikorteris helistab naine broneerimisplatvormi klienditeenindusse. Tema kõrval on näha kolm probleemi: räpane laud, katkise ühenduse sümbol ruuteril ja kaks ühesugust kaardimakse märget. Telefoni kõrval on klienditeenindaja ekraanil lahenduskaart.",
     accent: "the customer-guarantee solution card",
     text: [],
-    learningJob: "kirjeldada reisiprobleeme täpselt, nimetada tõendid ja nõuda konkreetset lahendust",
-    alt: "Anna teatab Liisile räpasest korterist, mittetöötavast internetist ja topeltmaksest.",
+    place: "037_t_more",
+    learningJob: "kirjeldada majutuse probleeme täpselt, nimetada tõendid ja nõuda konkreetset lahendust",
+    alt: "Naine teatab telefonis räpasest korterist, mittetöötavast internetist ja topeltmaksest.",
     caption: "Pilt 1. Kolm probleemi ja üks selge nõue.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Millised kolm probleemi on Anna Rooma üürikorteris?", "Mida pakub klienditeenindaja Liis kliendigarantii abil?", "Mida ütleksid sina klienditeenindajale, kui majutus ei vasta kirjeldusele?"],
+    prompts: ["Millised kolm probleemi on sellel üürikorteril?", "Mida peaks naine enne kõnet tegema, et tal oleks tõend?", "Mida ütleksid sina omanikule, kui majutus ei vasta kirjeldusele?"],
   },
   {
     id: "b1b2-038-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Sofia", "Viktor"],
-    scene: "Sofia ja Viktor vaatavad kahte kõrvutist igapäevaolukorda samade inimestega: vasakul istuvad nad Eesti bussis rahulikult ja jätavad teineteisele ruumi, paremal vestlevad nad kodusel külaskäigul avatult kohvilaua ääres. Keskel on kontekstivahetuse kaart, mis seob vaikuse austuse, mitte ebasõbralikkusega.",
+    // 2026-11-18 (v4): the same picture, now beside the radio on culture shock
+    scene: "Kaks kõrvutist igapäevaolukorda samade inimestega: vasakul istuvad nad bussis vaikselt ja jätavad teineteisele ruumi, paremal vestlevad nad kodusel külaskäigul avatult kohvilaua ääres. Keskel on kaart, mis seob vaikuse austuse, mitte ebasõbralikkusega.",
     accent: "the context-switch card between the two situations",
     text: [],
-    learningJob: "võrrelda sama käitumise tähendust eri olukordades ja muuta lihtne üldistus nüansirikkaks",
-    alt: "Sofia ja Viktor võrdlevad vaikset bussisõitu ning avatud vestlust kodusel külaskäigul.",
-    caption: "Pilt 1. Käitumise tähendus sõltub olukorrast.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Kuidas käituvad Sofia ja Viktor bussis ja kuidas külaskäigul?", "Mida tähendab keskel olev kaart vaikuse kohta?", "Millise kultuurierinevuse oled ise Eestis märganud?"],
+    place: "038_d_radio",
+    learningJob: "võrrelda sama inimese käitumist eri olukordades ja öelda üldistus ettevaatlikult",
+    alt: "Samad kaks inimest istuvad vaikselt bussis ja vestlevad avatult külaskäigul.",
+    caption: "Pilt 1. Vaikus bussis, jutt köögis.",
+    prompts: ["Kuidas käituvad need kaks inimest bussis ja kuidas külaskäigul?", "Mida võib vaikus bussis tähendada? Ütle ettevaatlikult: sageli, minu kogemuses …", "Kas seal, kus sa üles kasvasid, räägitakse bussis võõrastega? Too näide."],
   },
   {
     id: "b1b2-039-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Anna", "Jaan"],
-    scene: "Anna ja Jaan koostavad reisiportaalile Kihnu arvustust. Laual on kolm halli fotokaarti praamisõidust, jalgratastest ja perekodust; iga kaardi juurest viib joon keskse hinnangukaani juurde, kus pluss ja miinus on tasakaalus ilma sõnadeta. Anna meenutab sündmusi, Jaan põhjendab hinnangut.",
+    // 2026-11-18 (v4): the same picture (three travel memories joined into a balanced review), now beside the story
+    scene: "Kaks inimest kirjutavad reisiportaalile arvustust. Laual on kolm halli fotokaarti praamisõidust, jalgratastest ja perekodust; iga kaardi juurest viib joon keskse hinnangukaardi juurde, kus pluss ja miinus on tasakaalus.",
     accent: "the balanced travel-review card",
     text: [],
-    learningJob: "siduda konkreetsed reisikogemused põhjendatud positiivse või kriitilise hinnanguga",
-    alt: "Anna ja Jaan seovad Kihnu reisi sündmused tasakaalustatud hinnanguga.",
-    caption: "Pilt 1. Hea arvustus ühendab kogemuse ja hinnangu.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Millest Anna ja Jaan oma Kihnu arvustuses kirjutavad?", "Miks on pluss ja miinus hinnangukaanel tasakaalus?", "Millise koha kohta kirjutaksid sina arvustuse ja mis hinnangu annaksid?"],
+    place: "039_d_story",
+    learningJob: "siduda reisi sündmused põhjendatud hinnanguga ja teha sellest soovitus",
+    alt: "Kaks inimest seovad kolm reisimälestust tasakaalustatud hinnanguga.",
+    caption: "Pilt 1. Hea soovitus ühendab kogemuse ja hinnangu.",
+    prompts: ["Mis on kolmel fotokaardil? Mis võis sellel reisil juhtuda?", "Mis võis olla elamus ja mis pettumus? Kasuta minevikku: sõitsime, olime …", "Millise koha kohta kirjutaksid sina soovituse ja mis hinnangu annaksid?"],
   },
   {
     id: "b1b2-040-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Anna", "Liis"],
-    scene: "Keelekursuse vahehindamise järel koostavad Anna ja Liis kordamisplaani. Kesksel õpitee tahvlil on neli järjestikust peatust ilma tekstita: argumenteerimise kõnemull, tööelu portfell, hariduse raamat ja reisimise kohver. Anna märgib ebakindla koha, Liis aitab valida järgmise harjutussammu.",
+    // 2026-11-18 (v4): the same picture — the four topics of lessons 21–40 as a revision route
+    scene: "Keelekursuse vahehindamise järel koostavad kaks õppijat kordamisplaani. Õpitee tahvlil on neli peatust ilma tekstita: argumenteerimise kõnemull, tööelu portfell, hariduse raamat ja reisimise kohver. Üks märgib ebakindla koha, teine aitab valida järgmise sammu.",
     accent: "the personalized four-stop revision route",
     text: [],
-    learningJob: "seostada vahehindamise tulemused nelja teemavaldkonnaga ja valida kordamise prioriteedid",
-    alt: "Anna ja Liis koostavad nelja teemavaldkonna põhjal isikliku kordamisplaani.",
-    caption: "Pilt 1. Vahehindamise tulemusest kordamisplaanini.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliseid teemasid näitavad õpitee neli peatust?", "Mida Anna märgib ja kuidas Liis teda aitab?", "Milline teema on sinu jaoks praegu kõige ebakindlam ja miks?"],
+    learningJob: "seostada vahehindamise tulemused nelja teemaga ja valida, mida korrata",
+    alt: "Kaks õppijat koostavad nelja teema põhjal kordamisplaani.",
+    caption: "Pilt 1. Tunnid 21–40: arvamus, töö, haridus, reisimine.",
+    prompts: ["Milliseid teemasid näitavad õpitee neli peatust?", "Milline neist teemadest on sinu jaoks kõige kindlam ja milline kõige ebakindlam?", "Mida sa kordad enne järgmist moodulit?"],
   },
 ];
