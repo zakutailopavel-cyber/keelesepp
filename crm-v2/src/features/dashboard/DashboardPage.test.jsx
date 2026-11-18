@@ -180,7 +180,8 @@ describe('DashboardPage — calm home', () => {
     const { unmount } = renderDashboard(user, repo);
     const nudge = (await screen.findByText(/Märgi need 1 minutiga/)).closest('.calm-nudge');
     expect(within(nudge).getByRole('link', { name: /Sul on 2 märkimata tundi \(vanim 02\.11\)\. Märgi need 1 minutiga →/ })).toHaveAttribute('href', '/calendar/markimata');
-    expect(window.localStorage.getItem('ks-unmarked-nudge:teacher-2')).toBe('2026-11-06');
+    // the day is stored by an effect after the nudge renders — wait for it (flaky in CI under load)
+    await waitFor(() => expect(window.localStorage.getItem('ks-unmarked-nudge:teacher-2')).toBe('2026-11-06'));
     fireEvent.click(within(nudge).getByRole('button', { name: 'Peida meeldetuletus' }));
     expect(screen.queryByText(/Märgi need 1 minutiga/)).not.toBeInTheDocument();
     unmount();
