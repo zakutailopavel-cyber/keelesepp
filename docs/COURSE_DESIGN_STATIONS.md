@@ -131,6 +131,9 @@ corner), 007 infogap (health, polite conditional, S1 home talk), 008 case (money
 (av-voice) — in practice a listening or a gapped chat; a big writing task as the exam corner breaks V12 washback (≤ 25 %).
 **B2 module 4** (`b2/module04.js`, 016–019, 2026-11-17) is the second v4 module and the first grammar module in v4: case
 (complain) → infogap (explain) → game (present) → project (plan); owner summary `docs/review/b2-m04-tasks.md`.
+**B2 module 7** (`b2/module07.js`, 031–034, 2026-11-18): education from the learner's side — case (school choice after
+grade 9, advise) → facts (learning myths, explain) → debate (a new profession at 45, decide) → quest (who pays, plan);
+035 the module exam + „Minu õpitee järgmine samm”; owner summary `docs/review/b2-m07-tasks.md`.
 
 ## 5. Next
 
