@@ -83,8 +83,31 @@ export function blockMinutes(block, level = 'A2', design = '', template = '') {
   }
 }
 
+// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7.3, owner 2026-11-17): the sheet of a v4 exam lesson
+// (meta.format 'exam' + meta.assessment) is timed by its Harno part headers (B.examPart minutes). A part's tasks take
+// the time Harno gives the part — the block estimate counts a 500-word article or an interview heard twice at a few
+// minutes. Blocks before the first header (an intro, the module's language part, which is not a Harno skill) keep their
+// estimate. Older designs (no meta.format) and exam sheets without timed headers are unaffected.
+export const isHarnoTimedSheet = (doc) => doc?.meta?.format === 'exam' && Boolean(doc?.meta?.assessment)
+  && (doc?.blocks || []).some((b) => b.type === 'exampart' && Number(b.data?.minutes) > 0);
+// minutes of a Harno-timed sheet: the header minutes of the parts (only `skills` when given) + the estimate of the blocks
+// outside any part that pass `include`
+export function harnoTimedMinutes(doc, { skills = null, include = () => true } = {}) {
+  const level = doc?.meta?.level || 'A2';
+  let part = null;
+  let n = 0;
+  for (const b of doc?.blocks || []) {
+    if (b.type === 'exampart' && Number(b.data?.minutes) > 0) {
+      part = b.data.skill;
+      if (!skills || skills.includes(part)) n += Number(b.data.minutes);
+    } else if (!part && include(b)) n += blockMinutes(b, level, doc?.meta?.design, doc?.meta?.template);
+  }
+  return n;
+}
+
 // the whole sheet, rounded to whole minutes
 export function sheetMinutes(doc) {
+  if (isHarnoTimedSheet(doc)) return Math.round(harnoTimedMinutes(doc));
   const level = doc?.meta?.level || 'A2';
   return Math.round((doc?.blocks || []).reduce((n, b) => n + blockMinutes(b, level, doc?.meta?.design, doc?.meta?.template), 0));
 }
