@@ -199,6 +199,8 @@ const WRITE = {
       title: 'E-eksami ülesandetüübid: kirjutamine',
       canDo: 'Ma kirjutan e-eksami vormis vastuse kirjale märkmete järgi ja kokkuvõtte diagrammi põhjal.',
       shortSheet: true,
+      // teacher-marked writing only (two e-exam texts): nothing for the pet's auto-checked games (petGamesCourse.test.js)
+      noGames: true,
       goals: { g_use: 'Õpilane vastab kirjale nii, et käsitleb iga märget, ja kirjutab diagrammi põhjal kokkuvõtte koos analüüsi, oma arvamuse ja ettepanekuga.', g_notice: 'Õpilane kasutab arvude kirjeldamise väljendeid (kõige rohkem, umbes pooled, vähem kui) ja sidesõnu.' },
       phases: sheet('E-eksami harjutus · Kirjutamine', 'Kaks e-eksami kirjutamisülesannet enne proovieksamit; sõnaloendur näitab pikkust.'),
       discover: [
