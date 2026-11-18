@@ -1,3 +1,32 @@
+## 2026-11-19 · agent/b1b2-m10-tasks — B1→B2 module 10 „Suhted ja konfliktid” in v4 task-based design · content only
+
+- Base: `origin/main` 4d0e6fe (#1275 merge), checked 2026-11-19 (main later fed002f: auth files only). Draft PR
+  „B1→B2 module 10: task-based (v4)” (link in the PR list). Not merged, not published, no deploy, no production writes.
+  Modules 8 and 9 are rebuilt in parallel: expect conflicts in lessonGoals.js, lessonWords/b1b2.json,
+  listeningAudio.json, language-allow.txt, plan.mjs, COURSE_DESIGN_STATIONS §4 — keep both sides.
+- Done: `b2/module10.js` rewritten (no storyline, no cast; MODULE.level B2- as the roadmap's B1+/B2-): 046 facts „Kas
+  sul on sõber, kellele saad öösel kell kolm helistada?” (character words, -us / -likkus, eba- / -matu; opener with
+  Hall 2018, EU loneliness survey, WHO 2025, Harvard study), 047 case „Sõber ei maksa 300 eurot tagasi — kuidas sellest
+  rääkida?” (kuna / seetõttu / mistõttu, -ki / -gi; VÕS § 11, TsÜS § 146), 048 infogap „Muusika kell 23 ja majagrupp
+  keeb — kuidas tüli vahendada?” (reported speech + -vat; KorS § 56), 049 game „Kaks õde ja üks apelsin: kuidas pere
+  ühise plaani leiab?” (soft proposals and conditions; SKA perelepitus), 050 new Harno B2 module exam + „Minu kokkuleppe
+  kaart” (S1). Ids, goal keys (046 without g_listen) and archetypes / exam corners (R1, W1, R2b, S2) kept; EXPLAIN for
+  every scored item.
+- Also: `b2/lessonGoals.js` 046–050, `lessonWords/b1b2.json` 046–050, roadmap-04 titles, `art/visuals/b2-module-10.js`
+  (same five pictures, retargeted, no cast), review questions about module 10 in modules 11 (051), 12 (057, 058), 13 (062)
+  and 14 (068) with ids kept; TartuNLP audio: 5 new, 5 old removed; `tools/listening-audio/plan.mjs` (Ljudmila, Olesja
+  female); `language-allow.txt` (dus, likkus, matu); COURSE_DESIGN_STATIONS §4 line; owner summary in Russian
+  `docs/review/b2-m10-tasks.md` (per-lesson table, before → after, four learners, methodologist).
+- Checks: course report module 10 5/5 READY, all 36 B1 / B2 modules 5/5 READY; `npx vitest run
+  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet` 212 files,
+  2385 passed / 12 skipped (studio UI tests timed out once under machine load, pass alone); eslint clean; EstNLTK 0
+  unknown lower-case; all 15 sheets read in the sheet lab (headless Chromium, 1280 px), fixes in the review doc.
+- Merged origin/main with modules 8 (#1276) and 9 (#1278): 036–045 theirs, 046–050 ours (lessonGoals, lesson words);
+  module 11 review keeps both (module 9 and module 10 items); allow list and plan.mjs both sides. 046_d_talk S01 → S12
+  (V2: 044 Avasta also opens with S01). Reuse of the new module 9 words 30.6 % (≥ 30 %). After merge: vitest
+  worksheet-generator / -studio / vocabulary / pet green, EstNLTK 0 unknown, eslint clean.
+- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker.
+- Next safe step: owner reads `docs/review/b2-m10-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-046:discover` …).
 ## 2026-11-19 · agent/b1b2-m09-tasks — B1→B2 module 9 „Tervis ja eluviis” in v4 task-based design · content only
 
 - Base: `origin/main` 4d0e6fe (#1275 merge), checked 2026-11-18; merged up to fed002f (#1273) before push. Draft PR
