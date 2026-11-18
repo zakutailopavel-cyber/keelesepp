@@ -1,11 +1,15 @@
 // Design v4 „task-based” station gates (stations.js, docs/COURSE_DESIGN_STATIONS.md §7): `meta.format` on a station sheet
 // switches them on; a v3 lesson keeps the old rules. A small lesson that passes; each test breaks one thing.
 import { describe, expect, it } from 'vitest';
-import { B, teach } from './blocks.js';
-import { exitCheck, purpose, station } from './stationBlocks.js';
+import { B, tag, teach } from './blocks.js';
+import { exitCheck, homeTask, purpose, station } from './stationBlocks.js';
 import { ST, lessonStationProblems, stationProblems, teacherPage } from './stations.js';
 import { harnoTimedMinutes, isHarnoTimedSheet, sheetMinutes } from '../../../worksheet-studio/didactics/timeEstimate.js';
 import { depthProblems } from '../../../worksheet-studio/didactics/depth.js';
+import { lessonAcademicProblems, lessonRound2Problems } from './academicValue.js';
+import { V4_INPUT, dialogueGaps, isHomeWriting, isListeningRow } from '../../../worksheet-studio/didactics/stations.js';
+import { didacticCheck } from '../../../worksheet-studio/didactics/didacticCheck.js';
+import { finalShapeProblems } from '../../../worksheet-studio/didactics/finalShape.js';
 
 const P = 'Sinu naaber küsib nõu ja vajab vastust täna õhtul.';
 function lesson({ exit = true, page = true, extra = false } = {}) {
@@ -86,5 +90,61 @@ describe('design v4 task-based station gates', () => {
     expect(sheetMinutes(old)).toBeLessThan(20);
     expect(depthProblems(v4).map((p) => p.code)).not.toContain('thin');
     expect(depthProblems(old).map((p) => p.code)).toContain('thin');
+  });
+});
+
+// §7.3 round 3 (owner OK 2026-11-17): four rules changed for v4 only; each test shows the v4 result and the unchanged v3 one
+describe('design v4 gate adjustments (v3 / v2 unchanged)', () => {
+  const words = (n) => `${Array.from({ length: n }, () => 'linn').join(' ')}.`;
+  const meta = (format, phase) => ({ design: 'v3-stations', level: 'B1+', phase, canDo: 'Ma räägin linnast.', ...(format ? { format } : {}) });
+  const doc = (format, phase, blocks) => ({ meta: meta(format, phase), blocks });
+
+  it('1. the long writing done at home is not lesson time: a W1 corner on it has no washback in v4, but still in v3', () => {
+    const letter = tag(homeTask(B.letter('y_t_letter', 'Kiri.', 'Kirjuta kiri.', 'Tere!', 'Lugupidamisega', [120, 150])), { harno: 'W1', task: 'W13', main: true });
+    const make = (format) => ({
+      id: 'b1b2-007', num: 7, module: 2, moduleId: 'b1b2-module-02', assessment: false, archetype: '', lead: null, canDo: 'Ma kirjutan kirja.', goals: {}, canDoGoal: 'g_use', level: 'B1+',
+      stations: true, task: Boolean(format),
+      sheets: { transfer: doc(format, 'transfer', [B.rolecards('y_t_role', 'Räägi.', 'Räägi.', 'A', 'B', ['a'], ['b']), letter]) },
+    });
+    const wash = (format) => finalShapeProblems([make(format)], { profile: 'b2' }).filter((p) => p.check === 'V12-washback');
+    expect(isHomeWriting(letter)).toBe(true);
+    expect(isHomeWriting(homeTask(B.speaking('y_t_home', 'Räägi.', 'Räägi.', ['?'], [60, 120])))).toBe(false);
+    expect(wash('case')).toEqual([]);
+    expect(wash('').length).toBe(1);
+  });
+
+  it('2. a chat without gaps is an input, not a closed task of one item', () => {
+    const chat = purpose(B.dialogue('x_d_chat', 'Vestlus', 'Loe.', 'A', 'B', [['A', 'Tere!'], ['B', 'Tere.'], ['A', 'Kas vesi on ära?'], ['B', 'Jah, kella kolmeni.']]), P);
+    const withChat = () => { const l = lesson(); l.discover.splice(3, 0, chat); return l; };
+    expect(dialogueGaps(chat.data)).toBe(0);
+    expect(codes(lessonStationProblems('x', sheets(withChat())))).not.toContain('st-items');
+    expect(codes(lessonStationProblems('x', sheets(withChat(), {})))).toContain('st-items');
+    const items = (format) => didacticCheck(doc(format, 'discover', [chat])).issues.filter((i) => /x_d_chat:did-items/.test(i.code));
+    expect(items('facts')).toEqual([]);
+    expect(items('').length).toBe(1);
+  });
+
+  it('3. a v4 lesson needs one input of ≥ 120 words or ≥ 60 s of audio besides the hook (station 1)', () => {
+    const hook = station(B.text('z_d_hook', 'Konks', words(130)), 1, 10);
+    const later = (n) => station(B.text('z_d_card', 'Kaart', words(n)), 2, 12);
+    const audio = station(B.listening('z_p_audio', 'Kuula.', 'Kuula.', [words(115)], ['Ta [tuli].']), 3, 12);
+    const av = (format, blocks) => codes(lessonAcademicProblems('z', { discover: doc(format, 'discover', blocks) }));
+    const r2 = (format, blocks) => codes(lessonRound2Problems('z', { discover: doc(format, 'discover', blocks) }));
+    expect(V4_INPUT).toEqual({ textWords: 120, audioWords: 110 });
+    expect(av('quest', [hook, later(125)])).not.toContain('av-voice');
+    expect(r2('quest', [hook, later(125)])).not.toContain('av-boltedon');
+    expect(av('quest', [hook, later(100), audio])).not.toContain('av-voice');
+    expect(av('quest', [hook, later(100)])).toContain('av-voice');
+    expect(r2('quest', [hook, later(100)])).toContain('av-boltedon');
+    // v3: the old rule (≥ 150 words at B1+) — 125 words do not pass
+    expect(av('', [hook, later(125)])).toContain('av-voice');
+  });
+
+  it('4. short listening rows stay out of the sentence-length check in v4 only', () => {
+    const rows = B.choice('w_d_rows', 'Kuula.', 'Märgi sõna.', [['Rida üks?', 'kurk', 'kurg', 'kark'], ['Rida kaks?', 'vaba', 'vana', 'raba'], ['Rida kolm?', 'aeg', 'aed', 'aer'], ['Rida neli?', 'nina', 'tina', 'lina'], ['Rida viis?', 'valu', 'vala', 'palu'], ['Rida kuus?', 'kõrv', 'korv', 'kõrb']], 'full', 'g_listen');
+    const avg = (format) => didacticCheck(doc(format, 'discover', [rows, rows, rows])).issues.filter((i) => i.code === 'did-sentence-avg');
+    expect(isListeningRow(rows)).toBe(true);
+    expect(avg('quest')).toEqual([]);
+    expect(avg('').length).toBe(1);
   });
 });

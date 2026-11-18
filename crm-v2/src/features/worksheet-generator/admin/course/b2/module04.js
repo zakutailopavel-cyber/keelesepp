@@ -97,7 +97,7 @@ export const LESSONS = withShapes({
         'Eesti on omanike maa. Euroopa Liidu statistikaameti Eurostati andmetel elas 2025. aastal oma kodus peaaegu 80 protsenti Eesti elanikest, Euroopa Liidus keskmiselt aga umbes kaks kolmandikku. Turuhinnaga üürikorteris elas Eestis vaid iga kaheteistkümnes inimene. Paljud ostavad kodu laenuga ja maksavad seda pangale tagasi kakskümmend või kolmkümmend aastat. Oma kodu tähendab paljudele kindlust: keegi ei saa üüri tõsta ega lepingut lõpetada.',
         'Üürikorterit vajavad siiski paljud: noored, üliõpilased, uued töötajad ja need, kes on alles Eestisse kolinud. Kodu ostmine on kalliks läinud. Maa- ja Ruumiameti andmetel maksis kasutatud korteri ruutmeeter Tallinnas 2025. aastal keskmiselt 2871 eurot, Tallinna keskmine brutopalk oli Statistikaameti andmetel 2451 eurot kuus. Kogu kuupalga eest ei saaks pealinnas osta isegi ühte ruutmeetrit. Seepärast üüritakse sageli mitu aastat, enne kui on kogutud raha sissemakseks.',
         'Üürimisel on oma reeglid ja need on kirjas võlaõigusseaduses. Lepingu sõlmimisel võib üürileandja küsida tagatisraha. See on raha, mis tagab, et üürnik maksab üüri ja hoiab korteri korras. Seaduse järgi võib tagatisraha olla kuni kolme kuu üür ja üürnik võib selle maksta kolmes osas. Kui üürileping lõpeb, annab üürnik korteri tagasi ja üürileandja maksab tagatisraha tagasi, kui tal ei ole üürniku vastu nõudeid.',
-        'Kõige rohkem vaieldakse selle üle, mida tohib tagatisrahast kinni pidada. Seadus ütleb selgelt: üürnik ei vastuta hariliku kulumise eest, mis kaasneb tavalise elamisega. Kui seinavärv on viie aastaga tuhmunud või põrand veidi kulunud, ei pea üürnik seda kinni maksma. Kui aga üürnik on kapiukse katki teinud või seina sisse augu löönud, võib üürileandja nõuda kahju hüvitamist. Seepärast tasub nii sisse kolides kui ka välja kolides koostada üleandmisakt ja pildistada iga tuba. Kui kokkuleppele ei jõuta, võib vaidluse viia üürikomisjoni, kui see sinu omavalitsuses on, või kohtusse. Enamasti aitab aga juba see, kui üürnik kirjutab rahulikult ja selgelt, mis on tehtud, mis on harilik kulumine ja mida ta palub.',
+        'Kõige rohkem vaieldakse selle üle, mida tohib tagatisrahast kinni pidada. Seadus ütleb selgelt: üürnik ei vastuta hariliku kulumise eest, mis kaasneb tavalise elamisega. Kui seinavärv on viie aastaga tuhmunud või põrand veidi kulunud, ei pea üürnik seda kinni maksma. Kui aga üürnik on kapiukse katki teinud või seina sisse augu löönud, võib üürileandja nõuda kahju hüvitamist. Seepärast tasub nii sisse kolides kui ka välja kolides koostada üleandmisakt, lasta üürileandjal see allkirjaga kinnitada ja pildistada iga tuba. Kui kokkuleppele ei jõuta, võib vaidluse viia üürikomisjoni, kui see sinu omavalitsuses on, või kohtusse. Enamasti aitab aga juba see, kui üürnik kirjutab rahulikult ja selgelt, mis on tehtud, mis on harilik kulumine ja mida ta palub.',
         'Selles moodulis ajad oma asju üürileandja, arsti, klubi ja ametiga. Ütled, mis on tehtud ja mis mitte, mida pead ja tahad teha ning kelle poole pöörduda.',
       ], 'Eurostat, EU-SILC andmed eluaseme omandi kohta (2025); Maa- ja Ruumiamet, korteriturg 2025 (ERR, 25.07.2025); Statistikaamet, keskmine palk 2025 (05.03.2026); võlaõigusseadus § 308 ja § 334 (Riigi Teataja)', [
         'Kas sinu kodumaal on tavalisem kodu üürida või osta? Miks?',
@@ -112,7 +112,7 @@ export const LESSONS = withShapes({
         'Naaber: „Kas tagatisraha tuleb maksta korraga?” | [ei/ei pea/kolmes osas/võib maksta kolmes osas]',
         'Sõbranna: „Seinavärv on viie aastaga tuhmunud. Kas pean selle kinni maksma?” | [ei/ei pea]',
         'Poeg: „Kuhu saab viia vaidluse, kui üürileandjaga kokkuleppele ei jõua?” | [üürikomisjoni/kohtusse/üürikomisjoni või kohtusse]',
-      ], 'g_read'), 'Inimesed sinu ümber küsivad üürimise kohta; nüüd vastad seaduse ja arvudega.'), { task: 'R15', harno: 'R2b' }),
+      ], 'g_read'), 'Inimesed sinu ümber küsivad üürimise kohta; nüüd vastad seaduse ja arvudega.'), { task: 'R15' }),
       tag(purpose(B.writing('016_d_friend', 'Sõber küsib nõu.', 'Sõber kolib homme välja ja kirjutab sulle: „Mida ma pean enne võtmete üleandmist tegema, et tagatisraha tagasi saada?” Vasta talle 3 lausega teksti põhjal.', [3, 3], ['kulumine', 'tuba'], 1, 'g_read'), 'Sõber saab sinu vastusest kolm selget sammu ja hoiab oma raha alles.'), { task: 'W02', level: 3 }),
     ],
     practice: [
@@ -142,7 +142,7 @@ export const LESSONS = withShapes({
         ['Kas kadunud võtmed on lõpuks diivani alt üles leitud?', 'jah, lõpuni', 'alles pooleli', 'ei ole tehtud'],
       ], 'g_listen'), 'Üürileandja küsib, mis on valmis; sina kuuled vormist, kas töö on lõpetatud.'), { task: 'L01' }),
       'Pärast kuulamist küsi iga vastuse juurde: „Mis sõna sulle seda ütles?” (ära, üles, ei, alles, osastav -t / -id / -u). Nii tuleb reegel õpilaselt, mitte sinult.'),
-      tag(purpose(B.writing('016_p_list', 'Minu nimekiri enne võtmete üleandmist.', 'Kirjuta 6 lauset: neli tööd, mille teed lõpuni, ja kaks, mida sa ei tee. Kasuta sõnu ära, üle, puhtaks või ei ja märgi iga lause järele, miks sihitis on täis või osa (lõpp, eitus, pooleli).', [6, 6], ['ära', 'üle', 'ei'], 2, 'g_notice'), 'Nimekirja järgi näed homme, et midagi ei jäänud kogemata tegemata.'), { task: 'G02', level: 3 }),
+      tag(purpose(B.writing('016_p_list', 'Minu nimekiri enne võtmete üleandmist.', 'Kirjuta 6 lauset: neli tööd, mille teed lõpuni, ja kaks, mida sa ei tee. Kasuta sõnu ära, üle, puhtaks või ei ja märgi iga lause järele, miks sihitis on täis või osa (lõpp, eitus, pooleli).', [6, 6], ['ära', 'üle', 'ei'], 2, 'g_notice'), 'Nimekirja järgi näed homme, et midagi ei jäänud kogemata tegemata.'), { task: 'W07', level: 3 }),
     ],
     transfer: [
       station(tag(purpose(B.listening('016_t_voice', 'Üürileandja häälsõnum.', 'Kuula kaks korda ja kirjuta lünka 1–2 sõna või arv.', [
@@ -161,7 +161,7 @@ export const LESSONS = withShapes({
         'Vannitoa [vuugid] on tema sõnul nii tumedad, et vaja on puhastusfirmat.',
         'Kokku tahab üürileandja tagatisrahast endale kinni pidada [300|kolmsada] eurot.',
       ], 'g_listen'), 'Märkmed näitavad, mille eest üürileandja tahab raha kinni pidada; neid vajad vastuseks.'), { task: 'L03' }), 4, 15, { final: 'complain' }),
-      teach(tag(purpose(B.letter('016_t_reply', 'Vastus üürileandjale: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: kiri lõpuni — mida te enne üleandmist tegite, miks tuhm sein on harilik kulumine, mitte kahju, millega sa ei nõustu ja mida nõuad (summa ja tähtaeg).', 'Lugupeetud üürileandja!', 'Lugupidamisega\n(sinu nimi)', [120, 150]), 'Üürileandja loeb sinu kirja ja otsustab, kui suure osa tagatisrahast ta tagasi maksab.'), { task: 'W13', main: true }),
+      teach(tag(homeTask(purpose(B.letter('016_t_reply', 'Vastus üürileandjale: tunnis algus, kodus lõpp.', 'Tunnis: plaan suuliselt ja kaks esimest lauset. Kodus: kiri lõpuni — mida te enne üleandmist tegite, miks tuhm sein on harilik kulumine, mitte kahju, millega sa ei nõustu ja mida nõuad (summa ja tähtaeg).', 'Lugupeetud üürileandja!', 'Lugupidamisega\n(sinu nimi)', [120, 150]), 'Üürileandja loeb sinu kirja ja otsustab, kui suure osa tagatisrahast ta tagasi maksab.')), { task: 'W13', main: true, harno: 'W1' }),
       'Kodutöö. Järgmises tunnis loe kiri kui üürileandja ja vasta suuliselt („Aga kapiuks oli ju katki …”). Tagasiside: täis- ja osasihitis (parandasime kapiukse ära, seina me katki ei teinud), harilik kulumine kui argument, selge palve (summa ja tähtaeg), viisakas, kuid kindel toon.'),
       extension(teach(tag(purpose(B.rolecards('016_t_more', 'Rollimäng: lepi üürileandjaga kokku', 'Räägi üürileandjaga ja saa tagasi nii suur osa tagatisrahast kui võimalik.',
         'Olukord: üürileandja tahab tagatisrahast 300 eurot endale jätta.\nSinu eesmärk: saada 600 eurost tagasi vähemalt 500.\nPiirang: sul on sissekolimise päeva pildid, aga üleandmisakti te ei koostanud.',
@@ -177,7 +177,7 @@ export const LESSONS = withShapes({
       tag(homeTask(purpose(B.speaking('016_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: mida sa enne kolimist kindlasti ära teed ja mida mitte.', [
         'Mida sa enne võtmete üleandmist lõpuni teed?',
         'Millest sa üürileandjaga kindlasti räägid?',
-      ], [60, 120]), 'Õpetaja kuulab sinu sõnumi enne järgmist tundi ja annab ühe nõu.')), { task: 'S15', fluency: true }),
+      ], [60, 120]), 'Õpetaja kuulab sinu sõnumi enne järgmist tundi ja annab ühe nõu.')), { task: 'S15' }),
       homework('016_t_homework', ['1. Kiri üürileandjale, 120–150 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
     ],
   },
@@ -288,11 +288,11 @@ export const LESSONS = withShapes({
         'Jõulude vahel lasteaias käimisest tuleb õpetajale aegsasti [teatada]. (teatama)',
       ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas ma- ja da-tegevusnimi on käes.')), {}),
       purpose(B.selfcheck('017_t_self', ['Ma räägin, kes meie peres teateid loeb ja seletab.', 'Ma panen häälsõnumist kirja, mida tuleb teha ja mida ei tohi.', 'Ma valin pärast tegusõna ma- või da-tegevusnime (peab olema, ei tohi tuua).', 'Ma seletan pereliikmele kooli või lasteaia teate lihtsalt edasi.'], 'Teade selge', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(purpose(B.writing('017_t_msg', 'Kodus: sõnum vanaemale.', 'Kirjuta kodus 120–150 sõna: lasteaia teade sinu enda sõnadega, nii et vanaema saab aru. Kasuta vorme pead, ei tohi ja tuleb.', [8, 10], ['pead', 'ei tohi', 'tuleb'], 3, 'g_use'), 'Vanaema loeb sinu sõnumit ja teab, mida ta detsembris teeb.'), { task: 'W12', level: 3 }),
+      tag(homeTask(purpose(B.letter('017_t_msg', 'Kodus: sõnum vanaemale.', 'Kirjuta kodus 120–150 sõna: lasteaia teade sinu enda sõnadega, nii et vanaema saab aru. Kasuta vorme pead, ei tohi ja tuleb.', 'Kallis vanaema!', 'Kallistan\n(sinu nimi)', [120, 150]), 'Vanaema loeb sinu sõnumit ja teab, mida ta detsembris teeb.')), { task: 'W12', level: 3 }),
       tag(homeTask(purpose(B.speaking('017_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: mida sa lapsena koolis pidid tegema ja mida ei tohtinud.', [
         'Mida pidid sa koolis alati kaasas kandma või tegema?',
         'Mida ei tohtinud koolis teha ja kas see reegel oli õige?',
-      ], [60, 120]), 'Õpetaja kuulab sinu loo ja ütleb, kas tegevusnimed on õiged.')), { task: 'S15', fluency: true }),
+      ], [60, 120]), 'Õpetaja kuulab sinu loo ja ütleb, kas tegevusnimed on õiged.')), { task: 'S15' }),
       homework('017_t_homework', ['1. Sõnum vanaemale, 120–150 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
     ],
   },
@@ -333,12 +333,15 @@ export const LESSONS = withShapes({
     },
     discover: [
       station(B.text('018_d_hook', 'Arva ära!', 'Õpetaja mõtles ühe hobi välja. Sul on kümme küsimust, millele ta vastab ainult „jah” või „ei”. Näiteks: Kas sa tegeled sellega õues? Kas see sõltub ilmast? Kas selleks on vaja teisi inimesi? Siis mõtled sina ühe hobi välja.'), 1, 10),
-      inLesson(teach(tag(purpose(B.speaking('018_d_game', 'Mäng: arva hobi ära.', 'Küsi kuni kümme küsimust, siis vahetate rollid. Lõpuks räägi oma päris hobist.', [
-        'Millega sa vabal ajal kõige meelsamini tegeled?',
-        'Mis sind selle juures kõige rohkem huvitab?',
-        'Kas oled kunagi mõne hobi vastu huvi kaotanud? Miks?',
-      ], [150, 210], ['Kas sa tegeled …?', 'Kas see sõltub …?', 'Kas sa osaled …?']), 'Mäng näitab, kui palju sa juba ütled õige käändega.'), { task: 'S01', fluency: true }),
-      'Mõtle välja hobi (näiteks koorilaul, kalapüük, kudumine). Vasta ainult „jah” või „ei”. Punkt läheb küsijale iga õige rektsiooni eest (Kas sa tegeled sellega …? Kas see sõltub ilmast?). Pärast kahte vooru räägi 2–3 minutit oma päris hobist ja küsi õpilase oma kohta.')),
+      teach(tag(purpose(B.table('018_d_game', 'Mäng: arva hobi ära.', 'Kirjuta oma küsimused ja õpetaja vastused. Siis vahetate rollid ja lõpuks räägid oma päris hobist.', 'Minu küsimus, Jah / ei', [
+        'Kas sa tegeled sellega õues? | ',
+        'Kas see sõltub ilmast? | ',
+        'Kas selleks on vaja teisi inimesi? | ',
+        'Kas sa osaled selles hobis võistlustel? | ',
+        'Minu küsimus: … | ',
+        'Minu küsimus: … | ',
+      ]), 'Mäng näitab, kui palju sa juba ütled õige käändega.'), { task: 'S01', fluency: true }),
+      'Mõtle välja hobi (näiteks koorilaul, kalapüük, kudumine). Vasta ainult „jah” või „ei”. Punkt läheb küsijale iga õige rektsiooni eest (Kas sa tegeled sellega …? Kas see sõltub ilmast?). Pärast kahte vooru räägi 2–3 minutit oma päris hobist ja küsi õpilase oma kohta: „Millega sa vabal ajal kõige meelsamini tegeled? Mis sind selle juures huvitab?”'),
       station(tag(B.vocab('018_d_vocab', 'Enne kuulamist: sõnad.', ['huvi tundma — интересоваться', 'tegelema — заниматься', 'osalema — участвовать', 'sõltuma — зависеть', 'uhke olema — гордиться', 'rahul olema — быть довольным', 'aitama — помогать', 'vabatahtlik — доброволец', 'hobi — хобби', 'koor — хор']), { topic: ['hobi'] }), 2, 15),
       tag(purpose(B.examListen('018_d_radio', 'Raadio: kuidas leida hobi ja seltskonda?', 'Kuula kaks korda: õige või vale?', 'truefalse', [
         'Saatejuht: Tere! Paljud ütlevad, et pärast tööd pole jõudu millegagi tegeleda. Stuudios on vabatahtlike koordinaator Margit Lepp. Margit, kust alustada?',
@@ -383,6 +386,7 @@ export const LESSONS = withShapes({
       'Mäng: kumb leiab vea kiiremini ja ütleb õige küsimuse („Millest? Milles? Mille üle? Millega?”). Iga õige parandus on punkt; omadussõna rida (huvitatud, harjunud, uhke, tänulik) on kaks punkti.'),
     ],
     transfer: [
+      // a group chat of five neighbours: a text with names (B.dialogue shows two speakers only)
       station(B.text('018_t_chat', 'Naabrite vestlus: kes otsib seltsi?', '**Rita:** Tere, naabrid! Meie koor otsib uusi lauljaid, eriti mehi. Harjutame neljapäeviti raamatukogus. Kas keegi tunneb huvi koorilaulu vastu?\n\n**Oleg:** Laulsin koolis kooris, aga nooti ei oska. Kas see on probleem?\n\n**Rita:** Üldse mitte. Peaasi, et osaled proovides regulaarselt.\n\n**Kaia:** Kas keegi tegeleb kudumisega? Tahaksin õppida sokke kuduma, aga üksi ei viitsi.\n\n**Aivar:** Laupäeval kogume poodides toiduabi peredele, kellel on raske. Kaks tundi, kogemust pole vaja. Aitan seal juba kolm aastat ja olen selle üle uhke.\n\n**Liina:** Olen ekraanidest väsinud. Kas keegi käib metsas matkamas? Sõltub ilmast, aga pühapäeviti oleks tore.\n\n**Oleg:** Liina, mina tulen! Olen rahul iga jalutuskäiguga.'), 4, 15, { final: 'present' }),
       tag(purpose(B.table('018_t_match', 'Pere küsib.', 'Vasta vestluse põhjal 1–3 sõnaga.', 'Küsimus, Vastus', [
         'Sinu ema: „Mis päeval koor harjutab?” | [neljapäeviti/neljapäeval]',
@@ -392,13 +396,13 @@ export const LESSONS = withShapes({
         'Sinu naaber: „Kui kaua Aivar on seal juba aidanud?” | [kolm aastat/3 aastat]',
         'Sinu kolleeg: „Millal tahaks Liina metsa matkama minna?” | [pühapäeviti/pühapäeval]',
       ], 'g_read'), 'Sinu pere küsib, kas mõni pakkumine sobib ka neile; sina vastad faktiga.'), { task: 'R11' }),
-      teach(tag(purpose(B.speaking('018_t_intro', 'Tutvusta end korraldajale.', 'Vali vestlusest üks pakkumine ja räägi selle korraldajale 1–2 minutit: kes sa oled, millega tegeled, mille vastu tunned huvi ja milles tahaksid osaleda. Siis vasta tema kahele küsimusele.', [
+      inLesson(teach(tag(purpose(B.speaking('018_t_intro', 'Tutvusta end korraldajale.', 'Vali vestlusest üks pakkumine ja räägi selle korraldajale 2–3 minutit: kes sa oled, millega tegeled, mille vastu tunned huvi ja milles tahaksid osaleda. Siis vasta tema kahele küsimusele.', [
         'Kes sa oled ja millega sa vabal ajal tegeled?',
         'Mille vastu sa tunned huvi ja miks just see pakkumine?',
         'Milles sa oled varem osalenud ja mille üle oled uhke?',
         'Millega oled harjunud ja millega oled oma vabas ajas rahul?',
-      ], [120, 180], ['Ma tegelen …', 'Olen huvitatud …-st', 'Olen harjunud …-ga', 'Olen uhke … üle']), 'Tulemus: korraldaja teab, kes sa oled, ja kutsub sind esimesele kohtumisele.'), { task: 'S16', main: true, level: 4, harno: 'S1' }),
-      'Õpetaja on korraldaja (Rita, Aivar või Liina). Kuula segamata, siis küsi kaks küsimust: 1) „Millega sa saaksid meid aidata peale selle?” 2) „Kas sa saad tulla ka siis, kui …?” (aeg, mis õpilasele ei sobi). Mäng: iga õige rektsioon on punkt; loe punktid kokku ja ütle lõpus. Õnnestunud, kui tutvustuses on vähemalt neli rektsiooni, neist vähemalt kaks omadussõnaga (uhke, rahul, huvitatud, harjunud), ja õpilane vastab mõlemale küsimusele.'),
+      ], [180, 240], ['Ma tegelen …', 'Olen huvitatud …-st', 'Olen harjunud …-ga', 'Olen uhke … üle']), 'Tulemus: korraldaja teab, kes sa oled, ja kutsub sind esimesele kohtumisele.'), { task: 'S16', main: true, level: 4, harno: 'S1' }),
+      'Õpetaja on korraldaja (Rita, Aivar või Liina). Kuula segamata, siis küsi kaks küsimust: 1) „Millega sa saaksid meid aidata peale selle?” 2) „Kas sa saad tulla ka siis, kui …?” (aeg, mis õpilasele ei sobi). Mäng: iga õige rektsioon on punkt; loe punktid kokku ja ütle lõpus. Õnnestunud, kui tutvustuses on vähemalt neli rektsiooni, neist vähemalt kaks omadussõnaga (uhke, rahul, huvitatud, harjunud), ja õpilane vastab mõlemale küsimusele.')),
       extension(teach(tag(purpose(B.speaking('018_t_more', 'Mini-väitlus: kas laps peab huviringis käima?', 'Vali pool: laps peab käima huviringis või laps otsustab ise. Too kaks põhjust ja üks näide.', [
         'Millest sõltub, kas laps tahab trennis käia?',
         'Kas vanemad peaksid lapse eest otsustama? Miks?',
@@ -410,12 +414,12 @@ export const LESSONS = withShapes({
         'Treener on meie uue [võistkonnaga] väga rahul ja kiidab meid. (võistkond)',
         'Kas sa tegeled [spordiga] ka talvel, kui väljas on pime ja külm? (sport)',
       ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas rektsioon on käes.')), {}),
-      purpose(B.selfcheck('018_t_self', ['Ma räägin oma hobist ja küsin teise hobi kohta.', 'Ma saan raadiost ja naabrite vestlusest aru, kes mida soovitab, otsib ja pakub.', 'Ma kasutan rektsiooni ka omadussõnadega: huvitatud millest, harjunud millega, uhke mille üle.', 'Ma tutvustan end korraldajale 1–2 minutiga.'], 'Mäng mängitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(purpose(B.writing('018_t_mail', 'Kodus: kiri korraldajale.', 'Kirjuta kodus 120–150 sõna: kes sa oled, millest oled huvitatud, milles oled varem osalenud, millega oled harjunud ja üks küsimus.', [8, 10], ['huvitatud', 'osalen', 'harjunud'], 2, 'g_use'), 'Korraldaja vastab ja kutsub sind esimesele kohtumisele.'), { task: 'W08', level: 3 }),
+      purpose(B.selfcheck('018_t_self', ['Ma räägin oma hobist ja küsin teise hobi kohta.', 'Ma saan raadiost ja naabrite vestlusest aru, kes mida soovitab, otsib ja pakub.', 'Ma kasutan rektsiooni ka omadussõnadega: huvitatud millest, harjunud millega, uhke mille üle.', 'Ma tutvustan end korraldajale 2–3 minutiga.'], 'Mäng mängitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.letter('018_t_mail', 'Kodus: kiri korraldajale.', 'Kirjuta kodus 120–150 sõna: kes sa oled, millest oled huvitatud, milles oled varem osalenud, millega oled harjunud ja üks küsimus.', 'Tere!', 'Parimate soovidega\n(sinu nimi)', [120, 150]), 'Korraldaja vastab ja kutsub sind esimesele kohtumisele.')), { task: 'W08', level: 3 }),
       tag(homeTask(purpose(B.speaking('018_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: mille vastu sa tunned huvi ja millega tahaksid järgmisel aastal tegeleda.', [
         'Mille vastu sa tunned huvi?',
         'Millega tahaksid järgmisel aastal tegeleda ja miks?',
-      ], [60, 120]), 'Õpetaja kuulab sinu sõnumi ja ütleb, kas rektsioonid on õiged.')), { task: 'S15', fluency: true }),
+      ], [60, 120]), 'Õpetaja kuulab sinu sõnumi ja ütleb, kas rektsioonid on õiged.')), { task: 'S15' }),
       homework('018_t_homework', ['1. Kiri korraldajale, 120–150 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
     ],
   },
@@ -458,9 +462,9 @@ export const LESSONS = withShapes({
     discover: [
       station(B.text('019_d_hook', 'Hääleta kohe!', 'Sinu rong või buss teise linna jäi ära. Mida teed esimesena: helistad koju, otsid teist bussi, kirjutad vedajale või ootad jaamas? Vali üks ja ütle üks põhjus.'), 1, 10),
       inLesson(teach(tag(purpose(B.speaking('019_d_talk', 'Reis, mis läks teisiti.', 'Vasta ja too näide oma elust.', [
-        'Kas sinu reis on kunagi ära jäänud või hilinenud? Mis juhtus ja mida sa tegid?',
+        'Kas sinu reis on kunagi ära jäänud või hilinenud? Mis juhtus ja milline mälestus sellest jäi?',
         'Kas said raha tagasi või abi? Kelle poole sa pöördusid?',
-        'Kumb on sinu arvates parem: oodata või kohe ise uus lahendus leida? Miks?',
+        'Kumb on sinu arvates parem otsus: oodata või kohe ise uus lahendus leida? Miks?',
       ], [150, 210], ['Ma pidin …', 'Ma pöördusin … poole', 'Kõigepealt …']), 'Sinu lugu näitab, mida sa juba tead ja mis sinu plaanist veel puudub.'), { task: 'S07', fluency: true }),
       'Üks-ühele: räägi ka ise üks lugu. Ära paranda; lõpus ütle, mida õpilane tegi oma loos kõige targemini.')),
       station(tag(B.vocab('019_d_vocab', 'Enne kuulamist: sõnad.', ['hilinema — опаздывать', 'ära jääma — отменяться', 'hüvitis — компенсация', 'pilet — билет', 'vedaja — перевозчик', 'reisija — пассажир', 'majutus — проживание', 'tšekk — чек', 'kaebus — жалоба', 'pöörduma — обращаться']), { topic: ['vedaja'] }), 2, 15),
@@ -480,7 +484,7 @@ export const LESSONS = withShapes({
         ['Mida peab üliõpilane pärast ärajäänud bussi õppejõu jaoks tegema?', 'kirjutama e-kirja ja selgitama, mis juhtus', 'tooma arsti tõendi', 'tulema järgmisel päeval uuesti'],
       ]), 'Vastused näitavad, mida inimesed esimesena tegid; see on sinu plaani alus.'), { task: 'L07', harno: 'L2' }),
       tag(purpose(B.profiles('019_d_cards', 'Kolm kaarti: mis on esimene samm?', 'Loe kaarte ja tõmba iga kaardi juures alla kõige tähtsam samm.', [
-        ['Jaamas', ['Küsi, kas sama pilet kehtib asendusbussis või järgmises rongis.', 'Tee pilt teatest või tablool olevast ajast.', 'Pika ootamise korral küsi süüa ja juua.'], []],
+        ['Jaamas', ['Lase teenindajal kinnitada, kas sama pilet kehtib asendusbussis või järgmises rongis.', 'Tee pilt teatest või tablool olevast ajast.', 'Pika ootamise korral küsi süüa ja juua.'], []],
         ['Pärast reisi', ['Kirjuta vedajale kaebus kolme kuu jooksul.', 'Lisa pilet, kellaajad ja tšekid.', 'Vedaja peaks vastama ühe kuu jooksul.'], []],
         ['Kui vastust ei tule', ['Pöördu Tarbijakaitse ja Tehnilise Järelevalve Ameti poole.', 'Hoia kõik kirjad ja tšekid alles.', 'Kontrolli vedaja tingimusi: siseliinidel võivad reeglid olla teised.'], []],
       ], '3'), 'Kaardid näitavad, mida tehakse kõigepealt; sinu plaan tugineb neile.'), { task: 'R01' }),
@@ -502,7 +506,7 @@ export const LESSONS = withShapes({
         ['Pead vedaja kulul hotellis ööbima. Mida teed tšekkidega?', 'Hoian tšekid alles, et kulud tagasi nõuda.', 'Viskan tšekid ära, sest vedaja maksab niikuinii.', 'Annan tšekid kohe hotelli tagasi.'],
         ['Jäid ärajäänud bussi tõttu tööle hiljaks. Mida kirjutad juhile?', 'Vabandan hilinemise pärast ja selgitan, mis juhtus.', 'Vabandan hilinemist ja selgitan, mis juhtus.', 'Vabandan hilinemisega ja selgitan, mis juhtus.'],
         ['Naaber hoidis sinu varuvõtit ja toitis kassi. Mida ütled?', 'Olen sulle abi eest väga tänulik.', 'Olen sulle abiga väga tänulik.', 'Olen sinu abist väga tänulik.'],
-      ], 'full', 'g_notice'), 'Hädas pole aega mõelda; õige samm ja õige lause peavad tulema kohe.'), { task: 'G03' }),
+      ], 'full', 'g_notice'), 'Hädas pole aega mõelda; õige samm ja õige lause peavad tulema kohe.'), { task: 'G02' }),
       'Pärast iga vastust küsi: „Miks teised kaks ei sobi?” Üks on vale sisult, teine vormilt (sihitis, tegevusnimi või rektsioon). Õpilane leiab reegli ise.'),
     ],
     transfer: [
@@ -528,11 +532,11 @@ export const LESSONS = withShapes({
         'Olen vedaja kiire [vastusega] väga rahul: raha tuli nädalaga. (vastus)',
       ], '', 'full', 'g_notice'), 'Kolm lauset näitavad, kas sihitis, tegevusnimi ja rektsioon töötavad koos.')), {}),
       purpose(B.selfcheck('019_t_self', ['Ma räägin reisist, mis läks teisiti, ja mida ma tegin.', 'Ma saan sõnumitest aru, mis on esimene samm.', 'Ma kasutan ühes lauses sihitist, tegevusnime ja rektsiooni.', 'Ma koostan oma plaani B ja seletan selle lähedasele.'], 'Plaan valmis', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
-      tag(purpose(B.writing('019_t_guide', 'Kodus: juhend lähedasele.', 'Kirjuta kodus 120–150 sõna: mida teha, kui rong või buss jääb ära või hilineb. Kasuta vorme pead, tuleb ja pöördu … poole.', [8, 10], ['pead', 'tuleb', 'poole'], 3, 'g_use'), 'Lähedane hoiab juhendit alles ja teab reisil, mida teha.'), { task: 'W05', level: 3 }),
+      tag(homeTask(purpose(B.writing('019_t_guide', 'Kodus: juhend lähedasele.', 'Kirjuta kodus 120–150 sõna: mida teha, kui rong või buss jääb ära või hilineb. Kasuta vorme pead, tuleb ja pöördu … poole.', [10, 14], ['pead', 'tuleb', 'poole'], 3, 'g_use'), 'Lähedane hoiab juhendit alles ja teab reisil, mida teha.')), { task: 'W05', level: 3 }),
       tag(homeTask(purpose(B.speaking('019_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: sinu kolm esimest sammu, kui reis jääb ära.', [
         'Mida pead kõigepealt tegema?',
         'Kelle poole pöördud ja mida hoiad alles?',
-      ], [60, 120]), 'Õpetaja kuulab sinu plaani ja annab ühe nõu.')), { task: 'S15', fluency: true }),
+      ], [60, 120]), 'Õpetaja kuulab sinu plaani ja annab ühe nõu.')), { task: 'S15' }),
       homework('019_t_homework', ['1. Juhend lähedasele, 120–150 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
     ],
   },
@@ -566,7 +570,7 @@ export const LESSONS = withShapes({
         '(D) Kolmas põhjus on kiirus. Teade tuleb telefoni, kui oleme bussis või poe järjekorras, ja me loeme sellest ainult kaks esimest rida. Kooli teatest jääb meelde kuupäev, aga mitte see, et lapsel peab olema kaasas nõusolek. Lasteaia teatest jääb meelde jõulupidu, aga mitte see, et haiget last ei tohi tuua. Hiljem imestame, miks keegi meile midagi ei öelnud. Tegelikult öeldi, aga me ei jõudnud lugemisega lõpuni. Tähtsad teated tasub seepärast avada alles siis, kui on paar rahulikku minutit, mitte poolel teel bussist välja.',
         '(E) Mida siis teha? Kõigepealt tasub igast tähtsast tekstist üles otsida kolm asja: mida pean tegema, mida ei tohi teha ja mis kuupäevaks. Need peituvad tavaliselt sõnades „peab”, „tuleb” ja „ei tohi” ning kuupäevades. Teiseks tasub julgelt küsida. Üürileandja, vedaja ja kool peavad oma tingimusi selgitama ning üks küsimus on palju odavam kui hilisem vaidlus.',
         '(F) Kolmandaks tasub alles hoida kõik, mis on paberil või ekraanil: lepingud, piletid, tšekid ja kirjad. Kui midagi läheb valesti, ei sõltu tulemus sellest, kes räägib valjemini, vaid sellest, kellel on tõend. Paljud on sellele lihtsale harjumusele hiljem väga tänulikud, sest üks foto või paberileht võib säästa sadu eurosid. Telefonis on selleks eraldi kaust kõige lihtsam lahendus: pilet, tšekk ja leping on alati käepärast ka siis, kui oled teel.',
-        '(G) Mõni ütleb, et kõike ei jõua lugeda ja elu on selleks liiga lühike. Ma olen sellega osaliselt nõus. Kõike ei peagi lugema. Kuid need tekstid, mis puudutavad sinu raha, sinu kodu ja sinu last, tasub lugeda rahulikult ja lõpuni, vajaduse korral ka sõnaraamatuga. Ülejäänud elu jaoks jääb siis aega küllalt ja ebameeldivaid üllatusi tuleb palju vähem. Ja kui midagi jääb segaseks, on alati õigus küsida, mida tekst täpselt tähendab, enne kui sellele oma nime alla kirjutad.',
+        '(G) Mõni ütleb, et kõike ei jõua lugeda ja elu on selleks liiga lühike. Ma olen sellega osaliselt nõus. Kõike ei peagi lugema. Minu järeldus on lihtne. Kuid need tekstid, mis puudutavad sinu raha, sinu kodu ja sinu last, tasub lugeda rahulikult ja lõpuni, vajaduse korral ka sõnaraamatuga. Ülejäänud elu jaoks jääb siis aega küllalt ja ebameeldivaid üllatusi tuleb palju vähem. Ja kui midagi jääb segaseks, on alati õigus küsida, mida tekst täpselt tähendab, enne kui sellele oma nime alla kirjutad. Siis ei pea sa hiljem oma allkirja kahetsema.',
         'Allikas: autori arvamus.',
       ].join('\n\n'), [['Millised kolm asja tasub autori sõnul igast tähtsast tekstist üles otsida?', 'mida pean tegema, mida ei tohi teha ja mis kuupäevaks|kohustused, keelud ja tähtajad'], ['Millise teksti oled sina viimati lugemata alla kirjutanud? Mis juhtus?']]),
       tag(B.choice('020_d_mc', 'Osa 1: vali õige vastus (6 punkti).', 'Vali iga küsimuse juurde artikli põhjal üks õige vastus neljast.', [
@@ -630,14 +634,14 @@ export const LESSONS = withShapes({
         '1. Tähelepanu, reisijad! Kell üheksa väljuv rong Tartusse jääb tehnilise rikke tõttu ära. Reisijad saavad sõita asendusbussiga, mis väljub jaama eest kell üheksa kolmkümmend. Rongipiletid kehtivad ka bussis.',
         '2. Tähelepanu, maja elanikud! Kolmapäeval kella kümnest kolmeni ei ole majas sooja vett, sest keldris vahetatakse torusid.',
         '3. Raamatukogu vestlusring alustab uuesti oktoobris. Kohtume teisipäeviti kell kuus teise korruse saalis. Osalemine on tasuta.',
-        '4. Pank hoiatab: meie töötaja ei küsi teilt kunagi telefoni teel PIN-koodi ega paroole. Kui keegi küsib, katkestage kõne ja teatage meile.',
+        '4. Pank hoiatab: petised helistavad pangatöötaja nimel. Meie töötaja ei küsi teilt kunagi telefoni teel PIN-koodi ega paroole. Kui kõne on kahtlane, pange toru ära ja teatage meile.',
       ], [
         'Ärajäänud rongi asemel väljub asendusbuss jaama eest kell [üheksa kolmkümmend|9.30|pool kümme].',
         'Reisijad võivad asendusbussis sõita samade [rongipiletitega|piletitega].',
         'Kolmapäeval kella kümnest kolmeni ei ole majas [sooja vett].',
         'Raamatukogu vestlusring kohtub alates oktoobrist [teisipäeviti|teisipäeval] kell kuus.',
         'Raamatukogu vestlusringis osalemine on kõigile [tasuta].',
-        'Kui keegi küsib telefonis teie PIN-koodi, tuleb kõne kohe [katkestada|lõpetada].',
+        'Kui kõne tundub kahtlane, tuleb kohe toru [ära panna|ära panema].',
       ]),
       tag(B.listening('020_p_listen', 'Kuulamine 2: raadiointervjuu (9 punkti).', 'Kuula intervjuud kaks korda. Täida lausete lüngad 1–2 sõnaga.', [
         'Saatejuht: Tere! Täna räägime üürimisest. Stuudios on üürnike nõustaja Kai Rand. Kai, millega inimesed teie poole kõige sagedamini pöörduvad?',
@@ -869,7 +873,7 @@ export const EXPLAIN = {
     'Teade 2: „ei ole majas sooja vett”.',
     'Teade 3: „Kohtume teisipäeviti kell kuus.”',
     'Teade 3: „Osalemine on tasuta.”',
-    'Teade 4: „katkestage kõne ja teatage meile”.',
+    'Teade 4: „pange toru ära ja teatage meile”.',
   ],
   '020_p_listen': [
     'Kai: „Kõige rohkem küsitakse tagatisraha kohta.”',

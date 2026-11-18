@@ -56,7 +56,7 @@ export const LESSONS = withShapes({
     title: 'Seisukoha väljendamine',
     canDo: 'Ma räägin avalikul arutelul 2–3 minutit oma seisukohast: näitan, kui kindel ma olen (kindlasti, ilmselt, vaevalt), toon kaks põhjust ja ühe kahtluse ning teen ettepaneku.',
     discover: [
-      B.review('021_d_review', [['Moodul 4: mida teed esimesena, kui sinu rong jääb ära? Kelle poole pöördud?', 'b1b2-019'], ['Moodul 3: keda valisid Sofia ja Liis vestluspäeval projektiassistendiks? Miks just teda?', 'b1b2-012'], 'Milline reegel on sinu töökohas või kodus kohustuslik? Kas see on sinu arvates õige?']),
+      B.review('021_d_review', [['Moodul 4: mida teed esimesena, kui sinu rong jääb ära? Kelle poole pöördud?', 'b1b2-019'], ['Moodul 3: mida oled Eesti looduses juba kogenud ja mida pole veel proovinud? Millal see oli?', 'b1b2-012'], 'Milline reegel on sinu töökohas või kodus kohustuslik? Kas see on sinu arvates õige?']),
       // the module's topic opener (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2, topic map B2 row 5: keel + ühiskond):
       // cast-free, story-led, sourced; it replaces the goal text 021_d_goal, whose storyline moved into 021_d_read
       B.topicOpener('021_d_open', 'Teema avaleht: kes otsustab, milline on eesti keel?', [
@@ -171,7 +171,7 @@ export const LESSONS = withShapes({
     title: 'Põhjus → näide → järeldus',
     canDo: 'Ma kirjutan linnaplaneerijale maja nimel 140–160-sõnalise poolametliku kirja, kus on kaks täielikku argumenti (põhjus → näide → järeldus) ja vastus naabri murele.',
     discover: [
-      B.review('022_d_review', [['Mida arvas Jaan koolivormist ja kas ta muutis arutelu lõpuks oma arvamust?', 'b1b2-021'], ['Moodul 3: miks nõudis Sofia bussifirmalt raha tagasi ja kuidas ta oma nõuet põhjendas?', 'b1b2-011'], 'Ütle sama mõte kolmel moel: kindlalt, tõenäoliselt ja kahtlevalt.']),
+      B.review('022_d_review', [['Mida arvas Jaan koolivormist ja kas ta muutis arutelu lõpuks oma arvamust?', 'b1b2-021'], ['Moodul 3: mis oli sinu lapsepõlve pühadelaual? Jutusta kahe lausega lihtminevikus.', 'b1b2-011'], 'Ütle sama mõte kolmel moel: kindlalt, tõenäoliselt ja kahtlevalt.']),
       B.text('022_d_hook', 'Arutelukohviku teine õhtu', 'Täna arutatakse arutelukohvikus Anna pakutud teemat: „Ühistransport peaks olema tasuta kõigile, ka linnakülalistele.” Anna elab Sauel ja sõidab tööle autoga, Viktor tuleb Kõrvemaalt linna bussiga. Enne õhtut kohtusid nad Balti jaama bussipeatuses. Vaata pilti: nad ehitavad argumendisilda. Sild kannab ainult siis, kui kõik neli osa on paigas: seisukoht, põhjus, näide ja järeldus.'),
       B.listening('022_d_stop', 'Bussipeatuses.', 'Kuula Anna ja Viktori vestlust kaks korda. Kirjuta lünka üks kuni kolm sõna.', [
         'Anna: Viktor, tere! Kas sa tuled ka täna arutelukohvikusse?',
@@ -452,7 +452,7 @@ export const LESSONS = withShapes({
     title: 'Kahe lahenduse võrdlemine',
     canDo: 'Ma kirjutan Kalamaja Lehele umbes 180-sõnalise arvamusloo: võrdlen kahte lahendust (vähemalt kaks eelist ja kaks puudust), vastan vastuargumendile ja teen põhjendatud valiku.',
     discover: [
-      B.review('024_d_review', [['Mida otsustas Tuul Logistika meeskond tööaja kohta? Kes mille eest vastutab?', 'b1b2-023'], ['Moodul 2: kas Jaan ja Kadri otsustasid korteri üürida või osta? Too kummagi variandi üks eelis.', 'b1b2-006'], 'Ütle viisakalt, et oled kolleegiga eri meelt. Kasuta sõna „kuigi”.']),
+      B.review('024_d_review', [['Mida otsustas Tuul Logistika meeskond tööaja kohta? Kes mille eest vastutab?', 'b1b2-023'], ['Moodul 2: kuhu sa oma linnas lähed, kui pass on kadunud, ja kust saad hiljem valmis dokumendi?', 'b1b2-006'], 'Ütle viisakalt, et oled kolleegiga eri meelt. Kasuta sõna „kuigi”.']),
       B.text('024_d_hook', 'Kaks lahendust', 'Vaata pilti: Anna ja Jaan võrdlevad autot ja bussi nelja kriteeriumi järgi: hind, aeg, mugavus ja keskkond. Samamoodi võrdleb linn Kalamajas kahte lahendust: uut trammiliini ja odavamat bussirada. Linnaplaneerija Siret tutvustas mõlemat varianti Kalamaja raamatukogus infoõhtul. Sofia kuulas ja tegi märkmeid, sest 10. detsembril toimub samas suur avalik arutelu.'),
       tag(B.listening('024_d_lecture', 'Eksaminurk: linnaplaneerija ettekanne (Harno B2 kuulamine 3).', 'Kuula infoõhtu ettekannet kaks korda ja täida Sofia märkmete lüngad: enamasti on vaja arvu, aega või hinda (1–3 sõna).', [
         'Siret: Head kalamajalased, tere õhtust! Täna võrdleme kahte lahendust, kuidas teie linnaosa ühistransporti parandada.',

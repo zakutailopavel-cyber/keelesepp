@@ -10,7 +10,7 @@
 // errors }`. courseSheet.js puts the built teacher page on every sheet of the lesson (meta.teacherPage); the gates below
 // read only the built sheets. Opt-in per module: MODULE.design: 'v3-stations' (the module's exam lessons keep v2 / v4).
 import { ITEMS } from '../../../worksheet-studio/didactics/depth.js';
-import { STATION_ITEMS, isExitCheck, isStationSheet, isTaskDesign } from '../../../worksheet-studio/didactics/stations.js';
+import { STATION_ITEMS, dialogueGaps, isExitCheck, isStationSheet, isTaskDesign } from '../../../worksheet-studio/didactics/stations.js';
 import { mainText, studentText, words } from './academicValue.js';
 import { EXIT_ITEMS, FINAL_KINDS, NOT_TASKS } from './stationBlocks.js';
 
@@ -107,11 +107,13 @@ const CLOSED_EXTRA = {
   table: (d) => gapsIn(d.rows),
   crossword: (d) => (d.rows || []).length,
 };
-export const closedItems = (b) => {
+// design v4 (§7.3): a chat without gaps is an input, not a closed task — its gaps are counted in the line texts
+export const closedItems = (b, v4 = false) => {
+  if (v4 && b.type === 'dialogue') return dialogueGaps(b.data);
   const f = ITEMS[b.type] || CLOSED_EXTRA[b.type];
   return f ? f(b.data || {}) : 0;
 };
-const isClosed = (b) => isTask(b) && closedItems(b) > 0;
+const isClosed = (b, v4 = false) => isTask(b) && closedItems(b, v4) > 0;
 // no group work at all (the course runs one-to-one) and no monologue said again
 const GROUP = /(?:kolm|kolmelt|kolmele|mitu|mitmelt|kõigilt)\s+(?:inimes|kaaslas|õpilas|naabri)|kaaslastelt|klassikaaslas|kursusekaaslas|(?<!\p{L})rühma|(?<!\p{L})grupis|käi ringi|küsitle (?:kolme|mitut|kõiki)/iu;
 const REPEAT = /(?:kaks|kolm) korda|teist korda|teisel korral|uuesti|iga kord lühemalt|3\s*[-–]\s*2\s*[-–]\s*1|4\s*[-–]\s*3\s*[-–]\s*2/iu;
@@ -155,7 +157,7 @@ export function lessonStationProblems(lessonId, phases) {
   for (const s of list) {
     const [mlo, mhi] = ST.minutes;
     if (!(s.minutes >= mlo && s.minutes <= mhi)) add(s.phase, 'st-minutes', `jaam ${s.n} „${s.title}”: ${s.minutes} min (${mlo}–${mhi})`);
-    const closed = s.blocks.filter((b) => isClosed(b) && !(v4 && isExitCheck(b)));
+    const closed = s.blocks.filter((b) => isClosed(b, v4) && !(v4 && isExitCheck(b)));
     if (closed.length > 1) add(s.phase, 'st-closed', `jaam ${s.n}: ${closed.length} suletud ülesannet (${closed.map((b) => b.id).join(', ')}; kuni 1 ühe sisendi kohta)`);
     for (const b of s.blocks) {
       if (b.data?.opener) continue; // the module's front page (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2) is its own genre
@@ -172,7 +174,7 @@ export function lessonStationProblems(lessonId, phases) {
     for (const b of own(doc).filter(isTask)) {
       const p = String(b.data?.purpose || '').trim();
       if (p.split(/\s+/).filter(Boolean).length < ST.purposeWords) add(phase, 'st-purpose', `${b.id}: eesmärgirida puudub või on liiga lühike (purpose(block, 'kes, kellele, mis tulemus'))`);
-      const n = closedItems(b);
+      const n = closedItems(b, v4);
       if (v4 && isExitCheck(b)) {
         if (phase !== 'transfer' || n < EXIT_ITEMS[0] || n > EXIT_ITEMS[1]) add(phase, 'st-exit', `${b.id}: väljumiskontroll on Kasuta lehel ja sellel on ${EXIT_ITEMS.join('–')} punkti (praegu ${n})`);
       } else if (n && b.type !== 'insertion' && (n < ST.items[0] || n > ST.items[1])) add(phase, 'st-items', `${b.id}: ${n} punkti (suletud ülesanne: ${ST.items.join('–')})`);
