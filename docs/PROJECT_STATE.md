@@ -20,6 +20,31 @@
   §2); per-clip audio files, subheading matching, paging per task and the four-part total are not done.
 - Next safe step: owner / main session review the PR; after merge the content agent switches mock 1 (`exam: 'E9'`,
   `lock`, `lockPlays`, `layout`, `opts.example`, item 0 back into the data and EXPLAIN).
+## 2026-11-18 · agent/b1b2-m05-tasks — B1→B2 module 5 „Arvamus ja põhjendamine” task-based (v4)
+
+- Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „B1→B2 module 5: task-based (v4)”. Content
+  only; not merged, not published, no deploy, no production writes. Modules 6 and 7 are rebuilt in parallel PRs.
+- Done: `b2/module05.js` rewritten in design v4 (`docs/COURSE_DESIGN_STATIONS.md` §7) without the debate-club storyline
+  and the course cast: 021 facts „Kas kella keeramine lõpeb kunagi?” (certainty words), 022 debate „Päris kuusk või
+  kunstkuusk?” (connectors, verb second), 023 case „Mitu tundi ekraani on lapsele liiga palju?” (kuigi / siiski,
+  softening conditional), 024 project „Auto, buss või jalgsi: mis sinu teekond tegelikult maksab?” (comparison), 025 a new
+  Harno B2 module exam „Kontroll 5 — minu seisukoht” with the module product „Minu seisukoht” as S1. Facts checked on the
+  web (EU clock-change survey and vote, ERR 2018 / 2026, Carbon Trust, RMK price list 2025, WHO 2019, Statistikaamet
+  commuting 2003 / 2023). Owner summary in Russian: `docs/review/b2-m05-tasks.md`.
+- Also changed: `b2/lessonGoals.js` (021–025 canDo and goals; g_listen only in 025), `vocabulary/lessonWords/b1b2.json`
+  (021–025), `data/keelesepp-b1-b2-roadmap-02.json` (titles), `art/visuals/b2-module-05.js` + `public/textbook-art/b2/
+  b1b2-021|023` (reused pictures from a2b1-033 and est-c1-037; 022 has none; old 022 / 023 avasta images removed),
+  `listeningAudio.json` + `public/audio/b1b2-021…025` (6 new TartuNLP recordings, 5 old removed), review questions
+  „Moodul 5: …” in `b2/module07.js` (031, 034), `module08.js` (039), `module09.js` (044) — ids kept,
+  `academicValueRound2Baseline.json` regenerated (module 5's and module 3's fixed entries left it).
+- Checks: course report 5/5 READY for module 5 and for every B1→B2 and A2→B1 module; `npx vitest run
+  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary` 199 files / 2206 tests passed;
+  eslint clean on the changed files; EstNLTK 0 unknown lower-case words; all 15 sheets read in the sheet lab
+  (`/sheet-lab.html?set=course:b1b2-02N:<phase>`), fixes listed in the review doc.
+- Limits: synthetic voices not checked by a human ear; Estonian not checked by a native speaker; lesson 022 has no
+  picture (needs a new brief if the owner wants one); conflicts expected with the module 6 / 7 PRs in shared files
+  (lessonGoals, lessonWords, roadmap, module07 review questions) — keep both sides.
+- Next safe step: owner reviews the PR and the 15 sheets; after merge, publish module 5 with the owner's yes.
 
 ## 2026-11-18 · agent/b1b2-k04-tyypsonad — B2 „Käänete kordamine”: k04 „Käänded 4: tüüpsõnad (muuttüübid)”
 
