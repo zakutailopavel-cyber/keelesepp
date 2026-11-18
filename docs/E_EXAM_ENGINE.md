@@ -1,0 +1,71 @@
+# E-exam engine: the worksheet player in the 9th-grade e-exam format
+
+Status: 2026-11-18, branch `agent/e-exam-engine` (draft PR „E-eksami vorm: taimer, kaks kuulamist, lohistamine tekstis,
+näidis 0, sektordiagramm”). The format contract and the content are in `docs/EXAM_9KL_E_EKSAM.md` (content agent, PR
+#1267). This file is the engine's side: which data fields switch each interaction on, and the status of §4's gap table.
+
+Rule: **every option defaults off.** A sheet without these fields renders and scores exactly as before.
+
+## 1. Exam sheet and gates
+
+- `doc.meta.exam = 'E9'` makes a sheet an exam sheet (`engine/examMode.js isExamSheet`). Course files: lesson flag
+  `exam: 'E9'` → `courseSheet.js` copies it to `meta.exam` (keep `assessment: true` as well).
+- On an exam sheet a solved example (`block.opts.example`) is **item 0** and the items count 1… after it (Sheet.jsx gives
+  the block `ctx.numFrom = 0`); without `meta.exam` the numbering is unchanged.
+- Gates (owner 2026-11-18: the exam must match the real format exactly):
+  - `didactics/didacticCheck.js EXAM_EXEMPT`: on an exam sheet these level norms are not checked — `items` (items per
+    task), `example`, `bank`, `closed-share`, `productive`, `progression`, `instruction`, `reading-len`, `reading-inf`,
+    `sentence-avg`, `sentence-max`, `vocabulary`. The solvability checks (≥ 3 options, no give-away answer, true/false
+    absolutes …) still run.
+  - `admin/course/quality.js sheetProblems`: an exam sheet skips the lesson-shape rules (block count, 40–55 min,
+    variety, how it ends, phase jobs); constructor errors, didactic warnings and duplicate ids still count.
+  - Tested in `engine/examMode.test.jsx` („gates”).
+
+## 2. Data fields per interaction (API for the content agent)
+
+| Need | Block | Fields |
+|---|---|---|
+| Exam key | `exampart` | `exam: 'E9'` (harnoScales `E9_EXAM_DATA`: W 70 min / 20 p, L 50 / 20 / 35 items, R 95 / 40 / 65 items, S 24–26 / 20; B1 ≥ 60 %, no part 0). `B.examPart(id, 'L', { exam: 'E9' })` fills minutes, points, tasks, items. `withHarnoExam` never overwrites an `exam` the block has. |
+| Timer + lock | `exampart` | `lock: true`. The learner presses „Alusta aega”, or her first answer / first play starts it. Start stored as answer `<blockId>:$startedAt`; sticky clock over the sheet (in the phone's top bar); at 0 the sheet becomes read-only and is handed in through the normal `submitWorksheet` (no confirm); if that fails, „Esita tööleht” stays. Staff (teacher, admin) see the clock with „eelvaade”, no lock. |
+| Part points | `exampart` | `exam: 'E9'` (or `convert: true` on any exampart with `points`): result banner „II osa · Kuulamine: 13,7 / 20 punkti (24/35 õiget)” + the B1 rule. Denominator = all scored items of the sheet except the example (unanswered = 0). |
+| Heard twice | `examlisten`, `listening` | `plays: 2, lockPlays: true`, optional `playGap` (seconds before the next play starts by itself, default 10; 0 = learner presses play). One play button, no pause / seek, „Kuulamisi jäänud: 1 / 2”. Count stored as `<blockId>:$plays` (per clip `$plays.<i>`). Staff and a checked sheet play freely. |
+| 1.3 clips | `examlisten` mode `choice` | `questions[i].situation` („Kuuled telefonisõnumit.”) and optional `questions[i].audio` ({ src }) → table number · situation (+ own player) · question. Audio tool: one file per clip is still to do (tools/listening-audio). |
+| 1.1 speakers | `examlisten` mode `speakers` | `topic`, `claims: [text …]` (lettered A, B …), `speakers: [{ name, img?, answer: 'D' }]`. Row per speaker (photo or initials), letter dropdown, a letter used by another speaker is disabled; statement table beside (above on a phone). `opts.example` → speaker 0 solved. `explain`: one line per speaker (incl. 0). |
+| 2.1 chat | `insertion` | `layout: 'chat'`; `passage` one line per turn „**Nimi:** text”, a taken-out reply is the whole line „**Nimi:** [[reply]]”; `extra` = extra replies. Bank beside (sticky under the chat on a phone). |
+| 2.2 / 2.4 drag | `insertion` | `layout: 'chips'`; running text with `[[word or phrase]]`; `extra` = extra chips (one per line). Bank in alphabetical order (`bankOrder: 'mixed'` = mixed by block id). Mouse: drag; touch: tap chip → tap gap; keyboard: Enter on chip → Enter on gap, Delete empties a gap. Each chip once. Scoring unchanged (gap i ↔ i-th `[[ ]]`). |
+| Item 0 | `cloze`, `formtext`, `insertion` (+ already `gaps`, `choice`, `truefalse`, `adsmatch`, `examlisten`) | `opts.example: true` → the first gap / row filled, greyed, read-only, never scored. Put item 0 back into the data and its line into `EXPLAIN`. |
+| 2.7 base form | `formtext` | `hint: 'inside'` → the base form is the field's grey placeholder (on paper inside the box), not „(base)” after it. |
+| W1 letter | `examwriting` | `letterSubject`, `letter: [{ text, note?, side?: 'left' \| 'right' }]` → e-mail card, notes in the margin with arrows (under the sentence on a phone). `about: 'u 100 sõna'` → counter „n sõna · u 100 sõna” without range colours. |
+| W2 genre / pie | `examwriting`, `chart` | `genre: 'kokkuvote' \| 'arutlus'`; `chart.kind: 'pie'`, `rows: 'Silt \| 34'` one value per row (2–8 slices), `unit: '%'`. Colours are tokens `--ws-chart-1…8`; labels outside with % so it reads in black and white. |
+| Rubrics | `examrubric` | `scale: 'E9W'` (content 0–5 + language 0–5), `'E9S'` (two raters × 0–10). |
+
+Mistakes after hand-in (`engine/mistakes.js`, MistakesPanel) work for all of these: speakers show „B — statement”, drag
+tasks the chosen chip text, with the right answer and the `explain` line.
+
+## 3. Gap table status (EXAM_9KL_E_EKSAM.md §4)
+
+| Need | Status |
+|---|---|
+| Part header + timer, lock, save at 0; E9 key; not overwritten by `withHarnoExam` | DONE |
+| Item 0 solved in cloze, formtext, insertion; exam-sheet exemption from the „example” norm | DONE |
+| Audio heard twice (`lockPlays`) | DONE |
+| One audio per clip (1.3) | DONE in the engine; per-clip files from the audio tool: TODO |
+| Speakers ↔ statements A–I | DONE |
+| Subheading ↔ part of recording | TODO (same form with `parts`) |
+| Drag replies into a dialogue (2.1) | DONE (`layout: 'chat'`) |
+| Drag words / text parts into a text (2.2, 2.4) | DONE (`layout: 'chips'`) |
+| Sentence endings by drag (2.5) | not done (adsmatch dropdown stays; optional) |
+| Base form inside the gap (2.7) | DONE (`hint: 'inside'`) |
+| Letter with arrow notes (W1) | DONE |
+| Counter „n sõna · u 100 sõna” | DONE (`about`) |
+| Genres kokkuvõte / arutlus | DONE |
+| Pie chart | DONE |
+| Rubric scales E9W, E9S | DONE |
+| Part points 35 → 20, 65 → 40 | DONE (per sheet); the mock's total over four sheets: TODO |
+| Paging one task per screen, bookmarks | not done (nice to have) |
+
+## 4. Where to see it
+
+Sheet lab: `/sheet-lab.html?set=eexam-w`, `eexam-l`, `eexam-r` (`src/test/sheetLab/examSample.js`, a short excerpt of
+mock 1; the lab user is a student, so the lock is on). The recordings are mock 1's files in `public/audio/a2b1-ee1-l/` (on the content
+branch). e2e: `cd e2e && npx playwright test -c playwright.layout.config.cjs -g "e-exam"`.

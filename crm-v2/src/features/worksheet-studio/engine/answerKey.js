@@ -5,6 +5,7 @@
 // „Õpetaja võti”); the student's player never renders it.
 import { BLOCKS, numberTasks } from './registry.js';
 import { groupItems } from './schema.js';
+import { LISTEN_MODES } from './blocks/harno.jsx';
 
 const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
 const blank = (text) => String(text || '').replace(/\[[^\]]*\]/g, '___').replace(/\{[^}]*\}/g, '___').trim();
@@ -59,7 +60,9 @@ function itemsOf(block) {
       return (d.situations || []).map((s) => ({ prompt: s.text, answer: String(s.answer || '').split(/[|,/]/).map((x) => x.trim().toUpperCase()).filter(Boolean)
         .map((l) => { const ad = (d.ads || [])['ABCDEFGHIJKLMN'.indexOf(l)]; return ad?.title ? `${l} (${ad.title})` : l; }).join(' / ') }));
     // exam listening: the items of its choice / true-false / matching task
+    // (the e-exam's speakers ↔ statements: one item per speaker, the letter with its statement)
     case 'examlisten':
+      if (d.mode === 'speakers') return LISTEN_MODES.speakers.keyItems(d);
       return itemsOf({ ...block, type: ['choice', 'truefalse', 'match'].includes(d.mode) ? d.mode : 'choice' });
     default:
       if (typeof def?.answers !== 'function') return [];

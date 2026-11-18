@@ -11,6 +11,7 @@ import VoiceRecorder, { canRecord } from '../../editor/VoiceRecorder.jsx';
 import { Mic } from 'lucide-react';
 import { AudioBar } from '../ui.jsx';
 import { ListenAudio, ListenTranscript } from '../ListenTranscript.jsx';
+import { playLimit } from '../metaKeys.js';
 import { FigureFlow } from '../FloatFigure.jsx';
 import { TextFigureFields } from '../../editor/FigureFields.jsx';
 
@@ -135,14 +136,29 @@ export function AudioPick({ value, onChange }) {
     </div>
   );
 }
+// the exam's „heard twice”: the learner's player gives the recording `plays` times, without pause or seeking
+export function PlaysFields({ data, set }) {
+  return (
+    <>
+      <label className="ed-check"><input type="checkbox" checked={Boolean(data.lockPlays)} onChange={(e) => set({ lockPlays: e.target.checked, ...(e.target.checked && !data.plays ? { plays: 2 } : {}) })} /> Eksami kuulamine: salvestust saab kuulata ainult määratud arv kordi (ilma pausi ja kerimiseta)</label>
+      {data.lockPlays ? (
+        <div className="ed-row">
+          <Text label="Mitu korda" value={String(data.plays ?? 2)} onChange={(v) => set({ plays: Math.max(1, Math.min(5, Number(v) || 1)) })} />
+          <Text label="Paus kuulamiste vahel (s)" value={String(data.playGap ?? 10)} onChange={(v) => set({ playGap: Math.max(0, Math.min(60, Number(v) || 0)) })} />
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 export const listening = {
   type: 'listening', label: 'Kuulamine + küsimused', group: 'Tekst ja heli', icon: 'Headphones', task: true, width: 'half', tone: 'sky',
   create: () => ({ title: 'Kuula.', instruction: 'Kuula ja täida laused.', audio: null, sentences: 'Mari ärkab kell [seitse|7].\nTa joob [kohvi].', transcript: '' }),
   View: ({ data, ctx, id }) => (
     <div className="ws-listen">
-      {data.partOf ? null : data.audio?.src ? <ListenAudio id={id} audio={data.audio} interactive={ctx.interactive || ctx.review} label="Kuula" /> : <div className="ws-hint">Helifail puudub.</div>}
+      {data.partOf ? null : data.audio?.src ? <ListenAudio id={id} audio={data.audio} interactive={ctx.interactive || ctx.review} label="Kuula" limit={ctx.interactive ? playLimit(data, ctx) : null} /> : <div className="ws-hint">Helifail puudub.</div>}
       <ListenTranscript id={id} type="listening" data={data} ctx={ctx} />
-      <ol className="ws-gaps" start={(ctx.start || 0) + 1}>{String(data.sentences || '').split('\n').filter((l) => l.trim()).map((l, i) => <li key={i} data-edit={`sentences#${i}`}><GapText text={l} ctx={ctx} prefix={`${i}`} /></li>)}</ol>
+      <ol className="ws-gaps" start={(ctx.start || 0) + (ctx.numFrom ?? 1)}>{String(data.sentences || '').split('\n').filter((l) => l.trim()).map((l, i) => <li key={i} data-edit={`sentences#${i}`}><GapText text={l} ctx={ctx} prefix={`${i}`} /></li>)}</ol>
     </div>
   ),
   answers: (data) => String(data.sentences || '').split('\n').filter((l) => l.trim()).flatMap((l, i) => gapKeys(l, `${i}`)),
@@ -151,6 +167,7 @@ export const listening = {
   Editor: ({ data, set }) => (
     <>
       <AudioPick value={data.audio} onChange={(audio) => set({ audio })} />
+      <PlaysFields data={data} set={set} />
       <Area label="Laused (lünk nurksulgudes)" rows={5} value={data.sentences} onChange={(v) => set({ sentences: v })} />
       <Area label="Kuulamise tekst" rows={3} value={data.transcript} onChange={(v) => set({ transcript: v })} hint={TRANSCRIPT_HINT} />
       <SpeakPanel type="listening" data={data} set={set} />
@@ -303,7 +320,7 @@ export const wordorder = {
   type: 'wordorder', label: 'Sõnajärg (moodusta lause)', group: 'Grammatika ja sõnavara', icon: 'ArrowDownUp', task: true, width: 'half', tone: 'sky',
   create: () => ({ title: 'Moodusta lause.', instruction: 'Pane sõnad õigesse järjekorda.', sentences: 'Ma ärkan tavaliselt kell seitse.\nÕhtul ma vaatan filmi.' }),
   View: ({ data, ctx }) => (
-    <ol className="ws-order" start={(ctx.start || 0) + 1}>
+    <ol className="ws-order" start={(ctx.start || 0) + (ctx.numFrom ?? 1)}>
       {String(data.sentences || '').split('\n').filter((l) => l.trim()).map((s, i) => (
         <li key={i}>
           <div className="ws-chips" data-edit={`sentences#${i}`} title="Topeltklõps: muuda õiget lauset">{ctx.flow && ctx.interactive ? <TapWords words={scramble(s)} value={ctx.get(`${i}`)} onChange={(v) => ctx.set(`${i}`, v)} /> : scramble(s).map((w, k) => <span key={k} className="ws-chip">{w}</span>)}</div>

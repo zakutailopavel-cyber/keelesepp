@@ -7,6 +7,9 @@ import { SHEET_MINUTES, blockMinutes, sheetMinutes } from '../../../worksheet-st
 import { harnoFor } from '../../../worksheet-studio/didactics/levels.js';
 import BASELINE from './qualityBaseline.json';
 import { isStationSheet, stationProblems } from './stations.js';
+import { isExamSheet } from '../../../worksheet-studio/engine/examMode.js';
+
+export { isExamSheet };
 
 export const MIN_DIDACTIC_SCORE = 85;
 const FORM = ['gaps', 'wordforms', 'table', 'transformation', 'dictation', 'translation'];
@@ -61,6 +64,11 @@ export function sheetProblems(doc) {
     if (!tasks(doc).length) out.push({ code: 'diagnostic-empty', text: 'kontroll: lehel pole ülesandeid' });
     return out;
   }
+  // an exam sheet (meta.exam, the 9th-grade e-exam mocks, docs/EXAM_9KL_E_EKSAM.md): one part of the real exam in its own
+  // format (owner 2026-11-18: „the exam must match the real format exactly”) — not a lesson, so the lesson-shape rules
+  // (block count, 40–55 min, task variety, how it ends, the phase jobs) do not apply; the constructor's errors, the
+  // didactic check with its exam exemptions (didacticCheck.js EXAM_EXEMPT) and the ids still do
+  if (isExamSheet(doc)) return out;
   if (isOral(doc)) {
     if (!(doc.blocks || []).some((b) => b.type === 'speaking')) out.push({ code: 'oral-empty', text: 'suuline tund: lehel pole rääkimisülesandeid' });
     return out;
