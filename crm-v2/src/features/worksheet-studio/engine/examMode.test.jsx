@@ -120,7 +120,7 @@ describe('a recording heard a set number of times', () => {
     expect(answers).toEqual({ '$plays.3': 1 });
   });
   it('one play button, no controls (no pause, no seeking); a play counts when the sound starts; none left = disabled', () => {
-    const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(function play() { this.dispatchEvent(new Event('play')); return Promise.resolve(); });
+    const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(function play() { this.dispatchEvent(new globalThis.Event('play')); return Promise.resolve(); });
     const onUse = vi.fn();
     const { container, rerender } = render(<LimitedAudio src="/a.mp3" plays={2} used={0} gapSec={0} onUse={onUse} />);
     expect(container.querySelector('audio').hasAttribute('controls')).toBe(false);
@@ -128,7 +128,7 @@ describe('a recording heard a set number of times', () => {
     fireEvent.click(container.querySelector('.ws-plays-btn'));
     expect(onUse).toHaveBeenCalledWith(1);
     rerender(<LimitedAudio src="/a.mp3" plays={2} used={2} gapSec={0} onUse={onUse} />);
-    act(() => { container.querySelector('audio').dispatchEvent(new Event('ended')); });
+    act(() => { container.querySelector('audio').dispatchEvent(new globalThis.Event('ended')); });
     expect(container.querySelector('.ws-plays-btn').disabled).toBe(true);
     expect(screen.getByRole('status').textContent).toBe('Salvestus on kuulatud.');
     play.mockRestore();
