@@ -64,7 +64,9 @@ describe.each(COURSE_MODULES.filter((mod) => STRICT_MODULES.includes(mod.MODULE.
 describe('exam-part headers name the course exam', () => {
   it.each([['a2', 'A2'], ['b1', 'B1'], ['b2', 'B2'], ['enb2', 'EN-RE']])('course %s → Harno %s', (course, level) => {
     const parts = COURSE_MODULES.filter((m) => m.MODULE.course === course)
-      .flatMap((m) => Object.values(moduleSheets(m)).flatMap((sheets) => Object.values(sheets).flatMap((doc) => doc.blocks)))
+      .flatMap((m) => Object.values(moduleSheets(m)).flatMap((sheets) => Object.values(sheets)))
+      // an exam sheet of another format (meta.exam: the 9th-grade e-exam mock in the B1 course) names its own exam
+      .filter((doc) => !doc.meta?.exam).flatMap((doc) => doc.blocks)
       .filter((b) => b.type === 'exampart');
     expect(parts.length).toBeGreaterThan(0);
     expect([...new Set(parts.map((b) => b.data.exam))]).toEqual([level]);

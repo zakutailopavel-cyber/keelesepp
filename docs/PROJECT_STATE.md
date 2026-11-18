@@ -1,3 +1,29 @@
+## 2026-11-18 · agent/exam-9kl-e-eksam — mock 1 switched to the e-exam engine (PR #1267, round 2)
+
+- Base: merged `origin/main` efbac8b (#1270 e-exam engine, modules 5–7) into the branch, 2026-11-18. Draft PR #1267, not
+  merged, not published, no deploy.
+- Mock 1 (`admin/course/b1/eeksam.js`) now uses the engine of PR #1270 (`docs/E_EXAM_ENGINE.md` §2): lesson flag
+  `exam: 'E9'` on the three written parts; part header `B.examPart(…, { exam: 'E9', lock: true })` with the official
+  minutes (70 / 50 / 95) and points; every listening task heard twice (`plays: 2, lockPlays: true, playGap: 10`); 1.1
+  `mode: 'speakers'`; 1.3 clip table with a situation per clip; 2.1 `layout: 'chat'`; 2.2 / 2.4 `layout: 'chips'`; 2.7
+  `hint: 'inside'`; W1 letter card with margin notes + `about: 'u 100 sõna'`; W2 pie chart + genre `kokkuvote`; rubrics
+  E9W / E9S.
+- Exact item counts of the sample with a solved item 0 in every task (`opts.example`): listening 6 + 7 + 7 + 7 + 8 = 35,
+  reading / structure 5 + 13 + 7 + 10 + 10 + 10 + 10 = 65. The filler blocks (strategy lists, notes, reflection,
+  self-checks, plan box) are gone. `eeksamKey.js` has a „why” for every scored item incl. item 0. Transcripts unchanged,
+  so the recordings stay valid.
+- Tests: `course.test.js` — the B1 course's exam-part headers must name B1 except on an exam sheet of another format
+  (`meta.exam`); `b1/eeksam.test.js` checks 35 / 65, `meta.exam`, item 0 in every scored task, heard twice, one „why” per
+  scored item.
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator src/features/worksheet-studio` 179 files / 2152
+  tests passed, 12 skipped; eslint on `admin/course/b1` + `course.test.js` clean. Sheet lab (`/sheet-lab.html?set=course:
+  a2b1-ee1-<w|l|r|s>:discover`, student view) read at 1280 and 375 px with Playwright, screen by screen (99 screenshots,
+  no horizontal overflow, no console errors): counters 0/6, 0/35, 0/65; speakers, chat, chips, letter card, pie chart and
+  „Kuulamisi jäänud 2 / 2” render.
+- Seen, for the UI: the A4 paging of the player leaves a large blank area after the part header and puts the W2 chart and
+  its task on different pages; 2.5 rows have no item numbers (0, 1 …) and use dropdowns.
+- Next safe step: owner merges #1267 and publishes the four mock sheets; then one audio file per clip for 1.3.
+
 ## 2026-11-18 · agent/exam-9kl-e-eksam — 9. klassi e-eksam: format, engine gaps, B1 mock 1 (draft)
 
 - Base: `origin/main` a5f152f (#1266 merge), checked 2026-11-18. Draft PR „9. klassi e-eksam: format, engine gaps, mock 1

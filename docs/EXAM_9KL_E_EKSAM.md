@@ -118,6 +118,12 @@ discussion on 1–2 topics; pro / contra debate towards an agreement. Marked 0�
 
 ## 4. Engine gap table (for the UI PR)
 
+**Status 2026-11-18:** built in PR #1270 (fields: `docs/E_EXAM_ENGINE.md` §2) and mock 1 uses it — exam key `E9` with
+the locking timer, item 0 in every task, heard twice, `speakers`, clip table, `chat` / `chips`, `hint: 'inside'`, letter
+card, pie chart, `kokkuvote`, E9W / E9S, part points. Still open: one audio file per clip (1.3, audio tool), subheading
+matching (mock 2), 2.5 by drag, paging one task per screen, the mock's total over its four sheets. The table below is the
+original analysis.
+
 „Block now” = what our mocks use today. „Waits” = the block ids that should move to the new interaction. Blocks are in
 `crm-v2/src/features/worksheet-studio/engine/blocks/*`; the course builders in `admin/course/blocks.js`.
 
@@ -159,14 +165,14 @@ A supplement of the B1 course, so any teacher can assign it to any B1 learner (t
 
 | Lesson | Sheet | Content |
 |---|---|---|
-| `a2b1-ee1-w` | I osa · Kirjutamine (70 min) | W1 reply to Kris about a museum night (4 notes, 80–120 words); W2 summary of a bar chart (instead of pie, see §4) „Kuidas jõuad tavaliselt kooli või tööle?” (invented data, labelled), 4 bullet tasks, 130–190 words; a plan box, two 9th-grade rubrics (0–5 + 0–5), a check list, self-check |
-| `a2b1-ee1-l` | II osa · Kuulamine (50 min) | 1.1 six speakers on reading ↔ statements A–I (2 extra); 1.2 volunteer sea rescuer Kertu, 7 × 3 options; 1.3 seven clips (dentist message, mall announcement, friends, weather, young entrepreneur, lecture on sleep and memory, swap market ad), 7 × 3 options; 1.4 interview on the „Teeme ära” clean-up (real facts), 7 × true / false; 1.5 Soomaa guide, 8 gaps; strategy list, notes box, reflection, self-check |
-| `a2b1-ee1-r` | III osa · Lugemine ja keele struktuur (95 min) | 2.1 phone chat about a hike (Viru raba / Pakri), 6 replies + 2 extra; 2.2 Eesti Rahva Muuseum, 10 gaps from a bank of 14; 2.3 article on sleep (AASM recommendations), 9 × 3 options; 2.4 a volunteer's Saturdays at an animal shelter, 10 parts + 2 extra; 2.5 cycling, 10 beginnings ↔ 11 endings; 2.6 Lahemaa, 10 dropdown gaps; 2.7 „Minu esimene palk”, 10 base-form gaps; reflection, self-check |
+| `a2b1-ee1-w` | I osa · Kirjutamine (70 min, timer with lock) | W1 reply to Kris about a museum night: the e-mail as a letter card with 4 margin notes (`examwriting.letter`), counter „n sõna · u 100 sõna”; W2 „kokkuvõte” of a **pie chart** „Kuidas jõuad tavaliselt kooli või tööle?” (invented data, labelled), 4 bullet tasks, „u 160 sõna”; two E9W rubrics (0–5 + 0–5) for the teacher |
+| `a2b1-ee1-l` | II osa · Kuulamine (50 min, timer with lock, every text heard twice) | 1.1 speakers ↔ statements A–I (`mode: 'speakers'`, Helen = item 0, 6 items, 2 extra); 1.2 volunteer sea rescuer Kertu, 0 + 7 × 3 options; 1.3 clip table with a situation line per clip (radio news = item 0, then dentist message, mall announcement, friends, weather, young entrepreneur, lecture, swap market ad), 0 + 7; 1.4 interview on „Teeme ära” (real facts), 0 + 7 true / false; 1.5 Soomaa guide, 0 + 8 gaps |
+| `a2b1-ee1-r` | III osa · Lugemine ja keele struktuur (95 min, timer with lock) | 2.1 phone chat about a hike (`layout: 'chat'`), 0 + 5 replies, 2 extra; 2.2 Eesti Rahva Muuseum (`layout: 'chips'`), 0 + 13 gaps, bank of 18 (4 extra); 2.3 article on sleep (AASM), 0 + 7 × 3 options; 2.4 a volunteer's Saturdays at an animal shelter (`chips`), 0 + 10 parts, 2 extra; 2.5 cycling, 0 + 10 beginnings ↔ 12 endings (1 extra); 2.6 Lahemaa, 0 + 10 dropdown gaps; 2.7 „Minu esimene palk”, 0 + 10 base-form gaps (`hint: 'inside'`) |
 | `a2b1-ee1-s` | Suuline osa (with the teacher, ~15 min) | teacher card; intro questions; opinion card „Igaüks peaks vähemalt korra elus tegema vabatahtlikku tööd”; call about an ad (cycling trip) with question / answer cards and a swap (guitar lessons); discussion „more people on bikes” with a pro / contra on paid parking and a joint decision; speaking rubric |
 
-Item counts: listening 35, reading and structure 65 (2.1 + 1, 2.2 − 3, 2.3 + 2 against the sample, because the B1
-level norm of the sheet gate allows at most 10 items a task; totals as in [E9]). Item 0 of each task stands solved in its
-instruction (§4 „Item 0”).
+Item counts (2026-11-18, after the engine PR #1270): exactly the sample's — listening 6 + 7 + 7 + 7 + 8 = 35, reading and
+structure 5 + 13 + 7 + 10 + 10 + 10 + 10 = 65 — each task with item 0 solved (`opts.example`, numbered 0, not scored).
+The sheets are exam sheets (`exam: 'E9'`): the lesson-shape and level norms that would bend the format are not checked.
 
 Real facts and sources: Teeme ära 2008 (≈ 50 000 people, ≈ 10 000 t, World Cleanup Day each September — teemeara.ee,
 worldcleanupday.org); Soomaa (national park since 1993, „viies aastaaeg”, rabakingad — Keskkonnaamet); ERM (founded
@@ -174,7 +180,7 @@ worldcleanupday.org); Soomaa (national park since 1993, „viies aastaaeg”, ra
 (AASM 2016 / 2015: 13–18-year-olds 8–10 h, adults ≥ 7 h); Lahemaa (1971, the first national park, Palmse, Käsmu —
 Keskkonnaamet, loodusegakoos.ee). The people, the chart data and the events in the recordings are invented.
 
-Audio: TartuNLP Neurokõne through `tools/listening-audio/build.mjs` (one file per block; per-clip files wait for §4).
+Audio: TartuNLP Neurokõne through `tools/listening-audio/build.mjs` (one file per block, played twice with `lockPlays`; 1.3 still has one file for its eight clips — per-clip files from the audio tool are the open piece).
 
 ### 5.2 Practice of the task types in the A2 → B1 course (`admin/course/b1/eeksamHarjutus.js`)
 
