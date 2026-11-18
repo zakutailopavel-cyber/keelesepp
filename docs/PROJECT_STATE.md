@@ -17,7 +17,7 @@
   and 14 (068) with ids kept; TartuNLP audio: 5 new, 5 old removed; `tools/listening-audio/plan.mjs` (Ljudmila, Olesja
   female); `language-allow.txt` (dus, likkus, matu); COURSE_DESIGN_STATIONS §4 line; owner summary in Russian
   `docs/review/b2-m10-tasks.md` (per-lesson table, before → after, four learners, methodologist).
-- Checks: course report module 10 5/5 READY and all B1 / B2 modules (see PR); `npx vitest run
+- Checks: course report module 10 5/5 READY, all 36 B1 / B2 modules 5/5 READY; `npx vitest run
   src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet` 212 files,
   2385 passed / 12 skipped (studio UI tests timed out once under machine load, pass alone); eslint clean; EstNLTK 0
   unknown lower-case; all 15 sheets read in the sheet lab (headless Chromium, 1280 px), fixes in the review doc.

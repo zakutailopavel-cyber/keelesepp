@@ -118,7 +118,7 @@ Harvard Gazette, Robert Waldinger (исследование с 1938 г.; удо�
 
 ## Проверки
 
-- Отчёт курса: модуль 10 — 5/5 READY; все модули B1 и B2 — см. PR (5/5 READY).
+- Отчёт курса: модуль 10 — 5/5 READY; все 36 модулей B1 и B2 — 5/5 READY.
 - `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet`
   — 212 файлов, 2385 тестов зелёные (12 пропущено; несколько UI-тестов студии один раз упали по таймауту под нагрузкой
   машины и прошли отдельно); eslint чистый.
