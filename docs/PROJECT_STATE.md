@@ -1,6 +1,6 @@
 ## 2026-11-18 · agent/direction-format-group — „Õppesuunad: individuaalne / grupp” · student card + finance (rules + functions)
 
-- Base: `origin/main` b0fda14 (release 2026-11-17 09:54 UTC), checked 2026-11-18. Draft PR „Õppesuunad: individuaalne /
+- Base: `origin/main` b0fda14 (release 2026-11-17 09:54 UTC), checked 2026-11-18. Draft PR #1264 „Õppesuunad: individuaalne /
   grupp — eraldi hind ja tunnid”, not merged. Team request 2026-11-18 (#improvement #student_card #high_priority).
 - Done: a direction has `format` (`enrollments[i].format: 'group'`, optional `groupId`; absent = individual). Group
   price `studentRevenuePlans.groupPrices[subject]`; group package `tokenFormat: 'group'`. A lesson with `groupId` is a
