@@ -8,7 +8,7 @@ const MIN_GAMES = 2;
 function courseLessons() {
   return COURSE_MODULES.filter((mod) => (mod.MODULE.language || 'et') === 'et').flatMap((mod) => {
     const sheets = moduleSheets(mod);
-    return Object.keys(mod.LESSONS).filter((id) => !mod.LESSONS[id].assessment).map((id) => ({ id, phases: sheets[id] }));
+    return Object.keys(mod.LESSONS).filter((id) => !mod.LESSONS[id].assessment && !mod.LESSONS[id].noGames).map((id) => ({ id, phases: sheets[id] }));
   });
 }
 
