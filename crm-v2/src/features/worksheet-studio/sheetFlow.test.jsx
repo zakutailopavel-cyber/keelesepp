@@ -6,7 +6,7 @@ import WorksheetPlayer from '../homework/WorksheetPlayer.jsx';
 import Sheet from './engine/Sheet.jsx';
 import { BLOCKS, checkDocument, createBlock } from './engine/registry.js';
 import { visualAnswerKey } from '../homework/worksheetPlayer.js';
-import { CASES, EXPECTED, answerRight, doc, make, mount } from '../../test/blockAnswerCases.jsx';
+import { CASES, EXPECTED, answerRight, doc, make, mount, staffOnly } from '../../test/blockAnswerCases.jsx';
 import { FLOW_QUERY, SheetFlowContext, revealDelta, revealField } from './sheetFlow.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -118,7 +118,7 @@ describe('the same answers as on A4', () => {
     const store = { answers: {} };
     function Host() {
       const [answers, setAnswers] = useState({});
-      return <Sheet flow doc={doc([block])} mode="interactive" answers={answers} setAnswer={(key, value) => setAnswers((a) => { store.answers = { ...a, [key]: value }; return store.answers; })} />;
+      return <Sheet flow doc={doc([block])} mode="interactive" answers={answers} setAnswer={(key, value) => setAnswers((a) => { store.answers = { ...a, [key]: value }; return store.answers; })} transcripts={staffOnly(block)} />;
     }
     const view = render(<Host />);
     return { ...view, store, block, card: () => view.container.querySelector(`[data-block="${block.id}"]`), rerender: view.rerender };

@@ -72,6 +72,13 @@ button.ws-dropgap.is-filled { cursor: grab; }
 .ws-dropgap.is-example { background: var(--ws-example); border-style: solid; }
 .ws-dropgap-n { flex: none; font-size: .78em; font-weight: 800; color: var(--ks-muted); }
 .ws-dropgap-dots { color: var(--ks-line); }
+/* 2.5 sentence endings (adsmatch): numbered rows on an exam sheet; with layout 'chips' the ending is dragged into the gap */
+.ws-ads-sit.is-numbered { padding-left: 0; }
+.ws-ads-num { flex: none; min-width: 6mm; font-family: var(--font-head); font-weight: 800; color: var(--ks-navy); }
+.ws-ads-ends { margin: 0; padding: 0; list-style: none; display: grid; gap: 2.2mm; }
+.ws-ads-ends li { display: flex; align-items: baseline; gap: 2mm; break-inside: avoid; }
+.ws-ads-ends .ws-ads-text { line-height: 1.9; }
+.is-endings .ws-dropgap-n { display: none; }
 .ws-dropbank { margin-top: 3mm; padding: 2mm 2.4mm; border: .3mm solid rgba(23, 58, 99, .2); border-radius: 2mm; background: rgba(255, 255, 255, .85); }
 .ws-dropbank.is-over { border-color: var(--ks-green-2); background: #f2faf4; }
 .ws-dropbank-title { display: block; margin-bottom: 1.4mm; font: 800 10pt var(--font-head); color: var(--ks-navy); }
@@ -132,6 +139,9 @@ button.ws-dropchip { cursor: grab; touch-action: manipulation; user-select: none
 .ws-pie-slice.is-s6 :is(path, circle), .ws-pie-key.is-s6 { fill: var(--ws-chart-7); background: var(--ws-chart-7); }
 .ws-pie-slice.is-s7 :is(path, circle), .ws-pie-key.is-s7 { fill: var(--ws-chart-8); background: var(--ws-chart-8); }
 .ws-chart.is-pie .ws-chart-legend { justify-content: center; }
+.ws-pie-pct { display: none; }
+/* a pie a little lower than a bar chart, so on paper it fits on one page with the W2 task under it (keepsWithNext) */
+.ws-chart-svg.ws-pie { max-height: 62mm; }
 @media print {
   .ws-pie, .ws-pie-key, .ws-speaker-face, .ws-chat-turn, .ws-letter-bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .ws-plays-btn, .ws-plays-track, .ws-plays-time { display: none; }
@@ -157,6 +167,16 @@ button.ws-dropchip { cursor: grab; touch-action: manipulation; user-select: none
   .ws-narrow .ws-root .ws-dropgap { min-height: 44px; min-width: 88px; padding: 6px 8px; border-width: 1.5px; border-radius: 6px; vertical-align: middle; }
   .ws-narrow .ws-root .ws-dropgap.is-wide { min-width: 0; display: flex; width: 100%; margin: 4px 0; }
   .ws-narrow .ws-root .ws-drop-text p { line-height: 2.4; }
+  .ws-narrow .ws-root .ws-ads-num { font-size: 16px; }
+  /* the pie on a phone: the whole circle in the column (no sideways scroll, no name cut at the edge), the shares big
+     beside the slices, the names with their shares in the legend under it */
+  .ws-narrow .ws-root .ws-chart.is-pie .ws-chart-svg { min-width: 0; }
+  .ws-narrow .ws-root .ws-pie .ws-chart-cat { display: none; }
+  .ws-narrow .ws-root .ws-pie .ws-chart-value { font-size: 26px; }
+  .ws-narrow .ws-root .ws-chart.is-pie .ws-chart-legend { flex-direction: column; gap: 6px; }
+  .ws-narrow .ws-root .ws-pie-pct { display: inline; font-weight: 800; margin-left: 4px; }
+  .ws-narrow .ws-root .ws-ads-ends .ws-ads-text { line-height: 1.45; }
+  .ws-narrow .ws-root .ws-ads-ends .ws-dropgap { scroll-margin-bottom: calc(36vh + 16px); }
   /* the bank stays in sight at the bottom while the text scrolls; a turn or gap brought into view (keyboard focus,
      scrollIntoView) stops above it, not under it */
   .ws-narrow .ws-root .ws-drop :is(.ws-chat-turn, .ws-dropgap, .ws-drop-text p) { scroll-margin-bottom: calc(36vh + 16px); }
