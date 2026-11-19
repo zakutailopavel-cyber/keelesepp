@@ -33,6 +33,31 @@
   (märgukiri, häirenupp, ennetustöö) out of the boxes; V11 made 066 add a sibling chat in station 4 (gate not changed).
 - Next safe step: owner reads `docs/review/b2-m14-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-066:discover` …),
   especially 066, 068 and the „Mäletad?” box in 069 (sensitive topics for Narva learners).
+## 2026-11-19 · agent/b1b2-m15-tasks — B1→B2 module 15 „Meedia, info ja kriitiline lugemine” in v4 task-based design · content only
+
+- Base: `origin/main` a2914ec (release 2026-11-19 09:19 UTC, after #1281), checked 2026-11-19. Draft PR „B1→B2 module 15:
+  task-based (v4)”. Not merged, not published, no deploy, no production writes. Modules 14 and 16 are rebuilt in
+  parallel: expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, roadmap-05 — keep both sides.
+- Done: `b2/module15.js` rewritten (no storyline, no cast; MODULE.level B2-): 071 game „Sama uudis, neli pealkirja: kas
+  pealkiri ütleb tõtt?” (certainty and evaluative words; five radio news items once, L1), 072 debate „Kommentaarium:
+  sõnavabadus või sõimuväljak?” (reported author's thought, -vat; opener = opinion column with Delfi AS v. Estonia 2015,
+  R1; radio call-in), 073 case „„Minu lemmikkreem!” — kas see on soovitus või reklaam?” (participles in evaluation;
+  podcast L2; three posts), 074 facts „Keskmine palk on 2135 eurot — miks enamik teenib vähem?” (quantity and share;
+  Statistikaamet mean vs median, R2b; aunt's voice message; product „Minu meediamenüü”), 075 Kontroll 15 in Harno B2 form
+  (R1, R2a, R3, R4, L notes, L3, L4, W1 complaint to Pressinõukogu, W2b, S1 product, S2). Ids and goal keys kept;
+  archetypes as in COURSE_FINAL_SHAPE_B2 §4.1; EXPLAIN for every scored item. Not repeated: module 12's 058 (checking
+  before sharing, Pennycook & Rand, deepfake), module 11's sales tricks.
+- Also: `b2/lessonGoals.js` 071–075, `lessonWords/b1b2.json` 071–075, roadmap-05 titles, `art/visuals/b2-module-15.js`
+  (same five pictures retargeted, no cast), TartuNLP audio: new 071_d_news, 072_t_radio, 073_d_pod, 074_t_voice,
+  075_p_notes, 075_p_listen re-recorded; 8 old files removed. Owner summary in Russian `docs/review/b2-m15-tasks.md`.
+  Review questions about module 15 in modules 16–18 fit the new content (skills kept), not changed.
+- Checks: course report module 15 5/5 READY; `npx vitest run src/features/worksheet-generator src/features/worksheet-studio
+  src/features/vocabulary src/features/pet src/features/practice` 221 files, 2543 passed / 12 skipped; eslint clean on
+  changed files; EstNLTK 0 unknown lower-case; recycling of module 14 words 49 % (current module 14); all 15 sheets read in
+  the sheet lab (vite dev, Chromium). No baseline changed.
+- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker; recycling measured
+  against the old module 14.
+- Next safe step: owner reads `docs/review/b2-m15-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-071:discover` …).
 ## 2026-11-19 · agent/b1b2-m12-tasks — B1→B2 module 12 „Tehnoloogia ja sotsiaalmeedia” in v4 task-based design · content only
 
 - Base: `origin/main` 9620ed5 (#1277 release), checked 2026-11-19; merged the newer main before push. Draft PR
