@@ -117,7 +117,8 @@ describe('the real course files', () => {
   it.each(COURSES)('%s: items are checkable and the plan coverage is reported', async (c) => {
     const { MODULES } = await import(`../../worksheet-generator/admin/course/courseModules.${c}.js`);
     const items = extractCourseItems(c, MODULES);
-    expect(items.length).toBeGreaterThan(1500);
+    // b2 is being rebuilt in the v4 task design: fewer closed drill rows per lesson, more open tasks (1491 after module 13)
+    expect(items.length).toBeGreaterThan(c === 'b2' ? 1200 : 1500);
     for (const it of items) {
       expect(it.answers.length, it.id).toBeGreaterThan(0);
       expect(it.answers.every((a) => a.trim()), it.id).toBe(true);
