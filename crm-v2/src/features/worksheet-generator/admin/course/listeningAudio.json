@@ -2959,50 +2959,35 @@
     "seconds": 160.6,
     "hash": "8367c484898f00eac4978626f231c0c0dae6e251"
   },
-  "b1b2-071:071_p_clips": {
-    "src": "/audio/b1b2-071/071_p_clips.mp3",
-    "seconds": 164.2,
-    "hash": "2387174f0a6b81cf067fe889ed0b9f6bc442a237"
+  "b1b2-071:071_d_news": {
+    "src": "/audio/b1b2-071/071_d_news.mp3",
+    "seconds": 90.1,
+    "hash": "5f6de8ee5303305e029a64b930e3105fa878d14b"
   },
-  "b1b2-072:072_p_radio": {
-    "src": "/audio/b1b2-072/072_p_radio.mp3",
-    "seconds": 234.8,
-    "hash": "bdeb869d38f782c3d85564e3141ecbb50c7b8410"
+  "b1b2-072:072_t_radio": {
+    "src": "/audio/b1b2-072/072_t_radio.mp3",
+    "seconds": 76.2,
+    "hash": "8c0de6d0a5887f20ea9a42f5cee89b8d25aac968"
   },
-  "b1b2-072:072_t_helgi": {
-    "src": "/audio/b1b2-072/072_t_helgi.mp3",
-    "seconds": 119.6,
-    "hash": "90ee77f2d925b321af38bc5095d79f9d8e9816a0"
+  "b1b2-073:073_d_pod": {
+    "src": "/audio/b1b2-073/073_d_pod.mp3",
+    "seconds": 114.9,
+    "hash": "e6665cd5a46cdc2fe440d0841b6b1d9f4703aaf5"
   },
-  "b1b2-073:073_d_chat": {
-    "src": "/audio/b1b2-073/073_d_chat.mp3",
-    "seconds": 94.4,
-    "hash": "e1a1f5ba9ac2a26b3ce4cca7f05c06d405b27920"
-  },
-  "b1b2-073:073_p_show": {
-    "src": "/audio/b1b2-073/073_p_show.mp3",
-    "seconds": 131.8,
-    "hash": "dfe4546da2eed719171be7d9edbf6ffd70e529e4"
-  },
-  "b1b2-074:074_p_lecture": {
-    "src": "/audio/b1b2-074/074_p_lecture.mp3",
-    "seconds": 109.8,
-    "hash": "fe354f3a839dff2812f4dd4a357d5ea76e7a965d"
-  },
-  "b1b2-075:075_d_listen": {
-    "src": "/audio/b1b2-075/075_d_listen.mp3",
-    "seconds": 36.8,
-    "hash": "48fc451154a8dc53b4dac14d5d31f3bdc2929544"
-  },
-  "b1b2-075:075_p_lc": {
-    "src": "/audio/b1b2-075/075_p_lc.mp3",
-    "seconds": 150.8,
-    "hash": "122784b5a2125502e52ff094c5063cc3434658cb"
+  "b1b2-074:074_t_voice": {
+    "src": "/audio/b1b2-074/074_t_voice.mp3",
+    "seconds": 58.4,
+    "hash": "c1c6c08f1953fba04c1b1e96407e0832f458f0bf"
   },
   "b1b2-075:075_p_listen": {
     "src": "/audio/b1b2-075/075_p_listen.mp3",
-    "seconds": 150.8,
-    "hash": "122784b5a2125502e52ff094c5063cc3434658cb"
+    "seconds": 116.8,
+    "hash": "29bc4b59dbc5fe28f0c6bc6815748bda3a1c625d"
+  },
+  "b1b2-075:075_p_notes": {
+    "src": "/audio/b1b2-075/075_p_notes.mp3",
+    "seconds": 55.2,
+    "hash": "35da0df6b5fa1e5003cf649013fc5ff9e6ac9b48"
   },
   "b1b2-076:076_d_meeting": {
     "src": "/audio/b1b2-076/076_d_meeting.mp3",
