@@ -204,6 +204,10 @@ export const financeApi = {
   voidPurchaseInvoice(purchaseInvoiceId, reason) {
     return post("/purchase-invoices/void", { purchaseInvoiceId, reason, requestId: financeRequestId("purchase_void") });
   },
+  // a source document on an accounting entry (docs/ACCOUNTING.md „Fail kandele”); requestId = the Storage document id
+  attachAccountingEntryDocument(entryId, document) {
+    return post("/accounting/entries/documents", { entryId, ...document });
+  },
   attachPurchaseDocument(purchaseInvoiceId, document) {
     return post("/purchase-invoices/documents", { purchaseInvoiceId, ...document });
   },

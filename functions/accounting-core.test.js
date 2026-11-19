@@ -371,3 +371,46 @@ test("a bank payment arriving after the mark is reported by the sync, not booked
   assert.deepEqual(automaticEntries(books), []);
   assert.deepEqual(exclusionBookConflicts(books), [{ invoiceId: "i", invoiceNum: "KS-9", paymentId: "p", amountCents: 100 }]);
 });
+
+// „Fail kandele” (the accountant 2026-11-19, docs/ACCOUNTING.md): a source document on any entry
+test("an entry's source document: the Storage path must be the entry's own, the same file checks as an ostuarve", () => {
+  const { entryDocumentRecord } = require("./accounting-core");
+  const base = { entryId: "manual_acc_1", documentId: "entry_document_0001", fileName: "Zone Media 1010331811.pdf", contentType: "application/pdf", size: 2048, uploadedAt: "2026-11-19T10:00:00.000Z" };
+  const record = entryDocumentRecord({ ...base, storagePath: "financial/accounting-entries/manual_acc_1/entry_document_0001" });
+  assert.equal(record.id, "entry_document_0001");
+  assert.equal(record.entryId, "manual_acc_1");
+  assert.equal(record.storagePath, "financial/accounting-entries/manual_acc_1/entry_document_0001");
+  assert.equal(record.kind, "source_document");
+  // another entry's folder, a purchase-invoice folder, a path traversal: refused
+  assert.throws(() => entryDocumentRecord({ ...base, storagePath: "financial/accounting-entries/manual_acc_2/entry_document_0001" }), /ei vasta kandele/);
+  assert.throws(() => entryDocumentRecord({ ...base, storagePath: "financial/purchase-invoices/manual_acc_1/entry_document_0001" }), /ei vasta kandele/);
+  assert.throws(() => entryDocumentRecord({ ...base, entryId: "../x", storagePath: "financial/accounting-entries/../x/entry_document_0001" }), /Vigane/);
+  assert.throws(() => entryDocumentRecord({ ...base, documentId: "short", storagePath: "financial/accounting-entries/manual_acc_1/short" }), /Vigane/);
+  // type and size like validatePaymentDocument
+  const path = "financial/accounting-entries/manual_acc_1/entry_document_0001";
+  assert.throws(() => entryDocumentRecord({ ...base, storagePath: path, contentType: "text/html" }), /PDF, JPEG, PNG või WebP/);
+  assert.throws(() => entryDocumentRecord({ ...base, storagePath: path, size: 10 * 1024 * 1024 + 1 }), /alla 10 MB/);
+  assert.throws(() => entryDocumentRecord({ ...base, storagePath: path, size: 0 }), /alla 10 MB/);
+  assert.throws(() => entryDocumentRecord({ ...base, storagePath: path, fileName: "  " }), /PDF/);
+  assert.equal(entryDocumentRecord({ ...base, storagePath: path, contentType: "IMAGE/JPEG" }).contentType, "image/jpeg");
+});
+
+test("attaching a source document changes no figure of the entry, works on an automatic entry, is idempotent", () => {
+  const { entryDocumentPatch } = require("./accounting-core");
+  const entry = { id: "auto_purchase-invoice_p1", number: "2026-0732", date: "2026-03-02", origin: "auto", documentRef: "1010331811", lines: [{ account: "4320", debitCents: 1499, creditCents: 0 }, { account: "2110", debitCents: 0, creditCents: 1499 }], totalCents: 1499, history: [] };
+  const document = { id: "entry_document_0001", storagePath: "financial/accounting-entries/auto_purchase-invoice_p1/entry_document_0001", fileName: "arve.pdf" };
+  const actorData = { uid: "a1", email: "raamatupidaja@example.com" };
+  const patch = entryDocumentPatch(entry, document, { actorData, nowIso: "2026-11-19T10:00:00.000Z" });
+  assert.deepEqual(Object.keys(patch).sort(), ["documentCount", "documents", "documentsUpdatedAt"], "only the document fields: no date, lines, amounts, number, history");
+  assert.equal(patch.documentCount, 1);
+  assert.deepEqual(patch.documents[0].uploadedBy, actorData);
+  const withFile = { ...entry, ...patch };
+  assert.equal(entryDocumentPatch(withFile, document, { actorData, nowIso: "x" }), null, "the same upload again: nothing to write");
+  const second = entryDocumentPatch(withFile, { ...document, id: "entry_document_0002" }, { actorData, nowIso: "x" });
+  assert.equal(second.documents.length, 2, "files are appended, never replaced");
+  // a deleted entry (tombstone), a missing entry, the limit
+  assert.throws(() => entryDocumentPatch({ ...entry, deleted: true }, document, { actorData, nowIso: "x" }), (error) => error.status === 409);
+  assert.throws(() => entryDocumentPatch(null, document, { actorData, nowIso: "x" }), (error) => error.status === 404);
+  const full = { ...entry, documents: Array.from({ length: 20 }, (_, i) => ({ id: `entry_document_${String(i).padStart(4, "0")}x` })) };
+  assert.throws(() => entryDocumentPatch(full, document, { actorData, nowIso: "x" }), /20 faili/);
+});

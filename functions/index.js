@@ -10719,6 +10719,37 @@ async function attachPurchaseDocument({ actor, purchaseInvoiceId, document, requ
   });
 }
 
+// a source document (the supplier's invoice, a receipt) on any accounting entry, manual or automatic (the accountant
+// 2026-11-19, docs/ACCOUNTING.md „Fail kandele”). The file is uploaded by the client to
+// financial/accounting-entries/{entryId}/{documentId} (storage.rules); here only its metadata joins the entry's
+// `documents`. No figure changes, so a closed period (accountingSettings/lock, a closed finance month) does not stop it.
+async function attachAccountingEntryDocument({ actor, entryId, document, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const nowIso = new Date().toISOString();
+  let normalized;
+  try {
+    normalized = accountingCore.entryDocumentRecord({ entryId, documentId: mutationId, ...document, uploadedAt: nowIso });
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+  const ref = accountingEntryRef(normalized.entryId);
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    const entry = snap.exists ? { id: snap.id, ...snap.data() } : null;
+    let patch;
+    try {
+      patch = accountingCore.entryDocumentPatch(entry, normalized, { actorData, nowIso });
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    if (!patch) return { entry, idempotent: true };
+    transaction.update(ref, patch);
+    transaction.create(db.collection("financialAudit").doc(mutationId), { entityType: "accountingEntry", entityId: ref.id, action: "accounting.entry.document_attached", number: entry.number || "", document: normalized, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { entry: { ...entry, ...patch }, document: normalized };
+  });
+}
+
 // ---------- INF 3: training costs paid by private persons (functions/inf3-core.js, docs/INF3.md) ----------
 // taxIdentities/{studentId}: { studentCode, payerName, payerCode, trainingType, source: "admin" | "form", updatedAt }
 // — personal codes, admin-only (teachers can read student cards, so the codes are kept apart).
@@ -11229,6 +11260,11 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     }
     if (req.path === "/accounting/entries/restore") {
       res.status(201).json(await restoreAccountingEntry({ actor, entryId: req.body?.entryId, requestId: req.body?.requestId }));
+      return;
+    }
+    if (req.path === "/accounting/entries/documents") {
+      const result = await attachAccountingEntryDocument({ actor, entryId: req.body?.entryId, document: { storagePath: req.body?.storagePath, fileName: req.body?.fileName, contentType: req.body?.contentType, size: req.body?.size }, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
     if (req.path === "/accounting/entries/undo-storno") {

@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, History, Info, Lock, Replace, Trash2, Undo2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Eye, FileUp, History, Info, Lock, Replace, Trash2, Undo2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { HISTORY_ACTIONS, SUPPLIER_ACCOUNTS, amount, dmy, entryActions, linesText, parseEuro } from './accountingReports.js';
@@ -30,6 +30,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
   const [replace, setReplace] = useState(null);
   const [openHistory, setOpenHistory] = useState(() => new Set());
   const [message, setMessage] = useState('');
+  const [uploading, setUploading] = useState(() => new Set());
   const gridRef = useRef(null);
   const editingRef = useRef(null);
   const workingsRef = useRef(workings);
@@ -229,7 +230,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
 
   // ---- mouse ----
   const onCellMouseDown = (event, pos) => {
-    if (event.target.closest('button, input, a')) return;
+    if (event.target.closest('button, input, a, label')) return;
     event.preventDefault();
     if (editingRef.current) commit(editingRef.current);
     focusGrid();
@@ -271,6 +272,29 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
   const onGridBlur = (event) => {
     if (gridRef.current?.contains(event.relatedTarget)) return;
     if (activeEntryRef.current) setLeaving(activeEntryRef.current);
+  };
+
+  // ---- „Fail kandele” (docs/ACCOUNTING.md): a source document on any entry, also in a closed period or while the
+  // entry is being edited — it changes no figure, so the working copy and the period lock are not touched ----
+  const canAttach = (entry) => !readOnly && !blocked && Boolean(repository?.uploadEntryDocument) && entry && !entry.deleted;
+  const attachFile = async (entry, file) => {
+    if (!file || !canAttach(entry)) return;
+    setUploading((s) => new Set(s).add(entry.id));
+    setMessage('');
+    try {
+      await repository.uploadEntryDocument(entry.id, file);
+      onNotice?.(`Fail „${file.name}” lisati kandele ${entry.number || entry.label}.`);
+      await onChanged();
+    } catch (error) {
+      setMessage(error.message || 'Faili lisamine ebaõnnestus.');
+    } finally {
+      setUploading((s) => { const next = new Set(s); next.delete(entry.id); return next; });
+    }
+  };
+  const openFile = async (document) => {
+    try {
+      globalThis.open(await repository.getEntryDocumentUrl(document), '_blank', 'noopener,noreferrer');
+    } catch (error) { setMessage(error.message || 'Faili avamine ebaõnnestus.'); }
   };
 
   // ---- „Asenda konto” ----
@@ -407,6 +431,8 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
                 {entry.reversedByNumber ? <span>tühistatud: {entry.reversedByNumber}</span> : null}
                 {can.locked && !entry.deleted ? <span title={`Periood suletud kuni ${dmy(lockedThrough)} — paranda uue kandega (storno või parandav kanne)`}><Lock size={12} /></span> : null}
                 {saving.has(entry.id) ? <span>salvestan…</span> : null}
+                {(Array.isArray(entry.source?.documents) ? entry.source.documents : []).map((document) => <button key={document.id} type="button" className="link-button accounting-file" title={`Ava fail ${document.fileName}`} aria-label={`Ava fail ${document.fileName} (kanne ${entry.number || entry.label})`} onClick={() => openFile(document)}><Eye size={13} /> {document.fileName}</button>)}
+                {canAttach(entry) ? <label className="link-button accounting-upload" title="Lisa allikadokument (PDF, JPEG, PNG, WebP, alla 10 MB)"><FileUp size={13} /> {uploading.has(entry.id) ? 'laadin…' : 'fail'}<input aria-label={`Lisa fail kandele ${entry.number || entry.label}`} type="file" accept="application/pdf,image/jpeg,image/png,image/webp" disabled={uploading.has(entry.id)} onChange={(event) => { attachFile(entry, event.target.files?.[0]); event.target.value = ''; }} /></label> : null}
                 {!readOnly && can.remove && !w ? <button type="button" className="link-button" onClick={() => onDelete(entry)}><Trash2 size={13} /> Kustuta</button> : null}
                 {!readOnly && can.restore && onRestore ? <button type="button" className="link-button" onClick={() => onRestore(entry)}><Undo2 size={13} /> Taasta</button> : null}
                 {!readOnly && can.storno ? <button type="button" className="link-button" onClick={() => onStorno(entry)}><Undo2 size={13} /> Storno</button> : null}

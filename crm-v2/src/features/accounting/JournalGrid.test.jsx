@@ -219,6 +219,54 @@ describe('JournalGrid', () => {
   });
 });
 
+describe('„Fail kandele” (a source document on an entry)', () => {
+  const pdf = () => new globalThis.File(['%PDF'], 'zone-media-1010331811.pdf', { type: 'application/pdf' });
+
+  it('a file is attached to an existing manual entry, also in a closed period, and opens from its name', async () => {
+    let loaded = entries;
+    const uploadEntryDocument = vi.fn().mockImplementation(async (entryId, file) => {
+      loaded = loaded.map((e) => (e.id === entryId ? { ...e, documents: [{ id: 'entry_document_x1', storagePath: `financial/accounting-entries/${entryId}/entry_document_x1`, fileName: file.name, contentType: file.type, size: file.size }] } : e));
+      return {};
+    });
+    const getEntryDocumentUrl = vi.fn().mockResolvedValue('https://files.example/zone.pdf');
+    const repository = repo({ load: vi.fn().mockImplementation(async () => ({ entries: loaded, accounts, lockedThrough: `${year}-12-31` })), uploadEntryDocument, getEntryDocumentUrl });
+    await open(repository);
+    const input = screen.getByLabelText(`Lisa fail kandele ${year}-0002`);
+    fireEvent.change(input, { target: { files: [pdf()] } });
+    await waitFor(() => expect(uploadEntryDocument).toHaveBeenCalledWith('manual_m1', expect.any(globalThis.File)));
+    expect(await screen.findByText(`Fail „zone-media-1010331811.pdf” lisati kandele ${year}-0002.`)).toBeInTheDocument();
+    expect(repository.updateEntry).not.toHaveBeenCalled();
+    const openSpy = vi.spyOn(globalThis, 'open').mockImplementation(() => null);
+    fireEvent.click(await screen.findByRole('button', { name: `Ava fail zone-media-1010331811.pdf (kanne ${year}-0002)` }));
+    await waitFor(() => expect(openSpy).toHaveBeenCalledWith('https://files.example/zone.pdf', '_blank', 'noopener,noreferrer'));
+    openSpy.mockRestore();
+  });
+
+  it('a click on the upload control does not open a cell editor; the grid keyboard still works', async () => {
+    const repository = repo({ uploadEntryDocument: vi.fn(), getEntryDocumentUrl: vi.fn() });
+    await open(repository);
+    const label = screen.getByLabelText(`Lisa fail kandele ${year}-0001`).closest('label');
+    fireEvent.mouseDown(label);
+    expect(document.querySelector('[data-grid-editor]')).toBeNull();
+    fireEvent.mouseDown(cell(4, 5));
+    expect(screen.getByLabelText('Deebet (muuda)')).toHaveValue('30,00');
+  });
+
+  it('a failed upload shows the reason', async () => {
+    const repository = repo({ uploadEntryDocument: vi.fn().mockRejectedValue(new Error('Lubatud on PDF-, JPEG-, PNG- ja WebP-failid.')), getEntryDocumentUrl: vi.fn() });
+    await open(repository);
+    fireEvent.change(screen.getByLabelText(`Lisa fail kandele ${year}-0001`), { target: { files: [pdf()] } });
+    expect(await screen.findByText('Lubatud on PDF-, JPEG-, PNG- ja WebP-failid.')).toBeInTheDocument();
+  });
+
+  it('read-only: the attached files are listed, no upload control', async () => {
+    const withFile = entries.map((e, i) => (i === 0 ? { ...e, documents: [{ id: 'entry_document_x2', storagePath: 'x', fileName: 'arve.pdf' }] } : e));
+    await open(repo({ load: vi.fn().mockResolvedValue({ entries: withFile, accounts }), uploadEntryDocument: vi.fn(), getEntryDocumentUrl: vi.fn() }), { canEdit: false });
+    expect(screen.getByRole('button', { name: `Ava fail arve.pdf (kanne ${year}-0001)` })).toBeInTheDocument();
+    expect(screen.queryByLabelText(`Lisa fail kandele ${year}-0001`)).not.toBeInTheDocument();
+  });
+});
+
 describe('paste into a new manual entry', () => {
   it('rows with Kuupäev | Dokument | Konto | Kirjeldus | Deebet | Kreedit fill the entry', async () => {
     const repository = repo();

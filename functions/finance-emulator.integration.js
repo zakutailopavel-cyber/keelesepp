@@ -4823,6 +4823,30 @@ test("suppliers and purchase invoices book OA / VM entries; corrections keep a h
   assert.equal(lockedEdit.status, 409, JSON.stringify(lockedEdit.body));
   const lockedDelete = await financeRequest(adminToken, "/accounting/entries/delete", { entryId: manualId, reason: "x", requestId: "acc_delete_0002" });
   assert.equal(lockedDelete.status, 409, JSON.stringify(lockedDelete.body));
+  // „Fail kandele” (the accountant 2026-11-19): a source document joins the entry in the closed period too — admin only,
+  // only into the entry's own Storage folder, and no figure, number or history of the entry changes
+  const entryBefore = (await db.collection("accountingEntries").doc(manualId).get()).data();
+  const entryDocId = "entry_document_locked_0001";
+  const entryDocPayload = { entryId: manualId, requestId: entryDocId, storagePath: `financial/accounting-entries/${manualId}/${entryDocId}`, fileName: "palgaleht-03.pdf", contentType: "application/pdf", size: 2048 };
+  const financeReaderToken = await createUserToken("entry-document-finance@example.com");
+  await db.collection("users").doc(tokenUid(financeReaderToken)).set({ role: "finance", email: "entry-document-finance@example.com" });
+  const notAdmin = await financeRequest(financeReaderToken, "/accounting/entries/documents", entryDocPayload);
+  assert.equal(notAdmin.status, 403, JSON.stringify(notAdmin.body));
+  const otherFolder = await financeRequest(adminToken, "/accounting/entries/documents", { ...entryDocPayload, storagePath: `financial/accounting-entries/auto_purchase-invoice_${invoiceId}/${entryDocId}` });
+  assert.equal(otherFolder.status, 400, JSON.stringify(otherFolder.body));
+  const missingEntry = await financeRequest(adminToken, "/accounting/entries/documents", { ...entryDocPayload, entryId: "manual_missing", storagePath: `financial/accounting-entries/manual_missing/${entryDocId}` });
+  assert.equal(missingEntry.status, 404, JSON.stringify(missingEntry.body));
+  const entryDoc = await financeRequest(adminToken, "/accounting/entries/documents", entryDocPayload);
+  assert.equal(entryDoc.status, 201, JSON.stringify(entryDoc.body));
+  const entryAfter = (await db.collection("accountingEntries").doc(manualId).get()).data();
+  assert.equal(entryAfter.documentCount, 1);
+  assert.equal(entryAfter.documents[0].storagePath, entryDocPayload.storagePath);
+  assert.equal(entryAfter.documents[0].uploadedBy.email, "zakutailo.pavel@gmail.com");
+  ["number", "date", "documentRef", "description", "lines", "totalCents", "history", "updatedAt"].forEach((field) => assert.deepEqual(entryAfter[field], entryBefore[field], field));
+  assert.equal((await db.collection("financialAudit").doc(entryDocId).get()).get("action"), "accounting.entry.document_attached");
+  const entryDocRetry = await financeRequest(adminToken, "/accounting/entries/documents", entryDocPayload);
+  assert.equal(entryDocRetry.status, 200, JSON.stringify(entryDocRetry.body));
+  assert.equal((await db.collection("accountingEntries").doc(manualId).get()).get("documentCount"), 1, "a retry adds nothing");
   const lockedInvoice = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoice: { ...invoiceValues, documentNumber: "1576" }, requestId: "purchase_create_0004" });
   assert.equal(lockedInvoice.status, 409, JSON.stringify(lockedInvoice.body));
   const correction = await financeRequest(adminToken, "/accounting/entries/reverse", { entryId: manualId, date: "2027-04-01", reason: "palk oli vale", requestId: "acc_reverse_2027_0001" });
