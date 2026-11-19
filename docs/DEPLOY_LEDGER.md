@@ -26,7 +26,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 | Target | Live since | Commit | How verified |
 | --- | --- | --- | --- |
 | Firestore rules (`firestore.rules`) | 2026-11-18 08:13 | `cd0e70a` (#1264 Õppesuunad individuaalne / grupp: `groupPrices`) | live ruleset compared with main `cd0e70a`: equal |
-| Storage rules (`storage.rules`) | not recorded | — | run `deploy-status.mjs` and fill in |
+| Storage rules (`storage.rules`) | 2026-11-19 ~14:5x | `05884e2` (#1285 fail kandele: `financial/accounting-entries/{entryId}/{documentId}`) | `firebase deploy --only storage` „Deploy complete” |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
 | Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-15 11:59 release commit | `dbdf512` `[deploy] Release 2026-11-15 11:59 UTC` | release commit on main; Vercel status success |
 
@@ -36,6 +36,7 @@ Full deploy of all functions 2026-11-09 15:39 from main **(inferred)** `a80a749`
 
 | Function | Last deployed | Commit |
 | --- | --- | --- |
+| financeApi | 2026-11-19 ~15:0x | `05884e2` (#1285 `/accounting/entries/documents` — fail kandele) |
 | financeApi, invoiceApi, linkpayApi, manualInvoiceApi, sendInvoicePaymentReminders, syncLessonTokens, staffOperationsApi | 2026-11-18 13:2x | `cd0e70a` (#1264 Õppesuunad individuaalne / grupp — group price, group packages, card merge) |
 | financeApi | 2026-11-12 10:27 | `f372e75` (#1212 unmark package lesson, #1213 credited invoices) |
 | invoiceApi, linkpayApi, manualInvoiceApi, sendInvoicePaymentReminders | 2026-11-12 10:27 | `f372e75` (#1213 credited invoices don't block the month / take payments) |
