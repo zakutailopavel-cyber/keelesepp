@@ -144,6 +144,15 @@ owner summary `docs/review/b2-m10-tasks.md`. Learnt: at B2- every Kasuta sheet n
 extension is the natural place), choice questions must be ≥ ~9 words on average (only the questions are measured), and
 at most half of the Kasuta sheets may mention a phone call or a voice message (av-kasuta2).
 
+**B2 module 13** (`b2/module13.js`, 061–064, 2026-11-19, stage B2-): environment from the learner's side — quest (his bin
+and the bottle deposit, present) → facts (food waste in his fridge and the food bank, explain) → debate (the oil-shale exit
+of Ida-Virumaa, decide) → project (a heatwave plan for his stairwell, plan); 065 the module exam + „Minu kodu
+keskkonnaplaan”; owner summary `docs/review/b2-m13-tasks.md`. Learnt: exactly one `harno` corner a teaching lesson (V12),
+a long homework writing is the cheapest corner when the lesson's input is an exam format (washback ≤ 25 %); the vocabulary
+boxes of a topic module must stay ≥ 90 % EKI A1–B2 words (V14-known), so topic compounds (taaraautomaat, kuumarabandus …)
+live in the texts and tasks, not in the boxes; a station text ≤ 120 words cannot carry a lesson alone — a voice message of
+≥ 110 words (≥ 60 s) does (V4_INPUT).
+
 **B2 module 8** (`b2/module08.js`, 036–039, 2026-11-18): travel and culture from the learner's side — project (a weekend
 on 200 €, negotiate) → infogap (a cancelled flight and a late suitcase, EU rules, complain) → game (customs and culture
 shock, explain) → case (a guest in summer: festival or museum, advise); 040 Vahehindamine 2 in Harno B2 form + „Minu
