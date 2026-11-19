@@ -10,7 +10,7 @@ import PartnerInput from './PartnerInput.jsx';
 // credit. Tab moves cell to cell; Tab in the last cell adds a row. „Salvesta kanne” is enabled only when debit = credit.
 // The same rows correct an existing entry (mode „edit”): an automatic entry keeps its date and document (fixedHeader),
 // and the reason of the correction goes to the entry's history. Rows copied from Excel can be pasted (Ctrl/Cmd+V).
-// Partner (the accountant 2026-10-24): a supplier from Tarnijad on each line; required on 2110 / 1350 lines.
+// Partner (the accountant 2026-10-24 / 2026-11-19): a partner from Partnerid (Tarnija / Ostja / Muu) on a line; optional.
 export default function JournalDraft({ draft, setDraft, lines, setLines, accounts, suppliers = [], busy, error, onSave, onCancel, label = 'PR (uus kanne)', fixedHeader = false, reason, setReason, reasonRequired = false, saveLabel = 'Salvesta kanne' }) {
   const dateRef = useRef(null);
   const focusAccount = useRef(-1);
@@ -44,7 +44,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
   const balanced = !badAmount && totals.debit > 0 && totals.debit === totals.credit && filled.length >= 2;
   const knownAccounts = lines.every((l) => !l.account || accountName(l.account));
   const noAccount = lines.some((l) => !l.account && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0)));
-  // a partner is optional (owner 2026-10-26: the bookkeeper links partners herself); only a typed name must be a supplier
+  // a partner is optional (owner 2026-10-26: the bookkeeper links partners herself); only a typed name must be in Partnerid
   const partnerIssue = partnerProblem(lines);
   // what still blocks „Salvesta kanne”, said next to the button (a silent grey button told her nothing)
   const missing = [
@@ -55,7 +55,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
     !knownAccounts && 'konto, mida kontoplaanis pole',
     !badAmount && totals.debit !== totals.credit && 'deebet = kreedit',
     !badAmount && totals.debit === totals.credit && filled.length < 2 && 'vähemalt üks deebet- ja üks kreeditrida',
-    partnerIssue && 'tarnija nimekirjast',
+    partnerIssue && 'partner nimekirjast',
     reasonRequired && !String(reason || '').trim() && 'paranduse põhjus',
   ].filter(Boolean);
   const ready = balanced && !noAccount && !missing.length;
@@ -79,7 +79,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
         <td><input aria-label={`Rida ${index + 1} märkus`} value={l.note} placeholder={draft.description} onChange={(event) => update(index, { note: event.target.value })} /></td>
         <td><div className="accounting-draft__account"><PartnerInput tabMoves suppliers={suppliers} label={`Rida ${index + 1} partner`} value={l.partner?.name || ''}
           onChange={(text) => update(index, { partner: resolvePartner(text, suppliers, l.partner) })} onPick={(supplier) => update(index, { partner: supplierPartner(supplier) })} />
-          {l.partner && !l.partner.type ? <small className="is-off">pole tarnijate seas</small> : null}</div></td>
+          {l.partner && !l.partner.type ? <small className="is-off">pole partnerite seas</small> : null}</div></td>
         <td className="num"><input aria-label={`Rida ${index + 1} deebet`} inputMode="decimal" value={l.debit} onChange={(event) => update(index, { debit: event.target.value, credit: event.target.value ? '' : l.credit })} /></td>
         <td className="num"><input aria-label={`Rida ${index + 1} kreedit`} inputMode="decimal" value={l.credit}
           onChange={(event) => update(index, { credit: event.target.value, debit: event.target.value ? '' : l.debit })}

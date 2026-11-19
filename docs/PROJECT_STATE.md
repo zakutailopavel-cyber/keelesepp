@@ -1,3 +1,44 @@
+## 2026-11-19 · agent/accounting-partners-all — Raamatupidamine: Partnerid — ostjad, tarnijad ja muud · finance UI + financeApi + firestore rules
+
+- Base: `origin/main` 212d4dd (release 2026-11-19 14:55 UTC), checked 2026-11-19. Draft PR „Raamatupidamine:
+  Partnerid — ostjad, tarnijad ja muud” (link in the PR list). Not merged, no deploy, no production reads or writes.
+- Goal: the accountant „Партнёров нет в бухгалтерии, есть только tarnijad” — a journal line's partner can now be a
+  Tarnija, an Ostja (client company / payer from the CRM invoices) or Muu (Maksu- ja Tolliamet, Töötukassa, osanik,
+  töötaja, pank …), like Merit's Kliendid + Tarnijad.
+- Design: Ostjad are **derived on every load, not stored** (financeApi `/accounting/partners/customers`, admin; company
+  invoices only, FIE / excluded out; company = name + registry code, private payer = name only; nothing else leaves the
+  server). Muu partners are stored in the new `accountingPartners` collection (admin read, financeApi write only); no
+  seed — one-click „Lisa” presets in the UI.
+- Done: `functions/accounting-partners-core.js` (otherPartnerRecord, otherPartnerImportPlan, customersFromInvoices,
+  PARTNER_PRESETS, maskCode); `accounting-core` PARTNER_TYPES + `other`, `validateEntry(…, { others })` checks an
+  „other” card exists and takes its name, customer kept by name, message „vali partner nimekirjast (Partnerid)”;
+  `index.js` `partnerCards` (suppliers + accountingPartners on the lines), routes `/accounting/partners`,
+  `/accounting/partners/import`, `/accounting/partners/customers` (after the admin gate, audit like suppliers);
+  `firestore.rules` match `accountingPartners`. Client: `PartnersRegister.jsx` (tab + header button „Partnerite
+  register”, replaces the „Tarnijad” tab; views Kõik | Tarnijad (SuppliersPanel as before) | Ostjad | Muud),
+  `OtherPartnersGrid.jsx`, `partnerRegister.js`; `PartnerInput` suggests all three kinds with a type badge; Partnerid
+  report: Tüüp filter, badge, Reg-kood for all kinds, customers grouped by name (`partnerKey`); Excel Tüüp column
+  (`partnersWorkbook`, new `partnerRegisterWorkbook`); Pearaamat partner filter shows the type; personal codes masked.
+  Ostuarved page unchanged.
+- Docs: `docs/ACCOUNTING.md` „Partnerid” (three kinds, register, line field, report), Data and API.
+- Checks: `cd crm-v2 && npx vitest run src/features/accounting src/features/purchases` 14 files / 140 tests green (new
+  `partnerRegister.test.jsx`, 9 tests; partners / journalGrid tests updated for the new texts); eslint clean on
+  `src/features/accounting` + the two services; `cd functions && npm test` 677/677 green (new
+  `accounting-partners-core.test.js`, 6 tests); emulator (JDK 21, `firebase emulators:exec --only
+  auth,firestore,functions --project demo-keelesepp-finance`, pattern „Partnerid|partners on entry lines”) 2/2 green
+  incl. the new route test (create / 409 duplicate / import all-or-nothing + idempotent / customers without e-mail and
+  without FIE / other + customer partners on a manual entry / client write 403 / teacher 403). Not tried in a browser
+  against real data.
+- Deploy needed (owner, in this order): `firebase deploy --only firestore:rules` and `firebase deploy --only
+  functions:financeApi` → both „Deploy complete” → hosting release; log in `docs/DEPLOY_LEDGER.md`. Before the deploy
+  the page still works: Muud is empty (read denied → empty list) and Ostjad shows „ei saanud laadida”.
+- Limits: the preset registry codes (MTA 70000349, Töötukassa 70009770, LHV 10539549) were typed from memory — check them
+  once in the register; Ostjad are not editable (they follow the invoices); a customer partner is not checked against
+  the invoices on the server (kept by name, as the sales entries do); a parent with a personal code in `payerRegCode`
+  becomes a private customer without the code.
+- Next safe step: owner reviews the draft PR, deploys rules + financeApi, releases hosting, and the accountant adds
+  Maksu- ja Tolliamet / osanik with „Lisa kiiresti” and picks them on the tasaarvestus lines.
+
 ## 2026-11-19 · agent/accounting-entry-files — Raamatupidamine: fail kandele (allikadokument) · finance UI + financeApi + storage rules
 
 - Base: `origin/main` 7aa962e (release 2026-11-19 11:39 UTC), checked 2026-11-19. Draft PR „Raamatupidamine: fail

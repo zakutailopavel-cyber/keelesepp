@@ -5,15 +5,18 @@ import { requireFirebaseClient } from './client.js';
 import { financeApi, financeRequestId } from './financeApi.js';
 import { validatePaymentDocument } from './paymentDocuments.js';
 
-// bookkeeping (docs/ACCOUNTING.md): admins read the entries, the chart and Tarnijad (the partners of the lines); every
+// bookkeeping (docs/ACCOUNTING.md): admins read the entries, the chart, Tarnijad and the „Muu” partners (the partners of the lines); every
 // change goes through financeApi
 export const accountingService = {
   async load() {
     const { db } = requireFirebaseClient();
-    const [entries, accounts, lock, suppliers] = await Promise.all([getDocs(collection(db, 'accountingEntries')), getDocs(collection(db, 'accountingAccounts')), getDoc(doc(db, 'accountingSettings', 'lock')), getDocs(collection(db, 'suppliers'))]);
+    // accountingPartners („Muu” partners) may not be readable yet (rules not deployed): the books still open without them
+    const [entries, accounts, lock, suppliers, others] = await Promise.all([getDocs(collection(db, 'accountingEntries')), getDocs(collection(db, 'accountingAccounts')), getDoc(doc(db, 'accountingSettings', 'lock')), getDocs(collection(db, 'suppliers')), getDocs(collection(db, 'accountingPartners')).catch(() => null)]);
+    const byName = (a, b) => String(a.name).localeCompare(String(b.name), 'et');
     return {
       lockedThrough: lock.exists() ? String(lock.data().lockedThrough || '') : '',
-      suppliers: suppliers.docs.map((item) => ({ id: item.id, ...item.data() })).sort((a, b) => String(a.name).localeCompare(String(b.name), 'et')),
+      suppliers: suppliers.docs.map((item) => ({ id: item.id, ...item.data() })).sort(byName),
+      otherPartners: (others?.docs || []).map((item) => ({ id: item.id, ...item.data() })).sort(byName),
       entries: entries.docs.map((item) => ({ id: item.id, ...item.data() })),
       accounts: accounts.docs.map((item) => ({ code: item.id, ...item.data() })).sort((a, b) => a.code.localeCompare(b.code, 'et', { numeric: true })),
     };
@@ -57,6 +60,13 @@ export const accountingService = {
   setLock: (lockedThrough, reason) => financeApi.setAccountingLock(lockedThrough, reason),
   saveSupplier: (supplierId, supplier) => financeApi.saveSupplier(supplierId, supplier),
   importSuppliers: (rows) => financeApi.importSuppliers(rows),
+  // Partnerid (docs/ACCOUNTING.md „Partnerid”): „Muu” cards and the Ostjad derived from the invoices on the server
+  saveAccountingPartner: (partnerId, partner) => financeApi.saveAccountingPartner(partnerId, partner),
+  importAccountingPartners: (rows) => financeApi.importAccountingPartners(rows),
+  async loadCustomers() {
+    const result = await financeApi.accountingCustomers();
+    return Array.isArray(result?.customers) ? result.customers : [];
+  },
   // „Fail kandele” (docs/ACCOUNTING.md): the source document (PDF / photo, the same checks as an ostuarve file) goes to
   // Storage first, then financeApi adds its metadata to the entry; no figure of the entry changes
   async uploadEntryDocument(entryId, file) {

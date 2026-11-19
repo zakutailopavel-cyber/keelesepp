@@ -76,14 +76,14 @@ export function trialBalanceWorkbook(balance, { company, period }) {
     row([text('Ettevõte'), text(`${company.name}, Rg-kood ${company.regCode}`)]),
     ...(startsMidYear(period.from) ? [row([text('Märkus'), text(TRIAL_MID_YEAR_NOTE)])] : []),
     `<Row><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Konto</Data></Cell><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Nimetus</Data></Cell>${['Algsaldo', 'Käive', 'Lõppsaldo'].map((t) => gText(t, 'gHeadCenter', 1)).join('')}</Row>`,
-    `<Row><Cell ss:Index="3" ss:StyleID="gHeadNum"><Data ss:Type="String">Deebet</Data></Cell>${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}</Row>`,
+    `<Row><Cell ss:Index="4" ss:StyleID="gHeadNum"><Data ss:Type="String">Deebet</Data></Cell>${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}</Row>`,
     ...balance.rows.map((r) => row([gText(r.code), gText(r.name), ...six(r).map(cell)])),
     row([gText('Kokku', 'gBold', 1), ...six(balance.total).map((v) => gNum(v, 'gTotal'))]),
   ];
   return workbook([{ name: 'Käibeandmik', columns: [60, 260, 85, 85, 85, 85, 85, 85], rows: out }]);
 }
 
-// Partnerid (partnerReport): sheet „Partnerid” — Partner | Reg-kood | Algsaldo D/K | Käive D/K | Lõppsaldo D/K, Kokku;
+// Partnerid (partnerReport): sheet „Partnerid” — Partner | Tüüp | Reg-kood | Algsaldo D/K | Käive D/K | Lõppsaldo D/K, Kokku;
 // sheet „Read” — every line of the period with its partner (the drill-down), ruled like the other registers
 export function partnersWorkbook(report, { company, period, accountLabel }) {
   const cell = (cents) => (cents ? gNum(cents) : gText(''));
@@ -96,22 +96,22 @@ export function partnersWorkbook(report, { company, period, accountLabel }) {
   ];
   const summary = [
     ...head,
-    `<Row><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Partner</Data></Cell><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Reg-kood</Data></Cell>${['Algsaldo', 'Käive', 'Lõppsaldo'].map((t) => gText(t, 'gHeadCenter', 1)).join('')}</Row>`,
-    `<Row><Cell ss:Index="3" ss:StyleID="gHeadNum"><Data ss:Type="String">Deebet</Data></Cell>${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}</Row>`,
-    ...report.rows.map((r) => row([gText(r.name), gText(r.regCode), ...six(r).map(cell)])),
-    row([gText('Kokku', 'gBold', 1), ...six(report.total).map((v) => gNum(v, 'gTotal'))]),
+    `<Row><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Partner</Data></Cell><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Tüüp</Data></Cell><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Reg-kood</Data></Cell>${['Algsaldo', 'Käive', 'Lõppsaldo'].map((t) => gText(t, 'gHeadCenter', 1)).join('')}</Row>`,
+    `<Row><Cell ss:Index="4" ss:StyleID="gHeadNum"><Data ss:Type="String">Deebet</Data></Cell>${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}</Row>`,
+    ...report.rows.map((r) => row([gText(r.name), gText(r.typeLabel || ''), gText(r.regCode), ...six(r).map(cell)])),
+    row([gText('Kokku', 'gBold', 2), ...six(report.total).map((v) => gNum(v, 'gTotal'))]),
   ];
   const lines = [
     ...head,
-    row(['Partner', 'Kuupäev', 'Kanne', 'Dokument', 'Konto', 'Kirjeldus'].map((h) => gText(h, 'gHead')).concat(['Deebet', 'Kreedit', 'Saldo'].map((h) => gText(h, 'gHeadNum')))),
+    row(['Partner', 'Tüüp', 'Kuupäev', 'Kanne', 'Dokument', 'Konto', 'Kirjeldus'].map((h) => gText(h, 'gHead')).concat(['Deebet', 'Kreedit', 'Saldo'].map((h) => gText(h, 'gHeadNum')))),
     ...report.rows.flatMap((r) => [
-      row([gText(r.name, 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('Algsaldo', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gNum(r.openingBalance, 'gTotal')]),
-      ...r.lines.map((l) => row([gText(r.name), gText(dmy(l.date)), gText(l.label || l.number), gText(l.documentRef), gText(l.account), gText(l.description), gNum(l.debitCents), gNum(l.creditCents), gNum(l.balance)])),
+      row([gText(r.name, 'gEntry'), gText(r.typeLabel || '', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('Algsaldo', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gNum(r.openingBalance, 'gTotal')]),
+      ...r.lines.map((l) => row([gText(r.name), gText(r.typeLabel || ''), gText(dmy(l.date)), gText(l.label || l.number), gText(l.documentRef), gText(l.account), gText(l.description), gNum(l.debitCents), gNum(l.creditCents), gNum(l.balance)])),
     ]),
   ];
   return workbook([
-    { name: 'Partnerid', columns: [200, 80, 85, 85, 85, 85, 85, 85], rows: summary },
-    { name: 'Read', columns: [170, 70, 60, 100, 50, 280, 80, 80, 80], rows: lines },
+    { name: 'Partnerid', columns: [200, 60, 80, 85, 85, 85, 85, 85, 85], rows: summary },
+    { name: 'Read', columns: [170, 60, 70, 60, 100, 50, 280, 80, 80, 80], rows: lines },
   ]);
 }
 
@@ -168,6 +168,25 @@ export function suppliersWorkbook(suppliers, { company }) {
     ...suppliers.map((s) => row([gText(s.name), gText(s.regCode), gText(s.vatNumber), gText(s.address), gText(s.email), gText(s.iban), gText(s.defaultAccount), gText(s.active === false ? 'ei' : 'jah')])),
   ];
   return workbook([{ name: 'Tarnijad', columns: [170, 80, 90, 220, 150, 160, 70, 50], rows: out }]);
+}
+
+// Partnerid register (PartnersRegister.jsx): every partner with its Tüüp. `rows` come from partnerRegister.registerRows
+// (a personal code already masked there); the „Muud” export (`others: true`) keeps the import's column order and the
+// codes as typed, so it can be pasted back.
+export function partnerRegisterWorkbook(rows, { company, others = false }) {
+  const head = others
+    ? ['Nimi', 'Liik', 'Reg-kood / isikukood', 'KMKR nr', 'E-post', 'IBAN', 'Märkus', 'Aktiivne']
+    : ['Nimi', 'Tüüp', 'Liik', 'Reg-kood / isikukood', 'KMKR nr', 'IBAN', 'E-post', 'Aktiivne', 'Allikas'];
+  const cells = (r) => (others
+    ? [r.name, r.kindLabel, r.regCode, r.vatNumber, r.email, r.iban, r.note, r.active === false ? 'ei' : 'jah']
+    : [r.name, r.typeLabel, r.kindLabel, r.code, r.vatNumber, r.iban, r.email, r.active === false ? 'ei' : 'jah', r.source]);
+  const out = [
+    row([text(others ? 'Partnerid (muud)' : 'Partnerid', 'title')]),
+    row([text('Ettevõte'), text(`${company.name}, Rg-kood ${company.regCode}`)]),
+    row(head.map((h) => gText(h, 'gHead'))),
+    ...rows.map((r) => row(cells(r).map((value) => gText(value || '')))),
+  ];
+  return workbook([{ name: 'Partnerid', columns: others ? [200, 90, 110, 90, 150, 160, 200, 50] : [200, 60, 90, 110, 90, 160, 150, 50, 90], rows: out }]);
 }
 
 // TSD of one month (tsd/TsdPanel.jsx): the main page with its codes 110–119 and Lisa 1 part Ia with the form's column

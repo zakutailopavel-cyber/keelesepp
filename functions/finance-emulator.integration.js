@@ -4965,6 +4965,61 @@ test("partners on entry lines: OA / VM carry the supplier, a manual 2110 line ma
   assert.equal(storno.body.entry.lines[0].partner.id, kirsiId);
 });
 
+test("Partnerid: „Muu” partners via financeApi only, Ostjad derived from company invoices, all three types on entry lines (the accountant 2026-11-19)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+
+  // „Muu”: create, duplicate refused, import all or nothing and idempotent
+  const mta = await financeRequest(adminToken, "/accounting/partners", { partner: { name: "Maksu- ja Tolliamet", kind: "tax", regCode: "70000349" }, requestId: "acc_partner_2901" });
+  assert.equal(mta.status, 201, JSON.stringify(mta.body));
+  const mtaId = mta.body.partner.id;
+  assert.equal((await db.collection("accountingPartners").doc(mtaId).get()).data().kind, "tax");
+  assert.equal((await financeRequest(adminToken, "/accounting/partners", { partner: { name: "MTA", regCode: "70000349" }, requestId: "acc_partner_2902" })).status, 409);
+  const refused = await financeRequest(adminToken, "/accounting/partners/import", { rows: [{ name: "Eesti Töötukassa", kind: "public" }, { name: "eesti töötukassa" }], requestId: "acc_partner_import_2901" });
+  assert.equal(refused.status, 409, JSON.stringify(refused.body));
+  const imported = await financeRequest(adminToken, "/accounting/partners/import", { rows: [{ name: "Eesti Töötukassa", kind: "public", regCode: "70009770" }, { name: "Pavel Zakutailo", kind: "owner" }], requestId: "acc_partner_import_2902" });
+  assert.equal(imported.status, 201, JSON.stringify(imported.body));
+  assert.equal((await financeRequest(adminToken, "/accounting/partners/import", { rows: [{ name: "X" }], requestId: "acc_partner_import_2902" })).status, 200, "idempotent");
+  const ownerId = imported.body.created[1];
+  const renamed = await financeRequest(adminToken, "/accounting/partners", { partnerId: mtaId, partner: { name: "Maksu- ja Tolliamet", kind: "tax", regCode: "70000349", email: "emta@emta.ee" }, requestId: "acc_partner_2903" });
+  assert.equal(renamed.status, 201, JSON.stringify(renamed.body));
+  assert.equal((await db.collection("accountingPartners").doc(mtaId).get()).data().email, "emta@emta.ee");
+
+  // Ostjad: company invoices only; a company payer with its code, a private payer with its name only
+  await db.collection("invoices").doc("partner_inv_2901").set({ num: "KS-P1", date: "2029-01-10", issuer: "company", payerName: "Popovtakso OÜ", payerRegCode: "14112233", payerEmail: "arved@popov.test", studentId: "partner_student_1", amountCents: 9000 });
+  await db.collection("invoices").doc("partner_inv_2902").set({ num: "KS-P2", date: "2029-01-11", payerName: "Partner Lapsevanem", payerEmail: "vanem@example.test", studentId: "partner_student_2", amountCents: 5000 });
+  await db.collection("invoices").doc("partner_inv_2903").set({ num: "FIE-P3", date: "2029-01-12", issuer: "fie", payerName: "Partner FIE Klient", amountCents: 5000 });
+  const customers = await financeRequest(adminToken, "/accounting/partners/customers", {});
+  assert.equal(customers.status, 200, JSON.stringify(customers.body));
+  const popov = customers.body.customers.find((c) => c.id === "reg:14112233");
+  assert.deepEqual({ name: popov.name, regCode: popov.regCode, kind: popov.kind }, { name: "Popovtakso OÜ", regCode: "14112233", kind: "company" });
+  const parent = customers.body.customers.find((c) => c.name === "Partner Lapsevanem");
+  assert.equal(parent.regCode, "");
+  assert.equal(JSON.stringify(customers.body).includes("vanem@example.test"), false, "no e-mail leaves the server");
+  assert.equal(customers.body.customers.some((c) => c.name === "Partner FIE Klient"), false, "FIE invoices are not in the books");
+
+  // entry lines: an „other” partner must exist (its name from the card); a customer is kept with its name
+  const base = { date: "2029-01-15", description: "Tasaarvestus osanikuga", documentRef: "Leping P1", lines: [{ account: "1010", debitCents: 5000 }, { account: "2030", creditCents: 5000 }] };
+  const unknown = await financeRequest(adminToken, "/accounting/entries", { entry: { ...base, lines: [base.lines[0], { ...base.lines[1], partner: { type: "other", id: "nope", name: "Keegi" } }] }, requestId: "acc_manual_2029_0001" });
+  assert.equal(unknown.status, 400, JSON.stringify(unknown.body));
+  const withOwner = await financeRequest(adminToken, "/accounting/entries", { entry: { ...base, lines: [{ ...base.lines[0], partner: { type: "customer", id: "reg:14112233", name: "Popovtakso OÜ" } }, { ...base.lines[1], partner: { type: "other", id: ownerId, name: "vana" } }] }, requestId: "acc_manual_2029_0002" });
+  assert.equal(withOwner.status, 201, JSON.stringify(withOwner.body));
+  const stored = (await db.collection("accountingEntries").doc(withOwner.body.entry.id).get()).data();
+  assert.deepEqual(stored.lines.map((l) => l.partner), [{ type: "customer", id: "reg:14112233", name: "Popovtakso OÜ" }, { type: "other", id: ownerId, name: "Pavel Zakutailo" }]);
+
+  // the browser never writes accountingPartners; a teacher can neither read nor call the routes
+  const direct = await firestoreDocumentRequest(adminToken, "PATCH", `accountingPartners/${mtaId}`, { fields: { name: { stringValue: "forged" } } });
+  assert.equal(direct.status, 403, JSON.stringify(direct.body));
+  assert.equal((await firestoreDocumentRequest(adminToken, "GET", `accountingPartners/${mtaId}`)).status, 200);
+  const teacherToken = await createUserToken("partners-teacher@example.com");
+  await db.collection("users").doc(tokenUid(teacherToken)).set({ role: "teacher", displayName: "Partners Teacher" });
+  assert.equal((await firestoreDocumentRequest(teacherToken, "GET", `accountingPartners/${mtaId}`)).status, 403);
+  assert.equal((await financeRequest(teacherToken, "/accounting/partners/customers", {})).status, 403);
+  assert.equal((await financeRequest(teacherToken, "/accounting/partners", { partner: { name: "X" }, requestId: "acc_partner_2999" })).status, 403);
+});
+
 test("„Asenda konto” moves an account in many entries with history and audit, refuses a locked period, is idempotent and undoable (the accountant 2026-10-23)", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

@@ -48,10 +48,12 @@ function accountingError(message, status = 400) {
 }
 
 // ---- partners (the accountant 2026-10-24: „Поставщиков сначала, и привяжи их к проводкам”) ----
-// Like Merit Aktiva: a line on a partner account carries the partner — { type: "supplier" | "customer", id, name }.
-// A supplier is a suppliers/{id} card; a customer is the student / payer card of a sales document. Lines on the
-// supplier accounts below need a supplier in a new manual entry; the partner report (Partnerid) groups by it.
-const PARTNER_TYPES = Object.freeze(["supplier", "customer"]);
+// Like Merit Aktiva: a line on a partner account carries the partner — { type: "supplier" | "customer" | "other", id,
+// name }. A supplier is a suppliers/{id} card; a customer is the student / payer of a sales document or an Ostja from
+// the CRM invoices (accounting-partners-core customersFromInvoices); „other” is an accountingPartners/{id} card (Maksu-
+// ja Tolliamet, Töötukassa, osanik, töötaja, pank … — the accountant 2026-11-19). Lines on the supplier accounts below
+// need a supplier in a new manual entry; the partner report (Partnerid) groups by it.
+const PARTNER_TYPES = Object.freeze(["supplier", "customer", "other"]);
 const SUPPLIER_ACCOUNTS = Object.freeze(["2110", "1350"]);
 const CUSTOMER_ACCOUNTS = Object.freeze(["1200", "2500"]);
 
@@ -64,7 +66,7 @@ function cleanPartner(value) {
   const name = cleanText(value.name, 160);
   if (!id && !name) return null;
   const type = String(value.type || "").trim();
-  if (!PARTNER_TYPES.includes(type)) throw accountingError(`Partner „${name || id}”: vali tarnija nimekirjast (Tarnijad).`);
+  if (!PARTNER_TYPES.includes(type)) throw accountingError(`Partner „${name || id}”: vali partner nimekirjast (Partnerid).`);
   if (!name) throw accountingError("Partneri nimi on kohustuslik.");
   return { type, id, name };
 }
@@ -437,9 +439,10 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
 }
 
 // a manual, opening or reversal entry must balance and use known, active accounts. options.suppliers (a Map of
-// supplier id → card) checks that a supplier partner exists; options.requirePartner refuses a line on a supplier
-// account (2110, 1350) without a supplier (a new manual entry).
-function validateEntry(entry, accounts = [], { suppliers = null, requirePartner = false } = {}) {
+// supplier id → card) checks that a supplier partner exists; options.others (a Map of accountingPartners id → card)
+// the same for an „other” partner; a customer is kept with its name (Ostjad are derived from the invoices, not stored).
+// options.requirePartner refuses a line on a supplier account (2110, 1350) without a supplier (a new manual entry).
+function validateEntry(entry, accounts = [], { suppliers = null, others = null, requirePartner = false } = {}) {
   const byCode = new Map(accounts.map((account) => [String(account.code), account]));
   const date = isoDate(entry?.date);
   const parsed = new Date(`${date}T12:00:00.000Z`);
@@ -459,6 +462,11 @@ function validateEntry(entry, accounts = [], { suppliers = null, requirePartner 
     if (partner && partner.type === "supplier" && partner.id && suppliers) {
       const card = suppliers.get(partner.id);
       if (!card) throw accountingError(`Tarnijat „${partner.name}” ei leitud (Tarnijad).`);
+      partner.name = cleanText(card.name, 160) || partner.name;
+    }
+    if (partner && partner.type === "other" && others) {
+      const card = partner.id ? others.get(partner.id) : null;
+      if (!card) throw accountingError(`Partnerit „${partner.name}” ei leitud (Partnerid).`);
       partner.name = cleanText(card.name, 160) || partner.name;
     }
     if (partner) out.partner = partner;

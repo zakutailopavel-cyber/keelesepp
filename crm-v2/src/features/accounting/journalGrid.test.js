@@ -153,7 +153,7 @@ describe('partners (Tarnijad) on the lines', () => {
     expect(resolvePartner('Mari', suppliers, customer)).toBe(customer);
     const w = setCell(toWorking(manual), 1, COL.partner, 'Kirsi');
     expect(w.lines[1].partner).toEqual({ type: '', id: '', name: 'Kirsi' });
-    expect(workingProblem(w, { origin: 'auto', accounts: acc, reason: 'x' }).problem).toMatch(/Partner „Kirsi” — vali tarnija/);
+    expect(workingProblem(w, { origin: 'auto', accounts: acc, reason: 'x' }).problem).toMatch(/Partner „Kirsi” — vali partner nimekirjast/);
     const picked = setCell(w, 1, COL.partner, 'Kirsi Residents OÜ', { picked: suppliers[0] });
     expect(picked.lines[1].partner).toEqual({ type: 'supplier', id: 's1', name: 'Kirsi Residents OÜ' });
     expect(workingValues(picked).lines[1].partner.id).toBe('s1');

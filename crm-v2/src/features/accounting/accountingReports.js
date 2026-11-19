@@ -15,10 +15,38 @@ export const accountTypeLabel = (type) => ACCOUNT_TYPES.find(([value]) => value 
 // lines on the supplier accounts need a supplier in a manual entry (functions/accounting-core.js SUPPLIER_ACCOUNTS)
 export const SUPPLIER_ACCOUNTS = ['2110', '1350'];
 export const CUSTOMER_ACCOUNTS = ['1200', '2500'];
-export const PARTNER_TYPE_LABELS = { supplier: 'Tarnija', customer: 'Klient' };
+// three kinds of partner (the accountant 2026-11-19, like Merit: Kliendid + Tarnijad + muud): a Tarnijad card, an Ostja
+// from the CRM invoices, a „Muu” card (accountingPartners: Maksu- ja Tolliamet, Töötukassa, osanik, töötaja, pank …)
+export const PARTNER_TYPE_LABELS = { supplier: 'Tarnija', customer: 'Ostja', other: 'Muu' };
 export const partnerLabel = (partner) => String(partner?.name || '');
-// one key per partner: a card id when there is one, else the name; lines without a partner → 'none'
-export const partnerKey = (partner) => (partner && (partner.id || partner.name) ? `${partner.type || ''}:${partner.id || String(partner.name).trim().toLocaleLowerCase('et')}` : 'none');
+const nameKey = (name) => String(name || '').trim().toLocaleLowerCase('et');
+// one key per partner: a card id when there is one, else the name; lines without a partner → 'none'. A customer is
+// one partner per name: the sales entries carry the student card id (one parent, two children = two ids) and a
+// customer picked in the päevaraamat carries „reg:<code>” — the name is what they share.
+export const partnerKey = (partner) => {
+  if (!partner || !(partner.id || partner.name)) return 'none';
+  if (partner.type === 'customer' && partner.name) return `customer:~${nameKey(partner.name)}`;
+  return `${partner.type || ''}:${partner.id || nameKey(partner.name)}`;
+};
+// an Estonian personal code (isikukood) is shown masked in lists and reports (functions/accounting-partners-core.js)
+export const isPersonalCode = (value) => /^[1-6]\d{10}$/.test(String(value || '').trim());
+export const maskCode = (value) => {
+  const code = String(value || '').trim();
+  return isPersonalCode(code) ? `${code[0]}******${code.slice(-4)}` : code;
+};
+// the registry code of a line's partner from the register (suppliers, „Muu” cards, Ostjad), masked if personal
+export function partnerCodeLookup({ suppliers = [], others = [], customers = [] } = {}) {
+  const supplierCodes = new Map(suppliers.map((s) => [String(s.id), s.regCode || '']));
+  const otherCodes = new Map(others.map((o) => [String(o.id), o.regCode || '']));
+  const customerCodes = new Map(customers.filter((c) => c.regCode).map((c) => [nameKey(c.name), c.regCode]));
+  return (partner) => {
+    if (!partner) return '';
+    if (partner.type === 'supplier') return supplierCodes.get(String(partner.id)) || '';
+    if (partner.type === 'other') return maskCode(otherCodes.get(String(partner.id)) || '');
+    if (partner.type === 'customer') return String(partner.id || '').startsWith('reg:') ? String(partner.id).slice(4) : customerCodes.get(nameKey(partner.name)) || '';
+    return '';
+  };
+}
 
 const byNumber = (a, b) => String(a.date).localeCompare(String(b.date)) || String(a.number).localeCompare(String(b.number));
 const inPeriod = (date, { from = '', to = '' } = {}) => (!from || date >= from) && (!to || date <= to);
@@ -223,11 +251,12 @@ export function ledger(entries = [], account, { from = '', to = '', partner = ''
 // Partnerid (the accountant 2026-10-24, like Merit's partner report): per partner on one account (default 2110 Võlad
 // tarnijatele; '' = every account) its balance before the period, debit and credit turnover and closing balance,
 // with the lines for the drill-down. Lines without a partner are one row „Partner puudub”. Income / expense accounts
-// start each year from zero, like the käibeandmik. `suppliers` give the registry code; `labels` (entry id → „OA 3”)
+// start each year from zero, like the käibeandmik. `suppliers`, `others` and `customers` give the registry code; `type`
+// keeps one kind of partner (supplier / customer / other); `labels` (entry id → „OA 3”)
 // the kande kood of a line.
-export function partnerReport(entries = [], accounts = [], { from = '', to = '', account = '2110', type = '' } = {}, { suppliers = [], labels = new Map() } = {}) {
+export function partnerReport(entries = [], accounts = [], { from = '', to = '', account = '2110', type = '' } = {}, { suppliers = [], others = [], customers = [], labels = new Map() } = {}) {
   const types = new Map(accounts.map((a) => [String(a.code), a.type]));
-  const codes = new Map(suppliers.map((s) => [String(s.id), s.regCode || '']));
+  const codeOf = partnerCodeLookup({ suppliers, others, customers });
   const yearStart = from ? `${from.slice(0, 4)}-01-01` : '';
   const rows = new Map();
   const rowOf = (partner) => {
@@ -235,7 +264,7 @@ export function partnerReport(entries = [], accounts = [], { from = '', to = '',
     if (!rows.has(key)) {
       rows.set(key, {
         key, type: partner?.type || '', id: partner?.id || '', name: partner ? partnerLabel(partner) : 'Partner puudub',
-        regCode: partner?.type === 'supplier' ? codes.get(String(partner.id)) || '' : '',
+        regCode: codeOf(partner), typeLabel: PARTNER_TYPE_LABELS[partner?.type] || '',
         openingBalance: 0, turnover: { debit: 0, credit: 0 }, lines: [],
       });
     }
