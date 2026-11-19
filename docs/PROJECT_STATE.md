@@ -1,6 +1,6 @@
 ## 2026-11-19 · agent/b1b2-m11-tasks — B1→B2 module 11 „Raha ja tarbimine” in v4 task-based design · content only
 
-- Base: `origin/main` 9620ed5 (release after #1277), checked 2026-11-19. Draft PR „B1→B2 module 11: task-based (v4)”
+- Base: `origin/main` 9620ed5 (release after #1277), checked 2026-11-19; merged origin/main e3938ed (#1274 e-exam) before the PR. Draft PR „B1→B2 module 11: task-based (v4)”
   (link in the PR list). Not merged, not published, no deploy, no production writes. Modules 12 and 13 are rebuilt in
   parallel: expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, language-allow.txt,
   module13.js (two review lines), COURSE_DESIGN_STATIONS §4 — keep both sides.
@@ -21,7 +21,7 @@
   Russian `docs/review/b2-m11-tasks.md` (per-lesson table, before → after, four learners, methodologist, gate notes).
 - Checks: course report module 11 5/5 READY, all 36 B1 / B2 modules 5/5 READY; `npx vitest run
   src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet
-  src/features/practice` 220 files, 2492 passed / 12 skipped; eslint clean on the changed files; EstNLTK 0 unknown
+  src/features/practice` 221 files, 2504 passed / 12 skipped (after merging e3938ed); eslint clean on the changed files; EstNLTK 0 unknown
   lower-case; all 15 sheets read in the sheet lab (headless Chromium, 1280 px, 0 console errors), fixes in the review doc.
 - Gate notes for the owner (gates not changed): V14 keeps finance terms (kuumakse, lepingutasu, kättesaamine …) out of
   the vocabulary boxes; didacticCheck still counts all answer variants as one sentence (054 transformations keep 1–2).
