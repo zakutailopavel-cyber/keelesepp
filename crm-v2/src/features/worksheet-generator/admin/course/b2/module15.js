@@ -206,6 +206,7 @@ export const LESSONS = withShapes({
       tag(homeTask(purpose(B.speaking('071_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: kust sa uudiseid saad ja mida sa nüüdsest pealkirjas kontrollid.', [
         'Milline pealkiri sind viimati eksitas või üllatas?',
         'Mida sa nüüd kontrollid, enne kui pealkirja usud?',
+        'Kui valla leht kirjutab uuest teenusest või tänavavalgustusest, kas pealkiri ütleb, kellele see on ja mis on tähtaeg?',
       ], [60, 120]), 'Õpetaja kuulab, kas kindluse sõnad ja sõnajärg on õiged.')), { task: 'S15' }),
       homework('071_t_homework', ['1. Uudisnupp ja arvamus, kokku 180–200 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
     ],

@@ -170,6 +170,16 @@ boxes of a topic module must stay ≥ 90 % EKI A1–B2 words (V14-known), so top
 live in the texts and tasks, not in the boxes; a station text ≤ 120 words cannot carry a lesson alone — a voice message of
 ≥ 110 words (≥ 60 s) does (V4_INPUT).
 
+**B2 module 14** (`b2/module14.js`, 066–069, 2026-11-19, stage B2-): society from the learner's side — quest (an old
+parent who cannot cope alone: the municipality's social services, explain) → infogap (two hours of volunteering a week:
+rescue prevention or Keelesõber, decide) → case (what the citizenship law asks and what not, advise) → project (a dark
+road to the bus stop: a proposal the municipality must answer, present); 070 the module exam + „Minu kodukoha teejuht”;
+owner summary `docs/review/b2-m14-tasks.md`. Learnt: check the earlier modules before choosing a topic — av-fact-dup
+caught a first 066 („112, 1220 or the family doctor”) that repeated modules 2 and 9; a fact the B1 course already has
+(voting rights after 2025) goes in as „Mäletad, …”; V11 counts only R / L tasks as input, so an opener lesson may need a
+second reading task (a short chat with a task code); a table answer with alternatives uses „/”, not „|” (the column
+separator); one task code at most once a module (V4-max) also for R11 and L07.
+
 **B2 module 8** (`b2/module08.js`, 036–039, 2026-11-18): travel and culture from the learner's side — project (a weekend
 on 200 €, negotiate) → infogap (a cancelled flight and a late suitcase, EU rules, complain) → game (customs and culture
 shock, explain) → case (a guest in summer: festival or museum, advise); 040 Vahehindamine 2 in Harno B2 form + „Minu

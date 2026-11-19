@@ -1,74 +1,84 @@
 // Visual briefs of b1b2 module 14; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// Learner-facing text (scene, alt, caption, prompts) without the course cast since 2026-11-19 (task-based module 14,
+// docs/COURSE_CAST.md); the `cast` field still records who the generated picture shows. The same five pictures stay in
+// their folders and are retargeted to the new lessons (no new pictures): 066 public-service access → the „where to turn”
+// game, 067 three community initiatives → the volunteering choice, 068 rule icons → must / may / must not, 069 the
+// proposal to the commission → the dark-road project, 070 the scheme → the module product. Briefs and pictures made by
+// Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
 export default [
   {
     id: "b1b2-066-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Olga", "Liis"],
-    scene: "Linnavalitsuse teenuste fookusgrupis võrdlevad Olga ja Liis perearsti, bussi, raamatukogu, lasteaia ja sotsiaalabi kättesaadavust. Kaardil on linn ja kauge maakodu; pikk teekond perearstini näitab probleemi, mobiilne vastuvõtt toob teenuse inimeseni.",
+    // 2026-11-19 (v4): the same picture, retargeted from the focus group to services that reach an old person at home
+    scene: "Kaks elanikku võrdlevad kaardil perearsti, bussi, raamatukogu ja apteegi kättesaadavust linnas ja kauges maakodus. Pikk teekond perearstini näitab probleemi, mobiilne vastuvõtt toob teenuse inimeseni.",
     accent: "the mobile health-service stop near the rural home",
     text: [],
-    learningJob: "hinnata avaliku teenuse vajalikkust ja kättesaadavust ning pakkuda täpset parandust",
-    alt: "Olga ja Liis võrdlevad avalike teenuste kättesaadavust linnas ja maal.",
-    caption: "Pilt 1. Hea avalik teenus peab jõudma ka kaugel elava inimeseni.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliste avalike teenuste kättesaadavust Olga ja Liis võrdlevad?", "Mida näitab pikk teekond perearstini ja kuidas aitab mobiilne vastuvõtt?", "Milline avalik teenus on sinu kodukohas kõige raskemini kättesaadav?"],
+    place: "066_d_open",
+    learningJob: "hinnata, kui kaugel on avalik teenus, ja arutada, millised teenused peaksid jõudma eaka inimese koju",
+    alt: "Kaks elanikku vaatavad kaarti, kus perearst on maakodust kaugel ja mobiilne vastuvõtt tuleb inimesele lähemale.",
+    caption: "Pilt 1. Abi peab jõudma inimeseni — eriti siis, kui ta ise enam kaugele ei jõua.",
+    prompts: ["Milline teenus on pildil maakodust kõige kaugemal?", "Kuidas aitab teenus, mis tuleb inimese juurde koju?", "Milline teenus peaks sinu kodukohas eakale koju tulema ja miks?"],
   },
   {
     id: "b1b2-067-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Sofia", "Markus"],
-    scene: "Linna kaasava eelarve kohtumisel võrdlevad Sofia ja Markus kolme elanike algatust: noorte rulaparki, kogukonnaaeda ja turvalist mänguväljakut. Nad hindavad kasusaajaid, vabatahtlike panust ja pikaajalist mõju ning asetavad valitud ideele hääletusmärgi.",
+    // 2026-11-19 (v4): the same picture, retargeted from the participatory budget to the learner's volunteering choice
+    scene: "Kaks inimest võrdlevad kolme kogukonna algatust: noorte rulaparki, kogukonnaaeda ja turvalist mänguväljakut. Nad hindavad, kes saab kasu, kui palju aega vabatahtlikud panustavad ja mis jääb alles, ning panevad valitud ideele märgi.",
     accent: "the vote marker on the chosen community initiative",
     text: [],
-    learningJob: "võrrelda kogukonnaalgatuste mõju ja veenda naabreid põhjendatud valiku kasuks",
-    alt: "Sofia ja Markus valivad kaasava eelarve kolme kogukonnaalgatuse vahel.",
-    caption: "Pilt 1. Kogukonna otsus sünnib mõju ja osaluse võrdlemisest.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliseid kolme elanike algatust Sofia ja Markus võrdlevad?", "Mille järgi nad algatusi hindavad?", "Millise algatuse poolt sina hääletaksid ja miks?"],
+    place: "067_t_gap",
+    learningJob: "võrrelda vabatahtliku töö võimalusi aja ja kasu järgi ning valida endale sobiv",
+    alt: "Kaks inimest valivad kolme kogukonna algatuse vahel ja panevad ühele märgi.",
+    caption: "Pilt 1. Sobiv vabatahtlik töö sõltub sinu ajast, oskustest ja sellest, keda see aitab.",
+    prompts: ["Mille järgi need kaks inimest algatusi võrdlevad?", "Millises algatuses osaleksid sina ja mille eest vastutaksid?", "Kui palju aega saaksid sina nädalas kogukonda panustada?"],
   },
   {
     id: "b1b2-068-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Anna", "Igor"],
-    scene: "Kortermaja teadetetahvli ees eristavad Anna ja Igor nelja kodukorra tüüpi: kohustuslik jäätmete sorteerimine, lubatud vaikne rõdukasutus, öörahu ajal keelatud remont ning mittekohustuslik ühine talgupäev. Iga olukorda näitab selge ikoon ja erinev märgikuju.",
-    accent: "the mandatory waste-sorting rule card",
+    // 2026-11-19 (v4): the same picture, retargeted from the house rules to must / may / must not in official rules
+    scene: "Teadetetahvli ees eristavad kaks inimest nelja reegli liiki: kohustuslik, lubatud, keelatud ja mittekohustuslik. Iga liiki näitab selge ikoon ja erinev märgikuju.",
+    accent: "the mandatory rule card",
     text: [],
-    learningJob: "eristada kohustust, võimalust, piirangut ja mittekohustuslikku tegevust",
-    alt: "Anna ja Igor võrdlevad kortermaja kohustusi, lubasid ja keelde.",
-    caption: "Pilt 1. Ei pea ja ei tohi väljendavad erinevat reeglit.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliseid nelja kodukorra tüüpi Anna ja Igor eristavad?", "Mis vahe on kohustuslikul, lubatud ja keelatud tegevusel?", "Milline sinu maja või töökoha reegel on sinu arvates kõige vajalikum?"],
+    place: "068_d_know",
+    learningJob: "eristada kohustust, luba, keeldu ja kohustuse puudumist (peab, võib, ei tohi, ei pea)",
+    alt: "Kaks inimest vaatavad teadetetahvlit, kus kohustus, luba, keeld ja vabatahtlik asi on eri märkidega.",
+    caption: "Pilt 1. „Ei pea” ja „ei tohi” ei ole sama: üks on vabadus, teine keeld.",
+    prompts: ["Milline märk näitab pildil kohustust ja milline keeldu?", "Mis vahe on lausetel „ei pea tegema” ja „ei tohi teha”?", "Milline ametlik nõue on sinu elus praegu kõige tähtsam?"],
   },
   {
     id: "b1b2-069-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Liis", "Jüri"],
-    scene: "Linnaosa komisjoni ees esitleb Liis kooli tänava parkimisprobleemi lahendust. Tahvlil on ohtlikult kõnniteel seisvad autod, kaks alternatiivi koos ressursi- ja riskisümbolitega ning valitud ohutu peatumisala koos uue ülekäigurajaga; Jüri kuulab ja valmistub küsimuseks.",
-    accent: "the selected safe drop-off zone and crossing",
+    // 2026-11-19 (v4): the same picture, retargeted from the school street to the learner's own proposal
+    scene: "Elanik esitleb valla komisjonile kohaliku probleemi lahendust. Tahvlil on probleem, kaks lahendust koos kulu- ja riskimärkidega ning valitud lahendus; komisjoni liige kuulab ja valmistab küsimust.",
+    accent: "the selected solution on the board",
     text: [],
-    learningJob: "esitleda kohaliku probleemi lahendust, võrrelda ressursse ja riske ning kaitsta lõplikku valikut",
-    alt: "Liis esitleb komisjonile kooli tänava ohutuma liikluskorralduse ettepanekut.",
-    caption: "Pilt 1. Põhjendatud ettepanek arvestab ressursse, riske ja mõju.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milline probleem on kooli tänaval?", "Mille poolest erinevad kaks alternatiivi ja valitud lahendus?", "Mida küsiksid sina komisjoni liikmena Liisilt?"],
+    place: "069_t_pitch",
+    learningJob: "esitleda kohaliku probleemi lahendust, võrrelda kulu ja riski ning kaitsta valikut",
+    alt: "Elanik esitleb komisjonile kahte lahendust ja oma valikut, komisjoni liige kuulab.",
+    caption: "Pilt 1. Ettepanek, kus on hind ja risk, saab kiiremini vastuse.",
+    prompts: ["Mis on tahvlil kahe lahenduse erinevus?", "Mida küsiksid komisjoni liikmena esitlejalt?", "Millise ettepaneku teeksid sina oma vallale ja mis see maksaks?"],
   },
   {
     id: "b1b2-070-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Anna", "Jüri"],
-    scene: "Ühiskonnamooduli kontrolli järel selgitab Anna õpetaja Jürile abstraktset mõistet usaldus. Ta kasutab skeemi, kus inimene, avalik teenus, vabatahtlik reeglite järgimine ja koostöö moodustavad seose; kõrval on konkreetne järgmise harjutuse kaart.",
-    accent: "the next-step card for explaining abstract concepts",
+    // 2026-11-19 (v4): the same picture, retargeted to the module product (the learner's guide to his home place)
+    scene: "Pärast mooduli kontrolli selgitab õppija õpetajale skeemi, kus inimene, avalik teenus, kogukond ja reeglid on omavahel seotud; kõrval on järgmise harjutuse kaart.",
+    accent: "the next-step card",
     text: [],
-    learningJob: "muuta kontrolli tagasiside abstraktsete mõistete selgitamise harjutusplaaniks",
-    alt: "Anna selgitab Jürile usalduse mõistet ja valib järgmise harjutuse.",
-    caption: "Pilt 1. Abstraktne mõiste muutub selgemaks seoste ja näidete abil.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Kuidas selgitab Anna mõistet usaldus?", "Kuidas on skeemil seotud inimene, avalik teenus, reeglid ja koostöö?", "Kas sina usaldad avalikke teenuseid? Too üks näide."],
+    place: "070_t_product",
+    learningJob: "seostada avalik teenus, osalemine, reeglid ja ettepanek oma kodukoha teejuhiks",
+    alt: "Õppija näitab skeemi, kus inimene, avalik teenus, kogukond ja reeglid on seotud.",
+    caption: "Pilt 1. Kodukoha teejuht seob abi, osalemise, kohustused ja ettepaneku.",
+    prompts: ["Kuidas on skeemil seotud inimene, teenus, kogukond ja reeglid?", "Mis on sinu kodukoha teejuhis kõige tähtsam rida?", "Mida soovitaksid uuele elanikule kõigepealt teha?"],
   },
 ];
