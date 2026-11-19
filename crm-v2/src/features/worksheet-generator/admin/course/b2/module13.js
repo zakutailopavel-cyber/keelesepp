@@ -319,6 +319,7 @@ export const LESSONS = withShapes({
       tag(homeTask(purpose(B.speaking('062_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut: üks muudatus, mida sa oma köögis järgmisel nädalal proovid, ja miks.', [
         'Mis sinu kodus kõige sagedamini raisku läheb ja mille tõttu?',
         'Mida sa teed teisiti ja mis selle tagajärjel muutub?',
+        'Kui sulle tundub mõni toiduväide kahtlane, kuidas sa kontrollid, kas allikas on usaldusväärne, ja kust saad selle kinnitada?',
       ], [60, 120]), 'Õpetaja kuulab sinu plaani ja küsib järgmises tunnis, kuidas läks.')), { task: 'S15' }),
       homework('062_t_homework', ['1. Kokkuvõte andmetest, 180–200 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
     ],
@@ -552,6 +553,7 @@ export const LESSONS = withShapes({
       tag(homeTask(purpose(B.speaking('064_t_home', 'Kodus: räägi 1 minut.', 'Salvesta 1 minut oma kodu keskkonnaplaani järgi: neli asja, mida sa teed, ja üks, mis on raske.', [
         'Mis on sinu plaanis kõige tähtsam ja miks?',
         'Mis on raske, ja miks sa seda vaatamata sellele teed?',
+        'Kas lubaksid ilmarakendusel oma asukohta kasutada, et saada kuumahoiatus? Miks või miks mitte?',
       ], [60, 120]), 'See on mooduli kontrolli sõnavõtu harjutus; õpetaja annab ühe nõu.')), { task: 'S15' }),
       homework('064_t_homework', ['1. Tekst „probleem ja lahendused”, 180–200 sõna (ülesanne lehel).', '2. Räägi 1 minut ja salvesta (ülesanne lehel).', `3. ${WORDS_HOME}`, NO_RECORDING]),
     ],

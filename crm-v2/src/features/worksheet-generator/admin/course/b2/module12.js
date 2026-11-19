@@ -129,7 +129,7 @@ export const LESSONS = withShapes({
         ['Milline riigiteenus jõudis riigi sõnul 2024. aasta detsembris veebi kõige viimasena?', 'abielu lahutamise avaldus', 'digiretsept', 'e-hääletamine', 'elukoha registreerimine'],
         ['Mida tuleb abielu lahutamise puhul ka e-avalduse järel siiski kohapeal teha?', 'üks kord ametnikuga kohtuda', 'tuua paberil avaldus', 'maksta lõiv sularahas', 'tuua kaasa kaks tunnistajat'],
         ['Mida saab inimene teksti järgi näha riigiportaali andmejälgijas?', 'kes on mõnes riigi andmekogus sinu andmeid kasutanud', 'kõik sinu sõnumid', 'kõikide firmade andmed sinu kohta', 'teiste inimeste retseptid'],
-        ['Millise väitega oleks teksti autor kõige rohkem nõus?', 'e-riik on mugav, kuid inimest vajatakse vahel ikka', 'e-riigis ei ole inimest enam üldse vaja', 'digiallkiri on vähem väärt kui paberil allkiri', 'e-teenused on mõeldud ainult noortele'],
+        ['Millist järeldust toetaks teksti autor kõige rohkem?', 'e-riik on mugav, kuid inimest vajatakse vahel ikka', 'e-riigis ei ole inimest enam üldse vaja', 'digiallkiri on vähem väärt kui paberil allkiri', 'e-teenused on mõeldud ainult noortele'],
       ], 'full', 'g_read'), 'Näed, mida sa e-riigist juba tead ja milline kontrollpunkt on veel läbimata.'), { task: 'R13', harno: 'R1' }),
       'Eksaminurk (R1): eksamil on pikem artikkel ja valikvastused. Kõigepealt prognoos pliiatsiga (2 min), siis lugemine, siis kontroll. Küsi lõpuks: „Mis üllatas sind kõige rohkem?” Kui õpilane hakkab vaidlema e-valimiste üle, too jutt tagasi tehnikale: kuidas see käib, mitte keda valida.'),
     ],
