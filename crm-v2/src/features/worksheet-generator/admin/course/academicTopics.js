@@ -82,7 +82,7 @@ export const TOPIC_MAP = Object.freeze({
     'b1b2-module-06': m('majandus', ['suhted', 'igapaevaelu'], 'Tööelu: töö otsimine, leping ja õigused, kolleegid, oma väike äri'),
     'b1b2-module-07': m('haridus', ['keel'], 'Haridus: koolireformid, elukestev õpe, tehisintellekt koolis'),
     'b1b2-module-08': m('reisimine', ['kultuur', 'kohad'], 'Reisimine ja kultuurierinevused: turism, ületurism, kultuurišokk'),
-    'b1b2-module-09': m('tervis', ['toit'], 'Tervis ja eluviis: toitumine, liikumine, vaimne tervis'),
+    'b1b2-module-09': m('tervis', ['toit'], 'Tervis ja eluviis: toidusilt, apteek, liikumine ja puhkus, harjumuse muutmine'),
     'b1b2-module-10': m('suhted', ['isikuandmed'], 'Suhted ja pere: põlvkonnad, üksindus, konfliktid'),
     'b1b2-module-11': m('sisseostud', ['majandus', 'teenused'], 'Raha ja tarbimine: säästmine, laenud, reklaam'),
     'b1b2-module-12': m('meedia', ['vabaaeg', 'yhiskond'], 'Tehnoloogia ja sotsiaalmeedia: tehisintellekt, ekraaniaeg, privaatsus'),

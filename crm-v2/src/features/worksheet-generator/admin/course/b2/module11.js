@@ -59,7 +59,7 @@ export const LESSONS = withShapes({
     title: 'Eelarve ja ostuotsus',
     canDo: 'Ma võrdlen ostuvariante vähemalt nelja kriteeriumi järgi (hind, kvaliteet, kulud aja jooksul, vajadus) ja kirjutan tarnijale 140–160-sõnalise poolametliku kirja, milles põhjendan valikut ja küsin tingimuste kohta.',
     discover: [
-      B.review('051_d_review', [['Milles lepiti Vahtra 5 lepituskoosolekul kokku ja kes lubas mida teha?', 'b1b2-049'], ['Kuidas esitles Jaan hoolekogule kooliköögi uut menüüd ja milliseid küsimusi vanemad esitasid?', 'b1b2-044'], 'Mis on sinu arvates hea kompromiss pere rahaasjades?']),
+      B.review('051_d_review', [['Moodul 10: kuidas ütled pere läbirääkimisel pehmelt oma ettepaneku ja tingimuse? Kasuta: mis oleks, kui …; olen nõus tingimusel, et …', 'b1b2-049'], ['Moodul 9: millise kaheksa nädala muutuse sa endale plaanisid ja kas see on püsima jäänud?', 'b1b2-044'], 'Mis on sinu arvates hea kompromiss pere rahaasjades?']),
       // the module's topic opener (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2, round 2 §13.9: ≤ 8 numbers, questions of
       // four kinds): cast-free, story-led, sourced; it replaces the goal text 051_d_goal, whose storyline and module goal
       // moved into the instruction of 051_d_read
@@ -332,7 +332,7 @@ export const LESSONS = withShapes({
     title: 'Tarbijaprobleem',
     canDo: 'Ma loen tarbija õigustest ja kirjutan poele 140–160-sõnalise vastuskirja: kirjeldan fakte, viitan tõenditele ja tingimustele ning esitan viisaka nõude, ka kui pood esialgu keeldub.',
     discover: [
-      B.review('053_d_review', [['Millise reklaamipaketi Jaan kohvikule valis ja milliseid tingimusi ta kohtumisel üle kontrollis?', 'b1b2-052'], ['Mida nõudis Sofia oma kaebuses reisifirmale ja kuidas ta seda põhjendas?', 'b1b2-037'], 'Ütle kesksõnaga: „summa, mis maksti eile” ja „pakkumine, mis kehtib ainult täna”.']),
+      B.review('053_d_review', [['Millise reklaamipaketi Jaan kohvikule valis ja milliseid tingimusi ta kohtumisel üle kontrollis?', 'b1b2-052'], ['Moodul 8: mida nõuaksid lennufirmalt, kui su lend tühistatakse, ja kuidas sa seda põhjendaksid?', 'b1b2-037'], 'Ütle kesksõnaga: „summa, mis maksti eile” ja „pakkumine, mis kehtib ainult täna”.']),
       B.text('053_d_hook', 'Kõne klienditeenindusse', 'Kadri ja Jaan arutasid Kokk Plussi makset pikalt. Kadri oli pettunud, et Jaan ei olnud tingimusi lugenud, Jaanil oli piinlik. Lõpuks leppisid nad kokku, et Jaan helistab firmasse ja nõuab raha tagasi. Tellimuse tühistas ta juba eile, kuid rakendust ei olnud ta pärast prooviperioodi kordagi avanud. Loe, kuidas kõne läheb. Märka, kuidas Jaan oma nõuet viisakalt sõnastab ja kuidas teenindaja tingimustele viitab.'),
       B.dialogue('053_d_call', 'Jaan helistab „Kokk Plussi”.', 'Loe Jaani kõnet klienditeenindusse. Kirjuta igasse lünka üks sõna, mis sobib nii sisu kui ka vormi poolest.', 'Hanna', 'Jaan', [
         ['A', 'Kokk Pluss, klienditeenindus, Hanna kuuleb. Kuidas saan teid aidata?'],

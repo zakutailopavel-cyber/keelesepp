@@ -83,3 +83,10 @@ mist
 ksite
 # B2 module 7: the Töötukassa career site minukarjaar.ee named as a source
 minukarjaar
+# B2 module 10: suffixes named in the word-formation notices (-dus, -likkus, -matu)
+dus
+likkus
+matu
+# B2 module 9: the source site agri.ee and the label unit kcal (energy per 100 g on a food label)
+agri
+kcal
