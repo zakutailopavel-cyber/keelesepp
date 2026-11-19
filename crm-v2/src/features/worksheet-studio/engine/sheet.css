@@ -24,6 +24,8 @@
   font-family: var(--font-body); font-size: 12.6pt; line-height: 1.35; position: relative; overflow: hidden;
 }
 .ws-page.is-tall { height: auto; min-height: 381.86mm; overflow: visible; }
+/* an exam sheet on screen (examMode.js onScreenContinuous): one page as long as its tasks, no A4 minimum */
+.ws-page.is-continuous { min-height: 0; }
 /* the hidden measuring page (Sheet.jsx): the page's padding, font and theme, but it grows with its rows */
 .ws-page-measure { height: auto; overflow: visible; box-shadow: none; }
 .ws-page *, .ws-measure * { box-sizing: border-box; }

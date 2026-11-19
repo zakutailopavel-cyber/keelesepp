@@ -28,6 +28,41 @@
   (≥ 30 %) measured against the old module 12 — re-check after module 12's PR; V14-known keeps topic compounds out of the
   vocabulary boxes (noted in the review doc, gate not changed).
 - Next safe step: owner reads `docs/review/b2-m13-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-061:discover` …).
+## 2026-11-18 · agent/e-exam-polish — E-eksam: pidev leht ekraanil, 2.5 numbrid, klipipõhine heli
+
+- Base: `origin/main` 2655c72 (#1267 merge), checked 2026-11-18. Draft PR „E-eksam: pidev leht ekraanil, 2.5 numbrid,
+  klipipõhine heli”. Not merged, no deploy, no rules / functions change, no production writes, no TTS call made.
+- Done (UI follow-up of #1270 after reading mock 1 as a student, `docs/E_EXAM_ENGINE.md` §1, §2, §2.1):
+  - exam sheets (`meta.exam`) on screen are one continuous A4-wide page (`examMode.js onScreenContinuous`, Sheet.jsx
+    `is-continuous`): no blank area after the part header, the W2 chart right above its task; print redraws A4 pages
+    on `beforeprint`; on paper a chart of an exam sheet keeps with the task after it (`keepsWithNext` → `packPages`), the
+    pie is at most 62 mm high (mock 1 W prints on 4 pages, chart with task 2);
+  - 2.5 `adsmatch`: numbered rows 0, 1 … n on an exam sheet; new `layout: 'chips'` (endings dragged / tapped from a bank,
+    answer stays the letter); mock 1 `ee1_r_25` uses it (one line in `b1/eeksam.js`);
+  - per-clip audio: `questions[i].script` → `tools/listening-audio` builds `<blockId>_<i>.mp3`, key
+    `lessonId:blockId#i`, `withListeningAudio` sets `questions[i].audio`; no existing file changes (plan dry run: 700
+    items, 0 stale before the clips). Round 2 (coordinator): mock 1's `T13` split word for word into 8 `script`s
+    (`T13_CLIPS`), recorded with TartuNLP (`build.mjs --only a2b1-ee1-l:ee1_l_13`: 8 new files, 17–25 s, 0 errors), the
+    old `ee1_l_13.mp3` and its manifest entry removed; a clip's „Name:” is always a speaker (`segmentsOf` `clip`);
+  - `examrubric` points: staff only (`ctx.staff` from `transcripts.role`), learners see the criteria read-only on every
+    sheet (the self-assessment blocks `rubric` / `selfcheck` stay clickable); the oral sheet `a2b1-ee1-s` is an exam
+    sheet (`exam: 'E9'`), one continuous page;
+  - round 3 (CI after merging main): `examrubric` is `staffOnly` → its keys leave the learner's „n/N vastust”
+    (`registry.js answerProgress`; before, a sheet with a rubric could never reach N/N for the learner). Grading pin:
+    b1m03 a2b1-011…015/transfer hashes moved for `progress` only (marks, correct/total, pct unchanged; noted in
+    `gradingPin.golden.js`). `homework/studentWorksheetFlow.test.jsx`: the student sees the rubric read-only, the
+    teacher gives the points in her own player;
+  - seen while reading: the pie's labels were cut / 6 px on a phone → shares big beside the slices, names + shares in
+    the legend (phone only); the E9W / E9S rubric said „80 %” under a part header with 60 % → 60 % (`rubricShare`).
+- Files: `worksheet-studio/engine/{Sheet.jsx, examMode.js, examSheet.css, sheet.css, blocks/harno.jsx, blocks/chart.jsx,
+  examPolish.test.jsx}`, `admin/course/{listeningAudio.js, listeningAudio.test.js, b1/eeksam.js}`,
+  `tools/listening-audio/{plan.mjs, build.mjs, README.md}`, `e2e/layout/sheets.spec.cjs`, docs `E_EXAM_ENGINE.md`,
+  `EXAM_9KL_E_EKSAM.md`.
+- Checks (after round 2): `cd crm-v2 && npx vitest run src/features/worksheet-studio src/features/worksheet-generator`
+  182 files, 2171 passed / 12 skipped; eslint on the changed files: 0 errors; `cd e2e && npx playwright test -c
+  playwright.layout.config.cjs` 42 passed (4 new e-exam tests).
+- Limits: synthetic voices; the clips keep their spoken header („Esimene lõik. Kuulete …”) as in the transcript.
+- Next safe step: owner reviews and merges the PR, then publishes the four mock sheets.
 ## 2026-11-19 · agent/b1b2-m10-tasks — B1→B2 module 10 „Suhted ja konfliktid” in v4 task-based design · content only
 
 - Base: `origin/main` 4d0e6fe (#1275 merge), checked 2026-11-19 (main later fed002f: auth files only). Draft PR
