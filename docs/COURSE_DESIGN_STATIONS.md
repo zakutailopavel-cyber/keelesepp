@@ -137,6 +137,16 @@ corner), 007 infogap (health, polite conditional, S1 home talk), 008 case (money
 **B2 module 7** (`b2/module07.js`, 031–034, 2026-11-18): education from the learner's side — case (school choice after
 grade 9, advise) → facts (learning myths, explain) → debate (a new profession at 45, decide) → quest (who pays, plan);
 035 the module exam + „Minu õpitee järgmine samm”; owner summary `docs/review/b2-m07-tasks.md`.
+**B2 module 12** (`b2/module12.js`, 056–059, 2026-11-19, stage B2-): technology from the learner's side — quest (the
+e-state's checkpoints, a neighbour who needs help, explain) → debate (what an AI tool may get at work or on the course,
+decide) → facts (why people share false news, Nature 2021, five posts and a forwarded voice message, advise) → project
+(what the phone knows, GDPR rights, „Minu digireeglid”, plan); 060 Vahehindamine 3 as the full Harno B2 mock + the
+product as S1; owner summary `docs/review/b2-m12-tasks.md`. Learnt: a v4 station text must be ≤ 120 words while the v4
+input rule asks ≥ 120 — a lesson without a recording or the opener ends up with a text of exactly 120 words (an R4 corner
+of 6 gaps in 120 words); key facts of B1 (digital signature, e-voting, ID card + Smart-ID) may not be repeated in an
+input block (av-fact-dup), so the e-state lesson says them in other words; a paragraph starting „Andmed:” is read as a
+source line.
+
 **B2 module 10** (`b2/module10.js`, 046–049, 2026-11-19, stage B2-): relationships from the learner's side — facts
 (friends and loneliness, present) → case (money a friend does not return, explain) → infogap (noise and the house chat,
 the learner mediates, advise) → game (one family summer, negotiate); 050 the module exam + „Minu kokkuleppe kaart”;

@@ -1,3 +1,32 @@
+## 2026-11-19 · agent/b1b2-m12-tasks — B1→B2 module 12 „Tehnoloogia ja sotsiaalmeedia” in v4 task-based design · content only
+
+- Base: `origin/main` 9620ed5 (#1277 release), checked 2026-11-19; merged the newer main before push. Draft PR
+  „B1→B2 module 12: task-based (v4)” (link in the PR list). Not merged, not published, no deploy, no production writes.
+  Modules 11 and 13 are rebuilt in parallel: expect conflicts in lessonGoals.js, lessonWords/b1b2.json,
+  listeningAudio.json, roadmap-04, module13.js (review 061) and COURSE_DESIGN_STATIONS §4 — keep both sides.
+- Done: `b2/module12.js` rewritten (no storyline, no cast; MODULE.level B2-): 056 quest „Kas sa saad e-riigis ise
+  hakkama?” (impersonal present; opener: PIN1/PIN2, digital prescription, 2023 vote, e-divorce 2024, andmejälgija), 057
+  debate „Mida tohib tehisintellektilt küsida — ja mida mitte?” (-mine / -ja; rules R2b, colleagues' chat, A/B cards),
+  058 facts „Kas see uudis on tõsi? Kontrolli, enne kui jagad” (impersonal past and perfect; Pennycook & Rand, Nature
+  2021, R4; posts + forwarded voice message), 059 project „Mida sinu telefon sinust teab?” (privacy policy ↔ plain
+  language; GDPR radio L2; „Minu digireeglid”), 060 Vahehindamine 3 as a new full Harno B2 mock (L1–L4, R1, R2a, R2b, R3,
+  R4, W1, W2a, S1, S2) + the product as S1. Ids and goal keys kept; archetypes as planned, 057 and 059 swapped slots;
+  EXPLAIN for every scored item. Not used: phone scam (old m12), children's screen time (m4), house-chat conflict (m10),
+  MIT 2018 / deepfake ad / lateral reading (module 15).
+- Also: `b2/lessonGoals.js` 056–060, `lessonWords/b1b2.json` 056–060, roadmap-04 titles, `art/visuals/b2-module-12.js`
+  (same five pictures; three moved to the lesson whose task they serve, no cast), review questions about module 12 in
+  modules 13 (061), 14 (066, 069), 15 (071, 074) and 16 (077) with block ids kept; TartuNLP audio: new
+  056_t_voice, 058_t_voice, 059_d_radio, 060_p_show, 060_p_listen and 060_p_clips as six per-clip files (#1274's
+  `questions[i].script`), 5 old files removed; COURSE_DESIGN_STATIONS §4
+  line; owner summary in Russian `docs/review/b2-m12-tasks.md`.
+- Checks: course report module 12 5/5 READY, all 36 B1 / B2 modules 5/5 READY; `npx vitest run
+  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet` 213 files,
+  2436 passed / 12 skipped (after merging main e3938ed); eslint clean on the changed files; EstNLTK 0 unknown lower-case; all 15 sheets read in the
+  sheet lab (vite dev, Chromium), fixes in the review doc. No baseline changed.
+- Limits: synthetic voices not listened to by a human;
+  Estonian not checked by a native speaker; reuse of module 11 words measured against the old module 11.
+- Gate note for the owner: a v4 station text ≤ 120 words and the v4 input ≥ 120 words leave exactly 120 (058's R4 corner).
+- Next safe step: owner reads `docs/review/b2-m12-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-056:discover` …).
 ## 2026-11-19 · agent/b1b2-m11-tasks — B1→B2 module 11 „Raha ja tarbimine” in v4 task-based design · content only
 
 - Base: `origin/main` 9620ed5 (release after #1277), checked 2026-11-19; merged origin/main e3938ed (#1274 e-exam) before the PR. Draft PR „B1→B2 module 11: task-based (v4)”
