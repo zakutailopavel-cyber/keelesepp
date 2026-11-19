@@ -10,6 +10,10 @@ gets a recorded MP3, so the teacher does not have to read the transcript aloud.
 - `buildCourseSheet` attaches `data.audio = { src, name, seconds }` and turns „Õpetaja loeb X kaks korda” into
   „Kuula X kaks korda” (`admin/course/listeningAudio.js`). The module files are not changed.
 
+- Short clips (the e-exam's task 1.3): an `examlisten` choice block whose questions carry `questions[i].script` gets
+  one file per clip, `public/audio/<lessonId>/<blockId>_<i>.mp3`, manifest key `"<lessonId>:<blockId>#<i>"`, and no file
+  for the whole block; `buildCourseSheet` puts each into `questions[i].audio` (contract: `docs/E_EXAM_ENGINE.md` §2.1).
+
 ## Run
 
 ```sh

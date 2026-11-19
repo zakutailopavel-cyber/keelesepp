@@ -117,7 +117,8 @@ export const chart = {
         <figure className="ws-chart is-pie">
           {data.chartTitle ? <figcaption className="ws-chart-title">{data.chartTitle}</figcaption> : null}
           <PieSvg data={data} />
-          <ul className="ws-chart-legend">{pieSlices(data).map((s, i) => <li key={i}><i className={`ws-pie-key is-s${i % 8}`} />{s.label}</li>)}</ul>
+          {/* the share in the legend shows only on a phone, where the names beside the slices are too small to read */}
+          <ul className="ws-chart-legend">{pieSlices(data).map((s, i) => <li key={i}><i className={`ws-pie-key is-s${i % 8}`} />{s.label}<span className="ws-pie-pct"> {pct(s, data)}</span></li>)}</ul>
           {data.source ? <p className="ws-chart-source">{data.source}</p> : null}
         </figure>
       );

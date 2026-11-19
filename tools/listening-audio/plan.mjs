@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const REGISTRY = join(ROOT, 'crm-v2/src/features/worksheet-generator/admin/course/registry.js');
+const AUDIO = join(ROOT, 'crm-v2/src/features/worksheet-generator/admin/course/listeningAudio.js');
 
 export const FEMALE_VOICES = ['mari', 'liivika', 'külli', 'vesta'];
 export const MALE_VOICES = ['albert', 'kalev', 'tambet', 'indrek', 'meelis', 'peeter'];
@@ -43,7 +44,9 @@ export function chunks(text, max = 280) {
 }
 
 // transcript → [{ text, voice, newTurn }]
-export function segmentsOf(transcript, seed = 0) {
+// `clip`: a short clip's script (e-exam 1.3, questions[i].script) — every „Name:” there is a speaker, even when the clip
+// has only one speaker, so the label is never read aloud
+export function segmentsOf(transcript, seed = 0, { clip = false } = {}) {
   const lines = String(transcript || '').split('\n').map((l) => l.trim()).filter(Boolean);
   const parsed = lines.map((line) => {
     const m = line.match(LABEL);
@@ -52,7 +55,7 @@ export function segmentsOf(transcript, seed = 0) {
   });
   // one labelled line in a plain text is a narrator's phrase („Müüja ütles: …”), not a dialogue
   const labelled = parsed.filter((p) => p.label);
-  if (labelled.length < 2) parsed.forEach((p) => { if (p.label) { p.text = `${p.label}: ${p.text}`; p.label = ''; } });
+  if (labelled.length < 2 && !clip) parsed.forEach((p) => { if (p.label) { p.text = `${p.label}: ${p.text}`; p.label = ''; } });
   // „Linnavolinik” … „Volinik”, „Kolleeg Anne” … „Anne” are one person
   const canon = new Map();
   for (const p of parsed.filter((x) => x.label)) {
@@ -89,18 +92,28 @@ export function segmentsOf(transcript, seed = 0) {
 
 export async function listeningPlan() {
   const { COURSE_MODULES } = await import(pathToFileURL(REGISTRY).href);
+  const { clipScripts, clipKey, clipSrc } = await import(pathToFileURL(AUDIO).href);
   const plan = [];
   // the TTS is Estonian: an English module's transcripts are read by the teacher (listeningAudio.test.js)
   for (const mod of COURSE_MODULES.filter((m) => (m.MODULE.language || 'et') === 'et')) {
     for (const [lessonId, lesson] of Object.entries(mod.LESSONS)) {
       for (const phase of ['discover', 'practice', 'transfer']) {
         for (const block of lesson[phase] || []) {
-          // the gap-sentence listening and the exam listening (Harno L1, L2, L4) carry a recording
-          if (!['listening', 'examlisten'].includes(block.type) || !String(block.data?.transcript || '').trim()) continue;
-          const transcript = block.data.transcript;
-          const hash = sha1(transcript);
+          if (!['listening', 'examlisten'].includes(block.type)) continue;
           const level = lesson.level || mod.MODULE.level;
-          plan.push({ key: `${lessonId}:${block.id}`, course: mod.MODULE.course, lessonId, phase, blockId: block.id, level, speed: speedFor(level), hash, segments: segmentsOf(transcript, parseInt(hash.slice(0, 6), 16)) });
+          const item = (key, src, text, clip = false) => {
+            const hash = sha1(text);
+            return { key, src, course: mod.MODULE.course, lessonId, phase, blockId: block.id, level, speed: speedFor(level), hash, segments: segmentsOf(text, parseInt(hash.slice(0, 6), 16), { clip }) };
+          };
+          // short clips (e-exam 1.3): questions[i].script → one file per clip, none for the whole block
+          const clips = clipScripts(block);
+          if (clips.length) {
+            clips.forEach(({ i, script }) => plan.push({ ...item(clipKey(lessonId, block.id, i), clipSrc(lessonId, block.id, i), script, true), clip: i }));
+            continue;
+          }
+          // the gap-sentence listening and the exam listening (Harno L1, L2, L4) carry a recording
+          if (!String(block.data?.transcript || '').trim()) continue;
+          plan.push(item(`${lessonId}:${block.id}`, `/audio/${lessonId}/${block.id}.mp3`, block.data.transcript));
         }
       }
     }

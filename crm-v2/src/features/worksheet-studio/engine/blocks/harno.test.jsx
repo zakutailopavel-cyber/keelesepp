@@ -104,7 +104,7 @@ describe('exam rubrics and part headers', () => {
   it('the teacher gives points on screen and the total adds up', () => {
     const rs = B.rubricSpeaking('rs');
     const answers = {};
-    const view = render(<Sheet doc={doc([rs])} mode="interactive" answers={answers} setAnswer={(k, v) => { answers[k] = v; }} />);
+    const view = render(<Sheet doc={doc([rs])} mode="interactive" answers={answers} setAnswer={(k, v) => { answers[k] = v; }} transcripts={{ role: 'staff' }} />);
     fireEvent.click(card(view.container, 'rs').querySelector('[aria-label="Sõnavara: 4 punkti"]'));
     expect(answers['rs:2']).toBe(4);
     const review = render(<Sheet doc={doc([rs])} mode="review" answers={{ 'rs:0': 5, 'rs:1': 4, 'rs:2': 4, 'rs:3': 3 }} results={checkDocument(doc([rs]), {}).results} />);

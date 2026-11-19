@@ -7,10 +7,11 @@ import { Area, ImagePick, Num, Rows, Select, Text } from '../../editor/fields.js
 import { choice, match, plainText, truefalse } from './tasks.jsx';
 import { AudioPick, PlaysFields, TRANSCRIPT_HINT } from './extra.jsx';
 import { speakers } from './speakers.jsx';
+import { DropTask } from './bankDrop.jsx';
 import { START_KEY, formatClock, playLimit } from '../metaKeys.js';
 import { ListenAudio, ListenTranscript } from '../ListenTranscript.jsx';
 import { Recorder } from './productive.jsx';
-import { E9_EXAM, E9_EXAM_DATA, ENGLISH_EXAMS, EN_STATE_EXAM, EN_STATE_EXAM_DATA, EXAM_PART_DEFAULTS as EXAM_PARTS, HARNO_EXAMS, HARNO_LEVELS, HARNO_PASS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES, examFor, examPartDefaults, isEnglishExam } from './harnoScales.js';
+import { E9_EXAM, E9_EXAM_DATA, E9_RULE, ENGLISH_EXAMS, EN_STATE_EXAM, EN_STATE_EXAM_DATA, EXAM_PART_DEFAULTS as EXAM_PARTS, HARNO_EXAMS, HARNO_LEVELS, HARNO_PASS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES, examFor, examPartDefaults, isEnglishExam } from './harnoScales.js';
 
 export { EXAM_PARTS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES };
 
@@ -77,6 +78,8 @@ export const adsmatch = {
   View: ({ data, ctx }) => {
     const ads = data.ads || [];
     const letters = ads.map((_, k) => LETTERS[k]);
+    const first = (ctx.start || 0) + (ctx.numFrom ?? 1);
+    if (data.layout === 'chips') return <AdsChips data={data} ctx={ctx} first={first} />;
     return (
       <div className="ws-ads">
         <div className="ws-ads-grid">
@@ -88,12 +91,15 @@ export const adsmatch = {
             </article>
           ))}
         </div>
-        <ol className="ws-ads-sit" start={(ctx.start || 0) + (ctx.numFrom ?? 1)}>
+        <ol className={`ws-ads-sit ${ctx.exam ? 'is-numbered' : ''}`} start={first}>
           {(data.situations || []).map((s, i) => {
             const key = `${i}`;
             const state = ctx.state(key);
             return (
-              <li key={i}>
+              <li key={i} className={ctx.exam && ctx.isExample?.(key) ? 'is-example' : undefined}>
+                {/* an exam sheet numbers its rows like the other exam tasks (0 = the example, then 1…n); the row is a
+                    flex box, so the list's own marker is not drawn */}
+                {ctx.exam ? <b className="ws-ads-num">{first + i}.</b> : null}
                 <span className="ws-ads-text"><Md text={s.text} /></span>
                 {ctx.interactive ? (
                   <select className={`ws-sel ${state ? 'is-' + state : ''}`} value={ctx.get(key) ?? ''} onChange={(e) => ctx.set(key, e.target.value)} aria-label={`${T(data).situation} ${i + 1}`}>
@@ -112,6 +118,7 @@ export const adsmatch = {
   example: (data) => (data.situations?.[0] ? { 0: accepted(data.situations[0].answer)[0] } : {}),
   Editor: ({ data, set }) => (
     <>
+      <Select label="Vastamise viis" value={data.layout || ''} onChange={(layout) => set({ layout })} options={[['', 'Täht rippmenüüst (Harno R1)'], ['chips', 'Lause lõpud pangast lohistades (e-eksam 2.5)']]} />
       <Rows label="Kuulutused (tähed A, B, C … järjekorras)" rows={data.ads || []} onChange={(ads) => set({ ads })} make={() => ({ title: '', text: '' })} addLabel="Lisa kuulutus" max={10}
         render={(row, patch) => <><Text label="Pealkiri" value={row.title} onChange={(title) => patch({ title })} /><Area label="Tekst" value={row.text} onChange={(text) => patch({ text })} /></>} />
       <Rows label="Olukorrad ja õige täht" rows={data.situations || []} onChange={(situations) => set({ situations })} make={() => ({ text: '', answer: '' })} addLabel="Lisa olukord" max={14}
@@ -124,6 +131,37 @@ export const adsmatch = {
     </>
   ),
 };
+
+// The e-exam's task 2.5 (docs/EXAM_9KL_E_EKSAM.md §3): sentence beginnings, the endings in a bank (data.layout 'chips').
+// The endings are the ads (A, B …), dragged or tapped into the gap after each beginning (bankDrop.jsx DropTask); the
+// answer stays the ending's letter, so the key, the scoring and the mistakes are the dropdown form's.
+function AdsChips({ data, ctx, first }) {
+  const ads = data.ads || [];
+  const situations = data.situations || [];
+  const keys = situations.map((_, i) => `${i}`);
+  const options = ads.map((ad, k) => ({ oi: k, text: ad.text || ad.title || '' }));
+  // DropTask stores the option's number; adsmatch stores its letter
+  const lettered = {
+    ...ctx,
+    get: (k) => { const at = LETTERS.indexOf(String(ctx.get(k) || '').toUpperCase()); return at >= 0 && ctx.get(k) ? at : ''; },
+    set: (k, v) => ctx.set(k, v === '' || v === null || v === undefined ? '' : LETTERS[Number(v)]),
+  };
+  return (
+    <DropTask ctx={lettered} keys={keys} options={options} className="is-endings" label={(n) => `Lause ${n} lõpp`} render={({ gap, bank }) => (
+      <div className="ws-ads-ends-grid">
+        <ol className="ws-ads-ends">
+          {situations.map((s, i) => (
+            <li key={i} className={ctx.isExample?.(`${i}`) ? 'is-example' : undefined}>
+              <b className="ws-ads-num">{first + i}.</b>
+              <span className="ws-ads-text"><Md text={String(s.text || '').replace(/\s*…\s*$/, '')} /> {gap(`${i}`, first + i, { wide: true })}</span>
+            </li>
+          ))}
+        </ol>
+        {bank(options, { title: 'Lause lõpud' })}
+      </div>
+    )} />
+  );
+}
 
 // ---------- L1, L2, L4: a recording + choice / true-false / matching ----------
 // The items use the shape of the matching task block (questions / statements / pairs) and its answer keys, so the
@@ -370,15 +408,24 @@ export const speakcard = {
 };
 
 // ---------- the exam-scale rubrics (§2.4): W1 /8, W2 /12, speaking /20 ----------
+// the target under the rubric: the course's 80 %, but the 9th-grade e-exam's scales show that exam's B1 rule (60 %),
+// as its part header does — a mock sheet must not say 60 % in the header and 80 % under the task
+export const rubricShare = (scale) => (scale === 'E9W' || scale === 'E9S' ? E9_RULE.levels[0][1] : PASS_SHARE);
 export const rubricTotal = (criteria = []) => criteria.reduce((n, c) => n + (Number(c.max) || 0), 0);
 export const examrubric = {
   type: 'examrubric', label: 'Hindamisjuhend (eksami skaala)', group: 'Kõne ja kirjutamine', icon: 'ClipboardCheck', task: true, width: 'full', tone: 'white',
+  // its answers (the points) are the teacher's: not asked of the learner, not in her „n/N vastust” (registry answerProgress)
+  staffOnly: true,
   create: () => ({ title: 'Hindamine.', instruction: 'Märgi iga kriteeriumi punktid.', scale: 'W2', criteria: RUBRIC_SCALES.W2.criteria }),
   View: ({ data, ctx }) => {
     const criteria = data.criteria || [];
     const total = rubricTotal(criteria);
     const got = criteria.reduce((n, _, i) => n + (Number(ctx.get(`${i}`)) || 0), 0);
     const anyGiven = criteria.some((_, i) => ctx.get(`${i}`) !== undefined && ctx.get(`${i}`) !== '');
+    const share = rubricShare(data.scale);
+    // the points are the teacher's: only staff click them; the learner sees the criteria and the scale read-only
+    // (self-assessment is the checklist blocks `rubric` / `selfcheck`, not this one)
+    const canScore = Boolean(ctx.interactive && ctx.staff);
     return (
       <div className="ws-examrubric">
         <table>
@@ -388,7 +435,7 @@ export const examrubric = {
                 <th scope="row"><b>{c.name}</b>{c.hint ? <small>{c.hint}</small> : null}</th>
                 <td>{Array.from({ length: (Number(c.max) || 0) + 1 }, (_, p) => {
                   const on = ctx.get(`${i}`) === p;
-                  return ctx.interactive
+                  return canScore
                     ? <button type="button" key={p} className={`ws-pt ${on ? 'on' : ''}`} aria-label={`${c.name}: ${p} ${T(data).points}`} aria-pressed={on} onClick={() => ctx.set(`${i}`, p)}>{p}</button>
                     : <span key={p} className={`ws-pt ${on ? 'on' : ''}`}>{p}</span>;
                 })}</td>
@@ -396,7 +443,7 @@ export const examrubric = {
             ))}
           </tbody>
         </table>
-        <p className="ws-examrubric-total">{T(data).total}: <b>{anyGiven ? got : '___'}</b> / {total} {T(data).points} · {T(data).atLeast} {Math.ceil(total * PASS_SHARE)} ({Math.round(PASS_SHARE * 100)} %)</p>
+        <p className="ws-examrubric-total">{T(data).total}: <b>{anyGiven ? got : '___'}</b> / {total} {T(data).points} · {T(data).atLeast} {Math.ceil(total * share)} ({Math.round(share * 100)} %)</p>
       </div>
     );
   },
