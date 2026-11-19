@@ -1,3 +1,36 @@
+## 2026-11-19 · agent/b1b2-m16-tasks — B1→B2 module 16 „B2 grammatika integratsioon” in v4 task-based design · content only
+
+- Base: `origin/main` a2914ec (release 2026-11-19 09:19 UTC), checked 2026-11-19. Draft PR „B1→B2 module 16: task-based
+  (v4)” (link in the PR list). Not merged, not published, no deploy, no production writes. Modules 14 and 15 are rebuilt in
+  parallel: expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, roadmap files, module18.js
+  and COURSE_DESIGN_STATIONS §7 notes — keep both sides.
+- Done: `b2/module16.js` rewritten (no storyline, no cast; MODULE.level B2- as in the roadmap; the grammar line kept lesson
+  by lesson): 076 case „Kaks tuba, nelikümmend huvilist: miks peaks omanik valima just sinu?” (connectors; a landlord's
+  40 applicants, broker on the radio, letter draft, the owner's call), 077 game „Minu esimene kord Eestis: lugu, mida
+  raadio tahab kuulda” (word order and emphasis; opener on smoke sauna / jaanipäev / laulupidu / silence, the winner's
+  story, a radio story contest), 078 infogap „Esimest korda ujulas: mida reeglileht tegelikult ütleb?” (participles and
+  the des-form; a pool's house rules and reviews, advice to a friend), 079 facts „Mida koosolekul tegelikult öeldi?
+  Kuulujutt, fakt ja viisakas palve” (mood by function; a parents' meeting on the move to Estonian-language schooling,
+  rumour vs fact, telling a neighbour; product „Minu B2 tekstimapp”), 080 Vahehindamine 4 as a new full Harno B2 mock
+  (L1–L4, R1, R2a, R2b, R3, R4, W1, W2a, S1, S2) + the product as S1. Ids kept; goal keys kept except 077 without
+  g_listen; archetypes of the plan's set in a new order (KIRJ L→W, RÄÄK R→S, LUGE R→W, PROJ L→S); corners S2, L3, R3, L4
+  keep the course's V6 counts; EXPLAIN for every scored item.
+- Also: `b2/lessonGoals.js` 076–080, `lessonWords/b1b2.json` 076–080, roadmap-06 titles, `art/visuals/b2-module-16.js`
+  (four pictures retargeted without names; the rye-bread picture unregistered and its file removed), review questions
+  about module 16 in module 18 (086, 087; ids kept); TartuNLP audio: new 076_d_radio, 077_t_story, 079_d_meeting,
+  080_p_show, 080_p_listen and 080_t_clips as six per-clip files, 10 old files and manifest entries removed;
+  COURSE_DESIGN_STATIONS §7 note; owner summary in Russian `docs/review/b2-m16-tasks.md`.
+- Checks: course report module 16 5/5 READY, all B2 modules 01–18 5/5 READY; `npx vitest run
+  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet
+  src/features/practice` green (three studio UI tests timed out once under load, 96/96 green when run alone); eslint
+  clean on the changed files; EstNLTK 0 unknown lower-case; all 15 sheets read in the sheet lab (vite dev, headless
+  Chromium 1280 px), fixes in the review doc. No baseline changed.
+- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker; module 15 word reuse
+  measured against the current module 15; B2 practice „build” items are exactly 101 (floor > 100 in extract.test.js) —
+  the parallel module 14/15 rebuilds may push it under; 078 has no picture (a pool house-rules board is an open order).
+- Next safe step: owner reads `docs/review/b2-m16-tasks.md` (especially 079, the schooling-transition topic) and the
+  sheets (`sheet-lab.html?set=course:b1b2-076:discover` …).
+
 ## 2026-11-19 · agent/b1b2-m12-tasks — B1→B2 module 12 „Tehnoloogia ja sotsiaalmeedia” in v4 task-based design · content only
 
 - Base: `origin/main` 9620ed5 (#1277 release), checked 2026-11-19; merged the newer main before push. Draft PR

@@ -52,7 +52,7 @@ export const LESSONS = withShapes({
     discover: [
       B.review('086_d_review', [
         ['Eelmine tund: millise probleemi te lahendasite ja millise lahenduse valisid? Põhjenda ühe lausega.', 'b1b2-084'],
-        ['Moodul 16: mida rääkis Sofia juhatuse koosolekul Tartu katselaost ja millise tingimusega ettepaneku ta tegi?', 'b1b2-076'],
+        ['Moodul 16: kuidas kirjutasid omanikule, miks peaks valima just sinu? Ütle üks lause sidendiga juhul kui või kuigi.', 'b1b2-076'],
         'Millal pidid sina viimati teiste ees rääkima ja kuidas see läks?',
       ]),
       B.topicOpener('086_d_open', 'Moodul 18. Kes on eestimaalane?', [
@@ -232,7 +232,7 @@ export const LESSONS = withShapes({
     discover: [
       B.review('087_d_review', [
         ['Eelmine tund: millised sillad aitavad ühe minuti kõnes mõtet hoida? Nimeta kolm ja ütle, mida teed, kui sõna ununeb.', 'b1b2-086'],
-        ['Moodul 16: kas Kohvik Mets küpsetab leiba ise või ostab? Millised argumendid otsuse tegid?', 'b1b2-078'],
+        ['Moodul 16: mida soovitasid sõbrale, kes läks esimest korda ujulasse? Ütle üks nõuanne kesksõna või des-vormiga.', 'b1b2-078'],
         'Kas sul on lihtsam kokku leppida suuliselt või kirjalikult? Miks?',
       ]),
       B.text('087_d_hook', 'Kohvik Mets otsib kokkulepet', 'Jaan on leidnud oma kohvikule ruumid: endine raamatupood Nõmme turu lähedal. Omanik Raivo Laur küsib üüri 1800 eurot kuus, Jaani eelarves on 1400. Lisaks tuleb kokku leppida, kes maksab köögi ventilatsiooni eest, ja leida tarnija, kes toob iga hommik värsket leiba ja köögivilja. Jaan on hea kokk, kuid läbirääkimistel tunneb ta end ebakindlalt. Õhtul kuulab ta raadiost saadet „Töö ja elu”, kus räägitakse sellest, kuidas jõuda kokkuleppele ilma tülita, ka siis, kui laua taga istuvad eri keelte ja kommetega inimesed. Ka Sofia kuulab, sest B2 eksami kolmandas osas tuleb teise kandidaadiga jõuda ühise otsuseni.'),

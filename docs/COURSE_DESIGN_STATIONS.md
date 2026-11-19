@@ -170,6 +170,17 @@ boxes of a topic module must stay ≥ 90 % EKI A1–B2 words (V14-known), so top
 live in the texts and tasks, not in the boxes; a station text ≤ 120 words cannot carry a lesson alone — a voice message of
 ≥ 110 words (≥ 60 s) does (V4_INPUT).
 
+**B2 module 16** (`b2/module16.js`, 076–079, 2026-11-19, stage B2-, the grammar-integration module): the roadmap's grammar
+line kept lesson by lesson, each in a real task — case (a letter to a landlord with 40 applicants: connectors, negotiate)
+→ game (a „first time in Estonia” story for a radio contest: word order and emphasis, present) → infogap (a pool's house
+rules and reviews: participles and the des-form, advise) → facts (a parents' meeting, rumour vs fact: source, -vat,
+impersonal, polite conditional, explain + „Minu B2 tekstimapp”); 080 Vahehindamine 4 as the full Harno B2 mock + the
+product as S1; owner summary `docs/review/b2-m16-tasks.md`. Learnt: the course's corner counts (V6) are spread over the
+modules — a rebuilt module keeps the families its old version gave (here L3/L4/S2/R3) or the course falls below a minimum;
+the speaking type (V4 ≤ 20 % of body tasks) fills fast with a talk in every hook, so the final task may be role cards;
+B.listening (not examlisten) is what methodGaps counts as a listening (≥ 2 a module); the B2 practice „build” floor
+(extract.test.js > 100) comes from transformation keys with two orders of the same words.
+
 **B2 module 8** (`b2/module08.js`, 036–039, 2026-11-18): travel and culture from the learner's side — project (a weekend
 on 200 €, negotiate) → infogap (a cancelled flight and a late suitcase, EU rules, complain) → game (customs and culture
 shock, explain) → case (a guest in summer: festival or museum, advise); 040 Vahehindamine 2 in Harno B2 form + „Minu
