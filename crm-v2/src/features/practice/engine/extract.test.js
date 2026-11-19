@@ -126,7 +126,8 @@ describe('the real course files', () => {
       if (it.type === 'build') expect(it.orders[0].length, it.id).toBeGreaterThanOrEqual(3);
     }
     const cov = coverageOf(c, items);
-    expect(cov.byType.build).toBeGreaterThan(100);
+    // b2 v4 lessons keep fewer two-order transformation keys (88 after module 16)
+    expect(cov.byType.build).toBeGreaterThan(c === 'b2' ? 60 : 100);
     expect(cov.byType.transform).toBeGreaterThan(300);
     expect(cov.plan.length).toBeGreaterThan(10);
   }, 60_000);
