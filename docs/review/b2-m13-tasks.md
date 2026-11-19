@@ -146,9 +146,9 @@ ERR 04.01.2026 — фонд 340 млн € (≈ 353 с техпомощью), м
 
 ## Проверки
 
-- Отчёт курса: модуль 13 — 5/5 READY; все 36 модулей B1 и B2 — см. PR (READY).
+- Отчёт курса: модуль 13 — 5/5 READY; все 36 модулей B1 и B2 — 5/5 READY.
 - `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet`
-  — результат в PR; `src/features/practice` (выгрузка упражнений) — 68 тестов зелёные; eslint чистый.
+  вместе с `src/features/practice` (выгрузка упражнений) — 221 файл, 2504 теста зелёные (12 пропущено); eslint чистый.
 - Язык (EstNLTK): 0 неизвестных слов в нижнем регистре (в список разрешённых добавлены суффиксы из правила: nema, dama).
 - Звук: 5 новых записей TartuNLP (062_t_voice 61 с, 063_d_radio 150 с, 064_d_clips 131 с, 065_p_notes 56 с, 065_p_listen
   — перезаписано, 93 с), 9 старых удалены. Числа в записях написаны словами.

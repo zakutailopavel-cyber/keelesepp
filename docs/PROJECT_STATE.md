@@ -1,6 +1,6 @@
 ## 2026-11-19 · agent/b1b2-m13-tasks — B1→B2 module 13 „Keskkond ja vastutustundlik elu” in v4 task-based design · content only
 
-- Base: `origin/main` 9620ed5 (release after #1277), checked 2026-11-19. Draft PR „B1→B2 module 13: task-based (v4)”
+- Base: `origin/main` 9620ed5 (release after #1277), merged with `origin/main` e3938ed (#1274 e-exam) on 2026-11-19. Draft PR „B1→B2 module 13: task-based (v4)”
   (link in the PR list). Not merged, not published, no deploy, no production writes. Modules 11 and 12 are rebuilt in
   parallel: expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, language-allow.txt,
   COURSE_DESIGN_STATIONS §4, module15/16 review lines — keep both sides.
@@ -22,7 +22,8 @@
   (per-lesson table, before → after, four learners, methodologist, where the gates argued with B2-).
 - Checks: course report module 13 5/5 READY, all 36 B1 / B2 modules 5/5 READY; `npx vitest run
   src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet` 211 files passed
-  / 1 skipped, 2424 passed / 12 skipped; `src/features/practice` 68 passed; eslint clean; EstNLTK 0 unknown lower-case;
+  / 1 skipped, 2424 passed / 12 skipped; after the merge with e3938ed the same run plus `src/features/practice`: 221
+  files passed / 1 skipped, 2504 passed / 12 skipped; eslint clean; EstNLTK 0 unknown lower-case;
   all 15 sheets read in the sheet lab (headless Chromium, 1280 px), fixes in the review doc.
 - Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker; reuse of module 12 words
   (≥ 30 %) measured against the old module 12 — re-check after module 12's PR; V14-known keeps topic compounds out of the
