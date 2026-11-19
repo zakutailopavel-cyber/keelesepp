@@ -1,6 +1,9 @@
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
-import { financeApi } from './financeApi.js';
+import { financeApi, financeRequestId } from './financeApi.js';
+import { validatePaymentDocument } from './paymentDocuments.js';
 
 // bookkeeping (docs/ACCOUNTING.md): admins read the entries, the chart and Tarnijad (the partners of the lines); every
 // change goes through financeApi
@@ -54,4 +57,19 @@ export const accountingService = {
   setLock: (lockedThrough, reason) => financeApi.setAccountingLock(lockedThrough, reason),
   saveSupplier: (supplierId, supplier) => financeApi.saveSupplier(supplierId, supplier),
   importSuppliers: (rows) => financeApi.importSuppliers(rows),
+  // „Fail kandele” (docs/ACCOUNTING.md): the source document (PDF / photo, the same checks as an ostuarve file) goes to
+  // Storage first, then financeApi adds its metadata to the entry; no figure of the entry changes
+  async uploadEntryDocument(entryId, file) {
+    const validation = validatePaymentDocument(file);
+    if (!validation.valid) throw new Error(validation.error);
+    const documentId = financeRequestId('entry_document');
+    const storagePath = `financial/accounting-entries/${entryId}/${documentId}`;
+    const { storage } = requireFirebaseClient();
+    await uploadBytes(ref(storage, storagePath), file, { contentType: file.type });
+    return financeApi.attachAccountingEntryDocument(entryId, { requestId: documentId, storagePath, fileName: file.name, contentType: file.type, size: file.size });
+  },
+  async getEntryDocumentUrl(document) {
+    const { storage } = requireFirebaseClient();
+    return getDownloadURL(ref(storage, document.storagePath));
+  },
 };

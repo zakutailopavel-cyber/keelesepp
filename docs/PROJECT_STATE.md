@@ -1,3 +1,36 @@
+## 2026-11-19 · agent/accounting-entry-files — Raamatupidamine: fail kandele (allikadokument) · finance UI + financeApi + storage rules
+
+- Base: `origin/main` 7aa962e (release 2026-11-19 11:39 UTC), checked 2026-11-19. Draft PR „Raamatupidamine: fail
+  kandele (allikadokument)” (link in the PR list). Not merged, no deploy, no production writes (production was only
+  read before: the accountant has 0 purchaseInvoices and books supplier invoices as manual Päevaraamat entries).
+- Goal: the accountant (reported twice: „Мне не добавить в уже существующий документ поставщика”) attaches the
+  supplier's invoice file to an existing entry and opens it later.
+- Done: `functions/accounting-core.js` `entryDocumentRecord` (path must be `financial/accounting-entries/{entryId}/
+  {documentId}`, PDF / JPEG / PNG / WebP ≤ 10 MB) and `entryDocumentPatch` (writes only `documents`, `documentCount`,
+  `documentsUpdatedAt`; refuses a deleted entry; max 20; retry = no-op); `functions/index.js`
+  `attachAccountingEntryDocument` + route `/accounting/entries/documents` (admin only via `requireAdminUser`,
+  `financialAudit` `accounting.entry.document_attached`; no period-lock check — it changes no figure);
+  `storage.rules` match `financial/accounting-entries/{entryId}/{documentId}` (read accountingAdmin, create
+  accountingAdmin && safePaymentOrder, no update / delete); client `accountingService.uploadEntryDocument` /
+  `getEntryDocumentUrl`, `financeApi.attachAccountingEntryDocument`; `JournalGrid.jsx` header row: „fail” upload
+  (`Lisa fail kandele <nr>`) and file names with an eye icon (open in a new tab), also in a closed period and while the
+  entry is being edited; `accounting.css` three small rules. Excel export unchanged (accountant's template).
+- Docs: `docs/ACCOUNTING.md` „Fail kandele”, Data and API, Storage line.
+- Checks: `cd crm-v2 && npx vitest run src/features/accounting src/features/purchases` 13 files / 131 tests green (4 new
+  in JournalGrid.test.jsx); eslint clean on the changed client files; `cd functions && node --test` 671/671 green (2 new
+  in accounting-core.test.js); emulator (JDK 21, `firebase emulators:exec --only auth,firestore,functions --project
+  demo-keelesepp-finance`) „suppliers and purchase invoices …” test green with the new block: finance role 403, other
+  entry's folder 400, missing entry 404, attach in a closed period 201 with number / date / lines / totalCents / history
+  / updatedAt unchanged, audit written, retry 200 without a second file. Storage rules not run in an emulator (mirror
+  of the purchase-invoice match). Not tried in a browser against real Storage.
+- Deploy needed (owner, in this order): `firebase deploy --only storage` and `firebase deploy --only
+  functions:financeApi` → both „Deploy complete” → hosting release; log in `docs/DEPLOY_LEDGER.md`.
+- Limits: files cannot be removed (by design, like ostuarve files); a wrong file stays — attach the right one too.
+  The bookkeeper with role `finance` (read-only) sees the names but Storage read is admin-only, so opening fails for her
+  unless she is admin (the same as ostuarve files).
+- Next safe step: owner reviews the draft PR, then deploys storage rules + financeApi, then releases hosting, and asks
+  the accountant to attach the Zone Media invoice to its entry.
+
 ## 2026-11-19 · agent/b1b2-m16-tasks — B1→B2 module 16 „B2 grammatika integratsioon” in v4 task-based design · content only
 
 - Base: `origin/main` a2914ec (release 2026-11-19 09:19 UTC), checked 2026-11-19. Draft PR „B1→B2 module 16: task-based

@@ -293,6 +293,34 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
   document exists; the finance month close prevents such documents). An override of a purchase entry's amounts in the
   päevaraamat does not change the purchase invoice — correct amounts on the Ostuarved page.
 
+## Fail kandele — source document on an entry (the accountant 2026-11-19: „Мне не добавить в уже существующий документ поставщика”)
+
+The accountant books supplier invoices directly in the Päevaraamat as manual entries (e.g. „ostuarve 1010331811, Zone
+Media”, partner on a line), not through Ostuarved, so the supplier's file had nowhere to go. Now any entry — manual,
+automatic, opening, storno — can carry its source documents (RPS § 6–7: the entry refers to its source document).
+
+- UI (`JournalGrid.jsx`, the entry's header row, right side): „**fail**” opens the file picker (`Lisa fail kandele
+  <number>`); after the upload the notice says „Fail „x” lisati kandele 2026-0732.”. Every attached file is shown by
+  name with an eye icon; a click opens it in a new tab (`getDownloadURL`). Several files per entry (max 20). The same
+  checks as an ostuarve file (`validatePaymentDocument`): PDF, JPEG, PNG, WebP, ≤ 10 MB. Read-only viewers (phone,
+  non-admin) see the names but get no „fail” control. The control is outside the cells: a click on it opens no cell
+  editor and the grid keys (arrows, Enter, Ctrl+Z …) work as before.
+- **Allowed in a closed period and while the entry is being edited**: attaching a file changes no figure — not the
+  date, lines, amounts, number, history or `updatedAt` — so `accountingSettings/lock` and `financialLockedDates` do not
+  stop it, and a pending working copy of the entry stays as it is. Not allowed on a deleted entry (tombstone): restore
+  it first. Files are never replaced or removed (no update / delete in Storage, nothing in the API).
+- Flow: the client uploads to Storage `financial/accounting-entries/{entryId}/{documentId}` (`documentId` = a
+  `financeRequestId('entry_document')`), then financeApi `/accounting/entries/documents` `{ entryId, requestId,
+  storagePath, fileName, contentType, size }` (admin only) checks the path is exactly that entry's folder and the
+  type / size (`accounting-core.js` `entryDocumentRecord`), and appends `{ id, kind: "source_document", entryId,
+  storagePath, fileName, contentType, size, uploadedAt, uploadedBy }` to the entry's `documents` with `documentCount`
+  and `documentsUpdatedAt` (`entryDocumentPatch`), plus `financialAudit/{requestId}` action
+  `accounting.entry.document_attached`. A retry with the same `requestId` returns 200 and writes nothing.
+- The Excel export is unchanged (it follows the accountant's own template).
+- Deploy order: Storage rules (`firebase deploy --only storage`) and `functions:financeApi` first, wait for „Deploy
+  complete” of both, then the hosting release; log each in `docs/DEPLOY_LEDGER.md`. Without the rules the upload is
+  refused by Storage; without the function the file lands in Storage but is not linked to the entry.
+
 ## Ei kuulu raamatupidamisse (the accountant, confirmed by the owner 2026-10-30)
 
 „Clients who pay to the owner's sole-proprietor (FIE) account” and single invoices must leave the company's books. An
@@ -678,7 +706,8 @@ was for. Staff only — never printed (PDF), never e-mailed, never shown to the 
   `supplierPayment`), `documentRef`, `sourceKey`, `origin` (`auto` | `manual` | `reversal` | `opening`),
   `lines[{ account, debitCents, creditCents, note, partner? { type: supplier | customer, id, name } }]`, `totalCents`, `reversalOf` / `reversedBy`, `reason`,
   `createdAt`, `createdBy`; corrections: `history[]`, `override`, `original`, `deleted`, `deletedAt`, `deletedBy`,
-  `deleteReason`, `excludedInvoiceId`, `updatedAt`, `updatedBy`; purchase entries: `purchaseInvoiceId`.
+  `deleteReason`, `excludedInvoiceId`, `updatedAt`, `updatedBy`; purchase entries: `purchaseInvoiceId`; source
+  documents („Fail kandele”): `documents[]`, `documentCount`, `documentsUpdatedAt`.
 - `accountingSettings/lock`: `{ lockedThrough, reason, updatedAt, updatedBy }`.
 - `suppliers/{id}`: `name`, `regCode`, `vatNumber`, `address`, `email`, `iban`, `defaultAccount`, `active`; imported ones also `importId` (id `<requestId>_<row>`).
 - `purchaseInvoices/{id}`: `supplierId`, `supplierName`, `supplierRegCode`, `documentNumber`, `date`, `dueDate`,
@@ -689,7 +718,7 @@ was for. Staff only — never printed (PDF), never e-mailed, never shown to the 
 - financeApi (admin and finance): `/accounting/invoices/exclude`, `/accounting/invoices/include`.
 - financeApi (admin only): `/invoices/credit-full`, `/invoices/correct` (documents above), `/accounting/sync`,
   `/accounting/entries`, `/accounting/entries/reverse`, `/accounting/entries/update`, `/accounting/entries/delete`,
-  `/accounting/entries/replace-account`,
+  `/accounting/entries/replace-account`, `/accounting/entries/documents` (a source document; allowed in a closed period),
   `/accounting/lock`, `/accounting/opening`, `/accounting/accounts`, `/suppliers`, `/suppliers/import` (rows, all or
   nothing), `/purchase-invoices` (create, or
   update with `purchaseInvoiceId`), `/purchase-invoices/pay`, `/purchase-invoices/payment/remove`,
@@ -697,8 +726,8 @@ was for. Staff only — never printed (PDF), never e-mailed, never shown to the 
   and closed months
   (`financialLockedDates`).
 - Firestore rules: admins read `accountingEntries`, `accountingAccounts`, `accountingSettings`, `suppliers`,
-  `purchaseInvoices`; nobody writes them from the client. Storage: `financial/purchase-invoices/**` admin read and
-  create (PDF / images < 10 MB), no update or delete.
+  `purchaseInvoices`; nobody writes them from the client. Storage: `financial/purchase-invoices/**` and
+  `financial/accounting-entries/**` admin read and create (PDF / images < 10 MB), no update or delete.
 
 ## TSD (owner 2026-10-30: „сделать аналог TSD декларации в бухгалтерии”)
 

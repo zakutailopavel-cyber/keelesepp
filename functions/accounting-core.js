@@ -633,8 +633,43 @@ function batchTargets({ entryIds, targets } = {}) {
 
 const entryNumber = (year, sequence) => `${year}-${String(sequence).padStart(4, "0")}`;
 
+// A source document (allikadokument, RPS § 6–7: the supplier's invoice, a receipt) attached to an entry by the
+// accountant (2026-11-19: she books supplier invoices as manual entries and could not add their files). The file is in
+// Storage at financial/accounting-entries/{entryId}/{documentId}; the entry keeps only its metadata in `documents`.
+// Attaching a file changes no figure (date, lines, amounts, number), so it is allowed in a closed period too.
+const ENTRY_DOCUMENT_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
+const ENTRY_DOCUMENT_MAX = 20;
+
+function entryDocumentRecord({ entryId, documentId, storagePath, fileName, contentType, size, uploadedAt } = {}) {
+  const id = String(entryId || "").trim();
+  const docId = String(documentId || "").trim();
+  if (!/^[A-Za-z0-9_-]{1,200}$/.test(id) || !/^[A-Za-z0-9_-]{12,120}$/.test(docId)) throw accountingError("Vigane kande või faili ID.");
+  const expectedPath = `financial/accounting-entries/${id}/${docId}`;
+  if (String(storagePath || "").trim() !== expectedPath) throw accountingError("Faili asukoht ei vasta kandele.");
+  const name = String(fileName || "").replace(/\s+/g, " ").trim().slice(0, 180);
+  const type = String(contentType || "").trim().toLowerCase();
+  const bytes = Number(size);
+  if (!name || !ENTRY_DOCUMENT_TYPES.has(type) || !Number.isInteger(bytes) || bytes <= 0 || bytes > 10 * 1024 * 1024) throw accountingError("Fail peab olema PDF, JPEG, PNG või WebP ja alla 10 MB.");
+  return { id: docId, kind: "source_document", entryId: id, storagePath: expectedPath, fileName: name, contentType: type, size: bytes, uploadedAt: String(uploadedAt || "") };
+}
+
+// the only fields an attachment writes on the entry — never its date, lines, amounts, number or history. null: the
+// same upload was attached already (a retry)
+function entryDocumentPatch(entry, document, { actorData, nowIso }) {
+  if (!entry) throw accountingError("Kannet ei leitud.", 404);
+  if (entry.deleted) throw accountingError("Kustutatud kandele ei saa faili lisada. Taasta kanne enne.", 409);
+  const documents = Array.isArray(entry.documents) ? entry.documents : [];
+  if (documents.some((item) => item.id === document.id)) return null;
+  if (documents.length >= ENTRY_DOCUMENT_MAX) throw accountingError(`Kandel on juba ${ENTRY_DOCUMENT_MAX} faili.`, 409);
+  const next = [...documents, { ...document, uploadedBy: actorData }];
+  return { documents: next, documentCount: next.length, documentsUpdatedAt: nowIso };
+}
+
 module.exports = {
   ACCOUNTING_START_DATE,
+  ENTRY_DOCUMENT_MAX,
+  entryDocumentPatch,
+  entryDocumentRecord,
   CUSTOMER_ACCOUNTS,
   PARTNER_TYPES,
   SUPPLIER_ACCOUNTS,

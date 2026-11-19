@@ -220,6 +220,14 @@ service firebase.storage {
       allow update, delete: if false;
     }
 
+    // a source document (supplier's invoice, receipt) on any accounting entry, attached to accountingEntries/{entryId}
+    // by financeApi /accounting/entries/documents (docs/ACCOUNTING.md „Fail kandele”)
+    match /financial/accounting-entries/{entryId}/{documentId} {
+      allow read: if accountingAdmin();
+      allow create: if accountingAdmin() && safePaymentOrder();
+      allow update, delete: if false;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

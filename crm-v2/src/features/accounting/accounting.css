@@ -356,6 +356,22 @@
   margin-left: 10px;
 }
 
+/* „Fail kandele”: the source documents of an entry and the upload control (docs/ACCOUNTING.md) */
+.accounting-grid__actions .accounting-upload {
+  cursor: pointer;
+}
+
+.accounting-grid__actions .accounting-upload input {
+  display: none;
+}
+
+.accounting-grid__actions .accounting-file {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .accounting-grid__subtotal td,
 .accounting-grid tfoot td {
   font-weight: 700;
