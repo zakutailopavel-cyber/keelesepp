@@ -263,6 +263,56 @@ test.describe('e-exam sheets', () => {
     expect(answers['ee_r_21:1']).toBe(1);
     expect(Number(answers['ee_r_part:$startedAt'])).toBeGreaterThan(0);
   });
+  test('on a desktop an exam sheet is one continuous page; the chart stands right above its task (mock 1)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await open(page, 'set=course:a2b1-ee1-w:discover');
+    expect(await page.locator('.ws-page').count()).toBe(1);
+    expect(await page.locator('.ws-page .ws-ftr').count()).toBe(1);
+    const gap = await page.evaluate(() => {
+      const chart = document.querySelector('.ws-page [data-block="ee1_w_chart"]').getBoundingClientRect();
+      const task = document.querySelector('.ws-page [data-block="ee1_w_2"]').getBoundingClientRect();
+      return task.top - chart.bottom;
+    });
+    expect(gap).toBeGreaterThanOrEqual(0);
+    expect(gap).toBeLessThan(60);
+    // printing still gives A4 pages
+    await page.emulateMedia({ media: 'print' });
+    await page.evaluate(() => globalThis.dispatchEvent(new Event('beforeprint')));
+    await expect.poll(() => page.locator('.ws-page').count()).toBeGreaterThan(1);
+  });
+  test('the oral part (mock 1) is one continuous page too; the learner cannot give rubric points', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await open(page, 'set=course:a2b1-ee1-s:discover');
+    expect(await page.locator('.ws-page').count()).toBe(1);
+    const rubric = page.locator('.ws-page [data-block="ee1_s_rubric"]');
+    expect(await rubric.locator('.ws-pt').count()).toBe(22);
+    expect(await rubric.locator('button').count()).toBe(0);
+    await expect(rubric.locator('.ws-examrubric-total')).toContainText('vähemalt 12 (60 %)');
+  });
+  test('1.3: every clip has its own player (mock 1)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await open(page, 'set=course:a2b1-ee1-l:discover');
+    const clips = page.locator('.ws-page [data-block="ee1_l_13"] .ws-clip');
+    expect(await clips.count()).toBe(8);
+    for (let i = 0; i < 8; i += 1) expect(await clips.nth(i).locator('.ws-clip-sit button, .ws-clip-sit audio').count(), `clip ${i}`).toBeGreaterThan(0);
+    const srcs = await page.evaluate(() => [...document.querySelectorAll('.ws-page [data-block="ee1_l_13"] .ws-clip audio')].map((a) => a.getAttribute('src')));
+    expect(srcs.filter((s) => /ee1_l_13_\d\.mp3$/.test(s || '')).length).toBe(8);
+  });
+  test('2.5: numbered sentence beginnings, an ending tapped into the gap (mock 1, phone)', async ({ browser }) => {
+    const context = await browser.newContext(phone(375));
+    const page = await context.newPage();
+    await open(page, 'set=course:a2b1-ee1-r:discover');
+    const card = page.locator('.ws-page [data-block="ee1_r_25"]');
+    expect(await card.locator('.ws-ads-num').allTextContents()).toEqual(['0.', '1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.', '10.']);
+    await expect(card.locator('[data-drop-gap="0"]')).toBeDisabled();
+    await card.locator('button.ws-dropchip', { hasText: 'kuigi vahemaa' }).tap();
+    await card.locator('[data-drop-gap="1"]').tap();
+    await expect(card.locator('[data-drop-gap="1"]')).toContainText('kuigi vahemaa');
+    await page.waitForTimeout(900);
+    const answers = await page.evaluate(() => globalThis.__lab.log.drafts.at(-1).answers);
+    expect(answers['ee1_r_25:1']).toBe('E');
+    await context.close();
+  });
   test('a part whose time is over is locked and handed in', async ({ page }) => {
     const answers = { 'ee_r_part:$startedAt': Date.now() - 96 * 60000, 'ee_r_26:1': 0 };
     await open(page, `set=eexam-r&answers=${encodeURIComponent(JSON.stringify(answers))}`);

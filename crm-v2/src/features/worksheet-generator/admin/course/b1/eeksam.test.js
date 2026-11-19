@@ -30,9 +30,20 @@ describe('B1 mock 1 in the e-exam format (eeksam.js, docs/EXAM_9KL_E_EKSAM.md)',
     listening.forEach((b) => expect([b.data.plays, b.data.lockPlays], b.id).toEqual([2, true]));
   });
 
+  it('1.3: one spoken script per clip, word for word the transcript, so each clip has its own recording', () => {
+    const block = sheets['a2b1-ee1-l'].blocks.find((b) => b.id === 'ee1_l_13');
+    const scripts = block.data.questions.map((q) => q.script);
+    expect(scripts).toHaveLength(8);
+    expect(scripts.join('\n')).toBe(block.data.transcript);
+    scripts.forEach((s, i) => expect(s.split('\n')[0], `clip ${i}`).toMatch(/^(Näidis|\S+ lõik)\. Kuulete /));
+    block.data.questions.forEach((q, i) => expect(q.audio?.src, `clip ${i}`).toBe(`/audio/a2b1-ee1-l/ee1_l_13_${i}.mp3`));
+    expect(block.data.audio || null).toBeNull();
+  });
+
   it('marks the oral part as done with the teacher, with a teacher note on every speaking task', () => {
     const oral = sheets['a2b1-ee1-s'];
     expect(oral.meta.oral).toBe(true);
+    expect(oral.meta.exam).toBe('E9');
     oral.blocks.filter((b) => ['speaking', 'speakcard'].includes(b.type)).forEach((b) => expect(b.data.teacher, b.id).toMatch(/Õpetaja kaart/));
   });
 });

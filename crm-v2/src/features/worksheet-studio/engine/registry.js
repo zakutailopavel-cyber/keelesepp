@@ -129,7 +129,8 @@ export function unmatchedAnswers(doc, answers = {}) {
 export function answerProgress(doc, answers = {}) {
   const { results, speak } = checkDocument(doc, answers);
   // a pair task is done in the lesson: the learner at home is not asked for it
-  const home = new Set(doc.blocks.filter((block) => isInLesson(block)).map((block) => block.id));
+  // …and the teacher's own fields (an exam rubric's points, def.staffOnly) are not asked of the learner either
+  const home = new Set(doc.blocks.filter((block) => isInLesson(block) || BLOCKS[block.type]?.staffOnly).map((block) => block.id));
   const openKeys = doc.blocks.filter((block) => !home.has(block.id)).flatMap((block) => {
     const def = BLOCKS[block.type];
     return typeof def?.answerKeys === 'function' ? def.answerKeys(block.data || {}).map((key) => `${block.id}:${key}`) : [];

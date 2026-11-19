@@ -280,13 +280,16 @@ export const inputKeys = (b) => {
   return typeof def.answerKeys === 'function' ? def.answerKeys(b.data) : def.score(b.data, () => undefined, b).map((i) => i.key);
 };
 
+// an exam rubric's points are given only by a teacher (harno.jsx examrubric): the host is staff for that block alone
+export const staffOnly = (block) => (block.type === 'examrubric' ? { role: 'staff' } : null);
+
 export function mount(block) {
   const store = { answers: {} };
   const d = doc([block]);
   function Student() {
     const [answers, setAnswers] = useState({});
     const setAnswer = (k, v) => setAnswers((a) => { const next = { ...a, [k]: v }; store.answers = next; return next; });
-    return <Sheet doc={d} mode="interactive" answers={answers} setAnswer={setAnswer} />;
+    return <Sheet doc={d} mode="interactive" answers={answers} setAnswer={setAnswer} transcripts={staffOnly(block)} />;
   }
   const utils = render(<Student />);
   return { ...utils, store, doc: d, card: () => utils.container.querySelector(`.ws-page [data-block="${block.id}"]`) };
@@ -298,7 +301,8 @@ export function mountPart(block, part) {
   function Student() {
     const [answers, setAnswers] = useState({});
     const set = (key, v) => setAnswers((a) => { const next = { ...a, [key]: v }; store.answers = next; return next; });
-    const ctx = (id) => ({ interactive: true, review: false, get: (k) => answers[`${id}:${k}`], set: (k, v) => set(`${id}:${k}`, v), state: () => undefined, focus: {}, setFocus: () => {} });
+    // staff: an exam rubric's points are given only by a teacher (harno.jsx examrubric); no other block reads it
+    const ctx = (id) => ({ interactive: true, review: false, staff: true, get: (k) => answers[`${id}:${k}`], set: (k, v) => set(`${id}:${k}`, v), state: () => undefined, focus: {}, setFocus: () => {} });
     return <div className="ws-root"><div className="ws-page"><SheetCard block={block} num={1} mode="interactive" ctx={ctx} part={part} /></div></div>;
   }
   const utils = render(<Student />);

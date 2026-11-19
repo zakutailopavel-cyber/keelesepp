@@ -3,6 +3,7 @@
 //   node tools/listening-audio/build.mjs            # only blocks whose transcript changed (hash in the manifest)
 //   node tools/listening-audio/build.mjs --force    # everything again
 //   node tools/listening-audio/build.mjs --only a2-12-1   # blocks whose „lessonId:blockId” contains the text
+//   (a block of short clips, questions[i].script, gives one file per clip: „lessonId:blockId#i”)
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, statSync } from 'node:fs';
@@ -88,7 +89,7 @@ async function main() {
   const plan = (await listeningPlan()).filter((it) => !ONLY || it.key.includes(ONLY));
   let built = 0; let skipped = 0; const failed = [];
   for (const [n, item] of plan.entries()) {
-    const src = `/audio/${item.lessonId}/${item.blockId}.mp3`;
+    const src = item.src;
     const out = join(PUBLIC, src);
     const prev = manifest[item.key];
     if (!FORCE && prev?.hash === item.hash && existsSync(out)) { skipped += 1; continue; }

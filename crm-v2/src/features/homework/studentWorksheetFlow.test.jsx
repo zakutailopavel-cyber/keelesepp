@@ -19,6 +19,14 @@ globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} di
 // a few blocks are answered with one mistake, so the student and the teacher see ✗ next to ✓
 const WRONG = ['gaps', 'truefalse', 'wordforms', 'errorfix'];
 const marked = (block) => Boolean(BLOCKS[block.type].score) && CASES[block.type].marks !== false;
+// a block only the teacher answers (an exam rubric's points, def.staffOnly): the student sees it read-only
+const staffOnly = (block) => Boolean(BLOCKS[block.type].staffOnly);
+// what the student's and the teacher's sheet show of such a block: the criteria and the scale, no button, no points given
+const readOnlyRubric = (card, block) => {
+  expect(card.querySelectorAll('button'), `${block.type}: nothing to click for the student`).toHaveLength(0);
+  expect(card.querySelectorAll('.ws-examrubric tr'), `${block.type}: the criteria`).toHaveLength(block.data.criteria.length);
+  expect(card.querySelectorAll('.ws-pt.on'), `${block.type}: no points from the student`).toHaveLength(0);
+};
 
 // One block of every answerable type. Each is first answered on a sheet of its own; what was typed into each field
 // (or which drive was used) is replayed later in the student's real player.
@@ -29,6 +37,7 @@ function buildSheet() {
   const expected = {};
   runs.forEach(([type, variant]) => {
     const block = make(type, variant);
+    if (staffOnly(block)) { scripts[block.id] = { staff: true }; blocks.push(block); return; }
     const h = mount(block);
     answerRight(h, block);
     const wrong = WRONG.includes(type);
@@ -48,6 +57,7 @@ function answerInPlayer(blocks, scripts) {
     const card = cardOf(block.id);
     expect(card(), `${block.type}: on the student's sheet`).not.toBeNull();
     const s = scripts[block.id];
+    if (s.staff) { readOnlyRubric(card(), block); return; }
     if (s.drive) {
       CASES[block.type].drive(card, block);
       if (s.wrong) CASES[block.type].drive(card, block, { wrong: true });
@@ -110,7 +120,7 @@ describe('student flow: every answerable block in the real homework screens', ()
     await waitFor(() => expect(document.querySelector('.ws-doc-player')).toBeNull());
     fireEvent.click(await screen.findByRole('button', { name: 'Jätka' }));
     expect(await screen.findByText(new RegExp(`^${progress.answered}/${progress.total} vastust`))).toBeInTheDocument();
-    blocks.filter((b) => !CASES[b.type].drive).forEach((b) => {
+    blocks.filter((b) => !CASES[b.type].drive && !staffOnly(b)).forEach((b) => {
       const typed = fields(cardOf(b.id)()).map((f) => f.value);
       expect(typed, `${b.type}: the saved answers are shown again`).toEqual(scripts[b.id].typed);
     });
@@ -134,6 +144,7 @@ describe('student flow: every answerable block in the real homework screens', ()
     expect(screen.getByText('Esitatud')).toBeInTheDocument();
     blocks.forEach((b) => {
       const card = cardOf(b.id)();
+      if (staffOnly(b)) { readOnlyRubric(card, b); return; }
       reviewShows(card, b, ownAnswers(expected, b.id));
       if (!marked(b)) return;
       if (WRONG.includes(b.type)) expect(card.querySelectorAll('.is-bad').length, `${b.type}: ✗ for the student`).toBeGreaterThan(0);
@@ -152,11 +163,24 @@ describe('student flow: every answerable block in the real homework screens', ()
     blocks.forEach((b) => {
       const card = cardOf(b.id)();
       expect(card, `${b.type}: in the teacher's review`).not.toBeNull();
+      if (staffOnly(b)) { expect(card.querySelectorAll('.ws-pt.on'), `${b.type}: no points from the student`).toHaveLength(0); return; }
       reviewShows(card, b, ownAnswers(expected, b.id));
       if (!marked(b)) return;
       if (WRONG.includes(b.type)) expect(card.querySelectorAll('.is-bad').length, `${b.type}: ✗ for the teacher`).toBeGreaterThan(0);
       else expect(card.querySelectorAll('.is-bad'), `${b.type}: no ✗ for the teacher`).toHaveLength(0);
       expect(card.querySelectorAll('.is-ok').length, `${b.type}: ✓ for the teacher`).toBeGreaterThan(0);
+    });
+
+    // the teacher gives the rubric points on her own screen of the sheet (staff: the points are buttons)
+    const rubrics = blocks.filter(staffOnly);
+    expect(rubrics.length).toBeGreaterThan(0);
+    const teacherRepo = { saveWorksheetDraft: vi.fn().mockResolvedValue({}), submitWorksheet: vi.fn(), saveSelfAssessment: vi.fn(), uploadRecording: vi.fn() };
+    const own = render(<AuthContext.Provider value={{ user: teacher }}><DocWorksheetPlayer assignment={{ id: 'wa-t', studentId: 'student-1', title: 'Hindamine', status: 'in_progress', answers: {}, worksheetDoc }} repository={teacherRepo} inline /></AuthContext.Provider>);
+    rubrics.forEach((b) => {
+      const card = () => own.container.querySelector(`.ws-page [data-block="${b.id}"]`);
+      expect(card().querySelectorAll('button.ws-pt').length, `${b.type}: the teacher's points`).toBeGreaterThan(0);
+      CASES[b.type].drive(card, b);
+      CASES[b.type].review(card(), b);
     });
   }, 90000); // a whole flow through the real screens: slow when the full suite runs in parallel
 });
@@ -201,6 +225,7 @@ describe('live lesson: the student and the teacher on the same sheet', () => {
     expect(await screen.findByText(`${progress.answered}/${progress.total} vastust`)).toBeInTheDocument();
     blocks.forEach((b) => {
       const card = container.querySelector(`.ws-page [data-block="${b.id}"]`);
+      if (staffOnly(b)) return; // the teacher's own points: none given by the student
       reviewShows(card, b, ownAnswers(expected, b.id));
       if (!marked(b)) return;
       if (WRONG.includes(b.type)) expect(card.querySelectorAll('.is-bad').length, `${b.type}: ✗ live`).toBeGreaterThan(0);

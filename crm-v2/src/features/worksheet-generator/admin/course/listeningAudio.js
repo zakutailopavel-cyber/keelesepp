@@ -6,6 +6,17 @@ import MANIFEST from './listeningAudio.json' with { type: 'json' };
 export const LISTENING_AUDIO = MANIFEST;
 export const listeningAudioFor = (lessonId, blockId) => MANIFEST[`${lessonId}:${blockId}`] || null;
 
+// Short clips (the e-exam's task 1.3, docs/EXAM_9KL_E_EKSAM.md §3): an `examlisten` choice block whose questions carry
+// their own spoken text `questions[i].script` gets one recording per clip instead of one for the block —
+// public/audio/<lessonId>/<blockId>_<i>.mp3, manifest key „lessonId:blockId#i”, hash = sha1 of that script. The block's
+// `transcript` stays the whole text the teacher reads (all clips); the player shows a play button per clip.
+export const clipScripts = (block) => (block?.type === 'examlisten' && (block.data?.mode || 'choice') === 'choice'
+  ? (block.data?.questions || []).map((q, i) => ({ i, script: String(q?.script || '').trim() })).filter((c) => c.script)
+  : []);
+export const clipKey = (lessonId, blockId, i) => `${lessonId}:${blockId}#${i}`;
+export const clipSrc = (lessonId, blockId, i) => `/audio/${lessonId}/${blockId}_${i}.mp3`;
+export const listeningClipFor = (lessonId, blockId, i) => MANIFEST[clipKey(lessonId, blockId, i)] || null;
+
 // The voice of each sheet language (tools/listening-audio plans only the languages that have one). English has none
 // (owner 2026-11-03, docs/COURSE_FINAL_SHAPE_EN_B2.md §9 item 10): the teacher reads the English transcripts, so an English
 // listening block keeps its „read by the teacher” note and no audio is attached; no paid service is used. The hook for a
@@ -62,12 +73,28 @@ export const TEACHER_READS = /õpetaja loeb|loeb õpetaja/i;
 // instructions of the sheet's other tasks on that recording („Õpetaja loeb intervjuu veel kord”) say „Kuula …” too
 // the blocks that carry a recording: the gap-sentence listening and the exam listening (Harno L1, L2, L4)
 export const AUDIO_TYPES = new Set(['listening', 'examlisten']);
-export function withListeningAudio(blocks, lessonId) {
+// `lookup` / `clipLookup`: the manifest readers (tests pass their own)
+export function withListeningAudio(blocks, lessonId, lookup = listeningAudioFor, clipLookup = listeningClipFor) {
   let heard = false;
   const withAudio = blocks.map((block) => {
     if (!AUDIO_TYPES.has(block.type)) return block;
     if (block.data?.audio?.src) { heard = true; return block; }
-    const entry = listeningAudioFor(lessonId, block.id);
+    // one recording per clip: each question gets its own player, the block none
+    const clips = clipScripts(block);
+    if (clips.length) {
+      let found = false;
+      const questions = block.data.questions.map((q, i) => {
+        const entry = q?.audio?.src ? null : clipLookup(lessonId, block.id, i);
+        if (q?.audio?.src) found = true;
+        if (!entry) return q;
+        found = true;
+        return { ...q, audio: { src: entry.src, name: `${block.id}_${i}.mp3`, seconds: entry.seconds } };
+      });
+      if (!found) return block;
+      heard = true;
+      return { ...block, data: { ...block.data, questions, instruction: listenInstruction(block.data.instruction) } };
+    }
+    const entry = lookup(lessonId, block.id);
     if (!entry) return block;
     heard = true;
     return { ...block, data: { ...block.data, audio: { src: entry.src, name: `${block.id}.mp3`, seconds: entry.seconds }, instruction: listenInstruction(block.data.instruction) } };
