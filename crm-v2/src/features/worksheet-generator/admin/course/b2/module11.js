@@ -600,7 +600,7 @@ export const LESSONS = withShapes({
         ['Mida näitavad lõigu C numbrid tekstiili kohta?', 'enamik tekstiili läks segaolmejäätmetega', 'enamik tekstiili koguti eraldi', 'tekstiili eraldi kogumine on keelatud', 'tekstiili visatakse ära vähem kui varem'],
         ['Mida teeb Uuskasutuskeskus lõigu D järgi annetatud asjadega?', 'suunab enamiku uuesti ringlusse', 'viskab enamiku ära', 'müüb kõik ainult e-poes', 'saadab kõik välismaale'],
         ['Miks soovitab autor eraisikult ostes asja enne maksmist kontrollida?', 'tarbija taganemisõigus ja müüja vastutus ei kehti', 'eraisik peab andma kaks aastat garantiid', 'eraisikult ei tohi seadmeid osta', 'eraisik peab raha 14 päeva jooksul tagastama'],
-        ['Millise väitega oleks autor kõige tõenäolisemalt nõus?', 'enne ostu tasub mõelda, kas sobiks ka kasutatud asi', 'kõik asjad tuleks osta kasutatult', 'kasutatud asjad on alati ohtlikud', 'uus asi on alati odavam kogu eluea jooksul'],
+        ['Millist mõtet toetaks artikli autor kõige tõenäolisemalt?', 'enne ostu tasub mõelda, kas sobiks ka kasutatud asi', 'kõik asjad tuleks osta kasutatult', 'kasutatud asjad on alati ohtlikud', 'uus asi on alati odavam kogu eluea jooksul'],
       ], 'full', 'g_read'), { task: 'R02', harno: 'R1' }),
       tag(B.table('055_d_para', 'Osa 2: väide ja lõik (8 punkti).', 'Leia iga väite 1–8 jaoks artikli lõik (A–G), kus see mõte on. Ühte lõiku sobib kaks väidet.', 'Väide, Lõik', [
         '1. Varem oli kasutatud asi vaesuse märk. | [A]',
