@@ -93,3 +93,6 @@ kcal
 # B2 module 11: the participle and impersonal endings named in the grammar notices (-tav / -dav, -takse without -kse)
 dav
 kse
+# B2 module 13: verb suffixes named in the change-of-state notice (-nema, -dama)
+nema
+dama

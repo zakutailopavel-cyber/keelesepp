@@ -27,6 +27,37 @@
   the vocabulary boxes; didacticCheck still counts all answer variants as one sentence (054 transformations keep 1–2).
 - Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker.
 - Next safe step: owner reads `docs/review/b2-m11-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-051:discover` …).
+## 2026-11-19 · agent/b1b2-m13-tasks — B1→B2 module 13 „Keskkond ja vastutustundlik elu” in v4 task-based design · content only
+
+- Base: `origin/main` 9620ed5 (release after #1277), merged with `origin/main` e3938ed (#1274 e-exam) on 2026-11-19. Draft PR „B1→B2 module 13: task-based (v4)”
+  (link in the PR list). Not merged, not published, no deploy, no production writes. Modules 11 and 12 are rebuilt in
+  parallel: expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, language-allow.txt,
+  COURSE_DESIGN_STATIONS §4, module15/16 review lines — keep both sides.
+- Done: `b2/module13.js` rewritten (no storyline, no cast; MODULE.level B2- as the roadmap): 061 quest „Pudel, purk ja
+  banaanikoor: kuhu sinu prügi tegelikult läheb?” (change of state -ks / -mata / -nema; opener with Eesti Pandipakend
+  2025, sorting 40 %, recycling 33 %, biowaste since end-2023, Haabersti pilot; S16 talk at the house meeting), 062 facts
+  „127 kilo aastas: miks me toitu ära viskame?” (cause as a noun: tõttu / tänu / selle tagajärjel; SEI Tallinn chart,
+  Toidupank; W2a summary at home), 063 debate „Põlevkivielekter lõpeb: millest elab Ida-Virumaa 2035. aastal?” (-mine
+  nouns, võrra / korda; JTF 340 M€, 4000 workers, unemployment 11.6 vs 7.1 %; S17 argument cards), 064 project „Toas on
+  30 kraadi: kas su kodu ja naabrid on kuumalaineks valmis?” (vaatamata + alaleütlev, küll … kuid, ehkki; heat warning
+  levels, L1 clips heard once; stairwell plan + module product „Minu kodu keskkonnaplaan”), 065 new Harno B2 module exam
+  (article ≈ 560 words, R1 R2a R3 R4, L notices L3 L4, W1 W2b, S1 product talk, S2). Ids kept; archetypes AVAS R→S, LUGU
+  R→W, PROB L→S, KUUL L→W, EKS kept; exam corners R1, W2a, W1 (was L4: washback), L1; g_listen dropped in 063/064 (as module
+  10); EXPLAIN for every scored item.
+- Also: `b2/lessonGoals.js` 061–065, `lessonWords/b1b2.json` 061–065 (in step with the boxes), roadmap-05 titles,
+  `art/visuals/b2-module-13.js` (five pictures retargeted, no cast; the 062 and 064 image files swapped), review questions
+  about module 13 in modules 15 (073) and 16 (076) with ids kept; TartuNLP audio: 5 new or rebuilt, 9 old removed;
+  `language-allow.txt` (nema, dama); COURSE_DESIGN_STATIONS §4 line; owner summary in Russian `docs/review/b2-m13-tasks.md`
+  (per-lesson table, before → after, four learners, methodologist, where the gates argued with B2-).
+- Checks: course report module 13 5/5 READY, all 36 B1 / B2 modules 5/5 READY; `npx vitest run
+  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet` 211 files passed
+  / 1 skipped, 2424 passed / 12 skipped; after the merge with e3938ed the same run plus `src/features/practice`: 221
+  files passed / 1 skipped, 2504 passed / 12 skipped; eslint clean; EstNLTK 0 unknown lower-case;
+  all 15 sheets read in the sheet lab (headless Chromium, 1280 px), fixes in the review doc.
+- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker; reuse of module 12 words
+  (≥ 30 %) measured against the old module 12 — re-check after module 12's PR; V14-known keeps topic compounds out of the
+  vocabulary boxes (noted in the review doc, gate not changed).
+- Next safe step: owner reads `docs/review/b2-m13-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-061:discover` …).
 ## 2026-11-18 · agent/e-exam-polish — E-eksam: pidev leht ekraanil, 2.5 numbrid, klipipõhine heli
 
 - Base: `origin/main` 2655c72 (#1267 merge), checked 2026-11-18. Draft PR „E-eksam: pidev leht ekraanil, 2.5 numbrid,
