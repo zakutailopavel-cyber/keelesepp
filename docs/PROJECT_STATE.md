@@ -15,14 +15,15 @@
   MIT 2018 / deepfake ad / lateral reading (module 15).
 - Also: `b2/lessonGoals.js` 056–060, `lessonWords/b1b2.json` 056–060, roadmap-04 titles, `art/visuals/b2-module-12.js`
   (same five pictures; three moved to the lesson whose task they serve, no cast), review questions about module 12 in
-  modules 13 (061), 14 (066, 069), 15 (071, 074) and 16 (077) with block ids kept; TartuNLP audio: 6 new
-  (056_t_voice, 058_t_voice, 059_d_radio, 060_p_show, 060_p_listen, 060_p_clips), 4 removed; COURSE_DESIGN_STATIONS §4
+  modules 13 (061), 14 (066, 069), 15 (071, 074) and 16 (077) with block ids kept; TartuNLP audio: new
+  056_t_voice, 058_t_voice, 059_d_radio, 060_p_show, 060_p_listen and 060_p_clips as six per-clip files (#1274's
+  `questions[i].script`), 5 old files removed; COURSE_DESIGN_STATIONS §4
   line; owner summary in Russian `docs/review/b2-m12-tasks.md`.
 - Checks: course report module 12 5/5 READY, all 36 B1 / B2 modules 5/5 READY; `npx vitest run
-  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet` 212 files,
-  2424 passed / 12 skipped; eslint clean on the changed files; EstNLTK 0 unknown lower-case; all 15 sheets read in the
+  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet` 213 files,
+  2436 passed / 12 skipped (after merging main e3938ed); eslint clean on the changed files; EstNLTK 0 unknown lower-case; all 15 sheets read in the
   sheet lab (vite dev, Chromium), fixes in the review doc. No baseline changed.
-- Limits: L1 is one recording (per-clip audio is in open PR #1274); synthetic voices not listened to by a human;
+- Limits: synthetic voices not listened to by a human;
   Estonian not checked by a native speaker; reuse of module 11 words measured against the old module 11.
 - Gate note for the owner: a v4 station text ≤ 120 words and the v4 input ≥ 120 words leave exactly 120 (058's R4 corner).
 - Next safe step: owner reads `docs/review/b2-m12-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-056:discover` …).

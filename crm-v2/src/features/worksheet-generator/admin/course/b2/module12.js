@@ -55,6 +55,12 @@ export const MODULE = { id: 'b1b2-module-12', course: 'b2', title: 'Tehnoloogia 
 // an exam part header carries the goal of its part: b2/lessonGoals.test.js asks every non-text block of a B2 sheet for one
 // of the lesson's goals, and the header has none of its own (B.examPart: goal '')
 const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
+// L1 as on the exam: every short clip is its own recording (tools/listening-audio, `questions[i].script`, one play
+// button a clip); the block's transcript stays the whole text the teacher reads
+const perClip = (block) => {
+  const clips = String(block.data.transcript).split('\n').map((line) => line.replace(/^[^:]{1,20}:\s*/, '').trim()).filter(Boolean);
+  return { ...block, data: { ...block.data, questions: block.data.questions.map((q, i) => ({ ...q, script: clips[i] })) } };
+};
 
 export const LESSONS = withShapes({
   'b1b2-056': {
@@ -742,7 +748,7 @@ export const LESSONS = withShapes({
     // reading part 2b, then writing and speaking in Harno B2 form; the speaking talk is the module's product
     transfer: [
       B.text('060_t_situation', 'Vahehindamine: lühiteated, lugemise osa 2b, kirjutamine ja rääkimine', 'Kõigepealt kuulad kuut lühiteadet (kuulamise osa 1, kuuled üks kord). Siis loed spordiklubi teadet liikmetele ja vastad küsimustele (lugemise osa 2b). Seejärel kirjutad klubile kirja ja kokkuvõtte andmetest ning räägid oma digireeglitest ja arutled paariga.'),
-      tag(B.examListen('060_p_clips', 'Kuulamine 1: kuus lühiteadet (6 punkti).', 'Kuulad kuut lühikest teadet. Iga teadet kuuled ainult üks kord. Vali igale küsimusele üks õige vastus kolmest.', 'choice', [
+      tag(perClip(B.examListen('060_p_clips', 'Kuulamine 1: kuus lühiteadet (6 punkti).', 'Kuulad kuut lühikest teadet. Iga teadet kuuled ainult üks kord. Vali igale küsimusele üks õige vastus kolmest.', 'choice', [
         'Teadustaja: Esimene teade. Linnaraamatukogu digiabi on alates detsembrist avatud ka laupäeviti kella kümnest kaheni. Abi saab riigiportaali, retseptide ja pangaülekannete puhul. Eelnevalt registreeruma ei pea, aga võtke kaasa oma ID-kaart ja telefon. Teenus on tasuta.',
         'Teadustaja: Teine teade. Riigi Ilmateenistus hoiatab: homme pärastlõunal tõuseb Lääne-Eesti rannikul tugev tuul, puhanguti kuni kakskümmend viis meetrit sekundis. Saartele sõitvad praamid võivad hilineda. Jälgige ametlikke teateid ja ärge jagage kontrollimata valeinfot.',
         'Teadustaja: Kolmas teade. Perearstikeskus teatab: alates esmaspäevast saab vastuvõtuaega broneerida ka riigiportaali kaudu. Telefoni teel registreerimine jääb alles, kuid hommikuti on liinid sageli hõivatud. Kiire mure korral helistage perearsti nõuandeliinile üks kaks kaks null.',
@@ -756,7 +762,7 @@ export const LESSONS = withShapes({
         ['Mida palub kauplusekett oma klientidel teha, kui nad sellise kirja saavad?', 'kustutada kahtlane kiri', 'sisestada kaardi andmed', 'helistada kauplusesse'],
         ['Millest räägitakse täna õhtul ülikooli avatud loengus?', 'kuidas vestlusrobotit õppimiseks kasutada', 'kuidas kodutöid masinaga kirjutada', 'kuidas saada ülikooli'],
         ['Mis töötab mobiilioperaatori sõnul ka öiste hooldustööde ajal?', 'hädaabikõne', 'mobiilne internet', 'kõik teenused tavaliselt'],
-      ], 'g_read', 1), { task: 'L01', harno: 'L1' }),
+      ], 'g_read', 1)), { task: 'L01', harno: 'L1' }),
       B.text('060_t_notice', 'Lugemine 2b: klubi teade liikmetele', 'Head liikmed!\n\n12. novembril avastasime, et meie broneerimissüsteemi oli sisse tunginud kõrvaline isik. Asi sai alguse sellest, et üks liige märkas oma kontol broneeringut, mida ta ise ei olnud teinud. Uurimine näitas, et süsteemi pääseti ühe töötaja vana parooli abil. Lekkida võisid liikmete nimed, e-posti aadressid, telefoninumbrid ja trennide ajalugu. Pangakaartide andmeid meie süsteemis ei hoita, seega neid ei lekkinud.\n\nJuhtumist teavitati 72 tunni jooksul Andmekaitse Inspektsiooni, nagu seadus nõuab. Süsteemi paroolid on vahetatud ja turvaauk on suletud. Väline ekspert kontrollib järgmisel nädalal üle kogu süsteemi. Edaspidi peavad kõik töötajad kasutama kaheastmelist sisselogimist.\n\nPalume teil kõigepealt vahetada oma klubi konto parool, eriti kui kasutate sama parooli ka mujal. Olge ettevaatlik e-kirjadega, mis paluvad tasuda „liikmemaksu võlga” või sisestada andmeid: meie selliseid kirju ei saada. Ärge vastake sõnumitele, kus küsitakse PIN-koodi. Kui märkate oma kontol midagi kahtlast, kirjutage meile kohe.\n\nKui soovite teada, milliseid andmeid me teie kohta hoiame, või soovite oma andmed kustutada, kirjutage klubi andmekaitsespetsialistile. Vastame ühe kuu jooksul. Kui te meie vastusega rahul ei ole, võite pöörduda Andmekaitse Inspektsiooni poole.\n\nKõik liikmed, kelle andmed võisid lekkida, saavad detsembris ühe tasuta trenni. Klubi tööd see juhtum ei mõjuta: kõik trennid toimuvad tavapäraselt. Vabandame juhtunu pärast ja täname kõiki, kes andsid meile kiiresti teada.\n\nKlubi juhatus'),
       tag(B.table('060_t_ask', 'Lugemine 2b: lühivastused (8 punkti).', 'Vasta teate järgi igale küsimusele 1–3 sõnaga.', 'Küsimus, Vastus', [
         'Mis kuupäeval sai klubi teada, et süsteemi oli sisse tungitud? | [12. novembril/kaheteistkümnendal novembril]',
