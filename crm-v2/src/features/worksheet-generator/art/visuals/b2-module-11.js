@@ -1,74 +1,84 @@
 // Visual briefs of b1b2 module 11; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// Learner-facing text (scene, alt, caption, prompts) without the course cast since 2026-11-19 (task-based module 11,
+// docs/COURSE_CAST.md); the `cast` field still records who the generated picture shows. The same five pictures are kept
+// and retargeted to the new lessons (no new pictures): the budget board moved from 055 to 051, the three washing machines
+// from 051 to 054, the present-versus-future scale from 054 to 055 (files copied to the lesson folders, §7.1 rule 13).
+// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by
+// KeeleSeppArt/import_art.py.
 export default [
   {
-    id: "b1b2-051-avasta-1",
-    phase: "discover",
+    id: "b1b2-051-kasuta-1",
+    phase: "transfer",
     format: "scene",
-    cast: ["Anna", "Markus"],
-    scene: "Kodumasinapoes võrdlevad Anna ja Markus kolme kaubamärgita pesumasinat. Hallid sümbolid näitavad ostuhinda, garantiid, elektri- ja veekulu ning pere pesukogust; kesksel võrdluskaardil on eelarve ning kvaliteedi tasakaal. Anna kontrollib piiratud eelarvet, Markus hindab pikaajalist kasutust.",
-    accent: "the budget-and-quality comparison card",
+    cast: ["Anna", "Sofia"],
+    // 2026-11-19 (v4): the first-apartment budget board, retargeted to finding a family's money leaks
+    scene: "Kaks inimest vaatavad laua taga eelarvetahvlit. Hallid kaardid näitavad üüri, toitu, pesumasinat, lauda ja mängupuldiga ahvatlevat ostu; tahvlil jaguneb raha kolme veergu: püsikulud, ostud ja puutumata reserv. Üks inimene osutab tahvlile, teine mõtleb.",
+    accent: "the three-column budget board",
     text: [],
-    learningJob: "võrrelda kolme ostuvarianti hinna, kvaliteedi, garantii ja kasutuskulu järgi ning põhjendada valikut",
-    alt: "Anna ja Markus võrdlevad poes kolme pesumasina hinda, kvaliteeti, garantiid ning kasutuskulu.",
-    caption: "Pilt 1. Ostuotsus ei sõltu ainult hinnast.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida Anna ja Markus kodumasinapoes võrdlevad?", "Milliseid kulusid peale ostuhinna näitavad sümbolid?", "Mille järgi valiksid sina pesumasina ja miks?"],
+    place: "051_t_help",
+    learningJob: "jagada kulud püsikuludeks, ostudeks ja reserviks ning leida kulu, mis on pigem soov või leke",
+    alt: "Kaks inimest vaatavad eelarvetahvlit, kus raha jaguneb püsikuludeks, ostudeks ja reserviks.",
+    caption: "Pilt 1. Püsikulud, ostud ja reserv: kuhu raha läheb?",
+    prompts: ["Millised kolm veergu on tahvlil ja mis kaardid nende kohal on?", "Milline kaartidel olev ost on sinu arvates vajadus ja milline pigem soov?", "Mis läheks sinu (või väljamõeldud pere) eelarves kolmandasse veergu — reservi?"],
   },
   {
     id: "b1b2-052-avasta-1",
     phase: "discover",
     format: "scene",
     cast: ["Sofia", "Jaan"],
-    scene: "Meediapädevuse töötoas analüüsivad Sofia ja Jaan kaubamärgita telefonireklaami. Hall reklaamikaart seob toote õnneliku pere, kiire kella ja populaarse grupiga; kesksel analüüsitahvlil eraldatakse need kolm võtet tundeks, ajasurveks ja teiste eeskujuks ilma sõnadeta. Sofia näitab reklaami, Jaan paljastab selle võtted.",
+    // 2026-11-19 (v4): the same advertising-technique board, now beside the shopping-centre ads (feeling, clock, crowd)
+    scene: "Üks inimene hoiab käes kaubamärgita telefonireklaami, teine näitab analüüsitahvlit. Tahvlil on kolm võtet ilma sõnadeta: tunne (naeratus ja süda), ajasurve (kiire kell) ja teiste eeskuju (rahvahulk).",
     accent: "the advertising-technique analysis board",
     text: [],
-    learningJob: "tuvastada reklaamis tunde, ajasurve ja sotsiaalse tõendi võtted ning arutada nende mõju ostuotsusele",
-    alt: "Sofia ja Jaan analüüsivad telefonireklaami kolme mõjutamisvõtet.",
-    caption: "Pilt 1. Millise võttega reklaam ostjat mõjutab?",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliseid kolme võtet telefonireklaam kasutab?", "Kuidas mõjutavad tunne, ajasurve ja grupp ostjat?", "Millist reklaami oled hiljuti näinud ja kuidas see sind mõjutas?"],
+    place: "052_d_ads",
+    learningJob: "tunda reklaamis ära tunde, ajasurve ja teiste eeskuju võte ning siduda see Black Friday pakkumistega",
+    alt: "Üks inimene hoiab reklaami, teine näitab tahvlil kolme võtet: tunne, kell ja rahvahulk.",
+    caption: "Pilt 1. Tunne, kell ja rahvahulk: kolm müügivõtet.",
+    prompts: ["Milliseid kolme võtet tahvel näitab?", "Millist neist võtetest kuulsid kaubanduskeskuse reklaamides?", "Milline võte mõjub sulle kõige rohkem ja miks?"],
   },
   {
     id: "b1b2-053-kasuta-1",
     phase: "transfer",
     format: "scene",
     cast: ["Anna", "Liis"],
-    scene: "Klienditeeninduse videokõnes esitab Anna Liisile kaebuse hilinenud ja kahjustatud diivani kohta. Anna kõrval on katkine diivanijalg, fototõend ja ostudokument; kesksel kaebusekaardil on kolm seotud osa: täpne probleem, tõendid ja soovitud lahendus. Liis kontrollib juhtumit ning osutab lahenduse sammule.",
-    accent: "the three-part consumer complaint card",
+    // 2026-11-19 (v4): retargeted from a damaged sofa to a call with an e-shop's customer service
+    scene: "Üks inimene räägib videokõnes klienditeenindajaga. Laual on kaup, ostudokument ja foto; kesksel kaardil on kolm seotud sammu: mis juhtus, mis on tõend ja mis on soovitud lahendus. Teenindaja osutab järgmisele sammule.",
+    accent: "the three-step claim card",
     text: [],
-    learningJob: "kirjeldada tarbijaprobleemi täpselt, esitada tõendid ja sõnastada konkreetne nõue",
-    alt: "Anna esitab Liisile kahjustatud diivani kohta tõenditega kaebuse ja soovitud lahenduse.",
-    caption: "Pilt 1. Probleem, tõend ja selge nõue.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mis on Anna kaebuse põhjus?", "Millised kolm osa on kaebusekaardil ja miks on tõendid olulised?", "Mida sina klienditeenindajale ütleksid ja millist lahendust nõuaksid?"],
+    place: "053_t_call",
+    learningJob: "esitada klienditeenindusele selge ja viisakas nõue: mis juhtus, mis on tõend ja mida palun",
+    alt: "Inimene räägib videokõnes klienditeenindajaga; laual on kaup, ostudokument ja foto.",
+    caption: "Pilt 1. Mis juhtus, mis on tõend ja mida ma palun?",
+    prompts: ["Mis on kesksel kaardil kolm sammu?", "Milline dokument on sinu kõnes kõige tähtsam tõend?", "Kuidas ütled teenindajale viisakalt, aga kindlalt, mida sa palud?"],
   },
   {
-    id: "b1b2-054-kasuta-1",
-    phase: "transfer",
+    id: "b1b2-054-avasta-1",
+    phase: "discover",
     format: "scene",
-    cast: ["Markus", "Liis"],
-    scene: "Töökoha nõustamislauas võrdlevad Markus ja Liis kahte preemiavalikut. Vasakul hallil kaardil on kohe kasutatav rahakott, paremal tuleviku turvavõrk ja kasvav sääst; nende vahel on keskne kaal, mis võrdleb praegust vajadust ning pikaajalist kasu. Markus põhjendab oma olukorda, Liis näitab mõlema valiku tagajärgi.",
-    accent: "the present-versus-future decision scale",
+    cast: ["Anna", "Markus"],
+    // 2026-11-19 (v4): the three washing machines (formerly lesson 051) beside the four ways to pay for one
+    scene: "Kodumasinapoes seisab kolm kaubamärgita pesumasinat. Kaks inimest mõtlevad. Hallid sümbolid näitavad ostuhinda, garantiid, elektri- ja veekulu ning pesukogust; kesksel kaardil on eelarve ja kvaliteedi kaal.",
+    accent: "the price-and-quality comparison card",
     text: [],
-    learningJob: "võrrelda kohe saadavat kasu ja tuleviku turvalisust ning põhjendada isiklikku rahalist valikut",
-    alt: "Markus ja Liis kaaluvad kohe saadava preemia ning tulevikus kasvava säästu eeliseid.",
-    caption: "Pilt 1. Praegune vajadus või tuleviku turvalisus?",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliseid kahte preemiavalikut Markus ja Liis võrdlevad?", "Mida näitab keskel olev kaal?", "Kas sina kasutaksid preemia kohe või säästaksid selle? Miks?"],
+    place: "054_d_offers",
+    learningJob: "võrrelda ostu mitte ainult hinna, vaid ka garantii, kasutuskulu ja kogukulu järgi",
+    alt: "Kaks inimest võrdlevad poes kolme pesumasinat; sümbolid näitavad hinda, garantiid ja kasutuskulu.",
+    caption: "Pilt 1. Ostuhind ei ole veel kogukulu.",
+    prompts: ["Milliseid kulusid peale ostuhinna sümbolid näitavad?", "Miks võib odav masin lõpuks kallis olla?", "Mille järgi valiksid sina pesumasina, kui raha on vähe?"],
   },
   {
     id: "b1b2-055-kasuta-1",
     phase: "transfer",
     format: "scene",
-    cast: ["Anna", "Sofia"],
-    scene: "Sofia planeerib esimese üürikorteri kulusid koos Annaga. Hallid kaardid näitavad üüri, toitu, vajalikku pesumasinat, kasutatud lauda ja reklaamist ahvatlevat mittevajalikku ostu; kesksel eelarvetahvlil jagunevad vahendid püsikuludeks, vajalikeks ostudeks ja puutumata tagavaraks. Anna aitab Sofial valikuid järjestada.",
-    accent: "the first-apartment budget plan",
+    cast: ["Markus", "Liis"],
+    // 2026-11-19 (v4): the present-versus-future scale (formerly lesson 054) beside the exam discussion on a monthly budget
+    scene: "Kaks inimest seisavad kaalu kahel pool. Vasakul kaardil on rahakott (raha kohe), paremal kasvav sääst ja taim (tuleviku turvalisus); keskel on kaal, mis võrdleb praegust vajadust ja pikaajalist kasu.",
+    accent: "the present-versus-future decision scale",
     text: [],
-    learningJob: "jagada raha püsikuludeks, vajalikeks ostudeks ja tagavaraks ning otsustada, mida osta uut või kasutatult",
-    alt: "Anna ja Sofia koostavad esimese üürikorteri eelarve ning eristavad vajalikud ja mittevajalikud ostud.",
-    caption: "Pilt 1. Esimese kodu eelarve ja ostuvalikud.",
-    // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Milliseid kulusid Sofia esimese üürikorteri juures planeerib?", "Kuidas jagunevad vahendid eelarvetahvlil?", "Milline ost on sinu jaoks vajalik ja milline ainult ahvatlev?"],
+    place: "055_t_debate",
+    learningJob: "kaaluda raha kohe kasutamise ja säästmise plusse ning põhjendada oma seisukohta arutelus",
+    alt: "Kaks inimest kaalu kahel pool: vasakul rahakott, paremal kasvav sääst.",
+    caption: "Pilt 1. Kulutada täna või säästa homseks?",
+    prompts: ["Mida näitab kaalu vasak ja parem pool?", "Kas eelarve pidamine aitab kaalu tasakaalus hoida? Miks?", "Kumb pool on sinu elus praegu raskem ja miks?"],
   },
 ];
