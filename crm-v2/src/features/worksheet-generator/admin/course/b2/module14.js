@@ -63,7 +63,7 @@ export const LESSONS = withShapes({
     title: 'Avalikud teenused',
     canDo: 'Ma räägin sotsiaaltöötaja või ametnikuga oma vajadusest: selgitan probleemi ja keda see puudutab, küsin teenuste kohta ja lepin kokku praktilise lahenduse.',
     discover: [
-      B.review('066_d_review', [['Moodul 13: milline keskkonnasõbralik harjumus on sinu elus viimasel aastal tekkinud? Mis selle põhjustas?', 'b1b2-065'], ['Moodul 12: millist riigi e-teenust kasutad kõige sagedamini? Kas oled kunagi kahtlase kõne või sõnumi saanud?', 'b1b2-058'], 'Kas sinu kodukohas sorteeritakse jäätmeid? Kes selle eest vastutab?']),
+      B.review('066_d_review', [['Moodul 13: milline keskkonnasõbralik harjumus on sinu elus viimasel aastal tekkinud? Mis selle põhjustas?', 'b1b2-065'], ['Moodul 12: millist riigi e-teenust kasutad kõige sagedamini ja kuidas seda tehakse?', 'b1b2-056'], 'Kas sinu kodukohas sorteeritakse jäätmeid? Kes selle eest vastutab?']),
       // checked 2026-11-03: the 2018 volunteering study (Siseministeerium / Balti Uuringute Instituut, 2019: 49 % in the last
       // 12 months, 31 % in 2013, most often local life); M.-L. Saar, ERR 2.4.2024 (141 appeals in ten years, a direct
       // legislative decision on 5–10 %); sisu.rahvaalgatus.ee „Platvormist” (1000 signatures, 16+, local 1 %, three months);
@@ -456,7 +456,7 @@ export const LESSONS = withShapes({
     title: 'Kohaliku probleemi lahendus',
     canDo: 'Ma kirjutan linnaosa valitsusele 140–160-sõnalise ametliku taotluse kohaliku probleemi lahendamiseks: kirjeldan probleemi, võrdlen kahte lahendust kulu ja riski järgi ning põhjendan lõplikku valikut.',
     discover: [
-      B.review('069_d_review', [['Ütle ametlikult: „Öösel ei tohi lärmata.” ja „Talgutele ei pea tulema.” Milles leppisid Anna ja Tarmo üldkoosolekul kokku?', 'b1b2-068'], ['Moodul 12: kas oled kunagi koosolekul või lastevanemate õhtul sõna võtnud? Kuidas sa valmistusid?', 'b1b2-059'], 'Mida peab uus elanik Eestis esimese 30 päeva jooksul tegema?']),
+      B.review('069_d_review', [['Ütle ametlikult: „Öösel ei tohi lärmata.” ja „Talgutele ei pea tulema.” Milles leppisid Anna ja Tarmo üldkoosolekul kokku?', 'b1b2-068'], ['Moodul 12: millised on sinu digireeglid ja mida sa oma telefonis muutsid?', 'b1b2-059'], 'Mida peab uus elanik Eestis esimese 30 päeva jooksul tegema?']),
       B.text('069_d_hook', 'Valimisdebatt Nõmmel', 'Kevadel on kohalikud valimised. Nõmme kultuurikeskuses toimus kandidaatide debatt, mida juhtis väitlusklubi juht Hannes. Kõige rohkem räägiti Kase kooli tänavast: igal hommikul peatuvad lapsevanemate autod kõnniteel ja lapsed peavad sõiduteele astuma. Jaan näeb seda iga päev, sest ta juhib kooli kööki, ja ka Oskar käib selles koolis. Liis ja Jaan otsustasid koostada linnaosa komisjonile ettepaneku. Mooduli lõpus esitled sina selle ettepaneku ja kirjutad taotluse. Kuula kõigepealt, mida kandidaadid pakuvad.'),
       tag(B.listening('069_d_debate', 'Kandidaatide debatt.', 'Kuula debati katkendit kaks korda. Märka numbreid, aegu ja kohti ning kirjuta need lünka (üks kuni kolm sõna).', [
         'Hannes: Tere õhtust, Nõmme! Debatis osalevad Margit Allik ja Toomas Sepp. Esimene teema on Kase kooli tänav. Iga hommik on seal ohtlik. Margit, mida teie teeksite?',
