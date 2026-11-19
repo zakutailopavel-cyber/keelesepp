@@ -1,3 +1,38 @@
+## 2026-11-19 · agent/b1b2-m14-tasks — B1→B2 module 14 „Ühiskond ja avalikud teenused” in v4 task-based design · content only
+
+- Base: `origin/main` a2914ec (release 2026-11-19 09:19 UTC, after #1281), checked 2026-11-19. Draft PR „B1→B2 module 14:
+  task-based (v4)” (link in the PR list). Not merged, not published, no deploy, no production writes. Modules 15 and 16
+  are rebuilt in parallel: expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, roadmap-05,
+  module16.js (review 078) — keep both sides.
+- Done: `b2/module14.js` rewritten (no storyline, no cast; MODULE.level B2- as the roadmap): 066 quest „Ema ei saa enam
+  üksi hakkama: mida vald pakub?” (impersonal of official texts; opener on social services: 65+ share, the municipality's
+  duty, needs assessment, home care, alarm button, the 1 July 2023 care-home reform; meeting the social worker), 067
+  infogap „Kaks tundi nädalas: kas vabatahtlik töö sobiks sulle?” (verb government; radio with a volunteer rescuer —
+  119 commands, prevention work; card A rescue prevention ↔ card B Keelesõber), 068 case „Kodakondsus: mida seadus nõuab —
+  ja mida mitte?” (peab / ei pea / ei tohi / on vabastatud, participles in rules; family chat, requirements box, three
+  voice messages to a counselling line), 069 project „Pime tee bussipeatusse: kuidas teha vallale ettepanek, millele
+  vastatakse?” (conditional incl. impersonal -taks; info hour on märgukiri 30 days, KOKS § 32 1 %, rahvaalgatus.ee 1000,
+  kaasav eelarve; „Mäletad?” on voting rights after the 2025 amendment; pitch to the commission + module product „Minu
+  kodukoha teejuht”), 070 new Harno B2 module exam (article ≈ 540 words, R1 R2a R3 R4, keeleosa, L notices L3 L4 with a
+  family carer's interview, W1 W2b, S1 product talk, S2 cards). Ids and goal keys kept; archetypes RÄÄK R→S, KIRJ L→W,
+  LUGE R→W, PROJ L→S, EKS; exam corners R1, W1 (home), R2b, S1; EXPLAIN for every scored item. A first 066 on „112, 1220
+  or the family doctor” repeated modules 2 and 9 (av-fact-dup) and was replaced before the PR.
+- Also: `b2/lessonGoals.js` 066–070, `lessonWords/b1b2.json` 066–070 (in step with the boxes), roadmap-05 titles,
+  `art/visuals/b2-module-14.js` (same five pictures in their folders, retargeted, no cast), review questions about
+  module 14 in modules 16 (078) and 17 (082) with ids kept; TartuNLP audio: 067_d_radio, 068_t_voice, 069_d_info,
+  070_p_notes, 070_p_listen new or rebuilt; 066_p_call, 066_t_voice, 068_p_clips, 069_d_debate, 069_t_voice removed;
+  owner summary in Russian `docs/review/b2-m14-tasks.md` (per-lesson table, before → after, four learners, methodologist,
+  where the gates argued with B2-).
+- Checks: course report module 14 5/5 READY, all 36 B1 / B2 modules 5/5 READY; `npx vitest run
+  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet
+  src/features/practice` 222 files: 2540 passed / 12 skipped, 3 UI tests in worksheet-studio (WorksheetStudioPage,
+  freeStudio) timed out under the full parallel run and pass alone (37/37); eslint clean on the changed files; EstNLTK 0
+  unknown lower-case; all 15 sheets read in the sheet lab (vite dev, Chromium), fixes in the review doc.
+- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker; home-care fees and the
+  alarm button differ by municipality (the lesson says „paljudes valdades”, no sums); V14-known keeps topic words
+  (märgukiri, häirenupp, ennetustöö) out of the boxes; V11 made 066 add a sibling chat in station 4 (gate not changed).
+- Next safe step: owner reads `docs/review/b2-m14-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-066:discover` …),
+  especially 066, 068 and the „Mäletad?” box in 069 (sensitive topics for Narva learners).
 ## 2026-11-19 · agent/b1b2-m12-tasks — B1→B2 module 12 „Tehnoloogia ja sotsiaalmeedia” in v4 task-based design · content only
 
 - Base: `origin/main` 9620ed5 (#1277 release), checked 2026-11-19; merged the newer main before push. Draft PR
