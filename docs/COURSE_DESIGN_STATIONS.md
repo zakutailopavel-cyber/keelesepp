@@ -153,6 +153,22 @@ the learner mediates, advise) → game (one family summer, negotiate); 050 the m
 owner summary `docs/review/b2-m10-tasks.md`. Learnt: at B2- every Kasuta sheet needs one speaking task of ≥ 180 s (the
 extension is the natural place), choice questions must be ≥ ~9 words on average (only the questions are measured), and
 at most half of the Kasuta sheets may mention a phone call or a voice message (av-kasuta2).
+**B2 module 11** (`b2/module11.js`, 051–054, 2026-11-19, stage B2-, themed `MODULE.theme: 'money'`): money from the
+learner's side — facts (where the month's money leaks, plan) → game (Black Friday tricks, advise) → case (an online
+order that does not fit, the 14-day withdrawal, complain) → debate (a broken washing machine: savings, buy now pay later
+or a quick loan, decide); 055 the module exam + „Minu viis rahareeglit”; owner summary `docs/review/b2-m11-tasks.md`.
+Learnt: V14 wants ≥ 90 % of the vocabulary boxes in the EKI A1–B2 lists (finance terms such as kuumakse, lepingutasu,
+kättesaamine go into the texts, not the boxes); V11 input ≥ 20 % may need gaps on a reading card (a bank statement with
+five sums); the B1 course already has the 30-day discount rule, so B2 refers to it („Mäletad, …”) and adds a new fact.
+
+**B2 module 13** (`b2/module13.js`, 061–064, 2026-11-19, stage B2-): environment from the learner's side — quest (his bin
+and the bottle deposit, present) → facts (food waste in his fridge and the food bank, explain) → debate (the oil-shale exit
+of Ida-Virumaa, decide) → project (a heatwave plan for his stairwell, plan); 065 the module exam + „Minu kodu
+keskkonnaplaan”; owner summary `docs/review/b2-m13-tasks.md`. Learnt: exactly one `harno` corner a teaching lesson (V12),
+a long homework writing is the cheapest corner when the lesson's input is an exam format (washback ≤ 25 %); the vocabulary
+boxes of a topic module must stay ≥ 90 % EKI A1–B2 words (V14-known), so topic compounds (taaraautomaat, kuumarabandus …)
+live in the texts and tasks, not in the boxes; a station text ≤ 120 words cannot carry a lesson alone — a voice message of
+≥ 110 words (≥ 60 s) does (V4_INPUT).
 
 **B2 module 8** (`b2/module08.js`, 036–039, 2026-11-18): travel and culture from the learner's side — project (a weekend
 on 200 €, negotiate) → infogap (a cancelled flight and a late suitcase, EU rules, complain) → game (customs and culture
