@@ -1,3 +1,32 @@
+## 2026-11-19 · agent/b1b2-m11-tasks — B1→B2 module 11 „Raha ja tarbimine” in v4 task-based design · content only
+
+- Base: `origin/main` 9620ed5 (release after #1277), checked 2026-11-19; merged origin/main e3938ed (#1274 e-exam) before the PR. Draft PR „B1→B2 module 11: task-based (v4)”
+  (link in the PR list). Not merged, not published, no deploy, no production writes. Modules 12 and 13 are rebuilt in
+  parallel: expect conflicts in lessonGoals.js, lessonWords/b1b2.json, listeningAudio.json, language-allow.txt,
+  module13.js (two review lines), COURSE_DESIGN_STATIONS §4 — keep both sides.
+- Done: `b2/module11.js` rewritten (no storyline, no cast; MODULE.level B2-, themed `MODULE.theme: 'money'` with
+  sub-topics budget / sales / returns / credit): 051 facts „Kuhu kaob raha enne kuu lõppu?” (total / partial object and
+  subject; opener with Statistikaamet LEU 2020 and the 2026 financial literacy survey), 052 game „„–70 % ainult täna!”
+  Kas Black Friday on päriselt soodne?” (participles as attributes; TTJA 30-day rule as „Mäletad”, EC sweep 2023), 053
+  case „Netist tellitud jope ei sobi — kas raha tuleb tagasi?” (impersonal in terms, polite conditional claims; VÕS
+  §§ 49/53/56, withdrawal button 19.06.2026), 054 debate „Pesumasin läks katki: säästud, järelmaks või kiirlaen?”
+  (concession; VÕS § 406² cap, CCD2 from 20.11.2026), 055 new Harno B2 module exam + „Minu viis rahareeglit” (S1).
+  Archetype set kept in a new order (051 LUGU R→W, 052 PROB L→S, 053 KUUL L→W, 054 AVAS R→S), exam corners R1, L1, R2b,
+  W2b; ids kept; goal keys kept except 053 without g_listen (one recording; a second listening task cannot fit a station);
+  EXPLAIN for every scored item.
+- Also: `b2/lessonGoals.js` 051–055, `lessonWords/b1b2.json` 051–055, roadmap-04 titles, `art/visuals/b2-module-11.js`
+  (same five pictures, files moved between lesson folders, no cast), review questions about module 11 in modules 13
+  (061, 063), 14 (067), 15 (072) with ids kept; TartuNLP audio: 4 new (052_d_ads, 053_d_radio, 055_p_notes,
+  055_p_listen), 5 old removed; `language-allow.txt` (dav, kse); COURSE_DESIGN_STATIONS §4 line; owner summary in
+  Russian `docs/review/b2-m11-tasks.md` (per-lesson table, before → after, four learners, methodologist, gate notes).
+- Checks: course report module 11 5/5 READY, all 36 B1 / B2 modules 5/5 READY; `npx vitest run
+  src/features/worksheet-generator src/features/worksheet-studio src/features/vocabulary src/features/pet
+  src/features/practice` 221 files, 2504 passed / 12 skipped (after merging e3938ed); eslint clean on the changed files; EstNLTK 0 unknown
+  lower-case; all 15 sheets read in the sheet lab (headless Chromium, 1280 px, 0 console errors), fixes in the review doc.
+- Gate notes for the owner (gates not changed): V14 keeps finance terms (kuumakse, lepingutasu, kättesaamine …) out of
+  the vocabulary boxes; didacticCheck still counts all answer variants as one sentence (054 transformations keep 1–2).
+- Limits: synthetic voices not listened to by a human; Estonian not checked by a native speaker.
+- Next safe step: owner reads `docs/review/b2-m11-tasks.md` and the sheets (`sheet-lab.html?set=course:b1b2-051:discover` …).
 ## 2026-11-19 · agent/b1b2-m13-tasks — B1→B2 module 13 „Keskkond ja vastutustundlik elu” in v4 task-based design · content only
 
 - Base: `origin/main` 9620ed5 (release after #1277), merged with `origin/main` e3938ed (#1274 e-exam) on 2026-11-19. Draft PR „B1→B2 module 13: task-based (v4)”

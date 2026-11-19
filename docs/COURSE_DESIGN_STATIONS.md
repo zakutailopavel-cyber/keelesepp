@@ -143,6 +143,13 @@ the learner mediates, advise) → game (one family summer, negotiate); 050 the m
 owner summary `docs/review/b2-m10-tasks.md`. Learnt: at B2- every Kasuta sheet needs one speaking task of ≥ 180 s (the
 extension is the natural place), choice questions must be ≥ ~9 words on average (only the questions are measured), and
 at most half of the Kasuta sheets may mention a phone call or a voice message (av-kasuta2).
+**B2 module 11** (`b2/module11.js`, 051–054, 2026-11-19, stage B2-, themed `MODULE.theme: 'money'`): money from the
+learner's side — facts (where the month's money leaks, plan) → game (Black Friday tricks, advise) → case (an online
+order that does not fit, the 14-day withdrawal, complain) → debate (a broken washing machine: savings, buy now pay later
+or a quick loan, decide); 055 the module exam + „Minu viis rahareeglit”; owner summary `docs/review/b2-m11-tasks.md`.
+Learnt: V14 wants ≥ 90 % of the vocabulary boxes in the EKI A1–B2 lists (finance terms such as kuumakse, lepingutasu,
+kättesaamine go into the texts, not the boxes); V11 input ≥ 20 % may need gaps on a reading card (a bank statement with
+five sums); the B1 course already has the 30-day discount rule, so B2 refers to it („Mäletad, …”) and adds a new fact.
 
 **B2 module 13** (`b2/module13.js`, 061–064, 2026-11-19, stage B2-): environment from the learner's side — quest (his bin
 and the bottle deposit, present) → facts (food waste in his fridge and the food bank, explain) → debate (the oil-shale exit

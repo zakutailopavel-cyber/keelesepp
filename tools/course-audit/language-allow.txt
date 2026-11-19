@@ -90,6 +90,9 @@ matu
 # B2 module 9: the source site agri.ee and the label unit kcal (energy per 100 g on a food label)
 agri
 kcal
+# B2 module 11: the participle and impersonal endings named in the grammar notices (-tav / -dav, -takse without -kse)
+dav
+kse
 # B2 module 13: verb suffixes named in the change-of-state notice (-nema, -dama)
 nema
 dama
