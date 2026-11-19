@@ -2924,85 +2924,60 @@
     "seconds": 56.3,
     "hash": "e6e013b72693b9d334187d83afbb145057b4855d"
   },
-  "b1b2-066:066_p_call": {
-    "src": "/audio/b1b2-066/066_p_call.mp3",
-    "seconds": 135.2,
-    "hash": "681ef15377a9cbfa5552fa56b6a82296e5de39ee"
-  },
-  "b1b2-066:066_t_voice": {
-    "src": "/audio/b1b2-066/066_t_voice.mp3",
-    "seconds": 100.9,
-    "hash": "cd73386e890f35168a35f63969407778a7a724bd"
-  },
   "b1b2-067:067_d_radio": {
     "src": "/audio/b1b2-067/067_d_radio.mp3",
-    "seconds": 154.2,
-    "hash": "e9b8d8def94715a2e74c5e7abd8b3b7f1a5368d3"
+    "seconds": 117.7,
+    "hash": "bc064162a9236f6a3a5beee6b1f83635244bed8f"
   },
-  "b1b2-068:068_p_clips": {
-    "src": "/audio/b1b2-068/068_p_clips.mp3",
-    "seconds": 241,
-    "hash": "67661d2243482deed1a712a568b1a2e032100a80"
+  "b1b2-068:068_t_voice": {
+    "src": "/audio/b1b2-068/068_t_voice.mp3",
+    "seconds": 66.7,
+    "hash": "8f4b56d5061fcb267a130aefae732b6d2404be85"
   },
-  "b1b2-069:069_d_debate": {
-    "src": "/audio/b1b2-069/069_d_debate.mp3",
-    "seconds": 161.9,
-    "hash": "58d55fa28f7934574cd1554af62b2b717cd4fb93"
-  },
-  "b1b2-069:069_t_voice": {
-    "src": "/audio/b1b2-069/069_t_voice.mp3",
-    "seconds": 114.8,
-    "hash": "c9e29c0bc206c75d135c814c97c18d5d7b4b353d"
+  "b1b2-069:069_d_info": {
+    "src": "/audio/b1b2-069/069_d_info.mp3",
+    "seconds": 102,
+    "hash": "ba58af56f1aeb740b3687c420e95a668b5a36199"
   },
   "b1b2-070:070_p_listen": {
     "src": "/audio/b1b2-070/070_p_listen.mp3",
-    "seconds": 160.6,
-    "hash": "8367c484898f00eac4978626f231c0c0dae6e251"
+    "seconds": 106,
+    "hash": "55f1d34976470cc26edd0eb00877e88222868e53"
   },
-  "b1b2-071:071_p_clips": {
-    "src": "/audio/b1b2-071/071_p_clips.mp3",
-    "seconds": 164.2,
-    "hash": "2387174f0a6b81cf067fe889ed0b9f6bc442a237"
+  "b1b2-070:070_p_notes": {
+    "src": "/audio/b1b2-070/070_p_notes.mp3",
+    "seconds": 47.2,
+    "hash": "6284f82c2c757c6926fe55919a82fe5e33abb3cc"
   },
-  "b1b2-072:072_p_radio": {
-    "src": "/audio/b1b2-072/072_p_radio.mp3",
-    "seconds": 234.8,
-    "hash": "bdeb869d38f782c3d85564e3141ecbb50c7b8410"
+  "b1b2-071:071_d_news": {
+    "src": "/audio/b1b2-071/071_d_news.mp3",
+    "seconds": 90.1,
+    "hash": "5f6de8ee5303305e029a64b930e3105fa878d14b"
   },
-  "b1b2-072:072_t_helgi": {
-    "src": "/audio/b1b2-072/072_t_helgi.mp3",
-    "seconds": 119.6,
-    "hash": "90ee77f2d925b321af38bc5095d79f9d8e9816a0"
+  "b1b2-072:072_t_radio": {
+    "src": "/audio/b1b2-072/072_t_radio.mp3",
+    "seconds": 76.2,
+    "hash": "8c0de6d0a5887f20ea9a42f5cee89b8d25aac968"
   },
-  "b1b2-073:073_d_chat": {
-    "src": "/audio/b1b2-073/073_d_chat.mp3",
-    "seconds": 94.4,
-    "hash": "e1a1f5ba9ac2a26b3ce4cca7f05c06d405b27920"
+  "b1b2-073:073_d_pod": {
+    "src": "/audio/b1b2-073/073_d_pod.mp3",
+    "seconds": 114.9,
+    "hash": "e6665cd5a46cdc2fe440d0841b6b1d9f4703aaf5"
   },
-  "b1b2-073:073_p_show": {
-    "src": "/audio/b1b2-073/073_p_show.mp3",
-    "seconds": 131.8,
-    "hash": "dfe4546da2eed719171be7d9edbf6ffd70e529e4"
-  },
-  "b1b2-074:074_p_lecture": {
-    "src": "/audio/b1b2-074/074_p_lecture.mp3",
-    "seconds": 109.8,
-    "hash": "fe354f3a839dff2812f4dd4a357d5ea76e7a965d"
-  },
-  "b1b2-075:075_d_listen": {
-    "src": "/audio/b1b2-075/075_d_listen.mp3",
-    "seconds": 36.8,
-    "hash": "48fc451154a8dc53b4dac14d5d31f3bdc2929544"
-  },
-  "b1b2-075:075_p_lc": {
-    "src": "/audio/b1b2-075/075_p_lc.mp3",
-    "seconds": 150.8,
-    "hash": "122784b5a2125502e52ff094c5063cc3434658cb"
+  "b1b2-074:074_t_voice": {
+    "src": "/audio/b1b2-074/074_t_voice.mp3",
+    "seconds": 58.4,
+    "hash": "c1c6c08f1953fba04c1b1e96407e0832f458f0bf"
   },
   "b1b2-075:075_p_listen": {
     "src": "/audio/b1b2-075/075_p_listen.mp3",
-    "seconds": 150.8,
-    "hash": "122784b5a2125502e52ff094c5063cc3434658cb"
+    "seconds": 116.8,
+    "hash": "29bc4b59dbc5fe28f0c6bc6815748bda3a1c625d"
+  },
+  "b1b2-075:075_p_notes": {
+    "src": "/audio/b1b2-075/075_p_notes.mp3",
+    "seconds": 55.2,
+    "hash": "35da0df6b5fa1e5003cf649013fc5ff9e6ac9b48"
   },
   "b1b2-076:076_d_radio": {
     "src": "/audio/b1b2-076/076_d_radio.mp3",
