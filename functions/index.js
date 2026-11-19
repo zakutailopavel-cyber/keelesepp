@@ -46,6 +46,7 @@ const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
 const { DEFAULT_ACCOUNTS } = require("./accounting-chart");
 const accountingCore = require("./accounting-core");
 const purchasesCore = require("./purchases-core");
+const accountingPartnersCore = require("./accounting-partners-core");
 const invoiceCorrectionCore = require("./invoice-correction-core");
 const inf3Core = require("./inf3-core");
 const {
@@ -9957,14 +9958,19 @@ async function syncAccountingEntries({ actor }) {
   return { created, total: desired.length, exclusionConflicts: accountingCore.exclusionBookConflicts(sources), bankBooksSince, waiting };
 }
 
-// the supplier cards named as partners on the lines of an entry (accounting-core validateEntry checks they exist)
-async function partnerSuppliers(lines) {
+// the supplier and „other” partner cards named on the lines of an entry (accounting-core validateEntry checks they exist;
+// a customer is kept with its name — Ostjad are derived from the invoices)
+async function partnerCardsOf(lines, type, collection) {
   const ids = [...new Set((Array.isArray(lines) ? lines : [])
-    .map(line => (line?.partner?.type === "supplier" ? String(line.partner.id || "").trim() : ""))
+    .map(line => (line?.partner?.type === type ? String(line.partner.id || "").trim() : ""))
     .filter(id => /^[A-Za-z0-9_-]{1,160}$/.test(id)))].slice(0, 200);
   if (!ids.length) return new Map();
-  const snaps = await db.getAll(...ids.map(id => db.collection("suppliers").doc(id)));
+  const snaps = await db.getAll(...ids.map(id => db.collection(collection).doc(id)));
   return new Map(snaps.filter(snap => snap.exists).map(snap => [snap.id, { id: snap.id, ...snap.data() }]));
+}
+async function partnerCards(lines) {
+  const [suppliers, others] = await Promise.all([partnerCardsOf(lines, "supplier", "suppliers"), partnerCardsOf(lines, "other", "accountingPartners")]);
+  return { suppliers, others };
 }
 
 async function createAccountingEntry({ actor, values, requestId }) {
@@ -9974,7 +9980,7 @@ async function createAccountingEntry({ actor, values, requestId }) {
   try {
     // a new manual entry: a line on a supplier account (2110, 1350) needs its supplier (the accountant 2026-10-24)
     // a supplier account line may stay without a partner: the bookkeeper links partners herself later (owner 2026-10-26)
-    normalized = accountingCore.validateEntry(values, accounts, { suppliers: await partnerSuppliers(values?.lines) });
+    normalized = accountingCore.validateEntry(values, accounts, await partnerCards(values?.lines));
   } catch (error) {
     throw httpError(error.status || 400, error.message);
   }
@@ -10117,7 +10123,7 @@ async function updateAccountingEntry({ actor, entryId, values, reason, requestId
   const nowIso = new Date().toISOString();
   const actorData = actorSnapshot(actor);
   const cleanReason = cleanText(reason, 300);
-  const suppliers = await partnerSuppliers(values?.lines);
+  const cards = await partnerCards(values?.lines);
   return db.runTransaction(async transaction => {
     const [auditSnap, snap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(ref), readAccountingLock(transaction)]);
     if (auditSnap.exists) return { entry: { id: snap.id, ...snap.data() }, idempotent: true };
@@ -10125,7 +10131,7 @@ async function updateAccountingEntry({ actor, entryId, values, reason, requestId
     const entry = { id: snap.id, ...snap.data() };
     let corrected;
     try {
-      corrected = accountingCore.correctedEntry(entry, values || {}, accounts, { suppliers });
+      corrected = accountingCore.correctedEntry(entry, values || {}, accounts, cards);
     } catch (error) {
       throw httpError(error.status || 400, error.message);
     }
@@ -10494,6 +10500,69 @@ async function importSuppliers({ actor, rows, requestId }) {
   batch.create(auditRef, { entityType: "supplier", action: "supplier.imported", count: ids.length, supplierIds: ids, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
   await batch.commit();
   return { created: ids };
+}
+
+// Partnerid „Muu” (docs/ACCOUNTING.md „Partnerid”): accountingPartners/{id} — Maksu- ja Tolliamet, Töötukassa, osanik,
+// töötaja, pank … A duplicate (the same code, or the same name without a different code) is refused like a supplier.
+async function saveAccountingPartner({ actor, partnerId, values, requestId }) {
+  let record;
+  try {
+    record = accountingPartnersCore.otherPartnerRecord(values || {});
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+  const existingId = String(partnerId || "").trim();
+  if (existingId && !/^[A-Za-z0-9_-]{1,160}$/.test(existingId)) throw httpError(400, "Partneri id on vigane.");
+  const ref = db.collection("accountingPartners").doc(existingId || cleanRequestId(requestId));
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const all = await db.collection("accountingPartners").get();
+  const duplicate = purchasesCore.supplierDuplicate(record, all.docs.map(doc => ({ id: doc.id, ...doc.data() })), ref.id);
+  if (duplicate) throw httpError(409, accountingPartnersCore.partnerDuplicateMessage(record, duplicate));
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    if (existingId && !snap.exists) throw httpError(404, "Partnerit ei leitud.");
+    if (!existingId && snap.exists) return { partner: { id: snap.id, ...snap.data() }, idempotent: true };
+    const partner = snap.exists ? { ...record, updatedAt: nowIso, updatedBy: actorData } : { ...record, createdAt: nowIso, createdBy: actorData, updatedAt: nowIso };
+    transaction.set(ref, partner, { merge: true });
+    transaction.create(db.collection("financialAudit").doc(), { entityType: "accountingPartner", entityId: ref.id, action: snap.exists ? "accounting.partner.updated" : "accounting.partner.created", before: snap.exists ? snap.data() : null, after: record, createdAt: nowIso, createdBy: actorData });
+    return { partner: { id: ref.id, ...(snap.exists ? snap.data() : {}), ...partner } };
+  });
+}
+
+async function importAccountingPartners({ actor, rows, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const done = await auditRef.get();
+  if (done.exists) return { created: done.get("partnerIds") || [], idempotent: true };
+  const all = await db.collection("accountingPartners").get();
+  let plan;
+  try {
+    plan = accountingPartnersCore.otherPartnerImportPlan(rows, all.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+  if (plan.problems.length) {
+    throw httpError(409, `Importi ei tehtud. ${plan.problems.slice(0, 10).map(p => `Rida ${p.row}: ${p.message}`).join(" ")}${plan.problems.length > 10 ? ` Ja veel ${plan.problems.length - 10} rida.` : ""}`);
+  }
+  const batch = db.batch();
+  const ids = plan.records.map((record, index) => {
+    const ref = db.collection("accountingPartners").doc(`${mutationId}_${index + 1}`.slice(0, 160));
+    batch.create(ref, { ...record, createdAt: nowIso, createdBy: actorData, updatedAt: nowIso, importId: mutationId });
+    return ref.id;
+  });
+  batch.create(auditRef, { entityType: "accountingPartner", action: "accounting.partner.imported", count: ids.length, partnerIds: ids, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+  await batch.commit();
+  return { created: ids };
+}
+
+// Ostjad: derived from the company's invoices on every call (nothing stored); only name, registry code (companies),
+// invoice count and the last invoice date leave the server — no e-mail, address, personal code or student data
+async function accountingCustomers() {
+  const snap = await db.collection("invoices").get();
+  return { customers: accountingPartnersCore.customersFromInvoices(issuerCore.companyOnly(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })))) };
 }
 
 const purchaseEntryRef = (sourceKey) => db.collection("accountingEntries").doc(purchasesCore.entryIdOf(sourceKey));
@@ -11284,6 +11353,20 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     if (req.path === "/suppliers/import") {
       const result = await importSuppliers({ actor, rows: req.body?.rows, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/partners") {
+      const result = await saveAccountingPartner({ actor, partnerId: req.body?.partnerId, values: req.body?.partner, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/partners/import") {
+      const result = await importAccountingPartners({ actor, rows: req.body?.rows, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/partners/customers") {
+      res.json(await accountingCustomers());
       return;
     }
     if (req.path === "/purchase-invoices") {

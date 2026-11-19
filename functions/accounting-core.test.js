@@ -232,7 +232,7 @@ test("validateEntry keeps a line's partner, checks a supplier exists and takes i
   assert.equal(entry.lines[0].partner, undefined, "no partner key on a line without one");
   assert.deepEqual(entry.lines[1].partner, kirsi);
   assert.throws(() => validateEntry({ date: "2026-03-01", description: "x", documentRef: "d", lines: [{ account: "4210", debitCents: 1 }, { account: "2110", creditCents: 1, partner: { type: "supplier", id: "nope", name: "Keegi" } }] }, chart, { suppliers }), /Tarnijat „Keegi” ei leitud/);
-  assert.throws(() => validateEntry({ date: "2026-03-01", description: "x", documentRef: "d", lines: [{ account: "4210", debitCents: 1 }, { account: "2110", creditCents: 1, partner: { name: "Vaba tekst" } }] }, chart), /vali tarnija nimekirjast/);
+  assert.throws(() => validateEntry({ date: "2026-03-01", description: "x", documentRef: "d", lines: [{ account: "4210", debitCents: 1 }, { account: "2110", creditCents: 1, partner: { name: "Vaba tekst" } }] }, chart), /vali partner nimekirjast/);
   // without the suppliers map (Asenda konto, storno) the partner is kept as it is
   assert.equal(validateEntry({ date: "2026-03-01", description: "x", documentRef: "d", lines: [{ account: "4210", debitCents: 1 }, { account: "2110", creditCents: 1, partner: { type: "supplier", id: "gone", name: "Old" } }] }, chart).lines[1].partner.id, "gone");
 });

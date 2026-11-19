@@ -1,12 +1,13 @@
-import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Download, FilePlus2, Lock, RefreshCw, Scale, Truck } from 'lucide-react';
+import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Download, FilePlus2, Lock, RefreshCw, Scale, Users } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountingService } from '../../services/firebase/accounting.js';
-import { downloadWorkbook, journalWorkbook, partnersWorkbook, statementsWorkbook, suppliersWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
+import { downloadWorkbook, journalWorkbook, partnerRegisterWorkbook, partnersWorkbook, statementsWorkbook, suppliersWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
 import { ACCOUNT_TYPES, COMPANY, CUSTOMER_ACCOUNTS, ENTRY_CODES, PARTNER_TYPE_LABELS, SUPPLIER_ACCOUNTS, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, draftDescription, euro, incomeStatement, journalReport, ledger, parseEuro, partnerKey, partnerReport, trialBalance } from './accountingReports.js';
-import SuppliersPanel from '../purchases/SuppliersPanel.jsx';
+import PartnersRegister from './PartnersRegister.jsx';
+import { partnerCards } from './partnerRegister.js';
 import { useOptionalAuth } from '../../app/AuthContext.jsx';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import JournalDraft from './JournalDraft.jsx';
@@ -29,11 +30,11 @@ const TABS = [
   ['partners', 'Partnerid'],
   ['statements', 'Bilanss ja kasumiaruanne'],
   ['chart', 'Kontoplaan'],
-  ['suppliers', 'Tarnijad'],
+  ['register', 'Partnerite register'],
   ['bank', 'Pank'],
   ['tsd', 'TSD'],
 ];
-const NO_PERIOD_TABS = new Set(['chart', 'suppliers', 'tsd', 'bank']);
+const NO_PERIOD_TABS = new Set(['chart', 'register', 'tsd', 'bank']);
 const today = () => tallinnToday();
 const dateLabel = (value) => (value ? new Date(`${value}T12:00:00`).toLocaleDateString('et-EE') : '—');
 const blankLine = () => ({ account: '', debit: '', credit: '', note: '' });
@@ -105,6 +106,18 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const [ledgerPartner, setLedgerPartner] = useState('');
   const [partnerAccount, setPartnerAccount] = useState('2110');
   const [openPartners, setOpenPartners] = useState(() => new Set());
+  const [partnerType, setPartnerType] = useState('');
+  // Ostjad (docs/ACCOUNTING.md „Partnerid”): derived from the CRM invoices on the server, loaded beside the books so a
+  // slow or failing call never holds the päevaraamat
+  const [customersState, setCustomersState] = useState({ status: repository.loadCustomers ? 'loading' : '', list: [] });
+  useEffect(() => {
+    if (!repository.loadCustomers) return undefined;
+    let alive = true;
+    repository.loadCustomers()
+      .then((list) => { if (alive) setCustomersState({ status: '', list: Array.isArray(list) ? list : [] }); })
+      .catch(() => { if (alive) setCustomersState({ status: 'error', list: [] }); });
+    return () => { alive = false; };
+  }, [repository]);
   const synced = useRef(false);
 
   const allEntries = useMemo(() => state.data?.entries || [], [state.data]);
@@ -113,13 +126,17 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const accounts = useMemo(() => state.data?.accounts || [], [state.data]);
   const lockedThrough = state.data?.lockedThrough || '';
   const suppliers = useMemo(() => state.data?.suppliers || [], [state.data]);
+  const otherPartners = useMemo(() => state.data?.otherPartners || [], [state.data]);
+  const customers = customersState.list;
+  // every partner for the Partner cell (Tarnija / Ostja / Muu)
+  const cards = useMemo(() => partnerCards({ suppliers, others: otherPartners, customers }), [suppliers, otherPartners, customers]);
   // „OA 3” of every entry (the partner drill-down shows the kande kood)
   const labels = useMemo(() => new Map(journalReport(allEntries, accounts, { showDeleted: true }).entries.map((e) => [e.id, e.label])), [allEntries, accounts]);
-  const partners = useMemo(() => partnerReport(entries, accounts, { ...period, account: partnerAccount }, { suppliers, labels }), [entries, accounts, period, partnerAccount, suppliers, labels]);
+  const partners = useMemo(() => partnerReport(entries, accounts, { ...period, account: partnerAccount, type: partnerType }, { suppliers, others: otherPartners, customers, labels }), [entries, accounts, period, partnerAccount, partnerType, suppliers, otherPartners, customers, labels]);
   // the partners on the lines of the pearaamat account (its partner filter)
   const ledgerPartners = useMemo(() => {
     const found = new Map();
-    entries.forEach((e) => (e.lines || []).forEach((l) => { if (String(l.account) === String(ledgerAccount)) found.set(partnerKey(l.partner), l.partner?.name || 'Partner puudub'); }));
+    entries.forEach((e) => (e.lines || []).forEach((l) => { if (String(l.account) === String(ledgerAccount)) found.set(partnerKey(l.partner), l.partner?.name ? `${l.partner.name}${PARTNER_TYPE_LABELS[l.partner.type] ? ` (${PARTNER_TYPE_LABELS[l.partner.type]})` : ''}` : 'Partner puudub'); }));
     return [...found.entries()].sort((a, b) => (a[0] === 'none') - (b[0] === 'none') || a[1].localeCompare(b[1], 'et'));
   }, [entries, ledgerAccount]);
   const journalFull = useMemo(() => journalReport(allEntries, accounts, { ...period, code: journalCode, sort: journalSort.key === 'date' ? 'date' : 'code', showDeleted }), [allEntries, accounts, period, journalCode, journalSort, showDeleted]);
@@ -234,6 +251,23 @@ export default function AccountingPage({ repository = accountingService, canEdit
     setNotice(`Imporditi ${result?.created?.length ?? rows.length} tarnijat.`);
     await state.reload();
   };
+  // Partnerid „Muu” (Maksu- ja Tolliamet, Töötukassa, osanik, töötaja, pank …)
+  const saveOtherPartner = async (partnerId, values) => {
+    setBusy('supplier'); setError('');
+    try {
+      await repository.saveAccountingPartner(partnerId, values);
+      setNotice(`Partner ${values.name} salvestati.`);
+      await state.reload();
+      return '';
+    } catch (nextError) {
+      return nextError.message || 'Salvestamine ebaõnnestus.';
+    } finally { setBusy(''); }
+  };
+  const importOtherPartners = async (rows) => {
+    const result = await repository.importAccountingPartners(rows);
+    setNotice(`Imporditi ${result?.created?.length ?? rows.length} partnerit.`);
+    await state.reload();
+  };
   const accountLabel = (code) => (code ? `${code} ${accounts.find((a) => a.code === code)?.name || ''}`.trim() : 'Kõik kontod');
   const openLedgerFor = (row) => { setLedgerAccount(partnerAccount || '2110'); setLedgerPartner(row.key); setTab('ledger'); };
   const togglePartner = (key) => setOpenPartners((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; });
@@ -261,7 +295,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
         <Button variant="secondary" loading={busy === 'sync'} onClick={() => sync(false)}><RefreshCw size={17} /> Uuenda kanded</Button>
         <Button variant="secondary" onClick={openOpening}><Scale size={17} /> Algsaldod</Button>
         <Button variant="secondary" onClick={openLock}><Lock size={17} /> {lockedThrough ? `Suletud kuni ${dmy(lockedThrough)}` : 'Sulge periood'}</Button>
-        <Button variant="secondary" onClick={() => setTab('suppliers')}><Truck size={17} /> Tarnijad</Button>
+        <Button variant="secondary" onClick={() => setTab('register')}><Users size={17} /> Partnerite register</Button>
         <Link className="button button--secondary" to="/finance/ostuarved">Ostuarved</Link>
         <Link className="button button--secondary" to="/finance/inf3">INF 3</Link>
         {!readOnly ? <Button onClick={openEntry}><FilePlus2 size={17} /> Lisa kanne</Button> : null}
@@ -297,9 +331,9 @@ export default function AccountingPage({ repository = accountingService, canEdit
           <dt>Kande kood</dt><dd>{journalCode ? `${journalCode} ${journalFull.filters.codeName}` : 'Kõik'}</dd>
           <dt>Järjestus</dt><dd>{sortLabel}</dd>
         </dl>
-        <JournalGrid entries={journalFull.entries} accounts={accounts} suppliers={suppliers} lockedThrough={lockedThrough} readOnly={readOnly} repository={repository}
+        <JournalGrid entries={journalFull.entries} accounts={accounts} suppliers={cards} lockedThrough={lockedThrough} readOnly={readOnly} repository={repository}
           onChanged={state.reload} onNotice={setNotice} sort={journalSort} onSort={sortBy} onDelete={openDelete} onRestore={restoreEntry} onStorno={openStorno} onUndoStorno={openUndoStorno}
-          draftSlot={draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} suppliers={suppliers} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null} />
+          draftSlot={draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} suppliers={cards} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null} />
         <p className="accounting-sheet__footer"><span>{COMPANY.name}</span><span>Rg-kood {COMPANY.regCode}</span></p>
       </div> : <EmptyState title="Perioodis kandeid ei ole" description="Vali teine periood või kande kood või vajuta „Uuenda kanded”." />}
     </Card> : null}
@@ -333,6 +367,9 @@ export default function AccountingPage({ repository = accountingService, canEdit
           {[...new Set([...SUPPLIER_ACCOUNTS, ...CUSTOMER_ACCOUNTS, ...accounts.filter((a) => usedAccounts.has(a.code)).map((a) => a.code)])].map((code) => <option key={code} value={code}>{accountLabel(code)}</option>)}
           <option value="">Kõik kontod</option>
         </Select>
+        <Select id="partner-type" label="Tüüp" value={partnerType} onChange={(event) => { setPartnerType(event.target.value); setOpenPartners(new Set()); }}>
+          <option value="">Kõik partnerid</option>{Object.entries(PARTNER_TYPE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </Select>
         <span className="accounting-partners__hint">Klõps partneril näitab tema read; „Pearaamat” avab sama konto selle partneri filtriga.</span>
       </div>
       {partners.rows.length ? <div className="accounting-sheet">
@@ -345,7 +382,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
             const open = openPartners.has(r.key);
             return <tbody key={r.key} className={r.key === 'none' ? 'is-missing' : ''}>
               <tr className={open ? 'accounting-grid__entry' : ''}>
-                <td><button type="button" className="link-button" aria-expanded={open} onClick={() => togglePartner(r.key)}>{open ? <ChevronDown size={13} /> : <ChevronRight size={13} />} {r.name}</button>{r.type ? <small> {PARTNER_TYPE_LABELS[r.type] || ''}</small> : null}</td>
+                <td><button type="button" className="link-button" aria-expanded={open} onClick={() => togglePartner(r.key)}>{open ? <ChevronDown size={13} /> : <ChevronRight size={13} />} {r.name}</button>{r.type ? <span className={`partner-badge partner-badge--${r.type}`}>{PARTNER_TYPE_LABELS[r.type] || ''}</span> : null}</td>
                 <td>{r.regCode}</td>
                 {[r.opening.debit, r.opening.credit, r.turnover.debit, r.turnover.credit, r.closing.debit, r.closing.credit].map((v, i) => <td key={i} className="num">{v ? amount(v) : ''}</td>)}
               </tr>
@@ -362,10 +399,12 @@ export default function AccountingPage({ repository = accountingService, canEdit
       </div> : <EmptyState title="Sellel kontol perioodis liikumisi ei ole" description="Vali teine konto või periood." />}
     </Card> : null}
 
-    {tab === 'suppliers' ? <Card className="accounting-card">
-      <p className="form-hint">Tarnijad on kannete partnerid: ostuarve (OA) ja tasumise (VM) kanded saavad tarnija igale reale ise; käsitsi kandes vali 2110 / 1350 real partner päevaraamatu veerus „Partner”. Ostuarved sisestatakse lehel <Link to="/finance/ostuarved">Ostuarved</Link>.</p>
-      <SuppliersPanel suppliers={suppliers} accounts={accounts} onSave={saveSupplier} onImport={repository.importSuppliers ? importSuppliers : null}
-        onExport={() => downloadWorkbook(suppliersWorkbook(suppliers, { company: COMPANY }), 'tarnijad.xls')} busy={busy === 'supplier'} />
+    {tab === 'register' ? <Card className="accounting-card">
+      <PartnersRegister suppliers={suppliers} others={otherPartners} customers={customers} customersStatus={customersState.status} accounts={accounts} busy={busy === 'supplier'}
+        onSaveSupplier={saveSupplier} onImportSuppliers={repository.importSuppliers ? importSuppliers : null}
+        onExportSuppliers={() => downloadWorkbook(suppliersWorkbook(suppliers, { company: COMPANY }), 'tarnijad.xls')}
+        onSaveOther={repository.saveAccountingPartner ? saveOtherPartner : null} onImportOthers={repository.importAccountingPartners ? importOtherPartners : null}
+        onExport={(rows, { others }) => downloadWorkbook(partnerRegisterWorkbook(rows, { company: COMPANY, others }), others ? 'partnerid_muud.xls' : 'partnerid.xls')} />
     </Card> : null}
 
     {tab === 'statements' ? <div className="accounting-statements">

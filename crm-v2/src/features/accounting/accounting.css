@@ -940,3 +940,32 @@
 .bank-books__review { display: grid; gap: 10px; padding-left: 18px; }
 .bank-books details summary { cursor: pointer; }
 @media (max-width: 760px) { .bank-books__totals { grid-template-columns: 1fr 1fr; } }
+
+/* Partnerid register (the accountant 2026-11-19): Kõik | Tarnijad | Ostjad | Muud and the type badge */
+.partners-register__views { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.partners-register__views button {
+  background: var(--app-bg);
+  border: 1px solid #e3e8ee;border:1px solid light-dark(#e3e8ee,#333940);
+  border-radius: var(--radius-pill);
+  color: var(--gray-700);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 5px 12px;
+}
+.partners-register__views button.is-active { background: #dce9f7;background:light-dark(#dce9f7,#05192d); border-color: #8c96a3; }
+.partners-register__views small { color: var(--gray-500); font-weight: 400; }
+.partners-register__presets { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.partners-register__table td { padding: 4px 8px; }
+.partner-badge {
+  border: 1px solid #c9d1da;border:1px solid light-dark(#c9d1da,#3d4650);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 6px;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+.partners-register__table .partner-badge { margin-left: 0; }
+.partner-badge--supplier { color: #8a4b00;color:light-dark(#8a4b00,#f0b86e); }
+.partner-badge--customer { color: #0b5a3a;color:light-dark(#0b5a3a,#7fd8ae); }
+.partner-badge--other { color: #3c4a8c;color:light-dark(#3c4a8c,#a9b5f2); }

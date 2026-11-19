@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp, Eye, FileUp, History, Info, Lock, Replace, Trash2, Undo2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
-import { HISTORY_ACTIONS, SUPPLIER_ACCOUNTS, amount, dmy, entryActions, linesText, parseEuro } from './accountingReports.js';
+import { HISTORY_ACTIONS, PARTNER_TYPE_LABELS, SUPPLIER_ACCOUNTS, amount, dmy, entryActions, linesText, parseEuro } from './accountingReports.js';
 import PartnerInput from './PartnerInput.jsx';
 import {
   COL, COLUMNS, COLUMN_LABELS, SORT_KEYS, blankWorkingLine, cellText, cellValue, editableColumn, filterEntries, flatRows, inRange,
@@ -414,7 +414,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
               {td(r, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin !== 'opening' })}
               {td(r, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin !== 'opening' })}
               {td(r, COL.text, cellText(entry, w, i, COL.text), { editable })}
-              {td(r, COL.partner, <>{cellText(entry, w, i, COL.partner)}{unresolved ? <small> pole tarnijate seas</small> : null}</>, { className: 'accounting-cell__partner', editable, bad: unresolved, title: l.partner?.type === 'customer' ? 'Klient (õpilase / maksja kaart)' : l.partner?.type === 'supplier' ? 'Tarnija' : undefined })}
+              {td(r, COL.partner, <>{cellText(entry, w, i, COL.partner)}{unresolved ? <small> pole partnerite seas</small> : null}</>, { className: 'accounting-cell__partner', editable, bad: unresolved, title: l.partner?.type ? PARTNER_TYPE_LABELS[l.partner.type] : undefined })}
               {td(r, COL.debit, cellText(entry, w, i, COL.debit), { className: 'num', editable, bad: badD })}
               {td(r, COL.credit, cellText(entry, w, i, COL.credit), { className: 'num', editable, bad: badK })}
             </tr>);

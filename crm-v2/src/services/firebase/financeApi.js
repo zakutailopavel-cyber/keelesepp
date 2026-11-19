@@ -192,6 +192,17 @@ export const financeApi = {
   importSuppliers(rows) {
     return post("/suppliers/import", { rows, requestId: financeRequestId("supplier_import") });
   },
+  // Partnerid „Muu” (functions/accounting-partners-core.js): Maksu- ja Tolliamet, Töötukassa, osanik, töötaja, pank …
+  saveAccountingPartner(partnerId, partner) {
+    return post("/accounting/partners", { partnerId: partnerId || "", partner, requestId: financeRequestId("accounting_partner") });
+  },
+  importAccountingPartners(rows) {
+    return post("/accounting/partners/import", { rows, requestId: financeRequestId("accounting_partner_import") });
+  },
+  // Ostjad derived from the company's invoices on the server (name + registry code only, nothing stored)
+  accountingCustomers() {
+    return post("/accounting/partners/customers", {});
+  },
   savePurchaseInvoice(purchaseInvoiceId, purchaseInvoice, { paidNow = null, reason = "" } = {}) {
     return post("/purchase-invoices", { purchaseInvoiceId: purchaseInvoiceId || "", purchaseInvoice, paidNow, reason, requestId: financeRequestId("purchase_invoice") });
   },

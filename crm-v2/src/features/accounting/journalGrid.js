@@ -13,10 +13,12 @@ export const COL = Object.freeze({ account: 0, date: 1, doc: 2, text: 3, partner
 export const SORT_KEYS = { account: 'code', date: 'date', doc: 'doc', text: 'text', partner: 'partner', debit: 'amount', credit: 'amount' };
 export const SORT_LABELS = { code: 'Kande kood', date: 'Kuupäev', doc: 'Dokument', text: 'Kirjeldus', partner: 'Partner', amount: 'Summa' };
 
-// ---- partners (Tarnijad) ----
+// ---- partners (Partnerid: Tarnijad, Ostjad, Muud — partnerRegister.partnerCards) ----
+// A card is a Tarnijad card, an Ostja from the CRM invoices or a „Muu” card; `partnerType` says which (a card without
+// it is a supplier, as before 2026-11-19).
 const lower = (value) => String(value || '').trim().toLocaleLowerCase('et');
-// suppliers matching what is typed: a registry code from its start, a name anywhere; active ones only
-export function partnerMatches(suppliers = [], text = '', limit = 8) {
+// partners matching what is typed: a registry code from its start, a name anywhere; active ones only
+export function partnerMatches(suppliers = [], text = '', limit = 10) {
   const query = lower(text);
   if (!query) return [];
   const open = suppliers.filter((s) => s.active !== false);
@@ -24,9 +26,11 @@ export function partnerMatches(suppliers = [], text = '', limit = 8) {
   const rest = open.filter((s) => !byName.includes(s) && (lower(s.name).includes(query) || String(s.regCode || '').startsWith(query)));
   return [...byName, ...rest].slice(0, limit);
 }
-export const supplierPartner = (supplier) => ({ type: 'supplier', id: String(supplier.id), name: String(supplier.name || '') });
-// typed partner text → a supplier partner (exact name or registry code), the current partner when unchanged, an
-// unresolved partner ({ type: '' }) otherwise — which blocks saving until a supplier is picked; '' → null
+// the partner of a line from a card: { type: 'supplier' | 'customer' | 'other', id, name }
+export const cardPartner = (card) => ({ type: card.partnerType || 'supplier', id: String(card.id), name: String(card.name || '') });
+export const supplierPartner = cardPartner;
+// typed partner text → a partner (exact name or registry code), the current partner when unchanged, an
+// unresolved partner ({ type: '' }) otherwise — which blocks saving until a partner is picked; '' → null
 export function resolvePartner(text, suppliers = [], current = null) {
   const value = String(text || '').trim();
   if (!value) return null;
@@ -40,7 +44,7 @@ const partnerSnapshot = (p) => (p && (p.id || p.name) ? `${p.type || ''}:${p.id 
 // the partner problem of lines (an unresolved name; a supplier account without a supplier when required), '' if none
 export function partnerProblem(lines = [], { required = false } = {}) {
   const unresolved = lines.find((l) => l.partner && !l.partner.type && l.partner.name);
-  if (unresolved) return `Partner „${unresolved.partner.name}” — vali tarnija nimekirjast (Tarnijad).`;
+  if (unresolved) return `Partner „${unresolved.partner.name}” — vali partner nimekirjast (Partnerid).`;
   if (!required) return '';
   const missing = lines.find((l) => SUPPLIER_ACCOUNTS.includes(String(l.account || '').trim()) && l.partner?.type !== 'supplier' && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0) || l.debitCents || l.creditCents));
   return missing ? `Real ${String(missing.account).trim()} puudub partner (tarnija).` : '';

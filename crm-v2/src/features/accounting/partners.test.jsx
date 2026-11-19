@@ -50,8 +50,8 @@ describe('Partner column in the päevaraamat', () => {
     fireEvent.mouseDown(cell(4, 4));
     const editor = screen.getByLabelText('Partner (muuda)');
     fireEvent.change(editor, { target: { value: '1122' } });
-    const list = screen.getByRole('listbox', { name: 'Sobivad tarnijad' });
-    expect(within(list).getAllByRole('option').map((o) => o.textContent)).toEqual(['Zone Media OÜ 11223344']);
+    const list = screen.getByRole('listbox', { name: 'Sobivad partnerid' });
+    expect(within(list).getAllByRole('option').map((o) => o.textContent)).toEqual(['Zone Media OÜ 11223344 Tarnija']);
     fireEvent.keyDown(editor, { key: 'Enter' });
     expect(cell(4, 4)).toHaveTextContent('Zone Media OÜ');
     expect(cell(5, 4)).toHaveClass('is-active');
@@ -72,9 +72,9 @@ describe('Partner column in the päevaraamat', () => {
     fireEvent.mouseDown(cell(4, 4));
     fireEvent.change(screen.getByLabelText('Partner (muuda)'), { target: { value: 'Keegi Muu' } });
     fireEvent.keyDown(screen.getByLabelText('Partner (muuda)'), { key: 'Enter' });
-    expect(cell(4, 4)).toHaveTextContent('pole tarnijate seas');
+    expect(cell(4, 4)).toHaveTextContent('pole partnerite seas');
     fireEvent.mouseDown(cell(1, 3));
-    expect(await screen.findByText(/Partner „Keegi Muu” — vali tarnija nimekirjast/)).toBeInTheDocument();
+    expect(await screen.findByText(/Partner „Keegi Muu” — vali partner nimekirjast/)).toBeInTheDocument();
     expect(repository.updateEntry).toHaveBeenCalledTimes(1);
   });
 
@@ -156,10 +156,11 @@ describe('Partnerid report and the pearaamat by partner', () => {
     expect(screen.queryByText('Zone Media tasumine')).not.toBeInTheDocument();
   });
 
-  it('Tarnijad is reachable from Raamatupidamine: the button opens the suppliers grid', async () => {
+  it('Tarnijad is reachable from Raamatupidamine: Partnerite register → Tarnijad opens the suppliers grid', async () => {
     const repository = repo();
     await open(repository);
-    fireEvent.click(screen.getAllByRole('button', { name: /Tarnijad/ })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: /Partnerite register/ })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /^Tarnijad/ }));
     expect(screen.getByLabelText('Otsi tarnijat')).toBeInTheDocument();
     expect(screen.getByLabelText('Kirsi Residents OÜ: Registrikood')).toHaveValue('12345678');
     expect(screen.getByText('2 tarnijat')).toBeInTheDocument();

@@ -1503,6 +1503,12 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
+    // Partnerid „Muu” (functions/accounting-partners-core.js): Maksu- ja Tolliamet, Töötukassa, osanik, töötaja, pank …
+    // admin read, written only by financeApi (/accounting/partners, /accounting/partners/import), like suppliers
+    match /accountingPartners/{partnerId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
     match /purchaseInvoices/{purchaseInvoiceId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;

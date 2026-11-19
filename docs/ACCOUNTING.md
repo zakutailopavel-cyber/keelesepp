@@ -192,7 +192,7 @@ are not changed (a reclassification entry after the lock date instead). Ctrl+Z r
 The accountant 2026-10-23: „Сделай таблицу поставщики и так же путь ей сделай дальше”. Route `/finance/ostuarved`
 (Finantsid → „Ostuarved”, Raamatupidamine → „Ostuarved”), two tabs:
 
-- **Tarnijad** (also on Raamatupidamine: tab and button „Tarnijad”, the same component `SuppliersPanel.jsx`): a ruled
+- **Tarnijad** (also on Raamatupidamine: „Partnerite register” → Tarnijad, the same component `SuppliersPanel.jsx`): a ruled
   grid like Excel — Nimi | Registrikood | KMKR nr | Aadress | E-post | IBAN | Vaikekonto | Aktiivne. Every cell is
   typed in place; a changed row shows „Salvesta” (Enter saves); the last row adds a supplier. Search over every
   field, „Näita mitteaktiivseid”, a header click sorts. IBAN is checked (mod 97), the default account must be open.
@@ -233,16 +233,51 @@ suppliers and purchase invoices, so a cost and its payment are always two entrie
 
 ## Partnerid (the accountant 2026-10-24: „Поставщиков сначала, и привяжи их к проводкам”)
 
-Like Merit Aktiva / her Excel: each journal line on a partner account carries the partner.
+Like Merit Aktiva / her Excel: each journal line on a partner account carries the partner. Since 2026-11-19 (the
+accountant: „Партнёров нет в бухгалтерии, есть только tarnijad”) a partner is one of three kinds — Tarnija, Ostja, Muu.
 
-- **Line field** `partner: { type: "supplier" | "customer", id, name }` (optional; only on lines that have one).
-  `accounting-core.cleanPartner` normalises it; `validateEntry(entry, accounts, { suppliers, requirePartner })` keeps
-  it, checks that a supplier with an id exists (`suppliers/{id}`, loaded by financeApi `partnerSuppliers`) and takes
-  the supplier's current name; a typed name without a type is refused („vali tarnija nimekirjast”).
+- **Three kinds** (`functions/accounting-partners-core.js`, client `features/accounting/partnerRegister.js`):
+  - **Tarnija** (`supplier`) — a Tarnijad card `suppliers/{id}` (unchanged, see „Tarnijad ja ostuarved”).
+  - **Ostja** (`customer`) — **derived, not stored**: financeApi `/accounting/partners/customers` (admin) reads the
+    company's invoices (`issuerCore.companyOnly`; FIE invoices and invoices left out of the books are not customers)
+    and returns one customer per company payer (`payerRegCode`, an 8-digit or other non-personal code → id
+    `reg:<code>`, name + code) or per private payer (name only, id `name:<name key>`; a personal code in
+    `payerRegCode` is dropped), with the invoice count and the last invoice date. No e-mail, address, personal code,
+    student or parent data leaves the server; nothing is written. Why derived: the invoices are the source, a copy would
+    go stale and would duplicate parents' data; the call is cheap and the page loads it beside the books (a failure
+    only says „Ostjate nimekirja ei saanud laadida”, the books still open).
+  - **Muu** (`other`) — `accountingPartners/{id}` `{ type: "other", kind: tax | public | owner | employee | bank |
+    other, name, regCode (registry or personal code), vatNumber, email, iban, note, active, createdAt/By, updatedAt/By
+    }`: Maksu- ja Tolliamet, Töötukassa, osanik (tasaarvestus osanikuga), töötajad, pank … Written only by financeApi
+    `/accounting/partners` (create / update, duplicate = the same code or the same name without a different code → 409,
+    `financialAudit` `accounting.partner.created|updated`) and `/accounting/partners/import` (all or nothing, max 400,
+    one audit `accounting.partner.imported`); Firestore rules: admin read, no client write (like `suppliers`). Nothing
+    is seeded: the register offers one-click „Lisa” for the presets (Maksu- ja Tolliamet 70000349, Eesti Töötukassa
+    70009770, osanik Pavel Zakutailo, AS LHV Pank 10539549) that are not there yet.
+- **Register „Partnerite register”** (Raamatupidamine tab and header button; `PartnersRegister.jsx`): views Kõik |
+  Tarnijad | Ostjad | Muud with counts. Kõik: Nimi | Tüüp (badge) + Liik | Reg-kood / isikukood | KMKR | IBAN | E-post |
+  Aktiivne | Allikas, search over every field, „Näita mitteaktiivseid”, Excel (`partnerRegisterWorkbook`, column Tüüp).
+  Tarnijad: the Tarnijad grid as before (`SuppliersPanel`, also on Ostuarved). Ostjad: read-only (Nimi | Liik | Reg-kood
+  | Arveid | Viimane arve | Allikas „CRM arved”). Muud: a ruled grid like Tarnijad (`OtherPartnersGrid.jsx`; Liik is a
+  select), the „Lisa kiiresti” presets, „Impordi Excelist” with a preview (Nimi | Liik | Reg-kood / isikukood | KMKR nr |
+  E-post | IBAN | Märkus | Aktiivne or a header row) and an Excel export in the same order. A personal code (11 digits,
+  first 1–6) is shown masked („3******1234”) in lists, suggestions, the Partnerid report and the Kõik Excel; the Muud
+  grid shows it only while its cell is focused.
+- **Line field** `partner: { type: "supplier" | "customer" | "other", id, name }` (optional; only on lines that have
+  one). `accounting-core.cleanPartner` normalises it; `validateEntry(entry, accounts, { suppliers, others,
+  requirePartner })` keeps it, checks that a supplier (`suppliers/{id}`) or an „other” partner
+  (`accountingPartners/{id}`) with that id exists (both loaded by financeApi `partnerCards`) and takes the card's current
+  name; a customer is kept with its name (no lookup); a typed name without a type is refused („vali partner nimekirjast
+  (Partnerid)”).
+- **Partner cell** (päevaraamat grid, „Lisa kanne” rows, `PartnerInput.jsx`): typing suggests every active partner of the
+  three kinds (name from its start or anywhere, code from its start) with a Tarnija / Ostja / Muu badge; a picked card
+  becomes `{ type, id, name }` (`journalGrid.cardPartner`; a card without `partnerType` is a supplier). A pasted Partner
+  column resolves against all of them. A name that is in none of them shows „pole partnerite seas” and blocks saving.
 - **Required**: a new manual entry (`/accounting/entries`) refuses a line on a supplier account (`SUPPLIER_ACCOUNTS`
   2110 Võlad tarnijatele, 1350 Ettemaksed tarnijatele) without a supplier. Corrections (`/accounting/entries/update`)
-  keep and check partners but do not require them on the server (old entries stay correctable); the päevaraamat
-  blocks saving a manual entry without one. Customer accounts (1200, 2500) never require a partner.
+  keep and check partners but do not require them on the server (old entries stay correctable). Since 2026-10-26 (owner)
+  the server and the päevaraamat do not require it at all (the accountant links partners herself); `requirePartner`
+  stays as an option only. Customer accounts (1200, 2500) never require a partner; Muu partners are never required.
 - **Automatic**: OA / VM entries — the supplier on every line (`purchases-core supplierPartner`); new sales entries —
   the customer on 1200 / 2500 (`accounting-core customerOf`). Entries written before 2026-10-24 are not changed by the
   sync (see the backfill below).
@@ -250,12 +285,16 @@ Like Merit Aktiva / her Excel: each journal line on a partner account carries th
   / after in `history` and `financialAudit`); the history line shows „2110 K 300,00 (Kirsi …)”. Storno
   (`reversalOf`) and „Asenda konto” keep the partners.
 - **Report „Partnerid”** (Raamatupidamine tab, `accountingReports.partnerReport`): per partner on one account (2110 by
-  default; any used account or „Kõik kontod”) Partner | Reg-kood | Algsaldo D/K | Käive D/K | Lõppsaldo D/K, Kokku;
-  lines without a partner are the row „Partner puudub” (with a notice). A click on a partner opens its lines (date,
-  kande kood, document, description, D, K, running saldo); „Pearaamat” opens the pearaamat of that account filtered
-  by the partner. Excel (`partnersWorkbook`): sheet „Partnerid” (the summary) and sheet „Read” (every line with its
-  partner and running saldo), ruled like the other registers.
-- **Pearaamat**: filter „Partner” (the partners on that account + „Partner puudub”) and a Partner column.
+  default; any used account or „Kõik kontod”) and one Tüüp (Kõik / Tarnija / Ostja / Muu) Partner (+ type badge) |
+  Reg-kood | Algsaldo D/K | Käive D/K | Lõppsaldo D/K, Kokku; the Reg-kood comes from Tarnijad, Muud (masked if
+  personal) or Ostjad (by name, or the `reg:` id); lines without a partner are the row „Partner puudub” (with a
+  notice). A customer is one row per name (`partnerKey` „customer:~<name>”): the sales entries carry the student card
+  id (one parent with two children = two ids) and a customer picked by hand carries `reg:<code>`. A click on a partner
+  opens its lines (date, kande kood, document, description, D, K, running saldo); „Pearaamat” opens the pearaamat of
+  that account filtered by the partner. Excel (`partnersWorkbook`): sheet „Partnerid” (the summary, column Tüüp) and
+  sheet „Read” (every line with its partner, Tüüp and running saldo), ruled like the other registers.
+- **Pearaamat**: filter „Partner” (the partners on that account with their type + „Partner puudub”) and a Partner
+  column.
   Käibeandmik unchanged.
 - **Päevaraamat Excel** has the Partner column.
 
@@ -704,12 +743,13 @@ was for. Staff only — never printed (PDF), never e-mailed, never shown to the 
 - `accountingEntries/{id}`: `auto_<sourceKey>`, `manual_<requestId>`, `reversal_<requestId>`, `opening_<requestId>`.
   Fields: `number`, `year`, `sequence`, `date`, `description`, `documentType` (also `purchaseInvoice`,
   `supplierPayment`), `documentRef`, `sourceKey`, `origin` (`auto` | `manual` | `reversal` | `opening`),
-  `lines[{ account, debitCents, creditCents, note, partner? { type: supplier | customer, id, name } }]`, `totalCents`, `reversalOf` / `reversedBy`, `reason`,
+  `lines[{ account, debitCents, creditCents, note, partner? { type: supplier | customer | other, id, name } }]`, `totalCents`, `reversalOf` / `reversedBy`, `reason`,
   `createdAt`, `createdBy`; corrections: `history[]`, `override`, `original`, `deleted`, `deletedAt`, `deletedBy`,
   `deleteReason`, `excludedInvoiceId`, `updatedAt`, `updatedBy`; purchase entries: `purchaseInvoiceId`; source
   documents („Fail kandele”): `documents[]`, `documentCount`, `documentsUpdatedAt`.
 - `accountingSettings/lock`: `{ lockedThrough, reason, updatedAt, updatedBy }`.
 - `suppliers/{id}`: `name`, `regCode`, `vatNumber`, `address`, `email`, `iban`, `defaultAccount`, `active`; imported ones also `importId` (id `<requestId>_<row>`).
+- `accountingPartners/{id}` (Partnerid „Muu”): `type: "other"`, `kind`, `name`, `regCode`, `vatNumber`, `email`, `iban`, `note`, `active`; imported ones also `importId`. Ostjad are not stored (derived from `invoices`).
 - `purchaseInvoices/{id}`: `supplierId`, `supplierName`, `supplierRegCode`, `documentNumber`, `date`, `dueDate`,
   `lines[{ account, description, amountCents, vatCents, vatDeductible }]`, `totalCents`, `deductibleVatCents`, `note`,
   `paidCents`, `payments[{ id, date, amountCents, method, reference, entryId, entryNumber }]`, `removedPayments[]`,
@@ -719,13 +759,14 @@ was for. Staff only — never printed (PDF), never e-mailed, never shown to the 
 - financeApi (admin only): `/invoices/credit-full`, `/invoices/correct` (documents above), `/accounting/sync`,
   `/accounting/entries`, `/accounting/entries/reverse`, `/accounting/entries/update`, `/accounting/entries/delete`,
   `/accounting/entries/replace-account`, `/accounting/entries/documents` (a source document; allowed in a closed period),
-  `/accounting/lock`, `/accounting/opening`, `/accounting/accounts`, `/suppliers`, `/suppliers/import` (rows, all or
+  `/accounting/lock`, `/accounting/opening`, `/accounting/accounts`, `/accounting/partners`, `/accounting/partners/import`,
+  `/accounting/partners/customers` (Ostjad, read-only), `/suppliers`, `/suppliers/import` (rows, all or
   nothing), `/purchase-invoices` (create, or
   update with `purchaseInvoiceId`), `/purchase-invoices/pay`, `/purchase-invoices/payment/remove`,
   `/purchase-invoices/void`, `/purchase-invoices/documents`. All bookings and corrections respect the accounting lock
   and closed months
   (`financialLockedDates`).
-- Firestore rules: admins read `accountingEntries`, `accountingAccounts`, `accountingSettings`, `suppliers`,
+- Firestore rules: admins read `accountingEntries`, `accountingAccounts`, `accountingSettings`, `suppliers`, `accountingPartners`,
   `purchaseInvoices`; nobody writes them from the client. Storage: `financial/purchase-invoices/**` and
   `financial/accounting-entries/**` admin read and create (PDF / images < 10 MB), no update or delete.
 
