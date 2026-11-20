@@ -1,1 +1,26 @@
-{}
+{
+ "b1eksp-module-01": [
+  "*|*|harno-listening",
+  "*|*|harno-reading",
+  "*|discover|module-same",
+  "*|practice|module-same",
+  "b1eksp-001|*|phases-same",
+  "b1eksp-001|discover|did-reading-len-001_a_text",
+  "b1eksp-001|discover|didactic",
+  "b1eksp-001|discover|end",
+  "b1eksp-001|practice|did-reading-len-001_k_text",
+  "b1eksp-001|practice|didactic",
+  "b1eksp-001|practice|end",
+  "b1eksp-001|practice|practice-sentence",
+  "b1eksp-002|*|phases-same",
+  "b1eksp-002|discover|did-reading-len-002_a_text",
+  "b1eksp-002|discover|didactic",
+  "b1eksp-002|discover|end",
+  "b1eksp-002|discover|neighbour",
+  "b1eksp-002|practice|did-reading-len-002_k_text",
+  "b1eksp-002|practice|didactic",
+  "b1eksp-002|practice|end",
+  "b1eksp-002|practice|neighbour",
+  "b1eksp-002|practice|practice-sentence"
+ ]
+}

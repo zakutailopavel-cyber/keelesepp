@@ -1,3 +1,25 @@
+## 2026-11-20 · agent/course-b1eksp — „B1 eksperimentaalkursus” (b1eksp): module 1 „Tutvus”, 2 lessons × 2 sheets · course content
+
+- Checked main: 50b0fc5 (2026-11-20). Stacked on draft PR agent/phase-labels (#1291, needs it for the sheet names); draft
+  PR „B1 eksperimentaalkursus” with base agent/phase-labels. Not merged, no deploy, no production writes.
+- Owner 2026-11-20: a new separate course, A2 → B1, a chain of neighbouring topics, recurring character Markus; one lesson
+  record, two sheets „Täiskasvanu” (adult, phase discover) and „Laps” (school pupil, phase practice), no Kasuta.
+- Done: `admin/course/b1eksp/module01.js` (b1eksp-module-01 „Tutvus”, b1eksp-001 „Markus bussis”, b1eksp-002 „Markuse
+  pere”; six steps per sheet: picture + text with questions (one reading block), words to picture numbers, rule table +
+  gaps, „Ja sina? Räägi”, „Kirjuta endast”; Russian teacher notes; no dictation); `courseModules.b1eksp.js`, registry,
+  loader, `COURSES.b1eksp`; `curriculum/b1ekspCurriculum.js` (records est-b1-eksp-v1 with `phaseLabels`) + test;
+  placeholder SVGs `crm-v2/public/textbook-art/b1eksp/00{1,2}-{adult,kid}.svg` wired as `figures` of the first block.
+- Gates: b1eksp is not in strictModules.json, academic value (b1/b2/enb2), final shape, methodGaps or listeningGoal
+  (course lists, like b1noor); it is added to noDictation. qualityBaseline.json lists its known problems (texts 61–71
+  words < A2 80, owner's 15-word sentence and 16–17-word writing instructions, no selfcheck at the end, same task
+  sequence in both sheets and both lessons by design, no listening, no 120-word text) so „Kursuse tootmine” can publish.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/library src/features/worksheet-studio src/features/curriculum`
+  2393 passed, 12 skipped (197 files); eslint 0 errors.
+- Production step (owner, not done): create-only write of the 2 records `curriculumLessons/b1eksp-001`, `b1eksp-002`
+  (from `b1ekspCurriculumRecords(MODULES)`), then publish the sheets in „Kursuse tootmine” → B1 eksperimentaalkursus ·
+  moodul 1 → „Avalda tund” (writes discover + practice). Hosting release first (SVGs under /textbook-art/b1eksp/).
+- Next safe step: owner OK on #1291, then on this PR; then the production step above.
+
 ## 2026-11-20 · agent/phase-labels — a lesson's own sheet names (`phaseLabels`) · library / room / production UI
 
 - Checked main: 50b0fc5 (2026-11-20). Draft PR „Lesson phaseLabels” (link in the PR list); not merged, no deploy, no production writes.
