@@ -56,4 +56,11 @@ describe('the sheet keeps the author’s order and the lesson shape', () => {
     const mod = { MODULE: { id: 'a2b1-module-99', course: 'b1', title: 'Test', level: 'B1' }, LESSONS: { 'a2b1-991': { title: 'T', canDo: 'Ma räägin.', ...shape('RÄÄK', 'L→S'), practice: [B.speaking('s', 'Räägi.', 'Räägi.', ['Mis?'], [60, 90])] } } };
     expect(buildCourseSheet(mod, 'a2b1-991', 'practice').meta).toMatchObject({ archetype: 'RÄÄK', lead: { input: 'L', output: 'S' } });
   });
+  it('carries a course\'s own sheet name (MODULE.phaseLabels) into the sheet meta, and none by default', () => {
+    const lesson = { title: 'T', canDo: 'Ma räägin.', practice: [B.speaking('s', 'Räägi.', 'Räägi.', ['Mis?'], [60, 90])] };
+    const mod = { MODULE: { id: 'a2b1-module-99', course: 'b1', title: 'Test', level: 'B1' }, LESSONS: { 'a2b1-991': lesson } };
+    expect(buildCourseSheet(mod, 'a2b1-991', 'practice').meta.phaseLabel).toBeUndefined();
+    const own = { ...mod, MODULE: { ...mod.MODULE, phaseLabels: { discover: 'Täiskasvanu', practice: 'Laps' } } };
+    expect(buildCourseSheet(own, 'a2b1-991', 'practice').meta.phaseLabel).toBe('Laps');
+  });
 });

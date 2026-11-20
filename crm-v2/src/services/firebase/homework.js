@@ -156,7 +156,9 @@ export function sanitizeSubmissionAnnotations(annotations = []) {
 const PHASE_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta', opik: 'Õpik' };
 function withPhase(title, data) {
   const phase = data.phase || data.worksheetDoc?.meta?.phase || '';
-  const label = PHASE_LABEL[phase] || '';
+  // a course that names its own sheets („Täiskasvanu” / „Laps”, lesson phaseLabels) keeps the name on the sheet's meta
+  const own = typeof data.worksheetDoc?.meta?.phaseLabel === 'string' ? data.worksheetDoc.meta.phaseLabel.trim() : '';
+  const label = own || PHASE_LABEL[phase] || '';
   return label && !String(title).includes(label) ? `${title} · ${label}` : title;
 }
 

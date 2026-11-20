@@ -13,6 +13,20 @@ describe('worksheets for the lesson board', () => {
     expect(filterChoices(choices, { level: 'B1', query: 'kasuta' }).map((choice) => choice.title)).toEqual(['Kasuta 2']);
   });
 
+  it('names a sheet by the course\'s own label (phaseLabels) and keeps the default otherwise', () => {
+    const published = { publishedVersion: 1 };
+    const choices = curriculumSheetChoices([
+      { id: 'b1eksp-001', title: 'Markus bussis', level: 'B1 eksperimentaalkursus', roadmapLessonNumber: 1, phaseLabels: { discover: 'Täiskasvanu', practice: 'Laps' }, worksheetPhases: { discover: published, practice: published } },
+      { id: 'b1', title: 'Esimene', level: 'B1', roadmapLessonNumber: 1, worksheetPhases: { practice: published } },
+    ]);
+    expect(choices.map((choice) => [choice.lessonId, choice.phaseLabel, choice.title])).toEqual([
+      ['b1', 'Harjuta', 'Esimene — Harjuta'],
+      ['b1eksp-001', 'Täiskasvanu', 'Markus bussis — Täiskasvanu'],
+      ['b1eksp-001', 'Laps', 'Markus bussis — Laps'],
+    ]);
+    expect(filterChoices(choices, { query: 'laps' }).map((choice) => choice.key)).toEqual(['phase:b1eksp-001:practice']);
+  });
+
   it('orders a level by lesson number, not by the module title', () => {
     const phases = { discover: { publishedVersion: 1 } };
     const choices = curriculumSheetChoices([
@@ -69,6 +83,21 @@ describe('worksheets for the lesson board', () => {
     expect(nextLessonSuggestion({ curriculum, lessonRecords: journal, roomKey: 'r2', assignments: done })).toMatchObject({ lessonId: 'b3' });
     // a sheet from another room does not hold the card
     expect(nextLessonSuggestion({ curriculum, lessonRecords: journal, roomKey: 'r9', assignments: [{ lessonId: 'b2', phase: 'discover', liveRoomKey: 'r2', assignedAt: '2026-10-07T10:00:00Z' }] }).lessonId).toBe('b3');
+  });
+  it('a lesson in versions (phaseLabels) is done with one version and offers them as a choice', () => {
+    const published = { publishedVersion: 1 };
+    const phaseLabels = { discover: 'Täiskasvanu', practice: 'Laps' };
+    const curriculum = curriculumSheetChoices([
+      { id: 'e1', title: 'Markus bussis', level: 'B1 eksperimentaalkursus', roadmapModuleTitle: 'Tutvus', roadmapLessonNumber: 1, phaseLabels, worksheetPhases: { discover: published, practice: published } },
+      { id: 'e2', title: 'Markuse pere', level: 'B1 eksperimentaalkursus', roadmapModuleTitle: 'Tutvus', roadmapLessonNumber: 2, phaseLabels, worksheetPhases: { discover: published, practice: published } },
+    ]);
+    const first = nextLessonSuggestion({ curriculum });
+    expect(first).toMatchObject({ lessonId: 'e1', versions: true });
+    expect(first.choices.map((choice) => choice.phaseLabel)).toEqual(['Täiskasvanu', 'Laps']);
+    // the Laps sheet of e1 on this board: the card moves on to e2, it does not wait for Täiskasvanu
+    const after = nextLessonSuggestion({ curriculum, roomKey: 'r1', assignments: [{ lessonId: 'e1', phase: 'practice', liveRoomKey: 'r1', assignedAt: '2026-11-20T10:00:00Z' }] });
+    expect(after).toMatchObject({ lessonId: 'e2' });
+    expect(after.continuing).toBeUndefined();
   });
   it('gives one row per lesson, finds lessons by what they are about, and groups them by module', () => {
     const phases = { discover: { title: 'Arutelu', publishedVersion: 1 }, practice: { title: 'Arutelu', publishedVersion: 1 }, transfer: { title: 'Arutelu', publishedVersion: 1 } };

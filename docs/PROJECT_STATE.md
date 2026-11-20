@@ -1,3 +1,23 @@
+## 2026-11-20 · agent/phase-labels — a lesson's own sheet names (`phaseLabels`) · library / room / production UI
+
+- Checked main: 50b0fc5 (2026-11-20). Draft PR „Lesson phaseLabels” (link in the PR list); not merged, no deploy, no production writes.
+- Owner 2026-11-20: „B1 eksperimentaalkursus” (`b1eksp`) has one lesson record with two sheets, „Täiskasvanu” and „Laps”,
+  stored in the existing `discover` / `practice` phases (no Firestore rules change). The content is a separate PR
+  (`agent/course-b1eksp`) that depends on this one.
+- Contract: lesson record field `phaseLabels: { discover?: string, practice?: string, transfer?: string }`. When present,
+  the lesson has only those sheets under those names; without it nothing changes (Avasta / Harjuta / Kasuta).
+  Course module field `MODULE.phaseLabels` → sheet `meta.phaseLabel` (courseSheet.js).
+- Done: `libraryModel.js` `lessonCorePhases`, `lessonPhaseLabel`; `lessonPhases` and `modulePhaseProgress` use them
+  (module heading „Täiskasvanu 2/2 · Laps 1/2”, „Kõik valmis” without Kasuta); `roomWorksheetChoices.js` phaseLabel;
+  `services/firebase/library.js` `lessonSheetChoices` (assign dialog); `LibraryPage.jsx` `phaseSheetItem` title;
+  `services/firebase/homework.js` assignment title uses `meta.phaseLabel`; `CourseProductionPage.jsx` shows / publishes
+  with `meta.phaseLabel` as displayLabel.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/library src/features/worksheet-studio src/features/curriculum
+  src/services/firebase/library.test.js src/services/firebase/homework.phaseTitle.test.js` 2409 passed, 12 skipped (198 files); eslint 0 errors.
+- Limits: „Õpi ise” (self-study/selfStudyModel.js) and the studio's template dialogs still count three phases; the board's
+  tab chips group only Avasta / Harjuta / Kasuta / Õpik titles. Not needed while b1eksp is assigned by hand.
+- Next safe step: owner OK → merge (hosting release only), then the b1eksp content PR.
+
 ## 2026-11-20 · agent/room-continue-lesson — Live Classroom: „Jätka tundi” until all sheets of the lesson are on the board · live classroom UI only
 
 - Checked main: 72c9700 (2026-11-20, includes #1289 „Muudetud” on module rows, released).

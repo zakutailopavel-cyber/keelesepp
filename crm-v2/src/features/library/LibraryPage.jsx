@@ -20,6 +20,7 @@ import {
   LIBRARY_TYPES,
   matchesPhaseFilter,
   modulePhaseProgress,
+  lessonPhaseLabel,
   PHASE_FILTERS,
   levelFacets,
   moduleFacets,
@@ -75,7 +76,7 @@ const SHEET_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta
 // one published sheet of a lesson (Avasta / Harjuta / Kasuta) as an assignable worksheet: the student gets the sheet,
 // not the teacher's lesson plan
 export function phaseSheetItem(item, sheetId, doc) {
-  const label = SHEET_LABEL[sheetId] || sheetId;
+  const label = lessonPhaseLabel(item.source, sheetId, SHEET_LABEL[sheetId]);
   return {
     // the sheet's own level (a2b1 control lessons are A2 sheets in the B1 course)
     ...item, type: 'worksheet', phase: sheetId, title: `${item.title} · ${label}`, level: doc.meta?.level || item.level,
