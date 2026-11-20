@@ -332,6 +332,29 @@ export function sectionsByModule(results) {
   return sections;
 }
 
+// „Viimati muudetud” keeps the modules together: a module's lessons stay one section, the module changed last comes first
+export function sectionsByRecentModule(results) {
+  const byKey = new Map();
+  for (const result of results) {
+    const key = result.item.moduleKey;
+    if (!byKey.has(key)) byKey.set(key, { key, level: result.item.level, label: moduleLabel(key, result.item), results: [] });
+    byKey.get(key).results.push(result);
+  }
+  return [...byKey.values()].sort((a, b) => (moduleChange(b.results).at || '').localeCompare(moduleChange(a.results).at || ''));
+}
+
+// the newest change of a module (owner 2026-11-20: „надо реально видеть когда менялся курс”): the latest lesson or
+// sheet date and the lessons changed on that day
+export function moduleChange(results = []) {
+  const dated = results.map((result) => result.item || result).filter((item) => /^\d{4}-\d{2}-\d{2}/.test(item.updatedAt || ''));
+  if (!dated.length) return { at: '', day: '', lessons: [] };
+  const at = dated.map((item) => item.updatedAt).sort().at(-1);
+  const day = at.slice(0, 10);
+  const lessons = dated.filter((item) => item.updatedAt.slice(0, 10) === day)
+    .map((item) => (item.lessonNumber && item.kind !== 'exercise' ? `${item.lessonNumber}. ${item.title}` : item.title));
+  return { at, day, lessons };
+}
+
 export function buildLibraryItems(curriculumLessons = [], exercises = []) {
   return [
     ...curriculumLessons.filter((item) => item && !item.__placeholder).map((item) => libraryItem('curriculum', item)),

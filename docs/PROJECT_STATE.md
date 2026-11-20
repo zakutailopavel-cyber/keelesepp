@@ -1,3 +1,15 @@
+## 2026-11-20 · agent/library-module-changed — Õppevara: mooduli muutmise kuupäev · library UI only
+
+- Checked main: 28159dc (2026-11-20). Owner 2026-11-20: „надо реально видеть когда менялся курс” — the date was shown only per lesson.
+- Done: the module row in Õppevara shows „Muudetud DD.MM.YYYY” (the newest lesson or sheet date of the module); the tooltip
+  lists the lessons changed that day. Sort „Viimati muudetud” now groups lessons by module, the latest changed module first.
+- Files: `crm-v2/src/features/library/libraryModel.js` (`moduleChange`, `sectionsByRecentModule`), `LibraryPage.jsx`
+  (`ModuleChanged`), `libraryWorkspace.css` (`.lib2-module-changed`), `libraryModel.test.js`.
+- Data: none; reads the existing `updatedAt` and `worksheetPhases.*.updatedAt` of each lesson.
+- Checks: `npx vitest run src/features/library` 52 passed; eslint 0 errors; `vite build` ok.
+- Limits: no change note („what changed”) — the lesson summary has no note field; the tooltip names lessons instead.
+- Next safe step: owner OK → merge, hosting release only.
+
 ## 2026-11-19 · agent/accounting-partner-old-entries — Raamatupidamine: partner vanadele kannetele · finance UI only
 
 - Base: `origin/main` 212d4dd (release 2026-11-19 14:55 UTC), checked 2026-11-19. Draft PR „Raamatupidamine: partner
