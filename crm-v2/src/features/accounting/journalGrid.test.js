@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseEuro } from './accountingReports.js';
 import {
   COL, cellText, clipboardRows, partnerMatches, partnerProblem, resolvePartner, filterEntries, flatRows, moveCell, parseDate, pasteIntoWorking, pastedEntryLines, pastedPurchaseLines,
-  rangeTsv, replacementPreview, sameAsEntry, setCell, sortEntries, toWorking, workingProblem, workingValues,
+  rangeTsv, replacementPreview, sameAsEntry, setCell, sortEntries, suggestedSupplier, toWorking, withSuggestedPartner, workingProblem, workingValues,
 } from './journalGrid.js';
 
 const accounts = [
@@ -188,5 +188,27 @@ describe('partners (Tarnijad) on the lines', () => {
     const w = pasteIntoWorking(toWorking(manual), 1, COL.partner, '11223344', 'manual', suppliers);
     expect(w.lines[1].partner).toEqual({ type: 'supplier', id: 's2', name: 'Zone Media OÜ' });
     expect(cellText(row('x'), w, 1, COL.partner)).toBe('Zone Media OÜ');
+  });
+});
+
+describe('„Lisa partner: …” suggestion (the accountant 2026-11-19)', () => {
+  const zone = { id: 's2', name: 'Zone Media OÜ', regCode: '11223344' };
+  const kirsi = { id: 's1', name: '„Kirsi Residents” OÜ', regCode: '' };
+  const media = { id: 's3', name: 'Media', regCode: '' };
+  const entry = (description, lines, documentRef = 'OA-1') => ({ description, documentRef, lines });
+  const two = (partner) => [{ account: '4320', debitCents: 100, creditCents: 0, note: '' }, { account: '2110', debitCents: 0, creditCents: 100, note: '', ...(partner ? { partner } : {}) }];
+  it('one supplier named by whole words or a registry code; none on other accounts, a line with a partner or several matches', () => {
+    expect(suggestedSupplier(entry('ostuarve 1010331811, Zone Media', two()), 1, [zone, kirsi])).toBe(zone);
+    expect(suggestedSupplier(entry('Kirsi Residents OÜ /üür ruum', two()), 1, [zone, kirsi])).toBe(kirsi);
+    expect(suggestedSupplier(entry('arve', two(), 'reg 11223344'), 1, [zone, kirsi])).toBe(zone);
+    expect(suggestedSupplier(entry('Zone Media', two()), 0, [zone])).toBeNull();
+    expect(suggestedSupplier(entry('Zone Media', two({ type: 'supplier', id: 's2', name: 'Zone Media OÜ' })), 1, [zone])).toBeNull();
+    expect(suggestedSupplier(entry('Zone Media', two()), 1, [zone, media])).toBeNull();
+    expect(suggestedSupplier(entry('Zonemedia', two()), 1, [zone])).toBeNull();
+    expect(suggestedSupplier(entry('Zone Media', two()), 1, [{ ...zone, active: false }])).toBeNull();
+  });
+  it('the working copy carries the supplier on that line only', () => {
+    const w = withSuggestedPartner(entry('Zone Media', two()), 1, zone);
+    expect(workingValues(w).lines).toEqual([{ account: '4320', debitCents: 100, creditCents: 0, note: '' }, { account: '2110', debitCents: 0, creditCents: 100, note: '', partner: { type: 'supplier', id: 's2', name: 'Zone Media OÜ' } }]);
   });
 });

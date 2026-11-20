@@ -2,6 +2,7 @@
 // docs/ACCOUNTING.md „Päevaraamat kui tabel”). Pure helpers of JournalGrid.jsx: the cell model, the working copy of
 // an entry being edited, D = K checks, filters, sorting, copy as TSV, paste from Excel and the „Asenda konto”
 // preview. Nothing here talks to the server; every change still goes through financeApi.
+import { supplierNameKey } from '../purchases/purchases.js';
 import { SUPPLIER_ACCOUNTS, amount, dmy, editableLines, entryActions, parseEuro, partnerLabel } from './accountingReports.js';
 
 // the columns of the grid (the owner's template + the partner, the accountant 2026-10-24: like Merit, each line on a
@@ -36,6 +37,28 @@ export function resolvePartner(text, suppliers = [], current = null) {
     || suppliers.find((s) => lower(s.name) === lower(value));
   return hit ? supplierPartner(hit) : { type: '', id: '', name: value };
 }
+// „Lisa partner: …” (the accountant 2026-11-19: old entries typed before Tarnijad): the supplier a line on 2110 / 1350
+// without a partner most likely belongs to — exactly one active supplier whose name (case, punctuation and the legal
+// form ignored, whole words) or registry code (6+ digits) is in the entry's content, document or line notes; the same
+// rule as functions/accounting-partner-core.js manualPartnerSuggestions. null when none or several match.
+export function suggestedSupplier(entry, line, suppliers = []) {
+  const l = entry?.lines?.[line];
+  if (!l || !SUPPLIER_ACCOUNTS.includes(String(l.account || '').trim()) || (l.partner && (l.partner.id || l.partner.name))) return null;
+  const raw = [entry.description, entry.documentRef, ...(entry.lines || []).map((x) => x.note)].filter(Boolean).join(' ');
+  const text = ` ${supplierNameKey(raw)} `;
+  const hits = suppliers.filter((s) => {
+    if (s.active === false) return false;
+    const key = supplierNameKey(s.name);
+    const code = String(s.regCode || '').trim();
+    return (key && text.includes(` ${key} `)) || (code.length >= 6 && raw.includes(code));
+  });
+  return hits.length === 1 ? hits[0] : null;
+}
+// the working copy of an entry with that supplier on the line
+export const withSuggestedPartner = (entry, line, supplier) => {
+  const working = toWorking(entry);
+  return { ...working, lines: working.lines.map((l, i) => (i === line ? { ...l, partner: supplierPartner(supplier) } : l)) };
+};
 const partnerSnapshot = (p) => (p && (p.id || p.name) ? `${p.type || ''}:${p.id || ''}:${String(p.name || '').trim()}` : '');
 // the partner problem of lines (an unresolved name; a supplier account without a supplier when required), '' if none
 export function partnerProblem(lines = [], { required = false } = {}) {

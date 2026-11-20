@@ -1,3 +1,34 @@
+## 2026-11-19 · agent/accounting-partner-old-entries — Raamatupidamine: partner vanadele kannetele · finance UI only
+
+- Base: `origin/main` 212d4dd (release 2026-11-19 14:55 UTC), checked 2026-11-19. Draft PR „Raamatupidamine: partner
+  vanadele kannetele” (link in the PR list). Not merged, no deploy, no production writes. Open draft #1287
+  (agent/accounting-partners-all) touches the same files (JournalGrid.jsx, journalGrid.js, PartnerInput.jsx,
+  ACCOUNTING.md, PROJECT_STATE.md): expect small conflicts, keep both sides.
+- Goal: the accountant „К старым проводкам не привязать поставщиков, они же партнеры” — attach a supplier to the
+  2110 / 1350 lines of existing entries (production: 71 old manual entries + the opening entry without a partner).
+- Root cause (client only): in the Päevaraamat grid a supplier picked **with the mouse** in the partner list was
+  written, but the same mousedown bubbled to the cell, which reopened the cell editor with its old (empty) text; the
+  next click wrote that back, the partner vanished and nothing was sent. Enter / Tab in the list worked (that is how
+  2026-0229 / 2026-0732 got their partners). The server was fine: `correctedEntry` / `updateAccountingEntry` store a
+  partner-only change on entries without `updatedAt` / `history`, opening and automatic ones (no version check).
+- Done: `JournalGrid.jsx` `onCellMouseDown` ignores mousedowns from `[role=listbox] / [role=option]`; „Lisa partner:
+  <Tarnija>” button on a 2110 / 1350 line without a partner when exactly one active supplier is named in the entry
+  text (`journalGrid.suggestedSupplier`, `withSuggestedPartner`; same rule as `accounting-partner-core
+  manualPartnerSuggestions`), one click = `save(entryId, working)` → the normal `/accounting/entries/update`
+  correction with history and undo. No new mandatory rules, no server change.
+- Tests: new `crm-v2/src/features/accounting/partnerOldEntries.test.jsx` (sanitised production sample: click
+  „Zone” → click „Zone Media OÜ” → Salvesta sends the partner — failed before the fix; the opening entry by click;
+  „Lisa partner” one click), `journalGrid.test.js` suggestion rules, `functions/accounting-core.test.js` partner-only
+  correction of an old manual / opening / automatic entry. `cd crm-v2 && npx vitest run src/features/accounting
+  src/features/purchases` 14 files / 136 tests green; eslint clean on the changed client files; `cd functions && npm
+  test` 672/672 green. No emulator run (no server change). Not tried in a browser.
+- Deploy: hosting only (normal release after merge, `[deploy]` / release.yml). No functions, no rules.
+- Limits: entries in a closed period (`Suletud kuni …` or a closed finance month) still cannot take a partner in place
+  (period lock unchanged); if some of her old entries are locked, that is the remaining reason. The suggestion is per
+  line, not a bulk action (the bulk backfill stays `tools/accounting-partner-backfill.js --apply-manual`, owner only).
+- Next safe step: owner reviews the draft PR, merges and releases hosting, then asks the accountant to use „Lisa
+  partner” / the mouse pick on the old Zone Media and Kirsi entries.
+
 ## 2026-11-19 · agent/accounting-entry-files — Raamatupidamine: fail kandele (allikadokument) · finance UI + financeApi + storage rules
 
 - Base: `origin/main` 7aa962e (release 2026-11-19 11:39 UTC), checked 2026-11-19. Draft PR „Raamatupidamine: fail

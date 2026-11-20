@@ -414,3 +414,34 @@ test("attaching a source document changes no figure of the entry, works on an au
   const full = { ...entry, documents: Array.from({ length: 20 }, (_, i) => ({ id: `entry_document_${String(i).padStart(4, "0")}x` })) };
   assert.throws(() => entryDocumentPatch(full, document, { actorData, nowIso: "x" }), /20 faili/);
 });
+
+// the accountant 2026-11-19: „К старым проводкам не привязать поставщиков” — entries shaped like production: an old
+// manual entry imported 2026-10-23 (no updatedAt, no history, documentType „other”), the opening entry, an automatic one
+test("a partner-only change on old entries is a correction that stores the supplier (manual, opening, automatic)", () => {
+  const { correctedEntry, snapshotOf } = require("./accounting-core");
+  const accounts = DEFAULT_ACCOUNTS.map((a) => ({ ...a, active: true }));
+  const zone = { id: "supplier-99bf6989", name: "Zone Media OÜ", active: true };
+  const suppliers = new Map([[zone.id, zone]]);
+  const ZONE = { type: "supplier", id: zone.id, name: "Zone Media OÜ" };
+  const withPartner = (entry, index) => ({ ...snapshotOf(entry), lines: snapshotOf(entry).lines.map((l, i) => (i === index ? { ...l, partner: { ...ZONE, name: "Zone Media" } } : l)) });
+
+  const old = { id: "manual_accounting_entry-1fc0d0e1", date: "2026-03-02", description: "Zone Media virtuaalserver", documentRef: "OA-1010140274", totalCents: 1482, origin: "manual", documentType: "other", requestId: "accounting_entry-1fc0d0e1", number: "2026-0242", year: 2026, sequence: 242, createdAt: "2026-10-23T19:12:04.750Z",
+    lines: [{ account: "4320", debitCents: 1482, creditCents: 0, note: "" }, { account: "2110", debitCents: 0, creditCents: 1482, note: "" }] };
+  const fixed = correctedEntry(old, withPartner(old, 1), accounts, { suppliers });
+  assert.deepEqual(fixed.after.lines[1].partner, ZONE, "the supplier card's name is stored");
+  assert.equal(fixed.before.lines[1].partner, undefined);
+  assert.deepEqual(fixed.after.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["4320", 1482, 0], ["2110", 0, 1482]], "amounts unchanged");
+  assert.equal(fixed.totalCents, 1482);
+
+  const opening = { id: "opening_accounting_opening-0ffa17c2", origin: "opening", number: "2026-0269", date: "2026-01-01", description: "Algsaldod seisuga 2026-01-01", documentRef: "Eelmise perioodi käibeandmik",
+    lines: [{ account: "1010", debitCents: 24840, creditCents: 0 }, { account: "2110", debitCents: 0, creditCents: 24840 }] };
+  const openingFixed = correctedEntry(opening, { ...withPartner(opening, 1), date: "", documentRef: "" }, accounts, { suppliers });
+  assert.deepEqual(openingFixed.after.lines[1].partner, ZONE);
+  assert.equal(openingFixed.after.date, "2026-01-01", "the opening entry keeps its date and document");
+
+  const auto = { id: "auto_credit_banktx_pilcq16", origin: "auto", documentType: "bankTransaction", number: "2026-0001", date: "2026-05-05", description: "Ettemaks pangast", documentRef: "pilcq16",
+    lines: [{ account: "1010", debitCents: 2500, creditCents: 0, note: "" }, { account: "2110", debitCents: 0, creditCents: 2500, note: "" }] };
+  assert.deepEqual(correctedEntry(auto, withPartner(auto, 1), accounts, { suppliers }).after.lines[1].partner, ZONE);
+
+  assert.throws(() => correctedEntry(old, withPartner(old, 1), accounts, { suppliers: new Map() }), /ei leitud/, "an unknown supplier id is refused");
+});

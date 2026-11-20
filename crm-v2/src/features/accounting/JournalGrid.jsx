@@ -5,7 +5,7 @@ import { HISTORY_ACTIONS, SUPPLIER_ACCOUNTS, amount, dmy, entryActions, linesTex
 import PartnerInput from './PartnerInput.jsx';
 import {
   COL, COLUMNS, COLUMN_LABELS, SORT_KEYS, blankWorkingLine, cellText, cellValue, editableColumn, filterEntries, flatRows, inRange,
-  moveCell, pasteIntoWorking, rangeTsv, replacementPreview, sameAsEntry, setCell, sortEntries, toWorking, workingProblem, workingValues,
+  moveCell, pasteIntoWorking, rangeTsv, replacementPreview, sameAsEntry, setCell, sortEntries, suggestedSupplier, toWorking, withSuggestedPartner, workingProblem, workingValues,
 } from './journalGrid.js';
 
 // The päevaraamat as a spreadsheet (the accountant 2026-10-23: „функциональность и свобода действий как в Excel”,
@@ -55,11 +55,14 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
   const pendingIds = Object.keys(workings);
 
   // ---- saving ----
-  const save = async (entryId) => {
-    const working = workingsRef.current[entryId];
+  // `given`: a working copy saved at once without being typed („Lisa partner: …”)
+  const save = async (entryId, given = null) => {
+    const working = given || workingsRef.current[entryId];
     const entry = byId.get(entryId);
     if (!working || !entry) return true;
     if (sameAsEntry(working, entry.source)) { drop(entryId); return true; }
+    // shown as a pending change, so a refusal stays visible on the entry like a typed one
+    if (given) setWorkings((w) => ({ ...w, [entryId]: given }));
     const check = problemOf(entry, working);
     if (check.problem) { setAttempted((s) => new Set(s).add(entryId)); return false; }
     setSaving((s) => new Set(s).add(entryId));
@@ -229,8 +232,11 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
   };
 
   // ---- mouse ----
+  // a click on the open cell editor or its supplier list is the editor's own (the accountant 2026-11-19: a supplier
+  // picked with the mouse in the partner list bubbled here, reopened the cell with its old empty text and the next
+  // click wrote that back — the partner was lost and nothing was saved)
   const onCellMouseDown = (event, pos) => {
-    if (event.target.closest('button, input, a, label')) return;
+    if (event.target.closest('button, input, a, label, [role="listbox"], [role="option"]')) return;
     event.preventDefault();
     if (editingRef.current) commit(editingRef.current);
     focusGrid();
@@ -403,6 +409,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
             const badD = w && Number.isNaN(parseEuro(l.debit));
             const badK = w && Number.isNaN(parseEuro(l.credit));
             const unresolved = Boolean(l.partner && !l.partner.type && l.partner.name);
+            const suggestion = !w && editable ? suggestedSupplier(entry.source, i, suppliers) : null;
             lineRows.push(<tr key={i} className={active?.row === r ? 'is-active-row' : ''}>
               {td(r, 0, <span className="accounting-cell__account">
                 {editable ? <span className="accounting-cell__rowtools">
@@ -414,7 +421,8 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
               {td(r, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin !== 'opening' })}
               {td(r, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin !== 'opening' })}
               {td(r, COL.text, cellText(entry, w, i, COL.text), { editable })}
-              {td(r, COL.partner, <>{cellText(entry, w, i, COL.partner)}{unresolved ? <small> pole tarnijate seas</small> : null}</>, { className: 'accounting-cell__partner', editable, bad: unresolved, title: l.partner?.type === 'customer' ? 'Klient (õpilase / maksja kaart)' : l.partner?.type === 'supplier' ? 'Tarnija' : undefined })}
+              {td(r, COL.partner, <>{cellText(entry, w, i, COL.partner)}{unresolved ? <small> pole tarnijate seas</small> : null}
+                {suggestion ? <button type="button" className="link-button accounting-partner-suggest" title="Tarnija nimi on kande tekstis — lisab partneri sellele reale (parandus jääb kande ajalukku)" onClick={() => save(entry.id, withSuggestedPartner(entry.source, i, suggestion))}>Lisa partner: {suggestion.name}</button> : null}</>, { className: 'accounting-cell__partner', editable, bad: unresolved, title: l.partner?.type === 'customer' ? 'Klient (õpilase / maksja kaart)' : l.partner?.type === 'supplier' ? 'Tarnija' : undefined })}
               {td(r, COL.debit, cellText(entry, w, i, COL.debit), { className: 'num', editable, bad: badD })}
               {td(r, COL.credit, cellText(entry, w, i, COL.credit), { className: 'num', editable, bad: badK })}
             </tr>);

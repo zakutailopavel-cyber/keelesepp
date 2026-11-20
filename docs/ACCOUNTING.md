@@ -159,6 +159,17 @@ lock, D = K per entry, immutable entry numbers, no client writes.
   stays red („pole tarnijate seas”) and the entry is not saved. A line on 2110 / 1350 without a supplier shows
   „Puudub: partner”; a manual (PR) entry is not saved without it, an automatic entry only shows the hint. Filter
   „Partner” above the grid; the header „Partner” sorts by it.
+  Old entries (2026-11-19, the accountant: „К старым проводкам не привязать поставщиков”): any editable entry —
+  an old manual one without `updatedAt` / `history`, the opening entry, an automatic one — takes a partner the same
+  way; a partner-only change is an ordinary correction (`/accounting/entries/update`, history „Muudetud” / „Read
+  parandatud”, `financialAudit`). Bug fixed then: a supplier picked with the mouse in the list bubbled to the cell's
+  mousedown, which reopened the cell with its old (empty) text, and the next click wrote that back — the partner was
+  lost and nothing was sent (Enter / Tab worked). The grid now ignores mousedowns from the list (`role=listbox /
+  option`). **„Lisa partner: <Tarnija>”** on a 2110 / 1350 line without a partner, when exactly one active supplier's
+  name (case, punctuation and the legal form ignored, whole words) or registry code (6+ digits) is in the entry's
+  content, document or line notes (`journalGrid.suggestedSupplier`, the same rule as `accounting-partner-core
+  manualPartnerSuggestions`): one click saves that line's partner as a normal correction (undo with Ctrl+Z); nothing
+  is set without her click. Not shown in a closed period or on a storno / deleted entry.
 - **Copy and paste.** Shift+click or Shift+arrows select cells; Ctrl/Cmd+C copies them as tab separated text (for
   Excel). Ctrl/Cmd+V of rows from Excel: into an entry at the active cell over the grid columns (missing lines are
   added); into a new manual entry („Lisa kanne”): Konto | Kirjeldus | Deebet | Kreedit | Partner (optional; a
