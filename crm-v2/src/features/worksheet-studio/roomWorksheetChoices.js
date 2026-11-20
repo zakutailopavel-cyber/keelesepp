@@ -49,7 +49,7 @@ export function curriculumSheetChoices(lessons = []) {
     if (!lesson || lesson.__placeholder) continue;
     const module = lesson.roadmapModuleTitle || '';
     const number = Number(lesson.roadmapLessonNumber) || Number(lesson.order) || 0;
-    const base = { level: lesson.level || '', module, lessonId: lesson.id, lessonTitle: lesson.title || '', number, subject: lesson.subject || '', topic: lesson.topic || '', about: norm(aboutText(lesson)), hint: lessonHint(lesson) };
+    const base = { level: lesson.level || '', module, lessonId: lesson.id, ...(lesson.phaseLabels && Object.values(lesson.phaseLabels).some((v) => typeof v === 'string' && v.trim()) ? { versions: true } : {}), lessonTitle: lesson.title || '', number, subject: lesson.subject || '', topic: lesson.topic || '', about: norm(aboutText(lesson)), hint: lessonHint(lesson) };
     let hasPhase = false;
     for (const phase of PHASES) {
       const summary = lesson.worksheetPhases?.[phase.id];
@@ -154,7 +154,9 @@ export function nextLessonSuggestion({ curriculum = [], lessonRecords = [], assi
   // card offered the next lesson and Harjuta / Kasuta of the same lesson had to be searched for)
   const current = roomKey ? assignments.filter((item) => item.liveRoomKey === roomKey && index.has(item.lessonId))
     .sort((a, b) => time(b.assignedAt) - time(a.assignedAt))[0] : null;
-  if (current) {
+  // a lesson whose sheets are versions of one lesson (phaseLabels: „Täiskasvanu” / „Laps”) is done with one of them
+  const versionsOf = (lessonId) => curriculum.some((choice) => choice.lessonId === lessonId && choice.versions);
+  if (current && !versionsOf(current.lessonId)) {
     const onBoard = onBoardOf(current.lessonId);
     const left = curriculum.filter((choice) => choice.lessonId === current.lessonId && !onBoard(choice));
     const lesson = order[index.get(current.lessonId)];
@@ -174,5 +176,6 @@ export function nextLessonSuggestion({ curriculum = [], lessonRecords = [], assi
   return {
     lessonId: next.lessonId, lessonTitle: next.lessonTitle, level: next.level, module: next.module, number: next.number,
     choices: curriculum.filter((choice) => choice.lessonId === next.lessonId && !onBoard(choice)),
+    ...(versionsOf(next.lessonId) ? { versions: true } : {}),
   };
 }

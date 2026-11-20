@@ -131,10 +131,11 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
     }
   };
   // „Järgmine tund”: all its sheets (Avasta, Harjuta, Kasuta) on the board with one click
-  const placeNext = async () => {
-    setOpening('next'); setError('');
+  // a lesson in versions („Täiskasvanu” / „Laps”): only the version the teacher picks goes on the board
+  const placeNext = async (only) => {
+    setOpening(only ? `next:${only.key}` : 'next'); setError('');
     try {
-      for (const choice of next.choices) await placeChoice({ choice, ...context });
+      for (const choice of only ? [only] : next.choices) await placeChoice({ choice, ...context });
       onOpened?.({ title: `${next.number ? `${next.number}. ` : ''}${next.lessonTitle}`, key: 'next' });
       setReload((value) => value + 1);
     } catch (err) {
@@ -161,7 +162,9 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
       {next?.choices.length && tab === 'curriculum' && !query ? (
         <div className="room-sheet-picker__next" role="group" aria-label={next.continuing ? 'Jätka tundi' : 'Järgmine tund'}>
           <span><small>{next.continuing ? 'Jätka tundi' : 'Järgmine tund'} · {[next.level, next.module].filter(Boolean).join(' · ')}</small><strong>{next.number ? `${next.number}. ` : ''}{next.lessonTitle}</strong><small>{next.choices.map((choice) => choice.phaseLabel || 'Tööleht').join(' · ')}</small></span>
-          <Button loading={opening === 'next'} disabled={Boolean(opening)} onClick={placeNext}>Pane tahvlile</Button>
+          {next.versions
+            ? next.choices.map((choice) => <Button key={choice.key} loading={opening === `next:${choice.key}`} disabled={Boolean(opening)} onClick={() => placeNext(choice)}>{choice.phaseLabel || 'Tööleht'}</Button>)
+            : <Button loading={opening === 'next'} disabled={Boolean(opening)} onClick={() => placeNext()}>Pane tahvlile</Button>}
         </div>
       ) : null}
       {error ? <div className="action-error" role="alert">{error}</div> : null}
