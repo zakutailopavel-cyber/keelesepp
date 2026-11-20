@@ -4,6 +4,7 @@
 // module says so.
 import { MODULES as A2_MODULES } from './courseModules.a2.js';
 import { MODULES as B1_MODULES } from './courseModules.b1.js';
+import { MODULES as B1EKSP_MODULES } from './courseModules.b1eksp.js';
 import { MODULES as B1NOOR_MODULES } from './courseModules.b1noor.js';
 import { MODULES as B2_MODULES } from './courseModules.b2.js';
 import { MODULES as C1_MODULES } from './courseModules.c1.js';
@@ -14,4 +15,4 @@ import { MODULES as EN_B2_MODULES } from './courseModules.enb2.js';
 export * from './courseSheet.js';
 
 // every course together: 11 MB of code. A page that shows one course uses courseLoaders.js instead.
-export const COURSE_MODULES = [...A2_MODULES, ...B1_MODULES, ...B1NOOR_MODULES, ...B2_MODULES, ...C1_MODULES, ...EK9_MODULES, ...EN_MODULES, ...EN_B2_MODULES];
+export const COURSE_MODULES = [...A2_MODULES, ...B1_MODULES, ...B1NOOR_MODULES, ...B1EKSP_MODULES, ...B2_MODULES, ...C1_MODULES, ...EK9_MODULES, ...EN_MODULES, ...EN_B2_MODULES];

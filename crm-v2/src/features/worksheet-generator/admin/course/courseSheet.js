@@ -26,6 +26,10 @@ export const COURSES = {
   // (docs/A2B1_COURSE_BLUEPRINT.md §8), lesson design v3 stations; a separate course next to „Eesti keel B1”, so the
   // learners of the current course keep their sheets. Staff see it in „Kursuse tootmine”; nobody is assigned to it.
   b1noor: { label: 'B1 noorkeele õppija · noored ja 9. klass', name: 'B1 noorkeele õppija', badge: 'KeeleSepp · B1 noorkeele õppija' },
+  // „B1 eksperimentaalkursus” (owner 2026-11-20): an experimental A2 → B1 course, a chain of neighbouring topics with one
+  // character (Markus); every lesson has two sheets — adult („Täiskasvanu”, phase discover) and school pupil („Laps”,
+  // phase practice). Staff see it in „Kursuse tootmine”; nobody is assigned to it automatically.
+  b1eksp: { label: 'B1 eksperimentaalkursus · täiskasvanud ja noored', name: 'B1 eksperimentaalkursus', badge: 'KeeleSepp · B1 eksperimentaalkursus' },
   b2: named('b2'),
   c1: named('c1'),
   // the course to the Harno C1 exam (docs/COURSE_FINAL_SHAPE_C1.md, docs/B2_C1_CURRICULUM.md); no modules yet
