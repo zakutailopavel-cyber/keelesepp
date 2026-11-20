@@ -1,3 +1,16 @@
+## 2026-11-20 · agent/room-continue-lesson — Live Classroom: „Jätka tundi” until all sheets of the lesson are on the board · live classroom UI only
+
+- Checked main: 72c9700 (2026-11-20, includes #1289 „Muudetud” on module rows, released).
+- Owner 2026-11-20: after putting Avasta on the board, the card „Järgmine tund” offered the next lesson (77) and Harjuta /
+  Kasuta of the same lesson had to be searched for.
+- Done: `nextLessonSuggestion` (worksheet-studio/roomWorksheetChoices.js) — a lesson begun on this board (latest assignment
+  with this `liveRoomKey`, i.e. this invitation) stays the suggestion, as „Jätka tundi”, with only the sheets not yet on the
+  board; once all are there, the card moves to the next lesson as before. Sheets from other rooms do not hold it.
+- Files: `roomWorksheetChoices.js`, `RoomWorksheetPanel.jsx` (label), `roomWorksheetChoices.test.js`.
+- Checks: `npx vitest run src/features/worksheet-studio src/features/live-classroom` 1006 passed (135 files).
+- Data: none. Deploy: hosting release only.
+- Next safe step: owner OK → merge and release.
+
 ## 2026-11-20 · agent/library-module-changed — Õppevara: mooduli muutmise kuupäev · library UI only
 
 - Checked main: 28159dc (2026-11-20). Owner 2026-11-20: „надо реально видеть когда менялся курс” — the date was shown only per lesson.

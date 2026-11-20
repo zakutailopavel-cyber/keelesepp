@@ -159,8 +159,8 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
         </div>
       ) : null}
       {next?.choices.length && tab === 'curriculum' && !query ? (
-        <div className="room-sheet-picker__next" role="group" aria-label="Järgmine tund">
-          <span><small>Järgmine tund · {[next.level, next.module].filter(Boolean).join(' · ')}</small><strong>{next.number ? `${next.number}. ` : ''}{next.lessonTitle}</strong><small>{next.choices.map((choice) => choice.phaseLabel || 'Tööleht').join(' · ')}</small></span>
+        <div className="room-sheet-picker__next" role="group" aria-label={next.continuing ? 'Jätka tundi' : 'Järgmine tund'}>
+          <span><small>{next.continuing ? 'Jätka tundi' : 'Järgmine tund'} · {[next.level, next.module].filter(Boolean).join(' · ')}</small><strong>{next.number ? `${next.number}. ` : ''}{next.lessonTitle}</strong><small>{next.choices.map((choice) => choice.phaseLabel || 'Tööleht').join(' · ')}</small></span>
           <Button loading={opening === 'next'} disabled={Boolean(opening)} onClick={placeNext}>Pane tahvlile</Button>
         </div>
       ) : null}
