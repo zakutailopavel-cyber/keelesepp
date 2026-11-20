@@ -143,6 +143,21 @@ export function nextLessonSuggestion({ curriculum = [], lessonRecords = [], assi
     // lessons) must not move the course forward (owner 2026-10-12: „5. Kontroll 1” suggested after lesson 1)
     ...assignments.filter((item) => item.liveRoomKey && index.has(item.lessonId)).map((item) => ({ id: item.lessonId, at: time(item.completedAt || item.assignedAt) })),
   ].sort((a, b) => b.at - a.at || index.get(b.id) - index.get(a.id));
+  // the sheets of a lesson often share a title, so a sheet on the board is known by its phase
+  const onBoardOf = (lessonId) => {
+    const placed = assignments.filter((item) => roomKey && item.liveRoomKey === roomKey && item.lessonId === lessonId);
+    return (choice) => placed.some((item) => (item.phase && choice.phase ? item.phase === choice.phase : item.title === choice.title));
+  };
+  // a lesson begun on this board stays the suggestion until all its sheets are there (owner 2026-11-20: after Avasta the
+  // card offered the next lesson and Harjuta / Kasuta of the same lesson had to be searched for)
+  const current = roomKey ? assignments.filter((item) => item.liveRoomKey === roomKey && index.has(item.lessonId))
+    .sort((a, b) => time(b.assignedAt) - time(a.assignedAt))[0] : null;
+  if (current) {
+    const onBoard = onBoardOf(current.lessonId);
+    const left = curriculum.filter((choice) => choice.lessonId === current.lessonId && !onBoard(choice));
+    const lesson = order[index.get(current.lessonId)];
+    if (left.length) return { lessonId: lesson.lessonId, lessonTitle: lesson.lessonTitle, level: lesson.level, module: lesson.module, number: lesson.number, choices: left, continuing: true };
+  }
   let next = null;
   if (seen.length) {
     const last = order[index.get(seen[0].id)];
@@ -153,9 +168,7 @@ export function nextLessonSuggestion({ curriculum = [], lessonRecords = [], assi
     next = order.find((choice) => !level || choice.level === level) || null;
   }
   if (!next) return null;
-  // the sheets of a lesson often share a title, so a sheet on the board is known by its phase
-  const placed = assignments.filter((item) => roomKey && item.liveRoomKey === roomKey && item.lessonId === next.lessonId);
-  const onBoard = (choice) => placed.some((item) => (item.phase && choice.phase ? item.phase === choice.phase : item.title === choice.title));
+  const onBoard = onBoardOf(next.lessonId);
   return {
     lessonId: next.lessonId, lessonTitle: next.lessonTitle, level: next.level, module: next.module, number: next.number,
     choices: curriculum.filter((choice) => choice.lessonId === next.lessonId && !onBoard(choice)),

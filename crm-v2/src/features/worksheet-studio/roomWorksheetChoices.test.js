@@ -60,6 +60,15 @@ describe('worksheets for the lesson board', () => {
     expect(onBoard.lessonId).toBe('b2');
     expect(onBoard.choices.map((choice) => choice.phase)).toEqual(['practice', 'transfer']);
     expect(nextLessonSuggestion({ curriculum: [] })).toBeNull();
+    // Avasta of b3 put on this board: the card keeps b3 with Harjuta and Kasuta, not the lesson after it
+    const begun = nextLessonSuggestion({ curriculum, lessonRecords: journal, roomKey: 'r2', assignments: [{ lessonId: 'b3', phase: 'discover', liveRoomKey: 'r2', assignedAt: '2026-10-07T10:00:00Z' }] });
+    expect(begun).toMatchObject({ lessonId: 'b3', continuing: true });
+    expect(begun.choices.map((choice) => choice.phase)).toEqual(['practice', 'transfer']);
+    // all three on the board: on to the lesson after it (b2 → b3)
+    const done = ['discover', 'practice', 'transfer'].map((phase) => ({ lessonId: 'b2', phase, liveRoomKey: 'r2', assignedAt: '2026-10-07T10:00:00Z' }));
+    expect(nextLessonSuggestion({ curriculum, lessonRecords: journal, roomKey: 'r2', assignments: done })).toMatchObject({ lessonId: 'b3' });
+    // a sheet from another room does not hold the card
+    expect(nextLessonSuggestion({ curriculum, lessonRecords: journal, roomKey: 'r9', assignments: [{ lessonId: 'b2', phase: 'discover', liveRoomKey: 'r2', assignedAt: '2026-10-07T10:00:00Z' }] }).lessonId).toBe('b3');
   });
   it('gives one row per lesson, finds lessons by what they are about, and groups them by module', () => {
     const phases = { discover: { title: 'Arutelu', publishedVersion: 1 }, practice: { title: 'Arutelu', publishedVersion: 1 }, transfer: { title: 'Arutelu', publishedVersion: 1 } };
