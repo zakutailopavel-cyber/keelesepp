@@ -19,7 +19,7 @@ vi.mock('firebase/firestore', () => firestore);
 vi.mock('firebase/storage', () => storageApi);
 vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db', storage: 'firebase-storage' }) }));
 
-import { libraryService } from './library.js';
+import { lessonSheetChoices, libraryService } from './library.js';
 
 describe('libraryService', () => {
   beforeEach(() => {
@@ -277,5 +277,16 @@ describe('libraryService', () => {
       user: { uid: 'teacher-1', roles: ['teacher'] },
     });
     expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ worksheetData: { blocks } });
+  });
+});
+
+describe('lessonSheetChoices', () => {
+  it('offers a lesson\'s published sheets under the course\'s own names (phaseLabels) or the default ones', () => {
+    const published = { status: 'published', publishedVersion: 1 };
+    const item = (source) => ({ kind: 'curriculum', source });
+    expect(lessonSheetChoices(item({ worksheetPhases: { practice: published, discover: published } })))
+      .toEqual([{ id: 'discover', label: 'Avasta' }, { id: 'practice', label: 'Harjuta' }]);
+    expect(lessonSheetChoices(item({ phaseLabels: { discover: 'Täiskasvanu', practice: 'Laps' }, worksheetPhases: { practice: published, discover: published } })))
+      .toEqual([{ id: 'discover', label: 'Täiskasvanu' }, { id: 'practice', label: 'Laps' }]);
   });
 });

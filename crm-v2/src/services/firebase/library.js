@@ -2,7 +2,7 @@ import { collection, doc, getDoc, getDocs, writeBatch } from 'firebase/firestore
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import './storageClient.js';
 import { requireFirebaseClient } from './client.js';
-import { isUnpublishedWorksheet } from '../../features/library/libraryModel.js';
+import { isUnpublishedWorksheet, lessonPhaseLabel } from '../../features/library/libraryModel.js';
 import { publishedPhaseDoc } from '../../features/worksheet-studio/bookProgram.js';
 
 export class WorksheetPublicationError extends Error {
@@ -24,7 +24,7 @@ const publishedSheetIds = (source = {}) => Object.entries(source.worksheetPhases
   .filter(([, phase]) => phase?.status === 'published' || phase?.publishedVersion).map(([id]) => id)
   .sort((a, b) => Object.keys(SHEET_LABEL).indexOf(a) - Object.keys(SHEET_LABEL).indexOf(b));
 export const lessonSheetChoices = (item) => (item?.kind === 'curriculum' && !item.phase && !item.source?.worksheetDoc?.blocks?.length
-  && !item.source?.publishedWorksheetDoc?.blocks?.length ? publishedSheetIds(item.source).map((id) => ({ id, label: SHEET_LABEL[id] || id })) : []);
+  && !item.source?.publishedWorksheetDoc?.blocks?.length ? publishedSheetIds(item.source).map((id) => ({ id, label: lessonPhaseLabel(item.source, id, SHEET_LABEL[id]) })) : []);
 
 function records(snapshot) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));

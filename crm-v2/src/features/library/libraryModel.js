@@ -47,9 +47,25 @@ export function isoDate(value) {
   return '';
 }
 
+// A course may name its own sheets on the lesson record (owner 2026-11-20, „B1 eksperimentaalkursus”: one lesson, two
+// sheets — `phaseLabels: { discover: 'Täiskasvanu', practice: 'Laps' }`). Then the lesson has only those sheets, under
+// those names; without phaseLabels it has the three core phases Avasta / Harjuta / Kasuta.
+export function lessonCorePhases(source) {
+  const own = source?.phaseLabels;
+  if (own && typeof own === 'object') {
+    const list = LESSON_PHASES.filter(({ id }) => typeof own[id] === 'string' && own[id].trim()).map(({ id }) => ({ id, label: own[id].trim() }));
+    if (list.length) return list;
+  }
+  return LESSON_PHASES;
+}
+
+// the name of one sheet of a lesson: the course's own name (phaseLabels) or the default one
+export const lessonPhaseLabel = (source, id, fallback = '') => lessonCorePhases(source).find((phase) => phase.id === id)?.label
+  || [...LESSON_PHASES, ...EXTRA_PHASES].find((phase) => phase.id === id)?.label || fallback || id;
+
 export function lessonPhases(source) {
   const summary = source?.worksheetPhases || {};
-  return [...LESSON_PHASES, ...EXTRA_PHASES.filter(({ id }) => summary[id])].map(({ id, label }) => {
+  return [...lessonCorePhases(source), ...EXTRA_PHASES.filter(({ id }) => summary[id])].map(({ id, label }) => {
     const extra = EXTRA_PHASES.some((phase) => phase.id === id);
     const entry = summary[id];
     if (!entry) return { id, label, state: 'none', title: '', version: 0, publishedVersion: 0, updatedAt: '', newerDraft: false };
@@ -82,11 +98,18 @@ export function matchesPhaseFilter(allPhases, filter) {
   return true;
 }
 
-// module heading: „Avasta 5/5 · Harjuta 0/5 · Kasuta 0/5” over the lessons that have the three phases
+// module heading: „Avasta 5/5 · Harjuta 0/5 · Kasuta 0/5” over the lessons that have the three phases; a course with its
+// own sheet names (phaseLabels) counts only its sheets: „Täiskasvanu 2/2 · Laps 1/2”
 export function modulePhaseProgress(items) {
   const lessons = items.filter((item) => item.withPhases);
   if (!lessons.length) return '';
-  return LESSON_PHASES.map(({ id, label }) => `${label} ${lessons.filter((item) => item.phases.find((phase) => phase.id === id)?.state === 'published').length}/${lessons.length}`).join(' · ');
+  const core = (item) => (item.phases || []).filter((phase) => !phase.extra);
+  return LESSON_PHASES.map(({ id }) => {
+    const having = lessons.filter((item) => core(item).some((phase) => phase.id === id));
+    if (!having.length) return '';
+    const label = core(having[0]).find((phase) => phase.id === id).label;
+    return `${label} ${having.filter((item) => core(item).find((phase) => phase.id === id).state === 'published').length}/${having.length}`;
+  }).filter(Boolean).join(' · ');
 }
 
 export function publishedWorksheetDoc(record) {

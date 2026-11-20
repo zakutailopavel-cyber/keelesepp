@@ -156,6 +156,9 @@ export function buildCourseSheet(mod, lessonId, phase) {
       goals: LESSON_GOALS[lessonId]?.goals || lesson.goals || GOALS,
       phase,
       displayLabel: (lesson.phases?.[phase] || mod.MODULE.phases?.[phase] || PHASES[phase]).label,
+      // a course that names its own sheets (MODULE.phaseLabels, owner 2026-11-20: „B1 eksperimentaalkursus” — discover =
+      // „Täiskasvanu”, practice = „Laps”): the name travels with the sheet into Õppevara, the room and the homework title
+      ...(mod.MODULE.phaseLabels?.[phase] ? { phaseLabel: mod.MODULE.phaseLabels[phase] } : {}),
       // modules written before the 40–55 min rule are marked until they are expanded (docs/B1_B2_COURSE_PRODUCTION.md)
       // a lesson may mark its own short sheets: `shortSheet: true` (every phase) or a list of phases — a spaced-review sheet
       // or a short use task of a supplement (a2/lihtminevik.js), 10–30 min by design

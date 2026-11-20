@@ -13,6 +13,20 @@ describe('worksheets for the lesson board', () => {
     expect(filterChoices(choices, { level: 'B1', query: 'kasuta' }).map((choice) => choice.title)).toEqual(['Kasuta 2']);
   });
 
+  it('names a sheet by the course\'s own label (phaseLabels) and keeps the default otherwise', () => {
+    const published = { publishedVersion: 1 };
+    const choices = curriculumSheetChoices([
+      { id: 'b1eksp-001', title: 'Markus bussis', level: 'B1 eksperimentaalkursus', roadmapLessonNumber: 1, phaseLabels: { discover: 'Täiskasvanu', practice: 'Laps' }, worksheetPhases: { discover: published, practice: published } },
+      { id: 'b1', title: 'Esimene', level: 'B1', roadmapLessonNumber: 1, worksheetPhases: { practice: published } },
+    ]);
+    expect(choices.map((choice) => [choice.lessonId, choice.phaseLabel, choice.title])).toEqual([
+      ['b1', 'Harjuta', 'Esimene — Harjuta'],
+      ['b1eksp-001', 'Täiskasvanu', 'Markus bussis — Täiskasvanu'],
+      ['b1eksp-001', 'Laps', 'Markus bussis — Laps'],
+    ]);
+    expect(filterChoices(choices, { query: 'laps' }).map((choice) => choice.key)).toEqual(['phase:b1eksp-001:practice']);
+  });
+
   it('orders a level by lesson number, not by the module title', () => {
     const phases = { discover: { publishedVersion: 1 } };
     const choices = curriculumSheetChoices([

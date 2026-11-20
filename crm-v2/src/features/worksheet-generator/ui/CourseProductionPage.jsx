@@ -15,6 +15,8 @@ import { keysProblems } from '../../worksheet-studio/didactics/gates.js';
 
 const StudioSheetPreview = lazyComponent(() => import('../../library/StudioSheetPreview.jsx'));
 const MISSING = 'Töölehte ei leitud.';
+// a sheet's name: the course's own (meta.phaseLabel, e.g. „Täiskasvanu” / „Laps”) or the phase's default
+const sheetLabel = (doc, phase) => doc?.meta?.phaseLabel || PHASES[phase]?.label || 'Õpik';
 
 // „Kursuse tootmine”: the B1 / B2 course sheets written in code (admin/course/*), checked by the quality gate, previewed
 // as they print and published lesson by lesson into Õppevara. A sheet that already exists is replaced only after an
@@ -84,7 +86,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
   const publishLesson = async (lessonId) => {
     const phases = Object.keys(sheets[lessonId]);
     const replacing = phases.filter((p) => records[`${lessonId}:${p}`]);
-    const text = `Avaldada ${lessonId}: ${phases.map((p) => PHASES[p].label).join(' + ')}?${replacing.length ? `\n\nNB! Olemasolev leht asendatakse uue versiooniga: ${replacing.map((p) => PHASES[p].label).join(', ')}.` : ''}`;
+    const text = `Avaldada ${lessonId}: ${phases.map((p) => sheetLabel(sheets[lessonId][p], p)).join(' + ')}?${replacing.length ? `\n\nNB! Olemasolev leht asendatakse uue versiooniga: ${replacing.map((p) => sheetLabel(sheets[lessonId][p], p)).join(', ')}.` : ''}`;
     if (!(await askConfirm(text, { confirmLabel: 'Avalda' }))) return;
     setBusy(lessonId); setError('');
     try {
@@ -92,7 +94,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
         const saved = await repository.publish({
           lessonId, worksheetId: phase, worksheetDoc: sheets[lessonId][phase], user,
           baseUpdatedAt: records[`${lessonId}:${phase}`]?.worksheetDocUpdatedAt || '',
-          role: phase, slot: PHASES[phase].slot, displayLabel: PHASES[phase].label, source: 'manual',
+          role: phase, slot: PHASES[phase].slot, displayLabel: sheetLabel(sheets[lessonId][phase], phase), source: 'manual',
         });
         setRecords((r) => ({ ...r, [`${lessonId}:${phase}`]: saved }));
       }
@@ -169,7 +171,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
               const score = analyzeWorksheet(doc).didactics.score;
               return (
                 <div key={phase} style={{ display: 'grid', gridTemplateColumns: '110px 1fr auto auto', gap: 12, alignItems: 'center', paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-                  <b>{PHASES[phase].label}</b>
+                  <b>{sheetLabel(doc, phase)}</b>
                   <span className="form-hint">{doc.blocks.length} plokki · {[...new Set(doc.blocks.map((b) => b.type))].join(', ')} · didaktika {score} · ≈ {sheetMinutes(doc)} min</span>
                   <span>{record ? `olemas v${record.worksheetDocVersion || 0}${record.publishedWorksheetDocVersion ? ' · avaldatud' : ''}` : 'uus'}</span>
                   <Button variant="secondary" onClick={() => setPreview({ lessonId, phase, doc })}>Vaata</Button>
@@ -185,7 +187,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
           </div>
         </Card>
       ))}
-      <Modal open={Boolean(preview)} title={preview ? `${preview.lessonId} · ${PHASES[preview.phase]?.label || 'Õpik'}` : ''} onClose={() => setPreview(null)} className="modal--editor">
+      <Modal open={Boolean(preview)} title={preview ? `${preview.lessonId} · ${sheetLabel(preview.doc, preview.phase)}` : ''} onClose={() => setPreview(null)} className="modal--editor">
         {preview ? <Suspense fallback={<LoadingState label="Laen eelvaadet…" />}><StudioSheetPreview doc={preview.doc} /></Suspense> : null}
       </Modal>
     </div>

@@ -118,6 +118,26 @@ describe('lesson phases', () => {
     expect(matchesPhaseFilter(phases, 'ready')).toBe(true);
     expect(matchesPhaseFilter(phases, 'drafts')).toBe(false);
   });
+  it('a course with its own sheet names (phaseLabels) lists only those sheets, under those names', async () => {
+    const { lessonPhases, lessonPhaseLabel, matchesPhaseFilter, modulePhaseProgress } = await import('./libraryModel.js');
+    const published = { status: 'published', version: 1, publishedVersion: 1 };
+    const phaseLabels = { discover: 'Täiskasvanu', practice: 'Laps' };
+    const own = lessonPhases({ phaseLabels, worksheetPhases: { discover: published } });
+    expect(own.map((phase) => [phase.id, phase.label, phase.state])).toEqual([['discover', 'Täiskasvanu', 'published'], ['practice', 'Laps', 'none']]);
+    // „Kasuta” is not a missing sheet of such a lesson
+    expect(matchesPhaseFilter(lessonPhases({ phaseLabels, worksheetPhases: { discover: published, practice: published } }), 'ready')).toBe(true);
+    expect(lessonPhaseLabel({ phaseLabels }, 'practice')).toBe('Laps');
+    expect(lessonPhaseLabel({}, 'practice')).toBe('Harjuta');
+    expect(lessonPhaseLabel({ phaseLabels }, 'opik')).toBe('Õpik');
+    // an empty or foreign phaseLabels keeps the three core phases
+    expect(lessonPhases({ phaseLabels: {} }).map((phase) => phase.label)).toEqual(['Avasta', 'Harjuta', 'Kasuta']);
+    expect(lessonPhases({ phaseLabels: { other: 'X' } }).map((phase) => phase.label)).toEqual(['Avasta', 'Harjuta', 'Kasuta']);
+    const item = (source) => ({ withPhases: true, phases: lessonPhases(source) });
+    expect(modulePhaseProgress([item({ phaseLabels, worksheetPhases: { discover: published, practice: published } }), item({ phaseLabels, worksheetPhases: { discover: published } })]))
+      .toBe('Täiskasvanu 2/2 · Laps 1/2');
+    // the default heading is unchanged
+    expect(modulePhaseProgress([item({ worksheetPhases: { discover: published } }), item({})])).toBe('Avasta 1/2 · Harjuta 0/2 · Kasuta 0/2');
+  });
   it('shows the newest date even when the lesson keeps updatedAt as a Firestore Timestamp', async () => {
     const { isoDate } = await import('./libraryModel.js');
     expect(isoDate({ toDate: () => new Date('2026-09-14T10:00:00Z') })).toBe('2026-09-14T10:00:00.000Z');

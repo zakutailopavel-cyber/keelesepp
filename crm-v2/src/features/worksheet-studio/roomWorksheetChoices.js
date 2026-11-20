@@ -1,4 +1,4 @@
-import { publishedWorksheetDoc } from '../library/libraryModel.js';
+import { lessonPhaseLabel, publishedWorksheetDoc } from '../library/libraryModel.js';
 import { displayDate } from '../finance/finance.js';
 
 // What a teacher can put on the lesson board as a clickable worksheet: the student's own open worksheets (homework
@@ -55,8 +55,10 @@ export function curriculumSheetChoices(lessons = []) {
       const summary = lesson.worksheetPhases?.[phase.id];
       if (!(Number(summary?.publishedVersion) > 0)) continue;
       hasPhase = true;
-      const title = summary.title || `${lesson.title} — ${phase.label}`;
-      choices.push({ ...base, key: `phase:${lesson.id}:${phase.id}`, kind: 'phase', phase: phase.id, phaseLabel: phase.label, title, detail: `${number ? `${number}. ` : ''}${lesson.title} · ${phase.label}`, search: norm(`${title} ${lesson.title} ${module} ${lesson.level} ${phase.label}`) });
+      // a course may name its sheets (phaseLabels: „Täiskasvanu” / „Laps”)
+      const label = lessonPhaseLabel(lesson, phase.id, phase.label);
+      const title = summary.title || `${lesson.title} — ${label}`;
+      choices.push({ ...base, key: `phase:${lesson.id}:${phase.id}`, kind: 'phase', phase: phase.id, phaseLabel: label, title, detail: `${number ? `${number}. ` : ''}${lesson.title} · ${label}`, search: norm(`${title} ${lesson.title} ${module} ${lesson.level} ${label}`) });
     }
     const legacy = publishedWorksheetDoc(lesson);
     if (!hasPhase && legacy?.blocks?.length) {
