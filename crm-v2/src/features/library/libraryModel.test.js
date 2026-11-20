@@ -4,6 +4,8 @@ import {
   moduleFacets,
   searchLibrary,
   sectionsByModule,
+  sectionsByRecentModule,
+  moduleChange,
   sortLibrary,
   curriculumType,
   filterLibraryItems,
@@ -133,5 +135,19 @@ describe('subjects', () => {
     expect(['Eelkool 5–6 a', 'Kooliks valmis 6–7 a', '2.–3. klass 8–9 a'].map(subjectOfLevel)).toEqual(['kids', 'kids', 'kids']);
     expect(['5. klass matemaatika', '10. klass matemaatika lai', 'English 5. klass', '5. klass emakeel'].map(subjectOfLevel)).toEqual(['ma', 'ma', 'en', 'ek']);
     expect(subjectFacets([{ level: 'A2' }, { level: 'B2' }, { level: 'English B1' }]).map((f) => [f.key, f.count])).toEqual([['et', 2], ['en', 1]]);
+  });
+});
+
+describe('module change date', () => {
+  const lesson = (n, moduleKey, updatedAt) => ({ item: { lessonNumber: n, title: `T${n}`, moduleKey, level: 'B1', kind: 'curriculum', updatedAt } });
+  it('shows the newest change of a module and the lessons changed that day', () => {
+    const results = [lesson(26, 'm6', '2026-11-04T10:00:00Z'), lesson(27, 'm6', '2026-11-19T09:00:00Z'), lesson(28, 'm6', '2026-11-19T11:00:00Z'), lesson(29, 'm6', '')];
+    expect(moduleChange(results)).toEqual({ at: '2026-11-19T11:00:00Z', day: '2026-11-19', lessons: ['27. T27', '28. T28'] });
+    expect(moduleChange([lesson(1, 'm1', '')]).day).toBe('');
+  });
+  it('„Viimati muudetud” keeps a module in one section, the latest changed module first', () => {
+    const results = [lesson(51, 'm11', '2026-11-19T09:00:00Z'), lesson(26, 'm6', '2026-11-18T09:00:00Z'), lesson(52, 'm11', '2026-11-04T09:00:00Z')];
+    const sections = sectionsByRecentModule(results);
+    expect(sections.map((s) => [s.key, s.results.length])).toEqual([['m11', 2], ['m6', 1]]);
   });
 });

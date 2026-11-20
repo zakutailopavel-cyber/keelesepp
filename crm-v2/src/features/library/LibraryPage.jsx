@@ -24,7 +24,9 @@ import {
   levelFacets,
   moduleFacets,
   searchLibrary,
+  moduleChange,
   sectionsByModule,
+  sectionsByRecentModule,
   sortLibrary,
   typeFacets,
   subjectFacets,
@@ -187,6 +189,16 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
       </div>
     </Modal>
   );
+}
+
+// „Muudetud 19.11.2026” on the module row; the tooltip names the lessons changed that day
+function ModuleChanged({ results }) {
+  const change = moduleChange(results);
+  if (!change.day) return null;
+  const shown = change.lessons.slice(0, 12);
+  const more = change.lessons.length - shown.length;
+  const title = `${shortDate(change.day)} muudeti: ${shown.join('; ')}${more > 0 ? ` ja veel ${more}` : ''}`;
+  return <time className="lib2-module-changed" dateTime={change.at} title={title}>Muudetud {shortDate(change.day)}</time>;
 }
 
 export default function LibraryPage({ repository = defaultRepository, studentRepository = defaultStudentRepository, groupRepository = defaultGroupRepository, curriculumInstaller = defaultCurriculumInstaller, worksheetRepository = lessonWorksheetsService }) {
@@ -389,7 +401,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     : `/library/worksheets/${encodeURIComponent(item.sourceId)}`);
   const openPhase = (item, phaseId) => navigate(`/library/lessons/${encodeURIComponent(item.sourceId)}/worksheets/${phaseId}`);
   const shown = results.slice(0, limit);
-  const sections = sort === 'toc' ? sectionsByModule(shown) : [{ key: 'all', label: '', results: shown }];
+  const sections = sort === 'toc' ? sectionsByModule(shown) : sort === 'recent' ? sectionsByRecentModule(shown) : [{ key: 'all', label: '', results: shown }];
   const filtersOn = Boolean(q || module || module || type || onlyFav || onlyMine || phaseFilter);
   // „Grammatika” first in a level (owner 2026-10-21): the level's grammar topics with their lessons and Õpik sheets
   const grammar = level && !q && !module && !onlyFav && !onlyMine && !phaseFilter ? grammarTopics(level, items) : [];
@@ -543,7 +555,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
           ) : null}
           {results.length ? sections.map((section) => (
             <div className="lib2-section" key={section.key}>
-              {section.label ? <h3>{section.level ? <span>{section.level}</span> : null}{section.label}<small>{section.results.length}</small>{moduleProgress.get(section.key) ? <em className="lib2-module-progress">{moduleProgress.get(section.key)}</em> : null}{isAdmin && moduleProgress.get(section.key) ? <button type="button" className="lib2-module-drafts" disabled={Boolean(moduleDrafts.key)} onClick={() => prepareModuleSheets(section)} title="Loob puuduvad lehed, lisab tunni pildid ja avaldab kvaliteedikontrolli läbinud lehed">{moduleDrafts.key === section.key ? moduleDrafts.text || 'Töötan…' : 'Valmista moodul ette'}</button> : null}</h3> : null}
+              {section.label ? <h3>{section.level ? <span>{section.level}</span> : null}{section.label}<small>{section.results.length}</small>{moduleProgress.get(section.key) ? <em className="lib2-module-progress">{moduleProgress.get(section.key)}</em> : null}<ModuleChanged results={section.results} />{isAdmin && moduleProgress.get(section.key) ? <button type="button" className="lib2-module-drafts" disabled={Boolean(moduleDrafts.key)} onClick={() => prepareModuleSheets(section)} title="Loob puuduvad lehed, lisab tunni pildid ja avaldab kvaliteedikontrolli läbinud lehed">{moduleDrafts.key === section.key ? moduleDrafts.text || 'Töötan…' : 'Valmista moodul ette'}</button> : null}</h3> : null}
               <ul className="lib2-list">{section.results.map(row)}</ul>
             </div>
           )) : <Card><EmptyState title="Midagi ei leitud" description={onlyFav ? 'Lemmikuid pole veel — märgi materjal tärniga.' : 'Proovi teist sõna või tühjenda filtrid.'} /></Card>}
