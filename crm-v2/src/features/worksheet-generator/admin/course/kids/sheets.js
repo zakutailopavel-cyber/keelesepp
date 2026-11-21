@@ -56,14 +56,15 @@ const coloring = (id, [picture, colors], { free = false, title, instruction } = 
 const tracing = (id, rows, title = 'Kirjuta järele.') => block(id, 'tracing', 'white', 'g_notice', {
   title, instruction: 'Vaata esimest. Kirjuta punktiirjoonel järele ja siis ise rea lõpuni.', rows: rows.map(([text, repeat]) => ({ text, repeat })),
 });
-const counting = (id, items) => block(id, 'counting', 'cream', 'g_vocab', {
-  title: 'Loenda ja kirjuta.', instruction: 'Mitu on? Kirjuta number või ütle eesti keeles.', items: items.map(([icon, count]) => ({ icon, count })),
+const counting = (id, items, instruction = 'Mitu on? Kirjuta number või ütle eesti keeles.') => block(id, 'counting', 'cream', 'g_vocab', {
+  title: 'Loenda ja kirjuta.', instruction, items: items.map(([icon, count]) => ({ icon, count })),
 });
 const letterhunt = (id, target, grid) => block(id, 'letterhunt', 'sky', 'g_notice', {
   title: `Leia täht ${target}.`, instruction: `Tee ring ümber iga tähe ${target} ja ${target.toLowerCase()}.`, target, caseSensitive: 'no', grid,
 }, 'full');
+// the Kriksu lessons (non-readers, owner 2026-11-22 review): the child points, the teacher or parent writes the letter
 const picmatch = (id, lesson) => block(id, 'picmatch', 'cream', 'g_vocab', {
-  title: 'Ühenda sõna ja pilt.', instruction: 'Õpetaja või vanem loeb sõna. Kirjuta sõna kõrvale pildi täht.', columns: '4', aspect: '1:1',
+  title: 'Ühenda sõna ja pilt.', instruction: lesson.comic ? 'Õpetaja ütleb sõna — näita õiget pilti. Õpetaja või vanem kirjutab tähe.' : 'Õpetaja või vanem loeb sõna. Kirjuta sõna kõrvale pildi täht.', columns: '4', aspect: '1:1',
   items: pictured(lesson).map(([word, pic]) => ({ img: art(pic), word })),
 });
 const certificate = (id, program) => B.text(id, 'TUNNISTUS', [
@@ -89,14 +90,15 @@ const bodyLabels = (id) => block(id, 'scenelabel', 'sky', 'g_vocab', {
 function youngLesson(program, lesson, index) {
   const id = lessonIdOf(program, index).replace(/-/g, '_');
   const reader = program.id === 'k67';
-  const task = lesson.task?.type === 'letterhunt' ? letterhunt(`${id}_p_task`, lesson.task.target, lesson.task.grid) : counting(`${id}_p_task`, lesson.task?.items || [['⭐', 3]]);
+  const fingers = lesson.comic ? 'Mitu on? Näita sõrmedega ja ütle eesti keeles.' : undefined;
+  const task = lesson.task?.type === 'letterhunt' ? letterhunt(`${id}_p_task`, lesson.task.target, lesson.task.grid) : counting(`${id}_p_task`, lesson.task?.items || [['⭐', 3]], fingers);
   const discover = [
     // the mascot Kriksu for the little ones too (owner 2026-11-21): the teacher reads, the child answers in the last bubble
     ...(lesson.comic ? [block(`${id}_d_comic`, 'comic', 'white', 'g_read', { title: lesson.comic[0], instruction: lesson.comic[1], panels: lesson.comic[2].map((panel) => panel.join(' | ')).join('\n') })] : []),
     B.text(`${id}_d_chant`, 'Laul ja luuletus', lesson.chant.join('\n\n')),
     B.vocab(`${id}_d_words`, 'Tunni sõnad', words(lesson), '3'),
     ...(pictured(lesson).length >= 3 ? [picmatch(`${id}_d_pics`, lesson)] : []),
-    ...(lesson.intro ? [counting(`${id}_d_count`, lesson.intro)] : []),
+    ...(lesson.intro ? [counting(`${id}_d_count`, lesson.intro, lesson.comic ? 'Mitu on? Loeme koos ja näitame sõrmedega.' : undefined)] : []),
     ...(lesson.scene ? [bodyLabels(`${id}_d_body`)] : []),
     ...(lesson.story ? [B.text(`${id}_d_story`, 'Kuula ja vaata: muinasjutt', lesson.story)] : []),
     ...(reader && lesson.read?.length ? [block(`${id}_d_read`, 'readcard', 'cream', 'g_read', { title: 'Loe valjusti.', instruction: 'Loe rida haaval. Näita sõrmega, mida loed.', lines: lesson.read.join('\n') })] : []),
@@ -111,7 +113,7 @@ function youngLesson(program, lesson, index) {
   const last = lesson.trace[lesson.trace.length - 1];
   const transfer = [
     parentsNote(`${id}_t_parents`, lesson),
-    coloring(`${id}_t_color`, [lesson.color2 || lesson.color[0], []], { free: true }),
+    coloring(`${id}_t_color`, [lesson.color2 || lesson.color[0], []], { free: true, ...(lesson.comic ? { instruction: 'Värvi pilt ilusaks ja ütle eesti keeles, kes või mis see on.' } : {}) }),
     tracing(`${id}_t_trace`, [[last[0], Math.min(6, last[1] + 2)]], 'Kirjuta kodus järele.'),
     ...(reader && lesson.phrases?.length ? [B.wordorder(`${id}_t_order`, 'Pane sõnad järjekorda.', 'Loe sõnad ja pane lause kokku.', lesson.phrases.filter((p) => p.split(' ').length >= 3).slice(0, 3).map((p) => p.replace(/[„”]/g, '')), 'full', 'g_use')] : []),
     ...(lesson.celebration ? [certificate(`${id}_t_cert`, program)] : []),
@@ -290,7 +292,7 @@ function clubLesson(program, lesson, index) {
     B.vocab(`${id}_p_words2`, 'Raskemad sõnad · слова посложнее', lesson.words2.map(([word, ru]) => `${word} — ${ru.replace(/\s*,\s*/g, ' / ')}`).join('\n'), '2'),
     B.notice(`${id}_p_focus`, `Räägime nii: ${lesson.focus}`, lesson.phrases.map(([q, a]) => `**${q}** — ${a}`), 'full', 'g_notice'),
     // teacher 2026-11-16: building a sentence was hard at first — sentence frames with sest / aga / siis, said in pairs
-    B.notice(`${id}_p_frames`, 'Lauseehitaja: räägi pikemalt', [...lesson.frames.map((x) => `**${x}**`), 'Paarilisega: ütle iga mudeliga üks lause endast. Paariline kordab ja ütleb oma lause.'], 'full', 'g_use'),
+    B.notice(`${id}_p_frames`, 'Lauseehitaja: räägi pikemalt', [...lesson.frames.map((x) => `**${x}**`), lesson.story ? 'Paarilisega: ütle iga mudeliga üks lause. Paariline kordab ja ütleb oma lause.' : 'Paarilisega: ütle iga mudeliga üks lause endast. Paariline kordab ja ütleb oma lause.'], 'full', 'g_use'),
     B.dialogue(`${id}_p_dialogue`, 'Loe dialoogi paarilisega ja kirjuta puuduvad sõnad.', 'Loe kõigepealt koos õpetajaga. Siis loe rollides: A ja B. Lõpuks räägi sama oma andmetega.', 'A', 'B', lesson.dialogue, 'g_use'),
     B.gaps(`${id}_p_gaps`, 'Kirjuta lünka sobiv sõna.', 'Vali sõna kastist. Loe lause valjusti.', lesson.gaps, gapsBank, 'full', 'g_notice'),
     B.table(`${id}_p_pair`, `Paaristöö: ${pairTitle}`, 'Võta lehelt 1 kaart A või B. Ära näita kaarti! Küsi paariliselt ja kirjuta vastused. Siis vahetage: nüüd küsib tema.', 'Minu küsimus, Paarilise vastus', ['1. | ', '2. | ', '3. | ', '4. | '], 'g_use'),
