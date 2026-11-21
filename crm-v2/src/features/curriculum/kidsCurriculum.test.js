@@ -37,12 +37,12 @@ describe('children’s courses in Õppevara', () => {
 
 describe('speaking club variety (owner 2026-11-21: „давай разбавим”)', () => {
   const club = kidsCurriculumRecords().filter((r) => r.id.startsWith('k11-'));
-  it('every meeting has two movement breaks, a „Leia keegi” format, the passport and the crossword at home', () => {
+  it('every meeting has two movement breaks, a „Leia keegi” format, no stickers and the crossword at home', () => {
     for (const r of club) {
       expect(r.description.match(/Разминка-движение \(3 мин\)/g)?.length, r.id).toBe(2);
       expect(r.description, r.id).toMatch(/— сегодня (подписи|бинго|репортёр|наперегонки)/);
-      expect(r.description, r.id).toMatch(/Паспорт клуба/);
-      expect(r.description, r.id).toMatch(/Кроссворд .* дома/);
+      expect(r.description, r.id).not.toMatch(/наклейк|Паспорт клуба/); // owner 2026-11-22: no stickers for 9–11
+      expect(r.description, r.id).toMatch(/Кроссворд.* дома/);
     }
   });
   it('neighbouring meetings differ: other breaks, other „Leia keegi” format, other start of lesson 1', () => {
@@ -60,5 +60,32 @@ describe('speaking club variety (owner 2026-11-21: „давай разбави�
     expect(byId['k11-002']).toMatch(/Рассказ в парах/);
     expect(byId['k11-010']).toMatch(/Рассказ в тройках/);
     expect(byId['k11-018']).toMatch(/Минута рассказа \(8 мин\)/);
+  });
+});
+
+describe('preschool module 1 with Kriksu (owner 2026-11-22)', () => {
+  const young = kidsCurriculumRecords().filter((r) => /^k56-00[1-4]$/.test(r.id));
+  it('lessons 1–4: comic, board game, stickers, 45 minutes; from lesson 2 a review of the last lesson', () => {
+    for (const r of young) {
+      expect(r.description, r.id).toMatch(/Kriksu \(4 мин\)/);
+      expect(r.description, r.id).toMatch(/Lauamäng/);
+      expect(r.description, r.id).toMatch(/наклейка в карточку Kriksu/);
+      const minutes = [...r.description.matchAll(/^\d+\. [^(]*\((\d+) мин\)/gm)].reduce((sum, m) => sum + Number(m[1]), 0);
+      expect(minutes, r.id).toBe(45);
+      if (r.id !== 'k56-001') expect(r.description, r.id).toMatch(/Повторение с Kriksu/);
+    }
+  });
+});
+
+describe('speaking club module 1: every lesson is exactly 45 minutes (review 2026-11-22)', () => {
+  const club = kidsCurriculumRecords().filter((r) => /^k11-00[1-4]$/.test(r.id));
+  it('lesson 1 and lesson 2 add up to 45', () => {
+    for (const r of club) {
+      for (const part of ['УРОК 1 (45 мин):', 'УРОК 2 (45 мин):']) {
+        const body = r.description.split(part)[1].split('\n\n')[0];
+        const minutes = [...body.matchAll(/^\d+\. [^\n]*?\((\d+) мин/gm)].reduce((sum, m) => sum + Number(m[1]), 0);
+        expect(minutes, `${r.id} ${part}`).toBe(45);
+      }
+    }
   });
 });

@@ -22,6 +22,18 @@
 
 
 
+
+## 2026-11-22 — Lasterühmad: moodul 1 üle vaadatud (agent/kids-module1)
+
+- main: 29ce446. Haru `agent/kids-module1`. Omanik: „9–11 kleebiseid ei vaja, need on eelkoolile; tee 9–11 esimene moodul
+  ja väikestele esimene moodul, maksimaalselt tõhus plaan, kontrolli iga tund üle”.
+- Vestlusklubi (k11): pass ja kleebised plaanist välja; moodul 1 kahe ülevaatuse järgi parandatud (minutid = 45 igas
+  tunnis, test; nimed Kevin/Eva; „Leia keegi” 6 lapsele; mudellaused; paarisjutt ~1 min; M2 +2 loomakaarti; M3/M4 ajad).
+- Eelkool 5–6 (k56-001…004): Kriksu koomiks + lauamäng igas tunnis, kordamine eelmisest tunnist, küsimus tunni järgi
+  (`lesson.ask`), mitte-lugejatele sobivad juhised, salmid parandatud, Kriksu kleebisekaart (`printimiseks/Kriksu-kleebised.pdf`).
+- Kontroll: vitest curriculum + worksheet-generator + worksheet-studio läbi; kaks sõltumatut ülevaatust (2 ringi).
+- Production pärast release'i: k11-001…004 ja k56-001…004 lehed + kirjeldused (vanad versioonid alles).
+
 ## 2026-11-21 — Vestlusklubi: vaheldusrikkam plaan (agent/club-variety)
 
 - main: 7df490f. Haru `agent/club-variety`, draft-PR. Omanik: „проверь что курс максимально активный” → „давай разбавим”.
