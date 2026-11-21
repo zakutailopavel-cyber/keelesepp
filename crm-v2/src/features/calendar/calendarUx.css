@@ -170,4 +170,8 @@
 .student-combobox__options button:hover, .student-combobox__options button.is-active { background: #eef7f4;background:light-dark(#eef7f4,#12201c); }
 .student-combobox__options strong { color: var(--ink); font-size: .84rem; }
 .student-combobox__options small { color: var(--muted); font-size: .72rem; }
+.student-combobox__new { display: grid; gap: 2px; width: 100%; padding: 10px 12px; border: 0; border-top: 1px solid var(--line, #e5e7eb); background: transparent; text-align: left; cursor: pointer; }
+.student-combobox__new strong { display: inline-flex; align-items: center; gap: 6px; color: var(--accent, #2563eb); }
+.student-combobox__new small { color: var(--muted); font-size: .75rem; }
+.student-combobox__new:hover { background: var(--surface-2, #f5f7fa); }
 .student-combobox__empty { padding: 14px 12px; color: var(--muted); font-size: .8rem; text-align: center; }
