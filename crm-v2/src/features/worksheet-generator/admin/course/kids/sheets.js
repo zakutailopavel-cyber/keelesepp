@@ -56,8 +56,8 @@ const coloring = (id, [picture, colors], { free = false, title, instruction } = 
 const tracing = (id, rows, title = 'Kirjuta järele.') => block(id, 'tracing', 'white', 'g_notice', {
   title, instruction: 'Vaata esimest. Kirjuta punktiirjoonel järele ja siis ise rea lõpuni.', rows: rows.map(([text, repeat]) => ({ text, repeat })),
 });
-const counting = (id, items, instruction = 'Mitu on? Kirjuta number või ütle eesti keeles.') => block(id, 'counting', 'cream', 'g_vocab', {
-  title: 'Loenda ja kirjuta.', instruction, items: items.map(([icon, count]) => ({ icon, count })),
+const counting = (id, items, instruction) => block(id, 'counting', 'cream', 'g_vocab', {
+  title: instruction ? 'Loenda ja näita.' : 'Loenda ja kirjuta.', instruction: instruction || 'Mitu on? Kirjuta number või ütle eesti keeles.', items: items.map(([icon, count]) => ({ icon, count })),
 });
 const letterhunt = (id, target, grid) => block(id, 'letterhunt', 'sky', 'g_notice', {
   title: `Leia täht ${target}.`, instruction: `Tee ring ümber iga tähe ${target} ja ${target.toLowerCase()}.`, target, caseSensitive: 'no', grid,
@@ -295,7 +295,7 @@ function clubLesson(program, lesson, index) {
     B.notice(`${id}_p_frames`, 'Lauseehitaja: räägi pikemalt', [...lesson.frames.map((x) => `**${x}**`), lesson.story ? 'Paarilisega: ütle iga mudeliga üks lause. Paariline kordab ja ütleb oma lause.' : 'Paarilisega: ütle iga mudeliga üks lause endast. Paariline kordab ja ütleb oma lause.'], 'full', 'g_use'),
     B.dialogue(`${id}_p_dialogue`, 'Loe dialoogi paarilisega ja kirjuta puuduvad sõnad.', 'Loe kõigepealt koos õpetajaga. Siis loe rollides: A ja B. Lõpuks räägi sama oma andmetega.', 'A', 'B', lesson.dialogue, 'g_use'),
     B.gaps(`${id}_p_gaps`, 'Kirjuta lünka sobiv sõna.', 'Vali sõna kastist. Loe lause valjusti.', lesson.gaps, gapsBank, 'full', 'g_notice'),
-    B.table(`${id}_p_pair`, `Paaristöö: ${pairTitle}`, 'Võta lehelt 1 kaart A või B. Ära näita kaarti! Küsi paariliselt ja kirjuta vastused. Siis vahetage: nüüd küsib tema.', 'Minu küsimus, Paarilise vastus', ['1. | ', '2. | ', '3. | ', '4. | '], 'g_use'),
+    B.table(`${id}_p_pair`, `Paaristöö: ${pairTitle}`, lesson.pairSheet || 'Võta lehelt 1 kaart A või B. Ära näita kaarti! Küsi paariliselt ja kirjuta vastused. Siis vahetage: nüüd küsib tema.', 'Minu küsimus, Paarilise vastus', ['1. | ', '2. | ', '3. | ', '4. | '], 'g_use'),
   ];
   const transfer = [
     open.blocks.transfer,
@@ -310,7 +310,7 @@ function clubLesson(program, lesson, index) {
       : [B.wordorder(`${id}_t_order`, 'Pane sõnad järjekorda.', 'Kirjuta lause õiges järjekorras ja loe see valjusti.', lesson.order, 'full', 'g_notice')]),
     B.planning(`${id}_t_plan`, 'Valmista ette oma minut.', 'Lõpeta iga lause paari sõnaga. Need on sinu märksõnad rääkimiseks.', lesson.plan, 1),
     // the plan is right above: the talk keeps a short checklist instead of repeating it
-    B.speaking(`${id}_t_talk`, 'Räägi umbes üks minut.', lesson.talk, ['Räägin tervete lausetega.', 'Vaatan oma plaani, aga ei loe seda ette.', 'Vastan ühele kuulaja küsimusele.'], [45, 75]),
+    B.speaking(`${id}_t_talk`, 'Räägi umbes üks minut.', lesson.talk, ['Räägin tervete lausetega.', 'Vaatan oma plaani, aga ei loe seda ette.', /kahele küsimusele/.test(lesson.talk) ? 'Vastan kahele kuulaja küsimusele.' : 'Vastan ühele kuulaja küsimusele.'], [45, 75]),
     // „Ma oskan” and the parents' note side by side: sheet 3 stays on two pages
     half(B.selfcheck(`${id}_t_self`, lesson.self, 'Tubli töö!', 'Ma oskan')),
     half(parentsNote(`${id}_t_parents`, { ...lesson, words: lesson.words.map(([w]) => w), phrases: lesson.phrases.slice(0, 2).map(([q, a]) => `${q} — ${a}`) })),

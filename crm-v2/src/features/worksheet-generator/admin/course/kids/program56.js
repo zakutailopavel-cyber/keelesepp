@@ -10,7 +10,7 @@ export const PROGRAM_56 = {
     {
       title: 'Tere! Mina olen …', ru: 'Привет! Я …',
       ask: '«Kes see on?» — «See on poiss / tüdruk / ema / isa.»; tere и head aega — с жестом (машем), mina — показываем на себя',
-      comic: ["Kriksu ütleb tere.", "Õpetaja loeb. Viimases pildis räägid sina: ütle Kriksule „Tere! Mina olen …”. Joonista ennast või kirjuta oma nimi.", [["kriksu-wave", "Kriksu", "Tere! Mina olen Kriksu."], ["girl", "Mia", "Tere, Kriksu! Mina olen Mia."], ["kriksu-think", "Kriksu", "Kes sina oled?"], ["child", "Sina", ""]]],
+      comic: ["Kriksu ütleb tere.", "Õpetaja loeb. Viimases pildis räägid sina: ütle Kriksule „Tere! Mina olen …”. Joonista ennast.", [["kriksu-wave", "Kriksu", "Tere! Mina olen Kriksu."], ["girl", "Mia", "Tere, Kriksu! Mina olen Mia."], ["kriksu-think", "Kriksu", "Kes sina oled?"], ["child", "Sina", ""]]],
       board: ["Tere-mäng.", ["Ütle: „Tere!”", "Hüppa 2 korda!", "Ütle: „Mina olen …”", "Kriksu leidis palli! Mine 2 ruutu edasi.", "Näita kaardil: kes on poiss?", "Lehvita ja ütle: „Head aega!”", "Ütle naabrile: „Tere!”", "Kriksu jäi magama. Jää üks kord vahele.", "Näita kaardil: kes on tüdruk?", "Küsi naabrilt: „Kes sina oled?”", "Plaksuta 3 korda!", "Ütle: „ema” ja „isa”.", "Kriksu ütleb: „Tubli!” Mine 1 ruut edasi."]],
       can: 'Laps tervitab, ütleb oma nime ja jätab hüvasti.',
       words: [['tere', ''], ['head aega', ''], ['mina', ''], ['poiss', 'boy'], ['tüdruk', 'girl'], ['ema', 'mother'], ['isa', 'father']],
@@ -65,7 +65,7 @@ export const PROGRAM_56 = {
       words: [['ema', 'mother'], ['isa', 'father'], ['vend', ''], ['õde', ''], ['vanaema', 'grandmother'], ['vanaisa', 'grandfather'], ['beebi', 'baby']],
       phrases: ['See on minu ema.', 'Mul on vend.', 'Kes see on?'],
       chant: ['Ema, isa, vend ja õde,', 'vanaema, vanaisa ka.', 'See on minu pere,', 'kõik on minuga koos!'],
-      game: '«Семейный альбом»: дети показывают фото семьи (если принесли) или за 3 минуты рисуют семью на листке и говорят «See on minu …». Учитель спрашивает «Kes see on?», остальные хором повторяют ответ.',
+      game: '«Семейный альбом»: дети показывают фото семьи (если принесли) или свой рисунок семьи из облачка комикса (лист 1) и говорят «See on minu …». Учитель спрашивает «Kes see on?», остальные хором повторяют ответ.',
       move: '«Пальчиковая семья»: каждый палец — член семьи; говорим и сгибаем пальцы: «See on ema, see on isa, see on vend, see on õde, see on beebi.»',
       color: ['mother', ['punane', 'pruun', '']], color2: 'grandfather',
       trace: [['E', 6], ['e', 6], ['ema', 3], ['isa', 3]],

@@ -21,7 +21,7 @@ export const MODULE_1 = {
         ['tutvuma', 'знакомиться'], ['sünnipäev', 'день рождения'], ['emakeel', 'родной язык'], ['oskama', 'уметь'],
         ['trenn', 'тренировка'], ['huvitav', 'интересный'], ['kolima', 'переезжать'], ['linnaosa', 'район города'],
       ],
-      frames: ['Minu emakeel on …, aga ma räägin ka …', 'Ma oskan …, aga ma ei oska veel …', 'Mulle meeldib …, sest see on huvitav.', 'Pärast kooli ma lähen …, siis …'],
+      frames: ['Minu emakeel on …, aga ma räägin ka …', 'Ma oskan …, aga ma ei oska veel …', 'Mulle meeldib …, sest see on huvitav.', 'Pärast kooli lähen ma …, siis …'],
       pair: ['Kaks uut õpilast', 'Klassi tulevad kaks uut õpilast. Sina tead ühte, sõber teist.', [
         'Sa tead uue õpilase Eva kohta: ta kolis Tartust, tema emakeel on vene keel, sünnipäev on mais, ta käib ujumistrennis. Tomi kohta sa midagi ei tea. Küsi sõbralt kolm küsimust ja kirjuta vastused.',
         ['Kust Tom kolis?', 'Mis on tema emakeel?', 'Millal on tema sünnipäev?', 'Mida ta oskab?'],
@@ -140,7 +140,8 @@ export const MODULE_1 = {
     },
     {
       title: 'Minu sõber', ru: 'Мой друг: внешность и характер',
-      pairHow: 'карточки A/B с листа 1 — не показывать друг другу; один описывает своего друга, другой рисует его на обороте листа 2 и подписывает 2 слова; потом поменяться.',
+      pairHow: 'карточки A/B с листа 1 — не показывать друг другу; каждый задаёт 3–4 вопроса с карточки, записывает ответы в таблицу на листе 2 и рисует друга партнёра на обороте листа 2; потом поменяться.',
+      pairSheet: 'Võta lehelt 1 kaart A või B. Ära näita kaarti! Küsi paariliselt, kirjuta vastused ja joonista tema sõber lehe teisele poolele. Siis vahetage: nüüd küsib tema.',
       model: 'Minu sõber on julge.',
       story: ["Kriksu otsib sõpra.", "Loe koomiksit rollides. Viimases pildis räägid sina: vasta Kriksule, kirjuta jutumulli ja ütle valjusti.", [["kriksu-oops", "Kriksu", "Appi! Ma ei leia oma sõpra!"], ["boy", "Mark", "Rahu, Kriksu! Milline ta välja näeb?"], ["kriksu-think", "Kriksu", "Ta on väike ja valge. Tal on pikad kõrvad. Ta on väga kiire ja natuke häbelik."], ["boy", "Mark", "Kas ta on … jänes?"], ["kriksu-happy", "Kriksu", "Jah! See on Jussi, minu parim sõber! Aga milline on sinu sõber?"], ["child", "Sina", ""]]],
       board: ["Sõbramäng.", ["Kirjelda oma juukseid.", "Mis värvi on sinu silmad?", "Küsi naabrilt: „Kas sul on prillid?”", "Kriksu leidis Jussi! Mine 2 ruutu edasi.", "Kes on sinu parim sõber?", "Milline on sinu sõber? Ütle 2 sõna.", "Nimeta 3 iseloomusõna.", "Mida te sõbraga koos teete?", "Kriksu kaotas Jussi jälle! Mine 2 ruutu tagasi.", "Kirjelda õpetajat: „Ta on …”", "Küsi naabrilt: „Milline on sinu sõber?”", "Ütle: „Ta on pikk, aga …”", "Kas sa oled julge või häbelik?", "Kriksu tahab mängida! Jää üks kord vahele.", "Kirjelda üht klassikaaslast — teised arvavad, kes see on.", "Mis sinu sõbrale meeldib?", "Kriksu ütleb: „Tubli!” Mine 1 ruut edasi.", "Räägi oma sõbrast 3 lauset."]],
@@ -263,7 +264,7 @@ export const MODULE_1 = {
       cross: [['имя', 'nimi'], ['мама', 'ema'], ['мечта', 'unistus'], ['похожий', 'sarnane'], ['разный', 'erinev'], ['плакат', 'plakat']],
       snack: ['Kas sa tahad veel?', 'Jah, palun! / Ei, aitäh, kõht on täis.'],
       plan: ['Tere! Minu nimi on …', 'Ma olen … aastat vana ja elan …', 'Minu peres on …', 'Minu lemmikloom / sõber …', 'Mulle meeldib …', 'Huvitav fakt: …'],
-      talk: 'Esitle oma plakatit „See olen mina” umbes üks minut ja vasta ühele küsimusele.',
+      talk: 'Esitle oma plakatit „See olen mina” umbes üks minut ja vasta kahele küsimusele.',
       game1: '«Карусель» (4 мин): дети стоят в двух кругах лицом друг к другу, у каждого карточка вопроса со встреч 1–3. Пара задаёт друг другу свой вопрос и отвечает полным предложением; по сигналу учителя «Edasi!» внешний круг сдвигается на одного. Затем начинаем плакат (7 мин): части плаката (лист 1) учитель вырезал заранее, дети клеят их на лист А3 и рисуют себя, семью и питомца; учитель ходит и спрашивает: «Kes see on? Mis tema nimi on?»',
       game2: '«Laagris» (5 мин): все пары одновременно играют по карточкам ролей и ищут 3 сходства; одна пара говорит группе: «Me oleme mõlemad üksteist aastat vanad. Meil mõlemal on õde.» Затем дети заканчивают плакат (10 мин): к каждой части пишут 1–2 предложения. Плакаты вешаем на стену — выставка.',
       home: 'Ребёнок приносит плакат домой и представляет его вам по-эстонски. Повесьте плакат на видное место и попросите показать его ещё кому-нибудь из родных.',
