@@ -1,3 +1,15 @@
+## 2026-11-20 · agent/b1eksp-installed — B1 eksperimentaalkursus in production · docs only
+
+- Checked main: 6eefa3f (2026-11-20 release, includes #1291 phase labels + versions card fix, #1292 course b1eksp).
+- Owner 2026-11-20 „Да, сливай и выкладывай курс”: created (create-only, from the export of fresh main 50d9f90)
+  `curriculumLessons/b1eksp-001` „Markus bussis” and `b1eksp-002` „Markuse pere” (level „B1 eksperimentaalkursus”,
+  `phaseLabels: { discover: 'Täiskasvanu', practice: 'Laps' }`), each with published sheets `worksheets/discover`
+  (Täiskasvanu) and `worksheets/practice` (Laps), version 1, plus `worksheetVersions/{id}_{phase}_studio_v1`.
+  Nothing existing was changed; nothing is assigned to students.
+- #1291 follow-up commit: a lesson in versions is done with one sheet on the board; the room card offers
+  „Täiskasvanu” / „Laps” as two buttons instead of placing both.
+- Next safe step: lesson 3 of module „Tutvus” (owner to choose: Markus's day, home or town); real art for Markus.
+
 ## 2026-11-20 · agent/course-b1eksp — „B1 eksperimentaalkursus” (b1eksp): module 1 „Tutvus”, 2 lessons × 2 sheets · course content
 
 - Checked main: 50b0fc5 (2026-11-20). Stacked on draft PR agent/phase-labels (#1291, needs it for the sheet names); draft
