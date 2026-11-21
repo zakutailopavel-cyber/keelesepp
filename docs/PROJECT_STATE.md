@@ -21,6 +21,21 @@
 - Next safe step: owner OK on #1291, then on this PR; then the production step above.
 
 
+
+## 2026-11-21 — Vestlusklubi: vaheldusrikkam plaan (agent/club-variety)
+
+- main: 7df490f. Haru `agent/club-variety`, draft-PR. Omanik: „проверь что курс максимально активный” → „давай разбавим”.
+- Tulemus: `clubPlan` (`crm-v2/src/features/curriculum/kidsCurriculum.js`) — klubi 20 kohtumise õpetaja plaan ei ole
+  enam iga kord sama: klubi pass kleebistega (auhind 8. ja 20. kohtumisel), mõlemas tunnis 3-minutiline liikumispaus
+  (8 mängu roteeruvad), „Leia keegi” 4 vormis kordamööda (allkirjad, bingo, reporter, võistlus), paaris kohtumistel
+  algab tund 1 mänguga, jutt kasvab (moodul 1–2: 30 s paaris, 3–4: minut kolmikus, 5: minut grupile), ristsõna ja
+  „Kirjuta lünka” kodus. Lehed (sheets.js) ei muutunud. `KIDS_VERSION` 2026-11-21.1.
+- Prinditav klubi pass: `printimiseks/Klubi-pass.pdf` (repost väljas).
+- Kontroll: `npx vitest run src/features/curriculum src/features/worksheet-generator` — 1591 läbi, 12 vahele jäetud.
+- Production: `curriculumLessons/k11-001…020` väljad `description` + `roadmapVersion` uuendatakse omaniku loal skriptiga
+  (vana kirjeldus jääb `descriptionPrevious` alla).
+- Järgmine samm: omaniku OK → merge, release ja kirjelduste uuendus.
+
 ## 2026-11-21 — Proovitund ilma kontota (agent/trial-lesson)
 
 - main: 6eefa3f. Haru `agent/trial-lesson`, draft-PR.
