@@ -21,6 +21,32 @@
 - Next safe step: owner OK on #1291, then on this PR; then the production step above.
 
 
+
+## 2026-11-21 — Vestlusklubi: vaheldusrikkam plaan (agent/club-variety)
+
+- main: 7df490f. Haru `agent/club-variety`, draft-PR. Omanik: „проверь что курс максимально активный” → „давай разбавим”.
+- Tulemus: `clubPlan` (`crm-v2/src/features/curriculum/kidsCurriculum.js`) — klubi 20 kohtumise õpetaja plaan ei ole
+  enam iga kord sama: klubi pass kleebistega (auhind 8. ja 20. kohtumisel), mõlemas tunnis 3-minutiline liikumispaus
+  (8 mängu roteeruvad), „Leia keegi” 4 vormis kordamööda (allkirjad, bingo, reporter, võistlus), paaris kohtumistel
+  algab tund 1 mänguga, jutt kasvab (moodul 1–2: 30 s paaris, 3–4: minut kolmikus, 5: minut grupile), ristsõna ja
+  „Kirjuta lünka” kodus. Lehed (sheets.js) ei muutunud. `KIDS_VERSION` 2026-11-21.1.
+- Kohtumine 2 (k11-002, `kids/club/module1.js`) lastepärasemaks: loomakaardid hamster / kilpkonn / papagoi / sokke sööv
+  koer, dialoogis hamster, lüngad naljaka pere kohta, küsimus „Kes on sinu peres kõige naljakam?”, „Leia keegi” trikiga
+  lemmikloom. Teised kohtumised samad (generaatori väljund = production).
+- Talisman Kriksu ja mängulehed (omanik: „давай делай талисмана и листы-игры”): uued plokid `comic` (koomiks
+  jutumullidega, tühi mull = laps kirjutab/ütleb; avatud vastus) ja `boardgame` (lauamäng-madu START→FINIŠ, „Kriksu …”
+  ruudud on üllatused) failis `worksheet-studio/engine/blocks/club.jsx`, stiil `sheet.css`, register `registry.js`,
+  sheet kit uuesti ehitatud. `kids/sheets.js`: `lesson.story` → koomiks tund 1 alguses, `lesson.board` → lauamäng
+  sõnajärje asemel. `clubPlan` lisab sammud „Kriksu lugu” ja „Lauamäng”. Moodul 1: koomiks kõigil 4 kohtumisel,
+  lauamäng 1–3. Eelkool 5–6 (k56-001, uus rühm 22.11): `lesson.comic` (leht 1) ja `lesson.board` (leht 2),
+  `youngPlan` k56 uus käik koos Kriksuga. Telefonis plokkide kiri 16 px (`sheetFlow.css`, sheet-layout e2e läbi).
+  Pildid `public/kids-art/kriksu-*.svg`; kirjeldus `docs/TEXTBOOK_ART_BIBLE.md` §4.
+- Prinditav klubi pass: `printimiseks/Klubi-pass.pdf` (repost väljas).
+- Kontroll: `npx vitest run src/features/curriculum src/features/worksheet-generator` — 1591 läbi, 12 vahele jäetud.
+- Production: `curriculumLessons/k11-001…020` väljad `description` + `roadmapVersion` uuendatakse omaniku loal skriptiga
+  (vana kirjeldus jääb `descriptionPrevious` alla); k11-002 lehed avaldatakse v5-na (v4 jääb worksheetVersions'isse).
+- Järgmine samm: omaniku OK → merge, release ja kirjelduste uuendus.
+
 ## 2026-11-21 — Proovitund ilma kontota (agent/trial-lesson)
 
 - main: 6eefa3f. Haru `agent/trial-lesson`, draft-PR.

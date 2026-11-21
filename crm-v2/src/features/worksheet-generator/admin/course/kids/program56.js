@@ -9,6 +9,8 @@ export const PROGRAM_56 = {
   lessons: [
     {
       title: 'Tere! Mina olen …', ru: 'Привет! Я …',
+      comic: ["Kriksu ütleb tere.", "Õpetaja loeb. Viimases pildis räägid sina: ütle Kriksule „Tere! Mina olen …”. Joonista ennast või kirjuta oma nimi.", [["kriksu-wave", "Kriksu", "Tere! Mina olen Kriksu."], ["girl", "Mia", "Tere, Kriksu! Mina olen Mia."], ["kriksu-think", "Kriksu", "Kes sina oled?"], ["child", "Sina", ""]]],
+      board: ["Tere-mäng.", ["Ütle: „Tere!”", "Hüppa 2 korda!", "Ütle: „Mina olen …”", "Kriksu leidis palli! Mine 2 ruutu edasi.", "Näita: kes on poiss?", "Lehvita ja ütle: „Head aega!”", "Ütle naabrile: „Tere!”", "Kriksu jäi magama. Jää üks kord vahele.", "Näita: kes on tüdruk?", "Küsi naabrilt: „Kes sina oled?”", "Plaksuta 3 korda!", "Ütle: „ema” ja „isa”.", "Kriksu ütleb: „Tubli!” Mine 1 ruut edasi."]],
       can: 'Laps tervitab, ütleb oma nime ja jätab hüvasti.',
       words: [['tere', ''], ['head aega', ''], ['mina', ''], ['poiss', 'boy'], ['tüdruk', 'girl'], ['ema', 'mother'], ['isa', 'father']],
       phrases: ['Tere!', 'Mina olen Mia.', 'Kes sina oled?', 'Head aega!'],

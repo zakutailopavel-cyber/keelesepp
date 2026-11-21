@@ -14,6 +14,7 @@ import { crosswordLayout } from '../features/worksheet-studio/engine/crosswordLa
 
 // a new answerable block must be added here (and get a case below) — a missing one fails the first test
 export const EXPECTED = [
+  'comic',
   'gaps', 'choice', 'truefalse', 'match', 'pictures', 'clock', 'cloze', 'formtext', 'insertion', 'picmatch', 'scenelabel', 'profiles', 'picrows',
   'dialogue', 'reading', 'listening', 'table', 'categorize', 'wordorder', 'writing', 'wordforms', 'errorfix',
   'transformation', 'dictation', 'translation', 'crossword', 'planning', 'guidedletter', 'rubric', 'diagram',
@@ -207,6 +208,7 @@ export const CASES = {
     review: (card, block) => block.data.rows.forEach((row, i) => expect(crosswordCells(card, block, i).map((x) => x.textContent || x.value).join('').toLowerCase()).toBe(row.answer)),
   },
   planning: { right: () => (key) => `Plaan ${key}` },
+  comic: { right: () => (key) => `Jutumull ${key}` },
   guidedletter: { right: () => ({ text: 'Lugupeetud esindaja, kirjutan teile pargi pärast.' }) },
   rubric: {
     drive: (card) => [...card().querySelectorAll('.ws-rubric input[type="checkbox"]')].forEach((_, i) => fireEvent.click(card().querySelectorAll('.ws-rubric input[type="checkbox"]')[i])),

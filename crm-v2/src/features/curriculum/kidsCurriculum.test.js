@@ -34,3 +34,31 @@ describe('children’s courses in Õppevara', () => {
     });
   });
 });
+
+describe('speaking club variety (owner 2026-11-21: „давай разбавим”)', () => {
+  const club = kidsCurriculumRecords().filter((r) => r.id.startsWith('k11-'));
+  it('every meeting has two movement breaks, a „Leia keegi” format, the passport and the crossword at home', () => {
+    for (const r of club) {
+      expect(r.description.match(/Разминка-движение \(3 мин\)/g)?.length, r.id).toBe(2);
+      expect(r.description, r.id).toMatch(/— сегодня (подписи|бинго|репортёр|наперегонки)/);
+      expect(r.description, r.id).toMatch(/Паспорт клуба/);
+      expect(r.description, r.id).toMatch(/Кроссворд .* дома/);
+    }
+  });
+  it('neighbouring meetings differ: other breaks, other „Leia keegi” format, other start of lesson 1', () => {
+    const breaks = (d) => d.match(/Разминка-движение \(3 мин\): «([^»]+)»/g).join('|');
+    const find = (d) => d.match(/— сегодня (\S+)/)[1];
+    const first = (d) => d.split('УРОК 1 (45 мин):\n')[1].split('\n')[1];
+    for (let i = 1; i < club.length; i += 1) {
+      expect(breaks(club[i].description), club[i].id).not.toBe(breaks(club[i - 1].description));
+      expect(find(club[i].description), club[i].id).not.toBe(find(club[i - 1].description));
+      expect(first(club[i].description), club[i].id).not.toBe(first(club[i - 1].description));
+    }
+  });
+  it('the talk grows: pairs in modules 1–2, threes in 3–4, the whole group in module 5', () => {
+    const byId = Object.fromEntries(club.map((r) => [r.id, r.description]));
+    expect(byId['k11-002']).toMatch(/Рассказ в парах/);
+    expect(byId['k11-010']).toMatch(/Рассказ в тройках/);
+    expect(byId['k11-018']).toMatch(/Минута рассказа \(8 мин\)/);
+  });
+});

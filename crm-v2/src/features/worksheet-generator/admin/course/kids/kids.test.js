@@ -112,7 +112,9 @@ describe('children’s courses 5–6, 6–7, 8–9 and the speaking club 10–12
         expect(doc.free.every((it) => it.page === 0 && it.y >= 75 && it.y + (it.h || 0) <= 102 + doc.blocks[0].minHeightMm + 2), lessonId).toBe(true);
       });
       expect(transfer.blocks[1].type, lessonId).toBe('phrasebank'); // the snack between the lessons opens sheet 3
-      expect(types(transfer), lessonId).toEqual(expect.arrayContaining(['wordorder', 'crossword', 'planning', 'speaking', 'selfcheck']));
+      expect(types(transfer), lessonId).toEqual(expect.arrayContaining(['crossword', 'planning', 'speaking', 'selfcheck']));
+      // the word order, or the board game (owner 2026-11-21: game sheets) in its place
+      expect(types(transfer).some((t) => t === 'wordorder' || t === 'boardgame'), lessonId).toBe(true);
     });
   });
 });
