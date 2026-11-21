@@ -7,7 +7,7 @@
 // the final task kinds rotate across a module (no two lessons with the same kind)
 export const FINAL_KINDS = Object.freeze({ decide: 'otsustab', plan: 'planeerib', complain: 'kaebab', advise: 'annab nõu', explain: 'selgitab', negotiate: 'lepib kokku', present: 'esitleb' });
 // block types that are not tasks (engine/registry.js `task: false`): a purpose line belongs to a task
-export const NOT_TASKS = new Set(['text', 'notice', 'tip', 'image', 'vocab', 'wordstrip', 'chart', 'phrasebank', 'exampart', 'readcard', 'graph', 'geofigure']);
+export const NOT_TASKS = new Set(['text', 'notice', 'tip', 'image', 'vocab', 'wordstrip', 'chart', 'phrasebank', 'exampart', 'readcard', 'boardgame', 'graph', 'geofigure']);
 
 // the field a block shows as its heading
 const TITLE_FIELD = { text: 'heading', chart: 'chartTitle' };

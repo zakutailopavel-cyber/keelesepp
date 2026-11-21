@@ -7,6 +7,8 @@ export const MODULE_1 = {
     // ---------- 1 Tutvume ----------
     {
       title: 'Tere! Mina olen …', ru: 'Знакомство',
+      story: ["Kriksu tuleb klubisse.", "Loe koomiksit rollides. Viimases pildis räägid sina: vasta Kriksule, kirjuta jutumulli ja ütle valjusti.", [["kriksu-wave", "Kriksu", "Tere! Mina olen Kriksu. Kas see on keeleklubi?"], ["girl", "Mia", "Jah! Tere tulemast! Mina olen Mia. Ma olen üksteist aastat vana."], ["kriksu-happy", "Kriksu", "Mina olen üks aasta vana. Ma elan Tallinnas ja mulle meeldib pall! Aga sina?"], ["child", "Sina", ""]]],
+      board: ["Tutvumismäng.", ["Ütle oma nimi.", "Kui vana sa oled?", "Küsi naabrilt: „Mis su nimi on?”", "Kriksu leidis palli! Mine 2 ruutu edasi.", "Kus sa elad?", "Mis keelt sa räägid?", "Ütle 3 asja, mis sulle meeldivad.", "Küsi naabrilt: „Kus sa elad?”", "Kriksu jäi magama. Jää üks kord vahele.", "Mis klassis sa käid?", "Ütle: „Mulle ei meeldi …”", "Tutvusta naabrit: „Tema nimi on …”", "Mida sa oskad? „Ma oskan …”", "Kriksu kaotas palli! Mine 2 ruutu tagasi.", "Mis on sinu lemmikvärv?", "Küsi õpetajalt üks küsimus.", "Kriksu ütleb: „Tubli!” Mine 1 ruut edasi.", "Räägi endast 3 lauset."]],
       can: 'Laps tutvustab ennast (nimi, vanus, kool, klass, elukoht, mis talle meeldib) ja küsib samu küsimusi teiselt.',
       focus: 'Küsimused: Mis su nimi on? Kui vana sa oled? Kus sa elad? — vastus tervete lausetega',
       words: [
@@ -70,6 +72,8 @@ export const MODULE_1 = {
     // ---------- 2 Pere ja lemmikloomad ----------
     {
       title: 'Minu pere ja lemmikloom', ru: 'Моя семья и домашний питомец',
+      story: ["Kriksu pere pilt.", "Loe koomiksit rollides. Viimases pildis räägid sina: vasta Kriksule, kirjuta jutumulli ja ütle valjusti.", [["kriksu-happy", "Kriksu", "Vaata, see on minu pere pilt!"], ["girl", "Mia", "Vau! Kes need on?"], ["kriksu-wave", "Kriksu", "See on minu ema ja isa. Mul on viis venda ja üks õde. Ja see on minu nõbu — kass Miisu!"], ["girl", "Mia", "Kass on sinu nõbu?!"], ["kriksu-think", "Kriksu", "Jah! Meie pere on natuke naljakas. Kas sul on vend või õde? Kas sul on lemmikloom?"], ["child", "Sina", ""]]],
+      board: ["Perekonnamäng.", ["Kas sul on vend või õde?", "Nimeta 4 pereliiget.", "Kriksu leidis kondi! Mine 2 ruutu edasi.", "Kus elab sinu vanaema?", "Kas sul on lemmikloom? Milline ta on?", "Küsi naabrilt: „Kas sul on koer?”", "Ütle: „Mul ei ole …”", "Nimeta 5 looma.", "Kriksu kass-nõbu ehmatas teda! Mine 1 ruut tagasi.", "Kui suur on sinu pere?", "Kes on sinu peres kõige naljakam?", "Küsi naabrilt: „Mis su venna või õe nimi on?”", "Mis loom on parim? Miks?", "Kriksu jooksis vanaema juurde. Jää üks kord vahele.", "Ütle onu või tädi kohta üks lause.", "Kes toidab teie peres looma?", "Kriksu ütleb: „Tubli!” Mine 2 ruutu edasi.", "Räägi oma perest 3 lauset."]],
       can: 'Laps räägib oma perest ja lemmikloomast ning küsib teiselt: Kas sul on …?',
       focus: 'Mul on … / Mul ei ole … · Tal on … · Kas sul on …?',
       words: [
@@ -132,6 +136,8 @@ export const MODULE_1 = {
     },
     {
       title: 'Minu sõber', ru: 'Мой друг: внешность и характер',
+      story: ["Kriksu otsib sõpra.", "Loe koomiksit rollides. Viimases pildis räägid sina: vasta Kriksule, kirjuta jutumulli ja ütle valjusti.", [["kriksu-oops", "Kriksu", "Appi! Ma ei leia oma sõpra!"], ["boy", "Mark", "Rahu, Kriksu! Milline ta välja näeb?"], ["kriksu-think", "Kriksu", "Ta on väike ja valge. Tal on pikad kõrvad. Ta on väga kiire ja natuke häbelik."], ["boy", "Mark", "Kas ta on … jänes?"], ["kriksu-happy", "Kriksu", "Jah! See on Jussi, minu parim sõber! Aga milline on sinu sõber?"], ["child", "Sina", ""]]],
+      board: ["Sõbramäng.", ["Kirjelda oma juukseid.", "Mis värvi on sinu silmad?", "Küsi naabrilt: „Kas sul on prillid?”", "Kriksu leidis Jussi! Mine 2 ruutu edasi.", "Kes on sinu parim sõber?", "Milline on sinu sõber? Ütle 2 sõna.", "Nimeta 3 iseloomu sõna.", "Mida te sõbraga koos teete?", "Kriksu kaotas Jussi jälle! Mine 2 ruutu tagasi.", "Kirjelda õpetajat: „Ta on …”", "Küsi naabrilt: „Milline on sinu sõber?”", "Ütle: „Ta on pikk, aga …”", "Kas sa oled julge või häbelik?", "Kriksu tahab mängida! Jää üks kord vahele.", "Kirjelda üht klassikaaslast — teised arvavad, kes see on.", "Mis sinu sõbrale meeldib?", "Kriksu ütleb: „Tubli!” Mine 1 ruut edasi.", "Räägi oma sõbrast 3 lauset."]],
       can: 'Laps kirjeldab sõbra välimust ja iseloomu ning arvab ära, kellest teine räägib.',
       focus: 'Tal on pikad juuksed · Ta on pikk ja rõõmus · Milline ta on?',
       words: [
@@ -195,6 +201,7 @@ export const MODULE_1 = {
     },
     {
       title: 'Projekt: See olen mina', ru: 'Проект «Это я» и повторение модуля',
+      story: ["Kriksu plakat.", "Loe koomiksit rollides. Viimases pildis räägid sina: kirjuta jutumulli üks lause oma plakati jaoks ja ütle see valjusti.", [["kriksu-think", "Kriksu", "Ma teen plakati „See olen mina”, aga mul on ainult pilt …"], ["girl", "Mia", "Kirjuta oma nimi, vanus, pere, sõber ja hobi!"], ["kriksu-happy", "Kriksu", "Minu nimi on Kriksu. Mul on suur pere. Minu sõber on Jussi. Minu hobi on palli mängida!"], ["child", "Sina", ""]]],
       can: 'Laps teeb plakati „See olen mina” ja esitleb seda: nimi, pere, lemmikloom, sõber, hobi; vastab teiste küsimustele.',
       focus: 'Kordamine: Mina olen … · Mul on … · Minu sõber on … · Mulle meeldib …',
       words: [

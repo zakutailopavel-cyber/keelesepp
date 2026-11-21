@@ -281,6 +281,8 @@ function clubLesson(program, lesson, index) {
   const gapsBank = lesson.bank || answersOf(lesson.gaps);
   const practice = [
     open.blocks.practice,
+    // the club mascot Kriksu (owner 2026-11-21): a comic opens lesson 1 — the children write and say the empty bubble
+    ...(lesson.story ? [block(`${id}_p_story`, 'comic', 'white', 'g_use', { title: lesson.story[0], instruction: lesson.story[1], panels: lesson.story[2].map((panel) => panel.join(' | ')).join('\n') })] : []),
     B.vocab(`${id}_p_words`, 'Tunni sõnad · слова урока', lesson.words.map(([word, ru]) => `${word} — ${ru.replace(/\s*,\s*/g, ' / ')}`).join('\n'), '2'),
     B.vocab(`${id}_p_words2`, 'Raskemad sõnad · слова посложнее', lesson.words2.map(([word, ru]) => `${word} — ${ru.replace(/\s*,\s*/g, ' / ')}`).join('\n'), '2'),
     B.notice(`${id}_p_focus`, `Räägime nii: ${lesson.focus}`, lesson.phrases.map(([q, a]) => `**${q}** — ${a}`), 'full', 'g_notice'),
@@ -297,7 +299,10 @@ function clubLesson(program, lesson, index) {
     // lesson 2 starts with „Leia keegi, kes …” (teacher's plan step 1)
     B.table(`${id}_t_find`, lesson.findTitle || 'Leia keegi, kes …', `Käi klassis ringi ja küsi: „${/kellel/.test(lesson.findTitle || '') ? 'Kas sul on …' : 'Kas sa …'}?” Kui sõber ütleb „Jah!”, kirjuta tema nimi. Küsi igalt sõbralt ainult üks küsimus.`, `${/kellel/.test(lesson.findTitle || '') ? 'Kellel …?' : 'Kes …?'}, Nimi`, lesson.find.map((f) => `… ${f} | `), 'g_use'),
     B.crossword(`${id}_t_cross`, 'Ristsõna: tunni sõnad.', 'Loe vene sõna ja kirjuta see eesti keeles ruutudesse.', lesson.cross, 'full', 'g_vocab'),
-    B.wordorder(`${id}_t_order`, 'Pane sõnad järjekorda.', 'Kirjuta lause õiges järjekorras ja loe see valjusti.', lesson.order, 'full', 'g_notice'),
+    // a board game instead of the word order (owner 2026-11-21: game sheets): print, a dice and a counter per child
+    ...(lesson.board
+      ? [block(`${id}_t_board`, 'boardgame', 'white', 'g_use', { title: lesson.board[0], instruction: 'Mängige 2–4 kaupa: viska täringut, liigu edasi ja täida ruudu ülesanne eesti keeles — terve lausega. Kui ei oska, jää paigale. Kes jõuab esimesena FINIŠisse, võidab.', squares: lesson.board[1].join('\n'), rules: '' })]
+      : [B.wordorder(`${id}_t_order`, 'Pane sõnad järjekorda.', 'Kirjuta lause õiges järjekorras ja loe see valjusti.', lesson.order, 'full', 'g_notice')]),
     B.planning(`${id}_t_plan`, 'Valmista ette oma minut.', 'Lõpeta iga lause paari sõnaga. Need on sinu märksõnad rääkimiseks.', lesson.plan, 1),
     // the plan is right above: the talk keeps a short checklist instead of repeating it
     B.speaking(`${id}_t_talk`, 'Räägi umbes üks minut.', lesson.talk, ['Räägin tervete lausetega.', 'Vaatan oma plaani, aga ei loe seda ette.', 'Vastan ühele kuulaja küsimusele.'], [45, 75]),

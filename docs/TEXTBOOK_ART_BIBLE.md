@@ -48,6 +48,11 @@ the learning content (a timetable, a sign, a price tag) and then short, Estonian
 | **Sofia** | 19 | ponytail, hoodie, backpack, headphones | student, young speaker, social media |
 | **Jaan** | 38 | curly hair, apron or sweater, dog (Muki) | café owner / neighbour / father |
 
+**Children's speaking club (k11) mascot — Kriksu** (owner 2026-11-21): a one-year-old puppy, white with one black ear,
+a lime scarf; new in the club, the children help him. Files `crm-v2/public/kids-art/kriksu-{wave,think,oops,happy}.svg`
+(kids-art line style, 300×300). He opens every meeting in a comic (`comic` block) and marks the surprise squares of the
+board game (`boardgame` block); the club children are Mia (kids-art `girl`) and Mark (`boy`), the child is „Sina” (`child`).
+
 Rules: the cast returns across modules (lexical/visual recycling). A new extra person is drawn plainly in grey.
 Names, ages and looks never change; clothes may change by situation but keep the identity mark.
 

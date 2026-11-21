@@ -33,6 +33,12 @@
 - Kohtumine 2 (k11-002, `kids/club/module1.js`) lastepärasemaks: loomakaardid hamster / kilpkonn / papagoi / sokke sööv
   koer, dialoogis hamster, lüngad naljaka pere kohta, küsimus „Kes on sinu peres kõige naljakam?”, „Leia keegi” trikiga
   lemmikloom. Teised kohtumised samad (generaatori väljund = production).
+- Talisman Kriksu ja mängulehed (omanik: „давай делай талисмана и листы-игры”): uued plokid `comic` (koomiks
+  jutumullidega, tühi mull = laps kirjutab/ütleb; avatud vastus) ja `boardgame` (lauamäng-madu START→FINIŠ, „Kriksu …”
+  ruudud on üllatused) failis `worksheet-studio/engine/blocks/club.jsx`, stiil `sheet.css`, register `registry.js`,
+  sheet kit uuesti ehitatud. `kids/sheets.js`: `lesson.story` → koomiks tund 1 alguses, `lesson.board` → lauamäng
+  sõnajärje asemel. `clubPlan` lisab sammud „Kriksu lugu” ja „Lauamäng”. Moodul 1: koomiks kõigil 4 kohtumisel,
+  lauamäng 1–3. Pildid `public/kids-art/kriksu-*.svg`; kirjeldus `docs/TEXTBOOK_ART_BIBLE.md` §4.
 - Prinditav klubi pass: `printimiseks/Klubi-pass.pdf` (repost väljas).
 - Kontroll: `npx vitest run src/features/curriculum src/features/worksheet-generator` — 1591 läbi, 12 vahele jäetud.
 - Production: `curriculumLessons/k11-001…020` väljad `description` + `roadmapVersion` uuendatakse omaniku loal skriptiga
