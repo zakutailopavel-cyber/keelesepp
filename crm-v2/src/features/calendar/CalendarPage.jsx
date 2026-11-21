@@ -14,6 +14,7 @@ import { lessonNotesService } from '../../services/firebase/lessonNotes.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
 import { libraryService } from '../../services/firebase/library.js';
 import { liveLessonInvitationsService } from '../../services/firebase/liveLessonInvitations.js';
+import { liveGuestService } from '../../services/firebase/liveGuest.js';
 import { scheduleService } from '../../services/firebase/schedule.js';
 import { studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
 import { studentsService } from '../../services/firebase/students.js';
@@ -146,7 +147,7 @@ function RunOnce({ run }) {
   return null;
 }
 
-export default function CalendarPage({ markingRepository = unmarkedLessonsService, scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi, studentTimesRepository = studentAvailabilityService, leadsRepository = websiteLeadsService }) {
+export default function CalendarPage({ markingRepository = unmarkedLessonsService, scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, guestRepository = liveGuestService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi, studentTimesRepository = studentAvailabilityService, leadsRepository = websiteLeadsService }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -802,7 +803,11 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
     try {
       const title = `${item.subject || student.subject || 'Õppetund'} · ${item.time}`;
       // the link lets the server mark this lesson held when the room closes, on any device (functions/live-auto-mark.js)
-      const invitation = await liveRepository.create({ student, title, lesson: { scheduleId: item.id, occurrenceDate: item.occurrenceDate } }, user);
+      // a student without a login (a trial lesson, owner 2026-11-21): a lesson link instead of an invitation
+      // (functions/live-guest.js) — the room shows the link to send; the teacher marks the lesson as usual
+      const invitation = studentAccountUid(student)
+        ? await liveRepository.create({ student, title, lesson: { scheduleId: item.id, occurrenceDate: item.occurrenceDate } }, user)
+        : { id: (await guestRepository.createLink({ studentId: student.id, title })).invitationId };
       rememberLessonLink(invitation.id, `${item.occurrenceId}|${item.occurrenceDate}`);
       rememberLessonTiming(invitation.id, { date: item.occurrenceDate, time: item.time, duration: item.duration });
       navigate(`/live-classroom?invitation=${encodeURIComponent(invitation.id)}`);
@@ -1095,7 +1100,8 @@ export default function CalendarPage({ markingRepository = unmarkedLessonsServic
           teachers={substitutes}
           onStartLive={startLive}
           startingLive={startingLive}
-          liveBlocked={panelItem.isGroup ? '' : !studentMap.get(panelItem.studentId) ? 'Õpilase kaarti ei leitud.' : studentAccountUid(studentMap.get(panelItem.studentId)) ? '' : 'Õpilasel pole veel sisselogimiskontot: seo konto õpilase kaardil, siis saab tunni alustada.'}
+          liveBlocked={panelItem.isGroup ? '' : !studentMap.get(panelItem.studentId) ? 'Õpilase kaarti ei leitud.' : ''}
+          liveHint={!panelItem.isGroup && studentMap.get(panelItem.studentId) && !studentAccountUid(studentMap.get(panelItem.studentId)) ? 'Õpilasel pole kontot: tekib tunnilink, mille saadad õpilasele (kehtib tänase päeva lõpuni).' : ''}
           today={today}
         >
           {/* a group lesson opens on the attendance (owner 2026-11-09: groups stay manual, but one tap away) */}
