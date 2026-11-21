@@ -66,7 +66,7 @@ function readDraft(item) {
   try { return JSON.parse(window.localStorage.getItem(draftKey(item)) || 'null'); } catch { return null; }
 }
 
-export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onSubstitute, teachers = [], onStartLive, liveBlocked = '', startingLive = false, deviceCheck, viewer = null, groupStudents = [], children }) {
+export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onSubstitute, teachers = [], onStartLive, liveBlocked = '', liveHint = '', startingLive = false, deviceCheck, viewer = null, groupStudents = [], children }) {
   const done = Boolean(item?.recordProblem || item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history, plan: student?.studyPlan }) : null), [catalog, history, item, student?.level, student?.studyPlan]);
   const [draft] = useState(() => readDraft(item));
@@ -129,7 +129,7 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
       {onStartLive && !item.isGroup && !done && item.occurrenceDate === today ? (
         <section className="lp-live" aria-label="Live Classroom">
           <Button loading={startingLive} disabled={Boolean(liveBlocked) || saving} onClick={onStartLive}><Video size={17} /> Alusta tundi</Button>
-          <p className="lp-hint">{liveBlocked || `${item.studentName || 'Õpilane'} saab kutse oma kabinetti; tunniruum avaneb kohe.`}</p>
+          <p className="lp-hint">{liveBlocked || liveHint || `${item.studentName || 'Õpilane'} saab kutse oma kabinetti; tunniruum avaneb kohe.`}</p>
         </section>
       ) : null}
 

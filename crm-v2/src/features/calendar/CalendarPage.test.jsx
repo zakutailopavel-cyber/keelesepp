@@ -45,6 +45,7 @@ function repositories({ events = [], records = [], groups = [], windows = [], no
     },
     groupRepository: { list: vi.fn().mockResolvedValue(groups), setAttendance: vi.fn(), patchLesson: vi.fn().mockResolvedValue({}) },
     liveRepository: { create: vi.fn().mockResolvedValue({ id: 'inv-1' }) },
+    guestRepository: { createLink: vi.fn().mockResolvedValue({ invitationId: 'guest-inv-1', url: 'https://crm.epkoolitus.ee/tund/x' }) },
     teacherRepository: { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher' }, { id: 't2', name: 'Jelena', role: 'teacher' }]) },
     lessonRepository: {
       listForCalendar: vi.fn().mockResolvedValue(records),
@@ -772,13 +773,15 @@ describe('calendar v2', () => {
     expect(screen.queryByRole('dialog', { name: 'Tund: Mari Maas' })).not.toBeInTheDocument();
   });
 
-  it('explains why a student without an account cannot be invited', async () => {
+  it('a student without an account (trial lesson) gets a lesson link instead of an invitation', async () => {
     const props = renderCalendar({ events: [lesson({ studentId: 's2', studentName: 'Jaan Tamm', teacherUid: 't2' })] });
     fireEvent.click(await screen.findByRole('button', { name: /10:00 Jaan Tamm/ }));
     const panel = screen.getByRole('dialog', { name: 'Tund: Jaan Tamm' });
-    expect(within(panel).getByRole('button', { name: /Alusta tundi/ })).toBeDisabled();
-    expect(within(panel).getByText(/pole veel sisselogimiskontot/)).toBeInTheDocument();
+    expect(within(panel).getByText(/tekib tunnilink/)).toBeInTheDocument();
+    fireEvent.click(within(panel).getByRole('button', { name: /Alusta tundi/ }));
+    await waitFor(() => expect(props.guestRepository.createLink).toHaveBeenCalledWith({ studentId: 's2', title: expect.stringContaining('10:00') }));
     expect(props.liveRepository.create).not.toHaveBeenCalled();
+    expect(await screen.findByText('live room ?invitation=guest-inv-1')).toBeInTheDocument();
   });
 
   it('offers "Alusta tundi" only on the lesson day', async () => {

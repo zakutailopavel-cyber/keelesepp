@@ -20,6 +20,22 @@
   moodul 1 → „Avalda tund” (writes discover + practice). Hosting release first (SVGs under /textbook-art/b1eksp/).
 - Next safe step: owner OK on #1291, then on this PR; then the production step above.
 
+
+## 2026-11-21 — Proovitund ilma kontota (agent/trial-lesson)
+
+- main: 6eefa3f. Haru `agent/trial-lesson`, draft-PR.
+- Tulemus: kalendri „Uus tund” õpilase väljal on valik „Uus õpilane: „<nimi>”” — avab tavalise õpilase vormi (nimi
+  eeltäidetud, märkus „Proovitund PP.KK.AAAA”), loob kaardi `studentsService.create` kaudu ja valib selle tunnile.
+  Sisselogimiskontot pole vaja. Tasuline proovitund = tavaline tund; tasuta = olemasolev „Kooli kulul” (põhjus
+  „proovitund”), õpetajale läheb tund arvesse. Kui õpilane ei jätka, kaart arhiveeritakse käsitsi (ei kustutata).
+- Failid: `crm-v2/src/features/calendar/CalendarPage.jsx`, `LessonPanel.jsx`, `CalendarPage.test.jsx`, `calendarUx.css`.
+- Kontroll: `npx vitest run src/features/calendar src/features/students` — 68 faili, 497 testi läbi.
+- Live Classroom: kalendri „Alusta tundi” kontota õpilasele loob olemasoleva tunnilingi (`liveGuestService.createLink`,
+  functions/live-guest.js) ja avab ruumi, kus link on kopeerimiseks; varem nupp oli blokeeritud. Link kehtib päeva lõpuni.
+  Kontoga õpilasel jääb tavaline kutse. Tunnilingi tunni automaatset märkimist pole — õpetaja märgib käsitsi.
+- Kontroll 2: `npx vitest run src/features/calendar src/features/live-classroom` — 73 faili, 513 testi läbi.
+- Järgmine samm: omaniku OK → merge ja release.
+
 ## 2026-11-20 · agent/phase-labels — a lesson's own sheet names (`phaseLabels`) · library / room / production UI
 
 - Checked main: 50b0fc5 (2026-11-20). Draft PR „Lesson phaseLabels” (link in the PR list); not merged, no deploy, no production writes.
