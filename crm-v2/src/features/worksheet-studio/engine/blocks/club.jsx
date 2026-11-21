@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components -- block definitions are plain objects that carry View/Editor components */
 import { Text } from '../../editor/fields.jsx';
 
 // Game sheets for the children's speaking club (owner 2026-11-21: „давай делай талисмана и листы-игры”): a comic strip
