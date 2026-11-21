@@ -30,10 +30,13 @@
   (8 mängu roteeruvad), „Leia keegi” 4 vormis kordamööda (allkirjad, bingo, reporter, võistlus), paaris kohtumistel
   algab tund 1 mänguga, jutt kasvab (moodul 1–2: 30 s paaris, 3–4: minut kolmikus, 5: minut grupile), ristsõna ja
   „Kirjuta lünka” kodus. Lehed (sheets.js) ei muutunud. `KIDS_VERSION` 2026-11-21.1.
+- Kohtumine 2 (k11-002, `kids/club/module1.js`) lastepärasemaks: loomakaardid hamster / kilpkonn / papagoi / sokke sööv
+  koer, dialoogis hamster, lüngad naljaka pere kohta, küsimus „Kes on sinu peres kõige naljakam?”, „Leia keegi” trikiga
+  lemmikloom. Teised kohtumised samad (generaatori väljund = production).
 - Prinditav klubi pass: `printimiseks/Klubi-pass.pdf` (repost väljas).
 - Kontroll: `npx vitest run src/features/curriculum src/features/worksheet-generator` — 1591 läbi, 12 vahele jäetud.
 - Production: `curriculumLessons/k11-001…020` väljad `description` + `roadmapVersion` uuendatakse omaniku loal skriptiga
-  (vana kirjeldus jääb `descriptionPrevious` alla).
+  (vana kirjeldus jääb `descriptionPrevious` alla); k11-002 lehed avaldatakse v5-na (v4 jääb worksheetVersions'isse).
 - Järgmine samm: omaniku OK → merge, release ja kirjelduste uuendus.
 
 ## 2026-11-21 — Proovitund ilma kontota (agent/trial-lesson)
