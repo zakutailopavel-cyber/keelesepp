@@ -38,7 +38,9 @@
   ruudud on üllatused) failis `worksheet-studio/engine/blocks/club.jsx`, stiil `sheet.css`, register `registry.js`,
   sheet kit uuesti ehitatud. `kids/sheets.js`: `lesson.story` → koomiks tund 1 alguses, `lesson.board` → lauamäng
   sõnajärje asemel. `clubPlan` lisab sammud „Kriksu lugu” ja „Lauamäng”. Moodul 1: koomiks kõigil 4 kohtumisel,
-  lauamäng 1–3. Pildid `public/kids-art/kriksu-*.svg`; kirjeldus `docs/TEXTBOOK_ART_BIBLE.md` §4.
+  lauamäng 1–3. Eelkool 5–6 (k56-001, uus rühm 22.11): `lesson.comic` (leht 1) ja `lesson.board` (leht 2),
+  `youngPlan` k56 uus käik koos Kriksuga. Telefonis plokkide kiri 16 px (`sheetFlow.css`, sheet-layout e2e läbi).
+  Pildid `public/kids-art/kriksu-*.svg`; kirjeldus `docs/TEXTBOOK_ART_BIBLE.md` §4.
 - Prinditav klubi pass: `printimiseks/Klubi-pass.pdf` (repost väljas).
 - Kontroll: `npx vitest run src/features/curriculum src/features/worksheet-generator` — 1591 läbi, 12 vahele jäetud.
 - Production: `curriculumLessons/k11-001…020` väljad `description` + `roadmapVersion` uuendatakse omaniku loal skriptiga

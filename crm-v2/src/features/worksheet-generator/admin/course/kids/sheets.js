@@ -91,6 +91,8 @@ function youngLesson(program, lesson, index) {
   const reader = program.id === 'k67';
   const task = lesson.task?.type === 'letterhunt' ? letterhunt(`${id}_p_task`, lesson.task.target, lesson.task.grid) : counting(`${id}_p_task`, lesson.task?.items || [['⭐', 3]]);
   const discover = [
+    // the mascot Kriksu for the little ones too (owner 2026-11-21): the teacher reads, the child answers in the last bubble
+    ...(lesson.comic ? [block(`${id}_d_comic`, 'comic', 'white', 'g_read', { title: lesson.comic[0], instruction: lesson.comic[1], panels: lesson.comic[2].map((panel) => panel.join(' | ')).join('\n') })] : []),
     B.text(`${id}_d_chant`, 'Laul ja luuletus', lesson.chant.join('\n\n')),
     B.vocab(`${id}_d_words`, 'Tunni sõnad', words(lesson), '3'),
     ...(pictured(lesson).length >= 3 ? [picmatch(`${id}_d_pics`, lesson)] : []),
@@ -100,6 +102,7 @@ function youngLesson(program, lesson, index) {
     ...(reader && lesson.read?.length ? [block(`${id}_d_read`, 'readcard', 'cream', 'g_read', { title: 'Loe valjusti.', instruction: 'Loe rida haaval. Näita sõrmega, mida loed.', lines: lesson.read.join('\n') })] : []),
   ];
   const practice = [
+    ...(lesson.board ? [block(`${id}_p_board`, 'boardgame', 'white', 'g_vocab', { title: lesson.board[0], instruction: 'Mängime koos: viska täringut, liigu edasi. Õpetaja loeb ruudu ette — sina ütled või teed.', squares: lesson.board[1].join('\n'), rules: '' })] : []),
     coloring(`${id}_p_color`, lesson.color),
     tracing(`${id}_p_trace`, lesson.trace),
     task,
