@@ -14,4 +14,14 @@ describe('sortWorks', () => {
     ];
     expect(sortWorks(items).map((i) => i.id)).toEqual(['a1', 'a2', 'a3', 'b1', 'b3', 'r2']);
   });
+
+  it('without a deadline the newest day comes first; one day keeps the course order', () => {
+    const items = [
+      { id: 'old', title: 'Kus? Kuhu? Kust? · Avasta', lessonId: 'a2-017', phase: 'discover', assignedAt: '2026-11-04T13:45:03.040Z' },
+      { id: 'l04', title: 'Kordamine 2 · Harjuta', lessonId: 'a2-l04', phase: 'practice', assignedAt: '2026-11-18T15:30:04.817Z' },
+      { id: 'mid', title: 'Lihtminevik · Avasta', lessonId: 'a2-076', phase: 'discover', assignedAt: '2026-11-14T13:20:35.145Z' },
+      { id: 'l03', title: 'Kordamine 1 · Harjuta', lessonId: 'a2-l03', phase: 'practice', assignedAt: '2026-11-18T15:29:04.817Z' },
+    ];
+    expect(sortWorks(items).map((i) => i.id)).toEqual(['l03', 'l04', 'mid', 'old']);
+  });
 });

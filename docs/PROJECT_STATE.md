@@ -23,6 +23,14 @@
 
 
 
+## 2026-11-22 — Avatud tööd: uuem päev enne (agent/student-newest-first)
+
+- main kontrollitud: 499f54d (2026-11-22). Omanik: „сейчас самое старое наверху а новое внизу, логично было бы наоборот”.
+- `features/homework/workOrder.js` `compareWorks`: tähtaeg (varasem) → andmise PÄEV (uuem enne) → sama päeva sees andmise
+  järjekord (kursuse järjekord) → Avasta → Harjuta → Kasuta. Kasutab õpilase kaardi „Avatud tööd” ja taskList todo.
+  „Sinu tee” (taskPath.js) oli juba uuem enne — muutmata.
+- Kontroll: homework, students, parents, dashboard testid 465 läbi; uus test workOrder.test.js.
+
 ## 2026-11-22 — Õpetajate valikus ainult õpetajad (agent/teacher-picker-accountant)
 
 - main kontrollitud: a5099d8 (2026-11-22). Omanik: „разберись с двумя Nelli Sikora” → „убери ее из учителей как и алексея но оставь оба мэйла”.
