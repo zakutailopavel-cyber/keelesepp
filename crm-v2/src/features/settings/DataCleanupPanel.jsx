@@ -54,7 +54,7 @@ export default function DataCleanupPanel({ user, repositories = { students: stud
         repositories.maintenance.listLessons(),
         repositories.homework.list(),
         repositories.messages.list(),
-        repositories.teachers.list().catch(() => []),
+        repositories.teachers.list({ includeAccountants: true }).catch(() => []),
       ]);
       setStaff((staffList || []).map((item) => canonicalTeacherName(item.name)).filter(Boolean));
       const result = findCleanup({ students: studentsResult.items || [], schedule, lessons, homework, messages, userUid: user?.uid || '' });

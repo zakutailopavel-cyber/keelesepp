@@ -23,6 +23,17 @@
 
 
 
+## 2026-11-22 — Raamatupidaja pole õpetajate valikus (agent/teacher-picker-accountant)
+
+- main kontrollitud: a5099d8 (2026-11-22). Omanik: „разберись с двумя Nelli Sikora”.
+- Kaks „Nelli Sikora” kontot = raamatupidaja kaks sisselogimist (gmail, viimati 19.11; mail.ru, viimati 23.10), mõlemal role admin,
+  roles [admin, finance]. Õpetajate valikus olid, sest `teachersService.list()` võtab kõik adminid.
+- `services/firebase/teachers.js`: `isAccountantOnly` (roles finance, mitte teacher); `list()` jätab nad välja,
+  `{ includeAccountants: true }` — õpetajate leht, andmete puhastus, märkimata tunnid (ajalugu).
+- Kontosid ei muudetud. Vana mail.ru konto keelamine ootab omaniku otsust.
+- Kontroll: `npx vitest run` 5253 läbi (uus teachers.accountant.test.js).
+- Järgmine samm: omaniku OK → merge + release.
+
 ## 2026-11-22 — Uued kontod: grupp kinnitamisel (agent/approval-group)
 
 - main kontrollitud: 15f5d83 (2026-11-22). Omanik: „надо еще возможность к группе назначать”.

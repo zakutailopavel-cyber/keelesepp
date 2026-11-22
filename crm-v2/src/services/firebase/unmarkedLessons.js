@@ -79,7 +79,7 @@ export const unmarkedLessonsService = {
     return shareInFlight(`marking-context:${isAdmin ? 'admin' : uid}:${from}`, async () => {
       const [archived, staff, lockedDates] = await Promise.all([
         optional(() => studentsService.list({ status: 'archived', includeDeleted: true, pageSize: 500, exhaustive: true, ...(isAdmin ? {} : { scopeTeacherUid: uid }) }).then((result) => result.items || []), []),
-        isAdmin ? optional(() => teachersService.list({ includeDeleted: true }), null) : Promise.resolve(null),
+        isAdmin ? optional(() => teachersService.list({ includeDeleted: true, includeAccountants: true }), null) : Promise.resolve(null),
         optional(() => readLockedDates(from), []),
       ]);
       return { archivedStudentIds: archived.filter((student) => student.active === false || student.deletedAt).map((student) => student.id), staff, lockedDates };
