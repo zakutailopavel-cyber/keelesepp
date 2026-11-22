@@ -2,16 +2,26 @@ import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'fireb
 import { requireFirebaseClient } from './client.js';
 import { cleanPersonalColors } from '../../features/calendar/calendarGrid.js';
 
+// owner 2026-11-22: „убери ее из учителей как и алексея но оставь оба мэйла” — admin-only accounts (the accountant's
+// two logins, Oleksiy) give no lessons: they are in no teacher picker. Their accounts stay as they are.
+// A person with the teacher role is a teacher whatever else they have (the owner's account is role „teacher”).
+export function isNonTeachingStaff(person = {}) {
+  const roles = Array.isArray(person.roles) ? person.roles : [];
+  return person.role !== 'teacher' && !roles.includes('teacher');
+}
+
 export const teachersService = {
   // a teacher in the „Prügikast” (or purged after it) is in no list or picker ({ includeDeleted: true } for history
   // views); payroll still shows their work, it adds staff from the work sessions (features/payroll/payroll.js)
-  async list({ includeDeleted = false } = {}) {
+  // { includeStaff: true } (admins who do not teach too) for the staff page and history views
+  async list({ includeDeleted = false, includeStaff = false } = {}) {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'users'), where('role', 'in', ['admin', 'teacher'])));
     return snapshot.docs.map((item) => {
       const data = item.data();
       return { id: item.id, ...data, name: data.displayName || data.name || data.email || 'Nimetu kasutaja' };
-    }).filter((teacher) => includeDeleted || !(teacher.deletedAt || teacher.purgedAt)).sort((a, b) => a.name.localeCompare(b.name, 'et'));
+    }).filter((teacher) => includeDeleted || !(teacher.deletedAt || teacher.purgedAt))
+      .filter((teacher) => includeStaff || !isNonTeachingStaff(teacher)).sort((a, b) => a.name.localeCompare(b.name, 'et'));
   },
   async getById(id) {
     const { db } = requireFirebaseClient();

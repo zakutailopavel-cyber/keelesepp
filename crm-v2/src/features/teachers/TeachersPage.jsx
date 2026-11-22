@@ -17,7 +17,7 @@ export default function TeachersPage({ teacherRepository = teachersService, stud
   const [query, setQuery] = useState('');
   // „Õpetajate võrdlus”: administrators only (owner 2026-10-23)
   const isAdmin = Boolean(useContext(AuthContext)?.user?.roles?.includes(ROLES.ADMIN));
-  const state = useAsyncData(async () => Promise.all([teacherRepository.list(), studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true }), scheduleRepository.list()]), [teacherRepository, studentRepository, scheduleRepository]);
+  const state = useAsyncData(async () => Promise.all([teacherRepository.list({ includeStaff: true }), studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true }), scheduleRepository.list()]), [teacherRepository, studentRepository, scheduleRepository]);
   const filtered = useMemo(() => (state.data?.[0] || []).filter((teacher) => `${teacher.name} ${teacher.email || ''}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))), [state.data, query]);
   if (state.loading) return <LoadingState label="Laen õpetajaid…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;

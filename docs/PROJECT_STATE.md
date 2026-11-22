@@ -23,6 +23,16 @@
 
 
 
+## 2026-11-22 — Õpetajate valikus ainult õpetajad (agent/teacher-picker-accountant)
+
+- main kontrollitud: a5099d8 (2026-11-22). Omanik: „разберись с двумя Nelli Sikora” → „убери ее из учителей как и алексея но оставь оба мэйла”.
+- Kaks „Nelli Sikora” = raamatupidaja kaks sisselogimist (role admin, roles [admin, finance]); Oleksiy Skoryk = admin, tunde ei anna.
+  Õpetajate valikus olid, sest `teachersService.list()` võttis kõik adminid.
+- `services/firebase/teachers.js`: `isNonTeachingStaff` (role ega roles pole „teacher”); `list()` jätab nad välja,
+  `{ includeStaff: true }` — õpetajate leht, andmete puhastus, märkimata tunnid (ajalugu). Omaniku konto on role „teacher”.
+- Kontosid ega e-posti ei muudetud (mõlemad Nelli kontod jäävad).
+- Kontroll: `npx vitest run` kõik läbi (teachers.accountant.test.js).
+
 ## 2026-11-22 — Uued kontod: grupp kinnitamisel (agent/approval-group)
 
 - main kontrollitud: 15f5d83 (2026-11-22). Omanik: „надо еще возможность к группе назначать”.
