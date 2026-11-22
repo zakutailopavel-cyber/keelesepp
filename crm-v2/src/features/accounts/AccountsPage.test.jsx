@@ -36,6 +36,26 @@ describe('new accounts page', () => {
     await waitFor(() => expect(svc.decide).toHaveBeenCalledWith(expect.objectContaining({ uid: 'u1', decision: 'approve', teacherUid: 't2' })));
   });
 
+  it('adds the approved child to the chosen group', async () => {
+    const groups = { list: vi.fn(async () => [{ id: 'g1', name: 'Eelkool', teacher: 'Pavel' }]), setStudent: vi.fn(async () => {}) };
+    const svc = service({ decide: vi.fn().mockResolvedValue({ approvalStatus: 'approved', linkedStudentIds: ['self_u1'], createdStudentIds: ['self_u1'], mailed: true }) });
+    render(<AccountsPage service={svc} groups={groups} />);
+    const select = await screen.findByLabelText('Grupp (valikuline)');
+    fireEvent.change(select, { target: { value: 'g1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Kinnita/ }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Lisatud gruppi „Eelkool”.');
+    expect(groups.setStudent).toHaveBeenCalledWith(expect.objectContaining({ id: 'g1' }), { id: 'self_u1', name: 'Kati' }, true, undefined);
+  });
+
+  it('does not guess the group when approval left several cards or none', async () => {
+    const groups = { list: vi.fn(async () => [{ id: 'g1', name: 'Eelkool' }]), setStudent: vi.fn() };
+    render(<AccountsPage service={service({ decide: vi.fn().mockResolvedValue({ approvalStatus: 'approved', linkedStudentIds: ['s1', 's2'], mailed: true }) })} groups={groups} />);
+    fireEvent.change(await screen.findByLabelText('Grupp (valikuline)'), { target: { value: 'g1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Kinnita/ }));
+    expect(await screen.findByRole('status')).toHaveTextContent('kontol on mitu õpilase kaarti');
+    expect(groups.setStudent).not.toHaveBeenCalled();
+  });
+
   it('shows the teacher a registered person asked for earlier only as a wish', async () => {
     render(<AccountsPage service={service()} />);
     expect(await screen.findByText('Soovitud õpetaja')).toBeInTheDocument();

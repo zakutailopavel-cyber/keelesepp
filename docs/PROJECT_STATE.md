@@ -23,6 +23,18 @@
 
 
 
+## 2026-11-22 — Uued kontod: grupp kinnitamisel (agent/approval-group)
+
+- main kontrollitud: 15f5d83 (2026-11-22). Omanik: „надо еще возможность к группе назначать”.
+- `features/accounts/AccountsPage.jsx`: kaardil uus valik „Grupp (valikuline)” (aktiivsed grupid). Pärast „Kinnita” lisab laps grupi
+  `groupsService.setStudent` kaudu (sama mis grupi lehel: students, studentLessonMap kõik grupi tunnid, students.group, activityLog).
+  Lisab ainult siis, kui kinnitus andis täpselt ühe õpilase kaardi; mitu või null kaarti → teade „lisa laps grupi lehel”, midagi ei arvata.
+  Grupi lisamise viga ei tühista kinnitust, see on teates.
+- Server (functions) ja reeglid muutmata; deploy ainult hosting.
+- Kontroll: `npx vitest run` 5251 läbi, accounts 2 uut testi; eslint accounts puhas.
+- Teadaolev: õpetajate valikus on „Nelli Sikora” kaks korda (kaks kontot) — eraldi küsimus.
+- Järgmine samm: omaniku OK → merge + release.
+
 ## 2026-11-22 — Lasterühmad: moodul 1 üle vaadatud (agent/kids-module1)
 
 - main: 29ce446. Haru `agent/kids-module1`. Omanik: „9–11 kleebiseid ei vaja, need on eelkoolile; tee 9–11 esimene moodul
