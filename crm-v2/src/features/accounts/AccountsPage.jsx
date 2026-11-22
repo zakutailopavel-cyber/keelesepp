@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Check, UserRoundCheck, UserRoundX, X } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
+import { groupsService } from '../../services/firebase/groups.js';
+import { AuthContext } from '../../app/AuthContext.jsx';
 import { APPROVAL_RESPONSE_LOST_MESSAGE } from '../../services/firebase/accountApprovals.js';
 import LinkReviewsCard from './LinkReviewsCard.jsx';
 import './accounts.css';
@@ -25,7 +27,13 @@ function linkedText(result, teacherUid = '') {
 }
 
 // Administrator: self-registered parents and students wait here until approved.
-export default function AccountsPage({ service = accountApprovalsService }) {
+// the student cards approval produced: a group can take the child only when there is exactly one
+function approvedCardIds(result = {}) {
+  return [...new Set([...(result.createdStudentIds || []), ...(result.linkedStudentIds || [])])];
+}
+
+export default function AccountsPage({ service = accountApprovalsService, groups = groupsService }) {
+  const user = useContext(AuthContext)?.user;
   const [tab, setTab] = useState('pending');
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
@@ -35,6 +43,23 @@ export default function AccountsPage({ service = accountApprovalsService }) {
   const teachersState = useAsyncData(() => (service.listTeachers ? service.listTeachers() : Promise.resolve([])), [service]);
   const [teacherFor, setTeacherFor] = useState({});
   const teacherOf = (account) => teacherFor[account.id] ?? account.assignedTeacherUid ?? '';
+  // owner 2026-11-22: „надо еще возможность к группе назначать” — the group the new card joins on approval
+  const groupsState = useAsyncData(() => (groups?.list ? groups.list() : Promise.resolve([])), [groups]);
+  const [groupFor, setGroupFor] = useState({});
+
+  const joinGroup = async (account, result) => {
+    const group = (groupsState.data || []).find((item) => item.id === groupFor[account.id]);
+    if (!group || result.responseLost) return '';
+    const ids = approvedCardIds(result);
+    if (ids.length !== 1) return ` Gruppi „${group.name}” ei lisatud: ${ids.length ? 'kontol on mitu õpilase kaarti' : 'õpilase kaarti pole veel'} — lisa laps grupi lehel.`;
+    try {
+      await groups.setStudent(group, { id: ids[0], name: account.childName || account.displayName }, true, user);
+      groupsState.reload();
+      return ` Lisatud gruppi „${group.name}”.`;
+    } catch (caught) {
+      return ` Gruppi „${group.name}” lisamine ebaõnnestus (${caught.message}) — lisa laps grupi lehel.`;
+    }
+  };
 
   const decide = async (account, decision) => {
     let reason = '';
@@ -46,7 +71,8 @@ export default function AccountsPage({ service = accountApprovalsService }) {
     try {
       const teacherUid = decision === 'approve' ? teacherOf(account) : '';
       const result = await service.decide({ uid: account.id, decision, reason, ...(teacherUid ? { teacherUid } : {}) });
-      setNotice(decision === 'approve' ? linkedText(result, teacherUid) : `Konto „${account.displayName}” on keeldutud.`);
+      const joined = decision === 'approve' ? await joinGroup(account, result) : '';
+      setNotice(decision === 'approve' ? linkedText(result, teacherUid) + joined : `Konto „${account.displayName}” on keeldutud.`);
       state.reload();
       reviewsState.reload();
     } catch (caught) {
@@ -84,6 +110,12 @@ export default function AccountsPage({ service = accountApprovalsService }) {
                   <option value="">Määramata</option>
                   {(teachersState.data || []).map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.name}</option>)}
                 </Select>
+                {(groupsState.data || []).length ? (
+                  <Select label="Grupp (valikuline)" value={groupFor[account.id] || ''} disabled={Boolean(busy)} onChange={(event) => setGroupFor((current) => ({ ...current, [account.id]: event.target.value }))}>
+                    <option value="">Ilma grupita</option>
+                    {groupsState.data.map((group) => <option key={group.id} value={group.id}>{group.name}{group.teacher ? ` · ${group.teacher}` : ''}</option>)}
+                  </Select>
+                ) : null}
               </div>
               <div className="account-row__actions">
                 <Button loading={busy === account.id} disabled={Boolean(busy)} onClick={() => decide(account, 'approve')}>{tab === 'rejected' ? <UserRoundCheck size={16} /> : <Check size={16} />} {tab === 'rejected' ? 'Kinnita siiski' : 'Kinnita'}</Button>
