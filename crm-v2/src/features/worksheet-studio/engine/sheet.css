@@ -921,8 +921,7 @@ button.ws-pt { cursor: pointer; }
 .ws-board-rules { margin: 1mm 0 0; font-size: .9em; }
 .ws-board-dice { display: flex; flex-wrap: wrap; align-items: center; gap: 3mm; padding: 2mm 3mm; border: 2px solid #1e1e1e; border-radius: 2.5mm; background: #f4fbdf; }
 .ws-board-turn { margin: 0; flex: 1 1 12em; }
-.ws-board-turn .is-p0, .ws-pawn.is-p0 { color: #1b4a8a; }
-.ws-board-turn .is-p1, .ws-pawn.is-p1 { color: #b4341f; }
+.ws-pawn { color: #1b4a8a; }
 .ws-board-roll, .ws-board-reset { font: inherit; border-radius: 99px; cursor: pointer; padding: 1.5mm 4mm; border: 2px solid #1e1e1e; }
 .ws-board-roll { background: #b7e33b; font-weight: 800; }
 .ws-board-roll:disabled { opacity: .55; cursor: default; }

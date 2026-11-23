@@ -54,16 +54,11 @@ export const comic = {
 export const boardSquares = (data) => lines(data.squares);
 const COLS = 5;
 
-// The dice on screen (owner 2026-11-23: the board game is played in the Live Classroom): the learner throws, the pawn
-// of whoever's turn it is moves by itself, turns alternate between „Sina” and „Õpetaja”. Positions live in the answers
-// (keys p0, p1, turn, roll), so the teacher sees the board move live; print stays a plain board.
-export const PLAYERS = ['Sina', 'Õpetaja'];
-const num = (value, fallback = 0) => (Number.isFinite(Number(value)) ? Number(value) : fallback);
-export function boardThrow(state, roll, last) {
-  const turn = num(state.turn) === 1 ? 1 : 0;
-  const key = `p${turn}`;
-  return { [key]: Math.min(num(state[key]) + roll, last), turn: turn ? 0 : 1, roll };
-}
+// The dice on screen (owner 2026-11-23: the board game is played in the Live Classroom): the learner throws and her
+// pawn moves by itself to the square to talk about. The position lives in the answers (keys pos, roll), so the teacher
+// sees the pawn move live; print stays a plain board.
+const num = (value) => (Number.isFinite(Number(value)) ? Number(value) : 0);
+export const boardThrow = (pos, roll, last) => ({ pos: Math.min(num(pos) + roll, last), roll });
 const DOTS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 function Die({ value }) {
   return <span className="ws-die" aria-label={value ? `Täring: ${value}` : 'Täring'}>
@@ -71,25 +66,25 @@ function Die({ value }) {
   </span>;
 }
 function BoardDice({ ctx, last }) {
-  const state = { p0: ctx.get('p0'), p1: ctx.get('p1'), turn: ctx.get('turn'), roll: ctx.get('roll') };
-  const turn = num(state.turn) === 1 ? 1 : 0;
-  const done = PLAYERS.findIndex((_, i) => num(state[`p${i}`]) >= last);
+  const pos = num(ctx.get('pos'));
+  const rolled = num(ctx.get('roll'));
+  const done = pos >= last;
   const [spin, setSpin] = useState(false);
   const roll = () => {
-    if (spin || done >= 0) return;
+    if (spin || done) return;
     setSpin(true);
     window.setTimeout(() => {
-      const next = boardThrow(state, 1 + Math.floor(Math.random() * 6), last);
+      const next = boardThrow(pos, 1 + Math.floor(Math.random() * 6), last);
       Object.entries(next).forEach(([k, v]) => ctx.set(k, v));
       setSpin(false);
     }, 450);
   };
-  const reset = () => ['p0', 'p1', 'turn', 'roll'].forEach((k) => ctx.set(k, 0));
+  const reset = () => ['pos', 'roll'].forEach((k) => ctx.set(k, 0));
   return <div className="ws-board-dice">
-    <span className={spin ? 'is-spin' : ''}><Die value={num(state.roll)} /></span>
-    <p className="ws-board-turn">{done >= 0 ? <b>{PLAYERS[done]} jõudis finišisse! 🎉</b> : <>Käik: <b className={`is-p${turn}`}>{PLAYERS[turn]}</b>{num(state.roll) ? ` · viimati ${num(state.roll)}` : ''}</>}</p>
+    <span className={spin ? 'is-spin' : ''}><Die value={rolled} /></span>
+    <p className="ws-board-turn">{done ? <b>Finiš! Tubli! 🎉</b> : rolled ? <>Täring: <b>{rolled}</b> · ruut <b>{pos}</b></> : 'Viska täringut ja alusta!'}</p>
     {ctx.interactive ? <>
-      <button type="button" className="ws-board-roll" onClick={roll} disabled={spin || done >= 0}>🎲 Viska täringut</button>
+      <button type="button" className="ws-board-roll" onClick={roll} disabled={spin || done}>🎲 Viska täringut</button>
       <button type="button" className="ws-board-reset" onClick={reset}>Alusta uuesti</button>
     </> : null}
   </div>;
@@ -107,7 +102,7 @@ export const boardgame = {
     const cells = [{ label: 'START', kind: 'start' }, ...squares.map((text, i) => ({ label: text, n: i + 1, kind: /^Kriksu/i.test(text) ? 'mascot' : 'task' })), { label: 'FINIŠ', kind: 'finish' }];
     const last = cells.length - 1;
     const live = ctx.interactive || ctx.review;
-    const at = (pos) => PLAYERS.map((_, p) => p).filter((p) => live && Math.min(num(ctx.get(`p${p}`)), last) === pos);
+    const here = live ? Math.min(num(ctx.get('pos')), last) : -1;
     const rows = [];
     for (let i = 0; i < cells.length; i += COLS) rows.push(cells.slice(i, i + COLS).map((cell, c) => ({ ...cell, pos: i + c })));
     return (
@@ -120,7 +115,7 @@ export const boardgame = {
                 {cell.n ? <span className="ws-board-n">{cell.n}</span> : null}
                 {cell.kind === 'mascot' ? <img src="/kids-art/kriksu-happy.svg" alt="" /> : null}
                 <span className="ws-board-text">{cell.label}</span>
-                {at(cell.pos).length ? <span className="ws-board-pawns">{at(cell.pos).map((p) => <span key={p} className={`ws-pawn is-p${p}`} title={PLAYERS[p]}>{PLAYERS[p][0]}</span>)}</span> : null}
+                {cell.pos === here ? <span className="ws-board-pawns"><span className="ws-pawn" title="Sinu nupp">●</span></span> : null}
               </div>
             ))}
           </div>
