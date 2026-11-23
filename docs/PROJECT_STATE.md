@@ -23,6 +23,14 @@
 
 
 
+### 2026-11-23 — Lauamäng: täring Live Classroomis (agent/board-dice)
+
+- Base: origin/main 41ed098. Owner: „сделай кубик у нас в онлайн уроке”.
+- `boardgame` block (worksheet-studio/engine/blocks/club.jsx): on screen a dice bar — the learner presses „🎲 Viska täringut”, her one pawn moves (owner: no pawn for the teacher), „Alusta uuesti” resets. State is in the assignment answers (`<block>:pos`, `roll`), so the teacher live view (review mode) shows the pawn move. Print and edit show the plain board. CSS in engine/sheet.css.
+- Test: engine/boardDice.test.jsx. `npx vitest run src/features/worksheet-studio` — 95 files, all passed (after the test fix); eslint 0 errors.
+- Limits: only the learner throws (the teacher live view is read-only); bonus / back squares are moved by voice, not automatically.
+- Next safe step: merge with the owner's OK and release.
+
 ## 2026-11-22 — Avatud tööd: uuem päev enne (agent/student-newest-first)
 
 - main kontrollitud: 499f54d (2026-11-22). Omanik: „сейчас самое старое наверху а новое внизу, логично было бы наоборот”.

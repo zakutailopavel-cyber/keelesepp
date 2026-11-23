@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Text } from '../../editor/fields.jsx';
 
 // Game sheets for the children's speaking club (owner 2026-11-21: „давай делай талисмана и листы-игры”): a comic strip
@@ -53,6 +54,42 @@ export const comic = {
 export const boardSquares = (data) => lines(data.squares);
 const COLS = 5;
 
+// The dice on screen (owner 2026-11-23: the board game is played in the Live Classroom): the learner throws and her
+// pawn moves by itself to the square to talk about. The position lives in the answers (keys pos, roll), so the teacher
+// sees the pawn move live; print stays a plain board.
+const num = (value) => (Number.isFinite(Number(value)) ? Number(value) : 0);
+export const boardThrow = (pos, roll, last) => ({ pos: Math.min(num(pos) + roll, last), roll });
+const DOTS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function Die({ value }) {
+  return <span className="ws-die" aria-label={value ? `Täring: ${value}` : 'Täring'}>
+    {Array.from({ length: 9 }, (_, i) => <i key={i} className={DOTS[value]?.includes(i) ? 'is-on' : ''} />)}
+  </span>;
+}
+function BoardDice({ ctx, last }) {
+  const pos = num(ctx.get('pos'));
+  const rolled = num(ctx.get('roll'));
+  const done = pos >= last;
+  const [spin, setSpin] = useState(false);
+  const roll = () => {
+    if (spin || done) return;
+    setSpin(true);
+    window.setTimeout(() => {
+      const next = boardThrow(pos, 1 + Math.floor(Math.random() * 6), last);
+      Object.entries(next).forEach(([k, v]) => ctx.set(k, v));
+      setSpin(false);
+    }, 450);
+  };
+  const reset = () => ['pos', 'roll'].forEach((k) => ctx.set(k, 0));
+  return <div className="ws-board-dice">
+    <span className={spin ? 'is-spin' : ''}><Die value={rolled} /></span>
+    <p className="ws-board-turn">{done ? <b>Finiš! Tubli! 🎉</b> : rolled ? <>Täring: <b>{rolled}</b> · ruut <b>{pos}</b></> : 'Viska täringut ja alusta!'}</p>
+    {ctx.interactive ? <>
+      <button type="button" className="ws-board-roll" onClick={roll} disabled={spin || done}>🎲 Viska täringut</button>
+      <button type="button" className="ws-board-reset" onClick={reset}>Alusta uuesti</button>
+    </> : null}
+  </div>;
+}
+
 export const boardgame = {
   type: 'boardgame', label: 'Lauamäng (täringuga)', group: 'Lastele', icon: 'Dices', task: false, width: 'full', tone: 'white',
   create: () => ({
@@ -60,13 +97,17 @@ export const boardgame = {
     squares: 'Ütle oma nimi ja vanus.\nKüsi naabrilt: „Kus sa elad?”\nKriksu leidis palli! Mine 2 ruutu edasi.\nNimeta 3 looma.',
     rules: '',
   }),
-  View: ({ data }) => {
+  View: ({ data, ctx }) => {
     const squares = boardSquares(data);
     const cells = [{ label: 'START', kind: 'start' }, ...squares.map((text, i) => ({ label: text, n: i + 1, kind: /^Kriksu/i.test(text) ? 'mascot' : 'task' })), { label: 'FINIŠ', kind: 'finish' }];
+    const last = cells.length - 1;
+    const live = ctx.interactive || ctx.review;
+    const here = live ? Math.min(num(ctx.get('pos')), last) : -1;
     const rows = [];
-    for (let i = 0; i < cells.length; i += COLS) rows.push(cells.slice(i, i + COLS));
+    for (let i = 0; i < cells.length; i += COLS) rows.push(cells.slice(i, i + COLS).map((cell, c) => ({ ...cell, pos: i + c })));
     return (
       <div className="ws-board">
+        {live ? <BoardDice ctx={ctx} last={last} /> : null}
         {rows.map((row, r) => (
           <div key={r} className={`ws-board-row${r % 2 ? ' is-back' : ''}`}>
             {row.map((cell, c) => (
@@ -74,6 +115,7 @@ export const boardgame = {
                 {cell.n ? <span className="ws-board-n">{cell.n}</span> : null}
                 {cell.kind === 'mascot' ? <img src="/kids-art/kriksu-happy.svg" alt="" /> : null}
                 <span className="ws-board-text">{cell.label}</span>
+                {cell.pos === here ? <span className="ws-board-pawns"><span className="ws-pawn" title="Sinu nupp">●</span></span> : null}
               </div>
             ))}
           </div>
