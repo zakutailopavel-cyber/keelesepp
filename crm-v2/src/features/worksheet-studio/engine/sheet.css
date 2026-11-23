@@ -919,6 +919,22 @@ button.ws-pt { cursor: pointer; }
 .ws-board-cell.is-mascot img { position: absolute; left: 1mm; top: 50%; width: 11mm; transform: translateY(-50%); }
 .ws-board-n { position: absolute; top: .8mm; right: 1.5mm; font: 700 .8em Arial, sans-serif; color: #666; }
 .ws-board-rules { margin: 1mm 0 0; font-size: .9em; }
+.ws-board-dice { display: flex; flex-wrap: wrap; align-items: center; gap: 3mm; padding: 2mm 3mm; border: 2px solid #1e1e1e; border-radius: 2.5mm; background: #f4fbdf; }
+.ws-board-turn { margin: 0; flex: 1 1 12em; }
+.ws-board-turn .is-p0, .ws-pawn.is-p0 { color: #1b4a8a; }
+.ws-board-turn .is-p1, .ws-pawn.is-p1 { color: #b4341f; }
+.ws-board-roll, .ws-board-reset { font: inherit; border-radius: 99px; cursor: pointer; padding: 1.5mm 4mm; border: 2px solid #1e1e1e; }
+.ws-board-roll { background: #b7e33b; font-weight: 800; }
+.ws-board-roll:disabled { opacity: .55; cursor: default; }
+.ws-board-reset { background: #fff; font-size: .85em; }
+.ws-die { display: inline-grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 34px; height: 34px; padding: 4px; box-sizing: border-box; background: #fff; border: 2px solid #1e1e1e; border-radius: 7px; }
+.ws-die i { border-radius: 50%; }
+.ws-die i.is-on { background: #1e1e1e; }
+.is-spin .ws-die { animation: ws-die-spin .45s linear; }
+@keyframes ws-die-spin { to { transform: rotate(360deg); } }
+.ws-board-pawns { position: absolute; left: 1mm; bottom: 1mm; display: flex; gap: 1mm; }
+.ws-pawn { display: grid; place-items: center; width: 6.5mm; height: 6.5mm; border-radius: 50%; border: 2px solid currentColor; background: #fff; font: 800 .8em/1 Arial, sans-serif; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+@media print { .ws-board-dice, .ws-board-pawns { display: none; } }
 @media (max-width: 640px) { .ws-comic, .ws-comic--3 { grid-template-columns: 1fr; } .ws-board-row { grid-template-columns: repeat(2, minmax(0, 1fr)); direction: ltr; } }
 .ws-readcard p { margin: 0; font: 700 2em/1.25 Verdana, 'Avenir Next', Arial, sans-serif; letter-spacing: .06em; color: #1e1e1e; }
 .ws-hunt-cell { font-family: Verdana, 'Avenir Next', Arial, sans-serif; }
