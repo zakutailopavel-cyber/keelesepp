@@ -279,7 +279,7 @@
 .pl__reward { grid-column: 1 / -1; display: grid; gap: 4px; font-size: .84rem; color: #33424f;color:light-dark(#33424f,#c2cad2); }
 .pl__reward-text { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .pl__reward.is-ready { font-weight: 700; }
-.pl__reward .link-button { min-height: 36px; padding: 0 2px; border: 0; background: none; color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; white-space: nowrap; }
+.pl__reward .link-button { min-height: 36px; padding: 0 2px; border: 0; background: none; color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); font: inherit; font-weight: 800; text-decoration: none; cursor: pointer; white-space: nowrap; }
 .pl__reward .pet-xp__bar i { background: #e0823d; }
 @media (prefers-reduced-motion: reduce) { .pl__art.is-glad { animation: none; } .pl__need .pet-need__bar i { transition: none; } }
 

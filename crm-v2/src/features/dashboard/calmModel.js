@@ -33,8 +33,25 @@ export function lateReviews(submissions = [], now = Date.now(), days = REVIEW_LA
 // The attention list: one line per kind of work with a count > 0, most urgent first, at most `limit` lines. A count
 // left `null` (its data is not loaded or not this role's) is not shown. Each line opens the page or the tile's panel
 // where the work is done. `rest` = how many kinds did not fit.
+// names in a line (owner 2026-11-24: „сразу писать имена”): „Darina Zubova, Veronika Y. +2”
+export function namesLine(names = [], max = 2) {
+  const list = [...new Set(names.map((name) => String(name || '').trim()).filter(Boolean))];
+  if (!list.length) return '';
+  return `${list.slice(0, max).join(', ')}${list.length > max ? ` +${list.length - max}` : ''}`;
+}
+// „algab 18 min pärast” / „käib praegu” for the next lesson
+export function startsLabel(item, clock = '00:00') {
+  if (!item) return '';
+  if (item.phase === 'now') return 'käib praegu';
+  const left = (minutesOf(item.time) ?? 0) - (minutesOf(clock) ?? 0);
+  return left <= 0 ? 'algab kohe' : `algab ${left} min pärast`;
+}
+
 export function attentionItems({
   soon = [],
+  clock = '',
+  unmarkedNames = [],
+  unplannedNames = [],
   showTeacher = true,
   unmarked = null,
   reviewsLate = null,
@@ -51,20 +68,21 @@ export function attentionItems({
     soon.length ? {
       key: 'soon',
       count: soon.length,
-      text: `${plural(soon.length, 'tund käib', 'tundi käib')} või algab tunni jooksul`,
-      detail: next ? `${next.phase === 'now' ? 'Käib' : 'Järgmine'}: ${next.time} ${next.studentName}${showTeacher && next.teacher ? ` · ${next.teacher}` : ''}` : '',
+      // the lesson itself is the line: „15:30 Aleksandr Dikovitš”, „algab 18 min pärast” (+ the others within the hour)
+      text: next ? `${next.time} ${next.studentName}` : `${plural(soon.length, 'tund käib', 'tundi käib')} või algab tunni jooksul`,
+      detail: next ? [clock ? startsLabel(next, clock) : (next.phase === 'now' ? 'käib praegu' : 'algab tunni jooksul'), showTeacher && next.teacher ? next.teacher : '', soon.length > 1 ? `+${soon.length - 1} veel tunni jooksul` : ''].filter(Boolean).join(' · ') : '',
       to: next?.path || '/calendar',
       action: next?.path ? { to: next.path, label: 'Alusta tundi' } : null,
       tone: 'now',
     } : null,
-    unmarked ? { key: 'unmarked', count: unmarked, text: `${plural(unmarked, 'märkimata tund', 'märkimata tundi')}`, detail: 'Möödunud tunnid ilma märketa', to: '/calendar/markimata', tone: 'danger' } : null,
+    unmarked ? { key: 'unmarked', count: unmarked, text: `${plural(unmarked, 'märkimata tund', 'märkimata tundi')}`, detail: namesLine(unmarkedNames) || 'Möödunud tunnid ilma märketa', to: '/calendar/markimata', tone: 'danger' } : null,
     reviewsLate ? { key: 'reviews', count: reviewsLate, text: `${reviewsLate === 1 ? '1 töö ootab' : `${reviewsLate} tööd ootavad`} kontrolli üle ${REVIEW_LATE_DAYS} päeva`, detail: 'Esitatud, kuid õpetaja pole üle vaadanud', to: '/homework', tone: 'warning' } : null,
     overdueInvoices ? { key: 'invoices', count: overdueInvoices, text: `${plural(overdueInvoices, 'tähtaja ületanud arve', 'tähtaja ületanud arvet')}`, detail: `Kokku ${money(overdueCents)}`, to: '/finance?status=overdue', tone: 'danger' } : null,
     leads ? { key: 'leads', count: leads, text: `${plural(leads, 'uus veebipäring', 'uut veebipäringut')}`, detail: 'Keegi pole veel vastanud', to: '/leads', tone: 'warning' } : null,
     calls ? { key: 'calls', count: calls, text: `${calls === 1 ? '1 õpilane vajab' : `${calls} õpilast vajavad`} kõnet`, detail: 'Puudumised, tegemata kodutööd või tunnita', panel: 'calls', tone: 'warning' } : null,
     runningOut ? { key: 'balance', count: runningOut, text: `${runningOut === 1 ? '1 õpilasel lõpevad' : `${runningOut} õpilasel lõpevad`} makstud tunnid`, detail: 'Pakett või kuuarve hakkab otsa saama', panel: 'balance', tone: 'warning' } : null,
     errors ? { key: 'errors', count: errors, text: `${plural(errors, 'uus viga', 'uut viga')} saidil`, detail: 'Viimased 24 tundi', to: '/vead', linkLabel: 'Vead', tone: 'neutral' } : null,
-    unplanned ? { key: 'unplanned', count: unplanned, text: `${plural(unplanned, 'õpilane', 'õpilast')} ilma tulevase tunnita`, detail: 'Lisa tund või märgi paus', to: '/calendar?unplanned=1', tone: 'neutral' } : null,
+    unplanned ? { key: 'unplanned', count: unplanned, text: `${plural(unplanned, 'õpilane', 'õpilast')} ilma tulevase tunnita`, detail: namesLine(unplannedNames) || 'Lisa tund või märgi paus', to: '/calendar?unplanned=1', tone: 'neutral' } : null,
   ].filter(Boolean);
   return { items: all.slice(0, limit), rest: Math.max(0, all.length - limit) };
 }

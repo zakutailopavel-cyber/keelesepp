@@ -367,3 +367,16 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
   .field-help__button{position:relative}
   .field-help__button::after{content:'';position:absolute;inset:-12px}
 }
+
+/* Links across the CRM (owner 2026-11-25: „подчёркиваний вообще не надо … как на современных сайтах”): no underline
+   anywhere; on hover a link takes the accent colour, and a name link (inside strong / b / a table cell / a heading)
+   also grows a little, smoothly. Links in running text keep the accent colour so they still read as links.
+   `:where()` keeps the resting rules weaker than any component's own display or colour; the hover colour wins. */
+:where(a:not(.button)) { text-decoration: none; }
+a:not(.button):hover { text-decoration: none; color: var(--green-text, var(--success-text)); }
+:where(strong, b, td, th, h1, h2, h3, h4, dd) > :where(a:not(.button)) { display: inline-block; transform-origin: left center; transition: transform .18s ease, color .18s ease; }
+:where(strong, b, td, th, h1, h2, h3, h4, dd) > :where(a:not(.button)):hover { transform: scale(1.04); }
+:where(p, .form-hint, label) :where(a:not(.button)) { color: var(--green-text, var(--success-text)); font-weight: 600; }
+:where(a:not(.button)):focus-visible { outline: 2px solid var(--green-text, var(--success-text)); outline-offset: 2px; border-radius: 4px; }
+.student-profile-link:hover, .invoice-link:hover { text-decoration: none; }
+@media (prefers-reduced-motion: reduce) { :where(strong, b, td, th, h1, h2, h3, h4, dd) > :where(a:not(.button)) { transition: color .18s ease; } :where(strong, b, td, th, h1, h2, h3, h4, dd) > :where(a:not(.button)):hover { transform: none; } }

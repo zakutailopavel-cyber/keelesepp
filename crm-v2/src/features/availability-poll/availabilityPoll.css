@@ -76,7 +76,7 @@
 .poll-done__icon { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 12px; display: grid; place-items: center; background: var(--g); color: #fff; font-size: 2rem; }
 .poll-done h1 { font: 900 1.6rem 'Nunito', system-ui, sans-serif; margin: 0 0 8px; }
 .poll-done p { color: var(--muted); margin: 0 0 16px; }
-.poll-link { border: 0; background: none; color: var(--g); font-weight: 700; cursor: pointer; text-decoration: underline; }
+.poll-link { border: 0; background: none; color: var(--g); font-weight: 700; cursor: pointer; text-decoration: none; }
 @media (max-width: 640px) {
   .poll-steps { grid-template-columns: 1fr; gap: 6px; }
   .poll-steps li { padding: 8px 11px; align-items: center; }

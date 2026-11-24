@@ -17,7 +17,7 @@
 .monthly-invoices__detail p { margin: 0 0 6px; }
 .monthly-invoices__detail ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 4px; }
 .monthly-invoices__detail label { display: flex; gap: 8px; align-items: center; }
-.linklike { border: 0; background: none; padding: 0; color: var(--info-text); font-weight: 700; text-decoration: underline; cursor: pointer; }
+.linklike { border: 0; background: none; padding: 0; color: var(--info-text); font-weight: 700; text-decoration: none; cursor: pointer; }
 .monthly-invoices__footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
 .monthly-invoices__footer > div { display: flex; gap: 8px; }
 .monthly-invoices__warn { display: inline-flex; gap: 6px; align-items: center; color: var(--warning-text); }

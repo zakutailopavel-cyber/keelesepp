@@ -36,6 +36,28 @@ describe('TodayTimeline', () => {
   });
 });
 
+describe('TodayTimeline — what each lesson needs (owner 2026-11-24)', () => {
+  const day = todayLessons({ events, today: '2026-11-04', now: '12:40' });
+  it('a lesson ahead says which sheet is on the board, or that none is chosen; „Veebitund” is gone', async () => {
+    const sheets = { listPreparedWorksheets: vi.fn(async (id) => (id === day.find((item) => item.phase === 'later').studentId ? [{ id: 'w', lessonTitle: 'Räägin ja põhjendan' }] : [])) };
+    wrap(<TodayTimeline lessons={day} sheetsService={sheets} />);
+    const region = screen.getByRole('region', { name: 'Täna' });
+    expect(await within(region).findByText(/Räägin ja põhjendan · leht tahvlil/)).toBeInTheDocument();
+    expect(within(region).queryByText('Veebitund')).not.toBeInTheDocument();
+  });
+  it('a lesson over and not marked comes to the top with „Toimus”; one tap marks it', async () => {
+    const mark = { markHeld: vi.fn(async () => ({})) };
+    wrap(<TodayTimeline lessons={day} user={{ uid: 'u' }} markService={mark} sheetsService={{ listPreparedWorksheets: async () => [] }} />);
+    const region = screen.getByRole('region', { name: 'Täna' });
+    const list = within(region).getByRole('list', { name: 'Märkimata' });
+    const buttons = within(list).getAllByRole('button', { name: 'Toimus' });
+    fireEvent.click(buttons[0]);
+    await waitFor(() => expect(mark.markHeld).toHaveBeenCalledTimes(1));
+    expect(mark.markHeld.mock.calls[0][0].source).toBeTruthy();
+    await waitFor(() => expect(within(region).getAllByRole('button', { name: 'Toimus' })).toHaveLength(buttons.length - 1));
+  });
+});
+
 describe('panels', () => {
   it('homework per teacher', () => {
     wrap(<HomeworkPanel queue={{ waiting: 1, overdue: 2, byTeacher: [{ teacher: 'Kati', waiting: 1, overdue: 2 }] }} />);

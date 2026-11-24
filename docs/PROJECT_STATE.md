@@ -1,3 +1,13 @@
+## 2026-11-25 — Avaleht selgemaks, vorm sama (agent/home-clearer)
+
+- Omanik 2026-11-24: praegune avalehe vorm jääb („Täna” ümberkujundus lükati tagasi); parandused 1–5 selle sees.
+- 1) Telefonis kiirlingid 2×2 (enne läks „Õppevara”/„Suhtlus” paremalt ekraanist välja). 2) Telefonis numbrid ühes reas (allkirjad peidus), tunnid jõuavad esimesse ekraani.
+- 3) „Täna” rida: „Veebitund” asemel tahvlil olev leht („Räägin ja põhjendan · leht tahvlil”) või „leht valimata”; möödunud tunnil „märkimata”. Andmed: `homeworkService.listPreparedWorksheets(studentId)` (`liveRoomKey == prep_<id>`, sama päring kui ruumil).
+- 4) „Vajab tähelepanu”: järgmise tunni rida = „15:30 Nimi”, „algab 18 min pärast”; märkimata ja tulevase tunnita õpilaste read näitavad nimesid (`namesLine`).
+- 5) Täna lõppenud märkimata tund tõuseb „Täna” ülaossa nupuga „Toimus” (`lessonsService.completeFromSchedule(..., Toimunud)`, sama mis kalendris; `announceLessonMarked`).
+- Kontrollid: `npx vitest run` 634 faili läbi (1 skip); eslint 0 viga. Ekraanipildid enne/pärast samade demoandmetega.
+- Järgmine samm: omaniku OK → merge → release.
+
 ## 2026-11-24 — „Tundide tekst”: transkribeerimise edenemine avalehel (agent/transcriber-progress)
 
 - Main: 7c387d3 (2026-11-24). Omanik: tekst tehakse edasi tema Macis (öösel 02–07), aga edenemist peab nägema saidil.

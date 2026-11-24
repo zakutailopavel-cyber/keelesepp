@@ -31,8 +31,16 @@ describe('attentionItems', () => {
   it('the lesson line names the next lesson and links „Alusta tundi” to it; the teacher only when asked', () => {
     const soon = [lesson('12:30', 'now'), lesson('13:00', 'later')];
     const [first] = attentionItems({ soon }).items;
-    expect(first).toMatchObject({ count: 2, text: '2 tundi käib või algab tunni jooksul', detail: 'Järgmine: 13:00 Õpilane 13:00 · Kati', action: { to: '/calendar?lesson=13:00', label: 'Alusta tundi' } });
-    expect(attentionItems({ soon: [lesson('12:30', 'now')], showTeacher: false }).items[0].detail).toBe('Käib: 12:30 Õpilane 12:30');
+    expect(first).toMatchObject({ count: 2, text: '13:00 Õpilane 13:00', detail: 'algab tunni jooksul · Kati · +1 veel tunni jooksul', action: { to: '/calendar?lesson=13:00', label: 'Alusta tundi' } });
+    expect(attentionItems({ soon, clock: '12:42' }).items[0].detail).toBe('algab 18 min pärast · Kati · +1 veel tunni jooksul');
+    expect(attentionItems({ soon: [lesson('12:30', 'now')], showTeacher: false }).items[0]).toMatchObject({ text: '12:30 Õpilane 12:30', detail: 'käib praegu' });
+  });
+
+  it('names the students: unmarked lessons and those with no next lesson (owner 2026-11-24)', () => {
+    const { items } = attentionItems({ unmarked: 1, unmarkedNames: ['Andrei Nikulin'], unplanned: 3, unplannedNames: ['Darina Zubova', 'Veronika Y', 'Darina Zubova', 'Milan G', 'Ott'] });
+    expect(items.find((item) => item.key === 'unmarked').detail).toBe('Andrei Nikulin');
+    expect(items.find((item) => item.key === 'unplanned').detail).toBe('Darina Zubova, Veronika Y +2');
+    expect(attentionItems({ unplanned: 1 }).items[0].detail).toBe('Lisa tund või märgi paus');
   });
 
   it('calls and packages open a panel on the page, the rest link to their page', () => {

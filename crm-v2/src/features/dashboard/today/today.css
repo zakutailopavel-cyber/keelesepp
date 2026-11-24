@@ -37,3 +37,11 @@
   .today-calls > li { grid-template-columns: 1fr; }
   .today-call-form .field { min-width: 0; flex: 1 1 100%; }
 }
+
+/* „Toimus” on a lesson over (home page, owner 2026-11-24) and its „märkimata” note */
+.today-lessons .today-mark { border: 0; cursor: pointer; font-family: inherit; }
+.today-lessons .today-mark:disabled { opacity: .6; cursor: default; }
+.today-lessons small.today-unmarked { color: var(--danger-text); }
+.today-lessons > li.is-past.is-unmarked { opacity: 1; }
+/* student names in „Täna”: the site-wide link look (styles/index.css, owner 2026-11-25) */
+.today-lessons strong a { color: inherit; }

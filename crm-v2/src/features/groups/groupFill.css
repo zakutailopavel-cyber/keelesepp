@@ -36,7 +36,7 @@
 .group-detail__row:last-child { border-bottom: 0; }
 .group-detail__note { display: block; color: var(--muted); font-size: .74rem; margin-top: 2px; }
 .group-card__open { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
-.group-card__open:hover h2 { text-decoration: underline; }
+.group-card__open:hover h2 { text-decoration: none; }
 @media (max-width: 700px) { .group-detail__row { grid-template-columns: minmax(0, 1fr) auto; } }
 /* „Halda”: active and archived students under their own headers (2026-11-06) */
 .group-member-manager__head { margin: 6px 0 0; font-size: .78rem; font-weight: 800; color: var(--gray-700); text-transform: uppercase; letter-spacing: .03em; }
