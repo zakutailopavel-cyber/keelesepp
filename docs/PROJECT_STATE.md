@@ -1,3 +1,14 @@
+## 2026-11-25 — B2 moodul 17 metoodika v5 järgi, pilootmoodul (agent/b2-m17-v5)
+
+- Main: 2c12977 (2026-11-25). Haru `agent/b1b2-method-v5` peal, sisse ühendatud `agent/b1b2-gates-v5` (#1305); draft-PR „B2 module 17 to methodology v5 (pilot)”. Deploy'd ja production'i kirjutusi ei olnud.
+- Tulemus: b1b2-081…084 = 3 / 4 / 5 plokki (12 tunnis, ≈ 64–67 min), varem 21–22 plokki ≈ 134–140 min; kontroll 085 = üks leht, 9 plokki, ≈ 36 min, kirjutamine + rääkimine, toorpunktid ja lävendid 60 / 70 / 80 % (varem 3 lehte, 37 plokki). `method-v5.mjs --course b2 --module 17`: 0 rikkumist; moodul on `strictModulesV5.json`-is.
+- Sisend vaheldub: 081 lugemine (~400 sõna, 3 järeldusküsimust), 082 kuulamine (082_p_lc pikendatud, 202 s, 12 küsimust), 083 lugemine (083_p_article ~550 sõna), 084 kuulamine (uus 084_d_show, 197 s, 12 õige/vale). Heli tehti TartuNLP Neurokõnega (tasuta, omaniku luba).
+- Mooduli nõuded: külm ülesanne 081_d_cold ↔ paralleelne 085_d_mono; kõne ilma fraasideta 083_t_talk; kiri ilma alguse ja fraasideta 084_t_letter; varjatud infoga kaart 082_t_call; seosülesanne 081_t_letter (ERR Arvamus) ja 083_t_letter (rahvaloendus.ee, minuomavalitsus.ee); analüütiline B2 juhend (4 kriteeriumi + piiripealne näidis õpetaja märkuses) igas tunnis; tegelased ainult tunnis 082.
+- Eemaldatud plokid on `hide(block, why)` alles (id-d ja vastused jäävad, drillid jõuavad endiselt Harjuta harjutustesse). Vanad v2–v4 lehereeglid ei sobi v5-ga: `quality.js` ja `didactics/gates.js` jätavad `meta.methodV5` lehtedel vahele lehe kuju, naabri- ja tüübireeglid ning lehe pikkuse/kõne normid; `listeningAudio.test.js` jätab peidetud plokid vahele; finalShape B2 (49) ja academic value (2 + 2) baasjoontesse lisati mooduli 17 v5-ga vastuolus olevad kirjed.
+- Kontrollid: `npx vitest run src/features/worksheet-generator` 88 faili läbi (1 skip); practice / students / vocabulary / curriculum / worksheet-studio 174 faili läbi; eslint muudetud failidel 0 viga. Ekraanipildid enne/pärast (081 kolm lehte, 085) on scratchpadis.
+- Piirangud: finalShape ja academic value väravad vajavad v5 erandit (praegu baasjoon); B2 kursuselt kadus R4 lausepanga eksaminurk ja kontrolli L2 (V6), need peaksid tulema mooduli 18 või vahehindamise kaudu; omanik pole tundi veel tunnis proovinud.
+- Järgmine samm: omanik vaatab piloodi „сейчас | будет” ekraanipildid ja annab OK või parandused; seejärel moodul 18 sama mustri järgi.
+
 ## 2026-11-25 — B1/B2 kursuse väravad v5 „tunni eelarve” (agent/b1b2-gates-v5)
 
 - Main: b6414d4 (2026-11-25). Haru tehtud `agent/b1b2-method-v5` (b3ffd7c, METHODOLOGY_B1_B2_V5.md) peale; draft-PR „Course gates v5 for B1/B2 (lesson budget)”. Kursuse sisu ei muudetud, deploy'd ega production'i kirjutusi pole.

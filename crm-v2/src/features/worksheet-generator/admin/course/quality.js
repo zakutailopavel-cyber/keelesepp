@@ -79,6 +79,11 @@ export function sheetProblems(doc) {
   // the constructor's errors and level norms above, the one-to-one note of pair work, long texts in paragraphs and the
   // picture's own questions.
   if (isStationSheet(doc)) return [...out, ...fullerProblems(doc), ...oneToOneProblems(doc)];
+  // methodology v5 „lesson budget” (meta.methodV5, strictModulesV5.json): a lesson is one fixed shape of 3 / 4 / 5 blocks
+  // (docs/METHODOLOGY_B1_B2_V5.md §3) checked by methodV5.js G1–G13, so the sheet's own shape rules of v2–v4 (types per
+  // sheet, how it ends, review / notice / talk on Avasta, a use task on Harjuta, a situation first in Kasuta) are not
+  // applied; kept: the constructor's errors and level norms above, the one-to-one note, paragraphs, picture questions
+  if (doc.meta?.methodV5) return [...out, ...fullerProblems(doc), ...oneToOneProblems(doc)];
   // a word strip is added to the sheet (art/wordStrips.js), it is not a block of the lesson's shape
   const n = doc.blocks.filter((b) => b.type !== 'wordstrip').length;
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
@@ -215,7 +220,7 @@ function v4Problems(doc, phase) {
 // dictation are spice, not the staple (exam lessons are not counted)
 export function v4ModuleProblems(sheets) {
   const out = [];
-  const lessons = Object.entries(sheets).filter(([, phases]) => !lessonDiagnostic(phases) && Object.values(phases).some((d) => d.meta?.template === 'v4' && !d.meta?.assessment));
+  const lessons = Object.entries(sheets).filter(([, phases]) => !lessonDiagnostic(phases) && Object.values(phases).some((d) => d.meta?.template === 'v4' && !d.meta?.assessment && !d.meta?.methodV5));
   if (!lessons.length) return out;
   const count = {};
   for (const [lessonId, phases] of lessons) {
@@ -245,7 +250,8 @@ export function moduleProblems(sheets) {
   }
   // the parallel versions of a diagnostic check have the same structure on purpose: the module rules skip them; a station
   // lesson (v3-stations) is checked by its own variety rules (stations.js: openings, final kinds), not by sheet sequences
-  const lessonIds = Object.keys(sheets).filter((id) => !lessonDiagnostic(sheets[id]) && !Object.values(sheets[id]).some(isStationSheet));
+  // a v5 lesson (meta.methodV5) has the same 3 / 4 / 5 shape in every lesson by design: no sequence or neighbour rules
+  const lessonIds = Object.keys(sheets).filter((id) => !lessonDiagnostic(sheets[id]) && !Object.values(sheets[id]).some(isStationSheet) && !Object.values(sheets[id]).some((d) => d.meta?.methodV5));
   for (const lessonId of lessonIds) {
     const docs = Object.values(sheets[lessonId]);
     if (new Set(docs.map((d) => tasks(d).map((b) => b.type).join('|'))).size !== docs.length) out.push({ lessonId, phase: '*', code: 'phases-same', text: 'tunni etappidel on sama ülesannete jada' });
