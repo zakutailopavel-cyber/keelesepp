@@ -43,3 +43,7 @@
 .today-lessons .today-mark:disabled { opacity: .6; cursor: default; }
 .today-lessons small.today-unmarked { color: var(--danger-text); }
 .today-lessons > li.is-past.is-unmarked { opacity: 1; }
+/* student names in „Täna” are links without an underline (owner 2026-11-25: „подчёркивание выглядит дёшево”);
+   the underline comes only on hover / keyboard focus */
+.today-lessons strong a { color: inherit; text-decoration: none; }
+.today-lessons strong a:hover, .today-lessons strong a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
