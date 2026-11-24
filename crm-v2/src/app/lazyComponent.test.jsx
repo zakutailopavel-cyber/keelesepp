@@ -48,7 +48,10 @@ describe('on-demand components (clientErrors 2026-11-04/05: „reading \'default
 
   it('the lesson room parts resolve to a component as .default', async () => {
     const room = lazyTargets().filter(({ from }) => /live-classroom|worksheet-studio|board[\\/]/.test(from));
-    expect(room.length).toBeGreaterThan(10);
+    // the 1:1 room's panels load through roomPanels.js (prefetched once the room is open)
+    const { ROOM_PANEL_LOADERS } = await import('../features/live-classroom/roomPanels.js');
+    expect(room.length + ROOM_PANEL_LOADERS.teacher.length).toBeGreaterThan(10);
+    for (const load of ROOM_PANEL_LOADERS.teacher) expect(typeof (await load()).default).toBe('function');
     for (const { target } of room) {
       const module = await import(/* @vite-ignore */ target);
       expect(['function', 'object'], target).toContain(typeof module.default);

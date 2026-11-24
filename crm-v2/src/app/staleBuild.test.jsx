@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import PageErrorBoundary from './PageErrorBoundary.jsx';
-import { isStaleBuildError, reloadOnceForNewBuild } from './staleBuild.js';
+import { holdReloads, isStaleBuildError, reloadOnceForNewBuild } from './staleBuild.js';
 
 const memory = () => { const data = new Map(); return { getItem: (key) => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) }; };
 
@@ -15,6 +15,20 @@ describe('a page of an older build after a deploy', () => {
     expect(reloadOnceForNewBuild(storage, location, 5000)).toBe(false);
     expect(location.reload).toHaveBeenCalledTimes(1);
     expect(reloadOnceForNewBuild(storage, location, 60000)).toBe(true);
+  });
+
+  it('never reloads while a lesson holds reloads (the call would drop)', () => {
+    const storage = memory();
+    const location = { reload: vi.fn() };
+    const release = holdReloads();
+    const second = holdReloads();
+    expect(reloadOnceForNewBuild(storage, location, 1000)).toBe(false);
+    release();
+    release();
+    expect(reloadOnceForNewBuild(storage, location, 2000)).toBe(false);
+    second();
+    expect(reloadOnceForNewBuild(storage, location, 3000)).toBe(true);
+    expect(location.reload).toHaveBeenCalledTimes(1);
   });
 
   it('shows a message instead of a blank screen when a page throws', () => {

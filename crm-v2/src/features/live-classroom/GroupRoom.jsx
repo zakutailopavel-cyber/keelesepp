@@ -1,6 +1,7 @@
 import { askConfirm } from '../../components/ui/ConfirmHost.jsx';
 import { ArrowLeft, Columns2, LibraryBig, Rows2, MessageSquare, Mic, MicOff, MoreHorizontal, Phone, PhoneOff, Redo2, Send, Sparkles, Timer, Undo2, Users, Video, VideoOff, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { holdReloads } from '../../app/staleBuild.js';
 import { CountdownBadge, CountdownControls } from './CountdownTimer.jsx';
 import { useCountdown } from './useCountdown.js';
 import { QuickPollCard, QuickPollPanel } from './QuickPoll.jsx';
@@ -91,6 +92,8 @@ export default function GroupRoom({
   momentsService, deviceCheck,
 }) {
   const teacher = role === 'teacher';
+  // no page reload during the lesson (staleBuild.js): it would drop the call
+  useEffect(() => holdReloads(), []);
   const [room, setRoom] = useState(null);
   const [error, setError] = useState('');
   const [panel, setPanel] = useState('');
