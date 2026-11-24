@@ -19,7 +19,7 @@ export { EXIT_ITEMS, EXTENSION_MINUTES, FINAL_KINDS, exitCheck, extension, fallb
 export { isTaskDesign } from '../../../worksheet-studio/didactics/stations.js';
 
 export const ST = Object.freeze({
-  stations: [4, 6], minutes: [8, 15], blocks: 16, textWords: 120, audioWords: 320, dialogueLines: [4, 8],
+  stations: [4, 6], minutes: [8, 15], v5Minutes: [5, 25], blocks: 16, textWords: 120, audioWords: 320, dialogueLines: [4, 8],
   items: STATION_ITEMS, purposeWords: 6,
   // design v4 „task-based” (§7, owner 2026-11-17): exactly 4 stations, ≤ 75 station minutes of a 90-min lesson (room for the
   // hook, the exit check and slack), one exit check (2–3 items) + one self-check on Kasuta
@@ -41,7 +41,7 @@ export function stationsOf(lesson) {
   for (const phase of PHASES) {
     let cur = null;
     for (const b of blocksOfPhase(lesson?.[phase] || [])) {
-      if (b.data?.artFor || b.data?.artId || b.data?.review) continue;
+      if (b.hidden || b.data?.artFor || b.data?.artId || b.data?.review) continue;
       if (b.data?.station) { cur = { ...b.data.station, phase, blocks: [] }; out.push(cur); }
       if (cur && cur.phase === phase) cur.blocks.push(b);
       else (out.orphans ||= []).push({ phase, id: b.id });
@@ -154,8 +154,11 @@ export function lessonStationProblems(lessonId, phases) {
     if (!printed) add(s.phase, 'st-depends', `jaam ${s.n}: asenduskaart („Kui jätsid jaama … vahele”) ei ole lehel`);
   });
 
+  // methodology v5 (meta.methodV5, docs/METHODOLOGY_B1_B2_V5.md §3): the 75-min core is 5 + 15 + 20 + 25 + 5 min, so a
+  // station may take 5–25 min there (the lesson's total is G1 in methodV5.js)
+  const v5 = docs.some(([, d]) => d?.meta?.methodV5);
   for (const s of list) {
-    const [mlo, mhi] = ST.minutes;
+    const [mlo, mhi] = v5 ? ST.v5Minutes : ST.minutes;
     if (!(s.minutes >= mlo && s.minutes <= mhi)) add(s.phase, 'st-minutes', `jaam ${s.n} „${s.title}”: ${s.minutes} min (${mlo}–${mhi})`);
     const closed = s.blocks.filter((b) => isClosed(b, v4) && !(v4 && isExitCheck(b)));
     if (closed.length > 1) add(s.phase, 'st-closed', `jaam ${s.n}: ${closed.length} suletud ülesannet (${closed.map((b) => b.id).join(', ')}; kuni 1 ühe sisendi kohta)`);

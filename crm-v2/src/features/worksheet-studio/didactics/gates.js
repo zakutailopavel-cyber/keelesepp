@@ -179,6 +179,9 @@ export function moduleGates(sheets = {}) {
     const entries = docs.filter((x) => x.lessonId === lessonId).flatMap(({ doc }) => (doc.blocks || []).filter((b) => b.type === 'vocab').flatMap((b) => list(b.data?.words)));
     // a diagnostic check (meta.diagnostic) measures forms; it has no words of its own to teach and recycle
     if (docs.some((x) => x.lessonId === lessonId && x.doc?.meta?.diagnostic)) continue;
+    // methodology v5 (meta.methodV5, docs/METHODOLOGY_B1_B2_V5.md §2.3, §4): the lesson words are practised in Harjuta
+    // (spaced repetition, vocabulary/lessonWords), not recycled across the lean sheets; a control has no words of its own
+    if (docs.some((x) => x.lessonId === lessonId && x.doc?.meta?.methodV5)) continue;
     if (!entries.length) { out.push({ gate: 'vocab', code: 'no-vocabulary', level: 'warning', text: 'tunnil pole sõnavaraplokki (tunni põhisõnad)', lessonId, phase: '*' }); continue; }
     const weak = entries.map(vocabHead).filter(Boolean).filter((head) => {
       const stems = head.split(' ').map(stemOf);

@@ -42,6 +42,8 @@ describe('listening audio of the course (tools/listening-audio/build.mjs)', () =
 
   it('buildCourseSheet attaches the audio and asks the student to listen', () => {
     for (const { mod, lessonId, phase, block } of blocks) {
+      // a hidden block (blocks.js hide()) keeps its recording but is on no sheet
+      if (block.hidden) continue;
       const built = buildCourseSheet(mod, lessonId, phase).blocks.find((b) => b.id === block.id);
       const clips = clipScripts(block);
       if (clips.length) {

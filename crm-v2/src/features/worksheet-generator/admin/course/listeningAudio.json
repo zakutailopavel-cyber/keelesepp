@@ -1374,6 +1374,11 @@
     "seconds": 71.4,
     "hash": "8bf6524251ba26f10940119c29d4ddba9c7287b8"
   },
+  "a2b1-004:004_d_info": {
+    "src": "/audio/a2b1-004/004_d_info.mp3",
+    "seconds": 64.3,
+    "hash": "a9f9b2910a5d66445554245eb510c2336922a3c7"
+  },
   "a2b1-004:004_d_voice": {
     "src": "/audio/a2b1-004/004_d_voice.mp3",
     "seconds": 60.3,

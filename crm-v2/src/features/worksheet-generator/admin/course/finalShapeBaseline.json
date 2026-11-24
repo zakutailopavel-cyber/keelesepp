@@ -1,1 +1,10 @@
-{}
+{
+ "a2b1-module-01": [
+  "*|*|V3-min-G02",
+  "*|*|V3-min-S03",
+  "*|*|V3-skill-L",
+  "*|*|V4-type-writing",
+  "a2b1-002|*|V11-input",
+  "a2b1-004|*|V11-input"
+ ]
+}

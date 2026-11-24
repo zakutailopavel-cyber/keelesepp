@@ -1,3 +1,13 @@
+## 2026-11-25 — B1 moodul 1 metoodika v5 järgi, pilootmoodul (agent/b1-m1-v5)
+
+- Main: 2c12977 (2026-11-25). Haru `agent/b1b2-method-v5` + ühendatud `origin/agent/b1b2-gates-v5` (draft-PR #1305) peale; draft-PR „B1 module 1 to methodology v5 (pilot)”. Deploy'd ega production'i kirjutusi pole.
+- `b1/module01.js` ümber kirjutatud (design v3-stations + v4 formaadid, tase A2): 001 ja 005 = kontroll ühel lehel (9–10 plokki, ≈ 40–46 min), 001 algab külma ülesandega (räägi 45–60 s ilma abita); 002 case „Miks sa hiljaks jäid?” (sõnum päris õpetajale, `realAddressee`), 003 facts „Kuidas liikuda rohkem?” (varjatud infoga rollikaart), 004 infogap „Uus tunniaeg” (jaam 1 = külma ülesande paralleel; kõne „Varjatud info”; kodus päris allikas integratsioon.ee). Tunnis 12–14 plokki (oli 26), lehel ≤ 5/4/5. Tegelasi pole. Vanad plokid `hide(block, why)` (130 tk), id-d alles; Harjuta harjutused: kõik 161 vana id-d alles + 27 uut.
+- `strictModulesV5.json` b1: `a2b1-module-01`. `node tools/course-audit/method-v5.mjs --course b1 --module 1` → 0 rikkumist. Uus heli `public/audio/a2b1-004/004_d_info.mp3` (TartuNLP, 64 s). Pildi lähteülesanded `art/visuals/b1-module-01.js`: allkirjad ja küsimused ilma tegelasteta, `place`; 005 pilt on kontrolli lehel.
+- Vanad väravad v5-ga kooskõlla (ainult `meta.methodV5` lehtedel): jaama minutid 5–25 (`stations.js`), sõnavara korduse reegel jääb Harjutasse (`gates.js`), teema avalehe pikkus A2 80–150 (`academicValue.js`), „Kui aega jääb” ainult õpetaja plaanis (`v4Tasks.test.js`); peidetud plokid: `stationsOf` ja `listeningAudio.test.js` jätavad vahele. `finalShapeBaseline.json`: mooduli 1 kuus V3/V11 mooduli-mitmekesisuse märget (v5 eelarvega vastuolus, nähtav, ei blokeeri).
+- Kontrollid: `npx vitest run src/features/worksheet-generator src/features/practice` 97 faili läbi (1 skip), 1660 testi. Ekraanipildid enne/pärast scratchpad `mock/pilot-b1/`.
+- Piirangud: aja hinnang (`timeEstimate.js`) annab tunnile ≈ 33 min, autori jaamad 53–60 min; V11 sisendi osakaal 002/004 ja mooduli V3 mitmekesisus baseline'is; eesti keele kontroll EstNLTK-ga tegemata.
+- Järgmine samm: omanik vaatab 001 ja 002 lehti (enne/pärast) ja annab OK või parandused; siis sama mall moodulitele 2–5.
+
 ## 2026-11-25 — B1/B2 kursuse väravad v5 „tunni eelarve” (agent/b1b2-gates-v5)
 
 - Main: b6414d4 (2026-11-25). Haru tehtud `agent/b1b2-method-v5` (b3ffd7c, METHODOLOGY_B1_B2_V5.md) peale; draft-PR „Course gates v5 for B1/B2 (lesson budget)”. Kursuse sisu ei muudetud, deploy'd ega production'i kirjutusi pole.
