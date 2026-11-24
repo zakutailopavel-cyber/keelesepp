@@ -4,6 +4,8 @@ import {
 } from 'lucide-react';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { lazyComponent } from '../../app/lazyComponent.js';
+import { holdReloads } from '../../app/staleBuild.js';
+import { loadEnd, loadHints, loadHomework, loadMaterials, loadRecorder, loadWarmup, loadWords, prefetchRoomPanels } from './roomPanels.js';
 import RoomPartBoundary from './RoomPartBoundary.jsx';
 import { LoadingState } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
@@ -43,13 +45,13 @@ import './liveRoom.css';
 // the side panels and the teacher's recorder download when they are first opened, so the room (call and board) opens
 // sooner; a student never downloads the teacher's tools
 // LessonHints (teacher only) builds warm-up sheets, i.e. needs every worksheet block
-const LessonHints = lazyComponent(() => import('./LessonHints.jsx'));
-const RoomRecorder = lazyComponent(() => import('../lesson-recording/RoomRecorder.jsx'));
-const WarmupPanel = lazyComponent(() => import('./WarmupPanel.jsx'));
-const LessonWordsPanel = lazyComponent(() => import('../vocabulary/LessonWordsPanel.jsx'));
-const LessonHomeworkPanel = lazyComponent(() => import('./LessonHomeworkPanel.jsx'));
-const LessonEndPanel = lazyComponent(() => import('./LessonEndPanel.jsx'));
-const MaterialsPanel = lazyComponent(() => import('./MaterialsPanel.jsx'));
+const LessonHints = lazyComponent(loadHints);
+const RoomRecorder = lazyComponent(loadRecorder);
+const WarmupPanel = lazyComponent(loadWarmup);
+const LessonWordsPanel = lazyComponent(loadWords);
+const LessonHomeworkPanel = lazyComponent(loadHomework);
+const LessonEndPanel = lazyComponent(loadEnd);
+const MaterialsPanel = lazyComponent(loadMaterials);
 
 const dateLabel = (date = new Date()) => new Intl.DateTimeFormat('et-EE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 const clock = (ms) => {
@@ -182,6 +184,12 @@ export default function LiveRoom({
   planService, countdownService, momentsService, pollService, boardCopies, stageNotice = null,
 }) {
   const teacher = role === 'teacher';
+  // no page reload during the lesson (staleBuild.js): it would drop the call
+  useEffect(() => holdReloads(), []);
+  useEffect(() => {
+    const timer = globalThis.setTimeout(() => prefetchRoomPanels(teacher), 1500);
+    return () => globalThis.clearTimeout(timer);
+  }, [teacher]);
   const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
   // an administrator watching the lesson receives this side's camera and microphone; both sides see it
   const watching = useObserverPeers({ ...observerProps, invitationId: invitation.id, user, localStream: call.localStream, enabled: invitation.status === 'accepted' });
