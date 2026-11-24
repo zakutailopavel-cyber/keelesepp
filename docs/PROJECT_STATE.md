@@ -1,3 +1,11 @@
+## 2026-11-24 — Live: tunnis ei laadita lehte uuesti (agent/live-no-reload)
+
+- Main: 7c387d3 (2026-11-24). Omaniku viga: tunnis „Sõnad” vajutus viskas tunnist välja, teine vajutus töötas. Põhjus: tab avati enne väljalaset; paneeli fail oli vana build'i oma ja `vite:preloadError` laadis kogu lehe uuesti → kõne katkes.
+- `app/staleBuild.js`: `holdReloads()` — Live-ruumi (LiveRoom, GroupRoom) ajal automaatset lehe uuesti laadimist ei tehta; puuduv fail näitab paneelis „KeeleSepp uuenes tunni ajal. Laadi uuesti” (RoomPartBoundary), kõne jääb.
+- Uus `live-classroom/roomPanels.js`: ruumi paneelid laaditakse 1,5 s pärast ruumi avamist taustal ette (õpetaja kõik, õpilane „Sõnad”), et hiljem avatud paneel oleks juba brauseris.
+- Kontrollid: `npx vitest run` — 1 skip, kõik muu läbi; `npx eslint src` — 0 vigu. Telefonis/päris tunnis kontrollimata.
+- Järgmine samm: omaniku OK → merge → release; järgmises tunnis vajutada „Sõnad” pärast väljalaset avatud tabis.
+
 ## 2026-11-20 · agent/course-b1eksp — „B1 eksperimentaalkursus” (b1eksp): module 1 „Tutvus”, 2 lessons × 2 sheets · course content
 
 - Checked main: 50b0fc5 (2026-11-20). Stacked on draft PR agent/phase-labels (#1291, needs it for the sheet names); draft
