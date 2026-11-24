@@ -176,9 +176,14 @@ function workerId(host) {
   return String(host || 'mac').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'mac';
 }
 // `recordingIds` (all parts of the lesson) and `detail` („vead 12/40”) only while analysing: the CRM shows the progress
-function heartbeat({ host, state = 'idle', recordingId = '', recordingIds = null, detail = '', startedAt, now = new Date() }) {
+// hours / windowOpen / progress (owner 2026-11-24: „я должен через сайт видеть прогресс”): the site shows the night
+// window, whether it is open now and how far the lesson being transcribed is (parts done / all)
+function heartbeat({ host, state = 'idle', recordingId = '', recordingIds = null, detail = '', startedAt, hours = '', windowOpen = null, progress = null, now = new Date() }) {
   return {
     host: String(host || '').slice(0, 100), state, recordingId, startedAt, lastSeenAt: now.toISOString(),
+    hours: String(hours || '').slice(0, 20),
+    ...(typeof windowOpen === 'boolean' ? { windowOpen } : {}),
+    ...(progress && Number(progress.total) > 0 ? { progress: { done: Math.max(0, Math.min(Number(progress.done) || 0, Number(progress.total))), total: Number(progress.total) } } : {}),
     ...(Array.isArray(recordingIds) && recordingIds.length ? { recordingIds: recordingIds.slice(0, 20).map(String) } : {}),
     ...(detail ? { detail: String(detail).slice(0, 80) } : {}),
   };

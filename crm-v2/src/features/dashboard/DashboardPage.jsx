@@ -32,6 +32,9 @@ import { todayApi, useTodaySignals } from './today/useTodaySignals.js';
 import { tallinnDay } from './today/todayModel.js';
 import { attentionItems, lateReviews, lessonsSoon } from './calmModel.js';
 import './calm.css';
+import TranscriberPanel from '../lesson-recording/TranscriberPanel.jsx';
+import { transcriberTileMeta, transcriptionQueue, useTranscriberStatus, useTranscriptionQueue } from '../lesson-recording/transcriberStatus.js';
+import '../lesson-recording/lessonRecording.css';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 const defaultRepositories = {
@@ -230,6 +233,9 @@ function CalmDashboard({ data, user, repositories, now }) {
     ] : []),
   ];
   const count = (value) => (value == null ? '…' : String(value));
+  // „Tundide tekst” (owner 2026-11-24): the lessons transcribed on the owner's Mac, live
+  const transcriber = useTranscriberStatus({ service: repositories.recordings, enabled: isAdmin && !preview });
+  const transcription = useTranscriptionQueue({ service: repositories.recordings, enabled: isAdmin && !preview });
   const tiles = [
     ...(isAdmin ? [{ key: 'calls', title: 'Vajab kõnet', meta: `${count(signals.calls?.list.length)} õpilast`, render: () => <CallsPanel calls={signals.calls} user={user} onCalled={signals.addCall} save={(input, actor) => (repositories.today || todayApi).addFollowup(input, actor)} /> }] : []),
     ...(canViewBalance ? [{ key: 'balance', title: 'Makstud tunnid lõppevad', meta: `${count(signals.runningOut?.length)} õpilast`, render: () => <BalancePanel runningOut={signals.runningOut} isAdmin={isAdmin} journalMissing={Boolean(signals.data && !signals.data.lessons)} /> }] : []),
@@ -246,6 +252,7 @@ function CalmDashboard({ data, user, repositories, now }) {
     ] : []),
     ...(isAdmin ? [
       { key: 'load', title: 'Õpetajate koormus', meta: 'Tunnid, vabad ajad, töötasu', to: '/teachers/koormus' },
+      { key: 'transcription', title: 'Tundide tekst', meta: transcriberTileMeta(transcriber, transcription.list ? transcriptionQueue(transcription.list) : null), render: () => <TranscriberPanel state={transcriber} queueState={transcription} /> },
       { key: 'errors', title: 'Vead saidil', meta: `${count(signals.errors?.length)} uut (24 h)`, to: '/vead' },
     ] : []),
     ...(data.canViewFinance ? [{ key: 'invoices', title: 'Arved', meta: `${data.overdue.length} tähtaja ületanud`, to: '/finance?status=overdue' }] : []),

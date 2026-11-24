@@ -86,7 +86,7 @@ async function transcribeSegment(seg, lessonLang, dir) {
 let current = { state: 'idle', recordingId: '' };
 async function beat() {
   try {
-    await db.collection('transcriberStatus').doc(workerId(HOST)).set(heartbeat({ host: HOST, startedAt: STARTED_AT, ...current }));
+    await db.collection('transcriberStatus').doc(workerId(HOST)).set(heartbeat({ host: HOST, startedAt: STARTED_AT, hours: WORK_HOURS ? `${String(WORK_HOURS.from).padStart(2, '0')}-${String(WORK_HOURS.to).padStart(2, '0')}` : '', windowOpen: inHoursWindow(new Date(), WORK_HOURS), ...current }));
   } catch (err) { log('heartbeat error', err.message); }
 }
 
@@ -113,7 +113,11 @@ async function transcribe(rec) {
   const started = Date.now();
   try {
     const lines = [...(rec.rawLines || [])];
-    for (const seg of segmentsLeft(rec)) {
+    const left = segmentsLeft(rec);
+    const total = (rec.segments || []).length || left.length;
+    for (const [index, seg] of left.entries()) {
+      current = { state: 'transcribing', recordingId: rec.id, progress: { done: total - left.length + index, total } };
+      await beat();
       lines.push(...await transcribeSegment(seg, rec.language || 'et', dir));
     }
     const transcript = mergeDialogue(lines);

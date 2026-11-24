@@ -1,3 +1,10 @@
+## 2026-11-24 — „Tundide tekst”: transkribeerimise edenemine avalehel (agent/transcriber-progress)
+
+- Main: 7c387d3 (2026-11-24). Omanik: tekst tehakse edasi tema Macis (öösel 02–07), aga edenemist peab nägema saidil.
+- Mac (`tools/lesson-transcriber`): heartbeat saadab ka `hours`, `windowOpen` ja `progress {done,total}` (mitu 5-min osa on tehtud). Paigaldatud koopia `~/KeeleSeppTranscriber/app` tuleb pärast merge'i uuendada (install-mac.sh), muidu edenemise riba ei tule (muu töötab).
+- Sait: admini avalehel uus paan „Tundide tekst” (`TranscriberPanel.jsx`): Mac sees/väljas, öine aken ja järgmine algus, praegune tund + riba, arvud (ootab teksti / analüüsi / valmis 24 h / ebaõnnestus) ja järjekord nimedega. Andmed: `lessonRecordingsService.subscribeQueue` (2 päringut, admin loeb reeglite järgi kõike). Reegleid ei muudetud.
+- Kontrollid: vitest lesson-recording + dashboard + live-classroom 61 faili läbi; transcriber `node --test` 26 läbi; eslint 0 viga.
+- Järgmine samm: omaniku OK → merge → release → Maci koopia uuendus.
 ## 2026-11-24 — Live: tunnis ei laadita lehte uuesti (agent/live-no-reload)
 
 - Main: 7c387d3 (2026-11-24). Omaniku viga: tunnis „Sõnad” vajutus viskas tunnist välja, teine vajutus töötas. Põhjus: tab avati enne väljalaset; paneeli fail oli vana build'i oma ja `vite:preloadError` laadis kogu lehe uuesti → kõne katkes.
