@@ -43,9 +43,5 @@
 .today-lessons .today-mark:disabled { opacity: .6; cursor: default; }
 .today-lessons small.today-unmarked { color: var(--danger-text); }
 .today-lessons > li.is-past.is-unmarked { opacity: 1; }
-/* student names in „Täna” (owner 2026-11-25): no underline at all; on hover the name grows a little, smoothly, and
-   turns the accent colour, like on modern sites; keyboard focus gets a ring instead */
-.today-lessons strong a { display: inline-block; color: inherit; text-decoration: none; transform-origin: left center; transition: transform .18s ease, color .18s ease; }
-.today-lessons strong a:hover { color: var(--green-text, var(--success-text)); text-decoration: none; transform: scale(1.04); }
-.today-lessons strong a:focus-visible { outline: 2px solid var(--green-text, var(--success-text)); outline-offset: 2px; border-radius: 4px; text-decoration: none; }
-@media (prefers-reduced-motion: reduce) { .today-lessons strong a { transition: color .18s ease; } .today-lessons strong a:hover { transform: none; } }
+/* student names in „Täna”: the site-wide link look (styles/index.css, owner 2026-11-25) */
+.today-lessons strong a { color: inherit; }

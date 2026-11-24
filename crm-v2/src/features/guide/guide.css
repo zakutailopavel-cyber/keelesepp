@@ -31,4 +31,4 @@
 .guide-video figcaption { display: grid; gap: 2px; padding: 0 4px 4px; }
 .guide-item__links { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .guide-watch { color: var(--success-text); text-decoration: none; }
-.guide-watch:hover { text-decoration: underline; }
+.guide-watch:hover { text-decoration: none; }

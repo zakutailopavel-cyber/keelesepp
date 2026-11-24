@@ -843,7 +843,7 @@ textarea.ed-input { resize: vertical; }
 /* „Ei hinnata”: a task done in the lesson does not count in the result (owner 2026-10-27) */
 .ed-check { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .85rem; font-weight: 600; }
 .room-sheet-picker__list li small.room-sheet-picker__hint{color:#475467}
-.room-sheet-picker__more{border:0;background:none;padding:6px 0;color:#0b5c4d;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:underline}
+.room-sheet-picker__more{border:0;background:none;padding:6px 0;color:#0b5c4d;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration: none}
 
 /* ---- media: crop / rotate, voice recording, video preview, bank sounds and videos ---- */
 .ws-studio .ed-crop { display: grid; gap: 8px; padding: 8px; border: 1px solid var(--st-line); border-radius: 10px; background: var(--st-bg); }

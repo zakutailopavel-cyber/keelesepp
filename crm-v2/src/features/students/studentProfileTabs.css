@@ -110,7 +110,7 @@
   cursor: pointer;
   text-align: left;
 }
-.profile-track-add:hover { text-decoration: underline; }
+.profile-track-add:hover { text-decoration: none; }
 /* lesson length on the card (team 2026-10-29): minutes, double lessons stand out */
 .student-lessons__length { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: var(--radius-pill); background: #eef1f4;background:light-dark(#eef1f4,#171c22); color: #42536a;color:light-dark(#42536a,#b9c2ce); font-size: .74rem; font-weight: 700; vertical-align: middle; }
 .student-lessons__length.is-double { background: #fff1e0;background:light-dark(#fff1e0,#2a1800); color: #b45309;color:light-dark(#b45309,#fb9358); }

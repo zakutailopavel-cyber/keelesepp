@@ -7,7 +7,7 @@
 .calm-nudge > svg { flex: 0 0 auto; }
 .calm-nudge a { flex: 1 1 auto; min-width: 0; color: inherit; font-size: .92rem; text-decoration: none; }
 .calm-nudge a b { white-space: nowrap; }
-.calm-nudge a:hover b { text-decoration: underline; }
+.calm-nudge a:hover b { text-decoration: none; }
 .calm-nudge__close { display: inline-flex; flex: 0 0 auto; padding: 6px; border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; cursor: pointer; }
 .calm-nudge__close:hover { background: #fef0c7;background:light-dark(#fef0c7,#241a00); }
 .calm-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }

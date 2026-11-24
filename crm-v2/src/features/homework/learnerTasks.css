@@ -19,7 +19,7 @@
 .lt-result { color: #123f33;color:light-dark(#123f33,#bfd4cc); font-weight: 700; }
 .lt-links { display: flex; flex-wrap: wrap; gap: 0 14px; font-size: .86rem; }
 .lt-links:empty { display: none; }
-.lt-links a, .lt-link { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0; border: 0; background: none; color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.lt-links a, .lt-link { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0; border: 0; background: none; color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); font: inherit; font-weight: 600; text-decoration: none; text-underline-offset: 2px; cursor: pointer; }
 .lt-answer { font-size: .86rem; }
 .lt-answer summary { min-height: 36px; color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); font-weight: 600; cursor: pointer; }
 .lt-answer p { white-space: pre-line; overflow-wrap: anywhere; }
