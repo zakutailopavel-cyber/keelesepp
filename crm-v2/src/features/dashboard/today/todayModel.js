@@ -60,6 +60,8 @@ export function todayLessons({ events = [], today, now = '00:00' }) {
       marked,
       phase,
       path: lessonPath(item),
+      // the calendar occurrence itself: „Toimus” on the home page marks it like the calendar does
+      source: item,
     };
   });
 }
@@ -217,3 +219,15 @@ export function needsCall({ students = [], lessons = [], homework = [], workshee
   const order = (a, b) => b.reasons.length - a.reasons.length || String(a.student.name || '').localeCompare(String(b.student.name || ''), 'et');
   return { list: list.sort(order), called: called.sort((a, b) => b.call.time - a.call.time) };
 }
+
+// what the row says under the name (owner 2026-11-24: „Veebitund” said nothing): for a lesson ahead the sheet on the
+// student's board (or that none is chosen yet), for a lesson over whether it is marked; a room name stays
+export function lessonMeta(item, { showTeacher = false, sheets = null } = {}) {
+  const room = item.online ? '' : item.place;
+  let state = '';
+  if (item.phase === 'past') state = item.marked ? item.status : 'märkimata';
+  else if (item.phase !== 'cancelled' && !item.isGroup && sheets) state = sheets.length ? `${sheets[0].lessonTitle || 'Tööleht'}${sheets.length > 1 ? ` +${sheets.length - 1}` : ''} · leht tahvlil` : 'leht valimata';
+  else if (item.marked) state = item.status;
+  return [showTeacher ? item.teacher : '', room, state].filter(Boolean).join(' · ') || item.place;
+}
+

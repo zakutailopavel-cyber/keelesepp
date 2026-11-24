@@ -542,6 +542,15 @@ export const homeworkService = {
     await updateDoc(doc(db, 'worksheetAssignments', assignmentId), payload);
     return payload;
   },
+  // Home page „Täna” (owner 2026-11-24): the sheets already put on the student's board for the next lesson
+  // (preparation room `prep_<student>`), newest first — the same query the room runs
+  async listPreparedWorksheets(studentId) {
+    if (!studentId) return [];
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('studentId', '==', studentId), where('liveRoomKey', '==', `prep_${studentId}`)));
+    return snapshot.docs.map((d) => normalizeWorksheetAssignment(d.id, d.data()))
+      .sort((a, b) => String(b.liveOpenedAt || '').localeCompare(String(a.liveOpenedAt || '')));
+  },
   // Staff only: worksheets the teacher put on the board while preparing (room key `prep_<student>`) move into the
   // lesson room that has just started.
   async adoptPreparedWorksheets({ studentId, fromKey, toKey }) {

@@ -1,11 +1,14 @@
 import { CalendarDays, Video } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, Input } from '../../../components/ui/index.js';
 import { FOLLOWUP_NOTE_MAX } from '../../../services/firebase/studentFollowups.js';
 import { timelineSplit } from '../calmModel.js';
-import { CALLED_DAYS, CALL_WINDOW_DAYS } from './todayModel.js';
+import { CALLED_DAYS, CALL_WINDOW_DAYS, lessonMeta } from './todayModel.js';
 import { HOMEWORK_WINDOW_DAYS } from './useTodaySignals.js';
+import { homeworkService } from '../../../services/firebase/homework.js';
+import { lessonsService } from '../../../services/firebase/lessons.js';
+import { announceLessonMarked } from '../../calendar/lessonActions.js';
 import './today.css';
 
 // The „Täna” parts of the home page (2026-11-04, calm layout 2026-11-06): today's lessons as a short timeline, and the
@@ -20,30 +23,69 @@ const PHASE = { now: ['success', 'Käib'], past: ['neutral', 'Läbi'], cancelled
 const Pending = ({ label = 'Arvutan…' }) => <p className="form-hint">{label}</p>;
 const Failed = () => <p className="form-hint">Andmeid ei saanud praegu laadida.</p>;
 
-function LessonRow({ item, showTeacher }) {
+function LessonRow({ item, showTeacher, sheets, onMark, marking }) {
   // a right-click opens the lesson's menu (entityRegistry.js `lesson`): the lesson in the side drawer, the student
-  return <li className={`is-${item.phase}`} data-entity="lesson" data-schedule-id={item.scheduleId || undefined} data-date={item.date || undefined} data-student-id={item.isGroup ? undefined : item.studentId || undefined} data-entity-title={`${item.time} · ${item.studentName}`}>
+  const canMark = item.phase === 'past' && !item.marked && !item.isGroup && Boolean(item.scheduleId) && Boolean(onMark);
+  return <li className={`is-${item.phase}${canMark ? ' is-unmarked' : ''}`} data-entity="lesson" data-schedule-id={item.scheduleId || undefined} data-date={item.date || undefined} data-student-id={item.isGroup ? undefined : item.studentId || undefined} data-entity-title={`${item.time} · ${item.studentName}`}>
     <time>{item.time}{item.end ? <span className="today-end">–{item.end}</span> : null}</time>
     <div><strong>{item.studentId && !item.isGroup ? <Link to={`/students/${item.studentId}`}>{item.studentName}</Link> : item.studentName}</strong>
-      <small>{[showTeacher ? item.teacher : '', item.place, item.marked ? item.status : ''].filter(Boolean).join(' · ')}</small></div>
+      <small className={!item.marked && item.phase === 'past' ? 'today-unmarked' : ''}>{lessonMeta(item, { showTeacher, sheets })}</small></div>
     {PHASE[item.phase] ? <Badge tone={PHASE[item.phase][0]}>{PHASE[item.phase][1]}</Badge> : <span />}
-    {item.phase === 'cancelled' ? <span /> : <Link className="today-start" to={item.path} title="Avab tunni kalendris, kus „Alusta tundi” kutsub õpilase tundi">{item.online ? <Video size={15} aria-hidden="true" /> : null}{item.phase === 'past' ? 'Ava tund' : 'Alusta tundi'}</Link>}
+    {item.phase === 'cancelled' ? <span />
+      : canMark ? <button type="button" className="today-start today-mark" disabled={marking} onClick={() => onMark(item)}>{marking ? 'Märgin…' : 'Toimus'}</button>
+        : <Link className="today-start" to={item.path} title="Avab tunni kalendris, kus „Alusta tundi” kutsub õpilase tundi">{item.online ? <Video size={15} aria-hidden="true" /> : null}{item.phase === 'past' ? 'Ava tund' : 'Alusta tundi'}</Link>}
   </li>;
 }
 
+// the sheets on each student's board for the lessons still ahead today (one read per student, once)
+function useBoardSheets(lessons, service) {
+  const ids = useMemo(() => [...new Set(lessons.filter((item) => !item.isGroup && item.studentId && item.phase !== 'past' && item.phase !== 'cancelled').map((item) => item.studentId))].sort().join(','), [lessons]);
+  const [sheets, setSheets] = useState({});
+  useEffect(() => {
+    if (!ids || typeof service?.listPreparedWorksheets !== 'function') return undefined;
+    let alive = true;
+    Promise.all(ids.split(',').map((id) => service.listPreparedWorksheets(id).then((list) => [id, list]).catch(() => [id, null])))
+      .then((pairs) => { if (alive) setSheets(Object.fromEntries(pairs.filter(([, list]) => list))); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [ids, service]);
+  return sheets;
+}
+
+const markApi = { markHeld: (item, user) => lessonsService.completeFromSchedule(item.source, user, { status: 'Toimunud' }) };
+
 // „Täna”: the next lessons ahead; „Näita kõiki” opens the rest of the day, the lessons over stay folded
-export function TodayTimeline({ lessons = [], allTeachers = false }) {
+export function TodayTimeline({ lessons: given = [], allTeachers = false, user = null, sheetsService = homeworkService, markService = markApi }) {
   const [all, setAll] = useState(false);
+  // „Toimus” on a lesson over (owner 2026-11-24, 10-second marking): the row turns marked at once
+  const [marked, setMarked] = useState(() => new Set());
+  const [marking, setMarking] = useState('');
+  const [markError, setMarkError] = useState('');
+  const lessons = useMemo(() => given.map((item) => (marked.has(item.key) ? { ...item, marked: true, status: 'Toimunud' } : item)), [given, marked]);
+  const boardSheets = useBoardSheets(lessons, sheetsService);
+  const onMark = user ? async (item) => {
+    setMarking(item.key); setMarkError('');
+    try {
+      await markService.markHeld(item, user);
+      setMarked((current) => new Set(current).add(item.key));
+      announceLessonMarked(item.key);
+    } catch (problem) { setMarkError(problem?.message || 'Märkimine ebaõnnestus.'); } finally { setMarking(''); }
+  } : null;
+  const row = (item) => <LessonRow key={item.key} item={item} showTeacher={allTeachers} sheets={boardSheets[item.studentId] || null} onMark={onMark} marking={marking === item.key} />;
   const { ahead, done, next, total } = timelineSplit(lessons);
+  const unmarkedOver = onMark ? done.filter((item) => item.phase === 'past' && !item.marked && !item.isGroup && item.scheduleId) : [];
   const shown = all ? ahead : next;
   return <Card className="calm-card calm-today" as="section" aria-label="Täna">
     <div className="calm-card__head"><h2><CalendarDays size={17} aria-hidden="true" /> Täna{allTeachers ? <small> · kõik õpetajad</small> : null}</h2><Link to="/calendar">Kalender →</Link></div>
     {!lessons.length ? <p className="calm-empty">Täna tunde ei ole.</p> : <>
-      {shown.length ? <ul className="today-lessons">{shown.map((item) => <LessonRow key={item.key} item={item} showTeacher={allTeachers} />)}</ul>
-        : <p className="calm-empty">Tänased tunnid on läbi.</p>}
+      {markError ? <p className="form-error" role="alert">{markError}</p> : null}
+      {/* a lesson over and not marked stays on top until „Toimus” (it would hide in „Läbi”) */}
+      {!all && unmarkedOver.length ? <ul className="today-lessons" aria-label="Märkimata">{unmarkedOver.map(row)}</ul> : null}
+      {shown.length ? <ul className="today-lessons">{shown.map(row)}</ul>
+        : unmarkedOver.length && !all ? null : <p className="calm-empty">Tänased tunnid on läbi.</p>}
       {all && done.length ? <details className="calm-done">
         <summary>Läbi ({done.length})</summary>
-        <ul className="today-lessons">{done.map((item) => <LessonRow key={item.key} item={item} showTeacher={allTeachers} />)}</ul>
+        <ul className="today-lessons">{done.map(row)}</ul>
       </details> : null}
       <div className="calm-today__foot">
         {!all && done.length ? <span>Läbi {done.length}</span> : <span />}

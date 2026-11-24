@@ -150,8 +150,9 @@ describe('DashboardPage — calm home', () => {
     await waitFor(() => expect(repo.today.lessons).toHaveBeenCalledWith('teacher-1'));
     ['seen', 'plans', 'packages', 'owed', 'leads', 'worksheetsDue', 'followups'].forEach((name) => expect(repo.today[name]).not.toHaveBeenCalled());
     expect(repo.clientErrors.listRecent).not.toHaveBeenCalled();
-    expect(within(attention()).getByText('1 tund käib või algab tunni jooksul')).toBeInTheDocument();
-    expect(within(attention()).getByText('Järgmine: 13:00 Mari')).toBeInTheDocument();
+    // the line is the lesson itself, with when it starts (owner 2026-11-24: names, not counts)
+    expect(within(attention()).getByText('13:00 Mari')).toBeInTheDocument();
+    expect(within(attention()).getByText('algab 20 min pärast')).toBeInTheDocument();
     const overviews = screen.getByRole('region', { name: 'Ülevaated' });
     ['Vajab kõnet', 'Makstud tunnid', 'Veebipäringud', 'Õpetajate koormus', 'Vead saidil', 'Arved'].forEach((title) => expect(within(overviews).queryByText(new RegExp(title))).not.toBeInTheDocument());
     expect(within(overviews).getByRole('link', { name: /Kodutööd/ })).toHaveAttribute('href', '/homework');

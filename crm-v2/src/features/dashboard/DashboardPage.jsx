@@ -209,6 +209,9 @@ function CalmDashboard({ data, user, repositories, now }) {
 
   const attention = attentionItems({
     soon: data.canViewLearning ? lessonsSoon(signals.lessonsToday, signals.clock) : [],
+    clock: signals.clock,
+    unmarkedNames: (signals.unmarked || []).map((item) => item.studentName),
+    unplannedNames: data.unplanned.map((item) => item.student?.name || item.name || ''),
     showTeacher: data.allTeachers,
     unmarked: signals.unmarked ? signals.unmarked.length : null,
     reviewsLate: data.canViewLearning ? lateReviews(data.submissions, now().getTime()) : null,
@@ -296,7 +299,7 @@ function CalmDashboard({ data, user, repositories, now }) {
       </nav> : null}
       <div className={`calm-top${data.canViewLearning ? '' : ' calm-top--single'}`}>
         <AttentionCard attention={attention} loading={signals.loading} onOpen={setPanel} />
-        {data.canViewLearning ? <TodayTimeline lessons={signals.lessonsToday} allTeachers={data.allTeachers} /> : null}
+        {data.canViewLearning ? <TodayTimeline lessons={signals.lessonsToday} allTeachers={data.allTeachers} user={preview ? null : user} {...(repositories.boardSheets ? { sheetsService: repositories.boardSheets } : {})} {...(repositories.markLesson ? { markService: repositories.markLesson } : {})} /> : null}
       </div>
       <section className="calm-overviews" aria-label="Ülevaated">
         <h2 className="calm-overviews__title">Ülevaated</h2>
