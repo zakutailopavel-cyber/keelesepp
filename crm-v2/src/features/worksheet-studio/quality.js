@@ -52,7 +52,8 @@ export function analyzeWorksheet(document, { forms = null } = {}) {
   issues.push(...didactics.issues);
   // how long the learner works on it (didactics/timeEstimate.js); a lesson sheet takes 40–55 min
   const minutes = sheetMinutes(document || {});
-  if (document?.blocks?.length && minutes < SHEET_MINUTES.min) issues.push({ level: 'tip', code: 'minutes', text: `Nõuanne: töö võtab umbes ${minutes} min. Terve tunni leht on ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min — lisa ülesandeid või punkte.` });
+  // methodology v5 (meta.methodV5): a lesson budget of 75 min over three sheets, not 40–55 min per sheet
+  if (document?.blocks?.length && !document?.meta?.methodV5 && minutes < SHEET_MINUTES.min) issues.push({ level: 'tip', code: 'minutes', text: `Nõuanne: töö võtab umbes ${minutes} min. Terve tunni leht on ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min — lisa ülesandeid või punkte.` });
   // depth (didactics/depth.js, owner 2026-10-14): is there enough real work at the level? A lesson sheet only (a level
   // and a lesson phase); never blocking here — the course modules enforce it in admin/course/quality.js
   if (document?.meta?.level && document?.meta?.phase && !document.meta.shortSheet) {

@@ -98,7 +98,37 @@ G6 audio: play count set, 2× (B2 clips 1×), lock in controls · G7 story cast 
 rubric (4 criteria with descriptors) · G11 thresholds named · G12 no „pausideta” in A2/B1 rubrics · G13 link task:
 each module has one block with a real source link (title + https URL) or a real addressee.
 
-Gates run per module from `strictModules.json` so that a module is switched on when it is rewritten.
+Gates run per module from `strictModulesV5.json` so that a module is switched on when it is rewritten.
+
+### 6.1 How the gates are built (2026-11-25, branch agent/b1b2-gates-v5)
+
+- **List:** `crm-v2/src/features/worksheet-generator/admin/course/strictModulesV5.json` — `{ "b1": [module ids], "b2": [...] }`,
+  empty at first. The older `strictModules.json` is a different gate (every quality gate, almost all modules listed) and
+  is not changed. Switch a module on by adding its `MODULE.id` (e.g. `"a2b1-module-01"`) to its course list.
+- **Code:** `admin/course/methodV5.js` (pure, node-importable): `methodV5Input(mod)`, `methodV5Problems(input)` →
+  `[{ gate, code, lessonId, phase, blockId, text }]`, `methodV5Report(mod)`, `formatMethodV5Report(report)`. Test:
+  `admin/course/methodV5.test.js` (every listed module has zero problems + a synthetic module with one violation per gate).
+- **Report before switching:** `node tools/course-audit/method-v5.mjs --course b1 --module 1` (or `--course b2 --module 17`;
+  `--gate G1,G3`; `--json`; without `--module` the counts per gate of every module). From crm-v2: `npm run course:method-v5 -- …`.
+- **G2:** the sheets of a listed module carry `meta.methodV5: true` (`courseSheet.js isMethodV5`); `quality.js` then skips the
+  6–18 / 5–9 block count and the 40–55 min per sheet, `depth.js` skips „≥ 25 min of closed drills” (`thin`, `live-fast`), the
+  ≥ 2 whole-sentence tasks per sheet, and counts 8 items as a full form task (exit checks exempt).
+- **Hidden blocks:** `hide(block, why)` (blocks.js) sets `hidden: true`; `courseSheet.js` leaves the block off every sheet (a
+  phase whose blocks are all hidden is no sheet), so it is in no gate and no count, but its id stays in the module file.
+- **What counts:** every block on the sheet except the textbook picture (`data.artId` / `data.artFor`), word strips and hidden
+  blocks. Lesson kinds: teaching lesson; module control (`assessment`); mock exam (an assessment at B1 060/080/089/090, B2
+  020/040/060/080/089/090 — no budget, no length ceilings); oral / theory / diagnostic / e-exam sheets (only G5–G7, G12).
+- **Markers the gates read:** hidden-information card = a `rolecards` / `speakcard` whose teacher note (`teach()`) contains
+  „Varjatud info:” or `data.hiddenInfo: true` (G9); free speech = `speaking` without `tipText` on a sheet without `phrasebank`;
+  free writing = `writing` without `keywords` or a letter / `examwriting` without `opening` (G9); link task = a block with a
+  title / heading and an `https://` URL in its learner text, or `data.realAddressee` (G13); analytic rubric = `examrubric` /
+  `rubric` with ≥ 4 `criteria`, each with a `hint` or `levels` (G10; such a rubric may stand in a B2 lesson with a ≥ 120-word
+  writing task, every other `examrubric` only in controls, G8); cast = `CAST` in methodV5.js (names from COURSE_CAST.md, case
+  forms counted, „Anna mulle …” not).
+- **Estimates:** audio length = the recorded file's seconds (`listeningAudio.json`) or words ÷ 128 per minute; a `writing`
+  block's words = sentences × 8; a pair card (`speakcard`) in B1 may run twice the stage's speech ceiling; lesson time =
+  the sheets' `timeEstimate.js` minutes, ceiling 90. B2 inference questions are found by words (miks, autor, vihjab, arvab,
+  järeldus …) in the reading's questions and the sheet's choice questions; the two voices of a B2 recording are not checked.
 
 ## 7. Order
 

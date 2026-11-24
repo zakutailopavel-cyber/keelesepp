@@ -14,6 +14,15 @@ import { EN_B2_LESSON_GOALS } from './en/b2/lessonGoals.js';
 import { withSheetLanguage } from './sheetLanguage.js';
 import { COURSE_NAMES, ENGLISH_COURSE_NAME } from '../../../curriculum/courseNames.js';
 import { STATIONS_DESIGN, teacherPage } from './stations.js';
+import STRICT_V5 from './strictModulesV5.json' with { type: 'json' };
+
+// methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md): the B1 / B2 modules listed in strictModulesV5.json are
+// checked by gates G1–G13 (methodV5.js); their sheets carry `meta.methodV5`, so the older sheet norms that v5 replaces
+// (40–55 min per sheet, 6–18 / 5–9 blocks, ≥ 25 min of closed drills, quality.js / depth.js) are not applied to them
+export const isMethodV5 = (mod) => (STRICT_V5[mod?.MODULE?.course] || []).includes(mod?.MODULE?.id);
+// a block removed from the lesson by a rewrite is hidden, not deleted (`hidden: true`, blocks.js hide()): its id and the
+// learners' answers stay, but it is on no sheet, in no gate and in no count
+export const visibleBlocks = (blocks = []) => blocks.filter((b) => !b?.hidden);
 
 
 // display names by the target level (curriculum/courseNames.js, owner 2026-10-29): `label` = name · subtitle (admin
@@ -185,6 +194,8 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(lesson.format ? { format: lesson.format } : {}),
       // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): its own variety and depth norms
       ...(design ? { design } : {}),
+      // methodology v5 (strictModulesV5.json): the lesson budget replaces the sheet-minute and drill-minute norms
+      ...(isMethodV5(mod) ? { methodV5: true } : {}),
       // the sheet's language (default Estonian): Estonian-only checks (EKI word lists) skip other languages
       ...(mod.MODULE.language ? { language: mod.MODULE.language } : {}),
       // lesson template v3 (owner 2026-10-18, §11): 5–9 full tasks a sheet in a fixed lesson shape
@@ -201,15 +212,16 @@ export function buildCourseSheet(mod, lessonId, phase) {
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
-    blocks: withSheetLanguage(withHarnoExam(withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN), mod.MODULE.course), mod.MODULE.language),
+    blocks: withSheetLanguage(withHarnoExam(withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(visibleBlocks(lesson[phase]), LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN), mod.MODULE.course), mod.MODULE.language),
     // the Õpik free layer (engine/freeLayer.js) a lesson may carry per phase: `free: { discover: [items] }` (the speaking
     // club's textbook openers, kids/sheets.js)
     ...(lesson.free?.[phase]?.length ? { free: lesson.free[phase] } : {}),
   }, lessonId, phase), lessonId, phase, undefined, Object.keys(mod.LESSONS));
 }
 
-// every sheet a module produces: { [lessonId]: { [phase]: doc } }
+const hasSheet = (list) => Boolean(list) && (!Array.isArray(list) || !list.length || visibleBlocks(list).length > 0);
+// every sheet a module produces: { [lessonId]: { [phase]: doc } }; a phase whose blocks are all hidden is no sheet
 export function moduleSheets(mod) {
   return Object.fromEntries(Object.keys(mod.LESSONS).map((lessonId) => [lessonId,
-    Object.fromEntries(Object.keys(PHASES).filter((p) => mod.LESSONS[lessonId][p]).map((p) => [p, buildCourseSheet(mod, lessonId, p)]))]));
+    Object.fromEntries(Object.keys(PHASES).filter((p) => hasSheet(mod.LESSONS[lessonId][p])).map((p) => [p, buildCourseSheet(mod, lessonId, p)]))]));
 }
