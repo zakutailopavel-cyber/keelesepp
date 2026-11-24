@@ -1,3 +1,11 @@
+## 2026-11-25 — Tahvel: lüngad õpetaja tekstis (agent/board-fill-blanks)
+
+- Omanik: õpilane ei saanud õpetaja teksti lünki täita (Anastasiia L., „Õpetaja teksti saab muuta ainult õpetaja”).
+- Õpetaja tekstis (byStaff text) saab iga ≥3 punkti / alakriipsu / „…” õpilase jaoks kastiks (`board/blankFill.js`, `BlankFillText.jsx`). Vastused: sama elemendi väli `fills` ({"0": "jope"}), kirjutatakse üks lünk korraga (`fills.N`). Õpetaja tekst jääb muutmatuks. Enter → järgmine kast. Vihje „Kirjuta vastused kastidesse” all.
+- Reeglid: text-elemendil lubatud `fills` (map ≤ 200); `whiteboardFillOnly` — mitte-staff tohib byStaff-tekstil muuta ainult `fills` + meta. Emulaatoritest whiteboard-rules-emulator.integration.js.
+- Kontrollid: vitest board + live-classroom läbi; eslint 0 viga; emulaator CI-s.
+- Väljalase: ENNE `firebase deploy --only firestore:rules`, siis sait.
+
 ## 2026-11-25 — Avaleht selgemaks, vorm sama (agent/home-clearer)
 
 - Omanik 2026-11-24: praegune avalehe vorm jääb („Täna” ümberkujundus lükati tagasi); parandused 1–5 selle sees.
