@@ -25,7 +25,7 @@ was recorded; the commit is the head of `main` at that moment, not verified agai
 
 | Target | Live since | Commit | How verified |
 | --- | --- | --- | --- |
-| Firestore rules (`firestore.rules`) | 2026-11-18 08:13 | `cd0e70a` (#1264 Õppesuunad individuaalne / grupp: `groupPrices`) | live ruleset compared with main `cd0e70a`: equal |
+| Firestore rules (`firestore.rules`) | 2026-11-24 23:32 | #1304 + this PR (board gaps: `fills`; student may change only `fills` + meta). Via Rules API (CLI gave 409); **compiled size is at Firestore's 256 kB limit** — keep rule changes minimal | live ruleset compared with the repo file: equal |
 | Storage rules (`storage.rules`) | 2026-11-19 ~14:5x | `05884e2` (#1285 fail kandele: `financial/accounting-entries/{entryId}/{documentId}`) | `firebase deploy --only storage` „Deploy complete” |
 | Firestore indexes (`firestore.indexes.json`) | not recorded | — | `firebase firestore:indexes` (read-only) |
 | Hosting — app (Vercel, crm.epkoolitus.ee) | 2026-11-15 11:59 release commit | `dbdf512` `[deploy] Release 2026-11-15 11:59 UTC` | release commit on main; Vercel status success |

@@ -1,3 +1,8 @@
+## 2026-11-25 — Reeglid: lüngad tahvlil, kompaktne versioon (agent/board-fill-rules-size)
+
+- #1304 reeglid ei mahtunud: Firestore „Total size of compiled executables must be smaller than 256000 bytes” (+348 B). Minimaalne versioon: text-võtmetes `fills`; `whiteboardElementUpdateValid` lubab muutust, kus muutuvad ainult `fills` + meta. Avaldatud Rules API kaudu 2026-11-24 23:32 UTC, live = repo.
+- **Risk:** reeglid on 256 kB piiril — iga uus reegel vajab kokkuhoidu mujal.
+
 ## 2026-11-25 — Tahvel: lüngad õpetaja tekstis (agent/board-fill-blanks)
 
 - Omanik: õpilane ei saanud õpetaja teksti lünki täita (Anastasiia L., „Õpetaja teksti saab muuta ainult õpetaja”).
