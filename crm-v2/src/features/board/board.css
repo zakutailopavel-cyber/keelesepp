@@ -286,3 +286,11 @@ html.sb-drawing :is(input, textarea, select, [contenteditable="true"], [contente
 .sb-anchor-chip { position: absolute; z-index: 6; display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px; border: 1px solid #f59e0b; border-radius: var(--radius-pill); background: #fffbeb; color: #92400e; font-size: .82rem; font-weight: 700; box-shadow: 0 6px 18px rgba(30, 34, 70, .18); cursor: pointer; }
 @media (pointer: coarse) { .sb-anchor-chip { height: 40px; } }
 .sb-underlay .sa-colors .sa-bookmark { display: inline-flex; align-items: center; justify-content: center; gap: 4px; color: #92400e; }
+
+/* answer boxes in the teacher's text (owner 2026-11-25): a box where the teacher wrote „____” / „....” */
+.sb-text.has-gaps { line-height: 1.75; overflow: visible; }
+.sb-gap { display: inline-block; box-sizing: border-box; min-width: 6ch; height: 1.5em; margin: 0 .2em; padding: 0 .35em; border: 1.5px solid #98a2b3; border-radius: 7px; background: #fff; color: #0b5c4d; font: inherit; font-weight: 500; line-height: normal; vertical-align: baseline; outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
+.sb-gap.is-filled { border-color: #0b7a63; background: #f0f9f6; }
+.sb-gap:focus { border-color: #0b7a63; box-shadow: 0 0 0 3px rgba(11, 122, 99, .18); }
+.sb-gap[readonly] { cursor: default; }
+.sb-fill-hint { position: absolute; bottom: 10px; left: 50%; z-index: 3; transform: translateX(-50%); max-width: calc(100% - 24px); margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 5px 12px; border: 1px solid #abefc6; border-radius: 8px; background: #ecfdf3; color: #067647; font-size: 14px; pointer-events: none; }
