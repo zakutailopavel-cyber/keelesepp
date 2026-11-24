@@ -54,8 +54,14 @@ test('heartbeat doc for the lesson room', () => {
   assert.equal(workerId(''), 'mac');
   const now = new Date('2026-10-04T10:00:00Z');
   assert.deepEqual(heartbeat({ host: 'Kooli-Mac', startedAt: 'x', now }),
-    { host: 'Kooli-Mac', state: 'idle', recordingId: '', startedAt: 'x', lastSeenAt: '2026-10-04T10:00:00.000Z' });
+    { host: 'Kooli-Mac', state: 'idle', recordingId: '', startedAt: 'x', lastSeenAt: '2026-10-04T10:00:00.000Z', hours: '' });
   assert.equal(heartbeat({ host: 'm', state: 'transcribing', recordingId: 'r1', now }).state, 'transcribing');
+  // the site's progress card: night window, open now, parts done of all
+  const busy = heartbeat({ host: 'm', state: 'transcribing', recordingId: 'r1', hours: '02-07', windowOpen: true, progress: { done: 9, total: 4 }, now });
+  assert.equal(busy.hours, '02-07');
+  assert.equal(busy.windowOpen, true);
+  assert.deepEqual(busy.progress, { done: 4, total: 4 });
+  assert.equal('progress' in heartbeat({ host: 'm', progress: { done: 0, total: 0 }, now }), false);
 });
 
 test('a lesson a dead transcriber had taken goes back to the queue', () => {

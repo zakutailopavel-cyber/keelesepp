@@ -15,7 +15,7 @@ describe('transcriberState', () => {
       { id: 'old', host: 'Old', lastSeenAt: at(TRANSCRIBER_FRESH_MS * 3) },
       { id: 'mac', host: 'Kooli-Mac', lastSeenAt: at(30 * 1000), state: 'transcribing' },
     ], now);
-    expect(state).toEqual({ known: true, online: true, busy: true, host: 'Kooli-Mac', analyzing: [] });
+    expect(state).toMatchObject({ known: true, online: true, busy: true, host: 'Kooli-Mac', analyzing: [], current: { state: 'transcribing' } });
     expect(transcriberLabel(state)).toContain('Kooli-Mac');
   });
   it('has no label before the status is known', () => {

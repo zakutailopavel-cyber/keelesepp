@@ -136,6 +136,23 @@ export const lessonRecordingsService = {
     return { recordingConsent: Boolean(value), recordingConsentAt: now };
   },
 
+  // admin („Tundide tekst” on the home page): the lessons still waiting for text or failed, and those transcribed in
+  // the last two days (their analysis may still be coming). Two live queries; each list replaces its half.
+  subscribeQueue(onData, onError, { now = Date.now() } = {}) {
+    const { db } = requireFirebaseClient();
+    const since = new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString();
+    const halves = { open: [], recent: [] };
+    const emit = () => {
+      const seen = new Map();
+      [...halves.open, ...halves.recent].forEach((r) => seen.set(r.id, r));
+      onData([...seen.values()]);
+    };
+    const pick = (key) => (snapshot) => { halves[key] = snapshot.docs.map((d) => normalizeRecording(d.id, d.data())); emit(); };
+    const stopOpen = onSnapshot(query(collection(db, 'lessonRecordings'), where('status', 'in', ['recording', 'uploaded', 'transcribing', 'failed'])), pick('open'), (error) => onError?.(error));
+    const stopRecent = onSnapshot(query(collection(db, 'lessonRecordings'), where('transcribedAt', '>=', since)), pick('recent'), (error) => onError?.(error));
+    return () => { stopOpen(); stopRecent(); };
+  },
+
   // staff: heartbeat of the transcriber on the school Mac (written by the worker with the Admin SDK)
   subscribeTranscribers(onData, onError) {
     const { db } = requireFirebaseClient();
