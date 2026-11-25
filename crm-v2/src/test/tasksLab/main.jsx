@@ -14,10 +14,11 @@ import '../../styles/index.css';
 //   /tasks-lab.html?view=harjuta            „Harjuta” (its „Täna” steps)
 //   /tasks-lab.html?view=harjuta&kaardid=hw-words-new   a word task opened from „Ülesanded” („Ava kaardid”)
 //   /tasks-lab.html?fold=vanad | tehtud     „Ülesanded” with that fold open
+//   /tasks-lab.html?scenario=repeats        one sheet given three times (audit 05: „+2 varasemat”)
 //   &theme=dark                             the dark theme
 const params = new URLSearchParams(globalThis.location.search);
 if (params.get('theme')) document.documentElement.dataset.theme = params.get('theme');
-const data = demoTasks(localDate());
+const data = demoTasks(localDate(), { repeats: params.get('scenario') === 'repeats' });
 const student = { uid: 'demo-student', displayName: 'Test Õpilane', roles: ['student'] };
 const demoOnly = async () => { throw new Error('Demo: ei salvesta.'); };
 const homeworkRepository = {

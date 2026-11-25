@@ -155,3 +155,36 @@ describe('ProgressPointsCard (student card)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('vahe +37 punkti');
   });
 });
+
+describe('too few measurements: no level percentage (audit 2026-11-24, finding 06)', () => {
+  it('two sheets without a start point are thin; enough sheets with an „Oskan” goal or a teacher start are not', async () => {
+    const { isThinCurve, doneSheetCount } = await import('./proficiencyCurve.js');
+    const two = [sheet('b1-001', 'discover', '2026-10-01', both), sheet('b1-002', 'discover', '2026-10-02', both)];
+    const thin = levelCurve({ assignments: two, goalKeys: KEYS, level: 'A2', today: '2026-10-20' });
+    expect(thin.line.at(-1).percent).toBe(0);
+    expect(thin.measured).toBe(2);
+    expect(isThinCurve(thin)).toBe(true);
+    // four sheets, but no goal reached in two of them yet: still nothing to say in percent
+    const spread = [1, 2, 3, 4].map((n) => sheet(`b1-00${n}`, 'discover', '2026-10-0' + n, both));
+    expect(isThinCurve(levelCurve({ assignments: spread, goalKeys: KEYS, level: 'A2', today: '2026-10-20' }))).toBe(true);
+    const enough = [1, 2].flatMap((n) => [sheet(`b1-00${n}`, 'discover', '2026-10-01', both), sheet(`b1-00${n}`, 'practice', '2026-10-02', both)]);
+    expect(isThinCurve(levelCurve({ assignments: enough, goalKeys: KEYS, level: 'A2', today: '2026-10-20' }))).toBe(false);
+    const started = levelCurve({ assignments: two, goalKeys: KEYS, points: [{ ...point('2026-10-01', 30, 'teacher', 'Algus'), level: 'A2' }], level: 'A2', today: '2026-10-20' });
+    expect(isThinCurve(started)).toBe(false);
+    expect(isThinCurve({ line: [], exams: [] })).toBe(false);
+    expect(doneSheetCount([{ status: 'done' }, { completedAt: '2026-10-01' }, { status: 'new' }])).toBe(2);
+  });
+
+  it('the card says „Andmeid on veel vähe” and what the child did, never „0 %”', async () => {
+    const { ProficiencyView } = await import('./ProficiencyCard.jsx');
+    const two = [sheet('b1-001', 'discover', '2026-10-01', both), sheet('b1-002', 'discover', '2026-10-02', both)];
+    const curve = levelCurve({ assignments: two, goalKeys: KEYS, level: 'A2', today: '2026-10-20' });
+    render(<ProficiencyView curve={curve} level="A2" name="Mia" doneSheets={2} learnedWords={14} />);
+    expect(screen.getByRole('heading', { name: /Mia A2 keeleoskus/ })).toBeInTheDocument();
+    expect(screen.getByText('Andmeid on veel vähe.')).toBeInTheDocument();
+    expect(screen.getByText(/töölehte tehtud/).textContent).toMatch(/^2 töölehte tehtud/);
+    expect(screen.getByText(/sõna selgeks õpitud/).textContent).toMatch(/^14 sõna selgeks õpitud/);
+    expect(screen.queryByText(/0\s*%/)).toBeNull();
+    expect(screen.queryByRole('img')).toBeNull();
+  });
+});

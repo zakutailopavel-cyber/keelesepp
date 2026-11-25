@@ -12,6 +12,7 @@ import '../../styles/index.css';
 // A page outside the app (vite dev only, not in the production build): „Minu pere” with a FAKE demo family and fake
 // repositories, no sign-in and no Firebase reads. For screenshots and a quick look:
 //   /parent-lab.html?family=two | one | empty      the parent's page
+//   /parent-lab.html?family=audit                  a child who has just begun + a lesson over today (audit 06, 19)
 //   /parent-lab.html?view=staff                    the student card's „Keeleoskus tasemele” as the admin sees it
 //   /parent-lab.html?view=student                  the student's own „Minu areng” (Aleksandr)
 const params = new URLSearchParams(globalThis.location.search);
