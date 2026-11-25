@@ -416,25 +416,31 @@ export const LESSONS = withShapes({
         'Kerli: Ta räägib eesti ja vene keelt.',
         'Kerli: Palun helista mulle, kui ema on sinu juures. Minu number on 5566 1122. Aitäh!',
       ], ['Buss tuleb Pärnust kell [kaks|2|14].', 'Kerli ema on [65|kuuskümmend viis] aastat vana.', 'Ema on Kerlist [lühem].', 'Emal on lühikesed [hallid] juuksed.', 'Tal on suured [prillid].', 'Tal on seljas pikk [roheline] mantel.', 'Ema on närviline, sest ta ei tunne [Tallinna].', 'Kerli number on [5566 1122|55661122].']), { task: 'L07' })),
-      teach(tag(why(B.table('008_d_rule', 'Leia reegel: ta on või tal on?', 'Kirjuta puuduv sõna. Kõik laused olid häälsõnumis.', 'Ta on … (milline?), Tal on … (mis?)', [
+      teach(tag(why(B.table('008_d_rule', 'Leia reegel: ta on või tal on?', 'Kirjuta puuduv sõna. Kõik laused olid häälsõnumis. Siis ütle oma sõnadega: millal ütleme „ta on”, millal „tal on”?', 'Ta on … (milline?), Tal on … (mis?)', [
         'Ta on üsna [lühike]. | Tal on lühikesed [hallid] juuksed.',
         'Ta on väga [sõbralik]. | Tal on suured [prillid].',
         'Ta on natuke [närviline]. | Tal on käes suur [kott].',
+        'Ta on närviline, sest ta ei tunne [Tallinna]. | Tal on lühikesed hallid [juuksed].',
         'Ta on [kuuskümmend viis/65] aastat vana. | Tal on seljas pikk [roheline] mantel.',
         'Ta on Kerli [ema]. | Tal on Tallinnas [tütar].',
+        'Ta on Kerlist [lühem]. | Tal on [käes] suur kott.',
       ], 'g_notice'), [
         'Ta on + milline? (lühike) · Tal on + mis? (hallid juuksed: juuksed on mitmuses, omadussõna ka).',
         'Ta on + sõbralik · Tal on + suured prillid (mitmus).',
         'Ta on + närviline · Tal on + suur kott (ainsus).',
+        'Ta on + põhjusega lause (sest …) · Tal on + juuksed (mitmus).',
         'Ta on + vanus · Tal on seljas + riided (pikk roheline mantel).',
         'Ta on + kes (ema) · Tal on + keda (tütar).',
+        'Ta on + võrdlus (Kerlist lühem) · Tal on + kus? (käes, seljas).',
       ]), { task: 'G01', level: 1 }), 'Üks-ühele: õpilane täidab tabeli kuulamise järgi. Reegli sõnastab õpilane ise: „Ta on …” ütleb, milline inimene on (pikk, rahulik); „Tal on …” ütleb, mis tal on (juuksed, prillid, kott). Juuksed ja silmad on mitmuses, siis ka omadussõna: lühikesed hallid juuksed.'),
       teach(tag(B.speaking('008_d_432', 'Proovi kohe.', 'Kirjelda õpetajale üht inimest, keda te mõlemad tunnete. Õpetaja arvab, kes see on.', [
         'Kas ta on pikk või lühike?',
         'Millised juuksed ja silmad tal on?',
         'Milline ta on: rahulik, lõbus, sõbralik?',
         'Kas ta on sinust pikem või lühem?',
-      ], [35, 60], ['Ta on üsna …', 'Tal on … juuksed.', 'Ta on väga …']), { task: 'S08', level: 3 }),
+        'Mis tal täna seljas on?',
+        'Kellega ta on sarnane?',
+      ], [35, 60], ['Ta on üsna …', 'Tal on … juuksed.', 'Ta on väga …', 'Tal on seljas …', 'Ta on minust …']), { task: 'S08', level: 3 }),
       'Üks-ühele: õpilane kirjeldab üht kursusekaaslast, kuulsat inimest või õpetaja tuttavat pilti telefonis; õpetaja arvab ja küsib ühe täpsustava küsimuse („Kas tal on prillid?”).'),
       hide(B.text('008_d_hook', 'Vana foto', 'Sofia on onu Viktori juures. Viktor näitab vana fotot Kõrvemaalt. Fotol on kaks last: Viktor ja tema väike õde Helgi. Sofia vaatab fotot ja küsib: „Milline sa siis olid, onu?”'), V5_CUT),
       hide(B.examListen('008_d_photo', 'Sofia ja Viktor vaatavad fotot.', 'Kuula Sofia ja Viktori juttu. Ühenda inimene ja kirjeldus.', 'match', [
@@ -731,7 +737,7 @@ export const LESSONS = withShapes({
         'Minu õde elab Narvas. Tal on kaks tütart.',
         'Laupäeval sõidame kõik Narva, minu ema juurde. Ema saab seitsekümmend.',
       ], ['Daniil on [kaheksa|8] aastat vana.', 'Daniil on sarnane [isaga|Sergeiga].', 'Daniilil on [sinised] silmad.', 'Olga õel on kaks [tütart].', 'Laupäeval sõidavad nad [Narva].'], 'g_listen'), { task: 'L03' }), true),
-      twice(tag(B.examListen('010_d_call', 'Kuulamine 2. Telefonikõne.', 'Oksana helistab lapsehoidja kuulutuse peale. Kuulad kaks korda. Kas lause on õige või vale? (5 punkti)', 'truefalse', [
+      twice(tag(B.examListen('010_d_call', 'Kuulamine 2. Telefonikõne.', 'Oksana helistab kuulutuse peale. Kuulad kaks korda. Õige või vale? (5 punkti)', 'truefalse', [
         'Kertu: Tere! Kertu kuuleb.',
         'Oksana: Tere! Mina olen Oksana. Ma helistan kuulutuse pärast. Te otsite lapsehoidjat?',
         'Kertu: Jah. Meil on kaks last: poeg on kuus ja tütar on kolm.',
@@ -760,7 +766,19 @@ export const LESSONS = withShapes({
         'Küsi õpetajalt kaks küsimust tema pere kohta.',
       ], [35, 60]), { task: 'S01' }),
       'Üks-ühele: õpetaja on eksamineerija; see on kontrolli 1 rääkimise paralleel (uus teema, sama hindamine). Ära aita. Küsi vajadusel üks lisaküsimus („Kas sul on vend või õde?”). Hinda allpool oleva juhendi järgi.'),
-      B.rubric('010_t_rubric', 'Hindamine: kirjutamine ja rääkimine.', 'Õpetaja hindab iga rida 0–2 punkti. Kumbki osa: 5 rida, 10 punkti.', [
+      teach(B.table('010_d_score', 'Hindamine: kirjutamine ja rääkimine.', 'Õpetaja annab igale reale 0, 1 või 2 punkti. Igas osas 10 punkti.', 'Hindamisrida (0 / 1 / 2), Punktid', [
+        'Kirjutamine, sisu: 2 = kõik neli punkti; 1 = kaks-kolm punkti; 0 = üks punkt või vähem. | ',
+        'Kirjutamine, pikkus ja sõnum: 2 = 25–40 sõna ja kõik on arusaadav; 1 = alla 25 sõna või osa on segane; 0 = sõnumist ei saa aru. | ',
+        'Kirjutamine, pere ja kirjeldus: 2 = vormid on peaaegu alati õiged (kaks venda, tal on pikad juuksed); 1 = mitu viga, aga sõnum on selge; 0 = vead segavad mõistmist. | ',
+        'Kirjutamine, kelle-vorm ja küsimus: 2 = omastav ja küsimus on õiged (minu ema juures); 1 = arusaadav, aga vigane; 0 = puudub. | ',
+        'Kirjutamine, algus ja lõpp: 2 = tervitus ja lõpp sobivad; 1 = üks puudub; 0 = mõlemad puuduvad. | ',
+        'Rääkimine, sisu: 2 = vähemalt neli pereliiget ja igaühe kohta üks detail; 1 = kaks-kolm inimest; 0 = üks inimene või vähem. | ',
+        'Rääkimine, kirjeldus: 2 = välimus ja iseloom (ta on …, tal on …); 1 = ainult üks neist; 0 = kirjeldust ei ole. | ',
+        'Rääkimine, küsimused: 2 = kaks arusaadavat küsimust; 1 = üks; 0 = ei ühtegi. | ',
+        'Rääkimine, vormid: 2 = mul on / ei ole, osastav pärast arvu ja kelle-vorm on peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = vead segavad mõistmist. | ',
+        'Rääkimine, arusaadavus: 2 = kuulaja saab kõigest aru (pausid on lubatud); 1 = kuulaja peab mõnikord üle küsima; 0 = raske aru saada. | ',
+      ]), 'Õpetajale: kirjutamise viis rida annavad kirjutamise punktid (/10), rääkimise viis rida rääkimise punktid (/10); kanna need tabelisse „Minu tulemus”.'),
+      hide(B.rubric('010_t_rubric', 'Hindamine: kirjutamine ja rääkimine.', 'Õpetaja hindab iga rida 0–2 punkti. Kumbki osa: 5 rida, 10 punkti.', [
         'Kirjutamine, sisu: 2 = kõik neli punkti; 1 = kaks-kolm punkti; 0 = üks punkt või vähem.',
         'Kirjutamine, pikkus ja sõnum: 2 = 25–40 sõna ja kõik on arusaadav; 1 = alla 25 sõna või osa on segane; 0 = sõnumist ei saa aru.',
         'Kirjutamine, pere ja kirjeldus: 2 = vormid on peaaegu alati õiged (kaks venda, tal on pikad juuksed); 1 = mitu viga, aga sõnum on selge; 0 = vead segavad mõistmist.',
@@ -771,8 +789,8 @@ export const LESSONS = withShapes({
         'Rääkimine, küsimused: 2 = kaks arusaadavat küsimust; 1 = üks; 0 = ei ühtegi.',
         'Rääkimine, vormid: 2 = mul on / ei ole, osastav pärast arvu ja kelle-vorm on peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = vead segavad mõistmist.',
         'Rääkimine, arusaadavus: 2 = kuulaja saab kõigest aru (pausid on lubatud); 1 = kuulaja peab mõnikord üle küsima; 0 = raske aru saada.',
-      ]),
-      teach(B.table('010_d_result', 'Minu tulemus.', 'Kirjuta oma punktid ja korruta need kahega (Harno skaala). Ükski osa ei tohi olla 0 punkti.', 'Osa, Punktid (/10), Harno skaala (/20), Kontroll 1 (%), Mida harjutada?', [
+      ]), 'v5 (2026-11-25): hindamisread on nüüd tabelis 010_d_score (rubric jääb lehe lõppu üksi, tabel seisab tulemuse ees)'),
+      teach(B.table('010_d_result', 'Minu tulemus.', 'Kirjuta punktid ja korruta kahega (Harno skaala). Ükski osa ei tohi olla 0 punkti.', 'Osa, Punktid (/10), Harno skaala (/20), Kontroll 1 (%), Mida harjutada?', [
         'Lugemine |  |  |  | ',
         'Kuulamine |  |  |  | ',
         'Kirjutamine |  |  |  | ',
