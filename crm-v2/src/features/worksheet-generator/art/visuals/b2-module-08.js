@@ -13,7 +13,7 @@ export default [
     scene: "Kolm inimest planeerivad köögilaua ääres reisi. Üks võrdleb eelarvet, teine näitab matkarada ja kolmas majutust; laua keskel on lihtne kaart, mille üks marsruut ühendab linna, ranna ja metsa. Kõrval on hallid bussi, praami ja majutuse sümbolid.",
     accent: "the chosen route connecting city, beach and forest",
     text: [],
-    place: "036_d_read",
+    place: "036_d_text",
     learningJob: "võrrelda sihtkohta, transporti, majutust ja hinda ning leppida kokku ühine plaan",
     alt: "Kolm inimest panevad köögilaua ääres kaardi järgi kokku reisi marsruudi ja eelarve.",
     caption: "Pilt 1. Ühine reisiplaan sünnib kompromissist.",
@@ -21,14 +21,16 @@ export default [
   },
   {
     id: "b1b2-037-kasuta-1",
-    phase: "transfer",
+    // 2026-11-25 (v5): the role-play it stood beside left the sheet; the picture (a stay that is not as described, three
+    // problems and one clear demand) now stands in Harjuta before the register task „call → complaint”
+    phase: "practice",
     format: "scene",
     cast: ["Anna", "Liis"],
     // 2026-11-18 (v4): the same picture (a rented flat that is not as described), now beside the extension role-play
     scene: "Üürikorteris helistab naine broneerimisplatvormi klienditeenindusse. Tema kõrval on näha kolm probleemi: räpane laud, katkise ühenduse sümbol ruuteril ja kaks ühesugust kaardimakse märget. Telefoni kõrval on klienditeenindaja ekraanil lahenduskaart.",
     accent: "the customer-guarantee solution card",
     text: [],
-    place: "037_t_more",
+    place: "037_p_register",
     learningJob: "kirjeldada majutuse probleeme täpselt, nimetada tõendid ja nõuda konkreetset lahendust",
     alt: "Naine teatab telefonis räpasest korterist, mittetöötavast internetist ja topeltmaksest.",
     caption: "Pilt 1. Kolm probleemi ja üks selge nõue.",
@@ -43,7 +45,7 @@ export default [
     scene: "Kaks kõrvutist igapäevaolukorda samade inimestega: vasakul istuvad nad bussis vaikselt ja jätavad teineteisele ruumi, paremal vestlevad nad kodusel külaskäigul avatult kohvilaua ääres. Keskel on kaart, mis seob vaikuse austuse, mitte ebasõbralikkusega.",
     accent: "the context-switch card between the two situations",
     text: [],
-    place: "038_d_radio",
+    place: "038_d_text",
     learningJob: "võrrelda sama inimese käitumist eri olukordades ja öelda üldistus ettevaatlikult",
     alt: "Samad kaks inimest istuvad vaikselt bussis ja vestlevad avatult külaskäigul.",
     caption: "Pilt 1. Vaikus bussis, jutt köögis.",
@@ -51,14 +53,16 @@ export default [
   },
   {
     id: "b1b2-039-avasta-1",
-    phase: "discover",
+    // 2026-11-25 (v5): the input is one radio show; the picture (a balanced travel review) stands in Kasuta before the
+    // rubric of the forum review, so that no picture or self-check stands alone on a page
+    phase: "transfer",
     format: "scene",
     cast: ["Anna", "Jaan"],
     // 2026-11-18 (v4): the same picture (three travel memories joined into a balanced review), now beside the story
     scene: "Kaks inimest kirjutavad reisiportaalile arvustust. Laual on kolm halli fotokaarti praamisõidust, jalgratastest ja perekodust; iga kaardi juurest viib joon keskse hinnangukaardi juurde, kus pluss ja miinus on tasakaalus.",
     accent: "the balanced travel-review card",
     text: [],
-    place: "039_d_story",
+    place: "039_t_rubric",
     learningJob: "siduda reisi sündmused põhjendatud hinnanguga ja teha sellest soovitus",
     alt: "Kaks inimest seovad kolm reisimälestust tasakaalustatud hinnanguga.",
     caption: "Pilt 1. Hea soovitus ühendab kogemuse ja hinnangu.",
@@ -73,9 +77,11 @@ export default [
     scene: "Keelekursuse vahehindamise järel koostavad kaks õppijat kordamisplaani. Õpitee tahvlil on neli peatust ilma tekstita: argumenteerimise kõnemull, tööelu portfell, hariduse raamat ja reisimise kohver. Üks märgib ebakindla koha, teine aitab valida järgmise sammu.",
     accent: "the personalized four-stop revision route",
     text: [],
-    learningJob: "seostada vahehindamise tulemused nelja teemaga ja valida, mida korrata",
+    // 2026-11-25 (v5): the control is one sheet (reading + speaking); the picture opens the speaking part
+    place: "040_t_spart",
+    learningJob: "seostada kontrolli tulemused mooduli teemadega ja valida, mida korrata",
     alt: "Kaks õppijat koostavad nelja teema põhjal kordamisplaani.",
-    caption: "Pilt 1. Tunnid 21–40: arvamus, töö, haridus, reisimine.",
+    caption: "Pilt 1. Mida ma oskan ja mida kordan?",
     prompts: ["Milliseid teemasid näitavad õpitee neli peatust?", "Milline neist teemadest on sinu jaoks kõige kindlam ja milline kõige ebakindlam?", "Mida sa kordad enne järgmist moodulit?"],
   },
 ];
