@@ -39,3 +39,13 @@ describe('pet games on the real course', () => {
     expect(sheetLanguage(doc, id)).toBe('en');
   });
 });
+
+describe('pet games read the v5 form-gap texts', () => {
+  it('a formtext passage gives gap rows', async () => {
+    const { sheetItems } = await import('./petGames.js');
+    const items = sheetItems({ blocks: [{ type: 'formtext', data: { passage: 'Eelmisel kuul [kolisime](kolima) uude korterisse. Kõige raskem oli [raamatute](raamat) pakkimine. Nüüd elame [kesklinnas](kesklinn).' } }] });
+    const all = JSON.stringify(items);
+    expect(all).toContain('kolisime');
+    expect(all).toContain('raamatute');
+  });
+});

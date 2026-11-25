@@ -21,6 +21,10 @@ export { isTaskDesign } from '../../../worksheet-studio/didactics/stations.js';
 export const ST = Object.freeze({
   stations: [4, 6], minutes: [8, 15], v5Minutes: [5, 25], v5TextWords: 150, blocks: 16, textWords: 120, audioWords: 320, dialogueLines: [4, 8],
   items: STATION_ITEMS, purposeWords: 6,
+  // methodology v5 in the B2 course (docs/METHODOLOGY_B1_B2_V5.md §3, methodV5.js G1 / G3 / G4): the one input is a reading
+  // of 400–600 words or a recording of 3–4 min (≈ 128 words a minute) with 8–12 items; the language station holds the
+  // rule, two form tasks of 8–10 items and one register task; the exit is the self-check with three success criteria
+  v5B2: { textWords: 600, audioWords: 560, items: [5, 12], closedPerStation: 3 },
   // design v4 „task-based” (§7, owner 2026-11-17): exactly 4 stations, ≤ 75 station minutes of a 90-min lesson (room for the
   // hook, the exit check and slack), one exit check (2–3 items) + one self-check on Kasuta
   taskStations: [4, 4], taskMinutes: 75, dependsMax: 1, coreStations: 3, coreMinutes: [35, 50], errorsMin: 2, goalChars: 200, scriptLines: 2,
@@ -157,17 +161,20 @@ export function lessonStationProblems(lessonId, phases) {
   // methodology v5 (meta.methodV5, docs/METHODOLOGY_B1_B2_V5.md §3): the 75-min core is 5 + 15 + 20 + 25 + 5 min, so a
   // station may take 5–25 min there (the lesson's total is G1 in methodV5.js)
   const v5 = docs.some(([, d]) => d?.meta?.methodV5);
+  const v5b2 = v5 && /^b1b2-/.test(String(lessonId));
+  const items = v5b2 ? ST.v5B2.items : ST.items;
   for (const s of list) {
     const [mlo, mhi] = v5 ? ST.v5Minutes : ST.minutes;
     if (!(s.minutes >= mlo && s.minutes <= mhi)) add(s.phase, 'st-minutes', `jaam ${s.n} „${s.title}”: ${s.minutes} min (${mlo}–${mhi})`);
     const closed = s.blocks.filter((b) => isClosed(b, v4) && !(v4 && isExitCheck(b)));
-    if (closed.length > 1) add(s.phase, 'st-closed', `jaam ${s.n}: ${closed.length} suletud ülesannet (${closed.map((b) => b.id).join(', ')}; kuni 1 ühe sisendi kohta)`);
+    if (closed.length > (v5b2 ? ST.v5B2.closedPerStation : 1)) add(s.phase, 'st-closed', `jaam ${s.n}: ${closed.length} suletud ülesannet (${closed.map((b) => b.id).join(', ')}; kuni 1 ühe sisendi kohta)`);
     for (const b of s.blocks) {
       if (b.data?.opener) continue; // the module's front page (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2) is its own genre
       // methodology v5: the lesson's one text keeps the stage's ceiling (methodV5.js G3, A2: 150 words)
-      const textMax = v5 ? ST.v5TextWords : ST.textWords;
+      const textMax = v5b2 ? ST.v5B2.textWords : v5 ? ST.v5TextWords : ST.textWords;
+      const audioMax = v5b2 ? ST.v5B2.audioWords : ST.audioWords;
       if (TEXT_INPUT.includes(b.type) && inputWords(b) > textMax) add(s.phase, 'st-input', `${b.id}: tekst ${inputWords(b)} sõna (kuni ${textMax})`);
-      if (AUDIO_INPUT.includes(b.type) && inputWords(b) > ST.audioWords) add(s.phase, 'st-input', `${b.id}: helitekst ${inputWords(b)} sõna (kuni ${ST.audioWords}, ≈ 2,5 min)`);
+      if (AUDIO_INPUT.includes(b.type) && inputWords(b) > audioMax) add(s.phase, 'st-input', `${b.id}: helitekst ${inputWords(b)} sõna (kuni ${audioMax}, ≈ ${Math.round(audioMax / 128 * 2) / 2} min)`);
       if (b.type === 'dialogue') {
         const n = (b.data?.lines || []).length;
         if (n < ST.dialogueLines[0] || n > ST.dialogueLines[1]) add(s.phase, 'st-input', `${b.id}: dialoogis ${n} repliiki (${ST.dialogueLines.join('–')})`);
@@ -181,8 +188,10 @@ export function lessonStationProblems(lessonId, phases) {
       if (p.split(/\s+/).filter(Boolean).length < ST.purposeWords) add(phase, 'st-purpose', `${b.id}: eesmärgirida puudub või on liiga lühike (purpose(block, 'kes, kellele, mis tulemus'))`);
       const n = closedItems(b, v4);
       if (v4 && isExitCheck(b)) {
-        if (phase !== 'transfer' || n < EXIT_ITEMS[0] || n > EXIT_ITEMS[1]) add(phase, 'st-exit', `${b.id}: väljumiskontroll on Kasuta lehel ja sellel on ${EXIT_ITEMS.join('–')} punkti (praegu ${n})`);
-      } else if (n && b.type !== 'insertion' && (n < ST.items[0] || n > ST.items[1])) add(phase, 'st-items', `${b.id}: ${n} punkti (suletud ülesanne: ${ST.items.join('–')})`);
+        // v5 B2: the exit may be the self-check „Ma oskan …” with three success criteria (no scored items)
+        const selfExit = v5b2 && b.type === 'selfcheck';
+        if (phase !== 'transfer' || (!selfExit && (n < EXIT_ITEMS[0] || n > EXIT_ITEMS[1]))) add(phase, 'st-exit', `${b.id}: väljumiskontroll on Kasuta lehel ja sellel on ${EXIT_ITEMS.join('–')} punkti (praegu ${n})`);
+      } else if (n && b.type !== 'insertion' && (n < items[0] || n > items[1])) add(phase, 'st-items', `${b.id}: ${n} punkti (suletud ülesanne: ${items.join('–')})`);
       if (GROUP.test(taskText(b))) add(phase, 'st-group', `${b.id}: rühmatöö või „küsi mitmelt” — tund on üks-ühele, õpetaja on partner päris põhjusega`);
       if (scriptLines(b) > ST.scriptLines) add(phase, 'st-script', `${b.id}: õppija rollikaart on stsenaarium (${scriptLines(b)} rida „Ütle / Küsi / Selgita …”) — anna olukord, eesmärk ja piirangud; info ja takistused on õpetaja kaardil`);
       if (SPEAK.includes(b.type) && REPEAT.test(taskText(b))) add(phase, 'st-repeat', `${b.id}: sama monoloog uuesti („kaks korda”, „uuesti” …)`);
@@ -229,6 +238,9 @@ export function stationProblems(sheets) {
   // variety: no two lessons open with the same two stations, and the final task kinds rotate
   const openings = new Map();
   lists.forEach(([id, list]) => {
+    // methodology v5 (meta.methodV5): every lesson has the same 4-station shape by design (quality.js skips the sequence
+    // and neighbour rules too); its input alternates between reading and listening (methodV5.js G4)
+    if (Object.values(sheets[id]).some((d) => d?.meta?.methodV5)) return;
     const key = list.slice(0, 2).map(signature).join(' | ');
     if (openings.has(key)) add('st-opening', `algab samade jaamadega kui ${openings.get(key)} (${key})`, id);
     else openings.set(key, id);

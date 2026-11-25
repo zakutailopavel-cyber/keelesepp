@@ -5,7 +5,8 @@
 // module's folders: 011 ← a2b1-010-avasta-1 (a family table with a cake and a photo album), 013 ← b1b2-077-kasuta-1 (a
 // personal time line of the way to Estonian), 014 ← b1b2-058-avasta-1 (safety rules and a confirmation on a phone).
 // 012 keeps its own picture (experiences vs one dated day). Briefs and pictures made by Codex (built-in image generation)
-// per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py. 2026-11-25 (methodology v5): the same pictures,
+// each placed before the lesson's one input; the questions now prepare that input and the lesson's grammar (no new images).
 export default [
   {
     id: "b1b2-011-avasta-1",
@@ -19,9 +20,10 @@ export default [
     learningJob: "meenutada oma pere peolauda ja jutustada lihtminevikus, mida pühade ajal söödi ja kes seda tegi",
     alt: "Pere katab peolauda: kook, joogid ja vana fotoalbum.",
     caption: "Pilt 1. Peolaud ja pere album.",
-    place: "011_d_read",
+    // v5 (2026-11-25): before the one input 011_d_text — the questions prepare the reading and the scheme (then / now)
+    place: "011_d_text",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida pere pildil ette valmistab ja miks on laual fotoalbum?", "Mis oli sinu lapsepõlve sünnipäeva- või pühadelaual? Kes selle tegi?", "Mis toit meenutab sulle kodu? Ütle kaks lauset lihtminevikus."],
+    prompts: ["Mida pere pildil ette valmistab ja miks on laual vana fotoalbum? Mida see ütleb pere kommete kohta?", "Mis sinu arvates tehti peolaua jaoks vanasti ise ja mida ostetakse nüüd valmis? Ütle: vanasti tehti …, nüüd ostetakse …", "Lugemise järel: kas see pere hoiab traditsiooni nii, nagu autor soovitab?"],
   },
   {
     id: "b1b2-012-avasta-1",
@@ -34,9 +36,10 @@ export default [
     learningJob: "eristada ajata kogemust (olen käinud) ja kindlal ajal toimunud sündmust (käisin eelmisel suvel)",
     alt: "Inimese kogemused vasakul ja üks kindel matkapäev paremal.",
     caption: "Pilt 1. Kogemus ja üks kindel kord.",
-    place: "012_d_radio",
+    // v5 (2026-11-25): before the one input 012_d_listen — the picture is the scheme „experience + one proving day” drawn
+    place: "012_d_listen",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida on see inimene elus teinud? Ütle täisminevikus: ta on …", "Mis juhtus sel ühel päeval mäel? Ütle lihtminevikus.", "Mida oled sina Eesti looduses juba kogenud ja millal see oli?"],
+    prompts: ["Vasakul on kogemused, paremal üks päev. Ütle vasaku poole kohta: ta on … käinud / näinud.", "Mis juhtus sel ühel päeval? Ütle lihtminevikus ja nimeta aeg.", "Tee pildi järgi soovitus valemiga: Soovitan …, sest ta on … ; eelmisel … ta …"],
   },
   {
     id: "b1b2-013-avasta-1",
@@ -51,10 +54,11 @@ export default [
     alt: "Inimene jutustab ajajoone abil oma teest eesti keeleni.",
     caption: "Pilt 1. Elu ajajoon: mis oli enne, mis pärast.",
     // a personal time line: it stands after the case (cards, radio), where the learner turns to his own time line
-    place: "013_d_know",
-    // the questions beside the picture (owner 2026-10-18); until the planned TV-tower picture exists (PLANNED below),
-    // every question is answerable from this picture
-    prompts: ["Nimeta ajajoone etapid järjekorras: mis oli esimene ja mis viimane?", "Mida oli see inimene juba teinud, kui ta esimest korda esines? Ütle kaks asja: „Ta oli juba …”", "Milline oleks sinu ajajoone esimene ja viimane punkt?"],
+    // v5 (2026-11-25): before the one input 013_d_text — a personal time line beside the time line of four days in August;
+    // until the planned TV-tower picture exists (PLANNED below), every question is answerable from this picture
+    place: "013_d_text",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Nimeta ajajoone etapid järjekorras: mis oli esimene ja mis viimane?", "Mida oli see inimene selleks ajaks juba teinud, kui ta esimest korda esines? Ütle kaks asja: „Selleks ajaks oli ta juba …”", "Lugemise järel: pane ka augustipäevad samamoodi ajajoonele ja ütle, mis oli juhtunud enne, kui sõdurid teletorni jõudsid."],
   },
   {
     id: "b1b2-014-avasta-1",
@@ -68,8 +72,10 @@ export default [
     learningJob: "seostada telefonis kinnitamine pettuse riskiga ja jutustada oma veast või õppetunnist",
     alt: "Seinal on turvareeglid, üks inimene kinnitab telefonis päringut.",
     caption: "Pilt 1. Kas seda päringut tohib kinnitada?",
+    // v5 (2026-11-25): before the one input 014_d_listen — the picture is step 4 of the scam call (the confirmation)
+    place: "014_d_listen",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida inimene telefonis kinnitab? Kas sina kinnitaksid päringut, mida sa ise ei alustanud?", "Milliseid turvareegleid sina järgid?", "Kas sa oled kunagi midagi kinnitanud või maksnud ja hiljem kahetsenud?"],
+    prompts: ["Mida inimene telefonis kinnitab? Mis skeemi sammu see pilt näitab?", "Mida ta oleks pidanud tegema enne, kui päringut kinnitas? Ütle: ta oleks pidanud …", "Kuulamise järel: mis seinal olevatest reeglitest oleks Tiinat aidanud?"],
   },
 ];
 
