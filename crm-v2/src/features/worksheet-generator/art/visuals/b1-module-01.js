@@ -1,7 +1,52 @@
-// Visual briefs of a2b1 module 01 (methodology v5 rewrite 2026-11-25: the cast stays in the drawings, captions, alt texts and
+// Visual briefs of a2b1 module 01. The three learning visuals of 002–004 (comic, four ways to move, before/now card) are
+// line drawings the content agent made from hand-written SVG (not generated) as working pictures in the
+// palette of TEXTBOOK_ART_BIBLE.md §2; Codex may redraw them from the same briefs.
+// (methodology v5 rewrite 2026-11-25: the cast stays in the drawings, captions, alt texts and
 // questions name no cast character — the module does not use the continuing story; the two controls (001, 005) are one sheet each without a picture: their briefs point at a phase they do not have, so the pictures stay for the textbook only); images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
 // Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
 export default [
+  {
+    id: "a2b1-002-avasta-1",
+    phase: "discover",
+    format: "scene",
+    cast: [],
+    scene: "Neljakaadriline koomiks „Irina hommik” (nummerdatud 1–4): 1) naine magab, öökapil tühja akuga telefon, kell 7.30; 2) kell 7.40 jookseb ta laua juurest mööda, taldrik ja kohvitass jäävad puutumata; 3) tramm sõidab peatusest minema, naine jookseb järele; 4) kell 9.00 otsib ta kotist töökaarti, valvur seisab ukse ees ja ei lase sisse.",
+    accent: "Irina's top in every frame",
+    text: ["7.30", "7.40", "9.00"],
+    learningJob: "jutustada pildi järgi lihtminevikus ja eitusega, mis juhtus ja mis järjekorras (äratus ei helisenud → ei söönud → tramm läks minema → valvur ei lasknud sisse)",
+    place: "002_d_think",
+    alt: "Neli pilti: naine magab sisse, ei söö hommikust, jääb trammist maha ja töökaardita ei lasta teda tööle.",
+    caption: "Koomiks: Irina hommik (pildid 1–4).",
+    prompts: ["Mis juhtus pildil 1? Ütle minevikus.", "Mida Irina pildil 2 ei teinud?", "Mis juhtus pildil 3 ja pildil 4?"],
+  },
+  {
+    id: "a2b1-003-kasuta-2",
+    phase: "transfer",
+    format: "scene",
+    cast: [],
+    scene: "Neli kaadrit: 1) inimene läheb trepist üles, lift on läbi kriipsutatud; 2) lõunapaus kell 12.00, inimene jalutab pargis puu ja päikese all; 3) inimene sõidab rattaga tööle, taustal kontorimaja; 4) kaks inimest tantsivad, ümber noodid.",
+    accent: "the active person's top",
+    text: ["12.00"],
+    learningJob: "valida sõbrale sobiv liikumise viis ja anda nõu (Sa võiksid … / Proovi …), põhjendades tema päevaga",
+    place: "003_t_advice",
+    alt: "Neli võimalust liikuda: trepp lifti asemel, jalutuskäik lõuna ajal, rattaga tööle ja tantsimine.",
+    caption: "Neli võimalust liikuda rohkem.",
+    prompts: ["Mida inimene igal pildil teeb?", "Milline võimalus sobib sõbrale, kes istub terve päeva? Miks?", "Mida sina proovid järgmisel nädalal?"],
+  },
+  {
+    id: "a2b1-004-kasuta-2",
+    phase: "transfer",
+    format: "scene",
+    cast: [],
+    scene: "Kaks kaarti noolega: „ENNE: neljapäev, 18.00–19.30, koolimaja” → „NÜÜD: teisipäev, 18.00–19.30, raamatukogu, 2. korrus”; all esile tõstetud kaart „MINU TEISIPÄEV: tööl kuni 19.00” ja helisev telefon.",
+    accent: "the card „MINU TEISIPÄEV”",
+    text: ["ENNE", "neljapäev", "18.00–19.30", "koolimaja", "NÜÜD", "teisipäev", "raamatukogu, 2. korrus", "MINU TEISIPÄEV", "tööl kuni 19.00"],
+    learningJob: "näha probleemi enne kõnet ja selgitada seda kohavormidega (kus? tööl, raamatukogus; kuhu? raamatukokku) ning viisaka palvega",
+    place: "004_t_phone",
+    alt: "Kursus kolib neljapäevalt teisipäevale ja koolimajast raamatukokku, aga teisipäeviti on õppija tööl kuni kella seitsmeni.",
+    caption: "Mis muutus ja miks see ei sobi?",
+    prompts: ["Mis päeval ja kus on tund nüüd?", "Miks see aeg sulle ei sobi?", "Mida sa küsid, kui helistad keelekooli?"],
+  },
   {
     id: "a2b1-001-avasta-1",
     phase: "practice",
@@ -15,6 +60,24 @@ export default [
     caption: "Pilt 1. Tavalise tööpäeva hommik.",
     prompts: ["Mida see inimene enne tööd teeb?", "Kuidas sinu tavaline päev algab?", "Mis on sinu päevas teisiti?"],
   },
+  {
+    id: "a2b1-005-kasuta-1",
+    phase: "practice",
+    format: "scene",
+    cast: ["Anna", "Viktor"],
+    scene: "Anna ja Viktor seisavad tühja nädalakalendri ees; Anna näitab sobivat kohtumisaega, Viktor vaatab kella ja selgitab, miks varasem aeg ei sobi.",
+    accent: "the selected calendar cell",
+    text: [],
+    learningJob: "toetada kontrolli kirja ettepanekut: sobiva kohtumisaja leidmine kalendrist",
+    alt: "Naine pakub kalendris kohtumisaega ja vanem mees vaatab oma käekella.",
+    caption: "Pilt 1. Sobiva aja otsimine.",
+    prompts: ["Mis aega naine pakub?", "Miks mees kella vaatab?", "Millal sina järgmisel nädalal vaba oled?"],
+  },
+];
+
+// Retired from the sheets in the methodology v5 pilot (2026-11-25): pictures that did not carry the lesson's task; the files
+// stay in public/textbook-art/b1/ and can return when a lesson needs them.
+export const RETIRED = [
   {
     id: "a2b1-002-kasuta-1",
     phase: "transfer",
@@ -56,18 +119,5 @@ export default [
     alt: "Kaks naist muudavad nädalaplaanis trenniaega; üks tõstab kaardi vabale päevale.",
     caption: "Pilt 1. Nädalaplaan muutub.",
     prompts: ["Millise päeva nad uueks ajaks valivad?", "Miks vana aeg enam ei sobi?", "Mis päev on sinu nädalas kõige vabam?"],
-  },
-  {
-    id: "a2b1-005-kasuta-1",
-    phase: "practice",
-    format: "scene",
-    cast: ["Anna", "Viktor"],
-    scene: "Anna ja Viktor seisavad tühja nädalakalendri ees; Anna näitab sobivat kohtumisaega, Viktor vaatab kella ja selgitab, miks varasem aeg ei sobi.",
-    accent: "the selected calendar cell",
-    text: [],
-    learningJob: "toetada kontrolli kirja ettepanekut: sobiva kohtumisaja leidmine kalendrist",
-    alt: "Naine pakub kalendris kohtumisaega ja vanem mees vaatab oma käekella.",
-    caption: "Pilt 1. Sobiva aja otsimine.",
-    prompts: ["Mis aega naine pakub?", "Miks mees kella vaatab?", "Millal sina järgmisel nädalal vaba oled?"],
   },
 ];
