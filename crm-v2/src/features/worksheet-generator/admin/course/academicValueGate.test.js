@@ -12,6 +12,9 @@ import { splitByBaseline } from './quality.js';
 // (a module with no problem left drops out of the file — it is then held to every gate). One module's problems:
 //   ACADEMIC_REPORT=a2b1-module-05 npx vitest run src/features/worksheet-generator/admin/course/academicValueGate.test.js --silent=false --reporter=verbose
 // (ACADEMIC_REPORT=b1 or b2 prints the whole course, ACADEMIC_REPORT=summary the counts per gate).
+// 2026-11-26 (course audit fixes, item 23): a2b1-module-01 is listed again with one known problem, a2b1-004 av-know — the
+// unused „Kas teadsid?” 004_d_know was hidden (methodology v5 §4: cut unless a task uses it); the lesson's real source is
+// its link task 004_t_home (Integratsiooni SA page), which is a speaking block and so not counted by av-know.
 const env = globalThis.process?.env || {};
 const UPDATE = Boolean(env.UPDATE_ACADEMIC_BASELINE);
 const FILE = 'src/features/worksheet-generator/admin/course/academicValueBaseline.json'; // run from crm-v2

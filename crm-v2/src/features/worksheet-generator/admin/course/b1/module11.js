@@ -77,7 +77,7 @@ const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
 // a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
 const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 051 infogap: in a shop (-na, percentages)
@@ -246,9 +246,9 @@ export const LESSONS = withShapes({
         'Kuidas maksin? → kaardiga.',
         'Mida alles hoida? → tšeki.',
         'ei saa + da-vorm → tagastada.',
-      ]), 'Need sõnad on sinu ostu tööriistad.'), { task: 'R04', harno: 'R3' }),
+      ]), 'Neid sõnu on sul poes vaja.'), { task: 'R04', harno: 'R3' }),
       'Eksaminurk (Harno B1 lugemine 3b, sõnapangaga lünktekst, ~8 min). Strateegia: 1) loe kõigepealt kogu kiri; 2) iga lünga juures küsi: kas siia sobib tegusõna, nimisõna või omadussõna, mis vormis?; 3) kontrolli, et üle jäänud kaks sõna on tõesti valed (kallim, suurusega). Üks-ühele: esimese lünga lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise.'),
-      tag(purpose(rows(B.writing('051_d_write', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: mida tahad poest osta, mis see soodushinnaga maksab, mis värvi või suuruses ja kuidas maksad.', [8, 10]), 3), 'Oma laused on sinu ostu materjal.'), { task: 'W02' }),
+      tag(purpose(rows(B.writing('051_d_write', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: mida tahad poest osta, mis see soodushinnaga maksab, mis värvi või suuruses ja kuidas maksad.', [8, 10]), 3), 'Neid lauseid kasutad hiljem poes ostes.'), { task: 'W02' }),
       hide(tag(B.examListen('051_p_mall', 'Teadaanded kaubanduskeskuses.', 'Ülemiste keskuses kõlab kümme lühikest teadet. Kuula ja vali iga teate kohta õige vastus.', 'choice', [
         'Esimene teade. Head kliendid! Täna kella kuueni on kõik kõrvaklapid poes Nutikas kolmkümmend protsenti odavamad.',
         'Teine teade. Spordipood Värav ootab teid teisel korrusel. Laste jalgpallisaapad on nädala lõpuni soodushinnaga.',
@@ -488,7 +488,7 @@ export const LESSONS = withShapes({
         'kaks korda + -m.',
         '-st + -m: poe hinnast madalam.',
       ]), 'Kaheksa valikut näitavad, kas kumb, mõlemad ja võrra on käes.'), { task: 'G13' }), V5_DRILL),
-      tag(purpose(rows(B.writing('052_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: võrdle kahte asja, mille vahel valid — mis on millest odavam, kui palju ja mida valid.', [8, 10]), 7), 'Oma laused on sinu nõuande materjal.'), { task: 'W09' }),
+      tag(purpose(rows(B.writing('052_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: võrdle kahte asja, mille vahel valid — mis on millest odavam, kui palju ja mida valid.', [8, 10]), 7), 'Neid lauseid kasutad hiljem oma nõuandes.'), { task: 'W09' }),
       hide(B.adsmatch('052_p_ads', 'Kuulutused ja ostjad.', 'Vali iga ostja jaoks sobiv kuulutus ja kirjuta selle täht. Üks kuulutus võib sobida mitmele ostjale.', [
         ['Toyota Yaris hübriid, 2015', 'Punane, viieukseline, läbisõit 165 000 km. Linnas 4 liitrit sajale kilomeetrile, väga lihtne parkida. Uued talverehvid on hinnas. 6500 €, proovisõit Mustamäel nädalavahetusel. Helistage Raulile.'],
         ['Škoda Octavia universaal, 2018', 'Hall, diisel, läbisõit 120 000 km. Väga suur pagasiruum ja soojendusega istmed. Hooldusraamat on olemas. 8200 €, hinnas saab rääkida. Rae vald, helistage Karinile.'],
@@ -588,7 +588,7 @@ export const LESSONS = withShapes({
       purpose(B.selfcheck('052_t_self', ['Ma võrdlen kahel viisil: odavam kui Vahu = Vahust odavam.', 'Ma ütlen, kui palju: 70 euro võrra, palju vaiksem, veidi kallim.', 'Ma saan aru, kui müüja telefonis kahte pakkumist võrdleb.', 'Ma annan sõbrale nõu ja põhjendan, kumb osta.'], 'Nõu antud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
       tag(homeTask(purpose(B.speaking('052_t_rec', 'Kodus: päris hinnavõrdlus.', 'Ava Hinnavaatlus.ee (https://www.hinnavaatlus.ee) ja otsi üks asi, mida tahaksid osta. Võrdle kahe poe hinda ja salvesta 60–90 sekundit.', [
         'Mida sa otsisid ja millistest poodidest?',
-        'Kus on see odavam ja kui palju võrra?',
+        'Kus on see odavam ja mille võrra?',
         'Kust sa ostaksid ja miks?',
       ], [60, 90]), 'Päris leht: loed eesti keeles päris hindu ja võrdled neid.')), { task: 'S15', fluency: true }),
       homework('052_t_homework', ['1. Kirjuta tunni nõuanne üles: kumb masin, kolm võrdlust ja üks põhjus.', '2. Ava Hinnavaatlus.ee, võrdle kahe poe hinda ja salvesta 60–90 sekundit (ülesanne üleval).', '3. Kirjuta vihikusse viis lauset kahel viisil: Buss on odavam kui rong = Buss on rongist odavam.', `4. ${WORDS_HOME}`, NO_RECORDING]),
@@ -818,7 +818,7 @@ export const LESSONS = withShapes({
         'maksma → makstud.',
         'kehtima → kehtiv.',
       ]), 'Nii vastab pood kaebusele: kesksõnad on igas lõigus.'), { task: 'G03', harno: 'R3' }), V5_DRILL),
-      tag(purpose(rows(B.writing('053_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset ostust, mis ei sobinud: mida tellisid, mis juhtus, mida soovid (tellitud, makstud, kehtiv).', [8, 10]), 7), 'Oma laused on sinu kaebuse materjal.'), { task: 'W10' }),
+      tag(purpose(rows(B.writing('053_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset ostust, mis ei sobinud: mida tellisid, mis juhtus, mida soovid (tellitud, makstud, kehtiv).', [8, 10]), 7), 'Neid lauseid kasutad hiljem oma kaebuses.'), { task: 'W10' }),
       hide(B.wordforms('053_p_forms', 'Tegusõnast kesksõna.', 'Moodusta tegusõnast kesksõna ja kirjuta see lausesse nimisõna ette.', [
         ['ostma', 'Kõik … kaubad saab tagastada 14 päeva jooksul.', 'ostetud'],
         ['maksma', 'Pood kannab … summa tagasi viie tööpäeva jooksul.', 'makstud'],
@@ -1139,8 +1139,8 @@ export const LESSONS = withShapes({
       tag(purpose(B.examWriting('054_p_form', 'Eksaminurk: töökoja küsitlus (Harno B1 kirjutamine 1a)', 'Vasta igale küsimusele terve lausega. Miks-küsimusele vasta sest-lausega.', 'kusimustik', {
         situation: 'Töökoda uurib, kas kliendid on teenusega rahul.',
         questions: ['Mida te töökotta parandada tõite?', 'Kas töö tehti õigel ajal? Kui ei, siis miks?', 'Kas hind oli teie arvates õiglane? Miks?', 'Kuidas teenindaja teiega rääkis?', 'Kas te saite kirjaliku remondiakti?', 'Mida peaks töökoda paremaks muutma?', 'Kas soovitate meid sõbrale? Miks?', 'Kuidas soovite, et me teiega ühendust võtame?'],
-      }), 'Kaheksa tervet lauset on sinu kõne materjal: faktid, arvamus ja soov.'), { task: 'W01', harno: 'W1a' }),
-      tag(purpose(rows(B.writing('054_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset töökojale: mis on katki, mida sa juba tegid ja mida palud (parandage, saatke).', [8, 10]), 7), 'Oma laused on sinu telefonikõne materjal.'), { task: 'W12' }),
+      }), 'Need kaheksa lauset kasutad hiljem kõnes: faktid, arvamus ja soov.'), { task: 'W01', harno: 'W1a' }),
+      tag(purpose(rows(B.writing('054_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset töökojale: mis on katki, mida sa juba tegid ja mida palud (parandage, saatke).', [8, 10]), 7), 'Neid lauseid kasutad hiljem oma telefonikõnes.'), { task: 'W12' }),
       hide(tag(B.reading('054_p_signs', 'Teated poes ja töökojas.', 'Mida need sildid ja teated kliendile ütlevad? Vasta küsimustele oma sõnadega.', 'Klient, pane tähele!', [
         'A. Kassa juures. Palun hoidke makstud ostu tšekk alles. Ilma tšekita ei saa kaupa tagastada ega garantiisse tuua. Kui tšekk on kadunud, sobib ka pangakonto väljavõte, kus on näha ostu kuupäev ja summa.',
         '',
@@ -1290,7 +1290,7 @@ export const LESSONS = withShapes({
         'Diktor: Kolmas põhjus on lihtsalt huvi. Paljud käivad taaskasutuspoodides nagu muuseumis, sest seal võib leida vanu raamatuid, plaate ja mööblit, mida tavalistes poodides ei ole.',
         'Diktor: Mida tasub kasutatud asja ostes meeles pidada? Kontrolli, kas lukud ja nööbid on terved. Elektroonikat proovi enne ostmist poes. Pea meeles, et kasutatud asjale ei anta tavaliselt pikka garantiid.',
         'Diktor: Ka müüa saab lihtsalt. Paljud poed võtavad puhtad ja terved asjad tasuta vastu. Internetis saab müüa ise, aga siis tuleb olla ettevaatlik ja anda asi ostjale alles siis, kui raha on kontol.',
-        'Diktor: Ja mis saab vanadest riietest, mida keegi enam kanda ei saa? Alates kahe tuhande kahekümne viiendast aastast peavad omavalitsused tekstiilijäätmeid eraldi koguma. Puhtad ja terved riided tasub aga viia taaskasutuspoodi.',
+        'Diktor: Ja mis saab vanadest riietest, mida keegi enam kanda ei saa? Vanad riided ei käi tavalisse prügikasti. Need tuleb viia riiete konteinerisse või jäätmejaama. Puhtad ja terved riided tasub aga viia taaskasutuspoodi.',
       ], [
         ['2025. aastal oli Uuskasutuskeskusel kaheksateist poodi.', true],
         ['Kõige sagedasem põhjus kasutatud asju osta on loodus.', false],
@@ -1299,7 +1299,7 @@ export const LESSONS = withShapes({
         ['Elektroonikat tasub enne ostmist poes proovida.', true],
         ['Kasutatud asjale antakse tavaliselt pikk garantii.', false],
         ['Internetis müües tuleb asi anda alles siis, kui raha on kontol.', true],
-        ['Vanad riided tuleb alati visata segaprügisse.', false],
+        ['Vanad riided võib alati visata tavalisse prügikasti.', false],
       ])), [
         'Esimene lõik: „oli sellel juba kaheksateist poodi”.',
         'Teine lõik: „Kõige sagedamini on põhjuseks hind.”',
@@ -1308,7 +1308,7 @@ export const LESSONS = withShapes({
         'Viies lõik: „Elektroonikat proovi enne ostmist poes.”',
         'Viies lõik: „kasutatud asjale ei anta tavaliselt pikka garantiid”.',
         'Kuues lõik: „anda asi ostjale alles siis, kui raha on kontol”.',
-        'Viimane lõik: „Puhtad ja terved riided tasub aga viia taaskasutuspoodi.”',
+        'Viimane lõik: „Vanad riided ei käi tavalisse prügikasti.”',
       ]), { harno: 'L4', task: 'L05' }),
       half(B.examPart('055_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 10, tasks: 2, target: 60, note: 'Üks-ühele. Ülesanne 1 on ilma abita; ülesanne 2 on vestlus poes õpetajaga.' })),
       teach(tag(half(B.speaking('055_t_s1', 'Rääkimine 1. Üks ost või teenus.', 'Räägi 90–120 sekundit ilma abita ja ilma märkmeteta.', [
@@ -1322,9 +1322,9 @@ export const LESSONS = withShapes({
       half(B.examPart('055_t_wpart', 'W', { part: 'Kirjutamine', minutes: 15, points: 8, tasks: 1, target: 60, note: 'Üks sõnum, 60–80 sõna, kõigist neljast punktist.' })),
       tag(teach(half(rows(B.examWriting('055_t_w1', 'Kirjutamine. Nõuanne sõbrale.', 'Kirjuta sõbrale sõnum 60–80 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Sõber tahab osta uut telefoni ja küsib sinult nõu.',
-        points: ['mida sa soovitad osta ja miks', 'kus see on odavam ja kui palju võrra', 'millele poes tähelepanu pöörata (garantii, tšekk)', 'üks hoiatus oma kogemusest'],
+        points: ['mida sa soovitad osta ja miks', 'kus see on odavam ja mille võrra', 'millele poes tähelepanu pöörata (garantii, tšekk)', 'üks hoiatus oma kogemusest'],
         words: [60, 80], opening: 'Tere!',
-      }), 4)), 'Punktid: iga sisupunkt 1 (kokku 4), keel ja vorm 0–4 (võrdlus: odavam kui / -st odavam, … võrra; kesksõna või teie-käsk, kui sobib; selge sõnum).'), { harno: 'W1b' }),
+      }), 10)), 'Punktid: iga sisupunkt 1 (kokku 4), keel ja vorm 0–4 (võrdlus: odavam kui / -st odavam, … võrra; kesksõna või teie-käsk, kui sobib; selge sõnum).'), { harno: 'W1b' }),
       teach(half(B.table('055_t_profile', 'Minu tulemus.', 'Lävendid: Harno 60 %, KeeleSepp 70 % / 80 %. Kirjuta punktid ja protsent ning võrdle rääkimist tunniga 51.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
         'Kuulamine (16 p) |  |  | ',
         'Rääkimine (10 p) |  |  | ',

@@ -74,7 +74,7 @@ const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
 // a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
 const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 041 game: guess the job (kellena? mille eest? millega?)
@@ -241,7 +241,7 @@ export const LESSONS = withShapes({
         'vastutama + omastav + eest: köögi eest.',
       ]), 'Kaheksa lünka näitavad, kas amet ja tegusõna käivad sul õige vormiga.'), { task: 'R03', harno: 'R3a' }),
       'Eksaminurk (Harno B1 lugemine 3, valiklünktekst, ~8 min). Strateegia: 1) loe kõigepealt kogu tekst läbi; 2) iga lünga juures küsi, mida eelnev tegusõna nõuab (töötab kellena → -na, vastutab mille eest → omastav, tegeleb millega → -ga, saab kelleks → -ks); 3) loe lause valitud vormiga valjult. Üks-ühele: esimese lünga lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise; pärast põhjendab õpilane kolme valikut.'),
-      tag(purpose(rows(B.writing('041_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset oma või pereliikme tööst: kellena, mille eest vastutab, millega tegeleb, kelleks tahab saada.', [8, 10]), 7), 'Oma laused on sinu mängu ja kodutöö materjal.'), { task: 'W01' }),
+      tag(purpose(rows(B.writing('041_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset oma või pereliikme tööst: kellena, mille eest vastutab, millega tegeleb, kelleks tahab saada.', [8, 10]), 7), 'Neid lauseid kasutad hiljem mängus ja kodutöös.'), { task: 'W01' }),
       hide(tag(B.categorize('041_p_verbs', 'Mis vorm järgneb?', 'Pane tegusõnad rühma selle järgi, millist küsimust ja vormi nad enda järele nõuavad.', [
         ['mille eest? (+ omastav + eest)', ['vastutama', 'hoolitsema', 'tänama', 'maksma']],
         ['millega? (+ -ga)', ['tegelema', 'harjuma', 'kohtuma', 'nõustuma']],
@@ -518,7 +518,7 @@ export const LESSONS = withShapes({
         'kus? (olen praegu) → -mas: juhtimas.',
         'kust? (tuli laost) → -mast: toomast.',
       ]), 'Kaheksa lauset näitavad, kas ma-vormi käänded on käes.'), { task: 'G03' }),
-      tag(purpose(B.writing('042_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: kus su tuttavad praegu on (…-mas), kuhu keegi läks (…-ma), kust tuli (…-mast), mis jäi tegemata (…-mata).', [8, 10]), 'Oma laused on sinu telefonikõne materjal.'), { task: 'W02' }),
+      tag(purpose(B.writing('042_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: kus su tuttavad praegu on (…-mas), kuhu keegi läks (…-ma), kust tuli (…-mast), mis jäi tegemata (…-mata).', [8, 10]), 'Neid lauseid kasutad hiljem oma telefonikõnes.'), { task: 'W02' }),
       hide(B.wordorder('042_p_order', 'Kontori laused.', 'Pane sõnad sellisesse järjekorda, et tekiks loogiline lause.', [
         'Markus on terve hommiku laos tellimusi kontrollimas.', 'Anna läks pärast koosolekut kliendiga lõunat sööma.', 'Uus administraator hakkab esmaspäeval telefonile vastama.',
         'Sofia käis lõunapausil postkontoris pakki saatmas.', 'Printer jäi eile kahjuks jälle parandamata.', 'Kas sa tuled pärast tööd minuga ujuma?',
@@ -816,7 +816,7 @@ export const LESSONS = withShapes({
         'Lisa nimetatakse: „Lisan kirjale …”.',
         'Ametlik lõpp: „Lugupidamisega” ja nimi.',
       ]), 'Kuus valikut näitavad, kas sa tunned ametliku kirja keele ära.'), { task: 'G04' }), 'v5 (2026-11-25): teine suletud ülesanne jaamas 3 — ametlik toon on näidiskirjas ja kirja juhises'),
-      tag(purpose(rows(B.writing('043_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset endast tööandjale: mida oskad, mida oled harjunud tegema, milleks oled valmis, millal saad alustada.', [8, 10]), 7), 'Oma laused on sinu kirja materjal.'), { task: 'W11' }),
+      tag(purpose(rows(B.writing('043_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset endast tööandjale: mida oskad, mida oled harjunud tegema, milleks oled valmis, millal saad alustada.', [8, 10]), 7), 'Neid lauseid kasutad hiljem oma kirjas.'), { task: 'W11' }),
       hide(tag(B.transformation('043_p_join', 'Ühenda laused.', 'Tee kahest lausest üks. Kasuta antud sidesõna ja muuda vajadusel sõnajärge.', [
         ['Soovin töötada päeval. Siis saan õhtuti perega olla.', 'sest', 'Soovin töötada päeval, sest siis saan õhtuti perega olla.'],
         ['Kooli palk on väiksem. Nädalavahetused on vabad.', 'aga', 'Kooli palk on väiksem, aga nädalavahetused on vabad.'],
@@ -1076,7 +1076,7 @@ export const LESSONS = withShapes({
         'hakkama → ma-vorm: juhendama.',
         'saama → da-vorm: alustada.',
       ]), 'Kaheksa lauset näitavad, kas vestluse vormid on käes.'), { task: 'G03' }),
-      tag(purpose(B.writing('044_p_sent', 'Kirjuta terved laused: minu kolm tugevust.', 'Kirjuta oma kolm tugevust, igaühe juurde näide ja seos: kokku 8–10 lauset (Olen … Näiteks … Seepärast …).', [8, 10]), 'Oma tugevused näidetega on sinu vestluse materjal.'), {}),
+      tag(purpose(B.writing('044_p_sent', 'Kirjuta terved laused: minu kolm tugevust.', 'Kirjuta oma kolm tugevust, igaühe juurde näide ja seos: kokku 8–10 lauset (Olen … Näiteks … Seepärast …).', [8, 10]), 'Tugevusi ja näiteid kasutad hiljem vestluses.'), {}),
       hide(B.errorfix('044_p_fix', 'Kandidaatide vead.', 'Need laused on kandidaatide vastustest. Igas lauses on üks viga — kirjuta lause õigesti.', [
         ['Ma töötasin viis aastat kokk Tartus.', 'Ma töötasin viis aastat kokana Tartus.'],
         ['Minu eelmises töös vastutasin kassa.', 'Minu eelmises töös vastutasin kassa eest.'],

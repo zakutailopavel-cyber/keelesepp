@@ -49,7 +49,7 @@ const toAddressee = (block, who) => ({ ...block, data: { ...block.data, realAddr
 // a recording in the control: heard twice, the player counts and locks (G6)
 const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 006 case: a family photo (omastav, kelle?)
@@ -243,7 +243,7 @@ export const LESSONS = withShapes({
         'Mitmus: vanavanemad → vanavanemate maja.',
         'Mitmus: sugulased → sugulaste pidu.',
       ]), 'Rasmus tutvustab oma suguvõsa; sinu vormid teevad selgeks, kes on kelle sugulane.'),
-      tag(purpose(B.writing('006_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma suguvõsast neli-viis lauset kelle-vormiga: „Minu ema vend elab …”, „Minu õe poeg …”.', [4, 5]), 'Neli-viis oma lauset on sinu pildiloo materjal.'), { task: 'W05' }),
+      tag(purpose(B.writing('006_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma suguvõsast neli-viis lauset kelle-vormiga: „Minu ema vend elab …”, „Minu õe poeg …”.', [4, 5]), 'Neid lauseid kasutad hiljem oma pildiloos.'), { task: 'W05' }),
       hide(B.cloze('006_p_msg', 'Sofia sõnum Jaanile.', 'Vali igasse lünka sõna, mis sobib nii mõtte kui vormiga.', 'Saladus!', [
         'Tere, Jaan! Olin eile ema juures Tartus. Leidsin riiulilt vana {*perealbumi|perealbum|perealbumis}. Ühel pildil on ema koos Maiega. Maie on ema {*nõbu|vend|tütar}, onu Akseli tütar.',
         '',

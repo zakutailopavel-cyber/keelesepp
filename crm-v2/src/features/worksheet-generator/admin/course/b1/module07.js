@@ -76,7 +76,7 @@ const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
 // a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
 const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 031 case: telling the manager I fell ill (olek ↔ muutus)
@@ -254,7 +254,7 @@ export const LESSONS = withShapes({
         'muutuse lõpp: saama + -ks → terveks.',
         'olek: olema + nimetav → terve.',
       ]), 'Kaheksa lauset näitavad, millal on olek ja millal muutus.'), { task: 'G02' }),
-      tag(purpose(B.writing('031_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: millal sa viimati haigeks jäid, mis sul oli ja mis muutus (palavik läks kõrgeks, köha muutus tugevamaks, sain terveks).', [5, 7]), 'Oma laused on sinu sõnumi materjal.'), { task: 'W11' }),
+      tag(purpose(B.writing('031_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: millal sa viimati haigeks jäid, mis sul oli ja mis muutus (palavik läks kõrgeks, köha muutus tugevamaks, sain terveks).', [5, 7]), 'Neid lauseid kasutad hiljem oma sõnumis.'), { task: 'W11' }),
       hide(B.match('031_p_pairs', 'Mis käib kokku?', 'Ühenda lause algus ja lõpp, nii et tekiks haige inimese tavaline tegevus.', [
         ['Anna mõõtis õhtul kaks korda', 'palavikku.'], ['Apteegist ostis ta pudeli', 'köhasiirupit.'], ['Arst soovitas jääda paariks päevaks', 'koju.'], ['Ta jõi terve päeva kuuma teed', 'sidruni ja meega.'], ['Õhtul helistas Anna oma', 'perearstile.'],
         ['Hommikul kirjutas ta ülemusele lühikese', 'sõnumi.'], ['Haige inimene peab palju puhkama ja', 'magama.'], ['Soolaveega võib iga päev loputada', 'kurku.'], ['Gripi ajal tuleb sageli pesta', 'käsi.'], ['Lapse palavikku alandab kõige kiiremini', 'palavikurohi.'],
@@ -582,7 +582,7 @@ export const LESSONS = withShapes({
         'saama + -ks: terveks.',
         'jääma + -ks: nõrk → nõrga → nõrgaks.',
       ]), 'Kaheksa lauset näitavad, kuidas muutust öelda.'), V5_DRILL),
-      tag(purpose(rows(B.writing('032_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: kuidas sinu või pereliikme haigus päev-päevalt muutus (jääma, minema, muutuma, saama + -ks). Ühenda laused sõnadega alguses, siis, aga ja sest.', [5, 7]), 5), 'Oma laused on sinu kõne materjal.'), { task: 'W09' }),
+      tag(purpose(rows(B.writing('032_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: kuidas sinu või pereliikme haigus päev-päevalt muutus (jääma, minema, muutuma, saama + -ks). Ühenda laused sõnadega alguses, siis, aga ja sest.', [5, 7]), 5), 'Neid lauseid kasutad hiljem oma kõnes.'), { task: 'W09' }),
       hide(B.choice('032_p_form', 'Olek või muutus?', 'Kas lauses on olek või muutus? Vali igasse lausesse sobiv vorm.', [
         ['Pärast külma trenni jäi Markus kergelt …', 'haigeks', 'haige', 'haigena'],
         ['Iga päevaga läks tema köha …', 'tugevamaks', 'tugevam', 'tugevama'],
@@ -959,7 +959,7 @@ export const LESSONS = withShapes({
         'teie: tee → tehke.',
         'eitus sina: ärge tehke → ära tee.',
       ]), 'Kaheksa lauset näitavad, kuidas nõu antakse sõbrale ja kuidas viisakalt.'), V5_DRILL),
-      tag(purpose(B.writing('033_p_sent', 'Kirjuta terved laused.', 'Sõber magab halvasti. Kirjuta talle 5–7 nõuannet: mida teha ja mida mitte (Mine …, Ära …), ja lisa vähemalt kahe juurde, miks. Siis kontrolli ja paranda: kas sina-vorm on igal pool õige?', [5, 7]), 'Oma laused on sinu nõuannete materjal.'), { task: 'W10' }),
+      tag(purpose(B.writing('033_p_sent', 'Kirjuta terved laused.', 'Sõber magab halvasti. Kirjuta talle 5–7 nõuannet: mida teha ja mida mitte (Mine …, Ära …), ja lisa vähemalt kahe juurde, miks. Siis kontrolli ja paranda: kas sina-vorm on igal pool õige?', [5, 7]), 'Neid lauseid kasutad hiljem oma nõuannetes.'), { task: 'W10' }),
       hide(B.wordorder('033_p_order', 'Arsti ja apteekri juhised.', 'Pane sõnad õigesse järjekorda, nii et tekiks arsti või apteekri juhis.', [
         'Ärge võtke valuvaigistit kunagi tühja kõhuga.', 'Tõstke jalg istudes alati padjale.', 'Pange põlvele kolm korda päevas külma.', 'Ära sõida vähemalt kolm nädalat rattaga.', 'Helistage kohe perearstile, kui põlv läheb kuumaks.',
         'Võta homme hommikul kindlasti oma kepp kaasa.', 'Tulge kahe nädala pärast füsioterapeudi juurde.', 'Ärge tõstke esimesel nädalal midagi rasket.', 'Jooge päevas vähemalt kaks liitrit vett.', 'Ära unusta õhtul oma harjutusi teha.',
@@ -1282,7 +1282,7 @@ export const LESSONS = withShapes({
         'loobuma + -st: kohvist.',
         'minema + -ks: paremaks.',
       ]), 'Kaheksa lauset näitavad, kuidas harjumusest rääkida.'),
-      tag(purpose(B.writing('034_p_free', 'Kirjuta terved laused.', 'Vasta väljakutse „30 päeva tervemalt” küsimustikule 5–7 terve lausega: Kus sa käid? Millega sa tegeled? Millest tahaksid loobuda ja miks? Mida hakkaksid tegema ja miks?', [5, 7]), 'Oma laused on sinu loo materjal.'), { task: 'W01' }),
+      tag(purpose(B.writing('034_p_free', 'Kirjuta terved laused.', 'Vasta väljakutse „30 päeva tervemalt” küsimustikule 5–7 terve lausega: Kus sa käid? Millega sa tegeled? Millest tahaksid loobuda ja miks? Mida hakkaksid tegema ja miks?', [5, 7]), 'Neid lauseid kasutad hiljem oma loos.'), { task: 'W01' }),
       hide(B.tip('034_p_words', 'Märka: kuidas spordist ja harjumustest rääkida?', [
         '**Tegevus:** ma ujun · käin **ujumas** · käin **ujumises** · käin **ujumistrennis** · tegelen **ujumisega**',
         '**Mäng:** mängin **malet** · olen **males** tugev · käin **maleringis** · mängisime **viiki**',
