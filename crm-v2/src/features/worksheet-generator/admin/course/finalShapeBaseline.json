@@ -77,5 +77,14 @@
   "*|*|V4-type-speaking",
   "*|*|V5-pairs",
   "a2b1-046|*|V11-input"
+ ],
+ "a2b1-module-11": [
+  "*|*|V3-skill-L",
+  "*|*|V4-type-speaking",
+  "*|*|V5-pairs",
+  "a2b1-052|*|V11-input",
+  "a2b1-052|*|V11-output",
+  "a2b1-053|*|V11-input",
+  "a2b1-054|*|V11-input"
  ]
 }
