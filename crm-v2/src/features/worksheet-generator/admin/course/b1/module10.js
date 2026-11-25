@@ -1,61 +1,172 @@
-// B1 course (A2 → B1 roadmap), module 10 „Reisimine” (a2b1-046…050), stage B1-. Final shape
-// (docs/COURSE_FINAL_SHAPE_B1.md; how: docs/FINAL_SHAPE_AUTHORING.md). One storyline, three journeys: Jaan's family and
-// Sofia take the train to grandmother Helgi in Tartu for the school holiday (uncle Viktor comes from Aegviidu via Tapa);
-// Anna and Markus go to a logistics fair in Riga for Tuul Logistika (boss Liis); Sofia's friend Lena from Berlin comes to
-// Estonia for four days and Sofia plans her trip. The goal, said on the first sheet: at the end the learner writes a
-// friend a personal letter with a travel plan (Harno W2b) and tells a travel story.
-//   046 KUUL L→S  „Rongiga Tartusse” — Sofia and Jaan choose a train (numbers, times, prices by ear); Eksaminurk L4 (a
-//                 conductor on the radio, true/false — the format is introduced here); kust / kus / kuhu with travel
-//                 verbs; station notices, announcements, the railway's questions and answers, an information gap;
-//                 Friday morning: Kadri must work longer — Viktor's voicemail → notes, the call to the railway's info line
-//                 (main), the seats taken on the train, the way explained to Viktor, a message to Helgi.
-//   047 LUGE R→W  „Töölähetus Riiga” — a travel blog (predict, then read), ads, Anna and Markus's chat; choosing and
-//                 giving reasons (eelistan bussi lennukile, kumb, mõlemad, pigem … kui); the hotel call, polite
-//                 questions, the fair's information, the booking form, Markus's note made formal; Liis's e-mail as the
-//                 Eksaminurk R4 (phrase bank, introduced here), the plan agreed, defended twice, the reply to Liis (main).
-//   048 RÄÄK R→S  „Reis, mis läks teisiti” — Anna's blog about the Helsinki weekend (headings), Sofia's voice messages;
-//                 B1 grammar: enneminevik (Kui me sadamasse jõudsime, oli laev juba lahkunud), the rule, 4-3-2 retelling;
-//                 Sofia's e-mail (tense choice), the radio show „Teel juhtunud”, Eksaminurk S1a (topic
-//                 questions „Reisimine”), a postcard; Kasuta: four listeners' stories, the jury agrees on the winner
-//                 (main), the learner's own story on air and on the show's website.
-//   049 PROJ L→W  „Reisiplaan sõbrale” — Lena's voicemail (the brief), Markus's story of the missed bus in Viljandi
-//                 (enneminevik in reasons and warnings), the city guide, a survey; tense choice, Sofia and Lena's chat,
-//                 Markus's tips, joining sentences, Lena's mistakes, the plan; Kasuta: timetables and prices, the video
-//                 call with Lena, Eksaminurk W2b (personal letter, introduced here) = the module product (main), rewritten.
-//   050 EKS       module exam in Harno B1 form at reduced length (R1, R2, R3a, R4 · L1, L2, L3a, L4 · W1a, W2b · S0,
-//                 S1a, S1b, S2), every part timed, target 80 % in every part; Sofia's late train closes the story.
-// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): enneminevik — taught in 048 (notice, timeline rule,
-// tense choice, transformation, the listeners' stories), used again in 049 (kui-, et- and sest-clauses,
-// Markus's tips, joining sentences); kust / kus / kuhu with travel verbs (046) and choosing with reasons (047) recycle
-// earlier forms. §6.2 row 10 (KUUL L→S · LUGE R→W · RÄÄK R→S · PROJ L→W) is kept as written; §4.1 rule 6 would put the
-// grammar in an AVAS or LUGU lesson, but the row has none, so the RÄÄK lesson brings it in through stories. Cast facts
-// (docs/COURSE_CAST.md): Mia (6) travels free, Oskar (9) at half price, the dog Muki needs a ticket; new: conductor Riho
-// Mägi, Riga guesthouse „Lilla Uks” (Liene), bus firm „Balti Ekspress”, Lena (Sofia's friend in Berlin), listener Tarvo,
-// Viljandi guesthouse „Kase”. Earlier versions: archive/v3/b1/module10.js, archive/v1/b1/module10.js.
-// Academic value round 1 (docs/ACADEMIC_VALUE_ROUND1.md, COURSE_DESIGN_COMMUNICATIVE.md §13; topic „reisimine”, secondary
-// „kohad”): topic opener 046_d_open „Reisimine Eestis” (islands and ferries, Elron and the Riga train, Pärnu / Haapsalu
-// without trains, six national parks, igaüheõigus, Tallinn port and airport; the module goal as its last paragraph) instead
-// of 046_d_goal; „Kas teadsid?” 046_p_know (Elron's 30-min refund, EU rail minimums), 047_d_know (Tallinn–Tartu–Riga train,
-// Riga's UNESCO centre and Central Market), 047_p_know (European Health Insurance Card), 048_t_know (EU ferry and air
-// delay compensation); fiction 048_p_story (J. K. Jerome, „Three Men in a Boat”, the packing chapter, public domain);
-// 049_d_guide is a sourced travel guide to Tartu and Viljandi; the exam article 050_p_r2text uses Elron's real figures;
-// 050_p_l2 / 050_p_l4 transcripts corrected (Viru bog trail 3.5 km; no invented lost-luggage figure; new audio);
-// examiner set 050_d_warm. One 3-2-1 / 4-3-2 left (048_d_432); Kasuta call → letter only in 046 (048's call-in became
-// a studio talk, 049's self-check no longer names a voicemail). Sources: the PR „B1 module 10: academic value round 1”.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// B1 course (A2 → B1 roadmap), module 10 „Reisimine” (a2b1-046…050), stage A2+/B1- (lessons 041–060).
+// Rewritten to methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, 2026-11-25; strictModulesV5.json) on the
+// model of modules 1–9: one real communicative outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a
+// lesson, a 75-min core in exactly 4 stations (design v4 „task-based” on the v3 station engine,
+// docs/COURSE_DESIGN_STATIONS.md §7); the module control is one sheet (≤ 10 blocks, 45 min). A2+/B1- stage: text
+// 150–220 words, audio ≤ 2.5 min, writing 60–90 words, speech 90–120 s.
+//   046 infogap „Kuidas sinna saab?” — the module's COLD TASK first (90–120 s: one trip, no help), three calls to a travel
+//               info line (98.7 s, heard twice, 8 gap sentences — Harno L3b corner; replaces the train call of Sofia and Jaan, the conductor's
+//               radio talk, the station announcements and Viktor's voicemail) and the place forms of travel verbs:
+//               väljub Tallinnast / perroonilt (kust?), istub ümber Tapal (kus?), saabub Tartusse, sõidab Võrru (kuhu?).
+//               Outcome: the learner answers the info line with the visual „Sõiduplaan: Tallinn → Tartu” and a
+//               HIDDEN-INFORMATION card (the caller finishes a night shift at 7.45, must be in Tartu before 11 and has a
+//               bicycle with her). At home the module's LINK TASK: a real connection on Peatus.ee (https://peatus.ee,
+//               checked 25.11.2026).
+//   047 debate  „Buss, rong või lennuk?” — a guess before reading (R13), ONE text „Kolm teed Riiga” (≈ 205 words; replaces the travel blog, the ads,
+//               the fair's page and Liis's e-mail ≈ 1100 words) and comparing and choosing: odavam kui, kõige kiirem,
+//               eelistan rongi bussile, pigem … kui, kumb, mõlemad; Harno R4 corner (phrases in a forum text). Outcome:
+//               a pair discussion with the visual „Kolm teed Riiga” — 100 euros for two, Friday 17.00 to Sunday — that
+//               ends in one decision; second round about one's own next trip without phrases.
+//   048 game    „Reis, mis läks teisiti” — the radio show „Teel juhtunud”: one listener's island trip (83.3 s, heard twice,
+//               8 true / false statements as in Harno L4) and the pluperfect (enneminevik): kui me sadamasse jõudsime, oli
+//               praam juba lahkunud; olin telgi koju unustanud; polnud broneerinud. Outcome: the story game with the
+//               visual „Pildilugu: reis Riiga” (six pictures) — first round the picture story, second round one's own trip
+//               that went differently, the group chooses the most surprising story.
+//   049 project „Reisiplaan sõbrale” — the order of a plan guessed before reading (R10), a model personal letter
+//               (≈ 175 words: two days in Tartu) and the language of a plan
+//               and a tip (soovitan sõita, tasub vaadata, ära unusta võtta — da-infinitive; a warning in the pluperfect).
+//               Outcome: a 60–90-word personal letter with a two-day plan for a friend, to the visual „Kaks päeva
+//               Pärnus” or one's own town, without a given opening — the module's free writing (Harno W2b corner).
+//   050 EKS     Control 10 (one sheet, 10 blocks, three printed pages): reading 16 p (travel services ads — kept —, a
+//               notice to passengers about track works, 8 short answers), speaking 10 p — task 1 is the PARALLEL NEW TASK
+//               of 046's cold task, task 2 a call to a hostel with one unexpected answer (a short role card 050_t_call;
+//               the phone cards 050_t_s2 are hidden) —, writing 8 p (a message to a friend); thresholds named one way.
+//               050 was the module exam in Harno B1 form (three sheets, 35 blocks, four speaking parts); under v5 the
+//               full mock exams are only at 060 / 080 / 089 / 090. The control's input skill alternates with module 9
+//               (listening there, reading here).
+// The continuing story (Jaan's family and Sofia on the train to grandmother Helgi, Anna and Markus's business trip to
+// Riga, Anna's Helsinki weekend, Lena's visit and Markus in Viljandi, Sofia's late train) is not used in this module: the
+// people of the texts are made up and appear in one lesson only. Drills (crossword, matching, sorting, word order,
+// „Mäletad?”) are off the sheets: the removed blocks stay in this file as hide(block, why) — ids and learners' answers
+// are kept, and the practice engine (practice/engine/extract.js) still builds Harjuta items from their form tasks.
+// Owner 2026-11-25: texts adapted to the level, facts need not be real or checked, no hard numbers; the statistics opener
+// 046_d_open (≈ 330 words of 2025–2026 travel data) and the „Kas teadsid?” cards are off the sheets. The previous version
+// (design v2, „final shape” storyline) is in git history (main before this PR); earlier ones are archive/v3/b1/module10.js
+// and archive/v1/b1/module10.js.
+// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): place forms with travel verbs — kust? väljuma, lahkuma; kus?
+// ümber istuma, peatuma; kuhu? saabuma, jõudma (046, after module 9's ma-infinitive); comparing and choosing — -m + kui,
+// kõige + -m, eelistama mida millele, pigem … kui, kumb / mõlemad (047); the pluperfect (enneminevik) oli + -nud, polnud
+// + -nud (048, taught; 049 in the warning of a plan) next to soovitan / tasub / ära unusta + da-infinitive (049).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
 // the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
-export const MODULE = { id: 'a2b1-module-10', course: 'b1', title: 'Reisimine', level: 'B1-', design: 'v2', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-10', course: 'b1', title: 'Reisimine', level: 'B1-', design: 'v3-stations', template: 'v4' };
+
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// the home task card at the end of every lesson
+const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
+const WORDS_HOME = 'Tunni sõnad: Harjuta → Sõnad (moodul 10). Korda neid seal iga päev paar minutit.';
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// one line for every block taken off the sheets by the v5 rewrite
+const V5_CUT = 'v5 (2026-11-25): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V5_DRILL = 'v5 (2026-11-25): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a recording in a lesson: heard twice (G6)
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+// a writing form of n ruled lines: the picture stands directly above the task and both fit on one page
+const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
+// the block starts a new printed page (the lesson's last page then holds the exit check, the home task and „Ma oskan”)
+const newPage = (block) => ({ ...block, pageBreakBefore: true });
+// a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
+const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 046 infogap: the travel info line (kust? kus? kuhu?)
   'a2b1-046': {
-    title: 'Rongiga Tartusse',
-    canDo: 'Ma helistan rongifirma infotelefonile, vahetan pere piletid ja selgitan onule telefonis tema teekonna ümberistumisega.',
+    title: 'Kuidas sinna saab?',
+    phases: grammar('Keel: kust? väljub Tallinnast · kus? istub ümber Tapal · kuhu? saabub Tartusse, sõidab Võrru'),
+    format: 'infogap',
+    topic: 'town',
+    canDo: 'Ma küsin ja annan sõiduinfot: kust ja mis kell rong või buss väljub, kus tuleb ümber istuda ning kuhu ja millal see jõuab.',
+    teacherPage: {
+      goal: 'Ученик понимает звонки в справочную и сам даёт информацию о поездке: откуда, где пересадка, куда (väljub Tallinnast, istub ümber Tapal, saabub Tartusse).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодный старт, 90–120 секунд) → три звонка в справочную (2 раза, 8 предложений с пропусками) → пункт 4: ученик отвечает в справочной по картинке «Sõiduplaan», у учителя скрытая информация. Пункт 3 — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля 10: ученик 90–120 секунд без помощи рассказывает об одной поездке: куда и на чём ехал, откуда и куда, сколько длилась дорога, что было хорошо или плохо. Не помогайте и не исправляйте; запишите три заметки (сколько предложений, связки ja / aga / sest / kui, формы места: Tallinnast, Tapal, Tartusse). Контроль (урок 50) начнётся параллельной задачей — сравните.',
+      plan: [
+        '0–8: пункт 1 — холодный старт «Üks reis» 90–120 с без помощи; три заметки учителя',
+        '8–25: пункт 2 — слова (2 мин), три звонка в справочную (2 раза; kust / kus / kuhu в контексте), 8 предложений с пропусками, в паре: «Kust otserong väljub? Kus tuleb ümber istuda?»',
+        '25–40: пункт 3 — заметить → правило (kust? -st / -lt: väljub Tallinnast, perroonilt; kus? -s / -l: istub ümber Tapal, ootab jaamas; kuhu? -sse / -le / краткая форма: saabub Tartusse, jõuab Tapale, sõidab Võrru) → 8 форм → 8–10 своих предложений',
+        '40–65: пункт 4 — ученик в справочной по картинке «Sõiduplaan: Tallinn → Tartu»; учитель звонит со скрытой информацией (ночная смена до 7.45, надо быть в Тарту до 11, с велосипедом); вторая попытка без фраз — ученик сам звонит в справочную о своей настоящей поездке',
+        '65–72: проверка на выходе (3 пункта), «Ma oskan …», домашнее задание (настоящий сайт Peatus.ee)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, как ездят между городами у него на родине и что в Эстонии удобнее или неудобнее',
+        '72–90: запас',
+      ],
+      sources: 'Звонки (пункт 2) и картинка «Sõiduplaan» — учебные, справочная «Reisiinfo», время и цены выдуманы; проверять не нужно (владелец 2026-11-25). Домашнее задание — настоящий сайт Peatus.ee (https://peatus.ee).',
+      groups: 'Пункт 4 в паре: B получает карточку звонящего (копия вашей), A её не видит; потом смена ролей. Один на один вы — звонящий.',
+      errors: [
+        '«Rong väljub Tallinnasse» вместо «Rong väljub Tallinnast» (väljuma, lahkuma — откуда? → -st / -lt).',
+        '«Tuleb ümber istuda Tapale» вместо «Tuleb ümber istuda Tapal» (где? → -s / -l).',
+        '«Rong saabub Tartus» вместо «Rong saabub Tartusse» (saabuma, jõudma — куда? → -sse / -le).',
+        '«Buss väljub kolmas perroon» вместо «Buss väljub kolmandalt perroonilt» (откуда? → -lt, и прилагательное тоже).',
+      ],
+      notes: [
+        'Холодный старт и урок 50 — пара «до / после»: те же три заметки, похожая тема. Сохраните заметки в карточке ученика.',
+        'Обратная связь, 2 цели: kust / kus / kuhu после глаголов движения и названия мест (Tapal, Tartusse, Võrru). Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('046_d_review', [['Mis on sinu arvates töövestlusel kõige tähtsam? Too üks näide.', 'a2b1-044'], ['Mis läks valesti, kui Sofia tellis Kiire Kõhust õhtusöögi?', 'a2b1-029'], 'Millega sa viimati teise linna sõitsid?']),
-      B.topicOpener('046_d_open', 'Teema avaleht: reisimine Eestis', [
+      station(teach(tag(purpose(half(B.speaking('046_d_cold', 'Külm start: üks reis', 'Räägi 90–120 sekundit ilma abita ja ilma märkmeteta. Vead on lubatud.', [
+        'Räägi ühest reisist, mida sa oled teinud: kuhu ja millega sa sõitsid, kust sa väljusid ja kuhu jõudsid, kui kaua sõit kestis ning mis oli teel hea või halb?',
+      ], [90, 120])), 'Nii räägid sa reisist mooduli alguses. Kontrollis (tund 50) on sarnane ülesanne: siis näed, kui palju rohkem sa oskad.'), { task: 'S02', level: 4, fluency: true }),
+      'Külm ülesanne (mooduli 10 algus, ilma toeta). Ära aita, ära paranda, ära küsi lisaküsimusi. Märgi õpilase kaardile kolm asja: 1) mitu lauset ta ütles; 2) kas laused on seotud (ja, aga, sest, kui); 3) kohavormid: kust (Tallinnast), kus (Tapal), kuhu (Tartusse). Hoia märkmed alles: tunnis 50 on paralleelne uus ülesanne ja te võrdlete.'), 1, 8),
+      station(tag(half(B.vocab('046_d_vocab', 'Tunni sõnad.', ['väljuma — отправляться', 'saabuma — прибывать', 'ümber istuma — пересесть', 'perroon — перрон', 'sõiduplaan — расписание', 'ühendus — рейс', 'ära jääma — отменяться', 'asendusbuss — замена', 'pagasiruum — багажник', 'edasi-tagasi — туда-обратно'], '2')), { topic: ['väljuma', 'ümber istuma', 'perroon', 'asendusbuss', 'pagasiruum'] }), 2, 17),
+      tag(purpose(why(ownText(twice(B.listening('046_d_call', 'Kolm kõnet reisiinfosse.', 'Loe enne laused läbi. Siis kuula kaks korda ja kirjuta igasse lünka üks sõna.', [
+        'Teenindaja: Reisiinfo, tere! Kuidas saan aidata?',
+        'Toomas: Tere! Ma tahan homme hommikul Tallinnast Tartusse sõita. Mis kell rong väljub?',
+        'Teenindaja: Otserong väljub Balti jaamast kell seitse kolmkümmend ja saabub Tartusse kell üheksa nelikümmend.',
+        'Toomas: Kas on ka varasem rong?',
+        'Teenindaja: On küll. Kell kuus väljub rong Tapale. Tapal tuleb ümber istuda Tartu rongile. See on odavam, aga sõit kestab pool tundi kauem.',
+        'Toomas: Selge, siis võtan otserongi. Aitäh!',
+        'Teenindaja: Reisiinfo, tere!',
+        'Merle: Tere! Ma olen praegu Tartu bussijaamas. Minu buss Võrru pidi väljuma kell kaks, aga bussi ei ole.',
+        'Teenindaja: Jah, kahjuks jäi see buss ära, sest bussil on rike. Kell pool kolm väljub asendusbuss kolmandalt perroonilt.',
+        'Merle: Kolmandalt perroonilt. Ja mis kell ma Võrru jõuan?',
+        'Teenindaja: Umbes kell neli. Teie pilet kehtib ka asendusbussis.',
+        'Teenindaja: Reisiinfo, tere!',
+        'Reet: Tere! Ma sõidan laupäeval jalgrattaga Pärnusse. Kas rattaga saab bussi peale?',
+        'Teenindaja: Saab küll. Ratta saab panna bussi pagasiruumi, kui seal on ruumi. Ratta pilet maksab kaks eurot.',
+        'Reet: Ja kust buss väljub?',
+        'Teenindaja: Tallinna bussijaamast, iga tunni järel. Pärnusse jõuab buss kahe tunniga. Viimane buss väljub Pärnust tagasi kell kümme õhtul.',
+        'Reet: Suurepärane, aitäh!',
+      ], [
+        'Homme hommikul väljub otserong Tallinnas Balti [jaamast] kell 7.30.',
+        'Sama otserong saabub [Tartusse] kell 9.40 hommikul.',
+        'Kui sõidad varasema rongiga, tuleb [Tapal] ümber istuda.',
+        'Merle on Tartu bussijaamas ja tahab bussiga sõita [Võrru].',
+        'Merle buss jäi täna ära, sest bussil on [rike].',
+        'Asendusbuss väljub kell pool kolm kolmandalt [perroonilt].',
+        'Reet saab oma ratta panna bussi [pagasiruumi].',
+        'Õhtul väljub viimane buss [Pärnust] tagasi kell kümme.',
+      ], 'g_read'))), [
+        'Teenindaja: „Otserong väljub Balti jaamast kell seitse kolmkümmend”.',
+        'Teenindaja: „ja saabub Tartusse kell üheksa nelikümmend”.',
+        'Teenindaja: „Tapal tuleb ümber istuda Tartu rongile.”',
+        'Merle: „Minu buss Võrru pidi väljuma kell kaks”.',
+        'Teenindaja: „kahjuks jäi see buss ära, sest bussil on rike”.',
+        'Teenindaja: „Kell pool kolm väljub asendusbuss kolmandalt perroonilt.”',
+        'Teenindaja: „Ratta saab panna bussi pagasiruumi, kui seal on ruumi.”',
+        'Teenindaja: „Viimane buss väljub Pärnust tagasi kell kümme õhtul.”',
+      ]), 'Enne kui sa ise sõiduinfot annad, kuuled, kuidas reisiinfo töötaja ütleb, kust ja kuhu sõidetakse. Eksamil (Harno B1 kuulamine 3b) on sama ülesanne.'), { task: 'L04', harno: 'L3b' }),
+      teach(tag(purpose(B.speaking('046_d_retell', 'Kuidas sinna saab? Küsi paarilisel.', 'Küsi paarilisel kõnede järgi. B vastab terve lausega. Siis vahetage.', [
+        'Kust ja mis kell väljub otserong? Mis kell see Tartusse jõuab?',
+        'Miks Merle bussi ei olnud ja kust väljub asendusbuss?',
+        'Millega sina kõige meelsamini teise linna sõidad? Miks?',
+      ], [70, 100], '', 'g_read'), 'Ütled kõnede järgi, kust sõiduk väljub ja kuhu see jõuab, õige kohavormiga.'), { task: 'S09', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kaks. Teisel ringil ütled sa ühe vea („Otserong väljub Tartusse kell seitse”) ja õpilane parandab sind.'),
+      hide(B.review('046_d_review', [['Mis on sinu arvates töövestlusel kõige tähtsam? Too üks näide.', 'a2b1-044'], ['Mis läks valesti, kui Sofia tellis Kiire Kõhust õhtusöögi?', 'a2b1-029'], 'Millega sa viimati teise linna sõitsid?']), V5_DRILL),
+      hide(B.topicOpener('046_d_open', 'Teema avaleht: reisimine Eestis', [
         'Eesti on väike riik, aga reisida saab siin palju ja mitmel viisil. Eestis on üle 2300 meresaare. Kõige suuremad on Saaremaa ja Hiiumaa. Suurematele saartele sõidab praam: Virtsust Muhu saarele Kuivastusse ja Rohukülast Hiiumaale Heltermaale. Jalgsi või jalgrattaga reisija saab praamipileti osta ka sadamas automaadist.',
         'Rongiga sõideti Elroni andmetel 2025. aastal 7,66 miljonit korda. Kõige rohkem reisijaid on Tallinna lähedastel liinidel. 2026. aasta jaanuarist sõidab iga päev otserong Tallinnast Tartu kaudu Riiga. Kõikjale rong siiski ei sõida: viimane reisirong käis Pärnus 2018. aasta detsembris ja Haapsalus juba 1995. aastal. Nendesse linnadesse saab praegu ainult bussi või autoga. Kui Elroni rong hilineb pool tundi või rohkem, saab reisija piletiraha tagasi.',
         'Looduses puhkajale on Eestis kuus rahvusparki: Lahemaa, Matsalu, Soomaa, Vilsandi, Karula ja Alutaguse. Lahemaa rahvuspark loodi 1971. aastal ja see on Eesti esimene rahvuspark. Riigimetsas on RMK matkarajad, lõkkekohad ja metsaonnid. Eestis kehtib igaüheõigus: looduses võib liikuda jalgsi, rattaga või suuskadel, korjata marju ja seeni ning piiramata eramaal telkida üks ööpäev, kui omanik seda ei keela.',
@@ -66,39 +177,8 @@ export const LESSONS = withShapes({
         'Kuidas inimesed sinu kodumaal tavaliselt reisivad: rongi, bussi, auto või lennukiga? Mis on teisiti kui Eestis?',
         'Kas sinu arvates peaks rong sõitma ka Pärnusse ja Haapsallu? Miks?',
         'Kas igaüheõigus on sinu meelest hea reegel? Põhjenda.',
-      ]),
-      tag(B.listening('046_d_call', 'Sofia ja Jaan valivad rongi.', 'Jaani pere ja Sofia sõidavad koolivaheajal rongiga vanaema Helgi juurde Tartusse. Kuula Sofia ja Jaani telefonikõnet kaks korda. Kirjuta lünka kellaaeg, number või üks sõna.', [
-        'Sofia: Tere, Jaan! Ma vaatan praegu sõiduplaani. Reedel on Tartusse kaks sobivat rongi.',
-        'Jaan: Tere! Räägi aeglaselt, mul on pliiats ja paber käes.',
-        'Sofia: Esimene väljub Balti jaamast kell 16.35, aga sellega tuleb Tapal ümber istuda. Tartusse jõuab see kell 19.05.',
-        'Jaan: Ümberistumine kahe lapse ja koeraga ei ole just mugav. Ja teine?',
-        'Sofia: Teine on otserong. See väljub kell 17.08 ja saabub Tartusse kell 19.10.',
-        'Jaan: Kas otserongis on laua ümber kohti? Mia tahab teel joonistada.',
-        'Sofia: On küll. Teises vagunis on neli kohta laua ümber ja üks koht vahekäigu teisel poolel. Meid on kokku viis.',
-        'Jaan: Väga hea. Kui palju pilet maksab?',
-        'Sofia: Täiskasvanu pilet maksab üheksa eurot. Oskar sõidab poole hinnaga. Mia sõidab tasuta, sest ta on alla seitsme aasta vana.',
-        'Jaan: Ja Muki? Koer tuleb ju ka kaasa.',
-        'Sofia: Muki on suur koer, tal on vaja oma piletit. See maksab kolm eurot. Rongis peab ta olema rihma otsas ja suukorviga.',
-        'Jaan: Selge. Kas ostame piletid kohe edasi-tagasi?',
-        'Sofia: Jah. Tagasi tuleme pühapäeval, rong väljub Tartust kell 15.20.',
-        'Jaan: Hästi. Osta palun kõik piletid ära, ma kannan sulle raha täna õhtul üle.',
-        'Sofia: Hea küll. Saadan piletid kõigile e-postiga. Ja ära unusta: reedel peame olema jaamas vähemalt kümme minutit varem!',
-        'Jaan: Muidugi. Kadri võtab lastele võileivad ja mahla kaasa, siis ei pea me rongis midagi ostma.',
-        'Sofia: Väga hea mõte. Ma helistan emale ja ütlen, et me jõuame Tartusse natuke pärast seitset. Ta tahab meile jaama vastu tulla.',
-      ], [
-        'Esimene rong väljub Balti jaamast kell [16.35|16:35].',
-        'Esimese rongiga tuleb ümber istuda [Tapal].',
-        'Otserong saabub Tartusse kell [19.10|19:10].',
-        'Mia tahab rongis laua taga [joonistada].',
-        'Laua ümber on teises vagunis [neli|4] kohta.',
-        'Täiskasvanu pilet maksab Tartusse [üheksa|9] eurot.',
-        'Oskar sõidab rongis [poole] hinnaga.',
-        'Muki pilet maksab [kolm|3] eurot.',
-        'Tartust tuleb pere tagasi [pühapäeval].',
-        'Jaamas tuleb reedel olla vähemalt [kümme|10] minutit varem.',
-      ]), { task: 'L10' }),
-      B.vocab('046_d_vocab', 'Tunni sõnad.', ['rong — поезд', 'pilet — билет', 'jaam — вокзал / станция', 'väljuma — отправляться', 'saabuma — прибывать', 'ümber istuma — пересаживаться', 'vagun — вагон', 'istekoht — сидячее место', 'sõiduplaan — расписание', 'edasi-tagasi — туда и обратно', 'hilinema — опаздывать', 'reisija — пассажир']),
-      teach(tag(B.examListen('046_d_radio', 'Eksaminurk: rongisaatja raadios (Harno B1 kuulamine 4)', 'Kuula raadiointervjuud rongisaatjaga. Märgi iga väite juurde, kas see on õige või vale.', 'truefalse', [
+      ]), V5_CUT),
+      hide(teach(tag(B.examListen('046_d_radio', 'Eksaminurk: rongisaatja raadios (Harno B1 kuulamine 4)', 'Kuula raadiointervjuud rongisaatjaga. Märgi iga väite juurde, kas see on õige või vale.', 'truefalse', [
         'Ülle: Tere, kuulajad! Koolivaheaeg algab ja paljud pered sõidavad rongiga. Stuudios on rongisaatja Riho Mägi, kes on rongides töötanud kaksteist aastat. Tere, Riho!',
         'Riho: Tere! Hea meel siin olla.',
         'Ülle: Kas vaheajal on rongides rohkem inimesi?',
@@ -130,35 +210,55 @@ export const LESSONS = withShapes({
         ['Riho ei ole rongi aknast kunagi põtra näinud.', false],
         ['Perrooni number võib vahel viimasel minutil muutuda.', true],
       ]), { harno: 'L4' }),
-      'Eksaminurk (Harno B1 kuulamine 4, ~9 min), formaati tutvustatakse siin. Strateegia: 1) loe enne kuulamist kõik väited läbi ja jooni alla võtmesõnad (kallim, tasuta, alati, kunagi); 2) esimesel kuulamisel märgi, teisel kontrolli; 3) vale väide kordab sageli teksti sõnu, aga muudab ühte detaili. Üks-ühele: pärast kontrolli kuulake üht kohta, kus õpilane eksis, uuesti ja leidke sõna, mis otsustas.'),
-      B.notice('046_d_notice', 'Märka: kust, kus, kuhu?', [
-        'Rong **väljub** kust? Balti jaama**st**, Tallinna**st**, Tapa**lt**, teise**lt** perroonilt',
-        'Rong **saabub / jõuab** kuhu? Tartu**sse**, Tapa**le**, esimese**le** perroonile',
-        'Kus **istun ümber**, ootan? Tapa**l**, jaama**s**, ooteruumi**s**, perrooni**l**',
-        'Aeg: **kell** 17.08 · kümne minuti **pärast** · kahe tunni **jooksul** · **enne** kella viit',
-        'Enamik linnu: Tartu**s**, Tartu**sse**, Tartu**st**. Mõni koht: Tapa**l**, Tapa**le**, Tapa**lt**.',
-      ], 'full'),
-      B.table('046_d_rule', 'Leia reegel: kust, kus, kuhu?', 'Kirjuta puuduvad vormid. Abi leiad kõnest, intervjuust ja kastist „Märka”.', 'Koht, Kust?, Kus?, Kuhu?', [
+      'Eksaminurk (Harno B1 kuulamine 4, ~9 min), formaati tutvustatakse siin. Strateegia: 1) loe enne kuulamist kõik väited läbi ja jooni alla võtmesõnad (kallim, tasuta, alati, kunagi); 2) esimesel kuulamisel märgi, teisel kontrolli; 3) vale väide kordab sageli teksti sõnu, aga muudab ühte detaili. Üks-ühele: pärast kontrolli kuulake üht kohta, kus õpilane eksis, uuesti ja leidke sõna, mis otsustas.'), V5_CUT),
+      hide(B.table('046_d_rule', 'Leia reegel: kust, kus, kuhu?', 'Kirjuta puuduvad vormid. Abi leiad kõnest, intervjuust ja kastist „Märka”.', 'Koht, Kust?, Kus?, Kuhu?', [
         'Tartu | [Tartust] | Tartus | [Tartusse]',
         'Tapa | Tapalt | [Tapal] | [Tapale]',
         'jaam | [jaamast] | jaamas | [jaama]',
         'perroon | [perroonilt] | perroonil | [perroonile]',
         'Aegviidu | [Aegviidust] | [Aegviidus] | Aegviidusse',
-      ], 'g_notice'),
-      B.match('046_d_pairs', 'Reisija tegevused.', 'Ühenda tegusõna ja sõnad, millega see rongireisil kokku käib.', [
+      ], 'g_notice'), V5_DRILL),
+      hide(B.match('046_d_pairs', 'Reisija tegevused.', 'Ühenda tegusõna ja sõnad, millega see rongireisil kokku käib.', [
         ['ostma', 'pileti internetist'], ['ümber istuma', 'Tapal teise rongi'], ['ootama', 'rongi soojas ooteruumis'], ['näitama', 'piletit rongisaatjale'], ['panema', 'kohvri riiulile'],
         ['kontrollima', 'perrooni numbrit'], ['jõudma', 'jaama kümme minutit varem'], ['üle kandma', 'raha vennale pangakontole'], ['hoidma', 'koera rihma otsas'], ['vaatama', 'aknast metsa ja loomi'],
-      ], 'full', 'g_vocab'),
-      B.crossword('046_d_cross', 'Ristsõna: jaamas.', 'Loe vihjet ja kirjuta sõna ristsõnasse. Kõik sõnad on tänasest kõnest või intervjuust.', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(B.crossword('046_d_cross', 'Ristsõna: jaamas.', 'Loe vihjet ja kirjuta sõna ristsõnasse. Kõik sõnad on tänasest kõnest või intervjuust.', [
         ['Sellega sõidab pere Tartusse.', 'rong'], ['Selle ostad enne sõitu kassast.', 'pilet'], ['Rongi üks osa, kus on istmed.', 'vagun'], ['Koht, kus rong peatub ja reisijad ootavad.', 'jaam'],
         ['Seal seisad, kui rong tuleb.', 'perroon'], ['Inimene, kes sõidab rongis.', 'reisija'], ['Suur kott ratastega reisiks.', 'kohver'], ['Ta kontrollib rongis pileteid.', 'rongisaatja'],
         ['Rihm ja … — need peavad suurel koeral olema.', 'suukorv'], ['Selles on kirjas kõik rongide ajad.', 'sõiduplaan'],
-      ], 'half', 'g_vocab'),
-      teach(tag(B.speaking('046_d_pic', 'Kaks rongi.', 'Vaata pilti ja kirjelda paarilisele kahte rongi umbes üks minut. Siis arutage kahte viimast küsimust ja võrrelge oma kogemusi.', ['Mis kell kumbki rong väljub ja saabub?', 'Kumma rongiga peab ümber istuma ja kus?', 'Kumb rong sobib lastega perele ja miks?', 'Kas teise linna on sinu arvates parem sõita rongi, bussi või autoga? Miks?', 'Kuidas sõidavad inimesed sinu kodumaal ühest linnast teise?'], [70, 120], ['Esimene rong väljub…', 'Teisega ei pea ümber istuma, sest…', 'Minu kodumaal…, aga Eestis…']), { task: 'S06', fluency: true }),
-        'Üks-ühele: õpilane kirjeldab pilti umbes minut; õpetaja küsib ühe täpsustava küsimuse („Mis kell…?”, „Kus…?”). Siis arutate kahte viimast küsimust: õpetaja räägib oma reisiharjumustest, õpilane võrdleb Eestit oma kodumaaga.'),
+      ], 'half', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.speaking('046_d_pic', 'Kaks rongi.', 'Vaata pilti ja kirjelda paarilisele kahte rongi umbes üks minut. Siis arutage kahte viimast küsimust ja võrrelge oma kogemusi.', ['Mis kell kumbki rong väljub ja saabub?', 'Kumma rongiga peab ümber istuma ja kus?', 'Kumb rong sobib lastega perele ja miks?', 'Kas teise linna on sinu arvates parem sõita rongi, bussi või autoga? Miks?', 'Kuidas sõidavad inimesed sinu kodumaal ühest linnast teise?'], [70, 120], ['Esimene rong väljub…', 'Teisega ei pea ümber istuma, sest…', 'Minu kodumaal…, aga Eestis…']), { task: 'S06', fluency: true }),
+        'Üks-ühele: õpilane kirjeldab pilti umbes minut; õpetaja küsib ühe täpsustava küsimuse („Mis kell…?”, „Kus…?”). Siis arutate kahte viimast küsimust: õpetaja räägib oma reisiharjumustest, õpilane võrdleb Eestit oma kodumaaga.'), V5_CUT),
     ],
     practice: [
-      tag(B.reading('046_p_signs', 'Teated jaamas ja rongis.', 'Loe jaama ja rongi teateid. Vasta lühidalt, mida reisija peab tegema või teadma.', 'Reisija, pane tähele!', [
+      station(B.notice('046_d_notice', 'Märka: kust? kus? kuhu?', [
+        'Kõnedest: rong väljub **Balti jaamast** · saabub **Tartusse** · tuleb **Tapal** ümber istuda · buss väljub **kolmandalt perroonilt** · sõidab **Võrru**',
+        '**Kust?** → **-st / -lt**: **väljuma**, **lahkuma**, **tulema** — väljub **Tallinnast**, **Tapalt**, **perroonilt**',
+        '**Kus?** → **-s / -l**: **ümber istuma**, **ootama**, **peatuma** — istub ümber **Tapal**, ootab **jaamas**, peatub **Raplas**',
+        '**Kuhu?** → **-sse / -le** või lühike vorm: **saabuma**, **jõudma**, **sõitma** — saabub **Tartusse**, jõuab **Tapale**, sõidab **Võrru**, **Riiga**',
+        'Kohanimi otsib oma lõppu: **Tapa** → Tapal, Tapale, Tapalt · **Tartu** → Tartus, Tartusse, Tartust',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.gaps('046_p_forms', 'Kust, kus või kuhu?', 'Kirjuta sulgudes olev sõna õiges vormis. Mõtle: kust? kus? või kuhu?', [
+        'Kiirbuss Narva väljub [Tallinnast] kell kaheksa (Tallinn).',
+        'Rakvere rong peatub viis minutit [Tapal] (Tapa).',
+        'Lennuk saabub [Riiga] kell 14.20 (Riia).',
+        'Praam saarele väljub [Virtsust] iga tunni järel (Virtsu).',
+        'Ma ootan sind [bussijaamas] kohviku ees (bussijaam).',
+        'Viljandi buss väljub teiselt [perroonilt] (perroon).',
+        'Me jõudsime [Pärnusse] alles keskööl (Pärnu).',
+        'Edasi-tagasi pilet [Haapsallu] maksab 14 eurot (Haapsalu).',
+      ], '', 'full', 'g_notice'), [
+        'väljuma — kust? → -st: Tallinnast.',
+        'peatuma — kus? → Tapa: -l: Tapal.',
+        'saabuma — kuhu? → lühike vorm: Riiga.',
+        'väljuma — kust? → -st: Virtsust.',
+        'ootama — kus? → -s: bussijaamas.',
+        'väljuma — kust? → -lt: perroonilt.',
+        'jõudma — kuhu? → -sse: Pärnusse.',
+        'pilet kuhu? → lühike vorm: Haapsallu.',
+      ]), 'Kaheksa lauset näitavad, kas kohavormid on sõiduinfos käes.'), { task: 'G08' }),
+      tag(purpose(rows(B.writing('046_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset oma tavalisest sõidust või ühest reisist: kust ja mis kell sa väljud, kus ümber istud või ootad, kuhu ja millal jõuad.', [8, 10]), 7), 'Oma laused on sinu telefonikõne materjal.'), { task: 'W01' }),
+      hide(tag(B.reading('046_p_signs', 'Teated jaamas ja rongis.', 'Loe jaama ja rongi teateid. Vasta lühidalt, mida reisija peab tegema või teadma.', 'Reisija, pane tähele!', [
         'A. Balti jaam. Piletikassa on avatud iga päev 6.30–21.00. Kui kassa on suletud, kasutage piletiautomaati ooteruumis. Automaat võtab ainult pangakaarti.',
         '',
         'B. Rongis. Rongis ostetud pilet on kaks eurot kallim. Erand: kui jaamas ei ole kassat ega automaati, maksate rongis sama hinda.',
@@ -183,13 +283,13 @@ export const LESSONS = withShapes({
         ['Mida vajab suur koer peale pileti?', 'rihma ja suukorvi'],
         ['Miks ei tohi kohvreid vahekäiku panna?', 'vahekäik peab jääma vabaks|inimesed peavad saama vabalt käia'],
         ['Mida saab reisija, kui rong hilineb poolteist tundi?', 'osa piletihinnast tagasi|osa raha tagasi'],
-      ]), { task: 'R07' }),
-      B.know('046_p_know', [
+      ]), { task: 'R07' }), V5_CUT),
+      hide(B.know('046_p_know', [
         'Kui Elroni rong hilineb 30 minutit või rohkem, saab reisija selle sõidu piletiraha täielikult tagasi. Kui pilet on ostetud rongist, maksab klienditeenindaja raha tagasi kohe rongis. Eelmüügist ostetud pileti eest tuleb täita Elroni kodulehel tagastusvorm.',
         'Kui rong juba hilineb vähemalt 30 minutit, ei pea reisija selle rongi peale piletit ostma: sõit on tasuta.',
         'Euroopa Liidu reeglite järgi on rongireisijal õigus saada vähemalt 25 % piletihinnast, kui ta jõuab kohale 60–119 minutit hiljem, ja 50 %, kui hilinemine on kaks tundi või rohkem. Kaebus esitatakse kõigepealt rongifirmale kolme kuu jooksul; kui vastus ei rahulda, saab pöörduda Transpordiameti poole.',
-      ], 'Elron, „Pileti hüvitamine”; Transpordiamet, „Rongireisijate õigused”', 'Kas teadsid? Kui rong hilineb'),
-      tag(B.listening('046_p_announce', 'Teadaanded Balti jaamas.', 'Kuula jaama teadaandeid. Kirjuta lünka, mida reisija peab tegema või teadma.', [
+      ], 'Elron, „Pileti hüvitamine”; Transpordiamet, „Rongireisijate õigused”', 'Kas teadsid? Kui rong hilineb'), V5_CUT),
+      hide(tag(B.listening('046_p_announce', 'Teadaanded Balti jaamas.', 'Kuula jaama teadaandeid. Kirjuta lünka, mida reisija peab tegema või teadma.', [
         'Teadustaja: Tähelepanu! Kell 16.35 Tapale väljuv rong väljub täna teiselt perroonilt, mitte esimeselt.',
         'Teadustaja: Tartu otserong kell 17.08 hilineb umbes viisteist minutit. Palume reisijatel oodata soojas ooteruumis.',
         'Teadustaja: Narva rongi esimene vagun on täna suletud. Reisijad, kelle kohad on esimeses vagunis, istuvad teises vagunis.',
@@ -211,8 +311,8 @@ export const LESSONS = withShapes({
         'Pärnu rongil on täna ainult [kaks|2] vagunit.',
         'Pärast kella kaheksat on jaama kohvikus saiad poole [hinnaga].',
         'Tartu otserong saabub esimesele perroonile kell [17.20|17:20].',
-      ]), { task: 'L06' }),
-      B.formtext('046_p_route', 'Viktori teekond.', 'Sofia kirjutab onule teekonna. Pane sulgudes olev kohasõna õigesse vormi.', 'Sinu teekond Tartusse', [
+      ]), { task: 'L06' }), V5_CUT),
+      hide(B.formtext('046_p_route', 'Viktori teekond.', 'Sofia kirjutab onule teekonna. Pane sulgudes olev kohasõna õigesse vormi.', 'Sinu teekond Tartusse', [
         'Tere, onu! Siin on sinu teekond. Reedel väljub sinu rong [Aegviidust] (Aegviidu) kell 15.25. [Aegviidus] (Aegviidu) kassat ei ole, nii et osta pilet rongis.',
         '',
         'Ütle rongisaatjale, et sõidad [Tartusse] (Tartu), mitte ainult [Tapale] (Tapa). Siis kehtib sama pilet ka teises rongis.',
@@ -222,8 +322,8 @@ export const LESSONS = withShapes({
         'Tartu rong saabub kell 18.05. Ema ootab sind [jaama] (jaam) ees. Meie jõuame [Tallinnast] (Tallinn) alles hiljem.',
         '',
         'Kui sa [rongis] (rong) midagi aru ei saa, helista mulle kohe! Sofia',
-      ]),
-      tag(B.bankText('046_p_faq', 'Rongifirma küsimused ja vastused.', 'Vali pangast igasse lünka sõna, mis sobib sisu ja vormiga. Kaks sõna jääb üle.', 'Korduma kippuvad küsimused', [
+      ]), V5_DRILL),
+      hide(tag(B.bankText('046_p_faq', 'Rongifirma küsimused ja vastused.', 'Vali pangast igasse lünka sõna, mis sobib sisu ja vormiga. Kaks sõna jääb üle.', 'Korduma kippuvad küsimused', [
         'Kas pileti võib osta ka rongist? Võib, aga rongis on pilet [[kallim]]. Kui jaamas on automaat, osta pilet enne sõitu.',
         '',
         'Kas lapsed sõidavad tasuta? Alla seitsmeaastased lapsed sõidavad tasuta, kooliõpilased poole [[hinnaga]]. Õpilasel peab olema kaasas õpilaspilet.',
@@ -239,20 +339,32 @@ export const LESSONS = withShapes({
         'Kas rongis saab [[süüa]]? Pikematel liinidel on kohvikuvagun. Lühematel liinidel söögikohta ei ole.',
         '',
         'Kas rongis on [[internet]]? Jah, kõigis rongides on tasuta wifi. Telefoni saab laadida istme [[kõrval]].',
-      ], ['odavam', 'Täis'], 'g_vocab'), { task: 'R04' }),
-      teach(B.rolecards('046_p_gap', 'Infolünk: ajad ja hinnad.', 'A teab rongide aegu, B hindu ja soodustusi. Küsige teineteiselt ja leidke perele kõige parem sõit.',
-        'Sul on reede sõiduplaan: 16.35 (ümberistumine Tapal, saabub Tartusse 19.05), 17.08 otserong (saabub 19.10), 19.40 otserong (saabub 21.45). Hindu sa ei tea. Küsi B-lt hinnad ja soodustused ning vali perele rong.',
-        'Sul on hinnakiri: täiskasvanu 9 €, kooliõpilane 4,50 €, alla 7-aastane tasuta, koer 3 €, rongis ostes 2 € kallim. Õhturongil kell 19.40 on 20 % soodustus. Aegu sa ei tea. Küsi A-lt ajad ja aita valida.',
-        ['Mis kell…?', 'Kas sellega tuleb ümber istuda?', 'Kui palju see kokku maksab?'], ['Kui palju maksab…?', 'Kas sellel rongil on soodustus?', 'Siis on kõige soodsam…']),
-      'Üks-ühele: õpetaja on B ja annab infot ainult küsimise peale; siis vahetage kaardid. Lõpus ütleb õpilane ühe lausega, millise rongi ta valib ja miks.'),
-      B.examWriting('046_p_survey', 'Reisijate küsitlus.', 'Rongifirma uurib reisijate harjumusi. Vasta igale küsimusele lühidalt; miks-küsimusele vasta sest-lausega.', 'kusimustik', {
+      ], ['odavam', 'Täis'], 'g_vocab'), { task: 'R04' }), V5_CUT),
+      hide(B.examWriting('046_p_survey', 'Reisijate küsitlus.', 'Rongifirma uurib reisijate harjumusi. Vasta igale küsimusele lühidalt; miks-küsimusele vasta sest-lausega.', 'kusimustik', {
         situation: 'Rongifirma tahab teada, kuidas inimesed reisivad. Täida küsimustik.',
         questions: ['Kui tihti sa rongiga sõidad?', 'Kuhu sa viimati rongiga sõitsid?', 'Kas sa ostad pileti internetist, kassast või rongist? Miks?', 'Mis sulle rongis kõige rohkem meeldib?', 'Mis sulle rongis ei meeldi? Miks?', 'Kas sa sõidad pigem rongi, bussi või autoga? Miks?', 'Mida sa rongis tavaliselt teed?', 'Kas rongipilet on sinu jaoks liiga kallis? Miks?', 'Mida peaks rongides paremaks muutma?', 'Kuhu sa tahaksid järgmisena rongiga sõita?'],
-      }),
+      }), V5_CUT),
     ],
     transfer: [
-      B.text('046_t_sit', 'Reede hommik', 'Reede hommikul helistab Kadri haiglast: üks arst on haige ja Kadri peab tööl olema kella kuueni. Kell 17.08 rong ei sobi enam ja Sofia peab piletid ümber vahetama. Samal ajal jättis onu Viktor talle häälsõnumi. Kuula sõnumit, helista rongifirma infotelefonile, seleta onule teekonda ja kirjuta emale.'),
-      tag(B.listening('046_t_voice', 'Viktori häälsõnum.', 'Kuula onu Viktori sõnumit kaks korda. Märgi üles, mida ta tahab teada ja mida ta juba teab.', [
+      station(teach(tag(purpose(B.rolecards('046_p_gap', 'Reisiinfo: telefon heliseb', 'Sina töötad reisiinfos. Vaata sõiduplaani üleval, vasta helistajale ja leia talle parim ühendus.',
+        'Olukord: reede õhtu, sina vastad reisiinfo telefonile. Helistaja tahab laupäeval Tallinnast Tartusse sõita.\nEesmärk: ütle sõiduplaani järgi, kust ja mis kell rong või buss väljub, kus tuleb ümber istuda ja millal see Tartusse jõuab; leia koos helistajaga parim ühendus ja korda see üle.\nSiis uus olukord: sina helistad ise reisiinfosse ja küsid oma päris sõidu kohta.',
+        'Helistaja kaart on õpetajal: kuhu ta sõidab, millal peab kohal olema ja üks probleem. Küsi ja kuula.',
+        ['Reisiinfo, tere!', 'Rong väljub …-st kell …', 'Tapal tuleb ümber istuda.'], []), 'Pärast kõnet teab helistaja, millega, kust ja mis kell ta sõidab.'), { task: 'S04', main: true, level: 4 }),
+      'Telefonikõne nagu Harno B1 rääkimise 2. osas. Üks-ühele, õpetaja kaart (helistaja Kaire Tamm). Varjatud info: Kaire peab olema laupäeval Tartus enne kella üksteist (õe sünnipäev algab kell 11 kesklinnas); ta lõpetab öövahetuse alles kell 7.45, nii et kella 7.30 rongile ta ei jõua; tal on kaasas jalgratas. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Tere, ma tahan laupäeval Tartusse sõita. Mis kell rong läheb?” 2) „Pool kaheksa? Ei, siis olen ma veel tööl.” 3) „Mul on jalgratas kaasas. Kas sellega saab?” 4) „Ja kas Tapal jõuan ma ikka ümber istuda?” Õnnestunud, kui õpilane ütleb sõiduplaani järgi kohavormidega, kust ja mis kell rong väljub, kus tuleb ümber istuda ja millal see Tartusse jõuab (väljub Balti jaamast 8.05, istub ümber Tapal, saabub Tartusse 10.50), selgitab, miks kella 9.00 buss ei sobi (jõuab alles 11.30), ütleb ratta hinna ja kordab kokkuleppe üle. Teine katse ilma fraasideta (lehel „uus olukord”): õpilane helistab ise reisiinfosse oma päris sõidu kohta. Varjatud info: tema tavaline buss on sel nädalal teetööde tõttu ära jäetud, asendusbuss väljub teisest peatusest 15 minutit varem. Õnnestunud, kui õpilane küsib üle, kust ja mis kell asendusbuss väljub, ja kordab info üle.'), 4, 25, { final: 'negotiate' }),
+      tag(exitCheck(why(purpose(B.gaps('046_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Tartu rong väljub hommikul Balti [jaamast] (jaam).',
+        'Sõidu ajal tuleb meil [Tapal] ümber istuda (Tapa).',
+        'Kiirbuss jõuab [Pärnusse] täpselt kell kaksteist (Pärnu).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas kohavormid on käes.'), ['väljuma — kust? → -st: jaamast.', 'ümber istuma — kus? → -l: Tapal.', 'jõudma — kuhu? → -sse: Pärnusse.'])), {}),
+      purpose(B.selfcheck('046_t_self', ['Ma ütlen, kust sõiduk väljub: väljub Tallinnast, perroonilt.', 'Ma ütlen, kus tuleb ümber istuda ja kuhu see jõuab: Tapal, Tartusse.', 'Ma saan aru lühikestest kõnedest reisiinfosse.', 'Ma annan telefonis sõiduinfot ja leian helistajaga parima ühenduse.'], 'Ühendus leitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('046_t_rec', 'Kodus: päris ühendus.', 'Ava Peatus.ee (https://peatus.ee) ja otsi ühendus oma kodust ühte teise Eesti linna. Salvesta 60–90 sekundit.', [
+        'Kuhu sa tahad sõita ja kust sa väljud?',
+        'Mis kell buss või rong väljub, kas pead kuskil ümber istuma ja millal jõuad kohale?',
+        'Kas see ühendus sobib sulle? Miks?',
+      ], [60, 90]), 'Päris leht: loed eesti keeles päris sõiduplaani ja planeerid oma sõitu.')), { task: 'S15', fluency: true }),
+      homework('046_t_homework', ['1. Kirjuta tunnis leitud ühendus puhtalt üles: kust, mis kell, kus ümber istuda, kuhu ja millal.', '2. Ava Peatus.ee, leia päris ühendus ja salvesta 60–90 sekundit (ülesanne üleval).', '3. Kirjuta vihikusse viis kohanime kolmes vormis: Tartu — Tartust — Tartus — Tartusse.', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('046_t_sit', 'Reede hommik', 'Reede hommikul helistab Kadri haiglast: üks arst on haige ja Kadri peab tööl olema kella kuueni. Kell 17.08 rong ei sobi enam ja Sofia peab piletid ümber vahetama. Samal ajal jättis onu Viktor talle häälsõnumi. Kuula sõnumit, helista rongifirma infotelefonile, seleta onule teekonda ja kirjuta emale.'), V5_CUT),
+      hide(tag(B.listening('046_t_voice', 'Viktori häälsõnum.', 'Kuula onu Viktori sõnumit kaks korda. Märgi üles, mida ta tahab teada ja mida ta juba teab.', [
         'Viktor: Tere, Sofia! Siin onu Viktor. Helistan sulle, sest mul on üks mure.',
         'Viktor: Ma ei saa reedel kell 15.25 Aegviidust sõita. Üks klient toob mulle reedel kella neljaks jalgratta parandusse ja tal on väga kiire.',
         'Viktor: Nii et ma tulen Tartusse alles laupäeva hommikul. Aga ma ei oska internetist sõiduplaani vaadata.',
@@ -274,74 +386,129 @@ export const LESSONS = withShapes({
         'Viktor ei taha, et Helgi tuleks talle [jaama] vastu.',
         'Sofia peab onule helistama pärast kella [kuut|kuute|18|6].',
         'Oskarile toob Viktor uue [jalgrattakella|kella].',
-      ]), { task: 'L07' }),
-      teach(tag(B.phoneCards('046_t_call', 'Helista rongifirma infotelefonile.', 'A helistab rongifirmasse ja vahetab pere piletid, B on infotelefoni töötaja. Seejärel vahetage kaardid.', 'Reede hommikul helistab Sofia rongifirma infotelefonile. Pere piletid on kella 17.08 otserongile, aga Kadri on tööl kella kuueni.', ['Sofia', [
+      ]), { task: 'L07' }), V5_CUT),
+      hide(teach(tag(B.phoneCards('046_t_call', 'Helista rongifirma infotelefonile.', 'A helistab rongifirmasse ja vahetab pere piletid, B on infotelefoni töötaja. Seejärel vahetage kaardid.', 'Reede hommikul helistab Sofia rongifirma infotelefonile. Pere piletid on kella 17.08 otserongile, aga Kadri on tööl kella kuueni.', ['Sofia', [
         'Tervita, ütle oma nimi ja piletite number 5218.', 'Seleta, miks pere kella 17.08 rongiga sõita ei saa.', 'Küsi, kas piletid saab vahetada õhturongi vastu.', 'Küsi, kas õhturongis on viis kohta koos.', 'Küsi, kas vahetamine maksab midagi ja kuidas uued piletid tulevad.',
       ]], ['Infotelefoni töötaja', [
         'Küsi helistaja nime ja piletite numbrit.', 'Õhturong väljub kell 19.40 ja saabub Tartusse kell 21.45.', 'Viis kohta koos on kolmandas vagunis, kohad 11–15.', 'Vahetamine on tasuta kuni väljumiseni; õhturong on 20 % odavam, vahe tuleb kaardile tagasi.', 'Uued piletid tulevad e-postiga kümne minuti jooksul.',
       ]]), { main: true }),
-      'Üks-ühele: õpetaja on infotelefoni töötaja ja annab infot ainult küsimise peale; teises ringis vahetage kaardid. Lõpus kordab õpilane ühe lausega: mis kell, mis vagun, mis kohad.'),
-      teach(tag(B.rolecards('046_t_seats', 'Keegi istub teie kohtadel.', 'A on reisija, B on rongisaatja. Lahendage viisakalt, kus pere istuma peab.',
+      'Üks-ühele: õpetaja on infotelefoni töötaja ja annab infot ainult küsimise peale; teises ringis vahetage kaardid. Lõpus kordab õpilane ühe lausega: mis kell, mis vagun, mis kohad.'), V5_CUT),
+      hide(teach(tag(B.rolecards('046_t_seats', 'Keegi istub teie kohtadel.', 'A on reisija, B on rongisaatja. Lahendage viisakalt, kus pere istuma peab.',
         'Sa sõidad perega õhturongiga Tartusse, kohad 11–15 kolmandas vagunis. Teie kohtadel istuvad kaks noormeest ega taha ära minna. Lapsed on väsinud. Seleta rongisaatjale probleemi ja palu abi.',
         'Sa oled rongisaatja. Rong on täis. Kontrolli pileteid: noormeeste kohad on tegelikult teises vagunis. Paku perele lahendust ja vabanda.',
         ['Vabandage, meil on probleem.', 'Meie kohad on…', 'Kas te saaksite aidata?'], ['Kas ma tohin teie piletit näha?', 'Teil on õigus, need on teie kohad.', 'Ma palun neil üle minna.']), { task: 'S10' }),
-      'Üks-ühele: õpetaja on rongisaatja ja alguses ei usu („Kas te olete kindel, et see on õige vagun?”); õpilane näitab piletit, seletab rahulikult ja palub lahendust.'),
-      teach(tag(B.speaking('046_t_viktor', 'Seleta onule teekonda.', 'Helista Viktorile tagasi ja seleta talle laupäevane teekond. Tee seda kaks korda; teisel korral räägi lühemalt.', [
+      'Üks-ühele: õpetaja on rongisaatja ja alguses ei usu („Kas te olete kindel, et see on õige vagun?”); õpilane näitab piletit, seletab rahulikult ja palub lahendust.'), V5_CUT),
+      hide(teach(tag(B.speaking('046_t_viktor', 'Seleta onule teekonda.', 'Helista Viktorile tagasi ja seleta talle laupäevane teekond. Tee seda kaks korda; teisel korral räägi lühemalt.', [
         'Rong väljub Aegviidust laupäeval kell 8.10 ja jõuab Tapale kell 8.40.',
         'Tapal tuleb oodata 25 minutit; Tartu rong väljub kell 9.05.',
         'Tartusse jõuab rong kell 10.50; jaamast sõidab buss number 4.',
         'Rongis ostetud pilet on kaks eurot kallim.',
         'Suur kast mahub vaguni otsa, mitte riiulile.',
       ], [90, 150], ['Kõigepealt…', 'Siis istud Tapal ümber…', 'Pane kast…']), { task: 'S13', fluency: true }),
-      'Üks-ühele: õpetaja on Viktor, kes kuuleb telefonis halvasti ja küsib üle („Mis kell? Kus ma ümber istun?”). Teisel korral räägib õpilane 90 sekundiga ja ilma märkmeteta.'),
-      B.examWriting('046_t_msg', 'Sõnum emale.', 'Kirjuta Helgile sõnum 50–70 sõnaga: mis muutus ja millal kõik kohale jõuavad. Kirjuta kõigist neljast punktist.', 'teade', {
+      'Üks-ühele: õpetaja on Viktor, kes kuuleb telefonis halvasti ja küsib üle („Mis kell? Kus ma ümber istun?”). Teisel korral räägib õpilane 90 sekundiga ja ilma märkmeteta.'), V5_CUT),
+      hide(B.examWriting('046_t_msg', 'Sõnum emale.', 'Kirjuta Helgile sõnum 50–70 sõnaga: mis muutus ja millal kõik kohale jõuavad. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Piletid on vahetatud. Helgi ootab peret juba kella seitsmeks õhtusöögile.',
         points: ['mis juhtus ja miks pere tuleb hiljem', 'mis kell rong Tartusse jõuab', 'millal ja kuidas jõuab Viktor', 'mida Helgi peaks tegema või mitte tegema'],
         words: [50, 70], opening: 'Tere, ema!',
-      }),
-      B.rubricSpeaking('046_t_rubric', 'Hindamine: kõne infotelefonile (20 punkti).'),
-      B.selfcheck('046_t_self', ['Ma saan aru jaama teadaannetest ja raadiointervjuust.', 'Ma ütlen õigesti, kust rong väljub, kus ma ümber istun ja kuhu jõuan.', 'Ma helistan infotelefonile ja vahetan piletid.', 'Ma seletan teisele inimesele tema teekonna.'], 'Rongiga Tartusse'),
+      }), V5_CUT),
+      hide(B.rubricSpeaking('046_t_rubric', 'Hindamine: kõne infotelefonile (20 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 047 debate: bus, train or plane (comparing and choosing)
   'a2b1-047': {
-    title: 'Töölähetus Riiga',
-    canDo: 'Ma loen reisipakkumisi ja ülemuse kirja, võrdlen võimalusi ja kirjutan ülemusele 80–100-sõnalise vastuse reisiplaani ja kuludega.',
+    title: 'Buss, rong või lennuk?',
+    phases: grammar('Keel: odavam kui · kõige kiirem · eelistan rongi bussile · pigem … kui · kumb? mõlemad'),
+    format: 'debate',
+    topic: 'freetime',
+    canDo: 'Ma räägin, millega reisida: võrdlen kahte-kolme reisiviisi (odavam, kiirem, mugavam) ja põhjendan, mida eelistan.',
+    teacherPage: {
+      goal: 'Ученик понимает текст о трёх способах доехать до Риги и в паре выбирает способ поездки, сравнивая и обосновывая (odavam kui, kõige kiirem, eelistan rongi bussile, pigem … kui).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → текст «Kolm teed Riiga» и 8 вопросов → пункт 4: обсуждение в паре по картинке «Kolm teed Riiga» (100 евро на двоих), в конце одно решение. Пункт 3 — дома в «Harjuta».',
+      hook: '«Millega sa sõidad kõige meelsamini teise linna ja miks?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 46 без записей: откуда отправляется твой автобус или поезд и куда приходит (Tallinnast, Tartusse).',
+      plan: [
+        '0–8: пункт 1 — любимый способ поездки; одно предложение kust / kuhu (повторение урока 46)',
+        '8–25: пункт 2 — слова, текст «Kolm teed Riiga» (сравнение в контексте), 8 вопросов, в паре: «Mis on bussi pluss ja miinus?»',
+        '25–40: пункт 3 — заметить → правило (-m + kui: odavam kui; kõige + -m: kõige kiirem; eelistama + osastav + -le: eelistan rongi bussile; pigem … kui; kumb? mõlemad) → Eksaminurk R4: 8 фраз в тексте форума → 8–10 своих предложений',
+        '40–65: пункт 4 — обсуждение по картинке «Kolm teed Riiga»: пятница 17.00 — воскресенье, 100 евро на двоих; A за автобус, B за поезд или самолёт, в конце одно решение и одна причина, почему другой вариант не подходит; вторая попытка без фраз — своя следующая поездка',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик сравнивает поездку по Эстонии и у себя на родине: что дешевле, быстрее, удобнее',
+        '72–90: запас',
+      ],
+      sources: 'Текст (пункт 2) и картинка «Kolm teed Riiga» — учебные, время и цены примерные; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4 в паре: каждый сначала тайно выбирает свой вариант, потом обсуждение и одно общее решение. Один на один вы — друг, который сначала хочет лететь самолётом.',
+      errors: [
+        '«Buss on odavam kui rongi» вместо «Buss on odavam kui rong» (после kui — тот же падеж, что у первого: buss … rong).',
+        '«Lennuk on kõige kiire» вместо «Lennuk on kõige kiirem» (kõige + сравнительная степень -m).',
+        '«Ma eelistan rongi bussi» вместо «Ma eelistan rongi bussile» (eelistama mida? + millele? → -le).',
+        '«Rong on rohkem mugav» вместо «Rong on mugavam» (у коротких прилагательных — -m).',
+      ],
+      notes: [
+        'Решение — продукт урока: в нём три формы сравнения (odavam kui, kõige …, eelistan … -le) и одна причина, почему другой вариант не подходит.',
+        'Обратная связь, 2 цели: -m + kui и eelistan … -le. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('047_d_review', [['Mis kell jõudis pere õhturong Tartusse ja miks nad hiljem sõitsid?', 'a2b1-046'], ['Mida tellisid Anna ja Markus kohvikus Kaneel lõunaks?', 'a2b1-027'], 'Kuhu sa tahaksid järgmisel aastal reisida?']),
-      B.text('047_d_hook', 'Kaks päeva Riias', 'Liis saadab Anna ja Markuse järgmisel neljapäeval ja reedel Riiga logistikanäitusele. Neil on vaja leida transport ja hotell ning jääda eelarve piiresse. Enne kui nad otsustavad, loeb Anna reisiblogi. Vaata pealkirja ja arva, mida blogija soovitab.'),
-      tag(B.reading('047_d_blog', 'Reisiblogi.', 'Loe pealkirja ja arva, mis on blogija kolm nõuannet. Seejärel loe tekst ja kontrolli.', 'Riia kahe päevaga: kuidas mitte üle maksta', [
-        'Käin Riias igal aastal vähemalt kaks korda, sageli töö pärast. Riia on Tallinnast ainult kolmesaja kilomeetri kaugusel. Reis võib aga maksta väga erinevalt. Siin on minu kolm nõuannet.',
+      station(teach(tag(purpose(half(B.speaking('047_d_warm', 'Millega sa reisid?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Millega sa sõidad kõige meelsamini teise linna ja miks?',
+        'Ütle ilma märkmeteta: kust väljub sinu buss või rong ja kuhu see jõuab?',
+      ], [70, 90])), 'Sinu harjumus on tänase tunni algus: lõpus valid koos paarilisega reisiviisi.'), { task: 'S11', fluency: true }),
+      'Üks-ühele: räägi kõigepealt, millega sina eelmisel korral teise linna sõitsid (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Miks mitte rongiga?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('047_d_vocab', 'Tunni sõnad.', ['odav — дешёвый', 'kallis — дорогой', 'kiire — быстрый', 'mugav — удобный', 'lend — рейс (самолёта)', 'lennujaam — аэропорт', 'sõit — поездка', 'ruum — место, пространство', 'eelistama — предпочитать', 'pigem — скорее'], '2')), { topic: ['eelistama', 'mugav'] }), 2, 17),
+      teach(tag(purpose(B.table('047_d_guess', 'Enne lugemist: arva ära.', 'Kirjuta kõigepealt oma arvamus. Pärast lugemist kirjuta, mida ütleb tekst.', 'Küsimus, Minu arvamus, Tekstis', [
+        'Mis on Riiga sõiduks kõige odavam? |  | ',
+        'Mis on kõige kiirem? |  | ',
+        'Mis on kõige mugavam? |  | ',
+        'Millega sõita, kui raha on vähe? |  | ',
+      ], 'g_read'), 'Kui sa enne arvad, loed tähelepanelikumalt ja näed, kus sinu arvamus ja tekst lähevad lahku.'), { task: 'R13' }),
+      'Õpilane täidab veeru „Minu arvamus” 1–2 minutiga enne lugemist (üks sõna: buss, rong, lennuk, auto), pärast lugemist veeru „Tekstis”. Küsi: „Kus sa eksisid? Mis sind üllatas?” Üks-ühele: arvake mõlemad, siis võrrelge.'),
+      tag(purpose(why(ownText(B.reading('047_d_blog', 'Kolm teed Riiga.', 'Loe teksti. Vasta igale küsimusele 1–4 sõnaga.', 'Nädalavahetus Riias: buss, rong või lennuk?', [
+        'Riia on Tallinnast umbes 300 kilomeetri kaugusel. Sinna saab sõita bussi, rongi, lennuki või autoga. Milline viis on kõige parem?',
         '',
-        'Esiteks: võrdle kogu sõiduaega, mitte ainult lennuaega. Lennuk on õhus vaid viiskümmend minutit. Aga lennujaama tuleb sõita ja seal tuleb oodata. Riia lennujaamast kesklinna on veel pool tundi. Buss sõidab umbes neli ja pool tundi, kuid väljub kesklinnast ja saabub kesklinna. Bussis saab töötada, sest seal on laud ja internet.',
+        'Buss on kõige odavam. Pilet maksab tavaliselt 15–25 eurot ja busse sõidab iga päev üle kümne. Nädalavahetusel on bussid sageli täis, nii et pilet tasub osta varem. Sõit kestab umbes neli ja pool tundi. Bussis on wifi ja pistikupesad, aga jalgadele on vähe ruumi. Pika sõidu järel on paljudel reisijatel selg väsinud.',
         '',
-        'Teiseks: broneeri hotell vanalinna lähedale, mitte päris vanalinna. Vanalinnas on hotellid kallid ja öösel lärmakad. Kümne minuti kaugusel saab sama hea toa poole odavamalt. Kontrolli ka, kas hommikusöök on hinnas.',
+        'Rong on mugavam kui buss: vagunis saab jalutada ja laua taga süüa. Vagunis on ka väike kohvik. Otserong sõidab Tartu kaudu üks kord päevas ja sõit kestab peaaegu kuus tundi. Pilet on veidi kallim kui bussipilet. Rong sobib inimesele, kellel on aega ja kes tahab teel lugeda või töötada.',
         '',
-        'Kolmandaks: söö lõunat seal, kus söövad kohalikud. Keskturul on suured hallid, kus müüakse kala, juustu ja leiba. Seal on ka väikesed söögikohad, kus lõuna maksab alla kümne euro. Restoranid vanalinna peaplatsil on ilusad, aga sama supp maksab seal kaks korda rohkem. Kohalikud sinna lõunale ei lähe.',
+        'Lennuk on kõige kiirem: lend kestab ainult tund aega. Aga lennujaama tuleb jõuda vähemalt tund enne lendu ja Riia lennujaamast linna sõidab buss veel pool tundi. Pilet maksab 50–120 eurot ja suur kohver maksab lisaks.',
         '',
-        'Ja veel üks väike nipp. Kui sõidad bussiga, osta pilet vähemalt nädal ette. Siis on pilet tavaliselt kolmandiku võrra odavam. Viimasel päeval maksab sama pilet peaaegu sama palju kui lennupilet!',
+        'Auto on hea, kui sõidab neli inimest: siis on bensiin kõigile koos odav. Aga Riia vanalinnas on parkimine kallis ja tänavad on kitsad. Kahekesi on auto pigem kallis kui odav.',
         '',
-        'Linnas liikumiseks ei ole autot vaja. Vanalinn on väike ja seal on mõnus jalutada. Kaugemale sõidavad trammid ja bussid, pileti saab osta telefoniga. Kui kohtumine on kesklinnast kaugel, on takso ka üsna odav.',
-        '',
-        'Kui sõidad Riiga töö pärast, mõtle ka sellele, kus sa töötad. Paljudes kohvikutes on hea internet ja vaikne nurk, kus saab rahulikult arvutiga istuda. Hotelli fuajees on tavaliselt lärmakam.',
-        '',
-        'Riia on ilus ja sõbralik linn. Kui sa planeerid targalt, jääb raha üle ka õhtuks, näiteks kontserdiks või heaks õhtusöögiks vanalinnas.',
+        'Kumb siis valida, buss või rong? Pigem rong, kui sul on aega, ja pigem buss, kui raha on vähe.',
       ], [
-        ['Kas sinu arvamus blogija nõuannete kohta oli õige? Mis oli teisiti?', ''],
-        ['Kui kaua on lennuk Tallinnast Riiga õhus?', 'viiskümmend minutit|50 minutit'],
-        ['Miks soovitab blogija võrrelda kogu sõiduaega, mitte ainult lennuaega?', 'lennujaama tuleb sõita ja seal oodata|lennujaamast linna on veel pool tundi'],
-        ['Miks on bussis hea töötada?', 'seal on laud ja internet'],
-        ['Miks ei soovita blogija ööbida päris vanalinnas?', 'hotellid on seal kallid ja öösel lärmakad|seal on kallis ja lärmakas'],
-        ['Mida peab hotelli puhul kindlasti kontrollima?', 'kas hommikusöök on hinnas'],
-        ['Kus saab Riias odavalt lõunat süüa?', 'Keskturul|keskturu söögikohtades'],
-        ['Millal on bussipilet kõige kallim?', 'viimasel päeval|sõidupäeval'],
-      ]), { task: 'R13' }),
-      B.know('047_d_know', [
+        ['Kui kaugel on Riia Tallinnast?', 'umbes 300 kilomeetri kaugusel|300 kilomeetrit|300 km'],
+        ['Mis on kõige odavam reisiviis?', 'buss|bussiga'],
+        ['Kui kaua kestab sõit bussiga?', 'umbes neli ja pool tundi|neli ja pool tundi|4,5 tundi'],
+        ['Miks on rong mugavam kui buss?', 'vagunis saab jalutada|saab jalutada ja laua taga süüa|saab süüa'],
+        ['Kellele sobib rong?', 'inimesele, kellel on aega|kellel on aega'],
+        ['Miks ei ole lennuk tegelikult väga kiire?', 'lennujaama tuleb jõuda tund enne|tuleb jõuda tund enne lendu|lennujaamast linna veel pool tundi'],
+        ['Millal on autoga sõita odav?', 'kui sõidab neli inimest|kui sõidab neli'],
+        ['Mida soovitab autor, kui raha on vähe?', 'bussi|pigem bussi|buss'],
+      ])), [
+        'Esimene lõik: „Riia on Tallinnast umbes 300 kilomeetri kaugusel.”',
+        'Teine lõik: „Buss on kõige odavam.”',
+        'Teine lõik: „Sõit kestab umbes neli ja pool tundi.”',
+        'Kolmas lõik: „vagunis saab jalutada ja laua taga süüa”.',
+        'Kolmas lõik: „Rong sobib inimesele, kellel on aega”.',
+        'Neljas lõik: „lennujaama tuleb jõuda vähemalt tund enne lendu”.',
+        'Viies lõik: „Auto on hea, kui sõidab neli inimest”.',
+        'Viimane lõik: „pigem buss, kui raha on vähe”.',
+      ]), 'Enne kui sa ise valid, loed, mis on iga reisiviisi pluss ja miinus.'), { task: 'R15' }),
+      teach(tag(purpose(B.speaking('047_d_retell', 'Pluss ja miinus. Küsi paarilisel.', 'Küsi paarilisel teksti järgi. B vastab terve lausega. Siis vahetage.', [
+        'Mis on bussi pluss ja mis on miinus?',
+        'Miks valib keegi rongi, kuigi see on aeglasem?',
+        'Kas lennuk on sinu arvates Riiga sõiduks hea mõte? Miks?',
+        'Millega sina Riiga sõidad, kui sul on kaks vaba päeva? Miks?',
+        'Kumb on sinu arvates parem pikal sõidul: buss või rong?',
+      ], [70, 100], '', 'g_read'), 'Ütled teksti järgi, mis on odavam, kiirem ja mugavam.'), { task: 'S13', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kaks. Teisel ringil ütled sa ühe vea („Lennuk on kõige odavam”) ja õpilane parandab sind teksti järgi.'),
+      hide(B.review('047_d_review', [['Mis kell jõudis pere õhturong Tartusse ja miks nad hiljem sõitsid?', 'a2b1-046'], ['Mida tellisid Anna ja Markus kohvikus Kaneel lõunaks?', 'a2b1-027'], 'Kuhu sa tahaksid järgmisel aastal reisida?']), V5_DRILL),
+      hide(B.text('047_d_hook', 'Kaks päeva Riias', 'Liis saadab Anna ja Markuse järgmisel neljapäeval ja reedel Riiga logistikanäitusele. Neil on vaja leida transport ja hotell ning jääda eelarve piiresse. Enne kui nad otsustavad, loeb Anna reisiblogi. Vaata pealkirja ja arva, mida blogija soovitab.'), V5_CUT),
+      hide(B.know('047_d_know', [
         'Alates 12. jaanuarist 2026 sõidab iga päev otserong Tallinnast Tartu kaudu Riiga. Toonase sõiduplaani järgi väljub rong Tallinnast kell 14.50 ja jõuab Riiga kell 20.46. Tartust Riiga kestab sõit 3 tundi ja 41 minutit.',
         'Riia vanalinn on 1997. aastast UNESCO maailmapärandi nimekirjas. Selle osa on ka Riia keskturg. Turu viis suurt paviljoni ehitati vanade Saksa õhulaevade angaaride raamidest.',
-      ], 'Elron, „Tallinn – Tartu – Riia rongiliin alustab liinireise” (12.01.2026); Riia keskturu koduleht, „History”', 'Kas teadsid? Rongiga Riiga'),
-      tag(B.vocab('047_d_vocab', 'Tunni sõnad.', ['töölähetus — командировка', 'näitus — выставка', 'eelarve — бюджет', 'lend — рейс / полёт', 'lennujaam — аэропорт', 'broneerima — бронировать', 'hotell — гостиница', 'hommikusöök — завтрак', 'soodne — выгодный', 'mugav — удобный', 'võrdlema — сравнивать', 'kulu — расход']), { topic: ['töölähetus'] }),
-      B.adsmatch('047_d_ads', 'Mis sobib Annale ja Markusele?', 'Loe Riia reisi kuulutusi ja olukordi. Kirjuta olukorra juurde sobiva kuulutuse täht; sama kuulutus võib sobida mitmele.', [
+      ], 'Elron, „Tallinn – Tartu – Riia rongiliin alustab liinireise” (12.01.2026); Riia keskturu koduleht, „History”', 'Kas teadsid? Rongiga Riiga'), V5_CUT),
+      hide(B.adsmatch('047_d_ads', 'Mis sobib Annale ja Markusele?', 'Loe Riia reisi kuulutusi ja olukordi. Kirjuta olukorra juurde sobiva kuulutuse täht; sama kuulutus võib sobida mitmele.', [
         ['Balti Ekspress', 'Bussid Tallinn–Riia kuus korda päevas, esimene kell 7.00 ja viimane kell 23.00. Sõit kestab 4 tundi 30 minutit. Igal istmel on laud, pistikupesa ja tasuta internet. Pilet 25 €, nädal ette ostes 17 €. Suur kohver on hinnas.'],
         ['Lennufirma Põhjatuul', 'Tallinn–Riia lend hommikul kell 7.05 ja õhtul kell 18.40. Lennuaeg 50 minutit. Pilet alates 89 €, käsipagas kuni 8 kg on hinnas. Suur kohver maksab 30 € juurde.'],
         ['Hotell Vanalinna Värav', 'Hotell otse vanalinnas, raekoja platsi ääres. Kahene tuba 140 € öö. Hommikusöök 15 € inimese kohta. Hotelli restoran on avatud öösel kella kaheni, nädalavahetusel mängib seal ansambel.'],
@@ -359,15 +526,8 @@ export const LESSONS = withShapes({
         ['Markus tahab ööbida kõige ilusama platsi ääres ja hilja õhtust süüa.', 'C'],
         ['Anna võtab kaasa suure kohvri ja tahab teada, kas see maksab lennukis lisaks.', 'B'],
         ['Markus tahab pühapäeval turult kala osta ja küsib, mis kell turg kinni läheb.', 'F'],
-      ]),
-      B.notice('047_d_notice', 'Märka: kuidas valida ja põhjendada?', [
-        '**Kumb** on parem, buss **või** lennuk? — **Mõlemad** on head. · **Kumbki** ei ole päris odav.',
-        'Ma **eelistan** bussi (mida?) lennukile (millele?). · Ma sõidan **pigem** bussiga **kui** lennukiga.',
-        'Võrdlen: lennuk on **kiirem**, aga buss on **palju odavam**. · Lilla Uks on **poole odavam**.',
-        'Põhjendan: …, **sest** bussis saab töötada · …, **seepärast** valime bussi · **Kõige tähtsam on**, et…',
-        'Pakun: **Mis oleks, kui** sõidaksime bussiga? · **Parem oleks** ööbida vanalinna lähedal.',
-      ]),
-      B.choice('047_d_pick', 'Kumb sobib?', 'Anna ja Markus arutavad. Vali vorm, mis sobib lausesse.', [
+      ]), V5_CUT),
+      hide(B.choice('047_d_pick', 'Kumb sobib?', 'Anna ja Markus arutavad. Vali vorm, mis sobib lausesse.', [
         ['Kumb on Riiga sõiduks parem, … või lennuk?', 'buss', 'bussi', 'bussile'],
         ['Ma eelistan bussi …, sest bussis saab töötada.', 'lennukile', 'lennuk', 'lennukit'],
         ['Lennuk on küll kiirem, aga buss on … odavam.', 'palju', 'rohkem', 'kõige'],
@@ -378,17 +538,41 @@ export const LESSONS = withShapes({
         ['Kõige tähtsam on, … hotell oleks vaikne.', 'et', 'kui', 'sest'],
         ['Hotell on otse vanalinnas, … on see ka kõige kallim.', 'seepärast', 'sest', 'kuigi'],
         ['Parem … ööbida vanalinna lähedal kui päris vanalinnas.', 'oleks', 'olema', 'olnud'],
-      ], 'full', 'g_notice'),
-      B.categorize('047_d_sort', 'Reisi sõnad.', 'Kuhu sõna kuulub: sõit, ööbimine või raha? Pane iga sõna õigesse veergu.', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.categorize('047_d_sort', 'Reisi sõnad.', 'Kuhu sõna kuulub: sõit, ööbimine või raha? Pane iga sõna õigesse veergu.', [
         ['sõit', ['lend', 'istekoht', 'käsipagas', 'väljumine', 'lennujaam', 'bussijaam']],
         ['ööbimine', ['kahene tuba', 'külalistemaja', 'hommikusöök', 'vastuvõtt', 'võti', 'voodi']],
         ['raha', ['eelarve', 'soodustus', 'arve', 'kulu', 'hind', 'sularaha']],
-      ], 'full', 'g_vocab'),
-      teach(tag(B.speaking('047_d_opinion', 'Buss, rong või lennuk?', 'Arutage paarilisega, millega on kõige parem töölähetusele sõita. Põhjenda iga vastust ja too näide oma elust.', ['Kumb on sinu meelest töölähetusel parem, buss või lennuk? Miks?', 'Mida saab bussis või rongis teha, mida lennukis mitte?', 'Millal on lennuk kindlasti parem valik?', 'Kas hind või aeg on sinu jaoks tähtsam? Miks?', 'Kas firmad peaksid keskkonna pärast eelistama rongi lennukile? Mis sa arvad?'], [70, 120], ['Ma eelistan…, sest…', 'Teisest küljest…', 'Mõlemad…, aga…']), { task: 'S11', fluency: true }),
-        'Üks-ühele: õpetaja on vestluskaaslane, kes eelistab alguses lennukit (kiirus); õpilane põhjendab oma valikut numbrite ja näidetega ning küsib õpetaja arvamust. Lõpus ütleb õpilane ühe lausega, mida ta valiks ja miks.'),
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.speaking('047_d_opinion', 'Buss, rong või lennuk?', 'Arutage paarilisega, millega on kõige parem töölähetusele sõita. Põhjenda iga vastust ja too näide oma elust.', ['Kumb on sinu meelest töölähetusel parem, buss või lennuk? Miks?', 'Mida saab bussis või rongis teha, mida lennukis mitte?', 'Millal on lennuk kindlasti parem valik?', 'Kas hind või aeg on sinu jaoks tähtsam? Miks?', 'Kas firmad peaksid keskkonna pärast eelistama rongi lennukile? Mis sa arvad?'], [70, 120], ['Ma eelistan…, sest…', 'Teisest küljest…', 'Mõlemad…, aga…']), { task: 'S11', fluency: true }),
+        'Üks-ühele: õpetaja on vestluskaaslane, kes eelistab alguses lennukit (kiirus); õpilane põhjendab oma valikut numbrite ja näidetega ning küsib õpetaja arvamust. Lõpus ütleb õpilane ühe lausega, mida ta valiks ja miks.'), V5_CUT),
     ],
     practice: [
-      tag(B.listening('047_p_hotel', 'Anna helistab külalistemajja.', 'Kuula Anna kõnet külalistemajja kaks korda. Kirjuta lünka number, kellaaeg või hind.', [
+      station(B.notice('047_d_notice', 'Märka: võrdlen ja valin', [
+        'Tekstist: buss on **kõige odavam** · rong on **mugavam kui** buss · pilet on **veidi kallim kui** bussipilet · lennuk on **kõige kiirem** · **pigem** rong, **kui** sul on aega',
+        '**-m** + **kui**: odav → **odavam kui**, kiire → **kiirem kui**, hea → **parem kui** · buss on odavam **kui rong** (sama vorm)',
+        '**kõige** + **-m**: **kõige odavam**, **kõige kiirem**, **kõige parem**',
+        '**eelistama** + osastav + **-le**: eelistan **rongi bussile** · **pigem** A **kui** B · **Kumb?** (kahest) → **mõlemad**',
+      ], 'full'), 3, 15),
+      teach(tag(purpose(why(B.bankText('047_p_forum', 'Eksaminurk: foorum „Kuidas sõita Pärnusse?” (Harno B1 lugemine 4)', 'Loe foorumi vastust. Kirjuta igasse lünka sobiv fraas; kaks fraasi jäävad üle.', 'Kuidas sõita Pärnusse?', [
+        'Tere, Kaja! Olen sõitnud Pärnusse nii bussi kui ka autoga. [[Mõlemad on head]], aga plussid on erinevad.',
+        '',
+        'Buss on [[palju odavam kui auto]]: pilet maksab umbes kümme eurot. Autoga on sõit [[veidi kiirem kui bussiga]]. Kahekesi soovitan [[pigem bussi kui autot]]. Ise [[eelistan bussi autole]], sest ma ei pea juhtima.',
+        '',
+        'Suvel on [[kõige mugavam]] õhtune buss, siis on bussis vähem inimesi. Aga [[kumb on parem]], kas bussijaam või kesklinna peatus? Bussijaam: sealt on rannani kümme minutit. Ja Pärnu rand on suvel [[kõige ilusam]] koht! Toomas',
+      ], ['eelistan bussi autoga', 'kõige odavam kui'], 'g_notice'), [
+        'Kaks võimalust, mõlemad sobivad → mõlemad on head.',
+        'Võrdlus: -m + kui → palju odavam kui auto.',
+        'Võrdlus: -m + kui → veidi kiirem kui bussiga.',
+        'pigem A kui B → pigem bussi kui autot.',
+        'eelistama + osastav + -le → eelistan bussi autole.',
+        'kõige + -m → kõige mugavam.',
+        'Kahest peatusest valik → kumb on parem.',
+        'kõige + -m → kõige ilusam.',
+      ]), 'Need vormid on sinu arutelu tööriistad.'), { task: 'R05', harno: 'R4' }),
+      'Eksaminurk (Harno B1 lugemine 4, fraasid tekstis, ~8 min). Strateegia: 1) loe kõigepealt kogu tekst; 2) iga lünga juures küsi: kas siin on võrdlus (kui), kõige parem (kõige) või valik (eelistan, pigem)?; 3) kontrolli, et üle jäänud kaks fraasi on tõesti valed (eelistan … -ga, kõige … kui). Üks-ühele: esimese lünga lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise; pärast põhjendab õpilane kolme valikut.'),
+      tag(purpose(rows(B.writing('047_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset: võrdle kahte reisiviisi, mida sa tunned — mis on odavam, kiirem, mugavam, mida eelistad ja miks.', [8, 10]), 3), 'Oma laused on sinu arutelu materjal.'), { task: 'W02' }),
+      hide(tag(B.listening('047_p_hotel', 'Anna helistab külalistemajja.', 'Kuula Anna kõnet külalistemajja kaks korda. Kirjuta lünka number, kellaaeg või hind.', [
         'Liene: Külalistemaja Lilla Uks, tere! Mina olen Liene.',
         'Anna: Tere! Ma helistan Tallinnast. Kas teil on järgmisel neljapäeval kaks ühest tuba vaba?',
         'Liene: Üks hetk, ma vaatan. Jah, neljapäevast reedeni on vabad toad number 12 ja 14.',
@@ -417,16 +601,16 @@ export const LESSONS = withShapes({
         'Parkimine maja taga maksab ööpäevas [10|kümme] eurot.',
         'Tasuta saab broneeringu tühistada kuni [24|kakskümmend neli] tundi enne.',
         'Anna broneeringu number on [307].',
-      ]), { task: 'L04' }),
-      B.match('047_p_pairs', 'Mis käib kokku?', 'Ühenda lause algus ja lõpp nii, et tekiks reisija tavaline lause.', [
+      ]), { task: 'L04' }), V5_CUT),
+      hide(B.match('047_p_pairs', 'Mis käib kokku?', 'Ühenda lause algus ja lõpp nii, et tekiks reisija tavaline lause.', [
         ['Ma tahaksin broneerida', 'kaks ühest tuba.'], ['Kas hommikusöök on', 'toa hinnas?'], ['Meie buss jõuab', 'Riiga pool kolm.'], ['Kas kohvri võib jätta', 'vastuvõttu?'], ['Palun saatke kinnitus', 'minu e-postile.'],
         ['Kui palju maksab', 'parkimine ööpäevas?'], ['Kas tühistamine on', 'tasuta?'], ['Me lahkume toast', 'reedel enne lõunat.'], ['Kas arve saab teha', 'firma nimele?'], ['Kuidas jõuab bussijaamast', 'teie juurde?'],
-      ], 'full', 'g_vocab'),
-      B.wordorder('047_p_ask', 'Viisakad küsimused.', 'Pane sõnad õigesse järjekorda nii, et tekiks viisakas küsimus või palve hotellile.', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(B.wordorder('047_p_ask', 'Viisakad küsimused.', 'Pane sõnad õigesse järjekorda nii, et tekiks viisakas küsimus või palve hotellile.', [
         'Kas teil on ka vaikne tuba hoovi poole?', 'Mis kell algab nädalavahetusel hommikusöök?', 'Kas me võiksime toast lahkuda kell üks?', 'Palun kirjutage arvele meie firma aadress.', 'Kas toas on töötamiseks laud ja lamp?',
         'Kas te saaksite meile takso tellida?', 'Kus asub kõige lähem trammipeatus?', 'Kas vastuvõtt on avatud ka öösel?', 'Kas me saaksime hommikusöögi kaasa võtta?', 'Palun äratage mind homme kell kuus.',
-      ], 'full'),
-      tag(B.reading('047_p_fair', 'Näituse info.', 'Loe näituse infot osalejatele. Kirjuta iga väite järele: õige, vale või ei selgu.', 'Logistikanäitus Riias: info osalejatele', [
+      ], 'full'), V5_DRILL),
+      hide(tag(B.reading('047_p_fair', 'Näituse info.', 'Loe näituse infot osalejatele. Kirjuta iga väite järele: õige, vale või ei selgu.', 'Logistikanäitus Riias: info osalejatele', [
         'Näitus toimub Riia messikeskuses neljapäeval ja reedel kell 9–17. Messikeskus asub kesklinnast neli kilomeetrit põhja pool. Sinna sõidab tramm number 7 ja sõit kestab viisteist minutit.',
         '',
         'Osaleja kaart tuleb internetis registreerida hiljemalt esmaspäeval. Kaardi saab kätte peaukse juures infoletist. Ilma kaardita näitusele ei lasta.',
@@ -449,27 +633,44 @@ export const LESSONS = withShapes({
         ['Kohv on osalejatele terve päeva tasuta.', 'õige'],
         ['Vastuvõtule saavad minna kõik osalejad ilma registreerimata.', 'vale'],
         ['Miks peavad Anna ja Markus end juba esmaspäeval registreerima?', 'muidu ei saa nad kaarti ja näitusele ei lasta|ilma kaardita ei lasta näitusele'],
-      ]), { task: 'R06' }),
-      tag(B.table('047_p_form', 'Broneerimisvorm.', 'Täida külalistemaja broneerimisvorm Anna ja Markuse andmetega. Vaata Anna kõnet.', 'Väli, Andmed', [
+      ]), { task: 'R06' }), V5_CUT),
+      hide(tag(B.table('047_p_form', 'Broneerimisvorm.', 'Täida külalistemaja broneerimisvorm Anna ja Markuse andmetega. Vaata Anna kõnet.', 'Väli, Andmed', [
         'Saabumise päev | [neljapäev]', 'Lahkumise päev | [reede]', 'Tubade arv | [2]', 'Toa tüüp | [ühene]', 'Ööde arv | [1]',
         'Külaliste nimed | Anna ja [Markus]', 'Saabumise kellaaeg | [14.30]', 'Hommikusöök | [hinnas]', 'Broneeringu number | [307]', 'Firma | Tuul [Logistika]',
-      ], 'g_notice'), { task: 'W07' }),
-      teach(tag(B.speaking('047_p_meet', 'Näitusel: uus tuttav.', 'Näitusel tuleb sinu juurde Läti logistik. Tutvusta end, räägi oma tööst ja küsi temalt vähemalt kaks küsimust.', ['Kes sa oled ja kus sa töötad?', 'Mille eest sa tööl vastutad?', 'Miks sa näitusele tulid?', 'Kas sa oled Riias või Tallinnas varem käinud?', 'Küsi temalt kaks küsimust tema firma kohta.'], [70, 120], ['Mina olen…, töötan…', 'Ma vastutan…', 'Kas teie firma…?']), { task: 'S01' }),
-        'Üks-ühele: õpetaja on Läti logistik, kes räägib natuke eesti keelt ja küsib vahel üle („Vabandust, mis firma?”); siis vahetage rollid.'),
-      B.know('047_p_know', [
+      ], 'g_notice'), { task: 'W07' }), V5_DRILL),
+      hide(teach(tag(B.speaking('047_p_meet', 'Näitusel: uus tuttav.', 'Näitusel tuleb sinu juurde Läti logistik. Tutvusta end, räägi oma tööst ja küsi temalt vähemalt kaks küsimust.', ['Kes sa oled ja kus sa töötad?', 'Mille eest sa tööl vastutad?', 'Miks sa näitusele tulid?', 'Kas sa oled Riias või Tallinnas varem käinud?', 'Küsi temalt kaks küsimust tema firma kohta.'], [70, 120], ['Mina olen…, töötan…', 'Ma vastutan…', 'Kas teie firma…?']), { task: 'S01' }),
+        'Üks-ühele: õpetaja on Läti logistik, kes räägib natuke eesti keelt ja küsib vahel üle („Vabandust, mis firma?”); siis vahetage rollid.'), V5_CUT),
+      hide(B.know('047_p_know', [
         'Kui sul on Eestis ravikindlustus, saad tellida tasuta Euroopa ravikindlustuskaardi. Seda saab teha terviseportaalis või eesti.ee kaudu.',
         'Kaart aitab, kui jääd teises Euroopa Liidu riigis ootamatult haigeks või saad õnnetuses viga. Siis saad vajalikku arstiabi samadel tingimustel nagu selle riigi elanikud. Kaart kehtib ka Norras, Islandil, Liechtensteinis, Šveitsis ja Suurbritannias.',
         'Visiiditasu ja muud omaosalustasud maksab patsient ise selle riigi hindade järgi. Kaart ei kata eraarsti kulusid ega sõitu tagasi koju.',
-      ], 'Tervisekassa, „Euroopa ravikindlustuskaart”', 'Kas teadsid? Euroopa ravikindlustuskaart'),
-      tag(B.examWriting('047_p_formal', 'Markuse sõnum ametlikuks.', 'Markus kirjutas hotellile nagu sõbrale. Kirjuta sõnum ümber viisakas teie-vormis; kõik faktid jäävad alles.', 'teade', {
+      ], 'Tervisekassa, „Euroopa ravikindlustuskaart”', 'Kas teadsid? Euroopa ravikindlustuskaart'), V5_CUT),
+      hide(tag(B.examWriting('047_p_formal', 'Markuse sõnum ametlikuks.', 'Markus kirjutas hotellile nagu sõbrale. Kirjuta sõnum ümber viisakas teie-vormis; kõik faktid jäävad alles.', 'teade', {
         situation: 'Markuse mustand: „Tšau! Meil on neljapäeval vaja kaht tuba, ühte mulle ja ühte Annale. Jõuame kuskil poole kolme paiku. Kas kohvreid saab hommikul teie juurde jätta? Ja arvet tahan firma nimele, muidu Liis pahandab. Vasta kiirelt!”',
         points: ['kes kirjutab ja mis firmast', 'mida ja millal broneerite', 'küsimus kohvrite kohta', 'palve arve kohta ja viisakas lõpp'],
         words: [60, 80], opening: 'Lugupeetud külalistemaja Lilla Uks!', closing: 'Lugupidamisega, Markus Tuul Logistikast',
-      }), { task: 'W12' }),
+      }), { task: 'W12' }), V5_CUT),
     ],
     transfer: [
-      B.text('047_t_sit', 'Liisi kiri', 'Teisipäeva õhtul saatis Liis Annale ja Markusele kirja. Firma maksab sõidu, ühe öö ja toidu, aga eelarve on piiratud. Loe Liisi kirja, leppige Markusega plaan kokku, kaitse seda Liisi ees ja kirjuta Liisile vastus.'),
-      teach(tag(B.bankText('047_t_mail', 'Eksaminurk: Liisi kiri (Harno B1 lugemine 4)', 'Liisi kirjast on välja võetud lauseosad. Vali pangast igasse lünka sobiv osa; kaks osa jääb üle.', 'Töölähetus Riiga', [
+      station(teach(tag(purpose(B.ideaCard('047_t_agree', 'Arutelu: kuidas sõita Riiga?', 'Vaata pilti üleval. A eelistab bussi, B rongi või lennukit. Põhjendage oma valikut ja leppige kokku.',
+        'Te sõidate sõbraga reedel pärast tööd (kell 17) Riiga ja pühapäeva õhtul tagasi. Kahe peale on sõiduks 100 eurot. Üks teist tahab teel töötada, teine tahab Riias võimalikult kaua olla.\nTeine kord: räägi oma päris järgmisest reisist ja kahest võimalusest, kuidas sinna sõita.',
+        ['buss: odav, 4,5 tundi', 'rong: mugav, saab töötada, 6 tundi', 'lennuk: kiire, aga kallis', 'auto: kahekesi kallis, parkimine kallis'],
+        'Millega te sõidate ja miks? Ütle ka üks põhjus, miks teine võimalus ei sobi.', [120, 240]), 'Pärast arutelu on teil üks otsus ja sa oskad oma valikut põhjendada.'), { task: 'S03', main: true, level: 4 }),
+      'Kõigepealt vaatab kumbki pilti (1 min) ja valib salaja oma eelistuse. A räägib bussi eest, B rongi või lennuki eest; mõlemad toovad kaks põhjust ja küsivad teiselt „Kumb on sinu arvates mugavam?”. Lõpus üks ühine otsus ja üks lause, miks teine võimalus ei sobi. Õnnestunud, kui igaüks kasutab vähemalt kolme võrdlusvormi (odavam kui, kõige kiirem, eelistan … -le, pigem … kui) ja otsus sobib eelarvesse (100 eurot kahele). Teine katse ilma fraasideta: kumbki räägib oma päris järgmisest reisist ja kahest võimalusest; paariline ütleb, kumma tema valiks ja miks. Üks-ühele: sina oled sõber, kes alguses tahab lennata („Lennuk on ju kõige kiirem!”); õpilane põhjendab eelarvega ja te jõuate kokkuleppele.'), 4, 25, { final: 'decide' }),
+      tag(newPage(exitCheck(why(purpose(B.gaps('047_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Riiga on buss palju [odavam] kui lennuk (odav).',
+        'Lennuk on kõigist reisiviisidest kõige [kiirem] (kiire).',
+        'Pikal sõidul eelistan ma alati rongi [bussile] (buss).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas võrdlus ja valik on käes.'), ['-m + kui: odavam kui.', 'kõige + -m: kõige kiirem.', 'eelistama mida millele → -le: bussile.']))), {}),
+      purpose(B.selfcheck('047_t_self', ['Ma võrdlen: odavam kui, kiirem kui, kõige mugavam.', 'Ma ütlen, mida eelistan: eelistan rongi bussile, pigem … kui …', 'Ma saan aru tekstist, mis võrdleb reisiviise.', 'Ma põhjendan oma valikut ja jõuan otsuseni.'], 'Otsus tehtud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('047_t_rec', 'Kodus: minu valik.', 'Salvesta 60–90 sekundit.', [
+        'Kuhu sa tahaksid järgmisena sõita?',
+        'Millega sinna saab ja mis on iga võimaluse pluss ja miinus?',
+        'Mida sa eelistad ja miks?',
+      ], [60, 90]), 'Õpetaja ütleb, kas võrdlus ja valik tulid õige vormiga.')), { task: 'S15', fluency: true }),
+      homework('047_t_homework', ['1. Kirjuta üles teie tunni otsus ja kaks põhjust, miks just see reisiviis.', '2. Salvesta oma valik (ülesanne üleval).', '3. Kirjuta vihikusse viis omadussõna kolmes vormis: odav — odavam — kõige odavam.', '4. Vaata Peatus.ee lehelt, mis kell ja kui palju maksab buss Riiga, ja võrdle seda tunni pildiga.', `5. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('047_t_sit', 'Liisi kiri', 'Teisipäeva õhtul saatis Liis Annale ja Markusele kirja. Firma maksab sõidu, ühe öö ja toidu, aga eelarve on piiratud. Loe Liisi kirja, leppige Markusega plaan kokku, kaitse seda Liisi ees ja kirjuta Liisile vastus.'), V5_CUT),
+      hide(teach(tag(B.bankText('047_t_mail', 'Eksaminurk: Liisi kiri (Harno B1 lugemine 4)', 'Liisi kirjast on välja võetud lauseosad. Vali pangast igasse lünka sobiv osa; kaks osa jääb üle.', 'Töölähetus Riiga', [
         'Tere, Anna ja Markus! Nagu me koosolekul rääkisime, [[sõidate järgmisel neljapäeval Riiga]] ja tulete tagasi reede õhtul.',
         '',
         'Näitus algab neljapäeval kell üheksa, [[aga teie kohtumine kliendiga on alles kell kolm]]. Nii et hommikul ei pea väga vara sõitma.',
@@ -484,29 +685,99 @@ export const LESSONS = withShapes({
         '',
         'Saatke mulle oma plaan ja kulud reede lõunaks, [[et ma jõuaksin selle kinnitada]]. Kui teil on küsimusi, [[helistage mulle julgelt ka õhtul]]. Liis',
       ], ['nii et kontorisse ei pea te tulema', 'Kuna näitus on tasuta']), { harno: 'R4' }),
-      'Eksaminurk (Harno B1 lugemine 4, ~9 min), formaati tutvustatakse siin. Strateegia: 1) loe kõigepealt terve kiri, et mõte oleks selge; 2) vaata lünga ümber: kas sinna sobib kõrvallause (kui…, et…, sest…) või lause algus; 3) kontrolli ka vormi: koma, suur algustäht, tegusõna koht; 4) kaks osa jääb üle — ära kasuta iga osa. Üks-ühele: õpetaja lahendab esimese lünga valjusti mõeldes, ülejäänud õpilane ise 9 minutiga.'),
-      teach(B.ideaCard('047_t_agree', 'Leppige plaan kokku.', 'Arutage Markusega võimalusi ja leppige kokku transport, ööbimine ja vaba õhtu. Kõik peab mahtuma 400 eurosse.', 'Anna ja Markus peavad neljapäeval kell kolm olema kliendi juures ja reede õhtul tagasi Tallinnas.', ['buss Balti Ekspress, 17 € (nädal ette)', 'lend Põhjatuul, 89 €', 'hotell Vanalinna Värav, 140 €', 'külalistemaja Lilla Uks, 55 € tuba', 'giidiga jalutuskäik, 15 €', 'kontsert, 25 €'], 'Millega sõidate, kus ööbite ja mida teete neljapäeva õhtul? Kui palju see kokku maksab?'),
-        'Üks-ühele: õpetaja on Markus, kes tahab alguses lennata ja ööbida vanalinnas; õpilane arvutab kulud ja veenab teda numbritega. Lõpus on plaan ja summa ühe lausega kirjas.'),
-      teach(tag(B.speaking('047_t_defend', 'Kaitse plaani.', 'Liis küsib teie plaani kohta. Vasta talle kaks korda: kõigepealt pikemalt, siis koosolekul lühidalt.', ['Millega te sõidate ja miks just sellega?', 'Kus te ööbite ja miks seal?', 'Kui palju kõik kokku maksab?', 'Kas te jõuate kliendi juurde õigeks ajaks?', 'Mida te teete, kui buss hilineb?'], [90, 150], ['Me otsustasime…, sest…', 'Kokku maksab…', 'Kui buss hilineb, siis…']), { fluency: true }),
-        'Üks-ühele: õpetaja on Liis ja küsib iga vastuse järel „Aga miks mitte…?”. Teisel korral on aega 90 sekundit ja vastus peab olema lühem, aga mitte kehvem.'),
-      tag(B.examWriting('047_t_reply', 'Vastus Liisile.', 'Kirjuta Liisile 80–100 sõnaga, mis on teie plaan. Kirjuta kõigist viiest punktist ja too kaks põhjust.', 'vastus', {
+      'Eksaminurk (Harno B1 lugemine 4, ~9 min), formaati tutvustatakse siin. Strateegia: 1) loe kõigepealt terve kiri, et mõte oleks selge; 2) vaata lünga ümber: kas sinna sobib kõrvallause (kui…, et…, sest…) või lause algus; 3) kontrolli ka vormi: koma, suur algustäht, tegusõna koht; 4) kaks osa jääb üle — ära kasuta iga osa. Üks-ühele: õpetaja lahendab esimese lünga valjusti mõeldes, ülejäänud õpilane ise 9 minutiga.'), V5_CUT),
+      hide(teach(tag(B.speaking('047_t_defend', 'Kaitse plaani.', 'Liis küsib teie plaani kohta. Vasta talle kaks korda: kõigepealt pikemalt, siis koosolekul lühidalt.', ['Millega te sõidate ja miks just sellega?', 'Kus te ööbite ja miks seal?', 'Kui palju kõik kokku maksab?', 'Kas te jõuate kliendi juurde õigeks ajaks?', 'Mida te teete, kui buss hilineb?'], [90, 150], ['Me otsustasime…, sest…', 'Kokku maksab…', 'Kui buss hilineb, siis…']), { fluency: true }),
+        'Üks-ühele: õpetaja on Liis ja küsib iga vastuse järel „Aga miks mitte…?”. Teisel korral on aega 90 sekundit ja vastus peab olema lühem, aga mitte kehvem.'), V5_CUT),
+      hide(tag(B.examWriting('047_t_reply', 'Vastus Liisile.', 'Kirjuta Liisile 80–100 sõnaga, mis on teie plaan. Kirjuta kõigist viiest punktist ja too kaks põhjust.', 'vastus', {
         situation: 'Liis ootab teie plaani ja kulusid reede lõunaks.',
         points: ['millega ja mis kell sõidate', 'kus ööbite ja miks', 'kui palju kõik kokku maksab', 'mida teete neljapäeva õhtul', 'kaks põhjust, miks see plaan on kõige parem'],
         words: [80, 100], opening: 'Tere, Liis!', closing: 'Parimate soovidega, Anna ja Markus',
-      }), { level: 4, main: true }),
-      B.rubricW2('047_t_rubric', 'Hindamine: vastus Liisile (12 punkti).'),
-      B.selfcheck('047_t_self', ['Ma leian reisiblogist ja kuulutustest hinnad ja ajad.', 'Ma võrdlen kaht võimalust ja põhjendan oma valikut.', 'Ma täidan broneerimisvormi ja kirjutan hotellile viisakalt.', 'Ma kirjutan ülemusele vastuse plaani ja kuludega.'], 'Töölähetus Riiga'),
+      }), { level: 4, main: true }), V5_CUT),
+      hide(B.rubricW2('047_t_rubric', 'Hindamine: vastus Liisile (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 048 game: a trip that went differently (the pluperfect)
   'a2b1-048': {
-    title: 'Reis, mis läks teisiti: enneminevik',
-    canDo: 'Ma räägin reisiloo õiges järjekorras, ütlen enneminevikus, mis oli enne juhtunud (laev oli juba lahkunud), ja lepin žüriis kokku parima loo.',
+    title: 'Reis, mis läks teisiti',
+    phases: grammar('Keel: enneminevik — oli lahkunud · olin unustanud · polnud broneerinud'),
+    format: 'game',
+    topic: 'nature',
+    canDo: 'Ma räägin reisist, mis läks teisiti: mis juhtus ja mis oli enne juhtunud (praam oli juba lahkunud, olin telgi unustanud).',
+    teacherPage: {
+      goal: 'Ученик понимает радиорассказ и сам рассказывает о поездке, которая пошла не по плану: что случилось раньше — enneminevik (oli lahkunud, olin unustanud).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → радиопередача «Teel juhtunud» (2 раза, 8 утверждений верно / неверно) → пункт 4: игра «Parim reisilugu» по картинке из шести кадров, второй раунд — своя история. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kas sinuga on reisil midagi valesti läinud?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 47 без записей: что ты предпочитаешь — поезд или автобус — и почему (eelistan … -le).',
+      plan: [
+        '0–8: пункт 1 — что пошло не так в поездке; одно предложение eelistan … -le (повторение урока 47)',
+        '8–25: пункт 2 — слова, радиопередача «Teel juhtunud» (2 раза; enneminevik в контексте), 8 утверждений верно / неверно (Harno B1 kuulamine 4), в паре: «Mis oli juhtunud, kui pere sadamasse jõudis?»',
+        '25–40: пункт 3 — заметить → правило (olin / oli / olime + -nud; polnud + -nud; kui + простое прошедшее, oli + -nud — раньше) → 8 форм → 8–10 своих предложений',
+        '40–65: пункт 4 — игра «Parim reisilugu»: первый раунд — история по картинке «Pildilugu: reis Riiga» 90–120 с с enneminevik; второй раунд без фраз — своя поездка, которая пошла иначе; слушатели задают два вопроса и выбирают самую неожиданную историю',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает о поездке, которую он помнит из детства, и что было до неё',
+        '72–90: запас',
+      ],
+      sources: 'Передача (пункт 2) и картинка «Pildilugu: reis Riiga» — учебные, слушатель Тийт и его поездка выдуманы.',
+      groups: 'Пункт 4 в группе по 3–4 или в паре: каждый рассказывает, остальные задают два вопроса и голосуют. Один на один: сначала вы рассказываете историю по картинке с двумя ошибками во времени, ученик исправляет, потом рассказывает ученик.',
+      errors: [
+        '«Kui me jõudsime, praam lahkus juba» вместо «Kui me jõudsime, oli praam juba lahkunud» (то, что случилось раньше, — oli + -nud).',
+        '«Ma olin unustasin telgi» вместо «Ma olin telgi unustanud» (olema + -nud, не два прошедших).',
+        '«Me ei olnud broneeritud» вместо «Me ei olnud broneerinud» / «Me polnud broneerinud» (активное -nud).',
+        '«Kui me sadamasse jõudsime, oli praam lahkub» — после oli всегда форма на -nud.',
+      ],
+      notes: [
+        'История — продукт урока: в ней минимум две формы enneminevik и связка kui … , oli … juba … .',
+        'Обратная связь, 2 цели: oli + -nud для «раньше» и порядок «kui + простое прошедшее, oli + -nud». Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('048_d_review', [['Millega Anna ja Markus Riiga sõitsid ja miks?', 'a2b1-047'], ['Mida ostsid Helgi ja Sofia laupäeval Nõmme turult?', 'a2b1-026'], 'Kus sa käisid oma viimasel reisil?']),
-      B.text('048_d_hook', 'Anna ja Sofia Helsingis', 'Eelmisel sügisel sõitsid Anna ja Sofia nädalavahetuseks laevaga Helsingisse. Plaan oli täpne, aga peaaegu kõik läks teisiti. Anna kirjutas sellest blogi. Loe blogi, märka, mis oli juhtunud enne, ja jutusta lugu ise.'),
-      B.vocab('048_d_vocab', 'Tunni sõnad.', ['sadam — порт', 'laev — корабль / паром', 'lahkuma — уходить / отправляться', 'jõudma — добираться / успевать', 'märkama — замечать', 'unustama — забывать', 'selguma — выясняться', 'kinnitama — подтверждать', 'õnneks — к счастью', 'kahjuks — к сожалению', 'lõpuks — в конце концов', 'meenutama — вспоминать']),
-      tag(B.reading('048_d_blog', 'Anna blogi.', 'Loe Anna blogi. Leia lõikudele pealkirjad ja vasta küsimustele oma sõnadega.', 'Helsingi, mis läks teisiti', [
+      station(teach(tag(purpose(half(B.speaking('048_d_warm', 'Kas midagi läks valesti?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kas sinuga on reisil midagi valesti läinud?',
+        'Ilma märkmeteta: kas eelistad rongi või bussi? Miks?',
+      ], [70, 90])), 'Sinu lugu on tunni algus: lõpus jutustad ise reisiloo.'), { task: 'S01', fluency: true }),
+      'Üks-ühele: räägi kõigepealt üks lühike lugu, kus sinul reisil midagi valesti läks (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mida sa siis tegid?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('048_d_vocab', 'Tunni sõnad.', ['sadam — порт', 'praam — паром', 'lahkuma — уйти', 'jõudma — добраться', 'unustama — забыть', 'selguma — выясниться', 'planeerima — планировать', 'telk — палатка', 'õnneks — к счастью', 'kahjuks — к сожалению'], '2')), { topic: ['lahkuma', 'unustama'] }), 2, 17),
+      tag(purpose(why(ownText(B.examListen('048_p_radio', 'Raadio: „Teel juhtunud”.', 'Loe enne väited läbi. Siis kuula kaks korda ja märgi, kas väide on õige või vale.', 'truefalse', [
+        'Saatejuht: Tere, kuulajad! Saates „Teel juhtunud” räägivad kuulajad oma reisidest. Täna helistab meile Tiit.',
+        'Tiit: Tere! Eelmisel suvel tahtsime perega minna kaheks päevaks Vormsi saarele matkama. Ma olin kõik hästi planeerinud: praamipiletid olin ostnud juba nädal varem.',
+        'Saatejuht: Mis siis valesti läks?',
+        'Tiit: Hommikul ei käivitunud meie auto. Naaber aitas meid, aga kui me lõpuks Rohuküla sadamasse jõudsime, oli praam juba lahkunud. Järgmine praam läks alles kolme tunni pärast.',
+        'Saatejuht: Mida te siis tegite?',
+        'Tiit: Läksime mere äärde jalutama ja sõime sadama kohvikus. Lapsed olid väga rõõmsad, sest nad olid hommikul vähe söönud.',
+        'Saatejuht: Ja saarel läks kõik hästi?',
+        'Tiit: Mitte päris. Saarel selgus, et ma olin telgi koju unustanud. Olin selle eelmisel õhtul garaaži pannud ja hommikul me kiirustasime. Õnneks pakkus üks talu meile ööbimiseks väikest saunamaja.',
+        'Saatejuht: Kuidas reis lõppes?',
+        'Tiit: Väga hästi! Talu perenaine näitas meile matkarada, mida me kaardil polnud näinud. Seal nägime isegi põtra. Nüüd ütleme peres nii: kui midagi läheb valesti, tuleb ka midagi head.',
+        'Saatejuht: Aitäh, Tiit! Järgmisel nädalal ootame jälle teie lugusid.',
+      ], [
+        ['Tiit oli praamipiletid ostnud juba nädal varem.', true],
+        ['Hommikul ei läinud pere auto käima.', true],
+        ['Kui pere sadamasse jõudis, oli praam juba lahkunud.', true],
+        ['Järgmine praam läks tunni aja pärast.', false],
+        ['Lapsed olid hommikul palju söönud.', false],
+        ['Saarel selgus, et Tiit oli telgi koju unustanud.', true],
+        ['Pere ööbis saarel hotellis.', false],
+        ['Perenaine näitas neile rada, mida nad polnud kaardil näinud.', true],
+      ], 'g_read')), [
+        'Tiit: „praamipiletid olin ostnud juba nädal varem”.',
+        'Tiit: „Hommikul ei käivitunud meie auto.”',
+        'Tiit: „kui me lõpuks Rohuküla sadamasse jõudsime, oli praam juba lahkunud”.',
+        'Tiit: „Järgmine praam läks alles kolme tunni pärast.” — mitte tunni pärast.',
+        'Tiit: „nad olid hommikul vähe söönud”.',
+        'Tiit: „Saarel selgus, et ma olin telgi koju unustanud.”',
+        'Tiit: „üks talu pakkus meile ööbimiseks väikest saunamaja” — mitte hotell.',
+        'Tiit: „matkarada, mida me kaardil polnud näinud”.',
+      ]), 'Enne kui sa ise jutustad, kuuled, kuidas üks reisilugu räägib, mis juhtus enne ja mis pärast. Eksamil (Harno B1 kuulamine 4) on sama ülesanne.'), { task: 'L05', harno: 'L4' }),
+      teach(tag(purpose(B.speaking('048_d_retell', 'Mis oli enne juhtunud? Küsi paarilisel.', 'Küsi paarilisel raadioloo järgi. B vastab terve lausega. Siis vahetage.', [
+        'Mis oli juhtunud, kui pere sadamasse jõudis?',
+        'Mis selgus saarel ja miks see juhtus?',
+        'Kas sinuga on reisil midagi sarnast juhtunud?',
+      ], [70, 100], '', 'g_read'), 'Ütled raadioloo järgi, mis oli enne juhtunud, enneminevikuga.'), { task: 'S06', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kaks. Teisel ringil ütled sa ühe vea („Kui nad sadamasse jõudsid, praam lahkus”) ja õpilane parandab sind: „… oli praam juba lahkunud”.'),
+      hide(B.review('048_d_review', [['Millega Anna ja Markus Riiga sõitsid ja miks?', 'a2b1-047'], ['Mida ostsid Helgi ja Sofia laupäeval Nõmme turult?', 'a2b1-026'], 'Kus sa käisid oma viimasel reisil?']), V5_DRILL),
+      hide(B.text('048_d_hook', 'Anna ja Sofia Helsingis', 'Eelmisel sügisel sõitsid Anna ja Sofia nädalavahetuseks laevaga Helsingisse. Plaan oli täpne, aga peaaegu kõik läks teisiti. Anna kirjutas sellest blogi. Loe blogi, märka, mis oli juhtunud enne, ja jutusta lugu ise.'), V5_CUT),
+      hide(tag(B.reading('048_d_blog', 'Anna blogi.', 'Loe Anna blogi. Leia lõikudele pealkirjad ja vasta küsimustele oma sõnadega.', 'Helsingi, mis läks teisiti', [
         'A. Laupäeva hommikul ärkasin kell seitse ja vaatasin telefoni. Sofia oli kirjutanud juba kolm sõnumit. Taksot ei olnud, sest ma olin eelmisel õhtul unustanud selle tellida. Sõitsime sadamasse bussiga.',
         '',
         'B. Kui me sadamasse jõudsime, oli laev just lahkunud. Seisime kail ja vaatasime, kuidas see ära sõitis. Õnneks väljus järgmine laev kahe tunni pärast. Jõime sadamas kohvi ja naersime.',
@@ -525,8 +796,8 @@ export const LESSONS = withShapes({
         ['Miks oli nende tuba teistele antud?', 'nad ei olnud broneeringut kinnitanud|hotell ootas neid ainult kella kolmeni'],
         ['Miks ei saanud nad muuseumisse minna?', 'muuseum oli juba kinni|nad jõudsid pärast kella kuut'],
         ['Mida Anna ja Sofia sellest reisist õppisid?', 'kinnitada broneeringud|kontrollida kõike kaks korda'],
-      ]), { task: 'R09' }),
-      tag(B.examListen('048_d_msgs', 'Sõnumid reisilt.', 'Kuula kümmet lühikest sõnumit, mis Anna ja Sofia reisil said või saatsid. Vali iga sõnumi kohta õige vastus.', 'choice', [
+      ]), { task: 'R09' }), V5_CUT),
+      hide(tag(B.examListen('048_d_msgs', 'Sõnumid reisilt.', 'Kuula kümmet lühikest sõnumit, mis Anna ja Sofia reisil said või saatsid. Vali iga sõnumi kohta õige vastus.', 'choice', [
         'Esimene sõnum. Sofia, siin Anna. Ma jäin magama ja takso jäi tellimata. Ootan sind bussipeatuses veerand kaheksa.',
         'Teine sõnum. Head reisijad! Laev Helsingisse lahkus kell 7.30. Järgmine laev väljub kell 9.30, piletid saab vahetada kassas.',
         'Kolmas sõnum. Tere, siin laevafirma kassa. Teie piletid on vahetatud. Vahetus maksab kümme eurot inimese kohta.',
@@ -548,24 +819,43 @@ export const LESSONS = withShapes({
         ['Mida palub Markus Annal osta?', 'šokolaadi', 'kohvi', 'raamatu'],
         ['Mis supid on täna turuhallis?', 'lõhesupp ja seenesupp', 'kalasupp ja hernesupp', 'ainult seenesupp'],
         ['Mida palutakse reisijatel enne Tallinna jõudmist teha?', 'kontrollida, et kajutisse ei jääks midagi', 'minna autode juurde', 'osta uued piletid'],
-      ], 'g_vocab'), { task: 'L01' }),
-      B.notice('048_d_notice', 'Märka: enneminevik — mis oli juhtunud enne?', [
-        'Kaks tegevust minevikus: **Kui me sadamasse jõudsime** (2.), **oli laev juba lahkunud** (1.).',
-        'Enneminevik = **olin / olid / oli / olime / olite / olid** + **-nud**: ma **olin unustanud**, me **olime oodanud**, nad **olid andnud**.',
-        'Eitus: me **ei olnud** (polnud) broneeringut **kinnitanud** · muuseum **ei olnud** veel avatud.',
-        'Sageli koos sõnadega **juba**, **veel**, **enne seda**, **selleks ajaks**, **kui…**',
-        'Võrdle: Laev **lahkus**, kui me jõudsime (samal ajal). · Laev **oli lahkunud**, kui me jõudsime (enne).',
-      ], 'full'),
-      tag(B.categorize('048_d_rule', 'Leia reegel: mis juhtus enne?', 'Loe lauseid Anna loost. Pane need veergu: kas see oli juhtunud enne või juhtus pärast seda.', [
+      ], 'g_vocab'), { task: 'L01' }), V5_CUT),
+      hide(tag(B.categorize('048_d_rule', 'Leia reegel: mis juhtus enne?', 'Loe lauseid Anna loost. Pane need veergu: kas see oli juhtunud enne või juhtus pärast seda.', [
         ['juhtus enne: enneminevik', ['Anna oli unustanud takso tellida.', 'Laev oli juba lahkunud.', 'Hotell oli toa teistele andnud.', 'Nad ei olnud broneeringut kinnitanud.', 'Anna oli muuseumi juba ammu näha tahtnud.']],
         ['juhtus pärast: lihtminevik', ['Nad sõitsid sadamasse bussiga.', 'Nad jõid sadamas kohvi.', 'Töötaja leidis neile uue toa.', 'Nad sõid turuhallis lõhesuppi.', 'Laev jõudis pühapäeval Tallinnasse.']],
-      ], 'full', 'g_notice'), { task: 'G02' }),
-      teach(tag(B.speaking('048_d_432', 'Reis, mis ei läinud plaani järgi.', 'Räägi oma reisist, kus midagi läks teisiti, kolm korda järjest: 2 minutit, siis 90 sekundit, lõpuks 1 minut.', ['Kuhu ja kellega sa sõitsid?', 'Mis oli plaan?', 'Mis oli juba juhtunud, kui sa kohale jõudsid?', 'Mida sa siis tegid?', 'Mida sa sellest õppisid?'], [90, 120], ['Kui ma… jõudsin, oli… juba…', 'Ma ei olnud…', 'Õnneks / kahjuks…']), { task: 'S08', fluency: true }),
-        'Üks-ühele: õpetaja hoiab aega (2 min, 90 s, 1 min) ega katkesta. Pärast kolmandat korda nimetab õpetaja ühe ennemineviku vormi, mis tuli hästi, ja ühe, mida parandada.'),
-      tag(B.writing('048_d_write', 'Pildirida: Helsingi.', 'Vaata pildirida ja kirjuta peatumata kaheksa minutit: kuidas läks Anna ja Sofia nädalavahetus algusest lõpuni?', [8, 10], ['sadam', 'laev', 'oli juba', 'õnneks'], 3, 'g_vocab'), { task: 'W06', fluency: true }),
+      ], 'full', 'g_notice'), { task: 'G02' }), V5_DRILL),
+      hide(teach(tag(B.speaking('048_d_432', 'Reis, mis ei läinud plaani järgi.', 'Räägi oma reisist, kus midagi läks teisiti, kolm korda järjest: 2 minutit, siis 90 sekundit, lõpuks 1 minut.', ['Kuhu ja kellega sa sõitsid?', 'Mis oli plaan?', 'Mis oli juba juhtunud, kui sa kohale jõudsid?', 'Mida sa siis tegid?', 'Mida sa sellest õppisid?'], [90, 120], ['Kui ma… jõudsin, oli… juba…', 'Ma ei olnud…', 'Õnneks / kahjuks…']), { task: 'S08', fluency: true }),
+        'Üks-ühele: õpetaja hoiab aega (2 min, 90 s, 1 min) ega katkesta. Pärast kolmandat korda nimetab õpetaja ühe ennemineviku vormi, mis tuli hästi, ja ühe, mida parandada.'), V5_CUT),
     ],
     practice: [
-      B.cloze('048_p_mail', 'Sofia kiri emale.', 'Sofia kirjutab Helgile reisist. Vali igasse lünka vorm, mis sobib aja ja mõttega.', 'Kallis ema!', [
+      station(B.notice('048_d_notice', 'Märka: mis oli enne juhtunud?', [
+        'Raadiost: kui me sadamasse **jõudsime**, **oli** praam juba **lahkunud** · ma **olin** telgi koju **unustanud** · rada, mida me **polnud** kaardil **näinud**',
+        'Enneminevik = **olin, olid, oli, olime, olite, olid** + **-nud**: olin **ostnud**, oli **lahkunud**, olime **unustanud**',
+        'Eitus: **ei olnud** või **polnud** + **-nud**: me **polnud** tuba **broneerinud**',
+        'Kaks minevikku: **Kui** me jaama **jõudsime** (hiljem), **oli** rong juba **läinud** (varem).',
+        'Sageli koos: **juba**, **enne**, **varem**, **eelmisel õhtul**',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.gaps('048_p_forms', 'Mis oli enne juhtunud?', 'Kirjuta sulgudes olev tegusõna -nud-vormis. Mõtle: mis juhtus enne?', [
+        'Kui me jaama jõudsime, oli rong juba [lahkunud] (lahkuma).',
+        'Hotellis selgus, et ma olin passi koju [unustanud] (unustama).',
+        'Me olime piletid internetist juba varem [ostnud] (ostma).',
+        'Kui ma Tartusse jõudsin, olid sõbrad õhtusöögi juba [teinud] (tegema).',
+        'Kui buss Pärnusse jõudis, oli vihm juba [lõppenud] (lõppema).',
+        'Ta oli seda linna varem ainult pildil [näinud] (nägema).',
+        'Ma ei saanud tuppa, sest olin võtme [kaotanud] (kaotama).',
+        'Me polnud hotelli ette [broneerinud] ja kõik toad olid täis (broneerima).',
+      ], '', 'full', 'g_notice'), [
+        'Enne jõudmist → oli + -nud: lahkunud.',
+        'Enne hotelli → olin + -nud: unustanud.',
+        'Varem → olime + -nud: ostnud.',
+        'tegema → -nud: teinud.',
+        'Enne bussi jõudmist → oli + -nud: lõppenud.',
+        'nägema → -nud: näinud.',
+        'Enne → olin + -nud: kaotanud.',
+        'Eitus: polnud + -nud: broneerinud.',
+      ]), 'Kaheksa lauset näitavad, kas enneminevik on käes.'), { task: 'G03' }),
+      tag(purpose(rows(B.writing('048_d_write', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset ühest reisist või päevast: mis juhtus ja mis oli enne juhtunud (Kui ma … jõudsin, oli … juba …; Ma olin … unustanud).', [8, 10]), 7), 'Oma laused on sinu reisiloo materjal.'), { task: 'W05' }),
+      hide(B.cloze('048_p_mail', 'Sofia kiri emale.', 'Sofia kirjutab Helgile reisist. Vali igasse lünka vorm, mis sobib aja ja mõttega.', 'Kallis ema!', [
         'Me oleme Helsingist tagasi ja ma tahan sulle kõike rääkida, sest sellist reisi ei ole mul ammu olnud. Reis {*algas|alganud|algab} halvasti: kui me sadamasse jõudsime, {*oli|olid|olnud} laev juba lahkunud. Anna {*oli|olid|ole} unustanud takso tellida.',
         '',
         'Õnneks väljus järgmine laev kahe tunni pärast. Helsingis selgus, et hotell {*oli|ole|olid} meie toa juba teistele andnud, sest me {*polnud|olnud|ei} broneeringut kinnitanud.',
@@ -575,8 +865,8 @@ export const LESSONS = withShapes({
         'Aga turuhallis sõime kõige parema supi, mida ma {*olen|olid|oli} elus söönud! Pühapäeval {*läks|läinud|läheb} kõik hästi: laev oli täpne, meri oli rahulik ja me jõudsime õhtuks koju.',
         '',
         'Anna ütleb, et see oli tema elu kõige naljakam reis. Järgmisel korral {*kontrollin|kontrollisin|kontrollinud} aga kõik kaks korda ja tellin takso juba eelmisel õhtul. Kallistan, Sofia',
-      ], 'g_notice'),
-      tag(B.insertion('048_p_story', 'Ilukirjandus: kes pakib kohvri?', 'Loe katkendit inglise kirjaniku J. K. Jerome\'i naljakast reisiraamatust. Tekstist on välja võetud kuus lauset. Vali igasse lünka sobiv lause; üks lause on üleliigne.', 'J. K. Jerome, „Kolm meest paadis”: pakkimine', [
+      ], 'g_notice'), V5_CUT),
+      hide(tag(B.insertion('048_p_story', 'Ilukirjandus: kes pakib kohvri?', 'Loe katkendit inglise kirjaniku J. K. Jerome\'i naljakast reisiraamatust. Tekstist on välja võetud kuus lauset. Vali igasse lünka sobiv lause; üks lause on üleliigne.', 'J. K. Jerome, „Kolm meest paadis”: pakkimine', [
         'Reede õhtul tulime kokku, et asjad reisiks kotti pakkida. Olime kõik vajaliku juba päeval kokku ostnud. Panime asjad toa keskele põrandale suurde hunnikusse. [[Ma ütlesin, et pakin ise, sest ma oskan seda kõige paremini.]] George ja Harris olid kohe nõus. George istus tugitooli ja Harris pani jalad lauale.',
         '',
         'See ei olnud päris see, mida ma olin mõelnud. [[Ma olin tahtnud, et nemad töötavad ja mina ainult näitan, kuidas õigesti teha.]] Aga ma ei öelnud midagi ja hakkasin pakkima. Lõpuks oli kott valmis ja ma istusin selle peale, et rihmad kinni tõmmata.',
@@ -588,40 +878,8 @@ export const LESSONS = withShapes({
         'Kui olin kõik uuesti pakkinud, küsis George, kas seep on ka kotis. Kott sai lõpuks kinni kell 22.05. [[Siis ütles Harris, et toidukorvid pakivad nemad kahekesi.]] Kõigepealt läks katki üks tass. Siis astus George võile.',
         '',
         'Allikas: J. K. Jerome, „Kolm meest paadis” (1889), 4. peatükk, lihtsustatud ja lühendatud. Autor suri 1927. aastal, teos on avalik omand.',
-      ], ['Harris ja George aitasid mind pakkimisel väga palju.']), { task: 'R16', voice: 'fiction' }),
-      B.examListen('048_p_radio', 'Raadiosaade „Teel juhtunud”.', 'Kuula raadiosaadet, kus kuulaja jutustab oma reisiloo. Vali igale küsimusele õige vastus.', 'choice', [
-        'Ülle: Tere õhtust! Saates „Teel juhtunud” räägivad kuulajad oma reisilugudest. Esimesena on telefonil Tarvo Tartust. Tere, Tarvo!',
-        'Tarvo: Tere, Ülle! Minu lugu juhtus eelmisel suvel, kui mu tütar abiellus Pärnus.',
-        'Ülle: Pulm! See on tähtis päev. Mis juhtus?',
-        'Tarvo: Pulm pidi algama kell kaks. Ma tahtsin sõita bussiga, mis väljub Tartust kell üheksa.',
-        'Ülle: Ja mis läks valesti?',
-        'Tarvo: Kui ma bussijaama jõudsin, oli buss juba läinud. Ma olin vaadanud vana sõiduplaani. Suvel väljus buss pool tundi varem.',
-        'Ülle: Oh ei! Mida sa tegid?',
-        'Tarvo: Järgmine buss oleks jõudnud Pärnusse alles kell kolm. Siis seisin tee ääres ja tõstsin käe.',
-        'Ülle: Kas keegi peatus?',
-        'Tarvo: Peatus üks vana talunik traktoriga. Tal oli haagis heinaga ja ta sõitis Viljandi poole.',
-        'Ülle: Traktoriga Pärnusse? See võtab ju terve päeva!',
-        'Tarvo: Mitte päris. Viljandis viis ta mind oma poja juurde ja poeg sõidutas mind autoga Pärnusse.',
-        'Ülle: Kas sa jõudsid õigeks ajaks?',
-        'Tarvo: Ei jõudnud. Kui ma kirikusse jõudsin, oli kell pool kolm. Aga pulm ei olnud veel alanud!',
-        'Ülle: Kuidas nii?',
-        'Tarvo: Pruudi auto oli teel katki läinud. Ka tema oli hiljaks jäänud.',
-        'Ülle: Milline lõpp! Mida sa sellest loost õppisid?',
-        'Tarvo: Et sõiduplaani tuleb vaadata internetist, mitte külmkapi ukselt. Ja et talunikud on kõige paremad inimesed.',
-        'Ülle: Aitäh, Tarvo! Sinu lugu läheb kindlasti meie konkursile.',
-      ], [
-        ['Kus abiellus Tarvo tütar?', 'Pärnus', 'Tartus', 'Viljandis'],
-        ['Mis kell pidi pulm algama?', 'kell kaks', 'kell üheksa', 'kell kolm'],
-        ['Miks oli buss juba läinud, kui Tarvo jaama jõudis?', 'Tarvo oli vaadanud vana sõiduplaani', 'buss väljus kell üheksa', 'Tarvo oli sisse maganud'],
-        ['Millal oleks järgmine buss Pärnusse jõudnud?', 'kell kolm', 'kell kaks', 'pool kolm'],
-        ['Mida tegi Tarvo pärast seda bussijaamas?', 'läks tee äärde ja tõstis käe', 'helistas tütrele', 'ostis rongipileti'],
-        ['Kes võttis Tarvo esimesena peale?', 'talunik traktoriga', 'bussijuht', 'tütre sõber'],
-        ['Kuidas jõudis Tarvo lõpuks Pärnusse?', 'taluniku poja autoga', 'traktoriga', 'järgmise bussiga'],
-        ['Mis kell jõudis Tarvo kirikusse?', 'pool kolm', 'kell kaks', 'kell kolm'],
-        ['Miks ei olnud pulm veel alanud?', 'pruudi auto oli katki läinud', 'kirik oli kinni', 'peigmees oli haige'],
-        ['Kust oli Tarvo sõiduplaani vaadanud?', 'külmkapi ukselt', 'internetist', 'bussijaama seinalt'],
-      ]),
-      B.transformation('048_p_before', 'Mis oli juba juhtunud?', 'Kirjuta lause enneminevikus. Antud sõna näitab, milline abitegusõna vorm tuleb.', [
+      ], ['Harris ja George aitasid mind pakkimisel väga palju.']), { task: 'R16', voice: 'fiction' }), V5_CUT),
+      hide(B.transformation('048_p_before', 'Mis oli juba juhtunud?', 'Kirjuta lause enneminevikus. Antud sõna näitab, milline abitegusõna vorm tuleb.', [
         ['Tarvo vaatas eelmisel õhtul vana sõiduplaani.', 'oli', 'Tarvo oli eelmisel õhtul vana sõiduplaani vaadanud.'],
         ['Pruudi auto läks teel kiriku poole katki.', 'oli', 'Pruudi auto oli teel kiriku poole katki läinud.'],
         ['Me ei kinnitanud hotelli broneeringut õigel ajal.', 'ei olnud', 'Me ei olnud hotelli broneeringut õigel ajal kinnitanud.'],
@@ -632,23 +890,42 @@ export const LESSONS = withShapes({
         ['Me ei käinud varem kunagi Helsingis.', 'ei olnud', 'Me ei olnud varem kunagi Helsingis käinud.'],
         ['Talunik niitis hommikul heina ja laadis selle haagisele.', 'oli', 'Talunik oli hommikul heina niitnud ja selle haagisele laadinud.'],
         ['Markus jättis oma telefoni hotelli tuppa.', 'oli', 'Markus oli oma telefoni hotelli tuppa jätnud.'],
-      ]),
-      teach(tag(B.speaking('048_p_exam', 'Eksaminurk: teemaküsimused „Reisimine” (Harno B1 rääkimine 1)', 'Eksamineerija küsib reisimise kohta. Vasta igale küsimusele 3–4 lausega ja lisa põhjus või näide.', ['Kas sa reisid pigem Eestis või välismaal? Miks?', 'Milline on sinu meelest kõige parem transport pikaks sõiduks?', 'Räägi reisist, mis sulle eriti meelde jäi.', 'Mida sa võtad reisile alati kaasa?', 'Kas reisi peaks täpselt planeerima või mitte? Miks?'], [90, 120], ['…, sest…', 'Näiteks eelmisel suvel…', 'Kui ma kohale jõudsin, oli…']), { harno: 'S1a' }),
-        'Eksaminurk (Harno B1 rääkimine 1, esimene osa, ~10 min). Strateegia: vastus + põhjus (sest…) + näide (näiteks eelmisel suvel…); minevikust rääkides kasuta ka enneminevikku. Üks-ühele: õpetaja on eksamineerija ega aita; pärast loeb, mitu vastust oli põhjuse või näitega (eesmärk vähemalt neli viiest), ja õpilane vastab ühele küsimusele uuesti paremini.'),
-      tag(B.examWriting('048_p_card', 'Postkaart Helsingist.', 'Kirjuta Sofia nimel emale postkaart 50–70 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
+      ]), V5_DRILL),
+      hide(teach(tag(B.speaking('048_p_exam', 'Eksaminurk: teemaküsimused „Reisimine” (Harno B1 rääkimine 1)', 'Eksamineerija küsib reisimise kohta. Vasta igale küsimusele 3–4 lausega ja lisa põhjus või näide.', ['Kas sa reisid pigem Eestis või välismaal? Miks?', 'Milline on sinu meelest kõige parem transport pikaks sõiduks?', 'Räägi reisist, mis sulle eriti meelde jäi.', 'Mida sa võtad reisile alati kaasa?', 'Kas reisi peaks täpselt planeerima või mitte? Miks?'], [90, 120], ['…, sest…', 'Näiteks eelmisel suvel…', 'Kui ma kohale jõudsin, oli…']), { harno: 'S1a' }),
+        'Eksaminurk (Harno B1 rääkimine 1, esimene osa, ~10 min). Strateegia: vastus + põhjus (sest…) + näide (näiteks eelmisel suvel…); minevikust rääkides kasuta ka enneminevikku. Üks-ühele: õpetaja on eksamineerija ega aita; pärast loeb, mitu vastust oli põhjuse või näitega (eesmärk vähemalt neli viiest), ja õpilane vastab ühele küsimusele uuesti paremini.'), V5_CUT),
+      hide(tag(B.examWriting('048_p_card', 'Postkaart Helsingist.', 'Kirjuta Sofia nimel emale postkaart 50–70 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Laupäeva õhtul istuvad Anna ja Sofia Helsingis turuhallis. Sofia kirjutab emale postkaardi.',
         points: ['kus sa oled ja kellega', 'mis täna hommikul juhtus', 'mis oli päeva kõige parem asi', 'millal tuled tagasi'],
         words: [50, 70], opening: 'Kallis ema!', closing: 'Kallistan, Sofia',
-      }), { task: 'W03' }),
+      }), { task: 'W03' }), V5_CUT),
     ],
     transfer: [
-      B.text('048_t_sit', 'Konkurss „Teel juhtunud”', 'Raadio Linnahääl kogub kuulajate reisilugusid. Parim lugu võidab nädalavahetuse Saaremaal. Saatejuht Ülle kutsus Anna ja Sofia žüriisse, sest nende Helsingi lugu oli saate kodulehel väga populaarne. Loe nelja kuulaja lugu, leppige kokku võitja, jutusta oma lugu otse-eetris ja kirjuta see saate kodulehele.'),
-      B.know('048_t_know', [
+      station(teach(tag(purpose(B.speaking('048_t_live', 'Mäng: parim reisilugu', 'Vaata pildilugu üleval. Esimene ring: jutusta pildilugu. Teine ring: räägi oma reisist, mis läks teisiti. Kuulajad küsivad kaks küsimust ja valivad loo, mis üllatas kõige rohkem.', [
+        'Kuhu ja millega sõideti?',
+        'Mis läks valesti? Mis oli enne juhtunud?',
+        'Mida siis tehti ja kes aitas?',
+        'Kuidas reis lõppes ja mida sellest õpiti?',
+      ], [90, 120], 'Kui … jõudis, oli … juba … · Selgus, et … oli … unustanud. · Õnneks …'), 'Pärast mängu oskad sa jutustada nii, et kuulaja saab aru, mis juhtus enne ja mis pärast.'), { task: 'S07', main: true, level: 4, fluency: true }),
+      'Kõigepealt vaatab igaüks pildilugu (1 min). Esimene ring: igaüks jutustab pildiloo 90–120 sekundit (esmaspäeval ärkas ta alles kell 7.40, sest äratus ei olnud helisenud; kui ta kell 8.05 bussijaama jõudis, oli kella kaheksane buss juba läinud; järgmine buss läks kell 10; Riias sadas, aga ta oli vihmavarju koju unustanud; muuseum oli esmaspäeval suletud; õhtul läks ta kontserdile). Teine ring ilma fraasideta: igaüks räägib oma päris reisist, mis läks teisiti; kuulajad küsivad kaks küsimust („Mis oli enne juhtunud?”, „Mida sa järgmisel korral teisiti teed?”) ja hääletavad, milline lugu üllatas kõige rohkem. Õnnestunud, kui loos on vähemalt kaks enneminevikku ja järjekord on selge (kui … , oli … juba …). Üks-ühele: sina jutustad pildiloo kahe veaga („Kui ta jõudis, buss läks”), õpilane parandab; siis jutustab õpilane oma loo ja sina küsid kaks küsimust.'), 4, 25, { final: 'present' }),
+      tag(newPage(exitCheck(why(purpose(B.gaps('048_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev tegusõna -nud-vormis.', [
+        'Kui me sadamasse jõudsime, oli praam juba [lahkunud] (lahkuma).',
+        'Rongis selgus, et olin oma piletid koju [jätnud] (jätma).',
+        'Me polnud kahjuks tuba ette [broneerinud] (broneerima).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas enneminevik on käes.'), ['oli + -nud: lahkunud.', 'olin + -nud: jätnud.', 'polnud + -nud: broneerinud.']))), {}),
+      purpose(B.selfcheck('048_t_self', ['Ma ütlen, mis oli enne juhtunud: oli lahkunud, olin unustanud.', 'Ma seon kaks minevikku: kui me jõudsime, oli … juba …', 'Ma saan aru raadioloost reisi kohta.', 'Ma jutustan oma reisiloo nii, et järjekord on selge.'], 'Lugu jutustatud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('048_t_rec', 'Kodus: minu reisilugu.', 'Salvesta 60–90 sekundit.', [
+        'Kuhu sa sõitsid ja mis läks valesti?',
+        'Mis oli enne juhtunud?',
+        'Kuidas lugu lõppes?',
+      ], [60, 90]), 'Õpetaja ütleb, kas enneminevik tuli õigesti.')), { task: 'S15', fluency: true }),
+      homework('048_t_homework', ['1. Kirjuta oma reisilugu 6–8 lausega; vähemalt kaks lauset enneminevikus.', '2. Salvesta oma lugu (ülesanne üleval).', '3. Kirjuta vihikusse kuus tegusõna kolmes vormis: lahkuma — lahkus — oli lahkunud.', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('048_t_sit', 'Konkurss „Teel juhtunud”', 'Raadio Linnahääl kogub kuulajate reisilugusid. Parim lugu võidab nädalavahetuse Saaremaal. Saatejuht Ülle kutsus Anna ja Sofia žüriisse, sest nende Helsingi lugu oli saate kodulehel väga populaarne. Loe nelja kuulaja lugu, leppige kokku võitja, jutusta oma lugu otse-eetris ja kirjuta see saate kodulehele.'), V5_CUT),
+      hide(B.know('048_t_know', [
         'Euroopa Liidus on laeva- ja lennureisijal kindlad õigused. Kui kuni neljatunnine laevareis jõuab kohale vähemalt tund hiljem, on reisijal õigus saada hüvitist 25 % piletihinnast. Kui hilinemine on vähemalt kaks tundi, on hüvitis 50 %.',
         'Kui lennuk jõuab sihtkohta kolm tundi või rohkem hiljem, võib reisija saada hüvitist. Kuni 1500 kilomeetri pikkusel lennul on see 250 eurot. Hüvitist ei maksta, kui hilinemise põhjus oli erakorraline, näiteks lendamiseks liiga halb ilm.',
         'Need reeglid kehtivad siis, kui hilineb laev või lennuk. Kui reisija jääb ise hiljaks, hüvitist ei ole.',
-      ], 'Your Europe, „Laevareisijate õigused” ja „Lennureisijate õigused”', 'Kas teadsid? Kui laev või lennuk hilineb'),
-      B.profiles('048_t_stories', 'Neli kuulaja lugu.', 'Loe kuulajate lugude kokkuvõtteid. Täienda lauseid: mis oli juhtunud enne ja mis juhtus pärast.', [
+      ], 'Your Europe, „Laevareisijate õigused” ja „Lennureisijate õigused”', 'Kas teadsid? Kui laev või lennuk hilineb'), V5_CUT),
+      hide(B.profiles('048_t_stories', 'Neli kuulaja lugu.', 'Loe kuulajate lugude kokkuvõtteid. Täienda lauseid: mis oli juhtunud enne ja mis juhtus pärast.', [
         ['Tarvo, 58, Tartu', ['tütre pulm Pärnus', 'vaatas vana sõiduplaani', 'buss oli juba läinud', 'talunik traktoriga, siis tema poeg autoga', 'ka pruut jäi hiljaks'],
           ['Kui Tarvo bussijaama jõudis, [oli] buss juba läinud.', 'Tarvo oli [vaadanud] vana sõiduplaani.', 'Pärnusse viis teda lõpuks taluniku [poeg].', 'Kui Tarvo kirikusse jõudis, ei olnud pulm veel [alanud].', 'Pruudi auto oli teel katki [läinud].']],
         ['Kaidi, 34, Tallinn', ['lend Barcelonasse kell kuus hommikul', 'pani äratuskella valele ajale', 'ärkas kell pool kuus', 'taksojuht sõitis väga kiiresti', 'jõudis lennukisse viimasena'],
@@ -657,29 +934,113 @@ export const LESSONS = withShapes({
           ['Joosep oli [unustanud|jätnud] telgi koju.', 'Esimesel ööl magas ta talu [heinaküünis].', 'Talu perenaine oli kuulnud, et Joosepil ei ole [telki].', 'Hommikul tõi perenaine talle [pannkooke].', 'Joosep tahab suvel sinna [tagasi] minna.']],
         ['Merit, 45, Narva', ['rongiga Narvast Tallinnasse', 'võttis kogemata kaasa vale kohvri', 'kohvris olid naabri asjad', 'naaber oli Meriti kohvri avanud ja helistas', 'kohvrid vahetati Tapal'],
           ['Merit oli kogemata kaasa võtnud [vale] kohvri.', 'Kohvris olid tema [naabri] asjad.', 'Naaber oli Meriti kohvri juba [avanud].', 'Kohvrid vahetati [Tapal].', 'Pärast seda said naabritest head [sõbrad].']],
-      ], '2'),
-      teach(tag(B.ideaCard('048_t_jury', 'Žürii: kes võidab?', 'Te olete žürii. Arutage nelja lugu ja leppige kokku võitja ning teine koht. Põhjendage valikut.', 'Raadio Linnahääl annab parima reisiloo eest nädalavahetuse Saaremaal. Žüriil on otsustamiseks viis minutit.', ['Tarvo: pulm ja traktor', 'Kaidi: äratuskell ja viimane reisija', 'Joosep: telk jäi koju', 'Merit: vale kohver rongis'], 'Kes võidab ja kes saab teise koha? Miks?'), { task: 'S12', main: true }),
-        'Üks-ühele: õpetaja on teine žürii liige ja toetab alguses teist lugu kui õpilane; õpilane põhjendab (naljakas, üllatav lõpp, hästi jutustatud) ja leiab kompromissi. Lõpus ütleb õpilane otsuse nii, nagu raadios.'),
-      teach(tag(B.speaking('048_t_live', 'Sinu lugu otse-eetris.', 'Oled stuudios saatejuhi kõrval ja jutustad otse-eetris oma reisilugu. Saatejuht küsib vahele. Seejärel jutusta sama lugu uuesti 90 sekundiga.', ['Kuhu ja millal sa sõitsid?', 'Mis oli juhtunud, kui sa kohale jõudsid?', 'Mida sa siis tegid ja kes sind aitas?', 'Kuidas lugu lõppes?', 'Mida sa nüüd teisiti teed?'], [90, 150], ['Kui ma… jõudsin, oli… juba…', 'Siis…', 'Lõpuks…']), { task: 'S07', fluency: true }),
-        'Üks-ühele: õpetaja on saatejuht Ülle ja küsib kaks täpsustavat küsimust („Ja mis siis juhtus?”). Teisel korral räägib õpilane 90 sekundiga ilma küsimusteta.'),
-      B.examWriting('048_t_story', 'Lugu saate kodulehele.', 'Kirjuta oma reisilugu saate kodulehele umbes 100 sõnaga. Kirjuta kõigist neljast punktist.', 'jutt', {
+      ], '2'), V5_CUT),
+      hide(teach(tag(B.ideaCard('048_t_jury', 'Žürii: kes võidab?', 'Te olete žürii. Arutage nelja lugu ja leppige kokku võitja ning teine koht. Põhjendage valikut.', 'Raadio Linnahääl annab parima reisiloo eest nädalavahetuse Saaremaal. Žüriil on otsustamiseks viis minutit.', ['Tarvo: pulm ja traktor', 'Kaidi: äratuskell ja viimane reisija', 'Joosep: telk jäi koju', 'Merit: vale kohver rongis'], 'Kes võidab ja kes saab teise koha? Miks?'), { task: 'S12', main: true }),
+        'Üks-ühele: õpetaja on teine žürii liige ja toetab alguses teist lugu kui õpilane; õpilane põhjendab (naljakas, üllatav lõpp, hästi jutustatud) ja leiab kompromissi. Lõpus ütleb õpilane otsuse nii, nagu raadios.'), V5_CUT),
+      hide(B.examWriting('048_t_story', 'Lugu saate kodulehele.', 'Kirjuta oma reisilugu saate kodulehele umbes 100 sõnaga. Kirjuta kõigist neljast punktist.', 'jutt', {
         situation: 'Kirjuta jutt pealkirjaga „Reis, mis läks teisiti”.',
         points: ['kuhu ja kellega sa sõitsid', 'mis oli juba juhtunud, kui sa kohale jõudsid', 'mida sa siis tegid', 'kuidas lugu lõppes ja mida sa õppisid'],
         words: [80, 100],
-      }),
-      B.rubricSpeaking('048_t_rubric', 'Hindamine: žürii arutelu ja lugu otse-eetris (20 punkti).'),
-      B.rubricW2('048_t_rubric_w', 'Hindamine: lugu kodulehele (12 punkti).'),
-      B.selfcheck('048_t_self', ['Ma saan aru, mis juhtus reisiloos enne ja mis pärast.', 'Ma moodustan enneminevikku: oli lahkunud, olime unustanud.', 'Ma vastan reisimise teemaküsimustele põhjuse ja näitega.', 'Ma jutustan oma reisiloo ja lepin teistega kokku parima loo.'], 'Reis, mis läks teisiti'),
+      }), V5_CUT),
+      hide(B.rubricSpeaking('048_t_rubric', 'Hindamine: žürii arutelu ja lugu otse-eetris (20 punkti).'), V5_CUT),
+      hide(B.rubricW2('048_t_rubric_w', 'Hindamine: lugu kodulehele (12 punkti).'), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 049 project: a travel plan for a friend (letter)
   'a2b1-049': {
     title: 'Reisiplaan sõbrale',
-    canDo: 'Ma kirjutan sõbrale 80–100-sõnalise kirja tema reisi plaaniga: sõidud, ööbimine, hinnad ja üks hea nõuanne.',
+    phases: grammar('Keel: soovitan sõita · tasub vaadata · ära unusta võtta (-da) · hoiatus: olime unustanud (-nud)'),
+    format: 'project',
+    topic: 'culture',
+    canDo: 'Ma kirjutan sõbrale 60–90-sõnalise kirja kahe päeva plaaniga: kuidas ta sõidab, kus ööbib, mida teeme ja üks hea nõuanne.',
+    teacherPage: {
+      goal: 'Ученик понимает личное письмо с планом поездки и сам пишет другу 60–90 слов: дорога, ночлег, два дня и совет (soovitan sõita, tasub vaadata, ära unusta võtta).',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → письмо Кристийны «Kaks päeva Tartus» (8 вопросов) → пункт 4: своё письмо другу по картинке «Kaks päeva Pärnus» или о своём городе, без готового начала. Пункт 3 — коротко или дома в «Harjuta».',
+      hook: '«Kuhu sa viiksid Eestis sõbra, kes on siin esimest korda?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 48 без записей: что пошло не так в поездке и что случилось раньше (oli … juba …).',
+      plan: [
+        '0–8: пункт 1 — куда ученик повёл бы гостя; одно предложение с enneminevik (повторение урока 48)',
+        '8–25: пункт 2 — слова, письмо «Kaks päeva Tartus» (что в каждом абзаце; da-форма в советах), 8 вопросов, в паре: «Kuidas Elina Tartusse sõidab? Mida nad laupäeval teevad?»',
+        '25–40: пункт 3 — заметить → правило (soovitan, tasub, võid, saad, ära unusta + da-vorm; план по дням; предупреждение olime unustanud; начало и конец личного письма) → 8 форм → 8–10 своих предложений о своём городе',
+        '40–65: пункт 4 — письмо 60–90 слов другу: два дня в Пярну (картинка) или в своём городе, без готового начала; партнёр — друг: читает, задаёт два вопроса и говорит, что ему понравилось бы больше всего; вторая попытка: дописать один совет с da-формой и одно предупреждение',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, что показал бы гостю у себя на родине и почему',
+        '72–90: запас',
+      ],
+      sources: 'Письмо (пункт 2) и картинка «Kaks päeva Pärnus» — учебные, люди выдуманы, время и цены примерные; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4: каждый пишет сам, потом партнёр читает как друг и задаёт два вопроса. Один на один вы — друг.',
+      errors: [
+        '«Soovitan sõitma rongiga» вместо «Soovitan sõita rongiga» (soovitama, tasub, ära unusta + da-vorm).',
+        '«Ära unusta võtma» вместо «Ära unusta võtta» (unustama + da-vorm).',
+        '«Eelmisel korral ma unustasin, et … oli kinni» — для «раньше» лучше «olime unustanud».',
+        '«Lugupidamisega» в письме другу вместо «Kallistustega» / «Parimate soovidega» (личное письмо — личный тон).',
+      ],
+      notes: [
+        'Письмо — продукт урока и свободное письмо модуля: без готового начала, но в нём план на два дня, минимум две da-формы после soovitan / tasub / ära unusta и одно предупреждение.',
+        'Обратная связь, 2 цели: da-vorm после глаголов совета и личный тон письма. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
     discover: [
-      B.review('049_d_review', [['Mis oli juhtunud, kui Anna ja Sofia Helsingi sadamasse jõudsid?', 'a2b1-048'], ['Kes sõi kontoris Markuse supi ära ja mida köögikoosolekul kokku lepiti?', 'a2b1-028'], 'Mida sa näitaksid oma linnas välismaa sõbrale?']),
-      B.text('049_d_brief', 'Projekt: Lena reis', 'Sofia sõbranna Lena elab Berliinis ja tuleb märtsis neljaks päevaks esimest korda Eestisse. Autot tal ei ole ja raha on piiratud. Lena palus Sofial teha reisiplaani. Sinu töö selles tunnis: kogu infot, lepi Lenaga plaan kokku ja kirjuta talle kiri, mida ta saab reisil kaasas kanda.'),
-      tag(B.listening('049_d_lena', 'Lena häälsõnum.', 'Kuula Lena sõnumit kaks korda. Vasta igale küsimusele ühe-kahe sõna või numbriga.', [
+      station(teach(tag(purpose(half(B.speaking('049_d_warm', 'Kuhu sa viiksid külalise?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kuhu sa viiksid Eestis sõbra, kes on siin esimest korda? Miks?',
+        'Ütle ilma märkmeteta: mis läks sul mõnel reisil valesti ja mis oli enne juhtunud?',
+      ], [70, 90])), 'Sinu idee on tänase tunni algus: lõpus kirjutad sõbrale plaani.'), { task: 'S14', fluency: true }),
+      'Üks-ühele: räägi kõigepealt, kuhu sina viisid oma viimase külalise (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mida seal tasub vaadata?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('049_d_vocab', 'Tunni sõnad.', ['külla tulema — приезжать в гости', 'ööbima — ночевать', 'vaatamisväärsus — достопримечательность', 'näitus — выставка', 'soovitama — советовать', 'tasub — стоит (сделать)', 'hoiatus — предупреждение', 'suletud — закрыт', 'mugavad jalanõud — удобная обувь', 'jaama vastu tulema — встречать на вокзале'], '2')), { topic: ['ööbima', 'soovitama'] }), 2, 17),
+      teach(tag(purpose(B.table('049_d_order', 'Enne lugemist: mis järjekorras?', 'Mis järjekorras kirjutad sõbrale plaani? Pane numbrid 1–5. Pärast lugemist kontrolli kirjast.', 'Kirja osa, Minu järjekord, Kirjas', [
+        'mida teeme laupäeval |  | ',
+        'kuidas sõita ja kus ööbida |  | ',
+        'üks hoiatus |  | ',
+        'mida teeme pühapäeval |  | ',
+        'tervitus ja miks kirjutan |  | ',
+      ], 'g_read'), 'Kui sa tead, mis järjekorras plaan tuleb, on kirja lihtsam lugeda ja hiljem ise kirjutada.'), { task: 'R10' }),
+      'Õpilane paneb numbrid enne lugemist (1 min), pärast lugemist kontrollib kirjast (kirjas: tervitus — sõit ja ööbimine — laupäev — pühapäev — hoiatus). Küsi: „Miks on sõit ja ööbimine enne programmi?” Sama järjekord sobib õpilase enda kirja jaoks (jaam 4). Üks-ühele: tehke koos.'),
+      tag(purpose(why(ownText(B.reading('049_d_guide', 'Kiri sõbrale: kaks päeva Tartus.', 'Loe kirja. Vasta igale küsimusele 1–4 sõnaga.', 'Tere, Elina!', [
+        'Väga tore, et sa tuled mind mai lõpus Tartusse vaatama! Ma tegin sulle väikese plaani.',
+        '',
+        'Reedel soovitan sõita rongiga. Otserong väljub Tallinnast kell 17.08 ja jõuab Tartusse kell 19.10. Pilet maksab umbes 12 eurot. Ma tulen sulle jaama vastu. Ööbida saad minu juures, mul on külalistele diivan, nii et hotelli ei ole vaja.',
+        '',
+        'Laupäeval läheme hommikul Eesti Rahva Muuseumi. Seal tasub vaadata näitust „Uurali kaja”, see on väga huvitav. Pärast seda jalutame Toomemäel ja sööme raekoja platsil lõunat. Õhtul võime minna jõe äärde, seal on suvel palju inimesi ja tänavamuusikuid.',
+        '',
+        'Pühapäeval saad ise valida: kas teaduskeskus AHHAA või kohvik ja raamatupood. Kui ilm on ilus, võime ka rattad laenutada. Tagasi sõidad pühapäeva õhtul.',
+        '',
+        'Üks hoiatus: eelmisel suvel tuli mu õde esmaspäeval. Kui me muuseumi jõudsime, olid uksed suletud. Olime unustanud, et esmaspäeval on muuseumid kinni! Seepärast läheme muuseumi laupäeval.',
+        '',
+        'Ära unusta võtta mugavaid jalanõusid, sest Tartus kõnnime palju.',
+        '',
+        'Ootan sind väga!',
+        'Kallistustega',
+        'Kristiina',
+      ], [
+        ['Millal tuleb Elina Tartusse?', 'mai lõpus'],
+        ['Millega soovitab Kristiina sõita?', 'rongiga|rong'],
+        ['Mis kell jõuab rong Tartusse?', '19.10|kell 19.10'],
+        ['Kus Elina ööbib?', 'Kristiina juures|diivanil|tema juures'],
+        ['Mida tasub muuseumis vaadata?', 'näitust „Uurali kaja”|Uurali kaja|näitust'],
+        ['Mida nad laupäeval pärast muuseumi teevad?', 'jalutavad Toomemäel|jalutavad Toomemäel ja söövad lõunat|söövad lõunat'],
+        ['Mida olid Kristiina ja tema õde eelmisel korral unustanud?', 'et esmaspäeval on muuseumid kinni|et muuseum on esmaspäeval kinni'],
+        ['Miks peab Elina võtma mugavad jalanõud?', 'Tartus kõnnitakse palju|nad kõnnivad palju|kõnnivad palju'],
+      ])), [
+        'Esimene lõik: „et sa tuled mind mai lõpus Tartusse vaatama”.',
+        'Teine lõik: „Reedel soovitan sõita rongiga.”',
+        'Teine lõik: „jõuab Tartusse kell 19.10”.',
+        'Teine lõik: „Ööbida saad minu juures”.',
+        'Kolmas lõik: „Seal tasub vaadata näitust „Uurali kaja””.',
+        'Kolmas lõik: „Pärast seda jalutame Toomemäel ja sööme raekoja platsil lõunat.”',
+        'Viies lõik: „Olime unustanud, et esmaspäeval on muuseumid kinni!”',
+        'Kuues lõik: „sest Tartus kõnnime palju”.',
+      ]), 'Enne kui sa ise kirjutad, näed, kuidas sõbrale plaani ja nõuandeid kirjutatakse.'), { task: 'R12' }),
+      teach(tag(purpose(B.speaking('049_d_retell', 'Mis plaanis on? Küsi paarilisel.', 'Küsi paarilisel kirja järgi. B vastab terve lausega. Siis vahetage.', [
+        'Kuidas Elina Tartusse sõidab ja kus ta ööbib?',
+        'Mida nad laupäeval teevad?',
+        'Mis juhtus eelmisel korral ja mida Kristiina sellest õppis?',
+        'Kas see plaan meeldiks sulle? Mida sa muudaksid?',
+      ], [70, 100], '', 'g_read'), 'Ütled kirja järgi, mida Kristiina soovitab, ja kasutad da-vormi.'), { task: 'S05', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kaks. Teisel ringil ütled sa ühe vea („Kristiina soovitab sõita bussiga”) ja õpilane parandab sind kirja järgi.'),
+      hide(B.review('049_d_review', [['Mis oli juhtunud, kui Anna ja Sofia Helsingi sadamasse jõudsid?', 'a2b1-048'], ['Kes sõi kontoris Markuse supi ära ja mida köögikoosolekul kokku lepiti?', 'a2b1-028'], 'Mida sa näitaksid oma linnas välismaa sõbrale?']), V5_DRILL),
+      hide(B.text('049_d_brief', 'Projekt: Lena reis', 'Sofia sõbranna Lena elab Berliinis ja tuleb märtsis neljaks päevaks esimest korda Eestisse. Autot tal ei ole ja raha on piiratud. Lena palus Sofial teha reisiplaani. Sinu töö selles tunnis: kogu infot, lepi Lenaga plaan kokku ja kirjuta talle kiri, mida ta saab reisil kaasas kanda.'), V5_CUT),
+      hide(tag(B.listening('049_d_lena', 'Lena häälsõnum.', 'Kuula Lena sõnumit kaks korda. Vasta igale küsimusele ühe-kahe sõna või numbriga.', [
         'Lena: Tere, Sofia! Siin Lena Berliinist. Mul on suurepärane uudis: ma ostsin lõpuks piletid Tallinnasse!',
         'Lena: Mu lennuk jõuab Tallinna neljapäeval, kaheteistkümnendal märtsil, kell 18.40. Tagasi lendan esmaspäeva hommikul kell kümme.',
         'Lena: Ma tahaksin näha natuke rohkem kui ainult Tallinna. Sa oled nii palju rääkinud Tartust ja oma emast. Ma tahaksin teda väga näha ja tänada kõigi nende pannkookide eest, millest sa rääkinud oled.',
@@ -701,9 +1062,8 @@ export const LESSONS = withShapes({
         'Kui palju raha on Lenal ööbimiseks, sõitudeks ja muuseumideks? [kakssada eurot|200 eurot|200]',
         'Mida Lena ei talu? [kiirustamist]',
         'Kuidas peab Sofia plaani saatma? [kirjaga|kirjas]',
-      ]), { task: 'L03' }),
-      tag(B.vocab('049_d_vocab', 'Tunni sõnad.', ['ühendus — сообщение / стыковка', 'peatus — остановка', 'bussijaam — автовокзал', 'ööbima — ночевать', 'külalistemaja — гостевой дом', 'vaatamisväärsus — достопримечательность', 'kohver — чемодан', 'pagas — багаж', 'tühistama — отменять', 'viimane — последний', 'piisama — хватать', 'soovitus — совет / рекомендация']), { topic: ['külalistemaja'] }),
-      B.examListen('049_d_markus', 'Markuse lugu Viljandist.', 'Kuula, mida Markus kontoris räägib. Ühenda iga kellaaeg sellega, mis siis juhtus.', 'match', [
+      ]), { task: 'L03' }), V5_CUT),
+      hide(B.examListen('049_d_markus', 'Markuse lugu Viljandist.', 'Kuula, mida Markus kontoris räägib. Ühenda iga kellaaeg sellega, mis siis juhtus.', 'match', [
         'Markus: Kuulge, ma pean teile rääkima, mis meiega teisipäeval Viljandis juhtus.',
         'Markus: Liis ja mina olime esmaspäeval Pärnus kliendi juures. Teisipäeval pidime jõudma Tartusse teise kliendi juurde. Plaan oli lihtne: buss Pärnust kell kaheksa, Viljandis ümberistumine ja kell 10.15 edasi Tartu poole.',
         'Markus: Aga öösel oli palju lund sadanud. Buss sõitis aeglaselt ja jõudis Viljandisse alles kell 10.30.',
@@ -718,15 +1078,8 @@ export const LESSONS = withShapes({
       ], [
         ['kell 8.00', 'buss väljus Pärnust'], ['kell 10.15', 'Tartu buss väljus Viljandist'], ['kell 10.30', 'Markuse ja Liisi buss jõudis Viljandisse'], ['kell 10.40', 'Liis ostis uued piletid'], ['kell 11.00', 'Liis helistas kliendile'],
         ['kell 11.15', 'nad jalutasid ja jõid kohvi'], ['kell 12.10', 'Liis näitas õiget peatust'], ['kell 12.20', 'järgmine buss väljus'], ['kell 14.50', 'nad jõudsid kliendi juurde'], ['kell 15.00', 'algas kohtumine kliendiga'],
-      ]),
-      B.notice('049_d_notice', 'Märka: enneminevik põhjuses ja hoiatuses', [
-        '**Kui** me bussijaama jõudsime, **oli** Tartu buss juba **läinud**.',
-        'Põhjus: Raha me tagasi ei saanud, **sest** me **olime ostnud** kõige odavamad piletid.',
-        '**et**-lause: Ma ei teadnud, **et** buss **oli** juba **ära sõitnud**. · Selgus, **et** pilet **oli kehtinud** ainult ühel bussil.',
-        'Hoiatus sõbrale: Markus jäi bussist maha, **sest** öösel **oli** palju lund **sadanud**. Seepärast jäta ümberistumiseks tund aega!',
-        'Eitus: ma **ei olnud** seda **arvestanud** · Lena **polnud** kunagi Eestis **käinud**.',
-      ], 'full'),
-      B.wordforms('049_d_words', 'Sõnapere: reis, sõit, ööbimine.', 'Moodusta antud tegusõnast nimisõna ja kirjuta see sobivas vormis lausesse.', [
+      ]), V5_CUT),
+      hide(B.wordforms('049_d_words', 'Sõnapere: reis, sõit, ööbimine.', 'Moodusta antud tegusõnast nimisõna ja kirjuta see sobivas vormis lausesse.', [
         ['reisima', 'Iga … peaks teadma, kus on tema pagas.', 'reisija'],
         ['sõitma', 'Tallinnast Tartusse on kahetunnine … .', 'sõit'],
         ['ööbima', 'Lena tahab, et … oleks odav ja vaikne.', 'ööbimine'],
@@ -737,34 +1090,39 @@ export const LESSONS = withShapes({
         ['tühistama', 'Lennu … korral saad raha tagasi.', 'tühistamise'],
         ['kohtuma', 'Liis lükkas … kliendiga kella kolmeks.', 'kohtumise'],
         ['laulma', 'Viljandi kontserdil laulab tuntud … .', 'laulja'],
-      ], 'full', 'g_vocab'),
-      tag(B.reading('049_d_guide', 'Kaks linna Lenale.', 'Loe reisijuhi teksti kahe Lõuna-Eesti linna kohta. Vasta küsimustele ja mõtle, mis sobib Lenale ja miks.', 'Tartu ja Viljandi: nädalavahetus Lõuna-Eestis', [
-        'Tartu on Eesti suuruselt teine linn ja vana ülikoolilinn. Tartu ülikool asutati 1632. aastal, kui Rootsi kuningas Gustav II Adolf allkirjastas selle asutamisüriku. 2024. aastal oli Tartu koos Lõuna-Eestiga Euroopa kultuuripealinn.',
-        '',
-        'Tallinnast sõidab Tartusse rong. Raekoja plats ja Toomemägi on kesklinnas ning neid saab vaadata jalgsi. Eesti Rahva Muuseum asub Raadil, kesklinnast natuke eemal. Muuseumi uus maja avati 2016. aastal.',
-        '',
-        'Viljandi on väike ja rahulik linn. Tallinnast sõidab Viljandisse rong, aga Tartust Viljandisse rongiga ei saa: sinna sõidab buss. Linna kõige ilusam koht on lossimäed. Seal on vana ordulinnuse varemed ja vaade Viljandi järvele.',
-        '',
-        'Viljandi on tuntud pärimusmuusika poolest. Lossimägede serval on Pärimusmuusika Ait, mis avati 2008. aastal. See on kontserdimaja ja kultuurikeskus. Igal suvel juuli lõpus toimub Viljandi pärimusmuusika festival. Esimest korda toimus see 1993. aastal.',
-        '',
-        'Mõlemas linnas on vanalinn väike ja vaatamisväärsused on jalgsi kättesaadavad. Kui sõidad ühe päevaga mitmesse linna, vaata sõiduplaan enne üle ja jäta ümberistumiseks aega, sest talvel võivad bussid lume tõttu hilineda.',
-        '',
-        'Allikas: Tartu Ülikool, „Tartu Ülikooli lugu”; Tartu 2024; Eesti Rahva Muuseum, „Ajalugu”; Elron; Eesti Pärimusmuusika Keskus (folk.ee); Puhka Eestis, „Viljandi Pärimusmuusika Ait” ja „Viljandi ordulinnuse varemed”.',
-      ], [
-        ['Mis aastal asutati Tartu ülikool?', '1632|1632. aastal|aastal 1632'],
-        ['Mis tiitel oli Tartul 2024. aastal?', 'Euroopa kultuuripealinn|Euroopa kultuuripealinna tiitel|kultuuripealinn'],
-        ['Kus asub Eesti Rahva Muuseum?', 'Raadil|Raadil, kesklinnast natuke eemal'],
-        ['Millega saab Tartust Viljandisse sõita?', 'bussiga'],
-        ['Mida näeb Viljandi lossimägedel?', 'vana ordulinnuse varemeid|linnuse varemeid ja järve|ordulinnuse varemeid ja vaadet järvele'],
-        ['Miks on Viljandi Lenale huvitav?', 'seal on pärimusmuusika kontserdid|Lena armastab pärimusmuusikat|Viljandi on tuntud pärimusmuusika poolest'],
-        ['Millal toimub Viljandi pärimusmuusika festival?', 'igal suvel juuli lõpus|juuli lõpus'],
-        ['Kumb linn sobiks Lenale ööbimiseks paremini ja miks?', ''],
-      ]), { voice: 'article' }),
-      teach(tag(B.speaking('049_d_survey', 'Kuhu viia välismaa sõber?', 'Küsi kolmelt inimeselt samad küsimused: mida peaks Lena Eestis nägema? Lõpus tee ülevaade.', ['Mida peaks välismaa sõber Eestis kindlasti nägema? Miks?', 'Kas Tartu või Viljandi? Miks?', 'Kas sõita bussi või rongiga?', 'Kus on hea ja odav ööbida?', 'Räägi lõpuks: mida kolm inimest soovitasid?'], [70, 120], ['Mida sa soovitad…?', 'Kõik kolm soovitasid…', 'Üks arvas, et…, aga teine…']), { task: 'S09', fluency: true }),
-        'Üks-ühele: õpilane küsib samad küsimused õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (tudeng, pensionär, muusik). Lõpus teeb õpilane minutilise kokkuvõtte.'),
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.speaking('049_d_survey', 'Kuhu viia välismaa sõber?', 'Küsi kolmelt inimeselt samad küsimused: mida peaks Lena Eestis nägema? Lõpus tee ülevaade.', ['Mida peaks välismaa sõber Eestis kindlasti nägema? Miks?', 'Kas Tartu või Viljandi? Miks?', 'Kas sõita bussi või rongiga?', 'Kus on hea ja odav ööbida?', 'Räägi lõpuks: mida kolm inimest soovitasid?'], [70, 120], ['Mida sa soovitad…?', 'Kõik kolm soovitasid…', 'Üks arvas, et…, aga teine…']), { task: 'S09', fluency: true }),
+        'Üks-ühele: õpilane küsib samad küsimused õpetajalt kolm korda; õpetaja vastab iga kord teise inimesena (tudeng, pensionär, muusik). Lõpus teeb õpilane minutilise kokkuvõtte.'), V5_CUT),
     ],
     practice: [
-      B.choice('049_p_tense', 'Mis juhtus enne?', 'Loe lauseid Markuse loost ja Lena reisist. Vali vorm, mis näitab õigesti, mis juhtus enne.', [
+      station(B.notice('049_d_notice', 'Märka: plaan ja nõuanne sõbrale', [
+        'Kirjast: **soovitan sõita** rongiga · **tasub vaadata** näitust · **ära unusta võtta** mugavaid jalanõusid · **olime unustanud**, et muuseumid on kinni',
+        '**da-vorm** pärast: **soovitan**, **tasub**, **võid**, **saad**, **ära unusta** — soovitan **sõita**, tasub **vaadata**, ära unusta **võtta**',
+        'Plaani järjekord: **reedel** … · **laupäeval hommikul** … · **pärast seda** … · **õhtul** … · **pühapäeval** …',
+        'Hoiatus enneminevikuga: eelmisel korral **olime unustanud**, et … · **kui** me **jõudsime**, **oli** … juba **suletud**',
+        'Isiklik kiri: **Tere, …!** või **Kallis …!** · lõpus **Ootan sind!** · **Kallistustega** või **Parimate soovidega**, nimi',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.gaps('049_p_forms', 'Nõuanne ja hoiatus.', 'Kirjuta sulgudes olev tegusõna õiges vormis: da-vorm või -nud-vorm (enneminevik).', [
+        'Soovitan sul [sõita] rongiga, see on mugavam (sõitma).',
+        'Vanalinnas tasub kindlasti õhtul [jalutada] (jalutama).',
+        'Ära unusta kaasa [võtta] vihmavarju (võtma).',
+        'Muuseumi pileti võid [osta] ka internetist (ostma).',
+        'Õhtul saad ise [valida], kas läheme kinno või kohvikusse (valima).',
+        'Eelmisel korral olin ma pileti koju [unustanud] (unustama).',
+        'Kui me lossi jõudsime, olid viimased külastajad juba [lahkunud] (lahkuma).',
+        'Me polnud enne kunagi seal saarel [käinud] (käima).',
+      ], '', 'full', 'g_notice'), [
+        'soovitama → da-vorm: sõita.',
+        'tasub → da-vorm: jalutada.',
+        'ära unusta → da-vorm: võtta.',
+        'võid → da-vorm: osta.',
+        'saad → da-vorm: valida.',
+        'Enne → olin + -nud: unustanud.',
+        'Enne meie jõudmist → olid + -nud: lahkunud.',
+        'Eitus: polnud + -nud: käinud.',
+      ]), 'Kaheksa lauset näitavad, kas nõuande ja hoiatuse vormid on käes.'), { task: 'G02' }),
+      tag(purpose(rows(B.writing('049_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset oma linna kohta külalisele: mida tasub vaadata, kuhu soovitad minna, mida ära unustada ja üks hoiatus (eelmisel korral olin …).', [8, 10]), 7), 'Oma laused on sinu kirja materjal.'), { task: 'W11' }),
+      hide(B.choice('049_p_tense', 'Mis juhtus enne?', 'Loe lauseid Markuse loost ja Lena reisist. Vali vorm, mis näitab õigesti, mis juhtus enne.', [
         ['Kui buss Viljandisse jõudis, … Tartu buss juba läinud.', 'oli', 'olid', 'ole'],
         ['Eile … me Pärnust Viljandisse peaaegu kolm tundi.', 'sõitsime', 'sõitma', 'sõitnud'],
         ['Bussijaamas … Liis telefoniga kohe uued piletid.', 'ostis', 'ostma', 'ostnud'],
@@ -775,8 +1133,8 @@ export const LESSONS = withShapes({
         ['Kui Lena lennujaama jõudis, oli Sofia teda juba tund aega …', 'oodanud', 'ootas', 'ootama'],
         ['Markus rääkis, et nad … lossimägedel jalutanud.', 'olid', 'oli', 'ole'],
         ['Kas sa … enne Riiga sõitu hotelli juba broneerinud?', 'olid', 'oli', 'olin'],
-      ], 'full', 'g_notice'),
-      B.dialogue('049_p_chat', 'Sofia ja Lena sõnumid.', 'Sofia ja Lena kirjutavad teineteisele. Kirjuta igasse lünka üks sõna, mis sobib sisu ja vormiga.', 'Sofia', 'Lena', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.dialogue('049_p_chat', 'Sofia ja Lena sõnumid.', 'Sofia ja Lena kirjutavad teineteisele. Kirjuta igasse lünka üks sõna, mis sobib sisu ja vormiga.', 'Sofia', 'Lena', [
         ['A', 'Lena, sain su sõnumi kätte! Kas sa tahad ööbida Tartus minu ema [juures]?'],
         ['B', 'Kas see ei ole liiga palju? Ma ei taha kedagi [segada].'],
         ['A', 'Ema ise pakkus! Tal on vaba tuba ja ta küpsetab hommikuks [pannkooke].'],
@@ -787,8 +1145,8 @@ export const LESSONS = withShapes({
         ['B', 'Kas ma jõuan pärast kontserti veel Tallinnasse [tagasi]?'],
         ['A', 'Viimane buss väljub 21.30. Aga parem on Viljandis [ööbida].'],
         ['B', 'Hea mõte, ma ei taha [kiirustada]. Saada mulle plaan kirjaga!'],
-      ], 'g_read'),
-      B.formtext('049_p_tips', 'Markuse nõuanded.', 'Markus kirjutab Lenale nõuandeid. Pane sulgudes olev sõna õigesse vormi; mõnikord on vaja enneminevikku.', 'Paar nõuannet Lõuna-Eesti reisiks', [
+      ], 'g_read'), V5_CUT),
+      hide(B.formtext('049_p_tips', 'Markuse nõuanded.', 'Markus kirjutab Lenale nõuandeid. Pane sulgudes olev sõna õigesse vormi; mõnikord on vaja enneminevikku.', 'Paar nõuannet Lõuna-Eesti reisiks', [
         'Tere, Lena! Sofia palus mul sulle paar nõuannet kirjutada. Eelmisel teisipäeval jäime Liisiga Viljandis bussist maha, sest öösel [oli] (olema) palju lund [sadanud] (sadama).',
         '',
         'Kui me bussijaama jõudsime, oli Tartu buss juba [läinud] (minema). Me [olime] (olema) ostnud kõige odavamad piletid ja raha tagasi ei saanud.',
@@ -798,8 +1156,8 @@ export const LESSONS = withShapes({
         'Viljandis on [bussijaamast] (bussijaam) lossimägedeni kümme [minutit] (minut) jalgsi. Kontserdi pileti osta [internetist] (internet), sest laupäeval on saal tihti täis.',
         '',
         'Ja veel: kui buss [hilineb] (hilinema), ära muretse. Viljandis on palju toredaid kohvikuid ja inimesed on väga abivalmis. Kui sa tee peal midagi ei leia, küsi julgelt, sest Viljandis teavad kõik kõiki. Head reisi! Markus',
-      ]),
-      tag(B.transformation('049_p_join', 'Kaks lauset üheks.', 'Ühenda laused antud sõnaga. Sündmus, mis juhtus enne, läheb enneminevikku.', [
+      ]), V5_DRILL),
+      hide(tag(B.transformation('049_p_join', 'Kaks lauset üheks.', 'Ühenda laused antud sõnaga. Sündmus, mis juhtus enne, läheb enneminevikku.', [
         ['Tartu buss läks ära. Siis jõudsime bussijaama.', 'kui', 'Kui me bussijaama jõudsime, oli Tartu buss ära läinud.'],
         ['Öösel sadas palju lund. Seepärast hilines buss.', 'sest', 'Buss hilines, sest öösel oli palju lund sadanud.'],
         ['Lena ostis piletid. Siis helistas ta Sofiale.', 'kui', 'Kui Lena oli piletid ostnud, helistas ta Sofiale.'],
@@ -810,8 +1168,8 @@ export const LESSONS = withShapes({
         ['Helgi tegi Lenale toa valmis. Siis jõudis Lena Tartusse.', 'kui', 'Kui Lena Tartusse jõudis, oli Helgi talle toa valmis teinud.'],
         ['Lena ei olnud kunagi Eestis käinud. Ta oli väga põnevil.', 'kuna', 'Kuna Lena ei olnud kunagi Eestis käinud, oli ta väga põnevil.'],
         ['Lena unustas telefoni laadija koju. Ta ostis Tartus uue.', 'kuna', 'Kuna Lena oli telefoni laadija koju unustanud, ostis ta Tartus uue.'],
-      ]), { task: 'W09' }),
-      B.errorfix('049_p_fix', 'Lena eesti keel.', 'Lena õpib eesti keelt ja kirjutas Sofiale. Igas lauses on üks viga; kirjuta lause õigesti.', [
+      ]), { task: 'W09' }), V5_DRILL),
+      hide(B.errorfix('049_p_fix', 'Lena eesti keel.', 'Lena õpib eesti keelt ja kirjutas Sofiale. Igas lauses on üks viga; kirjuta lause õigesti.', [
         ['Ma jõuan Tallinnasse neljapäeva kell 18.40.', 'Ma jõuan Tallinnasse neljapäeval kell 18.40.'],
         ['Mul on kaasas ainult üks väike kohvrit.', 'Mul on kaasas ainult üks väike kohver.'],
         ['Ma tahan ööbida sinu ema juurde Tartus.', 'Ma tahan ööbida sinu ema juures Tartus.'],
@@ -822,22 +1180,38 @@ export const LESSONS = withShapes({
         ['Palun saada mulle plaani kirjaga.', 'Palun saada mulle plaan kirjaga.'],
         ['Ma ootan väga meie kohtumine.', 'Ma ootan väga meie kohtumist.'],
         ['Mul ei ole palju raha, aga kakssada eurot piisab.', 'Mul ei ole palju raha, aga kahesajast eurost piisab.'],
-      ]),
-      B.categorize('049_p_sort', 'Mida Lena tahab?', 'Lena saatis oma soovid. Sorteeri: mida Lena tahab ja mida ta ei taha.', [
+      ]), V5_DRILL),
+      hide(B.categorize('049_p_sort', 'Mida Lena tahab?', 'Lena saatis oma soovid. Sorteeri: mida Lena tahab ja mida ta ei taha.', [
         ['Lena tahab', ['näha Tartut', 'kuulata pärimusmuusikat', 'sõita bussi või rongiga', 'ööbida odavalt', 'reisida rahulikult', 'tutvuda Sofia emaga', 'saada plaan kirjaga', 'näha rohkem kui Tallinna']],
         ['Lena ei taha', ['rentida autot', 'kiirustada', 'joosta ühest kohast teise', 'maksta ööbimise eest palju', 'jääda ainult Tallinnasse', 'võtta kaasa suurt pagasit', 'sõita ise autoga', 'kuulata plaani telefonis']],
-      ], 'full', 'g_vocab'),
-      teach(tag(B.phoneCards('049_p_call', 'Helista Viljandi külalistemajja.', 'A helistab Lena eest Viljandi külalistemajja, B vastab. Tehke kõne kaks korda; teisel korral kiiremini.', 'Sofia tahab broneerida Lenale laupäevaks toa Viljandis, kontserdi lähedal.', ['Sofia', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(teach(tag(B.phoneCards('049_p_call', 'Helista Viljandi külalistemajja.', 'A helistab Lena eest Viljandi külalistemajja, B vastab. Tehke kõne kaks korda; teisel korral kiiremini.', 'Sofia tahab broneerida Lenale laupäevaks toa Viljandis, kontserdi lähedal.', ['Sofia', [
         'Ütle, kelle jaoks ja mis ööks tuba on vaja.', 'Küsi hinda ja kas hommikusöök on hinnas.', 'Küsi, kui kaugel on pärimusmuusika ait.', 'Küsi, kas tuppa saab ka hilja õhtul pärast kontserti.', 'Küsi, kas broneeringut saab tühistada.',
       ]], ['Külalistemaja Kase töötaja', [
         'Ühene tuba laupäevaks on vaba: 45 €, hommikusöök 8 €.', 'Muusika aidani on viis minutit jalgsi.', 'Uks avatakse koodiga; kood saadetakse e-postiga.', 'Tühistamine on tasuta kuni reede kella kaheteistkümneni.', 'Küsi külalise nime ja e-posti aadressi.',
       ]]), { fluency: true }),
-      'Üks-ühele: õpetaja on külalistemaja töötaja ja vastab ainult küsimise peale; teisel korral vahetage kaardid ja tehke kõne kiiremini. Kontrollige lõpus: kas kõik viis küsimust said vastuse.'),
-      B.planning('049_p_plan', 'Lena reisi kava.', 'Kirjuta igale reale Lena reisi kava: päev, sõit, ööbimine ja hind.', ['Neljapäev: kus Lena ööbib ja mida ta õhtul teeb?', 'Reede: millega ja mis kell sõidab ta Tartusse? Mida ta seal näeb?', 'Laupäev: kuidas jõuab ta Viljandisse? Kus ta ööbib?', 'Pühapäev: kuidas jõuab ta Tallinnasse tagasi?', 'Esmaspäev: kuidas ja mis kell jõuab ta lennujaama?', 'Kulud kokku: kas kahesajast eurost piisab?'], 2),
+      'Üks-ühele: õpetaja on külalistemaja töötaja ja vastab ainult küsimise peale; teisel korral vahetage kaardid ja tehke kõne kiiremini. Kontrollige lõpus: kas kõik viis küsimust said vastuse.'), V5_CUT),
+      hide(B.planning('049_p_plan', 'Lena reisi kava.', 'Kirjuta igale reale Lena reisi kava: päev, sõit, ööbimine ja hind.', ['Neljapäev: kus Lena ööbib ja mida ta õhtul teeb?', 'Reede: millega ja mis kell sõidab ta Tartusse? Mida ta seal näeb?', 'Laupäev: kuidas jõuab ta Viljandisse? Kus ta ööbib?', 'Pühapäev: kuidas jõuab ta Tallinnasse tagasi?', 'Esmaspäev: kuidas ja mis kell jõuab ta lennujaama?', 'Kulud kokku: kas kahesajast eurost piisab?'], 2), V5_CUT),
     ],
     transfer: [
-      B.text('049_t_sit', 'Kiri Lenale', 'Lena lendab kahe päeva pärast. Sofia leidis sõiduplaanid ja hinnad ning tegi märkmeid. Loe neid, lepi Lenaga videokõnes plaan kokku ja kirjuta talle kiri, mida ta saab lennukis lugeda.'),
-      tag(B.reading('049_t_info', 'Sõiduplaan, hinnad ja Sofia märkmed.', 'Loe sõiduplaani, hindu ja märkmeid. Vasta küsimustele: mis Lenale sobib ja kas raha jätkub?', 'Lena reis: 12.–16. märts', [
+      station(teach(tag(purpose(rows(B.examWriting('049_t_letter', 'Minu kiri sõbrale', 'Sõber tuleb sulle kaheks päevaks külla. Kirjuta 60–90 sõna: kuidas ta sõidab, kus ööbib, mida teete ja üks nõuanne. Linn on pildil või sinu oma. Algus ja lõpp on sinu oma.', 'kiri', {
+        words: [60, 90],
+      }), 4), 'Sõber teab pärast kirja, kuidas sõita ja mida teha.'), { task: 'W08', harno: 'W2b', main: true, level: 4 }),
+      'Eksaminurk (Harno B1 kirjutamine 2b, isiklik kiri, siin 60–90 sõna). Õpilane kirjutab tunnis 15 minutit ilma abita (Pärnu pildi järgi või oma linn), siis loeb paarilisele (või sulle) ette; kuulaja on sõber, küsib kaks küsimust („Kas seal saab ka vihmaga midagi teha?”, „Kui palju see maksab?”) ja ütleb, mis talle kõige rohkem meeldiks. Teine katse: õpilane lisab ühe nõuande da-vormiga (soovitan, tasub, ära unusta) ja ühe hoiatuse („eelmisel korral olin …”). Parandatud versioon on kodutöö. Kontrolli: plaan kahe päeva kohta (sõit, ööbimine, tegevused), vähemalt kaks da-vormi, isiklik algus ja lõpp.'), 4, 25, { final: 'plan' }),
+      tag(exitCheck(why(purpose(B.gaps('049_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', [
+        'Pärnusse soovitan sul [sõita] hommikuse bussiga (sõitma).',
+        'Ära unusta randa kaasa [võtta] päikesekreemi (võtma).',
+        'Eelmisel korral olin ma ujumisriided koju [unustanud] (unustama).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas nõuanne ja hoiatus on käes.'), ['soovitama → da-vorm: sõita.', 'ära unusta → da-vorm: võtta.', 'olin + -nud: unustanud.'])), {}),
+      purpose(B.selfcheck('049_t_self', ['Ma annan nõu: soovitan sõita, tasub vaadata, ära unusta võtta.', 'Ma kirjutan plaani päevade kaupa: reedel, laupäeval, pärast seda.', 'Ma saan aru sõbra kirjast reisiplaaniga.', 'Ma kirjutan sõbrale isikliku kirja kahe päeva plaaniga.'], 'Kiri valmis', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('049_t_rec', 'Kodus: häälsõnum külalisele.', 'Salvesta 60–90 sekundit, nagu jätaksid sõbrale häälsõnumi.', [
+        'Millega ja mis kell sõber peaks sõitma?',
+        'Mida te koos teete?',
+        'Mida ta ei tohi unustada?',
+      ], [60, 90]), 'Õpetaja ütleb, kas nõuanded tulid da-vormiga.')), { task: 'S15', fluency: true }),
+      homework('049_t_homework', ['1. Paranda kiri ja saada see õpetajale.', '2. Salvesta häälsõnum sõbrale (ülesanne üleval).', '3. Kirjuta vihikusse kolm nõuannet oma linna kohta (soovitan …, tasub …, ära unusta …) ja üks hoiatus enneminevikus (eelmisel korral olin …).', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      hide(B.text('049_t_sit', 'Kiri Lenale', 'Lena lendab kahe päeva pärast. Sofia leidis sõiduplaanid ja hinnad ning tegi märkmeid. Loe neid, lepi Lenaga videokõnes plaan kokku ja kirjuta talle kiri, mida ta saab lennukis lugeda.'), V5_CUT),
+      hide(tag(B.reading('049_t_info', 'Sõiduplaan, hinnad ja Sofia märkmed.', 'Loe sõiduplaani, hindu ja märkmeid. Vasta küsimustele: mis Lenale sobib ja kas raha jätkub?', 'Lena reis: 12.–16. märts', [
         'Rongid Tallinn–Tartu reedel: 8.05 → 10.10, 12.05 → 14.15, 16.05 → 18.10. Pilet 9 €.',
         'Bussid Tartu–Viljandi laupäeval: 11.00 → 12.05, 14.30 → 15.35, 17.00 → 18.05. Pilet 7 €.',
         'Bussid Viljandi–Tallinn pühapäeval: 10.15 → 12.45, 15.20 → 17.50, 21.30 → 0.05. Pilet 11 €.',
@@ -859,31 +1233,108 @@ export const LESSONS = withShapes({
         ['Kui palju maksab ööbimine Viljandis koos hommikusöögiga?', '53 eurot|53'],
         ['Kas 200 eurost piisab, kui Lena sõidab kaks korda lennujaama bussiga ja käib mõlemas muuseumis ning kontserdil? Arvuta.', 'jah, kokku 130 eurot|jah'],
         ['Mida sina Lenale hoiatuseks kirjutaksid ja miks?', ''],
-      ]), { task: 'R08', level: 3 }),
-      teach(B.ideaCard('049_t_video', 'Videokõne Lenaga.', 'Arutage Lenaga videokõnes reisiplaani ja leppige kokku, mida ta igal päeval teeb.', 'Lena on Berliinis ja tal on küsimusi. Ta tahab näha võimalikult palju, aga mitte kiirustada.', ['reede: Tartu ja Eesti Rahva Muuseum', 'reede: Kumu Tallinnas', 'laupäev: Viljandi ja kontsert', 'laupäev: Tartu kohvikud', 'pühapäev: lossimäed Viljandis', 'pühapäev: varakult tagasi Tallinnasse'], 'Mida Lena teeb reedel, laupäeval ja pühapäeval? Mis jääb järgmiseks korraks?'),
-        'Üks-ühele: õpetaja on Lena ja tahab alguses kõike korraga („Kas ma jõuan reedel nii Kumusse kui ka Tartusse?”); õpilane seletab aja ja raha abil, mis on võimalik. Lõpus ütleb õpilane plaani päevade kaupa.'),
-      teach(tag(B.examWriting('049_t_letter', 'Eksaminurk: kiri Lenale (Harno B1 kirjutamine 2)', 'Kirjuta Lenale isiklik kiri 80–100 sõnaga. Kirjuta kõigist viiest punktist.', 'kiri', {
-        situation: 'Lena palus saata reisiplaani kirjaga. Ta loeb selle lennukis läbi.',
-        points: ['kuidas Lena reedel Tartusse jõuab ja kus ta ööbib', 'mida ta laupäeval Viljandis teeb', 'kuidas ja millal ta Tallinnasse tagasi sõidab', 'kui palju reis umbes maksab', 'üks hoiatus Markuse loo põhjal'],
-        words: [80, 100], opening: 'Kallis Lena!', closing: 'Kohtumiseni! Sofia',
-      }), { harno: 'W2b', main: true }),
-      'Eksaminurk (Harno B1 kirjutamine 2, isiklik kiri, ~12 min), formaati tutvustatakse siin. Strateegia: 1) loe ülesanne ja märgi iga punkt maha, kui see on kirjas; 2) kirja raam: pöördumine, sissejuhatav lause, iga punkti kohta paar lauset, küsimus lugejale, lõputervitus; 3) seo laused (kõigepealt, siis, pärast seda, sest, kui); 4) loe sõnad üle: 80–100. Üks-ühele: õpetaja hindab kirja B1 hindamisjuhendiga (12 punkti) ja näitab, mis punkt jäi katmata.'),
-      teach(tag(B.speaking('049_t_rec', 'Kodus: minu reisiplaan.', 'Räägi 1–2 minutit ja salvesta: kuhu sa tahad sõita, millega ja mida sa seal igal päeval teed.', ['Kuhu ja millal sa tahad sõita?', 'Millega sa sõidad ja miks?', 'Kus sa ööbid?', 'Mida sa igal päeval teed?'], [60, 120], ['Ma tahan sõita…', 'Esimesel päeval…', 'Ma valin…, sest…']), { task: 'S15', level: 3 }),
-        'Kodune monoloog. Tunnis küsib õpetaja kaks küsimust plaani kohta ja pakub ühe muudatuse.'),
-      B.rubricW2('049_t_rubric', 'Hindamine: kiri Lenale (12 punkti).'),
-      tag(B.writing('049_t_edit', 'Parem kiri.', 'Loe oma kirja Lena silmadega. Märgi hindamisjuhendi järgi kaks puudust ja kirjuta parem versioon.', [9, 11], ['kõigepealt', 'pärast seda', 'sest', 'oli'], 3), { task: 'W10' }),
-      B.selfcheck('049_t_self', ['Ma saan aru sõbra sõnumist, kolleegi reisiloost ja reisijuhi tekstist.', 'Ma leian sõiduplaanist ja hinnakirjast sobiva sõidu ning arvutan kulud.', 'Ma kasutan enneminevikku põhjuses ja hoiatuses.', 'Ma kirjutan sõbrale isikliku kirja reisiplaaniga.'], 'Reisiplaan sõbrale'),
+      ]), { task: 'R08', level: 3 }), V5_CUT),
+      hide(teach(B.ideaCard('049_t_video', 'Videokõne Lenaga.', 'Arutage Lenaga videokõnes reisiplaani ja leppige kokku, mida ta igal päeval teeb.', 'Lena on Berliinis ja tal on küsimusi. Ta tahab näha võimalikult palju, aga mitte kiirustada.', ['reede: Tartu ja Eesti Rahva Muuseum', 'reede: Kumu Tallinnas', 'laupäev: Viljandi ja kontsert', 'laupäev: Tartu kohvikud', 'pühapäev: lossimäed Viljandis', 'pühapäev: varakult tagasi Tallinnasse'], 'Mida Lena teeb reedel, laupäeval ja pühapäeval? Mis jääb järgmiseks korraks?'),
+        'Üks-ühele: õpetaja on Lena ja tahab alguses kõike korraga („Kas ma jõuan reedel nii Kumusse kui ka Tartusse?”); õpilane seletab aja ja raha abil, mis on võimalik. Lõpus ütleb õpilane plaani päevade kaupa.'), V5_CUT),
+      hide(B.rubricW2('049_t_rubric', 'Hindamine: kiri Lenale (12 punkti).'), V5_CUT),
+      hide(tag(B.writing('049_t_edit', 'Parem kiri.', 'Loe oma kirja Lena silmadega. Märgi hindamisjuhendi järgi kaks puudust ja kirjuta parem versioon.', [9, 11], ['kõigepealt', 'pärast seda', 'sest', 'oli'], 3), { task: 'W10' }), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 050 control 10 (one sheet): reading, speaking, writing
   'a2b1-050': {
-    title: 'Eksam 10 — reisimine',
+    title: 'Kontroll 10: reisimine',
+    format: 'exam',
     assessment: true,
-    canDo: 'Ma sooritan reisiteemalise mooduli eksami Harno B1 vormis lühendatud pikkusega: loen, kuulan, kirjutan ja räägin ajapiiranguga; eesmärk on vähemalt 80 % igas osas.',
+    canDo: 'Ma saan aru reisiteenuste kuulutustest ja teatest reisijatele, räägin ilma abita ühest reisist, helistan hostelisse ja kirjutan sõbrale sõnumi.',
     discover: [
-      B.text('050_d_intro', 'Mooduli eksam', 'Selles tunnis teed mooduli 10 eksami Harno B1 vormis, aga lühemalt: lugemine (40 min, 28 punkti), kuulamine (umbes 25 min, 23 punkti), kirjutamine (35 min, 20 punkti) ja rääkimine (umbes 15 min, 20 punkti). Eesmärk on vähemalt 80 % igas osas. Kõigepealt kordad mooduli sõnu ja vorme ning loed, kuidas Sofia reis Tartusse lõppes.'),
-      B.vocab('050_d_vocab', 'Mooduli võtmesõnad.', ['väljuma — отправляться', 'saabuma — прибывать', 'ümber istuma — пересаживаться', 'sõiduplaan — расписание', 'broneerima — бронировать', 'eelarve — бюджет', 'lahkuma — уходить / отправляться', 'selguma — выясняться', 'ühendus — сообщение / стыковка', 'ööbima — ночевать', 'tühistama — отменять', 'hilinema — опаздывать']),
-      B.choice('050_d_quiz', 'Mida sa moodulist mäletad?', 'Vali mooduli lugude põhjal igale küsimusele õige vastus.', [
+      half(B.text('050_d_intro', 'Kontroll 10', `See on mooduli 10 kontroll: lugemine 15 minutit, rääkimine 15 minutit ja kirjutamine 15 minutit, ilma sõnaraamatuta. Rääkimise esimene ülesanne on paralleelne tunni 46 külma stardiga: lõpus võrdled. ${THRESHOLDS}`)),
+      half(B.examPart('050_p_rpart', 'R', { part: 'Lugemine', minutes: 15, points: 16, tasks: 2, target: 60, note: 'Loe kõigepealt küsimused, siis tekst.' })),
+      tag(why(B.adsmatch('050_p_r1', 'Lugemine 1. Reisiteenused.', 'Kirjuta iga olukorra juurde sobiva kuulutuse täht. Üks kuulutus võib sobida mitmele olukorrale.', [
+        ['Rattarent Tuul', 'Linnarattad ja turismirattad tunniks või päevaks. Päev maksab 15 €, nädal 60 €. Kiiver ja lukk tasuta. Lastele on rattatoolid ja väikesed rattad.'],
+        ['Pagasihoid Balti jaamas', 'Jätke kohver meie juurde ja jalutage vabalt. Väike kapp 4 € päevas, suur 7 € päevas. Avatud iga päev 6–23. Maksta saab ainult kaardiga.'],
+        ['Praamid saartele', 'Praam Virtsust Muhusse iga tunni järel. Autoga reisija peab koha ette broneerima, jalgsi reisija ostab pileti kohapeal. Lemmikloomad sõidavad tasuta.'],
+        ['Hostel Rändaja', 'Tartu kesklinnas, bussijaamast 3 minuti kaugusel. Voodi 6-kohalises toas 18 €, kahene tuba 45 €. Köök on kõigile külalistele vabalt kasutada.'],
+        ['Bussiekskursioon Lahemaale', 'Laupäeviti kell 9 Tallinna Vabaduse väljakult. Neli mõisat ja raba matkarada, tagasi kell 18. Hind 45 €, lõuna on hinnas.'],
+        ['Autorent Kiirtee', 'Väikesed ja suured autod alates 30 € päevas. Auto saab kätte lennujaamas ja ära tuua igas Eesti linnas. Juhil peab olema juhiluba vähemalt kaks aastat.'],
+      ], [
+        ['Turist tahab terve nädala rattaga mööda Tallinna sõita.', 'A'],
+        ['Kristi tahab jätta kohvri päevaks jaama ja minna linna vaatama.', 'B'],
+        ['Mart sõidab autoga Saaremaale ja tahab kindel olla, et praamile mahub.', 'C'],
+        ['Üliõpilane otsib Tartus kõige odavamat ööbimist ja tahab ise süüa teha.', 'D'],
+        ['Pensionär tahab ühe päevaga näha Eesti mõisaid ilma ise autot juhtimata.', 'E'],
+        ['Pere tahab lennujaamast autoga Pärnusse sõita ja auto seal ära anda.', 'F'],
+        ['Ema tahab koos kuueaastase pojaga linnas rattaga sõita.', 'A'],
+        ['Reisija sõidab koeraga Muhu saarele jalgsi.', 'C'],
+      ]), [
+        'A: „Päev maksab 15 €, nädal 60 €.”',
+        'B: „Jätke kohver meie juurde ja jalutage vabalt.”',
+        'C: „Autoga reisija peab koha ette broneerima”.',
+        'D: „Voodi 6-kohalises toas 18 € … Köök on kõigile külalistele vabalt kasutada.”',
+        'E: „Neli mõisat ja raba matkarada … lõuna on hinnas.”',
+        'F: „Auto saab kätte lennujaamas ja ära tuua igas Eesti linnas.”',
+        'A: „Lastele on rattatoolid ja väikesed rattad.”',
+        'C: „jalgsi reisija ostab pileti kohapeal. Lemmikloomad sõidavad tasuta.”',
+      ]), { harno: 'R1', task: 'R01' }),
+      tag(why(B.reading('050_p_r2text', 'Lugemine 2. Teade reisijatele.', 'Loe teadet. Vasta igale küsimusele 1–5 sõnaga, osa vastuseid oma sõnadega.', 'Head reisijad!', [
+        'Suvel uuendame raudteed Tapa ja Tartu vahel. Seepärast muutub 1.–14. juulini rongiliiklus Tallinna ja Tartu vahel. Sel ajal otserongid Tallinnast Tartusse ei sõida.',
+        '',
+        'Rong sõidab Tallinnast ainult Tapale. Tapal tuleb ümber istuda asendusbussi, mis ootab reisijaid jaamahoone ees. Buss väljub kümme minutit pärast rongi saabumist, nii et kiirustada ei ole vaja. Bussisõit Tartusse kestab umbes poolteist tundi. Kogu reis on tavalisest pool tundi pikem, seega planeerige oma aeg hoolikalt.',
+        '',
+        'Rongipilet kehtib ka asendusbussis ja uut piletit ei ole vaja osta. Bussis on vähem ruumi kui rongis: jalgrattaid ja suuri kohvreid bussi peale võtta ei saa. Väike koer või kass võib sõita, aga ainult puuris. Kui teil on palju pagasit, soovitame sõita bussiga otse Tallinnast Tartusse.',
+        '',
+        'Kes sõidab Tartust Tallinna, istub asendusbussi Tartu jaama ees ja Tapal rongile. Uued sõiduajad on meie kodulehel. Kui teil on küsimusi, helistage reisiinfosse, kus vastatakse iga päev kella seitsmest kahekümne kaheni.',
+        '',
+        'Vabandame ebamugavuste pärast ja täname kannatlikkuse eest! Teie raudtee',
+      ], [
+        ['Miks ei sõida juulis otserongid Tartusse?', 'raudteed uuendatakse|on remonditööd|raudteed parandatakse'],
+        ['Kui kaua kestab uus kord?', 'kaks nädalat|1.–14. juulini|14 päeva'],
+        ['Kus tuleb Tallinnast Tartusse sõites ümber istuda?', 'Tapal'],
+        ['Kust leiab reisija asendusbussi?', 'jaamahoone eest|jaamahoone ees|Tapa jaama eest'],
+        ['Miks ei pea Tapal kiirustama?', 'buss ootab kümme minutit|buss väljub kümme minutit hiljem|buss ootab'],
+        ['Mitu eurot maksab pilet asendusbussi?', 'mitte midagi|0|ei maksa|rongipilet kehtib'],
+        ['Kas sõber saab jalgrattaga kaasa tulla?', 'ei|ei saa'],
+        ['Kuhu helistada, kui on küsimusi?', 'reisiinfosse|reisiinfo'],
+      ]), [
+        'Esimene lõik: „Suvel uuendame raudteed Tapa ja Tartu vahel.”',
+        'Esimene lõik: „1.–14. juulini” — see on kaks nädalat.',
+        'Teine lõik: „Tapal tuleb ümber istuda asendusbussi”.',
+        'Teine lõik: „asendusbussi, mis ootab reisijaid jaamahoone ees”.',
+        'Teine lõik: „Buss väljub kümme minutit pärast rongi saabumist, nii et kiirustada ei ole vaja.”',
+        'Kolmas lõik: „Rongipilet kehtib ka asendusbussis ja uut piletit ei ole vaja osta.” — lisaraha ei maksa.',
+        'Kolmas lõik: „jalgrattaid … bussi peale võtta ei saa”.',
+        'Neljas lõik: „Kui teil on küsimusi, helistage reisiinfosse”.',
+      ]), { harno: 'R2', task: 'R08' }),
+      half(B.examPart('050_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 10, tasks: 2, target: 60, note: 'Üks-ühele. Ülesanne 1 on ilma abita; ülesanne 2 on telefonikõne õpetajaga.' })),
+      teach(tag(half(B.speaking('050_t_s1', 'Rääkimine 1. Üks reis.', 'Räägi 90–120 sekundit ilma abita ja ilma märkmeteta.', [
+        'Räägi ühest reisist Eestis või välismaal: kuhu ja millega sa sõitsid, kust väljusid ja kuhu jõudsid, mis läks hästi ja mis läks teisiti (mis oli enne juhtunud)?',
+      ], [90, 120])), { harno: 'S1a', level: 4 }),
+      'Paralleelne uus ülesanne (tunni 46 külm start): sama hindamine, sarnane teema. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset, sidesõnad, vormid: kust / kus / kuhu, võrdlus, enneminevik) ja võrdle tunni 46 märkmetega. Punktid 0–5: sisu ja seotus 0–2, sõnavara 0–1, vormid 0–2.'),
+      teach(tag(half(B.rolecards('050_t_call', 'Rääkimine 2. Kõne hostelisse.', 'Helista hostelisse ja broneeri ööbimine.',
+        'Sina helistad: laupäevaks kaheks ööks tuba Pärnus. Küsi hinda ja teed bussijaamast, ütle saabumise aeg, korda kokkulepe üle.',
+        'Sina oled hosteli töötaja. Küsi nime ja telefoninumbrit.',
+        [], [])), { harno: 'S2', task: 'S04' }),
+      'Õpetaja on hosteli töötaja (kahene tuba 45 € öö, hommikusöök 6 €, bussijaamast 10 minutit jala, vastuvõtt avatud kella 22-ni) ja ütleb ühe ootamatu asja: „Laupäeval on kahjuks kahene tuba täis. Vaba on ainult voodi kuuekohalises toas, 18 eurot.” Punktid 0–5: küsib tuba, hinda ja teed 0–2, reageerib ootamatule infole ja leiab lahenduse 0–1, ütleb saabumise kohavormidega (saabun Pärnusse, tulen bussijaamast) 0–1, kordab kokkuleppe üle 0–1.'),
+      half(B.examPart('050_t_wpart', 'W', { part: 'Kirjutamine', minutes: 15, points: 8, tasks: 1, target: 60, note: 'Üks sõnum, 60–80 sõna, kõigist neljast punktist.' })),
+      tag(teach(half(rows(B.examWriting('050_t_w1', 'Kirjutamine. Sõnum sõbrale.', 'Kirjuta sõbrale sõnum 60–80 sõnaga. Kirjuta kõigist neljast punktist.', 'teade', {
+        situation: 'Sa pidid täna sõbrale külla sõitma, aga sinu rong jäi ära.',
+        points: ['mis juhtus ja miks sa õigel ajal ei jõua', 'millega ja mis kell sa nüüd sõidad', 'kuhu ja millal sa jõuad', 'üks palve sõbrale'],
+        words: [60, 80], opening: 'Tere!',
+      }), 4)), 'Punktid: iga sisupunkt 1 (kokku 4), keel ja vorm 0–4 (kohavormid: väljub Tallinnast, jõuan Tartusse; enneminevik või võrdlus, kui sobib; selge sõnum).'), { harno: 'W1b' }),
+      teach(half(B.table('050_t_profile', 'Minu tulemus.', 'Arvuta punktid ja protsent. Võrdle rääkimist tunniga 46. Lävendid: Harno 60 %, KeeleSepp 70 % / 80 %.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
+        'Lugemine (16 punkti) |  |  | ',
+        'Rääkimine (10 punkti) |  |  | ',
+        'Kirjutamine (8 punkti) |  |  | ',
+        'Rääkimine ilma abita (tund 46 → tund 50) |  |  | ',
+      ])), 'Õpetajale: viimane rida on tunni 46 külma stardi ja selle tunni rääkimise 1 võrdlus (kolm märget). Kui mõni osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (lugemine → tunnid 47 ja 49, rääkimine → tunnid 46 ja 48, kirjutamine → tund 49).'),
+      hide(teach(tag(B.phoneCards('050_t_s2', 'Rääkimine 2. Kõne hostelisse.', 'Sina helistad hostelisse, õpetaja on hosteli töötaja.', 'Sa sõidad laupäeval kaheks ööks Pärnusse ja helistad hostelisse.', ['Helistaja', [
+        'Ütle, kes sa oled ja miks helistad.', 'Küsi tuba kaheks ööks ja hinda.', 'Küsi, kuidas bussijaamast hostelisse saab.', 'Ütle, mis kell sa saabud, ja korda kokkulepe üle.',
+      ]], ['Hosteli töötaja', [
+        'Kahene tuba 45 € öö, hommikusöök 6 €.', 'Bussijaamast 10 minutit jala.', 'Vastuvõtt on avatud kella 22-ni.', 'Küsi nime ja telefoninumbrit.',
+      ]], [120, 180]), { harno: 'S2', task: 'S04' }),
+      'Õpetaja on hosteli töötaja ja ütleb ühe ootamatu asja („Laupäeval on kahjuks kahene tuba täis. Vaba on ainult voodi kuuekohalises toas, 18 eurot.”). Punktid 0–5: küsib kõik kaardi küsimused 0–2, reageerib ootamatule infole ja leiab lahenduse 0–1, ütleb saabumise kohavormidega (saabun Pärnusse, bussijaamast) 0–1, kordab kokkuleppe üle 0–1.'), 'v5 (2026-11-25): asendatud lühema rollikaardiga 050_t_call, et kontroll mahuks kolmele leheküljele'),
+      hide(B.vocab('050_d_vocab', 'Mooduli võtmesõnad.', ['väljuma — отправляться', 'saabuma — прибывать', 'ümber istuma — пересаживаться', 'sõiduplaan — расписание', 'broneerima — бронировать', 'eelarve — бюджет', 'lahkuma — уходить / отправляться', 'selguma — выясняться', 'ühendus — сообщение / стыковка', 'ööbima — ночевать', 'tühistama — отменять', 'hilinema — опаздывать']), V5_CUT),
+      hide(B.choice('050_d_quiz', 'Mida sa moodulist mäletad?', 'Vali mooduli lugude põhjal igale küsimusele õige vastus.', [
         ['Mitmes vagunis olid pere uued kohad õhturongis?', 'kolmandas', 'teises', 'esimeses'],
         ['Kus pidi Viktor teel Tartusse ümber istuma?', 'Tapal', 'Rakveres', 'Aegviidus'],
         ['Millega sõitsid Anna ja Markus Riia näitusele?', 'bussiga', 'lennukiga', 'firma autoga'],
@@ -894,8 +1345,8 @@ export const LESSONS = withShapes({
         ['Mis sobib lausesse: Kui me jaama jõudsime, … rong juba läinud.', 'oli', 'ole', 'olid'],
         ['Mis sobib lausesse: Rong väljub kell kaheksa teiselt …', 'perroonilt', 'perroonil', 'perroonile'],
         ['Mis sobib lausesse: Ma eelistan rongi …', 'bussile', 'bussi', 'bussis'],
-      ], 'full', 'g_notice'),
-      B.reading('050_d_story', 'Sofia hilinenud rong.', 'Loe, kuidas Sofia ja Liis Tartusse jõudsid. Vasta küsimustele lühidalt ja oma sõnadega.', 'Rong, mis ei tulnud', [
+      ], 'full', 'g_notice'), V5_CUT),
+      hide(B.reading('050_d_story', 'Sofia hilinenud rong.', 'Loe, kuidas Sofia ja Liis Tartusse jõudsid. Vasta küsimustele lühidalt ja oma sõnadega.', 'Rong, mis ei tulnud', [
         'Märtsi lõpus pidid Sofia ja Liis sõitma Tartusse uue kliendi juurde. Kohtumine oli kell üksteist. Nad olid ostnud piletid kella 8.05 rongile, mis jõuab Tartusse kell 10.10.',
         '',
         'Kui nad Balti jaama jõudsid, oli tablool punane kiri: rong hilineb tehnilise rikke tõttu vähemalt tund aega. Sofia ehmatas, sest kliendi juurde oli vaja jõuda õigel ajal.',
@@ -915,14 +1366,14 @@ export const LESSONS = withShapes({
         ['Mida kirjutas Sofia bussis kliendile?', 'et nad jõuavad kümme minutit hiljem'],
         ['Miks klient naeratas?', 'ka tema oli hiljaks jäänud|tema auto ei olnud käivitunud'],
         ['Mida tähendab Liisi lause „rahulik pea” ja kas sa oled sellega nõus?', ''],
-      ]),
-      B.categorize('050_d_sort', 'Mooduli sõnad.', 'Kuhu sõna kuulub: rongis, lennujaamas, hotellis või raadiosaates? Pane iga sõna õigesse veergu.', [
+      ]), V5_CUT),
+      hide(B.categorize('050_d_sort', 'Mooduli sõnad.', 'Kuhu sõna kuulub: rongis, lennujaamas, hotellis või raadiosaates? Pane iga sõna õigesse veergu.', [
         ['rongis', ['vagun', 'rongisaatja', 'istekoht', 'vahekäik']],
         ['lennujaamas', ['lend', 'käsipagas', 'turvakontroll', 'väravad']],
         ['hotellis', ['vastuvõtt', 'ühene tuba', 'hommikusöök', 'broneering']],
         ['raadiosaates', ['saatejuht', 'kuulaja', 'otse-eeter', 'žürii']],
-      ], 'full', 'g_vocab'),
-      B.transformation('050_d_trans', 'Teine tegusõna.', 'Kirjuta lause antud tegusõnaga. Mõtle, kas koht muutub vormis kust, kus või kuhu.', [
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(B.transformation('050_d_trans', 'Teine tegusõna.', 'Kirjuta lause antud tegusõnaga. Mõtle, kas koht muutub vormis kust, kus või kuhu.', [
         ['Rong väljub Tartust kell kaheksa hommikul.', 'saabub', 'Rong saabub Tartusse kell kaheksa hommikul.'],
         ['Buss jõuab Viljandisse pool üksteist.', 'väljub', 'Buss väljub Viljandist pool üksteist.'],
         ['Lena lendab neljapäeval Berliinist Tallinnasse.', 'tagasi', 'Lena lendab Tallinnast Berliini tagasi.'],
@@ -933,8 +1384,8 @@ export const LESSONS = withShapes({
         ['Kohver on vaguni otsas riiulil.', 'pane', 'Pane kohver vaguni otsa riiulile.'],
         ['Turistid tulevad Toomemäelt alla.', 'lähevad', 'Turistid lähevad Toomemäele üles.'],
         ['Sofia jõudis bussijaama viimasel minutil.', 'lahkus', 'Sofia lahkus bussijaamast viimasel minutil.'],
-      ], 'full', 'g_notice'),
-      B.errorfix('050_d_fix', 'Eksamitööde vead.', 'Need laused on varasemate eksamite reisikirjadest. Igas lauses on üks viga; kirjuta lause õigesti.', [
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(B.errorfix('050_d_fix', 'Eksamitööde vead.', 'Need laused on varasemate eksamite reisikirjadest. Igas lauses on üks viga; kirjuta lause õigesti.', [
         ['Ma sõitsin eelmisel suvel Pärnus bussiga.', 'Ma sõitsin eelmisel suvel Pärnusse bussiga.'],
         ['Kui ma jaama jõudsin, rong oli juba läinud.', 'Kui ma jaama jõudsin, oli rong juba läinud.'],
         ['Ma olin unustasin passi koju.', 'Ma olin unustanud passi koju.'],
@@ -945,9 +1396,9 @@ export const LESSONS = withShapes({
         ['Kas sa oled kunagi Riias käinud olnud?', 'Kas sa oled kunagi Riias käinud?'],
         ['Laev saabus Helsingis kell kümme hommikul.', 'Laev saabus Helsingisse kell kümme hommikul.'],
         ['Meie lend tühistas lumetormi pärast.', 'Meie lend tühistati lumetormi pärast.'],
-      ], 'full', 'g_notice'),
-      B.writing('050_d_write', 'Minu kõige parem reis.', 'Kirjuta 8–10 lauset oma kõige paremast reisist: kuhu, millega, kus ööbisid ja mis oli enne juhtunud.', [8, 10], ['sõitsin', 'ööbisime', 'oli juba', 'kui'], 3),
-      // the examiner's question set on the module's Harno topic (§13.7), with its own instruction (final shape V7); keeps the
+      ], 'full', 'g_notice'), V5_DRILL),
+      hide(B.writing('050_d_write', 'Minu kõige parem reis.', 'Kirjuta 8–10 lauset oma kõige paremast reisist: kuhu, millega, kus ööbisid ja mis oli enne juhtunud.', [8, 10], ['sõitsin', 'ööbisime', 'oli juba', 'kui'], 3), V5_CUT),
+      hide(// the examiner's question set on the module's Harno topic (§13.7), with its own instruction (final shape V7); keeps the
       // id of the warm-up it grew from
       teach(withInstruction(B.examiner('050_d_warm', 'reisimine ja kohad', [
         'Kuidas sa tavaliselt teise linna sõidad ja miks just nii?',
@@ -958,49 +1409,18 @@ export const LESSONS = withShapes({
         'Kas ühistransport peaks olema odavam või isegi tasuta? Mis sa arvad?',
         'Kuhu sa tahaksid järgmisena reisida ja miks?',
       ]), 'Eksami algus: eksamineerija küsib reisimise ja Eesti paikade kohta. Vasta igale küsimusele paari lausega; kui küsitakse arvamust, ütle ka põhjus.'),
-      'Üks-ühele: õpetaja küsib nagu eksamineerija ega aita; vahel küsib ta lisaks „Miks?” või „Kas näiteks…?”. Lõpus küsib õpilane õpetajalt kaks küsimust samal teemal.'),
+      'Üks-ühele: õpetaja küsib nagu eksamineerija ega aita; vahel küsib ta lisaks „Miks?” või „Kas näiteks…?”. Lõpus küsib õpilane õpetajalt kaks küsimust samal teemal.'), V5_CUT),
     ],
     practice: [
-      B.examPart('050_p_rpart', 'R', { minutes: 40, points: 28, tasks: 4, note: 'Lugemisosa on Harno B1 vormis, aga lühem: neli ülesannet, 28 punkti. Eesmärk on vähemalt 23 punkti (80 %).' }),
-      tag(B.adsmatch('050_p_r1', 'Lugemine 1. Reisiteenused.', 'Lugege olukordi ja reisiteenuste kuulutusi. Märkige iga olukorra juurde sobiva kuulutuse täht. Mõni kuulutus sobib mitmele olukorrale.', [
-        ['Rattarent Tuul', 'Linnarattad ja turismirattad tunniks või päevaks. Päev maksab 15 €, nädal 60 €. Kiiver ja lukk tasuta. Lastele on rattatoolid ja väikesed rattad.'],
-        ['Pagasihoid Balti jaamas', 'Jätke kohver meie juurde ja jalutage vabalt. Väike kapp 4 € päevas, suur 7 € päevas. Avatud iga päev 6–23. Maksta saab ainult kaardiga.'],
-        ['Praamid saartele', 'Praam Virtsust Muhusse iga tunni järel. Autoga reisija peab koha ette broneerima, jalgsi reisija ostab pileti kohapeal. Lemmikloomad sõidavad tasuta.'],
-        ['Hostel Rändaja', 'Tartu kesklinnas, bussijaamast 3 minuti kaugusel. Voodi 6-kohalises toas 18 €, kahene tuba 45 €. Köök on kõigile külalistele vabalt kasutada.'],
-        ['Bussiekskursioon Lahemaale', 'Laupäeviti kell 9 Tallinna Vabaduse väljakult. Neli mõisat ja raba matkarada, tagasi kell 18. Hind 45 €, lõuna on hinnas.'],
-        ['Autorent Kiirtee', 'Väikesed ja suured autod alates 30 € päevas. Auto saab kätte lennujaamas ja ära tuua igas Eesti linnas. Juhil peab olema juhiluba vähemalt kaks aastat.'],
-      ], [
-        ['Turist tahab terve nädala rattaga mööda Tallinna sõita.', 'A'],
-        ['Kristi tahab jätta kohvri päevaks jaama ja minna linna vaatama.', 'B'],
-        ['Mart sõidab autoga Saaremaale ja tahab kindel olla, et praamile mahub.', 'C'],
-        ['Üliõpilane otsib Tartus kõige odavamat ööbimist ja tahab ise süüa teha.', 'D'],
-        ['Pensionär tahab ühe päevaga näha Eesti mõisaid ilma ise autot juhtimata.', 'E'],
-        ['Pere tahab lennujaamast autoga Pärnusse sõita ja auto seal ära anda.', 'F'],
-        ['Ema tahab koos kuueaastase pojaga linnas rattaga sõita.', 'A'],
-        ['Reisija sõidab koeraga Muhu saarele jalgsi.', 'C'],
-      ]), { harno: 'R1' }),
-      B.reading('050_p_r2text', 'Lugemine 2. Artikkel.', 'Lugege rongireisidest kirjutatud artiklit. Valikküsimused tulevad kohe teksti järel.', 'Rongiga ümber Eesti: kas see on võimalik?', [
-        'Eestis korraldab reisirongiliiklust riigifirma Elron. 2025. aastal tehti Elroni rongidega 7,66 miljonit reisi. 2026. aasta esimese üheksa kuuga sõitis rongiga 5,885 miljonit reisijat, mis on rohkem kui aasta varem samal ajal.',
-        '',
-        'Kõige populaarsemad on Tallinna lähedased liinid. 2026. aasta juulist septembrini sõitis kõige rohkem inimesi Tallinna–Turba ja Tallinna–Paldiski liinil. Elroni sõnul tõid reisijaid juurde odavamad perioodipiletid ja kiiremad sõidud Tallinna ja Tartu vahel.',
-        '',
-        'Rongiga saab ka välismaale. 2026. aasta jaanuarist sõidab iga päev otserong Tallinnast Tartu kaudu Riiga. Tallinnast Riiga kestab sõit peaaegu kuus tundi. Pilet maksab Tallinnast 29–32 eurot ja Tartust 19–22 eurot; internetist ostes on see soodsam. Rahvusvahelise pileti saab osta ka rongis klienditeenindajalt.',
-        '',
-        'Kõikjale rong siiski ei sõida. Viimane reisirong sõitis Pärnusse 2018. aasta detsembris ja Haapsallu juba 1995. aastal. Neisse linnadesse saab praegu bussi või autoga.',
-        '',
-        'Kui rong hilineb 30 minutit või rohkem, maksab Elron piletiraha tagasi. Suuri hilinemisi on siiski vähe: 2026. aasta esimese üheksa kuu reisidest püsis sõiduplaanis üle 98 protsendi.',
-        '',
-        'Allikas: Elroni uudised (12.01.2026 ja 9.10.2026), Elroni leht „Pileti hüvitamine”, Vikipeedia, Läänlane.',
-      ], []),
-      tag(B.choice('050_p_r2', 'Lugemine 2. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus kolmest.', [
+      hide(tag(B.choice('050_p_r2', 'Lugemine 2. Valige õige vastus.', 'Valige artikli põhjal igale küsimusele üks õige vastus kolmest.', [
         ['Mitu reisi tehti Elroni rongidega 2025. aastal?', '7,66 miljonit', 'üle kaheksa miljoni', 'alla kahe miljoni'],
         ['Miks sõidab Elroni sõnul rongiga nüüd rohkem inimesi?', 'perioodipiletid on odavamad ja Tartusse sõit kiirem', 'üksikpiletid on tasuta', 'bussid enam ei sõida'],
         ['Mis muutus 2026. aasta jaanuaris?', 'hakkas sõitma otserong Riiga', 'piletid läksid kallimaks', 'Pärnusse hakkas sõitma rong'],
         ['Millega saab praegu Pärnusse?', 'bussi või autoga', 'ainult rongiga', 'ainult autoga'],
         ['Millal maksab Elron piletiraha tagasi?', 'kui rong hilineb vähemalt 30 minutit', 'kui reisija jääb rongist maha', 'kui rongis ei ole vaba kohta'],
         ['Mida ütleb artikkel rongide täpsuse kohta?', 'üle 98 protsendi reisidest püsis sõiduplaanis', 'pooled rongid hilinevad', 'talvel hilinevad rongid alati'],
-      ]), { harno: 'R2' }),
-      tag(B.cloze('050_p_r3', 'Lugemine 3. Lena kiri.', 'Lugege Lena kirja Sofiale. Valige igasse lünka sõna, mis sobib nii vormilt kui ka mõttelt.', 'Kallis Sofia!', [
+      ]), { harno: 'R2' }), V5_CUT),
+      hide(tag(B.cloze('050_p_r3', 'Lugemine 3. Lena kiri.', 'Lugege Lena kirja Sofiale. Valige igasse lünka sõna, mis sobib nii vormilt kui ka mõttelt.', 'Kallis Sofia!', [
         'Olen jälle Berliinis ja meenutan iga päev {*meie|meid|meile} reisi. Aitäh sulle ja su emale!',
         '',
         'Tartus oli väga tore. Su ema {*oli|on|olid} küpsetanud nii palju pannkooke, et me ei jõudnud kõiki ära süüa. Eesti Rahva Muuseum meeldis mulle kõige {*rohkem|palju|rohke}.',
@@ -1010,17 +1430,17 @@ export const LESSONS = withShapes({
         'Kontsert oli imeline! Ma ei olnud kunagi varem nii {*ilusat|ilus|ilusa} muusikat kuulnud. Pühapäeval jalutasin lossimägedel ja sõitsin pärastlõunal {*Tallinnasse|Tallinnas|Tallinnast} tagasi.',
         '',
         'Sügisel tulen jälle ja siis sõidame {*koos|kokku|kaasa} saartele. Kallistan, Lena',
-      ]), { harno: 'R3a' }),
-      tag(B.gaps('050_p_r4', 'Lugemine 4. Teade reisijatele.', 'Tekstist on välja võetud kuus lauseosa. Kirjutage igasse lünka sobiv osa pangast; kaks osa jääb üle.', [
+      ]), { harno: 'R3a' }), V5_CUT),
+      hide(tag(B.gaps('050_p_r4', 'Lugemine 4. Teade reisijatele.', 'Tekstist on välja võetud kuus lauseosa. Kirjutage igasse lünka sobiv osa pangast; kaks osa jääb üle.', [
         'Head reisijad! Alates 1. aprillist muutub bussiliini Tallinn–Viljandi sõiduplaan, [sest Viljandi maanteel algab remont].',
         'Hommikune buss väljub Tallinnast kell 7.00, [aga Viljandisse jõuab see pool tundi hiljem kui varem].',
         'Kui olete pileti juba ostnud, [saate selle tasuta vahetada] kodulehel või bussijaama kassas.',
         'Remondi ajal peatub buss ka Türil, [kus reisijad saavad teha lühikese pausi] ja juua kohvi.',
         'Õhtune buss väljub Viljandist kell 21.30 nagu ennegi, [nii et kontserdilt jõuab koju].',
         'Palume vabandust ebamugavuste pärast; [remont peaks lõppema juuni lõpuks].',
-      ], ['kus reisijad saavad teha lühikese pausi', 'nii et pileteid enam ei müüda', 'remont peaks lõppema juuni lõpuks', 'sest Viljandi maanteel algab remont', 'saate selle tasuta vahetada', 'kuigi remont on juba läbi', 'nii et kontserdilt jõuab koju', 'aga Viljandisse jõuab see pool tundi hiljem kui varem'], 'full', 'g_read'), { harno: 'R4' }),
-      B.examPart('050_p_lpart', 'L', { minutes: 25, points: 23, tasks: 4, note: 'Kuulamisosa: neli ülesannet, 23 punkti. Iga tekst kõlab kaks korda; enne kuulamist lugege küsimused läbi. Eesmärk on vähemalt 19 punkti (80 %).' }),
-      tag(B.examListen('050_p_l1', 'Kuulamine 1. Lühikesed tekstid.', 'Kuulake viit lühikest teadet ja sõnumit. Igaüks kõlab kaks korda. Märkige õige vastus.', 'choice', [
+      ], ['kus reisijad saavad teha lühikese pausi', 'nii et pileteid enam ei müüda', 'remont peaks lõppema juuni lõpuks', 'sest Viljandi maanteel algab remont', 'saate selle tasuta vahetada', 'kuigi remont on juba läbi', 'nii et kontserdilt jõuab koju', 'aga Viljandisse jõuab see pool tundi hiljem kui varem'], 'full', 'g_read'), { harno: 'R4' }), V5_CUT),
+      hide(B.examPart('050_p_lpart', 'L', { minutes: 25, points: 23, tasks: 4, note: 'Kuulamisosa: neli ülesannet, 23 punkti. Iga tekst kõlab kaks korda; enne kuulamist lugege küsimused läbi. Eesmärk on vähemalt 19 punkti (80 %).' }), V5_CUT),
+      hide(tag(B.examListen('050_p_l1', 'Kuulamine 1. Lühikesed tekstid.', 'Kuulake viit lühikest teadet ja sõnumit. Igaüks kõlab kaks korda. Märkige õige vastus.', 'choice', [
         'Esimene tekst. Head reisijad! Tartu buss väljub täna kolmandalt platvormilt. Palun minge platvormile kümme minutit enne väljumist.',
         'Teine tekst. Tere, siin hotell Lilla Uks. Teie kohver on meil alles. Saate selle kätte vastuvõtust iga päev kella kaheksast kahekümneni.',
         'Kolmas tekst. Tähelepanu! Lend Riiga hilineb lumetormi tõttu umbes kaks tundi. Uus väljumisaeg on kell 21.05.',
@@ -1032,8 +1452,8 @@ export const LESSONS = withShapes({
         ['Miks lend hilineb?', 'lumetormi tõttu', 'tehnilise rikke tõttu', 'piloodi haiguse tõttu'],
         ['Kus ootab Lena Sofiat?', 'kohviku juures', 'pagasi juures', 'bussipeatuses'],
         ['Miks praamid täna ei sõida?', 'tuul on liiga tugev', 'praam on remondis', 'meri on jääs'],
-      ]), { harno: 'L1' }),
-      tag(B.examListen('050_p_l2', 'Kuulamine 2. Raadiolugu.', 'Kuulake raadiolugu matkamisest Eesti rabades. Valige igale küsimusele õige vastus.', 'choice', [
+      ]), { harno: 'L1' }), V5_CUT),
+      hide(tag(B.examListen('050_p_l2', 'Kuulamine 2. Raadiolugu.', 'Kuulake raadiolugu matkamisest Eesti rabades. Valige igale küsimusele õige vastus.', 'choice', [
         'Diktor: Head kuulajad! Kevad on käes ja paljud lähevad nädalavahetusel rappa matkama. Eestis on kuus rahvusparki ja rabasse saab minna mööda laudteed.',
         'Diktor: Üks tuntumaid rabasid on Viru raba Lahemaa rahvuspargis. Sinna on Tallinnast umbes tund sõitu. Raja pikkus on kolm ja pool kilomeetrit, ringiga viis ja pool. Raja keskel on vaatetorn, kust näeb kogu raba.',
         'Diktor: Nädalavahetusel on Viru rabas palju inimesi. Kui tahad rahulikku matka, mine varahommikul või vali mõni vähem tuntud raba, näiteks Soomaal või Kõrvemaal.',
@@ -1046,8 +1466,8 @@ export const LESSONS = withShapes({
         ['Mida soovitab diktor neile, kes tahavad rahulikku matka?', 'minna varahommikul', 'minna ainult laupäeval', 'sõita bussiga'],
         ['Miks peab vett kaasa võtma?', 'rabas ei ole poode', 'rabavesi on soe', 'matk kestab kaua'],
         ['Kus tohib lõket teha?', 'ainult ettevalmistatud lõkkekohas', 'igal pool rabas', 'laudtee peal'],
-      ]), { harno: 'L2' }),
-      tag(B.listening('050_p_l3', 'Kuulamine 3. Telefonikõne.', 'Kuulake kõnet bussifirma kaotatud asjade lauda. Vastake küsimustele ühe-kahe sõnaga.', [
+      ]), { harno: 'L2' }), V5_CUT),
+      hide(tag(B.listening('050_p_l3', 'Kuulamine 3. Telefonikõne.', 'Kuulake kõnet bussifirma kaotatud asjade lauda. Vastake küsimustele ühe-kahe sõnaga.', [
         'Kaia: Kõrve Reisid, kaotatud asjad. Tere, mina olen Kaia.',
         'Joosep: Tere! Ma sõitsin eile õhtul Viljandist Tallinnasse ja unustasin bussi oma seljakoti.',
         'Joosep: Buss väljus Viljandist kell 21.30. Ma istusin bussi tagaosas, akna all.',
@@ -1066,8 +1486,8 @@ export const LESSONS = withShapes({
         'Mis korrusel on kaotatud asjade ruum? [teisel|teisel korrusel|2]',
         'Mida peab Joosep kaasa võtma? [dokumendi|isikut tõendava dokumendi|passi]',
         'Mitu päeva on hoidmine tasuta? [kolm|3|kolm päeva]',
-      ]), { task: 'L03', harno: 'L3a' }),
-      tag(B.examListen('050_p_l4', 'Kuulamine 4. Intervjuu.', 'Kuulake intervjuud reisibüroo juhiga. Märkige iga väite juurde, kas see on õige või vale.', 'truefalse', [
+      ]), { task: 'L03', harno: 'L3a' }), V5_CUT),
+      hide(tag(B.examListen('050_p_l4', 'Kuulamine 4. Intervjuu.', 'Kuulake intervjuud reisibüroo juhiga. Märkige iga väite juurde, kas see on õige või vale.', 'truefalse', [
         'Ülle: Tere! Täna on stuudios reisibüroo juhataja Annika Kuusk. Annika, kuhu eestlased sel suvel reisivad?',
         'Annika: Tere! Eestlased on hakanud rohkem Eestis reisima. Kõige populaarsemad on Saaremaa ja Lõuna-Eesti. Välismaal on esikohal endiselt Kreeka.',
         'Ülle: Kas reisid on kallimaks läinud?',
@@ -1088,39 +1508,26 @@ export const LESSONS = withShapes({
         ['Annika arvates tuleks suvereis broneerida mais.', false],
         ['Annika sõnul kaob pagas väga sageli.', false],
         ['Annika soovitab reisikindlustust.', true],
-      ]), { harno: 'L4' }),
-      B.rubric('050_p_rcheck', 'Lugemise strateegiad: mis aitas?', 'Märgi pärast lugemisosa, mida sa tegid. Mida teed järgmisel korral teisiti?', ['Lugesin enne teksti olukorrad või küsimused ja jooni alla võtmesõnad.', 'Leidsin tekstist sama mõtte teiste sõnadega.', 'Jälgisin aega: igale ülesandele umbes 10 minutit.', 'Jätsin raske lünga vahele ja tulin hiljem tagasi.']),
-      B.rubric('050_p_lcheck', 'Kuulamise strateegiad: mis aitas?', 'Märgi pärast kuulamisosa, mida sa tegid. Mida teed järgmisel korral teisiti?', ['Lugesin enne kuulamist küsimused ja valikud läbi.', 'Esimesel kuulamisel märkisin vastuse, teisel kontrollisin.', 'Kirjutasin numbrid ja nimed kohe üles.', 'Kui vastus jäi kuulmata, ei jäänud ma selle juurde kinni.']),
-      B.rubric('050_p_points', 'Minu punktid.', 'Kirjuta oma punktid osade kaupa ja võrdle eesmärgiga.', ['Lugemine 1–4: … / 28 (eesmärk 23)', 'Kuulamine 1–4: … / 23 (eesmärk 19)', 'Kõige raskem ülesanne oli: …', 'Kordan enne järgmist moodulit: …']),
+      ]), { harno: 'L4' }), V5_CUT),
+      hide(B.rubric('050_p_rcheck', 'Lugemise strateegiad: mis aitas?', 'Märgi pärast lugemisosa, mida sa tegid. Mida teed järgmisel korral teisiti?', ['Lugesin enne teksti olukorrad või küsimused ja jooni alla võtmesõnad.', 'Leidsin tekstist sama mõtte teiste sõnadega.', 'Jälgisin aega: igale ülesandele umbes 10 minutit.', 'Jätsin raske lünga vahele ja tulin hiljem tagasi.']), V5_CUT),
+      hide(B.rubric('050_p_lcheck', 'Kuulamise strateegiad: mis aitas?', 'Märgi pärast kuulamisosa, mida sa tegid. Mida teed järgmisel korral teisiti?', ['Lugesin enne kuulamist küsimused ja valikud läbi.', 'Esimesel kuulamisel märkisin vastuse, teisel kontrollisin.', 'Kirjutasin numbrid ja nimed kohe üles.', 'Kui vastus jäi kuulmata, ei jäänud ma selle juurde kinni.']), V5_CUT),
+      hide(B.rubric('050_p_points', 'Minu punktid.', 'Kirjuta oma punktid osade kaupa ja võrdle eesmärgiga.', ['Lugemine 1–4: … / 28 (eesmärk 23)', 'Kuulamine 1–4: … / 23 (eesmärk 19)', 'Kõige raskem ülesanne oli: …', 'Kordan enne järgmist moodulit: …']), V5_CUT),
     ],
     transfer: [
-      B.examPart('050_t_wpart', 'W', { minutes: 35, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Esimese ülesande eest saab 8 ja teise eest 12 punkti; eesmärk on vähemalt 16 punkti.' }),
-      tag(B.examWriting('050_t_w1', 'Kirjutamine 1. Küsimustik.', 'Turismiinfokeskus uurib külastajate reisiharjumusi. Vastake küsimustikule; miks-küsimustele andke põhjus.', 'kusimustik', {
-        situation: 'Te täidate turismiinfokeskuse küsimustikku.',
-        questions: ['Mitu korda aastas te reisite?', 'Kas te reisite pigem üksi, pere või sõpradega? Miks?', 'Millises Eesti piirkonnas te viimati käisite?', 'Mis teile seal kõige rohkem meeldis?', 'Kus te tavaliselt reisil ööbite? Miks?', 'Kui palju raha te kulutate ühe reisipäeva jooksul?', 'Kust te leiate infot reisi kohta?', 'Mis on reisil teie jaoks kõige tähtsam?', 'Mis teid reisil kõige rohkem häirib? Miks?', 'Kuhu te tahaksite järgmisel aastal sõita?'],
-      }), { harno: 'W1a' }),
-      B.rubricW1('050_t_rw1', ['küsimused 1–3', 'küsimused 4–6', 'küsimused 7–8', 'küsimused 9–10']),
-      tag(B.examWriting('050_t_w2', 'Kirjutamine 2. Isiklik kiri.', 'Kirjutage sõbrale isiklik kiri umbes 100 sõnaga. Kirjutage kõigist viiest punktist.', 'kiri', {
+      hide(B.rubricW1('050_t_rw1', ['küsimused 1–3', 'küsimused 4–6', 'küsimused 7–8', 'küsimused 9–10']), V5_CUT),
+      hide(tag(B.examWriting('050_t_w2', 'Kirjutamine 2. Isiklik kiri.', 'Kirjutage sõbrale isiklik kiri umbes 100 sõnaga. Kirjutage kõigist viiest punktist.', 'kiri', {
         situation: 'Teie sõber Mihkel tahab sel suvel Eestis puhata ja küsib teilt nõu.',
         points: ['kuhu Mihkel peaks sõitma ja miks', 'millega sinna saab', 'kus on hea ööbida', 'mida seal kindlasti teha', 'mis juhtus teiega seal kord reisil'],
         words: [90, 110], opening: 'Tere, Mihkel!',
-      }), { harno: 'W2b' }),
-      B.rubricW2('050_t_rw2'),
-      B.examPart('050_t_spart', 'S', { minutes: 15, points: 20, tasks: 3, note: 'Rääkimine on paaris: sissejuhatus, esimene ülesanne (teemaküsimused ja kokkulepe) ning teine ülesanne (telefonikõne).' }),
-      tag(B.speaking('050_t_s0', 'Rääkimine. Tutvumine.', 'Eksamineerija esitab kolm küsimust. Vastake lühidalt, igale küsimusele kahe-kolme lausega.', ['Palun tutvustage ennast.', 'Kui kaua te olete eesti keelt õppinud?', 'Mida te tavaliselt nädalavahetusel teete?'], [70, 90]), { harno: 'S0' }),
-      tag(B.speaking('050_t_s1', 'Rääkimine 1. Teemaküsimused „Puhkus”', 'Eksamineerija küsib puhkuse kohta. Põhjendage iga vastust või tooge näide.', ['Kuidas te kõige meelsamini puhkate?', 'Kas puhkus kodus võib olla sama hea kui reis? Miks?', 'Milline oli teie kõige parem puhkus?', 'Mida peaks välismaa turist Eestis kindlasti nägema?', 'Kas reisida on parem suvel või talvel? Miks?'], [90, 120]), { harno: 'S1a' }),
-      teach(tag(B.ideaCard('050_t_s1b', 'Rääkimine 1. Kokkulepe.', 'Arutage paarilisega ja leppige kokku, kuhu sõita. Lõpus peab olema üks ühine otsus.', 'Teie keelekursus teeb mai lõpus ühepäevase väljasõidu. Rühmas on 12 inimest, eelarve on 30 eurot inimese kohta.', ['Lahemaa raba ja mõisad', 'Tartu ja muuseum', 'Pärnu rand', 'Saaremaa praamiga', 'Viljandi ja lossimäed', 'jalgrattamatk Tallinna lähedal'], 'Kuhu te sõidate, millega ja miks just sinna?'), { harno: 'S1b' }),
-      'Üks-ühele: õpetaja on paariline, kes eelistab alguses teist kohta; õpilane põhjendab ja jõuab kokkuleppele. Hinda: kas lõpus oli selge ühine otsus.'),
-      teach(tag(B.phoneCards('050_t_s2', 'Rääkimine 2. Telefonikõne reisibüroosse.', 'A helistab reisibüroosse, B on reisibüroo töötaja. Seejärel vahetage kaardid.', 'Te tahate sõita sõbraga kolmeks päevaks Riiga ja helistate reisibüroosse.', ['Helistaja', [
-        'Tervitage ja öelge, miks helistate.', 'Küsige, millega on Riiga kõige parem sõita.', 'Küsige hotelli hinda kahele inimesele.', 'Küsige, mida Riias õhtuti teha saab.', 'Küsige, kuidas reisi eest maksta.',
-      ]], ['Reisibüroo töötaja', [
-        'Buss sõidab 4,5 tundi, pilet 25 €; lend 50 minutit, alates 89 €.', 'Kahene tuba vanalinna lähedal 75 € öö, hommikusöök hinnas.', 'Õhtuti on kontserdid, teater ja giidiga jalutuskäigud.', 'Maksta saab kaardiga või arvega seitsme päeva jooksul.', 'Küsige helistaja nime ja telefoninumbrit.',
-      ]]), { harno: 'S2' }),
-      'Üks-ühele: õpetaja on reisibüroo töötaja (eksamineerija roll), siis vahetage. Hinda: kas kõik kaardi küsimused said küsitud ja vastatud.'),
-      B.rubricSpeaking('050_t_rs', 'Hindamine: rääkimine (20 punkti).'),
-      B.selfcheck('050_t_self', ['Ma saan aru reisiteemalistest kuulutustest, artiklitest ja teadetest.', 'Ma kasutan õigesti kohavorme ja enneminevikku.', 'Ma täidan küsimustiku ja kirjutan sõbrale isikliku kirja.', 'Ma vastan teemaküsimustele, lepin kokku ja teen telefonikõne.'], 'Moodul 10 tehtud'),
+      }), { harno: 'W2b' }), V5_CUT),
+      hide(B.rubricW2('050_t_rw2'), V5_CUT),
+      hide(tag(B.speaking('050_t_s0', 'Rääkimine. Tutvumine.', 'Eksamineerija esitab kolm küsimust. Vastake lühidalt, igale küsimusele kahe-kolme lausega.', ['Palun tutvustage ennast.', 'Kui kaua te olete eesti keelt õppinud?', 'Mida te tavaliselt nädalavahetusel teete?'], [70, 90]), { harno: 'S0' }), V5_CUT),
+      hide(teach(tag(B.ideaCard('050_t_s1b', 'Rääkimine 1. Kokkulepe.', 'Arutage paarilisega ja leppige kokku, kuhu sõita. Lõpus peab olema üks ühine otsus.', 'Teie keelekursus teeb mai lõpus ühepäevase väljasõidu. Rühmas on 12 inimest, eelarve on 30 eurot inimese kohta.', ['Lahemaa raba ja mõisad', 'Tartu ja muuseum', 'Pärnu rand', 'Saaremaa praamiga', 'Viljandi ja lossimäed', 'jalgrattamatk Tallinna lähedal'], 'Kuhu te sõidate, millega ja miks just sinna?'), { harno: 'S1b' }),
+      'Üks-ühele: õpetaja on paariline, kes eelistab alguses teist kohta; õpilane põhjendab ja jõuab kokkuleppele. Hinda: kas lõpus oli selge ühine otsus.'), V5_CUT),
+      hide(B.rubricSpeaking('050_t_rs', 'Hindamine: rääkimine (20 punkti).'), V5_CUT),
+      hide(B.selfcheck('050_t_self', ['Ma saan aru reisiteemalistest kuulutustest, artiklitest ja teadetest.', 'Ma kasutan õigesti kohavorme ja enneminevikku.', 'Ma täidan küsimustiku ja kirjutan sõbrale isikliku kirja.', 'Ma vastan teemaküsimustele, lepin kokku ja teen telefonikõne.'], 'Moodul 10 tehtud'), V5_CUT),
     ],
   },
 }, {
-  'a2b1-046': 'KUUL L→S', 'a2b1-047': 'LUGE R→W', 'a2b1-048': 'RÄÄK R→S', 'a2b1-049': 'PROJ L→W', 'a2b1-050': 'EKS',
+  'a2b1-046': 'KUUL L→S', 'a2b1-047': 'LUGE R→S', 'a2b1-048': 'RÄÄK L→S', 'a2b1-049': 'PROJ R→W', 'a2b1-050': 'EKS',
 });

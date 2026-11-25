@@ -32,6 +32,21 @@
   "b1b2-022|*|av-know",
   "b1b2-024|*|av-know"
  ],
+ "b1b2-module-06": [
+  "*|*|av-examiner",
+  "*|*|av-kasuta",
+  "*|*|av-opener",
+  "b1b2-026|*|av-know",
+  "b1b2-028|*|av-know"
+ ],
+ "b1b2-module-07": [
+  "*|*|av-article",
+  "*|*|av-examiner",
+  "*|*|av-kasuta",
+  "*|*|av-opener",
+  "b1b2-032|*|av-know",
+  "b1b2-034|*|av-know"
+ ],
  "b1b2-module-17": [
   "*|*|av-opener",
   "b1b2-082|*|av-know"
@@ -46,5 +61,11 @@
  ],
  "course:b1": [
   "*|*|av-genres"
+ ],
+ "a2b1-module-09": [
+  "*|*|av-opener"
+ ],
+ "a2b1-module-10": [
+  "*|*|av-opener"
  ]
 }

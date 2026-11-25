@@ -131,6 +131,12 @@ export const scriptLines = (b) => learnerCard(b).filter((line) => SCRIPT_LINE.te
 // the student's text of a block without its purpose line (the purpose is checked on its own)
 const taskText = (b) => studentText({ ...b, data: { ...b.data, purpose: '' } });
 const inputWords = (b) => words(mainText(b));
+// methodology v5 B1 (docs/METHODOLOGY_B1_B2_V5.md §3, methodV5.js G3): the one text's ceiling grows with the stage —
+// lessons 001–040 150 words (as before), 041–060 (A2+/B1-) 220, 061–090 (B1) 300
+const v5B1TextWords = (lessonId) => {
+  const n = Number(String(lessonId).match(/-(\d{3})$/)?.[1]) || 0;
+  return n > 60 ? 300 : n > 40 ? 220 : ST.v5TextWords;
+};
 
 export function lessonStationProblems(lessonId, phases) {
   const docs = Object.entries(phases || {});
@@ -171,7 +177,7 @@ export function lessonStationProblems(lessonId, phases) {
     for (const b of s.blocks) {
       if (b.data?.opener) continue; // the module's front page (docs/COURSE_DESIGN_COMMUNICATIVE.md §13.2) is its own genre
       // methodology v5: the lesson's one text keeps the stage's ceiling (methodV5.js G3, A2: 150 words)
-      const textMax = v5b2 ? ST.v5B2.textWords : v5 ? ST.v5TextWords : ST.textWords;
+      const textMax = v5b2 ? ST.v5B2.textWords : v5 ? v5B1TextWords(lessonId) : ST.textWords;
       const audioMax = v5b2 ? ST.v5B2.audioWords : ST.audioWords;
       if (TEXT_INPUT.includes(b.type) && inputWords(b) > textMax) add(s.phase, 'st-input', `${b.id}: tekst ${inputWords(b)} sõna (kuni ${textMax})`);
       if (AUDIO_INPUT.includes(b.type) && inputWords(b) > audioMax) add(s.phase, 'st-input', `${b.id}: helitekst ${inputWords(b)} sõna (kuni ${audioMax}, ≈ ${Math.round(audioMax / 128 * 2) / 2} min)`);

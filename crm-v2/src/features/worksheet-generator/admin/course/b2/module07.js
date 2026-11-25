@@ -1,32 +1,42 @@
 // B2 course (B1 → B2 roadmap), module 7 „Haridus ja õppimine” (b1b2-031…035), stage B2-.
-// Design v4 „task-based” (docs/COURSE_DESIGN_STATIONS.md §7, owner 2026-11-17) on the v3 station engine, built on the
-// samples B1→B2 modules 1–4. Module goal (the learner): „Ma oskan oma ja oma pere õppimise üle ise otsustada: tean, kuidas
-// Eesti koolitee käib, valin õppimisviisi, ameti ja raha”; module product „Minu õpitee järgmine samm” (034 Kasuta, the
-// S16 one-minute talk in 035). Education from the learner's own angle: his child's or a young relative's school choice,
-// his own way of learning, a new profession as an adult, who pays for his next course. Not repeated from earlier modules:
-// study time and choosing a language course (module 1), a school or kindergarten note (module 4).
-// Every teaching lesson follows one arc in exactly 4 stations (≤ 75 min of a 90-min lesson):
-//   1 hook + pre-task (≤ 80 words, the learner speaks in the first minute) → 2 input + task → 3 language focus
-//   (notice in the input → rule → use) → 4 product in class + „Kui aega jääb” + exit check (3 items) + „Ma oskan …”;
-//   the long writing and a 1-minute voice message are homework; the lesson words reach „Harjuta” through
-//   vocabulary/lessonWords/b1b2.json (Sõnavara → Teemad → Moodul 7).
-// One format and one everyday topic a lesson, no two neighbours alike (admin/course/v4Tasks.test.js):
-//   031 case    „Gümnaasium või kutsekool — kes otsustab?”        family (a teen's school)  final advise: a friend's son (S11)
-//   032 facts   „Kas sa oled visuaalne õppija? Müüdid ja tõde õppimisest”  learning          final explain: a relative's exam (S13)
-//   033 debate  „Uus amet 45-aastaselt — julge samm või hilja?”    work (the only one)       final decide: debate + vote (S17)
-//   034 quest   „Kes maksab sinu õppimise eest?”                   money                     final plan: my next step (W11)
-//   035 exam    Kontroll 7 in Harno B2 form + „Minu õpitee järgmine samm” as the S16 one-minute talk.
-// Grammar line (B2, docs/METHODOLOGY_STANDARD.md §5) by discovery and spiralled: government of verbs and adjectives in
-// education — kandideerima kuhu, huvituma millest, sõltuma millest, keskenduma millele, valmistuma milleks, mures mille
-// pärast (031, after module 4's 018; back in the 033 debate and 035); the quotative and source phrases — väidetakse,
-// olevat, aitavat, uuringu järgi, teadlase sõnul (032; back in 033 and 035; taught fully in module 13); the conditional
-// in kui-clauses for hypotheses and regret — kui ma õpiksin, oleksin alustanud (033, the roadmap's „условные
-// конструкции”; back in the 034 letter); -mine / -ja nouns of official texts — õppepuhkuse kasutamine, õppija, taotleja
-// (034, preview of module 12; back in 035). The one long text of the module is the topic opener (031 station 2, ≈ 380
-// words, after a 12-minute hook and pre-taught words). The course's cast is not used.
-// Kept: lesson ids, the goal keys of b2/lessonGoals.js and the archetypes (PROB, AVAS, KUUL, LUGU, EKS). The v2 storyline
-// version (Kase kool, Mia, Oskar, the board meeting) is in git history before 2026-11-18.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// Methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, strictModulesV5.json) on the v3 station engine with the
+// v4 task formats (docs/COURSE_DESIGN_STATIONS.md §7), built like modules 1–6 (b2/module01.js … module06.js): one real
+// communicative outcome a lesson, ONE input, ≤ 4 / 4 / 5 blocks a sheet and ≤ 14 a lesson, a 75-min core in 4 stations.
+// Education from the learner's own angle: a teenager's school choice in the family, how people really learn, a new
+// profession as an adult, who pays for the next course.
+//   Avasta  (4): station 1 one statement to answer at once (031: the module's cold task, a 5-minute opinion in writing),
+//                station 2 the lesson's words, one explanatory scheme and the ONE input — reading about 430 words with 3
+//                inference questions (031 school choice after grade 9, 033 two adults who changed profession) or
+//                listening ~3.5 min with 2 voices and 10 items (032 learning myths, 034 who pays for learning).
+//   Harjuta (4): station 3 the rule (the B1 form as a one-line review, then the B2 step), two form tasks of 9–10 items
+//                without a word bank (one of them a coherent text: a motivation letter, a newsletter summary, a letter to
+//                a former colleague, a study-leave application) and one register task (home talk → letter to a school,
+//                group chat → newsletter, kitchen talk → discussion, official text → plain advice).
+//   Kasuta  (5): station 4 the plan, the product (advice to a parent, a study plan for a relative, a discussion with
+//                keyword cards, a talk with the manager — each with hidden information), the home writing of ~140 or ~180
+//                words with the 1-min voice message, the analytic Harno B2 rubric (a borderline sample in the teacher's
+//                note) and the exit „Ma oskan …” with three success criteria.
+//   031 case    „Gümnaasium või kutsekool — kes otsustab?”           family   reading „Kelle valik on kool …?”   government + see-clause
+//   032 facts   „Kas sa oled visuaalne õppija? …”                     learning radio „Õppimise müüdid”, 2 voices  source and distance
+//   033 debate  „Uus amet 45-aastaselt — julge samm või hilja?”       work     reading „Teine algus …”            mixed conditional, ilma et
+//   034 quest   „Kes maksab sinu õppimise eest?”                      money    radio „Õppimise hind”, 2 voices    participles of official texts
+//   035 exam    Module control: one sheet, 45 min, LISTENING + writing (module 1 R + S, 2 L + S, 3 R + W, 4 the mock,
+//                5 L + W, 6 R + S): eight short notices heard once (≤ 45 s each, the L1 format the course trains least),
+//                an interview twice, the parallel writing task and the module product.
+// Module requirements (v5 §2): cold task 031_d_cold (a 5-min opinion in writing, no phrases, no opening; module 6 measured
+// speech) ↔ parallel new task 035_t_cold (same conditions, new statement); a speech without phrases in every other
+// station 1 (032–034); hidden-information cards 031_t_advice, 032_t_explain, 033_t_debate, 034_t_more („Varjatud info:”);
+// debate cards with 2–3 keywords an argument (033_t_debate); link task 034_t_plan (a real course on a real page:
+// Töötukassa, Maksu- ja Tolliamet or a school's own site); one scheme a teaching lesson (031 compare, 032 cycle,
+// 033 formula, 034 flow); the pictures (art/visuals/b2-module-07.js) stand before the input; texts are adapted learning
+// texts without exact statistics („KeeleSepp õppetekst”, owner 2026-11-25); no story cast, no dictation, no „Kas
+// teadsid?”. Module 3 (014) already had „oleks pidanud”, module 5 (021) the present-tense -vat and „uuringute järgi”,
+// module 6 (027) „-mise korral / eest”: each comes back here as the one-line review, the B2 step is new.
+// Kept: lesson ids, titles, the four lesson topics and formats. Removed blocks stay in the file as hide(block, why)
+// (blocks.js) — the v4 lessons of 2026-11-18 are kept below as V4 and every block not on a v5 sheet is taken from there
+// with retire(): off every sheet, ids and learners' answers kept; their closed drills still feed the Harjuta practice
+// engine (practice/engine/extract.js) with their old explanations (OLD_WHY, the v4 EXPLAIN map).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 import { exitCheck, extension, homeTask, purpose, station } from '../stationBlocks.js';
 
 // a talk with the teacher as the partner, done in the lesson (engine/inLesson.js), not a home recording
@@ -37,19 +47,62 @@ const grammar = (text) => ({
   practice: { label: '2 Harjuta', slot: 2, subtitle: text },
   transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
 });
-// the home task card at the end of every lesson
+// the home task card at the end of every v4 lesson (hidden in v5: the home task is the writing on the sheet)
 const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
 const WORDS_HOME = 'Tunni sõnad: Sõnavara → Teemad → Moodul 7. Kui teema on läbitud, kordad sõnu „Harjuta” all.';
 // a learner who cannot record (no quiet room, no smartphone) says the talk at the start of the next lesson
 const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// the home voice message of v5 (§3): one line at the end of the home writing (a learner who cannot record says it in class)
+const VOICE_HOME = 'Salvesta ka 1-minutiline häälsõnum samal teemal.';
 
-export const MODULE = { id: 'b1b2-module-07', course: 'b2', title: 'Haridus ja õppimine', level: 'B1+', design: 'v3-stations', template: 'v4' };
+// why a block left the sheet (v5 §4)
+const CUT_INPUT = 'second input of the lesson (v5: one input per lesson)';
+const CUT_DRILL = 'closed drill / exit gaps → Harjuta (v5 §4: drills off the lesson sheet)';
+const CUT_EXTRA = 'extra task (v5: one product task in Kasuta; „Kui aega jääb” is in the teacher plan)';
+const CUT_HOME = 'home card / voice task: the home task is the writing on the sheet with its 1-min voice message (v5 §3)';
+const CUT_HOOK = 'v5: station 1 is one statement the learner answers at once (5 min); the hook text and the talk merged';
+const CUT_TALK = 'v5: a 2.5–4-min talk with phrases in station 1 (audit 2026-11-25: B2 talks 1 min); the statement in station 1 takes its place';
+const CUT_STATS = 'exact statistics (owner 2026-11-25: adapted texts, no exact numbers) and a second input';
+const CUT_TIP = '„Kas teadsid?” (v5 §4: cut unless the task uses it)';
+const CUT_SHORT = 'a short clip, chat or cards below B2 as the input (audit 2026-11-25: 034 had no real input): replaced by the lesson\'s one input';
+const CUT_OLDTASK = 'v4 task replaced by the v5 task of the same station (new id, other block type)';
+const CUT_CONTROL = 'control is one sheet ≤ 10 blocks, listening + writing (v5 §5)';
 
+// the analytic Harno B2 writing rubric (v5 G10): four criteria, 0–3 points each, with level descriptors; the teacher's
+// note holds a borderline sample with its scoring (the same rubric as modules 1–6, 17 and 18)
+const B2_WRITING = [
+  ['Ülesande täitmine ja register', '3 — kõik sisupunktid on täidetud, adressaat ja toon sobivad, pikkus on ülesande piires; 2 — üks punkt on nõrk või toon kõigub; 1 — kaks punkti on puudu või toon ei sobi adressaadile; 0 — tekst ei vasta ülesandele'],
+  ['Ülesehitus ja sidusus', '3 — lõigud, teemalaused ja mitmekesised sidendid, mõte liigub loogiliselt; 2 — lõigud on olemas, kuid sidendid korduvad; 1 — mõtete loetelu ilma lõikudeta; 0 — järjekorrast ei saa aru'],
+  ['Sõnavara', '3 — täpne ja mitmekesine, kordusi väldib; 2 — piisav, mõni kordus või ebatäpne sõna; 1 — piiratud, sõnad korduvad, tähendus on kohati segane; 0 — sõnavara ei kanna sisu'],
+  ['Grammatika ja õigekiri', '3 — liitlaused ja vormid (käänded, sõnajärg sidendi järel, kuigi-lause, tingiv kõneviis, olev ja saav kääne) on enamasti õiged; 2 — vigu on, kuid need ei takista mõistmist; 1 — vead takistavad kohati mõistmist; 0 — vead takistavad mõistmist pidevalt'],
+];
+// short: the one-line descriptors (the same four criteria), where the full ones would leave the self-check alone on a page
+const B2_WRITING_SHORT = ['3 kõik punktid, sobiv toon · 2 üks nõrk koht · 1 kaks puudu · 0 ei vasta', '3 lõigud ja mitmekesised sidendid · 2 sidendid korduvad · 1 loetelu · 0 segane', '3 täpne ja mitmekesine · 2 mõni kordus · 1 piiratud · 0 ei kanna sisu', '3 vead ei sega · 2 vead ei takista · 1 takistavad kohati · 0 takistavad pidevalt'];
+const writingRubric = (id, title, sample, short = false) => {
+  const b = B.rubricW2(id, title);
+  return teach(purpose({ ...b, goal: 'g_use', data: { ...b.data, instruction: 'Analüütiline hindamisjuhend (Harno B2): neli kriteeriumi, igaüks 0–3 punkti, kokku 12. Sama juhendiga kontrollid oma teksti enne saatmist.', criteria: B2_WRITING.map(([name, hint], i) => ({ name, max: 3, hint: short ? B2_WRITING_SHORT[i] : hint })) } }, 'Enne saatmist näed, mille eest hindaja punkte annab.'), sample);
+};
+// a home text is written at home: fewer lines on the sheet, so the sheet ends on a full page
+const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
+// a kept block with a changed field (instruction, title, questions …)
+const patch = (b, data) => ({ ...b, data: { ...b.data, ...data } });
+// the play count of a recording (v5 G6): a recording twice, short clips once; locked in the control
+const twice = (b) => ({ ...b, data: { ...b.data, plays: 2, lockPlays: true } });
+const once = (b) => ({ ...b, data: { ...b.data, plays: 1, lockPlays: true } });
+// L1 as on the exam: every short clip is its own recording (tools/listening-audio, `questions[i].script`, one play
+// button a clip); the block's transcript stays the whole text the teacher reads (as b2/module16.js)
+const perClip = (block) => {
+  const clips = String(block.data.transcript).split('\n').map((line) => line.replace(/^[^:]{1,20}:\s*/, '').trim()).filter(Boolean);
+  return { ...block, data: { ...block.data, questions: block.data.questions.map((q, i) => ({ ...q, script: clips[i] })) } };
+};
 // an exam part header carries the goal of its part: b2/lessonGoals.test.js asks every non-text block of a B2 sheet for one
 // of the lesson's goals, and the header has none of its own (B.examPart: goal '')
 const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
 
-export const LESSONS = withShapes({
+export const MODULE = { id: 'b1b2-module-07', course: 'b2', title: 'Haridus ja õppimine', level: 'B2-', design: 'v3-stations', template: 'v4' };
+
+// the v4 lessons of 2026-11-18 (B1+ „task-based”): the source of every block that is not on a v5 sheet
+const V4 = {
   'b1b2-031': {
     title: 'Gümnaasium või kutsekool — kes otsustab?',
     phases: grammar('Keel: rektsioon — kandideerima kuhu, huvituma millest, sõltuma millest, valmistuma milleks, mures mille pärast'),
@@ -709,14 +762,10 @@ export const LESSONS = withShapes({
       B.selfcheck('035_t_self', ['Kirjutamine: … / 25 punkti (kiri 10, kokkuvõte 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60 % ja üheski osas mitte 0 punkti.', 'Ma tean, mida enne järgmist moodulit korrata.'], 'Moodul 7 läbitud'),
     ],
   },
-}, {
-  'b1b2-031': 'PROB R→S', 'b1b2-032': 'AVAS L→S', 'b1b2-033': 'KUUL L→W', 'b1b2-034': 'LUGU R→W', 'b1b2-035': 'EKS',
-});
+};
 
-// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
-// engine/mistakes.js): one line per key item, in the order the key lists them (courseSheet.js withExplanations).
-// Every scored task of the module has its lines (v4Tasks.test.js checks the count).
-export const EXPLAIN = {
+// the explanations of the v4 blocks (the v4 EXPLAIN map), kept for the Harjuta practice engine
+const OLD_WHY = {
   // 031
   '031_d_read': [
     '1. lõik: „Põhikool kestab üheksa aastat ja on kõigile kohustuslik.”',
@@ -914,3 +963,810 @@ export const EXPLAIN = {
     'Vale: „karjäärinõustamine on tasuta kõigile”.',
   ],
 };
+
+// a v4 block that left the sheet: hidden with its reason, its old explanation kept (v5 §4)
+const V4_BLOCKS = Object.fromEntries(Object.values(V4).flatMap((l) => ['discover', 'practice', 'transfer'].flatMap((p) => l[p] || [])).map((b) => [b.id, b]));
+const retire = (id, reason) => {
+  const b = V4_BLOCKS[id];
+  if (!b) throw new Error(`module07: v4 plokki ${id} ei ole`);
+  return hide(OLD_WHY[id] ? why(b, OLD_WHY[id]) : b, reason);
+};
+
+export const LESSONS = withShapes({
+  'b1b2-031': {
+    title: 'Gümnaasium või kutsekool — kes otsustab?',
+    phases: grammar('Kordamine: kandideerima kuhu, sõltuma millest, mures mille pärast · B2: rektsioon kõrvallausega — sõltub sellest, kas …; huvitub sellest, kuidas …; mures selle pärast, et …; olenevalt millest'),
+    format: 'case',
+    topic: 'family',
+    canDo: 'Ma loen umbes 450-sõnalist artiklit koolivalikust pärast põhikooli ja järeldan autori hoiaku, annan lapsevanemale telefonis nõu ja lepin temaga kokku järgmise sammu ka siis, kui ta ütleb midagi ootamatut, ning kirjutan talle umbes 140-sõnalise kirja.',
+    teacherPage: {
+      goal: 'Холодная задача письменно, статья о выборе школы после 9 класса (≈ 450 слов), sõltub sellest, kas …, совет соседу со скрытой информацией; дома письмо 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: холодная задача (5 мин) — обязательно; статья — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 10 предложений; совет по телефону без третьего возражения.',
+      hook: '«Väide: viieteistkümneaastane on piisavalt vana, et ise oma kool valida.» Ученик за 5 минут пишет 5–7 предложений: согласен ли, причина, пример, что сказал бы несогласный. Это холодная задача модуля (письмо; модуль 6 мерил речь): не помогайте, не давайте фраз и начала, не исправляйте. Сохраните лист — в уроке 035 ученик пишет параллельную задачу в тех же условиях.',
+      plan: [
+        '0–5: станция 1 — холодная задача: 5 минут, 5–7 предложений без помощи; лист сохраните до 035',
+        '5–25: станция 2 — 10 слов (2 мин), схема «два пути» и картинка (3 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (7 мин)',
+        '25–45: станция 3 — управление одной строкой, B2-шаг: see + падеж + придаточное (sellest, kas …; selle pärast, et …); 10 предложений, мотивационное письмо с 10 пропусками без банка, регистр: разговор дома → письмо в школу',
+        '45–70: станция 4 — план (3 мин), совет соседу по телефону со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: письмо соседу 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): день открытых дверей — ученик задаёт представителю школы 4 вопроса (практика, общежитие, дальнейшая учёба, поддержка эстонского) с управлением глаголов',
+      ],
+      sources: 'Статья «Kelle valik on kool pärast põhikooli?» — учебный текст KeeleSepp, без статистики. Общие факты: основная школа обязательна; õppimiskohustus — после основной школы учиться до совершеннолетия или до среднего / профессионального образования; в профшколе можно получить и профессию, и среднее образование, с ним можно поступать в вуз; карьерное консультирование Töötukassa бесплатно. Соседка и её ребёнок — учебная ситуация.',
+      groups: 'Холодная задача — каждый сам. Статья — каждый сам, вопросы на вывод сравнивают в паре. Совет: пары «советчик — сосед», карточку соседа даёте вы; в 1:1 сосед — вы.',
+      errors: [
+        '«Otsus sõltub, kas …» → «Otsus sõltub sellest, kas …» (sõltuma millest: перед придаточным стоит see в том же падеже).',
+        '«Ema on mures, et …» → «Ema on mures selle pärast, et …» (mures mille pärast → selle pärast, et).',
+        '«Ta valmistub sellele, et …» → «… selleks, et …» (valmistuma milleks), но «keskendub sellele, et …» (keskenduma millele).',
+        '«Kas ta läheb gümnaasiumi, see sõltub …» → «Kas ta läheb gümnaasiumi, sõltub …» (после придаточного глагол сразу, без лишнего see).',
+      ],
+      notes: [
+        'Холодная задача — исходная точка модуля по письму. Отметьте: позиция в первом предложении, причина с примером, контраргумент, связки, 2–3 повторяющиеся ошибки. В 035 ученик пишет параллельную задачу (035_t_cold), вы сравниваете.',
+        'Управление глаголов (B1) — повтор одной строкой. Цель B2 — длинная мысль после глагола: see в нужном падеже + придаточное (sõltub sellest, kas …; huvitub sellest, kuidas …). Это язык совета и письма в школу.',
+        'Ученику без детей: ребёнок соседа, племянник или «ты сам в 15 лет». Тема перехода на эстонское обучение чувствительна: если всплывёт, только факты, без политики. Обратная связь, 2–3 цели: вопрос о желании самого подростка; see + придаточное; спокойный ответ на неожиданное.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(B.writing('031_d_cold', 'Külm algus: arvamus viie minutiga.', 'Väide: „Viieteistkümneaastane on piisavalt vana, et ise oma kool valida.” Kirjuta 5 minutiga 5–7 lauset: kas oled nõus, üks põhjus ja näide oma elust ning mida ütleks keegi, kes arvab teisiti. Abifraase ega algust ei anta.', [5, 7], [], 0, 'g_use'), 'See on sinu algus: mooduli lõpus kirjutad samadel tingimustel uuest väitest ja näed, kui palju oled viie tunniga edasi jõudnud.'), { task: 'W14', level: 3 }),
+      'Mooduli külm ülesanne (algtase), 5 minutit, kirjalikult (moodul 6 mõõtis rääkimist, moodul 7 mõõdab kirjutamist). Ära aita, ära anna fraase ega algust, ära paranda. Märgi üles: kas seisukoht on esimeses lauses, mitu põhjust, kas on näide, kas vastuargument tuleb, mitu sidendit (seetõttu, samas …) ja 2–3 korduvat viga. Hoia leht alles: tunnis b1b2-035 kirjutab õppija paralleelse ülesande samades tingimustes (kontrolli kirjutamise 1. osa) ja te võrdlete. Üks-ühele: pärast kirjutamist küsi ainult „Miks?”.'), 1, 5),
+      station(tag(B.vocab('031_d_vocab', 'Tunni sõnad.', ['põhikool — основная школа (1–9 кл.)', 'gümnaasium — гимназия (10–12 кл.)', 'kutsekool — профессиональное училище', 'keskharidus — среднее образование', 'õppimiskohustus — обязанность учиться', 'eriala — специальность', 'kandideerima — поступать, подавать документы', 'avatud uste päev — день открытых дверей', 'otsus — решение', 'vastutus — ответственность']), { topic: ['õppimiskohustus', 'keskharidus', 'kutsekool'] }), 2, 20),
+      purpose(B.diagram('031_d_scheme', 'compare', { title: 'Skeem: kaks teed pärast 9. klassi.', instruction: 'Vaata skeemi enne lugemist. Lugedes lisa kummalegi poolele üks mõte tekstist: kellele see tee sobib ja mida kardavad vanemad?', left: 'Gümnaasium (3 aastat)', right: 'Kutsekool (kutsekeskharidus)', leftItems: 'üldkeskharidus: palju aineid ja riigieksamid\nedasi tavaliselt ülikooli või kõrgkooli\namet tuleb hiljem eraldi õppida', rightItems: 'amet ja keskharidus korraga\npraktika päris ettevõttes\nhiljem võib ka kõrgkooli kandideerida' }, 'full', 'g_read'), 'Skeem aitab sul tekstist leida, mis kummagi tee juures loeb.'),
+      why(teach(tag(purpose(B.reading('031_d_text', 'Loe artiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Kelle valik on kool pärast põhikooli?', [
+        'Igal kevadel istuvad tuhanded pered köögilaua taga sama küsimusega: kuhu minna pärast üheksandat klassi? Vanemad räägivad gümnaasiumist ja ülikoolist, noor ise ei tea veel, millest ta päriselt huvitub, ja vanaema arvab, et korralik inimene õpib ikka ametit. Tihti lõpeb vestlus tüliga, sest igaüks räägib oma kogemusest, mitte noore omast.',
+        'Eestis on põhikool kohustuslik ja nüüd kehtib ka õppimiskohustus: põhikooli lõpetanud noor peab õppimist jätkama, kuni ta saab täisealiseks või omandab kesk- või kutsehariduse. Valida on peamiselt kahe tee vahel. Gümnaasium kestab kolm aastat ja annab üldkeskhariduse; sealt minnakse tavaliselt edasi ülikooli. Kutsekoolis saab samal ajal nii ameti kui ka keskhariduse, praktika toimub päris ettevõttes ja kutsekeskharidusega võib hiljem samuti kõrgkooli kandideerida. Seda viimast teavad paljud vanemad aga halvasti. Kutsekoolides on ka erialasid, kuhu tullakse õppima alles pärast gümnaasiumi, nii et üks tee ei sulge teist.',
+        'Karjäärinõustajad kuulevad igal kevadel samu lauseid. „Kui gümnaasiumi ei saa, läheb kutsekooli.” „Kutsekool on neile, kellel hinded on nõrgad.” Nõustajate sõnul on selline mõtlemine ohtlik, sest see muudab ühe tee varuplaaniks. Noor, kes huvitub autodest, kokandusest või arvutivõrkudest, hakkab oma huvi häbenema ja valib gümnaasiumi ainult selleks, et vanemad oleksid rahul. Mõni neist jätab kooli pooleli juba esimesel aastal, sest tunnid ei puuduta midagi, millest ta hoolib.',
+        'Teisalt ei ole ka kiire otsus alati hea. Viieteistkümneaastane võib arvata, et tahab kohe raha teenida, ega mõtle sellele, mis saab kümne aasta pärast. Mõni noor valib kutsekooli ainult sellepärast, et sinna läheb parim sõber, ja mõistab poole aasta pärast, et eriala ei huvita teda üldse. Gümnaasium annab aega mõelda ja jätab uksi lahti. Nii et küsimus ei ole selles, kumb kool on parem, vaid selles, kumb sobib just sellele noorele.',
+        'Mida siis pere teha saab? Esiteks tasub käia vähemalt ühe gümnaasiumi ja ühe kutsekooli avatud uste päeval, kus noor saab eriala proovida ja õpilastega rääkida. Seal tasub küsida ka seda, kuidas kool aitab õpilast, kellel tekib raskusi. Teiseks võib broneerida aja karjäärinõustaja juurde: nõustamine on tasuta ja aitab noorel oma huvid sõnadesse panna. Kolmandaks peaksid vanemad oma hirmudest ausalt rääkima, kuid lõpliku otsuse jätma noorele. Õpetajate kogemus näitab, et noor, kes on ise otsustanud, ei loobu raskel hetkel nii kergesti.',
+        'Üks nõustaja ütles hiljuti raadios: „Minu töö ei ole öelda, kuhu laps peab minema. Minu töö on aidata tal küsida õigeid küsimusi.” Võib-olla on see parim nõu ka vanematele. Viieteistkümneselt tehtud valik ei ole valik kogu eluks: täiskasvanute gümnaasiumid ja kutsekoolid ootavad õppijaid igas vanuses. Kui otsus osutub valeks, saab kooli vahetada — see ei ole häbi, vaid kogemus. Kuid see on esimene suur otsus, mille noor teeb ise, ja just seetõttu on see oluline.',
+        'Allikas: KeeleSepp õppetekst.',
+      ].join('\n\n'), [
+        ['Miks lõpeb kodune vestlus koolivalikust autori sõnul tihti tüliga?', 'igaüks räägib oma kogemusest, mitte noore omast'],
+        ['Mida tähendab õppimiskohustus?', 'põhikooli lõpetanu peab õppima, kuni saab täisealiseks või omandab kesk- või kutsehariduse'],
+        ['Mida paljud vanemad kutsekoolist ei tea?', 'et kutsekeskharidusega võib hiljem kõrgkooli kandideerida'],
+        ['Milliseid kolme sammu soovitab autor perele?', 'käia avatud uste päevadel, minna karjäärinõustaja juurde, rääkida hirmudest ausalt ja jätta otsus noorele'],
+        ['Miks peavad nõustajad lauset „Kui gümnaasiumi ei saa, läheb kutsekooli” ohtlikuks? Järelda.', 'see teeb kutsekoolist varuplaani; noor hakkab oma huvi häbenema'],
+        ['Mida vihjab autor, kui kirjutab, et küsimus ei ole selles, kumb kool on parem?', 'mõlemad teed on head; loeb see, mis sobib just sellele noorele'],
+        ['Miks on autori arvates oluline, et noor otsustab ise? Milline on autori hoiak?', 'ise otsustanud noor ei loobu kergesti; autor usaldab noort ja tahab, et vanemad toetaksid, mitte ei otsustaks'],
+      ]), 'Pärast lugemist tead, kuidas Eesti koolitee käib, ja oskad lapsevanemale öelda, millest valik sõltub.'), { task: 'R09', voice: 'expert' }),
+      'Lugemine, 20 minutit koos sõnade, skeemi ja pildiga. Enne lugemist küsi pildi järgi: mis võiks olla noore esimene samm ja kes teda aitab? Pärast: õpilane lisab skeemi kummalegi poolele ühe mõtte tekstist. Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Tekst on õppetekst; kui keegi küsib arvude kohta, ütle, et artikkel räägib valikust, mitte statistikast.'), [
+        '1. lõik: „igaüks räägib oma kogemusest, mitte noore omast”.',
+        '2. lõik: noor „peab õppimist jätkama, kuni ta saab täisealiseks või omandab kesk- või kutsehariduse”.',
+        '2. lõik: „kutsekeskharidusega võib hiljem samuti kõrgkooli kandideerida. Seda viimast teavad paljud vanemad aga halvasti.”',
+        '5. lõik: avatud uste päev, karjäärinõustaja, hirmudest ausalt ja „lõpliku otsuse jätma noorele”.',
+        'Järeldus 3. lõigust: lause „muudab ühe tee varuplaaniks” ja noor „hakkab oma huvi häbenema”.',
+        'Järeldus 4. lõigust: „küsimus ei ole selles, kumb kool on parem, vaid selles, kumb sobib just sellele noorele”.',
+        'Järeldus 5. ja 6. lõigust: ise otsustanud noor „ei loobu raskel hetkel nii kergesti”; nõustaja aitab „küsida õigeid küsimusi”.',
+      ]),
+      retire('031_d_hook', CUT_HOOK),
+      retire('031_d_talk', CUT_TALK),
+      retire('031_d_open', CUT_STATS),
+      retire('031_d_read', CUT_STATS),
+    ],
+    practice: [
+      station(teach(B.notice('031_p_notice', 'Märka: millest see sõltub?', [
+        'Artiklist: noor ei tea veel, **millest** ta päriselt **huvitub** · ega mõtle **sellele, mis** saab kümne aasta pärast · küsimus ei ole **selles, kumb** kool on parem · valib gümnaasiumi ainult **selleks, et** vanemad oleksid rahul',
+        'Kordamine (B1): tegusõna tahab kindlat käänet — **kandideerima kuhu** (kutsekooli) · **huvituma, sõltuma, loobuma millest** (autodest) · **keskenduma millele** (õppimisele) · **valmistuma milleks** (eksamiks) · **mures mille pärast** (hinnete pärast) · **rahul millega** (valikuga).',
+        'B2: kui käände järel tuleb terve mõte, seisab ees **see** samas käändes ja siis kõrvallause — sõltub **sellest, kas** … · huvitub **sellest, kuidas** … · keskendub **sellele, et** … · valmistub **selleks, et** … · on mures **selle pärast, et** … · on rahul **sellega, et** … · küsimus on **selles, kumb** …',
+        'B2: kõrvallause järel tuleb tegusõna kohe — Kas ta läheb gümnaasiumi, **sõltub** tema huvidest. · **olenevalt / sõltuvalt** millest: olenevalt erialast, sõltuvalt hinnetest.',
+        'Vali sidesõna mõtte järgi: **et** — fakt või eesmärk · **kas** — jah või ei · **mis, kuidas, kumb, kuhu** — küsimus lause sees.',
+      ], 'full'), 'Kordamine ühe minutiga (kandideerima kuhu, huvituma millest). Siis B2 samm: kui pärast tegusõna tuleb terve mõte, ei kao kääne ära — see läheb sõnale „see”. Lase õpilasel leida artiklist kaks sellist lauset (ega mõtle sellele, mis …; küsimus ei ole selles, kumb …) ja öelda, mis käänet tegusõna nõuab.'), 3, 20),
+      why(purpose(B.gaps('031_p_forms', 'Rektsioon kõrvallausega.', 'Kirjuta lünka üks sõna: „see” õiges käändes, sidesõna (et, kas, kumb) või muu vorm. Sulgudes on vihje. Panka ei ole.', [
+        'Minu otsus sõltub [sellest], kas saan kutsekoolis õpilaskodu koha. (sõltuma millest)',
+        'Poeg huvitub juba ammu [sellest], kuidas arvutivõrgud töötavad. (huvituma millest)',
+        'Ema on mures [selle] pärast, et kool on teises linnas. (mures mille pärast)',
+        'Tütar keskendub praegu [sellele], et põhikooli eksamid hästi läheksid. (keskenduma millele)',
+        'Noor valmistub [selleks], et avatud uste päeval eriala proovida. (valmistuma milleks)',
+        'Küsimus ei ole selles, [kumb] kool on parem, vaid mis sobib noorele. (kahest üks)',
+        'Nõustaja küsis, [kas] ta on kunagi praktikal käinud. (jah või ei)',
+        'Isa loobus lõpuks [sellest], et poja eest ise otsustada. (loobuma millest)',
+        '[Olenevalt|Sõltuvalt] erialast kestab praktika kaks kuni neli kuud. (oleneb erialast)',
+        'Vanemad olid lõpuks rahul [sellega], et noor valis ise. (rahul millega)',
+      ], '', 'full', 'g_notice'), 'Õige vorm teeb su nõu täpseks: kuuleb, millest otsus sõltub.'), [
+        'sõltuma millest → seestütlev: sellest, kas …',
+        'huvituma millest → seestütlev: sellest, kuidas …',
+        'mures mille pärast → omastav + pärast: selle pärast, et …',
+        'keskenduma millele → alaleütlev: sellele, et …',
+        'valmistuma milleks → saav: selleks, et …',
+        'Valik kahe vahel → kumb.',
+        'Jah-ei küsimus lause sees → kas.',
+        'loobuma millest → seestütlev: sellest, et …',
+        'oleneb millest → olenevalt (või sõltuvalt) + seestütlev: erialast.',
+        'rahul millega → kaasaütlev: sellega, et …',
+      ]),
+      why(purpose(B.formtext('031_p_motiv', 'Motivatsioonikiri kutsekooli.', 'Noor kirjutab kutsekooli vastuvõtukomisjonile. Kirjuta lünka sobiv sõna või vorm. Sulgudes on vihje. Panka ei ole.', 'Kandideerin IT-süsteemide erialale', [
+        'Lugupeetud vastuvõtukomisjon!',
+        '',
+        'Kandideerin teie [kooli] (kool; kuhu?) IT-süsteemide nooremspetsialisti erialale. Juba põhikooli algusest huvitun [sellest] (see; huvituma millest), kuidas arvutid ja võrgud töötavad, ja aitan sageli naabreid nende arvutite seadistamisel.',
+        '',
+        'Minu valik ei sõltu ainult [hinnetest] (hinded; sõltuma millest). Matemaatikas on mul hea hinne, eesti keeles keskmine, kuid ma tean, [et] (sidesõna; fakt) praktilises töös olen tugev. Avatud uste päeval sain proovida võrgukaablite ühendamist ja olin [sellega] (see; rahul millega) väga rahul.',
+        '',
+        'Vanemad olid alguses mures [selle] (see; mures mille pärast) pärast, et kool on teises linnas. Rääkisime koos karjäärinõustajaga ja nüüd sõltub kõik [sellest] (see), [kas] (sidesõna; jah või ei) saan õpilaskodus koha.',
+        '',
+        'Praegu keskendun [sellele] (see; keskenduma millele), et põhikooli eksamid hästi läheksid, ja valmistun [vestluseks] (vestlus; valmistuma milleks) teie koolis. Olen tänulik, kui leiate minu jaoks aega.',
+        '',
+        'Lugupidamisega\nüheksanda klassi õpilane',
+      ]), 'Samamoodi kirjutad kodus naabrile: iga mõte on seotud õige käändega.'), [
+        'kandideerima kuhu → sisseütlev: kooli.',
+        'huvituma millest + kõrvallause → sellest, kuidas …',
+        'sõltuma millest → seestütlev, mitmus: hinnetest.',
+        'Fakt kõrvallauses → et.',
+        'rahul millega → sellega.',
+        'mures mille pärast → selle pärast, et …',
+        'sõltuma millest → sellest, …',
+        'Jah-ei küsimus → kas.',
+        'keskenduma millele → sellele, et …',
+        'valmistuma milleks → saav: vestluseks.',
+      ]),
+      why(purpose(tag(B.table('031_p_register', 'Köögis või kirjas koolile?', 'Vasakul on lause, mille noor ütleb kodus. Paremas veerus on sama mõte motivatsioonikirjas. Kirjuta lünka puuduv sõna.', 'Kodus, Kirjas koolile', [
+        'Mulle meeldivad arvutid, nokitsen nendega kogu aeg. | Juba aastaid [huvitun] sellest, kuidas arvutid töötavad.',
+        'Mul on matemaatikas viis, eesti keeles kolm. | Minu [tugevaim/kõige tugevam] aine on matemaatika.',
+        'Emme kardab, et ma ei saa üksi teises linnas hakkama. | Vanemad on [mures] selle pärast, et kool on teises linnas.',
+        'Käisin seal lahtiste uste päeval, oli äge. | Avatud uste päeval sain eriala [proovida].',
+        'Kõik oleneb sellest, kas ühikas on koht. | Minu otsus [sõltub] sellest, kas saan õpilaskodus koha.',
+        'Praegu tuubin eksamiteks. | Praegu [valmistun] põhikooli eksamiteks.',
+        'Tahan kohe pärast kooli tööle. | Pärast lõpetamist soovin asuda tööle oma [erialal].',
+        'Kirjutage, millal ma tulla võin. | Olen tänulik, kui [leiate] minu jaoks aega.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas sama mõte kõlab kirjas, mida loeb vastuvõtukomisjon.'), [
+        'Mulle meeldivad → huvituma millest: huvitun sellest, kuidas …',
+        'Viis = parim hinne → ülivõrre: tugevaim (kõige tugevam).',
+        'Kardab → mures mille pärast.',
+        'Oli äge → konkreetne tegevus: sain eriala proovida.',
+        'Oleneb → sõltub sellest, kas …',
+        'Tuubin → valmistun milleks: eksamiteks.',
+        'Tööle → oma erialal (kus?).',
+        'Kirjutage → viisakas tingimus: olen tänulik, kui leiate …',
+      ]),
+      retire('031_p_letter', CUT_OLDTASK),
+    ],
+    transfer: [
+      station(purpose(B.planning('031_t_plan', 'Nõu lapsevanemale: plaan (3 minutit).', 'Naaber helistab: tema 15-aastane laps peab kevadel otsustama, kuhu edasi õppida, ja kodus on tüli. Kirjuta märksõnad. Edukriteeriumid: 1) küsid enne nõu andmist, millest noor huvitub ja mida ta ise tahab; 2) nimetad mõlema tee ühe plussi ja parandad ühe vale arvamuse (näiteks „kutsekoolist ei saa ülikooli”); 3) lepite kokku ühe sammu sel nädalal.', ['Mida ma küsin kõigepealt (huvid, hinded, noore soov):', 'Gümnaasiumi pluss ja kutsekooli pluss:', 'Vale arvamus ja minu vastus:', 'Üks samm sel nädalal ja kes selle teeb:'], 1), 'Plaan aitab sul anda nõu, mis rahustab, mitte ei käsi.'), 4, 25, { final: 'advise' }),
+      teach(tag(purpose(B.rolecards('031_t_advice', 'Nõu telefonis (6–8 minutit).', 'Kuula naabri muret, küsi ja anna nõu ning leppige kokku üks samm. Reageeri, kui naaber ütleb midagi, mida sa ei teadnud.',
+        'Olukord: naabri laps lõpetab kevadel põhikooli; vanemad ja laps tahavad erinevat.\nSinu eesmärk: naaber teab mõlema tee plusse ja te lepite kokku ühe sammu.\nPiirang: otsus on pere oma — sina annad nõu, mitte käsku.',
+        'Naabri kaart on õpetajal: tema hirmud ja üks uudis, mida sa veel ei tea.',
+        ['Minu arvates sõltub see sellest, kas …', 'Kas te olete mõelnud sellele, et …?'], ['Aga ma kardan, et …', 'Kas kutsekoolist saab ka …?']), 'Tulemus: naaber teab, mida pere sel nädalal teeb, ja otsus jääb noorele.'), { task: 'S11', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled naaber. Takistused ükshaaval: 1) „Kutsekool on ju neile, kellel hinded on halvad!” 2) „Ta on alles viisteist, ta ei tea, mida tahab.” Varjatud info (ütle pärast teist takistust): „Ah jaa, ta ütles eile, et kui ta peab gümnaasiumi minema, siis ta ei lähe üldse kooli.” Õpilane peab uue asjaoluga arvestama: rahustama, meenutama õppimiskohustust ja soovitama rääkida noorega endaga (või koos nõustajaga), mitte tema eest otsustama. Õnnestunud, kui õpilane küsib vähemalt kaks küsimust noore huvide kohta, nimetab mõlema tee ühe plussi, parandab vale arvamuse (kutsekeskharidusega võib kõrgkooli kandideerida), kasutab vähemalt kolm rektsiooni kõrvallausega (sõltub sellest, kas …; mures selle pärast, et …) ja te lepite kokku ühe sammu. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('031_t_reply', 'Kodus: kiri naabrile (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Pärast telefonikõnet palus naaber, et paneksid oma nõu kirja: ta tahab seda õhtul koos lapsega lugeda.',
+        points: ['mõlema tee üks pluss ja üks miinus', 'millest valik sinu arvates sõltub', 'üks vale arvamus ja miks see ei pea paika', 'mida pere võiks sel nädalal teha'],
+        words: [130, 150],
+      }), 'Naaber loeb kirja koos lapsega; selge nõu aitab neil rahulikult otsustada.'), 6)), { task: 'W13', main: true, harno: 'W1' }),
+      writingRubric('031_t_rubric', 'Hindamisjuhend: kiri naabrile (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Ma arvan, et gümnaasium on parem, sest sealt saab ülikooli. Kutsekool on ka hea. Ta huvitub autod ja see sõltub tema hinded. Ärge olge mures tema eest. Minge avatud uste päevale. Kõik on teie otsus.” Hinnang: ülesanne 2 (soovitus ja samm on olemas, kuid miinused puuduvad ja vale arvamust ei parandata), ülesehitus 2 (järjekord on selge, kuid lõike ja sidendeid peaaegu ei ole), sõnavara 2 („hea” kordub; puuduvad eriala, praktika, keskharidus), grammatika 1 („huvitub autod” → autodest; „sõltub tema hinded” → tema hinnetest; „mures tema eest” → tema pärast; ühtegi kõrvallauset rektsiooniga ei ole). Kui õppija lisab miinused, parandab rektsioonid ja kirjutab lause „see sõltub sellest, kas …”, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('031_t_self', ['Ma loen artiklit koolivalikust ja järeldan autori hoiaku.', 'Ma kasutan rektsiooni kõrvallausega: sõltub sellest, kas …; mures selle pärast, et …', 'Ma annan lapsevanemale nõu, reageerin ootamatule ja lepin kokku sammu.'], 'Nõu antud', 'Ma oskan koolivaliku üle nõu anda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('031_t_voice', CUT_SHORT),
+      retire('031_t_cards', CUT_INPUT),
+      retire('031_t_more', CUT_EXTRA),
+      retire('031_t_exit', CUT_DRILL),
+      retire('031_t_msg', CUT_OLDTASK),
+      retire('031_t_home', CUT_HOME),
+      retire('031_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-032': {
+    title: 'Kas sa oled visuaalne õppija? Müüdid ja tõde õppimisest',
+    phases: grammar('Kordamine: olevat, aitavat · B2: allikas ja kaugus — olevat näidanud, ei olevat leidnud; väidetakse, leiti; uurija rõhutab, et …; väidetavalt, kellegi väitel'),
+    format: 'facts',
+    topic: 'learning',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest õppimise müütidest ja järeldan uurija hoiaku, edastan teiste väiteid allika ja kaugusega, räägin pereliikmega, kuidas eksamiks tõhusalt õppida, ja lepin temaga kokku plaani ning kirjutan talle umbes 140-sõnalise nõuande.',
+    teacherPage: {
+      goal: 'Радио о мифах учёбы (2 голоса, 3,5 мин), источник и дистанция (olevat näidanud, väidetakse), объяснение родственнику со скрытой информацией; дома совет 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и вопросы 1–7; станция 3 — правило и 10 трансформаций; объяснение без скрытой информации.',
+      hook: '«Väide: igaüks on kas visuaalne või kuuldeõppija ja peaks õppima oma stiili järgi.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — как он последний раз к чему-то готовился. Не отвечайте и не исправляйте — ответ даст радио. Отметьте, что ученик делает чаще всего: перечитывает, подчёркивает или проверяет себя.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о своей подготовке, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), схема-круг «как запоминается» и картинка (3 мин), радио дважды (8 мин), 10 вопросов, из них 3 на вывод (7 мин)',
+        '25–45: станция 3 — -vat одной строкой, B2: прошедшее косвенное, безличное, глагол-источник + et, väidetavalt; 10 трансформаций, сводка для рассылки с 10 пропусками без банка, регистр: чат → рассылка',
+        '45–70: станция 4 — план (3 мин), объяснение родственнику со скрытой информацией (6–8 мин), разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: совет 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): игра «Разрушитель мифов» — вы говорите «слух», ученик за 30 секунд передаёт его с дистанцией и говорит, как его проверить',
+      ],
+      sources: 'Радио «Õppimise müüdid» — учебный текст KeeleSepp (ведущий Andres и исследовательница Pille вымышлены), без точных чисел. Основа — обзоры Pashler, McDaniel, Rohrer & Bjork (2008: нет доказательств пользы обучения «под стиль») и Dunlosky и др. (2013: самопроверка и распределённое повторение полезнее перечитывания и подчёркивания); роль сна в закреплении памяти — общепринятый вывод.',
+      groups: 'Утверждение — каждый сам. Радио — каждый сам, вопросы на вывод сравнивают в паре. Объяснение: пары «советчик — родственник», карточку родственника даёте вы; в 1:1 родственник — вы.',
+      errors: [
+        '«Uuring olevat näitas» → «Uuring olevat näidanud» (прошедшее косвенное: olevat + -nud).',
+        '«Tõendeid ei leidnud» без деятеля → «Tõendeid ei leitud» (безличное прошедшее: -ti / -di).',
+        '«Uurija rõhutab, et kordamine aitavat» — возможно, но после глагола-источника обычно простая форма: «… et kordamine aitab».',
+        '«Uurija sõnul kordamine aitab» → «Uurija sõnul aitab kordamine» (после источника глагол на втором месте).',
+      ],
+      notes: [
+        'Формат — анализ фактов: сначала мнение (утверждение), потом радио, потом объяснение близкому. Студенту — экзамен в вузе; пенсионеру — экзамен по языку; работающему посменно — 20 минут в автобусе вместо четырёх часов в воскресенье.',
+        '-vat в настоящем (B1, модуль 5) — повтор одной строкой. Цель B2 — точность источника: кто сказал, когда и насколько это проверено. Шкала: факт с источником → «uurija sõnul» → «olevat» → «väidetavalt …, kuid tõendeid ei ole».',
+        'Обратная связь, 2–3 цели: источник при каждом утверждении; форма olevat + -nud; план, который подходит жизни ученика. Во время объяснения не перебивать, 3 замечания в конце.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('032_d_talk', 'Väide: igaüks peaks õppima oma õpistiili järgi.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: kuidas sa viimati millekski valmistusid (eksam, juhiload, uus töö) ja mis aitas.', [
+        'Väide: „Igaüks on kas visuaalne või kuuldeõppija ja peaks õppima oma stiili järgi.” Kas oled nõus? Miks?',
+        'Kuidas sa viimati millekski valmistusid? Mis aitas ja mis mitte?',
+      ], [60, 90]), 'Sinu kogemus on tunni esimene näide: pärast raadiot näed, kas sinu viis töötab.'), { task: 'S01', fluency: true }),
+      'Üks-ühele: vasta ka ise. Ära paranda ega anna vastust — vastuse annab raadio. Pane kirja, mida õpilane teeb kõige sagedamini: loeb üle, joonib alla või küsib endalt; see tuleb jaamas 4 tagasi.')), 1, 5),
+      station(tag(B.vocab('032_d_vocab', 'Tunni sõnad.', ['uuring — исследование', 'uurija — исследователь', 'müüt — миф', 'tõend — доказательство', 'väitma — утверждать', 'meenutama — вспоминать', 'kordamine — повторение', 'üle lugema — перечитывать', 'unustama — забывать', 'allikas — источник']), { topic: ['müüt', 'meenutama'] }), 2, 20),
+      purpose(B.diagram('032_d_scheme', 'flow', { title: 'Skeem: kuidas õpitu meelde jääb?', instruction: 'Vaata skeemi enne kuulamist. Kuulates märgi, millise sammu kohta uurija näite toob ja millise sammu jätab enamik inimesi vahele.', nodes: 'Õpi lühidalt (20–30 minutit) ja pane raamat kinni\nMeenuta ja kontrolli: mida ma just õppisin, mis jäi puudu?\nPaus ja uni: mälu kinnistab õpitu\nKorda mõne päeva pärast — jälle meenutades, mitte üle lugedes' }, 'full', 'g_read'), 'Skeem näitab, miks lühike kordamine annab rohkem kui pikk lugemine.'),
+      why(teach(tag(purpose(B.examListen('032_d_radio', 'Kuulamine: raadiosaade „Õppimise müüdid”.', 'Raadiosaates räägib saatejuht haridusuurijaga õppimise müütidest. Loe enne küsimused läbi. Kuula saadet kaks korda ja vali igale küsimusele õige vastus.', 'choice', [
+        'Andres: Tere! Saates „Õppimise müüdid” räägime täna sellest, mida me õppimise kohta usume, aga mida uuringud ei kinnita. Stuudios on haridusuurija Pille. Pille, alustame kõige tuntumast väitest: iga inimene olevat kas visuaalne või kuuldeõppija. Kas see on tõsi?',
+        'Pille: Tere! Seda väidetakse tõesti väga sageli, isegi koolides. Eelistused on inimestel muidugi erinevad: üks vaatab meelsamini pilte, teine kuulab. Aga kui uurijad kontrollisid, kas õppija tulemus paraneb, kui õpetus sobib tema stiiliga, siis tõendeid selle kohta ei leitud. Mõne kursuse reklaamis lubatakse, et õpistiili test teeb õppimise kergeks. Mina soovitaksin selle raha säästa.',
+        'Andres: Aga miks see müüt nii visa on?',
+        'Pille: Sest see kõlab loogiliselt ja annab hea tunde: probleem ei ole minus, vaid vales meetodis.',
+        'Andres: Aga kuidas siis õppida? Enamik meist loeb teksti mitu korda üle ja joonib tähtsad kohad ära.',
+        'Pille: Just. Ja see on üks huvitavamaid tulemusi. Kui uurijad võrdlesid kümmet levinud õppimisviisi, oli ülelugemisest ja allajoonimisest kõige vähem kasu. Need tunduvad tõhusad, sest tekst muutub tuttavaks. Aga tuttav ei tähenda veel, et sa seda mäletad. Eksamil ei ole teksti sinu ees.',
+        'Andres: Mis siis aitab?',
+        'Pille: Kaks asja. Esiteks enda kontrollimine: pane raamat kinni ja proovi meenutada, mida sa just õppisid. Kirjuta küsimused kaartidele või tee endale väike test. Telefonis on selleks ka sõnakaarte, mis küsivad sõna uuesti just siis, kui sa hakkad seda unustama. Meenutamine on raskem kui lugemine, ja just see raskus jätab jälje. Teiseks kordamine vahedega. Kes õpib sama asja mitmel päeval väikeste osade kaupa, mäletab nädala pärast tunduvalt rohkem kui see, kes õpib kõik ühe õhtuga.',
+        'Andres: Kas öösel enne eksamit õppimine siis ei tööta?',
+        'Pille: Järgmisel hommikul võib see natuke aidata, aga nädala pärast on suur osa ununenud. Pealegi vajab mälu und: une ajal kinnistub see, mida päeval õppisid. Nii et pool tundi iga päev on parem kui neli tundi pühapäeval.',
+        'Andres: Meile kirjutas kuulaja, kes on viiekümnene ja õpib eesti keelt. Ta arvab, et tema vanuses enam midagi meelde ei jää.',
+        'Pille: Seda kuulen tihti, ja see on pigem hirm kui fakt. Täiskasvanu õpib teisiti kui laps, aga mitte halvemini. Tal on rohkem kogemusi, millega uut siduda. Väsimus ja ajapuudus segavad rohkem kui vanus. Kui ta kordab sõnu kümme minutit bussis, saab ta rohkem kui kahe tunniga laupäeval.',
+        'Andres: Ja muusika õppimise ajal? Mõni ütleb, et see aitab keskenduda.',
+        'Pille: Vaikne muusika ilma sõnadeta ei sega enamikku inimesi. Laulud sõnadega aga segavad lugemist, sest aju püüab sõnu kuulata. Kui tahad muusikat, vali selline, mida sa ei pea kuulama.',
+        'Andres: Viimane küsimus: üks nõuanne kuulajatele?',
+        'Pille: Ära küsi endalt, kas sa said aru. Küsi, kas sa oskad seda homme ilma raamatuta seletada. Kui ei oska, on see hea uudis: nüüd sa tead, mida korrata.',
+        'Andres: Aitäh, Pille!',
+      ], [
+        ['Mida leidsid uurijad õpistiilide kohta?', 'tõendeid, et stiilile sobiv õpetus parandab tulemust, ei leitud', 'visuaalsed õppijad saavad paremaid tulemusi', 'igaüks peaks tegema õpistiili testi'],
+        ['Mida soovitab Pille õpistiili testi kohta?', 'selle raha säästa', 'teha test enne iga kursust', 'küsida testi koolist tasuta'],
+        ['Millised õppimisviisid andsid võrdluses kõige vähem kasu?', 'ülelugemine ja allajoonimine', 'enda kontrollimine ja väike test', 'kordamine vahedega'],
+        ['Miks tunduvad ülelugemine ja allajoonimine tõhusad?', 'tekst muutub tuttavaks', 'need võtavad vähe aega', 'need on eksamil lubatud'],
+        ['Mida soovitab Pille raamatuga teha?', 'panna raamat kinni ja meenutada', 'lugeda raamat kolm korda läbi', 'joonida tähtsad kohad värviga'],
+        ['Mis juhtub Pille sõnul une ajal?', 'päeval õpitu kinnistub', 'aju unustab kõik ebaolulise', 'mälu puhkab ega tööta'],
+        ['Mis segab Pille sõnul täiskasvanu õppimist rohkem kui vanus?', 'väsimus ja ajapuudus', 'halb mälu', 'liiga palju kogemusi'],
+        ['Mida tahab Pille öelda lausega „Meenutamine on raskem kui lugemine, ja just see raskus jätab jälje”?', 'pingutus meenutamisel aitab paremini mäletada', 'õppimine peab alati raske olema', 'lugemine on täiesti kasutu'],
+        ['Mida võib järeldada Pille vastusest viiekümnesele kuulajale?', 'vanus ei ole põhjus õppimisest loobuda', 'viiekümneselt tasub õppida ainult nädalavahetusel', 'täiskasvanu peab õppima nagu laps'],
+        ['Miks on Pille arvates „hea uudis”, kui sa ei oska homme ilma raamatuta seletada? Milline on tema hoiak?', 'viga näitab, mida korrata — see on kasulik info', 'siis tuleb alustada täiesti algusest', 'ilma raamatuta ei saagi õppida'],
+      ], 'g_read'), 'Kuuled, millised sinu harjumused aitavad ja millised raiskavad aega; kohe seletad seda ka teisele.'), { voice: 'interview', task: 'L02', harno: 'L3' }),
+      'Kuulamine, 20 minutit koos sõnade, skeemi ja pildiga (umbes 3,5 minutit, kaks korda). Enne kuulamist küsi pildi järgi: miks on üks raamat lahti ja teine kinni? Õpilane loeb küsimused ja joonib alla võtmesõnad. Pärast: õpilane ütleb skeemi iga sammu kohta uurija näite. Küsimused 8–10 on järeldusküsimused (uurija hoiak): nõua põhjendust kuuldust. Saade on õppetekst, inimesed on välja mõeldud; uuringute nimed on õpetaja lehel.'), [
+        'Pille: „tõendeid selle kohta ei leitud”.',
+        'Pille: „Mina soovitaksin selle raha säästa.”',
+        'Pille: „oli ülelugemisest ja allajoonimisest kõige vähem kasu”.',
+        'Pille: „Need tunduvad tõhusad, sest tekst muutub tuttavaks.”',
+        'Pille: „pane raamat kinni ja proovi meenutada”.',
+        'Pille: „une ajal kinnistub see, mida päeval õppisid”.',
+        'Pille: „Väsimus ja ajapuudus segavad rohkem kui vanus.”',
+        'Järeldus: meenutamise „raskus jätab jälje” — pingutus aitab mäletada.',
+        'Järeldus: „see on pigem hirm kui fakt”, täiskasvanu õpib „mitte halvemini”.',
+        'Järeldus: „nüüd sa tead, mida korrata” — uurija peab viga kasulikuks infoks.',
+      ]),
+      retire('032_d_hook', CUT_HOOK),
+      retire('032_d_know', CUT_TIP),
+    ],
+    practice: [
+      station(teach(B.notice('032_p_notice', 'Märka: kes seda ütleb ja kui kindel see on?', [
+        'Saatest: iga inimene **olevat** kas visuaalne või kuuldeõppija · seda **väidetakse** sageli · tõendeid **ei leitud** · reklaamis **lubatakse, et** …',
+        'Kordamine (B1): kaudne kõneviis olevikus — ma-tegevusnimi, -ma → **-vat**: aitama → aita**vat**, olema → ole**vat**; eitus **ei olevat**. Sina edastad, aga ei vastuta.',
+        'B2: mineviku kaudne — **olevat** + **-nud**: Uuring **olevat näidanud**, et … · Teadlased **ei olevat leidnud** tõendeid. · umbisikuline: **väidetakse** (praegu), **leiti** (minevikus), **on tõestatud** (tulemus kehtib).',
+        'B2: allikas tegusõnaga + et — uurija **väidab / rõhutab / hoiatab / leidis, et** … (et-lauses tavaline vorm) · allikas nimisõnaga: **uuringu järgi**, **uurija sõnul**, **reklaami väitel** (+ tegusõna teisel kohal) · kaugus ühe sõnaga: **väidetavalt**.',
+        'Kindluse skaala: Kordamine **aitab** (fakt allikaga) → **Uurija sõnul aitab** … → Kordamine **aitavat** … (keegi ütles, sina ei kinnita) → **Väidetavalt** aitab …, **kuid tõendeid ei ole**.',
+      ], 'full'), 'Kordamine ühe minutiga (aitavat, olevat). Siis B2 samm: kui täpselt sa ütled, kust info tuleb ja kui kindel see on. Lase õpilasel leida saatest üks fakt ja üks väide ning öelda need kindluse skaalal.'), 3, 20),
+      why(purpose(B.transformation('032_p_rumour', 'Kuulujutt või uurimistulemus?', 'Ütle iga lause edasi antud sõnadega. Kuulujutu puhul näita kaugust (-vat, väidetavalt), uurimistulemuse puhul nimeta allikas. Panka ei ole.', [
+        ['Reklaam: „Õpistiili test on teinud tuhandete inimeste õppimise kergeks.”', 'Reklaami väitel olevat …', 'Reklaami väitel olevat õpistiili test teinud tuhandete inimeste õppimise kergeks.|Reklaami väitel olevat test teinud tuhandete inimeste õppimise kergeks.'],
+        ['Uurijad kontrollisid seda väidet, aga tõendeid nad ei leidnud.', 'Väidet kontrolliti, kuid …', 'Väidet kontrolliti, kuid tõendeid ei leitud.|Väidet kontrolliti, kuid tõendeid selle kohta ei leitud.'],
+        ['Naaber: „Muusika õppimise ajal teeb targemaks.”', 'Väidetavalt …', 'Väidetavalt teeb muusika õppimise ajal targemaks.|Väidetavalt teeb muusika õppimise ajal inimese targemaks.'],
+        ['Kolleeg: „Vanemas eas ei jää enam midagi meelde.”', 'Kolleegi sõnul ei …', 'Kolleegi sõnul ei jäävat vanemas eas enam midagi meelde.|Kolleegi sõnul ei jää vanemas eas enam midagi meelde.'],
+        ['Uurija: „Une ajal kinnistub see, mida päeval õpiti.”', 'Uurija rõhutab, et …', 'Uurija rõhutab, et une ajal kinnistub see, mida päeval õpiti.'],
+        ['Ajakiri: „Teadlased on tõestanud, et inimene kasutab ainult kümme protsenti ajust.”', 'Ajakirja väitel olevat …', 'Ajakirja väitel olevat teadlased tõestanud, et inimene kasutab ainult kümme protsenti ajust.'],
+        ['Uuring näitas: kes kordab vahedega, mäletab rohkem.', 'Uuringu järgi …', 'Uuringu järgi mäletab rohkem see, kes kordab vahedega.|Uuringu järgi mäletab see, kes kordab vahedega, rohkem.'],
+        ['Vanaema: „Öösel õpitu on hommikul kindlalt peas.”', 'Vanaema arvates olevat …', 'Vanaema arvates olevat öösel õpitu hommikul kindlalt peas.'],
+        ['Uurijad hoiatasid: ülelugemine annab vale tunde, et kõik on selge.', 'Uurijad hoiatasid, et …', 'Uurijad hoiatasid, et ülelugemine annab vale tunde, et kõik on selge.'],
+        ['Sõbranna: „Õpetaja ütles, et eksam lükati edasi.”', 'Eksam olevat …', 'Eksam olevat edasi lükatud.|Eksam olevat õpetaja sõnul edasi lükatud.'],
+      ], 'full', 'g_notice'), 'Kui edastad väidet, näeb kuulaja kohe, kas see on fakt või kuulujutt.'), [
+        'Reklaam = väide, mida sa ei kinnita → mineviku kaudne: olevat teinud.',
+        'Tegija pole oluline → umbisikuline minevik: ei leitud.',
+        'Kuulujutt → väidetavalt + tavaline tegusõna teisel kohal: teeb.',
+        'Allikas „kolleegi sõnul” + eitus: ei jäävat (või tavaline ei jää).',
+        'Viitav tegusõna + et → et-lauses tavaline vorm: kinnistub.',
+        'Ajakiri väidab, sina ei kinnita → olevat tõestanud.',
+        'Uurimistulemus → uuringu järgi + tegusõna teisel kohal: mäletab.',
+        'Vanaema arvamus → olevat (sina ei kinnita).',
+        'Viitav tegusõna minevikus: hoiatasid, et …',
+        'Kuuldud uudis → mineviku kaudne umbisikulises: olevat edasi lükatud.',
+      ]),
+      why(purpose(B.formtext('032_p_summary', 'Kokkuvõte uudiskirja: mida raadio ütles.', 'Kursusekaaslane kirjutab kursuse uudiskirja jaoks saate kokkuvõtte. Kirjuta lünka sobiv sõna või vorm. Sulgudes on vihje. Panka ei ole.', 'Mida me õppimise kohta valesti usume?', [
+        'Eelmisel nädalal rääkis raadios haridusuurija õppimise müütidest. Tema [sõnul] (allikas nimisõnaga) ei ole õpistiilidel nii suurt tähtsust, kui sageli [väidetakse] (väitma; umbisikuline, praegu). Seda kontrolliti mitmes uuringus, kuid tõendeid [ei leitud] (leidma; umbisikuline, minevik, eitus).',
+        '',
+        'Paljud kursused lubavad, et õpistiili test teeb õppimise kergeks. Reklaami väitel [olevat] (olema; kaudne) test aidanud juba tuhandeid inimesi, kuid uurija soovitab selle raha säästa.',
+        '',
+        'Uurija [rõhutas] (rõhutama; minevik), et ülelugemine ja allajoonimine annavad vale tunde: tekst tundub tuttav, aga see ei tähenda, et me seda mäletame. Palju rohkem aitavad enda [kontrollimine] (kontrollima; tegevus asjana) ja kordamine vahedega. Uuringute [järgi] (allikas) mäletab see, kes õpib mitmel päeval väikeste osade kaupa, nädala pärast tunduvalt rohkem.',
+        '',
+        'On [tõestatud] (tõestama; tulemus kehtib), et une ajal kinnistub päeval õpitu. Muusika kohta öeldakse, et see [aitavat] (aitama; kaudne, sina ei kinnita) keskenduda, kuid uurija sõnul sobib ainult vaikne muusika ilma sõnadeta.',
+        '',
+        'Kuulaja küsis, kas viiekümneselt enam midagi meelde ei jää. Uurija vastas, et see on pigem hirm kui [fakt] (mitte kuulujutt).',
+      ]), 'Samamoodi kirjutad kodus nõuande: iga väite juures on näha, kust see tuleb.'), [
+        'Allikas nimisõnaga: tema sõnul.',
+        'Umbisikuline olevik: väidetakse.',
+        'Umbisikuline minevik, eitus: ei leitud.',
+        'Reklaam väidab, sina ei kinnita → olevat aidanud.',
+        'Viitav tegusõna minevikus: rõhutas, et …',
+        'Tegevus asjana: kontrollima → kontrollimine.',
+        'Allikas: uuringute järgi.',
+        'Tulemus kehtib → on tõestatud.',
+        'Väide, mida sa ei kinnita → aitavat.',
+        'Vastand kuulujutule → fakt.',
+      ]),
+      why(purpose(tag(B.table('032_p_register', 'Vestlusgrupis või uudiskirjas?', 'Vasakul on lause sõprade vestlusgrupist. Paremas veerus on sama mõte uudiskirjas, kus allikas ja kindlus on näha. Kirjuta lünka puuduv sõna.', 'Vestlusgrupis, Uudiskirjas', [
+        'Kuulsin, et kohv teeb targaks 😄 | Kohv [väidetavalt] parandab mõtlemist, kuid tõendeid selle kohta ei ole.',
+        'Teadlased ütlesid, et õpistiilid on jama. | Uurijate [sõnul] ei ole õpistiilidel tõendatud mõju.',
+        'Mingi tüüp raadios ütles, et ülelugemine ei aita. | Haridusuurija [rõhutas], et ülelugemisest on vähe kasu.',
+        'Kõik teavad, et öösel õppida on kõige parem. | Sageli [väidetakse], et öösel õppimine aitab, kuid uuringud seda ei kinnita.',
+        'Testisin ise, töötab! | Minu [kogemus] näitab, et meenutamine aitab.',
+        'Uuringus tuli välja, et vahedega on parem. | Uuringust [selgus], et vahedega kordamine annab parema tulemuse.',
+        'Vanaema ütleb, et vanas eas ei jää midagi meelde. | Paljud vanemad inimesed [kardavad], et midagi ei jää meelde, kuid see on pigem hirm kui fakt.',
+        'Reklaam lubas, et test teeb õppimise lihtsaks. | Reklaami [väitel] olevat test aidanud tuhandeid inimesi.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas kuulujutt muutub lauseks, mida lugeja saab usaldada.'), [
+        'Kuulsin → kaugus ühe sõnaga: väidetavalt.',
+        'Teadlased ütlesid → allikas nimisõnaga: uurijate sõnul.',
+        'Mingi tüüp ütles → täpne allikas + viitav tegusõna: haridusuurija rõhutas.',
+        'Kõik teavad → umbisikuline: väidetakse.',
+        'Testisin ise → minu kogemus näitab.',
+        'Tuli välja → uuringust selgus.',
+        'Vanaema ütleb → üldistus ja hinnang: kardavad …, kuid see on hirm.',
+        'Reklaam lubas → reklaami väitel olevat …',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('032_t_plan', 'Nõu pereliikmele: plaan (3 minutit).', 'Pereliige või sõber valmistub kolme nädala pärast eksamiks (keeleeksam, juhilubade teooria, kutseeksam — vali ise). Ta loeb õpikut kolmandat korda, joonib alla ja õpib pühapäeviti neli tundi järjest. Kirjuta märksõnad. Edukriteeriumid: 1) nimetad kaks viisi, mis uuringute järgi töötavad, ja ühe müüdi koos allikaga (uurija sõnul …); 2) edastad tema kuulujutu kaugusega (… olevat …, väidetavalt …); 3) teete koos iga päeva plaani.', ['Mida ta praegu teeb ja miks see ei tööta:', 'Kaks viisi, mis töötavad, ja allikas:', 'Tema kuulujutt ja kuidas ma selle edasi ütlen:', 'Iga päeva plaan (mitu minutit, kuidas ta end kontrollib):'], 1), 'Plaan aitab sul anda nõu, mis põhineb uuringutel, mitte kuulujuttudel.'), 4, 25, { final: 'explain' }),
+      teach(tag(purpose(B.rolecards('032_t_explain', 'Seleta ja tee plaan (6–8 minutit).', 'Seleta pereliikmele, mis tema õppimises ei tööta ja miks, ning tehke koos kolme nädala plaan. Reageeri, kui ta ütleb midagi, mida sa ei teadnud.',
+        'Olukord: pereliige valmistub eksamiks nii, nagu plaanis kirjas.\nSinu eesmärk: ta teab, millest loobuda ja mida teha, ning teil on kokku lepitud iga päeva plaan.\nPiirang: ta usaldab rohkem uuringuid kui arvamusi — ütle, kust info pärineb.',
+        'Pereliikme kaart on õpetajal: tema harjumused, kaks kahtlust ja üks asjaolu, mida sa ei tea.',
+        ['Uurija sõnul …', 'Väidetakse küll, et …, kuid …'], ['Aga sõbranna ütles, et …', 'Mul ei ole aega …']), 'Tulemus: sinu pereliikme plaan, mis sobib tema eluga ja põhineb uuringutel.'), { task: 'S13', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled pereliige. Takistused ükshaaval: 1) „Aga kui ma loen üle, tunnen, et kõik on selge!” 2) „Sõbranna ütles, et ma olevat kuuldeõppija — ma peaksin ainult kuulama.” Varjatud info (ütle pärast teist takistust): „Ah jaa, ma töötan vahetustega: kolmel päeval nädalas on mul vaba aega ainult bussis, kokku pool tundi.” Õpilane peab plaani muutma: lühikesed kordamised telefonis või kaartidega bussis, meenutamine, mitte lugemine. Õnnestunud, kui õpilane nimetab vähemalt kaks tõhusat ja ühe vähe kasuliku viisi, nimetab vähemalt korra allika (uurija sõnul, uuringu järgi), edastab kuulujutu kaugusega (olevat, väidetavalt) ja te panete kokku iga päeva plaani, mis sobib vahetustööga. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('032_t_advice', 'Kodus: nõuanne pereliikmele (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Pereliige palus, et saadaksid tunnis tehtud plaani kirjalikult: ta tahab seda telefonis hoida ja kolm nädalat järgida.',
+        points: ['mis tema praeguses õppimises ei tööta ja miks', 'kaks viisi, mis uuringute järgi aitavad (allikaga)', 'üks kuulujutt ja miks sa seda ei usu', 'iga päeva plaan ja kuidas ta oma arengut kontrollib'],
+        words: [130, 150],
+      }), 'Pereliige hoiab sinu nõuannet telefonis ja õpib kolm nädalat teisiti.'), 6)), { task: 'W13', main: true, level: 4 }),
+      writingRubric('032_t_rubric', 'Hindamisjuhend: nõuanne (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Ma kuulsin raadios, et lugeda üle on halb. Sa peab panna raamat kinni ja meenuta. Teadlane sõnul kordamine on hea. Sõbranna ütles, et sa olevad kuuldeõppija, aga see ei ole tõsi. Õpi iga päev. Edu!” Hinnang: ülesanne 2 (plaan ja kuulujutt on olemas, kuid põhjus ja enda kontrollimise viis puuduvad), ülesehitus 2 (laused on järjekorras, kuid lõike ega sidendeid peaaegu ei ole), sõnavara 2 („hea” ja „halb” korduvad; puuduvad meenutama, kordamine vahedega, tõend), grammatika 1 („sa peab panna” → sa pead panema; „teadlane sõnul” → teadlase sõnul ja tegusõna teisel kohal: teadlase sõnul on kordamine …; „olevad” → olevat). Kui õppija lisab põhjuse ja kontrollimise viisi ning parandab vormid, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('032_t_self', ['Ma saan saatest aru ja järeldan uurija hoiaku.', 'Ma edastan väite allika ja kaugusega: uurija sõnul …, olevat näidanud, väidetavalt.', 'Ma seletan pereliikmele, kuidas õppida, ja muudan plaani, kui ta ütleb midagi uut.'], 'Plaan valmis', 'Ma oskan müüti tõest eristada'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('032_t_chat', CUT_SHORT),
+      retire('032_t_more', CUT_EXTRA),
+      retire('032_t_exit', CUT_DRILL),
+      retire('032_t_guide', CUT_OLDTASK),
+      retire('032_t_home', CUT_HOME),
+      retire('032_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-033': {
+    title: 'Uus amet 45-aastaselt — julge samm või hilja?',
+    phases: grammar('Kordamine: kui mul oleks …, oleksin pidanud … · B2: segatud tingimus (kui ma oleksin siis õppinud, töötaksin praegu …), ilma et + tingiv, justkui + tingiv, oleks tasunud + da'),
+    format: 'debate',
+    topic: 'work',
+    canDo: 'Ma loen umbes 450-sõnalist artiklit inimestest, kes vahetasid täiskasvanuna ametit, ja järeldan autori hoiaku, arutlen märksõnakaartidega ja kaitsen oma seisukohta ka siis, kui partner toob uue asjaolu, ning kirjutan umbes 180-sõnalise arutluse.',
+    teacherPage: {
+      goal: 'Статья о смене профессии взрослым (≈ 450 слов), смешанное условие, ilma et, justkui; дискуссия по карточкам со скрытой информацией; дома рассуждение 180 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); статья — абзацы 1–4 и вопросы 1–5; станция 3 — правило и 8 трансформаций; дискуссия — по одному аргументу с примером.',
+      hook: '«Väide: pärast neljakümnendat on liiga hilja uut ametit õppida.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — о знакомом, который сменил профессию взрослым. Не исправляйте; отметьте, говорит ли он «kui ta oleks …» — это тема урока.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о знакомом, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), формула «реальное → воображаемое» и картинка (3 мин), статья (8 мин), 7 вопросов, из них 3 на вывод (7 мин)',
+        '25–45: станция 3 — условное одной строкой, B2: смешанное условие, ilma et, justkui; 8 трансформаций, письмо бывшей коллеге с 8 пропусками без банка, регистр: кухня → дискуссия',
+        '45–70: станция 4 — план аргументов (3 мин), дискуссия по карточкам до 4 минут со скрытой информацией, разбор по трём критериям',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: рассуждение 180 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): ученик — карьерный консультант: 4 вопроса человеку, который сомневается, и два реальных шага',
+      ],
+      sources: 'Статья «Teine algus: kas neljakümneselt on hilja?» — учебный текст KeeleSepp (Aleksei, Kersti и консультант вымышлены), без статистики. Общие факты: карьерное консультирование Töötukassa бесплатно; многие курсы переобучения бесплатны (условия проверяет консультант); в профшколе учатся и взрослые.',
+      groups: 'Утверждение — каждый сам. Статья — каждый сам, вопросы на вывод сравнивают в паре. Дискуссия: две стороны (карточки A и B); в 1:1 вы берёте сторону, которую ученик не выбрал.',
+      errors: [
+        '«Kui ma oleksin siis õppinud, ma töötaksin praegu …» → «… töötaksin ma praegu …» (после придаточного глагол сразу).',
+        '«Kui ma oleks õppinud …» → «Kui ma oleksin õppinud …» (у «я» — oleksin).',
+        '«Ilma et ma tegin plaani» → «ilma et oleksin plaani teinud» (после ilma et — условное наклонение).',
+        '«Tundus, justkui kõik oli mõttetu» → «… justkui oleks kõik mõttetu» / «… justkui kõik oleks mõttetu» (justkui + условное).',
+      ],
+      notes: [
+        'Формат — дискуссия по карточкам: на каждой карточке только 2–3 ключевых слова на аргумент, аргумент и пример ученик строит сам. Ученику без работы: пенсионеру — «Mida sa õpiksid nüüd?»; маме в декрете — «Mida sa õpiksid, kui laps läheb lasteaeda?»; студенту — «Kas sa vahetaksid eriala?».',
+        'Условное в настоящем и прошлом (B1, модуль 3: oleks pidanud) — повтор одной строкой. Цель B2 — связать прошлое и настоящее (смешанное условие), описать «не сделав» (ilma et + условное) и «как будто» (justkui). Это язык рассуждения о выборе.',
+        'Не обещайте ученику конкретных денег от Töötukassa: условия зависят от группы, это проверяет консультант. Обратная связь, 2–3 цели: аргумент + пример; одна фраза смешанного условия; ответ на новую информацию. Во время дискуссии не перебивать, 3 замечания в конце.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('033_d_talk', 'Väide: pärast neljakümnendat on liiga hilja uut ametit õppida.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: keda sa tead, kes on täiskasvanuna midagi uut õppinud või ametit vahetanud, ja kuidas tal läks.', [
+        'Väide: „Pärast neljakümnendat on liiga hilja uut ametit õppida.” Kas oled nõus? Miks?',
+        'Keda sa tead, kes on täiskasvanuna ametit vahetanud? Kuidas tal läks?',
+        'Mida sina õpiksid, kui saaksid täna otsast alustada?',
+      ], [60, 90]), 'Sinu tuttava lugu annab arutelule esimese näite.'), { task: 'S14', fluency: true }),
+      'Üks-ühele: vasta ka ise ühe looga. Ära paranda; lõpus ütle, kas õpilane kasutas tingivat kõneviisi („Kui ta oleks …”). Kui õpilane ei tööta: „Mis ametit sa tahtsid lapsena teha? Mida sa õpiksid nüüd?”')), 1, 5),
+      station(tag(B.vocab('033_d_vocab', 'Tunni sõnad.', ['amet — профессия', 'ümberõpe — переобучение', 'täiendkoolitus — повышение квалификации', 'oskus — навык', 'kahetsema — сожалеть', 'julgus — смелость', 'risk — риск', 'sissetulek — доход', 'pooleli jätma — бросить (не закончив)', 'karjäärinõustaja — карьерный консультант']), { topic: ['ümberõpe', 'täiendkoolitus'] }), 2, 20),
+      purpose(B.diagram('033_d_scheme', 'formula', { title: 'Skeem: päris olukord ja mõeldud olukord.', instruction: 'Vaata valemit enne lugemist. Lugedes leia tekstist iga rea kohta üks lause.', nodes: 'Päris olukord | Tal ei ole diplomit; ta ei alustanud varem.\nMõeldud olukord praegu | Kui tal oleks diplom, saaks ta kontoris töötada.\nMõeldud minevik → tagajärg praegu | Kui ta oleks varem alustanud, töötaks ta praegu õena.\nIlma et / justkui | Ta alustas, ilma et oleks plaani teinud. Tundus, justkui oleks kõik mõttetu.', note: 'Tingiv olevikus: tüvi + -ks- (oleks, saaks) · minevikus: oleks + -nud (oleks alustanud) · kõrvallause järel tegusõna kohe' }, 'full', 'g_read'), 'Valem aitab sul rääkida sellest, mis oleks võinud olla, ja sellest, mis on praegu.'),
+      why(teach(tag(purpose(B.reading('033_d_text', 'Loe artiklit.', 'Loe artiklit (umbes 8 minutit) ja vasta küsimustele. Küsimustele 5–7 ei ole vastust tekstis sõna-sõnalt: järelda ja näita lauset, millele vastus toetub.', 'Teine algus: kas neljakümneselt on hilja?', [
+        'Kui Aleksei kakskümmend aastat tagasi keevitajana tööle hakkas, ei mõelnud ta, et peab kunagi uuesti koolipinki istuma. Tehas oli kindel, palk korralik ja töö meeldis talle. Kaks korda valiti ta aasta parimaks töötajaks ja ta õpetas noori keevitajaid. Neljakümne kolme aastaselt jäi aga selg haigeks ja arst ütles otse: pensionini ta seda tööd ei jaksa. „Esimesed kuud olid kõige raskemad,” meenutab ta. „Mulle tundus, justkui oleks kogu mu senine elu olnud mõttetu.”',
+        'Aleksei läks karjäärinõustaja juurde, kuigi ei uskunud, et sellest kasu on. Nõustaja küsis kõigepealt, mida ta vabal ajal teeb. Selgus, et Aleksei on aastaid parandanud naabrite arvuteid, ilma et oleks seda kunagi tööks pidanud. Täna õpib ta kutsekoolis IT-süsteemide erialal ja teeb praktikat väikeses firmas. Alguses oli raske istuda klassis koos noortega, kes oleksid võinud olla tema lapsed. „Kui ma oleksin kümme aastat varem alustanud, oleks olnud lihtsam,” ütleb ta. „Aga ma ei kahetse. Oleks ainult tasunud varem küsida.”',
+        'Kersti lugu on teistsugune. Ta töötas viisteist aastat lasteaiaõpetajana ja otsustas neljakümne viie aastaselt õppida õeks. Tema otsuse taga ei olnud haigus, vaid soov teha midagi uut. Õppimine kestis kolm ja pool aastat, viimased kaks töö kõrvalt. Rahaliselt oli kõige raskem viimane aasta, kui ta töötas osalise koormusega ja pere elas peamiselt ühest palgast. „Ma kartsin, et olen noorte kõrval liiga aeglane,” räägib ta. „Tegelikult aitas mind elukogemus: ma oskan haige inimesega rahulikult rääkida, sest olin aastaid rahustanud nutvaid lapsi.” Nüüd töötab ta haigla lasteosakonnas.',
+        'Kõigil ei lähe nii hästi. Karjäärinõustajad räägivad ka inimestest, kes alustasid õpinguid, kuid jätsid need pooleli, sest pere sissetulek vähenes või keegi jäi haigeks. Üks nõustaja ütleb: „Kõige suurem viga on alustada, ilma et oleks raha ja aja plaan läbi mõeldud. Julgusest üksi ei piisa.” Tema sõnul tasub enne otsust kuu aega proovida: käia lühikesel kursusel, olla töövari või rääkida inimestega, kes seda ametit juba teevad. Nii näeb inimene, ilma et peaks kohe töölt lahkuma, kas uus ala talle päriselt sobib.',
+        'Kas neljakümneselt on siis hilja? Statistikat on kerge leida, kuid otsust see ei tee. Täiskasvanud õpivad Eestis rohkem kui varem ja paljudele on ümberõpe tasuta. Mõnes ametis loeb kogemus rohkem kui vanus, teises ootab tööandja ikkagi noori. Raskem küsimus on isiklik: kas pere toetab, kas sissetulek kannatab paar aastat väiksemat palka ja kas inimene on valmis olema uues kohas jälle algaja.',
+        'Aleksei ja Kersti vastavad sellele küsimusele samamoodi, kuigi nende teed olid erinevad. Kumbki ei ütle, et uus algus oli lihtne. Kuid kumbki ei vahetaks oma praegust tööd tagasi. Mõlemad soovitavad rääkida enne otsust oma perega ausalt nii rahast kui ka ajast. „Kui ma oleksin jäänud ootama, et hirm kaob,” ütleb Kersti, „istuksin praegu ikka samas kohas ja mõtleksin, mis oleks olnud, kui …”',
+        'Allikas: KeeleSepp õppetekst (inimesed on välja mõeldud).',
+      ].join('\n\n'), [
+        ['Miks pidi Aleksei oma ametist loobuma?', 'selg jäi haigeks; ta ei jaksaks seda tööd pensionini'],
+        ['Mida küsis karjäärinõustaja Alekseilt kõigepealt ja mis selgus?', 'mida ta vabal ajal teeb; ta parandab aastaid naabrite arvuteid'],
+        ['Mis oli Kersti otsuse põhjus?', 'soov teha midagi uut, mitte haigus'],
+        ['Mida soovitab nõustaja teha enne otsust?', 'kuu aega proovida: lühike kursus, töövari, rääkida selle ameti inimestega'],
+        ['Miks aitas Kerstit tema elukogemus? Mida autor sellega vihjab?', 'ta oskab haigega rahulikult rääkida, sest rahustas lapsi; vanast ametist saab oskusi uude kaasa võtta'],
+        ['Miks kirjutab autor ka inimestest, kellel ei läinud hästi? Milline on autori hoiak?', 'ta ei taha ümberõpet ilustada; julgusele peab lisanduma raha ja aja plaan'],
+        ['Mida tahab Kersti öelda viimase lausega? Mida võib sellest järeldada?', 'kui oleks hirmu kaotamist oodanud, poleks midagi muutunud; ta on rahul, et ei oodanud'],
+      ]), 'Pärast lugemist on sul arutelu jaoks kaks päris lugu ja üks hoiatus.'), { task: 'R15', voice: 'expert' }),
+      'Lugemine, 20 minutit koos sõnade, valemi ja pildiga. Enne lugemist küsi pildi järgi: mida saab vanast ametist uude kaasa võtta? Pärast: õpilane leiab tekstist valemi iga rea kohta lause Küsimused 5–7 on järeldusküsimused: nõua lauset, millele vastus toetub. Tekst on õppetekst, inimesed on välja mõeldud.'), [
+        '1. lõik: „jäi aga selg haigeks … pensionini ta seda tööd ei jaksa”.',
+        '2. lõik: nõustaja küsis, „mida ta vabal ajal teeb”; ta on „parandanud naabrite arvuteid”.',
+        '3. lõik: „Tema otsuse taga ei olnud haigus, vaid soov teha midagi uut.”',
+        '4. lõik: „tasub enne otsust kuu aega proovida”.',
+        'Järeldus 3. lõigust: ta oskab haigega rääkida, „sest olin aastaid rahustanud nutvaid lapsi” — oskus tuli vanast ametist.',
+        'Järeldus 4. lõigust: „Kõigil ei lähe nii hästi … Julgusest üksi ei piisa” — autor näitab ka riski.',
+        'Järeldus 6. lõigust: „Kui ma oleksin jäänud ootama, et hirm kaob, … istuksin praegu ikka samas kohas.”',
+      ]),
+      retire('033_d_hook', CUT_HOOK),
+      retire('033_d_podcast', CUT_INPUT),
+    ],
+    practice: [
+      station(teach(B.notice('033_p_notice', 'Märka: mis oleks olnud, kui …?', [
+        'Artiklist: **Kui** ma **oleksin** varem **alustanud**, **oleks olnud** lihtsam. · **ilma et oleks** seda tööks **pidanud** · **justkui oleks** kogu elu **olnud** mõttetu · **Kui** ma **oleksin jäänud** ootama, **istuksin** praegu …',
+        'Kordamine (B1): Kui mul **oleks** aega, **õpiksin** ma õeks. · Kui ma **oleksin** varem **küsinud**, **oleksin teadnud** … · **oleksin pidanud** + ma (tund 14).',
+        'B2: segatud tingimus, minevik → olevik — Kui ma **oleksin** siis **õppinud**, **töötaksin** ma **praegu** õena. · nõu tagantjärele: **oleks tasunud / oleks võinud** + da (oleks tasunud varem küsida).',
+        'B2: **ilma et** + tingiv — tegemata jäänud tegevus: Ta alustas, **ilma et oleks** plaani **teinud**. · **justkui** + tingiv — „как будто”: Tundus, **justkui oleks** kõik mõttetu. · Kõrvallause järel tegusõna kohe.',
+      ], 'full'), 'Kordamine ühe minutiga (kui mul oleks …, oleksin pidanud …). Siis B2 samm: minevik, mis mõjutab olevikku, ja „ilma et”. Lase õpilasel leida artiklist kolm lauset (ilma et oleks …, justkui oleks …, kui ma oleksin …, istuksin praegu …) ja öelda, mis aega iga osa näitab.'), 3, 20),
+      why(purpose(B.transformation('033_p_ifs', 'Mis oleks olnud, kui …?', 'Kirjuta iga lause ümber antud sõnadega. Mõtle: kas mõeldud olukord on praegu või minevikus? Panka ei ole.', [
+        ['Ta ei õppinud kümme aastat tagasi, seepärast ei tööta ta praegu õena.', 'Kui ta oleks …', 'Kui ta oleks kümme aastat tagasi õppinud, töötaks ta praegu õena.|Kui ta oleks õppinud kümme aastat tagasi, töötaks ta praegu õena.'],
+        ['Selg jäi haigeks, seepärast ei ole ta enam keevitaja.', 'Kui selg ei oleks …', 'Kui selg ei oleks haigeks jäänud, oleks ta praegu ikka keevitaja.|Kui selg ei oleks haigeks jäänud, oleks ta ikka keevitaja.|Kui selg ei oleks haigeks jäänud, oleks ta veel keevitaja.'],
+        ['Ta alustas õpinguid ja ei teinud enne rahaplaani.', 'ilma et', 'Ta alustas õpinguid, ilma et oleks enne rahaplaani teinud.|Ta alustas õpinguid, ilma et oleks rahaplaani teinud.|Ta alustas õpinguid, ilma et ta oleks enne rahaplaani teinud.'],
+        ['Esimesel päeval tundus mulle, et ma ei tea midagi.', 'justkui', 'Esimesel päeval tundus mulle, justkui ma ei teaks midagi.|Esimesel päeval tundus mulle, justkui ei teaks ma midagi.'],
+        ['Enne otsust oli mõistlik lühikest kursust proovida, aga ta ei teinud seda.', 'Oleks tasunud …', 'Oleks tasunud enne otsust lühikest kursust proovida.|Enne otsust oleks tasunud lühikest kursust proovida.'],
+        ['Sa ei ole veel karjäärinõustajaga rääkinud. (Nõu tagantjärele.)', 'Sa oleksid võinud …', 'Sa oleksid võinud karjäärinõustajaga rääkida.|Sa oleksid võinud enne karjäärinõustajaga rääkida.'],
+        ['Pere ei toetanud teda, seepärast jättis ta õpingud pooleli.', 'Kui pere oleks …', 'Kui pere oleks teda toetanud, ei oleks ta õpinguid pooleli jätnud.|Kui pere oleks teda toetanud, poleks ta õpinguid pooleli jätnud.'],
+        ['Ma ootasin, et hirm kaob, ja istun ikka samas kohas.', 'Kui ma ei oleks …', 'Kui ma ei oleks oodanud, et hirm kaob, ei istuks ma praegu samas kohas.|Kui ma ei oleks oodanud, ei istuks ma praegu samas kohas.|Kui ma ei oleks oodanud, et hirm kaob, ei istuks ma ikka samas kohas.'],
+      ], 'full', 'g_notice'), 'Oskad öelda, mis oleks võinud olla ja mis sellest praegu tuleneb — see on arutelu tuum.'), [
+        'Segatud tingimus: minevik (oleks õppinud) → olevik (töötaks praegu).',
+        'Eitus minevikus: ei oleks haigeks jäänud → olevik: oleks praegu ikka …',
+        'Tegemata tegevus → ilma et + mineviku tingiv: oleks teinud.',
+        '„Как будто” → justkui + tingiv: ei teaks.',
+        'Nõu tagantjärele → oleks tasunud + da: proovida.',
+        'Pehme kriitika → oleksid võinud + da: rääkida.',
+        'Mineviku tingiv mõlemas osas: oleks toetanud → ei oleks jätnud.',
+        'Segatud: ei oleks oodanud (minevik) → ei istuks praegu (olevik).',
+      ]),
+      why(purpose(B.formtext('033_p_letter', 'Kiri endisele kolleegile: kaks aastat hiljem.', 'Inimene, kes vahetas 46-aastaselt ametit, kirjutab endisele kolleegile, kes kõhkleb. Kirjuta lünka tegusõna sobiv vorm. Sulgudes on vihje. Panka ei ole.', 'Kas ma soovitaksin?', [
+        'Tere, Tiina! Küsisid, kas ma [soovitaksin] (soovitama; tingiv, mina) sul samuti uut ametit õppida.',
+        '',
+        'Kui ma [oleksin] (olema; mina) teadnud, kui raske esimene aasta on, oleksin võib-olla kauem kõhelnud. Õhtuti istusin raamatute taga, ilma et [oleksin] (olema; mina) kordagi korralikult välja maganud. Mõnikord tundus, justkui [oleks] (olema; tema) kogu maailm minust kiirem.',
+        '',
+        'Samas ei [vahetaks] (vahetama; tingiv) ma oma praegust tööd enam tagasi. Kui ma oleksin jäänud kassasse, [istuksin] (istuma; mina, praegu) seal ikka veel ja kurdaksin selja üle.',
+        '',
+        'Kaks asja oleksin siiski pidanud teisiti tegema. Esiteks oleksin pidanud varem nõustaja juurde [minema] (minema; oleksin pidanud + ma-tegevusnimi). Teiseks oleks [tasunud] (tasuma) enne otsust kuu aega proovida, kas see töö mulle üldse sobib. Sulle soovitan alustada lühikesest kursusest.',
+        '',
+        'Kallistan\nsinu endine kolleeg',
+      ]), 'Selline kiri on aus: näitab nii riski kui ka seda, miks proovida tasub.'), [
+        'Viisakas oletus → tingiv: soovitaksin.',
+        'Mineviku tingiv: oleksin teadnud.',
+        'ilma et + mineviku tingiv: oleksin maganud.',
+        'justkui + tingiv: oleks.',
+        'Mõeldud olukord → tingiv: ei vahetaks.',
+        'Segatud tingimus: oleksin jäänud (minevik) → istuksin (praegu).',
+        'pidama + ma-tegevusnimi: minema.',
+        'oleks tasunud + da: proovida.',
+      ]),
+      why(purpose(tag(B.table('033_p_register', 'Köögilaua jutt või arutelu?', 'Vasakul on lause köögilaua vestlusest. Paremas veerus on sama mõte arutelus või arutluses. Kirjuta lünka puuduv sõna.', 'Köögis, Arutelus', [
+        'See on täiesti hull mõte! | Ma ei ole selle mõttega päris [nõus], sest …',
+        'Kõik teavad, et vanad ei õpi enam midagi. | [Sageli] arvatakse, et täiskasvanu õpib halvemini, kuid see ei pea paika.',
+        'Raha pole, unusta ära. | Teisalt [võib] pere sissetulek õpingute ajal väheneda.',
+        'Oleks pidanud varem tegema, nüüd on hilja. | [Kui] ta oleks varem alustanud, oleks olnud lihtsam, kuid hilja ei ole see siiski.',
+        'Ma ei tea, see oleneb. | See [sõltub] sellest, kas pere toetab ja kas raha jätkub.',
+        'Kokkuvõttes — proovi ära! | [Kokkuvõttes] arvan, et proovida tasub, kui plaan on läbi mõeldud.',
+      ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas sama mõte kõlab arutelus, kus sind kuulatakse.'), [
+        'Hull mõte → viisakas vastuväide: ei ole päris nõus, sest …',
+        'Kõik teavad → üldistus pehmelt: sageli arvatakse.',
+        'Unusta ära → vastuargument: teisalt võib …',
+        'Oleks pidanud → mineviku tingiv kui-lauses.',
+        'Oleneb → see sõltub sellest, kas …',
+        'Proovi ära → kokkuvõttes arvan, et …',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('033_t_plan', 'Arutelu: argumentide plaan (3 minutit).', 'Teema: kas 45-aastaselt tasub uut ametit õppida? Vali pool: poolt või vastu. Kirjuta märksõnad. Edukriteeriumid: 1) kaks argumenti, igaühel näide tekstist või oma elust; 2) vähemalt üks lause mineviku või segatud tingivas (kui ta oleks …, oleks …; ilma et oleks …); 3) vastad partneri argumendile ja jõuate lõpus ühise seisukohani või ütled selgelt, milles jäite eri meelt.', ['Minu pool ja esimene lause (30 sekundit):', 'Argument 1 ja näide:', 'Argument 2 ja näide:', 'Mida vastan, kui partner ütleb …:'], 1), 'Plaan aitab sul rääkida argumentidega, mitte ainult tundega.'), 4, 25, { final: 'decide' }),
+      teach(tag(purpose(B.rolecards('033_t_debate', 'Arutelu märksõnakaartidega (kuni 4 minutit).', 'Öelge kõigepealt kumbki 30 sekundiga oma arvamus. Siis arutage kaartide ja oma näidetega. Reageeri, kui partner toob uue asjaolu. Lõpus jõudke ühise seisukohani või öelge, milles jäite eri meelt.',
+        'Kaart A (poolt): märksõnad, ehita neist ise argument ja too näide. 1) elukogemus — rahulik, kliendid; 2) tasuta ümberõpe — nõustaja; 3) veel 20 tööaastat — rahulolu.',
+        'Kaart B (vastu): märksõnad, ehita neist ise argument ja too näide. 1) sissetulek — pere, laen; 2) aeg ja uni — töö kõrvalt; 3) jälle algaja — noored kolleegid.',
+        ['Minu arvates …', 'Kui ta oleks …, oleks …'], ['Ma ei ole päris nõus, sest …', 'Kas võiksime kokku leppida, et …?']), 'Tulemus: selge seisukoht kahe argumendi ja näitega ning kokkulepe või ausalt nimetatud lahkarvamus.'), { task: 'S17', main: true, level: 4, harno: 'S2' }),
+      'Õpetaja võtab poole, mida õppija ei valinud. Kuula 30 sekundit vahele segamata, siis arutle. Varjatud info (ütle arutelu keskel): „Mul on uudis: minu tööandja pakub, et maksab poole kursusest, kui jään firmasse veel kaheks aastaks.” (Kui õppija on vastu: „… aga ainult siis, kui õpin nädalavahetustel.”) Õppija peab reageerima: küsima täpsustust, kaaluma uut asjaolu ja muutma oma seisukohta või pakkuma kompromissi. Õnnestunud, kui õppija toob kaks argumenti näitega, kasutab vähemalt ühe mineviku või segatud tingiva lause (kui ta oleks …, töötaks ta praegu …; ilma et oleks …), vastab partneri argumendile ja jõuate kokkuleppele või nimetab selgelt, mis jäi lahti. Seejärel üks tugevus ja üks parandus.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('033_t_argue', 'Kodus: arutlus (umbes 180 sõna).', `Kirjuta 170–190 sõna. Pealkirja ja algust ei anta. ${VOICE_HOME}`, 'vastus', {
+        situation: 'Kursuse ajaveebis on teema „Kas 45-aastaselt tasub uut ametit õppida?”. Kirjuta oma arutlus, mida loevad ka teised kursuslased.',
+        points: ['sinu seisukoht ja kui kindel sa oled', 'kaks argumenti, igaühel näide (tekstist või elust)', 'vastaspoole argument ja sinu vastus', 'järeldus: millistel tingimustel tasub ja millistel mitte'],
+        words: [170, 190],
+      }), 'Kursuslased loevad sinu arutlust ja kommenteerivad; see on ka B2-eksami arutluse harjutus.'), 6)), { task: 'W14', main: true, level: 4 }),
+      writingRubric('033_t_rubric', 'Hindamisjuhend: arutlus (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 180 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Minu arvates on 45-aastaselt hilja. Inimene on väsinud ja tal on pere. Kui ta õpiks, ta ei saaks raha. Aga mõni inimene tahab uut ametit. Minu tuttav õppis õeks ja on rahul. Kui ma oleks noorem, ma õpiksin ka. Kokkuvõttes on see raske.” Hinnang: ülesanne 2 (seisukoht ja vastaspool on olemas, kuid argumentidel pole näidet ja järeldus ei ütle, millistel tingimustel), ülesehitus 2 (lõike ei ole, sidendid korduvad), sõnavara 2 („raske” ja „inimene” korduvad; puuduvad ümberõpe, sissetulek, risk), grammatika 1 („Kui ta õpiks, ta ei saaks” → ei saaks ta; „kui ma oleks” → kui ma oleksin; mineviku tingivat ei ole). Kui õppija lisab näited ja tingimused ning parandab tingiva vormid ja sõnajärje, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('033_t_self', ['Ma loen artiklit ametivahetusest ja järeldan autori hoiaku.', 'Ma räägin mõeldud minevikust ja selle tagajärjest: kui ma oleksin …, oleksin praegu …; ilma et oleks …', 'Ma kaitsen arutelus oma seisukohta ja reageerin uuele asjaolule.'], 'Arutelu peetud', 'Ma oskan ümberõppe üle arutleda'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('033_t_calls', CUT_INPUT),
+      retire('033_t_cards', CUT_INPUT),
+      retire('033_t_cons', CUT_INPUT),
+      retire('033_t_more', CUT_EXTRA),
+      retire('033_t_exit', CUT_DRILL),
+      retire('033_t_essay', CUT_OLDTASK),
+      retire('033_t_home', CUT_HOME),
+      retire('033_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-034': {
+    title: 'Kes maksab sinu õppimise eest?',
+    phases: grammar('Kordamine: õppimine, õppija · B2: ametliku teksti kesksõnad (registreeritud, tasutud, lõpetanud, õppiv, kehtiv) ja -mise + kaassõna (lõpetamise järel, esitamisel); ametlik ↔ lihtne'),
+    format: 'quest',
+    topic: 'money',
+    canDo: 'Ma saan aru umbes 3,5-minutilisest raadiosaatest selle kohta, kes maksab täiskasvanu õppimise eest, ja järeldan nõustaja hoiaku, leian päris kursuse ja lepin juhiga kokku õppepuhkuse ning kirjutan tööandjale umbes 140-sõnalise taotluse.',
+    teacherPage: {
+      goal: 'Радио «кто платит за учёбу» (2 голоса, 3,5 мин), причастия официального текста, настоящий курс, разговор с руководителем со скрытой информацией; дома заявление 140 слов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'План Б: утверждение (3 мин); радио — один раз и утверждения 1–7; станция 3 — правило и 10 предложений; поиск курса дома, разговор с руководителем без скрытого предложения.',
+      hook: '«Väide: täiskasvanu õppimise eest peab maksma inimene ise, mitte tööandja ega riik.» Ученик сразу говорит, согласен ли, и одну причину, потом минуту — платил ли он сам или его семья за курс и окупилось ли это. Не исправляйте.',
+      plan: [
+        '0–5: станция 1 — утверждение и одна минута о своём опыте, без фраз',
+        '5–25: станция 2 — 10 слов (2 мин), схема «кто может платить» и картинка (3 мин), радио дважды (8 мин), 10 утверждений «верно / неверно», из них 2 на вывод (7 мин)',
+        '25–45: станция 3 — -mine / -ja одной строкой, B2: причастия -tud / -nud / -v и -mise + послелог; 10 предложений, заявление с 10 пропусками без банка, регистр: официально → просто',
+        '45–70: станция 4 — настоящий курс на настоящем сайте и карта «следующий шаг» (5 мин), разговор с руководителем со скрытой информацией (6–8 мин), разбор',
+        '70–75: выход: три критерия и «Ma oskan …»; домашнее задание: заявление 140 слов без готового начала и голосовое 1 мин',
+        'Kui aega jääb (75–90): ученик объясняет другу, у которого нет работы, куда обратиться (Töötukassa, бесплатные курсы) — 1 минута, потом вопросы друга',
+      ],
+      sources: 'Радио «Õppimise hind» — учебный текст KeeleSepp (ведущая Kaie и консультант Rein вымышлены). Упрощённые факты: учебный отпуск до 30 календарных дней в год, часть оплачивается по средней зарплате, сообщить работодателю заранее (täiskasvanute koolituse seadus); расходы на обучение у зарегистрированного обучающего можно вычесть в tuludeklaratsioon; Töötukassa помогает безработным и работающим с устаревшими навыками; бесплатные курсы эстонского. Ссылки задания: https://www.tootukassa.ee, https://www.emta.ee (страницы не открывались при подготовке, адреса — главные сайты ведомств). Правила меняются — проверять на официальной странице.',
+      groups: 'Утверждение — каждый сам. Радио — каждый сам, утверждения на вывод сравнивают в паре. Поиск курса — каждый свой (телефон или компьютер). Разговор: пары «работник — руководитель», карточку руководителя даёте вы; в 1:1 руководитель — вы.',
+      errors: [
+        '«registreeritav koolitaja» → «registreeritud koolitaja» (-tud: то, что уже сделано; -tav: то, что делают / будут делать).',
+        '«Kursuse lõpetamine järel» → «Kursuse lõpetamise järel» (-mine перед послелогом в родительном: -mise).',
+        '«õppivad töötajad» в партитиве после числа: «kaks õppivat töötajat».',
+        'В заявлении «Ma tahan õppepuhkus» → «Palun mulle õppepuhkust …» / «Kas oleks võimalik …?» (вежливо, партитив).',
+      ],
+      notes: [
+        'Формат — квест: утверждение → радио → язык → настоящий курс и разговор с руководителем. Карта станции 4 — продукт модуля: на ней основан текст в контрольной 035. Ученику без работы: письмо карьерному консультанту Töötukassa; пенсионеру — бесплатные курсы и библиотека; маме в декрете — онлайн-курсы.',
+        '-mine / -ja (B1) — повтор одной строкой. Цель B2 — читать и писать официальный текст (причастия как прилагательные, номинализация с послелогом) и пересказывать его просто (медиация, CEFR CV 2020).',
+        'Цифры не обещайте: правила меняются. Если ученик спрашивает «а мне положено?», ответ: «Kontrolli ametlikult lehelt või küsi nõustajalt» — для этого в станции 4 настоящая ссылка. Обратная связь, 2–3 цели: причастие или -mise в нужной форме; вежливая просьба; ясные даты и сумма.',
+      ],
+    },
+    discover: [
+      station(inLesson(teach(tag(purpose(B.speaking('034_d_talk', 'Väide: täiskasvanu õppimise eest peab maksma inimene ise.', 'Ütle kohe, kas oled väitega nõus, ja üks põhjus. Siis räägi umbes minut: kas sina või keegi sinu peres on maksnud mõne kursuse või kooli eest ja kas see tasus ära.', [
+        'Väide: „Täiskasvanu õppimise eest peab maksma inimene ise, mitte tööandja ega riik.” Kas oled nõus? Miks?',
+        'Kas sina või su pere olete maksnud mõne kursuse eest? Kas see tasus ära?',
+      ], [60, 90]), 'Sinu kogemus näitab, mida sa juba tead ja mida saad tunnis teada.'), { task: 'S16', fluency: true }),
+      'Üks-ühele: vasta ka ise. Ära paranda. Kui õpilane ei tööta: „Kas sinu pere maksis sinu või sinu lapse kursuse või huviringi eest?”')), 1, 5),
+      station(tag(B.vocab('034_d_vocab', 'Tunni sõnad.', ['õppepuhkus — учебный отпуск', 'koolitus — обучение, курсы', 'koolituskulu — расходы на обучение', 'tuludeklaratsioon — налоговая декларация', 'maha arvama — вычитать', 'taotlus — заявление', 'tingimus — условие', 'hüvitama — возмещать', 'tagasi maksma — возвращать (деньги)', 'registreeruma — регистрироваться']), { topic: ['õppepuhkus', 'koolituskulu'] }), 2, 20),
+      purpose(B.diagram('034_d_scheme', 'flow', { title: 'Skeem: kes võiks maksta?', instruction: 'Vaata skeemi enne kuulamist. Kuulates märgi iga sammu juurde, mida nõustaja selle kohta ütleb ja mille eest ta hoiatab.', nodes: 'Tööga seotud kursus? Küsi kõigepealt tööandjalt; aeg: õppepuhkus, teata aegsasti ette.\nTasuta võimalus? Töötukassa, tasuta keelekursused, riigi koolitused.\nMaksad ise? Hoia arve alles: osa raha tuleb tuludeklaratsiooniga tagasi.\nTööandja maksab? Loe koolituslepingut: mis saab, kui lahkud varem?' }, 'full', 'g_read'), 'Skeem näitab, millises järjekorras raha otsida.'),
+      why(teach(tag(purpose(B.examListen('034_d_listen', 'Kuulamine: raadiosaade „Õppimise hind”.', 'Raadiosaates „Õppimise hind” räägib saatejuht koolitusnõustajaga, kes võiks täiskasvanu õppimise eest maksta. Loe enne väited läbi. Kuula saadet kaks korda ja otsusta iga väite kohta: õige või vale.', 'truefalse', [
+        'Kaie: Tere! Saates „Õppimise hind” räägime täna rahast. Paljud tahaksid midagi uut õppida, aga esimene küsimus on alati sama: kes selle eest maksab? Stuudios on koolitusnõustaja Rein. Rein, kust peaks alustama?',
+        'Rein: Tere! Alustage tööandjast. Paljud inimesed ei julge küsida, sest arvavad, et koolitus on nende isiklik asi. Kui kursus on aga tööga seotud, on see kasulik ka firmale. Sageli maksab tööandja kogu summa või vähemalt osa sellest. Kuid küsida tuleb ise ja põhjendada, mida firma sellest võidab. Kirjutage juhile lühidalt, mida te pärast kursust oskate paremini kui praegu.',
+        'Kaie: Kas tasub küsida ka kolleegidelt?',
+        'Rein: Kindlasti. Mõnikord on firmas juba olemas koolituse raha, millest keegi ei tea, sest seda pole kunagi küsitud.',
+        'Kaie: Aga kui juht ütleb, et raha ei ole?',
+        'Rein: Siis on teil ikkagi õigus õppepuhkusele. Seaduse järgi võib töötaja saada õppimiseks kuni kolmkümmend kalendripäeva aastas ja osa sellest ajast makstakse keskmise palga järgi. Õppepuhkusest tuleb tööandjale aegsasti ette teatada, mitte eelmisel päeval. Tööandja ei saa seda lihtsalt keelata, aga ta võib paluda aega muuta, kui töös on väga kiire periood.',
+        'Kaie: Kas õppepuhkust saab ka keelekursuse jaoks?',
+        'Rein: Kui kursus on seotud tööga või see on ametlik koolitus, siis üldiselt jah. Kõige kindlam on küsida koolitajalt kinnitust ja näidata seda tööandjale. Ametlik paber teeb vestluse juhiga palju lihtsamaks.',
+        'Kaie: Kuulajad küsivad sageli maksude kohta.',
+        'Rein: Jah. Kui maksate kursuse eest ise, saab osa raha tuludeklaratsiooniga tagasi. Tingimus on, et koolitaja on ametlikult registreeritud ja teil on arve alles. Paljud unustavad selle ja jätavad raha riigile. Nii et hoidke arved alles!',
+        'Kaie: Ja kes ei tööta?',
+        'Rein: Töötuna arvel olev inimene saab koolitusele minna Töötukassa kaudu: nõustaja aitab leida kursuse ja Töötukassa maksab selle eest. Ka töötav inimene võib Töötukassast abi saada, kui tema oskused on vananenud või ta võib töö kaotada. Lisaks on tasuta eesti keele kursused ja mõned tasuta tööalased koolitused. Need kohad täituvad kiiresti, nii et registreeruda tasub kohe, kui registreerimine algab.',
+        'Kaie: Mida peaks teadma, kui tööandja maksab?',
+        'Rein: Lugege koolitusleping enne allkirja läbi. Tihti on seal tingimus: kui lahkute firmast näiteks aasta jooksul pärast kursust, peate osa raha tagasi maksma. See on tavaline ja mõistlik, aga te peate seda teadma enne, mitte pärast. Mul oli klient, kes vahetas kolm kuud pärast kallist kursust töökohta ja sai üllatusena arve.',
+        'Kaie: Mis on teie kõige tähtsam nõuanne?',
+        'Rein: Ärge alustage küsimusest „kas mul on raha”, vaid küsimusest „mida ma tahan õppida ja miks”. Kui see on selge, leiab rahale sageli lahenduse. Ja kui ei leia, alustage väiksemalt: tasuta veebikursus või raamatukogu on samuti õppimine.',
+        'Kaie: Aitäh, Rein!',
+      ], [
+        ['Reinu sõnul tasub kõigepealt küsida tööandjalt, kas ta maksab kursuse eest.', true],
+        ['Reinu arvates on tööga seotud koolitus ainult töötaja isiklik asi.', false],
+        ['Kui tööandja raha ei anna, ei ole töötajal õigust õppimiseks vaba aega saada.', false],
+        ['Õppepuhkusest võib tööandjale teatada ka eelmisel päeval.', false],
+        ['Ise makstud kursuse eest saab osa raha tagasi siis, kui koolitaja on registreeritud ja arve on alles.', true],
+        ['Töötukassa saab aidata ka töötavat inimest, kelle oskused on vananenud.', true],
+        ['Tasuta kursustele võib rahulikult registreeruda ka mõni kuu hiljem.', false],
+        ['Koolituslepingus võib olla tingimus, et varem lahkudes tuleb osa raha tagasi maksta.', true],
+        ['Reinu lugu kliendist näitab, et lepingu tingimusi tuleb teada enne allkirja.', true],
+        ['Reinu viimasest nõuandest võib järeldada, et ilma rahata ei tasu õppimisele üldse mõelda.', false],
+      ], 'g_read'), 'Kuuled, kust võib õppimiseks raha ja aega tulla; kohe kasutad seda oma plaanis.'), { voice: 'interview', task: 'L05', harno: 'L4' }),
+      'Kuulamine, 20 minutit koos sõnade, skeemi ja pildiga (umbes 3,5 minutit, kaks korda). Enne kuulamist küsi pildi järgi: kust tulevad õppimiseks aeg ja raha? Õpilane loeb väited ja joonib alla võtmesõnad. Pärast: õpilane ütleb skeemi iga sammu kohta, mida nõustaja soovitas. Väited 9 ja 10 on järeldusväited (nõustaja hoiak): nõua põhjendust kuuldust. Saade on õppetekst; reeglid on lihtsustatud ja muutuvad — õpetaja lehel on ametlikud allikad.'), [
+        'Õige: „Alustage tööandjast.”',
+        'Vale: „Kui kursus on aga tööga seotud, on see kasulik ka firmale.”',
+        'Vale: „Siis on teil ikkagi õigus õppepuhkusele.”',
+        'Vale: tuleb teatada „aegsasti …, mitte eelmisel päeval”.',
+        'Õige: „Tingimus on, et koolitaja on ametlikult registreeritud ja teil on arve alles.”',
+        'Õige: „Ka töötav inimene võib Töötukassast abi saada, kui tema oskused on vananenud.”',
+        'Vale: „Need kohad täituvad kiiresti … registreeruda tasub kohe.”',
+        'Õige: „kui lahkute … aasta jooksul pärast kursust, peate osa raha tagasi maksma”.',
+        'Õige (järeldus): klient „sai üllatusena arve” — tingimust ei teatud enne.',
+        'Vale (järeldus): „kui ei leia, alustage väiksemalt: tasuta veebikursus või raamatukogu on samuti õppimine”.',
+      ]),
+      retire('034_d_hook', CUT_HOOK),
+      retire('034_d_chat', CUT_SHORT),
+      retire('034_d_route', CUT_SHORT),
+    ],
+    practice: [
+      station(teach(B.notice('034_p_notice', 'Märka: kuidas räägib ametlik tekst?', [
+        'Saatest: koolitaja on **registreeritud** · **ise makstud** kursus · oskused on **vananenud** · **töötav** inimene · Kordamine (B1): **-mine** = tegevus (õppimine, seoses õppimisega), **-ja** = tegija (õppija, taotleja, koolitaja).',
+        'B2: kesksõna omadussõnana — **-tud / -dud** (mida on tehtud): registreeri**tud** koolitaja, tasu**tud** arve, sõlmi**tud** leping · **-nud** (kes on teinud, mis on juhtunud): lõpeta**nud** õppija, vanane**nud** oskused · **-v** (kes teeb praegu): õppi**v** töötaja, kehti**v** leping, tööd otsi**v** inimene. Käändub nagu omadussõna: kaks õppi**vat** töötajat.',
+        'B2: **-mise** + kaassõna — taotluse **esitamisel** (kui esitad) · kursuse **lõpetamise järel** (pärast seda, kui lõpetad) · lepingu **lõpetamise korral** (kui leping lõpeb) · õppepuhkuse **kasutamisest** teatama (teatama millest).',
+        'Vahendus: ametlik → lihtne. „Õppepuhkuse kasutamisest teatab töötaja aegsasti ette.” → „Kui tahad õppepuhkust, ütle tööandjale aegsasti ette.”',
+      ], 'full'), 'Kordamine ühe minutiga (õppimine, õppija). Siis B2 samm: ametlik tekst ütleb tegevuse kesksõna või -mise-sõnaga. Lase õpilasel leida saatest kaks kesksõna (registreeritud, vananenud) ja öelda need sõbrale lihtsa lausega („koolitaja, kes on ametlikult kirjas”).'), 3, 20),
+      why(purpose(B.gaps('034_p_letter', 'Ametlik vorm: kesksõna ja -mise.', 'Kirjuta lünka sulgudes oleva sõna õige vorm. Sulgudes on vihje. Panka ei ole.', [
+        'Koolituskulu saab maha arvata ainult [registreeritud] koolitaja puhul. (registreerima; mida on tehtud)',
+        'Taotlusele tuleb lisada kursuse eest [tasutud] arve. (tasuma; mida on tehtud)',
+        'Seadus kaitseb ka töö kõrvalt [õppivat] töötajat. (õppima; kes teeb praegu, osastav)',
+        'Kursuse [lõpetanud] õppijad saavad tunnistuse. (lõpetama; kes on teinud)',
+        'Töötukassa aitab inimesi, kelle oskused on [vananenud]. (vananema; mis on juhtunud)',
+        'Õppepuhkuse [kasutamisest] teatab töötaja tööandjale aegsasti ette. (kasutama; teatama millest)',
+        'Kursuse [lõpetamise] järel võib töötaja võtta üle uusi ülesandeid. (lõpetama; millal?)',
+        'Lepingu ennetähtaegse [lõpetamise] korral maksab töötaja osa koolituskulust tagasi. (lõpetama; mis juhul?)',
+        'Taotluse [esitamisel] kontrollib süsteem kohe, kas andmed on õiged. (esitama; kui esitad)',
+        'Kõik [kehtivad] koolituslepingud on personaliosakonnas. (kehtima; mis kehtib praegu, mitmus)',
+      ], '', 'full', 'g_notice'), 'Õige vorm teeb su taotluse ametlikuks ja täpseks.'), [
+        'Mida on tehtud? → -tud: registreeritud.',
+        'Mida on tehtud? → tasuma → tasutud.',
+        'Kes õpib praegu? → -v: õppiv; sihitis osastavas: õppivat.',
+        'Kes on lõpetanud? → -nud: lõpetanud.',
+        'Mis on juhtunud? → vananema → vananenud.',
+        'teatama millest → -mise + seestütlev: kasutamisest.',
+        '-mise + järel: lõpetamise järel.',
+        '-mise + korral: lõpetamise korral.',
+        'Kui esitad → -misel: esitamisel.',
+        'Mis kehtib praegu? → -v, mitmus: kehtivad.',
+      ]),
+      why(purpose(B.formtext('034_p_request', 'Õppepuhkuse taotlus.', 'Töötaja kirjutab juhile ametliku taotluse. Kirjuta lünka sobiv sõna või vorm. Sulgudes on vihje. Panka ei ole.', 'Taotlus: õppepuhkus ja koolituskulu', [
+        'Lugupeetud osakonnajuht!',
+        '',
+        'Palun mulle õppepuhkust 9.–13. märtsini seoses [õppimisega] (õppima; seoses millega) raamatupidamise täiendkoolitusel. Koolitust korraldab ametlikult [registreeritud] (registreerima; mida on tehtud) koolitaja ja see on mõeldud juba [töötavatele] (töötama; kes teevad praegu, kellele?) raamatupidajatele.',
+        '',
+        'Koolitus on otseselt seotud minu tööülesannete [täitmisega] (täitma; seotud millega). Kursuse [lõpetamise] (lõpetama) järel saaksin üle võtta osakonna kuuaruanded, mida praegu teeb välispartner.',
+        '',
+        'Kursuse hind on 650 eurot. Kas oleks võimalik, et firma [hüvitaks] (hüvitama; viisakalt) vähemalt poole sellest summast? Olen valmis sõlmima koolituslepingu, mille järgi lepingu [lõpetamise] (lõpetama) korral esimese aasta jooksul maksan osa summast tagasi.',
+        '',
+        'Õppepuhkuse [kasutamisest] (kasutama; teatama millest) teatan vastavalt seadusele aegsasti ette. Lisan kirjale koolitaja kinnituse ja [tasutud] (tasuma; mida on tehtud) ettemaksu arve.',
+        '',
+        'Palun [teatage] (teatama; viisakas palve, teie) oma otsusest hiljemalt järgmise nädala reedeks.',
+        '',
+        'Lugupidamisega\nraamatupidaja',
+      ]), 'Selline taotlus näitab juhile, et oled seaduse ja firma huvi läbi mõelnud.'), [
+        'seoses millega → -misega: õppimisega.',
+        'Mida on tehtud? → registreeritud.',
+        'Kes töötavad praegu? → -v, mitmus, alaleütlev: töötavatele.',
+        'seotud millega → -misega: täitmisega.',
+        '-mise + järel: lõpetamise järel.',
+        'Viisakas palve kõrvallauses → tingiv: hüvitaks.',
+        '-mise + korral: lõpetamise korral.',
+        'teatama millest → kasutamisest.',
+        'Mida on tehtud? → tasutud.',
+        'Viisakas palve teile → käskiv, mitmus: teatage.',
+      ]),
+      why(purpose(tag(B.table('034_p_register', 'Ametlik tekst või sõbrale?', 'Vasakul on ametlik lause. Paremas veerus seletad sama sõbrale lihtsalt. Kirjuta lünka puuduv sõna.', 'Ametlik, Sõbrale lihtsalt', [
+        'Õppepuhkuse kasutamisest teatab töötaja tööandjale aegsasti ette. | Kui tahad õppepuhkust, [ütle] tööandjale aegsasti ette.',
+        'Koolituskulu saab maha arvata registreeritud koolitaja puhul. | Raha saad tagasi ainult siis, kui koolitaja on ametlikult [registreeritud/kirjas].',
+        'Lepingu ennetähtaegse lõpetamise korral hüvitab töötaja koolituskulu. | Kui [lahkud] varem, pead osa raha tagasi maksma.',
+        'Taotluse esitamine toimub elektrooniliselt. | Taotluse saad [esitada] internetis.',
+        'Töötuna arvel oleval isikul on õigus tasuta koolitusele. | Kui oled töötuna arvel, [saad] koolitusele tasuta.',
+        'Kursuse lõpetamise järel väljastatakse tunnistus. | [Pärast] kursust saad tunnistuse.',
+        'Tasutud arve tuleb säilitada. | Hoia arve [alles].',
+        'Õppepuhkuse ajal säilib õppiva töötaja töötasu osaliselt. | Kui [õpid], maksab tööandja osa ajast palka edasi.',
+      ], 'g_notice'), { task: 'W12' }), 'Sõber saab aru, mis talle kuulub, ilma et peaks seadust lugema.'), [
+        'Teatab ette → ütle ette.',
+        'Registreeritud koolitaja → koolitaja on ametlikult kirjas.',
+        'Lepingu lõpetamise korral → kui lahkud.',
+        'Esitamine toimub → saad esitada.',
+        'On õigus → saad.',
+        'Lõpetamise järel → pärast kursust.',
+        'Säilitada → hoia alles.',
+        'Õppiv töötaja → kui õpid.',
+      ]),
+    ],
+    transfer: [
+      station(purpose(B.planning('034_t_plan', 'Minu õpitee järgmine samm: päris kursus (5 minutit).', 'Ava päris leht ja vali üks kursus või kool, mis sobiks sulle praegu: Töötukassa (https://www.tootukassa.ee), Maksu- ja Tolliameti leht koolituskulude kohta (https://www.emta.ee) või mõne kooli või kursuse oma koduleht. Kirjuta märksõnad. Edukriteeriumid: 1) kursus on päris (nimi, koolitaja, aeg, hind); 2) tead, kes võiks maksta ja mis sulle kuulub (õppepuhkus, raha tagasi, tasuta koht); 3) räägid juhiga ja vastad tema kahtlusele.', ['Kursus (nimi, koolitaja, aeg, hind) ja leht, kust selle leidsin:', 'Miks see on seotud minu töö või eluga:', 'Kes maksab ja mis mulle kuulub:', 'Mida ütlen juhile ja mida pakun vastu:'], 1), 'Kaart jääb sulle: selle järgi räägid juhiga, kirjutad taotluse ja mooduli kontrollis oma õpitee järgmise sammu.'), 4, 25, { final: 'plan' }),
+      teach(tag(purpose(B.rolecards('034_t_more', 'Räägi juhiga (6–8 minutit).', 'Räägi juhiga oma kursusest: palu õppepuhkust ja tööandja toetust. Reageeri, kui juht ütleb midagi, mida sa ei teadnud.',
+        'Olukord: tahad minna valitud kursusele; töös on kiire aeg.\nSinu eesmärk: kokkulepe õppepuhkuse kuupäevade ja kursuse hinna kohta.\nPiirang: juht ei tea seadust hästi ja kardab, et töö jääb tegemata.',
+        'Juhi kaart on õpetajal: tema mured ja üks pakkumine, mida sa ei oota.',
+        ['Seaduse järgi on mul õigus …', 'Kursuse lõpetamise järel saaksin …'], ['Märtsis on meil …', 'Miks peaks firma …?']), 'Tulemus: kokkulepe kuupäevade ja summa kohta, mille paned kodus taotlusse.'), { task: 'S03', main: true, level: 4 }),
+      'Õpetaja kaart: sina oled juht. Takistused ükshaaval: 1) „Märtsis ei saa keegi puhkusele minna.” (Tööandja võib paluda aega muuta, kuid õppepuhkust lihtsalt keelata ei saa.) 2) „Miks peaks firma sinu kursuse eest maksma?” Varjatud info (ütle pärast teist takistust): „Firma maksab kogu kursuse, kui sõlmid koolituslepingu: kui lahkud kahe aasta jooksul, maksad kõik tagasi.” Õpilane peab uue tingimuse läbi mõtlema: küsima täpsustust (kas summa väheneb aja jooksul?), pakkuma lühemat aega või väiksemat osa või ütlema viisakalt, mis talle ei sobi. Õnnestunud, kui õpilane viitab seadusele (õppepuhkus), põhjendab, mida firma võidab, kasutab vähemalt kaks ametlikku vormi (kursuse lõpetamise järel, sõlmitud leping, registreeritud koolitaja) ja te lepite kokku kuupäevad ja summa. Seejärel üks tugevus ja üks parandus. Kui õpilane ei tööta: sina oled Töötukassa karjäärinõustaja ja varjatud info on „see kursus on tasuta, kuid algab alles kahe kuu pärast”.'),
+      tag(homeTask(homeLines(purpose(B.examWriting('034_t_apply', 'Kodus: taotlus tööandjale (umbes 140 sõna).', `Kirjuta 130–150 sõna. Pöördumist ja algust ei anta. ${VOICE_HOME}`, 'kiri', {
+        situation: 'Juht palus, et paneksid tunnis kokku lepitu kirja ametliku taotlusena. Kui sa ei tööta, kirjuta Töötukassa karjäärinõustajale ja palu kohtumist koolituse leidmiseks.',
+        points: ['mis kursus, kus ja millal', 'kuidas see on seotud sinu tööga (või miks sul seda vaja on)', 'mida palud: õppepuhkus, osa hinnast või kohtumine', 'mida pakud vastu ja millal ootad vastust'],
+        words: [130, 150],
+      }), 'Juht otsustab sinu kirja järgi, kas ja kuidas firma sinu õppimist toetab.'), 6)), { task: 'W13', main: true, level: 4 }),
+      writingRubric('034_t_rubric', 'Hindamisjuhend: taotlus (12 punkti).', 'Piiripealne näidis (lühendatud, terve tekst on umbes 140 sõna; 7/12 ≈ 58 %, veel mitte 60 %): „Tere! Ma tahan minna kursusele märtsis. Kursus on vaja minu tööle. Palun maksa kursuse eest, see maksab 650 eurot. Ma tahan ka õppepuhkus viis päeva. Kursuse lõpetamine järel ma oskan rohkem. Vastake kiiresti.” Hinnang: ülesanne 2 (kursus ja palve on olemas, kuid seos tööga ja vastupakkumine puuduvad), ülesehitus 2 (lõike ja sidendeid peaaegu ei ole), sõnavara 2 (ametlikke väljendeid ei ole; „maksa” ja „vastake kiiresti” on juhile liiga otsesed), grammatika 1 („õppepuhkus” → õppepuhkust; „lõpetamine järel” → lõpetamise järel; „ma oskan” → oskan ma; „kursus on vaja” → kursust on vaja). Kui õppija lisab seose tööga ja vastupakkumise, kasutab viisakat palvet (Kas oleks võimalik …?) ja parandab vormid, saab ta 9/12 (75 %).', true),
+      exitCheck(purpose(B.selfcheck('034_t_self', ['Ma saan saatest aru ja järeldan nõustaja hoiaku.', 'Ma kasutan ametlikke vorme (registreeritud koolitaja, kursuse lõpetamise järel) ja ütlen need lihtsalt.', 'Ma leian päris kursuse ja lepin juhiga kokku, ka kui ta pakub ootamatut tingimust.'], 'Taotlus tehtud', 'Ma oskan oma õppimisele raha ja aega leida'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.')),
+      retire('034_t_cards', CUT_INPUT),
+      retire('034_t_know', CUT_TIP),
+      retire('034_t_exit', CUT_DRILL),
+      retire('034_t_letter', CUT_OLDTASK),
+      retire('034_t_home', CUT_HOME),
+      retire('034_t_homework', CUT_HOME),
+    ],
+  },
+
+  'b1b2-035': {
+    title: 'Kontroll 7 — õppimine ja haridus',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma saan eksami vormis aru kaheksast lühiteatest, mida kuulen üks kord, ja raadiointervjuust täiskasvanute õppimise kohta ning kirjutan kaks teksti: viie minutiga arvamuse samades tingimustes nagu mooduli alguses ja umbes 160-sõnalise teksti oma õpitee järgmisest sammust; Harno lävi on 60 %.',
+    // Methodology v5 (2026-11-25): one sheet, 45 minutes, two skills — listening + writing (module 1: reading + speaking,
+    // module 2: listening + speaking, module 3: reading + writing, module 4: the B2 mock, module 5: listening + writing,
+    // module 6: reading + speaking). Listening opens with L1 as on the exam: eight short notices, each its own clip
+    // (≤ 45 s, heard once, locked) — the format the course trained least; then the v4 control's career-counsellor interview
+    // (same transcript and audio), now locked and heard twice, with its gaps and true/false statements. The writing part
+    // opens with the parallel new task of the module's cold task (031_d_cold): the same conditions (5 minutes, 5–7
+    // sentences, no phrases, no opening), a new statement; then the module product „Minu õpitee järgmine samm” (the card
+    // of 034_t_plan) as a text with the analytic rubric. The old three sheets (28 blocks) stay hidden below.
+    discover: [
+      B.text('035_d_intro', 'Kontroll 7: kuulamine ja kirjutamine (45 minutit)', 'Kontrollis on kaks osaoskust. Kuulamine (umbes 18 minutit): kaheksa lühiteadet (igaüht kuulad üks kord) ning raadiointervjuu (kuulad kaks korda) lünkade ja õige-vale väidetega — kokku 25 punkti. Kirjutamine (umbes 27 minutit): viie minutiga arvamus (6 punkti) ja tekst „Minu õpitee järgmine samm” umbes 160 sõna (12 punkti) — kokku 18 punkti. Kokku 43 punkti. Harno: sooritatud alates 60 % (vähemalt 26 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (31 punkti), meie tunnistus alates 80 % (35 punkti) — see on sisemine lävi. Sõnaraamatut ei kasutata. Kuulamise ajal võid teha märkmeid, kuid vastused kirjuta lehele kohe: salvestust ei saa peatada ega uuesti alustada. Kirjutamises loeb ka see, kas tekst sobib lugejale ja kas mõtted on lõikudeks jagatud.'),
+      PART('035_p_lpart', 'L', { minutes: 18, points: 25, tasks: 3, note: 'Teated (igaüks üks kord, 8 punkti), intervjuu (kaks korda): lüngad (9 punkti) ning õige või vale (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      once(why(tag(perClip(B.examListen('035_p_clips', 'Kuulamine 1: kaheksa lühiteadet (8 punkti).', 'Kuulad kaheksat lühikest teadet. Iga teadet kuuled ainult üks kord. Loe enne küsimus läbi, siis kuula ja vali üks õige vastus kolmest.', 'choice', [
+        'Teadustaja: Kutsekooli avatud uste päev on laupäeval kella kümnest kaheni. Kell kümme algab peamajas kooli tutvustus, seejärel saavad noored ja nende vanemad töökodades erialasid proovida ja õpetajatega rääkida. Õpilaskodu tutvustus algab kell kaksteist peamaja fuajees. Eelregistreerimist ei ole vaja, kuid kui tulete terve klassiga, andke koolile ette teada. Parkida saab kooli taga tasuta.',
+        'Teadustaja: Linnaraamatukogu pakub eakatele tasuta arvutikursust. Kursusel õpitakse kasutama e-posti, internetipanka ja digiretsepti. Kursus algab märtsis ja toimub kolmapäeviti kell üksteist teise korruse lugemissaalis. Kohti on kaksteist. Registreeruda saab ainult telefoni teel, sest paljud eakad ei kasuta veel e-posti. Raamatukogu kodulehel on kursuse kava, kuid registreerimisvormi seal ei ole.',
+        'Teadustaja: Maksu- ja Tolliamet tuletab meelde, et tuludeklaratsiooni saab esitada alates veebruari keskpaigast. Koolituskulud on deklaratsioonis juba eeltäidetud, kuid ainult siis, kui koolitaja on need ise maksuametile esitanud. Seepärast kontrollige summa üle ja lisage puuduv kulu ise. Arveid ei pea maksuametile saatma, kuid hoidke need igaks juhuks alles.',
+        'Teadustaja: Registreerimine tasuta eesti keele kursustele algab esmaspäeval kell kümme. Kursused ise algavad alles kuu aja pärast. Eelmisel aastal täitusid kohad mõne tunniga, seepärast valige oma keeleoskuse tase ja linn juba enne. Kes kohta ei saa, jääb ootenimekirja ja saab teate, kui koht vabaneb.',
+        'Teadustaja: Gümnaasiumi teade lastevanematele. Kolmapäevane arenguvestlus lükkub järgmisele nädalale, sest klassijuhataja on sel päeval koolitusel. E-päevik töötab tavaliselt ja uue aja saate seal valida juba homsest. Kui ükski aeg ei sobi, kirjutage klassijuhatajale otse. Vestlus kestab nagu varem umbes pool tundi ja õpilane osaleb koos vanemaga.',
+        'Teadustaja: Töötukassa teatab, et karjäärinõustamisele saab nüüd aega broneerida ka õhtuti, esmaspäevast neljapäevani kuni kella seitsmeni. Nõustamine on endiselt tasuta kõigile, ka neile, kes praegu töötavad või õpivad. Aja saab broneerida veebis või helistades. Kui te ei saa kohale tulla, võib vestluse pidada ka videokõnena.',
+        'Teadustaja: Ülikooli avatud ülikool teatab, et täiskasvanute õhtuste kursuste registreerimine pikeneb nädala võrra, kuni järgmise reedeni. Põhjus on see, et veebilehel oli kaks päeva tehniline viga. Kursused algavad siiski plaanitud ajal. Kes jõudis juba registreeruda, ei pea midagi uuesti tegema.',
+        'Teadustaja: Lasteaia teade vanematele. Alates järgmisest kuust algab eesti keele huviring ka kolmeaastastele. Ring toimub teisipäeviti pärast lõunauinakut ja on tasuta. Ringi viib läbi muusikaõpetaja. Kohti on kümme, soovist andke teada oma lapse rühmaõpetajale reedeks.',
+      ], [
+        ['Mis algab kutsekooli avatud uste päeval kell kaksteist?', 'õpilaskodu tutvustus', 'erialade proovimine', 'eelregistreerimine'],
+        ['Kuidas saab raamatukogu arvutikursusele registreeruda?', 'ainult telefoni teel', 'e-posti teel', 'raamatukogu kodulehel'],
+        ['Mida peab maksumaksja teate järgi koolituskuludega tegema?', 'kontrollima summa üle ja lisama puuduva kulu', 'saatma kõik arved maksuametile', 'ootama, kuni koolitaja helistab'],
+        ['Miks soovitatakse keeleoskuse tase ja linn juba enne valida?', 'kohad täituvad väga kiiresti', 'ilma selleta ei saa ootenimekirja', 'kursus algab juba esmaspäeval'],
+        ['Miks lükkub gümnaasiumi arenguvestlus edasi?', 'klassijuhataja on koolitusel', 'e-päevik ei tööta', 'vanemad ei saanud tulla'],
+        ['Mis on Töötukassa karjäärinõustamises uut?', 'aega saab broneerida ka õhtuti', 'nõustamine on nüüd tasuline', 'nõustamine on ainult töötutele'],
+        ['Miks pikeneb avatud ülikooli kursuste registreerimine?', 'veebilehel oli tehniline viga', 'kursustele on vähe huvilisi', 'kursused algavad hiljem'],
+        ['Kellele tuleb lasteaia huviringi soovist teada anda?', 'lapse rühmaõpetajale', 'lasteaia direktorile', 'muusikaõpetajale'],
+      ], 'g_read', 1)), { task: 'L01', harno: 'L1' }), [
+        'Teade 1: „Õpilaskodu tutvustus algab kell kaksteist.”',
+        'Teade 2: „Registreeruda saab ainult telefoni teel.”',
+        'Teade 3: „Kontrollige summa üle ja lisage puuduv kulu ise.”',
+        'Teade 4: „Eelmisel aastal täitusid kohad mõne tunniga.”',
+        'Teade 5: „klassijuhataja on koolitusel”.',
+        'Teade 6: „saab nüüd aega broneerida ka õhtuti”.',
+        'Teade 7: „Põhjus on see, et veebilehel oli kaks päeva tehniline viga.” Kursused algavad plaanitud ajal.',
+        'Teade 8: „soovist andke teada oma lapse rühmaõpetajale”; muusikaõpetaja viib ringi läbi.',
+      ])),
+      twice(patch(why(V4_BLOCKS['035_p_listen'], OLD_WHY['035_p_listen']), { instruction: 'Raadios räägib karjäärinõustaja täiskasvanute õppimisest. Loe enne kuulamist läbi nii osa 2 lüngad kui ka osa 3 väited (1 minut). Kuula intervjuud kaks korda. Täida lausete lüngad 1–2 sõnaga; vastus peab olema kuuldud sõna, mitte sinu enda selgitus. Väike õigekirjaviga punkti ei võta, kui sõna on selgelt äratuntav.' })),
+      patch(why(V4_BLOCKS['035_p_tf'], OLD_WHY['035_p_tf']), { instruction: 'Sama intervjuu (kolmandat korda seda ei mängita): otsusta kuulamise ajal või kohe pärast iga väite kohta, kas see on õige või vale. Väide on õige ainult siis, kui nõustaja ütleb seda saates; iga õige otsus annab ühe punkti.', statements: [
+        ['Nõustaja sõnul tulevad tema juurde kõige sagedamini kahekümneaastased, kes otsivad oma esimest töökohta.', false],
+        ['Nõustaja alustab vestlust alati küsimusega selle kohta, mis inimesele vabal ajal meeldib.', true],
+        ['Tööturu andmeid vaatab nõustaja koos kliendiga alles pärast seda, kui on rääkinud tema vabast ajast.', true],
+        ['Nõustaja arvates õpivad täiskasvanud alati halvemini kui noored, isegi kui nad teavad, milleks nad õpivad.', false],
+        ['Nõustaja soovitab õppida korraga pikalt, näiteks terve pühapäeva, sest siis jääb rohkem meelde.', false],
+        ['Nõustaja sõnul ei saa töötaja õppimiseks töölt vaba aega võtta, kui tööandja on selle vastu.', false],
+        ['Raha asjus soovitab nõustaja kõigepealt küsida tööandjalt, enne kui otsida teisi võimalusi.', true],
+        ['Karjäärinõustamise eest tuleb maksta väike tasu, välja arvatud neil, kes on praegu töötud.', false],
+      ].map(([text, ok]) => ({ text, answer: ok ? 'true' : 'false' })) }),
+      PART('035_t_wpart', 'W', { minutes: 27, points: 18, tasks: 2, note: 'Kirjutamine 1 (5 minutit, 6 punkti): sisu ja ülesehitus 0–3, keel 0–3 — samad tingimused nagu mooduli külmas alguses. Kirjutamine 2 (umbes 22 minutit, 12 punkti): analüütiline juhend, neli kriteeriumi 0–3. Kontrolli tulemus: kuulamine … / 25 + kirjutamine … / 18 = … / 43.' }),
+      teach(tag(B.writing('035_t_cold', 'Kirjutamine 1: arvamus viie minutiga (6 punkti).', 'Väide: „Täiskasvanu peaks iga paari aasta tagant midagi päris uut õppima.” Kirjuta 5 minutiga 5–7 lauset: kas oled nõus, põhjus ja näide ning mida ütleks vastaspool. Fraase ega algust ei anta.', [5, 7], [], 0, 'g_use'), { task: 'W14', harno: 'W2b' }),
+      'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-031 (5 minutit, 5–7 lauset, fraase ega algust ei ole), uus väide. Hinda 0–3 sisu ja ülesehituse eest (seisukoht esimeses lauses, põhjus näitega, vastuargument ja vastus sellele) ja 0–3 keele eest (rektsioon kõrvallausega, allikas, tingiv kõneviis, sõnajärg kõrvallause järel). Võrdle külma alguse lehega: ütle õppijale üks konkreetne areng ja üks järgmine samm.'),
+      tag(B.examWriting('035_t_nextstep', 'Kirjutamine 2: minu õpitee järgmine samm (umbes 160 sõna, 12 punkti).', 'Kirjuta 150–170 sõna. Pealkirja ja algust ei anta.', 'vastus', {
+        situation: 'Kursuse ajaveebis kirjutab iga õppija, mida ta järgmisena õpib; teised kursuslased loevad ja küsivad. Võid kasutada tunni 34 kaarti, kuid kirjuta uus tekst.',
+        points: ['mida sa järgmisena õpid ja miks just see', 'kuidas sa õpid, et see meelde jääks', 'kes maksab ja mis sulle kuulub', 'mis võib takistada ja mida siis teed'],
+        words: [150, 170],
+      }), { task: 'W14', harno: 'W2b' }),
+      writingRubric('035_t_wrubric', 'Hindamine: tekst (12 punkti).', 'Hinda teksti nelja kriteeriumi järgi (0–3). Sisupunktid: mida ja miks, kuidas õpid, kes maksab ja mis kuulub, takistus ja lahendus. Mooduli keel on grammatika ja ülesehituse kriteeriumi osa: rektsioon kõrvallausega (tund 31), allikas ja kaugus (32), segatud tingimus ja ilma et (33), ametliku teksti kesksõnad ja -mise (34). Kontrolli tulemus = kuulamine … / 25 + kirjutamine 1 … / 6 + kirjutamine 2 … / 12.', true),
+      retire('035_d_how', CUT_CONTROL),
+      retire('035_d_vocab', CUT_CONTROL),
+      retire('035_d_rpart', CUT_CONTROL),
+      retire('035_d_read', CUT_CONTROL),
+      retire('035_d_mc', CUT_CONTROL),
+      retire('035_d_para', CUT_CONTROL),
+      retire('035_d_cloze', CUT_CONTROL),
+      retire('035_d_bank', CUT_CONTROL),
+    ],
+    practice: [
+      retire('035_p_how', CUT_CONTROL),
+      retire('035_p_kpart', CUT_CONTROL),
+      retire('035_p_fix', CUT_CONTROL),
+      retire('035_p_trans', CUT_CONTROL),
+      retire('035_p_notes', 'L1 is now 035_p_clips: six clips of ≤ 45 s, each its own recording heard once (v5 G6, Harno L1)'),
+      retire('035_p_self', CUT_CONTROL),
+    ],
+    transfer: [
+      retire('035_t_situation', CUT_CONTROL),
+      retire('035_t_product', 'the module product is the writing 035_t_nextstep (v5 §5: one sheet, listening + writing)'),
+      retire('035_t_letter', CUT_CONTROL),
+      retire('035_t_chart', CUT_STATS),
+      retire('035_t_summary', CUT_CONTROL),
+      retire('035_t_spart', CUT_CONTROL),
+      retire('035_t_present', CUT_CONTROL),
+      retire('035_t_debate', CUT_CONTROL),
+      retire('035_t_rubric', CUT_CONTROL),
+      retire('035_t_self', CUT_CONTROL),
+    ],
+  },
+}, {
+  'b1b2-031': 'PROB R→S', 'b1b2-032': 'AVAS L→S', 'b1b2-033': 'LUGE R→W', 'b1b2-034': 'KUUL L→W', 'b1b2-035': 'EKS',
+});
+
+// Why each answer is right (owner 2026-11-16: after hand-in the learner sees the score, the mistakes and why;
+// engine/mistakes.js). Since v5 the explanations travel with each block (why(block, lines)); this map is empty and
+// kept for courseSheet.js withExplanations.
+export const EXPLAIN = {};
