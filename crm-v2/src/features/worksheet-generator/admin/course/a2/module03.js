@@ -1,36 +1,88 @@
-// A2 course (A1 → A2 roadmap), module 3 „Päev, kell ja harjumused” (a2-011…015), level A2. Lesson template v4
-// (docs/COURSE_DESIGN_COMMUNICATIVE.md §12) in the final shape of the A2 course (docs/COURSE_FINAL_SHAPE_A2.md, row m3:
-// KUUL PROB LUGU AVAS). One storyline, one year before the B1 course (docs/COURSE_CAST.md): Sofia (27) lives in Malle
-// Pärn's flat in Mustamäe (Malle 66, pensioner, works at the library on Tuesdays and Fridays; flatmate Grete Kuusik 22,
-// student, evening shifts in a café on Tuesdays and Thursdays, parents in Rapla). Sofia's new day: the course at Keelekool
-// Sõna Monday–Thursday 9–12 (teacher Maret, administrator Ene, classmates Dmitri — a bus driver on the evening shift — and
-// Lucía), job hunting (café „Mustamäe Mokka”, hotel „Meretuul”), evenings with Grete. Jaan's family (café Pann, Kadri's
-// night shifts, Mia's kindergarten „Päikeseke” 7–18, Oskar class 2 at Kase kool, football Tue/Thu 17–18 with coach Raivo).
-// Minor people: radio „Mustamäe hääl” passers-by Margus, Kerttu, Joosep, Aino; employers Kaia (shop) and Kalle (hotel);
-// PE teacher Margit Vaher; family nurse Heli.
-//   011 KUUL L→W — the parts of the day and the present tense (lähen, tulen, söön, joon, teen); main: a story for the
-//       language school's paper (W05).
-//   012 PROB R→S — the time (pool / veerand / kolmveerand, kella …st kuni …ni, enne / pärast, kestab); the problem: the
-//       hotel moves Sofia's job interview to the Tuesday when she looks after Jaan's children; main: the phone call to the
-//       hotel (S04).
-//   013 LUGU R→W — how often (alati … mitte kunagi, kord nädalas, käin ujumas) and word order; Sofia at the family nurse;
-//       main: a letter to the nurse (W04).
-//   014 AVAS L→S — the week (esmaspäeval / esmaspäeviti, järgmisel nädalal; kõigepealt, siis, pärast seda; ja, aga,
-//       sest); „proovi kõigepealt” → rule → „proovi uuesti”; main: the flat's weekly plan agreed with an idea card (S03).
-// Every teaching lesson has a pair / role task in the lesson and a home recording in Kasuta (V16), two fluency tasks
-// (V11) and a review naming the previous lesson and one of module 1 (V13). Lesson 015 is the module's check.
-import { B, tag, teach, withShapes } from '../blocks.js';
+// A2 course (A1 → A2 roadmap), module 3 „Päev, kell ja harjumused” (a2-011…015), stage A2 algus (lessons 001–020).
+// Methodology v5 for A2 (docs/METHODOLOGY_A2_V5.md, normative; strictModulesV5.json „a2”), made on the model of modules
+// 1–2: one real communicative outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 14 a lesson in a 60-minute
+// lesson; the module control is one sheet (≤ 10 blocks, 45 min). Lengths of the stage: input text 80–120 words, audio
+// ≤ 75 s, writing 20–45 words, speech 35–60 s (a pair card up to 120 s). At most one short dictation a lesson (≤ 6
+// sentences), here in 012 (the time); 011, 013 and 014 have a true/false meaning task instead. Ready phrases (tipText, role-card phrases, a given opening) help in 011–013 and are gone from the
+// main speaking and writing of 014, the module's last teaching lesson. One learning picture per teaching lesson carries
+// its pair task (art/visuals/a2-module-03.js). No lesson uses the continuing story's cast (G7).
+//   011 LUGU R→S  „Minu päev” — a baker's text about his day (reading). Outcome: tell about your ordinary day and ask
+//                 about another person's (ma lähen / ta läheb / nad lähevad; hommikul, õhtul, öösel); the four
+//                 neighbours' cards are the guessing game; an interview and a short story for the school's paper.
+//   012 RÄÄK L→S  „Mis kell?” — a phone call to a hairdresser (listening). Outcome: say and ask the time (pool kolm,
+//                 veerand neli, kolmveerand viis), read opening hours (kella kümnest kuueni) and book a time on the
+//                 phone; the dental clinic's administrator holds hidden information (G9).
+//   013 KIRJ R→W  „Kui tihti?” — a flat-share ad „Otsin korterikaaslast!” (reading). Outcome: say how often you do
+//                 things (alati … mitte kunagi, kaks korda nädalas, käin ujumas; the verb second after a time word) and
+//                 answer the ad in writing; the three candidates' week charts are the pair decision.
+//   014 PROJ L→W  „Minu nädal” — a friend's voice message (listening). Outcome: agree a meeting time without notes or
+//                 phrases (esmaspäeval, esmaspäeviti, nädalavahetusel; kõigepealt, siis, pärast seda) and write to your
+//                 own teacher when you can come next week (a real addressee, G13); two week planners = information gap.
+//   015 EKS       Control 3 (one sheet, 45 min): reading, listening, writing and speaking, 10 points each; raw points, the
+//                 Harno scale (× 2), the thresholds named one way, the result of control 2 beside it.
+// Removed blocks stay in this file as hide(block, why) — ids and learners' answers are kept, and the practice engine
+// (practice/engine/extract.js) still builds Harjuta items from their form tasks. The previous version (template v4, one
+// storyline through the whole module) is in git history (main before this PR).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
 
 export const MODULE = { id: 'a2-module-03', course: 'a2', title: 'Päev, kell ja harjumused', level: 'A2', design: 'v2', template: 'v4' };
 
+// one line for every block taken off the sheets by the v5 rewrite
+const V5_CUT = 'v5 (2026-11-25): lehelt maha — tunni eelarve (60 min), üks sisend, loo tegelased ainult ühes tunnis';
+const V5_DRILL = 'v5 (2026-11-25): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+// a recording is heard twice (methodV5.js G6); in the control the player is locked
+const twice = (block, lock = false) => ({ ...block, data: { ...block.data, plays: 2, ...(lock ? { lockPlays: true } : {}) } });
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a check is one sheet with its own label (no „Avasta” subtitle)
+const checkSheet = (label, subtitle) => ({ discover: { label, slot: 1, subtitle } });
+// a real addressee (methodV5.js G13): the learner sends the text to a real person
+const toAddressee = (block, who) => ({ ...block, data: { ...block.data, realAddressee: who } });
+// the thresholds, named one way everywhere (METHODOLOGY_A2_V5.md §2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi, et eksamil oleks varu).';
+
 export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 011 reading: my day
   'a2-011': {
     title: 'Minu päev',
-    canDo: 'Ma kirjutan keelekooli lehte 40–60-sõnalise loo oma tavalisest päevast ja räägin sellest umbes minut, kasutades vähemalt kuut ajasõna.',
+    canDo: 'Ma räägin oma tavalisest päevast (mis kell, mida ja kellega) ja küsin teise inimese päeva kohta; ma kirjutan keelekooli lehte lühikese loo „Üks päev minu elus”.',
     discover: [
-      B.review('011_d_review', [['Kes on Jaani pere? Nimeta neli inimest.', 'a2-009'], ['Milline on onu Viktor? Ütle kaks lauset.', 'a2-008'], ['Kus Sofia elab ja kes on Malle?', 'a2-002']]),
-      B.text('011_d_goal', 'Moodul 3: minu päev ja minu nädal', 'Sofia elab nüüd Mustamäel. Ta üürib tuba Malle Pärna korteris. Korteris elab ka üliõpilane Grete. Sofial on uus päev: hommikul on keelekursus, päeval otsib ta tööd. Selles moodulis räägid oma päevast, kellaajast ja harjumustest. Mooduli lõpus lepid korterikaaslastega kokku nädala plaani. Siis kirjutad korteri vestlusesse sõnumi.'),
-      B.listening('011_d_kitchen', 'Hommik köögis.', 'Malle, Sofia ja Grete on köögis. Kuula kaks korda ja kirjuta lünka üks sõna.', [
+      B.review('011_d_review', [['Kes on sinu peres? Ütle kolm lauset ilma märkmeteta.', 'a2-010'], ['Mis on sinu telefoninumber? Ütle see aeglaselt.', 'a2-004'], 'Mida sa tavaliselt hommikul teed?']),
+      tag(B.vocab('011_d_vocab', 'Tunni sõnad.', ['hommikul — утром', 'päeval — днём', 'õhtul — вечером', 'öösel — ночью', 'ärkama — просыпаться', 'magama minema — ложиться спать', 'hommikusöök — завтрак', 'lõuna — обед', 'tööpäev — рабочий день', 'kõigepealt — сначала']), { topic: ['hommikul', 'õhtul'] }),
+      teach(tag(B.reading('011_d_read', 'Pagari päev.', 'Marek on pagar. Arva enne lugemist: mis kell ta ärkab? Siis loe, kontrolli ja vasta 1–3 sõnaga.', 'Üks päev minu elus',
+        'Minu nimi on Marek. Ma olen pagar ja töötan väikeses pagaripoes Tartus. Minu päev ei ole tavaline.\n\nMa ärkan öösel kell kolm. Kõigepealt joon ma kohvi. Kell neli olen ma juba tööl ja teen leiba ja saia. Kell seitse tulevad esimesed kliendid.\n\nKell üks päeval lõpeb minu tööpäev. Siis ma lähen koju ja söön lõunat. Pärast lõunat ma magan kaks tundi.\n\nÕhtul tuleb mu naine töölt koju. Me teeme koos süüa ja jalutame koeraga. Lapsed teevad kodutöid. Kell üheksa lähen ma magama. Minu sõbrad naeravad: „Marek, sa lähed magama nagu laps!”',
+        [['Mis tööd Marek teeb?', 'pagar|ta on pagar'], ['Mis kell Marek ärkab?', 'kell kolm|kolm|3|öösel kell kolm'], ['Mida ta kõigepealt teeb?', 'joob kohvi|ta joob kohvi|kohvi'], ['Mis kell lõpeb tema tööpäev?', 'kell üks|üks|1|13'], ['Mida Marek pärast lõunat teeb?', 'magab|ta magab|magab kaks tundi'], ['Mida Marek ja tema naine õhtul teevad?', 'teevad süüa ja jalutavad koeraga|teevad süüa|jalutavad koeraga'], ['Mis kell Marek magama läheb?', 'kell üheksa|üheksa|9|21']]), { task: 'R13' }),
+      'Üks-ühele: enne lugemist ütleb õpilane, mis kell pagar tema arvates ärkab ja mis kell ta magama läheb; õpetaja kirjutab arvamused üles. Pärast lugemist võrdlevad nad arvamusi tekstiga ja õpilane vastab küsimustele.'),
+      teach(tag(why(B.table('011_d_rule', 'Leia reegel: ma lähen, ta läheb.', 'Kirjuta puuduv vorm. Leia Mareki tekstist: joon, lähen, söön, magan, tuleb, teevad.', 'Tegusõna, ma, ta, nad', [
+        'minema | [lähen] | läheb | [lähevad]',
+        'tulema | tulen | [tuleb] | [tulevad]',
+        'sööma | [söön] | sööb | [söövad]',
+        'jooma | [joon] | joob | [joovad]',
+        'tegema | teen | [teeb] | [teevad]',
+        'nägema | näen | [näeb] | [näevad]',
+        'ärkama | [ärkan] | ärkab | [ärkavad]',
+        'magama | [magan] | magab | [magavad]',
+      ], 'g_notice'), [
+        'minema: ma lähen, ta läheb, nad lähevad (min- → läh-).',
+        'tulema: ma tulen, ta tuleb, nad tulevad.',
+        'sööma: ma söön, ta sööb, nad söövad.',
+        'jooma: ma joon, ta joob, nad joovad.',
+        'tegema: ma teen, ta teeb, nad teevad (teg- → tee-).',
+        'nägema: ma näen, ta näeb, nad näevad (näg- → nä-).',
+        'ärkama: ma ärkan, ta ärkab, nad ärkavad.',
+        'magama: ma magan, ta magab, nad magavad.',
+      ]), { task: 'G02', level: 1 }), 'Üks-ühele: õpilane leiab tekstist „Kõigepealt joon ma kohvi”, „Siis ma lähen koju” ja täidab tabeli. Reegli ütleb õpilane ise: ma → -n, ta → -b, nad → -vad; minema ja tegema muudavad tüve (lähen, teen). Ära ütle reeglit enne, kui õpilane on proovinud.'),
+      teach(tag(B.speaking('011_d_say', 'Proovi kohe.', 'Küsi õpetajalt tema päeva kohta. Siis küsib õpetaja sinult.', [
+        'Mis kell sa ärkad?',
+        'Mida sa hommikul sööd ja jood?',
+        'Mis kell sinu tööpäev või kool lõpeb?',
+        'Mida sa õhtul teed ja mis kell sa magama lähed?',
+        'Kes sinu peres ärkab kõige varem?',
+        'Mida sa teed pärast tööd?',
+      ], [35, 60], ['Ma ärkan kell …', 'Hommikul ma söön …', 'Õhtul ma …', 'Ja sina? Mis kell sina …?']), { task: 'S09', level: 3 }),
+      'Üks-ühele: õpilane küsib, õpetaja vastab lühidalt. Siis küsib õpetaja ja õpilane vastab enda kohta. Paranda ainult tegusõna vormi (ma lähen, ta läheb).'),
+      hide(B.text('011_d_goal', 'Moodul 3: minu päev ja minu nädal', 'Sofia elab nüüd Mustamäel. Ta üürib tuba Malle Pärna korteris. Korteris elab ka üliõpilane Grete. Sofial on uus päev: hommikul on keelekursus, päeval otsib ta tööd. Selles moodulis räägid oma päevast, kellaajast ja harjumustest. Mooduli lõpus lepid korterikaaslastega kokku nädala plaani. Siis kirjutad korteri vestlusesse sõnumi.'), V5_CUT),
+      hide(B.listening('011_d_kitchen', 'Hommik köögis.', 'Malle, Sofia ja Grete on köögis. Kuula kaks korda ja kirjuta lünka üks sõna.', [
         'Malle: Tere hommikust, Sofia! Kas sa magasid hästi?',
         'Sofia: Tere hommikust! Jah, aitäh. Kas te ärkate alati nii vara?',
         'Malle: Jah, ma ärkan iga päev kell kuus. Siis ma jalutan pargis.',
@@ -44,30 +96,48 @@ export const LESSONS = withShapes({
         'Sofia: Grete, mida sa õhtul teed?',
         'Grete: Mul on loengud kella neljani. Õhtul teeme koos süüa?',
         'Sofia: Jah, hea mõte!',
-      ], ['Malle ärkab iga päev kell [kuus|6].', 'Pärast seda jalutab Malle [pargis].', 'Sofia kursus algab kell [üheksa|9].', 'Grete läheb magama kell [kaks|2] öösel.', 'Grete loeng algab täna kell [kümme|10].', 'Kõigepealt joob Grete [kohvi].', 'Malle tegi kohvi ja [putru].', 'Õhtul teevad Sofia ja Grete koos [süüa].']),
-      tag(B.reading('011_d_read', 'Loe Sofia kirja.', 'Loe pealkirja ja arva, mida Sofia päeval teeb. Siis loe kirja ja vasta.', 'Minu uus päev',
-        'Tere, Kati! Minu päev Tallinnas on nüüd väga tihe.\n\nMa ärkan kell seitse. Kõigepealt lähen ma vannituppa, siis joon köögis kohvi. Malle on juba üleval. Ta sööb putru ja loeb ajalehte. Grete magab veel, sest ta õpib öösel.\n\nKell pool üheksa lähen ma bussipeatusse. Keelekursus algab kell üheksa ja lõpeb kell kaksteist. Meie õpetaja Maret on lõbus ja väga sõbralik.\n\nPäeval söön ma lõunat ja otsin tööd. Ma loen kuulutusi ja kirjutan kirju. Pärastlõunal teen ma kodus eesti keele ülesandeid.\n\nÕhtul tuleb Grete koju. Me teeme koos süüa ja räägime. Grete räägib kiiresti, aga ta kordab, kui ma palun. Mõnikord lähen ma õhtul venna juurde. Jaani lapsed Oskar ja Mia mängivad minuga.\n\nKell üksteist lähen ma magama. Öösel on korteris vaikne.\n\nKallistan! Sofia',
-        [['Mis kell Sofia ärkab?', 'kell seitse|seitse|7'], ['Mida Malle hommikul teeb?', 'sööb putru ja loeb ajalehte|sööb putru|loeb ajalehte'], ['Miks Grete hommikul magab?', 'ta õpib öösel|sest ta õpib öösel|õpib öösel'], ['Mis kell keelekursus algab?', 'kell üheksa|üheksa|9'], ['Mida Sofia päeval teeb?', 'otsib tööd|sööb lõunat ja otsib tööd|loeb kuulutusi'], ['Mida Sofia ja Grete õhtul koos teevad?', 'teevad süüa ja räägivad|teevad süüa|räägivad'], ['Mis kell Sofia magama läheb?', 'kell üksteist|üksteist|11|23']]), { task: 'R13' }),
-      B.notice('011_d_notice', 'Märka: päeva osad ja tegusõnad', [
+      ], ['Malle ärkab iga päev kell [kuus|6].', 'Pärast seda jalutab Malle [pargis].', 'Sofia kursus algab kell [üheksa|9].', 'Grete läheb magama kell [kaks|2] öösel.', 'Grete loeng algab täna kell [kümme|10].', 'Kõigepealt joob Grete [kohvi].', 'Malle tegi kohvi ja [putru].', 'Õhtul teevad Sofia ja Grete koos [süüa].']), V5_CUT),
+      hide(B.notice('011_d_notice', 'Märka: päeva osad ja tegusõnad', [
         '**hommikul** ärkan — **päeval** õpin — **pärastlõunal** puhkan — **õhtul** teen süüa — **öösel** magan',
         'Millal? hommik → hommiku**l**, õhtu → õhtu**l**, öö → öö**sel**',
         'minema: ma **lähen**, ta **läheb**, me **läheme**, nad **lähevad**',
         'tulema: ma **tulen**, ta **tuleb** · sööma: ma **söön**, ta **sööb** · jooma: ma **joon**, ta **joob**',
         'tegema: ma **teen**, ta **teeb** · nägema: ma **näen**, ta **näeb**',
         'Eitus on kõigil sama: ma **ei lähe**, ta **ei lähe**, nad **ei lähe**.',
-      ], 'full'),
-      B.table('011_d_rule', 'Leia reegel.', 'Kirjuta tabelisse tegusõna vormid. Vaata kasti „Märka”.', 'Tegusõna, ma, ta, me, nad', [
-        'minema | lähen | [läheb] | [läheme] | [lähevad]', 'tulema | [tulen] | tuleb | [tuleme] | [tulevad]', 'sööma | söön | [sööb] | [sööme] | [söövad]', 'jooma | [joon] | joob | [joome] | [joovad]',
-        'tegema | teen | [teeb] | [teeme] | [teevad]', 'nägema | [näen] | näeb | [näeme] | [näevad]', 'ärkama | ärkan | [ärkab] | [ärkame] | [ärkavad]', 'magama | [magan] | magab | [magame] | [magavad]',
-      ], 'g_notice'),
-      tag(B.vocab('011_d_vocab', 'Tunni sõnad.', ['hommikul — утром', 'päeval — днём', 'pärastlõunal — после обеда', 'õhtul — вечером', 'öösel — ночью', 'ärkama — просыпаться', 'magama minema — ложиться спать', 'tavaline — обычный', 'kõigepealt — сначала', 'tööd otsima — искать работу']), { topic: ['pärastlõunal'] }),
-      teach(tag(B.speaking('011_d_say', 'Intervjuu: sinu päev.', 'Küsi paariliselt tema päeva kohta. Siis ütle, mida sa teada said.', ['Mis kell sa ärkad? Kes sinu peres ärkab kõige varem?', 'Mida sa hommikul sööd ja jood?', 'Mida sa päeval teed?', 'Mida sa õhtul teed? Kellega?', 'Mis kell sa magama lähed?'], [60, 120], ['Hommikul ma …', 'Kell … ma …', 'Tema ärkab kell …, aga mina …']), { task: 'S09' }),
-        'Üks-ühele: õpilane küsib õpetajalt viis küsimust ja teeb märkmeid. Lõpus ütleb ta kolme lausega, mida õpetaja päeval teeb.'),
-      teach(tag(B.speaking('011_d_retell', 'Sofia hommik.', 'Jutusta kuulajale Sofia päevast kaks korda: 90, siis 60 sekundit.', ['Mis kell Sofia ärkab ja mida ta kõigepealt teeb?', 'Mida teevad hommikul Malle ja Grete?', 'Mis kell algab ja lõpeb kursus?', 'Mida Sofia päeval ja pärastlõunal teeb?', 'Mida Sofia ja Grete õhtul teevad?'], [60, 90], ['Sofia ärkab …', 'Kõigepealt …, siis …', 'Õhtul nad …']), { task: 'S07', fluency: true }),
-        'Üks-ühele: õpilane jutustab õpetajale kaks korda, õpetaja hoiab aega. Teisel korral on aega vähem, laused jäävad samaks.'),
+      ], 'full'), V5_CUT),
+      hide(teach(tag(B.speaking('011_d_retell', 'Sofia hommik.', 'Jutusta kuulajale Sofia päevast kaks korda: 90, siis 60 sekundit.', ['Mis kell Sofia ärkab ja mida ta kõigepealt teeb?', 'Mida teevad hommikul Malle ja Grete?', 'Mis kell algab ja lõpeb kursus?', 'Mida Sofia päeval ja pärastlõunal teeb?', 'Mida Sofia ja Grete õhtul teevad?'], [60, 90], ['Sofia ärkab …', 'Kõigepealt …, siis …', 'Õhtul nad …']), { task: 'S07', fluency: true }),
+        'Üks-ühele: õpilane jutustab õpetajale kaks korda, õpetaja hoiab aega. Teisel korral on aega vähem, laused jäävad samaks.'), V5_CUT),
     ],
     practice: [
-      B.examListen('011_p_morning', 'Hommik Jaani peres.', 'Sofia on hommikul venna juures. Kuula kaks korda: kas lause on õige või vale?', 'truefalse', [
+      half(tag(B.gaps('011_p_verbs', 'Ma, ta või nad?', 'Kirjuta sulgudes olev tegusõna õiges vormis.', [
+        'Ma [ärkan] kell seitse. (ärkama)', 'Mu naine [ärkab] varem. (ärkama)', 'Hommikul ma [joon] teed. (jooma)', 'Lapsed [söövad] putru. (sööma)',
+        'Kell kaheksa ma [lähen] tööle. (minema)', 'Õhtul [tuleb] mu vend külla. (tulema)', 'Me [teeme] koos süüa. (tegema)', 'Öösel nad [magavad]. (magama)',
+      ], '', 'half'), { task: 'G03' })),
+      half(tag(B.truefalse('011_p_tf', 'Mareki päev: õige või vale?', 'Mõtle Mareki tekstile. Kas lause on õige või vale?', [
+        ['Marek ärkab öösel.', true], ['Marek joob hommikul teed.', false], ['Esimesed kliendid tulevad kell seitse.', true], ['Mareki tööpäev lõpeb õhtul.', false],
+        ['Pärast lõunat Marek magab.', true], ['Marek läheb magama kell üksteist.', false],
+      ], 'half'), { task: 'R14' })),
+      teach(why(B.wordorder('011_p_order', 'Pane lause kokku.', 'Pane sõnad õigesse järjekorda. Kui ajasõna on alguses, on tegusõna teisel kohal: Hommikul joon ma kohvi.', [
+        'Hommikul joon ma kohvi.',
+        'Kell seitse lähen ma tööle.',
+        'Päeval söön ma tööl lõunat.',
+        'Õhtul teeme me koos süüa.',
+        'Mis kell sa tavaliselt ärkad?',
+        'Kell kümme lähen ma magama.',
+      ], 'full'), [
+        'Hommikul + tegusõna (joon) + ma.',
+        'Kell seitse + lähen + ma.',
+        'Päeval + söön + ma.',
+        'Õhtul + teeme + me.',
+        'Küsimus: Mis kell + sa + ärkad?',
+        'Kell kümme + lähen + ma.',
+      ]), 'Üks-ühele: õpilane kirjutab laused, siis loeb need ette. Õpetaja küsib iga lause järel „Ja sina?” ja õpilane ütleb sama mustriga lause enda kohta (Õhtul teen ma …).'),
+      teach(tag(B.rolecards('011_p_roles', 'Neli naabrit.', 'Vaata pilti. A valib salaja ühe naabri ja räägib tema päevast mina-vormis. B arvab, kes ta on. Siis vahetage.',
+        'Vali pildilt salaja üks naaber. Räägi tema päevast mina-vormis neli lauset: mis kell sa ärkad, mis kell sa tööl oled, mida sa õhtul teed, mis kell sa magama lähed. Ära ütle nime ega tööd.',
+        'Kuula ja vaata pilti. Kui sa ei ole kindel, küsi üks küsimus. Siis ütle, kes see on.',
+        ['Ma ärkan kell …', 'Ma olen tööl kella …', 'Õhtul ma …'], ['Mis kell sa magama lähed?', 'Kas sa töötad öösel?', 'Sa oled …!']), { task: 'S06' }),
+      'Üks-ühele: õpetaja valib salaja ühe naabri ja räägib, õpilane arvab; siis vahetage. Vihje: Tiina ja Kati ärkavad mõlemad kell kuus — õpilane peab küsima ka õhtu või töö kohta.'),
+      hide(B.examListen('011_p_morning', 'Hommik Jaani peres.', 'Sofia on hommikul venna juures. Kuula kaks korda: kas lause on õige või vale?', 'truefalse', [
         'Jaan: Tere, Sofia! Aitäh, et sa tulid. Kadri on öösel haiglas.',
         'Sofia: Pole probleemi. Mis kell sa tööle lähed?',
         'Jaan: Kohe! Ma pean kohvikus olema kell seitse.',
@@ -83,8 +153,8 @@ export const LESSONS = withShapes({
       ], [
         ['Kadri on öösel kodus.', false], ['Jaan läheb tööle varakult.', true], ['Mia sööb hommikul putru.', false], ['Oskar jalutab enne kooli koeraga.', true],
         ['Mia tahab kohe lasteaeda minna.', false], ['Lasteaias on täna muusikatund.', true], ['Lasteaed on maja kõrval.', true], ['Õhtul toob Kadri lapsed koju.', false],
-      ], 'g_vocab'),
-      B.cloze('011_p_cloze', 'Grete kiri emale.', 'Loe Grete kirja. Vali igasse lünka õige sõna.', 'Tere, emme!', [
+      ], 'g_vocab'), V5_CUT),
+      hide(B.cloze('011_p_cloze', 'Grete kiri emale.', 'Loe Grete kirja. Vali igasse lünka õige sõna.', 'Tere, emme!', [
         'Tere, emme! Mul läheb hästi. Uus korterikaaslane Sofia on väga tore. Ta {*ärkab|ärkan|ärkama} igal hommikul kell seitse. Ta on pärit Narvast ja räägib vene, inglise ja natuke eesti keelt.',
         '',
         'Mina {*magan|magab|magama} hommikul kauem, sest mu loengud algavad hilja. Malle teeb meile tihti putru. Ta on väga {*lahke|lahked|lahket}.',
@@ -94,8 +164,8 @@ export const LESSONS = withShapes({
         'Sofia vend Jaan on kokk. Ta {*tuleb|tulen|tulema} vahel meile külla ja toob kooki. Ta on pikk ja väga {*sõbralik|sõbralikud|sõbralikku}. Tema lapsed Oskar ja Mia on ka tihti siin, nad mängivad Sofiaga.',
         '',
         'Öösel ma õpin, sest siis on korteris vaikne. Malle ütleb alati: „Grete, {*mine|minema|läheb} magama!” Aga ma ei kuula. Kallistan! Grete',
-      ]),
-      B.formtext('011_p_form', 'Oskari koolipäev.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', 'Minu päev. Oskar, 2. klass', [
+      ]), V5_DRILL),
+      hide(B.formtext('011_p_form', 'Oskari koolipäev.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', 'Minu päev. Oskar, 2. klass', [
         'Ma [ärkan] (ärkama) kell seitse. Kõigepealt ma [jalutan] (jalutama) meie koeraga.',
         '',
         'Siis ma [söön] (sööma) putru ja [joon] (jooma) piima. Kell kaheksa algab kool.',
@@ -103,8 +173,8 @@ export const LESSONS = withShapes({
         'Päeval me [sööme] (sööma) koolis lõunat. Pärast kooli [lähen] (minema) ma jalgpallitrenni.',
         '',
         'Õhtul isa ja ema [teevad] (tegema) süüa. Kell üheksa ma juba [magan] (magama).',
-      ]),
-      B.choice('011_p_phrases', 'Mida sa ütled?', 'Mida Sofia ütleb? Vali igale olukorrale üks lause.', [
+      ]), V5_DRILL),
+      hide(B.choice('011_p_phrases', 'Mida sa ütled?', 'Mida Sofia ütleb? Vali igale olukorrale üks lause.', [
         ['Sa tuled hommikul kööki. Malle on seal.', 'Tere hommikust!', 'Head ööd!', 'Head isu!'],
         ['Kell on üksteist õhtul. Sa lähed magama.', 'Head ööd!', 'Tere päevast!', 'Head aega!'],
         ['Grete sööb putru. Mida sa ütled?', 'Head isu!', 'Palju õnne!', 'Vabandust!'],
@@ -113,87 +183,130 @@ export const LESSONS = withShapes({
         ['Jaan küsib: „Kas sa oled õhtul kodus?”', 'Jah, pärast kella kuut.', 'Jah, ma olen kokk.', 'Ei, ma olen pikk.'],
         ['Malle tegi sulle putru.', 'Aitäh, te olete väga lahke!', 'Ei, mul ei ole aega.', 'Palun korrake!'],
         ['Sa tuled kursusele hiljem kui teised.', 'Vabandust, buss hilines!', 'Head isu!', 'Tere tulemast!'],
-      ], 'full', 'g_vocab'),
-      B.wordorder('011_p_order', 'Pane lause kokku.', 'Kirjuta Sofia päeva laused: pane sõnad õigesse järjekorda.', ['Hommikul joob Malle köögis kohvi.', 'Kell üheksa algab Sofia keelekursus.', 'Grete läheb magama alles kell kaks.', 'Pärast kooli läheb Oskar trenni.', 'Õhtul teevad Sofia ja Grete koos süüa.', 'Mida sa pärast tööd tavaliselt teed?', 'Jaan ei maga hommikul kaua.', 'Öösel on korteris väga vaikne.']),
-      teach(B.rolecards('011_p_roles', 'Hommikuinimene ja õhtuinimene.', 'Küsige teineteise päeva kohta. Leidke kolm erinevust.',
-        'Sa oled hommikuinimene. Sa ärkad kell kuus, jood kohvi ja jalutad. Räägi oma päevast ja küsi, mida paariline teeb.',
-        'Sa oled õhtuinimene. Sa ärkad kell üheksa ja lähed magama kell üks öösel. Räägi oma päevast ja küsi.',
-        ['Ma ärkan kell …', 'Hommikul ma …', 'Kas sa ka …?'], ['Mina ärkan hiljem.', 'Õhtul ma …', 'Mis kell sa …?']),
-        'Üks-ühele: õpetaja võtab ühe rolli, õpilane teise. Lõpus ütleb õpilane kolm erinevust („Mina ärkan varem kui teie”). Siis vahetage rollid.'),
-      tag(B.writing('011_p_write', 'Vastus Gretele.', 'Grete küsib: „Kuidas sinu päev läheb?” Vasta talle 7–9 lausega.', [7, 9], ['hommikul', 'kell', 'kõigepealt', 'õhtul'], 2), { task: 'W08' }),
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(tag(B.writing('011_p_write', 'Vastus Gretele.', 'Grete küsib: „Kuidas sinu päev läheb?” Vasta talle 7–9 lausega.', [7, 9], ['hommikul', 'kell', 'kõigepealt', 'õhtul'], 2), { task: 'W08' }), V5_CUT),
     ],
     transfer: [
-      B.text('011_t_sit', 'Keelekooli leht', 'Keelekool Sõna teeb väikest lehte. Selle kuu teema on „Üks päev minu elus”. Administraator Ene kogub õpilaste lugusid. Õpetaja Maret ütleb: „Kirjutage oma päevast ja rääkige sellest tunnis!” Esimene lugu on Dmitrilt. Ta on pärit Narvast ja on bussijuht. Nüüd kirjutab ka Sofia. Vaata pilti: milline on üks tööpäev?'),
-      teach(tag(B.rolecards('011_t_roles', 'Intervjuu lehe jaoks.', 'A on Ene, B on õpilane. Ene küsib päeva kohta. Siis vahetage.',
-        'Sa oled Ene. Küsi õpilase päeva kohta: mis kell, mida ja kellega. Tee märkmeid. Lõpus loe üks lause ette.',
-        'Sa oled õpilane. Räägi oma tavalisest päevast. Kasuta vähemalt kuut ajasõna: hommikul, kell …, pärast tööd.',
-        ['Mis kell sinu päev algab?', 'Mida sa teed pärast …?', 'Kellega sa õhtul oled?'], ['Kell … ma …', 'Pärast seda …', 'Õhtul me …']), { task: 'S01' }),
-        'Üks-ühele: õpetaja on Ene ja teeb märkmeid, õpilane räägib. Siis küsib õpilane õpetaja päeva kohta ja kirjutab kolm lauset.'),
-      tag(B.reading('011_t_dmitri', 'Dmitri lugu on segamini.', 'Lehe printer tegi vea. Pane Dmitri loo lõigud õigesse järjekorda.', 'Üks päev minu elus: Dmitri',
+      B.text('011_t_sit', 'Olukord: keelekooli leht', 'Keelekooli lehe selle kuu teema on „Üks päev minu elus”. Lehe toimetaja küsib õppijatelt nende päeva kohta. Täna annad talle intervjuu ja kirjutad lehte lühikese loo.'),
+      teach(tag(B.rolecards('011_t_roles', 'Intervjuu lehe jaoks.', 'A on lehe toimetaja, B on õppija. A küsib B päeva kohta. Siis vahetage.',
+        'Sa oled keelekooli lehe toimetaja. Küsi õppija tavalise päeva kohta: mis kell, mida ja kellega. Tee märkmeid. Lõpus ütle kolme lausega, mida sa teada said (Ta ärkab …).',
+        'Sa oled õppija. Räägi oma tavalisest päevast: hommik, päev, õhtu. Ütle vähemalt neli kellaaega.',
+        ['Mis kell sinu päev algab?', 'Mida sa teed pärast tööd?', 'Kellega sa õhtul oled?'], ['Ma ärkan kell …', 'Päeval ma …', 'Õhtul me …']), { task: 'S01', main: true, level: 4 }),
+      'Üks-ühele: õpetaja on toimetaja ja teeb märkmeid, õpilane räägib. Õpetaja küsib vahel üle („Mis kell?”), et õpilane ütleks vormi uuesti. Siis küsib õpilane õpetaja päeva kohta ja ütleb lõpus kolm lauset ta-vormis.'),
+      teach(tag(B.speaking('011_t_say', 'Kodus: minu päev.', 'Räägi oma tavalisest päevast ja salvesta oma jutt kaks korda: teine kord ilma märkmeteta ja sujuvamalt.', [
+        'Mis kell sinu päev algab ja lõpeb?',
+        'Mida sa teed hommikul, päeval ja õhtul?',
+        'Mis on sinu päevas kõige parem?',
+      ], [35, 60], ['Minu päev algab kell …', 'Päeval ma …', 'Õhtul ma …']), { task: 'S15', level: 3, fluency: true }),
+      'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib kaks küsimust („Mis kell sa ärkad?”, „Mida su pere õhtul teeb?”).'),
+      tag(B.examWriting('011_t_letter', 'Lugu keelekooli lehte.', 'Kirjuta lehte 25–40 sõna. Kirjuta kõigist neljast punktist.', 'jutt', {
+        situation: 'Keelekooli lehe teema on „Üks päev minu elus”. Toimetaja ootab sinu lugu reedeks.',
+        points: ['mis kell sinu päev algab ja mida sa kõigepealt teed', 'mida sa teed päeval', 'mida sa teed õhtul ja kellega', 'mis kell sa magama lähed'],
+        words: [25, 40], opening: 'Üks päev minu elus', closing: 'Kirjutas: …',
+      }), { task: 'W05' }),
+      B.selfcheck('011_t_self', ['Ma ütlen: ma lähen, ta tuleb, me teeme, nad söövad.', 'Ma räägin oma tavalisest päevast.', 'Ma küsin teise inimese päeva kohta.', 'Ma kirjutan lehte lühikese loo oma päevast.'], 'Tund 11 on läbitud'),
+      hide(tag(B.reading('011_t_dmitri', 'Dmitri lugu on segamini.', 'Lehe printer tegi vea. Pane Dmitri loo lõigud õigesse järjekorda.', 'Üks päev minu elus: Dmitri',
         'A. Minu tööpäev algab kell kaks. Pärastlõunal on bussis palju õpilasi. Õhtul sõidavad inimesed töölt koju. Kell kümme lõpeb minu tööpäev.\n\nB. Minu päev on teistsugune. Ma olen bussijuht ja töötan õhtul.\n\nC. Öösel tulen ma koju. Naine magab juba. Ma loen natuke ja lähen magama kell kaksteist.\n\nD. Hommikul ärkan ma kell pool kaheksa. Me joome naisega koos kohvi. Kell üheksa olen ma keelekoolis. Tund lõpeb kell kaksteist.\n\nE. Mulle meeldib minu päev. Hommikul on mul aega eesti keelt õppida!\n\nF. Pärast tundi lähen ma koju ja söön lõunat. Minu naine teeb väga head suppi. Kell pool kaks sõidan ma bussiparki.',
-        [['Mis lõik on esimene?', 'B'], ['Mis lõik on teine (hommik)?', 'D'], ['Mis lõik on kolmas (lõuna)?', 'F'], ['Mis lõik on neljas (töö)?', 'A'], ['Mis lõik on viies (öö)?', 'C'], ['Mis lõik on viimane?', 'E'], ['Miks on Dmitril hommikul aega õppida?', 'ta töötab õhtul|sest ta töötab õhtul|töötab õhtul']]), { task: 'R10' }),
-      tag(B.speaking('011_t_say', 'Minu päev: salvestus.', 'Salvesta kodus kaks korda: kõigepealt märkmetega, siis ilma ja kiiremini.', ['Mis kell sinu päev algab ja lõpeb?', 'Mida sa teed hommikul ja päeval?', 'Mida sa teed õhtul ja kellega?', 'Mis on sinu päevas kõige parem?', 'Mis on sinu päevas raske?'], [40, 60], ['Minu päev algab kell …', 'Pärast seda …', 'Õhtul …']), { task: 'S15', fluency: true }),
-      tag(B.examWriting('011_t_letter', 'Lugu keelekooli lehte.', 'Kirjuta lehte 40–60 sõna. Kirjuta kõigist neljast punktist.', 'jutt', {
-        situation: 'Keelekooli lehe teema on „Üks päev minu elus”. Ene ootab sinu lugu reedeks.',
-        points: ['Mis kell sinu päev algab ja mida sa kõigepealt teed?', 'Mida sa teed päeval?', 'Mida sa teed õhtul ja kellega?', 'Mis kell sa magama lähed ja mis sulle sinu päevas meeldib?'],
-        words: [40, 60], opening: 'Üks päev minu elus', closing: 'Kirjutas: …',
-      }), { main: true }),
-      tag(B.writing('011_t_edit', 'Loe oma lugu veel kord.', 'Paranda oma loos kaks viga. Lisa kaks lauset: hommikust ja õhtust.', [4, 6], ['hommikul', 'õhtul'], 1), { task: 'W10' }),
-      B.rubric('011_t_rubric', 'Hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Loos on vähemalt kuus ajasõna: hommikul, kell …, pärast tundi, õhtul.', 'Tegevused on loogilises järjekorras.', 'Tegusõnad on õiges vormis: lähen, tuleb, sööme, teevad.', 'Intervjuus ja salvestuses räägib õpilane oma päevast umbes minuti.']),
-      B.selfcheck('011_t_self', ['Ma räägin oma päevast umbes minuti.', 'Ma ütlen: ma lähen, ta tuleb, me sööme.', 'Ma saan aru, mida teised oma päevast räägivad.', 'Ma kirjutan lehte loo oma päevast.'], 'Päev on kirjas'),
+        [['Mis lõik on esimene?', 'B'], ['Mis lõik on teine (hommik)?', 'D'], ['Mis lõik on kolmas (lõuna)?', 'F'], ['Mis lõik on neljas (töö)?', 'A'], ['Mis lõik on viies (öö)?', 'C'], ['Mis lõik on viimane?', 'E'], ['Miks on Dmitril hommikul aega õppida?', 'ta töötab õhtul|sest ta töötab õhtul|töötab õhtul']]), { task: 'R10' }), V5_CUT),
+      hide(tag(B.writing('011_t_edit', 'Loe oma lugu veel kord.', 'Paranda oma loos kaks viga. Lisa kaks lauset: hommikust ja õhtust.', [4, 6], ['hommikul', 'õhtul'], 1), { task: 'W10' }), V5_CUT),
+      hide(B.rubric('011_t_rubric', 'Hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Loos on vähemalt kuus ajasõna: hommikul, kell …, pärast tundi, õhtul.', 'Tegevused on loogilises järjekorras.', 'Tegusõnad on õiges vormis: lähen, tuleb, sööme, teevad.', 'Intervjuus ja salvestuses räägib õpilane oma päevast umbes minuti.']), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 012 listening: what time?
   'a2-012': {
-    title: 'Kellaaeg ja ajaväljendid',
-    canDo: 'Ma helistan ja lepin telefonis kokku, mis kell ja kui kaua midagi toimub (pool kolm, kella üheksast viieni, enne / pärast), ning muudan vajadusel aega.',
+    title: 'Mis kell?',
+    canDo: 'Ma ütlen ja küsin kellaaega (pool kolm, veerand neli, kolmveerand viis), saan aru lahtiolekuaegadest (kella kümnest kuueni) ja lepin telefonis kokku aja.',
     discover: [
-      B.review('012_d_review', [['Mis kell Sofia ärkab? Mida ta kõigepealt teeb?', 'a2-011'], ['Mida Grete öösel teeb?', 'a2-011'], ['Mis on sinu telefoninumber? Ütle see aeglaselt.', 'a2-004']]),
-      B.text('012_d_hook', 'Oskari kodutöö', 'Sofia on pärastlõunal venna juures. Oskar teeb kodus koolitööd. Tal on koolis uus teema: kell. Õpetaja Kristel Saar andis lastele paberkella. Oskar küsib: „Tädi Sofia, kas sa tead, mis kell on?” Sofia naerab. Ta õpib kellaaegu ka ise keelekursusel.'),
-      tag(B.reading('012_d_kindergarten', 'Mia lasteaia päev.', 'Loe lasteaia päevakava ja vasta lühidalt.', 'Lasteaed Päikeseke: päevakava',
+      B.review('012_d_review', [['Mis kell sa tavaliselt ärkad ja mida sa kõigepealt teed?', 'a2-011'], ['Mida sa teed? Kus sa töötad või õpid?', 'a2-003'], 'Mis kell sinu eesti keele tund algab?']),
+      tag(B.vocab('012_d_vocab', 'Tunni sõnad.', ['kell — часы / время', 'pool — половина', 'veerand — четверть', 'kolmveerand — три четверти', 'algama — начинаться', 'lõppema — заканчиваться', 'kestma — длиться', 'avatud — открыто', 'kinni — закрыто', 'vaba aeg — свободное время (запись)']), { topic: ['veerand', 'kolmveerand'] }),
+      twice(tag(B.listening('012_d_clock', 'Aeg juuksurisse.', 'Klient helistab juuksurisse. Kuula kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Juuksur: Juuksurisalong Siil, tere!',
+        'Klient: Tere! Ma tahan aega juuksurisse. Kas teil on homme vaba aega?',
+        'Juuksur: Homme on vaba kell kümme ja kell pool kolm.',
+        'Klient: Kell kümme ma ei saa. Mul on tund kella üheksast kaheteistkümneni.',
+        'Juuksur: Aga pool kolm? See on pärast lõunat.',
+        'Klient: Jah, pool kolm sobib. Kui kaua lõikus kestab?',
+        'Juuksur: Umbes kolmveerand tundi.',
+        'Klient: Hästi. Mis kell te homme kinni lähete?',
+        'Juuksur: Kell kuus. Palun tulge viis minutit varem. Mis teie nimi on?',
+        'Klient: Tatjana Ivanova. Aitäh, nägemist!',
+      ], ['Homme on vaba aeg kell kümme ja kell [pool kolm|14.30].', 'Kliendi tund on kella üheksast [kaheteistkümneni|12ni].', 'Pool kolm on [pärast] lõunat.', 'Lõikus kestab umbes [kolmveerand] tundi.', 'Salong läheb homme kinni kell [kuus|6|18].', 'Klient peab tulema viis minutit [varem].', 'Kliendi nimi on Tatjana [Ivanova].']), { task: 'L10' })),
+      teach(tag(why(B.table('012_d_rule', 'Leia reegel: pool kolm, kella kümnest.', 'Kirjuta kellaaeg sõnadega. Esimesed kolm olid kuulamises.', 'Numbritega, Sõnadega', [
+        'Vaba aeg on 14.30. | Vaba aeg on kell [pool kolm].',
+        'Tund on 9.00–12.00. | Tund on kella üheksast [kaheteistkümneni].',
+        'Lõikus kestab 45 minutit. | Lõikus kestab [kolmveerand] tundi.',
+        'Salong on avatud 10.00–18.00. | Salong on avatud kella [kümnest] kuueni.',
+        'Buss tuleb 8.15. | Buss tuleb kell [veerand üheksa].',
+        'Film algab 19.45. | Film algab kell [kolmveerand kaheksa].',
+        'Apteek on lahti 8.00–20.00. | Apteek on lahti kella kaheksast [kaheksani].',
+        'Kohtumine on 16.30. | Kohtumine on kell [pool viis].',
+        'Pood läheb kinni 21.00. | Pood läheb kinni kell [üheksa].',
+      ], 'g_notice'), [
+        'pool + järgmine tund: 14.30 = pool kolm.',
+        'Mis ajani? → -ni: kaheteistkümneni.',
+        '45 minutit = kolmveerand tundi.',
+        'Mis ajast? → -st: kella kümnest.',
+        'veerand + järgmine tund: 8.15 = veerand üheksa.',
+        'kolmveerand + järgmine tund: 19.45 = kolmveerand kaheksa.',
+        'kella kaheksast kaheksani = 8–20.',
+        '16.30 = pool viis.',
+        '21.00 = kell üheksa (õhtul).',
+      ]), { task: 'G02', level: 1 }), 'Üks-ühele: esimesed kolm rida olid kuulamises (vajadusel loe rida uuesti ette). Reegli sõnastab õpilane ise: pool, veerand ja kolmveerand + JÄRGMINE tund; mis ajast? = -st, mis ajani? = -ni. Näita telefonis kolm kellaaega ja küsi „Mis kell on?”.'),
+      teach(tag(B.speaking('012_d_say', 'Proovi kohe.', 'Õpetaja näitab kellaaega. Ütle see sõnadega. Siis küsi õpetajalt tema päeva kohta.', [
+        'Mis kell on? (7.30, 11.15, 16.45)',
+        'Mis kell sinu tööpäev algab ja lõpeb?',
+        'Mis kellast mis kellani sa magad?',
+        'Kui kaua sinu tee tööle või kooli kestab?',
+        'Mis kellast mis kellani on sinu lähedal pood avatud?',
+        'Mis kell sa homme vaba oled?',
+      ], [35, 60], ['Kell on pool …', 'Kell on veerand / kolmveerand …', 'Kella …st kuni …ni.', 'See kestab … tundi.']), { task: 'S02', level: 3 }),
+      'Üks-ühele: õpetaja näitab kolm kellaaega (telefonis või paberil), õpilane ütleb sõnadega; siis küsivad nad teineteiselt. Paranda ainult „järgmist tundi” (14.30 = pool kolm, mitte pool kaks).'),
+      hide(B.text('012_d_hook', 'Oskari kodutöö', 'Sofia on pärastlõunal venna juures. Oskar teeb kodus koolitööd. Tal on koolis uus teema: kell. Õpetaja Kristel Saar andis lastele paberkella. Oskar küsib: „Tädi Sofia, kas sa tead, mis kell on?” Sofia naerab. Ta õpib kellaaegu ka ise keelekursusel.'), V5_CUT),
+      hide(tag(B.reading('012_d_kindergarten', 'Mia lasteaia päev.', 'Loe lasteaia päevakava ja vasta lühidalt.', 'Lasteaed Päikeseke: päevakava',
         'Lasteaed on avatud esmaspäevast reedeni kella seitsmest kuni kuueni.\n\nKella seitsmest kuni kaheksani tulevad lapsed lasteaeda. Hommikusöök on kell pool üheksa. Pärast hommikusööki on mäng ja õppimine.\n\nKell kümme lähevad lapsed õue. Õues on nad umbes poolteist tundi. Kui sajab vihma, mängivad lapsed saalis.\n\nLõuna on kell veerand kaksteist. Pärast lõunat magavad lapsed kella kolmeni.\n\nKell pool neli on oode. Siis mängivad lapsed toas või õues.\n\nPalun tulge lapsele järele enne kella kuut. Kell kuus läheb lasteaed kinni. Kui te jääte hiljaks, helistage rühma telefonile!',
-        [['Mis päevadel on lasteaed avatud?', 'esmaspäevast reedeni'], ['Mis kell on hommikusöök?', 'kell pool üheksa|pool üheksa|8.30'], ['Kui kaua on lapsed õues?', 'umbes poolteist tundi|poolteist tundi'], ['Mis kell on lõuna?', 'kell veerand kaksteist|veerand kaksteist|11.15'], ['Mis kellani lapsed magavad?', 'kella kolmeni|kolmeni|15'], ['Millal peab vanem lapsele järele tulema?', 'enne kella kuut|enne kuut|enne 18']]), { task: 'R08' }),
-      tag(B.listening('012_d_clock', 'Mis kell on?', 'Oskar ja Sofia räägivad kellast. Kuula kaks korda ja kirjuta lünka 1–2 sõna.', [
-        'Oskar: Tädi Sofia, mis kell praegu on?',
-        'Sofia: Kell on pool neli.',
-        'Oskar: Õige! Minu kool algab kell kaheksa.',
-        'Oskar: Üks tund kestab nelikümmend viis minutit.',
-        'Sofia: Ja mis kell sul lõuna on?',
-        'Oskar: Lõuna on kell veerand kaksteist.',
-        'Oskar: Kool lõpeb kell pool kaks. Siis on pikapäevarühm kella neljani.',
-        'Sofia: Ja millal on sinu jalgpall?',
-        'Oskar: Trenn on teisipäeval ja neljapäeval kella viiest kuni kuueni.',
-        'Sofia: Mis kell sa magama lähed?',
-        'Oskar: Kell üheksa. Aga reedel kell kümme!',
-        'Sofia: Vaata, nüüd on kell kolmveerand neli. Aeg on süüa!',
-      ], ['Kell on praegu [pool neli|15.30].', 'Koolipäev algab hommikul kell [kaheksa|8].', 'Üks tund kestab [nelikümmend viis|45] minutit.', 'Lõuna on kell [veerand kaksteist|11.15].', 'Kool lõpeb kell [pool kaks|13.30].', 'Pikapäevarühm on kella [neljani|16ni].', 'Trenn on kella viiest kuni [kuueni|18ni].', 'Reedel läheb Oskar magama kell [kümme|10|22].'], 'g_vocab'), { task: 'L10' }),
-      B.clock('012_d_clock_hw', 'Oskari paberkell.', 'Kirjuta, mis kell on. Kasuta: Kell on …', [
-        { time: '08:00', extra: '' }, { time: '08:45', extra: 'kolmveerand üheksa' }, { time: '11:15', extra: 'veerand kaksteist' }, { time: '13:30', extra: '' },
-        { time: '15:30', extra: '' }, { time: '16:15', extra: 'veerand viis' }, { time: '17:45', extra: 'kolmveerand kuus' }, { time: '21:00', extra: '' },
-      ]),
-      B.notice('012_d_notice', 'Märka: kellaaeg', [
+        [['Mis päevadel on lasteaed avatud?', 'esmaspäevast reedeni'], ['Mis kell on hommikusöök?', 'kell pool üheksa|pool üheksa|8.30'], ['Kui kaua on lapsed õues?', 'umbes poolteist tundi|poolteist tundi'], ['Mis kell on lõuna?', 'kell veerand kaksteist|veerand kaksteist|11.15'], ['Mis kellani lapsed magavad?', 'kella kolmeni|kolmeni|15'], ['Millal peab vanem lapsele järele tulema?', 'enne kella kuut|enne kuut|enne 18']]), { task: 'R08' }), V5_CUT),
+      hide(B.notice('012_d_notice', 'Märka: kellaaeg', [
         '**Mis kell on?** — Kell on kolm. Kell on **pool neli** (3.30). Kell on **veerand neli** (3.15). Kell on **kolmveerand neli** (3.45).',
         'pool, veerand, kolmveerand + **järgmine** tund: 3.30 = pool **neli**',
         '**Mis kell** kool algab? — **Kell** kaheksa.',
         'Kust? Mis ajani? — **kella** seitsme**st** **kuni** kuue**ni** (7–18)',
         '**enne** kella kuu**t**, **pärast** kella kolme (osastav); **enne** tööd, **pärast** lõunat',
         'Tund **algab** kell 8, **lõpeb** kell 8.45 ja **kestab** 45 minutit.',
-      ], 'full'),
-      B.table('012_d_rule', 'Leia reegel.', 'Kirjuta kella vormid tabelisse. Vaata kasti „Märka”.', 'Kell, Kella …st (alates), Kella …ni (kuni), Enne kella …', [
-        'üks | [ühest] | [üheni] | [üht/ühte]', 'kaks | [kahest] | [kaheni] | [kahte]', 'kolm | [kolmest] | [kolmeni] | [kolme]', 'neli | [neljast] | [neljani] | [nelja]',
-        'viis | [viiest] | [viieni] | [viit/viite]', 'kuus | [kuuest] | [kuueni] | [kuut]', 'seitse | [seitsmest] | [seitsmeni] | [seitset]', 'kaheksa | [kaheksast] | [kaheksani] | [kaheksat]',
-      ], 'g_notice'),
-      tag(B.vocab('012_d_vocab', 'Tunni sõnad.', ['kell — часы / время', 'pool — половина', 'veerand — четверть', 'kolmveerand — без четверти', 'algama — начинаться', 'lõppema — заканчиваться', 'kestma — длиться', 'alates — начиная с', 'kuni — до', 'avatud — открыто']), { topic: ['veerand', 'kolmveerand'] }),
-      teach(tag(B.speaking('012_d_432', 'Minu päev kellaaegadega.', 'Räägi kuulajale oma päevast kolm korda: 2, siis 1,5 ja lõpuks 1 minut.', ['Mis kell sinu päev algab?', 'Mis kellast mis kellani sa töötad või õpid?', 'Kui kaua sa sõidad tööle või kooli?', 'Mida sa teed pärast kella viit?', 'Mis kell on sinu peres õhtusöök?'], [60, 120], ['Kella …st kuni …ni', 'See kestab …', 'Enne kella … ma …']), { task: 'S08' }),
-        'Üks-ühele: õpetaja hoiab aega ja kuulab kolm korda. Laused jäävad samaks, iga kord tuleb jutt kiiremini ja sujuvamalt.'),
-      teach(tag(B.speaking('012_d_say', 'Mis kell on hea aeg?', 'Ütle paarilisele oma arvamus. Põhjenda iga vastust sõnaga sest.', ['Mis kell on hea aeg õppida? Miks?', 'Mis kell on liiga vara ärgata?', 'Mis kell on liiga hilja helistada?', 'Kas pood peab olema avatud ka öösel? Miks?', 'Kas koolipäev peab algama kell kaheksa? Miks?'], [60, 120], ['Minu arvates …, sest …', 'Kell … on liiga vara, sest …', 'Mina olen nõus / ei ole nõus.']), { task: 'S11' }),
-        'Üks-ühele: õpetaja ütleb kõigepealt oma arvamuse, õpilane on nõus või ei ole nõus ja põhjendab. Siis vahetage.'),
+      ], 'full'), V5_CUT),
+      hide(teach(tag(B.speaking('012_d_432', 'Minu päev kellaaegadega.', 'Räägi kuulajale oma päevast kolm korda: 2, siis 1,5 ja lõpuks 1 minut.', ['Mis kell sinu päev algab?', 'Mis kellast mis kellani sa töötad või õpid?', 'Kui kaua sa sõidad tööle või kooli?', 'Mida sa teed pärast kella viit?', 'Mis kell on sinu peres õhtusöök?'], [60, 120], ['Kella …st kuni …ni', 'See kestab …', 'Enne kella … ma …']), { task: 'S08' }),
+        'Üks-ühele: õpetaja hoiab aega ja kuulab kolm korda. Laused jäävad samaks, iga kord tuleb jutt kiiremini ja sujuvamalt.'), V5_CUT),
     ],
     practice: [
-      B.manymatch('012_p_signs', 'Sildid ja teated.', 'Mida silt ütleb? Ühenda silt ja selle tähendus.', [
+      half(B.clock('012_d_clock_hw', 'Mis kell on?', 'Kirjuta, mis kell on. Kasuta: Kell on …', [
+        { time: '07:30', extra: 'pool kaheksa' }, { time: '09:15', extra: 'veerand kümme' }, { time: '11:45', extra: 'kolmveerand kaksteist' },
+        { time: '13:00', extra: 'üks' }, { time: '16:30', extra: 'pool viis' }, { time: '18:45', extra: 'kolmveerand seitse' },
+      ], 'g_notice')),
+      half(tag(B.dictation('012_p_dict', 'Etteütlus. Mis kell?', 'Õpetaja ütleb viis lauset kellaaegadega, iga lauset kaks korda. Kirjuta laused üles.', ['Mis kell praegu on?', 'Kell on pool kolm.', 'Pood on avatud kella üheksast kuueni.', 'Tund kestab poolteist tundi.', 'Kas kell neli sobib?'], 5), { task: 'L08' })),
+      teach(why(B.transformation('012_p_words', 'Kirjuta sõnadega.', 'Kirjuta kellaaeg sõnadega. Kirjuta terve lause.', [
+        ['Pood on avatud 9–18.', 'Pood on avatud kella …', 'Pood on avatud kella üheksast kuueni.|Pood on avatud kella üheksast kuni kuueni.'],
+        ['Tund algab 10.30.', 'Tund algab kell …', 'Tund algab kell pool üksteist.'],
+        ['Buss tuleb 8.15.', 'Buss tuleb kell …', 'Buss tuleb kell veerand üheksa.'],
+        ['Film algab 19.45.', 'Film algab kell …', 'Film algab kell kolmveerand kaheksa.'],
+        ['Koosolek kestab 90 minutit.', 'Koosolek kestab …', 'Koosolek kestab poolteist tundi.'],
+        ['Kohtumine on 16.30.', 'Kohtumine on kell …', 'Kohtumine on kell pool viis.'],
+      ]), [
+        'kella üheksast (-st) kuueni (-ni).',
+        '10.30 = pool üksteist.',
+        '8.15 = veerand üheksa.',
+        '19.45 = kolmveerand kaheksa.',
+        '90 minutit = poolteist tundi.',
+        '16.30 = pool viis.',
+      ]), 'Üks-ühele: õpilane kirjutab laused ja loeb need ette; õpetaja küsib iga lause järel „Kui kaua?” või „Mis ajani?” ja õpilane vastab ühe väljendiga.'),
+      teach(tag(B.rolecards('012_p_club', 'Meie tänav: helista ja küsi aega.', 'Vaata pilti. A helistab ühte kohta ja tahab aega. B on töötaja. Siis vahetage.',
+        'Sa saad tulla ainult pärast kella viit õhtul või laupäeval. Vali pildilt koht. Helista: küsi, mis kell see on avatud, ja lepi aeg kokku.',
+        'Sa oled selle koha töötaja. Vaata pildilt lahtiolekuaegu. Esimene aeg, mida helistaja tahab, on täis: ütle, et see ei sobi, ja paku teist aega.',
+        ['Mis kellast mis kellani te avatud olete?', 'Kas kell … sobib?', 'Kahjuks ma ei saa, sest …'], ['Me oleme avatud kella …st …ni.', 'Kell … on vaba.', 'Mis teie nimi on?']), { task: 'S04' }),
+      'Üks-ühele: õpetaja on töötaja ja ütleb esimese aja kohta „see on täis”; õpilane küsib uut aega ja kordab kokkulepitud aega sõnadega. Siis vahetage. Pildi neli silti on tõelised lahtiolekuajad: helistaja peab neid ise lugema.'),
+      hide(B.manymatch('012_p_signs', 'Sildid ja teated.', 'Mida silt ütleb? Ühenda silt ja selle tähendus.', [
         'E–R 9.00–18.00', 'L 10.00–15.00', 'P suletud', 'Lõuna 13.00–13.30', 'Avatud 24 h', 'Vastuvõtt T, N 8–12', 'Tulen tagasi 15 min pärast', 'Buss väljub 7.45',
-      ], ['esmaspäevast reedeni kella üheksast kuueni', 'laupäeval kella kümnest kolmeni', 'pühapäeval on kinni', 'lõuna on kella ühest poole kaheni', 'avatud kogu päeva ja öö', 'teisipäeval ja neljapäeval kella kaheksast kaheteistkümneni', 'veerand tunni pärast olen jälle siin', 'buss sõidab kell kolmveerand kaheksa'], 'full', 'g_vocab'),
-      tag(B.examListen('012_p_calls', 'Kolm sõnumit.', 'Sofia otsib tööd ja kuulab telefonis sõnumeid. Kuula kaks korda ja vali õige vastus.', 'choice', [
+      ], ['esmaspäevast reedeni kella üheksast kuueni', 'laupäeval kella kümnest kolmeni', 'pühapäeval on kinni', 'lõuna on kella ühest poole kaheni', 'avatud kogu päeva ja öö', 'teisipäeval ja neljapäeval kella kaheksast kaheteistkümneni', 'veerand tunni pärast olen jälle siin', 'buss sõidab kell kolmveerand kaheksa'], 'full', 'g_vocab'), V5_DRILL),
+      hide(tag(B.examListen('012_p_calls', 'Kolm sõnumit.', 'Sofia otsib tööd ja kuulab telefonis sõnumeid. Kuula kaks korda ja vali õige vastus.', 'choice', [
         'Kaia: Tere, Sofia! Siin Kaia, pood „Kodukaup”. Teie töövestlus on kolmapäeval kell pool üksteist.',
         'Kaia: Palun tulge kümme minutit varem. Pood on bussijaama kõrval.',
         'Kalle: Tere päevast! Siin Kalle, hotell „Meretuul”. Me otsime administraatorit.',
@@ -209,8 +322,8 @@ export const LESSONS = withShapes({
         ['Kus on pood „Kodukaup”?', 'bussijaama kõrval', 'turu kõrval', 'kooli kõrval'],
         ['Kes helistab hotellist?', 'Kalle', 'Kaia', 'Ene'],
         ['Mis kell algab homme Sofia tund?', 'kell kümme', 'kell üheksa', 'kell üks'],
-      ], 'g_read'), { task: 'L01' }),
-      B.adsmatch('012_p_ads', 'Kolm töökuulutust.', 'Loe kuulutusi. Kirjuta iga inimese juurde sobiva kuulutuse täht.', [
+      ], 'g_read'), { task: 'L01' }), V5_CUT),
+      hide(B.adsmatch('012_p_ads', 'Kolm töökuulutust.', 'Loe kuulutusi. Kirjuta iga inimese juurde sobiva kuulutuse täht.', [
         ['Kohvik „Mustamäe Mokka”', 'Otsime abilist. Hommikune vahetus on kella kaheksast kaheni, õhtune kella kahest kaheksani. Töö on neli päeva nädalas. Sinu eesti keel ei pea olema väga hea.'],
         ['Pood „Kodukaup”', 'Otsime müüjat. Tööaeg on esmaspäevast reedeni kella kümnest kuueni. Laupäeval ja pühapäeval on pood kinni. Lõuna kestab terve tunni.'],
         ['Hotell „Meretuul”', 'Otsime administraatorit. Töö on öösel, kella kümnest õhtul kuni kaheksani hommikul. Kaks ööd tööd, siis kaks päeva vaba. Vaja on eesti ja inglise keelt.'],
@@ -218,18 +331,8 @@ export const LESSONS = withShapes({
         ['Kati tahab töötada ainult öösel.', 'C'], ['Grete õpib hommikul ja saab töötada alles pärast kella kahte.', 'A'], ['Dmitri ei taha laupäeval ja pühapäeval töötada.', 'B'],
         ['Lucía tahab töötada ainult neli päeva nädalas.', 'A'], ['Liis tahab pikka lõunapausi.', 'B'], ['Taras tahab kaks päeva tööd ja siis kaks päeva vaba.', 'C'],
         ['Ivan räägib hästi inglise keelt ja tahab seda tööl kasutada.', 'C'], ['Aino tahab töötada ainult hommikul, enne kella kahte.', 'A'],
-      ]),
-      B.transformation('012_p_words', 'Kirjuta sõnadega.', 'Kirjuta kellaaeg ja aeg sõnadega.', [
-        ['Pood „Kodukaup” on iga päev avatud 9–18.', 'Pood on iga päev avatud kella …', 'Pood on iga päev avatud kella üheksast kuni kuueni.|Pood on iga päev avatud kella üheksast kuueni.'],
-        ['Sofia töövestlus kohvikus algab 10.30.', 'Töövestlus algab kell …', 'Töövestlus algab kell pool üksteist.'],
-        ['Buss number 18 tuleb peatusse 8.15.', 'Buss tuleb kell …', 'Buss tuleb kell veerand üheksa.'],
-        ['Oskari jalgpallitrenn on staadionil 17–18.', 'Trenn on kella …', 'Trenn on kella viiest kuni kuueni.|Trenn on kella viiest kuueni.'],
-        ['Uus film algab täna õhtul 19.45.', 'Film algab kell …', 'Film algab kell kolmveerand kaheksa.'],
-        ['Lastevanemate koosolek koolis kestab 90 minutit.', 'Koosolek kestab …', 'Koosolek kestab poolteist tundi.'],
-        ['Kadri kirjutab: „Tule palun koju enne 16.00!”', 'Tule enne kella …', 'Tule enne kella nelja!|Tule enne kella nelja.'],
-        ['Ene ütleb: „Helista mulle pärast 14.00!”', 'Helista pärast kella …', 'Helista pärast kella kahte!|Helista pärast kella kahte.'],
-      ]),
-      B.formtext('012_p_gaps', 'Sofia teisipäev.', 'Pane sulgudes sõna õigesse vormi: kellast, kellani, pärast tööd.', 'Minu teisipäev', [
+      ]), V5_CUT),
+      hide(B.formtext('012_p_gaps', 'Sofia teisipäev.', 'Pane sulgudes sõna õigesse vormi: kellast, kellani, pärast tööd.', 'Minu teisipäev', [
         'Teisipäeval on mul kursus kella üheksast kuni [kaheteistkümneni] (kaksteist). Pärast [kursust] (kursus) söön ma lõunat.',
         '',
         'Kell üks on töövestlus. See [kestab] (kestma) umbes tund aega. Siis on mul vaba aeg kella [kahest] (kaks) kuni neljani.',
@@ -237,8 +340,8 @@ export const LESSONS = withShapes({
         'Mia lasteaed läheb kinni kell kuus. Ma pean olema seal enne kella [kuut] (kuus). Oskari trenn [lõpeb] (lõppema) samuti kell kuus.',
         '',
         'Pärast [trenni] (trenn) läheme kõik koju. Õhtusöök on kell seitse ja lapsed lähevad magama pärast kella [üheksat] (üheksa).',
-      ]),
-      B.dialogue('012_p_dialog', 'Aeg juuksuris.', 'Sofia helistab juuksurisse. Kirjuta lünka sobiv sõna.', 'Juuksur', 'Sofia', [
+      ]), V5_DRILL),
+      hide(B.dialogue('012_p_dialog', 'Aeg juuksuris.', 'Sofia helistab juuksurisse. Kirjuta lünka sobiv sõna.', 'Juuksur', 'Sofia', [
         ['A', 'Juuksurisalong „Siil”, tere!'],
         ['B', 'Tere! Mis [kell] teil teisipäeval vaba aeg on?'],
         ['A', 'Teisipäeval on vaba aeg kell kümme. Kas see [sobib]?'],
@@ -249,17 +352,25 @@ export const LESSONS = withShapes({
         ['B', 'Hästi. Kas te olete avatud ka laupäeval?'],
         ['A', 'Jah, laupäeval [kella] kümnest kuni kolmeni.'],
         ['B', 'Aitäh! Näeme teisipäeval!'],
-      ], 'g_read'),
-      tag(B.speaking('012_p_say', 'Seleta uuele naabrile.', 'Uus naaber ei tea, mis kell kohad lähedal avatud on. Seleta talle.', ['Mis kellast mis kellani on lähedal pood avatud?', 'Millal on perearst või apteek avatud?', 'Mis kell buss või rong kesklinna väljub?', 'Kus saab süüa pärast kella üheksat õhtul?', 'Mis kell on majas vaikus?'], [60, 120], ['Pood on avatud kella …st kuni …ni.', 'Buss väljub kell …', 'Pärast kella … on …']), { task: 'S13' }),
-      teach(tag(B.rolecards('012_p_club', 'Helista spordiklubisse.', 'A helistab spordiklubisse ja küsib aega. B on administraator.',
-        'Sa tahad käia joogas. Sa saad tulla ainult pärast kella kuut või laupäeval. Küsi, mis kell tunnid algavad ja kui kaua need kestavad. Lepi aeg kokku.',
-        'Sa oled spordiklubi administraator. Jooga on E ja K kell 17.30–18.30, N kell 19–20 ja L kell 10–11. Esimene tund on tasuta. Paku aega ja küsi nime.',
-        ['Mis kell jooga algab?', 'Kahjuks kell … ma ei saa, sest …', 'Kas … sobib?'], ['Jooga on kella …st kuni …ni.', 'Tund kestab …', 'Mis teie nimi on?']), { task: 'S04' }),
-        'Üks-ühele: õpetaja on administraator ja pakub alguses sobimatu aja; õpilane ütleb, miks see ei sobi, ja lepib uue aja kokku. Siis vahetage.'),
+      ], 'g_read'), V5_CUT),
+      hide(tag(B.speaking('012_p_say', 'Seleta uuele naabrile.', 'Uus naaber ei tea, mis kell kohad lähedal avatud on. Seleta talle.', ['Mis kellast mis kellani on lähedal pood avatud?', 'Millal on perearst või apteek avatud?', 'Mis kell buss või rong kesklinna väljub?', 'Kus saab süüa pärast kella üheksat õhtul?', 'Mis kell on majas vaikus?'], [60, 120], ['Pood on avatud kella …st kuni …ni.', 'Buss väljub kell …', 'Pärast kella … on …']), { task: 'S13' }), V5_CUT),
     ],
     transfer: [
-      B.text('012_t_sit', 'Pikk teisipäev', 'Teisipäeval sõidab Jaan koolitusele Tartusse. Kadril on haiglas pikk päev. Kadri palub Sofial lapsed ära tuua. Sofia ütleb jah. Aga siis helistab hotell „Meretuul”: töövestlus on hoopis teisipäeval kell viis! Samal ajal on Oskari trenn ja Mia tuleb lasteaiast. Sofia ei saa olla kahes kohas. Ta peab hotelli helistama ja uue aja kokku leppima. Vaata pilti.'),
-      tag(B.listening('012_t_kadri', 'Kadri sõnum.', 'Kadri jättis Sofiale sõnumi. Kuula kaks korda ja kirjuta Sofia märkmed.', [
+      B.text('012_t_sit', 'Olukord: aeg hambaarsti juurde', 'Sul valutab hammas. Sa töötad või õpid ja saad tulla ainult kindlatel aegadel. Täna helistad hambakliinikusse ja lepid aja kokku. Pärast kirjutad sõbrale, mis kell sa oled arsti juures.'),
+      teach(tag(B.phoneCards('012_t_call', 'Helista kliinikusse.', 'A helistab, B on administraator. Siis vahetage kaardid.', 'Sul valutab hammas. Sa helistad hambakliinikusse „Valge Hammas”.',
+        ['Helistaja', ['Tervita ja ütle oma nimi.', 'Ütle, miks sa helistad.', 'Ütle, millal sa ei saa: kella üheksast kolmeni oled tööl.', 'Küsi, kui kaua visiit kestab.', 'Korda aega ja täna.']],
+        ['Administraator', ['Küsi nime ja telefoninumbrit.', 'Paku aega: homme kell pool üksteist.', 'Teine vaba aeg: neljapäeval kell veerand viis.', 'Visiit kestab pool tundi. Palu tulla kümme minutit varem.']], [60, 120]), { task: 'S04', main: true, level: 4 }),
+      'Üks-ühele: õpetaja on administraator. Varjatud info: neljapäeval kell veerand viis on tegelikult juba võetud — kui õpilane selle valib, ütleb administraator „Vabandust, see aeg läks just ära” ja pakub reedel kell kolmveerand kaheksa hommikul; õpilane peab ütlema, kas see sobib, ja aja kokku leppima. Takistus: administraator ütleb aja kiiresti — õpilane palub korrata ja kordab aega numbritega (16.15), et olla kindel. Siis vahetage kaardid: õpilane on administraator.'),
+      teach(tag(B.writing('012_t_write', 'Sõnum sõbrale.', 'Sa ei saa homme sõbraga kohtuda, sest sul on aeg hambaarsti juures. Kirjuta sõbrale 3–5 lauset: mis kell ja kui kaua sa oled arsti juures ja mis kell sa saad kohtuda.', [3, 5], ['kell', 'pool', 'kuni'], 1), { task: 'W02' }),
+      'Üks-ühele: õpilane kirjutab sõnumi õpetajale kui sõbrale; õpetaja vastab ühe küsimusega („Kas kell kuus sobib?”) ja õpilane lisab sõnumisse ühe lause.'),
+      teach(tag(B.speaking('012_t_say', 'Kodus: minu kellaajad.', 'Räägi oma päevast kellaaegadega ja salvesta kaks korda: teine kord ilma märkmeteta.', [
+        'Mis kell sinu päev algab?',
+        'Mis kellast mis kellani sa töötad või õpid?',
+        'Mis kellast mis kellani on sinu lähedal pood või raamatukogu avatud?',
+      ], [35, 60], ['Kella …st kuni …ni …', 'Kell pool …', 'See kestab …']), { task: 'S15', level: 3, fluency: true }),
+      'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib kaks küsimust („Kui kaua see kestab?”, „Mis kell pood kinni läheb?”).'),
+      B.selfcheck('012_t_self', ['Ma ütlen kellaaega: pool kolm, veerand neli, kolmveerand viis.', 'Ma saan aru lahtiolekuaegadest: kella kümnest kuueni.', 'Ma helistan ja lepin telefonis aja kokku.', 'Ma kirjutan sõbrale, mis kell ja kui kaua.'], 'Tund 12 on läbitud'),
+      hide(tag(B.listening('012_t_kadri', 'Kadri sõnum.', 'Kadri jättis Sofiale sõnumi. Kuula kaks korda ja kirjuta Sofia märkmed.', [
         'Kadri: Tere, Sofia! Siin Kadri. Mul on suur palve.',
         'Kadri: Teisipäeval on Jaan Tartus ja mina töötan kella kaheksani.',
         'Kadri: Kas sa saad Mia lasteaiast ära tuua? Lasteaed läheb kinni kell kuus.',
@@ -268,8 +379,8 @@ export const LESSONS = withShapes({
         'Kadri: Külmikus on supp. Lapsed söövad kell seitse.',
         'Kadri: Mia läheb magama kell pool üheksa, Oskar kell üheksa.',
         'Kadri: Mina olen kodus umbes kell pool üheksa. Helista mulle pärast lõunat!',
-      ], ['Kadri on tööl kuni kella [kaheksani|8ni|20ni].', 'Mia: lasteaiast enne kella [kuut|6|18].', 'Oskar: trenn kella viiest kuni [kuueni].', 'Staadion: [kooli] kõrval.', 'Oskar tuleb koju ainult koos [Rasmusega].', 'Õhtusöök: [supp] külmikus.', 'Lapsed söövad kell [seitse|7|19].', 'Helistan Kadrile pärast [lõunat].']), { task: 'L07' }),
-      B.insertion('012_t_raivo', 'Treeneri kiri.', 'Loe treener Raivo kirja. Pane igasse lünka sobiv lause. Üks lause jääb üle.', 'Head lapsevanemad!', [
+      ], ['Kadri on tööl kuni kella [kaheksani|8ni|20ni].', 'Mia: lasteaiast enne kella [kuut|6|18].', 'Oskar: trenn kella viiest kuni [kuueni].', 'Staadion: [kooli] kõrval.', 'Oskar tuleb koju ainult koos [Rasmusega].', 'Õhtusöök: [supp] külmikus.', 'Lapsed söövad kell [seitse|7|19].', 'Helistan Kadrile pärast [lõunat].']), { task: 'L07' }), V5_CUT),
+      hide(B.insertion('012_t_raivo', 'Treeneri kiri.', 'Loe treener Raivo kirja. Pane igasse lünka sobiv lause. Üks lause jääb üle.', 'Head lapsevanemad!', [
         'Head lapsevanemad! Teisipäeval on trenn tavalisel ajal, kella viiest kuni kuueni. [[Palun tulge staadionile kümme minutit varem.]] Staadion on kooli kõrval.',
         '',
         'Kell pool kuus tuleb staadionile fotograaf. Ta teeb meeskonnast pildi. [[Palun pange lastele selga sinine särk.]] Võtke kaasa ka vesi.',
@@ -279,30 +390,57 @@ export const LESSONS = withShapes({
         'Turniir algab laupäeval kell kümme. [[See lõpeb umbes kell kaks.]] Lapsed söövad lõunat koolis. Vanemad võivad tulla mängu vaatama, kohvi ja kooki saab kooli sööklast.',
         '',
         '[[Kui te ei saa koosolekule tulla, kirjutage mulle.]] Kirjutage enne esmaspäeva õhtut. Aitäh! Treener Raivo',
-      ], ['Trenn on ka pühapäeval kell üheksa.']),
-      teach(tag(B.phoneCards('012_t_call', 'Helista hotelli.', 'Sofia helistab hotelli ja lepib vestlusele uue aja. Siis vahetage.', 'Hotell „Meretuul” pani Sofia töövestluse teisipäevale kell viis. Sofia ei saa siis tulla, sest ta on lastega. Ta helistab administraatorile Kallele. Sofia ütleb Kallele teie.',
-        ['Sofia', ['Tervita ja ütle, kes sa oled.', 'Ütle, miks sa teisipäeval kell viis ei saa.', 'Ütle, millal sa saad: E–N pärast kella ühte, reedel terve päev.', 'Küsi, kui kaua vestlus kestab.', 'Korda uut aega ja täna.']],
-        ['Kalle', ['Teisipäeval saab ainult kell viis.', 'Kolmapäeval on vaba kell pool kaks või kell neli.', 'Neljapäeval on vaba kell kümme.', 'Vestlus kestab umbes tund aega.', 'Palu tulla kümme minutit varem.']], [120, 180]), { main: true }),
-        'Üks-ühele: õpetaja on Kalle ja pakub kõigepealt aega, mis ei sobi; õpilane põhjendab ja leiab uue aja. Lõpus kordab õpilane kokkulepitud aega. Siis vahetage.'),
-      tag(B.speaking('012_t_say', 'Häälsõnum Kadrile.', 'Salvesta kodus Kadrile häälsõnum: teisipäeva plaan kellaaegadega.', ['Mis kell sa Mia lasteaiast tood?', 'Kes toob Oskari trennist ja mis kell?', 'Kes läheb koosolekule?', 'Mis kell lapsed söövad ja magama lähevad?', 'Millal on sinu uus vestlus hotellis?'], [40, 60], ['Kõigepealt …', 'Kell … me …', 'Pärast seda …']), { task: 'S15', fluency: true }),
-      tag(B.writing('012_t_write', 'Üks plaan, kaks sõnumit.', 'Kirjuta plaan kaks korda: Kadrile sina-vormis, treener Raivole teie-vormis.', [6, 8], ['kell', 'kuni', 'enne', 'pärast'], 2), { task: 'W12' }),
-      B.rubric('012_t_rubric', 'Hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Telefonis ütleb õpilane, miks aeg ei sobi, ja lepib uue aja kokku.', 'Plaan töötab: Sofia ei ole samal ajal kahes kohas.', 'Kellaajad on õiges vormis: kell pool kuus, kella viiest kuni kuueni, enne kella kuut.', 'Kadrile on sina-vorm, Raivole ja Kallele teie-vorm.']),
-      B.selfcheck('012_t_self', ['Ma saan aru sõnumist kellaaegadega.', 'Ma loen silte ja kuulutusi ja leian kellaajad.', 'Ma helistan ja lepin telefonis uue aja kokku.', 'Ma kirjutan plaani kellaaegadega.'], 'Teisipäev on plaanis'),
+      ], ['Trenn on ka pühapäeval kell üheksa.']), V5_CUT),
+      hide(B.rubric('012_t_rubric', 'Hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Telefonis ütleb õpilane, miks aeg ei sobi, ja lepib uue aja kokku.', 'Plaan töötab: Sofia ei ole samal ajal kahes kohas.', 'Kellaajad on õiges vormis: kell pool kuus, kella viiest kuni kuueni, enne kella kuut.', 'Kadrile on sina-vorm, Raivole ja Kallele teie-vorm.']), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 013 reading: how often?
   'a2-013': {
     title: 'Kui tihti?',
-    canDo: 'Ma kirjutan pereõele 50–70-sõnalise kirja oma harjumustest ja ütlen õige sõnajärjega, kui tihti ma midagi teen (alati, tavaliselt, harva, mitte kunagi, kord nädalas).',
+    canDo: 'Ma räägin ja kirjutan, kui tihti ma midagi teen (alati, tavaliselt, tihti, mõnikord, harva, mitte kunagi, kaks korda nädalas), ja vastan korterikaaslase kuulutusele.',
     discover: [
-      B.review('013_d_review', [['Mis kell Mia lasteaed kinni läheb?', 'a2-012'], ['Ütle sõnadega: 8.15, 13.30, 17.45.', 'a2-012'], ['Mis keeli sa räägid? Kus sa eesti keelt kasutad?', 'a2-001']]),
-      B.text('013_d_hook', 'Korteri harjumused', 'Sofia elab Malle ja Gretega juba kaks nädalat. Ta näeb, et igaühel on oma harjumused. Malle on rahulik ja jalutab alati hommikul. Grete joob palju kohvi ja magab vähe. Õhtul küsib Grete köögis: „Sofia, kas sa tead, mis on sinu halb harjumus?”'),
-      B.profiles('013_d_cards', 'Kolm inimest, kolm harjumust.', 'Loe Malle, Grete ja Jaani kaarte. Täida laused kaartide järgi.', [
+      B.review('013_d_review', [['Ütle sõnadega: 14.30, 8.15, 17.45.', 'a2-012'], ['Kust sa pärit oled ja mis keeli sa räägid?', 'a2-002'], 'Mida sa teed iga päev?']),
+      tag(B.vocab('013_d_vocab', 'Tunni sõnad.', ['alati — всегда', 'tavaliselt — обычно', 'tihti — часто', 'mõnikord — иногда', 'harva — редко', 'mitte kunagi — никогда', 'iga päev — каждый день', 'kord nädalas — раз в неделю', 'harjumus — привычка', 'koristama — убирать']), { topic: ['harjumus'] }),
+      teach(tag(B.reading('013_p_read', 'Otsin korterikaaslast!', 'Kerttu otsib korterikaaslast. Loe kuulutust ja vasta 1–3 sõnaga. Lõpus ütle: kas sa tahad Kerttuga koos elada?', 'Otsin korterikaaslast!',
+        'Tere! Minu nimi on Kerttu, ma olen 24 ja õpin Tartu ülikoolis. Ma otsin korterikaaslast. Korter on Annelinnas ja seal on kaks tuba.\n\nKirjutan natuke oma harjumustest. Ma ärkan alati vara, kell kuus, ja käin hommikul jooksmas. Tavaliselt olen ma päeval ülikoolis. Õhtul teen ma tihti süüa, aga koristan ma harva — ausalt!\n\nMõnikord tulevad mulle sõbrad külla, umbes kord nädalas. Ma ei suitseta mitte kunagi. Kaks korda nädalas, teisipäeval ja neljapäeval, käin ma ujumas.\n\nKui see sulle sobib, kirjuta mulle ja räägi oma harjumustest! Kerttu',
+        [['Kui tihti Kerttu vara ärkab?', 'alati'], ['Mida ta hommikul teeb?', 'käib jooksmas|jookseb|jooksmas'], ['Kui tihti ta õhtul süüa teeb?', 'tihti'], ['Kui tihti ta koristab?', 'harva'], ['Kui tihti tulevad sõbrad külla?', 'kord nädalas|mõnikord|umbes kord nädalas'], ['Mis päevadel ta ujumas käib?', 'teisipäeval ja neljapäeval|teisipäeviti ja neljapäeviti']]), { task: 'R12' }),
+      'Üks-ühele: enne lugemist küsib õpetaja: „Mis on hea korterikaaslane?” Õpilane ütleb kaks asja. Pärast lugemist vastab ta küsimustele ja ütleb, kas Kerttu sobib talle ja miks (sest …).'),
+      teach(tag(why(B.table('013_d_rule', 'Leia reegel: kus on tegusõna?', 'Kirjuta puuduv tegusõna. Kõik laused peale viimase on Kerttu kuulutuses. Vaata: mitmes sõna on tegusõna?', 'Lause algus, Tegusõna, Lause lõpp', [
+        'Ma | [ärkan] | alati vara.',
+        'Tavaliselt | [olen] | ma päeval ülikoolis.',
+        'Õhtul | [teen] | ma tihti süüa.',
+        'Mõnikord | [tulevad] | mulle sõbrad külla.',
+        'Ma | ei [suitseta] | mitte kunagi.',
+        'Kaks korda nädalas | [käin] | ma ujumas.',
+        'Ma | [käin] | hommikul jooksmas.',
+        'Kord nädalas | [käin] | ma saunas.',
+      ], 'g_notice'), [
+        'Ma + tegusõna + alati.',
+        'Ajasõna alguses → tegusõna teisel kohal: Tavaliselt olen ma …',
+        'Õhtul teen ma …',
+        'Mõnikord tulevad sõbrad …',
+        'mitte kunagi → eitus: ei suitseta.',
+        'Kaks korda nädalas käin ma …',
+        'käima + -mas: käin jooksmas, käin ujumas.',
+        'kord nädalas = üks kord; kaks korda (osastav).',
+      ]), { task: 'G01', level: 1 }), 'Üks-ühele: õpilane leiab laused tekstist ja täidab tabeli. Reegli sõnastab õpilane ise: kui lause alguses on ajasõna (tavaliselt, õhtul, kaks korda nädalas), on tegusõna teisel kohal; „mitte kunagi” tahab eitust (ei suitseta). Ära ütle reeglit enne, kui õpilane on proovinud.'),
+      teach(tag(B.speaking('013_d_say', 'Proovi kohe.', 'Küsi õpetajalt neli küsimust „Kui tihti …?”. Siis küsib õpetaja sinult.', [
+        'Kui tihti sa sporti teed?',
+        'Kui tihti sa süüa teed?',
+        'Kui tihti sa koristad?',
+        'Mida sa ei tee mitte kunagi?',
+        'Mis on sinu hea harjumus?',
+        'Kas sa käid ujumas või saunas? Kui tihti?',
+      ], [35, 60], ['Ma … alati / tihti / harva.', 'Ma käin … kord nädalas.', 'Ma ei … mitte kunagi.', 'Ja sina? Kui tihti sina …?']), { task: 'S02', level: 3 }),
+      'Üks-ühele: õpilane küsib, õpetaja vastab ausalt ja lühidalt; siis vastupidi. Paranda ainult sõnajärge (Tavaliselt teen ma …) ja eitust (ei … mitte kunagi).'),
+      hide(B.text('013_d_hook', 'Korteri harjumused', 'Sofia elab Malle ja Gretega juba kaks nädalat. Ta näeb, et igaühel on oma harjumused. Malle on rahulik ja jalutab alati hommikul. Grete joob palju kohvi ja magab vähe. Õhtul küsib Grete köögis: „Sofia, kas sa tead, mis on sinu halb harjumus?”'), V5_CUT),
+      hide(B.profiles('013_d_cards', 'Kolm inimest, kolm harjumust.', 'Loe Malle, Grete ja Jaani kaarte. Täida laused kaartide järgi.', [
         ['Malle Pärn, 66', ['pensionär, elab Mustamäel', 'ärkab iga päev kell kuus', 'jalutab alati hommikul pargis', 'käib kaks korda nädalas raamatukogus tööl', 'ei joo kunagi kohvi, ainult teed'], ['Malle ärkab [iga] päev kell kuus.', 'Ta jalutab [alati] hommikul pargis.', 'Ta käib raamatukogus tööl kaks [korda] nädalas.', 'Malle ei joo [kunagi] kohvi.']],
         ['Grete Kuusik, 22', ['üliõpilane', 'joob kohvi viis korda päevas', 'magab tavaliselt ainult kuus tundi', 'käib sageli õhtul sõpradega väljas', 'sööb harva hommikusööki'], ['Grete joob kohvi viis [korda] päevas.', 'Ta magab [tavaliselt] kuus tundi.', 'Ta käib [sageli] õhtul väljas.', 'Grete sööb [harva] hommikusööki.']],
         ['Jaan Mets, 34', ['kokk, Sofia vend', 'mängib korvpalli kord nädalas', 'jalutab Mukiga iga päev', 'loeb mõnikord õhtul lastele raamatut', 'ei suitseta mitte kunagi'], ['Jaan mängib korvpalli [kord] nädalas.', 'Ta jalutab koeraga iga [päev].', 'Ta loeb [mõnikord] lastele raamatut.', 'Jaan ei suitseta [mitte] kunagi.']],
-      ], '3', 'g_vocab'),
-      B.examListen('013_d_survey', 'Raadio küsib: kui tihti?', 'Raadio „Mustamäe hääl” küsib inimestelt tänaval. Kuula kaks korda ja vali õige vastus.', 'choice', [
+      ], '3', 'g_vocab'), V5_CUT),
+      hide(B.examListen('013_d_survey', 'Raadio küsib: kui tihti?', 'Raadio „Mustamäe hääl” küsib inimestelt tänaval. Kuula kaks korda ja vali õige vastus.', 'choice', [
         'Ülle: Tere! Siin raadio „Mustamäe hääl”. Kui tihti te sporti teete?',
         'Margus: Ma käin jõusaalis kolm korda nädalas. Tavaliselt hommikul, enne tööd.',
         'Ülle: Ja teie?',
@@ -322,36 +460,51 @@ export const LESSONS = withShapes({
         ['Mis päevadel Aino ujub?', 'esmaspäeval ja neljapäeval', 'teisipäeval ja reedel', 'laupäeval ja pühapäeval'],
         ['Kuhu Aino laupäeviti läheb?', 'sauna', 'ujulasse', 'jõusaali'],
         ['Kellega Aino saunas käib?', 'naabriga', 'tütrega', 'üksi'],
-      ], 'g_read'),
-      B.notice('013_d_notice', 'Märka: kui tihti?', [
+      ], 'g_read'), V5_CUT),
+      hide(B.notice('013_d_notice', 'Märka: kui tihti?', [
         '**alati** — **tavaliselt** — **sageli** (= tihti) — **mõnikord** — **harva** — **mitte kunagi**',
         'Eitus: Ma **ei** joo **mitte kunagi** kohvi. Ma **ei** suitseta **kunagi**.',
         '**kord** nädalas (1) — **kaks korda** nädalas, **viis korda** päevas (2, 3 … + korda)',
         '**iga** päev, **iga** nädal — **igal** hommikul, **igal** laupäeval',
         'Ma **käin** ujumas. Me **käime** saunas. (käima + koht või tegevus)',
         'Sõna koht: Ma ärkan **alati** kell kuus. **Tavaliselt** ärkan ma … = **Tavaliselt** ma ärkan …',
-      ], 'full'),
-      tag(B.diagram('013_d_scale', 'flow', { title: 'Sageduse skaala.', instruction: 'Pane sõnad skaalale: alati, harva, mitte kunagi, mõnikord, sageli, tavaliselt.', nodes: '100 % — [alati]\n80 % — [tavaliselt|sageli]\n60 % — [sageli|tavaliselt]\n30 % — [mõnikord]\n10 % — [harva]\n0 % — ei … [mitte kunagi|kunagi]' }, 'full', 'g_vocab'), { task: 'G04' }),
-      B.transformation('013_d_order', 'Lisa sõna lausesse.', 'Kirjuta lause uuesti. Lisa sulgudes olev sõna.', [
-        ['Malle ärkab kell kuus. (alati)', 'Malle …', 'Malle ärkab alati kell kuus.'],
-        ['Grete sööb hommikusööki. (harva)', 'Grete …', 'Grete sööb harva hommikusööki.|Grete sööb hommikusööki harva.'],
-        ['Ma joon õhtul teed. (tavaliselt)', 'Tavaliselt …', 'Tavaliselt joon ma õhtul teed.|Tavaliselt ma joon õhtul teed.'],
-        ['Jaan suitsetab. (mitte kunagi)', 'Jaan ei …', 'Jaan ei suitseta mitte kunagi.|Jaan ei suitseta kunagi.'],
-        ['Oskar mängib jalgpalli. (kaks korda nädalas)', 'Oskar …', 'Oskar mängib jalgpalli kaks korda nädalas.|Oskar mängib kaks korda nädalas jalgpalli.'],
-        ['Me käime kinos. (mõnikord)', 'Mõnikord …', 'Mõnikord käime me kinos.|Mõnikord me käime kinos.'],
-        ['Mia helistab vanaemale. (iga pühapäev)', 'Mia …', 'Mia helistab vanaemale iga pühapäev.|Mia helistab iga pühapäev vanaemale.|Mia helistab vanaemale igal pühapäeval.'],
-        ['Mia joonistab pingviine. (sageli)', 'Sageli …', 'Sageli joonistab Mia pingviine.|Sageli Mia joonistab pingviine.'],
-      ]),
-      tag(B.vocab('013_d_vocab', 'Tunni sõnad.', ['harjumus — привычка', 'alati — всегда', 'tavaliselt — обычно', 'sageli — часто', 'mõnikord — иногда', 'harva — редко', 'mitte kunagi — никогда', 'kord nädalas — раз в неделю', 'kaks korda päevas — два раза в день', 'iga päev — каждый день']), { topic: ['harjumus'] }),
-      teach(tag(B.speaking('013_d_say', 'Kui tihti sa …?', 'Küsi kahelt kuulajalt järjest samu küsimusi. Teisel korral räägi kiiremini.', ['Kui tihti sa sporti teed?', 'Kui tihti sa oma emale või vennale helistad?', 'Mida sa teed iga päev?', 'Mida sa ei tee mitte kunagi?', 'Mis on sinu hea ja halb harjumus?'], [60, 120], ['Ma … alati / tavaliselt / harva.', 'Ma käin … kord nädalas.', 'Ma ei … mitte kunagi.']), { fluency: true }),
-        'Üks-ühele: õpetaja ja õpilane küsivad kordamööda kaks ringi; teine ring on kiirem. Lõpus võrdleb õpilane: „Mina käin trennis sagedamini kui teie.”'),
-      B.examWriting('013_d_form', 'Küsimustik: minu harjumused.', 'Vasta küsimustikule täislausetega. Kasuta sagedussõnu.', 'kusimustik', {
+      ], 'full'), V5_CUT),
+      hide(tag(B.diagram('013_d_scale', 'flow', { title: 'Sageduse skaala.', instruction: 'Pane sõnad skaalale: alati, harva, mitte kunagi, mõnikord, sageli, tavaliselt.', nodes: '100 % — [alati]\n80 % — [tavaliselt|sageli]\n60 % — [sageli|tavaliselt]\n30 % — [mõnikord]\n10 % — [harva]\n0 % — ei … [mitte kunagi|kunagi]' }, 'full', 'g_vocab'), { task: 'G04' }), V5_DRILL),
+      hide(B.examWriting('013_d_form', 'Küsimustik: minu harjumused.', 'Vasta küsimustikule täislausetega. Kasuta sagedussõnu.', 'kusimustik', {
         situation: 'Keelekooli leht teeb küsitluse „Kuidas me elame?”.',
         questions: ['Mis kell sa tavaliselt ärkad?', 'Kui tihti sa sööd hommikusööki?', 'Mitu tassi kohvi või teed sa päevas jood?', 'Kui tihti sa sporti teed?', 'Kas sa käid ujumas või saunas? Kui tihti?', 'Mitu tundi sa öösel magad?', 'Kui tihti sa helistad oma perele?', 'Mida sa ei tee mitte kunagi?', 'Mis on sinu halb harjumus? Miks?', 'Mis on sinu hea harjumus? Miks?'],
-      }),
+      }), V5_CUT),
     ],
     practice: [
-      tag(B.bankText('013_p_malle', 'Malle kiri tütrele.', 'Loe Malle kirja. Pane igasse lünka sõna kastist. Kaks sõna jääb üle.', 'Kallis tütar!', [
+      half(tag(B.wordforms('013_p_mas', 'Käin … -mas.', 'Kirjuta lünka tegusõna nagu näites: käin ujumas.', [
+        ['ujuma', 'Ma käin …', 'ujumas'], ['jooksma', 'Kerttu käib …', 'jooksmas'], ['tantsima', 'Me käime reedel …', 'tantsimas'], ['sööma', 'Nad käivad väljas …', 'söömas'],
+        ['jalutama', 'Ma käin koeraga …', 'jalutamas'], ['suusatama', 'Talvel käime …', 'suusatamas'], ['laulma', 'Ema käib kooris …', 'laulmas'], ['kalastama', 'Isa käib järvel …', 'kalastamas'],
+      ]), { task: 'G08' })),
+      half(tag(B.truefalse('013_p_tf', 'Kerttu: õige või vale?', 'Mõtle Kerttu kuulutusele. Kas lause on õige või vale?', [
+        ['Kerttu ärkab alati vara.', true], ['Kerttu koristab tihti.', false], ['Sõbrad tulevad Kerttule külla iga päev.', false],
+        ['Kerttu ei suitseta.', true], ['Kerttu käib ujumas kaks korda nädalas.', true], ['Kerttu teeb õhtul harva süüa.', false],
+      ], 'half'), { task: 'R06' })),
+      teach(why(B.transformation('013_d_order', 'Lisa sõna lausesse.', 'Kirjuta lause uuesti. Lisa sulgudes olev sõna.', [
+        ['Ma ärkan kell kuus. (alati)', 'Ma …', 'Ma ärkan alati kell kuus.'],
+        ['Ta sööb hommikusööki. (harva)', 'Ta …', 'Ta sööb harva hommikusööki.|Ta sööb hommikusööki harva.'],
+        ['Ma joon õhtul teed. (tavaliselt)', 'Tavaliselt …', 'Tavaliselt joon ma õhtul teed.|Tavaliselt ma joon õhtul teed.'],
+        ['Isa suitsetab. (mitte kunagi)', 'Isa ei …', 'Isa ei suitseta mitte kunagi.|Isa ei suitseta kunagi.'],
+        ['Me käime kinos. (mõnikord)', 'Mõnikord …', 'Mõnikord käime me kinos.|Mõnikord me käime kinos.'],
+        ['Ma helistan emale. (iga pühapäev)', 'Ma …', 'Ma helistan emale iga pühapäev.|Ma helistan iga pühapäev emale.|Ma helistan emale igal pühapäeval.'],
+      ]), [
+        'alati tuleb tegusõna järele.',
+        'harva tegusõna järel või lause lõpus.',
+        'Tavaliselt + joon + ma.',
+        'ei suitseta mitte kunagi.',
+        'Mõnikord + käime + me.',
+        'iga pühapäev (või igal pühapäeval).',
+      ]), 'Üks-ühele: õpilane kirjutab laused; siis ütleb õpetaja sulgudes oleva sõna ja õpilane ütleb lause enda kohta (Mõnikord käin ma …).'),
+      teach(tag(B.rolecards('013_p_roles', 'Kes sobib korterikaaslaseks?', 'Vaata pilti: kolm inimest tahavad Kerttuga koos elada. Rääkige, kui tihti nad midagi teevad, ja valige koos üks.',
+        'Sinu arvates on hea korterikaaslane rahulik: sõbrad tulevad harva külla ja ta koristab tihti. Räägi pildi järgi ja paku üht inimest.',
+        'Sinu arvates on hea korterikaaslane lõbus: ta teeb tihti süüa ja sõbrad tulevad tihti külla. Räägi pildi järgi ja paku üht inimest.',
+        ['Rein koristab … korda nädalas.', 'Ta ei … mitte kunagi.', 'Minu arvates sobib …, sest …'], ['Kui tihti Ülle …?', 'Mardile tulevad iga päev …', 'Hästi, me valime …']), { task: 'S12' }),
+      'Üks-ühele: õpetaja võtab ühe rolli ja eelistab alguses teist inimest kui õpilane; õpilane põhjendab pildi järgi (Rein koristab kolm korda nädalas, aga Mart ainult kaks korda). Lõpus öeldakse kokkulepe ühe lausega.'),
+      hide(tag(B.bankText('013_p_malle', 'Malle kiri tütrele.', 'Loe Malle kirja. Pane igasse lünka sõna kastist. Kaks sõna jääb üle.', 'Kallis tütar!', [
         'Kallis tütar! Minu korteris elavad nüüd kaks noort naist. Sofia ärkab [[alati]] vara, iga päev kell seitse.',
         '',
         'Grete magab hommikul kaua. Ta sööb hommikusööki väga [[harva]], ainult pühapäeval. Õhtul joome me [[sageli]] koos teed, peaaegu iga päev.',
@@ -361,12 +514,9 @@ export const LESSONS = withShapes({
         'Ma käin ikka raamatukogus tööl, [[teisipäeviti]] ja reedeti. Pargis jalutan ma [[igal]] hommikul, ka siis, kui sajab vihma.',
         '',
         'Kaur ja Karin tulevad mulle külla [[iga]] nädal. Nad on head lapselapsed. Kallistan! Sinu ema',
-      ], ['kord', 'eile']), { task: 'R04' }),
-      B.crossword('013_p_cross', 'Sagedussõnad.', 'Kirjuta vihje järgi sagedussõna.', [['100 %: iga kord', 'alati'], ['Peaaegu iga kord, nagu tavaliselt', 'tavaliselt'], ['Tihti', 'sageli'], ['Vahel, mitte tihti', 'mõnikord'], ['Väga vähe, peaaegu mitte kunagi', 'harva'], ['Üks … nädalas', 'kord'], ['Kaks … päevas', 'korda'], ['Iga hommik: … hommikul', 'igal']]),
-      tag(B.reading('013_p_read', 'Kooli liikumisnädal.', 'Loe kooli kirja. Vali igale lõigule pealkiri sulgudest.', 'Liigu iga päev!',
-        '1. Head lapsed ja vanemad! Järgmisel nädalal on Kase koolis liikumisnädal. Iga päev algab võimlemisega. Kell kaheksa võimlevad kõik õpilased koos õues. Iga vahetund on õues, ka siis, kui sajab vihma.\n\n2. Teisipäeval ja neljapäeval on pärast tunde jalgpall. Kolmapäeval käivad teise klassi õpilased ujumas. Reedel on perede matk metsas. Matk algab kell neli ja kestab kaks tundi.\n\n3. Küsimus lastele: kui tihti sa liigud? Kirjuta päevikusse iga päev, mida sa tegid. Mitu tundi sa magasid? Kas sa jõid vett?\n\n4. Arstid ütlevad, et laps peab liikuma iga päev vähemalt tund aega. Arvutis võib laps olla kõige rohkem kaks tundi päevas. Ilusat liikumisnädalat! Kehalise kasvatuse õpetaja Margit Vaher',
-        [['Lõik 1 (Hommik ja vahetunnid / Matk metsas)', 'Hommik ja vahetunnid'], ['Lõik 2 (Nädala plaan / Arsti nõuanne)', 'Nädala plaan'], ['Lõik 3 (Liikumise päevik / Jalgpall)', 'Liikumise päevik'], ['Lõik 4 (Kui palju liikuda? / Ujumine)', 'Kui palju liikuda?'], ['Mida teevad teise klassi õpilased kolmapäeval?', 'käivad ujumas|ujuvad'], ['Kui kaua võib laps päevas arvutis olla?', 'kaks tundi|kõige rohkem kaks tundi']]), { task: 'R09' }),
-      B.errorfix('013_p_fix', 'Paranda viga.', 'Grete kirjutas need laused kiiresti. Leia igas lauses viga ja paranda.', [
+      ], ['kord', 'eile']), { task: 'R04' }), V5_CUT),
+      hide(B.crossword('013_p_cross', 'Sagedussõnad.', 'Kirjuta vihje järgi sagedussõna.', [['100 %: iga kord', 'alati'], ['Peaaegu iga kord, nagu tavaliselt', 'tavaliselt'], ['Tihti', 'sageli'], ['Vahel, mitte tihti', 'mõnikord'], ['Väga vähe, peaaegu mitte kunagi', 'harva'], ['Üks … nädalas', 'kord'], ['Kaks … päevas', 'korda'], ['Iga hommik: … hommikul', 'igal']]), V5_DRILL),
+      hide(B.errorfix('013_p_fix', 'Paranda viga.', 'Grete kirjutas need laused kiiresti. Leia igas lauses viga ja paranda.', [
         ['Onu Viktor suitsetab mitte kunagi.', 'Onu Viktor ei suitseta mitte kunagi.|Onu Viktor ei suitseta kunagi.'],
         ['Grete joob kohvi viis kord päevas.', 'Grete joob kohvi viis korda päevas.'],
         ['Malle jalutab iga hommikul pargis.', 'Malle jalutab igal hommikul pargis.'],
@@ -375,21 +525,30 @@ export const LESSONS = withShapes({
         ['Me käime kinos kaks korda kuu.', 'Me käime kinos kaks korda kuus.'],
         ['Ma ei joon kunagi kohvi.', 'Ma ei joo kunagi kohvi.|Ma ei joo mitte kunagi kohvi.'],
         ['Mia joonistab iga päeval.', 'Mia joonistab iga päev.|Mia joonistab igal päeval.'],
-      ]),
-      tag(B.wordforms('013_p_mas', 'Käin … -mas.', 'Kirjuta lünka tegusõna nagu näites: käin ujumas, käin söömas.', [
-        ['ujuma', 'Aino käib …', 'ujumas'], ['jooksma', 'Sofia käib …', 'jooksmas'], ['tantsima', 'Grete käib …', 'tantsimas'], ['sööma', 'me käime väljas …', 'söömas'],
-        ['jalutama', 'Oskar käib Mukiga …', 'jalutamas'], ['suusatama', 'talvel käime …', 'suusatamas'], ['laulma', 'Malle käib kooris …', 'laulmas'], ['kalastama', 'Viktor käib järvel …', 'kalastamas'],
-      ]), { task: 'G08' }),
-      tag(B.writing('013_p_diary', 'Minu liikumispäevik.', 'Täida Oskari kooli päevik enda kohta: uni, sport, vesi, arvuti. Kirjuta 6–8 rida.', [6, 8], ['tundi', 'korda', 'iga päev', 'tavaliselt'], 2), { task: 'W07' }),
-      teach(tag(B.rolecards('013_p_roles', 'Kes elab tervislikumalt?', 'Küsige teineteise harjumuste kohta. Pange viis harjumust järjekorda ja otsustage.',
-        'Küsi paarilise kohta: uni, sport, vesi, kohv, arvuti. Küsi alati: kui tihti? kui kaua? Räägi ka oma harjumustest.',
-        'Vasta ausalt. Kasuta: alati, tavaliselt, harva, mitte kunagi, kord nädalas. Lõpus pange koos harjumused järjekorda: mis on kõige tähtsam?',
-        ['Kui tihti sa …?', 'Kui kaua sa …?', 'Minu arvates on kõige tähtsam …'], ['Tavaliselt ma …', 'Ma käin … kaks korda nädalas.', 'Ma ei … mitte kunagi.']), { task: 'S12' }),
-        'Üks-ühele: õpetaja ja õpilane küsivad kordamööda ja kirjutavad vastused üles. Lõpus panevad nad viis harjumust järjekorda ja õpilane ütleb, kes elab tervislikumalt ja miks.'),
+      ]), V5_DRILL),
+      hide(tag(B.writing('013_p_diary', 'Minu liikumispäevik.', 'Täida Oskari kooli päevik enda kohta: uni, sport, vesi, arvuti. Kirjuta 6–8 rida.', [6, 8], ['tundi', 'korda', 'iga päev', 'tavaliselt'], 2), { task: 'W07' }), V5_CUT),
     ],
     transfer: [
-      B.text('013_t_sit', 'Perearsti juures', 'Sofia on Eestis uus. Ta registreerib end Mustamäe perearstikeskusesse. Tal on viimasel ajal halb uni ja palju stressi. Esimesel visiidil räägib ta pereõe Heliga. Pereõde küsib harjumuste kohta: uni, söök, sport, kohv. Lõpus annab ta nõu. Pärast visiiti kirjutab Sofia pereõele, mis harjumusi ta muudab. Vaata pilti: millised harjumused on head?'),
-      tag(B.insertion('013_t_info', 'Perearstikeskuse kiri.', 'Loe perearstikeskuse kirja. Pane igasse lünka sobiv lause. Üks lause jääb üle.', 'Tere tulemast Mustamäe perearstikeskusesse!', [
+      B.text('013_t_sit', 'Olukord: uus korterikaaslane', 'Sa otsid tuba ja loed Kerttu kuulutust. Kerttu helistab sulle ja küsib sinu harjumuste kohta. Pärast kõnet kirjutad talle vastuse.'),
+      teach(tag(B.rolecards('013_t_roles', 'Telefonikõne Kerttuga.', 'A on Kerttu, B otsib tuba. Siis vahetage.',
+        'Sa oled Kerttu. Küsi helistaja harjumuste kohta: mis kell ta ärkab ja magama läheb, kui tihti ta süüa teeb ja koristab, kas sõbrad tulevad tihti külla, kas ta suitsetab. Lõpus ütle, kas ta sobib.',
+        'Sa otsid tuba. Vasta ausalt. Küsi ka Kerttult kaks küsimust: kui tihti …?',
+        ['Kui tihti sa …?', 'Mis kell sa tavaliselt …?', 'Kas sa … tihti?'], ['Tavaliselt ma …', 'Ma … kaks korda nädalas.', 'Ma ei … mitte kunagi.']), { task: 'S13' }),
+      'Üks-ühele: õpetaja on Kerttu ja küsib; ta küsib ühe küsimuse kaks korda teisiti („Aga kui tihti sa koristad?”), et õpilane kasutaks sagedussõna. Siis vahetage: õpilane küsib õpetajalt kui uuelt korterikaaslaselt.'),
+      teach(tag(B.examWriting('013_t_letter', 'Vastus Kerttule.', 'Kirjuta Kerttule 25–40 sõna. Kirjuta kõigist neljast punktist.', 'kiri', {
+        situation: 'Kerttu kirjutas: „Kirjuta mulle ja räägi oma harjumustest!”',
+        points: ['kes sa oled ja mida sa teed', 'mis kell sa tavaliselt ärkad ja magama lähed', 'mida sa teed tihti ja mida harva', 'üks küsimus Kerttule'],
+        words: [25, 40], opening: 'Tere, Kerttu!',
+      }), { task: 'W08', main: true, level: 4 }),
+      'Üks-ühele: õpilane kirjutab vastuse; õpetaja on Kerttu ja vastab suuliselt õpilase küsimusele. Hinda sagedussõnu ja sõnajärge (Tavaliselt ärkan ma …).'),
+      teach(tag(B.speaking('013_t_say', 'Kodus: minu harjumused.', 'Räägi oma harjumustest ja salvesta kaks korda: teine kord ilma märkmeteta ja sujuvamalt.', [
+        'Mida sa teed iga päev?',
+        'Mida sa teed tihti ja mida harva?',
+        'Mida sa ei tee mitte kunagi?',
+      ], [35, 60], ['Ma … iga päev.', 'Ma käin … kord nädalas.', 'Ma ei … mitte kunagi.']), { task: 'S15', level: 3, fluency: true }),
+      'Kodune monoloog. Tunnis kuulab õpetaja salvestuse ja küsib kaks küsimust („Kui tihti sa ujumas käid?”, „Mida sa ei tee mitte kunagi?”).'),
+      B.selfcheck('013_t_self', ['Ma ütlen, kui tihti: alati, tavaliselt, tihti, mõnikord, harva, mitte kunagi.', 'Ma ütlen: kord nädalas, kaks korda päevas, käin ujumas.', 'Ma panen tegusõna teisele kohale: Tavaliselt ärkan ma …', 'Ma kirjutan vastuse korterikuulutusele.'], 'Tund 13 on läbitud'),
+      hide(tag(B.insertion('013_t_info', 'Perearstikeskuse kiri.', 'Loe perearstikeskuse kirja. Pane igasse lünka sobiv lause. Üks lause jääb üle.', 'Tere tulemast Mustamäe perearstikeskusesse!', [
         'Tere, Sofia Mets! Teie esimene visiit on neljapäeval kell kümme. [[Visiit kestab umbes pool tundi.]] Pereõde Heli räägib teiega teie tervisest ja harjumustest.',
         '',
         'Enne visiiti mõelge: kui tihti te sporti teete? [[Mitu tundi te öösel tavaliselt magate?]] Mitu tassi kohvi te päevas joote? Kas te suitsetate?',
@@ -397,8 +556,8 @@ export const LESSONS = withShapes({
         'Kui teil on mure, öelge seda kohe alguses. [[Me aitame hea meelega.]] Pereõde annab teile ka paberi nõuannetega.',
         '',
         'Palun tulge kümme minutit varem ja võtke kaasa ID-kaart. [[Kui te ei saa tulla, helistage meile päev varem.]] Meie telefon on 650 1234.',
-      ], ['Visiit maksab kakskümmend eurot.']), { task: 'R16' }),
-      tag(B.listening('013_t_heli', 'Pereõe nõuanded.', 'Pereõde Heli räägib Sofiaga. Kuula kaks korda. Vasta 1–2 sõnaga.', [
+      ], ['Visiit maksab kakskümmend eurot.']), { task: 'R16' }), V5_CUT),
+      hide(tag(B.listening('013_t_heli', 'Pereõe nõuanded.', 'Pereõde Heli räägib Sofiaga. Kuula kaks korda. Vasta 1–2 sõnaga.', [
         'Heli: Sofia, teie harjumused on üsna head.',
         'Heli: Te jooksete kaks korda nädalas. See on väga hea!',
         'Heli: Aga kohvi joote te liiga palju. Jooge kohvi ainult kaks korda päevas.',
@@ -407,37 +566,62 @@ export const LESSONS = withShapes({
         'Heli: Sööge köögivilju iga päev, igal toidukorral.',
         'Heli: Stressi vastu aitab jalutamine. Jalutage õhtul pool tundi.',
         'Heli: Järgmine visiit on kuue kuu pärast.',
-      ], ['Sofia joob neli tassi kohvi päevas. Mitu tassi peab ta vähem jooma? [kaks|2|kaks tassi]', 'Sofia tahab kell neli kohvi juua. Kas see on hea mõte? [ei|ei ole]', 'Sofia magab ainult viis tundi. Mitu tundi rohkem peab ta magama? [kaks|2|kaks tundi]', 'Kas Sofia peab rohkem jooksma? [ei|ei pea]', 'Mida peab Sofia tegema, kui tal on stress? [jalutama|jalutama õhtul]', 'Kui kaua peab Sofia õhtul jalutama? [pool tundi]', 'Millal peab Sofia köögivilju sööma? [iga päev|igal toidukorral]', 'Sofia visiit on märtsis. Mis kuus on järgmine visiit? [septembris|september]']), { task: 'L03', level: 3 }),
-      teach(tag(B.rolecards('013_t_roles', 'Pereõe vastuvõtul.', 'A on patsient ja räägib oma murest. B on pereõde. Siis vahetage.',
-        'Sa oled patsient. Sul on halb uni ja palju stressi. Räägi oma murest. Vasta ausalt, kui tihti sa midagi teed. Küsi, mida teha.',
-        'Sa oled pereõde. Küsi patsiendilt: uni, söök, sport, kohv, arvuti. Küsi alati: kui tihti? Anna kaks nõuannet.',
-        ['Mul on halb uni.', 'Tavaliselt ma …', 'Mida ma pean tegema?'], ['Kui tihti te …?', 'Mitu tundi te …?', 'Palun … iga päev.']), { task: 'S10' }),
-        'Üks-ühele: õpetaja on pereõde ja küsib, õpilane on patsient ja räägib oma murest. Siis vahetage: õpilane küsib õpetajalt ja annab kaks nõuannet.'),
-      tag(B.speaking('013_t_say', 'Minu uus harjumus.', 'Salvesta kodus kaks korda: mis harjumuse sa valid ja miks. Teine kord ilma märkmeteta.', ['Mida sa teed iga päev?', 'Mida sa teed liiga sageli?', 'Mida sa teed liiga harva?', 'Mis harjumuse sa valid? Kui tihti sa seda teed?', 'Kes sinu peres elab kõige tervislikumalt?'], [40, 60], ['Ma teen … liiga sageli.', 'Nüüd ma … iga päev.', 'See on hea, sest …']), { task: 'S15', fluency: true }),
-      tag(B.examWriting('013_t_letter', 'Kiri pereõele.', 'Kirjuta pereõele 50–70 sõna. Kirjuta kõigist neljast punktist.', 'kiri', {
-        situation: 'Pereõde Heli palus: „Kirjutage mulle kahe nädala pärast, kuidas teil läheb.”',
-        points: ['Täna pereõde nõuannete eest.', 'Kirjuta, mis harjumuse sa muutsid ja kui tihti sa seda nüüd teed.', 'Kirjuta, mida sa teed harvem kui enne.', 'Küsi üks küsimus oma tervise kohta.'],
-        words: [50, 70], opening: 'Tere, pereõde Heli!', closing: 'Lugupidamisega',
-      }), { main: true }),
-      B.rubric('013_t_rubric', 'Hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Vastuvõtul räägib õpilane oma murest ja vastab, kui tihti ta midagi teeb.', 'Sõna koht on õige: Ma käin harva …, Tavaliselt ma …', 'Eitus on õige: ma ei … mitte kunagi.', 'Kirjas on kõik neli punkti, tervitus ja lõpp (50–70 sõna).']),
-      B.selfcheck('013_t_self', ['Ma ütlen, kui tihti ma midagi teen.', 'Ma räägin pereõega oma murest ja harjumustest.', 'Ma saan aru nõuannetest: iga päev, kaks korda päevas.', 'Ma kirjutan pereõele kirja oma harjumustest.'], 'Hea harjumus'),
+      ], ['Sofia joob neli tassi kohvi päevas. Mitu tassi peab ta vähem jooma? [kaks|2|kaks tassi]', 'Sofia tahab kell neli kohvi juua. Kas see on hea mõte? [ei|ei ole]', 'Sofia magab ainult viis tundi. Mitu tundi rohkem peab ta magama? [kaks|2|kaks tundi]', 'Kas Sofia peab rohkem jooksma? [ei|ei pea]', 'Mida peab Sofia tegema, kui tal on stress? [jalutama|jalutama õhtul]', 'Kui kaua peab Sofia õhtul jalutama? [pool tundi]', 'Millal peab Sofia köögivilju sööma? [iga päev|igal toidukorral]', 'Sofia visiit on märtsis. Mis kuus on järgmine visiit? [septembris|september]']), { task: 'L03', level: 3 }), V5_CUT),
+      hide(B.rubric('013_t_rubric', 'Hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Vastuvõtul räägib õpilane oma murest ja vastab, kui tihti ta midagi teeb.', 'Sõna koht on õige: Ma käin harva …, Tavaliselt ma …', 'Eitus on õige: ma ei … mitte kunagi.', 'Kirjas on kõik neli punkti, tervitus ja lõpp (50–70 sõna).']), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 014 listening: my week (the module's last teaching lesson)
   'a2-014': {
     title: 'Minu nädal',
-    canDo: 'Ma lepin korterikaaslastega kokku nädala plaani (kes, mis päeval, mis kell) ja kirjutan selle 70–90 sõnaga korteri vestlusesse.',
+    canDo: 'Ma räägin oma nädalast (esmaspäeval, esmaspäeviti, nädalavahetusel) ja lepin ilma valmis fraasideta kokku kohtumise aja; ma kirjutan oma õpetajale, millal ma järgmisel nädalal tundi tulla saan.',
     discover: [
-      B.review('014_d_review', [['Kui tihti sa sporti teed?', 'a2-013'], ['Paranda: Malle jalutab iga hommikul.', 'a2-013'], ['Mis kuus sa oled sündinud?', 'a2-004']]),
-      B.text('014_d_hook', 'Tihe nädal', 'Pühapäeva õhtul istub Sofia köögis ja vaatab kalendrit. Järgmine nädal on väga tihe: kursus, kaks töövestlust, Oskari jalgpallimäng ja onu Viktor. Jaan kirjutas: „Millal sa järgmisel nädalal vaba oled?” Sofia vastab vennale pika sõnumiga.'),
-      tag(B.table('014_d_try', 'Proovi kõigepealt!', 'Sa ei tea veel reeglit. Proovi ja kirjuta: millal?', 'Sõna, Millal? (üks kord), Iga … (-ti)', [
-        'esmaspäev | [esmaspäeval] | [esmaspäeviti]', 'teisipäev | [teisipäeval] | [teisipäeviti]', 'kolmapäev | [kolmapäeval] | [kolmapäeviti]', 'neljapäev | [neljapäeval] | [neljapäeviti]', 'reede | [reedel] | [reedeti]',
-        'laupäev | [laupäeval] | [laupäeviti]', 'pühapäev | [pühapäeval] | [pühapäeviti]', 'hommik | [hommikul] | [hommikuti]', 'õhtu | [õhtul] | [õhtuti]', 'nädalavahetus | [nädalavahetusel] | [nädalavahetuseti]', 'päev | [päeval] | [päeviti]', 'öö | [öösel] | [öösiti]',
-      ], 'g_notice'), { task: 'G09' }),
-      tag(B.reading('014_d_read', 'Loe Sofia sõnumit.', 'Sofia kirjutab Jaanile oma nädalast. Loe ja vasta lühidalt.', 'Minu nädal',
+      B.review('014_d_review', [['Kui tihti sa sporti teed? Mida sa ei tee mitte kunagi?', 'a2-013'], ['Mis on sinu aadress? Ütle see aeglaselt.', 'a2-004'], 'Ütle sõnadega: 16.45 ja 9.30.']),
+      tag(B.vocab('014_d_vocab', 'Tunni sõnad.', ['esmaspäev — понедельник', 'teisipäev — вторник', 'kolmapäev — среда', 'neljapäev — четверг', 'reede — пятница', 'laupäev — суббота', 'pühapäev — воскресенье', 'nädalavahetus — выходные', 'järgmine nädal — следующая неделя', 'vaba — свободный']), { topic: ['nädalavahetus'] }),
+      twice(tag(B.listening('014_t_malle', 'Häälsõnum: millal sa vaba oled?', 'Sõber Kristi saatis sulle häälsõnumi. Kuula kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Kristi: Tere! Siin Kristi. Ma tahan sinuga kohtuda ja kohvi juua.',
+        'Kristi: See nädal on mul väga kiire.',
+        'Kristi: Esmaspäeval ja teisipäeval olen ma tööl kella kaheksani õhtul.',
+        'Kristi: Kolmapäeval käin ma pärast tööd ujumas.',
+        'Kristi: Neljapäeval on mul vaba õhtu, kella kuuest alates.',
+        'Kristi: Reedel sõidan ma vanemate juurde Pärnusse.',
+        'Kristi: Laupäeval hommikul koristan ma kodu ja siis lähen poodi.',
+        'Kristi: Aga laupäeval pärast kella kahte olen ma vaba.',
+        'Kristi: Kas neljapäev või laupäev sobib? Kirjuta mulle!',
+      ], ['Esmaspäeval ja teisipäeval on Kristi tööl kella [kaheksani|8ni|20ni].', 'Kolmapäeval käib ta [ujumas].', 'Neljapäeval on tal vaba [õhtu].', 'Reedel sõidab ta [Pärnusse|vanemate juurde].', 'Laupäeva hommikul ta [koristab] kodu.', 'Laupäeval on ta vaba pärast kella [kahte|kaht|2|14].']), { task: 'L07' })),
+      teach(tag(why(B.table('014_d_try', 'Leia reegel: millal?', 'Kirjuta puuduv vorm. Viis vormi olid häälsõnumis.', 'Päev, Millal? (üks kord), Iga nädal (-ti)', [
+        'esmaspäev | [esmaspäeval] | [esmaspäeviti]',
+        'teisipäev | [teisipäeval] | teisipäeviti',
+        'kolmapäev | kolmapäeval | [kolmapäeviti]',
+        'neljapäev | [neljapäeval] | neljapäeviti',
+        'reede | [reedel] | [reedeti]',
+        'laupäev | [laupäeval] | laupäeviti',
+        'pühapäev | [pühapäeval] | [pühapäeviti]',
+        'nädalavahetus | [nädalavahetusel] | —',
+      ], 'g_notice'), [
+        'Millal? → -l: esmaspäeval. Iga esmaspäev → esmaspäeviti.',
+        'teisipäeval.',
+        'iga kolmapäev → kolmapäeviti.',
+        'neljapäeval.',
+        'reede → reedel, reedeti.',
+        'laupäeval.',
+        'pühapäeval, pühapäeviti.',
+        'nädalavahetusel (ainult -l).',
+      ]), { task: 'G01', level: 1 }), 'Üks-ühele: õpilane leiab häälsõnumist esmaspäeval, teisipäeval, neljapäeval, reedel ja laupäeval ning täidab tabeli. Reegli sõnastab õpilane ise: millal? = päev + -l; iga nädal samal päeval = -ti (esmaspäeviti = iga esmaspäev).'),
+      teach(tag(B.speaking('014_d_say', 'Proovi kohe.', 'Küsi õpetajalt tema nädala kohta. Siis küsib õpetaja sinult.', [
+        'Mida sa esmaspäeviti teed?',
+        'Mis päev on sinu kõige kiirem päev? Miks?',
+        'Mida sa nädalavahetusel teed?',
+        'Mis päev on sinu arvates kõige parem kohtumiseks? Miks?',
+        'Mida sa teed reede õhtul?',
+        'Mida sa teed järgmisel nädalavahetusel?',
+      ], [35, 60], ['Esmaspäeviti ma …', 'Kõige kiirem päev on …, sest …', 'Minu arvates …', 'Ja sina? Mida sina …?']), { task: 'S11', level: 3 }),
+      'Üks-ühele: õpilane küsib, õpetaja vastab; siis vastupidi. Paranda ainult päeva vormi (esmaspäeval / esmaspäeviti) ja sõnajärge (Laupäeval koristan ma …).'),
+      hide(B.text('014_d_hook', 'Tihe nädal', 'Pühapäeva õhtul istub Sofia köögis ja vaatab kalendrit. Järgmine nädal on väga tihe: kursus, kaks töövestlust, Oskari jalgpallimäng ja onu Viktor. Jaan kirjutas: „Millal sa järgmisel nädalal vaba oled?” Sofia vastab vennale pika sõnumiga.'), V5_CUT),
+      hide(tag(B.reading('014_d_read', 'Loe Sofia sõnumit.', 'Sofia kirjutab Jaanile oma nädalast. Loe ja vasta lühidalt.', 'Minu nädal',
         'Tere, Jaan! Sa küsisid, millal ma järgmisel nädalal vaba olen. Minu nädal on tihe!\n\nEsmaspäevast neljapäevani on mul kursus kella üheksast kaheteistkümneni. Esmaspäeval pärast kursust lähen ma töövestlusele kohvikusse. Teisipäeval olen ma pärast kursust vaba.\n\nKolmapäeval on mul teine töövestlus, hotellis. Kõigepealt lähen ma juuksurisse, siis vestlusele. Neljapäeval pärast kursust käin ma Mallega turul. Õhtul on keelekoolis vestlusklubi, see kestab tund aega.\n\nReedel kursust ei ole. Hommikul koristame Gretega korterit. Pärast seda olen ma vaba!\n\nLaupäeval lähen ma Oskari jalgpallimängule. Pärast mängu söön ma teiega lõunat. Pühapäeval sõidan ma onu Viktori juurde, sest ta tahab mulle oma talu näidata.\n\nKas reede pärastlõuna sobib? Sofia',
-        [['Mis päevadel on Sofial kursus?', 'esmaspäevast neljapäevani'], ['Kuhu Sofia läheb esmaspäeval pärast kursust?', 'töövestlusele|töövestlusele kohvikusse|kohvikusse'], ['Mida Sofia teeb kolmapäeval kõigepealt?', 'läheb juuksurisse|juuksurisse'], ['Kellega käib Sofia neljapäeval turul?', 'Mallega'], ['Mida Sofia ja Grete reedel hommikul teevad?', 'koristavad korterit|koristavad'], ['Kuhu Sofia laupäeval läheb?', 'Oskari jalgpallimängule|jalgpallimängule'], ['Millal Sofia vaba on?', 'reedel pärastlõunal|reedel|teisipäeval pärast kursust']]), { task: 'R02' }),
-      B.examListen('014_d_jaan', 'Jaani vastus.', 'Jaan vastab Sofiale telefonisõnumiga. Kuula kaks korda. Ühenda aeg ja tegevus.', 'match', [
+        [['Mis päevadel on Sofial kursus?', 'esmaspäevast neljapäevani'], ['Kuhu Sofia läheb esmaspäeval pärast kursust?', 'töövestlusele|töövestlusele kohvikusse|kohvikusse'], ['Mida Sofia teeb kolmapäeval kõigepealt?', 'läheb juuksurisse|juuksurisse'], ['Kellega käib Sofia neljapäeval turul?', 'Mallega'], ['Mida Sofia ja Grete reedel hommikul teevad?', 'koristavad korterit|koristavad'], ['Kuhu Sofia laupäeval läheb?', 'Oskari jalgpallimängule|jalgpallimängule'], ['Millal Sofia vaba on?', 'reedel pärastlõunal|reedel|teisipäeval pärast kursust']]), { task: 'R02' }), V5_CUT),
+      hide(B.examListen('014_d_jaan', 'Jaani vastus.', 'Jaan vastab Sofiale telefonisõnumiga. Kuula kaks korda. Ühenda aeg ja tegevus.', 'match', [
         'Jaan: Tere, Sofia! Aitäh sõnumi eest.',
         'Jaan: Reede pärastlõuna sobib väga hästi. Minu töö lõpeb kell neli.',
         'Jaan: Kõigepealt toon ma Mia lasteaiast. Siis tuleme sinu juurde.',
@@ -449,189 +633,239 @@ export const LESSONS = withShapes({
       ], [
         ['Reedel kell neli', 'Jaani tööpäev lõpeb.'], ['Kõigepealt', 'Jaan toob Mia lasteaiast.'], ['Siis', 'Jaan ja Mia tulevad Sofia juurde.'], ['Pärast parki', 'Nad söövad Jaani juures õhtust.'],
         ['Reedeti', 'Jaani peres on kalapäev.'], ['Laupäeval kell üksteist', 'Algab Oskari mäng.'], ['Pühapäeval kell kümme', 'Jaan tuleb Sofiale järele.'], ['Pühapäeval', 'Nad sõidavad Viktori juurde.'],
-      ], 'g_read'),
-      B.notice('014_d_notice', 'Märka: millal? ja järjekord', [
+      ], 'g_read'), V5_CUT),
+      hide(B.notice('014_d_notice', 'Märka: millal? ja järjekord', [
         'esmaspäev → **esmaspäeval** (üks kord), **esmaspäeviti** (iga esmaspäev)',
         'reede → **reedel**, **reedeti** · nädalavahetus → **nädalavahetusel**',
         '**sel** nädalal, **järgmisel** nädalal, **eelmisel** nädalal',
         'Järjekord: **kõigepealt** … **siis** … **pärast seda** … **lõpuks** …',
         '**ja** lisab, **aga** vastandab, **sest** ütleb põhjuse: Ma tulen, **aga** hiljem, **sest** mul on kursus.',
-      ], 'full'),
-      tag(B.diagram('014_d_order', 'flow', { title: 'Sofia reede.', instruction: 'Kirjuta igasse kasti sobiv sõna: kõigepealt, siis, pärast seda, lõpuks.', nodes: '[Kõigepealt] koristavad Sofia ja Grete korterit.\n[Siis|Pärast seda] tuleb Jaan koos Miaga.\n[Pärast seda|Siis] lähevad nad parki.\n[Lõpuks] söövad nad Jaani juures kala.' }, 'full', 'g_vocab'), { task: 'G04' }),
-      B.vocab('014_d_vocab', 'Tunni sõnad.', ['nädal — неделя', 'nädalavahetus — выходные', 'esmaspäeval — в понедельник', 'kõigepealt — сначала', 'siis — потом', 'pärast seda — после этого', 'lõpuks — наконец', 'kiire — занятый / быстрый', 'vaba — свободный', 'kalender — календарь']),
-      teach(tag(B.speaking('014_d_say', 'Minu nädal kahele kuulajale.', 'Räägi oma nädalast kahele kuulajale järjest. Teisel korral räägi kiiremini.', ['Mida sa teed esmaspäevast reedeni?', 'Mis päev on sinu kõige tihedam päev?', 'Mida sa teed esmaspäeviti või reedeti?', 'Mida sa teed nädalavahetusel?', 'Millal sa oled järgmisel nädalal vaba?'], [60, 120], ['Esmaspäeviti ma …', 'Kõigepealt …, siis …', 'Ma olen vaba …']), { fluency: true }),
-        'Üks-ühele: õpilane räägib oma nädalast õpetajale kaks korda, teine kord kiiremini; siis räägib õpetaja ja koos leiavad nad aja järgmiseks tunniks.'),
-      tag(B.writing('014_d_write', 'Minu nädal.', 'Kirjuta oma nädalast 7–9 lauset. Ühenda laused: ja, aga, sest, siis.', [7, 9], ['esmaspäeval', 'kõigepealt', 'siis', 'aga', 'sest'], 4), { task: 'W09' }),
+      ], 'full'), V5_CUT),
+      hide(tag(B.diagram('014_d_order', 'flow', { title: 'Sofia reede.', instruction: 'Kirjuta igasse kasti sobiv sõna: kõigepealt, siis, pärast seda, lõpuks.', nodes: '[Kõigepealt] koristavad Sofia ja Grete korterit.\n[Siis|Pärast seda] tuleb Jaan koos Miaga.\n[Pärast seda|Siis] lähevad nad parki.\n[Lõpuks] söövad nad Jaani juures kala.' }, 'full', 'g_vocab'), { task: 'G04' }), V5_DRILL),
+      hide(tag(B.writing('014_d_write', 'Minu nädal.', 'Kirjuta oma nädalast 7–9 lauset. Ühenda laused: ja, aga, sest, siis.', [7, 9], ['esmaspäeval', 'kõigepealt', 'siis', 'aga', 'sest'], 4), { task: 'W09' }), V5_CUT),
     ],
     practice: [
-      tag(B.reading('014_p_grete', 'Grete nädal.', 'Grete kirjutab korteri vestlusesse. Loe ja vasta 1–3 sõnaga.', 'Minu uus tunniplaan',
+      half(tag(B.truefalse('014_p_tf', 'Kristi nädal: õige või vale?', 'Mõtle Kristi häälsõnumile. Kas lause on õige või vale?', [
+        ['Kristi tahab sinuga kohvi juua.', true], ['Esmaspäeval on Kristi õhtul vaba.', false], ['Kolmapäeval käib Kristi ujumas.', true],
+        ['Reedel on Kristi Pärnus.', true], ['Laupäeva hommikul on Kristi vaba.', false], ['Kristi pakub kaks päeva: neljapäeva ja laupäeva.', true],
+      ], 'half'), { task: 'L05' })),
+      half(tag(B.gaps('014_p_days', 'Millal?', 'Millal? Kirjuta sulgudes olev päev või sõna õiges vormis.', [
+        'Kino on [laupäeval] kell seitse. (laupäev)', 'Ma käin [teisipäeviti] trennis. (iga teisipäev)', '[Reedel] sõidan ma maale. (reede)', 'Mida sa [nädalavahetusel] teed? (nädalavahetus)',
+        'Pood on [pühapäeval] kinni. (pühapäev)', 'Me kohtume [neljapäeval] kell kuus. (neljapäev)', 'Lapsed käivad [kolmapäeviti] ujumas. (iga kolmapäev)', 'Ma olen [järgmisel] nädalal Tartus. (järgmine)',
+      ], '', 'half'), { task: 'G08' })),
+      teach(why(B.errorfix('014_p_fix', 'Paranda viga.', 'Igas lauses on viga päeva vormis, tegusõnas või sõnajärjes. Kirjuta lause õigesti.', [
+        ['Me kohtume neljapäev kell kuus.', 'Me kohtume neljapäeval kell kuus.'],
+        ['Pühapäevti ma puhkan.', 'Pühapäeviti ma puhkan.|Pühapäeviti puhkan ma.'],
+        ['Kõigepealt ma joon kohvi, siis ma läheb tööle.', 'Kõigepealt ma joon kohvi, siis ma lähen tööle.|Kõigepealt joon ma kohvi, siis lähen ma tööle.'],
+        ['Nädalavahetuses olen ma maal.', 'Nädalavahetusel olen ma maal.'],
+        ['Järgmine nädalal on mul puhkus.', 'Järgmisel nädalal on mul puhkus.'],
+        ['Kolmapäevil käin ma trennis.', 'Kolmapäeviti käin ma trennis.'],
+        ['Pärast see läheme me kinno.', 'Pärast seda läheme me kinno.'],
+        ['Kas sa oled laupäev vaba?', 'Kas sa oled laupäeval vaba?'],
+      ]), [
+        'Millal? → neljapäeval.',
+        'iga pühapäev → pühapäeviti.',
+        'ma lähen (mitte läheb).',
+        'nädalavahetusel (-l).',
+        'järgmisel nädalal (mõlemad -l).',
+        'iga kolmapäev → kolmapäeviti.',
+        'pärast seda (osastav).',
+        'laupäeval.',
+      ]), 'Üks-ühele: õpilane parandab ja loeb laused ette; õpetaja küsib iga lause järel „Ja sina?” ja õpilane ütleb lause enda nädala kohta.'),
+      teach(tag(B.rolecards('014_p_roles', 'Leia ühine aeg.', 'Vaata pilti. A vaatab ainult Toomase kalendrit, B ainult Kaia kalendrit (kata teine pool käega). Leidke aeg, kui te mõlemad olete vabad.',
+        'Sa oled Toomas. Kaia tahab sinuga kinno minna. Vaata oma kalendrit. Ütle, millal sa ei saa ja miks. Leidke koos aeg.',
+        'Sa oled Kaia. Paku päeva ja kellaaega. Vaata oma kalendrit. Leidke koos aeg, kui te mõlemad olete vabad.',
+        ['Esmaspäeval ma ei saa, sest …', 'Neljapäeval olen ma vaba.', 'Kas … sobib?'], ['Kas sa oled … vaba?', 'Kahjuks ma ei saa, sest …', 'Hästi, kohtume …']), { task: 'S05' }),
+      'Üks-ühele: õpetaja on Kaia ja pakub kõigepealt aegu, mis Toomasele ei sobi; õpilane ütleb, miks ta ei saa. Kalendrites on kaks ühist vaba aega (neljapäeva õhtu pärast kuut ja laupäev kella kahest neljani): kui üks on leitud, küsi „Aga kas veel mõni aeg sobib?”.'),
+      hide(tag(B.reading('014_p_grete', 'Grete nädal.', 'Grete kirjutab korteri vestlusesse. Loe ja vasta 1–3 sõnaga.', 'Minu uus tunniplaan',
         'Tere, Sofia ja Malle! Minu uus semester algab. Nüüd on mul uus tunniplaan.\n\nEsmaspäeviti ja kolmapäeviti on loengud kella kaheksast. Neil päevadel ärkan ma kell kuus. Kella kuuest kuni poole seitsmeni olen ma vannitoas.\n\nTeisipäeviti ja neljapäeviti töötan ma kohvikus kella neljast kümneni. Neil päevadel tulen ma koju hilja ja söön kohvikus.\n\nReedel on mul ainult üks loeng, kell kaksteist. Reede hommikul magan kaua! Pärastlõunal käin ma raamatukogus ja õhtul kohtun sõpradega.\n\nNädalavahetusel sõidan ma tavaliselt vanemate juurde Raplasse. Aga sel laupäeval on mul eksam.\n\nKas me teeme vannitoa ja köögi jaoks plaani? Hommikul on vannitoa ees järjekord! Grete',
-        [['Millal on Gretel loengud kella kaheksast?', 'esmaspäeviti ja kolmapäeviti|esmaspäeval ja kolmapäeval'], ['Mis kell Grete neil päevadel ärkab?', 'kell kuus|kuus|6'], ['Kus Grete teisipäeviti ja neljapäeviti töötab?', 'kohvikus'], ['Mis kellast mis kellani Grete kohvikus töötab?', 'kella neljast kümneni|neljast kümneni|16–22'], ['Millal Grete kaua magab?', 'reede hommikul|reedel'], ['Mida Grete reede pärastlõunal teeb?', 'käib raamatukogus|raamatukogus'], ['Mis Gretel sel laupäeval on?', 'eksam']]), { task: 'R15' }),
-      B.truefalse('014_p_tf', 'Õige või vale?', 'Loe Grete sõnumit uuesti. Kas lause on õige või vale?', [
-        ['Gretel on uus tunniplaan.', true], ['Esmaspäeviti ärkab Grete kell kuus.', true], ['Teisipäeviti sööb Grete kodus õhtust.', false], ['Kohvikus töötab Grete kolm päeva nädalas.', false],
-        ['Reedel on Gretel kaks loengut.', false], ['Grete vanemad elavad Raplas.', true], ['Sel laupäeval sõidab Grete vanemate juurde.', false], ['Grete tahab teha vannitoa ja köögi plaani.', true],
-      ]),
-      B.match('014_p_join', 'Ühenda lause osad.', 'Ühenda lause algus ja lõpp.', [
+        [['Millal on Gretel loengud kella kaheksast?', 'esmaspäeviti ja kolmapäeviti|esmaspäeval ja kolmapäeval'], ['Mis kell Grete neil päevadel ärkab?', 'kell kuus|kuus|6'], ['Kus Grete teisipäeviti ja neljapäeviti töötab?', 'kohvikus'], ['Mis kellast mis kellani Grete kohvikus töötab?', 'kella neljast kümneni|neljast kümneni|16–22'], ['Millal Grete kaua magab?', 'reede hommikul|reedel'], ['Mida Grete reede pärastlõunal teeb?', 'käib raamatukogus|raamatukogus'], ['Mis Gretel sel laupäeval on?', 'eksam']]), { task: 'R15' }), V5_CUT),
+      hide(B.match('014_p_join', 'Ühenda lause osad.', 'Ühenda lause algus ja lõpp.', [
         ['Grete magab reedel kaua,', 'sest tal on loeng alles kell kaksteist.'], ['Sofia tahab teisipäeva õhtul kinno minna,', 'aga Gretel on siis kohvikus töö.'],
         ['Kõigepealt koristame laupäeval korteri,', 'siis joome Mallega kohvi.'], ['Malle ärkab iga päev kell kuus', 'ja jalutab enne hommikusööki pargis.'],
         ['Pühapäeviti sõidab Grete Raplasse,', 'sest seal elavad tema vanemad.'], ['Oskari mäng algab laupäeval kell üksteist,', 'aga Sofia jõuab sinna alles kell pool kaksteist.'],
         ['Esmaspäeval on Sofial kursus', 'ja pärast seda töövestlus kohvikus.'], ['Jaan toob kõigepealt Mia lasteaiast,', 'pärast seda tulevad nad Sofia juurde.'],
-      ], 'full', 'g_vocab'),
-      B.errorfix('014_p_fix', 'Proovi uuesti!', 'Sofia sõnumis on vead. Kirjuta iga lause nüüd õigesti.', [
-        ['Me kohtume laupäevas kell kaks.', 'Me kohtume laupäeval kell kaks.'],
-        ['Grete töötab kohvikus teisipäevati.', 'Grete töötab kohvikus teisipäeviti.'],
-        ['Järgmine nädal on mul kaks töövestlust.', 'Järgmisel nädalal on mul kaks töövestlust.'],
-        ['Nädalavahetuses sõidab Grete Raplasse.', 'Nädalavahetusel sõidab Grete Raplasse.'],
-        ['Kõigepealt me koristame, pärast me sööme.', 'Kõigepealt me koristame, siis me sööme.|Kõigepealt me koristame, pärast seda me sööme.|Kõigepealt me koristame, siis sööme.'],
-        ['Ma tulen hiljem, aga mul on kursus.', 'Ma tulen hiljem, sest mul on kursus.'],
-        ['Pühapäev õhtul kirjutan ma plaani.', 'Pühapäeva õhtul kirjutan ma plaani.|Pühapäeva õhtul ma kirjutan plaani.'],
-        ['Esmaspäeval kursus algab kell üheksa.', 'Esmaspäeval algab kursus kell üheksa.'],
-      ]),
-      B.dictation('014_p_dict', 'Etteütlus.', 'Õpetaja loeb iga lause kaks korda. Kirjuta lause.', ['Esmaspäeviti on mul kursus kella üheksast kaheteistkümneni.', 'Kõigepealt lähen ma juuksurisse, siis töövestlusele.', 'Reedel koristame Gretega korterit.', 'Pärast seda olen ma vaba.', 'Grete töötab teisipäeviti ja neljapäeviti kohvikus.', 'Nädalavahetusel sõidab ta vanemate juurde.', 'Malle käib neljapäeviti turul.', 'Mu nädal on tihe, aga tore.'], 8),
-      teach(tag(B.rolecards('014_p_roles', 'Ühine õhtu.', 'Mõlemal on tihe nädal. Leidke aeg ühiseks õhtuks.',
-        'Sinu nädal: esmaspäeviti trenn kella kuueni, kolmapäeval kursus, reedel töö kella kaheksani. Paku kaks aega.',
-        'Sinu nädal: teisipäeviti ja neljapäeviti töö õhtul, laupäeval oled maal. Küsi, vali aeg ja koht.',
-        ['Esmaspäeval ma ei saa, sest …', 'Kas … sobib?', 'Kõigepealt …, siis …'], ['Kahjuks …, aga …', 'Sobib! Kohtume …', 'Pärast seda …']), { task: 'S03' }),
-        'Üks-ühele: õpetaja võtab ühe nädala, õpilane teise. Leidke aeg ja koht; lõpus ütleb õpilane kokkuleppe ühe lausega.'),
-      tag(B.writing('014_p_write', 'Kutse Luciale.', 'Kutsu Lucía koos õppima: millal, kus ja mida te teete. Kirjuta 6–8 lauset.', [6, 8], ['teisipäeval', 'kõigepealt', 'siis', 'pärast seda'], 2), { task: 'W03' }),
+      ], 'full', 'g_vocab'), V5_DRILL),
+      hide(B.dictation('014_p_dict', 'Etteütlus.', 'Õpetaja loeb iga lause kaks korda. Kirjuta lause.', ['Esmaspäeviti on mul kursus kella üheksast kaheteistkümneni.', 'Kõigepealt lähen ma juuksurisse, siis töövestlusele.', 'Reedel koristame Gretega korterit.', 'Pärast seda olen ma vaba.', 'Grete töötab teisipäeviti ja neljapäeviti kohvikus.', 'Nädalavahetusel sõidab ta vanemate juurde.', 'Malle käib neljapäeviti turul.', 'Mu nädal on tihe, aga tore.'], 8), V5_DRILL),
+      hide(tag(B.writing('014_p_write', 'Kutse Luciale.', 'Kutsu Lucía koos õppima: millal, kus ja mida te teete. Kirjuta 6–8 lauset.', [6, 8], ['teisipäeval', 'kõigepealt', 'siis', 'pärast seda'], 2), { task: 'W03' }), V5_CUT),
     ],
     transfer: [
-      B.text('014_t_sit', 'Mooduli projekt: korteri nädalaplaan', 'Hommikul on Malle korteris järjekord. Kõik tahavad kell seitse vannituppa ja köögis on ainult üks pliit. Gretel on uus tunniplaan: esmaspäeviti ja kolmapäeviti on loeng kell kaheksa. Teisipäeviti ja neljapäeviti töötab ta õhtul kohvikus. Sofia ärkab kell seitse, sest kursus algab kell üheksa. Malle ütleb: „Teeme nädala plaani!” Pühapäeva õhtul istuvad kolm naist köögilaua taga. Nad lepivad kokku, kes on millal vannitoas ja köögis. Pärast seda kirjutab Sofia korteri vestlusesse sõnumi plaaniga. Vaata pilti.'),
-      tag(B.listening('014_t_malle', 'Malle soovid.', 'Malle räägib oma nädalast. Kuula kaks korda ja mõtle, mida see plaanile tähendab.', [
-        'Malle: Kuulake, tüdrukud! Mina ärkan alati kell kuus.',
-        'Malle: Kella kuuest kuni poole seitsmeni olen ma tavaliselt vannitoas.',
-        'Malle: Grete, sinul on esmaspäeviti ja kolmapäeviti loeng juba kell kaheksa. Sina võid minna vannituppa kohe pärast mind.',
-        'Malle: Sofia, sina ärkad kell seitse. Kas sulle sobib vannituba kella seitsmest poole kaheksani?',
-        'Malle: Hommikusöögi teen ma kell seitse. Siis vajan ma köögis pliiti.',
-        'Malle: Teisipäeviti ja reedeti olen ma raamatukogus tööl kella kümnest neljani.',
-        'Malle: Neil päevadel on köök päeval vaba.',
-        'Malle: Neljapäeviti käin ma turul ja õhtul teen kõigile suppi.',
-        'Malle: Pesumasin töötab ainult päeval, kella üheksast kaheksani.',
-        'Malle: Ja pärast kella kümmet õhtul on korteris vaikus!',
-        'Malle: Reedel koristame koos. Kõigepealt köök, siis vannituba ja lõpuks koridor.',
-        'Malle: Ja pühapäeva õhtul sööme kõik koos. Mina teen kooki!',
-        'Malle: Mis te arvate? Kirjutame plaani paberile ja paneme külmkapi uksele.',
-        'Malle: Sofia, sina kirjutad selle ka meie vestlusesse, eks?',
-        'Sofia: Jah, muidugi! Ma kirjutan plaani täna õhtul vestlusesse.',
-        'Grete: Hea mõte, Malle! Mina kirjutan oma loengute ajad ka paberile.',
-      ], ['Malle on vannitoas kuni poole seitsmeni, nii et Grete saab sinna kell [pool seitse|6.30].', 'Kell seitse vajab Malle köögis [pliiti].', 'Teisipäeviti ja reedeti on Malle tööl, siis on päeval vaba [köök].', 'Neljapäeva õhtul ei pea keegi süüa tegema, sest Malle teeb [suppi].', 'Pesu saab pesta kella üheksast [kaheksani|20ni].', 'Grete tuleb kohvikust kell kümme, siis peab korteris olema [vaikus|vaikne].', 'Paberil plaan läheb [külmkapi] uksele.', 'Vestlusesse kirjutab plaani [Sofia].']), { task: 'L06', level: 3 }),
-      B.planning('014_t_plan', 'Meie nädala plaan.', 'Kirjuta märksõnad: kes, millal ja kus.', ['Vannituba hommikul: kes ja mis kell?', 'Köök õhtul: kes teeb süüa ja millal?', 'Pesumasin: mis päeval ja mis kell?', 'Koristamine: kes ja mis päeval?', 'Mis on reegel pärast kella kümmet?', 'Millal te sööte koos?'], 2),
-      teach(tag(B.ideaCard('014_t_agree', 'Kokkulepe köögilaua taga.', 'Leppige kokku korteri nädala plaan. Arutage iga punkti.', 'Malle, Grete ja Sofia elavad ühes korteris. Hommikul on vannitoa ees järjekord ja köögis on üks pliit. Nad teevad nädala plaani, mis sobib kõigile.',
-        ['vannituba hommikul', 'köök ja pliit õhtul', 'pesumasin', 'koristamine reedel', 'vaikus pärast kella kümmet', 'ühine õhtusöök'], 'Kes, mis päeval ja mis kell?', [120, 180]), { main: true }),
-        'Üks-ühele: õpetaja on kõigepealt Malle, siis Grete ja ütleb igal korral ühe probleemi; õpilane on Sofia, pakub aega, ütleb „ei sobi, sest …” ja lepib lõpliku plaani kokku.'),
-      tag(B.speaking('014_t_picture', 'Pilt: Anna nädal.', 'Vaata pilti. Salvesta kodus kaks korda: teine kord ilma märkmeteta.', ['Kes on pildil ja kus ta on?', 'Mida Anna teeb?', 'Mis asjad on laual?', 'Mida sina sel nädalal teed?', 'Millal sa oled vaba?'], [40, 60], ['Pildil on …', 'Anna planeerib …', 'Mina olen vaba …']), { task: 'S06', fluency: true }),
-      tag(B.examWriting('014_t_message', 'Sõnum korteri vestlusesse.', 'Kirjuta korteri vestlusesse 70–90 sõna. Kirjuta kõigist neljast punktist.', 'teade', {
-        situation: 'Plaan on kokku lepitud. Malle palus Sofial see korteri vestlusesse kirjutada.',
-        points: ['Vannituba hommikul: kes ja mis kell?', 'Köök ja söögitegemine: kes ja millal?', 'Pesumasin ja koristamine: mis päeval?', 'Üks reegel ja küsimus: kas kõik sobib?'],
-        words: [70, 90], opening: 'Tere, Malle ja Grete!', closing: 'Sofia',
-      }), { level: 3 }),
-      B.rubric('014_t_rubric', 'Mooduli projekt: hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Plaanis on vannituba, köök ja koristamine: kes, mis päeval ja mis kell.', 'Ajad sobivad kõigile: Mallele, Gretele ja Sofiale.', 'Sõnumis on 70–90 sõna ja vähemalt viis aja- ja seosesõna.', 'Päevad ja kellaajad on õiges vormis: esmaspäeviti, kella seitsmest.', 'Vestluses pakub õpilane aega, ütleb „ei sobi, sest …” ja lepib kokku.']),
-      B.selfcheck('014_t_self', ['Ma saan aru, mis kell ja mis päeval keegi midagi teeb.', 'Ma pakun aega ja ütlen: ei sobi, sest …', 'Ma lepin kokku nädala plaani.', 'Ma kirjutan 70–90-sõnalise sõnumi plaaniga.'], 'Moodul 3: minu nädal'),
+      B.text('014_t_sit', 'Olukord: järgmine nädal', 'Sõber tahab sinuga kohtuda ja õpetaja küsib, millal sa järgmisel nädalal tundi tulla saad. Täna räägid ja kirjutad ilma märkmete ja valmis fraasideta.'),
+      teach(tag(B.ideaCard('014_t_agree', 'Kohtume!', 'Leppige kokku, millal ja kus te järgmisel nädalal kohtute. Kõigepealt räägib A oma nädalast, siis B.', 'Sina ja sõber tahate järgmisel nädalal koos midagi teha. Mõlemal on kiire nädal: töö, kursus, pere, trenn.', ['kino', 'kohvik', 'ujula', 'jalutuskäik pargis'], 'Mis päeval, mis kell ja kus te kohtute? Mida te teete kõigepealt ja mida pärast seda?', [60, 120]), { task: 'S03', level: 4 }),
+      'Mooduli viimane tund: ilma märkmete ja valmis fraasideta (Harno A2 rääkimise 2. osa). Üks-ühele: õpetaja on sõber, kellel on tõesti kiire nädal (ütle kaks-kolm kindlat aega, kus sa ei saa); õpilane küsib ja pakub, kuni aeg on leitud. Lõpus kordab õpilane kokkulepet: päev, kell, koht, mida teete kõigepealt ja siis. Paranda pärast, mitte rääkimise ajal: pane kirja kaks viga (päeva vorm, sõnajärg).'),
+      teach(tag(B.speaking('014_t_picture', 'Kodus: minu nädal.', 'Räägi oma tavalisest nädalast ja salvesta kaks korda: teine kord ilma märkmeteta ja sujuvamalt.', [
+        'Mida sa teed tööpäevadel?',
+        'Mida sa teed nädalavahetusel?',
+        'Mida sa teed esmaspäeviti või reedeti?',
+      ], [35, 60]), { task: 'S15', level: 3, fluency: true }),
+      'Kodune monoloog ilma fraasideta. Tunnis kuulab õpetaja salvestuse ja küsib kaks küsimust („Kui tihti sa …?”, „Mis kell sa reedel koju tuled?”).'),
+      toAddressee(tag(B.examWriting('014_t_message', 'Minu nädal. Sõnum õpetajale.', 'Kirjuta oma õpetajale 30–45 sõna: millal sa järgmisel nädalal tundi tulla saad. Kirjuta kõigist neljast punktist. Saada sõnum kodus.', 'teade', {
+        situation: 'Sinu õpetaja planeerib järgmise nädala tunde ja küsib, millal sul aega on. Saada tekst KeeleSepa sõnumiga või e-postiga.',
+        points: ['mis päevadel ja mis kellast mis kellani sa oled vaba', 'mis päevadel sa ei saa ja miks', 'mida sa tavaliselt nädalavahetusel teed', 'üks küsimus õpetajale'],
+        words: [30, 45],
+      }), { task: 'W04', main: true }), 'õppija oma õpetaja (KeeleSepa sõnum või e-post)'),
+      B.selfcheck('014_t_self', ['Ma ütlen: esmaspäeval, esmaspäeviti, nädalavahetusel, järgmisel nädalal.', 'Ma räägin oma nädalast ilma märkmeteta.', 'Ma lepin sõbraga kohtumise aja kokku.', 'Ma ütlen, mis kell, kui tihti ja mis päeval.', 'Ma kirjutan õpetajale oma vabad ajad ilma abita.', 'Ma saan aru häälsõnumist: millal sõber vaba on.', 'Ma leian kahe kalendri järgi ühise aja ja ütlen, miks teised ajad ei sobi.'], 'Moodul 3: minu päev ja nädal'),
+      hide(B.planning('014_t_plan', 'Meie nädala plaan.', 'Kirjuta märksõnad: kes, millal ja kus.', ['Vannituba hommikul: kes ja mis kell?', 'Köök õhtul: kes teeb süüa ja millal?', 'Pesumasin: mis päeval ja mis kell?', 'Koristamine: kes ja mis päeval?', 'Mis on reegel pärast kella kümmet?', 'Millal te sööte koos?'], 2), V5_CUT),
+      hide(B.rubric('014_t_rubric', 'Mooduli projekt: hindamine.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Plaanis on vannituba, köök ja koristamine: kes, mis päeval ja mis kell.', 'Ajad sobivad kõigile: Mallele, Gretele ja Sofiale.', 'Sõnumis on 70–90 sõna ja vähemalt viis aja- ja seosesõna.', 'Päevad ja kellaajad on õiges vormis: esmaspäeviti, kella seitsmest.', 'Vestluses pakub õpilane aega, ütleb „ei sobi, sest …” ja lepib kokku.']), V5_CUT),
     ],
   },
 
+  // ---------------------------------------------------------------- 015 control 3: one sheet, four skills
   'a2-015': {
-    title: 'Kontroll 3 — päev ja aeg',
+    title: 'Kontroll 3: päev, kell ja nädal',
     assessment: true,
-    canDo: 'Ma näitan kontrollis, et oskan rääkida oma päevast ja nädalast, öelda kellaaega ja sagedust ning kirjutada nädala plaani (vähemalt 70%).',
+    phases: checkSheet('Kontroll', 'Lugemine, kuulamine, kirjutamine ja rääkimine, igaüks 10 punkti (45 min)'),
+    canDo: 'Ma näitan ilma abita, et loen ja kuulan lühikesi tekste päevast, kellaajast ja nädalast, kirjutan sõbrale oma nädalast ja räägin oma päevast; ma tean oma punkte ja lävendeid.',
     discover: [
-      B.text('015_d_situation', 'Kordame', 'Enne kontrolli kordame mooduli tähtsamat: päeva osad, kellaaeg, alates–kuni, enne–pärast, kui tihti, nädalapäevad ja seosesõnad.'),
-      B.notice('015_d_notice', 'Mooduli kokkuvõte', ['Päev: **hommikul** ärkan, **õhtul** puhkan; ma **lähen**, **tulen**, **söön**', 'Kell: kell on **pool kolm**, **veerand neli**; **kella üheksast kuni viieni**', '**enne** kella kümmet, **pärast** tööd; tund **kestab** poolteist tundi', 'Kui tihti: **alati, tavaliselt, sageli, mõnikord, harva**, ei … **mitte kunagi**', 'Nädal: **esmaspäeval**, **nädalavahetusel**; **kõigepealt, siis, pärast seda**']),
-      B.vocab('015_d_vocab', 'Uued sõnad', ['vaba aeg — свободное время', 'vara — рано', 'hilja — поздно', 'kiire — быстрый / занятый', 'lõuna — обед', 'tööpäev — рабочий день', 'hommikusöök — завтрак', 'puhkama — отдыхать', 'koristama — убирать']),
-      B.reading('015_d_read', 'Loe: Oksana päevakava.', 'Loe Oksana teksti. Vasta igale küsimusele lühidalt.', 'Minu argipäev',
-        'Minu argipäev algab vara. Ma ärkan kell pool seitse. Kõigepealt teen ma hommikusöögi ja äratan Mia. Kell pool kaheksa viin ma Mia lasteaeda. Siis sõidan ma bussiga keelekursusele. Kursus on esmaspäevast neljapäevani kella üheksast kuni kaheteistkümneni. Lõuna on mul tavaliselt kell üks. Pärastlõunal õpin ma kodus eesti keelt ja teen kodutööd. Kell viis lähen ma Miale järele. Õhtusöök on meil kell seitse, siis on ka mu mees kodus. Pärast õhtusööki mängime Miaga ja loeme raamatut. Mia läheb magama kell üheksa. Mina lähen magama hilja, tavaliselt kell üksteist. Reedel on mul vaba päev. Siis käin ma poes ja koristan. Mul on kiire elu, aga ma olen õnnelik.',
-        [['Mis kell Oksana ärkab?', 'kell pool seitse|pool seitse|6.30'], ['Kuidas Oksana kursusele sõidab?', 'bussiga'], ['Mis päevadel on kursus?', 'esmaspäevast neljapäevani'], ['Mis kellast mis kellani on kursus?', 'kella üheksast kuni kaheteistkümneni|üheksast kaheteistkümneni|9–12'], ['Mis kell on õhtusöök?', 'kell seitse|seitse|19'], ['Mida Oksana reedel teeb?', 'käib poes ja koristab|käib poes|koristab']]),
-      B.truefalse('015_d_tf', 'Õige või vale?', 'Mõtle Oksana tekstile. Kas lause on õige või vale?', [['Oksana ärkab kell seitse.', false], ['Oksana sõidab kursusele bussiga.', true], ['Kursus on ka reedel.', false], ['Mia läheb magama kell üheksa.', true], ['Oksana läheb magama vara.', false]]),
-      B.clock('015_d_clock', 'Oksana kellaajad.', 'Kirjuta kellaaeg sõnadega.', [
+      B.text('015_d_situation', 'Kontroll 3: kuidas punkte loetakse', `Kontrollis on neli osa, igas 10 punkti, kokku 40. Töötad 45 minutit ilma abita. Harno A2 eksamil on igas osas 20 punkti: korruta oma punktid kahega. ${THRESHOLDS} Lõpus võrdled tulemust kontrolliga 2 (tund 10).`),
+      tag(B.choice('015_p_polite', 'Lugemine 1. Mida sa ütled?', 'Mida sa ütled? Loe olukorda ja vali üks lause. (5 punkti)', [
+        ['Sa tahad teada kellaaega. Mida sa küsid?', 'Mis kell on?', 'Kui vana sa oled?', 'Kus sa elad?'],
+        ['Sa jääd tundi hiljaks. Mida sa ütled õpetajale?', 'Vabandust, ma jäin hiljaks!', 'Head isu!', 'Palju õnne!'],
+        ['Sõber pakub kohtumist kell kuus. Sulle sobib. Mida sa vastad?', 'Jah, kell kuus sobib.', 'Ei, ma olen pikk.', 'Head ööd!'],
+        ['Kell on üksteist õhtul. Sa lähed magama. Mida sa ütled perele?', 'Head ööd!', 'Tere hommikust!', 'Head isu!'],
+        ['Sa ei saanud aru, mis kell kohtumine on. Mida sa ütled?', 'Palun korrake, mis kell?', 'Aitäh, väga hea!', 'Ma ei tea, kus see on.'],
+      ], 'full', 'g_read'), { task: 'R01' }),
+      tag(B.reading('015_d_read', 'Lugemine 2. Õe nädal.', 'Loe Anu teksti. Vasta igale küsimusele 1–3 sõnaga. (5 punkti)', 'Minu nädal',
+        'Tere! Mina olen Anu ja ma töötan Tartu haiglas õena. Mul on mees ja üks tütar, ta on kümme. Minu nädal ei ole kunagi igav.\n\nEsmaspäeval, teisipäeval ja kolmapäeval olen ma tööl kella seitsmest kuni kolmeni. Neljapäeval töötan ma öösel, kella üheksast õhtul kuni seitsmeni hommikul. Pärast ööd olen ma väga väsinud. Reedel magan ma tavaliselt kella üheni.\n\nReede õhtul käin ma alati poes ja teen suure poti suppi. Laupäeviti käin ma koos tütrega ujumas. Ujula on avatud kella kümnest. Aga me oleme seal juba pool kümme, sest järjekord on pikk. Pärast ujumist sööme me kohvikus kooki.\n\nPühapäeval ma puhkan. Mõnikord tuleb minu ema meile külla ja me sööme koos lõunat. Pühapäeval ma ei tööta mitte kunagi. See on minu pere päev. Aga milline on sinu nädal?',
+        [['Mis tööd Anu teeb?', 'õde|ta on õde|õena'], ['Mis kellani on Anu esmaspäeval tööl?', 'kolmeni|kella kolmeni|15|kolm'], ['Mis päeval töötab Anu öösel?', 'neljapäeval|neljapäev'], ['Kellega Anu laupäeviti ujumas käib?', 'tütrega|koos tütrega'], ['Mida Anu pühapäeval teeb?', 'puhkab|ta puhkab']]), { task: 'R15' }),
+      twice(tag(B.listening('015_d_listen', 'Kuulamine 1. Raamatukogu.', 'Kuula raamatukogu automaatvastajat kaks korda. Kirjuta lünka 1–2 sõna. (5 punkti)', [
+        'Tere! Te helistasite Kalamaja raamatukokku.',
+        'Raamatukogu on avatud esmaspäevast reedeni kella kümnest kuni seitsmeni õhtul.',
+        'Laupäeval oleme avatud kella kümnest kuni kolmeni.',
+        'Pühapäeval on raamatukogu kinni.',
+        'Lastele on muinasjututund iga kolmapäev kell pool viis.',
+        'Eesti keele vestlusring on teisipäeviti kell kuus. See kestab poolteist tundi.',
+        'Aitäh ja ilusat päeva!',
+      ], ['Esmaspäevast reedeni on raamatukogu avatud kella kümnest kuni [seitsmeni|7ni|19ni].', 'Laupäeval on raamatukogu avatud kella [kolmeni|3ni|15ni].', 'Pühapäeval on raamatukogu [kinni|suletud].', 'Muinasjututund on kell [pool viis|16.30].', 'Vestlusring kestab [poolteist tundi|1,5 tundi|poolteist].'], 'g_listen'), { task: 'L03' }), true),
+      twice(tag(B.examListen('015_d_call', 'Kuulamine 2. Kino.', 'Mati ja Eva lepivad telefonis kokku. Kuulad kaks korda. Õige või vale? (5 punkti)', 'truefalse', [
+        'Mati: Tere, Eva! Kas sa tuled laupäeval kinno?',
+        'Eva: Tere! Mis kell film algab?',
+        'Mati: Kell pool seitse. Film kestab kaks tundi.',
+        'Eva: Laupäeval ma ei saa. Ma olen kella seitsmeni tööl.',
+        'Mati: Aga pühapäeval? Siis on film kell viis.',
+        'Eva: Pühapäev sobib. Ma käin pühapäeviti hommikul ujumas, aga õhtul olen vaba.',
+        'Mati: Hästi! Kohtume kino ees veerand viis.',
+        'Eva: Väga hea. Ma ostan piletid. Nägemiseni!',
+      ], [
+        ['Laupäeval algab film kell pool seitse.', true],
+        ['Eva on laupäeval vaba.', false],
+        ['Pühapäeval algab film kell viis.', true],
+        ['Eva käib pühapäeviti õhtul ujumas.', false],
+        ['Mati ostab piletid.', false],
+      ], 'g_listen'), { task: 'L05' }), true),
+      teach(tag(B.examWriting('015_d_msg', 'Kirjutamine. Minu nädal.', 'Kirjuta sõbrale oma nädalast 25–40 sõna. Kirjuta kõigist neljast punktist. (10 punkti)', 'teade', {
+        situation: 'Sinu sõber tahab sinuga järgmisel nädalal kohtuda ja küsib, milline on sinu nädal.',
+        points: ['mida sa tööpäevadel teed (mis kellast mis kellani)', 'mida sa teed tihti ja mida harva', 'millal sa oled vaba (päev ja kell)', 'üks küsimus sõbrale'],
+        words: [25, 40],
+      }), { task: 'W02' }), 'Üks-ühele: õpilane kirjutab üksi, ilma abita; õpetaja hindab allpool oleva juhendi järgi (kirjutamise viis rida).'),
+      teach(tag(B.speaking('015_d_say', 'Rääkimine. Minu päev ja nädal.', 'Räägi oma tavalisest päevast ja nädalast ja küsi õpetajalt kaks küsimust. (10 punkti)', [
+        'Kirjelda oma tavalist päeva: mis kell sa mida teed?',
+        'Mida sa teed tihti ja mida harva? Mida sa teed nädalavahetusel?',
+        'Küsi õpetajalt kaks küsimust tema päeva või nädala kohta.',
+      ], [35, 60]), { task: 'S01' }),
+      'Üks-ühele: õpetaja on eksamineerija; see on kontrolli 2 rääkimise paralleel (uus teema, sama hindamine). Ära aita. Küsi vajadusel üks lisaküsimus („Mis kell sa magama lähed?”). Hinda allpool oleva juhendi järgi.'),
+      teach(B.table('015_d_score', 'Hindamine: kirjutamine ja rääkimine.', 'Õpetaja annab igale reale 0, 1 või 2 punkti. Kokku 10 + 10 punkti.', 'Hindamisrida (0 / 1 / 2), Punktid', [
+        'Kirjutamine, sisu: 2 = kõik neli punkti; 1 = kaks-kolm punkti; 0 = üks punkt või vähem. | ',
+        'Kirjutamine, pikkus ja sõnum: 2 = 25–40 sõna ja kõik on arusaadav; 1 = alla 25 sõna või osa on segane; 0 = sõnumist ei saa aru. | ',
+        'Kirjutamine, aeg: 2 = kellaajad, päevad ja sagedus on õiged (kella kümnest kuueni, neljapäeval, kaks korda nädalas); 1 = mitu viga, aga sõnum on selge; 0 = aega ei saa aru. | ',
+        'Kirjutamine, tegusõna ja sõnajärg: 2 = tegusõna vormid ja sõnajärg on peaaegu alati õiged (Laupäeval käin ma …); 1 = arusaadav, aga vigane; 0 = vead segavad mõistmist. | ',
+        'Kirjutamine, algus ja lõpp: 2 = tervitus ja lõpp sobivad; 1 = üks puudub; 0 = mõlemad puuduvad. | ',
+        'Rääkimine, sisu: 2 = päev ja nädal, vähemalt neli tegevust kellaaja või päevaga; 1 = kaks-kolm tegevust; 0 = üks tegevus või vähem. | ',
+        'Rääkimine, aeg ja sagedus: 2 = kellaajad ja sagedussõnad on õiged (pool kaheksa, tavaliselt, harva); 1 = ainult üks neist; 0 = aega ei ole. | ',
+        'Rääkimine, küsimused: 2 = kaks arusaadavat küsimust; 1 = üks; 0 = ei ühtegi. | ',
+        'Rääkimine, vormid: 2 = ma lähen / ta läheb, esmaspäeval ja tegusõna teisel kohal on peaaegu alati õiged; 1 = mitu viga, aga arusaadav; 0 = vead segavad mõistmist. | ',
+        'Rääkimine, arusaadavus: 2 = kuulaja saab kõigest aru (pausid on lubatud); 1 = kuulaja peab mõnikord üle küsima; 0 = raske aru saada. | ',
+      ]), 'Õpetajale: kirjutamise viis rida annavad kirjutamise punktid (/10), rääkimise viis rida rääkimise punktid (/10); kanna need tabelisse „Minu tulemus”.'),
+      teach(B.table('015_d_result', 'Minu tulemus.', 'Kirjuta iga osa punktid ja korruta kahega. Ükski osa ei tohi olla 0 punkti.', 'Osa, Punktid (/10), Harno skaala (/20), Kontroll 2 (%), Mida harjutada?', [
+        'Lugemine |  |  |  | ',
+        'Kuulamine |  |  |  | ',
+        'Kirjutamine |  |  |  | ',
+        'Rääkimine |  |  |  | ',
+        'Kokku (/40) |  |  |  | ',
+      ]), 'Õpetajale: Harno järgi sooritatud = kokku ≥ 24/40 (60 %) ja ükski osa ei ole 0. KeeleSepa sisemine lävi: eksamiks valmis ≥ 28/40 (70 %), sertifikaat ≥ 32/40 (80 %). Veerus „Kontroll 2” on tunni 10 sama oskuse protsent. Kui osa on alla 6/10, anna üks parandusülesanne: lugemine → Harjuta „Lugemine” (moodul 3), kuulamine → tunni 12 või 14 salvestis uuesti ilma tekstita, kirjutamine → sama sõnum parandatult, rääkimine → uus salvestus „Minu nädal”.'),
+      hide(B.notice('015_d_notice', 'Mooduli kokkuvõte', ['Päev: **hommikul** ärkan, **õhtul** puhkan; ma **lähen**, **tulen**, **söön**', 'Kell: kell on **pool kolm**, **veerand neli**; **kella üheksast kuni viieni**', '**enne** kella kümmet, **pärast** tööd; tund **kestab** poolteist tundi', 'Kui tihti: **alati, tavaliselt, sageli, mõnikord, harva**, ei … **mitte kunagi**', 'Nädal: **esmaspäeval**, **nädalavahetusel**; **kõigepealt, siis, pärast seda**']), V5_CUT),
+      hide(B.vocab('015_d_vocab', 'Uued sõnad', ['vaba aeg — свободное время', 'vara — рано', 'hilja — поздно', 'kiire — быстрый / занятый', 'lõuna — обед', 'tööpäev — рабочий день', 'hommikusöök — завтрак', 'puhkama — отдыхать', 'koristama — убирать']), V5_CUT),
+      hide(B.truefalse('015_d_tf', 'Õige või vale?', 'Mõtle Oksana tekstile. Kas lause on õige või vale?', [['Oksana ärkab kell seitse.', false], ['Oksana sõidab kursusele bussiga.', true], ['Kursus on ka reedel.', false], ['Mia läheb magama kell üheksa.', true], ['Oksana läheb magama vara.', false]]), V5_DRILL),
+      hide(B.clock('015_d_clock', 'Oksana kellaajad.', 'Kirjuta kellaaeg sõnadega.', [
         { time: '06:30', extra: '' }, { time: '07:30', extra: '' }, { time: '09:00', extra: '' }, { time: '13:00', extra: '' }, { time: '17:15', extra: 'veerand kuus' }, { time: '22:45', extra: 'kolmveerand üksteist' },
-      ]),
-      B.wordforms('015_d_forms', 'Kordame vorme.', 'Kirjuta sõna õiges vormis.', [
+      ]), V5_CUT),
+      hide(B.wordforms('015_d_forms', 'Kordame vorme.', 'Kirjuta sõna õiges vormis.', [
         ['minema', 'ma', 'lähen'], ['sööma', 'ta', 'sööb'], ['reede', 'millal?', 'reedel'], ['viis', 'kuni kella …', 'viieni'], ['üheksa', 'alates kella …', 'üheksast'], ['ujuma', 'käin …', 'ujumas'],
-      ]),
-      B.transformation('015_d_trans', 'Ütle teisiti.', 'Kirjuta lause uue algusega.', [
+      ]), V5_DRILL),
+      hide(B.transformation('015_d_trans', 'Ütle teisiti.', 'Kirjuta lause uue algusega.', [
         ['Ma ärkan kell seitse. (tavaliselt)', 'Tavaliselt …', 'Tavaliselt ma ärkan kell seitse.|Tavaliselt ärkan ma kell seitse.'],
         ['Pood on avatud 9–21.', 'Pood on avatud kella …', 'Pood on avatud kella üheksast kuni üheksani.|Pood on avatud kella üheksast üheksani.'],
         ['Ta suitsetab. (mitte kunagi)', 'Ta ei …', 'Ta ei suitseta mitte kunagi.|Ta ei suitseta kunagi.'],
         ['Ma söön. Ma lähen tööle. (kõigepealt … siis)', 'Kõigepealt …', 'Kõigepealt ma söön, siis lähen tööle.|Kõigepealt söön ma, siis lähen tööle.'],
         ['Film algab 18.30.', 'Film algab kell …', 'Film algab kell pool seitse.'], ['Tund kestab 90 minutit.', 'Tund kestab …', 'Tund kestab poolteist tundi.'],
-      ]),
-      B.errorfix('015_d_fix', 'Paranda viga.', 'Leia igas lauses viga ja kirjuta lause uuesti.', [
+      ]), V5_DRILL),
+      hide(B.errorfix('015_d_fix', 'Paranda viga.', 'Leia igas lauses viga ja kirjuta lause uuesti.', [
         ['Hommikus ma ärkan vara.', 'Hommikul ma ärkan vara.'], ['Kell on pool seitsme.', 'Kell on pool seitse.'], ['Ma töötan kella üheksa kuni viis.', 'Ma töötan kella üheksast kuni viieni.'],
         ['Ma suitsetan mitte kunagi.', 'Ma ei suitseta mitte kunagi.'], ['Reedeel ma koristan.', 'Reedel ma koristan.'], ['Pärast see ma lähen koju.', 'Pärast seda ma lähen koju.'],
-      ]),
-      B.gaps('015_d_gaps', 'Täida lüngad.', 'Pane igasse lünka üks sõna kastist.', [
+      ]), V5_DRILL),
+      hide(B.gaps('015_d_gaps', 'Täida lüngad.', 'Pane igasse lünka üks sõna kastist.', [
         'Ma ärkan väga [vara], kell viis.', 'Ma lähen magama [hilja], kell üks öösel.', 'Täna on mul [kiire] päev, mul ei ole aega.', '[Lõuna] on kell kaksteist.', 'Minu [tööpäev] lõpeb kell viis.', '[Vabal ajal] ma loen raamatuid.',
-      ], ['vara', 'hilja', 'kiire', 'Lõuna', 'tööpäev', 'Vabal ajal', 'õhtusöök', 'argipäev']),
-      B.listening('015_d_listen', 'Kuulamine. Urmase nädal.', 'Urmas räägib oma nädalast. Kuula kaks korda ja täida lüngad.', [
-        'Urmas: Minu tööpäev algab kell pool kuus.', 'Ma töötan esmaspäevast reedeni.', 'Lõuna on mul kell kaksteist, see kestab pool tundi.',
-        'Kolmapäeviti käin ma pärast tööd saunas.', 'Laupäeval sõidan ma tavaliselt kalale.', 'Pühapäeval me ei tee midagi, me puhkame.',
-      ], ['Urmase tööpäev algab kell [pool kuus|5.30].', 'Ta töötab esmaspäevast [reedeni].', 'Lõuna kestab [pool tundi].', 'Kolmapäeviti käib ta [saunas].', 'Laupäeval sõidab ta tavaliselt [kalale].']),
-      B.wordorder('015_d_order', 'Pane lause kokku.', 'Pane sõnad järjekorda ja kirjuta Oksana lause.', ['Minu argipäev algab vara.', 'Kõigepealt ma teen hommikusöögi.', 'Reedel on mul vaba päev.', 'Tavaliselt ma lähen magama kell üksteist.']),
-      B.translation('015_d_tr', 'Tõlgi eesti keelde.', 'Tõlgi iga lause eesti keelde.', ['Мой рабочий день начинается в восемь.', 'Обед в двенадцать.', 'Я иногда хожу в сауну.', 'В субботу я сплю долго.', 'Сначала я убираю, потом отдыхаю.']),
-      B.speaking('015_d_say', 'Proovieksam: minu päev.', 'Räägi oma tavalisest päevast ja nädalast.', ['Mis kell sinu päev algab?', 'Mida sa teed hommikul, päeval ja õhtul?', 'Kui tihti sa sporti teed?', 'Mida sa teed nädalavahetusel?'], [60, 90]),
-      B.writing('015_d_write', 'Kordame kirjutamist.', 'Kirjuta 6–8 lauset oma argipäevast. Kasuta kellaaegu ja sagedussõnu.', [6, 8], ['kell', 'tavaliselt', 'kõigepealt', 'siis'], 2),
+      ], ['vara', 'hilja', 'kiire', 'Lõuna', 'tööpäev', 'Vabal ajal', 'õhtusöök', 'argipäev']), V5_DRILL),
+      hide(B.wordorder('015_d_order', 'Pane lause kokku.', 'Pane sõnad järjekorda ja kirjuta Oksana lause.', ['Minu argipäev algab vara.', 'Kõigepealt ma teen hommikusöögi.', 'Reedel on mul vaba päev.', 'Tavaliselt ma lähen magama kell üksteist.']), V5_DRILL),
+      hide(B.translation('015_d_tr', 'Tõlgi eesti keelde.', 'Tõlgi iga lause eesti keelde.', ['Мой рабочий день начинается в восемь.', 'Обед в двенадцать.', 'Я иногда хожу в сауну.', 'В субботу я сплю долго.', 'Сначала я убираю, потом отдыхаю.']), V5_CUT),
+      hide(B.writing('015_d_write', 'Kordame kirjutamist.', 'Kirjuta 6–8 lauset oma argipäevast. Kasuta kellaaegu ja sagedussõnu.', [6, 8], ['kell', 'tavaliselt', 'kõigepealt', 'siis'], 2), V5_CUT),
     ],
     practice: [
-      B.tip('015_p_how', 'Kontroll: lugemine, kuulamine, keel (eksami vormis)', 'See leht on nagu Harno A2 eksami lugemine ja kuulamine. Tee kõik ilma abita. Kuulamisteksti loeb õpetaja kaks korda. Eesmärk on vähemalt 70%.', 'full'),
-      B.choice('015_p_polite', 'Lugemine 1. Mida öelda?', 'Mida sa ütled? Vali igale olukorrale õige vastus.', [
-        ['Sa tahad teada aega. Mida sa küsid?', 'Vabandust, mis kell on?', 'Kui vana sa oled?', 'Kus sa elad?'], ['Sõber küsib, millal sa vaba oled.', 'Pärast kella viit.', 'Kaks korda.', 'Viis tundi tagasi.'], ['Sa jõuad tundi pool tundi hiljem. Mida sa ütled?', 'Vabandust, ma jäin hiljaks!', 'Head isu!', 'Palju õnne!'],
-        ['Sa tahad teada, millal pood avatakse.', 'Mis kellast pood on avatud?', 'Kui suur pood on?', 'Kelle pood see on?'], ['Kolleeg kutsub sind reedel kinno. Sa ei saa.', 'Kahjuks reedel ma ei saa.', 'Jah, hea meelega!', 'Kino on suur.'],
-        ['Arst küsib, kui tihti sa sporti teed.', 'Kaks korda nädalas.', 'Kell kaks.', 'Kaks tundi tagasi.'],
-      ], 'full', 'g_use'),
-      B.reading('015_p_ad', 'Lugemine 2. Kuulutus.', 'Loe spordiklubi kuulutust ja vasta küsimustele.', 'Spordiklubi „Liikumine”',
+      hide(B.tip('015_p_how', 'Kontroll: lugemine, kuulamine, keel (eksami vormis)', 'See leht on nagu Harno A2 eksami lugemine ja kuulamine. Tee kõik ilma abita. Kuulamisteksti loeb õpetaja kaks korda. Eesmärk on vähemalt 70%.', 'full'), V5_CUT),
+      hide(B.reading('015_p_ad', 'Lugemine 2. Kuulutus.', 'Loe spordiklubi kuulutust ja vasta küsimustele.', 'Spordiklubi „Liikumine”',
         'Jooga toimub esmaspäeviti ja kolmapäeviti kell 18.00–19.00. Ujumine on teisipäeviti ja neljapäeviti hommikul kella seitsmest kuni kaheksani. Laupäeviti kell 10.00 on perede tund. Seal võimlevad emad ja isad koos lastega. Tund kestab 45 minutit. Klubi on avatud iga päev kella kuuest kuni kümneni õhtul. Pühapäeval on klubi avatud kella üheksast kuni kuueni. Klubis on ka saun. Saun on avatud õhtul alates kella viiest. Kuukaart maksab 35 eurot, üks kord 8 eurot. Esimene tund on tasuta. Palun tulge kümme minutit enne tunni algust. Registreeri klubi kodulehel või telefonil 5678 1234.',
-        [['Mis päevadel on jooga?', 'esmaspäeviti ja kolmapäeviti|esmaspäeval ja kolmapäeval'], ['Mis kell on ujumine?', 'kella seitsmest kuni kaheksani|seitsmest kaheksani|7–8'], ['Kui kaua kestab perede tund?', '45 minutit|nelikümmend viis minutit'], ['Mis kellast mis kellani on klubi pühapäeval avatud?', 'kella üheksast kuni kuueni|üheksast kuueni|9–18'], ['Kui palju maksab kuukaart?', '35 eurot'], ['Millal tuleb kohale tulla?', 'kümme minutit enne tundi|10 minutit enne tunni algust']]),
-      B.truefalse('015_p_tf', 'Lugemine 3. Õige või vale?', 'Loe spordiklubi kuulutust uuesti. Kas lause on õige?', [['Jooga on kaks korda nädalas.', true], ['Ujumine on õhtul.', false], ['Perede tund on laupäeviti.', true], ['Esimene tund maksab 8 eurot.', false], ['Pühapäeval on klubi avatud kella kuueni.', true]]),
-      B.cloze('015_p_cloze', 'Lugemine 4. Sõnum.', 'Loe sõnumit Olgale ja vali igasse lünka õige vorm.', 'Tere, Olga!', [
+        [['Mis päevadel on jooga?', 'esmaspäeviti ja kolmapäeviti|esmaspäeval ja kolmapäeval'], ['Mis kell on ujumine?', 'kella seitsmest kuni kaheksani|seitsmest kaheksani|7–8'], ['Kui kaua kestab perede tund?', '45 minutit|nelikümmend viis minutit'], ['Mis kellast mis kellani on klubi pühapäeval avatud?', 'kella üheksast kuni kuueni|üheksast kuueni|9–18'], ['Kui palju maksab kuukaart?', '35 eurot'], ['Millal tuleb kohale tulla?', 'kümme minutit enne tundi|10 minutit enne tunni algust']]), V5_CUT),
+      hide(B.truefalse('015_p_tf', 'Lugemine 3. Õige või vale?', 'Loe spordiklubi kuulutust uuesti. Kas lause on õige?', [['Jooga on kaks korda nädalas.', true], ['Ujumine on õhtul.', false], ['Perede tund on laupäeviti.', true], ['Esimene tund maksab 8 eurot.', false], ['Pühapäeval on klubi avatud kella kuueni.', true]]), V5_DRILL),
+      hide(B.cloze('015_p_cloze', 'Lugemine 4. Sõnum.', 'Loe sõnumit Olgale ja vali igasse lünka õige vorm.', 'Tere, Olga!', [
         'Ma käin nüüd spordiklubis {*kaks korda|kaks kord|kahe korda} nädalas. {*Esmaspäeviti|Esmaspäev|Esmaspäevast} käin ma joogas.',
         'Tund algab kell kuus ja kestab {*tund aega|tunni ajal|tundi aega}. Ujumas käin ma {*harva|alati|iga päev}, sest see on liiga vara.',
         'Ujumine on kella {*seitsmest|seitse|seitsmeni} hommikul. {*Pärast|Kell|Kuni} tööd olen ma väsinud, aga jooga aitab.',
         'Kas sa tuled {*laupäeval|laupäev|laupäevani} minuga perede tundi? See algab {*kell|kella|kellal} kümme.',
-      ]),
-      B.listening('015_p_listen', 'Kuulamine 1. Teade bussijaamas.', 'Õpetaja loeb teate kaks korda. Kirjuta lünka 1–2 sõna.', [
+      ]), V5_DRILL),
+      hide(B.listening('015_p_listen', 'Kuulamine 1. Teade bussijaamas.', 'Õpetaja loeb teate kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Tähelepanu! Buss Pärnusse väljub täna kell kolmveerand kaks.', 'Sõit kestab kaks ja pool tundi.', 'Buss on Pärnus kell veerand viis.', 'Bussis on tasuta internet.', 'Järgmine buss Pärnusse väljub kell pool kuus.',
-      ], ['Buss sõidab [Pärnusse].', 'Buss väljub kell [kolmveerand kaks|13.45].', 'Sõit kestab [kaks ja pool] tundi.', 'Buss on Pärnus kell [veerand viis|16.15].', 'Järgmine buss väljub kell [pool kuus|17.30].']),
-      B.listening('015_p_listen2', 'Kuulamine 2. Telefonikõne.', 'Liis helistab juuksurisse. Kuula kaks korda, kirjuta 1–2 sõna.', [
+      ], ['Buss sõidab [Pärnusse].', 'Buss väljub kell [kolmveerand kaks|13.45].', 'Sõit kestab [kaks ja pool] tundi.', 'Buss on Pärnus kell [veerand viis|16.15].', 'Järgmine buss väljub kell [pool kuus|17.30].']), V5_CUT),
+      hide(B.listening('015_p_listen2', 'Kuulamine 2. Telefonikõne.', 'Liis helistab juuksurisse. Kuula kaks korda, kirjuta 1–2 sõna.', [
         '— Juuksur Mari, tere!', '— Tere! Siin Liis. Ma tahan aega juukselõikusele.', '— Kas reedel sobib? Meil on vaba aeg kell kümme.', '— Kahjuks reedel ma töötan. Kas laupäeval on aega?',
         '— Laupäeval oleme avatud kella kümnest kuni kaheni. Vaba aeg on kell pool üksteist.', '— Sobib. Kui kaua see kestab?', '— Umbes tund aega.',
-      ], ['Reedel on vaba aeg kell [kümme|10].', 'Liis [töötab] reedel.', 'Laupäeval on juuksur avatud kella kümnest kuni [kaheni].', 'Liisi aeg on kell [pool üksteist|10.30].', 'Lõikus kestab umbes [tund aega|tund].']),
-      B.gaps('015_p_mix', 'Keel. Viis punkti.', 'Kirjuta lünka sulgudes antud sõna või arv sõnaga.', [
+      ], ['Reedel on vaba aeg kell [kümme|10].', 'Liis [töötab] reedel.', 'Laupäeval on juuksur avatud kella kümnest kuni [kaheni].', 'Liisi aeg on kell [pool üksteist|10.30].', 'Lõikus kestab umbes [tund aega|tund].']), V5_CUT),
+      hide(B.gaps('015_p_mix', 'Keel. Viis punkti.', 'Kirjuta lünka sulgudes antud sõna või arv sõnaga.', [
         'Kell on [pool] kolm. (2.30)', 'Pood on avatud kella üheksast kuni [viieni]. (viis)', 'Ma ei suitseta [mitte kunagi]. (0%)', '[Esmaspäeval] on mul tund. (esmaspäev)', 'Ta [läheb] tööle kell kaheksa. (minema)',
-      ]),
-      B.gaps('015_p_mix2', 'Keel. Veel viis punkti.', 'Pane sulgudes sõna õigesse vormi.', [
+      ]), V5_DRILL),
+      hide(B.gaps('015_p_mix2', 'Keel. Veel viis punkti.', 'Pane sulgudes sõna õigesse vormi.', [
         'Ma käin [ujumas] kord nädalas. (ujuma)', 'Tule enne kella [kümmet]. (kümme)', '[Laupäeviti] ma koristan. (iga laupäev)', 'Me [sööme] õhtusööki kell seitse. (sööma)', 'Tund kestab [poolteist] tundi. (1,5)',
-      ]),
-      B.errorfix('015_p_fix', 'Keel. Paranda viga.', 'Igas lauses on üks vormiviga. Paranda see.', [
+      ]), V5_DRILL),
+      hide(B.errorfix('015_p_fix', 'Keel. Paranda viga.', 'Igas lauses on üks vormiviga. Paranda see.', [
         ['Ma lähe tööle kell kaheksa.', 'Ma lähen tööle kell kaheksa.'], ['Pood on avatud kella üheksa kuni viis.', 'Pood on avatud kella üheksast kuni viieni.'], ['Reedeel ma puhkan.', 'Reedel ma puhkan.'], ['Ta suitsetab mitte kunagi.', 'Ta ei suitseta mitte kunagi.'], ['Tund kestab poolteist tund.', 'Tund kestab poolteist tundi.'],
-      ]),
-      B.wordorder('015_p_order', 'Keel. Pane lause kokku.', 'Sõnad on segamini. Kirjuta iga lause õiges järjekorras.', ['Jooga algab kell kuus õhtul.', 'Tavaliselt ma käin trennis reedeti.', 'Pärast tööd ma olen väsinud.', 'Buss väljub kell pool kuus.', 'Me ei suitseta mitte kunagi.']),
-      B.translation('015_p_tr', 'Keel. Tõlgi eesti keelde.', 'Kirjuta need laused eesti keeles.', ['Который час? Четверть пятого.', 'Я работаю с восьми до четырёх.', 'Я редко хожу в кино.', 'В субботу мы отдыхаем.', 'Сначала я ем, потом иду на работу.']),
-      B.dictation('015_p_dict', 'Keel. Etteütlus.', 'Kuula ja kirjuta laused.', ['Kell on veerand viis.', 'Ma käin ujumas kaks korda nädalas.', 'Reedeti on mul vaba päev.', 'Tund kestab poolteist tundi.'], 4),
-      B.writing('015_p_write', 'Kirjutamine. Sõnum klubile.', 'Kirjuta spordiklubile 4–6 lauset: mis tundi tahad tulla ja millal.', [4, 6], ['tahan', 'kell', 'esmaspäeval'], 2),
-      B.speaking('015_p_say', 'Rääkimine. Minu päev.', 'Õpetaja on eksamineerija. Vasta tema küsimustele täislausetega.', ['Mis kell te tavaliselt ärkate?', 'Mis kellast mis kellani te töötate või õpite?', 'Kui tihti te sporti teete?', 'Mida te teete nädalavahetusel?'], [60, 90]),
+      ]), V5_DRILL),
+      hide(B.wordorder('015_p_order', 'Keel. Pane lause kokku.', 'Sõnad on segamini. Kirjuta iga lause õiges järjekorras.', ['Jooga algab kell kuus õhtul.', 'Tavaliselt ma käin trennis reedeti.', 'Pärast tööd ma olen väsinud.', 'Buss väljub kell pool kuus.', 'Me ei suitseta mitte kunagi.']), V5_DRILL),
+      hide(B.translation('015_p_tr', 'Keel. Tõlgi eesti keelde.', 'Kirjuta need laused eesti keeles.', ['Который час? Четверть пятого.', 'Я работаю с восьми до четырёх.', 'Я редко хожу в кино.', 'В субботу мы отдыхаем.', 'Сначала я ем, потом иду на работу.']), V5_CUT),
+      hide(B.dictation('015_p_dict', 'Keel. Etteütlus.', 'Kuula ja kirjuta laused.', ['Kell on veerand viis.', 'Ma käin ujumas kaks korda nädalas.', 'Reedeti on mul vaba päev.', 'Tund kestab poolteist tundi.'], 4), V5_DRILL),
+      hide(B.writing('015_p_write', 'Kirjutamine. Sõnum klubile.', 'Kirjuta spordiklubile 4–6 lauset: mis tundi tahad tulla ja millal.', [4, 6], ['tahan', 'kell', 'esmaspäeval'], 2), V5_CUT),
+      hide(B.speaking('015_p_say', 'Rääkimine. Minu päev.', 'Õpetaja on eksamineerija. Vasta tema küsimustele täislausetega.', ['Mis kell te tavaliselt ärkate?', 'Mis kellast mis kellani te töötate või õpite?', 'Kui tihti te sporti teete?', 'Mida te teete nädalavahetusel?'], [60, 90]), V5_CUT),
     ],
     transfer: [
-      B.text('015_t_situation', 'Kontroll: kirjutamine ja rääkimine', 'Keelekursusel algab uus periood. Sofia ja Liis vaatavad uut nädalaplaani. Sina kirjutad oma päevakava ja nädala plaani ning räägid oma päevast. Õpetaja hindab, eesmärk on vähemalt 70%.'),
-      B.listening('015_t_listen', 'Kuulamine. Uus tunniplaan.', 'Keelekooli juhataja räägib uuest tunniplaanist. Kuula kaks korda, täida lüngad.', [
+      hide(B.text('015_t_situation', 'Kontroll: kirjutamine ja rääkimine', 'Keelekursusel algab uus periood. Sofia ja Liis vaatavad uut nädalaplaani. Sina kirjutad oma päevakava ja nädala plaani ning räägid oma päevast. Õpetaja hindab, eesmärk on vähemalt 70%.'), V5_CUT),
+      hide(B.listening('015_t_listen', 'Kuulamine. Uus tunniplaan.', 'Keelekooli juhataja räägib uuest tunniplaanist. Kuula kaks korda, täida lüngad.', [
         'Head õpilased! Uus tunniplaan algab esmaspäeval.', 'Tunnid on esmaspäeviti ja kolmapäeviti kella kuuest kuni pool kaheksani.', 'Neljapäeviti on vestlusklubi, see kestab tund aega.',
         'Reedel tunde ei ole.', 'Kontrolltöö on kahe nädala pärast, kolmapäeval.',
-      ], ['Uus tunniplaan algab [esmaspäeval].', 'Tunnid on kella kuuest kuni [pool kaheksani|19.30].', 'Vestlusklubi on [neljapäeviti|neljapäeval].', 'Vestlusklubi kestab [tund aega|tund].', 'Kontrolltöö on [kolmapäeval].']),
-      B.reading('015_t_read', 'Lugemine. Liisi sõnum.', 'Loe sõnumit ja vasta küsimustele.', 'Tere, Sofia!',
+      ], ['Uus tunniplaan algab [esmaspäeval].', 'Tunnid on kella kuuest kuni [pool kaheksani|19.30].', 'Vestlusklubi on [neljapäeviti|neljapäeval].', 'Vestlusklubi kestab [tund aega|tund].', 'Kontrolltöö on [kolmapäeval].']), V5_CUT),
+      hide(B.reading('015_t_read', 'Lugemine. Liisi sõnum.', 'Loe sõnumit ja vasta küsimustele.', 'Tere, Sofia!',
         'Kas sa nägid uut tunniplaani? Mulle sobib see väga. Esmaspäeval ja kolmapäeval olen ma vaba kella viiest. Neljapäeviti töötan ma raamatukogus kella kuueni. Vestlusklubi algab kell seitse, nii et ma jõuan. Kas me joome enne tundi koos kohvi? Kohvik keelekooli kõrval on avatud kella kaheksani. Ma söön seal tavaliselt lõunat. Kas Kati tuleb ka mõnikord kaasa? Ta on nii tore! Tunnid on nüüd hiljem, see on mulle hea. Ma ostsin juba uue vihiku ja pastaka. Kirjuta mulle, mis päev sulle sobib. Liis',
-        [['Mis kellast on Liis esmaspäeval vaba?', 'kella viiest|viiest|17'], ['Kus Liis neljapäeviti töötab?', 'raamatukogus'], ['Mis kell algab vestlusklubi?', 'kell seitse|seitse|19'], ['Mida Liis tahab enne tundi teha?', 'koos kohvi juua|juua kohvi'], ['Mis kellani on kohvik avatud?', 'kella kaheksani|kaheksani|20']]),
-      B.clock('015_t_clock', 'Kontrolli kellaaegu.', 'Kirjuta kellaaeg sõnadega.', [
+        [['Mis kellast on Liis esmaspäeval vaba?', 'kella viiest|viiest|17'], ['Kus Liis neljapäeviti töötab?', 'raamatukogus'], ['Mis kell algab vestlusklubi?', 'kell seitse|seitse|19'], ['Mida Liis tahab enne tundi teha?', 'koos kohvi juua|juua kohvi'], ['Mis kellani on kohvik avatud?', 'kella kaheksani|kaheksani|20']]), V5_CUT),
+      hide(B.clock('015_t_clock', 'Kontrolli kellaaegu.', 'Kirjuta kellaaeg sõnadega.', [
         { time: '18:00', extra: '' }, { time: '19:30', extra: '' }, { time: '17:00', extra: '' }, { time: '19:00', extra: '' }, { time: '20:00', extra: '' }, { time: '16:45', extra: 'kolmveerand viis' },
-      ]),
-      B.table('015_t_day', 'Kirjutamine 1. Minu päevakava.', 'Kirjuta oma argipäeva päevakava.', 'Kell, Mida ma teen?', ['hommikul kell … | ', 'enne lõunat | ', 'lõuna ajal | ', 'pärastlõunal | ', 'õhtul | ', 'kell … lähen magama | ']),
-      B.planning('015_t_plan', 'Enne kirjutamist.', 'Kirjuta märksõnad oma nädala kohta.', ['Mida sa teed argipäeviti?', 'Kui tihti sa sporti teed või kursusel käid?', 'Mida sa teed nädalavahetusel?'], 2),
-      B.letter('015_t_letter', 'Kirjutamine 2. Minu nädal.', 'Kirjuta sõbrale 70–90 sõna oma nädalast. Kasuta: kõigepealt, siis, pärast seda, aga.', 'Tere!', 'Kohtumiseni!', [70, 90]),
-      B.writing('015_t_write', 'Kirjutamine 3. Sõnum.', 'Kirjuta Liisile 4–6 lauset: millal sa saad kohvikusse ja vestlusklubisse tulla.', [4, 6], ['kell', 'neljapäeval', 'pärast'], 2),
-      B.speaking('015_t_say', 'Rääkimine 1. Minu päev.', 'Räägi oma tavalisest päevast umbes poolteist minutit.', ['Mis kell sinu päev algab ja lõpeb?', 'Mida sa teed hommikul, päeval ja õhtul?', 'Kui tihti sa sporti teed või sõpradega kohtud?', 'Mis on sinu nädala kõige kiirem päev?'], [60, 120]),
-      B.rolecards('015_t_roles', 'Rääkimine 2. Kokkulepe.', 'Leppige kokku, millal te koos õpite.', 'Sinu nädal: E ja K tunnid 18–19.30, N töö kella kuueni, L vaba. Paku kaks aega ja ütle, kui kaua te õpite.', 'Sinu nädal: T ja N trenn kell seitse, R tööl hilja, L hommikul vaba. Vali aeg ja küsi, kus te kohtute.', ['Kas … kell … sobib?', 'Ma olen vaba alates …'], ['Kahjuks …, sest …', 'Kohtume … kell …']),
-      B.rubric('015_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti. Kokku 70% = kontroll on sooritatud.', ['Päevakava on täidetud, kellaajad on õiged.', 'Nädala tekstis on 70–90 sõna ja vähemalt viis seosesõna.', 'Aeg ja sagedus on õiges vormis: kella …st, esmaspäeviti, harva.', 'Suuline tekst kestab umbes poolteist minutit.', 'Dialoogis lepitakse aeg kokku.']),
-      B.selfcheck('015_t_self', ['Ma kirjutan oma päevakava ja nädala plaani.', 'Ma saan aru tunniplaanist ja sõnumist.', 'Ma räägin oma päevast poolteist minutit.', 'Ma lepin kokku aja.'], 'Moodul 3 on läbitud'),
+      ]), V5_CUT),
+      hide(B.table('015_t_day', 'Kirjutamine 1. Minu päevakava.', 'Kirjuta oma argipäeva päevakava.', 'Kell, Mida ma teen?', ['hommikul kell … | ', 'enne lõunat | ', 'lõuna ajal | ', 'pärastlõunal | ', 'õhtul | ', 'kell … lähen magama | ']), V5_DRILL),
+      hide(B.planning('015_t_plan', 'Enne kirjutamist.', 'Kirjuta märksõnad oma nädala kohta.', ['Mida sa teed argipäeviti?', 'Kui tihti sa sporti teed või kursusel käid?', 'Mida sa teed nädalavahetusel?'], 2), V5_CUT),
+      hide(B.letter('015_t_letter', 'Kirjutamine 2. Minu nädal.', 'Kirjuta sõbrale 70–90 sõna oma nädalast. Kasuta: kõigepealt, siis, pärast seda, aga.', 'Tere!', 'Kohtumiseni!', [70, 90]), V5_CUT),
+      hide(B.writing('015_t_write', 'Kirjutamine 3. Sõnum.', 'Kirjuta Liisile 4–6 lauset: millal sa saad kohvikusse ja vestlusklubisse tulla.', [4, 6], ['kell', 'neljapäeval', 'pärast'], 2), V5_CUT),
+      hide(B.speaking('015_t_say', 'Rääkimine 1. Minu päev.', 'Räägi oma tavalisest päevast umbes poolteist minutit.', ['Mis kell sinu päev algab ja lõpeb?', 'Mida sa teed hommikul, päeval ja õhtul?', 'Kui tihti sa sporti teed või sõpradega kohtud?', 'Mis on sinu nädala kõige kiirem päev?'], [60, 120]), V5_CUT),
+      hide(B.rolecards('015_t_roles', 'Rääkimine 2. Kokkulepe.', 'Leppige kokku, millal te koos õpite.', 'Sinu nädal: E ja K tunnid 18–19.30, N töö kella kuueni, L vaba. Paku kaks aega ja ütle, kui kaua te õpite.', 'Sinu nädal: T ja N trenn kell seitse, R tööl hilja, L hommikul vaba. Vali aeg ja küsi, kus te kohtute.', ['Kas … kell … sobib?', 'Ma olen vaba alates …'], ['Kahjuks …, sest …', 'Kohtume … kell …']), V5_CUT),
+      hide(B.rubric('015_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti. Kokku 70% = kontroll on sooritatud.', ['Päevakava on täidetud, kellaajad on õiged.', 'Nädala tekstis on 70–90 sõna ja vähemalt viis seosesõna.', 'Aeg ja sagedus on õiges vormis: kella …st, esmaspäeviti, harva.', 'Suuline tekst kestab umbes poolteist minutit.', 'Dialoogis lepitakse aeg kokku.']), V5_CUT),
+      hide(B.selfcheck('015_t_self', ['Ma kirjutan oma päevakava ja nädala plaani.', 'Ma saan aru tunniplaanist ja sõnumist.', 'Ma räägin oma päevast poolteist minutit.', 'Ma lepin kokku aja.'], 'Moodul 3 on läbitud'), V5_CUT),
     ],
   },
 }, {
-  'a2-011': 'KUUL L→W', 'a2-012': 'PROB R→S', 'a2-013': 'LUGU R→W', 'a2-014': 'AVAS L→S', 'a2-015': 'EKS',
+  'a2-011': 'LUGU R→S', 'a2-012': 'RÄÄK L→S', 'a2-013': 'KIRJ R→W', 'a2-014': 'PROJ L→W', 'a2-015': 'EKS',
 });
