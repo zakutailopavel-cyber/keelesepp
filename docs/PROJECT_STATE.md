@@ -23,8 +23,8 @@
 
 - Main: 10e14fe (2026-11-25). Omanik: prinditud lehed lõppevad 30–50 % tühjalt.
 - `engine/pageSplit.js` + `Sheet.jsx`: jagatakse ka `speaking` (küsimused; salvestaja ja vihje viimases osas) ja `selfcheck` (rida kahest väitest); üks kõrge üksus (≥ 25 mm, nt valikvastusega küsimus) võib olla osa; lehe põhi täidetakse alates 35 mm / 10 % (enne 15 %); kõrvuti kaks loendiülesannet pannakse vajadusel üksteise alla täislaiusena; pilt (+ vihje) joonistatakse kuni 70 % väiksemana, kui rida jääb natuke puudu. Järjekord ei muutu kunagi. Reeglid: `docs/WORKSHEET_STUDIO_V1.md` „Page filling”.
-- Kontrollid: vitest worksheet-studio + worksheet-generator läbi; eslint 0 viga; layout e2e — vt PR. Labor 28 lehte (B1 m1 + B2 m17 pilootidega): muutus 2 lehel (a2b1-002 Avasta lk 2 71→99 %, a2b1-003 Avasta lk 1 73→95 %).
-- Piirang: pilt võib jääda lehe lõppu ja selle ülesanne järgmisele lehele; sõnavara + skeemi paar liigub endiselt tervikuna.
+- Kontrollid: vitest worksheet-studio + worksheet-generator läbi; eslint 0 viga; layout e2e — vt PR. Labor 28 lehte (B1 m1 + B2 m17 pilootidega): pilt + ülesanne koos; muutus a2b1-003 Avasta lk 1 73→95 %.
+- Pilt (+ vihje) jääb alati samale lehele kui selle all olev ülesanne (`examMode.js keepsWithNext`): mahuvad koos, ülesande esimene osa mahub, või liiguvad koos. Piirang: sõnavara + skeemi paar liigub endiselt tervikuna.
 - Järgmine samm: omaniku OK → merge → release.
 
 ## 2026-11-25 — Reeglid: lüngad tahvlil, kompaktne versioon (agent/board-fill-rules-size)

@@ -355,8 +355,12 @@ Owner: printed / A4 pages must not end half empty. `engine/Sheet.jsx` measures e
 - **Smaller picture** (`canShrink`): a row with one `image` block (alone or beside a tip/notice) that misses the page
   by little is drawn with the picture down to 70 % of its width (`MIN_PIC_SCALE`, entry `{ row, scale }`, CSS
   `.ws-row.is-pic-fit`), when the blocks beside it fit as they are.
-- No block is ever moved past another (no reordering). Known gap: a picture may now end a page while the task about
-  it starts the next one; a vocabulary + scheme pair still moves whole.
+- **A picture stays with its task** (`engine/examMode.js keepsWithNext`): a row of an `image` (alone or with its tip /
+  notice) keeps with the next row when that row has a task — both fit, or the task's first part fits under it, or
+  both move to the next page. A smaller picture is used only when its task fits after it as well. A speaking / writing
+  task with its own picture is one block (a speaking task with a picture is not split; a writing task's picture stays
+  with its first part).
+- No block is ever moved past another (no reordering). Known gap: a vocabulary + scheme pair still moves whole.
 
 ## Not in this slice
 
