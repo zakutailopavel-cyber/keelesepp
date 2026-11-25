@@ -96,3 +96,8 @@ kse
 # B2 module 13: verb suffixes named in the change-of-state notice (-nema, -dama)
 nema
 dama
+# B1 module 5: the past-tense endings bolded inside words in the notice (oota**sid**, oota**sime**, oota**site**) and the marker -si-
+si
+sid
+sime
+site
