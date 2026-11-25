@@ -91,6 +91,21 @@ function clozeRows(passage) {
   }).filter(Boolean);
 }
 
+// a text with form gaps „[kolisime|kolis](kolima)”: one gap row per gap, its sentence with the other gaps filled in
+function formRows(passage) {
+  const text = String(passage || '');
+  const re = /\[([^\]]*)\]\s*\(([^)]*)\)/g;
+  const found = [...text.matchAll(re)].map((m) => ({ answer: clean(m[1].split('|')[0]), base: clean(m[2]) }));
+  return found.map((gap, gi) => {
+    if (!gap.answer) return null;
+    let n = -1;
+    const filled = text.replace(re, (all, ans) => { n += 1; return n === gi ? MARK : clean(ans.split('|')[0]); });
+    const sentence = filled.split(/\n+|(?<=[.!?…])\s+/).find((x) => x.includes(MARK)) || '';
+    const [before, after = ''] = sentence.split(MARK);
+    return { before: clean(before), after: clean(after), answer: gap.answer, full: clean(sentence.replace(MARK, gap.answer)), extra: gap.base ? [gap.base] : [] };
+  }).filter(Boolean);
+}
+
 // everything a sheet offers for the games
 export function sheetItems(doc) {
   const out = { catch: [], pairs: [], order: [], truth: [], sort: [], guess: [] };
@@ -103,6 +118,8 @@ export function sheetItems(doc) {
       String(d.bank || '').split(/[,;\n]/).map(clean).filter(Boolean).forEach((w) => answers.push(w));
     }
     if (b.type === 'cloze') clozeRows(d.passage).forEach((g) => gapRows.push(g));
+    // „Pane sõnad õigesse vormi” in a coherent text (methodology v5, 2026-11-25): „[kolisime](kolima)” — the form is a gap
+    if (b.type === 'formtext') formRows(d.passage).forEach((g) => { gapRows.push(g); answers.push(g.answer); });
     if (b.type === 'wordforms') {
       (d.rows || []).filter((r) => clean(r.base) && clean(r.answer)).forEach((r) => {
         answers.push(clean(r.answer));

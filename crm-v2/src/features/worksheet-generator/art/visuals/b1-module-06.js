@@ -1,6 +1,74 @@
 // Visual briefs of a2b1 module 06; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+// Methodology v5 rewrite (2026-11-25): one learning visual per teaching lesson (026 a fridge beside a pancake recipe for
+// six, 027 a restaurant menu with vegetarian and nut marks, 028 two fridges and two bins on a Sunday, 029 the order
+// receipt beside what came to the door). They are line drawings the content agent made from hand-written SVG (not
+// generated) as working pictures in the palette of TEXTBOOK_ART_BIBLE.md §2 (black line, white, one lime accent,
+// pale-lime blob, grey); Codex may redraw them from the same briefs. The places and people are made up and are not the
+// continuing story's cast. Each picture stands directly above the task that uses it (`place` = that task's id), so the
+// picture and its task share a page. The earlier pictures (Codex, built-in image generation; cast scenes) are in RETIRED
+// below; their files stay in public/.
 export default [
+  {
+    id: "a2b1-026-kasuta-2",
+    phase: "transfer",
+    format: "scene",
+    cast: [],
+    scene: "Vasakul lahtine külmkapp pealkirjaga „KÜLMKAPIS”, kolm riiulit: piimapudel „1 l piima”, kaks muna „2 muna”; pool võipakki „pool pakki võid”, juustutükk „natuke juustu”; moosipurk „1 purk moosi”. Paremal retseptikaart, laimiroheline päis „PANNKOOGID kuuele inimesele”, viis rida ikooni ja kogusega: „2 l piima”, „6 muna”, „1 kg jahu”, „1 pakk võid”, „2 purki moosi”; iga rea lõpus tühi ruut. Lauseid pildil ei ole: mida ja kui palju juurde osta, arvutab õppija ise.",
+    accent: "the recipe card's header",
+    text: ["KÜLMKAPIS", "1 l piima", "2 muna", "pool pakki võid", "natuke juustu", "1 purk moosi", "PANNKOOGID", "kuuele inimesele", "2 l piima", "6 muna", "1 kg jahu", "1 pakk võid", "2 purki moosi"],
+    learningJob: "võrrelda külmkappi ja retsepti ning kirjutada kaaslasele, mida ja kui palju poest osta, koguse järel osastavaga (liiter piima, neli muna, kilo jahu, pool pakki võid, purk moosi)",
+    place: "026_t_letter",
+    alt: "Külmkapis on liiter piima, kaks muna, pool pakki võid, natuke juustu ja üks purk moosi; kuue inimese pannkoogiretseptis on vaja kaks liitrit piima, kuus muna, kilo jahu, paki võid ja kaks purki moosi.",
+    caption: "Külmkapp ja retsept.",
+    prompts: ["Mis külmkapis juba on?", "Mida on retsepti järgi vaja?", "Mida ja kui palju tuleb poest osta?"],
+  },
+  {
+    id: "a2b1-027-kasuta-2",
+    phase: "transfer",
+    format: "scene",
+    cast: [],
+    scene: "Restorani menüütahvel heleroheline laigu peal. Ülal „RESTORAN KASK”, all „E–L 12–22 · P suletud”. Kolm osa: SUPID (seljanka 6 €, kõrvitsasupp 5 € lehega), PRAED (kana riisiga 11 €, kala kartulitega 12 €, köögiviljavokk 10 € lehega), MAGUSTOIDUD (šokolaadikook 5 € laimirohelise pähkliga, jäätis 4 €). All selgitus: leht = taimetoit, pähkel = pähklid.",
+    accent: "the nut mark beside the chocolate cake",
+    text: ["RESTORAN KASK", "E–L 12–22 · P suletud", "SUPID", "seljanka", "kõrvitsasupp", "PRAED", "kana riisiga", "kala kartulitega", "köögiviljavokk", "MAGUSTOIDUD", "šokolaadikook", "jäätis", "6 €", "5 €", "11 €", "12 €", "10 €", "4 €", "taimetoit", "pähklid"],
+    learningJob: "valida menüüst toit inimestele, kellel on oma soovid (taimetoit, pähkliallergia), ja küsida telefonis viisakalt laua, roogade ja koostise kohta (Ma sooviksin …, Kas teil on …?, magustoiduks, joogiks)",
+    place: "027_t_call",
+    alt: "Restorani Kask menüü: supid, praed ja magustoidud hindadega; kõrvitsasupp ja köögiviljavokk on taimetoit, šokolaadikoogis on pähklid; restoran on avatud esmaspäevast laupäevani kella 12–22.",
+    caption: "Restorani menüü.",
+    prompts: ["Mida saab tellida inimene, kes ei söö liha?", "Mida ei tohi tellida inimene, kellel on pähkliallergia?", "Mida sina tellid eelroaks, pearoaks ja magustoiduks?"],
+  },
+  {
+    id: "a2b1-028-kasuta-2",
+    phase: "transfer",
+    format: "scene",
+    cast: [],
+    scene: "Kaks külmkappi kõrvuti. Vasakul laimirohelise nimesildiga „KODU A”, all „suur ost laupäeval”: täis külmkapp (supipott, kaks piimapudelit, kolm karpi, juust, viis tomatit, purk); kõrval prügikast, mille peal on leib ja kaks tomatit. Paremal „KODU B”, all „väike ost iga päev”: peaaegu tühi külmkapp (üks pudel, üks karp, kaks tomatit); kõrval nimekiri „E supp, T kala, K supp, N väljas” ja tühi prügikast. Lauseid ei ole.",
+    accent: "the name badges KODU A and KODU B",
+    text: ["KODU A", "suur ost laupäeval", "KODU B", "väike ost iga päev", "E supp", "T kala", "K supp", "N väljas"],
+    learningJob: "võrrelda kahe kodu nädalat täis- ja osasihitisega (nad ostsid palju toitu, nad ei söönud leiba ära, nad viskasid leiva ja tomatid ära, nad sõid supi ära) ning arutada, kumb kodu raiskab vähem ja miks",
+    place: "028_t_meeting",
+    alt: "Kodu A ostab laupäeval palju: külmkapp on täis ja prügikastis on leib ja tomatid. Kodu B ostab iga päev vähe: külmkapp on peaaegu tühi, ukse kõrval on söögiplaan ja prügikast on tühi.",
+    caption: "Kaks külmkappi pühapäeval.",
+    prompts: ["Mida kodu A ära viskas? Miks?", "Mida kodu B teisiti teeb?", "Kumb kodu raiskab vähem toitu?"],
+  },
+  {
+    id: "a2b1-029-kasuta-2",
+    phase: "transfer",
+    format: "scene",
+    cast: [],
+    scene: "Vasakul tellimuse kviitung laimirohelise päisega „TELLIMUS nr 2417”: pitsa „2 pitsat”, salatikauss „1 salat”, klaas „2 mahla”; all „tellitud kell 18.30”, „kohal kell 19.15”, „kokku 32 €”. Paremal „UKSE TAGA”: silt „kell 20.10”, lahtises karbis üks pitsa, kõrval kolm lumehelvest (pitsa on külm), all „1 pitsa”. Lauseid ei ole: mis valesti läks, sõnastab õppija ise.",
+    accent: "the receipt's header",
+    text: ["TELLIMUS nr 2417", "2 pitsat", "1 salat", "2 mahla", "tellitud kell 18.30", "kohal kell 19.15", "kokku 32 €", "UKSE TAGA", "kell 20.10", "1 pitsa"],
+    learningJob: "võrrelda tellitut ja saadut ning kirjutada firmale viisakas kaebus täis- ja osasihitisega (tellisin kaks pitsat, aga sain ainult ühe pitsa; salatit ja mahla ma ei saanud; toit tuli tund hiljem) ja öelda, mida soovid",
+    place: "029_t_reply",
+    alt: "Tellimuses on kaks pitsat, üks salat ja kaks mahla, kohale pidi toit jõudma kell 19.15; ukse taha tuli kell 20.10 ainult üks külm pitsa.",
+    caption: "Mis tuli koju?",
+    prompts: ["Mida tellimuses oli?", "Mida kuller tõi ja millal?", "Mida sa firmalt palud?"],
+  },
+];
+
+// Retired from the sheets in the methodology v5 rewrite (2026-11-25): cast scenes that did not carry the new lessons'
+// tasks; the files stay in public/textbook-art/b1/ and can return when a lesson needs them.
+export const RETIRED = [
   {
     id: "a2b1-026-avasta-1",
     phase: "discover",
