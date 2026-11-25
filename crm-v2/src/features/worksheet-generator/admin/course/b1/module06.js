@@ -64,7 +64,7 @@ const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
 // a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
 const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 026 project: shopping for guests (kogus + osastav)
@@ -241,7 +241,7 @@ export const LESSONS = withShapes({
         'kilo + loendatav asi → mitmuse osastav: õunu.',
         'üks + nimetav: üks purk (aga kaks purki).',
       ]), 'Kaheksa lauset näitavad, mis vorm tuleb koguse ja arvu järele.'),
-      tag(purpose(B.writing('026_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: mis on praegu sinu külmkapis ja kui palju (pool pakki võid, kaks muna …) ning mida sa pead ostma.', [5, 7]), 'Oma laused on sinu sõnumi materjal.'), { task: 'W11' }),
+      tag(purpose(B.writing('026_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: mis on praegu sinu külmkapis ja kui palju (pool pakki võid, kaks muna …) ning mida sa pead ostma.', [5, 7]), 'Neid lauseid kasutad hiljem oma sõnumis.'), { task: 'W11' }),
       hide(B.match('026_p_pairs', 'Mis kuulub kokku?', 'Ühenda tegevus ja sõna, millega see turul või köögis kokku käib.', [
         ['hoida piima', 'külmkapis'], ['maksta turul', 'pangakaardiga'], ['lõigata leib', 'viiludeks'], ['kirjutada enne poodi', 'ostunimekiri'], ['küsida müüjalt', 'hinda'],
         ['visata hapu piim', 'prügikasti'], ['saada raha', 'tagasi'], ['kaaluda õunad', 'kaalul'], ['panna ostud', 'kotti'], ['korjata mune', 'kanalast'],
@@ -545,7 +545,7 @@ export const LESSONS = withShapes({
         'milleks? → -ks: joogiks.',
         'mis rooga? → -ks: magustoiduks.',
       ]), 'Kaheksa lauset näitavad viisaka palve ja -ks-vormi.'),
-      tag(purpose(B.writing('027_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: mida sa restoranis tellid (eelroaks, pearoaks, joogiks, magustoiduks) ja kaks viisakat küsimust teenindajale.', [5, 7]), 'Oma laused on sinu kõne materjal.'), { task: 'W05' }),
+      tag(purpose(B.writing('027_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset: mida sa restoranis tellid (eelroaks, pearoaks, joogiks, magustoiduks) ja kaks viisakat küsimust teenindajale.', [5, 7]), 'Neid lauseid kasutad hiljem oma kõnes.'), { task: 'W05' }),
       hide(B.reading('027_p_web', 'Kohviku Kaneel koduleht.', 'Loe Kaneeli kodulehte. Vasta küsimustele: osa vastuseid leiad tekstist, osa pead ise järeldama.', 'Tere tulemast kohvikusse Kaneel!', [
         'Kohvik Kaneel asub Tallinna kesklinnas, kontorimajade vahel. Meil on kolmkümmend kohta ja teisel korrusel lastenurk. Oleme avatud tööpäeviti kella kaheksast kuueni ja laupäeval kümnest neljani. Pühapäeval puhkame.',
         '',
@@ -817,7 +817,7 @@ export const LESSONS = withShapes({
         'Me ei ostnud [leiba] (leib), sest kodus oli veel.',
         'Poeg sõi [võileiva] (võileib) kiiresti ära.',
         'Kas sa tegid [salati] (salat) juba valmis?',
-        'Me viskasime kõik vanad [tomatid] (tomatid) ära.',
+        'Me viskasime kõik vanad [tomatid] (tomat) ära.',
         'Ma ei visanud sel nädalal [toitu] (toit) ära.',
       ], '', 'full', 'g_notice'), [
         'kogu asi + ära → täissihitis (omastav): supi.',
@@ -826,10 +826,10 @@ export const LESSONS = withShapes({
         'eitus → osastav: leiba.',
         'lõpuni + ära → täissihitis (omastav): võileiva.',
         'valmis → täissihitis (omastav): salati.',
-        'kõik tomatid, mitmus + ära → nimetav: tomatid.',
+        'kõik vanad … → mitmus; kogu hulk + ära → täissihitis, mitmuses nimetav: tomatid (mitte osastav tomateid).',
         'eitus → osastav: toitu.',
       ]), 'Kaheksa lauset näitavad, millal on täissihitis ja millal osastav.'),
-      tag(purpose(B.writing('028_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset oma köögist sel nädalal: mida te sõite ära, mis jäi üle ja mida te ei söönud.', [5, 7]), 'Oma laused on sinu arutelu materjal.'), { task: 'W10' }),
+      tag(purpose(B.writing('028_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset oma köögist sel nädalal: mida te sõite ära, mis jäi üle ja mida te ei söönud.', [5, 7]), 'Neid lauseid kasutad hiljem oma arutelus.'), { task: 'W10' }),
       hide(B.errorfix('028_p_fix', 'Paranda sihitis.', 'Igas lauses on sihitis vales vormis. Kirjuta lause õigesti.', [
         ['Ma sõin eile õhtul kogu supp ära.', 'Ma sõin eile õhtul kogu supi ära.'],
         ['Sofia ei ostnud poest leiva, sest unustas.', 'Sofia ei ostnud poest leiba, sest unustas.'],
@@ -1123,7 +1123,7 @@ export const LESSONS = withShapes({
         'Pagariäri: „Kui tort ei ole valmis, saad järgmise tordi poole hinnaga.”',
       ]), 'Enne kui sa kaebad, tead, mida sa võid nõuda. Eksamil (Harno B1 lugemine 1) on sama ülesanne.'), { task: 'R01', harno: 'R1' }),
       'Eksaminurk (Harno B1 lugemine 1, ~8 min), formaati tutvustatakse siin. Strateegia: 1) loe kõigepealt olukorrad ja jooni alla võtmesõna (hiljem, katkine, ei vasta); 2) otsi teatest sama mõte teiste sõnadega (tund hiljem → hilineb üle 30 minuti); 3) üks teade võib sobida mitmele. Üks-ühele: esimese olukorra lahendab õpetaja valjusti mõeldes, ülejäänud õpilane ise. Pärast küsi: mida sa nende teadete järgi oma kaebuses nõuad?'),
-      tag(purpose(B.writing('029_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset ühest korrast, kui sinu tellimus, ost või teenus läks valesti: mida sa tellisid, mida said ja mida palusid. Ühenda laused sõnadega aga ja sest.', [5, 7]), 'Oma laused on sinu kaebuse materjal.'), { task: 'W09' }),
+      tag(purpose(B.writing('029_p_sent', 'Kirjuta terved laused.', 'Kirjuta 5–7 lauset ühest korrast, kui sinu tellimus, ost või teenus läks valesti: mida sa tellisid, mida said ja mida palusid. Ühenda laused sõnadega aga ja sest.', [5, 7]), 'Neid lauseid kasutad hiljem oma kaebuses.'), { task: 'W09' }),
       hide(B.choice('029_p_best', 'Viisakas klient.', 'Mida ütleb viisakas klient? Vali iga olukorra jaoks kõige sobivam lause.', [
         ['Ettekandja tõi vale supi.', 'Vabandust, ma tellisin tomatisupi, mitte seenesupi.', 'See supp on täiesti vale, viige see ära!', 'Miks te kunagi õiget suppi ei too?'],
         ['Arvel on üks kohv liiga palju.', 'Vabandust, kas te saaksite arve üle vaadata?', 'Te tahate mind petta, see arve on vale!', 'Ma ei maksa sellist arvet mitte kunagi.'],

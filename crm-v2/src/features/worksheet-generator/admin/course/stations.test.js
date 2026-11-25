@@ -38,12 +38,12 @@ function sheets(l = lesson(), extra = {}) {
 const codes = (problems) => problems.map((p) => p.code);
 
 describe('station builders (stationBlocks.js)', () => {
-  it('marks the station on its first block and shows number, title and minutes', () => {
+  it('marks the station on its first block: the learner sees number and title, the minutes stay in data.station', () => {
     const b = station(B.text('a', 'Raadio', 'Kuula.'), 2, 12);
-    expect(b.data.heading).toBe('Jaam 2 · Raadio · 12 min');
+    expect(b.data.heading).toBe('Jaam 2 · Raadio');
     expect(b.data.station).toEqual({ n: 2, title: 'Raadio', minutes: 12 });
     const t = station(B.choice('c', 'Vali õige.', 'Vali.', [['a', 'b', 'c', 'd']]), 1, 8);
-    expect(t.data.title).toBe('Jaam 1 · Vali õige · 8 min');
+    expect(t.data.title).toBe('Jaam 1 · Vali õige');
   });
 
   it('prints the fallback card of a dependent station where the learner reads it', () => {

@@ -84,8 +84,6 @@ const writingRubric = (id, title, sample, short = false) => {
 };
 // a home text is written at home: fewer lines on the sheet, so the sheet ends on a full page
 const homeLines = (b, lines) => ({ ...b, data: { ...b.data, lines } });
-// a kept block with a changed field (instruction, title, questions …)
-const patch = (b, data) => ({ ...b, data: { ...b.data, ...data } });
 // the play count of a recording (v5 G6): a recording twice, short clips once; locked in the control
 const twice = (b) => ({ ...b, data: { ...b.data, plays: 2, lockPlays: true } });
 const once = (b) => ({ ...b, data: { ...b.data, plays: 1, lockPlays: true } });
@@ -1168,6 +1166,7 @@ export const LESSONS = withShapes({
         '«Tõendeid ei leidnud» без деятеля → «Tõendeid ei leitud» (безличное прошедшее: -ti / -di).',
         '«Uurija rõhutab, et kordamine aitavat» — возможно, но после глагола-источника обычно простая форма: «… et kordamine aitab».',
         '«Uurija sõnul kordamine aitab» → «Uurija sõnul aitab kordamine» (после источника глагол на втором месте).',
+        '«Reklaami väitel olevat …», «Kolleegi sõnul ei jäävat …» → «Reklaami väitel on …» или «Test olevat …»: дистанцию показываем один раз — источник ИЛИ -vat (норма письменного языка, правило на листе 032_p_notice).',
       ],
       notes: [
         'Формат — анализ фактов: сначала мнение (утверждение), потом радио, потом объяснение близкому. Студенту — экзамен в вузе; пенсионеру — экзамен по языку; работающему посменно — 20 минут в автобусе вместо четырёх часов в воскресенье.',
@@ -1233,52 +1232,53 @@ export const LESSONS = withShapes({
         'Saatest: iga inimene **olevat** kas visuaalne või kuuldeõppija · seda **väidetakse** sageli · tõendeid **ei leitud** · reklaamis **lubatakse, et** …',
         'Kordamine (B1): kaudne kõneviis olevikus — ma-tegevusnimi, -ma → **-vat**: aitama → aita**vat**, olema → ole**vat**; eitus **ei olevat**. Sina edastad, aga ei vastuta.',
         'B2: mineviku kaudne — **olevat** + **-nud**: Uuring **olevat näidanud**, et … · Teadlased **ei olevat leidnud** tõendeid. · umbisikuline: **väidetakse** (praegu), **leiti** (minevikus), **on tõestatud** (tulemus kehtib).',
-        'B2: allikas tegusõnaga + et — uurija **väidab / rõhutab / hoiatab / leidis, et** … (et-lauses tavaline vorm) · allikas nimisõnaga: **uuringu järgi**, **uurija sõnul**, **reklaami väitel** (+ tegusõna teisel kohal) · kaugus ühe sõnaga: **väidetavalt**.',
+        'B2: allikas tegusõnaga + et — uurija **väidab / rõhutab / hoiatab / leidis, et** … (et-lauses tavaline vorm) · allikas nimisõnaga: **uuringu järgi**, **uurija sõnul**, **reklaami väitel** + tavaline vorm, tegusõna teisel kohal: Uurija sõnul **aitab** … · kaugus ühe sõnaga: **väidetavalt** + tavaline vorm.',
+        'Reegel: kaugust näitad **ühe korra**. Kui allikas on nimetatud (sõnul, järgi, väitel, väidab, et …) või lauses on väidetavalt, on tegusõna tavalises vormis. **-vat** kasutad siis, kui allikat lauses ei ole: Test **olevat** aidanud tuhandeid. („Reklaami väitel olevat …” kuuleb kõnes, aga kirjakeeles on see topelt.)',
         'Kindluse skaala: Kordamine **aitab** (fakt allikaga) → **Uurija sõnul aitab** … → Kordamine **aitavat** … (keegi ütles, sina ei kinnita) → **Väidetavalt** aitab …, **kuid tõendeid ei ole**.',
       ], 'full'), 'Kordamine ühe minutiga (aitavat, olevat). Siis B2 samm: kui täpselt sa ütled, kust info tuleb ja kui kindel see on. Lase õpilasel leida saatest üks fakt ja üks väide ning öelda need kindluse skaalal.'), 3, 20),
       why(purpose(B.transformation('032_p_rumour', 'Kuulujutt või uurimistulemus?', 'Ütle iga lause edasi antud sõnadega. Kuulujutu puhul näita kaugust (-vat, väidetavalt), uurimistulemuse puhul nimeta allikas. Panka ei ole.', [
-        ['Reklaam: „Õpistiili test on teinud tuhandete inimeste õppimise kergeks.”', 'Reklaami väitel olevat …', 'Reklaami väitel olevat õpistiili test teinud tuhandete inimeste õppimise kergeks.|Reklaami väitel olevat test teinud tuhandete inimeste õppimise kergeks.'],
+        ['Reklaam: „Õpistiili test on teinud tuhandete inimeste õppimise kergeks.”', 'Õpistiili test olevat …', 'Õpistiili test olevat teinud tuhandete inimeste õppimise kergeks.|Õpistiili test olevat tuhandete inimeste õppimise kergeks teinud.'],
         ['Uurijad kontrollisid seda väidet, aga tõendeid nad ei leidnud.', 'Väidet kontrolliti, kuid …', 'Väidet kontrolliti, kuid tõendeid ei leitud.|Väidet kontrolliti, kuid tõendeid selle kohta ei leitud.'],
-        ['Naaber: „Muusika õppimise ajal teeb targemaks.”', 'Väidetavalt …', 'Väidetavalt teeb muusika õppimise ajal targemaks.|Väidetavalt teeb muusika õppimise ajal inimese targemaks.'],
-        ['Kolleeg: „Vanemas eas ei jää enam midagi meelde.”', 'Kolleegi sõnul ei …', 'Kolleegi sõnul ei jäävat vanemas eas enam midagi meelde.|Kolleegi sõnul ei jää vanemas eas enam midagi meelde.'],
+        ['Naaber: „Muusika kuulamine õppimise ajal teeb targemaks.”', 'Väidetavalt …', 'Väidetavalt teeb muusika kuulamine õppimise ajal targemaks.|Väidetavalt teeb muusika kuulamine õppimise ajal inimese targemaks.|Väidetavalt teeb muusika kuulamine õppimise ajal meid targemaks.'],
+        ['Kolleeg: „Vanemas eas ei jää enam midagi meelde.”', 'Kolleegi sõnul ei …', 'Kolleegi sõnul ei jää vanemas eas enam midagi meelde.|Kolleegi sõnul ei jää vanemas eas midagi enam meelde.'],
         ['Uurija: „Une ajal kinnistub see, mida päeval õpiti.”', 'Uurija rõhutab, et …', 'Uurija rõhutab, et une ajal kinnistub see, mida päeval õpiti.'],
-        ['Ajakiri: „Teadlased on tõestanud, et inimene kasutab ainult kümme protsenti ajust.”', 'Ajakirja väitel olevat …', 'Ajakirja väitel olevat teadlased tõestanud, et inimene kasutab ainult kümme protsenti ajust.'],
+        ['Ajakiri: „Teadlased on tõestanud, et inimene kasutab ainult kümme protsenti ajust.”', 'Teadlased olevat …', 'Teadlased olevat tõestanud, et inimene kasutab ainult kümme protsenti ajust.|Teadlased olevat tõestanud, et inimene kasutab ajust ainult kümme protsenti.'],
         ['Uuring näitas: kes kordab vahedega, mäletab rohkem.', 'Uuringu järgi …', 'Uuringu järgi mäletab rohkem see, kes kordab vahedega.|Uuringu järgi mäletab see, kes kordab vahedega, rohkem.'],
-        ['Vanaema: „Öösel õpitu on hommikul kindlalt peas.”', 'Vanaema arvates olevat …', 'Vanaema arvates olevat öösel õpitu hommikul kindlalt peas.'],
+        ['Vanaema: „Öösel õpitu on hommikul kindlalt peas.”', 'Öösel õpitu olevat …', 'Öösel õpitu olevat hommikul kindlalt peas.|Öösel õpitu olevat hommikuks kindlalt peas.'],
         ['Uurijad hoiatasid: ülelugemine annab vale tunde, et kõik on selge.', 'Uurijad hoiatasid, et …', 'Uurijad hoiatasid, et ülelugemine annab vale tunde, et kõik on selge.'],
-        ['Sõbranna: „Õpetaja ütles, et eksam lükati edasi.”', 'Eksam olevat …', 'Eksam olevat edasi lükatud.|Eksam olevat õpetaja sõnul edasi lükatud.'],
+        ['Sõbranna: „Õpetaja ütles, et eksam lükati edasi.”', 'Eksam olevat …', 'Eksam olevat edasi lükatud.'],
       ], 'full', 'g_notice'), 'Kui edastad väidet, näeb kuulaja kohe, kas see on fakt või kuulujutt.'), [
-        'Reklaam = väide, mida sa ei kinnita → mineviku kaudne: olevat teinud.',
+        'Reklaam = väide, mida sa ei kinnita, ja allikat lauses ei ole → mineviku kaudne: olevat teinud.',
         'Tegija pole oluline → umbisikuline minevik: ei leitud.',
         'Kuulujutt → väidetavalt + tavaline tegusõna teisel kohal: teeb.',
-        'Allikas „kolleegi sõnul” + eitus: ei jäävat (või tavaline ei jää).',
+        'Allikas on nimetatud („kolleegi sõnul”) → tavaline vorm, tegusõna teisel kohal: ei jää.',
         'Viitav tegusõna + et → et-lauses tavaline vorm: kinnistub.',
-        'Ajakiri väidab, sina ei kinnita → olevat tõestanud.',
+        'Ajakiri väidab, sina ei kinnita, allikat lauses ei ole → olevat tõestanud.',
         'Uurimistulemus → uuringu järgi + tegusõna teisel kohal: mäletab.',
-        'Vanaema arvamus → olevat (sina ei kinnita).',
+        'Vanaema arvamus, allikat lauses ei ole → olevat (sina ei kinnita).',
         'Viitav tegusõna minevikus: hoiatasid, et …',
         'Kuuldud uudis → mineviku kaudne umbisikulises: olevat edasi lükatud.',
       ]),
       why(purpose(B.formtext('032_p_summary', 'Kokkuvõte uudiskirja: mida raadio ütles.', 'Kursusekaaslane kirjutab kursuse uudiskirja jaoks saate kokkuvõtte. Kirjuta lünka sobiv sõna või vorm. Sulgudes on vihje. Panka ei ole.', 'Mida me õppimise kohta valesti usume?', [
         'Eelmisel nädalal rääkis raadios haridusuurija õppimise müütidest. Tema [sõnul] (allikas nimisõnaga) ei ole õpistiilidel nii suurt tähtsust, kui sageli [väidetakse] (väitma; umbisikuline, praegu). Seda kontrolliti mitmes uuringus, kuid tõendeid [ei leitud] (leidma; umbisikuline, minevik, eitus).',
         '',
-        'Paljud kursused lubavad, et õpistiili test teeb õppimise kergeks. Reklaami väitel [olevat] (olema; kaudne) test aidanud juba tuhandeid inimesi, kuid uurija soovitab selle raha säästa.',
+        'Paljud kursused lubavad, et õpistiili test teeb õppimise kergeks. Test [olevat] (olema; kaudne) aidanud juba tuhandeid inimesi, kuid uurija soovitab selle raha säästa.',
         '',
         'Uurija [rõhutas] (rõhutama; minevik), et ülelugemine ja allajoonimine annavad vale tunde: tekst tundub tuttav, aga see ei tähenda, et me seda mäletame. Palju rohkem aitavad enda [kontrollimine] (kontrollima; tegevus asjana) ja kordamine vahedega. Uuringute [järgi] (allikas) mäletab see, kes õpib mitmel päeval väikeste osade kaupa, nädala pärast tunduvalt rohkem.',
         '',
-        'On [tõestatud] (tõestama; tulemus kehtib), et une ajal kinnistub päeval õpitu. Muusika kohta öeldakse, et see [aitavat] (aitama; kaudne, sina ei kinnita) keskenduda, kuid uurija sõnul sobib ainult vaikne muusika ilma sõnadeta.',
+        'On [tõestatud] (tõestama; tulemus kehtib), et une ajal kinnistub päeval õpitu. Muusika [aitavat] (aitama; kaudne, sina ei kinnita) keskenduda, kuid uurija sõnul sobib ainult vaikne muusika ilma sõnadeta.',
         '',
         'Kuulaja küsis, kas viiekümneselt enam midagi meelde ei jää. Uurija vastas, et see on pigem hirm kui [fakt] (mitte kuulujutt).',
       ]), 'Samamoodi kirjutad kodus nõuande: iga väite juures on näha, kust see tuleb.'), [
         'Allikas nimisõnaga: tema sõnul.',
         'Umbisikuline olevik: väidetakse.',
         'Umbisikuline minevik, eitus: ei leitud.',
-        'Reklaam väidab, sina ei kinnita → olevat aidanud.',
+        'Reklaam väidab, sina ei kinnita, allikat lauses ei ole → olevat aidanud.',
         'Viitav tegusõna minevikus: rõhutas, et …',
         'Tegevus asjana: kontrollima → kontrollimine.',
         'Allikas: uuringute järgi.',
         'Tulemus kehtib → on tõestatud.',
-        'Väide, mida sa ei kinnita → aitavat.',
+        'Väide, mida sa ei kinnita, allikat lauses ei ole → aitavat.',
         'Vastand kuulujutule → fakt.',
       ]),
       why(purpose(tag(B.table('032_p_register', 'Vestlusgrupis või uudiskirjas?', 'Vasakul on lause sõprade vestlusgrupist. Paremas veerus on sama mõte uudiskirjas, kus allikas ja kindlus on näha. Kirjuta lünka puuduv sõna.', 'Vestlusgrupis, Uudiskirjas', [
@@ -1289,7 +1289,7 @@ export const LESSONS = withShapes({
         'Testisin ise, töötab! | Minu [kogemus] näitab, et meenutamine aitab.',
         'Uuringus tuli välja, et vahedega on parem. | Uuringust [selgus], et vahedega kordamine annab parema tulemuse.',
         'Vanaema ütleb, et vanas eas ei jää midagi meelde. | Paljud vanemad inimesed [kardavad], et midagi ei jää meelde, kuid see on pigem hirm kui fakt.',
-        'Reklaam lubas, et test teeb õppimise lihtsaks. | Reklaami [väitel] olevat test aidanud tuhandeid inimesi.',
+        'Reklaam lubas, et test teeb õppimise lihtsaks. | Reklaami [väitel] on test aidanud tuhandeid inimesi, kuid tõendeid selle kohta ei ole.',
       ], 'g_notice'), { task: 'W12' }), 'Tead, kuidas kuulujutt muutub lauseks, mida lugeja saab usaldada.'), [
         'Kuulsin → kaugus ühe sõnaga: väidetavalt.',
         'Teadlased ütlesid → allikas nimisõnaga: uurijate sõnul.',
@@ -1298,7 +1298,7 @@ export const LESSONS = withShapes({
         'Testisin ise → minu kogemus näitab.',
         'Tuli välja → uuringust selgus.',
         'Vanaema ütleb → üldistus ja hinnang: kardavad …, kuid see on hirm.',
-        'Reklaam lubas → reklaami väitel olevat …',
+        'Reklaam lubas → allikas nimisõnaga: reklaami väitel + tavaline vorm (on aidanud).',
       ]),
     ],
     transfer: [
@@ -1676,14 +1676,15 @@ export const LESSONS = withShapes({
     // Methodology v5 (2026-11-25): one sheet, 45 minutes, two skills — listening + writing (module 1: reading + speaking,
     // module 2: listening + speaking, module 3: reading + writing, module 4: the B2 mock, module 5: listening + writing,
     // module 6: reading + speaking). Listening opens with L1 as on the exam: eight short notices, each its own clip
-    // (≤ 45 s, heard once, locked) — the format the course trained least; then the v4 control's career-counsellor interview
-    // (same transcript and audio), now locked and heard twice, with its gaps and true/false statements. The writing part
+    // (≤ 45 s, heard once, locked) — the format the course trained least; then a career-counsellor interview of ~3.4 min
+    // (two voices, locked, heard twice) with paraphrased multiple-choice items (three on inference and attitude) and
+    // gap sentences whose answers are not said word for word (audit 2026-11-25: the v4 87-s interview with gaps copied word for word was B1). The writing part
     // opens with the parallel new task of the module's cold task (031_d_cold): the same conditions (5 minutes, 5–7
     // sentences, no phrases, no opening), a new statement; then the module product „Minu õpitee järgmine samm” (the card
     // of 034_t_plan) as a text with the analytic rubric. The old three sheets (28 blocks) stay hidden below.
     discover: [
-      B.text('035_d_intro', 'Kontroll 7: kuulamine ja kirjutamine (45 minutit)', 'Kontrollis on kaks osaoskust. Kuulamine (umbes 18 minutit): kaheksa lühiteadet (igaüht kuulad üks kord) ning raadiointervjuu (kuulad kaks korda) lünkade ja õige-vale väidetega — kokku 25 punkti. Kirjutamine (umbes 27 minutit): viie minutiga arvamus (6 punkti) ja tekst „Minu õpitee järgmine samm” umbes 160 sõna (12 punkti) — kokku 18 punkti. Kokku 43 punkti. Harno: sooritatud alates 60 % (vähemalt 26 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 % (31 punkti), meie tunnistus alates 80 % (35 punkti) — see on sisemine lävi. Sõnaraamatut ei kasutata. Kuulamise ajal võid teha märkmeid, kuid vastused kirjuta lehele kohe: salvestust ei saa peatada ega uuesti alustada. Kirjutamises loeb ka see, kas tekst sobib lugejale ja kas mõtted on lõikudeks jagatud.'),
-      PART('035_p_lpart', 'L', { minutes: 18, points: 25, tasks: 3, note: 'Teated (igaüks üks kord, 8 punkti), intervjuu (kaks korda): lüngad (9 punkti) ning õige või vale (8 punkti). Harno: sooritatud alates 60 %. KeeleSepp: eksamiks valmis alates 70 %, tunnistus alates 80 % (sisemine lävi).' }),
+      B.text('035_d_intro', 'Kontroll 7: kuulamine ja kirjutamine (45 minutit)', 'Kontrollis on kaks osaoskust. Kuulamine (umbes 20 minutit): kaheksa lühiteadet (igaüht kuulad üks kord) ning umbes kolme ja poole minutiline raadiointervjuu (kuulad kaks korda) valikvastuste ja lünklausetega — kokku 25 punkti. Kirjutamine (umbes 25 minutit): viie minutiga arvamus (6 punkti) ja tekst „Minu õpitee järgmine samm” umbes 160 sõna (12 punkti) — kokku 18 punkti. Kokku 43 punkti. Harno: eksam on sooritatud alates 60 %-st (vähemalt 26 punkti) ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st (31 punkti), meie sertifikaat alates 80 %-st (35 punkti) — see on sisemine lävi. Sõnaraamatut ei kasutata. Kuulamise ajal võid teha märkmeid, kuid vastused kirjuta lehele kohe: salvestust ei saa peatada ega uuesti alustada. Kirjutamises loeb ka see, kas tekst sobib lugejale ja kas mõtted on lõikudeks jagatud.'),
+      PART('035_p_lpart', 'L', { minutes: 20, points: 25, tasks: 3, target: 60, note: 'Teated (igaüks üks kord, 8 punkti), intervjuu (kaks korda): valikvastused (9 punkti) ning lünklaused oma sõnadega (8 punkti). Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).' }),
       once(why(tag(perClip(B.examListen('035_p_clips', 'Kuulamine 1: kaheksa lühiteadet (8 punkti).', 'Kuulad kaheksat lühikest teadet. Iga teadet kuuled ainult üks kord. Loe enne küsimus läbi, siis kuula ja vali üks õige vastus kolmest.', 'choice', [
         'Teadustaja: Kutsekooli avatud uste päev on laupäeval kella kümnest kaheni. Kell kümme algab peamajas kooli tutvustus, seejärel saavad noored ja nende vanemad töökodades erialasid proovida ja õpetajatega rääkida. Õpilaskodu tutvustus algab kell kaksteist peamaja fuajees. Eelregistreerimist ei ole vaja, kuid kui tulete terve klassiga, andke koolile ette teada. Parkida saab kooli taga tasuta.',
         'Teadustaja: Linnaraamatukogu pakub eakatele tasuta arvutikursust. Kursusel õpitakse kasutama e-posti, internetipanka ja digiretsepti. Kursus algab märtsis ja toimub kolmapäeviti kell üksteist teise korruse lugemissaalis. Kohti on kaksteist. Registreeruda saab ainult telefoni teel, sest paljud eakad ei kasuta veel e-posti. Raamatukogu kodulehel on kursuse kava, kuid registreerimisvormi seal ei ole.',
@@ -1712,18 +1713,65 @@ export const LESSONS = withShapes({
         'Teade 7: „Põhjus on see, et veebilehel oli kaks päeva tehniline viga.” Kursused algavad plaanitud ajal.',
         'Teade 8: „soovist andke teada oma lapse rühmaõpetajale”; muusikaõpetaja viib ringi läbi.',
       ])),
-      twice(patch(why(V4_BLOCKS['035_p_listen'], OLD_WHY['035_p_listen']), { instruction: 'Raadios räägib karjäärinõustaja täiskasvanute õppimisest. Loe enne kuulamist läbi nii osa 2 lüngad kui ka osa 3 väited (1 minut). Kuula intervjuud kaks korda. Täida lausete lüngad 1–2 sõnaga; vastus peab olema kuuldud sõna, mitte sinu enda selgitus. Väike õigekirjaviga punkti ei võta, kui sõna on selgelt äratuntav.' })),
-      patch(why(V4_BLOCKS['035_p_tf'], OLD_WHY['035_p_tf']), { instruction: 'Sama intervjuu (kolmandat korda seda ei mängita): otsusta kuulamise ajal või kohe pärast iga väite kohta, kas see on õige või vale. Väide on õige ainult siis, kui nõustaja ütleb seda saates; iga õige otsus annab ühe punkti.', statements: [
-        ['Nõustaja sõnul tulevad tema juurde kõige sagedamini kahekümneaastased, kes otsivad oma esimest töökohta.', false],
-        ['Nõustaja alustab vestlust alati küsimusega selle kohta, mis inimesele vabal ajal meeldib.', true],
-        ['Tööturu andmeid vaatab nõustaja koos kliendiga alles pärast seda, kui on rääkinud tema vabast ajast.', true],
-        ['Nõustaja arvates õpivad täiskasvanud alati halvemini kui noored, isegi kui nad teavad, milleks nad õpivad.', false],
-        ['Nõustaja soovitab õppida korraga pikalt, näiteks terve pühapäeva, sest siis jääb rohkem meelde.', false],
-        ['Nõustaja sõnul ei saa töötaja õppimiseks töölt vaba aega võtta, kui tööandja on selle vastu.', false],
-        ['Raha asjus soovitab nõustaja kõigepealt küsida tööandjalt, enne kui otsida teisi võimalusi.', true],
-        ['Karjäärinõustamise eest tuleb maksta väike tasu, välja arvatud neil, kes on praegu töötud.', false],
-      ].map(([text, ok]) => ({ text, answer: ok ? 'true' : 'false' })) }),
-      PART('035_t_wpart', 'W', { minutes: 27, points: 18, tasks: 2, note: 'Kirjutamine 1 (5 minutit, 6 punkti): sisu ja ülesehitus 0–3, keel 0–3 — samad tingimused nagu mooduli külmas alguses. Kirjutamine 2 (umbes 22 minutit, 12 punkti): analüütiline juhend, neli kriteeriumi 0–3. Kontrolli tulemus: kuulamine … / 25 + kirjutamine … / 18 = … / 43.' }),
+      twice(why(tag(B.examListen('035_p_interview', 'Kuulamine 2: raadiointervjuu (9 punkti).', 'Raadios räägib karjäärinõustaja täiskasvanute õppimisest. Loe enne osad 2 ja 3 läbi. Kuula kaks korda ja vali õige vastus. Vastused on öeldud teiste sõnadega; mõnes küsimuses pead järeldama.', 'choice', [
+        'Marko: Tere! Saates „Teine algus” räägime täna täiskasvanute õppimisest. Stuudios on karjäärinõustaja Piret Mets. Piret, kes teie juurde kõige sagedamini tuleb?',
+        'Piret: Tere! Kõige rohkem on neljakümne- kuni viiekümneaastaseid. Paljud on töötanud samas firmas kaua, mõni kakskümmend aastat, ja ühel hetkel tunnevad, et maailm on edasi läinud, aga nemad mitte. Noored tulevad pigem siis, kui nad on kooli pooleli jätnud.',
+        'Marko: Millest te vestlust alustate? Kas kohe tööturu numbritest?',
+        'Piret: Ei, numbrid tulevad hiljem. Esimese küsimusena uurin, millega inimene vabal ajal tegeleb. Üllatavalt sageli peitub just seal uue ameti algus. Mul oli klient, kes oli kakskümmend aastat raamatupidaja, aga nädalavahetustel parandas naabrite jalgrattaid. Täna on tal oma rattatöökoda.',
+        'Marko: Mis inimesi kõige rohkem tagasi hoiab?',
+        'Piret: Mitte raha ega aeg, vaid hirm. Ollakse kindlad, et pea enam ei võta. Tegelikult õpib täiskasvanu väga hästi, kui ta teab, milleks ta õpib. Laps õpib, sest nii on vaja; täiskasvanu õpib, sest tal on eesmärk. See on suur eelis.',
+        'Marko: Aga töö ja pere kõrvalt? Kust see aeg võtta?',
+        'Piret: Ma ei soovita suuri plaane. Kui keegi ütleb, et hakkab pühapäeviti neli tundi õppima, siis tean, et kuu aja pärast on ta loobunud. Pool tundi iga päev, näiteks bussis, viib kaugemale. Ja vähesed teavad, et töötaja võib võtta õppepuhkust kuni kolmkümmend kalendripäeva aastas. Kui õpe on tööga seotud, ei saa tööandja seda lihtsalt keelata.',
+        'Marko: Kuulajad küsivad kindlasti ka raha kohta.',
+        'Piret: Tasuta võimalusi on rohkem, kui arvatakse: Töötukassa koolitused, keelekursused, mõni ülikooli kursus. Kui kursus maksab, saab osa summast tuludeklaratsiooniga tagasi. Aga minu esimene nõuanne on lihtne: rääkige kõigepealt oma tööandjaga. Paljud firmad maksavad koolituse kinni, lihtsalt keegi ei küsi.',
+        'Marko: Kas teie juurde tulek maksab midagi?',
+        'Piret: Ei maksa. Karjäärinõustamine on tasuta kõigile, ka neile, kes praegu töötavad. Aja saab panna veebis või helistades.',
+        'Marko: Viimane küsimus: mida te ütlete inimesele, kes arvab, et tal on juba liiga hilja?',
+        'Piret: Ma küsin vastu: kui vana te olete viie aasta pärast? Selles vanuses olete te nagunii. Küsimus on ainult selles, kas uue oskusega või ilma.',
+        'Marko: Aitäh, Piret!',
+      ], [
+        ['Milline on Pireti kõige tavalisem klient?', 'keskealine inimene, kes on kaua ühes kohas töötanud', 'noor, kes otsib oma esimest töökohta', 'pensionär, kes otsib uut hobi'],
+        ['Miks küsib Piret kõigepealt, mida inimene vabal ajal teeb?', 'huvialast võib leida idee uueks ametiks', 'nii on vestlust lihtsam alustada', 'tööturu andmed ei ole talle kättesaadavad'],
+        ['Mida näitab lugu endisest raamatupidajast?', 'kõrvaltegevusest võib saada elukutse', 'raamatupidaja töö on liiga igav', 'rataste parandamine on kergem kui kontoritöö'],
+        ['Milles on Pireti arvates täiskasvanu eelis lapse ees?', 'ta teab, mis eesmärgil ta õpib', 'tal on rohkem vaba aega', 'tema mälu on parem'],
+        ['Kuidas suhtub Piret plaani õppida pühapäeviti neli tundi järjest?', 'kahtlevalt: selline plaan jääb tavaliselt pooleli', 'toetavalt: nii jõuab kõige rohkem', 'ükskõikselt: oluline on ainult tulemus'],
+        ['Mida ütleb Piret õppepuhkuse kohta?', 'paljud ei tea, et neil on see õigus', 'seda saavad ainult noored töötajad', 'tööandja võib seda alati keelata'],
+        ['Mida peaks Pireti nõuande järgi tegema enne, kui ise kursuse eest maksad?', 'uurima, kas tööandja on valmis maksma', 'esitama kohe tuludeklaratsiooni', 'ootama, kuni tuleb tasuta kursus'],
+        ['Mida tahab Piret öelda küsimusega „kui vana te olete viie aasta pärast”?', 'aeg läheb nagunii, seega tasub õppimisega alustada', 'viie aasta pärast on õppida juba liiga hilja', 'vanemad inimesed peaksid õppima vähem'],
+        ['Milline on Pireti hoiak täiskasvanute õppimise suhtes kogu intervjuus?', 'julgustav ja praktiline', 'kriitiline ja pessimistlik', 'neutraalne ja huvitu'],
+      ], 'g_read'), { voice: 'interview', task: 'L02', harno: 'L3' }), [
+        'Piret: „neljakümne- kuni viiekümneaastaseid … töötanud samas firmas kaua”.',
+        'Piret: „Üllatavalt sageli peitub just seal uue ameti algus.”',
+        'Järeldus: raamatupidajal on nüüd „oma rattatöökoda” — hobist sai töö.',
+        'Piret: „täiskasvanu õpib, sest tal on eesmärk. See on suur eelis.”',
+        'Hoiak: „kuu aja pärast on ta loobunud” — Piret ei usu sellesse plaani.',
+        'Piret: „vähesed teavad, et töötaja võib võtta õppepuhkust”.',
+        'Piret: „rääkige kõigepealt oma tööandjaga”.',
+        'Järeldus: „Selles vanuses olete te nagunii” — oota ei tasu, alusta.',
+        'Hoiak kogu saates: hirm on suurem takistus kui vanus, nõuanded on konkreetsed (pool tundi päevas, küsi tööandjalt).',
+      ])),
+      why(B.gaps('035_p_igaps', 'Kuulamine 3: täienda lauseid (8 punkti).', 'Sama intervjuu, kolmandat korda seda ei mängita. Täienda iga lause ühe-kahe sõnaga. Vastust ei ole saates sõna-sõnalt: mõtle, mida nõustaja ütles.', [
+        'Nõustaja kõige tavalisemad kliendid on [keskealised|keskealine|keskealised inimesed] inimesed, kes on kaua ühes kohas töötanud.',
+        'Esimene küsimus, mille nõustaja esitab, on inimese [hobide|hobi|huvialade|huviala|vaba aja] kohta.',
+        'Endisest raamatupidajast on saanud [ettevõtja|rattameister|rattaparandaja|jalgrattaparandaja|rattatöökoja omanik], kes parandab jalgrattaid.',
+        'Paljud kardavad, et nad on uue ameti õppimiseks juba liiga [vanad|vana].',
+        'Nõustaja soovitab õppida iga päev umbes [30|kolmkümmend] minutit, näiteks bussis.',
+        'Töötaja võib õppimiseks saada aastas umbes [kuu|ühe kuu|kuu aega] vaba aega.',
+        'Enne kui ise kursuse eest maksad, küsi, kas [tööandja|firma|töökoht] selle kinni maksab.',
+        'Karjäärinõustamine on tasuta ka neile, kellel on praegu [töö|töökoht|tööd].',
+      ], '', 'full', 'g_read'), [
+        'Piret: „neljakümne- kuni viiekümneaastaseid” → keskealised.',
+        'Piret: „uurin, millega inimene vabal ajal tegeleb” → hobi, huviala.',
+        'Piret: „Täna on tal oma rattatöökoda.” → ettevõtja, rattameister.',
+        'Piret: „Ollakse kindlad, et pea enam ei võta.” → kardavad, et on liiga vanad.',
+        'Piret: „Pool tundi iga päev” → 30 minutit.',
+        'Piret: „kuni kolmkümmend kalendripäeva aastas” → umbes kuu.',
+        'Piret: „rääkige kõigepealt oma tööandjaga”.',
+        'Piret: „ka neile, kes praegu töötavad” → kellel on töö.',
+      ]),
+      retire('035_p_listen', 'audit 2026-11-25: an 87-s interview with gap answers copied word for word is B1 level; replaced by 035_p_interview (3.4 min, paraphrased items, inference)'),
+      retire('035_p_tf', 'audit 2026-11-25: true/false on the old 87-s interview; replaced by 035_p_igaps (paraphrased gap sentences) on the new interview'),
+      PART('035_t_wpart', 'W', { minutes: 25, points: 18, tasks: 2, target: 60, note: 'Kirjutamine 1 (5 minutit, 6 punkti): sisu ja ülesehitus 0–3, keel 0–3 — samad tingimused nagu mooduli külmas alguses. Kirjutamine 2 (umbes 20 minutit, 12 punkti): analüütiline juhend, neli kriteeriumi 0–3. Kontrolli tulemus: kuulamine … / 25 + kirjutamine … / 18 = … / 43. Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).' }),
       teach(tag(B.writing('035_t_cold', 'Kirjutamine 1: arvamus viie minutiga (6 punkti).', 'Väide: „Täiskasvanu peaks iga paari aasta tagant midagi päris uut õppima.” Kirjuta 5 minutiga 5–7 lauset: kas oled nõus, põhjus ja näide ning mida ütleks vastaspool. Fraase ega algust ei anta.', [5, 7], [], 0, 'g_use'), { task: 'W14', harno: 'W2b' }),
       'Mooduli paralleelne lõpuülesanne: samad tingimused nagu mooduli külmas alguses tunnis b1b2-031 (5 minutit, 5–7 lauset, fraase ega algust ei ole), uus väide. Hinda 0–3 sisu ja ülesehituse eest (seisukoht esimeses lauses, põhjus näitega, vastuargument ja vastus sellele) ja 0–3 keele eest (rektsioon kõrvallausega, allikas, tingiv kõneviis, sõnajärg kõrvallause järel). Võrdle külma alguse lehega: ütle õppijale üks konkreetne areng ja üks järgmine samm.'),
       tag(B.examWriting('035_t_nextstep', 'Kirjutamine 2: minu õpitee järgmine samm (umbes 160 sõna, 12 punkti).', 'Kirjuta 150–170 sõna. Pealkirja ja algust ei anta.', 'vastus', {
