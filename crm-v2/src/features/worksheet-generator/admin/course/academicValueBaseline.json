@@ -32,6 +32,13 @@
   "b1b2-022|*|av-know",
   "b1b2-024|*|av-know"
  ],
+ "b1b2-module-06": [
+  "*|*|av-examiner",
+  "*|*|av-kasuta",
+  "*|*|av-opener",
+  "b1b2-026|*|av-know",
+  "b1b2-028|*|av-know"
+ ],
  "b1b2-module-17": [
   "*|*|av-opener",
   "b1b2-082|*|av-know"
