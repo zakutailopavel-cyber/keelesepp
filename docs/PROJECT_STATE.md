@@ -19,7 +19,6 @@
 - Piirangud: pildid on tööpildid (Codex võib üle joonistada); aja hinnang `timeEstimate.js` ≈ 35–43 min tunnis (paaritöö ja teine katse hindamata), autori plaan 65 min + väljund; 044 Avasta esimene lehekülg 46 % (kuulamine 6 küsimusega ei mahu esimesele lehele); kontroll on 5 lehekülge (kaks 8-küsimuselist kuulamist); 043 kirja sisupunktid on juhises, mitte eraldi loendis (pilt ja kiri mahuvad nii ühele lehele); Kasuta viimased lehed 70–74 % (piir 70 %).
 - Järgmine samm: omanik vaatab 041 ja 045 lehti (enne/pärast) ja annab OK; pärast #1325 ühendamist sama mall moodulile 10.
 
-## 2026-11-25 — B2 moodul 6 metoodika v5 järgi (agent/b2-m6-v5)
 ## 2026-11-25 — B1 moodul 8 metoodika v5 järgi (agent/b1-m8-v5)
 
 - Main kontrollitud: 507e375 (2026-11-25). Haru `agent/b1-m8-v5` on tehtud `origin/agent/b1-m7-v5` (draft-PR #1322) peale, moodulite 1–7 mall; draft-PR „B1 module 8 to methodology v5” (ühendada pärast #1321 ja #1322). Deploy'd ega production'i kirjutusi pole.
