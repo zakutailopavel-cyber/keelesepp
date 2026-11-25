@@ -1,3 +1,13 @@
+## 2026-11-25 — Harjuta: pildiharjutused („Mis on pildil?”, „Kuula ja vali pilt”) (agent/harjuta-pictures)
+
+- Main: 2c12977 (2026-11-25). Omanik: harjutus peab olema visuaalne nagu Duolingo, praegu ainult tekst. Ainult liides/mootor, õppesisu ei muudetud.
+- Uus `practice/engine/pictures.js`: A2 sõnapildid (`art/words/a2.js`, 154 pärast topeltpiltide väljajätmist) → tüübid `picture` (pilt + 4 sõna, raskemal sammul kirjutatakse) ja `hear` (sõna kõlab, vali 4 pildist; ainult salvestatud Neurokõne failiga). Valed valikud sama teema (= A2 mooduli sõnagrupi) piltidest.
+- `engine/lesson.js`: `buildLesson({ pictures })` paneb kuni 3 pildiülesannet (vali → kuula → kirjuta); ilma piltideta tund on sama mis enne (test). `studentPractice.js`: pildid õpilase oma sõnadest (vastus liigutab kaarti) ja A2 kursusel praeguse mooduli sõnadest, tähendus `lessonWords/a2.json`-ist; kursuse lausetel tunni stseenipilt (`textbookArt.visualsFor`, laaditakse koos tunniga).
+- Vastuse järel: pilt + sõna + tõlge + heli (mängib ise). Telefon: kõik nupud ≥ 44 px, tekst ≥ 16 px (ka olemasolevad: ✕, õ-ä nupud, „Aeglaselt”, vihjed); `.pr-lesson` täislaius.
+- Kontrollid: `npx vitest run src/features/practice src/features/students` 47 faili / 323 testi läbi; eslint 0 viga. e2e layout-suite katab ainult töölehti (sheet-lab), mitte harjutust — ei käivitatud. Ekraanipildid 390×844 tasks-lab (`?view=harjuta&kursus=1`, uus parameeter laadib päris kursuse).
+- Piirangud: pildid on ainult A2 sõnadel — B1+ õppijal tulevad pildid ainult siis, kui tema „Minu sõnades” on A2 pildiga sõna; mõned pildid on sarnased (köha / nohu salvrätikukarbid). Staff-eelvaade `/library/harjutused` pilte veel ei näita.
+- Järgmine samm: omaniku OK → merge → release.
+
 ## 2026-11-25 — Reeglid: lüngad tahvlil, kompaktne versioon (agent/board-fill-rules-size)
 
 - #1304 reeglid ei mahtunud: Firestore „Total size of compiled executables must be smaller than 256000 bytes” (+348 B). Minimaalne versioon: text-võtmetes `fills`; `whiteboardElementUpdateValid` lubab muutust, kus muutuvad ainult `fills` + meta. Avaldatud Rules API kaudu 2026-11-24 23:32 UTC, live = repo.
