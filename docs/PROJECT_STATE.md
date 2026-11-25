@@ -43,6 +43,14 @@
 - Praegu (aruanne): B1 moodul 1 — 90 rikkumist (tunnis 26 plokki / ≈ 130 min, kontrollis 3 lehte ja 34–36 plokki), B2 moodul 17 — 66 (tunnis 21–22 plokki / ≈ 135–140 min, kontroll 085 37 plokki).
 - Piirangud: B2 järeldusküsimused leitakse sõnade järgi, kahte häält ei kontrollita; aja hinnang `timeEstimate.js` järgi; finalShape V-reeglid ja jaamade reeglid (B2 moodulid 1–16) võivad v5 eelarvega vastuolus olla — vaata, kui moodul lülitatakse sisse.
 - Järgmine samm: sisuagent kirjutab B1 mooduli 1 ümber v5 järgi, lisab `"a2b1-module-01"` `strictModulesV5.json`-i `b1` nimekirja ja kontrollib `method-v5.mjs` + vitest'iga.
+## 2026-11-25 — Töölehed: vähem pooltühje lehti (agent/sheet-page-fill)
+
+- Main: 10e14fe (2026-11-25). Omanik: prinditud lehed lõppevad 30–50 % tühjalt.
+- `engine/pageSplit.js` + `Sheet.jsx`: jagatakse ka `speaking` (küsimused; salvestaja ja vihje viimases osas) ja `selfcheck` (rida kahest väitest); üks kõrge üksus (≥ 25 mm, nt valikvastusega küsimus) võib olla osa; lehe põhi täidetakse alates 35 mm / 10 % (enne 15 %); kõrvuti kaks loendiülesannet pannakse vajadusel üksteise alla täislaiusena; pilt (+ vihje) joonistatakse kuni 70 % väiksemana, kui rida jääb natuke puudu. Järjekord ei muutu kunagi. Reeglid: `docs/WORKSHEET_STUDIO_V1.md` „Page filling”.
+- Kontrollid: vitest worksheet-studio + worksheet-generator läbi; eslint 0 viga; layout e2e — vt PR. Labor 28 lehte (B1 m1 + B2 m17 pilootidega): pilt + ülesanne koos; muutus a2b1-003 Avasta lk 1 73→95 %.
+- Pilt (+ vihje) jääb alati samale lehele kui selle all olev ülesanne (`examMode.js keepsWithNext`): mahuvad koos, ülesande esimene osa mahub, või liiguvad koos. Piirang: sõnavara + skeemi paar liigub endiselt tervikuna.
+- Järgmine samm: omaniku OK → merge → release.
+
 ## 2026-11-25 — Reeglid: lüngad tahvlil, kompaktne versioon (agent/board-fill-rules-size)
 
 - #1304 reeglid ei mahtunud: Firestore „Total size of compiled executables must be smaller than 256000 bytes” (+348 B). Minimaalne versioon: text-võtmetes `fills`; `whiteboardElementUpdateValid` lubab muutust, kus muutuvad ainult `fills` + meta. Avaldatud Rules API kaudu 2026-11-24 23:32 UTC, live = repo.
