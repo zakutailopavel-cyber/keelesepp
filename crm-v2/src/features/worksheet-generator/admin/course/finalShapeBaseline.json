@@ -86,5 +86,17 @@
   "a2b1-052|*|V11-output",
   "a2b1-053|*|V11-input",
   "a2b1-054|*|V11-input"
+ ],
+ "a2b1-module-12": [
+  "*|*|V4-type-speaking",
+  "*|*|V5-pairs",
+  "a2b1-057|*|V11-input"
+ ],
+ "course": [
+  "*|*|V6-corner-L2",
+  "*|*|V6-exam-S1b",
+  "*|*|V6-gap-L2",
+  "*|*|V6-total-L2",
+  "*|*|V6-variant-W1a"
  ]
 }

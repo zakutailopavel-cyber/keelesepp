@@ -1,28 +1,83 @@
-// B1 course (A2 → B1 roadmap), module 12 „Ilm, loodus ja keskkond” (a2b1-056…060), stage B1.
-// PILOT of lesson design v3 „stations” (docs/COURSE_DESIGN_STATIONS.md, owner 2026-11-09): lessons 056–059 are 4–6
-// independent stations of 8–15 min, each with its own small input; any station can be skipped or reordered; one task in
-// the module (058, station 5) depends on an earlier station and prints a fallback card. Every task has a purpose line;
-// each lesson has one teacher page (teacherPage: goal, core 45-min path, alternative, short path, common errors).
-// The summer frame stays (the family at Viktor's farm in Kõrvemaa, Muki lost in the bog, the birch on the sauna roof,
-// the courtyard of Valgevase 7 and 3 in Kalamaja), but no station needs another one to work.
-//   056 KUUL L→W  „Ilm muudab plaani” — final: decide (when to go on the bog walk; a note to the family chat).
-//   057 LUGU R→W  „Äike rabas” — final: explain (a post to the village group: how Muki got lost).
-//   058 AVAS R→S  „Torm: miks ja mis siis?” — final: complain (call the insurer: cause and result).
-//   059 RÄÄK L→S  „Roheline hoov: lepime kokku” — final: negotiate (the courtyard meeting, Harno S1b).
-//   060 PROOV     Mock 1 — unchanged (design v2 / template v4 rules: an exam lesson is not a station lesson).
-// Grammar line (unchanged, METHODOLOGY_STANDARD §7, grammarPlan.js): the translative of change and the impersonal of
-// forecasts (056), the narrative past with kui / enne kui / pärast seda, kui (057), cause and result (058, 'cause'),
-// opinion + reason + example, verb government and the impersonal of rules (059). Exam corners: L2 (056), R1 (057),
-// R3a (058), S1b (059). The previous version (design v2, template v4) is in git history (main before this PR).
-import { B, tag, teach, withShapes } from '../blocks.js';
-import { purpose, station } from '../stationBlocks.js';
+// B1 course (A2 → B1 roadmap), module 12 „Ilm, loodus ja keskkond” (a2b1-056…060), stage A2+/B1- (lessons 041–060).
+// Rewritten to methodology v5 „lesson budget” (docs/METHODOLOGY_B1_B2_V5.md, 2026-11-25; strictModulesV5.json) on the
+// model of modules 1–11: one real communicative outcome a lesson, one input, ≤ 5 / 4 / 5 blocks a sheet and ≤ 15 a
+// lesson, a 75-min core in exactly 4 stations (design v4 „task-based” on the v3 station engine,
+// docs/COURSE_DESIGN_STATIONS.md §7); the module control is one sheet (≤ 10 blocks, ≈ 45 min). A2+/B1- stage: text
+// 150–220 words, audio ≤ 2.5 min, writing 60–90 words, speech 90–120 s. Inputs alternate: listening (056, 058) and
+// reading (057, 059). Every lesson has a written pair task right after its input and a second, free attempt of its
+// outcome in Kasuta (both are blocks, so the time estimate counts them — module 11's estimate was 39–50 min).
+//   056 infogap „Mis ilm nädalavahetusel tuleb?” — the module's COLD TASK first (90–120 s: weather and my plans, no
+//               help), a radio forecast for the weekend (new recording, heard twice, 8 gap sentences), the pair's plan
+//               from the forecast, and the language of change: läheb jahedamaks, muutub tuuliseks, jääb soojaks, tõuseb
+//               kahekümne kraadini, oodatakse äikest; Harno W1a corner (a hiking club questionnaire). Outcome: a phone
+//               call to a friend — which day and what time to go to the bog — with the visual „Nädalavahetuse ilm” and a
+//               HIDDEN-INFORMATION card; second attempt: the real forecast of the learner's own town on ilmateenistus.ee
+//               (the module's LINK TASK, https://www.ilmateenistus.ee).
+//   057 project „Äike tuli varem” — ONE text, a hiker's blog post „Kuidas äike meid rabas kätte sai” (≈ 205 words), the
+//               pair's timeline in sentences, and the narrative past: kui / enne kui / pärast seda, kui / samal ajal kui
+//               with the verb straight after the clause, oli lubanud. Outcome: a 60–90-word post to a hiking group
+//               without a given opening, with the six-picture story „Äike rabas”; the partner then asks about it.
+//   058 case    „Pärast tormi” — the morning radio news on a storm (new recording, heard twice, 8 true/false, Harno L4
+//               form), the pair's cause-and-result table, and cause and result: tugeva tuule tõttu, sest / kuna,
+//               seepärast + verb, nii et. Outcome: a phone call to the insurer who refused part of the damage, with the
+//               visual „Kahjuteade” and a hidden-information card; second attempt: the learner's own storm or power cut.
+//   059 debate  „Mida 300 euroga teha?” — ONE text, a house forum with three neighbours' proposals (≈ 200 words) as the
+//               model of opinion + reason + example, and verb government (nõustuma millega, loobuma millest, osalema
+//               millel, hoolitsema mille eest). Outcome: the residents' meeting (Harno S1b) with the visual „Kolm
+//               ettepanekut” and a hidden-information card; second attempt: the learner's own house or street.
+//   060 EKS     Control 12 = the end of the A2+ stage (one sheet, 10 blocks, four skills): reading 8 p (a trail notice,
+//               new), listening 6 p (the radio story on ticks — recording kept, locked), speaking 10 p — task 1 is the
+//               PARALLEL NEW TASK of 056's cold task, task 2 a Harno-type phone call to a holiday house with hidden
+//               information —, writing 8 p (advice to a friend); thresholds named one way. 060 was the first full mock
+//               exam (three sheets, 37 blocks); the owner's plan keeps the mock exams for the B1 stage (080 / 089 / 090).
+// The continuing story (Viktor's farm, Muki in the bog, Helgi, the insurer Egle, the Valgevase courtyard) is not used in
+// this module: the people of the texts are made up and appear in one lesson only. The previous version — the pilot of the
+// v3 „stations” design (owner 2026-11-09, docs/review/b1-m12-pilot.md) — is kept below as PILOT: every block of it that
+// is not on a sheet any more is retired (hidden, id and learners' answers kept), and the practice engine
+// (practice/engine/extract.js) still builds Harjuta items from its form tasks. Module 12 had no „Mäletad?” cards.
+// Owner 2026-11-25: texts adapted to the level, facts need not be real or checked; the statistics opener 056_d_open and
+// the „Kas teadsid?” card are off the sheets.
+// B1 grammar here (METHODOLOGY_STANDARD §7, grammarPlan.js): the translative of change and the impersonal of forecasts
+// (056), the narrative past with kui / enne kui / pärast seda, kui (057), cause and result (058, 'cause'), opinion +
+// reason + example and verb government (059).
+import { B, hide, tag, teach, why, withShapes } from '../blocks.js';
+import { exitCheck, homeTask, purpose, station } from '../stationBlocks.js';
 
 // the examiner's set with its own instruction (B.examiner's default wording is shared by every module: finalShape V7)
 const withInstruction = (b, instruction) => ({ ...b, data: { ...b.data, instruction } });
 
-export const MODULE = { id: 'a2b1-module-12', course: 'b1', title: 'Ilm, loodus ja keskkond', level: 'B1', design: 'v3-stations', template: 'v4' };
+export const MODULE = { id: 'a2b1-module-12', course: 'b1', title: 'Ilm, loodus ja keskkond', level: 'B1-', design: 'v3-stations', template: 'v4' };
 
-export const LESSONS = withShapes({
+// the lesson's grammar as the small subtitle under the title on every sheet
+const grammar = (text) => ({
+  discover: { label: '1 Avasta', slot: 1, subtitle: text },
+  practice: { label: '2 Harjuta', slot: 2, subtitle: text },
+  transfer: { label: '3 Kasuta', slot: 3, subtitle: text },
+});
+// the home task card at the end of every lesson
+const homework = (id, items) => B.phrasebank(id, [['Kodutöö', items]]);
+const WORDS_HOME = 'Tunni sõnad: Harjuta → Sõnad (moodul 12). Korda neid seal iga päev paar minutit.';
+const NO_RECORDING = 'Kui salvestada ei saa, räägi see järgmise tunni alguses õpetajale.';
+// one line for every block taken off the sheets by the v5 rewrite
+const V5_CUT = 'v5 (2026-11-25): lehelt maha — tunni eelarve, üks sisend, tegelased, eksamirubriik ainult kontrollis';
+const V5_DRILL = 'v5 (2026-11-25): drill Harjutasse — lehelt maha, ülesanded jäävad Harjuta harjutusteks';
+const V5_MOCK = 'v5 (2026-11-25): täispikk proovieksam asendati ühe lehe kontrolliga (A2+ astme lõpp); proovieksamid on 080 / 089 / 090';
+// a block beside another one on the page (two columns)
+const half = (block) => ({ ...block, width: 'half', span: 6 });
+// a recording in a lesson: heard twice (G6)
+const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
+// a recording in the control: heard twice and locked (G6)
+const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
+// a writing form of n ruled lines: the picture stands directly above the task and both fit on one page
+const rows = (block, n) => ({ ...block, data: { ...block.data, lines: n } });
+// a made-up text or recording names its source like the readings („Allikas: KeeleSepa õppetekst”)
+const ownText = (block) => ({ ...block, data: { ...block.data, source: 'KeeleSepa õppetekst' } });
+// the thresholds, named one way everywhere (§2.9)
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+
+// ======================================================================== the pilot (design v3 „stations”, 2026-11-09)
+// Kept for its ids: the blocks that are not on the v5 sheets are retired from here (retire(id, why) below).
+const PILOT = {
   'a2b1-056': {
     title: 'Ilm muudab plaani',
     canDo: 'Ma kuulan raadio ilmateadet ja kirjutan pere vestlusesse 50–70-sõnalise teate, millal me ilma tõttu matkale läheme ja miks.',
@@ -728,6 +783,718 @@ export const LESSONS = withShapes({
       B.selfcheck('060_t_self', ['Ma tegin kõik neli eksamiosa ajapiiranguga.', 'Ma tean oma punkte igas osas ja võrdlen neid 60 % ja 80 % piiriga.', 'Ma tean, millist osa pean moodulites 13–15 kõige rohkem harjutama.', 'Ma kasutan eksamil mooduli vorme: -ks, kui-laused, põhjus ja tagajärg.'], 'Proovieksam 1 tehtud'),
     ],
   },
+};
+
+// The blocks of PILOT that are off the sheets: retire(id, why) takes one out of PILOT without its station marker (the
+// „Jaam n · … · m min” heading belongs to the pilot's sheet) and hides it — its id and the learners' answers stay.
+const PILOT_BLOCKS = Object.fromEntries(Object.values(PILOT).flatMap((l) => ['discover', 'practice', 'transfer'].flatMap((p) => l[p] || [])).map((b) => [b.id, b]));
+const TITLE_FIELD = { text: 'heading', chart: 'chartTitle' };
+function unstation(b) {
+  if (!b.data?.station) return b;
+  const { station: st, ...data } = b.data;
+  const field = TITLE_FIELD[b.type] || 'title';
+  data[field] = st.title;
+  ['text', 'instruction'].forEach((k) => {
+    if (typeof data[k] === 'string') data[k] = data[k].replace(/\n\n\*\*Kui jätsid jaama \d+ vahele, kasuta seda kaarti:\*\*[\s\S]*$/, '');
+  });
+  return { ...b, data };
+}
+const retire = (id, reason) => {
+  const b = PILOT_BLOCKS[id];
+  if (!b) throw new Error(`moodul 12: vana plokk ${id} puudub`);
+  return hide(unstation(b), reason);
+};
+
+export const LESSONS = withShapes({
+  // ---------------------------------------------------------------- 056 infogap: the weekend forecast (change -ks, impersonal)
+  'a2b1-056': {
+    title: 'Mis ilm nädalavahetusel tuleb?',
+    phases: grammar('Keel: läheb jahedamaks · jääb soojaks · tõuseb 22 kraadini · oodatakse äikest'),
+    format: 'infogap',
+    topic: 'nature',
+    canDo: 'Ma saan aru ilmateatest, räägin, kuidas ilm muutub, ja lepin sõbraga kokku, millal matkale minna.',
+    teacherPage: {
+      goal: 'Ученик понимает радиопрогноз на выходные (цифры, время, изменения) и по прогнозу договаривается с другом, когда идти в поход: läheb jahedamaks, oodatakse äikest.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 (холодный старт, 90–120 секунд) → радиопрогноз (2 раза, 8 предложений с пропусками) и план в паре → пункт 4: звонок другу по картинке «Nädalavahetuse ilm» со скрытой информацией. Пункт 3 — дома в «Harjuta».',
+      hook: 'Пункт 1 — ХОЛОДНАЯ задача модуля 12: ученик 90–120 секунд без помощи рассказывает, какая погода ему нравится и как погода меняла его планы. Не помогайте и не исправляйте; запишите три заметки (сколько предложений, связки ja / aga / sest / kui, формы: läheb …-ks, kraadi sooja, oodatakse). Контроль (урок 60) начнётся параллельной задачей — сравните.',
+      plan: [
+        '0–8: пункт 1 — холодный старт «Ilm ja minu plaanid» 90–120 с без помощи; три заметки учителя',
+        '8–25: пункт 2 — слова (2 мин), радиопрогноз на выходные (2 раза; изменение погоды в контексте), 8 предложений с пропусками (Harno L3b), в паре письменно план «Aeg — Ilm — Mida teha?» и устно 3 вопроса: что меняется в воскресенье, когда гроза, какой день выбрать',
+        '25–40: пункт 3 — заметить → правило (läheb / muutub / jääb + -ks; tõuseb kahekümne kraadini; kümme kraadi sooja; oodatakse äikest) → Eksaminurk R3a (штормовое предупреждение, 8 пропусков с выбором) → письмо другу 8–10 предложений',
+        '40–65: пункт 4 — звонок другу по картинке «Nädalavahetuse ilm»: день и время похода в болото; у друга скрытая информация; вторая попытка без фраз — настоящий прогноз своего города на ilmateenistus.ee',
+        '65–72: проверка на выходе (3 пункта), «Ma oskan …», домашнее задание (сообщение другу + голосовое сообщение 1 мин)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик сравнивает погоду в Эстонии и у себя на родине (когда жарко, когда темно, сколько градусов)',
+        '72–90: запас',
+      ],
+      sources: 'Радиопрогноз (пункт 2) и картинка «Nädalavahetuse ilm» — учебные, синоптик и цифры выдуманы; проверять не нужно (владелец 2026-11-25). Вторая попытка — настоящий сайт ilmateenistus.ee (https://www.ilmateenistus.ee).',
+      groups: 'Пункт 4 в паре: A звонит и предлагает время, у B своя карточка с планами (A её не видит); потом смена ролей. Один на один вы — друг со скрытой информацией.',
+      errors: [
+        '«läheb jahe» вместо «läheb jahedaks» / «läheb jahedamaks» (изменение = saav kääne -ks).',
+        '«tõuseb kakskümmend kraadi» вместо «tõuseb kahekümne kraadini» (до какого градуса — родительный падеж + -ni).',
+        '«oodatakse äike» вместо «oodatakse äikest» (безличная форма + osastav).',
+        '«kakskümmend kraadi soe» вместо «kakskümmend kraadi sooja».',
+      ],
+      notes: [
+        'Холодный старт и урок 60 — пара «до / после»: те же три заметки, похожая тема. Сохраните заметки в карточке ученика.',
+        'Обратная связь, 2 цели: -ks для изменения погоды и kraadini / kraadi sooja. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(half(B.speaking('056_d_colleague', 'Külm start: ilm ja minu plaanid', 'Räägi 90–120 sekundit ilma abita ja ilma märkmeteta. Vead on lubatud.', [
+        'Milline ilm sulle meeldib? Kuidas ilm sinu nädalavahetuse plaane muudab? Kas ilm on sinu plaani kunagi rikkunud?',
+      ], [90, 120])), 'Tunnis 60 on sarnane ülesanne: siis näed, kui palju rohkem sa oskad.'), { task: 'S02', level: 4, fluency: true }),
+      'Külm ülesanne (mooduli 12 algus, ilma toeta). Ära aita, ära paranda, ära küsi lisaküsimusi. Märgi õpilase kaardile kolm asja: 1) mitu lauset ta ütles; 2) kas laused on seotud (ja, aga, sest, kui); 3) vormid: muutus (läheb soojaks, läks külmaks), temperatuur (kakskümmend kraadi sooja), umbisikuline (oodatakse). Hoia märkmed alles: tunnis 60 on paralleelne uus ülesanne ja te võrdlete.'), 1, 8),
+      station(tag(half(B.vocab('056_d_vocab', 'Tunni sõnad.', ['ilmateade — прогноз погоды', 'äike — гроза', 'tuul — ветер', 'kraad — градус', 'pilvine — облачный', 'jahe — прохладный', 'hoiatus — предупреждение', 'muutuma — меняться'], '2')), {}), 2, 17),
+      tag(purpose(why(ownText(twice(B.listening('056_d_radio', 'Raadio: nädalavahetuse ilm.', 'Loe enne laused läbi. Siis kuula kaks korda ja kirjuta igasse lünka üks sõna või number.', [
+        'Saatejuht: Tere hommikust! On reede, kell on kaheksa ja nüüd räägime nädalavahetuse ilmast. Stuudios on sünoptik Marko Lepp. Marko, kas laupäeval saab looduses olla?',
+        'Sünoptik: Saab küll. Laupäeva hommik on päikeseline, aga jahe, ainult kümme kraadi sooja. Päeval läheb kiiresti soojemaks ja pärastlõunal tõuseb temperatuur kahekümne kahe kraadini. Tuul on nõrk.',
+        'Saatejuht: Kõlab hästi. Aga pühapäev?',
+        'Sünoptik: Pühapäeval ilm muutub. Hommik on veel soe ja vaikne, aga lõuna paiku läheb taevas läänest pilviseks. Kella kahe ja viie vahel oodatakse hoovihmu ja äikest. Äikese ajal tugevneb tuul puhanguti viieteistkümne meetrini sekundis.',
+        'Saatejuht: Kas see on ohtlik?',
+        'Sünoptik: Keskkonnaagentuur annab pühapäevaks kollase hoiatuse. Kes tahab metsa või rappa minna, peaks minema hommikul ja olema tagasi enne kella kahte. Lagedal kohal ei tasu äikese ajal olla.',
+        'Saatejuht: Ja õhtu?',
+        'Sünoptik: Pärast äikest läheb märgatavalt jahedamaks. Õhtul on sooja ainult kaksteist kraadi ja öö jääb vihmaseks. Esmaspäeval sajab terve päeva.',
+        'Saatejuht: Mida sa kuulajatele soovitad?',
+        'Sünoptik: Laupäev on nädalavahetuse parim päev. Kui plaanite pühapäevaks matka, vaadake enne minekut veel kord ilmateadet, sest äikese aeg võib muutuda.',
+        'Saatejuht: Aitäh, Marko! Järgmine ilmateade tuleb kell kaksteist.',
+      ], [
+        'Laupäeva hommikul on sooja ainult [kümme|10] kraadi.',
+        'Laupäeva pärastlõunal tõuseb temperatuur [22|kahekümne kahe|kakskümmend kaks] kraadini.',
+        'Pühapäeval lõuna paiku läheb taevas läänest [pilviseks].',
+        'Hoovihmu ja äikest oodatakse kella kahe ja [viie|5] vahel.',
+        'Äikese ajal on tuulepuhangud kuni [15|viisteist] meetrit sekundis.',
+        'Pühapäevaks annab Keskkonnaagentuur kollase [hoiatuse].',
+        'Pärast äikest läheb õhtul märgatavalt [jahedamaks].',
+      ], 'g_read'))), [
+        'Sünoptik: „ainult kümme kraadi sooja”.',
+        'Sünoptik: „tõuseb temperatuur kahekümne kahe kraadini”.',
+        'Sünoptik: „lõuna paiku läheb taevas läänest pilviseks”.',
+        'Sünoptik: „Kella kahe ja viie vahel oodatakse hoovihmu ja äikest.”',
+        'Sünoptik: „viieteistkümne meetrini sekundis”.',
+        'Sünoptik: „annab pühapäevaks kollase hoiatuse”.',
+        'Sünoptik: „Pärast äikest läheb märgatavalt jahedamaks.”',
+      ]), 'Kuuled, mis ilm tuleb ja kuidas see muutub. Eksamil (Harno B1 kuulamine 3b) on sama ülesanne.'), { task: 'L04' }),
+      teach(tag(purpose(B.table('056_d_plan', 'Paaris: plaan ilmateate järgi.', 'Kirjutage koos igasse ritta terve lause. Siis öelge, kumma päeva valite.', 'Aeg, Mis ilm siis on?, Mida on hea teha?', [
+        'Laupäeva hommik |  | ',
+        'Laupäeva pärastlõuna |  | ',
+        'Pühapäeval kell 14–17 |  | ',
+        'Pühapäeva õhtu |  | ',
+      ], 'g_read'), 'Teie plaan on tunni lõpu kõne materjal.'), { task: 'L06' }),
+      'Paarid kirjutavad koos 6–8 minutit, üks kirjutab, teine dikteerib, poole pealt vahetavad. Siis küsivad teineteiselt suuliselt: „Mis pühapäeval muutub? Millal oodatakse äikest? Kumba päeva sina valid ja miks?”. Kontrolli, et ilma lahtris on muutuse vorm (läheb soojemaks, läheb pilviseks, jääb vihmaseks). Üks-ühele: õpilane kirjutab, sina küsid iga rea juures „Miks?”.'),
+      retire('056_d_open', V5_CUT),
+      retire('056_d_notes', V5_CUT),
+    ],
+    practice: [
+      station(B.notice('056_d_notice', 'Märka: kuidas ilm muutub', [
+        'Raadiost: päeval **läheb** kiiresti **soojemaks** · taevas **läheb pilviseks** · pärast äikest **läheb jahedamaks** · öö **jääb vihmaseks** · pühapäeval ilm **muutub**',
+        'Muutus: **läheb / muutub / jääb** + **-ks** (saav kääne): jahe → läheb **jahedaks**, jahedam → läheb **jahedamaks** · tuuline → muutub **tuuliseks** · soe → jääb **soojaks**',
+        'Temperatuur **tõuseb / langeb** + omastav + **-ni**: kahekümne kahe kraadi**ni** · kümne kraadi**ni** · aga: **kümme kraadi sooja** · **kaks kraadi külma**',
+        'Ilmateates umbisikuline tegumood: **oodatakse** äikest (osastav) · **soovitatakse** minna hommikul · **antakse** hoiatus',
+      ], 'full'), 3, 15),
+      teach(tag(purpose(why(ownText(B.cloze('056_p_cloze', 'Eksaminurk: ilmahoiatus (Harno B1 lugemine 3a)', 'Loe hoiatust ja vali igasse lünka sobiv sõna.', 'Kollane hoiatus: äike pühapäeval', [
+        'Pühapäeval {*oodatakse|ootab|oodata} Kesk-Eestis äikest ja hoovihmu. Hommik on veel soe, aga lõuna paiku läheb taevas {*pilviseks|pilvine|pilvisena}. Äikese ajal tugevneb tuul viieteistkümne {*meetrini|meetrit|meetriks} sekundis.',
+        '',
+        'Kui plaanite matka, minge {*hommikul|hommik|hommikuks} ja olge tagasi enne kella kahte. Äikese ajal ärge seiske üksiku puu all, {*sest|kuigi|nii et} välk lööb sageli kõrgesse kohta.',
+        '',
+        'Pärast äikest läheb õhk palju {*jahedamaks|jahedam|jahedalt}: õhtul on sooja ainult kaksteist {*kraadi|kraad|kraadini}. Öö {*jääb|jäävad|jääma} vihmaseks, seepärast võtke kaasa soe jope.',
+      ])), [
+        'umbisikuline: oodatakse äikest.',
+        'läheb + -ks: pilviseks.',
+        'tugevneb + omastav + -ni: meetrini.',
+        'Millal? → hommikul.',
+        'Põhjus: sest.',
+        'läheb + -ks: jahedamaks.',
+        'arv + osastav: kaksteist kraadi.',
+        'öö (ainsus) jääb + -ks: jääb vihmaseks.',
+      ]), 'Harjutad Harno B1 lugemise 3. osa: valid igasse lünka ühe sõna kolmest. Kaheksa lünka näitavad ka, kas ilmateate vormid on käes.'), { task: 'R03', harno: 'R3a' }),
+      'Eksaminurk (Harno B1 lugemine 3a, valikutega lünktekst, ~8 min). Strateegia: 1) loe kõigepealt kogu lause; 2) mõtle, kas lünka on vaja vormi (pilviseks, meetrini, kraadi) või sidesõna (sest); 3) vali alles siis. Üks-ühele: õpetaja küsib kahe lünga juures, miks teised variandid ei sobi.'),
+      tag(purpose(rows(B.writing('056_p_reply', 'Kirjuta terved laused.', 'Sõber tuleb sel nädalal külla. Kirjuta talle 8–10 lauset: mis ilm sinu linnas on, kuidas see muutub ja mida koos teha.', [8, 10]), 6), 'Oma laused on sinu kõne materjal tunni lõpus.'), { task: 'W04' }),
+      retire('056_p_notes', V5_DRILL),
+      retire('056_p_radio', V5_CUT),
+    ],
+    transfer: [
+      station(teach(tag(purpose(B.phoneCards('056_t_plan', 'Kõne sõbrale: millal rappa?', 'Vaata ilmaäppi üleval. A helistab sõbrale ja teeb ettepaneku, B on sõber ja vaatab oma kaarti. Leppige kokku päev ja kellaaeg. Siis vahetage rollid.',
+        'Te tahate nädalavahetusel minna Kõrve rappa. Matk kestab umbes kolm tundi ja rabas ei ole varju.',
+        ['Helistaja', [
+          'Sina tead ilmaäpi järgi, mis ilm laupäeval ja pühapäeval tuleb.',
+          'Sinu eesmärk: matk, mille ajal ei tule äikest ega tugevat vihma.',
+          'Sul on laupäeval kella 12-ni töö.',
+        ]], ['Sõber', [
+          'Sul on pühapäeval kell 16 sünnipäev.',
+          'Sa ei taha minna väga vara, enne kella 9.',
+          'Sinu auto on laupäeval kella 13-ni hoolduses.',
+        ]], [120, 240]), 'Pärast kõnet teate, mis päeval ja mis kell te lähete ning miks just siis.'), { task: 'S05', main: true, level: 4 }),
+      'Infolünk telefonis nagu Harno B1 rääkimise 2. osas. Üks-ühele: sina oled sõber. Varjatud info: pühapäeval kell 16 on sul sünnipäev ja enne seda tahad sa veel koju jõuda; laupäeval saad sa auto alles kell 13; sa ei ole kunagi rabas käinud ja kardad äikest. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Läheme pühapäeval kell üksteist, siis saab kaua magada!”; 2) „Laupäeva hommikul ei saa, auto on hoolduses.”; 3) „Kas laupäeva õhtul ei ole liiga hilja?” Õnnestunud, kui õpilane ütleb ilmaäpi järgi, mis ilm millal tuleb (pühapäeval kella kahe ja viie vahel oodatakse äikest, laupäeva pärastlõunal on soe ja vaikne), pakub sobiva aja (laupäeval kell 13.30–16.30) ja kordab kokkuleppe üle. Teine katse ilma fraasideta (järgmine ülesanne): õpilane vaatab päris ilmateadet.'), 4, 25, { final: 'decide' }),
+      teach(tag(purpose(B.speaking('056_t_real', 'Päris ilm: minu homne päev', 'Ava telefonis Keskkonnaagentuuri ilmateenistuse leht ilmateenistus.ee (https://www.ilmateenistus.ee) ja vaata oma linna homset ilma. Räägi paarilisele 90–120 sekundit ilma fraasideta.', [
+        'Mis ilm on homme hommikul ja õhtul?',
+        'Kas oodatakse vihma, tuult või äikest? Millal?',
+        'Mida sa homme teed ja mida sa ilma tõttu muudad?',
+      ], [90, 120]), 'Päris leht: loed eesti keeles päris ilmateadet ja plaanid selle järgi oma päeva.'), { task: 'S13', level: 4, fluency: true }),
+      'Seosülesanne (päris allikas). Õpilane avab lehe ise; kui telefoni ei ole, näita lehte oma ekraanilt. Üks-ühele: sina vaatad oma linna ilma ja räägid kõigepealt kolm lauset, siis õpilane; küsi üks lisaküsimus („Kas sa võtad vihmavarju kaasa?”). Ära paranda kõne ajal, märgi üks vorm, mida pärast koos parandate.'),
+      tag(exitCheck(why(purpose(B.gaps('056_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Pühapäeval lõuna paiku läheb taevas [pilviseks] (pilvine).',
+        'Laupäeva pärastlõunal tõuseb temperatuur kahekümne kahe [kraadini] (kraad).',
+        'Pühapäeval kella kahe ja viie vahel [oodatakse] äikest (ootama).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas ilmateate vormid on käes.'), ['läheb + -ks: pilviseks.', 'tõuseb + -ni: kraadini.', 'umbisikuline: oodatakse.'])), {}),
+      purpose(B.selfcheck('056_t_self', ['Ma ütlen, kuidas ilm muutub: läheb jahedamaks, muutub tuuliseks, jääb soojaks.', 'Ma ütlen temperatuuri: tõuseb kahekümne kraadini, kümme kraadi sooja.', 'Ma saan aru raadio ilmateatest: numbrid, kellaajad ja hoiatus.', 'Ma lepin ilmateate järgi kokku, millal matkale minna.'], 'Matkapäev valitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.writing('056_t_home', 'Kodus: sõnum sõbrale.', 'Kirjuta sõbrale 5–7 lauset: mis päeval ja mis kell te lähete ja miks. Saada ka 1-minutiline häälsõnum.', [5, 7]), 'Sõber teab plaani ja õpetaja kuuleb, kas ilma vormid tulid õigesti.')), { task: 'W02' }),
+      retire('056_t_sit', V5_CUT),
+      retire('056_t_app', V5_CUT),
+      retire('056_t_talk', V5_CUT),
+      retire('056_t_message', V5_CUT),
+    ],
+  },
+
+  // ---------------------------------------------------------------- 057 project: the storm came early (narrative past, kui-clauses)
+  'a2b1-057': {
+    title: 'Äike tuli varem',
+    phases: grammar('Keel: Kui välk lõi, pöörasime tagasi · enne kui · pärast seda, kui'),
+    format: 'project',
+    topic: 'freetime',
+    canDo: 'Ma loen matkaloo, jutustan sündmused õiges järjekorras (kui, enne kui, pärast seda, kui) ja kirjutan matkagrupile postituse, mis juhtus ja mida ma sellest õppisin.',
+    teacherPage: {
+      goal: 'Ученик читает рассказ о походе, пересказывает события по порядку (kui, enne kui, pärast seda, kui — глагол сразу после придаточного) и пишет пост группе туристов.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → текст «Kuidas äike meid rabas kätte sai» и 8 вопросов, в паре — события по порядку → пункт 4: пост 60–90 слов по картинке «Äike rabas» без данного начала, партнёр задаёт вопросы. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kas sind on kunagi looduses vihm, torm või äike üllatanud?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 56 без записей: как меняется погода в воскресенье (läheb pilviseks, oodatakse äikest).',
+      plan: [
+        '0–8: пункт 1 — погода, которая удивила; одно предложение с -ks (повторение урока 56)',
+        '8–25: пункт 2 — слова, блог «Kuidas äike meid rabas kätte sai» (≈ 205 слов), 8 вопросов, в паре письменно: события по порядку (Kui …, Pärast seda, kui …), потом пересказ по очереди',
+        '25–40: пункт 3 — заметить → правило (kui / enne kui / pärast seda, kui / samal ajal kui + глагол сразу в главном предложении; enne + omastav; oli lubanud) → 8 соединений → план своей истории в паре (рассказать вслух) → 8–10 своих предложений',
+        '40–65: пункт 4 — пост в группу туристов 60–90 слов без данного начала по картинке «Äike rabas» или о своей прогулке (15 мин); чтение вслух, партнёр — другой турист, задаёт два вопроса; вторая попытка — дописать недостающее',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание (пост начисто + запись своей истории 60–90 с)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, какая природа и погода опасны у него на родине и что там делают',
+        '72–90: запас',
+      ],
+      sources: 'Блог (пункт 2) и картинка «Äike rabas» — учебные, автор и события выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 2 в паре: A пишет первые три строки таблицы, B — последние три, потом рассказывают по очереди. Пункт 4: каждый пишет сам, потом читает партнёру. Один на один вы — турист из группы, который задаёт вопросы.',
+      errors: [
+        '«Kui välk lõi, me pöörasime tagasi» вместо «Kui välk lõi, pöörasime me tagasi» (после придаточного глагол главного предложения сразу).',
+        '«enne kui äikest» вместо «enne äikest» или «enne kui äike tuli» (после enne kui нужен глагол).',
+        '«Äike tuli varem, kui ilmateade lubas» → лучше «oli lubanud» (то, что было раньше).',
+        '«läksime rabas» вместо «läksime rappa» (куда? — rappa).',
+      ],
+      notes: [
+        'Пост — продукт урока: в нём место и время, три события по порядку (два kui-предложения), как вернулись и один совет.',
+        'Обратная связь, 2 цели: порядок слов после kui-предложения и прошедшее время. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(half(B.speaking('057_d_opinion', 'Kas ilm on sind looduses üllatanud?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Kas sind on kunagi looduses vihm, torm või äike üllatanud? Mis juhtus?',
+        'Ütle ilma märkmeteta üks lause eelmisest tunnist: kuidas ilm pühapäeval muutub?',
+      ], [70, 90])), 'Sinu kogemus on tänase tunni algus: lõpus kirjutad oma matkaloo.'), { task: 'S01', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma lugu ilmast looduses (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mis sa siis tegid?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('057_d_vocab', 'Tunni sõnad.', ['matk — поход', 'laudtee — деревянный настил', 'vaatetorn — смотровая башня', 'raba — болото', 'välk — молния', 'müristama — греметь', 'tagasi pöörama — повернуть назад', 'kiirustama — спешить', 'kukkuma — падать', 'märg — мокрый'], '2')), { topic: ['laudtee', 'vaatetorn'] }), 2, 17),
+      tag(purpose(why(ownText(B.reading('057_d_bog', 'Matkaja blogi.', 'Loe teksti. Vasta igale küsimusele 1–5 sõnaga.', 'Kuidas äike meid rabas kätte sai', [
+        'Eelmisel laupäeval läksime sõbranna Katiga Kõrve rappa. Ilmateade lubas äikest alles õhtul, nii et me ei kiirustanud. Kui me kell kümme parklasse jõudsime, paistis päike ja oli palav. Võtsime kaasa võileivad, vee ja fotoaparaadi, aga vihmajoped jäid autosse.',
+        '',
+        'Kõigepealt kõndisime mööda laudteed vaatetornini. See on umbes kaks kilomeetrit. Tornist paistis kogu raba: väikesed järved, männid ja kaugel mets. Samal ajal kui ma tornis pilte tegin, märkas Kati läänes tumedat pilve. Me arvasime, et see läheb mööda.',
+        '',
+        'Pärast seda, kui me tornist alla tulime, lõi esimene välk. Ma lugesin sekundeid: müristas alles kaheteistkümne sekundi pärast. Äike oli umbes nelja kilomeetri kaugusel. Raba on lage koht, seal ei ole ühtegi suurt puud ega maja. Me pöörasime kohe tagasi. Kati kartis väga, aga ma ütlesin, et peame lihtsalt rahulikult ja kiiresti kõndima.',
+        '',
+        'Enne kui me metsa servale jõudsime, hakkas tugevasti sadama. Laudtee läks libedaks ja me pidime aeglaselt kõndima. Tee peal nägime teisi matkajaid, kes jooksid samuti parkla poole. Kui me lõpuks autosse istusime, olime täiesti märjad, aga terved.',
+        '',
+        'Hiljem kodus lugesin, et äike tuli kolm tundi varem, kui ilmateade oli lubanud. Nüüd vaatan alati enne matka ilmaradarit ja võtan kaasa vihmajope. Ja kui taevas läheb tumedaks, ei oota ma enam, vaid pööran kohe tagasi.',
+        '',
+        'Kristel, blogi „Matkasaapad”',
+      ], [
+        ['Miks nad hommikul ei kiirustanud?', 'ilmateade lubas äikest alles õhtul|äike pidi tulema õhtul|äikest lubati õhtul'],
+        ['Mis ilm oli, kui nad parklasse jõudsid?', 'paistis päike ja oli palav|päikeseline ja palav|palav'],
+        ['Mida märkas Kati, samal ajal kui kirjutaja tornis pilte tegi?', 'tumedat pilve läänes|tumedat pilve|tumeda pilve'],
+        ['Kui kaugel oli äike esimese välgu ajal?', 'umbes nelja kilomeetri kaugusel|neli kilomeetrit|4 km|nelja kilomeetri kaugusel'],
+        ['Miks on äike rabas ohtlik?', 'raba on lage koht|raba on lage|seal ei ole puid ega maja'],
+        ['Mis juhtus, enne kui nad metsa servale jõudsid?', 'hakkas tugevasti sadama|hakkas sadama'],
+        ['Miks pidid nad aeglaselt kõndima?', 'laudtee läks libedaks|laudtee oli libe'],
+        ['Mida teeb kirjutaja nüüd enne matka?', 'vaatab ilmaradarit ja võtab vihmajope|vaatab ilmaradarit|vaatab ilmaradarit ja võtab kaasa vihmajope'],
+      ])), [
+        'Esimene lõik: „Ilmateade lubas äikest alles õhtul, nii et me ei kiirustanud.”',
+        'Esimene lõik: „paistis päike ja oli palav”.',
+        'Teine lõik: „märkas Kati läänes tumedat pilve”.',
+        'Kolmas lõik: „Äike oli umbes nelja kilomeetri kaugusel.”',
+        'Kolmas lõik: „Raba on lage koht, seal ei ole ühtegi suurt puud ega maja.”',
+        'Neljas lõik: „Enne kui me metsa servale jõudsime, hakkas tugevasti sadama.”',
+        'Neljas lõik: „Laudtee läks libedaks”.',
+        'Viies lõik: „Nüüd vaatan alati enne matka ilmaradarit ja võtan kaasa vihmajope.”',
+      ]), 'Enne kui sa oma loo kirjutad, loed, kuidas teine matkaja jutustab, mis juhtus ja mis järjekorras. Eksamil (Harno B1 lugemine 2) on samuti üks pikem tekst ja küsimused.'), { task: 'R15', harno: 'R2', voice: 'forum' }),
+      teach(tag(purpose(B.table('057_d_order', 'Paaris: mis juhtus ja mis siis?', 'Kirjutage koos teksti järgi iga rea lõppu, mis juhtus. Kirjutage terve lause minevikus.', 'Algus, Mis juhtus?', [
+        'Kui nad parklasse jõudsid, | ',
+        'Samal ajal kui kirjutaja tornis pilte tegi, | ',
+        'Pärast seda, kui nad tornist alla tulid, | ',
+        'Kui müristas kaheteistkümne sekundi pärast, | ',
+        'Enne kui nad metsa servale jõudsid, | ',
+        'Kui nad lõpuks autosse istusid, | ',
+      ], 'g_notice'), 'Teie ühine järjekord on loo selgroog: selle järgi jutustad ja kirjutad hiljem oma loo.'), { task: 'G02' }),
+      'Paarid kirjutavad koos 6–8 minutit: A kirjutab kolm esimest rida, B kolm viimast, siis loevad kordamööda kogu loo ette. Kontrolli sõnajärge: pärast kui-lauset tuleb tegusõna kohe (Kui nad parklasse jõudsid, paistis päike). Üks-ühele: õpilane kirjutab, sina loed kaks rida valesti („… , me pöörasime tagasi”) ja õpilane parandab.'),
+      teach(tag(purpose(B.speaking('057_d_retell', 'Jutustage kordamööda.', 'Jutustage tabeli järgi, mis matkal juhtus. A alustab, B jätkab pärast esimest välku. Siis öelge oma arvamus.', [
+        'Mis juhtus enne esimest välku?',
+        'Mis juhtus pärast seda, kui välk lõi?',
+        'Mida tegid Kristel ja Kati õigesti ja mida valesti?',
+      ], [90, 120], '', 'g_read'), 'Jutustad teise matkaja loo õiges järjekorras ja ütled, mida temalt õppida.'), { task: 'S07', fluency: true }),
+      'Üks-ühele: õpilane jutustab kogu loo, sina küsid vahel „Oota, kas see oli enne või pärast vihma?”. Lõpus ütleb kumbki, mida Kristel ja Kati oleksid võinud teisiti teha.'),
+      retire('057_d_time', V5_CUT),
+    ],
+    practice: [
+      station(B.notice('057_d_notice', 'Märka: kuidas lugu edasi viia', [
+        'Tekstist: **Kui** me parklasse jõudsime, **paistis** päike. · **Samal ajal kui** ma pilte tegin, **märkas** Kati pilve. · **Pärast seda, kui** me alla tulime, **lõi** välk. · **Enne kui** me metsa jõudsime, **hakkas** sadama.',
+        'Kõrvallause on ees → pealauses tuleb **tegusõna kohe**: Kui välk lõi, **pöörasime** me tagasi. (mitte: …, me pöörasime)',
+        '**enne kui** + tegusõna (enne kui äike tuli) · **enne** + omastav (enne äikest) · **pärast seda, kui** + tegusõna · **pärast** + omastav (pärast vihma)',
+        'Mis oli juba varem juhtunud? Äike tuli varem, kui ilmateade **oli lubanud**. (enneminevik, moodul 10)',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.transformation('057_p_join', 'Üks lause kahest.', 'Ühenda kaks lauset üheks antud sõnaga. Pane tähele, kus on tegusõna.', [
+        ['Välk lõi. Me hakkasime kohe sekundeid lugema.', 'kui', 'Kui välk lõi, hakkasime kohe sekundeid lugema.'],
+        ['Me jõudsime torni juurde. Siis tuli äike.', 'enne kui', 'Me jõudsime torni juurde, enne kui äike tuli.'],
+        ['Hakkas sadama. Me kiirustasime metsa poole.', 'pärast seda, kui', 'Pärast seda, kui hakkas sadama, kiirustasime metsa poole.'],
+        ['Isa tegi pilte. Samal ajal märkas laps pilve.', 'samal ajal kui', 'Samal ajal kui isa pilte tegi, märkas laps pilve.'],
+        ['Me jõudsime metsa. Rada oli vee all.', 'kui', 'Kui me metsa jõudsime, oli rada vee all.'],
+        ['Raadio lubas äikest õhtul. Äike tuli varem.', 'oli lubanud', 'Äike tuli varem, kui raadio oli lubanud.'],
+        ['Me istusime autosse. Vihm lõppes.', 'kui', 'Kui me autosse istusime, lõppes vihm.'],
+        ['Me jõime teed. Siis sõitsime koju.', 'pärast seda, kui', 'Pärast seda, kui me teed jõime, sõitsime koju.'],
+      ]), [
+        'Kui-lause ees → tegusõna kohe: hakkasime.',
+        'enne kui + tegusõna lõpus: tuli.',
+        'Pärast seda, kui … → tegusõna kohe: kiirustasime.',
+        'Samal ajal kui … → tegusõna kohe: märkas.',
+        'Kui-lause ees → tegusõna kohe: oli.',
+        'Varasem asi: oli lubanud.',
+        'Kui-lause ees → lõppes.',
+        'Pärast seda, kui … → sõitsime.',
+      ]), 'Kaheksa lauset näitavad, kas loo sõnajärg on käes.'), { task: 'G05' }),
+      teach(tag(purpose(B.planning('057_p_plan', 'Paaris: minu loo plaan.', 'Kirjuta igale küsimusele paar märksõna. Siis jutusta paarilisele ja paariline küsib ühe küsimuse.', [
+        'Kus ja millal see oli?',
+        'Mis oli plaan?',
+        'Mis juhtus, kui ilm muutus?',
+        'Mis juhtus pärast seda?',
+        'Kuidas see lõppes ja mida sa õppisid?',
+      ], 3), 'Plaan aitab sul oma lugu õiges järjekorras jutustada ja kirjutada.'), { task: 'W11' }),
+      'Paarid kirjutavad märksõnad (3 min) ja jutustavad siis oma loo plaani järgi (1–2 min igaüks); kuulaja küsib: „Ja mis siis juhtus?”. Üks-ühele: õpilane jutustab, sina küsid ühe lisaküsimuse ja märgid ühe kui-lause, kus tegusõna oli valel kohal.'),
+      tag(purpose(rows(B.writing('057_p_sent', 'Kirjuta terved laused.', 'Kirjuta 8–10 lauset ühest oma matkast või jalutuskäigust, kus ilm muutus: mis juhtus kõigepealt, mis siis ja mis lõpuks.', [8, 10]), 11), 'Oma laused on sinu postituse materjal.'), { task: 'W05' }),
+      retire('057_d_helgi', V5_CUT),
+      retire('057_p_board', V5_CUT),
+    ],
+    transfer: [
+      station(teach(tag(purpose(rows(B.writing('057_t_blog', 'Postitus matkagrupile „Matkame Eestis”.', 'Kirjuta 8–11 lauset (60–90 sõna) ilma antud alguseta: kus ja millal, mis juhtus, kuidas tagasi saite, mida soovitad.', [8, 11]), 8), 'Teised matkajad saavad teada, mis juhtus ja mida õppida.'), { task: 'W06', main: true, level: 4 }),
+      'Mooduli vaba kirjutamine (ilma antud alguse ja fraasideta). Õpilane kirjutab 15 minutit ilma abita (pildiloo „Äike rabas” järgi — kell 10 parklas, kell 11 vaatetornis, kell 11.20 tume pilv, kell 11.30 välk ja 12 sekundit, kell 11.50 vihm ja libe laudtee, kell 12.30 märjad autos — või oma matka järgi). Siis loeb paarilisele (või sulle) ette; kuulaja on teine matkaja ja küsib kaks küsimust, millele postituses vastust ei ole („Kas te kartsite?”, „Mida sa järgmisel korral teisiti teed?”) — õpilane vastab ilma postituseta. Teine katse: õpilane lisab postitusse ühe puuduva asja (kellaaeg, nõuanne). Kontrolli: koht ja aeg, vähemalt kaks kui-, enne kui- või pärast seda, kui -lauset õige sõnajärjega, üks nõuanne. Parandatud versioon on kodutöö.'), 4, 25, { final: 'explain' }),
+      tag(exitCheck(why(purpose(B.gaps('057_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', [
+        'Kui välk lõi, [pöörasime] me kohe tagasi (pöörama).',
+        'Enne kui me metsa jõudsime, [hakkas] tugevasti sadama (hakkama).',
+        'Äike tuli varem, kui ilmateade oli [lubanud] (lubama).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas loo vormid on käes.'), ['Kui-lause ees → tegusõna kohe: pöörasime.', 'Enne kui … → hakkas.', 'enneminevik: oli lubanud.'])), {}),
+      purpose(B.selfcheck('057_t_self', ['Ma jutustan õiges järjekorras: kui, enne kui, pärast seda, kui, samal ajal kui.', 'Ma panen tegusõna õigesse kohta: Kui välk lõi, pöörasime me tagasi.', 'Ma saan aru matkaloost ja leian, mis juhtus enne ja mis pärast.', 'Ma kirjutan postituse: mis juhtus ja mida sellest õppida.'], 'Lugu jutustatud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('057_t_rec', 'Kodus: minu matkalugu.', 'Jutusta oma lugu ilma postitust vaatamata ja salvesta 60–90 sekundit.', [
+        'Kus ja millal see oli?',
+        'Mis juhtus, kui ilm muutus?',
+        'Mis juhtus pärast seda?',
+        'Mida sa sellest õppisid?',
+      ], [60, 90]), 'Õpetaja kuulab, kas tegusõna on pärast kui-lauset õiges kohas.')), { task: 'S15', fluency: true }),
+      homework('057_t_homework', ['1. Paranda postitus õpetaja märkuste järgi ja kirjuta puhtalt.', '2. Salvesta oma matkalugu (ülesanne üleval).', '3. Kirjuta vihikusse viis lauset: Kui …, … ; Enne kui …, … ; Pärast seda, kui …, … .', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      retire('057_t_post', 'v5 (2026-11-25): postitus on nüüd kirjutamisplokk 057_t_blog (pilt ja ülesanne samal lehel)'),
+      retire('057_t_sit', V5_CUT),
+      retire('057_t_search', V5_CUT),
+    ],
+  },
+
+  // ---------------------------------------------------------------- 058 case: after the storm (cause and result)
+  'a2b1-058': {
+    title: 'Pärast tormi',
+    phases: grammar('Keel: tugeva tuule tõttu · kuna · seepärast jäid bussid hiljaks · nii et'),
+    format: 'case',
+    topic: 'home',
+    canDo: 'Ma saan aru tormiuudisest, seletan põhjust ja tagajärge ja helistan kindlustusse, kui osa kahjust jäi hüvitamata.',
+    teacherPage: {
+      goal: 'Ученик понимает радионовость о буре и по телефону со страховой объясняет причину и следствие (tormi tõttu, kuna, seepärast, nii et), чтобы ущерб возместили.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → новости по радио (2 раза, 8 вопросов с выбором) и таблица «причина — следствие» в паре → пункт 4: звонок в страховую по картинке «Kahjuteade» со скрытой информацией. Пункт 3 — дома в «Harjuta».',
+      hook: '«Kas sinu kodus on kunagi elekter või vesi pikalt ära olnud?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 57 без записей: одно предложение с kui (Kui välk lõi, …).',
+      plan: [
+        '0–8: пункт 1 — отключение света или воды; одно предложение с kui (повторение урока 57)',
+        '8–25: пункт 2 — слова, утренние новости о буре (2 раза, 8 вопросов с выбором, Eksaminurk Harno L2), в паре письменно таблица «причина — следствие» и устно 3 вопроса',
+        '25–40: пункт 3 — заметить → правило (tõttu / pärast + omastav; sest, kuna; seepärast / seetõttu + глагол сразу; nii et) → 8 форм в предложениях → 9–11 своих предложений',
+        '40–65: пункт 4 — звонок в страховую по картинке «Kahjuteade»: крышу сарая возмещают, еду и насос нет; у сотрудника скрытая информация; вторая попытка без фраз — своя буря или отключение света',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание (письмо в страховую + голосовое сообщение 1 мин)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, к какой непогоде готовятся у него на родине и что держат дома',
+        '72–90: запас',
+      ],
+      sources: 'Новости (пункт 2) и картинка «Kahjuteade» — учебные, страховая, договор и суммы выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4 в паре: A — клиент, B — сотрудник страховой (карточки на листе); потом смена ролей и своя история. Один на один вы — сотрудник со скрытой информацией.',
+      errors: [
+        '«seepärast me jäime koju» вместо «seepärast jäime me koju» (после seepärast / seetõttu глагол сразу).',
+        '«Kuna elekter oli ära, sügavkülmik ei töötanud» вместо «…, ei töötanud sügavkülmik» (после придаточного — сразу глагол).',
+        '«tugev tuule tõttu» вместо «tugeva tuule tõttu» (перед tõttu / pärast — родительный падеж с согласованием).',
+        '«sest et» — это НЕ ошибка в эстонском, не исправлять.',
+      ],
+      notes: [
+        'Звонок — продукт урока: в нём что случилось, причина и следствие (минимум три связи), одно ясное требование и договорённость.',
+        'Обратная связь, 2 цели: tõttu с родительным падежом и порядок слов после seepärast / kuna. Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(half(B.speaking('058_d_ready', 'Mida sa teed, kui elekter kaob?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Mida sa teed, kui elekter on terve päeva ära?',
+        'Üks lause eelmisest tunnist: mis juhtus, kui välk lõi?',
+      ], [70, 90])), 'Sinu kogemus on tunni algus: lõpus helistad kindlustusse.'), { task: 'S14', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma kogemusest elektrikatkestusega (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mida sa siis tegid?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('058_d_vocab', 'Tunni sõnad.', ['torm — буря', 'elekter — электричество', 'rike — авария', 'kahju — ущерб', 'kindlustus — страховка', 'hüvitama — возмещать', 'põhjus — причина', 'tagajärg — последствие'], '2')), { topic: ['hüvitama', 'rike'] }), 2, 17),
+      tag(purpose(why(ownText(B.examListen('058_d_radio', 'Raadiouudised: öine torm.', 'Kuula kaks korda. Märgi, kas väide on õige või vale.', 'truefalse', [
+        'Diktor: Head kuulajad, kell on seitse ja algavad uudised. Öösel jõudis Läänemerelt Eestisse tugev torm. Meie reporter Kaarel Mänd on Lääne-Virumaal.',
+        'Reporter: Tere! Siin oli öösel väga tuuline. Tuulepuhangud ulatusid rannikul kahekümne viie meetrini sekundis. Tugeva tuule tõttu murdusid paljud puud ja kukkusid teedele ning elektriliinidele.',
+        'Diktor: Kui paljudel inimestel ei ole praegu elektrit?',
+        'Reporter: Hommikul oli ilma elektrita umbes kaheksa tuhat kodu, enamasti maal. Võrguettevõtte sõnul võtab parandamine aega vähemalt ööpäeva, sest paljud teed on veel kinni.',
+        'Diktor: Kas keegi sai viga?',
+        'Reporter: Õnneks mitte. Päästjad said öö jooksul üle saja väljakutse. Ühes külas kukkus suur kask maja katusele, aga pere magas teises toas.',
+        'Diktor: Kuidas on lood liiklusega?',
+        'Reporter: Maanteel Rakvere lähedal lebas suur kuusk, seepärast oli tee kaks tundi suletud. Mitu bussi jäi hiljaks. Ka praamid ei sõitnud öösel tormi tõttu.',
+        'Diktor: Mida päästjad soovitavad?',
+        'Reporter: Täna ei tasu metsa minna, sest puud võivad veel kukkuda. Mahakukkunud elektrijuhtmeid ei tohi puudutada. Kui elektrit ei ole, avage külmiku ust võimalikult harva, nii et toit püsiks kauem külm.',
+        'Diktor: Aitäh, Kaarel! Õhtuks tuul nõrgeneb.',
+      ], [
+        ['Tugev torm jõudis Eestisse öösel.', true],
+        ['Paljud puud murdusid tugeva vihma tõttu.', false],
+        ['Hommikul oli ilma elektrita umbes kaheksa tuhat kodu.', true],
+        ['Elektri parandamine võtab aega ainult paar tundi.', false],
+        ['Tormis sai üks pere raskelt viga.', false],
+        ['Maantee oli suletud, sest teel lebas suur kuusk.', true],
+        ['Päästjad soovitavad täna metsa mitte minna.', true],
+        ['Külmiku ust tasub avada tihti, et toit jahtuks.', false],
+      ])), [
+        'Diktor: „Öösel jõudis Läänemerelt Eestisse tugev torm.”',
+        'Reporter: „Tugeva tuule tõttu murdusid paljud puud”.',
+        'Reporter: „umbes kaheksa tuhat kodu”.',
+        'Reporter: „sest paljud teed on veel kinni”.',
+        'Reporter: „Õnneks mitte.”',
+        'Reporter: „lebas suur kuusk, seepärast oli tee kaks tundi suletud”.',
+        'Reporter: „Täna ei tasu metsa minna”.',
+        'Reporter: „nii et toit püsiks kauem külm”.',
+      ]), 'Kuuled, mis tormis juhtus ja miks (Harno B1 kuulamine 4).'), { task: 'L05', harno: 'L4', voice: 'news' }),
+      teach(tag(purpose(B.table('058_d_why', 'Paaris: põhjus ja tagajärg.', 'Kirjutage põhjus (tõttu, sest) või tagajärg (seepärast, nii et).', 'Mis juhtus?, Põhjus või tagajärg', [
+        'Puud kukkusid elektriliinidele. | ',
+        'Teel lebas suur kuusk. | ',
+        'Elektrit ei ole. | ',
+      ], 'g_read'), 'Teie tabel on hea kõne materjal.'), { task: 'L11' }),
+      'Paarid kirjutavad koos 6–8 minutit, iga rida terve lausega; siis küsivad suuliselt: „Mis juhtus öösel ja miks? Milline tagajärg oli kõige suurem?” (… , seepärast murdusid puud. Tugeva tuule tõttu … Teel lebas kuusk, seepärast oli tee suletud.). Üks-ühele: õpilane kirjutab, sina loed iga rea põhjuse ja õpilane ütleb tagajärje suuliselt enne kirjutamist.'),
+      retire('058_d_news', V5_CUT),
+    ],
+    practice: [
+      station(B.notice('058_d_notice', 'Märka: põhjus ja tagajärg', [
+        'Uudisest: **tugeva tuule tõttu** murdusid puud · tee oli suletud, **seepärast** jäid bussid hiljaks · parandamine võtab aega, **sest** teed on kinni · avage ust harva, **nii et** toit püsiks külm',
+        'Põhjus + lause: **sest** / **kuna**: **Kuna** tee oli kinni, **jäi** buss hiljaks. (pärast kuna-lauset tegusõna kohe)',
+        'Põhjus + omastav: **tugeva tuule tõttu** · **tormi pärast** (omastav + tõttu / pärast)',
+        'Tagajärg: **seepärast** / **seetõttu** + tegusõna kohe: …, seepärast **jäid** bussid hiljaks. · **nii et** + tavaline sõnajärg: …, nii et toit läks halvaks.',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.gaps('058_p_forms', 'Põhjus ja tagajärg lauses.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Puud murdusid [tugeva] tuule tõttu (tugev).',
+        'Kuna tee oli kinni, [jäid] bussid hiljaks (jääma).',
+        'Teel lebas kuusk, seepärast [oli] tee kaks tundi suletud (olema).',
+        'Elektrit ei olnud, nii et toit [läks] halvaks (minema).',
+        'Praamid ei sõitnud öösel [tormi] tõttu (torm).',
+        'Kuna elekter oli ära, ei [töötanud] sügavkülmik (töötama).',
+        'Pump läks katki, seetõttu [ostsime] uue (ostma).',
+        'Elektrikatkestuse tõttu läks liha [halvaks] (halb).',
+      ], '', 'full', 'g_notice'), [
+        'omastav + tõttu: tugeva tuule.',
+        'Kuna-lause ees → tegusõna kohe: jäid.',
+        'seepärast → tegusõna kohe: oli.',
+        'nii et + tavaline sõnajärg: toit läks.',
+        'omastav + tõttu: tormi.',
+        'Kuna-lause ees → tegusõna kohe: ei töötanud.',
+        'seetõttu → tegusõna kohe: ostsime.',
+        'läks + -ks: halvaks.',
+      ]), 'Kaheksa lauset näitavad, kas põhjus ja tagajärg on käes.'), { task: 'G13' }),
+      tag(purpose(rows(B.writing('058_t_helgi', 'Kirjuta terved laused.', 'Sõber ei olnud öösel Eestis. Kirjuta talle 9–11 lauset: mis tormis juhtus ja miks. Igas lauses põhjus või tagajärg.', [9, 11]), 10), 'Oma laused on sinu kõne materjal tunni lõpus.'), { task: 'W12' }),
+      retire('058_d_fix', V5_DRILL),
+      retire('058_p_cloze', V5_CUT),
+      retire('058_p_fence', V5_CUT),
+    ],
+    transfer: [
+      station(teach(tag(purpose(B.phoneCards('058_t_call', 'Kõne kindlustusse: toit ja pump', 'Vaata kahjuteadet üleval. A on klient ja helistab kindlustusse, B on klienditeenindaja. Siis vahetage rollid.',
+        'Torm murdis teie suvekodu juures elektriliini. Kindlustus hüvitab kuuri katuse, aga toitu ja pumpa mitte: „need ei ole tormikahjud”.',
+        ['Klient', [
+          'Kahjuteade KK-2318: elektrit ei olnud 30 tundi.',
+          'Lepingu järgi hüvitatakse elektrikatkestuse kahju, kui katkestus kestis üle 24 tunni.',
+          'Sinu eesmärk: kindlustus hüvitab ka toidu ja pumba või vaatab otsuse kindlaks päevaks üle.',
+          'Sul on fotod, aga elektriku kirjalikku hinnangut ei ole.',
+        ]], ['Klienditeenindaja', [
+          'Otsus tehti ainult tormi kirjelduse põhjal.',
+          'Ülevaatamiseks on vaja võrguettevõtte katkestusteadet.',
+          'Pumba kohta on vaja elektriku hinnangut.',
+          'Tavaline ülevaatus võtab 10 tööpäeva.',
+        ]], [120, 240]), 'Pärast kõnet on teil kokkulepe: mida kindlustus hüvitab või mida ja mis ajaks sa saadad.'), { task: 'S04', main: true, level: 4 }),
+      'Telefonikõne nagu Harno B1 rääkimise 2. osas. Üks-ühele: sina oled klienditeenindaja. Varjatud info: otsuse tegi kahjukäsitleja ainult tormi kirjelduse põhjal; võrguettevõtte katkestusteade on internetis olemas ja sobib tõendiks; kui klient põhjendab, saab ülevaatuse teha 3 tööpäevaga. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Kas teil on elektriku kirjalik hinnang pumba kohta?” — õpilasel seda ei ole; 2) „Toidu eest võime maksta, pumba eest mitte.”; 3) „Kahjuteade tuli liiga hilja, tähtaeg oli 3 päeva.” — teade saadeti järgmisel hommikul, õpilane peab viisakalt vastu vaidlema. Õnnestunud, kui õpilane seletab põhjuse ja tagajärje (vähemalt kolm sidet: tormi tõttu, kuna, seepärast, nii et), vaidleb viisakalt vastu ja kordab kokkuleppe üle (mida, kuhu ja mis päevaks saata). Teine katse ilma fraasideta: järgmine ülesanne.'), 4, 25, { final: 'complain' }),
+      teach(tag(purpose(B.speaking('058_t_own', 'Sinu lugu: torm või elektrikatkestus.', 'Räägi paarilisele 90–120 sekundit ilma fraasideta. Paariline küsib lõpus ühe küsimuse.', [
+        'Millal ilm või elektrikatkestus sinu plaane muutis?',
+        'Mis oli põhjus ja millised olid tagajärjed? Kas see oli sarnane uudise tormiga?',
+        'Kes aitas ja mida sa järgmisel korral teisiti teed?',
+      ], [90, 120]), 'Räägid oma loo põhjuse ja tagajärjega: nii saab kuulaja aru, mis juhtus ja miks.'), { task: 'S06', level: 4, fluency: true }),
+      'Üks-ühele: õpilane räägib, sina küsid ühe lisaküsimuse („Kas sa olid selleks valmis?”). Õnnestunud, kui loos on vähemalt kaks põhjuse ja tagajärje sidet ja selge järjekord.'),
+      tag(exitCheck(why(purpose(B.gaps('058_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Tugeva [tuule] tõttu murdusid paljud puud (tuul).',
+        'Tee oli kinni, seepärast [jäid] bussid hiljaks (jääma).',
+        'Elektrit ei olnud 30 tundi, nii et toit läks [halvaks] (halb).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset näitavad, kas põhjus ja tagajärg on käes.'), ['omastav + tõttu: tuule.', 'seepärast → tegusõna kohe: jäid.', 'läks + -ks: halvaks.'])), {}),
+      purpose(B.selfcheck('058_t_self', ['Ma ütlen põhjuse: tugeva tuule tõttu, sest, kuna.', 'Ma ütlen tagajärje: seepärast jäid bussid hiljaks, nii et toit läks halvaks.', 'Ma saan aru raadiouudisest tormi kohta.', 'Ma helistan kindlustusse ja selgitan, miks kahju tuleb hüvitada.'], 'Kahju selgitatud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.writing('058_t_home', 'Kodus: e-kiri kindlustusele.', 'Kirjuta kindlustusele 7–9 lauset: mis juhtus, miks ja mida sa palud. Saada ka 1-minutiline häälsõnum.', [7, 9]), 'Kirjalik kaebus on tõend: kindlustus näeb põhjuse, tagajärje ja sinu soovi.')), { task: 'W13' }),
+      retire('058_t_damage', V5_CUT),
+      retire('058_t_sit', V5_CUT),
+      retire('058_t_phrases', V5_CUT),
+    ],
+  },
+
+  // ---------------------------------------------------------------- 059 debate: 300 euros for the courtyard (opinion, verb government)
+  'a2b1-059': {
+    title: 'Mida 300 euroga teha?',
+    phases: grammar('Keel: Minu arvates … , sest … Näiteks … · nõustun ettepanekuga · loobume lilledest · osalen talgupäeval'),
+    format: 'debate',
+    topic: 'neighbours',
+    canDo: 'Ma loen naabrite arvamusi, ütlen oma arvamuse koos põhjuse ja näitega (nõustun, loobume, osalen) ja lepin koosolekul kokku, mida meie hoovis 300 euroga teha.',
+    teacherPage: {
+      goal: 'Ученик читает мнения соседей и сам высказывает мнение по модели «мнение + причина + пример» (nõustuma millega, loobuma millest), договаривается о плане на 300 евро.',
+      core: [1, 2, 4], alt: 3,
+      short: 'Пункт 1 → форум дома (3 предложения соседей, 8 вопросов), в паре таблица «мнение — причина — пример» → пункт 4: собрание по картинке «Kolm ettepanekut» (Harno S1b) со скрытой информацией. Пункт 3 — дома в «Harjuta».',
+      hook: '«Mis sulle sinu maja hoovis või tänaval meeldib ja mis mitte?» Сначала ответьте сами (2–3 предложения), потом ученик. Вопрос из урока 58 без записей: одно предложение с tõttu или seepärast.',
+      plan: [
+        '0–8: пункт 1 — что нравится и не нравится у дома; одно предложение с tõttu / seepärast (повторение урока 58)',
+        '8–25: пункт 2 — слова, форум дома «Kase 12: 300 eurot hoovi jaoks» (≈ 200 слов), 8 вопросов, в паре письменно таблица «Arvamus — Põhjus — Näide», устно 3 вопроса',
+        '25–40: пункт 3 — заметить → правило (Minu arvates / Ma arvan, et / Mulle tundub, et + sest + Näiteks; nõustuma millega, loobuma millest, osalema millel, hoolitsema mille eest) → 8 форм → своё предложение для форума 8–11 предложений',
+        '40–65: пункт 4 — собрание жильцов по картинке «Kolm ettepanekut» (Harno S1b): один план в пределах 300 евро; у соседа скрытая информация; вторая попытка без фраз — свой дом, улица или работа (в той же карточке)',
+        '65–72: проверка на выходе, «Ma oskan …», домашнее задание (ответы как на экзамене, запись 90–120 с)',
+        'Kui aega jääb (10 мин, только в плане учителя): ученик рассказывает, как соседи договариваются у него на родине и есть ли там talgud',
+        '72–90: запас',
+      ],
+      sources: 'Форум (пункт 2) и картинка «Kolm ettepanekut» — учебные, дом, соседи и цены выдуманы; проверять не нужно (владелец 2026-11-25).',
+      groups: 'Пункт 4 в паре: A и B — соседи, каждый сначала выбирает своё предложение (не показывает), потом договариваются; потом своя тема. Один на один вы — сосед со скрытой информацией.',
+      errors: [
+        '«Ma olen nõus sinu ettepanekust» вместо «… ettepanekuga» (nõus olema / nõustuma millega).',
+        '«loobuma ühekordsed kotid» вместо «loobuma ühekordsetest kottidest» (loobuma millest).',
+        '«osalema talgupäevale» вместо «osalema talgupäeval» (osalema millel).',
+        '«Minu arvamus on, et …» — правильно, но тяжело; лучше «Minu arvates …» / «Ma arvan, et …».',
+      ],
+      notes: [
+        'Собрание — продукт урока: у каждого мнение, причина и пример, реакция на чужое мнение и один план в пределах бюджета.',
+        'Обратная связь, 2 цели: падеж после nõustuma / loobuma / osalema и модель «мнение + причина + пример». Сначала подсказка, рекаст только если не исправил сам.',
+      ],
+    },
+    discover: [
+      station(teach(tag(purpose(half(B.speaking('059_d_board', 'Mis sinu kodu ümber on hästi?', 'Vasta paarilisele kahe-kolme lausega. Siis vahetage: paariline räägib, sina küsid.', [
+        'Mis sulle sinu maja hoovis või tänaval meeldib ja mis mitte?',
+        'Ütle ilma märkmeteta üks lause eelmisest tunnist: mis juhtus tormi tõttu?',
+      ], [70, 90])), 'Sinu kodu on tänase tunni algus: lõpus lepid naabritega kokku, mida hoovis teha.'), { task: 'S11', fluency: true }),
+      'Üks-ühele: räägi kõigepealt oma kodu ümbrusest (2–3 lauset), siis küsi õpilaselt üks lisaküsimus („Mida sa muudaksid?”). Ära paranda.'), 1, 8),
+      station(tag(half(B.vocab('059_d_vocab', 'Tunni sõnad.', ['ettepanek — предложение', 'arvamus — мнение', 'kokkulepe — договорённость', 'eelarve — бюджет', 'keskkond — окружающая среда', 'talgud — толока', 'nõustuma millega — соглашаться с чем', 'loobuma millest — отказываться от чего', 'osalema millel — участвовать в чём', 'hoolima millest — заботиться о чём'], '2')), { topic: ['talgud'] }), 2, 17),
+      tag(purpose(why(ownText(B.reading('059_d_forum', 'Maja foorum.', 'Loe teksti. Vasta igale küsimusele 1–5 sõnaga.', 'Kase 12: 300 eurot hoovi jaoks', [
+        'Juhatus: Head naabrid! Meie korteriühistul on suveks 300 eurot hoovi jaoks ja üks talgupäev. Kirjutage oma ettepanek siia reedeni.',
+        '',
+        'Leida, 3. korter: Minu arvates on kõige parem kompostikast ja kaks peenart. See maksab umbes 120 eurot. Biojäätmeid peab nüüd niikuinii eraldi koguma ja kompostist saame peenardele mulda. Näiteks naabermajas kasvatavad lapsed juba tomateid ja maasikaid. Mina hoolitsen peenarde eest.',
+        '',
+        'Joosep, 12. korter: Ma ei ole päris nõus. Kompost võib suvel haiseda. Ma arvan, et vaja on rattahoidjat, sest praegu seisavad rattad trepikojas ja keegi ei pääse mööda. Näiteks eile kukkus üks laps trepikojas ratta otsa. Rattahoidja maksab 250 eurot. Kui raha jääb puudu, võiksime loobuda uutest lilledest.',
+        '',
+        'Tiina, 7. korter: Mulle tundub, et me unustame vanemad naabrid. Hoovis ei ole ühtegi pinki. Kaks pinki maksavad 180 eurot. Näiteks proua Kask on 85-aastane ega saa kaua seista. Talgupäeval osalen hea meelega, aga raskeid asju ma tõsta ei saa.',
+        '',
+        'Juhatus: Aitäh! Arutame kõiki ettepanekuid koosolekul neljapäeval kell 18.',
+      ], [
+        ['Kui palju raha on korteriühistul hoovi jaoks?', '300 eurot|kolmsada eurot|300'],
+        ['Miks tahab Leida kompostikasti?', 'biojäätmeid peab eraldi koguma|kompostist saab peenardele mulda|kompostist saab mulda'],
+        ['Millise näite toob Leida naabermajast?', 'lapsed kasvatavad tomateid ja maasikaid|lapsed kasvatavad tomateid|seal kasvatatakse tomateid ja maasikaid'],
+        ['Miks ei ole Joosep Leidaga päris nõus?', 'kompost võib suvel haiseda|kompost haiseb'],
+        ['Miks on Joosepi arvates vaja rattahoidjat?', 'rattad seisavad trepikojas|keegi ei pääse mööda|rattad on trepikojas'],
+        ['Millest võiks Joosepi arvates loobuda?', 'uutest lilledest|lilledest'],
+        ['Kelle peale mõtleb Tiina?', 'vanemate naabrite peale|vanemad naabrid|vanemate naabrite'],
+        ['Kui palju maksavad kompostikast ja pingid kokku?', '300 eurot|kolmsada eurot|300'],
+      ])), [
+        'Juhatus: „Meie korteriühistul on suveks 300 eurot hoovi jaoks”.',
+        'Leida: „Biojäätmeid peab nüüd niikuinii eraldi koguma ja kompostist saame peenardele mulda.”',
+        'Leida: „Näiteks naabermajas kasvatavad lapsed juba tomateid ja maasikaid.”',
+        'Joosep: „Kompost võib suvel haiseda.”',
+        'Joosep: „praegu seisavad rattad trepikojas ja keegi ei pääse mööda”.',
+        'Joosep: „võiksime loobuda uutest lilledest”.',
+        'Tiina: „me unustame vanemad naabrid”.',
+        '120 eurot + 180 eurot = 300 eurot.',
+      ]), 'Enne kui sa koosolekul räägid, loed, mida naabrid pakuvad, miks ja milliste näidetega.'), { task: 'R12', voice: 'forum' }),
+      teach(tag(purpose(B.table('059_d_find', 'Paaris: arvamus, põhjus, näide.', 'Kirjutage koos iga naabri kohta lühike lause: mida ta tahab, miks ja mis näite ta toob. Viimasesse ritta kirjutage oma ettepanek.', 'Kes?, Arvamus, Põhjus, Näide', [
+        'Leida |  |  | ',
+        'Joosep |  |  | ',
+        'Tiina |  |  | ',
+        'Meie |  |  | ',
+      ], 'g_read'), 'Teie tabel näitab, kuidas hea arvamus on üles ehitatud, ja annab koosolekuks sinu enda ettepaneku.'), { task: 'R11' }),
+      'Paarid kirjutavad koos 6–8 minutit. Viimases reas peavad nad ise kokku leppima ühe ettepaneku koos põhjuse ja näitega. Üks-ühele: õpilane kirjutab kolm rida, viimase rea mõtlete koos välja.'),
+      teach(tag(purpose(B.speaking('059_d_ask', 'Kellega sa nõustud? Küsi paarilisel.', 'Küsi paarilisel foorumi järgi. B vastab terve lausega: arvamus, põhjus ja näide. Siis vahetage.', [
+        'Kelle ettepanekuga sa nõustud ja miks?',
+        'Millest võiks teie hoovis loobuda?',
+        'Mis on sinu oma ettepanek? Too üks näide.',
+      ], [90, 120], '', 'g_read'), 'Ütled foorumi järgi, kellega nõustud ja miks, ning tood näite.'), { task: 'S03', fluency: true }),
+      'Üks-ühele: sina küsid kaks küsimust, siis küsib õpilane sinult kaks. Teisel ringil ütled sa ühe vea („Joosep tahab kompostikasti”) ja õpilane parandab sind foorumi järgi.'),
+      retire('059_d_radio', V5_CUT),
+    ],
+    practice: [
+      station(B.notice('059_d_notice', 'Märka: arvamus, põhjus, näide', [
+        'Foorumist: **Minu arvates** on kõige parem … · **Ma arvan, et** vaja on … , **sest** … · **Näiteks** naabermajas … · **Mulle tundub, et** … · **Ma ei ole päris nõus.**',
+        'Nõustu ja kahtle viisakalt: **Olen sinuga nõus.** · **Jah, aga** … · **Ma ei ole päris kindel, kas** …',
+        'Tegusõna ja kääne: **nõustuma** ettepaneku**ga** (millega?) · **loobuma** **lilledest** (millest?) · **osalema** talgupäeva**l** (millel?) · **hoolitsema** peenarde **eest** (mille eest?) · **hoolima** hoovi**st** (millest?)',
+      ], 'full'), 3, 15),
+      tag(purpose(why(B.wordforms('059_d_verbs', 'Laused koosolekuks.', 'Pane sõna sulgudes oleva küsimuse järgi õigesse vormi.', [
+        ['see ettepanek', 'Ma ei ole päris nõus … (millega?)', 'selle ettepanekuga'],
+        ['uued lilled', 'Kui raha jääb puudu, võiksime loobuda … (millest?)', 'uutest lilledest'],
+        ['laupäevane talgupäev', 'Kas sa osaled ka … (millel?)', 'laupäevasel talgupäeval'],
+        ['meie ühine hoov', 'Me kõik peaksime rohkem hoolima … (millest?)', 'meie ühisest hoovist'],
+        ['peenrad', 'Leida hoolitseb … eest. (mille eest?)', 'peenarde'],
+        ['prügikastide lõhn', 'Naabrid kaebasid juba kevadel … üle. (mille üle?)', 'prügikastide lõhna'],
+        ['Joosepi mõte', 'Kas sa nõustud … ? (millega?)', 'Joosepi mõttega'],
+        ['ühekordsed kotid', 'Meie maja on juba loobunud … (millest?)', 'ühekordsetest kottidest'],
+      ], 'full', 'g_notice'), [
+        'nõus olema millega → -ga: selle ettepanekuga.',
+        'loobuma millest → -st: uutest lilledest.',
+        'osalema millel → -l: laupäevasel talgupäeval.',
+        'hoolima millest → -st: meie ühisest hoovist.',
+        'hoolitsema mille eest → omastav: peenarde.',
+        'kaebama mille üle → omastav: lõhna.',
+        'nõustuma millega → -ga: Joosepi mõttega.',
+        'loobuma millest → -st: ühekordsetest kottidest.',
+      ]), 'Kontrolli, et iga sõna saaks õige lõpu, siis saavad naabrid sinust kohe aru.'), { task: 'G08' }),
+      tag(purpose(rows(B.writing('059_p_sent', 'Kirjuta terved laused: minu ettepanek.', 'Kirjuta foorumisse oma ettepanek 8–11 lausega: mida sa pakud, miks, üks näide ja mida sa ise talgupäeval teed. Kasuta vähemalt kahte tegusõna kastist „Märka”.', [8, 11]), 7), 'Sinu ettepanek on koosoleku materjal: sa tead, mida tahad ja miks.'), { task: 'W08' }),
+      retire('059_p_sort', V5_DRILL),
+      retire('059_p_know', V5_CUT),
+      retire('059_p_rules', V5_DRILL),
+      retire('059_p_invite', V5_CUT),
+    ],
+    transfer: [
+      station(teach(tag(purpose(B.ideaCard('059_t_meeting', 'Koosolek: mida 300 euroga teha?', 'Vaata pilti üleval. A ja B on naabrid: arvamus, põhjus ja näide; lõpus üks plaan 300 euro piires. Siis teie oma maja.',
+        'Kase 12 korteriühistul on hoovi jaoks 300 eurot ja üks talgupäev. Kõike korraga osta ei saa.',
+        ['kompostikast ja kaks peenart (120 €)', 'rattahoidja (250 €)', 'kaks pinki (180 €)', 'jagamisriiul trepikotta (40 €)', 'talgupäeval kõik ise: oksad, aed, liivakast (0 €)'],
+        'üks plaan, mis mahub 300 eurosse, ja kes mida teeb', [120, 240]), 'Pärast koosolekut on teil üks plaan: mida ostate, kui palju see maksab ja kes mida teeb.'), { task: 'S03', harno: 'S1b', main: true, level: 4 }),
+      'Kokkulepe ideekaardiga nagu Harno B1 rääkimise 1b osas (~4 min). Üks-ühele: sina oled naaber. Varjatud info: sul on raske kõndida ja sa tahad õues istuda, seepärast eelistad pinke; sinu lapselaps sõidab iga päev rattaga kooli; talgupäeval saad aidata ainult lillede istutamisega. Takistused (ükshaaval, oota õpilase reaktsiooni): 1) „Kompost toob rotid hoovi.”; 2) kui õpilase plaan ületab 300 eurot: „Aga see on ju rohkem kui meie raha!”; 3) „Kes peenraid suvel kastab?” Õnnestunud, kui üks plaan mahub 300 eurosse, mõlema soov on arvesse võetud, õpilane ütleb arvamuse, põhjuse ja näite ning kordab kokkuleppe üle (mida, kui palju maksab, kes teeb). Teine katse ilma fraasideta (lehel „Siis teie oma maja”): kumbki pakub midagi oma maja, tänava või töökoha jaoks; teine kahtleb ühe korra („Ma ei ole päris kindel, kas see on vajalik.”) ja te lepite kokku.'), 4, 25, { final: 'negotiate' }),
+      tag(exitCheck(why(purpose(B.gaps('059_t_exit', 'Kontrolli end: kolm lauset.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Ma olen sinu [ettepanekuga] nõus, sest pingid on vajalikud (ettepanek).',
+        'Kui raha jääb puudu, loobume [rattahoidjast] (rattahoidja).',
+        'Laupäeval osalen ka mina [talgupäeval] (talgupäev).',
+      ], '', 'full', 'g_vocab'), 'Kolm lauset koosolekult: kas tegusõna ja õige lõpp on käes?'), ['nõus millega → -ga: ettepanekuga.', 'loobuma millest → -st: rattahoidjast.', 'osalema millel → -l: talgupäeval.'])), {}),
+      purpose(B.selfcheck('059_t_self', ['Ma ütlen arvamuse, põhjuse ja näite: Minu arvates …, sest … Näiteks …', 'Ma kasutan õiget käänet: nõustun ettepanekuga, loobume lilledest, osalen talgupäeval.', 'Ma saan aru naabrite arvamustest foorumis.', 'Ma lepin koosolekul kokku ühe plaani, mis mahub eelarvesse.'], 'Plaan kokku lepitud', 'Ma oskan …'), 'Lahkud tunnist ja tead, mida sa nüüd oskad.'),
+      tag(homeTask(purpose(B.speaking('059_t_rec', 'Kodus: vasta nagu eksamil.', 'Vasta igale küsimusele kahe-kolme lausega ja salvesta kokku 90–120 sekundit.', [
+        'Mida võiks muuta sinu maja hoovis, tänaval või töökohas?',
+        'Miks see on sinu arvates vajalik?',
+        'Too üks näide: kellele see aitab?',
+        'Kas su naabrid on sellega nõus? Miks?',
+        'Kas talgud on sinu arvates hea mõte? Miks?',
+        'Mida saab üks pere teha, et keskkonda hoida?',
+      ], [90, 120]), 'Nii küsib eksamineerija kodu ja keskkonna kohta: õpetaja ütleb, kas arvamus, põhjus ja näide tulid välja.')), { task: 'S15', fluency: true }),
+      homework('059_t_homework', ['1. Kirjuta koosoleku kokkulepe üles: mida ostate, kui palju see maksab ja kes mida teeb.', '2. Vasta eksami küsimustele ja salvesta (ülesanne üleval).', '3. Kirjuta vihikusse kuus lauset tegusõnadega nõustuma, loobuma, osalema, hoolitsema, hoolima, kaebama.', `4. ${WORDS_HOME}`, NO_RECORDING]),
+      retire('059_t_ideas', V5_CUT),
+    ],
+  },
+
+  // ---------------------------------------------------------------- 060 control 12 (one sheet): the end of the A2+ stage, four skills
+  'a2b1-060': {
+    title: 'Kontroll 12: ilm, loodus ja keskkond',
+    format: 'exam',
+    assessment: true,
+    canDo: 'Ma loen artiklit rabast, saan aru raadioloost, räägin ilma abita, kuidas ilm minu plaane muutis, broneerin telefonis puhkemaja ja kirjutan sõbrale nõuande.',
+    discover: [
+      B.examPart('060_p_rpart', 'R', { part: 'Lugemine', minutes: 12, points: 8, tasks: 1, target: 60, note: `See on mooduli 12 kontroll ja A2+ astme lõpp (tunnid 41–60): neli osa, umbes 45 minutit, ilma sõnaraamatuta. ${THRESHOLDS}` }),
+      tag(why(ownText(B.reading('060_p_r2text', 'Lugemine. Artikkel rabast.', 'Loe artiklit. Kirjuta igale küsimusele lühike vastus (1–5 sõna).', 'Raba — märg maa, mis mäletab', [
+        'Umbes viiendik Eesti maast on soo. Raba on soo, mis saab vett ainult vihmast ja lumest. Seepärast on rabas vähe toitaineid ja seal kasvavad ainult vähesed taimed: turbasammal, väikesed männid, kanarbik, jõhvikad ja murakad.',
+        '',
+        'Turbasammal hoiab vett nagu suur käsn. Kui sammal sureb, ei lagune see märjas rabas lõpuni. Nii tekib turvas. Turbakiht kasvab umbes ühe millimeetri aastas, nii et meetri paksune kiht tekib umbes tuhande aastaga.',
+        '',
+        'Rabad on looduse jaoks väga tähtsad. Need hoiavad vett ja puhastavad seda. Kuival suvel annavad rabad vett ka jõgedele ja kaevudele. Lisaks hoiab turvas maa sees palju süsinikku, seepärast aitavad rabad kliimat kaitsta.',
+        '',
+        'Rabas tasub liikuda ainult laudteel. Pehme sammal saab jalgade all kergesti kahjustada ja jalg võib märga turbasse vajuda. Äikese ajal ei ole rabas varju, seepärast tuleb enne matka ilmateadet vaadata. Rabas on ka palju sääski, nii et putukatõrjevahend tasub kaasa võtta. Kõige ilusam on raba varahommikul, kui udu on veel madalal.',
+      ], [
+        ['Kust saab raba vett?', 'ainult vihmast ja lumest|vihmast ja lumest'],
+        ['Miks kasvab rabas vähe taimi?', 'rabas on vähe toitaineid|vähe toitaineid'],
+        ['Millega võrreldakse turbasammalt?', 'käsnaga|suure käsnaga'],
+        ['Kuidas tekib turvas?', 'sammal ei lagune lõpuni|surnud sammal ei lagune märjas rabas lõpuni|sammal ei lagune'],
+        ['Turbakiht on 30 sentimeetrit paks. Umbes kui vana see on?', 'umbes 300 aastat|300 aastat|kolmsada aastat'],
+        ['Mida annavad rabad kuival suvel jõgedele?', 'vett'],
+        ['Miks aitavad rabad kliimat kaitsta?', 'turvas hoiab süsinikku|turvas hoiab maa sees palju süsinikku'],
+        ['Miks tasub rabas liikuda ainult laudteel?', 'sammal saab kergesti kahjustada|et sammalt mitte kahjustada|jalg võib turbasse vajuda'],
+      ])), [
+        'Esimene lõik: „Raba on soo, mis saab vett ainult vihmast ja lumest.”',
+        'Esimene lõik: „Seepärast on rabas vähe toitaineid”.',
+        'Teine lõik: „Turbasammal hoiab vett nagu suur käsn.”',
+        'Teine lõik: „Kui sammal sureb, ei lagune see märjas rabas lõpuni. Nii tekib turvas.”',
+        'Teine lõik: üks millimeeter aastas → 300 mm ≈ 300 aastat.',
+        'Kolmas lõik: „Kuival suvel annavad rabad vett ka jõgedele”.',
+        'Kolmas lõik: „turvas hoiab maa sees palju süsinikku”.',
+        'Viimane lõik: „Pehme sammal saab jalgade all kergesti kahjustada”.',
+      ]), { task: 'R19', harno: 'R2', voice: 'popsci' }),
+      B.examPart('060_p_lpart', 'L', { part: 'Kuulamine', minutes: 10, points: 8, tasks: 1, target: 60, note: 'Kuulad kaks korda.' }),
+      tag(why(locked(B.examListen('060_p_l2', 'Kuulamine. Raadiolugu puukidest.', 'Kuula kaks korda. Märgi, kas väide on õige või vale.', 'truefalse', PILOT_BLOCKS['060_p_l2'].data.transcript, [
+        ['Eestis võib puuke kohata varakevadest hilissügiseni.', true],
+        ['Puugid kukuvad inimese peale puu otsast.', false],
+        ['Puukentsefaliidi vastu saab end vaktsineerida.', true],
+        ['Ka borrelioosi vastu on vaktsiin olemas.', false],
+        ['Metsas soovitatakse kanda tumedaid riideid.', false],
+        ['Püksid tasub metsas panna sokkide sisse.', true],
+        ['Pärast metsast tulekut tuleb kogu keha üle vaadata.', true],
+        ['Puukide pärast tasub loodusest loobuda.', false],
+      ])), [
+        'Diktor: „Eestis võib puuke kohata varakevadest hilissügiseni.”',
+        'Diktor: „Puugid ei kuku puu otsast, nagu paljud arvavad.”',
+        'Diktor: „Puukentsefaliidi vastu saab end vaktsineerida”.',
+        'Diktor: „borrelioosi vastu vaktsiini ei ole”.',
+        'Diktor: „soovitavad metsas kanda heledaid riideid”.',
+        'Diktor: „Püksid tasub panna sokkide sisse.”',
+        'Diktor: „tuleb kogu keha hoolikalt üle vaadata”.',
+        'Diktor: „Puukide pärast ei tasu loodusest loobuda.”',
+      ]), { harno: 'L4', task: 'L05' }),
+      half(B.examPart('060_t_wpart', 'W', { part: 'Kirjutamine', minutes: 12, points: 8, tasks: 1, target: 60, note: 'Üks kiri, 60–90 sõna, kõik neli punkti.' })),
+      tag(teach(half(rows(B.writing('060_t_w', 'Kirjutamine. Nõuanne sõbrale.', 'Sõber tuleb Eestisse matkama. Kirjuta talle 60–90 sõna: kuhu minna, mis ilma oodata, üks lugu oma matkalt, millega arvestada.', [8, 11]), 8)), 'Punktid: iga sisupunkt 1 (kokku 4: koht ja põhjus, ilm ja mida kaasa võtta, oma lugu kui- või enne kui -lausega, äike / prügi / lõke), keel ja vorm 0–4 (muutus -ks, kui-lause õige sõnajärjega, põhjus ja tagajärg, selge kiri).'), { harno: 'W2b', task: 'W04' }),
+      half(B.examPart('060_t_spart', 'S', { part: 'Rääkimine', minutes: 15, points: 10, tasks: 2, target: 60, note: 'Üks-ühele. Ülesanne 1 on ilma abita; ülesanne 2 on telefonikõne õpetajaga.' })),
+      teach(tag(half(B.speaking('060_t_s1', 'Rääkimine 1. Ilm ja minu plaanid.', 'Räägi 90–120 sekundit ilma abita ja ilma märkmeteta.', [
+        'Räägi ühest päevast või nädalavahetusest, kui ilm muutis sinu plaane: mis oli plaan, mis ilm tuli, mida sa tegid ja mida sa järgmisel korral teisiti teed?',
+      ], [90, 120])), { harno: 'S1a', level: 4 }),
+      'Paralleelne uus ülesanne (tunni 56 külm start): sama hindamine, sarnane teema. Ära aita ega paranda. Märgi samad kolm asja (mitu lauset, sidesõnad, vormid: läheb …-ks, kraadi sooja / kraadini, oodatakse, kui-lause sõnajärg, tõttu / seepärast) ja võrdle tunni 56 märkmetega. Punktid 0–5: sisu ja seotus 0–2, sõnavara 0–1, vormid 0–2.'),
+      teach(tag(B.phoneCards('060_t_s2', 'Rääkimine 2. Telefonikõne: puhkemaja.', 'Helista puhkemajja, õpetaja on töötaja. Räägi umbes 4 minutit.',
+        'Teie kursus (6 inimest) tahab augusti viimasel nädalavahetusel puhkemajja Kõrve raba lähedal. Raha on 400 eurot.',
+        ['Helistaja (sina)', [
+          'Eesmärk: maja kaheks ööks kuuele inimesele.',
+          'Vaja teada: hind, mis on hinnas, kuidas kohale saab.',
+          'Kaasas on koer ja üks inimene, kes ei saa kaua kõndida.',
+          'Kui midagi ei sobi, leia koos töötajaga lahendus.',
+        ]], ['Puhkemaja töötaja (õpetaja)', [
+          'Töötaja kaart on õpetajal.',
+        ]], [180, 300]), { harno: 'S2', task: 'S04' }),
+      'Telefonikõne nagu Harno B1 rääkimise 2. osas (umbes 4 minutit). Õpetaja on puhkemaja töötaja. Varjatud info: Metsamaja on vaba ainult laupäevast pühapäevani (üks öö, 140 €); kaheks ööks on vaba Järvemaja (kuus voodikohta, 170 € öö, saun 25 € õhtu); koer on lubatud 10 € lisatasuga; bussipeatus on kolme kilomeetri kaugusel, aga töötaja saab tulla autoga vastu 15 € eest; voodipesu on hinnas, rätikud võtke kaasa. Ootamatu vastus: „Metsamaja on reede õhtul juba broneeritud.” Punktid 0–5: küsib hinda, mis on hinnas ja teed 0–2, reageerib ootamatule infole ja leiab lahenduse eelarve piires (Järvemaja 2 ööd + saun + koer = 375–390 €, buss + vastusõit) 0–1, vormid (kui-lause, tõttu / sest, -ks) 0–1, kordab kokkuleppe üle 0–1.'),
+      teach(half(B.table('060_t_profile', 'Minu tulemus.', 'Kirjuta punktid ja protsent. Rääkimise reas võrdle tunniga 56.', 'Osa, Minu punktid, Minu %, Mis paranes?', [
+        'Lugemine (8 p) |  |  | ',
+        'Kuulamine (8 p) |  |  | ',
+        'Kirjutamine (8 p) |  |  | ',
+        'Rääkimine (10 p) |  |  | ',
+      ])), 'Õpetajale: rääkimise rea viimases lahtris on tunni 56 külma stardi ja selle tunni rääkimise 1 võrdlus (kolm märget). Kokku 34 punkti: 60 % ≈ 20,4, 70 % ≈ 23,8, 80 % ≈ 27,2 punkti. See on A2+ astme lõpp: kui mõni osa jääb alla 60 %, anna selle osa tund kodutööks uuesti (lugemine → tunnid 57 ja 59, kuulamine → tunnid 56 ja 58, rääkimine → tunnid 56, 58 ja 59, kirjutamine → tunnid 57 ja 58).'),
+      retire('060_d_intro', V5_MOCK),
+      retire('060_d_vocab', V5_MOCK),
+      retire('060_d_quiz', V5_DRILL),
+      retire('060_d_story', V5_CUT),
+      retire('060_d_sort', V5_DRILL),
+      retire('060_d_cross', V5_DRILL),
+      retire('060_d_trans', V5_DRILL),
+      retire('060_d_fix', V5_DRILL),
+      retire('060_d_write', V5_MOCK),
+      retire('060_d_warm', V5_MOCK),
+    ],
+    practice: [
+      retire('060_p_r1', V5_MOCK),
+      retire('060_p_r2', V5_MOCK),
+      retire('060_p_r3', V5_MOCK),
+      retire('060_p_r4', V5_MOCK),
+      retire('060_p_l1', V5_CUT),
+      retire('060_p_l3', V5_CUT),
+      retire('060_p_l4', V5_MOCK),
+      retire('060_p_rcheck', V5_MOCK),
+      retire('060_p_lcheck', V5_MOCK),
+      retire('060_p_points', V5_MOCK),
+    ],
+    transfer: [
+      retire('060_t_w2', 'v5 (2026-11-25): kontrolli kiri on nüüd kirjutamisplokk 060_t_w (üks leht)'),
+      retire('060_t_w1', V5_MOCK),
+      retire('060_t_rw1', V5_MOCK),
+      retire('060_t_rw2', V5_MOCK),
+      retire('060_t_s0', V5_MOCK),
+      retire('060_t_s1b', V5_MOCK),
+      retire('060_t_rs', V5_MOCK),
+      retire('060_t_points', V5_MOCK),
+      retire('060_t_self', V5_MOCK),
+    ],
+  },
 }, {
-  'a2b1-056': 'KUUL L→W', 'a2b1-057': 'LUGU R→W', 'a2b1-058': 'AVAS R→S', 'a2b1-059': 'RÄÄK L→S', 'a2b1-060': 'PROOV',
+  'a2b1-056': 'KUUL L→S', 'a2b1-057': 'LUGU R→W', 'a2b1-058': 'AVAS L→S', 'a2b1-059': 'RÄÄK R→S', 'a2b1-060': 'EKS',
 });
