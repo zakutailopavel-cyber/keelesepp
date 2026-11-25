@@ -51,7 +51,7 @@ const twice = (block) => ({ ...block, data: { ...block.data, plays: 2 } });
 // a recording in the control: heard twice, the player counts and locks (G6)
 const locked = (block) => ({ ...block, data: { ...block.data, plays: 2, lockPlays: true } });
 // the thresholds, named one way everywhere (§2.9)
-const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
+const THRESHOLDS = 'Harno: eksam on sooritatud alates 60 %-st ja ükski osa ei tohi olla 0 punkti. KeeleSepp: eksamiks valmis alates 70 %-st, meie sertifikaat alates 80 %-st (sisemine lävi).';
 
 export const LESSONS = withShapes({
   // ---------------------------------------------------------------- 011 case: two flats (liitega omadussõnad)
@@ -211,7 +211,7 @@ export const LESSONS = withShapes({
         'oht + -tu → ohutu (ilma ohuta; tüvi ohu-).',
         'eba- + mugav → ebamugav (mitte mugav).',
       ]), 'Kaheksa sõna näitavad, kuidas liide sõna tähendust muudab.'),
-      tag(purpose(B.writing('011_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma kodust neli-viis lauset liitega omadussõnadega: „Minu köök on …, sest …”, „Meie hoov on …”.', [4, 5]), 'Neli-viis oma lauset on sinu sõnumi materjal.'), { task: 'W05' }),
+      tag(purpose(B.writing('011_p_sent', 'Kirjuta terved laused.', 'Kirjuta oma kodust neli-viis lauset liitega omadussõnadega: „Minu köök on …, sest …”, „Meie hoov on …”.', [4, 5]), 'Neid lauseid kasutad hiljem oma sõnumis.'), { task: 'W05' }),
       hide(B.match('011_p_opp', 'Vastandpaarid.', 'Leia igale korteri või maja omadusele vastand.', [
         ['ruumikas', 'kitsas'], ['lärmakas', 'vaikne'], ['valgusküllane', 'pime'], ['ohutu', 'ohtlik'], ['ebamugav', 'mugav'],
         ['kodune', 'võõras'], ['kuiv', 'niiske'], ['odav', 'kallis'],
