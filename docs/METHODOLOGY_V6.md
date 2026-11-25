@@ -270,16 +270,15 @@ review; `mediation` counts for G17); the error log (a product feature).
 
 ## 4. Retrofit table (2026-11-25, `node tools/course-audit/method-v6.mjs --retrofit`)
 
-Counts per gate of every module rewritten under v5. Main-branch modules come from `methodV6Baseline.json`; B1 m13, B2 m10
-and A2 m4 were measured on their open v5 PRs (#1339, #1338, #1337) and enter the baseline when they merge. G22 counts both
-instruction length (the bulk) and lexis.
+Counts per gate of every module rewritten under v5, as in `methodV6Baseline.json` (29 modules; B1 m13, B2 m10 and A2 m4
+merged as #1339, #1338, #1337). G22 counts both instruction length (the bulk) and lexis.
 
 | Module | Total | G14 exit | G15 forms | G16 B2 loop | G17 variety | G18 retrieval | G19 keys | G20 points | G21 no-zero | G22 instr./lexis | G23 pron. | G24 diff. | G25 network |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | a2-module-01 | 26 | 3 | 2 | – | 0 | 5 | 0 | 0 | 0 | 2 | 3 | 9 | 2 |
 | a2-module-02 | 48 | 4 | 1 | – | 0 | 8 | 1 | 0 | 0 | 15 | 4 | 12 | 3 |
 | a2-module-03 | 49 | 4 | 0 | – | 0 | 8 | 1 | 0 | 0 | 17 | 4 | 12 | 3 |
-| a2-module-04 (PR #1337) | 44 | 4 | 1 | – | 0 | 8 | 1 | 0 | 0 | 10 | 4 | 14 | 2 |
+| a2-module-04 | 44 | 4 | 1 | – | 0 | 8 | 1 | 0 | 0 | 10 | 4 | 14 | 2 |
 | a2b1-module-01 | 49 | 3 | 3 | – | 0 | 4 | 2 | 3 | 2 | 18 | 3 | 9 | 2 |
 | a2b1-module-02 | 64 | 4 | 3 | – | 1 | 8 | 0 | 1 | 1 | 28 | 4 | 12 | 2 |
 | a2b1-module-03 | 64 | 4 | 4 | – | 1 | 8 | 0 | 1 | 1 | 27 | 4 | 12 | 2 |
@@ -292,7 +291,7 @@ instruction length (the bulk) and lexis.
 | a2b1-module-10 | 49 | 4 | 4 | – | 1 | 8 | 1 | 1 | 1 | 11 | 4 | 12 | 2 |
 | a2b1-module-11 | 46 | 4 | 4 | – | 1 | 8 | 1 | 1 | 1 | 8 | 4 | 12 | 2 |
 | a2b1-module-12 | 53 | 4 | 3 | – | 1 | 8 | 0 | 0 | 0 | 19 | 4 | 12 | 2 |
-| a2b1-module-13 (PR #1339) | 68 | 4 | 3 | – | 0 | 8 | 2 | 1 | 1 | 31 | 4 | 12 | 2 |
+| a2b1-module-13 | 68 | 4 | 3 | – | 0 | 8 | 2 | 1 | 1 | 31 | 4 | 12 | 2 |
 | b1b2-module-01 | 61 | 4 | 2 | 7 | 1 | 6 | 1 | 2 | 0 | 24 | – | 12 | 2 |
 | b1b2-module-02 | 71 | 4 | 2 | 7 | 1 | 8 | 2 | 3 | 0 | 30 | – | 12 | 2 |
 | b1b2-module-03 | 73 | 4 | 2 | 6 | 1 | 8 | 2 | 1 | 0 | 35 | – | 12 | 2 |
@@ -302,11 +301,11 @@ instruction length (the bulk) and lexis.
 | b1b2-module-07 | 73 | 4 | 2 | 6 | 1 | 8 | 1 | 2 | 0 | 35 | – | 12 | 2 |
 | b1b2-module-08 | 73 | 4 | 3 | 7 | 1 | 8 | 1 | 0 | 0 | 35 | – | 12 | 2 |
 | b1b2-module-09 | 74 | 4 | 5 | 6 | 1 | 8 | 1 | 2 | 0 | 33 | – | 12 | 2 |
-| b1b2-module-10 (PR #1338) | 72 | 4 | 1 | 7 | 2 | 8 | 0 | 2 | 0 | 34 | – | 12 | 2 |
+| b1b2-module-10 | 72 | 4 | 1 | 7 | 2 | 8 | 0 | 2 | 0 | 34 | – | 12 | 2 |
 | b1b2-module-17 | 55 | 4 | 4 | 3 | 0 | 8 | 3 | 1 | 0 | 18 | – | 12 | 2 |
 | b1b2-module-18 | 39 | 3 | 1 | 2 | 0 | 6 | 3 | 0 | 0 | 13 | – | 9 | 2 |
 
-Main-branch total: 1 569 violations in 26 modules (+ 184 in the three open PRs).
+Total: 1 753 violations in 29 modules.
 
 ### 4.1 What to change, ordered by impact
 
