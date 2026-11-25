@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, RotateCcw, X } from 'lucide-react';
-import { ItemPrompt } from './PracticeItem.jsx';
+import { ItemPrompt, WordReveal } from './PracticeItem.jsx';
 import SentenceBuilder from './SentenceBuilder.jsx';
-import { OptionChoice, TypedAnswer } from './AnswerInputs.jsx';
+import { OptionChoice, PictureChoice, TypedAnswer } from './AnswerInputs.jsx';
 import { inputOf, tileSet } from './engine/items.js';
 import { ALMOST_HINT } from './engine/compare.js';
 import { grammarLabel } from './engine/grammar.js';
@@ -97,10 +97,12 @@ export default function PracticeLesson({ items, lang = 'ru', onExit, onDone = on
         <ItemPrompt item={item} lang={lang} filled={feedback ? '' : filled} />
         {input === 'tiles' ? (
           <SentenceBuilder tiles={tiles} value={draft.tiles} onChange={(t) => setDraft((d) => ({ ...d, tiles: t }))} disabled={Boolean(feedback)} />
+        ) : input === 'options' && item.type === 'hear' ? (
+          <PictureChoice choices={item.choices} value={draft.option} onChange={(option) => setDraft((d) => ({ ...d, option }))} disabled={Boolean(feedback)} verdict={feedback?.verdict} expected={feedback?.expected} />
         ) : input === 'options' ? (
           <OptionChoice options={item.options} value={draft.option} onChange={(option) => setDraft((d) => ({ ...d, option }))} disabled={Boolean(feedback)} verdict={feedback?.verdict} expected={feedback?.expected} />
         ) : (
-          <TypedAnswer value={draft.text} onChange={(text) => setDraft((d) => ({ ...d, text }))} onSubmit={feedback ? next : check} disabled={Boolean(feedback)} multiline={item.type === 'transform'} />
+          <TypedAnswer value={draft.text} onChange={(text) => setDraft((d) => ({ ...d, text }))} onSubmit={feedback ? next : check} disabled={Boolean(feedback)} multiline={item.type === 'transform'} label={item.type === 'picture' ? 'Mis sõna see on?' : undefined} />
         )}
       </div>
 
@@ -117,13 +119,15 @@ export default function PracticeLesson({ items, lang = 'ru', onExit, onDone = on
 function Feedback({ feedback, item, lang }) {
   const v = VERDICT[feedback.verdict];
   const point = item.grammar?.[0];
+  const picture = item.type === 'picture' || item.type === 'hear';
   return (
     <div className="pr-feedback" role="status" aria-live="polite">
       <p className="pr-feedback__head">
         {feedback.verdict === 'correct' ? <Check size={20} aria-hidden="true" /> : null}
         <strong>{v.et}</strong>{lang !== 'et' && v[lang] ? <span lang={lang}> {v[lang]}</span> : null}
       </p>
-      {feedback.verdict !== 'correct' ? <p className="pr-feedback__answer" lang="et">{feedback.expected}</p> : null}
+      {picture ? <WordReveal item={item} lang={lang} /> : null}
+      {feedback.verdict !== 'correct' && !picture ? <p className="pr-feedback__answer" lang="et">{feedback.expected}</p> : null}
       {feedback.verdict === 'almost' ? (
         <p className="pr-feedback__hint">{ALMOST_HINT.et}{lang !== 'et' && ALMOST_HINT[lang] ? <span lang={lang}> {ALMOST_HINT[lang]}</span> : null}{feedback.letters?.length ? <b> ({feedback.letters.join(', ')})</b> : null}</p>
       ) : null}

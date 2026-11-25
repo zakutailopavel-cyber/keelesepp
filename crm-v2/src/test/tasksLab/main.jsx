@@ -5,6 +5,7 @@ import { AuthContext } from '../../app/AuthContext.jsx';
 import HomeworkPage from '../../features/homework/HomeworkPage.jsx';
 import StudentPracticePage from '../../features/students/StudentPracticePage.jsx';
 import { localDate } from '../../utils/localDate.js';
+import { COURSE_LOADERS } from '../../features/worksheet-generator/admin/course/courseLoaders.js';
 import { demoTasks } from './demoTasks.js';
 import '../../styles/index.css';
 
@@ -14,10 +15,14 @@ import '../../styles/index.css';
 //   /tasks-lab.html?view=harjuta            „Harjuta” (its „Täna” steps)
 //   /tasks-lab.html?view=harjuta&kaardid=hw-words-new   a word task opened from „Ülesanded” („Ava kaardid”)
 //   /tasks-lab.html?fold=vanad | tehtud     „Ülesanded” with that fold open
+//   /tasks-lab.html?scenario=repeats        one sheet given three times (audit 05: „+2 varasemat”)
+//   /tasks-lab.html?view=harjuta&kursus=1   „Harjuta” whose „Laused ja grammatika” step loads the real course of the
+//                                           demo card (a course lesson with scene pictures + picture items of his words);
+//                                           without it the step has only the picture items of his words
 //   &theme=dark                             the dark theme
 const params = new URLSearchParams(globalThis.location.search);
 if (params.get('theme')) document.documentElement.dataset.theme = params.get('theme');
-const data = demoTasks(localDate());
+const data = demoTasks(localDate(), { repeats: params.get('scenario') === 'repeats' });
 const student = { uid: 'demo-student', displayName: 'Test Õpilane', roles: ['student'] };
 const demoOnly = async () => { throw new Error('Demo: ei salvesta.'); };
 const homeworkRepository = {
@@ -35,7 +40,7 @@ const entry = view === 'harjuta' ? `/student/harjuta${params.get('kaardid') ? `?
 const page = view === 'harjuta'
   ? <StudentPracticePage studentRepository={studentRepository} homeworkRepository={homeworkRepository} scheduleRepository={{ listByStudent: async () => [] }}
     lessonRepository={{ listByStudent: async () => [] }} petRepository={{ get: async () => null, lessonStats: async () => [] }} monologueRepository={null}
-    wordsService={wordsService} practiceService={practiceService} courseLoaders={{}} />
+    wordsService={wordsService} practiceService={practiceService} courseLoaders={params.get('kursus') ? COURSE_LOADERS : {}} />
   : <HomeworkPage repository={homeworkRepository} studentRepository={studentRepository} interactiveRepository={{ list: async () => [] }} monologueRepository={null} />;
 
 createRoot(document.getElementById('root')).render(

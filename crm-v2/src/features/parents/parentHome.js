@@ -3,6 +3,7 @@
 import { TASK_STATE, groupTasks, isTaskLate, mergeTasks } from '../homework/taskList.js';
 import { nextLesson } from '../pet/petLife.js';
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
+import { tallinnLocal } from '../calendar/unmarkedLessons.js';
 
 const clean = (value) => String(value ?? '').trim();
 const time = (value) => Date.parse(value || '') || 0;
@@ -16,6 +17,30 @@ export function latestFeedback({ submissions = [], lessons = [] } = {}) {
     .filter((item) => clean(item.notes) && (!item.status || item.status === 'Toimunud'))
     .map((item) => ({ key: `lesson-${item.id}`, text: clean(item.notes), grade: '', about: clean(item.topic), at: time(`${item.date}T${item.time || '12:00'}:00`), date: String(item.date || '').slice(0, 10) }));
   return [...works, ...notes].sort((a, b) => b.at - a.at)[0] || null;
+}
+
+const minutesOf = (time) => { const match = /^(\d{1,2}):(\d{2})/.exec(String(time || '')); return match ? Number(match[1]) * 60 + Number(match[2]) : null; };
+
+/**
+ * „Järgmised tunnid” (audit 2026-11-24, finding 19: a lesson held this morning was still listed as next): the lessons
+ * not over yet by the school's clock (Europe/Tallinn), not only from today's date. A lesson is over when its start +
+ * duration (60 min when not known) has passed; one going on right now stays. A lesson without a time stays on its day.
+ * Sorted by day and time; the status is not judged here (the list shows what it showed before).
+ */
+export function upcomingLessons(occurrences = [], now = new Date()) {
+  const here = tallinnLocal(new Date(now).toISOString());
+  if (!here) return occurrences;
+  const clock = minutesOf(here.time);
+  return occurrences
+    .filter((lesson) => {
+      if (!lesson.occurrenceDate) return false;
+      if (lesson.occurrenceDate !== here.date) return lesson.occurrenceDate > here.date;
+      const start = minutesOf(lesson.time);
+      if (start === null) return true;
+      const length = Number(lesson.duration) > 0 ? Number(lesson.duration) : 60;
+      return start + length > clock;
+    })
+    .sort((a, b) => `${a.occurrenceDate} ${a.time || ''}`.localeCompare(`${b.occurrenceDate} ${b.time || ''}`));
 }
 
 export function childSummary({ homework = [], assignments = [], submissions = [], lessons = [], occurrences = [], today }) {

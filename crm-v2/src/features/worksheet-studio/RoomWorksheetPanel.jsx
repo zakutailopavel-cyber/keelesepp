@@ -8,6 +8,8 @@ import { lessonWorksheetsService } from '../../services/firebase/lessonWorksheet
 import { lessonsService } from '../../services/firebase/lessons.js';
 import { libraryService } from '../../services/firebase/library.js';
 import { publishedPhaseDoc } from './bookProgram.js';
+import RepeatAssignmentChoice from '../homework/RepeatAssignmentChoice.jsx';
+import { REPEAT_CHOICE } from '../homework/assignmentRepeats.js';
 import { curriculumSheetChoices, filterChoices, findLessonRows, lessonRows, moduleGroups, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
 
 // the worksheet itself (every block's views and rules) downloads when a sheet is on the board, not with the room
@@ -34,7 +36,9 @@ const errorText = (err, fallback) => err?.message || fallback;
 // older lesson sheets) and put the chosen one on the lesson board — before the lesson (room key prep_<student>) or
 // during it. Each chosen curriculum sheet becomes a normal assignment, so it also stays in the student's history.
 // Puts one choice on the board: a curriculum sheet becomes the student's assignment first, then it gets the room key.
-async function placeChoice({ choice, studentId, studentName, roomKey, note, user, homework, library, lessonWorksheets }) {
+// `repeats` (assignmentRepeats.js): the student still has this sheet open — 'continue' puts his open copy on the board,
+// 'new' gives a new try, 'ask' throws RepeatAssignmentError first.
+async function placeChoice({ choice, studentId, studentName, roomKey, note, user, homework, library, lessonWorksheets, repeats = REPEAT_CHOICE.CONTINUE }) {
   let assignmentId = choice.assignmentId || '';
   if (!assignmentId) {
     let source = choice.lesson;
@@ -45,7 +49,7 @@ async function placeChoice({ choice, studentId, studentName, roomKey, note, user
       source = { id: choice.lessonId, title: choice.title, subject: choice.subject, level: choice.level, topic: choice.topic, publishedWorksheetDoc: doc, worksheetDocStatus: 'published', files: [] };
     }
     const item = { kind: 'curriculum', type: 'worksheet', sourceId: choice.lessonId, title: choice.title, subject: source.subject || '', level: source.publishedWorksheetDoc?.meta?.level || source.level || '', topic: source.topic || '', source, ...(choice.kind === 'phase' ? { phase: choice.phase } : {}) };
-    const result = await library.assign({ item, students: [{ id: studentId, name: studentName }], note, user });
+    const result = await library.assign({ item, students: [{ id: studentId, name: studentName }], note, user, repeats });
     assignmentId = result.assignments?.[0]?.id;
     if (!assignmentId) throw new Error('Töölehte ei saanud avada.');
   }
@@ -80,6 +84,7 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
   const [level, setLevel] = useState(null);
   const [opening, setOpening] = useState('');
   const [error, setError] = useState('');
+  const [repeat, setRepeat] = useState(null);
   const [reload, setReload] = useState(0);
 
   useEffect(() => {
@@ -118,14 +123,17 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
   }, [showModules, nextModule, activeLevel]);
   const context = { studentId, studentName, roomKey, note, user, homework, library, lessonWorksheets };
 
-  const open = async (choice) => {
+  // a curriculum sheet the student still has open asks first: „Jätka olemasolevat” (default) or „Loo uus katse”
+  const open = async (choice, repeats = REPEAT_CHOICE.ASK) => {
     setOpening(choice.key); setError('');
     try {
-      await placeChoice({ choice, ...context });
+      await placeChoice({ choice, ...context, repeats });
+      setRepeat(null);
       onOpened?.(choice);
       setReload((value) => value + 1);
     } catch (err) {
-      setError(errorText(err, 'Töölehte ei saanud avada.'));
+      if (err?.code === 'assignment/repeat') setRepeat({ choice, error: err });
+      else { setRepeat(null); setError(errorText(err, 'Töölehte ei saanud avada.')); }
     } finally {
       setOpening('');
     }
@@ -168,6 +176,8 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
         </div>
       ) : null}
       {error ? <div className="action-error" role="alert">{error}</div> : null}
+      {repeat ? <RepeatAssignmentChoice message={repeat.error.message} repeats={repeat.error.repeats} busy={repeat.busy || ''}
+        onContinue={() => { setRepeat({ ...repeat, busy: 'continue' }); open(repeat.choice, REPEAT_CHOICE.CONTINUE); }} onNew={() => { setRepeat({ ...repeat, busy: 'new' }); open(repeat.choice, REPEAT_CHOICE.NEW); }} onCancel={() => setRepeat(null)} /> : null}
       {state.loading ? <LoadingState inline className="form-hint" label="Laen töölehti…" /> : tab === 'curriculum' ? (
         !found.length ? (
           <p className="form-hint">{activeLevel ? 'Sellel tasemel ei leitud.' : 'Midagi ei leitud.'}{elsewhere > 0 ? <> <button type="button" className="room-sheet-picker__more" onClick={() => setLevel('')}>Teistel tasemetel {elsewhere} {elsewhere === 1 ? 'tund' : 'tundi'} — näita</button></> : ''}</p>

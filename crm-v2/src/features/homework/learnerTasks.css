@@ -24,6 +24,11 @@
 .lt-answer summary { min-height: 36px; color: #0f5f4c;color:light-dark(#0f5f4c,#8bd2bb); font-weight: 600; cursor: pointer; }
 .lt-answer p { white-space: pre-line; overflow-wrap: anywhere; }
 .lt-answer audio { max-width: 100%; }
+/* „+N varasemat”: the same sheet given again, the older open copies folded (LearnerTasksPage EarlierCopies) */
+.lt-earlier { font-size: .84rem; }
+.lt-earlier summary { min-height: 36px; display: flex; align-items: center; color: var(--muted); font-weight: 600; cursor: pointer; }
+.lt-earlier ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.lt-earlier li { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .lt-empty { border: 1px solid var(--border, #e4ece8);border:1px solid var(--border, light-dark(#e4ece8,#313a36)); border-radius: 14px; background: var(--surface); }
 
 /* the teacher's words first in the opened work */

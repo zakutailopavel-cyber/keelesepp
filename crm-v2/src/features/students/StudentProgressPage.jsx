@@ -68,7 +68,7 @@ export default function StudentProgressPage({
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Minu õppeained" />
     {/* „Minu areng” follows the Estonian course; another subject has its own teacher's plan */}
     {/* „Sinu B1 keeleoskus” (owner 2026-11-04): the same curve the parents see, at the top of „Minu areng” (not on the home screen) */}
-    {!chosen || chosen === 'Eesti keel' ? <ProficiencyCard audience="student" studentIds={students.map((student) => student.id)} assignments={sheets} targetLevel={targetLevelOf(students[0])} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} /> : null}
+    {!chosen || chosen === 'Eesti keel' ? <ProficiencyCard audience="student" studentIds={students.map((student) => student.id)} assignments={sheets} targetLevel={targetLevelOf(students[0])} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} {...(wordsService ? { wordsService } : {})} /> : null}
     <WordGrowthCard words={words} />
     {/* „Kuu sammud” for the learner: traffic lights with the curve's „Oskan” rule, no percentages (owner 2026-11-04) */}
     <MonthStepsCard assignments={sheets} lights />
