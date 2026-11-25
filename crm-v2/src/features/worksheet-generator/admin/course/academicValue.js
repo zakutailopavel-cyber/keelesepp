@@ -41,6 +41,8 @@ export const AV = Object.freeze({
   opener: { b1: [200, 350], b2: [300, 450], enb2: [300, 450] },
   // English B2 by the module's stage (docs/COURSE_FINAL_SHAPE_EN_B2.md §8)
   openerEnStage: { 'B1+': [250, 350], 'B2-': [300, 450], B2: [300, 450] },
+  // methodology v5 (docs/METHODOLOGY_B1_B2_V5.md §3, B1 lessons 001–020): the opener body is the lesson's one A2 text
+  openerV5: { A2: [80, 150] },
   openerQuestions: [3, 4],
   retellMax: 1,
   // share of a module's Kasuta sheets that may follow „voicemail or phone call → letter”
@@ -257,7 +259,8 @@ export function moduleAcademicProblems(sheets, { profile = 'b1' } = {}) {
   if (!openers.length) add('av-opener', 'moodulil pole teema avalehte (B.topicOpener: fakte maailmast allikaga + „Mõtle kaasa” küsimused)');
   if (openers.length > 1) add('av-opener', `moodulis on ${openers.length} teema avalehte (üks moodulis)`);
   for (const { id, phase, doc, b } of openers.slice(0, 1)) {
-    const [min, max] = (profile === 'enb2' && AV.openerEnStage[stageOf(doc)]) || AV.opener[profile] || AV.opener.b1;
+    // methodology v5 (meta.methodV5): the opener is the lesson's one input, so it keeps the stage's text length (A2: 80–150)
+    const [min, max] = (doc?.meta?.methodV5 && AV.openerV5[stageOf(doc)]) || (profile === 'enb2' && AV.openerEnStage[stageOf(doc)]) || AV.opener[profile] || AV.opener.b1;
     const paras = paragraphs(b.data.text);
     const end = paras.findIndex((p) => sourceLine(p, lang) || x.think.test(p));
     const body = (end < 0 ? paras : paras.slice(0, end)).join('\n\n');

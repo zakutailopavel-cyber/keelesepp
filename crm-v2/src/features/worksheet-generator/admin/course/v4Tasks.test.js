@@ -5,6 +5,7 @@
 //   the learner as the addressee, a home task and an exit check every lesson, an explanation for every scored item.
 import { describe, expect, it } from 'vitest';
 import { COURSE_MODULES, buildCourseSheet } from './registry.js';
+import { isMethodV5 } from './courseSheet.js';
 import { castNames, words } from './academicValue.js';
 import { EXTENSION_MINUTES, stationsOf, v4TopicProblems } from './stations.js';
 import { answerKeyOf, explainedShare } from '../../../worksheet-studio/engine/answerKey.js';
@@ -88,6 +89,12 @@ describe.each(V4.map((m) => [m.MODULE.id, m]))('design v4 task-based: %s', (_, m
   it('extension: one optional „Kui aega jääb” task of 10–15 min a lesson, open (not a drill), in the minute plan; core + extension ≤ 90 min', () => {
     for (const id of teaching) {
       const ext = Object.values(sheets[id]).flatMap((d) => d.blocks).filter((b) => b.data?.extension);
+      // methodology v5 (docs/METHODOLOGY_B1_B2_V5.md §2.8, §4): „Kui aega jääb” is a teacher-plan matter, not a block on the sheet
+      if (isMethodV5(mod)) {
+        expect(ext.length, `${id} extension on the sheet (v5: teacher plan only)`).toBe(0);
+        expect(sheets[id].discover.meta.teacherPage.plan.some((line) => /Kui aega jääb/.test(line)), `${id} minute plan`).toBe(true);
+        continue;
+      }
       expect(ext.length, `${id} extension`).toBe(1);
       const [b] = ext;
       expect(b.data.extension.minutes, id).toBeGreaterThanOrEqual(EXTENSION_MINUTES[0]);

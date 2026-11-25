@@ -79,6 +79,11 @@ export function sheetProblems(doc) {
   // the constructor's errors and level norms above, the one-to-one note of pair work, long texts in paragraphs and the
   // picture's own questions.
   if (isStationSheet(doc)) return [...out, ...fullerProblems(doc), ...oneToOneProblems(doc)];
+  // methodology v5 „lesson budget” (meta.methodV5, strictModulesV5.json): a lesson is one fixed shape of 3 / 4 / 5 blocks
+  // (docs/METHODOLOGY_B1_B2_V5.md §3) checked by methodV5.js G1–G13, so the sheet's own shape rules of v2–v4 (types per
+  // sheet, how it ends, review / notice / talk on Avasta, a use task on Harjuta, a situation first in Kasuta) are not
+  // applied; kept: the constructor's errors and level norms above, the one-to-one note, paragraphs, picture questions
+  if (doc.meta?.methodV5) return [...out, ...fullerProblems(doc), ...oneToOneProblems(doc)];
   // a word strip is added to the sheet (art/wordStrips.js), it is not a block of the lesson's shape
   const n = doc.blocks.filter((b) => b.type !== 'wordstrip').length;
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
@@ -87,11 +92,14 @@ export function sheetProblems(doc) {
   const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId && !b.data?.review).length;
   // a sheet is a whole lesson (owner 2026-10-10: 60 min lesson, 40–55 min of work on the sheet)
   const maxOwn = isTheory(doc) ? V3.theoryBlocks : V3.blocks[1];
-  if (v3 ? own < V3.blocks[0] || own > maxOwn : n < 6 || n > 18) out.push({ code: 'length', text: v3 ? `${own} plokki (${isTheory(doc) ? 'teooria' : 'v3'}: ${V3.blocks[0]}–${maxOwn})` : `${n} plokki (lubatud 6–18)` });
+  // methodology v5 (meta.methodV5, strictModulesV5.json): the lesson budget (methodV5.js G1) replaces the block count
+  // and the 40–55 min per sheet
+  const v5 = Boolean(doc.meta?.methodV5);
+  if (!v5 && (v3 ? own < V3.blocks[0] || own > maxOwn : n < 6 || n > 18)) out.push({ code: 'length', text: v3 ? `${own} plokki (${isTheory(doc) ? 'teooria' : 'v3'}: ${V3.blocks[0]}–${maxOwn})` : `${n} plokki (lubatud 6–18)` });
   const minutes = sheetMinutes(doc);
   // an exam lesson's sheet is the exam part itself (Harno's written part takes 2–3 hours): no upper bound there
   const maxMinutes = doc.meta?.assessment ? Infinity : SHEET_MINUTES.max;
-  if (!doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > maxMinutes)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
+  if (!v5 && !doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > maxMinutes)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
   const minTypes = v3 ? V3.types : 5;
   if (typeSet(doc).size < minTypes) out.push({ code: 'variety', text: `ainult ${typeSet(doc).size} erinevat ülesandetüüpi (vähemalt ${minTypes})` });
   const last = doc.blocks[doc.blocks.length - 1]?.type;
@@ -212,7 +220,7 @@ function v4Problems(doc, phase) {
 // dictation are spice, not the staple (exam lessons are not counted)
 export function v4ModuleProblems(sheets) {
   const out = [];
-  const lessons = Object.entries(sheets).filter(([, phases]) => !lessonDiagnostic(phases) && Object.values(phases).some((d) => d.meta?.template === 'v4' && !d.meta?.assessment));
+  const lessons = Object.entries(sheets).filter(([, phases]) => !lessonDiagnostic(phases) && Object.values(phases).some((d) => d.meta?.template === 'v4' && !d.meta?.assessment && !d.meta?.methodV5));
   if (!lessons.length) return out;
   const count = {};
   for (const [lessonId, phases] of lessons) {
@@ -242,7 +250,8 @@ export function moduleProblems(sheets) {
   }
   // the parallel versions of a diagnostic check have the same structure on purpose: the module rules skip them; a station
   // lesson (v3-stations) is checked by its own variety rules (stations.js: openings, final kinds), not by sheet sequences
-  const lessonIds = Object.keys(sheets).filter((id) => !lessonDiagnostic(sheets[id]) && !Object.values(sheets[id]).some(isStationSheet));
+  // a v5 lesson (meta.methodV5) has the same 3 / 4 / 5 shape in every lesson by design: no sequence or neighbour rules
+  const lessonIds = Object.keys(sheets).filter((id) => !lessonDiagnostic(sheets[id]) && !Object.values(sheets[id]).some(isStationSheet) && !Object.values(sheets[id]).some((d) => d.meta?.methodV5));
   for (const lessonId of lessonIds) {
     const docs = Object.values(sheets[lessonId]);
     if (new Set(docs.map((d) => tasks(d).map((b) => b.type).join('|'))).size !== docs.length) out.push({ lessonId, phase: '*', code: 'phases-same', text: 'tunni etappidel on sama ülesannete jada' });

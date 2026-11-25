@@ -48,6 +48,8 @@ const band = (level) => {
 // Kasuta (transfer) sheets: the use tasks are the lesson; exercises prepare them
 export const TRANSFER = { exerciseMin: 12, liveMin: 8 };
 export const V2_ITEMS = 6;
+// methodology v5: a form task of 8–10 items (docs/METHODOLOGY_B1_B2_V5.md §3)
+export const V5_ITEMS = 8;
 export const V3_DISCOVER = { exerciseMin: 12, liveMin: 6 };
 // v3 Kasuta: the situation text is the only exercise; the sheet is the speech, the discussion and the letter
 export const V3_TRANSFER = { exerciseMin: 6, liveMin: 5 };
@@ -97,9 +99,13 @@ export function depthProblems(doc) {
   // lesson is 4–6 stations over three sheets, so a sheet's exercise minutes and the whole-sentence quota do not apply
   // (admin/course/stations.js checks the stations, their minutes and the item ceiling)
   const stations = isStationSheet(doc);
-  const minItems = stations ? STATION_ITEMS[0] : doc?.meta?.design === 'v2' && !v3 ? V2_ITEMS : norm.items;
+  // methodology v5 „lesson budget” (meta.methodV5, docs/METHODOLOGY_B1_B2_V5.md §3, admin/course/methodV5.js): a form
+  // task has 8–10 items, the lesson's time is the 75-min budget — not ≥ 25 min of closed drills per sheet — and Harjuta has
+  // one whole-sentence task; the exit check (3 points) is exempt from the item count
+  const v5 = Boolean(doc?.meta?.methodV5);
+  const minItems = stations ? STATION_ITEMS[0] : v5 ? V5_ITEMS : doc?.meta?.design === 'v2' && !v3 ? V2_ITEMS : norm.items;
   // a sentence-insertion text has the exam's 5–8 gaps
-  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && b.type !== 'insertion' && !(stations && isExitCheck(b)) && ITEMS[b.type](b.data || {}) < minItems);
+  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && b.type !== 'insertion' && !((stations || v5) && isExitCheck(b)) && ITEMS[b.type](b.data || {}) < minItems);
   if (short.length) out.push({ code: 'short-tasks', level: 'warning', text: `${short.length} ülesannet alla ${minItems} punkti (${level})`, blocks: short.map((b) => b.id) });
 
   // Kasuta (transfer) is for using the language: writing, speaking, role play carry it; the exercises only prepare
@@ -109,7 +115,7 @@ export function depthProblems(doc) {
   const liveMin = transfer ? (v3 ? V3_TRANSFER : TRANSFER).liveMin : v3 && doc?.meta?.phase === 'discover' ? V3_DISCOVER.liveMin : norm.liveMin;
   // a short sheet (meta.shortSheet: a 10–20 min spaced-review sheet or a short use task, admin/course registry.js) is
   // short on purpose: its minutes are not a lesson's; item counts and sentence lengths still apply
-  const shortSheet = Boolean(doc?.meta?.shortSheet) || stations;
+  const shortSheet = Boolean(doc?.meta?.shortSheet) || stations || v5;
   // design v4 (§7.3): an exam sheet is timed by its Harno part headers; its reading and listening parts are exercise time
   const harnoTimed = isHarnoTimedSheet(doc);
   const exercise = harnoTimed ? harnoTimedMinutes(doc, { skills: ['R', 'L'], include: (b) => !OPEN.has(b.type) })
@@ -150,7 +156,7 @@ export function depthProblems(doc) {
   // v3: Harjuta is the exam's text tasks (option gaps, forms in a text, sentence gaps); Avasta has one language task
   // …and so has a check lesson's Avasta sheet that is itself an exam part (a mock exam's listening, `exampart` block)
   const examPartSheet = examParts || (doc?.meta?.assessment && blocks.some((b) => b.type === 'exampart'));
-  if (writing.length < 2 && !(examPartSheet && doc?.meta?.design === 'v2') && !v3 && !stations) out.push({ code: 'no-sentences', level: 'warning', text: `ainult ${writing.length} ülesannet, kus õpilane kirjutab terve lause (vähemalt 2)` });
+  if (writing.length < 2 && !(examPartSheet && doc?.meta?.design === 'v2') && !v3 && !stations && !v5) out.push({ code: 'no-sentences', level: 'warning', text: `ainult ${writing.length} ülesannet, kus õpilane kirjutab terve lause (vähemalt 2)` });
 
   blocks.filter((b) => b.type === 'dictation').forEach((b) => {
     const n = lines(b.data?.sentences).length;
