@@ -105,7 +105,8 @@ describe('every answerable block, student → score → teacher → print', () =
 });
 
 describe('a task split over two pages', () => {
-  const splittable = Object.keys(SPLITTABLE).filter((t) => !SPLITTABLE[t].printOnly);
+  // speaking and the self-check have no scored answers: their parts are checked below
+  const splittable = Object.keys(SPLITTABLE).filter((t) => !SPLITTABLE[t].printOnly && CASES[t]);
   it.each(splittable)('%s: the second part writes the answers of its own items', (type) => {
     const block = make(type);
     expect(canSplit(block, 'interactive'), `${type} fixture can split`).toBe(true);
@@ -134,6 +135,40 @@ describe('a task split over two pages', () => {
     whole.unmount();
     const part = mountPart(block, { from: 2, to: 4 });
     expect(order(part.card(), 1)).toEqual(first);
+  });
+
+  it('selfcheck: a part keeps its own lines of statements, ticks the right keys and only the last has the stamp', () => {
+    const block = { id: 'sc', type: 'selfcheck', data: { title: 'Kontrolli end.', items: 'a\nb\nc\nd\ne', stamp: 'Tubli!' } };
+    expect(canSplit(block, 'interactive')).toBe(true);
+    expect(itemCount(block)).toBe(3);
+    const first = mountPart(block, { from: 0, to: 1 });
+    expect(first.card().textContent).not.toContain('Tubli!');
+    first.unmount();
+    const h = mountPart(block, { from: 1, to: 3 });
+    const boxes = h.card().querySelectorAll('input[type="checkbox"]');
+    expect(boxes).toHaveLength(3);
+    fireEvent.click(boxes[0]);
+    expect(h.store.answers).toEqual({ 'sc:2': true });
+    expect(h.card().textContent).toContain('Tubli!');
+    expect(h.card().textContent).toContain('(järg)');
+    h.unmount();
+  });
+
+  it('speaking: the recorder and the phrase tip come once, under the last questions; a task with a picture is not split', () => {
+    const block = { id: 'sp', type: 'speaking', data: { title: 'Räägi.', questions: 'q1\nq2\nq3\nq4\nq5', tipTitle: 'Abiks', tipText: 'x', minSec: 30, maxSec: 60 } };
+    expect(canSplit(block, 'interactive')).toBe(true);
+    expect(canSplit({ ...block, data: { ...block.data, img: { src: 'a.png' } } }, 'interactive')).toBe(false);
+    expect(canSplit(block, 'edit')).toBe(false);
+    const first = mountPart(block, { from: 0, to: 2 });
+    expect(first.card().querySelectorAll('.ws-bullets > li')).toHaveLength(2);
+    expect(first.card().querySelector('.ws-recbtn')).toBeNull();
+    expect(first.card().textContent).not.toContain('Abiks');
+    first.unmount();
+    const last = mountPart(block, { from: 2, to: 5 });
+    expect(last.card().querySelectorAll('.ws-bullets > li')).toHaveLength(3);
+    expect(last.card().querySelector('.ws-recbtn')).not.toBeNull();
+    expect(last.card().textContent).toContain('Abiks');
+    last.unmount();
   });
 });
 

@@ -1,0 +1,8 @@
+/* „Leht on juba antud” (RepeatAssignmentChoice.jsx) */
+.repeat-choice{display:grid;gap:8px;margin:0 0 14px;padding:14px;border:1px solid var(--border);border-left:4px solid var(--amber,#f79009);border-radius:var(--radius-lg);background:var(--warning-soft)}
+.repeat-choice>strong{font:800 .95rem Manrope,sans-serif}
+.repeat-choice p,.repeat-choice ul{margin:0}
+.repeat-choice ul{padding-left:18px;font-size:.84rem}
+.repeat-choice small{color:var(--muted);font-size:.76rem;line-height:1.45}
+.repeat-choice__actions{display:flex;flex-wrap:wrap;gap:8px}
+@media(max-width:480px){.repeat-choice__actions{display:grid}.repeat-choice__actions .button{width:100%}}

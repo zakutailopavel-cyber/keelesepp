@@ -6,6 +6,8 @@ import { mainSubject } from '../students/subjects.js';
 import { COURSE_LEVELS, extractCourseItems } from './engine/extract.js';
 import { buildLesson, LESSON_MIN } from './engine/lesson.js';
 import { OWN_MAX, ownSentenceItems, ownSentencePairs } from './engine/ownSentences.js';
+import { pictureWordsFor } from './engine/pictures.js';
+import { loadWordsForLessons } from '../vocabulary/lessonWords.js';
 
 const COURSE_OF_STEP = { A2: 'a2', B1: 'b1', B2: 'b2', C1: 'c1' };
 
@@ -35,11 +37,36 @@ export function sentencesAvailable({ student, words = [], stats = [] }) {
   return { available: Boolean(practiceCourseFor(student)), own: ownSentencePairs({ words, stats }).length };
 }
 
+// the Russian meaning of each picture word from the course lesson vocabulary (vocabulary/lessonWords) → { word: 'имя' }
+export async function pictureMeanings(lessonIds = [], load = loadWordsForLessons) {
+  const byLesson = await Promise.resolve().then(() => load([...new Set(lessonIds)])).catch(() => ({}));
+  const out = {};
+  Object.values(byLesson || {}).flat().forEach((entry) => { if (entry?.et && entry.ru && !out[entry.et]) out[entry.et] = entry.ru; });
+  return out;
+}
+
+const SCENE_TYPES = new Set(['build', 'transform', 'form', 'connector']);
+// the lesson's own scene picture (worksheet-generator/art/textbookArt.js) above its sentence items; loaded with the lesson
+export async function withScenes(items, load = () => import('../worksheet-generator/art/textbookArt.js')) {
+  if (!items.some((item) => SCENE_TYPES.has(item.type) && item.lessonId)) return items;
+  try {
+    const { visualsFor, visualSrc } = await load();
+    return items.map((item) => {
+      if (!SCENE_TYPES.has(item.type) || !item.lessonId) return item;
+      const visual = visualsFor(item.lessonId, item.phase).find((v) => v.format !== 'opener') || visualsFor(item.lessonId).find((v) => v.format !== 'opener');
+      return visual ? { ...item, scene: { src: visualSrc(visual), alt: visual.alt || visual.caption || '' } } : item;
+    });
+  } catch {
+    return items; // no pictures: the sentences still work
+  }
+}
+
 /**
- * → { items, own, course, moduleId } — own sentences first (at most OWN_MAX), then a course lesson of LESSON_MIN items.
- * `loaders`: worksheet-generator/admin/course/courseLoaders.js COURSE_LOADERS (injected in tests).
+ * → { items, own, course, moduleId, pictures } — own sentences first (at most OWN_MAX), then a course lesson of LESSON_MIN items.
+ * `loaders`: worksheet-generator/admin/course/courseLoaders.js COURSE_LOADERS (injected in tests). Picture items come
+ * from his own words that have a word picture and the picture words of his current module (engine/pictures.js).
  */
-export async function loadStudentPractice({ student, lessons = [], words = [], stats = [], loaders, seed = 'tana', canListen = false }) {
+export async function loadStudentPractice({ student, lessons = [], words = [], stats = [], loaders, seed = 'tana', canListen = false, loadMeanings, loadScenes }) {
   const own = ownSentenceItems(ownSentencePairs({ words, stats }), { max: OWN_MAX, seed });
   const course = practiceCourseFor(student);
   let lessonItems = [];
@@ -49,10 +76,25 @@ export async function loadStudentPractice({ student, lessons = [], words = [], s
       const file = await loaders[course]();
       const pool = extractCourseItems(course, file.MODULES);
       moduleId = currentModule(pool, lessons);
-      lessonItems = buildLesson({ pool, level: COURSE_LEVELS[course], moduleId, size: LESSON_MIN, canListen, seed }).items;
+      const moduleLessons = [...new Set(pool.filter((item) => item.moduleId === moduleId).map((item) => item.lessonId))];
+      const pictures = await picturesFor(words, moduleLessons, loadMeanings);
+      lessonItems = buildLesson({ pool, level: COURSE_LEVELS[course], moduleId, size: LESSON_MIN + (pictures.length ? 2 : 0), canListen, pictures, seed }).items;
+      lessonItems = await withScenes(lessonItems, loadScenes);
     } catch {
       lessonItems = []; // the course did not load: his own sentences still make a lesson
     }
   }
-  return { items: [...own, ...lessonItems], own: own.length, course, moduleId };
+  if (!lessonItems.length) {
+    // no course lesson: his own words that have a picture still make picture items
+    const pictures = await picturesFor(words, [], loadMeanings);
+    if (pictures.length) lessonItems = buildLesson({ pool: [], pictures, canListen, seed }).items;
+  }
+  return { items: [...own, ...lessonItems], own: own.length, course, moduleId, pictures: lessonItems.filter((item) => item.type === 'picture' || item.type === 'hear').length };
+}
+
+async function picturesFor(words, lessonIds, loadMeanings) {
+  const found = pictureWordsFor({ words, lessonIds });
+  if (!found.length) return [];
+  const meanings = await pictureMeanings(found.flatMap((entry) => entry.lessonIds), loadMeanings);
+  return pictureWordsFor({ words, lessonIds, meanings });
 }
