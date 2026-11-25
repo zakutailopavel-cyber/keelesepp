@@ -335,6 +335,29 @@ Pure logic: `crm-v2/src/features/worksheet-studio/sheetReuse.js` (+ `sheetReuse.
   Üles / Alla / Kõige alla, lock, copy, delete) in the same floating panel as a block's. Each change is one undo step.
 
 
+## Page filling (2026-11-25, agent/sheet-page-fill)
+
+Owner: printed / A4 pages must not end half empty. `engine/Sheet.jsx` measures every row in a hidden layer and
+`engine/pageSplit.js packPages` packs them; the page bottom is „worth filling” from 35 mm and 10 % of the page
+(`MIN_FREE_MM`, `MIN_FREE_SHARE`). Nothing below applies in edit mode or on the continuous exam screen.
+
+- **Split tasks** (`SPLITTABLE`, alone in their row): the list tasks, reading, listening, writing / letter (paper only),
+  and now `speaking` (its questions; the phrase tip and recorder go with the last part — `noRecorder` on the others; a
+  speaking task with a picture beside it is not split) and `selfcheck` (one item = one line of two statements, the
+  stamp on the last part, `min: 1`). A part keeps `MIN_ITEMS` (2) items, or one item ≥ `MIN_PART_MM` (25 mm: a
+  multiple-choice question with its options, a paragraph). Answer keys of a part are shifted by its start
+  (`shiftKey`); a continued part shows „(järg)”. `match` / `manymatch` are not split: their answers are lettered and
+  shuffled over the whole list.
+- **Stacked pair** (`canStack`): two list tasks side by side (gaps, choice, truefalse, match, writing, speaking without
+  picture, …) whose row does not fit while the page has room are drawn one under the other, each over the whole width
+  (page entry `{ row, member, from?, to? }`); the first fills the room (split if needed), order is unchanged. Pictures,
+  schemes, tips and vocabulary boxes are never stacked (full width would change their size).
+- **Smaller picture** (`canShrink`): a row with one `image` block (alone or beside a tip/notice) that misses the page
+  by little is drawn with the picture down to 70 % of its width (`MIN_PIC_SCALE`, entry `{ row, scale }`, CSS
+  `.ws-row.is-pic-fit`), when the blocks beside it fit as they are.
+- No block is ever moved past another (no reordering). Known gap: a picture may now end a page while the task about
+  it starts the next one; a vocabulary + scheme pair still moves whole.
+
 ## Not in this slice
 
 1. (done in slice 2)

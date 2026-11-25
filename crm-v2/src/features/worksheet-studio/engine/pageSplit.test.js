@@ -1,4 +1,4 @@
-import { canSplit, canStack, packPages, shiftKey, sliceBlock } from './pageSplit.js';
+import { canShrink, canSplit, canStack, packPages, shiftKey, sliceBlock } from './pageSplit.js';
 
 // a row of n items, each `step` mm tall, under a head of `head` mm
 const listRow = (n, { head = 20, step = 10, tail = 4 } = {}) => {
@@ -98,5 +98,30 @@ describe('page split', () => {
     expect(canStack([{ id: 'i', type: 'image', data: {} }, { id: 't', type: 'tip', data: {} }])).toBe(false);
     expect(canStack([gaps, { id: 's', type: 'speaking', data: { img: { src: 'x' } } }])).toBe(false);
     expect(canStack([gaps, { ...choice, joined: true }])).toBe(false);
+  });
+
+  it('draws a picture smaller when its row misses the page by a little', () => {
+    // 60 mm left; the picture row is 70 mm, its photo 60 mm: at 5/6 of the width it is 60 mm high
+    const pic = { h: 70, shrink: { photo: 60, others: 30 } };
+    expect(packPages([{ h: 40 }, pic, { h: 20 }], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0, { row: 1, scale: 0.833 }], [2]]);
+    // more than 30 % smaller: it moves on whole
+    expect(packPages([{ h: 40 }, { h: 90, shrink: { photo: 60, others: 30 } }], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0], [1]]);
+    // the tip beside it is taller than the room: it moves on whole
+    expect(packPages([{ h: 40 }, { h: 70, shrink: { photo: 60, others: 65 } }], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0], [1]]);
+    // a fresh page never shrinks a picture
+    expect(packPages([{ h: 70, shrink: { photo: 60, others: 30 } }], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0]]);
+    const image = { id: 'i', type: 'image', data: {} };
+    expect(canShrink([image, { id: 't', type: 'tip', data: {} }])).toBe(true);
+    expect(canShrink([image], 'edit')).toBe(false);
+    expect(canShrink([image, { ...image, id: 'j' }])).toBe(false);
+  });
+
+  it('lets one tall item (a question with options, a paragraph) stand as a part', () => {
+    // items of 30 mm: 74 mm left holds head 20 + one item 30 + tail 4 = 54, two would be 84
+    const big = listRow(6, { step: 30 });
+    expect(packPages([{ h: 26 }, big], { firstCap: 100, nextCap: 100 }).pages[0]).toEqual([0, { row: 1, from: 0, to: 1 }]);
+    // small items (10 mm) still keep two on each side
+    expect(packPages([{ h: 65 }, listRow(6)], { firstCap: 100, nextCap: 100 }).pages).toEqual([[0], [1]]);
+    expect(canSplit({ id: 'c', type: 'choice', data: { questions: [{ q: 1 }, { q: 2 }] } })).toBe(true);
   });
 });

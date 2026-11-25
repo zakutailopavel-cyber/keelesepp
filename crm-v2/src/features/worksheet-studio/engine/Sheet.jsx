@@ -21,7 +21,7 @@ import { courseBadge } from '../../curriculum/courseNames.js';
 // Tiptap is loaded only when a teacher opens a text for formatting (students never download it)
 const RichInlineEditor = lazyComponent(() => import('./RichInlineEditor.jsx'));
 import { themeClass, themedTone } from './look.js';
-import { SPLITTABLE, canSplit, canStack, itemCount, minItemsOf, packPages, shiftKey, sliceBlock, stackedBlock } from './pageSplit.js';
+import { SPLITTABLE, canShrink, canSplit, canStack, itemCount, minItemsOf, packPages, shiftKey, sliceBlock, stackedBlock } from './pageSplit.js';
 import { focusNextField } from '../sheetFlow.js';
 import { answerFontClass, useAnswerFont } from '../answerFont.js';
 import { TranscriptContext, hasCheck, hasTranscript } from './transcript.js';
@@ -438,6 +438,23 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
           });
           return stack.every(Boolean) ? { ...row, stack } : row;
         }
+        // a row with a picture: the picture's height and the natural height of the blocks beside it (a card is
+        // stretched to its row, so its content is measured)
+        if (canShrink(rows[i], mode)) {
+          const cards = [...r.querySelectorAll(':scope > .ws-row > .ws-card')];
+          const photo = r.querySelector(':scope > .ws-row > .ws-card[data-type="image"] .ws-photo');
+          const natural = (card) => {
+            const top = card.getBoundingClientRect().top;
+            const bottom = Math.max(top, ...[...card.children].map((c) => c.getBoundingClientRect().bottom));
+            const css = globalThis.getComputedStyle?.(card);
+            const pad = css ? (parseFloat(css.paddingBottom) || 0) + (parseFloat(css.borderBottomWidth) || 0) : 0;
+            const scale = card.offsetHeight ? card.getBoundingClientRect().height / card.offsetHeight : 1;
+            return ((bottom - top) / (scale || 1) + pad) / mm;
+          };
+          const others = cards.filter((c) => c.dataset.type !== 'image').map(natural);
+          if (photo) return { ...row, shrink: { photo: photo.offsetHeight / mm, others: Math.max(0, ...others) } };
+          return row;
+        }
         const block = rows[i]?.length === 1 ? rows[i][0] : null;
         if (!block || !canSplit(block, mode)) return row;
         // a reading is split in its one-column form, drawn once more for measuring
@@ -547,8 +564,9 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   };
   const editProps = mode === 'edit' ? { onPointerDownCapture: notePointer, onClickCapture: tapToEdit, onDoubleClick: editInline } : {};
 
-  const rowView = (row, key, measuring = false, part = null) => (
-    <div className="ws-row" key={key}>
+  // scale: a row drawn with its picture smaller to fit the page (pageSplit.js canShrink)
+  const rowView = (row, key, measuring = false, part = null, scale = 0) => (
+    <div className={`ws-row${scale ? ' is-pic-fit' : ''}`} key={key} style={scale ? { '--ws-pic-scale': scale } : undefined}>
       {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} pop={measuring ? null : popFor(b.id)} badge={blockBadges?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} flow={flow} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} part={part} entity={!measuring} />; })}
     </div>
   );
@@ -558,6 +576,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     if (typeof e === 'number') return rows[e] && rowView(rows[e], e);
     const row = rows[e.row];
     if (!row) return null;
+    if (e.scale) return rowView(row, e.row, false, null, e.scale);
     if (e.member === undefined) return rowView(row, `${e.row}:${e.from}`, false, e);
     const block = row[e.member];
     return block && rowView([stackedBlock(block)], `${e.row}.${e.member}:${e.from ?? ''}`, false, e.from === undefined ? null : e);
