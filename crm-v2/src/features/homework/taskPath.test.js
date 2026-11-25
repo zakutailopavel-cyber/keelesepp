@@ -51,13 +51,16 @@ describe('lessons as nodes (lessonNodes)', () => {
     expect(node.steps.map((task) => task.title)).toEqual(['Korda tunni sõnu sõnakaartidega']);
     expect(node.current.phase).toBe('discover');
   });
-  it('a lesson given twice keeps both copies visible; a free task alone is its own node', () => {
+  it('a sheet given twice and still open is one step, the older copy folded under it (audit 05); a free task alone is its own node', () => {
     const assignments = [...lesson('b1-01', '2026-11-01'), sheet('b1-01', 'discover', '2026-11-08', { id: 'again' })];
     const nodes = lessonNodes(tasksOf({ assignments, homework: [work('x', 'Loe raamatut')] }), today);
     const lessonNode = nodes.find((node) => node.kind === 'lesson');
-    expect(lessonNode.total).toBe(4);
+    expect(lessonNode.total).toBe(3);
     expect(lessonNode.phases).toHaveLength(3);
-    expect(lessonNode.steps).toHaveLength(1);
+    expect(lessonNode.steps).toHaveLength(0);
+    const discover = lessonNode.phases.find((item) => item.phase === 'discover').task;
+    expect(discover.sheet.id).toBe('again');
+    expect(discover.earlier.map((task) => task.sheet.id)).toEqual(['b1-01-discover']);
     expect(nodes.find((node) => node.kind === 'task').title).toBe('Loe raamatut');
   });
 });

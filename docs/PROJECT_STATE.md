@@ -17,6 +17,28 @@
 - Kontrollid: `node tools/course-audit/method-v5.mjs --course b1 --module 2` → 0; `npx vitest run src/features/worksheet-generator src/features/practice` 97 faili läbi (1 skip), 1673 testi (pärast rebase'i main'ile a22261b); EstNLTK `tools/course-audit/language.py`: 0 tundmatut väiketähega sõna. Ekraanipildid enne/pärast scratchpad `mock/b1m2/`.
 - Piirangud: pildid on tööpildid (Codex võib üle joonistada); aja hinnang `timeEstimate.js` ≈ 30–36 min tunnis (paaritöö ja teine katse hindamata), autori plaan 65 min + väljund; kontrolli eksamiosade päis näitab Harno B1 skaalat (nagu moodulis 1).
 - Järgmine samm: omanik vaatab 006 ja 010 lehti (enne/pärast) ja annab OK; siis sama mall moodulile 3.
+## 2026-11-25 — Auditi parandused: korduvad määramised, aus areng, järgmine tund kellaaja järgi (agent/audit-quick-fixes)
+
+- Main: 10e14fe (2026-11-25). Draft-PR „Audit fixes: no duplicate assignments, honest progress, next lesson by time”. Ainult klient/UI; `firestore.rules` ja `functions` puutumata (reeglid 256 kB piiril). Deploy'd ega production'i kirjutusi pole.
+- Audit 05 (sama leht mitu korda): `features/homework/assignmentRepeats.js` — sama leht = sama `lessonId` + `phase` (+ `block`, kui määrati üks ülesanne). `libraryService.assign({ repeats })`: `'continue'` (vaikimisi: avatud koopiaga õpilasele uut ei kirjutata, tagastatakse olemasolev `existing: true`), `'new'` (uus määramine väljaga `attempt: n`), `'ask'` (viskab `RepeatAssignmentError`, enne kui midagi kirjutatakse). Õppevara „Määra” ja Live-ruumi „Lisa tahvlile” küsivad (`RepeatAssignmentChoice.jsx`: „Jätka olemasolevat” vaikimisi, „Loo uus katse”); kalender, paigutustest ja „Järgmine tund” kasutavad vaikimisi jätkamist. Uued väljad määramisel: `attempt` (2, 3 …) ja `block` (üks ülesanne). Olemasolevaid määramisi ei muudeta ega kustutata.
+- Õpilase/pere „Ülesanded”: `taskList.js foldRepeats` (mergeTasks lõpus) — üks kaart õpilane + tund + faas, ees alustatud, siis uusim; vanemad „+N varasemat” all (avatavad). Mõjutab ka „Täna”/pere loendeid (duplikaate ei loeta).
+- Audit 06 („A2 keeleoskus 0 %”): `proficiencyCurve.js isThinCurve` — õpetaja alguspunktita ja < 3 esitatud kursuselehte või ükski eesmärk pole „Oskan” → protsenti ei näidata; kaart ütleb „Andmeid on veel vähe”, tehtud töölehed ja selgeks õpitud sõnad (`wordGrowth`). `levelCurve` tagastab nüüd ka `measured`.
+- Audit 19: `parentHome.js upcomingLessons` — „Järgmised tunnid” jätab välja tänase tunni, mis on Tallinna kella järgi läbi (algus + kestus, vaikimisi 60 min); käimasolev jääb.
+- Laborid: `/parent-lab.html?family=audit`, `/tasks-lab.html?scenario=repeats`. Ekraanipildid 390 px enne/pärast: scratchpad `mock/auditfix/` (05, 06, 19).
+- Kontrollid: `npx vitest run` homework, parents, progress-points, library, services/firebase, students, live-classroom, placement, calendar, worksheet-studio, pet, dashboard — 296 faili, 2178 testi; koos jooksutades kukkusid 6 rasket faili ajalõpuga (worksheet-studio stuudio, studentWorksheetFlow, MomentButton, petCare), eraldi jooksutades kõik läbi (5 faili / 48 testi; petCare 11/11). Uued testid: assignmentRepeats, library (ask/continue/new/attempt/block), taskList foldRepeats, taskPath, LearnerTasksPage „+2 varasemat”, LibraryPage ja RoomWorksheetPanel valik, progressPoints thin-olek, parentHome upcomingLessons. eslint muudetud failidel 0 viga (2 vana hoiatust LibraryPage.jsx-is).
+- Piirangud: korduse kontroll loeb õpilaste `worksheetAssignments` (5 kaarti päringus); lugemisviga → määratakse nagu varem. Iseõppe (`self_study`) lehte ei loeta korduseks. Õpetaja vaade (Kodutööd) näitab endiselt kõiki koopiaid eraldi.
+- Järgmine samm: omanik vaatab PR-i ekraanipildid; pärast ühendamist tavaline [deploy] väljalase (reegleid pole vaja).
+## 2026-11-25 — Harjuta: pildiharjutused („Mis on pildil?”, „Kuula ja vali pilt”) (agent/harjuta-pictures)
+
+- Main: 2c12977 (2026-11-25). Omanik: harjutus peab olema visuaalne nagu Duolingo, praegu ainult tekst. Ainult liides/mootor, õppesisu ei muudetud.
+- Uus `practice/engine/pictures.js`: A2 sõnapildid (`art/words/a2.js`, 154 pärast topeltpiltide väljajätmist) → tüübid `picture` (pilt + 4 sõna, raskemal sammul kirjutatakse) ja `hear` (sõna kõlab, vali 4 pildist; ainult salvestatud Neurokõne failiga). Valed valikud sama teema (= A2 mooduli sõnagrupi) piltidest.
+- `engine/lesson.js`: `buildLesson({ pictures })` paneb kuni 3 pildiülesannet (vali → kuula → kirjuta); ilma piltideta tund on sama mis enne (test). `studentPractice.js`: pildid õpilase oma sõnadest (vastus liigutab kaarti) ja A2 kursusel praeguse mooduli sõnadest, tähendus `lessonWords/a2.json`-ist; kursuse lausetel tunni stseenipilt (`textbookArt.visualsFor`, laaditakse koos tunniga).
+- Vastuse järel: pilt + sõna + tõlge + heli (mängib ise). Telefon: kõik nupud ≥ 44 px, tekst ≥ 16 px (ka olemasolevad: ✕, õ-ä nupud, „Aeglaselt”, vihjed); `.pr-lesson` täislaius.
+- Kontrollid: `npx vitest run src/features/practice src/features/students` 47 faili / 326 testi läbi; eslint 0 viga. e2e layout-suite katab ainult töölehti (sheet-lab), mitte harjutust — ei käivitatud. Ekraanipildid 390×844 tasks-lab (`?view=harjuta&kursus=1`, uus parameeter laadib päris kursuse).
+- Sarnased pildid: `CONFUSABLE` (29 gruppi, kõik 156 pilti silmaga üle vaadatud — köha/nohu, odav/kallis/hind, kalendrid, vormid, „tüdruk laua taga” jne); ühe grupi kaks pilti ei ole kunagi samas ülesandes (test: iga sõna × mõlemad tüübid × 3 seemet).
+- Staff-eelvaade `/library/harjutused`: valik „Pildiülesanded” (mooduli sõnad / kõik A2 pildid / ei).
+- Piirangud: pildid on ainult A2 sõnadel — B1+ õppijal tulevad pildid ainult siis, kui tema „Minu sõnades” on A2 pildiga sõna. Eelvaates tõlget ei näidata.
+- Järgmine samm: omaniku OK → merge → release.
 
 ## 2026-11-25 — B1 moodul 1 metoodika v5 järgi, pilootmoodul (agent/b1-m1-v5)
 
@@ -30,6 +52,16 @@
 - Aja hinnang `timeEstimate.js` jääb ≈ 28–35 min: rollikaart on seal alati 5 min ja kõne ≈ 2 min — paaritöö, teine katse ja kirjutamine klassis jäävad hindamata; autori plaan on 65 min + väljund.
 - Omaniku ülevaatus (2026-11-25, siht 9/10): omaniku otsus — faktid ei pea olema päris ega kontrollitud, tekstid kohandatakse A2 tasemele (lühikesed laused, sagedased sõnad, 80–150 sõna, raskeid arve pole); 001, 003 ja 005 tekstid lihtsustatud. Igas õppetunnis üks õpipilt: 002 koomiks „Irina hommik” (4 kaadrit, paaris ümberjutustus minevikus, 002_d_think), 003 „Neli võimalust liikuda” (nõu sõbrale), 004 kaart „Enne / Nüüd / Minu teisipäev” (probleem enne kõnet). Pildid on sisuagendi käsitsi joonistatud SVG-joonised (paleti järgi, `public/textbook-art/b1/…`), Codex võib need samade lähteülesannete järgi üle joonistada; vanad 002/003/004 Kasuta pildid `RETIRED` nimekirjas (failid alles). Lehtedel ei ole peaaegu tühja lehekülge (viimased lehed ≥ 50 %). v5 aruanne 0, testid läbi.
 - Järgmine samm: omanik vaatab 001 ja 002 lehti (enne/pärast) ja annab OK või parandused; siis sama mall moodulitele 2–5.
+## 2026-11-25 — B2 moodul 18 metoodika v5 järgi (agent/b2-m18-v5)
+
+- Main: 614f542 (2026-11-25, sisaldab #1307 moodul 17). Draft-PR „B2 module 18 to methodology v5”. Deploy'd ja production'i kirjutusi ei olnud.
+- Tulemus: b1b2-086…088 = 4 / 4 / 5 plokki (13 tunnis, ≈ 60–66 min), varem 23 plokki ≈ 138–146 min; proovieksamid 089 / 090 ≤ 10 plokki lehel (varem 11–13), kuulamine 2× ja lukus, toorpunktid ja lävendid „Harno 60 % · KeeleSepp 70 % / 80 %”. Keeleosa ja sõnapiltide drillid peideti (Harno B2 eksamil keeleosa pole); 089 / 090 Harjuta lehele jäid teisendus / „räägi loetust” harjutusena (äratundmisülesannete osakaal ≤ 35 %). `method-v5.mjs --course b2 --module 18`: 0 rikkumist; moodul on `strictModulesV5.json`-is.
+- Sisend: 086 kuulamine (086_p_radio uus, 2 häält, 196 s, 12 küsimust; TartuNLP), 087 lugemine (uus 087_d_read „Kokkulepe ilma tülita”, ~410 sõna, 4 järeldusküsimust), 088 lugemine (088_d_read ~420 sõna, arvud üldistatud, „KeeleSepp õppetekst”). 090_d_l4: Liisa → Kerttu (G7), heli uuesti.
+- Mooduli nõuded: külm ülesanne 086_d_cold ↔ paralleelne 088_t_mono; kirjutamine ilma alguse ja fraasideta + seosülesanne 088_t_summary (ERR-i artikkel, kursusekaaslane vastab); varjatud infoga kaart 086_t_panel; märksõnakaardid 087_t_debate, 088_t_meeting; skeem igas tunnis; analüütiline B2 juhend + piiripealne näidis igas tunnis; tegelasi ei ole (Helgi → Tiiu), dikteerimist ei ole.
+- Muud failid: `b2/lessonGoals.js` (086–089), `listeningAudio.json` + 2 mp3, `art/visuals/b2-module-18.js` (086 pildi tekst: üks minut), baasjooned finalShape B2 (v4 reeglid, mis on v5-ga vastuolus), academic value (opener, examiner, 086 know / boltedon, kasuta2).
+- Kontrollid: `npx vitest run src/features/worksheet-generator src/features/practice` läbi (vt PR); vabamorf (`tools/course-audit/language.py`): tundmatuid väiketähtsõnu ainult URL-i osad; lehtede täidetus vaadatud (086 2–3 lehte, viimane täis; 087 Kasuta ja 088 Avasta viimane leht ~50 %).
+- Järgmine samm: omanik vaatab ekraanipildid (scratchpad mock/b2m18) ja annab OK.
+
 ## 2026-11-25 — B2 moodul 17 metoodika v5 järgi, pilootmoodul (agent/b2-m17-v5)
 
 - Main: 2c12977 (2026-11-25). Haru `agent/b1b2-method-v5` peal, sisse ühendatud `agent/b1b2-gates-v5` (#1305); draft-PR „B2 module 17 to methodology v5 (pilot)”. Deploy'd ja production'i kirjutusi ei olnud.
@@ -51,6 +83,14 @@
 - Praegu (aruanne): B1 moodul 1 — 90 rikkumist (tunnis 26 plokki / ≈ 130 min, kontrollis 3 lehte ja 34–36 plokki), B2 moodul 17 — 66 (tunnis 21–22 plokki / ≈ 135–140 min, kontroll 085 37 plokki).
 - Piirangud: B2 järeldusküsimused leitakse sõnade järgi, kahte häält ei kontrollita; aja hinnang `timeEstimate.js` järgi; finalShape V-reeglid ja jaamade reeglid (B2 moodulid 1–16) võivad v5 eelarvega vastuolus olla — vaata, kui moodul lülitatakse sisse.
 - Järgmine samm: sisuagent kirjutab B1 mooduli 1 ümber v5 järgi, lisab `"a2b1-module-01"` `strictModulesV5.json`-i `b1` nimekirja ja kontrollib `method-v5.mjs` + vitest'iga.
+## 2026-11-25 — Töölehed: vähem pooltühje lehti (agent/sheet-page-fill)
+
+- Main: 10e14fe (2026-11-25). Omanik: prinditud lehed lõppevad 30–50 % tühjalt.
+- `engine/pageSplit.js` + `Sheet.jsx`: jagatakse ka `speaking` (küsimused; salvestaja ja vihje viimases osas) ja `selfcheck` (rida kahest väitest); üks kõrge üksus (≥ 25 mm, nt valikvastusega küsimus) võib olla osa; lehe põhi täidetakse alates 35 mm / 10 % (enne 15 %); kõrvuti kaks loendiülesannet pannakse vajadusel üksteise alla täislaiusena; pilt (+ vihje) joonistatakse kuni 70 % väiksemana, kui rida jääb natuke puudu. Järjekord ei muutu kunagi. Reeglid: `docs/WORKSHEET_STUDIO_V1.md` „Page filling”.
+- Kontrollid: vitest worksheet-studio + worksheet-generator läbi; eslint 0 viga; layout e2e — vt PR. Labor 28 lehte (B1 m1 + B2 m17 pilootidega): pilt + ülesanne koos; muutus a2b1-003 Avasta lk 1 73→95 %.
+- Pilt (+ vihje) jääb alati samale lehele kui selle all olev ülesanne (`examMode.js keepsWithNext`): mahuvad koos, ülesande esimene osa mahub, või liiguvad koos. Piirang: sõnavara + skeemi paar liigub endiselt tervikuna.
+- Järgmine samm: omaniku OK → merge → release.
+
 ## 2026-11-25 — Reeglid: lüngad tahvlil, kompaktne versioon (agent/board-fill-rules-size)
 
 - #1304 reeglid ei mahtunud: Firestore „Total size of compiled executables must be smaller than 256000 bytes” (+348 B). Minimaalne versioon: text-võtmetes `fills`; `whiteboardElementUpdateValid` lubab muutust, kus muutuvad ainult `fills` + meta. Avaldatud Rules API kaudu 2026-11-24 23:32 UTC, live = repo.

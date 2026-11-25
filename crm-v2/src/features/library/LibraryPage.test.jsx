@@ -85,6 +85,47 @@ describe('LibraryPage', () => {
     expect(worksheetRepository.list).toHaveBeenCalledWith('lesson-1');
   });
 
+  it('a sheet the student still has open: asks first, „Jätka olemasolevat” is the default, „Loo uus katse” is explicit (audit 05)', async () => {
+    const { RepeatAssignmentError } = await import('../homework/assignmentRepeats.js');
+    const sheet = sampleDocument();
+    const worksheetRepository = { list: vi.fn().mockResolvedValue([{ worksheetId: 'practice', worksheetDocStatus: 'published', publishedWorksheetDoc: sheet }]) };
+    const { repository } = renderPage(data, '/library?assign=lesson-1&leht=practice', worksheetRepository);
+    const open = [{ studentId: 'student-1', studentName: 'Mari', lessonId: 'lesson-1', phase: 'practice', title: 'Pere tunnikava · Harjuta', existing: { id: 'old-1', assignedAt: '2026-11-12T10:00:00Z', answered: 2 } }];
+    repository.assign.mockImplementation(async ({ repeats }) => {
+      if (repeats === 'ask') throw new RepeatAssignmentError(open);
+      return { count: 1, created: repeats === 'new' ? 1 : 0, continued: repeats === 'new' ? 0 : 1, assignments: [{ id: repeats === 'new' ? 'n1' : 'old-1', studentId: 'student-1' }] };
+    });
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(await within(dialog).findByText('Mari'));
+    fireEvent.click(within(dialog).getByRole('button', { name: /^Määra 1 õpilasele/ }));
+    const question = await within(dialog).findByRole('alertdialog', { name: 'Leht on juba antud' });
+    expect(question).toHaveTextContent('See leht on õpilasel juba pooleli: Mari');
+    const keep = within(question).getByRole('button', { name: 'Jätka olemasolevat' });
+    expect(keep).toHaveFocus();
+    expect(within(dialog).getByRole('button', { name: /^Määra 1 õpilasele/ })).toBeDisabled();
+    fireEvent.click(keep);
+    await waitFor(() => expect(repository.assign).toHaveBeenCalledTimes(2));
+    expect(repository.assign.mock.calls.map(([call]) => call.repeats)).toEqual(['ask', 'continue']);
+    expect(await screen.findByText(/olemasolevat jätkatakse 1/)).toBeInTheDocument();
+  });
+
+  it('„Loo uus katse” gives the sheet again', async () => {
+    const { RepeatAssignmentError } = await import('../homework/assignmentRepeats.js');
+    const sheet = sampleDocument();
+    const worksheetRepository = { list: vi.fn().mockResolvedValue([{ worksheetId: 'practice', worksheetDocStatus: 'published', publishedWorksheetDoc: sheet }]) };
+    const { repository } = renderPage(data, '/library?assign=lesson-1&leht=practice', worksheetRepository);
+    repository.assign.mockImplementation(async ({ repeats }) => {
+      if (repeats === 'ask') throw new RepeatAssignmentError([{ studentId: 'student-1', studentName: 'Mari', lessonId: 'lesson-1', phase: 'practice', existing: { id: 'old-1' } }]);
+      return { count: 1, created: 1, continued: 0, assignments: [] };
+    });
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(await within(dialog).findByText('Mari'));
+    fireEvent.click(within(dialog).getByRole('button', { name: /^Määra 1 õpilasele/ }));
+    fireEvent.click(await within(dialog).findByRole('button', { name: 'Loo uus katse' }));
+    await waitFor(() => expect(repository.assign.mock.calls.map(([call]) => call.repeats)).toEqual(['ask', 'new']));
+    expect(await screen.findByText(/määrati 1 õpilasele/)).toBeInTheDocument();
+  });
+
   it('assigns one task of the published sheet from the block bar (&plokk=)', async () => {
     const sheet = sampleDocument();
     const task = sheet.blocks.find((block) => block.data?.title);

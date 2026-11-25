@@ -30,6 +30,7 @@ export function demoFamily(today, family = 'two') {
   const words = [];
   const schedule = [];
   const invoices = [];
+  if (family === 'audit') return auditFamily(today);
   if (family === 'empty') {
     schedule.push({ id: 'sch-lena', studentId: 'demo-lena', studentName: 'Lena Kask', teacher: 'Kadri Õpetaja', date: shift(today, 2), time: '16:00', duration: 60, status: 'Planeeritud' });
     return { students, lessons, homework, assignments, words, schedule, invoices, progressPoints: [], submissions: [] };
@@ -120,6 +121,25 @@ export function demoFamily(today, family = 'two') {
     point('demo-sofia', today, 'B1', 35, 'teacher', 'Algus'),
   ];
   return { students, lessons, homework, assignments, words, schedule, invoices, progressPoints, submissions: [] };
+}
+
+// `?family=audit` (audit 2026-11-24, findings 06 and 19): Mia has just begun — two A2 course sheets handed in, no
+// teacher start point, 12 words learned — and had a lesson earlier today that is over now.
+function auditFamily(today) {
+  const students = [{ id: 'demo-mia', name: 'Mia Kask', level: 'A1', targetLevel: 'A2', subject: 'Eesti keel', teacher: 'Kadri Õpetaja', linkedParentId: 'demo-parent', recordingConsent: true, recordingConsentAt: '2026-11-01', enrollments: [{ id: 'e-mia', subject: 'Eesti keel', level: 'A1', targetLevel: 'A2', teacher: 'Kadri Õpetaja' }] }];
+  const goals = { g_vocab: { ok: 8, total: 10 }, g_read: { ok: 6, total: 10 } };
+  const assignments = ['discover', 'practice'].map((phase, n) => ({ id: `a-mia-${phase}`, studentId: 'demo-mia', status: 'done', phase, lessonId: 'a2-001', lessonTitle: 'Tutvume', title: `Tutvume · ${phase === 'discover' ? 'Avasta' : 'Harjuta'}`,
+    assignedAt: stamp(shift(today, -6 + n)), completedAt: stamp(shift(today, -5 + n)), dueDate: shift(today, -5 + n), worksheetDoc: { id: `ws_a2-001_${phase}`, meta: { title: 'Tutvume' } }, score: { perGoal: goals } }));
+  const words = Array.from({ length: 20 }, (_, n) => ({ id: `w-mia-${n}`, studentId: 'demo-mia', word: `sõna ${n}`, translation: 'слово', box: n < 12 ? 3 : 1, createdAt: stamp(shift(today, -(n % 6))) }));
+  // a lesson that started two hours ago (30 min, over now), and the next ones
+  const earlier = new Date(Date.now() - 2 * 60 * 60 * 1000);
+  const time = iso(earlier) === today ? `${pad(earlier.getHours())}:${pad(earlier.getMinutes())}` : '00:00';
+  const schedule = [
+    { id: 'sch-mia-today', studentId: 'demo-mia', studentName: 'Mia Kask', teacher: 'Kadri Õpetaja', date: today, time, duration: 30, status: 'Planeeritud' },
+    { id: 'sch-mia-next', studentId: 'demo-mia', studentName: 'Mia Kask', teacher: 'Kadri Õpetaja', date: shift(today, 2), time: '16:00', duration: 60, status: 'Planeeritud' },
+    { id: 'sch-mia-later', studentId: 'demo-mia', studentName: 'Mia Kask', teacher: 'Kadri Õpetaja', date: shift(today, 5), time: '16:00', duration: 60, status: 'Planeeritud' },
+  ];
+  return { students, lessons: [], homework: [], assignments, words, schedule, invoices: [], progressPoints: [], submissions: [] };
 }
 
 // fake repositories with the same methods the page calls; reads only, nothing is written anywhere

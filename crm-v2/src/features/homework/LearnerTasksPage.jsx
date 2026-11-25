@@ -84,6 +84,19 @@ function StepIcon({ task, index }) {
   return <span className="lt-step__icon" aria-hidden="true">{isWordTask(task) ? <Languages size={16} /> : task.kind === 'monologue' || task.kind === 'voice' ? <Mic size={16} /> : <ListTodo size={16} />}</span>;
 }
 
+// the same sheet given again and still open (taskList.js foldRepeats): the older copies under one line, never lost
+function EarlierCopies({ task, canAct, actions }) {
+  const earlier = task.earlier || [];
+  if (!earlier.length) return null;
+  return <details className="lt-earlier">
+    <summary>+{earlier.length} varasemat<span className="lt-ru" lang="ru"> · ещё {earlier.length} раньше</span></summary>
+    <ul>{earlier.map((copy) => <li key={copy.key}>
+      <span>Antud {shortDay(copy.assignedAt) || '—'}{copy.started ? ' · alustatud' : ''}</span>
+      <button type="button" className="lt-link" data-preview-allowed onClick={() => actions.playSheet(copy.sheet)}>{!canAct ? 'Vaata' : copy.started ? 'Jätka' : 'Ava'}</button>
+    </li>)}</ul>
+  </details>;
+}
+
 /** One step of the path: a lesson's sheet (Avasta 1/3 …) or one free task. Its own actions stay as they were. */
 function TaskStep({ task, phaseStep = false, current = false, today, canAct, isNew, subjectTag, busy, actions }) {
   const { homework } = task;
@@ -116,6 +129,7 @@ function TaskStep({ task, phaseStep = false, current = false, today, canAct, isN
         {!todo && task.doneAt && task.state === TASK_STATE.WAITING ? <span>Tehtud {shortDay(task.doneAt)}</span> : null}
       </p> : null}
       <OwnAnswer homework={homework} />
+      <EarlierCopies task={task} canAct={canAct} actions={actions} />
       <div className="lt-links">
         {homework?.boardPageId && !homework.worksheetFromBoardPage ? <Link to={`/board?page=${homework.boardPageId}`}>Ava tahvlileht „{homework.boardPageTitle || 'Tahvlileht'}”</Link> : null}
         {canPreviewMaterial(homework) && task.kind !== 'sheet' ? <button type="button" className="lt-link" data-preview-allowed disabled={busy === `material-${homework.id}`} aria-label={`Vaata materjali: ${task.title}`} onClick={() => actions.previewMaterial(homework)}>Vaata materjali</button> : null}
@@ -301,7 +315,8 @@ export default function LearnerTasksPage({ repository = homeworkService, student
     if (!loaded) return;
     if (askedKey && !opened.current) {
       opened.current = true;
-      const task = tasks.find((item) => item.key === askedKey);
+      // a folded older copy (+N varasemat) still opens by its own key
+      const task = tasks.find((item) => item.key === askedKey) || tasks.flatMap((item) => item.earlier || []).find((item) => item.key === askedKey);
       if (task) {
         // after this render: the sheet opens, or the page scrolls to the task (its fold opened)
         globalThis.setTimeout(() => (task.kind === 'sheet' && task.state === TASK_STATE.TODO ? setPlaying(task.sheet) : focusStep(task, false)), 0);

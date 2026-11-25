@@ -30,7 +30,7 @@ import LessonBoardsCard from '../board/LessonBoardsCard.jsx';
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import { ChildrenWordGrowth } from '../vocabulary/WordGrowthCard.jsx';
 import ChildSwitch, { childKeyOf } from './ChildSwitch.jsx';
-import { childSummary, isRealInvoice, moneyDue } from './parentHome.js';
+import { childSummary, isRealInvoice, moneyDue, upcomingLessons } from './parentHome.js';
 import NowLearningCard from './NowLearningCard.jsx';
 import InvoicePdfButton from './InvoicePdfButton.jsx';
 import UnpaidInvoicesNotice from './UnpaidInvoicesNotice.jsx';
@@ -163,7 +163,8 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
 
   const today = toIsoDate();
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
-  const occurrences = useMemo(() => (state.data ? occurrencesForDates(state.data.schedule, nextDates) : []), [nextDates, state.data]);
+  // from today, minus what is already over by the Tallinn clock (a lesson held this morning is not „next”)
+  const occurrences = useMemo(() => (state.data ? upcomingLessons(occurrencesForDates(state.data.schedule, nextDates)) : []), [nextDates, state.data]);
 
   if (state.loading) return <ParentHomeSkeleton />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
@@ -228,7 +229,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
       <div className="pd-layout">
         <div className="pd-main">
           {/* „Areng” (owner 2026-11-04): one curve of measured proficiency toward the level, mock exams marked */}
-          <ProficiencyCard key={`areng-${childKeyOf(child)}`} name={String(child.name || '').trim().split(/\s+/)[0]} studentIds={childRecordIds} assignments={ofPerson(child, assignments)} targetLevel={targetLevelOf(child)} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} />
+          <ProficiencyCard key={`areng-${childKeyOf(child)}`} name={String(child.name || '').trim().split(/\s+/)[0]} studentIds={childRecordIds} assignments={ofPerson(child, assignments)} targetLevel={targetLevelOf(child)} {...(pointsService ? { service: pointsService } : {})} {...(goalsLoader ? { loadGoals: goalsLoader } : {})} {...(wordsService ? { wordsService } : {})} />
           <NowLearningCard lessons={childLessons} assignments={childAssignments} today={today} />
         </div>
         <ChildCards child={child} summary={summary} upcoming={upcoming} subjects={subjects.length} onlyOneSubject={chosen} lessonRequest={lessonRequest} onReschedule={setRescheduling} readOnly={Boolean(preview)}
