@@ -2106,13 +2106,18 @@
   },
   "a2b1-056:056_d_radio": {
     "src": "/audio/a2b1-056/056_d_radio.mp3",
-    "seconds": 56,
-    "hash": "e3ec765de9b53c98a2cee73a732cf3822c8fc4da"
+    "seconds": 96.8,
+    "hash": "90d2b62a9601371577461bd63c94f76bb34b5ee3"
   },
   "a2b1-056:056_p_radio": {
     "src": "/audio/a2b1-056/056_p_radio.mp3",
     "seconds": 89.9,
     "hash": "633e1260df107e3dd4132d6b14f88314838c2070"
+  },
+  "a2b1-058:058_d_radio": {
+    "src": "/audio/a2b1-058/058_d_radio.mp3",
+    "seconds": 90,
+    "hash": "54a40d4adc312e6fad9dec3878df7775da34aa36"
   },
   "a2b1-058:058_t_damage": {
     "src": "/audio/a2b1-058/058_t_damage.mp3",

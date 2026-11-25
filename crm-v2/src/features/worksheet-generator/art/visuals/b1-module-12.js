@@ -1,9 +1,73 @@
-// Visual briefs of a2b1 module 12 (pilot of design v3 „stations”, docs/COURSE_DESIGN_STATIONS.md); images go to
-// crm-v2/public/textbook-art/b1/<lessonId>/<id>.webp per docs/TEXTBOOK_ART_BIBLE.md.
-// NOT yet in MODULES of art/textbookArt.js: no image exists, and the art test requires the file. Every station works
-// without a picture (the inputs are a chart, a timeline, cards and texts); a picture only adds the scene. Register the
-// file in MODULES when the images are generated and approved (art bible §9).
+// Visual briefs of a2b1 module 12; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
+// Methodology v5 rewrite (2026-11-25): one learning visual per teaching lesson (056 a weather app for the weekend for the
+// phone call about when to go to the bog, 057 a six-picture story of a hike caught by a thunderstorm for the post to a
+// hiking group, 058 an insurance claim with the insurer's decision for the call to the insurer, 059 three neighbours'
+// proposals and a 300-euro budget for the residents' meeting). They are line drawings the content agent made from
+// hand-written SVG (not generated) as working pictures in the palette of TEXTBOOK_ART_BIBLE.md §2 (black line, white,
+// one lime accent, pale-lime blob, grey); Codex may redraw them from the same briefs. No people of the continuing story.
+// Each picture stands directly above the task that uses it (`place` = that task's id), so the picture and its task
+// share a page. The pilot's briefs (cast scenes of Viktor's farm; never drawn, no files) are in RETIRED below.
 export default [
+  {
+    id: "a2b1-056-kasuta-2",
+    phase: "transfer",
+    format: "diagram",
+    cast: [],
+    scene: "Laimirohelise päisega „ILMAÄPP · Kõrve raba · nädalavahetus” heleroheline laigu peal. Kaks kaarti kõrvuti: „LAUPÄEV” ja „PÜHAPÄEV”, kummaski neli rida (kellaaeg, ilmaikoon, temperatuur, vihma võimalus). Laupäev: 9.00 päike 10 °C vihm 0 %; 12.00 päike 17 °C vihm 0 %; 15.00 päike 22 °C vihm 5 %; 18.00 pilv ja päike 19 °C vihm 10 %. Pühapäev: 9.00 päike 18 °C vihm 0 %; 12.00 hall pilv 20 °C vihm 30 %; 15.00 äikesepilv laimirohelise välguga 17 °C äike 80 %; 18.00 vihmapilv 12 °C vihm 70 %. All kast laimirohelise hoiatuskolmnurgaga: „Pühapäev kl 14–17: kollane hoiatus — äike, tuul kuni 15 m/s” ja „Matk rabas kestab umbes 3 tundi · rabas ei ole varju”.",
+    accent: "the app header and the warning triangle",
+    text: ["ILMAÄPP · Kõrve raba · nädalavahetus", "LAUPÄEV", "PÜHAPÄEV", "9.00", "12.00", "15.00", "18.00", "10 °C", "17 °C", "22 °C", "19 °C", "18 °C", "20 °C", "12 °C", "vihm 0 %", "vihm 5 %", "vihm 10 %", "vihm 30 %", "äike 80 %", "vihm 70 %", "Pühapäev kl 14–17: kollane hoiatus — äike, tuul kuni 15 m/s", "Matk rabas kestab umbes 3 tundi · rabas ei ole varju"],
+    learningJob: "leppida sõbraga telefonis kokku, mis päeval ja mis kell rappa minna: öelda, kuidas ilm muutub (läheb pilviseks, oodatakse äikest, läheb jahedamaks), ja leida aeg, mil äikest ei tule",
+    place: "056_t_plan",
+    alt: "Ilmaäpp, Kõrve raba, nädalavahetus. Laupäev: kell 9 päike, 10 kraadi; kell 12 päike, 17 kraadi; kell 15 päike, 22 kraadi; kell 18 pilves ja päike, 19 kraadi; vihma võimalus 0 kuni 10 protsenti. Pühapäev: kell 9 päike, 18 kraadi; kell 12 pilves, 20 kraadi, vihm 30 protsenti; kell 15 äike, 17 kraadi, 80 protsenti; kell 18 vihm, 12 kraadi, 70 protsenti. Pühapäeval kella 14–17 kollane hoiatus: äike ja tuul kuni 15 meetrit sekundis. Matk rabas kestab umbes kolm tundi, rabas ei ole varju.",
+    caption: "Nädalavahetuse ilm.",
+    prompts: ["Kuidas ilm pühapäeval muutub?", "Millal oodatakse äikest?", "Mis päeval ja mis kell sina rappa lähed?"],
+  },
+  {
+    id: "a2b1-057-kasuta-2",
+    phase: "transfer",
+    format: "diagram",
+    cast: [],
+    scene: "Kuus kaarti kahes reas heleroheline laigu peal, igaühel kellaaeg vasakus ülanurgas ja number paremal. 1 „10.00” auto parklas ja päike — „parklas: päike ja palav”; 2 „11.00” vaatetorn ja päike — „vaatetornis: pildid”; 3 „11.20” hall pilv ja torn — „läänes tume pilv”; 4 „11.30” (laimiroheline kellaaeg) äikesepilv laimirohelise välguga ja kell — „välk · 12 sekundit”; 5 „11.50” vihmapilv ja laudtee — „vihm · laudtee on libe”; 6 „12.30” auto, vihmapilv ja linnuke — „autos: märjad, aga terved”.",
+    accent: "the time of the first lightning (panel 4) and the lightning",
+    text: ["10.00", "11.00", "11.20", "11.30", "11.50", "12.30", "parklas: päike ja palav", "vaatetornis: pildid", "läänes tume pilv", "välk · 12 sekundit", "vihm · laudtee on libe", "autos: märjad, aga terved"],
+    learningJob: "kirjutada matkagrupile postitus, mis juhtus, kui ilm muutus: jutustada õiges järjekorras kui-, enne kui- ja pärast seda, kui -lausetega (Kui välk lõi, pöörasime tagasi)",
+    place: "057_t_blog",
+    alt: "Pildilugu, kuus pilti. Kell 10 parklas, päike ja palav. Kell 11 vaatetornis, tehakse pilte. Kell 11.20 läänes tume pilv. Kell 11.30 välk, müristab 12 sekundi pärast. Kell 11.50 vihm, laudtee on libe. Kell 12.30 autos, märjad, aga terved.",
+    caption: "Äike rabas.",
+    prompts: ["Mis juhtus kell 11.30?", "Mis juhtus, enne kui nad autosse jõudsid?", "Mida sina teed järgmisel korral teisiti?"],
+  },
+  {
+    id: "a2b1-058-kasuta-2",
+    phase: "transfer",
+    format: "diagram",
+    cast: [],
+    scene: "Suur valge leht laimirohelise päisega „KAHJUTEADE KK-2318 · Kodukaitse kindlustus” heleroheline laigu peal. Vasakul ikoonid: äikesepilv, kuur, mille katusel lebab murdunud puu (sildiga „kuur”). Paremal kuus rida: „Mis juhtus: torm 24.–25. juuni öösel, elektriliin murdus”; „Elektrit ei olnud: 30 tundi” (paksus kirjas); „Kahju 1: puu kukkus kuuri katusele — 450 €”; „Kahju 2: sügavkülmikus läks toit halvaks — 120 €”; „Kahju 3: vee pump läks katki — 260 €”; „Omavastutus: 100 €”. All kast „Kindlustuse otsus:” linnukesega „kuuri katus — hüvitame” ja ristiga „toit ja pump — ei hüvita: „need ei ole tormikahjud””, all rida „Lepingus: elektrikatkestuse kahju hüvitame, kui katkestus kestis üle 24 tunni.”",
+    accent: "the claim header and the lightning",
+    text: ["KAHJUTEADE KK-2318 · Kodukaitse kindlustus", "kuur", "Mis juhtus:", "torm 24.–25. juuni öösel, elektriliin murdus", "Elektrit ei olnud:", "30 tundi", "Kahju 1:", "puu kukkus kuuri katusele — 450 €", "Kahju 2:", "sügavkülmikus läks toit halvaks — 120 €", "Kahju 3:", "vee pump läks katki — 260 €", "Omavastutus:", "100 €", "Kindlustuse otsus:", "kuuri katus — hüvitame", "toit ja pump — ei hüvita: „need ei ole tormikahjud”", "Lepingus: elektrikatkestuse kahju hüvitame, kui katkestus kestis üle 24 tunni."],
+    learningJob: "helistada kindlustusse ja selgitada põhjuse ja tagajärjega (tormi tõttu, kuna, seepärast, nii et), miks ka toit ja pump tuleb hüvitada: katkestus kestis 30 tundi, lepingu järgi üle 24 tunni",
+    place: "058_t_call",
+    alt: "Kahjuteade KK-2318, Kodukaitse kindlustus. Mis juhtus: torm 24.–25. juuni öösel, elektriliin murdus. Elektrit ei olnud 30 tundi. Kahju 1: puu kukkus kuuri katusele, 450 eurot. Kahju 2: sügavkülmikus läks toit halvaks, 120 eurot. Kahju 3: vee pump läks katki, 260 eurot. Omavastutus 100 eurot. Kindlustuse otsus: kuuri katus hüvitatakse; toitu ja pumpa ei hüvitata, sest need ei ole tormikahjud. Lepingus: elektrikatkestuse kahju hüvitatakse, kui katkestus kestis üle 24 tunni.",
+    caption: "Kahjuteade.",
+    prompts: ["Mis tormis juhtus ja mis oli selle tagajärg?", "Mida kindlustus ei hüvita ja miks?", "Mida ütleb leping elektrikatkestuse kohta?"],
+  },
+  {
+    id: "a2b1-059-kasuta-2",
+    phase: "transfer",
+    format: "comparison",
+    cast: [],
+    scene: "Kolm kaarti kõrvuti heleroheline laigu peal ja paremal klaaspurk laimirohelise kaanega, purgil „300 €”, all „ühistu raha / suveks”. Kaardid: „LEIDA, 3. korter” — kompostikasti ja taime ikoon, „kompost + 2 peenart”, „120 €”, „+ muld peenardele”, „− võib suvel haiseda”; „JOOSEP, 12. korter” — jalgratas, „rattahoidja”, „250 €”, „+ trepikoda on vaba”, „− kallis”; „TIINA, 7. korter” — pink, „kaks pinki”, „180 €”, „+ vanemad saavad istuda”, „− lilli peab kastma”. All kast „Veel: jagamisriiul trepikotta 40 € · talgupäeval kõik ise 0 €” ja „Koosolek neljapäeval kell 18 · Kase 12 korteriühistu”.",
+    accent: "the lid of the 300-euro jar",
+    text: ["LEIDA, 3. korter", "kompost + 2 peenart", "120 €", "+ muld peenardele", "− võib suvel haiseda", "JOOSEP, 12. korter", "rattahoidja", "250 €", "+ trepikoda on vaba", "− kallis", "TIINA, 7. korter", "kaks pinki", "180 €", "+ vanemad saavad istuda", "− lilli peab kastma", "300 €", "ühistu raha", "suveks", "Veel: jagamisriiul trepikotta 40 € · talgupäeval kõik ise 0 €", "Koosolek neljapäeval kell 18 · Kase 12 korteriühistu"],
+    learningJob: "leppida koosolekul kokku üks plaan, mis mahub 300 eurosse: öelda arvamus, põhjus ja näide, nõustuda ja kahelda viisakalt (nõustun ettepanekuga, loobume lilledest)",
+    place: "059_t_meeting",
+    alt: "Kolm ettepanekut ja ühistu raha 300 eurot. Leida: kompostikast ja kaks peenart, 120 eurot, pluss muld peenardele, miinus võib suvel haiseda. Joosep: rattahoidja, 250 eurot, pluss trepikoda on vaba, miinus kallis. Tiina: kaks pinki, 180 eurot, pluss vanemad saavad istuda, miinus lilli peab kastma. Veel: jagamisriiul trepikotta 40 eurot, talgupäeval kõik ise 0 eurot. Koosolek neljapäeval kell 18, Kase 12 korteriühistu.",
+    caption: "Kolm ettepanekut.",
+    prompts: ["Mida iga naaber pakub ja kui palju see maksab?", "Millised kaks ettepanekut mahuvad koos 300 eurosse?", "Mida sina pakud ja miks?"],
+  },
+];
+
+// The pilot's briefs (design v3 „stations”, 2026-11-09): cast scenes, never drawn — no image files.
+export const RETIRED = [
   {
     id: 'a2b1-056-kasuta-1',
     phase: 'transfer',
