@@ -273,3 +273,17 @@ describe('„Kuu monoloog” in the task list', () => {
     expect(a1Repo.listByStudent).not.toHaveBeenCalled();
   });
 });
+
+describe('the same sheet given again (audit 2026-11-24, finding 05)', () => {
+  it('one card, the newest open copy; the older ones folded under „+N varasemat” and still openable', async () => {
+    const copy = (id, daysAgo) => sheet(id, { lessonId: 'a2-07', lessonTitle: 'Tee küsimine ja juhatamine', title: 'Tee küsimine ja juhatamine · Harjuta', assignedAt: stamp(-daysAgo) });
+    const data = repositories({ sheets: [copy('first', 6), copy('second', 4), copy('third', 1)] });
+    renderPage(asStudent, data);
+    const path = (await screen.findByRole('heading', { name: /Sinu tee/ })).closest('section');
+    expect(within(path).getAllByRole('article')).toHaveLength(1);
+    const fold = within(path).getByText(/\+2 varasemat/);
+    fireEvent.click(fold);
+    const earlier = fold.closest('details');
+    expect(within(earlier).getAllByRole('button', { name: 'Ava' })).toHaveLength(2);
+  });
+});

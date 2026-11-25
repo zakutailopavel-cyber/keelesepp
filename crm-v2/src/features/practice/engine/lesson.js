@@ -6,9 +6,12 @@
 //   mix        2–3 item types, never three of one type in a row
 //   order      easy → hard (difficultyOf); a transformation is built from tiles in the first half, typed later
 //   no dupes   one sentence once per lesson
+//   pictures   up to 3 picture items (pictures.js) when the learner's words / module have word pictures: „Mis on
+//              pildil?” with options, „Kuula ja vali pilt” where the word has a recording, „Mis on pildil?” typed
 import { createSeededRandom } from '../../worksheet-generator/engine/seed.js';
 import { normalizeAnswer } from './compare.js';
 import { fullSentence, tilesOf } from './items.js';
+import { pictureItem } from './pictures.js';
 
 export const LESSON_MIN = 8;
 export const LESSON_MAX = 12;
@@ -16,13 +19,15 @@ export const LESSON_SIZE = 10;
 const SPACED_SHARE = 0.3;
 const LISTEN_MAX = 2;
 export const LISTEN_TILES = 10;
+export const PICTURE_MAX = 3;
 
-const BASE = { connector: 1, form: 1.6, build: 2, listen: 2.8, transform: 3 };
+const BASE = { picture: 0.5, hear: 0.8, connector: 1, form: 1.6, build: 2, listen: 2.8, transform: 3 };
 // easy → hard: type and input, sentence length, lesson phase (Avasta < Harjuta < Kasuta), error correction
 export function difficultyOf(item, input = item.input) {
   let d = BASE[item.type] ?? 2;
   if (item.type === 'form' && item.options?.length) d -= 0.6;
   if (item.type === 'transform' && input === 'tiles') d -= 0.8;
+  if (item.type === 'picture' && input === 'type') d += 1.3;
   const words = tilesOf(fullSentence(item)).length;
   if (words > 8) d += 0.4;
   if (words > 13) d += 0.6;
@@ -69,11 +74,30 @@ const weakPoints = (history) => {
   return Object.keys(wrong).sort((a, b) => wrong[b] - wrong[a]);
 };
 
+// Picture items for the lesson: the first picks a word, the second is heard where `listenable` allows it (a stored
+// recording of the word), the third is typed. Words the learner saw recently are left out.
+export function pictureItems(pictures = [], { listenable = () => false, recent = new Set(), seed = 'lesson', max = PICTURE_MAX } = {}) {
+  const random = createSeededRandom(`${seed}|pictures`);
+  const words = shuffle(pictures.filter((entry) => !recent.has(normalizeAnswer(entry.word))), random).slice(0, max);
+  return words.map((entry, i) => {
+    if (i === 1) {
+      const heard = pictureItem(entry, { kind: 'hear', seed });
+      if (listenable(heard)) return heard;
+    }
+    return pictureItem(entry, { kind: 'picture', input: i === 2 ? 'type' : 'options', seed });
+  });
+}
+
 // pool: extracted items (extract.js). history (optional, phase 3 stores it): { wrong: { grammarId: n }, recent: [sentenceKey] }
-export function buildLesson({ pool = [], level = '', moduleId = '', grammarFocus = '', studentHistory = {}, size = LESSON_SIZE, canListen = false, seed = 'lesson' } = {}) {
+// pictures: pictureWordsFor() (pictures.js) — up to PICTURE_MAX of the lesson's places become picture items
+export function buildLesson({ pool = [], level = '', moduleId = '', grammarFocus = '', studentHistory = {}, size = LESSON_SIZE, canListen = false, pictures = [], seed = 'lesson' } = {}) {
   const random = createSeededRandom(`${seed}|${level}|${moduleId}|${grammarFocus}`);
-  const target = Math.max(LESSON_MIN, Math.min(LESSON_MAX, size));
+  const total = Math.max(LESSON_MIN, Math.min(LESSON_MAX, size));
   const recent = new Set(studentHistory?.recent || []);
+  // canListen: true / false, or (item) => boolean — a stored recording of that sentence, or the browser's Estonian voice
+  const listenable = typeof canListen === 'function' ? canListen : () => Boolean(canListen);
+  const picked = pictureItems(pictures, { listenable, recent, seed: `${seed}|${moduleId}` });
+  const target = total - picked.length;
   const all = pool.filter((it) => (!level || it.level === level) && !recent.has(sentenceKey(it)));
   const moduleIndex = moduleId ? all.find((it) => it.moduleId === moduleId)?.moduleIndex ?? Infinity : Infinity;
 
@@ -133,9 +157,7 @@ export function buildLesson({ pool = [], level = '', moduleId = '', grammarFocus
   // how each item is answered: transformations alternate tiles / typed (tiles first = easier), a few builds are heard
   let transforms = 0;
   let listens = 0;
-  // canListen: true / false, or (item) => boolean — a stored recording of that sentence, or the browser's Estonian voice
-  const listenable = typeof canListen === 'function' ? canListen : () => Boolean(canListen);
-  const shaped = chosen.map((it) => {
+  const shaped = [...picked.map((it) => ({ ...it, spaced: false })), ...chosen].map((it) => {
     let next = { ...it };
     if (it.type === 'transform') {
       next.input = it.orders?.length && transforms % 2 === 0 ? 'tiles' : 'type';

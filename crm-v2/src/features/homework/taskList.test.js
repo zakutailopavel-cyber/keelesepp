@@ -215,3 +215,30 @@ describe('a lesson homework given with a worksheet page (2026-11-04, Demjan)', (
     expect(withBoardSheet(lost, [sheet])).toBe(lost);
   });
 });
+
+describe('foldRepeats: the same sheet given again (audit 2026-11-24, finding 05)', () => {
+  const copy = (id, assignedAt, extra = {}) => ({ id, studentId: 's1', lessonId: 'a2-07', lessonTitle: 'Tee küsimine ja juhatamine', phase: 'practice', status: 'new', answers: {}, assignedAt, source: 'learning_library', ...extra });
+  it('shows one card per student + lesson + phase, newest open first, the older ones folded', () => {
+    const tasks = mergeTasks({ assignments: [copy('a', '2026-11-01T10:00:00Z'), copy('b', '2026-11-10T10:00:00Z'), copy('c', '2026-11-05T10:00:00Z')] });
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].sheet.id).toBe('b');
+    expect(tasks[0].earlier.map((task) => task.sheet.id)).toEqual(['c', 'a']);
+  });
+  it('a copy already begun leads even when older', () => {
+    const tasks = mergeTasks({ assignments: [copy('old', '2026-11-01T10:00:00Z', { answers: { q1: 'x' } }), copy('new', '2026-11-10T10:00:00Z')] });
+    expect(tasks.map((task) => task.sheet.id)).toEqual(['old']);
+    expect(tasks[0].earlier[0].sheet.id).toBe('new');
+  });
+  it('keeps done copies, other phases and other students apart; nothing is folded without a lesson id', () => {
+    const tasks = mergeTasks({ assignments: [
+      copy('open', '2026-11-10T10:00:00Z'),
+      copy('done', '2026-11-01T10:00:00Z', { status: 'done', completedAt: '2026-11-02T10:00:00Z' }),
+      copy('other-phase', '2026-11-01T10:00:00Z', { phase: 'transfer' }),
+      copy('other-student', '2026-11-01T10:00:00Z', { studentId: 's2' }),
+      copy('free-1', '2026-11-01T10:00:00Z', { lessonId: '' }),
+      copy('free-2', '2026-11-02T10:00:00Z', { lessonId: '' }),
+    ] });
+    expect(tasks.map((task) => task.sheet.id).sort()).toEqual(['done', 'free-1', 'free-2', 'open', 'other-phase', 'other-student']);
+    expect(tasks.every((task) => !task.earlier)).toBe(true);
+  });
+});

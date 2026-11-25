@@ -13,6 +13,25 @@ and stored results. Code: `crm-v2/src/features/practice/` (engine in `engine/`, 
 | `form` | Vali õige vorm | course options (cloze / bank / choice) or typed, base form shown | `gaps` with `(base)`, `formtext`, `wordforms`, `cloze` with forms of one word, grammar `choice` |
 | `connector` | Vali sidesõna | options or typed | gaps / cloze / choice whose answer is a linking word |
 | `listen` | Kuula ja pane kokku | a `build` item heard: the stored Neurokõne file of the sentence, else speechSynthesis et-EE; slow replay (0.75×) | made by the lesson builder when `canListen` allows that item (a stored file — `vocabulary/wordAudio.js`, docs/VOCABULARY_SRS.md „Sõnade heli” — or a browser Estonian voice), otherwise skipped |
+| `picture` | Mis on pildil? | a word picture: 4 words (options), or typed on a harder step | made by the lesson builder from word pictures (`engine/pictures.js`) |
+| `hear` | Kuula ja vali pilt | the word plays (stored Neurokõne file only), pick its picture of 4 | as `picture`, only when `canListen(item)` allows it |
+
+### Picture items (`engine/pictures.js`, 2026-11-25)
+
+- Pictures = the A2 word art (`worksheet-generator/art/words/a2.js`); a picture drawn under two words (`SAME_PICTURE`,
+  same as `art/wordStrips.js`) keeps one word. Wrong options: other pictures of the same topic (the art's lesson group
+  = one A2 module) first. Nothing is drawn or invented.
+- Look-alikes (`CONFUSABLE`, checked by eye on all 156 pictures): groups such as köha / nohu (two tissue boxes),
+  odav / kallis / hind (price tags), the calendar pictures, the „girl at a desk” verbs. Two pictures of one group never
+  stand in one item (`looksAlike`); a redrawn picture leaves its group.
+- Source (`pictureWordsFor`): the learner's own words that have a picture (meaning = his translation, `wordId` so the
+  answer moves the card) and the picture words of his current module's lessons (meaning from `vocabulary/lessonWords`).
+- `buildLesson({ pictures })`: up to `PICTURE_MAX` = 3 of the lesson's places: pick → hear (if the word has a recording)
+  → typed; easiest first. No pictures → the lesson is exactly as before. `loadStudentPractice` asks for 2 more places
+  when there are pictures, and makes a picture-only lesson from his words when no course lesson loads.
+- Course sentence items get `scene` (the lesson's textbook scene, `art/textbookArt.js visualsFor`) shown above them;
+  hidden on screens lower than 700 px.
+- After a picture item the feedback shows the picture, the word, its meaning and a play button (plays once by itself).
 
 `checkItem(item, response)` → `{ verdict: 'correct' | 'almost' | 'wrong', expected, letters }`.
 
@@ -101,7 +120,7 @@ grammarPoints, missed, minutes }`.
 - `AnswerInputs.jsx` (`OptionChoice`,
   `TypedAnswer` with õ ä ö ü š ž buttons), `PracticeItem.jsx` (prompt, gap sentence, listen button).
 - `practice.css` — app tokens only (dark-theme tokens with light fallbacks), 44 px+ targets, reduced motion.
-- `PracticePreviewPage.jsx` — „Harjutuste eelvaade”, staff route `/library/harjutused` (`routes.jsx`: one lazy import +
+- `PracticePreviewPage.jsx` — „Harjutuste eelvaade” (select „Pildiülesanded”: module words / all A2 pictures / none), staff route `/library/harjutused` (`routes.jsx`: one lazy import +
   one route): course, module, grammar point, size, learner language; coverage panel. Loads one course on demand
   (`courseLoaders.js`). No menu link yet.
 
