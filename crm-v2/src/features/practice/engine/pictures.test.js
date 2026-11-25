@@ -3,7 +3,7 @@ import A2_WORDS from '../../worksheet-generator/art/words/a2.js';
 import { SAME_PICTURE as STRIP_SAME_PICTURE } from '../../worksheet-generator/art/wordStrips.js';
 import { checkItem, fullSentence, inputOf, TYPE_LABELS } from './items.js';
 import { buildLesson, pictureItems, PICTURE_MAX } from './lesson.js';
-import { PICTURE_WORDS, SAME_PICTURE, distractorsOf, pictureItem, pictureOf, pictureWordsFor } from './pictures.js';
+import { CONFUSABLE, PICTURE_WORDS, SAME_PICTURE, distractorsOf, looksAlike, pictureItem, pictureOf, pictureWordsFor } from './pictures.js';
 import { createSeededRandom } from '../../worksheet-generator/engine/seed.js';
 
 const entry = (word) => ({ ...pictureOf(word), meaning: '', wordId: '' });
@@ -34,6 +34,27 @@ describe('picture words', () => {
     const wrong = distractorsOf(entry('leib'), createSeededRandom('x'));
     expect(wrong).toHaveLength(3);
     expect(wrong.every((pic) => pic.topic === 'a2-026' && pic.word !== 'leib')).toBe(true);
+  });
+});
+
+describe('look-alike pictures', () => {
+  it('every id in CONFUSABLE is a word picture', () => {
+    const ids = new Set(A2_WORDS.map((pic) => pic.id));
+    expect(CONFUSABLE.flat().filter((id) => !ids.has(id))).toEqual([]);
+    expect(looksAlike('koha', 'nohu')).toBe(true);
+    expect(looksAlike('odav', 'kallis')).toBe(true);
+    expect(looksAlike('leib', 'kohv')).toBe(false);
+  });
+
+  it('no item ever shows two pictures of one look-alike group (every word, both kinds, several seeds)', () => {
+    PICTURE_WORDS.forEach((pic) => ['picture', 'hear'].forEach((kind) => [1, 2, 3].forEach((seed) => {
+      const item = pictureItem({ ...pic, meaning: '' }, { kind, seed });
+      const ids = item.choices.map((choice) => pictureOf(choice.word).id);
+      expect(ids).toHaveLength(4);
+      ids.forEach((a, i) => ids.slice(i + 1).forEach((b) => expect(looksAlike(a, b), `${kind} ${pic.id}: ${a} / ${b}`).toBe(false)));
+    })));
+    const koha = pictureItem(entry('köha'), { kind: 'hear', seed: 4 });
+    expect(koha.options).not.toContain('nohu');
   });
 });
 

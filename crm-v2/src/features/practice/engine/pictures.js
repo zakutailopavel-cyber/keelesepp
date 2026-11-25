@@ -17,6 +17,49 @@ export const PICTURE_OPTIONS = 4;
 // or one picture would stand for two answers
 export const SAME_PICTURE = Object.freeze({ luhike: 'pikk', bussipeatus: 'peatus' });
 
+// Look-alike pictures (checked by eye on all 156, 2026-11-25): the same object drawn twice (köha / nohu are both tissue
+// boxes), opposites drawn with the same object (odav / kallis price tags), one scene type for several words (a calendar,
+// a girl at a desk, a form). Two pictures of one group never stand in the same item. Ids = art/words/a2.js ids; when a
+// picture is redrawn so it no longer looks like the others, take it out of its group.
+export const CONFUSABLE = Object.freeze([
+  ['koha', 'nohu'],
+  ['odav', 'kallis', 'hind', 'allahindlus', 'soodustus'],
+  ['sunniaeg', 'kuupaev', 'nadal', 'broneering', 'kellaaeg', 'kinnitama', 'muutma', 'aeg'],
+  ['tass', 'kohv', 'tee'],
+  ['piim', 'liiter', 'klaas'],
+  ['avaldus', 'vorm', 'taitma', 'allkiri', 'esitama'],
+  ['nimi', 'isikukood'],
+  ['aadress', 'elukoht', 'elama'],
+  ['minema', 'tulema', 'elama', 'sissepaas', 'valjapaas'],
+  ['kaart', 'marsruut', 'asuma'],
+  ['apteek', 'polikliinik'],
+  ['ema', 'ode', 'sober', 'abikaasa', 'vanem', 'isa', 'vend', 'tutvuma'],
+  ['oppima', 'opilane', 'kordama', 'alustama', 'lopetama', 'tootama'],
+  ['hommik', 'arkama', 'paev'],
+  ['puhkama', 'magama', 'rahulik', 'vasimus'],
+  ['jalutama', 'jalutamine', 'paev', 'kohtuma', 'nadalavahetus', 'liikuma', 'aktiivne'],
+  ['ohtu', 'lugemine', 'raamat'],
+  ['tuba', 'diivan'],
+  ['tool', 'teenus'],
+  ['riided', 'osakond'],
+  ['tagastus', 'vahetus', 'tellima', 'maksma'],
+  ['sobima', 'proovima'],
+  ['koogivili', 'turg'],
+  ['kino', 'kutsuma'],
+  ['kontsert', 'uritus'],
+  ['pikk', 'mootma'],
+  ['valutama', 'koht', 'selg'],
+  ['pea', 'palavik', 'kurk'],
+  ['teenindaja', 'vastuvott'],
+]);
+const LOOK_ALIKE = new Map();
+CONFUSABLE.forEach((group) => group.forEach((id) => {
+  const set = LOOK_ALIKE.get(id) || new Set();
+  group.forEach((other) => { if (other !== id) set.add(other); });
+  LOOK_ALIKE.set(id, set);
+}));
+export const looksAlike = (a, b) => a === b || SAME_PICTURE[a] === b || SAME_PICTURE[b] === a || Boolean(LOOK_ALIKE.get(a)?.has(b));
+
 const topicOf = (entry) => String(entry.lessonIds?.[0] || '');
 
 export const PICTURE_WORDS = Object.freeze(A2_WORDS
@@ -53,13 +96,19 @@ function shuffle(list, random) {
   return out;
 }
 
-// 3 other pictures: the same topic first, then the rest; never the answer's own picture or word
+// 3 other pictures: the same topic first, then the rest; never the answer's own picture or word, and no two pictures of
+// the item that look alike (CONFUSABLE)
 export function distractorsOf(entry, random, count = PICTURE_OPTIONS - 1) {
   const key = normalizeAnswer(entry.word);
   const others = PICTURE_WORDS.filter((other) => other.id !== entry.id && normalizeAnswer(other.word) !== key);
   const same = shuffle(others.filter((other) => other.topic === entry.topic), random);
   const rest = shuffle(others.filter((other) => other.topic !== entry.topic), random);
-  return [...same, ...rest].slice(0, count);
+  const picked = [];
+  for (const other of [...same, ...rest]) {
+    if (picked.length >= count) break;
+    if ([entry, ...picked].every((shown) => !looksAlike(shown.id, other.id))) picked.push(other);
+  }
+  return picked;
 }
 
 /**

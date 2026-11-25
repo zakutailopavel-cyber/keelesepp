@@ -21,6 +21,9 @@ and stored results. Code: `crm-v2/src/features/practice/` (engine in `engine/`, 
 - Pictures = the A2 word art (`worksheet-generator/art/words/a2.js`); a picture drawn under two words (`SAME_PICTURE`,
   same as `art/wordStrips.js`) keeps one word. Wrong options: other pictures of the same topic (the art's lesson group
   = one A2 module) first. Nothing is drawn or invented.
+- Look-alikes (`CONFUSABLE`, checked by eye on all 156 pictures): groups such as köha / nohu (two tissue boxes),
+  odav / kallis / hind (price tags), the calendar pictures, the „girl at a desk” verbs. Two pictures of one group never
+  stand in one item (`looksAlike`); a redrawn picture leaves its group.
 - Source (`pictureWordsFor`): the learner's own words that have a picture (meaning = his translation, `wordId` so the
   answer moves the card) and the picture words of his current module's lessons (meaning from `vocabulary/lessonWords`).
 - `buildLesson({ pictures })`: up to `PICTURE_MAX` = 3 of the lesson's places: pick → hear (if the word has a recording)
@@ -117,7 +120,7 @@ grammarPoints, missed, minutes }`.
 - `AnswerInputs.jsx` (`OptionChoice`,
   `TypedAnswer` with õ ä ö ü š ž buttons), `PracticeItem.jsx` (prompt, gap sentence, listen button).
 - `practice.css` — app tokens only (dark-theme tokens with light fallbacks), 44 px+ targets, reduced motion.
-- `PracticePreviewPage.jsx` — „Harjutuste eelvaade”, staff route `/library/harjutused` (`routes.jsx`: one lazy import +
+- `PracticePreviewPage.jsx` — „Harjutuste eelvaade” (select „Pildiülesanded”: module words / all A2 pictures / none), staff route `/library/harjutused` (`routes.jsx`: one lazy import +
   one route): course, module, grammar point, size, learner language; coverage panel. Loads one course on demand
   (`courseLoaders.js`). No menu link yet.
 
