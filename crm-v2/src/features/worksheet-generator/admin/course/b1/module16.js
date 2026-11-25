@@ -273,7 +273,7 @@ export const LESSONS = withShapes({
     title: 'Kodus või kontoris?',
     canDo: 'Ma loen artiklit ja kolleegide arvamusi kaugtöö kohta, võrdlen kolme võimalust ja kirjutan juhatajale 90–110-sõnalise ettepaneku.',
     discover: [
-      B.review('077_d_review', [['Mis kell saavad Kase kooli lapsed märtsist oma telefonid kapist tagasi?', 'a2b1-076'], ['Miks olid Markus ja Kristjan suvel kontoris tülis?', 'a2b1-064'], 'Kas sina töötad või õpid meelsamini kodus või kodust väljas?']),
+      B.review('077_d_review', [['Mis kell saavad Kase kooli lapsed märtsist oma telefonid kapist tagasi?', 'a2b1-076'], ['Mis oli kontoris Kerli ja Rasmuse mure?', 'a2b1-064'], 'Kas sina töötad või õpid meelsamini kodus või kodust väljas?']),
       B.text('077_d_hook', 'Kaks varianti', 'On veebruari algus. Tuul Logistika juhataja Liis tahab märtsist uut kaugtöö korda ja küsib töötajate arvamust. Firma infolehes on artikkel küsitluse tulemustest. Täna loed, võrdled ja kirjutad Liisile oma ettepaneku.'),
       teach(tag(B.reading('077_d_news', 'Eksaminurk: infolehe artikkel (Harno B1 lugemine 2)', 'Loe artiklit firma infolehes. Vasta küsimustele oma sõnadega; ära kopeeri tervet lauset tekstist.', 'Kodus või kontoris? Mida näitas meie küsitlus', [
         'Jaanuaris küsis juhataja Liis kõigilt töötajatelt, kuidas nad tahavad edaspidi töötada. Vastas 24 inimest kahekümne kaheksast. Praegu on igaühel üks kodune tööpäev nädalas, aga märtsist tahab Liis kehtestada uue korra.',
@@ -436,7 +436,7 @@ export const LESSONS = withShapes({
     title: 'Seepärast ja näiteks: arvamuslugu',
     canDo: 'Ma saan kuuldust aru argumentidest linna ja hoovi teemal ning kirjutan maja infolehele arvamusloo, kus on kaks argumenti põhjuse, näite ja järeldusega.',
     discover: [
-      B.review('078_d_review', [['Millise variandi pakkus Sofia Liisile kaugtöö jaoks?', 'a2b1-077'], ['Kes juhtis suvel Männi 8 maja remonti?', 'a2b1-061'], 'Mis sinu kodu ümbruses kõige rohkem puudu on?']),
+      B.review('078_d_review', [['Millise variandi pakkus Sofia Liisile kaugtöö jaoks?', 'a2b1-077'], ['Mida soovitas nõustaja Marjule, kui naaber palub iga päev abi?', 'a2b1-061'], 'Mis sinu kodu ümbruses kõige rohkem puudu on?']),
       B.text('078_d_hook', 'Hoov ja linn', 'On veebruar. Jaani maja Männi 8 hoovis on vana liivakast ja kuus parkimiskohta, aga autosid on majas kümme. Korteriühistu esimees Urmas kutsub elanikud 16. veebruaril koosolekule. Samal ajal räägitakse raadios linnaosa kaasavast eelarvest ja kiirusest kesklinnas. Täna kuulad argumente ja kirjutad oma arvamusloo.'),
       tag(B.vocab('078_d_vocab', 'Tunni sõnad.', ['põhjendama — обосновывать', 'näiteks — например', 'järeldus — вывод', 'seepärast — поэтому', 'seega — итак / следовательно', 'hoov — двор', 'mänguväljak — детская площадка', 'ohutu — безопасный', 'liiklus — движение (транспорт)', 'kiirus — скорость', 'hääletama — голосовать', 'linnaosa — район города']), { topic: ['hoov'] }),
       tag(B.listening('078_d_news', 'Linnaosa uudised.', 'Kuula linnaosa raadiouudist kaasavast eelarvest kaks korda. Kirjuta igasse lünka arv, kuupäev või summa.', [

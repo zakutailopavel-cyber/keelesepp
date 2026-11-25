@@ -64,7 +64,7 @@ export const LESSONS = withShapes({
     title: 'Kuidas saun valmis sai',
     canDo: 'Ma loen pere lugu, saan aru, mis sai valmis ja mis jäi pooleli, ning kirjutan umbes 100-sõnalise jutu sellest, kuidas midagi viimasel hetkel valmis sai.',
     discover: [
-      B.review('066_d_review', [['Milles leppisid Markus ja Kristjan kolmapäeva koosolekul kokku?', 'a2b1-064'], ['Mis juhtus Mukiga äikese ajal rabas?', 'a2b1-057'], 'Kas sinu peres räägitakse vanu lugusid? Kes neid räägib?']),
+      B.review('066_d_review', [['Milles lepiti kontori koosolekul müra pärast kokku?', 'a2b1-064'], ['Mis juhtus Mukiga äikese ajal rabas?', 'a2b1-057'], 'Kas sinu peres räägitakse vanu lugusid? Kes neid räägib?']),
       B.topicOpener('066_d_open', 'Teema avaleht: 20. sajandi Eesti inimeste lugudes', [
         'Eesti 20. sajandi ajalugu on ka paljude perede ajalugu. 24. veebruaril 1918 kuulutati välja Eesti Vabariik. 1940. aastal okupeeris Eesti Nõukogude Liit ja aastatel 1941–1944 oli Eesti Saksa okupatsiooni all. Paljude inimeste elu muutus järsku: 14. juunil 1941 viidi Siberisse umbes 10 000 inimest ja 25. märtsil 1949 üle 20 000 inimese. 1944. aasta sügisel põgenes läände, peamiselt Rootsi ja Saksamaale, 70 000 – 80 000 inimest.',
         'Pärast sõda tuli Eestisse elama ja tööle palju inimesi teistest Nõukogude Liidu vabariikidest. Paljud neist asusid elama Tallinnasse ja Kirde-Eesti tööstuslinnadesse. 1934. aasta rahvaloendusel oli eestlasi rahvastikust 88 %, 1989. aasta rahvaloendusel 61,5 %. Seepärast räägivad Eesti perede lood väga erinevatest kohtadest: Siberist ja Rootsist, Venemaast, Ukrainast ja Valgevenest.',
